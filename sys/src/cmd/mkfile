@@ -1,50 +1,127 @@
 </$objtype/mkfile
 
-TARG=`{ls *.[cy] | sed '/^init$/d; s/..$//'}
-OFILES=
-YFILES=bc.y
+TARG=`{ls *.[cyl] | sed 's/..$//' }
+YFILES=units.y bc.y
+HFILES=/$objtype/include/u.h /sys/include/libc.h /sys/include/bio.h
 BIN=/$objtype/bin
-</sys/src/cmd/mkmany
+PROGS=${TARG:%=$O.%}
+CFLAGS=-w
+LDFLAGS=
+YFLAGS=-d
 
-#NOTSYS=eqn|lp|map|pic|proof|tbl|tex|troff|weather
-NOTSYS=map|tex|weather
-BUGGERED=reduce|postscript|unix|psi|ua|uc|ul
+#NOTSYS=eqn|lp|map|pic|proof|tbl|tex|troff|weather|sml|dup
+NOTSYS=weather|dup|411|sml			#for distributions
+BUGGERED=dwb|lbp|unix|psi|ua|uc|ul
 NOMK=$NOTSYS|$BUGGERED
 
 DIRS=`{ls -l | sed '/^d/!d; s/.* //; /^('$NOMK')$/d'}
 
+
+none:VQ:
+	echo usage: mk all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
+
+all:V:	$PROGS
+
+^([$OS])\.(.*):R:	\2.\1
+	$stem1^l $LDFLAGS -o $target $stem2.$stem1
+
+.*\.[$OS]:R:	$HFILES
+
+ar\.[$OS]:R:	/sys/include/ar.h
+btrace\.[$OS]:R:	/sys/include/libg.h /sys/include/fcall.h
+cpu\.[$OS]:R:	/sys/include/auth.h
+ed\.[$OS]:R:	/sys/include/regexp.h
+file\.[$OS]:R:	/sys/include/ctype.h /sys/include/mach.h
+fmt\.[$OS]:R:	/sys/include/ctype.h
+grep\.[$OS]:R:	/sys/include/regexp.h
+import\.[$OS]:R:	/sys/include/fcall.h /sys/include/auth.h
+init\.[$OS]:R:	/sys/include/auth.h
+kprof\.[$OS]:R:	/sys/include/mach.h
+login\.[$OS]:R:	/sys/include/auth.h
+ls\.[$OS]:R:	/sys/include/fcall.h
+mc\.[$OS]:R:	/sys/include/libg.h
+mugs\.[$OS]:R:	/sys/include/libg.h /sys/include/fb.h
+netstat\.[$OS]:R:	/sys/include/ip.h /sys/include/ndb.h
+nm\.[$OS]:R:	/sys/include/ar.h /sys/include/mach.h
+passwd\.[$OS]:R:	/sys/include/auth.h
+pr\.[$OS]:R:	/sys/include/ctype.h
+prof\.[$OS]:R:	/sys/include/mach.h
+ramfs\.[$OS]:R:	/sys/include/fcall.h
+rl\.[$OS]:R:	/sys/include/ar.h /sys/include/mach.h
+rx\.[$OS]:R:	/sys/include/auth.h
+sed\.[$OS]:R:	/sys/include/regexp.h
+showimage\.[$OS]:R:	/sys/include/libg.h
+size\.[$OS]:R:	/sys/include/mach.h
+split\.[$OS]:R:	/sys/include/regexp.h
+srv\.[$OS]:R:	/sys/include/fcall.h /sys/include/ndb.h
+stats\.[$OS]:R:	/sys/include/libg.h
+strip\.[$OS]:R:	/sys/include/a.out.h
+tail\.[$OS]:R:	/sys/include/ctype.h
+tar\.[$OS]:R:	/sys/include/fcall.h
+tweak\.[$OS]:R:	/sys/include/libg.h
+uniq\.[$OS]:R:	/sys/include/ctype.h
+yacc\.[$OS]:R:	/sys/include/ctype.h
+
+(.*)\.([$OS])'$':R:	\1.c
+	$stem2^c $CFLAGS $stem1.c
+
+&:n:	$O.&
+	mv $O.$stem $stem
+
+%.tab.h %.tab.c:	%.y
+	$YACC $YFLAGS -s $stem $prereq
+
+%.install:V:	/tmp/cp $BIN/%
+	rm -f /tmp/cp
+
+%.install2:V:	$BIN/%
+
+$BIN/%:	$O.%
+	/tmp/cp $prereq $BIN/$stem
+
+/tmp/cp:
+	cp /bin/cp /tmp/cp
+
+installall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS install
+
 clean:V:
-	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG [$OS].init init bc.c
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG bc.c bc.tab.h units.tab.h units.c
 	for(i in $DIRS) @{
 		cd $i
 		echo mk $i
 		mk $MKFLAGS clean
 	}
 nuke:V:
-	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG [$OS].init init bc.c
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG bc.c bc.tab.h units.tab.h units.c
 	for(i in $DIRS) @{
 		cd $i
 		echo mk $i
 		mk $MKFLAGS nuke
 	}
 
-%.installall:V:
+%.installall:	%.c
+	cp /bin/cp /tmp/cp
 	for (objtype in $CPUS) {
 		rfork e
-		mk $stem.install &
+		mk $stem.install2 &
 	}
 	wait
+	rm -f $stem.[$OS] y.tab.? $stem.tab.? y.debug y.output [$OS].$stem bc.c bc.tab.h units.c
+	rm -f /tmp/cp
 
 install:V:
 	mk $MKFLAGS files
 	mk $MKFLAGS directories
-	mk $MKFLAGS clean
 
 files:V:
-	mk $MKFLAGS $TARG.install
+	cp /bin/cp /tmp/cp
+	mk $MKFLAGS $TARG.install2
+	rm -f /tmp/cp
 
 cleanfiles:V:
-	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG [$OS].init init bc.c
+	rm -f [$OS].out *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG bc.c bc.tab.h units.tab.h units.c
 
 directories:V:
 	for(i in $DIRS) @{
@@ -53,23 +130,23 @@ directories:V:
 		mk $MKFLAGS install
 	}
 
-bc.c:	y.tab.c
+bc.c:	bc.tab.c
 	mv $prereq $target
 
-$O.%:	%.$O $OFILES $LIB
-	$LD $LDFLAGS -o $target $stem.$O
-	rm $stem.$O
-
-$BIN/%:	$O.%
+units.c:	units.tab.c
 	mv $prereq $target
 
 $BIN/init:	$O.init
-	mv $prereq /$objtype/init
+	cp $prereq /$objtype/init
 
-$BIN/pull:	$O.pull
-	cp $prereq $BIN/pull
-	mv $prereq $BIN/Rpull
+(.*)\.[vk8]'$':R:	\1.l
+	$ALEF $CFLAGS $stem1.l
 
-$BIN/push:	$O.push
-	cp $prereq $BIN/push
-	mv $prereq $BIN/Rpush
+(.*)\.[2z]'$':RQ:	\1.l
+	;
+
+2.md5sum:Q:	$OFILES $LIB
+	echo 'no alef compiler for 68020'
+
+/68020/bin/md5sum:Q:	2.md5sum
+	;

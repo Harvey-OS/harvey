@@ -22,13 +22,12 @@ ADDR	dot;
 WORD	dotinc;
 WORD	adrval, cntval, loopcnt;
 int	adrflg, cntflg;
-int	adrsp, dotsp, ditsp;
 
 /* command decoding */
 
 command(char *buf, int defcom)
 {
-	int	modifier, regptr;
+	char	*reg;
 	char	savc;
 	char	*savlp=lp;
 	char	savlc = lastc;
@@ -44,13 +43,12 @@ command(char *buf, int defcom)
 		lp=buf;
 	}
 	do {
-		if (adrflg=expr(0)) {
+		adrflg=expr(0);		/* first address */
+		if (adrflg)
 			dot=ditto=expv;
-			dotsp=ditsp=expsp;
-		}
 		adrval=dot;
-		adrsp=dotsp;
-		if (rdc()==',' && expr(0)) {
+
+		if (rdc()==',' && expr(0)) {	/* count */
 			cntflg=TRUE;
 			cntval=expv;
 		} else {
@@ -58,8 +56,9 @@ command(char *buf, int defcom)
 			cntval=1;
 			reread();
 		}
+
 		if (!eol(rdc()))
-			lastcom=lastc;
+			lastcom=lastc;		/* command */
 		else {
 			if (adrflg==0)
 				dot=inkdot(dotinc);
@@ -77,10 +76,8 @@ command(char *buf, int defcom)
 		case '>':
 			lastcom = savecom; 
 			savc=rdc();
-			if ((regptr=getreg(savc)) != BADREG)
-				rput(regptr, dot);
-			else if ((modifier=varchk(savc)) != -1)	
-				var[modifier]=dot;
+			if (reg=regname(savc))
+				rput(cormap, reg, dot);
 			else	
 				error("bad variable");
 			break;
@@ -134,52 +131,30 @@ command(char *buf, int defcom)
 void
 acommand(int pc)
 {
-	int itype;
-	Map *map;
 	int eqcom;
-	int star;
+	Map *map;
 	char *fmt;
-	
-	switch (pc) {
-	case '/':
-		map = cormap;
-		itype = SEGDATA; 
-		break;
+	char buf[512];
 
-	case '=':
-		map = 0;
-		itype = SEGNONE; 
-		break;
-
-	case '?':
-	default:
-		map = symmap;
-		itype = SEGANY; 
-		break;
-	}
-	eqcom = FALSE;
-	star = FALSE;
 	if (pc == '=') {
-		eqcom = TRUE;
+		eqcom = 1;
 		fmt = eqformat;
+		map = dotmap;
 	} else {
+		eqcom = 0;
 		fmt = stformat;
-		if (rdc()=='*')
-			star = TRUE; 
-		else
-			reread(); 
-		if (star) {
-			if (map == symmap)
-				itype = SEGDATA;
-			else
-				itype = SEGTEXT;
-		}
-		if (adrsp == SEGREGS) {
+		if (pc == '/')
 			map = cormap;
-			itype = SEGREGS;
-		}
+		else
+			map = symmap;
 	}
-	switch (rdc()) {
+	if (!map) {
+		sprint(buf, "no map for %c", pc);
+		error(buf);
+	}
+
+	switch (rdc())
+	{
 	case 'm':
 		if (eqcom)
 			error(BADEQ); 
@@ -190,30 +165,32 @@ acommand(int pc)
 	case 'l':
 		if (eqcom)
 			error(BADEQ); 
-		cmdsrc(lastc, map, itype, itype);
+		cmdsrc(lastc, map);
 		break;
 
 	case 'W':
 	case 'w':
 		if (eqcom)
 			error(BADEQ); 
-		cmdwrite(lastc, map, itype);
+		cmdwrite(lastc, map);
 		break;
 
 	default:
 		reread();
 		getformat(fmt);
-		scanform(cntval,!eqcom,fmt,map, itype,itype);
+		scanform(cntval, !eqcom, fmt, map, eqcom);
 	}
 }
 
 void
-cmdsrc(int c, Map *map, int itype, int ptype)
+cmdsrc(int c, Map *map)
 {
-	WORD w;
-	WORD locval, locmsk;
+	long w;
+	long locval, locmsk;
 	ADDR savdot;
 	ushort sh;
+	char buf[512];
+	int ret;
 
 	if (c == 'L')
 		dotinc = 4;
@@ -226,57 +203,53 @@ cmdsrc(int c, Map *map, int itype, int ptype)
 		locmsk=expv; 
 	else
 		locmsk = ~0;
-	if (c == 'L') {
-		for (;;) {
-			if (get4(map, dot, itype, &w) == 0 || mkfault
-					||  (w & locmsk) == locval)
-				break;
+	if (c == 'L')
+		while ((ret = get4(map, dot, &w)) > 0 &&  (w&locmsk) != locval)
 			dot = inkdot(dotinc);
-		}
-	}
-	else {
-		for (;;) {
-			if (get2(map, dot, itype, &sh) || mkfault
-				||  (sh&locmsk)==locval)
-					break;
+	else
+		while ((ret = get2(map, dot, &sh)) > 0 && (sh&locmsk) != locval)
 			dot = inkdot(dotinc);
-		}
-	}
-	if (errflg) { 
+	if (ret < 0) { 
 		dot=savdot; 
-		errflg="cannot locate value";
+		error("%r");
 	}
-	psymoff((WORD)dot,ptype,"");
+	symoff(buf, 512, dot, CANY);
+	dprint(buf);
 }
 
+static char badwrite[] = "can't write process memory or text image";
+
 void
-cmdwrite(int wcom, Map *map, int itype)
+cmdwrite(int wcom, Map *map)
 {
 	ADDR savdot;
-	char format[2];
+	char *format;
 	int pass;
 
-	format[0] = wcom == 'w' ? 'x' : 'X';
-	format[1] = 0;
+	if (wcom == 'w')
+		format = "x";
+	else
+		format = "X";
 	expr(1);
 	pass = 0;
 	do {
 		pass++;  
 		savdot=dot;
-		exform(1, 1, format, map, itype, itype, pass);
-		errflg=0; 
+		exform(1, 1, format, map, 0, pass);
 		dot=savdot;
-		if (wcom == 'W')
-			put4(map, dot, itype, expv);
-		else
-			put2(map, dot, itype, expv);
+		if (wcom == 'W') {
+			if (put4(map, dot, expv) <= 0)
+				error(badwrite);
+		} else {
+			if (put2(map, dot, expv) <= 0)
+				error(badwrite);
+		}
 		savdot=dot;
 		dprint("=%8t"); 
-		exform(1, 0, format, map, itype, itype, pass);
+		exform(1, 0, format, map, 0, pass);
 		newline();
-	} while (expr(0) && errflg==0);
+	} while (expr(0));
 	dot=savdot;
-	chkerr();
 }
 
 /*
@@ -284,20 +257,23 @@ cmdwrite(int wcom, Map *map, int itype)
  * this is not what i'd call a good division of labour
  */
 
-int
-getreg(int regnam)
+char *
+regname(int regnam)
 {
-	char buf[LINSIZ];
+	static char buf[64];
 	char *p;
 	int c;
 
 	p = buf;
 	*p++ = regnam;
-	while (isalnum(c = readchar()))
+	while (isalnum(c = readchar())) {
+		if (p >= buf+sizeof(buf)-1)
+			error("register name too long");
 		*p++ = c;
+	}
 	*p = 0;
 	reread();
-	return (rname(buf));
+	return (buf);
 }
 
 /*

@@ -75,6 +75,10 @@ TEXT	spldone(SB), $0
 
 	RET
 
+TEXT getstatus(SB), $0
+	MOVW	M(STATUS), R1
+	RET
+
 TEXT	wbflush(SB), $0
 
 	NOOP

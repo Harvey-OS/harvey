@@ -32,7 +32,7 @@ _isk(char *s)
 int
 _readk(Biobuf *bp, Prog *p)
 {
-	int i, as, c;
+	int as, n;
 	Addr a;
 
 	as = Bgetc(bp);			/* as */
@@ -43,13 +43,21 @@ _readk(Biobuf *bp, Prog *p)
 		p->kind = aName;
 		p->type = type2char(Bgetc(bp));		/* type */
 		p->sym = Bgetc(bp);			/* sym */
-		c = Bgetc(bp);
-		for(i=0; i < NNAME && c > 0; i++){
-			p->id[i] = c;
-			c = Bgetc(bp);
+		n = 0;
+		for(;;) {
+			as = Bgetc(bp);
+			if(as < 0)
+				return 0;
+			n++;
+			if(as == 0)
+				break;
 		}
-		if(i < NNAME)
-			p->id[i] = c;
+		p->id = malloc(n);
+		if(p->id == 0)
+			return 0;
+		Bseek(bp, -n, 1);
+		if(Bread(bp, p->id, n) != n)
+			return 0;
 		return 1;
 	}
 	if(as == ATEXT)

@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 
 /*
@@ -78,8 +79,7 @@ char	*rflush(Fid*), *rnop(Fid*), *rsession(Fid*),
 	*rattach(Fid*), *rclone(Fid*), *rwalk(Fid*),
 	*rclwalk(Fid*), *ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
-	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*),
-	*rauth(Fid*);
+	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
 
 char 	*(*fcalls[])(Fid*) = {
 	[Tflush]	rflush,
@@ -97,7 +97,6 @@ char 	*(*fcalls[])(Fid*) = {
 	[Tremove]	rremove,
 	[Tstat]		rstat,
 	[Twstat]	rwstat,
-	[Tauth]		rauth,
 };
 
 char	Eperm[] =	"permission denied";
@@ -110,6 +109,8 @@ char	Enotowner[] =	"not owner";
 char	Eisopen[] = 	"file already open for I/O";
 char	Excl[] = 	"exclusive use file already open";
 char	Ename[] = 	"illegal name";
+
+int debug;
 
 void
 notifyf(void *a, char *s)
@@ -132,6 +133,9 @@ main(int argc, char *argv[])
 
 	defmnt = "/tmp";
 	ARGBEGIN{
+	case 'd':
+		debug = 1;
+		break;
 	case 'i':
 		defmnt = 0;
 		stdio = 1;
@@ -180,7 +184,8 @@ main(int argc, char *argv[])
 	strcpy(r->name, ".");
 	strcpy(user, getuser());
 
-/*	fmtinstall('F', fcallconv);/**/
+	if(debug)
+		fmtinstall('F', fcallconv);
 	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFNOTEG)){
 	case -1:
 		error("fork");
@@ -190,7 +195,7 @@ main(int argc, char *argv[])
 		break;
 	default:
 		close(p[0]);	/* don't deadlock if child fails */
-		if(defmnt && mount(p[1], defmnt, MREPL|MCREATE, "", "") < 0)
+		if(defmnt && mount(p[1], defmnt, MREPL|MCREATE, "") < 0)
 			error("mount failed");
 	}
 	exits(0);
@@ -213,6 +218,9 @@ rsession(Fid *unused)
 	for(f = fids; f; f = f->next)
 		if(f->busy)
 			rclunk(f);
+	memset(thdr.authid, 0, sizeof(thdr.authid));
+	memset(thdr.authdom, 0, sizeof(thdr.authdom));
+	memset(thdr.chal, 0, sizeof(thdr.chal));
 	return 0;
 }
 
@@ -221,13 +229,6 @@ rflush(Fid *f)
 {
 	USED(f);
 	return 0;
-}
-
-char *
-rauth(Fid *f)
-{
-	USED(f);
-	return Enoauth;
 }
 
 char*
@@ -432,10 +433,11 @@ rread(Fid *f)
 	n = 0;
 	thdr.count = 0;
 	off = rhdr.offset;
-	cnt = rhdr.count;
 	buf = thdr.data;
+	cnt = rhdr.count;
 	if(f->ram->qid.path & CHDIR){
-		if(off%DIRLEN || cnt%DIRLEN)
+		cnt = (rhdr.count/DIRLEN)*DIRLEN;
+		if(off%DIRLEN)
 			return "i/o error";
 		for(r=ram+1; off; r++){
 			if(r->busy && r->parent==f->ram-ram)
@@ -671,7 +673,8 @@ io(void)
 		if(convM2S(mdata, &rhdr, n) == 0)
 			continue;
 
-/*		fprint(2, "ramfs:%F\n", &rhdr);/**/
+		if(debug)
+			fprint(2, "ramfs:<-%F\n", &rhdr);
 
 		thdr.data = mdata + MAXMSG;
 		if(!fcalls[rhdr.type])
@@ -686,6 +689,8 @@ io(void)
 			thdr.fid = rhdr.fid;
 		}
 		thdr.tag = rhdr.tag;
+		if(debug)
+			fprint(2, "ramfs:->%F\n", &thdr);/**/
 		n = convS2M(&thdr, mdata);
 		if(write(mfd[1], mdata, n) != n)
 			error("mount write");
@@ -707,8 +712,7 @@ perm(Fid *f, Ram *r, int p)
 void
 error(char *s)
 {
-	fprint(2, "%s: %s: ", argv0, s);
-	perror("");
+	fprint(2, "%s: %s: %r\n", argv0, s);
 	exits(s);
 }
 

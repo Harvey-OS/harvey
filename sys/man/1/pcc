@@ -24,7 +24,7 @@ as specified by the environment variable
 The object files are then loaded using one of the loaders described in
 .IR 2l (1).
 The options are:
-.TP \w'\fL-D\*S\ \fIname=def\ 'u
+.TP \w'\fL-D\ \fIname=def\ 'u
 .BI -o " out"
 Place loader output in file
 .I out
@@ -38,7 +38,7 @@ Omit the compilation and loading phases;
 leave the result of preprocessing
 .IB name .c
 in
-.IB name .i.
+.IB name .i\f1.
 .TP
 .B -c
 Omit the loading phase.
@@ -57,11 +57,11 @@ ANSI function prototypes.
 Echo the preprocessing, compiling, and loading commands
 before they are executed.
 .TP
-.BI -D\*S name=def
+.BI -D name=def
 .br
 .ns
 .TP
-.BI -D \*Sname
+.BI -D name
 Define the
 .I name
 to the preprocessor,
@@ -70,14 +70,14 @@ as if by
 If no definition is given, the name is defined as
 .LR 1 .
 .TP
-.BI -U \*Sname
+.BI -U name
 Undefine the
 .I name
 to the preprocessor,
 as if by
 .LR #undef .
 .TP
-.BI -I \*Sdir
+.BI -I dir
 .L #include
 files whose names do not begin with 
 .L /
@@ -90,7 +90,7 @@ then in directories named in
 .B -I
 options,
 then in
-.BI /$objtype/include/ape .
+.BR /$objtype/include/ape .
 .TP
 .B -N
 Don't optimize compiled code.
@@ -99,12 +99,16 @@ Don't optimize compiled code.
 Print an assembly language version of the object code
 on standard output.
 .TP
-.BI -s \*Sname
-Print on standard output a listing of the fields in structure or union
-.I name
-together with their offsets and some type information.
-This can be used in conjunction with the debugger (see
-.IR db (1)).
+.B -a
+Instead of compiling, print on standard output acid functions (see
+.IR acid (1))
+for examining structures declared in the source files.
+.TP
+.B -aa
+Like
+.B -a
+except that functions for structures declared in included header files
+are omitted.
 .PP
 The APE environment contains all of the include
 files and library routines specified in the ANSI C standard
@@ -117,14 +121,14 @@ define the preprocessor constant
 .TF /$objtype/lib/ape/libap.a
 .TP
 .B /sys/include/ape
-system area for machine-independent
+directory for machine-independent
 .B #include
-directives.
+files.
 .TP
 .B /$objtype/include/ape
-system area for machine-dependent
+directory for machine-dependent
 .B #include
-directives.
+files.
 .TP
 .B /$objtype/lib/ape/libap.a
 ANSI C/POSIX library.
@@ -133,15 +137,16 @@ ANSI C/POSIX library.
 .IR 2c (1),
 .IR 2a (1),
 .IR 2l (1),
-.IR rl (1),
 .IR mk (1),
 .IR nm (1),
+.IR acid (1),
 .IR db (1),
 .IR prof (1)
 .PP
 Howard Trickey,
-.I
 ``APE \(em The ANSI/POSIX Environment''
+.SH SOURCE
+.B /sys/src/cmd/pcc.c
 .SH BUGS
 The locale manipulation functions are minimal.
 Signal functions and terminal characteristic

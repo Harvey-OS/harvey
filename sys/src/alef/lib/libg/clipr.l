@@ -1,10 +1,10 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 int
 clipr(Bitmap *d, Rectangle r)
 {
-	char *buf;
+	byte *buf;
 
 	if(rectclip(&r, d->r) == 0)
 		return 0;

@@ -14,10 +14,11 @@ The header is a list of attribute/value pairs
 separated by newlines, terminated by an
 empty line.
 Each header line has the form
-.IB name = value.
+.IB name = value\f1.
 The name may not contain an
-.SM ASCII NUL,
-newline or
+.SM ASCII
+NUL,
+newline, or
 .LR = ;
 the value may not contain NUL or newline.
 The last line of a header is empty.
@@ -30,8 +31,8 @@ are optional.
 .B TYPE
 must come first; otherwise order is irrelevant.
 As any unrecognized attribute is passed over uninterpreted by all standard software,
-applications are welcome to include arbitrary annotations, like
-.BR SHOESIZE=10 ,
+applications are welcome to include arbitrary annotations, such as
+.BR SHOESIZE=10½ ,
 if they wish.
 .TP
 .BI TYPE= type
@@ -132,10 +133,10 @@ In a monochrome picture, pixel values index
 the color map to yield red, green and blue, like this:
 .IP
 .EX
-unsigned char cmap[256][3];
-red=cmap[pixel][0];
-green=cmap[pixel][1];
-blue=cmap[pixel][2];
+uchar cmap[256][3];
+red = cmap[pixel][0];
+green = cmap[pixel][1];
+blue = cmap[pixel][2];
 .EE
 .SH EXAMPLES
 .TP
@@ -144,24 +145,24 @@ Print a header.
 A sample header follows.
 .LP
 .EX
+.ps -1
 TYPE=dump
 WINDOW=0 0 512 512
 NCHAN=1
 CHAN=m
 RES=300 300
 CMAP=
-COMMAND= antiquantize 'halftone CLASSIC' 512.halftone LIBERTY.anticlassic 
+COMMAND= antiquantize 'halftone CLASSIC' 512.halftone LIBERTY.anticlassic
 COMMAND=  halftone CLASSIC 512.liberty 512.halftone 1.75 512.halftone 
 COMMAND=   transpose IN OUT 
 COMMAND=    resample 512 IN OUT 
 COMMAND=     transpose IN OUT 
 COMMAND=      resample 512 IN OUT 
 COMMAND=       clip 400 400 LIBERTY OUT
+.ps
 .EE
 .SH "SEE ALSO"
 .IR bitmap (6)
 .br
-T. Duff,
-`The 10th Edition Raster Graphics System',
-.SM UNIX
-Research System Papers, Tenth Edition
+Tom Duff,
+``Raster Graphics in Plan 9''

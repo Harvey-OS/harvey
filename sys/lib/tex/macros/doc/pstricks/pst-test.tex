@@ -1,0 +1,126 @@
+%%%%%%%%%%%%%%%%%%% pst-test.tex %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Test file for pstricks.tex, v0.93 and maybe later versions.
+%%
+%% Run with Plain TeX.
+%%
+%% PAGE 1: Pure graphics objects. These us \pstunit and \pstverb.
+%%
+\input pstricks
+\input pst-node
+
+\newpsobject{mygrid}{psgrid}{subgriddiv=1,griddots=10,gridlabels=7pt}
+\hbox{}\vfill
+
+\pspicture(-1,-1)(9,2)\mygrid
+\psline[linewidth=1.5pt,linestyle=dotted]{**-)}(2.5,1.5)
+\psline[linewidth=2pt,linestyle=dashed,
+  linearc=.5,linecolor=gray]{|->}(3,-.5)(5.5,1.8)(7,-1)
+\qline(9,-1)(8,2)
+\endpspicture
+
+\vfill
+
+\pspicture(-1,-1)(9,2)\mygrid
+\qdisk(0,0){1}
+\pswedge[linecolor=gray,fillstyle=solid]{.8}{0}{70}
+\pscircle[linewidth=2pt,linestyle=dashed](4,.5){1.5}
+\psellipse[fillstyle=crosshatch*,fillcolor=lightgray]
+  (7.5,.5)(1,1.5)
+\endpspicture
+
+\vfill
+
+\pspicture(-1,-1)(9,3)\mygrid
+\parabola*(0,0)(1,3)
+\parabola[xunit=.01]{<->}(900,3)(600,-1)
+\endpspicture
+
+\vfill
+
+\eject
+
+%% PAGE 2: Color (using \pstVerb) and rotation (using \pstVerb and \pstrotate).
+
+\hbox{}\vfill
+
+Here is {\gray some gray text }
+
+\vskip 1cm
+Here is a lightgray line:{\lightgray \hrulefill}
+
+\vskip 1cm
+And a dark gray blob:
+
+{\darkgray \hrule height 1cm width 5 cm }
+\vfill
+
+\centerline{
+\rotateleft{Left} \rotatedown{Down} \rotateright{Right}
+\scalebox{2}{Big} \scalebox{1 -1}{Flip}}
+
+\vfill
+
+\rput[l]{-45}{This runs diagonally down and to the right}
+\rput{45}(2in,0){This runs up to the right}
+
+\vfill
+
+\eject
+
+%% PAGE 3: Nodes and node connections. These use \pstVerb, \pstverbscale,
+%% and maybe \pstrotate.
+
+\null
+\vfill
+
+$$
+\matrix{%
+  &\rnode{a}{A}\cr
+  \noalign{\vskip 2cm}%
+  \rnode{b}{B}\qquad&\rnode{c}{C}\cr}
+\psset{nodesep=3pt}
+\everypsbox{\scriptstyle}
+\ncline{->}{a}{b}\Bput{f}
+\ncline{->}{a}{c}\Aput{g}
+\ncline[linestyle=dotted]{->}{b}{c}\Aput{h}
+$$
+
+\vfill
+
+\vskip 2cm
+
+\cnode*(0,0){3pt}{A}
+\cnode*(4,2){3pt}{B}
+\ncline[nodesep=3pt]{A}{B}
+\mput*{1}
+
+\vfill
+
+\pspicture(0.4,.2)(9.8,6.2)
+  \rput(2,6){\rnode{G}{\psframebox{GOAT}}}
+  \rput(2,.5){\rnode{I}{\psframebox{GOAT}}}
+  \ncangles[angleA=90, angleB=180, nodesepB=3pt, linearc=3pt,
+    armA=2cm]{<-**}{I}{G}
+  \lput*(2.5){Doom}
+  \aput(.5){Zoom}
+  \SpecialCoor
+  \rput{10}(7;30){\rnode{A}{\psframebox{Polar Coor}}}
+  \rput(5;10){\rnode{B}{\psframebox{Polar Coor}}}%
+  \ncline{->}{A}{B}
+  \mput{\pnode{Y}}
+  \cnodeput[linewidth=1.5pt](9.5,6){H}{H}
+  \cnodeput[linewidth=1.5pt](8,1){M}{M}
+  \newpsobject{myarc}{ncarc}{nodesep=3pt,offset=2pt,arrows=->}
+  \myarc{H}{M}
+  \mput*{r}
+  \myarc{M}{H}
+  \mput*{l}
+  \lput(.75){\pnode{Z}}
+  \nccurve[angle=135, ncurv=1.8]{Y}{Z}
+  \aput{:U}{Doom}
+\endpspicture
+
+\vfill
+
+\bye
+%% END pst-test.tex

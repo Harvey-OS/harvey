@@ -7,8 +7,8 @@
 #define	ALARM		6
 #define	EXEC		7
 #define	EXITS		8
-#define	__FORK__	9
-#define	__FORKPGRP__	10
+#define	FSESSION	9
+#define	FAUTH		10
 #define	FSTAT		11
 #define	SEGBRK		12
 #define	MOUNT		13

@@ -27,6 +27,14 @@ expand_local(dest *dp)
 	dest *rv;
 	int forwardok;
 
+	/* short circuit obvious security problems */
+	if(strstr(s_to_c(dp->addr), "/../")){
+		dp->status = d_unknown;
+		s_free(line);
+		s_free(file);
+		return 0;
+	}
+
 	if(dp->repl1 == 0){
 		dp->repl1 = s_new();
 		mboxpath("mbox", s_to_c(dp->addr), dp->repl1, 0);

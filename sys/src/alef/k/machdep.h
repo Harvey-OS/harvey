@@ -34,6 +34,9 @@ enum
 
 	Sucall			= 100,	/* Complexity of a function */
 	Sucompute		= 9,	/* >sun Address needs to be computed */
+
+	/* Size of the PAR rendez structure from the runtime */
+	SZPAREND		= 4*Machint,
 };
 
 #define isaddr(nr)	(nr->islval > Sucompute)
@@ -46,6 +49,8 @@ typedef	struct Var Var;
 typedef	struct Reg Reg;
 typedef	struct Rgn Rgn;
 typedef struct Scache Scache;
+typedef	struct Multab Multab;
+typedef	struct Hintab Hintab;
 
 enum
 {
@@ -85,7 +90,7 @@ struct Adres
 	char	reg;
 	Sym	*sym;
 	union {
-		ulong	ival;
+		long	ival;
 		float	fval;
 		char	str[NSNAME];
 	};
@@ -192,6 +197,23 @@ struct	Rgn
 #define	CINF	1000
 #define	LOOP	3
 
+struct	Multab
+{
+	long	val;
+	char	code[20];
+};
+
+struct	Hintab
+{
+	ushort	val;
+	char	hint[10];
+};
+
+extern	Hintab	hintab[];
+Multab	multab[20];
+int	hintabsize;
+
+Tinfo	*tip;
 Node	ratv;
 Node	*atv;
 int	frsize;
@@ -309,3 +331,10 @@ void		vname(Biobuf*, char, char*, int);
 void		cominit(Node*, Type*, Node*, int);
 Node*		internnode(Type*);
 void		lblock(Node*);
+Node*		conf(double);
+void		evalarg(Node*, int);
+Node*		atvnode(Type*);
+Node*		paramnode(Type*);
+void		genelist(Node*);
+int		mulcon(Node*, Node*);
+Multab*		mulcon0(long);

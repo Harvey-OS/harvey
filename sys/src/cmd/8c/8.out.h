@@ -1,6 +1,7 @@
-#define	NNAME	20
 #define	NSYM	50
 #define	NSNAME	8
+#define NOPROF	(1<<0)
+#define DUPOK	(1<<1)
 
 enum	as
 {
@@ -346,6 +347,11 @@ enum	as
 	AFYL2XP1,
 
 	AEND,
+
+	ADYNT,
+	AINIT,
+
+	ALAST
 };
 
 enum
@@ -423,19 +429,6 @@ enum
  * this is the ranlib header
  */
 #define	SYMDEF	"__.SYMDEF"
-
-typedef	struct	rlent	Rlent;
-struct	rlent
-{
-	union
-	{
-		long	offset;		/* for calculation */
-		char	coffset[4];	/* in file little endian */
-	};
-	char	name[NNAME];
-	char	type;
-	char	pad[3];
-};
 
 /*
  * this is the simulated IEEE floating point

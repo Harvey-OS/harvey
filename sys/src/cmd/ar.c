@@ -4,17 +4,27 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <mach.h>
 #include <ar.h>
 
 /*
  *	The algorithm uses up to 3 temp files.  The "pivot member" is the
- *	archive member specified by and a, b, or i option.  Temp file astart
- *	contains existing members up to and including the pivot member.  Temp
- *	file amiddle contains new files moved or inserted behind the pivot.
- *	Temp file aend, contains the existing members of the archive that follow
- *	the pivot member.  When all members have been processed, function
- *	'install' streams the temp files, in order back into the archive.
+ *	archive member specified by and a, b, or i option.  The temp files are
+ *	astart - contains existing members up to and including the pivot member.
+ *	amiddle - contains new files moved or inserted behind the pivot.
+ *	aend - contains the existing members that follow the pivot member.
+ *	When all members have been processed, function 'install' streams the
+ * 	temp files, in order, back into the archive.
  */
+
+typedef struct	Arsymref
+{
+	char	*name;
+	int	type;
+	int	len;
+	long	offset;
+	struct	Arsymref *next;
+} Arsymref;
 
 typedef struct	Armember	/* Temp file entry - one per archive member */
 {
@@ -27,55 +37,64 @@ typedef struct	Armember	/* Temp file entry - one per archive member */
 
 typedef	struct Arfile		/* Temp file control block - one per tempfile */
 {
-	int	paged;		/*set when some data paged to disk */
+	int	paged;		/* set when some data paged to disk */
 	char	*fname;		/* paging file name */
 	int	fd;		/* paging file descriptor */
+	long	size;
 	Armember *head;		/* head of member chain */
 	Armember *tail;		/* tail of member chain */
+	Arsymref *sym;		/* head of defined symbol chain */
 } Arfile;
+
+/*
+ *	macro to portably read/write archive header.
+ *	'cmd' is read/write/Bread/Bwrite, etc.
+ */
+#define	HEADER_IO(cmd, f, h)	cmd(f, h.name, sizeof(h.name)) != sizeof(h.name)\
+				|| cmd(f, h.date, sizeof(h.date)) != sizeof(h.date)\
+				|| cmd(f, h.uid, sizeof(h.uid)) != sizeof(h.uid)\
+				|| cmd(f, h.gid, sizeof(h.gid)) != sizeof(h.gid)\
+				|| cmd(f, h.mode, sizeof(h.mode)) != sizeof(h.mode)\
+				|| cmd(f, h.size, sizeof(h.size)) != sizeof(h.size)\
+				|| cmd(f, h.fmag, sizeof(h.fmag)) != sizeof(h.fmag)
+
 		/* constants and flags */
 char	*man =		"mrxtdpq";
 char	*opt =		"uvnbailo";
 char	artemp[] =	"/tmp/vXXXXX";
 char	movtemp[] =	"/tmp/v1XXXXX";
 char	tailtemp[] =	"/tmp/v2XXXXX";
+char	symdef[] =	"__.SYMDEF";
 
 int	aflag;				/* command line flags */
 int	bflag;
 int	cflag;
-int	dflag;
-int	iflag;
-int	lflag;
-int	mflag;
-int	nflag;
 int	oflag;
-int	pflag;
-int	qflag;
-int	rflag;
-int	tflag;
 int	uflag;
 int	vflag;
-int	xflag;
 
 Arfile *astart, *amiddle, *aend;	/* Temp file control block pointers */
+int	allobj = 1;			/* set when all members are object files of the same type */
+int	symdefsize;			/* size of symdef file */
 	
 #define	ARNAMESIZE	sizeof(astart->tail->hdr.name)
 
 char	poname[ARNAMESIZE+1];		/* name of pivot member */
 char	*file;				/* current file or member being worked on */
 Biobuf	bout;
+Biobuf bar;
 
-void	arcopy(int, Arfile*, Armember*);
+void	arcopy(Biobuf*, Arfile*, Armember*);
 int	arcreate(char*);
 void	arfree(Arfile*);
 void	arinsert(Arfile*, Armember*);
 char	*armalloc(int);
-void	armove(int, Arfile*, Armember*);
-void	arread(int, Armember*, int);
+void	armove(Biobuf*, Arfile*, Armember*);
+void	arread(Biobuf*, Armember*, int);
 void	arstream(int, Arfile*);
 int	arwrite(int, Armember*);
 int	bamatch(char*, char*);
-Armember *getdir(int);
+Armember *getdir(Biobuf*);
 int	getspace(void);
 void	install(char*, Arfile*, Arfile*, Arfile*);
 void	longt(Armember*);
@@ -83,15 +102,19 @@ int	match(int, char**);
 void	mesg(int, char*);
 Arfile	*newtempfile(char*);
 Armember *newmember(void);
+void	objsym(Sym*, void*);
 int	openar(char*, int, int);
 int	page(Arfile*);
 void	pmode(long);
+void	rl(int);
+void	scanobj(Biobuf*, Arfile*, int);
 void	select(int*, long);
 void	setcom(void(*)(char*, int, char**));
-void	skip(int, long);
+void	skip(Biobuf*, long);
 void	trim(char*, char*, int);
 void	usage(void);
 void	wrerr(void);
+void	wrsym(Biobuf*, int, Arsymref*);
 
 void	rcmd(char*, int, char**);		/* command processing */
 void	dcmd(char*, int, char**);
@@ -106,6 +129,7 @@ void
 main(int argc, char *argv[])
 {
 	char *cp;
+
 
 	Binit(&bout, 1, OWRITE);
 	if(argc < 3)
@@ -123,7 +147,6 @@ main(int argc, char *argv[])
 				strcpy(tailtemp, "v2XXXXX");
 				break;
 		case 'm':	setcom(mcmd);	break;
-		case 'n':	nflag = 1;	break;
 		case 'o':	oflag = 1;	break;
 		case 'p':	setcom(pcmd);	break;
 		case 'q':	setcom(qcmd);	break;
@@ -188,50 +211,61 @@ setcom(void (*fun)(char *, int, char**))
 void
 rcmd(char *arname, int count, char **files)
 {
-	int fd, fd2;
-	int i;
+	int fd;
+	int i, ret;
 	Arfile *ap;
 	Armember *bp;
 	Dir d;
+	Biobuf *bfile;
 
 	fd = openar(arname, ORDWR, 1);
+	if (fd >= 0) {
+		Binit(&bar, fd, OREAD);
+		Bseek(&bar,seek(fd,0,1), 1);
+	}
 	astart = newtempfile(artemp);
 	ap = astart;
 	aend = 0;
-	while (fd > 0) {
-		bp = getdir(fd);
+	for(i = 0; fd >= 0; i++) {
+		bp = getdir(&bar);
 		if (!bp)
 			break;
 		if (bamatch(file, poname)) {		/* check for pivot */
 			aend = newtempfile(tailtemp);
 			ap = aend;
 		}
-		if (count == 0 || match(count, files)) {
-			fd2 = open(file, OREAD);
-			if (fd2 < 0) {
-				if (count != 0)
-					fprint(2, "ar: cannot open %s\n", file);
-				arcopy(fd, ap, bp);
-			} else if (uflag) {
-				if (dirfstat(fd2, &d) < 0) {
-					fprint(2, "ar: cannot stat %s\n", file);
-					arcopy(fd, ap, bp);
-				} else if (d.mtime <= bp->date)
-					arcopy(fd, ap, bp);
-				else {
-					mesg('r', file);
-					skip(fd, bp->size);
-					armove(fd2, ap, bp);
-				}
-				close(fd2);
-			} else {
-				mesg('r', file);
-				skip(fd, bp->size);
-				armove(fd2, ap, bp);
-				close(fd2);
-			}
-		} else
-			arcopy(fd, ap, bp);
+			/* pitch symdef file */
+		if (i == 0 && strcmp(file, symdef) == 0) {
+			skip(&bar, bp->size);
+			continue;
+		}
+		if (count && !match(count, files)) {
+			scanobj(&bar, ap, bp->size);
+			arcopy(&bar, ap, bp);
+			continue;
+		}
+		bfile = Bopen(file, OREAD);
+		if (!bfile) {
+			if (count != 0)
+				fprint(2, "ar: cannot open %s\n", file);
+			scanobj(&bar, ap, bp->size);
+			arcopy(&bar, ap, bp);
+			continue;
+		}
+		ret = dirfstat(Bfildes(bfile), &d);
+		if (ret < 0)
+			fprint(2, "ar: cannot stat %s\n", file);
+		if (uflag && (ret < 0 || d.mtime <= bp->date)) {
+			scanobj(&bar, ap, bp->size);
+			arcopy(&bar, ap, bp);
+			Bterm(bfile);
+			continue;
+		}
+		mesg('r', file);
+		skip(&bar, bp->size);
+		scanobj(bfile, ap, d.length);
+		armove(bfile, ap, bp);
+		Bterm(bfile);
 	}
 	if(fd < 0) {
 		if(!cflag)
@@ -244,35 +278,51 @@ rcmd(char *arname, int count, char **files)
 		if(file == 0)
 			continue;
 		files[i] = 0;
-		fd2 = open(file, OREAD);
-		if (fd2 < 0)
+		bfile = Bopen(file, OREAD);
+		if (!bfile)
 			fprint(2, "ar: %s cannot open\n", file);
 		else {
 			mesg('a', file);
-			armove(fd2, astart, newmember());
-			close(fd2);
+			i = dirfstat(Bfildes(bfile), &d);
+			if (i < 0)
+				fprint(2, "can't stat %s\n", file);
+			else {
+				scanobj(bfile, astart, d.length);
+				armove(bfile, astart, newmember());
+			}
+			Bterm(bfile);
 		}
 	}
 	install(arname, astart, 0, aend);
 }
+
 void
 dcmd(char *arname, int count, char **files)
 {
 	Armember *bp;
-	int fd;
+	int fd, i;
 
 
 	if (!count)
 		return;
 	fd = openar(arname, ORDWR, 0);
+	Binit(&bar, fd, OREAD);
+	Bseek(&bar,seek(fd,0,1), 1);
 	astart = newtempfile(artemp);
-	while (bp = getdir(fd)) {
+	for (i = 0; bp = getdir(&bar); i++) {
 		if(match(count, files)) {
 			mesg('d', file);
-			skip(fd, bp->size);
-		} else
-			arcopy(fd, astart, bp);
+			skip(&bar, bp->size);
+			if (strcmp(file, symdef) == 0)
+				allobj = 0;
+		} else if (i == 0 && strcmp(file, symdef) == 0)
+				skip(&bar, bp->size);
+		else {
+			scanobj(&bar, astart, bp->size);
+			arcopy(&bar, astart, bp);
+		}
 	}
+	close(fd);
 	install(arname, astart, 0, 0);
 }
 
@@ -281,29 +331,31 @@ xcmd(char *arname, int count, char **files)
 {
 	int fd, f, mode, i;
 	Armember *bp;
-	Dir d;
+	Dir dx;
 
 	fd = openar(arname, OREAD, 0);
+	Binit(&bar, fd, OREAD);
+	Bseek(&bar,seek(fd,0,1), 1);
 	i = 0;
-	while (bp = getdir(fd)) {
+	while (bp = getdir(&bar)) {
 		if(count == 0 || match(count, files)) {
 			mode = strtoul(bp->hdr.mode, 0, 8) & 0777;
 			f = create(file, OWRITE, mode);
 			if(f < 0) {
 				fprint(2, "ar: %s cannot create\n", file);
-				skip(fd, bp->size);
+				skip(&bar, bp->size);
 			} else {
 				mesg('x', file);
-				arcopy(fd, 0, bp);
+				arcopy(&bar, 0, bp);
 				if (write(f, bp->member, bp->size) < 0)
 					wrerr();
 				if(oflag) {
-					if(dirfstat(f, &d) < 0)
+					if(dirfstat(f, &dx) < 0)
 						perror(file);
 					else {
-						d.atime = bp->date;
-						d.mtime = bp->date;
-						if(dirwstat(file, &d) < 0)
+						dx.atime = bp->date;
+						dx.mtime = bp->date;
+						if(dirwstat(file, &dx) < 0)
 							perror(file);
 					}
 				}
@@ -314,7 +366,7 @@ xcmd(char *arname, int count, char **files)
 			if (count && ++i >= count)
 				break;
 		} else {
-			skip(fd, bp->size);
+			skip(&bar, bp->size);
 			free(bp);
 		}
 	}
@@ -327,15 +379,17 @@ pcmd(char *arname, int count, char **files)
 	Armember *bp;
 
 	fd = openar(arname, OREAD, 0);
-	while(bp = getdir(fd)) {
+	Binit(&bar, fd, OREAD);
+	Bseek(&bar,seek(fd,0,1), 1);
+	while(bp = getdir(&bar)) {
 		if(count == 0 || match(count, files)) {
 			if(vflag)
 				print("\n<%s>\n\n", file);
-			arcopy(fd, 0, bp);
+			arcopy(&bar, 0, bp);
 			if (write(1, bp->member, bp->size) < 0)
 				wrerr();
 		} else
-			skip(fd, bp->size);
+			skip(&bar, bp->size);
 		free(bp);
 	}
 	close(fd);
@@ -343,27 +397,40 @@ pcmd(char *arname, int count, char **files)
 void
 mcmd(char *arname, int count, char **files)
 {
-	int fd;
+	int fd, i;
 	Arfile *ap;
 	Armember *bp;
 
 	if (count == 0)
 		return;
 	fd = openar(arname, ORDWR, 0);
+	Binit(&bar, fd, OREAD);
+	Bseek(&bar,seek(fd,0,1), 1);
 	astart = newtempfile(artemp);
 	amiddle = newtempfile(movtemp);
 	aend = 0;
 	ap = astart;
-	while(bp = getdir(fd)) {
+	for (i = 0; bp = getdir(&bar); i++) {
 		if (bamatch(file, poname)) {
 			aend = newtempfile(tailtemp);
 			ap = aend;
 		}
 		if(match(count, files)) {
 			mesg('m', file);
-			arcopy(fd, amiddle, bp);
+			scanobj(&bar, amiddle, bp->size);
+			arcopy(&bar, amiddle, bp);
 		} else
-			arcopy(fd, ap, bp);
+			/*
+			 * pitch the symdef file if it is at the beginning
+			 * of the archive and we aren't inserting in front
+			 * of it (ap == astart).
+			 */
+		if (ap == astart && i == 0 && strcmp(file, symdef) == 0)
+			skip(&bar, bp->size);
+		else {
+			scanobj(&bar, ap, bp->size);
+			arcopy(&bar, ap, bp);
+		}
 	}
 	close(fd);
 	if (poname[0] && aend == 0)
@@ -378,14 +445,16 @@ tcmd(char *arname, int count, char **files)
 	char name[ARNAMESIZE+1];
 
 	fd = openar(arname, OREAD, 0);
-	while(bp = getdir(fd)) {
+	Binit(&bar, fd, OREAD);
+	Bseek(&bar,seek(fd,0,1), 1);
+	while(bp = getdir(&bar)) {
 		if(count == 0 || match(count, files)) {
 			if(vflag)
 				longt(bp);
-			trim(file, name, sizeof(name));
+			trim(file, name, ARNAMESIZE);
 			Bprint(&bout, "%s\n", name);
 		}
-		skip(fd, bp->size);
+		skip(&bar, bp->size);
 		free(bp);
 	}
 	close(fd);
@@ -393,8 +462,9 @@ tcmd(char *arname, int count, char **files)
 void
 qcmd(char *arname, int count, char **files)
 {
-	int fd, fd2, i;
+	int fd, i;
 	Armember *bp;
+	Biobuf *bfile;
 
 	if(aflag || bflag) {
 		fprint(2, "ar: abi not allowed with q\n");
@@ -406,29 +476,94 @@ qcmd(char *arname, int count, char **files)
 			fprint(2, "ar: creating %s\n", arname);
 		fd = arcreate(arname);
 	}
+	Binit(&bar, fd, OREAD);
+	Bseek(&bar,seek(fd,0,1), 1);
 	/* leave note group behind when writing archive; i.e. sidestep interrupts */
 	rfork(RFNOTEG);
-	seek(fd, 0, 2);
+	Bseek(&bar, 0, 2);
 	bp = newmember();
 	for(i=0; i<count && files[i]; i++) {
 		file = files[i];
 		files[i] = 0;
-		fd2 = open(file, OREAD);
-		if(fd2 < 0)
+		bfile = Bopen(file, OREAD);
+		if(!bfile)
 			fprint(2, "ar: %s cannot open\n", file);
 		else {
 			mesg('q', file);
-			armove(fd2, 0, bp);
+			armove(bfile, 0, bp);
 			if (!arwrite(fd, bp))
 				wrerr();
 			free(bp->member);
 			bp->member = 0;
-			close(fd2);
+			Bterm(bfile);
 		}
 	}
 	free(bp);
 	close(fd);
 }
+
+/*
+ *	extract the symbol references from an object file
+ */
+
+void
+scanobj(Biobuf *b, Arfile *ap, int size)
+{
+	int obj;
+	long offset;
+	static int lastobj = -1;
+
+	if (!allobj)			/* non-object file encountered */
+		return;
+	offset = BOFFSET(b);
+	obj = objtype(b, 0);
+	if (obj < 0) {			/* not an object file */
+		allobj = 0;
+		Bseek(b, offset, 0);
+		return;
+	}
+	if (lastobj >= 0 && obj != lastobj) {
+		fprint(2, "ar: inconsistent object file %s\n", file);
+		allobj = 0;
+		Bseek(b, offset, 0);
+		return;
+	}
+	lastobj = obj;
+	if (!readar(b, obj, offset+size, 0)) {
+		fprint(2, "ar: invalid symbol reference in file %s\n", file);
+		allobj = 0;
+		Bseek(b, offset, 0);
+		return;
+	}
+	Bseek(b, offset, 0);
+	objtraverse(objsym, ap);
+}
+
+/*
+ *	add text and data symbols to the symbol list
+ */
+void
+objsym(Sym *s, void *p)
+{
+	int n;
+	Arsymref *as;
+	Arfile *ap;
+
+	if (s->type != 'T' &&  s->type != 'D')
+		return;
+	ap = (Arfile*)p;
+	as = (Arsymref*)armalloc(sizeof(Arsymref));
+	as->offset = ap->size;
+	n = strlen(s->name);
+	as->name = armalloc(n+1);
+	strcpy(as->name, s->name);
+	as->type = s->type;
+	symdefsize += 4+(n+1)+1;
+	as->len = n;
+	as->next = ap->sym;
+	ap->sym = as;
+}
+
 /*
  *	open an archive and validate its header
  */
@@ -501,21 +636,19 @@ usage(void)
  *	read the header for the next archive member
  */
 Armember *
-getdir(int fd)
+getdir(Biobuf *b)
 {
 	Armember *bp;
 	char *cp;
-	int i;
 	static char name[ARNAMESIZE+1];
 
 	bp = newmember();
-	i = read(fd, &bp->hdr, SAR_HDR);
-	if(i != SAR_HDR) {
+	if(HEADER_IO(Bread, b, bp->hdr)) {
 		free(bp);
 		return 0;
 	}
 	if(strncmp(bp->hdr.fmag, ARFMAG, sizeof(bp->hdr.fmag)))
-		phaseerr(seek(fd, 0, 1));
+		phaseerr(BOFFSET(b));
 	strncpy(name, bp->hdr.name, sizeof(bp->hdr.name));
 	cp = name+sizeof(name)-1;
 	while(*--cp==' ')
@@ -530,12 +663,12 @@ getdir(int fd)
  *	Copy the file referenced by fd to the temp file
  */
 void
-armove(int fd, Arfile *ap, Armember *bp)
+armove(Biobuf *b, Arfile *ap, Armember *bp)
 {
 	char *cp;
 	Dir d;
 
-	if (dirfstat(fd, &d) < 0) {
+	if (dirfstat(Bfildes(b), &d) < 0) {
 		fprint(2, "ar: cannot stat %s\n", file);
 		return;
 	}
@@ -551,34 +684,40 @@ armove(int fd, Arfile *ap, Armember *bp)
 	strncpy(bp->hdr.fmag, ARFMAG, 2);
 	bp->size = d.length;
 	bp->date = d.mtime;
-	arread(fd, bp, bp->size);
-	if (ap)
+	arread(b, bp, bp->size);
+	if (d.length&0x01)
+		d.length++;
+	if (ap) {
 		arinsert(ap, bp);
+		ap->size += d.length+SAR_HDR;
+	}
 }
 /*
  *	Copy the archive member at the current offset into the temp file.
  */
 void
-arcopy(int fd, Arfile *ap, Armember *bp)
+arcopy(Biobuf *b, Arfile *ap, Armember *bp)
 {
 	int n;
 
 	n = bp->size;
 	if (n & 01)
 		n++;
-	arread(fd, bp, n);
-	if (ap)
+	arread(b, bp, n);
+	if (ap) {
 		arinsert(ap, bp);
+		ap->size += n+SAR_HDR;
+	}
 }
 /*
  *	Skip an archive member
  */
 void
-skip(int fd, long len)
+skip(Biobuf *bp, long len)
 {
 	if (len & 01)
 		len++;
-	seek(fd, len, 1);
+	Bseek(bp, len, 1);
 }
 /*
  *	Stream the three temp files to an archive
@@ -591,6 +730,7 @@ install(char *arname, Arfile *astart, Arfile *amiddle, Arfile *aend)
 	/* leave note group behind when copying back; i.e. sidestep interrupts */
 	rfork(RFNOTEG);
 	fd = arcreate(arname);
+	rl(fd);
 	if (astart) {
 		arstream(fd, astart);
 		arfree(astart);
@@ -605,6 +745,73 @@ install(char *arname, Arfile *astart, Arfile *amiddle, Arfile *aend)
 	}
 	close(fd);
 }
+void
+rl(int fd)
+{
+
+	Biobuf b;
+	char *cp;
+	struct ar_hdr a;
+	long len;
+
+	if (!allobj)
+		return;
+
+	Binit(&b, fd, OWRITE);
+	Bseek(&b,seek(fd,0,1), 0);
+
+	len = symdefsize;
+	if(len&01)
+		len++;
+	sprint(a.date, "%-12ld", time(0));
+	sprint(a.uid, "%-6d", 0);
+	sprint(a.gid, "%-6d", 0);
+	sprint(a.mode, "%-8lo", 0644);
+	sprint(a.size, "%-10ld", len);
+	strncpy(a.fmag, ARFMAG, 2);
+	strcpy(a.name, symdef);
+	for (cp = strchr(a.name, 0);		/* blank pad on right */
+		cp < a.name+sizeof(a.name); cp++)
+			*cp = ' ';
+	if(HEADER_IO(Bwrite, &b, a))
+			wrerr();
+
+	len += BOFFSET(&b);
+	if (astart) {
+		wrsym(&b, len, astart->sym);
+		len += astart->size;
+	}
+	if(amiddle) {
+		wrsym(&b, len, amiddle->sym);
+		len += amiddle->size;
+	}
+	if(aend)
+		wrsym(&b, len, aend->sym);
+
+	if(symdefsize&0x01)
+		Bputc(&b, 0);
+	Bterm(&b);
+}
+/*
+ *	Write the defined symbols to the symdef file
+ */
+void
+wrsym(Biobuf *bp, int offset, Arsymref *as)
+{
+	int off;
+
+	while(as) {
+		Bputc(bp, as->type);
+		off = as->offset+offset;
+		Bputc(bp, off);
+		Bputc(bp, off>>8);
+		Bputc(bp, off>>16);
+		Bputc(bp, off>>24);
+		if (Bwrite(bp, as->name, as->len+1) != as->len+1)
+			wrerr();
+		as = as->next;
+	}
+}
 /*
  *	Check if the archive member matches an entry on the command line.
  */
@@ -617,8 +824,8 @@ match(int count, char **files)
 	for(i=0; i<count; i++) {
 		if(files[i] == 0)
 			continue;
-		trim(files[i], name, sizeof(name));
-		if(strncmp(name, file, sizeof(name)) == 0) {
+		trim(files[i], name, ARNAMESIZE);
+		if(strncmp(name, file, ARNAMESIZE) == 0) {
 			file = files[i];
 			files[i] = 0;
 			return 1;
@@ -638,10 +845,10 @@ bamatch(char *file, char *pivot)
 	{
 	case 0:			/* looking for position file */
 		if (aflag) {
-			if (!strncmp(file, pivot, ARNAMESIZE))
+			if (strncmp(file, pivot, ARNAMESIZE) == 0)
 				state = 1;
 		} else if (bflag) {
-			if (!strncmp(file, pivot, ARNAMESIZE)) {
+			if (strncmp(file, pivot, ARNAMESIZE) == 0) {
 				state = 2;	/* found */
 				return 1;
 			}
@@ -772,12 +979,12 @@ newmember(void)			/* allocate a member buffer */
 }
 
 void
-arread(int fd, Armember *bp, int n)	/* read an image into a member buffer */
+arread(Biobuf *b, Armember *bp, int n)	/* read an image into a member buffer */
 {
 	int i;
 
 	bp->member = armalloc(n);
-	i = read(fd, bp->member, n);
+	i = Bread(b, bp->member, n);
 	if (i < 0) {
 		free(bp->member);
 		bp->member = 0;
@@ -829,13 +1036,13 @@ arstream(int fd, Arfile *ap)
 }
 /*
  *	write a member to 'fd'.
- */	
+ */
 int
 arwrite(int fd, Armember *bp)
 {
 	int len;
 
-	if (write(fd, &bp->hdr, SAR_HDR) != SAR_HDR)
+	if(HEADER_IO(write, fd, bp->hdr))
 		return 0;
 	len = bp->size;
 	if (len & 01)

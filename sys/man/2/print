@@ -1,7 +1,11 @@
 .TH PRINT 2
 .SH NAME
-print, fprint, sprint, snprint, fmtinstall, strconv, Strconv, numbconv, fltconv, doprint, donprint \- print formatted output
+print, fprint, sprint, snprint, fmtinstall, strconv, Strconv, numbconv, fltconv, doprint \- print formatted output
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .ta \w'\fLchar* 'u
 .B
 int	print(char *format, ...)
@@ -16,7 +20,7 @@ int	sprint(char *s, char *format, ...)
 int	snprint(char *s, int len, char *format, ...)
 .PP
 .B
-int	fmtinstall(char c, int (*f)(void*, Fconv*))
+int	fmtinstall(int c, int (*f)(void*, Fconv*))
 .PP
 .B
 void	strconv(char *s, Fconv *fp)
@@ -61,7 +65,9 @@ a negative value if an output error was encountered.
 .I Snprint
 is like
 .I sprint
-but is also passed the length of the buffer at
+but will not place more than
+.I len
+bytes in
 .IR s .
 .PP
 Each of these functions
@@ -126,7 +132,7 @@ Each interprets the flags
 .BR u ,
 .BR # ,
 and
-.B \(mi
+.B -
 to mean short, long, unsigned, alternate format, and left justified.
 If neither
 short nor long is specified,
@@ -213,13 +219,13 @@ The
 .B f
 verb produces output of the form
 .RB [ - ] digits [ .digits\fR].
-.B e
-conversion appends an exponent
-.BR e [ - ] digits ,
-and
 .B E
 conversion appends an exponent
-.BR E [ - ] digits .
+.BR E [ - ] digits ,
+and
+.B e
+conversion appends an exponent
+.BR e [ - ] digits .
 The
 .B g
 verb will output the argument in either
@@ -273,7 +279,7 @@ The
 verb copies a single
 .B char
 (promoted to
-.B int )
+.BR int )
 justified within a field of
 .I f1
 characters as described above.
@@ -281,8 +287,15 @@ The
 .B C
 verb is similar, but works on runes.
 .PP
+The
+.B r
+verb takes no arguments; it copies the error string returned by a call to
+.IR errstr (2).
+.PP
 .I Fmtinstall
-is used to install custom verbs and flags.
+is used to install custom verbs and flags labeled by character
+.IR c ,
+must have value less than 512.
 .I Fn
 should be declared as
 .IP
@@ -296,23 +309,23 @@ is passed a pointer
 to whatever argument appears next in
 the list to
 .IR print .
-.I Fp->chr
+.IB Fp ->chr
 is the flag or verb character to cause
 .I fn
-to be called; it must have value less than 512.
+to be called.
 In
-.I fn,
-.I fp->f1
+.IR fn ,
+.IB fp ->f1
 and
-.I fp->f2
+.IB fp ->f2
 are the decoded flags in the conversion.
 A missing
-.I fp->f1
+.IB fp ->f1
 is denoted by the value zero.
 A missing
-.I fp->f2
+.IB fp ->f2
 is denoted by a negative number.
-.I Fp->f3
+.IB Fp ->f3
 is the bitwise OR of all the
 flags seen since the most recent
 .LR % .
@@ -332,33 +345,35 @@ and
 64
 .RB ( ll ).
 If
-.B fp->chr
+.IB fp ->chr
 is a verb,
 .I fn
 should return the size of the argument in bytes so
 .I print
 can skip over it.
 If
-.I fp->chr
+.IB fp ->chr
 is a flag,
 .I fn
 should return a negative value:
 the negation of one of the above flag values, or some otherwise unused power of two.
 All interpretation of
-.IR fp->f1 ,
-.IR fp->f2 ,
+.IB fp ->f1\f1,
+.IB fp ->f2\f1,
 and
-.I fp->f3
+.IB fp-> f3
 is left up to the conversion routine.
+.I Fmtinstall
+returns 0 if the installation succeeds, \-1 if it fails.
 .PP
 .I Sprint
 and
 .I snprint
-are reentrant; they may be called to
+are re-entrant; they may be called to
 help prepare output in custom conversion routines.
 .PP
-.I Strconv
-(with a lower-case s)
+The function
+.I strconv
 formats a
 .SM UTF
 string.
@@ -370,7 +385,10 @@ The
 .I strconv
 routine interprets the
 .L -
-flag in fp->f3 as left-justification.
+flag in
+.IB fp ->f3
+as left-justification.
+The function
 .I Strconv
 (with a capital S)
 is like
@@ -402,8 +420,8 @@ use
 to put their results into the current print buffer.
 .PP
 One of
-.I strconv,
-.I Strconv,
+.IR strconv ,
+.IR Strconv ,
 or
 .I numbconv
 must be called to produce output; no other routine puts characters
@@ -419,6 +437,14 @@ but it writes no characters after the address
 It returns a pointer to the NUL
 terminating the
 formatted string.
+.SH Alef
+In Alef,
+.B Fconv
+is called
+.B Printspec
+and the arguments to
+.I strconv
+are swapped.
 .SH EXAMPLES
 This function prints an error message with a variable
 number of arguments and then quits.
@@ -464,7 +490,8 @@ main(...)
 	print("x = %X\en", x);
 }
 .EE
-.PP
+.SH SOURCE
+.B /sys/src/libc/port
 .SH SEE ALSO
 .IR fprintf (2),
 .IR utf (6),
@@ -474,7 +501,7 @@ main(...)
 and
 .I fprint
 set
-.I errstr.
+.IR errstr .
 .SH BUGS
 The formatting is close to that specified for ANSI
 .IR fprintf (2);
@@ -488,8 +515,8 @@ flag doesn't work
 is a flag here instead of a verb
 .IP
 .B X
-conversion doesn't use uppercase
-.BR A \- F
+conversion doesn't use upper case
+.B A-F
 for digits ten to fifteen
 .IP
 there are no
@@ -502,7 +529,7 @@ or
 .B n
 verbs here
 .PP
-Also, and not a bug,
+Also, and distinctly not a bug,
 .I print
 and friends generate
 .SM UTF

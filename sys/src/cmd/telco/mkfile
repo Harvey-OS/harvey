@@ -1,0 +1,12 @@
+</$objtype/mkfile
+
+TARG=telco
+OFILES=telco.$O\
+	malloc.$O\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+install.rc:V:
+	cp telcodata telcofax /rc/bin/service
+	chmod +x /rc/bin/service/telcofax /rc/bin/service/telcodata

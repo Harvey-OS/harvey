@@ -1,0 +1,148 @@
+%% $Source: /doc1/tex/local/latex/RCS/maplems.sty,v $
+%% $Revision: 3.21 $
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\fileversion{4}
+\def\filedate{94/11/17}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{maplems}[\filedate\space\fileversion
+Special Maple Worksheet Format]
+%
+\typeout%
+{Maple Worksheet Style for Latex2e -- \fileversion\space\filedate}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 1994 by Waterloo Maple Software, all rights reserved.
+%
+% Permission is granted to use this style without charge. It may
+% also be redistributed provided that it is distributed as is
+% and without charge.  You may modify these macros for your own use,
+% and redistribute them subject to the following condition:
+%
+% 1. The package name used for any modified version of this file is 
+%    not "maplems" and the file name used is not "maplems.sty".
+%
+% 2. You acknowledge this copyright and acknowledge this file as 
+%    the original source.
+%
+% 3. The macros are redistributed under the same terms and conditions
+%    as indicated here.
+%
+% Please send recommendations or requests for changes to:
+%
+%       support@maplesoft.on.ca
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newif\ifWorkSheetStyle
+%
+\DeclareOption{worksheet}{
+	\WorkSheetStyletrue
+}
+\DeclareOption{ignorespecials}{
+	\WorkSheetStyletrue
+}
+\DeclareOption{normallatex}{
+	\WorkSheetStylefalse
+}
+\DeclareOption*{\PassOptionstoPackage{\CurrentOption}{mapleenv}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% This is a sample LaTeX style file to assist with printing 
+% Maple Work Sheets, as produced by Maple's "Export to Latex".  This 
+% can be used as part of the document style as in:
+%
+% 	\documentclass{article}
+%	\usepackage{maplems}
+%
+% It automatically includes the mapleenv package, defining macros for
+% formatting input and output regions from Maple.
+% To use this package, place mapleenv.sty and maplems.sty in the same 
+% directory as % your document, (or in a location indicated by your 
+% TEXINPUTS search  path).
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Change entries in this next section in order to change the way page 
+% headings are handled.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \pagestyle{noheadings}
+% \pagestyle{plain}
+\pagestyle{myheadings}
+\markright{\protect\rule[-5pt]{\linewidth}{1pt}\hspace{-\linewidth}%
+{\protect\sffamily\large Maple V\ \  Release 3}%
+}
+%}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The common user-settable parameters for documents are found in the 
+% next section.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%% The next flag determines how unescaped tex characters such as
+%% #, ^ &, / are handled in the body of paragraphs.  If set to false,
+%% these characters are handled exactly as they would be in a standard
+%% latex document.
+%%
+%% By setting this to true, these special characters will appear in-line
+%% just as they do in the worksheet.  In this mode, LaTex math
+%% constructs cannot be used inline.
+%
+\ExecuteOptions{normallatex}%
+\ProcessOptions%
+\RequirePackage{mapleenv}
+%
+% main document settings  
+%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\topmargin=-.2in
+\textheight=8.75in
+\textwidth=6in
+\headheight=2.5ex
+\headsep=.17in
+\oddsidemargin=0.25in
+\evensidemargin=\oddsidemargin
+\parsep=2ex			  % space between item paragraphs
+\parskip=1.5ex  		  % space between paragraphs
+%
+% parameters controlling the special maple environments
+%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\MaplePrompttrue      % generate a prompt at start of each line?
+\MaplePromptString = {\raise 1pt \hbox{$\scriptstyle>$\space}}
+\AboveMapleSkip = 1ex plus 2 pt minus 1 pt
+\BelowMapleSkip = \AboveMapleSkip
+\LeftMapleSkip  = 5ex
+\AboveMaplePlot = 2\AboveMapleSkip
+\BelowMaplePlot = 2\AboveMapleSkip
+\MaplePlotHeight = 30ex
+\MaplePlotWidth = 1.3\MaplePlotHeight
+\edef\MaplePlotAngle{270}
+\let\MapleSepLineWidth\linewidth  % \let so that it will be redefined 
+				  % properly for narrow environments.
+\MapleSepLineHeight = 1pt
+\def\MapleFont{\normalfont\ttfamily}  % font used for input and ttyout
+\def\MapleSize{\small}                % font size for input and ttyout
+\def\MapleLatexSize{\normalsize}      % font size for maplelatex
+\MapleFirstLinefalse                  % hides first \cr of \mapleinput
+\MapleTab = 8	                      % spaces used by the tab character.
+%%% psfig macros (if used)
+% \psdraft
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\rightah{{\tt>}}
+\def\leftah{{\tt<}}
+\ifWorkSheetStyle
+  \MakeLetter{^}
+  \MakeLetter{_}
+  \MakeLetter{#}
+  \MakeLetter{&}
+  \MakeActive{>}\def>{\rightah}
+  \MakeActive{<}\def<{\leftah}
+\fi
+
+% Define \backslash
+{%
+  \catcode`| = 0
+  |catcode`\\ = 12
+  |gdef|backslash{\}
+}
+
+\endinput
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

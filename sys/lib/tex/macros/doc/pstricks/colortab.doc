@@ -1,0 +1,464 @@
+%% BEGIN colortab.doc
+\def\FileVersion{0.9}
+\def\FileDate{93/01/11}
+%%
+%% Documentation for colortab.tex/colortab.sty.
+%% Run through LaTeX, with or without the NFSS.
+%%
+%% You need the file fancybox.sty, available from Princeton.EDU:/pub/tvz
+%%
+%% The color commands \gray and \lightgray must be defined if you
+%% want to see the examples. pstricks.tex will be loaded for this
+%% purpose if it is found. Otherwise, you must load your own
+%% color commands.
+%%
+%% Change these if using different size paper. You can also include the
+%% twosided style option, if desired:
+
+\def\paperwidth{8.5in}
+\def\paperheight{11in}
+
+\documentstyle[12pt,fancybox]{article}
+
+\makeatletter
+
+% Load pstricks.tex if it is found:
+\@input{pstricks.tex}
+
+% Input colortab.tex here to check file version:
+\input colortab.tex
+\ifx\FileVersion\fileversion\else
+  \@latexerr{colortab input file and documentation do not have the same
+    version}\@ehd
+\fi
+
+% DATES, VERSIONS AND TITLES:
+
+\def\expanddate#1/#2/#3/{\year=19#1 \month=#2 \day=#3}
+\begingroup
+  \expandafter\expanddate\filedate/
+  \xdef\thefiledate{\today}
+\endgroup
+
+\title{Documentation for colortab.tex/colortab.sty:\\[5pt]
+  Shading and coloring \TeX\ tables}
+\author{Timothy Van Zandt\\ tvz@Princeton.EDU}
+\date{Version \fileversion\\ \thefiledate}
+
+\def\@maketitle{%
+ \begin{center}
+   {\Large\bf \@title \par}
+   \vskip 1.2em {\lineskip .5em
+   \begin{tabular}[t]{c}\@author\end{tabular}\par}
+   \vskip .8em {\@date}%
+  \end{center}
+  \par
+  \vskip .5em}
+
+% PAGE STYLE:
+
+\pagestyle{myheadings}
+\if@twoside
+  \markboth{Documentation for colortab.tex/.sty}%
+    {Version \fileversion, \thefiledate}%
+\else
+  \markright{colortab.tex, Version \fileversion}
+\fi
+
+% TABLE OF CONTENTS
+
+\newskip\myskip
+
+\def\tableofcontents{%
+  \par\vfill
+  \begin{quote}
+    \begin{center} \Large\bf Contents \end{center}
+    \def\numberline##1{\hbox to 0pt{\hss##1\hskip 1em}}%
+    \let\oldaddvspace\addvspace
+    \def\addvspace##1{%
+      \myskip##1\relax
+      \oldaddvspace{.5\myskip}}
+    \@starttoc{toc}%
+  \end{quote}
+  \thispagestyle{empty}
+  \vfill
+  \clearpage}
+
+
+% PAGE PARAMETERS:
+
+% Paragraphs are marked by large space rather than indentation:
+\parindent 0pt
+\parskip 7pt plus 1pt minus 1pt
+
+\setlength{\topmargin}{0pt}
+\setlength{\headheight}{12pt}        % height of running head
+\setlength{\headsep}{30pt}           % distance between header and text
+\setlength{\textheight}{8.2in}        % height of text on page
+
+% Adjust margins for different paper size:
+\@tempdima=\paperwidth
+\advance\@tempdima-8.5in
+\advance\oddsidemargin .5\@tempdima
+\advance\evensidemargin .5\@tempdima
+\@tempdima=\paperheight
+\advance\@tempdima-11in
+\advance\topmargin .5\@tempdima
+
+% VERBATIM HACKS:
+
+\VerbatimFootnotes
+
+% Short meta (works in verbatim. Can't use < for other purposes.
+\catcode`\<=13 \def<#1>{{\rm\it #1\/}}    % <meta> (works in verbatim)
+
+% Short verbatim. " can appear in verbatim environments.
+\def\temp{\Verb"}
+\expandafter\def\expandafter\dospecials\expandafter{\dospecials\do\"}
+\catcode`\"=13
+\let"\temp
+
+\def\n#1{{\tt\string#1}}
+
+% Verbatim item:
+\newcommand{\vitem}{\SaveVerb[{\def\bf{}\item[\UseVerb{\MyTemp}]}]{\MyTemp}}
+
+% Verbatim section"
+
+% EXAMPLES:
+% 1. Save example verbatim to \jobname.tmp,
+% 2. Input verbatim with \catcode`\"=14 (" is a comment).
+% 3. Input again with \catcode\`"=9 (" is ignored).
+
+\renewcommand{\EveryVerbatimLine}[2]{}
+
+\renewcommand{\EveryVerbOutLine}[2]{}
+
+\newcommand{\BeginExample}{%
+  \VerbatimEnvironment\begin{VerbatimOut}{\jobname.tmp}}
+
+\newcommand{\EndExample}{%
+  \end{VerbatimOut}%.
+  \renewcommand{\EveryVerbatimLine}{}%
+  \renewcommand{\EveryVerbatimCodes}{\catcode`\"=14}%
+  \LVerbatimInput{\jobname.tmp}%
+  \catcode`\"=9}
+
+\@ifundefined{lightgray}{\@testfalse}%
+  {\@ifundefined{gray}{\@testfalse}{\@testtrue}}
+
+\if@test
+
+\newenvironment{example}{\BeginExample}{\EndExample
+  \begin{center}\leavevmode\input{\jobname.tmp}\end{center}}
+
+\else
+
+\newenvironment{example}{\VerbatimEnvironment\LVerbatim}{\endLVerbatim}
+
+\fi
+
+% END PREAMBLE:
+\makeatother
+
+\begin{document}
+
+\maketitle
+
+\begin{quote}
+"colortab.tex/colortab.sty" contains macros that let you use your color
+commands for shading and coloring cells in tables and other alignment
+environments. It is compatible with most \TeX\ macro packages.
+\end{quote}
+
+\tableofcontents
+
+\section{Introduction}
+
+Adding color to tables is fraught with difficulties, but as the examples in
+this file indicate, it can be done. In any case, consider this an advanced
+topic, and be aware that the commands in "colortab.tex" are not robust.
+
+This is meant to supplement your own color commands. There are many macro
+files that implement color for the various "dvi" drivers that can support
+color. E.g., the PSTricks package works with a variety of DVI-to-PS drivers.
+
+For example, suppose you have a macro that defines the color command "\gray".
+"colortab.tex" requires that one of the following produce a gray line:
+\begin{LVerbatim}
+  {\gray \hrule}
+  \gray{\hrule}
+\end{LVerbatim}
+if you want to use this command to color the cells in tables.
+This is probably the case if the one of the following produces gray text:
+\begin{LVerbatim}
+  {\gray I am gray!}
+  \gray{I am gray!}
+\end{LVerbatim}
+
+"colortab.tex" contains macros for \TeX's "\halign" primitive. Incorporating
+color into high-level macros based on the "\halign" primitive requires a
+case-by-case treatment. "colortab.tex" also contains macros for coloring cells
+\LaTeX's various array environments, and for the \LaTeX\ "longtable"
+environment that is defined in the "longtable" (or "longtabl") style option.
+These can serve as examples that can be accommodated to other table macros.
+See the code itself for happy hacking.
+
+\section{\TeX's halign primitive}
+
+To shade cells in an alignment, use
+\begin{LVerbatim}
+  \coloralign
+\end{LVerbatim}
+instead of "\halign". Then,  to color the columns in one or more rows, type
+\begin{LVerbatim}
+  \CC
+    <row of colors>\cr
+    <rows to be colored>\cr
+  \ECC
+\end{LVerbatim}
+For example:
+\begin{example}
+  \setbox\strutbox=\hbox{\vrule height11.5pt
+    depth6.5pt width0pt}%
+  \vbox{\offinterlineskip
+    \coloralign{%
+        \vrule\strut\quad\hfil#\hfil\quad
+        &\vrule\quad\hfil#\quad\vrule\cr
+      \noalign{\hrule}%
+      \CC
+        \gray &\cr
+        Tamarind&Chiplote\cr
+      \ECC\noalign{\hrule}%
+      \CC
+        \lightgray &\gray\cr
+        Lulu&Serrano\cr\noalign{\hrule}%
+        Guanabana&Larga\cr
+      \ECC\noalign{\hrule}%
+  }}
+\end{example}
+
+"\CC" and "\ECC" stand for ``ColorCells'' and ``EndColorCells'', respectively.
+You cannot change the name of "\ECC" with "\let" or "\def" (without redefining
+"\CC"), because it is really just a delimiter. This is also true of the first
+"\cr", which marks the end of the row of color commands.
+Remember that only complete rows can go between "\CC" and "\ECC". Where you
+include horizontal lines is generally inconsequential. You can have nested
+"\coloralign" environments, but the nested environment must be enclosed in
+brackets "{}".  There is no "\coloralign to" or "\coloralign spread" because
+the space inserted by "\tabskip" won't be shaded.
+
+These macros are not very robust. You can make best use of them by knowing how
+they work. "\coloralign" just saves the preamble, and otherwise is identical
+to "\halign". "\CC" finds the height of the rows that have to be colored, and
+then "\CC" draws a rectangle using \TeX's line-drawing primitives in each
+cell, colored by the color commands included in the first line that follows
+"\CC". E.g.,
+\begin{LVerbatim}
+  \yellow &&\red \cr
+\end{LVerbatim}
+draws a yellow rectangle in column 1, nothing in column 2, and a red rectangle
+in column 3. Then "\CC" goes back up the height of the rectangle, so that
+\TeX's current point is back where it was when "\CC" started. At this point,
+"\CC" has finished its work. When the next rows of the alignment environment
+are processed by "\halign", they are put down on top of the rectangles, and
+hence have colored backgrounds.
+
+"\CC" finds the height of the rows to be colored by putting the rows into an
+"\halign" environment, using the preamble that was saved by "\coloralign", and
+then measuring the height of the resulting box.
+
+\section{\LaTeX\ array environments}
+
+Cells can be colored in a \LaTeX\ array without using a special array
+environment (i.e., there is no \LaTeX\ analog to "\coloralign"). Use "\LCC"
+instead of "\CC", and use "\\" to end the row of color commands instead of
+"\cr". For example:
+\begin{example}
+  \def\arraystretch{1.5}%
+  \begin{tabular}{|l|c|}\hline
+    \LCC
+      \gray & \\
+      Tamarind & Chiplote \\ \hline
+    \ECC
+    \LCC
+      \lightgray & \gray\\
+      Lulu & Serrano\\ \hline
+      Guanabana & Larga\\ \hline
+    \ECC
+  \end{tabular}
+\end{example}
+The same caveats apply as with the "\coloralign" environment.
+
+When \n\LCC\ and \n\ECC\ are used with Frank Mittelbach's "array.sty", nested
+array-type environments and "\multicolumn" commands wipe out information
+needed by \n\ECC\. Here is a workaround: Put "\SP" (``SavePreamble'') at the
+beginning of the array-type environment (right after the column declarations),
+and put "\RP" (``RestorePreamble'') at the end of each line containing a
+"\multicolumn" command or nested array-type environment (after the "\\", and
+before the \n\ECC). For example:
+\begin{LVerbatim}
+  \begin{tabular}{|l|c|}\SP\hline
+    \LCC
+      \gray & \\
+      \multicolumn{2}{c}{Tamarind}\\ \RP \hline
+    \ECC
+  \end{tabular}
+\end{LVerbatim}
+Further nesting (e.g., an array within a "\multicolumn", or a "\multicolumn"
+or array within a nested array) sometimes works and sometimes doesn't. You
+will have to figure that one out for yourself.
+
+
+\section{longtable.sty}
+
+"longtable.sty", by David Carlisle, defines the "longtable" environment, for
+making multipage tables. "\LCC" will not work with "longtable". However,
+"colortab" contains other macros that will work, if you use "longtable.sty" in
+conjunction with Frank Mittelbach's "array.sty". These macros have been tested
+only briefly, with version 3.04 of "longtable.sty" and version 2.1b of
+"array.sty".
+
+Before every column identifier in the environment's argument (e.g., "c", "l",
+"r", "p", "m" or "b"), put
+\begin{description}
+  \vitem"!{\LC}" If none of the below applies;
+  \vitem"!{\LCi}" If the column is preceded by one or more vertical lines;
+  \vitem"!{\LCii}" If the column is followed by two vertical lines;
+  \vitem"!{\LCiii}" If the column is preceded by one or more vertical lines
+and followed by two vertical lines.
+  \vitem"!{\LCz{<len1>}{<len2>}}" If "colortab" should back up by <len1>
+before drawing the background, and should draw the background <len2> shorter
+than the width of the column.
+\end{description}
+Remember that you have to do this for every column, not just the columns that
+you want to color.
+
+Then include
+\begin{LVerbatim}
+  \LColors <color> & <color> & ... & <color>\\
+\end{LVerbatim}
+in the first row of the environment, and later on as well if you wish to
+change the colors. Here also you have to include every column, but you can
+leave an entry blank if you don't want any background color in that column.
+
+The color comes out right, or at all, only after you have run the file enough
+times for "longtable.sty" to set the alignment correctly.
+
+Here is an example. The output will appear in this documentation only if
+"longtable.sty" or "longtabl.sty" is installed on your system.
+\begingroup
+  \makeatletter
+  \catcode`\<=12
+  \@input{longtable.sty}%
+  \@input{longtabl.sty}%
+  \@input{array.sty}%
+  \@testtrue
+  \@ifundefined{c@LT@tables}{\@testfalse}{}%
+  \@ifundefined{d@llarbegin}{\@testfalse}{}%
+  \if@test\else
+    \renewenvironment{example}{\VerbatimEnvironment\LVerbatim}{\endLVerbatim}%
+  \fi
+  \makeatother
+\begin{example}
+  \LARGE
+  \begin{longtable}{|!{\LCiii}l||!{\LCi}c|!{\LCi}c|}\hline
+    \LColors \gray & & \\
+      Tamarind & Chiplote & Galanga\\ \hline
+    \LColors \lightgray & & \gray\\
+      Lulu & & Serrano\\ \hline
+      Guanabana & Larga &\\ \hline
+  \end{longtable}
+\end{example}
+\endgroup
+
+\section{Coloring lines}
+
+Let's begin with the "\halign" environment. Changing the color of lines is
+easy, because if you write, say, "{\gray\hrule}", then the line comes out
+gray. For example:
+\begin{example}
+  % Thicker lines and wider spacing give better view:
+  \setbox\strutbox=\hbox{%
+    \vrule height15.5pt depth8.5pt width0pt}%
+  \def\Hrule{\hrule height 2.5pt}%
+  \def\Vrule{\vrule width 2.5pt}%
+  % Now the table:
+  \vbox{\offinterlineskip
+    \halign{%
+        {\lightgray\Vrule}\strut\quad\hfil#\hfil\quad
+        &{\gray\Vrule}\quad\hfil#\quad\Vrule\cr
+      \noalign{\Hrule}%
+      Tamarind& Chiplote\cr\noalign{{\darkgray\Hrule}}%
+      Lulu& Serrano\cr\noalign{\Hrule}%
+      Guanabana& Larga\cr\noalign{{\lightgray\Hrule}}%
+  }}
+\end{example}
+
+With \LaTeX, you can add an entry like
+\begin{LVerbatim}
+  @{\hspace{\tabcolsep}{\gray\vrule}\hspace{\tabcolsep}}
+\end{LVerbatim}
+to the argument of the alignment environment, instead of "|", if you want to
+color the vertical line that is drawn. If using "array.sty", you can try:
+\begin{LVerbatim}
+  !{{\gray\vrule}}
+\end{LVerbatim}
+
+To color horizontal lines with \LaTeX, don't bother trying
+\begin{LVerbatim}
+  {\gray\hline}
+\end{LVerbatim}
+because it won't work. You write your own version of "\hline" and "\cline", or
+use the non-aligned color commands described in the next section.
+
+\section{Non-aligned color with PSTricks}
+
+Here are a few other commands that can be useful for adding color to tables.
+{\bf They only work with PSTricks, v0.93 or later.} <color> in this case is
+the name of the color, without the backslash. These fudge the color commands
+so that they do not have to be balanced with respect to \TeX\ grouping. You
+can achieve the same thing using "\special{<raw postscript>}" and "\noalign",
+if you know what you are doing. These should work with just about any
+alignment macro, include "\halign" and \LaTeX's "tabular" environment.
+
+\begin{description}
+
+\vitem"\AC{<color>} ... \EAC" \
+
+  These stand for "AlignColor" and "EndAlignColor", respectively. <color> is
+the name of the color, without a backslash, rather than a color command. This
+can be used within a cell, but they do not have to be within the same cell,
+nor do they have to be properly nested with respect to \TeX\ grouping.
+Generally, "\AC{<color>}" switches to <color>, and \n\EAC\ restores the color
+that would be in effect if the first \n\AC\ command were missing.
+
+\vitem"\NAC{<color>} ... \ENAC" \
+
+  These stand for "NoAlignColor" and "EndNoAlignColor", respectively. These
+are like \n\AC\ and \n\EAC, but the color commands are put inside a
+"\noalign". They can only appear at the end of a line, after "\\" or "\cr".
+
+\end{description}
+Actually, these do not even have to be used in pairs.
+
+Here is an example of how "\AC", etc., can be used. to color lines in \LaTeX\
+arrays. The output will appear in this documentation only if PSTricks is
+installed on your system:
+\begingroup
+\ifx\PSTricksLoaded\endinput\else
+  \renewenvironment{example}{\VerbatimEnvironment\LVerbatim}{\endLVerbatim}
+\fi
+\begin{example}
+  \arrayrulewidth 1.5pt
+  \begin{tabular}{|l|c|}\hline
+    Tamarind& Chiplote\\ \NAC{gray}\hline\ENAC
+    Lulu& Serrano\\ \cline{1-1}
+      \NAC{lightgray}\cline{2-2}\ENAC
+    Guanabana\AC{lightgray} & \EAC Larga\\ \hline
+  \end{tabular}
+\end{example}
+\endgroup
+
+\end{document}
+%% END colortab.doc

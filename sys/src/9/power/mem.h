@@ -20,9 +20,9 @@
 /*
  * Time
  */
-#define HZ		20
-#define	MS2HZ		50			/* millisec per clock tick */
-#define	TK2SEC(t)	((t)/20)		/* ticks to seconds */
+#define HZ		100
+#define	MS2HZ		(1000/HZ)		/* millisec per clock tick */
+#define	TK2SEC(t)	((t)/HZ)		/* ticks to seconds */
 #define	TK2MS(t)	((t)*MS2HZ)		/* ticks to milliseconds */
 #define	MS2TK(t)	((t)/MS2HZ)		/* milliseconds to ticks */
 
@@ -48,6 +48,8 @@
 #define KUC		0x00000002
 #define IEP		0x00000004
 #define KUP		0x00000008
+#define IEO		0x00000010
+#define KUO		0x00000020
 #define INTMASK		0x0000ff00
 #define SW0		0x00000100
 #define SW1		0x00000200
@@ -59,6 +61,8 @@
 #define INTR5		0x00008000
 #define ISC		0x00010000
 #define SWC		0x00020000
+#define CM		0x00080000
+#define PE		0x00100000
 #define CU1		0x20000000
 
 /*

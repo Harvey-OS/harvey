@@ -122,6 +122,7 @@ uchar	ymovl[] =
 	Yi0,	Yml,	Zibo_m,	2,
 	Yi32,	Yrl,	Zil_rp,	1,
 	Yi32,	Yml,	Zilo_m,	2,
+	Yiauto,	Yrl,	Zaut_r,	2,
 	0
 };
 uchar	ym_rl[] =
@@ -425,11 +426,11 @@ Optab optab[] =
 	{ AMULL,	ydivl,	Px, 0xf7,(04) },
 	{ AMULW,	ydivl,	Pe, 0xf7,(04) },
 	{ ANAME },
-	{ ANEGB,	yscond,	Pm, 0xf6,(03) },
+	{ ANEGB,	yscond,	Px, 0xf6,(03) },
 	{ ANEGL,	yscond,	Px, 0xf7,(03) },
 	{ ANEGW,	yscond,	Pe, 0xf7,(03) },
 	{ ANOP,		ynop,	Px,0,0 },
-	{ ANOTB,	yscond,	Pm, 0xf6,(02) },
+	{ ANOTB,	yscond,	Px, 0xf6,(02) },
 	{ ANOTL,	yscond,	Px, 0xf7,(02) },
 	{ ANOTW,	yscond,	Pe, 0xf7,(02) },
 	{ AORB,		yxorb,	Pb, 0x0c,0x80,(01),0x08,0x0a },

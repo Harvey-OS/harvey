@@ -2,6 +2,10 @@
 .SH NAME
 exp, log, log10, pow, pow10, sqrt \- exponential, logarithm, power, square root
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .nf
 .B
 double exp(double x)
@@ -24,7 +28,7 @@ double sqrt(double x)
 .SH DESCRIPTION
 .I Exp
 returns the exponential function of
-.I x.
+.IR x .
 .PP
 .I Log
 returns the natural logarithm of
@@ -45,7 +49,13 @@ as a double.
 .PP
 .I Sqrt
 returns the square root of
-.I x.
+.IR x .
+.SH SOURCE
+All these routines have portable C implementations in
+.BR /sys/src/libc/port .
+Most also have machine-dependent implementations, written either in assembler
+or C, in
+.BR /sys/src/libc/$objtype .
 .SH SEE ALSO
 .IR hypot (2),
 .IR sinh (2),

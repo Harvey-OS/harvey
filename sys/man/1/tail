@@ -9,6 +9,22 @@ tail \- deliver the last part of a file
 [
 .I file
 ]
+.PP
+.B tail
+[
+.B -fr
+]
+[
+.B -n
+.I nlines
+]
+[
+.B -c
+.I ncharacters
+]
+[
+.I file
+]
 .SH DESCRIPTION
 .I Tail
 copies the named file to the standard output beginning
@@ -39,6 +55,11 @@ causes tail to print lines from the end of the file in reverse order;
 .I tail,
 after printing to the end, to keep watch and
 print further data as it appears.
+.PP
+The second syntax is that promulgated by POSIX, where
+the
+.I numbers
+rather than the options are signed.
 .SH EXAMPLES
 .TP
 .B tail file
@@ -50,6 +71,8 @@ data accumulate as it grows.
 .TP
 .B sed 10q file
 Print the first 10 lines of a file.
+.SH SOURCE
+.B /sys/src/cmd/tail.c
 .SH BUGS
 Tails relative to the end of the file
 are treasured up in a buffer, and thus

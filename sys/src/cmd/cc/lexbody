@@ -77,48 +77,35 @@ Sym*
 lookup(void)
 {
 	Sym *s;
-	long h, h1;
-	char *p, c0;
-	int i;
+	long h;
+	char *p;
+	int c, l;
 
 	h = 0;
-	for(p=symb; *p;) {
-		h *= 3;
-		h += *p++;
-	}
+	for(p=symb; c = *p; p++)
+		h = h+h+h + c;
+	l = (p - symb) + 1;
 	if(h < 0)
 		h = ~h;
-	if(p >= symb+NNAME) {
-		/*
-		 * long names are first NNAME/2-2 chars
-		 * last NNAME/2-2 chars and three pieces of hash
-		 */
-		memmove(symb+(NNAME/2-2), p-(NNAME/2-2), NNAME/2-2);
-		h1 = h;
-		for(i=0; i<3; i++) {
-			c0 = h1 % 62;
-			h1 = h1 / 62;
-			if(c0 < 26)
-				c0 += 'a';
-			else
-			if(c0 < 52)
-				c0 += 'A'-26;
-			else
-				c0 += '0'-52;
-			symb[NNAME-4+i] = c0;
-		}
-		symb[NNAME-1] = 0;
-	}
 	h %= NHASH;
-	c0 = symb[0];
+	c = symb[0];
 	for(s = hash[h]; s != S; s = s->link) {
-		if(s->name[0] != c0)
+		if(s->name[0] != c)
 			continue;
-		if(strcmp(s->name, symb) == 0)
+		if(memcmp(s->name, symb, l) == 0)
 			return s;
 	}
 	ALLOC(s, Sym);
-	strcpy(s->name, symb);
+
+	while(l & 3)
+		l++;
+	while(nhunk < l)
+		gethunk();
+	s->name = hunk;
+	hunk += l;
+	nhunk -= l;
+	memmove(s->name, symb, l);
+
 	s->link = hash[h];
 	hash[h] = s;
 	syminit(s);

@@ -2,11 +2,11 @@
 
 static struct place gywhem, gyehem;
 static struct coord gytwist;
-static float gyconst, gykc, gyside;
+static double gyconst, gykc, gyside;
 
 
 static void
-dosquare(float z1, float z2, float *x, float *y)
+dosquare(double z1, double z2, double *x, double *y)
 {
 	double w1,w2;
 	w1 = z1 -1;
@@ -24,10 +24,10 @@ dosquare(float z1, float z2, float *x, float *y)
 }
 
 int
-Xguyou(struct place *place, float *x, float *y)
+Xguyou(struct place *place, double *x, double *y)
 {
 	int ew;		/*which hemisphere*/
-	float z1,z2;
+	double z1,z2;
 	struct place pl;
 	ew = place->wlon.l<0;
 	copyplace(place,&pl);
@@ -42,7 +42,7 @@ Xguyou(struct place *place, float *x, float *y)
 proj
 guyou(void)
 {
-	float junk;
+	double junk;
 	gykc = 1/(3+2*sqrt(2.));
 	gyconst = -(1+sqrt(2.));
 	elco2(-gyconst,0.,gykc,1.,1.,&gyside,&junk);
@@ -54,7 +54,7 @@ guyou(void)
 }
 
 int
-guycut(struct place *g, struct place *og, float *cutlon)
+guycut(struct place *g, struct place *og, double *cutlon)
 {
 	int c;
 	c = picut(g,og,cutlon);
@@ -67,10 +67,10 @@ guycut(struct place *g, struct place *og, float *cutlon)
 }
 
 static int
-Xsquare(struct place *place, float *x, float *y)
+Xsquare(struct place *place, double *x, double *y)
 {
-	float z1,z2;
-	float r, theta;
+	double z1,z2;
+	double r, theta;
 	struct place p;
 	copyplace(place,&p);
 	if(place->nlat.l<0) {

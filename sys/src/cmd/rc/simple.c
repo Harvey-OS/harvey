@@ -58,7 +58,7 @@ void Xsimple(void){
 			Updenv();
 			switch(pid=fork()){
 			case -1:
-				Xerror("try again");
+				Xperror("try again");
 				return;
 			case 0:
 				pushword("exec");
@@ -239,6 +239,7 @@ void execeval(void){
 		Xerror("Usage: eval cmd ...");
 		return;
 	}
+	eflagok=1;
 	for(ap=runq->argv->words->next;ap;ap=ap->next)
 		len+=1+strlen(ap->word);
 	cmdline=emalloc(len);
@@ -278,6 +279,8 @@ void execdot(void){
 		dotcmds[12].f=Xreturn;
 		first=0;
 	}
+	else
+		eflagok=1;
 	popword();
 	if(p->argv->words && strcmp(p->argv->words->word, "-i")==0){
 		iflag=1;
@@ -290,6 +293,7 @@ void execdot(void){
 	}
 	zero=strdup(p->argv->words->word);
 	popword();
+	strcpy(file, "**No file name**");
 	for(path=searchpath(zero);path;path=path->next){
 		strcpy(file, path->word);
 		if(file[0]) strcat(file, "/");
@@ -301,8 +305,7 @@ void execdot(void){
 		}
 	}
 	if(fd<0){
-		pfmt(err, "%s: ", zero);
-		Xerror(".: can't open");
+		Xperror(file);
 		return;
 	}
 	/* set up for a new command loop */
@@ -418,4 +421,5 @@ void execwait(void){
 	case 2: Waitfor(atoi(runq->argv->words->next->word), 0); break;
 	case 1: Waitfor(-1, 0); break;
 	}
+	poplist();
 }

@@ -77,6 +77,7 @@ xloop:
 		s = p;
 		goto xloop;
 	}
+
 	/*
 	 * its dangerous to flush the pseudo
 	 * devices since they recursively call
@@ -86,7 +87,7 @@ xloop:
 		qunlock(p);
 		if(p == hp->link) {
 			unlock(hp);
-			print("iobuf all resed\n");
+			print("iobuf all reserved\n");
 			goto loop;
 		}
 		s = p;
@@ -114,8 +115,7 @@ xloop:
 				return p;
 			}
 			iobufunmap(p);
-		}
-		else {
+		} else {
 			cons.binit.count++;
 			return p;
 		}
@@ -170,8 +170,7 @@ syncblock(void)
 				if(!devwrite(q->dev, q->addr, q->iobuf))
 					q->flags &= ~(Bmod|Bimm);
 				iobufunmap(q);
-			}
-			else
+			} else
 				flag = 1;
 			qunlock(q);
 		}

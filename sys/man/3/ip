@@ -7,14 +7,14 @@ ip \- TCP, UDP, IL network protocols over IP
 .B bind -a #Iudp /net
 .B bind -a #Iil  /net
 
-.B #Itcp/tcp/clone
-.B #Itcp/tcp/[0-7]
-.B #Itcp/tcp/[0-7]/data
-.B #Itcp/tcp/[0-7]/ctl
-.B #Itcp/tcp/[0-7]/local
-.B #Itcp/tcp/[0-7]/remote
-.B #Itcp/tcp/[0-7]/status
-.B #Itcp/tcp/[0-7]/listen
+.B /net/tcp/clone
+.BI /net/tcp/ n 
+.BI /net/tcp/ n /data
+.BI /net/tcp/ n /ctl
+.BI /net/tcp/ n /local
+.BI /net/tcp/ n /remote
+.BI /net/tcp/ n /status
+.BI /net/tcp/ n /listen
 \&...
 .fi
 .SH DESCRIPTION
@@ -60,7 +60,7 @@ The TCP protocol provides a stream connection that does not preserve
 .BR read / write
 boundaries.
 .PP
-Prior to sending data remote and local addresses must be set for the connection.
+Prior to sending data, remote and local addresses must be set for the connection.
 For outgoing calls the local port number will be allocated randomly if none is set.
 Addresses are set by writing control messages to the
 .B ctl
@@ -79,27 +79,54 @@ If the
 flag
 is supplied and no local address has been specified the system will allocate
 a restricted port number (less than 1024) for the connection to allow communication
-with Unix machines login/exec services.
+with Unix machines'
+.B login
+and
+.B exec
+services.
 .TP
 .B disconnect
-(UDP only.)
+(UDP only)
 Clear the remote address of a UDP connection.
 .TP
-.BI announce\  port
-Set the local address to
-.I port.
-The local IP address can not be set.
+.BI announce\  X
+.I X
+is a decimal port number or
+.LR * .
+Set the local port
+number to
+.I X
+and accept calls to
+.IR X .
+If
+.I X
+is
+.LR * ,
+accept
+calls for any port that no process has explicitly announced.
+The local IP address cannot be set.
+.B Announce
+fails if the connection is already announced or connnected.
+.TP
+.BI bind\  X
+.I X
+is a decimal port number or
+.LR * .
+Set the local port number to
+.IR X .
+This exists to support library emulation
+of BSD sockets and is not otherwise used.
 .TP
 .BI backlog\  n
-(IL and TCP only.)
+(IL and TCP only)
 Set the maximum number of pending requests for a given service
 to
-.I n.
+.IR n .
 By default
 .I n
 is set to five.  If more than
 .I n
-connections are pending
+connections are pending,
 further requests for a service will be rejected.
 .PP
 Port numbers must be in the range 1 to 32767.
@@ -138,3 +165,11 @@ given protocol.
 .IR listen (8),
 .IR dial (2),
 .IR ndb (6)
+.SH SOURCE
+.B /sys/src/9/port/devip.c
+.br
+.B /sys/src/9/port/stil.c
+.br
+.B /sys/src/9/port/stip.c
+.br
+.B /sys/src/9/port/tcp*.c

@@ -3,14 +3,6 @@
 #include <libg.h>
 #include "dat.h"
 
-#define	INSET	5		/* inset from screen.r to written area */
-#define	DATEX	(INSET+5)	/* coordinates of date string */
-#define	DATEY	(INSET+1)
-#define	XOFF	(INSET+5)	/* offset from corner to picture */
-#define	YOFF	(INSET+20)
-#define	FCWID	(MAXX+5)	/* width of face, incl. strings */
-int	FCHT;			/* height of face, incl. strings */
-
 Point	dp;			/* upper left corner of first picture */
 Bitmap	*b;
 SRC	old, new;
@@ -51,8 +43,14 @@ main(int argc, char *argv[])
 	case 'f':
 		log = ARGF();
 		break;
+	case 'u':
+		strcpy(user, ARGF());
+		break;
+	case 'r':
+		rfile=ARGF();
+		break;
 	default:
-		error("usage: seemail [-a] [-s] [-fFILE]");
+		error("usage: seemail [-a] [-s] [-f logfile] [-u user] [-r reminderfile]");
 	}ARGEND
 	if(argc > 0)
 		log = argv[0];
@@ -62,6 +60,10 @@ main(int argc, char *argv[])
 	srand(time(0));
 	start_trail(log);
 	FCHT = (MAXY - 2 + 2*medifont->height);
+	if(rfile)
+		TOPOFF = DATEY + 5 + 2*(medifont->height+1);
+	else
+		TOPOFF = DATEY+5+medifont->height;
 
 	fd = open("/dev/mouse", OREAD);
 	if(fd < 0)
@@ -69,9 +71,9 @@ main(int argc, char *argv[])
 
 	lastb = 0;
 	notify(alarmf);
-	alarm(ALARM);
 	redraw();
 	for(;;){
+		remind(rfile);
 		alarm(ALARM);
 		n = read(fd, buf, sizeof buf);
 		alarm(0);
@@ -106,7 +108,7 @@ redraw(void)
 	bitblt(&screen, screen.r.min, &screen, screen.r, 0);	/* cls */
 	border(&screen, screen.r, 1, F);
 	dp.x = screen.r.min.x + XOFF;
-	dp.y = screen.r.min.y + YOFF;
+	dp.y = screen.r.min.y + TOPOFF;
 	Same = First = 1;
 	Date(1);
 }
@@ -124,9 +126,9 @@ showimage(SRC *From, int Shift)
 	if(Shift){
 		sr = screen.r;
 		sr.min.x += XOFF;
-		sr.min.y += YOFF;
+		sr.min.y += TOPOFF;
 		sr.max.x -= XOFF;
-		sr.max.y -= YOFF;
+		sr.max.y -= BOTOFF;
 	
 		nfacew_1 = Dx(sr)/FCWID - 1;
 		if(nfacew_1 < 0)

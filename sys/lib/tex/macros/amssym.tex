@@ -1,47 +1,67 @@
-%  AMSSYM.TEX                                           February 1990
-%  version 2.0, for use with AMSTEX.TEX version 2.0 or with AMSSYM.DEF
-
-%  This file contains the name definitions for the symbols in the fonts
-%  MSAM* and MSBM*, using the \newsymbol notation of AMS-TeX.
-%
-%  American Mathematical Society, Technical Support Group, P. O. Box 6248,
-%        Providence, RI 02940
-%  800-321-4AMS or 401-455-4080;  Internet: Tech-Support@Math.AMS.com
-%
-%  Copyright (C) 1990, American Mathematical Society.
-%  All rights reserved.  Copying of this file is authorized only if either:
-%       (1) you make absolutely no changes to your copy including name; OR
-%       (2) if you do make changes, you first rename it to some other name.
-%
-%  This file is required when \UseAMSsymbols is called in an AMS-TeX job.
-%  To use this file without AMS-TeX, the file AMSSYM.DEF should be input.
-%
-%  Instructions for using the AMS symbol fonts are included in the following:
-%       AMS-TeX 2.0 User's Guide
-%       AMSFonts 2.0 User's Guide
-%       The Joy of TeX, editions dated 1990 or later
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%  Save the current value of the @-sign catcode so that it can be restored
-%  afterwards.  This allows us to call amssym.tex either within an AMS-TeX
-%  document style file or by itself, in addition to providing a means
-%  of testing whether the file has been previously loaded.  We want to
-%  avoid inputting this file twice because when AMSTeX is being used
-%  \newsymbol will give an error message if used to define a control
-%  sequence name that is already defined.
-
-%  If the csname is not equal to \relax, we assume this file has already
-%  been loaded and \endinput immediately.
+%%% ====================================================================
+%%%  @TeX-file{
+%%%     filename        = "amssym.tex",
+%%%     version         = "2.2",
+%%%     date            = "22-Dec-1994",
+%%%     time            = "10:06:33 EST",
+%%%     checksum        = "41516 282 863 9138",
+%%%     author          = "American Mathematical Society",
+%%%     copyright       = "Copyright (C) 1994 American Mathematical Society,
+%%%                        all rights reserved.  Copying of this file is
+%%%                        authorized only if either:
+%%%                        (1) you make absolutely no changes to your copy,
+%%%                        including name; OR
+%%%                        (2) if you do make changes, you first rename it
+%%%                        to some other name.",
+%%%     address         = "American Mathematical Society,
+%%%                        Technical Support,
+%%%                        Electronic Products and Services,
+%%%                        P. O. Box 6248,
+%%%                        Providence, RI 02940,
+%%%                        USA",
+%%%     telephone       = "401-455-4080 or (in the USA and Canada)
+%%%                        800-321-4AMS (321-4267)",
+%%%     FAX             = "401-331-3842",
+%%%     email           = "tech-support@math.ams.org (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "amsfonts, msam, msbm, math symbols",
+%%%     supported       = "yes",
+%%%     abstract        = "This is part of the AMSFonts distribution,
+%%%                        It is the plain TeX source file for the
+%%%                        AMSFonts user's guide.",
+%%%     docstring       = "The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+%%  Save the current value of the @-sign catcode so that it can
+%%  be restored afterwards.  This allows us to call amssym.tex
+%%  either within an AMS-TeX document style file or by itself, in
+%%  addition to providing a means of testing whether the file has
+%%  been previously loaded.  We want to avoid inputting this file
+%%  twice because when AMSTeX is being used \newsymbol will give an
+%%  error message if used to define a control sequence name that is
+%%  already defined.
+%%
+%%  If the csname is not equal to \relax, we assume this file has
+%%  already been loaded and \endinput immediately.
 \expandafter\ifx\csname pre amssym.tex at\endcsname\relax \else \endinput\fi
-%  Otherwise we store the catcode of the @ in the csname.
+%%  Otherwise we store the catcode of the @ in the csname.
 \expandafter\chardef\csname pre amssym.tex at\endcsname=\the\catcode`\@
-%  Set the catcode to 11 for use in private control sequence names.
+%%  Set the catcode to 11 for use in private control sequence names.
 \catcode`\@=11
-%  Most symbols in fonts msam and msbm are defined using \newsymbol.  A few
-%  that are delimiters or otherwise require special treatment have already
-%  been defined as soon as the fonts were loaded.  Finally, a few symbols
-%  that replace composites defined in plain must be undefined first.
+%%  Load amssym.def if necessary: If \newsymbol is undefined, do nothing
+%%  and the following \input statement will be executed; otherwise
+%%  change \input to a temporary no-op.
+\begingroup\ifx\undefined\newsymbol \else\def\input#1 {\endgroup}\fi
+\input amssym.def \relax
+%%  Most symbols in fonts msam and msbm are defined using \newsymbol.  A few
+%%  that are delimiters or otherwise require special treatment have already
+%%  been defined as soon as the fonts were loaded.  Finally, a few symbols
+%%  that replace composites defined in plain must be undefined first.
 \newsymbol\boxdot 1200
 \newsymbol\boxplus 1201
 \newsymbol\boxtimes 1202
@@ -197,8 +217,8 @@
 \newsymbol\gnapprox 231B
 \newsymbol\nsim 231C
 \newsymbol\ncong 231D
-\newsymbol\diagup 231E
-\newsymbol\diagdown 231F
+\newsymbol\diagup 201E
+\newsymbol\diagdown 201F
 \newsymbol\varsubsetneq 2320
 \newsymbol\varsupsetneq 2321
 \newsymbol\nsubseteqq 2322

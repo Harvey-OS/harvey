@@ -1,0 +1,15 @@
+%Filename: T1pzc.fd
+%Created by: tex 17200zapfchan
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{pzc}{}
+
+\DeclareFontShape{T1}{pzc}{m}{it}{
+   <-> pzcmiq
+}{}
+
+\DeclareFontShape{T1}{pzc}{m}{ui}{<->sub * pzc/m/it}{}
+
+\endinput

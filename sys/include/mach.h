@@ -1,7 +1,8 @@
 /*
- *	Per-machine type data
+ *	Architecture-dependent application data
  */
 #include "a.out.h"
+#pragma	src	"/sys/src/libmach"
 #pragma	lib	"libmach.a"
 /*
  *	Supported architectures:
@@ -9,20 +10,19 @@
  *		68020,
  *		i386,
  *		sparc,
- *		hobbit,
  *		i960 (limited)
+ *		3210DSP (limited)
  */
 enum
 {
 	MMIPS,			/* machine types */
 	MSPARC,
 	M68020,
-	MNEXT,
 	MI386,
 	MI960,
-	MHOBBIT,
+	M3210,
 				/* types of exectables */
-	FNONE,			/* unidentified */
+	FNONE = 0,		/* unidentified */
 	FMIPS,			/* v.out */
 	FMIPSB,			/* mips bootable */
 	FSPARC,			/* k.out */
@@ -34,10 +34,9 @@ enum
 	FI386B,			/* I386 bootable */
 	FI960,			/* 6.out */
 	FI960B,			/* I960 bootable */
-	FHOBBIT,		/* z.out */
-	FHOBBITB,		/* Hobbit bootable */
+	F3210,			/* x.out */
 
-	ANONE,			/* dissembler types */
+	ANONE = 0,		/* dissembler types */
 	AMIPS,
 	AMIPSCO,		/* native mips */
 	ASPARC,
@@ -46,75 +45,97 @@ enum
 	AI386,
 	AI8086,			/* oh god */
 	AI960,
-	AHOBBIT,
 				/* object file types */
-	Obj68020   = 0,		/* .2 */
-	ObjSparc   = 1,		/* .k */
-	ObjMips	   = 2,		/* .v */
-	ObjHobbit  = 3,		/* .z */
-	Obj386	   = 4,		/* .8 */
-	Obj960	   = 5,		/* .6 */
-	Maxobjtype = 6,
-
-	SEGNONE = -2,		/* file map segment names */
-	SEGANY	= -1,
-	SEGTEXT	= 0,		/* index into seg array of map */
-	SEGDATA	= 1,
-	SEGUBLK	= 2,
-	SEGREGS = 3,
-	MAXSEGS = 4,
+	Obj68020 = 0,		/* .2 */
+	ObjSparc,		/* .k */
+	ObjMips,		/* .v */
+	Obj386,			/* .8 */
+	Obj960,			/* .6 */
+	Obj3210,		/* .x */
+	Maxobjtype,
 
 	CNONE  = 0,		/* symbol table classes */
-	CAUTO  = 1,
-	CPARAM = 2,
-	CSTAB  = 3,
-	CTEXT  = 4,
-	CDATA  = 5,
-	CANY   = 6,		/* to look for any class */
+	CAUTO,
+	CPARAM,
+	CSTAB,
+	CTEXT,
+	CDATA,
+	CANY,			/* to look for any class */
 };
+
+typedef	struct	Map	Map;
+typedef struct	Symbol	Symbol;
+typedef	struct	Reglist	Reglist;
+typedef	struct	Mach	Mach;
+typedef	struct	Machdata Machdata;
+
 /*
  * 	Structure to map a segment to a position in a file
  */
-typedef	struct map Map;
-
-struct map {
-	int	fd;			/* file descriptor associated with map */
-	struct {			/* per-segment map */
+struct Map {
+	int	fd;			/* file descriptor */
+	int	nsegs;			/* number of segments */
+	struct segment {		/* per-segment map */
 		char	*name;		/* the segment name */
 		int	inuse;		/* in use - not in use */
 		ulong	b;		/* base */
 		ulong	e;		/* end */
 		ulong	f;		/* offset within file */
-	} seg[MAXSEGS];
+	} seg[1];			/* actually n of these */
+};
+/*
+ *	Internal structure describing a symbol table entry
+ */
+
+struct Symbol {
+	void 	*handle;		/* used internally - owning func */
+	struct {
+		char	*name;
+		long	value;		/* address or stack offset */
+		char	type;		/* as in a.out.h */
+		char	class;		/* as above */
+	};
 };
 /*
  *	machine register description
  */
-typedef	struct reglist Reglist;
 
-struct reglist {
+struct Reglist {
 	char	*rname;			/* register name */
 	short	roffs;			/* offset in u-block */
-	char	rfloat;			/* 0=>integer; 1=>float */
+	char	rflags;			/* INTEGER/FLOAT, WRITABLE */
 	char	rformat;		/* print format: 'x', 'X', 'f', '8' */
-	ulong	rval;			/* current register value */
+	ulong	raddr;			/* fixed-up register addr */
+	long	rdelta;			/* fix-up to register value */
+};
+
+enum {				/* bits in rflags field */
+	RINT	= (0<<0),
+	RFLT	= (1<<0),
+	RRDONLY	= (1<<1),
 };
 /*
- *	data describing generic machine characteristics
- *	defined in 2.c, v.c, k.c, 8.c, 6.c, z.c in /sys/src/libmach
- *	set in executable.c
+ *	Machine-dependent data is stored in two structures:
+ *		Mach  - miscellaneous general parameters
+ *		Machdata - jump vector of service functions used by debuggers
+ *
+ *	Mach is defined in 2.c, v.c, k.c, 8.c, 6.c and set in executable.c
+ *
+ *	Machdata is defined in 68020.c, mips.c, sparc.c, 386.c, and 960.c
+ *		and set in the debugger startup.
  */
-typedef	struct	Mach Mach;
+
+
 struct Mach{
 	char	*name;
+	int	mtype;			/* machine type code */
 	Reglist *reglist;		/* register set */
 	int	minreg;			/* minimum register */
 	int	maxreg;			/* maximum register */
-	ulong	pc;			/* pc offset */
-	ulong	sp;			/* sp offset */
-	ulong	link;			/* link register offset */
+	char	*pc;			/* pc name */
+	char	*sp;			/* sp name */
+	char	*link;			/* link register name */
 	ulong	retreg;			/* function return register */
-	int	firstwr;		/* first writable register */
 	int	pgsize;			/* page size */
 	ulong	kbase;			/* kernel base address: uarea */
 	ulong	ktmask;			/* ktzero = kbase & ~ktmask */
@@ -134,34 +155,28 @@ struct Mach{
 
 extern	Mach	*mach;			/* Current machine */
 
-/*
- *	Per-machine debugger support
- *
- */
-typedef	struct	machdata Machdata;
+typedef ulong	(*Rgetter)(Map*, char*);
+typedef	void	(*Tracer)(Map*, ulong, ulong, Symbol*);
 
-struct	machdata {
-	uchar	bpinst[4];		/* break point instr. */
-	short	bpsize;			/* size of break point instr. */
+struct	Machdata {		/* Machine-dependent debugger support */
+	uchar	bpinst[4];			/* break point instr. */
+	short	bpsize;				/* size of break point instr. */
 
-	void	(*init)(void);		/* init routine */
-	ushort	(*swab)(ushort);	/* convert short to local byte order */
-	long	(*swal)(long);		/* convert long to local byte order */
-	void	(*ctrace)(int);		/* print C traceback */
-	ulong	(*findframe)(ulong);	/* frame finder */
-	void	(*fpprint)(int);	/* print fp regs */
-	void	(*rsnarf)(Reglist *);	/* grab registers */
-	void	(*rrest)(Reglist *);	/* restore registers */
-	void	(*excep)(void);		/* print exception */
-	ulong	(*bpfix)(ulong);	/* breakpoint fixup */
-	void	(*sfpout)(char*);	/* format single precision number */
-	void	(*dfpout)(char*);	/* format double precision number */
-	int	(*foll)(ulong, ulong*);	/* following instructions */
-	void	(*printins)(Map*, char, int);	/* print an instruction */
-	void	(*printdas)(Map*, int);	/* dissembler instruction */
+	ushort	(*swab)(ushort);		/* short to local byte order */
+	long	(*swal)(long);			/* long to local byte order */
+	int	(*ctrace)(Map*, ulong, ulong, ulong, Tracer); /* C traceback */
+	ulong	(*findframe)(Map*, ulong, ulong, ulong, ulong);/* frame finder */
+	int	(*ufixup)(Map*, long*);		/* fixup to ublock base */
+	char*	(*excep)(Map*, Rgetter);	/* last exception */
+	ulong	(*bpfix)(ulong);		/* breakpoint fixup */
+	int	(*sftos)(char*, int, void*);	/* single precision float */
+	int	(*dftos)(char*, int, void*);	/* double precision float */
+	int	(*foll)(Map*, ulong, Rgetter, ulong*);	/* follow set */
+	int	(*das)(Map*, ulong, char, char*, int);	/* symbolic disassembly */
+	int	(*hexinst)(Map*, ulong, char*, int); 	/* hex disassembly */
+	int	(*instsize)(Map*, ulong);	/* instruction size */
 };
 
-extern	Machdata 	*machdata;	/* in machine.c */
 /*
  *	Common a.out header describing all architectures
  */
@@ -186,60 +201,67 @@ typedef struct Fhdr
 	long	lnpcsz;		/* size of line number-pc table */
 	long	lnpcoff;	/* size of line number-pc table */
 } Fhdr;
-/*
- *	Internal structure describing a symbol table entry
- */
-typedef struct symbol Symbol;
 
-struct symbol {
-	void 	*handle;		/* used internally - owning func */
-	struct {
-		char	*name;
-		long	value;		/* address or stack offset */
-		char	type;		/* as in a.out.h */
-		char	class;		/* as above */
-	};
-};
+extern	int	asstype;		/* dissembler type - machdata.c */
+extern	Machdata *machdata;		/* jump vector - machdata.c */
 
-extern	int	asstype;		/* dissembler type - machine.c */
-extern	char	*symerror;		/* symbol table error message */
-
+Map*		attachremt(int, Fhdr*);
+int		beieee80ftos(char*, int, void*);
+int		beieeesftos(char*, int, void*);
+int		beieeedftos(char*, int, void*);
 ushort		beswab(ushort);
 long		beswal(long);
-int		crackhdr(int fd, Fhdr *fp);
-long		file2pc(char *, ulong);
-int		fileelem(Sym **, uchar *, char *, int);
-int		fileline(char *, int, ulong);
+int		cisctrace(Map*, ulong, ulong, ulong, Tracer);
+ulong		ciscframe(Map*, ulong, ulong, ulong, ulong);
+int		crackhdr(int fd, Fhdr*);
+long		file2pc(char*, ulong);
+int		fileelem(Sym**, uchar *, char*, int);
+int		fileline(char*, int, ulong);
 int		filesym(int, char*, int);
-int		findlocal(Symbol *, char *, Symbol *);
+int		findlocal(Symbol*, char*, Symbol*);
+int		findseg(Map*, char*);
 int		findsym(long, int, Symbol *);
-int		getauto(Symbol *, int, int, Symbol *);
+int		fnbound(long, ulong*);
+int		fpformat(Map*, Reglist*, char*, int, int);
+int		get1(Map*, ulong, uchar*, int);
+int		get2(Map*, ulong, ushort*);
+int		get4(Map*, ulong, long*);
+int		getauto(Symbol*, int, int, Symbol*);
 Sym*		getsym(int);
 int		globalsym(Symbol *, int);
+char*		_hexify(char*, ulong, int);
+int		ieeesftos(char*, int, ulong);
+int		ieeedftos(char*, int, ulong, ulong);
 int		isar(Biobuf*);
+int		leieee80ftos(char*, int, void*);
+int		leieeesftos(char*, int, void*);
+int		leieeedftos(char*, int, void*);
 ushort		leswab(ushort);
 long		leswal(long);
 long		line2addr(ulong, ulong, ulong);
-Map*		loadmap(Map *, int, Fhdr *);
-int		localsym(Symbol *, int);
-int		lookup(char *, char *, Symbol *);
+Map*		loadmap(Map*, int, Fhdr*);
+int		localaddr(Map*, char*, char*, long*, Rgetter);
+int		localsym(Symbol*, int);
+int		lookup(char*, char*, Symbol*);
 void		machbytype(int);
-int		machbyname(char *);
-int		mget(Map *, int, ulong, char*, int);
-int		mput(Map *, int, ulong, char*, int);
+int		machbyname(char*);
 int		nextar(Biobuf*, int, char*);
-Map*		newmap(Map *, int);
-Sym*		objbase(long*);
-void		objreset(void);
-Sym*		objsym(int);
-int		objtype(Biobuf*);
+Map*		newmap(Map*, int, int);
+void		objtraverse(void(*)(Sym*, void*), void*);
+int		objtype(Biobuf*, char**);
 long		pc2sp(ulong);
 long		pc2line(ulong);
-long		_round(long, long);
-int		readar(Biobuf*, int, int);
+int		put1(Map*, ulong, uchar*, int);
+int		put2(Map*, ulong, ushort);
+int		put4(Map*, ulong, long);
+int		readar(Biobuf*, int, int, int);
 int		readobj(Biobuf*, int);
-int		setmap(Map *, int, ulong, ulong, ulong);
-Sym*		symbase(long *);
-int		syminit(int, Fhdr *);
+ulong		riscframe(Map*, ulong, ulong, ulong, ulong);
+int		risctrace(Map*, ulong, ulong, ulong, Tracer);
+int		setmap(Map*, ulong, ulong, ulong, char*);
+Sym*		symbase(long*);
+int		syminit(int, Fhdr*);
+int		symoff(char*, int, long, int);
+void		textseg(ulong, Fhdr*);
 int		textsym(Symbol*, int);
-void		unusemap(Map *, int);
+void		unusemap(Map*, int);

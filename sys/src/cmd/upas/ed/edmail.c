@@ -6,11 +6,13 @@
 
 /* global to this file */
 static int reverse=0; 		/* ordering of mail messages */
-static jmp_buf	errjbuf;
+static int interrupted;
 int fflg;
 int mflg;
 int pflg;
 int eflg;
+int Pflg = 1;
+int writeable;
 
 /* predeclared */
 static char	*doargs(int, char*[], char*);
@@ -31,11 +33,11 @@ static char	*getre(String*);
 
 Biobuf in;
 Biobuf out;
+int alarmed;
 
 void
 main(int ac, char *av[])
 {
-	int writeable;
 	String *user = s_new();
 	char *mailfile;
 	char *logname;
@@ -44,28 +46,28 @@ main(int ac, char *av[])
 	Binit(&out, 1, OWRITE);
 
 	logname = getlog();
-	if (logname == 0) {
+	if(logname == 0){
 		fprint(2, "cannot determine login name\n");
 		exits(0);
 	}
 	s_append(user, logname);
 	mailfile = doargs(ac, av, s_to_c(user));
-	if (!fflg)
+	if(!fflg)
 		writeable = P(mailfile)==0;
 	else
 		writeable = 1;
-	if (eflg) {
+	if(eflg){
 		int r = check_mbox(mailfile);
 		V();
 		exit(r);
 	}
-	if (read_mbox(mailfile, reverse)<0 || mlist == 0){
+	if(read_mbox(mailfile, reverse)<0 || mlist == 0){
 		fprint(2, "No mail\n");
 		V();
 		exits(0);
 	}
 	fprint(2, "%d messages\n", mlast->pos);
-	if (pflg)
+	if(pflg)
 		dumpmail();
 	else{
 		while (edmail(mailfile, reverse) && writeable){
@@ -154,7 +156,7 @@ doargs(int argc, char **argv, char *user)
 	case 'F':
 		fflg = 1;
 		f = ARGF();
-		if (f)
+		if(f)
 			mboxpath(f, getlog(), s_restart(mailfile), 1);
 		else
 			mboxpath("stored", getlog(), s_restart(mailfile), 1);
@@ -174,7 +176,7 @@ check_mbox(char *mf)
 	int len;
 
 	/* if file doesn't exist, no mail */
-	if ((fp = sysopen(mf, "r", 0)) == 0)
+	if((fp = sysopen(mf, "r", 0)) == 0)
 		return 1;
 	len = sysfilelen(fp);
 	sysclose(fp);
@@ -202,19 +204,29 @@ dumpmail(void)
 void
 catchint(void *a, char *msg)
 {
+	extern Lock *readingl;
 	char buf[256];
 
-	if(strcmp(msg, "interrupt") && strncmp(msg, "sys: write on closed pipe", 25))
-		noted(NDFLT);
-	sprint(buf, "!!%s!!\n", msg);
-	write(2, buf, strlen(buf));
-	notejmp(a, errjbuf, 1);
+	USED(a);
+
+	if(strcmp(msg, "interrupt") == 0
+	|| strncmp(msg, "sys: write on closed pipe", 25) == 0){
+		sprint(buf, "!!%s!!\n", msg);
+		write(2, buf, strlen(buf));
+		interrupted = 1;
+		noted(NCONT);
+	}
+	if(strstr(msg, "alarm")){
+		alarmed = 1;
+		noted(NCONT);
+	}
+	noted(NDFLT);
 }
 
 static int
 notatnl(char *cp)
 {
-	if (*cp=='\n')
+	if(*cp=='\n')
 		return complain("argument expected", 0);
 	return 0;
 }
@@ -222,7 +234,7 @@ notatnl(char *cp)
 static int
 atblank(char *cp)
 {
-	if (*cp!='\n' && *(cp-1)!=' ' && *(cp-1)!='\t')
+	if(*cp!='\n' && *cp!=' ' && *cp!='\t')
 		return complain("newline or space expected", 0);
 	return 0;
 }
@@ -230,7 +242,7 @@ atblank(char *cp)
 static int
 atnl(char *cp)
 {
-	if (*cp!='\n')
+	if(*cp!='\n')
 		return complain("newline expected", 0);
 	return 0;
 }
@@ -238,9 +250,40 @@ atnl(char *cp)
 static int
 zero(message *mp)
 {
-	if (mp==mzero)
+	if(mp==mzero)
 		return complain("message 0", 0);
 	return 0;
+}
+
+static void
+renew(void)
+{
+	extern Lock *readingl;
+
+	if(readingl == 0)
+		return;
+
+	if(seek(readingl->fd, 0, 0) < 0
+	|| write(readingl->fd, readingl, 0) < 0)
+		/*print("\nlost L.reading\n")/**/;
+	alarm(1000*30);
+}
+
+/*
+ *  read a command making sure we renew our P() lock every minute
+ */
+static char*
+read_cmd(Biobuf *b, String *cmd)
+{
+	char *p;
+
+	do {
+		alarmed = 0;
+		renew();
+		p = s_read_line(b, s_restart(cmd));
+		alarm(0);
+	} while(!interrupted && p == 0 && alarmed);
+	return p;
 }
 
 #define s_skipwhite(s) for (; *s->ptr==' ' || *s->ptr=='\t'; s->ptr++);
@@ -259,56 +302,83 @@ edmail(char *mailfile, int reverse)
 
 	dot = mzero;
 	nopr = mflg;
-	for(;;) {
+	for(;;){
 		extent = dot;	/* in case of interrupt */
-		if (!nopr) {
-			/* advance only if we want to print next message */
+
+		/*
+		 *  advance only if we want to print next message
+		 */
+		if(!nopr){
 			if(dot->next!=0)
 				dot = dot->next;
 			else
 				nopr = 1;
 		}
-		if (setjmp(errjbuf)) {
-			/* come here after interrupt */
-			if (extent!=0)
+
+		/*
+		 *  on interrupt during processing command
+		 *  come here, set dot, and print newline for neatness.
+		 */
+		if(interrupted){
+			interrupted = 0;
+			if(extent!=0)
 				dot = extent;
 			nopr = 1;
 			Binit(&out, 1, OWRITE);		/* dump current output */
 			Bprint(&out, "\n");
 		}
 		notify(catchint);
-		if (!nopr&&dot!=mzero) {
-			/* print next message */
-			printm(dot);
+
+		/*
+		 *  print next message unless told not to
+		 */
+		if(!nopr && dot != mzero){
+			if(Pflg)
+				seanprintm(dot);
+			else
+				printm(dot);
 		}
+
+		/*
+		 *  get next command
+		 */
 		abort = 0;
 		nopr = 1;
 		change = 1;
 		Bprint(&out, "?");
 		Bflush(&out);
-		if(s_read_line(&in, s_restart(cmd)) == 0)
+		if(read_cmd(&in, s_restart(cmd)) == 0){
+			if(interrupted)
+				continue;
 			return 1;
+		}
 		s_restart(cmd);
 		s_skipwhite(cmd);
-		if (!mflg && *cmd->ptr=='\n' && dot==mlast)
+		if(!mflg && *cmd->ptr=='\n' && dot==mlast)
 			return 1;
+
+		/* get message range to act on */
 		extent = range(dot, cmd);
 		s_skipwhite(cmd);
 		del = 0;
-compoundcmd:
-		/* hack to catch a common mistake */
-		if (strncmp(cmd->ptr, "mail", 4)==0)
-			cmdc = -1;
-		else
-			cmdc = *cmd->ptr++;
-		s_skipwhite(cmd);
+
+		/* get actual command character */
+		cmdc = *cmd->ptr++;
 		cp = cmd->ptr;
-		for(; extent!=0 && !abort; extent=extent->extent) {
+
+		/* 'd' can compound with any other command */
+		if(cmdc == 'd' && *cp && *cp != '\n'){
+			del = 1;
+			cmdc = *cmd->ptr++;
+		}
+		cp = cmd->ptr;
+
+		for(; extent!=0 && !abort; extent=extent->extent){
 			switch(cmdc){
 			case 'b':
 				abort = atnl(cp)||(del&&delete(extent));
-				if (!abort)
-					if (extent!=mzero)
+				if(!abort)
+					if(extent!=mzero)
 						prheader(extent);
 				for(i=0; extent->next!=0&&i<9; i++){
 					extent = extent->next;
@@ -321,15 +391,12 @@ compoundcmd:
 					||prheader(extent);
 				break;
 			case 'd':
-				if(*cp=='\n' || *cp==0){
-					abort = zero(extent)||delete(extent);
-					nopr = abort||mflg;
-					break;
-				}
-				del = 1;
-				goto compoundcmd;
+				abort = zero(extent)||delete(extent);
+				nopr = abort||mflg;
+				break;
 			case 's':
-				abort = atblank(cp)||zero(extent)||store(extent, cp, 1, 0)
+				abort = atblank(cp)||zero(extent)
+					||store(extent, cp, 1, 0)
 					||(del&&delete(extent));
 				nopr = abort||mflg||!del;
 				break;
@@ -363,15 +430,26 @@ compoundcmd:
 				nopr = abort||mflg||!del;
 				break;
 			case '\n':
-				abort = zero(extent)||printm(extent);
+				abort = zero(extent)
+					||(Pflg?seanprintm(extent):printm(extent));
 				break;
 			case 'p':
 				if(del){
 					nopr = abort = atnl(cp)||zero(extent)
-						||(del&&delete(extent));
+						||delete(extent);
 					break;
 				}
-				abort = atnl(cp)||zero(extent)||printm(extent);
+				abort = atnl(cp)||zero(extent)
+					||(Pflg?seanprintm(extent):printm(extent));
+				break;
+			case 'P':
+				if(del){
+					nopr = abort = atnl(cp)||zero(extent)
+						||delete(extent);
+					break;
+				}
+				abort = atnl(cp)||zero(extent)
+					||(Pflg?printm(extent):seanprintm(extent));
 				break;
 			case 'r':
 				abort = zero(extent)||atnl(cp)||reply(extent, 0)
@@ -432,7 +510,7 @@ compoundcmd:
 				nopr = abort = 1;
 				break;
 			}
-			if (!abort&&change&&extent!=0)
+			if(!abort && change && extent!=0)
 				dot = extent;
 		}
 	}
@@ -448,7 +526,7 @@ range(message *dot, String *cmd)
 	s_skipwhite(cmd);
 
 	/* get first address in range */
-	switch(*cmd->ptr) {
+	switch(*cmd->ptr){
 	case 'g':
 		cmd->ptr++;
 		return grange(cmd);
@@ -460,7 +538,7 @@ range(message *dot, String *cmd)
 		first = addr((message *)0, cmd);
 		break;
 	case '?':
-		if (*(cmd->ptr+1)=='\n') {
+		if(*(cmd->ptr+1)=='\n'){
 			if(dot!=0)
 				dot->extent = 0;
 			return dot;
@@ -470,7 +548,7 @@ range(message *dot, String *cmd)
 		break;
 	case '\n':
 		first = dot->next;
-		if (first==0)
+		if(first==0)
 			complain("address", 0);
 		break;
 	default:
@@ -478,11 +556,11 @@ range(message *dot, String *cmd)
 			dot->extent = 0;
 		return dot;
 	}
-	if (first == 0)
+	if(first == 0)
 		return 0;
 	while(*cmd->ptr == ' ' || *cmd->ptr == '\t')
 		cmd->ptr++;
-	if (*cmd->ptr != ',') {
+	if(*cmd->ptr != ','){
 		first->extent = 0;
 		return first;
 	}
@@ -491,7 +569,7 @@ range(message *dot, String *cmd)
 	cmd->ptr++;
 	while(*cmd->ptr == ' ' || *cmd->ptr == '\t')
 		cmd->ptr++;
-	switch(*cmd->ptr) {
+	switch(*cmd->ptr){
 	case '%': case '/': case '?': case '+': case '-': case '$':
 		last = addr(first, cmd);
 		break;
@@ -506,13 +584,13 @@ range(message *dot, String *cmd)
 		last = mlast;
 		break;
 	}
-	if (last==0)
+	if(last==0)
 		return 0;
 
 	/* fill in the range */
 	for(dot=first; dot!=last && dot!=0; dot=dot->next)
 		dot->extent = dot->next;
-	if (dot==0) {
+	if(dot==0){
 		complain("addresses out of order", 0);
 		return 0;
 	}
@@ -528,16 +606,16 @@ grange(String *cmd)
 	message *first, *last, *next;
 	Reprog *pp;
 
-	if (*cmd->ptr == '/') {
+	if(*cmd->ptr == '/'){
 		re = getre(cmd);
-		if (re == 0)
+		if(re == 0)
 			return 0;
-		if ((pp = regcomp(re))==0)
+		if((pp = regcomp(re))==0)
 			return 0;
 		first = last = 0;
 		for(next=mlist; next!=0; next=next->next)
-			if (regexec(pp, header(next), 0, 0)) {
-				if (first==0)
+			if(regexec(pp, header(next), 0, 0)){
+				if(first==0)
 					first = last = next;
 				else {
 					last->extent = next;
@@ -545,21 +623,20 @@ grange(String *cmd)
 				}
 				last->extent = 0;
 			}
-		if (first==0)
+		if(first==0)
 			complain("match", 0);
 		free((char *)pp);
 		return first;
-	} else if (*cmd->ptr == '%') {
+	} else if(*cmd->ptr == '%'){
 		re = getre(cmd);
-		if (re == 0)
+		if(re == 0)
 			return 0;
-		if ((pp = regcomp(re))==0)
+		if((pp = regcomp(re))==0)
 			return 0;
 		first = last = 0;
 		for(next=mlist; next!=0; next=next->next){
-			s_to_c(next->body)[next->size-1]='\0';
-			if (regexec(pp, s_to_c(next->body), 0, 0)) {
-				if (first==0)
+			if(regexec(pp, s_to_c(next->body), 0, 0)){
+				if(first==0)
 					first = last = next;
 				else {
 					last->extent = next;
@@ -568,7 +645,7 @@ grange(String *cmd)
 				last->extent = 0;
 			}
 		}
-		if (first==0)
+		if(first==0)
 			complain("match", 0);
 		free((char *)pp);
 		return first;
@@ -588,7 +665,7 @@ addr(message *base, String *cmd)
 	int forward = -1;
 
 	/* get direction */
-	switch(*cmd->ptr) {
+	switch(*cmd->ptr){
 	case '+':
 		forward = 1;
 		cmd->ptr++;
@@ -600,25 +677,25 @@ addr(message *base, String *cmd)
 	}
 	while(*cmd->ptr == ' ' || *cmd->ptr == '\t')
 		cmd->ptr++;
-	switch(*cmd->ptr) {
+	switch(*cmd->ptr){
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
 		base = incraddr(base, getnumb(cmd), forward);
-		if (base==0)
+		if(base==0)
 			break;
 		return addr(base, cmd);
 	case '?':
 		forward = !forward;
 	case '/':
 		base = research(base, getre(cmd), forward);
-		if (base==0){
+		if(base==0){
 			complain("search", 0);
 			return 0;
 		}
 		return addr(base, cmd);
 	case '%':
 		base = bresearch(base, getre(cmd), forward);
-		if (base==0) {
+		if(base==0){
 			complain("search", 0);
 			return 0;
 		}
@@ -631,13 +708,13 @@ addr(message *base, String *cmd)
 		return addr(mlast, cmd);
 	default:
 		/* default increment is 1 */
-		if (forward != -1) {
+		if(forward != -1){
 			base = incraddr(base, 1, forward);
 			return addr(base, cmd);
 		}
 		break;
 	}
-	if (base==0)
+	if(base==0)
 		complain("address", 0);
 	return base;
 }
@@ -646,7 +723,7 @@ addr(message *base, String *cmd)
 static message *
 incraddr(message *base, int offset, int forward)
 {
-	if (base==0) {
+	if(base==0){
 		base = mzero;
 	}
 	for(; offset > 0 && base != 0; offset--)
@@ -661,17 +738,17 @@ research(message *base, char *rp, int forward)
 	Reprog *pp;
 	message *mp;
 
-	if (rp == 0) 
+	if(rp == 0) 
 		return 0;
-	if ((pp = regcomp(rp))==0)
+	if((pp = regcomp(rp))==0)
 		return 0;
 	mp = base;
 	base = (base==mzero)?(forward?(mp->prev):(mp->next)):base;
 	do {
 		mp = forward?(mp->next):(mp->prev);
-		if (mp==0)
+		if(mp==0)
 			mp = forward?mlist:mlast;
-		if (regexec(pp, header(mp), 0, 0)) {
+		if(regexec(pp, header(mp), 0, 0)){
 			free((char *)pp);
 			return mp;
 		}
@@ -687,17 +764,16 @@ bresearch(message *base, char *rp, int forward)
 	Reprog *pp;
 	message *mp;
 
-	if (rp == 0) 
+	if(rp == 0) 
 		return 0;
-	if ((pp = regcomp(rp))==0)
+	if((pp = regcomp(rp))==0)
 		return 0;
 	mp = base = (base==mzero)?mzero->next:base;
 	do {
 		mp = forward?(mp->next):(mp->prev);
-		if (mp==0)
+		if(mp==0)
 			mp = forward?mlist:mlast;
-		s_to_c(mp->body)[mp->size-1]='\0';
-		if (regexec(pp, s_to_c(mp->body), 0, 0)) {
+		if(regexec(pp, s_to_c(mp->body), 0, 0)){
 			free((char *)pp);
 			return mp;
 		}
@@ -728,10 +804,10 @@ getre(String *cmd)
 
 	while (*cmd->ptr!='\0' && *cmd->ptr!='\n' && *cmd->ptr!=term)
 		*cp++ = *cmd->ptr++;
-	if (*cmd->ptr == term)
+	if(*cmd->ptr == term)
 		cmd->ptr++;
-	if (cp == re) {
-		if (*re == '\0') {
+	if(cp == re){
+		if(*re == '\0'){
 			complain("no previous regular expression", 0);
 			return 0;
 		}

@@ -1,0 +1,52 @@
+amslatex.faq  [27-Jan-1995] American Mathematical Society
+------------------------------------------------------------------------
+Frequently asked questions about AMS-LaTeX
+------------------------------------------------------------------------
+
+This is the initial release of this FAQ, and we expect to expand it
+quite a bit as new questions arise in upcoming months. To suggest
+additions for this FAQ, please send your suggestions to
+tech-support@math.ams.org.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Question 1: Where did amsfonts.sty go? amssymb.sty?
+
+Answer: In versions 1.0, 1.1 of AMS-LaTeX, there were packages named
+amsfonts and amssymb to provide easy access to the extra math fonts in
+the AMSFonts collection. Those have now been moved to the AMSFonts
+distribution, where they more properly belong. (They were originally
+placed in the AMS-LaTeX distribution because at the time it wasn't
+possible to assume the presence of NFSS in the underlying LaTeX system.)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Question 2: I tried \usepackage{theorem} with an AMS documentclass
+and the `change' theoremstyle doesn't work:
+
+  Package amsthm Warning: Unknown theoremstyle `change'. Using `plain' ...
+
+Answer: The AMS documentclasses use the amsthm package which is an
+alternative to the theorem package, not a supplement.
+
+(Question 2a: Why didn't the AMS classes just keep using Mittelbach's
+theorem package as in version 1.1 of AMSLaTeX? Answer: The desired
+theorem handling for AMS publications required some fairly extensive
+adaptations of the theorem package. Instead of loading the theorem
+package and then overriding 70% of it, in version 1.2 we decided to drop
+the pretense and do the theorem-handling from scratch in an AMS-specific
+package.)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Question 3: How can I create a LaTeX format file containing amsart.cls
+and amssymb.sty?
+
+I used to be able to do what I want with LaTeX209 by running iniTeX
+on the following file
+
+\input lplain.tex
+\documentstyle[amssymb]{amsart}
+\dump
+\bye
+
+Answer: In LaTeX2e the best way to do this is not well established yet.
+There is a file mylatex.tex on CTAN that purportedly provides a
+solution; we have not yet tried it [as of 27-Jan-1995].

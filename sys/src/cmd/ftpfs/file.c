@@ -19,10 +19,12 @@ struct File
 	char	dirty;
 	ulong	atime;		/* time of last access */
 	Node	*node;
+	char 	*template;
 };
 
 static File	files[Nfile];
 static ulong	now;
+static int	ntmp;
 
 /*
  *  lookup a file, create one if not found.  if there are no
@@ -70,8 +72,13 @@ filefree(Node *node)
 	if(fp == 0)
 		return;
 
-	if(fp->fd > 0)
+	if(fp->fd > 0){
+		ntmp--;
 		close(fp->fd);
+		remove(fp->template);
+		free(fp->template);
+		fp->template = 0;
+	}
 	fp->fd = -1;
 	if(fp->mem){
 		free(fp->mem);
@@ -129,6 +136,20 @@ fileread(Node *node, char *a, long off, int n)
 	return sofar;
 }
 
+void
+uncachedir(Node *parent, Node *child)
+{
+	Node *sp;
+
+	if(parent == 0 || parent == child)
+		return;
+	for(sp = parent->children; sp; sp = sp->sibs)
+		if(sp != child && sp->fp && sp->fp->dirty == 0 && sp->fp->fd >= 0){
+			filefree(sp);
+			UNCACHED(sp);
+		}
+}
+
 static int
 createtmp(File *fp)
 {
@@ -136,10 +157,17 @@ createtmp(File *fp)
 
 	strcpy(template, "/tmp/ftpXXXXXXXXXXX");
 	mktemp(template);
-	if(strcmp(template, "/") == 0)
+	if(strcmp(template, "/") == 0){
+		fprint(2, "ftpfs can't create tmp file %s: %r\n", template);
 		return -1;
+	}
+	if(ntmp >= 16)
+		uncachedir(fp->node->parent, fp->node);
+
 	fp->fd = create(template, ORDWR|ORCLOSE, 0600);
+	fp->template = strdup(template);
 	fp->off = 0;
+	ntmp++;
 	return fp->fd;
 }
 

@@ -9,7 +9,8 @@ main(int argc, char *argv[])
 	message *mp;
 	dest *dp;
 	Reprog *p;
-	char *file;
+	Resub match[10];
+	char file[MAXPATHLEN];
 	Biobuf *fp;
 	char *rcvr, *cp;
 	Lock *l;
@@ -25,24 +26,32 @@ main(int argc, char *argv[])
 
 	Binit(&bin, 0, OREAD);
 	if(argc < 2){
-		fprint(2, "usage: filter rcvr mailfile regexp mailfile ...\n");
+		fprint(2, "usage: filter rcvr mailfile [regexp mailfile ...]\n");
 		exits("usage");
 	}
 	mp = m_read(&bin, 1);
+
+	/* get rid of local system name */
+	cp = strchr(s_to_c(mp->sender), '!');
+	if(cp){
+		cp++;
+		mp->sender = s_copy(cp);
+	}
+
 	dp = d_new(0);
-	file = argv[1];
+	strcpy(file, argv[1]);
 	for(i = 2; i < argc-1; i += 2){
 		p = regcomp(argv[i]);
 		if(p == 0)
 			continue;
-		if(regexec(p, s_to_c(mp->sender), 0, 0)){
-			file = argv[i+1];
+		if(regexec(p, s_to_c(mp->sender), match, 10)){
+			regsub(argv[i+1], file, match, 10);
 			break;
 		}
 		if(fromonly)
 			continue;
-		if(regexec(p, s_to_c(mp->body), 0, 0)){
-			file = argv[i+1];
+		if(regexec(p, s_to_c(mp->body), match, 10)){
+			regsub(argv[i+1], file, match, 10);
 			break;
 		}
 	}
@@ -74,7 +83,7 @@ main(int argc, char *argv[])
 		s_free(tmp);
 	}
 	if(m_print(mp, fp, (char *)0, 1) < 0
-	|| Bprint(fp, "\nmorF\n") < 0
+	|| Bprint(fp, "\n") < 0
 	|| Bflush(fp) < 0){
 		sysclose(fp);
 		unlock(l);

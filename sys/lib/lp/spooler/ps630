@@ -1,5 +1,6 @@
 #!/bin/rc
 fn sigexit {echo -n '[4i';exit 1}
+# Send output to the printer port on an AT&T 630/730 terminal
 # Process and enqueue files to be printed
 # take arguments as input files
 i=0

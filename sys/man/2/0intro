@@ -7,19 +7,27 @@ intro \- introduction to library functions
 .PP
 .B #include <libc.h>
 .PP
-.B #include <stdio.h>
+.B #include <auth.h>
 .PP
 .B #include <bio.h>
 .PP
-.B #include <libg.h>
-.PP
-.B #include <gnot.h>
+.B #include <fcall.h>
 .PP
 .B #include <frame.h>
 .PP
 .B #include <layer.h>
 .PP
+.B #include <libg.h>
+.PP
+.B #include <mach.h>
+.PP
+.B #include <ndb.h>
+.PP
+.B #include <panel.h>
+.PP
 .B #include <regexp.h>
+.PP
+.B #include <stdio.h>
 .fi
 .SH DESCRIPTION
 This section describes functions
@@ -27,7 +35,7 @@ in various libraries.
 For the most part, each library is defined by a single C include
 file, listed above, and a single archive file containing
 the library proper.  The name of the archive is
-.BI /$objtype/lib/lib x .a ,
+.BI /$objtype/lib/lib x .a \f1,
 where
 .I x
 is the base of the include file name, stripped of a leading
@@ -36,9 +44,9 @@ if present.
 For example,
 .B <libg.h>
 defines the contents of library
-.B /$objtype/lib/libg.a
+.BR /$objtype/lib/libg.a ,
 which may be abbreviated when named to the loader as
-.B -lg .
+.BR -lg .
 In practice, each include file contains a
 .B #pragma
 that directs the loader to pick up the associated archive
@@ -46,15 +54,13 @@ automatically, so it is rarely necessary to tell the loader
 which
 libraries a program needs.
 .PP
-The library to which a function belongs is
-identified by the section number at the top of the manual page:
-.TP 
-(2)
-These functions constitute the `C library',
-.I libc,
-containing most of the basic non-system call subroutines such
+The library to which a function belongs is defined by the
+header file that defines its interface.
+The `C library',
+.IR libc ,
+contains most of the basic subroutines such
 as
-.I strlen .
+.IR strlen .
 Declarations for all of these functions are
 in
 .BR <libc.h> ,
@@ -62,33 +68,30 @@ which must be preceded by
 .RI ( needs )
 an include of
 .BR <u.h> .
-.TP
-(2G)
-These functions constitute the library
+The graphics library,
 .IR libg ,
 the graphics library.
-Declarations for these functions are in
+is defined by
 .BR <libg.h> ,
 which needs
 .B <libc.h>
 and
 .BR <u.h> .
-.TP
-(2S)
-These functions constitute the library
+The Buffered I/O library,
+.IR libbio ,
+is defined by
+.BR <bio.h> ,
+which needs
+.B <libc.h>
+and
+.BR <u.h> .
+The ANSI C Standard I/O library,
 .IR libstdio ,
-the `standard I/O package'
-(see
-.IR fgetc (2)).
-Declarations for these functions are in
-.BR <stdio.h> .
-.TP
-(2X)
-Various
-specialized libraries have not been given distinctive
-captions.
-Files in which such libraries are found are named
-on appropriate pages.
+is defined by
+.BR <stdio.h> ,
+which has no prerequisites.
+There are a few other, less commonly used libraries defined on
+individual pages of this section.
 .PP
 The include file
 .BR <u.h> ,
@@ -107,7 +110,7 @@ a very long integral type;
 the type of the argument to
 .I setjmp
 and 
-.I longjmp,
+.IR longjmp ,
 plus macros that define the layout of
 .IR jmp_buf
 (see
@@ -115,8 +118,9 @@ plus macros that define the layout of
 definitions of the bits in the floating-point control register
 as used by
 .IR getfcr (2);
+and
 .IR Length ,
-a union giving different views of the 64-bit length of a file, declared as
+a union giving different views of the 64-bit length of a file, declared something like
 .IP
 .EX
 .ta 6n +\w'struct 'u +\w'long 'u +\w'hlength;   'u
@@ -137,14 +141,15 @@ Files are collected into a hierarchical organization called a
 starting in a
 .I directory
 called the
-.I root.
+.IR root .
 File names, also called
 .IR paths ,
 consist of a number of
 .BR / -separated
 .IR "path elements"
 with the slashes corresponding to directories.
-A path element must contain only printable characters
+A path element must contain only printable
+characters (those outside ASCII and Latin-1 control space)
 that occupy no more than
 .B NAMELEN-1
 bytes.
@@ -162,7 +167,7 @@ means the separate root of a kernel device's file tree (see Section 3),
 and anything else means the process's current working directory.
 Then for each path element, look up the element
 in the directory, advance to that directory,
-do a possible translation (see below) and repeat.
+do a possible translation (see below), and repeat.
 The last step may yield a directory or regular file.
 The collection of files reachable from the root is called the
 .I "name space
@@ -239,7 +244,7 @@ system call.
 .PP
 Directories may be opened and read much like regular files.
 They contain an integral number of records, called
-.I "directory entries,
+.IR "directory entries" ,
 of length
 .B DIRLEN
 (defined in
@@ -263,9 +268,9 @@ An entry may be translated into a more convenient, addressable
 form called a
 .B Dir
 structure;
-.I dirstat,
-.I dirfstat,
-.I dirwstat,
+.IR dirstat ,
+.IR dirfstat,
+.IR dirwstat ,
 and
 .I dirfwstat
 execute the appropriate translations (see
@@ -287,7 +292,7 @@ alter them.
 .PP
 .IR Pipe (2)
 creates a connected pair of file descriptors,
-useful for local communication.
+useful for bidirectional local communication.
 .SS "Process execution and control"
 A new process is created
 when an existing one calls
@@ -317,6 +322,21 @@ Flags to
 .IR rfork
 control the sharing of these attributes.
 .PP
+The memory of a process is divided into
+.IR segments .
+Every program has at least a
+.I text
+(instruction) and
+.I stack
+segment.
+Most also have an initialized
+.I data
+segment and a segment of zero-filled data called
+.IR bss .
+Processes may
+.IR segattach (2)
+other segments for special purposes.
+.PP
 A process terminates by calling
 .IR exits (2).
 A parent process may call
@@ -341,6 +361,60 @@ A process uses
 to register the function to be called (the
 .IR "notification handler" )
 when such events occur.
+.SS Alef
+.PP
+Most of the functions in this section are available in the same form from Alef, with
+.B byte
+substituted for
+.B char
+and
+.B uchar
+and
+.B int
+for
+.BR long ,
+and with adjustment for Alef having only one floating-point type, called
+.BR float ,
+holding double-precision values.
+The main
+exceptions are that the long-valued functions such as
+.B strtoul
+have their final
+.B l
+changed to an
+.B i
+to reflect the different type structure of the language; that the Bio
+library has a different organization (see
+.IR Bio (2)
+for details);
+and for various reasons some things are missing, notably
+.B ctype
+and the Stdio, IP, Layer, Lock, Mach, Ndb, and Panel libraries.
+Also, there is no
+.BR <u.h> ;
+instead
+.B <alef.h>
+replaces both it and
+.BR <libc.h> .
+The machine-dependent definitions in Alef, which are only needed for
+.IR getfcr (2)
+and relatives, are in
+.BR <arch.h> .
+.PP
+Within this manual, only explicit differences in the Alef libraries are documented,
+the Alef functions are not all indexed, and the substitutions for
+.B <libc.h>
+as well as
+.BR char ,
+.BR uchar ,
+etc.
+are assumed.
+The sources to the Alef libraries all live under
+.BR /sys/src/alef/lib .
+.PP
+NOTE:
+.I
+Because the languages have different calling conventions, Alef programs cannot be linked with C libraries.
 .SH SEE ALSO
 .IR nm (1), 
 .IR 2l (1), 
@@ -348,7 +422,7 @@ when such events occur.
 .SH DIAGNOSTICS
 Math functions in
 .I libc
-will return
+return
 special values when the function is undefined for the
 given arguments or when the value is not representable
 (see
@@ -361,6 +435,9 @@ All system calls return integers,
 with \-1 indicating that an error occurred;
 .IR errstr (2)
 recovers a string describing the error.
+Some user-level library functions also use the
+.I errstr
+mechanism to report errors.
 Functions that may affect the value of the error string are said to ``set
 .IR errstr '';
 it is understood that the error string is altered only if an error occurs.

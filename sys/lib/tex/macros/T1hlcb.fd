@@ -1,0 +1,57 @@
+%Filename: T1hlcb.fd
+%Created by: tex 2390lucbrigh
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{T1hlcb.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for T1/hlcb.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{T1}{hlcb}{}
+
+\DeclareFontShape{T1}{hlcb}{db}{n}{
+ <->s * [\LucidaScale]hlcdbq
+}{}
+
+\DeclareFontShape{T1}{hlcb}{db}{sc}{
+ <->s * [\LucidaScale]hlcdbcq
+}{}
+
+\DeclareFontShape{T1}{hlcb}{db}{it}{
+ <->s * [\LucidaScale]hlcdibq
+}{}
+
+\DeclareFontShape{T1}{hlcb}{db}{sl}{
+ <->s * [\LucidaScale]hlcdobq
+}{}
+
+\DeclareFontShape{T1}{hlcb}{m}{n}{
+ <->s * [\LucidaScale]hlcrbq
+}{}
+
+\DeclareFontShape{T1}{hlcb}{m}{sc}{
+ <->s * [\LucidaScale]hlcrbcq
+}{}
+
+\DeclareFontShape{T1}{hlcb}{m}{it}{
+ <->s * [\LucidaScale]hlcribq
+}{}
+
+\DeclareFontShape{T1}{hlcb}{m}{sl}{
+ <->s * [\LucidaScale]hlcrobq
+}{}
+
+\DeclareFontShape{T1}{hlcb}{b}{n}{<->ssub * hlcb/db/n}{}
+\DeclareFontShape{T1}{hlcb}{bx}{n}{<->ssub * hlcb/b/n}{}
+\DeclareFontShape{T1}{hlcb}{b}{sc}{<->ssub * hlcb/db/sc}{}
+\DeclareFontShape{T1}{hlcb}{bx}{sc}{<->ssub * hlcb/b/sc}{}
+\DeclareFontShape{T1}{hlcb}{b}{it}{<->ssub * hlcb/db/it}{}
+\DeclareFontShape{T1}{hlcb}{bx}{it}{<->ssub * hlcb/b/it}{}
+\DeclareFontShape{T1}{hlcb}{db}{ui}{<->sub * hlcb/db/it}{}
+\DeclareFontShape{T1}{hlcb}{b}{ui}{<->ssub * hlcb/db/ui}{}
+\DeclareFontShape{T1}{hlcb}{bx}{ui}{<->ssub * hlcb/b/ui}{}
+\DeclareFontShape{T1}{hlcb}{b}{sl}{<->ssub * hlcb/db/sl}{}
+\DeclareFontShape{T1}{hlcb}{bx}{sl}{<->ssub * hlcb/b/sl}{}
+\DeclareFontShape{T1}{hlcb}{m}{ui}{<->sub * hlcb/m/it}{}
+
+\endinput

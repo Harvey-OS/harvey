@@ -3,21 +3,21 @@
 #define BIG 1.e15
 #define HFUZZ .0001
 
-static float hcut[3] ;
-static float kr[3] = { .5, -1., .5 };
-static float ki[3] = { -1., 0., 1. }; 	/*to multiply by sqrt(3)/2*/
-static float cr[3];
-static float ci[3];
+static double hcut[3] ;
+static double kr[3] = { .5, -1., .5 };
+static double ki[3] = { -1., 0., 1. }; 	/*to multiply by sqrt(3)/2*/
+static double cr[3];
+static double ci[3];
 static struct place hem;
 static struct coord twist;
 static double  rootroot3, hkc;
-static float w2;
+static double w2;
 static double rootk;
 
 static void
-reflect(int i, float wr, float wi, float *x, float *y)
+reflect(int i, double wr, double wi, double *x, double *y)
 {
-	float pr,pi,l;
+	double pr,pi,l;
 	pr = cr[i]-wr;
 	pi = ci[i]-wi;
 	l = 2*(kr[i]*pr + ki[i]*pi);
@@ -26,11 +26,11 @@ reflect(int i, float wr, float wi, float *x, float *y)
 }
 
 static int
-Xhex(struct place *place, float *x, float *y)
+Xhex(struct place *place, double *x, double *y)
 {
 	int ns;
 	register i;
-	float zr,zi;
+	double zr,zi;
 	double sr,si,tr,ti,ur,ui,vr,vi,yr,yi;
 	struct place p;
 	copyplace(place,&p);
@@ -78,9 +78,9 @@ proj
 hex(void)
 {
 	register i;
-	float t;
+	double t;
 	double root3;
-	float c,d;
+	double c,d;
 	struct place p;
 	hcut[2] = PI;
 	hcut[1] = hcut[2]/3;
@@ -107,7 +107,7 @@ hex(void)
 }
 
 int
-hexcut(struct place *g, struct place *og, float *cutlon)
+hexcut(struct place *g, struct place *og, double *cutlon)
 {
 	int t,i;
 	if(g->nlat.l>=-HFUZZ&&og->nlat.l>=-HFUZZ)

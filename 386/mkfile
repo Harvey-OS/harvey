@@ -1,10 +1,10 @@
 CC=8c
+ALEF=8al
 LD=8l
 O=8
-RL=rl
 AS=8a
-OS=2kvz86
-CPUS=mips 68020 sparc 386 hobbit
+OS=2kv86x
+CPUS=mips 68020 sparc 386
 CFLAGS=
 LEX=lex
 YACC=yacc

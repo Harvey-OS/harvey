@@ -1,13 +1,13 @@
 .TH 2C 1 
 .SH NAME
-2c, 6c, 8c, kc, vc, zc \- C compilers
+2c, 6c, 8c, kc, vc, xc \- C compilers
 .SH SYNOPSIS
 .B 2c
 [
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
 .br
 .B 6c
@@ -15,7 +15,7 @@
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
 .br
 .B 8c
@@ -23,7 +23,7 @@
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
 .br
 .B kc
@@ -31,7 +31,7 @@
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
 .br
 .B vc
@@ -39,15 +39,15 @@
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
 .br
-.B zc
+.B xc
 [
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
 .SH DESCRIPTION
 .IR 2c ,
@@ -56,8 +56,10 @@
 .IR kc ,
 .IR vc ,
 and
-.I zc
-compile the named C files into MC68020, i960, i386, SPARC, MIPS, and Hobbit object files.
+.IR xc
+compile the named C
+.I files
+into MC68020, i960, i386, SPARC, MIPS, and ATT3210 object files.
 The compilers handle most preprocessing directives themselves; a complete
 preprocessor is available in
 .IR cpp (1),
@@ -71,7 +73,7 @@ Let the first letter of the compiler name be
 .BR k ,
 .BR v ,
 or
-.BR z .
+.BR x .
 The output object files end in
 .RI . O .
 The letter is also the prefix of related programs:
@@ -85,9 +87,9 @@ Associated with each compiler is a string
 .BR 960 ,
 .BR 386 ,
 .BR sparc ,
-.BR mips ,
+.BR  mips,
 or
-.BR hobbit .
+.BR 3210 .
 Plan 9 conventionally sets the
 .B $objtype
 environment variable to the
@@ -113,7 +115,7 @@ The compiler options are:
 Place output in file
 .I obj
 (allowed only if there is just one input file).
-Default is to take the last element of the input pathname,
+Default is to take the last element of the input file name,
 strip any trailing
 .BR .c ,
 and append
@@ -122,15 +124,12 @@ and append
 .B -w
 Print warning messages about unused variables, etc.
 .TP
-.B -A
-Complain about functions used without a new-style
-ANSI C function prototype.
-This option is on by default.
-.TP
 .B -B
-Turn off the action of the
-.B -A
-flag.
+Accept functions without a new-style
+ANSI C function prototype.
+By default, the compilers reject functions
+used without a defined prototype,
+although ANSI C permits them.
 .TP
 .BI -D\*S name=def
 .br
@@ -146,30 +145,28 @@ If no definition is given, the name is defined as
 .LR 1 .
 .TP
 .BI -I \*Sdir
+An
 .L #include
-files whose names do not begin with 
-.L /
-are always
+file whose name does not begin with 
+slash
+or is enclosed in double quotes
+is always
 sought first in the directory 
 of the
 .I file
-argument,
-then in directories named in 
+argument.  If this fails, or the name is enclosed in
+.BR <> ,
+it is then sought
+in directories named in 
 .B -I
 options,
 then in
 .BR /sys/include ,
 and finally in
-.BR /$objtype/include.
-.TP
-.B -O
-Perform object code optimization.
-This option is on by default.
+.BR /$objtype/include .
 .TP
 .B -N
-Turn off the action of the
-.B -O
-flag.
+Suppress automatic registerization and optimization.
 .TP
 .B -S
 Print an assembly language version of the object code
@@ -177,12 +174,16 @@ on standard output as well as generating the
 .RI . O
 file.
 .TP
-.BI -s \*Sname
-Print on standard output a listing of the fields in structure or union
-.I name
-together with their offsets and some type information.
-This can be used in conjunction with the debugger (see
-.IR db (1)).
+.B -a
+Instead of compiling, print on standard output acid functions (see
+.IR acid (1))
+for examining structures declared in the source files.
+.TP
+.B -aa
+Like
+.B -a
+except suppress information about structures
+declared in included header files.
 .PP
 The compilers support several extensions to ANSI C:
 .TP
@@ -194,6 +195,11 @@ structure or union (the resolution of a name conflict is unspecified).
 When a pointer to the outer structure or union is used in a context
 that is only legal for the unnamed substructure, the compiler promotes
 the type and adjusts the pointer value to point at the substructure.
+If the unnamed structure or union is of a type with a tag name specified by a
+.B typedef
+statement, 
+the unnamed structure or union can be explicitly referenced
+by <struct variable>.<tagname>.
 .TP
 \-
 A structure value can be formed with an expression such as
@@ -213,6 +219,19 @@ which initializes the third and tenth elements of the eleven-element array
 .BR a .
 .TP
 \-
+Structure initializers can specify the structure element by using the name
+following a period, as
+.EX
+    int struct { int x; int y; } s = { .y 1, .x 5 };
+.EE
+which initializes elements
+.B y
+and then
+.B x
+of the structure
+.BR s .
+.TP
+\-
 A global variable can be dedicated to a register
 by declaring it
 .B "extern register"
@@ -225,13 +244,45 @@ A
 .B #pragma
 of the form
 .EX
-#pragma	lib "libbio.a"
+    #pragma lib "libbio.a"
 .EE
 records that the program needs to be loaded with file
 .BR /$objtype/lib/libbio.a ;
 such lines, typically placed in library header files, obviate the
 .B -l
-option of the loaders.
+option of the loaders.  To help identify files in non-standard directories,
+within the file names in the
+.B #pragmas
+the string
+.B $M
+represents the name of the architecture
+(e.g.,
+.BR mips )
+and
+.B $O
+represents its identifying character
+(e.g.,
+.BR v ).
+.TP
+\-
+The C++ comment
+.RB ( //
+to end of line)
+is accepted as well as the normal
+convention of
+.B /*
+.BR */ .
+.TP
+\-
+The compilers accept
+.B long
+.B long
+variables as a 64-bit type.
+The standard header typedefs this to
+.BR vlong .
+The
+.B  vlong
+runtime is slow.
 .SH EXAMPLE
 For the 68020, produce a program
 .B prog
@@ -256,25 +307,29 @@ directives.
 system area for machine-dependent
 .B #include
 directives.
+.SH SOURCE
+.TF /sys/src/cmd/2c,\ etc.
+.TP
+.B /sys/src/cmd/cc
+machine-independent part
+.TP
+.BR /sys/src/cmd/2c ,\ etc.
+machine-dependent part
 .SH "SEE ALSO"
 .IR 2a (1),
 .IR 2l (1),
-.IR rl (1),
+.IR cpp (1),
 .IR mk (1),
 .IR nm (1),
-.IR db (1)
+.IR pcc (1),
+.IR db (1),
+.IR acid (1),
 .PP
 Rob Pike,
 ``How to Use the Plan 9 C Compiler''
 .SH BUGS
 The i960 compiler has been used only to program one I/O controller
 and is certainly buggy.
-.PP
-Bitfields are not supported in
-.IR zc .
-.PP
-Unsigned integers as large as
-2^31 are not correctly converted to floating.
 .PP
 The preprocessor only handles
 .LR #define ,

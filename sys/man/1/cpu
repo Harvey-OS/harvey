@@ -77,6 +77,8 @@ The name space of the terminal side of the
 .B cpu
 command is mounted on the CPU side on directory
 .BR /mnt/term .
+.SH SOURCE
+.B /sys/src/cmd/cpu.c
 .SH SEE ALSO
 .IR rc (1) ,
 .IR 8½ (1)

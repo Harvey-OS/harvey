@@ -7,25 +7,40 @@ dev
 	uart	t
 	pipe	|
 	floppy	f
-	hard	w
+	ata	H
 	srv	s
 	dup	d
 	proc	p
 	rtc	r
 	dk	k
 	lpt	L
-	incon	i	inconsubs
-	ether	l	ether509 ether8003 ether2000 ether503 ether8390
+	ether	l
 	ip	I	tcpinput tcpoutput tcptimer tcpif stil
 	arp	a
 	iproute	P
 	vga	v
+	audio	A
+	scsi	S	scsi adaptec ultrastor
+	wren	w
+	cdrom	R
+	i82365	y
 
-stream
-	fcall
-	ip
-	async
-	urp
+link
+	stfcall
+	stip
+	stasync
+	sturp
+	ether509
+	ether589
+	ether8003	ether8390
+	ether4100	ether8390
+	ether2000	ether8390
+	vgaclgd542x
+	vgaet4000
+	vgamach32
+	vgas3
+	vgabt485
+	vgatvp3020
 
 misc
 	cfs.root
@@ -33,12 +48,11 @@ misc
 
 port
 	int cpuserver = 0;
-	int incondev = 0;
 	void consdebug(void){}
+	int incondev = 0;
 
-boot
+boot boot #H/hd0
 	local
 	9600
 	19200
 	il
-	incon	"config 1 16 restart dk 256"

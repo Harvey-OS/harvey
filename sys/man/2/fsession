@@ -1,0 +1,77 @@
+.TH FSESSION 2
+.SH NAME
+fsession, fauth \- set up authentication on a file descriptor to a file server
+.SH SYNOPSIS
+.nf
+.PP
+.ft L
+#include <u.h>
+#include <libc.h>
+#include <auth.h>
+.PP
+.ft P
+.B
+int   fsession(int fd, char trbuf[TICKREQLEN])
+.PP
+.B
+uchar fauth(int fd, char tbuf[2*TICKETLEN])
+.SH DESCRIPTION
+The first time
+.I fsession
+is called for the connection referred to by
+.IR fd ,
+a
+.I session
+(see
+.IR attach (5))
+message is exchanged with the file server at
+the other end of the connection.
+.I Fsession
+uses the information returned by the file server and
+the id of the user to build a ticket request message
+returned in
+.IR trbuf .
+If the file server requires no authentication
+or the kernel already has authentication tickets for the current user
+for this connection,
+.IR trbuf [0]
+is set to 0.
+If not,
+.I trbuf
+can be used to obtain tickets from an authentication server.
+.I Fsession
+should be called before any
+.I mount
+(see
+.IR bind (2))
+of
+.IR fd .
+.PP
+.I Fauth
+is used to pass authentication tickets to the kernel for the current
+user.
+The tickets are used to authenticate the user in any subsequent
+.I mounts
+of
+.I fd
+by that user.
+.PP
+It is rare to use these functions directly; more commonly
+.I amount
+or
+.I authenticate
+(see
+.IR auth (2))
+is used.
+.SH SOURCE
+.B /sys/src/libc/9syscall
+.SH SEE ALSO
+.IR attach (5),
+.IR auth (2)
+(particularly
+.BR amount ),
+.IR auth (6),
+.IR auth (8)
+.SH DIAGNOSTICS
+Sets
+.IR errstr .

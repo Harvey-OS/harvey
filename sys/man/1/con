@@ -1,10 +1,10 @@
 .TH CON 1
 .SH NAME
-con, telnet, hayes, cu, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
+con, telnet, cu, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
 .SH SYNOPSIS
 .B con
 [
-.B -dCrv
+.B -dCrvs
 ]
 [
 .B -l
@@ -16,22 +16,13 @@ con, telnet, hayes, cu, rx, xms, xmr \- remote login, execution, and XMODEM file
 .B -c
 .I cmd
 ]
-.IR net ! machine
+.RI [ net !] machine
 .PP
 .B telnet
 [
-.B -dCr
+.B -dCrn
 ]
-.IR net ! machine
-.PP
-.B hayes
-[
-.B -p
-]
-.I number
-[
-.I device
-]
+.RI [ net !] machine
 .PP
 .B cu
 .I number
@@ -40,7 +31,7 @@ con, telnet, hayes, cu, rx, xms, xmr \- remote login, execution, and XMODEM file
 [
 .B -n
 ]
-.IR net ! machine
+.RI [ net !] machine
 [
 .I command-word ...
 ]
@@ -90,8 +81,14 @@ causes debugging information to be output to standard error.
 suppresses printing of any carriage return followed by a new line.
 This is useful since carriage return is a printable character in
 Plan 9.
+.TP
+.B -s
+strips received characters to 7 bits to forestall
+misinterpretation of ASCII with parity as UTF.
 .PP
-The control-\e character is a local escape.
+The
+.RB control\- \e
+character is a local escape.
 It prompts with the local machine name and
 .BR >>> .
 Legitimate responses to the prompt are
@@ -119,25 +116,26 @@ over the connections using programs such as
 .PD
 .PP
 .I Telnet
-is similar to con, but it uses the
+is similar to con, but uses the
 .I telnet
 protocol to communicate with the remote machine.
-.PP
-.I Hayes
-dials a number using the Hayes modem protocol.
-Option
-.B p
-uses pulse dialing rather than the
-default tone dialing.
-If specified,
-.I device
-is the file opened for the call.
-The default is
-.BR /dev/eia0 .
+If standard input is a file or a pipe, the
+.B -n
+option causes
+.I telnet
+not to hang up the connection when it receives EOF on its standard input;
+instead it waits for the remote end to hang up.
+It shares
+.I con's
+.BR -C ,
+.BR -d ,
+and
+.BR -r
+options.
 .PP
 .I Cu
 is a shell script that uses
-.I hayes
+.IR telco (4)
 and
 .I con
 to connect to a machine via a modem.
@@ -148,19 +146,18 @@ Otherwise, the call is placed through Datakit.
 executes one shell command
 on the remote machine as if logged in there,
 but with local standard input and output.
-Unquoted shell metacharacters in the command
-are interpreted
-locally, quoted ones remotely.
-The assignment
-.B REXEC=1
-appears in the remote environment.
+A rudimentary shell environment is provided.
+If the target is a Plan 9 machine,
+.B $service
+there will be
+.BR rx .
 .PP
 Network addresses for both
 .I con
 and
 .I rx
 have the form
-.IB network ! host.
+.IB network ! machine\f1.
 Supported networks are those listed in
 .BR /net .
 .PP
@@ -193,9 +190,21 @@ to remote
 eqn paper | rx kremvax troff -ms | rx deepthought lp
 Parallel processing:
 do each stage of a pipeline on a different machine.
-.SH "SEE ALSO"
-.IR push (1)
-.br
+.SH SOURCE
+.TF /sys/src/cmd/con
+.TP
+.B /sys/src/cmd/con
+for
+.IR con ,
+.IR xms ,
+and
+.IR xmr .
+.TP
+.B /sys/src/cmd/ip
+for
+.IR telnet .
+.TP
+.B /rc/bin/cu
 .SH BUGS
 Under
 .IR rx ,

@@ -59,6 +59,7 @@ and
 .B scale
 .TP
 Other operands
+.IP
 arbitrarily long numbers with optional sign and decimal point.
 .RS
 .TP
@@ -230,7 +231,7 @@ option is present.
 In this case the
 .I dc
 input is sent to the standard output instead.
-.SH EXAMPLES
+.SH EXAMPLE
 Define a function to compute an approximate value of
 the exponential.
 Use it to print 10 values.
@@ -256,6 +257,8 @@ for(i=1; i<=10; i++) print e(i)
 .SH FILES
 .B /sys/lib/bclib
 mathematical library
+.SH SOURCE
+.B /sys/src/cmd/bc.y
 .SH "SEE ALSO"
 .IR dc (1), 
 .IR hoc (1)

@@ -12,12 +12,16 @@ does not guarantee to return the same path that was used to
 enter the directory. The returned path may be another route
 through the name space to the same working directory. This behavior
 will arise when a combination of mounts or binds produces a 
-graph in the file tree.
+graph in the file name space tree.
 .PP
 .I Pbd
 prints the base name of the working (current) directory.
 It prints no final newline and is intended for applications
 such as constructing shell prompts.
+.SH SOURCE
+.B /sys/src/cmd/pwd.c
+.br
+.B /sys/src/cmd/pbd.c
 .SH SEE ALSO
 .I cd
 in
@@ -30,4 +34,5 @@ A kernel bug sometimes prevents
 from working when the current directory is a device, in which
 case
 .I pbd
-returns `.'.
+returns
+.RB ` . '.

@@ -1,0 +1,240 @@
+%% 
+%% This is file `mathtime.sty', generated 
+%% on <1995/2/23> with the docstrip utility (1).
+%% 
+%% The original source files were:
+%% 
+%% mathtime.dtx  (with options: `mathtime')
+%% Copyright (C) 1993 Aloysius G. Helminck. All rights reserved. 
+%% This is a generated file for *PSNFSS2e*. Permission is granted to to 
+%% customize the declarations in this file to serve the needs of your 
+%% installation. However, no permission is granted to distribute a 
+%% modified version of this file under its original name. 
+%% 
+\def\fileversion{2}
+\def\filedate{94/04/7}
+\def\docdate {94/04/7}
+%% File: mathtime.dtx Copyright (C) 1994 Aloysius Helminck
+\ProvidesPackage{mathtime}[\filedate\space\fileversion\space
+ PSNFSS2e LaTeX2e package]
+\renewcommand{\sfdefault}{phv}
+\renewcommand{\rmdefault}{ptm}
+\renewcommand{\ttdefault}{pcr}
+\def\bfdefault{b}
+\def\encodingdefault{OT1}% 
+\fontencoding{OT1}% 
+\DeclareSymbolFont{operators}{\encodingdefault}{\rmdefault}{m}{n}
+\DeclareSymbolFont{letters}{OML}{mtt}{m}{it}
+\DeclareSymbolFont{symbols}{OMS}{mtt}{m}{n}
+\DeclareSymbolFont{largesymbols}{OMX}{mtt}{m}{n}
+\DeclareSymbolFont{italics}{\encodingdefault}{\rmdefault}{m}{it}
+\SetSymbolFont{operators}{normal}{\encodingdefault}{\rmdefault}{m}{n}
+\SetSymbolFont{letters}{normal}{OML}{mtt}{m}{it}
+\SetSymbolFont{symbols}{normal}{OMS}{mtt}{m}{n}
+\SetSymbolFont{largesymbols}{normal}{OMX}{mtt}{m}{n}
+\SetMathAlphabet{\mathbf}{normal}{\encodingdefault}{\rmdefault}{b}{n}% 
+\SetMathAlphabet{\mathsf}{normal}{\encodingdefault}{\sfdefault}{m}{n}% 
+\SetMathAlphabet{\mathrm}{normal}{\encodingdefault}{\rmdefault}{m}{n}% 
+\SetSymbolFont{operators}{bold}{\encodingdefault}{cmr}{bx}{n}
+\SetSymbolFont{letters}{bold}{OML}{cmm}{b}{it}
+\SetSymbolFont{symbols}{bold}{OMS}{cmsy}{b}{n}
+\SetSymbolFont{largesymbols}{bold}{OMX}{mtt}{m}{n}
+\SetMathAlphabet{\mathbf}{bold}{\encodingdefault}{\rmdefault}{m}{n}% 
+\SetMathAlphabet{\mathsf}{bold}{\encodingdefault}{\sfdefault}{b}{n}% 
+\SetMathAlphabet{\mathrm}{bold}{\encodingdefault}{\rmdefault}{b}{n}% 
+\DeclareMathAlphabet\frak{U}{euf}{m}{n}
+\SetMathAlphabet \frak{normal}{U}{euf}{m}{n}
+\SetMathAlphabet \frak{bold}{U}{euf}{b}{n}
+\DeclareSymbolFont{AMSb}{U}{msb}{m}{n}
+\DeclareSymbolFontAlphabet{\Bbb}{AMSb}
+\SetMathAlphabet \mathcal{normal}{OMS}{cmsy}{m}{n}
+\SetMathAlphabet \mathcal{bold}{OMS}{cmsy}{b}{n}
+\def\cal{\mathcal}
+\DeclareMathSymbol\varGamma    {\mathord}{letters}{"00}
+\DeclareMathSymbol\varDelta    {\mathord}{letters}{"01}
+\DeclareMathSymbol\varTheta    {\mathord}{letters}{"02}
+\DeclareMathSymbol\varLambda    {\mathord}{letters}{"03}
+\DeclareMathSymbol\varXi       {\mathord}{letters}{"04}
+\DeclareMathSymbol\varPi       {\mathord}{letters}{"05}
+\DeclareMathSymbol\varSigma    {\mathord}{letters}{"06}
+\DeclareMathSymbol\varUpsilon   {\mathord}{letters}{"07}
+\DeclareMathSymbol\varPhi      {\mathord}{letters}{"08}
+\DeclareMathSymbol\varPsi      {\mathord}{letters}{"09}
+\DeclareMathSymbol\varOmega    {\mathord}{letters}{"0A}
+\def\space@.{\futurelet\space@\relax}
+  \space@. %                        
+\begingroup
+  \catcode`\_=\active
+  \def_{\protect\pUS}
+  \def\pUS{\ifmmode\expandafter\sb@\else
+   \expandafter\csname subscript character \string_\endcsname\fi}
+  \let\sb_
+  \def\sb@#1{\csname subscript character \string_\endcsname
+   {\futurelet\next\sb@@#1}}
+  \def\sb@@{% 
+   \ifx\next\space@\def\next@. {\futurelet\next\sb@@}\else
+    \def\next@.{% 
+    \ifx\next j\mkern-\tw@ mu\else
+    \ifx\next f\mkern-\tw@ mu\else
+    \ifx\next p\mkern-\@ne mu
+    \fi\fi\fi}% 
+   \fi
+   \next@.}
+\endgroup
+\def\pvdots{\vbox{\baselineskip4\p@ \lineskiplimit\z@
+ \kern6\p@\hbox{$\m@th.$}\hbox{$\m@th.$}\hbox{$\m@th.$}}}
+\def\pddots{\mathinner{\mkern1mu\raise7\p@\vbox{\kern7\p@
+ \hbox{$\m@th.$}}\mkern2mu
+ \raise4\p@\hbox{$\m@th.$}\mkern2mu\raise\p@\hbox{$\m@th.$}\mkern1mu}}
+\def\pangle{{\vbox{\ialign{$\m@th\scriptstyle##$\crcr
+       \not\mathrel{\mkern14mu}\crcr
+       \noalign{\nointerlineskip}
+       \mkern2.5mu\leaders\hrule height.48pt\hfill\mkern2.5mu\crcr}}}}
+\def\pt#1{{\edef\next{\the\font}\the\textfont2\accent"41\next#1}}
+\def\pdot{\ifnum\fam=\m@ne
+ \mathaccent"0250 \else\mathaccent"70C7 \fi}
+\def\pgrave{\ifnum\fam=\m@ne
+ \mathaccent"024A \else\mathaccent"7012 \fi}
+\def\pacute{\ifnum\fam=\m@ne
+ \mathaccent"024B \else\mathaccent"7013 \fi}
+\def\pcheck{\ifnum\fam=\m@ne
+ \mathaccent"024C \else\mathaccent"7014 \fi}
+\def\pbreve{\ifnum\fam=\m@ne
+ \mathaccent"024D \else\mathaccent"7015 \fi}
+\def\pbar{\ifnum\fam=\m@ne
+ \mathaccent"024E \else\mathaccent"7016 \fi}
+\def\phat{\ifnum\fam=\m@ne
+ \mathaccent"024F \else\mathaccent"705E \fi}
+\def\pdot{\ifnum\fam=\m@ne
+ \mathaccent"0250 \else\mathaccent"70C7 \fi}
+\def\ptilde{\ifnum\fam=\m@ne
+ \mathaccent"0251 \else\mathaccent"707E \fi}
+\def\pddot{\ifnum\fam=\m@ne
+ \mathaccent"0252 \else\mathaccent"707F \fi}
+\def\qvdots{\vbox{\baselineskip4\p@ \lineskiplimit\z@
+  \kern6\p@\hbox{.}\hbox{.}\hbox{.}}}
+\def\qddots{\mathinner{\mkern1mu\raise7\p@\vbox{\kern7\p@\hbox{.}}\mkern2mu
+  \raise4\p@\hbox{.}\mkern2mu\raise\p@\hbox{.}\mkern1mu}}
+\def\angle{{\vbox{\ialign{$\m@th\scriptstyle##$\crcr
+     \not\mathrel{\mkern14mu}\crcr
+     \noalign{\nointerlineskip}
+     \mkern2.5mu\leaders\hrule height.34pt\hfill\mkern2.5mu\crcr}}}}
+\def\qt#1{{\edef\next{\the\font}\the\textfont1\accent"7F\next#1}}
+\def\qvec{\mathaccent"017E}
+\def\qacute{\mathaccent"7013 }
+\def\qgrave{\mathaccent"7012 }
+\def\qddot{\mathaccent"707F }
+\def\qtilde{\mathaccent"707E }
+\def\qbar{\mathaccent"7016 }
+\def\qbreve{\mathaccent"7015 }
+\def\qcheck{\mathaccent"7014 }
+\def\qhat{\mathaccent"705E }
+\def\qdot{\mathaccent"705F }
+\def\qRelbar{\mathrel=}
+\def\qhbar{{\mathchar'26\mkern-9muh}}
+\def\qS{\mathhexbox278}
+\def\qP{\mathhexbox27B}
+\mathcode`\+="202B
+\def\unboldmath{\@nomath\boldmath
+\mathchardef\Gamma="0130
+\mathchardef\Delta="0131
+\mathchardef\Theta="0132
+\mathchardef\Lambda="0133
+\mathchardef\Xi="0134
+\mathchardef\Pi="0135
+\mathchardef\Sigma="0136
+\mathchardef\Upsilon="0137
+\mathchardef\Phi="0138
+\mathchardef\Psi="0139
+\mathchardef\Omega="017F
+\def\grave{\protect\pgrave}
+\def\acute{\protect\pacute}
+\def\check{\protect\pcheck}
+\def\breve{\protect\pbreve}
+\def\bar{\protect\pbar}
+\def\hat{\protect\phat}
+\def\dot{\protect\pdot}
+\def\tilde{\protect\ptilde}
+\def\ddot{\protect\pddot}
+\def\hbar{{\mathchar'26\mkern-6.7muh}}
+\def\vec{\mathaccent"0245 }
+\def\widebar{\mathaccent"0253 }
+\def\dag{\mathhexbox0B2}
+\def\ddag{\mathhexbox0B3}
+\def\S{\mathhexbox0A4}
+\def\P{\mathhexbox0A6}
+\def\t{\protect\pt}
+\def\jadjust{\mkern-\tw@ mu}
+\mathchardef\dagger="20B2
+\mathchardef\ddagger="20B3
+\mathchardef\ldotp="613A
+\mathchardef\triangleleft="2247
+\mathchardef\triangleright="2246
+\mathchardef\Relbar="3248
+\mathchardef\varkappa="017E
+\mathchardef\comp="2242
+\def\vdots{\pvdots}
+\def\ddots{\pddots}
+\def\t{\protect\pt}
+\def\angle{\pangle}
+\mathcode`\=="3244
+\mathcode`\(="412E
+\mathcode`\)="512F
+\delcode`\(="12E300
+\delcode`\)="12F301
+\mathcode`\.="013A
+\mathcode`\,="613B
+\mathcode`\;="6249
+\mathcode`\+="2243
+  \mathversion{normal}
+}
+\def\boldmath{\@nomath\unboldmath
+\mathchardef\Gamma="7000
+\mathchardef\Delta="7001
+\mathchardef\Theta="7002
+\mathchardef\Lambda="7003
+\mathchardef\Xi="7004
+\mathchardef\Pi="7005
+\mathchardef\Sigma="7006
+\mathchardef\Upsilon="7007
+\mathchardef\Phi="7008
+\mathchardef\Psi="7009
+\mathchardef\Omega="700A
+\let\comp=\relax
+\let\widebar\bar
+\let\varkappa=\kappa
+\mathchardef\ldotp="613A
+\mathchardef\triangleleft="212F
+\mathchardef\triangleright="212E
+\mathchardef\ddagger="227A
+\mathchardef\dagger="2279
+\mathcode`\(="4028
+\mathcode`\)="5029
+\delcode`\(="028300
+\delcode`\)="029301
+\mathcode`\.="013A
+\mathcode`\,="613B
+\mathcode`\=="303D
+\mathcode`\;="603B
+\let\Relbar=\qRelbar
+\let\grave=\qgrave
+\let\acute=\qacute
+\let\check=\qcheck
+\let\breve=\qbreve
+\let\bar=\qbar
+\let\hat=\qhat
+\let\dot=\qdot
+\let\tilde=\qtilde
+\let\vec=\qvec
+\let\t=\qt
+\let\hbar=\qhbar
+\let\ddot=\qddot
+\let\ddots=\qddots
+\let\vdots=\qvdots
+\mathcode`\+="202B
+  \mathversion{bold}
+}
+\unboldmath
+\endinput
+%% 
+%% End of file `mathtime.sty'.

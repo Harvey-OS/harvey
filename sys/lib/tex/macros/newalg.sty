@@ -1,0 +1,143 @@
+%% 
+%% This is file `newalg.sty', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% newalg.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file newalg.dtx .
+%% 
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{newalg}[1994/12/15 Format code algorithms nicely]
+
+\newbox\algstack 
+\newbox\algtab 
+\newcount\algline 
+\newtoks\alga
+\newtoks\algb
+
+\newif\ifalgisenv
+
+\def\alglpsh#1\to#2{\alga={#1\\}\algb=\expandafter{#2}
+  \global\edef#2{\the\alga\the\algb}}
+\def\alglpop#1\to#2{\ifx\empty#1\def#2{}
+  \else\global\expandafter\algllop#1\algllop#1#2\fi}
+\def\algllop#1\\#2\algllop#3#4{\def#3{#2}\def#4{#1}}
+\def\algltop#1\to#2{\ifx\empty#1\def\#2{}\else
+  \expandafter\alglttop#1\alglttop#2\fi}
+\def\alglttop#1\\#2\alglttop#3{\def#3{#1}}
+\def\algckenv#1{\algltop\alglenv\to\algenv
+  \def\algarg{#1}
+  \ifx \algarg\algenv \algisenvtrue \else \algisenvfalse \fi}
+
+\def\algsol{\global\advance\algline by 1
+  \the\algline&\hbox\bgroup\copy\algtab$\ignorespaces}
+\def\algeol{$\egroup\cr\algsol}
+\def\algpush{\global\setbox\algstack\hbox{\unhbox\algstack\box\algtab}}
+\def\algpop{\global\setbox\algstack\hbox{\unhbox\algstack
+    \global\setbox\algtab\lastbox}}
+\def\algset{$\egroup\setbox0=\lastbox\algpush
+  \global\setbox\algtab\hbox to \wd0{}\hbox\bgroup\unhbox0$}
+\def\algorithm#1#2{\bgroup
+  \let\\=\algeol
+  \let\==\leftarrow
+  \let\IF=\algIF
+  \let\RETURN=\algRETURN
+  \let\ELSE=\algELSE
+  \let\endIF=\endalgIF
+  \let\ERROR=\algERROR
+  \let\NIL=\algNIL
+  \let\WHILE=\algWHILE
+  \let\endWHILE=\endalgWHILE
+  \let\FOR=\algFOR
+  \let\endFOR=\endalgFOR
+  \let\CALL=\algCALL
+  \let\text=\algtext
+  \let\TO=\algTO
+  \let\EACH=\algEACH
+  \let\SWITCH=\algSWITCH
+  \let\item=\algitem
+  \let\endSWITCH=\endalgSWITCH
+  \let\DEFAULT=\algDEFAULT
+  \let\REPEAT=\algREPEAT
+  \let\UNTIL=\endalgREPEAT
+  \let\endREPEAT=\UNTIL
+  \let\IN=\algIN
+  \let\begin=\algbegin
+  \let\end=\algend
+  \let\endalgorithm=\algalmostend
+  \global\setbox\algtab\null
+  \global\setbox\algstack\null
+  \global\algline=0
+  \def\alglenv{algorithm\\}
+  \halign\bgroup\space\hfill##&\quad##\hss \cr
+  \omit\CALL{#1}$(#2)$\span\omit\hfill \cr
+  \algsol}
+\def\algalmostend{$\egroup\cr\egroup\egroup\strut\end{algorithm}}
+\def\algkey#1{\mbox{\bf #1\ }}
+\def\algIF#1{\algkey{if}\algset#1 \\
+  \algkey{then}\algset}
+\def\algELSE{\algckenv{IF}
+  \ifalgisenv
+    \algpop \\
+    {\setbox0\hbox{\algkey{then}}
+      \hbox to \wd0{\algkey{else}\hfill}}
+    \algset
+  \else
+    \PackageError{newalg}
+    {\string\ELSE\space is only allowed in the IF environment}
+    {You have an \protect\ELSE\space command without a \string\begin{IF}}
+  \fi}
+\def\endalgIF{\algpop\algpop}
+\def\algERROR#1{\algkey{error}\mbox{``#1''}}
+\def\algRETURN{\algkey{return}}
+\def\algconst#1{\mbox{\sc #1}}
+\def\algNIL{\algconst{nil}}
+\def\algWHILE#1{\algkey{while}#1 \\
+  \indent\algkey{do}\algset}
+\def\endalgWHILE{\algpop}
+\def\algCALL#1{\mbox{\sc #1}}
+\def\algFOR#1{\algkey{for}#1 \\
+  \indent\algkey{do}\algset}
+\def\endalgFOR{\algpop}
+\def\algtext#1{\mbox{ #1 }}
+\def\algTO{\algkey{ to}}
+\def\algEACH{\algkey{ each}}
+\def\algSWITCH{\algkey{switch}\algpush}
+\def\algitem#1{\algckenv{SWITCH}
+  \ifalgisenv
+    \algpop \\
+    \quad\algkey{case}\algset #1:
+  \else
+    \PackageError{newalg}
+    {\string\item\space can only be used in a SWITCH environment}
+    {You have an item that is not inside of the correct environment}
+  \fi}
+\def\endalgSWITCH{\algpop}
+\def\algDEFAULT{\algkey{default}}
+\def\algREPEAT#1{
+  \algkey{repeat}\algset\\}
+\def\endalgREPEAT{\algpop \\
+  \quad\algkey{until}}
+\def\algIN{\algkey{ in}}
+\def\algbegin#1{\alglpsh#1\to\alglenv
+  \csname #1\endcsname}
+\def\algend#1{\alglpop\alglenv\to\algenv
+  \def\algarg{#1}
+  \ifx \algarg\algenv
+    \relax
+  \else
+    \PackageError{newalg}
+    {\string\begin{\algenv}\space ended by \string\end{\algarg}}
+    {We are confused.  Try to return now}
+  \fi
+  \csname end#1\endcsname
+}
+
+\endinput
+%% 
+%% End of file `newalg.sty'.

@@ -8,7 +8,7 @@
 #include	"../port/error.h"
 
 void	(*vmevec[256])(int);
-void	noted(Ureg**, ulong);
+void	noted(Ureg*, Ureg**, ulong);
 void	rfnote(Ureg**);
 
 char *excname[] =
@@ -72,22 +72,20 @@ trap(Ureg *ur)
 	int user, cop, x, fpchk;
 	char buf[2*ERRLEN], buf1[ERRLEN], *fpexcep;
 
-m->ur = ur;
-
 	ecode = (ur->cause>>2)&0xf;
 	user = ur->status&KUP;
-	if(user)
-		u->dbgreg = ur;
-
 	fpchk = 0;
-	if(u && u->p->fpstate == FPactive) {
-		if((ur->status&CU1) == 0)		/* Paranoid */
-			panic("FPactive but no CU1");
-		u->p->fpstate = FPinactive;
-		ur->status &= ~CU1;
-		savefpregs(&u->fpsave);
-		fptrap(ur);
-		fpchk = 1;
+	if(user) {
+		u->dbgreg = ur;
+		if(u->p->fpstate == FPactive) {
+			if((ur->status&CU1) == 0)		/* Paranoid */
+				panic("FPactive but no CU1");
+			u->p->fpstate = FPinactive;
+			ur->status &= ~CU1;
+			savefpregs(&u->fpsave);
+			fptrap(ur);
+			fpchk = 1;
+		}
 	}
 
 	switch(ecode){
@@ -115,7 +113,7 @@ m->ur = ur;
 
 	case CCPU:
 		cop = (ur->cause>>28)&3;
-		if(user && u && cop == 1) {
+		if(user && cop == 1) {
 			if(u->p->fpstate == FPinit) {
 				u->p->fpstate = FPinactive;
 				fcr31 = u->fpsave.fpstatus;
@@ -159,7 +157,7 @@ m->ur = ur;
 
 	notify(ur);
 	if(u->p->fpstate == FPinactive) {
-		restfpregs(&u->fpsave, u->fpsave.fpstatus&~FPEXPMASK);
+		restfpregs(&u->fpsave, u->fpsave.fpstatus);
 		u->p->fpstate = FPactive;
 		ur->status |= CU1;
 	}
@@ -169,7 +167,7 @@ void
 intr(Ureg *ur)
 {
 	long v;
-	int i, any;
+	int i, any, limit;
 	ulong cause;
 	static int bogies;
 	uchar pend, xxx;
@@ -182,7 +180,7 @@ intr(Ureg *ur)
 		cause &= ~INTR1;
 	}
 
-	while(cause & INTR5) {
+	for(limit = 50; (cause&INTR5) && limit; limit--) {
 		any = 0;
 		if(!(*MPBERR1 & (1<<8))){
 			print("MP bus error %lux %lux\n", *MPBERR0, *MPBERR1);
@@ -285,11 +283,15 @@ intr(Ureg *ur)
 		if(any == 0)
 			cause &= ~INTR5;
 	}
+	if(limit == 0) {
+		LEDON(LED5);
+		print("intr: unable to identify and clear level5\n");
+		cause &= ~INTR5;
+		LEDOFF(LED5);
+	}
 
 	if(cause & (INTR2|INTR4)) {
-		LEDON(LEDclock);
 		clock(ur);
-		LEDOFF(LEDclock);
 		cause &= ~(INTR2|INTR4);
 	}
 
@@ -385,10 +387,11 @@ notify(Ureg *ur)
 	}
 
 	if(n->flag != NUser && (u->notified || u->notify==0)) {
-		if(n->flag == NDebug)
+		if(n->flag == NDebug){
+			qunlock(&u->p->debug);
 			pprint("suicide: %s\n", n->msg);
-
-		qunlock(&u->p->debug);
+		}else
+			qunlock(&u->p->debug);
 		pexit(n->msg, n->flag!=NDebug);
 	}
 
@@ -402,24 +405,25 @@ notify(Ureg *ur)
 		qunlock(&u->p->debug);
 		pexit(n->msg, n->flag!=NDebug);
 	}
-	u->svstatus = ur->status;
+
 	sp = ur->usp - sizeof(Ureg);
 
-	if(sp&0x3 || !okaddr((ulong)u->notify, BY2WD, 0)
-	|| !okaddr(sp-ERRLEN-3*BY2WD, sizeof(Ureg)+ERRLEN+3*BY2WD, 1)) {
-		pprint("suicide: bad address or sp in notify\n");
+	if(sp&(BY2WD-1) || !okaddr((ulong)u->notify, BY2WD, 0)
+	|| !okaddr(sp-ERRLEN-4*BY2WD, sizeof(Ureg)+ERRLEN+4*BY2WD, 1)) {
 		qunlock(&u->p->debug);
+		pprint("suicide: bad address or sp in notify\n");
 		pexit("Suicide", 0);
 	}
 
-	u->ureg = (void*)sp;
 	memmove((Ureg*)sp, ur, sizeof(Ureg));
-	sp -= ERRLEN;
+	*(Ureg**)(sp-BY2WD) = u->ureg;	/* word under Ureg is old u->ureg */
+	u->ureg = (void*)sp;
+	sp -= BY2WD+ERRLEN;
 	memmove((char*)sp, u->note[0].msg, ERRLEN);
 	sp -= 3*BY2WD;
 	*(ulong*)(sp+2*BY2WD) = sp+3*BY2WD;	/* arg 2 is string */
-	u->svr1 = ur->r1;			/* save away r1 */
-	ur->r1 = (ulong)u->ureg;		/* arg 1 is ureg* */
+	ur->r1 = (ulong)u->ureg;		/* arg 1 (R1) is ureg* */
+	*(ulong*)(sp+1*BY2WD) = (ulong)u->ureg;	/* arg 1 0(FP) is ureg* */
 	*(ulong*)(sp+0*BY2WD) = 0;		/* arg 0 is pc */
 	ur->usp = sp;
 	ur->pc = (ulong)u->notify;
@@ -434,49 +438,100 @@ notify(Ureg *ur)
 }
 
 /*
+ * Check that status is OK to return from note.
+ */
+int
+validstatus(ulong kstatus, ulong ustatus)
+{
+	if((kstatus & INTMASK) != (ustatus & INTMASK))
+		return 0;
+	if((ustatus&(KUO|IEO|KUP|IEP|KUC|IEC)) != (KUP|IEP))
+		return 0;
+	if(ustatus & (0xFFFF0000&~(CU1|CM|PE)))	/* no CU3, CU2, CU0, BEV, TS, PZ, SWC, ISC */
+		return 0;
+	return 1;
+}
+
+/*
  * Return user to state before notify()
  */
 void
-noted(Ureg **urp, ulong arg0)
+noted(Ureg *kur, Ureg **urp, ulong arg0)
 {
 	Ureg *nur;
+	ulong oureg, sp;
 
-	nur = u->ureg;
-	if(nur->status != u->svstatus) {
-		pprint("bad noted ureg status %lux\n", nur->status);
-		pexit("Suicide", 0);
-	}
 	qlock(&u->p->debug);
-	if(!u->notified) {
+	if(arg0!=NRSTR && !u->notified) {
 		qunlock(&u->p->debug);
 		pprint("call to noted() when not notified\n");
 		pexit("Suicide", 0);
 	}
 	u->notified = 0;
+
+	nur = u->ureg;
+
+	oureg = (ulong)nur;
+	if((oureg & (BY2WD-1))
+	|| !okaddr((ulong)oureg-BY2WD, BY2WD+sizeof(Ureg), 0)){
+		qunlock(&u->p->debug);
+		pprint("bad ureg in noted or call to noted() when not notified\n");
+		pexit("Suicide", 0);
+	}
+
+	if(!validstatus(kur->status, nur->status)) {
+		qunlock(&u->p->debug);
+		pprint("bad noted ureg status %lux\n", nur->status);
+		pexit("Suicide", 0);
+	}
+
 	memmove(*urp, u->ureg, sizeof(Ureg));
-	(*urp)->r1 = u->svr1;
 	switch(arg0) {
 	case NCONT:
-		if(!okaddr(nur->pc, 1, 0) || !okaddr(nur->usp, BY2WD, 0)){
-			pprint("suicide: trap in noted\n");
+	case NRSTR:
+		if(!okaddr(nur->pc, BY2WD, 0) || !okaddr(nur->usp, BY2WD, 0)){
 			qunlock(&u->p->debug);
+			pprint("suicide: trap in noted\n");
 			pexit("Suicide", 0);
 		}
-		splhi();
+		u->ureg = (Ureg*)(*(ulong*)(oureg-BY2WD));
 		qunlock(&u->p->debug);
+		splhi();
+		rfnote(urp);
+		break;
+
+	case NSAVE:
+		if(!okaddr(nur->pc, BY2WD, 0) || !okaddr(nur->usp, BY2WD, 0)){
+			qunlock(&u->p->debug);
+			pprint("suicide: trap in noted\n");
+			pexit("Suicide", 0);
+		}
+		qunlock(&u->p->debug);
+		sp = oureg-4*BY2WD-ERRLEN;
+		splhi();
+		(*urp)->sp = sp;
+		((ulong*)sp)[1] = oureg;	/* arg 1 0(FP) is ureg* */
+		((ulong*)sp)[0] = 0;			/* arg 0 is pc */
+		(*urp)->r1 = oureg;		/* arg 1 is ureg* */
 		rfnote(urp);
 		break;
 
 	default:
-		pprint("unknown noted arg 0x%lux\n", arg0);
 		u->lastnote.flag = NDebug;
-		/* fall through */
+		qunlock(&u->p->debug);
+		pprint("suicide: %s\n", u->lastnote.msg);
+		pprint("unknown noted arg 0x%lux\n", arg0);
+		pexit(u->lastnote.msg, 0);
+		break;
 		
 	case NDFLT:
-		if(u->lastnote.flag == NDebug)
+		if(u->lastnote.flag == NDebug){
+			qunlock(&u->p->debug);
 			pprint("suicide: %s\n", u->lastnote.msg);
-		qunlock(&u->p->debug);
+		}else
+			qunlock(&u->p->debug);
 		pexit(u->lastnote.msg, u->lastnote.flag!=NDebug);
+		break;
 	}
 }
 
@@ -543,7 +598,7 @@ syscall(Ureg *aur)
 	p->psstate = 0;
 	p->insyscall = 0;
 	if(u->scallnr == NOTED)				/* ugly hack */
-		noted(&aur, *(ulong*)(sp+BY2WD));	/* doesn't return */
+		noted(ur, &aur, *(ulong*)(sp+BY2WD));	/* doesn't return */
 
 	splhi();
 	if(u->scallnr!=RFORK && (p->procctl || u->nnote)){

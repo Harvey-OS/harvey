@@ -1,0 +1,40 @@
+%Filename: T1pop.fd
+%Created by: tex 7879optima
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{pop}{}
+
+\DeclareFontShape{T1}{pop}{b}{n}{
+   <-> popbq
+}{}
+
+\DeclareFontShape{T1}{pop}{b}{sc}{
+   <-> popbcq
+}{}
+
+\DeclareFontShape{T1}{pop}{b}{sl}{
+   <-> popboq
+}{}
+
+\DeclareFontShape{T1}{pop}{m}{n}{
+   <-> poprq
+}{}
+
+\DeclareFontShape{T1}{pop}{m}{sc}{
+   <-> poprcq
+}{}
+
+\DeclareFontShape{T1}{pop}{m}{sl}{
+   <-> poproq
+}{}
+
+\DeclareFontShape{T1}{pop}{bx}{n}{<->ssub * pop/b/n}{}
+\DeclareFontShape{T1}{pop}{bx}{sc}{<->ssub * pop/b/sc}{}
+\DeclareFontShape{T1}{pop}{b}{it}{<->ssub * pop/b/sl}{}
+\DeclareFontShape{T1}{pop}{bx}{it}{<->ssub * pop/b/it}{}
+\DeclareFontShape{T1}{pop}{bx}{sl}{<->ssub * pop/b/sl}{}
+\DeclareFontShape{T1}{pop}{m}{it}{<->ssub * pop/m/sl}{}
+
+\endinput

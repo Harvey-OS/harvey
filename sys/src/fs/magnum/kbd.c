@@ -104,53 +104,6 @@ empty(void)
 }
 
 int
-kbdinit(void)
-{
-	KBDdev *k;
-
-	k = KBD;
-	empty();
-
-	/*
-	 *  disable the interface
-	 */
-	OUTWAIT;
-	k->ctl = Kwrcmd;
-	OUTWAIT;
-	k->data = Csystem | Cinhibit | Cdisable | Cintena;
-
-	/*
-	 *  set unix scan on the keyboard
-	 */
-	OUTWAIT;
-	k->data = Mdisable;
-	INWAIT;
-	if(k->data != Rack)
-		return 0;
-	OUTWAIT;
-	k->data = Msetscan;
-	ACKWAIT;
-	OUTWAIT;
-	k->data = 0;
-	ACKWAIT;
-	OUTWAIT;
-	k->data = Menable;
-
-	/*
-	 *  enable the interface
-	 */
-	OUTWAIT;
-	k->ctl = Kwrcmd;
-	OUTWAIT;
-	k->data = Csystem | Cinhibit | Cintena;
-	OUTWAIT;
-	k->ctl = Kenable;
-
-	empty();
-	return 1;
-}
-
-int
 setsimmtype(int type)
 {
 	KBDdev *k = KBD;

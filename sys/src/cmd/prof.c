@@ -124,7 +124,7 @@ syms(char *cout)
 		exits("file type");
 	}
 	if (syminit(fd, &f) < 0) {
-		fprint(2, "%s\n", symerror);
+		fprint(2, "syminit: %r\n");
 		exits("syms");
 	}
 	close(fd);
@@ -306,7 +306,6 @@ char*	trans[] =
 	"68020",	"2.out",
 	"386",		"8.out",
 	"960",		"6.out",
-	"hobbit",	"z.out",
 	0,0
 };
 

@@ -27,6 +27,8 @@ enum
 	Magichole	= 0xDeadBabe,
 	Magic2n		= 0xFeedBeef,
 	Spanlist	= 64,
+
+	NTRACE		= 20,
 };
 
 typedef struct Hole Hole;
@@ -63,6 +65,7 @@ struct Bucket
 	int	size;
 	int	magic;
 	Bucket	*next;
+	ulong	pc;
 	char	data[1];
 };
 
@@ -71,6 +74,11 @@ struct Arena
 	Lock;
 	Bucket	*btab[Maxpow];
 	int	nbuck[Maxpow];
+	struct{
+		ulong	pc;
+		ulong	alloc;
+		ulong	free;
+	}	trace[NTRACE];
 	QLock	rq;
 	Rendez	r;
 };
@@ -95,8 +103,7 @@ xinit(void)
 	if(np1 > conf.npage1)
 		np1 = conf.npage1;
 
-	palloc.p1 = conf.base1;
-	conf.base1 += np1*BY2PG;
+	palloc.p1 = conf.base1 + (conf.npage1 - np1)*BY2PG;
 	conf.npage1 -= np1;
 	xhole(conf.base1, conf.npage1*BY2PG);
 	conf.npage1 = conf.base1+(conf.npage1*BY2PG);
@@ -106,8 +113,7 @@ xinit(void)
 	if(np0 > conf.npage0)
 		np0 = conf.npage0;
 
-	palloc.p0 = conf.base0;
-	conf.base0 += np0*BY2PG;
+	palloc.p0 = conf.base0 + (conf.npage0 - np0)*BY2PG;
 	conf.npage0 -= np0;
 	xhole(conf.base0, conf.npage0*BY2PG);
 	conf.npage0 = conf.base0+(conf.npage0*BY2PG);
@@ -256,6 +262,28 @@ xhole(ulong addr, ulong size)
 	unlock(&xlists);
 }
 
+void
+alloctrace(void *p, ulong pc)
+{
+	Bucket *bp;
+	int i;
+
+	bp = (Bucket*)((ulong)p - bdatoff);
+	if(bp->size != 13)
+		return;
+	bp->pc = pc;
+	lock(&arena);
+	for(i = 0; i < NTRACE; i++){
+		if(arena.trace[i].pc == 0)
+			arena.trace[i].pc = pc;
+		if(arena.trace[i].pc == pc){
+			arena.trace[i].alloc++;
+			break;
+		}
+	}
+	unlock(&arena);
+}
+
 void*
 malloc(ulong size)
 {
@@ -263,7 +291,7 @@ malloc(ulong size)
 	int pow, n;
 	Bucket *bp, *nbp;
 
-	for(pow = 3; pow <= Maxpow; pow++)
+	for(pow = 3; pow < Maxpow; pow++)
 		if(size <= (1<<pow))
 			goto good;
 
@@ -274,14 +302,16 @@ good:
 	bp = arena.btab[pow];
 	if(bp) {
 		arena.btab[pow] = bp->next;
+		if(bp->magic != 0 || bp->size != pow){
+			unlock(&arena);
+			panic("malloc bp %lux magic %lux size %d next %lux pow %d", bp,
+				bp->magic, bp->size, bp->next, pow);
+		}
+		bp->magic = Magic2n;
 		unlock(&arena);
 
-		if(bp->magic != 0)
-			panic("malloc");
-
-		bp->magic = Magic2n;
-
-		memset(bp->data, 0,  size);
+		memset(bp->data, 0, size);
+		bp->pc = getcallerpc(((uchar*)&size) - sizeof(size));
 		return  bp->data;
 	}
 	unlock(&arena);
@@ -296,18 +326,16 @@ good:
 		if(bp == nil)
 			return nil;
 
-		next = (ulong)bp+size;
-		nbp = (Bucket*)next;
+		nbp = bp;
 		lock(&arena);
-		arena.btab[pow] = nbp;
 		arena.nbuck[pow] += n;
-		for(n -= 2; n; n--) {
+		while(--n) {
 			next = (ulong)nbp+size;
-			nbp->next = (Bucket*)next;
+			nbp = (Bucket*)next;
 			nbp->size = pow;
-			nbp = nbp->next;
+			nbp->next = arena.btab[pow];
+			arena.btab[pow] = nbp;
 		}
-		nbp->size = pow;
 		unlock(&arena);
 	}
 	else {
@@ -320,6 +348,7 @@ good:
 
 	bp->size = pow;
 	bp->magic = Magic2n;
+	bp->pc = getcallerpc(((uchar*)&size) - sizeof(size));
 	return bp->data;
 }
 
@@ -329,11 +358,15 @@ smalloc(ulong size)
 	char *s;
 	void *p;
 	int attempt;
+	Bucket *bp;
 
 	for(attempt = 0; attempt < 1000; attempt++) {
 		p = malloc(size);
-		if(p != nil)
+		if(p != nil) {
+			bp = (Bucket*)((ulong)p - bdatoff);
+			bp->pc = getcallerpc(((uchar*)&size) - sizeof(size));
 			return p;
+		}
 		s = u->p->psstate;
 		u->p->psstate = "Malloc";
 		qlock(&arena.rq);
@@ -344,7 +377,11 @@ smalloc(ulong size)
 		qunlock(&arena.rq);
 		u->p->psstate = s;
 	}
-	pexit(Enomem, 1);
+	print("%s:%d: out of memory in smalloc %d\n", u->p->text, u->p->pid, size);
+	u->p->state = Broken;
+	u->p->psstate = "NoMem";
+	for(;;)
+		sched();
 	return 0;
 }
 
@@ -362,17 +399,27 @@ msize(void *ptr)
 void
 free(void *ptr)
 {
+	ulong pc, n;
 	Bucket *bp, **l;
 
 	bp = (Bucket*)((ulong)ptr - bdatoff);
+	l = &arena.btab[bp->size];
+
+	lock(&arena);
 	if(bp->magic != Magic2n)
 		panic("free");
-
 	bp->magic = 0;
-	lock(&arena);
-	l = &arena.btab[bp->size];
 	bp->next = *l;
 	*l = bp;
+	if(bp->size == 13) {
+		pc = bp->pc;
+		for(n = 0; n < NTRACE; n++){
+			if(arena.trace[n].pc == pc){
+				arena.trace[n].free++;
+				break;
+			}
+		}
+	}
 	unlock(&arena);
 	if(arena.r.p)
 		wakeup(&arena.r);
@@ -406,5 +453,7 @@ xsummary(void)
 			nfree++;
 		print("%8d %4d %4d\n", 1<<i, arena.nbuck[i], nfree);
 	}
+	for(i = 0; i < NTRACE && arena.trace[i].pc; i++)
+		print("%lux %d %d\n", arena.trace[i].pc, arena.trace[i].alloc, arena.trace[i].free);
 	print("%d bytes in pool\n", nused);
 }

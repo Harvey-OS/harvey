@@ -8,7 +8,6 @@ extern Biobuf	stdout;
 #define MALLOC(t, n)		((t *)emalloc((n)*sizeof(t)))
 #define REALLOC(p, t, n)	((t *)erealloc((void *)(p), (n)*sizeof(t)))
 #define FREE(p)			free((void *)(p))
-#define isspace(c)		((c) == ' ' || (c) == '\t')
 
 #define MAXPATHLEN	1024
 

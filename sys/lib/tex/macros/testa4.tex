@@ -1,0 +1,80 @@
+% testa4.tex - created 5 June 1991
+% Copyright (C) 1991 by Rainer Schoepf
+%
+% based on testpage.tex by Leslie Lamport as revised by Stephen Gildea
+%
+% Test of how accurately printer reproduces dimensions specified
+% by LaTeX output on A4 paper.
+%
+
+ 
+\documentstyle{article}
+\pagestyle{empty}
+ 
+\setlength{\oddsidemargin}{0pt}
+\setlength{\evensidemargin}{0pt}
+\setlength{\marginparwidth}{1in}
+\setlength{\marginparsep}{0pt}
+ 
+\setlength{\topmargin}{0pt}
+\setlength{\headheight}{0pt}
+\setlength{\headsep}{0pt}
+\setlength{\topskip}{0pt}
+ 
+\footheight 0pt
+\footskip 0pt
+% A4 is 29,7301778cm x 21,0224103cm
+%     =  9,7047944in x 6,2765395in
+\setlength{\textheight}{24,6501778cm}
+\setlength{\textwidth}{15,9424103cm}
+\setlength{\unitlength}{1in}
+\newcounter{foo}
+\begin{document}
+\setlength{\parindent}{0pt}
+\begin{picture}(0,0)
+\scriptsize
+\put(0,-9.7047944){\framebox(6.2765395,9.7047944){}}
+% left ruler
+\put(0,-4.8523972){\line(-1,0){2.5}}
+\multiput(-.1,-4.9523972)(-.1,0){10}{\line(0,1){.2}}
+\multiput(-.05,-4.9023972)(-.1,0){10}{\line(0,1){.1}}
+\setcounter{foo}{1}\multiput(-.1,-4.7023972)(-.1,0){9}{\makebox
+                               (0,0){\arabic{foo}}\addtocounter{foo}{1}}
+% right ruler
+\put(6.2765395,-4.8523972){\line(1,0){2.5}}
+\multiput(6.3765395,-4.9523972)(.1,0){10}{\line(0,1){.2}}
+\multiput(6.3265395,-4.9023972)(.1,0){10}{\line(0,1){.1}}
+     %fixed mit-erl!gildea 13Feb86
+%\multiput(6.3265395,-4.9523972)(.1,0){10}{\line(0,1){.1}}
+\setcounter{foo}{1}\multiput(6.3765395,-4.7023972)(.1,0){9}{\makebox
+                               (0,0){\arabic{foo}}\addtocounter{foo}{1}}
+% top ruler
+\put(3.1382698,0){\line(0,1){2.5}}
+\multiput(3.0382698,.1)(0,.1){10}{\line(1,0){.2}}
+\multiput(3.0882698,.05)(0,.1){10}{\line(1,0){.1}}
+\setcounter{foo}{1}\multiput(3.2882698,.1)(0,.1){9}{\makebox
+                               (0,0){\arabic{foo}}\addtocounter{foo}{1}}
+% bottom ruler
+\put(3.1382698,-9.7047944){\line(0,-1){2.5}}
+\multiput(3.0382698,-9.8047944)(0,-.1){10}{\line(1,0){.2}}
+\multiput(3.0882698,-9.7547944)(0,-.1){10}{\line(1,0){.1}}
+\setcounter{foo}{1}\multiput(3.2882698,-9.8047944)(0,-.1){9}{\makebox
+                               (0,0){\arabic{foo}}\addtocounter{foo}{1}}
+\end{picture}
+
+\vspace*{\fill}
+
+\begin{center}
+\begin{minipage}{4in}
+The frame on this page should be
+  $24{,}6501778{\rm cm} \times 15{,}9424103 {\rm cm}
+     =  9{,}7047944'' \times 6{,}2765395''$.  When
+printed on A4 paper, the frame should be one
+inch from each edge of the paper.\\[10pt]
+The rulers at the four edges will indicate how much of the page is
+useable.  The large ticks are $.1''$ apart.
+\end{minipage}
+\end{center}
+ 
+\vspace*{\fill}
+\end{document}

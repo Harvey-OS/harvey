@@ -11,15 +11,16 @@ int tflag = 0;
 int iflag = 0;
 int kflag = 0;
 int aflag = 0;
+int uflag = 0;
 char *explain = 0;
 Word *target1;
 int nreps = 1;
 Job *jobs;
-char *whatif = 0;
 char shell[] = SHELL;
 char shellname[] = SHELL;
 Biobuf stdout;
 Rule *patrule;
+void badusage(void);
 #ifdef	PROF
 short buf[10000];
 #endif	PROF
@@ -35,6 +36,7 @@ main(int argc, char **argv)
 	int tfd = -1;
 	Biobuf tb;
 	Bufblock *buf;
+	Bufblock *whatif;
 	static char temp[] = "/tmp/mkargXXXXXX";
 
 	/*
@@ -45,6 +47,7 @@ main(int argc, char **argv)
 
 	Binit(&stdout, 1, OWRITE);
 	buf = newbuf();
+	whatif = 0;
 	USED(argc);
 	for(argv++; *argv && (**argv == '-'); argv++)
 	{
@@ -71,7 +74,7 @@ main(int argc, char **argv)
 			break;
 		case 'f':
 			if(*++argv == 0)
-				usage();
+				badusage();
 			*f++ = *argv;
 			bufcpy(buf, argv[0], strlen(argv[0]));
 			insert(buf, ' ');
@@ -91,17 +94,24 @@ main(int argc, char **argv)
 		case 't':
 			tflag = 1;
 			break;
+		case 'u':
+			uflag = 1;
+			break;
 		case 'w':
+			if(whatif == 0)
+				whatif = newbuf();
+			else
+				insert(whatif, ' ');
 			if(argv[0][2])
-				whatif = &argv[0][2];
+				bufcpy(whatif, &argv[0][2], strlen(&argv[0][2]));
 			else {
 				if(*++argv == 0)
-					usage();
-				whatif = &argv[0][0];
+					badusage();
+				bufcpy(whatif, &argv[0][0], strlen(&argv[0][0]));
 			}
 			break;
 		default:
-			usage();
+			badusage();
 		}
 	}
 #ifdef	PROF
@@ -113,13 +123,14 @@ main(int argc, char **argv)
 
 	if(aflag)
 		iflag = 1;
+	usage();
 	for(i = strlen(shell)-1; i >= 0; i--)
 			if(shell[i] == '/')
 				break;
 	strcpy(shellname, shell+i+1);
-	account();
 	syminit();
 	initenv();
+	usage();
 
 	/*
 		assignment args become null strings
@@ -129,7 +140,7 @@ main(int argc, char **argv)
 		insert(buf, ' ');
 		if(tfd < 0){
 			mktemp(temp);
-			close(CREAT(temp, 0600));
+			close(create(temp, OWRITE, 0600));
 			if((tfd = open(temp, 2)) < 0){
 				perror(temp);
 				Exit();
@@ -143,7 +154,7 @@ main(int argc, char **argv)
 		Bflush(&tb);
 		LSEEK(tfd, 0L, 0);
 		parse("command line args", tfd, 1, 1);
-		UNLINK(temp);
+		remove(temp);
 	}
 
 	if (buf->current != buf->start) {
@@ -174,13 +185,17 @@ main(int argc, char **argv)
 		dumpr("metarules", metarules);
 		dumpv("variables");
 	}
-	if(whatif)
-		timeinit(whatif);
+	if(whatif){
+		insert(whatif, 0);
+		timeinit(whatif->start);
+		freebuf(whatif);
+	}
 	execinit();
 	/* skip assignment args */
 	while(*argv && (**argv == 0))
 		argv++;
-	sigcatch();
+
+	atnotify(notifyf, 1);
 	if(*argv == 0){
 		if(target1)
 			for(w = target1; w; w = w->next)
@@ -199,6 +214,7 @@ main(int argc, char **argv)
 
 			/* fake a new rule with all the args as prereqs */
 			tail = 0;
+			t = 0;
 			for(; *argv; argv++)
 				if(**argv){
 					if(tail == 0)
@@ -217,11 +233,13 @@ main(int argc, char **argv)
 			}
 		}
 	}
+	if(uflag)
+		prusage();
 	exits(0);
 }
 
 void
-usage(void)
+badusage(void)
 {
 
 	fprint(2, "Usage: mk [-f file] [-n] [-a] [-e] [-t] [-k] [-i] [-d[egp]] [targets ...]\n");
@@ -233,21 +251,23 @@ Malloc(int n)
 {
 	register char *s;
 
-	if(s = malloc(n))
-		return(s);
-	fprint(2, "mk: cannot alloc %d bytes\n", n);
-	Exit();
-	return((char *)0);	/* shut cyntax up */
+	s = malloc(n);
+	if(!s) {
+		fprint(2, "mk: cannot alloc %d bytes\n", n);
+		Exit();
+	}
+	return(s);
 }
 
 char *
 Realloc(char *s, int n)
 {
-	if(s = realloc(s, n))
-		return(s);
-	fprint(2, "mk: cannot alloc %d bytes\n", n);
-	Exit();
-	return((char *)0);	/* shut cyntax up */
+	s = realloc(s, n);
+	if(!s) {
+		fprint(2, "mk: cannot alloc %d bytes\n", n);
+		Exit();
+	}
+	return(s);
 }
 
 void

@@ -1,0 +1,44 @@
+%% 
+%% This is file `Uwasy.fd', generated 
+%% on <1995/2/26> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% wasysym.dtx  (with options: `fd')
+%% 
+%% Copyright (C) 1994 Axel Kielhorn. 
+%% All rights reserved. 
+%% 
+%% This file is NOT part of the LaTeX2e. 
+%% ------------------------------------- 
+%% 
+%% This is a generated file. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+%% 
+%% We recommend that you copy the relevant portions of the original 
+%% source file into a private .fdd instead of modifying this file 
+%% directly. Otherwise any new release of NFSS2 may clobber your 
+%% customizations. 
+%% 
+\def\fileversion{v1.0c}
+\def\filedate{94/05/28}
+\def\docdate {94/05/28}
+%% astronomy
+%%%%%% the zodiac
+%%%%%% APL characters
+%%%%%% math characters
+%%%%%% diagrams
+%%%%%% special characters
+\wlog{Fontdef\space file\space produced\space from:\space
+ \string`wasysym.dtx'\space \fileversion\space
+ \string<\filedate\string>\space (ak)}
+\DeclareFontFamily{U}{wasy}{}
+\DeclareFontShape{U}{wasy}{m}{n}{ <5> <6> <7> <8> <9> gen * wasy
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>wasy10  }{}
+\DeclareFontShape{U}{wasy}{b}{n}{ <-10> sub * wasy/m/n
+ <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>wasyb10 }{}
+\endinput
+%% 
+%% End of file `Uwasy.fd'.

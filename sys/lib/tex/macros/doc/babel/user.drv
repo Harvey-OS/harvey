@@ -1,0 +1,163 @@
+%% 
+%% This is file `user.drv', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% babel.dtx  (with options: `driver,user')
+%% 
+%% This file is part of the babel package, version 3.4 patchlevel 2. 
+%% ----------------------------------------------------------------- 
+%% 
+%% Copyright (C) 1994 Johannes Braams. All rights reserved. 
+%% 
+%% To produce the documentation in the way you like you are allowed 
+%% to change this driver file. 
+%% 
+%%%\iffalse
+%%%  @LaTeX-file{
+%%%     author          = "Johannes L. Braams",
+%%%     version         = "3.4f",
+%%%     date            = "03 July 1994",
+%%%     time            = "23:33:58 MET",
+%%%     filename        = "babel.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "60652 2080 9803 80663",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel",
+%%%     supported       = "yes",
+%%%     docstring       = "This file, babel.dtx contains the core of
+%%%                        the babel system as it was described in
+%%%                        TuGboat Volume 12 no 2 and Volume 14 no 1.
+%%%
+%%%                        The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%      }
+%%% \fi
+%%
+%% Copyright (C) 1989-1994 by Johannes Braams,
+%%                            PTT Research Neher Laboratories
+%%                            all rights reserved.
+%% Please report errors to: J.L. Braams
+%%                          J.L.Braams@research.ptt.nl
+\ifx\ProvidesFile\undefined
+  \def\ProvidesFile#1[#2 #3 #4]{\wlog{#4 #3 <#2>}}\fi
+\ProvidesFile{user.drv}
+                [1994/07/03 v3.4f
+]
+\documentclass{ltxdoc}
+\DoNotIndex{\!,\',\,,\.,\-,\:,\;,\?,\/,\^,\`,\@M}
+\DoNotIndex{\@,\@ne,\@m,\@afterheading,\@date,\@endpart}
+\DoNotIndex{\@hangfrom,\@idxitem,\@makeschapterhead,\@mkboth}
+\DoNotIndex{\@oddfoot,\@oddhead,\@restonecolfalse,\@restonecoltrue}
+\DoNotIndex{\@starttoc,\@unused}
+\DoNotIndex{\accent,\active}
+\DoNotIndex{\addcontentsline,\advance,\Alph,\arabic}
+\DoNotIndex{\baselineskip,\begin,\begingroup,\bf,\box,\c@secnumdepth}
+\DoNotIndex{\catcode,\centering,\char,\chardef,\clubpenalty}
+\DoNotIndex{\columnsep,\columnseprule,\crcr,\csname}
+\DoNotIndex{\day,\def,\dimen,\discretionary,\divide,\dp,\do}
+\DoNotIndex{\edef,\else,\empty,\end,\endgroup,\endcsname,\endinput}
+\DoNotIndex{\errhelp,\errmessage,\expandafter,\fi,\filedate}
+\DoNotIndex{\fileversion,\fmtname,\fnum@figure,\fnum@table,\fontdimen}
+\DoNotIndex{\gdef,\global}
+\DoNotIndex{\hbox,\hidewidth,\hfil,\hskip,\hspace,\ht,\Huge,\huge}
+\DoNotIndex{\ialign,\if@twocolumn,\ifcase,\ifcat,\ifhmode,\ifmmode}
+\DoNotIndex{\ifnum,\ifx,\immediate,\ignorespaces,\input,\item}
+\DoNotIndex{\kern}
+\DoNotIndex{\labelsep,\Large,\large,\labelwidth,\lccode,\leftmargin}
+\DoNotIndex{\lineskip,\leavevmode,\let,\list,\ll,\long,\lower}
+\DoNotIndex{\m@ne,\mathchar,\mathaccent,\markboth,\month,\multiply}
+\DoNotIndex{\newblock,\newbox,\newcount,\newdimen,\newif,\newwrite}
+\DoNotIndex{\nobreak,\noexpand,\noindent,\null,\number}
+\DoNotIndex{\onecolumn,\or}
+\DoNotIndex{\p@,par, \parbox,\parindent,\parskip,\penalty}
+\DoNotIndex{\protect,\ps@headings}
+\DoNotIndex{\quotation}
+\DoNotIndex{\raggedright,\raise,\refstepcounter,\relax,\rm,\setbox}
+\DoNotIndex{\section,\setcounter,\settowidth,\scriptscriptstyle}
+\DoNotIndex{\sfcode,\sl,\sloppy,\small,\space,\spacefactor,\strut}
+\DoNotIndex{\string}
+\DoNotIndex{\textwidth,\the,\thechapter,\thefigure,\thepage,\thepart}
+\DoNotIndex{\thetable,\thispagestyle,\titlepage,\tracingmacros}
+\DoNotIndex{\tw@,\twocolumn,\typeout,\uppercase,\usecounter}
+\DoNotIndex{\vbox,\vfil,\vskip,\vspace,\vss}
+\DoNotIndex{\widowpenalty,\write,\xdef,\year,\z@,\z@skip}
+\makeatletter
+\gdef\dlqq{{\setbox\tw@=\hbox{,}\setbox\z@=\hbox{''}%
+  \dimen\z@=\ht\z@ \advance\dimen\z@-\ht\tw@
+  \setbox\z@=\hbox{\lower\dimen\z@\box\z@}\ht\z@=\ht\tw@
+  \dp\z@=\dp\tw@ \box\z@\kern-.04em}}
+\makeatother
+\font\manual=logo10 % font used for the METAFONT logo, etc.
+\newcommand\MF{{\manual META}\-{\manual FONT}}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+\newcommand\note[1]{{\bf #1}}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\newcommand\languagespecific[1]{%
+  \DocInput{#1}}
+\DisableCrossrefs
+\setcounter{StandardModuleDepth}{1}
+\OnlyDescription
+\begin{document}
+\DocInput{babel.dtx}
+\clearpage
+\languagespecific{esperant.dtx}
+\languagespecific{dutch.dtx}
+\languagespecific{english.dtx}
+\languagespecific{germanb.dtx}
+\languagespecific{francais.dtx}
+\languagespecific{italian.dtx}
+\languagespecific{portuges.dtx}
+\languagespecific{spanish.dtx}
+\languagespecific{catalan.dtx}
+\languagespecific{galician.dtx}
+\languagespecific{danish.dtx}
+\languagespecific{norsk.dtx}
+\languagespecific{swedish.dtx}
+\languagespecific{finnish.dtx}
+\languagespecific{magyar.dtx}
+\languagespecific{croatian.dtx}
+\languagespecific{czech.dtx}
+\languagespecific{slovak.dtx}
+\languagespecific{polish.dtx}
+\languagespecific{romanian.dtx}
+\languagespecific{slovene.dtx}
+%%\languagespecific{russian.dtx}
+\languagespecific{turkish.dtx}
+\languagespecific{bahasa.dtx}
+\end{document}
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\endinput
+%% 
+%% End of file `user.drv'.

@@ -20,17 +20,18 @@ int	multifile,		/* processing multiple files */
 	hflag,
 	nflag,
 	sflag,
-	uflag,
-	vflag;
+	uflag;
 
 Sym	**fnames;		/* file path translation table */
+Sym	**symptr;
+int	nsym;
 Biobuf	bout;
 
 int	cmp(Sym **, Sym **);
 void	error(char*, ...),
-	execsyms(Biobuf*),
-	printsyms(Sym*, long),
-	psym(Sym**, long),
+	execsyms(int),
+	psym(Sym*, void*),
+	printsyms(Sym**, long),
 	doar(Biobuf*),
 	dofile(Biobuf*),
 	zenter(Sym*);
@@ -50,7 +51,6 @@ main(int argc, char *argv[])
 	case 'n':	nflag = 1; break;
 	case 's':	sflag = 1; break;
 	case 'u':	uflag = 1; break;
-	case 'v':	vflag = 1; break;
 	} ARGEND
 	if (argc > 1)
 		multifile++;
@@ -67,7 +67,7 @@ main(int argc, char *argv[])
 			Bseek(bin, 0, 0);
 			dofile(bin);
 		}
-		Bclose(bin);
+		Bterm(bin);
 	}
 	exits(errs);
 }
@@ -80,13 +80,10 @@ void
 doar(Biobuf *bp)
 {
 	int offset, size, obj;
-	Sym *s;
-	long n;
-	char membername[NNAME];
+	char membername[SARNAME];
 
 	multifile = 1;
 	for (offset = BOFFSET(bp);;offset += size) {
-		objreset();
 		size = nextar(bp, offset, membername);
 		if (size < 0) {
 			error("phase error on ar header %ld\n", offset);
@@ -96,20 +93,21 @@ doar(Biobuf *bp)
 			return;
 		if (strcmp(membername, symname) == 0)
 			continue;
-		obj = objtype(bp);
+		obj = objtype(bp, 0);
 		if (obj < 0) {
 			error("inconsistent file %s in %s\n",
 					membername, filename);
 			return;
 		}
-		if (!readar(bp, obj, offset+size)) {
+		if (!readar(bp, obj, offset+size, 1)) {
 			error("invalid symbol reference in file %s\n",
 					membername);
 			return;
 		}
-		s = objbase(&n);
 		filename = membername;
-		printsyms(s, n);
+		nsym=0;
+		objtraverse(psym, 0);
+		printsyms(symptr, nsym);
 	}
 }
 
@@ -119,19 +117,16 @@ doar(Biobuf *bp)
 void
 dofile(Biobuf *bp)
 {
-	Sym *s;
-	long n;
 	int obj;
 
-	obj = objtype(bp);
+	obj = objtype(bp, 0);
 	if (obj < 0)
-		execsyms(bp);
-	else {
-		objreset();
-		if (readobj(bp, obj)) {
-			s = objbase(&n);
-			printsyms(s, n);
-		}
+		execsyms(Bfildes(bp));
+	else
+	if (readobj(bp, obj)) {
+		nsym = 0;
+		objtraverse(psym, 0);
+		printsyms(symptr, nsym);
 	}
 }
 
@@ -172,97 +167,90 @@ zenter(Sym *s)
  * get the symbol table from an executable file, if it has one
  */
 void
-execsyms(Biobuf *bp)
+execsyms(int fd)
 {
 	Fhdr f;
 	Sym *s;
-	long nsyms;
+	long n;
 
-	Bseek(bp, 0, 0);
-	if (crackhdr(Bfildes(bp), &f) == 0) {
+	seek(fd, 0, 0);
+	if (crackhdr(fd, &f) == 0) {
 		error("Can't read header for %s\n", filename);
 		return;
 	}
-	if (syminit(Bfildes(bp), &f) < 0)
+	if (syminit(fd, &f) < 0)
 		return;
-	s = symbase(&nsyms);
-	printsyms(s, nsyms);
-	Bclose(bp);
+	s = symbase(&n);
+	nsym = 0;
+	while(n--)
+		psym(s++, 0);
+
+	printsyms(symptr, nsym);
 }
 
 void
-printsyms(Sym *sp, long nsym)
+psym(Sym *s, void* p)
 {
-	Sym *s;
-	Sym **symptr;
-	int n;
-
-	n = nsym*sizeof(Sym*);
-	symptr = malloc(n);
+	USED(p);
+	switch(s->type) {
+	case 'T':
+	case 'L':
+	case 'D':
+	case 'B':
+		if (uflag)
+			return;
+		if (!aflag && ((s->name[0] == '.' || s->name[0] == '$')))
+			return;
+		break;
+	case 'b':
+	case 'd':
+	case 'l':
+	case 't':
+		if (uflag || gflag)
+			return;
+		if (!aflag && ((s->name[0] == '.' || s->name[0] == '$')))
+			return;
+		break;
+	case 'U':
+		if (gflag)
+			return;
+		break;
+	case 'Z':
+		if (!aflag)
+			return;
+		break;
+	case 'm':
+	case 'f':	/* we only see a 'z' when the following is true*/
+		if(!aflag || uflag || gflag)
+			return;
+		if (strcmp(s->name, ".frame"))
+			zenter(s);
+		break;
+	case 'a':
+	case 'p':
+	case 'z':
+	default:
+		if(!aflag || uflag || gflag)
+			return;
+		break;
+	}
+	symptr = realloc(symptr, (nsym+1)*sizeof(Sym*));
 	if (symptr == 0) {
 		error("out of memory\n");
-		return;
+		exits("memory");
 	}
-	memset(symptr, 0, n);
-	for (s = sp, n = 0; nsym-- > 0; s++) {
-		s->value = beswal(s->value);
-		switch(s->type) {
-		case 'T':
-		case 'L':
-		case 'D':
-		case 'B':
-			if (!uflag)
-				if (aflag || ((s->name[0] != '.'
-						&& s->name[0] != '$')))
-					symptr[n++] = s;
-			break;
-		case 'b':
-		case 'd':
-		case 'l':
-		case 't':
-			if (!uflag && !gflag)
-				if (aflag || ((s->name[0] != '.'
-						&& s->name[0] != '$')))
-					symptr[n++] = s;
-			break;
-		case 'U':
-			if (!gflag)
-				symptr[n++] = s;
-			break;
-		case 'Z':
-			if (aflag)
-				symptr[n++] = s;
-			break;
-		case 'f':	/* we only see a 'z' when the following is true*/
-			if (aflag && !uflag && !gflag) {
-				if (strcmp(s->name, ".frame"))
-					zenter(s);
-				symptr[n++] = s;
-			}
-			break;
-		case 'a':
-		case 'p':
-		case 'm':
-		case 'z':
-		default:
-			if (aflag && !uflag && !gflag)
-				symptr[n++] = s;
-			break;
-		}
-	}
-	if(!sflag)
-		qsort(symptr, n, sizeof(*symptr), cmp);
-	psym(symptr, n);
-	free(symptr);
+	symptr[nsym++] = s;
 }
 
 void
-psym(Sym **symptr, int nsym)
+printsyms(Sym **symptr, int nsym)
 {
 	Sym *s;
 	char *cp;
 	char path[512];
 
+	if(!sflag)
+		qsort(symptr, nsym, sizeof(*symptr), cmp);
 	while (nsym-- > 0) {
 		s = *symptr++;
 		if (multifile && !hflag)

@@ -1,5 +1,9 @@
+#include <stdlib.h>
 #include <unistd.h>
 #include <libg.h>
+
+typedef unsigned char uchar;
+typedef unsigned long ulong;
 
 /*
  * This code (and the devbit interface) will have to change
@@ -10,8 +14,8 @@
 void
 rdcolmap(Bitmap *b, RGB *m)
 {
-	unsigned char *buf, *p;
-	unsigned char ans[256*12];
+	uchar *buf, *p;
+	uchar ans[256*12];
 	int i, n;
 
 	bneed(0);

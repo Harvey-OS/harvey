@@ -1,0 +1,4 @@
+TEXT _WSTAT(SB), 1, $0
+MOVL $26, AX
+INT $64
+RET

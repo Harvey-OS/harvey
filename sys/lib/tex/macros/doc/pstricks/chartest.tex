@@ -1,0 +1,25 @@
+%% BEGIN chartest.tex
+%% PSTricks test file for charpath.tex.
+%% Run with Plain TeX.
+
+\input pstricks
+\input charpath
+
+% phvb should be name of Helvetica-Bold tfm or vf file:
+\font\bighelv=phvb at 70pt
+\bighelv
+
+\vskip 1in
+
+\pscharpath[linestyle=dotted]{Denis Girous}
+
+\vskip 1in
+
+\pscharpath[fillstyle=crosshatch]{Denis Girous}
+
+\vskip 1in
+
+\pscharpath[fillstyle=solid,fillcolor=red]{Denis Girous}
+
+\bye
+%% END chartest.tex

@@ -1,0 +1,26 @@
+# root
+mount -a #s/boot /
+bind -c /plan9 /
+bind -b #/ /
+
+# kernel devices
+bind #c /dev
+bind #d /fd
+bind -c #e /env
+bind #p /proc
+bind -c #s /srv
+
+# standard bin
+bind /$cputype/bin /bin
+bind -a /rc/bin /bin
+
+# networks
+mount -a /srv/cs /net
+bind -b #l /net
+bind -b #Iudp /net
+bind -b #Itcp /net
+bind -b #Iil /net
+bind -a #F /net
+
+bind -c /usr/$user/tmp /tmp
+cd /usr/$user

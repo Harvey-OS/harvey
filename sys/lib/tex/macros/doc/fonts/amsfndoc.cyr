@@ -1,0 +1,181 @@
+%% @texfile{
+%%     filename="amsfndoc.cyr",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="AMSFonts: documentation",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support Department,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "24346 181 1041 7374"
+%%     keywords="amsfonts, tex, cyrillic",
+%%     abstract="This file contains the cyrillic definitions for AMSFNDOC.TEX,
+%%      the AMSFonts 2.1 User's Guide."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\figuretitle{\number\cyrtablefigno} Input conventions for AMS cyrillic
+
+\begingroup
+
+% If using PostScript outlines of AMSFonts from Blue Sky Research and Y&Y,
+% then only sizes 5, 7, and 10 are present for AMSFonts. In this case,
+% definitions of other sizes are scalings of these three sizes.
+\def\PSAMSFonts{TF}% Blue Sky/Y&Y PS AMS fonts: False
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Uncommenting the following line will prevent an error message for
+% wncyr9 below.
+%%\def\PSAMSFonts{TT}%  Blue Sky/Y&Y PS AMS fonts: True
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%   If wncyr9.tfm is not available, the following section will produce
+%   an error message on screen but the user will see the instruction
+%   "Press RETURN to continue". The missing font will then be supplied
+%   by scaling down wncyr10 (i.e. we assume that the user has the PS
+%   AMSFonts with sizes 10 7 5 only).
+\if\PSAMSFonts
+  \let\ninecyr\nullfont
+\else
+\catcode`\%=\active\let%\relax\catcode`\P=14
+\font
+\ninecyr=wncyr9 % Press RETURN to continue
+\catcode`\%=14 \catcode`\P=11
+\fi
+
+\ifx\ninecyr\nullfont
+  \font\ninecyr=wncyr10 at 9pt
+\fi
+
+\def\cyr{\ninecyr\cyracc}
+\ninepoint
+
+\parindent=0pt
+\parskip=0pt
+\baselineskip=13pt
+\lineskip=0pt
+\lineskiplimit=0pt
+
+\newbox\BoxA
+\newbox\BoxB
+
+\def\TwoUp{\centerline{%
+  \valign{##\vfil\cr
+    \box\BoxA\cr
+    \noalign{\hfil\vrule width\mtrulethickness
+        \kern.2em\vrule width\mtrulethickness\enspace\hfil}
+    \box\BoxB\cr}}}
+
+\setbox\TestBox=\hbox{\kern.4em\cyr Zh}
+\newdimen\cyrwd
+\cyrwd=\wd\TestBox
+\setbox\TestBox=\hbox{\quad\tt xCdprime}
+\newdimen\ttwd
+\ttwd=\wd\TestBox
+\setbox\TestBox=\hbox{\enskip Shch}
+\newdimen\romwd
+\romwd=\wd\TestBox
+
+\def\|{\vrule height 9pt depth 4pt width.3pt\enspace\ignorespaces}
+
+\settabs \+\hskip\cyrwd &\hskip\cyrwd
+    &\hskip.2em\hskip\ttwd &\hskip\ttwd
+    &\hskip.7em\hskip\romwd &\hskip\romwd\cr
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setbox\BoxA=\vbox{\hsize=.45\hsize
+\+Cyrillic   &           &\qquad Input &     &\enspace Translit. \cr
+\vskip 2pt
+\+{\cyr A}   &{\cyr a}   &\| |A|    & |a|    &\| A    & a    \cr
+\+{\cyr B}   &{\cyr b}   &\| |B|    & |b|    &\| B    & b    \cr
+\+{\cyr V}   &{\cyr v}   &\| |V|    & |v|    &\| V    & v    \cr
+\+{\cyr G}   &{\cyr g}   &\| |G|    & |g|    &\| G    & g    \cr
+\+{\cyr D}   &{\cyr d}   &\| |D|    & |d|    &\| D    & d    \cr
+\+{\cyr Dj}  &{\cyr dj}  &\| |Dj|   & |dj|   &\| Dj   & dj   \cr
+\+{\cyr \'G} &{\cyr \'g} &\| |\'G|  & |\'g|  &\| \'G  & \'g  \cr
+\+{\cyr E}   &{\cyr e}   &\| |E|    & |e|    &\| E    & e    \cr
+\+{\cyr \"E} &{\cyr \"e} &\| |\"E|  & |\"e|  &\| \"E  & \"e  \cr
+\+{\cyr \=E} &{\cyr \=e} &\| |\=E|  & |\=e|  &\| \=E  & \=e  \cr
+\+{\cyr Zh}  &{\cyr zh}  &\| |Zh|   & |zh|   &\| Zh   & zh   \cr
+\+{\cyr Z}   &{\cyr z}   &\| |Z|    & |z|    &\| Z    & z    \cr
+\+{\cyr I}   &{\cyr i}   &\| |I|    & |i|    &\| I    & i    \cr
+\+{\cyr \=I} &{\cyr \=\i}&\| |\=I|  & |\=\i| &\| \=I  & \=\i \cr
+\+{\cyr \"I} &{\cyr \"\i}&\| |\"I|  & |\"\i| &\| \"I  & \"\i \cr
+\+{\cyr J}   &{\cyr j}   &\| |J|    & |j|    &\| J    & j    \cr
+\+{\cyr \u I}&{\cyr \u\i}&\| |\u I| & |\u\i| &\| \u I & \u\i \cr
+\+{\cyr K}   &{\cyr k}   &\| |K|    & |k|    &\| K    & k    \cr
+\+{\cyr L}   &{\cyr l}   &\| |L|    & |l|    &\| L    & l    \cr
+\+{\cyr Lj}  &{\cyr lj}  &\| |Lj|   & |lj|   &\| Lj   & lj   \cr
+\+{\cyr M}   &{\cyr m}   &\| |M|    & |m|    &\| M    & m    \cr
+\+{\cyr N}   &{\cyr n}   &\| |N|    & |n|    &\| N    & n    \cr
+\+{\cyr Nj}  &{\cyr nj}  &\| |Nj|   & |nj|   &\| Nj   & nj   \cr
+\+{\cyr O}   &{\cyr o}   &\| |O|    & |o|    &\| O    & o    \cr
+\+{\cyr P}   &{\cyr p}   &\| |P|    & |p|    &\| P    & p    \cr
+}       % end \BoxA
+
+\setbox\BoxB=\vbox{\hsize=.45\hsize
+\+Cyrillic   &           &\qquad Input &     &\enspace Translit. \cr
+\vskip 2pt
+\+{\cyr R}   &{\cyr r}   &\| |R|    & |r|    &\| R    & r    \cr
+\+{\cyr S}   &{\cyr s}   &\| |S|    & |s|    &\| S    & s    \cr
+\+{\cyr T}   &{\cyr t}   &\| |T|    & |t|    &\| T    & t    \cr
+\+{\cyr \'C} &{\cyr \'c} &\| |\'C|  & |\'c|  &\| \'C  & \'c  \cr
+\+{\cyr \'K} &{\cyr \'k} &\| |\'K|  & |\'k|  &\| \'K  & \'k  \cr
+\+{\cyr U}   &{\cyr u}   &\| |U|    & |u|    &\| U    & u    \cr
+\+{\cyr \u U}&{\cyr \u u}&\| |\u U| & |\u u| &\| \u U & \u u \cr
+\+{\cyr F}   &{\cyr f}   &\| |F|    & |f|    &\| F    & f    \cr
+\+{\cyr Kh}  &{\cyr kh}  &\| |Kh|   & |kh|   &\| Kh   & kh   \cr
+\+{\cyr Ts}  &{\cyr ts}  &\| |Ts|   & |ts|   &\| Ts   & ts   \cr
+\+{\cyr Ch}  &{\cyr ch}  &\| |Ch|   & |ch|   &\| Ch   & ch   \cr
+\+{\cyr \Dzh}&{\cyr \dzh}&\| |\Dzh| & |\dzh| &\| \Dzh & \dzh \cr
+\+{\cyr Sh}  &{\cyr sh}  &\| |Sh|   & |sh|   &\| Sh   & sh   \cr
+\+{\cyr Shch}&{\cyr shch}&\| |Shch| & |shch| &\| Shch & shch \cr
+\+{\cyr \Cdprime}&{\cyr \cdprime}
+                         &\| |\Cdprime| & |\cdprime|
+                                           &\| \Cdprime & \cdprime \cr
+\+{\cyr Y}   &{\cyr y}   &\| |Y|    & |y|    &\| Y    & y    \cr
+\+{\cyr \Cprime}&{\cyr \cprime}
+                         &\| |\Cprime| & |\cprime|
+                                           &\| \Cprime & \cprime \cr
+\+{\cyr \`E} &{\cyr \`e} &\| |\`E|  & |\`e|  &\| \`E  & \`e  \cr
+\+{\cyr Yu}  &{\cyr yu}  &\| |Yu|   & |yu|   &\| Yu   & yu   \cr
+\+{\cyr Ya}  &{\cyr ya}  &\| |Ya|   & |ya|   &\| Ya   & ya   \cr
+\+{\cyr \Dz} &{\cyr \dz} &\| |\Dz|  & |\dz|  &\| \Dz  & \dz  \cr
+\+{\cyr N0}  &           &\| |N0|   &        &\| N0   &      \cr
+\+{\cyr <}   &           &\| |<|    &        &\| <    &      \cr
+\+{\cyr >}   &           &\| |>|    &        &\| >    &      \cr
+\+{\cyr \cydot}&         &\| |\cydot| &      &\| \cydot &    \cr
+}       % end \BoxB
+
+\TwoUp
+
+\endgroup		% end \ninepoint
+
+\vskip.5\baselineskip
+
+\DoHrule
+
+\vskip.5\baselineskip
+
+\endinput

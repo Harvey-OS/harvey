@@ -1,9 +1,7 @@
 objtype=sparc
 </$objtype/mkfile
 
-BUILTINS=
-I=-I. -I../port
-CFLAGS=-w $I
+TARG=9ssfs
 
 OBJ=\
 	l.$O\
@@ -26,6 +24,7 @@ OBJ=\
 	il.$O\
 	iobuf.$O\
 	ip.$O\
+	iproute.$O\
 	lance.$O\
 	lock.$O\
 	main.$O\
@@ -41,44 +40,39 @@ OBJ=\
 	time.$O\
 	trap.$O\
 	toy.$O\
+	uidgid.$O\
 	worm.$O\
-	wren.$O\
-	uidgid.$O
+	wren.$O
 
 HFILES=\
 	../port/all.h\
+	../port/lib.h\
 	../port/portdat.h\
-	./dat.h\
 	../port/portfns.h\
+	./dat.h\
 	./fns.h\
 	./io.h\
-	../port/lib.h\
 	./mem.h\
 	/$objtype/include/u.h\
 	/$objtype/include/ureg.h\
 
-9ssfs: $OBJ 9ssfs.$O
-	$LD -o $target -H0 -l -T0xE0004000 -R0x4 $prereq -lauth -lc
+CFLAGS=-w -I. -I../port
+
+all:V:	$TARG
 
 <../port/mkfile
 
-install:	9ssfs
-	cp 9ssfs /sparc/9ssfs
-	# cp 9ssfs /lib/tftpd/8768097A.SUN4C
+$TARG: $OBJ $TARG.$O
+	$LD -o $target -H0 -l -T0xE0004000 -R0x4 $prereq -lauth -lc
 
-push:	9ssfs
-	push tempel 9ssfs /usr/local/boot
+installall:V:	install
+install:V:	$TARG
+	cp $TARG /sparc/$TARG
+	# cp $TARG /lib/tftpd/8768097A.SUN4C
 
-9ssfs.$O:	/dev/cons
-	$CC $CFLAGS -DDATE'='`{date -n} 9ssfs.c
+push:V:	$TARG
+	9fs cetus
+	cp $TARG /n/cetus/usr/local/boot
 
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
-
-%.$O:	%.s
-	$AS $stem.s
-
-%.$O:	$HFILES
-
-clean:
-	rm -f *.[28kovz] [28akvz].out 9ssfs
+$TARG.$O:	/dev/cons
+	$CC $CFLAGS -DDATE'='`{date -n} $TARG.c

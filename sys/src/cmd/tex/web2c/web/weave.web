@@ -23,6 +23,9 @@
 % Version 3.1 fixed a bug for programs with only one module (April, 1989).
 % Version 4 was major change to allow 8-bit input (September, 1989).
 % Version 4.1, for Breitenlohner, avoids English-only output (March, 1990).
+% Version 4.2 conforms to ANSI standard for-loop rules (September, 1990).
+% Version 4.3 catches extra } in input (Breitenlohner, September, 1991).
+% Version 4.4 corrects changed_module logic, %-overflow (January, 1992).
 
 % Here is TeX material that gets inserted after \input webmac
 \def\hang{\hangindent 3em\indent\ignorespaces}
@@ -43,7 +46,7 @@
   \def\rheader{\mainfont Appendix D\hfil \contentspagenumber}
   \centerline{\titlefont The {\ttitlefont WEAVE} processor}
   \vskip 15pt
-  \centerline{(Version 4.1)}
+  \centerline{(Version 4.4)}
   \vfill}
 \pageno=\contentspagenumber \advance\pageno by 1
 
@@ -70,7 +73,7 @@ dependencies' in the index below.
 The ``banner line'' defined here should be changed whenever \.{WEAVE}
 is modified.
 
-@d banner=='This is WEAVE, Version 4.1'
+@d banner=='This is WEAVE, Version 4.4'
 
 @ The program begins with a fairly normal header, made up of pieces that
 @^system dependencies@>
@@ -1262,6 +1265,7 @@ that takes care of merging |change_file| into |web_file|. The |get_line|
 procedure also updates the line numbers for error messages.
 
 @<Globals...@>=
+@!ii:integer; {general purpose |for| loop variable in the outer block}
 @!line:integer; {the number of the current line in the current file}
 @!other_line:integer; {the number of the current line in the input file that
   is not currently being read}
@@ -1270,6 +1274,8 @@ procedure also updates the line numbers for error messages.
 @!loc:0..long_buf_size; {the next character position to be read from the buffer}
 @!input_has_ended: boolean; {if |true|, there is no more input}
 @!changing: boolean; {if |true|, the current line is from |change_file|}
+@!change_pending: boolean; {if |true|, the current change is not yet
+  recorded in |changed_module[module_count]|}
 
 @ As we change |changing| from |true| to |false| and back again, we must
 remember to swap the values of |line| and |other_line| so that the |err_print|
@@ -1361,11 +1367,29 @@ All of the text down to the \.{@@y} is supposed to match. An error
 message is issued if any discrepancy is found. Then the procedure
 prepares to read the next line from |change_file|.
 
+When a match is found, the current module is marked as changed unless
+the first line after the \.{@@x} and after the \.{@@y} both start with
+either |'@@*'| or |'@@ '| (possibly preceded by whitespace).
+
+@d if_module_start_then_make_change_pending(#)==
+  loc:=0; buffer[limit]:="!";
+  while (buffer[loc]=" ")or(buffer[loc]=tab_mark) do incr(loc);
+  buffer[limit]:=" ";
+  if buffer[loc]="@@" then
+    if (buffer[loc+1]="*") or
+       (buffer[loc+1]=" ") or (buffer[loc+1]=tab_mark) then
+      change_pending:=#
+
 @p procedure check_change; {switches to |change_file| if the buffers match}
 label exit;
 var n:integer; {the number of discrepancies found}
 @!k:0..buf_size; {index into the buffers}
 begin if lines_dont_match then return;
+change_pending:=false;
+if not changed_module[module_count] then
+  begin if_module_start_then_make_change_pending(true);
+  if not change_pending then changed_module[module_count]:=true;
+  end;
 n:=0;
 loop@+  begin change_changing; {now it's |true|}
   incr(line);
@@ -1422,13 +1446,11 @@ appropriately. A space is placed at the right end of the line.
 
 @p procedure get_line; {inputs the next line}
 label restart;
-begin restart: if changing then changed_module[module_count]:=true
-else  @<Read from |web_file| and maybe turn on |changing|@>;
-if changing then
-  begin @<Read from |change_file| and maybe turn off |changing|@>;
-  if not changing then
-    begin changed_module[module_count]:=true; goto restart;
-    end;
+begin restart:if changing then
+  @<Read from |change_file| and maybe turn off |changing|@>;
+if not changing then
+  begin @<Read from |web_file| and maybe turn on |changing|@>;
+  if changing then goto restart;
   end;
 loc:=0; buffer[limit]:=" ";
 end;
@@ -1448,7 +1470,14 @@ if not input_ln(change_file) then
 @.Change file ended...@>
   buffer[0]:="@@"; buffer[1]:="z"; limit:=2;
   end;
-if limit>1 then {check if the change has ended}
+if limit>0 then {check if the change has ended}
+  begin if change_pending then
+    begin if_module_start_then_make_change_pending(false);
+    if change_pending then
+      begin changed_module[module_count]:=true; change_pending:=false;
+      end;
+    end;
+  buffer[limit]:=" ";
   if buffer[0]="@@" then
     begin if (buffer[1]>="X")and(buffer[1]<="Z") then
       buffer[1]:=buffer[1]+"z"-"Z"; {lowercasify}
@@ -1460,6 +1489,7 @@ if limit>1 then {check if the change has ended}
       begin prime_the_change_buffer; change_changing;
       end;
     end;
+  end;
 end
 
 @ At the end of the program, we will tell the user if the change file
@@ -1467,7 +1497,7 @@ had a line that didn't match any relevant line in |web_file|.
 
 @<Check that all changes have been read@>=
 if change_limit<>0 then {|changing| is false}
-  begin for loc:=0 to change_limit do buffer[loc]:=change_buffer[loc];
+  begin for ii:=0 to change_limit do buffer[ii]:=change_buffer[ii];
   limit:=change_limit; changing:=true; line:=other_line; loc:=change_limit;
   err_print('! Change file entry did not match');
 @.Change file entry did not match@>
@@ -1732,6 +1762,9 @@ case c of
 "@@": @<Get control code and possible module name@>;
 @t\4@>@<Compress two-symbol combinations like `\.{:=}'@>@;
 " ",tab_mark: goto restart; {ignore spaces and tabs}
+"}": begin err_print('! Extra }'); goto restart;
+@.Extra \}@>
+  end;
 othercases if c>=128 then goto restart {ignore nonstandard characters}
   else do_nothing
 endcases;
@@ -1929,7 +1962,8 @@ phase_one:=false; {prepare for second phase}
 @ @<Store cross reference data...@>=
 begin incr(module_count);
 if module_count=max_modules then overflow('section number');
-changed_module[module_count]:=false; {it will become |true| if any line changes}
+changed_module[module_count]:=changing;
+ {it will become |true| if any line changes}
 if buffer[loc-1]="*" then
   begin print('*',module_count:1);
   update_terminal; {print a progress report}
@@ -2112,11 +2146,14 @@ If the |per_cent| parameter is |true|, a |"%"| is appended to the line
 that is being output; in this case the breakpoint |b| should be strictly
 less than |line_length|. If the |per_cent| parameter is |false|,
 trailing blanks are suppressed.
-The characters emptied from the buffer form a new line of output.
+The characters emptied from the buffer form a new line of output;
+if the |carryover| parameter is true, a |"%"| in that line will be
+carried over to the next line (so that \TeX\ will ignore the completion
+of commented-out text).
 
-@p procedure flush_buffer(@!b:eight_bits;@!per_cent:boolean);
+@p procedure flush_buffer(@!b:eight_bits;@!per_cent,@!carryover:boolean);
   {outputs |out_buf[1..b]|, where |b<=out_ptr|}
-label done;
+label done,found;
 var j,@!k:0..line_length;
 begin j:=b;
 if not per_cent then {remove trailing blanks}
@@ -2127,7 +2164,14 @@ if not per_cent then {remove trailing blanks}
 done: for k:=1 to j do write(tex_file,xchr[out_buf[k]]);
 if per_cent then write(tex_file,xchr["%"]);
 write_ln(tex_file); incr(out_line);
-if b<out_ptr then for k:=b+1 to out_ptr do out_buf[k-b]:=out_buf[k];
+if carryover then
+  for k:=1 to j do
+    if out_buf[k]="%" then
+      if (k=1)or(out_buf[k-1]<>"\") then {comment mode should be preserved}
+        begin out_buf[b]:="%"; decr(b); goto found;
+        end;
+found: if (b<out_ptr) then
+  for k:=b+1 to out_ptr do out_buf[k-b]:=out_buf[k];
 out_ptr:=out_ptr-b;
 end;
 
@@ -2142,10 +2186,10 @@ been emitted during the output of translated \PASCAL\ text.
 @p procedure finish_line; {do this at the end of a line}
 label exit;
 var k:0..buf_size; {index into |buffer|}
-begin if out_ptr>0 then flush_buffer(out_ptr,false)
+begin if out_ptr>0 then flush_buffer(out_ptr,false,false)
 else  begin for k:=0 to limit do
     if (buffer[k]<>" ")and(buffer[k]<>tab_mark) then return;
-  flush_buffer(0,false);
+  flush_buffer(0,false,false);
   end;
 exit:end;
 
@@ -2193,16 +2237,16 @@ the break.
 @p procedure break_out; {finds a way to break the output line}
 label exit;
 var k:0..line_length; {index into |out_buf|}
-@!c,@!d:ASCII_code; {characters from the buffer}
+@!d:ASCII_code; {character from the buffer}
 begin k:=out_ptr;
 loop@+  begin if k=0 then
     @<Print warning message, break the line, |return|@>;
   d:=out_buf[k];
   if d=" " then
-    begin flush_buffer(k,false); return;
+    begin flush_buffer(k,false,true); return;
     end;
   if (d="\")and(out_buf[k-1]<>"\") then {in this case |k>1|}
-    begin flush_buffer(k-1,true); return;
+    begin flush_buffer(k-1,true,true); return;
     end;
   decr(k);
   end;
@@ -2219,7 +2263,7 @@ begin print_nl('! Line had to be broken (output l.',out_line:1);
 print_ln('):');
 for k:=1 to out_ptr-1 do print(xchr[out_buf[k]]);
 new_line; mark_harmless;
-flush_buffer(out_ptr-1,true); return;
+flush_buffer(out_ptr-1,true,true); return;
 end
 
 @ Here is a procedure that outputs a module number in decimal notation.
@@ -2915,7 +2959,7 @@ here so that the program for each production is fairly short.
 
 All of our productions conform to the general notion that some |k|
 consecutive scraps starting at some position |j| are to be replaced by a
-single scrap of some category |c| whose translations is composed from the
+single scrap of some category |c| whose translation is composed from the
 translations of the disappearing scraps. After this production has been
 applied, the production pointer |pp| should change by an amount |d|. Such
 a production can be represented by the quadruple $(j,k,c,d)$. For example,
@@ -2934,7 +2978,7 @@ done by hand in each case, based on the full set of productions but not on
 the grammar of \PASCAL\ or on the rules for constructing the initial
 scraps.
 
-We also attach a serial number of each production, so that additional
+We also attach a serial number to each production, so that additional
 information is available when debugging. For example, the program below
 contains the statement `|reduce(pp+1,2,intro,+1)(52)|' when it implements
 the production just mentioned.
@@ -3037,7 +3081,7 @@ begin @<Cases for |alpha|@>;
 incr(pp); {if no match was found, we move to the right}
 found: end;
 
-@ Now comes the code that tries to match each production that starts
+@ Now comes the code that tries to match each production starting
 with a particular type of scrap. Whenever a match is discovered,
 the |squash| or |reduce| macro will cause the appropriate action
 to be performed, followed by |goto found|.
@@ -3823,10 +3867,10 @@ So far our programs have only built up multi-layered token lists in
 \.{WEAVE}'s internal memory; we have to figure out how to get them into
 the desired final form. The job of converting token lists to characters in
 the \TeX\ output file is not difficult, although it is an implicitly
-recursive process. Three main considerations had to be kept in mind when
-this part of \.{WEAVE} was designed:  (a) There are two modes of output,
-|outer| mode that translates tokens like |force| into line-breaking
-control sequences, and |inner| mode that ignores them except that blank
+recursive process. Four main considerations had to be kept in mind when
+this part of \.{WEAVE} was designed.  (a) There are two modes of output:
+|outer| mode, which translates tokens like |force| into line-breaking
+control sequences, and |inner| mode, which ignores them except that blank
 spaces take the place of line breaks. (b) The |cancel| instruction applies
 to adjacent token or tokens that are output, and this cuts across levels
 of recursion since `|cancel|' occurs at the beginning or end of a token
@@ -4182,7 +4226,7 @@ actually output the \TeX\ material instead of merely looking at the
 reset_input; print_nl('Writing the output file...');
 module_count:=0;
 copy_limbo;
-finish_line; flush_buffer(0,false); {insert a blank line, it looks nice}
+finish_line; flush_buffer(0,false,false); {insert a blank line, it looks nice}
 while not input_has_ended do @<Translate the \(current module@>
 
 @ The output file will contain the control sequence \.{\\Y} between non-null
@@ -4448,7 +4492,7 @@ multiply defined module names (if the |flag| parameter is |def_flag|), or about
 the uses of a module name (if the |flag| parameter is zero). It assumes that
 |cur_xref| points to the first cross-reference entry of interest, and it
 leaves |cur_xref| pointing to the first element not printed.  Typical outputs:
-`\.{\\A101.}'; `\.{\\Us370\ET1009.}'; `\.{\\As8, 27\\*, 51\ETs64.}'.
+`\.{\\A101.}'; `\.{\\Us370\\ET1009.}'; `\.{\\As8, 27\\*, 51\\ETs64.}'.
 
 @p procedure footnote(@!flag:sixteen_bits); {outputs module cross-references}
 label done,exit;
@@ -4484,7 +4528,7 @@ done:
 
 @ @<Output the code for the end of a module@>=
 out3("\")("f")("i"); finish_line;
-flush_buffer(0,false); {insert a blank line, it looks nice}
+flush_buffer(0,false,false); {insert a blank line, it looks nice}
 @.\\fi@>
 
 @* Phase three processing.

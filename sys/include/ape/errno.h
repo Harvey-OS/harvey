@@ -45,6 +45,34 @@ extern int errno;
 #define ESRCH	34
 #define EXDEV	35
 
+/* bsd networking software */
+#define ENOTSOCK	36
+#define EPROTONOSUPPORT	37
+#define EPROTOTYPE 37
+#define ECONNREFUSED	38
+#define EAFNOSUPPORT	39
+#define ENOBUFS		40
+#define EOPNOTSUPP	41
+#define EADDRINUSE	42
+#define EDESTADDRREQ	43
+#define EMSGSIZE	44
+#define ENOPROTOOPT	45
+#define ESOCKTNOSUPPORT	46
+#define EPFNOSUPPORT	47
+#define EADDRNOTAVAIL	48
+#define ENETDOWN	49
+#define ENETUNREACH	50
+#define ENETRESET	51
+#define ECONNABORTED	52
+#define EISCON	53
+#define ENOTCONN	54
+#define ESHUTDOWN	55
+#define ETOOMANYREFS	56
+#define ETIMEDOUT	57
+#define EHOSTDOWN	58
+#define EHOSTUNREACH	59
+#define EGREG		60
+
 #endif /* _POSIX_SOURCE */
 
 #endif /* __ERRNO */

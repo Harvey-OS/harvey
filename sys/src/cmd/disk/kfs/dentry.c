@@ -112,7 +112,7 @@ indfetch(Iobuf *p, Dentry *d, long addr, long a, int itag, int tag)
 		addr = balloc(p->dev, tag, d->qid.path);
 		if(addr) {
 			((long*)bp->iobuf)[a] = addr;
-			p->flags |= Bmod;
+			bp->flags |= Bmod;
 			if(localfs || tag == Tdir)
 				bp->flags |= Bimm;
 			settag(bp, itag, d->qid.path);

@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 #include <frame.h>
 
 #define	SLOP	25
@@ -69,21 +69,21 @@ intern
 void
 dupbox(Frame *f, int bn)
 {
-	char *p;
+	byte *p;
 
 	if(f->box[bn].nrune < 0)
 		berror("dupbox");
 	_fraddbox(f, bn, 1);
 	if(f->box[bn].nrune >= 0){
 		p = _frallocstr(NBYTE(&f->box[bn])+1);
-		strcpy((char*)p, (char*)f->box[bn].ptr);
+		strcpy((byte*)p, (byte*)f->box[bn].ptr);
 		f->box[bn+1].ptr = p;
 	}
 }
 
 intern
-char*
-runeindex(char *p, int n)
+byte*
+runeindex(byte *p, int n)
 {
 	int i, w;
 	Rune rune;
@@ -92,7 +92,7 @@ runeindex(char *p, int n)
 		if(*p < Runeself)
 			w = 1;
 		else
-			w = chartorune(&rune, (char*)p);
+			w = chartorune(&rune, (byte*)p);
 		p += w;
 	}
 	return p;
@@ -106,7 +106,7 @@ truncatebox(Frame *f, Frbox *b, int n)	/* drop last n chars; no allocation done 
 		berror("truncatebox");
 	b->nrune -= n;
 	runeindex(b->ptr, b->nrune)[0] = 0;
-	b->wid = strwidth(f->font, (char *)b->ptr);
+	b->wid = strwidth(f->font, (byte *)b->ptr);
 }
 
 intern
@@ -115,9 +115,9 @@ chopbox(Frame *f, Frbox *b, int n)	/* drop first n chars; no allocation done */
 {
 	if(b->nrune<0 || b->nrune<n)
 		berror("chopbox");
-	strcpy((char*)b->ptr, (char*)runeindex(b->ptr, n));
+	strcpy((byte*)b->ptr, (byte*)runeindex(b->ptr, n));
 	b->nrune -= n;
-	b->wid = strwidth(f->font, (char *)b->ptr);
+	b->wid = strwidth(f->font, (byte *)b->ptr);
 }
 
 void
@@ -135,7 +135,7 @@ _frmergebox(Frame *f, int bn)		/* merge bn and bn+1 */
 
 	b = &f->box[bn];
 	_frinsure(f, bn, NBYTE(&b[0])+NBYTE(&b[1])+1);
-	strcpy((char*)runeindex(b[0].ptr, b[0].nrune), (char*)b[1].ptr);
+	strcpy((byte*)runeindex(b[0].ptr, b[0].nrune), (byte*)b[1].ptr);
 	b[0].wid += b[1].wid;
 	b[0].nrune += b[1].nrune;
 	_frdelbox(f, bn+1, bn+1);

@@ -1,7 +1,7 @@
 </$objtype/mkfile
+CPUS=mips sparc 386
 
 LIB=/$objtype/lib/alef/libg.a
-
 OFILES=\
 	arc.$O\
 	arith.$O\
@@ -19,6 +19,7 @@ OFILES=\
 	disc.$O\
 	ellipse.$O\
 	font.$O\
+	menu.$O\
 	mkfont.$O\
 	point.$O\
 	rdbitmap.$O\
@@ -38,29 +39,7 @@ OFILES=\
 	wrcolmap.$O\
 	wrsubfontfile.$O\
 
-none:Q:
-	echo usage: mk entry
+</sys/src/cmd/mksyslib
 
-%.O:	/sys/include/alef/graphics.h
-
-%:	%.$O
-	ar vu $LIB $stem.$O
-	$RL $LIB
-	rm -f $stem.$O
-
-%.$O:	%.l
-	$ALEF -w $stem.l
-
-install:V:	$OFILES
-	ar vu $LIB $OFILES
-	$RL $LIB
-	rm -f $OFILES
-
-installall:V:
-	for(objtype in $CPUS) mk install
-
-%.all:V:
-	for(objtype in $CPUS) mk $stem
-
-clean:V:
-	rm -f *.[$OS] [$OS].out
+/68020/lib/alef/libg.a:Q:	$OFILES
+	echo 'no alef compiler for 68020'

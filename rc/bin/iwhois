@@ -1,0 +1,10 @@
+#!/bin/rc
+switch($1){
+case *@*
+	person=`{echo $1|sed s/@.*//}
+	machine=`{echo $1|sed s/.*@//}
+case *
+	person=$1
+	machine=nic.ddn.mil
+}
+echo $person | telnet -n tcp!$machine!whois

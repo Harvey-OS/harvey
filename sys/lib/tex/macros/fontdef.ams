@@ -1,37 +1,46 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% FONTDEF.AMS						    July 1990      %
-%                                                                          %
-% This file is part of the AMS-LaTeX Version 1.0 distribution              %
-%   American Mathematical Society, Technical Support Group,                %
-%   P. O. Box 6248, Providence, RI 02940                                   %
-%   800-321-4AMS (321-4267) or 401-455-4080                                %
-%   Internet: Tech-Support@Math.AMS.com                                    %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%% This is file `fontdef.ams'
-%%
-
-\def\fileversion{v1.0}
-\def\filedate{6-FEB-1990}
-\def\docdate {6-FEB-1990}
-
-%% \CheckSum{36}
-%% \CharacterTable
-%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
-%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
-%%   Digits        \0\1\2\3\4\5\6\7\8\9
-%%   Exclamation   \!     Double quote  \"     Hash (number) \#
-%%   Dollar        \$     Percent       \%     Ampersand     \&
-%%   Acute accent  \'     Left paren    \(     Right paren   \)
-%%   Asterisk      \*     Plus          \+     Comma         \,
-%%   Minus         \-     Point         \.     Solidus       \/
-%%   Colon         \:     Semicolon     \;     Less than     \<
-%%   Equals        \=     Greater than  \>     Question mark \?
-%%   Commercial at \@     Left bracket  \[     Backslash     \\
-%%   Right bracket \]     Circumflex    \^     Underscore    \_
-%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
-%%   Right brace   \}     Tilde         \~}
-%%
+%%@texfile{%
+%% filename="fontdef.ams",
+%% version="1.1a",
+%% date="30-AUG-1991",
+%% filetype="AMS-LaTeX: font option",
+%% copyright="Copyright (C) American Mathematical Society, all rights
+%%   reserved.  Copying of this file is authorized only if either:
+%%   (1) you make absolutely no changes to your copy, including name;
+%%   OR (2) if you do make changes, you first rename it to some other
+%%   name.",
+%% author="American Mathematical Society",
+%% address="American Mathematical Society,
+%%   Technical Support Group,
+%%   P. O. Box 6248,
+%%   Providence, RI 02940,
+%%   USA",
+%% telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%% email="Internet: Tech-Support@Math.AMS.com",
+%% checksumtype="line count",
+%% checksum="482",
+%% codetable="ISO/ASCII",
+%% keywords="latex, amslatex, ams-latex",
+%% abstract="This file is part of the AMS-\LaTeX{} package, version 1.1.
+%%   It defines font correspondences for Computer Modern fonts,
+%%   MSAM, MSBM, and EUFM fonts"
+%%}
+% History of changes will be found at the end of this file.
+%
+%      Standard test to prevent double loading of this file.
+%    \begin{macrocode}
+\expandafter\ifx\csname fontdef.ams\endcsname\relax
+\expandafter\def\csname fontdef.ams\endcsname{}
+\else\message{---already loaded}\endinput\fi
+%    \end{macrocode}
+%
+%      Send a message identifying this file.
+%    \begin{macrocode}
+\def\filename{fontdef.ams}
+\def\fileversion{1.1a} \def\filedate{30-AUG-1991}
+\immediate\write16{%
+AMS-LaTeX file `\filename' (\fileversion, \filedate)}
+%    \end{macrocode}
+%%% end of file header
 %% This file contains the external font information needed to load
 %% the computer modern family designed by Donald E. Knuth, together
 %% with all fonts which are supplied with the AMS font package.
@@ -39,12 +48,7 @@
 %% (to save a little in pool size) and cmex added.  See fontdef.max
 %% for further information.
 %%
-\immediate\write\sixt@@n{File: `fontdef.ams'
- \fileversion\space <\filedate> MJD}
-\immediate\write\sixt@@n{English Documentation
-            \@spaces <\docdate> MJD}
-%%
-%% Please don't change the next lines unless you know exactly what you
+%% Don't change the next few lines unless you know exactly what you
 %% are doing.
 %%
 \def\default@shape{n}
@@ -394,10 +398,10 @@
    <10>eufb10%
    <11>eufb10 at10.95pt%
    <12>eufb10 at12pt%
-   <14>eufb14%
-   <17>eufb14 at17.28pt%
-   <20>eufb14 at20.74pt%
-   <25>eufb14 at24.88pt}{}
+   <14>eufb10 at14.4pt%
+   <17>eufb10 at17.28pt%
+   <20>eufb10 at20.74pt%
+   <25>eufb10 at24.88pt}{}
 
 \extra@def{euf}{\hyphenchar#1\m@ne
        \@tempdima\fontdimen2#1%
@@ -457,5 +461,22 @@
 
 \extra@def{UWCyr}{}{}
 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
 \endinput
-
+% \begin{history}
+% \changes{v1.1a}{30-AUG-1991}{Remove eufb14 references}
+% \end{history}

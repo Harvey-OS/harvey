@@ -4,7 +4,7 @@ boot \- connect to the root file server
 .SH SYNOPSIS
 .B /boot
 [
-.B -afkmp
+.B -fkm
 ]
 [
 .BI -u username
@@ -23,6 +23,11 @@ connect to that server, and
 the
 .IR init (8)
 program.
+It is started by the kernel, never run directly by the user.  See
+.IR booting (8)
+for information about the process of loading the kernel (and
+.IR boot )
+into memory.
 .PP
 Once loaded, the kernel initializes its data structures and devices.
 It sets the two environment variables
@@ -40,7 +45,7 @@ and crafts an initial process whose sole function is to
 a binary which is compiled into
 .IR root (3).
 .PP
-The command line passed is dependent
+The command line passed depends
 on the information passed from boot ROM
 to kernel.
 On the MIPS Magnum and SGI Power Series
@@ -53,18 +58,23 @@ On AT&T Gnots the command line is
 .B /68020/9gnot
 .IB method ! server
 .PP
-On the Nextstation and the Safari, no information is passed from
-the boot ROM or program.  Their command lines are
+On the Nextstation , no information is passed from
+the boot ROM or program.  The command line is
 .IP
 .EX
-.B /68020/9nextstation -p
+.B /68020/9nextstation
 .EE
 .PP
-and
+On the PC, each line in the DOS file
+.B plan9.ini
+of the form
+.IB name = value
+is passed to the boot program as an environment
+variable with the same name and value.
+The command line is
 .IP
-.EX
-.B /386/9safari -p
-.EE
+.B /386/9pc
+.IB method ! server
 .PP
 .I Boot
 must determine the file server to use
@@ -73,19 +83,11 @@ It must also set a user name to be used
 as the owner of devices and all console
 processes and an encryption key to be used
 when challenged.
-If the
-.B -m
-or
-.B -p
-option is given (or the
-.I method
-on the command line
-is invalid)
-.I boot
+.I Boot
 will prompt for these.
 .PP
 Method and address are prompted for first.
-The prompt lists all valid methods, the default in brackets.
+The prompt lists all valid methods, with the default in brackets.
 .IP
 .EX
 root is from (il, tcp, hs, local)[il]:
@@ -95,7 +97,9 @@ A newline picks the default.
 Other possible responses are
 .I method
 or
-.IB method ! address.
+.IB method ! address\f1.
+To aid in automatic reboot, the default is automatically
+taken on CPU servers if nothing is typed within 15 seconds.
 .PP
 The other interactions depend on whether the system
 is a
@@ -158,7 +162,7 @@ system protocol over the serial line.
 .PP
 Once connected,
 .I boot
-.BR mount 's
+mounts
 the root file system before
 .B /
 and makes the connection available as
@@ -173,55 +177,50 @@ completes by
 .B /$objtype/init
 .BR -t .
 If the
-.B -a
-or
 .B -m
-options are given they are also passed as options to
+option is given it is also passed as an option to
 .IR init .
+.PP
+If the kernel has been built with the cache file system,
+.IR cfs (4),
+the local disk partition
+.B /dev/[sh]d[01]cache
+exists, and the root file system is from a remote server,
+then the kernel will insert a user level cache
+process between the remote server and the local namespace
+that caches all remote accesses on the local partition.
+The
+.B -f
+flag commands
+.B cfs
+to reformat the cache partition.
 .SS CPU Servers
 .PP
-The user owning devices and console processes on CPU servers is
-always
-.IR bootes .
-It is immutable.
-(The name is compiled into the system as the value of the variable
-.BR eve ;
-local sites may choose a different name.)
+The user owning devices and console processes on CPU servers
+and that user's domain and encryption key are
+read from NVRAM on all machines except PC's.
+PC's keep the information in the disk partition
+.BR /dev/[sh]d[01]nvram .
 If a
 .B -k
-option is given
+option is given or if no stored information is found
 .I boot
-will prompt for an encryption key to be stored in the
-CPU server's non-volatile ram.
+will prompt for all three items and store them.
 .IP
 .EX
-key:
+password: 
+authid: bootes
+authdom: research.att.com
 .EE
 .PP
-This key is used to verify to callers of the CPU server that it is indeed
-the server being called.
+The key is used for mutual authentication of the server and its clients.
+The domain and id identify the owner of the key.
 .PP
 Once connected,
 .I boot
-.BR mount 's
-the root file system before
-.B /
-and makes the connection available as
-.B #s/boot
-for subsequent processes to
-.B mount
-(see
-.IR bind (2)).
-.I Boot
-completes by
+behaves as on the terminal except for
 .IR exec (2)'ing
-.B /$objtype/init -c.
-If the
-.B -a
-or
-.B -m
-options are given they are also passed as options to
-.IR init .
+.B /$objtype/init -c\f1.
 .SS Booting Methods
 .PP
 The methods available to any system depend on what was
@@ -259,15 +258,16 @@ at 19200 baud.
 .B local
 connect to the local file system.
 .PP
-For the DARPA Internet methods,
+For the
 .B il
 and 
-.BR tcp ,
+.B tcp
+methods,
 the address must be a numeric IP address.
-If no address is specified
+If no address is specified,
 a file server address will be found from another
 system on the network using the BOOTP protocol and
-the Plan 9 vendor specific fields.
+the Plan 9 vendor-specific fields.
 For the Datakit methods,
 .BR hs ,
 .BR 9600 ,
@@ -281,6 +281,8 @@ If no address is specified, the address
 is used.
 .SH FILES
 .B #s/boot
+.SH SOURCE
+.B /sys/src/9/boot
 .SH "SEE ALSO"
 .IR root (3),
 .IR bootp (8),

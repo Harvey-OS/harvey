@@ -53,11 +53,11 @@ Upper case letters compare equal to lower case.
 Numeric comparison with initial string of digits, optional minus sign,
 and optional decimal point.
 .TP
-.BI -t [c]
+.BR -t [ \f2c\f1 ]
 Character
 .I c
 terminates the sort key in the
-.I file.
+.IR file .
 By default, tab terminates the key.  If
 .I c
 is missing the entire line comprises the key.
@@ -70,6 +70,8 @@ is assumed, with collating sequence
 .BR df .
 .SH FILES
 .B /lib/words
+.SH SOURCE
+.B /sys/src/cmd/look.c
 .SH "SEE ALSO"
 .IR sort (1), 
 .IR grep (1)

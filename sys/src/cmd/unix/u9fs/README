@@ -2,11 +2,11 @@ This program serves Unix files to Plan 9 machines.  It is to be run on a
 Unix machine with its standard input, output, and error connected to a
 network connection.  It runs as root and multiplexes access to multiple
 clients over the single wire by simulating Unix permissions itself.
-We run this service as '9fs' with tcp service number 17008 over our
+We run this service as '9fs' with tcp service number 564 over our
 ethernets.  You may find that, due to a bug in some versions of the
 IP software, your system will not accept the name '9fs', thinking it
 is a service number because its first character is a digit.  If so,
-complain to Berkeley (it's their bug) and run the service as u9fs or 17008.
+complain to Berkeley (it's their bug) and run the service as u9fs or 564.
 
 Set LOG to a proper place for a log file, and set up the makefile or mkfile
 to use an ANSI C compiler.
@@ -17,3 +17,18 @@ a device, it forbids such access. Device access may produce unpredictable
 results if the block size of the device is greater than 8192, the Plan 9
 RPC block size.
 
+Inetd's configuration files must have the right entries in order for
+it to offer 9fs service.  On our SGI machines, we add a line like this
+to /etc/inetd.conf:
+
+9fs           stream tcp   nowait root   /v/bin/u9fs u9fs
+
+(if you put u9fs someplace other than /v/bin, change the line
+to reflect that) and one like this to /etc/services:
+
+9fs		564/tcp		9fs		# plan 9 fs
+
+After changing /etc/inetd.conf we run
+	/etc/killall -HUP inetd
+
+Other BSD or System V machines should behave similarly, but caveat administrator.

@@ -1,0 +1,317 @@
+%% This is file `ipa.sty' 
+%% Adapted from ipamacs.tex by D. Roegel (roegel@loria.fr)
+%% and Andrej Brodnik (abrodnik@watdragon.uwaterloo.ca)                
+%%
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\def\fileversion{v1.0}
+\def\filedate{1994/07/16}
+\def\docdate {1994/07/16}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ipa}[1994/07/16 IPA macros package]
+%
+%
+%% The following macro is necessary to place an accent over the
+%% character definitions below. For example, you should say:
+%%                \diatop[\^|\openo]
+%%
+% \diatop is a slightly modified version of Christina Thiele's one.
+% [From {\em TeX Users Group Eighth Annual: Conference Proceedings}
+% Meeting, Seattle, August 24-26, 1987,  TeXniques no. 5, (Providence,
+% 1988), p.11.]
+ 
+\def\diatop[#1|#2]{%
+    {\setbox1=\hbox{#1{}}% diacritic mark
+     \setbox2=\hbox{#2{}}%  letter (the group {} in case it is a diacritic)
+     \dimen0=\ifdim\wd1>\wd2\wd1\else\wd2\fi% compute the max width
+        % the `natural height' of diacritics is 1ex; 
+        % \dimen1 is the shift upwards
+     \dimen1=\ht2\advance\dimen1by-1ex%
+        % center the diacritic mark on the width of the letter:
+     \setbox1=\hbox to\dimen0{\hss#1{}\hss}% 
+     \leavevmode % force horizontal mode
+     \rlap{\raise\dimen1\box1}% the raised diacritic mark
+     \hbox to\dimen0{\hss#2\hss}% the letter
+    }%
+  }%
+
+\def\diaunder[#1|#2]{%
+    {\setbox1=\hbox{#1{}}% diacritic mark
+     \setbox2=\hbox{#2{}}% letter (the group {} in case it is a diacritic)
+     \dimen0=\ifdim\wd1>\wd2\wd1\else\wd2\fi% compute the max width
+        % \dimen1 is the shift downwards
+     \dimen1=\ht2\advance\dimen1by-0.9ex%
+        % center the diacritic mark on the width of the letter:
+     \setbox1=\hbox to\dimen0{\hss#1{}\hss}%
+     \leavevmode % force horizontal mode
+     \rlap{\lower\dimen1\box1}% the lowered diacritic mark
+     \hbox to\dimen0{\hss#2\hss}% the letter
+    }%
+  }%
+
+
+%% As an alternative, you could uncomment the following two lines:
+%%
+%% \catcode`"=\active
+%% \def"#1#2{\diatop[#1|#2]}
+%%
+%% And then you could place an accent over the ipa character by
+%% calling the macro " which itself calls \diatop. For example, you
+%% would say:
+%%
+%%               "\^\openo
+%%
+%% or even you could uncomment the following two lines:
+%%
+%% \catcode`_=\active
+%% \def_#1#2{\diaunder[#1|#2]}
+%%
+%% And then you could place an accent under the ipa character by
+%% calling the macro _ which itself calls \diaunder. For example, you
+%% would say:
+%%
+%%               _\open{r}
+%%
+
+%%  THE FOLLOWING macros access the IPA chars from the WSU IPA font
+ 
+\DeclareFontSubstitution{U}{ipa}{m}{n}
+\def\ipa{\protect\@pipa}
+\def\@pipa{\fontencoding{U}\fontfamily{ipa}\selectfont}
+
+% Decimal numbers were used rather than octal or hexadecimal
+% numbers, in order to be sure than it worked everywhere,
+% especially with the french package where
+% quotes can be active. 
+
+%% A-type shapes:
+\def\inva{{\ipa\symbol{0}}}%         '000
+\def\scripta{{\ipa\symbol{1}}}%      '001
+\def\nialpha{{\ipa\symbol{2}}}%      '002
+\def\invscripta{{\ipa\symbol{3}}}%   '003
+\def\invv{{\ipa\symbol{4}}}%         '004
+ 
+%% B-type shapes:
+\def\crossb{{\ipa\symbol{5}}}%       '005
+\def\barb{{\ipa\symbol{6}}}%         '006
+\def\slashb{{\ipa\symbol{7}}}%       '007
+\def\hookb{{\ipa\symbol{8}}}%        '010
+\def\nibeta{{\ipa\symbol{9}}}%       '011
+ 
+%% C-type shapes:
+\def\slashc{{\ipa\symbol{10}}}%      '012
+\def\curlyc{{\ipa\symbol{11}}}%      '013
+\def\clickc{{\ipa\symbol{12}}}%      '014
+ 
+%% D-type shapes:
+\def\crossd{{\ipa\symbol{13}}}%      '015
+\def\bard{{\ipa\symbol{14}}}%        '016
+\def\slashd{{\ipa\symbol{15}}}%      '017
+\def\hookd{{\ipa\symbol{16}}}%       '020
+\def\taild{{\ipa\symbol{17}}}%       '021
+\def\dz{{\ipa\symbol{18}}}%          '022
+\def\eth{{\ipa\symbol{19}}}%         '023
+\def\scd{{\ipa\symbol{20}}}%         '024
+ 
+%% E-type shapes:
+\def\schwa{{\ipa\symbol{21}}}%       '025
+\def\er{{\ipa\symbol{22}}}%          '026
+\def\reve{{\ipa\symbol{23}}}%        '027
+\def\niepsilon{{\ipa\symbol{24}}}%   '030
+\def\revepsilon{{\ipa\symbol{25}}}%  '031
+\def\hookrevepsilon{{\ipa\symbol{26}}}% '032
+\def\closedrevepsilon{{\ipa\symbol{27}}}% '033
+ 
+%% G-type shapes:
+\def\scriptg{{\ipa\symbol{28}}}%     '034
+\def\hookg{{\ipa\symbol{29}}}%       '035
+\def\scg{{\ipa\symbol{30}}}%         '036
+\def\nigamma{{\ipa\symbol{31}}}%     '037
+\def\ipagamma{{\ipa\symbol{32}}}%    '040
+\def\babygamma{{\ipa\symbol{33}}}%   '041
+ 
+%% H-type shapes:
+\def\hv{{\ipa\symbol{34}}}%          '042
+\def\crossh{{\ipa\symbol{35}}}%      '043
+\def\hookh{{\ipa\symbol{36}}}%       '044
+\def\hookheng{{\ipa\symbol{37}}}%    '045
+\def\invh{{\ipa\symbol{38}}}%        '046
+ 
+%% I-type shapes:
+\def\bari{{\ipa\symbol{39}}}%        '047
+\def\dlbari{{\ipa\symbol{40}}}%      '050  ``dotless bar i''
+\def\niiota{{\ipa\symbol{41}}}%      '051
+\def\sci{{\ipa\symbol{42}}}%         '052
+\def\barsci{{\ipa\symbol{43}}}%      '053 ``barred small cap i''
+ 
+%% J-type shape:
+\def\invf{{\ipa\symbol{44}}}%        '054
+ 
+%% L-type shapes:
+\def\tildel{{\ipa\symbol{45}}}%      '055
+\def\barl{{\ipa\symbol{46}}}%        '056
+\def\latfric{{\ipa\symbol{47}}}%     '057
+\def\taill{{\ipa\symbol{48}}}%       '060
+\def\lz{{\ipa\symbol{49}}}%          '061
+\def\nilambda{{\ipa\symbol{50}}}%    '062
+\def\crossnilambda{{\ipa\symbol{51}}}% '063
+ 
+%% M-type shapes:
+\def\labdentalnas{{\ipa\symbol{52}}}%'064
+\def\invm{{\ipa\symbol{53}}}%        '065
+\def\legm{{\ipa\symbol{54}}}%        '066
+ 
+%% N-type shapes:
+\def\nj{{\ipa\symbol{55}}}%          '067
+\def\eng{{\ipa\symbol{56}}}%         '070
+\def\tailn{{\ipa\symbol{57}}}%       '071
+\def\scn{{\ipa\symbol{58}}}%         '072
+ 
+%% O-type shapes:
+\def\clickb{{\ipa\symbol{59}}}%      '073
+\def\baro{{\ipa\symbol{60}}}%        '074
+\def\openo{{\ipa\symbol{61}}}%       '075
+\def\niomega{{\ipa\symbol{62}}}%     '076
+\def\closedniomega{{\ipa\symbol{63}}}% '077
+\def\oo{{\ipa\symbol{64}}}%          '100
+ 
+%% P-type shapes:
+\def\barp{{\ipa\symbol{65}}}%        '101
+\def\thorn{{\ipa\symbol{66}}}%       '102
+\def\niphi{{\ipa\symbol{67}}}%       '103
+ 
+%% R-type shapes:
+\def\flapr{{\ipa\symbol{68}}}%       '104
+\def\legr{{\ipa\symbol{69}}}%        '105
+\def\tailr{{\ipa\symbol{70}}}%       '106
+\def\invr{{\ipa\symbol{71}}}%        '107
+\def\tailinvr{{\ipa\symbol{72}}}%    '110
+\def\invlegr{{\ipa\symbol{73}}}%     '111
+\def\scr{{\ipa\symbol{74}}}%         '112
+\def\invscr{{\ipa\symbol{75}}}%      '113
+ 
+%% S-type shapes:
+\def\tails{{\ipa\symbol{76}}}%       '114
+\def\esh{{\ipa\symbol{77}}}%         '115
+\def\curlyesh{{\ipa\symbol{78}}}%    '116
+\def\nisigma{{\ipa\symbol{79}}}%     '117
+ 
+%% T-type shapes:
+\def\tailt{{\ipa\symbol{80}}}%       '120
+\def\tesh{{\ipa\symbol{81}}}%        '121
+\def\clickt{{\ipa\symbol{82}}}%      '122
+\def\nitheta{{\ipa\symbol{83}}}%     '123
+ 
+%% U-type shapes:
+\def\baru{{\ipa\symbol{84}}}%        '124
+\def\slashu{{\ipa\symbol{85}}}%      '125
+\def\niupsilon{{\ipa\symbol{86}}}%   '126
+\def\scu{{\ipa\symbol{87}}}%         '127
+\def\barscu{{\ipa\symbol{88}}}%      '130 
+ 
+%% V-type shape:
+\def\scriptv{{\ipa\symbol{89}}}%     '131
+ 
+%% W-type shape:
+\def\invw{{\ipa\symbol{90}}}%        '132
+ 
+%% X-type shape:
+\def\nichi{{\ipa\symbol{91}}}%       '133
+ 
+%% Y-type shapes:
+\def\invy{{\ipa\symbol{92}}}%        '134
+\def\scy{{\ipa\symbol{93}}}%         '135
+ 
+%% Z-type shapes:
+\def\curlyz{{\ipa\symbol{94}}}%      '136
+\def\tailz{{\ipa\symbol{95}}}%       '137
+\def\yogh{{\ipa\symbol{96}}}%        '140
+\def\curlyyogh{{\ipa\symbol{97}}}%   '141
+ 
+%% ?-type shapes:
+\def\glotstop{{\ipa\symbol{98}}}%    '142
+\def\revglotstop{{\ipa\symbol{99}}}% '143
+\def\invglotstop{{\ipa\symbol{100}}}%'144
+\def\ejective{{\ipa\symbol{101}}}%   '145
+\def\reveject{{\ipa\symbol{102}}}%   '146
+ 
+%% AND that should be it, as far as actual characters go.
+%%
+%% THE following is the set of diacritics. Please try to get
+%% the 4 t-bars lined up above the 4 pointers, so you may
+%% have to reshuffle things a bit. Not to worry too much. I
+%% think the diacritics can be grouped more according to
+%% shape, so comma-like things are together, etc.
+%%
+ 
+\def\dental#1{\oalign{#1\crcr
+          \hidewidth{\ipa\symbol{103}}\hidewidth}}% '147
+ 
+\def\upt{{\ipa\symbol{108}}}%        '154  These are IPA pointers
+\def\downt{{\ipa\symbol{109}}}%      '155
+\def\leftt{{\ipa\symbol{110}}}%      '156
+\def\rightt{{\ipa\symbol{111}}}%     '157
+ 
+         %  These are American versions of t-bars
+\def\upp{{\ipa\symbol{116}}}%        '164
+\def\downp{{\ipa\symbol{117}}}%      '165
+\def\leftp{{\ipa\symbol{118}}}%      '166
+\def\rightp{{\ipa\symbol{119}}}%     '167
+ 
+\def\stress{{\ipa\symbol{104}}}%     '150    primary stress
+\def\secstress{{\ipa\symbol{105}}}%  '151  secondary stress
+ 
+\def\syllabic{{\ipa\symbol{106}}}%   '152    syllabic marker
+ 
+\def\corner{{\ipa\symbol{107}}}%     '153
+ 
+         % American equivalent: raised dot
+\def\halflength{{\ipa\symbol{112}}}% '160
+         %     American equivalent: colon
+\def\length{{\ipa\symbol{113}}}%     '161
+ 
+\def\underdots{{\ipa\symbol{114}}}%  '162
+ 
+         %       ``reversed apostrophe'', p. 216
+\def\ain{{\ipa\symbol{115}}}%        '163
+ 
+\def\overring{{\ipa\symbol{120}}}%   '170
+\def\underring{{\ipa\symbol{121}}}%  '171
+ 
+\def\open{{\ipa\symbol{122}}}%       '172
+ 
+\def\midtilde{{\ipa\symbol{123}}}%   '173
+\def\undertilde{{\ipa\symbol{124}}}% '174
+ 
+\def\underwedge{{\ipa\symbol{125}}}% '175
+ 
+\def\polishhook{{\ipa\symbol{126}}}% '176
+ 
+\def\underarch#1{\oalign{#1\crcr
+          \hidewidth{\ipa\symbol{127}}\hidewidth}}% '177
+ 
+%% AND that's it for the diacritics.
+
+\endinput
+%% 
+%% End of file `ipa.sty'.
+
+
+
+
+
+

@@ -4,7 +4,7 @@ diff \- differential file comparator
 .SH SYNOPSIS
 .B diff
 [
-.B \-efbwr
+.B -efbwr
 ] file1 ... file2
 .SH DESCRIPTION
 .I Diff
@@ -24,10 +24,10 @@ otherwise.
 If more than two file names are given, then each argument is compared
 to the last argument as above.
 The 
-.B \-r
+.B -r
 option causes
 .I diff
-to recursively process similarly named subdirectories.
+to process similarly named subdirectories recursively.
 The normal output contains lines of these forms:
 .IP "" 5
 .I n1
@@ -56,7 +56,7 @@ one may ascertain equally how to convert
 into
 .IR file1 .
 As in 
-.I ed,
+.IR ed ,
 identical pairs where
 .I n1
 =
@@ -73,32 +73,32 @@ then all the lines that are affected in the second file
 flagged by `>'.
 .PP
 The
-.B \-b
+.B -b
 option causes
 trailing blanks (spaces and tabs) to be ignored
 and other strings of blanks to compare equal.
 The
-.B \-w
+.B -w
 option causes all white-space to be removed from input lines
 before applying the difference algorithm.
 .PP
 The
-.B \-e
+.B -e
 option produces a script of
 .I "a, c"
 and 
 .I d
 commands for the editor
-.I ed,
+.IR ed ,
 which will recreate
 .I file2
 from
 .IR file1 .
 The
-.B \-f
+.B -f
 option produces a similar script,
 not useful with
-.I ed,
+.IR ed ,
 in the opposite order. It may, however, be
 useful as input to a stream-oriented post-processor.
 .PP
@@ -107,13 +107,14 @@ Except in rare circumstances,
 finds a smallest sufficient set of file
 differences.
 .SH FILES
-/tmp/diff[12]
+.B /tmp/diff[12]
+.SH SOURCE
+.B /sys/src/cmd/diff
 .SH "SEE ALSO"
 .IR cmp (1),
 .IR ed (1)
 .SH DIAGNOSTICS
-Exit status is
-.L empty
+Exit status is the empty string
 for no differences,
 .L some
 for some, 
@@ -122,8 +123,8 @@ and
 for trouble.
 .SH BUGS
 Editing scripts produced under the
-.BR \-e " or"
-.BR \-f " option are naive about"
+.BR -e " or"
+.BR -f " option are naive about"
 creating lines consisting of a single `\fB.\fR'.
 .br
 When running

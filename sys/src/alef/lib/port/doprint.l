@@ -2,8 +2,6 @@
 
 int	printcol;
 
-typedef int long;
-typedef uint ulong;
 
 enum
 {
@@ -22,15 +20,15 @@ enum
 	FUNSIGN	= (1<<5),
 	FVLONG	= (1<<6),
 
-	PTR	= sizeof(char*),
+	PTR	= sizeof(byte*),
 	SHORT	= sizeof(int),
 	INT	= sizeof(int),
-	LONG	= sizeof(long),
+	LONG	= sizeof(int),
 	FLOAT	= sizeof(float),
 };
 
-intern	char	fmtindex[128];
-intern	char	sptest[128];
+intern	byte	fmtindex[128];
+intern	byte	sptest[128];
 
 intern	int	noconv(Printspec*);
 intern	int	flags(Printspec*);
@@ -38,6 +36,7 @@ intern	int	cconv(Printspec*);
 intern	int	sconv(Printspec*);
 intern	int	percent(Printspec*);
 intern	int	rconv(Printspec*);
+intern	int	Sconv(Printspec*);
 	int	numbconv(Printspec*);
 	int	fltconv(Printspec*);
 
@@ -74,6 +73,7 @@ initfmt(void)
 
 	fmtconv[4] = cconv;
 	fmtindex['c'] = 4;
+	fmtindex['C'] = 4;
 
 	fmtconv[5] = sconv;
 	fmtindex['s'] = 5;
@@ -84,7 +84,10 @@ initfmt(void)
 	fmtconv[7] = rconv;
 	fmtindex['r'] = 7;
 
-	convcount = 8;
+	fmtconv[8] = Sconv;
+	fmtindex['S'] = 8;
+
+	convcount = 9;
 
 	memset(sptest, 1, sizeof(sptest));
 	sptest[0] = 0;
@@ -100,10 +103,10 @@ fmtinstall(int c, int (*f)(Printspec*))
 	if(convcount == 0)
 		initfmt();
 
-	c &= 0177;
+	c &= 0xff;
 	if(convcount >= MAXCONV) {
 		printlock.unlock();
-		return 1;
+		return -1;
 	}
 
 	fmtindex[c] = convcount++;
@@ -112,8 +115,8 @@ fmtinstall(int c, int (*f)(Printspec*))
 	return 0;
 }
 
-char*
-doprint(char *s, char *es, char *fmt, void *argp)
+byte*
+doprint(byte *s, byte *es, byte *fmt, void *argp)
 {
 	Printspec p;
 	int f1, f2, f3, c, n;
@@ -122,7 +125,7 @@ doprint(char *s, char *es, char *fmt, void *argp)
 		initfmt();
 
 	p.out = s;
-	p.eout = es-1;
+	p.eout = es;
 
 loop:
 	/*
@@ -141,7 +144,6 @@ loop:
 	fmt += f1;
 	p.out += f1;
 	printcol += f1;		/**/
-
 
 	c = *fmt++;
 	if(c != '%') {
@@ -203,7 +205,7 @@ l1:
 	}
 	if(c == '*') {
 		n = *(int*)argp;
-		argp = (char*)argp + INT;
+		argp = (byte*)argp + INT;
 		if(f1 == NONE)
 			f1 = n;
 		else
@@ -212,7 +214,7 @@ l1:
 	}
 
 	c &= 0177;
-	p = (Printspec){argp, f1, f2, f3, c};
+	p = (Printspec)(argp, f1, f2, f3, c, p.out, p.eout);
 	n = fmtindex[c];
 	if(n < 0 || n >= convcount)
 		n = 0;
@@ -221,27 +223,20 @@ l1:
 		f3 |= -n;
 		goto l0;
 	}
-	argp = (char*)argp + n;
+	argp = (byte*)argp + n;
 	goto loop;
-}
 
-void
-fstrconv(Printspec *p, char *s)
-{
-	if(p->f1 != NONE && p->f3 & FMINUS)
-		p->f1 = -p->f1;
-	strconv(p, s);
+	return nil;
 }
 
 int
 numbconv(Printspec *p)
 {
 	sint h;
-	long v;
-	char s[IDIGIT];
+	int v;
+	byte s[IDIGIT];
 	int i, f, n, r, b, ucase;
 
-	v = 0;
 	ucase = 0;
 	b = p->chr;
 	switch(p->chr) {
@@ -265,12 +260,12 @@ numbconv(Printspec *p)
 	f = 0;
 	switch(p->f3 & (FVLONG|FLONG|FSHORT|FUNSIGN)) {
 	case FLONG:
-		v = *(long*)p->o;
+		v = *(int*)p->o;
 		r = LONG;
 		break;
 
 	case FUNSIGN|FLONG:
-		v = *(ulong*)p->o;
+		v = *(uint*)p->o;
 		r = LONG;
 		break;
 
@@ -302,14 +297,17 @@ numbconv(Printspec *p)
 	}
 	s[IDIGIT-1] = 0;
 	for(i = IDIGIT-2;; i--) {
-		n = (ulong)v % b;
+		n = (uint)v % b;
 		n += '0';
-		if(n > '9')
+		if(n > '9') {
 			n += 'a' - ('9'+1);
+			if(ucase)
+				n += 'A'-'a';
+		}
 		s[i] = n;
 		if(i < 2)
 			break;
-		v = (ulong)v / b;
+		v = (uint)v / b;
 		if(p->f2 != NONE && i >= IDIGIT-p->f2)
 			continue;
 		if(v <= 0)
@@ -332,15 +330,17 @@ numbconv(Printspec *p)
 		s[--i] = '-';
 
 	p->f2 = NONE;
-	fstrconv(p, s+i);
+	strconv(p, s+i);
 	return r;
 }
 
 void
-strconv(Printspec *p, char *s)
+strconv(Printspec *p, byte *s)
 {
 	int n, c;
 
+	if(p->f1 != NONE && p->f3 & FMINUS)
+		p->f1 = -p->f1;
 	n = strlen(s);
 	if(p->f1 != NONE && p->f1 >= 0)
 		while(n < p->f1) {
@@ -377,7 +377,7 @@ strconv(Printspec *p, char *s)
 intern	int
 noconv(Printspec *p)
 {
-	char s[4];
+	byte s[4];
 
 	if(convcount == 0) {
 		initfmt();
@@ -396,10 +396,21 @@ noconv(Printspec *p)
 intern	int
 cconv(Printspec *p)
 {
-	char s[2];
+	int i;
+	Rune r;
+	byte s[4];
 
-	s[0] = *(int*)p->o;
-	s[1] = 0;
+	switch(p->chr) {
+	case 'c':
+		s[0] = *(int*)p->o;
+		s[1] = 0;
+		break;
+	case 'C':
+		r = *(int*)p->o;
+		i = runetochar(s, &r);
+		s[i] = 0;
+		break;
+	}
 	p->f2 = NONE;
 	strconv(p, s);
 	return INT;
@@ -408,8 +419,9 @@ cconv(Printspec *p)
 intern	int
 rconv(Printspec *p)
 {
-	char buf[ERRLEN];
+	byte buf[ERRLEN];
 
+	buf[0] = 0;
 	errstr(buf);
 	strconv(p, buf);
 	return 0;
@@ -418,7 +430,68 @@ rconv(Printspec *p)
 intern	int
 sconv(Printspec *p)
 {
-	fstrconv(p, *(char**)p->o);
+	strconv(p, *(byte**)p->o);
+	return PTR;
+}
+
+intern	int
+Sconv(Printspec *p)
+{
+	int n, c, i;
+	Rune rune, *s;
+
+	s = *(Rune**)p->o;
+	if(p->f3 & FMINUS)
+		p->f1 = -p->f1;
+	n = 0;
+	if(p->f1 != NONE && p->f1 >= 0) {
+		for(; s[n]; n++)
+			;
+		while(n < p->f1) {
+			if(p->out < p->eout)
+				*p->out++ = ' ';
+			printcol++;
+			n++;
+		}
+	}
+	for(;;) {
+		c = *s++;
+		if(c == 0)
+			break;
+		n++;
+		if(p->f2 == NONE || p->f2 > 0) {
+			if(p->out < p->eout)
+				if(c >= Runeself) {
+					rune = c;
+					i = runetochar(p->out, &rune);
+					p->out += i;
+				}
+				else
+					*p->out++ = c;
+			if(p->f2 != NONE)
+				p->f2--;
+			switch(c) {
+			default:
+				printcol++;
+				break;
+			case '\n':
+				printcol = 0;
+				break;
+			case '\t':
+				printcol = (printcol+8) & ~7;
+				break;
+			}
+		}
+	}
+	if(p->f1 != NONE && p->f1 < 0) {
+		p->f1 = -p->f1;
+		while(n < p->f1) {
+			if(p->out < p->eout)
+				*p->out++ = ' ';
+			printcol++;
+			n++;
+		}
+	}
 	return PTR;
 }
 
@@ -465,22 +538,22 @@ fltconv(Printspec *p)
 	float f, g, h;
 	int e, d, i, n, s;
 	int c1, c2, c3, ucase;
-	char s1[FDIGIT+10], s2[FDIGIT+10];
+	byte s1[FDIGIT+10], s2[FDIGIT+10];
 
 	f = *(float*)p->o;
 	if(isNaN(f)){
 		p->f2 = NONE;
-		fstrconv(p, "NaN");
+		strconv(p, "NaN");
 		return FLOAT;
 	}
 	if(isInf(f, 1)){
 		p->f2 = NONE;
-		fstrconv(p, "+Inf");
+		strconv(p, "+Inf");
 		return FLOAT;
 	}
 	if(isInf(f, -1)){
 		p->f2 = NONE;
-		fstrconv(p, "-Inf");
+		strconv(p, "-Inf");
 		return FLOAT;
 	}
 	s = 0;
@@ -658,6 +731,6 @@ loop:
 	}
 	s2[d] = 0;
 	p->f2 = NONE;
-	fstrconv(p, s2);
+	strconv(p, s2);
 	return FLOAT;
 }

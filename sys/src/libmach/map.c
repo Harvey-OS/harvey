@@ -6,146 +6,83 @@
 #include <bio.h>
 #include <mach.h>
 
-static int	reloc(Map *, int, ulong, long *);
-static int	rreloc(Map *, int, ulong, long *);
+static int	reloc(Map*, ulong, long*);
 
 Map *
-newmap(Map *map, int fd)
+newmap(Map *map, int fd, int n)
 {
+	int size;
+
+	size = sizeof(Map)+(n-1)*sizeof(struct segment);
+	if (map == 0)
+		map = malloc(size);
+	else
+		map = realloc(map, size);
 	if (map == 0) {
-		map = malloc(sizeof(Map));
-		if (map == 0) {
-			print("out of memory\n");
-			return 0;
-		}
-		map->seg[SEGTEXT].inuse = 0;
-		map->seg[SEGDATA].inuse = 0;
-		map->seg[SEGUBLK].inuse = 0;
-		map->seg[SEGREGS].inuse = 0;
-		map->seg[SEGTEXT].name = "text";
-		map->seg[SEGDATA].name = "data";
-		map->seg[SEGUBLK].name = "ublock";
-		map->seg[SEGREGS].name = "regs";
+		werrstr("out of memory: %r");
+		return 0;
 	}
+	memset(map, 0, size);
 	map->fd = fd;
+	map->nsegs = n;
 	return map;
 }
 
 int
-setmap(Map *map, int s, ulong b, ulong e, ulong f)
+setmap(Map *map, ulong b, ulong e, ulong f, char *name)
 {
-	if (map == 0 || s == SEGANY)
+	int i;
+
+	if (map == 0)
 		return 0;
-	map->seg[s].b = b;
-	map->seg[s].e = e;
-	map->seg[s].f = f;
-	map->seg[s].inuse = 1;
+	for (i = 0; i < map->nsegs; i++)
+		if (!map->seg[i].inuse)
+			break;
+	if (i >= map->nsegs)
+		return 0;
+	map->seg[i].b = b;
+	map->seg[i].e = e;
+	map->seg[i].f = f;
+	map->seg[i].inuse = 1;
+	map->seg[i].name = name;
 	return 1;
 }
 
-void
-unusemap(Map *map, int s)
+int
+findseg(Map *map, char *name)
 {
-	if (map != 0 && s != SEGANY)
-		map->seg[s].inuse = 0;
+	int i;
+
+	if (!map)
+		return -1;
+	for (i = 0; i < map->nsegs; i++)
+		if (map->seg[i].inuse && !strcmp(map->seg[i].name, name))
+			return i;
+	return -1;
+}
+
+void
+unusemap(Map *map, int i)
+{
+	if (map != 0 && 0 <= i && i < map->nsegs)
+		map->seg[i].inuse = 0;
 }
 
 Map *
 loadmap(Map *map, int fd, Fhdr *fp)
 {
-	map = newmap(map, fd);
+	map = newmap(map, fd, 2);
 	if (map == 0)
 		return 0;
-	if (mach == 0)
-		return 0;
-	map->seg[SEGTEXT].b = fp->txtaddr;
-	map->seg[SEGTEXT].e = fp->txtaddr+fp->txtsz;
-	map->seg[SEGTEXT].f = fp->txtoff;
-	map->seg[SEGTEXT].inuse = 1;
-	map->seg[SEGDATA].b = fp->dataddr;
-	map->seg[SEGDATA].e = fp->dataddr+fp->datsz;
-	map->seg[SEGDATA].f = fp->datoff;
-	map->seg[SEGDATA].inuse = 1;
-	map->seg[SEGUBLK].inuse = 0;
-	map->seg[SEGREGS].inuse = 0;
+	map->seg[0].b = fp->txtaddr;
+	map->seg[0].e = fp->txtaddr+fp->txtsz;
+	map->seg[0].f = fp->txtoff;
+	map->seg[0].inuse = 1;
+	map->seg[0].name = "text";
+	map->seg[1].b = fp->dataddr;
+	map->seg[1].e = fp->dataddr+fp->datsz;
+	map->seg[1].f = fp->datoff;
+	map->seg[1].inuse = 1;
+	map->seg[1].name = "data";
 	return map;
-}
-
-int
-mget(Map *map, int s, ulong addr, char *buf, int size)
-{
-	long off;
-	int i, j;
-
-	if (reloc(map, s, addr, &off) == 0)
-		return -1;
-	if (seek(map->fd, off, 0) == -1)
-		return 0;
-	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
-		j += read(map->fd, buf, size-j);
-		if (j == size)
-			return 1;
-	}
-	return 0;
-}
-
-int
-mput(Map *map, int s, ulong addr, char *buf, int size)
-{
-	long off;
-	int i, j;
-
-	if (reloc(map, s, addr,&off) == 0)
-		return (-1);
-	if (seek(map->fd, off, 0) == -1)
-		return 0;
-	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
-		j += write(map->fd, buf, size-j);
-		if (j == size)
-			return 1;
-	}
-	return 0;
-}
-
-/*
- * turn address to file offset
- * returns nonzero if ok
- */
-static int
-reloc(Map *map, int s, ulong addr, long *offp)
-{
-	if(map == 0)
-		return 0;
-
-	switch(s) {
-	case SEGANY:
-		if (rreloc(map, SEGTEXT, addr, offp))
-			return 1;
-		if (rreloc(map, SEGDATA, addr, offp))
-			return 1;
-		if (rreloc(map, SEGUBLK, addr, offp))
-			return 1;
-		break;
-	case SEGDATA:
-		if (rreloc(map, SEGDATA, addr, offp))
-			return 1;
-		if (rreloc(map, SEGUBLK, addr, offp))
-			return 1;
-		break;
-	default:
-		return rreloc(map, s, addr, offp);
-	}
-	return 0;
-}
-
-static int
-rreloc(Map *map, int s, ulong addr, long *offp)
-{
-	if (map->seg[s].inuse) {
-		if (map->seg[s].b <= addr && addr < map->seg[s].e) {
-			*offp = addr + map->seg[s].f - map->seg[s].b;
-			return 1;
-		}
-	}
-	return 0;
 }

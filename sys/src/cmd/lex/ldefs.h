@@ -1,8 +1,8 @@
 # include <u.h>
 # include <libc.h>
-# include <stdio.h>
 # include <ctype.h>
-# include <ape/stdarg.h>
+# include <stdarg.h>
+# include <bio.h>
 # define PP 1
 
 # define CWIDTH 8
@@ -21,7 +21,7 @@
 # define NSTATES 500
 # define MAXPOS 2500
 # define NTRANS 2000
-# define NOUTPUT 3000
+# define NOUTPUT 5000
 
 # define NACTIONS 100
 # define ALITTLEEXTRA 30
@@ -77,7 +77,9 @@ extern int funcflag;
 extern int pflag;
 extern int casecount;
 extern int chset;	/* 1 = char set modified */
-extern FILE *fin, *fout, *fother, *errorf;
+extern Biobuf *fin, fout, *fother;
+extern int foutopen;
+extern int errorf;
 extern int fptr;
 extern char *cname;
 extern int prev;	/* previous input character */

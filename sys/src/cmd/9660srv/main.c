@@ -1,12 +1,13 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #include "dat.h"
 #include "fns.h"
 
 static int	openflags(int);
 static void	rattach(void);
-static void	rauth(void);
+static void	rsession(void);
 static void	rclone(void);
 static void	rclunk(void);
 static void	rcreate(void);
@@ -111,7 +112,6 @@ main(int argc, char **argv)
 			default:	panic(0, "type %d", thdr.type);
 							break;
 			case Tnop:	rnop();		break;
-			case Tauth:	rauth();	break;
 			case Tsession:	rsession();	break;
 			case Tflush:	rflush();	break;
 			case Tattach:	rattach();	break;
@@ -206,6 +206,9 @@ static void
 rsession(void)
 {
 	chat("session...");
+	memset(rhdr.authid, 0, sizeof(rhdr.authid));
+	memset(rhdr.authdom, 0, sizeof(rhdr.authdom));
+	memset(rhdr.chal, 0, sizeof(rhdr.chal));
 }
 
 static void

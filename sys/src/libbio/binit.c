@@ -2,8 +2,6 @@
 #include	<libc.h>
 #include	<bio.h>
 
-#define	nelem(x)	(sizeof(x)/sizeof(x[0]))
-
 static	Biobufhdr*	wbufs[20];
 static	int		atexitflag;
 
@@ -79,6 +77,7 @@ Binits(Biobufhdr *bp, int f, int mode, uchar *p, int size)
 	bp->ebuf = p+size;
 	bp->bsize = size;
 	bp->icount = 0;
+	bp->gbuf = bp->ebuf;
 	bp->fid = f;
 	bp->flag = 0;
 	bp->rdline = 0;
@@ -123,7 +122,7 @@ Bopen(char *name, int mode)
 }
 
 int
-Bclose(Biobufhdr *bp)
+Bterm(Biobufhdr *bp)
 {
 
 	deinstall(bp);

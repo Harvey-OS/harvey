@@ -3,26 +3,12 @@
 #include	"io.h"
 #include	"ureg.h"
 
-char netaddr[NAMELEN] = "135.104.9.122";
 ulong	rom;		/* open boot rom vector */
 ulong	romputcxsegm;
 
 static int duartok;
 
-void
-duartinit(void)
-{
-	KMap *k;
-
-	chartoip(sysip, netaddr);
-
-	k = kmappa(EIADUART, PTEIO|PTENOCACHE);
-	sccsetup((void*)(k->va), EIAFREQ);
-	sccspecial(0, kbdchar, conschar, 9600);
-	duartok = 1;
-}
-
-int
+static int
 duartrecv(void)
 {
 	if(duartok)
@@ -32,7 +18,7 @@ duartrecv(void)
 	return 0;
 }
 
-void
+static void
 duartxmit(int c)
 {
 	if(duartok)
@@ -45,7 +31,21 @@ duartxmit(int c)
 }
 
 void
-duartreset(void)
+consinit(void (*puts)(char*, int))
+{
+	KMap *k;
+
+	k = kmappa(EIADUART, PTEIO|PTENOCACHE);
+	sccsetup((void*)(k->va), EIAFREQ);
+	consgetc = duartrecv;
+	consputc = duartxmit;
+	consputs = puts;
+	sccspecial(0, kbdchar, conschar, 9600);
+	duartok = 1;
+}
+
+void
+consreset(void)
 {
 }
 
@@ -131,9 +131,7 @@ delay(int ms)
 {
 	int i;
 
-	ms *= 6666;			/* experimentally determined */
-	if(mconf.ss2)
-		ms *= 2;
+	ms *= mconf.usec_delay;	/* experimentally determined */
 	for(i=0; i<ms; i++)
 		;
 }
@@ -198,3 +196,4 @@ lancesetup(Lance *lp)
 	lp->ltp = lp->lrp+lp->nrrb;
 	lp->tp = lp->rp+lp->nrrb;
 }
+

@@ -9,6 +9,7 @@
 #define	RES		255	/* resolution of FSIZE*FSIZE picture */
 #define	ISIZE		48	/* ikon size (square) */
 #define MAXBPP		2	/* max bits per pixel to bitmapped display */
+#define	MAXPV		((1<<MAXBPP)-1)	/* largest pixel value on display */
 #define MAXRANGE	254	/* even number for round-off fun */
 #define IKONSPACE	(48+4)	/* pixels per gallery entry */
 
@@ -458,6 +459,7 @@ sample(int x0, int y0, int x1, int y1)
 		v = pic[y1-1][x1-1] - pic[y0-1][x1-1] - 
 		    pic[y1-1][x0-1] + pic[y0-1][x0-1];
 	u = v/(y1-y0)/(x1-x0);
+if(u>255) fprint(2, "%d %d, %d %d: %d %d\n", x0, y0, x1, y1, u, v);
 	return u;
 }
 
@@ -516,7 +518,7 @@ getpic(char *f)
 
 	p = picopen_r(f);
 	if (p == 0) {
-		picerror(f);
+		perror(f);
 		exits("open");
 	}
 
@@ -559,7 +561,6 @@ makepic(void)
 	int e, i, t;
 	int floyd[2][FSIZE+1];
 	uchar picbitmap[FSIZE][FSIZE/MAXPPBYTE];
-
 	for(x=0; x<FSIZE; x++)
 		floyd[0][x] = 0;
 	for(y=0; y<FSIZE; y++){
@@ -569,18 +570,20 @@ makepic(void)
 			floyd[(y+1)&1][x] = 0;
 		for(x=0; x<FSIZE; x++){
 			e = floyd[y&1][x] + sample(x, y, x+1, y+1);
-			i = e/64;
+			i = e*(MAXPV+1)/(RES+1);
 			if (i<0)
 				i=0;
-			else if (i>3)
-				i=3;
-			e -= (i*RES)/3;
-			picbitmap[y][x/MAXPPBYTE] |= (3-i) <<
+			else if (i>MAXPV)
+				i=MAXPV;
+			e -= (i*RES)/MAXPV;
+			picbitmap[y][x/MAXPPBYTE] |= (MAXPV-i) <<
 				(MAXPPBYTE - (x % MAXPPBYTE) - 1)*MAXBPP;
-			t = 3*e/8;
+#ifndef broken
+			t = (e+e+e)/8;
 			floyd[(y+1)&1][x] += t;
-			floyd[(y+1)&1][x+1] += e-2*t;
+			floyd[(y+1)&1][x+1] += e-t-t;
 			floyd[y&1][x+1] += t;
+#endif
 		}
 	}
 	wrbitmap(face, 0, 256, (uchar *)picbitmap);
@@ -600,8 +603,14 @@ do_write(void)
 			bitblt(ikon, Pt(0,0), &screen, galrect(xpick, ypick), S);
 			rdbitmap(ikon, 0, ISIZE, (uchar *)icon);
 			for (y=0; y<ISIZE; y++) {
-				for (x=0; x<ISIZE/(ppbyte*sizeof(ushort)); x++)
-					print("0x%-4.4ux, ", icon[y][x]);
+				char *bp = (char *)icon[y];
+				for (x=0; x<ISIZE/ppbyte; x++) {
+					if ((x % sizeof(ushort)) == 0)
+						print("0x");
+					print("%-2.2ux", *bp++ & 0xff);
+					if ((x % sizeof(ushort)) == sizeof(ushort)-1)
+						print(", ");
+				}
 				print("\n");
 			}
 			break;
@@ -611,8 +620,14 @@ do_write(void)
 			bitblt(ikon, Pt(0,0), &screen, galrect(xpick, ypick), S);
 			rdbitmap(ikon, 0, ISIZE, (uchar *)icon);
 			for (y=0; y<ISIZE; y++) {
-				for (x=0; x<ISIZE/(ppbyte*sizeof(ulong)); x++)
-					print("0x%-8.8ulx, ", icon[y][x]);
+				char *bp = (char *)icon[y];
+				for (x=0; x<ISIZE/ppbyte; x++) {
+					if ((x % sizeof(ulong)) == 0)
+						print("0x");
+					print("%-2.2ux", *bp++ & 0xff);
+					if ((x % sizeof(ulong)) == sizeof(ulong)-1)
+						print(", ");
+				}
 				print("\n");
 			}
 			break;
@@ -652,7 +667,6 @@ main(int argc, char *argv[])
 	case 'a':	rescale++;		break;
 	case '1':	depth=1;		break;
 	case '2':	depth=2;		break;
-	case L'ü':	fprint(2, "rob\n");	break;
 	default:
 		mugsusage();
 	}ARGEND;

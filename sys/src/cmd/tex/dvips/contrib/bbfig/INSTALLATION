@@ -1,0 +1,16 @@
+
+To install bbfig:
+
+Make the bbfig shell script executable and put it in a suitable
+directory.  Put the file bb.ps in that *same* directory.  If this
+is not possible or is inconvenient, put bb.ps whereever you please
+and edit the shell script to define BBPSDIR.
+
+If you run across a PostScript file that manages to confuse bbfig,
+please send it along to me and I'll see if I can figure out what is
+going wrong.  Thanks.
+
+
+Bernie Cosell  [cosell@bbn.com]
+27June90
+

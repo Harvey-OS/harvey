@@ -1,11 +1,13 @@
+.fp 1 R LucidaSans
+.fp 2 I LucidaSansI
+.fp 3 B LucidaSansB
+.fp 5 L LucidaCW
 '''\"	PWB Manual Entry Macros - 1.36 of 11/11/80
 '''\"	Nroff/Troff Version	@(#)1.36
 '''\"  Option -rs1 short (9") pages
 '''\"  Option -rp# set no. of first page, put no. of pgs. on stderr
 '''\"  Option -rd1 give modified date instead of printed date
 ... temporary fixes for neat manual printing...
-.if t .tr ½\(12
-.if t .tr ×\(mu
 .deth
 .tmwrong version of man entry macros - use -man6
 .ab
@@ -38,10 +40,8 @@
 .ie\\n()s 'sp |2v
 .el'sp |3v
 .".ps\\n()S-1
-.".iet .bd1 3
-.".el.bd1 0
 .tl \\*(]H\\*(]L\\*(]H
-.bd1
+.ft1
 .ps\\n()S
 .ie\\n()s 'sp 1.5v
 .el'sp 3v
@@ -56,9 +56,7 @@
 .if\\n()t 'sp |\\n(.pu-3v
 .ifn 'sp |\\n(.pu-4v
 .ifn .tl Page %\\*(]D\\*(]W
-.if\\n()s .tl - % -
-.if\\n()t \{.if o .tl Page %\\*(]D\\*(]W
-.ife .tl \\*(]W\\*(]DPage % \}
+.ift .tl %
 .ev
 'bp
 ..
@@ -115,11 +113,12 @@
 ..
 .deSH
 .PD
-.}X 0 "\\$1" smaller
+.}X 0 "\\$1"
 .nr)E 2
 \&\\$1 \|\\$2 \|\\$3 \|\\$4 \|\\$5 \|\\$6
 ..
 .deSS
+.PD
 .}X 3n "" ""
 .nr)E 2
 \&\\$1 \|\\$2 \|\\$3 \|\\$4 \|\\$5 \|\\$6
@@ -135,15 +134,14 @@
 '''if\\$2SYNOPSIS .ss 18
 .it1 }N
 .if!\\$3 .SM
-.iet .bd1 3
-.el.bd1 0
+.ft 3
 ..
 .de}2
 .nr)E 0
 .}E
 .nr)I \\n()Mu
 .ns
-.bd1
+.ft1
 ..
 .deSM
 .nh
@@ -305,7 +303,7 @@
 .di]B
 ..
 .deTF
-.IP "" \w'\f5\\$1\ \ \fP'u
+.IP "" "\w'\f5\\$1\ \ \fP'u"
 .PD0
 ..
 .de}1
@@ -447,14 +445,14 @@
 .if\n()s \{.nr )L 9i
 .nrLL 4.75i
 .nr)O .75i
-.nr)S 9
-.nr)V 10 \}
+.nr)S 8
+.nr)V 9 \}
 .if\n()t \{.nr )L 11i
 .nrLL 6.5i
 .nr)O 1i
-.nr)S 10
-.nr)V 12 \}
-.ift \{.ds R \(rg
+.nr)S 9
+.nr)V 11 \}
+.ift \{.ds R ®
 .dsS \s\n()S
 ..\}
 .ifn \{.nr )L 11i
@@ -501,7 +499,6 @@
 .ll\n(LLu
 .lt\n(LLu
 .po\n()Ou
-.fp 5 L CW
 .ift .tr \``\''
 .}f
 .if\n()s .nr :m 3.5v

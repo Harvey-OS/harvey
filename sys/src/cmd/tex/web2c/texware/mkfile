@@ -1,43 +1,40 @@
-# This file makes DVItype, PLtoTF, TFtoPL, and POOLtype from their
-# respective sources.
+# This file makes the programs published in the TeXware technical
+# report: DVItype, PatGen, PLtoTF, TFtoPL, and POOLtype.
 # 
-# Unfortunately, `texware.defines' is 15 characters long, so I omit the `s'.
-# 
+# Except that we compile and install PatGen 2.0, the revision of Liang's
+# original program by Peter Breitenlohner for TeX 3.
 
 APE=/sys/src/ape
 < $APE/config
-SITEDIR=..
-OPT=-B
 SHELL=/bin/rc
 
 TARG=patgen pooltype dvitype pltotf tftopl
 
-OFILES=texwarext.$O\
+OFILES=
 
-HFILES=texware.h\
-	$SITEDIR/site.h\
+HFILES=../lib/common.h
+
+LIB=../lib/lib.a$O
 
 </sys/src/cmd/mkmany
 
-CFLAGS=$OPT -I$SITEDIR -c
+CFLAGS=-B -D_POSIX_SOURCE -I../lib -c
 LDFLAGS=
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 
 triptrap:V:	$O.dvitype $O.pltotf $O.tftopl
 
-texwarext.c dvitypext.c:Q:		#dummy - needed to keep out of %.c rule
-		echo -n
-
-$O.dvitype:	dvitypext.$O
-
 pltotf.$O:	pltotf.c $HFILES
-		$CC $CFLAGS '-Dindex=index_array' '-Dlink=link_array' pltotf.c
+		$CC $CFLAGS '-Dindex=index_arr' pltotf.c
 
 tftopl.$O:	tftopl.c $HFILES
-		$CC $CFLAGS '-Dindex=index_type' tftopl.c
+		$CC $CFLAGS '-Dindex=index_var' tftopl.c
 
-%.c:		%.p texware.define
-		$SHELL ./convert $stem.p $stem.c
+$O.patgen:	patgen2.$O $LIB
+		$LD $LDFLAGS -o $target $prereq
+
+%.c:		%.p
+		$SHELL ../lib/convert $stem.p $stem.c
 
 %.p:		%.ch %.web ../stamp-tangle.$cputype
 		# redirected to stop chatter - remove redirection for debugging

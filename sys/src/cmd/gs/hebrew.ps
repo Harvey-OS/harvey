@@ -1,0 +1,697 @@
+% A right-to-left font, courtesy of jnp@tele.nokia.fi (J|rgen N|rgaard)
+
+%%
+%% Hebrew PostScript font.
+%% Nurit Zeiri & J|rgen N|rgaard, 1991
+%%
+%%
+12 dict dup begin
+  /FontType 3 def
+  /FontMatrix [.001 0 0 .001 0 0] def
+
+% The encoding vector
+  /Encoding 256 array def
+  0 1 255 {Encoding exch /.notdef put} for
+  Encoding
+    dup (\373) 0 get /chaph-sophith put
+    dup (\374) 0 get /mem-sophith put
+    dup (\375) 0 get /nun-sophith put
+    dup (\376) 0 get /phe-sophith put
+    dup (\377) 0 get /sadhe-sophith put
+    dup (a) 0 get /aleph put
+    dup (b) 0 get /bheth put
+    dup (c) 0 get /gimel put
+    dup (d) 0 get /daleth put
+    dup (e) 0 get /ayin put
+    dup (f) 0 get /phe put
+    dup (h) 0 get /he put
+    dup (i) 0 get /yodh put
+    dup (j) 0 get /cheth put
+    dup (k) 0 get /caph put
+    dup (l) 0 get /lamedh put
+    dup (m) 0 get /mem put
+    dup (n) 0 get /nun put
+    dup (o) 0 get /samekh put
+    dup (p) 0 get /phe put
+    dup (q) 0 get /koph put
+    dup (r) 0 get /resh put
+    dup (s) 0 get /shin put
+    dup (t) 0 get /thav put
+    dup (u) 0 get /teth put
+    dup (v) 0 get /vau put
+    dup (w) 0 get /sadhe put
+    dup (z) 0 get /zayin put
+    pop
+
+% The bounding rectangles
+  /BBox 32 dict def
+  BBox begin
+    /.notdef [0 0 0 0] def
+    /aleph [ -1000.00   1000.00      0.00      0.00] def % aleph (1)
+    /resh [  -800.00   1000.00      0.00      0.00] def % resh (200)
+    /gimel [  -700.00   1000.00      0.00      0.00] def % gimel (3)
+    /sadhe-sophith [  -700.00   1000.00      0.00   -600.00] def % sadhe-sophith (91)
+    /he [  -900.00   1000.00      0.00      0.00] def % he (5)
+    /zayin [  -500.00   1000.00      0.00      0.00] def % zayin (7)
+    /phe [  -800.00   1000.00      0.00      0.00] def % phe (80)
+    /beth [ -1000.00   1000.00      0.00      0.00] def % beth (2b)
+    /nun [  -600.00   1000.00      0.00      0.00] def % nun (50)
+    /teth [  -800.00   1000.00      0.00      0.00] def % teth (9)
+    /caph [  -800.00   1000.00      0.00      0.00] def % caph (20)
+    /shin [ -1000.00   1000.00      0.00      0.00] def % shin (300)
+    /phe-sophith [  -800.00   1000.00      0.00   -600.00] def % phe-sophith (81)
+    /nun-sophith [  -500.00   1000.00      0.00   -600.00] def % nun-sophith (51)
+    /chaph-sophith [  -800.00   1000.00      0.00   -600.00] def % chaph-sophith (21)
+    /bheth [ -1000.00   1000.00      0.00      0.00] def % bheth (2)
+    /ayin [  -800.00   1000.00      0.00      0.00] def % ayin (70)
+    /thav [  -900.00   1000.00      0.00      0.00] def % thav (400)
+    /sin [ -1000.00   1300.00      0.00      0.00] def % sin (301)
+    /daleth [ -1000.00   1000.00      0.00      0.00] def % daleth (4)
+    /mem [ -1000.00   1000.00      0.00      0.00] def % mem (40)
+    /yodh [  -400.00   1000.00      0.00    400.00] def % yodh (10)
+    /pe [  -800.00   1000.00      0.00      0.00] def % pe (82)
+    /vau [  -400.00   1000.00      0.00      0.00] def % vau (6)
+    /cheth [  -800.00   1000.00      0.00      0.00] def % cheth (8)
+    /chaph [  -800.00   1000.00      0.00      0.00] def % chaph (22)
+    /koph [  -900.00   1000.00      0.00   -600.00] def % koph (100)
+    /mem-sophith [  -900.00   1000.00      0.00      0.00] def % mem-sophith (41)
+    /sadhe [ -1000.00   1000.00      0.00      0.00] def % sadhe (90)
+    /samekh [  -800.00   1000.00      0.00      0.00] def % samekh (60a)
+    /lamedh [  -800.00   1300.00      0.00      0.00] def % lamedh (30)
+  end
+
+  /FontBBox [ -1000.00   1300.00      0.00   -600.00] def
+
+% The metrics
+  /Metrics 32 dict def
+  Metrics begin
+    /.notdef 0 def
+    /phe-sophith   -900.00 def
+    /beth  -1100.00 def
+    /bheth  -1100.00 def
+    /chaph   -900.00 def
+    /cheth   -900.00 def
+    /sin  -1100.00 def
+    /resh   -900.00 def
+    /mem-sophith  -1000.00 def
+    /vau   -500.00 def
+    /lamedh   -900.00 def
+    /nun-sophith   -600.00 def
+    /sadhe-sophith   -800.00 def
+    /daleth  -1100.00 def
+    /teth   -900.00 def
+    /he  -1000.00 def
+    /sadhe  -1100.00 def
+    /samekh   -900.00 def
+    /zayin   -600.00 def
+    /aleph  -1100.00 def
+    /yodh   -500.00 def
+    /ayin   -900.00 def
+    /pe   -900.00 def
+    /phe   -900.00 def
+    /koph  -1000.00 def
+    /mem  -1100.00 def
+    /nun   -700.00 def
+    /thav  -1000.00 def
+    /gimel   -800.00 def
+    /caph   -900.00 def
+    /shin  -1100.00 def
+    /chaph-sophith   -900.00 def
+  end
+
+% The code dictionary.
+/CharacterDefs 32 dict def  CharacterDefs begin
+    /.notdef {} def
+    /aleph { % (1)
+    newpath
+%  Polyline
+    -900.0000 1000.0000 moveto
+    -1000.0000    0.0000 lineto
+    -800.0000    0.0000 lineto
+    -700.0000  700.0000 lineto
+    -200.0000    0.0000 lineto
+       0.0000  100.0000 lineto
+    -200.0000  400.0000 lineto
+    -100.0000 1000.0000 lineto
+    -300.0000 1000.0000 lineto
+    -400.0000  600.0000 lineto
+    -600.0000 1000.0000 lineto
+    -900.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /resh { % (200)
+    newpath
+%  Polyline
+    -800.0000 1000.0000 moveto
+    -100.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -300.0000    0.0000 lineto
+    -300.0000  800.0000 lineto
+    -800.0000  800.0000 lineto
+    -800.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /gimel { % (3)
+    newpath
+%  Polyline
+    -500.0000 1000.0000 moveto
+    -200.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -200.0000    0.0000 lineto
+    -300.0000  200.0000 lineto
+    -600.0000    0.0000 lineto
+    -700.0000  200.0000 lineto
+    -300.0000  500.0000 lineto
+    -400.0000  800.0000 lineto
+    -500.0000  800.0000 lineto
+    -500.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /sadhe-sophith { % (91)
+    newpath
+%  Polyline
+    -700.0000 1000.0000 moveto
+    -200.0000 -600.0000 lineto
+       0.0000 -500.0000 lineto
+    -200.0000  500.0000 lineto
+       0.0000  900.0000 lineto
+    -200.0000 1000.0000 lineto
+    -400.0000  800.0000 lineto
+    -500.0000 1000.0000 lineto
+    -700.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /he { % (5)
+    newpath
+%  Polyline
+    -900.0000  800.0000 moveto
+    -900.0000 1000.0000 lineto
+    -100.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -300.0000    0.0000 lineto
+    -300.0000  800.0000 lineto
+    -900.0000  800.0000 lineto
+%  Polyline
+    -800.0000  600.0000 moveto
+    -800.0000    0.0000 lineto
+    -600.0000    0.0000 lineto
+    -600.0000  600.0000 lineto
+    -800.0000  600.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /zayin { % (7)
+    newpath
+%  Polyline
+    -500.0000 1000.0000 moveto
+       0.0000 1000.0000 lineto
+       0.0000  800.0000 lineto
+    -200.0000  800.0000 lineto
+    -100.0000    0.0000 lineto
+    -400.0000    0.0000 lineto
+    -400.0000  800.0000 lineto
+    -500.0000  800.0000 lineto
+    -500.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /phe { % (80)
+    newpath
+%  Polyline
+    -700.0000 1000.0000 moveto
+    -100.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -800.0000    0.0000 lineto
+    -800.0000  300.0000 lineto
+    -300.0000  300.0000 lineto
+    -300.0000  800.0000 lineto
+    -500.0000  800.0000 lineto
+    -500.0000  600.0000 lineto
+    -800.0000  600.0000 lineto
+    -700.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /beth { % (2)
+    newpath
+%  Polyline
+    -300.0000 1000.0000 moveto
+    -200.0000  200.0000 lineto
+       0.0000  200.0000 lineto
+       0.0000    0.0000 lineto
+    -1000.0000    0.0000 lineto
+    -1000.0000  300.0000 lineto
+    -500.0000  200.0000 lineto
+    -500.0000  800.0000 lineto
+    -900.0000  800.0000 lineto
+    -900.0000 1000.0000 lineto
+    -300.0000 1000.0000 lineto
+%  Polyline
+    -800.0000  400.0000 moveto
+    -800.0000  600.0000 lineto
+    -600.0000  600.0000 lineto
+    -600.0000  500.0000 lineto
+    -800.0000  400.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /nun { % (50)
+    newpath
+%  Polyline
+    -500.0000 1000.0000 moveto
+    -100.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -600.0000    0.0000 lineto
+    -500.0000  300.0000 lineto
+    -200.0000  300.0000 lineto
+    -200.0000  800.0000 lineto
+    -500.0000  800.0000 lineto
+    -500.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /teth { % (9)
+    newpath
+%  Polyline
+    -800.0000 1000.0000 moveto
+    -800.0000    0.0000 lineto
+       0.0000    0.0000 lineto
+       0.0000 1000.0000 lineto
+    -400.0000 1000.0000 lineto
+    -400.0000  800.0000 lineto
+    -200.0000  800.0000 lineto
+    -200.0000  200.0000 lineto
+    -500.0000  200.0000 lineto
+    -600.0000 1000.0000 lineto
+    -800.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /caph { % (20)
+    newpath
+%  Polyline
+    -800.0000 1000.0000 moveto
+       0.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -800.0000    0.0000 lineto
+    -800.0000  200.0000 lineto
+    -200.0000  300.0000 lineto
+    -300.0000  800.0000 lineto
+    -800.0000  800.0000 lineto
+    -800.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /shin { % (300)
+    newpath
+%  Polyline
+    -1000.0000 1000.0000 moveto
+    -900.0000    0.0000 lineto
+    -200.0000    0.0000 lineto
+       0.0000  800.0000 lineto
+    -200.0000  900.0000 lineto
+    -400.0000  400.0000 lineto
+    -500.0000  400.0000 lineto
+    -400.0000  900.0000 lineto
+    -600.0000 1000.0000 lineto
+    -700.0000  400.0000 lineto
+    -800.0000 1000.0000 lineto
+    -1000.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /phe-sophith { % (81)
+    newpath
+%  Polyline
+    -100.0000 1000.0000 moveto
+       0.0000 -600.0000 lineto
+    -300.0000 -600.0000 lineto
+    -300.0000  800.0000 lineto
+    -600.0000  800.0000 lineto
+    -600.0000  600.0000 lineto
+    -800.0000  600.0000 lineto
+    -800.0000 1000.0000 lineto
+    -100.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /nun-sophith { % (51)
+    newpath
+%  Polyline
+    -500.0000 1000.0000 moveto
+    -100.0000 1000.0000 lineto
+       0.0000 -600.0000 lineto
+    -300.0000 -600.0000 lineto
+    -300.0000  800.0000 lineto
+    -500.0000  800.0000 lineto
+    -500.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /chaph-sophith { % (21)
+    newpath
+%  Polyline
+    -800.0000 1000.0000 moveto
+       0.0000 1000.0000 lineto
+       0.0000 -600.0000 lineto
+    -200.0000 -600.0000 lineto
+    -300.0000  800.0000 lineto
+    -800.0000  800.0000 lineto
+    -800.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /bheth { % (2)
+    newpath
+%  Polyline
+    -300.0000 1000.0000 moveto
+    -200.0000  200.0000 lineto
+       0.0000  200.0000 lineto
+       0.0000    0.0000 lineto
+    -1000.0000    0.0000 lineto
+    -1000.0000  300.0000 lineto
+    -500.0000  200.0000 lineto
+    -500.0000  800.0000 lineto
+    -900.0000  800.0000 lineto
+    -900.0000 1000.0000 lineto
+    -300.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /ayin { % (70)
+    newpath
+%  Polyline
+    -300.0000 1000.0000 moveto
+    -100.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -800.0000    0.0000 lineto
+    -800.0000  200.0000 lineto
+    -600.0000  300.0000 lineto
+    -600.0000 1000.0000 lineto
+    -400.0000 1000.0000 lineto
+    -400.0000  300.0000 lineto
+    -300.0000  300.0000 lineto
+    -300.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /thav { % (400)
+    newpath
+%  Polyline
+    -600.0000 1000.0000 moveto
+    -100.0000  900.0000 lineto
+       0.0000    0.0000 lineto
+    -300.0000    0.0000 lineto
+    -300.0000  700.0000 lineto
+    -400.0000  700.0000 lineto
+    -400.0000    0.0000 lineto
+    -900.0000    0.0000 lineto
+    -900.0000  200.0000 lineto
+    -700.0000  300.0000 lineto
+    -600.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /sin { % (301)
+    newpath
+%  Polyline
+    -1000.0000 1000.0000 moveto
+    -900.0000    0.0000 lineto
+    -200.0000    0.0000 lineto
+       0.0000  800.0000 lineto
+    -200.0000  900.0000 lineto
+    -400.0000  400.0000 lineto
+    -500.0000  400.0000 lineto
+    -400.0000  900.0000 lineto
+    -600.0000 1000.0000 lineto
+    -700.0000  400.0000 lineto
+    -800.0000 1000.0000 lineto
+    -1000.0000 1000.0000 lineto
+%  Polyline
+    -1000.0000 1100.0000 moveto
+    -1000.0000 1300.0000 lineto
+    -800.0000 1300.0000 lineto
+    -800.0000 1100.0000 lineto
+    -1000.0000 1100.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /daleth { % (4)
+    newpath
+%  Polyline
+    -1000.0000  800.0000 moveto
+    -1000.0000 1000.0000 lineto
+    -100.0000 1000.0000 lineto
+       0.0000  800.0000 lineto
+    -200.0000  800.0000 lineto
+    -200.0000    0.0000 lineto
+    -500.0000    0.0000 lineto
+    -400.0000  800.0000 lineto
+    -1000.0000  800.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /mem { % (40)
+    newpath
+%  Polyline
+    -1000.0000    0.0000 moveto
+    -500.0000 1000.0000 lineto
+       0.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -500.0000    0.0000 lineto
+    -500.0000  200.0000 lineto
+    -200.0000  300.0000 lineto
+    -200.0000  700.0000 lineto
+    -500.0000  700.0000 lineto
+    -900.0000    0.0000 lineto
+    -1000.0000    0.0000 lineto
+%  Polyline
+    -900.0000 1000.0000 moveto
+    -1000.0000  700.0000 lineto
+    -700.0000  600.0000 lineto
+    -700.0000 1000.0000 lineto
+    -900.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /yodh { % (10)
+    newpath
+%  Polyline
+    -400.0000 1000.0000 moveto
+       0.0000 1000.0000 lineto
+       0.0000  400.0000 lineto
+    -200.0000  400.0000 lineto
+    -300.0000  800.0000 lineto
+    -400.0000  800.0000 lineto
+    -400.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /pe { % (82)
+    newpath
+%  Polyline
+    -700.0000 1000.0000 moveto
+    -100.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -800.0000    0.0000 lineto
+    -800.0000  300.0000 lineto
+    -300.0000  300.0000 lineto
+    -300.0000  800.0000 lineto
+    -500.0000  800.0000 lineto
+    -500.0000  600.0000 lineto
+    -800.0000  600.0000 lineto
+    -700.0000 1000.0000 lineto
+%  Polyline
+    -500.0000  400.0000 moveto
+    -500.0000  500.0000 lineto
+    -400.0000  500.0000 lineto
+    -400.0000  400.0000 lineto
+    -500.0000  400.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /vau { % (6)
+    newpath
+%  Polyline
+    -400.0000 1000.0000 moveto
+       0.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -300.0000    0.0000 lineto
+    -200.0000  800.0000 lineto
+    -400.0000  800.0000 lineto
+    -400.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /cheth { % (8)
+    newpath
+%  Polyline
+    -800.0000 1000.0000 moveto
+       0.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -300.0000    0.0000 lineto
+    -200.0000  800.0000 lineto
+    -600.0000  800.0000 lineto
+    -600.0000    0.0000 lineto
+    -800.0000    0.0000 lineto
+    -800.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /chaph { % (22)
+    newpath
+%  Polyline
+    -800.0000 1000.0000 moveto
+       0.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -800.0000    0.0000 lineto
+    -800.0000  200.0000 lineto
+    -200.0000  300.0000 lineto
+    -300.0000  800.0000 lineto
+    -800.0000  800.0000 lineto
+    -800.0000 1000.0000 lineto
+%  Polyline
+    -700.0000  600.0000 moveto
+    -500.0000  600.0000 lineto
+    -500.0000  500.0000 lineto
+    -700.0000  400.0000 lineto
+    -700.0000  600.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /koph { % (100)
+    newpath
+%  Polyline
+    -900.0000 1000.0000 moveto
+       0.0000 1000.0000 lineto
+    -100.0000    0.0000 lineto
+    -300.0000    0.0000 lineto
+    -400.0000  800.0000 lineto
+    -900.0000  800.0000 lineto
+    -900.0000 1000.0000 lineto
+%  Polyline
+    -800.0000  600.0000 moveto
+    -600.0000  600.0000 lineto
+    -500.0000 -600.0000 lineto
+    -800.0000 -600.0000 lineto
+    -800.0000  600.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /mem-sophith { % (41)
+    newpath
+%  Polyline
+    -900.0000 1000.0000 moveto
+    -100.0000  900.0000 lineto
+       0.0000    0.0000 lineto
+    -900.0000    0.0000 lineto
+    -900.0000 1000.0000 lineto
+%  Polyline
+    -700.0000  800.0000 moveto
+    -700.0000  300.0000 lineto
+    -300.0000  300.0000 lineto
+    -300.0000  800.0000 lineto
+    -700.0000  800.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /sadhe { % (90)
+    newpath
+%  Polyline
+    -900.0000 1000.0000 moveto
+    -1000.0000  800.0000 lineto
+    -400.0000  300.0000 lineto
+    -1000.0000  200.0000 lineto
+    -1000.0000    0.0000 lineto
+    -100.0000    0.0000 lineto
+       0.0000  300.0000 lineto
+    -200.0000  500.0000 lineto
+    -100.0000  900.0000 lineto
+    -300.0000 1000.0000 lineto
+    -500.0000  700.0000 lineto
+    -900.0000 1000.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /samekh { % (60)
+    newpath
+%  Polyline
+    -800.0000 1000.0000 moveto
+       0.0000 1000.0000 lineto
+    -100.0000    0.0000 lineto
+    -800.0000    0.0000 lineto
+    -800.0000 1000.0000 lineto
+%  Polyline
+    -600.0000  800.0000 moveto
+    -600.0000  200.0000 lineto
+    -200.0000  300.0000 lineto
+    -300.0000  800.0000 lineto
+    -600.0000  800.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+    /lamedh { % (30)
+    newpath
+%  Polyline
+    -800.0000 1300.0000 moveto
+    -600.0000 1300.0000 lineto
+    -600.0000 1000.0000 lineto
+       0.0000 1000.0000 lineto
+       0.0000    0.0000 lineto
+    -300.0000    0.0000 lineto
+    -200.0000  800.0000 lineto
+    -800.0000  800.0000 lineto
+    -800.0000 1300.0000 lineto
+    closepath
+    PaintType 2 eq { StrokeWidth setlinewidth stroke }{ fill } ifelse
+    } def
+  end
+
+  /BuildChar
+  { 0 begin
+      /char exch def
+      /fontdict exch def
+      /charname fontdict /Encoding get char get def
+      fontdict begin
+        Metrics charname get 0
+        BBox charname get aload pop
+        setcachedevice
+        CharacterDefs charname get exec
+      end
+    end
+  } def
+  /BuildChar load 0 3 dict put
+  /UniqueID 1 def
+  /PaintType 0 def
+  /FontName (Hebrew-Standard) def
+end
+/Hebrew-Standard exch definefont pop
+
+
+
+%% END
+
+
+
+/Times-Roman findfont 50 scalefont setfont
+20 700 moveto (abc) show
+newpath 160 700 moveto (abc) false charpath 2 setlinewidth stroke
+
+/Hebrew-Standard findfont 25 scalefont setfont
+300 600 moveto (abc) show
+newpath 200 600 moveto (abc) false charpath 2 setlinewidth stroke
+
+/Symbol findfont 50 scalefont setfont
+20 500 moveto (abc) show
+newpath 160 500 moveto (abc) false charpath 2 setlinewidth stroke
+
+/Hershey-Gothic-English findfont 50 scalefont setfont
+20 400 moveto (ABC) show
+newpath 160 400 moveto (ABC) false charpath 2 setlinewidth stroke
+	
+
+showpage

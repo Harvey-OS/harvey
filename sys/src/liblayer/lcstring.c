@@ -68,12 +68,12 @@ lcstring(Bitmap *db, int height, int nwidth, uchar *width, uchar *s, int nindex)
 		 * is required.
 		 */
 		for(cover=dl->cover->layer; ; cover=cover->cover->layer){
-			if(cover->vis != Visible)
-				break;
 			if(cover->cache == 0){
 				db = cover;
 				goto Easy;
 			}
+			if(cover->vis != Visible)
+				break;
 		}
 	/*
 	 * Either dl or one of the covering layers is not Visible.

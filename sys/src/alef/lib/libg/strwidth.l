@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 enum
 {
@@ -7,7 +7,7 @@ enum
 };
 
 int
-strwidth(Font *f, char *s)
+strwidth(Font *f, byte *s)
 {
 	int wid, twid, n;
 	usint cbuf[Max];
@@ -25,7 +25,7 @@ strwidth(Font *f, char *s)
 }
 
 Point
-strsize(Font *f, char *s)
+strsize(Font *f, byte *s)
 {
 	return Pt(strwidth(f, s), f->height);
 }

@@ -1,0 +1,140 @@
+{ sqrt } settransfer
+
+%!
+% grayscaled text test, including a trivial user bitmap font
+
+/inch {72 mul} def
+
+/BuildCharDict 10 dict def
+/$ExampleFont 7 dict def
+$ExampleFont begin
+  /FontType 3 def % user defined font.
+  /FontMatrix [1 0 0 1 0 0] def
+  /FontBBox [0 0 1 1] def
+  /Encoding 256 array def
+  0 1 255 {Encoding exch /.notdef put} for
+  Encoding (a) 0 get /plus put
+  /CharStrings 2 dict def
+  CharStrings /.notdef {} put
+  CharStrings /plus
+    { gsave
+      0 0 moveto
+      32 32 true [32 0 0 -32 0 32]
+    {<0007E000 0007E000 0007E000 0007E000 0007E000 0007E000 0007E000 0007E000
+      0007E000 0007E000 0007E000 0007E000 0007E000 FFFFFFFF FFFFFFFF FFFFFFFF
+      FFFFFFFF FFFFFFFF FFFFFFFF 0007E000 0007E000 0007E000 0007E000 0007E000
+      0007E000 0007E000 0007E000 0007E000 0007E000 0007E000 0007E000 0007E000>
+      } imagemask
+      grestore
+    } put
+  /BuildChar
+    { BuildCharDict begin
+        /char exch def
+        /fontdict exch def
+        /charproc
+          fontdict /Encoding get char get
+          fontdict /CharStrings get
+          exch get def
+        1 0 0 0 1 1 setcachedevice 
+        charproc
+      end
+    } def
+end
+
+/MyFont $ExampleFont definefont pop
+
+/drawbitfont
+  { gsave
+      newpath
+        4.5 inch 1 inch moveto
+        3.5 inch 0 rlineto
+        0 6 inch rlineto
+        -3.5 inch 0 rlineto
+      closepath
+        .5 inch 7.5 inch moveto
+        7.5 inch 0 rlineto
+        0 1.5 inch rlineto
+        -7.5 inch 0 rlineto
+      closepath
+      0 setgray
+      fill
+
+      /MyFont findfont 72 scalefont setfont
+      .75 inch 7.75 inch moveto
+      0 1 6
+        { /n exch def
+          1 n 6 div sub setgray
+          (a) show
+        } for
+
+      /MyFont findfont 12 scalefont setfont
+      4.5 inch 1 inch translate
+      0 1 10
+        { /n exch def
+          .25 inch n 2 div 0.5 add inch moveto
+          1 n 10 div sub setgray
+          (aaaaaaaaaaaaaaaaa) show
+        } for
+    grestore
+  } def
+
+/graychars
+  { gsave
+    /Times-Roman findfont 12 scalefont setfont
+    .5 inch 1 inch translate
+    0 1 10
+      { /n exch def
+        .25 inch n 2 div 0.5 add inch moveto
+        1 n 10 div sub setgray
+        (ABCDEFGHIJKLMNOPQRSTUVWXYZ) show
+      } for
+    grestore
+  } def
+
+/11graychars	% takes <llx> <lly>
+  { gsave
+      /Times-Roman findfont 72 scalefont setfont
+      translate
+      0 0 moveto
+      0 1 10
+        { /n exch def
+          1 n 10 div sub setgray
+          ( ) dup 0 n 65 add put show
+        } for
+    grestore
+  } def
+
+/graystrip	% takes <llx> <lly>, prints 1 inch thick gray strip
+  { gsave
+      translate
+      newpath
+        0 0 moveto
+        7.5 inch 0 rlineto
+        0 1 inch rlineto
+        -7.5 inch 0 rlineto
+      closepath
+      0.5 setgray
+      fill
+    grestore
+  } def
+
+/charsongray
+   { gsave
+       newpath
+         0.5 inch 1 inch moveto
+         3.5 inch 0 rlineto
+         0 6 inch rlineto
+         -3.5 inch 0 rlineto
+         0 -6 inch rlineto
+       0.5 setgray
+       closepath fill
+       newpath
+       graychars
+     grestore
+   } def
+
+ 0.5 inch 9.5 inch graystrip
+ 0.8 inch 9.67 inch 11graychars
+ charsongray
+drawbitfont
+showpage

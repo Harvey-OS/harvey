@@ -5,7 +5,7 @@ dev
 	dup	d
 	pipe	|
 	proc	p
-	mux	s
+	srv	s
 	mnt	M
 	hs	h
 	dk	k
@@ -18,12 +18,12 @@ dev
 	rtc	r
 	scsi	S	scsi scsibuf
 	wren	w
+	reboot	↑
 
 stream
 	urp
 	ip
 	fcall
-	reboot
 
 port
 	int cpuserver = 1;

@@ -45,7 +45,7 @@ main(int argc, char **argv)
 	if(write(i, p, strlen(p)) != strlen(p))
 		error("sysname");
 	close(i);
-	print("%s\n", p);
+	print("swap: %s\n", p);
 
 	cswfd = open("/dev/swap", OWRITE);
 	if(cswfd < 0)
@@ -54,6 +54,7 @@ main(int argc, char **argv)
 	j = sprint(buf, "%d", swapfd);
 	if(write(cswfd, buf, j) != j)
 		error("write: /dev/swap");
+	exits(0);
 }
 
 void

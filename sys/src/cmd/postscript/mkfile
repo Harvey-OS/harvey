@@ -1,0 +1,60 @@
+</$objtype/mkfile
+
+MAKE=mk
+
+SYSTEM=plan9
+VERSION=3.3.1
+
+POSTBIN=$ROOT/$objtype/bin/aux
+DKHOST=FALSE
+DKSTREAMS=FALSE
+ROUNDPAGE=TRUE
+
+#
+# $(TARGETS) is the default list of things built by make.
+#
+# buildtables
+
+TARGETS=common\
+	cropmarks\
+	download\
+	grabit\
+	hardcopy\
+	mpictures\
+	postgif\
+	postprint\
+	postreverse\
+	posttek\
+	printfont\
+	psencoding\
+	psfiles\
+	g3p9bit\
+	p9bitpost\
+	tcpostio\
+	text2post\
+	tr2post
+
+# UNIX remnants
+#	dpost.norm\
+#	trofftable\
+#	picpack\
+#	postbgi\
+#	postdaisy\
+#	postdmd\
+#	postmd
+#	postio
+
+default:V:	all
+
+all installall install clean nuke:VQ:
+	flag e -	# ignore error of directory not existing! (td bug)
+	if (! test -d $POSTBIN) mkdir $POSTBIN
+	for (i in $TARGETS) @{
+		echo ---- Making $target in $i ----;
+		cd $i;
+		mk $target
+	}
+
+$TARGETS:V:
+	cd $target
+	mk all

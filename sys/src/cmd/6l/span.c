@@ -113,30 +113,39 @@ void
 putsymb(char *s, int t, long v, int ver)
 {
 	int i, f;
-	char str[STRINGSZ];
 
 	if(t == 'f')
 		s++;
 	lput(v);
 	if(ver)
 		t += 'a' - 'A';
-	CPUT(t);
-	for(i=0; i<NNAME; i++)
-		CPUT(s[i]);
-	CPUT(0);
-	CPUT(0);
-	CPUT(0);
-	symsize += 4 + 1 + NNAME + 3;
+	CPUT(t+0x80);			/* 0x80 is variable length */
+
+	if(t == 'Z' || t == 'z') {
+		CPUT(s[0]);
+		for(i=1; s[i] != 0 || s[i+1] != 0; i += 2) {
+			CPUT(s[i]);
+			CPUT(s[i+1]);
+		}
+		CPUT(0);
+		CPUT(0);
+		i++;
+	}
+	else {
+		for(i=0; s[i]; i++)
+			CPUT(s[i]);
+		CPUT(0);
+	}
+	symsize += 4 + 1 + i + 1;
+
 	if(debug['n']) {
 		if(t == 'z' || t == 'Z') {
-			str[0] = 0;
-			for(i=1; i<NNAME; i+=2) {
+			Bprint(&bso, "%c %.8lux ", t, v);
+			for(i=1; s[i] != 0 || s[i+1] != 0; i+=2) {
 				f = ((s[i]&0xff) << 8) | (s[i+1]&0xff);
-				if(f == 0)
-					break;
-				sprint(strchr(str, 0), "/%x", f);
+				Bprint(&bso, "/%x", f);
 			}
-			Bprint(&bso, "%c %.8lux %s\n", t, v, str);
+			Bprint(&bso, "\n");
 			return;
 		}
 		if(ver)
@@ -153,7 +162,6 @@ asmsym(void)
 	Auto *a;
 	Sym *s;
 	int h;
-	char name[NNAME];
 
 	s = lookup("etext", 0);
 	if(s->type == STEXT)
@@ -194,8 +202,7 @@ asmsym(void)
 			putsymb(s->name, 'L', s->value, s->version);
 
 		/* frame, auto and param after */
-		strncpy(name, ".frame", NNAME);
-		putsymb(name, 'm', p->to.offset+4, 0);
+		putsymb(".frame", 'm', p->to.offset+4, 0);
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_AUTO)
 				putsymb(a->sym->name, 'a', -a->offset, 0);

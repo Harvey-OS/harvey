@@ -45,7 +45,6 @@ static Dirtab rtcdir[]={
 };
 #define	NRTC	(sizeof(rtcdir)/sizeof(rtcdir[0]))
 void	setrtc(Rtc*);
-long	rtctime(void);
 
 void
 rtcreset(void)
@@ -220,7 +219,7 @@ setrtc(Rtc *rtc)
 	dev = nvr.rtc;
 	dev->control |= RTCWRITE;
 	wbflush();
-	dev->year = dec2bcd(rtc->year % 100);
+	dev->year = dec2bcd(rtc->year - 1968);	/* to be the compatible with sun */
 	dev->mon = dec2bcd(rtc->mon);
 	dev->mday = dec2bcd(rtc->mday);
 	dev->hour = dec2bcd(rtc->hour);
@@ -245,19 +244,12 @@ rtctime(void)
 	rtc.hour = bcd2dec(dev->hour & 0x3F);
 	rtc.mday = bcd2dec(dev->mday & 0x3F);
 	rtc.mon = bcd2dec(dev->mon & 0x3F);
-	rtc.year = bcd2dec(dev->year);
+	rtc.year = bcd2dec(dev->year) + 1968;	/* sun compatability */
 	dev->control &= ~RTCREAD;
 	wbflush();
 
 	if (rtc.mon < 1 || rtc.mon > 12)
 		return 0;
-	/*
-	 *  the world starts Jan 1 1970
-	 */
-	if(rtc.year < 70)
-		rtc.year += 2000;
-	else
-		rtc.year += 1900;
 
 	return rtc2sec(&rtc);
 }

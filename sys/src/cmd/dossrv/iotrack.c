@@ -279,7 +279,7 @@ iotrack_init(void)
 		p->hprev = p->hnext = p;
 		p->prev = p->next = p;
 		TOFRONT(mp, p);
-		p->tp = malloc(sizeof(Track));
+		p->tp = sbrk(sizeof(Track));
 		memset(p->tp->p, 0, sizeof p->tp->p);
 	}
 }

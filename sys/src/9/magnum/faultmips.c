@@ -23,7 +23,7 @@ faultmips(Ureg *ur, int user, int code)
 	addr &= ~(BY2PG-1);
 	read = !(code==CTLBM || code==CTLBS);
 
-/* print("fault %s pc=0x%lux addr=0x%lux", read? "read" : "write", ur->pc, ur->badvaddr); /**/
+/* print("fault %s pc=0x%lux addr=0x%lux\n", read? "read" : "write", ur->pc, ur->badvaddr); /**/
 
 	if(fault(addr, read) < 0){
 		if(user){

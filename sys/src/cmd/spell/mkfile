@@ -8,7 +8,7 @@ HFILES =\
 
 BIN=/$objtype/bin/aux
 </sys/src/cmd/mkone
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 
 all:V:	lib 
 

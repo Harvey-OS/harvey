@@ -41,7 +41,7 @@ enum
 
 static int	lptready(void*);
 static void	outch(int, int);
-static void	lptintr(Ureg*);
+static void	lptintr(Ureg*, void*);
 
 static Rendez	lptrendez;
 
@@ -74,7 +74,6 @@ lptgen(Chan *c, Dirtab *tab, int ntab, int i, Dir *dp)
 void
 lptreset(void)
 {
-	setvec(Parallelvec, lptintr);
 }
 
 void
@@ -86,7 +85,12 @@ lptattach(char *spec)
 {
 	Chan *c;
 	int i  = (spec && *spec) ? strtol(spec, 0, 0) : 1;
+	static int set;
 
+	if(!set){
+		set = 1;
+		setvec(Parallelvec, lptintr, 0);
+	}
 	if(i < 1 || i > NDEV)
 		error(Ebadarg);
 	c = devattach('L', spec);
@@ -193,13 +197,18 @@ lptwrite(Chan *c, void *a, long n)
 static void
 outch(int base, int c)
 {
-	int status = inb(base+Qpsr);
+	int status, tries;
 
-	if(!(status & Fselect) || !(status & Fnoerror))
-		error(Eio);
-	if(!(status & Fnotbusy)){
-		outb(base+Qpcr, Finitbar|Fie);
-		sleep(&lptrendez, lptready, (void *)base);
+	for(tries = 0;; tries++){
+		status = inb(base+Qpsr);
+		if(!(status & Fselect) || !(status & Fnoerror))
+			error(Eio);
+		if(status & Fnotbusy)
+			break;
+		if(tries > 1000){
+			outb(base+Qpcr, Finitbar|Fie);
+			tsleep(&lptrendez, lptready, (void *)base, MS2HZ);
+		}
 	}
 	outb(base+Qdlr, c);
 	outb(base+Qpcr, Finitbar|Fstrobe);
@@ -213,8 +222,8 @@ lptready(void *base)
 }
 
 static void
-lptintr(Ureg *ur)
+lptintr(Ureg *ur, void *a)
 {
-	USED(ur);
+	USED(ur, a);
 	wakeup(&lptrendez);
 }

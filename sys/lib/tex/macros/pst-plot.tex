@@ -1,0 +1,642 @@
+%% BEGIN pst-plot.tex
+\def\fileversion{0.93a-patch2}
+\def\filedate{94/09/19}
+%%
+%% This is for use with PSTricks v0.93a, but contains several
+%% patches for bugs in the pst-plot.tex that was distributed
+%% with v0.93a until March 30, 1994.
+%%
+%% For plots and axes with PSTricks.
+%%
+%% COPYRIGHT 1993, by Timothy Van Zandt, tvz@Princeton.EDU
+%% See pstricks.doc or pstricks.tex for copying restrictions.
+%%
+%% See the PSTricks read-me file and the User's Guide for documentation.
+
+
+\message{ v\fileversion, \filedate}
+
+\csname PSTplotLoaded\endcsname
+\let\PSTplotLoaded\endinput
+
+\ifx\PSTricksLoaded\endinput\else
+  \def\next{\input pstricks.tex }
+  \expandafter\next
+\fi
+
+\ifx\MultidoLoaded\endinput\else
+  \def\next{\input multido.tex }
+  \expandafter\next
+\fi
+
+\edef\TheAtCode{\the\catcode`\@}
+\catcode`\@=11
+
+% Using lists of data is optimized for \dataplot and \fileplot
+% Here is the tricky part. As each line is read from file,
+% we want to ignore trailing delimiters, and convert arbitrary
+% strings of non-trailing delimiters to _D_.
+% We end up with
+%   D x1 D y1 D x2 D y2 ... D xn D yn
+%
+\begingroup
+\catcode`\{=13
+\catcode`\}=13
+\catcode`\(=13
+\catcode`\)=13
+\catcode`\,=13
+\catcode`\!=1
+\catcode`\*=2
+\catcode`\ =13
+\catcode`\_=13
+\catcode`\^^M=13
+\gdef\pst@datadelimiters!% Begin def
+\catcode`\{=13%
+\catcode`\}=13%
+\catcode`\(=13%
+\catcode`\)=13%
+\catcode`\,=13%
+\catcode`\ =13%
+\catcode`\^^M=13%
+\def,##1!%
+\ifcat\noexpand,\noexpand##1%
+\expandafter##1%
+\else\space%
+D\space##1%
+\fi*%
+\let(,\let),\let{,\let},\let ,\let^^M,\let_\@empty*% End def
+\endgroup
+\begingroup
+\catcode`\,=13
+\catcode`\_=13
+\gdef\savedata@#1[#2]{%
+  \xdef\pst@tempg{#2_}%
+  \endgroup
+  \let#1\pst@tempg
+  \global\let\pst@tempg\relax
+  \ignorespaces}
+\gdef\readdata@{%
+  \read1 to \pst@tempa
+  \expandafter\readdata@@\pst@tempa_\@nil
+  \ifeof1\else\expandafter\readdata@\fi}
+\gdef\pst@@readfile#1#2\@nil{\addto@pscode{,#1#2}}%
+\gdef\readdata@@#1#2\@nil{\xdef\pst@tempg{\pst@tempg,#1#2}}%
+\endgroup
+
+\def\readdata#1#2{%
+  \openin1=#2
+  \begingroup
+  \def\pst@tempg{}%
+  \ifeof1
+    \@pstrickserr{Data file `#2' not found.}\@ehpa
+  \else
+    \pst@datadelimiters
+    \catcode`\[=1
+    \catcode`\]=2
+    \readdata@%
+  \fi
+  \endgroup
+  \let#1\pst@tempg
+  \global\let\pst@tempg\relax
+  \ignorespaces}
+
+\def\pst@readfile#1{{\let\readdata@@\pst@@readfile\readdata\pst@tempg{#1}}}
+\def\pst@altreadfile#1{%
+  \openin1=#1
+  \ifeof1
+    \@pstrickserr{Data file `#1' not found.}\@ehpa
+  \else
+    \catcode`\{=10
+    \catcode`\}=10
+    \catcode`\(=10
+    \catcode`\)=10
+    \catcode`\,=10
+    \catcode`\^^M=10
+    \catcode`\[=1
+    \catcode`\]=2
+    \pst@@altreadfile
+  \fi}
+\def\pst@@altreadfile{%
+  \read1 to \pst@tempg
+  \expandafter\pst@@@altreadfile\pst@tempg\@empty\@nil
+  \ifeof1\else\expandafter\pst@@@altreadfile\fi}
+\def\pst@@@altreadfile#1#2\@nil{\addto@pscode{#1#2}}%
+
+\def\savedata#1{\begingroup\pst@datadelimiters\savedata@{#1}}
+
+\def\beginplot@line{\begin@OpenObj}
+\def\endplot@line{\psline@ii}
+\def\beginplot@polygon{\begin@ClosedObj}
+\def\endplot@polygon{\pspolygon@ii}
+\def\beginplot@curve{\begin@OpenObj}
+\def\endplot@curve{\pscurve@ii}
+\def\beginplot@ecurve{\begin@OpenObj}
+\def\endplot@ecurve{\psecurve@ii}
+\def\beginplot@ccurve{\begin@ClosedObj}
+\def\endplot@ccurve{\psccurve@ii}
+\def\beginplot@dots{\begin@SpecialObj}
+\def\endplot@dots{\psdots@ii}
+\def\beginplot@bezier{\begin@OpenObj}
+\def\endplot@line{\psbezier@ii}
+\def\beginplot@cbezier{\begin@ClosedObj}
+\def\endplot@cbezier{\pscbezier@ii}
+
+\def\psset@plotstyle#1{%
+  \@ifundefined{beginplot@#1}%
+    {\@pstrickserr{Plot style `#1' not defined}\@eha}%
+    {\edef\psplotstyle{#1}}}
+\psset@plotstyle{line}
+
+\def\psset@plotpoints#1{%
+  \pst@cntg=#1\relax
+  \ifnum\pst@cntg<2
+    \@pstrickserr{plotpoints parameter must be at least 2}\@ehpa
+  \else
+    \advance\pst@cntg-1
+    \edef\psk@plotpoints{\the\pst@cntg\space}%
+  \fi}
+\psset@plotpoints{50}
+
+% For quick plots, define:
+%   \beginqp@<foo>   : What to do to first point (PS code only).
+%   \doqp@<foo>      : What to do to subsequent points (PS code only).
+%   \endqp@<foo>     : How to end plot.
+%   \testqp@<foo>    : Set \@psttrue if OK to use quick plot.
+
+\def\beginqp@line{\pst@oplineto}
+\def\doqp@line{L }
+\def\endqp@line{\end@OpenObj}%
+\def\testqp@line{%
+  \ifdim\pslinearc>\z@\else
+    \ifshowpoints\else
+      \ifx\psk@arrowA\@empty
+        \ifx\psk@arrowB\@empty
+          \@psttrue
+        \fi
+      \fi
+    \fi
+  \fi}
+
+\def\beginqp@polygon{moveto }
+\def\doqp@polygon{L }
+\def\endqp@polygon{%
+  \addto@pscode{closepath}%
+  \end@ClosedObj}
+\def\testqp@polygon{%
+  \ifdim\pslinearc>\z@\else
+    \ifshowpoints\else
+      \@psttrue
+    \fi
+  \fi}
+
+\def\beginqp@dots{%
+  \psk@dotsize
+  \@nameuse{psds@\psk@dotstyle}
+  Dot }
+\def\doqp@dots{Dot }
+\def\endqp@dots{\end@SpecialObj}
+\def\testqp@dots{\@psttrue}
+
+\def\beginqp@bezier{/n 0 def \pst@oplineto}
+\def\doqp@bezier{/n n 1 add def n 3 mod 0 eq { curveto } if }
+\def\endqp@bezier{%
+  \addto@pscode{n 3 mod { pop pop } repeat}
+  \end@OpenObj}%
+\def\testqp@bezier{%
+  \ifshowpoints\else
+    \ifx\psk@arrowA\@empty
+      \ifx\psk@arrowB\@empty
+        \@psttrue
+      \fi
+    \fi
+  \fi}
+
+\def\beginqp@cbezier{/n 0 def moveto }
+\def\doqp@cbezier{\doqp@bezier}
+\def\endqp@cbezier{%
+  \addto@pscode{n 3 mod { pop pop } repeat closepath}
+  \end@ClosedObj}%
+\def\testqp@cbezier{\ifshowpoints\else\@psttrue\fi}
+
+\def\dataplot{\def\pst@par{}\pst@object{dataplot}}
+\def\dataplot@i#1{%
+  \pst@killglue
+  \begingroup
+    \use@par
+    \@pstfalse
+    \@nameuse{testqp@\psplotstyle}%
+    \if@pst
+      \dataplot@ii{\addto@pscode{#1}}%
+    \else
+      \listplot@ii{\addto@pscode{#1}}%
+    \fi
+  \endgroup
+  \ignorespaces}
+\def\dataplot@ii#1{%
+  \@nameuse{beginplot@\psplotstyle}%
+    \addto@pscode{%
+      /Dx { \pst@number\psxunit mul /D { Dy } def } def
+      /Dy { \pst@number\psyunit mul Do /D { Dx } def } def
+      /D { /D { Dx } def } def
+      /Do {
+        \@nameuse{beginqp@\psplotstyle}%
+        /Do { \@nameuse{doqp@\psplotstyle}} def
+      } def}%
+    #1%
+    \addto@pscode{D}%
+  \@nameuse{endqp@\psplotstyle}}
+
+\def\fileplot{\def\pst@par{}\pst@object{fileplot}}
+\def\fileplot@i#1{%
+  \pst@killglue
+  \begingroup
+    \use@par
+    \@pstfalse
+    \@nameuse{testqp@\psplotstyle}%
+    \if@pst
+      \dataplot@ii{\pst@readfile{#1}}%
+    \else
+      \listplot@ii{\pst@altreadfile{#1}}%
+    \fi
+  \endgroup
+  \ignorespaces}
+
+\pst@def{ScalePoints}<%
+  /y ED /x ED
+  counttomark dup dup cvi eq not { exch pop } if
+  /m exch def /n m 2 div cvi def
+  n { y mul m 1 roll x mul m 1 roll /m m 2 sub def } repeat>
+
+\def\listplot{\def\pst@par{}\pst@object{listplot}}
+\def\listplot@i#1{\listplot@ii{\addto@pscode{#1}}}
+\def\listplot@ii#1{%
+  \@nameuse{beginplot@\psplotstyle}%
+    \addto@pscode{/D {} def mark}%
+    #1%
+    \addto@pscode{\pst@number\psxunit \pst@number\psyunit \tx@ScalePoints}%
+  \@nameuse{endplot@\psplotstyle}}
+
+% \psplot
+
+\def\psplotinit#1{\xdef\psplot@init{#1 }}
+\def\psplot@init{}
+
+\def\psplot{\def\pst@par{}\pst@object{psplot}}
+\def\psplot@i#1#2#3{%
+  \pst@killglue
+  \begingroup
+    \use@par
+    \@nameuse{beginplot@\psplotstyle}%
+    \addto@pscode{%
+      \psplot@init
+      /x #1 def
+      /x1 #2 def
+      /dx x1 x sub \psk@plotpoints div def
+      /xy {
+        x \pst@number\psxunit mul
+        #3 \pst@number\psyunit mul
+      } def}%
+    \gdef\psplot@init{}%
+    \@pstfalse
+    \@nameuse{testqp@\psplotstyle}%
+    \if@pst
+      \psplot@ii
+    \else
+      \psplot@iii
+    \fi
+  \endgroup
+  \ignorespaces}
+\def\psplot@ii{%
+    \addto@pscode{%
+      xy \@nameuse{beginqp@\psplotstyle}
+      \psk@plotpoints 1 sub {
+        /x x dx add def
+        xy \@nameuse{doqp@\psplotstyle}
+      } repeat
+      /x x1 def
+      xy \@nameuse{doqp@\psplotstyle}}%
+  \@nameuse{endqp@\psplotstyle}}
+\def\psplot@iii{%
+    \addto@pscode{%
+      mark
+      /n 2 def
+      \psk@plotpoints {
+        xy
+        n 2 roll
+        /n n 2 add def
+        /x x dx add def
+      } repeat
+      /x x1 def
+      xy
+      n 2 roll}%
+  \@nameuse{endplot@\psplotstyle}}
+
+\def\parametricplot{\def\pst@par{}\pst@object{parametricplot}}
+\def\parametricplot@i#1#2#3{%
+  \pst@killglue
+  \begingroup
+    \use@par
+    \@nameuse{beginplot@\psplotstyle}%
+    \addto@pscode{%
+      \psplot@init
+      /t #1 def
+      /t1 #2 def
+      /dt t1 t sub \psk@plotpoints div def
+      /xy {
+        #3
+        \pst@number\psyunit mul exch
+        \pst@number\psxunit mul exch
+      } def}%
+    \gdef\psplot@init{}%
+    \@pstfalse
+    \@nameuse{testqp@\psplotstyle}%
+    \if@pst
+      \parametricplot@ii
+    \else
+      \parametricplot@iii
+    \fi
+  \endgroup
+  \ignorespaces}
+\def\parametricplot@ii{%
+    \addto@pscode{%
+      xy \@nameuse{beginqp@\psplotstyle}
+      \psk@plotpoints 1 sub {
+        /t t dt add def
+        xy \@nameuse{doqp@\psplotstyle}
+      } repeat
+      /t t1 def
+      xy \@nameuse{doqp@\psplotstyle}}%
+  \@nameuse{endqp@\psplotstyle}}
+\def\parametricplot@iii{%
+    \addto@pscode{%
+      mark
+      /n 2 def
+      \psk@plotpoints {
+        xy
+        n 2 roll
+        /n n 2 add def
+        /t t dt add def
+      } repeat
+      /t t1 def
+      xy
+      n 2 roll}%
+  \@nameuse{endplot@\psplotstyle}}
+
+% These axes macros are complicated. Be careful.
+
+% \pst@ticks{angle}{dx}{n}{int}
+% int=1 if ticks appear on top of axes, 0 otherwise.
+\def\pst@ticks#1#2#3#4{%
+  \begin@SpecialObj
+    \addto@pscode{%
+      #1 rotate
+      /n #3 def
+      /dx #2 def
+      n 0 lt { /dx dx neg def /n n neg def } if
+      /y2 \psk@ticksize CLW 2 div add def
+      /y1 y2 neg def
+      \ifnum\psk@tickstyle=1
+        \ifdim#4<\z@ /y2 \else /y1 \fi 0 def
+      \else
+        \ifnum\psk@tickstyle=-1
+          \ifdim#4<\z@ /y1 \else /y2 \fi 0 def
+        \fi
+      \fi
+      /x dx def
+      n { x y1 moveto x y2 lineto stroke /x x dx add def } repeat}%
+  \end@SpecialObj}
+
+
+\def\psset@ticksize#1{\pst@getlength{#1}\psk@ticksize}
+\psset@ticksize{3pt}
+
+\def\psset@tickstyle#1{\pst@expandafter\psset@@tickstyle{#1}\@nil}
+\def\psset@@tickstyle#1#2\@nil{%
+  \ifx#1f\let\psk@tickstyle\z@\else
+    \ifx#1t\let\psk@tickstyle\@ne\else
+      \ifx#1b\let\psk@tickstyle\m@ne\else
+        \@pstrickserr{Bad tick style: `#1#2'}\@ehpa
+  \fi\fi\fi}
+\psset@tickstyle{full}
+
+\def\psset@ticks#1{\pst@expandafter\psset@@ticks{#1}\@nil\psk@ticks}
+\def\psset@@ticks#1#2\@nil#3{%
+  \ifx#1a\let#3\z@\else
+    \ifx#1x\let#3\@ne\else
+      \ifx#1y\let#3\tw@\else
+        \ifx#1n\let#3\thr@@\else
+          \@pstrickserr{Bad argument: `#1#2'}\@ehpa
+  \fi\fi\fi\fi}
+\psset@ticks{all}
+
+\def\psset@labels#1{\pst@expandafter\psset@@ticks{#1}\@nil\psk@labels}
+\psset@labels{all}
+
+\def\psset@Ox#1{\edef\psk@Ox{#1}}
+\psset@Ox{0}
+\def\psset@Dx#1{\edef\psk@Dx{#1}}
+\psset@Dx{1}
+\def\psset@dx#1{%
+  \pssetxlength\pst@dimg{#1}%
+  \edef\psk@dx{\number\pst@dimg}}
+\psset@dx{0}
+
+\def\psset@Oy#1{\edef\psk@Oy{#1}}
+\psset@Oy{0}
+\def\psset@Dy#1{\edef\psk@Dy{#1}}
+\psset@Dy{1}
+\def\psset@dy#1{%
+  \pssetylength\pst@dimg{#1}%
+  \edef\psk@dy{\number\pst@dimg}}
+\psset@dy{0}
+
+\newif\ifshoworigin
+\def\psset@showorigin#1{\@nameuse{showorigin#1}}
+\psset@showorigin{true}
+
+
+\def\psaxes{\def\pst@par{}\pst@object{psaxes}}
+\def\psaxes@i{\pst@getarrows\psaxes@ii}
+\def\psaxes@ii(#1){\@ifnextchar({\psaxes@iii(#1)}{\psaxes@iv(0,0)(0,0)(#1)}}
+\def\psaxes@iii(#1)(#2){%
+  \@ifnextchar(%
+    {\psaxes@iv(#1)(#2)}%
+    {\psaxes@iv(#1)(#1)(#2)}}
+\def\psaxes@iv(#1,#2)(#3,#4)(#5,#6){%
+  \setbox\pst@hbox=\hbox\bgroup
+    \use@par
+    \pssetxlength\pst@dimg{#1}% o-x
+    \pssetylength\pst@dimh{#2}% o-y
+    \pssetxlength\pst@dima{#3}% bl-x
+    \pssetylength\pst@dimb{#4}% bl-y
+    \pssetxlength\pst@dimc{#5}% ur-x
+    \pssetylength\pst@dimd{#6}% ur-y
+% Whole thing will be translated to origin:
+    \advance\pst@dima-\pst@dimg % Dist. from bl-x to o-x
+    \advance\pst@dimb-\pst@dimh % Dist. from bl-y to o-y
+    \advance\pst@dimc-\pst@dimg % Dist. from ur-x to o-x
+    \advance\pst@dimd-\pst@dimh % Dist. from ur-y to o-y
+% Make lines/arrows or frame:
+    \@nameuse{psxs@\psk@axesstyle}%
+% "\pslabelsep" should be from the edge of the axis.
+    \advance\pslabelsep.5\pslinewidth
+% Now the ticks and labels. Start by checking for "\multido".
+% !!Need to fix this so that does nothing when there are 0 ticks.!!
+    \begingroup
+      \ifdim\pst@dimb=\z@\else\showoriginfalse\fi
+      \ifnum\psk@dx=\z@
+        \pst@dimg=\psk@Dx\psxunit
+        \edef\psk@dx{\number\pst@dimg}%
+      \fi
+      \ifnum\psk@ticks<\tw@
+        \ifnum\psk@tickstyle>\z@\else
+          \advance\pslabelsep\psk@ticksize\p@
+        \fi
+      \fi
+      \pst@hlabels\pst@dimc\psk@arrowB
+      \pst@hlabels\pst@dima\psk@arrowA
+    \endgroup
+    \begingroup
+      \ifdim\pst@dima=\z@\else\showoriginfalse\fi
+      \ifnum\psk@dy=\z@
+         \pst@dimg=\psk@Dy\psyunit
+         \edef\psk@dy{\number\pst@dimg}%
+      \fi
+      \ifodd\psk@ticks\else
+        \ifnum\psk@tickstyle>\z@\else
+          \advance\pslabelsep\psk@ticksize\p@
+        \fi
+      \fi
+      \pst@vlabels\pst@dimd\psk@arrowB
+      \pst@vlabels\pst@dimb\psk@arrowA
+    \endgroup
+% Now close "\pst@hbox" (which is 0-dimensional), and put it at the origin.
+  \egroup
+  \pssetxlength\pst@dimg{#1}%
+  \pssetylength\pst@dimh{#2}%
+  \leavevmode\psput@cartesian\pst@hbox
+  \ignorespaces}
+
+\def\psxs@axes{%
+  \psxs@@axes\pst@dima\pst@dimc{}%
+  \psxs@@axes\pst@dimb\pst@dimd{exch}}
+\def\psxs@@axes#1#2#3{%
+  \begin@SpecialObj
+    \ifdim#1=\z@
+      \def\psk@arrowA{C}%
+    \else
+      \ifdim#2=\z@
+        \def\psk@arrowB{C}%
+      \fi
+    \fi
+    \let\pst@linetype\pst@arrowtype
+    \pst@addarrowdef
+    \addto@pscode{%
+      \pst@number#2 0 #3
+      \pst@number#1 0 #3
+      ArrowA
+      CP 4 2 roll
+      ArrowB
+      L
+      pop pop}%
+    \pst@stroke
+  \end@SpecialObj}
+
+\def\psxs@frame{%
+  \begin@SpecialObj
+    \addto@pscode{%
+      0 0 moveto \pst@number\pst@dimc 0 L
+      0 \pst@number\pst@dimd 2 copy rlineto L closepath}%
+    \pst@stroke
+    \pst@fill
+  \end@SpecialObj
+  \let\psk@arrowA\@empty
+  \let\psk@arrowB\@empty}
+
+\def\psset@axesstyle#1{%
+  \@ifundefined{psxs@#1}%
+    {\@pstrickserr{Axes style `#1' not defined}\@eha}%
+    {\edef\psk@axesstyle{#1}}}
+\psset@axesstyle{axes}
+\def\psxs@none{\let\psk@arrowA\@empty\let\psk@arrowB\@empty}
+
+% The origin is never the only label.
+\def\pst@hlabels#1#2{%
+  \ifdim#1=\z@\else
+    \ifx#2\empty\else
+      \advance#1\ifdim#1>\z@-\fi7\pslinewidth
+    \fi
+    \pst@cnta=#1\relax                % Distance (in sp) to end.
+    \divide\pst@cnta\psk@dx\relax     % Number of ticks/labels
+    \ifnum\pst@cnta=\z@\else
+      \pst@dimb=\psk@dx sp            % Space between ticks.
+      \ifnum\psk@ticks<\tw@
+        \pst@ticks{0}{\pst@number\pst@dimb}{\the\pst@cnta}{\pst@dimd}%
+      \fi
+      \ifnum\psk@labels<\tw@ \pst@@hlabels\fi
+      \showoriginfalse
+    \fi
+  \fi}
+
+% Knows \pst@dimb and \pst@cnta
+\def\pst@@hlabels{%
+  \vbox to\z@{%
+    \ifdim\pst@dimd>\z@\vskip\pslabelsep\else\vss\fi
+    \ifnum\pst@cnta<\z@
+      \pst@dimb=-\pst@dimb
+    \fi
+    \hbox to\z@{%
+      \ifshoworigin\hbox to \z@{\hss\pshlabel{\psk@Ox}\hss}\fi
+      \mmultido
+        {\n=\psk@Ox+\psk@Dx}%
+        {\pst@cnta}%
+        {\hskip\pst@dimb\hbox to \z@{\hss\pshlabel{\n}\hss}}%
+      \hss}%
+    \ifdim\pst@dimd>\z@\vss\else\vskip\pslabelsep\fi}}%
+
+\def\pshlabel#1{$#1$}
+
+\def\pst@vlabels#1#2{%
+  \ifdim#1=\z@\else
+    \ifx#2\empty\else
+      \advance#1\ifdim#1>\z@-\fi7\pslinewidth
+    \fi
+    \pst@cnta=#1\relax                % Distance (in sp) to end.
+    \divide\pst@cnta\psk@dy\relax     % Number of ticks/labels
+    \ifnum\pst@cnta=\z@\else
+      \pst@dima=\psk@dy sp            % Space between ticks.
+      \ifodd\psk@ticks\else
+        \pst@ticks{90}{\pst@number\pst@dima}{\the\pst@cnta}{-\pst@dimc}%
+      \fi
+      \ifodd\psk@labels\else\pst@@vlabels\fi
+      \showoriginfalse
+    \fi
+  \fi}
+
+% Knows \pst@dima and \pst@cnta
+\def\pst@@vlabels{%
+  \vbox to\z@{%
+    \ifnum\pst@cnta>\z@
+      \pst@dima=-\pst@dima
+    \fi
+    \offinterlineskip
+    \ifshoworigin
+      \vbox to \z@{\vss\hbox to\z@{%
+        \ifdim\pst@dimc>\z@\hss\else\hskip\pslabelsep\fi
+        \psvlabel{\psk@Oy}%
+        \ifdim\pst@dimc>\z@\hskip\pslabelsep\else\hss\fi}\vss}%
+    \fi
+    \mmultido
+      {\n=\psk@Oy+\psk@Dy}%
+      {\pst@cnta}%
+      {\vbox to\pst@dima{\vss}\vbox to \z@{\vss\hbox to\z@{%
+        \ifdim\pst@dimc>\z@\hss\else\hskip\pslabelsep\fi
+        \psvlabel{\n}%
+        \ifdim\pst@dimc>\z@\hskip\pslabelsep\else\hss\fi}\vss}}%
+    \vss}}
+
+\def\psvlabel#1{$#1$}
+
+\catcode`\@=\TheAtCode\relax
+\endinput
+%% pst-plot.tex

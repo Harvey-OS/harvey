@@ -28,7 +28,7 @@ NODE *new_node(short value){
 		temp->left = 0;
 	}
 	else {
-		print("\nOut of memory in new_node!\n");
+		fprint(2, "\nOut of memory in new_node!\n");
 		exits("memory");
 	}
 	return temp;
@@ -67,7 +67,7 @@ NODE *huff_tree(long *hist){
 	fp = freq_list;
 	node_list = (NODE **) malloc(sizeof(temp)*512);
 	if (node_list == 0) {
-		print("\nOut of memory in huff_tree!\n");
+		fprint(2, "\nOut of memory in huff_tree!\n");
 		exits("memory");
 	}
 	np = node_list;
@@ -111,7 +111,7 @@ void dcmprs(char *ibuf, char *obuf, long *nin, long *nout, NODE *root){
 		odn = *obuf++ = *ibuf++;
 	else {
 		SET(odn);
-		print("\nInvalid byte count in dcmprs!\n");
+		fprint(2, "\nInvalid byte count in dcmprs!\n");
  		exits("invalid");
 	}
 	for (idn=(*ibuf) ; ibuf < ilim  ; idn =(*++ibuf)) {
@@ -150,7 +150,7 @@ void getattr(char *attr, char *val){
 			return;
 		}
 	}
-	print("No attribute %s\n", attr);
+	fprint(2, "No attribute %s\n", attr);
 	exits("no attr");
 }
 void main(int argc, char **argv){
@@ -159,30 +159,41 @@ void main(int argc, char **argv){
 	Record *r;
 	char buf[4096];
 	long *hist;
-	uchar *p, *e, *s, *img;
+	uchar *p, *rp, *erp, *e, *s, *img;
 	int fd, n, eh, et, size, x, y, ldepth, imr;
 	PICFILE *out;
-	if(getflags(argc, argv, "")!=2) usage("file");
-	fd = open(argv[1], OREAD);
-	if(fd < 0) {
-		print("open %s: %r\n", argv[1]);
-		return;
+	switch(getflags(argc, argv, "n:1[name]")){
+	default:
+		usage("[file]");
+	case 1:
+		fd=0;
+		break;
+	case 2:
+		fd = open(argv[1], OREAD);
+		if(fd < 0) {
+			fprint(2, "open %s: %r\n", argv[1]);
+			exits("no input");
+		}
+		break;
 	}
 	if(dirfstat(fd, &d) < 0) {
-		print("stat %s: %r\n", argv[1]);
+		fprint(2, "stat %s: %r\n", argv[1]);
 		return;
 	}
 	p = malloc(d.length);
 	if(p == 0) {
-		print("no memory\n");
+		fprint(2, "no memory\n");
 		exits("memory");
 	}
-	n = read(fd, p, d.length);
-	if(n != d.length) {
-		print("read %s: %r\n", argv[1]);
-		free(p);
-		close(fd);
-		return;
+	erp=p+d.length;
+	for(rp=p;rp!=erp;rp+=n){
+		n = read(fd, p, d.length);
+		if(n<=0){
+			fprint(2, "read %s: %r\n", argv[1]);
+			free(p);
+			close(fd);
+			exits("phase error");
+		}
 	}
 	close(fd);
 	s = p;
@@ -230,7 +241,7 @@ void main(int argc, char **argv){
 	getattr("SAMPLE_BITS", buf);
 	ldepth = atoi(buf);
 	if(ldepth != 8) {
-		print("only understand 8 bit images\n");
+		fprint(2, "only understand 8 bit images\n");
 		exits("ldepth");
 	}
 	getattr("^IMAGE", buf);
@@ -244,8 +255,10 @@ void main(int argc, char **argv){
 		p += x;
 	}
 	out=picopen_w("OUT", "runcode", 0, 0, x, y, "m", 0, 0);
+	if(flag['n']) picputprop(out, "NAME", flag['n'][0]);
+	else if(argc>1) picputprop(out, "NAME", argv[1]);
 	if(out==0){
-		picerror("OUT");
+		perror("OUT");
 		exits("open output");
 	}
 	for(n=0;n!=y;n++) picwrite(out, img+n*x);

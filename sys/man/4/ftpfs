@@ -1,10 +1,10 @@
 .TH FTPFS 4
 .SH NAME
-ftpfs, ftp  \- file transfer protocol (FTP) file system
+ftpfs  \- file transfer protocol (FTP) file system
 .SH SYNOPSIS
 .B ftpfs
 [
-.B -/
+.B -/dq
 ]
 [
 .B -m
@@ -26,31 +26,54 @@ on
 (default
 .BR /n/ftp )
 to provide access to files on the remote machine.
-If required by the remote machine
+If required by the remote machine,
 .I ftpfs
-will prompt for user name and password.
+will prompt for a user name and password.
 The user names
 .B ftp
 and
 .B anonymous
-are often used to offer guest/read-only access to
+conventionally offer guest/read-only access to
 machines.
-Anonymous ftp may be called without user interaction
-by specifying the
+Anonymous FTP may be called without user interaction
+by using the
+.B -a
+option and specifying the
 .IR password .
 .PP
 By default the file seen at the mount point is the user's
-home directory.
+remote home directory.
 The option
 .B -/
-can be used to force the mount point to correspond to the
+forces the mount point to correspond to the
 remote root.
+.PP
+To avoid seeing startup messages from the server use option
+.BR -q .
+To see all messages from the server use option
+.BR -d .
 .PP
 To terminate the connection,
 .B unmount
 (see
 .IR bind (1))
 the mount point.
+.SH EXAMPLE
+You want anonymous FTP access to the system
+.BR export.lcs.mit.edu .
+The first
+.IR import (4)
+command is only necessary if your machine does not have access to the
+desired system, but another, called
+.B gateway
+in this example, does.
+.IP
+.EX
+import gateway /net
+ftpfs -a yourname@yourmachine export.lcs.mit.edu
+.EE
+.SH SOURCE
+.B /sys/src/cmd/ftpfs
 .SH "SEE ALSO"
 .IR bind (2)
 .SH BUGS
@@ -58,8 +81,22 @@ the mount point.
 Symbolic links on remote Unix systems will always have mode 0777
 and a length of 8.
 .PP
-After connecting to a TOPS-20 system, the mountpoint will contain
+After connecting to a TOPS-20 system, the mount point will contain
 only one directory, usually
 .BR /n/ftp/PS:<ANONYMOUS> .
 However, walking to any valid directory on that machine will succeed
-and cause that directory entry to appear under the mountpoint.
+and cause that directory entry to appear under the mount point.
+.PP
+.I Ftpfs
+caches files and directories.  A directory will fall from the cache
+after 5 quiescent minutes or if the local user changes the
+directory by writing or removing a file.
+Otherwise, remote
+changes to the directory that occur after the directory has
+been cached might not be immediately visible.
+.PP
+There is no way to issue the appropriate commands to handle special synthetic
+FTP file types such as directories
+that automatically return a
+.B tar
+of their contents.

@@ -15,10 +15,125 @@ int	dtab;
 int	plotmode;
 int	esct;
 
-static	int	getnrfont(FILE *);
-static	char	*parse(char *, int);
-
 enum	{ Notype = 0, Type = 1 };
+
+static char *parse(char *s, int typeit)	/* convert \0, etc to nroff driving table format */
+{		/* typeit => add a type id to the front for later use */
+	static char buf[100], *t, *obuf;
+	int quote = 0;
+	wchar_t wc;
+
+	obuf = typeit == Type ? buf : buf+1;
+#ifdef UNICODE
+	if (mbtowc(&wc, s, strlen(s)) > 1) {	/* it's multibyte, */
+		buf[0] = MBchar;
+		strcpy(buf+1, s);
+		return obuf;
+	}			/* so just hand it back */
+#endif	/*UNICODE*/
+	buf[0] = Troffchar;
+	t = buf + 1;
+	if (*s == '"') {
+		s++;
+		quote = 1;
+	}
+	for (;;) {
+		if (quote && *s == '"') {
+			s++;
+			break;
+		}
+		if (!quote && (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\0'))
+			break;
+		if (*s != '\\')
+			*t++ = *s++;
+		else {
+			s++;	/* skip \\ */
+			if (isdigit(s[0]) && isdigit(s[1]) && isdigit(s[2])) {
+				*t++ = (s[0]-'0')<<6 | (s[1]-'0')<<3 | s[2]-'0';
+				s += 2;
+			} else if (isdigit(s[0])) {
+				*t++ = *s - '0';
+			} else if (*s == 'b') {
+				*t++ = '\b';
+			} else if (*s == 'n') {
+				*t++ = '\n';
+			} else if (*s == 'r') {
+				*t++ = '\r';
+			} else if (*s == 't') {
+				*t++ = '\t';
+			} else {
+				*t++ = *s;
+			}
+			s++;
+		}
+	}
+	*t = '\0';
+	return obuf;
+}
+
+
+static int getnrfont(FILE *fp)	/* read the nroff description file */
+{
+	FILE *fin;
+	Chwid chtemp[NCHARS];
+	static Chwid chinit;
+	int i, nw, n, wid, code, type;
+	char buf[100], ch[100], s1[100], s2[100], cmd[300];
+	wchar_t wc;
+
+
+	chinit.wid = 1;
+	chinit.str = "";
+	for (i = 0; i < ALPHABET; i++) {
+		chtemp[i] = chinit;	/* zero out to begin with */
+		chtemp[i].num = chtemp[i].code = i;	/* every alphabetic character is itself */
+		chtemp[i].wid = 1;	/* default ascii widths */
+	}
+	skipline(fp);
+	nw = ALPHABET;
+	while (fgets(buf, sizeof buf, fp) != NULL) {
+		sscanf(buf, "%s %s %[^\n]", ch, s1, s2);
+		if (!eq(s1, "\"")) {	/* genuine new character */
+			sscanf(s1, "%d", &wid);
+		} /* else it's a synonym for prev character, */
+			/* so leave previous values intact */
+
+		/* decide what kind of alphabet it might come from */
+
+		if (strlen(ch) == 1) {	/* it's ascii */
+			n = ch[0];	/* origin includes non-graphics */
+			chtemp[n].num = ch[0];
+		} else if (ch[0] == '\\' && ch[1] == '0') {
+			n = strtol(ch+1, 0, 0);	/* \0octal or \0xhex */
+			chtemp[n].num = n;
+#ifdef UNICODE
+		} else if (mbtowc(&wc, ch, strlen(ch)) > 1) {
+			chtemp[nw].num = chadd(ch, MBchar, Install);
+			n = nw;
+			nw++;
+#endif	/*UNICODE*/
+		} else {
+			if (strcmp(ch, "---") == 0) { /* no name */
+				sprintf(ch, "%d", code);
+				type = Number;
+			} else
+				type = Troffchar;
+/* BUG in here somewhere when same character occurs twice in table */
+			chtemp[nw].num = chadd(ch, type, Install);
+			n = nw;
+			nw++;
+		}
+		chtemp[n].wid = wid;
+		chtemp[n].str = strdupl(parse(s2, Type));
+	}
+	t.tfont.nchars = nw;
+	t.tfont.wp = (Chwid *) malloc(nw * sizeof(Chwid));
+	if (t.tfont.wp == NULL)
+		return -1;
+	for (i = 0; i < nw; i++)
+		t.tfont.wp[i] = chtemp[i];
+	return 1;
+}
 
 
 void n_ptinit(void)
@@ -50,7 +165,7 @@ void n_ptinit(void)
 	if ((p = getenv("NROFFTERM")) != 0)
 		strcpy(devname, p);
 	if (termtab[0] == 0)
-		strcpy(termtab, NTERMDIR);
+		strcpy(termtab,DWBntermdir);
 	if (fontdir[0] == 0)
 		strcpy(fontdir, "");
 	if (devname[0] == 0)
@@ -77,22 +192,18 @@ void n_ptinit(void)
 	}
 
 
-#define	skipline(f)	while (getc(f) != '\n')
-#define is(s)		(strcmp(cmd, s) == 0)
-#define	eq(s1, s2)	(strcmp(s1, s2) == 0)
-
 /* this loop isn't robust about input format errors. */
 /* it assumes  name, name-value pairs..., charset */
 /* god help us if we get out of sync. */
 
 	fscanf(fp, "%s", cmd);	/* should be device name... */
-	if (!is(devname))
+	if (!is(devname) && trace)
 		ERROR "wrong terminal name: saw %s, wanted %s", cmd, devname WARN;
 	for (;;) {
 		fscanf(fp, "%s", cmd);
 		if (is("charset"))
 			break;
-		fscanf(fp, "%s", opt);
+		fscanf(fp, " %[^\n]", opt);
 		if (is("bset")) t.bset = atoi(opt);
 		else if (is("breset")) t.breset = atoi(opt);
 		else if (is("Hor")) t.Hor = atoi(opt);
@@ -102,22 +213,22 @@ void n_ptinit(void)
 		else if (is("Em")) t.Em = atoi(opt);
 		else if (is("Halfline")) t.Halfline = atoi(opt);
 		else if (is("Adj")) t.Adj = atoi(opt);
-		else if (is("twinit")) t.twinit = strdup(parse(opt, Notype));
-		else if (is("twrest")) t.twrest = strdup(parse(opt, Notype));
-		else if (is("twnl")) t.twnl = strdup(parse(opt, Notype));
-		else if (is("hlr")) t.hlr = strdup(parse(opt, Notype));
-		else if (is("hlf")) t.hlf = strdup(parse(opt, Notype));
-		else if (is("flr")) t.flr = strdup(parse(opt, Notype));
-		else if (is("bdon")) t.bdon = strdup(parse(opt, Notype));
-		else if (is("bdoff")) t.bdoff = strdup(parse(opt, Notype));
-		else if (is("iton")) t.iton = strdup(parse(opt, Notype));
-		else if (is("itoff")) t.itoff = strdup(parse(opt, Notype));
-		else if (is("ploton")) t.ploton = strdup(parse(opt, Notype));
-		else if (is("plotoff")) t.plotoff = strdup(parse(opt, Notype));
-		else if (is("up")) t.up = strdup(parse(opt, Notype));
-		else if (is("down")) t.down = strdup(parse(opt, Notype));
-		else if (is("right")) t.right = strdup(parse(opt, Notype));
-		else if (is("left")) t.left = strdup(parse(opt, Notype));
+		else if (is("twinit")) t.twinit = strdupl(parse(opt, Notype));
+		else if (is("twrest")) t.twrest = strdupl(parse(opt, Notype));
+		else if (is("twnl")) t.twnl = strdupl(parse(opt, Notype));
+		else if (is("hlr")) t.hlr = strdupl(parse(opt, Notype));
+		else if (is("hlf")) t.hlf = strdupl(parse(opt, Notype));
+		else if (is("flr")) t.flr = strdupl(parse(opt, Notype));
+		else if (is("bdon")) t.bdon = strdupl(parse(opt, Notype));
+		else if (is("bdoff")) t.bdoff = strdupl(parse(opt, Notype));
+		else if (is("iton")) t.iton = strdupl(parse(opt, Notype));
+		else if (is("itoff")) t.itoff = strdupl(parse(opt, Notype));
+		else if (is("ploton")) t.ploton = strdupl(parse(opt, Notype));
+		else if (is("plotoff")) t.plotoff = strdupl(parse(opt, Notype));
+		else if (is("up")) t.up = strdupl(parse(opt, Notype));
+		else if (is("down")) t.down = strdupl(parse(opt, Notype));
+		else if (is("right")) t.right = strdupl(parse(opt, Notype));
+		else if (is("left")) t.left = strdupl(parse(opt, Notype));
 		else
 			ERROR "bad tab.%s file, %s %s", devname, cmd, opt WARN;
 	}
@@ -141,119 +252,6 @@ void n_ptinit(void)
 		t.Adj = t.Hor;
 }
 
-static int getnrfont(FILE *fp)	/* read the nroff description file */
-{
-	FILE *fin;
-	Chwid chtemp[NCHARS];
-	static Chwid chinit;
-	int i, nw, n, wid, code, type;
-	char buf[100], ch[100], s1[100], s2[100], cmd[300];
-	wchar_t wc;
-
-
-	chinit.wid = 1;
-	chinit.str = "";
-	for (i = 0; i < ALPHABET; i++) {
-		chtemp[i] = chinit;	/* zero out to begin with */
-		chtemp[i].num = chtemp[i].code = i;	/* every alphabetic character is itself */
-		chtemp[i].wid = 1;	/* default ascii widths */
-	}
-	skipline(fp);
-	nw = ALPHABET;
-	while (fgets(buf, sizeof buf, fp) != NULL) {
-		sscanf(buf, "%s %s %s", ch, s1, s2);
-		if (!eq(s1, "\"")) {	/* genuine new character */
-			sscanf(s1, "%d", &wid);
-		} /* else it's a synonym for prev character, */
-			/* so leave previous values intact */
-
-		/* decide what kind of alphabet it might come from */
-
-		if (strlen(ch) == 1) {	/* it's ascii */
-			n = ch[0];	/* origin includes non-graphics */
-			chtemp[n].num = ch[0];
-		} else if (ch[0] == '\\' && ch[1] == '0') {
-			n = strtol(ch+1, 0, 0);	/* \0octal or \0xhex */
-			chtemp[n].num = n;
-		} else if (mbtowc(&wc, ch, strlen(ch)) > 1) {
-			chtemp[nw].num = chadd(ch, MBchar, Install);
-			n = nw;
-			nw++;
-		} else {
-			if (strcmp(ch, "---") == 0) { /* no name */
-				sprintf(ch, "%d", code);
-				type = Number;
-			} else
-				type = Troffchar;
-/* BUG in here somewhere when same character occurs twice in table */
-			chtemp[nw].num = chadd(ch, type, Install);
-			n = nw;
-			nw++;
-		}
-		chtemp[n].wid = wid;
-		chtemp[n].str = strdup(parse(s2, Type));
-	}
-	t.tfont.nchars = nw;
-	t.tfont.wp = (Chwid *) malloc(nw * sizeof(Chwid));
-	if (t.tfont.wp == NULL)
-		return -1;
-	for (i = 0; i < nw; i++)
-		t.tfont.wp[i] = chtemp[i];
-	return 1;
-}
-
-static char *parse(char *s, int typeit)	/* convert \0, etc to nroff driving table format */
-{		/* typeit => add a type id to the front for later use */
-	static char buf[100], *t, *obuf;
-	int quote = 0;
-	wchar_t wc;
-
-	obuf = typeit == Type ? buf : buf+1;
-	if (mbtowc(&wc, s, strlen(s)) > 1) {	/* it's multibyte, */
-		buf[0] = MBchar;
-		strcpy(buf+1, s);
-		return obuf;
-	}			/* so just hand it back */
-	buf[0] = Troffchar;
-	t = buf + 1;
-	if (*s == '"') {
-		s++;
-		quote = 1;
-	}
-	for (;;) {
-		if (quote && *s == '"') {
-			s++;
-			break;
-		}
-		if (!quote && (*s == ' ' || *s == '\t' || *s == '\n'))
-			break;
-		if (*s != '\\')
-			*t++ = *s++;
-		else {
-			s++;	/* skip \\ */
-			if (isdigit(s[0]) && isdigit(s[1]) && isdigit(s[2])) {
-				*t++ = (s[0]-'0')<<6 | (s[1]-'0')<<3 | s[2]-'0';
-				s += 2;
-			} else if (isdigit(s[0])) {
-				*t++ = *s - '0';
-			} else if (*s == 'b') {
-				*t++ = '\b';
-			} else if (*s == 'n') {
-				*t++ = '\n';
-			} else if (*s == 'r') {
-				*t++ = '\r';
-			} else if (*s == 't') {
-				*t++ = '\t';
-			} else {
-				*t++ = *s;
-			}
-			s++;
-		}
-	}
-	*t = '\0';
-	return obuf;
-}
-
 
 void n_specnames(void)
 {
@@ -268,7 +266,7 @@ void n_specnames(void)
 
 void twdone(void)
 {
-	if (!TROFF) {
+	if (!TROFF && t.twrest) {
 		obufp = obuf;
 		oputs(t.twrest);
 		flusho();
@@ -327,7 +325,7 @@ void ptout1(void)
 		}
 		if ((k = cbits(i)) <= ' ') {
 			switch (k) {
-			case ' ':
+			case ' ': /*space*/
 				esc += t.Char;
 				break;
 			case '\033':

@@ -23,7 +23,7 @@ void
 confinit(void)
 {
 	conf.nmach = 2;
-	conf.nproc = 45;
+	conf.nproc = 50;
 
 	conf.mem = meminit();
 	conf.sparemem = conf.mem/12;		/* 8% spare for chk etc */
@@ -31,7 +31,7 @@ confinit(void)
 	conf.nalarm = 200;
 	conf.nuid = 1000;
 	conf.nserve = 15;
-	conf.nrahead = 3;
+	conf.nrahead = 10;
 	conf.nfile = 30000;
 	conf.nlgmsg = 100;
 	conf.nsmmsg = 500;
@@ -260,9 +260,36 @@ exit(void)
 		delay(1);
 	delay(300);	/* time to drain print q */
 	splhi();
-	duartreset();
+	consreset();
 	firmware();
 }
+
+/*
+ * 1 sec timer
+ * process+alarm+rendez+rwlock
+ */
+static	Rendez	sec;
+
+static
+void
+callsec(Alarm *a, void *arg)
+{
+	User *u;
+
+	cancel(a);
+	u = arg;
+	wakeup(&u->tsleep);
+}
+
+void
+waitsec(int msec)
+{
+	alarm(msec, callsec, u);
+	sleep(&u->tsleep, no, 0);
+}
+
+#define	DUMPTIME	5	/* 5 am */
+#define	WEEKMASK	0	/* every day (1=sun, 2=mon 4=tue) */
 
 /*
  * process to copy dump blocks from
@@ -270,21 +297,6 @@ exit(void)
  * it gets work, but only looks for
  * work every 10 seconds.
  */
-static	Rendez	wcp;
-
-static
-void
-callwc(Alarm *a, void *arg)
-{
-
-	USED(arg);
-	cancel(a);
-	wakeup(&wcp);
-}
-
-#define	DUMPTIME	5	/* 5 am */
-#define	WEEKMASK	0	/* every day (1=sun, 2=mon 4=tue) */
-
 void
 wormcopy(void)
 {
@@ -334,13 +346,7 @@ loop:
 		f = dowcp();
 
 	if(!f)
-		f = dowcmp();
-
-	if(!f) {
-		alarm(10000, callwc, 0);
-		sleep(&wcp, no, 0);
-	}
-
+		waitsec(10000);
 	wormprobe();
 	goto loop;
 }
@@ -352,17 +358,6 @@ loop:
  * in both cases, it takes about 10 seconds
  * to get up-to-date.
  */
-static	Rendez	scp;
-
-static
-void
-callsc(Alarm *a, void *arg)
-{
-
-	USED(arg);
-	cancel(a);
-	wakeup(&scp);
-}
 
 void
 synccopy(void)
@@ -373,8 +368,10 @@ loop:
 	rlock(&mainlock);
 	f = syncblock();
 	runlock(&mainlock);
-	alarm(f?1000: 10000, callsc, 0);
-	sleep(&scp, no, 0);
+	if(!f)
+		waitsec(10000);
+	else
+		waitsec(1000);
 /*	pokewcp();	*/
 	goto loop;
 }

@@ -7,15 +7,20 @@
 #define	DIRREC		116		/* size of a directory ascii record */
 #define	NAMELEN		28		/* size of names */
 #define	NDBLOCK		6		/* number of direct blocks in Dentry */
+#define	RACHUNK		100		/* 600k read-ahead */
+#define	RAOVERLAP	10		/* plus 60k overlap read-ahead */
 #define	MAXDAT		8192		/* max allowable data message */
 #define	MAXMSG		128		/* max size protocol message sans data */
 #define	OFFMSG		60		/* offset of msg in buffer */
 #define NDRIVE		16		/* size of drive structure */
 #define NTLOCK		200		/* number of active file Tlocks */
 #define	LRES		3		/* profiling resolution */
-#define AUTHSTR		8
-#define KEYENABLE	NAMELEN+DESKEYLEN
-#define KEYEXPIRE	NAMELEN+DESKEYLEN+2
+#define NATTID		10		/* the last 10 ID's in attaches */
+
+/*
+ *  more wonderful constants for authentication
+ */
+#include <auth.h>
 
 /*
  * derived constants
@@ -49,6 +54,7 @@ typedef	struct	Superb	Superb;
 typedef	struct	Filsys	Filsys;
 typedef	struct	Dentry	Dentry;
 typedef	struct	Tag	Tag;
+typedef struct  Talarm	Talarm;
 typedef	struct	Uid	Uid;
 typedef struct	Device	Device;
 typedef struct	Qid	Qid;
@@ -81,12 +87,14 @@ typedef	struct	Enpkt	Enpkt;
 typedef	struct	Arppkt	Arppkt;
 typedef	struct	Ippkt	Ippkt;
 typedef	struct	Ilpkt	Ilpkt;
+typedef	struct	Udppkt	Udppkt;
 typedef	struct	Ifc	Ifc;
 
 struct	Lock
 {
 	ulong*	sbsem;		/* addr of sync bus semaphore */
 	ulong	pc;
+	ulong	sr;
 };
 
 struct	Rendez
@@ -235,6 +243,52 @@ struct	Ilp
 	Rendez	syn;		/* connect hang out */
 } Ilp;
 
+typedef
+struct	Fchan
+{
+	Chan*	link;		/* list of fil channels */
+
+	char*	msg;		/* pointer to channel error message */
+	Rendez*	cr;		/* Conenct rendezvous */
+
+	void*	ifaddr;		/* Hardware address */
+
+	int	alloc;		/* 1 means allocated */
+	ulong	laddress;	/* Local and remote address */
+	ulong	raddress;
+	ushort	lport;		/* Local and remote port */
+	ushort	rport;
+
+	int	state;		/* Connection state */
+	Lock	ackq;		/* Unacknowledged queue */
+	Msgbuf*	unacked;
+	Msgbuf*	unackedtail;
+	ulong	unackedbytes;	/* Number of bytes in unacked queue */
+	ulong	need;
+	ulong	sndwindow;
+	Rendez	flowr;
+	QLock	txq;
+
+	Lock	outo;		/* Out of order packet queue */
+	Msgbuf*	outoforder;
+
+	ulong	next;		/* Id of next to send */
+	ulong	recvd;		/* Last packet received */
+	ulong	start;		/* Local start id */
+	ulong	rstart;		/* Remote start id */
+
+	int	timeout;	/* Time out counter */
+	int	slowtime;	/* Slow time counter */
+	int	fasttime;	/* Retransmission timer */
+	int	acktime;	/* Acknowledge timer */
+	int	querytime;	/* Query timer */
+	int	deathtime;	/* Time to kill connection */
+	int	rtt;		/* Average round trip time */
+	ulong	rttack;		/* The ack we are waiting for */
+	ulong	ackms;		/* Time we issued */
+	int	window;		/* Maximum receive window */
+} Fchan;
+
 struct	Chan
 {
 	char	type;			/* major driver type ie Devdk */
@@ -244,16 +298,27 @@ struct	Chan
 	int	chan;			/* overall channel number, mostly for printing */
 	int	nmsgs;			/* outstanding messages, set under flock -- for flush */
 	long	whotime;
+	int	nfile;			/* used by cmd_files */
 	RWlock	reflock;
 	Chan*	next;			/* link list of chans */
 	Queue*	send;
 	Queue*	reply;
+	uchar	chal[CHALLEN];		/* locally generated challenge */
+	uchar	rchal[CHALLEN];		/* remotely generated challenge */
+	Lock	idlock;
+	ulong	idoffset;		/* offset of id vector */
+	ulong	idvec;			/* vector of acceptable id's */
 	union
 	{
 		/*
 		 * il ether circuit structure
 		 */
 		Ilp	ilp;
+
+		/*
+		 * fil fiber circuit structure
+		 */
+		Fchan	filp;
 
 		/*
 		 * data kit circuit structure
@@ -292,13 +357,6 @@ struct	Chan
 
 			char	repchar[20];	/* list of echo characters */
 		} dkp;
-		/*
-		 * bit3 circuit structure
-		 */
-		struct
-		{
-			void*	bitp;
-		} bitp;
 		/*
 		 * hotrod fiber uart
 		 */
@@ -361,6 +419,8 @@ struct	Cons
 	long	nsmall;		/* ... small ... */
 	long	nwormre;	/* worm read errors */
 	long	nwormwe;	/* worm write errors */
+	long	nwormhit;	/* worm read cache hits */
+	long	nwormmiss;	/* worm read cache non-hits */
 	int	noage;		/* dont update cache age, dump and check */
 	long	nwrenre;	/* disk read errors */
 	long	nwrenwe;	/* disk write errors */
@@ -396,7 +456,6 @@ struct	File
 	long	lastra;		/* read ahead address */
 	short	fid;
 	short	uid;
-	char	ticket[AUTHSTR];/* Authentication key */
 	char	open;
 		#define	FREAD	1
 		#define	FWRITE	2
@@ -431,7 +490,6 @@ struct	Uid
 	short	*gtab;		/* group table */
 	int	ngrp;		/* number of group entries */
 	char	name[NAMELEN];	/* user name */
-	char	key[DESKEYLEN];	/* authentication key */
 };
 
 /* DONT TOUCH, this is the disk structure */
@@ -448,6 +506,7 @@ struct	Dentry
 		#define	DREAD	0x4
 		#define	DWRITE	0x2
 		#define	DEXEC	0x1
+	short	wuid;
 	Qid	qid;
 	long	size;
 	long	dblock[NDBLOCK];
@@ -501,17 +560,21 @@ struct	Fcall
 			short	oldtag;		/* T-nFlush */
 			Qid	qid;		/* R-Attach, R-Clwalk, R-Walk,
 						 * R-Open, R-Create */
+			char	rauth[AUTHENTLEN];	/* R-attach */
 		};
 		struct
 		{
 			char	uname[NAMELEN];	/* T-nAttach */
 			char	aname[NAMELEN];	/* T-nAttach */
-			char	auth[NAMELEN];	/* T-nAttach */
-			char	chal[8+NAMELEN];/* T-auth, R-auth */
+			char	ticket[TICKETLEN];	/* T-attach */
+			char	auth[AUTHENTLEN];	/* T-attach */
 		};
 		struct
 		{
 			char	ename[ERRREC];	/* R-nError */
+			char	chal[CHALLEN];	/* T-session, R-session */
+			char	authid[NAMELEN];	/* R-session */
+			char	authdom[DOMLEN];	/* R-session */
 		};
 		struct
 		{
@@ -554,6 +617,12 @@ struct	Alarm
 	void*	arg;
 };
 
+struct Talarm
+{
+	Lock;
+	User	*list;
+};
+
 struct	Conf
 {
 	ulong	nmach;		/* processors */
@@ -582,6 +651,7 @@ struct	Msgbuf
 	short	flags;
 		#define	LARGE	(1<<0)
 		#define	FREE	(1<<1)
+		#define BFREE	(1<<2)
 	Chan*	chan;
 	Msgbuf*	next;
 	ulong	param;
@@ -620,6 +690,7 @@ enum
 	Mbil3,
 	Mbil4,
 	Mbilauth,
+	Mbfil,
 	MAXCAT,
 };
 
@@ -655,6 +726,13 @@ struct	User
 	int	exiting;
 	int	pid;
 	int	state;
+	Rendez	tsleep;
+
+	ulong	twhen;
+	Rendez	*trend;
+	User	*tlink;
+	int	(*tfn)(void*);
+
 	struct
 	{
 		QLock*	q[NHAS];/* list of locks this process has */
@@ -790,19 +868,19 @@ enum
 /*
  * P9 protocol message types
  */
-/* DONT TOUCH, this the P9 protocol */
+/* DONT TOUCH, this the 9P protocol */
 enum
 {
 	Tnop =		50,
 	Rnop,
-	Tsession =	52,
-	Rsession,
+	Tosession =	52,
+	Rosession,
 	Terror =	54,	/* illegal */
 	Rerror,
 	Tflush =	56,
 	Rflush,
-	Tattach =	58,
-	Rattach,
+	Toattach =	58,
+	Roattach,
 	Tclone =	60,
 	Rclone,
 	Twalk =		62,
@@ -825,8 +903,12 @@ enum
 	Rwstat,
 	Tclwalk =	80,
 	Rclwalk,
-	Tauth =		82,
-	Rauth,
+	Tauth =		82,	/* illegal */
+	Rauth,			/* illegal */
+	Tsession =	84,
+	Rsession,
+	Tattach =	86,
+	Rattach,
 
 	MAXSYSCALL
 };
@@ -874,23 +956,23 @@ enum
 {
 	Devnone 	= 0,
 	Devcon,			/* console */
-	Devdk,			/* data kit norm chan */
-	Devdkcc,		/* data kit common control chan */
-	Devdksr,		/* data kit service request chan */
-	Devdkck,		/* data kit clock chan */
-	Devwren,		/* jaguar disk drive */
-	Devworm,		/* jaguar video drive */
+	Devdk,			/* datakit norm chan */
+	Devdkcc,		/* datakit common control chan */
+	Devdksr,		/* datakit service request chan */
+	Devdkck,		/* datakit clock chan */
+	Devwren,		/* scsi disk drive */
+	Devworm,		/* scsi video drive */
 	Devfworm,		/* fake read-only device */
 	Devcw,			/* cache with worm */
 	Devro,			/* readonly worm */
-	Devnonet,		/* ether net */
-	Devbit,			/* bit3 vme-vme adaptor */
-	Devhot,			/* hotrod fiber uart */
 	Devcycl,		/* cyclone fiber uart */
-	Devmcat,		/* multpile cat devices */
-	Devmlev,		/* multpile interleave devices */
+	Devmcat,		/* multiple cat devices */
+	Devmlev,		/* multiple interleave devices */
 	Devil,			/* internet link */
 	Devpart,		/* partition */
+	Devfloppy,		/* floppy drive */
+	Devide,			/* IDE drive */
+	Devfil,			/* fiber interface */
 	MAXDEV
 };
 
@@ -921,8 +1003,8 @@ enum
 {
 	Bread	= (1<<0),	/* read the block if miss */
 	Bprobe	= (1<<1),	/* return null if miss */
-	Bmod	= (1<<2),	/* set modified bit in buffer */
-	Bimm	= (1<<3),	/* set immediate bit in buffer */
+	Bmod	= (1<<2),	/* buffer is dirty, needs writing */
+	Bimm	= (1<<3),	/* write immediately on putbuf */
 	Bres	= (1<<4),	/* reserved, never renammed */
 };
 
@@ -963,28 +1045,14 @@ enum
 	Ensize		= 14,		/* ether header size */
 	Ipsize		= 20,		/* ip header size -- doesnt include Ensize */
 	Arpsize		= 28,		/* arp header size -- doesnt include Ensize */
-	Ilsize		= 18,		/* il header size -- doesnt include Insize/Ensize */
+	Ilsize		= 18,		/* il header size -- doesnt include Ipsize/Ensize */
+	Udpsize		= 8,		/* il header size -- doesnt include Ipsize/Ensize */
+	Udpphsize	= 12,		/* udp pseudo ip header size */
 
 	IP_VER		= 0x40,			/* Using IP version 4 */
 	IP_HLEN		= Ipsize/4,		/* Header length in longs */
 	IP_DF		= 0x4000,		/* Don't fragment */
 	IP_MF		= 0x2000,		/* More fragments */
-
-	Ilsync		= 0,		/* Packet types */
-	Ildata,
-	Ildataquery,
-	Ilack,
-	Ilquerey,
-	Ilstate,
-	Ilclose,
-
-	Ilclosed	= 0,		/* Connection state */
-	Ilsyncer,
-	Ilsyncee,
-	Ilestablished,
-	Illistening,
-	Ilclosing,
-	Ilopening,
 
 	Arprequest	= 1,
 	Arpreply,
@@ -992,16 +1060,6 @@ enum
 	Ilfsport	= 17008,
 	Ilauthport	= 17020,
 	Ilfsout		= 5000,
-
-	Iltickms 	= 100,
-	Slowtime 	= 200*Iltickms,
-	Fasttime 	= 4*Iltickms,
-	Acktime		= 2*Iltickms,
-	Ackkeepalive	= 6000*Iltickms,
-	Querytime	= 60*Iltickms,		/* time between queries */
-	Keepalivetime	= 10*Querytime,		/* keep alive time */
-	Defaultwin	= 20,
-	ILgain		= 8,
 };
 
 struct	Enpkt
@@ -1076,6 +1134,29 @@ struct	Ilpkt
 	uchar	ilack[4];		/* Acked sequence */
 };
 
+struct	Udppkt
+{
+	uchar	d[Easize];		/* ether header */
+	uchar	s[Easize];
+	uchar	type[2];
+
+	uchar	vihl;			/* ip header */
+	uchar	tos;
+	uchar	length[2];
+	uchar	id[2];
+	uchar	frag[2];
+	uchar	ttl;
+	uchar	proto;
+	uchar	cksum[2];
+	uchar	src[Pasize];
+	uchar	dst[Pasize];
+
+	uchar	udpsrc[2];		/* Src port */
+	uchar	udpdst[2];		/* Dst port */
+	uchar	udplen[2];		/* Packet length */
+	uchar	udpsum[2];		/* Checksum including header */
+};
+
 struct	Ifc
 {
 	Lock;
@@ -1092,11 +1173,13 @@ struct	Ifc
 	uchar	netgate[Pasize];	/* ip gateway, pulled from netdb */
 	ulong	ipaddr;
 	ulong	mask;
+	ulong	cmask;
 	Ifc	*next;			/* List of configured interfaces */
 };
 
 extern	register	Mach*	m;
 extern	register	User*	u;
+extern  Talarm		talarm;
 
 Conf	conf;
 Cons	cons;

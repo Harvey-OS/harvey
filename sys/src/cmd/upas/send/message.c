@@ -6,7 +6,7 @@ static Reprog *rfprog;
 static Reprog *fprog;
 
 #define VMLIMIT (64*1024)
-#define MSGLIMIT (5*1024*1024)
+#define MSGLIMIT (128*1024*1024)
 
 extern void
 default_from(message *mp)
@@ -103,6 +103,7 @@ m_read(Biobuf *fp, int rmail)
 	int first;
 	int n;
 
+
 	mp = m_new();
 
 	/* parse From lines if remote */
@@ -163,7 +164,7 @@ m_read(Biobuf *fp, int rmail)
 	/*
 	 *  ignore 0 length messages from a terminal
 	 */
-	if (!rmail && *s_to_c(mp->body) == '\0')
+	if (!rmail && mp->size == 0)
 		return 0;
 
 	return mp;
@@ -222,21 +223,19 @@ m_noescape(message *mp, Biobuf *fp)
 }
 
 /*
- *  output the message body with '^From ' & '^morF' escapes.  The state machine
- *  ensures that any line starting with a 'From ' gets a '>' stuck
+ *  Output the message body with '^From ' escapes.
+ *  Ensures that any line starting with a 'From ' gets a ' ' stuck
  *  in front of it.
  */
 static int
 m_escape(message *mp, Biobuf *fp)
 {
-	register char *p;
-	register char *end;
-	register int state;
+	char *p, *np;
+	char *end;
 	long offset;
-	int n;
+	int m, n;
 	char *start;
 
-	state = 1;
 	for(offset = 0; offset < mp->size; offset += n){
 		n = m_get(mp, offset, &start);
 		if(n < 0){
@@ -245,97 +244,16 @@ m_escape(message *mp, Biobuf *fp)
 		}
 
 		p = start;
-		for(end = p+n; p < end; p++){
-			switch(state){
-			case 1:
-				switch(*p){
-				case 'F':
-					state = 2;
-					continue;
-				case 'm':
-					state = 6;
-					continue;
-				case '>':
-					if(Bputc(fp, '>') < 0)
-						return -1;
-					break;
-				}
-				state = 0;
-				break;
-			case 2:
-				if(*p == 'r'){
-					state = 3;
-					continue;
-				}
-				state = 0;
-				if(Bputc(fp, 'F') < 0)
-					return -1;
-				break;
-			case 3:
-				if(*p == 'o'){
-					state = 4;
-					continue;
-				}
-				state = 0;
-				if(Bprint(fp, "Fr") < 0)
-					return -1;
-				break;
-			case 4:
-				if(*p == 'm'){
-					state = 5;
-					continue;
-				}
-				state = 0;
-				if(Bprint(fp, "Fro") < 0)
-					return -1;
-				break;
-			case 5:
-				if(*p == ' ')
-					if(Bputc(fp, '>') < 0)
-						return -1;
-				state = 0;
-				if(Bprint(fp, "From") < 0)
-					return -1;
-				break;
-			case 6:
-				if(*p == 'o'){
-					state = 7;
-					continue;
-				}
-				state = 0;
-				if(Bputc(fp, 'm') < 0)
-					return -1;
-				break;
-			case 7:
-				if(*p == 'r'){
-					state = 8;
-					continue;
-				}
-				state = 0;
-				if(Bprint(fp, "mo") < 0)
-					return -1;
-				break;
-			case 8:
-				if(*p == 'F'){
-					state = 9;
-					continue;
-				}
-				state = 0;
-				if(Bprint(fp, "mor") < 0)
-					return -1;
-				break;
-			case 9:
-				if(*p == '\n')
-					if(Bputc(fp, '>') < 0)
-						return -1;
-				state = 0;
-				if(Bprint(fp, "morF") < 0)
-					return -1;
+		for(end = p+n; p < end; p += m){
+			np = memchr(p, '\n', end-p);
+			if(np == 0){
+				Bwrite(fp, p, end-p);
 				break;
 			}
-			Bputc(fp, *p);
-			if(*p == '\n')
-				state = 1;
+			m = np - p + 1;
+			if(m > 5 && strncmp(p, "From ", 5) == 0)
+				Bputc(fp, ' ');
+			Bwrite(fp, p, m);
 		}
 	}
 	Bflush(fp);

@@ -71,15 +71,20 @@ paging out some other process.
 .I Syscall
 performing the named system call.
 .TP
-.BI "no " resource
+.BI no " resource
 waiting for more of a critical
-.I resource.
+.IR resource .
 .PD
 .SH FILES
 .TF /proc/*/status
 .TP
 .B /proc/*/status
+.SH SOURCE
+.B /sys/src/cmd/ps.c
+.br
+.B /rc/bin/psu
 .SH "SEE ALSO"
 .IR kill (1), 
 .IR db (1),
+.IR ps (1),
 .IR proc (3)

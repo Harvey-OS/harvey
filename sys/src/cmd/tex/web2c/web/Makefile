@@ -1,54 +1,81 @@
-# This file makes TANGLE and WEAVE from their WEB sources.
-#
+# This file makes Tangle and Weave from their WEB sources, or, in case
+# of tangle, possibly from a bootstrap C file.
 
-SITEDIR=..
-CC=/usr/ape/apebin/pcc
-OPT=-g
-CFLAGS=$(OPT) -Dlink=link_array -I$(SITEDIR)
-LDFLAGS=
 SHELL=/bin/sh
+
+CC=gcc -posix
+cflags=-g -I../lib
+CFLAGS=$(cflags)
+CCLD=$(CC)
+
+# Routines used everywhere.
+commondefines=../lib/common.defines
+commonh=../lib/common.h
+commono=../lib/lib.a
+
+libs=$(commono) $(LIBS)
 
 .SUFFIXES:
 .SUFFIXES: .o .c .p .ch
 .p.c:
-		$(SHELL) ./convert $*.p $*.c
+	$(SHELL) ../lib/convert $*.p $*.c
 .ch.p:
-		tangle $*.web $*.ch
+	./tangle $*.web $*.ch
 .c.o:
-		$(CC) $(CFLAGS) -c $*.c
+	$(CC) $(CFLAGS) -c $*.c
 
 
-default:	all
-
-all:		tangle weave
-
-# Tangle:
-# 
-tangle:		tangle.o tanglext.o
-		$(CC) $(LDFLAGS) -o tangle tangle.o tanglext.o
-tangle.o: 	tangle.c web.h
-tangle.c: 	tangle.p web.defines
-tangle.p:	tangle.web tangle.ch
-		sh -c "until tangle tangle.web tangle.ch;		\
-                  do							\
-		    $(CC) $(CFLAGS) -o tangle tangleboot.c tanglext.c;	\
-		  done"
-tanglext.o: 	tanglext.c ${SITEDIR}/site.h
+default: triptrap
+triptrap: tangle
+all: tangle weave
 
 
-# Weave:
-# 
-weave: 		weave.o weavext.o
-		$(CC) $(LDFLAGS) -o weave weave.o weavext.o
-weave.o: 	weave.c web.h
-weave.c:	weave.p web.defines
-weave.p: 	weave.web weave.ch
-weavext.o:	weavext.c ${SITEDIR}/site.h
+tangle: tangle.o $(commono)
+	$(CCLD) -o tangle $(LDFLAGS) tangle.o $(commono) $(LIBS)
+tangle.o: tangle.c $(commonh)
+tangle.c: tangle.p $(commondefines)
+
+# Making tangle.p is a special case, since it is needed to compile
+# itself.  We compile the (distributed) tangleboot.c to make a tangle
+# which we can use to make the other programs.  (We don't bother to make
+# tangle again using itself.)
+tangle.p: tangleboot tangle.web tangle.ch
+	./tangleboot tangle.web tangle.ch
+
+tangleboot: tangleboot.c tangleboot.h
+	$(CCLD) -o tangleboot $(CFLAGS) $(LDFLAGS) tangleboot.c $(libs)
+
+# To make tangleboot.c, we have to assume the presence of a working
+# tangle somewhere in PATH.
+tangleboot.c tangleboot.h: tangleboot.p
+	$(SHELL) ../lib/convert tangleboot.p temp.c
+	sed s/tangle.h/tangleboot.h/ < temp.c > tangleboot.c
+	rm -f temp.c
+
+tangleboot.p: tangle.web tangle.ch
+	tangle tangle.web tangle.ch
+	mv tangle.p tangleboot.p
+
+weave: weave.o $(commono)
+	$(CCLD) -o weave $(LDFLAGS) weave.o $(libs)
+weave.o: weave.c $(commonh)
+weave.c: weave.p $(commondefines)
+weave.p: weave.web weave.ch
 
 
-clean:
-		rm -f *.o *.pool weave tangle coerce.h
+install: all
+	$(INSTALL_PROGRAM) tangle $(bindir)/tangle
+	$(INSTALL_PROGRAM) weave $(bindir)/weave
 
-veryclean:	clean
-		rm -f weave.c tangle.c weave.h tangle.p weave.p
-		rm -f \#*\# *~ *.bak *.ckp core
+mostlyclean: 
+	rm -f *.o *.pool weave tangle tangleboot coerce.h
+
+clean: mostlyclean
+	rm -f tangle.p tangle.c tangle.h
+	rm -f weave.p weave.c weave.h
+
+distclean: clean
+	rm -f \#*\# *~ *.bak *.ckp core
+
+realclean: distclean
+	rm -f tangleboot.c tangleboot.h tangleboot.p

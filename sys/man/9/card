@@ -38,7 +38,7 @@ arguments are numbers between 0 and 255.
 and
 .I blue
 default equal to
-.I red.
+.IR red .
 .I Alpha
 defaults to 255.
 Option
@@ -94,5 +94,9 @@ option
 specifies the size of the picture.
 The default gives
 .BR "WINDOW=0 0 1280 1024" .
+.SH SOURCE
+.B /sys/src/fb/card.c
+.br
+.B /sys/src/fb/ramp.c
 .SH "SEE ALSO
 .IR picfile (9.6)

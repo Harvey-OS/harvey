@@ -76,15 +76,15 @@ static void
 mmuinit(void)
 {
 	int i, j;
-	ulong pte;
+	ulong pte, ksize;
+
+	ksize = PGROUND((ulong)end);
+	ksize = PADDR(ksize);
 
 	/*
-	 * Mconf.base0 is physical address of 1st page above end;
-	 * mconf.npage0 is number of physical pages above
-	 * end - see mconfinit below.
 	 * Initialise the segments containing the kernel.
 	 */
-	j = HOWMANY(mconf.base0, SEGSIZE);
+	j = HOWMANY(ksize, SEGSIZE);
 	for(i = 0; i < j; i++)
 		putcxsegm(0, VADDR(i*SEGSIZE), i);
 
@@ -93,12 +93,12 @@ mmuinit(void)
 	 * and invalidate anything remaining up to the
 	 * next segment boundary.
 	 */
-	j = HOWMANY(mconf.base0, PGSIZE);
+	j = HOWMANY(ksize, PGSIZE);
 	pte = PTEVALID|PTEWRITE|PTEKERNEL|PTEMAINMEM;
 	for(i = 0; i < j; i++)
-		putpte(VADDR(i*PGSIZE), pte+i, 1);
+		putpte(VADDR(i*PGSIZE), pte+PPN(mconf.base0)+i, 1);
 
-	for(i = HOWMANY(ROUNDUP(mconf.base0, SEGSIZE), PGSIZE); j < i; j++)
+	for(i = HOWMANY(ROUNDUP(ksize, SEGSIZE), PGSIZE); j < i; j++)
 		putpte(VADDR(j*PGSIZE), INVALIDPTE, 1);
 
 	/*
@@ -125,19 +125,29 @@ mmuinit(void)
 	 * starting at kernel top.
 	 * Invalidate all the pte's.
 	 */
-	for(i = HOWMANY(mconf.base0, SEGSIZE); i < mconf.npmeg; i++){
+	for(i = HOWMANY(ksize, SEGSIZE); i < mconf.npmeg; i++){
 		putsegspace(VADDR(i*SEGSIZE), i);
 		for(j = 0; j < SEGSIZE; j += PGSIZE)
 			putpte(VADDR((i*SEGSIZE)+j), INVALIDPTE, 1);
 	}
 
 	/*
+	 * Mconf.base0 is physical address of 1st page above end;
+	 * mconf.npage0 is number of physical pages above
+	 * end - see mconfinit below.
+	 */
+
+	mconf.npage0 -= ksize/PGSIZE;
+	mconf.base0 += ksize;
+	mconf.npage = mconf.npage0 + mconf.npage1;
+
+	/*
 	 * Initialise the ialloc arena.
 	 */
-	mconf.vbase = VADDR(mconf.base0);
-	mconf.vlimit = VADDR(mconf.npmeg*SEGSIZE);
-	if(mconf.vlimit > VADDR(mconf.base0+mconf.npage0*PGSIZE))
-		mconf.vlimit = VADDR(mconf.npage*PGSIZE);
+	mconf.vbase = VADDR(ksize);
+	mconf.vlimit = mconf.vbase + mconf.npmeg*SEGSIZE;
+	if(mconf.vlimit > VADDR(ksize+mconf.npage*PGSIZE))
+		mconf.vlimit = VADDR(ksize+mconf.npage*PGSIZE);
 }
 
 static struct {
@@ -254,6 +264,7 @@ struct Sysparam
 {
 	int	id;		/* Model type from id prom */
 	char	*name;		/* System name */
+	int	usec_delay;	/* clock rate / 3000 */
 	char	ss2;		/* Is Sparcstation 2? */
 	int	vacsize;	/* Cache size */
 	int	vacline;	/* Cache line size */
@@ -264,13 +275,13 @@ struct Sysparam
 }
 sysparam[] =
 {
-	{ 0x51, "1 4/60",   0, 65536, 16,  8, 128, 0, 64 },
-	{ 0x52, "IPC 4/40", 0, 65536, 16,  8, 128, 0, 64 },
-	{ 0x53, "1+ 4/65",  0, 65536, 16,  8, 128, 0, 64 },
-	{ 0x54, "SLC 4/20", 0, 65536, 16,  8, 128, 0, 64 },
-	{ 0x55, "2 4/75",   1, 65536, 32, 16, 256, 1, 64 },
-	{ 0x56, "ELC 4/25", 1, 65536, 32,  8, 128, 1, 64 },
-	{ 0x57, "IPX 4/50", 1, 65536, 32,  8, 256, 1, 64 },
+	{ 0x51, "1 4/60",    6667, 0, 65536, 16,  8, 128, 0, 64 },
+	{ 0x52, "IPC 4/40",  8334, 0, 65536, 16,  8, 128, 0, 64 },
+	{ 0x53, "1+ 4/65",   8334, 0, 65536, 16,  8, 128, 0, 64 },
+	{ 0x54, "SLC 4/20",  6667, 0, 65536, 16,  8, 128, 0, 64 },
+	{ 0x55, "2 4/75",   13334, 1, 65536, 32, 16, 256, 1, 64 },
+	{ 0x56, "ELC 4/25", 13334, 1, 65536, 32,  8, 128, 1, 64 },
+	{ 0x57, "IPX 4/50", 13334, 1, 65536, 32,  8, 256, 1, 64 },
 	{ 0 }
 };
 Sysparam *sparam;
@@ -309,7 +320,7 @@ void
 mconfinit(void)
 {
 	ulong i, j;
-	ulong ktop, va, npg, v;
+	ulong va, npg, v;
 
 	/* map id prom */
 	va = 1*MB-PGSIZE;
@@ -327,6 +338,7 @@ mconfinit(void)
 	if(sparam->id == 0)
 		sparam = sysparam;
 
+	mconf.usec_delay = sparam->usec_delay;
 	mconf.ss2 = sparam->ss2;
 	mconf.vacsize = sparam->vacsize;
 	mconf.vaclinesize = sparam->vacline;
@@ -343,9 +355,10 @@ mconfinit(void)
 	for(i=0; i<sparam->memscan; i++)
 		if(mempres[i]){
 			v = mempres[i];
+			i = v-'0';
 			for(j=i+1; j<sparam->memscan && mempres[j]>v; j++)
 				v = mempres[j];
-			npg = (j-i)*MB/BY2PG;
+			npg = (j-i)*MB/PGSIZE;
 			if(mconf.npage0 == 0){
 				mconf.base0 = i*MB;
 				mconf.npage0 = npg;
@@ -367,9 +380,8 @@ mconfinit(void)
 		 * NB. Suns must have at LEAST 8Mbytes.
 		 */
 		mconf.npage1 = mconf.npage0 - (4*MB)/PGSIZE;
-		mconf.base1 = 4*MB;
 		mconf.npage0 = (4*MB)/PGSIZE;
-		mconf.base0 = 0;
+		mconf.base1 = mconf.base0 + 4*MB;
 		bank[1] = bank[0]-4;
 		bank[0] = 4;
 	}
@@ -377,11 +389,6 @@ mconfinit(void)
 	mconf.npage = mconf.npage0+mconf.npage1;
 
 	romputcxsegm = *(ulong*)(rom+260);
-
-	ktop = PGROUND((ulong)end);
-	ktop = PADDR(ktop);
-	mconf.npage0 -= ktop/PGSIZE;
-	mconf.base0 += ktop;
 }
 
 ulong
@@ -396,3 +403,4 @@ meminit(void)
 	intrinit();
 	return mconf.npage*PGSIZE;
 }
+

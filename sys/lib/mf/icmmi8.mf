@@ -1,7 +1,9 @@
 % Computer Modern Math Italic 8 point invisible
 if unknown cmbase: input cmbase fi
 
-font_identifier:="CMMI"; font_size 8pt#;
+% RmS 91/10/27: corrected font identifier
+
+font_identifier:="ICMMI"; font_size 8pt#;
 
 u#:=17/36pt#;      % unit width
 width_adj#:=0pt#;    % width adjustment for certain characters

@@ -1,7 +1,11 @@
-.TH NDB 2X
+.TH NDB 2
 .SH NAME
-ndbopen, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetval, ndbfree, ipattr, ipinfo, ndbhash, ndbseek, ndbparse \- network database
+ndbopen, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetval, ndbfree, ipattr, ipinfo, ndbhash, ndbparse, csgetval \- network database
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
 .B #include <bio.h>
 .br
 .B #include <ndb.h>
@@ -29,6 +33,9 @@ Ndbtuple*	ndbgetval(Ndb *db, Ndbs *s, char *attr, char *val,
 		char *rattr, char *buf);
 .PP
 .B
+Ndbtuple*	csgetval(char *attr, char *val, char *rattr, char *buf);
+.PP
+.B
 void	ndbfree(Ndbtuple *db);
 .PP
 .B
@@ -41,9 +48,6 @@ int	ipinfo(Ndb *db, char *ether, char *ip, char *name,
 .PP
 .B
 ulong	ndbhash(char *val, int hlen);
-.PP
-.B
-long	ndbseek(Ndb *db, long off, int whence);
 .PP
 .B
 Ndbtuple*	ndbparse(Ndb *db);
@@ -79,7 +83,7 @@ and
 .I ndbsnext
 search a database for an entry containing the
 attribute/value pair,
-.IR attr=val .
+.IR attr = val .
 .I Ndbsearch
 is used to find the first match and
 .I ndbsnext
@@ -99,13 +103,13 @@ struct Ndbtuple {
         char      val[Ndbvlen];
         Ndbtuple  *entry;
         Ndbtuple  *line;
+        ulong     ptr;    /* for the application; starts 0 */
 };
 .EE
 .LP
 The
 .I entry
-pointers chain together all pairs in the entry in a null
-terminated list.
+pointers chain together all pairs in the entry in a null-terminated list.
 The
 .I line
 pointers chain together all pairs on the same line
@@ -115,9 +119,20 @@ pairs in an entry.
 In general, pairs on the same line are bound tighter
 than pairs on different lines.
 .PP
+The argument
+.I s
+of
+.I ndbsearch
+has type
+.I Ndbs
+and should be pointed to valid storage before calling
+.IR ndbsearch ,
+which will fill it with information used by
+.I ndbsnext
+to link successive searches.
 The structure
 .I Ndbs
-is used to link successive searches.
+looks like:
 .IP
 .EX
 typedef struct Ndbs Ndbs;
@@ -138,17 +153,22 @@ or
 .I Ndbgetval
 searches the database for an entry containing not only an
 attribute/value pair,
-.IR attr=val ,
+.IR attr = val ,
 but also a pair with the attribute
 .IR rattr .
 If successful, it copies the value associated with
 .I rattr
 into
-.I buf.
+.IR buf .
 .I Buf
 must point to an area at least
 .I Ndbvlen
 long.
+.I Csgetval
+is like
+.I ndbgetval
+but queries the connection server
+instead of looking directly at the database.
 .PP
 .I Ndbfree
 frees a list of tuples returned by one of the other
@@ -157,6 +177,7 @@ routines.
 .I Ipattr
 takes the name of an IP system and returns the attribute
 it corresponds to:
+.RS
 .TP
 .B dom
 domain name
@@ -166,6 +187,7 @@ Internet number
 .TP
 .B sys
 system name
+.RE
 .PP
 .I Ipinfo
 searches the database for Internet Protocol information about a
@@ -196,23 +218,17 @@ computes a hash offset into a table of length
 .I hlen
 for the string
 .IR val .
-.I Ndbseek
-causes a subsequent read, write, or 
-.I ndbparse
-of the database file to start
-at the position specified by the last two arguments.
-These arguments have the same meaning as the last two arguments of
-.IR seek (2).
-.I Ndbseek
-returns a negative number on error.
 .I Ndbparse
 reads and parses the next entry from the database file.
-Multiple
-.IR ndbparse 's
-without intervening 
-.IR ndbseek 's
+Multiple calls to
+.IR ndbparse
 parse sequential entries in the database file.
 A zero is returned at end of file.
+.SH SOURCE
+.B /sys/src/libndb
 .SH SEE ALSO
 .IR ndb (6)
 .IR ndb (8)
+.SH DIAGNOSTICS
+These routines set
+.IR errstr .

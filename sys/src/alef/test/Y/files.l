@@ -1,6 +1,6 @@
 #include <alef.h>
 #include <fcall.h>
-#include <graphics.h>
+#include <libg.h>
 #include <frame.h>
 #include "y.h"
 
@@ -50,18 +50,18 @@ Dirtab dirtab[]=
 	{ nil }
 };
 
-intern char *eperm	= "permission denied";
-intern char *efid	= "bad fid";
-intern char *edfid	= "duplicate fid";
-intern char *efmt	= "bad attach";
-intern char *enotdir	= "not a directory";
-intern char *enoexist	= "file does not exist";
-intern char *ebusy	= "file busy";
-intern char *edel	= "window was deleted";
-intern char *eio	= "i/o error";
+intern byte *eperm	= "permission denied";
+intern byte *efid	= "bad fid";
+intern byte *edfid	= "duplicate fid";
+intern byte *efmt	= "bad attach";
+intern byte *enotdir	= "not a directory";
+intern byte *enoexist	= "file does not exist";
+intern byte *ebusy	= "file busy";
+intern byte *edel	= "window was deleted";
+intern byte *eio	= "i/o error";
 
 intern Fid 	*flist;
-intern char	*user;
+intern byte	*user;
 
 void
 files()
@@ -94,7 +94,7 @@ void
 post(void)
 {
 	int s;
-	char num[10];
+	byte num[10];
 
 	if(pipe(mtp) < 0)
 		error("pipe: %r");
@@ -117,7 +117,7 @@ Yattach(Ioreq *f)
 {
 	Fid *n;
 	int id;
-	char *e;
+	byte *e;
 	Window *w;
 	Fcall *r, thdr;
 
@@ -151,7 +151,7 @@ Yattach(Ioreq *f)
 	flist = n;
 	w->ref++;
 	thdr.fid = r->fid;
-	thdr.qid = (Qid){n->qid, 0};
+	thdr.qid = (Qid)(n->qid, 0);
 
 	reply(r, &thdr, nil);
 	free(f);
@@ -194,7 +194,7 @@ void
 Ywalk(Ioreq *f)
 {
 	Fid *n;
-	char *e;
+	byte *e;
 	Dirtab *d;
 	Fcall *r, thdr;
 
@@ -204,7 +204,6 @@ Ywalk(Ioreq *f)
 		return;
 	}
 	r = &f->fcall;
-	e = nil;	
 	n = getfid(r->fid);
 	if(n == nil) {
 		e = efid;
@@ -218,7 +217,7 @@ Ywalk(Ioreq *f)
 		for(d = dirtab; d->name; d++) {
 			if(strcmp(d->name, r->name) == 0) {
 				n->qid = d->qid;
-				thdr.qid = (Qid){d->qid, 1};
+				thdr.qid = (Qid)(d->qid, 1);
 				break;
 			}
 		}
@@ -235,7 +234,7 @@ void
 Yopen(Ioreq *f)
 {
 	Fid *n;
-	char *e;
+	byte *e;
 	Window *w;
 	Fcall *r, thdr;
 
@@ -245,7 +244,6 @@ Yopen(Ioreq *f)
 		return;
 	}
 	r = &f->fcall;
-	e = nil;	
 	n = getfid(r->fid);
 	if(n == nil) {
 		e = efid;
@@ -286,7 +284,7 @@ Yopen(Ioreq *f)
 		w->mouseopen = 1;
 		break;
 	}
-	thdr.qid = (Qid){n->qid, 0};
+	thdr.qid = (Qid)(n->qid, 0);
 	reply(r, &thdr, nil);
 	free(f);
 }
@@ -294,9 +292,11 @@ Yopen(Ioreq *f)
 void
 Yclunk(Ioreq *f)
 {
+	Mesg m;
 	Fid *p, **l;
 	Fcall *r, thdr;
 
+	m.type = MsgClose;
 	r = &f->fcall;
 	l = &flist;
 	for(p = flist; p; p = p->next) {
@@ -305,7 +305,7 @@ Yclunk(Ioreq *f)
 			clntclunk(p->w, p->qid);
 			p->w->ref--;
 			if(p->w->ref == 0)
-				p->w->in <-= (Mesg){ MsgClose };
+				p->w->in <-= m;
 			break;
 		}
 		l = &p->next;
@@ -323,16 +323,16 @@ statfill(Dirtab *f, void *b)
 	if(f == nil) {
 		strcpy(d.name, ".");
 		d.mode = CHDIR|0555;
-		d.qid = (Qid){CHDIR|Qdir, 0};
+		d.qid = (Qid)(CHDIR|Qdir, 0);
 	}
 	else{
 		strcpy(d.name, f->name);
 		d.mode = f->perm;
-		d.qid = (Qid){f->qid, 0};
+		d.qid = (Qid)(f->qid, 0);
 	}
 	strcpy(d.uid, user);
 	strcpy(d.gid, user);
-	d.atime = time(nil);
+	d.atime = time();
 	d.mtime = d.atime;
 	d.length = 0;
 	convD2M(&d, b);
@@ -343,7 +343,7 @@ Yread(Ioreq *f)
 {
 	Fid *n;
 	Mesg m;
-	char *e, *tbuf;
+	byte *e, *tbuf;
 	Window *w;
 	Dirtab *dp;
 	Fcall *r, thdr;
@@ -369,7 +369,7 @@ Yread(Ioreq *f)
 			e = eio;
 			raise;
 		}
-		tbuf = (char*)r+sizeof(Fcall);
+		tbuf = (byte*)r+sizeof(Fcall);
 		thdr.count = 0;
 		for(dp = &dirtab[r->offset/DIRLEN]; dp->name != nil; dp++) {
 			if(r->count <= 0)
@@ -394,7 +394,7 @@ Ywrite(Ioreq *f)
 {
 	Fid *n;
 	Mesg m;
-	char *e;
+	byte *e;
 	Window *w;
 	Fcall *r, thdr;
 
@@ -482,10 +482,10 @@ Yflush(Ioreq *f)
 }
 
 void
-reply(Fcall *r, Fcall *t, char *err)
+reply(Fcall *r, Fcall *t, byte *err)
 {
 	int n;
-	char data[MAXRPC];
+	byte data[MAXRPC];
 
 	t->tag = r->tag;
 	t->fid = r->fid;
@@ -518,8 +518,8 @@ cleanio(Ioreq **i)
 	Ioreq *next, *f;
 
 	for(f = *i; f; f = next) {
-		next = f->link;
 		reply(&f->fcall, &thdr, edel);
+		next = f->link;
 		free(f);
 	}
 	*i = nil;

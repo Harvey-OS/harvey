@@ -39,6 +39,9 @@ The sizes are
 .TP
 .BR 4 " or " l
 4-byte big-endian units.
+.TP
+.BR 8 " or " v
+8-byte big-endian units.
 .PD
 .PP
 The styles are
@@ -75,9 +78,10 @@ Reverse (swab) the order of bytes in each group of 4 before printing.
 .B -r
 Print repeating groups of identical 16-byte sequences as the first group
 followed by an asterisk.
-.PP
+.SH SOURCE
+.B /sys/src/cmd/xd.c
 .SH "SEE ALSO"
 .IR db (1)
 .SH BUGS
 The various output formats don't line up properly in the output of
-.I xd.
+.IR xd .

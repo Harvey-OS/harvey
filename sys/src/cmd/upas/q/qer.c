@@ -2,10 +2,20 @@
 #include <libc.h>
 #include "../libString/String.h"
 
+typedef struct Qfile Qfile;
+struct Qfile
+{
+	Qfile	*next;
+	char	*name;
+	char	*tname;
+} *files;
+
+int	copy(Qfile*);
+
 void
 usage(void)
 {
-	fprint(2, "usage: qer q-root description reply-to arg-list\n");
+	fprint(2, "usage: qer [-f file] q-root description reply-to arg-list\n");
 	exits("usage");
 }
 
@@ -22,7 +32,7 @@ error(char *f, char *a)
 }
 
 void
-main(int ac, char**av)
+main(int argc, char**argv)
 {
 	Dir	dir;
 	String	*f, *c;
@@ -32,11 +42,25 @@ main(int ac, char**av)
 	long	n;
 	char	*cp;
 	int	i;
+	Qfile	*q, **l;
 
-	if(ac < 5)
+	l = &files;
+
+	ARGBEGIN {
+	case 'f':
+		q = malloc(sizeof(Qfile));
+		q->name = ARGF();
+		q->next = *l;
+		*l = q;
+		break;
+	default:
+		usage();
+	} ARGEND;
+
+	if(argc < 3)
 		usage();
 
-	sprint(file, "%s/%s", av[1], getuser());
+	sprint(file, "%s/%s", argv[0], getuser());
 
 	if(dirstat(file, &dir) < 0){
 		if((fd = create(file, OREAD, CHDIR|0774)) < 0)
@@ -53,6 +77,26 @@ main(int ac, char**av)
 	f = s_copy(file);
 	s_append(f, "/D.XXXXXX");
 	mktemp(s_to_c(f));
+
+	/*
+	 *  copy over associated files
+	 */
+	if(files){
+		cp = utfrrune(s_to_c(f), '/');
+		cp++;
+		*cp = 'F';
+		for(q = files; q; q = q->next){
+			q->tname = strdup(s_to_c(f));
+			if(copy(q) < 0)
+				error("copying %s to queue", q->name);
+			(*cp)++;
+		}
+		*cp = 'D';
+	}
+
+	/*
+	 *  copy in the data file
+	 */
 	fd = create(s_to_c(f), OWRITE, 0660);
 	if(fd < 0)
 		error("creating data file %s", s_to_c(f));
@@ -73,8 +117,12 @@ main(int ac, char**av)
 	if(fd < 0)
 		error("creating control file %s", s_to_c(f));
 	c = s_new();
-	for(i = 2; i < ac; i++){
-		s_append(c, av[i]);
+	for(i = 1; i < argc; i++){
+		s_append(c, argv[i]);
+		s_append(c, " ");
+	}
+	for(q = files; q; q = q->next){
+		s_append(c, q->tname);
 		s_append(c, " ");
 	}
 	s_append(c, "\n");
@@ -82,4 +130,31 @@ main(int ac, char**av)
 		error("writing control file %s", s_to_c(f));
 	close(fd);
 	exits(0);
+}
+
+int
+copy(Qfile *q)
+{
+	int from, to, n;
+	char buf[4096];
+
+	from = open(q->name, OREAD);
+	if(from < 0)
+		return -1;
+	to = create(q->tname, OWRITE, 0660);
+	if(to < 0){
+		close(from);
+		return -1;
+	}
+	for(;;){
+		n = read(from, buf, sizeof(buf));
+		if(n <= 0)
+			break;
+		n = write(to, buf, n);
+		if(n < 0)
+			break;
+	}
+	close(to);
+	close(from);
+	return n;
 }

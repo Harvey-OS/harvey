@@ -8,13 +8,16 @@
 
 #define	DPRINT	if(debug)kprint
 
-#define DATASIZE	(64*512)
+#define DATASIZE	(256*512)
+#define NBUS		2
 
-static Scsi	staticcmd;	/* BUG: should be one per scsi device */
+static Scsi staticcmd[NBUS];	/* BUG: should be one per scsi device */
 
 enum
 {
-	Qdir,
+	Qscsiid = 1,		/* Top level */
+
+	Qdir	= 0,		/* Sub-directory */
 	Qcmd,
 	Qdata,
 	Qdebug,
@@ -35,8 +38,8 @@ scsigen1(Chan *c, long qid, Dir *dp)
 {
 	if (qid == CHDIR)
 		devdir(c, (Qid){qid,0}, ".", 0, eve, 0555, dp);
-	else if (qid == 1)
-		devdir(c, (Qid){qid,0}, "id", 1, eve, 0666, dp);
+	else if (qid == Qscsiid)
+		devdir(c, (Qid){Qscsiid,0}, "scsiid", NUMSIZE, eve, 0666, dp);
 	else if (qid&CHDIR) {
 		char name[2];
 		name[0] = '0'+((qid>>4)&7), name[1] = 0;
@@ -82,13 +85,24 @@ scsireset(void)
 void
 scsiinit(void)
 {
+	int i;
+
+	for(i = 0; i < NBUS; i++)
+		staticcmd[i].bus = i;
+
 	initscsi();
 }
 
 Chan *
 scsiattach(char *param)
 {
-	return devattach('S', param);
+	Chan *c;
+
+	c = devattach('S', param);
+	c->dev = 0;
+	if(param[0] == '1')
+		c->dev = 1;
+	return c;
 }
 
 Chan *
@@ -125,7 +139,7 @@ scsicreate(Chan *c, char *name, int omode, ulong perm)
 void
 scsiclose(Chan *c)
 {
-	Scsi *cmd = &staticcmd;
+	Scsi *cmd = &staticcmd[c->dev];
 	
 	if((c->qid.path & CHDIR) || c->qid.path==1)
 		return;
@@ -140,19 +154,14 @@ scsiclose(Chan *c)
 long
 scsiread(Chan *c, char *a, long n, ulong offset)
 {
-	Scsi *cmd = &staticcmd;
+	Scsi *cmd = &staticcmd[c->dev];
 
 	if(n == 0)
 		return 0;
 	if(c->qid.path & CHDIR)
 		return devdirread(c, a, n, 0, 0, scsigen);
-	if(c->qid.path==1){
-		if(offset == 0){
-			/*void scsidump(void); scsidump();*/
-			*a = scsiownid;
-			n = 1;
-		}else
-			n = 0;
+	if(c->qid.path==Qscsiid){
+		n = readnum(offset, a, n, scsiownid, NUMSIZE);
 	}else switch(c->qid.path & 0xf){
 	case Qcmd:
 		if(n < 4)
@@ -211,15 +220,22 @@ scsiread(Chan *c, char *a, long n, ulong offset)
 long
 scsiwrite(Chan *c, char *a, long n, ulong offset)
 {
-	Scsi *cmd = &staticcmd;
+	Scsi *cmd;
+	int id, m; 
+	char buf[NUMSIZE+1];
 
-	if(c->qid.path==1 && n>0){
-		if(offset == 0){
-			n = 1;
-			scsiownid=*a;
-			scsireset();
-		}else
-			n = 0;
+	cmd = &staticcmd[c->dev];
+	if(c->qid.path==Qscsiid && n>0) {
+		m = n;
+		if(m > NUMSIZE)
+			m = NUMSIZE;
+		memmove(buf, a, m);
+		buf[m] = '\0';
+		id = strtoul(buf, 0, 0);
+		if(id < 0 || id > 15)
+			error(Ebadarg);
+		scsiownid=id;
+		scsireset();
 	}else switch(c->qid.path & 0xf){
 	case Qcmd:
 		if(n < 6 || n > sizeof cmd->cmdblk)
@@ -288,7 +304,7 @@ scsiwstat(Chan *c, char *dp)
 Scsi *
 scsicmd(int dev, int cmdbyte, Scsibuf *b, long size)
 {
-	Scsi *cmd = &staticcmd;
+	Scsi *cmd = &staticcmd[0];
 
 	qlock(cmd);
 	cmd->target = dev >> 3;
@@ -297,6 +313,7 @@ scsicmd(int dev, int cmdbyte, Scsibuf *b, long size)
 	cmd->cmd.ptr = cmd->cmd.base;
 	memset(cmd->cmdblk, 0, sizeof cmd->cmdblk);
 	cmd->cmdblk[0] = cmdbyte;
+	cmd->cmdblk[1] = cmd->lun << 5;
 	switch(cmdbyte >> 5){
 	case 0:
 		cmd->cmd.lim = &cmd->cmdblk[6];
@@ -325,7 +342,7 @@ scsicmd(int dev, int cmdbyte, Scsibuf *b, long size)
 		break;
 	}
 	cmd->b = b;
-	cmd->data.base = b->virt;
+	cmd->data.base = b->virt; 
 	cmd->data.lim = cmd->data.base + size;
 	cmd->data.ptr = cmd->data.base;
 	cmd->save = cmd->data.base;
@@ -497,20 +514,41 @@ int
 scsibread(int dev, Scsibuf *b, long n, long blocksize, long blockno)
 {
 	Scsi *cmd;
+	int cmdbyte, status;
 
-	cmd = scsicmd(dev, ScsiRead, b, n*blocksize);
+	if(blockno <= 0x1fffff && n <= 256)
+		cmdbyte = ScsiRead;
+	else
+		cmdbyte = ScsiExtread;
+
+	cmd = scsicmd(dev, cmdbyte, b, n*blocksize);
 	if(waserror()){
 		qunlock(cmd);
 		nexterror();
 	}
-	cmd->cmdblk[1] = blockno >> 16;
-	cmd->cmdblk[2] = blockno >> 8;
-	cmd->cmdblk[3] = blockno;
-	cmd->cmdblk[4] = n;
-	scsiexec(cmd, ScsiIn);
+	switch(cmdbyte){
+	case ScsiRead:
+		cmd->cmdblk[1] |= blockno >> 16;
+		cmd->cmdblk[2] = blockno >> 8;
+		cmd->cmdblk[3] = blockno;
+		cmd->cmdblk[4] = n;
+		break;
+	default:
+		cmd->cmdblk[2] = blockno >> 24;
+		cmd->cmdblk[3] = blockno >> 16;
+		cmd->cmdblk[4] = blockno >> 8;
+		cmd->cmdblk[5] = blockno;
+		cmd->cmdblk[7] = n>>8;
+		cmd->cmdblk[8] = n;
+		break;
+	}
+	status = scsiexec(cmd, ScsiIn);
 	n = cmd->data.ptr - cmd->data.base;
 	poperror();
 	qunlock(cmd);
+	if(n <= 0 && status == 0x6002)
+		error(Eio);
+
 	return n;
 }
 
@@ -518,19 +556,39 @@ int
 scsibwrite(int dev, Scsibuf *b, long n, long blocksize, long blockno)
 {
 	Scsi *cmd;
+	int cmdbyte, status;
 
-	cmd = scsicmd(dev, ScsiWrite, b, n*blocksize);
+	if(blockno <= 0x1fffff && n <= 256)
+		cmdbyte = ScsiWrite;
+	else
+		cmdbyte = ScsiExtwrite;
+
+	cmd = scsicmd(dev, cmdbyte, b, n*blocksize);
 	if(waserror()){
 		qunlock(cmd);
 		nexterror();
 	}
-	cmd->cmdblk[1] = blockno >> 16;
-	cmd->cmdblk[2] = blockno >> 8;
-	cmd->cmdblk[3] = blockno;
-	cmd->cmdblk[4] = n;
-	scsiexec(cmd, ScsiOut);
+	switch(cmdbyte){
+	case ScsiWrite:
+		cmd->cmdblk[1] |= blockno >> 16;
+		cmd->cmdblk[2] = blockno >> 8;
+		cmd->cmdblk[3] = blockno;
+		cmd->cmdblk[4] = n;
+		break;
+	default:
+		cmd->cmdblk[2] = blockno >> 24;
+		cmd->cmdblk[3] = blockno >> 16;
+		cmd->cmdblk[4] = blockno >> 8;
+		cmd->cmdblk[5] = blockno;
+		cmd->cmdblk[7] = n>>8;
+		cmd->cmdblk[8] = n;
+		break;
+	}
+	status = scsiexec(cmd, ScsiOut);
 	n = cmd->data.ptr - cmd->data.base;
 	poperror();
 	qunlock(cmd);
+	if(n <= 0 && status == 0x6002)
+		error(Eio);
 	return n;
 }

@@ -1,0 +1,34 @@
+dev
+	root	/
+	cons	c
+	env	e
+	dup	d
+	pipe	|
+	proc	p
+	srv	s
+	mnt	M
+	scc	t
+	arp	a
+	iproute	P
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	kprof	T
+	seq	l
+	rtc	r
+
+stream
+	ip
+	fcall
+
+misc
+	kfs.root
+
+port
+	int cpuserver = 1;
+	long cfslen = 0; ulong cfscode[1];
+	ulong fslen = 0; uchar fscode[1];
+	void consdebug(void){}
+	void bitdebug(void){}
+
+boot cpu
+	il
+	tcp

@@ -15,7 +15,7 @@ tr \- translate characters
 .SH DESCRIPTION
 .I Tr
 copies the standard input to the standard output with
-substitution or deletion of selected characters.
+substitution or deletion of selected characters (runes).
 Input characters found in
 .I string1
 are mapped into the corresponding characters of
@@ -33,7 +33,7 @@ may be used:
 Complement
 .IR string1 :
 replace it with a lexicographically ordered
-list of all other 8-bit unsigned characters.
+list of all other characters.
 .TP
 .B -d
 Delete from input all characters in
@@ -45,7 +45,7 @@ Squeeze repeated output characters that occur in
 to single characters.
 .PP
 In either string a noninitial sequence
-.BI - x,
+.BI - x\f1,
 where 
 .I x
 is any character (possibly quoted), stands for
@@ -53,24 +53,26 @@ a range of characters:
 a possibly empty sequence of codes running from
 the successor of the previous code up through
 the code for
-.I x.
+.IR x .
 The character
 .L \e
 followed by 1, 2 or 3 octal digits stands for the
 character whose
-Unicode
+16-bit
 value is given by those digits.
 The character sequence
 .L \ex
 followed by 1, 2, 3, or 4 hexadecimal digits stands
 for the character whose
-Unicode value is given by those digits.
+16-bit value is given by those digits.
 A 
 .L \e
 followed by any other character stands
 for that character.
 .SH EXAMPLES
-Replace all upper-case letters by lower-case.
+Replace all upper-case
+.SM ASCII
+letters by lower-case.
 .IP
 .EX
 tr A-Z a-z <mixed >lower
@@ -89,5 +91,7 @@ is given as a quoted newline.
 tr -cs A-Za-z '
 \&' <file1 >file2
 .EE
+.SH SOURCE
+.B /sys/src/cmd/tr.c
 .SH "SEE ALSO"
 .IR sed (1)

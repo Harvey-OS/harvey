@@ -1,0 +1,11 @@
+% skinny variant of METAFONT logo
+font_size 30pt#;  % the "design size" of this font
+ht#:=25pt#;    % height of characters
+xgap#:=1.5pt#;    % horizontal adjustment
+u#:=3/9pt#;    % unit width
+s#:=1/3pt#;    % extra space at the left and the right
+o#:=2/9pt#;    % overshoot
+px#:=1pt#;    % horizontal thickness of pen
+slant:=-1/9;    % leftward bias
+input nlogo    % now generate the font (testing the driver approach)
+bye      % and stop.

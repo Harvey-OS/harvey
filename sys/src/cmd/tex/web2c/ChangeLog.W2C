@@ -1,0 +1,1637 @@
+Thu May 14 19:20:57 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Wed May 13 08:54:33 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (VPATH): change for new Autoconf.
+
+Tue Apr 28 10:17:23 1992  Karl Berry  (karl@hayley)
+
+        * configure.in: Autoconf's prefix is now AC_, not M_.
+
+Sat Apr 25 09:04:59 1992  Karl Berry  (karl@hayley)
+
+        * README.W2C: various fixes.
+
+        * AUTHORS.W2C: new file, shortening README.
+
+Thu Apr 23 06:38:46 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in: fix clean targets for latest GNU stds.
+        (bases): pass localmodes.
+        (makeargs): pass MFLAGS.
+        Above from Andreas.
+
+        * README.W2C, configure.in: Refer to site.h.in.
+        * Makefile.in (web2c-dist): distribute it.
+        (prefix): set to /usr/local.
+
+        * Makefile.in (.NOEXPORT): remove, as configure automatically adds
+          it now.
+
+        * Makefile.in (installargs): mfpool was going to the wrong place.
+
+Wed Apr 22 08:41:18 1992  Karl Berry  (karl@hayley)
+
+        * configure.in: M_SIGTYPE is now M_RETSIGTYPE.
+
+        * configure.in: use M_LN_S.
+        * Makefile.in (LN): set to @LN_S@.
+
+        * MACHINES.W2C (DEC 5000/250, Ultrix 4.2a): from Elizabeth.
+
+        * Makefile.in (formats): remove \ at end of comment line, as
+          Ultrix make can't handle it.
+
+Mon Apr 20 06:32:10 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (check): an alias for `run-triptrap'.
+
+Sun Apr 19 11:54:41 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (distclean): add as another alias for `realclean'.
+
+Fri Apr 17 08:52:06 1992  Karl Berry  (karl@hayley)
+
+        * Version 5.851b.
+
+Tue Apr 14 17:26:32 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (web/tangleboot.c): just make tangleboot.c.
+
+        * Makefile.in (clean-triptrap): just remove tex/tex.p and mf/mf.p,
+          as we don't want to remove the change files configure constructed.
+
+Mon Apr 13 09:00:39 1992  Karl Berry  (karl@hayley)
+
+        * configure.in: do M_PREFIX before M_FLEX, so we can guess
+          $(prefix)/lib/libfl.a for the flex library.
+
+Fri Apr 10 17:02:56 1992  Karl Berry  (karl@hayley)
+
+        * Makefile.in (web2c-dist): remove */c*.ch in what get distributed.
+
+        * configure.in: don't mess up if small vs. bib TeX/MF/BibTeX
+          changes from configure to configure.
+
+        * Makefile.in (infodir): remove this, as we don't have Texinfo
+          documentation (yet).
+
+        * README.W2C: correct numbering.
+
+        * MACHINES.W2C: add entry for Sun 3/SunOS 4.0.3 from Elizabeth.
+
+Wed Apr  8 15:47:02 1992  Karl Berry  (karl@hayley)
+
+        * README.VMS: new file.
+
+Fri Apr  3 11:56:13 1992  Karl Berry  (karl@hayley)
+
+        * configure.in, Makefile.in: guess $(prefix) automatically.
+
+Fri Apr  3 09:54:21 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Thu Apr  2 17:19:09 1992  Karl Berry  (karl at claude.cs.umb.edu)
+
+        * Makefile.in: make stamp-web2c depend on stamp-lib, etc.
+
+Thu Apr  2 13:51:45 1992  Karl Berry  (karl at ra.cs.umb.edu)
+
+        * Makefile.in (tangleboot.pas): change to tangleboot.c.
+
+Mon Mar 30 08:01:35 1992  Karl Berry  (karl at hayley)
+
+        * Makefile.in: use $(MAKE), not make.
+
+Sun Mar 22 09:26:20 1992  Karl Berry  (karl at hayley)
+
+        * configure.in: don't make a link to lib/site.h, it's already there.
+
+        * Makefile.in (mfargs): new variable.
+        (programs): pass $(mfargs) if we are doing mf.
+        (web2c): remove this.
+
+Sat Mar 21 09:08:31 1992  Karl Berry  (karl at hayley)
+
+        * Makefile.in (web-dist, web2c-dist): redo.
+
+        * configure.in: test for site.h in lib/.
+
+        * site.h (TEXPOOLNAME): new macro for installers to redefine.
+
+        * Makefile.in (*manpages): don't pass SITEDIR; pass srcdir instead.
+
+Fri Mar 20 15:53:21 1992  Karl Berry  (karl at hayley)
+
+        * configure.in: do M_X11_LOCATION.
+
+        * README.W2C: document these changes.
+        * Makefile.in (install-programs): rename from install.  Make
+          `install' install everything.  Also, go into subdirectories to
+          do the installation.
+        (install-manpages): don't pass INSTALL_PROGRAM.
+        (dist): do both web2c-dist and web-dist.
+        (mostlyclean): new clean target.
+
+Sat Mar  7 10:18:41 1992  Karl Berry  (karl at hayley)
+
+        * configure.in: change config-auto.h to c-auto.h.
+
+Fri Feb 14 07:56:42 1992  Karl Berry  (karl at hayley)
+
+        * configure.in (wlibs): put the -l's here directly, instead of
+          setting to a make variable.
+        * Makefile.in (*lib): remove the variables.
+
+Tue Feb 11 09:56:01 1992  Karl Berry  (karl at hayley)
+
+        * configure.in: test for memcpy et al. in <memory.h> only.
+
+        * configure.in: test for <limits.h> missing.
+
+        * configure.in (extrawlibs): remove this, just assign to wlibs.
+
+        * Makefile.in (copt): never mind, use CC.
+
+Sun Feb  9 09:54:27 1992  Karl Berry  (karl at hayley)
+
+        * Makefile.in (copt): new variable, for ISC's -posix.
+
+        * Makefile.in (realclean): remove Makefile and config.status.
+
+Sat Feb  1 16:03:05 1992  Karl Berry  (karl at hayley)
+
+        * site.h-dist: remove subdirectory stuff.  Add GFFONTS and PKFONTS.
+
+Fri Jan 24 09:11:29 1992  Karl Berry  (karl at hayley)
+
+        * configure.in: do M_CHAR_UNSIGNED, and test for endianness here.
+        * config: gets removed.
+        * site.h: gets copied from config.
+        * Makefile.in (cflags): don't include -I$(configdir).
+        (configdir): remove.
+
+Wed Jan 15 11:33:54 1992  Karl Berry  (karl at hayley)
+
+        * Makefile.in (libsources): do not include xchdir.c and xgetcwd.c,
+          as they're no longer needed.
+        * configure.in: don't test for getwd missing anymore.
+
+Tue Jan 14 08:47:38 1992  Karl Berry  (karl at hayley)
+
+        * Makefile.in (makeargs): pass wlibs.
+
+Sun Jan 12 07:35:37 1992  Karl Berry  (karl at hayley)
+
+        * Makefile.in (CFLAGS): define and pass down `cflags', instead, as
+          TeX and BibTeX need to add additional -D's.
+
+        * Makefile.in (.NOEXPORT): include this target to stop arg list
+          problems with GNU make.
+
+        * Makefile.in (clean-triptrap): call `make realclean', not
+          `veryclean'.
+
+Sat Jan 11 11:59:27 1992  Karl Berry  (karl at hayley)
+
+        * rename `common' to `lib'.
+
+        * configure.in: new file to automatically generate the configure
+          script with autoconf.
+
+Wed Jan  8 07:44:02 1992  Karl Berry  (karl at hayley)
+
+        * configure (extrawlibs): include -lnsl_s, as ISC's X11R4 stuff
+          needs it.
+
+Tue Jan  7 11:24:54 1992  Karl Berry  (karl at hayley)
+
+        * Makefile.in (install targets): use INSTALL_PROGRAM and
+          INSTALL_DATA appropriately; pass to subdirs.
+
+        * start ChangeLogs in subdirectories.
+
+Fri Jan  3 13:20:09 1992  Karl Berry  (karl at hayley)
+
+        * texware/pltotf.ch (main block): exit 0.  No, rescind that; the
+          error code was from something else, as we already exit (0) in
+          common/main.c (main).
+
+Sun Sep  1 13:26:11 1991  Karl Berry  (karl at hayley)
+
+        * fontutil/vftovp.ch (Read the preamble, Read and store a font):
+          don't output anything unless -verbose is set.
+
+        * fontutil/vftovp.ch (Set init...): initialize vpl_name to optind
+          + 2, not + 1; initialize the others to be optind and optind + 1.
+
+Thu Aug 29 17:46:31 1991  Karl Berry  (karl at hayley)
+
+        * Makefile.in (INSTALL_PROGRAM): new variable.
+        (INSTALL): rename from `install'.
+        (INSTALL_DATA): rename from `INSTALLDATA'; change uses.
+        (prefix, libdir): new variables.
+        (bindir, mandir, texlibdir, mflibdir): use prefix.
+
+Sat Aug 24 06:37:52 1991  Karl Berry  (karl at hayley)
+
+        * tex/Makefile (formats): add `amslatex.fmt'.
+        (amslatex.fmt): new target.
+        * Makefile.in (formats): likewise.
+        * README (Format files): describe it.  Also add ``canonical
+          sources'' for the formats.
+
+Fri Aug 23 09:11:50 1991  Karl Berry  (karl at hayley)
+
+        * Makefile-dist: rename to Makefile.in.
+        * configure (makefiledist): likewise.
+
+Mon Aug 12 08:14:18 1991  Karl Berry  (karl at fosse)
+
+        * bibtex/bibtex.ch (pool_size): decrease to 512K from 5.12M.
+
+        * Makefile (install-formats, install-bases): don't do `-mkdir' in
+          the middle of the rule.
+
+        * common/common.defines (bytepointer): rename to pointertobyte,
+          since dvicopy defines a `bytepointer'.
+        * common/extra.h (bytepointer): likewise.
+        * texware/tftopl.ch: change uses.
+
+        * mf/Makefile (makeargs): update.
+
+Sun Aug 11 08:33:44 1991  Karl Berry  (karl at fosse)
+
+        * common/common.h [STRING_MISSING]: don't include <strings.h> if
+          `index' is already defined.
+
+        * common/texmf.c: include <ctype.h>.
+
+        * common/getopt.c [_AIX]: indent the `#pragma alloca', since
+          otherwise we get `undefined control' from hc.
+
+        * configure (systemtypes): fix sed commands to remove the final .h.
+
+Sat Aug 10 12:23:24 1991  Karl Berry  (karl at hayley)
+
+        * web2c/web2c.yacc (fixup_var_list): add the temp symbol used for
+          arrays with negative lower bounds to the symbol table.
+
+        * web2c/web2c.c (yytext): don't declare this, since we do in
+          web2c.h.
+
+        * texware/tftopl.ch (Read the whole input file): malloc the tfm
+          array if the file size is larger than the static size.
+        * common/common.defines (xmalloc, xrealloc, bytepointer,
+          casttobytepointer): declare these.
+        * common/extra.h (bytepointer, casttobytepointer): define these.
+
+Mon Jul 22 06:01:41 1991  Karl Berry  (karl at hayley)
+
+        * config/s-{esv3,ultrix4.2}.h: new files.
+        * configure: update for those systems.
+
+Fri Jul 19 08:32:18 1991  Karl Berry  (karl at hayley)
+
+        * configure (statusfile): define to be $configdir/statusfile;
+          always test if the s- file exists.
+
+Sat Jul 13 10:49:01 1991  Karl Berry  (karl at hayley)
+
+        * Makefile-dist (proginstall, fileinstall): change names to
+          `INSTALL' and `INSTALLDATA'.
+
+        * Makefile-dist (RANLIB): new variable.
+        (makeargs): pass it down.
+        * mf/MFwindow/Makefile (window.a): unconditionally use RANLIB,
+          since it will always be set.
+        * common/Makefile: make a library out of the common files.
+        * */Makefile (commono): reference the library.
+
+        * fontutil/vftovp.ch: implement -verbose, -charcode-format, and
+          output to stdout a la tftopl.
+        * man/vftovp.man: document this.
+
+        * texware/{pl,tf}to{tf,pl}: don't print the banner until after
+          we've read the input file.
+
+        * fontutil/vptovf.ch: implement -verbose a la pltotf.
+        * man/vptovf.man: document this.
+
+Mon Jul  8 10:52:26 1991  Karl Berry  (karl at hayley)
+
+        * common/common.h (integer): move comment about changing
+          fixwrites.c if integer changes here, from README.W2C.
+
+        * texware/tftopl.ch: new option -charcode-format.
+        (out_char): output the character code in the format requested.
+        * man/tftopl.man: document this.
+        * common/common.defines (vstrcat): new declaration.
+        * web2c/fixwrites.c (main): add ASCIIall to the list of variable
+          names who get output as characters.  What a crock.
+
+        * tex/Makefile (*.fmt): don't print the \font definitions.
+
+Thu Jul  4 07:16:39 1991  Karl Berry  (karl at hayley)
+
+        * common/texmf.c: put the memory_word stuff back in `texmfmem.h',
+          and redo the Makefiles; we can't include it before the types
+          have been defined.
+
+        * */Makefile (SITEDIR): change to ../config.
+
+        * web2c/web2c.h (yytext) [!DECLARE_YYTEXT_TYPE]: new type definition.
+
+        * web2c/web2c.yacc: lowercase `TRUE' and `FALSE'.
+
+        * web2c/Makefile (web2cy.c): unconditionally move the new .h and
+          .c files.
+
+        * common/Makefile (endian.h, endian): remove these targets; this
+          is now generated by configure.
+
+        * Makefile-dist: rearrange so that configure can easily edit it.
+
+Wed Jul  3 17:01:25 1991  Karl Berry  (karl at hayley)
+
+        * common/texmf.c (input_line): don't throw away trailing form
+          feeds on the line.
+
+        * common/texmf.h (twohalves): throw in another two bytes of junk
+          if we are BigTeX or BigMF.
+
+Mon Jul  1 06:31:18 1991  Karl Berry  (karl at hayley)
+
+        * common/getopt*: update to new versions.
+
+        * */*.[ch]: rationalize includes.
+
+        * site.h: move system stuff out; it will be determined by the
+          configuration file.
+        * defaults.h: remove; it, too, will be part of the configuration
+          file.
+        * common/extra.c [BSD]: conditionalize <dirent.h> on
+          DIRENT_MISSING, instead.
+        (PATH_DELIMITER): move to common.h.
+
+Sun Jun 30 13:44:09 1991  Karl Berry  (karl at hayley)
+
+        * web2c/symtab.h: fold into web2c.h.
+        * web2c/Makefile (web2c*.o): remove dependency on symtab.h.
+
+        * defaults.h [__HIGHC__]: move to common.h.
+        (FILENAMESIZE): define to 512 if it isn't already defined.
+
+        * common/common.h (index, rindex): conditionalize on
+          `STRING_MISSING'.  Define to be str[r]chr.
+        (getenv, atof): don't declare if we have <stdlib.h>.
+        * */*.c: change uses of [r]index to str[r]chr.
+
+        * {mf,tex}/c{mf,tex}big.ch: don't include "mfmem.h" or "texmem.h"
+          after all.
+        * common/texmf.h: include contents of memory_word structure.
+
+        * common/common.h [!index]: declare `index' to be a routine
+          returning a `char *'.
+        * web2c/regfix.c: include common.h.
+        (From wittig@gmdzi.gmd.de.)
+
+        * common/extra.c (space_terminate): use xord, not xchr.
+        * common/texmf.c (input_line): remove all space characters from
+          the end of the input line, not just spaces and tabs.
+        (topenin): use xord if NONASCII, and get rid of trailing
+          whitespace.
+        (These changes from raichle@azu.informatik.uni-stuttgart.de.
+
+        * common/{main,texmf}.c [ATARI_ST]: define _stksize (from
+          ridderbusch.pad@nixdorf.com).
+
+        * Makefile (SITEDIR): make default be `pwd', to simplify things.
+        * mf/MFwindow/Makefile (SITEDIR): lose the `..' in
+          -I../$(SITEDIR).  (From S.P.Q.Rahtz@ecs.southampton.ac.uk.)
+
+        * common/{fileio,texmf}.c [FUNNNY_CORE_DUMP}: don't do the funny
+          core dump stuff if we're BibTeX (from elisabet@max.u.washington.edu).
+
+        * {tex,mf}/small.diff: new file to replace the big patches.  Now
+          big is the default.
+
+        * bibtex/small.diff: new patch to go backwards from the big BibTeX
+          to the small one.
+        * README (Changing constants): document this.
+
+        * common/extra.c (checked_fopen): return NULL at the end, even
+          though we don't really return, to stop compiler warnings.  (from
+          steele@ecn.purdue.edu).
+
+        * common/extra.c (checked_fopen): before we hand the string to
+          perror, make it into a C string (from
+          kabal@aldebaran.insl.mcgill.ca).
+
+        * tex/Makefile (latex.fmt): remove comment about hacked lplain
+          (from kabal@aldebaran.insl.mcgill.ca).
+
+        * web2c/Makefile (web2cy.c): Print a message about expected s/r
+          conflicts.  Also use -v when invoking yacc.
+        (clean): remove `y.output'.
+
+        * Makefile (install-formats, install-bases): do `install dir1/file
+          dir2/file' instead of `install dir1/file dir2', since Ultrix
+          install is broken (in yet another way)  (from
+          scole@doorstop.berkeley.edu).
+
+        * man/{pktogf,pktype,vftovp,gftodvi,gftopk,gftype,tftopl}.man:
+          document that we look in `.' first.
+
+Sat Jun 29 08:14:12 1991  Karl Berry  (karl at hayley)
+
+        * common/extra.c (cwdtestreadaccess): new routine to look in `.'
+          before anything else.
+        * common/extra.defines (cwdtestreadaccess): declare it for Pascal.
+        * dviutil/dvicopy.ch (VF: Open |vf_file|...),
+          fontutil/{pktogf.ch, pktype.ch, vftovp.ch},
+          mfware/{gftodvi.ch,gftopk.ch,gftype.ch},
+          texware/tftopl.ch: use it to open input files.
+
+Fri Jun 28 16:40:10 1991  Karl Berry  (karl at hayley)
+
+        * mf/convert: insert `volatile's to avoid MIPS C compiler bugs
+          (from lgy@newton.phys.washington.edu).
+        * defaults.h (volatile) [!__STDC__]: define to be the empty
+          string.
+
+        * common/texmf.c (get_date_and_time): use `time_t' instead of
+          `long' for `time's return type.
+
+        * bibtex/bibtex.ch: comment out hacks to do the setjmp/longjmp.
+        * bibtex/convert: don't put in the setjmp/longjmp.
+
+        * Makefile (CCLD): new command to do the link step (suggested by
+          herber@fnalf.fnal.gov).  Change */Makefile to use it, and the
+          makeargs variable to pass it down.
+
+        * {mf,tex,mfware}/memory.h: rename this, to include conflicts with
+          a system <memory.h>.  (from newton@gumby.cs.caltech.edu).
+        * {mf,tex,mfware}/Makefile: rename memory.h here, too.
+
+        * Makefile: replace all bare `if's with `-if' (from
+          kmr@nada.kth.se).
+
+        * defaults.h: (integer): move from site.h-dist.
+
+        * common/texmf.c: always include <sys/types.h>.
+
+        * common/texmf.c [HANDLE_INTERRUPTS]: remove this conditional,
+          since we unconditionally defined it, anyway.
+
+        * site.h-dist (schar) [ANSI]: change conditional to use __STDC__.
+
+Sun Jun  9 12:27:01 1991  Karl Berry  (karl at hayley)
+
+        * tex/ctex.ch: apply trie.diff; we'll always have a big
+          hyphenation trie, instead of requiring the installer to patch
+          it.
+
+Wed May  8 07:31:19 1991  Karl Berry  (karl at hayley)
+
+        * Makefile (stamp-{bases,formats}): make dependent on ini{mf,tex}.
+        * {mf,tex}/Makefile ({*.base,*.fmt}): likewise.
+
+        * mf/cmf.ch (max_strings): change default for small Metafont to
+          3000: when modes.mf and plain are loaded, there is only room for
+          250 user strings.
+        (string_vacancies): change to 10000.
+
+Fri May  3 06:46:05 1991  Karl Berry  (karl at hayley)
+
+        * texware/{pl,tf}to{tf,pl}.ch, mfware/gftodvi.ch: declare verbose
+          as an integer, not a boolean.
+
+Wed May  1 17:04:03 1991  Karl Berry  (karl at hayley)
+
+        * texware/pltotf.ch (Constants): increase some sizes some more.
+
+Wed Apr 17 11:26:55 1991  Karl Berry  (karl at hayley)
+
+        * man/Makefile (install): don't unconditionally do mkdir $(mandir).
+
+Tue Apr 16 14:14:49 1991  Karl Berry  (karl at ra.cs.umb.edu)
+
+        * Version 5.84b.
+
+        * README.W2C: remove reference to bigbibtex.ch.
+
+        * dviutil: new dvicopy.web and dvicopy.ch from
+          xitikgun@ddathd21.bitnet.
+
+Tue Apr  9 10:58:39 1991  Karl Berry  (karl at ra.cs.umb.edu)
+
+        * common/texmf.c (do_undump) [REGFIX]: use a temporary so we can
+          use the & operator.
+
+        * MACHINES.W2C (Sun 4/470 and SunOS 4.1.1): from
+          casterln@are.berkeley.edu.
+
+        * Makefile (siteh): remove this.
+        (stamp-common): remove dependency on it.
+
+Tue Apr  2 16:23:02 1991  Karl Berry  (karl at ra.cs.umb.edu)
+
+        * Version 5.84a.
+
+        * web/tangleboot.c: bring up to date.
+
+Tue Apr  2 13:28:35 1991  Karl Berry  (karl at churchy.gnu.ai.mit.edu)
+
+        * common/endian.c: define the symbol `WEB2C_BIG_ENDIAN', since
+          <sys/machine.h> . 
+        * common/texmf.c (do_dump, do_undump): use that name.
+
+Tue Apr  2 09:52:55 1991  Karl Berry  (karl at godwin)
+
+        * bibtex/bibtex.ch: make `big' BibTeX the default.
+
+        * common/extra.h (gargv): make declaration extern.
+
+        * web2c/web2c.c (ii): remove second declaration.
+
+        * web/tangle.ch, fontutil/vptovf.ch, mfware/gftype.ch,
+          texware/pltotf.ch: change version numbers in banner.
+
+Thu Mar 28 14:28:01 1991  Karl Berry  (karl at apple-gunkies)
+
+        * mf/Makefile (run-trap): specify the current directory to find
+          trap.tfm and trap.72270gf.
+
+        * all Makefiles: add alloca.o to the common object files.
+
+        * Makefile (triptrap): new dependency `stamp-common'.
+
+        * common/Makefile (endian.h): use `./endian', not just `endian'.
+
+Tue Mar 26 14:05:00 1991  Karl Berry  (karl at ds5000)
+
+        * Makefile (install-formats, install-bases): don't quit if the
+          mkdir fails on the installation directory.
+
+        * tex/tex.web, fontutil/pktogf.web: new versions.
+        * fontutil/pktogf.ch: change version number.
+
+        * Makefile (web2c): define as just `web2c', and rename the
+          directory.  All the scripts use that name.
+
+Tue Mar 26 13:48:36 1991  Karl Berry  (karl at ra.cs.umb.edu)
+
+        * common/texmf.c (time): remove this declaration, since different
+          systems want a different return type.  (from bush@evax.uta.edu)
+
+Mon Mar 25 08:25:36 1991  Karl Berry  (karl at hayley)
+
+        * Makefile (stamp-web2c): remove all dependencies.
+        * web2c: change directory name to include version number.
+        (web2c): new variable to define the name of the web2c directory.
+
+Fri Mar 22 10:40:22 1991  Karl Berry  (karl at hayley)
+
+        * common/extra.c (setpaths): use a string version of the
+          PATH_DELIMITER when concatenating paths.
+        (PATH_DELIMITER_STR): new macro.
+
+        * mf/MFwindow/x11-xt.c (mf_x11_updatescreen): remove redundant
+          stuff after #endif.
+
+        * web2c/{web2c.h,web2c.c}: remove redundant preprocessor definitions.
+
+        * web2c/web2c.c (my_output); don't always output a space after
+          every token.  [no, rescind that, some sed scripts depend on the
+          existing form of output.]
+
+        * common/extra.c (getwd): don't initialize the automatic
+          structure; cc can't handle it.
+
+        * Makefile, */Makefile: use LDFLAGS at the beginning of linking
+          lines, and LOADLIBES at the end.
+
+        * COPYING.W2C: new file necessary for getopt; refer to it in
+          README.
+
+Tue Mar 19 15:19:35 1991  Karl Berry  (karl at hayley)
+
+        * mfware/gftopk.ch (open_pk_file): don't search backwards through
+          garbage for a `/' (found by mackay@cs.washington.edu).
+        * fontutil/pktogf.ch (open_gf_file): likewise.
+
+Mon Mar 18 13:48:34 1991  Karl Berry  (karl at hayley)
+
+        * {tex,mf}/Makefile ({tex,mf}-extra.o): remove the C file before
+          creating the link.
+
+Fri Mar 15 10:41:22 1991  Karl Berry  (karl at hayley)
+
+        * site.h-dist (SPRINTF_RETURN_TYPE): remove this; it's caused
+          about a zillion times more trouble than it's worth.
+
+        * mfware/gftodvi.ch: change default extension to `2602gf',
+          following dek's change for art.
+
+        * tex/ctex.ch: we're now at version 3.14.
+        (Also new versions of gftodvi.web and mf.web, but they don't
+        require any changes to the change files.)
+
+Sun Feb  3 11:22:13 1991  Karl Berry  (karl at hayley)
+
+        * mfware/gftodvi.ch: only print final newline if verbose.
+
+Sat Feb  2 09:54:14 1991  Karl Berry  (karl at hayley)
+
+        * tex/Makefile (etex.fmt): create the aux file before running initex.
+
+        These two changes from jmr@nada.kth.se make calling checked_fopen more
+        than once with the same argument (as happens with weave patgen.web
+        patgen.ch) work.
+        * common/extra.c (checked_fopen): leave the arg as a Pascal string.
+        * common/fileio.c (open_input): terminate the result that comes
+          back from checked_fopen with a null.
+
+        * common/texmf.h (dumpint): use do...while (0) to prevent syntax
+          errors.
+
+        * PROJECTS.W2C: remove the ones that have been implemented.
+
+Sat Jan 19 15:44:26 1991  Karl Berry  (karl at hayley)
+
+        * man/gftodvi.man: document the new options.
+
+        * */Makefile (commonh): add common.h to the list.
+
+        * common/common.h: include <math.h>.
+
+        * mfware/gftodvi.ch: implement -overflow-label-offset.
+        * common/extra.h (optiontable): another new abbreviation to help
+          in arg parsing.
+        * common/common.defines (strcmp, atof, optiontable): new
+          declarations.
+
+        * mfware/gftodvi.ch: changes to implement -verbose.
+
+        * most .ch files: fix the \title.
+
+Mon Jan 14 09:28:20 1991  Karl Berry  (karl at hayley)
+
+        * mf/Makefile (inimf): don't depend on $(windowlib), and don't
+          link with $(libs); it just wastes disk space.
+        * common/texmf.c [INI]: undefine all window symbols.
+
+        * man/dvitype.man: fix mismatched parentheses.
+
+        * man/tftopl.man: document the new option and the path searching.
+
+        * common/extra.c (make_c_string): replace spurious call to
+          `space_terminate' with `null_terminate'.
+
+        * texware/tftopl.ch: changes to implement -verbose; also write to
+          stdout if no output file is specified; also call set_paths
+          to do path searching for the TFM file.
+
+        * texware/pltotf.ch (usage): remove; just print it inline.
+
+Sun Jan 13 16:57:01 1991  Karl Berry  (karl at hayley)
+
+        These changes from ken@csis.dit.csiro.au:
+        * site.h: add TANDY as a possibility.
+        * defaults.h (FILENAMESIZE) [TANDY]: define to be smaller.
+        * common/extra.c (end_with_null, end_with_space): rename to
+          `null_terminate' and `space_terminate'.
+        * common/texmf.c (interrupt_handler): rename to `catch_interrupt'.
+        * web/tangle.ch (web_file_name, change_file_name): rename to
+          `web_name' and `chg_name'.
+        * web2c/web2c.yacc (function_return_type): rename to
+          `fn_return_type'.
+
+Sun Jan  6 13:41:08 1991  Karl Berry  (karl at hayley)
+
+        * site.h: remove HAVE_GETWD -- now we supply our own.
+
+        * Makefile (x11lib): don't include -lXext.
+
+        * common/main.c (argv): check if we're beyond the end of argv.
+
+        * texware/pltotf.ch: changes for silent running unless `-verbose'
+          is specified.
+
+        * common/extra.h (address_of_int): rename to addressofint.
+
+Fri Jan  4 15:38:40 1991  Karl Berry  (karl at hayley)
+
+        * man/Makefile (sedscript): use _ in the patterns, so
+          `TEXFONTS_SUBDIR' et al. work.  (from drl@vuse.vanderbilt.edu)
+
+Sat Dec 29 13:52:41 1990  Karl Berry  (karl at hayley)
+
+        * mfware/gftodvi.ch (Finish the \.{DVI}...): print a newline
+          before exiting.
+
+        * mfware/gftodvi.ch (Get ready to convert...): add only 1 inch
+          before typesetting the overflow labels.
+
+        * common/main.c (gargv): do not make static.
+        * common/extra.h (gargv): declare.
+        * common/extra.c (getwd, checked_{{open,ch}dir,{l,}stat): new
+        routines to find the pathname of the current directory.
+
+Wed Dec 26 09:21:56 1990  Karl Berry  (karl at hayley)
+
+        * mfware/gftodvi.ch: put the progress report back in.
+
+Mon Dec 17 09:35:24 1990  Karl Berry  (karl at hayley)
+
+        * README.W2C (Online output from MF): we have two versions of the
+          Suntools support now; mackay@cs.washington.edu sent one based on
+          the Sunview definitions, instead of gfx_hs.
+
+        * *.WEB2C: rename to *.W2C for compatibility with the Unix TeX
+        distribution.
+
+        * common/extra.c (getwd): new routine.
+        * site.h-dist (HAVE_GETWD): remove this definition; now everybody
+          has it.
+
+        * site.h-dist (FUNNY_CORE_DUMP): new symbol to make core dumps for
+          a preloaded TeX or MF by giving a strange filename.
+        * common/{extra,fileio}.c: use FUNNY_CORE_DUMP, instead of BSD,
+          for the condition.
+
+Sat Dec  8 13:01:18 1990  Karl Berry  (karl at hayley)
+
+        * {tex,mf}/Makefile ({tex,mf}-extra.o): make a link to $(extrac)
+          and compile it, instead of compiling $(extrac), so that parallel
+          computation work properly.
+
+        * tex/Makefile (latex.fmt, slitex.fmt): the files are called
+          `lplain' and `splain' again, instead of `lplain3' and `splain3'.
+
+Thu Nov 29 10:54:55 1990  Karl Berry  (karl at hayley)
+
+        * man/tex.man: don't put @TEXINPUTS@ at the beginning of a line,
+          since it might start with `.' (from
+          kabal@aldebaran.insl.mcgill.ca).
+
+Tue Nov 20 10:21:43 1990  Karl Berry  (karl at hayley)
+
+        * MACHINES: add info for ESIX on a 386, from uri@ibm.com.
+
+Mon Nov 19 07:04:10 1990  Karl Berry  (karl at hayley)
+
+        * texware/pltotf.ch (System-dependent changes): parse arguments
+          using getopt.
+        * common/common.defines (gargv, optind, getoptstruct,
+          getoptlongonly, addressofint, name, hasarg, flag, val): new
+          definitions.
+        * common/extra.h (addressofint, hasarg, getoptlongonly): new
+          definitions.
+
+Sun Nov 18 08:22:18 1990  Karl Berry  (karl at hayley)
+
+        * common/texmf.c (initscreen): use the MFTERM envvar, if set, to
+          determine the user's desired display type.
+        * man/mf.man: document this.
+
+        * common/texmf.c (do_dump): swap the bytes in memory back again
+          after dumping, since we use some of those values.
+
+        * web2c/web2c.yacc (P_F_DEC_PART): allow this to be empty.
+
+        * tex/ctex.ch (\input, \openin changes): allow names like
+          `foo.bar.tex', and look for `foo' before `foo.tex'.
+
+        * common/texmf.c (swap_items): new routine.
+        (do_dump, do_undump): call it, instead of doing bit operations to
+        pack and unpack the bytes.
+
+        * common/endian.c: new file.
+        * common/Makefile (endian.h): new target.
+        (all): make endian.h.
+        * tex/Makefile, mf/Makefile (extrah): add endian.h to the definition.
+
+Tue Nov 13 07:29:45 1990  Karl Berry  (karl at hayley)
+
+        * common/extra.c (setpaths): use PATH_DELIMITER instead of ":".
+
+Wed Nov  7 06:44:01 1990  Karl Berry  (karl at hayley)
+
+        * common/texmf.c (do_dump): handle dumping 8-byte and 2-byte items.
+        (dump_four): new routine.
+
+        * mf/cmf.ch (clear_terminal): define to do nothing.
+        * tex/ctex.ch (clear_terminal): likewise.
+
+Tue Nov  6 15:02:51 1990  Karl Berry  (karl at hayley)
+
+        * common/texmf.h ((un)dumpthings): call new routines, do_(un)dump.
+        * common/texmf.c (do_(un)dump): define them to always write and
+          read BigEndian files.x
+
+        * common/texmf.h (generic_(un)dump): call (un)dumpthings.
+
+        These changes from rusty@belch.berkeley.edu:
+        * web/Makefile (veryclean): remove tangle.h.
+
+        * web2c/Makefile (clean): remove lex.yy.c.
+
+        * Makefile (LN): new variable.
+        (triptrap): pass LN down.
+        * mf/Makefile, tex/Makefile: use $(LN) instead of `ln'.
+
+        * site.h-dist (schar) [ANSI]: define to be signed char (from
+          lgy@newton.phys.washington.edu).
+
+Sun Nov  4 09:32:55 1990  Karl Berry  (karl at hayley)
+
+        * README.WEB2C: Advertise TUG.
+
+        * mf/Makefile (cmmf.base): input cmbase, not cm.
+
+        * These changes suggested by chris@mimsy.umd.edu:
+        * common/texmf.c (bsd_clear_terminal, bsd_wake_up_terminal):
+          remove these, since the user should control the terminal.
+        * common/texmf.h (same) [BSD]: remove ifdef's that used
+          those routines.
+        * tex/ctex.ch (clear_terminal): define to do nothing.
+
+        * common/texmf.c: do not include <sys/fcntl.h>, since we don't
+          use the fcntl system call.
+
+Thu Nov  1 08:53:47 1990  Karl Berry  (karl at hayley)
+
+        * bibtex/Makefile (bibtex.o): do -Dbswap=bswapp.
+
+        * mfware/Makefile (mft.o): do -Dlink=link_array.
+
+        * Makefile (INSTALL): use -c, for Ultrix's sake.
+        * install: explicitly exit 0 if $(bindir) et al. exist  (from
+          dick@sprite.stanford.edu).
+
+Tue Oct 30 09:08:47 1990  Karl Berry  (karl at hayley)
+
+        * tex/ctex.ch (@<Declare act...) (for \openin): try to open the
+          file without the .tex extension.
+
+        * tex/bigtrie.diff: new file (from jmr@nada.kth.se).
+
+Thu Oct 25 08:56:19 1990  Karl Berry  (karl at hayley)
+
+        * tex/trie.diff (trie): line got truncated at 80 characters (from
+          piet@cs.ruu.nl).
+
+Tue Oct 23 09:17:57 1990  Karl Berry  (karl at hayley)
+
+        * common/texmf.c (input_line, calledit): break lines longer than
+          80 characters.
+
+Sat Oct 20 11:13:04 1990  Karl Berry  (karl at hayley)
+
+        * common/texmf.c (initscreen) [!TRAP]: cosmetic changes.
+
+        * common/extra.c (string_copy): declare in the old C style, not
+          the new.
+
+        * tex/trie.diff: update to new version.
+
+Fri Oct 19 17:38:55 1990  Karl Berry  (karl at claude)
+
+        * bibtex/convert: put the sed commands that change (pdstype) to
+          (buftype) back.
+
+        * bibtex/Makefile (bibtex.c): make it depend on `convert'.
+
+        * Makefile (BibTeX): new target.
+
+Fri Oct 12 13:03:58 1990  Karl Berry  (karl at spiff.ai.mit.edu)
+
+        * Version 5.8a.
+
+        * mf/fixcoerce.h: restore redefinition of tfmqqqq.
+
+        * common/convert: set a variable to `basename $pascalfile .p`.
+
+        * common/extra.c (do_subdir_path): assign result of expand_colon
+          to dir_list, not temp.
+
+        * web2c/fixwrites.c (main): fix output for pltotf.
+
+Wed Oct 10 16:41:54 1990  Karl Berry  (karl at spiff.ai.mit.edu)
+
+        * web2c/fixwrites.c [ANSI] (bare): give definition as a char.
+
+Sun Oct  7 05:02:58 1990  Karl Berry  (karl at sprite)
+
+        * common/extra.h (abs): cast the operands to integer, so the tests
+        on quarterwords in Metafont work properly (it took three days to
+        find this one...argh).
+
+Wed Oct  3 14:17:32 1990  Karl Berry  (karl at sprite)
+
+        * common/extra.c (S_ISDIR): define if it's not defined, instead of
+        if we're not _POSIX_SOURCE.
+
+        * web2c/fixwrites.c [ANSI] (bare): give prototype as a char.
+
+Wed Oct  3 15:20:34 1990  Karl Berry  (karl at hal)
+
+        * tex/Makefile (clean): remove .fmt and .aux files here.
+        * mf/Makefile (clean): remove .base files here.
+
+        * web/Makefile (tangle.p): add an extra sh -c for the sake of the
+        broken AIX sh; also, add $(CFLAGS) to the tangleboot compilation.
+
+Mon Oct  1 10:14:51 1990  Karl Berry  (karl at aten)
+
+        * web2c/fixwrites.c: don't extern strcpy et al.
+
+        * mfware/gftopk.ch: fix bobble in banner.
+
+Wed Sep 26 05:56:36 1990  Karl Berry  (karl at hayley)
+
+        * common/extra.c (S_ISDIR) [!_POSIX_SOURCE]: define S_ISDIR correctly.
+
+        * common/extra.c (expand_colon): new routine.
+        (do_path, do_subdir_path): call it.
+
+Tue Sep 25 07:24:58 1990  Karl Berry  (karl at hayley)
+
+        * common/extra.c (do_path): don't copy from temp if it's null.
+
+        * Makefile (install, install-formats, install-formats): do test -d
+        before running mkdir.
+
+        * Makefile (web-dist, web2c-dist): use the name src-$(version) for
+        the top-level directory.
+
+        * tex/Makefile (run-trip), mf/Makefile (run-trap): throw away the
+        output from the first run.
+
+        * web2c/{web2c,splitup}.c: declare argc as an int.
+
+        * new versions of the web files from DEK, and hence new versions
+        of the change files.
+
+Sun Sep 23 06:24:01 1990  Karl Berry  (karl at hayley)
+
+        * bibtex/Makefile (bibtex); put LDFLAGS at the end.
+        * mfware/Makefile (gftodvi): missing ).
+
+Sat Sep 22 07:38:02 1990  Karl Berry  (karl at hayley)
+
+        * common/extra.c (do_path): don't replace extra :'s in the middle
+        of the paths.
+        (insert_string): delete.
+
+        * site.h (TEXFONTS_SUBDIR, ...): new symbols.
+        * common/extra.c (setpaths): use them.
+        (do_subdir_path): new routine.
+        (do_path): remove subdirectory stuff.
+
+        * common/fileio.c (open_output): test *f, not f, to see if the
+        open succeeded.
+
+        * common/texmf.c [HANDLE_INTERRUPTS]: include <sys/types.h>, if
+        POSIX.
+
+        * web2c/fixwrites.c: use FILENAMESIZE to define `filename'.
+
+        * web/Makefile (tangle.p): missing a $.
+
+        * common/extra.c (S_ISDIR): new macro.
+        (is_dir): use it.
+
+        * common/common.h: new file.
+        * web2c/web2c.h: include it.
+        * common/extra.h: include it.
+        * web2c/fixwrites.c: include it.
+
+        * web2c/Makefile (web2cl.c): prepend site.h before the lex output,
+        so flex.skel will have the preprocessor symbols defined.
+
+        * web2c/Makefile (fixwrites, splitup, regfix): use LDFLAGS in
+        addition to CFLAGS.
+
+        * Makefile (stamp-web2c): make this depend on the web2c
+        executables, as well as the sources.
+
+        * site.h: another possibility for the OS is POSIX.
+        * web2c/web2c.h [ANSI]: don't declare sprintf if ANSI or
+        _POSIX_SOURCE is defined.
+        [FLEX]: change conditional symbol to FLEX_SCANNER.
+        * web2c/Makefile (web2c): include LEXLIB, not -ll.
+        * web2c/splitup.c: include web2c.h, instead of redefining TRUE,
+        FALSE, sprintf, and the like.
+
+        * common/extra.c (setpaths): use the symbol VFFONTS to initialize
+        the envvar if it is defined.
+        site.h: put in a prototype definition for VFFONTS.
+
+Tue Sep 18 16:45:04 1990  Karl Berry  (karl at hayley)
+
+        * Makefile (web-dist): make the directory of the tar file be
+        web2c-<version>, not just `web2c'.
+
+        * common/fileio.c (open_output): try to open the file in the dir
+        specified by TEXMFOUTPUT, if opening it in the cwd fails
+        (suggested by lgy@newton.phys.washington.edu).
+        * man/{tex,mf,bibtex}.man: document this.
+
+Sun Sep 16 07:50:08 1990  Karl Berry  (karl at hayley)
+
+        * README, PROBLEMS, PROJECTS: rename with .WEB2C suffix, to be
+        closer to what's on the Unix TeX tape.
+
+Thu Sep 13 07:09:18 1990  Karl Berry  (karl at hayley)
+
+        * Makefile (install-manpages): pass SITEDIR in.
+        * man/Makefile (sedscript): remove dependency on
+        $(SITEDIR)/Makefile.  (These changes from alien@essex.ac.uk.)
+
+        * tex/bigtex.diff, mf/bigmf.diff: don't increase max_quarterword,
+        thus perhaps saving some memory (from morgan@ics.uci.edu).
+
+Tue Sep 11 06:42:43 1990  Karl Berry  (karl at hayley)
+
+        * common/extra.c: don't give getcwd a prototype unless ANSI is
+        defined (from maj@computer-lab.cambridge.ac.uk). 
+
+Thu Sep  6 05:56:20 1990  Karl Berry  (karl at hayley)
+
+        * Makefile (x11lib), mf/Makefile (x11lib): include Xext.
+
+Tue Sep  4 09:45:54 1990  Karl Berry  (karl at hayley)
+
+        * Makefile (install*): use $(proginstall) or $(fileinstall), as
+        appropriate.
+        (fileinstall, proginstall): new variables.
+
+Sun Sep  2 15:51:35 1990  Karl Berry  (karl at hayley)
+
+        * site.h-dist (HAVE_GETWD): new option for people who are
+        fortunate enough to have this.
+        * common/extra.c (getcwd) [HAVE_GETWD]: define this in terms of
+        getwd (from morgan@ics.uci.edu).
+
+Fri Aug 31 15:17:19 1990  Karl Berry  (karl at hayley)
+
+        * These changes from andy@csvax.cs.caltech.edu.
+
+        * mf/MFwindow/tek.c [SYSV]: define bzero and bcmp as memset and
+        memcmp.
+
+        * common/extra.c: always include <sys/types.h> and <sys/stat.h>,
+        since is_dir needs them.
+
+        * */Makefile (link commands): put $(LDFLAGS) at the end of the
+        command, instead of the beginning.
+
+        * web/Makefile (tangle.p): use an already-compiled tangle if
+        possible, and include LDFLAGS instead of CFLAGS when making tangle
+        from tangleboot.c.
+
+        * site.h-dist (ANSI): say they must have sprintf declared if they
+        defined this.
+
+Thu Aug 30 15:58:05 1990  Karl Berry  (karl at hayley)
+
+        * These changes from andy@csvax.cs.caltech.edu.
+
+        * dviutil/dvicopy.ch: don't define cur_name to use text_char.
+
+        * web2c/fixwrites.c: declare bare to take an int, not a char, and
+        define it to return an int.
+
+        * common/extra.h, web2c/web2c.h, web2c/splitup: only declare
+        sprintf if ANSI is not defined, since a prototype with `...'
+        doesn't match a function without a prototype.
+
+Sun Aug 26 10:45:48 1990  Karl Berry  (karl at aten)
+
+        * Version 5.0e.
+
+        * Makefile (install-manpages): quote $(INSTALL).
+        * man/Makefile (all, install): make dependent on stamp-manpages, so
+        sed isn't invoked every time.
+        (clean): remove stamp-manpages.
+
+        * MACHINES: add info for the HP9000 machines from
+        mark@comp.vuw.ac.nz.
+
+Sat Aug 25 12:00:50 1990  Karl Berry  (karl at hayley)
+
+        * Makefile (alldirs): add `dviutil'.
+        (install): install dvicopy.
+
+        * common/extra.c (do_path): add a null after the path delimiter.
+
+        * dviutil/dvicopy.ch: restore lines truncated in transmission.
+        * dviutil/Makefile: prepend `.' to suffix lines.
+
+Thu Aug 23 06:44:28 1990  Karl Berry  (karl at claude)
+
+        * {tex,mf}/Makefile (triptex, trapmf): make dependent on $(iobjs)
+        and $(commono). 
+
+        * common/extra.c (do_path): don't take strlen of an integer.
+
+        * web2c/Makefile (veryclean): remove yacc.*.
+
+Wed Aug 22 06:16:03 1990  Karl Berry  (karl at hayley)
+
+        * Makefile (FORMATINSTALL): new variable; defines installation
+        commands for .fmt's and .base's.
+
+        * common/extra.c (do_path): use PATH_DELIMITER instead of ':'.
+
+        * {tex,mf}/Makefile: use tex.fmt and mf.base when making other
+        formats or bases.
+
+        * Makefile (YACC, LEX): new variables.
+        (stamp-web2c): pass them down when compiling web2c.
+
+        * common/extra.c (do_path): do chdirs to the directories in the
+        path.
+
+        * common/extra.{c,h} (ztoint) [sequent]: remove this, since
+        the Sequent compiler doesn't have the casting problem any more.
+
+Thu Aug 16 15:24:02 1990  Karl Berry  (karl at apollo)
+
+        * common/extra.c (do_path): don't look for subdirectories if we
+        used the default value (sometimes).
+
+        * common/extra.c (do_path): only look for subdirectories
+        conditionally.
+        (setpaths): don't look for subdirectories in all paths.
+
+        * common/extra.c (do_path): don't clobber the path as we check for
+        subdirectories.
+
+        * tex/Makefile (run-trip), mf/Makefile (run-trap): remove
+        trip.tex/trap.mf before linking
+
+Wed Aug 15 08:45:28 1990  Karl Berry  (karl at hayley)
+
+        * web/tangleboot.{pas,c}: update these.
+
+        * Makefile (install-formats, install-bases, install): move the
+        commands for the first two from the third.
+
+        * mfware/mft.ch (open_input): use MF_INPUT_PATH to open the .mf
+        file.
+        * man/mft.man: document this.
+
+        * site.h (MAXPATHLEN): remove this; we allocate the storage
+        dynamically now.
+        * man/{tex,mf}.man: don't refer to MAXPATHLEN.
+        * common/extra.c (xmalloc, xrealloc): new routines.
+
+        * common/extra.c (do_path): find all the subdirectories here, and
+        add them to the path.
+        (testreadaccess): remove the subdirectory checking here.
+
+        * tex/ctex.ch (\S552): initialize bchar_label[null_font], et al.,
+        to avoid arbitrary font_info data as being interpreted as lig/kern
+        programs (from Chris Thompson).
+
+        * common/extra.c (setpaths): take an argument saying which paths
+        to initialize.
+        * common/common.defines (setpaths): declare to be a procedure with
+        parameters.
+        * common/extra.h (...PATHBIT): new macros to define that argument.
+        * common/common.defines (...PATHBIT): make them available to the
+        change files.
+        * bibtex/bibtex.ch (get_the_top_level_aux_file_name),
+        fontutil/pktogf.ch (PK_to_GF), pktype.ch (PKtype), vftovp.ch
+        (VFtoVP), mfware/gftodvi.ch (GFtoDVI), gftopk.ch (initialize),
+        gftype.ch (initialize), mft.ch (scan_args), texware/dvitype.ch
+        (DVItype), dviutil/dvicopy.ch (DVIcopy), mf/cmf.ch, tex/ctex.ch:
+        change call to set_paths.
+
+        * common/{extra.c, extra.h, common.defines): define another
+        path-searching constant, VFFILEPATH, which uses the environment
+        variable VFFONTS.
+        * dviutil: new subdirectory to hold dvicopy, whose change file
+        uses VFFILEPATH (from xitikgun@ddathd21.bitnet).
+        * fontutil/vftovp.ch: use VFFILEPATH.
+        * man/vftovp.man: document this.
+
+        * common/{extra,fileio}.c (terminate_with_space,
+        terminate_with_null): rename to `end_with_space' and
+        `end_with_null', so brain-dead linkers that only look at the first
+        16 characters don't break.
+
+Tue Aug 14 11:32:35 1990  Karl Berry  (karl at aten)
+
+        * common/extra.c (do_path): allocate an extra byte for the
+        trailing null.
+
+Mon Aug 13 14:45:06 1990  Karl Berry  (karl at aten)
+
+        * Makefile (fmts): add picplus.
+        * tex/Makefile (fmts): likewise.
+
+        * man/Makefile (manfiles): remove trailing \ from last item in list.
+
+        * {bibtex,mf,tex}/Makefile: remove form feeds.
+
+Sun Aug 12 10:23:12 1990  Karl Berry  (karl at hayley)
+
+        * web/tangle.ch (scan_args): if a `.' occurs before a `/' in a
+        filename, don't count it as starting the extension.
+        * web/weave.ch (scan_args): likewise.
+        Probably other programs need to be fixed in the same way.
+
+        * common/convert: pass the name of file being converted to
+        fixwrites.
+        * web2c/fixwrites.c: convert vptovf error messages properly.
+        (These changes from rokicki@neon.stanford.edu.)
+
+Fri Aug 10 09:02:31 1990  Karl Berry  (karl at hayley)
+
+        * mf/cmf.ch: fix another casting problem (from
+        xitikgun@ddathd21.bitnet).
+
+Wed Aug  8 06:43:28 1990  Karl Berry  (karl at hayley)
+
+        * common/extra.c (DO_PATH): replace this macro with a routine, and
+        expand extra `:'s into the system default.
+        (insert_string): new routine.
+        * site.h: warn them not to put extra `:'s in the system default.
+        * man/{almost everything}: document this.
+
+        * mfware/gftodvi.ch, fontutil/vftovp.ch: break up huge case
+        statement (from maj@computer-lab.cambridge.ac.uk).
+        * PROBLEMS: remove old fix for the huge case statements.
+
+Tue Aug  7 07:19:32 1990  Karl Berry  (karl at hayley)
+
+        * mf/Makefile (run-trap): run `./trapmf', not just `trapmf'.
+        * tex/Makefile (run-trip): analogously.
+        * Makefile (web2c-dist): rename site.h to site.h-dist.
+        (These changes from dorab@twinsun.com.)
+
+Fri Aug  3 15:55:53 1990  Karl Berry  (karl at hayley)
+
+        * Makefile (install): add links for plain.fmt and plain.base.
+
+        * PROBLEMS: add patches for the 3b2 for the old TeX (from
+        oc@vmp.com).
+
+Tue Jul 31 11:43:38 1990  Karl Berry  (karl at hayley)
+
+        * mf/Makefile: add missing quote (from dick@sprite.stanford.edu).
+
+Fri Jul 13 06:48:15 1990  Karl Berry  (karl at hayley)
+
+        * Makefile: remove ^L's.
+
+Sun Jul  8 06:44:06 1990  Karl Berry  (karl at hayley)
+
+        * common/extra.c (fprint_pascal_string): new routine.
+        (printpascalstring): call it.
+        (errprintpascalstring): new routine.
+        * common/common.defines: declare errprintpascalstring.
+        * texware/dvitype.ch: use it when printing the TFM file name.
+
+        * common/extra.c (READABLE_FILE): new macro.
+        (testreadaccess): use it, instead of using access(2) directly.
+
+        * tex/trie.h: delete.
+        * tex/trie.diff: new file with diffs for a larger trie size (from
+        xitikgun@ddathd21.bitnet).
+        * common/texmf.defines: remove trie definitions.
+
+        * bibtex/bibtex32.diff: new file with diffs for a big BibTeX (from
+        beebe@science.utah.edu).
+
+        * mf/trapenv: define GFFONTS.
+
+Mon Jun 18 08:37:41 1990  Karl Berry  (karl at hayley)
+
+        * site.h (schar) [AIX]: define to be INT.
+        * web2c/web2c.yacc (SIMPLE_TYPE): output UNSIGNED_SHORT_STRING
+        instead of "unsigned short", and define the former to be "int" for
+        AIX.
+
+Thu May 31 14:14:18 1990  Karl Berry  (karl at aten)
+
+        * common/fileio.c (open_input): don't call funny_core_dump if
+        we're bibtex.
+
+        * common/extra.c (is_dir): don't declare as static.
+
+        * web2c/{fixwrites,regfix}.c (remove_newline): don't use
+        ANSI-style declarations.
+
+        * mf/MFwindow/x11-Xt.c: declare functions as static, if they're
+        defined that way.
+
+        * mf/MFwindow/x10.c (sprintf): don't declare it.
+
+        * common/texmf.c (funny_core_dump): don't define as static.
+
+        * web/tangle.ch: incorporate changes to only open the pool file if
+        it's actually used (from xitigkun@ddathd21.bitnet).
+
+Wed May 30 07:10:10 1990  Karl Berry  (karl at hayley)
+
+        * common/extra.c (testreadaccess): initialize ok to zero, improve
+        the loop logic.
+
+Sun May 27 10:21:22 1990  Karl Berry  (karl at hayley)
+
+        * common/extra.h, web2c/splitup.c, web2c/web2c.h: declare sprintf
+        using SPRINTF_RETURN_TYPE.
+        * site.h: define it.
+
+Sat May 26 07:55:54 1990  Karl Berry  (karl at hayley)
+
+        * common/texmf.c (input_line): do not worry about NONASCII or
+        characters going out of range when we fill up `buffer'.
+
+        * web2c/{fixwrites,regfix}.c: replace calls to gets(3) with calls
+        to fgets(3).
+
+        * tex/trie.h: new file to help implement larger hyphenation tries.
+        * common/common.defines (trl, trc, tro, trb, trieentry): new
+        fields and a type, for the same reason.
+        (from xitikgun@ddathd21.bitnet, but the diff to ctex.ch has not
+        been created yet).
+
+        * common/texmf.c, mf/MFwindow/uniterm.c: merge Uniterm support
+        from T. Hageman.
+
+Tue May 22 09:56:01 1990  Karl Berry  (karl at hayley)
+
+        * common/extra.c (testreadaccess): close the directories in the
+        path after we search them for subdirectories.
+
+        * tex/tex-extra.c (main): set up TEXformatdefault with the format
+        from the program name, instead of the first line of input (from
+        ramshaw@src.dec.com).
+
+Sun May 20 12:03:12 1990  Karl Berry  (karl at hayley)
+
+        * web/tangle.ch (<Get |web_file_name|...>): make sure the web name
+        ends with a space.  Ditto for the change file.
+
+Thu May 17 10:43:00 1990  Karl Berry  (karl at hayley)
+
+        * web2c/web2c.c (initialize): check the result of the fopen (from
+        lonhyn@gulag.nas.nasa.gov).
+
+Mon May 14 07:16:47 1990  Karl Berry  (karl at hayley)
+
+	* texware/dvitype.ch: use testreadaccess and other common
+        routines; output to stdout.
+        * web/{tangle,weave}.ch: use common routines.
+        
+	* fontutil/{extra.?, futil.defines, convert}: move to new
+        subdirectory `common'.
+
+	* tex/Makefile (run-trip): set the environment before running
+        triptex.
+        tripenv: new file.
+        * mf/Makefile, mf/trapenv: analogously.
+
+Sun May 13 10:09:02 1990  Karl Berry  (karl at hayley)
+
+	* web2c/web2c.c (main): only print the number of symbols if
+        `debug' is set.
+
+	* texware/texware.h (unsignedcharargv): new macro for dvitype.
+
+	* {texware/texware.h, mfware/mfware.h} (reset, rewrite): cast the
+        filename argument to char *.
+
+	* web2c/web2c.yacc (do_proc_args): add an & if we're generating
+        ANSI code, and have a var parameter (from andy@csvax.caltech.edu).
+
+	* defaults.h [High C on an IBM]: add pragma's (from bells@ibm.com).
+
+	* tex/ctex.ch (a_open_in): try to open the input file without
+        .tex, if opening with .tex fails (from Tom Hageman via
+        vens@hgrrug5.bitnet).
+
+	* {mf,tex}/extra.c (calledit) [NONASCII]: use xchr (from Tom
+        Hageman via vens@hgrrug5.bitnet).
+
+	* Makefile (run-triptrap): split up into two targets, run-trip and
+        run-trap.
+
+	* tex/Makefile (fmts): new target.
+        (tex.fmt, et al.): run initex to make these.
+        * mf/Makefile (bases): new target.
+        (mf.base, cmmf.base): run inimf to make these.
+        (From beebe@science.utah.edu.)
+
+	* Makefile (manpages, install-manpages): new targets.
+        man: new directory with the man pages
+        (from ken@cs.rochester.edu).
+
+	* mfware/gftodvi.ch (open_gf_file): don't bother defining
+	packed_font_file_path, since we don't use it.
+        * mfware/gftype.ch (open_gf_file): ditto.
+
+Sun May  6 08:24:27 1990  Karl Berry  (karl at hayley)
+
+	(All the following from andy@csvax.caltech.edu)
+	* web2c/web2c.lex (input, unput): declare if they're not #defined.
+
+	* web/weavext.c (strcpy, strcat): add `const'.
+
+	* mfware/mfwarext.c (sprintf): declare differently for SYSV and ANSI.
+        tex/extra.c, mf/extra.c, web/tanglext.c, texware/texwarext.c: ditto.
+
+	* mfware/mfware.h (openf) [ANSI]: declare it.
+
+	* fontutil/extra.c (testreadaccess): handle absolute path names
+	correctly.
+
+        * web/Makefile (tangle.p): do `./tangle' instead of `tangle',
+	since not everyone has . in their path (from
+	beebe@science.utah.edu).
+
+Sat May  5 12:17:32 1990  Karl Berry  (karl at hayley)
+
+	* texware/{pltotf,tftopl}.ch (main): don't print a newline at the
+	end.
+
+	* web2c/web2c.yacc (FUNCTION_HEAD): only print the function name
+	if debug is true.
+
+	* mfware/gftopk.ch (comment): increase array size by one, to leave
+	room for the trailing null.
+
+	* mfware/Makefile (CFLAGS): remove -Dlink=link_array.
+
+Fri May  4 21:51:16 1990  Karl Berry  (karl at hayley)
+
+	* mfware/gftodvi.ch (open_tfm_file): use tex_font_file_path, not
+	generic_font_file_path (from morgan@ics.uci.edu).
+
+Fri Apr 27 07:22:50 1990  Karl Berry  (karl at hayley)
+
+	* Makefile (install): make work with install, not just cp (from
+	grunwald@foobar.colorado.edu).
+
+	* tex/ctex.ch: define hash_size and hash_prime, so that LaTeX
+	works with the small TeX.
+
+	* web2c/web2c.c [HP]: yytext is an unsigned char (from
+	pfs@kc.abdn.ac.uk).
+
+	* mf/extra.c (calledit): remove the xor with 0x80.
+
+	* site.h: warn about bibtex and -DANSI not mixing.
+
+Wed Apr 18 11:44:49 1990  Karl Berry  (karl at aten)
+
+	* Version 5.0c. (5.0b was released by Tim.)
+
+	* web/Makefile: (.ch.p): invoke ./tangle instead of `tangle'.
+
+	* site.h: change default glueratio to `float'.
+
+	* web/Makefile (tangle.p): put the ``until...done'' in an sh -c,
+	for the sake of Ultrix (from maj@computer-lab.cambridge.ac.uk).
+
+	* PROBLEMS: add patch for yacc problem (from justin@crim.ca).
+
+Mon Apr 16 08:03:52 1990  Karl Berry  (karl at hayley)
+
+	* site.h: do not unconditionally (un)define the symbols.
+
+Thu Apr 12 21:33:41 1990  Karl Berry  (karl at hayley)
+
+	* tex/extra.c (calledit): do not xor with 0x80 (from
+	ekrell@ulysses.att.com).
+
+Fri Apr  6 20:40:20 1990  Karl Berry  (karl at hayley)
+
+	* {tex,mf}/extra.c (zinputln): have to test against 255, not 127.
+
+	* web/Makefile: touch tangle.h (from colin@umist.ac.uk).
+
+Wed Apr  4 16:10:03 1990  Karl Berry  (karl at aten)
+
+	* PROBLEMS: cc and gftodvi/vftovp don't mix.
+
+Thu Mar 29 07:50:15 1990  Karl Berry  (karl at mole.ai.mit.edu)
+
+	* Version 5.0a (with ken's changes to the change files).
+
+Tue Mar 27 08:01:20 1990  Karl Berry  (karl at hayley)
+
+	* web2c/web2c.yacc (FUNCTION_HEAD): check for debug before
+	printing out the function name.
+
+	* texware/Makefile (pltotf): don't put this on two lines.
+
+Fri Mar 23 18:46:49 1990  Karl Berry  (karl at aten)
+
+	* Version 4.893c.
+
+	* web2c/Makefile: do test ... instead of [ ... ].
+        mf/MFwindow/Makefile: use $(SHELL) instead of /bin/sh.
+
+Thu Mar 22 18:20:38 1990  Karl Berry  (karl at aten)
+
+	* texware/dvitypext.c: declare packrealnameoffile to be void, even
+	if ANSI is not defined, else Ultrix loses.
+
+Fri Mar  9 08:38:56 1990  Karl Berry  (karl at hayley)
+
+	* defaults.h, site.h: move ANSI from the former back to the
+        latter, since some systems want it.
+
+	* bibtex/bibtex.ch (int_to_ASCII): use `the_int' instead of `int'
+        as the first parameter name; some cc's bomb with `int'.
+        (from rusty@garnet.berkeley.edu)
+
+	* texware/dvitypext.c (packrealnameoffile): return type is void.
+
+	* */Makefile (veryclean): remove backup files, core files.
+        */Makefile: use $(SHELL) ./<script> instead of ./<script>.
+        web/Makefile: define SHELL.
+        (mackay@cs.washington.edu supplied these changes.)
+
+Fri Mar  2 17:27:22 1990  Karl Berry  (karl at hayley)
+
+	* texware/dvitype.ch: make input be 8 bits, like the rest of the
+	programs.
+
+Sun Feb 25 20:36:19 1990  Karl Berry  (karl at hayley)
+
+	* {mf,tex}/ini_to_tr[ai]p: save the .h file we're editing.
+
+Thu Feb 22 21:06:49 1990  Karl Berry  (karl at hayley)
+
+	* */Makefile: change $(RM) to rm.
+
+	* texware/texware.h: do not cast the result of getc to char, for
+	the sake of Ultrix.
+
+Sat Feb 17 07:36:50 1990  Karl Berry  (karl at hayley)
+
+	* README: Make the instructions for bootstrapping tangle correct.
+
+	* Makefile (dist): tangleboot.pas is in web, not web2c.
+
+	* {mfware,texware,web,web2c}/Makefile: remove $(CFLAGS) from the
+	load lines.
+
+	* bibtex/bibext.c: move conditional on BSD to after #include
+	"site.h" (from bsuggs@hac.arpa.com).
+
+	* web2c/Makefile (web2cy.c): do `-if', since one of the commands
+	exits with bad status under Ultrix.
+
+Release 4.893b:
+* Include patches from Tim to web2c to turn off the verbose output,
+  unless -d is supplied to web2c.
+* Change $(AR) in the MFwindow Makefile to `ar'.
+* Try to get the base file from the program name in Metafont, as well in
+  TeX.  Implication: mf.script and tex.script are no longer supplied,
+  since a link to plain.{base,fmt} named {mf,tex}.{base,fmt} suffices. 
+  `make install' doesn't create these links, since they only need to be
+  done once.
+* Move some stuff from site.h that should never be changed to a new
+  file, defaults.h. Add a new definition, SIGNAL_HANDLER_RETURN_TYPE, to
+  site.h, to get rid of the warnings in {tex,mf}/extra.c.
+* Use a sed script, contributed by eggert@twinsun.com, instead of the
+  awk script, at the beginning of the pipeline.
+* Fix an unsigned comparison problem in pltotf, that made cc produce
+  infinite ligature loops when converting trip.pl.
+* Change threshold in Metafont, and f in tftopl, so broken C compilers
+  (like some versions of pcc) don't get confused.
+* Port vftovp and vptovf. Move pktogf and pktype to fontutil.
+* Allow more than 500 kern pairs in pltotf.
+* Change the first parameter to {mf,extra}/extra.c to *filename from
+  filename[].
+* Use a better hack for the mutually recursive procedures in pltotf et al.,
+  from Tor Lillqvist <tml@hemuli.atk.vtt.fi>.
+
+Release 2.993+1.9 = 4.893a:
+Sebastian contributed the updates to ctex.ch, tftopl.ch, and pltotf.ch. 
+Karl did the cmf.ch update.
+
+Release 3.0:
+Brings everything up to the new 8-bit versions.
+Almost every file has changed at least somewhat, so I'm not going to
+list all the changes.  Here are some highlights:
+* char is now 0.255 instead of 0..127 in *.defines.
+* `packed' is no longer ignored as part of an identifier (e.g., `packed_trie').
+* new Makefiles to make it easier to do the trip/trap test, and with all
+  the support programs integrated.
+* ctex.ch has a hack to get around trie_op_hash being an array with a
+  negative lower bound.
+* pltotf.ch has a hack to get around mutually recursive routines.

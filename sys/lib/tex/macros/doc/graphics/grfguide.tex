@@ -1,0 +1,747 @@
+%% grfguide.tex Copyright (C) 1994 David Carlisle
+%%
+%% This file is part of the Standard LaTeX `Graphics Bundle'.
+%%
+%% It should be distributed *unchanged* and together with all other
+%% files in the graphics bundle. The file 00readme.txt contains a list
+%% of all of these files.
+%%
+%% A modified version of this file may be distributed, but it should
+%% be distributed with a *different* name. Changed files must be
+%% distributed *together with a complete and unchanged* distribution
+%% of these files.
+%%
+
+\begin{filecontents*}{a.ps}
+%!
+%%BoundingBox:100 100 172 172
+100 100 moveto
+72 72 rlineto
+72 neg 0 rlineto
+72 72 neg rlineto
+stroke
+100 100 moveto
+/Times-Roman findfont
+72 scalefont
+setfont
+(A) show
+showpage
+\end{filecontents*}
+
+\documentclass{ltxguide}
+
+%%% No driver option specified
+%%% set up the files color.cfg and graphics.cfg for your site.
+%%% for example:
+%%%
+%%% \ExecuteOptions{dvips}
+%%%
+\usepackage{color,graphicx,shortvrb}
+
+%% Just as an example, and to make sure, in case some
+%% driver option has not declared a default rule for
+%% .ps files:
+\DeclareGraphicsRule{.ps}{eps}{.ps}{}
+\DeclareGraphicsExtensions{.ps}
+%% Which means:
+%% .ps files are (to be treated as) EncapsulatedPostScript
+%% files. The .ps file is to be read for the BoundingBox.
+%% No `special' commands need to be applied by the driver.
+
+\renewcommand\star{%
+  {\ttfamily*}}
+\providecommand\marg[1]{%
+  {\ttfamily\char`\{}{\em#1\/}{\ttfamily\char`\}}}
+\providecommand\oarg[1]{%
+  {\ttfamily[}{\em#1\/}{\ttfamily]}}
+\providecommand\parg[1]{%
+  {\ttfamily(}{\em#1\/}{\ttfamily)}}
+
+\newcommand{\meta}[1]{$\langle${\em#1\/}$\rangle$}
+
+\let\package\textsf
+
+\newlength{\gxlen}
+\settowidth{\gxlen}{\package{graphicx}: }
+\newcommand\gs{\makebox[\gxlen][l]{\package{graphics}:}}
+\newcommand\gx{\makebox[\gxlen][l]{\package{graphicx}:}}
+
+\MakeShortVerb{\|}
+
+\begin{document}
+\title{Packages in the `graphics' bundle}
+\author{D. P. Carlisle}
+\date{1994/010/14}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+This document serves as a user-manual for the packages \package{color},
+\package{graphics}, and \package{graphicx}. Further documentation may be
+obtained by processing the  source (|dtx|) files of the individual
+packages.
+
+\section{Driver support}
+All these packages rely on features that are not in \TeX\ itself.
+These features must be supplied by the `driver' used to print the
+|dvi| file. Unfortunately not all drivers support the same features, and
+even the internal method of accessing these extensions varies between
+drivers. Consequently all these packages take options such as
+`|dvips|' to specify which driver is being used.
+
+\section{Colour}
+The colour support is built around the idea of a system of
+\emph{Colour Models}. The Colour models supported by a driver vary,
+but typically include
+\begin{description}
+\item[rgb] Red Green Blue: A comma separated list of three numbers
+  between~0 and~1, giving the components of the colour.
+\item[cmyk] Cyan Magenta Yellow [K]Black:  A comma separated list of
+  four numbers between~0 and~1, giving the components of the colour
+  according to the additive model used in most printers.
+\item[gray] Grey scale: a single number between~0 and~1.
+\item[named] Colours accessed by name, e.g.\ `JungleGreen'. Not all
+  drivers support this model. The names must either be `known' to the
+  driver or added using commands described in |color.dtx|. Some drivers
+  support an extended form of the named model in which an `intensity' of
+  the colour may also be specified, so `\mbox{JungleGreen, 0.5}' would
+  denote that colour at half strength.
+\end{description}
+Note that the \textbf{named} model is really just given as an example
+of a colour model that takes names rather than a numeric specication.
+Other options may be provided locally that provide different colour
+models, eg \textbf{pantone} (An industry standard set of colours),
+\textbf{x11} (Colour names from the UNIX window system), etc. The
+standard distribution does not currently have such models, but the
+\textbf{named} model could be used as an example of how to define a new
+colour model. The names used in the \textbf{named} model are those 
+suggested by Jim Hafner in his \textsf{colordvi} and \textsf{foiltex}
+packages, and implemented originally in the |color.pro| header file for
+the \texttt{dvips} driver.
+
+\subsection{Package Options}
+Most of the options to the \package{color} package just specify a
+driver, e.g.\ |dvips|. You should to set up a site default for these
+options, for the driver that you normally use. Suppose that you wish for
+the \package{color} package to always default to use specials for the
+PostScript driver, |dvips|. In that case create a file |color.cfg|
+containing the line:\\
+|\ExecuteOptions{dvips}|
+
+One special option that is of interest is |monochrome.|
+If this option is selected the colour commands are all
+disabled so that they do not generate errors, but do not generate colour
+either. This is useful if previewing with a previewer that can not
+produce colour.
+
+Three other package options control the use of the \textbf{named} model.
+The |dvips| driver (by default) pre-defines 68 colour names. The |dvips|
+option normally makes these names available in the \textbf{named} colour
+model. If you do not want these names to be declared in  this model
+(Saving \TeX\ some memory) you may give the |nodvipsnames|
+option. Conversely, if you are using another driver, you may wish to
+add these names to the named model for that driver (especially if you
+are processing a document originally produced on |dvips|). In this case
+you could use the |dvipsnames| option. Lastly the |usenames| option
+makes all names in the \textbf{named} model directly available, as
+described below.
+
+\subsection{Defining Colours}
+
+The colours |black|, |white|, |red|, |green|, |blue|, |cyan|,
+|magenta|, |yellow| should be predefined, but should you wish to mix
+your own colours use the |\definecolor| command.
+
+\begin{decl}
+|\definecolor|\marg{name}\marg{model}\marg{colour specification}
+\end{decl}
+
+
+This defines \meta{name} as a colour which can be used in later colour
+commands. For example
+\begin{verbatim}
+\definecolor{light-blue}{rgb}{0.8,0.85,1}
+\definecolor{mygrey}{gray}{0.75}
+\end{verbatim}
+\definecolor{light-blue}{rgb}{0.8,0.85,1}
+\definecolor{mygrey}{gray}{0.75}
+
+Now |light-blue| and |mygrey| may be used in addition to the
+predefined colours above.
+
+\subsection{Using Colours}
+
+\subsubsection{Using predefined colours}
+The syntax for colour changes is designed to mimic font changes.
+The basic syntax is:
+
+\begin{decl}
+|\color|\marg{name}
+\end{decl}
+
+This is a \emph{declaration}, like |\bfseries|, it changes the current
+colour to \meta{name} until the end of the current group or
+environment.
+
+An alternative command syntax is to use a \emph{command} form that
+takes the text to be coloured as an \emph{argument}. This is similar
+to the font commands such as |\textbf|:
+
+\begin{decl}
+|\textcolor|\marg{name}\marg{text}
+\end{decl}
+
+
+So the above is essentially equivalent to
+|{\color|\marg{name}\emph{text}|}|.
+
+\subsubsection{Using colour specifications directly}
+
+
+\begin{decl}
+|\color|\oarg{model}\marg{specification}\\
+|\textcolor|\oarg{model}\marg{specification}\marg{text}
+\end{decl}
+
+Normally one would predeclare all the colours used in a package, or in
+the document preamble, but sometimes it is convenient to directly use
+a colour without naming it first. To achieve this |\color| (and all
+the other colour commands) take an optional argument specifying the
+model. If this is used then the mandatory argument takes a
+\meta{colour specification} instead of a \meta{name}. For example:\\
+|\color[rgb]{1,0.2,0.3}|\\
+would directly select that colour.
+
+This is particularly useful for accessing the \textbf{named} model:\\
+|\color[named]{BrickRed}| selects the |dvips| colour BrickRed.
+
+Rather than repeatedly use |[named]| you may use |\definecolor| to
+provide convenient aliases:\\
+|\definecolor{myred}{named}{WildStrawberry}|
+     \ldots\ |\color{myred}|\ldots
+
+Alternatively if you are happy to use the existing names from the
+\textbf{named} model, you may use the |usenames| package option, which
+effectively calls |\definecolor| on every colour in the \textbf{named}
+model, thus allowing |\color{WildStrawberry}| in addition to
+|\color[named]{WildStrawbery}|.
+
+\subsection{Named Colours}
+Using the \textbf{named} colour model has certain advantages over
+using other colour models. 
+
+Firstly as the |dvi| file contains a request
+for a colour by \emph{name}, the actual mix of primary colours used to
+obtain the requested colour can be tuned to the characteristics of a
+particular printer. In the |dvips| driver the meanings of the colour
+names are defined in the header file |color.pro|. Users are encouraged
+to produce different versions of this file for any printers they use. By
+this means the same dvi file should produce colours of similar
+appearance when printed on printers with different colour
+characteristics.
+
+Secondly, apart from the so called `process colours' that are produced
+by mixing primary colours during the print process, one may want to use
+`spot' or `custom' colours. Here a particular colour name does not
+refer to a mix of primaries, but to a particular ink. The parts of the
+document using this colour will be printed separately using this named
+ink colour.
+
+\subsection{Page Colour}
+
+
+\begin{decl}
+|\pagecolor|\marg{name}
+\end{decl}
+
+The background colour of the whole page can be set using
+|\pagecolor|. This takes the same argument forms as |\color| but sets
+the background colour for the current and all subsequent pages. it is
+a global declaration, so you need to  use |\pagecolor{white}| to `get
+back to normal'. 
+
+\subsection{Box Backgrounds}
+Two commands similar to |\fbox| produce boxes with the backgrounds
+shaded an appropriate colour.
+
+\begin{decl}
+|\colorbox|\marg{name}\marg{text}\\
+|\fcolorbox|\marg{name1}\marg{name2}\marg{text}
+\end{decl}
+
+
+The former produces a box coloured with \emph{name}
+\colorbox{mygrey}{like this}. The latter is similar but puts a frame of
+colour \emph{name1} around the box coloured \emph{name2}.
+
+These commands use the |\fbox| parameters |\fboxrule| and |\fboxsep|
+to determine the thickness of the rule, and the size of the shaded area.
+
+\subsection{Possible Problems}
+
+\TeX\ was not designed with colour in mind, and producing colours
+requires a lot of help from the driver program. Thus, depending on the
+driver, some or all features of the \package{color} package may not be
+available.
+
+Some drivers do not maintain a special `colour stack'. These drivers are
+likely to get confused if you nest colour changes, or use colours in
+floating environments.
+
+Some drivers do not maintain colours over a page break, so that if the
+page breaks in the middle of a coloured paragraph, the last part of the
+text will incorrectly be printed in black.
+
+There is a different type of problem that will occur for all drivers.
+Due to certain technical difficulties\footnote{At least two causes:
+1) The presence of a \texttt{\char`\\special} \meta{whatsit} prevents
+\texttt{\char`\\addvspace} `seeing' space on the current vertical list,
+so causing it to incorrectly add extra vertical space. 2) A
+\meta{whatsit} as the first item in a \texttt{\char`\\vtop} moves the
+reference point of the box.}%
+, it is possible that at points
+where the colour changes, the \emph{spacing} is affected. For this
+reason the |monochrome| option does not completely disable the colour
+commands, it redefines them to write to the log file. This will have the
+same effects on spacing, so you can produce monochrome drafts of your
+document, at least knowing that the final spacing is being shown.
+\section{The Graphics packages}
+There are two graphics packages:
+\begin{description}
+\item[\package{graphics}] The `standard' graphics package.
+\item[\package{graphicx}] The `extended' or `enhanced' graphics
+  package. 
+\end{description}
+The two differ only in the format of optional arguments for the
+commands defined. The command names, and the mandatory arguments are
+the same for the two packages.
+
+\subsection{Package Options}
+The graphics packages share the same `driver' options as the |color|
+package. As for colour you should set up a site-default in a file,
+|graphics.cfg|, containing the line (for |dvips|):\\
+|\ExecuteOptions{dvips}|
+
+The graphics packages have some other options for controlling how many
+of the features to enable:
+\begin{description}
+\item[draft] suppress all the `special' features. In particular
+  graphics files are not included (but they are still read for size
+  info) just the filename is printed in a box of the correct size.
+\item[final] The opposite of |draft|. Useful to over-ride a global
+  |draft| option specified in the |\documentclass| command.
+\item[hiderotate] Do not show rotated text (presumably because the
+  previewer can not rotate).
+\item[hidescale] Do not show scaled text (presumably because the
+  previewer can not scale).
+\end{description}
+\subsection{Rotation}
+
+\begin{decl}
+\gs |\rotatebox|\marg{angle}\marg{text}\\
+\gx |\rotatebox|\oarg{key val list}\marg{angle}\marg{text}
+\end{decl}
+
+This puts \emph{text} in a box, like |\mbox|, but rotates the box
+through \emph{angle} degrees, \rotatebox{15}{like this}.
+
+The standard version always rotates around the reference point of the
+box, but the \package{keyval} version takes the following keys:
+
+\begin{decl}
+|origin|=\meta{label}\\
+|x|=\meta{dimen}\\
+|y|=\meta{dimen}\\
+|units|=\meta{number}
+\end{decl}
+
+So you may specify both |x| and |y|, which give the coordinate of
+the centre of rotation relative to the reference point of the box, eg
+|[x=2mm, y=5mm]|. Alternatively, for the most common points, one may use
+|origin| with a \emph{label} containing one or two of the following:
+|lrctbB| (|B| denotes the baseline, as for \package{PSTricks}). For
+example, compare a default rotation of $180^\circ$
+\ldots\rotatebox{180}{Like This}\ldots\ to the effects gained by using
+the |origin| key:\\
+|[origin = c]| rotates about the centre of the box,\ldots
+         \rotatebox[origin=c]{180}{Like This}\ldots\\
+|[origin = tr]| rotates about the top right hand corner\ldots
+                   \rotatebox[origin=tr]{180}{Like This}\ldots
+
+The |units| key allows a change from the default units of degrees
+anti-clockwise. Give the number of units in one full anti-clockwise
+rotation. For example:\\
+|[units = -360]| specifies degrees clockwise.\\
+|[units= 6.283185]| specifies radians.
+
+\subsection{Scaling}
+
+\subsubsection{Scaling by scale factor}
+
+\begin{decl}
+|\scalebox|\marg{h-scale}\oarg{v-scale}\marg{text}
+\end{decl}
+
+Again this is basically like |\mbox| but scales the \emph{text}.
+If \emph{v-scale} is not specified it defaults to \emph{h-scale}.
+If it is specified the text is distorted as the horizontal and
+vertical stretches are different, \scalebox{3}[.7]{Like This}.
+
+
+\begin{decl}
+|\reflectbox|\marg{text}
+\end{decl}
+
+An abbreviation for |\scalebox{-1}[1]|\marg{text}.
+
+\subsubsection{Scaling to a requested size}
+
+\begin{decl}
+|\resizebox|\star\marg{h-length}\marg{v-length}\marg{text}
+\end{decl}
+
+ Scale \emph{text} so that the width is \emph{h-length}.
+ If |!| is used as either length argument, the other argument is used
+ to determine a scale factor that is used in both directions.
+ Normally \emph{v-length} refers to the height of the box, but in the
+ star form, it refers to the `height +  depth'. 
+ As normal for \LaTeXe\ box length arguments, |\height|,
+ |\width|, |\totalheight|, |\depth| may be used to refer to the
+ original size of the box.
+
+|\resizebox{1in}{\height}{Some text}|: 
+\resizebox{1in}{\height}{Some text}
+
+|\resizebox{1in}{!}{Some text}|: 
+\resizebox{1in}{!}{Some text}
+
+\subsection{Including Graphics Files}
+The functions for graphics inclusion try to give the same user syntax
+for including any kind of graphics file that can be understood by the
+driver. This relies on the file having an extension that identifies
+the file type. The `driver options' will define a collection of file
+extensions that the driver can handle, although this list may be
+extended using the declarations described below.
+
+If the file's extension is unknown to the driver, the system may try a
+default file type. The PostScript driver files set this default to be
+|eps| (PostScript), but this behaviour may be customised if other
+defaults are required.
+
+\begin{decl}
+\gs |\includegraphics|\star\oarg{llx,lly}\oarg{urx,ury}\marg{file}\\
+\gx |\includegraphics|\star\oarg{key val list}\marg{file}
+\end{decl}
+ Include a graphics file.
+
+ If \star\ is present, then the graphic is `clipped' to the size
+ specified. If \star\ is omitted, then any part  of the graphic that is
+ outside the specified `bounding box' will  over-print the surrounding
+ text.
+
+ If the optional arguments are omitted, then the size of the graphic
+ will be determined by reading an external file as described below.
+
+\paragraph{\package{graphics} version}
+ If \oarg{urx,ury} is present, then it should specify the coordinates
+ of the top right corner of the image, as a pair of \TeX\ dimensions.
+ If the units are omitted they default to |bp|. So |[1in,1in]| and
+ |[72,72]| are equivalent. If only one optional argument appears, the
+ lower left corner of the image is assumed to be at |[0,0]|. Otherwise
+ \oarg{llx,lly} may be used to specify the coordinates of this point.
+
+\paragraph{\package{graphicx} version}
+Here the star form is just for compatibility with the standard
+version. It just adds |clip| to the list of keys specified.
+(Also, for increased compatibility, if \emph{two} optional arguments are
+used, the `standard' version of |\includegraphics| is always used, even
+if the \package{graphicx} package is loaded.)
+
+The allowed keys are listed below.
+\begin{description}
+\item[bb] The argument should be four dimensions, separated by spaces.
+  These denote the `Bounding Box' of the printed region within
+  the file.
+\item[bbllx] Lower left x coordinate
+\item[bblly] Lower right y coordinate
+\item[bburx] Upper right x coordinate
+\item[bbury] Upper right y coordinate
+\item[natheight] Natural height of figure.
+\item[natwidth] Natural width of figure.
+\item[angle] Rotation angle.
+\item[width] Required width, a dimension (default units |bp|). The
+  graphic is scaled to this width.
+\item[height] Required height. a dimension (default units |bp|). The
+  graphic is scaled to this height.
+\item[scale] Scale factor.
+\item[clip] Either `true' or `false' (or no value, which is equivalent
+  to `true'). Clip the graphic to the bounding box.
+\item[draft] a boolean valued key, like `clip'. Locally switches to
+  draft mode.
+\item[type] Specify the graphics type.
+\item[ext]  Specify the file extension.
+\item[read] Specify the file extension of the `read file'.
+\item[command] Specify any command to be applied to the file.
+\end{description}
+
+For all the keys taking length values, the units can be omitted, in
+which case bp (ie PostScript points) are assumed.
+
+The first seven keys specify the original size of the image. This size
+needs to be specified in the case that the file can not be read by
+\TeX, or it contains an incorrect size `BoundingBox' specification.
+
+|bbllx|\ldots\ |\bbury| are mainly for compatibility for older
+packages.\\
+|bbllx=a, bblly=b, bburx=c, bbury=d|\\
+is equivalent to\\
+|bb = a b c d|.
+
+|natheight| and |natwidth| are just shorthands for setting the lower
+left coordinate to 0 0 and the upper right coordinate to the specified
+width and height.
+
+The next few keys specify any scaling or rotation to be applied to the
+image. To get these effects using the standard package, the
+|\includegraphics| call must be placed inside the argument of a
+|\rotatebox| or |\scalebox| command.
+
+The keys are read left-to-right, so |[angle=90, height=1in]| means
+rotate by 90 degrees, and then scale to a height of 1in. 
+|[height=1in, angle=90]| would result in a final \emph{width} of 1in.
+
+\TeX\ leaves the space specified either in the file, or in
+the optional arguments. If any part of the image is actually outside
+this area, it will by default overprint the surrounding text. 
+If the star form is used, or |clip| specified, any part of the image
+outside this area will not be printed.
+
+The last four keys suppress the parsing of the filename. If they are
+used, the main \emph{file} argument should not have the file
+extension. They correspond to the arguments of |\DeclareGraphicsRule|
+described below.
+
+To see the effect that the various options have consider the file
+|a.ps|. This file contains the bounding box specification
+\begin{verbatim}
+%%BoundingBox:100 100 172 172
+\end{verbatim}
+That is, the printed region consists of a one-inch square, 100\,pt in
+from the bottom and left hand edges of the paper.
+
+In all the following examples the input will be of the form
+\begin{verbatim}
+left---\fbox{\includegraphics{a}}---right
+\end{verbatim}
+With different options supplied to |\includegraphics|.
+
+No optional argument.\\
+left---\fbox{\includegraphics{a}}---right
+
+\gs |\scalebox{0.5}{\includegraphics{a}}|\\
+\gx |\includegraphics[scale=.5]{a}|\\
+left---\fbox{\includegraphics[scale=.5]{a}}---right
+
+\gs |\includegraphics[115,110][135,145]{a}}|\\
+\gx |\includegraphics[bb= 115 110 135 145]{a}|\\
+left---\fbox{\includegraphics[bb= 115 110 135 145]{a}}---right
+
+\gs |\includegraphics*[115,110][135,145]{a}}|\\
+\gx |\includegraphics[bb= 115 110 135 145,clip]{a}|\\
+left---\fbox{\includegraphics[bb= 115 110 135 145,clip]{a}}---right
+
+\gs |\scalebox{0.5}{\includegraphics{a}}|
+                   and |draft| option.\\
+\gx |\includegraphics[scale=.5, draft]{a}|\\
+left---\fbox{\includegraphics[scale=.5, draft]{a}}---right
+
+\subsection{Other commands in the \package{graphics} package}
+
+\begin{decl}
+|\graphicspath|\marg{dir-list}
+\end{decl}
+This optional declaration may be used to specify a list of directories
+in which to search for graphics files. The format is the same as for
+the \LaTeXe\ primitive |\input@path|, a list of directories, each in a
+|{}| group (even if there is only one in the list). For example:\\
+  |\graphicspath{{eps/}{tiff/}}|\\
+ would cause the system to look in the subdirectories |eps| and |tiff|
+ of the current directory. The default setting of this path is
+ |\input@path| that is: graphics files will be found wherever \TeX\
+ files are found.
+
+\begin{decl}
+|\DeclareGraphicsExtensions|\marg{ext-list}
+\end{decl}
+ \NEWdescription{1994/12/01}
+ This specifies the behaviour of the system when no file extension
+ is specified in the argument to |\includegraphics|.
+ \marg{ext-list} should be a comma separated list of file extensions.
+ (White space is ignored between the entries.)
+ A file name is produced by appending \emph{sep} and one extension.
+ If a file is found, the system acts as if that extension had been
+ specified. If not, the next extension in \emph{ext-list} is tried.
+
+
+Note that if the extension is not specified in the |\includegraphics|
+command, the graphics file must exist at the time \LaTeX\ is run, as
+the existence of the file is used to determine which extension from
+the list to choose. However if a file extension \emph{is} specified,
+e.g.\ |\includegraphics{a.ps}| instead of |\includegraphics{a}|, then
+the graphics file need not exist at the time \LaTeX\ is used. (In
+particular it may be created on the fly by  the \meta{command}
+specified in the |\DeclareGraphicsRule| command described below.)
+\LaTeX\ does however need to be able to determine the size of the
+image so this size must be specified in arguments, or the `read file'
+must exist at the time \LaTeX\ is used.
+
+\begin{decl}
+|\DeclareGraphicsRule|\marg{ext}\marg{type}\marg{read-file}\marg
+                                                               {command}
+\end{decl}
+ Any number of these declarations can be made. They determine how the
+ system behaves when a file with extension \emph{ext} is specified.
+ (The extension may be specified explicitly or, if the argument to
+ |\includegraphics| does not have an extension, it may be a default
+ extension from the \emph{ext-list} specified with 
+ |\DeclareGraphicsExtensions|.)
+ 
+\emph{ext} the file extension for which this rule applies. As a special
+case, \emph{ext} may be given as |*| to denote the default behaviour for
+all undeclared extensions (see the example below).
+
+\emph{type} is the `type' of file involved. All files of the same type
+will be input with the same internal command (which must be defined in
+a `driver file'). For example files with extensions |ps|, |eps|,
+|ps.gz| may all be classed as type |eps|.
+
+\emph{read-file} determines the extension of the file that should be
+read to determine size information. It may be the same as \emph{ext}
+but it may be different, for example |ps.gz| files are not readable
+easily by \TeX, so you may want to put the bounding box information in
+a separate file with extension  |ps.bb|. If \emph{read-file} is empty,
+|{}|, then the system will not try to locate an external file for size
+info, and the size must be specified in the arguments of
+|\includegraphics|. If the driver file specifies a procedure for
+reading size files for \emph{type}, that will be used, otherwise the 
+procedure for reading |eps| files will be used. Thus the size of
+bitmap files may be specified in a file with a PostScript style
+|%%BoundingBox| line, if no other specific format is available.
+
+As a special case |*| may be used to denote the
+same extension as the graphic file. This is mainly of use in
+conjunction with using |*| as the extension, as in that case the
+particular graphic extension is not known. For example
+\begin{verbatim}
+ \DeclareGraphicsRule{*}{eps}{*}{}
+\end{verbatim}
+This would declare a default rule, such that all unknown extensions
+would be treated as EPS files, and the graphic file would be read for
+a BoundingBox comment.
+
+\emph{command} is usually empty, but if non empty it is used in place
+of the filename in the |\special|. Within this argument, |#1| may be
+used to denote the filename. Thus using the dvips driver, one may
+use\\
+|\DeclareGraphicsRule{.ps.gz}{eps}{.ps.bb}{`zcat #1}|\\
+the final argument causes dvips to use the |zcat| command to unzip the
+file before inserting it into the PostScript output.
+
+\subsection{Global setting of keys}
+
+Most of the \package{keyval} keys used in the \package{graphicx} package
+may also be set using the command |\setkeys| provided by the
+\package{keyval} package.
+
+For instance, suppose you wanted all the files to be included in the
+current document to be scaled to 75\% of the width of the lines of text,
+then one could issue the following command:\\
+|\setkeys{Gin}{width=0.75\textwidth}|\\
+Here `|Gin|' is the name used for the \package{keyval} keys associated
+with `Graphics inclusion'. All following
+|\includegraphics| commands (within the same group or environment) will
+act as if |[width=0.75\textwidth]| had been specified, in addition to
+any other key settings actually given in the optional argument.
+
+Similarly to make all |\rotatebox| arguments take an argument in
+radians, one just needs to specify:\\
+|\setkeys{Grot}{units=6.28318}|
+
+\subsection{Compatibility between \package{graphics} and
+  \package{graphicx}}
+
+For a document author, there are not really any problems of
+compatibility between the two packages. You just choose the interface
+that you personally prefer, and then use the appropriate package.
+
+For a package or class writer the situation is slightly
+different. Suppose that you are writing a letter class that needs to
+print a company logo as part of the letterhead.
+
+As the author of the class you may want to give the users the
+possibility of using  either interface in their letters (should they
+need to include any further graphics into the letter body). 
+In this case the class should load the \package{graphics} package (not
+\package{graphicx}, as this would commit any users of the class to the
+\package{keyval} interface). The logo should be included with
+|\includegraphics| either with \emph{no} optional argument (if the
+correct size information is in the file) or \emph{both} optional
+arguments otherwise. 
+Do not use the \emph{one} optional argument form, as the meaning of this
+argument would change (and generate errors) if the user were to load
+\package{graphicx} as well as your class.
+
+\section{Remaining packages in the graphics bundle}
+
+\subsection{Epsfig}
+This is a small package essentially a `wrapper' around the
+\package{graphicx} package, defining a command |\psfig| which has the
+syntax\\
+|\psfig{file=xxx,...}| rather than |\includegraphics[...]{xxx}|.\\
+It also has a few more commands to make it slightly more compatible with
+the old \LaTeX~2.09 style of the same name.
+
+\subsection{Trig}
+The trig package is not intended to be used directly in documents. It
+calculates sine, cosine and tangent trigonometric functions. This
+are used to calculate the space taken up by a rotated box. This
+package is also used by the |fontinst| program which converts
+PostScript files to a form usable by \TeX.
+
+As well as being used as a \LaTeX\ package, the macros may be extracted
+with the \package{docstrip} options \texttt{plain,package}. In this case
+the \LaTeX\ package declarations are omitted from the file, and the
+macros may be directly used as part of another macro file (they work
+with any format based on plain \TeX.)
+
+\subsection{Keyval}
+The \package{keyval} package is intended to be used by other
+packages. It provides a generic way of setting `keys' as used by the
+\package{graphicx} package, and splitting up the comma separated lists
+of \meta{key}~=~\meta{value} pairs.
+
+Like, the \package{trig} package, these macros may be extracted and used
+as part of another macro file, based on plain \TeX, as well as the
+standard use as a \LaTeX\ package.
+
+\subsection{Pstcol}
+\package{PSTricks}, by Timothy Van Zandt is an immensely powerful
+package that enables a very full featured interface between PostScript
+and \TeX. Unfortunately the colour support in \package{PSTricks} is
+slightly incompatible with the colour mechanism defined in the
+\package{color} package. The \package{pstcol} package is a (hopefully
+temporary) package that modifies a very small number of internal
+PSTricks functions, to remove this incompatibility. If
+\package{pstricks} is loaded via this package, you may use any colours
+defined by \package{color} package commands within \package{pstricks}
+commands, and vice versa.
+
+\subsection{Lscape}
+The \package{lscape} package requires and takes the same options
+as the \package{graphics} package. It defines a |landscape| environment
+within which page bodies are rotated through 90 degrees. The page head
+and foot are not affected, they appear in the standard (portrait)
+position.
+\end{document}

@@ -25,7 +25,7 @@ file tree under the directory is made available.
 .PP
 A process is started on the
 remote machine, with authority of the user of
-.I import,
+.IR import ,
 to perform work for the local machine using the
 .IR exportfs (4)
 service.
@@ -44,7 +44,7 @@ is a directory,
 allows options exactly as in
 .I mount
 and
-.IR bind (1))
+.IR bind (1)
 to control the construction of union directories.
 .SH EXAMPLE
 To allow a Datakit-only machine to access an Ethernet using TCP:
@@ -61,6 +61,8 @@ import -a kremvax /net
 echo 'add tcp' > /net/cs
 con ucbvax
 .EE
+.SH SOURCE
+.B /sys/src/cmd/import.c
 .SH SEE ALSO
 .IR bind (1),
 .B cs

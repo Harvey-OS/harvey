@@ -14,7 +14,7 @@
 .B -f
 .I font
 ]
-.PP
+.SH DESCRIPTION
 The window system
 .I 8½
 serves a variety of files for reading, writing, and controlling
@@ -38,7 +38,7 @@ A
 (see
 .IR bind (1))
 of that file causes
-.B 8½
+.I 8½
 to create a new window; the attach specifier in the
 .I mount
 gives the coordinates of the created window.
@@ -57,6 +57,7 @@ to receive
 and
 .B hangup
 notes in that window.
+The list of coordinates may be separated by blanks or commas.
 .PP
 When a window is created either by
 the
@@ -113,6 +114,13 @@ turns on hold mode;
 turns off hold mode.
 Closing the file makes the window revert to default state
 (raw off, hold off).
+.TP
+.B kbd
+This file intercepts the path between the keyboard and
+.IR cons .
+Reading from it gathers characters typed towards the associated
+window; writing to it inserts characters into the input stream
+of that window.
 .TP
 .B label
 initially contains a string with the process ID of the lead process
@@ -171,12 +179,9 @@ with that window:
 .BR cons ,
 .BR consctl ,
 .BR label ,
-.BR mouse ,
-.BR nbmouse ,
-.BR select ,
-.BR window .
+etc.
 .SH EXAMPLES
-Create a window to be created in the upper left corner,
+Cause a window to be created in the upper left corner,
 and the word
 .L hi
 to be printed there.
@@ -186,12 +191,13 @@ mount $8½srv /tmp N$pid' 0 0 128 64'
 echo hi > /tmp/cons
 .EE
 .PP
-Print the text currently selected in window 123.
+Print the bitmap of window number 123.
 .IP
 .EX
-cat /dev/windows/123/select
+lp /dev/windows/123/window
 .EE
-.PP
+.SH SOURCE
+.B /sys/src/cmd/8½
 .SH SEE ALSO
 .IR 8½ (1),
 .IR bit (3),

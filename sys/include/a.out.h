@@ -12,20 +12,18 @@ struct	Exec
 };
 
 #define	_MAGIC(b)	((((4*b)+0)*b)+7)
-#define	A_MAGIC		_MAGIC(8)	/* vax */
-#define	Z_MAGIC		_MAGIC(10)	/* hobbit */
+#define	A_MAGIC		_MAGIC(8)	/* 68020 */
 #define	I_MAGIC		_MAGIC(11)	/* intel 386 */
 #define	J_MAGIC		_MAGIC(12)	/* intel 960 */
 #define	K_MAGIC		_MAGIC(13)	/* sparc */
-#define	P_MAGIC		_MAGIC(14)	/* hp-pa */
 #define	V_MAGIC		_MAGIC(16)	/* mips 3000 */
-#define	NNAME	20
+#define 	X_MAGIC		_MAGIC(17)	/* att dsp 3210 */
+#define 	M_MAGIC		_MAGIC(18)	/* mips 4000 */
 
 typedef	struct	Sym	Sym;
 struct	Sym
 {
 	long	value;
 	char	type;
-	char	name[NNAME];	/* NUL-terminated */
-	char	pad[3];
+	char	*name;
 };

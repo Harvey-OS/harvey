@@ -1,0 +1,67 @@
+%% 
+%% This is file `enumerate.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% enumerate.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is part of the `tools' bundle 
+%% in the LaTeX2e distribution. 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file, and 
+%% in the file readme.txt distributed with the 
+%% tools bundle. 
+%% 
+%% File: enumerat.dtx Copyright (C) 1993-1994 David Carlisle
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{enumerate}
+         [1994/01/31 v2.02 enumerate extensions (DPC)]
+\newtoks\@enLab
+\def\@enQmark{?}
+\def\@enLabel#1#2{%
+  \edef\@enThe{\noexpand#1{\@enumctr}}%
+  \@enLab\expandafter{\the\@enLab\csname the\@enumctr\endcsname}%
+  \@enloop}
+\def\@enSpace{\afterassignment\@enSp@ce\let\@tempa= }
+\def\@enSp@ce{\@enLab\expandafter{\the\@enLab\space}\@enloop}
+\def\@enGroup#1{\@enLab\expandafter{\the\@enLab{#1}}\@enloop}
+\def\@enOther#1{\@enLab\expandafter{\the\@enLab#1}\@enloop}
+\def\@enloop{\futurelet\@entemp\@enloop@}
+\def\@enloop@{%
+  \ifx A\@entemp         \def\@tempa{\@enLabel\Alph  }\else
+  \ifx a\@entemp         \def\@tempa{\@enLabel\alph  }\else
+  \ifx i\@entemp         \def\@tempa{\@enLabel\roman }\else
+  \ifx I\@entemp         \def\@tempa{\@enLabel\Roman }\else
+  \ifx 1\@entemp         \def\@tempa{\@enLabel\arabic}\else
+  \ifx \@sptoken\@entemp \let\@tempa\@enSpace         \else
+  \ifx \bgroup\@entemp   \let\@tempa\@enGroup         \else
+  \ifx \@enum@\@entemp   \let\@tempa\@gobble          \else
+                         \let\@tempa\@enOther
+             \fi\fi\fi\fi\fi\fi\fi\fi
+  \@tempa}
+\def\enumerate{%
+  \ifnum \@enumdepth >3 \@toodeep\else
+      \advance\@enumdepth \@ne
+      \edef\@enumctr{enum\romannumeral\the\@enumdepth}\fi
+  \@ifnextchar[{\@@enum@}{\@enum@}}
+\def\@@enum@[#1]{%
+  \@enLab{}\let\@enThe\@enQmark
+  \@enloop#1\@enum@
+  \ifx\@enThe\@enQmark\@warning{The counter will not be printed.%
+   ^^J\space\@spaces\@spaces\@spaces The label is: \the\@enLab}\fi
+  \expandafter\edef\csname label\@enumctr\endcsname{\the\@enLab}%
+  \expandafter\let\csname the\@enumctr\endcsname\@enThe
+  \csname c@\@enumctr\endcsname7
+  \expandafter\settowidth
+            \csname leftmargin\romannumeral\@enumdepth\endcsname
+            {\the\@enLab\hspace{\labelsep}}%
+  \@enum@}
+\def\@enum@{\list{\csname label\@enumctr\endcsname}%
+           {\usecounter{\@enumctr}\def\makelabel##1{\hss\llap{##1}}}}
+\endinput
+%% 
+%% End of file `enumerate.sty'.

@@ -1,24 +1,11 @@
-APE=/usr/ape
-< $APE/src/config
-CFLAGS=
-O=arc.o box.o circle.o closepl.o disc.o erase.o frame.o line.o move.o openpl.o range.o rmove.o rvec.o sbox.o vec.o
+APE=/sys/src/ape
+< $APE/config
 
-all:V: lib.a
+OFILES=arc.$O box.$O circle.$O closepl.$O disc.$O erase.$O frame.$O line.$O move.$O \
+	openpl.$O range.$O rmove.$O rvec.$O sbox.$O vec.$O
+LIB=lib.a$O
+HFILES=
+YFILES=
 
-compile:V: lib.a
-
-test:VQ:
-	echo no test for lib
-
-install: tpic
-	$INSTALL tpic $APEBIN/tpic "$INSOWNER" "$INSGROUP" $INSMODE
-
-clean:V:
-	rm -f lib.a *.o
-
-%.o: %.c
-	$CC -c $stem.c
-
-lib.a:	$O
-	$AR r lib.a $newprereq
-	$RANLIB lib.a
+</sys/src/cmd/mklib
+CFLAGS=-c -B

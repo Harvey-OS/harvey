@@ -1,0 +1,212 @@
+%% 
+%% This is file `makebst.tex', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% makebst.dtx  (with options: `program,optlist')
+%% 
+%% This is the `program' part of the source file. 
+%% It may be run either with TeX or LaTeX. 
+%% 
+\def\ProvidesFile#1 [#2 #3 #4]{\def\filename{#1}%
+  \def\fileversion{#3}\def\filedate{#2}}
+ \ProvidesFile{makebst}
+    [1995/01/02 2.1 (PWD)]
+ %-------------------------------------------------------------------
+ % NOTICE:
+ % This file may be used for non-profit purposes.
+ % It may not be distributed in exchange for money, 
+ %   other than distribution costs.
+ %   
+ % The author provides it `as is' and does not guarantee it in any way.
+ % 
+%% Copyright (C) 1994, 1995 Patrick W. Daly
+ % Max-Planck-Institut f\"ur Aeronomie
+ % Postfach 20
+ % D-37189 Katlenburg-Lindau
+ % Germany
+ % 
+ % E-mail:
+ % SPAN--     nsp::linmpi::daly    (note nsp also known as ecd1)
+ % Internet-- daly@linax1.dnet.gwdg.de   
+ %-----------------------------------------------------------
+ % This file is to be run under TeX (or even LaTeX) 
+ % It interactively asks questions about the bibliographic style file
+ % that you want to produce. When it is finished, it writes a docstrip
+ % driver file that produces that .bst file from the generic .mbs that
+ % you specified; optionally, it will call the docstrip run immediately.
+ % For details, read the documentation in the source file makebst.dtx.
+ %--------------------------------------------------------------------
+\newwrite\outfile
+\newread\infile
+\newread\ttyin
+\newwrite\ttyout
+\def\mes{\immediate\write\ttyout}
+\def\wr#1{\immediate\write\outfile{#1}}
+\newlinechar=`\^^J
+\def\defpar{\par}
+\def\remblk#1 @@{#1}
+\def\ask#1#2{\mes{#2}\read\ttyin to #1\ifx#1\defpar\def#1{}\else
+   \edef#1{\expandafter\remblk#1@@}\fi}
+\def\groot#1.#2@@{#1}
+\def\getroot#1{\expandafter\groot#1.@@}
+\def\gext#1.#2.#3@@{#2}
+\def\getext#1{\expandafter\gext#1..@@}
+{\catcode`\%=12
+ \gdef\pc{%}
+ \gdef\pcpc{%% }
+}
+\def\spsp{\space\space}
+\newcount\hours
+\newcount\minutes
+\def\SetTime{\hours=\time
+        \global\divide\hours by 60
+        \minutes=\hours
+        \multiply\minutes by 60
+        \advance\minutes by-\time
+        \global\multiply\minutes by-1 }
+\SetTime
+\def\now{\number\hours:\ifnum\minutes<10 0\fi\number\minutes}
+\def\today{\number\year/\ifnum\month<10 0\fi\number\month
+   /\ifnum\day<10 0\fi\number\day}
+\def\Now{\today\space at \now}
+\def\optdef#1#2#3#4{\expandafter\def\csname opt@#1\endcsname{#2}%
+  \expandafter\def\csname txt@#1\endcsname{#3}%
+  \edef\optlist{#1,\optlist}%
+  \mes{(#1) #3\space #4}}
+
+\def\optlist{?,}
+
+\def\nxtopt#1,#2@@{#1} \def\rstopt#1,#2@@{#2}
+
+\newif\ifsw
+\def\getans{\ask{\ans}{\spsp Select:}
+  \expandafter\ifx\csname opt@\ans\endcsname\relax \def\ans{*}\fi
+  \expandafter\ifx\csname opt@\ans\endcsname\relax 
+     \edef\ans{\expandafter\nxtopt\optlist@@}\fi
+  \swtrue \loop
+    \edef\temp{\expandafter\nxtopt\optlist@@}%
+    \edef\optlist{\expandafter\rstopt\optlist@@}%
+    \if\temp?\swfalse\else
+      \if\temp\ans\wropt\ans
+          \else\wrxopt\temp
+      \fi
+      \expandafter\let\csname opt@\temp\endcsname\relax
+    \fi
+  \ifsw \repeat
+  \def\optlist{?,}%
+  \wr{\pc--------------------}%
+  }
+\def\wropt#1{\edef\tempx{\csname opt@#1\endcsname}\if!\tempx!
+  \wr{\spsp\spsp\pc: (def) \csname txt@#1\endcsname}\else
+  \wr{\spsp\sep\csname opt@#1\endcsname\pc: \csname txt@#1\endcsname}
+    \def\sep{,}\fi
+  \mes{\spsp You have selected: \csname txt@#1\endcsname}}
+\def\wrxopt#1{\edef\tempx{\csname opt@#1\endcsname}\if!\tempx!
+  \wr{\pc\spsp\pc(def) \csname txt@#1\endcsname}\else
+  \wr{\pc\spsp\sep\csname opt@#1\endcsname\pc: \csname txt@#1\endcsname}
+    \def\sep{,}\fi}
+\mes{***********************************^^J%
+     * This is Make Bibliography Style *^^J%
+     ***********************************^^J%
+     It makes up a docstrip batch job to produce^^J%
+     a customized .bst file for running with BibTeX}
+
+\ask{\yn}{Do you want a description of the usage? (NO)}
+
+\if!\yn!\else\if\yn n\else\if\yn N\else
+\mes{In the interactive dialogue that follows,^^J%
+     you will be presented with a series of menus.^^J%
+     In each case, one answer is the default, marked as (*),^^J%
+     and a mere carriage-return is sufficient to select it.^^J%
+     (If there is no * choice, then the default is the last choice.)^^J%
+     For the other choices, a letter is indicated^^J%
+     in brackets for selecting that option. If you select^^J%
+     a letter not in the list, default is taken.^^J^^J%
+     The final output is a file containing a batch job^^J%
+     which may be (La)TeXed to produce the desired BibTeX^^J%
+     bibliography style file. The batch job may be editted^^J%
+     to make minor changes, rather than running this program^^J%
+     once again.}
+\fi\fi\fi
+\loop
+  \def\ans{genbst.mbs}
+  \ask{\mfile}{^^JEnter the FULL name of the MASTER file (def=\ans)}
+  \if!\mfile!\edef\mfile{\ans}\fi
+  \openin\infile\mfile\relax
+  \ifeof\infile \def\ans{}\fi \closein\infile
+  \if!\ans! \mes{*** Cannot find file `\mfile'}
+\repeat
+\edef\mroot{\getroot\mfile}
+\edef\mext{\getext\mfile}
+\edef\temp{\mroot.opt}
+\openin\infile\temp\relax
+\let\mnext=\mext
+\ifeof\infile \else
+  \ask{\yn}{** Warning: a file `\temp' also exists^^J
+       \spsp Shall I read it for the menu information? (NO)^^J
+       \spsp (Answer `yes' only if you really know what you are doing)}
+\if\yn y\def\mnext{opt}\else\if\yn Y\def\mnext{opt}\fi\fi
+\mes{Menu information read from `\mroot.\mnext}
+\fi
+\closein\infile
+\loop
+  \ask{\ofile}{^^JName of the final OUTPUT .bst file?}
+  \if!\ofile!\mes{*** There is no default name for the output file}
+\repeat
+\edef\oroot{\getroot\ofile}
+\edef\oext{\getext\ofile}
+\if!\oext!\def\oext{bst}\fi
+\ask{\ans}{^^JGive a comment line to include in the style file.^^J%
+           Something like for which journals it is applicable.}
+\immediate\openout\outfile\oroot.dbj
+\wr{\pcpc Driver file to produce \oroot.\oext\space from \mroot.\mext}
+\wr{\pcpc Generated with \filename, version \fileversion\space (\filedate)}
+\wr{\pcpc Produced on \Now}
+\wr{\pcpc}
+\wr{\string\def\string\batchfile{\oroot.dbj}}
+\wr{\string\input\space docstrip}
+\wr{}
+\wr{\string\preamble}
+\wr{----------------------------------------}
+\wr{*** \ans\space ***}
+\wr{}
+\wr{\string\endpreamble}
+\wr{}
+\wr{\string\postamble}
+\wr{End of customized bst file}
+\wr{\string\endpostamble}
+\wr{}
+\wr{\string\keepsilent}
+\wr{}
+\begingroup\catcode`\{=12 \catcode`\}=12
+\catcode`\(=1 \catcode`\)=2
+\wr(\string\generateFile{\oroot.\oext}{f}{\string\from{\mroot.\mext}{\pc)
+\endgroup
+\def\sep{}
+
+\edef\temp{\mroot.\mnext}
+\openin\infile\temp\relax
+\let\endoptions=\endinput
+\input\temp
+\begingroup\catcode`\{=12 \catcode`\}=12
+\catcode`\(=1 \catcode`\)=2
+\wr(\spsp}})
+\endgroup
+
+\immediate\closeout\outfile
+\mes{^^JFinished!!^^J%
+     Batch job written to file `\oroot.dbj'}
+\def\ofile{\oroot.dbj}
+\ask{\yn}{Shall I now run this batch job? (NO)}
+\def\temp{\relax}
+\if!\yn!\else\if\yn n\else\if\yn N\else
+\def\temp{\input\ofile}\fi\fi\fi
+{\catcode`\@=11 \ifx\@@end\undefined\else
+  \global\let\end=\@@end\fi}
+\temp 
+\end
+%% <<<<< End of decommented file <<<<<< 
+%% 
+%% End of file makebst.tex. 

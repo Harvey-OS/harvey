@@ -1,2 +1,0 @@
-#!/bin/rc
-/bin/exportfs -a -c $3/ctl

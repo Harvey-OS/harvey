@@ -40,7 +40,7 @@ asks for
 .I count
 bytes of data
 from the file identified by 
-.I fid,
+.IR fid ,
 which must be opened for reading,
 starting 
 .I offset
@@ -56,11 +56,11 @@ reply message.
 .PP
 The
 .I count
-field in the reply indicates the number of characters returned.
+field in the reply indicates the number of bytes returned.
 This may be less than the requested amount.
 If the
 .I offset
-field is greater than the number of characters in the file,
+field is greater than the number of bytes in the file,
 a count of zero will be returned.
 For directories,
 .B read
@@ -82,10 +82,10 @@ The
 request asks that
 .I count
 bytes of data be recorded in the file identified by
-.I fid,
+.IR fid ,
 which must be opened for writing, starting
 .I offset
-characters after the beginning of the file.
+bytes after the beginning of the file.
 If the file has been opened append only,
 the data will be placed at the end of the file regardless of
 .IR offset .
@@ -93,7 +93,7 @@ Directories may not be written.
 .PP
 The 
 .B write
-reply records the number of characters actually written.
+reply records the number of bytes actually written.
 It is usually an error
 if this is not the same as requested.
 .SH ENTRY POINTS

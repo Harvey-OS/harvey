@@ -1,0 +1,14 @@
+%Filename: OT1ptmcm.fd
+%Created by: tex fontptcm
+%Created using fontinst v1.331
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OT1}{ptmcm}{}
+
+\DeclareFontShape{OT1}{ptmcm}{m}{n}{
+   <-> zptmcmr
+}{}
+
+
+\endinput

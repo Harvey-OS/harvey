@@ -2,6 +2,10 @@
 .SH NAME
 atof, atoi, atol, charstod, strtod, strtol, strtoul \- convert text to numbers
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .nf
 .ta \w'\fLdouble 'u
 .B
@@ -24,6 +28,18 @@ long	strtol(char *nptr, char **rptr, int base)
 .PP
 .B
 ulong	strtoul(char *nptr, char **rptr, int base)
+.PP
+.B
+/* Alef only */
+.PP
+.B
+int	strtoi(byte *nptr, byte **rptr, int base)
+.PP
+.B
+uint	strtoui(byte *nptr, byte **rptr, int base)
+.PP
+.B
+float	strtof(byte *nptr, byte **rptr);
 .fi
 .SH DESCRIPTION
 .IR Atof ,
@@ -59,12 +75,12 @@ recognize an optional string of tabs and spaces,
 then an optional sign, then a string of
 decimal digits.
 .PP
-.I Strtod,
-.I strtol,
+.IR Strtod ,
+.IR strtol ,
 and
-.I strtoul,
+.I strtoul
 behave similarly to 
-.I atof,
+.I atof
 and
 .I atol
 and, if
@@ -78,7 +94,7 @@ immediately after the string converted.
 and
 .I strtoul
 interpret the digit string in the specified
-.I base,
+.IR base ,
 from 2 to 36,
 each digit being less than the base.
 Digits with value over 9 are represented by letters,
@@ -109,6 +125,29 @@ is not a legal continuation of a number.
 Therefore, it may be necessary to back up the input stream one character
 after calling
 .IR charstod .
+.SS Alef
+The routines
+.I strtol
+and
+.I strtoul
+are renamed
+.I strtoi
+and
+.I strtoui
+and return type
+.B int
+and
+.BR uint .
+There is no
+.I charstod
+or
+.IR atof .
+Instead,
+.I strtof
+is like a floating-point base 10
+.IR strtoi .
+.SH SOURCE
+.B /sys/src/libc/port
 .SH SEE ALSO
 .IR fscanf (2)
 .SH DIAGNOSTICS
@@ -116,6 +155,9 @@ Zero is returned if the beginning of the input string is not
 interpretable as a number; even in this case,
 .I rptr
 will be updated.
+.br
+These routines set
+.IR errstr .
 .SH BUGS
 .I Atoi
 and

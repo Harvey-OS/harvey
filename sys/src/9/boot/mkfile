@@ -14,13 +14,11 @@ OFILES=\
 	datakit.$O\
 	dk.$O\
 	getpasswd.$O\
+	doauthenticate.$O\
 	hybrid.$O\
 	ip.$O\
 	key.$O\
 	local.$O\
-	newkernel.$O\
-	nopsession.$O\
-	romboot.$O\
 	settime.$O\
 	userpasswd.$O\
 
@@ -31,7 +29,6 @@ install:V:	$LIBRARY
 $LIBRARY:	$LIBO
 	names=`{membername $newprereq}
 	ar vu $LIBRARY $names
-	$RL $LIBRARY
 	rm -f $names
 
 %.$O:	%.c boot.h

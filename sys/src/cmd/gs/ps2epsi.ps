@@ -1,0 +1,189 @@
+%    Copyright (C) 1990, 1991, 1993, 1994 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of Aladdin Ghostscript.
+% 
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
+% 
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
+
+% Convert an arbitrary PostScript file to an EPSI file.
+%
+%	NOTE: this file was contributed by a user: please contact
+%	George Cameron <george@bio-medical-physics.aberdeen.ac.uk>
+%	if you have questions.
+%
+
+% Initialize, and redefine copypage and showpage.
+/ps2edict 25 dict def
+ps2edict begin
+
+				% The main procedure
+  /ps2epsi
+   {				% Open the file
+     outfile (w) file /epsifile exch def
+					% Get the device parameters
+     currentdevice getdeviceprops .dicttomark
+     /HWSize get aload pop
+       /devheight exch def
+       /devwidth exch def
+     matrix defaultmatrix
+       /devmatrix exch def
+				% Make a corresponding memory device
+     devmatrix devwidth devheight <ff 00>
+     makeimagedevice
+     /arraydevice exch def
+     arraydevice setdevice	% (does an erasepage)
+     /rowwidth devwidth 7 add 8 idiv def
+     /row rowwidth string def
+				% Replace the definition of showpage
+     userdict /showpage { ps2edict begin epsipage end } bind put
+   } def
+
+ /margintest
+ {
+      { dup arraydevice exch row copyscanlines pop
+	-1 0 1 rowwidth 1 sub
+	{ dup row exch get 0 ne { exit }{ pop } ifelse
+	} for
+	dup -1 ne { exch pop } if
+	-1 ne { exit } if pop
+      } for
+ } bind def
+
+  /epsipage
+   {
+     /loopcount devheight 1 sub def
+
+     % Find top margin
+     -1 0 1 loopcount margintest
+     dup -1 eq { (blank page!!\n) print 0 .quit }{ exch pop } ifelse 
+     /tm exch def
+
+     % Find bottom margin
+     loopcount -1 0 margintest
+     /bm exch def
+     
+     % Initialise limit variables
+     /loopcount rowwidth 1 sub def
+     /lm loopcount def /lmb 0 def
+     /rm 0 def /rmb 0 def
+
+     % Find left and right boundaries of image
+     tm 1 bm
+      { % Get more data
+	arraydevice exch row copyscanlines pop
+	% Scan from left to find first non-zero element
+	% We save first the element, then the index
+	-1 0 1 loopcount
+	{ dup row exch get dup 0 ne { exch exit }{ pop pop } ifelse
+	} for
+	% If we found -1, row is blank ..
+	dup -1 ne 
+	{ % Find the leftmost index
+          dup lm lt
+          % If the new index is less, we save index and element
+          { /lm exch def /lmb exch def }
+          % If the index is equal, we or the bits together
+          { lm eq { lmb or /lmb exch def }{ pop } ifelse
+          } ifelse
+	  % Now find the rightmost index
+	  loopcount -1 0
+          { dup row exch get dup 0 ne { exch exit }{ pop pop } ifelse
+          } for
+	  dup rm gt
+          % If the new index is greater, we save index and element
+          { /rm exch def /rmb exch def }
+          % If the index is equal, or the bits
+          { rm eq { rmb or /rmb exch def } { pop } ifelse
+          } ifelse
+	} if
+	pop
+      } for
+
+     % Now we find the real left & right bit positions
+     256 0 1 7
+     { exch 2 div dup lmb le { pop exit }{ exch pop } ifelse
+     } for
+     /lmb exch def
+
+     1 7 -1 0
+     { exch dup dup rmb and eq { pop exit }{ 2 mul exch pop } ifelse
+     } for
+     /rmb exch def
+
+     % Calculate the bounding box values
+     /llx lm 8 mul lmb add def
+     /lly devheight bm sub def
+     /urx rm 8 mul rmb add def
+     /ury devheight tm sub def
+
+     % Write out the magic string and bounding box information
+     epsifile (%!PS-Adobe-2.0 EPSF-1.2\n) writestring
+     epsifile (%%BoundingBox: ) writestring
+     epsifile llx write==only epsifile ( ) writestring
+     epsifile lly write==only epsifile ( ) writestring
+     epsifile urx write==only epsifile ( ) writestring
+     epsifile ury write==
+     epsifile (%%BeginPreview: ) writestring
+     epsifile urx llx sub 1 add write==only epsifile ( ) writestring
+     epsifile bm tm sub 1 add write==only epsifile ( 1 ) writestring
+     epsifile bm tm sub 1 add write==
+
+     % Define character and bit widths for the output line buffer
+     /cwidth rm lm sub 1 add 8 mul 7 add 8 idiv def
+     /bwidth cwidth 8 mul def
+     /owidth urx llx sub 1 add 7 add 8 idiv def
+     /out cwidth string def
+
+     % Create a 1-bit-high device for bitblt to align with the bbox
+     gsave
+     matrix cwidth 8 mul 1 <00 ff> makeimagedevice setdevice
+
+     % 'image' a zero string to clear the line device
+     bwidth 1 1 matrix cwidth string image
+
+     tm 1 bm
+      { % Get a scan line interval from the array device
+	arraydevice exch row copyscanlines lm cwidth getinterval
+	lmb 0 gt
+	{ % 'image' it into the line device with the lmb offset
+	  bwidth 1 1 [1 0 0 1 lmb 0] 5 -1 roll image
+	  % Now we get the modified scan line
+	  currentdevice 0 out copyscanlines 0 owidth getinterval
+	} if
+	% Write out the hex data
+	epsifile (% ) writestring 
+	epsifile exch writehexstring
+	epsifile (\n) writestring
+      } for
+
+     epsifile (%%EndImage\n) writestring
+     epsifile (%%EndPreview\n) writestring
+     epsifile flushfile
+     grestore
+     erasepage initgraphics
+
+     DonePage 0 1 put
+   } bind def
+
+
+(outfile) getenv
+  { /outfile exch def 
+    ps2epsi
+
+    /DonePage 1 string def
+    (%stdin) (r) file cvx execute0
+    DonePage 0 get 0 eq { showpage } if
+  } if
+
+end
+quit

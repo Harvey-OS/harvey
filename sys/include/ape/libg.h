@@ -8,28 +8,33 @@
 #pragma lib "/$M/lib/ape/libg.a"
 /*
  *  you may think it's a blit, but it's gnot
- *
- *  like Plan 9 libg, but had to rename div -> ptdiv,
- *  and don't assume uchar defined
  */
-
-enum{ EMAXMSG = 128+8192 };	/* max size of a 9p message including data */
+enum
+{
+	EMAXMSG = 128+8192,	/* size of 9p header+data */
+};
 
 /*
  * Types
  */
 
-typedef	struct	Bitmap		Bitmap;
+typedef struct	Bitmap		Bitmap;
 typedef struct	Point		Point;
 typedef struct	Rectangle 	Rectangle;
 typedef struct	Cursor		Cursor;
 typedef struct	Mouse		Mouse;
 typedef struct	Menu		Menu;
-typedef struct	Fontchar	Fontchar;
 typedef struct	Font		Font;
+typedef struct	Fontchar	Fontchar;
+typedef struct	Subfont		Subfont;
+typedef struct	Cachefont	Cachefont;
+typedef struct	Cacheinfo	Cacheinfo;
+typedef struct	Cachesubf	Cachesubf;
 typedef struct	Event		Event;
+typedef struct	Slave		Slave;
+typedef struct	Ebuf		Ebuf;
 typedef struct	RGB		RGB;
-typedef void	 (*Errfunc)(char *);
+typedef struct	Linedesc	Linedesc;
 
 struct	Point
 {
@@ -46,6 +51,7 @@ struct Rectangle
 struct	Bitmap
 {
 	Rectangle r;		/* rectangle in data area, local coords */
+	Rectangle clipr;	/* clipping region */
 	int	ldepth;
 	int	id;
 	Bitmap	*cache;		/* zero; distinguishes bitmap from layer */
@@ -55,16 +61,14 @@ struct	Mouse
 {
 	int	buttons;	/* bit array: LMR=124 */
 	Point	xy;
+	unsigned long	msec;
 };
 
 struct	Cursor
 {
-	Point		offset;
+	Point	offset;
 	unsigned char	clr[2*16];
 	unsigned char	set[2*16];
-#ifdef _LIBXG_EXTENSION
-	int		id;	/* init to zero; used by library */
-#endif
 };
 
 struct Menu
@@ -74,43 +78,123 @@ struct Menu
 	int	lasthit;
 };
 
+struct Linedesc
+{
+	int	x0;
+	int	y0;
+	char	xmajor;
+	char	slopeneg;
+	long	dminor;
+	long	dmajor;
+};
+
 /*
- * Fonts
+ * Subfonts
  *
- * given char c, Font *f, Fontchar *i, and Point p, one says
+ * given char c, Subfont *f, Fontchar *i, and Point p, one says
  *	i = f->info+c;
- *	bitblt(b, Pt(p.x+i->left,p.y),
+ *	bitblt(b, Pt(p.x+i->left,p.y+i->top),
  *		bitmap, Rect(i->x,i->top,(i+1)->x,i->bottom),
  *		fc);
  *	p.x += i->width;
- * where bitmap is the repository of the glyphs.
+ * where bitmap b is the repository of the images.
  *
  */
 
 struct	Fontchar
 {
-	short		x;		/* left edge of bits */
+	unsigned short	x;			/* left edge of bits */
 	unsigned char	top;		/* first non-zero scan-line */
-	unsigned char	bottom;		/* last non-zero scan-line */
-	char		left;		/* offset of baseline */
+	unsigned char	bottom;		/* last non-zero scan-line + 1 */
+	char	left;				/* offset of baseline */
 	unsigned char	width;		/* width of baseline */
 };
 
-struct	Font
+struct	Subfont
 {
-	short		n;		/* number of chars in font */
+	short	n;					/* number of chars in font */
 	unsigned char	height;		/* height of bitmap */
-	char		ascent;		/* top of bitmap to baseline */
-	Fontchar 	*info;		/* n+1 character descriptors */
-	int		id;		/* of font */
+	char	ascent;				/* top of bitmap to baseline */
+	Fontchar *info;				/* n+1 character descriptors */
+	int	id;						/* of font */
+};
+
+enum
+{
+	/* starting values */
+	LOG2NFCACHE =	6,
+	NFCACHE =	(1<<LOG2NFCACHE),	/* #chars cached */
+	NFLOOK =	5,					/* #chars to scan in cache */
+	NFSUBF =	2,					/* #subfonts to cache */
+	/* max value */
+	MAXFCACHE =	2048+NFLOOK,		/* generous upper limit */
+	MAXSUBF =	50,					/* generous upper limit */
+	/* deltas */
+	DSUBF = 	4,
+	/* expiry ages */
+	SUBFAGE	=	10000,
+	CACHEAGE =	10000,
+};
+
+struct Cachefont
+{
+	unsigned short	min;	/* lowest rune value to be taken from subfont */
+	unsigned short	max;	/* highest rune value+1 to be taken from subfont */
+	int	offset;		/* position in subfont of character at min */
+	int	abs;		/* name has been made absolute */
+	char	*name;
+};
+
+struct Cacheinfo
+{
+	unsigned short		value;	/* value of character at this slot in cache */
+	unsigned short		age;
+	unsigned long		xright;	/* right edge of bits */
+	Fontchar;
+};
+
+struct Cachesubf
+{
+	unsigned long		age;	/* for replacement */
+	Cachefont	*cf;	/* font info that owns us */
+	Subfont		*f;	/* attached subfont */
+};
+
+struct Font
+{
+	char		*name;
+	unsigned char		height;	/* max height of bitmap, interline spacing */
+	char		ascent;	/* top of bitmap to baseline */
+	char		width;	/* widest so far; used in caching only */	
+	char		ldepth;	/* of images */
+	short		id;	/* of font */
+	short		nsub;	/* number of subfonts */
+	unsigned long		age;	/* increasing counter; used for LRU */
+	int		ncache;	/* size of cache */
+	int		nsubf;	/* size of subfont list */
+	Cacheinfo	*cache;
+	Cachesubf	*subf;
+	Cachefont	**sub;	/* as read from file */
 };
 
 struct	Event
 {
-	int		kbdc;
-	Mouse		mouse;
-	int		n;		/* number of characters in mesage */
+	int	kbdc;
+	Mouse	mouse;
+	int	n;		/* number of characters in mesage */
 	unsigned char	data[EMAXMSG];	/* message from an arbitrary file descriptor */
+};
+
+struct Slave{
+	int	pid;
+	Ebuf	*head;		/* queue of messages for this descriptor */
+	Ebuf	*tail;
+};
+
+struct Ebuf{
+	Ebuf	*next;
+	int	n;		/* number of bytes in buf */
+	unsigned char	buf[EMAXMSG];
 };
 
 struct RGB
@@ -152,93 +236,95 @@ enum	Fcode
 	notDorS		= 0xD,
 	DorS		= 0xE,
 	F		= 0xF,
-	SUB		= 0x10,		/* balu arithmetic codes */
-	SSUB		= 0x11,
-	ADD		= 0x12,
-	SADD		= 0x13,
-	MIN		= 0x14,
-	MAX		= 0x15
 } Fcode;
 
 /*
  * Miscellany
  */
 
-extern Point		add(Point, Point);
-extern Point		sub(Point, Point);
-extern Point		mul(Point, int);
-extern Point		ptdiv(Point, int);
-extern Rectangle	rsubp(Rectangle, Point);
-extern Rectangle	raddp(Rectangle, Point);
-extern Rectangle	inset(Rectangle, int);
-extern Rectangle	rmul(Rectangle, int);
-extern Rectangle	rdiv(Rectangle, int);
-extern Rectangle	rshift(Rectangle, int);
-extern Rectangle	rcanon(Rectangle);
-extern Bitmap*		balloc(Rectangle, int);
-extern void		bfree(Bitmap*);
-extern int		rectclip(Rectangle*, Rectangle);
-#ifdef _LIBG_EXTENSION
-extern void		binit(void(*)(char*), char*, char*);
-#endif
-#ifdef _LIBXG_EXTENSION
-extern void		xtbinit(Errfunc, char*, int*, char**);
-#endif
-extern void		bclose(void);
-extern void		berror(char*);
-extern void		bitblt(Bitmap*, Point, Bitmap*, Rectangle, Fcode);
-extern void		bitbltclip(void*);
-extern Font*		falloc(int, int, int, Fontchar*, Bitmap*);
-extern void		ffree(Font*);
-extern Point		string(Bitmap*, Point, Font*, char*, Fcode);
-extern void		segment(Bitmap*, Point, Point, int, Fcode);
-extern void		point(Bitmap*, Point, int, Fcode);
-extern void		arc(Bitmap*, Point, Point, Point, int, Fcode);
-extern void		circle(Bitmap*, Point, int, int, Fcode);
-extern void		disc(Bitmap*, Point, int, int, Fcode);
-extern void		ellipse(Bitmap*, Point, int, int, int, Fcode);
-extern long		strwidth(Font*, char*);
-extern Point		strsize(Font*, char*);
-extern long		charwidth(Font*, unsigned short);
-extern void		texture(Bitmap*, Rectangle, Bitmap*, Fcode);
-extern void		wrbitmap(Bitmap*, int, int, unsigned char*);
-extern void		rdbitmap(Bitmap*, int, int, unsigned char*);
-extern void		wrbitmapfile(int, Bitmap*);
-extern Bitmap*		rdbitmapfile(int);
-extern void		wrfontfile(int, Font*);
-extern Font*		rdfontfile(int, Bitmap*);
-extern void		rdcolmap(Bitmap*, RGB*);
-extern void		wrcolmap(Bitmap*, RGB*);
-extern int		ptinrect(Point, Rectangle);
-extern int		rectXrect(Rectangle, Rectangle);
-extern int		eqpt(Point, Point);
-extern int		eqrect(Rectangle, Rectangle);
-extern void		border(Bitmap*, Rectangle, int, Fcode);
-extern void		cursorswitch(Cursor*);
-extern void		cursorset(Point);
-extern Rectangle	bscreenrect(void);
-extern unsigned char*	bneed(int);
-extern void		bflush(void);
-extern void		bexit(void);
-extern int		bwrite(void);
+extern Point	 add(Point, Point), sub(Point, Point);
+extern Point	 mul(Point, int), ptdiv(Point, int);
+extern Rectangle rsubp(Rectangle, Point), raddp(Rectangle, Point), inset(Rectangle, int);
+extern Rectangle rmul(Rectangle, int), rdiv(Rectangle, int);
+extern Rectangle rshift(Rectangle, int), rcanon(Rectangle);
+extern Bitmap*	 balloc(Rectangle, int);
+extern void	 bfree(Bitmap*);
+extern int	 rectclip(Rectangle*, Rectangle);
+extern void	 binit(void(*)(char*), char*, char*);
+extern void	 bclose(void);
+extern void	 berror(char*);
+extern void	 bitblt(Bitmap*, Point, Bitmap*, Rectangle, Fcode);
+extern int	 bitbltclip(void*);
+extern Font*	 rdfontfile(char*, int);
+extern void	 ffree(Font*);
+extern Font*	 mkfont(Subfont*, unsigned short);
+extern Subfont*	 subfalloc(int, int, int, Fontchar*, Bitmap*, unsigned long, unsigned long);
+extern void	 subffree(Subfont*);
+extern int	 cachechars(Font*, char**, unsigned short*, int, int*);
+extern Point	 string(Bitmap*, Point, Font*, char*, Fcode);
+extern void	 segment(Bitmap*, Point, Point, int, Fcode);
+extern void	 polysegment(Bitmap*, int, Point*, int, Fcode);
+extern void	 point(Bitmap*, Point, int, Fcode);
+extern void	 arc(Bitmap*, Point, Point, Point, int, Fcode);
+extern void	 circle(Bitmap*, Point, int, int, Fcode);
+extern void	 disc(Bitmap*, Point, int, int, Fcode);
+extern void	 ellipse(Bitmap*, Point, int, int, int, Fcode);
+extern long	 strwidth(Font*, char*);
+extern void	 agefont(Font*);
+extern int	 loadchar(Font*, unsigned short, Cacheinfo*, int, int);
+extern Point	 strsize(Font*, char*);
+extern long	 charwidth(Font*, unsigned short);
+extern void	 texture(Bitmap*, Rectangle, Bitmap*, Fcode);
+extern void	 wrbitmap(Bitmap*, int, int, unsigned char*);
+extern void	 rdbitmap(Bitmap*, int, int, unsigned char*);
+extern void	 wrbitmapfile(int, Bitmap*);
+extern Bitmap*	 rdbitmapfile(int);
+extern void	 wrsubfontfile(int, Subfont*);
+extern Subfont*	 rdsubfontfile(int, Bitmap*);
+extern void	_unpackinfo(Fontchar*, unsigned char*, int);
+extern void	 rdcolmap(Bitmap*, RGB*);
+extern void	 wrcolmap(Bitmap*, RGB*);
+extern int	 ptinrect(Point, Rectangle), rectinrect(Rectangle, Rectangle);
+extern int	 rectXrect(Rectangle, Rectangle);
+extern int	 eqpt(Point, Point), eqrect(Rectangle, Rectangle);
+extern void	 border(Bitmap*, Rectangle, int, Fcode);
+extern void	 cursorswitch(Cursor*);
+extern void	 cursorset(Point);
+extern Rectangle bscreenrect(Rectangle*);
+extern unsigned char*	 bneed(int);
+extern void	 bflush(void);
+extern void	 bexit(void);
+extern int	 bwrite(void);
+extern int	 _clipline(Rectangle, Point*, Point*, Linedesc*);
+extern int	 clipline(Rectangle, Point*, Point*);
+extern int	 clipr(Bitmap*, Rectangle);
 
-extern void		einit(unsigned long);
-extern unsigned long	estart(unsigned long, int, int);
-extern unsigned long	etimer(unsigned long, int);
-extern unsigned long	event(Event*);
-extern unsigned long	eread(unsigned long, Event*);
-extern Mouse		emouse(void);
-extern int		ekbd(void);
-extern int		ecanread(unsigned long);
-extern int		ecanmouse(void);
-extern int		ecankbd(void);
-extern void		ereshaped(Rectangle);	/* supplied by user */
-extern int		menuhit(int, Mouse*, Menu*);
-extern Rectangle	getrect(int, Mouse*);
-extern unsigned long	rgbpix(Bitmap*, RGB);
+extern void	 einit(unsigned long);
+extern unsigned long	 estart(unsigned long, int, int);
+extern unsigned long	 etimer(unsigned long, int);
+extern unsigned long	 event(Event*);
+extern unsigned long	 eread(unsigned long, Event*);
+extern Ebuf*	 _ebread(Slave*);
+extern Mouse	 emouse(void);
+extern int	 ekbd(void);
+extern int	 ecanread(unsigned long);
+extern int	 ecanmouse(void);
+extern int	 ecankbd(void);
+extern void	 ereshaped(Rectangle);	/* supplied by user */
+extern int	 menuhit(int, Mouse*, Menu*);
+extern Rectangle getrect(int, Mouse*);
+extern unsigned long	 rgbpix(Bitmap*, RGB);
+extern int	_gminor(long, Linedesc*);
+extern char *	gstrdup(char *);
+
 enum{
 	Emouse		= 1,
 	Ekeyboard	= 2,
+};
+
+enum
+{
+	MAXSLAVE = 32,
 };
 
 #define	Pt(x, y)		((Point){(x), (y)})
@@ -252,9 +338,17 @@ enum{
 extern	int	bitbltfd;
 extern	Bitmap	screen;
 extern	Font	*font;
+extern	unsigned char	_btmp[8192];
+
+extern	Slave	eslave[];
+extern	int	Smouse;
+extern	int	Skeyboard;
+extern	int	Stimer;
+extern	int	logfid;
 
 #define	BGSHORT(p)		(((p)[0]<<0) | ((p)[1]<<8))
 #define	BGLONG(p)		((BGSHORT(p)<<0) | (BGSHORT(p+2)<<16))
 #define	BPSHORT(p, v)		((p)[0]=(v), (p)[1]=((v)>>8))
 #define	BPLONG(p, v)		(BPSHORT(p, (v)), BPSHORT(p+2, (v)>>16))
+
 #endif

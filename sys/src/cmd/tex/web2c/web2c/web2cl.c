@@ -27,20 +27,17 @@ struct yysvf {
 struct yysvf *yyestate;
 extern struct yysvf yysvec[], *yybgin;
 int yylook(void), yywrap(void), yyback(int *, int);
+/* web2c.lex -- lexical analysis for Tangle output.  */
+
 #include "web2c.h"
 #include "web2cy.h"
-#ifdef	ANSI
-int yylex(void);
-#ifndef unput
-static void unput(char);
-#endif
-#ifndef input
-static int input(void);
-#endif
-#endif
+
+/* For some reason flex wants to do a system call, so we must lose the
+   definition of the Pascal read that is in `pascal.h'.  */
+#undef read
+
 char conditional[20], negbuf[2], temp[20];
 extern boolean doing_statements;
-int yywrap(void) { return 1; }
 #define YYNEWLINE 10
 yylex(void){
 int nstr; extern int yyprevious;
@@ -52,48 +49,43 @@ case 1:
 			;
 break;
 case 2:
-			{while (input() != '}');
-				}
+	{while (input() != '}') ;}
 break;
 case 3:
-			{
-				    register int c;
-				    (void) putc('#', std);
-				    while ((c = input()) && c != ';')
-					(void) putc(c, std);
-				    (void) putc('\n', std);
-				}
+	{
+		    register int c;
+		    (void) putc('#', std);
+		    while ((c = input()) && c != ';')
+			(void) putc(c, std);
+		    (void) putc('\n', std);
+		}
 break;
 case 4:
-		{register int c;
-				 extern char my_routine[];
-				 register char *cp=conditional;
-				 new_line();
-				 (void) input();
-				 while ((c = input()) != '\'')
-#ifdef	MS_DOS
-				    *cp++ = (char) c;
-#else
-				    *cp++ = c;
-#endif
-				 *cp = '\0';
-				 (void) input();
-				 if (doing_statements) fputs("\t;\n", std);
-				 (void) fprintf(std,
-					"#ifdef %s\n", conditional);
-				}
+{register int c;
+		 extern char my_routine[];
+		 register char *cp=conditional;
+		 new_line();
+		 (void) input();
+		 while ((c = input()) != '\'')
+		    *cp++ = c;
+		 *cp = '\0';
+		 (void) input();
+		 if (doing_statements) fputs("\t;\n", std);
+		 (void) fprintf(std,
+			"#ifdef %s\n", conditional);
+		}
 break;
 case 5:
-		{register int c;
-				 new_line();
-				 fputs("#endif /* ", std);
-				 (void) input();
-				 while ((c = input()) != '\'')
-					(void) putc(c, std);
-				 (void) input();
-				 conditional[0] = '\0';
-				 fputs(" */\n", std);
-				}
+{register int c;
+		 new_line();
+		 fputs("#endif /* ", std);
+		 (void) input();
+		 while ((c = input()) != '\'')
+			(void) putc(c, std);
+		 (void) input();
+		 conditional[0] = '\0';
+		 fputs(" */\n", std);
+		}
 break;
 case 6:
 ;
@@ -102,231 +94,229 @@ case 7:
 ;
 break;
 case 8:
-		return(last_tok=define_tok);
+return last_tok=define_tok;
 break;
 case 9:
-		return(last_tok=field_tok);
+return last_tok=field_tok;
 break;
 case 10:
-			return(last_tok=and_tok) ;
+	return last_tok=and_tok;
 break;
 case 11:
-			return(last_tok=array_tok) ;
+	return last_tok=array_tok;
 break;
 case 12:
-			return(last_tok=begin_tok) ;
+	return last_tok=begin_tok;
 break;
 case 13:
-			return(last_tok=case_tok) ;
+	return last_tok=case_tok;
 break;
 case 14:
-			return(last_tok=const_tok) ;
+	return last_tok=const_tok;
 break;
 case 15:
-			return(last_tok=div_tok) ;
+	return last_tok=div_tok;
 break;
 case 16:
-			return(last_tok=break_tok);
+	return last_tok=break_tok;
 break;
 case 17:
-			return(last_tok=do_tok) ;
+	return last_tok=do_tok;
 break;
 case 18:
-		return(last_tok=downto_tok) ;
+return last_tok=downto_tok;
 break;
 case 19:
-			return(last_tok=else_tok) ;
+	return last_tok=else_tok;
 break;
 case 20:
-			return(last_tok=end_tok) ;
+	return last_tok=end_tok;
 break;
 case 21:
-			return(last_tok=file_tok) ;
+	return last_tok=file_tok;
 break;
 case 22:
-			return(last_tok=for_tok) ;
+	return last_tok=for_tok;
 break;
 case 23:
-		return(last_tok=function_tok) ;
+return last_tok=function_tok;
 break;
 case 24:
-			return(last_tok=goto_tok) ;
+	return last_tok=goto_tok;
 break;
 case 25:
-			return(last_tok=if_tok) ;
+	return last_tok=if_tok;
 break;
 case 26:
-			return(last_tok=label_tok) ;
+	return last_tok=label_tok;
 break;
 case 27:
-			return(last_tok=mod_tok) ;
+	return last_tok=mod_tok;
 break;
 case 28:
-			return(last_tok=not_tok) ;
+	return last_tok=not_tok;
 break;
 case 29:
-			return(last_tok=of_tok) ;
+	return last_tok=of_tok;
 break;
 case 30:
-			return(last_tok=or_tok) ;
+	return last_tok=or_tok;
 break;
 case 31:
-		return(last_tok=procedure_tok) ;
+return last_tok=procedure_tok;
 break;
 case 32:
-		return(last_tok=program_tok) ;
+return last_tok=program_tok;
 break;
 case 33:
-		return(last_tok=record_tok) ;
+return last_tok=record_tok;
 break;
 case 34:
-		return(last_tok=repeat_tok) ;
+return last_tok=repeat_tok;
 break;
 case 35:
-			return(last_tok=hhb0_tok) ;
+	return last_tok=hhb0_tok;
 break;
 case 36:
-			return(last_tok=hhb1_tok) ;
+	return last_tok=hhb1_tok;
 break;
 case 37:
-			return(last_tok=then_tok) ;
+	return last_tok=then_tok;
 break;
 case 38:
-			return(last_tok=to_tok) ;
+	return last_tok=to_tok;
 break;
 case 39:
-			return(last_tok=type_tok) ;
+	return last_tok=type_tok;
 break;
 case 40:
-			return(last_tok=until_tok) ;
+	return last_tok=until_tok;
 break;
 case 41:
-			return(last_tok=var_tok) ;
+	return last_tok=var_tok;
 break;
 case 42:
-			return(last_tok=while_tok) ;
+	return last_tok=while_tok;
 break;
 case 43:
-		return(last_tok=others_tok) ;
+return last_tok=others_tok;
 break;
 case 44:
-			{		
-				  (void) sprintf(temp, "%s%s", negbuf, yytext);
-				  negbuf[0] = '\0';
-				  return(last_tok=r_num_tok) ;
-				}
+	{		
+		  (void) sprintf(temp, "%s%s", negbuf, yytext);
+		  negbuf[0] = '\0';
+		  return last_tok=r_num_tok;
+		}
 break;
 case 45:
-		{
-				  (void) sprintf(temp, "%s%s", negbuf, yytext);
-				  negbuf[0] = '\0';
-				  return(last_tok=i_num_tok) ;
-				}
+{
+		  (void) sprintf(temp, "%s%s", negbuf, yytext);
+		  negbuf[0] = '\0';
+		  return last_tok=i_num_tok;
+		}
 break;
 case 46:
-	return(last_tok=single_char_tok) ;
+	return last_tok=single_char_tok;
 break;
 case 47:
-	return(last_tok=string_literal_tok) ;
+	return last_tok=string_literal_tok;
 break;
 case 48:
-			{ if ((last_tok>=undef_id_tok &&
-				      last_tok<=field_id_tok) ||
-				      last_tok==i_num_tok ||
-				      last_tok==r_num_tok ||
-				      last_tok==')' ||
-				      last_tok==']')
-				   return(last_tok='+') ;
-				else return(last_tok=unary_plus_tok) ; }
+	{ if ((last_tok>=undef_id_tok &&
+		      last_tok<=field_id_tok) ||
+		      last_tok==i_num_tok ||
+		      last_tok==r_num_tok ||
+		      last_tok==')' ||
+		      last_tok==']')
+		   return last_tok='+';
+		else return last_tok=unary_plus_tok; }
 break;
 case 49:
-			{ if ((last_tok>=undef_id_tok &&
-				      last_tok<=field_id_tok) ||
-				      last_tok==i_num_tok ||
-				      last_tok==r_num_tok ||
-				      last_tok==')' ||
-				      last_tok==']')
-				   return(last_tok='-') ;
-				else {
-				  int c;
-				  while ((c = input()) == ' ' || c == '\t');
-#ifdef	MS_DOS
-				  unput((char) c);
-#else
-				  unput(c);
-#endif
-				  if (c < '0' || c > '9') {
-					return(last_tok = unary_minus_tok);
-				  }
-				  negbuf[0] = '-';
-				}}
+	{ if ((last_tok>=undef_id_tok &&
+		      last_tok<=field_id_tok) ||
+		      last_tok==i_num_tok ||
+		      last_tok==r_num_tok ||
+		      last_tok==')' ||
+		      last_tok==']')
+		   return last_tok='-';
+		else {
+		  int c;
+		  while ((c = input()) == ' ' || c == '\t')
+                    ;
+  		  unput(c);
+		  if (c < '0' || c > '9') {
+			return last_tok = unary_minus_tok;
+		  }
+		  negbuf[0] = '-';
+		}}
 break;
 case 50:
-			return(last_tok='*') ;
+	return last_tok='*';
 break;
 case 51:
-			return(last_tok='/') ;
+	return last_tok='/';
 break;
 case 52:
-			return(last_tok='=') ;
+	return last_tok='=';
 break;
 case 53:
-			return(last_tok=not_eq_tok) ;
+	return last_tok=not_eq_tok;
 break;
 case 54:
-			return(last_tok='<') ;
+	return last_tok='<';
 break;
 case 55:
-			return(last_tok='>') ;
+	return last_tok='>';
 break;
 case 56:
-			return(last_tok=less_eq_tok) ;
+	return last_tok=less_eq_tok;
 break;
 case 57:
-			return(last_tok=great_eq_tok) ;
+	return last_tok=great_eq_tok;
 break;
 case 58:
-			return(last_tok='(') ;
+	return last_tok='(';
 break;
 case 59:
-			return(last_tok=')') ;
+	return last_tok=')';
 break;
 case 60:
-			return(last_tok='[') ;
+	return last_tok='[';
 break;
 case 61:
-			return(last_tok=']') ;
+	return last_tok=']';
 break;
 case 62:
-			return(last_tok=assign_tok) ;
+	return last_tok=assign_tok;
 break;
 case 63:
-			return(last_tok=two_dots_tok) ;
+	return last_tok=two_dots_tok;
 break;
 case 64:
-			return(last_tok='.') ;
+	return last_tok='.';
 break;
 case 65:
-			return(last_tok=',') ;
+	return last_tok=',';
 break;
 case 66:
-			return(last_tok=';') ;
+	return last_tok=';';
 break;
 case 67:
-			return(last_tok=':') ;
+	return last_tok=':';
 break;
 case 68:
-			return(last_tok='^') ;
+	return last_tok='^';
 break;
 case 69:
-		{ (void) strcpy(last_id,yytext) ; 
-				  l_s=search_table(last_id) ;
-				  if (l_s == -1) return(last_tok=undef_id_tok);
-				  return(last_tok=sym_table[l_s].typ);
-				}
+{ (void) strcpy (last_id, yytext);
+		  l_s = search_table (last_id);
+		  return
+                    last_tok = (l_s == -1 ? undef_id_tok : sym_table[l_s].typ);
+		}
 break;
 case 70:
-			return(last_tok=unknown_tok) ;
+	{ /* Any bizarre token will do.  */
+		  return last_tok = two_dots_tok; }
 break;
 case -1:
 break;
@@ -1582,6 +1572,7 @@ yylook(void){
 		if(debug)putchar('\n');
 # endif
 		}
+	return(0);	/* shut up the compiler; i have no idea what should be returned */
 	}
 yyback(int *p, int m)
 {
@@ -1597,10 +1588,12 @@ return(0);
 yyinput(void){
 	return(input());
 }
+void
 yyoutput(int c)
 {
 	output(c);
 }
+void
 yyunput(int c)
 {
 	unput(c);

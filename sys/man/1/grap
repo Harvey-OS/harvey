@@ -88,7 +88,7 @@ Put ticks on
 at
 .I "expr, ...,
 and label with
-.I \&"expr".
+.I \&"expr"\f1.
 If any
 .I expr
 is followed by "...", label tick with "...",
@@ -105,7 +105,7 @@ or
 (default out).
 Tick iterator: instead of
 .B at
-.I \&...,
+.IR \&... ,
 use
 .BI from
 .I expr
@@ -128,7 +128,7 @@ Automatic ticks normally
 leave a margin of 7% on each side; set this to anything by
 .B margin
 .B =
-.I expr.
+.IR expr .
 .PP
 .B grid
 .I "side linedesc"
@@ -170,7 +170,7 @@ defines a new coordinate system).
 Put
 .I str
 at
-.I point.
+.IR point .
 Text position can be qualified with
 .BR rjust ,
 .BR ljust ,
@@ -278,16 +278,17 @@ and
 .BR sqrt ;
 .B rand
 returns random number on [0,1);
-.BI max( e , e ) ,
-.BI min( e , e ) ,
-.BI int( e ) .
+.BI max( e , e )\f1,
+.BI min( e , e )\f1,
+.BI int( e )\f1.
 .PP
 .B print
 .IR expr ;
 .B print
 \fL"\f2...\fL"\f1:
 As a debugging aid, print
-.IR expr or
+.I expr
+or
 .I string
 on the standard error.
 .PP
@@ -359,7 +360,7 @@ Any arguments on the
 line are placed on the generated
 .B \&.PS
 line for
-.I pic.
+.IR pic .
 .SH EXAMPLES
 .EX
 .ps -1
@@ -402,10 +403,14 @@ copy thru / circle at $1,$2 /
 .TP
 .B /sys/lib/grap.defines
 definitions of standard plotting characters, e.g., bullet
+.SH SOURCE
+.B /sys/src/cmd/grap
 .SH "SEE ALSO"
 .IR pic (1), 
 .IR troff (1)
 .br
 J. L. Bentley and B. W. Kernighan,
-`GRAP\(emA Language for Typesetting Graphs',
-Unix Research System Programmer's Manual, Volume\ 2
+``GRAP\(emA Language for Typesetting Graphs'',
+.I
+Unix Research System Programmer's Manual,
+Tenth Edition, Volume 2.

@@ -1,0 +1,630 @@
+\magnification\magstep1
+\parskip 1.1ex plus 0.4ex
+\parindent 0pt
+\pretolerance 1000
+\tolerance 2000
+\hbadness 2000
+\advance\hsize -5truemm
+%
+\font\tenssf = cmss10    % sans-serif font
+\def\ssf{\tenssf}
+\def\\{\char"5C{}}       % define backslash
+\def\newline{\hfill\break}
+\def\de{\,{\rm d}}
+\def\LaTeX{{\rm L\kern-.36em\raise.3ex\hbox{\sevenrm A}\kern-.15em\TeX}}
+%
+\input wasyfont
+%
+%%% START %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\centerline{\bf The Symbol Font \tt wasy}
+\vskip 1\parskip
+\centerline{\it Roland Waldi}
+\vskip 1mm
+\centerline{Institut f\"ur Experimentelle Kernphysik}
+\centerline{Universit\"at Karlsruhe}
+\centerline{Physikhochhaus, P.O.Box 6980}
+\centerline{D-7500 Karlsruhe, Fed.~Rep.~Germany}
+\vskip 1mm
+\centerline{Version 2.0 -- September 1992}
+
+\vskip 1.5\parskip
+
+The font {\tt wasy} contains all {\tt lasy} characters, and
+a lot more symbols.
+New characters
+were modified from the {\tt mf} files of the standard \TeX\ fonts,
+and many were designed from scratch.
+Metafont sources for 5--10pt and a bold 10pt font are available.
+
+An extension to PLAIN-\TeX\ for using the fonts is included
+in the file {\tt wasyfont.tex}.
+This can probably be used in \LaTeX\ documents,
+but a new \LaTeX\ format with the bindings already included and with
+{\tt wasy} replacing the {\tt lasy} font would be the superiour
+solution.
+This version includes all {\tt lasy} characters at the proper codes
+(causing some incompatibilities with version 1 of {\tt wasy})
+to make such a procedure easy.
+The file {\tt wasyfont.2} contains substitutes for some macros
+of {\tt wasyfont.tex} to be used
+at installations, that do not
+support the {\tt wasy} fonts.
+
+A list of characters with their bindings in
+{\tt wasyfont.tex} follows.
+Some macros are actually compositions of several characters useful in
+the given context.
+Macros using symbols
+which are already available from standard \TeX\ fonts
+are also included; these are marked
+with $^*$.
+
+general symbols
+$$
+\halign{&\tt\\# \hfil&#\qquad\hfil\cr
+male&\male         &female&\female \cr
+currency&\currency &cent &\cent  \cr
+lozenge&\lozenge   &kreuz&\kreuz \cr
+smiley&\smiley     &blacksmiley&\blacksmiley \cr
+frownie&\frownie   &sun&\sun \cr
+checked&\checked   &brokenvert&\brokenvert \cr
+diameter&\diameter &invdiameter&\invdiameter \cr
+phone&\phone       &recorder   &\recorder    \cr
+clock&\clock       &permil     &\permil      \cr
+bell&\bell         &ataribox   &\ataribox    \cr
+pointer&\pointer   &lightning  &\lightning   \cr
+agemO      &\agemO \cr}
+$$
+
+diagrams
+$$
+\halign{&\tt\\# \hfil&#\qquad\hfil\cr
+photon     &\photon    &gluon    &\gluon  \cr}
+$$
+
+music notes
+$$
+\halign{&\tt\\# \hfil&#\qquad\hfil\cr
+eighthnote&\eighthnote   &quarternote&\quarternote \cr
+halfnote&\halfnote       &fullnote&\fullnote \cr
+twonotes&\twonotes \cr}
+$$
+
+electrical engineering
+$$
+\halign{&\tt\\# \hfil&#\qquad\hfil\cr
+AC      &\AC      &HF     &\HF          \cr
+VHF     &\VHF      \cr}
+$$
+
+APL
+$$
+\halign{&\tt\\# \hfil&#\qquad\hfil\cr
+APLup   &\APLup    &APLdown &\APLdown     \cr
+APLbox  &\APLbox   &APLinv  &\APLinv      \cr
+APLleftarrowbox &\APLleftarrowbox&APLrightarrowbox &\APLrightarrowbox\cr
+APLuparrowbox &\APLuparrowbox&APLdownarrowbox &\APLdownarrowbox\cr
+APLinput&\APLinput &APLminus$^*$&\APLminus \cr
+APLlog  &\APLlog  &APLstar    &\APLstar    \cr
+APLvert$^*$&\APLvert{\ } &
+ APLvert\char`\{\\APLdown\char`\} &\APLvert{\APLdown} \cr
+APLnot$^*$&\APLnot{\ } &
+ APLnot\char`\{\\APLdown\char`\} &\APLnot{\APLdown} \cr
+APLnot\char`\{\\land\char`\} &\APLnot{\land} &
+ APLnot\char`\{\\lor\char`\} &\APLnot{\lor} \cr
+APLcirc$^*$&\APLcirc{\ } &
+ APLcirc\char`\{\\bot\char`\} &\APLcirc{\bot} \cr
+notbackslash$^*$ &\notbackslash &
+ notslash$^*$ &\notslash \cr
+APLcomment &\APLcomment \cr}
+$$
+
+astronomy
+$$
+\halign{&\tt\\# \hfil&#\qquad\hfil\cr
+ascnode     &\ascnode     &descnode   &\descnode \cr
+vernal      &\vernal     &astrosun$^*$&\astrosun \cr
+newmoon     &\newmoon     &fullmoon   &\fullmoon \cr
+leftmoon    &\leftmoon    &rightmoon  &\rightmoon \cr
+mercury     &\mercury     &venus      &\venus  \cr
+mars        &\mars        &jupiter    &\jupiter  \cr
+saturn      &\saturn      &uranus     &\uranus   \cr
+neptune     &\neptune     &pluto      &\pluto    \cr
+earth       &\earth     \cr}
+$$
+
+astrological symbols and zodiacal symbols
+$$
+\halign{&\tt\\# \hfil&#\qquad\hfil\cr
+conjunction &\conjunction &opposition  &\opposition\cr
+aries       &\aries       &libra       &\libra      \cr
+taurus      &\taurus      &scorpio     &\scorpio    \cr
+gemini      &\gemini      &sagittarius &\sagittarius\cr
+cancer      &\cancer      &capricornus &\capricornus\cr
+leo         &\leo         &aquarius    &\aquarius   \cr
+virgo       &\virgo       &pisces      &\pisces     \cr
+}
+$$
+
+
+geometrical shapes
+$$
+\halign{&\tt\\# \hfil&#\qquad\hfil\cr
+hexstar    &\hexstar   &varhexstar&\varhexstar \cr
+davidsstar &\davidsstar&APLstar&\APLstar  \cr
+Circle     &\Circle    &CIRCLE   &\CIRCLE   \cr
+Leftcircle &\Leftcircle  &LEFTCIRCLE   &\LEFTCIRCLE   \cr
+Rightcircle&\Rightcircle &RIGHTCIRCLE  &\RIGHTCIRCLE   \cr
+LEFTcircle &\LEFTcircle  &RIGHTcircle  &\RIGHTcircle   \cr
+LEFTarrow  &\LEFTarrow   &RIGHTarrow   &\RIGHTarrow    \cr
+UParrow    &\UParrow   &DOWNarrow   &\DOWNarrow    \cr
+Box        &\Box       &APLbox   &\APLbox   \cr
+XBox &\XBox&Bowtie   &\Bowtie   \cr
+Diamond    &\Diamond   &octagon  &\octagon   \cr
+hexagon    &\hexagon   &varhexagon &\varhexagon \cr
+pentagon   &\pentagon  \cr}
+$$
+
+general math \& physics
+$$
+\halign{&\tt# \hfil&#\qquad\hfil\cr
+\\varangle&\varangle &\$\\invneg\$ &$\invneg$\cr
+\\leftturn  &\leftturn   &\\rightturn  &\rightturn   \cr
+\\diameter   &\diameter  &\\therefore&\therefore \cr}
+$$
+
+math operators
+$$
+\halign{&\tt\$a\\# b \hfil&$a#b$\qquad\hfil\cr
+ocircle&\ocircle &logof&\logof \cr
+oplus$^*$&\oplus &otimes$^*$&\otimes \cr
+le$^*$ &\le      &ge$^*$&\ge   \cr
+apprle &\apprle  &apprge&\apprge \cr
+lhd    &\lhd     &rhd  &\rhd   \cr
+unlhd  &\unlhd   &unrhd&\unrhd   \cr
+LHD    &\LHD     &RHD  &\RHD   \cr
+sqsubset&\sqsubset  &sqsupset&\sqsupset \cr
+sqsubseteq$^*$&\sqsubseteq  &sqsupseteq$^*$&\sqsupseteq \cr
+propto$^*$&\propto      &varpropto     &\varpropto  \cr
+leadsto    &\leadsto   \cr}
+$$
+
+integrals (text style)
+$$
+\halign{&\tt\$\\#\_a\char`\^b f(x)dx \hfil&$#_a^b f(x)dx$\qquad\hfil\cr
+varint&\varint  &iint&\iint  \cr
+iiint&\iiint    &varoint&\varoint \cr
+oiint&\oiint  \cr}
+$$
+
+integrals (display style)
+$$
+\varint \iint \iiint \varoint \oiint
+$$
+
+With the control sequence
+{\tt\\newpropto} you can change the proportional sign to the
+thin {\tt wasy} symbol ($\varpropto$),
+which is more distinct from alpha ($\alpha$)
+then the default symbol ($\propto$).
+
+With the control sequence
+{\tt\\newint} you can change the \TeX\ integrals from $\int,\oint$
+to the vertical ones $\varint,\varoint$, in display:
+$$\int_a^b \to \varint_a^b,\qquad
+  \oint_C \to \varoint_C
+$$
+
+There are also a few letters
+in roman style added (although these and some symbols as
+\agemO, \permil\ should 
+be in a separate font, to be created in different
+styles like italic, sans serif etc. -- the {\tt wasychr.mf} source
+is prepared for that.
+$$
+\halign{&\tt\\# \hfil&#\qquad\hfil\cr
+thorn &\thorn   &Thorn  &\Thorn \cr
+dh    &\dh      &Dh$^*$ &\Dh    \cr
+inve  &\inve    &openo  &\openo \cr
+}
+$$
+
+
+\bigskip
+
+\centerline{\bf Examples}
+
+``We provide the \eighthnote\twonotes, you provide the \smiley''
+
+The planets ($\astrosun\to{}$outer space):
+\mercury\ \venus\ \earth\ \mars\ asteroids
+\jupiter\ \saturn\ \uranus\ \neptune\ \pluto.
+
+special characters on IBM PC's: \smiley, \blacksmiley, $\heartsuit$,
+$\diamondsuit$, $\clubsuit$, $\spadesuit$, $\bullet$,
+$\ocircle$, \male, \female, \eighthnote, \twonotes, \sun, \RIGHTarrow,
+\LEFTarrow, $\updownarrow$, !!, \P, \S,
+$\underline{\underline{\rm\hbox to 0.85em{\hss}}}$,
+$\underline{\updownarrow}$,
+$\uparrow$, $\downarrow$, $\to$, $\leftarrow$, \UParrow, \DOWNarrow,
+\brokenvert, $\invneg$, $\neg$, \dots
+
+special characters on Atari ST's: \pointer, \ataribox,
+\checked, \clock, \bell,
+\eighthnote, \inve,
+$\invneg$, $\neg$, $\varoint$, \dots
+
+tube dimensions: $\diameter 5\,{\rm mm}$, $d = 0.5\,{\rm mm}$,
+ $l = 50\,{\rm mm}$
+
+display math:
+$$
+\mathop{\varangle}(\vec a,\vec b) = 30^{\circ}
+$$
+$$
+\prod_{x \apprle 5} a_x \logof b_x \simeq \varint_{x \apprge 5}
+ a \ocircle b\de x
+\eqno{(\hbox{nonsense.1})}
+$$
+$$
+\hbox{Gauss' law:\qquad} \iiint_V \nabla {\bf F}({\bf x}) \de^3x
+= \oiint_{S(V)} {\bf F}({\bf x}) \de{\bf a}
+$$
+$$
+\hbox{Stokes' law:\qquad} \iint_A
+\lbrack\nabla \times {\bf F}({\bf x})\rbrack \de{\bf a}
+= \varoint_{C(A)} {\bf F}({\bf x}) \de{\bf l}
+$$
+
+
+APL Program:\newline
+$U \leftarrow \APLminus 1+ G \leftarrow 2 \times \iota N
+\leftarrow \APLbox$ \qquad \APLcomment\quad generate vectors of odd and
+even numbers
+
+APL keyboard layout:
+
+\def\1{\underbar}
+\halign{&#\ \cr
+&1& &2& &3& &4& &5& &6& &7& &8& &9& &0& &+& &$\times$& &$\diamond$\cr
+&&Q& &W& &E& &R& &T& &Y& &U& &I& &O& &P& &$\leftarrow$& &$\to$\cr
+&&A& &S& &D& &F& &G& &H& &J& &K& &L& &$\lbrack$& &$\rbrack$& &\#\cr
+&$\vdash$& &Z& &X& &C& &V& &B& &N& &M& &,& &.& &/\cr
+\cr
+&\"\ & &\APLminus& &$<$& &$\le$& &=& &$\ge$& &$>$& &$\ne$& &$\lor$&
+ &$\land$& &$-$& &$\div$& &\$\cr
+&&?& &$\omega$& &$\epsilon$& &$\rho$& &$\sim$& &$\uparrow$&
+ &$\downarrow$& &$\iota$& &$\ocircle$& &$\star$& &$\{$& &$\}$\cr
+&&$\alpha$& &$\lceil$& &$\lfloor$& &\tt\_& &\APLdown&
+ &\APLup& &$\circ$& &{\tt\char"0D}& &\APLbox& &(& &)& &$\sim$\cr
+&$\dashv$& &$\subset$& &$\supset$& &$\cap$& &$\cup$& &$\bot$& &$\top$&
+ &$\vert$& &;& &:& &$\backslash$\cr
+\cr
+&\tt I& &\APLnot{\APLdown}& &\APLvert{\APLdown}& &\APLvert{\APLup}&
+ &\APLvert{\ocircle}& &\invdiameter& &$\ominus$& &\APLlog&
+ &\APLnot{\lor}& &\APLnot{\land}& &!& &\APLinv& &\APLinput\cr
+&&\1Q& &\1W& &\1E& &\1R& &\1T& &\1Y& &\1U& &\1I& &\1O& &\1P&
+ &\APLleftarrowbox& &\APLrightarrowbox\cr
+&&\1A& &\1S& &\1D& &\1F& &\1G& &\1H& &\1J& &\1K& &\1L&
+ &\APLcirc{\bot}& &\APLcirc{\top}& &\=,& \cr
+&\1{\APLup}& &\1Z& &\1X& &\1C& &\1V& &\1B& &\1N& &\1M& &\APLcomment&
+ &\notbackslash& &\notslash\cr
+\cr
+&     & &                 & &                  & &                &
+ &                  & &            & &         & &$\otimes$& \cr
+&&   & &   & &   & &   & &   & &\APLuparrowbox& &\APLdownarrowbox& \cr%
+}
+\medskip
+
+simple phonetic notation:
+corner [{\tt'}k\openo:n\inve], this [\dh is],
+thrash [{\teni\char"12}r\ae{\tensy\char"73\kern 0.3pt}]
+
+check the appropriate box like this \XBox\ or that
+\Box\kern-.6em\checked:
+
+\noindent\Box\quad I need the {\tt wasy} fonts\newline
+\Box\quad I don't need the {\tt wasy} fonts
+
+
+
+
+
+\bigskip
+
+\centerline{\bf Font Table}
+
+{\tt wasy}:
+{\wasy$$
+\halign {&#\quad\hfil\cr
+ {\tt 00 =}  \char"00%
+&{\tt 01 =}  \char"01%
+&{\tt 02 =}  \char"02%
+&{\tt 03 =}  \char"03%
+&{\tt 04 =}  \char"04%
+&{\tt 05 =}  \char"05%
+&{\tt 06 =}  \char"06%
+&{\tt 07 =}  \char"07\cr
+ {\tt 08 =}  \char"08%
+&{\tt 09 =}  \char"09%
+&{\tt 0A =}  \char"0A%
+&{\tt 0B =}  \char"0B%
+&{\tt 0C =}  \char"0C%
+&{\tt 0D =}  \char"0D%
+&{\tt 0E =}  \char"0E%
+&{\tt 0F =}  \char"0F\cr
+ {\tt 10 =}  \char"10%
+&{\tt 11 =}  \char"11%
+&{\tt 12 =}  \char"12%
+&{\tt 13 =}  \char"13%
+&{\tt 14 =}  \char"14%
+&{\tt 15 =}  \char"15%
+&{\tt 16 =}  \char"16%
+&{\tt 17 =}  \char"17\cr
+ {\tt 18 =}  \char"18%
+&{\tt 19 =}  \char"19%
+&{\tt 1A =}  \char"1A%
+&{\tt 1B =}  \char"1B%
+&{\tt 1C =}  \char"1C%
+&{\tt 1D =}  \char"1D%
+&{\tt 1E =}  \char"1E%
+&{\tt 1F =}  \char"1F\cr
+ {\tt 20 =}  \char"20%
+&{\tt 21 =}  \char"21%
+&{\tt 22 =}  \char"22%
+&{\tt 23 =}  \char"23%
+&{\tt 24 =}  \char"24%
+&{\tt 25 =}  \char"25%
+&{\tt 26 =}  \char"26%
+&{\tt 27 =}  \char"27\cr
+ {\tt 28 =}  \char"28%
+&{\tt 29 =}  \char"29%
+&{\tt 2A =}  \char"2A%
+&{\tt 2B =}  \char"2B%
+&{\tt 2C =}  \char"2C%
+&{\tt 2D =}  \char"2D%
+&{\tt 2E =}  \char"2E%
+&{\tt 2F =}  \char"2F\cr
+ {\tt 30 =}  \char"30%
+&{\tt 31 =}  \char"31%
+&{\tt 32 =}  \char"32%
+&{\tt 33 =}  \char"33%
+&{\tt 34 =}  \char"34%
+&{\tt 35 =}  \char"35%
+&{\tt 36 =}  \char"36%
+&{\tt 37 =}  \char"37\cr
+ {\tt 38 =}  \char"38%
+&{\tt 39 =}  \char"39%
+&{\tt 3A =}  \char"3A%
+&{\tt 3B =}  \char"3B%
+&{\tt 3C =}  \char"3C%
+&{\tt 3D =}  \char"3D%
+&{\tt 3E =}  \char"3E%
+&{\tt 3F =}  \char"3F\cr
+ {\tt 40 =}  \char"40%
+&{\tt 41 =}  \char"41%
+&{\tt 42 =}  \char"42%
+&{\tt 43 =}  \char"43%
+&{\tt 44 =}  \char"44%
+&{\tt 45 =}  \char"45%
+&{\tt 46 =}  \char"46%
+&{\tt 47 =}  \char"47\cr
+ {\tt 48 =}  \char"48%
+&{\tt 49 =}  \char"49%
+&{\tt 4A =}  \char"4A%
+&{\tt 4B =}  \char"4B%
+&{\tt 4C =}  \char"4C%
+&{\tt 4D =}  \char"4D%
+&{\tt 4E =}  \char"4E%
+&{\tt 4F =}  \char"4F\cr
+ {\tt 50 =}  \char"50%
+&{\tt 51 =}  \char"51%
+&{\tt 52 =}  \char"52%
+&{\tt 53 =}  \char"53%
+&{\tt 54 =}  \char"54%
+&{\tt 55 =}  \char"55%
+&{\tt 56 =}  \char"56%
+&{\tt 57 =}  \char"57\cr
+ {\tt 58 =}  \char"58%
+&{\tt 59 =}  \char"59%
+&{\tt 5A =}  \char"5A%
+&{\tt 5B =}  \char"5B%
+&{\tt 5C =}  \char"5C%
+&{\tt 5D =}  \char"5D%
+&{\tt 5E =}  \char"5E%
+&{\tt 5F =}  \char"5F\cr
+ {\tt 60 =}  \char"60%
+&{\tt 61 =}  \char"61%
+&{\tt 62 =}  \char"62%
+&{\tt 63 =}  \char"63%
+&{\tt 64 =}  \char"64%
+&{\tt 65 =}  \char"65%
+&{\tt 66 =}  \char"66%
+&{\tt 67 =}  \char"67\cr
+ {\tt 68 =}  \char"68%
+&{\tt 69 =}  \char"69%
+&{\tt 6A =}  \char"6A%
+&{\tt 6B =}  \char"6B%
+&{\tt 6C =}  \char"6C%
+&{\tt 6D =}  \char"6D%
+&{\tt 6E =}  \char"6E%
+&{\tt 6F =}  \char"6F\cr
+ {\tt 70 =}  \char"70%
+&{\tt 71 =}  \char"71%
+&{\tt 72 =}  \char"72%
+&{\tt 73 =}  \char"73%
+&{\tt 74 =}  \char"74%
+&{\tt 75 =}  \char"75%
+&{\tt 76 =}  \char"76%
+&{\tt 77 =}  \char"77\cr
+ {\tt 78 =}  \char"78%
+&{\tt 79 =}  \char"79%
+&{\tt 7A =}  \char"7A%
+&{\tt 7B =}  \char"7B%
+&{\tt 7C =}  \char"7C%
+&{\tt 7D =}  \char"7D%
+&{\tt 7E =}  \char"7E%
+&{\tt 7F =}  \char"7F\cr}
+$$}
+
+\bigskip
+
+{\tt wasyb}:
+{\wasyb$$
+\halign {&#\quad\hfil\cr
+ {\tt 00 =}  \char"00%
+&{\tt 01 =}  \char"01%
+&{\tt 02 =}  \char"02%
+&{\tt 03 =}  \char"03%
+&{\tt 04 =}  \char"04%
+&{\tt 05 =}  \char"05%
+&{\tt 06 =}  \char"06%
+&{\tt 07 =}  \char"07\cr
+ {\tt 08 =}  \char"08%
+&{\tt 09 =}  \char"09%
+&{\tt 0A =}  \char"0A%
+&{\tt 0B =}  \char"0B%
+&{\tt 0C =}  \char"0C%
+&{\tt 0D =}  \char"0D%
+&{\tt 0E =}  \char"0E%
+&{\tt 0F =}  \char"0F\cr
+ {\tt 10 =}  \char"10%
+&{\tt 11 =}  \char"11%
+&{\tt 12 =}  \char"12%
+&{\tt 13 =}  \char"13%
+&{\tt 14 =}  \char"14%
+&{\tt 15 =}  \char"15%
+&{\tt 16 =}  \char"16%
+&{\tt 17 =}  \char"17\cr
+ {\tt 18 =}  \char"18%
+&{\tt 19 =}  \char"19%
+&{\tt 1A =}  \char"1A%
+&{\tt 1B =}  \char"1B%
+&{\tt 1C =}  \char"1C%
+&{\tt 1D =}  \char"1D%
+&{\tt 1E =}  \char"1E%
+&{\tt 1F =}  \char"1F\cr
+ {\tt 20 =}  \char"20%
+&{\tt 21 =}  \char"21%
+&{\tt 22 =}  \char"22%
+&{\tt 23 =}  \char"23%
+&{\tt 24 =}  \char"24%
+&{\tt 25 =}  \char"25%
+&{\tt 26 =}  \char"26%
+&{\tt 27 =}  \char"27\cr
+ {\tt 28 =}  \char"28%
+&{\tt 29 =}  \char"29%
+&{\tt 2A =}  \char"2A%
+&{\tt 2B =}  \char"2B%
+&{\tt 2C =}  \char"2C%
+&{\tt 2D =}  \char"2D%
+&{\tt 2E =}  \char"2E%
+&{\tt 2F =}  \char"2F\cr
+ {\tt 30 =}  \char"30%
+&{\tt 31 =}  \char"31%
+&{\tt 32 =}  \char"32%
+&{\tt 33 =}  \char"33%
+&{\tt 34 =}  \char"34%
+&{\tt 35 =}  \char"35%
+&{\tt 36 =}  \char"36%
+&{\tt 37 =}  \char"37\cr
+ {\tt 38 =}  \char"38%
+&{\tt 39 =}  \char"39%
+&{\tt 3A =}  \char"3A%
+&{\tt 3B =}  \char"3B%
+&{\tt 3C =}  \char"3C%
+&{\tt 3D =}  \char"3D%
+&{\tt 3E =}  \char"3E%
+&{\tt 3F =}  \char"3F\cr
+ {\tt 40 =}  \char"40%
+&{\tt 41 =}  \char"41%
+&{\tt 42 =}  \char"42%
+&{\tt 43 =}  \char"43%
+&{\tt 44 =}  \char"44%
+&{\tt 45 =}  \char"45%
+&{\tt 46 =}  \char"46%
+&{\tt 47 =}  \char"47\cr
+ {\tt 48 =}  \char"48%
+&{\tt 49 =}  \char"49%
+&{\tt 4A =}  \char"4A%
+&{\tt 4B =}  \char"4B%
+&{\tt 4C =}  \char"4C%
+&{\tt 4D =}  \char"4D%
+&{\tt 4E =}  \char"4E%
+&{\tt 4F =}  \char"4F\cr
+ {\tt 50 =}  \char"50%
+&{\tt 51 =}  \char"51%
+&{\tt 52 =}  \char"52%
+&{\tt 53 =}  \char"53%
+&{\tt 54 =}  \char"54%
+&{\tt 55 =}  \char"55%
+&{\tt 56 =}  \char"56%
+&{\tt 57 =}  \char"57\cr
+ {\tt 58 =}  \char"58%
+&{\tt 59 =}  \char"59%
+&{\tt 5A =}  \char"5A%
+&{\tt 5B =}  \char"5B%
+&{\tt 5C =}  \char"5C%
+&{\tt 5D =}  \char"5D%
+&{\tt 5E =}  \char"5E%
+&{\tt 5F =}  \char"5F\cr
+ {\tt 60 =}  \char"60%
+&{\tt 61 =}  \char"61%
+&{\tt 62 =}  \char"62%
+&{\tt 63 =}  \char"63%
+&{\tt 64 =}  \char"64%
+&{\tt 65 =}  \char"65%
+&{\tt 66 =}  \char"66%
+&{\tt 67 =}  \char"67\cr
+ {\tt 68 =}  \char"68%
+&{\tt 69 =}  \char"69%
+&{\tt 6A =}  \char"6A%
+&{\tt 6B =}  \char"6B%
+&{\tt 6C =}  \char"6C%
+&{\tt 6D =}  \char"6D%
+&{\tt 6E =}  \char"6E%
+&{\tt 6F =}  \char"6F\cr
+ {\tt 70 =}  \char"70%
+&{\tt 71 =}  \char"71%
+&{\tt 72 =}  \char"72%
+&{\tt 73 =}  \char"73%
+&{\tt 74 =}  \char"74%
+&{\tt 75 =}  \char"75%
+&{\tt 76 =}  \char"76%
+&{\tt 77 =}  \char"77\cr
+ {\tt 78 =}  \char"78%
+&{\tt 79 =}  \char"79%
+&{\tt 7A =}  \char"7A%
+&{\tt 7B =}  \char"7B%
+&{\tt 7C =}  \char"7C%
+&{\tt 7D =}  \char"7D%
+&{\tt 7E =}  \char"7E%
+&{\tt 7F =}  \char"7F\cr}
+$$}
+
+\bigskip
+
+{\bf Changes since version 1.0}
+
+version 1.1:
+
+{\tt\\varangle} has been centered at the math axis
+
+version 2.0:
+
+new: letters \Thorn,\thorn,\dh,\inve,\openo,\agemO
+
+new astrological and zodiacal symbols
+
+new symbols permil, cent, ataribox
+
+now the full set of
+{\tt lasy} is included; for this purpose 9 characters
+(\smiley, \blacksmiley, \frownie, \sun,
+\jupiter, \saturn, \uranus, \neptune, \pluto) have
+{\bf changed code}!
+
+{\tt wasyb10} font for bold math added
+
+\bye

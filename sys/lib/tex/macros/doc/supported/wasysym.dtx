@@ -1,0 +1,567 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1994 by A. Kielhorn.  All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is NOT part of the LaTeX2e system (PRELIMINARY TEST RELEASE).
+% -----------------------------------------------------------------------
+% 
+%  This system is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% Error reports in case of UNCHANGED versions to
+% Axel Kielhorn
+% a.kielhorn@tu-bs.de or
+% c0031098@ws.rz.tu-bs.de
+% 
+% Please do not request updates from us directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed free of charge.
+% Changes:
+% 1.0b corrected mathcode for integrals (now 1)
+%
+% \fi
+\def\fileversion{v1.0c}
+\def\filedate{94/05/28}
+\def\docdate {94/05/28}
+%
+% \CheckSum{763}
+%
+% \iffalse   % this is a METACOMMENT !
+%
+% File `wasysym.dtx'.
+% Copyright (C) 1994 Axel Kielhorn,
+% all rights reserved.
+%
+% \fi
+%
+% \emergencystretch1.5em
+% \title{The {\tt wasy}\thanks{{\tt wasy}-font by Roland Waldi, 
+% Universit\"at Karlsruhe, Germany, Copyright 1989, Version 2 Copyright 
+% 1992} symbol fonts for use with \LaTeXe}
+% \author{Axel Kielhorn}
+% \date{\filedate}
+%
+% \MakeShortVerb\|%
+%
+% \def\dst{{\normalfont\scshape docstrip}}
+% \setcounter{StandardModuleDepth}{1}
+%
+%
+% \maketitle
+%
+% \section{Introduction}
+%
+%    This file defines the package |wasysym| which makes some
+%    additional characters available that come from the |wasy| fonts
+%    (Waldis symbol fonts). These fonts are not automatically
+%    included in the NFSS2/\LaTeXe{} since they take up important
+%    space and aren't necessary if one makes use of the packages
+%    \texttt{amsfonts} or \texttt{amssymb}.
+%
+%    Warning: This style uses verion 2 of the \texttt{wasy}-fonts. It is 
+%    not 100 \% compatible to the old version 1 from 1989. We have 
+%    provided no compatibility mode for the old fonts! If some characters 
+%    come out wrong you have to upgrade.
+%
+%    The commands defined by the \texttt{wasysym} package are:
+%    \begin{quote}
+%    |\Join|~$\Join$ \quad
+%    |\Box|~$\Box$ \quad
+%    |\Diamond|~$\Diamond$ \quad
+%    |\leadsto|~$\leadsto$ \quad
+%    |\sqsubset|~$\sqsubset$ \quad
+%    |\sqsupset|~$\sqsupset$ \quad
+%    |\lhd|~$\lhd$ \quad
+%    |\unlhd|~$\unlhd$ \quad
+%    |\LHD|~$\LHD$\quad
+%    |\rhd|~$\rhd$ \quad
+%    |\unrhd|~$\unrhd$ \quad
+%    |\RHD|~$\RHD$\quad
+%    |\apprle|~$\apprle$\quad
+%    |\apprge|~$\apprge$\quad
+%    |\wasypropto|~$\wasypropto$\quad
+%    |\invneg|~$\invneg$\quad
+%    |\ocircle|~$\ocircle$\quad
+%    |\logof|~$\logof$\quad
+%    |\varint|~$\varint$\quad
+%    |\iint|~$\iint$\quad
+%    |\iiint|~$\iiint$\quad
+%    |\varoint|~$\varoint$\quad
+%    |\oiint|~$\oiint$
+%    \end{quote}
+%
+%   The following commands are available in text-mode and scale
+%   according to the textfont size:
+%
+%   General symbol:
+%
+%    \begin{quote}
+%  |\male|~\male \quad
+%  |\female|~\female \quad
+%  |\currency|~\currency \quad
+%  |\phone|~\phone \quad
+%  |\recorder|~\recorder \quad
+%  |\clock|~\clock \quad
+%  |\lightning|~\lightning \quad
+%  |\pointer|~\pointer \quad
+%  |\RIGHTarrow|~\RIGHTarrow \quad
+%  |\LEFTarrow|~\LEFTarrow \quad
+%  |\UParrow|~\UParrow \quad
+%  |\DOWNarrow|~\DOWNarrow \quad
+%  |\diameter|~\diameter \quad
+%  |\invdiameter|~\invdiameter \quad
+%  |\varangle|~\varangle \quad
+%  |\wasylozenge|~\wasylozenge \quad
+%  |\kreuz|~\kreuz \quad
+%  |\smiley|~\smiley \quad
+%  |\frownie|~\frownie \quad
+%  |\blacksmiley|~\blacksmiley \quad
+%  |\sun|~\sun \quad
+%  |\checked|~\checked \quad
+%  |\bell|~\bell \quad
+%  |\ataribox|~\ataribox \quad
+%  |\cent|~\cent \quad
+%  |\permil|~\permil \quad
+%  |\brokenvert|~\brokenvert \quad
+%  |\wasytherefore|~\wasytherefore \quad
+%  |\Bowtie|~\Bowtie \quad
+%  |\agemO|~\agemO
+%   \end{quote}
+%
+%  Electrical and physical symbols:
+%
+%   \begin{quote}
+%  |\AC|~\AC \quad
+%  |\HF|~\HF \quad
+%  |\VHF|~\VHF \quad
+%  |\photon|~\photon \quad
+%  |\gluon|~\gluon
+%   \end{quote}
+%
+%   Polygons and Stars:
+%
+%   \begin{quote}
+%  |\Square|~\Square \quad
+%  |\XBox|~\XBox \quad
+%  |\CheckedBox|~\CheckedBox \quad
+%  |\hexagon|~\hexagon \quad
+%  |\varhexagon|~\varhexagon \quad
+%  |\pentagon|~\pentagon \quad
+%  |\octagon|~\octagon \quad
+%  |\hexstar|~\hexstar \quad
+%  |\varhexstar|~\varhexstar \quad
+%  |\davidsstar|~\davidsstar
+%   \end{quote}
+%
+%   Music notes:
+%
+%   \begin{quote}
+%  |\eighthnote|~\eighthnote \quad
+%  |\quarternote|~\quarternote \quad
+%  |\halfnote|~\halfnote \quad
+%  |\fullnote|~\fullnote \quad
+%  |\twonotes|~\twonotes
+%   \end{quote}
+%
+%   Various circles:
+%
+%   \begin{quote}
+%  |\Circle|~\Circle \quad
+%  |\CIRCLE|~\CIRCLE \quad
+%  |\Leftcircle|~\Leftcircle \quad
+%  |\LEFTCIRCLE|~\LEFTCIRCLE \quad
+%  |\Rightcircle|~\Rightcircle \quad
+%  |\RIGHTCIRCLE|~\RIGHTCIRCLE \quad
+%  |\LEFTcircle|~\LEFTcircle \quad
+%  |\RIGHTcircle|~\RIGHTcircle \quad
+%  |\leftturn|~\leftturn \quad
+%  |\rightturn|~\rightturn \quad
+%   \end{quote}
+%
+%   Phonetic signs:
+%
+%   \begin{quote}
+%  |\thorn|~\thorn \quad
+%  |\Thorn|~\Thorn \quad
+%  |\dh|~\dh \quad
+%  |\Dh|~\Dh \quad
+%  |\openo|~\openo \quad
+%  |\inve|~\inve
+%    \end{quote}
+%
+%  Some symbols used in astonomy:
+%
+%    \begin{quote}
+%  |\vernal|~\vernal \quad
+%  |\ascnode|~\ascnode \quad
+%  |\descnode|~\descnode \quad
+%  |\fullmoon|~\fullmoon \quad
+%  |\newmoon|~\newmoon \quad
+%  |\leftmoon|~\leftmoon \quad
+%  |\rightmoon|~\rightmoon \quad
+%  |\astrosun|~\astrosun \quad
+%  |\mercury|~\mercury \quad
+%  |\venus|~\venus \quad
+%  |\earth|~\earth \quad
+%  |\mars|~\mars \quad
+%  |\jupiter|~\jupiter \quad
+%  |\saturn|~\saturn \quad
+%  |\uranus|~\uranus \quad
+%  |\neptune|~\neptune \quad
+%  |\pluto|~\pluto
+%    \end{quote}
+%
+%   Astrological symbols and the zodiacal symbols:
+%
+%    \begin{quote}
+%  |\aries|~\aries \quad
+%  |\taurus|~\taurus \quad
+%  |\gemini|~\gemini \quad
+%  |\cancer|\cancer \quad
+%  |\leo|~\leo \quad
+%  |\virgo|~\virgo \quad
+%  |\libra|~\libra \quad
+%  |\scorpio|~\scorpio \quad
+%  |\sagittarius|~\sagittarius \quad
+%  |\capricornus|~\capricornus \quad
+%  |\aquarius|~\aquarius \quad
+%  |\pisces|~\pisces \quad
+%  |\conjunction|~\conjunction \quad
+%  |\opposition|~\opposition
+%   \end{quote}
+%
+%  And the APL-symbols, whoever needs them:
+%
+%    \begin{quote}
+%  |\APLstar|~\APLstar \quad
+%  |\APLlog|~\APLlog \quad
+%  |\APLbox|~\APLbox \quad
+%  |\APLup|~\APLup \quad
+%  |\APLdown|~\APLdown \quad
+%  |\APLinput|~\APLinput \quad
+%  |\APLcomment|~\APLcomment \quad
+%  |\APLinv|~\APLinv \quad
+%  |\APLuparrowbox|~\APLuparrowbox \quad
+%  |\APLdownarrowbox|~\APLdownarrowbox \quad
+%  |\APLleftarrowbox|~\APLleftarrowbox \quad
+%  |\APLrightarrowbox|~\APLrightarrowbox \quad
+%  |\notbackslash|~\notbackslash \quad
+%  |\notslash|~\notslash \quad
+%  |\APLnot|~\APLnot \quad
+%  |\APLcirc|~\APLcirc \quad
+%  |\APLvert|~\APLvert \quad
+%  |\APLminus|~\APLminus
+%    \end{quote}
+%
+% \StopEventually{}
+%
+% \section{The \dst{} modules}
+%
+% The following modules are used in the implementation to direct
+% \dst{} in generating the external files:
+% \begin{center}
+% \begin{tabular}{ll}
+%   driver & produce a documentation driver file \\
+%   package  & produce a package file \\
+%   fd     & produce a font definition file
+% \end{tabular}
+% \end{center}
+%
+% \section{The Implementation}
+%
+% We start by writing to the VDU and the transcript file.
+%    \begin{macrocode}
+%<*package>
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{wasysym}[\filedate\space\fileversion\space
+                           Additional LaTeX2e package]
+\typeout{Package: `wasysym'
+  \fileversion\space\space <\filedate> (ak)}
+\typeout{English Documentation
+  \@spaces\space <\docdate> (ak)}
+%    \end{macrocode}
+%
+% \begin{macro}{\symwasy}
+%
+%    It is possible to detect whether or not the \texttt{wasy} symbols are
+%    already defined by checking for the math group number with the
+%    name |\symwasy|.
+%
+%    In that case we exit but write a message to the transcript file
+%    \begin{macrocode}
+\ifx\symwasy\undefined \else
+  \wlog{Package wasysym: nothing to set up^^J}%
+  \endinput \fi
+%    \end{macrocode}
+%    Otherwise we define the new symbol font
+%    \begin{macrocode}
+  \DeclareSymbolFont{wasy}{U}{wasy}{m}{n}
+  \SetSymbolFont{wasy}{bold}{U}{wasy}{b}{n}
+%    \end{macrocode}
+%    \end{macro}
+%
+%  \begin{macro}{\wasyfamily}
+%  \begin{macro}{\textwasy}
+%    To access the wasy-symbols in text-mode we have defined them
+%    as a new fontfamily. Since we only take single characters but
+%    don't want to write this is not an elegant approach. But it
+%    works and the symbols scale according to textsize, which is all
+%    we promised.
+%    \begin{macrocode}
+\def\wasyfamily{\fontencoding{U}\fontfamily{wasy}\selectfont}
+\DeclareTextFontCommand{\textwasy}{\wasyfamily}
+%    \end{macrocode}
+% \end{macro}
+%
+%    We declare some new commands to generate overlayed symbols
+%    and to switch to the new integral-signs:
+%    \begin{macrocode}
+\def\overstrike#1#2{{\setbox0\hbox{$#2$}\hbox to \wd0{\hss
+    $#1$\hss}\kern-\wd0\box0}}
+\def\newpropto{\let\propto\wasyvarpropto}
+\def\newint{\let\int\varint \let\oint\varoint} % default limits
+%    \end{macrocode}
+% \end{macro}
+%
+%     Defining some special symbols:
+%
+%    \begin{macrocode}
+\def\male{\hbox{\wasyfamily\char26}}
+\def\female{\hbox{\wasyfamily\char25}}
+\def\currency{{\wasyfamily\char27}}
+\def\phone{{\wasyfamily\char7}}
+\def\recorder{{\wasyfamily\char6}}
+\def\clock{{\wasyfamily\char28}}
+\def\lightning{{\wasyfamily\char18}}
+\def\pointer{{\wasyfamily\char9}}
+\def\RIGHTarrow{{\wasyfamily\char17}}
+\def\LEFTarrow{{\wasyfamily\char16}}
+\def\UParrow{{\wasyfamily\char75}}
+\def\DOWNarrow{{\wasyfamily\char76}}
+\def\AC{\hbox{\kern0.5pt\wasyfamily\char58\kern0.5pt}}
+\def\HF{\lower0.9pt\hbox to 0pt{\kern0.5pt\wasyfamily\char58\hss}%
+        \raise0.9pt\hbox{\kern0.5pt\wasyfamily\char58\kern0.5pt}}
+\def\VHF{\hbox{\wasyfamily\char64}}
+\def\Box{\hbox{\wasyfamily\char50}}
+\def\Square{\hbox{$\Box$}}
+\def\CheckedBox{\hbox to 0pt{\wasyfamily\char50\hss}\hbox{\wasyfamily\char8}}
+\def\XBox{\hbox{\wasyfamily\char52}}
+\def\hexagon{\hbox{\wasyfamily\char55}}
+\def\pentagon{\hbox{\wasyfamily\char68}}
+\def\octagon{\hbox{\wasyfamily\char56}}
+\def\varhexagon{\hbox{\wasyfamily\char57}}
+\def\hexstar{\hbox{\wasyfamily\char65}}
+\def\varhexstar{\hbox{\wasyfamily\char66}}
+\def\davidsstar{\hbox{\wasyfamily\char67}}
+\def\diameter{\hbox{\wasyfamily\char31}}
+\def\invdiameter{\hbox{\wasyfamily\char21}}
+\def\varangle{\hbox{\wasyfamily\char30}}
+\def\wasylozenge{\hbox{\wasyfamily\char53}}
+\def\kreuz{\hbox{\wasyfamily\char54}}
+\def\smiley{\hbox{\wasyfamily\char44}}
+\def\frownie{\hbox{\wasyfamily\char47}}
+\def\blacksmiley{\hbox{\wasyfamily\char45}}
+\def\sun{\hbox{\wasyfamily\char46}}
+\def\checked{\hbox{\wasyfamily\char8}}
+\def\bell{\hbox{\wasyfamily\char10}}
+\def\eighthnote{\hbox{\wasyfamily\char11}}
+\def\quarternote{\hbox{\wasyfamily\char12}}
+\def\halfnote{\hbox{\wasyfamily\char13}}
+\def\fullnote{\hbox{\wasyfamily\char14}}
+\def\twonotes{\hbox{\wasyfamily\char15}}
+\def\brokenvert{\hbox{\wasyfamily\char124}}
+\def\ataribox{\hbox{\wasyfamily\char109}}
+\def\wasytherefore{\hbox{\wasyfamily\char5}}
+\def\Circle{\hbox{\wasyfamily\char35}}
+\def\CIRCLE{\hbox{\wasyfamily\char32}}
+\def\Leftcircle{\hbox{\wasyfamily\char73}}
+\def\LEFTCIRCLE{\hbox{\wasyfamily\char71}}
+\def\Rightcircle{\hbox{\wasyfamily\char74}}
+\def\RIGHTCIRCLE{\hbox{\wasyfamily\char72}}
+\def\LEFTcircle{\hbox to 0pt{\wasyfamily\char71\hss}\hbox{\wasyfamily\char35}}
+\def\RIGHTcircle{\hbox to 0pt{\wasyfamily\char72\hss}\hbox{\wasyfamily\char35}}
+%% astronomy
+\def\vernal{\hbox{\wasyfamily\char23}}
+\def\ascnode{\hbox{\wasyfamily\char19}}
+\def\descnode{\hbox{\wasyfamily\char20}}
+\def\fullmoon{\hbox{\wasyfamily\char35}}
+\def\newmoon{\hbox{\wasyfamily\char32}}
+\def\leftmoon{\hbox{\wasyfamily\char36}}
+\def\rightmoon{\hbox{\wasyfamily\char37}}
+%\def\astrosun{\hbox{\tensy\char12}}
+\def\astrosun{\hbox{$\odot$}}
+\def\mercury{\hbox{\wasyfamily\char39}}
+\def\venus{\raise0.2ex\hbox{\wasyfamily\char25}}
+\def\earth{\lower0.3ex\hbox{\wasyfamily\char38}}
+\def\mars{\lower0.2ex\hbox{\wasyfamily\char26}}
+\def\jupiter{\hbox{\wasyfamily\char88}}
+\def\saturn{\hbox{\wasyfamily\char89}}
+\def\uranus{\hbox{\wasyfamily\char90}}
+\def\neptune{\hbox{\wasyfamily\char91}}
+\def\pluto{\hbox{\wasyfamily\char92}}
+%%%%%% the zodiac
+\def\aries{\hbox{\wasyfamily\char23}}
+\def\taurus{\hbox{\wasyfamily\char93}}
+\def\gemini{\hbox{\wasyfamily\char94}}
+\def\cancer{\hbox{\wasyfamily\char95}}
+\def\leo{\hbox{\wasyfamily\char19}}
+\def\virgo{\hbox{\wasyfamily\char96}}
+\def\libra{\hbox{\wasyfamily\char97}}
+\def\scorpio{\hbox{\wasyfamily\char98}}
+\def\sagittarius{\hbox{\wasyfamily\char99}}
+\def\capricornus{\hbox{\wasyfamily\char100}}
+\def\aquarius{\hbox{\wasyfamily\char101}}
+\def\pisces{\hbox{\wasyfamily\char102}}
+\def\conjunction{\hbox{\wasyfamily\char86}}
+\def\opposition{\hbox{\wasyfamily\char87}}
+%%%%%% APL characters
+\def\APLstar{{\hbox{\wasyfamily\char69}}}
+\def\APLlog{{\hbox{\wasyfamily\char22}}}
+\def\APLbox{{\hbox{\wasyfamily\char126}}}
+\def\APLup{{\hbox{\wasyfamily\char0}}}
+\def\APLdown{{\hbox{\wasyfamily\char70}}}
+\def\APLinput{{\hbox{\wasyfamily\char125}}}
+\def\APLcomment{{\hbox{\wasyfamily\char127}}}
+\def\APLinv{{\hbox to 0pt{$\div$\hss}\APLbox}}
+\def\APLuparrowbox{{\hbox{\wasyfamily\char110}}}
+\def\APLdownarrowbox{{\hbox{\wasyfamily\char111}}}
+\def\APLleftarrowbox{{\hbox{\wasyfamily\char112}}}
+\def\APLrightarrowbox{{\hbox{\wasyfamily\char113}}}
+\def\notbackslash{\overstrike{\backslash}{-}}
+\def\notslash{\overstrike{/}{-}}
+\def\APLnot#1{\overstrike{\sim}{#1}}
+\def\APLcirc#1{\overstrike{\circ}{#1}}
+\def\APLvert#1{\overstrike{\vert}{#1}}
+\def\APLminus{\raise0.7ex\hbox{$-$}}
+%%%%%% math characters
+\def\Bowtie{\hbox{\wasyfamily\char49}}
+\def\leftturn{\hbox{\wasyfamily\char34}}
+\def\rightturn{\hbox{\wasyfamily\char33}}
+%%%%%% diagrams
+\def\photon{\hbox{\wasyfamily\char58\char58\char58\char58}}
+\def\gluon{\hbox{\wasyfamily\char81\char80\char80\char80%
+    \char80\char80\char80\char82}}
+%%%%%% special characters
+\def\cent{\hbox{\wasyfamily\char103}}
+\def\permil{\hbox{\wasyfamily\char104}}
+\def\agemO{{\wasyfamily\char48}}
+\def\thorn{{\wasyfamily\char105}}
+\def\Thorn{{\wasyfamily\char106}}
+\def\dh{{\wasyfamily\char107}}
+\def\Dh{\leavevmode{\rm\setbox0\hbox{D}%
+    \hbox to\wd0{\kern 0.04em\char32\hss D}}}
+\def\openo{{\wasyfamily\char108}}
+\def\inve{{\wasyfamily\char85}}
+%    \end{macrocode}
+%
+%
+%    Because the lasy symbols are made an error in the format we have
+%    to undefine them before we can set them anew with
+%    |\DeclareMathSymbol|.
+%    \begin{macrocode}
+  \let\mho\undefined
+  \let\sqsupset\undefined \let\Join\undefined
+  \let\lhd\undefined      \let\Box\undefined
+  \let\unlhd\undefined    \let\Diamond\undefined
+  \let\rhd\undefined      \let\leadsto\undefined
+  \let\unrhd\undefined    \let\sqsubset\undefined
+
+  \DeclareMathSymbol\mho     {0}{wasy}{"30}
+  \DeclareMathSymbol\Join    {3}{wasy}{"31}
+  \DeclareMathSymbol\Box     {0}{wasy}{"32}
+  \DeclareMathSymbol\Diamond {0}{wasy}{"33}
+  \DeclareMathSymbol\leadsto {3}{wasy}{"3B}
+  \DeclareMathSymbol\sqsubset{3}{wasy}{"3C}
+  \DeclareMathSymbol\sqsupset{3}{wasy}{"3D}
+  \DeclareMathSymbol\lhd     {3}{wasy}{"01}
+  \DeclareMathSymbol\unlhd   {3}{wasy}{"02}
+  \DeclareMathSymbol\LHD     {3}{wasy}{"10}
+  \DeclareMathSymbol\rhd     {3}{wasy}{"03}
+  \DeclareMathSymbol\unrhd   {3}{wasy}{"04}
+  \DeclareMathSymbol\RHD     {3}{wasy}{"11}
+  \DeclareMathSymbol\apprle  {3}{wasy}{"3E}
+  \DeclareMathSymbol\apprge  {3}{wasy}{"3F}
+  \DeclareMathSymbol\wasypropto   {3}{wasy}{"1D}
+  \DeclareMathSymbol\invneg  {3}{wasy}{"18}
+  \DeclareMathSymbol\ocircle {3}{wasy}{"23}
+  \DeclareMathSymbol\logof   {3}{wasy}{"16}
+  \DeclareMathSymbol\varint  {1}{wasy}{"72}
+  \DeclareMathSymbol\iint    {1}{wasy}{"73}
+  \DeclareMathSymbol\iiint   {1}{wasy}{"74}
+  \DeclareMathSymbol\varoint {1}{wasy}{"75}
+  \DeclareMathSymbol\oiint   {1}{wasy}{"76}
+%</package>
+%    \end{macrocode}
+%
+%  \subsection{\LaTeX{} symbols fonts}
+%
+%    The rest of this file defines the the font shape declarations
+%    that have to go into the corresponding |.fd| file.
+%
+%    We introduce the |.fd| file in the \textsf{log} file. The
+%    explicit spaces are necessary in an |.fd| file and the |\string|
+%    guards against situations where |`|, |<| or |>| is active.
+%    \begin{macrocode}
+%<*fd>
+\wlog{Fontdef\space file\space produced\space from:\space
+ \string`wasysym.dtx'\space \fileversion\space
+ \string<\filedate\string>\space (ak)}
+\DeclareFontFamily{U}{wasy}{}
+\DeclareFontShape{U}{wasy}{m}{n}{ <5> <6> <7> <8> <9> gen * wasy
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>wasy10  }{}
+\DeclareFontShape{U}{wasy}{b}{n}{ <-10> sub * wasy/m/n
+ <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>wasyb10 }{}
+%</fd>
+%    \end{macrocode}
+%
+% \section{A driver for this document}
+%
+% The next bit of code contains the documentation driver file for
+% \TeX{}, i.e., the file that will produce the documentation you are
+% currently reading. It will be extracted from this file by the 
+% \dst{} program.
+%    \begin{macrocode}
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{wasysym}
+%\OnlyDescription  % comment out for implementation details
+\begin{document}  \DocInput{wasysym.dtx}   \end{document}
+%</driver>
+%    \end{macrocode}
+%
+%
+%    The next line goes into all files and in addition prevents \dst{}
+%    from adding any further code from the main source file (such as a
+%    character table).
+%    \begin{macrocode}
+\endinput
+%    \end{macrocode}
+%
+% \DeleteShortVerb{\|}
+% \Finale
+%
+%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}

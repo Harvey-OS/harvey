@@ -1,4 +1,4 @@
-/* sh - simple shell */
+/* sh - simple shell - great for early stages of porting */
 #include "u.h"
 #include "libc.h"
 

@@ -1,0 +1,41 @@
+none:VQ:
+	echo usage: mk all, install, installall, cmd, cmd.install, lib, lib.install
+
+all:V:
+	mk lib.all
+	mk cmd.all
+	mk 9src.all
+
+lib.%:V:
+	flag e -
+	if (! test -e lib/.mk.$objtype){
+		flag e +
+		@{
+			cd lib
+			mk $stem
+		}
+	}
+	touch lib/.mk.$objtype
+
+lib.clean:V:
+	rm -f lib/.mk.*
+	cd lib
+	mk clean
+
+lib.nuke:V:
+	rm -f lib/.mk.*
+	cd lib
+	mk nuke
+
+cmd.%:V:
+	cd cmd
+	mk $stem
+
+9src.%:V:
+	cd 9src
+	mk $stem
+
+&:V:
+	mk lib.$stem
+	mk cmd.$stem
+	mk 9src.$stem

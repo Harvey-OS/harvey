@@ -1,5 +1,6 @@
 #!/bin/rc
-PATCH='%!PS'
+if (! ~ $DEBUG '') flag x +
+PATCH='%%Patch from lp'
 for (i in `{echo $IBIN|awk -F, '{ n=split($0, a, ","); for (i=1;i<=n;i++) print a[i]; }'}) {
 	switch ($i) {
 	case -P*;
@@ -10,7 +11,17 @@ statusdict begin /manualfeed true def end'
 		DUPLEX=0
 	case [0-9];
 		PATCH=$PATCH'
-statusdict begin '$i' setpapertray end'
+systemdict /languagelevel known {languagelevel 2 eq} if
+{
+  currentpagedevice /InputAttributes get '$i' get
+  dup null eq
+  {pop}
+  {dup length 1 add dict copy
+   dup /InputAttributes
+    1 dict dup /Priority['$i'] put
+    put setpagedevice
+  } ifelse
+} {statusdict begin 1 setpapertray end} ifelse'
 	case 11x17 ledger;
 		PATCH=$PATCH'
 statusdict begin '$i'tray end'
@@ -26,4 +37,8 @@ statusdict /setduplexmode known {statusdict begin true setduplexmode end} if';
 		PATCH=$PATCH'
 statusdict /setduplexmode known {statusdict begin false setduplexmode end} if';
 }
+PATCH=$PATCH'
+%%EndPatch from lp
+'
+
 echo $PATCH; cat

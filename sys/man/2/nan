@@ -2,6 +2,10 @@
 .SH NAME
 NaN, Inf, isNaN, isInf \- not-a-number and infinity functions
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .ta \w'\fLdouble 'u
 .B
 double	NaN(void)
@@ -36,3 +40,5 @@ else negative infinity.
 .I IsInf
 returns true if its first argument is infinity
 with the same sign as the second argument.
+.SH SOURCE
+.B /sys/src/libc/$objtype/nan.c

@@ -2,9 +2,19 @@
 .SH NAME
 time \- time in seconds since epoch
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .nf
-.B long time(long *tp)
-.fi
+.B
+long time(long *tp)
+.PP
+.B
+/* Alef only */
+.PP
+.B
+int time();
 .SH DESCRIPTION
 .I Time
 returns the number of seconds since the epoch 00:00:00 GMT, Jan. 1, 1970.
@@ -15,12 +25,18 @@ is not zero then
 is also set to the answer.
 .PP
 This function works by reading
-.BI /dev/time ,
+.BR /dev/time ,
 opening that file when
 .I time
 is first called.
+.SH Alef
+In Alef,
+.I time
+does not take an argument.
+.SH SOURCE
+.B /sys/src/libc/9sys/time.c
 .SH SEE ALSO
 .IR cons (3)
 .SH DIAGNOSTICS
 Sets
-.I errstr.
+.IR errstr .

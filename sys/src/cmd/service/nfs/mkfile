@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+TARG=portmapper nfsserver pcnfsd
+OFILES=
+HFILES=rpc.h nfs.h dat.h fns.h
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkmany
+
+ROBJ=rpcserver.$O rpc.$O chat.$O
+UOBJ=unixnames.$O strparse.$O string.$O listalloc.$O system.$O
+FOBJ=nfsmount.$O nfsfile.$O nfs.$O auth.$O 9p.$O xfile.$O lock.$O $UOBJ
+
+$O.nfsserver: $FOBJ $UOBJ $ROBJ
+	$LD -o $target $prereq
+
+$O.pcnfsd: pcnfsd.$O $ROBJ
+	$LD -o $target $prereq
+
+$O.portmapper: portmapper.$O $ROBJ
+	$LD -o $target $prereq
+
+$O.nametest: nametest.$O $UOBJ chat.$O
+	$LD -o $target $prereq

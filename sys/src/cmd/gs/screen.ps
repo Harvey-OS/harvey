@@ -1,0 +1,58 @@
+% Test a tilted halftone screen.
+
+/dot0
+	% The following screen algorithm is used by permission of the author.
+    { 1 add 180 mul cos 1 0.08 add mul exch 2 add 180 mul cos 
+      1 0.08 sub mul add 2 div % (C) 1989 Berthold K.P. Horn
+    } bind def
+
+/dot1
+ { dup mul exch dup mul add 1 exch sub
+ } bind def
+
+/dot2
+ { exch abs exch abs   2 copy le { exch } if
+   exch 1 sub dup mul exch dup mul add 1 exch sub
+ } bind def
+
+72 72 scale
+0 setlinewidth
+
+/tiles {
+0 1 7
+ { /y exch def
+   0 1 7
+    { /x exch def
+      x y moveto
+      1 0 rlineto 0 1 rlineto -1 0 rlineto closepath
+      gsave y 8 mul x add 63 div setgray fill grestore
+      0 setgray stroke
+    } for
+  } for
+} bind def
+
+gsave
+2.3 -22 /dot0 load setscreen
+currentscreen pop == pop
+tiles showpage
+grestore
+
+gsave
+2.3 22 /dot1 load setscreen
+currentscreen pop == pop
+tiles showpage
+grestore
+
+gsave
+2.3 45 /dot1 load setscreen
+currentscreen pop == pop
+tiles showpage
+grestore
+
+gsave
+2.3 45 /dot2 load setscreen
+currentscreen pop == pop
+tiles showpage
+grestore
+
+quit

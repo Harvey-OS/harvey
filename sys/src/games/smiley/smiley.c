@@ -55,7 +55,7 @@ main(void)
 	struct thing *t;
 
 	calibrate();
-	binit(0, "/lib/font/bit/smiley/0.font", 0);
+	binit(0, "/lib/font/bit/smiley/smiley.font", 0);
 	einit(Ekeyboard);
 	if(screen.r.max.y < YMAX)
 		YMAX = 900;

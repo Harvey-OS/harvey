@@ -8,6 +8,12 @@ int nframes = 0;
 int mapsize = 0;
 
 int debug = 0;
+int pause = 0;
+
+Point pmin;
+Mouse mouse;
+
+int pw = 0; ph = 0;
 
 uchar *pictures[MAXFRAMES];
 
@@ -21,6 +27,22 @@ long msec(void) {
 		seek(msfd, 0, 0);
 	read(msfd, buf, sizeof(buf));
 	return atol(buf);
+}
+
+void
+ereshaped(Rectangle r) {
+	USED(r);
+
+	screen.r = bscreenrect(&screen.clipr);
+	bitblt(&screen, screen.clipr.min, &screen, screen.clipr, 0);
+	pmin = add(screen.clipr.min,
+		Pt((Dx(screen.clipr) - pw)/2, (Dy(screen.clipr) - ph)/2));
+	if (Dx(screen.clipr) < pw || Dy(screen.clipr) < ph) {
+		bitblt(&screen, screen.clipr.min, &screen, screen.clipr, 0);
+		string(&screen, screen.clipr.min, font, "Window too small", S);
+		bflush();
+		mouse = emouse();
+	}
 }
 
 /*
@@ -69,7 +91,7 @@ savebitmap(Bitmap *bm) {
 
 void
 show_usage(void) {
-	fprint(2, "flip [-r fps] p1 p2 ...\n");
+	fprint(2, "fb/flip [-r fps] [-p] p1 p2 ...\n");
 	exits("usage");
 }
 
@@ -81,6 +103,7 @@ main(int argc, char *argv[]){
 	int i;
 
 	ARGBEGIN {
+	case 'p':	pause++;				break;
 	case 'r':	rate = atof(ARGF());			break;
 	case 'D':	debug++;				break;
 	default:	show_usage();
@@ -92,10 +115,11 @@ main(int argc, char *argv[]){
 		framedelay = (1000.0/rate);
 
 	binit(0,0,"flip");
+	einit(Emouse);
 	while (argv[0] != 0) {
 		f=picopen_r(argv[0]);
 		if(f==0){
-			picerror(argv[0]);
+			perror(argv[0]);
 			exits("can't open picfile");
 		}
 		if (b != 0)
@@ -105,11 +129,17 @@ main(int argc, char *argv[]){
 			fprint(2, "%s: no space for bitmap\n", argv[0]);
 			exits("no space");
 		}
+		if (pw == 0) { 	/* initialize display */
+			pw = PIC_WIDTH(f);
+			ph = PIC_HEIGHT(f);
+			ereshaped(bscreenrect(0));
+		}
 		/*
 		 * show the viewer as we set up...
 		 */
-		bitblt(&screen, div(sub(add(screen.r.min, screen.r.max),
-			Pt(PIC_WIDTH(f), PIC_HEIGHT(f))), 2), b, b->r, S);
+		if (ecanmouse())
+			mouse = emouse();
+		bitblt(&screen, pmin, b, b->r, S);
 		bflush();
 		savebitmap(b);
 		argv++;
@@ -119,23 +149,19 @@ main(int argc, char *argv[]){
 		for (i=0; i<nframes; i++) {
 			int delay;
 			wrbitmap(b,  b->r.min.y, b->r.max.y, pictures[i]);
+			if (ecanmouse())
+				mouse = emouse();
 			if (rate != 0) {
 				delay = lastdisplay + framedelay - msec();
-				if (delay > 0) {
-					if (delay > framedelay) {
-						fprint(2, "long delay: %d %d %d %d\n",
-							delay, lastdisplay, framedelay,
-							msec());
-						delay = framedelay;
-					}
+				if (delay > 0)
 					sleep(delay);
-				}
 			}
-			bitblt(&screen, div(sub(add(screen.r.min, screen.r.max),
-				Pt(PIC_WIDTH(f), PIC_HEIGHT(f))), 2), b, b->r, S);
+			bitblt(&screen, pmin, b, b->r, S);
 			bflush();
 			if (rate != 0)
 				lastdisplay = msec();
 		}
+		if (pause)
+			sleep(1000);
 	}
 }

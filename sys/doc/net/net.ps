@@ -1,0 +1,7095 @@
+%!PS-Adobe-2.0
+%%Version: 0.1
+%%DocumentFonts: (atend)
+%%Pages: (atend)
+%%EndComments
+%
+% Version 3.3.2 prologue for troff files.
+%
+
+/#copies 1 store
+/aspectratio 1 def
+/formsperpage 1 def
+/landscape false def
+/linewidth .3 def
+/magnification 1 def
+/margin 0 def
+/orientation 0 def
+/resolution 720 def
+/rotation 1 def
+/xoffset 0 def
+/yoffset 0 def
+
+/roundpage true def
+/useclippath true def
+/pagebbox [0 0 612 792] def
+
+/R  /Times-Roman def
+/I  /Times-Italic def
+/B  /Times-Bold def
+/BI /Times-BoldItalic def
+/H  /Helvetica def
+/HI /Helvetica-Oblique def
+/HB /Helvetica-Bold def
+/HX /Helvetica-BoldOblique def
+/CW /Courier def
+/CO /Courier def
+/CI /Courier-Oblique def
+/CB /Courier-Bold def
+/CX /Courier-BoldOblique def
+/PA /Palatino-Roman def
+/PI /Palatino-Italic def
+/PB /Palatino-Bold def
+/PX /Palatino-BoldItalic def
+/Hr /Helvetica-Narrow def
+/Hi /Helvetica-Narrow-Oblique def
+/Hb /Helvetica-Narrow-Bold def
+/Hx /Helvetica-Narrow-BoldOblique def
+/KR /Bookman-Light def
+/KI /Bookman-LightItalic def
+/KB /Bookman-Demi def
+/KX /Bookman-DemiItalic def
+/AR /AvantGarde-Book def
+/AI /AvantGarde-BookOblique def
+/AB /AvantGarde-Demi def
+/AX /AvantGarde-DemiOblique def
+/NR /NewCenturySchlbk-Roman def
+/NI /NewCenturySchlbk-Italic def
+/NB /NewCenturySchlbk-Bold def
+/NX /NewCenturySchlbk-BoldItalic def
+/ZD /ZapfDingbats def
+/ZI /ZapfChancery-MediumItalic def
+/S  /S def
+/S1 /S1 def
+/GR /Symbol def
+
+/inch {72 mul} bind def
+/min {2 copy gt {exch} if pop} bind def
+
+/show {{//show} 0 get exec} bind def	% so later references don't bind
+/widthshow {{//widthshow} 0 get exec} bind def
+/stringwidth {{//stringwidth} 0 get exec} bind def
+
+/setup {
+	counttomark 2 idiv {def} repeat pop
+
+	landscape {/orientation 90 orientation add def} if
+	/scaling 72 resolution div def
+	linewidth setlinewidth
+	1 setlinecap
+
+	pagedimensions
+	xcenter ycenter translate
+	orientation rotation mul rotate
+	width 2 div neg height 2 div translate
+	xoffset inch yoffset inch neg translate
+	margin 2 div dup neg translate
+	magnification dup aspectratio mul scale
+	scaling scaling scale
+
+	addmetrics
+	0 0 moveto
+} def
+
+/pagedimensions {
+	useclippath userdict /gotpagebbox known not and {
+		/pagebbox [clippath pathbbox newpath] def
+		roundpage currentdict /roundpagebbox known and {roundpagebbox} if
+	} if
+	pagebbox aload pop
+	4 -1 roll exch 4 1 roll 4 copy
+	landscape {4 2 roll} if
+	sub /width exch def
+	sub /height exch def
+	add 2 div /xcenter exch def
+	add 2 div /ycenter exch def
+	userdict /gotpagebbox true put
+} def
+
+/addmetrics {
+	/Symbol /S null Sdefs cf
+	/Times-Roman /S1 StandardEncoding dup length array copy S1defs cf
+} def
+
+/pagesetup {
+	/page exch def
+	currentdict /pagedict known currentdict page known and {
+		page load pagedict exch get cvx exec
+	} if
+} def
+
+/decodingdefs [
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg /y exch def counttomark 2 idiv {y moveto show} repeat}
+	{neg moveto {2 index stringwidth pop sub exch div 0 32 4 -1 roll widthshow} repeat}
+	{neg moveto {spacewidth sub 0.0 32 4 -1 roll widthshow} repeat}
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg setfunnytext}
+] def
+
+/setdecoding {/t decodingdefs 3 -1 roll get bind def} bind def
+
+/w {neg moveto show} bind def
+/m {neg dup /y exch def moveto} bind def
+/done {/lastpage where {pop lastpage} if} def
+
+/f {
+	dup /font exch def findfont exch
+	dup /ptsize exch def scaling div dup /size exch def scalefont setfont
+	linewidth ptsize mul scaling 10 mul div setlinewidth
+	/spacewidth ( ) stringwidth pop def
+} bind def
+
+/changefont {
+	/fontheight exch def
+	/fontslant exch def
+	currentfont [
+		1 0
+		fontheight ptsize div fontslant sin mul fontslant cos div
+		fontheight ptsize div
+		0 0
+	] makefont setfont
+} bind def
+
+/sf {f} bind def
+
+/cf {
+	dup length 2 idiv
+	/entries exch def
+	/chtab exch def
+	/newencoding exch def
+	/newfont exch def
+
+	findfont dup length 1 add dict
+	/newdict exch def
+	{1 index /FID ne {newdict 3 1 roll put}{pop pop} ifelse} forall
+
+	newencoding type /arraytype eq {newdict /Encoding newencoding put} if
+
+	newdict /Metrics entries dict put
+	newdict /Metrics get
+	begin
+		chtab aload pop
+		1 1 entries {pop def} for
+		newfont newdict definefont pop
+	end
+} bind def
+
+%
+% A few arrays used to adjust reference points and character widths in some
+% of the printer resident fonts. If square roots are too high try changing
+% the lines describing /radical and /radicalex to,
+%
+%	/radical	[0 -75 550 0]
+%	/radicalex	[-50 -75 500 0]
+%
+% Move braceleftbt a bit - default PostScript character is off a bit.
+%
+
+/Sdefs [
+	/bracketlefttp		[201 500]
+	/bracketleftbt		[201 500]
+	/bracketrighttp		[-81 380]
+	/bracketrightbt		[-83 380]
+	/braceleftbt		[203 490]
+	/bracketrightex		[220 -125 500 0]
+	/radical		[0 0 550 0]
+	/radicalex		[-50 0 500 0]
+	/parenleftex		[-20 -170 0 0]
+	/integral		[100 -50 500 0]
+	/infinity		[10 -75 730 0]
+] def
+
+/S1defs [
+	/underscore		[0 80 500 0]
+	/endash			[7 90 650 0]
+] def
+%
+% Version 3.3.2 drawing procedures for dpost. Automatically pulled in when
+% needed.
+%
+
+/inpath false def
+/savematrix matrix def
+
+/Dl {
+	inpath
+		{pop pop neg lineto}
+		{newpath neg moveto neg lineto stroke}
+	ifelse
+} bind def
+
+/De {
+	/y1 exch 2 div def
+	/x1 exch 2 div def
+	/savematrix savematrix currentmatrix def
+	neg exch x1 add exch translate
+	x1 y1 scale
+	0 0 1 0 360
+	inpath
+		{1 0 moveto arc savematrix setmatrix}
+		{newpath arc savematrix setmatrix stroke}
+	ifelse
+} bind def
+
+/Da {
+	/dy2 exch def
+	/dx2 exch def
+	/dy1 exch def
+	/dx1 exch def
+	dy1 add neg exch dx1 add exch
+	dx1 dx1 mul dy1 dy1 mul add sqrt
+	dy1 dx1 neg atan
+	dy2 neg dx2 atan
+	inpath
+		{arc}
+		{newpath arc stroke}
+	ifelse
+} bind def
+
+/DA {
+	/dy2 exch def
+	/dx2 exch def
+	/dy1 exch def
+	/dx1 exch def
+	dy1 add neg exch dx1 add exch
+	dx1 dx1 mul dy1 dy1 mul add sqrt
+	dy1 dx1 neg atan
+	dy2 neg dx2 atan
+	inpath
+		{arcn}
+		{newpath arcn stroke}
+	ifelse
+} bind def
+
+/Ds {
+	/y2 exch def
+	/x2 exch def
+	/y1 exch def
+	/x1 exch def
+	/y0 exch def
+	/x0 exch def
+	x0 5 x1 mul add 6 div
+	y0 5 y1 mul add -6 div
+	x2 5 x1 mul add 6 div
+	y2 5 y1 mul add -6 div
+	x1 x2 add 2 div
+	y1 y2 add -2 div
+	inpath
+		{curveto}
+		{newpath x0 x1 add 2 div y0 y1 add -2 div moveto curveto stroke}
+	ifelse
+} bind def
+%
+% Tries to round clipping path dimensions, as stored in array pagebbox, so they
+% match one of the known sizes in the papersizes array. Lower left coordinates
+% are always set to 0.
+%
+
+/roundpagebbox {
+    7 dict begin
+	/papersizes [8.5 inch 11 inch 14 inch 17 inch] def
+
+	/mappapersize {
+		/val exch def
+		/slop .5 inch def
+		/diff slop def
+		/j 0 def
+		0 1 papersizes length 1 sub {
+			/i exch def
+			papersizes i get val sub abs
+			dup diff le {/diff exch def /j i def} {pop} ifelse
+		} for
+		diff slop lt {papersizes j get} {val} ifelse
+	} def
+
+	pagebbox 0 0 put
+	pagebbox 1 0 put
+	pagebbox dup 2 get mappapersize 2 exch put
+	pagebbox dup 3 get mappapersize 3 exch put
+    end
+} bind def
+
+%%EndProlog
+%%BeginSetup
+mark
+%
+% Encoding vector and redefinition of findfont for the ISO Latin1 standard.
+% The 18 characters missing from ROM based fonts on older printers are noted
+% below.
+%
+
+/ISOLatin1Encoding [
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/space
+	/exclam
+	/quotedbl
+	/numbersign
+	/dollar
+	/percent
+	/ampersand
+	/quoteright
+	/parenleft
+	/parenright
+	/asterisk
+	/plus
+	/comma
+	/minus
+	/period
+	/slash
+	/zero
+	/one
+	/two
+	/three
+	/four
+	/five
+	/six
+	/seven
+	/eight
+	/nine
+	/colon
+	/semicolon
+	/less
+	/equal
+	/greater
+	/question
+	/at
+	/A
+	/B
+	/C
+	/D
+	/E
+	/F
+	/G
+	/H
+	/I
+	/J
+	/K
+	/L
+	/M
+	/N
+	/O
+	/P
+	/Q
+	/R
+	/S
+	/T
+	/U
+	/V
+	/W
+	/X
+	/Y
+	/Z
+	/bracketleft
+	/backslash
+	/bracketright
+	/asciicircum
+	/underscore
+	/quoteleft
+	/a
+	/b
+	/c
+	/d
+	/e
+	/f
+	/g
+	/h
+	/i
+	/j
+	/k
+	/l
+	/m
+	/n
+	/o
+	/p
+	/q
+	/r
+	/s
+	/t
+	/u
+	/v
+	/w
+	/x
+	/y
+	/z
+	/braceleft
+	/bar
+	/braceright
+	/asciitilde
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/dotlessi
+	/grave
+	/acute
+	/circumflex
+	/tilde
+	/macron
+	/breve
+	/dotaccent
+	/dieresis
+	/.notdef
+	/ring
+	/cedilla
+	/.notdef
+	/hungarumlaut
+	/ogonek
+	/caron
+	/space
+	/exclamdown
+	/cent
+	/sterling
+	/currency
+	/yen
+	/brokenbar		% missing
+	/section
+	/dieresis
+	/copyright
+	/ordfeminine
+	/guillemotleft
+	/logicalnot
+	/hyphen
+	/registered
+	/macron
+	/degree			% missing
+	/plusminus		% missing
+	/twosuperior		% missing
+	/threesuperior		% missing
+	/acute
+	/mu			% missing
+	/paragraph
+	/periodcentered
+	/cedilla
+	/onesuperior		% missing
+	/ordmasculine
+	/guillemotright
+	/onequarter		% missing
+	/onehalf		% missing
+	/threequarters		% missing
+	/questiondown
+	/Agrave
+	/Aacute
+	/Acircumflex
+	/Atilde
+	/Adieresis
+	/Aring
+	/AE
+	/Ccedilla
+	/Egrave
+	/Eacute
+	/Ecircumflex
+	/Edieresis
+	/Igrave
+	/Iacute
+	/Icircumflex
+	/Idieresis
+	/Eth			% missing
+	/Ntilde
+	/Ograve
+	/Oacute
+	/Ocircumflex
+	/Otilde
+	/Odieresis
+	/multiply		% missing
+	/Oslash
+	/Ugrave
+	/Uacute
+	/Ucircumflex
+	/Udieresis
+	/Yacute			% missing
+	/Thorn			% missing
+	/germandbls
+	/agrave
+	/aacute
+	/acircumflex
+	/atilde
+	/adieresis
+	/aring
+	/ae
+	/ccedilla
+	/egrave
+	/eacute
+	/ecircumflex
+	/edieresis
+	/igrave
+	/iacute
+	/icircumflex
+	/idieresis
+	/eth			% missing
+	/ntilde
+	/ograve
+	/oacute
+	/ocircumflex
+	/otilde
+	/odieresis
+	/divide			% missing
+	/oslash
+	/ugrave
+	/uacute
+	/ucircumflex
+	/udieresis
+	/yacute			% missing
+	/thorn			% missing
+	/ydieresis
+] def
+
+/NewFontDirectory FontDirectory maxlength dict def
+
+%
+% Apparently no guarantee findfont is defined in systemdict so the obvious
+%
+%	systemdict /findfont get exec
+%
+% can generate an error. So far the only exception is a VT600 (version 48.0).
+%
+
+userdict /@RealFindfont known not {
+	userdict begin
+		/@RealFindfont systemdict begin /findfont load end def
+	end
+} if
+
+/findfont {
+	dup NewFontDirectory exch known not {
+		dup
+		%dup systemdict /findfont get exec	% not always in systemdict
+		dup userdict /@RealFindfont get exec
+		dup /Encoding get StandardEncoding eq {
+			dup length dict begin
+				{1 index /FID ne {def}{pop pop} ifelse} forall
+				/Encoding ISOLatin1Encoding def
+				currentdict
+			end
+			/DummyFontName exch definefont
+		} if
+		NewFontDirectory 3 1 roll put
+	} if
+	NewFontDirectory exch get
+} bind def
+
+%%Patch from lp
+%%EndPatch from lp
+
+setup
+%%EndSetup
+%%Page: 1 1
+/saveobj save def
+mark
+1 pagesetup
+12 /LucidaSans-Demi f
+(The) 1658 1230 w
+(Organization of Networks in Plan 9) 1929 1230 w
+10 /LucidaSans-Italic f
+(Dave Presotto) 2544 1470 w
+(Phil Winterbottom) 2443 1590 w
+(presotto,philw@plan9.att.com) 2152 1830 w
+(ABSTRACT) 2626 2270 w
+10 /LucidaSansUnicode00 f
+(In) 1330 2530 w
+(a) 1457 2530 w
+(distributed) 1548 2530 w
+(system) 2115 2530 w
+(networks) 2491 2530 w
+(are) 2970 2530 w
+(of) 3158 2530 w
+(paramount) 3292 2530 w
+(importance.) 3858 2530 w
+(This) 4475 2530 w
+(paper) 1080 2650 w
+(describes) 1392 2650 w
+(the) 1887 2650 w
+(implementation,) 2075 2650 w
+(design) 2902 2650 w
+(philosophy,) 3258 2650 w
+(and) 3856 2650 w
+(organization) 4069 2650 w
+(of) 1080 2770 w
+(network) 1227 2770 w
+(support) 1668 2770 w
+(in) 2095 2770 w
+(Plan) 2236 2770 w
+(9.) 2487 2770 w
+(Topics) 2632 2770 w
+(include) 3000 2770 w
+(network) 3402 2770 w
+(requirements) 3844 2770 w
+(for) 4541 2770 w
+(distributed) 1080 2890 w
+(systems,) 1667 2890 w
+(our) 2146 2890 w
+(kernel) 2366 2890 w
+(implementation,) 2724 2890 w
+(network) 3573 2890 w
+(naming,) 4020 2890 w
+(user) 4470 2890 w
+(interfaces,) 1080 3010 w
+(and) 1622 3010 w
+(performance.) 1837 3010 w
+(We) 2520 3010 w
+(also) 2697 3010 w
+(observe) 2929 3010 w
+(that) 3345 3010 w
+(much) 3572 3010 w
+(of) 3876 3010 w
+(this) 4010 3010 w
+(organiza\255) 4225 3010 w
+(tion is relevant to current systems.) 1080 3130 w
+10 /LucidaSans-Demi f
+(1.) 720 3490 w
+(Introduction) 873 3490 w
+10 /LucidaSansUnicode00 f
+(Plan) 970 3646 w
+(9) 1238 3646 w
+([Pike90]) 1368 3646 w
+(is) 1825 3646 w
+(a) 1972 3646 w
+(general-purpose,) 2094 3646 w
+(multi-user,) 3010 3646 w
+(portable) 3628 3646 w
+(distributed) 4101 3646 w
+(system) 4700 3646 w
+(implemented) 720 3766 w
+(on) 1399 3766 w
+(a) 1564 3766 w
+(variety) 1661 3766 w
+(of) 2025 3766 w
+(computers) 2165 3766 w
+(and) 2721 3766 w
+(networks.) 2942 3766 w
+(What) 3490 3766 w
+(distinguishes) 3771 3766 w
+(Plan) 4456 3766 w
+(9) 4698 3766 w
+(is) 4802 3766 w
+(its) 4923 3766 w
+(organization.) 720 3886 w
+(The) 1435 3886 w
+(goals) 1656 3886 w
+(of) 1954 3886 w
+(this) 2092 3886 w
+(organization) 2311 3886 w
+(were) 2962 3886 w
+(to) 3232 3886 w
+(reduce) 3370 3886 w
+(administration) 3739 3886 w
+(and) 4483 3886 w
+(to) 4703 3886 w
+(pro\255) 4842 3886 w
+(mote) 720 4006 w
+(resource) 1017 4006 w
+(sharing.) 1486 4006 w
+(One) 1930 4006 w
+(of) 2176 4006 w
+(the) 2323 4006 w
+(keys) 2527 4006 w
+(to) 2793 4006 w
+(its) 2940 4006 w
+(success) 3106 4006 w
+(as) 3528 4006 w
+(a) 3683 4006 w
+(distributed) 3787 4006 w
+(system) 4367 4006 w
+(is) 4756 4006 w
+(the) 4885 4006 w
+(organization and management of its networks.) 720 4126 w
+(A) 970 4282 w
+(Plan) 1073 4282 w
+(9) 1308 4282 w
+(system) 1405 4282 w
+(comprises) 1780 4282 w
+(file) 2311 4282 w
+(servers,) 2497 4282 w
+(CPU) 2912 4282 w
+(servers) 3140 4282 w
+(and) 3523 4282 w
+(terminals.) 3738 4282 w
+(The) 4290 4282 w
+(file) 4506 4282 w
+(servers) 4692 4282 w
+(and) 720 4402 w
+(CPU) 935 4402 w
+(servers) 1163 4402 w
+(are) 1546 4402 w
+(typically) 1733 4402 w
+(centrally) 2164 4402 w
+(located) 2610 4402 w
+(multiprocessor) 2996 4402 w
+(machines) 3756 4402 w
+(with) 4249 4402 w
+(large) 4488 4402 w
+(mem\255) 4765 4402 w
+(ories) 720 4522 w
+(and) 1003 4522 w
+(high) 1228 4522 w
+(speed) 1489 4522 w
+(interconnects.) 1824 4522 w
+(A) 2590 4522 w
+(variety) 2705 4522 w
+(of) 3073 4522 w
+(workstation-class) 3217 4522 w
+(machines) 4127 4522 w
+(serve) 4632 4522 w
+(as) 4934 4522 w
+(terminals) 720 4642 w
+(connected) 1220 4642 w
+(to) 1765 4642 w
+(the) 1909 4642 w
+(central) 2110 4642 w
+(servers) 2487 4642 w
+(using) 2881 4642 w
+(several) 3193 4642 w
+(networks) 3579 4642 w
+(and) 4068 4642 w
+(protocols.) 4294 4642 w
+(The) 4859 4642 w
+(architecture) 720 4762 w
+(of) 1337 4762 w
+(the) 1474 4762 w
+(system) 1669 4762 w
+(demands) 2049 4762 w
+(a) 2532 4762 w
+(hierarchy) 2627 4762 w
+(of) 3116 4762 w
+(network) 3254 4762 w
+(speeds) 3686 4762 w
+(matching) 4066 4762 w
+(the) 4557 4762 w
+(needs) 4752 4762 w
+(of) 720 4882 w
+(the) 887 4882 w
+(components.) 1111 4882 w
+(Connections) 1841 4882 w
+(between) 2511 4882 w
+(file) 2987 4882 w
+(servers) 3206 4882 w
+(and) 3622 4882 w
+(CPU) 3870 4882 w
+(servers) 4131 4882 w
+(are) 4547 4882 w
+(high-) 4767 4882 w
+(bandwidth) 720 5002 w
+(point-to-point) 1267 5002 w
+(fiber) 2021 5002 w
+(links.) 2283 5002 w
+(Connections) 2612 5002 w
+(from) 3249 5002 w
+(the) 3517 5002 w
+(servers) 3708 5002 w
+(fan) 4092 5002 w
+(out) 4282 5002 w
+(to) 4478 5002 w
+(local) 4612 5002 w
+(ter\255) 4873 5002 w
+(minals) 720 5122 w
+(using) 1094 5122 w
+(medium) 1415 5122 w
+(speed) 1866 5122 w
+(networks) 2210 5122 w
+(such) 2708 5122 w
+(as) 2988 5122 w
+(Ethernet) 3148 5122 w
+([Met80]) 3607 5122 w
+(and) 4032 5122 w
+(Datakit) 4266 5122 w
+([Fra80].) 4666 5122 w
+(Low) 720 5242 w
+(speed) 953 5242 w
+(connections) 1284 5242 w
+(via) 1909 5242 w
+(the) 2087 5242 w
+(Internet) 2284 5242 w
+(and) 2706 5242 w
+(the) 2928 5242 w
+(AT&T) 3125 5242 w
+(backbone) 3432 5242 w
+(serve) 3943 5242 w
+(users) 4242 5242 w
+(in) 4546 5242 w
+(Oregon) 4680 5242 w
+(and) 720 5362 w
+(Illinois.) 940 5362 w
+(Basic) 1363 5362 w
+(Rate) 1647 5362 w
+(ISDN) 1897 5362 w
+(data) 2168 5362 w
+(service) 2417 5362 w
+(and) 2792 5362 w
+(9600) 3011 5362 w
+(baud) 3302 5362 w
+(serial) 3584 5362 w
+(lines) 3884 5362 w
+(provide) 4150 5362 w
+(slow) 4554 5362 w
+(links) 4811 5362 w
+(to users at home.) 720 5482 w
+(Since) 970 5638 w
+(CPU) 1255 5638 w
+(servers) 1481 5638 w
+(and) 1862 5638 w
+(terminals) 2075 5638 w
+(use) 2561 5638 w
+(the) 2763 5638 w
+(same) 2951 5638 w
+(kernel,) 3239 5638 w
+(users) 3606 5638 w
+(may) 3901 5638 w
+(choose) 4135 5638 w
+(to) 4511 5638 w
+(run) 4643 5638 w
+(pro\255) 4842 5638 w
+(grams) 720 5758 w
+(locally) 1058 5758 w
+(on) 1400 5758 w
+(their) 1559 5758 w
+(terminals) 1820 5758 w
+(or) 2309 5758 w
+(remotely) 2447 5758 w
+(on) 2908 5758 w
+(CPU) 3067 5758 w
+(servers.) 3296 5758 w
+(The) 3744 5758 w
+(organization) 3961 5758 w
+(of) 4608 5758 w
+(Plan) 4741 5758 w
+(9) 4977 5758 w
+(hides) 720 5878 w
+(the) 1021 5878 w
+(details) 1216 5878 w
+(of) 1576 5878 w
+(system) 1715 5878 w
+(connectivity) 2096 5878 w
+(allowing) 2716 5878 w
+(both) 3161 5878 w
+(users) 3425 5878 w
+(and) 3727 5878 w
+(administrators) 3948 5878 w
+(to) 4694 5878 w
+(con\255) 4833 5878 w
+(figure) 720 5998 w
+(their) 1050 5998 w
+(environment) 1317 5998 w
+(to) 1970 5998 w
+(be) 2110 5998 w
+(as) 2271 5998 w
+(distributed) 2419 5998 w
+(or) 2992 5998 w
+(centralized) 3136 5998 w
+(as) 3714 5998 w
+(they) 3862 5998 w
+(wish.) 4111 5998 w
+(Simple) 4436 5998 w
+(com\255) 4802 5998 w
+(mands) 720 6118 w
+(support) 1095 6118 w
+(the) 1524 6118 w
+(construction) 1730 6118 w
+(of) 2386 6118 w
+(a) 2535 6118 w
+(locally) 2642 6118 w
+(represented) 3000 6118 w
+(name) 3634 6118 w
+(space) 3952 6118 w
+(spanning) 4280 6118 w
+(many) 4778 6118 w
+(machines) 720 6238 w
+(and) 1225 6238 w
+(networks.) 1451 6238 w
+(At) 2004 6238 w
+(work,) 2156 6238 w
+(users) 2471 6238 w
+(tend) 2778 6238 w
+(to) 3042 6238 w
+(use) 3186 6238 w
+(their) 3401 6238 w
+(terminals) 3672 6238 w
+(like) 4171 6238 w
+(workstations,) 4388 6238 w
+(running) 720 6358 w
+(interactive) 1138 6358 w
+(programs) 1681 6358 w
+(locally) 2186 6358 w
+(and) 2530 6358 w
+(reserving) 2748 6358 w
+(the) 3236 6358 w
+(CPU) 3430 6358 w
+(servers) 3662 6358 w
+(for) 4049 6358 w
+(data) 4227 6358 w
+(or) 4476 6358 w
+(compute) 4617 6358 w
+(intensive) 720 6478 w
+(jobs) 1204 6478 w
+(such) 1459 6478 w
+(as) 1735 6478 w
+(compiling) 1891 6478 w
+(and) 2420 6478 w
+(computing) 2650 6478 w
+(chess) 3220 6478 w
+(endgames.) 3541 6478 w
+(At) 4153 6478 w
+(home) 4309 6478 w
+(or) 4631 6478 w
+(when) 4783 6478 w
+(connected) 720 6598 w
+(over) 1257 6598 w
+(a) 1505 6598 w
+(slow) 1599 6598 w
+(network,) 1856 6598 w
+(users) 2319 6598 w
+(tend) 2619 6598 w
+(to) 2876 6598 w
+(do) 3013 6598 w
+(most) 3176 6598 w
+(work) 3457 6598 w
+(on) 3733 6598 w
+(the) 3895 6598 w
+(CPU) 4089 6598 w
+(server) 4321 6598 w
+(to) 4657 6598 w
+(mini\255) 4794 6598 w
+(mize) 720 6718 w
+(traffic) 1000 6718 w
+(on) 1332 6718 w
+(the) 1500 6718 w
+(slow) 1700 6718 w
+(links.) 1963 6718 w
+(The) 2301 6718 w
+(goal) 2527 6718 w
+(of) 2778 6718 w
+(the) 2920 6718 w
+(network) 3119 6718 w
+(organization) 3555 6718 w
+(is) 4210 6718 w
+(to) 4334 6718 w
+(provide) 4476 6718 w
+(the) 4885 6718 w
+(same environment to the user wherever resources are used.) 720 6838 w
+8 /S1 f
+(__________________) 720 6980 w
+8 /LucidaSansUnicode00 f
+(Originally) 720 7080 w
+(appeared) 1119 7080 w
+(in) 1506 7080 w
+8 /LucidaSans-Italic f
+(Proc.) 1605 7080 w
+(of) 1827 7080 w
+(the) 1929 7080 w
+(Winter) 2077 7080 w
+(1993) 2357 7080 w
+(USENIX) 2583 7080 w
+(Conf.,) 2884 7080 w
+8 /LucidaSansUnicode00 f
+(pp.) 3142 7080 w
+(271-280,) 3294 7080 w
+(San) 3692 7080 w
+(Diego,) 3855 7080 w
+(CA) 4134 7080 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 1 1
+%%Page: 2 2
+/saveobj save def
+mark
+2 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 2 \255) 2783 480 w
+10 /LucidaSans-Demi f
+(2.) 720 840 w
+(Kernel Network Support) 873 840 w
+10 /LucidaSansUnicode00 f
+(Networks) 970 996 w
+(play) 1468 996 w
+(a) 1710 996 w
+(central) 1808 996 w
+(role) 2182 996 w
+(in) 2412 996 w
+(any) 2546 996 w
+(distributed) 2758 996 w
+(system.) 3332 996 w
+(This) 3748 996 w
+(is) 3997 996 w
+(particularly) 4121 996 w
+(true) 4709 996 w
+(in) 4949 996 w
+(Plan) 720 1116 w
+(9) 957 1116 w
+(where) 1056 1116 w
+(most) 1383 1116 w
+(resources) 1660 1116 w
+(are) 2165 1116 w
+(provided) 2352 1116 w
+(by) 2815 1116 w
+(servers) 2965 1116 w
+(external) 3348 1116 w
+(to) 3780 1116 w
+(the) 3913 1116 w
+(kernel.) 4103 1116 w
+(The) 4504 1116 w
+(impor\255) 4720 1116 w
+(tance) 720 1236 w
+(of) 1015 1236 w
+(the) 1147 1236 w
+(networking) 1336 1236 w
+(code) 1915 1236 w
+(within) 2180 1236 w
+(the) 2510 1236 w
+(kernel) 2699 1236 w
+(is) 3035 1236 w
+(reflected) 3149 1236 w
+(by) 3609 1236 w
+(its) 3758 1236 w
+(size;) 3909 1236 w
+(of) 4168 1236 w
+(25,000) 4300 1236 w
+(lines) 4681 1236 w
+(of) 4942 1236 w
+(kernel) 720 1356 w
+(code,) 1065 1356 w
+(12,500) 1371 1356 w
+(are) 1761 1356 w
+(network) 1956 1356 w
+(and) 2391 1356 w
+(protocol) 2614 1356 w
+(related.) 3061 1356 w
+(Networks) 3505 1356 w
+(are) 4003 1356 w
+(continually) 4197 1356 w
+(being) 4768 1356 w
+(added) 720 1476 w
+(and) 1063 1476 w
+(the) 1286 1476 w
+(fraction) 1484 1476 w
+(of) 1900 1476 w
+(code) 2041 1476 w
+(devoted) 2315 1476 w
+(to) 2746 1476 w
+(communications) 2888 1476 w
+(is) 3729 1476 w
+(growing.) 3853 1476 w
+(Moreover,) 4355 1476 w
+(the) 4885 1476 w
+(network) 720 1596 w
+(code) 1151 1596 w
+(is) 1421 1596 w
+(complex.) 1540 1596 w
+(Protocol) 2057 1596 w
+(implementations) 2492 1596 w
+(consist) 3344 1596 w
+(almost) 3725 1596 w
+(entirely) 4090 1596 w
+(of) 4491 1596 w
+(synchro\255) 4627 1596 w
+(nization) 720 1716 w
+(and) 1171 1716 w
+(dynamic) 1410 1716 w
+(memory) 1874 1716 w
+(management,) 2329 1716 w
+(areas) 3051 1716 w
+(demanding) 3368 1716 w
+(subtle) 3972 1716 w
+(error) 4330 1716 w
+(recovery) 4630 1716 w
+(strategies.) 720 1836 w
+(The) 1295 1836 w
+(kernel) 1512 1836 w
+(currently) 1850 1836 w
+(supports) 2317 1836 w
+(Datakit,) 2782 1836 w
+(point-to-point) 3196 1836 w
+(fiber) 3950 1836 w
+(links,) 4212 1836 w
+(an) 4508 1836 w
+(Internet) 4660 1836 w
+(\(IP\)) 720 1956 w
+(protocol) 920 1956 w
+(suite) 1374 1956 w
+(and) 1659 1956 w
+(ISDN) 1889 1956 w
+(data) 2171 1956 w
+(service.) 2432 1956 w
+(The) 2883 1956 w
+(variety) 3115 1956 w
+(of) 3488 1956 w
+(networks) 3637 1956 w
+(and) 4131 1956 w
+(machines) 4362 1956 w
+(has) 4872 1956 w
+(raised) 720 2076 w
+(issues) 1050 2076 w
+(not) 1385 2076 w
+(addressed) 1580 2076 w
+(by) 2114 2076 w
+(other) 2264 2076 w
+(systems) 2556 2076 w
+(running) 2981 2076 w
+(on) 3395 2076 w
+(commercial) 3552 2076 w
+(hardware) 4145 2076 w
+(support\255) 4629 2076 w
+(ing only Ethernet or FDDI.) 720 2196 w
+10 /LucidaSans-Demi f
+(2.1.) 720 2436 w
+(The File System protocol) 962 2436 w
+10 /LucidaSansUnicode00 f
+(A) 970 2592 w
+(central) 1072 2592 w
+(idea) 1436 2592 w
+(in) 1672 2592 w
+(Plan) 1796 2592 w
+(9) 2030 2592 w
+(is) 2126 2592 w
+(the) 2240 2592 w
+(representation) 2429 2592 w
+(of) 3170 2592 w
+(a) 3302 2592 w
+(resource) 3391 2592 w
+(as) 3844 2592 w
+(a) 3984 2592 w
+(hierarchical) 4073 2592 w
+(file) 4668 2592 w
+(sys\255) 4853 2592 w
+(tem.) 720 2712 w
+(Each) 1004 2712 w
+(process) 1260 2712 w
+(assembles) 1668 2712 w
+(a) 2207 2712 w
+(view) 2296 2712 w
+(of) 2544 2712 w
+(the) 2676 2712 w
+(system) 2865 2712 w
+(by) 3238 2712 w
+(building) 3386 2712 w
+(a) 3818 2712 w
+10 /LucidaSans-Italic f
+(name) 3906 2712 w
+(space) 4208 2712 w
+10 /LucidaSansUnicode00 f
+([Needham]) 4515 2712 w
+(connecting) 720 2832 w
+(its) 1287 2832 w
+(resources.) 1438 2832 w
+(File) 2006 2832 w
+(systems) 2208 2832 w
+(need) 2633 2832 w
+(not) 2904 2832 w
+(represent) 3098 2832 w
+(disc) 3595 2832 w
+(files;) 3823 2832 w
+(in) 4091 2832 w
+(fact,) 4217 2832 w
+(most) 4464 2832 w
+(Plan) 4741 2832 w
+(9) 4977 2832 w
+(file) 720 2952 w
+(systems) 919 2952 w
+(have) 1357 2952 w
+(no) 1629 2952 w
+(permanent) 1799 2952 w
+(storage.) 2371 2952 w
+(A) 2845 2952 w
+(typical) 2961 2952 w
+(file) 3324 2952 w
+(system) 3522 2952 w
+(dynamically) 3909 2952 w
+(represents) 4526 2952 w
+(some) 720 3072 w
+(resource) 1022 3072 w
+(like) 1482 3072 w
+(a) 1695 3072 w
+(set) 1791 3072 w
+(of) 1976 3072 w
+(network) 2115 3072 w
+(connections) 2548 3072 w
+(or) 3173 3072 w
+(the) 3317 3072 w
+(process) 3514 3072 w
+(table.) 3930 3072 w
+(Communication) 4276 3072 w
+(between) 720 3192 w
+(the) 1183 3192 w
+(kernel,) 1394 3192 w
+(device) 1784 3192 w
+(drivers,) 2147 3192 w
+(and) 2568 3192 w
+(local) 2804 3192 w
+(or) 3085 3192 w
+(remote) 3243 3192 w
+(file) 3642 3192 w
+(servers) 3848 3192 w
+(uses) 4251 3192 w
+(a) 4526 3192 w
+(protocol) 4636 3192 w
+(called) 720 3312 w
+(9P.) 1059 3312 w
+(The) 1265 3312 w
+(protocol) 1503 3312 w
+(consists) 1964 3312 w
+(of) 2414 3312 w
+(17) 2569 3312 w
+(messages) 2752 3312 w
+(describing) 3284 3312 w
+(operations) 3848 3312 w
+(on) 4421 3312 w
+(files) 4601 3312 w
+(and) 4860 3312 w
+(directories.) 720 3432 w
+(Kernel) 1338 3432 w
+(resident) 1686 3432 w
+(device) 2120 3432 w
+(and) 2466 3432 w
+(protocol) 2685 3432 w
+(drivers) 3128 3432 w
+(use) 3499 3432 w
+(a) 3706 3432 w
+(procedural) 3799 3432 w
+(version) 4359 3432 w
+(of) 4749 3432 w
+(the) 4885 3432 w
+(protocol) 720 3552 w
+(while) 1168 3552 w
+(external) 1465 3552 w
+(file) 1906 3552 w
+(servers) 2101 3552 w
+(use) 2493 3552 w
+(an) 2706 3552 w
+(RPC) 2867 3552 w
+(form.) 3098 3552 w
+(Nearly) 3438 3552 w
+(all) 3789 3552 w
+(traffic) 3947 3552 w
+(between) 4279 3552 w
+(Plan) 4731 3552 w
+(9) 4977 3552 w
+(systems) 720 3672 w
+(consists) 1167 3672 w
+(of) 1616 3672 w
+(9P) 1770 3672 w
+(messages.) 1944 3672 w
+(9P) 2539 3672 w
+(relies) 2713 3672 w
+(on) 3031 3672 w
+(several) 3210 3672 w
+(properties) 3606 3672 w
+(of) 4159 3672 w
+(the) 4312 3672 w
+(underlying) 4522 3672 w
+(transport) 720 3792 w
+(protocol.) 1202 3792 w
+(It) 1704 3792 w
+(assumes) 1804 3792 w
+(messages) 2257 3792 w
+(arrive) 2766 3792 w
+(reliably) 3074 3792 w
+(and) 3463 3792 w
+(in) 3678 3792 w
+(sequence) 3804 3792 w
+(and) 4296 3792 w
+(that) 4511 3792 w
+(delim\255) 4737 3792 w
+(iters) 720 3912 w
+(between) 978 3912 w
+(messages) 1429 3912 w
+(are) 1948 3912 w
+(preserved.) 2144 3912 w
+(When) 2731 3912 w
+(a) 3041 3912 w
+(protocol) 3140 3912 w
+(does) 3588 3912 w
+(not) 3863 3912 w
+(meet) 4067 3912 w
+(these) 4353 3912 w
+(require\255) 4659 3912 w
+(ments) 720 4032 w
+(\(for) 1058 4032 w
+(example,) 1269 4032 w
+(TCP) 1753 4032 w
+(does) 1979 4032 w
+(not) 2249 4032 w
+(preserve) 2448 4032 w
+(delimiters\)) 2903 4032 w
+(we) 3459 4032 w
+(provide) 3632 4032 w
+(mechanisms) 4037 4032 w
+(to) 4680 4032 w
+(mar\255) 4818 4032 w
+(shal messages before handing them to the system.) 720 4152 w
+(A) 970 4308 w
+(kernel) 1080 4308 w
+(data) 1423 4308 w
+(structure,) 1674 4308 w
+(the) 2185 4308 w
+10 /LucidaSans-Italic f
+(channel) 2381 4308 w
+10 /LucidaSansUnicode00 f
+(,) 2760 4308 w
+(is) 2833 4308 w
+(a) 2954 4308 w
+(handle) 3050 4308 w
+(to) 3418 4308 w
+(a) 3557 4308 w
+(file) 3653 4308 w
+(server.) 3845 4308 w
+(Operations) 4247 4308 w
+(on) 4821 4308 w
+(a) 4985 4308 w
+(channel) 720 4428 w
+(generate) 1146 4428 w
+(the) 1620 4428 w
+(following) 1824 4428 w
+(9P) 2320 4428 w
+(messages.) 2487 4428 w
+(The) 3075 4428 w
+10 /LucidaTypewriter f
+(session) 3305 4428 w
+10 /LucidaSansUnicode00 f
+(and) 3857 4428 w
+10 /LucidaTypewriter f
+(attach) 4085 4428 w
+10 /LucidaSansUnicode00 f
+(messages) 4565 4428 w
+(authenticate) 720 4548 w
+(a) 1365 4548 w
+(connection,) 1466 4548 w
+(established) 2076 4548 w
+(by) 2674 4548 w
+(means) 2835 4548 w
+(external) 3198 4548 w
+(to) 3642 4548 w
+(9P,) 3787 4548 w
+(and) 3984 4548 w
+(validate) 4211 4548 w
+(its) 4634 4548 w
+(user.) 4798 4548 w
+(The) 720 4668 w
+(result) 945 4668 w
+(is) 1265 4668 w
+(an) 1389 4668 w
+(authenticated) 1550 4668 w
+(channel) 2256 4668 w
+(referencing) 2676 4668 w
+(the) 3272 4668 w
+(root) 3470 4668 w
+(of) 3713 4668 w
+(the) 3854 4668 w
+(server.) 4052 4668 w
+(The) 4456 4668 w
+10 /LucidaTypewriter f
+(clone) 4680 4668 w
+10 /LucidaSansUnicode00 f
+(message) 720 4788 w
+(makes) 1182 4788 w
+(a) 1533 4788 w
+(new) 1626 4788 w
+(channel) 1859 4788 w
+(identical) 2274 4788 w
+(to) 2723 4788 w
+(an) 2859 4788 w
+(existing) 3014 4788 w
+(channel,) 3439 4788 w
+(much) 3886 4788 w
+(like) 4193 4788 w
+(the) 4404 4788 w
+10 /LucidaTypewriter f
+(dup) 4598 4788 w
+10 /LucidaSansUnicode00 f
+(sys\255) 4853 4788 w
+(tem) 720 4908 w
+(call.) 954 4908 w
+(A) 1230 4908 w
+(channel) 1347 4908 w
+(may) 1772 4908 w
+(be) 2020 4908 w
+(moved) 2187 4908 w
+(to) 2560 4908 w
+(a) 2705 4908 w
+(file) 2807 4908 w
+(on) 3005 4908 w
+(the) 3175 4908 w
+(server) 3377 4908 w
+(using) 3721 4908 w
+(a) 4034 4908 w
+10 /LucidaTypewriter f
+(walk) 4136 4908 w
+10 /LucidaSansUnicode00 f
+(message) 4471 4908 w
+(to) 4942 4908 w
+(descend) 720 5028 w
+(each) 1167 5028 w
+(level) 1436 5028 w
+(in) 1703 5028 w
+(the) 1839 5028 w
+(hierarchy.) 2040 5028 w
+(The) 2599 5028 w
+10 /LucidaTypewriter f
+(stat) 2826 5028 w
+10 /LucidaSansUnicode00 f
+(and) 3160 5028 w
+10 /LucidaTypewriter f
+(wstat) 3386 5028 w
+10 /LucidaSansUnicode00 f
+(messages) 3792 5028 w
+(read) 4313 5028 w
+(and) 4574 5028 w
+(write) 4800 5028 w
+(the) 720 5148 w
+(attributes) 913 5148 w
+(of) 1419 5148 w
+(the) 1555 5148 w
+(file) 1748 5148 w
+(referenced) 1937 5148 w
+(by) 2494 5148 w
+(a) 2647 5148 w
+(channel.) 2740 5148 w
+(The) 3218 5148 w
+10 /LucidaTypewriter f
+(open) 3436 5148 w
+10 /LucidaSansUnicode00 f
+(message) 3761 5148 w
+(prepares) 4222 5148 w
+(a) 4685 5148 w
+(chan\255) 4777 5148 w
+(nel) 720 5268 w
+(for) 924 5268 w
+(subsequent) 1120 5268 w
+10 /LucidaTypewriter f
+(read) 1740 5268 w
+10 /LucidaSansUnicode00 f
+(and) 2085 5268 w
+10 /LucidaTypewriter f
+(write) 2322 5268 w
+10 /LucidaSansUnicode00 f
+(messages) 2739 5268 w
+(to) 3271 5268 w
+(access) 3427 5268 w
+(the) 3800 5268 w
+(contents) 4013 5268 w
+(of) 4488 5268 w
+(the) 4644 5268 w
+(file.) 4857 5268 w
+10 /LucidaTypewriter f
+(Create) 720 5388 w
+10 /LucidaSansUnicode00 f
+(and) 1184 5388 w
+10 /LucidaTypewriter f
+(remove) 1396 5388 w
+10 /LucidaSansUnicode00 f
+(perform the actions implied by their names on the file referenced) 1860 5388 w
+(by the channel.) 720 5508 w
+(The) 1527 5508 w
+10 /LucidaTypewriter f
+(clunk) 1740 5508 w
+10 /LucidaSansUnicode00 f
+(message discards a channel without affecting the file.) 2132 5508 w
+(A) 970 5664 w
+(kernel) 1084 5664 w
+(resident) 1431 5664 w
+(file) 1871 5664 w
+(server) 2067 5664 w
+(called) 2409 5664 w
+(the) 2737 5664 w
+10 /LucidaSans-Italic f
+(mount) 2937 5664 w
+(driver) 3294 5664 w
+10 /LucidaSansUnicode00 f
+(converts) 3632 5664 w
+(the) 4089 5664 w
+(procedural) 4290 5664 w
+(ver\255) 4858 5664 w
+(sion) 720 5784 w
+(of) 964 5784 w
+(9P) 1103 5784 w
+(into) 1262 5784 w
+(RPCs.) 1491 5784 w
+(The) 1833 5784 w
+10 /LucidaSans-Italic f
+(mount) 2054 5784 w
+10 /LucidaSansUnicode00 f
+(system) 2406 5784 w
+(call) 2786 5784 w
+(provides) 2990 5784 w
+(a) 3446 5784 w
+(file) 3541 5784 w
+(descriptor,) 3732 5784 w
+(which) 4297 5784 w
+(can) 4618 5784 w
+(be) 4826 5784 w
+(a) 4985 5784 w
+(pipe) 720 5904 w
+(to) 972 5904 w
+(a) 1111 5904 w
+(user) 1208 5904 w
+(process) 1460 5904 w
+(or) 1876 5904 w
+(a) 2020 5904 w
+(network) 2117 5904 w
+(connection) 2551 5904 w
+(to) 3125 5904 w
+(a) 3265 5904 w
+(remote) 3362 5904 w
+(machine,) 3748 5904 w
+(to) 4230 5904 w
+(be) 4370 5904 w
+(associated) 4531 5904 w
+(with) 720 6024 w
+(the) 962 6024 w
+(mount) 1154 6024 w
+(point.) 1506 6024 w
+(After) 1859 6024 w
+(a) 2135 6024 w
+(mount,) 2226 6024 w
+(operations) 2609 6024 w
+(on) 3161 6024 w
+(the) 3320 6024 w
+(file) 3511 6024 w
+(tree) 3698 6024 w
+(below) 3924 6024 w
+(the) 4246 6024 w
+(mount) 4437 6024 w
+(point) 4788 6024 w
+(are) 720 6144 w
+(sent) 912 6144 w
+(as) 1158 6144 w
+(messages) 1304 6144 w
+(to) 1819 6144 w
+(the) 1957 6144 w
+(file) 2152 6144 w
+(server.) 2343 6144 w
+(The) 2745 6144 w
+(mount) 2967 6144 w
+(driver) 3323 6144 w
+(manages) 3646 6144 w
+(buffers,) 4121 6144 w
+(packs) 4541 6144 w
+(and) 4860 6144 w
+(unpacks) 720 6264 w
+(parameters) 1160 6264 w
+(from) 1746 6264 w
+(messages,) 2016 6264 w
+(and) 2561 6264 w
+(demultiplexes) 2779 6264 w
+(among) 3502 6264 w
+(processes) 3873 6264 w
+(using) 4392 6264 w
+(the) 4696 6264 w
+(file) 4889 6264 w
+(server.) 720 6384 w
+10 /LucidaSans-Demi f
+(2.2.) 720 6624 w
+(Kernel Organization) 962 6624 w
+10 /LucidaSansUnicode00 f
+(The network code in the kernel is divided) 970 6780 w
+(into) 3014 6780 w
+(three) 3236 6780 w
+(layers:) 3521 6780 w
+(hardware) 3870 6780 w
+(interface,) 4353 6780 w
+(pro\255) 4842 6780 w
+(tocol) 720 6900 w
+(processing,) 999 6900 w
+(and) 1598 6900 w
+(program) 1818 6900 w
+(interface.) 2274 6900 w
+(A) 2802 6900 w
+(device) 2911 6900 w
+(driver) 3257 6900 w
+(typically) 3578 6900 w
+(uses) 4014 6900 w
+(streams) 4273 6900 w
+(to) 4696 6900 w
+(con\255) 4833 6900 w
+(nect) 720 7020 w
+(the) 962 7020 w
+(two) 1153 7020 w
+(interface) 1364 7020 w
+(layers.) 1824 7020 w
+(Additional) 2208 7020 w
+(stream) 2741 7020 w
+(modules) 3110 7020 w
+(may) 3561 7020 w
+(be) 3797 7020 w
+(pushed) 3952 7020 w
+(on) 4346 7020 w
+(a) 4506 7020 w
+(device) 4598 7020 w
+(to) 4942 7020 w
+(process) 720 7140 w
+(protocols.) 1144 7140 w
+(Each) 1712 7140 w
+(device) 1983 7140 w
+(driver) 2339 7140 w
+(is) 2670 7140 w
+(a) 2799 7140 w
+(kernel-resident) 2903 7140 w
+(file) 3707 7140 w
+(system.) 3907 7140 w
+(Simple) 4360 7140 w
+(device) 4733 7140 w
+(drivers) 720 7260 w
+(serve) 1119 7260 w
+(a) 1441 7260 w
+(single) 1562 7260 w
+(level) 1918 7260 w
+(directory) 2207 7260 w
+(containing) 2705 7260 w
+(just) 3282 7260 w
+(a) 3529 7260 w
+(few) 3651 7260 w
+(files;) 3888 7260 w
+(for) 4189 7260 w
+(example,) 4395 7260 w
+(we) 4907 7260 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 2 2
+%%Page: 3 3
+/saveobj save def
+mark
+3 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 3 \255) 2783 480 w
+(represent each UART by a data and a control file.) 720 840 w
+9 /LucidaTypewriter f
+(cpu%) 1008 1010 w
+(cd) 1333 1010 w
+(/dev) 1528 1010 w
+(cpu%) 1008 1120 w
+(ls) 1333 1120 w
+(-l) 1528 1120 w
+(eia*) 1723 1120 w
+(--rw-rw-rw-) 1008 1230 w
+(t) 1788 1230 w
+(0) 1918 1230 w
+(bootes) 2048 1230 w
+(bootes) 2503 1230 w
+(0) 2958 1230 w
+(Jul) 3088 1230 w
+(16) 3348 1230 w
+(17:28) 3543 1230 w
+(eia1) 3933 1230 w
+(--rw-rw-rw-) 1008 1340 w
+(t) 1788 1340 w
+(0) 1918 1340 w
+(bootes) 2048 1340 w
+(bootes) 2503 1340 w
+(0) 2958 1340 w
+(Jul) 3088 1340 w
+(16) 3348 1340 w
+(17:28) 3543 1340 w
+(eia1ctl) 3933 1340 w
+(--rw-rw-rw-) 1008 1450 w
+(t) 1788 1450 w
+(0) 1918 1450 w
+(bootes) 2048 1450 w
+(bootes) 2503 1450 w
+(0) 2958 1450 w
+(Jul) 3088 1450 w
+(16) 3348 1450 w
+(17:28) 3543 1450 w
+(eia2) 3933 1450 w
+(--rw-rw-rw-) 1008 1560 w
+(t) 1788 1560 w
+(0) 1918 1560 w
+(bootes) 2048 1560 w
+(bootes) 2503 1560 w
+(0) 2958 1560 w
+(Jul) 3088 1560 w
+(16) 3348 1560 w
+(17:28) 3543 1560 w
+(eia2ctl) 3933 1560 w
+(cpu%) 1008 1670 w
+10 /LucidaSansUnicode00 f
+(The) 720 1850 w
+(control) 990 1850 w
+(file) 1421 1850 w
+(is) 1662 1850 w
+(used) 1832 1850 w
+(to) 2154 1850 w
+(control) 2342 1850 w
+(the) 2774 1850 w
+(device;) 3019 1850 w
+(writing) 3448 1850 w
+(the) 3875 1850 w
+(string) 4120 1850 w
+10 /LucidaTypewriter f
+(b1200) 4492 1850 w
+10 /LucidaSansUnicode00 f
+(to) 4942 1850 w
+10 /LucidaTypewriter f
+(/dev/eia1ctl) 720 1970 w
+10 /LucidaSansUnicode00 f
+(sets the line to 1200 baud.) 1616 1970 w
+(Multiplexed) 970 2126 w
+(devices) 1578 2126 w
+(present) 1973 2126 w
+(a) 2376 2126 w
+(more) 2468 2126 w
+(complex) 2756 2126 w
+(interface) 3207 2126 w
+(structure.) 3668 2126 w
+(For) 4208 2126 w
+(example,) 4402 2126 w
+(the) 4885 2126 w
+(LANCE Ethernet driver serves a two level file tree \(Figure 1\) providing) 720 2246 w
+10 /LucidaSansUnicode22 f
+(\031) 720 2402 w
+10 /LucidaSansUnicode00 f
+(device control and configuration) 970 2402 w
+10 /LucidaSansUnicode22 f
+(\031) 720 2558 w
+10 /LucidaSansUnicode00 f
+(user-level protocols like ARP) 970 2558 w
+10 /LucidaSansUnicode22 f
+(\031) 720 2714 w
+10 /LucidaSansUnicode00 f
+(diagnostic interfaces for snooping software.) 970 2714 w
+(The) 720 2870 w
+(top) 938 2870 w
+(directory) 1136 2870 w
+(contains) 1604 2870 w
+(a) 2049 2870 w
+10 /LucidaTypewriter f
+(clone) 2141 2870 w
+10 /LucidaSansUnicode00 f
+(file) 2538 2870 w
+(and) 2726 2870 w
+(a) 2943 2870 w
+(directory) 3035 2870 w
+(for) 3503 2870 w
+(each) 3680 2870 w
+(connection,) 3942 2870 w
+(numbered) 4544 2870 w
+10 /LucidaTypewriter f
+(1) 720 2990 w
+10 /LucidaSansUnicode00 f
+(to) 827 2990 w
+10 /LucidaTypewriter f
+(n) 960 2990 w
+10 /LucidaSansUnicode00 f
+(.) 1032 2990 w
+(Each) 1131 2990 w
+(connection) 1388 2990 w
+(directory) 1955 2990 w
+(corresponds) 2421 2990 w
+(to) 3057 2990 w
+(an) 3189 2990 w
+(Ethernet) 3340 2990 w
+(packet) 3779 2990 w
+(type.) 4133 2990 w
+(Opening) 4439 2990 w
+(the) 4885 2990 w
+10 /LucidaTypewriter f
+(clone) 720 3110 w
+10 /LucidaSansUnicode00 f
+(file) 1123 3110 w
+(finds) 1317 3110 w
+(an) 1602 3110 w
+(unused) 1762 3110 w
+(connection) 2161 3110 w
+(directory) 2736 3110 w
+(and) 3210 3110 w
+(opens) 3434 3110 w
+(its) 3771 3110 w
+10 /LucidaTypewriter f
+(ctl) 3932 3110 w
+10 /LucidaSansUnicode00 f
+(file.) 4192 3110 w
+(Reading) 4451 3110 w
+(the) 4885 3110 w
+(control) 720 3230 w
+(file) 1100 3230 w
+(returns) 1289 3230 w
+(the) 1677 3230 w
+(ASCII) 1870 3230 w
+(connection) 2158 3230 w
+(number;) 2728 3230 w
+(the) 3174 3230 w
+(user) 3366 3230 w
+(process) 3613 3230 w
+(can) 4024 3230 w
+(use) 4229 3230 w
+(this) 4435 3230 w
+(value) 4651 3230 w
+(to) 4942 3230 w
+(construct) 720 3350 w
+(the) 1224 3350 w
+(name) 1430 3350 w
+(of) 1747 3350 w
+(the) 1896 3350 w
+(proper) 2102 3350 w
+(connection) 2478 3350 w
+(directory.) 3061 3350 w
+(In) 3607 3350 w
+(each) 3749 3350 w
+(connection) 4025 3350 w
+(directory) 4609 3350 w
+(files) 720 3470 w
+(named) 963 3470 w
+10 /LucidaTypewriter f
+(ctl) 1333 3470 w
+10 /LucidaSansUnicode00 f
+(,) 1549 3470 w
+10 /LucidaTypewriter f
+(data) 1622 3470 w
+10 /LucidaSansUnicode00 f
+(,) 1910 3470 w
+10 /LucidaTypewriter f
+(stats) 1983 3470 w
+10 /LucidaSansUnicode00 f
+(,) 2343 3470 w
+(and) 2416 3470 w
+10 /LucidaTypewriter f
+(type) 2637 3470 w
+10 /LucidaSansUnicode00 f
+(provide) 2965 3470 w
+(access) 3370 3470 w
+(to) 3725 3470 w
+(the) 3863 3470 w
+(connection.) 4058 3470 w
+(Writing) 4694 3470 w
+(the) 720 3590 w
+(string) 909 3590 w
+10 /LucidaTypewriter f
+(connect) 1225 3590 w
+(2048) 1803 3590 w
+10 /LucidaSansUnicode00 f
+(to) 2125 3590 w
+(the) 2257 3590 w
+10 /LucidaTypewriter f
+(ctl) 2446 3590 w
+10 /LucidaSansUnicode00 f
+(file) 2696 3590 w
+(sets) 2881 3590 w
+(the) 3110 3590 w
+(packet) 3299 3590 w
+(type) 3653 3590 w
+(to) 3895 3590 w
+(2048) 4027 3590 w
+(and) 4313 3590 w
+(configures) 4528 3590 w
+(the) 720 3710 w
+(connection) 919 3710 w
+(to) 1495 3710 w
+(receive) 1637 3710 w
+(all) 2022 3710 w
+(IP) 2179 3710 w
+(packets) 2307 3710 w
+(sent) 2722 3710 w
+(to) 2972 3710 w
+(the) 3113 3710 w
+(machine.) 3311 3710 w
+(Subsequent) 3826 3710 w
+(reads) 4435 3710 w
+(of) 4744 3710 w
+(the) 4885 3710 w
+(file) 720 3830 w
+10 /LucidaTypewriter f
+(type) 910 3830 w
+10 /LucidaSansUnicode00 f
+(yield) 1237 3830 w
+(the) 1505 3830 w
+(string) 1699 3830 w
+10 /LucidaTypewriter f
+(2048) 2020 3830 w
+10 /LucidaSansUnicode00 f
+(.) 2308 3830 w
+(The) 2411 3830 w
+10 /LucidaTypewriter f
+(data) 2632 3830 w
+10 /LucidaSansUnicode00 f
+(file) 2960 3830 w
+(accesses) 3151 3830 w
+(the) 3613 3830 w
+(media;) 3808 3830 w
+(reading) 4176 3830 w
+(it) 4584 3830 w
+(returns) 4690 3830 w
+(the) 720 3950 w
+(next) 916 3950 w
+(packet) 1173 3950 w
+(of) 1534 3950 w
+(the) 1673 3950 w
+(selected) 1869 3950 w
+(type.) 2309 3950 w
+(Writing) 2622 3950 w
+(the) 3008 3950 w
+(file) 3203 3950 w
+(queues) 3394 3950 w
+(a) 3784 3950 w
+(packet) 3879 3950 w
+(for) 4239 3950 w
+(transmission) 4418 3950 w
+(after) 720 4070 w
+(appending) 991 4070 w
+(a) 1552 4070 w
+(packet) 1653 4070 w
+(header) 2019 4070 w
+(containing) 2398 4070 w
+(the) 2954 4070 w
+(source) 3155 4070 w
+(address) 3523 4070 w
+(and) 3949 4070 w
+(packet) 4175 4070 w
+(type.) 4541 4070 w
+(The) 4859 4070 w
+10 /LucidaTypewriter f
+(stats) 720 4190 w
+10 /LucidaSansUnicode00 f
+(file) 1137 4190 w
+(returns) 1345 4190 w
+(ASCII) 1752 4190 w
+(text) 2059 4190 w
+(containing) 2307 4190 w
+(the) 2874 4190 w
+(interface) 3086 4190 w
+(address,) 3567 4190 w
+(packet) 4036 4190 w
+(input/output) 4412 4190 w
+(counts, error statistics, and general information about the state of the interface.) 720 4310 w
+10 /LucidaTypewriter f
+(ctl) 2685 5600 w
+(data) 2275 5600 w
+(ctl) 1879 5600 w
+4175 5163 4347 5451 Dl
+4060 5163 3888 5451 Dl
+(. . .) 3391 5082 w
+(clone) 1375 5111 w
+(ether) 2469 4564 w
+2735 4644 4117 4932 Dl
+2678 4644 3023 4932 Dl
+2620 4644 2217 4932 Dl
+2563 4644 1584 4932 Dl
+10 /LucidaSans-Italic f
+(n) 4087 5111 w
+10 /LucidaTypewriter f
+(2) 3016 5111 w
+(1) 2181 5111 w
+3081 5163 3253 5451 Dl
+2966 5163 2794 5451 Dl
+2275 5163 2447 5451 Dl
+2159 5163 1987 5451 Dl
+(data) 4204 5600 w
+(ctl) 3779 5600 w
+(data) 3110 5600 w
+10 /LucidaSansUnicode00 f
+(If) 970 5814 w
+(several) 1079 5814 w
+(connections) 1462 5814 w
+(on) 2088 5814 w
+(an) 2254 5814 w
+(interface) 2415 5814 w
+(are) 2883 5814 w
+(configured) 3079 5814 w
+(for) 3647 5814 w
+(a) 3830 5814 w
+(particular) 3929 5814 w
+(packet) 4436 5814 w
+(type,) 4800 5814 w
+(each) 720 5934 w
+(receives) 991 5934 w
+(a) 1430 5934 w
+(copy) 1532 5934 w
+(of) 1806 5934 w
+(the) 1951 5934 w
+(incoming) 2153 5934 w
+(packets.) 2649 5934 w
+(The) 3131 5934 w
+(special) 3359 5934 w
+(packet) 3740 5934 w
+(type) 4106 5934 w
+10 /LucidaTypewriter f
+(-1) 4360 5934 w
+10 /LucidaSansUnicode00 f
+(selects) 4550 5934 w
+(all) 4927 5934 w
+(packets.) 720 6054 w
+(Writing) 1194 6054 w
+(the) 1579 6054 w
+(strings) 1773 6054 w
+10 /LucidaTypewriter f
+(promiscuous) 2145 6054 w
+10 /LucidaSansUnicode00 f
+(and) 2977 6054 w
+10 /LucidaTypewriter f
+(connect) 3197 6054 w
+(-1) 3741 6054 w
+10 /LucidaSansUnicode00 f
+(to) 3925 6054 w
+(the) 4063 6054 w
+10 /LucidaTypewriter f
+(ctl) 4258 6054 w
+10 /LucidaSansUnicode00 f
+(file) 4514 6054 w
+(config\255) 4705 6054 w
+(ures a conversation to receive all packets on the Ethernet.) 720 6174 w
+(Although) 970 6330 w
+(the) 1447 6330 w
+(driver) 1635 6330 w
+(interface) 1950 6330 w
+(may) 2407 6330 w
+(seem) 2640 6330 w
+(elaborate,) 2929 6330 w
+(the) 3447 6330 w
+(representation) 3635 6330 w
+(of) 4375 6330 w
+(a) 4506 6330 w
+(device) 4594 6330 w
+(as) 4934 6330 w
+(a) 720 6450 w
+(set) 809 6450 w
+(of) 987 6450 w
+(files) 1119 6450 w
+(using) 1355 6450 w
+(ASCII) 1655 6450 w
+(strings) 1938 6450 w
+(for) 2304 6450 w
+(communication) 2476 6450 w
+(has) 3255 6450 w
+(several) 3456 6450 w
+(advantages.) 3829 6450 w
+(Any) 4474 6450 w
+(mecha\255) 4690 6450 w
+(nism) 720 6570 w
+(supporting) 990 6570 w
+(remote) 1556 6570 w
+(access) 1935 6570 w
+(to) 2285 6570 w
+(files) 2418 6570 w
+(immediately) 2656 6570 w
+(allows) 3284 6570 w
+(a) 3622 6570 w
+(remote) 3713 6570 w
+(machine) 4093 6570 w
+(to) 4537 6570 w
+(use) 4671 6570 w
+(our) 4876 6570 w
+(interfaces) 720 6690 w
+(as) 1243 6690 w
+(gateways.) 1397 6690 w
+(Using) 1954 6690 w
+(ASCII) 2275 6690 w
+(strings) 2573 6690 w
+(to) 2954 6690 w
+(control) 3100 6690 w
+(the) 3490 6690 w
+(interface) 3693 6690 w
+(avoids) 4165 6690 w
+(byte) 4523 6690 w
+(order) 4778 6690 w
+(problems) 720 6810 w
+(and) 1221 6810 w
+(ensures) 1446 6810 w
+(a) 1870 6810 w
+(uniform) 1970 6810 w
+(representation) 2400 6810 w
+(for) 3152 6810 w
+(devices) 3336 6810 w
+(on) 3739 6810 w
+(the) 3907 6810 w
+(same) 4107 6810 w
+(machine) 4407 6810 w
+(and) 4860 6810 w
+(even) 720 6930 w
+(allows) 997 6930 w
+(devices) 1350 6930 w
+(to) 1759 6930 w
+(be) 1908 6930 w
+(accessed) 2078 6930 w
+(remotely.) 2563 6930 w
+(Representing) 3103 6930 w
+(dissimilar) 3792 6930 w
+(devices) 4312 6930 w
+(by) 4720 6930 w
+(the) 4885 6930 w
+(same set of files allows common tools to) 720 7050 w
+(serve) 2736 7050 w
+(several) 3025 7050 w
+(networks) 3398 7050 w
+(or) 3874 7050 w
+(interfaces.) 4009 7050 w
+(Programs) 4581 7050 w
+(like) 720 7170 w
+10 /LucidaTypewriter f
+(stty) 924 7170 w
+10 /LucidaSansUnicode00 f
+(are replaced by) 1244 7170 w
+10 /LucidaTypewriter f
+(echo) 2021 7170 w
+10 /LucidaSansUnicode00 f
+(and shell redirection.) 2341 7170 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 3 3
+%%Page: 4 4
+/saveobj save def
+mark
+4 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 4 \255) 2783 480 w
+10 /LucidaSans-Demi f
+(2.3.) 720 840 w
+(Protocol devices) 962 840 w
+10 /LucidaSansUnicode00 f
+(Network) 970 996 w
+(connections) 1423 996 w
+(are) 2055 996 w
+(represented) 2256 996 w
+(as) 2887 996 w
+(pseudo-devices) 3042 996 w
+(called) 3863 996 w
+(protocol) 4196 996 w
+(devices.) 4650 996 w
+(Protocol) 720 1116 w
+(device) 1154 1116 w
+(drivers) 1499 1116 w
+(exist) 1870 1116 w
+(for) 2142 1116 w
+(the) 2318 1116 w
+(Datakit) 2510 1116 w
+(URP) 2893 1116 w
+(protocol) 3117 1116 w
+(and) 3558 1116 w
+(for) 3775 1116 w
+(each) 3951 1116 w
+(of) 4212 1116 w
+(the) 4347 1116 w
+(Internet) 4539 1116 w
+(IP) 4956 1116 w
+(protocols) 720 1236 w
+(TCP,) 1211 1236 w
+(UDP,) 1466 1236 w
+(and) 1733 1236 w
+(IL.) 1949 1236 w
+(IL,) 2131 1236 w
+(described) 2281 1236 w
+(below,) 2790 1236 w
+(is) 3144 1236 w
+(a) 3260 1236 w
+(new) 3352 1236 w
+(communication) 3584 1236 w
+(protocol) 4367 1236 w
+(used) 4808 1236 w
+(by) 720 1356 w
+(Plan) 875 1356 w
+(9) 1116 1356 w
+(for) 1219 1356 w
+(transmitting) 1398 1356 w
+(file) 2033 1356 w
+(system) 2223 1356 w
+(RPC) 2602 1356 w
+10 /LucidaSansUnicode20 f
+(\031) 2789 1356 w
+10 /LucidaSansUnicode00 f
+(s.) 2821 1356 w
+(All) 2975 1356 w
+(protocol) 3141 1356 w
+(devices) 3584 1356 w
+(look) 3981 1356 w
+(identical) 4229 1356 w
+(so) 4679 1356 w
+(user) 4830 1356 w
+(programs contain no network-specific code.) 720 1476 w
+(Each) 970 1632 w
+(protocol) 1228 1632 w
+(device) 1668 1632 w
+(driver) 2011 1632 w
+(serves) 2329 1632 w
+(a) 2672 1632 w
+(directory) 2763 1632 w
+(structure) 3230 1632 w
+(similar) 3704 1632 w
+(to) 4067 1632 w
+(that) 4202 1632 w
+(of) 4430 1632 w
+(the) 4565 1632 w
+(Ether\255) 4757 1632 w
+(net) 720 1752 w
+(driver.) 912 1752 w
+(The) 1295 1752 w
+(top) 1513 1752 w
+(directory) 1711 1752 w
+(contains) 2179 1752 w
+(a) 2624 1752 w
+10 /LucidaTypewriter f
+(clone) 2716 1752 w
+10 /LucidaSansUnicode00 f
+(file) 3112 1752 w
+(and) 3299 1752 w
+(a) 3515 1752 w
+(directory) 3606 1752 w
+(for) 4073 1752 w
+(each) 4248 1752 w
+(connection) 4508 1752 w
+(numbered) 720 1872 w
+10 /LucidaTypewriter f
+(0) 1263 1872 w
+10 /LucidaSansUnicode00 f
+(to) 1382 1872 w
+10 /LucidaTypewriter f
+(n) 1527 1872 w
+10 /LucidaSansUnicode00 f
+(.) 1599 1872 w
+(Each) 1710 1872 w
+(connection) 1980 1872 w
+(directory) 2560 1872 w
+(contains) 3039 1872 w
+(files) 3495 1872 w
+(to) 3745 1872 w
+(control) 3891 1872 w
+(one) 4281 1872 w
+(connection) 4508 1872 w
+(and to send and receive information.) 720 1992 w
+(A TCP connection directory looks like this:) 2574 1992 w
+9 /LucidaTypewriter f
+(cpu%) 1008 2162 w
+(cd) 1333 2162 w
+(/net/tcp/2) 1528 2162 w
+(cpu%) 1008 2272 w
+(ls) 1333 2272 w
+(-l) 1528 2272 w
+(--rw-rw----) 1008 2382 w
+(I) 1788 2382 w
+(0) 1918 2382 w
+(ehg) 2048 2382 w
+(bootes) 2503 2382 w
+(0) 2958 2382 w
+(Jul) 3088 2382 w
+(13) 3348 2382 w
+(21:14) 3543 2382 w
+(ctl) 3933 2382 w
+(--rw-rw----) 1008 2492 w
+(I) 1788 2492 w
+(0) 1918 2492 w
+(ehg) 2048 2492 w
+(bootes) 2503 2492 w
+(0) 2958 2492 w
+(Jul) 3088 2492 w
+(13) 3348 2492 w
+(21:14) 3543 2492 w
+(data) 3933 2492 w
+(--rw-rw----) 1008 2602 w
+(I) 1788 2602 w
+(0) 1918 2602 w
+(ehg) 2048 2602 w
+(bootes) 2503 2602 w
+(0) 2958 2602 w
+(Jul) 3088 2602 w
+(13) 3348 2602 w
+(21:14) 3543 2602 w
+(listen) 3933 2602 w
+(--r--r--r--) 1008 2712 w
+(I) 1788 2712 w
+(0) 1918 2712 w
+(bootes) 2048 2712 w
+(bootes) 2503 2712 w
+(0) 2958 2712 w
+(Jul) 3088 2712 w
+(13) 3348 2712 w
+(21:14) 3543 2712 w
+(local) 3933 2712 w
+(--r--r--r--) 1008 2822 w
+(I) 1788 2822 w
+(0) 1918 2822 w
+(bootes) 2048 2822 w
+(bootes) 2503 2822 w
+(0) 2958 2822 w
+(Jul) 3088 2822 w
+(13) 3348 2822 w
+(21:14) 3543 2822 w
+(remote) 3933 2822 w
+(--r--r--r--) 1008 2932 w
+(I) 1788 2932 w
+(0) 1918 2932 w
+(bootes) 2048 2932 w
+(bootes) 2503 2932 w
+(0) 2958 2932 w
+(Jul) 3088 2932 w
+(13) 3348 2932 w
+(21:14) 3543 2932 w
+(status) 3933 2932 w
+(cpu%) 1008 3042 w
+(cat) 1333 3042 w
+(local) 1593 3042 w
+(remote) 1983 3042 w
+(status) 2438 3042 w
+(135.104.9.31) 1008 3152 w
+(5012) 1853 3152 w
+(135.104.53.11) 1008 3262 w
+(564) 1918 3262 w
+(tcp/2) 1008 3372 w
+(1) 1398 3372 w
+(Established) 1528 3372 w
+(connect) 2308 3372 w
+(cpu%) 1008 3482 w
+10 /LucidaSansUnicode00 f
+(The) 720 3662 w
+(files) 935 3662 w
+10 /LucidaTypewriter f
+(local) 1171 3662 w
+10 /LucidaSansUnicode00 f
+(,) 1531 3662 w
+10 /LucidaTypewriter f
+(remote) 1598 3662 w
+10 /LucidaSansUnicode00 f
+(,) 2030 3662 w
+(and) 2097 3662 w
+10 /LucidaTypewriter f
+(status) 2312 3662 w
+10 /LucidaSansUnicode00 f
+(supply) 2779 3662 w
+(information) 3134 3662 w
+(about) 3736 3662 w
+(the) 4049 3662 w
+(state) 4239 3662 w
+(of) 4510 3662 w
+(the) 4643 3662 w
+(con\255) 4833 3662 w
+(nection.) 720 3782 w
+(The) 1197 3782 w
+10 /LucidaTypewriter f
+(data) 1432 3782 w
+10 /LucidaSansUnicode00 f
+(and) 1774 3782 w
+10 /LucidaTypewriter f
+(ctl) 2008 3782 w
+10 /LucidaSansUnicode00 f
+(files) 2278 3782 w
+(provide) 2534 3782 w
+(access) 2953 3782 w
+(to) 3322 3782 w
+(the) 3474 3782 w
+(process) 3683 3782 w
+(end) 4111 3782 w
+(of) 4346 3782 w
+(the) 4498 3782 w
+(stream) 4707 3782 w
+(implementing) 720 3902 w
+(the) 1428 3902 w
+(protocol.) 1620 3902 w
+(The) 2125 3902 w
+10 /LucidaTypewriter f
+(listen) 2343 3902 w
+10 /LucidaSansUnicode00 f
+(file) 2812 3902 w
+(is) 3000 3902 w
+(used) 3118 3902 w
+(to) 3388 3902 w
+(accept) 3524 3902 w
+(incoming) 3875 3902 w
+(calls) 4362 3902 w
+(from) 4615 3902 w
+(the) 4885 3902 w
+(network.) 720 4022 w
+(The following steps establish a connection.) 970 4178 w
+(1\)) 720 4334 w
+(The) 970 4334 w
+(clone) 1206 4334 w
+(device) 1520 4334 w
+(of) 1882 4334 w
+(the) 2035 4334 w
+(appropriate) 2245 4334 w
+(protocol) 2864 4334 w
+(directory) 3323 4334 w
+(is) 3809 4334 w
+(opened) 3944 4334 w
+(to) 4360 4334 w
+(reserve) 4514 4334 w
+(an) 4923 4334 w
+(unused connection.) 970 4454 w
+(2\)) 720 4610 w
+(The) 970 4610 w
+(file) 1188 4610 w
+(descriptor) 1376 4610 w
+(returned) 1907 4610 w
+(by) 2363 4610 w
+(the) 2516 4610 w
+(open) 2709 4610 w
+(points) 2989 4610 w
+(to) 3330 4610 w
+(the) 3466 4610 w
+10 /LucidaTypewriter f
+(ctl) 3659 4610 w
+10 /LucidaSansUnicode00 f
+(file) 3913 4610 w
+(of) 4102 4610 w
+(the) 4238 4610 w
+(new) 4431 4610 w
+(connec\255) 4664 4610 w
+(tion.) 970 4730 w
+(Reading) 1259 4730 w
+(that) 1685 4730 w
+(file) 1912 4730 w
+(descriptor) 2099 4730 w
+(returns) 2628 4730 w
+(an) 3014 4730 w
+(ASCII) 3167 4730 w
+(string) 3453 4730 w
+(containing) 3771 4730 w
+(the) 4317 4730 w
+(connection) 4508 4730 w
+(number.) 970 4850 w
+(3\)) 720 5006 w
+(A protocol/network specific ASCII address string is written to the) 970 5006 w
+10 /LucidaTypewriter f
+(ctl) 4159 5006 w
+10 /LucidaSansUnicode00 f
+(file.) 4407 5006 w
+(4\)) 720 5162 w
+(The) 970 5162 w
+(path) 1190 5162 w
+(of) 1446 5162 w
+(the) 1583 5162 w
+10 /LucidaTypewriter f
+(data) 1777 5162 w
+10 /LucidaSansUnicode00 f
+(file) 2104 5162 w
+(is) 2294 5162 w
+(constructed) 2413 5162 w
+(using) 3025 5162 w
+(the) 3331 5162 w
+(connection) 3526 5162 w
+(number.) 4098 5162 w
+(When) 4579 5162 w
+(the) 4885 5162 w
+10 /LucidaTypewriter f
+(data) 970 5282 w
+10 /LucidaSansUnicode00 f
+(file is opened the connection is established.) 1290 5282 w
+(A) 720 5438 w
+(process) 824 5438 w
+(can) 1233 5438 w
+(read) 1437 5438 w
+(and) 1688 5438 w
+(write) 1904 5438 w
+(this) 2180 5438 w
+(file) 2395 5438 w
+(descriptor) 2582 5438 w
+(to) 3111 5438 w
+(send) 3245 5438 w
+(and) 3513 5438 w
+(receive) 3729 5438 w
+(messages) 4106 5438 w
+(from) 4617 5438 w
+(the) 4885 5438 w
+(network.) 720 5558 w
+(If) 1236 5558 w
+(the) 1362 5558 w
+(process) 1577 5558 w
+(opens) 2011 5558 w
+(the) 2363 5558 w
+10 /LucidaTypewriter f
+(listen) 2577 5558 w
+10 /LucidaSansUnicode00 f
+(file) 3068 5558 w
+(it) 3278 5558 w
+(blocks) 3403 5558 w
+(until) 3775 5558 w
+(an) 4053 5558 w
+(incoming) 4229 5558 w
+(call) 4737 5558 w
+(is) 4960 5558 w
+(received.) 720 5678 w
+(An) 1223 5678 w
+(address) 1389 5678 w
+(string) 1804 5678 w
+(written) 2121 5678 w
+(to) 2495 5678 w
+(the) 2628 5678 w
+10 /LucidaTypewriter f
+(ctl) 2818 5678 w
+10 /LucidaSansUnicode00 f
+(file) 3069 5678 w
+(before) 3255 5678 w
+(the) 3604 5678 w
+(listen) 3794 5678 w
+(selects) 4093 5678 w
+(the) 4459 5678 w
+(ports) 4649 5678 w
+(or) 4938 5678 w
+(services) 720 5798 w
+(the) 1143 5798 w
+(process) 1334 5798 w
+(is) 1744 5798 w
+(prepared) 1860 5798 w
+(to) 2334 5798 w
+(accept.) 2468 5798 w
+(When) 2881 5798 w
+(an) 3183 5798 w
+(incoming) 3336 5798 w
+(call) 3821 5798 w
+(is) 4021 5798 w
+(received,) 4137 5798 w
+(the) 4608 5798 w
+(open) 4798 5798 w
+(completes) 720 5918 w
+(and) 1256 5918 w
+(returns) 1475 5918 w
+(a) 1864 5918 w
+(file) 1959 5918 w
+(descriptor) 2150 5918 w
+(pointing) 2683 5918 w
+(to) 3128 5918 w
+(the) 3266 5918 w
+10 /LucidaTypewriter f
+(ctl) 3461 5918 w
+10 /LucidaSansUnicode00 f
+(file) 3717 5918 w
+(of) 3908 5918 w
+(the) 4046 5918 w
+(new) 4241 5918 w
+(connection.) 4476 5918 w
+(Reading) 720 6038 w
+(the) 1164 6038 w
+10 /LucidaTypewriter f
+(ctl) 1373 6038 w
+10 /LucidaSansUnicode00 f
+(file) 1643 6038 w
+(yields) 1848 6038 w
+(a) 2182 6038 w
+(connection) 2291 6038 w
+(number) 2877 6038 w
+(used) 3308 6038 w
+(to) 3594 6038 w
+(construct) 3746 6038 w
+(the) 4253 6038 w
+(path) 4462 6038 w
+(of) 4733 6038 w
+(the) 4885 6038 w
+10 /LucidaTypewriter f
+(data) 720 6158 w
+10 /LucidaSansUnicode00 f
+(file.) 1055 6158 w
+(A) 1317 6158 w
+(connection) 1434 6158 w
+(remains) 2014 6158 w
+(established) 2449 6158 w
+(while) 3049 6158 w
+(any) 3350 6158 w
+(of) 3567 6158 w
+(the) 3713 6158 w
+(files) 3916 6158 w
+(in) 4166 6158 w
+(the) 4305 6158 w
+(connection) 4508 6158 w
+(directory are referenced or until a close is received from the network.) 720 6278 w
+10 /LucidaSans-Demi f
+(2.4.) 720 6518 w
+(Streams) 962 6518 w
+10 /LucidaSansUnicode00 f
+(A) 970 6674 w
+10 /LucidaSans-Italic f
+(stream) 1100 6674 w
+10 /LucidaSansUnicode00 f
+([Rit84a][Presotto]) 1504 6674 w
+(is) 2407 6674 w
+(a) 2549 6674 w
+(bidirectional) 2666 6674 w
+(channel) 3333 6674 w
+(connecting) 3772 6674 w
+(a) 4367 6674 w
+(physical) 4484 6674 w
+(or) 4938 6674 w
+(pseudo-device) 720 6794 w
+(to) 1490 6794 w
+(user) 1637 6794 w
+(processes.) 1895 6794 w
+(The) 2488 6794 w
+(user) 2717 6794 w
+(processes) 2975 6794 w
+(insert) 3504 6794 w
+(and) 3828 6794 w
+(remove) 4056 6794 w
+(data) 4463 6794 w
+(at) 4721 6794 w
+(one) 4861 6794 w
+(end) 720 6914 w
+(of) 934 6914 w
+(the) 1065 6914 w
+(stream.) 1253 6914 w
+(Kernel) 1683 6914 w
+(processes) 2025 6914 w
+(acting) 2539 6914 w
+(on) 2868 6914 w
+(behalf) 3024 6914 w
+(of) 3359 6914 w
+(a) 3490 6914 w
+(device) 3578 6914 w
+(insert) 3918 6914 w
+(data) 4227 6914 w
+(at) 4470 6914 w
+(the) 4595 6914 w
+(other) 4783 6914 w
+(end.) 720 7034 w
+(Asynchronous) 999 7034 w
+(communications) 1718 7034 w
+(channels) 2549 7034 w
+(such) 3011 7034 w
+(as) 3271 7034 w
+(pipes,) 3411 7034 w
+(TCP) 3739 7034 w
+(conversations,) 3960 7034 w
+(Datakit) 4694 7034 w
+(conversations, and RS232 lines are implemented using streams.) 720 7154 w
+(A) 970 7310 w
+(stream) 1079 7310 w
+(comprises) 1452 7310 w
+(a) 1988 7310 w
+(linear) 2083 7310 w
+(list) 2395 7310 w
+(of) 2581 7310 w
+10 /LucidaSans-Italic f
+(processing) 2719 7310 w
+(modules) 3278 7310 w
+10 /LucidaSansUnicode00 f
+(.) 3682 7310 w
+(Each) 3786 7310 w
+(module) 4048 7310 w
+(has) 4452 7310 w
+(both) 4660 7310 w
+(an) 4923 7310 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 4 4
+%%Page: 5 5
+/saveobj save def
+mark
+5 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 5 \255) 2783 480 w
+(upstream) 720 840 w
+(\(toward) 1214 840 w
+(the) 1616 840 w
+(process\)) 1806 840 w
+(and) 2248 840 w
+(downstream) 2463 840 w
+(\(toward) 3094 840 w
+(the) 3496 840 w
+(device\)) 3686 840 w
+10 /LucidaSans-Italic f
+(put) 4061 840 w
+(routine) 4257 840 w
+10 /LucidaSansUnicode00 f
+(.) 4606 840 w
+(Calling) 4705 840 w
+(the) 720 960 w
+(put) 913 960 w
+(routine) 1113 960 w
+(of) 1499 960 w
+(the) 1636 960 w
+(module) 1830 960 w
+(on) 2233 960 w
+(either) 2395 960 w
+(end) 2715 960 w
+(of) 2935 960 w
+(the) 3072 960 w
+(stream) 3266 960 w
+(inserts) 3638 960 w
+(data) 4004 960 w
+(into) 4253 960 w
+(the) 4481 960 w
+(stream.) 4675 960 w
+(Each module calls the succeeding one to send data up or down the stream.) 720 1080 w
+(An) 970 1236 w
+(instance) 1149 1236 w
+(of) 1600 1236 w
+(a) 1747 1236 w
+(processing) 1851 1236 w
+(module) 2427 1236 w
+(is) 2840 1236 w
+(represented) 2969 1236 w
+(by) 3600 1236 w
+(a) 3764 1236 w
+(pair) 3868 1236 w
+(of) 4105 1236 w
+10 /LucidaSans-Italic f
+(queues) 4252 1236 w
+10 /LucidaSansUnicode00 f
+(,) 4592 1236 w
+(one) 4673 1236 w
+(for) 4901 1236 w
+(each) 720 1356 w
+(direction.) 978 1356 w
+(The) 1505 1356 w
+(queues) 1720 1356 w
+(point) 2104 1356 w
+(to) 2390 1356 w
+(the) 2522 1356 w
+(put) 2710 1356 w
+(procedures) 2905 1356 w
+(and) 3483 1356 w
+(can) 3696 1356 w
+(be) 3897 1356 w
+(used) 4049 1356 w
+(to) 4314 1356 w
+(queue) 4445 1356 w
+(infor\255) 4777 1356 w
+(mation) 720 1476 w
+(traveling) 1104 1476 w
+(along) 1574 1476 w
+(the) 1890 1476 w
+(stream.) 2093 1476 w
+(Some) 2538 1476 w
+(put) 2850 1476 w
+(routines) 3060 1476 w
+(queue) 3507 1476 w
+(data) 3854 1476 w
+(locally) 4112 1476 w
+(and) 4466 1476 w
+(send) 4694 1476 w
+(it) 4974 1476 w
+(along) 720 1596 w
+(the) 1024 1596 w
+(stream) 1214 1596 w
+(at) 1582 1596 w
+(some) 1708 1596 w
+(later) 2003 1596 w
+(time,) 2255 1596 w
+(either) 2536 1596 w
+(due) 2851 1596 w
+(to) 3066 1596 w
+(a) 3198 1596 w
+(subsequent) 3287 1596 w
+(call) 3884 1596 w
+(or) 4082 1596 w
+(an) 4218 1596 w
+(asynchronous) 4369 1596 w
+(event) 720 1716 w
+(such) 1025 1716 w
+(as) 1293 1716 w
+(a) 1441 1716 w
+(retransmission) 1538 1716 w
+(timer) 2299 1716 w
+(or) 2597 1716 w
+(a) 2741 1716 w
+(device) 2839 1716 w
+(interrupt.) 3189 1716 w
+(Processing) 3724 1716 w
+(modules) 4286 1716 w
+(create) 4744 1716 w
+(helper) 720 1836 w
+(kernel) 1080 1836 w
+(processes) 1435 1836 w
+(to) 1969 1836 w
+(provide) 2120 1836 w
+(a) 2538 1836 w
+(context) 2646 1836 w
+(for) 3064 1836 w
+(handling) 3255 1836 w
+(asynchronous) 3731 1836 w
+(events.) 4454 1836 w
+(For) 4884 1836 w
+(example,) 720 1956 w
+(a) 1214 1956 w
+(helper) 1318 1956 w
+(kernel) 1674 1956 w
+(process) 2025 1956 w
+(awakens) 2448 1956 w
+(periodically) 2911 1956 w
+(to) 3519 1956 w
+(perform) 3667 1956 w
+(any) 4109 1956 w
+(necessary) 4328 1956 w
+(TCP) 4853 1956 w
+(retransmissions.) 720 2076 w
+(The) 1601 2076 w
+(use) 1829 2076 w
+(of) 2045 2076 w
+(kernel) 2189 2076 w
+(processes) 2537 2076 w
+(instead) 3064 2076 w
+(of) 3463 2076 w
+(serialized) 3607 2076 w
+(run-to-completion) 4119 2076 w
+(service) 720 2196 w
+(routines) 1092 2196 w
+(differs) 1527 2196 w
+(from) 1877 2196 w
+(the) 2145 2196 w
+(implementation) 2336 2196 w
+(of) 3134 2196 w
+(Unix) 3268 2196 w
+(streams.) 3525 2196 w
+(Unix) 4010 2196 w
+(service) 4268 2196 w
+(routines) 4641 2196 w
+(cannot) 720 2316 w
+(use) 1090 2316 w
+(any) 1301 2316 w
+(blocking) 1512 2316 w
+(kernel) 1969 2316 w
+(resource) 2313 2316 w
+(and) 2773 2316 w
+(they) 2994 2316 w
+(lack) 3242 2316 w
+(a) 3476 2316 w
+(local) 3572 2316 w
+(long-lived) 3838 2316 w
+(state.) 4380 2316 w
+(Helper) 4721 2316 w
+(kernel processes solve these problems and simplify the stream code.) 720 2436 w
+(There) 970 2592 w
+(is) 1284 2592 w
+(no) 1400 2592 w
+(implicit) 1559 2592 w
+(synchronization) 1955 2592 w
+(in) 2763 2592 w
+(our) 2890 2592 w
+(streams.) 3090 2592 w
+(Each) 3574 2592 w
+(processing) 3832 2592 w
+(module) 4396 2592 w
+(must) 4797 2592 w
+(ensure) 720 2712 w
+(that) 1093 2712 w
+(concurrent) 1329 2712 w
+(processes) 1898 2712 w
+(using) 2424 2712 w
+(the) 2735 2712 w
+(stream) 2935 2712 w
+(are) 3313 2712 w
+(synchronized.) 3510 2712 w
+(This) 4266 2712 w
+(maximizes) 4516 2712 w
+(concurrency) 720 2832 w
+(but) 1354 2832 w
+(introduces) 1560 2832 w
+(the) 2118 2832 w
+(possibility) 2318 2832 w
+(of) 2857 2832 w
+(deadlock.) 3000 2832 w
+(However,) 3545 2832 w
+(deadlocks) 4039 2832 w
+(are) 4571 2832 w
+(easily) 4768 2832 w
+(avoided by careful programming; to date they have not caused us problems.) 720 2952 w
+(Information) 970 3108 w
+(is) 1579 3108 w
+(represented) 1701 3108 w
+(by) 2325 3108 w
+(linked) 2483 3108 w
+(lists) 2823 3108 w
+(of) 3063 3108 w
+(kernel) 3204 3108 w
+(structures) 3549 3108 w
+(called) 4081 3108 w
+10 /LucidaSans-Italic f
+(blocks) 4407 3108 w
+10 /LucidaSansUnicode00 f
+(.) 4711 3108 w
+(Each) 4818 3108 w
+(block) 720 3228 w
+(contains) 1043 3228 w
+(a) 1512 3228 w
+(type,) 1628 3228 w
+(some) 1928 3228 w
+(state) 2249 3228 w
+(flags,) 2545 3228 w
+(and) 2871 3228 w
+(pointers) 3111 3228 w
+(to) 3571 3228 w
+(an) 3729 3228 w
+(optional) 3906 3228 w
+(buffer.) 4363 3228 w
+(Block) 4783 3228 w
+(buffers) 720 3348 w
+(can) 1119 3348 w
+(hold) 1339 3348 w
+(either) 1606 3348 w
+(data) 1939 3348 w
+(or) 2201 3348 w
+(control) 2355 3348 w
+(information,) 2750 3348 w
+(i.e.,) 3402 3348 w
+(directives) 3636 3348 w
+(to) 4154 3348 w
+(the) 4305 3348 w
+(processing) 4513 3348 w
+(modules.) 720 3468 w
+(Blocks and block buffers are dynamically allocated from kernel memory.) 1231 3468 w
+10 /LucidaSans-Demi f
+(2.4.1.) 720 3708 w
+(User Interface) 1051 3708 w
+10 /LucidaSansUnicode00 f
+(A) 970 3864 w
+(stream) 1092 3864 w
+(is) 1478 3864 w
+(represented) 1611 3864 w
+(at) 2246 3864 w
+(user) 2391 3864 w
+(level) 2654 3864 w
+(as) 2929 3864 w
+(two) 3089 3864 w
+(files,) 3318 3864 w
+10 /LucidaTypewriter f
+(ctl) 3606 3864 w
+10 /LucidaSansUnicode00 f
+(and) 3876 3864 w
+10 /LucidaTypewriter f
+(data) 4110 3864 w
+10 /LucidaSansUnicode00 f
+(.) 4398 3864 w
+(The) 4516 3864 w
+(actual) 4751 3864 w
+(names) 720 3984 w
+(can) 1080 3984 w
+(be) 1291 3984 w
+(changed) 1453 3984 w
+(by) 1907 3984 w
+(the) 2065 3984 w
+(device) 2263 3984 w
+(driver) 2613 3984 w
+(using) 2938 3984 w
+(the) 3247 3984 w
+(stream,) 3445 3984 w
+(as) 3853 3984 w
+(we) 4002 3984 w
+(saw) 4178 3984 w
+(earlier) 4403 3984 w
+(in) 4752 3984 w
+(the) 4885 3984 w
+(example) 720 4104 w
+(of) 1182 4104 w
+(the) 1329 4104 w
+(UART) 1533 4104 w
+(driver.) 1846 4104 w
+(The) 2241 4104 w
+(first) 2471 4104 w
+(process) 2715 4104 w
+(to) 3138 4104 w
+(open) 3285 4104 w
+(either) 3576 4104 w
+(file) 3906 4104 w
+(creates) 4106 4104 w
+(the) 4502 4104 w
+(stream) 4707 4104 w
+(automatically.) 720 4224 w
+(The) 1470 4224 w
+(last) 1692 4224 w
+(close) 1905 4224 w
+(destroys) 2194 4224 w
+(it.) 2647 4224 w
+(Writing) 2817 4224 w
+(to) 3203 4224 w
+(the) 3341 4224 w
+10 /LucidaTypewriter f
+(data) 3536 4224 w
+10 /LucidaSansUnicode00 f
+(file) 3864 4224 w
+(copies) 4055 4224 w
+(the) 4406 4224 w
+(data) 4601 4224 w
+(into) 4851 4224 w
+(kernel) 720 4344 w
+(blocks) 1069 4344 w
+(and) 1429 4344 w
+(passes) 1656 4344 w
+(them) 2030 4344 w
+(to) 2325 4344 w
+(the) 2470 4344 w
+(downstream) 2672 4344 w
+(put) 3315 4344 w
+(routine) 3525 4344 w
+(of) 3921 4344 w
+(the) 4067 4344 w
+(first) 4270 4344 w
+(processing) 4513 4344 w
+(module.) 720 4464 w
+(A) 1183 4464 w
+(write) 1287 4464 w
+(of) 1562 4464 w
+(less) 1695 4464 w
+(than) 1917 4464 w
+(32K) 2168 4464 w
+(is) 2394 4464 w
+(guaranteed) 2509 4464 w
+(to) 3093 4464 w
+(be) 3226 4464 w
+(contained) 3380 4464 w
+(by) 3891 4464 w
+(a) 4041 4464 w
+(single) 4131 4464 w
+(block.) 4455 4464 w
+(Con\255) 4815 4464 w
+(current) 720 4584 w
+(writes) 1117 4584 w
+(to) 1455 4584 w
+(the) 1600 4584 w
+(same) 1802 4584 w
+(stream) 2104 4584 w
+(are) 2484 4584 w
+(not) 2683 4584 w
+(synchronized,) 2890 4584 w
+(although) 3617 4584 w
+(the) 4095 4584 w
+(32K) 4298 4584 w
+(block) 4537 4584 w
+(size) 4847 4584 w
+(assures) 720 4704 w
+(atomic) 1121 4704 w
+(writes) 1481 4704 w
+(for) 1806 4704 w
+(most) 1979 4704 w
+(protocols.) 2255 4704 w
+(The) 2808 4704 w
+(last) 3023 4704 w
+(block) 3229 4704 w
+(written) 3525 4704 w
+(is) 3898 4704 w
+(flagged) 4012 4704 w
+(with) 4410 4704 w
+(a) 4649 4704 w
+(delim\255) 4737 4704 w
+(iter) 720 4824 w
+(to) 926 4824 w
+(alert) 1067 4824 w
+(downstream) 1328 4824 w
+(modules) 1967 4824 w
+(that) 2425 4824 w
+(care) 2659 4824 w
+(about) 2905 4824 w
+(write) 3226 4824 w
+(boundaries.) 3509 4824 w
+(In) 4159 4824 w
+(most) 4293 4824 w
+(cases) 4578 4824 w
+(the) 4885 4824 w
+(first) 720 4944 w
+(put) 954 4944 w
+(routine) 1155 4944 w
+(calls) 1542 4944 w
+(the) 1796 4944 w
+(second,) 1990 4944 w
+(the) 2405 4944 w
+(second) 2599 4944 w
+(calls) 2982 4944 w
+(the) 3236 4944 w
+(third,) 3430 4944 w
+(and) 3733 4944 w
+(so) 3951 4944 w
+(on) 4101 4944 w
+(until) 4262 4944 w
+(the) 4519 4944 w
+(data) 4712 4944 w
+(is) 4960 4944 w
+(output.) 720 5064 w
+(As a consequence, most data is output without context switching.) 1138 5064 w
+(Reading) 970 5220 w
+(from) 1409 5220 w
+(the) 1690 5220 w
+10 /LucidaTypewriter f
+(data) 1894 5220 w
+10 /LucidaSansUnicode00 f
+(file) 2231 5220 w
+(returns) 2431 5220 w
+(data) 2830 5220 w
+(queued) 3089 5220 w
+(at) 3501 5220 w
+(the) 3643 5220 w
+(top) 3848 5220 w
+(of) 4059 5220 w
+(the) 4207 5220 w
+(stream.) 4412 5220 w
+(The) 4859 5220 w
+(read) 720 5340 w
+(terminates) 972 5340 w
+(when) 1526 5340 w
+(the) 1820 5340 w
+(read) 2011 5340 w
+(count) 2262 5340 w
+(is) 2571 5340 w
+(reached) 2687 5340 w
+(or) 3107 5340 w
+(when) 3245 5340 w
+(the) 3538 5340 w
+(end) 3729 5340 w
+(of) 3946 5340 w
+(a) 4080 5340 w
+(delimited) 4171 5340 w
+(block) 4662 5340 w
+(is) 4960 5340 w
+(encountered.) 720 5460 w
+(A) 1429 5460 w
+(per) 1536 5460 w
+(stream) 1734 5460 w
+(read) 2105 5460 w
+(lock) 2358 5460 w
+(ensures) 2595 5460 w
+(only) 3012 5460 w
+(one) 3254 5460 w
+(process) 3471 5460 w
+(can) 3883 5460 w
+(read) 4089 5460 w
+(from) 4342 5460 w
+(a) 4613 5460 w
+(stream) 4707 5460 w
+(at a time and guarantees that the bytes read were contiguous bytes from the stream.) 720 5580 w
+(Like) 970 5736 w
+(UNIX) 1218 5736 w
+(streams) 1505 5736 w
+([Rit84a],) 1941 5736 w
+(Plan) 2401 5736 w
+(9) 2654 5736 w
+(streams) 2769 5736 w
+(can) 3205 5736 w
+(be) 3425 5736 w
+(dynamically) 3596 5736 w
+(configured.) 4218 5736 w
+(The) 4859 5736 w
+(stream system intercepts and interprets the following control blocks:) 720 5856 w
+10 /LucidaTypewriter f
+(push) 720 6012 w
+10 /LucidaSans-Italic f
+(name) 1067 6012 w
+10 /LucidaSansUnicode00 f
+(adds) 1497 6012 w
+(an) 1788 6012 w
+(instance) 1964 6012 w
+(of) 2426 6012 w
+(the) 2583 6012 w
+(processing) 2797 6012 w
+(module) 3383 6012 w
+10 /LucidaSans-Italic f
+(name) 3806 6012 w
+10 /LucidaSansUnicode00 f
+(to) 4134 6012 w
+(the) 4291 6012 w
+(top) 4506 6012 w
+(of) 4727 6012 w
+(the) 4885 6012 w
+(stream.) 1470 6132 w
+10 /LucidaTypewriter f
+(pop) 720 6288 w
+10 /LucidaSansUnicode00 f
+(removes the top module of the stream.) 1470 6288 w
+10 /LucidaTypewriter f
+(hangup) 720 6444 w
+10 /LucidaSansUnicode00 f
+(sends a hangup message up the stream from the device end.) 1470 6444 w
+(Other) 720 6600 w
+(control) 1035 6600 w
+(blocks) 1419 6600 w
+(are) 1774 6600 w
+(module-specific) 1968 6600 w
+(and) 2799 6600 w
+(are) 3021 6600 w
+(interpreted) 3215 6600 w
+(by) 3798 6600 w
+(each) 3955 6600 w
+(processing) 4221 6600 w
+(mod\255) 4790 6600 w
+(ule as they pass.) 720 6720 w
+(The) 970 6876 w
+(convoluted) 1186 6876 w
+(syntax) 1755 6876 w
+(and) 2108 6876 w
+(semantics) 2323 6876 w
+(of) 2843 6876 w
+(the) 2976 6876 w
+(UNIX) 3166 6876 w
+10 /LucidaTypewriter f
+(ioctl) 3436 6876 w
+10 /LucidaSansUnicode00 f
+(system) 3831 6876 w
+(call) 4206 6876 w
+(convinced) 4405 6876 w
+(us) 4927 6876 w
+(to) 720 6996 w
+(leave) 865 6996 w
+(it) 1159 6996 w
+(out) 1271 6996 w
+(of) 1477 6996 w
+(Plan) 1621 6996 w
+(9.) 1868 6996 w
+(Instead,) 2041 6996 w
+10 /LucidaTypewriter f
+(ioctl) 2472 6996 w
+10 /LucidaSansUnicode00 f
+(is) 2878 6996 w
+(replaced) 3004 6996 w
+(by) 3464 6996 w
+(the) 3625 6996 w
+10 /LucidaTypewriter f
+(ctl) 3826 6996 w
+10 /LucidaSansUnicode00 f
+(file.) 4088 6996 w
+(Writing) 4349 6996 w
+(to) 4741 6996 w
+(the) 4885 6996 w
+10 /LucidaTypewriter f
+(ctl) 720 7116 w
+10 /LucidaSansUnicode00 f
+(file) 977 7116 w
+(is) 1169 7116 w
+(identical) 1290 7116 w
+(to) 1743 7116 w
+(writing) 1883 7116 w
+(to) 2262 7116 w
+(a) 2402 7116 w
+10 /LucidaTypewriter f
+(data) 2499 7116 w
+10 /LucidaSansUnicode00 f
+(file) 2829 7116 w
+(except) 3022 7116 w
+(the) 3388 7116 w
+(blocks) 3585 7116 w
+(are) 3940 7116 w
+(of) 4134 7116 w
+(type) 4274 7116 w
+10 /LucidaSans-Italic f
+(control) 4524 7116 w
+10 /LucidaSansUnicode00 f
+(.) 4865 7116 w
+(A) 4971 7116 w
+(processing) 720 7236 w
+(module) 1289 7236 w
+(parses) 1695 7236 w
+(each) 2054 7236 w
+(control) 2319 7236 w
+(block) 2702 7236 w
+(it) 3005 7236 w
+(sees.) 3112 7236 w
+(Commands) 3431 7236 w
+(in) 4019 7236 w
+(control) 4151 7236 w
+(blocks) 4534 7236 w
+(are) 4888 7236 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 5 5
+%%Page: 6 6
+/saveobj save def
+mark
+6 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 6 \255) 2783 480 w
+(ASCII) 720 840 w
+(strings,) 1014 840 w
+(so) 1423 840 w
+(byte) 1579 840 w
+(ordering) 1831 840 w
+(is) 2290 840 w
+(not) 2414 840 w
+(an) 2618 840 w
+(issue) 2779 840 w
+(when) 3072 840 w
+(one) 3373 840 w
+(system) 3597 840 w
+(controls) 3982 840 w
+(streams) 4420 840 w
+(in) 4849 840 w
+(a) 4985 840 w
+(name) 720 960 w
+(space) 1021 960 w
+(implemented) 1332 960 w
+(on) 2004 960 w
+(another) 2162 960 w
+(processor.) 2571 960 w
+(The) 3146 960 w
+(time) 3362 960 w
+(to) 3611 960 w
+(parse) 3743 960 w
+(control) 4043 960 w
+(blocks) 4419 960 w
+(is) 4766 960 w
+(not) 4880 960 w
+(important, since control operations are rare.) 720 1080 w
+10 /LucidaSans-Demi f
+(2.4.2.) 720 1320 w
+(Device Interface) 1051 1320 w
+10 /LucidaSansUnicode00 f
+(The) 970 1476 w
+(module) 1185 1476 w
+(at) 1583 1476 w
+(the) 1709 1476 w
+(downstream) 1898 1476 w
+(end) 2528 1476 w
+(of) 2743 1476 w
+(the) 2875 1476 w
+(stream) 3064 1476 w
+(is) 3431 1476 w
+(part) 3545 1476 w
+(of) 3775 1476 w
+(a) 3907 1476 w
+(device) 3996 1476 w
+(interface.) 4337 1476 w
+(The) 4859 1476 w
+(particulars) 720 1596 w
+(of) 1282 1596 w
+(the) 1428 1596 w
+(interface) 1631 1596 w
+(vary) 2103 1596 w
+(with) 2351 1596 w
+(the) 2604 1596 w
+(device.) 2807 1596 w
+(Most) 3226 1596 w
+(device) 3509 1596 w
+(interfaces) 3864 1596 w
+(consist) 4387 1596 w
+(of) 4777 1596 w
+(an) 4923 1596 w
+(interrupt) 720 1716 w
+(routine,) 1189 1716 w
+(an) 1610 1716 w
+(output) 1768 1716 w
+(put) 2132 1716 w
+(routine,) 2336 1716 w
+(and) 2758 1716 w
+(a) 2980 1716 w
+(kernel) 3077 1716 w
+(process.) 3421 1716 w
+(The) 3901 1716 w
+(output) 4124 1716 w
+(put) 4488 1716 w
+(routine) 4692 1716 w
+(stages) 720 1836 w
+(data) 1076 1836 w
+(for) 1330 1836 w
+(the) 1513 1836 w
+(device) 1712 1836 w
+(and) 2063 1836 w
+(starts) 2287 1836 w
+(the) 2603 1836 w
+(device) 2802 1836 w
+(if) 3153 1836 w
+(it) 3263 1836 w
+(is) 3373 1836 w
+(stopped.) 3496 1836 w
+(The) 3997 1836 w
+(interrupt) 4221 1836 w
+(routine) 4692 1836 w
+(wakes) 720 1956 w
+(up) 1061 1956 w
+(the) 1230 1956 w
+(kernel) 1429 1956 w
+(process) 1775 1956 w
+(whenever) 2193 1956 w
+(the) 2699 1956 w
+(device) 2898 1956 w
+(has) 3249 1956 w
+(input) 3462 1956 w
+(to) 3760 1956 w
+(be) 3903 1956 w
+(processed) 4067 1956 w
+(or) 4605 1956 w
+(needs) 4752 1956 w
+(more) 720 2076 w
+(output) 1006 2076 w
+(staged.) 1363 2076 w
+(The) 1785 2076 w
+(kernel) 2000 2076 w
+(process) 2336 2076 w
+(puts) 2744 2076 w
+(information) 2991 2076 w
+(up) 3592 2076 w
+(the) 3751 2076 w
+(stream) 3940 2076 w
+(or) 4307 2076 w
+(stages) 4443 2076 w
+(more) 4789 2076 w
+(data) 720 2196 w
+(for) 972 2196 w
+(output.) 1153 2196 w
+(The) 1581 2196 w
+(division) 1804 2196 w
+(of) 2222 2196 w
+(labor) 2362 2196 w
+(among) 2653 2196 w
+(the) 3028 2196 w
+(different) 3225 2196 w
+(pieces) 3685 2196 w
+(varies) 4033 2196 w
+(depending) 4359 2196 w
+(on) 4917 2196 w
+(how) 720 2316 w
+(much) 956 2316 w
+(must) 1260 2316 w
+(be) 1539 2316 w
+(done) 1694 2316 w
+(at) 1972 2316 w
+(interrupt) 2099 2316 w
+(level.) 2562 2316 w
+(However,) 2883 2316 w
+(the) 3367 2316 w
+(interrupt) 3557 2316 w
+(routine) 4020 2316 w
+(may) 4403 2316 w
+(not) 4638 2316 w
+(allo\255) 4833 2316 w
+(cate blocks or call a put routine since both actions require a process context.) 720 2436 w
+10 /LucidaSans-Demi f
+(2.4.3.) 720 2676 w
+(Multiplexing) 1051 2676 w
+10 /LucidaSansUnicode00 f
+(The conversations using a) 970 2832 w
+(protocol) 2270 2832 w
+(device) 2707 2832 w
+(must) 3047 2832 w
+(be) 3323 2832 w
+(multiplexed) 3475 2832 w
+(onto) 4086 2832 w
+(a) 4340 2832 w
+(single) 4428 2832 w
+(physi\255) 4750 2832 w
+(cal) 720 2952 w
+(wire.) 896 2952 w
+(We) 1204 2952 w
+(push) 1387 2952 w
+(a) 1666 2952 w
+(multiplexer) 1762 2952 w
+(processing) 2359 2952 w
+(module) 2927 2952 w
+(onto) 3332 2952 w
+(the) 3594 2952 w
+(physical) 3790 2952 w
+(device) 4222 2952 w
+(stream) 4569 2952 w
+(to) 4942 2952 w
+(group) 720 3072 w
+(the) 1047 3072 w
+(conversations.) 1241 3072 w
+(The) 2013 3072 w
+(device) 2233 3072 w
+(end) 2579 3072 w
+(modules) 2799 3072 w
+(on) 3253 3072 w
+(the) 3415 3072 w
+(conversations) 3609 3072 w
+(add) 4317 3072 w
+(the) 4537 3072 w
+(neces\255) 4731 3072 w
+(sary) 720 3192 w
+(header) 959 3192 w
+(onto) 1332 3192 w
+(downstream) 1593 3192 w
+(messages) 2229 3192 w
+(and) 2744 3192 w
+(then) 2964 3192 w
+(put) 3221 3192 w
+(them) 3423 3192 w
+(to) 3710 3192 w
+(the) 3847 3192 w
+(module) 4041 3192 w
+(downstream) 4444 3192 w
+(of) 720 3312 w
+(the) 875 3312 w
+(multiplexer.) 1087 3312 w
+(The) 1764 3312 w
+(multiplexing) 2002 3312 w
+(module) 2671 3312 w
+(looks) 3092 3312 w
+(at) 3409 3312 w
+(each) 3559 3312 w
+(message) 3841 3312 w
+(moving) 4323 3312 w
+(up) 4740 3312 w
+(its) 4923 3312 w
+(stream) 720 3432 w
+(and) 1089 3432 w
+(puts) 1305 3432 w
+(it) 1554 3432 w
+(to) 1656 3432 w
+(the) 1790 3432 w
+(correct) 1980 3432 w
+(conversation) 2353 3432 w
+(stream) 3006 3432 w
+(after) 3374 3432 w
+(stripping) 3635 3432 w
+(the) 4107 3432 w
+(header) 4297 3432 w
+(control\255) 4665 3432 w
+(ling the demultiplexing.) 720 3552 w
+(This) 970 3708 w
+(is) 1216 3708 w
+(similar) 1337 3708 w
+(to) 1705 3708 w
+(the) 1844 3708 w
+(Unix) 2040 3708 w
+(implementation) 2302 3708 w
+(of) 3105 3708 w
+(multiplexer) 3245 3708 w
+(streams.) 3843 3708 w
+(The) 4333 3708 w
+(major) 4556 3708 w
+(dif\255) 4878 3708 w
+(ference) 720 3828 w
+(is) 1127 3828 w
+(that) 1255 3828 w
+(we) 1494 3828 w
+(have) 1675 3828 w
+(no) 1948 3828 w
+(general) 2119 3828 w
+(structure) 2528 3828 w
+(that) 3014 3828 w
+(corresponds) 3253 3828 w
+(to) 3902 3828 w
+(a) 4048 3828 w
+(multiplexer.) 4151 3828 w
+(Each) 4818 3828 w
+(attempt) 720 3948 w
+(to) 1134 3948 w
+(produce) 1268 3948 w
+(a) 1701 3948 w
+(generalized) 1792 3948 w
+(multiplexer) 2394 3948 w
+(created) 2986 3948 w
+(a) 3381 3948 w
+(more) 3472 3948 w
+(complicated) 3760 3948 w
+(structure) 4385 3948 w
+(and) 4860 3948 w
+(underlined) 720 4068 w
+(the) 1276 4068 w
+(basic) 1464 4068 w
+(difficulty) 1746 4068 w
+(of) 2205 4068 w
+(generalizing) 2336 4068 w
+(this) 2969 4068 w
+(mechanism.) 3181 4068 w
+(We) 3830 4068 w
+(now) 4005 4068 w
+(code each multi\255) 4238 4068 w
+(plexer from scratch and favor simplicity over generality.) 720 4188 w
+10 /LucidaSans-Demi f
+(2.4.4.) 720 4428 w
+(Reflections) 1051 4428 w
+10 /LucidaSansUnicode00 f
+(Despite) 970 4584 w
+(five) 1385 4584 w
+(year) 1608 4584 w
+10 /LucidaSansUnicode20 f
+(\031) 1812 4584 w
+10 /LucidaSansUnicode00 f
+(s) 1844 4584 w
+(experience) 1944 4584 w
+(and) 2524 4584 w
+(the) 2753 4584 w
+(efforts) 2957 4584 w
+(of) 3326 4584 w
+(many) 3473 4584 w
+(programmers,) 3784 4584 w
+(we) 4522 4584 w
+(remain) 4704 4584 w
+(dissatisfied) 720 4704 w
+(with) 1314 4704 w
+(the) 1562 4704 w
+(stream) 1759 4704 w
+(mechanism.) 2134 4704 w
+(Performance) 2792 4704 w
+(is) 3442 4704 w
+(not) 3564 4704 w
+(an) 3766 4704 w
+(issue;) 3925 4704 w
+(the) 4248 4704 w
+(time) 4445 4704 w
+(to) 4702 4704 w
+(pro\255) 4842 4704 w
+(cess) 720 4824 w
+(protocols) 968 4824 w
+(and) 1462 4824 w
+(drive) 1681 4824 w
+(device) 1961 4824 w
+(interfaces) 2307 4824 w
+(continues) 2821 4824 w
+(to) 3331 4824 w
+(dwarf) 3468 4824 w
+(the) 3780 4824 w
+(time) 3974 4824 w
+(spent) 4229 4824 w
+(allocating,) 4538 4824 w
+(freeing,) 720 4944 w
+(and) 1131 4944 w
+(moving) 1347 4944 w
+(blocks) 1742 4944 w
+(of) 2091 4944 w
+(data.) 2225 4944 w
+(However) 2535 4944 w
+(the) 2988 4944 w
+(mechanism) 3179 4944 w
+(remains) 3767 4944 w
+(inordinately) 4190 4944 w
+(com\255) 4802 4944 w
+(plex.) 720 5064 w
+(Much) 1026 5064 w
+(of) 1320 5064 w
+(the) 1451 5064 w
+(complexity) 1639 5064 w
+(results) 2204 5064 w
+(from) 2565 5064 w
+(our) 2831 5064 w
+(efforts) 3029 5064 w
+(to) 3383 5064 w
+(make) 3515 5064 w
+(streams) 3811 5064 w
+(dynamically) 4229 5064 w
+(con\255) 4833 5064 w
+(figurable,) 720 5184 w
+(to) 1229 5184 w
+(reuse) 1370 5184 w
+(processing) 1678 5184 w
+(modules) 2247 5184 w
+(on) 2704 5184 w
+(different) 2869 5184 w
+(devices) 3329 5184 w
+(and) 3729 5184 w
+(to) 3951 5184 w
+(provide) 4091 5184 w
+(kernel) 4498 5184 w
+(syn\255) 4842 5184 w
+(chronization) 720 5304 w
+(to) 1371 5304 w
+(ensure) 1513 5304 w
+(data) 1885 5304 w
+(structures) 2139 5304 w
+(don) 2672 5304 w
+10 /LucidaSansUnicode20 f
+(\031) 2858 5304 w
+10 /LucidaSansUnicode00 f
+(t) 2890 5304 w
+(disappear) 2971 5304 w
+(under) 3491 5304 w
+(foot.) 3819 5304 w
+(This) 4123 5304 w
+(is) 4372 5304 w
+(particularly) 4496 5304 w
+(irritating since we seldom use these properties.) 720 5424 w
+(Streams) 970 5580 w
+(remain) 1394 5580 w
+(in) 1768 5580 w
+(our) 1897 5580 w
+(kernel) 2099 5580 w
+(because) 2439 5580 w
+(we) 2871 5580 w
+(are) 3042 5580 w
+(unable) 3232 5580 w
+(to) 3597 5580 w
+(devise) 3733 5580 w
+(a) 4078 5580 w
+(better) 4171 5580 w
+(alternative.) 4499 5580 w
+(Larry) 720 5700 w
+(Peterson) 1015 5700 w
+10 /LucidaSansUnicode20 f
+(\031) 1434 5700 w
+10 /LucidaSansUnicode00 f
+(s) 1466 5700 w
+(X-kernel) 1570 5700 w
+([Pet89a]) 2046 5700 w
+(is) 2494 5700 w
+(the) 2627 5700 w
+(closest) 2834 5700 w
+(contender) 3222 5700 w
+(but) 3763 5700 w
+(doesn) 3977 5700 w
+10 /LucidaSansUnicode20 f
+(\031) 4270 5700 w
+10 /LucidaSansUnicode00 f
+(t) 4302 5700 w
+(offer) 4391 5700 w
+(enough) 4675 5700 w
+(advantage) 720 5820 w
+(to) 1259 5820 w
+(switch.) 1399 5820 w
+(If) 1812 5820 w
+(we) 1920 5820 w
+(were) 2095 5820 w
+(to) 2367 5820 w
+(rewrite) 2507 5820 w
+(the) 2886 5820 w
+(streams) 3084 5820 w
+(code,) 3511 5820 w
+(we) 3817 5820 w
+(would) 3993 5820 w
+(probably) 4328 5820 w
+(stati\255) 4798 5820 w
+(cally) 720 5940 w
+(allocate) 978 5940 w
+(resources) 1393 5940 w
+(for) 1905 5940 w
+(a) 2086 5940 w
+(large) 2183 5940 w
+(fixed) 2468 5940 w
+(number) 2755 5940 w
+(of) 3173 5940 w
+(conversations) 3312 5940 w
+(and) 4022 5940 w
+(burn) 4243 5940 w
+(memory) 4512 5940 w
+(in) 4949 5940 w
+(favor of less complexity.) 720 6060 w
+10 /LucidaSans-Demi f
+(3.) 720 6300 w
+(The IL Protocol) 873 6300 w
+10 /LucidaSansUnicode00 f
+(None) 970 6456 w
+(of) 1259 6456 w
+(the) 1393 6456 w
+(standard) 1584 6456 w
+(IP) 2047 6456 w
+(protocols) 2167 6456 w
+(is) 2658 6456 w
+(suitable) 2774 6456 w
+(for) 3193 6456 w
+(transmission) 3369 6456 w
+(of) 4028 6456 w
+(9P) 4163 6456 w
+(messages) 4318 6456 w
+(over) 4830 6456 w
+(an) 720 6576 w
+(Ethernet) 875 6576 w
+(or) 1318 6576 w
+(the) 1458 6576 w
+(Internet.) 1651 6576 w
+(TCP) 2133 6576 w
+(has) 2357 6576 w
+(a) 2562 6576 w
+(high) 2654 6576 w
+(overhead) 2906 6576 w
+(and) 3389 6576 w
+(does) 3606 6576 w
+(not) 3874 6576 w
+(preserve) 4071 6576 w
+(delimiters.) 4524 6576 w
+(UDP,) 720 6696 w
+(while) 997 6696 w
+(cheap,) 1296 6696 w
+(does) 1661 6696 w
+(not) 1938 6696 w
+(provide) 2144 6696 w
+(reliable) 2555 6696 w
+(sequenced) 2959 6696 w
+(delivery.) 3525 6696 w
+(Early) 4013 6696 w
+(versions) 4290 6696 w
+(of) 4740 6696 w
+(the) 4885 6696 w
+(system) 720 6816 w
+(used) 1112 6816 w
+(a) 1396 6816 w
+(custom) 1503 6816 w
+(protocol) 1910 6816 w
+(that) 2366 6816 w
+(was) 2609 6816 w
+(efficient) 2843 6816 w
+(but) 3288 6816 w
+(unsatisfactory) 3501 6816 w
+(for) 4233 6816 w
+(internetwork) 4423 6816 w
+(transmission.) 720 6936 w
+(When) 1444 6936 w
+(we) 1748 6936 w
+(implemented) 1919 6936 w
+(IP,) 2594 6936 w
+(TCP,) 2749 6936 w
+(and) 3007 6936 w
+(UDP) 3226 6936 w
+(we) 3464 6936 w
+(looked) 3636 6936 w
+(around) 4003 6936 w
+(for) 4386 6936 w
+(a) 4564 6936 w
+(suitable) 4658 6936 w
+(replacement with the following properties:) 720 7056 w
+10 /LucidaSansUnicode22 f
+(\031) 720 7212 w
+10 /LucidaSansUnicode00 f
+(Reliable datagram service with sequenced delivery) 970 7212 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 6 6
+%%Page: 7 7
+/saveobj save def
+mark
+7 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 7 \255) 2783 480 w
+10 /LucidaSansUnicode22 f
+(\031) 720 840 w
+10 /LucidaSansUnicode00 f
+(Runs over IP) 970 840 w
+10 /LucidaSansUnicode22 f
+(\031) 720 996 w
+10 /LucidaSansUnicode00 f
+(Low complexity, high performance) 970 996 w
+10 /LucidaSansUnicode22 f
+(\031) 720 1152 w
+10 /LucidaSansUnicode00 f
+(Adaptive timeouts) 970 1152 w
+(None) 720 1308 w
+(met) 1030 1308 w
+(our) 1274 1308 w
+(needs) 1496 1308 w
+(so) 1842 1308 w
+(a) 2012 1308 w
+(new) 2125 1308 w
+(protocol) 2378 1308 w
+(was) 2840 1308 w
+(designed.) 3081 1308 w
+(IL) 3645 1308 w
+(is) 3785 1308 w
+(a) 3923 1308 w
+(lightweight) 4036 1308 w
+(protocol) 4636 1308 w
+(designed) 720 1428 w
+(to) 1200 1428 w
+(be) 1336 1428 w
+(encapsulated) 1493 1428 w
+(by) 2171 1428 w
+(IP.) 2324 1428 w
+(It) 2510 1428 w
+(is) 2614 1428 w
+(a) 2732 1428 w
+(connection-based) 2825 1428 w
+(protocol) 3741 1428 w
+(providing) 4183 1428 w
+(reliable) 4682 1428 w
+(transmission) 720 1548 w
+(of) 1378 1548 w
+(sequenced) 1512 1548 w
+(messages) 2068 1548 w
+(between) 2579 1548 w
+(machines.) 3022 1548 w
+(No) 3581 1548 w
+(provision) 3753 1548 w
+(is) 4239 1548 w
+(made) 4356 1548 w
+(for) 4660 1548 w
+(flow) 4836 1548 w
+(control) 720 1668 w
+(since) 1112 1668 w
+(the) 1410 1668 w
+(protocol) 1614 1668 w
+(is) 2067 1668 w
+(designed) 2196 1668 w
+(to) 2687 1668 w
+(transport) 2834 1668 w
+(RPC) 3331 1668 w
+(messages) 3567 1668 w
+(between) 4091 1668 w
+(client) 4547 1668 w
+(and) 4860 1668 w
+(server.) 720 1788 w
+(A) 1130 1788 w
+(small) 1248 1788 w
+(outstanding) 1554 1788 w
+(message) 2184 1788 w
+(window) 2658 1788 w
+(prevents) 3077 1788 w
+(too) 3545 1788 w
+(many) 3754 1788 w
+(incoming) 4066 1788 w
+(messages) 4565 1788 w
+(from) 720 1908 w
+(being) 992 1908 w
+(buffered;) 1303 1908 w
+(messages) 1789 1908 w
+(outside) 2303 1908 w
+(the) 2701 1908 w
+(window) 2895 1908 w
+(are) 3303 1908 w
+(discarded) 3494 1908 w
+(and) 4005 1908 w
+(must) 4224 1908 w
+(be) 4506 1908 w
+(retrans\255) 4664 1908 w
+(mitted.) 720 2028 w
+(Connection) 1137 2028 w
+(setup) 1725 2028 w
+(uses) 2032 2028 w
+(a) 2290 2028 w
+(two) 2384 2028 w
+(way) 2598 2028 w
+(handshake) 2821 2028 w
+(to) 3384 2028 w
+(generate) 3521 2028 w
+(initial) 3985 2028 w
+(sequence) 4294 2028 w
+(num\255) 4790 2028 w
+(bers) 720 2148 w
+(at) 969 2148 w
+(each) 1099 2148 w
+(end) 1361 2148 w
+(of) 1580 2148 w
+(the) 1715 2148 w
+(connection;) 1907 2148 w
+(subsequent) 2508 2148 w
+(data) 3108 2148 w
+(messages) 3355 2148 w
+(increment) 3867 2148 w
+(the) 4391 2148 w
+(sequence) 4583 2148 w
+(numbers) 720 2268 w
+(allowing) 1181 2268 w
+(the) 1618 2268 w
+(receiver) 1806 2268 w
+(to) 2221 2268 w
+(resequence) 2352 2268 w
+(out) 2939 2268 w
+(of) 3132 2268 w
+(order) 3263 2268 w
+(messages.) 3558 2268 w
+(In) 4098 2268 w
+(contrast) 4222 2268 w
+(to) 4651 2268 w
+(other) 4783 2268 w
+(protocols,) 720 2388 w
+(IL) 1264 2388 w
+(does) 1403 2388 w
+(not) 1691 2388 w
+(do) 1908 2388 w
+(blind) 2089 2388 w
+(retransmission.) 2392 2388 w
+(If) 3232 2388 w
+(a) 3355 2388 w
+(message) 3467 2388 w
+(is) 3948 2388 w
+(lost) 4084 2388 w
+(and) 4318 2388 w
+(a) 4554 2388 w
+(timeout) 4665 2388 w
+(occurs,) 720 2508 w
+(a) 1113 2508 w
+(query) 1212 2508 w
+(message) 1530 2508 w
+(is) 1998 2508 w
+(sent.) 2122 2508 w
+(The) 2436 2508 w
+(query) 2662 2508 w
+(message) 2981 2508 w
+(is) 3450 2508 w
+(a) 3575 2508 w
+(small) 3675 2508 w
+(control) 3977 2508 w
+(message) 4364 2508 w
+(con\255) 4833 2508 w
+(taining) 720 2628 w
+(the) 1094 2628 w
+(current) 1287 2628 w
+(sequence) 1675 2628 w
+(numbers) 2170 2628 w
+(as) 2636 2628 w
+(seen) 2780 2628 w
+(by) 3043 2628 w
+(the) 3196 2628 w
+(sender.) 3389 2628 w
+(The) 3820 2628 w
+(receiver) 4038 2628 w
+(responds) 4457 2628 w
+(to) 4942 2628 w
+(a) 720 2748 w
+(query) 811 2748 w
+(by) 1121 2748 w
+(retransmitting) 1272 2748 w
+(missing) 2001 2748 w
+(messages.) 2415 2748 w
+(This) 2991 2748 w
+(allows) 3233 2748 w
+(the) 3572 2748 w
+(protocol) 3764 2748 w
+(to) 4205 2748 w
+(behave) 4340 2748 w
+(well) 4721 2748 w
+(in) 4949 2748 w
+(congested) 720 2868 w
+(networks,) 1263 2868 w
+(where) 1782 2868 w
+(blind) 2118 2868 w
+(retransmission) 2408 2868 w
+(would) 3171 2868 w
+(cause) 3507 2868 w
+(further) 3826 2868 w
+(congestion.) 4205 2868 w
+(Like) 4844 2868 w
+(TCP,) 720 2988 w
+(IL) 974 2988 w
+(has) 1091 2988 w
+(adaptive) 1294 2988 w
+(timeouts.) 1739 2988 w
+(A) 2265 2988 w
+(round-trip) 2370 2988 w
+(timer) 2923 2988 w
+(is) 3215 2988 w
+(used) 3331 2988 w
+(to) 3599 2988 w
+(calculate) 3733 2988 w
+(acknowledge) 4194 2988 w
+(and) 4860 2988 w
+(retransmission) 720 3108 w
+(times) 1486 3108 w
+(in) 1799 3108 w
+(terms) 1937 3108 w
+(of) 2262 3108 w
+(the) 2407 3108 w
+(network) 2609 3108 w
+(speed.) 3048 3108 w
+(This) 3448 3108 w
+(allows) 3700 3108 w
+(the) 4049 3108 w
+(protocol) 4251 3108 w
+(to) 4702 3108 w
+(per\255) 4847 3108 w
+(form well on both the Internet and on local Ethernets.) 720 3228 w
+(In) 970 3384 w
+(keeping) 1108 3384 w
+(with) 1541 3384 w
+(the) 1793 3384 w
+(minimalist) 1995 3384 w
+(design) 2549 3384 w
+(of) 2919 3384 w
+(the) 3065 3384 w
+(rest) 3268 3384 w
+(of) 3501 3384 w
+(the) 3647 3384 w
+(kernel,) 3850 3384 w
+(IL) 4232 3384 w
+(is) 4362 3384 w
+(small.) 4490 3384 w
+(The) 4859 3384 w
+(entire) 720 3504 w
+(protocol) 1039 3504 w
+(is) 1481 3504 w
+(847) 1599 3504 w
+(lines) 1826 3504 w
+(of) 2091 3504 w
+(code,) 2227 3504 w
+(compared) 2527 3504 w
+(to) 3047 3504 w
+(2200) 3182 3504 w
+(lines) 3471 3504 w
+(for) 3735 3504 w
+(TCP.) 3911 3504 w
+(IL) 4199 3504 w
+(is) 4318 3504 w
+(our) 4435 3504 w
+(protocol) 4636 3504 w
+(of choice.) 720 3624 w
+10 /LucidaSans-Demi f
+(4.) 720 3864 w
+(Network Addressing) 873 3864 w
+10 /LucidaSansUnicode00 f
+(A) 970 4020 w
+(uniform) 1077 4020 w
+(interface) 1500 4020 w
+(to) 1962 4020 w
+(protocols) 2098 4020 w
+(and) 2591 4020 w
+(devices) 2809 4020 w
+(is) 3205 4020 w
+(not) 3324 4020 w
+(sufficient) 3523 4020 w
+(to) 4013 4020 w
+(support) 4150 4020 w
+(the) 4567 4020 w
+(trans\255) 4761 4020 w
+(parency) 720 4140 w
+(we) 1142 4140 w
+(require.) 1317 4140 w
+(Since) 1771 4140 w
+(each) 2064 4140 w
+(network) 2329 4140 w
+(uses) 2762 4140 w
+(a) 3023 4140 w
+(different) 3119 4140 w
+(addressing) 3578 4140 w
+(scheme,) 4152 4140 w
+(the) 4594 4140 w
+(ASCII) 4790 4140 w
+(strings) 720 4260 w
+(written) 1097 4260 w
+(to) 1481 4260 w
+(a) 1624 4260 w
+(control) 1724 4260 w
+(file) 2111 4260 w
+(have) 2307 4260 w
+(no) 2577 4260 w
+(common) 2745 4260 w
+(format.) 3211 4260 w
+(As) 3644 4260 w
+(a) 3809 4260 w
+(result,) 3909 4260 w
+(every) 4262 4260 w
+(tool) 4564 4260 w
+(must) 4797 4260 w
+(know) 720 4380 w
+(the) 1026 4380 w
+(specifics) 1229 4380 w
+(of) 1695 4380 w
+(the) 1841 4380 w
+(networks) 2044 4380 w
+(it) 2535 4380 w
+(is) 2649 4380 w
+(capable) 2777 4380 w
+(of) 3197 4380 w
+(addressing.) 3343 4380 w
+(Moreover,) 3987 4380 w
+(since) 4520 4380 w
+(each) 4816 4380 w
+(machine) 720 4500 w
+(supplies) 1174 4500 w
+(a) 1624 4500 w
+(subset) 1725 4500 w
+(of) 2091 4500 w
+(the) 2235 4500 w
+(available) 2436 4500 w
+(networks,) 2905 4500 w
+(each) 3426 4500 w
+(user) 3696 4500 w
+(must) 3953 4500 w
+(be) 4243 4500 w
+(aware) 4409 4500 w
+(of) 4740 4500 w
+(the) 4885 4500 w
+(networks) 720 4620 w
+(supported) 1204 4620 w
+(by) 1742 4620 w
+(every) 1897 4620 w
+(terminal) 2194 4620 w
+(and) 2636 4620 w
+(server) 2856 4620 w
+(machine.) 3193 4620 w
+(This) 3705 4620 w
+(is) 3950 4620 w
+(obviously) 4070 4620 w
+(unaccept\255) 4570 4620 w
+(able.) 720 4740 w
+(Several possible solutions were considered and rejected; one deserves more discus\255) 970 4896 w
+(sion.) 720 5016 w
+(We) 1026 5016 w
+(could) 1207 5016 w
+(have) 1512 5016 w
+(used) 1776 5016 w
+(a) 2047 5016 w
+(user-level) 2141 5016 w
+(file) 2670 5016 w
+(server) 2860 5016 w
+(to) 3196 5016 w
+(represent) 3333 5016 w
+(the) 3835 5016 w
+(network) 4029 5016 w
+(name) 4460 5016 w
+(space) 4764 5016 w
+(as) 720 5136 w
+(a) 874 5136 w
+(Plan) 977 5136 w
+(9) 1226 5136 w
+(file) 1337 5136 w
+(tree.) 1536 5136 w
+(This) 1806 5136 w
+(global) 2059 5136 w
+(naming) 2406 5136 w
+(scheme) 2817 5136 w
+(has) 3234 5136 w
+(been) 3450 5136 w
+(implemented) 3735 5136 w
+(in) 4420 5136 w
+(other) 4559 5136 w
+(dis\255) 4864 5136 w
+(tributed) 720 5256 w
+(systems.) 1148 5256 w
+(The) 1642 5256 w
+(file) 1862 5256 w
+(hierarchy) 2052 5256 w
+(provides) 2540 5256 w
+(paths) 2995 5256 w
+(to) 3302 5256 w
+(directories) 3439 5256 w
+(representing) 3993 5256 w
+(network) 4648 5256 w
+(domains.) 720 5376 w
+(Each) 1239 5376 w
+(directory) 1502 5376 w
+(contains) 1974 5376 w
+(files) 2423 5376 w
+(representing) 2666 5376 w
+(the) 3323 5376 w
+(names) 3519 5376 w
+(of) 3878 5376 w
+(the) 4018 5376 w
+(machines) 4215 5376 w
+(in) 4716 5376 w
+(that) 4849 5376 w
+(domain;) 720 5496 w
+(an) 1191 5496 w
+(example) 1384 5496 w
+(might) 1873 5496 w
+(be) 2232 5496 w
+(the) 2427 5496 w
+(path) 2658 5496 w
+10 /LucidaTypewriter f
+(/net/name/usa/edu/mit/ai) 2951 5496 w
+10 /LucidaSansUnicode00 f
+(.) 4679 5496 w
+(Each) 4818 5496 w
+(machine) 720 5616 w
+(file) 1171 5616 w
+(contains) 1365 5616 w
+(information) 1816 5616 w
+(like) 2426 5616 w
+(the) 2641 5616 w
+(IP) 2839 5616 w
+(address) 2966 5616 w
+(of) 3389 5616 w
+(the) 3530 5616 w
+(machine.) 3728 5616 w
+(We) 4243 5616 w
+(rejected) 4428 5616 w
+(this) 4861 5616 w
+(representation) 720 5736 w
+(for) 1467 5736 w
+(several) 1646 5736 w
+(reasons.) 2026 5736 w
+(First,) 2507 5736 w
+(it) 2791 5736 w
+(is) 2897 5736 w
+(hard) 3017 5736 w
+(to) 3278 5736 w
+(devise) 3416 5736 w
+(a) 3762 5736 w
+(hierarchy) 3856 5736 w
+(encompassing) 4344 5736 w
+(all) 720 5856 w
+(representations) 884 5856 w
+(of) 1693 5856 w
+(the) 1842 5856 w
+(various) 2048 5856 w
+(network) 2451 5856 w
+(addressing) 2895 5856 w
+(schemes) 3480 5856 w
+(in) 3952 5856 w
+(a) 4095 5856 w
+(uniform) 4202 5856 w
+(manner.) 4639 5856 w
+(Datakit) 720 5976 w
+(and) 1100 5976 w
+(Ethernet) 1314 5976 w
+(address) 1753 5976 w
+(strings) 2167 5976 w
+(have) 2533 5976 w
+(nothing) 2791 5976 w
+(in) 3199 5976 w
+(common.) 3323 5976 w
+(Second,) 3841 5976 w
+(the) 4253 5976 w
+(address) 4441 5976 w
+(of) 4854 5976 w
+(a) 4985 5976 w
+(machine) 720 6096 w
+(is) 1162 6096 w
+(often) 1276 6096 w
+(only) 1563 6096 w
+(a) 1801 6096 w
+(small) 1890 6096 w
+(part) 2181 6096 w
+(of) 2411 6096 w
+(the) 2543 6096 w
+(information) 2732 6096 w
+(required) 3333 6096 w
+(to) 3778 6096 w
+(connect) 3910 6096 w
+(to) 4324 6096 w
+(a) 4456 6096 w
+(service) 4546 6096 w
+(on) 4917 6096 w
+(the) 720 6216 w
+(machine.) 938 6216 w
+(For) 1473 6216 w
+(example,) 1692 6216 w
+(the) 2200 6216 w
+(IP) 2418 6216 w
+(protocols) 2565 6216 w
+(require) 3083 6216 w
+(symbolic) 3493 6216 w
+(service) 3984 6216 w
+(names) 4382 6216 w
+(to) 4761 6216 w
+(be) 4921 6216 w
+(mapped) 720 6336 w
+(into) 1161 6336 w
+(numeric) 1398 6336 w
+(port) 1840 6336 w
+(numbers,) 2090 6336 w
+(some) 2598 6336 w
+(of) 2907 6336 w
+(which) 3053 6336 w
+(are) 3382 6336 w
+(privileged) 3582 6336 w
+(and) 4110 6336 w
+(hence) 4338 6336 w
+(special.) 4674 6336 w
+(Information) 720 6456 w
+(of) 1323 6456 w
+(this) 1457 6456 w
+(sort) 1672 6456 w
+(is) 1898 6456 w
+(hard) 2014 6456 w
+(to) 2271 6456 w
+(represent) 2405 6456 w
+(in) 2904 6456 w
+(terms) 3031 6456 w
+(of) 3345 6456 w
+(file) 3479 6456 w
+(operations.) 3665 6456 w
+(Finally,) 4280 6456 w
+(the) 4657 6456 w
+(size) 4847 6456 w
+(and) 720 6576 w
+(number) 954 6576 w
+(of) 1385 6576 w
+(the) 1537 6576 w
+(networks) 1746 6576 w
+(being) 2243 6576 w
+(represented) 2569 6576 w
+(burdens) 3205 6576 w
+(users) 3657 6576 w
+(with) 3972 6576 w
+(an) 4232 6576 w
+(unacceptably) 4404 6576 w
+(large) 720 6696 w
+(amount) 1001 6696 w
+(of) 1408 6696 w
+(information) 1543 6696 w
+(about) 2147 6696 w
+(the) 2462 6696 w
+(organization) 2654 6696 w
+(of) 3302 6696 w
+(the) 3437 6696 w
+(network) 3629 6696 w
+(and) 4058 6696 w
+(its) 4275 6696 w
+(connectivity.) 4429 6696 w
+(In this case the Plan 9 representation of a resource as a file is not appropriate.) 720 6816 w
+(If) 970 6972 w
+(tools) 1077 6972 w
+(are) 1357 6972 w
+(to) 1550 6972 w
+(be) 1689 6972 w
+(network) 1849 6972 w
+(independent,) 2282 6972 w
+(a) 2964 6972 w
+(third-party) 3060 6972 w
+(server) 3639 6972 w
+(must) 3977 6972 w
+(resolve) 4261 6972 w
+(network) 4648 6972 w
+(names.) 720 7092 w
+(A) 1134 7092 w
+(server) 1236 7092 w
+(on) 1566 7092 w
+(each) 1722 7092 w
+(machine,) 1979 7092 w
+(with) 2452 7092 w
+(local) 2690 7092 w
+(knowledge,) 2948 7092 w
+(can) 3537 7092 w
+(select) 3738 7092 w
+(the best network for) 4051 7092 w
+(any) 720 7212 w
+(particular) 948 7212 w
+(destination) 1470 7212 w
+(machine) 2072 7212 w
+(or) 2540 7212 w
+(service.) 2702 7212 w
+(Since) 3162 7212 w
+(the) 3474 7212 w
+(network) 3689 7212 w
+(devices) 4141 7212 w
+(present) 4559 7212 w
+(a) 4985 7212 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 7 7
+%%Page: 8 8
+/saveobj save def
+mark
+8 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 8 \255) 2783 480 w
+(common) 720 840 w
+(interface,) 1186 840 w
+(the) 1687 840 w
+(only) 1887 840 w
+(operation) 2136 840 w
+(which) 2646 840 w
+(differs) 2972 840 w
+(between) 3331 840 w
+(networks) 3783 840 w
+(is) 4271 840 w
+(name) 4396 840 w
+(resolu\255) 4707 840 w
+(tion.) 720 960 w
+(A) 1020 960 w
+(symbolic) 1136 960 w
+(name) 1612 960 w
+(must) 1926 960 w
+(be) 2217 960 w
+(translated) 2384 960 w
+(to) 2918 960 w
+(the) 3064 960 w
+(path) 3267 960 w
+(of) 3532 960 w
+(the) 3678 960 w
+(clone) 3881 960 w
+(file) 4188 960 w
+(of) 4387 960 w
+(a) 4533 960 w
+(protocol) 4636 960 w
+(device) 720 1080 w
+(and) 1074 1080 w
+(an) 1301 1080 w
+(ASCII) 1465 1080 w
+(address) 1762 1080 w
+(string) 2189 1080 w
+(to) 2517 1080 w
+(write) 2661 1080 w
+(to) 2947 1080 w
+(the) 3091 1080 w
+10 /LucidaTypewriter f
+(ctl) 3292 1080 w
+10 /LucidaSansUnicode00 f
+(file.) 3554 1080 w
+(A) 3815 1080 w
+(connection) 3930 1080 w
+(server) 4508 1080 w
+(\(CS\)) 4851 1080 w
+(provides this service.) 720 1200 w
+10 /LucidaSans-Demi f
+(4.1.) 720 1440 w
+(Network Database) 962 1440 w
+10 /LucidaSansUnicode00 f
+(On) 970 1596 w
+(most) 1197 1596 w
+(systems) 1527 1596 w
+(several) 2006 1596 w
+(files) 2434 1596 w
+(such) 2724 1596 w
+(as) 3038 1596 w
+10 /LucidaTypewriter f
+(/etc/hosts) 3232 1596 w
+10 /LucidaSansUnicode00 f
+(,) 3952 1596 w
+10 /LucidaTypewriter f
+(/etc/networks) 4072 1596 w
+10 /LucidaSansUnicode00 f
+(,) 5008 1596 w
+10 /LucidaTypewriter f
+(/etc/services) 720 1716 w
+10 /LucidaSansUnicode00 f
+(,) 1656 1716 w
+10 /LucidaTypewriter f
+(/etc/hosts.equiv) 1727 1716 w
+10 /LucidaSansUnicode00 f
+(,) 2879 1716 w
+10 /LucidaTypewriter f
+(/etc/bootptab) 2950 1716 w
+10 /LucidaSansUnicode00 f
+(,) 3886 1716 w
+(and) 3957 1716 w
+10 /LucidaTypewriter f
+(/etc/named.d) 4176 1716 w
+10 /LucidaSansUnicode00 f
+(hold) 720 1836 w
+(network) 976 1836 w
+(information.) 1409 1836 w
+(Much) 2081 1836 w
+(time) 2383 1836 w
+(and) 2639 1836 w
+(effort) 2860 1836 w
+(is) 3170 1836 w
+(spent) 3291 1836 w
+(administering) 3601 1836 w
+(these) 4312 1836 w
+(files) 4616 1836 w
+(and) 4860 1836 w
+(keeping) 720 1956 w
+(them) 1139 1956 w
+(mutually) 1420 1956 w
+(consistent.) 1872 1956 w
+(Tools) 2466 1956 w
+(attempt) 2764 1956 w
+(to) 3175 1956 w
+(automatically) 3306 1956 w
+(derive) 3984 1956 w
+(one or more of) 4314 1956 w
+(the) 720 2076 w
+(files) 920 2076 w
+(from) 1167 2076 w
+(information) 1444 2076 w
+(in) 2056 2076 w
+(other) 2192 2076 w
+(files) 2494 2076 w
+(but) 2742 2076 w
+(maintenance) 2950 2076 w
+(continues) 3614 2076 w
+(to) 4131 2076 w
+(be) 4275 2076 w
+(difficult) 4440 2076 w
+(and) 4860 2076 w
+(error prone.) 720 2196 w
+(Since) 970 2352 w
+(we) 1284 2352 w
+(were) 1479 2352 w
+(writing) 1771 2352 w
+(an) 2170 2352 w
+(entirely) 2349 2352 w
+(new) 2773 2352 w
+(system,) 3030 2352 w
+(we) 3464 2352 w
+(were) 3660 2352 w
+(free) 3953 2352 w
+(to) 4206 2352 w
+(try) 4367 2352 w
+(a) 4560 2352 w
+(simpler) 4678 2352 w
+(approach.) 720 2472 w
+(One) 1270 2472 w
+(database) 1501 2472 w
+(on) 1971 2472 w
+(a) 2128 2472 w
+(shared) 2217 2472 w
+(server) 2579 2472 w
+(contains) 2910 2472 w
+(all) 3352 2472 w
+(the) 3499 2472 w
+(information) 3688 2472 w
+(needed) 4289 2472 w
+(for) 4679 2472 w
+(net\255) 4852 2472 w
+(work) 720 2592 w
+(administration.) 995 2592 w
+(Two) 1801 2592 w
+(ASCII) 2040 2592 w
+(files) 2329 2592 w
+(comprise) 2570 2592 w
+(the) 3054 2592 w
+(main) 3248 2592 w
+(database:) 3526 2592 w
+10 /LucidaTypewriter f
+(/lib/ndb/local) 4032 2592 w
+10 /LucidaSansUnicode00 f
+(contains) 720 2712 w
+(locally) 1175 2712 w
+(administered) 1528 2712 w
+(information) 2210 2712 w
+(and) 2823 2712 w
+10 /LucidaTypewriter f
+(/lib/ndb/global) 3049 2712 w
+10 /LucidaSansUnicode00 f
+(contains) 4175 2712 w
+(informa\255) 4629 2712 w
+(tion imported from) 720 2832 w
+(elsewhere.) 1681 2832 w
+(The) 2262 2832 w
+(files) 2476 2832 w
+(contain) 2711 2832 w
+(sets) 3101 2832 w
+(of) 3329 2832 w
+(attribute/value) 3460 2832 w
+(pairs) 4217 2832 w
+(of) 4489 2832 w
+(the) 4620 2832 w
+(form) 4808 2832 w
+10 /LucidaSans-Italic f
+(attr) 720 2952 w
+10 /LucidaTypewriter f
+(=) 905 2952 w
+10 /LucidaSans-Italic f
+(value) 977 2952 w
+10 /LucidaSansUnicode00 f
+(,) 1236 2952 w
+(where) 1315 2952 w
+10 /LucidaSans-Italic f
+(attr) 1654 2952 w
+10 /LucidaSansUnicode00 f
+(and) 1886 2952 w
+10 /LucidaSans-Italic f
+(value) 2113 2952 w
+10 /LucidaSansUnicode00 f
+(are) 2419 2952 w
+(alphanumeric) 2618 2952 w
+(strings.) 3323 2952 w
+(Systems) 3767 2952 w
+(are) 4208 2952 w
+(described) 4406 2952 w
+(by) 4925 2952 w
+(multi-line) 720 3072 w
+(entries;) 1238 3072 w
+(a) 1636 3072 w
+(header) 1725 3072 w
+(line) 2092 3072 w
+(at) 2302 3072 w
+(the) 2429 3072 w
+(left) 2619 3072 w
+(margin) 2813 3072 w
+(begins) 3190 3072 w
+(each) 3548 3072 w
+(entry) 3807 3072 w
+(followed) 4090 3072 w
+(by) 4538 3072 w
+(zero) 4688 3072 w
+(or) 4938 3072 w
+(more) 720 3192 w
+(indented) 1019 3192 w
+(attribute/value) 1494 3192 w
+(pairs) 2265 3192 w
+(specifying) 2551 3192 w
+(names,) 3090 3192 w
+(addresses,) 3486 3192 w
+(properties,) 4052 3192 w
+(etc.) 4629 3192 w
+(For) 4884 3192 w
+(example,) 720 3312 w
+(the) 1200 3312 w
+(entry) 1390 3312 w
+(for) 1673 3312 w
+(our) 1847 3312 w
+(CPU) 2046 3312 w
+(server) 2274 3312 w
+(specifies) 2606 3312 w
+(a) 3064 3312 w
+(domain) 3154 3312 w
+(name,) 3552 3312 w
+(an) 3885 3312 w
+(IP) 4037 3312 w
+(address,) 4156 3312 w
+(an) 4604 3312 w
+(Ether\255) 4757 3312 w
+(net address, a Datakit address, a boot file, and supported protocols.) 720 3432 w
+9 /LucidaTypewriter f
+(sys) 1008 3602 w
+(=) 1268 3602 w
+(helix) 1398 3602 w
+(dom=helix.research.att.com) 1528 3712 w
+(bootf=/mips/9power) 1528 3822 w
+(ip=135.104.9.31) 1528 3932 w
+(ether=0800690222f0) 2568 3932 w
+(dk=nj/astro/helix) 1528 4042 w
+(proto=il) 1528 4152 w
+(flavor=9cpu) 2113 4152 w
+10 /LucidaSansUnicode00 f
+(If) 720 4332 w
+(several) 838 4332 w
+(systems) 1230 4332 w
+(share) 1673 4332 w
+(entries) 1990 4332 w
+(such) 2374 4332 w
+(as) 2652 4332 w
+(network) 2810 4332 w
+(mask) 3254 4332 w
+(and) 3563 4332 w
+(gateway,) 3795 4332 w
+(we) 4273 4332 w
+(specify) 4458 4332 w
+(that) 4849 4332 w
+(information) 720 4452 w
+(with) 1350 4452 w
+(the) 1618 4452 w
+(network) 1836 4452 w
+(or) 2291 4452 w
+(subnetwork) 2456 4452 w
+(instead) 3087 4452 w
+(of) 3503 4452 w
+(the) 3664 4452 w
+(system.) 3882 4452 w
+(The) 4349 4452 w
+(following) 4593 4452 w
+(entries) 720 4572 w
+(define) 1087 4572 w
+(a) 1425 4572 w
+(Class) 1515 4572 w
+(B) 1806 4572 w
+(IP) 1900 4572 w
+(network) 2020 4572 w
+(and) 2448 4572 w
+(a) 2664 4572 w
+(few) 2755 4572 w
+(subnets) 2961 4572 w
+(derived) 3379 4572 w
+(from) 3775 4572 w
+(it.) 4043 4572 w
+(The) 4209 4572 w
+(entry) 4426 4572 w
+(for) 4710 4572 w
+(the) 4885 4572 w
+(network) 720 4692 w
+(specifies) 1152 4692 w
+(the) 1615 4692 w
+(IP) 1810 4692 w
+(mask,) 1934 4692 w
+(file) 2263 4692 w
+(system,) 2454 4692 w
+(and) 2866 4692 w
+(authentication) 3086 4692 w
+(server) 3821 4692 w
+(for) 4157 4692 w
+(all) 4335 4692 w
+(systems) 4487 4692 w
+(on) 4917 4692 w
+(the network.) 720 4812 w
+(Each subnetwork specifies its default IP gateway.) 1395 4812 w
+9 /LucidaTypewriter f
+(ipnet=mh-astro-net) 1008 4982 w
+(ip=135.104.0.0) 2243 4982 w
+(ipmask=255.255.255.0) 3218 4982 w
+(fs=bootes.research.att.com) 1528 5092 w
+(auth=1127auth) 1528 5202 w
+(ipnet=unix-room) 1008 5312 w
+(ip=135.104.117.0) 2048 5312 w
+(ipgw=135.104.117.1) 1528 5422 w
+(ipnet=third-floor) 1008 5532 w
+(ip=135.104.51.0) 2178 5532 w
+(ipgw=135.104.51.1) 1528 5642 w
+(ipnet=fourth-floor) 1008 5752 w
+(ip=135.104.52.0) 2243 5752 w
+(ipgw=135.104.52.1) 1528 5862 w
+10 /LucidaSansUnicode00 f
+(Database) 720 6042 w
+(entries) 1214 6042 w
+(also) 1594 6042 w
+(define) 1838 6042 w
+(the) 2189 6042 w
+(mapping) 2392 6042 w
+(of) 2867 6042 w
+(service) 3013 6042 w
+(names) 3397 6042 w
+(to) 3762 6042 w
+(port) 3908 6042 w
+(numbers) 4158 6042 w
+(for) 4634 6042 w
+(TCP,) 4821 6042 w
+(UDP, and IL.) 720 6162 w
+9 /LucidaTypewriter f
+(tcp=echo) 1008 6332 w
+(port=7) 2048 6332 w
+(tcp=discard) 1008 6442 w
+(port=9) 2048 6442 w
+(tcp=systat) 1008 6552 w
+(port=11) 2048 6552 w
+(tcp=daytime) 1008 6662 w
+(port=13) 2048 6662 w
+10 /LucidaSansUnicode00 f
+(All programs read the database directly so consistency problems) 970 6878 w
+(are) 4148 6878 w
+(rare.) 4333 6878 w
+(However) 4623 6878 w
+(the) 720 6998 w
+(database) 921 6998 w
+(files) 1402 6998 w
+(can) 1649 6998 w
+(become) 1862 6998 w
+(large.) 2287 6998 w
+(Our) 2639 6998 w
+(global) 2865 6998 w
+(file,) 3209 6998 w
+(containing) 3437 6998 w
+(all) 3992 6998 w
+(information) 4150 6998 w
+(about) 4762 6998 w
+(both) 720 7118 w
+(Datakit) 989 7118 w
+(and) 1381 7118 w
+(Internet) 1607 7118 w
+(systems) 2033 7118 w
+(in) 2470 7118 w
+(AT&T,) 2607 7118 w
+(has) 2951 7118 w
+(43,000) 3166 7118 w
+(lines.) 3560 7118 w
+(To) 3898 7118 w
+(speed) 4069 7118 w
+(searches,) 4405 7118 w
+(we) 4907 7118 w
+(build) 720 7238 w
+(hash) 1002 7238 w
+(table) 1268 7238 w
+(files) 1544 7238 w
+(for) 1782 7238 w
+(each) 1957 7238 w
+(attribute) 2217 7238 w
+(we) 2670 7238 w
+(expect) 2839 7238 w
+(to) 3199 7238 w
+(search) 3333 7238 w
+(often.) 3685 7238 w
+(The) 4038 7238 w
+(hash) 4255 7238 w
+(file) 4521 7238 w
+(entries) 4708 7238 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 8 8
+%%Page: 9 9
+/saveobj save def
+mark
+9 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 9 \255) 2783 480 w
+(point) 720 840 w
+(to) 1009 840 w
+(entries) 1144 840 w
+(in) 1513 840 w
+(the) 1641 840 w
+(master) 1833 840 w
+(files.) 2203 840 w
+(Every) 2506 840 w
+(hash) 2798 840 w
+(file) 3065 840 w
+(contains) 3253 840 w
+(the) 3698 840 w
+(modification) 3890 840 w
+(time) 4534 840 w
+(of) 4787 840 w
+(its) 4923 840 w
+(master) 720 960 w
+(file) 1102 960 w
+(so) 1302 960 w
+(we) 1463 960 w
+(can) 1645 960 w
+(avoid) 1861 960 w
+(using) 2169 960 w
+(an) 2483 960 w
+(out-of-date) 2648 960 w
+(hash) 3281 960 w
+(table.) 3559 960 w
+(Searches) 3911 960 w
+(for) 4385 960 w
+(attributes) 4572 960 w
+(that aren) 720 1080 w
+10 /LucidaSansUnicode20 f
+(\031) 1157 1080 w
+10 /LucidaSansUnicode00 f
+(t hashed or whose hash table is out-of-date still work, they just take longer.) 1189 1080 w
+10 /LucidaSans-Demi f
+(4.2.) 720 1320 w
+(Connection Server) 962 1320 w
+10 /LucidaSansUnicode00 f
+(On) 970 1476 w
+(each) 1163 1476 w
+(system) 1440 1476 w
+(a) 1833 1476 w
+(user) 1941 1476 w
+(level) 2204 1476 w
+(connection) 2479 1476 w
+(server) 3064 1476 w
+(process,) 3414 1476 w
+(CS,) 3874 1476 w
+(translates) 4083 1476 w
+(symbolic) 4611 1476 w
+(names) 720 1596 w
+(to) 1081 1596 w
+(addresses.) 1223 1596 w
+(CS) 1818 1596 w
+(uses) 1985 1596 w
+(information) 2249 1596 w
+(about) 2859 1596 w
+(available) 3180 1596 w
+(networks,) 3646 1596 w
+(the) 4164 1596 w
+(network) 4362 1596 w
+(data\255) 4797 1596 w
+(base,) 720 1716 w
+(and) 1018 1716 w
+(other) 1239 1716 w
+(servers) 1537 1716 w
+(\(such) 1926 1716 w
+(as) 2226 1716 w
+(DNS\)) 2373 1716 w
+(to) 2650 1716 w
+(translate) 2789 1716 w
+(names.) 3253 1716 w
+(CS) 3675 1716 w
+(is) 3839 1716 w
+(a) 3961 1716 w
+(file) 4058 1716 w
+(server) 4251 1716 w
+(serving) 4590 1716 w
+(a) 4985 1716 w
+(single) 720 1836 w
+(file,) 1043 1836 w
+10 /LucidaTypewriter f
+(/net/cs) 1260 1836 w
+10 /LucidaSansUnicode00 f
+(.) 1764 1836 w
+(A) 1862 1836 w
+(client) 1965 1836 w
+(writes) 2262 1836 w
+(a) 2586 1836 w
+(symbolic) 2674 1836 w
+(name) 3136 1836 w
+(to) 3435 1836 w
+10 /LucidaTypewriter f
+(/net/cs) 3566 1836 w
+10 /LucidaSansUnicode00 f
+(then) 4103 1836 w
+(reads) 4353 1836 w
+(one) 4652 1836 w
+(line) 4864 1836 w
+(for) 720 1956 w
+(each) 907 1956 w
+(matching) 1180 1956 w
+(destination) 1680 1956 w
+(reachable) 2271 1956 w
+(from) 2788 1956 w
+(this) 3069 1956 w
+(system.) 3297 1956 w
+(The) 3750 1956 w
+(lines) 3980 1956 w
+(are) 4256 1956 w
+(of) 4457 1956 w
+(the) 4604 1956 w
+(form) 4808 1956 w
+10 /LucidaSans-Italic f
+(filename) 720 2076 w
+(message) 1171 2076 w
+10 /LucidaSansUnicode00 f
+(,) 1590 2076 w
+(where) 1655 2076 w
+10 /LucidaSans-Italic f
+(filename) 1980 2076 w
+10 /LucidaSansUnicode00 f
+(is) 2431 2076 w
+(the) 2544 2076 w
+(path) 2732 2076 w
+(of) 2982 2076 w
+(the) 3113 2076 w
+(clone file to open for a new connec\255) 3301 2076 w
+(tion) 720 2196 w
+(and) 960 2196 w
+10 /LucidaSans-Italic f
+(message) 1191 2196 w
+10 /LucidaSansUnicode00 f
+(is) 1661 2196 w
+(the) 1792 2196 w
+(string) 1998 2196 w
+(to) 2331 2196 w
+(write) 2481 2196 w
+(to) 2773 2196 w
+(it) 2923 2196 w
+(to) 3041 2196 w
+(make) 3191 2196 w
+(the) 3505 2196 w
+(connection.) 3712 2196 w
+(The) 4360 2196 w
+(following) 4593 2196 w
+(example) 720 2316 w
+(illustrates) 1170 2316 w
+(this.) 1684 2316 w
+10 /LucidaTypewriter f
+(Ndb/csquery) 1963 2316 w
+10 /LucidaSansUnicode00 f
+(is) 2791 2316 w
+(a) 2907 2316 w
+(program) 2998 2316 w
+(that) 3450 2316 w
+(prompts) 3677 2316 w
+(for) 4122 2316 w
+(strings) 4297 2316 w
+(to) 4666 2316 w
+(write) 4800 2316 w
+(to) 720 2436 w
+10 /LucidaTypewriter f
+(/net/cs) 850 2436 w
+10 /LucidaSansUnicode00 f
+(and prints the replies.) 1386 2436 w
+9 /LucidaTypewriter f
+(%) 1008 2606 w
+(ndb/csquery) 1138 2606 w
+(>) 1008 2716 w
+(net!helix!9fs) 1138 2716 w
+(/net/il/clone) 1008 2826 w
+(135.104.9.31!17008) 1918 2826 w
+(/net/dk/clone) 1008 2936 w
+(nj/astro/helix!9fs) 1918 2936 w
+10 /LucidaSansUnicode00 f
+(CS) 970 3152 w
+(provides) 1133 3152 w
+(meta-name) 1589 3152 w
+(translation) 2195 3152 w
+(to) 2755 3152 w
+(perform) 2894 3152 w
+(complicated) 3327 3152 w
+(searches.) 3956 3152 w
+(The) 4484 3152 w
+(special) 4706 3152 w
+(network) 720 3272 w
+(name) 1166 3272 w
+10 /LucidaTypewriter f
+(net) 1486 3272 w
+10 /LucidaSansUnicode00 f
+(selects) 1756 3272 w
+(any) 2141 3272 w
+(network) 2364 3272 w
+(in) 2810 3272 w
+(common) 2955 3272 w
+(between) 3430 3272 w
+(source) 3890 3272 w
+(and) 4265 3272 w
+(destination) 4498 3272 w
+(supporting) 720 3392 w
+(the) 1304 3392 w
+(specified) 1512 3392 w
+(service.) 2000 3392 w
+(A) 2453 3392 w
+(host) 2575 3392 w
+(name) 2839 3392 w
+(of) 3158 3392 w
+(the) 3309 3392 w
+(form) 3517 3392 w
+10 /LucidaTypewriter f
+($) 3802 3392 w
+10 /LucidaSans-Italic f
+(attr) 3874 3392 w
+10 /LucidaSansUnicode00 f
+(is) 4112 3392 w
+(the) 4245 3392 w
+(name) 4453 3392 w
+(of) 4772 3392 w
+(an) 4923 3392 w
+(attribute) 720 3512 w
+(in) 1175 3512 w
+(the) 1304 3512 w
+(network) 1497 3512 w
+(database.) 1927 3512 w
+(The) 2464 3512 w
+(database) 2683 3512 w
+(search) 3156 3512 w
+(returns) 3510 3512 w
+(the) 3898 3512 w
+(value) 4091 3512 w
+(of) 4382 3512 w
+(the) 4517 3512 w
+(match\255) 4709 3512 w
+(ing) 720 3632 w
+(attribute/value) 906 3632 w
+(pair) 1663 3632 w
+(most) 1884 3632 w
+(closely) 2159 3632 w
+(associated) 2521 3632 w
+(with) 3064 3632 w
+(the) 3303 3632 w
+(source) 3492 3632 w
+(host.) 3848 3632 w
+(Most) 4157 3632 w
+(closely) 4426 3632 w
+(asso\255) 4789 3632 w
+(ciated) 720 3752 w
+(is) 1102 3752 w
+(defined) 1273 3752 w
+(on) 1730 3752 w
+(a) 1944 3752 w
+(per) 2090 3752 w
+(network) 2341 3752 w
+(basis.) 2824 3752 w
+(For) 3228 3752 w
+(example,) 3475 3752 w
+(the) 4010 3752 w
+(symbolic) 4255 3752 w
+(name) 4774 3752 w
+10 /LucidaTypewriter f
+(tcp!$auth!rexauth) 720 3872 w
+10 /LucidaSansUnicode00 f
+(causes) 1994 3872 w
+(CS) 2370 3872 w
+(to) 2543 3872 w
+(search) 2691 3872 w
+(for) 3057 3872 w
+(the) 3246 3872 w
+10 /LucidaTypewriter f
+(auth) 3451 3872 w
+10 /LucidaSansUnicode00 f
+(attribute) 3789 3872 w
+(in) 4257 3872 w
+(the) 4399 3872 w
+(database) 4605 3872 w
+(entry for the source system, then its subnetwork \(if there is one\) and then its network.) 720 3992 w
+9 /LucidaTypewriter f
+(%) 1008 4162 w
+(ndb/csquery) 1138 4162 w
+(>) 1008 4272 w
+(net!$auth!rexauth) 1138 4272 w
+(/net/il/clone) 1008 4382 w
+(135.104.9.34!17021) 1918 4382 w
+(/net/dk/clone) 1008 4492 w
+(nj/astro/p9auth!rexauth) 1918 4492 w
+(/net/il/clone) 1008 4602 w
+(135.104.9.6!17021) 1918 4602 w
+(/net/dk/clone) 1008 4712 w
+(nj/astro/musca!rexauth) 1918 4712 w
+10 /LucidaSansUnicode00 f
+(Normally) 970 4928 w
+(CS) 1470 4928 w
+(derives) 1659 4928 w
+(naming) 2073 4928 w
+(information) 2502 4928 w
+(from) 3136 4928 w
+(its) 3435 4928 w
+(database) 3619 4928 w
+(files.) 4121 4928 w
+(For) 4454 4928 w
+(domain) 4677 4928 w
+(names) 720 5048 w
+(however,) 1083 5048 w
+(CS) 1566 5048 w
+(first) 1735 5048 w
+(consults) 1976 5048 w
+(another) 2426 5048 w
+(user) 2846 5048 w
+(level) 3102 5048 w
+(process,) 3370 5048 w
+(the) 3822 5048 w
+(domain) 4023 5048 w
+(name) 4432 5048 w
+(server) 4743 5048 w
+(\(DNS\).) 720 5168 w
+(If no DNS is reachable, CS relies on its own tables.) 1085 5168 w
+(Like) 970 5324 w
+(CS,) 1233 5324 w
+(the) 1455 5324 w
+(domain) 1677 5324 w
+(name) 2107 5324 w
+(server) 2440 5324 w
+(is) 2804 5324 w
+(a) 2951 5324 w
+(user) 3073 5324 w
+(level) 3350 5324 w
+(process) 3639 5324 w
+(providing) 4080 5324 w
+(one) 4610 5324 w
+(file,) 4857 5324 w
+10 /LucidaTypewriter f
+(/net/dns) 720 5444 w
+10 /LucidaSansUnicode00 f
+(.) 1296 5444 w
+(A) 1402 5444 w
+(client) 1513 5444 w
+(writes) 1819 5444 w
+(a) 2152 5444 w
+(request) 2249 5444 w
+(of) 2657 5444 w
+(the) 2797 5444 w
+(form) 2994 5444 w
+10 /LucidaSans-Italic f
+(domain-name) 3267 5444 w
+(type) 4003 5444 w
+10 /LucidaSansUnicode00 f
+(,) 4210 5444 w
+(where) 4283 5444 w
+10 /LucidaSans-Italic f
+(type) 4616 5444 w
+10 /LucidaSansUnicode00 f
+(is) 4864 5444 w
+(a) 4985 5444 w
+(domain name) 720 5564 w
+(service) 1414 5564 w
+(resource) 1783 5564 w
+(record) 2235 5564 w
+(type.) 2581 5564 w
+(DNS) 2886 5564 w
+(performs) 3122 5564 w
+(a) 3598 5564 w
+(recursive) 3686 5564 w
+(query) 4158 5564 w
+(through) 4465 5564 w
+(the) 4885 5564 w
+(Internet) 720 5684 w
+(domain) 1137 5684 w
+(name) 1537 5684 w
+(system) 1840 5684 w
+(producing) 2217 5684 w
+(one) 2747 5684 w
+(line) 2962 5684 w
+(per) 3174 5684 w
+(resource) 3370 5684 w
+(record) 3825 5684 w
+(found.) 4174 5684 w
+(The) 4559 5684 w
+(client) 4776 5684 w
+(reads) 720 5804 w
+10 /LucidaTypewriter f
+(/net/dns) 1022 5804 w
+10 /LucidaSansUnicode00 f
+(to) 1634 5804 w
+(retrieve) 1768 5804 w
+(the) 2172 5804 w
+(records.) 2363 5804 w
+(Like) 2827 5804 w
+(other) 3060 5804 w
+(domain) 3354 5804 w
+(name) 3754 5804 w
+(servers,) 4057 5804 w
+(DNS) 4474 5804 w
+(caches) 4714 5804 w
+(information) 720 5924 w
+(learned) 1329 5924 w
+(from) 1733 5924 w
+(the) 2007 5924 w
+(network.) 2204 5924 w
+(DNS) 2702 5924 w
+(is) 2947 5924 w
+(implemented) 3068 5924 w
+(as) 3746 5924 w
+(a) 3893 5924 w
+(multi-process) 3989 5924 w
+(shared) 4712 5924 w
+(memory application with separate processes listening for network and local requests.) 720 6044 w
+10 /LucidaSans-Demi f
+(5.) 720 6284 w
+(Library routines) 873 6284 w
+10 /LucidaSansUnicode00 f
+(The) 970 6440 w
+(section) 1186 6440 w
+(on) 1568 6440 w
+(protocol) 1726 6440 w
+(devices) 2165 6440 w
+(described) 2558 6440 w
+(the) 3067 6440 w
+(details) 3258 6440 w
+(of) 3614 6440 w
+(making) 3748 6440 w
+(and) 4143 6440 w
+(receiving) 4359 6440 w
+(con\255) 4833 6440 w
+(nections) 720 6560 w
+(across) 1173 6560 w
+(a) 1527 6560 w
+(network.) 1625 6560 w
+(The) 2124 6560 w
+(dance) 2348 6560 w
+(is) 2678 6560 w
+(straightforward) 2801 6560 w
+(but) 3593 6560 w
+(tedious.) 3798 6560 w
+(Library) 4264 6560 w
+(routines) 4641 6560 w
+(are provided to relieve the programmer of the details.) 720 6680 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 9 9
+%%Page: 10 10
+/saveobj save def
+mark
+10 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 10 \255) 2752 480 w
+10 /LucidaSans-Demi f
+(5.1.) 720 840 w
+(Connecting) 962 840 w
+10 /LucidaSansUnicode00 f
+(The) 970 996 w
+10 /LucidaTypewriter f
+(dial) 1191 996 w
+10 /LucidaSansUnicode00 f
+(library) 1519 996 w
+(call) 1869 996 w
+(establishes) 2073 996 w
+(a) 2653 996 w
+(connection) 2748 996 w
+(to) 3320 996 w
+(a) 3458 996 w
+(remote) 3553 996 w
+(destination.) 3937 996 w
+(It) 4583 996 w
+(returns) 4690 996 w
+(an open file descriptor for the) 720 1116 w
+10 /LucidaTypewriter f
+(data) 2209 1116 w
+10 /LucidaSansUnicode00 f
+(file in the connection directory.) 2529 1116 w
+9 /LucidaTypewriter f
+(int) 1008 1286 w
+(dial\(char) 1333 1286 w
+(*dest,) 1983 1286 w
+(char) 2438 1286 w
+(*local,) 2763 1286 w
+(char) 3283 1286 w
+(*dir,) 3608 1286 w
+(int) 3998 1286 w
+(*cfdp\)) 4258 1286 w
+10 /LucidaTypewriter f
+(dest) 720 1502 w
+10 /LucidaSansUnicode00 f
+(is the symbolic name/address of the destination.) 1220 1502 w
+10 /LucidaTypewriter f
+(local) 720 1658 w
+10 /LucidaSansUnicode00 f
+(is) 1220 1658 w
+(the) 1347 1658 w
+(local) 1549 1658 w
+(address.) 1821 1658 w
+(Since) 2312 1658 w
+(most) 2612 1658 w
+(networks) 2902 1658 w
+(do) 3393 1658 w
+(not) 3565 1658 w
+(support) 3773 1658 w
+(this,) 4199 1658 w
+(it) 4458 1658 w
+(is) 4572 1658 w
+(usually) 4700 1658 w
+(zero.) 1220 1778 w
+10 /LucidaTypewriter f
+(dir) 720 1934 w
+10 /LucidaSansUnicode00 f
+(is) 1220 1934 w
+(a) 1337 1934 w
+(pointer) 1429 1934 w
+(to) 1815 1934 w
+(a) 1950 1934 w
+(buffer) 2042 1934 w
+(to) 2375 1934 w
+(hold) 2510 1934 w
+(the) 2762 1934 w
+(path) 2954 1934 w
+(name) 3208 1934 w
+(of) 3511 1934 w
+(the) 3646 1934 w
+(protocol) 3839 1934 w
+(directory) 4281 1934 w
+(repre\255) 4750 1934 w
+(senting this connection.) 1220 2054 w
+10 /LucidaTypewriter f
+(Dial) 2450 2054 w
+10 /LucidaSansUnicode00 f
+(fills this buffer if the pointer is non-zero.) 2770 2054 w
+10 /LucidaTypewriter f
+(cfdp) 720 2210 w
+10 /LucidaSansUnicode00 f
+(is) 1220 2210 w
+(a) 1353 2210 w
+(pointer) 1461 2210 w
+(to) 1864 2210 w
+(a) 2016 2210 w
+(file) 2125 2210 w
+(descriptor) 2330 2210 w
+(for) 2877 2210 w
+(the) 3070 2210 w
+10 /LucidaTypewriter f
+(ctl) 3279 2210 w
+10 /LucidaSansUnicode00 f
+(file) 3549 2210 w
+(of) 3754 2210 w
+(the) 3906 2210 w
+(connection.) 4115 2210 w
+(If) 4765 2210 w
+(the) 4885 2210 w
+(pointer) 1220 2330 w
+(is) 1606 2330 w
+(non-zero,) 1723 2330 w
+10 /LucidaTypewriter f
+(dial) 2249 2330 w
+10 /LucidaSansUnicode00 f
+(opens) 2573 2330 w
+(the) 2902 2330 w
+(control) 3093 2330 w
+(file) 3471 2330 w
+(and) 3658 2330 w
+(tucks) 3874 2330 w
+(the) 4169 2330 w
+(file) 4360 2330 w
+(descriptor) 4547 2330 w
+(here.) 1220 2450 w
+(Most) 720 2606 w
+(programs) 990 2606 w
+(call) 1492 2606 w
+10 /LucidaTypewriter f
+(dial) 1691 2606 w
+10 /LucidaSansUnicode00 f
+(with) 2014 2606 w
+(a) 2254 2606 w
+(destination) 2344 2606 w
+(name) 2922 2606 w
+(and) 3224 2606 w
+(all) 3440 2606 w
+(other) 3589 2606 w
+(arguments) 3882 2606 w
+(zero.) 4437 2606 w
+10 /LucidaTypewriter f
+(Dial) 4752 2606 w
+10 /LucidaSansUnicode00 f
+(uses) 720 2726 w
+(CS) 1006 2726 w
+(to) 1195 2726 w
+(translate) 1359 2726 w
+(the) 1847 2726 w
+(symbolic) 2067 2726 w
+(name) 2561 2726 w
+(to) 2892 2726 w
+(all) 3055 2726 w
+(possible) 3233 2726 w
+(destination) 3701 2726 w
+(addresses) 4308 2726 w
+(and) 4860 2726 w
+(attempts to connect to each) 720 2846 w
+(in) 2110 2846 w
+(turn) 2234 2846 w
+(until) 2469 2846 w
+(one) 2721 2846 w
+(works.) 2933 2846 w
+(Specifying) 3318 2846 w
+(the) 3846 2846 w
+(special) 4034 2846 w
+(name) 4401 2846 w
+10 /LucidaTypewriter f
+(net) 4700 2846 w
+10 /LucidaSansUnicode00 f
+(in) 4949 2846 w
+(the) 720 2966 w
+(network) 913 2966 w
+(portion) 1343 2966 w
+(of) 1735 2966 w
+(the) 1870 2966 w
+(destination) 2062 2966 w
+(allows) 2641 2966 w
+(CS) 2980 2966 w
+(to) 3140 2966 w
+(pick) 3275 2966 w
+(a) 3513 2966 w
+(network/protocol) 3605 2966 w
+(in) 4491 2966 w
+(common) 4619 2966 w
+(with) 720 3086 w
+(the) 965 3086 w
+(destination) 1160 3086 w
+(for) 1742 3086 w
+(which) 1921 3086 w
+(the) 2242 3086 w
+(requested) 2437 3086 w
+(service) 2962 3086 w
+(is) 3339 3086 w
+(valid.) 3460 3086 w
+(For) 3793 3086 w
+(example,) 3990 3086 w
+(assume) 4476 3086 w
+(the) 4885 3086 w
+(system) 720 3206 w
+10 /LucidaTypewriter f
+(research.att.com) 1097 3206 w
+10 /LucidaSansUnicode00 f
+(has) 2286 3206 w
+(the) 2491 3206 w
+(Datakit) 2682 3206 w
+(address) 3064 3206 w
+10 /LucidaTypewriter f
+(nj/astro/research) 3480 3206 w
+10 /LucidaSansUnicode00 f
+(and) 4740 3206 w
+(IP) 4956 3206 w
+(addresses) 720 3326 w
+10 /LucidaTypewriter f
+(135.104.117.5) 1239 3326 w
+10 /LucidaSansUnicode00 f
+(and) 2207 3326 w
+10 /LucidaTypewriter f
+(129.11.4.1) 2419 3326 w
+10 /LucidaSansUnicode00 f
+(.) 3139 3326 w
+(The call) 3235 3326 w
+9 /LucidaTypewriter f
+(fd) 1008 3496 w
+(=) 1203 3496 w
+(dial\("net!research.att.com!login",) 1333 3496 w
+(0,) 3608 3496 w
+(0,) 3803 3496 w
+(0,) 3998 3496 w
+(0\);) 4193 3496 w
+10 /LucidaSansUnicode00 f
+(tries) 720 3676 w
+(in) 979 3676 w
+(succession) 1115 3676 w
+(to) 1685 3676 w
+(connect) 1828 3676 w
+(to) 2253 3676 w
+10 /LucidaTypewriter f
+(nj/astro/research!login) 2396 3676 w
+10 /LucidaSansUnicode00 f
+(on) 4098 3676 w
+(the) 4267 3676 w
+(Datakit) 4468 3676 w
+(and) 4860 3676 w
+(both) 720 3796 w
+10 /LucidaTypewriter f
+(135.104.117.5!513) 975 3796 w
+10 /LucidaSansUnicode00 f
+(and) 2231 3796 w
+10 /LucidaTypewriter f
+(129.11.4.1!513) 2443 3796 w
+10 /LucidaSansUnicode00 f
+(across the Internet.) 3483 3796 w
+10 /LucidaTypewriter f
+(Dial) 970 3952 w
+10 /LucidaSansUnicode00 f
+(accepts addresses instead of symbolic names.) 1290 3952 w
+(For example, the) 3594 3952 w
+(destinations) 4447 3952 w
+10 /LucidaTypewriter f
+(tcp!135.104.117.5!513) 720 4072 w
+10 /LucidaSansUnicode00 f
+(and) 2296 4072 w
+10 /LucidaTypewriter f
+(tcp!research.att.com!login) 2540 4072 w
+10 /LucidaSansUnicode00 f
+(are) 4475 4072 w
+(equiva\255) 4690 4072 w
+(lent references to the same machine.) 720 4192 w
+10 /LucidaSans-Demi f
+(5.2.) 720 4432 w
+(Listening) 962 4432 w
+10 /LucidaSansUnicode00 f
+(A) 970 4588 w
+(program) 1121 4588 w
+(uses) 1619 4588 w
+(four) 1921 4588 w
+(routines) 2204 4588 w
+(to) 2685 4588 w
+(listen) 2865 4588 w
+(for) 3212 4588 w
+(incoming) 3434 4588 w
+(connections.) 3966 4588 w
+(It) 4696 4588 w
+(first) 4845 4588 w
+10 /LucidaTypewriter f
+(announce\(\)) 720 4708 w
+10 /LucidaSansUnicode00 f
+(s) 1440 4708 w
+(its) 1548 4708 w
+(intention) 1722 4708 w
+(to) 2214 4708 w
+(receive) 2369 4708 w
+(connections,) 2767 4708 w
+(then) 3438 4708 w
+10 /LucidaTypewriter f
+(listen\(\)) 3711 4708 w
+10 /LucidaSansUnicode00 f
+(s) 4287 4708 w
+(for) 4394 4708 w
+(calls) 4589 4708 w
+(and) 4860 4708 w
+(finally) 720 4828 w
+10 /LucidaTypewriter f
+(accept\(\)) 1056 4828 w
+10 /LucidaSansUnicode00 f
+(s) 1632 4828 w
+(or) 1726 4828 w
+10 /LucidaTypewriter f
+(reject\(\)) 1871 4828 w
+10 /LucidaSansUnicode00 f
+(s) 2447 4828 w
+(them.) 2541 4828 w
+10 /LucidaTypewriter f
+(Announce) 2896 4828 w
+10 /LucidaSansUnicode00 f
+(returns) 3515 4828 w
+(an) 3908 4828 w
+(open) 4068 4828 w
+(file) 4353 4828 w
+(descriptor) 4547 4828 w
+(for) 720 4948 w
+(the) 895 4948 w
+10 /LucidaTypewriter f
+(ctl) 1086 4948 w
+10 /LucidaSansUnicode00 f
+(file) 1338 4948 w
+(of) 1525 4948 w
+(a) 1658 4948 w
+(connection) 1748 4948 w
+(and) 2315 4948 w
+(fills) 2530 4948 w
+10 /LucidaTypewriter f
+(dir) 2740 4948 w
+10 /LucidaSansUnicode00 f
+(with) 2991 4948 w
+(the) 3231 4948 w
+(path) 3421 4948 w
+(of) 3673 4948 w
+(the) 3806 4948 w
+(protocol) 3996 4948 w
+(directory) 4435 4948 w
+(for) 4901 4948 w
+(the announcement.) 720 5068 w
+9 /LucidaTypewriter f
+(int) 1008 5238 w
+(announce\(char) 1333 5238 w
+(*addr,) 2243 5238 w
+(char) 2698 5238 w
+(*dir\)) 3023 5238 w
+10 /LucidaTypewriter f
+(Addr) 720 5418 w
+10 /LucidaSansUnicode00 f
+(is) 1057 5418 w
+(the) 1186 5418 w
+(symbolic) 1390 5418 w
+(name/address) 1868 5418 w
+(announced;) 2616 5418 w
+(if) 3232 5418 w
+(it) 3348 5418 w
+(does) 3464 5418 w
+(not) 3745 5418 w
+(contain) 3955 5418 w
+(a) 4362 5418 w
+(service,) 4467 5418 w
+(the) 4885 5418 w
+(announcement) 720 5538 w
+(is) 1486 5538 w
+(for) 1613 5538 w
+(all) 1799 5538 w
+(services) 1959 5538 w
+(not) 2393 5538 w
+(explicitly) 2600 5538 w
+(announced.) 3083 5538 w
+(Thus,) 3727 5538 w
+(one) 4043 5538 w
+(can) 4268 5538 w
+(easily) 4482 5538 w
+(write) 4800 5538 w
+(the) 720 5658 w
+(equivalent) 921 5658 w
+(of) 1468 5658 w
+(the) 1612 5658 w
+10 /LucidaTypewriter f
+(inetd) 1813 5658 w
+10 /LucidaSansUnicode00 f
+(program) 2220 5658 w
+(without) 2683 5658 w
+(having) 3095 5658 w
+(to) 3464 5658 w
+(announce) 3609 5658 w
+(each) 4127 5658 w
+(separate) 4398 5658 w
+(ser\255) 4859 5658 w
+(vice.) 720 5778 w
+(An announcement remains in force until the control file is closed.) 1004 5778 w
+10 /LucidaTypewriter f
+(Listen) 720 5934 w
+10 /LucidaSansUnicode00 f
+(returns) 1186 5934 w
+(an) 1570 5934 w
+(open) 1721 5934 w
+(file) 1997 5934 w
+(descriptor) 2183 5934 w
+(for) 2711 5934 w
+(the) 2885 5934 w
+10 /LucidaTypewriter f
+(ctl) 3075 5934 w
+10 /LucidaSansUnicode00 f
+(file) 3326 5934 w
+(and) 3512 5934 w
+(fills) 3727 5934 w
+10 /LucidaTypewriter f
+(ldir) 3937 5934 w
+10 /LucidaSansUnicode00 f
+(with) 4260 5934 w
+(the) 4500 5934 w
+(path) 4690 5934 w
+(of) 4942 5934 w
+(the) 720 6054 w
+(protocol) 910 6054 w
+(directory) 1349 6054 w
+(for) 1814 6054 w
+(the) 1987 6054 w
+(received) 2176 6054 w
+(connection.) 2614 6054 w
+(It) 3244 6054 w
+(is) 3344 6054 w
+(passed) 3458 6054 w
+10 /LucidaTypewriter f
+(dir) 3831 6054 w
+10 /LucidaSansUnicode00 f
+(from) 4081 6054 w
+(the) 4347 6054 w
+(announce\255) 4536 6054 w
+(ment.) 720 6174 w
+9 /LucidaTypewriter f
+(int) 1008 6344 w
+(listen\(char) 1333 6344 w
+(*dir,) 2113 6344 w
+(char) 2503 6344 w
+(*ldir\)) 2828 6344 w
+10 /LucidaTypewriter f
+(Accept) 720 6560 w
+10 /LucidaSansUnicode00 f
+(and) 1190 6560 w
+10 /LucidaTypewriter f
+(reject) 1408 6560 w
+10 /LucidaSansUnicode00 f
+(are) 1878 6560 w
+(called) 2068 6560 w
+(with) 2389 6560 w
+(the) 2632 6560 w
+(control) 2825 6560 w
+(file) 3205 6560 w
+(descriptor) 3394 6560 w
+(and) 3925 6560 w
+10 /LucidaTypewriter f
+(ldir) 4143 6560 w
+10 /LucidaSansUnicode00 f
+(returned) 4469 6560 w
+(by) 4925 6560 w
+10 /LucidaTypewriter f
+(listen.) 720 6680 w
+10 /LucidaSansUnicode00 f
+(Some) 1257 6680 w
+(networks) 1554 6680 w
+(such as Datakit accept a reason for a rejection; networks such) 2030 6680 w
+(as IP ignore the third argument.) 720 6800 w
+9 /LucidaTypewriter f
+(int) 1008 6970 w
+(accept\(int) 1333 6970 w
+(ctl,) 2048 6970 w
+(char) 2373 6970 w
+(*ldir\)) 2698 6970 w
+(int) 1008 7080 w
+(reject\(int) 1333 7080 w
+(ctl,) 2048 7080 w
+(char) 2373 7080 w
+(*ldir,) 2698 7080 w
+(char) 3153 7080 w
+(*reason\)) 3478 7080 w
+10 /LucidaSansUnicode00 f
+(The) 970 7296 w
+(following) 1195 7296 w
+(code) 1686 7296 w
+(implements) 1961 7296 w
+(a) 2574 7296 w
+(typical) 2673 7296 w
+(TCP) 3033 7296 w
+(listener.) 3264 7296 w
+(It) 3733 7296 w
+(announces) 3843 7296 w
+(itself,) 4409 7296 w
+(listens) 4725 7296 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 10 10
+%%Page: 11 11
+/saveobj save def
+mark
+11 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 11 \255) 2752 480 w
+(for) 720 840 w
+(connections,) 894 840 w
+(and) 1544 840 w
+(forks) 1758 840 w
+(a) 2040 840 w
+(new) 2129 840 w
+(process) 2358 840 w
+(for) 2766 840 w
+(each.) 2939 840 w
+(The) 3261 840 w
+(new) 3476 840 w
+(process) 3705 840 w
+(echoes) 4113 840 w
+(data) 4484 840 w
+(on) 4728 840 w
+(the) 4885 840 w
+(connection) 720 960 w
+(until) 1305 960 w
+(the) 1577 960 w
+(remote) 1785 960 w
+(end) 2182 960 w
+(closes) 2416 960 w
+(it.) 2768 960 w
+(The) 2951 960 w
+("*") 3185 960 w
+(in) 3360 960 w
+(the) 3504 960 w
+(symbolic) 3712 960 w
+(name) 4194 960 w
+(means) 4514 960 w
+(the) 4885 960 w
+(announcement is valid for any addresses bound to the machine the program is run on.) 720 1080 w
+9 /LucidaTypewriter f
+(int) 1008 1250 w
+(echo_server\(void\)) 1008 1360 w
+({) 1008 1470 w
+(int) 1368 1580 w
+(dfd,) 1628 1580 w
+(lcfd;) 1953 1580 w
+(char) 1368 1690 w
+(adir[40],) 1693 1690 w
+(ldir[40];) 2343 1690 w
+(int) 1368 1800 w
+(n;) 1628 1800 w
+(char) 1368 1910 w
+(buf[256];) 1693 1910 w
+(afd) 1368 2130 w
+(=) 1628 2130 w
+(announce\("tcp!*!echo",) 1758 2130 w
+(adir\);) 3253 2130 w
+(if\(afd) 1368 2240 w
+(<) 1823 2240 w
+(0\)) 1953 2240 w
+(return) 1728 2350 w
+(-1;) 2183 2350 w
+(for\(;;\){) 1368 2570 w
+(/*) 1728 2680 w
+(listen) 1923 2680 w
+(for) 2378 2680 w
+(a) 2638 2680 w
+(call) 2768 2680 w
+(*/) 3093 2680 w
+(lcfd) 1728 2790 w
+(=) 2053 2790 w
+(listen\(adir,) 2183 2790 w
+(ldir\);) 3028 2790 w
+(if\(lcfd) 1728 2900 w
+(<) 2248 2900 w
+(0\)) 2378 2900 w
+(return) 2088 3010 w
+(-1;) 2543 3010 w
+(/*) 1728 3230 w
+(fork) 1923 3230 w
+(a) 2248 3230 w
+(process) 2378 3230 w
+(to) 2898 3230 w
+(echo) 3093 3230 w
+(*/) 3418 3230 w
+(switch\(fork\(\)\){) 1728 3340 w
+(case) 1728 3450 w
+(0:) 2053 3450 w
+(/*) 2088 3560 w
+(accept) 2283 3560 w
+(the) 2738 3560 w
+(call) 2998 3560 w
+(and) 3323 3560 w
+(open) 3583 3560 w
+(the) 3908 3560 w
+(data) 4168 3560 w
+(file) 4493 3560 w
+(*/) 4818 3560 w
+(dfd) 2088 3670 w
+(=) 2348 3670 w
+(accept\(lcfd,) 2478 3670 w
+(ldir\);) 3323 3670 w
+(if\(dfd) 2088 3780 w
+(<) 2543 3780 w
+(0\)) 2673 3780 w
+(return) 2448 3890 w
+(-1;) 2903 3890 w
+(/*) 2088 4110 w
+(echo) 2283 4110 w
+(until) 2608 4110 w
+(EOF) 2998 4110 w
+(*/) 3258 4110 w
+(while\(\(n) 2088 4220 w
+(=) 2673 4220 w
+(read\(dfd,) 2803 4220 w
+(buf,) 3453 4220 w
+(sizeof\(buf\)\)\)) 3778 4220 w
+(>) 4688 4220 w
+(0\)) 4818 4220 w
+(write\(dfd,) 2448 4330 w
+(buf,) 3163 4330 w
+(n\);) 3488 4330 w
+(exits\(0\);) 2088 4440 w
+(case) 1728 4550 w
+(-1:) 2053 4550 w
+(perror\("forking"\);) 2088 4660 w
+(default:) 1728 4770 w
+(close\(lcfd\);) 2088 4880 w
+(break;) 2088 4990 w
+(}) 1728 5100 w
+(}) 1368 5320 w
+(}) 1008 5430 w
+10 /LucidaSans-Demi f
+(6.) 720 5730 w
+(User Level) 873 5730 w
+10 /LucidaSansUnicode00 f
+(Communication) 970 5886 w
+(between) 1768 5886 w
+(Plan) 2209 5886 w
+(9) 2444 5886 w
+(machines) 2541 5886 w
+(is) 3034 5886 w
+(done) 3149 5886 w
+(almost) 3426 5886 w
+(exclusively) 3787 5886 w
+(in) 4350 5886 w
+(terms) 4476 5886 w
+(of) 4789 5886 w
+(9P) 4922 5886 w
+(messages.) 720 6006 w
+(Only) 1277 6006 w
+(the) 1548 6006 w
+(two) 1753 6006 w
+(services) 1978 6006 w
+10 /LucidaTypewriter f
+(cpu) 2415 6006 w
+10 /LucidaSansUnicode00 f
+(and) 2680 6006 w
+10 /LucidaTypewriter f
+(exportfs) 2909 6006 w
+10 /LucidaSansUnicode00 f
+(are) 3534 6006 w
+(used.) 3735 6006 w
+(The) 4080 6006 w
+10 /LucidaTypewriter f
+(cpu) 4310 6006 w
+10 /LucidaSansUnicode00 f
+(service) 4575 6006 w
+(is) 4960 6006 w
+(analogous) 720 6126 w
+(to) 1263 6126 w
+10 /LucidaTypewriter f
+(rlogin) 1406 6126 w
+10 /LucidaSansUnicode00 f
+(.) 1838 6126 w
+(However,) 1947 6126 w
+(rather) 2442 6126 w
+(than) 2780 6126 w
+(emulating) 3042 6126 w
+(a) 3573 6126 w
+(terminal) 3674 6126 w
+(session) 4122 6126 w
+(across) 4529 6126 w
+(the) 4885 6126 w
+(network,) 720 6246 w
+10 /LucidaTypewriter f
+(cpu) 1189 6246 w
+10 /LucidaSansUnicode00 f
+(creates) 1450 6246 w
+(a) 1842 6246 w
+(process) 1942 6246 w
+(on) 2361 6246 w
+(the) 2529 6246 w
+(remote) 2729 6246 w
+(machine) 3117 6246 w
+(whose) 3569 6246 w
+(name) 3920 6246 w
+(space) 4230 6246 w
+(is) 4550 6246 w
+(an) 4674 6246 w
+(ana\255) 4835 6246 w
+(logue) 720 6366 w
+(of) 1041 6366 w
+(the) 1190 6366 w
+(window) 1396 6366 w
+(in) 1816 6366 w
+(which) 1958 6366 w
+(it) 2290 6366 w
+(was) 2407 6366 w
+(invoked.) 2641 6366 w
+10 /LucidaTypewriter f
+(Exportfs) 3137 6366 w
+10 /LucidaSansUnicode00 f
+(is) 3765 6366 w
+(a) 3897 6366 w
+(user) 4004 6366 w
+(level) 4266 6366 w
+(file) 4540 6366 w
+(server) 4743 6366 w
+(which) 720 6486 w
+(allows) 1043 6486 w
+(a) 1387 6486 w
+(piece) 1484 6486 w
+(of) 1781 6486 w
+(name) 1921 6486 w
+(space) 2229 6486 w
+(to) 2546 6486 w
+(be) 2685 6486 w
+(exported) 2845 6486 w
+(from) 3324 6486 w
+(machine) 3597 6486 w
+(to) 4046 6486 w
+(machine) 4185 6486 w
+(across) 4634 6486 w
+(a) 4985 6486 w
+(network.) 720 6606 w
+(It) 1179 6606 w
+(is) 1280 6606 w
+(used) 1395 6606 w
+(by) 1662 6606 w
+(the) 1812 6606 w
+10 /LucidaTypewriter f
+(cpu) 2002 6606 w
+10 /LucidaSansUnicode00 f
+(command) 2254 6606 w
+(to) 2768 6606 w
+(serve) 2902 6606 w
+(the) 3194 6606 w
+(files) 3385 6606 w
+(in) 3623 6606 w
+(the) 3750 6606 w
+(terminal) 3941 6606 w
+10 /LucidaSansUnicode20 f
+(\031) 4343 6606 w
+10 /LucidaSansUnicode00 f
+(s) 4375 6606 w
+(name) 4462 6606 w
+(space) 4764 6606 w
+(when they are accessed from the cpu server.) 720 6726 w
+(By) 970 6882 w
+(convention,) 1120 6882 w
+(the) 1725 6882 w
+(protocol) 1920 6882 w
+(and) 2364 6882 w
+(device) 2584 6882 w
+(driver) 2931 6882 w
+(file) 3253 6882 w
+(systems) 3444 6882 w
+(are) 3875 6882 w
+(mounted) 4067 6882 w
+(in) 4541 6882 w
+(a) 4672 6882 w
+(direc\255) 4767 6882 w
+(tory) 720 7002 w
+(called) 955 7002 w
+10 /LucidaTypewriter f
+(/net) 1282 7002 w
+10 /LucidaSansUnicode00 f
+(.) 1570 7002 w
+(Although) 1678 7002 w
+(the) 2166 7002 w
+(per-process) 2365 7002 w
+(name) 3001 7002 w
+(space) 3310 7002 w
+(allows) 3629 7002 w
+(users) 3974 7002 w
+(to) 4278 7002 w
+(configure) 4419 7002 w
+(an) 4923 7002 w
+(arbitrary view of the system, in practice their profiles build a conventional name space.) 720 7122 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 11 11
+%%Page: 12 12
+/saveobj save def
+mark
+12 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 12 \255) 2752 480 w
+10 /LucidaSans-Demi f
+(6.1.) 720 840 w
+(Exportfs) 962 840 w
+10 /LucidaTypewriter f
+(Exportfs) 970 996 w
+10 /LucidaSansUnicode00 f
+(is) 1580 996 w
+(invoked) 1694 996 w
+(by) 2109 996 w
+(an) 2258 996 w
+(incoming) 2409 996 w
+(network) 2892 996 w
+(call.) 3318 996 w
+(The) 3580 996 w
+10 /LucidaSans-Italic f
+(listener) 3795 996 w
+10 /LucidaSansUnicode00 f
+(\(the) 4190 996 w
+(Plan) 4412 996 w
+(9) 4647 996 w
+(equiv\255) 4745 996 w
+(alent) 720 1116 w
+(of) 997 1116 w
+10 /LucidaTypewriter f
+(inetd) 1133 1116 w
+10 /LucidaSansUnicode00 f
+(\)) 1493 1116 w
+(runs) 1564 1116 w
+(the) 1817 1116 w
+(profile) 2009 1116 w
+(of) 2362 1116 w
+(the) 2497 1116 w
+(user) 2689 1116 w
+(requesting) 2936 1116 w
+(the) 3492 1116 w
+(service) 3684 1116 w
+(to) 4057 1116 w
+(construct) 4192 1116 w
+(a) 4682 1116 w
+(name) 4774 1116 w
+(space) 720 1236 w
+(before) 1040 1236 w
+(starting) 1398 1236 w
+10 /LucidaTypewriter f
+(exportfs) 1816 1236 w
+10 /LucidaSansUnicode00 f
+(.) 2392 1236 w
+(After) 2501 1236 w
+(an) 2786 1236 w
+(initial) 2948 1236 w
+(protocol) 3263 1236 w
+(establishes) 3712 1236 w
+(the) 4297 1236 w
+(root) 4497 1236 w
+(of) 4742 1236 w
+(the) 4885 1236 w
+(file) 720 1356 w
+(tree) 959 1356 w
+(being) 1237 1356 w
+(exported,) 1597 1356 w
+(the) 2155 1356 w
+(remote) 2398 1356 w
+(process) 2829 1356 w
+(mounts) 3290 1356 w
+(the) 3743 1356 w
+(connection,) 3985 1356 w
+(allowing) 4636 1356 w
+10 /LucidaTypewriter f
+(exportfs) 720 1476 w
+10 /LucidaSansUnicode00 f
+(to) 1343 1476 w
+(act) 1488 1476 w
+(as) 1678 1476 w
+(a) 1831 1476 w
+(relay) 1933 1476 w
+(file) 2213 1476 w
+(server.) 2411 1476 w
+(Operations) 2787 1476 w
+(in) 3367 1476 w
+(the) 3505 1476 w
+(imported) 3707 1476 w
+(file) 4197 1476 w
+(tree) 4396 1476 w
+(are) 4634 1476 w
+(exe\255) 4834 1476 w
+(cuted) 720 1596 w
+(on) 1026 1596 w
+(the) 1186 1596 w
+(remote) 1378 1596 w
+(server) 1759 1596 w
+(and) 2093 1596 w
+(the) 2310 1596 w
+(results) 2502 1596 w
+(returned.) 2866 1596 w
+(As) 3385 1596 w
+(a) 3542 1596 w
+(result) 3634 1596 w
+(the) 3946 1596 w
+(name) 4137 1596 w
+(space) 4439 1596 w
+(of) 4751 1596 w
+(the) 4885 1596 w
+(remote machine appears to be exported into a local file tree.) 720 1716 w
+(The) 970 1872 w
+10 /LucidaTypewriter f
+(import) 1190 1872 w
+10 /LucidaSansUnicode00 f
+(command) 1661 1872 w
+(calls) 2178 1872 w
+10 /LucidaTypewriter f
+(exportfs) 2432 1872 w
+10 /LucidaSansUnicode00 f
+(on) 3047 1872 w
+(a) 3209 1872 w
+(remote) 3303 1872 w
+(machine,) 3686 1872 w
+(mounts) 4165 1872 w
+(the) 4570 1872 w
+(result) 4764 1872 w
+(in) 720 1992 w
+(the) 858 1992 w
+(local) 1060 1992 w
+(name) 1332 1992 w
+(space,) 1645 1992 w
+(and) 2000 1992 w
+(exits.) 2227 1992 w
+(No) 2572 1992 w
+(local) 2754 1992 w
+(process) 3026 1992 w
+(is) 3447 1992 w
+(required) 3574 1992 w
+(to) 4032 1992 w
+(serve) 4176 1992 w
+(mounts;) 4478 1992 w
+(9P) 4922 1992 w
+(messages are generated by the kernel) 720 2112 w
+10 /LucidaSansUnicode20 f
+(\031) 2567 2112 w
+10 /LucidaSansUnicode00 f
+(s mount driver and sent directly over the network.) 2599 2112 w
+10 /LucidaTypewriter f
+(Exportfs) 970 2268 w
+10 /LucidaSansUnicode00 f
+(must) 1612 2268 w
+(be) 1921 2268 w
+(multithreaded) 2106 2268 w
+(since) 2855 2268 w
+(the) 3170 2268 w
+(system) 3391 2268 w
+(calls) 3797 2268 w
+10 /LucidaTypewriter f
+(open,) 4078 2268 w
+(read) 4505 2268 w
+10 /LucidaSansUnicode00 f
+(and) 4860 2268 w
+10 /LucidaTypewriter f
+(write) 720 2388 w
+10 /LucidaSansUnicode00 f
+(may) 1118 2388 w
+(block.) 1356 2388 w
+(Plan) 1720 2388 w
+(9) 1959 2388 w
+(does) 2060 2388 w
+(not) 2329 2388 w
+(implement) 2527 2388 w
+(the) 3083 2388 w
+10 /LucidaTypewriter f
+(select) 3275 2388 w
+10 /LucidaSansUnicode00 f
+(system) 3744 2388 w
+(call) 4121 2388 w
+(but) 4322 2388 w
+(does) 4521 2388 w
+(allow) 4789 2388 w
+(processes) 720 2508 w
+(to) 1243 2508 w
+(share) 1383 2508 w
+(file) 1691 2508 w
+(descriptors,) 1885 2508 w
+(memory) 2504 2508 w
+(and) 2943 2508 w
+(other) 3166 2508 w
+(resources.) 3466 2508 w
+10 /LucidaTypewriter f
+(Exportfs) 4043 2508 w
+10 /LucidaSansUnicode00 f
+(and) 4662 2508 w
+(the) 4885 2508 w
+(configurable) 720 2628 w
+(name) 1364 2628 w
+(space) 1666 2628 w
+(provide) 1978 2628 w
+(a) 2379 2628 w
+(means) 2470 2628 w
+(of) 2823 2628 w
+(sharing) 2957 2628 w
+(resources) 3354 2628 w
+(between) 3859 2628 w
+(machines.) 4301 2628 w
+(It) 4859 2628 w
+(is) 4960 2628 w
+(a building block for constructing complex name spaces served from many machines.) 720 2748 w
+(The) 970 2904 w
+(simplicity) 1186 2904 w
+(of) 1684 2904 w
+(the) 1817 2904 w
+(interfaces) 2007 2904 w
+(encourages) 2517 2904 w
+(naive) 3109 2904 w
+(users) 3398 2904 w
+(to) 3694 2904 w
+(exploit) 3827 2904 w
+(the) 4198 2904 w
+(potential) 4388 2904 w
+(of) 4852 2904 w
+(a) 4985 2904 w
+(richly) 720 3024 w
+(connected) 1040 3024 w
+(environment.) 1594 3024 w
+(Using) 2324 3024 w
+(these) 2652 3024 w
+(tools) 2969 3024 w
+(it) 3263 3024 w
+(is) 3384 3024 w
+(easy) 3519 3024 w
+(to) 3788 3024 w
+(gateway) 3941 3024 w
+(between) 4390 3024 w
+(net\255) 4852 3024 w
+(works.) 720 3144 w
+(For) 1127 3144 w
+(example) 1338 3144 w
+(a) 1806 3144 w
+(terminal) 1916 3144 w
+(with) 2373 3144 w
+(only) 2633 3144 w
+(a) 2892 3144 w
+(Datakit) 3003 3144 w
+(connection) 3405 3144 w
+(can) 3993 3144 w
+(import) 4217 3144 w
+(from) 4597 3144 w
+(the) 4885 3144 w
+(server) 720 3264 w
+10 /LucidaTypewriter f
+(helix) 1049 3264 w
+10 /LucidaSansUnicode00 f
+(:) 1409 3264 w
+9 /LucidaTypewriter f
+(import) 1008 3434 w
+(-a) 1463 3434 w
+(helix) 1658 3434 w
+(/net) 2048 3434 w
+(telnet) 1008 3544 w
+(ai.mit.edu) 1463 3544 w
+10 /LucidaSansUnicode00 f
+(The) 720 3724 w
+10 /LucidaTypewriter f
+(import) 951 3724 w
+10 /LucidaSansUnicode00 f
+(command) 1433 3724 w
+(makes) 1961 3724 w
+(a) 2324 3724 w
+(Datakit) 2429 3724 w
+(connection) 2825 3724 w
+(to) 3407 3724 w
+(the) 3555 3724 w
+(machine) 3761 3724 w
+10 /LucidaTypewriter f
+(helix) 4220 3724 w
+10 /LucidaSansUnicode00 f
+(where) 4631 3724 w
+(it) 4974 3724 w
+(starts) 720 3844 w
+(an) 1050 3844 w
+(instance) 1225 3844 w
+10 /LucidaTypewriter f
+(exportfs) 1686 3844 w
+10 /LucidaSansUnicode00 f
+(to) 2320 3844 w
+(serve) 2476 3844 w
+10 /LucidaTypewriter f
+(/net) 2790 3844 w
+10 /LucidaSansUnicode00 f
+(.) 3078 3844 w
+(The) 3200 3844 w
+10 /LucidaTypewriter f
+(import) 3438 3844 w
+10 /LucidaSansUnicode00 f
+(command) 3927 3844 w
+(mounts) 4462 3844 w
+(the) 4885 3844 w
+(remote) 720 3964 w
+10 /LucidaTypewriter f
+(/net) 1111 3964 w
+10 /LucidaSansUnicode00 f
+(directory) 1446 3964 w
+(after) 1924 3964 w
+(\(the) 2197 3964 w
+10 /LucidaTypewriter f
+(-a) 2432 3964 w
+10 /LucidaSansUnicode00 f
+(option) 2623 3964 w
+(to) 2983 3964 w
+10 /LucidaTypewriter f
+(import) 3128 3964 w
+10 /LucidaSansUnicode00 f
+(\)) 3560 3964 w
+(the) 3640 3964 w
+(existing) 3842 3964 w
+(contents) 4276 3964 w
+(of) 4740 3964 w
+(the) 4885 3964 w
+(local) 720 4084 w
+10 /LucidaTypewriter f
+(/net) 979 4084 w
+10 /LucidaSansUnicode00 f
+(directory.) 1301 4084 w
+(The) 1830 4084 w
+(directory) 2045 4084 w
+(contains) 2510 4084 w
+(the) 2952 4084 w
+(union) 3141 4084 w
+(of) 3451 4084 w
+(the) 3583 4084 w
+(local) 3772 4084 w
+(and) 4031 4084 w
+(remote) 4245 4084 w
+(contents) 4623 4084 w
+(of) 720 4204 w
+10 /LucidaTypewriter f
+(/net) 861 4204 w
+10 /LucidaSansUnicode00 f
+(.) 1149 4204 w
+(Local) 1256 4204 w
+(entries) 1548 4204 w
+(supersede) 1923 4204 w
+(remote) 2465 4204 w
+(ones) 2852 4204 w
+(of) 3125 4204 w
+(the) 3267 4204 w
+(same) 3466 4204 w
+(name) 3765 4204 w
+(so) 4075 4204 w
+(networks) 4231 4204 w
+(on) 4718 4204 w
+(the) 4885 4204 w
+(local) 720 4324 w
+(machine) 994 4324 w
+(are) 1450 4324 w
+(chosen) 1650 4324 w
+(in) 2041 4324 w
+(preference) 2180 4324 w
+(to) 2747 4324 w
+(those) 2893 4324 w
+(supplied) 3208 4324 w
+(remotely.) 3672 4324 w
+(However,) 4209 4324 w
+(unique) 4706 4324 w
+(entries) 720 4444 w
+(in) 1090 4444 w
+(the) 1219 4444 w
+(remote) 1412 4444 w
+(directory) 1795 4444 w
+(are) 2265 4444 w
+(now) 2456 4444 w
+(visible) 2695 4444 w
+(in) 3043 4444 w
+(the) 3173 4444 w
+(local) 3367 4444 w
+10 /LucidaTypewriter f
+(/net) 3631 4444 w
+10 /LucidaSansUnicode00 f
+(directory.) 3958 4444 w
+(All) 4492 4444 w
+(the) 4658 4444 w
+(net\255) 4852 4444 w
+(works) 720 4564 w
+(connected) 1061 4564 w
+(to) 1613 4564 w
+10 /LucidaTypewriter f
+(helix) 1764 4564 w
+10 /LucidaSansUnicode00 f
+(,) 2124 4564 w
+(not) 2209 4564 w
+(just) 2422 4564 w
+(Datakit,) 2655 4564 w
+(are) 3086 4564 w
+(now) 3291 4564 w
+(available) 3544 4564 w
+(in) 4020 4564 w
+(the) 4164 4564 w
+(terminal.) 4372 4564 w
+(The) 4859 4564 w
+(effect on the name space is shown by the following example:) 720 4684 w
+9 /LucidaTypewriter f
+(philw-gnot%) 1008 4854 w
+(ls) 1788 4854 w
+(/net) 1983 4854 w
+(/net/cs) 1008 4964 w
+(/net/dk) 1008 5074 w
+(philw-gnot%) 1008 5184 w
+(import) 1788 5184 w
+(-a) 2243 5184 w
+(musca) 2438 5184 w
+(/net) 2828 5184 w
+(philw-gnot%) 1008 5294 w
+(ls) 1788 5294 w
+(/net) 1983 5294 w
+(/net/cs) 1008 5404 w
+(/net/cs) 1008 5514 w
+(/net/dk) 1008 5624 w
+(/net/dk) 1008 5734 w
+(/net/dns) 1008 5844 w
+(/net/ether) 1008 5954 w
+(/net/il) 1008 6064 w
+(/net/tcp) 1008 6174 w
+(/net/udp) 1008 6284 w
+10 /LucidaSans-Demi f
+(6.2.) 720 6584 w
+(Ftpfs) 962 6584 w
+10 /LucidaSansUnicode00 f
+(We) 970 6740 w
+(decided) 1156 6740 w
+(to) 1581 6740 w
+(make) 1723 6740 w
+(our) 2029 6740 w
+(interface) 2237 6740 w
+(to) 2705 6740 w
+(FTP) 2847 6740 w
+(a) 3063 6740 w
+(file) 3163 6740 w
+(system) 3359 6740 w
+(rather) 3744 6740 w
+(than) 4081 6740 w
+(the) 4342 6740 w
+(traditional) 4542 6740 w
+(command.) 720 6860 w
+(Our) 1313 6860 w
+(command,) 1545 6860 w
+10 /LucidaSans-Italic f
+(ftpfs,) 2106 6860 w
+10 /LucidaSansUnicode00 f
+(dials) 2413 6860 w
+(the) 2691 6860 w
+(FTP) 2897 6860 w
+(port) 3120 6860 w
+(of) 3373 6860 w
+(a) 3521 6860 w
+(remote) 3626 6860 w
+(system,) 4020 6860 w
+(prompts) 4442 6860 w
+(for) 4901 6860 w
+(login) 720 6980 w
+(and) 1033 6980 w
+(password,) 1284 6980 w
+(sets) 1849 6980 w
+(image) 2115 6980 w
+(mode,) 2481 6980 w
+(and) 2857 6980 w
+(mounts) 3108 6980 w
+(the) 3545 6980 w
+(remote) 3771 6980 w
+(file) 4186 6980 w
+(system) 4408 6980 w
+(onto) 4819 6980 w
+10 /LucidaTypewriter f
+(/n/ftp) 720 7100 w
+10 /LucidaSansUnicode00 f
+(.) 1152 7100 w
+(Files and directories are cached to reduce traffic.) 1249 7100 w
+(The cache is updated when\255) 3687 7100 w
+(ever) 720 7220 w
+(a) 966 7220 w
+(file) 1063 7220 w
+(is) 1256 7220 w
+(created.) 1378 7220 w
+(Ftpfs) 1843 7220 w
+(works) 2127 7220 w
+(with) 2457 7220 w
+(TOPS-20,) 2704 7220 w
+(VMS,) 3212 7220 w
+(and) 3491 7220 w
+(various) 3713 7220 w
+(Unix) 4106 7220 w
+(flavors) 4369 7220 w
+(as) 4737 7220 w
+(the) 4885 7220 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 12 12
+%%Page: 13 13
+/saveobj save def
+mark
+13 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 13 \255) 2752 480 w
+(remote system.) 720 840 w
+10 /LucidaSans-Demi f
+(7.) 720 1080 w
+(Cyclone Fiber Links) 873 1080 w
+10 /LucidaSansUnicode00 f
+(The) 970 1236 w
+(file) 1191 1236 w
+(servers) 1382 1236 w
+(and) 1770 1236 w
+(CPU) 1990 1236 w
+(servers) 2223 1236 w
+(are) 2611 1236 w
+(connected) 2803 1236 w
+(by) 3342 1236 w
+(high-bandwidth) 3497 1236 w
+(point-to-point) 4322 1236 w
+(links.) 720 1356 w
+(A) 1054 1356 w
+(link) 1163 1356 w
+(consists) 1381 1356 w
+(of) 1814 1356 w
+(two) 1952 1356 w
+(VME) 2167 1356 w
+(cards) 2412 1356 w
+(connected) 2713 1356 w
+(by) 3252 1356 w
+(a) 3407 1356 w
+(pair) 3502 1356 w
+(of) 3730 1356 w
+(optical) 3868 1356 w
+(fibers.) 4233 1356 w
+(The) 4614 1356 w
+(VME) 4835 1356 w
+(cards) 720 1476 w
+(use) 1031 1476 w
+(33MHz) 1250 1476 w
+(Intel) 1643 1476 w
+(960) 1906 1476 w
+(processors) 2145 1476 w
+(and) 2722 1476 w
+(AMD) 2952 1476 w
+10 /LucidaSansUnicode20 f
+(\031) 3182 1476 w
+10 /LucidaSansUnicode00 f
+(s) 3214 1476 w
+(TAXI) 3315 1476 w
+(fiber) 3589 1476 w
+(transmitter/receivers) 3866 1476 w
+(to) 4942 1476 w
+(drive) 720 1596 w
+(the) 1006 1596 w
+(lines) 1206 1596 w
+(at) 1478 1596 w
+(125) 1615 1596 w
+(Mbit/sec.) 1849 1596 w
+(Software) 2384 1596 w
+(in) 2847 1596 w
+(the) 2983 1596 w
+(VME) 3183 1596 w
+(card) 3433 1596 w
+(reduces) 3688 1596 w
+(latency) 4113 1596 w
+(by) 4500 1596 w
+(copying) 4660 1596 w
+(messages from system memory to fiber without intermediate buffering.) 720 1716 w
+10 /LucidaSans-Demi f
+(8.) 720 1956 w
+(Performance) 873 1956 w
+10 /LucidaSansUnicode00 f
+(We) 970 2112 w
+(measured) 1158 2112 w
+(both) 1681 2112 w
+(latency) 1950 2112 w
+(and) 2338 2112 w
+(throughput) 2564 2112 w
+(of) 3159 2112 w
+(reading) 3303 2112 w
+(and) 3717 2112 w
+(writing) 3943 2112 w
+(bytes) 4327 2112 w
+(between) 4633 2112 w
+(two) 720 2232 w
+(processes) 934 2232 w
+(for) 1454 2232 w
+(a) 1632 2232 w
+(number) 1726 2232 w
+(of) 2142 2232 w
+(different) 2279 2232 w
+(paths.) 2736 2232 w
+(Measurements) 3107 2232 w
+(were) 3852 2232 w
+(made) 4121 2232 w
+(on) 4427 2232 w
+(two-) 4589 2232 w
+(and) 4860 2232 w
+(four-CPU) 720 2352 w
+(SGI) 1211 2352 w
+(Power) 1405 2352 w
+(Series) 1734 2352 w
+(processors.) 2060 2352 w
+(The) 2690 2352 w
+(CPUs) 2910 2352 w
+(are) 3193 2352 w
+(25) 3384 2352 w
+(MHz) 3549 2352 w
+(MIPS) 3806 2352 w
+(3000s.) 4070 2352 w
+(The) 4477 2352 w
+(latency) 4698 2352 w
+(is) 720 2472 w
+(measured) 833 2472 w
+(as) 1343 2472 w
+(the) 1482 2472 w
+(round) 1670 2472 w
+(trip) 1992 2472 w
+(time) 2195 2472 w
+(for) 2443 2472 w
+(a) 2615 2472 w
+(byte) 2703 2472 w
+(sent) 2944 2472 w
+(from) 3183 2472 w
+(one process to another and back) 3448 2472 w
+(again.) 720 2592 w
+(Throughput is measured using 16k writes from one process to another.) 1079 2592 w
+10 /S f
+(_) 1928 2732 w
+(______________________________________) 1932 2732 w
+10 /LucidaSansUnicode00 f
+(Table 1 - Performance) 2359 2852 w
+10 /S f
+(_) 1928 2872 w
+(______________________________________) 1932 2872 w
+10 /LucidaSansUnicode00 f
+(test) 2205 2992 w
+(throughput) 2740 2992 w
+(latency) 3452 2992 w
+(MBytes/sec) 2739 3112 w
+(millisec) 3440 3112 w
+10 /S f
+(_) 1928 3132 w
+(______________________________________) 1932 3132 w
+10 /LucidaSansUnicode00 f
+(pipes) 2003 3252 w
+(8.15) 2904 3252 w
+(.255) 3544 3252 w
+10 /S f
+(_) 1928 3272 w
+(______________________________________) 1932 3272 w
+10 /LucidaSansUnicode00 f
+(IL/ether) 2003 3392 w
+(1.02) 2904 3392 w
+(1.42) 3481 3392 w
+10 /S f
+(_) 1928 3412 w
+(______________________________________) 1932 3412 w
+10 /LucidaSansUnicode00 f
+(URP/Datakit) 2003 3532 w
+(0.22) 2904 3532 w
+(1.75) 3481 3532 w
+10 /S f
+(_) 1928 3552 w
+(______________________________________) 1932 3552 w
+10 /LucidaSansUnicode00 f
+(Cyclone) 2003 3672 w
+(3.2) 2904 3672 w
+(0.375) 3481 3672 w
+10 /S f
+(_) 1928 3692 w
+(______________________________________) 1932 3692 w
+(\347) 1928 3692 w
+(\347) 1928 3632 w
+(\347) 1928 3532 w
+(\347) 1928 3432 w
+(\347) 1928 3332 w
+(\347) 1928 3232 w
+(\347) 1928 3132 w
+(\347) 1928 3032 w
+(\347) 1928 2932 w
+(\347) 1928 2832 w
+(\347) 2639 3692 w
+(\347) 2639 3672 w
+(\347) 2639 3572 w
+(\347) 2639 3472 w
+(\347) 2639 3372 w
+(\347) 2639 3272 w
+(\347) 2639 3172 w
+(\347) 2639 3072 w
+(\347) 2639 2972 w
+(\347) 3340 3692 w
+(\347) 3340 3672 w
+(\347) 3340 3572 w
+(\347) 3340 3472 w
+(\347) 3340 3372 w
+(\347) 3340 3272 w
+(\347) 3340 3172 w
+(\347) 3340 3072 w
+(\347) 3340 2972 w
+(\347) 3832 3692 w
+(\347) 3832 3632 w
+(\347) 3832 3532 w
+(\347) 3832 3432 w
+(\347) 3832 3332 w
+(\347) 3832 3232 w
+(\347) 3832 3132 w
+(\347) 3832 3032 w
+(\347) 3832 2932 w
+(\347) 3832 2832 w
+10 /LucidaSans-Demi f
+(9.) 720 4052 w
+(Conclusion) 873 4052 w
+10 /LucidaSansUnicode00 f
+(The) 970 4208 w
+(representation) 1190 4208 w
+(of) 1936 4208 w
+(all) 2073 4208 w
+(resources) 2225 4208 w
+(as) 2734 4208 w
+(file) 2879 4208 w
+(systems) 3069 4208 w
+(coupled) 3499 4208 w
+(with) 3924 4208 w
+(an) 4169 4208 w
+(ASCII) 4326 4208 w
+(interface) 4616 4208 w
+(has) 720 4328 w
+(proved) 929 4328 w
+(more) 1306 4328 w
+(powerful) 1597 4328 w
+(than) 2063 4328 w
+(we) 2319 4328 w
+(had) 2492 4328 w
+(originally) 2712 4328 w
+(imagined.) 3201 4328 w
+(Resources) 3754 4328 w
+(can) 4286 4328 w
+(be) 4494 4328 w
+(used) 4653 4328 w
+(by) 4925 4328 w
+(any) 720 4448 w
+(computer) 930 4448 w
+(in) 1435 4448 w
+(our) 1567 4448 w
+(networks) 1772 4448 w
+(independent) 2256 4448 w
+(of) 2906 4448 w
+(byte) 3045 4448 w
+(ordering) 3294 4448 w
+(or) 3750 4448 w
+(CPU) 3893 4448 w
+(type.) 4127 4448 w
+(The) 4441 4448 w
+(connec\255) 4664 4448 w
+(tion) 720 4568 w
+(server) 949 4568 w
+(provides) 1286 4568 w
+(an) 1742 4568 w
+(elegant) 1899 4568 w
+(means) 2296 4568 w
+(of) 2653 4568 w
+(decoupling) 2791 4568 w
+(tools) 3368 4568 w
+(from) 3646 4568 w
+(the) 3917 4568 w
+(networks) 4111 4568 w
+(they) 4593 4568 w
+(use.) 4839 4568 w
+(Users) 720 4688 w
+(successfully) 1033 4688 w
+(use) 1660 4688 w
+(Plan) 1875 4688 w
+(9) 2122 4688 w
+(without) 2231 4688 w
+(knowing) 2642 4688 w
+(the) 3099 4688 w
+(topology) 3300 4688 w
+(of) 3772 4688 w
+(the) 3916 4688 w
+(system) 4117 4688 w
+(or) 4503 4688 w
+(the) 4651 4688 w
+(net\255) 4852 4688 w
+(works) 720 4808 w
+(they) 1046 4808 w
+(use.) 1291 4808 w
+(More) 1562 4808 w
+(information) 1844 4808 w
+(about) 2449 4808 w
+(9P) 2765 4808 w
+(can) 2921 4808 w
+(be) 3127 4808 w
+(found) 3283 4808 w
+(in) 3605 4808 w
+(the) 3733 4808 w
+(Section) 3925 4808 w
+(5) 4312 4808 w
+(of) 4412 4808 w
+(the) 4547 4808 w
+(Plan) 4739 4808 w
+(9) 4977 4808 w
+(Programmer) 720 4928 w
+10 /LucidaSansUnicode20 f
+(\031) 1318 4928 w
+10 /LucidaSansUnicode00 f
+(s Manual, Volume I.) 1350 4928 w
+10 /LucidaSans-Demi f
+(10.) 720 5168 w
+(References) 937 5168 w
+10 /LucidaSansUnicode00 f
+([Pike90]) 720 5324 w
+(R.) 1148 5324 w
+(Pike,) 1281 5324 w
+(D.) 1549 5324 w
+(Presotto,) 1695 5324 w
+(K.) 2165 5324 w
+(Thompson,) 2301 5324 w
+(H.) 2888 5324 w
+(Trickey,) 3033 5324 w
+10 /LucidaSansUnicode20 f
+(\030\030) 3454 5324 w
+10 /LucidaSansUnicode00 f
+(Plan) 3518 5324 w
+(9) 3758 5324 w
+(from) 3860 5324 w
+(Bell) 4131 5324 w
+(Labs) 4342 5324 w
+10 /LucidaSansUnicode20 f
+(\031\031) 4564 5324 w
+10 /LucidaSansUnicode00 f
+(,) 4628 5324 w
+10 /LucidaSans-Italic f
+(UKUUG) 4699 5324 w
+(Proc. of the Summer 1990 Conf. , London, England, 1990.) 720 5444 w
+10 /LucidaSansUnicode00 f
+([Needham]) 720 5600 w
+(R.) 1293 5600 w
+(Needham,) 1436 5600 w
+10 /LucidaSansUnicode20 f
+(\030\030) 1975 5600 w
+10 /LucidaSansUnicode00 f
+(Names) 2039 5600 w
+10 /LucidaSansUnicode20 f
+(\031\031) 2368 5600 w
+10 /LucidaSansUnicode00 f
+(,) 2432 5600 w
+(in) 2512 5600 w
+10 /LucidaSans-Italic f
+(Distributed) 2652 5600 w
+(systems,) 3243 5600 w
+10 /LucidaSansUnicode00 f
+(S.) 3710 5600 w
+(Mullender,) 3845 5600 w
+(ed.,) 4410 5600 w
+(Addison) 4642 5600 w
+(Wesley, 1989.) 720 5720 w
+([Presotto]) 720 5876 w
+(D.) 1219 5876 w
+(Presotto,) 1360 5876 w
+10 /LucidaSansUnicode20 f
+(\030\030) 1825 5876 w
+10 /LucidaSansUnicode00 f
+(Multiprocessor) 1889 5876 w
+(Streams) 2642 5876 w
+(for) 3063 5876 w
+(Plan) 3236 5876 w
+(9) 3471 5876 w
+10 /LucidaSansUnicode20 f
+(\031\031) 3534 5876 w
+10 /LucidaSansUnicode00 f
+(,) 3598 5876 w
+10 /LucidaSans-Italic f
+(UKUUG) 3664 5876 w
+(Proc.) 4039 5876 w
+(of) 4318 5876 w
+(the) 4448 5876 w
+(Summer) 4636 5876 w
+(1990 Conf. ,) 720 5996 w
+10 /LucidaSansUnicode00 f
+(London, England, 1990.) 1357 5996 w
+([Met80]) 720 6152 w
+(R.) 1136 6152 w
+(Metcalfe,) 1277 6152 w
+(D.) 1762 6152 w
+(Boggs,) 1915 6152 w
+(C.) 2287 6152 w
+(Crane,) 2434 6152 w
+(E.) 2795 6152 w
+(Taf) 2927 6152 w
+(and) 3128 6152 w
+(J.) 3354 6152 w
+(Hupp,) 3463 6152 w
+10 /LucidaSansUnicode20 f
+(\030\030) 3803 6152 w
+10 /LucidaSansUnicode00 f
+(The) 3867 6152 w
+(Ethernet) 4094 6152 w
+(Local) 4545 6152 w
+(Net\255) 4840 6152 w
+(work: Three reports) 720 6272 w
+10 /LucidaSansUnicode20 f
+(\031\031) 1681 6272 w
+10 /LucidaSansUnicode00 f
+(,) 1745 6272 w
+10 /LucidaSans-Italic f
+(CSL-80-2,) 1809 6272 w
+10 /LucidaSansUnicode00 f
+(XEROX Palo Alto Research Center, February 1980.) 2366 6272 w
+([Fra80]) 720 6428 w
+(A.) 1102 6428 w
+(G.) 1243 6428 w
+(Fraser,) 1387 6428 w
+10 /LucidaSansUnicode20 f
+(\030\030) 1757 6428 w
+10 /LucidaSansUnicode00 f
+(Datakit) 1821 6428 w
+(-) 2207 6428 w
+(A) 2305 6428 w
+(Modular) 2414 6428 w
+(Network) 2851 6428 w
+(for) 3295 6428 w
+(Synchronous) 3474 6428 w
+(and) 4134 6428 w
+(Asynchronous) 4355 6428 w
+(Traffic) 720 6548 w
+10 /LucidaSansUnicode20 f
+(\031\031) 1033 6548 w
+10 /LucidaSansUnicode00 f
+(,) 1097 6548 w
+10 /LucidaSans-Italic f
+(Proc. Int'l Conf. on Communication,) 1161 6548 w
+10 /LucidaSansUnicode00 f
+(Boston, June 1980.) 2925 6548 w
+([Pet89a]) 720 6704 w
+(L.) 1161 6704 w
+(Peterson,) 1292 6704 w
+10 /LucidaSansUnicode20 f
+(\030\030) 1789 6704 w
+10 /LucidaSansUnicode00 f
+(RPC) 1853 6704 w
+(in) 2086 6704 w
+(the) 2223 6704 w
+(X-Kernel:) 2424 6704 w
+(Evaluating) 2932 6704 w
+(new) 3475 6704 w
+(Design) 3716 6704 w
+(Techniques) 4097 6704 w
+10 /LucidaSansUnicode20 f
+(\031\031) 4652 6704 w
+10 /LucidaSansUnicode00 f
+(,) 4716 6704 w
+10 /LucidaSans-Italic f
+(Proc.) 4795 6704 w
+(Twelfth Symp. on Op. Sys. Princ.,) 720 6824 w
+10 /LucidaSansUnicode00 f
+(Litchfield Park, AZ, December 1990.) 2360 6824 w
+([Rit84a]) 720 6980 w
+(D.) 1171 6980 w
+(M.) 1353 6980 w
+(Ritchie,) 1546 6980 w
+10 /LucidaSansUnicode20 f
+(\030\030) 1980 6980 w
+10 /LucidaSansUnicode00 f
+(A) 2044 6980 w
+(Stream) 2188 6980 w
+(Input-Output) 2599 6980 w
+(System) 3324 6980 w
+10 /LucidaSansUnicode20 f
+(\031\031) 3667 6980 w
+10 /LucidaSansUnicode00 f
+(,) 3731 6980 w
+10 /LucidaSans-Italic f
+(AT&T) 3838 6980 w
+(Bell) 4177 6980 w
+(Laboratories) 4423 6980 w
+(Technical Journal, 68\(8\),) 720 7100 w
+10 /LucidaSansUnicode00 f
+(October 1984.) 1953 7100 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 13 13
+%%Trailer
+done
+%%DocumentFonts: LucidaSansUnicode20 LucidaSansUnicode22 S1 S LucidaSansUnicode00 LucidaSans-Demi LucidaSans-Italic LucidaTypewriter
+%%Pages: 13

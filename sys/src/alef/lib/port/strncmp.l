@@ -1,7 +1,7 @@
 #include <alef.h>
 
 int
-strncmp(char *s1, char *s2, int n)
+strncmp(byte *s1, byte *s2, int n)
 {
 	uint c1, c2;
 

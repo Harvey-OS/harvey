@@ -1,0 +1,37 @@
+</$objtype/mkfile
+
+TARG=mothra
+CFILES=\
+	cistr.c \
+	crackurl.c \
+	filetype.c \
+	forms.c \
+	getpix.c \
+	gopher.c \
+	html.syntax.c \
+	http.c \
+	malloc.c \
+	mothra.c \
+	rdhtml.c \
+
+OFILES=${CFILES:%.c=%.$O}
+HFILES=mothra.h  html.h
+BIN=/$objtype/bin
+
+</sys/src/cmd/mkone
+
+listing:
+	pr mkfile $HFILES $CFILES|lp -dfn
+
+all:V:	$O.gopher2html
+
+install:V:	gopher2html.install
+
+$O.gopher2html:	gopher2html.$O
+	$LD $LDFLAGS -o $target $prereq
+
+gopher2html.install:V:	$O.gopher2html
+	cp $prereq $BIN/aux/gopher2html
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG [$OS].gopher2html

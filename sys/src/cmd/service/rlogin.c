@@ -25,6 +25,7 @@ main(int argc, char **argv)
 	if(luser[0] == '\0')
 		strncpy(luser, ruser, NAMELEN-1);
 	luser[NAMELEN-1] = '\0';
+	syslog(0, "telnet", "rlogind %s", luser);
 	if(trusted)
 		execl("/bin/aux/telnetd", "telnetd", "-n", "-t", 0);
 	else

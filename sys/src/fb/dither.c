@@ -70,7 +70,7 @@ main(int argc, char *argv[]){
 	if((argc=getflags(argc, argv, ""))!=2 && argc!=1) usage("[picture]");
 	in = picopen_r(argc==2?argv[1]:"IN");
 	if (in == 0) {
-		picerror(argc==2?argv[1]:"IN");
+		perror(argc==2?argv[1]:"IN");
 		exits("open input");
 	}
 	if (in->nchan < 3) {

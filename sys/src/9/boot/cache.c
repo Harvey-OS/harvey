@@ -5,15 +5,31 @@
 int
 cache(int fd)
 {
-	int p[2];
+	int i, p[2];
 	char d[DIRLEN];
 	char partition[2*NAMELEN];
+	char bd[NAMELEN];
 
 	if(stat("/cfs", d) < 0)
 		return fd;
-	sprint(partition, "%scache", bootdisk);
-	if(stat(partition, d) < 0)
-		return fd;
+
+	readfile("#e/bootdisk", bd, sizeof(bd));
+	if(*bd){
+		/* damned artificial intelligence */
+		i = strlen(bd);
+		if(strcmp("disk", &bd[i-4]) == 0)
+			bd[i-4] = 0;
+		else if(strcmp("fs", &bd[i-2]) == 0)
+			bd[i-2] = 0;
+		sprint(partition, "%scache", bd);
+		if(stat(partition, d) < 0)
+			*bd = 0;
+	}
+	if(*bd == 0){
+		sprint(partition, "%scache", bootdisk);
+		if(stat(partition, d) < 0)
+			return fd;
+	}
 	print("cfs...");
 	if(pipe(p)<0)
 		fatal("pipe");

@@ -228,10 +228,10 @@ unionread(Chan *c, void *va, long n)
 	rlock(&pg->ns);
 
 	for(;;) {
-		if(waserror()) {
-			runlock(&pg->ns);
-			nexterror();
-		}
+		/* Error causes component of union to be skipped */
+		if(waserror())
+			goto next;
+
 		nc = clone(c->mnt->to, 0);
 		poperror();
 
@@ -242,7 +242,6 @@ unionread(Chan *c, void *va, long n)
 			return 0;
 		}
 
-		/* Error causes component of union to be skipped */
 		if(waserror()) {	
 			close(nc);
 			goto next;
@@ -435,7 +434,6 @@ bindmount(ulong *arg, int ismount)
 	struct{
 		Chan	*chan;
 		char	*spec;
-		char	*serv;
 	}bogus;
 
 	flag = arg[2];
@@ -455,11 +453,7 @@ bindmount(ulong *arg, int ismount)
 			error(Ebadarg);
 
 		bogus.spec = (char*)arg[3];
-		validaddr(arg[4], 1, 0);
-		if(vmemchr((char*)arg[4], '\0', NAMELEN) == 0)
-			error(Ebadarg);
 
-		bogus.serv = (char*)arg[4];
 		ret = devno('M', 0);
 		c0 = (*devtab[ret].attach)((char*)&bogus);
 
@@ -522,7 +516,7 @@ sysunmount(ulong *arg)
 			nexterror();
 		}
 		validaddr(arg[0], 1, 0);
-		cmounted = namec((char*)arg[0], Aaccess, 0, 0);
+		cmounted = namec((char*)arg[0], Aopen, OREAD, 0);
 		poperror();
 	}
 

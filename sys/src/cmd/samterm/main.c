@@ -396,8 +396,9 @@ flushtyping(int clearesc)
 		modified = 0;
 		return;
 	}
-	modified = 1;
 	t = which->user1;
+	if(t != &cmd)
+		modified = 1;
 	rload(&t->rasp, typestart, typeend, &n);
 	scratch[n] = 0;
 	if(t==&cmd && typeend==t->rasp.nrunes && scratch[typeend-typestart-1]=='\n'){

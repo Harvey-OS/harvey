@@ -2,7 +2,7 @@
 #define	MAXMV	500
 #endif
 #ifndef	MAXMG
-#define	MAXMG	100
+#define	MAXMG	150
 #endif
 
 enum

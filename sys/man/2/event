@@ -1,4 +1,4 @@
-.TH EVENT 2G
+.TH EVENT 2
 .SH NAME
 event, einit, estart, etimer, eread, emouse, ekbd, ecanread, ecanmouse, ecankbd, ereshaped, getrect, menuhit, Event, Mouse, Menu \- graphics events
 .SH SYNOPSIS
@@ -59,7 +59,24 @@ enum{
 	Ekeyboard = 2,
 .B
 };
-.fi
+.PP
+.B
+/* Alef only */
+.PP
+.B
+adt Menu
+.br
+.B
+{
+.br
+.B
+	/* ... */
+.br
+.B
+	(int, Mouse) hit(*Menu, int but, chan(Mouse), Mouse);
+.br
+.B
+};
 .SH DESCRIPTION
 These routines provide an interface to multiple sources of input.
 To use them,
@@ -149,7 +166,7 @@ are the mouse and keyboard event keys.
 .I Etimer
 starts a repeating timer with a period of
 .I n
-milliseconds.
+milliseconds; it returns the timer event key, or zero if it fails.
 Only one timer can be started.
 Extra timer events are not queued and the timer channel has no associated data.
 .PP
@@ -177,7 +194,7 @@ is an array which is large enough to hold a 9P message.
 .I Eread
 returns the key for the event which was chosen.
 For example, if a mouse event was read,
-.I Emouse
+.B Emouse
 will be returned.
 .PP
 .I Event
@@ -195,6 +212,11 @@ and
 .I ekbd
 all cause a buffer flush unless there is an event of the
 appropriate type already queued.
+.PP
+.I Ecanread
+checks whether a call to
+.B eread(keys)
+would block, returning 0 if it would, 1 if it would not.
 .PP
 .I Getrect
 prompts the user to sweep a rectangle.
@@ -260,12 +282,36 @@ Items are numbered starting at zero.
 waits until
 .I but
 is released, and then returns the number of the selection,
-or \(mi1 for no selection.
+or \-1 for no selection.
 The
 .I m
 argument is filled in with the final mouse event.
+.SS Alef
+Alef has none of the event software, since the language encourages
+a different approach using processes to convert mouse and keyboard
+activity into messages.
+In this vein,
+a function called
+.IR hit ,
+analogous to
+.IR menuhit ,
+exists as a part of the
+.B Menu
+.BR adt ;
+it takes as argument a
+.B chan
+of type
+.BR Mouse
+and a
+.BR Mouse -valued
+argument reflecting the current state.  It returns the selection and the new state
+of the mouse.
+.SH SOURCE
+.B /sys/src/libg
 .SH "SEE ALSO"
 .IR 8½ (1),
 .IR graphics (2),
 .IR cons (3),
 .IR bit (3)
+.SH BUGS
+There should be an official Alef interface to the mouse and keyboard.

@@ -1,4 +1,0 @@
-TEXT _FSTAT(SB), $0
-MOVL $11, AX
-INT $64
-RET

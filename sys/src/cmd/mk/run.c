@@ -28,7 +28,7 @@ int
 Execl(char *p, char *a, ...)
 {
 	if (envy)
-		exportenv(envy);
+		exportenv(envy, nextv);
 	exec(p, &a);
 	return -1;
 }
@@ -59,7 +59,7 @@ sched(void)
 	Node *n;
 
 	if(jobs == 0){
-		account();
+		usage();
 		return;
 	}
 	j = jobs;
@@ -101,7 +101,7 @@ sched(void)
 		if(pid == 0){
 			if(j->r->attr&RED){
 				close(pip[0]);
-				DUP2(pip[1], 1);
+				dup(pip[1], 1);
 				close(pip[1]);
 			}
 			if(pipe(pip) < 0){
@@ -114,7 +114,7 @@ sched(void)
 			}
 			if(pid != 0){
 				close(pip[1]);
-				DUP2(pip[0], 0);
+				dup(pip[0], 0);
 				close(pip[0]);
 				if(j->r->attr&NOMINUSE)
 
@@ -122,7 +122,7 @@ sched(void)
 				else
 					Execl(shell, shellname, "-eI", (char *)0);
 				perror(shell);
-				NOCLOSEEXIT(1);
+				_exits("exec");
 			} else {
 				int k;
 				char *s, *send;
@@ -135,10 +135,10 @@ sched(void)
 						break;
 					s += k;
 				}
-				NOCLOSEEXIT(0);
+				_exits(0);
 			}
 		}
-		account();
+		usage();
 		nrunning++;
 		if(j->r->attr&RED)
 			close(pip[1]), j->fd = pip[0];
@@ -158,14 +158,13 @@ waitup(int echildok, int *retstatus)
 	Symtab *s;
 	Word *w;
 	Job *j;
-	char buf[64];
+	char buf[ERRLEN];
 	Bufblock *bp;
 	int uarg = 0;
 	int done;
 	Node *n;
-	Waitmsg wm;
 	Process *p;
-	extern int errno, runerrs;
+	extern int runerrs;
 
 	/* first check against the proces slist */
 	if(retstatus)
@@ -176,7 +175,7 @@ waitup(int echildok, int *retstatus)
 				return(-1);
 			}
 again:		/* rogue processes */
-	if((pid = wait(&wm)) < 0){
+	if((pid = waitfor(buf)) < 0){
 		if(echildok > 0)
 			return(1);
 		else {
@@ -186,36 +185,29 @@ again:		/* rogue processes */
 		}
 	}
 	if(DEBUG(D_EXEC))
-		fprint(1, "waitup got pid=%d, status=%s\n", pid, wm.msg);
+		fprint(1, "waitup got pid=%d, status=%s\n", pid, buf);
 	if(retstatus && (pid == *retstatus)){
-		*retstatus = wm.msg[0]? 1:0;
+		*retstatus = buf[0]? 1:0;
 		return(-1);
 	}
 	slot = pidslot(pid);
 	if(slot < 0){
 		if(DEBUG(D_EXEC))
 			fprint(2, "mk: wait returned unexpected process %d\n", pid);
-		pnew(pid, wm.msg[0]? 1:0);
+		pnew(pid, buf[0]? 1:0);
 		goto again;
 	}
 	j = events[slot].job;
-	account();
+	usage();
 	nrunning--;
 	events[slot].pid = -1;
-	if(wm.msg[0]){
+	if(buf[0]){
 		dovars(j, slot);
 		bp = newbuf();
 		shprint(j->r->recipe, envy, bp);
 		front(bp->start);
-		fprint(2, "mk: %s: exit status=%s", bp->start, wm.msg);
+		fprint(2, "mk: %s: exit status=%s", bp->start, buf);
 		freebuf(bp);
-#ifdef UNIX
-		status &= 0xFF;
-		if(status&0x7F)
-			fprint(2, " signal=%d", status&0x7F);
-		if(status&0x80)
-			fprint(2, ", core dumped");
-#endif
 		for(n = j->n, done = 0; n; n = n->next)
 			if(n->flags&DELETE){
 				if(done++ == 0)
@@ -342,6 +334,7 @@ dovars(Job *j, int slot)
 		if (j->match[1].sp && j->match[1].ep) {
 			s = j->match[1].ep+1;
 			c = *s;
+			*s = 0;
 			myenv[STEM].w.s = strdup(j->match[1].sp);
 			*s = c;
 		} else
@@ -454,35 +447,36 @@ pdelete(Process *p)
 	pfree = p;
 }
 
-static long tslot[1000];
-static long tick;
-
-void
-account(void)
-{
-	long t;
-
-	time(&t);
-	if(tick)
-		tslot[nrunning] += (t-tick);
-	tick = t;
-}
-
 void
 killchildren(char *msg)
 {
 	Process *p;
-	char buf[64];
-	int fd;
 
-	for(p = phead; p; p = p->f){
-		sprint(buf, "/proc/%d/notepg", p->pid);
-		fd = open(buf, OWRITE);
-		if(fd >= 0){
-			write(fd, msg, strlen(msg));
-			close(fd);
-		}
+	for(p = phead; p; p = p->f)
+		expunge(p->pid, msg);
+}
+
+int
+notifyf(void *a, char *msg)
+{
+	static int nnote;
+
+	USED(a);
+	if(++nnote > 100){	/* until andrew fixes his program */
+		fprint(2, "mk: too many notes\n");
+		notify(0);
+		abort();
 	}
+	if(strcmp(msg, "interrupt")!=0 && strcmp(msg, "hangup")!=0)
+		return 0;
+	kflag = 1;	/* to make sure waitup doesn't exit */
+	jobs = 0;	/* make sure no more get scheduled */
+	killchildren(msg);
+	while(waitup(1, (int *)0) == 0)
+		;
+	Bprint(&stdout, "mk: %s\n", msg);
+	Exit();
+	return -1;
 }
 /*
  *	execute a shell command capturing the output into the buffer.
@@ -523,15 +517,15 @@ rcexec(char *cstart, char *cend, Bufblock *buf)
 			buf->current--;
 		close(childout[0]);
 	} else {
-		DUP2(childin[0], 0);
-		DUP2(childout[1], 1);
+		dup(childin[0], 0);
+		dup(childout[1], 1);
 		close(childin[0]);
 		close(childin[1]);
 		close(childout[0]);
 		close(childout[1]);
-		if(Execl(shell, shellname, "-I", (char *)0) < 0)
-				perror(shell);
-		NOCLOSEEXIT(1);
+		Execl(shell, shellname, "-I", (char *)0);
+		perror(shell);
+		_exits("exec");
 	}
 }
 
@@ -544,4 +538,28 @@ envinsert(char *name, Word *value)
 	}
 	envy[nextv].name = name;
 	envy[nextv++].values = value;
+}
+
+static long tslot[1000];
+static long tick;
+
+void
+usage(void)
+{
+	long t;
+
+	time(&t);
+	if(tick)
+		tslot[nrunning] += (t-tick);
+	tick = t;
+}
+
+void
+prusage(void)
+{
+	int i;
+
+	usage();
+	for(i = 0; i <= nevents; i++)
+		fprint(1, "%d: %ld\n", i, tslot[i]);
 }

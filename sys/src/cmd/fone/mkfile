@@ -1,0 +1,28 @@
+</$objtype/mkfile
+
+TARG=fone
+OFILES=\
+	fone.$O\
+	cmd.$O\
+	query.$O\
+	keyparse.$O\
+	plan9.$O\
+	msgnames.$O\
+	help.$O\
+
+HFILES=all.h\
+	dat.h\
+	fns.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+msgnames.c: dat.h
+	mknames $prereq >$target
+
+help.c: help.text
+	carray helptext <$prereq >$target
+
+clean:V:
+	rm -f msgnames.c help.c [$OS].out *.[$OS] fone core
+

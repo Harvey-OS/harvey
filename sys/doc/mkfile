@@ -1,0 +1,132 @@
+< /sys/doc/fonts
+NPROC = 1
+FILES = \
+	title.ps \
+	trademarks.ps \
+	contents.ps \
+	9.ps \
+	README.ps \
+	acid.ps \
+	acidpaper.ps \
+	ape.ps \
+	asm.ps \
+	comp.ps \
+	compiler.ps \
+	install.ps \
+	libmach.ps \
+	lp.ps \
+	mk.ps \
+	mkfiles.ps \
+	names.ps \
+	port.ps \
+	rc.ps \
+	sleep.ps \
+	spin.ps \
+	troff.ps \
+	utf.ps \
+	colophon.ps \
+
+DIRS = \
+	8½ \
+	acme \
+	alef \
+	fs \
+	gfx \
+	il \
+	net \
+	panel \
+	sam \
+
+all:V: dirs
+
+print:V: \
+	title.ps \
+	trademarks.ps \
+	contents.ps\
+	9.ps \
+	README.ps \
+	names.ps \
+	net/net.ps \
+	comp.ps \
+	ape.ps \
+	alef/ug.ps \
+	alef/alef.ps \
+	acidpaper.ps \
+	acid.ps \
+	mk.ps \
+	mkfiles.ps \
+	asm.ps \
+	8½/8½.ps \
+	rc.ps \
+	sam/sam.ps \
+	acme/acme.ps \
+	utf.ps \
+	compiler.ps \
+	libmach.ps \
+	fs/fs.ps \
+	il/il.ps \
+	sleep.ps \
+	gfx/gfx.ps \
+	panel/panel.ps \
+	lp.ps \
+	troff.ps \
+	spin.ps \
+	port.ps \
+	install.ps \
+	colophon.ps
+	lp -dfn -H -i0 $prereq
+
+
+dirs:V:	$FILES $DIRS
+	for(i in $DIRS) @{
+		cd $i
+		mk
+	}
+
+title.ps:D:	title
+	troff $prereq | lp -dstdout > $target
+
+contents.ps:D:	contents.ms
+	{ echo $FONTS; cat $prereq } | troff -ms -mnihongo | lp -dstdout > $target
+
+trademarks.ps:D:	/sys/lib/man/trademarks
+	troff $prereq | lp -dstdout > $target
+
+colophon.ps:D:	/sys/lib/man/colophon
+	troff $prereq | lp -dstdout > $target
+
+%.ps:D:	%.ms
+	{ echo $FONTS; cat $stem.ms } | tbl | troff -ms | lp -dstdout > $target
+
+%.trout:D:	%.ms
+	{ echo $FONTS; cat $stem.ms } | tbl | troff -ms > $stem.trout
+
+troff.trout:D:	troff.ms
+	{ echo $FONTS; cat $prereq } | tbl | eqn | troff -ms > $target
+
+troff.ps:D:	troff.ms
+	echo this gets some scary-looking errors, but they''re fine
+	{ echo $FONTS; cat $prereq } | tbl | eqn | troff -ms | lp -dstdout > $target
+
+comp.ps:D:	comp.ms
+	{ echo $FONTS; cat $prereq } | tbl | troff -ms -mnihongo | lp -dstdout > $target
+
+utf.ps:D:	utf.ms
+	{ echo $FONTS; cat $prereq } | tbl | troff -ms -mnihongo | lp -dstdout > $target
+
+9.ps:D:	9.ms network.pic
+	{ echo $FONTS; cat 9.ms } | tbl | pic | troff -ms -mnihongo | lp -dstdout > $target
+
+9.trout:D:	9.ms network.pic
+	{ echo $FONTS; cat 9.ms } | tbl | pic | troff -ms -mnihongo > $target
+
+network.pic:D:	network.art
+	art2pic network.art | sed '/^.PS/s/$/ 5.5i/' > network.pic
+spin.ps:D:	spin.ms
+	{ echo $FONTS; cat $prereq } | eqn | tbl | troff -ms | lp -dstdout > $target
+
+gfx.ps:D:	gfx.ms
+	{ echo $FONTS; cat $prereq } | tbl | pic | troff -ms | lp -dstdout > $target
+
+worm.ps:D:	worm.ms
+	{ echo $FONTS; cat $prereq } | pic | eqn | troff -ms | lp -dstdout > $target

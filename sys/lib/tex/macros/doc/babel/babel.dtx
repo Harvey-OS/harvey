@@ -1,0 +1,2113 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989-1994 by Johannes Braams
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the Babel system, release 3.4 patchlevel 2.
+% ----------------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from me directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{1088}
+%%%\iffalse
+%%%  @LaTeX-file{
+%%%     author          = "Johannes L. Braams",
+%%%     version         = "3.4f",
+%%%     date            = "03 July 1994",
+%%%     time            = "23:33:58 MET",
+%%%     filename        = "babel.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "60652 2080 9803 80663",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel",
+%%%     supported       = "yes",
+%%%     docstring       = "This file, babel.dtx contains the core of
+%%%                        the babel system as it was described in
+%%%                        TuGboat Volume 12 no 2 and Volume 14 no 1.
+%%%
+%%%                        The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%      }
+%%% \fi
+%%
+% \def\filename{babel.dtx}
+% \let\thisfilename\filename
+%
+%\iffalse
+%
+% Babel DOCUMENT-STYLE option for LaTeX version 2.09 or plain TeX;
+% Babel package for LaTeX2e.
+%
+%% Copyright (C) 1989-1994 by Johannes Braams,
+%%                            PTT Research Neher Laboratories
+%%                            all rights reserved.
+%
+%% Please report errors to: J.L. Braams
+%%                          J.L.Braams@research.ptt.nl
+%<*filedriver>
+\documentclass[english]{ltxdoc}
+\usepackage{babel}
+\GetFileInfo{babel.sty}
+\newcommand{\TeXhax}{\TeX hax}
+\newcommand{\babel}{\text\sf{babel}}
+\newcommand{\ttbs}{\char'134}
+\newcommand{\m}[1]{\mbox{$\langle$\it#1\/$\rangle$}}
+\newcommand{\langvar}{\m{lang}}
+\newcommand{\note}[1]{}
+\newcommand{\bsl}{\protect\bslash}
+\newcommand{\Lopt}[1]{\textsf{#1}}
+\newcommand{\file}[1]{\texttt{#1}}
+\begin{document}
+ \DocInput{babel.dtx}
+\end{document}
+%</filedriver>
+%\fi
+%
+% \changes{babel~2.0a}{2 apr 90}{Added text about german.sty}
+% \changes{babel~2.0b}{18 apr 90}{Changed order of code to prevent
+%    plain \TeX from seeing all of it}
+% \changes{babel~2.1}{24 apr 90}{Modified user interface, {\tt\bsl
+%    langTeX} no longer necessary}
+% \changes{babel~2.1a}{1 may 90}{Incorporated Nico's comments}
+% \changes{babel~2.1b}{1 may 90}{rename {\tt\bsl language} to {\tt\bsl
+%    current@language}}
+% \changes{babel~2.1c}{22 may 90}{abstract for report fixed, missing
+%    {\tt \}}, found by Nicolas Brouard BROUARD@FRINED51.BITNET}
+% \changes{babel~2.1d}{4 july 90}{Missing right brace in definition of
+%    abstract environment, found by Werenfried Spit}
+% \changes{babel~2.1e}{16 july 90}{Incorporated more comments from
+%    Nico}
+% \changes{babel~2.2}{17 july 90}{Renamed {\tt\bsl newlanguage} to
+%    {\tt\bsl addlanguage}}
+% \changes{babel~2.2a}{27 august 90}{Modified the documentation
+%    somewhat}
+% \changes{babel~3.0}{23 april 91}{Moved part of the code to
+%    hyphen.doc in preparation for \TeX~3.0}
+% \changes{babel~3.0a}{21 may 91}{Updated comments in various places}
+% \changes{babel~3.0b}{25 may 91}{Removed some problems in change log}
+% \changes{babel~3.0c}{15 july 91}{Renamed babel.sty and latexhax.sty
+%    to .com}
+% \changes{babel~3.1}{31 october 91}{Added the support for active
+%    characters and for extending a macro}
+% \changes{babel~3.1}{5 november 91}{Removed the need for {\tt
+%    latexhax}}
+% \changes{babel~3.2}{10 november 91}{Some Changes by br}
+% \changes{babel~3.2a}{15 february 92}{Fixups of the code and
+%    documentation}
+% \changes{babel~3.3}{6 july 93}{Included driver file, and prepared
+%    for dsitribution}
+% \changes{babel~3.4}{1994/01/30}{Updated for LaTeX2e}
+% \changes{babel~3.4}{1994/02/28}{Added language specific file for
+%    bahasa}
+% \changes{babel~3.4b}{1994/05/18}{Added a small driver to be able to
+%    process just this file}
+%
+% \title {Babel, a multilingual package for use with \LaTeX's standard
+%    document classes\thanks{During the development ideas from Nico
+%    Poppelier, Piet van Oostrum and many others have been used.
+%    Bernd Raichle has provided many helpful suggestions.}}
+%
+% \author{Johannes Braams\\
+%         PTT Research Neher Laboratories\\
+%         P.O. Box 421\\
+%         2260 AK Leidschendam\\
+%         {\tt J.L.Braams@research.ptt.nl}}
+%
+% \date{Printed \today}
+%
+% \maketitle
+%
+% \begin{abstract}
+%    The standard distribution of \LaTeX\ contains a number of
+%    document classes that are meant to be used, but also serve as
+%    examples for other users to create their own document classes.
+%    These document classes have become very popular among \LaTeX\
+%    users. But it should be kept in mind that they were designed for
+%    American tastes and typography. At one time they contained a
+%    number of hard-wired texts. This report describes \babel{}, a
+%    package that makes use of the new capabilities of \TeX\ version 3
+%    to provide an environment in which multilingual documents can be
+%    written.
+% \end{abstract}
+%
+% \section{The user interface}\label{U-I}
+%
+%    The user interface of this package is quite simple. It basially
+%    consists of only two commands. These commands can be used to
+%    select another language or to find out what the current language
+%    is.
+%
+% \DescribeMacro\selectlanguage When a user wants to switch from one
+%    language to another he can do so using the macro
+%    |\selectlanguage|. This macro takes the language, defined
+%    previously by a language-specific option, as its argument. It
+%    calls several macros that should be defined in the
+%    language-specific files to activate the special definitions for
+%    the language chosen.
+%
+% \DescribeMacro\languagename The name of the current language is
+%    stored in the control sequence |\languagename|.
+%
+% \DescribeMacro\iflanguage
+%    If more than one language is used it might be necessary to know
+%    which language is active at a specific time. This can be checked
+%    by a call to |\iflanguage|. This macro takes three arguments.
+%    The first argument is the name of a language,
+%    the second and third arguments are the actions
+%    to take if the result of the test is {\tt true} or {\tt false}
+%    respectively.
+%
+% \section{Changes for \LaTeXe}
+%
+%    With the advent of \LaTeXe\ the interface to \babel\ in the
+%    preamble of the doument has changed. With \LaTeX2.09 one used to
+%    call up the \babel\ system with a line such as:
+%
+%\begin{verbatim}
+%\documentstyle[dutch,english]{article}
+%\end{verbatim}
+%
+%    which would tell \LaTeX\ that the document would be written in
+%    two languages, dutch and english and that english would be the
+%    first language in use.
+%
+%    The \LaTeX2e\ way of providing the same information is:
+%
+%\begin{verbatim}
+%\documentlass{article}
+%\usepackage[dutch,english]{babel}
+%\end{verbatim}
+%
+%    or, making \Lopt{dutch} and \Lopt{english} global options in
+%    order to let other packages detect and use them:
+%
+%\begin{verbatim}
+%\documentlass[dutch,english]{article}
+%\usepackage{babel}
+%\usepackage{varioref}
+%\end{verbatim}
+%
+%    In this last example the package \texttt{varioref} will also see
+%    the options and will be able to use them.
+%
+% \section{The interface between the core of \babel{} and
+%          the language-specific options}
+%
+%    In the core of the \babel{} system two macros are defined that
+%    are to be used in language specific files. Their purpose is to
+%    make a new language known.
+%
+% \DescribeMacro\addlanguage
+%    The macro |\addlanguage| is a non-outer version of the macro
+%    |\newlanguage|, defined in \file{plain.tex} version~3.x. For
+%    older versions of \file{plain.tex} and \file{lplain.tex} a
+%    substitute definition is used.
+%
+% \DescribeMacro\adddialect The macro |\adddialect| can be used in the
+%    case where two languages can (or have to) use the same
+%    hyphenation patterns. This can be useful when a user wants to use
+%    a language for which no patterns are preloaded in the format. In
+%    such a case the default behaviour of the \babel{} system is to
+%    define this language as a `dialect' of the language for which the
+%    patterns were loaded as |\language0|.
+%
+%    The language-specific files have to conform to a number of
+%    conventions. The reason for this is that these files have to fill
+%    in the gaps left by the common code in \\file{babel.def}, i.\,e.,
+%    the definitions of the macros that produce texts.  Also the
+%    language-switching possibility which has been built into the
+%    \babel{} system has its implications.
+%
+%    The following assumptions are made:
+%   \begin{itemize}
+%    \item Some of the language-specific definitions might be used by
+%    plain \TeX\ users, so the files have to be coded such that they
+%    can be read by \LaTeX\ as well as by plain \TeX. This can be
+%    checked by looking at the value of the macro |\fmtname|.
+%
+%    \item The common part of the \babel{} system redefines a number
+%    of macros and environments (defined previously in the document
+%    style) to put in the names of macros that replace the previously
+%    hard-wired texts.  These macros have to be defined in the
+%    language-specific files.
+%
+%    \item The language-specific files define four macros, used to
+%    activate and deactivate the language-specific definitions.  These
+%    macros are {\tt\ttbs captions\langvar}, {\tt\ttbs date\langvar},
+%    {\tt\ttbs extras\langvar} and {\tt\ttbs noextras\langvar}. These
+%    macros and their functions are discussed below.
+%
+%    \item When a language-specific file is loaded as an option, it
+%    can define {\tt\ttbs l@\langvar} to be a dialect of |\language0|
+%    when {\tt\ttbs l@\langvar} is undefined.
+%
+%    \item The language-specific files can be read as an option,
+%    but also in the middle of document processing. This means that
+%    they have to function independently of the current |\catcode| of
+%    the {\tt @}~sign.
+%   \end{itemize}
+%
+%
+%    \DescribeMacro\captionslang
+%    The macro {\tt\ttbs captions\langvar} defines the macros that
+%    hold the texts to replace the original hard-wired texts.
+%    \DescribeMacro\datelang
+%    The macro {\tt\ttbs date\langvar} defines |\today| and
+%    \DescribeMacro\extraslang
+%    the macro {\tt\ttbs extras\langvar} contains all the extra
+%    definitions needed for a specific language.
+%
+%    \DescribeMacro\noextraslang
+%    Because we want to offer the user the possibility to switch
+%    between languages and we do not know in what state \TeX\ might be
+%    after the execution of {\tt\ttbs extras\langvar}, a macro that
+%    brings \TeX\ into a predefined state is needed. It will be no
+%    surprise that the name of this macro is {\tt\ttbs
+%    noextras\langvar}.
+%
+% \subsection{Support for active characters}
+%
+%    In quite a few language specific files, active characters are
+%    introduced. To facilitate this, some support macros are provided.
+%
+% \DescribeMacro{\babel@add@special}
+% \DescribeMacro{\babel@remove@special}
+%    ``Plain \TeX\ includes a macro called |\dospecials| that is
+%    essentially a set macro, representing the set of all characters
+%    that have a special category code.'' \cite[p.~380]{DEK} It is
+%    used to set text `verbatim'.  To make this work if more
+%    characters get a special category code, you have to add this
+%    character to the macro |\dospecial|.  \LaTeX\ adds another macro
+%    called |\@sanitize| representing the same character set, but
+%    without the curly braces.  The macros
+%    |\babel@add@special|\meta{char} and
+%    |\babel@remove@special|\meta{char} add and remove the character
+%    \meta{char} to these two sets.
+%
+% \subsection{Support for saving macro definitions}
+%
+%    Language specific files may want to {\em re\/}define macros that
+%    already exist. Therefore a mechanism for saving (and restoring)
+%    the original definition of those macros is provided. We provide
+%    two macros for this\footnote{This mechanism was introduced by
+%    Bernd Raichle.}.
+%
+% \DescribeMacro{\babel@save} To save the current meaning of any
+%    control sequence the macro |\babel@save| is provided. It takes
+%    one argument, \meta{csname}, the control sequence for which the
+%    meaning has to be saved.
+%
+% \DescribeMacro{\babel@savevariable} A second macro is provided to
+%    save the current value of a variable.  In this context anything
+%    that is allowed after the |\the| primitive is considered to be a
+%    variable. The macro takes one argument, the \meta{variable}.
+%
+%    The effect of the aforementioned macros is that a piece of code
+%    is appended to the current definition of |\originalTeX|. When
+%    |originalTeX| is expanded this code restores the previous
+%    definition of the control sequence or the previous value of the
+%    variable.
+%
+% \subsection{Support for extending macros}
+%
+% \DescribeMacro{\addto}
+%    The macro |\addto{|\meta{control sequence}{\tt}{}\meta{\TeX\
+%    code}{\tt\}} can be used to extend the definition of a macro. The
+%    macro need not be defined. This macro can, for instance, be used
+%    in adding instructions to a macro like |\extrasenglish|.
+%
+% \subsection{Macros common to a number of languages}
+%
+% \DescribeMacro{\allowhyphens}
+%    In a couple of european languages compound words are used. This
+%    means that when \TeX\ has to hyphenate such a compound word it
+%    only does that at the `{\tt-}' that is used in such words. To
+%    allow hyphenation in the rest of such a compound word the macro
+%    |\allowhyphens| can be used.
+%
+% \DescribeMacro{\set@low@box}
+%    For some languages quotes need to be lowered to the baseline. For
+%    this purpose the macro |\set@low@box| is available. It takes one
+%    argument and puts that argument in an |\hbox|, at the
+%    baseline. The result is available in |\box0| for further
+%    processing.
+%
+% \DescribeMacro{\save@sf@q}
+%    Sometimes it is necessary to preserve the |\spacefactor|.  For
+%    this purpose the macro |\save@sf@q| is available. It takes one
+%    argument, saves the current spacefactor, executes the argument
+%    and restores the spacefactor.
+%
+% \section{Compatibility with {\tt german.sty}}\label{l-h}
+%
+%    As has been discussed before, the file \file{german.sty} has been
+%    one of the sources of inspiration for the \babel{}
+%    system. Because of this I wanted to include \file{german.sty} in
+%    the \babel{} system.  To be able to do that I had to allow for
+%    one incompatibility: in the definition of the macro
+%    |\selectlanguage| in file{german.sty} the argument is used as the
+%    {$\langle \it number \rangle$} for an |\ifcase|. So in this case
+%    a call to |\selectlanguage| might look like
+%    |\selectlanguage{\german}|.
+%
+%    In the definition of the macro |\selectlanguage| in
+%    \file{babel.def} the argument is used as a part of other
+%    macronames, so a call to |\selectlanguage| now looks like
+%    |\selectlanguage{german}|.  Notice the absence of the escape
+%    character.  As of version~3.1a of \babel{} both syntaxes are
+%    allowed.
+%
+%    All other features of the original \file{german.sty} have been
+%    copied into a new file, called \file{germanb.sty}\footnote{The
+%    `b' is added to the name to distinguish the file from Partls'
+%    file.}.
+%
+%    Although the \babel{} system was developed to be used with
+%    \LaTeX, some of the features implemented in language specific
+%    files might be needed by plain \TeX\ users. Care has been taken
+%    that all files in the system can be processed by plain \TeX.
+%
+%
+%\StopEventually{%
+% \clearpage
+% \let\filename\thisfilename
+% \section{Conclusion}
+%
+%    A system of document options has been presented that enable the
+%    user of \LaTeX\ to adapt the standard document classes of \LaTeX\
+%    to the language he or she prefers to use. These options offer the
+%    possibility to switch between languages in one document. The
+%    basic interface consists of using ones option, which is the same
+%    for {\em all\/} standard document classes.
+%
+%    In some cases the language specific option files provide macros
+%    that can be of use to plain \TeX\ users as well as to \LaTeX\
+%    users.  The \babel{} system has been implemented in such a way
+%    that it can be used by both groups of users.
+%
+% \section{Acknowledgements}
+%
+%    I would like to thank all who volunteered as $\beta$-testers for
+%    their time. I would like to mention Julio Sanchez who supplied
+%    the option file for the Spanish language and Maurizio Codogno who
+%    supplied the option file for the Italian language. Werenfried
+%    Spit supplied the files for the Russian language. Michel Goossens
+%    supplied contributions for most of the other languages.  Nico
+%    Poppelier helped polishing the text of the documentation and
+%    supplied parts of the macros for the Dutch language.  Paul
+%    Wackers and Werenfried Spit helped finding and repairing bugs.
+%
+%    During the further development of the babel system I received
+%    much help from Bernd Raichle, for which I am grateful.
+%
+% \begin{thebibliography}{9}
+%  \bibitem{DEK} Donald E. Knuth,
+%    {\em The \TeX book}, Addison-Wesley, 1986.
+%  \bibitem{LLbook} Leslie Lamport,
+%    {\em \LaTeX, A document preparation System}, Addison-Wesley, 1986.
+%   \bibitem{treebus} K.F. Treebus.
+%   {\em Tekstwijzer, een gids voor het grafisch verwerken van tekst.}
+%   SDU Uitgeverij ('s-Gravenhage, 1988). A Dutch book on layout
+%   design and typography.
+%  \bibitem{HP} Hubert Partl,
+%    {\em German \TeX}, {\em TUGboat\/} 9 (1988) \#1, p.~70--72.
+%  \bibitem{LLth} Leslie Lamport,
+%    in: \TeXhax\ Digest, Volume 89, \#13, 17 februari 1989.
+%  \bibitem{BEP} Johannes Braams, Victor Eijkhout and Nico Poppelier,
+%   {\em The development of national \LaTeX\ styles\/},
+%   {\em TUGboat\/} 10 (1989) \#3, p.~401--406.
+%  \bibitem{ilatex} Joachim Schrod,
+%   {\em International \LaTeX\ is ready to use\/},
+%   {\em TUGboat\/} 11 (1990) \#1, p.~87--90.
+% \end{thebibliography}
+% }
+%
+% \section{Identification}
+%
+%    The file \texttt{babel.sty}\footnote{The file described in this
+%    section is called {\tt \filename}, has version
+%    number~\fileversion\ and was last revised on~\filedate.} is meant
+%    for \LaTeXe, therefore we make sure that the format file used is
+%    the right one.
+%
+%    \begin{macrocode}
+%<+package>\NeedsTeXFormat{LaTeX2e}
+%    \end{macrocode}
+%
+% \changes{babel~3.4c}{1994/06/05}{lhyphen.cfg has become
+%    lthyphen.cfg}
+%    The identification code for each file is something that was
+%    introduced in \LaTeXe. When the command |\ProvidesFile| does not
+%    exist, a dummy definition is provided.
+% \changes{babel~3.4e}{1994/06/24}{Redid the identification code,
+%    provided dummy definition of \cs{ProvidesFile} for plain \TeX}
+%    \begin{macrocode}
+%<*!package>
+\ifx\ProvidesFile\undefined
+  \def\ProvidesFile#1[#2 #3 #4]{\wlog{#4 #3 <#2>}}\fi
+%</!package>
+%    \end{macrocode}
+%    Identify each file that is produced from this source file.
+%    \begin{macrocode}
+%<+package>\ProvidesPackage{babel}
+%<+def>\ProvidesFile{babel.def}
+%<+kernel|patterns>\ProvidesFile{lthyphen.cfg}
+%<+kernel&!patterns>\ProvidesFile{switch.def}
+%<+driver&!user>\ProvidesFile{babel.drv}
+%<+driver&user>\ProvidesFile{user.drv}
+                [1994/07/03 v3.4f
+%<+package>     The Babel package]
+%<+def>         Babel common definitions]
+%<+kernel>      Babel language switching mechanism]
+%<+driver>]
+%    \end{macrocode}
+%
+% \section{The Package File}
+%
+%    In order to make use of the new features of \LaTeXe, a new file
+%    is introdued to the \babel\ system, \file{babel.sty}. This file
+%    is loaded by the |\usepackage| command and defines all the
+%    language options known in the \babel system.
+%
+%    For all the languages supported we need to declare an option.
+%
+%    `American' is a version of `English' which can have its own
+%    hyphenation patterns. The default english patterns are in fact
+%    for  american english. We allow or the patterns to be loaded as
+%    `english' `american' or `USenglish'.
+%    \begin{macrocode}
+%<*package>
+\DeclareOption{american}{%
+  \ifx\l@USenglish\undefined
+  \else
+    \let\l@american\l@USenglish
+  \fi
+  \input{english.sty}%
+  \selectlanguage{american}}
+%    \end{macrocode}
+%    Austrian is really a dialect o German.
+%    \begin{macrocode}
+\DeclareOption{austrian}{\input{germanb.sty}%
+                         \selectlanguage{austrian}}
+\DeclareOption{bahasa}{\input{bahasa.sty}}
+\DeclareOption{brazil}{\input{portuges.sty}\selectlanguage{brazil}}
+\DeclareOption{catalan}{\input{catalan.sty}}
+\DeclareOption{croatian}{\input{croatian.sty}}
+\DeclareOption{czech}{\input{czech.sty}}
+\DeclareOption{danish}{\input{danish.sty}}
+\DeclareOption{dutch}{\input{dutch.sty}}
+%    \end{macrocode}
+%    We allow or the british english patterns to be loaded as either
+%    `english' or `UKenglish'
+%    \begin{macrocode}
+\DeclareOption{english}{%
+  \ifx\l@UKenglish\undefined
+  \else
+    \let\l@english\l@UKenglish
+  \fi
+  \input{english.sty}}
+\DeclareOption{esperanto}{\input{esperant.sty}}
+\DeclareOption{finnish}{\input{finnish.sty}}
+%    \end{macrocode}
+%    The \babel\ support or French is stored in \file{francais.sty};
+%    thereore the \LaTeX2.09 option used to be \Lopt{francais}.
+%    The hyphenation patterns may be loaded as either `french' or as
+%    `francais'.
+%    \begin{macrocode}
+\DeclareOption{francais}{%
+  \ifx\l@francais\undefined
+    \let\l@francais\l@french
+  \fi
+  \input{francais.sty}}
+%    \end{macrocode}
+%    With \LaTeXe\ we can now also use the option \Lopt{french} and
+%    still call the file \file{francais.sty}.
+%    \begin{macrocode}
+\DeclareOption{french}{%
+  \ifx\l@french\undefined
+    \let\l@french\l@francais
+  \fi
+  \input{francais.sty}%
+  \let\captionsfrench\captionsfrancais
+  \let\datefrench\datefrancais
+  \let\extrasfrench\extrasfrancais
+  \let\noextrasfrench\noextrasfrancais
+  }
+\DeclareOption{galician}{\input{galician.sty}}
+\DeclareOption{german}{\input{germanb.sty}}
+\DeclareOption{germanb}{\input{germanb.sty}}
+%    \end{macrocode}
+%    \Lopt{hungarian} is just a synonym for \Lopt{magyar}
+%    \begin{macrocode}
+\DeclareOption{hungarian}{\input{magyar.sty}}
+\DeclareOption{italian}{\input{italian.sty}}
+\DeclareOption{magyar}{\input{magyar.sty}}
+\DeclareOption{norsk}{\input{norsk.sty}}
+%    \end{macrocode}
+%    For Norwegian two spelling variants are provided.
+%    \begin{macrocode}
+\DeclareOption{nynorsk}{%
+  \input{norsk.sty}%
+  \selectlanguage{nynorsk}}
+\DeclareOption{polish}{\input{polish.sty}}
+\DeclareOption{portuges}{\input{portuges.sty}}
+\DeclareOption{romanian}{\input{romanian.sty}}
+%\DeclareOption{russian}{\input{russian.sty}}
+\DeclareOption{spanish}{\input{spanish.sty}}
+\DeclareOption{slovak}{\input{slovak.sty}}
+\DeclareOption{slovene}{\input{slovene.sty}}
+\DeclareOption{swedish}{\input{swedish.sty}}
+\DeclareOption{turkish}{\input{turkish.sty}}
+%    \end{macrocode}
+%
+%    The options have to be processed in the order in which the user
+%    specified them:
+%    \begin{macrocode}
+\ProcessOptions*
+%</package>
+%    \end{macrocode}
+%
+% \section{The Kernel of Babel}
+%
+%    The kernel of the \babel\ system is stored in either
+%    \file{lthyphen.cfg} or \file{switch.def} and \file{babel.def}. The
+%    file \file{lthyphen.cfg} is a file that can be loaded into the
+%    format, which is necessary when you want to be able to switch
+%    hyphenation patterns. The file \file{babel.def} contains some
+%    \TeX\ code that can be read in at run time. When \file{babel.def}
+%    is loaded it checks if \file{lthyphen.cfg} is in the format; if
+%    not the file \file{switch.def} is loaded.
+%
+%    Because plain \TeX\ users might want to use some of the features
+%    of the \babel{} system too, care has to be taken that plain \TeX\
+%    can process the files. For this reason the current format will
+%    have to be checked in a number of places. Some of the code below
+%    is common to plain \TeX\ and \LaTeX, some of it is for the
+%    \LaTeX\ case only.
+%
+%    Check the presence of the command |\iflanguage|, if it is
+%    undefined read the file \file{switch.def}.
+% \changes{babel~3.0d}{29 oct 91}{Removed use of {\tt\bsl @ifundefined}}
+%    \begin{macrocode}
+%<*def>
+\ifx\undefined\iflanguage
+  \input switch.def\relax
+\fi
+%    \end{macrocode}
+%
+%    To communicate to the language specific files that the core of
+%    the \babel{} system has been loaded, the following control
+%    sequence is just |\let| equal to |\relax|.
+%    \begin{macrocode}
+\let\babel@core@loaded\relax
+%</def>
+%    \end{macrocode}
+%
+% \subsection{Multiple languages}
+%
+%    With \TeX\ version~3.0 it has become possible to load hyphenation
+%    patterns for more than one language. This means that some extra
+%    administration has to be taken care of.  The user has to know for
+%    which languages patterns have been loaded, and what values of
+%    |\language| have been used.
+%
+%    Some discussion has been going on in the \TeX\ world about how to
+%    use |\language|. Some have suggested to set a fixed standard,
+%    i.\,e., patterns for each language should {\em always} be loaded
+%    in the same location. It has also been suggested to use the {\sc
+%    iso} list for this purpose. Others have pointed out that the {\sc
+%    iso} list contains more than 256~languages, which have {\em
+%    not\/} been numbered consecutively.
+%
+%    I think the best way to use |\language|, is to use it
+%    dynamically.  This code implements an algorithm to do so. It uses
+%    an external file in which the person who maintains a \TeX\
+%    environment has to record for which languages he has hyphenation
+%    patterns {\em and\/} in which files these are
+%    stored\footnote{This is because different operating systems
+%    sometimes use {\em very} different filenaming conventions.}. This
+%    ``configuration file'' can contain empty lines and comments, as
+%    can be seen from this example:
+% \begin{verbatim}
+%    % File    : language.dat
+%    % Purpose : tell iniTeX what files with patterns to load.
+%    english    english.hyphenations
+%
+%    dutch      hyphen.dutch % Nederlands
+%    german hyphen.ger
+% \end{verbatim}
+%
+% \changes{hyphen-1.1}{31 oct 91}{Removed two of the {\tt docstrip}
+%    options}
+%
+%    As the file {\tt switch.def} needs to be read only once, we check
+%    whether it was read before.  If it was, the command |\iflanguage|
+%    is already defined, so we can stop processing.
+%    \begin{macrocode}
+%<*kernel>
+%<*!patterns>
+\expandafter\ifx\csname iflanguage\endcsname\relax \else
+\expandafter\endinput
+\fi
+%</!patterns>
+%    \end{macrocode}
+%
+% \begin{macro}{\language}
+%    Plain \TeX\ version~3.0 provides the primitive |\language| that
+%    is used to store the current language. When used with a pre-3.0
+%    version this function has to be implemented by allocating a
+%    counter.
+%
+%    \begin{macrocode}
+\ifx\language\undefined
+  \csname newcount\endcsname\language
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\last@language}
+%    Another counter is used to store the last language defined.  For
+%    pre-3.0 formats an extra counter has to be allocated,
+%    \begin{macrocode}
+\ifx\newlanguage\undefined
+  \csname newcount\endcsname\last@language
+%    \end{macrocode}
+%    plain \TeX\ version 3.0 uses |\count 19| for this purpose.
+%    \begin{macrocode}
+\else
+  \countdef\last@language=19
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\addlanguage}
+%
+%    To add languages to \TeX's memory plain \TeX\ version~3.0
+%    supplies |\newlanguage|, in a pre-3.0 environment a similar macro
+%    has to be provided. For both cases a new macro is defined here,
+%    because the original |\newlanguage| was defined to be |\outer|.
+%
+%    For a format based on plain version~2.x, the definition of
+%    |\newlanguage| can not be copied because |\count 19| is used for
+%    other purposes in these formats. Therefore |\addlanguage| is
+%    defined using a definition based on the macros used to define
+%    |\newlanguage| in plain \TeX\ version~3.0.
+% \changes{hyphen-1.1a}{11 nov 91}{Added a {\tt\%}, removed {\tt by}}
+%    \begin{macrocode}
+\ifx\newlanguage\undefined
+  \def\addlanguage#1{%
+    \global\advance\last@language \@ne
+    \ifnum\last@language<\@cclvi
+    \else
+        \errmessage{No room for a new \string\language!}%
+    \fi
+    \global\chardef#1\last@language
+    \wlog{\string#1 = \string\language\the\last@language}}
+%    \end{macrocode}
+%
+%    For formats based on plain version~3.0 the definition of
+%    |\newlanguage| can be simply copied, removing |\outer|.
+%
+%    \begin{macrocode}
+\else
+  \def\addlanguage{\alloc@9\language\chardef\@cclvi}
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\adddialect}
+%    The macro |\adddialect| can be used to add the name of a dialect
+%    or variant language, for which an already defined hyphenation
+%    table can be used.
+% \changes{hyphen-1.1a}{11 nov 91}{Added {\tt\bsl relax}}
+%    \begin{macrocode}
+\def\adddialect#1#2{%
+    \global\chardef#1#2\relax
+    \wlog{\string#1 = a dialect from \string\language#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\iflanguage}
+%    Users might want to test (in a private package for instance)
+%    which language is currently active. For this we provide a test
+%    macro, |\iflanguage|, that has three arguments.  It checks
+%    whether the first argument is a known language. If so, it
+%    compares the first argument with the value of |\language|. Then,
+%    depending on the result of the comparison, it executes either the
+%    second or the third argument.
+% \changes{hyphen-1.0b}{29 may 91}{Added {\tt\bsl @bsphack} and
+%    {\tt\bsl @esphack}}
+% \changes{hyphen-1.0d}{21 july 91}{Added comment character after
+%    {\tt\#2}}
+% \changes{hyphen-1.0e}{8 aug 91}{Removed superfluous {\tt\bsl
+%    expandafter}}
+% \changes{hyphen-1.0h}{7 okt 91}{Removed space hacks and use of
+%    {\tt\bsl @ifundefined}}
+% \changes{hyphen-1.1a}{11 nov 91}{Refrased {\tt\bsl ifnum} test}
+%    \begin{macrocode}
+\def\iflanguage#1#2#3{%
+  \expandafter\ifx\csname l@#1\endcsname\relax
+    \@nolanerr{#1}%
+  \else
+    \ifnum\csname l@#1\endcsname=\language #2%
+    \else#3\fi
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\selectlanguage}
+%    The macro |\selectlanguage| checks whether the language is
+%    already defined before it performs its actual task, which is to
+%    update |\language| and activate language-specific definitions.
+%
+%    To allow the call of |\selectlanguage| either with a control
+%    sequence name or with a simple string, we have to use a trick to
+%    delete an existing escape character.
+%
+%    To convert a control sequence to a string, we use the |\string|
+%    primitive.  Next we have to look at the first character of this
+%    string and compare it with the escape character.  Because this
+%    escape character can be changed by setting the internal integer
+%    |\escapechar| to a character number, we have to compare this
+%    number with the character of the string.  To do this we have to
+%    use \TeX's backquote notation to specify the character as a
+%    number.
+%
+%    If the first character of the |\string|'ed argument is the
+%    current escape character, the comparison has stripped this
+%    character and the rest in the `then' part consists of the rest of
+%    the control sequence name.  Otherwise we know that either the
+%    argument is not a control sequence or |\escapechar| is set to a
+%    value outside of the character range~$0$--$255$.
+%
+%    If the user gives an empty argument, we provide a default
+%    argument for |\string|.  This argument should expand to nothing.
+%
+% \changes{hyphen-1.0c}{06/06/91}{Made {\tt\bsl selectlanguage}
+%    robust}
+% \changes{hyphen-1.1a}{11 nov 91}{Modified to allow arguments that
+%    start with an escape character}
+% \changes{hyphen-1.1b}{17 nov 91}{Simplified the modification to
+%    allow the use in a {\tt\bsl write} command}
+%    \begin{macrocode}
+\def\selectlanguage#1{\protect\p@selectlanguage{%
+  \ifnum\escapechar=\expandafter`\string#1\empty
+     \else \string#1\empty\fi}}
+%    \end{macrocode}
+%    Because the command |\selectlanguage| could be used in a moving
+%    argument it expands to |\protect\p@selectlanguage|.  Therefore,
+%    we have to make sure that a macro |\protect| exists.  If it
+%    doesn't it is |\let| to |\relax|.
+%    \begin{macrocode}
+\ifx\undefined\protect\let\protect\relax\fi
+%    \end{macrocode}
+%
+%    {\small Remark: If the |\selectlanguage| command is written to a
+%    file, a possible control sequence argument gets totally expanded
+%    to the string without the leading escape character.  In the
+%    normal case we have to deal with the fact that the argument of
+%    |\p@selectlanguage| is totally unexpanded at the moment.  There
+%    is only one disadvantage in the current implementation:
+%    |\originalTeX| contains this unexpanded argument and therefore
+%    needs more memory for its macro definition.  \par}
+%
+%    First, check if the user asks for a known language. If so,
+%    update the value of |\language| and call |\originalTeX|
+%    to bring \TeX\ in a certain pre-defined state.
+% \changes{hyphen-1.0b}{29 may 91}{Added {\tt\bsl @bsphack} and
+%    {\tt\bsl @esphack}}
+% \changes{hyphen-1.0e}{8 aug 91}{Removed superfluous {\tt\bsl
+%    expandafter}}
+% \changes{hyphen-1.0h}{7 okt 91}{Removed space hacks and use of
+%                                    {\tt\bsl @ifundefined}}
+% \changes{hyphen-1.1b}{17 nov 91}{Added {\tt\bsl relax} as first
+%    command to stop an expansion if {\tt\bsl protect} is empty}
+%    \begin{macrocode}
+\def\p@selectlanguage#1{\relax
+  \expandafter\ifx\csname l@#1\endcsname\relax
+    \@nolanerr{#1}%
+  \else
+    \language=\csname l@#1\endcsname\relax
+    \originalTeX
+%    \end{macrocode}
+%    The name of the language is stored in the control sequence
+%    |\languagename|. The contents of this control sequence could be
+%    tested in the following way:
+% \begin{verbatim}
+%    \edef\tmp{\string english}
+%    \ifx\languagename\tmp
+%        ...
+%    \else
+%        ...
+%    \fi
+% \end{verbatim}
+%    The construction with |\string| is necessary because
+%    |\languagename| returns the name with characters of category code
+%    {\tt 12} (other).
+% \changes{hyphen-1.1f}{17 feb 92}{Store the name of the language in
+%    {\tt\bsl languagename}}
+%    \begin{macrocode}
+    \edef\languagename{#1}%
+%    \end{macrocode}
+% \changes{hyphen-1.1a}{11 nov 91}{Added initialisation of
+%    {\tt\bsl...@xcodes} macros}
+% \changes{hyphen-1.1c}{20 nov 91}{Deleted initialisation of
+%    {\tt\bsl...@xcodes} macros {\tt :-)}}
+%    Then we have to {\em re\/}define |\originalTeX| to compensate for
+%    the things that have been activated.  To save memory space for
+%    the macro definition of |\originalTeX|, we construct the control
+%    sequence name for the {\tt\ttbs noextras\langvar} command at
+%    definition time by expanding the |\csname| primitive.
+% \changes{hyphen-1.0c}{06 jun 91}{Replaced {\tt\bsl gdef} with
+%    {\tt\bsl def}}
+% \changes{hyphen-1.1}{31 oct 91}{{\tt\bsl originalTeX} should only be
+%    executed once}
+% \changes{hyphen-1.1b}{17 nov 91}{Added three {\tt\bsl expandafter}
+%    to save macro space for {\tt\bsl originalTeX}}
+% \changes{hyphen-1.1c}{20 nov 91}{Moved definition of {\tt\bsl
+%    originalTeX} before {\tt\bsl extras\langvar}}
+% \changes{hyphen-1.1d}{24 nov 91}{Set {\tt\bsl originalTeX} to
+%    {\tt\bsl empty}, because it should be expandable.}
+%    \begin{macrocode}
+    \expandafter\def\expandafter\originalTeX
+        \expandafter{\csname noextras#1\endcsname
+                     \let\originalTeX\empty}%
+    \babel@beginsave
+%    \end{macrocode}
+%    Now activate the language-specific definitions. This is done by
+%    constructing the names of three macros by concatenating three
+%    words with the argument of |\selectlanguage|, and calling these
+%    macros.
+%    \begin{macrocode}
+    \csname captions#1\endcsname
+    \csname date#1\endcsname
+    \csname extras#1\endcsname\relax
+  \fi}%
+%    \end{macrocode}
+% \end{macro}
+%
+%    The macro|\originalTeX| should be known to \TeX\ at this moment.
+%    As it has to be expandable we |\let| it to |\empty| instead of
+%    |\relax|.
+% \changes{hyphen-1.1d}{24 nov 91}{Set {\tt\bsl originalTeX} to
+%    {\tt\bsl empty}, because it should be expandable.}
+%    \begin{macrocode}
+\ifx\undefined\originalTeX\let\originalTeX\empty\fi
+%    \end{macrocode}
+%    Because this part of the code can be included in a format, we
+%    make sure that the macro which initialises the save mechanism,
+%    |\babel@beginsave|, is not considered to be undefined.
+%    \begin{macrocode}
+\ifx\undefined\babel@beginsave\let\babel@beginsave\relax\fi
+%    \end{macrocode}
+%
+% \begin{macro}{\@nolanerr}
+% \changes{babel~3.4e}{1994/06/25}{Use \cs{PackageError} in \LaTeXe\
+%    mode}
+% \begin{macro}{\@nopatterns}
+% \changes{babel~3.4e}{1994/06/25}{Macro added}
+%    The \babel\ package will signal an error when a documents tries
+%    to select a language that hasn't been defined earlier. When a
+%    user selects a language for which no hyphenation patterns were
+%    loaded into the format he will be given a warning about that
+%    fact. We revert to the patterns for |\language|=0 in that case.
+%    In most formats that will be (us)english, but it might also be
+%    empty.
+%
+%    When the format knows about |\PackageError| it must be \LaTeXe,
+%    so we can safely use its error handling interface. Otherwise
+%    we'll have to `keep it simple'.
+% \changes{hyphen-1.0h}{7 okt 91}{Added a percent sign to remove
+%    unwanted white space}
+%    \begin{macrocode}
+\ifx\PackageError\undefined
+  \def\@nolanerr#1{%
+    \errhelp{Your command will be ignored, type <return> to proceed}%
+    \errmessage{You haven't defined the language #1\space yet}}
+  \def\@nopatterns#1{%
+    \message{No hyphenation patterns were loaded for}
+    \message{the language `#1'}
+    \message{I will use the patterns loaded for \string\language=0
+          instead}}
+\else
+  \def\@nolanerr#1{%
+    \PackageError{babel}%
+                 {You haven't defined the language #1\space yet}%
+        {Your command will be ignored, type <return> to proceed}}
+  \def\@nopatterns#1{%
+    \PackageWarningNoLine{babel}%
+        {No hyphenation patterns were loaded for\MessageBreak
+          the language `#1'\MessageBreak
+          I will use the patterns loaded for \string\language=0
+          instead}}
+\fi
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%    The following code is meant to be read by ini\TeX\ because it
+%    should instruct \TeX\ to read hyphenation patterns. To this end
+%    the {\tt docstrip} option {\tt patterns} can be used to include
+%    this code in the file \file{lthyphen.cfg}.
+%    \begin{macrocode}
+%<*patterns>
+%    \end{macrocode}
+%
+% \begin{macro}{\patterns@loaded}
+% \changes{hyphen-1.0i}{27 okt 91}{Added a token register for
+%    collecting the names of patterns that are loaded by ini\TeX.}
+%    It has been suggested to add a remark to \LaTeX's |\everyjob|
+%    message, stating which hyphenation patterns have been loaded.
+%    This can be done by first collecting (in a token register) the
+%    names when processing the file {\tt language.dat} and afterwards
+%    adding a string to the |\everyjob| message. The token register is
+%    initially empty.
+%
+%    \begin{macrocode}
+\newtoks\patterns@loaded \global\patterns@loaded={}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\process@language}
+%    The macro |\process@language| is used to process a non-empty line
+%    from the `configuration file'. It has two arguments, delimited by
+%    white space. The first argument is the `name' of a language, the
+%    second is the name of the file that contains the patterns.
+%
+%    The first thing to do is call |\addlanguage| to allocate a
+%    pattern register and to make that register `active'
+% \changes{hyphen-1.0e}{8 aug 91}{Removed superfluous {\tt\bsl
+%    expandafter}}
+% \changes{hyphen-1.0f}{21 aug 91}{Reinserted {\tt\bsl expandafter}}
+% \changes{hyphen-1.0i}{27 okt 1991}{Added the collection of pattern
+%    names.}
+%    \begin{macrocode}
+\def\process@language#1 #2 {%
+    \expandafter\addlanguage\csname l@#1\endcsname
+    \expandafter\language\csname l@#1\endcsname
+%    \end{macrocode}
+%    Then the `name' of the language that will be loaded now is
+%    added to the token register |\patterns@loaded|. and finally
+%    the pattern file is read.
+%    \begin{macrocode}
+    \global\patterns@loaded\expandafter{\the\patterns@loaded#1, }%
+%    \end{macrocode}
+%
+% \changes{v3.4e}{1994/06/24}{Added code to detect assignments to
+%    left- and righthyphenmin in the patternfile.}
+%
+%    Some pattern files contain assignments to |\lefthyphenmin| and
+%    |\righthyphenmin|. \TeX\ does not keep track of these
+%    assignments. Therefore we try to detect such assignments and add
+%    them to the |\extras|\langvar\ command. When no assignments
+%    were made we provide a default setting.
+%    \begin{macrocode}
+    \lefthyphenmin\m@ne
+    \input #2\relax
+    \ifnum\lefthyphenmin=\m@ne
+      \lefthyphenmin\tw@
+      \righthyphenmin\thr@@
+    \fi
+    \expandafter\edef\csname extras#1\endcsname{%
+      \lefthyphenmin\the\lefthyphenmin\relax
+      \righthyphenmin\the\righthyphenmin\relax}}
+%    \end{macrocode}
+% \end{macro}
+%
+%    The configuration file can now be opened for reading.
+%    \begin{macrocode}
+\openin1 = language.dat
+%    \end{macrocode}
+%
+%    See if the file exists, if not, use the default hyphenation file
+%    \file{hyphen.tex}. The user will be informed about this.
+%
+%    \begin{macrocode}
+\ifeof1
+    \message{I couldn't find the file language.dat,\space
+             I will try the file hyphen.tex}
+    \input hyphen.tex\relax
+\else
+%    \end{macrocode}
+%
+%    Pattern registers are allocated using count register
+%    |\last@language|. Its initial value is~0. The definition of the
+%    macro |\newlanguage| is such that it first increments the count
+%    register and then defines the language. In order to have the
+%    first patterns loaded in pattern register number~0 we initialize
+%    |\last@language| with the value~$-1$.
+%
+% \changes{hyphen-1.1}{21 may 91}{Removed use of {\tt\bsl toks0}}
+%    \begin{macrocode}
+\last@language=-1
+%    \end{macrocode}
+%
+%    We now read lines from the file until the end is found
+%
+%    \begin{macrocode}
+\loop
+%    \end{macrocode}
+%
+%    While reading from the input it is useful to switch off
+%    recognition of the end-of-line character. This saves us stripping
+%    off spaces from the contents of the controlsequence.
+%
+%    \begin{macrocode}
+  \endlinechar=-1
+  \read1 to \@line
+  \endlinechar`\^^M
+%    \end{macrocode}
+%
+%    Empty lines are skipped.
+%
+%    \begin{macrocode}
+  \ifx\@line\empty
+  \else
+%    \end{macrocode}
+%
+%    All the |\expandafter|s are needed because the definition of
+%    |\process@language| requires a space after the second argument.
+%    The space might be there, but to make sure it is {\em always\/}
+%    present an extra space is added.
+%
+% \changes{hyphen-1.1}{21 may 91}{Removed use of {\tt\bsl toks0}}
+% \changes{hyphen-1.1}{31 oct 91}{Different way of adding a space
+%    token}
+%    \begin{macrocode}
+    \expandafter\expandafter\expandafter
+    \process@language\expandafter\@line\space
+  \fi
+%    \end{macrocode}
+%
+%    Check for the end of the file.  To avoid a new {\tt if} control
+%    sequence we create the necessary |\iftrue| or |\iffalse| with the
+%    help of |\csname|.  But there is one complication with this
+%    approach: when skipping the {\tt loop...repeat} \TeX\ has to read
+%    |\if|/|\fi| pairs.  So we have to insert a `dummy' |\iftrue|.
+% \changes{hyphen-1.1}{31 oct 91}{Removed the extra {\tt if} control
+%    sequence}
+%    \begin{macrocode}
+    \iftrue \csname fi\endcsname
+    \csname if\ifeof1 false\else true\fi\endcsname
+  \repeat
+%    \end{macrocode}
+%
+%    Reactivate the default patterns,
+%    \begin{macrocode}
+  \language=0
+\fi
+%    \end{macrocode}
+%    and close the configuration file.
+% \changes{hyphen-1.1c}{20 nov 91}{Free macro space for
+%                       {\tt\bsl process@language}}
+%    \begin{macrocode}
+\closein1
+\let\process@language=\undefined
+%    \end{macrocode}
+%
+% \changes{hyphen-1.1}{31 oct 91}{Added redefinition of {\tt\bsl dump}
+%    to add a message to {\tt\bsl everyjob}}
+%    We want to add a message to the message \LaTeX\ puts in the
+%    |\everyjob| register. This could be done by the following code:
+%    \begin{verbatim}
+%    \let\orgeveryjob\everyjob
+%    \def\everyjob#1{%
+%      \orgeveryjob{#1}%
+%      \orgeveryjob\expandafter{\the\orgeveryjob\immediate\write16{%
+%          hyphenation patterns for \the\loaded@patterns loaded.}}%
+%      \let\everyjob\orgeveryjob\let\orgeveryjob\undefined}
+%    \end{verbatim}
+%    The code above redefines the control sequence {\tt\bsl everyjob}
+%    in order to be able to add something to the current contents of
+%    the register. This is necessary because the processing of
+%    hyphenation patterns happens long before \LaTeX\ fills the
+%    register.\\
+%    There are some problems with this approach though.
+%  \begin{itemize}
+%    \item When someone wants to use several hyphenation patterns with
+%    \SliTeX\ the above scheme won't work. The reason is that \SliTeX\
+%    overwrites the contents of the |\everyjob| register with its own
+%    message.
+%    \item Plain \TeX\ does not use the |\everyjob| register so the
+%    message would not be displayed.
+%  \end{itemize}
+%    To circumvent this a `dirty trick' can be used. As this code is
+%    only processed when creating a new format file there is one
+%    command that is sure to be used, |\dump|. Therefore the orginal
+%    |\dump| is saved in |\org@dump| and a new definition is supplied.
+%    \begin{macrocode}
+\let\orig@dump=\dump
+\def\dump{%
+%    \end{macrocode}
+%    This new definition starts by adding an instruction to write a
+%    message on the terminal and in the transcript file to inform the
+%    user of the preloaded hyphenation patterns.
+%    \begin{macrocode}
+  \everyjob\expandafter{\the\everyjob%
+    \immediate\write16{Hyphenation patterns for \the\patterns@loaded
+      loaded.}}%
+%    \end{macrocode}
+%    Then everything is restored to the old situation and the format
+%    is dumped.
+%    \begin{macrocode}
+  \let\dump\orig@dump\let\orig@dump\undefined\dump}
+%    \end{macrocode}
+%
+%    Here the code for ini\TeX\ ends.
+%    \begin{macrocode}
+%</patterns>
+%</kernel>
+%    \end{macrocode}
+%
+% \subsection{Support for active characters}
+%
+% \begin{macro}{\babel@add@special}
+% \changes{babel~3.2}{10 nov 91}{Added macro}
+%    The macro |\babel@add@special| is used to add a new character (or
+%    single character control sequence) to the macro |\dospecials|
+%    (and |\@sanitize| if \LaTeX\ is used).
+%
+%    To keep all changes local, we begin a new group.  Then we
+%    redefine the macros |\do| and |\@makeother| to add themselves and
+%    the given character without expansion.
+%    \begin{macrocode}
+%<*def>
+\def\babel@add@special#1{\begingroup
+    \def\do{\noexpand\do\noexpand}%
+    \def\@makeother{\noexpand\@makeother\noexpand}%
+%    \end{macrocode}
+%    To add the character to the macros, we expand the original macros
+%    with the additional character inside the redefinition of the
+%    macros.  Because |\@sanitize| can be undefined, we put the
+%    definition inside a conditional.
+%    \begin{macrocode}
+    \edef\x{\endgroup
+      \def\noexpand\dospecials{\dospecials\do#1}%
+      \expandafter\ifx\csname @sanitize\endcsname\relax \else
+        \def\noexpand\@sanitize{\@sanitize\@makeother#1}%
+      \fi}%
+%    \end{macrocode}
+%    The macro |\x| contains at this moment the following:\\
+%    |\endgroup\def\dospecials{|{\it old contents}%
+%    |\do|\meta{char}|}|.\\
+%    If |\@sanitize| is defined, it contains an additional definition
+%    of this macro.  The last thing we have to do, is the expansion of
+%    |\x|.  Then |\endgroup| is executed, which restores the old
+%    meaning of |\x|, |\do| and |\@makeother|.  After the group is
+%    closed, the new definition of |\dospecials| (and |\@sanitize|) is
+%    assigned.
+%    \begin{macrocode}
+  \x}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\babel@remove@special}
+% \changes{babel~3.2}{10 nov 91}{Added macro}
+%    The companion of the former macro is |\babel@remove@special|.  It
+%    is used to remove a character from the set macros |\dospecials|
+%    and |\@sanitize|.
+%
+%    To keep all changes local, we begin a new group.  Then we define
+%    a help macro |\x|, which expands to empty if the characters
+%    match, otherwise it expands to its nonexpandable input.  Because
+%    \TeX\ inserts a |\relax|, if the corresponding |\else| or |\fi|
+%    is scanned before the comparison is evaluated, we provide a `stop
+%    sign' which should expand to nothing.
+%    \begin{macrocode}
+\def\babel@remove@special#1{\begingroup
+    \def\x##1##2{\ifnum`#1=`##2\noexpand\empty
+                 \else\noexpand##1\noexpand##2\fi}%
+%    \end{macrocode}
+%    With the help of this macro we define |\do| and |\make@other|.
+%    \begin{macrocode}
+    \def\do{\x\do}%
+    \def\@makeother{\x\@makeother}%
+%    \end{macrocode}
+%    The rest of the work is similar to |\babel@add@special|.
+%    \begin{macrocode}
+    \edef\x{\endgroup
+      \def\noexpand\dospecials{\dospecials}%
+      \expandafter\ifx\csname @sanitize\endcsname\relax \else
+        \def\noexpand\@sanitize{\@sanitize}%
+      \fi}%
+  \x}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Support for saving macro definitions}
+%
+%    To save the meaning of control sequences using |\babel@save|, we
+%    use temporary control sequences.  To save hash table entries for
+%    these control sequences, we don't use the name of the control
+%    sequence to be saved to construct the temporary name.  Instead we
+%    simply use the value of a counter, which is reset to zero each
+%    time we begin to save new values.  This works well because we
+%    release the saved meanings before we begin to save a new set of
+%    control sequence meanings (see |\selectlanguage| and
+%    |\originalTeX|).
+%
+% \begin{macro}{\babel@savecnt}
+% \changes{babel~3.2}{10 nov 91}{Added macro}
+% \begin{macro}{\babel@beginsave}
+% \changes{babel~3.2}{10 nov 91}{Added macro}
+%    The initialization of a new save cycle: reset the counter to
+%    zero.
+%    \begin{macrocode}
+\def\babel@beginsave{\babel@savecnt\z@}
+%    \end{macrocode}
+%    Before it's forgotten, allocate the counter and initialize all.
+%    \begin{macrocode}
+\newcount\babel@savecnt
+\babel@beginsave
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\babel@save}
+% \changes{babel~3.2}{10 nov 91}{Added macro}
+%    The macro |\babel@save|\meta{csname} saves the current meaning of
+%    the control sequence \meta{csname} to
+%    |\originalTeX|\footnote{{\tt\bsl originalTeX} has to be
+%    expandable, i.\,e.\ you shouldn't let it to {\tt\bsl relax}.}.
+%    To do this, we let the current meaning to a temporary control
+%    sequence, the restore commands are appended to |\originalTeX| and
+%    the counter is incremented.
+% \changes{babel~3.2c}{17/3/92}{missing {\tt\bsl} led to errors when
+%    executing {\tt\bsl originalTeX}}
+% \changes{babel~3.2d}{02/07/92}{saving in `babel@i and restoring
+%    from `@babel@i doesn't work very well...}
+%    \begin{macrocode}
+\def\babel@save#1{%
+  \expandafter\let\csname babel@\number\babel@savecnt\endcsname #1\relax
+  \begingroup
+    \toks@\expandafter{\originalTeX \let#1=}%
+    \edef\x{\endgroup
+      \def\noexpand\originalTeX{\the\toks@ \expandafter\noexpand
+         \csname babel@\number\babel@savecnt\endcsname\relax}}%
+  \x
+  \advance\babel@savecnt\@ne}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\babel@savevariable}
+% \changes{babel~3.2}{10 nov 91}{Added macro}
+%    The macro |\babel@savevariable|\meta{variable} saves the value of
+%    the variable.  \meta{variable} can be anything allowed after the
+%    |\the| primitive.
+%    \begin{macrocode}
+\def\babel@savevariable#1{\begingroup
+    \toks@\expandafter{\originalTeX #1=}%
+    \edef\x{\endgroup
+      \def\noexpand\originalTeX{\the\toks@ \the#1\relax}}%
+  \x}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Support for extending macros}
+%
+% \begin{macro}{\addto}
+%    For each language four control sequences have to be defined that
+%    control the language specific definitions. To be able to add
+%    something to these macro once they have been defined the macro
+%    |\addto| is introduced. It takes two arguments, a \meta{control
+%    sequence} and \TeX-code to be added to the \meta{control
+%    sequence}.
+%
+%    If the \meta{control sequence} has not been defined before it is
+%    defined now.
+% \changes{babel~3.1}{5 nov 91}{Added macro}
+% \changes{babel~3.4}{4 feb 94}{Changed to use toks register}
+%    \begin{macrocode}
+\def\addto#1#2{%
+  \ifx#1\undefined
+    \def#1{#2}
+  \else
+%    \end{macrocode}
+%    Otherwise the replacement text for the \meta{control sequence} is
+%    expanded and stored in a token register, together with the
+%    \TeX-code to be added.  Finally the \meta{control sequence} is
+%    {\em re\/}defined, using the contents of the token register.
+%    \begin{macrocode}
+  {\toks@\expandafter{#1#2}%
+   \xdef#1{\the\toks@}}%
+  \fi
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Macros common to a number of languages}
+%
+%  \begin{macro}{\allowhyphens}
+% \changes{babel~3.2b}{16 feb 92}{Moved macro from language-specific
+%    files}
+%    This macro makes hyphenation possible. Basically its definition
+%    is nothing more than |\nobreak| |\hskip| \texttt{0pt plus
+%    0pt}\footnote{\TeX\ begins and ends a word for hyphenation at a
+%    glue node. The penalty prevents a linebreak at this glue node.}.
+%    \begin{macrocode}
+\def\allowhyphens{\penalty\@M \hskip\z@skip}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\set@low@box}
+% \changes{babel~3.2b}{16 feb 92}{Moved macro from language-specific
+%    files}
+%    The following macro is used to lower quotes to the same level as
+%    the comma.  It prepares its argument in box register~0.
+%    \begin{macrocode}
+\def\set@low@box#1{\setbox\tw@\hbox{,}\setbox\z@\hbox{#1}%
+    \dimen\z@\ht\z@ \advance\dimen\z@ -\ht\tw@%
+    \setbox\z@\hbox{\lower\dimen\z@ \box\z@}\ht\z@\ht\tw@ \dp\z@\dp\tw@}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\save@sf@q}
+% \changes{babel~3.2b}{16 feb 92}{Moved macro from language-specific
+%    files}
+%    The macro |\save@sf@q| is used to save and reset the current
+%    space factor.
+%    \begin{macrocode}
+\def\save@sf@q#1{{\ifhmode
+    \edef\@SF{\spacefactor\the\spacefactor}\else
+    \let\@SF\empty \fi \leavevmode #1\@SF}}
+%    \end{macrocode}
+%  \end{macro}
+%
+% \subsection{The redefinition of the style commands}
+%
+%    The rest of the code in this file can only be processed by
+%    \LaTeX, so we check the current format. If it is plain \TeX,
+%    processing should stop here. But, because of the need to limit
+%    the scope of the definition of |\format|, a macro that is used
+%    locally in the following |\if|~statement, this comparison is done
+%    inside a group. To prevent \TeX\ from complaining about an
+%    unclosed group, the processing of the command |\endinput| is
+%    deferred until after the group is closed. This is accomplished by
+%    the command |\aftergroup|.
+%    \begin{macrocode}
+{\def\format{lplain}
+\ifx\fmtname\format
+\else
+  \def\format{LaTeX2e}
+  \ifx\fmtname\format
+  \else
+    \aftergroup\endinput
+  \fi
+\fi}
+%    \end{macrocode}
+%
+%    Now that we're sure that the code is seen by \LaTeX\ only, we
+%    have to find out what the main (primary) document style is
+%    because we want to redefine some macros.  This is only necessary
+%    for releases of \LaTeX\ dated before december~1991. Therefore
+%    this part of the code can be optionally included in
+%    \file{babel.def} by specifying the {\tt docstrip} option {\tt
+%    names}.
+%    \begin{macrocode}
+%<*names>
+%    \end{macrocode}
+%
+%    The standard styles can be distinguished by checking whether some
+%    macros are defined. In table~\ref{styles} an overview is given of
+%    the macros that can be used for this purpose.
+% \begin{table}[htb]
+% \begin{center}
+% \DeleteShortVerb{\|}
+% \begin{tabular}{|lcp{8cm}|}
+%   \hline
+%   article         & : & both the \verb+\chapter+ and \verb+\opening+
+%                         macros are undefined\\
+%   report and book & : & the \verb+\chapter+ macro is defined and
+%                         the \verb+\opening+ is undefined\\
+%   letter          & : & the \verb+\chapter+ macro is undefined and
+%                         the \verb+\opening+ is defined\\
+%   \hline
+% \end{tabular}
+% \caption{How to determine the main document style}\label{styles}
+% \MakeShortVerb{\|}
+% \end{center}
+% \end{table}
+%
+%    \noindent The macros that have to be redefined for the {\tt
+%    report} and {\tt book} document styles happen to be the same, so
+%    there is no need to distinguish between those two styles.
+%
+% \begin{macro}{\doc@style}
+%    First a parameter |\doc@style| is defined to identify the current
+%    document style. This parameter might have been defined by a
+%    document style that already uses macros instead of hard-wired
+%    texts, such as {\tt artikel1.sty}~\cite{BEP}, so the existence of
+%    |\doc@style| is checked. If this macro is undefined, i.\,e., if
+%    the document style is unknown and could therefore contain
+%    hard-wired texts, |\doc@style| is defined to the default
+%    value~`0'.
+% \changes{babel~3.0d}{29 oct 91}{Removed use of {\tt\bsl
+%    @ifundefined}}
+%    \begin{macrocode}
+\ifx\undefined\doc@style
+  \def\doc@style{0}%
+%    \end{macrocode}
+%    This parameter is defined in the following {\tt if} construction
+%    (see table~\ref{styles}):
+%
+%    \begin{macrocode}
+  \ifx\undefined\opening
+    \ifx\undefined\chapter
+      \def\doc@style{1}%
+    \else
+      \def\doc@style{2}%
+    \fi
+  \else
+    \def\doc@style{3}%
+  \fi%
+\fi%
+%    \end{macrocode}
+% \end{macro}
+%
+% \changes{babel~3.1}{5 nov 91}{Removed definition of {\tt\bsl
+%    if@restonecol}}
+%
+%    \subsubsection{Redefinition of macros}
+%
+%    Now here comes the real work: we start to redefine things and
+%    replace hard-wired texts by macros. These redefinitions should be
+%    carried out conditionally, in case it has already been done.
+%
+%    For the {\tt figure} and {\tt table} environments we have in all
+%    styles:
+%    \begin{macrocode}
+\@ifundefined{figurename}{\def\fnum@figure{\figurename{} \thefigure}}{}
+\@ifundefined{tablename}{\def\fnum@table{\tablename{} \thetable}}{}
+%    \end{macrocode}
+%
+%    The rest of the macros have to be treated differently for each
+%    style.  When |\doc@style| still has its default value nothing
+%    needs to be done.
+%    \begin{macrocode}
+\ifcase \doc@style\relax
+\or
+%    \end{macrocode}
+%
+%    This means that \file{\tt babel.def} is read after the {\tt
+%    article} style, where no |\chapter| and |\opening| commands are
+%    defined\footnote{A fact that was pointed out to me by Nico
+%    Poppelier and was already used in Piet van Oostrum's document
+%    style option~{\tt nl}.}.
+%
+%    First we have the |\tableofcontents|,
+%    |\listoffigures| and |\listoftables|:
+%    \begin{macrocode}
+\@ifundefined{contentsname}%
+    {\def\tableofcontents{\section*{\contentsname\@mkboth
+          {\uppercase{\contentsname}}{\uppercase{\contentsname}}}%
+      \@starttoc{toc}}}{}
+
+\@ifundefined{listfigurename}%
+    {\def\listoffigures{\section*{\listfigurename\@mkboth
+          {\uppercase{\listfigurename}}{\uppercase{\listfigurename}}}
+     \@starttoc{lof}}}{}
+
+\@ifundefined{listtablename}%
+    {\def\listoftables{\section*{\listtablename\@mkboth
+          {\uppercase{\listtablename}}{\uppercase{\listtablename}}}
+      \@starttoc{lot}}}{}
+%    \end{macrocode}
+%
+% Then the |\thebibliography| and |\theindex| environments.
+%
+%    \begin{macrocode}
+\@ifundefined{refname}%
+    {\def\thebibliography#1{\section*{\refname
+      \@mkboth{\uppercase{\refname}}{\uppercase{\refname}}}%
+      \list{[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}%
+        \leftmargin\labelwidth
+        \advance\leftmargin\labelsep
+        \usecounter{enumi}}%
+        \def\newblock{\hskip.11em plus.33em minus.07em}%
+        \sloppy\clubpenalty4000\widowpenalty\clubpenalty
+        \sfcode`\.=1000\relax}}{}
+
+\@ifundefined{indexname}%
+    {\def\theindex{\@restonecoltrue\if@twocolumn\@restonecolfalse\fi
+     \columnseprule \z@
+     \columnsep 35pt\twocolumn[\section*{\indexname}]%
+       \@mkboth{\uppercase{\indexname}}{\uppercase{\indexname}}%
+       \thispagestyle{plain}%
+       \parskip\z@ plus.3pt\parindent\z@\let\item\@idxitem}}{}
+%    \end{macrocode}
+%
+% The |abstract| environment:
+%
+%    \begin{macrocode}
+\@ifundefined{abstractname}%
+    {\def\abstract{\if@twocolumn
+    \section*{\abstractname}%
+    \else \small
+    \begin{center}%
+    {\bf \abstractname\vspace{-.5em}\vspace{\z@}}%
+    \end{center}%
+    \quotation
+    \fi}}{}
+%    \end{macrocode}
+%
+% And last but not least, the macro |\part|:
+%
+%    \begin{macrocode}
+\@ifundefined{partname}%
+{\def\@part[#1]#2{\ifnum \c@secnumdepth >\m@ne % IF secnumdepth > -1
+        \refstepcounter{part}%                 %  THEN step part counter
+        \addcontentsline{toc}{part}{\thepart   %       add toc line
+        \hspace{1em}#1}\else                   %  ELSE add unnumbered line
+      \addcontentsline{toc}{part}{#1}\fi       % FI
+   {\parindent\z@ \raggedright
+    \ifnum \c@secnumdepth >\m@ne      % IF secnumdepth > -1
+      \Large \bf \partname{} \thepart %  THEN Print 'Part' and
+      \par \nobreak        %                  number in \Large boldface.
+    \fi                    %            FI
+    \huge \bf              % Select \huge boldface.
+    #2\markboth{}{}\par}%  % Print title and set heading marks null.
+    \nobreak               % TeX penalty to prevent page break.
+    \vskip 3ex             % Space between title and text.
+   \@afterheading          % Routine called after part and
+    }                      %     section heading.
+}{}
+%    \end{macrocode}
+%
+%    This is all that needs to be done for the {\tt article} style.
+%
+%    \begin{macrocode}
+\or
+%    \end{macrocode}
+%
+%    The next case is formed by the two styles {\tt book} and {\tt report}.
+%    Basically we have to do the same as for the {\tt article} style,
+%    except now we must also change the |\chapter| command.
+%
+%    The tables of contents, figures and tables:
+%    \begin{macrocode}
+\@ifundefined{contentsname}%
+    {\def\tableofcontents{\@restonecolfalse
+      \if@twocolumn\@restonecoltrue\onecolumn
+      \fi\chapter*{\contentsname\@mkboth
+          {\uppercase{\contentsname}}{\uppercase{\contentsname}}}%
+      \@starttoc{toc}%
+      \csname if@restonecol\endcsname\twocolumn
+      \csname fi\endcsname}}{}
+
+\@ifundefined{listfigurename}
+    {\def\listoffigures{\@restonecolfalse
+      \if@twocolumn\@restonecoltrue\onecolumn
+      \fi\chapter*{\listfigurename\@mkboth
+          {\uppercase{\listfigurename}}{\uppercase{\listfigurename}}}%
+      \@starttoc{lof}%
+      \csname if@restonecol\endcsname\twocolumn
+      \csname fi\endcsname}}{}
+
+\@ifundefined{listtablename}
+    {\def\listoftables{\@restonecolfalse
+      \if@twocolumn\@restonecoltrue\onecolumn
+      \fi\chapter*{\listtablename\@mkboth
+          {\uppercase{\listtablename}}{\uppercase{\listtablename}}}%
+      \@starttoc{lot}%
+      \csname if@restonecol\endcsname\twocolumn
+      \csname fi\endcsname}}{}
+%    \end{macrocode}
+%
+%    Again, the |bibliography| and |index| environments;
+%    notice that in this case we use |\bibname| instead of
+%    |\refname| as in the definitions for the {\tt article} style.
+%    The reason for this is that in the {\tt article} document style
+%    the term `References' is used in the definition of
+%    |\thebibliography|. In the {\tt report} and {\tt book}
+%    document styles the term `Bibliography' is used.
+%    \begin{macrocode}
+\@ifundefined{bibname}
+    {\def\thebibliography#1{\chapter*{\bibname
+     \@mkboth{\uppercase{\bibname}}{\uppercase{\bibname}}}%
+     \list{[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}%
+     \leftmargin\labelwidth \advance\leftmargin\labelsep
+     \usecounter{enumi}}%
+     \def\newblock{\hskip.11em plus.33em minus.07em}%
+     \sloppy\clubpenalty4000\widowpenalty\clubpenalty
+     \sfcode`\.=1000\relax}}{}
+
+\@ifundefined{indexname}
+    {\def\theindex{\@restonecoltrue\if@twocolumn\@restonecolfalse\fi
+    \columnseprule \z@
+    \columnsep 35pt\twocolumn[\@makeschapterhead{\indexname}]%
+      \@mkboth{\uppercase{\indexname}}{\uppercase{\indexname}}%
+    \thispagestyle{plain}%
+    \parskip\z@ plus.3pt\parindent\z@ \let\item\@idxitem}}{}
+%    \end{macrocode}
+%
+% Here is the |abstract| environment:
+%    \begin{macrocode}
+\@ifundefined{abstractname}
+    {\def\abstract{\titlepage
+    \null\vfil
+    \begin{center}%
+    {\bf \abstractname}%
+    \end{center}}}{}
+%    \end{macrocode}
+%
+%     And last but not least the |\chapter|, |\appendix| and
+%    |\part| macros.
+%    \begin{macrocode}
+\@ifundefined{chaptername}{\def\@chapapp{\chaptername}}{}
+
+\@ifundefined{appendixname}
+    {\def\appendix{\par
+      \setcounter{chapter}{0}%
+      \setcounter{section}{0}%
+      \def\@chapapp{\appendixname}%
+      \def\thechapter{\Alph{chapter}}}}{}
+
+\@ifundefined{partname}
+    {\def\@part[#1]#2{\ifnum \c@secnumdepth >-2\relax% IF secnumdepth > -2
+            \refstepcounter{part}%              %  THEN step part counter
+            \addcontentsline{toc}{part}{\thepart%       add toc line
+            \hspace{1em}#1}\else                %  ELSE add unnumbered line
+            \addcontentsline{toc}{part}{#1}\fi  % FI
+       \markboth{}{}%
+       {\centering                      % %% added 19 Jan 88
+        \ifnum \c@secnumdepth >-2\relax % IF secnumdepth > -2
+          \huge\bf \partname{} \thepart %  THEN Print 'Part' and number
+        \par                            %        in \huge bold.
+        \vskip 20pt \fi                 %       Add space before title.
+        \Huge \bf                       % FI
+        #1\par}\@endpart}}{}            % Print Title in \Huge bold.
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\or
+%    \end{macrocode}
+%
+%    Now we address the case where \file{babel.def} is read after the
+%    {\tt letter} style.  The {\tt letter} document style defines the
+%    macro |\opening| and some other macros that are specific to {\tt
+%    letter}. This means that we have to redefine other macros,
+%    compared to the previous two cases.
+%
+%    First two macros for the material at the end of a letter, the
+%    |\cc| and |\encl| macros.
+%    \begin{macrocode}
+\@ifundefined{ccname}%
+    {\def\cc#1{\par\noindent
+     \parbox[t]{\textwidth}%
+     {\@hangfrom{\rm \ccname : }\ignorespaces #1\strut}\par}}{}
+
+\@ifundefined{enclname}%
+    {\def\encl#1{\par\noindent
+     \parbox[t]{\textwidth}%
+     {\@hangfrom{\rm \enclname : }\ignorespaces #1\strut}\par}}{}
+%    \end{macrocode}
+%
+%    The last thing we have to do here is to redefine the {\tt
+%    headings} pagestyle:
+% \changes{babel~3.3}{11 jul 93}{`headpagename should be `pagename}
+%    \begin{macrocode}
+\@ifundefined{headtoname}
+    {\def\ps@headings{%
+        \def\@oddhead{\sl \headtoname{} \ignorespaces\toname \hfil
+                      \@date \hfil \pagename{} \thepage}%
+        \def\@oddfoot{}}}{}
+%    \end{macrocode}
+%
+%    This was the last of the four standard document styles, so if
+%    |\doc@style| has another value we do nothing and just
+%    close the {\tt if} construction.
+%    \begin{macrocode}
+\fi
+%    \end{macrocode}
+%    Here ends the code that can be optionally included when a version
+%    of \LaTeX\ is in use that is dated {\em before\/} december~1991.
+%    \begin{macrocode}
+%</names>
+%    \end{macrocode}
+%
+% \subsection{Cross referencing macros}
+%
+%    The \LaTeX\ book states:
+% \begin{quote}
+%    The {\em key\/} argument is any sequence of letters, digits, and
+%    punctuation symbols; upper- and lowercase letters are regarded as
+%    different.
+% \end{quote}
+%    When the above quote should still be true when a document is
+%    typeset in a language that has active characters, special care
+%    has to be taken of the category codes of these characters when
+%    they appear in an argument of the cross referencing macros.
+%
+%    When a cross referencing command processes its argument, all
+%    tokens in this argument should be character tokens with category
+%    `letter' or `other'.
+%
+%    The only way to accomplish this in most cases is to use the trick
+%    described in the \TeX book~\cite{DEK} (Appendix~D, page~382).
+%    The primitive |\meaning| applied to a token expands to the
+%    current meaning of this token.  For example, `|\meaning\A|' with
+%    |\A| defined as `|\def\A#1{\B}|' expands to the characters
+%    `|macro:#1->\B|' with all category codes set to `other' or
+%    `space'.
+%
+% \begin{macro}{\babel@sanitize@arg}
+%    To call a macro with a `sanitized' argument, instead of |\A{\B}|
+%    one would write |\babel@sanitize@arg{\A}{\B}|.  (But be careful,
+%    this macro is not fully expandable!)
+%    \begin{macrocode}
+\long\def\babel@sanitize@arg#1#2{\bgroup\def\@tempa{#2}%
+  \expandafter\babel@strip@meaning\meaning\@tempa\relax{#1}}
+\def\babel@strip@meaning#1->#2\relax#3{\egroup #3{#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+%    To redefine a command, we save the old meaning of the macro.
+%    Then we redefine it to call the original macro with the
+%    `sanitized' argument.  The reason why we do it this way is that
+%    we don't want to redefine the \LaTeX\ macros completely incase
+%    their definitions change (they have changed in the past).
+%
+% \begin{macro}{\label}
+%    The |\label| macro is one of the cross referencing macros
+%    affected. First we save its original definition.
+%    \begin{macrocode}
+\let\LTX@label=\label
+%    \end{macrocode}
+%    Then the macro |label| is redefined.
+%    \begin{macrocode}
+\def\label#1{\babel@sanitize@arg\LTX@label{#1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\newlabel}
+%    The macro |\label| writes a line with a |\newlabel| command
+%    into the |.aux| file to define labels.
+%    \begin{macrocode}
+\let\LTX@newlabel=\newlabel
+\def\newlabel#1#2{\babel@sanitize@arg\LTX@newlabel{#1}{#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ref}
+% \begin{macro}{\pageref}
+%    The same holds for the macro |\ref| that references a label
+%    and |\pageref| to reference a page.
+%    \begin{macrocode}
+\let\LTX@ref=\ref
+\def\ref#1{\babel@sanitize@arg\LTX@ref{#1}}
+%    \end{macrocode}
+%    \begin{macrocode}
+\let\LTX@pageref=\pageref
+\def\pageref#1{\babel@sanitize@arg\LTX@pageref{#1}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@citex}
+%    The macro used to cite from a bibliography, |\cite| uses an
+%    internal macro, |\@citex|.
+%    It is this internal macro that picks up the argument,
+%    so we redefine this internal macro and leave |\cite| alone.
+%    \begin{macrocode}
+\let\LTX@@citex\@citex
+\def\@citex[#1]#2{\babel@sanitize@arg{\LTX@@citex[#1]}{#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\nocite}
+%    The macro |\nocite| which is used to instruct BiB\TeX\ to
+%    extract uncited references from the database.
+%    \begin{macrocode}
+\let\LTX@nocite\nocite
+\def\nocite#1{\babel@sanitize@arg\LTX@nocite{#1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\bibcite}
+%    The macro that is used in the |.aux| file to define citation
+%    labels.
+%    \begin{macrocode}
+\let\LTX@bibcite\bibcite
+\def\bibcite#1#2{\babel@sanitize@arg\LTX@bibcite{#1}{#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@bibitem}
+%    One of the two internal \LaTeX\ macros called by |\bibitem|
+%    that write the citation label on the |.aux| file.
+%    \begin{macrocode}
+\let\LTX@@bibitem\@bibitem
+\def\@bibitem#1{\babel@sanitize@arg\LTX@@bibitem{#1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@lbibitem}
+%    The other of the two internal \LaTeX\ macros called by |\bibitem|
+%    that write the citation label on the |.aux| file.
+%    \begin{macrocode}
+\let\LTX@@lbibitem\@lbibitem
+\def\@lbibitem[#1]#2{\babel@sanitize@arg{\LTX@@lbibitem[#1]}{#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@testdef}
+%    An internal \LaTeX\ macro used to test if the labels that have
+%    been written on the |.aux| file have changed.  It is called by
+%    the |\enddocument| macro.
+%    \begin{macrocode}
+\let\LTX@@testdef=\@testdef
+\def\@testdef#1#2{\babel@sanitize@arg{\LTX@@testdef{#1}}{#2}}
+%    \end{macrocode}
+%</def>
+% \end{macro}
+%
+% \Finale
+%
+% \clearpage
+% \section{Driver files for the documented source code}
+%
+%    Since \babel\ version 3.4 all source files that are part of the
+%    \babel\ system can be typeset separately. But in order to typeset
+%    them all in one document the file \file{babel.drv} can be used.
+%    If you only want the information on how to use the \babel\ system
+%    and what goodies are provided by the language spcific files you
+%    can run the file \file{user.drv} through \LaTeX\ to get a user
+%    guide.
+%
+% \changes{babel~3.4b}{1994/05/18}{Use the ltxdoc class instead of
+%    article}
+%    \begin{macrocode}
+%<*driver>
+\documentclass{ltxdoc}
+\DoNotIndex{\!,\',\,,\.,\-,\:,\;,\?,\/,\^,\`,\@M}
+\DoNotIndex{\@,\@ne,\@m,\@afterheading,\@date,\@endpart}
+\DoNotIndex{\@hangfrom,\@idxitem,\@makeschapterhead,\@mkboth}
+\DoNotIndex{\@oddfoot,\@oddhead,\@restonecolfalse,\@restonecoltrue}
+\DoNotIndex{\@starttoc,\@unused}
+\DoNotIndex{\accent,\active}
+\DoNotIndex{\addcontentsline,\advance,\Alph,\arabic}
+\DoNotIndex{\baselineskip,\begin,\begingroup,\bf,\box,\c@secnumdepth}
+\DoNotIndex{\catcode,\centering,\char,\chardef,\clubpenalty}
+\DoNotIndex{\columnsep,\columnseprule,\crcr,\csname}
+\DoNotIndex{\day,\def,\dimen,\discretionary,\divide,\dp,\do}
+\DoNotIndex{\edef,\else,\empty,\end,\endgroup,\endcsname,\endinput}
+\DoNotIndex{\errhelp,\errmessage,\expandafter,\fi,\filedate}
+\DoNotIndex{\fileversion,\fmtname,\fnum@figure,\fnum@table,\fontdimen}
+\DoNotIndex{\gdef,\global}
+\DoNotIndex{\hbox,\hidewidth,\hfil,\hskip,\hspace,\ht,\Huge,\huge}
+\DoNotIndex{\ialign,\if@twocolumn,\ifcase,\ifcat,\ifhmode,\ifmmode}
+\DoNotIndex{\ifnum,\ifx,\immediate,\ignorespaces,\input,\item}
+\DoNotIndex{\kern}
+\DoNotIndex{\labelsep,\Large,\large,\labelwidth,\lccode,\leftmargin}
+\DoNotIndex{\lineskip,\leavevmode,\let,\list,\ll,\long,\lower}
+\DoNotIndex{\m@ne,\mathchar,\mathaccent,\markboth,\month,\multiply}
+\DoNotIndex{\newblock,\newbox,\newcount,\newdimen,\newif,\newwrite}
+\DoNotIndex{\nobreak,\noexpand,\noindent,\null,\number}
+\DoNotIndex{\onecolumn,\or}
+\DoNotIndex{\p@,par, \parbox,\parindent,\parskip,\penalty}
+\DoNotIndex{\protect,\ps@headings}
+\DoNotIndex{\quotation}
+\DoNotIndex{\raggedright,\raise,\refstepcounter,\relax,\rm,\setbox}
+\DoNotIndex{\section,\setcounter,\settowidth,\scriptscriptstyle}
+\DoNotIndex{\sfcode,\sl,\sloppy,\small,\space,\spacefactor,\strut}
+\DoNotIndex{\string}
+\DoNotIndex{\textwidth,\the,\thechapter,\thefigure,\thepage,\thepart}
+\DoNotIndex{\thetable,\thispagestyle,\titlepage,\tracingmacros}
+\DoNotIndex{\tw@,\twocolumn,\typeout,\uppercase,\usecounter}
+\DoNotIndex{\vbox,\vfil,\vskip,\vspace,\vss}
+\DoNotIndex{\widowpenalty,\write,\xdef,\year,\z@,\z@skip}
+%    \end{macrocode}
+%
+%     Here |\dlqq| is defined so that  an example of |"'| can be
+%     given.
+%    \begin{macrocode}
+\makeatletter
+\gdef\dlqq{{\setbox\tw@=\hbox{,}\setbox\z@=\hbox{''}%
+  \dimen\z@=\ht\z@ \advance\dimen\z@-\ht\tw@
+  \setbox\z@=\hbox{\lower\dimen\z@\box\z@}\ht\z@=\ht\tw@
+  \dp\z@=\dp\tw@ \box\z@\kern-.04em}}
+%    \end{macrocode}
+%
+%    The code lines are numbered within sections,
+%    \begin{macrocode}
+%<*!user>
+\@addtoreset{CodelineNo}{section}
+\renewcommand\theCodelineNo{%
+  \reset@font\scriptsize\thesection.\arabic{CodelineNo}}
+%    \end{macrocode}
+%    which should also be visible in the index; hence this
+%    redefinition of a macro from \file{doc.sty}.
+%    \begin{macrocode}
+\renewcommand\codeline@wrindex[1]{\if@filesw
+        \immediate\write\@indexfile
+            {\string\indexentry{#1}%
+            {\number\c@section.\number\c@CodelineNo}}\fi}
+%    \end{macrocode}
+%
+%    The glossary environment is used or the change log, but its
+%    definition needs changing for this document.
+%    \begin{macrocode}
+\renewenvironment{theglossary}{%
+    \glossary@prologue%
+    \GlossaryParms \let\item\@idxitem \ignorespaces}%
+   {}
+%</!user>
+\makeatother
+%    \end{macrocode}
+%
+%    A few shorthands used in the documentation
+%    \begin{macrocode}
+\font\manual=logo10 % font used for the METAFONT logo, etc.
+\newcommand\MF{{\manual META}\-{\manual FONT}}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+%    \end{macrocode}
+%
+%     Some more definitions needed in the documentation.
+%    \begin{macrocode}
+\newcommand\note[1]{{\bf #1}}
+%\newcommand\note[1]{}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\newcommand\languagespecific[1]{%
+%<-user>  \clearpage
+  \DocInput{#1}}
+%    \end{macrocode}
+%
+%    When a full index should be generated unomment the line with
+%    |\EnableCrossres|. Beware, processing may take some time.
+%    Use |\DisableCrossrefs| when the index is ready.
+%    \begin{macrocode}
+%  \EnableCrossrefs
+\DisableCrossrefs
+%    \end{macrocode}
+%
+%    Inlude the change log.
+%    \begin{macrocode}
+%<-user>\RecordChanges
+%    \end{macrocode}
+%    The index should use the linenumbers of the code.
+%    \begin{macrocode}
+%<-user>\CodelineIndex
+%    \end{macrocode}
+%
+% Set everything in |\MacroFont| instead of |\AltMacroFont|
+%    \begin{macrocode}
+\setcounter{StandardModuleDepth}{1}
+%    \end{macrocode}
+%
+%    For the user guide we only want the description parts of all the
+%    files.
+%    \begin{macrocode}
+%<+user>\OnlyDescription
+%    \end{macrocode}
+%    Here starts the document
+%    \begin{macrocode}
+\begin{document}
+\DocInput{babel.dtx}
+%    \end{macrocode}
+%
+%    All the language specific files.
+% \changes{babel~3.2e}{07/07/92}{Added slovak}
+% \changes{babel~3.3}{11 jul 93}{Added catalan and galician}
+% \changes{babel~3.3}{11 jul 93}{Added turkish}
+% \changes{babel~3.4}{1994/02/28}{Added bahasa}
+%    \begin{macrocode}
+%<+user>\clearpage
+\languagespecific{esperant.dtx}
+\languagespecific{dutch.dtx}
+\languagespecific{english.dtx}
+\languagespecific{germanb.dtx}
+%
+\languagespecific{francais.dtx}
+\languagespecific{italian.dtx}
+\languagespecific{portuges.dtx}
+\languagespecific{spanish.dtx}
+\languagespecific{catalan.dtx}
+\languagespecific{galician.dtx}
+%
+\languagespecific{danish.dtx}
+\languagespecific{norsk.dtx}
+\languagespecific{swedish.dtx}
+%
+\languagespecific{finnish.dtx}
+\languagespecific{magyar.dtx}
+%
+\languagespecific{croatian.dtx}
+\languagespecific{czech.dtx}
+\languagespecific{slovak.dtx}
+\languagespecific{polish.dtx}
+\languagespecific{romanian.dtx}
+\languagespecific{slovene.dtx}
+%%\languagespecific{russian.dtx}
+%
+\languagespecific{turkish.dtx}
+%
+\languagespecific{bahasa.dtx}
+%    \end{macrocode}
+%    Finally print the index and change log (not for the user guide).
+%    \begin{macrocode}
+%<*!user>
+\clearpage
+\def\filename{index}
+\PrintIndex
+\clearpage
+\def\filename{changes}
+\PrintChanges
+%</!user>
+\end{document}
+%</driver>
+%    \end{macrocode}
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\endinput

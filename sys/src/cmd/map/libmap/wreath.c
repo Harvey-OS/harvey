@@ -11,17 +11,17 @@
    equator is really not at radius 1, and stretch northern
    hemisphere quadratically away from the equator
 */
-static float a = .7, b, c;
+static double a = .7, b, c;
 int squinge;
 
-static int (*Xcylequalarea)(struct place *, float *, float *);
+static int (*Xcylequalarea)(struct place *, double *, double *);
 
 static int
-Xwreath(struct place *place, float *x, float *y)
+Xwreath(struct place *place, double *x, double *y)
 {
-	float xx, yy, r, h, theta;
+	double xx, yy, r, h, theta;
 	struct place nplace;
-	float l;
+	double l;
 	nplace = *place;
 	if(squinge) {
 		if(nplace.nlat.l < 0)
@@ -45,7 +45,7 @@ Xwreath(struct place *place, float *x, float *y)
 }
 
 proj
-wreath(float par1, float par2)
+wreath(double par1, double par2)
 {
 	Xcylequalarea = cylequalarea(45.);
 	b = fabs(par1);

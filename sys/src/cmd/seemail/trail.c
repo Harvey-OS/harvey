@@ -41,7 +41,7 @@ void
 restart(char *log, int fatal, int showall)
 {
 	if(mf != 0)
-		Bclose(mf);
+		Bterm(mf);
 	mf = Bopen(log, OREAD);
 	if(mf == 0){
 		if(fatal)
@@ -57,8 +57,6 @@ trail(char *log)
 {
 	char *match;
 	char *line;
-	char buf[ERRLEN];
-	int i;
 	Dir d;
 
 	if(mf == 0){
@@ -66,15 +64,12 @@ trail(char *log)
 		if(mf == 0)
 			return;
 	}
-	for(i=0; i<15; i++){
-		errstr(buf);		/* clear error */
-		if((line=Brdline(mf, '\n')) == 0){
-			errstr(buf);
-			if(strcmp(buf, "no error") != 0){
-				restart(log, 0, aflag);
-				if(mf == 0)
-					return;
-			}
+	for(;;){
+		line=Brdline(mf, '\n');
+		if (line == 0) {	/* eof or error */
+			if (Blinelen(mf) != 0)		/* error */
+				Bseek(mf, Blinelen(mf), 1);
+				/* check for truncated file */
 			if(dirfstat(Bfildes(mf), &d) < 0)
 				return;
 			if(d.length < Boffset(mf))
@@ -137,21 +132,24 @@ incoming(char *line)
 			}
 		p++;	/* start of user-name */
 	}
-	sayit(p);
-	puticon(newmachine, p, q);
+	sayit("mail from", p);
+	newicon(newmachine, p);
+	puticon(p, q);
 }
 
 char lastmachine[512];
 char lastuser[512];
 char lastlabel[512];
 
+void newicon(char *mach, char *user){
+	memmove(&old, &new, sizeof(SRC));
+	geticon(&new, mach, user);
+}
 void
-puticon(char *mach, char *user, char *what)
+puticon(char *user, char *what)
 {
 	char buf[512];
 
-	memmove(&old, &new, sizeof(SRC));
-	geticon(&new, mach, user);
 	if(label == 0)
 		label = "";
 	if(First)
@@ -180,7 +178,7 @@ puticon(char *mach, char *user, char *what)
 }
 
 void
-sayit(char *user)
+sayit(char *prefix, char *user)
 {
 	static int vfd, inited;
 	if (!inited) {
@@ -189,5 +187,5 @@ sayit(char *user)
 	}
 	if (vfd < 0)
 		return;
-	fprint(vfd, "mail from %s\n", user);
+	fprint(vfd, "%s %s\n", prefix, user);
 }

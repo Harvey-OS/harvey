@@ -38,6 +38,7 @@ loop:
 	bp->icount = -i;
 	bp->off += i;
 	goto loop;
+	return 0;
 }
 
 int

@@ -93,8 +93,10 @@ args(int argc, char *argv[])
 		break;
 	} ARGEND
 	if(argc);
-	if(*argv)
-		fprint(2, "sorry, because of ARGS, flags need '-'\n");
+	if(*argv){
+		fprint(2, "usage: astro [-dlepsatokm] [-c nday]\n");
+		exits("usage");
+	}
 
 	t = time(0);
 	day = t/86400. + 25567.5;

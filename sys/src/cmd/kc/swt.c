@@ -232,24 +232,28 @@ outlstring(ushort *s, long n)
 int
 vlog(Node *n)
 {
-	ulong v;
-	int i, l;
+
+	int s, i;
+	ulong m, v;
 
 	if(n->op != OCONST)
 		goto bad;
-	if(!typechlp[n->type->etype])
+	if(typefd[n->type->etype])
 		goto bad;
-	i = 0;
-	l = 0;
-	for(v = n->offset; v; v >>= 1) {
-		i++;
-		if(v & 1) {
-			if(l)
-				goto bad;
-			l = i;
+
+	v = n->vconst;
+
+	s = 0;
+	m = MASK(64);
+	for(i=32; i; i>>=1) {
+		m >>= i;
+		if(!(v & m)) {
+			v >>= i;
+			s += i;
 		}
 	}
-	return l-1;
+	if(v == 1)
+		return s;
 
 bad:
 	return -1;
@@ -264,7 +268,7 @@ mulcon(Node *n, Node *nn)
 	int o;
 	char code[sizeof(m->code)+2], *p;
 
-	if(typefdv[n->type->etype])
+	if(typefd[n->type->etype])
 		return 0;
 	l = n->left;
 	r = n->right;
@@ -274,10 +278,18 @@ mulcon(Node *n, Node *nn)
 	}
 	if(r->op != OCONST)
 		return 0;
-	v = r->offset;
-	m = mulcon0(v);
-	if(!m)
+	v = convvtox(r->vconst, n->type->etype);
+	if(v != r->vconst) {
+		if(debug['M'])
+			print("%L multiply conv: %lld\n", n->lineno, r->vconst);
 		return 0;
+	}
+	m = mulcon0(n, v);
+	if(!m) {
+		if(debug['M'])
+			print("%L multiply table: %lld\n", n->lineno, r->vconst);
+		return 0;
+	}
 
 	memmove(code, m->code, sizeof(m->code));
 	code[sizeof(m->code)] = 0;
@@ -336,32 +348,6 @@ loop:
 	goto loop;
 }
 
-Multab*
-mulcon0(long v)
-{
-	int a1, a2, g;
-
-	if(v < 0)
-		v = -v;
-	a1 = 0;
-	a2 = multabsize;
-	for(;;) {
-		if(a1 >= a2)
-			return 0;
-		g = (a2 + a1)/2;
-		if(v < multab[g].val) {
-			a2 = g;
-			continue;
-		}
-		if(v > multab[g].val) {
-			a1 = g+1;
-			continue;
-		}
-		break;
-	}
-	return multab + g;
-}
-
 void
 nullwarn(Node *l, Node *r)
 {
@@ -381,17 +367,26 @@ sextern(Sym *s, Node *a, long o, long w)
 		lw = NSNAME;
 		if(w-e < lw)
 			lw = w-e;
-		gpseudo(ADATA, s, nodconst(0L));
+		gpseudo(ADATA, s, nodconst(0));
 		p->from.offset += o+e;
 		p->reg = lw;
 		p->to.type = D_SCONST;
-		memmove(p->to.sval, a->us+e, lw);
+		memmove(p->to.sval, a->cstring+e, lw);
 	}
 }
 
 void
 gextern(Sym *s, Node *a, long o, long w)
 {
+	if(a->op == OCONST && typev[a->type->etype]) {
+		gpseudo(ADATA, s, nod32const(a->vconst>>32));
+		p->from.offset += o;
+		p->reg = 4;
+		gpseudo(ADATA, s, nod32const(a->vconst));
+		p->from.offset += o + 4;
+		p->reg = 4;
+		return;
+	}
 	gpseudo(ADATA, s, a);
 	p->from.offset += o;
 	p->reg = w;
@@ -399,7 +394,6 @@ gextern(Sym *s, Node *a, long o, long w)
 		p->to.type = D_CONST;
 }
 
-#include	<bio.h>
 void	zname(Biobuf*, char*, int, int);
 void	zaddr(Biobuf*, Adr*, int);
 void	zwrite(Biobuf*, Prog*, int, int);
@@ -411,8 +405,7 @@ outcode(void)
 	struct { Sym *sym; short type; } h[NSYM];
 	Prog *p;
 	Sym *s;
-	int f, sf, st, t, sym;
-	Biobuf b;
+	int sf, st, t, sym;
 
 	if(debug['S']) {
 		for(p = firstp; p != P; p = p->link)
@@ -424,14 +417,7 @@ outcode(void)
 				pc++;
 		}
 	}
-	f = open(outfile, OWRITE);
-	if(f < 0) {
-		diag(Z, "cannot open %s", outfile);
-		return;
-	}
-	Binit(&b, f, OWRITE);
-	Bseek(&b, 0L, 2);
-	outhist(&b);
+	outhist(&outbuf);
 	for(sym=0; sym<NSYM; sym++) {
 		h[sym].sym = S;
 		h[sym].type = 0;
@@ -449,7 +435,7 @@ outcode(void)
 			if(h[sf].type == t)
 			if(h[sf].sym == s)
 				break;
-			zname(&b, s->name, t, sym);
+			zname(&outbuf, s->name, t, sym);
 			s->sym = sym;
 			h[sym].sym = s;
 			h[sym].type = t;
@@ -469,7 +455,7 @@ outcode(void)
 			if(h[st].type == t)
 			if(h[st].sym == s)
 				break;
-			zname(&b, s->name, t, sym);
+			zname(&outbuf, s->name, t, sym);
 			s->sym = sym;
 			h[sym].sym = s;
 			h[sym].type = t;
@@ -481,10 +467,8 @@ outcode(void)
 				goto jackpot;
 			break;
 		}
-		zwrite(&b, p, sf, st);
+		zwrite(&outbuf, p, sf, st);
 	}
-	Bflush(&b);
-	close(f);
 	firstp = P;
 	lastp = P;
 }
@@ -509,15 +493,19 @@ void
 outhist(Biobuf *b)
 {
 	Hist *h;
-	char name[NNAME], *p, *q;
+	char *p, *q, *op;
 	Prog pg;
 	int n;
 
 	pg = zprog;
 	pg.as = AHISTORY;
-	name[0] = '<';
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
+		op = 0;
+		if(p && p[0] != '/' && h->offset == 0 && pathname && pathname[0] == '/') {
+			op = p;
+			p = pathname;
+		}
 		while(p) {
 			q = utfrune(p, '/');
 			if(q) {
@@ -529,14 +517,19 @@ outhist(Biobuf *b)
 				n = strlen(p);
 				q = 0;
 			}
-			if(n >= NNAME-1)
-				n = NNAME-2;
 			if(n) {
-				memmove(name+1, p, n);
-				name[n+1] = 0;
-				zname(b, name, D_FILE, 1);
+				Bputc(b, ANAME);
+				Bputc(b, D_FILE);
+				Bputc(b, 1);
+				Bputc(b, '<');
+				Bwrite(b, p, n);
+				Bputc(b, 0);
 			}
 			p = q;
+			if(p == 0 && op) {
+				p = op;
+				op = 0;
+			}
 		}
 		pg.lineno = h->line;
 		pg.to.type = zprog.to.type;
@@ -647,45 +640,23 @@ ieeedtod(Ieee *ieee, double native)
 	ieee->l |= (long)(fr*f);
 }
 
-char*
-xOconv(int a)
-{
-
-	USED(a);
-	return "**badO**";
-}
-
-long
-castto(long c, int f)
-{
-
-	switch(f) {
-	case TCHAR:
-		c &= 0xff;
-		if(c & 0x80)
-			c |= ~0xff;
-		break;
-
-	case TUCHAR:
-		c &= 0xff;
-		break;
-
-	case TSHORT:
-		c &= 0xffff;
-		if(c & 0x8000)
-			c |= ~0xffff;
-		break;
-
-	case TUSHORT:
-		c &= 0xffff;
-		break;
-	}
-	return c;
-}
-
 int
 endian(int w)
 {
 
 	return tint->width - w;
+}
+
+int
+passbypointer(int et)
+{
+
+	return typesuv[et];
+}
+
+int
+argalign(long typewidth, long offset, int offsp)
+{
+	USED(typewidth,offset,offsp);
+	return 0;
 }

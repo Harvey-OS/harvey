@@ -1,0 +1,38 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+TARG=acme
+OFILES=acme.$O\
+	addr.$O\
+	buff.$O\
+	cols.$O\
+	disk.$O\
+	exec.$O\
+	file.$O\
+	fsys.$O\
+	look.$O\
+	regx.$O\
+	rows.$O\
+	scrl.$O\
+	text.$O\
+	time.$O\
+	util.$O\
+	wind.$O\
+	xfid.$O\
+
+HFILES=dat.h\
+	fns.h\
+
+BIN=/$objtype/bin
+
+</sys/src/cmd/mkone
+
+syms:V:
+	val -a acme.l	>syms
+	val -aa ????.l 	>>syms
+
+2.out:Q:	$OFILES $LIB
+	echo 'no alef compiler for 68020'
+
+/68020/bin/$TARG:Q:	2.out
+	;

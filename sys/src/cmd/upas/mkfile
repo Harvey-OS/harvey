@@ -1,7 +1,7 @@
 </$objtype/mkfile
 
 LIBS=libString common
-PROGS=alias ed misc q send smtp
+PROGS=smtp alias ed misc q send
 #libs must be made first
 DIRS=$LIBS $PROGS
 
@@ -15,7 +15,7 @@ all:V:
 	}
 
 clean:V:
-	for (i in $PROGS) @{
+	for (i in $DIRS) @{
 		cd $i
 		mk clean
 	}
@@ -46,3 +46,28 @@ installall:V:
 		mk clean
 	}
 
+#
+# setup the mail directories.  this should be done by the administrator since
+# he/she will own everything.  the following files must be altered to reflect
+# local preference.
+#
+# /mail/lib/namefiles	- remove alias files you don't use, insert ones you do.
+# /mail/lib/remotemail	- change '-g research' to your own mail gateway.  if you
+#			  have none, remove it.
+#			- change '-h research.att.com' to a name you would like
+#			  this host to be known as.  if you don't care, take it
+#			  out and it will use the name in /env/site.
+# /mail/lib/rewrite	- change the line that contains 'helix' to include names,
+#			  other than the contents of /env/site, that your system
+#			  answers to.  this is a hack and will be fixed.
+#
+setup:V:
+	mkdir /mail
+	chmod 775 /mail
+	mkdir /mail/lib
+	chmod 775 /mail/lib
+	mkdir /mail/queue
+	mkdir /mail/box
+	mkdir /mail/tmp
+	cmhod 777 /mail/queue /mail/box /mail/tmp
+	cp misc/rewrite misc/qmail misc/remotemail misc/namefiles /mail/lib

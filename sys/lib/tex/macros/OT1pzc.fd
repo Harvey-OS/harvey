@@ -1,0 +1,15 @@
+%Filename: OT1pzc.fd
+%Created by: tex 17200zapfchan
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OT1}{pzc}{}
+
+\DeclareFontShape{OT1}{pzc}{m}{it}{
+   <-> pzcmi7t
+}{}
+
+\DeclareFontShape{OT1}{pzc}{m}{ui}{<->sub * pzc/m/it}{}
+
+\endinput

@@ -1,0 +1,60 @@
+%% 
+%% This is file `vector.sty', generated 
+%% on <1995/2/26> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% vector.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1994 by Nick Efford 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{vector}[1994/09/16 v1.0 vector macros for LaTeX2e (nde)]
+\RequirePackage{ifthen}
+\RequirePackage{calc}
+\newboolean{@wavy}
+\DeclareOption{wavy}{\setboolean{@wavy}{true}}
+\ProcessOptions
+\newcommand{\bvec}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\buvec}[1]{\ensuremath{\mathbf{\hat{#1}}}}
+\newcommand{\svec}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\suvec}[1]{\ensuremath{\mathsf{\hat{#1}}}}
+\ifthenelse{\boolean{@wavy}}{%
+  \PackageInfo{vector}{wavy underlining selected}
+  \newcommand{\undertilde}[1]{\mathord{\vtop{\ialign{##\crcr
+    $\hfil\displaystyle{#1}\hfil$\crcr\noalign{\kern1.5pt\nointerlineskip}
+    $\hfil\tilde{}\hfil$\crcr\noalign{\kern1.5pt}}}}}
+  \newcommand{\uvec}[1]{\ensuremath{\undertilde{#1}}}
+  \newcommand{\uuvec}[1]{\ensuremath{\hat{\undertilde{#1}}}}}{%
+  \newcommand{\uvec}[1]{\ensuremath{\underline{#1}}}
+  \newcommand{\uuvec}[1]{\ensuremath{\hat{\underline{#1}}}}}
+\def\first@element{1}
+\newcommand{\firstelement}[1]{\def\first@element{#1}}
+\newcommand{\irvec}[2][n]{\ensuremath{{#2}_{\first@element},\ldots,{#2}_{#1}}}
+\newcommand{\icvec}[2][n]{%
+  \begin{array}{c}
+    {#2}_{\first@element}\\ \vdots\\ {#2}_{#1}
+  \end{array}}
+\newcounter{vec@elem}
+\newcommand{\rvec}[3]{%
+  \ensuremath{%
+    \ifthenelse{#3 > #2}{%
+      \setcounter{vec@elem}{#2}
+      \whiledo{\value{vec@elem} < #3}%
+        {{#1}_{\thevec@elem}, \stepcounter{vec@elem}}%
+      {#1}_{#3}}{{#1}_{#2}}}}
+\newcommand{\cvec}[3]{%
+  \ifthenelse{#3 > #2}{%
+    \setcounter{vec@elem}{#2}
+    \begin{array}{c}
+      \whiledo{\value{vec@elem} < #3}%
+        {{#1}_{\thevec@elem} \\ \stepcounter{vec@elem}}%
+      {#1}_{#3}
+    \end{array}}{{#1}_{#2}}}
+\endinput
+%% 
+%% End of file `vector.sty'.

@@ -6,8 +6,7 @@
 #include <libc.h>
 #include <libg.h>
 #include <fb.h>
-#define	NIN	150		/* maximum number of input files */
-PICFILE *in[NIN], *out;
+PICFILE **in, *out;
 int nin;
 unsigned char *acc, *line;
 Rectangle owin;
@@ -25,13 +24,14 @@ main(int argc, char *argv[]){
 	argc=getflags(argc, argv, "");
 	if(argc<2) usage("file ...");
 	nin=argc-1;
-	if(nin>NIN){
-		fprint(2, "sorry, too many files\n");
+	in=malloc(nin*sizeof(PICFILE *));
+	if(in==0){
+		fprint(2, "%s: can't malloc file pointers!\n", argv[0]);
 		exits("many files");
 	}
 	for(i=0;i!=nin;i++){
 		if((in[i]=picopen_r(argv[i+1]))==0){
-			picerror(argv[i+1]);
+			perror(argv[i+1]);
 			err++;
 		}
 		if(strcmp(in[i]->chan, in[0]->chan)!=0){
@@ -60,7 +60,7 @@ main(int argc, char *argv[]){
 	if((out=picopen_w("OUT", in[0]->type,
 		owin.min.x, owin.min.y, owin.max.x-owin.min.x, owin.max.y-owin.min.y,
 		in[0]->chan, argv, (char *)0))==0){
-		picerror(argv[0]);
+		perror(argv[0]);
 		exits("create output");
 	}
 	noalf=0;
@@ -74,7 +74,7 @@ main(int argc, char *argv[]){
 		end=&acc[PIC_WIDTH(out)*nchan];
 		memset(acc, 0, end-acc);
 		for(j=0;j!=nin;j++){
-			if(PIC_YOFFS(in[j])<=i && i<=PIC_YOFFS(in[j])+PIC_HEIGHT(in[j])){
+			if(PIC_YOFFS(in[j])<=i && i<PIC_YOFFS(in[j])+PIC_HEIGHT(in[j])){
 				if(!picread(in[j], (char *)line)) break;
 				end=&line[PIC_WIDTH(in[j])*nchan];
 				ap=&acc[(PIC_XOFFS(in[j])-PIC_XOFFS(out))*nchan];

@@ -354,3 +354,7 @@ _probefault0:
 	MOVW	$0, probepc(SB)
 	MOVW	$-1, R1
 	RET
+
+TEXT getstatus(SB), $-4
+	MOVW	M(STATUS), R1
+	RET

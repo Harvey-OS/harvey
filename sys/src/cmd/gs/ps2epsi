@@ -1,0 +1,52 @@
+#!/bin/sh
+
+LOCALPATH=/usr/local/bin
+PATH=/bin:/usr/bin:/usr/ucb\:$LOCALPATH\
+
+export PATH outfile
+
+if [ $# -lt 1 -o $# -gt 2 ]; then
+	echo "Usage: pstoepsi file.ps [file.epsi]" 1>&2
+	exit 1
+fi
+
+infile=$1
+
+if [ $# -eq 1 ]
+then
+	case "${infile}" in
+	  *.ps)		base=`basename ${infile} .ps` ;;
+	  *.cps)	base=`basename ${infile} .cps` ;;
+	  *.eps)	base=`basename ${infile} .eps` ;;
+	  *.epsf)	base=`basename ${infile} .epsf` ;;
+	  *)		base=`basename ${infile}` ;;
+	esac
+	outfile=${base}.epsi
+else
+	outfile=$2
+fi
+
+gs -q -dNOPAUSE -sDEVICE=bit -sOutputFile=/dev/null ps2epsi.ps < ${infile} 1>&2
+
+(
+cat << BEGINEPS
+/InitDictCount countdictstack def
+gsave
+save
+mark
+newpath
+/showpage {} def
+BEGINEPS
+
+cat ${infile}
+
+cat << ENDEPS
+countdictstack InitDictCount sub { end } repeat
+cleartomark
+restore
+grestore
+ENDEPS
+
+) >> ${outfile}
+
+exit 0

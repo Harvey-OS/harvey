@@ -3,6 +3,7 @@
 extern	void	invalicache(void*, unsigned);
 extern	void	invaldcache(void*, unsigned);
 extern	int	tas(Lock*);
+extern	ulong	getstatus(void);
 extern	void	vector80(void);
 extern	void	puttlbx(int, ulong, ulong);
 

@@ -42,11 +42,11 @@ for (j) {
 		case '';	@{ bind -b $LPLIB/process /bin; $LPPROC } |
 				/sys/lib/postscript/bin/$cputype/download -f -H/sys/lib/postscript/font -mfontmap -p$FONTLIST |
 				{echo -K'ACCTNUM\ '$ACCOUNT -K'BIN\ '$BIN -d$LPDEST -c$COPIES -lpostscript $VGS $HOLE $STAPLE $DUPLEX $LAND $TRAY -u$LPUSERID -j$LPMACHID$pid.$i
-				 cat} | lpsend.rc mhserva
+				 cat} | lpsend.rc $DEST_HOST
 		case *;		@{ bind -b $LPLIB/process /bin; $LPPROC } < $j |
 				/sys/lib/postscript/bin/$cputype/download -f -H/sys/lib/postscript/font -mfontmap -p$FONTLIST |
 				{echo -K'ACCTNUM\ '$ACCOUNT -K'BIN\ '$BIN -d$LPDEST -c$COPIES -lpostscript $VGS $HOLE $STAPLE $DUPLEX $LAND $TRAY -u$LPUSERID -j$LPMACHID$pid.$i
-				 cat $j} | lpsend.rc mhserva
+				 cat $j} | lpsend.rc $DEST_HOST
 		}
 	}
 }

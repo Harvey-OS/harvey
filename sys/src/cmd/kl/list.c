@@ -20,31 +20,35 @@ prasm(Prog *p)
 int
 Pconv(void *o, Fconv *fp)
 {
-	char str[STRINGSZ];
+	char str[STRINGSZ], *s;
 	Prog *p;
 	int a;
 
 	p = *(Prog**)o;
 	curp = p;
 	a = p->as;
-	if(a == ADATA)
+	if(a == ADATA || a == AINIT || a == ADYNT)
 		sprint(str, "	%A	%D/%d,%D", a, &p->from, p->reg, &p->to);
-	else
-	if(p->reg == NREG)
-		sprint(str, "	%A	%D,%D", a, &p->from, &p->to);
-	else
-	if(p->from.type == D_OREG) {
-		sprint(str, "	%A	%ld(R%d+R%d),%D", a,
-			p->from.offset, p->from.reg, p->reg, &p->to);
-	} else
-	if(p->to.type == D_OREG) {
-		sprint(str, "	%A	%D,%ld(R%d+R%d)", a,
+	else{
+		s = str;
+		if(p->mark & NOSCHED)
+			s += sprint(s, "*");
+		if(p->reg == NREG)
+			sprint(s, "	%A	%D,%D", a, &p->from, &p->to);
+		else
+		if(p->from.type == D_OREG) {
+			sprint(s, "	%A	%ld(R%d+R%d),%D", a,
+				p->from.offset, p->from.reg, p->reg, &p->to);
+		} else
+		if(p->to.type == D_OREG) {
+			sprint(s, "	%A	%D,%ld(R%d+R%d)", a,
 				&p->from, p->to.offset, p->to.reg, p->reg);
-	} else
-	if(p->from.type == D_FREG)
-		sprint(str, "	%A	%D,F%d,%D", a, &p->from, p->reg, &p->to);
-	else
-		sprint(str, "	%A	%D,R%d,%D", a, &p->from, p->reg, &p->to);
+		} else
+		if(p->from.type == D_FREG)
+			sprint(s, "	%A	%D,F%d,%D", a, &p->from, p->reg, &p->to);
+		else
+			sprint(s, "	%A	%D,R%d,%D", a, &p->from, p->reg, &p->to);
+	}
 	strconv(str, fp);
 	return sizeof(p);
 }
@@ -57,7 +61,7 @@ Aconv(void *o, Fconv *fp)
 
 	a = *(int*)o;
 	s = "???";
-	if(a >= AXXX && a <= AEND)
+	if(a >= AXXX && a <= ALAST)
 		s = anames[a];
 	strconv(s, fp);
 	return sizeof(a);

@@ -5,7 +5,7 @@
 pid_t
 setsid(void)
 {
-	if(_RFORK(FORKNSG|FORKNTG) < 0){
+	if(_RFORK(RFNAMEG|RFNOTEG) < 0){
 		_syserrno();
 		return -1;
 	}

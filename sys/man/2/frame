@@ -1,4 +1,4 @@
-.TH FRAME 2X
+.TH FRAME 2
 .SH NAME
 frinit, frsetrects, frclear, frcharofpt, frptofchar, frinsert, frdelete, frselect, frselectp, frselectf, frgetmouse \- frames of text
 .SH SYNOPSIS
@@ -73,7 +73,7 @@ struct Frame
 	ulong	p0, p1;	/* selection */
 	short	left;	/* left edge of text */
 	ushort	nbox, nalloc;
-	ushort	maxtab;	/* max size of tab, in pixels */
+	ushort	maxtab;	/* max size of tab,in pixels */
 	ushort	nchars;	/* # runes in frame */
 	ushort	nlines;	/* # lines with text */
 	ushort	maxlines;	/* total # lines in frame */
@@ -138,11 +138,11 @@ prepares the
 so characters drawn in it will appear
 in the single
 .B Font
-.I ft.
+.IR ft .
 It then calls
 .B frsetrects
 to initialize the geometry for the
-.B Frame.
+.BR Frame .
 The
 .B Bitmap
 .I b
@@ -162,7 +162,7 @@ associated data structure in, for example, an obscured window.
 .PP
 .I Frclear
 frees the internal structures associated with
-.I f,
+.IR f ,
 permitting another
 .I frinit
 or
@@ -202,9 +202,9 @@ not as bytes.
 .I Frptofchar
 returns the location of the upper left corner of the
 .I p'th
-rune in the
+rune, starting from 0, in the
 .B Frame
-.I f.
+.IR f .
 If
 .I f
 holds fewer than
@@ -212,12 +212,12 @@ holds fewer than
 runes,
 .I frptofchar
 returns the location of the upper right corner of the last character in
-.I f.
+.IR f .
 .I Frcharofpt
 is the inverse: it
 returns the index of the closest rune whose image's upper left corner
 is up and to the left of
-.I pt.
+.IR pt .
 .PP
 .I Frinsert
 inserts into
@@ -228,7 +228,7 @@ starting at rune index
 the runes between
 .I r0
 and
-.I r1.
+.IR r1 .
 If a NUL (0) character
 is inserted, chaos will ensue.
 Tabs and newlines
@@ -236,7 +236,7 @@ are handled by the library, but all other characters,
 including control characters, are just displayed.
 For example, backspaces are printed; to erase
 a character, use
-.I frdelete.
+.IR frdelete .
 .PP
 .I Frdelete
 deletes from the
@@ -251,15 +251,17 @@ points at the first rune beyond the deletion.
 .I Frselect
 tracks the mouse to select a contiguous string of text in the
 .BR Frame .
-When called, mouse button 1 should be depressed.
-It will return when the button is released and will set
+When called, a mouse button is typically down.
+.I Frselect
+will return when the button state has changed (some buttons may
+still be down) and will set
 .IB f ->p0
 and
 .IB f ->p1
 to the selected range of text.
 .I Frselectf
 and
-.I Frselectp
+.I frselectp
 modify the display of the selected text.
 .I Frselectf
 highlights the text between
@@ -267,16 +269,16 @@ highlights the text between
 and
 .I p1
 (which must have been returned by
-.IR frptofochar )
+.IR frptofchar )
 using
 .B bitblt
 in mode
-.I c.
+.IR c .
 .I Frselectp
 is similar but highlights the text from
 .IB f ->p0
 to
-.IB f ->p1 .
+.IB f ->p1\f1.
 Neither
 .I frselectf
 nor
@@ -284,12 +286,12 @@ nor
 modifies
 .IB f ->p0
 or
-.IB f ->p1 .
+.IB f ->p1\f1.
 .PP
 Upon return from
 .I frinsert
 or
-.I frdelete,
+.IR frdelete ,
 the display will be consistent but
 .IB f ->p0
 and
@@ -313,9 +315,11 @@ the
 structure pointed to by
 .I frselect's
 argument
-.I m.
+.IR m .
 .I Frgetmouse
 should block until the mouse status has changed.
+.SH SOURCE
+.B /sys/src/libframe
 .SH SEE ALSO
 .IR graphics (2),
 .IR bitblt (2),

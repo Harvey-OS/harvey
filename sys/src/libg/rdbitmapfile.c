@@ -15,7 +15,7 @@ rdbitmapfile(int fd)
 	int ld;
 	Bitmap *b;
 
-	if(read(fd, hdr, 5*12)!=5*12)
+	if(readn(fd, hdr, 5*12)!=5*12)
 		berror("rdbitmapfile read");
 	ld = atoi(hdr+0*12);
 	r.min.x = atoi(hdr+1*12);
@@ -46,7 +46,7 @@ rdbitmapfile(int fd)
 		if(dy*l > CHUNK)
 			dy = CHUNK/l;
 		n = dy*l;
-		if(read(fd, _btmp, n) != n){
+		if(readn(fd, _btmp, n) != n){
 			bfree(b);
 			berror("rdbitmapfile read");
 		}

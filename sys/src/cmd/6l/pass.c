@@ -282,7 +282,7 @@ patch(void)
 	for(p = firstp; p != P; p = p->link) {
 		if(p->as == ATEXT)
 			curtext = p;
-		if(p->as == ABAL) {
+		if(p->as == ABAL || p->as == ARTS) {
 			s = p->to.sym;
 			if(s) {
 				if(s->type != STEXT && s->type != SLEAF) {

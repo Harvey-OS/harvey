@@ -1,7 +1,13 @@
-.TH RGBPIX 2G
+.TH RGBPIX 2
 .SH NAME
 RGB, rgbpix, rdcolmap, wrcolmap \- handle color screens
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
+.B #include <libg.h>
+.PP
 .PP
 .ta \w'\fLulong 'u
 .B
@@ -56,7 +62,7 @@ There is a
 associated with each Bitmap.  A colormap is an array of
 .BR RGB s,
 of length
-.if t 2\u\s82\u\s6\fIldepth\fP\d\d\s10,
+.if t \x'-.8n'2\u\s-1\&2\u\s-1\fIldepth\fP\s+1\d\s+1\d,
 .if n 2^(2^\fIldepth\fP),
 giving the colors for pixels 0, 1, 2, etc.
 .PP
@@ -67,9 +73,11 @@ which must have enough space to hold it.
 .I Wrcolmap
 associates the given colormap with the given bitmap, if possible.
 (The hardware might not allow this.)
+.SH SOURCE
+.B /sys/src/libg
+.SH "SEE ALSO"
+.IR graphics (2)
 .SH BUGS
 These functions work only for the screen bitmap.
 This interface will have to be refined for screens with
 more than 8 bits per pixel.
-.SH "SEE ALSO"
-.IR graphics (2)

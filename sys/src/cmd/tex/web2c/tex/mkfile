@@ -3,13 +3,23 @@
 
 APE=/sys/src/ape
 < $APE/config
-SITEDIR=..
-OPT=-B
-CFLAGS=$OPT -I$SITEDIR -c
+CFLAGS=-B -DTeX -D_POSIX_SOURCE -I../lib -c
 LDFLAGS=
 SHELL=/bin/rc
 
-OFILES=tex0.$O\
+COMMONDEFINES=../lib/common.defines ../lib/texmf.defines
+
+# Routines used in both TeX and Metafont.
+EXTRAC=../lib/texmf.c
+EXTRAH=../lib/texmf.h
+EXTRAO=texmf.$O
+
+# Routines used in TeX, Metafont, and BibTeX.
+FILEIOC=../lib/openinout.c
+FILEIOO=openinout.$O
+
+OBJS=$FILEIOO\
+	tex0.$O\
 	tex1.$O\
 	tex2.$O\
 	tex3.$O\
@@ -19,42 +29,48 @@ OFILES=tex0.$O\
 	tex7.$O\
 	tex8.$O\
 
-CFILES=${OFILES:%.$O=%.c}
+CFILES=${OBJS:%.$O=%.c}
+
+LIB=../lib/lib.a$O
 
 IOBJS=iextra.$O\
 	initex.$O\
+	$OBJS
 
-VOBJS=extra.$O\
+VOBJS=tex-extra.$O\
 	itex.$O\
+	$OBJS
 
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 
 all:V:		$O.initex $O.virtex
 
 triptrap:V:	$O.triptex
 
-$O.initex:	$IOBJS $OFILES
+$O.initex:	$IOBJS $LIB
 		$LD $LDFLAGS -o $target $prereq
 
-$O.virtex:	$VOBJS $OFILES
+$O.virtex:	$VOBJS $LIB
 		$LD $LDFLAGS -o $target $prereq
 
-run-triptrap:VE:
+run-trip:VE:
 		cp TeXtrip/trip.tex .
 		../texware/$cpuobjtype.pltotf TeXtrip/trip.pl trip.tfm
-		triptex < TeXtrip/trip1.in
+		. ./tripenv
+		$cpuobjtype.triptex < TeXtrip/trip1.in > /dev/null
 		diff TeXtrip/tripin.log trip.log
-		triptex < TeXtrip/trip2.in > trip.fot
+		$cpuobjtype.triptex < TeXtrip/trip2.in > trip.fot
 		diff TeXtrip/trip.log trip.log
 		diff TeXtrip/trip.fot trip.fot
-		../texware/$cpuobjtype.dvitype trip.dvi < TeXtrip/dvitype.in
-		diff TeXtrip/trip.typ dvitype.out
+		../texware/$cpuobjtype.dvitype trip.dvi < TeXtrip/dvitype.in > trip.typ
+		diff TeXtrip/trip.typ trip.typ
 
 # The `ini_to_trip' script changes texd.h, instead of the change file, so
 # retangling is not necessary.  After changing constants, making a
 # triptex means making an initex.
 # 
-$O.triptex:V:	stamp-trip $O.initex
+$O.triptex:V:	stamp-trip
+		mk $O.initex
 		mv $O.initex $target
 
 stamp-trip:	stamp-convert
@@ -69,31 +85,33 @@ tex.p:		tex.web ctex.ch ../stamp-tangle.$cputype
 		../web/$cpuobjtype.tangle tex.web ctex.ch > /dev/null
 
 # The convert script produces tex[0-8].c, itex.c, coerce.h, and texd.h.
-# The (hand-coded) memory.h is included in one of tex?.c files; it isn't
-# really necessary to `convert' again if it changes, only to recompile
-# that file, but describing that relationship is ugly to do.
-# (Furthermore, memory.h is stable.)
-#
 $CFILES itex.c texd.h:	stamp-convert
 		touch stamp-convert
  
-stamp-convert:	tex.p memory.h fixcoerce.h tex.defines
+stamp-convert:	tex.p fixcoerce.h $COMMONDEFINES
 		$SHELL ./convert
 
-# The (hand-coded) file extra.c and the (generated) file itex.c have
-# #ifdefs on INITEX, so we have to compile them with -DINITEX for initex
-# and triptex.
+# The (hand-coded) file $EXTRAC and the (generated) file itex.c have
+# #ifdefs for INITEX, so we compile them differently.
 # 
-iextra.$O:	extra.c texd.h
-		$CC $CFLAGS -DINITEX extra.c && mv extra.$O $target
+iextra.$O:	$EXTRAC texd.h
+		$CC $CFLAGS -I. -DINITEX -DINI $EXTRAC
+		mv $EXTRAO $target
 
-initex.$O:      itex.c
-		$CC $CFLAGS -DINITEX itex.c && mv itex.$O $target
+initex.$O:      itex.c texd.h
+		cp itex.c initex.c
+		$CC $CFLAGS -DINITEX initex.c
 
-extra.$O:	texd.h
-
-%.$O:		%.c tex.h		# included by texd.h
+%.$O:		%.c texd.h
 		$CC $CFLAGS $stem.c
+
+tex-extra.$O: $EXTRAC texd.h
+	rm -f tex-extra.c
+	cp $EXTRAC tex-extra.c
+	$CC $CFLAGS -I. tex-extra.c
+
+$FILEIOO: $FILEIOC texd.h
+	$CC $CFLAGS -I. $prereq
 
 ../stamp-tangle.$cputype:
 		cd ..; objtype=$cputype mk stamp-tangle.$cputype
@@ -105,11 +123,11 @@ installall:VQ:
 		echo do mk installall in ..
 
 clean:V:
-		rm -f stamp-* *.[$OS] [$OS].virtex [$OS].initex
-		rm -f texd.h coerce.h *.log
+		rm -f stamp-* *.[$OS] [$OS].virtex [$OS].initex [$OS].triptex
+		rm -f texd.h coerce.h *.log *.fmt *.aux
 		rm -f 8terminal.tex trip.* tripos.tex dvitype.out
+		rm -f initex.c tex-extra.c
 
 nuke:V:
 		mk clean
-		rm -f tex?.c itex.c tex.p tex.pool *.fmt texput.*
-		rm -f '#'*'#' *~ *.bak
+		rm -f tex?.c itex.c tex.p tex.pool texput.*

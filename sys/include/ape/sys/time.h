@@ -1,6 +1,6 @@
 #ifndef __SYSTIME_H
 #define __SYSTIME_H
-#ifndef _BSDTIME_EXTENSION
+#ifndef _BSD_EXTENSION
     This header file is an extension to ANSI/POSIX
 #endif
 #pragma lib "/$M/lib/ape/libap.a"
@@ -16,5 +16,7 @@ struct timezone {
 	int	tz_dsttime;
 };
 #endif /* __TIMEVAL__ */
+
+extern int gettimeofday(struct timeval *, struct timezone *);
 
 #endif /* __SYSTIME_H */

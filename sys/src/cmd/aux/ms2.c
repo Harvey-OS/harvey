@@ -14,6 +14,7 @@ enum
 
 int	dsegonly;
 int	supressend;
+int	binary;
 ulong	addr;
 ulong 	psize = 4096;
 Biobuf 	stdout;
@@ -24,6 +25,7 @@ void
 main(int argc, char **argv)
 {
 	int n;
+	Dir dir;
 
 	ARGBEGIN{
 	case 'd':
@@ -37,6 +39,9 @@ main(int argc, char **argv)
 		break;
 	case 'p':
 		psize = strtoul(ARGF(), 0, 0);
+		break;
+	case 'b':
+		binary++;
 		break;
 	default:
 		usage();
@@ -53,6 +58,18 @@ main(int argc, char **argv)
 		exits("open");
 	}
 
+	if(binary) {
+		if(dirfstat(Bfildes(bio), &dir) < 0) {
+			fprint(2, "ms2: stat failed %r");
+			exits("dirfstat");
+		}
+		segment(0, dir.length);
+		Bprint(&stdout, "S9030000FC\n");
+		Bterm(&stdout);
+		Bterm(bio);
+		exits(0);
+	}
+
 	n = Bread(bio, &exech, sizeof(Exec));
 	if(n != sizeof(Exec)) {
 		fprint(2, "ms2: read failed: %r\n");
@@ -64,11 +81,9 @@ main(int argc, char **argv)
 		fprint(2, "ms2: bad magic\n");
 		exits("magic");
 	case A_MAGIC:
-	case Z_MAGIC:
 	case I_MAGIC:
 	case J_MAGIC:
 	case K_MAGIC:
-	case P_MAGIC:
 	case V_MAGIC:
 		break;
 	}
@@ -84,8 +99,8 @@ main(int argc, char **argv)
 	if(supressend == 0)
 		Bprint(&stdout, "S9030000FC\n");
 
-	Bclose(&stdout);
-	Bclose(bio);
+	Bterm(&stdout);
+	Bterm(bio);
 	exits(0);
 }
 

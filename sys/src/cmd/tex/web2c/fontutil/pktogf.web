@@ -3,8 +3,10 @@
 %  PKtoGF creates a generic font file from a packed pixel file.
 %
 % Preliminary 0.0 version:  January, 1988
-% Fixed bug to include specials in character (0.1): January 1988
-\def\versiondate{23 January 1988}
+% Fixed bug to include specials in character (1.0): January 1988
+% Cleaned up description (bitweight errors) no version change:  July 1990
+% Fixed bug with empty character setting min_n to 1 (1.1): 19 October 1990
+\def\versiondate{19 October 1990}
 %
 \font\ninerm=cmr9
 \let\mc=\ninerm % medium caps for names like PASCAL
@@ -22,7 +24,7 @@
   \vfill
   \centerline{\titlefont The {\ttitlefont PKtoGF} processor}
   \vskip 15pt
-  \centerline{(Version 1.0, \versiondate)}
+  \centerline{(Version 1.1, \versiondate)}
   \vfill}
 \def\botofcontents{\vfill
   \centerline{\hsize 5in\baselineskip9pt
@@ -47,9 +49,9 @@ box in the original \.{GF} file.
 @ The |banner| string defined here should be changed whenever \.{PKtoGF}
 gets modified.  You should update the preamble comment as well.
 
-@d banner=='This is PKtoGF, Version 1.0'
+@d banner=='This is PKtoGF, Version 1.1'
          {printed when the program starts}
-@d preamble_comment=='PKtoGF 1.0 output'
+@d preamble_comment=='PKtoGF 1.1 output'
 @d comm_length==17
 
 @ This program is written in standard \PASCAL, except where it is necessary
@@ -111,6 +113,165 @@ to the very end of the program with an error message.
 @p procedure jump_out;
 begin goto final_end;
 end;
+
+@* The character set.
+Like all programs written with the  \.{WEB} system, \.{PKtoGF} can be
+used with any character set. But it uses ASCII code internally, because
+the programming for portable input-output is easier when a fixed internal
+code is used.
+
+The next few sections of \.{PKtoGF} have therefore been copied from the
+analogous ones in the \.{WEB} system routines. They have been considerably
+simplified, since \.{PKtoGF} need not deal with the controversial
+ASCII codes less than @'40.
+
+@<Types...@>=
+@!ASCII_code=" ".."~"; {a subrange of the integers}
+
+@ The original \PASCAL\ compiler was designed in the late 60s, when six-bit
+character sets were common, so it did not make provision for lower case
+letters. Nowadays, of course, we need to deal with both upper and lower case
+alphabets in a convenient way, especially in a program like \.{GFtoPK}.
+So we shall assume that the \PASCAL\ system being used for \.{GFtoPK}
+has a character set containing at least the standard visible characters
+of ASCII code (|"!"| through |"~"|).
+
+Some \PASCAL\ compilers use the original name |char| for the data type
+associated with the characters in text files, while other \PASCAL s
+consider |char| to be a 64-element subrange of a larger data type that has
+some other name.  In order to accommodate this difference, we shall use
+the name |text_char| to stand for the data type of the characters in the
+output file.  We shall also assume that |text_char| consists of
+the elements |chr(first_text_char)| through |chr(last_text_char)|,
+inclusive. The following definitions should be adjusted if necessary.
+@^system dependencies@>
+
+@d text_char == char {the data type of characters in text files}
+@d first_text_char=0 {ordinal number of the smallest element of |text_char|}
+@d last_text_char=127 {ordinal number of the largest element of |text_char|}
+
+@<Types...@>=
+@!text_file=packed file of text_char;
+
+@ The \.{GFtoPK} processor converts between ASCII code and
+the user's external character set by means of arrays |xord| and |xchr|
+that are analogous to \PASCAL's |ord| and |chr| functions.
+
+@<Globals...@>=
+@!xord: array [text_char] of ASCII_code;
+  {specifies conversion of input characters}
+@!xchr: array [0..255] of text_char;
+  {specifies conversion of output characters}
+
+@ Under our assumption that the visible characters of standard ASCII are
+all present, the following assignment statements initialize the
+|xchr| array properly, without needing any system-dependent changes.
+
+@<Set init...@>=
+for i:=0 to @'37 do xchr[i]:='?';
+xchr[@'40]:=' ';
+xchr[@'41]:='!';
+xchr[@'42]:='"';
+xchr[@'43]:='#';
+xchr[@'44]:='$';
+xchr[@'45]:='%';
+xchr[@'46]:='&';
+xchr[@'47]:='''';@/
+xchr[@'50]:='(';
+xchr[@'51]:=')';
+xchr[@'52]:='*';
+xchr[@'53]:='+';
+xchr[@'54]:=',';
+xchr[@'55]:='-';
+xchr[@'56]:='.';
+xchr[@'57]:='/';@/
+xchr[@'60]:='0';
+xchr[@'61]:='1';
+xchr[@'62]:='2';
+xchr[@'63]:='3';
+xchr[@'64]:='4';
+xchr[@'65]:='5';
+xchr[@'66]:='6';
+xchr[@'67]:='7';@/
+xchr[@'70]:='8';
+xchr[@'71]:='9';
+xchr[@'72]:=':';
+xchr[@'73]:=';';
+xchr[@'74]:='<';
+xchr[@'75]:='=';
+xchr[@'76]:='>';
+xchr[@'77]:='?';@/
+xchr[@'100]:='@@';
+xchr[@'101]:='A';
+xchr[@'102]:='B';
+xchr[@'103]:='C';
+xchr[@'104]:='D';
+xchr[@'105]:='E';
+xchr[@'106]:='F';
+xchr[@'107]:='G';@/
+xchr[@'110]:='H';
+xchr[@'111]:='I';
+xchr[@'112]:='J';
+xchr[@'113]:='K';
+xchr[@'114]:='L';
+xchr[@'115]:='M';
+xchr[@'116]:='N';
+xchr[@'117]:='O';@/
+xchr[@'120]:='P';
+xchr[@'121]:='Q';
+xchr[@'122]:='R';
+xchr[@'123]:='S';
+xchr[@'124]:='T';
+xchr[@'125]:='U';
+xchr[@'126]:='V';
+xchr[@'127]:='W';@/
+xchr[@'130]:='X';
+xchr[@'131]:='Y';
+xchr[@'132]:='Z';
+xchr[@'133]:='[';
+xchr[@'134]:='\';
+xchr[@'135]:=']';
+xchr[@'136]:='^';
+xchr[@'137]:='_';@/
+xchr[@'140]:='`';
+xchr[@'141]:='a';
+xchr[@'142]:='b';
+xchr[@'143]:='c';
+xchr[@'144]:='d';
+xchr[@'145]:='e';
+xchr[@'146]:='f';
+xchr[@'147]:='g';@/
+xchr[@'150]:='h';
+xchr[@'151]:='i';
+xchr[@'152]:='j';
+xchr[@'153]:='k';
+xchr[@'154]:='l';
+xchr[@'155]:='m';
+xchr[@'156]:='n';
+xchr[@'157]:='o';@/
+xchr[@'160]:='p';
+xchr[@'161]:='q';
+xchr[@'162]:='r';
+xchr[@'163]:='s';
+xchr[@'164]:='t';
+xchr[@'165]:='u';
+xchr[@'166]:='v';
+xchr[@'167]:='w';@/
+xchr[@'170]:='x';
+xchr[@'171]:='y';
+xchr[@'172]:='z';
+xchr[@'173]:='{';
+xchr[@'174]:='|';
+xchr[@'175]:='}';
+xchr[@'176]:='~';
+for i:=@'177 to 255 do xchr[i]:='?';
+
+@ The following system-independent code makes the |xord| array contain a
+suitable inverse to the information in |xchr|.
+
+@<Set init...@>=
+for i:=first_text_char to last_text_char do xord[chr(i)]:=@'40;
+for i:=" " to "~" do xord[xchr[i]]:=i;
 
 @* Generic font file format.
 The most important output produced by a typical run of \MF\ is the
@@ -308,7 +469,7 @@ commands may immediately follow the preamble, before the first |boc|.)
 
 @d paint_0=0 {beginning of the \\{paint} commands}
 @d paint1=64 {move right a given number of columns, then
-  black${}\swap{}$white}
+  black${}\leftrightarrow{}$white}
 @d boc=67 {beginning of a character}
 @d boc1=68 {abbreviated |boc|}
 @d eoc=69 {end of a character}
@@ -525,11 +686,11 @@ file, respectively.  The checksum should match the \.{TFM} file and the
 of pixels per point, horizontally and vertically, multiplied by $2^{16}$; they
 can be used to correlate the font with specific device resolutions,
 magnifications, and ``at sizes''.  Usually, the name of the \.{PK} file is
-formed by concatenating the font name (e.g., amr10) with the resolution at
+formed by concatenating the font name (e.g., cmr10) with the resolution at
 which the font is prepared in pixels per inch multiplied by the magnification
-factor, and the letters \.{PK}.  For instance, amr10 at 300 dots per inch
-should be named AMR10.300PK; at one thousand dots per inch and magstephalf,
-it should be named AMR10.1095PK.
+factor, and the letters \.{PK}.  For instance, cmr10 at 300 dots per inch
+should be named CMR10.300PK; at one thousand dots per inch and magstephalf,
+it should be named CMR10.1095PK.
 
 @ We put a few of the above opcodes into definitions for symbolic use by
 this program.
@@ -701,10 +862,10 @@ and the raster data.  The most significant four bits of the flag byte
 yield the |dyn_f| value for that character.  (Notice that only values of
 0 through 14 are legal for |dyn_f|, with 14 indicating a bit mapped character;
 thus, the flag bytes do not conflict with the command bytes, whose upper nybble
-is always 15.)  The next bit (with weight 16) indicates whether the first run
+is always 15.)  The next bit (with weight 8) indicates whether the first run
 count is a black count or a white count, with a one indicating a black count.
 For bit-mapped characters, this bit should be set to a zero.  The next bit
-(with weight 8) indicates whether certain later parameters (referred to as size
+(with weight 4) indicates whether certain later parameters (referred to as size
 parameters) are given in one-byte or two-byte quantities, with a one indicating
 that they are in two-byte quantities.  The last two bits are concatenated on to
 the beginning of the length parameter in the character preamble, which will be
@@ -766,8 +927,7 @@ example below.)
 modulo 256 also have the same |tfm| widths, and escapement values.  The \.{PK}
 format does not itself make this a requirement, but in order for the font to
 work correctly with the \TeX\ software, this constraint should be observed.
-The current version of \TeX\ (1.5) cannot output character codes greater
-than 255 anyway.
+
 
 Following the character preamble is the raster information for the
 character, packed by run counts or by bits, as indicated by the flag byte.
@@ -776,7 +936,9 @@ is odd, then the last byte of the raster description should have a zero
 for its least significant nybble.
 
 @ As an illustration of the \.{PK} format, the character \char4\ from the font
-amr10 at 300 dots per inch will be encoded.  This character was chosen
+amr10 at 300 dots per inch will be encoded.  (Note: amr fonts are obsolete,
+and the reference to this character is retained from an older version of
+the Computer Modern fonts solely for illustration.) This character was chosen
 because it illustrates some
 of the borderline cases.  The raster for the character looks like this (the
 row numbers are chosen for convenience, and are not \MF's row numbers.)
@@ -1017,165 +1179,6 @@ begin
    gf_24(i mod 16777216) ;
 end ;
 
-@* The character set.
-Like all programs written with the  \.{WEB} system, \.{PKtoGF} can be
-used with any character set. But it uses ASCII code internally, because
-the programming for portable input-output is easier when a fixed internal
-code is used.
-
-The next few sections of \.{PKtoGF} have therefore been copied from the
-analogous ones in the \.{WEB} system routines. They have been considerably
-simplified, since \.{PKtoGF} need not deal with the controversial
-ASCII codes less than @'40.
-
-@<Types...@>=
-@!ASCII_code=" ".."~"; {a subrange of the integers}
-
-@ The original \PASCAL\ compiler was designed in the late 60s, when six-bit
-character sets were common, so it did not make provision for lower case
-letters. Nowadays, of course, we need to deal with both upper and lower case
-alphabets in a convenient way, especially in a program like \.{GFtoPK}.
-So we shall assume that the \PASCAL\ system being used for \.{GFtoPK}
-has a character set containing at least the standard visible characters
-of ASCII code (|"!"| through |"~"|).
-
-Some \PASCAL\ compilers use the original name |char| for the data type
-associated with the characters in text files, while other \PASCAL s
-consider |char| to be a 64-element subrange of a larger data type that has
-some other name.  In order to accommodate this difference, we shall use
-the name |text_char| to stand for the data type of the characters in the
-output file.  We shall also assume that |text_char| consists of
-the elements |chr(first_text_char)| through |chr(last_text_char)|,
-inclusive. The following definitions should be adjusted if necessary.
-@^system dependencies@>
-
-@d text_char == char {the data type of characters in text files}
-@d first_text_char=0 {ordinal number of the smallest element of |text_char|}
-@d last_text_char=127 {ordinal number of the largest element of |text_char|}
-
-@<Types...@>=
-@!text_file=packed file of text_char;
-
-@ The \.{GFtoPK} processor converts between ASCII code and
-the user's external character set by means of arrays |xord| and |xchr|
-that are analogous to \PASCAL's |ord| and |chr| functions.
-
-@<Globals...@>=
-@!xord: array [text_char] of ASCII_code;
-  {specifies conversion of input characters}
-@!xchr: array [0..255] of text_char;
-  {specifies conversion of output characters}
-
-@ Under our assumption that the visible characters of standard ASCII are
-all present, the following assignment statements initialize the
-|xchr| array properly, without needing any system-dependent changes.
-
-@<Set init...@>=
-for i:=0 to @'37 do xchr[i]:='?';
-xchr[@'40]:=' ';
-xchr[@'41]:='!';
-xchr[@'42]:='"';
-xchr[@'43]:='#';
-xchr[@'44]:='$';
-xchr[@'45]:='%';
-xchr[@'46]:='&';
-xchr[@'47]:='''';@/
-xchr[@'50]:='(';
-xchr[@'51]:=')';
-xchr[@'52]:='*';
-xchr[@'53]:='+';
-xchr[@'54]:=',';
-xchr[@'55]:='-';
-xchr[@'56]:='.';
-xchr[@'57]:='/';@/
-xchr[@'60]:='0';
-xchr[@'61]:='1';
-xchr[@'62]:='2';
-xchr[@'63]:='3';
-xchr[@'64]:='4';
-xchr[@'65]:='5';
-xchr[@'66]:='6';
-xchr[@'67]:='7';@/
-xchr[@'70]:='8';
-xchr[@'71]:='9';
-xchr[@'72]:=':';
-xchr[@'73]:=';';
-xchr[@'74]:='<';
-xchr[@'75]:='=';
-xchr[@'76]:='>';
-xchr[@'77]:='?';@/
-xchr[@'100]:='@@';
-xchr[@'101]:='A';
-xchr[@'102]:='B';
-xchr[@'103]:='C';
-xchr[@'104]:='D';
-xchr[@'105]:='E';
-xchr[@'106]:='F';
-xchr[@'107]:='G';@/
-xchr[@'110]:='H';
-xchr[@'111]:='I';
-xchr[@'112]:='J';
-xchr[@'113]:='K';
-xchr[@'114]:='L';
-xchr[@'115]:='M';
-xchr[@'116]:='N';
-xchr[@'117]:='O';@/
-xchr[@'120]:='P';
-xchr[@'121]:='Q';
-xchr[@'122]:='R';
-xchr[@'123]:='S';
-xchr[@'124]:='T';
-xchr[@'125]:='U';
-xchr[@'126]:='V';
-xchr[@'127]:='W';@/
-xchr[@'130]:='X';
-xchr[@'131]:='Y';
-xchr[@'132]:='Z';
-xchr[@'133]:='[';
-xchr[@'134]:='\';
-xchr[@'135]:=']';
-xchr[@'136]:='^';
-xchr[@'137]:='_';@/
-xchr[@'140]:='`';
-xchr[@'141]:='a';
-xchr[@'142]:='b';
-xchr[@'143]:='c';
-xchr[@'144]:='d';
-xchr[@'145]:='e';
-xchr[@'146]:='f';
-xchr[@'147]:='g';@/
-xchr[@'150]:='h';
-xchr[@'151]:='i';
-xchr[@'152]:='j';
-xchr[@'153]:='k';
-xchr[@'154]:='l';
-xchr[@'155]:='m';
-xchr[@'156]:='n';
-xchr[@'157]:='o';@/
-xchr[@'160]:='p';
-xchr[@'161]:='q';
-xchr[@'162]:='r';
-xchr[@'163]:='s';
-xchr[@'164]:='t';
-xchr[@'165]:='u';
-xchr[@'166]:='v';
-xchr[@'167]:='w';@/
-xchr[@'170]:='x';
-xchr[@'171]:='y';
-xchr[@'172]:='z';
-xchr[@'173]:='{';
-xchr[@'174]:='|';
-xchr[@'175]:='}';
-xchr[@'176]:='~';
-for i:=@'177 to 255 do xchr[i]:='?';
-
-@ The following system-independent code makes the |xord| array contain a
-suitable inverse to the information in |xchr|.
-
-@<Set init...@>=
-for i:=first_text_char to last_text_char do xord[chr(i)]:=@'40;
-for i:=" " to "~" do xord[xchr[i]]:=i;
-
 @* Character unpacking.
 Now we deal with unpacking characters into the \.{GF} representation.
 
@@ -1312,6 +1315,9 @@ use |max_m-min_m-1|, because of the peculiarities of the \.{GF}
 format.
 
 @<Calculate and check |min_m|, |max_m|, |min_n|, and |max_n|@>=
+if (c_height = 0) or (c_width = 0) then begin
+   c_height := 0 ; c_width := 0 ; x_off := 0 ; y_off := 0 ;
+end ;
 min_m := - x_off ;
 if min_m < mmin_m then
    mmin_m := min_m ;
@@ -1319,9 +1325,11 @@ max_m := c_width + min_m ;
 if max_m > mmax_m then
    mmax_m := max_m ;
 min_n := y_off - c_height + 1 ;
+max_n := y_off ;
+if min_n > max_n then
+   min_n := max_n ;
 if min_n < mmin_n then
    mmin_n := min_n ;
-max_n := y_off ;
 if max_n > mmax_n then
    mmax_n := max_n
 

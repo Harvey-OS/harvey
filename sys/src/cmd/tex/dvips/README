@@ -1,0 +1,18 @@
+All real documentation is now in the file dvips.tex.  There is also a file
+called test.tex that you can read and run to test some basic capabilities of
+dvips.  INSTALLATION has the primary installation instructions.
+
+I will be convering dvips over to using fontinst fonts---soon.  I will also
+be adding some new `standard' specials and context specials.  So things
+will probably be changing a fair bit soon.  (Of course, I plan to maintain
+full backward compatibility.)
+
+If you enjoy using dvips, you will probably enjoy being a member of 
+the TeX Users Group.  To join or contribute to TUG, contact them at
+
+   TeX Users Group
+   PO Box 869
+   Santa Barbara, CA  93102-0869 USA
+   Voice:  (805) 963-1338
+   FAX:  (805) 963-8358
+   Email:  TUG@tug.org

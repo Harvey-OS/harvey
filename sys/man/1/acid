@@ -4,65 +4,283 @@ acid \- debugger
 .SH SYNOPSIS
 .B acid
 [
-.I -l loadmodule
+.BI -l " libfile
 ]
 [
-.I -w
-]
-[
+.B -wq
+] [
+.B -m
+.I machine
+] [
 .I pid
 ]
 [
 .I textfile
 ]
 .SH DESCRIPTION
-Acid is a general purpose source level, symbolic debugger.
-The debugger is built around a simple command language. 
-The command language provides a flexible user interface which allows the debugger
-interface to be customized for a specific application or architecture.
-Moreover, it provides an opportunity to write test and
-verification code independently of a programs source code.
-Acid is able to debug multiple
-processes provided they share a common set of symbols (See ALEF(1)).
+.I Acid
+is a programmable symbolic debugger.
+It can inspect one or more processes that share an address space.
+A program to be debugged may be specified by the process id of
+a running or defunct process,
+or by the name of the program's text file 
+.RB ( v.out
+by default).
+At the prompt,
+.I acid
+will store function definitions or print the value of expressions.
+Options are
+.TP .9i
+.B -w
+Allow the textfile to be modified.
+.TP
+.B -q
+Don't print variable renamings at startup.
+.TP
+.BI -l " library
+Load from 
+.I library
+at startup; see below.
+.TP
+.BI -m " machine
+Assume instructions are for the given CPU type
+(one of
+.BR 3210 ,
+.BR 386 ,
+.BR 68020 ,
+.BR 960 ,
+.BR mips ,
+.BR mipsco ,
+.BR sparc ,
+or
+.BR sunsparc )
+instead of using the magic number to select
+the CPU type.
 .PP
-The -w option allows the textfile to be modified.
+At startup,
+.I acid
+obtains standard function definitions from the library file
+.BR /lib/acid/port ,
+architecture-dependent functions from
+.BR /lib/acid/$objtype ,
+user-specified functions from
+.BR $home/lib/acid ,
+and further functions from 
+.B -l
+files.
+Definitions in any file may override previously defined functions.
+If the function
+.IR acidinit ()
+is defined, it will be invoked after all modules have been loaded.
+See
+.IR 2c (1)
+and
+.IR alef (1)
+for information about creating
+.I acid
+functions for examining data structures.
+.SS Language
+Symbols of the program being debugged become integer 
+variables whose values are addresses.
+Contents of addresses are obtained by indirection.
+Local variables are qualified by
+function name, for example
+.BR main:argv .
+When program symbols conflict with
+.I acid
+words, distinguishing 
+.B $
+signs are prefixed.
+Such renamings are reported at startup; option
+.B -q
+suppresses them.
 .PP
-Control-D terminates the program. If there are active processes a diagnostic
-is printed and acid returns to the prompt. A second Control-D will cause
-the debugger to exit and attached processes will be unaffected. To make a clean
-exit, processes should be destroyed using the function
-.I kill .
+Variable types
+.RI ( "integer, float, list, string" )
+and formats are inferred from assignments.
+Truth values false/true are attributed to zero/nonzero
+integers or floats and to empty/nonempty lists or strings.
+Lists are sequences of expressions surrounded by
+.BR {\^} 
+and separated by commas.
 .PP
-At startup acid reads a standard set of command functions from a library. Modules are
-automatically loaded from /lib/acid/port, /lib/acid/$objtype
-and $home/lib/acid in that order.
-This provides a standard debugging environment for each of the architectures.
-Definitions in $home/lib/acid may replace any previously defined functions. Language
-specific modules can also be loaded using a command line option. Modules specified
-on the command line are loaded last. If the function acidinit is defined by any
-of the load modules it will be invoked after all modules have been loaded.
+Expressions are much as in C or Alef,
+but yield both a value and a format.
+Alef-style casts to complex types are allowed.
+Lists admit the following operators, with
+subscripts counted from 0.
+.IP
+.BI head " list
+.br
+.BI tail " list
+.br
+.BI append " list", " element
+.br
+.BI delete " list", " subscript
 .PP
-Acid introduces the symbols of the program being debugged as variables in the
-language. If a symbol in the program conflicts with a predefined variable or
-reserved word the symbol is renamed. The interpreter prepends
-$ characters to start of the symbol until it is unique. 
-A summary of the renamings is printed at startup.
+Format codes are the same as in
+.IR db (1).
+Formats may be attached to (unary) expressions with
+.BR \e ,
+e.g.
+.BR (32*7)\eD .
+There are two indirection operators,
+.B *
+to address a core image,
+.B @
+to address a text file.
+The type and format of the result are determined by the format of the operand,
+whose type must be integer.
 .PP
-Acid has an expression syntax much like C. However since the symbol table provides
-addresses the dual of a program variable will be an address in acid. That is the same
-as if all names were preceded by an & in C or ALEF expression.
-To obtain the value of a variable one of the indirection operators must be used.
+Statements are
+.IP
+.BI if " expr " then " statement " "\fR[ \fPelse\fI statement \fR]
+.br
+.BI while " expr " do " statement
+.br
+.BI loop " expr" , " expr " do " statement
+.br
+.BI defn " name" ( args ") {" " statement \fP}
+.br
+.BI local " name
+.br
+.BI return " expr
+.br
+.BR whatis " [ \fI name \fP]
 .PP
-At the prompt acid is prepared to either store function definitions or evaluate
-expressions.
-The expression syntax is similar to the expression syntax of C and ALEF.
-The result of expression evaluation yields both a value and a format.
-The format of and item may be set using the builtin function fmt. Formats
-are compatible with db(1). The format determines how an item will be printed,
-the stride of an increment or decrement operation and how many bytes are read or
-written by the indirection operators.
-.SH EXAMPLE
-To start to debug ls and set a breakpoint:
+Here is a partial list of functions; see the manual for a complete list.
+.TF asm(address)
+.TP
+.B stk()
+Print a stack trace for current process.
+.TP
+.B lstk()
+Print a stack trace with values of local variables.
+.TP
+.B gpr()
+Print general registers.
+Registers can also be accessed by name, for example
+.BR *R0 .
+.TP
+.B spr()
+Print special registers such as program counter and stack pointer.
+.TP
+.B fpr()
+Print floating-point registers.
+.TP
+.B regs()
+Same as
+.BR spr();gpr() .
+.TP
+.BI fmt( expr , format )
+Expression 
+.I expr
+with format given by the character value of expression
+.IR format .
+.TP
+.BI src( address )
+Print 10 lines of source around the program address.
+.TP
+.BI Bsrc( address )
+Get the source line for the program address
+into a window of a running
+.IR sam (1)
+and select it.
+.TP
+.BI line( address )
+Print source line nearest to the program address.
+.TP
+.B source()
+List current source directories.
+.TP
+.BI addsrcdir( string )
+Add a source directory to the list.
+.TP
+.BI filepc( where )
+Convert a string of the form 
+.IB sourcefile : linenumber
+to a machine address.
+.TP
+.BI pcfile( address )
+Convert a machine address to a source file name.
+.TP
+.BI pcline( address )
+Convert a machine address to a source line number.
+.TP
+.BI bptab()
+List breakpoints set in the current process.
+.TP
+.BI bpset( address )
+Set a breakpoint in the current process at the given address.
+.TP
+.BI bpdel( address )
+Delete a breakpoint from the current process.
+.TP
+.B cont()
+Continue execution of current process and wait for it to stop.
+.TP
+.B step()
+Execute a single machine instruction in the current process.
+.TP
+.B func()
+Step repeatedly until after a function return.
+.TP
+.BI stopped( pid )
+This replaceable function is called automatically when the given process
+stops.
+It normally prints the program counter and returns to the prompt.
+.TP
+.BI asm( address )
+Disassemble 30 machine instructions beginning at the given address.
+.TP
+.BI mem( address , string )
+Print a block of memory
+interpreted according to a string of format codes.
+.TP
+.BI dump( address , n , string\fP)
+Like
+.BR mem (),
+repeated for 
+.I n
+consecutive blocks.
+.TP
+.BI print( expr , ... )
+Print the values of the expressions.
+.TP
+.BI newproc( arguments )
+Start a new process with arguments given as a string
+and halt at the first instruction.
+.TP
+.B new()
+Like 
+.IR newproc (),
+but take arguments (except
+.BR argv[0] )
+from string variable
+.BR progargs .
+.TP
+.B win()
+Like 
+.IR new (),
+but run the process in a separate window.
+.TP
+.BI start( pid )
+Start a stopped process.
+.TP
+.BI kill( pid )
+Kill the given process.
+.TP
+.BI setproc( pid )
+Make the given process current.
+.TP
+.BI rc( string )
+Escape to the shell,
+.IR rc (1),
+to execute the command string.
+.SH EXAMPLES
+Start to debug
+.BR /bin/ls ;
+set some breakpoints; run up to the first one:
 .IP
 .EX
 % acid /bin/ls
@@ -70,12 +288,51 @@ To start to debug ls and set a breakpoint:
 /lib/acid/port
 /lib/acid/mips
 acid: new()
-70094 : system call	_main	ADD	$-14,R29
+70094: system call	_main	ADD	$-0x14,R29
+70094: breakpoint	main+0x4	MOVW	R31,0x0(R29)
+acid: pid
+70094
+acid: argv0 = **main:argv\es
+acid: whatis argv0
+integer variable format s
+acid: *argv0
+/bin/ls
 acid: bpset(ls)
 acid: cont()
-70094 : breakpoint	ls	ADD	$-16c8,R29
-acid:
+70094: breakpoint  ls	ADD	$-0x16c8,R29
+acid: 
 .EE
+.PP
+Display elements of a linked list of structures:
+.IP
+.EX
+complex Str { 'D' 0 val; 'X' 4 next; };
+complex Str s;
+s = *headstr;
+while s != 0 do{
+	print(s.val, "\en");
+	s = s.next;
+}
+.EE
+.PP
+Note the use of the
+.B .
+operator instead of
+.BR -> .
+.PP
+Display an array of bytes declared in C as
+.BR "char array[]" .
+.IP
+.EX
+*(array\es)
+.EE
+.PP
+This example gives
+.B array
+string format, then prints the string beginning at the address (in
+.I acid
+notation)
+.BR *array .
 .SH FILES
 .B /proc/*/text
 .br
@@ -90,12 +347,27 @@ acid:
 .B /lib/acid/port
 .br
 .B $home/lib/acid
+.SH SOURCE
+.B /sys/src/cmd/acid
 .SH "SEE ALSO"
 .IR 2a (1),
+.IR 2c (1),
 .IR 2l (1),
+.IR alef (1),
 .IR mk (1),
 .IR db (1)
 .br
-.I
-ACID Manual,
-Phil Winterbottom
+Phil Winterbottom,
+``Acid Manual''.
+.SH DIAGNOSTICS
+At termination, kill commands are proposed
+for processes that are still active.
+.SH BUGS
+There is no way to redirect the standard input and standard output
+of a new process.
+.br
+Source line selection near the beginning of a file may pick
+an adjacent file.
+.br
+With the extant stepping commands, one cannot step through instructions
+outside the text segment and it is hard to debug across process forks.

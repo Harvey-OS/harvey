@@ -1,0 +1,126 @@
+%% 
+%% This is file `romanian.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% romanian.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "1.2d",
+%%%     date            = "26 June 1994",
+%%%     time            = "02:04:49 MET",
+%%%     filename        = "romanian.doc",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "03081 266 1236 10289",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, romanian",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the romanian language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionsromanian
+\else
+  \selectlanguage{romanian}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{romanian.sty}[1994/06/26 v1.2d
+         Romanian support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty \else\originalTeX\fi
+\ifx\undefined\l@romanian
+    \@nopatterns{Romanian}
+    \adddialect\l@romanian0\fi
+\addto\captionsromanian{%
+  \def\prefacename{Prefa\c{t}\u{a}}%
+  \def\refname{Bibliografie}%
+  \def\abstractname{Rezumat}%
+  \def\bibname{Bibliografie}%
+  \def\chaptername{Capitolul}%
+  \def\appendixname{Anexa}%
+  \def\contentsname{Cuprins}%
+  \def\listfigurename{List\u{a} de figuri}%
+  \def\listtablename{List\u{a} de tabele}%
+  \def\indexname{Glosar}%
+  \def\figurename{Figura}%    % sau Plan\c{s}a
+  \def\tablename{Tabela}%
+  \def\partname{Partea}%
+  \def\enclname{Anex\u{a}}%   % sau Anexe
+  \def\ccname{Copie}%
+  \def\headtoname{Pentru}%
+  \def\pagename{Pagina}%
+  \def\seename{Vezi}%
+  \def\alsoname{Vezi de asemenea}}%
+\def\dateromanian{%
+\def\today{\number\day~\ifcase\month\or
+  ianuarie\or februarie\or martie\or aprilie\or mai\or iunie\or
+  iulie\or august\or septembrie\or octombrie\or noiembrie\or decembrie\fi
+  \space \number\year}}
+\addto\extrasromanian{}
+\addto\noextrasromanian{}
+\selectlanguage{romanian}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `romanian.sty'.

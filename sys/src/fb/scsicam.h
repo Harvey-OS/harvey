@@ -2,12 +2,12 @@
  * scsicam info.
  */
 #define	SCAMDEPTH	2
-#define	BPP	(1<<SCAMDEPTH)		/* bits/pixel, version 2 of scsicam */
+#define	BPP	(1<<SCAMDEPTH)	/* bits/pixel, version 2 of scsicam */
 
 #define DX	256
 #define DY	240
 
-#define GOODDY	(DY-2)			/* the bottom 1.5 rows are usually black */
+#define GOODDY	(DY-2)		/* the bottom 1.5 rows are usually black */
 
 #define	CPR	((DX*BPP)/8)		/* bytes per row */
 #define FRAMESIZE	(DY*CPR)	/* bytes per frame */

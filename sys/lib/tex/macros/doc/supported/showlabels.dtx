@@ -1,0 +1,276 @@
+% \iffalse % meta-comment
+%
+% This is the showlabels package option
+% \fi
+%
+\def\filename{showlabels}
+\def\fileversion{v1.0}
+\def\filedate{1994/10/03}
+\def\docdate{1994/10/03}
+%  \CheckSum{202}
+%
+% \title{The \texttt{\filename} package\thanks{This file has version 
+% number \fileversion, last revised \filedate, documentation dated \docdate}}
+% \author{Norman Gray\\|norman@astro.gla.ac.uk|}
+%
+% \maketitle
+%
+% This is the showlabels class option.
+%
+% This class option introduces no new commands, it just helps you keep track 
+% of all the labels by putting the name of the new label into the margin 
+% whenever either the |\label| command is used, or an equation is 
+% automatically numbered (by replacing the internal |\@eqnnum| command).  
+% There are therefore no usage instructions.  You invoke this package with 
+% the command |\usepackage{showlabels}| in the preamble, and you may give the 
+% options |[inner]| or |[outer]| (the default) to have the labels placed in 
+% the inner or outer margin of the text.
+%
+% \StopEventually{}
+%
+%    \begin{macrocode}
+%<*package>
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{showlabels}[\filedate\space\fileversion]
+\typeout{Package: `showlabels' \fileversion\space<\filedate>}
+\wlog{Documentation}
+%    \end{macrocode}
+%
+% \iffalse
+% Update history:
+% 29-Jan-92 Darrel Hankerson hank@ducvax.auburn.edu
+%  Update to NFSS. Change name to `showlabel.sty'. Substitute
+%  	\nintt -> \small\tt
+%	\sevit -> \scriptsize\it
+% 21-Sep-91 Norman Gray  no_gray@vax.acs.open.ac.uk 
+%  Original release of labels.sty
+% \fi
+%
+% Before we do anything else, save the original definitions of some 
+% control sequences that we redefine.
+%    \begin{macrocode}
+\let\@@eqnnum=\@eqnnum
+\let\@@makecaption\@makecaption
+\let\@label\label
+%    \end{macrocode}
+%
+% \begin{macro}{\@eqnnum}
+% This replacement for |\@eqnnum| will produce a note, sticking
+% into the margin beside
+% the equation number, showing the equation's label.
+% |\SL@labeln@me| is initialised to |\relax|, redefined within the
+% |\label| macro, and reset to |\relax| here.  If it's already equal
+% to |\relax| here, the equation number hasn't been labelled, and so
+% `???' is put in the margin. 
+%
+%    \begin{macrocode}
+\def\@eqnnum{\@@eqnnum
+\ifx\SL@labeln@me\relax
+  \SL@eqnlrtext{???}%
+\else
+  \SL@eqnlrtext{\SL@labeln@me}%
+  \global\def\SL@labeln@me{\relax}%
+\fi}
+%    \end{macrocode}
+% \end{macro}
+% And initialise the value of |\labeln@me| to |\relax|, so that 
+% |\@eqnnum| starts off behaving the right way. 
+%    \begin{macrocode}
+\global\def\SL@labeln@me{\relax}
+%    \end{macrocode}
+%
+% For the benefit of |\prlabelname|, define |\SL@gobblethree| to do nothing 
+% other than eat three tokens.
+%    \begin{macrocode}
+\def\SL@gobblethree#1#2#3{}
+%    \end{macrocode}
+%
+% \begin{macro}{\prlabelname}
+% Expansion is label name with all catcodes `other' (Appendix~D trickery 
+% abounds!).  Use |\r@#1|, rather then just |\#1| to avoid defining any new 
+% control sequences.
+%    \begin{macrocode}
+\def\prlabelname#1{%
+\expandafter\expandafter\expandafter\SL@gobblethree
+    \expandafter\string\csname r@#1\endcsname}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@makecaption}
+% Simple replacement for the |\@makecaption| command.  This simply issues 
+% the original |\@makecaption| command after redefining |\label|.  This 
+% does not put the label name in the margin (that's too complicated 
+% for the moment), but instead inserts it as part of the caption.
+%    \begin{macrocode}
+\long\def\@makecaption#1#2{{\def\label##1{{\small\tt
+	\{\prlabelname{##1}\}\space}\@label{##1}}%
+%    \end{macrocode}
+% \dots and follows it with the original, saved, |\@makecaption|.
+%    \begin{macrocode}
+	\@@makecaption{#1}{#2}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\label}
+% This is the central bit of this package.  Depending on the mode, put the 
+% current label name in the margin in one of a variety of ways.
+% First of all, issue the saved |\@label| command.
+%    \begin{macrocode} 
+\def\label#1{\@bsphack\@label{#1}%
+%    \end{macrocode}
+% In maths mode, produce a label name alongside the equation number.
+%    \begin{macrocode}
+\ifmmode
+  \xdef\SL@labeln@me{\prlabelname{#1}}
+%    \end{macrocode}
+% Otherwise, create a box with zero height and depth, and the same width 
+% as the page.  Put all this in braces, to contain the setting of |\box0| 
+% (which probably shouldn't be necessary).
+%    \begin{macrocode}
+\else
+  {\setbox0=\vbox to 0pt{\vss
+    \hbox to \hsize{\SL@lrtext{#1}}}%
+  \dp0=0pt
+%    \end{macrocode}
+% and attach it below the last one, using |\nointerlineskip| if we're in 
+% vertical mode, or |\vadjust| otherwise.
+%    \begin{macrocode}
+  \ifvmode
+    \nointerlineskip\box0\nobreak
+  \else
+    \vadjust{\box0\nobreak}%
+  \fi}%
+%    \end{macrocode}
+% That's it.  Finish off the |\ifmmode| and give the partner to |\@bsphack|.
+%    \begin{macrocode}
+\fi
+\@esphack}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\margintext}
+% Set the actual text of the label.
+%    \begin{macrocode}
+\def\SL@margintext#1{{\small\sl\{#1\}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% But where is the marginal text actually set?  It can be in the left 
+% margin, the right one, or can alternate.  |\SL@lrtext|, used in the 
+% |\vbox| above, is set, under the control of |\if@outerlabels| below, to 
+% one of |\SL@lefttext|, |\SL@righttext| or |\SL@alternatetext|.
+% \begin{macro}{\SL@righttext}
+% \begin{macro}{\SL@lefttext}
+%    \begin{macrocode}
+\def\SL@righttext#1{\hfill\rlap{\quad\SL@margintext{#1}}}
+\def\SL@lefttext #1{\llap{\SL@margintext{#1}\quad}\hfill}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% The code for |\SK@alternatetext| doesn't work perfectly, as it 
+% sometimes manages to get things on the wrong side of the text near the 
+% top of a new page.  This is a venial slip, however, as this package 
+% should never be used in a final version.
+% \begin{macro}{\SL@alternatetext}
+%    \begin{macrocode}
+\def\SL@alternatetext#1{%
+  \if@outerlabels
+    \ifodd\c@page
+      \SL@righttext{#1}\else
+      \SL@lefttext{#1}\fi
+  \else
+    \ifodd\c@page
+      \SL@lefttext{#1}\else
+      \SL@righttext{#1}\fi
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% We have very similar things for equations, except that they are set in
+% place, rather than within a zero depth box.  This code ASSUMES that
+% equation numbers are going to be on the right hand side of the page.  It 
+% should probably check for the existence of the |fleqn| option.
+% \begin{macro}{\SL@eqnrighttext}
+% \begin{macro}{\SL@eqnlefttext}
+% \begin{macro}{\SL@eqnalternatetext}
+%    \begin{macrocode}
+\def\SL@eqnrighttext#1{\rlap{\quad\SL@margintext{#1}}}
+\def\SL@eqnlefttext #1{\hbox to 0pt{\kern -\textwidth
+	\llap{\SL@margintext{#1}\quad}\hss}}
+\def\SL@eqnalternatetext#1{%
+  \if@outerlabels
+    \ifodd\c@page
+      \SL@eqnrighttext{#1}\else
+      \SL@eqnlefttext{#1}\fi
+  \else
+    \ifodd\c@page
+      \SL@eqnlefttext{#1}\else
+      \SL@eqnrighttext{#1}\fi
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% To keep track of things, declare the |\if@outerlabels| switch, and set 
+% it true by default.
+%    \begin{macrocode}
+\newif\if@outerlabels
+\@outerlabelstrue
+%    \end{macrocode}
+%
+% We select between the various possibilities using the `outer' and 
+% `inner' options and, implicitly, the |[twoside]| option.
+%    \begin{macrocode}
+\DeclareOption{outer}{\@outerlabelstrue}
+\DeclareOption{inner}{\@outerlabelsfalse}
+%    \end{macrocode}
+%
+% Process any options that have been set.
+%    \begin{macrocode}
+\ProcessOptions
+%    \end{macrocode}
+% and use the values of |\if@outerlabels| and |if@twoside| which may have
+% been set by those options, to set |\SL@lrtext| to be the 
+% appropriate control sequence. 
+%    \begin{macrocode}
+\if@outerlabels
+  \if@twoside
+	\let\SL@lrtext\SL@alternatetext
+	\let\SL@eqnlrtext\SL@eqnalternatetext
+  \else
+    \let\SL@lrtext\SL@righttext
+    \let\SL@eqnlrtext\SL@eqnrighttext
+  \fi
+\else
+  \if@twoside
+	\let\SL@lrtext\SL@alternatetext
+	\let\SL@eqnlrtext\SL@eqnalternatetext
+  \else
+    \let\SL@lrtext\SL@lefttext
+    \let\SL@eqnlrtext\SL@eqnlefttext
+  \fi
+\fi
+%    \end{macrocode}
+%
+% That's us.  
+%
+%    \begin{macrocode}
+%</package>
+%    \end{macrocode}
+%
+% The driver file.  Nothing fancy.
+%    \begin{macrocode}
+%<*driver>
+\documentclass{ltxdoc}
+\begin{document}
+ % \OnlyDescription %uncomment to suppress the source listing
+ \DocInput{showlabels.dtx}
+\end{document}
+%</driver>
+%    \end{macrocode}
+% \Finale
+\endinput

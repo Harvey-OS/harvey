@@ -6,67 +6,20 @@
 #include	"io.h"
 
 /*
- *  task state segment.  Plan 9 ignores all the task switching goo and just
- *  uses the tss for esp0 and ss0 on gate's into the kernel, interrupts,
- *  and exceptions.  The rest is completely ignored.
- *
- *  This means that we only need one tss in the whole system.
- */
-typedef struct Tss	Tss;
-struct Tss
-{
-	ulong	backlink;	/* unused */
-	ulong	sp0;		/* pl0 stack pointer */
-	ulong	ss0;		/* pl0 stack selector */
-	ulong	sp1;		/* pl1 stack pointer */
-	ulong	ss1;		/* pl1 stack selector */
-	ulong	sp2;		/* pl2 stack pointer */
-	ulong	ss2;		/* pl2 stack selector */
-	ulong	cr3;		/* page table descriptor */
-	ulong	eip;		/* instruction pointer */
-	ulong	eflags;		/* processor flags */
-	ulong	eax;		/* general (hah?) registers */
-	ulong 	ecx;
-	ulong	edx;
-	ulong	ebx;
-	ulong	esp;
-	ulong	ebp;
-	ulong	esi;
-	ulong	edi;
-	ulong	es;		/* segment selectors */
-	ulong	cs;
-	ulong	ss;
-	ulong	ds;
-	ulong	fs;
-	ulong	gs;
-	ulong	ldt;		/* local descriptor table */
-	ulong	iomap;		/* io map base */
-};
-Tss tss;
-
-/*
  *  segment descriptor initializers
  */
-#define	DATASEGM(p) 	{ 0xFFFF, SEGG|SEGB|(0xF<<16)|SEGP|SEGPL(p)|SEGDATA|SEGW }
-#define	EXECSEGM(p) 	{ 0xFFFF, SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(p)|SEGEXEC|SEGR }
-#define CALLGATE(s,o,p)	{ ((o)&0xFFFF)|((s)<<16), (o)&0xFFFF0000|SEGP|SEGPL(p)|SEGCG }
-#define	D16SEGM(p) 	{ 0xFFFF, (0x0<<16)|SEGP|SEGPL(p)|SEGDATA|SEGW }
-#define	E16SEGM(p) 	{ 0xFFFF, (0x0<<16)|SEGP|SEGPL(p)|SEGEXEC|SEGR }
-#define	TSSSEGM(b,p)	{ ((b)<<16)|sizeof(Tss),\
-			  ((b)&0xFF000000)|(((b)>>16)&0xFF)|SEGTSS|SEGPL(p)|SEGP }
-
-/*
- *  global descriptor table describing all segments
- */
-Segdesc gdt[] =
-{
-[NULLSEG]	{ 0, 0},		/* null descriptor */
-[KDSEG]		DATASEGM(0),		/* kernel data/stack */
-[KESEG]		EXECSEGM(0),		/* kernel code */
-[UDSEG]		DATASEGM(3),		/* user data/stack */
-[UESEG]		EXECSEGM(3),		/* user code */
-[TSSSEG]	TSSSEGM(0,0),		/* tss segment */
-};
+#define	DATASEGM(p) (Segdesc){	0xFFFF,\
+				SEGG|SEGB|(0xF<<16)|SEGP|SEGPL(p)|SEGDATA|SEGW }
+#define	EXECSEGM(p) (Segdesc){	0xFFFF,\
+				SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(p)|SEGEXEC|SEGR }
+#define CALLGATE(s,o,p) (Segdesc){	((o)&0xFFFF)|((s)<<16),\
+					(o)&0xFFFF0000|SEGP|SEGPL(p)|SEGCG }
+#define	D16SEGM(p) (Segdesc){	0xFFFF,\
+				(0x0<<16)|SEGP|SEGPL(p)|SEGDATA|SEGW }
+#define	E16SEGM(p) (Segdesc){	0xFFFF,\
+				(0x0<<16)|SEGP|SEGPL(p)|SEGEXEC|SEGR }
+#define	TSSSEGM(b,p) (Segdesc){	((b)<<16)|sizeof(Tss),\
+				((b)&0xFF000000)|(((b)>>16)&0xFF)|SEGTSS|SEGPL(p)|SEGP }
 
 static Page	ktoppg;		/* prototype top level page table
 				 * containing kernel mappings  */
@@ -89,12 +42,53 @@ static ulong	*upt;		/* 2nd level page table for struct User */
 #define MAXUMEG 64	/* maximum memory per user process in megabytes */
 #define ONEMEG (1024*1024)
 
+enum {
+	Nisa=	256,
+};
 struct
 {
 	Lock;
-	ulong addr; 	/* next available address for isa bus memory */
-	ulong end;	/* one past available isa bus memory */
-} isamemalloc;
+	ulong s[Nisa];
+	ulong e[Nisa];
+} isaalloc;
+
+/*
+ *  setup mmu for a cpu assuming we've already created the kernel
+ *  page tables.
+ */
+void
+setupmmu(void)
+{
+	ulong x;
+
+	/*
+	 *  set up the global descriptor table. we make the tss entry here
+	 *  since it requires arithmetic on an address and hence cannot
+	 *  be a compile or link time constant.
+	 */
+	x = (ulong)&m->tss;
+	m->gdt[NULLSEG] = (Segdesc){0, 0};
+	m->gdt[TSSSEG] = TSSSEGM(x, 0);
+	m->gdt[KDSEG] = DATASEGM(0);		/* kernel data/stack */
+	m->gdt[KESEG] = EXECSEGM(0);		/* kernel code */
+	m->gdt[UDSEG] = DATASEGM(3);		/* user data/stack */
+	m->gdt[UESEG] = EXECSEGM(3);		/* user code */
+	putgdt(m->gdt, sizeof(m->gdt));
+
+	/*
+	 *  point to kernel page table
+	 */
+	putcr3(ktoppg.pa);
+
+	/*
+	 *  set up the task segment
+	 */
+	memset(&m->tss, 0, sizeof(m->tss));
+	m->tss.sp0 = USERADDR+BY2PG;
+	m->tss.ss0 = KDSEL;
+	m->tss.cr3 = ktoppg.pa;
+	puttr(TSSSEL);
+}
 
 /*
  *  Create a prototype page map that maps all of memory into
@@ -111,16 +105,6 @@ mmuinit(void)
 	ulong *top;
 
 	/*
-	 *  set up the global descriptor table. we make the tss entry here
-	 *  since it requires arithmetic on an address and hence cannot
-	 *  be a compile or link time constant.
-	 */
-	x = (ulong)&tss;
-	gdt[TSSSEG].d0 = (x<<16)|sizeof(Tss);
-	gdt[TSSSEG].d1 = (x&0xFF000000)|((x>>16)&0xFF)|SEGTSS|SEGPL(0)|SEGP;
-	putgdt(gdt, sizeof gdt);
-
-	/*
 	 *  set up system page tables.
 	 *  map all of physical memory to start at KZERO.
 	 *  leave a map entry for a user area.
@@ -131,12 +115,8 @@ mmuinit(void)
 	ktoppg.va = (ulong)top;
 	ktoppg.pa = ktoppg.va & ~KZERO;
 
-	/*  map all memory to KZERO (add some address space for ISA memory) */
-	isamemalloc.addr = conf.topofmem;
-	isamemalloc.end = conf.topofmem + ISAMEMSIZE;
-	if(isamemalloc.end > 64*MB)
-		isamemalloc.end = 64*MB;	/* ISA can only access 64 meg */
-	npage = isamemalloc.end/BY2PG;
+	/*  map all memory to KZERO */
+	npage = 128*MB/BY2PG;
 	nbytes = PGROUND(npage*BY2WD);		/* words of page map */
 	nkpt = nbytes/BY2PG;			/* pages of page map */
 	kpt = xspanalloc(nbytes, BY2PG, 0);
@@ -153,16 +133,7 @@ mmuinit(void)
 	y = ((ulong)upt)&~KZERO;
 	top[x] = y | PTEVALID | PTEKERNEL | PTEWRITE;
 
-	putcr3(ktoppg.pa);
-
-	/*
-	 *  set up the task segment
-	 */
-	memset(&tss, 0, sizeof(tss));
-	tss.sp0 = USERADDR+BY2PG;
-	tss.ss0 = KDSEL;
-	tss.cr3 = ktoppg.pa;
-	puttr(TSSSEL);
+	setupmmu();
 }
 
 /*
@@ -209,8 +180,8 @@ mapstack(Proc *p)
 		if(p->mmutop && p->mmuused){
 			top = (ulong*)p->mmutop->va;
 			for(pg = p->mmuused; pg->next; pg = pg->next)
-				top[pg->daddr] = 0;
-			top[pg->daddr] = 0;
+				ilputl(&top[pg->daddr], 0);
+			ilputl(&top[pg->daddr], 0);
 			pg->next = p->mmufree;
 			p->mmufree = p->mmuused;
 			p->mmuused = 0;
@@ -305,7 +276,7 @@ putmmu(ulong va, ulong pa, Page *pg)
 			p->mmufree = pg->next;
 			memset((void*)pg->va, 0, BY2PG);
 		}
-		top[topoff] = PPN(pg->pa) | PTEVALID | PTEUSER | PTEWRITE;
+		ilputl(&top[topoff], PPN(pg->pa) | PTEVALID | PTEUSER | PTEWRITE);
 		pg->daddr = topoff;
 		pg->next = p->mmuused;
 		p->mmuused = pg;
@@ -315,7 +286,7 @@ putmmu(ulong va, ulong pa, Page *pg)
 	 *  put in new mmu entry
 	 */
 	pt = (ulong*)(PPN(top[topoff])|KZERO);
-	pt[BTMOFF(va)] = pa | PTEUSER;
+	ilputl(&pt[BTMOFF(va)], pa | PTEUSER);
 
 	/* flush cached mmu entries */
 	putcr3(p->mmutop->pa);
@@ -333,21 +304,107 @@ invalidateu(void)
 }
 
 /*
+ *  used to map a page into 16 meg - BY2PG for confinit(). tpt is the temporary
+ *  page table set up by l.s.
+ */
+long*
+mapaddr(ulong addr)
+{
+	ulong base;
+	ulong off;
+	static ulong *pte, top;
+	extern ulong tpt[];
+
+	if(pte == 0){
+		top = (((ulong)tpt)+(BY2PG-1))&~(BY2PG-1);
+		pte = (ulong*)top;
+		top &= ~KZERO;
+		top += BY2PG;
+		pte += (4*1024*1024-BY2PG)>>PGSHIFT;
+	}
+
+	base = off = addr;
+	base &= ~(KZERO|(BY2PG-1));
+	off &= BY2PG-1;
+
+	*pte = base|PTEVALID|PTEKERNEL|PTEWRITE; /**/
+	putcr3((ulong)top);
+
+	return (long*)(KZERO | 4*1024*1024-BY2PG | off);
+}
+
+/*
+ *  make isa address space available
+ */
+void
+putisa(ulong addr, int len)
+{
+	ulong e;
+	int i, hole;
+
+	addr &= ~KZERO;
+
+	e = addr + len;
+	lock(&isaalloc);
+	hole = -1;
+	for(i = 0; i < Nisa; i++){
+		if(isaalloc.s[i] == e){
+			isaalloc.s[i] = addr;
+			break;
+		}
+		if(isaalloc.e[i] == addr){
+			isaalloc.e[i] = e;
+			break;
+		}
+		if(isaalloc.s[i] == 0)
+			hole = i;
+	}
+	if(i >= Nisa && hole >= 0){
+		isaalloc.s[hole] = addr;
+		isaalloc.e[hole] = e;
+	}
+	unlock(&isaalloc);
+}
+
+/*
  *  allocate some address space (already mapped into the kernel)
  *  for ISA bus memory.
  */
 ulong
-isamem(int len)
+getisa(ulong addr, int len, int align)
 {
-	ulong a, x;
+	int i;
+	long os, s, e;
 
-	lock(&isamemalloc);
-	len = PGROUND(len);
-	x = isamemalloc.addr + len;
-	if(x > isamemalloc.end)
-		panic("isamem");
-	a = isamemalloc.addr;
-	isamemalloc.addr = x;
-	unlock(&isamemalloc);
-	return a;
+	lock(&isaalloc);
+	os = s = e = 0;
+	for(i = 0; i < Nisa; i++){
+		s = os = isaalloc.s[i];
+		if(s == 0)
+			continue;
+		e = isaalloc.e[i];
+		if(addr && addr >= s && addr < e)
+			break;
+		if(align > 0)
+			s = ((s + align - 1)/align)*align;
+		if(e - s >= len)
+			break;
+	}
+	if(i >= Nisa){
+		unlock(&isaalloc);
+		return 0;
+	}
+
+	/* remove */
+	isaalloc.s[i] = 0;
+	unlock(&isaalloc);
+
+	/* give back edges */
+	if(s != os)
+		putisa(os, s - os);
+	os = s + len;
+	if(os != e)
+		putisa(os, e - os);
+
+	return KZERO|s;
 }

@@ -1,0 +1,8 @@
+root=plframe(0, 0);
+pllabel(root, PACKN|FILLX, "The 10th Amendment");
+plmessage(root, PACKN, 280,
+	"The powers not delegated to the "
+	"United States by the Constitution, "
+	"nor prohibited by it to the States, "
+	"are reserved to the States respectively, "
+	"or to the people.");

@@ -1,0 +1,398 @@
+%    Copyright (C) 1991, 1992, 1993 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of Aladdin Ghostscript.
+% 
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
+% 
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
+
+% Extract the ASCII text from a PostScript file.  Nothing is displayed.
+% Instead, ASCII information is written to stdout.  If SIMPLE is defined,
+% just the text is written, with a guess at line breaks and word spacing.
+% If SIMPLE is not defined, lines are written to stdout as follows:
+%
+%	F <height> <width> (<fontname>)
+%		indicate font height and width of a space
+%
+%	S <x> <y> (<string>) <width>
+%		display a string
+%
+%	P
+%		end of page
+% 
+% <height> is an integer expressed in tenths of a point
+% <width> is an integer in tenths of a point.
+% <x> and <y> are integer coordinates, in tenths of a point, with origin
+%   at lower left.
+% <string> and <fontname> are strings represented with the standard
+%   PostScript escape conventions.
+% The idea is similar to Glenn Reid's `distillery', only a lot more
+% simple-minded, and less robust.
+
+% Note that this code will only work in all cases if systemdict is writable
+% and if `binding' the definitions of operators defined as procedures
+% is deferred.  For this reason, it is normally invoked with
+%	gs -q -dNODISPLAY -dNOBIND -dWRITESYSTEMDICT ps2ascii.ps
+
+% Thanks to J Greely <jgreely@cis.ohio-state.edu> for improvements
+% to this code.
+
+/QUIET true def
+systemdict wcheck { systemdict } { userdict } ifelse begin
+/SIMPLE dup where { pop true } { false } ifelse def
+/setglobal where
+ { currentglobal /setglobal true setglobal }
+ { { } }
+ifelse
+
+% Disable the display operators.
+
+/eofill { newpath } odef
+/erasepage { } odef
+/fill { newpath } odef
+/stroke { newpath } odef
+
+% The image operators must read the input, but do nothing.
+
+/colorimage { gsave nulldevice //colorimage grestore } odef
+/image { gsave nulldevice //image grestore } odef
+/imagemask { gsave nulldevice //imagemask grestore } odef
+
+% Redefine the end-of-page operators.
+
+/copypage { SIMPLE { (\014) } { (P\n) } ifelse //print } odef
+/showpage { copypage erasepage initgraphics } odef
+
+% Redefine `show'.
+
+% Set things up so our output will be in tenths of a point, with origin at
+% lower left.  This isolates us from the peculiarities of individual devices.
+
+/.show.ident.matrix matrix def
+/.show.ident
+% { //.show.ident.matrix defaultmatrix
+%		% Assume the original transformation is well-behaved.
+%   0.1 0 2 index dtransform abs exch abs .max /.show.scale exch def
+%   0.1 dup 3 -1 roll scale
+ { gsave initmatrix
+		% Assume the original transformation is well-behaved.
+   0.1 0 dtransform abs exch abs .max /.show.scale exch def
+   0.1 dup scale .show.ident.matrix currentmatrix
+   grestore
+ } bind def
+/.coord
+ { transform .show.ident itransform
+   exch round cvi exch round cvi
+ } odef
+/.dcoord
+ {		% Transforming distances is trickier, because
+		% the coordinate system might be rotated.
+   .show.ident pop
+   exch 0 dtransform
+%     dup 0 ne { dup mul exch dup mul add sqrt } { pop abs } ifelse
+dup mul exch dup mul add sqrt
+     .show.scale div round cvi
+   exch 0 exch dtransform
+%     exch dup 0 ne { dup mul exch dup mul add sqrt } { pop abs } ifelse
+dup mul exch dup mul add sqrt
+     .show.scale div round cvi
+ } odef
+
+% Define a way to store and retrieve integers that survives save/restore.
+/.i.string (                ) def
+/.iget { cvi } bind def
+/.iput { exch //.i.string exch copy cvs pop } bind def
+/.inew { //.i.string length string dup 3 -1 roll .iput } bind def
+/.show.x 0 .inew def
+/.show.y 0 .inew def
+/.show.height 1000 .inew def
+% Remember the last character of the previous string; if it was a
+% hyphen preceded by a letter, we didn't output the hyphen.
+/.show.last (\000) def
+
+% Make sure writing will work even if a program uses =string.
+/.show.string =string length string def
+/.show.=string =string length string def
+/.show==only
+ { //=string //.show.=string copy pop
+   dup type /stringtype eq
+    { dup length //.show.string length le
+       { dup rcheck { //.show.string copy } if
+       } if
+    } if
+   //.stdout exch write==only
+   //.show.=string //=string copy pop
+ } odef
+
+/.showfont
+%(following comments are from J Greely)
+%old code - This didn't work right for me with all fonts.
+%
+% { 0 currentfont /FontBBox get dup 3 get exch 1 get sub
+%   currentfont /FontMatrix get dtransform dtransform
+%   exch abs exch abs .max round
+%   (F ) //print //.stdout exch write==only (\n) //print
+% } odef
+%
+%unfortunately, my way bombs on one of my test files in
+%--%show_continue--(?!).  It's from dvi2ps, which molests
+%the fonts in some way. --jgreely
+ { gsave
+	% If we can't get the height and width of the font from
+	% the FontBBox, we just measure some characters.
+     currentfont /FontBBox .knownget not { {0 0 0 0} } if
+     aload pop exch 4 -1 roll sub 3 1 roll exch sub
+     2 copy .max 0 ne
+      { currentfont /FontMatrix get dtransform
+      }
+      {	% Unfortunately, charpath is broken in some versions,
+	% so we use stringwidth and fudge.
+	(X) stringwidth pop dup 1.3 mul
+      }
+     ifelse .dcoord exch
+     currentfont /FontName .knownget not { () } if
+     dup type /nametype eq { //.show.string cvs } if
+   grestore
+	% Stack: height width fontname
+   SIMPLE
+    { pop pop //.show.height exch .iput }
+    { (F ) //print 3
+       { 2 index .show==only ( ) //print 3 -1 roll } repeat
+      pop pop pop (\n) //print
+    }
+   ifelse
+ } odef
+
+% Define the letters -- characters which, if they occur followed by a hyphen
+% at the end of a line, cause the hyphen and line break to be ignored.
+/.letter.chars 100 dict def
+mark
+  65 1 90 { dup 32 add } for
+counttomark { StandardEncoding exch get .letter.chars exch dup put } repeat
+pop
+
+% Define a set of characters which, if they occur at the start of a line,
+% are taken as indicating a paragraph break.
+/.break.chars 50 dict def
+mark
+  /bullet /dagger /daggerdbl /periodcentered /section
+counttomark { .break.chars exch dup put } repeat
+pop
+
+% Define character translation to ASCII.
+% We have to do this for the entire character set.
+/.char.map 500 dict def
+/.chars.def { counttomark 2 idiv { .char.map 3 1 roll put } repeat pop } def
+	% Encode the printable ASCII characters.
+mark 32 1 126
+ { 1 string dup 0 4 -1 roll put
+   dup 0 get StandardEncoding exch get exch
+ }
+for .chars.def
+	% Encode accents.
+mark
+  /acute (') /caron (^) /cedilla (,) /circumflex (^)
+  /dieresis (") /grave (`) /ring (*) /tilde (~)
+.chars.def
+	% Encode the ISO accented characters.
+mark 192 1 255
+ { ISOLatin1Encoding exch get =string cvs
+   dup 0 1 getinterval 1 index dup length 1 sub 1 exch getinterval
+   .char.map 2 index known .char.map 2 index known and
+    { .char.map 3 -1 roll get .char.map 3 -1 roll get concatstrings
+      .char.map 3 1 roll put
+    }
+    { pop pop pop
+    }
+   ifelse
+ }
+for .chars.def
+	% Encode the remaining standard and ISO alphabetic characters.
+mark
+  /AE (AE) /Eth (DH) /OE (OE) /Thorn (Th)
+  /ae (ae) /eth (dh)
+  /ffi (ffi) /ffl (ffl) /fi (fi) /fl (fl)
+  /germandbls (ss) /oe (oe) /thorn (th)
+.chars.def
+	% Encode the other standard and ISO characters.
+mark
+  /brokenbar (|) /bullet (*) /copyright ((C)) /currency (#)
+  /dagger (#) /daggerdbl (##) /degree (o) /divide (/) /dotaccent (.)
+  /dotlessi (i)
+  /ellipsis (...) /emdash (--) /endash (-) /exclamdown (!)
+  /florin (f) /fraction (/)
+  /guillemotleft (<<) /guillemotright (>>)
+  /guilsingleft (<) /guilsingright (>) /hungarumlaut ("") /logicalnot (~)
+  /macron (_) /minus (-) /mu (u) /multiply (*)
+  /ogonek (,) /onehalf (1/2) /onequarter (1/4) /onesuperior (1)
+  /ordfeminine (-a) /ordmasculine (-o)
+  /paragraph (||) /periodcentered (*) /perthousand (o/oo) /plusminus (+-)
+  /questiondown (?) /quotedblbase (") /quotedblleft (") /quotedblright (")
+  /quotesinglbase (,) /quotesingle (') /registered ((R))
+  /section ($) /sterling (#)
+  /threequarters (3/4) /threesuperior (3) /trademark ((TM)) /twosuperior (2)
+  /yen (Y)
+.chars.def
+	% Encode a few common Symbol characters.
+mark
+  /asteriskmath (*) /copyrightsans ((C)) /copyrightserif ((C))
+  /greaterequal (>=) /lessequal (<=) /registersans ((R)) /registerserif ((R))
+  /trademarksans ((TM)) /trademarkserif ((TM))
+.chars.def
+
+% Write out a string.  If it ends in a letter and a hyphen,
+% don't write the hyphen, and set .show.last to a hyphen;
+% otherwise, set .show.last to the character (or \000 if it was a hyphen).
+/.show.write	% <string>
+ { dup length 1 ge
+    { dup dup length 1 sub get
+      dup 45 eq		% hyphen
+       { 1 index length 1 gt
+          { 1 index dup length 2 sub get }
+	  { //.show.last 0 get }
+	 ifelse
+	 currentfont /Encoding get exch get
+	 //.letter.chars exch known
+	  {	% Remove the hyphen
+	    exch dup length 1 sub 0 exch getinterval exch
+	  }
+	  { pop 0
+	  }
+	 ifelse
+       }
+      if
+      //.show.last 0 3 -1 roll put
+    }
+   if
+    { dup currentfont /Encoding get exch get
+      dup //.char.map exch .knownget
+       { //.stdout exch writestring pop pop
+       }
+       { currentfont /Encoding dup StandardEncoding eq
+	 exch ISOLatin1Encoding eq or
+	  {	% Untranslated character in standard encoding
+	    pop //.stdout exch write
+	  }
+	  {	% Character in non-standard encoding, substitute
+	    pop pop //.stdout (*) writestring
+	  }
+	 ifelse
+       }
+      ifelse
+    }
+   forall
+ } odef
+/.showstring
+ { currentpoint .coord
+   3 -1 roll dup stringwidth 1 index 0 rmoveto
+   .dcoord pop
+	% Stack: x y string width
+   SIMPLE
+    { 2 index //.show.y .iget ne
+       {	% Try to figure out whether we have a line break
+		% or a paragraph break.
+	 2 index //.show.y .iget sub abs
+	 //.show.height .iget 1.3 mul ge
+	 2 index length 0 gt
+	  { 2 index 0 get currentfont /Encoding get exch get
+	    //.break.chars exch known { pop true } if
+	  }
+	 if
+	  { (\n\n)	% Paragraph
+	  }
+	  { ( )		% Line
+	  }
+	 ifelse //print
+	 //.show.y 3 index .iput
+         //.show.x 4 index .iput
+       }
+       {	% If the word processor split a hyphenated word within
+		% the same line, put out the hyphen now.
+	 //.show.last 0 get 45 eq { (-) //print } if
+       }
+      ifelse
+      3 index //.show.x .iget 10 add gt
+       { ( ) //print
+       }
+      if
+      4 1 roll .show.write pop add //.show.x exch .iput
+    }
+    { (S ) //print
+      4 -1 roll .show==only ( ) //print
+      3 -1 roll .show==only ( ) //print
+      exch .show==only ( ) //print
+      .show==only (\n) //print
+    }
+   ifelse
+ } odef
+     
+/show
+ { .showfont .showstring
+ } odef
+
+% Redefine the other string display operators in terms of `show'.
+
+/.show1.string ( ) def
+/.show1 { //.show1.string exch 0 exch put //.show1.string .showstring } odef
+/ashow
+ { .showfont
+   { .show1 2 copy rmoveto } forall
+   pop pop
+ } odef
+/awidthshow
+ { .showfont
+    { dup .show1 4 index eq { 4 index 4 index rmoveto } if
+      2 copy rmoveto
+    }
+   forall
+   pop pop pop pop pop
+ } odef
+/widthshow
+ { .showfont
+   //.show1.string 0 4 -1 roll put
+    { //.show1.string search not { exit } if
+      .showstring .showstring
+      2 index 2 index rmoveto
+    } loop
+   .showstring pop pop
+ } odef
+/kshow
+ { .showfont
+   { .show1 dup exec } forall pop
+ } odef
+
+% Redirect the printing operators.
+
+/.stdout (_temp_.out) (w) file def
+/.stderr (_temp_.err) (w) file def
+/print { //.stdout exch writestring } odef
+
+end
+
+% Bind the operators we just defined, and all the others if we didn't
+% do it before.  Also reenable 'bind' for future files.
+
+.bindoperators
+NOBIND currentdict systemdict ne and
+ { systemdict begin .bindoperators end }
+if
+NOBIND
+ { /bind /.bind load def }
+if
+
+% Make systemdict read-only if it wasn't already.
+
+systemdict wcheck { systemdict readonly pop } if
+
+% Restore the current local/global VM mode.
+
+exec

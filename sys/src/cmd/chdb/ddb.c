@@ -64,7 +64,7 @@ main(int argc, char *argv[])
 	chessinit('G', cinitf1, cinitf2);
 	xorinit();
 
-	sortby = Bywhite;
+	sortby = Byfile;
 	men3.item = men3l;
 	men3.lasthit = sortby;
 
@@ -154,6 +154,7 @@ main(int argc, char *argv[])
 				continue;
 
 			case 0x4:
+				bitblt(D, d.screen.min, D, d.screen, 0);
 				exits(0);
 
 			case '\b':

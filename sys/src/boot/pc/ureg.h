@@ -10,8 +10,10 @@ struct Ureg
 	ulong	dx;		/* ... */
 	ulong	cx;		/* ... */
 	ulong	ax;		/* ... */
-	ulong	es;		/* data segment */
-	ulong	ds;		/* data segment */
+	ulong	gs;		/* data segments */
+	ulong	fs;		/* ... */
+	ulong	es;		/* ... */
+	ulong	ds;		/* ... */
 	ulong	trap;		/* trap type */
 	ulong	ecode;		/* error code (or zero) */
 	ulong	pc;		/* pc */

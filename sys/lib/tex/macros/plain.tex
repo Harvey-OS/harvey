@@ -41,7 +41,7 @@
 % between user names and internal control sequences of plain format.
 \catcode`@=11
 
-% INITEX sets up \mathcode x=x, for x=0..127, except that
+% INITEX sets up \mathcode x=x, for x=0..255, except that
 % \mathcode x=x+"7100, for x = `A to `Z and `a to `z;
 % \mathcode x=x+"7000, for x = `0 to `9.
 % The following changes define internal codes as recommended
@@ -176,7 +176,7 @@
 % \count 10 always contains the number of the highest-numbered counter that
 % has been allocated, \count 14 the highest-numbered box, etc.
 % Inserts are given numbers 254, 253, etc., since they require a \count,
-% \dimen, \skip, and \box all with the same number; \count 19 contains the
+% \dimen, \skip, and \box all with the same number; \count 20 contains the
 % lowest-numbered insert that has been allocated. Of course, \box255 is
 % reserved for \output; \count255, \dimen255, and \skip255 can be used freely.
 
@@ -586,7 +586,7 @@
 \def\hidewidth{\hskip\hideskip} % for alignment entries that can stick out
 \def\ialign{\everycr{}\tabskip\z@skip\halign} % initialized \halign
 \newcount\mscount
-\def\multispan#1{\omit \mscount#1
+\def\multispan#1{\omit \mscount#1\relax
   \loop\ifnum\mscount>\@ne \sp@n\repeat}
 \def\sp@n{\span\omit\advance\mscount\m@ne}
 
@@ -678,7 +678,7 @@
 \def\b#1{\oalign{#1\crcr\hidewidth
     \vbox to.2ex{\hbox{\char22}\vss}\hidewidth}}
 \def\c#1{\setbox\z@\hbox{#1}\ifdim\ht\z@=1ex\accent24 #1%
-  \else{\ooalign{\hidewidth\char24\hidewidth\crcr\unhbox\z@}}\fi}
+  \else{\ooalign{\unhbox\z@\crcr\hidewidth\char24\hidewidth}}\fi}
 \def\copyright{{\ooalign{\hfil\raise.07ex\hbox{c}\hfil\crcr\mathhexbox20D}}}
 
 \def\dots{\relax\ifmmode\ldots\else$\m@th\ldots\,$\fi}
@@ -938,27 +938,27 @@
 \def\dot{\mathaccent"705F }
 \def\widetilde{\mathaccent"0365 }
 \def\widehat{\mathaccent"0362 }
-\def\overrightarrow#1{\vbox{\ialign{##\crcr
+\def\overrightarrow#1{\vbox{\m@th\ialign{##\crcr
       \rightarrowfill\crcr\noalign{\kern-\p@\nointerlineskip}
       $\hfil\displaystyle{#1}\hfil$\crcr}}}
-\def\overleftarrow#1{\vbox{\ialign{##\crcr
+\def\overleftarrow#1{\vbox{\m@th\ialign{##\crcr
       \leftarrowfill\crcr\noalign{\kern-\p@\nointerlineskip}
       $\hfil\displaystyle{#1}\hfil$\crcr}}}
-\def\overbrace#1{\mathop{\vbox{\ialign{##\crcr\noalign{\kern3\p@}
+\def\overbrace#1{\mathop{\vbox{\m@th\ialign{##\crcr\noalign{\kern3\p@}
       \downbracefill\crcr\noalign{\kern3\p@\nointerlineskip}
       $\hfil\displaystyle{#1}\hfil$\crcr}}}\limits}
-\def\underbrace#1{\mathop{\vtop{\ialign{##\crcr
+\def\underbrace#1{\mathop{\vtop{\m@th\ialign{##\crcr
       $\hfil\displaystyle{#1}\hfil$\crcr\noalign{\kern3\p@\nointerlineskip}
       \upbracefill\crcr\noalign{\kern3\p@}}}}\limits}
 \def\skew#1#2#3{{#2{#3\mkern#1mu}\mkern-#1mu}{}}
 
-\def\lmoustache{\delimiter"4000340 } % top from (, bottom from )
-\def\rmoustache{\delimiter"5000341 } % top from ), bottom from (
-\def\lgroup{\delimiter"400033A } % extensible ( with sharper tips
-\def\rgroup{\delimiter"500033B } % extensible ) with sharper tips
-\def\arrowvert{\delimiter"33C000 } % arrow without arrowheads
-\def\Arrowvert{\delimiter"33D000 } % double arrow without arrowheads
-\def\bracevert{\delimiter"33E000 } % the vertical bar that extends braces
+\def\lmoustache{\delimiter"437A340 } % top from (, bottom from )
+\def\rmoustache{\delimiter"537B341 } % top from ), bottom from (
+\def\lgroup{\delimiter"462833A } % extensible ( with sharper tips
+\def\rgroup{\delimiter"562933B } % extensible ) with sharper tips
+\def\arrowvert{\delimiter"26A33C } % arrow without arrowheads
+\def\Arrowvert{\delimiter"26B33D } % double arrow without arrowheads
+\def\bracevert{\delimiter"77C33E } % the vertical bar that extends braces
 \def\Vert{\delimiter"26B30D } \let\|=\Vert
 \def\vert{\delimiter"26A30C }
 \def\uparrow{\delimiter"3222378 }
@@ -1032,9 +1032,9 @@
 \def\@vereq#1#2{\lower.5\p@\vbox{\baselineskip\z@skip\lineskip-.5\p@
     \ialign{$\m@th#1\hfil##\hfil$\crcr#2\crcr=\crcr}}}
 \def\notin{\mathrel{\mathpalette\c@ncel\in}}
-\def\c@ncel#1#2{\ooalign{$\hfil#1\mkern1mu/\hfil$\crcr$#1#2$}}
+\def\c@ncel#1#2{\m@th\ooalign{$\hfil#1\mkern1mu/\hfil$\crcr$#1#2$}}
 \def\rightleftharpoons{\mathrel{\mathpalette\rlh@{}}}
-\def\rlh@#1{\vcenter{\hbox{\ooalign{\raise2pt
+\def\rlh@#1{\vcenter{\m@th\hbox{\ooalign{\raise2pt
           \hbox{$#1\rightharpoonup$}\crcr
         $#1\leftharpoondown$}}}}
 \def\buildrel#1\over#2{\mathrel{\mathop{\kern\z@#2}\limits^{#1}}}
@@ -1226,4 +1226,4 @@
 \nonfrenchspacing % punctuation affects the spacing
 \catcode`@=12 % at signs are no longer letters
 
-\def\fmtname{plain}\def\fmtversion{3.0} % identifies the current format
+\def\fmtname{plain}\def\fmtversion{3.141} % identifies the current format

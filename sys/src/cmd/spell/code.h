@@ -12,7 +12,7 @@
 #define COMP		(EST|ACTOR)	/* +er,+est */
 #define	DONT_TOUCH	(1<<6)
 #define	ION		(1<<7)	/* +ion, +or */
-#define	N_AFFIX		(1<<8) 	/* +ic, +ive, +ize, +like, +al, +ful, +ism, +ist, -t+cy */
+#define	N_AFFIX		(1<<8) 	/* +ic, +ive, +ize, +like, +al, +ful, +ism, +ist, -t+cy, +c (maniac) */
 #define	V_AFFIX		(1<<9)	/* +able, +ive, +ity((bility), +ment */
 #define	V_IRREG		(1<<10)	/* +ing +es +s*/
 #define	VERB		(V_IRREG|ED) 

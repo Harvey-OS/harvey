@@ -14,9 +14,11 @@ identified by the character after the pound sign.
 Such names are usually bound to conventional locations
 in the name space.
 For example, after
+.IP
 .EX
-	bind("#c", "/dev", MREPL)
+bind("#c", "/dev", MREPL)
 .EE
+.LP
 an
 .IR ls (1)
 of

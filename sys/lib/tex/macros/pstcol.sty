@@ -1,0 +1,59 @@
+%% 
+%% This is file `pstcol.sty', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% pstcol.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file pstcol.dtx .
+%% 
+%%%%%%%%%%%%%%%%%%
+\let\saved@gray\color@gray
+\RequirePackage{pstricks}
+\let\color@gray\saved@gray
+%%%%%%%%%%%%%%%%
+\DeclareOption*{\PassOptionsToPackage\CurrentOption{color}}
+\ProcessOptions
+\RequirePackage{color}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\pst@getcolor#1#2{%
+\@ifundefined{\string\color@#1}%
+{\@pstrickserr{Color `#1' not defined}\@eha}%
+ {\edef#2{\expandafter\expandafter\expandafter
+         \c@lor@to@ps\csname\string\color @#1\endcsname\@@}}}
+\def\pst@usecolor#1{#1\space}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\definecolor{darkgray}{gray}{.25}
+\definecolor{gray}{gray}{.5}
+\definecolor{lightgray}{gray}{.75}
+\definecolor{gradbegin}{rgb}{0,1,1}
+\definecolor{gradend}{rgb}{0,.1,.95}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\psset@bordercolor{white}
+\psset@doublecolor{white}
+\psset@linecolor{black}
+\psset@fillcolor{white}
+\psset@hatchcolor{black}
+\psset@gridcolor{black}
+\psset@gridlabelcolor{black}
+\psset@shadowcolor{darkgray}
+\psset@subgridcolor{gray}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\newgray#1{%
+  \definecolor{#1}{gray}}
+\def\newrgbcolor#1#2{%
+  \newrgbcolorx{#1}#2\@@}
+\def\newrgbcolorx#1#2 #3 #4\@@{%
+  \definecolor{#1}{rgb}{#2,#3,#4}}
+\def\newcmykcolor#1#2{%
+  \newcmykcolorx{#1}#2\@@}
+\def\newcmykcolorx#1#2 #3 #4 #5\@@{%
+  \definecolor{#1}{cmyk}{#2,#3,#4,#5}}
+
+\endinput
+%% 
+%% End of file `pstcol.sty'.

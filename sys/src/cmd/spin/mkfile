@@ -1,0 +1,59 @@
+# SPIN - Protocol Validation Software - Version 2.0 - January 1995
+#
+# Copyright (c) 1991,1995 AT&T Corporation.  All Rights Reserved.
+# This software is for educational purposes only.
+# No guarantee is expressed or implied by the distribution of this code.
+#
+# The SPIN software is written by Gerard J. Holzmann, as part of
+# ``Design and Validation of Protocols,'' ISBN 0-13-539925-4,
+# 1991, Prentice Hall, Englewood Cliffs, NJ, 07632
+# Send bug-reports and/or questions to: gerard@research.att.com
+
+</$objtype/mkfile
+
+TARG=spin
+OFILES= spin.$O\
+	spinlex.$O\
+	sym.$O\
+	vars.$O\
+	main.$O\
+	mesg.$O\
+	flow.$O\
+	sched.$O\
+	run.$O\
+	pangen1.$O\
+	pangen2.$O\
+	pangen3.$O\
+	pangen4.$O\
+	guided.$O\
+	dstep.$O\
+	structures.$O\
+
+HFILES=spin.h\
+	y.tab.h\
+
+YFILES=spin.y
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+CC=pcc
+LD=pcc
+CFLAGS=-c -D_POSIX_SOURCE
+YFLAGS=-v -d -S
+
+spin.c:	y.tab.c
+	cp $prereq $target
+
+pangen1.$O: pangen1.h pangen3.h
+pangen2.$O: pangen2.h
+
+nuke:V:		cleanpan cleanspin
+
+clean:V:	cleanpan cleanspin
+
+cleanpan:V:
+	rm -f pan.[chmotb]
+
+cleanspin:V:
+	rm -f spin.c

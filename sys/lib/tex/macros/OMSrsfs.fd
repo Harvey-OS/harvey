@@ -1,0 +1,14 @@
+%%
+%% Formal script Math symbols by Ralph A. Smith
+%% 1994/06/06 Vadim V. Zhytnikov
+%%
+\DeclareFontFamily{OMS}{rsfs}{\skewchar\font'60}
+\DeclareFontShape{OMS}{rsfs}{m}{n}{%
+      <5> rsfs5
+      <6> <7> rsfs7
+      <8> <9> <10> rsfs10
+      <10.95> <12> <14.4> <17.28> <20.74> <24.88> rsfs10
+      }{}
+\endinput
+%%
+%% End of file `OMSrsfs.fd'.

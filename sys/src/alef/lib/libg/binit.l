@@ -1,21 +1,19 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 	int	bitbltfd;
 	Bitmap	screen;
 	Font	*font;
-intern	char	bbuf[8192];
-	char	_btmp[8192];
-intern	char	*bbufp = bbuf;
-intern	void	(*onerr)(char*);
-intern	char	oldlabel[128+1];
-intern	char	*label;
+intern	byte	bbuf[8000];
+	byte	_btmp[8192];
+intern	byte	*bbufp = bbuf;
+intern	void	(*onerr)(byte*);
+intern	byte	oldlabel[128+1];
+intern	byte	*label;
 
-char*
+byte*
 bneed(int n)
 {
-		if(!bwrite())
-			berror("write to /dev/bitblt");
 	if(n < 0)
 		berror("negative count in bneed");
 
@@ -52,7 +50,7 @@ int
 Rconv(Printspec *ps)
 {
 	Rectangle *r;
-	char buf[128];
+	byte buf[128];
 
 	r = ps->o;
 	sprint(buf, "%P %P", r->min, r->max);
@@ -64,7 +62,7 @@ int
 Pconv(Printspec *ps)
 {
 	Point *p;
-	char buf[64];
+	byte buf[64];
 
 	p = ps->o;
 	sprint(buf, "[%ld %ld]", p->x, p->y);
@@ -73,10 +71,10 @@ Pconv(Printspec *ps)
 }
 
 void
-binit(void (*f)(char *), char *s, char *nlabel)
+binit(void (*f)(byte *), byte *s, byte *nlabel)
 {
-	char *buf, *p;
-	char fontname[128];
+	byte *buf, *p;
+	byte fontname[128];
 	int fd, n, m, j;
 	Fontchar *info;
 	Subfont	*subfont;
@@ -141,7 +139,7 @@ binit(void (*f)(char *), char *s, char *nlabel)
 		/*
 		 * Cobble fake font using existing subfont
 		 */
-		n = atoi((char*)buf+18+16);
+		n = atoi((byte*)buf+18+16);
 		info = malloc(sizeof(Fontchar)*(n+1));
 		if(info == nil){
 			free(buf);
@@ -157,8 +155,8 @@ binit(void (*f)(char *), char *s, char *nlabel)
 			berror("binit font alloc");
 		}
 		subfont->n = n;
-		subfont->height = atoi((char*)buf+18+16+12);
-		subfont->ascent = atoi((char*)buf+18+16+24);
+		subfont->height = atoi((byte*)buf+18+16+12);
+		subfont->ascent = atoi((byte*)buf+18+16+24);
 		subfont->info = info;
 		subfont->id = 0;
 		font = mkfont(subfont, 0);
@@ -210,9 +208,9 @@ bexit(void)
 }
 
 void
-berror(char *s)
+berror(byte *s)
 {
-	char err[ERRLEN];
+	byte err[ERRLEN];
 
 	if(onerr)
 		(*onerr)(s);

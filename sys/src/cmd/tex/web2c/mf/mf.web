@@ -19,9 +19,11 @@
 % Version 1.8 introduced major changes for 8-bit extensions (September 1989).
 % Version 1.9 improved skimping and was edited for style (December 1989).
 % Version 2.0 fixed bug in addto; released with TeX version 3.0 (March 1990).
+% Version 2.7 made consistent with TeX version 3.1 (September 1990).
+% Version 2.71 fixed bug in draw, allowed unprintable filenames (not yet released).
 % A few "harmless" optimizations have been made without changing versions.
 
-% A reward of $81.92 will be paid to the first finder of any remaining bug,
+% A reward of $163.84 will be paid to the first finder of any remaining bug,
 % except bugs introduced after August 1989.
 
 % Although considerable effort has been expended to make the METAFONT program
@@ -150,7 +152,7 @@ helping to determine whether an implementation deserves to be
 known as `\MF\kern.5pt' [cf.~Stanford Computer Science report CS1095,
 January 1986].
 
-@d banner=='This is METAFONT, Version 2.0' {printed when \MF\ starts}
+@d banner=='This is METAFONT, Version 2.71' {printed when \MF\ starts}
 
 @ Different \PASCAL s have slightly different conventions, and the present
 @!@:PASCAL H}{\ph@>
@@ -1457,9 +1459,11 @@ procedure print(@!s:integer); {prints string |s|}
 var @!j:pool_pointer; {current character code position}
 begin if (s<0)or(s>=str_ptr) then s:="???"; {this can't happen}
 @.???@>
-j:=str_start[s];
-while j<str_start[s+1] do
-  begin print_char(so(str_pool[j])); incr(j);
+if (s<256)and(selector>pseudo) then print_char(s)
+else begin j:=str_start[s];
+  while j<str_start[s+1] do
+    begin print_char(so(str_pool[j])); incr(j);
+    end;
   end;
 end;
 
@@ -1471,9 +1475,11 @@ procedure slow_print(@!s:integer); {prints string |s|}
 var @!j:pool_pointer; {current character code position}
 begin if (s<0)or(s>=str_ptr) then s:="???"; {this can't happen}
 @.???@>
-j:=str_start[s];
-while j<str_start[s+1] do
-  begin print(so(str_pool[j])); incr(j);
+if (s<256)and(selector>pseudo) then print_char(s)
+else begin j:=str_start[s];
+  while j<str_start[s+1] do
+    begin print(so(str_pool[j])); incr(j);
+    end;
   end;
 end;
 
@@ -1486,7 +1492,7 @@ character positions.
 @<Initialize the output...@>=
 wterm(banner);
 if base_ident=0 then wterm_ln(' (no base preloaded)')
-else  begin print(base_ident); print_ln;
+else  begin slow_print(base_ident); print_ln;
   end;
 update_terminal;
 
@@ -1766,7 +1772,7 @@ case c of
 "E": if file_ptr>0 then
   begin print_nl("You want to edit file ");
 @.You want to edit file x@>
-  print(input_stack[file_ptr].name_field);
+  slow_print(input_stack[file_ptr].name_field);
   print(" at line "); print_int(line);@/
   interaction:=scroll_mode; jump_out;
   end;
@@ -2577,7 +2583,7 @@ iterative scheme due to Cleve Moler and Donald Morrison [{\sl IBM Journal
 @^Moler, Cleve Barry@>
 @^Morrison, Donald Ross@>
 of Research and Development\/ \bf27} (1983), 577--581]. It modifies |a| and~|b|
-in such a way that their pythagorean sum remains invariant, while the
+in such a way that their Pythagorean sum remains invariant, while the
 smaller argument decreases.
 
 @p function pyth_add(@!a,@!b:integer):integer;
@@ -2992,7 +2998,7 @@ in Section 3.6 of {\sl The Art of Computer Programming}; however, the
 results are random fractions between 0 and |fraction_one-1|, inclusive.
 
 There's an auxiliary array |randoms| that contains 55 pseudo-random
-fractions. Using the recurrence $x_n=(x_{n-55}-x_{n-31})\bmod 2^{28}$,
+fractions. Using the recurrence $x_n=(x_{n-55}-x_{n-24})\bmod 2^{28}$,
 we generate batches of 55 new $x_n$'s at a time by calling |new_randoms|.
 The global variable |j_random| tells which element has most recently
 been consumed.
@@ -3002,7 +3008,9 @@ been consumed.
 @!j_random:0..54; {the number of unused |randoms|}
 
 @ To consume a random fraction, the program below will say `|next_random|'
-and then it will fetch |randoms[j_random]|.
+and then it will fetch |randoms[j_random]|. The |next_random| macro
+actually accesses the numbers backwards; blocks of 55~$x$'s are
+essentially being ``flipped.'' But that doesn't make them less random.
 
 @d next_random==if j_random=0 then new_randoms
   else decr(j_random)
@@ -3513,7 +3521,7 @@ for k:=hi_mem_stat_min to mem_top do
   mem[k]:=mem[lo_mem_max]; {clear list heads}
 avail:=null; mem_end:=mem_top;
 hi_mem_min:=hi_mem_stat_min; {initialize the one-word memory}
-var_used:=lo_mem_stat_max+1-mem_min; dyn_used:=mem_top+1-hi_mem_stat_min;
+var_used:=lo_mem_stat_max+1-mem_min; dyn_used:=mem_top+1-hi_mem_min;
   {initialize statistics}
 
 @ The procedure |flush_list(p)| frees an entire linked list of one-word
@@ -4883,7 +4891,7 @@ if c=class then
   isolated_classes:do_nothing;
   othercases print_char(" ")
   endcases;
-print(r);
+slow_print(r);
 end
 
 @ The following procedures have been declared |forward| with no parameters,
@@ -5045,7 +5053,7 @@ Suppose that `\.x' and `\.{x.a}' and `\.{x[]b}' and `\.{x5}'
 and `\.{x20b}' have been mentioned in a user's program, where
 \.{x[]b} has been declared to be of \&{boolean} type. Let |h(x)|, |h(a)|,
 and |h(b)| be the hash addresses of \.x, \.a, and~\.b. Then
-|eq_type(h(x))=name| and |equiv(h(x))=p|, where |p|~is a two-word value
+|eq_type(h(x))=tag_token| and |equiv(h(x))=p|, where |p|~is a two-word value
 node with |name_type(p)=root| and |link(p)=h(x)|. We have |type(p)=structured|,
 |attr_head(p)=q|, and |subscr_head(p)=r|, where |q| points to a value
 node and |r| to a subscript node. (Are you still following this? Use
@@ -5599,7 +5607,7 @@ begin while info(save_ptr)<>0 do
   if q>hash_end then
     begin if internal[tracing_restores]>0 then
       begin begin_diagnostic; print_nl("{restoring ");
-      print(int_name[q-(hash_end)]); print_char("=");
+      slow_print(int_name[q-(hash_end)]); print_char("=");
       print_scaled(value(save_ptr)); print_char("}");
       end_diagnostic(false);
       end;
@@ -5607,7 +5615,7 @@ begin while info(save_ptr)<>0 do
     end
   else  begin if internal[tracing_restores]>0 then
       begin begin_diagnostic; print_nl("{restoring ");
-      print(text(q)); print_char("}");
+      slow_print(text(q)); print_char("}");
       end_diagnostic(false);
       end;
     clear_symbol(q,false);
@@ -8786,8 +8794,7 @@ It is convenient to define a \.{WEB} macro |t_of_the_way| such that
 |t_of_the_way(a)(b)| expands to |a-(a-b)*t|, i.e., to |t[a,b]|.
 
 If |0<=t<=1|, the quantity |t[a,b]| is always between |a| and~|b|, even in
-the presence of rounding errors. This property implies that a monotone
-cubic cannot split into a non-monotone one. Our subroutines incidentally
+the presence of rounding errors. Our subroutines
 also obey the identity |t[a,b]+t[b,a]=a+b|.
 
 @d t_of_the_way_end(#)==#,t@=)@>
@@ -8901,6 +8908,16 @@ if right_y(pp)>y_coord(r) then right_y(pp):=y_coord(r);
  {we always have |y_coord(pp)<=right_y(pp)|}
 negate(y_coord(r)); right_y(r):=y_coord(r);
 negate(left_y(qq)); negate(dest_y);@/
+if x_coord(r)<x_coord(pp) then x_coord(r):=x_coord(pp)
+else if x_coord(r)>dest_x then x_coord(r):=dest_x;
+if left_x(r)>x_coord(r) then
+  begin left_x(r):=x_coord(r);
+  if right_x(pp)>x_coord(r) then right_x(pp):=x_coord(r);
+  end;
+if right_x(r)<x_coord(r) then
+  begin right_x(r):=x_coord(r);
+  if left_x(qq)<x_coord(r) then left_x(qq):=x_coord(r);
+  end;
 del2:=t_of_the_way(del2)(del3);
   {now |0,del2,del3| represent $y'$ on the remaining interval}
 if del2>0 then del2:=0;
@@ -8925,6 +8942,16 @@ if left_y(qq)<dest_y then left_y(qq):=-dest_y
 else if left_y(qq)>y_coord(s) then left_y(qq):=-y_coord(s)
 else negate(left_y(qq));
 negate(y_coord(s)); right_y(s):=y_coord(s);
+if x_coord(s)<x_coord(r) then x_coord(s):=x_coord(r)
+else if x_coord(s)>dest_x then x_coord(s):=dest_x;
+if left_x(s)>x_coord(s) then
+  begin left_x(s):=x_coord(s);
+  if right_x(r)>x_coord(s) then right_x(r):=x_coord(s);
+  end;
+if right_x(s)<x_coord(s) then
+  begin right_x(s):=x_coord(s);
+  if left_x(qq)<x_coord(s) then left_x(qq):=x_coord(s);
+  end;
 end
 
 @ If the cubic is constant in $y$ and increasing in $x$, we have classified
@@ -9017,9 +9044,6 @@ because the coordinates are skewed. It turns out that this is easier
 than ordinary swapping, because it can be done in two assignment statements
 rather than three.
 
-Whether we swap or not, the |y| coordinates will remain monotone, hence
-they will also be monotone after possible splitting.
-
 @ @<Swap the |x| and |y| coordinates...@>=
 begin y_coord(p):=x_coord(p)+y_coord(p); negate(x_coord(p));@/
 right_y(p):=right_x(p)+right_y(p); negate(right_x(p));@/
@@ -9036,12 +9060,17 @@ nasty rounding errors don't destroy our assumptions of monotonicity.
 begin split_cubic(p,t,dest_x,dest_y); r:=link(p);
 if right_type(r)>switch_x_and_y then right_type(r):=right_type(r)-switch_x_and_y
 else right_type(r):=right_type(r)+switch_x_and_y;
+if y_coord(r)<y_coord(p) then y_coord(r):=y_coord(p)
+else if y_coord(r)>dest_y then y_coord(r):=dest_y;
 if x_coord(p)+y_coord(r)>dest_x+dest_y then
-  begin y_coord(r):=dest_x+dest_y-x_coord(p);
-  if left_y(r)>y_coord(r) then
-    begin left_y(r):=y_coord(r);
-    if right_y(p)>y_coord(r) then right_y(p):=y_coord(r);
-    end;
+  y_coord(r):=dest_x+dest_y-x_coord(p);
+if left_y(r)>y_coord(r) then
+  begin left_y(r):=y_coord(r);
+  if right_y(p)>y_coord(r) then right_y(p):=y_coord(r);
+  end;
+if right_y(r)<y_coord(r) then
+  begin right_y(r):=y_coord(r);
+  if left_y(q)<y_coord(r) then left_y(q):=y_coord(r);
   end;
 if x_coord(r)<x_coord(p) then x_coord(r):=x_coord(p)
 else if x_coord(r)+y_coord(r)>dest_x+dest_y then
@@ -9053,10 +9082,10 @@ y_coord(r):=y_coord(r)+x_coord(r); right_y(r):=right_y(r)+x_coord(r);@/
 negate(x_coord(r)); right_x(r):=x_coord(r);@/
 left_y(q):=left_y(q)+left_x(q); negate(left_x(q));@/
 dest_y:=dest_y+dest_x; negate(dest_x);
-if right_y(r)>dest_y then right_y(r):=dest_y;
-if left_y(q)>dest_y then left_y(q):=dest_y
-else if left_y(q)<y_coord(r) then left_y(q):=y_coord(r);
-if right_y(r)>left_y(q) then right_y(r):=left_y(q);
+if right_y(r)<y_coord(r) then
+  begin right_y(r):=y_coord(r);
+  if left_y(q)<y_coord(r) then left_y(q):=y_coord(r);
+  end;
 del2:=t_of_the_way(del2)(del3);
   {now |0,del2,del3| represent $x'-y'$ on the remaining interval}
 if del2>0 then del2:=0;
@@ -9073,12 +9102,17 @@ end
 
 @ @<Subdivide the cubic a second time with respect to $x'-y'$@>=
 begin split_cubic(r,t,dest_x,dest_y); s:=link(r);@/
+if y_coord(s)<y_coord(r) then y_coord(s):=y_coord(r)
+else if y_coord(s)>dest_y then y_coord(s):=dest_y;
 if x_coord(r)+y_coord(s)>dest_x+dest_y then
-  begin y_coord(s):=dest_x+dest_y-x_coord(r);
-  if left_y(s)>y_coord(s) then
-    begin left_y(s):=y_coord(s);
-    if right_y(r)>y_coord(s) then right_y(r):=y_coord(s);
-    end;
+  y_coord(s):=dest_x+dest_y-x_coord(r);
+if left_y(s)>y_coord(s) then
+  begin left_y(s):=y_coord(s);
+  if right_y(r)>y_coord(s) then right_y(r):=y_coord(s);
+  end;
+if right_y(s)<y_coord(s) then
+  begin right_y(s):=y_coord(s);
+  if left_y(q)<y_coord(s) then left_y(q):=y_coord(s);
   end;
 if x_coord(s)+y_coord(s)>dest_x+dest_y then x_coord(s):=dest_x+dest_y-y_coord(s)
 else begin if x_coord(s)<dest_x then x_coord(s):=dest_x;
@@ -9093,11 +9127,10 @@ else if left_x(q)>x_coord(s) then
 else begin left_y(q):=left_y(q)+left_x(q); negate(left_x(q));@+end;
 y_coord(s):=y_coord(s)+x_coord(s); right_y(s):=right_y(s)+x_coord(s);@/
 negate(x_coord(s)); right_x(s):=x_coord(s);@/
-dest_y:=dest_y+dest_x;
-if right_y(s)>dest_y then right_y(s):=dest_y;
-if left_y(q)>dest_y then left_y(q):=dest_y
-else if left_y(q)<y_coord(s) then left_y(q):=y_coord(s);
-if right_y(s)>left_y(q) then right_y(s):=left_y(q);
+if right_y(s)<y_coord(s) then
+  begin right_y(s):=y_coord(s);
+  if left_y(q)<y_coord(s) then left_y(q):=y_coord(s);
+  end;
 end
 
 @ It's time now to consider ``autorounding,'' which tries to make horizontal,
@@ -11091,11 +11124,11 @@ are the most important; diagonal lines (when $\vert u\vert=\vert v\vert=1$)
 are next; and then come lines with slope $\pm2$ or $\pm1/2$.
 
 The nicest way to generate all rational directions having small
-numerators and denominators is to generalize the Stern-Peirce tree
-[cf.~{\sl The Art of Computer Programming\/ \bf2}, exercise 4.5.3--40]
-@^Peirce, Charles Santiago Sanders@>
+numerators and denominators is to generalize the Stern-Brocot tree
+[cf.~{\sl Concrete Mathematics}, section 4.5]
+@^Brocot, Achille@>
 @^Stern, Moriz Abraham@>
-to a ``Stern-Peirce wreath'' as follows: Begin with four nodes
+to a ``Stern-Brocot wreath'' as follows: Begin with four nodes
 arranged in a circle, containing the respective directions
 $(u,v)=(1,0)$, $(0,1)$, $(-1,0)$, and~$(0,-1)$. Then between pairs of
 consecutive terms $(u,v)$ and $(u',v')$ of the wreath, insert the
@@ -12435,7 +12468,7 @@ independent variables it depends on is reverting to |undefined|.
 $\alpha_1v_1+\cdots+\alpha_kv_k+\beta$ appears in |k+1| value nodes. If
 |q=dep_list(p)| points to this list, and if |k>0|, then |value(q)=
 @t$\alpha_1$@>| (which is a |fraction|); |info(q)| points to the location
-of $\alpha_1$; and |link(p)| points to the dependency list
+of $v_1$; and |link(p)| points to the dependency list
 $\alpha_2v_2+\cdots+\alpha_kv_k+\beta$. On the other hand if |k=0|,
 then |value(q)=@t$\beta$@>| (which is |scaled|) and |info(q)=null|.
 The independent variables $v_1$, \dots,~$v_k$ have been sorted so that
@@ -13028,8 +13061,8 @@ while p<>dep_head do
     begin print_nl("Bad PREVDEP at "); print_int(p);
 @.Bad PREVDEP...@>
     end;
-  p:=dep_list(p); r:=hi_mem_min;
-  repeat if info(p)>=r then
+  p:=dep_list(p); r:=inf_val;
+  repeat if value(info(p))>=value(r) then
     begin print_nl("Out of order at "); print_int(p);
 @.Out of order...@>
     end;
@@ -13458,7 +13491,7 @@ backed_up: if loc=null then print_nl("<recently read> ")
   else print_nl("<to be read again> ");
 inserted: print_nl("<inserted text> ");
 macro: begin print_ln;
-  if name<>null then print(text(name))
+  if name<>null then slow_print(text(name))
   else @<Print the name of a \&{vardef}'d macro@>;
   print("->");
   end;
@@ -13856,11 +13889,11 @@ absorbing: begin print("a text argument");
     end;
   end;
 var_defining, op_defining: begin print("the definition of ");
-  if scanner_status=op_defining then print(text(warning_info))
+  if scanner_status=op_defining then slow_print(text(warning_info))
   else print_variable_name(warning_info);
   cur_sym:=frozen_end_def;
   end;
-loop_defining: begin print("the text of a "); print(text(warning_info));
+loop_defining: begin print("the text of a "); slow_print(text(warning_info));
   print(" loop");
   help_line[3]:="I suspect you have forgotten an `endfor',";
   cur_sym:=frozen_end_for;
@@ -14508,7 +14541,7 @@ end
 Only a few command codes |<min_command| can possibly be returned by
 |get_next|; in increasing order, they are
 |if_test|, |fi_or_else|, |input|, |iteration|, |repeat_loop|,
-|exit_test|, |relax|, |expand_after|, |scan_tokens|, and |defined_macro|.
+|exit_test|, |relax|, |scan_tokens|, |expand_after|, and |defined_macro|.
 
 \MF\ usually gets the next token of input by saying |get_x_next|. This is
 like |get_next| except that it keeps getting more tokens until
@@ -14770,9 +14803,9 @@ end
 @ @<Declare the procedure called |print_macro_name|@>=
 procedure print_macro_name(@!a,@!n:pointer);
 var @!p,@!q:pointer; {they traverse the first part of |a|}
-begin if n<>null then print(text(n))
+begin if n<>null then slow_print(text(n))
 else  begin p:=info(a);
-  if p=null then print(text(info(info(link(a)))))
+  if p=null then slow_print(text(info(info(link(a)))))
   else  begin q:=p;
     while link(q)<>null do q:=link(q);
     link(q):=info(link(a));
@@ -14809,7 +14842,7 @@ if cur_cmd=comma then
   begin print_err("Too many arguments to ");
 @.Too many arguments...@>
   print_macro_name(arg_list,macro_name); print_char(";");
-  print_nl("  Missing `"); print(text(r_delim));
+  print_nl("  Missing `"); slow_print(text(r_delim));
 @.Missing `)'...@>
   print("' has been inserted");
   help3("I'm going to assume that the comma I just read was a")@/
@@ -15569,7 +15602,7 @@ some operating systems put the file area last instead of first.)
 
 @<Basic printing...@>=
 procedure print_file_name(@!n,@!a,@!e:integer);
-begin print(a); print(n); print(e);
+begin slow_print(a); slow_print(n); slow_print(e);
 end;
 
 @ Another system-dependent routine is needed to convert three internal
@@ -15853,7 +15886,7 @@ end
 
 @ @<Print the banner...@>=
 begin wlog(banner);
-print(base_ident); print("  ");
+slow_print(base_ident); print("  ");
 print_int(round_unscaled(internal[day])); print_char(" ");
 months:='JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC';
 m:=round_unscaled(internal[month]);
@@ -15891,8 +15924,10 @@ if cur_ext="" then cur_ext:=".mf";
 pack_cur_name;
 loop@+  begin begin_file_reading; {set up |cur_file| and new level of input}
   if a_open_in(cur_file) then goto done;
-  pack_file_name(cur_name,MF_area,cur_ext);
-  if a_open_in(cur_file) then goto done;
+  if cur_area="" then
+    begin pack_file_name(cur_name,MF_area,cur_ext);
+    if a_open_in(cur_file) then goto done;
+    end;
   end_file_reading; {remove the level that didn't work}
   prompt_file_name("input file name",".mf");
   end;
@@ -15903,7 +15938,7 @@ if job_name=0 then
     and |loc| needn't be set to meaningful values yet}
 if term_offset+length(name)>max_print_line-2 then print_ln
 else if (term_offset>0)or(file_offset>0) then print_char(" ");
-print_char("("); incr(open_parens); print(name); update_terminal;
+print_char("("); incr(open_parens); slow_print(name); update_terminal;
 if name=str_ptr-1 then {we can conserve string pool space now}
   begin flush_string(name); name:=cur_name;
   end;
@@ -15916,9 +15951,10 @@ contain a single blank line.
 @^system dependencies@>
 
 @<Read the first line...@>=
-begin if not input_ln(cur_file,false) then do_nothing;
+begin line:=1;
+if input_ln(cur_file,false) then do_nothing;
 firm_up_the_line;
-buffer[limit]:="%"; first:=limit+1; loc:=start; line:=1;
+buffer[limit]:="%"; first:=limit+1; loc:=start;
 end
 
 @ @<Put the desired file name in |(cur_name,cur_ext,cur_area)|@>=
@@ -18804,7 +18840,7 @@ being shifted.
 @<Declare binary action...@>=
 procedure path_trans(@!p:pointer;@!c:quarterword);
 label exit;
-var @!q:pointer; {list traversor}
+var @!q:pointer; {list traverser}
 begin set_up_known_trans(c); unstash_cur_exp(p);
 if cur_type=pen_type then
   begin if max_offset(cur_exp)=0 then if tx=0 then if ty=0 then return;
@@ -19419,7 +19455,7 @@ end
 
 @ @<Trace the current assignment@>=
 begin begin_diagnostic; print_nl("{");
-if info(lhs)>hash_end then print(int_name[info(lhs)-(hash_end)])
+if info(lhs)>hash_end then slow_print(int_name[info(lhs)-(hash_end)])
 else show_token_list(lhs,null,1000,0);
 print(":="); print_exp(null,0); print_char("}"); end_diagnostic(false);
 end
@@ -19428,7 +19464,7 @@ end
 if cur_type=known then internal[info(lhs)-(hash_end)]:=cur_exp
 else  begin exp_err("Internal quantity `");
 @.Internal quantity...@>
-  print(int_name[info(lhs)-(hash_end)]);
+  slow_print(int_name[info(lhs)-(hash_end)]);
   print("' must receive a known value");
   help2("I can't set an internal quantity to anything but a known")@/
     ("numeric value, so I'll have to ignore this assignment.");
@@ -19881,7 +19917,7 @@ if cur_sym<>r_delim then
     ("put one in, behind the scenes; this may fix the problem.");
   back_error;
   end
-else  begin print_err("The token `"); print(text(r_delim));
+else  begin print_err("The token `"); slow_print(text(r_delim));
 @.The token...delimiter@>
   print("' is no longer a right delimiter");
   help3("Strange: This token has lost its former meaning!")@/
@@ -19908,7 +19944,7 @@ if cur_cmd<>internal_quantity then
   begin print_err("The token `");
 @.The token...quantity@>
   if cur_sym=0 then print("(%CAPSULE)")
-  else print(text(cur_sym));
+  else slow_print(text(cur_sym));
   print("' isn't an internal quantity");
   help1("Something like `tracingonline' should follow `interim'.");
   back_error;
@@ -20008,7 +20044,7 @@ procedure disp_token;
 begin print_nl("> ");
 @.>\relax@>
 if cur_sym=0 then @<Show a numeric or string or capsule token@>
-else  begin print(text(cur_sym)); print_char("=");
+else  begin slow_print(text(cur_sym)); print_char("=");
   if eq_type(cur_sym)>=outer_tag then print("(outer) ");
   print_cmd_mod(cur_cmd,cur_mod);
   if cur_cmd=defined_macro then
@@ -20023,7 +20059,7 @@ begin if cur_cmd=numeric_token then print_scaled(cur_mod)
 else if cur_cmd=capsule_token then
   begin g_pointer:=cur_mod; print_capsule;
   end
-else  begin print_char(""""); print(cur_mod); print_char("""");
+else  begin print_char(""""); slow_print(cur_mod); print_char("""");
   delete_str_ref(cur_mod);
   end;
 end
@@ -20035,7 +20071,7 @@ primitive tokens.
 @<Cases of |print_cmd_...@>=
 left_delimiter,right_delimiter: begin if c=left_delimiter then print("lef")
   else print("righ");
-  print("t delimiter that matches "); print(text(m));
+  print("t delimiter that matches "); slow_print(text(m));
   end;
 tag_token:if m=null then print("tag")@+else print("variable");
 defined_macro: print("macro:");
@@ -20044,7 +20080,7 @@ secondary_primary_macro,tertiary_secondary_macro,expression_tertiary_macro:
   print_ln; show_token_list(link(link(m)),null,1000,0);
   end;
 repeat_loop:print("[repeat the loop]");
-internal_quantity:print(int_name[m]);
+internal_quantity:slow_print(int_name[m]);
 
 @ @<Declare action procedures for use by |do_statement|@>=
 procedure do_show_token;
@@ -21548,7 +21584,8 @@ metric_file_name:=b_make_name_string(tfm_file);
 @<Output the extensible character recipes and the font metric parameters@>;
 @!stat if internal[tracing_stats]>0 then
   @<Log the subfile sizes of the \.{TFM} file@>;@;@+tats@/
-print_nl("Font metrics written on "); print(metric_file_name); print_char(".");
+print_nl("Font metrics written on "); slow_print(metric_file_name);
+print_char(".");
 @.Font metrics written...@>
 b_close(tfm_file)
 
@@ -21592,7 +21629,7 @@ for k:=1 to 4 do
 |lig_kern| array in order to specify the right boundary character
 and/or to handle starting addresses that exceed 255. The |label_loc|
 and |label_char| arrays have been set up to record all the
-starting addesses; we have $-1=|label_loc|[0]<|label_loc|[1]\le\cdots
+starting addresses; we have $-1=|label_loc|[0]<|label_loc|[1]\le\cdots
 \le|label_loc|[|label_ptr]|$.
 
 @<Compute the ligature/kern program offset...@>=
@@ -21826,7 +21863,8 @@ general; it functions as a $(k+2)$-byte |no_op| unless special \.{GF}-reading
 programs are being used. \MF\ generates \\{xxx} commands when encountering
 a \&{special} string; this occurs in the \.{GF} file only between
 characters, after the preamble, and before the postamble. However,
-\\{xxx} commands might appear anywhere in \.{GF} files generated by other
+\\{xxx} commands might appear within characters,
+in \.{GF} files generated by other
 processors. It is recommended that |x| be a string having the form of a
 keyword followed by possible parameters relevant to that keyword.
 
@@ -22419,7 +22457,7 @@ while k>0 do
   begin gf_out(223); decr(k);
   end;
 @<Empty the last bytes out of |gf_buf|@>;
-print_nl("Output written on "); print(output_file_name);
+print_nl("Output written on "); slow_print(output_file_name);
 @.Output written...@>
 print(" ("); print_int(total_chars); print(" character");
 if total_chars<>1 then print_char("s");
@@ -22704,8 +22742,8 @@ while not w_open_out(base_file) do
  prompt_file_name("base file name",base_extension);
 print_nl("Beginning to dump on file ");
 @.Beginning to dump...@>
-print(w_make_name_string(base_file)); flush_string(str_ptr-1);
-print_nl(base_ident)
+slow_print(w_make_name_string(base_file)); flush_string(str_ptr-1);
+print_nl(""); slow_print(base_ident)
 
 @ @<Close the base file@>=
 w_close(base_file)
@@ -22832,7 +22870,7 @@ if log_opened then
   if selector=term_only then
     begin print_nl("Transcript written on ");
 @.Transcript written...@>
-    print(log_name); print_char(".");
+    slow_print(log_name); print_char(".");
     end;
   end;
 end;
@@ -23027,7 +23065,7 @@ gubed
 6: print_int(internal[n]);
 7: do_show_dependencies;
 9: show_token_list(n,null,100000,0);
-10: print(n);
+10: slow_print(n);
 11: check_mem(n>0); {check wellformedness; print new busy locations if |n>0|}
 12: search_mem(n); {look for pointers to |n|}
 13: begin read(term_in,l); print_cmd_mod(n,l);

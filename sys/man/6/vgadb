@@ -1,0 +1,410 @@
+.TH VGADB 6
+.SH NAME
+vgadb \- VGA controller and monitor database
+.SH DESCRIPTION
+.PP
+The VGA database,
+.BR /lib/vgadb ,
+consists of two parts,
+the first describing how to identify and program a VGA controller
+and the second describing the timing parameters for known 
+monitors to be loaded into a VGA controller to give a particular
+resolution and refresh rate.
+Conventionally, at system boot, the program
+.B aux/vga
+(see
+.IR vga (8))
+uses the monitor type in 
+.BR /env/monitor ,
+the display resolution in
+.BR /env/vgasize ,
+and the VGA controller information in the database to
+find a matching monitor entry and initialize the VGA controller accordingly.
+.PP
+The file comprises multi-line entries made up of
+attribute/value pairs of the form
+.IB attr = value
+or sometimes just
+.IR attr .
+Each line starting without white space starts a new entry.
+Lines starting with
+.B #
+are comments.
+.PP
+The first part of the database, the VGA controller identification and
+programming information,
+consists of a number of entries with attribute
+.B ctlr
+and no value.
+Within one of these entries the following attributes are
+meaningful:
+.TF 0xC0000
+.TP
+.I nnnnn
+an offset into the VGA BIOS area.
+The value is a string expected to be found there that will
+identify the controller.
+For example,
+.B 0xC0068="#9GXE64 Pro"
+would identify a #9GXEpro VGA controller if the string
+.B "#9GXE64 Pro"
+was found in the BIOS at address 0xC0068.
+There may be more than one identifier attribute per controller.
+If a match cannot be found, the first few bytes of the BIOS
+are printed to help identify the card and create a controller
+entry.
+.TP
+.B ctlr
+VGA controller chip type.
+This must match one of the VGA controller types
+known to
+.B /dev/vgactl
+(see
+.IR vga (3))
+and internally to
+.BR aux/vga .
+Currently,
+.BR clgd542x ,
+.BR et4000 ,
+.BR mach32 ,
+.BR mach64 ,
+.BR s3801 ,
+.BR s3805 ,
+.BR s3928 ,
+.BR vision864 ,
+and
+.B vision964
+are recognized.
+.TP
+.B ramdac
+RAMDAC controller type.
+This must match one of the types
+known internally to
+.BR aux/vga .
+Currently
+.BR att20c491 ,
+.BR att20c492 ,
+.BR att21c498 ,
+.BR bt485 ,
+.BR stg1702 ,
+.BR tvp3020 ,
+and
+.B tvp3025
+are recognized.
+.TP
+.B clock
+clock generator type.
+This must match one of the types
+known internally to
+.BR aux/vga .
+Currently
+.BR icd2061a ,
+.BR ics2494 ,
+.BR ics2494a ,
+.BR s3clock ,
+and
+.B tvp3025clock
+are recognized.
+.TP
+.B hwgc
+hardware graphics cursor type.
+This must match one of the types
+known to
+.B /dev/vgactl
+and internally to
+.BR aux/vga .
+Currently
+.BR bt485hwgc ,
+.BR s3hwgc ,
+.BR et4000hwgc ,
+and
+.B tvp3020hwgc
+are recognized.
+.TP
+.B link
+This must match one of the types
+known internally to
+.BR aux/vga .
+Currently
+.B vga
+and
+.B ibm8514
+are recognized.
+The type
+.B vga
+handles generic VGA functions and should almost always be included.
+The type
+.B Ibm8514
+handles basic graphics accelerator initialization on controllers
+such as the S3 family of GUI chips.
+.PD
+.PP
+The
+.BR clock ,
+.BR ctlr ,
+.BR link ,
+and
+.B ramdac
+values can all take an extension following a
+.B '-'
+that can be used as a speed-grade
+or subtype; matching is done without the extension.
+For example,
+.B ramdac=stg1702-135
+indicates the STG1702 RAMDAC has a maximum clock frequency of 135MHz,
+and
+.B clock=ics2494a-324
+indicates that the frequency table numbered
+324
+should be used for the ICS2494A clock generator.
+.PP
+The functions internal to
+.B aux/vga
+corresponding to the
+.BR clock ,
+.BR ctlr ,
+.BR link ,
+and
+.B ramdac
+values will be called in the order given for initialization.
+Sometimes the clock should be set before the RAMDAC is initialized,
+for example, depending on the components used.
+In general,
+.BR link=vga
+will always be first and,
+if appropriate,
+.BR link=ibm8514
+will be last.
+.PP
+The entries in the second part of
+.B /lib/vgadb
+have as attribute the name of a monitor type
+and the value is conventionally a resolution in the form
+.IB X x Y x Z\f1,
+where
+.IR X ,
+.IR Y ,
+and
+.I Z
+are numbers representing width, height, and depth in pixels.
+The monitor type (i.e. entry)
+.B include
+has special properties, described below and shown in the examples.
+The remainder of the entry contains timing information for
+the desired resolution.
+Within one of these entries the following attributes are
+meaningful:
+.TF interlace
+.TP
+.B clock
+the video dot-clock frequency in MHz required for this resolution.
+The value 25.175 is known internally to
+.IR vga (8)
+as the baseline VGA clock rate.
+.TP
+.B shb
+start horizontal blanking, in character clocks.
+.TP
+.B ehb
+end horizontal blanking, in character clocks.
+.TP
+.B ht
+horizontal total, in character clocks.
+.TP
+.B vrs
+vertical refresh start, in character clocks.
+.TP
+.B vre
+vertical refresh end, in character clocks.
+.TP
+.B vt
+vertical total, in character clocks.
+.TP
+.B hsync
+horizontal sync polarity.
+Value must be '\(pl' or '\(mi'.
+.TP
+.B vsync
+vertical sync polarity.
+Value must be
+.B +
+or
+.BR - .
+.TP
+.B interlace
+interlaced mode.
+Only value
+.B v
+is recognized.
+.TP
+.B alias
+continue, replacing the
+.B alias
+line by the contents of the entry whose attribute is given as
+.IR value .
+.TP
+.B include
+continue, replacing this
+.B include
+line by the contents of the previously defined
+.B include
+monitor type with matching
+.IR value .
+(See the examples.)
+Any non-zero attributes already set will not be overwritten.
+This is used to save duplication of timing information.
+Note that
+.I value
+is not parsed, it is only used as a string
+to identify the previous
+.BI include= value
+monitor type entry.
+.PD
+.PP
+The values given for
+.BR shb ,
+.BR ehb ,
+.BR ht ,
+.BR vrs ,
+.BR vre ,
+.BR vt ,
+.BR hsync ,
+and
+.B vsync
+are beyond the
+scope of this manual page.
+See the book by
+Ferraro
+for details.
+.SH EXAMPLES
+Basic
+.B ctlr
+entry for a laptop which is only capable of a 640x480x1 resolution:
+.EX
+
+ctlr						# AT&T Safari NSX20
+	0xE0030="PhoenixVIEW(tm) VGA-Compatible BIOS Version"
+	ctlr=vga
+
+.EE
+A more complex entry. Note the extensions on the
+.BR clock ,
+.BR ctlr ,
+and
+.B ramdac
+attributes. The order here is important: the RAMDAC clock input must be
+initialized before the RAMDAC itself. The clock frequency is selected by
+the
+.B ET4000
+chip.
+.EX
+
+ctlr						# Hercules Dynamite Power
+	0xC0076="Tseng Laboratories, Inc. 03/04/94 V8.00N"
+	link=vga
+	clock=ics2494a-324
+	ctlr=et4000-w32p
+	ramdac=stg1702-135
+
+.EE
+Monitor entry for type
+.B vga
+(the default monitor type used by
+.IR vga (8))
+and resolution 640x480x[18].
+.EX
+
+include = 640x480@60Hz				# 60Hz, 31.5KHz
+	clock=25.175
+	shb=664 ehb=760 ht=800
+	vrs=491 vre=493 vt=525
+
+vga = 640x480x1					# 60Hz, 31.5KHz
+	include=640x480@60Hz
+vga = 640x480x8					# 60Hz, 31.5KHz
+	include=640x480@60Hz
+
+.EE
+Entries for multisync monitors with video bandwidth up to 65MHz.
+.EX
+
+#
+# Multisync monitors with video bandwidth up to 65MHz.
+#
+multisync65 = 1024x768x1				# 60Hz, 48.4KHz
+	include=1024x768@60Hz
+multisync65 = 1024x768x8				# 60Hz, 48.4KHz
+	include=1024x768@60Hz
+multisync65 = 1024x768x1i			# 87Hz, 35.5KHz (interlaced)
+	include=1024x768i@87Hz
+multisync65 = 1024x768x8i			# 87Hz, 35.5KHz (interlaced)
+	include=1024x768i@87Hz
+multisync65
+	alias=vga
+
+.EE
+Note how this builds on the existing
+.B vga
+entries.
+.SH FILES
+.TP
+.B /lib/vgadb
+.SH "SEE ALSO"
+.IR ndb (2),
+.IR vga (3),
+.IR ndb (6),
+.IR b.com (8),
+.IR vga (8)
+.br
+Richard E. Ferraro,
+.I
+Programming Guide to the EGA, VGA and Super VGA Cards,
+Third Edition
+.SH BUGS
+The
+.B mach32
+and
+.B mach64
+controllers are programmed only in VGA mode, not accelerated mode,
+so are limited to a maximum resolution of 1024×768×8.
+.SH "ADDING A NEW MONITOR"
+Adding a new monitor is usually fairly straightforward, as most modern monitors
+are multisync and the only interesting parameter is the
+maximum video bandwidth.
+Once the timing parameters are worked out for a particular maximum
+video bandwidth as in the example above, an entry for a new monitor
+with that limit is simply
+.EX
+
+#
+# Sony CPD-1304
+# Horizontal timing:
+#	Allowable frequency range: 28-50KHz
+# Vertical timing:
+#	Allowable frequency range: 50-87Hz
+#
+cpd-1304
+	alias=multisync65
+
+.EE
+Even this is not necessary, as the monitor type could simply be
+given as
+.BR multisync65 .
+.SH "ADDING A NEW VGA CONTROLLER"
+While the use of this database formalizes the steps needed to
+program a VGA controller,
+unless you are very lucky and all the important components on
+a new VGA controller card are interconnected in the same way as an
+existing entry, adding a new entry requires adding new internal
+types to
+.IR vga (8).
+.PP
+At a minimum you will need the data sheets for the VGA controller
+chip, the RAMDAC and the clock generator.
+You will also need to know how these components interact.
+For example, a common combination is an S3 86C928 VGA chip with
+an ICD2061A clock generator. The ICD2061A is usually loaded by clocking
+a serial bit-stream out of one of the 86C928 registers.
+Similarly, the RAMDAC may have an internal clock-doubler and/or
+pixel-multiplexing modes, in which case both the clock generator and
+VGA chip must be programmed accordingly.

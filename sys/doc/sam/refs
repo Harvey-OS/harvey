@@ -1,11 +1,7 @@
 .SH
-\s9REFERENCES\s0
+REFERENCES
 .PP
 .nr PI \w'20. 'u
-.nr PS -2
-.nr VS -2
-.ps -2
-.vs -2
 .IP \01. 
 R. Pike,
 `The Blit: a multiplexed graphics terminal,'

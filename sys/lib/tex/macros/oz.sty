@@ -1,0 +1,892 @@
+%% 
+%% This is file `oz.sty', generated 
+%% on <1995/2/24> with the docstrip utility (1).
+%% 
+%% The original source files were:
+%% 
+%% oz.dtx  (with options: `package')
+%% Copyright (C) 1993 Sebastian Rahtz. All rights reserved. 
+%% This is a generated file for Object Z. Permission is granted to to 
+%% customize the declarations in this file to serve the needs of your 
+%% installation. However, no permission is granted to distribute a 
+%% modified version of this file under its original name. 
+%% 
+\def\fileversion{2.2}
+\def\filedate{1994/12/05}
+\def\docdate {1994/08/13}
+%% File: oz.dtx Copyright (C) 1994 Sebastian Rahtz
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\ProvidesPackage{oz}[\filedate\space\fileversion]
+\long\def\oz@parbox#1#2{%
+ \leavevmode
+ \vbox{\hsize #1\@parboxrestore #2}
+}
+\@ifpackageloaded{lucbr}{}{%
+\DeclareMathVersion{oz}
+\SetMathAlphabet{\mathrm}{oz}{\encodingdefault}{\rmdefault}{m}{n}%
+\SetMathAlphabet{\mathbf}{oz}{\encodingdefault}{\rmdefault}{bx}{n}%
+\SetMathAlphabet{\mathsf}{oz}{\encodingdefault}{\sfdefault}{m}{n}%
+\DeclareSymbolFont{italics}{\encodingdefault}{\rmdefault}{m}{it}%
+\DeclareSymbolFontAlphabet{\mathrm}{operators}
+\DeclareSymbolFontAlphabet{\mathit}{letters}
+\DeclareSymbolFontAlphabet{\mathcal}{symbols}
+\DeclareSymbolFontAlphabet{\ozit}{italics}
+\DeclareSymbolFont{lasy}{U}{lasy}{m}{n}
+\DeclareSymbolFont{AMSa}{U}{msa}{m}{n}
+\DeclareSymbolFont{AMSb}{U}{msb}{m}{n}
+\let\mho\undefined
+\let\Join\undefined
+\let\Box\undefined
+\let\Diamond\undefined
+\let\leadsto\undefined
+\let\sqsubset\undefined
+\let\sqsupset\undefined
+\let\lhd\undefined
+\let\unlhd\undefined
+\let\rhd\undefined
+\let\unrhd\undefined
+\DeclareMathSymbol{\mho}{\mathord}{lasy}{"30}
+\DeclareMathSymbol{\Join}{\mathrel}{lasy}{"31}
+\DeclareMathSymbol{\Box}{\mathord}{lasy}{"32}
+\DeclareMathSymbol{\Diamond}{\mathord}{lasy}{"33}
+\DeclareMathSymbol{\leadsto}{\mathrel}{lasy}{"3B}
+\DeclareMathSymbol{\sqsubset}{\mathrel}{lasy}{"3C}
+\DeclareMathSymbol{\sqsupset}{\mathrel}{lasy}{"3D}
+\DeclareMathSymbol{\lhd}{\mathrel}{lasy}{"01}
+\DeclareMathSymbol{\unlhd}{\mathrel}{lasy}{"02}
+\DeclareMathSymbol{\rhd}{\mathrel}{lasy}{"03}
+\DeclareMathSymbol{\unrhd}{\mathrel}{lasy}{"04}
+\DeclareSymbolFontAlphabet{\bbold}{AMSb}
+\mathversion{oz}
+}
+\newbox\strutbox@
+\def\strut@{\copy\strutbox@}
+\addto@hook\every@math@size{%
+    \setbox\strutbox@\hbox{\lower.5\normallineskiplimit
+ \vbox{\kern-\normallineskiplimit\copy\strutbox}}}
+\def\bBigg@#1#2{%
+\mbox{\ifcase#1\or\large\or\Large\or\LARGE\or\small\or\footnotesize\fi
+$#2$}\nulldelimiterspace\z@ \m@th}
+\addto@hook\every@math@size{\setbox\z@\vbox{\hbox{$($}\kern\z@}%
+  \big@size 1.2\ht\z@}
+\newdimen\big@size
+\def\zBIG{\bBigg@{3}}
+\def\zBig{\bBigg@{2}}
+\def\zbig{\bBigg@{1}}
+\def\zsmall{\bBigg@{4}}
+\def\zSmall{\bBigg@{5}}
+\def\String#1{\hbox{`\texttt{#1}'}}
+\def\STRING#1{\hbox{``\texttt{#1}''}}
+\def\infix#1{\z@rel{{\underline{#1}}}}
+\def\word#1{\z@op{#1}}
+\def\keyword#1{\z@op{\mbox{\textrm{#1}}}}
+\def\boldword#1{\z@op{\mbox{\textbf{#1}}}}
+\def\underword#1{\z@op{{\underline{#1}}}}
+\def\underkeyword#1{\z@op{{\underline{\mbox{\textrm{#1}}}}}}
+\def\underboldword#1{\z@op{{\underline{\mbox{\textbf{#1}}}}}}
+\def\@setmcodes#1#2#3{{\count0=#1 \count1=#3
+    \loop \global\mathcode\count0=\count1 \ifnum \count0<#2
+    \advance\count0 by1 \advance\count1 by1 \repeat}}
+\@setmcodes{`A}{`Z}{"7\hexnumber@\symitalics41}
+\@setmcodes{`a}{`z}{"7\hexnumber@\symitalics61} 
+\let\@mc=\mathchardef
+\mathcode`\;="8000 % Makes ; active in math mode
+{\catcode`\;=\active \gdef;{\semicolon\;}}
+\@mc\semicolon="603B
+\def\z@op#1{\mathop{\mathstrut{#1}}\nolimits}
+\def\z@bin#1{\mathbin{\mathstrut{#1}}}
+\def\z@rel#1{\mathrel{\mathstrut{#1}}}
+\def\z@bigop#1{\z@op{\zbig{#1}}}
+\def\z@bigbin#1{\z@bin{\zbig{#1}}}
+\def\z@bigrel#1{\z@rel{\zbig{#1}}}
+\def\z@Bigop#1{\z@op{\zBig{#1}}}
+\def\z@Bigbin#1{\z@bin{\zBig{#1}}}
+\def\z@Bigrel#1{\z@rel{\zBig{#1}}}
+\def\z@smallop#1{\z@op{\zsmall{#1}}}
+\def\z@smallbin#1{\z@bin{\zsmall{#1}}}
+\def\z@smallrel#1{\z@rel{\zsmall{#1}}}
+\def\_{\leavevmode \vbox{\hrule width0.4em}}
+\let\xforall=\forall
+\let\xexists=\exists
+\let\xlambda=\lambda
+\let\xmu=\mu
+\let\xsucc\succ
+\let\xprec\prec
+\let\dotaccent=\dot
+\let\sectionsymbol=\S
+\let\integral=\int
+\let\product\prod
+\def\p#1{\mathrel{\ooalign{\hfil$\mapstochar\mkern 5mu$\hfil\cr$#1$}}}
+\def\f#1{\mathrel{\ooalign{\hfil
+    $\mapstochar\mkern 3mu\mapstochar\mkern 5mu$\hfil\cr$#1$}}}
+\@ifpackageloaded{lucbr}{%
+ \DeclareMathSymbol{\doublebarwedge}{\mathbin}{symbols}{"D4}
+ \DeclareMathSymbol{\lll}{\mathrel}{letters}{"DE}
+ \DeclareMathSymbol{\ggg}{\mathrel}{letters}{"DF} 
+ \DeclareMathSymbol{\eth}{\mathrel}{operators}{"F0}
+}{%
+\let\rightleftharpoons\undefined
+\let\angle\undefined
+\DeclareMathSymbol\boxdot{\mathbin}{AMSa}{"00}
+\DeclareMathSymbol\boxplus{\mathbin}{AMSa}{"01}
+\DeclareMathSymbol\boxtimes{\mathbin}{AMSa}{"02}
+\DeclareMathSymbol\square{\mathord}{AMSa}{"03}
+\DeclareMathSymbol\blacksquare{\mathord}{AMSa}{"04}
+\DeclareMathSymbol\centerdot{\mathbin}{AMSa}{"05}
+\DeclareMathSymbol\lozenge{\mathord}{AMSa}{"06}
+\DeclareMathSymbol\blacklozenge{\mathord}{AMSa}{"07}
+\DeclareMathSymbol\circlearrowright{\mathrel}{AMSa}{"08}
+\DeclareMathSymbol\circlearrowleft{\mathrel}{AMSa}{"09}
+\DeclareMathSymbol\rightleftharpoons{\mathrel}{AMSa}{"0A}
+\DeclareMathSymbol\leftrightharpoons{\mathrel}{AMSa}{"0B}
+\DeclareMathSymbol\boxminus{\mathbin}{AMSa}{"0C}
+\DeclareMathSymbol\Vdash{\mathrel}{AMSa}{"0D}
+\DeclareMathSymbol\Vvdash{\mathrel}{AMSa}{"0E}
+\DeclareMathSymbol\vDash{\mathrel}{AMSa}{"0F}
+\DeclareMathSymbol\twoheadrightarrow{\mathrel}{AMSa}{"10}
+\DeclareMathSymbol\twoheadleftarrow{\mathrel}{AMSa}{"11}
+\DeclareMathSymbol\leftleftarrows{\mathrel}{AMSa}{"12}
+\DeclareMathSymbol\rightrightarrows{\mathrel}{AMSa}{"13}
+\DeclareMathSymbol\upuparrows{\mathrel}{AMSa}{"14}
+\DeclareMathSymbol\downdownarrows{\mathrel}{AMSa}{"15}
+\DeclareMathSymbol\upharpoonright{\mathrel}{AMSa}{"16}
+\DeclareMathSymbol\downharpoonright{\mathrel}{AMSa}{"17}
+\DeclareMathSymbol\upharpoonleft{\mathrel}{AMSa}{"18}
+\DeclareMathSymbol\downharpoonleft{\mathrel}{AMSa}{"19}
+\DeclareMathSymbol\rightarrowtail{\mathrel}{AMSa}{"1A}
+\DeclareMathSymbol\leftarrowtail{\mathrel}{AMSa}{"1B}
+\DeclareMathSymbol\leftrightarrows{\mathrel}{AMSa}{"1C}
+\DeclareMathSymbol\rightleftarrows{\mathrel}{AMSa}{"1D}
+\DeclareMathSymbol\Lsh{\mathrel}{AMSa}{"1E}
+\DeclareMathSymbol\Rsh{\mathrel}{AMSa}{"1F}
+\DeclareMathSymbol\rightsquigarrow{\mathrel}{AMSa}{"20}
+\DeclareMathSymbol\leftrightsquigarrow{\mathrel}{AMSa}{"21}
+\DeclareMathSymbol\looparrowleft{\mathrel}{AMSa}{"22}
+\DeclareMathSymbol\looparrowright{\mathrel}{AMSa}{"23}
+\DeclareMathSymbol\circeq{\mathrel}{AMSa}{"24}
+\DeclareMathSymbol\succsim{\mathrel}{AMSa}{"25}
+\DeclareMathSymbol\gtrsim{\mathrel}{AMSa}{"26}
+\DeclareMathSymbol\gtrapprox{\mathrel}{AMSa}{"27}
+\DeclareMathSymbol\multimap{\mathrel}{AMSa}{"28}
+\DeclareMathSymbol\therefore{\mathrel}{AMSa}{"29}
+\DeclareMathSymbol\because{\mathrel}{AMSa}{"2A}
+\DeclareMathSymbol\doteqdot{\mathrel}{AMSa}{"2B}
+\DeclareMathSymbol\triangleq{\mathrel}{AMSa}{"2C}
+\DeclareMathSymbol\precsim{\mathrel}{AMSa}{"2D}
+\DeclareMathSymbol\lesssim{\mathrel}{AMSa}{"2E}
+\DeclareMathSymbol\lessapprox{\mathrel}{AMSa}{"2F}
+\DeclareMathSymbol\eqslantless{\mathrel}{AMSa}{"30}
+\DeclareMathSymbol\eqslantgtr{\mathrel}{AMSa}{"31}
+\DeclareMathSymbol\curlyeqprec{\mathrel}{AMSa}{"32}
+\DeclareMathSymbol\curlyeqsucc{\mathrel}{AMSa}{"33}
+\DeclareMathSymbol\preccurlyeq{\mathrel}{AMSa}{"34}
+\DeclareMathSymbol\leqq{\mathrel}{AMSa}{"35}
+\DeclareMathSymbol\leqslant{\mathrel}{AMSa}{"36}
+\DeclareMathSymbol\lessgtr{\mathrel}{AMSa}{"37}
+\DeclareMathSymbol\backprime{\mathord}{AMSa}{"38}
+\DeclareMathSymbol\risingdotseq{\mathrel}{AMSa}{"3A}
+\DeclareMathSymbol\fallingdotseq{\mathrel}{AMSa}{"3B}
+\DeclareMathSymbol\succcurlyeq{\mathrel}{AMSa}{"3C}
+\DeclareMathSymbol\geqq{\mathrel}{AMSa}{"3D}
+\DeclareMathSymbol\geqslant{\mathrel}{AMSa}{"3E}
+\DeclareMathSymbol\gtrless{\mathrel}{AMSa}{"3F}
+\DeclareMathSymbol\sqsubset{\mathrel}{AMSa}{"40}
+\DeclareMathSymbol\sqsupset{\mathrel}{AMSa}{"41}
+\DeclareMathSymbol\vartriangleright{\mathrel}{AMSa}{"42}
+\DeclareMathSymbol\vartriangleleft{\mathrel}{AMSa}{"43}
+\DeclareMathSymbol\trianglerighteq{\mathrel}{AMSa}{"44}
+\DeclareMathSymbol\trianglelefteq{\mathrel}{AMSa}{"45}
+\DeclareMathSymbol\bigstar{\mathord}{AMSa}{"46}
+\DeclareMathSymbol\between{\mathrel}{AMSa}{"47}
+\DeclareMathSymbol\blacktriangledown{\mathord}{AMSa}{"48}
+\DeclareMathSymbol\blacktriangleright{\mathrel}{AMSa}{"49}
+\DeclareMathSymbol\blacktriangleleft{\mathrel}{AMSa}{"4A}
+\DeclareMathSymbol\vartriangle{\mathord}{AMSa}{"4D}
+\DeclareMathSymbol\blacktriangle{\mathord}{AMSa}{"4E}
+\DeclareMathSymbol\triangledown{\mathord}{AMSa}{"4F}
+\DeclareMathSymbol\eqcirc{\mathrel}{AMSa}{"50}
+\DeclareMathSymbol\lesseqgtr{\mathrel}{AMSa}{"51}
+\DeclareMathSymbol\gtreqless{\mathrel}{AMSa}{"52}
+\DeclareMathSymbol\lesseqqgtr{\mathrel}{AMSa}{"53}
+\DeclareMathSymbol\gtreqqless{\mathrel}{AMSa}{"54}
+\DeclareMathSymbol\Rrightarrow{\mathrel}{AMSa}{"56}
+\DeclareMathSymbol\Lleftarrow{\mathrel}{AMSa}{"57}
+\DeclareMathSymbol\veebar{\mathbin}{AMSa}{"59}
+\DeclareMathSymbol\barwedge{\mathbin}{AMSa}{"5A}
+\DeclareMathSymbol\doublebarwedge{\mathbin}{AMSa}{"5B}
+\DeclareMathSymbol\angle{\mathord}{AMSa}{"5C}
+\DeclareMathSymbol\measuredangle{\mathord}{AMSa}{"5D}
+\DeclareMathSymbol\sphericalangle{\mathord}{AMSa}{"5E}
+\DeclareMathSymbol\varpropto{\mathrel}{AMSa}{"5F}
+\DeclareMathSymbol\smallsmile{\mathrel}{AMSa}{"60}
+\DeclareMathSymbol\smallfrown{\mathrel}{AMSa}{"61}
+\DeclareMathSymbol\Subset{\mathrel}{AMSa}{"62}
+\DeclareMathSymbol\Supset{\mathrel}{AMSa}{"63}
+\DeclareMathSymbol\Cup{\mathbin}{AMSa}{"64}
+\DeclareMathSymbol\Cap{\mathbin}{AMSa}{"65}
+\DeclareMathSymbol\curlywedge{\mathbin}{AMSa}{"66}
+\DeclareMathSymbol\curlyvee{\mathbin}{AMSa}{"67}
+\DeclareMathSymbol\leftthreetimes{\mathbin}{AMSa}{"68}
+\DeclareMathSymbol\rightthreetimes{\mathbin}{AMSa}{"69}
+\DeclareMathSymbol\subseteqq{\mathrel}{AMSa}{"6A}
+\DeclareMathSymbol\supseteqq{\mathrel}{AMSa}{"6B}
+\DeclareMathSymbol\bumpeq{\mathrel}{AMSa}{"6C}
+\DeclareMathSymbol\Bumpeq{\mathrel}{AMSa}{"6D}
+\DeclareMathSymbol\lll{\mathrel}{AMSa}{"6E}
+\DeclareMathSymbol\ggg{\mathrel}{AMSa}{"6F}
+\DeclareMathDelimiter\ulcorner{4}{AMSa}{"70}{AMSa}{"70}
+\DeclareMathDelimiter\urcorner{5}{AMSa}{"71}{AMSa}{"71}
+\DeclareMathDelimiter\llcorner{4}{AMSa}{"78}{AMSa}{"78}
+\DeclareMathDelimiter\lrcorner{5}{AMSa}{"79}{AMSa}{"79}
+\xdef\yen  {\noexpand\mathhexbox\hexnumber@\symAMSa 55 }
+\xdef\checkmark{\noexpand\mathhexbox\hexnumber@\symAMSa 58 }
+\xdef\circledR {\noexpand\mathhexbox\hexnumber@\symAMSa 72 }
+\xdef\maltese  {\noexpand\mathhexbox\hexnumber@\symAMSa 7A }
+\DeclareMathSymbol\circledS{\mathord}{AMSa}{"73}
+\DeclareMathSymbol\pitchfork{\mathrel}{AMSa}{"74}
+\DeclareMathSymbol\dotplus{\mathbin}{AMSa}{"75}
+\DeclareMathSymbol\backsim{\mathrel}{AMSa}{"76}
+\DeclareMathSymbol\backsimeq{\mathrel}{AMSa}{"77}
+\DeclareMathSymbol\complement{\mathord}{AMSa}{"7B}
+\DeclareMathSymbol\intercal{\mathbin}{AMSa}{"7C}
+\DeclareMathSymbol\circledcirc{\mathbin}{AMSa}{"7D}
+\DeclareMathSymbol\circledast{\mathbin}{AMSa}{"7E}
+\DeclareMathSymbol\circleddash{\mathbin}{AMSa}{"7F}
+\DeclareMathSymbol\lvertneqq{\mathrel}{AMSb}{"00}
+\DeclareMathSymbol\gvertneqq{\mathrel}{AMSb}{"01}
+\DeclareMathSymbol\nleq{\mathrel}{AMSb}{"02}
+\DeclareMathSymbol\ngeq{\mathrel}{AMSb}{"03}
+\DeclareMathSymbol\nless{\mathrel}{AMSb}{"04}
+\DeclareMathSymbol\ngtr{\mathrel}{AMSb}{"05}
+\DeclareMathSymbol\nprec{\mathrel}{AMSb}{"06}
+\DeclareMathSymbol\nsucc{\mathrel}{AMSb}{"07}
+\DeclareMathSymbol\lneqq{\mathrel}{AMSb}{"08}
+\DeclareMathSymbol\gneqq{\mathrel}{AMSb}{"09}
+\DeclareMathSymbol\nleqslant{\mathrel}{AMSb}{"0A}
+\DeclareMathSymbol\ngeqslant{\mathrel}{AMSb}{"0B}
+\DeclareMathSymbol\lneq{\mathrel}{AMSb}{"0C}
+\DeclareMathSymbol\gneq{\mathrel}{AMSb}{"0D}
+\DeclareMathSymbol\npreceq{\mathrel}{AMSb}{"0E}
+\DeclareMathSymbol\nsucceq{\mathrel}{AMSb}{"0F}
+\DeclareMathSymbol\precnsim{\mathrel}{AMSb}{"10}
+\DeclareMathSymbol\succnsim{\mathrel}{AMSb}{"11}
+\DeclareMathSymbol\lnsim{\mathrel}{AMSb}{"12}
+\DeclareMathSymbol\gnsim{\mathrel}{AMSb}{"13}
+\DeclareMathSymbol\nleqq{\mathrel}{AMSb}{"14}
+\DeclareMathSymbol\ngeqq{\mathrel}{AMSb}{"15}
+\DeclareMathSymbol\precneqq{\mathrel}{AMSb}{"16}
+\DeclareMathSymbol\succneqq{\mathrel}{AMSb}{"17}
+\DeclareMathSymbol\precnapprox{\mathrel}{AMSb}{"18}
+\DeclareMathSymbol\succnapprox{\mathrel}{AMSb}{"19}
+\DeclareMathSymbol\lnapprox{\mathrel}{AMSb}{"1A}
+\DeclareMathSymbol\gnapprox{\mathrel}{AMSb}{"1B}
+\DeclareMathSymbol\nsim{\mathrel}{AMSb}{"1C}
+\DeclareMathSymbol\ncong{\mathrel}{AMSb}{"1D}
+\DeclareMathSymbol\nsubseteqq{\mathrel}{AMSb}{"22}
+\DeclareMathSymbol\nsupseteqq{\mathrel}{AMSb}{"23}
+\DeclareMathSymbol\subsetneqq{\mathrel}{AMSb}{"24}
+\DeclareMathSymbol\supsetneqq{\mathrel}{AMSb}{"25}
+\DeclareMathSymbol\subsetneq{\mathrel}{AMSb}{"28}
+\DeclareMathSymbol\supsetneq{\mathrel}{AMSb}{"29}
+\DeclareMathSymbol\nsubseteq{\mathrel}{AMSb}{"2A}
+\DeclareMathSymbol\nsupseteq{\mathrel}{AMSb}{"2B}
+\DeclareMathSymbol\nparallel{\mathrel}{AMSb}{"2C}
+\DeclareMathSymbol\nmid{\mathrel}{AMSb}{"2D}
+\DeclareMathSymbol\nshortmid{\mathrel}{AMSb}{"2E}
+\DeclareMathSymbol\nshortparallel{\mathrel}{AMSb}{"2F}
+\DeclareMathSymbol\nvdash{\mathrel}{AMSb}{"30}
+\DeclareMathSymbol\nVdash{\mathrel}{AMSb}{"31}
+\DeclareMathSymbol\nvDash{\mathrel}{AMSb}{"32}
+\DeclareMathSymbol\nVDash{\mathrel}{AMSb}{"33}
+\DeclareMathSymbol\ntrianglerighteq{\mathrel}{AMSb}{"34}
+\DeclareMathSymbol\ntrianglelefteq{\mathrel}{AMSb}{"35}
+\DeclareMathSymbol\ntriangleleft{\mathrel}{AMSb}{"36}
+\DeclareMathSymbol\ntriangleright{\mathrel}{AMSb}{"37}
+\DeclareMathSymbol\nleftarrow{\mathrel}{AMSb}{"38}
+\DeclareMathSymbol\nrightarrow{\mathrel}{AMSb}{"39}
+\DeclareMathSymbol\nLeftarrow{\mathrel}{AMSb}{"3A}
+\DeclareMathSymbol\nRightarrow{\mathrel}{AMSb}{"3B}
+\DeclareMathSymbol\nLeftrightarrow{\mathrel}{AMSb}{"3C}
+\DeclareMathSymbol\nleftrightarrow{\mathrel}{AMSb}{"3D}
+\DeclareMathSymbol\divideontimes{\mathbin}{AMSb}{"3E}
+\DeclareMathSymbol\varnothing{\mathord}{AMSb}{"3F}
+\DeclareMathSymbol\mho{\mathord}{AMSb}{"66}
+\DeclareMathSymbol\eth{\mathord}{AMSb}{"67}
+\DeclareMathSymbol\eqsim{\mathrel}{AMSb}{"68}
+\DeclareMathSymbol\beth{\mathord}{AMSb}{"69}
+\DeclareMathSymbol\gimel{\mathord}{AMSb}{"6A}
+\DeclareMathSymbol\daleth{\mathord}{AMSb}{"6B}
+\DeclareMathSymbol\lessdot{\mathrel}{AMSb}{"6C}
+\DeclareMathSymbol\gtrdot{\mathrel}{AMSb}{"6D}
+\DeclareMathSymbol\ltimes{\mathbin}{AMSb}{"6E}
+\DeclareMathSymbol\rtimes{\mathbin}{AMSb}{"6F}
+\DeclareMathSymbol\shortmid{\mathrel}{AMSb}{"70}
+\DeclareMathSymbol\shortparallel{\mathrel}{AMSb}{"71}
+\DeclareMathSymbol\smallsetminus{\mathbin}{AMSb}{"72}
+\DeclareMathSymbol\thicksim{\mathrel}{AMSb}{"73}
+\DeclareMathSymbol\thickapprox{\mathrel}{AMSb}{"74}
+\DeclareMathSymbol\approxeq{\mathrel}{AMSb}{"75}
+\DeclareMathSymbol\succapprox{\mathrel}{AMSb}{"76}
+\DeclareMathSymbol\precapprox{\mathrel}{AMSb}{"77}
+\DeclareMathSymbol\curvearrowleft{\mathrel}{AMSb}{"78}
+\DeclareMathSymbol\curvearrowright{\mathrel}{AMSb}{"79}
+\DeclareMathSymbol\digamma{\mathord}{AMSb}{"7A}
+\DeclareMathSymbol\varkappa{\mathord}{AMSb}{"7B}
+\DeclareMathSymbol\hslash{\mathord}{AMSb}{"7D}
+\DeclareMathSymbol\hbar{\mathord}{AMSb}{"7E}
+\DeclareMathSymbol\backepsilon{\mathrel}{AMSb}{"7F}
+}
+\def\interleave{{\parallel\!\!\vert}}
+\def\shortinterleave{\z@rel{\mathord\shortmid\mathord\shortparallel}}
+\def\napprox{\not\approx}
+\let\restriction\upharpoonright
+\let\Doteq\doteqdot
+\let\doublecup\Cup
+\let\llless\lll
+\let\gggtr\ggg
+\let\doublecap\Cap
+\def \nat   {{\bbold N}}
+\def \integer   {{\bbold Z}}
+\def \natone    {{\bbold N}_1}
+\def \real  {{\bbold R}}
+\def \bool  {{\bbold B}}
+\let \divides   \div
+\def \div   {\z@bin{\mathrm{div}}}
+\def \mod   {\z@bin{\mathrm{mod}}}
+\def \succ  {\word{succ}}
+\def \expon {^}
+\let \num   \integer
+\let \nplus \natone
+\def \lnot  {\neg\;}
+\def \land  {\z@rel{\wedge}}
+\def \lor   {\z@rel{\vee}}
+\let \imp   \Rightarrow
+\let\iff    \Leftrightarrow
+\def \all   {\z@op{\xforall}}
+\def \exi   {\z@op{\xexists}}
+\def \exione    {\exists_1}
+\@ifpackageloaded{lucbr}{%
+\DeclareMathSymbol{\nexi}{0}{arrows}{"20}
+}{%
+\DeclareMathSymbol{\nexi}{\mathord}{AMSb}{"40}
+}
+\def \dot   {\z@rel{\bullet}}
+\def \true  {\keyword{true}}
+\def \false {\keyword{false}}
+\let \cond  \rightarrow
+\let \spot  \dot
+\mathcode`\@="8000% make @ active in mathmode
+{\catcode`\@=\active \gdef@{\dot}}
+\let \implies   \imp
+\let \forall    \all
+\let \exists    \exi
+\let \nexists   \nexi
+\let \emptyset  \varnothing
+\def \varemptyset  {\{\,\}}
+\def \pset  {\z@op{\bbold P}}
+\def \psetone   {\pset_1}
+\def \fset  {\z@op{\bbold F}}
+\def \fsetone   {\fset_1}
+\def \sset  {\z@op{\bbold S}}
+\let \mem   \in
+\def \nem   {\not\mem}
+\def \uni   {\z@bin\cup}
+\def \int   {\z@bin\cap}
+\let \prod  \times
+\def \min   {\word{min}}
+\def \max   {\word{max}}
+\def \duni  {\z@Bigop{\lower0.25ex\hbox{$\uni$}}}
+\def \dint  {\z@Bigop{\lower0.25ex\hbox{$\int$}}}
+\def \upto  {\z@bin{\ldotp\ldotp}}
+\let \psubs \subset
+\let \subs  \subseteq
+\let \psups \supset
+\let \sups  \supseteq
+\def \diff  {\z@bin{\backslash}}
+\let \cross \prod
+\let \notin \nem
+\let \nmem  \nem
+\let \union \uni
+\let \inter \int
+\let \power \pset
+\let \finset    \fset
+\let \dunion    \duni
+\let \dinter    \dint
+\def \lambda    {\z@op{\xlambda}}
+\def \mu    {\z@op{\xmu}}
+\def \dom   {\keyword{dom}}
+\def \ran   {\keyword{ran}}
+\def \id    {\keyword{id}}
+\@ifpackageloaded{lucbr}{%
+\DeclareMathSymbol{\dres}{\mathbin}{letters}{"2F}
+\DeclareMathSymbol{\rres}{\mathbin}{letters}{"2E}
+}{%
+\DeclareMathSymbol{\dres}{\mathbin}{AMSa}{"43}
+\DeclareMathSymbol{\rres}{\mathbin}{AMSa}{"42}
+}
+\def \dsub  {\mathbin{\rlap{\raise.05ex\hbox{$-$}}{\dres}}}
+\def \rsub  {\mathbin{\rlap{\raise.05ex\hbox{$-$}}{\rres}}}
+\let \fovr  \oplus
+\let \cmp   \circ
+\def \fcmp  {\mathbin{\raise 0.6ex\hbox{\oalign{\hfil$\scriptscriptstyle
+     \mathrm{o}$\hfil\cr\hfil$\scriptscriptstyle\mathrm{9}$\hfil}}}}
+\def \inv   {^{-1}}
+\def \limg  {(\!|}
+\def \rimg  {|\!)}
+\let \map   \mapsto
+\let \rel   \leftrightarrow
+\let \tfun  \rightarrow
+\let \tinj  \rightarrowtail
+\def \tsur  {\mathrel{\ooalign{$\tfun$\hfil\cr$\mkern4mu\tfun$}}}
+\def \pfun  {\p\tfun}
+\def \pinj  {\p\tinj}
+\def \psur  {\p\tsur}
+\def \ffun  {\f\tfun}
+\def \finj  {\f\tinj}
+\def \bij   {\mathrel{\ooalign{$\tinj$\hfil\cr$\mkern5mu\tfun$}}}
+\def \tcl   {^+}
+\def \rtcl  {^*}
+\def \iter  {^}
+\let \comp  \fcmp
+\let \ndres \dsub
+\let \nrres \rsub
+\let \fun   \tfun
+\let \inj   \tinj
+\let \surj  \tsur
+\let \psurj \psur
+\let \llless    \lll
+\let \gggtr \ggg
+\def \interleave    {{\parallel\!\!\vert}}
+\def \shortinterleave   {\z@rel{\mathord\shortmid\mathord\shortparallel}}
+\let \restriction   \upharpoonright
+\def \napprox   {\not\approx}
+\def \seq   {\keyword{seq}}
+\def \seqone    {\seq_1}
+\def \emptyseq  {\lseq\,\rseq}
+\let \lseq  \langle
+\let \rseq  \rangle
+\def \head  {\word{head}}
+\def \tail  {\word{tail}}
+\def \front {\word{front}}
+\def \last  {\word{last}}
+\def \rev   {\word{rev}}
+\def \squash    {\word{squash}}
+\def \next  {\keyword{next}}
+\def \inseq {\keyword{in}}
+\@ifpackageloaded{lucbr}{%
+\DeclareMathSymbol{\sres}{2}{arrows}{"75}
+\DeclareMathSymbol{\ires}{2}{arrows}{"76}
+\DeclareMathSymbol{\@@cat}{\mathbin}{operators}{"5F}
+}{%
+\DeclareMathSymbol{\@@cat}{\mathbin}{AMSa}{"61}
+\DeclareMathSymbol{\sres}{\mathbin}{AMSa}{"16}
+\DeclareMathSymbol{\ires}{\mathbin}{AMSa}{"18}
+}
+\def \cat   {\mathbin{\raise 0.8ex\hbox{$\mathchar\@@cat$}}}
+\def \ssub  {\z@bin{\rlap{$-$}{\sres}}}
+\def \isub  {\z@bin{\rlap{$-$}{\ires}}}
+\def \dcat  {\z@op{\cat/}}
+\def \dovr  {\z@op{\fovr/}}
+\def \dcmp  {\z@op{\fcmp/}}
+\let \prefix    \subseteq
+\def \suffix    {\keyword{suffix}}
+\def \seqi  {\keyword{seq_\infty}}
+\def \partitions    {\keyword{partitions}}
+\def \disjoint  {\keyword{disjoint}}
+\def \subseq    {\keyword{subseq}}
+\let \filter    \sres
+\def \lsch  {\z@bigop{[}}
+\def \rsch  {\z@bigop{]}}
+\def \dparallel {\z@bigop{\parallel}\limits}
+\def \zand  {\z@bigbin\land}
+\def \zor   {\z@bigbin\lor}
+\def \zcmp  {\z@bigbin\fcmp}
+\def \zexi  {\z@bigop\exists}
+\def \zall  {\z@bigop\forall}
+\def \znot  {\z@bigop\neg}
+\def \zbar  {\z@bigbin\cbar}
+\def \zfor  {/}
+\def \zhide {\z@bigbin\backslash}
+\def \zimp  {\z@bigrel\imp}
+\def \zeq   {\z@bigrel\iff}
+\def \zovr  {\z@bigrel\oplus}
+\def \zpipe {\z@bigbin{\mathord>\!\!\mathord>}}
+\def \pre   {\keyword{pre}}
+\def \pred  {\keyword{pred}}
+\def \post  {\keyword{post}}
+\def \zproject  {\z@bigbin\sres}
+\def\rename{\@ifnextchar*{\z@rename}{\z@@rename}}
+\def\z@rename*[#1/#2]{\left[#1 \over #2\right]}
+\def\z@@rename[#1/#2]{\left[#1 \zfor #2\right]}
+\let \project   \zproject
+\let \import    \sres
+\let \semi  \zcmp
+\let \hide  \zhide
+\let\buni\uplus
+\def \emptybag  {\lbag\:\rbag}
+\def \lbag  {[\![}
+\def \rbag  {]\!]}
+\def \bag   {\keyword{bag}}
+\def \items {\word{items}}
+\let \inbag \inseq
+\def \bagcount  {\word{count}}
+\def \ddef  {\z@rel{\;::=\;}}
+\def \bbar  {\z@bigrel{|}}
+\let \cbar  \mid
+\def \lang  {\langle\!\langle}
+\def \rang  {\rangle\!\rangle}
+\def \sdef  {\z@rel{\widehat=}}
+\def \defs  {\z@smallrel{==}}
+\def \varsdef   {\z@rel\triangleq}
+\let \sdefs \sdef
+\mathcode`\|=\mid
+\let \ldata \lang
+\let \rdata \rang
+\def \lblot {\langle\!|}
+\def \rblot {|\!\rangle}
+\def \IMP   {\boldword{Import}}
+\let \env   \Rrightarrow
+\def \zlet  {\boldword{let}}
+\def \zin   {\boldword{in}}
+\def \zwhere    {\boldword{where}}
+\def\HOLE{\z@op{\hbox{$\lll\star\star\star\ggg$}}}
+\def\landd{} % to support qzed editor
+\def\semid{} % to support qzed editor
+\def\qzed{\ifz@inclass\else\zed\fi}
+\def\endqzed{\ifz@inclass\else\endzed\fi}
+\def\qua{\mbox{::}}
+\def\redef{\mbox{\textbf{~redef}}}
+\def\Init{I\!\mbox{\footnotesize\emph{NIT}}}
+\def\Exit{E\!\mbox{\footnotesize\emph{XIT}}}
+\def\Internal{I\!\mbox{\footnotesize\emph{NTERNAL}}}
+\def\Aux{A\!\mbox{\footnotesize\emph{UX}}}
+\def\intern{\mbox{\textsf{i}}}
+\def\thrm{\z@rel\vdash}
+\def\qed{\zsmall\Box}
+\let\Qed\Box
+\let\QED\square
+\def\BLACKQED{\zsmall\blacksquare}
+\let\ETH\qed
+\def\TH{\boldword{Theorem}}
+\def\LE{\boldword{Lemma}}
+\def\PR{\boldword{Proof}}
+\def\refines{\z@rel\sqsupseteq}
+\def\defines{\z@rel\sqsubseteq}
+\def\weakrefine{\z@rel{\raise0.2ex\rlap{\hbox{$\sqsupset$}}\lower1ex\hbox{$\sim$}}}
+\def\weakdefine{\z@rel{\raise0.2ex\rlap{\hbox{$\sqsubset$}}\lower1ex\hbox{$\sim$}}}
+\let\shows\thrm
+\def\childof{\z@rel\xsucc}
+\def\parentof{\z@rel\xprec}
+\let\weaksubclass\succsim
+\let\weaksupclass\precsim
+\def\hasa{\z@rel{\mathord\xsucc\!\!\!\mathord\xsucc}}
+\def\instancein{\z@rel{\mathord\xprec\!\!\!\mathord\xprec}}
+\def\subtype{\z@rel\sqsubset}
+\def\subtypeeq{\z@rel\sqsubseteq}
+\def\suptype{\z@rel\sqsupset}
+\def\suptypeeq{\z@rel\sqsupseteq}
+\let\inherits\childof
+\let\subclass\childof
+\let\isa\childof
+\let\supclass\parentof
+\let\instantiates\hasa
+\let\islikea\weaksubclass
+\def\atnext{\rlap{$\zSmall\bigcirc$}\kern0.01em\rlap{$\zSmall\bigcirc$}\kern0.01em\zSmall\bigcirc}
+\def\atlast{\rlap{$\zSmall\bigcirc$}\kern0.01em\rlap{$\zSmall\bigcirc$}\kern0.01em\rlap{$\kern0.01em\mathord-$}\zSmall\bigcirc}
+\def\always{\lower0.37ex\hbox{$\zbig\Box$}}
+\def\uptilnow{\rlap{$\kern0.02em\mathord-$}\lower0.37ex\hbox{$\zbig\Box$}}
+\def\eventually{\lower0.37ex\hbox{$\zbig\Diamond$}}
+\def\previously{\rlap{$\kern0.04em\mathord-$}\lower0.37ex\hbox{$\zbig\Diamond$}}
+\let\henceforth\always
+\def \mono  {\keyword{monotonic}}
+\def \porder    {\keyword{partial\_order}}
+\def \torder    {\keyword{total\_order}}
+\newbox\z@combox\newdimen\z@wdcalc
+\def\comment{\@ifnextchar*{\z@leftcomment}{\z@comment}}
+\def\z@comment#1{$\z@stopfield\z@addfield\z@startfield$%
+\global\setbox\z@combox\hbox{\quad[{\sf #1}]}\z@wdcalc=\wd\z@combox%
+\advance\z@wdcalc by \wd\z@curline\advance\z@wdcalc by \z@curindent%
+\advance\z@wdcalc by \zedleftsep\advance\z@wdcalc by \zedlinethickness%
+\advance\z@wdcalc by 2\zedindent\ifdim\z@wdcalc>\displaywidth\\%
+\fi&\box\z@combox\ignorespaces}
+\def\z@leftcomment*#1{\hbox{[{\sf #1}]}}
+\newcount\z@stackmin
+\newcount\z@stackmax
+\newcount\z@stacktop
+\newdimen\@gtempa \z@stackmin=\allocationnumber
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa 
+\z@stackmax=\allocationnumber
+\dimen\z@stackmin=0pt
+\newbox\z@curline
+\newdimen\z@curindent
+\dimen\z@curindent=0pt
+\def\z@space{{}\;{}}
+\newbox\z@curfield
+\def\z@startline{\setbox\z@curline\hbox{}%
+     \global\z@curindent\dimen\z@stacktop
+     \z@startfield\ignorespaces}
+\def\z@stopline{\z@stopfield
+    \z@addfield
+    \hbox{\hskip\z@curindent \box\z@curline}}
+
+\def\z@startfield{\global\setbox\z@curfield\hbox\bgroup}
+\def\z@stopfield{\egroup}
+\def\z@addfield{\global\setbox\z@curline\hbox{\unhbox
+     \z@curline\unhbox\z@curfield}}
+
+\def\z@pushmargin{\hbox{\kern0pt}$%
+  \z@stopfield
+  \z@addfield
+  \ifnum \z@stacktop < \z@stackmax
+    \global\advance\z@stacktop \@ne
+  \else
+    \@latexerr{Z margin stack overflow (too many \string\M's)}
+    \@ehd
+  \fi
+  \global\dimen\z@stacktop\z@curindent
+  \global\advance\dimen\z@stacktop \wd\z@curline
+  \z@startfield\ignorespaces
+  $\relax}
+\def\z@popmargin{\ifnum \z@stacktop > \z@stackmin
+    \global\advance\z@stacktop \m@ne \ignorespaces
+  \else
+    \@latexerr{Z Margin stack underflow (too many \string\O's)}
+    \@ehd
+  \fi}
+\def\M{\z@pushmargin} \def\O{\z@popmargin} \def\S{\z@space}
+\z@stacktop\z@stackmin
+\newdimen\zedindent \zedindent=\leftmargini
+\newdimen\zedleftsep    \zedleftsep=1em
+\newdimen\zedtab    \zedtab=2em
+\newdimen\zedbar    \zedbar=8em
+\newdimen\zedlinethickness  \zedlinethickness=0.4pt
+\newdimen\zedcornerheight   \zedcornerheight=0pt
+\newcount\z@cols
+\newif\ifz@firstline    \z@firstlinefalse
+\newif\ifz@inclass  \z@inclassfalse
+\newif\ifz@inenv    \z@inenvfalse
+\newif\ifz@leftmargin   \z@leftmargintrue
+\newif\ifz@incols   \z@incolsfalse
+\newif\ifleftnames  \leftnamesfalse
+\def\leftschemas{\leftnamestrue}
+\newif\ifz@inbox    \z@inboxfalse
+\newskip\zedbaselineskip    \zedbaselineskip\baselineskip
+\newbox\zstrutbox   \setbox\zstrutbox=\copy\strutbox
+\def\zstrut{\relax\ifmmode\copy\zstrutbox\else\unhcopy\zstrutbox\fi}
+\def\zedbaselinestretch{1}
+\newcount\interzedlinepenalty   \interzedlinepenalty=10000  %never break
+\newcount\preboxpenalty \preboxpenalty=0    %break easily
+\newcount\forcepagepenalty  \forcepagepenalty=-10000    %always break
+\interdisplaylinepenalty=100    %break sometimes
+\def\zedsize#1{\def\z@size{#1}}
+\def\z@size{}
+\newskip\z@adskip\newskip\z@bdskip\newskip\z@adsskip\newskip\z@bdsskip
+\def\z@changesize{%
+\z@adskip\abovedisplayskip\z@bdskip\belowdisplayskip% save skips
+\z@adsskip\abovedisplayshortskip\z@bdsskip\belowdisplayshortskip
+\z@size % change size
+\abovedisplayskip\z@adskip\belowdisplayskip\z@bdskip% restore skips
+\abovedisplayshortskip\z@adsskip\belowdisplayshortskip\z@bdsskip}
+\def\z@zeroskips{\abovedisplayskip\z@\belowdisplayskip\z@
+    \abovedisplayshortskip\z@\belowdisplayshortskip\z@}
+\def\z@narrow{\advance\linewidth by -\zedindent}
+\def\z@wide{\advance\linewidth by \zedindent}
+\def\z@hrulefill{\leaders\hrule height\zedlinethickness\hfill}
+\def\z@topline#1{\omit\@ifnextchar[{\z@@topline{#1}}{\z@@topline{#1}[]}}
+\def\z@@topline#1[#2]{\hbox to\linewidth{\zstrut\ifleftnames\else
+    \vrule height\zedlinethickness width\zedlinethickness
+    \hbox to\zedleftsep{\z@hrulefill}\fi#1\z@hrulefill
+    \smash{\vrule height\zedlinethickness width\zedlinethickness
+    depth\zedcornerheight}\hbox{\sf #2}}\cr}
+\def\z@dbltopline#1{\omit\@ifnextchar[{\z@@dbltopline{#1}}{\z@@dbltopline{#1}[]}}
+\def\z@@dbltopline#1[#2]{\z@@topline{#1}[#2]%
+\noalign{\kern-\baselineskip
+    \kern-\zedlinethickness
+    \kern-\doublerulesep \nobreak}%
+\omit\z@@topline{\hphantom{#1}}[\hphantom{#2}]%
+\noalign{\kern\doublerulesep
+    \kern\zedlinethickness \nobreak}}
+\def\z@botline{\also\omit\hbox to\linewidth{\z@hrulefill
+\smash{\vrule height\zedcornerheight width\zedlinethickness
+    depth 0pt}}\cr}
+\def\z@@botline[#1]{\hbox to\linewidth{\vrule\z@hrulefill\hbox{\sf\smash{#1}}}\also}
+\def\zedline{\also\omit\@ifnextchar[{\z@@botline}{\z@@botline[]}}
+\def\where{\also \omit \hbox to\zedbar{\z@hrulefill}\cr\also}
+\let \ST    \where
+\def\z@left{\ifz@inbox\vrule width\zedlinethickness\hskip\zedleftsep\fi}
+\def\z@env{\global\z@firstlinetrue\z@changesize
+    $$
+    \z@inenvtrue
+    \baselineskip\zedbaselineskip
+    \parskip=0pt\lineskip=0pt\z@narrow
+    \advance\displayindent by \zedindent
+    \def\\{\crcr}% Must have \def and not \let for nested alignments.
+    \everycr={\noalign{\ifz@firstline \global\z@firstlinefalse
+    \else \penalty\interzedlinepenalty \fi}}
+    \tabskip=0pt}
+\def\endz@env{$$
+ \global\@ignoretrue
+}
+\def\z@format{\halign to\linewidth\bgroup%
+    \zstrut\z@left\z@startline\ignorespaces$\@lign##$\z@stopline\hfil%
+    \tabskip=0pt plus1fil%
+    &\hbox to 0pt{\hss\@lign##}\tabskip=0pt\cr}
+\def\z@boxenv{\z@narrow\let\also=\als@ \let\Also=\Als@ \let\ALSO=\ALS@
+    \z@inboxtrue \predisplaypenalty=\preboxpenalty \z@env\z@format}
+\def\z@outnonbox{\z@outclasscheck\z@leavevmode\z@env}
+\def\z@inoutbox{\z@leavevmode\z@makeouter\z@inclassfalse\z@boxenv}
+\def\@but{\noalign{\nointerlineskip}}
+\def\z@nopar{\global\@endpetrue}
+\def\z@leavevmode{\ifvmode\if@inlabel\indent\else\if@noskipsec\indent\else
+    \if@nobreak\global\@nobreakfalse\everypar={}\fi
+    {\parskip=0pt\noindent}\fi\fi\fi}
+\def\also{\crcr\noalign{\vskip\jot}}
+\def\Also{\crcr\noalign{\vskip2\jot}}
+\def\ALSO{\Also\Also}
+\def\als@{\crcr\@but\omit\vrule height\jot width\zedlinethickness \cr \@but}
+\def\Als@{\crcr\@but\omit\vrule height2\jot width\zedlinethickness \cr \@but}
+\def\ALS@{\crcr\@but\omit\vrule height4\jot width\zedlinethickness \cr \@but}
+\def\znewpage{\also\noalign{\penalty\forcepagepenalty}\also}
+\def\zbreak{\also\noalign{\penalty\interdisplaylinepenalty\vskip-\jot}\also}
+\def\Zbreak{\also\noalign{\penalty\interdisplaylinepenalty}\also}
+\def\ZBREAK{\Also\noalign{\penalty\interdisplaylinepenalty}\Also}
+\def\t#1{\hskip #1\zedtab}
+\def\flushr#1{\crcr&#1\quad\cr}
+\def\z@inclasscheck{\ifz@inclass\else
+    \@latexerr{This Z environment is only allowed within a class}
+{Perhaps you forgot to include a \string\begin\string{class\string}
+somewhere^^Jor you are trying to print a file that needs updating.^^J\@ehc} \fi}
+\def\z@outclasscheck{\ifz@inclass
+    \@latexerr{This Z environment is not allowed inside a class}
+{This environment doesn't really make sense within a class.^^J%
+If you really want it then I'll try my best to fit in in.^^J\@ehc}\else
+\ifz@inenv \@latexerr{New Z environment declared before previous
+one is completed}
+{I suspect that you've forgotten to finish the last environment.^^J%
+You are trying to nest environments and this can only be done inside classes^^J%
+besides, the environment you have started isn't valid within classes any way.^^JI suggest that you type \space X <return> \space to quit and then correct your document.}
+\fi\fi}
+\def\z@makeouter{%
+ \ifz@inenv
+   \ifz@inclass\z@inenvfalse
+    \hskip-\zedleftsep \advance\linewidth by -\zedlinethickness
+    \zedindent=\zedleftsep \zedleftsep=0.8\zedleftsep
+    \zedbar=0.8\zedbar \zedtab=0.8\zedtab
+    \oz@parbox{\linewidth}\bgroup
+    \z@zeroskips
+   \else
+ \@latexerr{Incorrect place for Z environment; nesting is
+  allowed only inside classes}
+   {You've either forgotten to finish the last environment,^^J%
+   you've forgotten to include a 
+   \string\begin\string{class\string} somewhere^^J%
+   or you are trying to print a file that needs updating.^^J%
+   (Then again, you might just be trying to do something^^J%
+    that the author of these macros didn't intend you to do)^^J\@ehc}
+   \fi
+ \else
+   \oz@parbox{\linewidth}\bgroup
+ \fi
+}
+\def \z@makeinner{\egroup
+   \global\z@curindent\z@
+}
+\def \classbreak{\also\egroup$$\vskip -\ht\zstrutbox
+    \vskip -\abovedisplayskip\vskip -\belowdisplayskip\z@wide\z@boxenv\also}
+\def\zed{\z@outnonbox\z@inboxfalse\z@format}
+\def\endzed{\crcr\egroup\endz@env}
+\let\[=\zed
+\def\]{\crcr\egroup$$\ignorespaces}
+\def\argue{\z@outnonbox\interzedlinepenalty=\interdisplaylinepenalty
+    \openup 1\jot \z@format
+    \noalign{\vskip-\jot}}% equal vspace above and below argue display
+\let\endargue=\endzed
+\def\infrule{\z@outnonbox\halign\bgroup
+    \zstrut\quad$\@lign##$\quad\hfil&\quad\@lign##\hfil\cr}
+\let\endinfrule=\endzed
+\def\derive{\crcr\also\@but\omit\z@hrulefill%
+    \@ifnextchar[{\z@sidecondition}{\cr\also\@but}}
+\def\Derive{\crcr\also\@but\omit\z@hrulefill\cr\@but
+    \noalign{\kern-\dp\zstrutbox
+    \kern\doublerulesep \nobreak}%
+\omit\derive}
+\def\z@sidecondition[#1]{&$\smash{\lower 0.2ex\hbox{$[\;#1\;]$}}$\cr\also\@but}
+\def\syntax{\z@outnonbox\halign\bgroup
+    \zstrut$\@lign##$\hfil &\hfil$\@lign{}##{}$\hfil
+    &$\@lign##$\hfil &\qquad\@lign-- ##\hfil\cr}
+\let\endsyntax=\endzed
+\def\schema#1{\z@inoutbox\z@topline{$\,#1\,$}}
+\def\endschema{\z@botline \endzed \z@makeinner \z@nopar}
+\@namedef{schema*}{\leftnamesfalse\z@inoutbox\z@topline{}}
+\expandafter\let\csname endschema*\endcsname=\endschema
+\def\genschema#1#2{\z@inoutbox\z@topline{$\,#1\:[#2]\,$}}
+\let\endgenschema=\endschema
+\def\axdef{\z@inoutbox}
+\def\endaxdef{\endzed\z@makeinner}
+\def\uniqdef{\leftnamesfalse\z@inoutbox\z@dbltopline{}}
+\let\enduniqdef=\endschema
+\def\gendef#1{\leftnamesfalse\z@inoutbox\z@dbltopline{$\,[#1]\,$}}
+\let\endgendef=\endschema
+\def\class#1{\z@leavevmode\z@makeouter\z@inclasstrue
+    \z@boxenv\z@topline{$\,#1\,$}}
+\let\endclass\endschema
+\def\op{\z@inclasscheck\schema}
+\let\endop\endschema
+\def\state{\z@inclasscheck\vbox\bgroup\vskip-\ht\zstrutbox\vbox\bgroup\hbox\bgroup\@nameuse{schema*}}
+\def\endstate{\endschema\egroup\egroup\egroup}
+\def\init{\z@inclasscheck\schema{\Init}}
+\let\endinit\endschema
+\def\sidebyside{\@ifnextchar[{\z@columns}{\z@columns[2]}}
+\def\z@columns[#1]{\z@leavevmode\z@cols#1 \z@makeouter\z@narrow%
+    $$\lineskip=0pt\z@incolstrue
+    \predisplaysize\maxdimen
+    \ifz@leftmargin\hskip-\zedindent\z@leftmarginfalse\fi
+    \setbox0=\hbox to \linewidth\bgroup\z@zeroskips%
+    \divide\zedbar by \z@cols \divide\zedleftsep by \z@cols
+    \divide\zedtab by \z@cols \divide\linewidth by \z@cols
+   \minipage[t]{\linewidth}\z@wide}
+\def\nextside{\endminipage\hss\minipage[t]{\linewidth}\z@wide}
+\newdimen\z@temp
+\def\endsidebyside{\endminipage\hss\egroup
+    \z@temp\ht0 \advance\z@temp by \dp0\advance\z@temp by-\dp\zstrutbox
+    \hbox{\raise\z@temp\box0}\endz@env\z@makeinner\z@nopar}
+\def\zpar{\z@leavevmode
+    \ifz@inenv\z@inclasstrue\fi% fudge to let zpar in all boxes
+    \z@makeouter\z@changesize
+    \advance\linewidth by -\z@curindent
+    \advance\linewidth by -\wd\z@curline
+    \hskip-\wd\z@curline\advance\linewidth by -\zedindent$$
+    \ifz@leftmargin\hskip-\zedindent\fi% adjustment for first column
+    \advance\displayindent by \zedindent
+    \advance\displaywidth by -\zedindent
+    \advance\displayindent by \z@curindent
+    \advance\displayindent by \wd\z@curline
+    \advance\displaywidth by -\z@curindent
+    \advance\displaywidth by -\wd\z@curline
+    \global\setbox\z@curline\hbox{}
+    \z@narrow\minipage[b]{\linewidth}\hfil\break}
+\def\endzpar{\endminipage$$\z@makeinner\z@nopar}
+\def \classcom{\zpar\sf}
+\let \endclasscom=\endzpar
+\def\proof{\zpar$\PR$\zpar}
+\def\endproof{\endzpar\endzpar}
+\def\zseq#1{\lseq #1 \rseq}
+\def\zset#1{\{ #1 \}}
+\def\zimg#1{\limg #1 \rimg}
+\def\zsch#1{\lsch #1 \rsch}
+\def\zimgset#1{\zimg\zset{#1}}
+\endinput
+%% 
+%% End of file `oz.sty'.

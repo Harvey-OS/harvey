@@ -14,7 +14,7 @@ fn demo {proj=$1;	shift;
 }
 
 rfork en
-type='Equatorial projections are centered on centered on long. 0, parallels are straight lines'
+type='Equatorial projections are centered on long. 0, parallels are straight lines'
 
 demo mercator 'equally spaced straight meridians, conformal, straight compass courses'
 demo sinusoidal 'equally spaced parallels, equal-area, same as bonne(0)'

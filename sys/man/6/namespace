@@ -5,7 +5,7 @@ namespace \- name space description file
 Namespace files describe how to construct a name space from scratch,
 an operation normally performed by the
 .I newns
-suboroutine
+subroutine
 (see
 .IR auth (2))
 which is typically called by
@@ -15,7 +15,7 @@ Spaces and tabs separate arguments to operations;
 no quotes or escapes are recognized.
 Blank lines and lines with
 .B #
-the first non-space character are ignored.
+as the first non-space character are ignored.
 Environment variables of the form
 .BI $ name
 are expanded within arguments,
@@ -30,7 +30,7 @@ or a
 .PP
 The known operations and their arguments are:
 .TP
-.BR mount \ [ -abct ]\ [ -s "\fIserver\fR] \fIservename old \fR[\fIspec\fR ]
+.BR mount \ [ -abc ]\ \fIservename\  old " \fR[\fIspec\fR\^\^]
 Mount
 .I servename
 on
@@ -42,21 +42,21 @@ Bind
 on
 .IR old .
 .TP
-.BR import \ [ -abct ]\ [ -s "\fIserver\fR] \fIhost\fR [\fIremotepath\fR] \fImountpoint\fR
+.BR import \ [ -abc ]\ \fIhost\fR\ "[\fIremotepath\fR\^\^] \fImountpoint\fR
 Import
 .I remotepath
 from machine
 .I server
 and attach it to
-.I mountpoint.
+.IR mountpoint .
 .TP
 .BI cd \ dir
 Change the working directory to
 .IR dir .
 .PP
 The options for
-.I bind,
-.I mount,
+.IR bind ,
+.IR mount ,
 and
 .I import
 are interpreted as in

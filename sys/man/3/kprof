@@ -3,7 +3,7 @@
 kprof \- kernel profiling
 .SH SYNOPSIS
 .nf
-.B bind \-a #T /dev
+.B bind -a #T /dev
 .sp
 .B /dev/kpctl
 .B /dev/kpdata
@@ -33,13 +33,13 @@ The file
 .B kpctl
 controls profiling.
 Writing the string
-.B \&"start"
+.B start
 to
 .B kpctl
 begins profiling;
-.B \&"stop"
+.B stop
 terminates it.  The message
-.B \&"startclr"
+.B startclr
 restarts profiling after zeroing the array of counts.
 .PP
 The program
@@ -60,5 +60,7 @@ and reports the results.
 	echo stop > /dev/kpctl
 	kprof /mips/9power /dev/kpdata
 .EE
+.SH SOURCE
+.B /sys/src/9/port/devkprof.c
 .SH SEE ALSO
 .IR prof (1)

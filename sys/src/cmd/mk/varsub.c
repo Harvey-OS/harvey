@@ -94,9 +94,12 @@ varcopy(char *s, Bufblock *buf)
 		return;
 	while (*s) {
 		s += chartorune(&r, s);
-			/* prevent further evaluation of quotes*/
-		if (r == '\'')
-			bufcpy(buf, "'''", 3);
-		rinsert(buf, r);
+			/* prevent further evaluation special chars*/
+		if (QUOTE(r) || r == '=') {
+			insert(buf, '\'');
+			rinsert(buf, r);
+			insert(buf, '\'');
+		} else
+			rinsert(buf, r);
 	}
 }

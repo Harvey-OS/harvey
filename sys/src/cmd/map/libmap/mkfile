@@ -17,6 +17,7 @@ OFILES=aitoff.$O\
 	elliptic.$O\
 	fisheye.$O\
 	gall.$O\
+	gilbert.$O\
 	guyou.$O\
 	harrison.$O\
 	hex.$O\

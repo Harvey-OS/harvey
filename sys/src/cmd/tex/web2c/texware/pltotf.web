@@ -14,6 +14,8 @@
 % Version 3 (October 1989) introduced extended ligature features.
 % Version 3.1 (November 1989) fixed two bugs (notably min_nl:=0).
 % Version 3.2 (December 1989) improved `shorten', increased max_letters.
+% Version 3.3 (September 1990) fixed `nonexistent char 0' (John Gourlay).
+% Version 3.4 (March 1991) has more robust `out_scaled' (Wayne Sullivan).
 
 % Here is TeX material that gets inserted after \input webmac
 \def\hang{\hangindent 3em\indent\ignorespaces}
@@ -34,7 +36,7 @@
   \vfill
   \centerline{\titlefont The {\ttitlefont PLtoTF} processor}
   \vskip 15pt
-  \centerline{(Version 3.2, December 1989)}
+  \centerline{(Version 3.4, March 1991)}
   \vfill}
 \def\botofcontents{\vfill
   \centerline{\hsize 5in\baselineskip9pt
@@ -61,7 +63,7 @@ Extensions for an enhanced ligature mechanism were added by the author in 1989.
 The |banner| string defined here should be changed whenever \.{PLtoTF}
 gets modified.
 
-@d banner=='This is PLtoTF, Version 3.2' {printed when the program starts}
+@d banner=='This is PLtoTF, Version 3.4' {printed when the program starts}
 
 @ This program is written entirely in standard \PASCAL, except that
 it has to do some slightly system-dependent character code conversion
@@ -389,7 +391,7 @@ both be used within the same \.{CHARACTER} list.
 \yskip\noindent
 The elements of a \.{VARCHAR} property list are either \.{TOP}, \.{MID},
 \.{BOT} or \.{REP}; the values are integers, which must be zero or the number
-or a character in the font. A zero value for \.{TOP}, \.{MID}, or \.{BOT} means
+of a character in the font. A zero value for \.{TOP}, \.{MID}, or \.{BOT} means
 that the corresponding piece of the extensible character is absent. A nonzero
 value, or a \.{REP} value of zero, denotes the character code used to make
 up the top, middle, bottom, or replicated piece of an extensible character.
@@ -1623,11 +1625,10 @@ if c<18 then skip_error('HEADER indices should be 18 or more')
 else if 4*c+4>max_header_bytes then
   skip_error('This HEADER index is too big for my present table size')
 @.This HEADER index is too big...@>
-else  begin while header_ptr<4*c do
+else  begin while header_ptr<4*c+4 do
     begin header_bytes[header_ptr]:=0; incr(header_ptr);
     end;
   read_four_bytes(4*c);
-  header_ptr:=4*c+4;
   end;
 end
 
@@ -2065,7 +2066,8 @@ while hash[h]>0 do
     end;
   if h>0 then decr(h)@+else h:=hash_size;
   end;
-hash[h]:=key; class[h]:=cc; lig_z[h]:=zz; incr(hash_ptr); hash_list[hash_ptr]:=h;
+hash[h]:=key; class[h]:=cc; lig_z[h]:=zz;
+incr(hash_ptr); hash_list[hash_ptr]:=h;
 hash_input:=true;
 30:end;
 
@@ -2161,7 +2163,9 @@ must fix such errors.
 @<Doublecheck...@>=
 if nl>0 then for lig_ptr:=0 to nl-1 do
   if lig_kern[lig_ptr].b2<kern_flag then
-    begin double_check_lig(b1)('LIG step'); double_check_lig(b3)('LIG step');
+    begin if lig_kern[lig_ptr].b0<255 then
+      begin double_check_lig(b1)('LIG step'); double_check_lig(b3)('LIG step');
+      end;
     end
   else double_check_lig(b1)('KRN step');
 @.Unused LIG step...@>
@@ -2309,8 +2313,11 @@ begin if abs(x/design_units)>=16.0 then
 if design_units<>unity then x:=round((x/design_units)*1048576.0);
 if x<0 then
   begin out(255); x:=x+@'100000000;
+  if x<=0 then x:=1;
   end
-else out(0);
+else begin out(0);
+  if x>=@'100000000 then x:=@'77777777;
+  end;
 n:=x div @'200000; m:=x mod @'200000;
 out(n); out(m div 256); out(m mod 256);
 end;

@@ -16,9 +16,9 @@ enum{
 	XXXdataqid,
 };
 Dirtab XXXtab[]={
-	"data",		XXXdataqid,		0,	0600,
+	"data",		{XXXdataqid, 0},	0,	0600,
 };
-#define NXXXtab (sizeof(XXXTab)/sizeof(Dirtab))
+#define NXXXtab (sizeof(XXXtab)/sizeof(Dirtab))
 
 void
 XXXreset(void)
@@ -45,43 +45,39 @@ XXXclone(Chan *c, Chan *nc)
 int
 XXXwalk(Chan *c, char *name)
 {
-	return devwalk(c, name, XXXtab, (long)NXXXtab, devgen);
+	return devwalk(c, name, XXXtab, NXXXtab, devgen);
 }
 
 void
 XXXstat(Chan *c, char *db)
 {
-	devstat(c, db, XXXtab, (long)NXXXtab, devgen);
+	devstat(c, db, XXXtab, NXXXtab, devgen);
 }
 
 Chan *
 XXXopen(Chan *c, int omode)
 {
-	if(c->qid.path == CHDIR){
-		if(omode != OREAD)
-			error(Eperm);
-	}
-	c->mode = openmode(omode);
-	c->flag |= COPEN;
-	c->offset = 0;
-	return c;
+	return devopen(c, omode, XXXtab, NXXXtab, devgen);
 }
 
 void
 XXXcreate(Chan *c, char *name, int omode, ulong perm)
 {
+	USED(c, name, omode, perm);
 	error(Eperm);
 }
 
 void
 XXXremove(Chan *c)
 {
+	USED(c);
 	error(Eperm);
 }
 
 void
 XXXwstat(Chan *c, char *dp)
 {
+	USED(c, dp);
 	error(Eperm);
 }
 
@@ -93,7 +89,7 @@ XXXclose(Chan *c)
 long
 XXXread(Chan *c, void *a, long n, ulong offset)
 {
-	switch((int)(c->qid.path&~CHDIR)){
+	switch(c->qid.path & ~CHDIR){
 	case XXXdirqid:
 		return devdirread(c, a, n, XXXtab, NXXXtab, devgen);
 	case XXXdataqid:
@@ -108,7 +104,7 @@ XXXread(Chan *c, void *a, long n, ulong offset)
 long
 XXXwrite(Chan *c, char *a, long n, ulong offset)
 {
-	switch((int)(c->qid.path&~CHDIR)){
+	switch(c->qid.path & ~CHDIR){
 	case XXXdataqid:
 		break;
 	default:

@@ -1,0 +1,23 @@
+objtype=3210
+</3210/mkfile
+
+LIB=/$objtype/lib/libc.a
+OFILES=\
+	main9.$O\
+	main9p.$O\
+	argv0.$O\
+	muldiv.$O\
+	frexp.$O\
+	ldexp.$O\
+	modf.$O\
+	nan.$O\
+	pow10.$O\
+	setjmp.$O\
+	fdiv.$O\
+	memmove.$O\
+#	errstr.$O\
+#	_exits.$O\
+
+HFILES=/sys/include/libc.h
+
+</sys/src/cmd/mksyslib

@@ -85,7 +85,7 @@ TEXT	touser(SB), $-4
 TEXT	firmware(SB), $0
 
 	SLL	$3, R1
-	ADD	$PROM, R1
+	ADDU	$PROM, R1
 	JMP	(R1)
 
 TEXT	splhi(SB), $0
@@ -228,10 +228,10 @@ TEXT	gettlbvirt(SB), $0
 	RET
 
 TEXT	vector0(SB), $-4
-	MOVW	$((MACHADDR+368) & 0xffff0000), R26	/* get m->tlbfault BUG */	
-	OR	$((MACHADDR+368) & 0xffff), R26
+	MOVW	$((MACHADDR+12) & 0xffff0000), R26	/* get m->tlbfault BUG */	
+	OR	$((MACHADDR+12) & 0xffff), R26
 	MOVW	(R26), R27
-	ADD	$1, R27
+	ADDU	$1, R27
 	MOVW	R27, (R26)
 
 	MOVW	$utlbmiss(SB), R26
@@ -265,10 +265,10 @@ TEXT	utlbmiss(SB), $-4
 
 stlbm:
 /* Temporary */	
-	MOVW	$((MACHADDR+372) & 0xffff0000), R26	/* get m->tlbpurge BUG */	
-	OR	$((MACHADDR+372) & 0xffff), R26
+	MOVW	$((MACHADDR+16) & 0xffff0000), R26	/* get m->tlbpurge BUG */	
+	OR	$((MACHADDR+16) & 0xffff), R26
 	MOVW	(R26), R27
-	ADD	$1, R27
+	ADDU	$1, R27
 	MOVW	R27, (R26)
 
 	MOVW	$exception(SB), R26
@@ -285,22 +285,34 @@ utas:
 	 * cannot take a fault; therefore we probe the tlb by hand
 	 */
 	MOVW	M(EPC), R3
+	NOOP
+	NOOP
 	ADDU	$4, R3			/* skip the cop3 instruction */
 	BLTZ	R1, badtas
 
 	MOVW	M(TLBVIRT), R2
+	NOOP
+	NOOP
 	AND	$(~(BY2PG-1)), R1, R4	/* get the VPN */
 	AND	$((NTLBPID-1)<<6), R2	/* get the pid */
 	OR	R4, R2
 	MOVW	R2, M(TLBVIRT)
 	NOOP
+	NOOP
 	TLBP
 	NOOP
+	NOOP
 	MOVW	M(INDEX), R2
+	NOOP
+	NOOP
 	BLTZ	R2, badtas
 	TLBR
+	NOOP
+	NOOP
 	MOVW	R1, R2
 	MOVW	M(TLBPHYS), R1
+	NOOP
+	NOOP
 	MOVW	$1, R4
 	AND	$PTEWRITE, R1
 	BEQ	R1, badtas
@@ -344,7 +356,7 @@ wasuser:
 	MOVW	R(MACH), 0x3C(SP)
 	MOVW	R(USER), 0x40(SP)
 	AND	$(0xF<<2), R26
-	SUB	$(CSYS<<2), R26
+	SUBU	$(CSYS<<2), R26
 
 	JAL	saveregs(SB)
 
@@ -381,14 +393,14 @@ restore:
 waskernel:
 	MOVW	$1, R26			/* not sys call */
 	MOVW	SP, -0x90(SP)		/* drop this if possible */
-	SUB	$0xA0, SP
+	SUBU	$0xA0, SP
 	MOVW	R31, 0x28(SP)
 	JAL	saveregs(SB)
 	MOVW	4(SP), R1		/* first arg to syscall, trap */
 	JAL	trap(SB)
 	JAL	restregs(SB)
 	MOVW	0x28(SP), R31
-	ADD	$0xA0, SP
+	ADDU	$0xA0, SP
 	RFE	(R26)
 
 TEXT	saveregs(SB), $-4
@@ -622,8 +634,8 @@ _icflush1:
 	MOVBU	R0, 0x34(R8)
 	MOVBU	R0, 0x38(R8)
 	MOVBU	R0, 0x3C(R8)
-	SUB	$0x40, R9
-	ADD	$0x40, R8
+	SUBU	$0x40, R9
+	ADDU	$0x40, R8
 	BGTZ	R9, _icflush1
 	MOVW	$icflush2(SB), R2
 	OR	R3, R2
@@ -664,8 +676,8 @@ _dcflush0:
 	MOVBU	R0, 0x34(R8)
 	MOVBU	R0, 0x38(R8)
 	MOVBU	R0, 0x3C(R8)
-	SUB	$0x40, R9
-	ADD	$0x40, R8
+	SUBU	$0x40, R9
+	ADDU	$0x40, R8
 	BGTZ	R9, _dcflush0
 	MOVW	$0, M(STATUS)
 	NOOP				/* +++ */

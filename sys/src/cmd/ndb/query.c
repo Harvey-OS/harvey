@@ -45,29 +45,36 @@ main(int argc, char **argv)
 {
 	char *rattr = 0;
 	Ndb *db;
+	char *dbfile = 0;
 	int reps = 1;
 
-	switch(argc){
-	case 5:
-		reps = atoi(argv[4]);
-		/* fall through */
-	case 4:
-		rattr = argv[3];
+	ARGBEGIN{
+	case 'f':
+		dbfile = ARGF();
 		break;
+	}ARGEND;
+
+	switch(argc){
+	case 4:
+		reps = atoi(argv[3]);
+		/* fall through */
 	case 3:
+		rattr = argv[2];
+		break;
+	case 2:
 		rattr = 0;
 		break;
 	default:
 		usage();
 	}
 	
-	db = ndbopen(0);
+	db = ndbopen(dbfile);
 	if(db == 0){
 		fprint(2, "no db files\n");
 		exits("no db");
 	}
 	while(reps--)
-		search(db, argv[1], argv[2], rattr);
+		search(db, argv[0], argv[1], rattr);
 	ndbclose(db);
 
 	exits(0);

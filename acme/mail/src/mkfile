@@ -1,0 +1,25 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+TARG=Mail
+OFILES=mail.$O\
+		box.$O\
+		mesg.$O\
+		util.$O\
+		win.$O
+
+HFILES=dat.h\
+	fns.h\
+
+BIN=../$objtype
+</sys/src/cmd/mkone
+
+acid:V:
+	val -a mail.l	>acid
+	val -aa *.l 	>>acid
+
+2.out:Q:	$OFILES $LIB
+	echo 'no alef compiler for 68020'
+
+../68020/$TARG:Q:	2.out
+	;

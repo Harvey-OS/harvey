@@ -529,7 +529,7 @@ dkmuxconfig(Queue *q, Block *bp)
 	/*
 	 *  parse
 	 */
-	n = getfields((char *)bp->rptr, fields, 5, ' ');
+	n = getfields((char *)bp->rptr, fields, 5, " ");
 	switch(n){
 	case 5:
 		window = strtoul(fields[4], 0, 0);
@@ -752,24 +752,24 @@ dkwrite(Chan *c, void *a, long n, ulong offset)
 			n = sizeof buf - 1;
 		strncpy(buf, a, n);
 		buf[n] = '\0';
-		m = getfields(buf, field, 5, ' ');
-		if(strcmp(field[0], "connect")==0){
+		m = getfields(buf, field, 5, " ");
+		if(strncmp(field[0], "connect", 7)==0){
 			if(m < 2)
 				error(Ebadarg);
 			dkcall(Dial, c, field[1], 0, 0);
-		} else if(strcmp(field[0], "announce")==0){
+		} else if(strncmp(field[0], "announce", 8)==0){
 			if(m < 2)
 				error(Ebadarg);
 			dkcall(Announce, c, field[1], 0, 0);
-		} else if(strcmp(field[0], "redial")==0){
+		} else if(strncmp(field[0], "redial", 6)==0){
 			if(m < 4)
 				error(Ebadarg);
 			dkcall(Redial, c, field[1], field[2], field[3]);
-		} else if(strcmp(field[0], "accept")==0){
+		} else if(strncmp(field[0], "accept", 6)==0){
 			if(m < 2)
 				error(Ebadarg);
 			dkanswer(c, strtoul(field[1], 0, 0), 0);
-		} else if(strcmp(field[0], "reject")==0){
+		} else if(strncmp(field[0], "reject", 6)==0){
 			if(m < 3)
 				error(Ebadarg);
 			for(m = 0; m < DKERRS-1; m++)
@@ -1166,7 +1166,7 @@ dklisten(Chan *c)
 		/*
 		 *  break the dial string into lines
 		 */
-		n = getfields(dialstr, line, 12, '\n');
+		n = getfields(dialstr, line, 12, "\n");
 		if (n < 2) {
 			DPRINT("bad dialstr from dk (1 line)\n");
 			error(Eio);
@@ -1176,7 +1176,7 @@ dklisten(Chan *c)
 		 * line 0 is `line.tstamp.traffic[.urpparms.window]'
 		 */
 		window = 0;
-		switch(getfields(line[0], field, 5, '.')){
+		switch(getfields(line[0], field, 5, ".")){
 		case 5:
 			/*
 			 *  generic way of passing window
@@ -1265,13 +1265,13 @@ dklisten(Chan *c)
 			break;
 		case 3:
 			/* line 2 is `source.user.param1.param2' */
-			getfields(line[2], field, 3, '.');
+			getfields(line[2], field, 3, ".");
 			strncpy(lp->raddr, field[0], sizeof(lp->raddr)-1);
 			strncpy(lp->ruser, field[1], sizeof(lp->ruser)-1);
 			break;
 		case 4:
 			/* line 2 is `user.param1.param2' */
-			getfields(line[2], field, 2, '.');
+			getfields(line[2], field, 2, ".");
 			strncpy(lp->ruser, field[0], sizeof(lp->ruser)-1);
 	
 			/* line 3 is `source.node.mod.line' */

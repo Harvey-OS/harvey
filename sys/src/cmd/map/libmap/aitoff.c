@@ -4,7 +4,7 @@
 static struct place Xaitpole;
 
 static int
-Xaitoff(struct place *place, float *x, float *y)
+Xaitoff(struct place *place, double *x, double *y)
 {
 	struct place p;
 	copyplace(place,&p);

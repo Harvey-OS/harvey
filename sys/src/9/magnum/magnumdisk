@@ -18,7 +18,6 @@ dev
 	rtc	r
 	scsi	S	scsi scsibuf
 	wren	w
-	vid	v
 
 stream
 	async
@@ -34,7 +33,6 @@ port
 	int cpuserver = 0;
 	void consdebug(void){}
 	void kproftimer(ulong pc){USED(pc);}
-	int islcd;
 
 boot
 	local

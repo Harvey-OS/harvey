@@ -402,7 +402,8 @@ _d2b(double darg, int *e, int *bits)
 		i = b->wds = 1;
 		k += 32;
 	}
-
+	
+	USED(i);
 	if(Sudden_Underflow){
 		*e = de - Bias - (P-1) + k;
 		*bits = P - k;

@@ -1,5 +1,5 @@
 Once upon a time Upas ran on many versions of Unix.
-This is a partial rewrite to ANSI C specificly for Plan 9.
+This is a partial rewrite to ANSI C specifically for Plan 9.
 It uses's Plan 9's bio library instead of stdio and Plan 9's
 regular expression library.
 

@@ -321,4 +321,12 @@ prprog(void)
 	abort();	/* use db */
 }
 
+void
+bbexec(void (*memstart)(void), int len, int onstack)
+{
+	memstart();
+	if(!onstack)
+		bbfree(memstart, len);
+}
+
 #endif

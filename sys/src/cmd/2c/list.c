@@ -173,10 +173,7 @@ Dconv(void *o, Fconv *fp)
 		break;
 
 	case D_FCONST:
-		if(FPCHIP)
-			sprint(str, "$%.8e", a->dval);
-		else
-			sprint(str, "$<floating>");
+		sprint(str, "$%.17e", a->dval);
 		goto out;
 
 	case D_SCONST:

@@ -5,6 +5,7 @@
 % History:
 % 03/23/88 (ETM) Created for use with WEB to C.
 % 11/29/89 (KB)  Version released with 8-bit TeX.
+% (more recent changes in ../ChangeLog.W2C)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -15,7 +16,7 @@
 @y
 \pageno=\contentspagenumber \advance\pageno by 1
 \let\maybe=\iffalse
-\def\title{POOLTYPE changes for C}
+\def\title{POOL\lowercase{type} changes for C}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -27,15 +28,6 @@
 label 9999; {this labels the end of the program}
 @y
 @p program POOLtype;
-@z
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Define incr/decr with C macros
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-@x
-@d incr(#) == #:=#+1 {increase a variable by unity}
-@d decr(#) == #:=#-1 {decrease a variable by unity}
-@y
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -83,8 +75,7 @@ end.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Add pool_name variable.  We don't have to worry about matching
-% FILENAMESIZE in site.h, since we don't use paths for opening it.
+% Add pool_name variable.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @!pool_file:packed file of text_char;
@@ -92,7 +83,7 @@ end.
 @y
 @!pool_file:packed file of text_char;
   {the string-pool file output by \.{TANGLE}}
-@!pool_name:array[0..99] of char;
+@!pool_name:array[0..PATH_MAX] of char;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

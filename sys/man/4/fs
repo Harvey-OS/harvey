@@ -1,6 +1,6 @@
 .TH FS 4
 .SH NAME
-fs \- file server, bootes
+fs \- file server, dump
 .SH SYNOPSIS
 .I none
 .SH DESCRIPTION
@@ -13,23 +13,17 @@ of networks including
 Datakit/URP,
 Ethernet IL/IP and
 Cyclone fiber direct connections.
-The name of this machine is
+The name of the main file server at Murray Hill is
 .BR bootes .
 .PP
-.B Bootes
-can use an external authentication server to validate clients.
-Because the authentication server itself uses
-.B bootes
-as a file server, though, to avoid chicken-and-egg problems
-.B bootes
-usually authenticates its own connections.  Thus when changes
-are made to the authentication server's database it is necessary to run
-.B auth
-(see
-.IR fs (8))
-to update
-.BR bootes 's
-internal state.
+The file server normally requires all users except
+.L none
+to provide authentication tickets on each
+.IR attach (5).
+This can be disabled using the
+.B noauth
+configuration command (see
+.IR fsconfig (8)).
 .PP
 The user
 .B none
@@ -37,7 +31,8 @@ is always allowed to attach to
 .B bootes
 without authentication but has minimal permissions.
 .PP
-Bootes maintains three file systems
+.B Bootes
+maintains three file systems
 on a combination of disks and
 write-once-read-many (WORM) magneto-optical disks.
 .TP
@@ -60,7 +55,7 @@ disk cache are
 .IR dumped .
 At this time,
 traffic to the file system is halted and the
-modified blocks are relabeled to the un-written
+modified blocks are relabeled to the unwritten
 portion of the worm.
 After the dump,
 the file system traffic is continued and
@@ -75,7 +70,7 @@ cache,
 it is read-only.
 The name of the newly added root is created from the date
 of the dump:
-.BI / yyyy / mmdds.
+.BI / yyyy / mmdds\f1.
 Here
 .I yyyy
 is the full year,
@@ -91,7 +86,7 @@ For the first dump,
 is null.
 For the subsequent dumps
 .I s
-is 1, 2, 3 etc.
+is 1, 2, 3, etc.
 .sp
 The root of the main file system
 that is frozen on the first dump
@@ -104,7 +99,7 @@ Place the root of the
 .B dump
 file system on
 .B /n/dump
-and show the modified times of the mips C compiler
+and show the modified times of the MIPS C compiler
 over all dumps in February, 1992:
 .IP
 .EX
@@ -124,14 +119,17 @@ file system available in directory
 .BR /n/bootesother :
 .IP
 .EX
-mount -ct /srv/boot /n/bootesother other
+mount -c /srv/boot /n/bootesother other
 .EE
+.SH SOURCE
+.B /sys/src/fs
 .SH SEE ALSO
 .IR yesterday (1),
 .IR srv (4),
 .IR fs (8)
 .br
 Sean Quinlan,
+``A Cached WORM File System'',
 .I
-A Cached WORM File System,
-Software \- Practice and Experience, December, 1991
+Software \- Practice and Experience,
+December, 1991

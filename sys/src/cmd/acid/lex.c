@@ -7,9 +7,6 @@
 #include "acid.h"
 #include "y.tab.h"
 
-#define Ungetc(s)	{ if(s == '\n') line--; Bungetc(bin); }
-int Lconv(void*, int, int, int, int);
-
 struct keywd
 {
 	char	*name;
@@ -29,13 +26,13 @@ keywds[] =
 	"defn",		Tfn,
 	"return",	Tret,
 	"local",	Tlocal,
-	"struct",	Tcomplex,
-	"union",	Tcomplex,
 	"aggr",		Tcomplex,
+	"union",	Tcomplex,
 	"adt",		Tcomplex,
 	"complex",	Tcomplex,
 	"delete",	Tdelete,
 	"whatis",	Twhat,
+	"eval",		Teval,
 	0,		0
 };
 
@@ -60,7 +57,159 @@ kinit(void)
 	
 	for(i = 0; keywds[i].name; i++) 
 		enter(keywds[i].name, keywds[i].terminal);
+}
 
+typedef struct IOstack IOstack;
+struct IOstack
+{
+	char	*name;
+	int	line;
+	char	*text;
+	char	*ip;
+	Biobuf	*fin;
+	IOstack	*prev;
+};
+IOstack *lexio;
+
+void
+pushfile(char *file)
+{
+	Biobuf *b;
+	IOstack *io;
+
+	if(file)
+		b = Bopen(file, OREAD);
+	else{
+		b = Bopen("/fd/0", OREAD);
+		file = "<stdin>";
+	}
+
+	if(b == 0)
+		error("pushfile: %s: %r", file);
+
+	io = malloc(sizeof(IOstack));
+	if(io == 0)
+		fatal("no memory");
+	io->name = strdup(file);
+	if(io->name == 0)
+		fatal("no memory");
+	io->line = line;
+	line = 1;
+	io->text = 0;
+	io->fin = b;
+	io->prev = lexio;
+	lexio = io;
+}
+
+void
+pushstr(Node *s)
+{
+	IOstack *io;
+
+	io = malloc(sizeof(IOstack));
+	if(io == 0)
+		fatal("no memory");
+	io->line = line;
+	line = 1;
+	io->name = strdup("<string>");
+	if(io->name == 0)
+		fatal("no memory");
+	io->line = line;
+	line = 1;
+	io->text = strdup(s->string->string);
+	if(io->text == 0)
+		fatal("no memory");
+	io->ip = io->text;
+	io->fin = 0;
+	io->prev = lexio;
+	lexio = io;
+}
+
+void
+restartio(void)
+{
+	Bflush(lexio->fin);
+	Binit(lexio->fin, 0, OREAD);
+}
+
+int
+popio(void)
+{
+	IOstack *s;
+
+	if(lexio == 0)
+		return 0;
+
+	if(lexio->prev == 0){
+		if(lexio->fin)
+			restartio();
+		return 0;
+	}
+
+	if(lexio->fin)
+		Bterm(lexio->fin);
+	else
+		free(lexio->text);
+	free(lexio->name);
+	line = lexio->line;
+	s = lexio;
+	lexio = s->prev;
+	free(s);
+	return 1;
+}
+
+int
+Lconv(void *oa, Fconv *f)
+{
+	int i;
+	char buf[1024];
+	IOstack *e;
+
+	USED(oa);
+	USED(f);
+	e = lexio;
+	if(e) {
+		i = sprint(buf, "%s:%d", e->name, line);
+		while(e->prev) {
+			e = e->prev;
+			if(initialising && e->prev == 0)
+				break;
+			i += sprint(buf+i, " [%s:%d]", e->name, e->line);
+		}
+	} else
+		sprint(buf, "no file:0");
+	strconv(buf, f);
+	return 0;
+}
+
+void
+unlexc(int s)
+{
+	if(s == '\n')
+		line--;
+
+	if(lexio->fin)
+		Bungetc(lexio->fin);
+	else
+		lexio->ip--;
+}
+
+int
+lexc(void)
+{
+	int c;
+
+	if(lexio->fin) {
+		c = Bgetc(lexio->fin);
+		if(gotint)
+			error("interrupt");
+		return c;
+	}
+
+	c = *lexio->ip++;
+	if(c == 0)
+		return -1;
+	return c;
 }
 
 int
@@ -73,11 +222,11 @@ escchar(char c)
 		n = 1;
 		buf[0] = c;
 		for(;;) {
-			c = Bgetc(bin);
+			c = lexc();
 			if(c == Eof)
 				error("%d: <eof> in escape sequence", line);
 			if(strchr("0123456789xX", c) == 0) {
-				Ungetc(c);
+				unlexc(c);
 				break;
 			}
 			buf[n++] = c;
@@ -100,7 +249,7 @@ eatstring(void)
 
 	esc = 0;
 	for(cnt = 0;;) {
-		c = Bgetc(bin);
+		c = lexc();
 		switch(c) {
 		case Eof:
 			error("%d: <eof> in string constant", line);
@@ -126,6 +275,8 @@ eatstring(void)
 			buf[cnt++] = c;
 			break;
 		}
+		if(cnt >= Strsize)
+			error("string token too long");
 	}
 done:
 	buf[cnt] = '\0';
@@ -139,7 +290,7 @@ eatnl(void)
 
 	line++;
 	for(;;) {
-		c = Bgetc(bin);
+		c = lexc();
 		if(c == Eof)
 			error("eof in comment");
 		if(c == '\n')
@@ -151,16 +302,16 @@ int
 yylex(void)
 {
 	int c;
+	extern char vfmt[];
 
 loop:
 	Bflush(bout);
-	c = Bgetc(bin);
+	c = lexc();
 	switch(c) {
 	case Eof:
 		if(gotint) {
 			gotint = 0;
 			stacked = 0;
-			Binit(bin, 0, OREAD);
 			Bprint(bout, "\nacid: ");
 			goto loop;
 		}
@@ -185,8 +336,8 @@ loop:
 		return ';';
 
 	case '.':
-		c = Bgetc(bin);
-		Ungetc(c);
+		c = lexc();
+		unlexc(c);
 		if(isdigit(c))
 			return numsym('.');
 
@@ -213,88 +364,99 @@ loop:
 		stacked--;
 		return c;
 
+	case '\\':
+		c = lexc();
+		if(strchr(vfmt, c) == 0) {
+			unlexc(c);
+			return '\\';
+		}
+		yylval.ival = c;
+		return Tfmt;
+
 	case '!':
-		c = Bgetc(bin);
+		c = lexc();
 		if(c == '=')
 			return Tneq;
-		Ungetc(c);
+		unlexc(c);
 		return '!';
 
 	case '+':
-		c = Bgetc(bin);
+		c = lexc();
 		if(c == '+')
 			return Tinc;
-		Ungetc(c);
+		unlexc(c);
 		return '+';
 
 	case '/':
-		c = Bgetc(bin);
+		c = lexc();
 		if(c == '/') {
 			eatnl();
 			goto loop;
 		}
-		Ungetc(c);
+		unlexc(c);
 		return '/';
 
 	case '\'':
-		c = Bgetc(bin);
+		c = lexc();
 		if(c == '\\')
-			yylval.ival = escchar(Bgetc(bin));
+			yylval.ival = escchar(lexc());
 		else
 			yylval.ival = c;
-		c = Bgetc(bin);
+		c = lexc();
 		if(c != '\'') {
 			error("missing '");
-			Ungetc(c);
+			unlexc(c);
 		}
 		return Tconst;
 
 	case '&':
-		c = Bgetc(bin);
+		c = lexc();
 		if(c == '&')
 			return Tandand;
-		Ungetc(c);
+		unlexc(c);
 		return '&';
 
 	case '=':
-		c = Bgetc(bin);
+		c = lexc();
 		if(c == '=')
 			return Teq;
-		Ungetc(c);
+		unlexc(c);
 		return '=';
 
 	case '|':
-		c = Bgetc(bin);
+		c = lexc();
 		if(c == '|')
 			return Toror;
-		Ungetc(c);
+		unlexc(c);
 		return '|';
 
 	case '<':
-		c = Bgetc(bin);
+		c = lexc();
 		if(c == '=')
 			return Tleq;
 		if(c == '<')
 			return Tlsh;
-		Ungetc(c);
+		unlexc(c);
 		return '<';
 
 	case '>':
-		c = Bgetc(bin);
+		c = lexc();
 		if(c == '=')
 			return Tgeq;
 		if(c == '>')
 			return Trsh;
-		Ungetc(c);
+		unlexc(c);
 		return '>';
 
 	case '-':
-		c = Bgetc(bin);
+		c = lexc();
+
 		if(c == '>')
 			return Tindir;
+
 		if(c == '-')
 			return Tdec;
-		Ungetc(c);
+		unlexc(c);
 		return '-';
 
 	default:
@@ -305,7 +467,7 @@ loop:
 int
 numsym(char first)
 {
-	int c, isfloat, ishex;
+	int c, isbin, isfloat, ishex;
 	char *sel, *p;
 	Lsym *s;
 
@@ -313,30 +475,35 @@ numsym(char first)
 	p = symbol;
 
 	ishex = 0;
+	isbin = 0;
 	isfloat = 0;
 	if(first == '.')
 		isfloat = 1;
 
 	if(isdigit(*p++) || isfloat) {
 		for(;;) {
-			c = Bgetc(bin);
+			c = lexc();
 			if(c < 0)
 				error("%d: <eof> eating symbols", line);
 
 			if(c == '\n')
 				line++;
-			sel = "01234567890.x";
+			sel = "01234567890.xb";
 			if(ishex)
 				sel = "01234567890abcdefABCDEF";
+			else if(isbin)
+				sel = "01";
 
 			if(strchr(sel, c) == 0) {
-				Ungetc(c);
+				unlexc(c);
 				break;
 			}
 			if(c == '.')
 				isfloat = 1;
-			if(c == 'x')
+			if(!isbin && c == 'x')
 				ishex = 1;
+			if(!ishex && c == 'b')
+				isbin = 1;
 			*p++ = c;
 		}
 		*p = '\0';
@@ -345,19 +512,21 @@ numsym(char first)
 			return Tfconst;
 		}
 
-		yylval.ival = strtoul(symbol, 0, 0);
+		if(isbin)
+			yylval.ival = strtoul(symbol+2, 0, 2);
+		else
+			yylval.ival = strtoul(symbol, 0, 0);
 		return Tconst;
 	}
 
 	for(;;) {
-		c = Bgetc(bin);
+		c = lexc();
 		if(c < 0)
 			error("%d <eof> eating symbols", line);
 		if(c == '\n')
 			line++;
-		if(c != '_')
-		if(!isalnum(c)) {
-			Ungetc(c);
+		if(c != '_' && c != '$' && !isalnum(c)) {
+			unlexc(c);
 			break;
 		}
 		*p++ = c;

@@ -13,7 +13,7 @@ cachechars(Font *f, char **s, ushort *cp, int max, int *wp)
 	int i, th, sh, h, ld, w, wid, nc;
 	char *sp;
 	Rune r, vr;
-	long a;
+	ulong a;
 	Cacheinfo *c, *tc, *ec;
 
 	sp = *s;
@@ -54,7 +54,7 @@ cachechars(Font *f, char **s, ushort *cp, int max, int *wp)
 			th++;
 		}
 
-		if(a && (f->age-a)<2000){	/* kicking out too recent; resize */
+		if(a && (f->age-a)<500){	/* kicking out too recent; resize */
 			nc = 2*(f->ncache-NFLOOK) + NFLOOK;
 			if(nc <= MAXFCACHE){
 				if(i == 0)
@@ -273,6 +273,7 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush)
     Found2:
 	subf->age = f->age;
 
+	pic += cf->offset;
 	if(pic-cf->min >= subf->f->n)
 		goto TryPJW;
 	fi = &subf->f->info[pic - cf->min];
@@ -350,8 +351,15 @@ resize(Font *f, int wid, int ncache)
 		if(f != font)
 			nf += freeup(font);
 		if(wid != f->width){
-			if(nf == 0)
+			if(nf < 2){
+				/* try to gain space by shrinking cache */
+				if(ncache != NFCACHE+NFLOOK){
+					ret = resize(f, wid, NFCACHE+NFLOOK);
+					if(ret >= 0)
+						return ret;
+				}
 				berror("font resize failed");
+			}
 			return -1;	/* will trigger retry */
 		}
 		/* it's survivable: just clean existing cache */

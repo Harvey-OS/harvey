@@ -6,23 +6,30 @@ OFILES=executable.$O\
 	obj.$O\
 	swap.$O\
 	sym.$O\
-	symsrch.$O\
+	access.$O\
+	machdata.$O\
+	setmach.$O\
 	v.$O\
 	k.$O\
 	2.$O\
-	z.$O\
 	6.$O\
 	8.$O\
+	x.$O\
+	vdb.$O\
+	kdb.$O\
+	2db.$O\
+	6db.$O\
+	8db.$O\
 	vobj.$O\
 	kobj.$O\
 	2obj.$O\
-	zobj.$O\
 	6obj.$O\
 	8obj.$O\
+	xobj.$O\
+	vcodas.$O\
 
 HFILES=/sys/include/mach.h
 
 </sys/src/cmd/mksyslib
 
 CFLAGS=-w -I/sys/src/cmd
-

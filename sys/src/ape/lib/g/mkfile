@@ -1,34 +1,51 @@
 APE=/sys/src/ape
-< $APE/config
-L=/$objtype/lib/ape/libg.a
-BUILTINS=
-CFLAGS=$CFLAGS -D_LIBG_EXTENSION -D_POSIX_SOURCE
-NAMES=U=arc arith balloc binit bitblt bitbltclip border bscreenrect \
-	circle cursorset cursorswitch defont disc ellipse event \
-	falloc getrect menuhit point rdbitmap rdbitmapfile rdcolmap \
-	rgbpix rectclip segment string strwidth texture wrbitmap \
-	wrbitmapfile wrcolmap wrfontfile rdfontfile 
+<$APE/config
 
-OBJ=U=${NAMES:%=$L(%.$O)}
+LIB=/$objtype/lib/ape/libg.a
+OFILES=\
+	arc.$O\
+	arith.$O\
+	balloc.$O\
+	binit.$O\
+	bitblt.$O\
+	bitbltclip.$O\
+	border.$O\
+	bscreenrect.$O\
+	circle.$O\
+	clipline.$O\
+	clipr.$O\
+	cursorset.$O\
+	cursorswitch.$O\
+	disc.$O\
+	ellipse.$O\
+	ekbd.$O\
+	emouse.$O\
+	event.$O\
+	font.$O\
+	getrect.$O\
+	menuhit.$O\
+	mkfont.$O\
+	point.$O\
+	polysegment.$O\
+	rdbitmap.$O\
+	rdbitmapfile.$O\
+	rdcolmap.$O\
+	rdfontfile.$O\
+	rdsubfontfile.$O\
+	rectclip.$O\
+	rgbpix.$O\
+	segment.$O\
+	subfalloc.$O\
+	string.$O\
+	strwidth.$O\
+	texture.$O\
+	wrbitmap.$O\
+	wrbitmapfile.$O\
+	wrcolmap.$O\
+	wrsubfontfile.$O\
 
-install:VQ:	$L
-	echo done $L
+HFILES=/sys/include/ape/libg.h
 
-compile:V:	$L
-test:VQ:
-	echo libg has no test
-clean:V:
-	rm -f *.[$OS]
+</sys/src/cmd/mksyslib
 
-nuke:V:		clean
-	rm -f $L
-
-$L:	$OBJ
-	names=`{membername $newprereq}
-	$AR rv $L $names && rm -f $names
-	$RANLIB $L
-
-$L(%.$O):N:	%.$O
-
-%.$O:	%.c
-	$CC $CFLAGS -c $stem.c
+CFLAGS=-c -D_LIBG_EXTENSION -D_POSIX_SOURCE

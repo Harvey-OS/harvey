@@ -60,6 +60,7 @@ extern	int	numbconv(void*, Fconv*);
 extern	char	*doprint(char*, char*, char*, void*);
 extern	int	fmtinstall(int, int (*)(void*, Fconv*));
 extern	int	sprint(char*, char*, ...);
+extern	int	snprint(char*, int, char*, ...);
 extern	int	print(char*, ...);
 
 /*
@@ -91,6 +92,8 @@ extern	char	end[];
 
 #define	NCONT	0	/* continue after note */
 #define	NDFLT	1	/* terminate after note */
+#define	NSAVE	2	/* clear note but hold state */
+#define	NRSTR	3	/* restore saved state */
 
 typedef struct Qid	Qid;
 typedef struct Dir	Dir;
@@ -99,7 +102,6 @@ typedef struct Waitmsg	Waitmsg;
 #define	ERRLEN		64
 #define	DIRLEN		116
 #define	NAMELEN		28
-#define DESKEYLEN	7
 
 struct Qid
 {

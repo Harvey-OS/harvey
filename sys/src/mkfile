@@ -1,0 +1,79 @@
+</$objtype/mkfile
+
+LIBS=libauth\
+	libbio\
+	libc\
+	libfb\
+	libframe\
+	libg\
+	libgeometry\
+	libgnot\
+	libip\
+	liblayer\
+	liblex\
+	liblock\
+	libmach\
+	libndb\
+	libpanel\
+	libregexp\
+	libstdio\
+	ape/lib\
+	libtiff		#special case - must be built after ape libs
+
+CMDS=cmd\
+	games\
+	fb\
+
+SUBSYS=ape\
+	alef\
+	/acme\
+
+none:VQ:
+	echo mk all, install, clean, nuke, restart, release
+
+all install:VQ:
+	date
+	for (i in $LIBS $SUBSYS $CMDS) @{
+		echo ---$i---
+		flag e -
+		if (! test -e $i/.mk.$objtype){
+			flag e +
+			@{
+				cd $i
+				mk $target
+				touch .mk.$objtype
+			}
+		}
+		flag e +
+	}
+	date
+
+clean nuke:V:
+	for (i in $LIBS $SUBSYS $CMDS) @{
+		cd $i
+		rm -f .mk.*
+		mk $target
+	}
+
+installall:V:
+	echo "installall not supported"
+
+restart:VQ:
+	for (i in $LIBS $SUBSYS $CMDS) {
+		rm -f $i/.mk.*
+
+release:V:
+	mk nuke
+	rm -f /$objtype/lib/ape/*.a
+	rm -f /$objtype/lib/alef/*.a
+	rm -f /$objtype/lib/*.a
+	mk install
+	mk clean
+
+kernels:V:
+	for (i in 9 fs boot) @{
+		cd $i
+		mk clean
+		mk installall
+		mk clean
+	}

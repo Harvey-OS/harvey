@@ -5,8 +5,8 @@ TARG=4s\
 	ana\
 	catclock\
 	clock\
+	festoon\
 	fireworks\
-	juggle\
 	life\
 
 OFILES=
@@ -15,16 +15,16 @@ HFILES=
 </sys/src/cmd/mkmany
 BIN=/$objtype/bin/games
 
-DIRS=	gnuchess\
+DIRS=\
 	mandel\
 	plumb\
 	smiley\
 	swar\
-	zork\
+	fsim\
+	road\
 
 4s.$O:	xs.h
 5s.$O:	xs.h
-ana.$O:	ana.h
 catclock.$O:	catback.p eyes.p
 
 all:V:	dirall
@@ -34,14 +34,14 @@ clean:V:
 		cd $i
 		mk clean
 	}
-	rm -f *.[$OS] [$OS].* y.tab.? y.debug y.output $ALLPROGS $TARG
+	rm -f *.[$OS] [$OS].* y.tab.? y.debug y.output $TARG
 
 nuke:V:
 	for (i in $DIRS) @{
 		cd $i
 		mk nuke
 	}
-	rm -f *.[$OS] [$OS].* y.tab.? y.debug y.output $ALLPROGS $TARG
+	rm -f *.[$OS] [$OS].* y.tab.? y.debug y.output $TARG
 
 dirinstall:V:
 	for (i in $DIRS) @{

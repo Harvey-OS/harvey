@@ -94,5 +94,12 @@ struct Dosdir{
 #define	DDIR	0x10
 #define	DARCH	0x20
 
-extern int	chatty;
+extern int chatty;
 
+extern int dosboot(Dos*, char*);
+extern int dosinit(Dos*);
+extern long dosread(Dosfile*, void*, long);
+extern int dosstat(Dos*, char*, Dosfile*);
+extern int doswalk(Dosfile*, char*);
+
+extern int plan9ini(Dos*);

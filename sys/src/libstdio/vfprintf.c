@@ -190,7 +190,7 @@ vfprintf(FILE *f, const char *s, va_list args)
 			nprint++;
 		}
 	}
-	return nprint;
+	return ferror(f)? -1: nprint;;
 }
 
 static int
@@ -318,7 +318,7 @@ ocvt_fixed(FILE *f, va_list *args, int flags, int width, int precision,
 	if(npad < 0) npad = 0;
 	nout += npad;
 	if(!(flags&LEFT)){
-		if(flags&ZPAD && precision < 0){
+		if(flags&ZPAD && precision <= 0){
 			fputs(sign, f);
 			fputs(prefix, f);
 			while(npad){
@@ -506,7 +506,7 @@ ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
 		while(eptr<ebuf+2) *eptr++ = '0';
 		nout += eptr-ebuf+2;			/* e+99 */
 	}
-	if(!(flags&LEFT))
+	if(!(flags&ZPAD) && !(flags&LEFT))
 		while(nout < width){
 			putc(' ', f);
 			nout++;
@@ -514,6 +514,11 @@ ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
 	if(sign) putc('-', f);
 	else if(flags&SIGN) putc('+', f);
 	else if(flags&SPACE) putc(' ', f);
+	if(flags&ZPAD)
+		while(nout < width){
+			putc('0', f);
+			nout++;
+		}
 	if(fmt == 'f'){
 		for(i=0; i<exponent; i++) putc(i<ndig?digits[i]:'0', f);
 		if(i == 0) putc('0', f);

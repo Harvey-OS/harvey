@@ -1,0 +1,350 @@
+This is TeX, C Version 3.141 (INITEX)  22 FEB 1995 13:53
+**latex.ltx 
+(latex.ltx (texsys.cfg)
+./texsys.aux found
+
+***
+\@currdir set to: ./.
+***
+***
+Assuming \openin and \input 
+have the same search path.
+***
+
+***
+Defining UNIX/DOS style filename parser.
+***
+Preloading the plain format: codes, registers,
+\maxdimen=\dimen10
+\hideskip=\skip10
+\@centering=\skip11
+\p@=\dimen11
+\z@=\dimen12
+\z@skip=\skip12
+\voidb@x=\box10
+ compatibility for TeX 2, 
+parameters,
+\smallskipamount=\skip13
+\medskipamount=\skip14
+\bigskipamount=\skip15
+\normalbaselineskip=\skip16
+\normallineskip=\skip17
+\normallineskiplimit=\dimen13
+\interfootnotelinepenalty=\count23
+ macros,
+\strutbox=\box11
+\mscount=\count24
+\footins=\insert254
+
+LaTeX2e <1994/12/01>
+counters,
+\@tempcnta=\count25
+\@tempcntb=\count26
+\@tempdima=\dimen14
+\@tempdimb=\dimen15
+\@tempdimc=\dimen16
+\@tempboxa=\box12
+\@flushglue=\skip18
+\@tempskipa=\skip19
+\@tempskipb=\skip20
+\@temptokena=\toks10
+ hacks, control, errors, par, spacing,
+\@savsk=\dimen17
+\@savsf=\count27
+\fill=\skip21
+ files,
+\@inputcheck=\read0
+\@unused=\write0
+\@mainaux=\write1
+\@partaux=\write2
+\@clubpenalty=\count28
+ font encodings,
+\everymath=\toks11
+\everydisplay=\toks12
+\every@math@size=\toks13
+\lower@bound=\dimen18
+\upper@bound=\dimen19
+\c@mv@normal=\count29
+\c@mv@bold=\count30
+
+(fonttext.ltx
+File: fonttext.ltx 1994/12/02 v2.2i LaTeX Kernel (Text font Setup)
+
+*** Don't modify this file, use a .cfg file instead ***
+(OMLenc.def
+File: OMLenc.def 1994/12/14 Standard LaTeX file
+) (T1enc.def
+File: T1enc.def 1994/12/14 Standard LaTeX file
+) (OT1enc.def
+File: OT1enc.def 1994/12/14 Standard LaTeX file
+) (OMSenc.def
+File: OMSenc.def 1994/12/14 Standard LaTeX file
+) (T1cmr.fd
+File: T1cmr.fd 1994/12/02 v2.3e Standard LaTeX font definitions
+) (OT1cmr.fd
+File: OT1cmr.fd 1994/12/02 v2.3e Standard LaTeX font definitions
+)
+(OT1cmss.fd
+File: OT1cmss.fd 1994/12/02 v2.3e Standard LaTeX font definitions
+) (OT1cmtt.fd
+File: OT1cmtt.fd 1994/12/02 v2.3e Standard LaTeX font definitions
+)) (fontmath.ltx
+File: fontmath.ltx 1994/12/02 v2.2i LaTeX Kernel (Math font Setup)
+
+*** Don't modify this file, use a .cfg file instead ***
+LaTeX Font Info:    Redeclaring font encoding OML on input line 53.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 54.
+(OMLcmm.fd
+File: OMLcmm.fd 1994/12/02 v2.3e Standard LaTeX font definitions
+) (OMScmsy.fd
+File: OMScmsy.fd 1994/12/02 v2.3e Standard LaTeX font definitions
+) (OMXcmex.fd
+File: OMXcmex.fd 1994/12/02 v2.3e Standard LaTeX font definitions
+) (Ucmr.fd
+File: Ucmr.fd 1994/12/02 v2.3e Standard LaTeX font definitions
+)
+\symoperators=\mathgroup0
+\symletters=\mathgroup1
+\symsymbols=\mathgroup2
+\symlargesymbols=\mathgroup3
+LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
+(Font)                  OT1/cmr/m/n --> OT1/cmr/bx/n on input line 70.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `bold'
+(Font)                  OML/cmm/m/it --> OML/cmm/b/it on input line 71.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `bold'
+(Font)                  OMS/cmsy/m/n --> OMS/cmsy/b/n on input line 72.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
+(Font)                  OT1/cmss/m/n --> OT1/cmss/bx/n on input line 80.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
+(Font)                  OT1/cmr/m/it --> OT1/cmr/bx/it on input line 81.
+) (preload.ltx
+File: preload.ltx 1994/11/07 v2.1e LaTeX Kernel (Font Preloading)
+) env. counters,
+page nos., x-ref, lengths, environments, center,
+\@rightskip=\skip22
+ verbatim, math definitions,
+\jot=\dimen20
+\interdisplaylinepenalty=\count31
+\rootbox=\box13
+\c@equation=\count32
+\@eqcnt=\count33
+\@eqpen=\count34
+\topsep=\skip23
+\partopsep=\skip24
+\itemsep=\skip25
+\parsep=\skip26
+\@topsep=\skip27
+\@topsepadd=\skip28
+\@outerparskip=\skip29
+\leftmargin=\dimen21
+\rightmargin=\dimen22
+\listparindent=\dimen23
+\itemindent=\dimen24
+\labelwidth=\dimen25
+\labelsep=\dimen26
+\linewidth=\dimen27
+\@totalleftmargin=\dimen28
+\leftmargini=\dimen29
+\leftmarginii=\dimen30
+\leftmarginiii=\dimen31
+\leftmarginiv=\dimen32
+\leftmarginv=\dimen33
+\leftmarginvi=\dimen34
+\@listdepth=\count35
+\@itempenalty=\count36
+\@beginparpenalty=\count37
+\@endparpenalty=\count38
+\@labels=\box14
+\par@deathcycles=\count39
+\@enumdepth=\count40
+\c@enumi=\count41
+\c@enumii=\count42
+\c@enumiii=\count43
+\c@enumiv=\count44
+\@itemdepth=\count45
+
+boxes,
+\fboxrule=\dimen35
+\fboxsep=\dimen36
+\@mplistdepth=\count46
+\@mpfootins=\insert253
+\@gtempa=\dimen37
+\@gtempa=\dimen38
+\@gtempa=\dimen39
+\@gtempa=\dimen40
+\@gtempa=\dimen41
+\@gtempa=\dimen42
+\@gtempa=\dimen43
+\@gtempa=\dimen44
+\@gtempa=\dimen45
+\@gtempa=\dimen46
+\@gtempa=\dimen47
+\@gtempa=\dimen48
+\@gtempa=\dimen49
+\@gtempa=\dimen50
+\@nxttabmar=\count47
+\@curtabmar=\count48
+\@curtab=\count49
+\@hightab=\count50
+\@tabpush=\count51
+\@curline=\box15
+\@curfield=\box16
+\@tabfbox=\box17
+\tabbingsep=\dimen51
+\@chclass=\count52
+\@lastchclass=\count53
+\@chnum=\count54
+\arraycolsep=\dimen52
+\tabcolsep=\dimen53
+\arrayrulewidth=\dimen54
+\doublerulesep=\dimen55
+\@arstrutbox=\box18
+\@cla=\count55
+\@clb=\count56
+\@wholewidth=\dimen56
+\@halfwidth=\dimen57
+\unitlength=\dimen58
+\@picbox=\box19
+\@picht=\dimen59
+\@ovxx=\dimen60
+\@ovyy=\dimen61
+\@ovdx=\dimen62
+\@ovdy=\dimen63
+\@ovro=\dimen64
+\@ovri=\dimen65
+\@xarg=\count57
+\@yarg=\count58
+\@yyarg=\count59
+\@multicnt=\count60
+\@xdim=\dimen66
+\@ydim=\dimen67
+\@linechar=\box20
+\@linelen=\dimen68
+\@clnwd=\dimen69
+\@clnht=\dimen70
+\@dashdim=\dimen71
+\@dashbox=\box21
+\@dashcnt=\count61
+ title, sectioning,
+\@secpenalty=\count62
+\c@secnumdepth=\count63
+\c@tocdepth=\count64
+ contents, floats,
+\@floatpenalty=\count65
+ footnotes,
+\c@footnote=\count66
+\c@mpfootnote=\count67
+\footnotesep=\dimen72
+ index, bibliography,
+output,
+\bx@A=\insert252
+\bx@B=\insert251
+\bx@C=\insert250
+\bx@D=\insert249
+\bx@E=\insert248
+\bx@F=\insert247
+\bx@G=\insert246
+\bx@H=\insert245
+\bx@I=\insert244
+\bx@J=\insert243
+\bx@K=\insert242
+\bx@L=\insert241
+\bx@M=\insert240
+\bx@N=\insert239
+\bx@O=\insert238
+\bx@P=\insert237
+\bx@Q=\insert236
+\bx@R=\insert235
+\topmargin=\dimen73
+\oddsidemargin=\dimen74
+\evensidemargin=\dimen75
+\headheight=\dimen76
+\headsep=\dimen77
+\footskip=\dimen78
+\textheight=\dimen79
+\textwidth=\dimen80
+\columnwidth=\dimen81
+\columnsep=\dimen82
+\columnseprule=\dimen83
+\marginparwidth=\dimen84
+\marginparsep=\dimen85
+\marginparpush=\dimen86
+\@begindvibox=\box22
+\@maxdepth=\dimen87
+\paperheight=\dimen88
+\paperwidth=\dimen89
+\col@number=\count68
+\@topnum=\count69
+\@toproom=\dimen90
+\@dbltopnum=\count70
+\@dbltoproom=\dimen91
+\@botnum=\count71
+\@botroom=\dimen92
+\@colnum=\count72
+\@textmin=\dimen93
+\@fpmin=\dimen94
+\@colht=\dimen95
+\@colroom=\dimen96
+\@pageht=\dimen97
+\@pagedp=\dimen98
+\@mparbottom=\dimen99
+\@currtype=\count73
+\@outputbox=\box23
+\@leftcolumn=\box24
+\@holdpg=\box25
+\@kludgeins=\insert234
+\@fpstype=\count74
+\@reqcolroom=\dimen100
+\@textfloatsheight=\dimen101
+\c@topnumber=\count75
+\c@bottomnumber=\count76
+\c@totalnumber=\count77
+\c@dbltopnumber=\count78
+\floatsep=\skip30
+\textfloatsep=\skip31
+\intextsep=\skip32
+\dblfloatsep=\skip33
+\dbltextfloatsep=\skip34
+\@fptop=\skip35
+\@fpsep=\skip36
+\@fpbot=\skip37
+\@dblfptop=\skip38
+\@dblfpsep=\skip39
+\@dblfpbot=\skip40
+\@lowpenalty=\count79
+\@medpenalty=\count80
+\@highpenalty=\count81
+ (hyphen.ltx
+File: hyphen.ltx 1994/12/01 v1.0g LaTeX Kernel (hyphenation interface)
+ Loading hyphenation patterns for US english. (hyphen.tex))
+***********************************
+* Applying patch file ltpatch.ltx *
+***********************************
+(ltpatch.ltx)
+LaTeX2e <1994/12/01> patch level 1
+ )
+Beginning to dump on file latex.fmt
+ (format=latex 95.2.22)
+4048 strings of total length 50473
+42016 memory locations dumped; current usage is 155&40026
+2936 multiletter control sequences
+\font\nullfont=nullfont
+\font\OMX/cmex/m/n/10=cmex10
+\font\tenln=line10
+\font\tenlnw=linew10
+\font\tencirc=lcircle10
+\font\tencircw=lcirclew10
+\font\OT1/cmr/m/n/5=cmr5
+\font\OT1/cmr/m/n/7=cmr7
+\font\OT1/cmr/m/n/10=cmr10
+\font\OML/cmm/m/it/5=cmmi5
+\font\OML/cmm/m/it/7=cmmi7
+\font\OML/cmm/m/it/10=cmmi10
+\font\OMS/cmsy/m/n/5=cmsy5
+\font\OMS/cmsy/m/n/7=cmsy7
+\font\OMS/cmsy/m/n/10=cmsy10
+3633 words of font info for 14 preloaded fonts
+14 hyphenation exceptions
+Hyphenation trie of length 6075 has 181 ops out of 750
+  181 for language 0
+No pages of output.

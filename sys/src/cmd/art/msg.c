@@ -6,12 +6,15 @@ void fatal(char *m){
 	fprint(2, "fig: %s\n", m);
 	exits(m);
 }
-void msg(char *fmt, ...){
-	char buf[512];
-	Point p;
-	doprint(buf, buf+512, fmt, &fmt+1);
-	p=string(&screen, msgbox.min, font, buf, S);
+#define	NPREV	512
+char prevmsg[NPREV];
+void lastmsg(void){
+	Point p=string(&screen, msgbox.min, font, prevmsg, S);
 	rectf(&screen, Rect(p.x, msgbox.min.y, msgbox.max.x, msgbox.max.y), Zero);
+}
+void msg(char *fmt, ...){
+	doprint(prevmsg, prevmsg+NPREV, fmt, &fmt+1);
+	lastmsg();
 }
 void echo(char *m){
 	Point p;

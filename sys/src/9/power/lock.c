@@ -48,12 +48,13 @@ lockinit(void)
 
 /* equivalent of newpage for pages of hardware locks */
 Page*
-lkpage(ulong va)
+lkpage(Segment *s, ulong va)
 {
 	uchar *p, *top;
 	Page *pg;
 	int i;
 
+	USED(s);
 	lock(&semalloc.lock);
 	if(--semalloc.ulockpg < 0) {
 		semalloc.ulockpg++;
@@ -95,19 +96,57 @@ lkpgfree(Page *pg)
 void
 lock(Lock *lk)
 {
-	int *hwsem, hash;
+	int t, *hwsem, hash;
 
 	hash = lhash(lk);
 	hwsem = (int*)SBSEM+hash;
 
-	for(;;) {
+	t = 2000000;
+	while(t--) {
 		if(muxlock(hwsem, &lk->val))
 			return;
-		while(lk->val)
+		while(lk->val && t--)
 			;
 	}
-	print("lock loop %lux pc %lux held by pc %lux\n", lk, getcallerpc(lk), lk->pc);
-	dumpstack();
+	print("lock loop %lux pc %lux held by pc %lux\n",
+					lk, getcallerpc(lk), lk->pc);
+	if(u) {
+		print("%d: %s\n", u->p->pid, u->p->text);
+		dumpstack();
+		u->p->state = Wakeme;
+		sched();
+	}
+}
+
+void
+ilock(Lock *lk)
+{
+	int t, *hwsem, hash;
+	int x;
+
+	x = splhi();
+	hash = lhash(lk);
+	hwsem = (int*)SBSEM+hash;
+
+	t = 2000000;
+	while(t--) {
+		if(muxlock(hwsem, &lk->val)){
+			lk->sr = x;
+			return;
+		}
+		while(lk->val && t--)
+			;
+	}
+	splx(x);
+	print("lock loop %lux pc %lux held by pc %lux\n",
+					lk, getcallerpc(lk), lk->pc);
+	if(u) {
+		print("%d: %s\n", u->p->pid, u->p->text);
+		dumpstack();
+		u->p->state = Wakeme;
+		sched();
+	}
+
 }	
 
 int
@@ -124,4 +163,15 @@ unlock(Lock *l)
 {
 	l->pc = 0;
 	l->val = 0;
+}
+
+void
+iunlock(Lock *l)
+{
+	ulong sr;
+
+	sr = l->sr;
+	l->pc = 0;
+	l->val = 0;
+	splx(sr);
 }

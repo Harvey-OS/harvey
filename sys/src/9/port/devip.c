@@ -5,20 +5,19 @@
 #include	"fns.h"
 #include	"../port/error.h"
 #include 	"arp.h"
-#include 	"ipdat.h"
+#include 	"../port/ipdat.h"
 
 #include	"devtab.h"
 
 enum
 {
-	Nrprotocol	= 3,	/* Number of protocols supported by this driver */
+	Nrprotocol	= 4,	/* Number of protocols supported by this driver */
 	Nipsubdir	= 4,	/* Number of subdirectory entries per connection */
 	Nfrag		= 32,	/* Ip reassembly queue entries */
 	Nifc		= 4,	/* max interfaces */
 };
 
 int 	udpsum = 1;
-Queue	*Ipoutput;			/* Control message stream for tcp/il */
 Ipifc	*ipifc[Nrprotocol+1];
 QLock	ipalloc;			/* Protocol port allocation lock */
 Ipconv	**tcpbase;
@@ -41,7 +40,7 @@ ipinitifc(Ipifc *ifc, Qinfo *stproto)
 	ifc->conv = xalloc(Nipconv * sizeof(Ipconv*));
 	ifc->protop = stproto;
 	ifc->nconv = Nipconv;
-	ifc->devp = &ipinfo;
+	ifc->devp = &ipconvinfo;
 	if(stproto != &udpinfo)
 		ifc->listen = iplisten;
 	ifc->clone = ipclonecon;
@@ -80,9 +79,8 @@ ipattach(char *spec)
 	int i;
 	Chan *c;
 
-	/* fail if ip is not yet configured */
-	if(Ipoutput == 0)
-		error(Enoproto);
+	if(ipd[0].q == 0)
+		error("no ip multiplexor");
 
 	for(i = 0; protocols[i]; i++) {
 		if(strcmp(spec, protocols[i]->name) == 0) {
@@ -266,6 +264,7 @@ ipwrite(Chan *c, char *a, long n, ulong offset)
 	char 	*field[5], *ctlarg[5], buf[256];
 	Port	port;
 	Ipconv  *cp;
+	uchar	dst[4];
 
 	USED(offset);
 	type = STREAMTYPE(c->qid.path);
@@ -283,18 +282,18 @@ ipwrite(Chan *c, char *a, long n, ulong offset)
 	strncpy(buf, a, m);
 	buf[m] = '\0';
 
-	m = getfields(buf, field, 5, ' ');
+	m = getfields(buf, field, 5, " ");
 	if(m < 1)
 		error(Ebadarg);
 
-	if(strcmp(field[0], "connect") == 0) {
+	if(strncmp(field[0], "connect", 7) == 0) {
 		if(ipconbusy(cp))
 			error(Enetbusy);
 
-		if(m != 2)
+		if(m < 2)
 			error(Ebadarg);
 
-		switch(getfields(field[1], ctlarg, 5, '!')) {
+		switch(getfields(field[1], ctlarg, 5, "!")) {
 		default:
 			error(Eneedservice);
 		case 2:
@@ -307,14 +306,23 @@ ipwrite(Chan *c, char *a, long n, ulong offset)
 			break;
 		}
 		cp->dst = ipparse(ctlarg[0]);
+		hnputl(dst, cp->dst);
+		cp->src = ipgetsrc(dst);
 		cp->pdst = atoi(ctlarg[1]);
 
 		/* If we have no local port assign one */
-		if(cp->psrc == 0){
-			qlock(&ipalloc);
-			cp->psrc = nextport(ipifc[c->dev], priv);
-			qunlock(&ipalloc);
+		qlock(&ipalloc);
+		if(m == 3){
+			port = atoi(field[2]);
+			if(portused(ipifc[c->dev], cp->psrc)){
+				qunlock(&ipalloc);	
+				error(Einuse);
+			}
+			cp->psrc = port;
 		}
+		if(cp->psrc == 0)
+			cp->psrc = nextport(ipifc[c->dev], priv);
+		qunlock(&ipalloc);
 
 		if(cp->ifc->protop == &tcpinfo)
 			tcpstart(cp, TCP_ACTIVE, Streamhi, 0);
@@ -333,15 +341,38 @@ ipwrite(Chan *c, char *a, long n, ulong offset)
 			pushq(c->stream, &bsdinfo);
 			break;
 		}
+
+		memmove(cp->text, u->p->text, NAMELEN);
 	}
-	else if(strcmp(field[0], "disconnect") == 0) {
+	else if(strncmp(field[0], "disconnect", 10) == 0) {
 		if(cp->ifc->protop != &udpinfo)
 			error(Eperm);
 
 		cp->dst = 0;
 		cp->pdst = 0;
 	}
-	else if(strcmp(field[0], "announce") == 0) {
+	else if(strncmp(field[0], "bind", 4) == 0) {
+		if(ipconbusy(cp))
+			error(Enetbusy);
+
+		port = atoi(field[1]);
+
+		if(port){
+			qlock(&ipalloc);
+			if(portused(ipifc[c->dev], port)) {
+				qunlock(&ipalloc);	
+				error(Einuse);
+			}
+			cp->psrc = port;
+			qunlock(&ipalloc);
+		} else if(*field[1] != '*'){
+			qlock(&ipalloc);
+			cp->psrc = nextport(ipifc[c->dev], 0);
+			qunlock(&ipalloc);
+		} else
+			cp->psrc = 0;
+	}
+	else if(strncmp(field[0], "announce", 8) == 0) {
 		if(ipconbusy(cp))
 			error(Enetbusy);
 
@@ -372,8 +403,10 @@ ipwrite(Chan *c, char *a, long n, ulong offset)
 
 		if(cp->backlog == 0)
 			cp->backlog = 3;
+
+		memmove(cp->text, u->p->text, NAMELEN);
 	}
-	else if(strcmp(field[0], "backlog") == 0) {
+	else if(strncmp(field[0], "backlog", 7) == 0) {
 		if(m != 2)
 			error(Ebadarg);
 		backlog = atoi(field[1]);
@@ -383,7 +416,7 @@ ipwrite(Chan *c, char *a, long n, ulong offset)
 			backlog = 5;
 		cp->backlog = backlog;
 	}
-	else if(strcmp(field[0], "headers") == 0) {
+	else if(strncmp(field[0], "headers", 7) == 0) {
 		cp->headers = 1;	/* include addr/port in user packet */
 	}
 	else
@@ -476,6 +509,7 @@ udprcvmsg(Ipifc *ifc, Block *bp)
 			 	cp->dst = addr;
 				cp->pdst = sport;
 			}
+			cp->src = 0;
 			PUTNEXT(cp->readq, bp);
 			return;
 		}
@@ -492,15 +526,16 @@ udpstoput(Queue *q, Block *bp)
 	int dlen, ptcllen, newlen;
 	Ipaddr addr;
 	Port port;
-
 	if(bp->type == M_CTL) {
 		PUTNEXT(q, bp);
 		return;
 	}
 
 	cp = (Ipconv *)(q->ptr);
-	if(cp->psrc == 0)
+	if(cp->psrc == 0){
+		freeb(bp);
 		error(Enoport);
+	}
 
 	if(bp->type != M_DATA) {
 		freeb(bp);
@@ -540,7 +575,7 @@ udpstoput(Queue *q, Block *bp)
 		freeb(bp);
 		error(Emsgsize);
 	}
-	newlen = bround(bp, 1);
+	newlen = dlen /*bround(bp, 1)*/;
 
 	/* Make space to fit udp & ip & ethernet header */
 	bp = padb(bp, UDP_EHSIZE + UDP_HDRSIZE);
@@ -553,7 +588,6 @@ udpstoput(Queue *q, Block *bp)
 	uh->frag[0] = 0;
 	uh->frag[1] = 0;
 	hnputs(uh->udpplen, ptcllen);
-	hnputl(uh->udpsrc, Myip[Myself]);
 	hnputs(uh->udpsport, cp->psrc);
 	if(cp->headers) {
 		hnputl(uh->udpdst, addr);
@@ -563,6 +597,9 @@ udpstoput(Queue *q, Block *bp)
 		hnputl(uh->udpdst, cp->dst);
 		hnputs(uh->udpdport, cp->pdst);
 	}
+	if(cp->src == 0)
+		cp->src = ipgetsrc(uh->udpdst);
+	hnputl(uh->udpsrc, cp->src);
 	hnputs(uh->udplen, ptcllen);
 	uh->udpcksum[0] = 0;
 	uh->udpcksum[1] = 0;
@@ -590,7 +627,7 @@ udpstopen(Queue *q, Stream *s)
 	Ipconv *ipc;
 
 	ipc = ipcreateconv(ipifc[s->dev], s->id);
-	initipifc(ipifc[s->dev], IP_UDPPROTO, udprcvmsg, 1500, 512, ETHER_HDR);
+	initipifc(ipifc[s->dev], IP_UDPPROTO, udprcvmsg);
 
 	ipc->readq = RD(q);	
 	RD(q)->ptr = (void *)ipc;
@@ -641,7 +678,6 @@ tcpstoput(Queue *q, Block *bp)
 	case Syn_sent:
 	case Syn_received:
 	case Established:
-	case Close_wait:
 		/*
 		 * Process flow control
 	 	 */
@@ -649,6 +685,7 @@ tcpstoput(Queue *q, Block *bp)
 			qlock(&tcb->sndrlock);
 			if(waserror()) {
 				qunlock(&tcb->sndrlock);
+				freeb(bp);
 				nexterror();
 			}
 			sleep(&tcb->sndr, tcproominq, tcb);
@@ -664,6 +701,18 @@ tcpstoput(Queue *q, Block *bp)
 			qunlock(tcb);
 			nexterror();
 		}
+
+		/* make sure we don't queue onto something that just closed */
+		switch(tcb->state) {
+		case Syn_sent:
+		case Syn_received:
+		case Established:
+			break;
+		default:
+			freeb(bp);
+			error(Ehungup);
+		}
+
 		tcb->sndcnt += blen(bp);
 		if(tcb->sndcnt > Streamhi)
 			tcb->sndfull = 1;
@@ -680,6 +729,7 @@ tcpstoput(Queue *q, Block *bp)
 		qunlock(tcb);
 		break;
 
+	case Close_wait:
 	default:
 		freeb(bp);
 		error(Ehungup);
@@ -695,12 +745,6 @@ tcpstopen(Queue *q, Stream *s)
 	Block *bp;	
 	static int tcpkprocs;
 
-	if(!Ipoutput) {
-		Ipoutput = WR(q);
-		s->opens++;
-		s->inuse++;
-	}
-
 	/* Flow control and tcp timer processes */
 	if(tcpkprocs == 0) {
 		tcpkprocs = 1;
@@ -712,7 +756,7 @@ tcpstopen(Queue *q, Stream *s)
 	if(tcpbase == 0)
 		tcpbase = ipifc[s->dev]->conv;
 	ifc = ipifc[s->dev];
-	initipifc(ifc, IP_TCPPROTO, tcpinput, 1500, 512, ETHER_HDR);
+	initipifc(ifc, IP_TCPPROTO, tcpinput);
 	ipc = ipcreateconv(ifc, s->id);
 
 	ipc->readq = RD(q);
@@ -720,7 +764,6 @@ tcpstopen(Queue *q, Stream *s)
 	ipc->err = 0;
 
 	RD(q)->ptr = (void *)ipc;
-	WR(q)->next->ptr = (void *)ipc->ifc;
 	WR(q)->ptr = (void *)ipc;
 
 	/* pass any waiting data upstream */
@@ -750,7 +793,7 @@ iplocalfill(Chan *c, char *buf, int len)
 	if(len < 24)
 		error(Ebadarg);
 	cp = ipcreateconv(ipifc[c->dev], STREAMID(c->qid.path));
-	sprint(buf, "%d.%d.%d.%d!%d\n", fmtaddr(Myip[Myself]), cp->psrc);
+	sprint(buf, "%d.%d.%d.%d!%d\n", fmtaddr(ipd[0].Myip[Myself]), cp->psrc);
 }
 
 void
@@ -764,9 +807,11 @@ ipstatusfill(Chan *c, char *buf, int len)
 	connection = STREAMID(c->qid.path);
 	cp = ipcreateconv(ipifc[c->dev], connection);
 	if(cp->ifc->protop == &tcpinfo)
-		sprint(buf, "tcp/%d %d %s %s\n", connection, cp->ref,
+		sprint(buf, "tcp/%d %d %s %s %s %d+%d\n", connection, cp->ref,
 			tcpstate[cp->tcpctl.state],
-			cp->tcpctl.flags & CLONE ? "listen" : "connect");
+			cp->tcpctl.flags & CLONE ? "listen" : "connect",
+			cp->text,
+			cp->tcpctl.srtt, cp->tcpctl.mdev);
 	else if(cp->ifc->protop == &ilinfo)
 		sprint(buf, "il/%d %d %s rtt %d ms %d csum\n", connection, cp->ref,
 			ilstate[cp->ilctl.state], cp->ilctl.rtt,
@@ -809,7 +854,7 @@ iplisten(Chan *c)
 		sleep(&s->listenr, iphavecon, s);
 		poperror();
 		etab = &ipifc[c->dev]->conv[Nipconv];
- 		for(p = ipifc[c->dev]->conv; p < etab; p++) {
+		for(p = ipifc[c->dev]->conv; p < etab; p++) {
 			new = *p;
 			if(new == 0)
 				break;
@@ -831,7 +876,7 @@ iplisten(Chan *c)
 void
 tcpstclose(Queue *q)
 {
-	Ipconv *s;
+	Ipconv *s, *new;
 	Ipconv **etab, **p;
 	Tcpctl *tcb;
 
@@ -852,10 +897,14 @@ tcpstclose(Queue *q)
 		s->backlog = 0;
 		s->curlog = 0;
 		etab = &tcpbase[Nipconv];
-		for(p = tcpbase; p < etab && *p; p++){
-			if((*p)->newcon == s) {
-				(*p)->newcon = 0;
-				tcpflushincoming(*p);
+		for(p = tcpbase; p < etab; p++){
+			new = *p;
+			if(new == 0)
+				break;
+			if(new->newcon == s){
+				new->newcon = 0;
+				tcpflushincoming(new);
+				new->ref = 0;
 			}
 		}
 		qunlock(s);
@@ -1125,7 +1174,6 @@ ip_conn(Ipifc *ifc, Port dst, Port src, Ipaddr dest)
 }
 
 /*
- *  Fuck me sideways with a bargepole!!! -- philw
  *
  *  BSD authentication protocol, used on ports 512, 513, & 514.
  *  This makes sure that a user can only write the REAL user id.

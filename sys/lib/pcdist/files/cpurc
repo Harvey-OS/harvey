@@ -1,0 +1,9 @@
+#!/bin/rc
+
+site=plan9
+cpu=helix
+
+/bin/bind -b '#H' /dev >/dev/null
+/bin/bind -a '#f' /dev >/dev/null
+/bin/bind -a '#t' /dev >/dev/null
+font=/lib/font/bit/pelm/euro.fon

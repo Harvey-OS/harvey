@@ -7,7 +7,7 @@
 #include	"../port/error.h"
 
 #include	"devtab.h"
-
+#define		nelem(x)	(sizeof(x)/sizeof(x[0]))
 /*
  *  Driver for an NS16450 serial port
  */
@@ -23,7 +23,11 @@ enum
 	 Irstat=(1<<2),		/*  for change in rcv'er status */
 	 Imstat=(1<<3),		/*  for change in modem status */
 	Istat=	2,		/* interrupt flag (read) */
-	Tctl=	2,		/* test control (write) */
+	 Fenabd=(3<<6),		/*  on if fifo's enabled */
+	Fifoctl=2,		/* fifo control (write) */
+	 Fenab=	(1<<0),		/*  enable xmit/rcv fifos */
+	 Ftrig=	(1<<6),		/*  trigger after 4 input characters */
+	 Fclear=(3<<1),		/*  clear xmit & rcv fifos */
 	Format=	3,		/* byte format */
 	 Bits8=	(3<<0),		/*  8 bits/byte */
 	 Stop2=	(1<<2),		/*  2 stop bits */
@@ -71,6 +75,11 @@ struct Uart
 	int	enabled;
 	int	cts;
 
+	/* fifo control */
+	int	fifoon;
+	int	nofifo;
+	int	istat;
+
 	/* console interface */
 	int	special;	/* can't use the stream interface */
 	IOQ	*iq;		/* input character queue */
@@ -86,17 +95,25 @@ struct Uart
 	ulong	overrun;
 };
 
-Uart uart[2];
+typedef struct Scard
+{
+	ISAConf;	/* card configuration */
+	int	first;	/* number of first port */
+} Scard;
 
-#define UartFREQ 1846200
+
+Uart	uart[34];
+int	Nuart;		/* total no of uarts in the machine */
+int	Nscard;		/* number of serial cards */
+Scard	scard[5];	/* configs for the serial card */
+
+#define UartFREQ 1843200
 
 #define uartwrreg(u,r,v)	outb((u)->port + r, (u)->sticky[r] | (v))
 #define uartrdreg(u,r)		inb((u)->port + r)
 
-void	uartintr(Uart*);
-void	uartintr0(Ureg*);
-void	uartintr1(Ureg*);
-void	uartsetup(void);
+void	uartintr(Ureg*, void*);
+void	mp008intr(Ureg*, void*);
 
 /*
  *  set the baud rate by calculating and setting the baudrate
@@ -207,6 +224,35 @@ uartstop(Uart *up, int n)
 	uartwrreg(up, Format, 0);
 }
 
+
+void
+uartfifoon(Uart *p)
+{
+	ulong i, x;
+
+	if(p->nofifo)
+		return;
+
+	x = splhi();
+
+	/* empty buffer */
+	for(i = 0; i < 16; i++)
+		uartrdreg(p, Data);
+	uartintr(0, p);
+
+	/* turn on fifo */
+	p->fifoon = 1;
+	uartwrreg(p, Fifoctl, Fenab|Ftrig);
+
+	uartintr(0, p);
+	if((p->istat & Fenabd) == 0){
+		/* didn't work, must be an earlier chip type */
+		p->nofifo = 1;
+	}
+		
+	splx(x);
+}
+
 /*
  *  modem flow control on/off (rts/cts)
  */
@@ -217,10 +263,19 @@ uartmflow(Uart *up, int n)
 		up->sticky[Iena] |= Imstat;
 		uartwrreg(up, Iena, 0);
 		up->cts = uartrdreg(up, Mstat) & Cts;
+
+		/* turn on fifo's */
+		uartfifoon(up);
 	} else {
 		up->sticky[Iena] &= ~Imstat;
 		uartwrreg(up, Iena, 0);
 		up->cts = 1;
+
+		/* turn off fifo's */
+		if(up->fifoon){
+			up->fifoon = 0;
+			uartwrreg(up, Fifoctl, 0);
+		}
 	}
 }
 
@@ -232,7 +287,9 @@ uartmflow(Uart *up, int n)
 void
 uartsetup(void)
 {
-	Uart *up;
+	Uart	*up;
+	Scard	*sc;
+	int	i, j, baddr;
 	static int already;
 
 	if(already)
@@ -244,12 +301,46 @@ uartsetup(void)
 	 */
 	uart[0].port = 0x3F8;
 	uart[1].port = 0x2F8;
-	setvec(Uart0vec, uartintr0);
-	setvec(Uart1vec, uartintr1);
-
-	for(up = uart; up < &uart[2]; up++){
+	setvec(Uart0vec, uartintr, &uart[0]);
+	setvec(Uart1vec, uartintr, &uart[1]);
+	Nuart = 2;
+	for(i = 0; isaconfig("serial", i, &scard[i]) && i < nelem(scard); i++) {
+		sc = &scard[i];
+		if(strcmp(sc->type, "mp008") == 0 || strcmp(sc->type, "MP008") == 0){
+			/*
+			 * port gives base port address for uarts
+			 * irq is interrupt
+			 * mem is the polling port
+			 * size is the number of serial ports on the same polling port
+			 */
+			sc->first = Nuart;
+			if(sc->size == 0)
+				sc->size = 8;
+			setvec(Int0vec + sc->irq, mp008intr, &scard[i]);
+			baddr = sc->port;
+			for(j=0, up = &uart[Nuart]; j < sc->size; baddr += 8, j++, up++){
+				up->port = baddr;
+				Nuart++;
+			}
+		} else {
+			/*
+			 * port gives base port address for uarts
+			 * irq is interrupt
+			 * size is the number of serial ports on the same polling port
+			 */
+			if(sc->size == 0)
+				sc->size = 1;
+			baddr = sc->port;
+			for(j=0, up = &uart[Nuart]; j < sc->size; baddr += 8, j++, up++){
+				setvec(Int0vec + sc->irq, uartintr, &uart[Nuart]);
+				up->port = baddr;
+				Nuart++;
+			}
+		}
+	}
+	Nscard = i;
+	for(up = uart; up < &uart[Nuart]; up++){
 		memset(up->sticky, 0, sizeof(up->sticky));
-
 		/*
 		 *  set rate to 9600 baud.
 		 *  8 bits/character.
@@ -299,16 +390,19 @@ uartputs(IOQ *cq, char *s, int n)
  *  a uart interrupt (a damn lot of work for one character)
  */
 void
-uartintr(Uart *up)
+uartintr(Ureg *ur, void *a)
 {
 	int ch;
 	IOQ *cq;
 	int s, l, multiprocessor;
+	Uart *up = a;
+
+	USED(ur, a);
 
 	multiprocessor = active.machs > 1;
 	for(;;){
 		s = uartrdreg(up, Istat);
-		switch(s){
+		switch(s & 0x3F){
 		case 6:	/* receiver line status */
 			l = uartrdreg(up, Lstat);
 			if(l & Ferror)
@@ -318,6 +412,7 @@ uartintr(Uart *up)
 			break;
 	
 		case 4:	/* received data available */
+		case 12:
 			ch = uartrdreg(up, Data) & 0xff;
 			cq = up->iq;
 			if(cq == 0)
@@ -361,7 +456,7 @@ uartintr(Uart *up)
 					ch = getc(cq);
 					if(ch >= 0){
 						up->printing = 1;
-						outb(up->port + Data, getc(cq));
+						outb(up->port + Data, ch);
 					} else
 						wakeup(&cq->r);
 				}
@@ -373,22 +468,26 @@ uartintr(Uart *up)
 		default:
 			if(s&1)
 				return;
-			print("weird modem interrupt\n");
+			print("weird modem interrupt #%2.2ux\n", s);
 			break;
 		}
 	}
 }
+
 void
-uartintr0(Ureg *ur)
+mp008intr(Ureg *ur, void *a)
 {
+	uchar i, n;
+	Scard *sc = a;
+
 	USED(ur);
-	uartintr(&uart[0]);
-}
-void
-uartintr1(Ureg *ur)
-{
-	USED(ur);
-	uartintr(&uart[1]);
+
+	n = ~inb(sc->mem);
+	for(i = 0; n; i++){
+		if(n & 1)
+			uartintr(ur, &uart[sc->first + i]);
+		n >>= 1;
+	}
 }
 
 void
@@ -397,7 +496,7 @@ uartclock(void)
 	Uart *up;
 	IOQ *cq;
 
-	for(up = uart; up < &uart[2]; up++){
+	for(up = uart; up < &uart[Nuart]; up++){
 		cq = up->iq;
 		if(up->wq && cangetc(cq))
 			wakeup(&cq->r);
@@ -414,12 +513,12 @@ uartenable(Uart *up)
 	/*
 	 *  turn on power to the port
 	 */
-	if(up == &uart[Serial]){
-		if(serial(1) < 0)
-			print("can't turn on serial port power\n");
-	} else {
+	if(up == &uart[Modem]){
 		if(modem(1) < 0)
 			print("can't turn on modem speaker\n");
+	} else {
+		if(serial(1) < 0)
+			print("can't turn on serial port power\n");
 	}
 
 	/*
@@ -481,12 +580,12 @@ uartdisable(Uart *up)
 	/*
 	 *  turn off power
 	 */
-	if(up == &uart[Serial]){
-		if(serial(0) < 0)
-			print("can't turn off serial power\n");
-	} else {
+	if(up == &uart[Modem]){
 		if(modem(0) < 0)
 			print("can't turn off modem speaker\n");
+	} else {
+		if(serial(0) < 0)
+			print("can't turn off serial power\n");
 	}
 }
 
@@ -571,6 +670,14 @@ uartstclose(Queue *q)
 	qunlock(up);
 }
 
+static int
+xmtempty(void *arg)
+{
+	IOQ *q=arg;
+
+	return !cangetc(q);
+}
+
 static void
 uartoput(Queue *q, Block *bp)
 {
@@ -588,12 +695,14 @@ uartoput(Queue *q, Block *bp)
 		nexterror();
 	}
 	if(bp->type == M_CTL){
-		while (cangetc(cq))	/* let output drain */
-			sleep(&cq->r, cangetc, cq);
+		if(cangetc(cq))	/* let output drain */
+			sleep(&cq->r, xmtempty, cq);
 		n = strtoul((char *)(bp->rptr+1), 0, 0);
 		switch(*bp->rptr){
 		case 'B':
 		case 'b':
+			if(n <= 0)
+				error(Ebadctl);
 			uartsetbaud(up, n);
 			break;
 		case 'D':
@@ -685,20 +794,9 @@ uartkproc(void *a)
 
 enum{
 	Qdir=		0,
-	Qeia0=		STREAMQID(0, Sdataqid),
-	Qeia0ctl=	STREAMQID(0, Sctlqid),
-	Qeia1=		STREAMQID(1, Sdataqid),
-	Qeia1ctl=	STREAMQID(1, Sctlqid),
 };
 
-Dirtab uartdir[]={
-	"eia0",		{Qeia0},	0,		0666,
-	"eia0ctl",	{Qeia0ctl},	0,		0666,
-	"eia1",		{Qeia1},	0,		0666,
-	"eia1ctl",	{Qeia1ctl},	0,		0666,
-};
-
-#define	NUart	(sizeof uartdir/sizeof(Dirtab))
+Dirtab uartdir[2*nelem(uart)];
 
 /*
  *  allocate the queues if no one else has
@@ -709,7 +807,7 @@ uartreset(void)
 	Uart *up;
 
 	uartsetup();
-	for(up = uart; up < &uart[2]; up++){
+	for(up = uart; up < &uart[Nuart]; up++){
 		if(up->special)
 			continue;
 		up->iq = xalloc(sizeof(IOQ));
@@ -722,6 +820,19 @@ uartreset(void)
 void
 uartinit(void)
 {
+	int	i;
+
+	for(i=0; i < 2*Nuart; ++i) {
+		if(i & 1) {
+			sprint(uartdir[i].name, "eia%dctl", i/2);
+			uartdir[i].qid.path = STREAMQID(i/2, Sctlqid);
+		} else {
+			sprint(uartdir[i].name, "eia%d", i/2);
+			uartdir[i].qid.path = STREAMQID(i/2, Sdataqid);
+		}
+		uartdir[i].length = 0;
+		uartdir[i].perm = 0660;
+	}
 }
 
 Chan*
@@ -739,50 +850,40 @@ uartclone(Chan *c, Chan *nc)
 int
 uartwalk(Chan *c, char *name)
 {
-	return devwalk(c, name, uartdir, NUart, devgen);
+	return devwalk(c, name, uartdir, Nuart * 2, devgen);
 }
 
 void
 uartstat(Chan *c, char *dp)
 {
-	switch(c->qid.path){
-	case Qeia0:
-		streamstat(c, dp, uartdir[0].name, uartdir[0].perm);
-		break;
-	case Qeia1:
-		streamstat(c, dp, uartdir[2].name, uartdir[2].perm);
-		break;
-	default:
-		devstat(c, dp, uartdir, NUart, devgen);
-		break;
-	}
+	int	i;
+
+	for(i=0; i < 2*Nuart; i += 2)
+		if(c->qid.path == uartdir[i].qid.path) {
+			streamstat(c, dp, uartdir[i].name, uartdir[i].perm);
+			return;
+		}
+	devstat(c, dp, uartdir, Nuart * 2, devgen);
 }
 
 Chan*
 uartopen(Chan *c, int omode)
 {
 	Uart *up;
+	int	i;
 
-	switch(c->qid.path){
-	case Qeia0:
-	case Qeia0ctl:
-		up = &uart[0];
-		break;
-	case Qeia1:
-	case Qeia1ctl:
-		up = &uart[1];
-		break;
-	default:
-		up = 0;
-		break;
-	}
+	up = 0;
+	for(i=0; i < 2*Nuart; ++i)
+		if(c->qid.path == uartdir[i].qid.path) {
+			up = &uart[i/2];
+			break;
+		}
 
 	if(up && up->special)
 		error(Einuse);
-
 	if((c->qid.path & CHDIR) == 0)
 		streamopen(c, &uartinfo);
-	return devopen(c, omode, uartdir, NUart, devgen);
+	return devopen(c, omode, uartdir, Nuart * 2, devgen);
 }
 
 void
@@ -800,16 +901,43 @@ uartclose(Chan *c)
 }
 
 long
+uartstatus(Uart *up, void *buf, long n, ulong offset)
+{
+	uchar mstat;
+	uchar tstat;
+	char str[128];
+
+	str[0] = 0;
+	tstat = up->sticky[Mctl];
+	mstat = uartrdreg(up, Mstat);
+	if(mstat & Cts)
+		strcat(str, " cts");
+	if(mstat & Dsr)
+		strcat(str, " dsr");
+	if(mstat & Ring)
+		strcat(str, " ring");
+	if(mstat & Dcd)
+		strcat(str, " dcd");
+	if(tstat & Dtr)
+		strcat(str, " dtr");
+	if(tstat & Rts)
+		strcat(str, " rts");
+	return readstr(offset, buf, n, str);
+}
+
+long
 uartread(Chan *c, void *buf, long n, ulong offset)
 {
+	int i;
+	long qpath;
+
 	USED(offset);
-	switch(c->qid.path&~CHDIR){
-	case Qdir:
-		return devdirread(c, buf, n, uartdir, NUart, devgen);
-	case Qeia1ctl:
-	case Qeia0ctl:
-		return 0;
-	}
+	qpath = c->qid.path & ~CHDIR;
+	if(qpath == Qdir)
+		return devdirread(c, buf, n, uartdir, Nuart * 2, devgen);
+	for(i=1; i < 2*Nuart; i += 2)
+		if(qpath == uartdir[i].qid.path)
+			return uartstatus(&uart[i/2], buf, n, offset);
 	return streamread(c, buf, n);
 }
 

@@ -1,3 +1,4 @@
+#pragma	src	"/sys/src/libg"
 #pragma	lib	"libg.a"
 
 /*
@@ -12,7 +13,7 @@ enum
  * Types
  */
 
-typedef	struct	Bitmap		Bitmap;
+typedef struct	Bitmap		Bitmap;
 typedef struct	Point		Point;
 typedef struct	Rectangle 	Rectangle;
 typedef struct	Cursor		Cursor;
@@ -25,6 +26,8 @@ typedef struct	Cachefont	Cachefont;
 typedef struct	Cacheinfo	Cacheinfo;
 typedef struct	Cachesubf	Cachesubf;
 typedef struct	Event		Event;
+typedef struct	Slave		Slave;
+typedef struct	Ebuf		Ebuf;
 typedef struct	RGB		RGB;
 typedef struct	Linedesc	Linedesc;
 
@@ -130,8 +133,9 @@ enum
 
 struct Cachefont
 {
-	Rune	min;	/* rune value of 0th char in subfont */
-	Rune	max;	/* rune value+1 of last char in subfont */
+	Rune	min;	/* lowest rune value to be taken from subfont */
+	Rune	max;	/* highest rune value+1 to be taken from subfont */
+	int	offset;	/* position in subfont of character at min */
 	int	abs;	/* name has been made absolute */
 	char	*name;
 };
@@ -174,6 +178,18 @@ struct	Event
 	Mouse	mouse;
 	int	n;		/* number of characters in mesage */
 	uchar	data[EMAXMSG];	/* message from an arbitrary file descriptor */
+};
+
+struct Slave{
+	int	pid;
+	Ebuf	*head;		/* queue of messages for this descriptor */
+	Ebuf	*tail;
+};
+
+struct Ebuf{
+	Ebuf	*next;
+	int	n;		/* number of bytes in buf */
+	uchar	buf[EMAXMSG];
 };
 
 struct RGB
@@ -283,6 +299,7 @@ extern ulong	 estart(ulong, int, int);
 extern ulong	 etimer(ulong, int);
 extern ulong	 event(Event*);
 extern ulong	 eread(ulong, Event*);
+extern Ebuf*	 _ebread(Slave*);
 extern Mouse	 emouse(void);
 extern int	 ekbd(void);
 extern int	 ecanread(ulong);
@@ -299,6 +316,11 @@ enum{
 	Ekeyboard	= 2,
 };
 
+enum
+{
+	MAXSLAVE = 32,
+};
+
 #define	Pt(x, y)		((Point){(x), (y)})
 #define	Rect(x1, y1, x2, y2)	((Rectangle){Pt(x1, y1), Pt(x2, y2)})
 #define	Rpt(p1, p2)		((Rectangle){(p1), (p2)})
@@ -311,6 +333,12 @@ extern	int	bitbltfd;
 extern	Bitmap	screen;
 extern	Font	*font;
 extern	uchar	_btmp[8192];
+
+extern	Slave	eslave[];
+extern	int	Smouse;
+extern	int	Skeyboard;
+extern	int	Stimer;
+extern	int	logfid;
 
 #define	BGSHORT(p)		(((p)[0]<<0) | ((p)[1]<<8))
 #define	BGLONG(p)		((BGSHORT(p)<<0) | (BGSHORT(p+2)<<16))

@@ -1,92 +1,119 @@
 .TH ARG 2
 .SH NAME
-ARG \(mi process option letters from argv
+ARGBEGIN, ARGEND, ARGC, ARGF, arginit, argopt \- process option letters from argv
 .SH SYNOPSIS
-.nf
+.B #include <u.h>
+.br
 .B #include <libc.h>
+.PP
+.nf
 .B ARGBEGIN {
-.B } ARGEND
 .B char *ARGF();
 .B Rune ARGC();
+.B } ARGEND
 .PP
 .B extern char *argv0;
-.fi
-.SH DESCRIPTION
-Command-line arguments to programs (see
-.IR exec (2))
-are conventionally arranged as a set of
-.I options
-\(em strings beginning with a
-.B -
-(minus sign)
-\(em followed by plain arguments such as file names.
-The
-.B ARG
-macros provide a convenient means for processing these options.
-Option characters appear in nonempty clusters preceded by 
-.BR - .
-After options processing is terminated
-(by an argument not starting with
-.BR - ,
-or by the argument
-.B --
-which is then skipped,
-or by the argument
-.BR - ),
-execution resumes after the
-.BR ARGEND .
 .PP
-The body of a
-.B switch
-statement should be put between
-.B ARGBEGIN{
+.B
+/* Alef only */
+.PP
+.B
+Arg  *arginit(int argc, byte **argv);
+.PP
+.B
+Rune argopt(Arg *arg);
+.PP
+.B
+byte *argf(Arg *arg);
+.SH DESCRIPTION
+These macros assume the names
+.I argc
 and
-.BR }ARGEND ;
-it is executed once for each option character
-(the character itself may be referenced by
-.BR ARGC() ).
-If an option takes a string argument
-(that is, the rest of the current option string or if that is empty,
-the next argument),
-it can be referenced by
-.BR ARGF() .
+.I argv
+are in scope; see
+.IR exec (2).
+.I ARGBEGIN
+and
+.I ARGEND
+surround code for processing program options.
+The code
+should be the cases of a C switch on
+option characters;
+it is executed once for each option character.
+Options end after an argument 
+.BR -- ,
+before an argument
+.BR - ,
+or before an argument that doesn't begin with
+.BR - .
+.PP
+.I ARGC()
+returns the current option character.
+.PP
+.I ARGF()
+returns the current option argument:
+a pointer to the rest of the option string if not empty,
+or the next argument in
+.I argv
+if any, or 0.
+.I ARGF
+must be called just once for each option
+that takes an argument.
+.PP
 After
-.BR ARGEND ,
+.IR ARGBEGIN ,
+.I argv0
+is a copy of
+.BR argv[0]
+(conventionally the name of the program).
+.PP
+After
+.IR ARGEND ,
 .I argv
 points at a zero-terminated list of the remaining
 .I argc
 arguments.
-.PP
-.B ARGBEGIN
-also sets up
-.I argv0
-to point at
-.B argv[0]
-(conventionally the name of the program).
-.PP
+.SS Alef
+The Alef argument processing routines are unrelated.
+Instead, an
+.B aggr
+called
+.B Arg
+is initialized by a call to
+.IR arginit .
+Successive calls to
+.I argopt
+return successive option characters, or zero at the end of the options.
+After a call to
+.IR argopt ,
+.I argf
+will return any argument string associated with the option.
 .SH EXAMPLES
-This program processes arguments
-for a command that can take option
+This C program can take option
 .B b
 and option
 .BR f ,
 which requires an argument.
-.PP
+.IP
 .EX
 .ta \w'12345678'u +\w'12345678'u +\w'12345678'u +\w'12345678'u +\w'12345678'u
 #include <u.h>
 #include <libc.h>
-
+void
 main(int argc, char *argv[])
 {
 	char *f;
-
 	print("%s", argv[0]);
-	ARGBEGIN{
-	case 'b':	print(" -b"); break;
-	case 'f':	f = ARGF(); print(" -f(%s)", f?f:"no arg"); break;
-	default:	print(" badflag('%c')", ARGC()); break;
-	}ARGEND
+	ARGBEGIN {
+	case 'b':
+		print(" -b");
+		break;
+	case 'f':
+		print(" -f(%s)", (f=ARGF())? f: "no arg");
+		break;
+	default:
+		print(" badflag('%c')", ARGC());
+	} ARGEND
 	print(" %d args:", argc);
 	while(*argv)
 		print(" '%s'", *argv++);
@@ -94,14 +121,40 @@ main(int argc, char *argv[])
 	exits(0);
 }
 .EE
-When this program is run as
+.PP
+Here is the output for the run
+.B
+prog -bffile1 -r -f file2 arg1 arg2
+.IP
+.B
+prog -b -f(file1) badflag('r') -f(file2) 2 args: 'arg1' 'arg2'
+.PP
+This Alef program accepts options
+.B b
+and, with an attached file name,
+.BR f .
+.IP
 .EX
-	prog -bffile1 -r -f file2 arg1 argn
+#include <alef.h>
+void
+main(int argc, byte **argv)
+{
+	int a, ac, bflag;
+	byte *file;
+	Arg *arg;
+
+	arg = arginit(argc, argv);
+	while(ac = argopt(arg)) switch(ac){
+	case 'b':
+		bflag = 1;
+		break;
+	case 'f':
+		file = argf(arg);
+		break;
+	}
+	for(a=0; a<arg->ac; a++)
+		print("argument %s\en", arg->av[a]);
+}
 .EE
-it yields
-.EX
-	prog -b -f(file1) badflag('r') -f(file2) 2 args: 'arg1' 'argn'
-.EE
-.SH DIAGNOSTICS
-.B ARGF()
-returns 0 on error.
+.SH SOURCE
+.B /sys/include/libc.h

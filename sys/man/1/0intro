@@ -13,7 +13,7 @@ CPU servers alike.
 .SS Name Spaces
 In Plan 9, almost all objects look like files.
 The object retrieved by a given name is determined by a mapping called the
-.I name space .
+.I name space.
 A quick tour of the standard name space is in
 .IR namespace (4).
 Every program running in Plan 9 belongs to a
@@ -110,9 +110,8 @@ is set to the name of the kernel's CPU's architecture: one of
 .BR 68020 ,
 .BR mips ,
 .BR sparc ,
-.BR 386 ,
 or
-.BR hobbit .
+.BR 386 .
 The environment variable
 .B $objtype
 is initially the same as
@@ -161,7 +160,7 @@ Here is a typical profile:
 bind -c $home/tmp /tmp
 bind -a $home/bin/rc /bin
 bind -a $home/bin/$cputype /bin
-font = /lib/font/bit/pelm/latin1.9.font
+font = /lib/font/bit/pelm/euro.9.font
 switch($service){
 case terminal
 	prompt=('term% ' '	')
@@ -242,15 +241,16 @@ The most noticeable differences appear only when programming and macro processin
 The character-delete character is backspace, and the line-kill character is
 control-U; these cannot be changed.
 .PP
-DEL is the interrupt character.
-The shell kills any running commands if you type a DEL in its window.
+DEL is the interrupt character: typing it sends an interrupt to processes running in that window.
 See
 .IR keyboard (6)
 for instructions on typing characters like DEL on the various keyboards.
 .PP
 If a program dies with something like an address error, it enters a `Broken'
 state.  It lingers, available for debugging with
-.IR db (1) .
+.IR db (1)
+or
+.IR acid (1).
 .I Broke
 (see
 .IR kill (1))
@@ -265,7 +265,6 @@ on a non-Plan-9 system:
 .EX
 sam -r tcp!kremvax
 .EE
-.PP
 .PP
 Machine names may be prefixed by the network name,
 here
@@ -292,8 +291,8 @@ rx deepthought chess
 (see
 .IR con (1)).
 .PP
-You can access file systems of other machines by using
 .I 9fs 
+connects to file systems of remote systems
 (see
 .IR srv (4)).
 For example,
@@ -307,8 +306,8 @@ sets things up so that the root of
 file tree is visible locally in
 .BR /n/kremvax .
 .PP
-You can get notification of mail arriving on Plan 9 using
-.I seemail
+.I Seemail
+gives graphical notification of arriving mail
 (see
 .IR mail (1));
 if your mail arrives elsewhere, use
@@ -341,6 +340,7 @@ To recover the version of this file as it was on June 15, 1991,
 .EX
 cp /n/dump/1991/0615/sys/man/man1/Intro.1 .
 .EE
+.PP
 or use
 .IR yesterday (1).
 .SH SEE ALSO
@@ -364,10 +364,10 @@ Section (8) for things related to administering Plan 9.
 .br
 Section (9) for raster image software.
 .br
-Section (10) for circuit design software.
-.br
 .B /sys/doc
 for copies of papers referenced in this manual.
+.PP
+The back of this volume has a permuted index to aid searches.
 .SH DIAGNOSTICS
 Upon termination each program returns a string called the
 .IR "exit status" .

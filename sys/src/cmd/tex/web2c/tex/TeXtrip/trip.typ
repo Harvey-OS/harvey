@@ -1,4 +1,4 @@
-This is DVItype, Version 3.2
+This is DVItype, Version 3.4
 Options selected:
   Starting page = *.*.*.*.*.*.*.*.*.* 
   Maximum number of pages = 1000000
@@ -6,7 +6,7 @@ Options selected:
   Resolution =  72.27000000 pixels per inch
 numerator/denominator=25400000/473628672
 magnification=2000;       0.00003052 pixels per DVI unit
-' TeX output 1990.03.24:1610'
+' TeX output 1992.01.25:2209'
  
 42: beginning of page 0.0.0.0.11.0.0.0.0.0 
 87: down4 129105920 
@@ -219,646 +219,645 @@ magnification=2000;       0.00003052 pixels per DVI unit
 471: beginning of page -333.0.0.0.11.655360000.0.0.0.0 
 516: push 
 517: down4 651689984 
-522: xxx '-1000.0pt' 
-533: down3 655360 
-537: push 
-538: fntnum0 
-539: setchar65 
+522: xxx '?-1000.0pt' non-ASCII character in xxx command! 
+534: down3 655360 
+538: push 
+539: fntnum0 
+540: setchar65 
 [A]
-540: down3 65536 
-544: setrule height 524288, width 327680 
-553: pop 
+541: down3 65536 
+545: setrule height 524288, width 327680 
 554: pop 
-555: eop 
+555: pop 
+556: eop 
  
-556: beginning of page -333.0.0.0.11.0.0.0.0.0 
-601: eop 
+557: beginning of page -333.0.0.0.11.0.0.0.0.0 
+602: eop 
  
-602: beginning of page -2.0.0.0.11.0.0.0.0.0 
-647: eop 
+603: beginning of page -2.0.0.0.11.0.0.0.0.0 
+648: eop 
  
-648: beginning of page -2.0.0.0.11.0.0.0.0.0 
-693: down4 1072300032 
-698: push 
+649: beginning of page -2.0.0.0.11.0.0.0.0.0 
+694: down4 1072300032 
 699: push 
 700: push 
-701: down3 -1441792 
-705: down3 1441792 
-709: pop 
+701: push 
+702: down3 -1441792 
+706: down3 1441792 
 710: pop 
-711: push 
+711: pop 
 712: push 
-713: down3 -1441792 
-717: down3 1310720 
-721: pop 
+713: push 
+714: down3 -1441792 
+718: down3 1310720 
 722: pop 
-723: push 
+723: pop 
 724: push 
-725: down3 -1441792 
-729: down3 1310720 
-733: pop 
+725: push 
+726: down3 -1441792 
+730: down3 1310720 
 734: pop 
 735: pop 
-736: y3 655360 
-740: push 
-741: right3 393217 
+736: pop 
+737: y3 655360 
+741: push 
+742: right3 393217 
 [ ]
-745: fntnum0 
-746: setchar65 
-747: right3 131072 
-751: setchar66 
+746: fntnum0 
+747: setchar65 
+748: right3 131072 
+752: setchar66 
 [A B]
-752: pop 
-753: y0 655360 
-754: push 
-755: right3 196609 
-759: setchar67 
+753: pop 
+754: y0 655360 
+755: push 
+756: right3 196609 
+760: setchar67 
 [ C]
-760: push 
-761: putrule height 26214, width 393216 
-770: pop 
+761: push 
+762: putrule height 26214, width 393216 
 771: pop 
-772: eop 
+772: pop 
+773: eop 
  
-773: beginning of page -2.0.0.0.11.0.0.0.0.0 
-818: down4 1065418752 
-823: push 
-824: right3 196609 
+774: beginning of page -2.0.0.0.11.0.0.0.0.0 
+819: down4 1065418752 
+824: push 
+825: right3 196609 
 [ ]
-828: fntnum0 
-829: setchar65 
-830: right3 4653056 
-834: setchar47 
-835: right3 65536 
-839: setchar65 
-840: w3 131072 
-844: setchar65 
-845: w0 131072 
-846: setchar65 
+829: fntnum0 
+830: setchar65 
+831: right3 4653056 
+835: setchar47 
+836: right3 65536 
+840: setchar65 
+841: w3 131072 
+845: setchar65 
+846: w0 131072 
+847: setchar65 
 [A /A A A]
-847: set1 130 
-849: set1 130 
-851: setchar66 
-852: setchar47 
+848: set1 130 
+850: set1 130 
+852: setchar66 
+853: setchar47 
 [B/]
-853: pop 
-854: y3 589824 
-858: push 
-859: right3 5898241 
-863: setchar65 
-864: w3 131072 
-868: setchar65 
-869: w0 131072 
-870: setchar65 
+854: pop 
+855: y3 589824 
+859: push 
+860: right3 5898241 
+864: setchar65 
+865: w3 131072 
+869: setchar65 
+870: w0 131072 
+871: setchar65 
 [ A A A]
-871: pop 
-872: down3 524288 
-876: push 
-877: right3 5898241 
-881: setchar65 
-882: w3 131072 
-886: setchar65 
-887: w0 131072 
-888: setchar65 
+872: pop 
+873: down3 524288 
+877: push 
+878: right3 5898241 
+882: setchar65 
+883: w3 131072 
+887: setchar65 
+888: w0 131072 
+889: setchar65 
 [ A A A]
-889: pop 
-890: y0 589824 
-891: push 
-892: right3 5701633 
-896: setchar65 
-897: w3 131072 
-901: setchar65 
-902: w0 131072 
-903: setchar65 
-904: setchar66 
+890: pop 
+891: y0 589824 
+892: push 
+893: right3 5701633 
+897: setchar65 
+898: w3 131072 
+902: setchar65 
+903: w0 131072 
+904: setchar65 
+905: setchar66 
 [ A A AB]
-905: pop 
-906: y0 589824 
-907: push 
-908: right3 5898241 
-912: setchar65 
-913: w3 131072 
-917: setchar65 
-918: w0 131072 
-919: setchar65 
+906: pop 
+907: y0 589824 
+908: push 
+909: right3 5898241 
+913: setchar65 
+914: w3 131072 
+918: setchar65 
+919: w0 131072 
+920: setchar65 
 [ A A A]
-920: pop 
-921: y0 589824 
-922: push 
-923: right1 1 
-925: setchar65 
-926: right3 131072 
-930: setchar66 
-931: right3 262144 
-935: setchar97 
-936: setchar66 
+921: pop 
+922: y0 589824 
+923: push 
+924: right1 1 
+926: setchar65 
+927: right3 131072 
+931: setchar66 
+932: right3 262144 
+936: setchar97 
+937: setchar66 
 [A B aB]
-937: pop 
-938: down3 2031616 
-942: push 
-943: right3 196609 
-947: setchar65 
+938: pop 
+939: down3 2031616 
+943: push 
+944: right3 196609 
+948: setchar65 
 [ A]
-948: pop 
-949: y3 655360 
-953: push 
-954: right3 262144 
-958: setchar45 
+949: pop 
+950: y3 655360 
+954: push 
+955: right3 262144 
+959: setchar45 
 [ -]
-959: pop 
-960: y0 655360 
-961: push 
-962: right3 196609 
-966: setchar67 
+960: pop 
+961: y0 655360 
+962: push 
+963: right3 196609 
+967: setchar67 
 [ C]
-967: pop 
-968: y0 655360 
-969: push 
-970: right3 196609 
-974: setchar67 
+968: pop 
+969: y0 655360 
+970: push 
+971: right3 196609 
+975: setchar67 
 [ C]
-975: pop 
-976: y0 655360 
+976: pop 
 977: y0 655360 
-978: push 
-979: right3 6422529 
-983: setchar65 
+978: y0 655360 
+979: push 
+980: right3 6422529 
+984: setchar65 
 [ A]
-984: pop 
-985: eop 
+985: pop 
+986: eop 
  
-986: beginning of page -2.0.0.0.11.0.327680.0.0.0 
-1031: down4 1071448064 
-1036: push 
-1037: right3 262145 
+987: beginning of page -2.0.0.0.11.0.327680.0.0.0 
+1032: down4 1071448064 
+1037: push 
+1038: right3 262145 
 [ ]
-1041: fntnum0 
-1042: setchar45 
+1042: fntnum0 
+1043: setchar45 
 [-]
-1043: pop 
-1044: y3 655360 
-1048: push 
-1049: right3 327681 
-1053: setchar45 
+1044: pop 
+1045: y3 655360 
+1049: push 
+1050: right3 327681 
 1054: setchar45 
+1055: setchar45 
 [ --]
-1055: pop 
-1056: y0 655360 
-1057: push 
-1058: right3 393217 
-1062: setchar45 
+1056: pop 
+1057: y0 655360 
+1058: push 
+1059: right3 393217 
 1063: setchar45 
-1064: right3 65536 
-1068: setchar65 
+1064: setchar45 
+1065: right3 65536 
+1069: setchar65 
 [ --A]
-1069: pop 
-1070: down3 851968 
-1074: eop 
+1070: pop 
+1071: down3 851968 
+1075: eop 
  
-1075: beginning of page -2.0.0.0.11.0.327680.0.0.0 
-1120: down4 639342208 
-1125: push 
+1076: beginning of page -2.0.0.0.11.0.327680.0.0.0 
+1121: down4 639342208 
 1126: push 
 1127: push 
 1128: push 
-1129: down3 -602931 
-1133: push 
-1134: right3 740559 
+1129: push 
+1130: down3 -602931 
+1134: push 
+1135: right3 740559 
 [ ]
-1138: fntdef1 1: trip---loaded at size 327680 DVI units 
-1158: fntnum1 
-1159: setchar65 
+1139: fntdef1 1: trip---loaded at size 327680 DVI units 
+1159: fntnum1 
+1160: setchar65 
 [A]
-1160: pop 
-1161: right3 740559 
+1161: pop 
+1162: right3 740559 
 [ ]
-1165: down3 176947 
-1169: putrule height 65536, width 98304 
-1178: down3 635699 
-1182: push 
-1183: setchar65 
+1166: down3 176947 
+1170: putrule height 65536, width 98304 
+1179: down3 635699 
+1183: push 
+1184: setchar65 
 [A]
-1184: pop 
 1185: pop 
 1186: pop 
-1187: push 
-1188: right3 845417 
+1187: pop 
+1188: push 
+1189: right3 845417 
 [ ]
-1192: down3 -262144 
-1196: fntnum0 
-1197: setchar98 
+1193: down3 -262144 
+1197: fntnum0 
+1198: setchar98 
 [b]
-1198: pop 
 1199: pop 
-1200: right3 1078433 
-1204: setchar47 
-1205: right3 54612 
-1209: setchar65 
-1210: right2 -7280 
+1200: pop 
+1201: right3 1078433 
+1205: setchar47 
+1206: right3 54612 
+1210: setchar65 
+1211: right2 -7280 
 [ /A]
-1213: fntnum1 
-1214: setchar45 
+1214: fntnum1 
 1215: setchar45 
-1216: right3 -72816 
+1216: setchar45 
+1217: right3 -72816 
 [--]
-1220: fntnum0 
-1221: setchar65 
-1222: w3 36408 
-1226: setchar47 
-1227: w0 36408 
-1228: setchar65 
+1221: fntnum0 
+1222: setchar65 
+1223: w3 36408 
+1227: setchar47 
+1228: w0 36408 
+1229: setchar65 
 [A/A]
-1229: pop 
-1230: down3 4912743 
-1234: push 
+1230: pop 
+1231: down3 4912743 
 1235: push 
 1236: push 
-1237: right3 983045 
+1237: push 
+1238: right3 983045 
 [ ]
-1241: fntdef1 2: trip---loaded at size 1310720 DVI units 
+1242: fntdef1 2: trip---loaded at size 1310720 DVI units 
  (this font is magnified 400%) 
-1261: fntnum2 
-1262: setchar45 
+1262: fntnum2 
+1263: setchar45 
 [-]
-1263: pop 
-1264: push 
-1265: right3 425989 
+1264: pop 
+1265: push 
+1266: right3 425989 
 [ ]
-1269: fntnum0 
-1270: setchar65 
+1270: fntnum0 
+1271: setchar65 
 [A]
-1271: push 
-1272: down3 -530842 
-1276: push 
+1272: push 
+1273: down3 -530842 
 1277: push 
-1278: right3 65536 
-1282: down3 -131072 
-1286: setchar97 
+1278: push 
+1279: right3 65536 
+1283: down3 -131072 
+1287: setchar97 
 [a]
-1287: pop 
-1288: right3 196608 
-1292: setchar47 
+1288: pop 
+1289: right3 196608 
+1293: setchar47 
 [ /]
-1293: pop 
 1294: pop 
 1295: pop 
 1296: pop 
-1297: push 
-1298: right3 818550 
+1297: pop 
+1298: push 
+1299: right3 818550 
 [ ]
-1302: down3 -1557300 
-1306: putrule height 65536, width 984062 
-1315: down3 1557300 
-1319: push 
+1303: down3 -1557300 
+1307: putrule height 65536, width 984062 
+1316: down3 1557300 
 1320: push 
-1321: down3 -543949 
-1325: fntnum1 
-1326: setchar65 
+1321: push 
+1322: down3 -543949 
+1326: fntnum1 
+1327: setchar65 
 [A]
-1327: pop 
-1328: right3 97649 
+1328: pop 
+1329: right3 97649 
 [ ]
-1332: fntnum0 
-1333: setchar65 
+1333: fntnum0 
+1334: setchar65 
 [A]
-1334: push 
-1335: down3 268698 
-1339: setchar45 
+1335: push 
+1336: down3 268698 
+1340: setchar45 
 [-]
-1340: pop 
-1341: push 
-1342: right3 -310131 
-1346: down3 -1098548 
-1350: fntnum1 
-1351: setchar65 
-1352: right3 98304 
-1356: setchar66 
+1341: pop 
+1342: push 
+1343: right3 -310131 
+1347: down3 -1098548 
+1351: fntnum1 
+1352: setchar65 
+1353: right3 98304 
+1357: setchar66 
 [A B]
-1357: push 
-1358: down3 471859 
-1362: push 
-1363: right3 140175 
+1358: push 
+1359: down3 471859 
+1363: push 
+1364: right3 140175 
 [ ]
-1367: fntnum2 
-1368: set1 130 
-1370: pop 
-1371: down3 458754 
-1375: push 
+1368: fntnum2 
+1369: set1 130 
+1371: pop 
+1372: down3 458754 
 1376: push 
-1377: down3 -65535 
-1381: setchar65 
+1377: push 
+1378: down3 -65535 
+1382: setchar65 
 [A]
-1382: pop 
-1383: right3 411421 
-1387: setchar65 
+1383: pop 
+1384: right3 411421 
+1388: setchar65 
 [ A]
-1388: push 
-1389: down3 -131072 
-1393: push 
-1394: right3 -65536 
-1398: setchar97 
+1389: push 
+1390: down3 -131072 
+1394: push 
+1395: right3 -65536 
+1399: setchar97 
 [a]
-1399: pop 
 1400: pop 
 1401: pop 
 1402: pop 
 1403: pop 
 1404: pop 
 1405: pop 
-1406: push 
-1407: down3 -1179648 
-1411: push 
-1412: right3 1798972 
+1406: pop 
+1407: push 
+1408: down3 -1179648 
+1412: push 
+1413: right3 1798972 
 [ ]
-1416: fntnum1 
-1417: setchar67 
+1417: fntnum1 
+1418: setchar67 
 [C]
-1418: pop 
-1419: down3 1179648 
-1423: push 
+1419: pop 
+1420: down3 1179648 
 1424: push 
-1425: right3 1766204 
+1425: push 
+1426: right3 1766204 
 [ ]
-1429: down3 -262144 
-1433: fntnum0 
-1434: setchar66 
+1430: down3 -262144 
+1434: fntnum0 
+1435: setchar66 
 [B]
-1435: pop 
 1436: pop 
 1437: pop 
-1438: push 
+1438: pop 
 1439: push 
 1440: push 
-1441: right3 1926404 
+1441: push 
+1442: right3 1926404 
 [ ]
-1445: down3 -458752 
-1449: setchar77 
+1446: down3 -458752 
+1450: setchar77 
 [M]
-1450: pop 
 1451: pop 
-1452: down3 524288 
-1456: push 
-1457: right3 2057476 
+1452: pop 
+1453: down3 524288 
+1457: push 
+1458: right3 2057476 
 [ ]
-1461: fntnum1 
-1462: setchar67 
+1462: fntnum1 
+1463: setchar67 
 [C]
-1463: pop 
 1464: pop 
-1465: push 
+1465: pop 
 1466: push 
 1467: push 
-1468: right3 2414284 
+1468: push 
+1469: right3 2414284 
 [ ]
-1472: down3 -3556148 
-1476: fntnum0 
-1477: setchar97 
+1473: down3 -3556148 
+1477: fntnum0 
+1478: setchar97 
 [a]
-1478: pop 
-1479: push 
-1480: right3 2610892 
+1479: pop 
+1480: push 
+1481: right3 2610892 
 [ ]
-1484: down3 -3556148 
-1488: putrule height 458752, width 2400948 
-1497: down3 3556148 
-1501: push 
+1485: down3 -3556148 
+1489: putrule height 458752, width 2400948 
+1498: down3 3556148 
 1502: push 
 1503: push 
 1504: push 
 1505: push 
-1506: down3 -1245183 
-1510: push 
-1511: right2 6554 
-1514: setchar0 
-1515: pop 
-1516: y3 65535 
-1520: push 
-1521: right2 6554 
-1524: setchar0 
-1525: pop 
-1526: down3 589824 
-1530: push 
-1531: right2 6554 
-1534: setchar65 
+1506: push 
+1507: down3 -1245183 
+1511: push 
+1512: right2 6554 
+1515: setchar0 
+1516: pop 
+1517: y3 65535 
+1521: push 
+1522: right2 6554 
+1525: setchar0 
+1526: pop 
+1527: down3 589824 
+1531: push 
+1532: right2 6554 
+1535: setchar65 
 [A]
-1535: pop 
-1536: down1 -1 
-1538: push 
-1539: right2 6554 
-1542: setchar0 
-1543: pop 
-1544: y0 65535 
-1545: push 
-1546: right2 6554 
-1549: setchar0 
-1550: pop 
-1551: down3 655360 
-1555: push 
-1556: right2 6554 
-1559: setchar66 
+1536: pop 
+1537: down1 -1 
+1539: push 
+1540: right2 6554 
+1543: setchar0 
+1544: pop 
+1545: y0 65535 
+1546: push 
+1547: right2 6554 
+1550: setchar0 
+1551: pop 
+1552: down3 655360 
+1556: push 
+1557: right2 6554 
+1560: setchar66 
 [B]
-1560: pop 
 1561: pop 
-1562: push 
+1562: pop 
 1563: push 
 1564: push 
 1565: push 
-1566: down3 -1425409 
-1570: push 
-1571: right3 543623 
+1566: push 
+1567: down3 -1425409 
+1571: push 
+1572: right3 543623 
 [ ]
-1575: fntnum2 
-1576: setchar65 
+1576: fntnum2 
+1577: setchar65 
 [A]
-1577: pop 
-1578: down3 2451048 
-1582: push 
-1583: right3 471860 
+1578: pop 
+1579: down3 2451048 
+1583: push 
+1584: right3 471860 
 [ ]
-1587: fntnum0 
-1588: setchar65 
+1588: fntnum0 
+1589: setchar65 
 [A]
-1589: push 
-1590: down3 -530842 
-1594: push 
-1595: right3 65536 
-1599: fntnum1 
-1600: setchar45 
+1590: push 
+1591: down3 -530842 
+1595: push 
+1596: right3 65536 
+1600: fntnum1 
+1601: setchar45 
 [-]
-1601: pop 
-1602: down3 1818625 
-1606: push 
+1602: pop 
+1603: down3 1818625 
 1607: push 
-1608: down3 -638976 
-1612: push 
-1613: right2 6554 
-1616: fntnum2 
-1617: setchar65 
+1608: push 
+1609: down3 -638976 
+1613: push 
+1614: right2 6554 
+1617: fntnum2 
+1618: setchar65 
 [A]
-1618: pop 
-1619: right2 6554 
-1622: down3 196608 
-1626: putrule height 32768, width 393217 
-1635: down3 1081344 
-1639: push 
-1640: right1 1 
-1642: setchar66 
+1619: pop 
+1620: right2 6554 
+1623: down3 196608 
+1627: putrule height 32768, width 393217 
+1636: down3 1081344 
+1640: push 
+1641: right1 1 
+1643: setchar66 
 [B]
-1643: pop 
 1644: pop 
 1645: pop 
 1646: pop 
 1647: pop 
 1648: pop 
 1649: pop 
-1650: right3 465306 
+1650: pop 
+1651: right3 465306 
 [ ]
-1654: down3 5600055 
-1658: putrule height 596378, width 549850 
-1667: pop 
+1655: down3 5600055 
+1659: putrule height 596378, width 549850 
 1668: pop 
-1669: push 
-1670: down3 -2323253 
-1674: push 
-1675: right3 1015156 
-1679: setchar98 
+1669: pop 
+1670: push 
+1671: down3 -2323253 
+1675: push 
+1676: right3 1015156 
+1680: setchar98 
 [ b]
-1680: pop 
-1681: down4 8545900 
-1686: push 
+1681: pop 
+1682: down4 8545900 
 1687: push 
-1688: right3 1015156 
+1688: push 
+1689: right3 1015156 
 [ ]
-1692: down3 -65536 
-1696: setchar98 
+1693: down3 -65536 
+1697: setchar98 
 [b]
-1697: pop 
-1698: push 
-1699: down3 -786432 
-1703: push 
-1704: right3 1590412 
+1698: pop 
+1699: push 
+1700: down3 -786432 
+1704: push 
+1705: right3 1590412 
 [ ]
-1708: fntnum0 
-1709: setchar66 
+1709: fntnum0 
+1710: setchar66 
 [B]
-1710: pop 
-1711: right3 1408372 
+1711: pop 
+1712: right3 1408372 
 [ ]
-1715: down3 393216 
-1719: putrule height 131072, width 378648 
-1728: pop 
+1716: down3 393216 
+1720: putrule height 131072, width 378648 
 1729: pop 
 1730: pop 
-1731: push 
-1732: right3 1792919 
+1731: pop 
+1732: push 
+1733: right3 1792919 
 [ ]
-1736: down3 -65535 
-1740: fntnum2 
-1741: setchar97 
+1737: down3 -65535 
+1741: fntnum2 
+1742: setchar97 
 [a]
-1742: pop 
 1743: pop 
-1744: right3 2204340 
+1744: pop 
+1745: right3 2204340 
 [ ]
-1748: fntnum0 
-1749: setchar65 
+1749: fntnum0 
+1750: setchar65 
 [A]
-1750: pop 
 1751: pop 
 1752: pop 
 1753: pop 
 1754: pop 
 1755: pop 
-1756: right3 5011840 
+1756: pop 
+1757: right3 5011840 
 [ ]
-1760: down3 6432362 
-1764: setrule height 10906014, width 327680 
-1773: pop 
-1774: down3 7775850 
-1778: push 
-1779: right3 1292440 
-1783: setchar45 
+1761: down3 6432362 
+1765: setrule height 10906014, width 327680 
+1774: pop 
+1775: down3 7775850 
+1779: push 
+1780: right3 1292440 
+1784: setchar45 
 [ -]
-1784: fntnum1 
-1785: setchar98 
+1785: fntnum1 
+1786: setchar98 
 [b]
-1786: push 
-1787: setchar65 
+1787: push 
+1788: setchar65 
 [A]
-1788: pop 
-1789: push 
-1790: down3 -537395 
-1794: push 
-1795: right3 98304 
+1789: pop 
+1790: push 
+1791: down3 -537395 
+1795: push 
+1796: right3 98304 
 [ ]
-1799: fntnum0 
-1800: setchar65 
+1800: fntnum0 
+1801: setchar65 
 [A]
-1801: pop 
-1802: down3 1245184 
-1806: push 
-1807: right3 98304 
-1811: fntnum2 
-1812: setchar66 
+1802: pop 
+1803: down3 1245184 
+1807: push 
+1808: right3 98304 
+1812: fntnum2 
+1813: setchar66 
 [B]
-1813: fntnum0 
-1814: setchar45 
+1814: fntnum0 
+1815: setchar45 
 [-]
-1815: pop 
 1816: pop 
-1817: push 
+1817: pop 
 1818: push 
 1819: push 
-1820: right3 235275 
+1820: push 
+1821: right3 235275 
 [ ]
-1824: down3 -163840 
-1828: putrule height 589824, width 530116 
-1837: down3 1943143 
-1841: push 
+1825: down3 -163840 
+1829: putrule height 589824, width 530116 
+1838: down3 1943143 
 1842: push 
 1843: push 
 1844: push 
-1845: right2 6554 
-1848: down3 -160563 
-1852: putrule height 596378, width 517008 
-1861: down3 1382810 
-1865: push 
+1845: push 
+1846: right2 6554 
+1849: down3 -160563 
+1853: putrule height 596378, width 517008 
+1862: down3 1382810 
 1866: push 
 1867: push 
-1868: down3 -262144 
-1872: setchar98 
+1868: push 
+1869: down3 -262144 
+1873: setchar98 
 [b]
-1873: pop 
-1874: push 
-1875: down3 -720896 
-1879: push 
-1880: w3 196608 
-1884: setchar112 
-1885: setchar116 
-1886: setchar115 
-1887: setchar113 
-1888: setchar116 
-1889: w0 196608 
-1890: setchar113 
-1891: setchar112 
-1892: right3 -72816 
-1896: setchar117 
+1874: pop 
+1875: push 
+1876: down3 -720896 
+1880: push 
+1881: w3 196608 
+1885: setchar112 
+1886: setchar116 
+1887: setchar115 
+1888: setchar113 
+1889: setchar116 
+1890: w0 196608 
+1891: setchar113 
+1892: setchar112 
+1893: right3 -72816 
+1897: setchar117 
 [ ptsqt qpu]
-1897: pop 
-1898: down3 1048576 
-1902: push 
-1903: right3 245397 
+1898: pop 
+1899: down3 1048576 
+1903: push 
+1904: right3 245397 
 [ ]
-1907: setrule height 589824, width 26214 
-1916: pop 
+1908: setrule height 589824, width 26214 
 1917: pop 
-1918: push 
-1919: right3 320400 
+1918: pop 
+1919: push 
+1920: right3 320400 
 [ ]
-1923: down3 -262144 
-1927: setchar98 
+1924: down3 -262144 
+1928: setchar98 
 [b]
-1928: pop 
 1929: pop 
 1930: pop 
 1931: pop 
@@ -869,344 +868,345 @@ magnification=2000;       0.00003052 pixels per DVI unit
 1936: pop 
 1937: pop 
 1938: pop 
-1939: eop 
+1939: pop 
+1940: eop 
  
-1940: beginning of page -2.0.0.0.11.0.327680.1572864.0.-1073741823 
-1985: down4 1070596096 
-1990: push 
+1941: beginning of page -2.0.0.0.11.0.327680.1572864.0.-1073741823 
+1986: down4 1070596096 
 1991: push 
-1992: right1 1 
+1992: push 
+1993: right1 1 
 [ ]
-1994: down3 -65536 
-1998: xxx '-12' 
-2003: pop 
+1995: down3 -65536 
+1999: xxx '-12' 
 2004: pop 
-2005: y3 655360 
-2009: y0 655360 
-2010: down3 983040 
-2014: push 
+2005: pop 
+2006: y3 655360 
+2010: y0 655360 
+2011: down3 983040 
 2015: push 
-2016: right3 196609 
+2016: push 
+2017: right3 196609 
 [ ]
-2020: fntnum0 
-2021: setchar65 
+2021: fntnum0 
+2022: setchar65 
 [A]
-2022: push 
 2023: push 
-2024: right3 83740 
-2028: down3 -262144 
-2032: setchar98 
+2024: push 
+2025: right3 83740 
+2029: down3 -262144 
+2033: setchar98 
 [b]
-2033: pop 
-2034: push 
+2034: pop 
 2035: push 
-2036: right3 286902 
+2036: push 
+2037: right3 286902 
 [ ]
-2040: down3 -425984 
-2044: putrule height 65536, width 104858 
-2053: down3 688128 
-2057: push 
+2041: down3 -425984 
+2045: putrule height 65536, width 104858 
+2054: down3 688128 
 2058: push 
-2059: down3 -360448 
-2063: fntnum1 
-2064: setchar98 
+2059: push 
+2060: down3 -360448 
+2064: fntnum1 
+2065: setchar98 
 [b]
-2065: pop 
 2066: pop 
 2067: pop 
 2068: pop 
 2069: pop 
 2070: pop 
-2071: push 
+2071: pop 
 2072: push 
-2073: down3 589825 
-2077: push 
-2078: right3 4500861 
+2073: push 
+2074: down3 589825 
+2078: push 
+2079: right3 4500861 
 [ ]
-2082: fntnum0 
-2083: setchar97 
+2083: fntnum0 
 2084: setchar97 
+2085: setchar97 
 [aa]
-2085: pop 
 2086: pop 
 2087: pop 
 2088: pop 
-2089: eop 
+2089: pop 
+2090: eop 
  
-2090: beginning of page -2.0.0.0.11.0.327680.1572864.1073741823.-1073741823 
-2135: down4 1072300032 
-2140: push 
-2141: right3 196609 
+2091: beginning of page -2.0.0.0.11.0.327680.1572864.1073741823.-1073741823 
+2136: down4 1072300032 
+2141: push 
+2142: right3 196609 
 [ ]
-2145: fntnum0 
-2146: setchar65 
-2147: right3 373830 
+2146: fntnum0 
+2147: setchar65 
+2148: right3 373830 
 [A ]
-2151: set1 130 
-2153: pop 
-2154: down3 655360 
-2158: eop 
+2152: set1 130 
+2154: pop 
+2155: down3 655360 
+2159: eop 
  
-2159: beginning of page -2.0.0.0.11.196608.327680.1572864.1073741823.0 
-2204: down4 1071513600 
-2209: push 
-2210: down3 -262144 
-2214: push 
-2215: right3 196609 
+2160: beginning of page -2.0.0.0.11.196608.327680.1572864.1073741823.0 
+2205: down4 1071513600 
+2210: push 
+2211: down3 -262144 
+2215: push 
+2216: right3 196609 
 [ ]
-2219: fntnum0 
-2220: setchar65 
-2221: w3 131072 
-2225: setchar65 
-2226: w0 131072 
-2227: setchar65 
+2220: fntnum0 
+2221: setchar65 
+2222: w3 131072 
+2226: setchar65 
+2227: w0 131072 
+2228: setchar65 
 [A A A]
-2228: down3 65536 
-2232: setrule height 524288, width 327680 
-2241: pop 
-2242: y3 655360 
-2246: push 
-2247: right3 196609 
-2251: setchar65 
-2252: right3 196608 
-2256: setchar65 
+2229: down3 65536 
+2233: setrule height 524288, width 327680 
+2242: pop 
+2243: y3 655360 
+2247: push 
+2248: right3 196609 
+2252: setchar65 
+2253: right3 196608 
+2257: setchar65 
 [ A A]
-2257: pop 
-2258: down3 131072 
-2262: push 
-2263: right3 196609 
-2267: setchar65 
-2268: w3 131072 
-2272: setchar65 
-2273: w0 131072 
-2274: setchar65 
+2258: pop 
+2259: down3 131072 
+2263: push 
+2264: right3 196609 
+2268: setchar65 
+2269: w3 131072 
+2273: setchar65 
+2274: w0 131072 
+2275: setchar65 
 [ A A A]
-2275: pop 
-2276: y0 655360 
-2277: push 
-2278: right3 196609 
-2282: setchar65 
-2283: right3 196608 
-2287: setchar65 
+2276: pop 
+2277: y0 655360 
+2278: push 
+2279: right3 196609 
+2283: setchar65 
+2284: right3 196608 
+2288: setchar65 
 [ A A]
-2288: pop 
 2289: pop 
-2290: y3 720896 
-2294: push 
-2295: down3 -655360 
-2299: down3 655360 
-2303: pop 
-2304: down3 655360 
-2308: push 
-2309: down3 -262144 
-2313: push 
-2314: right3 196609 
-2318: setchar65 
+2290: pop 
+2291: y3 720896 
+2295: push 
+2296: down3 -655360 
+2300: down3 655360 
+2304: pop 
+2305: down3 655360 
+2309: push 
+2310: down3 -262144 
+2314: push 
+2315: right3 196609 
+2319: setchar65 
 [ A]
-2319: pop 
 2320: pop 
-2321: y0 720896 
-2322: push 
-2323: down2 -32767 
-2326: push 
+2321: pop 
+2322: y0 720896 
+2323: push 
+2324: down2 -32767 
 2327: push 
-2328: right3 198462 
+2328: push 
+2329: right3 198462 
 [ ]
-2332: down3 -163841 
-2336: setchar66 
+2333: down3 -163841 
+2337: setchar66 
 [B]
-2337: pop 
-2338: right3 558912 
-2342: setchar65 
+2338: pop 
+2339: right3 558912 
 2343: setchar65 
+2344: setchar65 
 [ AA]
-2344: pop 
 2345: pop 
-2346: eop 
+2346: pop 
+2347: eop 
  
-2347: beginning of page -2.2.-1118806.0.11.196608.327680.1572864.1073741823.0 
-2392: down4 1072300032 
-2397: push 
+2348: beginning of page -2.2.-1118806.0.11.196608.327680.1572864.1073741823.0 
+2393: down4 1072300032 
 2398: push 
-2399: right3 -104176 
+2399: push 
+2400: right3 -104176 
 [ ]
-2403: fntnum0 
-2404: setchar66 
+2404: fntnum0 
+2405: setchar66 
 [B]
-2405: push 
-2406: down3 -1310720 
-2410: y3 655360 
-2414: y0 655360 
-2415: push 
-2416: right3 196608 
-2420: setchar65 
+2406: push 
+2407: down3 -1310720 
+2411: y3 655360 
+2415: y0 655360 
+2416: push 
+2417: right3 196608 
+2421: setchar65 
 [ A]
-2421: pop 
 2422: pop 
 2423: pop 
-2424: push 
+2424: pop 
 2425: push 
-2426: down3 622591 
-2430: push 
-2431: down3 458752 
-2435: push 
-2436: right3 6895421 
-2440: setchar65 
+2426: push 
+2427: down3 622591 
+2431: push 
+2432: down3 458752 
+2436: push 
+2437: right3 6895421 
+2441: setchar65 
 [ A]
-2441: pop 
 2442: pop 
 2443: pop 
 2444: pop 
 2445: pop 
-2446: y3 655360 
-2450: push 
+2446: pop 
+2447: y3 655360 
 2451: push 
-2452: right3 420112 
-2456: setchar98 
-2457: right4 12176941 
-2462: setchar98 
+2452: push 
+2453: right3 420112 
+2457: setchar98 
+2458: right4 12176941 
+2463: setchar98 
 [ b b]
-2463: pop 
 2464: pop 
-2465: y0 655360 
-2466: eop 
+2465: pop 
+2466: y0 655360 
+2467: eop 
  
-2467: beginning of page -2.2.-1118806.0.11.196608.327680.1572864.1073741823.0 
-2512: down3 1179648 
-2516: z3 655360 
-2520: push 
+2468: beginning of page -2.2.-1118806.0.11.196608.327680.1572864.1073741823.0 
+2513: down3 1179648 
+2517: z3 655360 
 2521: push 
-2522: right3 196608 
+2522: push 
+2523: right3 196608 
 [ ]
-2526: down3 -537395 
-2530: fntnum1 
-2531: setchar77 
+2527: down3 -537395 
+2531: fntnum1 
+2532: setchar77 
 [M]
-2532: pop 
 2533: pop 
-2534: y4 203921760 
-2539: y0 203921760 
-2540: push 
+2534: pop 
+2535: y4 203921760 
+2540: y0 203921760 
 2541: push 
-2542: right3 196608 
+2542: push 
+2543: right3 196608 
 [ ]
-2546: fntnum0 
-2547: setchar116 
+2547: fntnum0 
 2548: setchar116 
+2549: setchar116 
 [tt]
-2549: pop 
 2550: pop 
-2551: z0 655360 
+2551: pop 
 2552: z0 655360 
-2553: down4 232364531 
-2558: push 
+2553: z0 655360 
+2554: down4 232364531 
 2559: push 
 2560: push 
-2561: right3 393216 
+2561: push 
+2562: right3 393216 
 [ ]
-2565: down4 -17616141 
-2570: fntdef1 3: trip---loaded at size 134217727 DVI units 
+2566: down4 -17616141 
+2571: fntdef1 3: trip---loaded at size 134217727 DVI units 
  (this font is magnified 40960%) 
-2590: fntnum3 
-2591: setchar98 
+2591: fntnum3 
+2592: setchar98 
 [b]
-2592: pop 
 2593: pop 
-2594: push 
+2594: pop 
 2595: push 
-2596: down3 -1376253 
-2600: push 
-2601: right4 40676759 
+2596: push 
+2597: down3 -1376253 
+2601: push 
+2602: right4 40658554 
 [ ]
-2606: fntnum0 
-2607: setchar0 
-2608: pop 
-2609: y3 65535 
-2613: push 
-2614: right4 40676759 
+2607: fntnum0 
+2608: setchar0 
+2609: pop 
+2610: y3 65535 
+2614: push 
+2615: right4 40658554 
 [ ]
-2619: setchar0 
-2620: pop 
-2621: y0 65535 
-2622: push 
-2623: right4 40676759 
+2620: setchar0 
+2621: pop 
+2622: y0 65535 
+2623: push 
+2624: right4 40658554 
 [ ]
-2628: setchar0 
-2629: pop 
-2630: y0 65535 
-2631: push 
-2632: right4 40676759 
+2629: setchar0 
+2630: pop 
+2631: y0 65535 
+2632: push 
+2633: right4 40658554 
 [ ]
-2637: setchar0 
-2638: pop 
-2639: down3 589824 
-2643: push 
-2644: right4 40676759 
-2649: setchar65 
+2638: setchar0 
+2639: pop 
+2640: down3 589824 
+2644: push 
+2645: right4 40658554 
+2650: setchar65 
 [ A]
-2650: pop 
-2651: down1 -1 
-2653: push 
-2654: right4 40676759 
+2651: pop 
+2652: down1 -1 
+2654: push 
+2655: right4 40658554 
 [ ]
-2659: setchar0 
-2660: pop 
-2661: y0 65535 
-2662: push 
-2663: right4 40676759 
+2660: setchar0 
+2661: pop 
+2662: y0 65535 
+2663: push 
+2664: right4 40658554 
 [ ]
-2668: setchar0 
-2669: pop 
-2670: y0 65535 
-2671: push 
-2672: right4 40676759 
+2669: setchar0 
+2670: pop 
+2671: y0 65535 
+2672: push 
+2673: right4 40658554 
 [ ]
-2677: setchar0 
-2678: pop 
-2679: y0 65535 
-2680: push 
-2681: right4 40676759 
+2678: setchar0 
+2679: pop 
+2680: y0 65535 
+2681: push 
+2682: right4 40658554 
 [ ]
-2686: setchar0 
-2687: pop 
-2688: z0 655360 
-2689: push 
-2690: right4 40676759 
-2695: setchar66 
+2687: setchar0 
+2688: pop 
+2689: z0 655360 
+2690: push 
+2691: right4 40658554 
+2696: setchar66 
 [ B]
-2696: pop 
 2697: pop 
-2698: right4 41135511 
-2703: setchar65 
-2704: w3 65536 
-2708: setchar97 
+2698: pop 
+2699: right4 41117306 
+2704: setchar65 
+2705: w3 65536 
+2709: setchar97 
 [ Aa]
-2709: push 
-2710: w0 65536 
-2711: down4 -20591485 
-2716: fntnum3 
-2717: setchar0 
-2718: pop 
+2710: push 
+2711: w0 65536 
+2712: down4 -20591485 
+2717: fntnum3 
+2718: setchar0 
 2719: pop 
-2720: right4 135481227 
+2720: pop 
+2721: right4 135463022 
 [ ]
-2725: fntnum0 
-2726: setchar65 
+2726: fntnum0 
+2727: setchar65 
 [A]
-2727: pop 
-2728: down4 9227503 
-2733: z0 655360 
+2728: pop 
+2729: down4 9227503 
 2734: z0 655360 
 2735: z0 655360 
 2736: z0 655360 
-2737: down2 26214 
-2740: putrule height 26214, width 135677835 
-2749: eop 
+2737: z0 655360 
+2738: down2 26214 
+2741: putrule height 26214, width 135659630 
+2750: eop 
  
-2750: beginning of page -1.2.-1118806.0.11.196608.327680.1572864.1073741823.0 
-2795: down3 1179648 
-2799: eop 
-Postamble starts at byte 2800.
+2751: beginning of page -1.2.-1118806.0.11.196608.327680.1572864.1073741823.0 
+2796: down3 1179648 
+2800: eop 
+Postamble starts at byte 2801.
 maxv=1073741823, maxh=539754497, maxstackdepth=17, totalpages=16
 Font 3: trip scaled 409600 
 Font 2: trip scaled 4000 

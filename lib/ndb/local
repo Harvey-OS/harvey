@@ -1,11 +1,34 @@
 #
 # systems on the local network
 #
+dom=
+	ns=ns.nic.ddn.mil
+	ns=kava.nisc.sri.com
+	ns=aos.brl.mil
+	ns=c.nyser.net
+	ns=terp.umd.edu
+	ns=ns.nasa.gov
+	ns=nic.nordu.net
+dom=ns.nic.ddn.mil ip=192.112.36.4
+dom=kava.nisc.sri.com ip=192.33.33.24
+dom=aos.brl.mil ip=192.5.25.82
+dom=c.nyser.net ip=192.33.4.12
+dom=terp.umd.edu ip=128.8.10.90
+dom=ns.nasa.gov ip=128.102.16.10 ip=192.52.195.10
+dom=nic.nordu.net ip=192.36.148.17
 
-sys = kremvax
+#INSTALL this network
+#END
+
+#INSTALL authserver
+#END
+
+#INSTALL fileserver
+#END
+
+ip=1.1.1.1 ether=0123456789AB sys=kremvax
 	dom=kremvax.kremlin.mos.su
 	bootf=/mips/9magnum
-	ip=1.1.1.1 ether=0123456789AB
 	proto=il
 
 #
@@ -44,9 +67,9 @@ tcp=fsb		port=400
 tcp=sysmon	port=401
 tcp=proxy	port=402
 tcp=proxyd	port=404
-tcp=rexec	port=512	restricted
-tcp=login	port=513	restricted
-tcp=shell	port=514	restricted
+tcp=rexec	port=512	restricted=
+tcp=login	port=513	restricted=
+tcp=shell	port=514	restricted=
 tcp=printer	port=515
 tcp=courier	port=530
 tcp=cscan	port=531

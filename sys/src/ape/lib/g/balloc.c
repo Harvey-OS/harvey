@@ -2,10 +2,12 @@
 #include <unistd.h>
 #include <libg.h>
 
+typedef unsigned char uchar;
+
 Bitmap*
 balloc(Rectangle r, int ldepth)
 {
-	unsigned char *buf, xbuf[3];
+	uchar *buf, xbuf[3];
 	int id;
 	Bitmap *b;
 
@@ -26,10 +28,11 @@ balloc(Rectangle r, int ldepth)
 	if(b == 0){	/* oh bother */
 		buf[0] = 'f';
 		write(bitbltfd, (char *)xbuf, 3);
-		berror("balloc malloc");
+		return 0;
 	}
 	b->ldepth = ldepth;
 	b->r = r;
+	b->clipr = r;
 	b->id = id;
 	b->cache = 0;
 	return b;
@@ -38,7 +41,7 @@ balloc(Rectangle r, int ldepth)
 void
 bfree(Bitmap *b)
 {
-	unsigned char *buf;
+	uchar *buf;
 
 	buf = bneed(3);
 	buf[0] = 'f';

@@ -83,7 +83,6 @@ long
 findpart(char *part)
 {
 	char *p;
-	int i;
 
 	/*
 	 *  read partition table from disk, null terminate

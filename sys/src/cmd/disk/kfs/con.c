@@ -78,30 +78,15 @@ enum
 void
 cmd_stats(void)
 {
-	static char flags[10];
-	char f[10], *p;
-
-	if(*cons.arg)
-		strncpy(f, cons.arg, sizeof f - 1);
-	else
-		strncpy(f, flags, sizeof f - 1);
-	for(p=f; *p; p++)
-		switch(*p){
-		case 'f':
-			strncpy(flags, p, sizeof flags - 1);
-			break;
-		case 'w':
-			cprint("work stats\n");
-			cprint("	work = %F rps\n", (Filta){&cons.work, 1});
-			cprint("	rate = %F tBps\n", (Filta){&cons.rate, 1000});
-			cprint("	hits = %F iops\n", (Filta){&cons.bhit, 1});
-			cprint("	read = %F iops\n", (Filta){&cons.bread, 1});
-			cprint("	init = %F iops\n", (Filta){&cons.binit, 1});
-/*			for(i = 0; i < MAXTAG; i++)
-				cprint("	tag %G = %F iops\n", i, (Filta){&cons.tags[i], 1});
+	cprint("work stats\n");
+	cprint("	work = %F rps\n", (Filta){&cons.work, 1});
+	cprint("	rate = %F tBps\n", (Filta){&cons.rate, 1000});
+	cprint("	hits = %F iops\n", (Filta){&cons.bhit, 1});
+	cprint("	read = %F iops\n", (Filta){&cons.bread, 1});
+	cprint("	init = %F iops\n", (Filta){&cons.binit, 1});
+/*	for(i = 0; i < MAXTAG; i++)
+		cprint("	tag %G = %F iops\n", i, (Filta){&cons.tags[i], 1});
 */
-			break;
-		}
 }
 
 void
@@ -117,6 +102,7 @@ cmd_halt(void)
 {
 	wlock(&mainlock);
 	syncall();
+	superok(cur_fs->dev, superaddr(cur_fs->dev), 1);
 	print("kfs: file system halted\n");
 }
 

@@ -2,6 +2,10 @@
 .SH NAME
 fork, rfork \- manipulate process resources
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .nf
 .B
 int fork(void)
@@ -34,24 +38,28 @@ file; see
 and open files.
 .I Flags
 is the logical OR of some subset of
-.TP \w'RFPROC 'u
+.TF RFCNAMEG
+.TP
 .B RFPROC
 If set a new process is created; otherwise changes affect the
 current process.
-.TP \w'RFNAMEG 'u
-.B RFNAMEG
-If set, the new process inherits a copy of the parent's name space;
-otherwise the new process shares the parent's name space.
-Is mutually exclusive with
-.BR RFCNAMEG .
 .TP
 .B RFNOWAIT
-If set, the child process will be disassociated from the parent. Upon
+If set, the child process will be dissociated from the parent. Upon
 exit the child will leave no
 .B Waitmsg
 (see
 .IR wait (2))
 for the parent to collect.
+.TP
+.B RFNAMEG
+If set, the new process inherits a copy of the parent's name space;
+otherwise the new process shares the parent's name space.
+The tag space for
+.IR rendezvous (2)
+is considered part of the name space.
+Is mutually exclusive with
+.BR RFCNAMEG .
 .TP
 .B RFCNAMEG
 If set, the new process starts with a clean name space. A new
@@ -92,7 +100,7 @@ single table.
 .B RFCFDG
 If set, the new process starts with a clean file descriptor table.
 Is mutually exclusive with
-.BR RFCFDG .
+.BR RFFDG .
 .TP
 .B RFMEM
 If set, the kernel will mark segments of type
@@ -105,6 +113,7 @@ types will be unaffected.  Subsequent forks by the parent will then
 propagate the shared data and bss between children.  The stack segment
 is always split.  May be set only with
 .BR RFPROC .
+.PD
 .PP
 File descriptors in a shared file descriptor table are kept
 open until either they are explicitly closed
@@ -128,9 +137,13 @@ will sleep, if necessary, until required process resources are available.
 .I Fork
 is just a call of
 .BR rfork(RFFDG|RFPROC) .
+.SH SOURCE
+.B /sys/src/libc/9syscall
+.br
+.B /sys/src/libc/9sys/fork.c
 .SH SEE ALSO
 .IR intro (2),
 .IR proc (3),
 .SH DIAGNOSTICS
 These functions set
-.I errstr.
+.IR errstr .

@@ -12,9 +12,17 @@ void	error(char*, void*);
 int	returnmail(char**, char*, char*);
 
 #define HUNK 32
-char *cmd;
-char *root;
-int debug;
+char	*cmd;
+char	*root;
+int	debug;
+int	giveup = 2*24*60*60;	/*
+
+/* the current directory */
+Dir	*dirbuf;
+long	ndirbuf = 0;
+int	nfiles;
+
+
 
 void
 usage(void)
@@ -24,34 +32,31 @@ usage(void)
 }
 
 void
-main(int ac, char **av)
+main(int argc, char **argv)
 {
 	char *user;
-	int ai;
-	char *cp;
 	int all;
-
 
 	user = getenv("user");
 	all = 0;
 
-	for(ai = 1; ai < ac; ai++){
-		if(av[ai][0] != '-')
-			break;
-		for(cp = &av[ai][1]; *cp; cp++)
-			switch(*cp){
-			case 'a':
-				all = 1;
-				break;
-			case 'd':
-				debug = 1;
-				break;
-			}
-	}
-	if(ac - ai != 2)
+	ARGBEGIN{
+	case 'a':
+		all++;
+		break;
+	case 'd':
+		debug++;
+		break;
+	case 't':
+		giveup = 60*60*atoi(ARGF());
+		break;
+	}ARGEND;
+
+	if(argc != 2)
 		usage();
-	root = av[ai];
-	cmd = av[ai+1];
+
+	root = argv[0];
+	cmd = argv[1];
 
 	if(chdir(root) < 0)
 		error("can't cd to %s", root);
@@ -85,7 +90,7 @@ setuser(char *name)
 	fd = open("/srv/boot", 2);
 	if(fd < 0)
 		error("opening /srv/boot", 0);
-	if(mount(fd, "/mnt", MREPL, "", "") < 0)
+	if(mount(fd, "/mnt", MREPL, "") < 0)
 		error("mounting", 0);
 	close(fd);
 
@@ -156,6 +161,34 @@ doalldirs(void)
 }
 
 /*
+ * Read a whole directory before removing anything as the holes formed
+ * by removing affect the read offset.
+ */
+long
+readdirect(int fd)
+{
+	enum
+	{
+		N = 32
+	};
+	long m, n;
+
+	m = 1;	/* prime the loop */
+	for(n=0; m>0; n+=m/sizeof(Dir)){
+		if(n == ndirbuf){
+			dirbuf = realloc(dirbuf, (ndirbuf+N)*sizeof(Dir));
+			if(dirbuf == 0){
+				warning("memory allocation", 0);
+				return 0;
+			}
+			ndirbuf += N;
+		}
+		m = dirread(fd, dirbuf+n, (ndirbuf-n)*sizeof(Dir));
+	}
+	return n;
+}
+
+/*
  *  cd to a user directory and run it
  */
 void
@@ -177,24 +210,39 @@ dodir(char *name)
 void
 rundir(char *name)
 {
-	Dir db[HUNK];
 	int fd;
-	long i, n;
+	long i;
 
 	fd = open(".", OREAD);
 	if(fd == -1){
 		warning("reading %s", name);
 		return;
 	}
-	while((n=dirread(fd, db, sizeof db)) > 0){
-		n /= sizeof(Dir);
-		for(i=0; i<n; i++){
-			if(db[i].name[0]!='C' || db[i].name[1]!='.')
-				continue;
-			dofile(&db[i]);
-		}
-	}
+	nfiles = readdirect(fd);
 	close(fd);
+
+	for(i=0; i<nfiles; i++){
+		if(dirbuf[i].name[0]!='C' || dirbuf[i].name[1]!='.')
+			continue;
+		dofile(&dirbuf[i]);
+	}
+}
+
+/*
+ *  free files matching name in the current directory
+ */
+void
+remmatch(char *name)
+{
+	long i;
+
+	for(i=0; i<nfiles; i++){
+		if(strcmp(&dirbuf[i].name[1], &name[1]) == 0)
+			remove(dirbuf[i].name);
+	}
+
+	/* error file (may have) appeared after we read the directory */
+	remove(file(name, 'E'));
 }
 
 /*
@@ -221,8 +269,7 @@ dofile(Dir *dp)
 	 *  if no data file, just clean up
 	 */
 	if(dirstat(file(dp->name, 'D'), &d) < 0){
-		remove(dp->name);
-		remove(file(dp->name, 'E'));
+		remmatch(dp->name);
 		return;
 	}
 	dtime = d.mtime;
@@ -293,6 +340,12 @@ dofile(Dir *dp)
 	}
 	av[ac] = 0;
 
+	if(time(0) - dtime > giveup){
+		if(returnmail(av, dp->name, wm.msg) == 0)
+			remmatch(dp->name);
+		return;
+	}
+
 	/*
 	 *  transfer
 	 */
@@ -321,19 +374,14 @@ dofile(Dir *dp)
 				fprint(2, "wm.msg == %s\n", wm.msg);
 			if(strstr(wm.msg, "Retry")==0){
 				/* return the message and remove it */
-				if(returnmail(av, dp->name, wm.msg) == 0){
-					remove(file(dp->name, 'D'));
-					remove(file(dp->name, 'C'));
-					remove(file(dp->name, 'E'));
-				}
+				if(returnmail(av, dp->name, wm.msg) == 0)
+					remmatch(dp->name);
 			} else {
 				/* try again later */
 			}
 		} else {
 			/* it worked remove the message */
-			remove(file(dp->name, 'D'));
-			remove(file(dp->name, 'C'));
-			remove(file(dp->name, 'E'));
+			remmatch(dp->name);
 		}
 
 	}

@@ -1,27 +1,49 @@
-% AMSTEX.TEX					February 1990
-%
-% This file contains the AMS-TeX Version 2.0 macro package.
-% American Mathematical Society, Technical Support Group, P. O. Box 6248,
-%        Providence, RI 02940
-% 800-321-4AMS or 401-455-4080;  Internet: Tech-Support@Math.AMS.com
-%
-% Copyright (C) 1990, American Mathematical Society.
-% All rights reserved.  Copying of this file is authorized only if either:
-%	(1) you make absolutely no changes to your copy including name; OR
-%	(2) if you do make changes, you first rename it to some other name.
+%% @texfile{
+%%     filename="amstex.tex",
+%%     version="2.1",
+%%     date="5-APR-1991",
+%%     filetype="AMS-TeX: documentstyle",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support Department,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksumtype="line count",
+%%     checksum="1797",
+%%     keywords="amstex, ams-tex, tex",
+%%     abstract="This file contains the AMS-TeX Version 2.1 macro
+%%            package.  It is intended to be used in conjunction with
+%%            plain TeX. The macros defined herein are chiefly oriented
+%%            to the construction of mathematical formulas, both display
+%%            and nondisplay, using AMS conventions for fonts, spacing,
+%%            and other details."
+%%     }
 \def\fmtname{AmS-TeX}
 \let\plainfmtversion\fmtversion
-\def\fmtversion{2.0}
+\def\fmtversion{2.1}
 \catcode`\@=11
 \ifx\amstexloaded@\relax\catcode`\@=\active
- \endinput\else\let\amstexloaded@\relax\fi
+  \endinput\else\let\amstexloaded@\relax\fi
+\newlinechar=`\^^J
 \def\W@{\immediate\write\sixt@@n}
-\def\CR@{\W@{}\W@{AmS-TeX - Version \fmtversion}\W@{}
-\W@{COPYRIGHT 1985, 1990 - AMERICAN MATHEMATICAL SOCIETY}
-\W@{Use of this macro package is not restricted provided}
-\W@{each use is acknowledged upon publication.}\W@{}}
-\CR@
-\everyjob{\CR@}
+\def\CR@{\W@{^^J\fmtname - Version \fmtversion^^J%
+COPYRIGHT 1985, 1990, 1991 - AMERICAN MATHEMATICAL SOCIETY^^J%
+Use of this macro package is not restricted provided^^J%
+each use is acknowledged upon publication.^^J}}
+\CR@ \everyjob{\CR@}
+\message{Loading definitions for}
+\message{misc utility macros,}
 \toksdef\toks@@=2
 \long\def\rightappend@#1\to#2{\toks@{\\{#1}}\toks@@
  =\expandafter{#2}\xdef#2{\the\toks@@\the\toks@}\toks@{}\toks@@{}}
@@ -46,13 +68,12 @@
 \def\setbox@ne{\setbox\@ne}
 \def\wd@ne{\wd\@ne}
 \def\iterate{\body\expandafter\iterate\else\fi}
-\newlinechar=`\^^J
 \def\err@#1{\errmessage{AmS-TeX error: #1}}
 \newhelp\defaulthelp@{Sorry, I already gave what help I could...^^J
 Maybe you should try asking a human?^^J
 An error might have occurred before I noticed any problems.^^J
 ``If all else fails, read the instructions.''}
-\def\Err@#1{\errhelp\defaulthelp@\errmessage{AmS-TeX error: #1}}
+\def\Err@{\errhelp\defaulthelp@\err@}
 \def\eat@#1{}
 \def\in@#1#2{\def\in@@##1#1##2##3\in@@{\ifx\in@##2\in@false\else\in@true\fi}%
  \in@@#2#1\in@\in@@}
@@ -63,30 +84,19 @@ An error might have occurred before I noticed any problems.^^J
 {Only certain combinations beginning with @ make sense to me.^^J
 Perhaps you wanted \string\@\space for a printed @?^^J
 I've ignored the character or group after @.}
-\def\futureletnextat@{\futurelet\next\at@}
-{\catcode`\@=\active
-\lccode`\Z=`\@ \lccode`\I=`\I \lowercase{%
-\gdef@{\csname futureletnextatZ\endcsname}%                                 %1
-\expandafter\gdef\csname atZ\endcsname                                      %2
- {\ifcat\noexpand\next a\def\next{\csname atZZ\endcsname}\else
- \ifcat\noexpand\next0\def\next{\csname atZZ\endcsname}\else
- \ifcat\noexpand\next\relax\def\next{\csname atZZZ\endcsname}\else
- \def\next{\csname atZZZZ\endcsname}\fi\fi\fi\next}
-\expandafter\gdef\csname atZZ\endcsname#1{\expandafter                      %3
- \ifx\csname #1Zat\endcsname\relax\def\next
- {\errhelp\expandafter=\csname athelpZ\endcsname
- \csname errZ\endcsname{Invalid use of \string@}}\else
- \def\next{\csname #1Zat\endcsname}\fi\next}
-\expandafter\gdef\csname atZZZ\endcsname#1{\expandafter                     %4
- \ifx\csname \string#1ZZat\endcsname\relax\def\next
- {\errhelp\expandafter=\csname athelpZ\endcsname
- \csname errZ\endcsname{Invalid use of \string@}}\else
- \def\next{\csname \string#1ZZat\endcsname}\fi\next}
-\expandafter\gdef\csname atZZZZ\endcsname#1{\errhelp                        %5
- \expandafter=\csname athelpZ\endcsname
- \csname errZ\endcsname{Invalid use of \string@}}}}                         %6
-\def\atdef@#1{\expandafter\def\csname #1@at\endcsname}
-\def\atdef@@#1{\expandafter\def\csname \string#1@@at\endcsname}
+{\catcode`\~=\active % just in case
+ \lccode`\~=`\@ \lowercase{\gdef~{\FN@\at@}}}
+\def\at@{\let\next@\at@@
+ \ifcat\noexpand\next a\else\ifcat\noexpand\next0\else
+ \ifcat\noexpand\next\relax\else
+   \let\next\at@@@\fi\fi\fi
+ \next@}
+\def\at@@#1{\expandafter
+ \ifx\csname\space @\string#1\endcsname\relax
+  \expandafter\at@@@ \else
+  \csname\space @\string#1\expandafter\endcsname\fi}
+\def\at@@@#1{\errhelp\athelp@ \err@{\Invalid@@ @}}%%
+\def\atdef@#1{\expandafter\def\csname\space @\string#1\endcsname}%%
 \newhelp\defahelp@{If you typed \string\define\space cs instead of
 \string\define\string\cs\space^^J
 I've substituted an inaccessible control sequence so that your^^J
@@ -116,6 +126,7 @@ conflict with other uses that are important to me.}
 \let\redefine\def
 \def\predefine#1#2{\let#1#2}
 \def\undefine#1{\let#1\undefined}
+\message{page layout,}
 \newdimen\captionwidth@
 \captionwidth@\hsize
 \advance\captionwidth@-1.5in
@@ -124,6 +135,7 @@ conflict with other uses that are important to me.}
 \def\pageheight#1{\vsize#1\relax}
 \def\hcorrection#1{\advance\hoffset#1\relax}
 \def\vcorrection#1{\advance\voffset#1\relax}
+\message{accents/punctuation,}
 \def\tie{\unskip\nobreak\ }
 \let\graveaccent\`
 \let\acuteaccent\'
@@ -141,7 +153,7 @@ conflict with other uses that are important to me.}
 \atdef@;{\leavevmode\null;}
 \atdef@:{\leavevmode\null:}
 \atdef@?{\leavevmode\null?}
-\def\@{\char64 }
+\edef\@{\string @}
 \def\relaxnext@{\let\next\relax}
 \atdef@-{\relaxnext@\leavevmode
  \DN@{\ifx\next-\DN@-{\FN@\nextii@}\else
@@ -151,8 +163,8 @@ conflict with other uses that are important to me.}
  \FN@\next@}
 \def\srdr@{\kern.16667em}
 \def\drsr@{\kern.02778em}
-\def\sldl@{\kern.02778em}
-\def\dlsl@{\kern.16667em}
+\def\sldl@{\drsr@}
+\def\dlsl@{\srdr@}
 \atdef@"{\unskip\relaxnext@
  \DN@{\ifx\next\space@\DN@. {\FN@\nextii@}\else
   \DN@.{\FN@\nextii@}\fi\next@.}%
@@ -174,8 +186,9 @@ conflict with other uses that are important to me.}
  {\textfontii g}\@sf\relax\fi}
 \let\lbrace\{
 \let\rbrace\}
-\def\AmSTeX{{\textfontii A}\kern-.1667em\lower.5ex\hbox
- {\textfontii M}\kern-.125em{\textfontii S}-\TeX}
+\def\AmSTeX{{\textfontii A\kern-.1667em%
+  \lower.5ex\hbox{M}\kern-.125emS}-\TeX}
+\message{line and page breaks,}
 \def\vmodeerr@#1{\Err@{\string#1\space not allowed between paragraphs}}
 \def\mathmodeerr@#1{\Err@{\string#1\space not allowed in math mode}}
 \def\linebreak{\RIfM@\mathmodeerr@\linebreak\else
@@ -228,6 +241,7 @@ conflict with other uses that are important to me.}
 \def\BlackBoxes{\global\overfullrule5\p@}
 \def\Invalid@#1{\def#1{\Err@{\Invalid@@\string#1}}}
 \def\Invalid@@{Invalid use of }
+\message{figures,}
 \Invalid@\caption
 \Invalid@\captionwidth
 \newdimen\smallcaptionwidth@
@@ -262,10 +276,11 @@ conflict with other uses that are important to me.}
   {\ifmid@\nonvmodeerr@\midspace
   \else\nonvmodeerr@\topspace\fi}}%
  \FN@\next@}
-\def\newcodes@{\catcode`\\=12 \catcode`\{=12 \catcode`\}=12 \catcode`\#=12
- \catcode`\%=12\relax}
-\def\oldcodes@{\catcode`\\=0 \catcode`\{=1 \catcode`\}=2 \catcode`\#=6
- \catcode`\%=14\relax}
+\message{comments,}
+\def\newcodes@{\catcode`\\12\catcode`\{12\catcode`\}12\catcode`\#12%
+ \catcode`\%12\relax}
+\def\oldcodes@{\catcode`\\0\catcode`\{1\catcode`\}2\catcode`\#6%
+ \catcode`\%14\relax}
 \def\comment{\newcodes@\endlinechar=10 \comment@}
 {\lccode`\0=`\\
 \lowercase{\gdef\comment@#1^^J{\comment@@#10endcomment\comment@@@}%
@@ -280,6 +295,7 @@ conflict with other uses that are important to me.}
 \let\tsize\textstyle
 \let\ssize\scriptstyle
 \let\sssize\scriptscriptstyle
+\message{math spacing,}
 \def\,{\RIfM@\mskip\thinmuskip\relax\else\kern.16667em\fi}
 \def\!{\RIfM@\mskip-\thinmuskip\relax\else\kern-.16667em\fi}
 \let\thinspace\,
@@ -296,6 +312,7 @@ conflict with other uses that are important to me.}
 \def\and{\DOTSB\;\mathchar"3026 \;}
 \def\implies{\DOTSB\;\Longrightarrow\;}
 \def\impliedby{\DOTSB\;\Longleftarrow\;}
+\message{fractions,}
 \def\frac#1#2{{#1\over#2}}
 \def\dfrac#1#2{{\displaystyle{#1\over#2}}}
 \def\tfrac#1#2{{\textstyle{#1\over#2}}}
@@ -320,6 +337,7 @@ conflict with other uses that are important to me.}
 \def\:{\nobreak\hskip.1111em\mathpunct{}\nonscript\mkern-\thinmuskip{:}\hskip
  .3333emplus.0555em\relax}
 \def\snug{\unskip\kern-\mathsurround}
+\message{smash commands,}
 \def\topsmash{\top@true\bot@false\smash@}
 \def\botsmash{\top@false\bot@true\smash@}
 \newif\iftop@
@@ -328,6 +346,7 @@ conflict with other uses that are important to me.}
 \def\smash@{\RIfM@\expandafter\mathpalette\expandafter\mathsm@sh\else
  \expandafter\makesm@sh\fi}
 \def\finsm@sh{\iftop@\ht\z@\z@\fi\ifbot@\dp\z@\z@\fi\leavevmode\boxz@}
+\message{large operator symbols,}
 \def\LimitsOnSums{\global\let\slimits@\displaylimits}
 \def\NoLimitsOnSums{\global\let\slimits@\nolimits}
 \LimitsOnSums
@@ -343,6 +362,7 @@ conflict with other uses that are important to me.}
 \mathchardef\bigoplus@="134C     \def\bigoplus{\DOTSB\bigoplus@\slimits@}
 \mathchardef\bigodot@="134A      \def\bigodot{\DOTSB\bigodot@\slimits@}
 \mathchardef\bigsqcup@="1346     \def\bigsqcup{\DOTSB\bigsqcup@\slimits@}
+\message{integrals,}
 \def\LimitsOnInts{\global\let\ilimits@\displaylimits}
 \def\NoLimitsOnInts{\global\let\ilimits@\nolimits}
 \NoLimitsOnInts
@@ -391,8 +411,9 @@ conflict with other uses that are important to me.}
  \DN@{\ifx\next\limits\DN@\limits{\nolimits}\else
   \let\next@\nolimits\fi\next@}%
  \FN@\next@}
-\def\newmcodes@{\mathcode`\'="0027 \mathcode`\*="002A \mathcode`\.="613A
- \mathcode`\-="002D \mathcode`\/="002F \mathcode`\:="603A }
+\message{operator names,}
+\def\newmcodes@{\mathcode`\'"27\mathcode`\*"2A\mathcode`\."613A%
+ \mathcode`\-"2D\mathcode`\/"2F\mathcode`\:"603A }
 \def\operatorname#1{\mathop{\newmcodes@\kern\z@\fam\z@#1}\nolimits@}
 \def\operatornamewithlimits#1{\mathop{\newmcodes@\kern\z@\fam\z@#1}\nlimits@}
 \def\qopname@#1{\mathop{\fam\z@#1}\nolimits@}
@@ -451,6 +472,7 @@ conflict with other uses that are important to me.}
  \displaystyle{#1}$}}\fontdimen13 \tenex\buffer}
 \def\topshave#1{\mathop{\topsmash{\displaystyle{#1}}\vphantom{\shave{#1}}}}
 \def\botshave#1{\mathop{\botsmash{\displaystyle{#1}}\vphantom{\shave{#1}}}}
+\message{multilevel sub/superscripts,}
 \Invalid@\\
 \def\Let@{\relax\iffalse{\fi\let\\=\cr\iffalse}\fi}
 \Invalid@\vspace
@@ -473,6 +495,7 @@ conflict with other uses that are important to me.}
 \setboxz@h{$\m@th($}
 \ht\Mathstrutbox@\ht\z@
 \dp\Mathstrutbox@\dp\z@
+\message{matrices,}
 \newdimen\spreadmlines@
 \def\spreadmatrixlines#1{\RIfMIfI@
  \onlydmatherr@\spreadmatrixlines\else
@@ -490,8 +513,8 @@ conflict with other uses that are important to me.}
  \def\l{$\m@th\the\hashtoks@$\hfil}%
  \def\c{\hfil$\m@th\the\hashtoks@$\hfil}%
  \def\r{\hfil$\m@th\the\hashtoks@$}%
- \edef\Preamble@{\preamble@}\ifnum`{=0 \fi\iffalse}\fi
- \ialign\bgroup\span\Preamble@\crcr}
+ \edef\preamble@@{\preamble@}\ifnum`{=0 \fi\iffalse}\fi
+ \ialign\bgroup\span\preamble@@\crcr}
 \def\smallmatrix{\null\,\vcenter\bgroup\vspace@\Let@
  \baselineskip9\ex@\lineskip\ex@
  \ialign\bgroup\hfil$\m@th\scriptstyle{##}$\hfil&&\thickspace\hfil
@@ -518,6 +541,7 @@ conflict with other uses that are important to me.}
 \def\innerhdotsfor#1\after#2{\spaceinnerhdots\@ne\for#1\after{#2}}
 \def\cases{\bgroup\spreadmlines@\jot\left\{\,\matrix\format\l&\quad\l\\}
 \def\endcases{\endmatrix\right.\egroup}
+\message{multiline displays,}
 \newif\ifinany@
 \newif\ifinalign@
 \newif\ifingather@
@@ -579,8 +603,10 @@ conflict with other uses that are important to me.}
 \Invalid@\intertext
 \def\allowdisplaybreak@{\def\allowdisplaybreak{\crcr\noalign{\allowbreak}}}
 \def\displaybreak@{\def\displaybreak{\crcr\noalign{\break}}}
-\def\intertext@{\def\intertext##1{\crcr\noalign{\vskip\belowdisplayskip
- \vbox{\normalbaselines\noindent##1}\vskip\abovedisplayskip}}}
+\def\intertext@{\def\intertext##1{\crcr\noalign{%
+ \penalty\postdisplaypenalty \vskip\belowdisplayskip
+ \vbox{\normalbaselines\noindent##1}%
+ \penalty\predisplaypenalty \vskip\abovedisplayskip}}}
 \newskip\centering@
 \centering@\z@ plus\@m\p@
 \def\align{\relax\ifingather@\DN@{\csname align (in
@@ -922,6 +948,7 @@ and fix things up.}
  ({\fam\z@ mod}\,\,#1)}
 \def\pod#1{\allowbreak\ifinner\mkern8mu\else\mkern18mu\fi(#1)}
 \def\mod#1{\allowbreak\ifinner\mkern12mu\else\mkern18mu\fi{\fam\z@ mod}\,\,#1}
+\message{continued fractions,}
 \newcount\cfraccount@
 \def\cfrac{\bgroup\bgroup\advance\cfraccount@\@ne\strut
  \iffalse{\fi\def\\{\over\displaystyle}\iffalse}\fi}
@@ -932,6 +959,7 @@ and fix things up.}
 \def\gloop@#1\repeat{\gdef\body{#1}\iterate}
 \def\endcfrac{\gloop@\ifnum\cfraccount@>\z@\global\advance\cfraccount@\m@ne
  \egroup\hskip-\nulldelimiterspace\egroup\repeat}
+\message{compound symbols,}
 \def\binrel@#1{\setboxz@h{\thinmuskip0mu
   \medmuskip\m@ne mu\thickmuskip\@ne mu$#1\m@th$}%
  \setbox@ne\hbox{\thinmuskip0mu\medmuskip\m@ne mu\thickmuskip
@@ -952,14 +980,18 @@ and fix things up.}
  \setbox\tw@\hbox{$\dsize{#3}#2\m@th$}%
  \hskip\wd@ne\hskip-\wd\tw@\mathop{\hskip\wd\tw@\hskip-\wd@ne
   {\vphantom{#3}}#1{#3}#2}}
-\def\rightarrowfill@#1{$#1\m@th\mathord-\mkern-6mu\cleaders
- \hbox{$#1\mkern-2mu\mathord-\mkern-2mu$}\hfill
- \mkern-6mu\mathord\rightarrow$}
-\def\leftarrowfill@#1{$#1\m@th\mathord\leftarrow\mkern-6mu\cleaders
- \hbox{$#1\mkern-2mu\mathord-\mkern-2mu$}\hfill\mkern-6mu\mathord-$}
-\def\leftrightarrowfill@#1{$#1\m@th\mathord\leftarrow\mkern-6mu\cleaders
- \hbox{$#1\mkern-2mu\mathord-\mkern-2mu$}\hfill
- \mkern-6mu\mathord\rightarrow$}
+\def\rightarrowfill@#1{\setboxz@h{$#1-\m@th$}\ht\z@\z@
+  $#1\m@th\copy\z@\mkern-6mu\cleaders
+  \hbox{$#1\mkern-2mu\box\z@\mkern-2mu$}\hfill
+  \mkern-6mu\mathord\rightarrow$}
+\def\leftarrowfill@#1{\setboxz@h{$#1-\m@th$}\ht\z@\z@
+  $#1\m@th\mathord\leftarrow\mkern-6mu\cleaders
+  \hbox{$#1\mkern-2mu\copy\z@\mkern-2mu$}\hfill
+  \mkern-6mu\box\z@$}
+\def\leftrightarrowfill@#1{\setboxz@h{$#1-\m@th$}\ht\z@\z@
+  $#1\m@th\mathord\leftarrow\mkern-6mu\cleaders
+  \hbox{$#1\mkern-2mu\box\z@\mkern-2mu$}\hfill
+  \mkern-6mu\mathord\rightarrow$}
 \def\overrightarrow{\mathpalette\overrightarrow@}
 \def\overrightarrow@#1#2{\vbox{\ialign{##\crcr\rightarrowfill@#1\crcr
  \noalign{\kern-\ex@\nointerlineskip}$\m@th\hfil#1#2\hfil$\crcr}}}
@@ -980,6 +1012,7 @@ and fix things up.}
 \def\underleftrightarrow{\mathpalette\underleftrightarrow@}
 \def\underleftrightarrow@#1#2{\vtop{\ialign{##\crcr$\m@th\hfil#1#2\hfil$\crcr
  \noalign{\nointerlineskip}\leftrightarrowfill@#1\crcr}}}
+\message{various kinds of dots,}
 \let\DOTSI\relax
 \let\DOTSB\relax
 \let\DOTSX\relax
@@ -1143,6 +1176,7 @@ and fix things up.}
 \def\hookleftarrow{\DOTSB\leftarrow\joinrel\rhook}
 \def\doteq{\DOTSB\buildrel\textstyle.\over=}
 \def\iff{\DOTSB\;\Longleftrightarrow\;}
+\message{special superscripts,}
 \def\dddot#1{{\mathop{#1}\limits^{\vbox to-1.4\ex@{\kern-\tw@\ex@
  \hbox{\rm...}\vss}}}}
 \def\ddddot#1{{\mathop{#1}\limits^{\vbox to-1.4\ex@{\kern-\tw@\ex@
@@ -1162,6 +1196,7 @@ and fix things up.}
 \def\spbreve{^{\!\botsmash{\hbox{\lower4\ex@\hbox{\u{}}}}}}
 \def\spbar{^-}
 \def\spvec{^\rightarrow}
+\message{\string\text,}
 \def\textonlyfont@#1#2{\def#1{\RIfM@
  \Err@{Use \string#1\space only in text}\else#2\fi}}
 \textonlyfont@\rm\tenrm
@@ -1215,6 +1250,7 @@ and fix things up.}
   \tolerance1600 \noindent\ignorespaces##2}\ifbotfolded@\boxz@\else
   \iftopfolded@\vtop{\unvbox\z@}\else\vcenter{\boxz@}\fi\fi}%
  \FN@\next@}
+\message{math font commands,}
 \def\bold{\RIfM@\expandafter\bold@\else
  \expandafter\nonmatherr@\expandafter\bold\fi}
 \def\bold@#1{{\bold@@{#1}}}
@@ -1257,14 +1293,10 @@ and fix things up.}
 \mathchardef\varPhi="0108
 \mathchardef\varPsi="0109
 \mathchardef\varOmega="010A
-\newif\ifmsamloaded@
-\newif\ifmsbmloaded@
-\newif\ifeufmloaded@
 \let\alloc@@\alloc@
 \def\hexnumber@#1{\ifcase#1 0\or 1\or 2\or 3\or 4\or 5\or 6\or 7\or 8\or
  9\or A\or B\or C\or D\or E\or F\fi}
-\edef\bffam@{\hexnumber@\bffam}
-\def\loadmsam{\msamloaded@true
+\def\loadmsam{%
  \font@\tenmsa=msam10
  \font@\sevenmsa=msam7
  \font@\fivemsa=msam5
@@ -1272,89 +1304,78 @@ and fix things up.}
  \textfont\msafam=\tenmsa
  \scriptfont\msafam=\sevenmsa
  \scriptscriptfont\msafam=\fivemsa
- \edef\msafam@{\hexnumber@\msafam}%
- \mathchardef\dabar@"0\msafam@39
- \def\dashrightarrow{\mathrel{\dabar@\dabar@\mathchar"0\msafam@4B}}%
- \def\dashleftarrow{\mathrel{\mathchar"0\msafam@4C\dabar@\dabar@}}%
+ \edef\next{\hexnumber@\msafam}%
+ \mathchardef\dabar@"0\next39
+ \edef\dashrightarrow{\mathrel{\dabar@\dabar@\mathchar"0\next4B}}%
+ \edef\dashleftarrow{\mathrel{\mathchar"0\next4C\dabar@\dabar@}}%
  \let\dasharrow\dashrightarrow
- \def\ulcorner{\delimiter"4\msafam@70\msafam@70 }
- \def\urcorner{\delimiter"5\msafam@71\msafam@71 }
- \def\llcorner{\delimiter"4\msafam@78\msafam@78 }
- \def\lrcorner{\delimiter"5\msafam@79\msafam@79 }
- \def\yen{{\mathhexbox@\msafam@55 }}
- \def\checkmark{{\mathhexbox@\msafam@58 }}
- \def\circledR{{\mathhexbox@\msafam@72 }}
- \def\maltese{{\mathhexbox@\msafam@7A }}}
-\def\loadmsbm{\msbmloaded@true
- \font@\tenmsb=msbm10
- \font@\sevenmsb=msbm7
- \font@\fivemsb=msbm5
+ \edef\ulcorner{\delimiter"4\next70\next70 }%
+ \edef\urcorner{\delimiter"5\next71\next71 }%
+ \edef\llcorner{\delimiter"4\next78\next78 }%
+ \edef\lrcorner{\delimiter"5\next79\next79 }%
+ \edef\yen{{\noexpand\mathhexbox@\next55}}%
+ \edef\checkmark{{\noexpand\mathhexbox@\next58}}%
+ \edef\circledR{{\noexpand\mathhexbox@\next72}}%
+ \edef\maltese{{\noexpand\mathhexbox@\next7A}}%
+ \global\let\loadmsam\empty}%
+\def\loadmsbm{%
+ \font@\tenmsb=msbm10 \font@\sevenmsb=msbm7 \font@\fivemsb=msbm5
  \alloc@@8\fam\chardef\sixt@@n\msbfam
  \textfont\msbfam=\tenmsb
- \scriptfont\msbfam=\sevenmsb
- \scriptscriptfont\msbfam=\fivemsb
- \edef\msbfam@{\hexnumber@\msbfam}%
+ \scriptfont\msbfam=\sevenmsb \scriptscriptfont\msbfam=\fivemsb
+ \global\let\loadmsbm\empty
  }
-\def\widehat#1{\ifmsbmloaded@
-  \setboxz@h{$\m@th#1$}\ifdim\wdz@>\tw@ em\mathaccent"0\msbfam@5B{#1}\else
-  \mathaccent"0362{#1}\fi
- \else\mathaccent"0362{#1}\fi}
-\def\widetilde#1{\ifmsbmloaded@
-  \setboxz@h{$\m@th#1$}\ifdim\wdz@>\tw@ em\mathaccent"0\msbfam@5D{#1}\else
-  \mathaccent"0365{#1}\fi
- \else\mathaccent"0365{#1}\fi}
-\def\newsymbol#1#2#3#4#5{\define#1{}\let\next@\relax
- \ifnum#2=\@ne\ifmsamloaded@\let\next@\msafam@\fi\else
- \ifnum#2=\tw@\ifmsbmloaded@\let\next@\msbfam@\fi\fi\fi
- \ifx\next@\relax
-  \ifnum#2>\tw@\Err@{\Invalid@@\string\newsymbol}\else
-  \ifnum#2=\@ne\Err@{You must first \string\loadmsam}\else
-   \Err@{You must first \string\loadmsbm}\fi\fi
- \else
-  \mathchardef#1="#3\next@#4#5
- \fi}
-\def\UseAMSsymbols{\input amssym.tex\relax}
+\def\widehat#1{\ifx\undefined\msbfam \DN@{362}%
+  \else \setboxz@h{$\m@th#1$}%
+    \edef\next@{\ifdim\wdz@>\tw@ em%
+        \hexnumber@\msbfam 5B%
+      \else 362\fi}\fi
+  \mathaccent"0\next@{#1}}
+\def\widetilde#1{\ifx\undefined\msbfam \DN@{365}%
+  \else \setboxz@h{$\m@th#1$}%
+    \edef\next@{\ifdim\wdz@>\tw@ em%
+        \hexnumber@\msbfam 5D%
+      \else 365\fi}\fi
+  \mathaccent"0\next@{#1}}
+\message{\string\newsymbol,}
+\def\newsymbol#1#2#3#4#5{\define#1{}%
+  \count@#2\relax \advance\count@\m@ne % to push case 0 to the \else clause
+ \ifcase\count@
+   \ifx\undefined\msafam\loadmsam\fi \let\next@\msafam
+ \or \ifx\undefined\msbfam\loadmsbm\fi \let\next@\msbfam
+ \else  \Err@{\Invalid@@\string\newsymbol}\let\next@\tw@\fi
+ \mathchardef#1="#3\hexnumber@\next@#4#5\space}
+\def\UseAMSsymbols{\loadmsam\loadmsbm \input amssym.tex }
 \def\Bbb{\RIfM@\expandafter\Bbb@\else
  \expandafter\nonmatherr@\expandafter\Bbb\fi}
 \def\Bbb@#1{{\Bbb@@{#1}}}
 \def\Bbb@@#1{\noaccents@\fam\msbfam\relax#1}
-\def\loadeufm{\eufmloaded@true
- \font@\teneufm=eufm10
- \font@\seveneufm=eufm7
- \font@\fiveeufm=eufm5
- \alloc@@8\fam\chardef\sixt@@n\eufmfam
- \textfont\eufmfam=\teneufm
- \scriptfont\eufmfam=\seveneufm
- \scriptscriptfont\eufmfam=\fiveeufm}
-\def\frak{\RIfM@\expandafter\frak@\else
- \expandafter\nonmatherr@\expandafter\frak\fi}
-\def\frak@#1{{\frak@@{#1}}}
-\def\frak@@#1{\fam\eufmfam\relax#1}
-\let\goth\frak
-\newif\ifcmmibloaded@
-\newif\ifcmbsyloaded@
-\def\loadbold{\cmmibloaded@true\cmbsyloaded@true
+\message{bold Greek and bold symbols,}
+\def\loadbold{%
  \font@\tencmmib=cmmib10 \font@\sevencmmib=cmmib7 \font@\fivecmmib=cmmib5
- \skewchar\tencmmib='177 \skewchar\sevencmmib='177 \skewchar\fivecmmib='177
+ \skewchar\tencmmib'177 \skewchar\sevencmmib'177 \skewchar\fivecmmib'177
  \alloc@@8\fam\chardef\sixt@@n\cmmibfam
- \textfont\cmmibfam=\tencmmib
- \scriptfont\cmmibfam=\sevencmmib
- \scriptscriptfont\cmmibfam=\fivecmmib
- \edef\cmmibfam@{\hexnumber@\cmmibfam}%
+ \textfont\cmmibfam\tencmmib
+ \scriptfont\cmmibfam\sevencmmib \scriptscriptfont\cmmibfam\fivecmmib
  \font@\tencmbsy=cmbsy10 \font@\sevencmbsy=cmbsy7 \font@\fivecmbsy=cmbsy5
- \skewchar\tencmbsy='60 \skewchar\sevencmbsy='60 \skewchar\fivecmbsy='60
+ \skewchar\tencmbsy'60 \skewchar\sevencmbsy'60 \skewchar\fivecmbsy'60
  \alloc@@8\fam\chardef\sixt@@n\cmbsyfam
- \textfont\cmbsyfam=\tencmbsy
- \scriptfont\cmbsyfam=\sevencmbsy
- \scriptscriptfont\cmbsyfam=\fivecmbsy
- \edef\cmbsyfam@{\hexnumber@\cmbsyfam}}
-\def\mathchari@#1#2#3{\ifcmmibloaded@\mathchar"#1\cmmibfam@#2#3 \else
- \Err@{First bold symbol font not loaded}\fi}
-\def\mathcharii@#1#2#3{\ifcmbsyloaded@\mathchar"#1\cmbsyfam@#2#3 \else
- \Err@{Second bold symbol font not loaded}\fi}
+ \textfont\cmbsyfam\tencmbsy
+ \scriptfont\cmbsyfam\sevencmbsy \scriptscriptfont\cmbsyfam\fivecmbsy
+ \let\loadbold\empty
+}
+\def\boldnotloaded#1{\Err@{\ifcase#1\or First\else Second\fi
+       bold symbol font not loaded}}
+\def\mathchari@#1#2#3{\ifx\undefined\cmmibfam
+    \boldnotloaded@\@ne
+  \else\mathchar"#1\hexnumber@\cmmibfam#2#3\space \fi}
+\def\mathcharii@#1#2#3{\ifx\undefined\cmbsyfam
+    \boldnotloaded\tw@
+  \else \mathchar"#1\hexnumber@\cmbsyfam#2#3\space\fi}
+\edef\bffam@{\hexnumber@\bffam}
 \def\boldkey#1{\ifcat\noexpand#1A%
-  \ifcmmibloaded@{\fam\cmmibfam#1}\else
-   \Err@{First bold symbol font not loaded}\fi
+  \ifx\undefined\cmmibfam \boldnotloaded\@ne
+  \else {\fam\cmmibfam#1}\fi
  \else
  \ifx#1!\mathchar"5\bffam@21 \else
  \ifx#1(\mathchar"4\bffam@28 \else\ifx#1)\mathchar"5\bffam@29 \else
@@ -1380,8 +1401,8 @@ and fix things up.}
  \DN@{\Err@{You can't use \string\boldsymbol\space with \string#1}#1}%
  \ifcat\noexpand#1A%
    \let\next@\relax
-  \ifcmmibloaded@{\fam\cmmibfam#1}\else\Err@{First bold symbol
-   font not loaded}\fi
+   \ifx\undefined\cmmibfam \boldnotloaded\@ne
+   \else {\fam\cmmibfam#1}\fi
  \else
   \xdef\meaning@{\meaning#1.........}%
   \expandafter\math@\meaning@\math@
@@ -1401,8 +1422,9 @@ and fix things up.}
   \fi
  \fi
  \next@}
-\def\mathhexboxii@#1#2{\ifcmbsyloaded@\mathhexbox@{\cmbsyfam@}{#1}{#2}\else
-  \Err@{Second bold symbol font not loaded}\fi}
+\def\mathhexboxii@#1#2{\ifx\undefined\cmbsyfam
+    \boldnotloaded\tw@
+  \else \mathhexbox@{\hexnumber@\cmbsyfam}{#1}{#2}\fi}
 \def\boldsymbol@#1{\let\next@\relax\let\next#1%
  \ifx\next\cdot\mathcharii@201 \else
  \ifx\next\prime{{\null\mathcharii@030 \null}}\else
@@ -1432,18 +1454,19 @@ and fix things up.}
   \DN@{\mathchar\number\classnum@}%
  \else
   \ifnum\count@@@=\@ne                                                      %9
-   \ifcmmibloaded@
-   \count@"\cmmibfam@ \multiply\count@\@cclvi
-   \advance\classnum@\count@
-   \DN@{\mathchar\number\classnum@}%
-   \else\DN@{\Err@{First bold symbol font not loaded}}\fi
+   \ifx\undefined\cmmibfam \DN@{\boldnotloaded\@ne}%
+   \else \count@\cmmibfam \multiply\count@\@cclvi
+     \advance\classnum@\count@
+     \DN@{\mathchar\number\classnum@}\fi
   \else
    \ifnum\count@@@=\tw@                                                    %10
-  \ifcmbsyloaded@
-    \count@"\cmbsyfam@ \multiply\count@\@cclvi
-    \advance\classnum@\count@
-    \DN@{\mathchar\number\classnum@}%
-  \else\DN@{\Err@{Second bold symbol font not loaded}}\fi
+     \ifx\undefined\cmbsyfam
+       \DN@{\boldnotloaded\tw@}%
+     \else
+       \count@\cmbsyfam \multiply\count@\@cclvi
+       \advance\classnum@\count@
+       \DN@{\mathchar\number\classnum@}%
+     \fi
   \fi
  \fi
 \fi}
@@ -1455,8 +1478,8 @@ and fix things up.}
    \xdef\meaning@{#5}\fi\fi\fi\fi}}}
 \def\delim@@#1"#2#3#4#5#6\delim@@{\if#32%
 \let\next@\relax
- \ifcmbsyloaded@
- \mathcharii@#2#4#5 \else\Err@{Second bold family not loaded}\fi\fi}
+ \ifx\undefined\cmbsyfam \boldnotloaded\@ne
+ \else \mathcharii@#2#4#5\space \fi\fi}
 \def\vert{\delimiter"026A30C }
 \def\Vert{\delimiter"026B30D }
 \let\|\Vert
@@ -1465,56 +1488,37 @@ and fix things up.}
  \boldkey#1\bold@false}  % = required!
 \def\boldsymboldots@#1{\bold@true\let\next#1\let\delayed@#1\mdots@@
  \boldsymbol#1\bold@false}
-\newif\ifeufbloaded@
-\def\loadeufb{\eufbloaded@true
- \font@\teneufb=eufb10
- \font@\seveneufb=eufb7
- \font@\fiveeufb=eufb5
- \alloc@@8\fam\chardef\sixt@@n\eufbfam
- \textfont\eufbfam=\teneufb
- \scriptfont\eufbfam=\seveneufb
- \scriptscriptfont\eufbfam=\fiveeufb
- \edef\eufbfam@{\hexnumber@\eufbfam}}
-\newif\ifeusmloaded@
-\def\loadeusm{\eusmloaded@true
- \font@\teneusm=eusm10
- \font@\seveneusm=eusm7
- \font@\fiveeusm=eusm5
- \alloc@@8\fam\chardef\sixt@@n\eusmfam
- \textfont\eusmfam=\teneusm
- \scriptfont\eusmfam=\seveneusm
- \scriptscriptfont\eusmfam=\fiveeusm
- \edef\eusmfam@{\hexnumber@\eusmfam}}
-\newif\ifeusbloaded@
-\def\loadeusb{\eusbloaded@true
- \font@\teneusb=eusb10
- \font@\seveneusb=eusb7
- \font@\fiveeusb=eusb5
- \alloc@@8\fam\chardef\sixt@@n\eusbfam
- \textfont\eusbfam=\teneusb
- \scriptfont\eusbfam=\seveneusb
- \scriptscriptfont\eusbfam=\fiveeusb
- \edef\eusbfam@{\hexnumber@\eusbfam}}
-\newif\ifeurmloaded@
-\def\loadeurm{\eurmloaded@true
- \font@\teneurm=eurm10
- \font@\seveneurm=eurm7
- \font@\fiveeurm=eurm5
- \alloc@@8\fam\chardef\sixt@@n\eurmfam
- \textfont\eurmfam=\teneurm
- \scriptfont\eurmfam=\seveneurm
- \scriptscriptfont\eurmfam=\fiveeurm
- \edef\eurmfam@{\hexnumber@\eurmfam}}
-\newif\ifeurbloaded@
-\def\loadeurb{\eurbloaded@true
- \font@\teneurb=eurb10
- \font@\seveneurb=eurb7
- \font@\fiveeurb=eurb5
- \alloc@@8\fam\chardef\sixt@@n\eurbfam
- \textfont\eurbfam=\teneurb
- \scriptfont\eurbfam=\seveneurb
- \scriptscriptfont\eurbfam=\fiveeurb
- \edef\eurbfam@{\hexnumber@\eurbfam}}
+\message{Euler fonts,}
+\def\loadeufm{\loadmathfont{eufm}}
+\def\loadeufb{\loadmathfont{eufb}}
+\def\loadeusm{\loadmathfont{eusm}}
+\def\loadeusb{\loadmathfont{eusb}}
+\def\loadeurm{\loadmathfont{eurm}}
+\def\loadeurb{\loadmathfont{eurb}}
+\def\frak{\mathfont@\frak}
+\def\frakfam{\eufmfam}
+\let\goth\frak
+\def\loadmathfont#1{% 
+   \expandafter\font@\csname ten#1\endcsname=#110
+   \expandafter\font@\csname seven#1\endcsname=#17
+   \expandafter\font@\csname five#1\endcsname=#15
+   \edef\next{\noexpand\alloc@@8\fam\chardef\sixt@@n
+     \expandafter\noexpand\csname#1fam\endcsname}%
+   \next
+   \textfont\csname#1fam\endcsname \csname ten#1\endcsname
+   \scriptfont\csname#1fam\endcsname \csname seven#1\endcsname
+   \scriptscriptfont\csname#1fam\endcsname \csname five#1\endcsname
+   \expandafter\def\csname #1\expandafter\endcsname\expandafter{%
+      \expandafter\mathfont@\csname#1\endcsname}%
+ \expandafter\gdef\csname load#1\endcsname{}%
+}
+\def\mathfont@#1{\RIfM@\expandafter\mathfont@@\expandafter#1\else
+  \expandafter\nonmatherr@\expandafter#1\fi}
+\def\mathfont@@#1#2{{\mathfont@@@#1{#2}}}
+\def\mathfont@@@#1#2{\noaccents@
+   \fam\csname\expandafter\eat@\string#1fam\endcsname
+   \relax#2}
+\message{math accents,}
 \def\accentclass@{7}
 \def\noaccents@{\def\accentclass@{0}}
 \def\makeacc@#1#2{\def#1{\mathaccent"\accentclass@#2 }}
@@ -1581,12 +1585,12 @@ and fix things up.}
 \Makeacc@\Bar{016}
 \def\Vec{\RIfM@\DN@{\mathaccent@{"017E }}\else
  \DN@{\nonmatherr@\Vec}\fi\next@}
-\def\newbox@{\alloc@4\box\chardef\insc@unt}
-\def\accentedsymbol#1#2{\expandafter\newbox@\csname\expandafter
-  \eat@\string#1@box\endcsname
+\def\accentedsymbol#1#2{\csname newbox\expandafter\endcsname
+  \csname\expandafter\eat@\string#1@box\endcsname
  \expandafter\setbox\csname\expandafter\eat@
   \string#1@box\endcsname\hbox{$\m@th#2$}\define
-  #1{\expandafter\copy\csname\expandafter\eat@\string#1@box\endcsname{}}}
+  #1{\copy\csname\expandafter\eat@\string#1@box\endcsname{}}}
+\message{roots,}
 \def\sqrt#1{\radical"270370 {#1}}
 \let\underline@\underline
 \let\overline@\overline
@@ -1619,7 +1623,7 @@ and fix things up.}
  {\r@@t\scriptstyle{#2}}{\r@@t\scriptscriptstyle{#2}}\egroup}
 \def\r@@t#1#2{\setboxz@h{$\m@th#1\sqrt{#2}$}%
  \dimen@\ht\z@\advance\dimen@-\dp\z@
- \setbox@ne\hbox{$\m@th#1\mskip\uproot@ mu$}\advance\dimen@ by1.667\wd@ne
+ \setbox@ne\hbox{$\m@th#1\mskip\uproot@ mu$}\advance\dimen@ 1.667\wd@ne
  \mkern-\leftroot@ mu\mkern5mu\raise.6\dimen@\copy\rootbox
  \mkern-10mu\mkern\leftroot@ mu\boxz@}
 \def\boxed#1{\setboxz@h{$\m@th\displaystyle{#1}$}\dimen@.4\ex@
@@ -1629,6 +1633,7 @@ and fix things up.}
  \hbox{\vrule width.4\ex@\hskip3\ex@\vbox{\vskip3\ex@\boxz@\vskip3\ex@}%
  \hskip3\ex@\vrule width.4\ex@}\hrule height.4\ex@}%
  }}}
+\message{commutative diagrams,}
 \let\ampersand@\relax
 \newdimen\minaw@
 \minaw@11.11128\ex@
@@ -1650,69 +1655,72 @@ and fix things up.}
  \ifCD@\global\bigaw@\minCDaw@\else\global\bigaw@\minaw@\fi                 %5
  \ifdim\wdz@>\bigaw@\global\bigaw@\wdz@\fi
  \ifdim\wd@ne>\bigaw@\global\bigaw@\wd@ne\fi                                %6
- \ifCD@\hskip.5em\fi                                                        %7
+ \ifCD@\enskip\fi                                                           %7
  \ifdim\wd\tw@>\z@
-  \mathrel{\mathop{\hbox to\bigaw@{\rightarrowfill}}\limits^{#1}_{#2}}%     %8
- \else\mathrel{\mathop{\hbox to\bigaw@{\rightarrowfill}}\limits^{#1}}\fi    %9
- \ifCD@\hskip.5em\fi                                                       %10
+  \mathrel{\mathop{\hbox to\bigaw@{\rightarrowfill@\displaystyle}}%
+    \limits^{#1}_{#2}}%                                                     %8
+ \else\mathrel{\mathop{\hbox to\bigaw@{\rightarrowfill@\displaystyle}}%
+    \limits^{#1}}\fi                                                        %9
+ \ifCD@\enskip\fi                                                          %10
  \ampersand@}                                                              %11
 \atdef@<#1<#2<{\ampersand@\setboxz@h{$\m@th\ssize\;\;{#1}\;$}%
  \setbox@ne\hbox{$\m@th\ssize\;\;{#2}\;$}\setbox\tw@\hbox{$\m@th#2$}%
  \ifCD@\global\bigaw@\minCDaw@\else\global\bigaw@\minaw@\fi
  \ifdim\wdz@>\bigaw@\global\bigaw@\wdz@\fi
  \ifdim\wd@ne>\bigaw@\global\bigaw@\wd@ne\fi
- \ifCD@\hskip.5em\fi
+ \ifCD@\enskip\fi
  \ifdim\wd\tw@>\z@
-  \mathrel{\mathop{\hbox to\bigaw@{\leftarrowfill}}\limits^{#1}_{#2}}\else
-  \mathrel{\mathop{\hbox to\bigaw@{\leftarrowfill}}\limits^{#1}}\fi
- \ifCD@\hskip.5em\fi\ampersand@}
-\atdef@)#1)#2){\ampersand@
- \setboxz@h{$\m@th\ssize\;{#1}\;\;$}%
- \setbox@ne\hbox{$\m@th\ssize\;{#2}\;\;$}%
- \setbox\tw@\hbox{$\m@th#2$}%
- \ifCD@
- \global\bigaw@\minCDaw@\else\global\bigaw@\minaw@\fi
- \ifdim\wdz@>\bigaw@\global\bigaw@\wdz@\fi
- \ifdim\wd@ne>\bigaw@\global\bigaw@\wd@ne\fi
- \ifCD@\hskip.5em\fi
- \ifdim\wd\tw@>\z@
-  \mathrel{\mathop{\hbox to\bigaw@{\rightarrowfill}}\limits^{#1}_{#2}}%
- \else\mathrel{\mathop{\hbox to\bigaw@{\rightarrowfill}}\limits^{#1}}\fi
- \ifCD@\hskip.5em\fi
- \ampersand@}
-\atdef@(#1(#2({\ampersand@\setboxz@h{$\m@th\ssize\;\;{#1}\;$}%
- \setbox@ne\hbox{$\m@th\ssize\;\;{#2}\;$}\setbox\tw@\hbox{$\m@th#2$}%
- \ifCD@\global\bigaw@\minCDaw@\else\global\bigaw@\minaw@\fi
- \ifdim\wdz@>\bigaw@\global\bigaw@\wdz@\fi
- \ifdim\wd@ne>\bigaw@\global\bigaw@\wd@ne\fi
- \ifCD@\hskip.5em\fi
- \ifdim\wd\tw@>\z@
-  \mathrel{\mathop{\hbox to\bigaw@{\leftarrowfill}}\limits^{#1}_{#2}}\else
-  \mathrel{\mathop{\hbox to\bigaw@{\leftarrowfill}}\limits^{#1}}\fi
- \ifCD@\hskip.5em\fi\ampersand@}
+  \mathrel{\mathop{\hbox to\bigaw@{\leftarrowfill@\displaystyle}}%
+       \limits^{#1}_{#2}}\else
+  \mathrel{\mathop{\hbox to\bigaw@{\leftarrowfill@\displaystyle}}%
+       \limits^{#1}}\fi
+ \ifCD@\enskip\fi\ampersand@}
+\begingroup
+ \catcode`\~=\active \lccode`\~=`\@
+ \lowercase{%
+  \global\atdef@)#1)#2){~>#1>#2>}
+  \global\atdef@(#1(#2({~<#1<#2<}}
+\endgroup
 \atdef@ A#1A#2A{\llap{$\m@th\vcenter{\hbox
  {$\ssize#1$}}$}\Big\uparrow\rlap{$\m@th\vcenter{\hbox{$\ssize#2$}}$}&&}
 \atdef@ V#1V#2V{\llap{$\m@th\vcenter{\hbox
  {$\ssize#1$}}$}\Big\downarrow\rlap{$\m@th\vcenter{\hbox{$\ssize#2$}}$}&&}
-\atdef@={&\hskip.5em\mathrel
+\atdef@={&\enskip\mathrel
  {\vbox{\hrule width\minCDaw@\vskip3\ex@\hrule width
- \minCDaw@}}\hskip.5em&}
+ \minCDaw@}}\enskip&}
 \atdef@|{\Big\Vert&&}
-\atdef@@\vert{\Big\Vert&&}
+\atdef@\vert{\Big\Vert&&}
 \def\pretend#1\haswidth#2{\setboxz@h{$\m@th\scriptstyle{#2}$}\hbox
  to\wdz@{\hfill$\m@th\scriptstyle{#1}$\hfill}}
+\message{poor man's bold,}
 \def\pmb{\RIfM@\expandafter\mathpalette\expandafter\pmb@\else
  \expandafter\pmb@@\fi}
-\def\pmb@@#1{\leavevmode\setboxz@h{#1}\kern-.025em\copy\z@\kern-\wdz@
- \kern-.05em\copy\z@\kern-\wdz@\kern-.025em\raise.0433em\boxz@}
+\def\pmb@@#1{\leavevmode\setboxz@h{#1}%
+   \dimen@-\wdz@
+   \kern-.5\ex@\copy\z@
+   \kern\dimen@\kern.25\ex@\raise.4\ex@\copy\z@
+   \kern\dimen@\kern.25\ex@\box\z@
+}
 \def\binrel@@#1{\ifdim\wd2<\z@\mathbin{#1}\else\ifdim\wd\tw@>\z@
  \mathrel{#1}\else{#1}\fi\fi}
 \newdimen\pmbraise@
+%      Note: because of the use of \mathpalette, if \pmb@ is
+%      applied to a single math italic character (or a single
+%      character from some other slanted math font), the italic
+%      correction will be added.  This will cause subscripts
+%      to fall too far away from the character in some
+%      cases, e.g., $\pmb{T}_1$ or $\pmb{\Cal T}_1$.
 \def\pmb@#1#2{\setbox\thr@@\hbox{$\m@th#1{#2}$}%
- \setbox4 \hbox{$\m@th#1\mkern.7794mu$}\pmbraise@\wd4
- \binrel@{#2}\binrel@@{\mkern-.45mu\copy\thr@@\kern-\wd\thr@@
- \mkern-.9mu\copy\thr@@\kern-\wd\thr@@\mkern-.45mu\raise\pmbraise@\box\thr@@}}
-\def\documentstyle#1{\input #1.sty\relax}
+ \setbox4\hbox{$\m@th#1\mkern.5mu$}\pmbraise@\wd4\relax
+ \binrel@{#2}%
+ \dimen@-\wd\thr@@
+   \binrel@@{%
+   \mkern-.8mu\copy\thr@@
+   \kern\dimen@\mkern.4mu\raise\pmbraise@\copy\thr@@
+   \kern\dimen@\mkern.4mu\box\thr@@
+}}
+\def\documentstyle#1{\W@{}\input #1.sty\relax}
+\message{syntax check,}
 \font\dummyft@=dummy
 \fontdimen1 \dummyft@=\z@
 \fontdimen2 \dummyft@=\z@
@@ -1741,7 +1749,7 @@ and fix things up.}
  \\{\fivebf}\\{\tensl}\\{\tenit}}
 \def\font@#1=#2 {\rightappend@#1\to\fontlist@\font#1=#2 }
 \def\dodummy@{{\def\\##1{\global\let##1\dummyft@}\fontlist@}}
-\def\nopages@{\output={\setbox\z@\box255 \deadcycles\z@}%
+\def\nopages@{\output{\setbox\z@\box\@cclv \deadcycles\z@}%
  \alloc@5\toks\toksdef\@cclvi\output}
 \let\galleys\nopages@
 \newif\ifsyntax@
@@ -1751,18 +1759,24 @@ and fix things up.}
  \scriptfont\countxviii@=\dummyft@\scriptscriptfont\countxviii@=\dummyft@
  \advance\countxviii@\m@ne\repeat                                           %1
  \dummyft@\tracinglostchars\z@\nopages@\frenchspacing\hbadness\@M}
-\def\S@{S } \def\G@{G } \def\P@{P }
-\newif\ifbadans@
+\def\first@#1#2\end{#1}
 \def\printoptions{\W@{Do you want S(yntax check),
-  G(alleys) or P(ages)?^^JType S, G or P, follow by <return>: }\loop
+  G(alleys) or P(ages)?}%
+ \message{Type S, G or P, followed by <return>: }%
+ \begingroup % to localize the following change to \endlinechar:
+ \endlinechar\m@ne % to prevent a space or \par in \ans@ from ^^M
  \read\m@ne to\ans@
- \xdef\next@{\def\noexpand\Ans@{\ans@}}\uppercase\expandafter{\next@}%      %1
- \ifx\Ans@\S@\badans@false\syntax\else
- \ifx\Ans@\G@\badans@false\galleys\else
- \ifx\Ans@\P@\badans@false\else
- \badans@true\fi\fi\fi
- \ifbadans@\W@{Type S, G or P, follow by <return>: }%
- \repeat}
+%  Define \ans@ to uppercase itself, and default to P if the user
+%  just pressed <return>.
+ \edef\ans@{\uppercase{\def\noexpand\ans@{%
+   \expandafter\first@\ans@ P\end}}}%
+%  Cast the new definition of \ans@ outside the group
+ \expandafter\endgroup\ans@
+ \if\ans@ P% fine, no action needs to be taken
+ \else \if\ans@ S\syntax
+ \else \if\ans@ G\galleys
+ \else\message{? Unknown option: \ans@; using the `pages' option.}%
+ \fi\fi\fi}
 \def\alloc@#1#2#3#4#5{\global\advance\count1#1by\@ne
  \ch@ck#1#4#2\allocationnumber=\count1#1
  \global#3#5=\allocationnumber
@@ -1779,3 +1793,5 @@ and fix things up.}
 \let\mit\undefined
 \let\oldstyle\undefined
 \catcode`\@=\active
+\message{... finished}
+\endinput

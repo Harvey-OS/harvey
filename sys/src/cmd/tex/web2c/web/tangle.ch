@@ -3,6 +3,9 @@
 % Pavel Curtis.
 %
 % History:
+% 
+% (more recent changes in ../ChangeLog.W2C)
+% 
 %  10/9/82 (HT) Original version
 %  11/29   (HT) New version, with conversion to lowercase handled properly
 %               Also, new control sequence:
@@ -37,8 +40,7 @@
 % 03/07/88 (ETM) Converted for use with WEB2C
 % 01/02/89 (PAM) Cosmetic upgrade to version 2.9
 % 11/30/89 (KB)  Version 4.
-%
-% NOTE: The module numbers refer to the red-covered listing (Version 2).
+% (more recent changes in ../ChangeLog.W2C and ./ChangeLog)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,16 +51,16 @@
 @y
 \pageno=\contentspagenumber \advance\pageno by 1
 \let\maybe=\iffalse
-\def\title{TANGLE changes C}
+\def\title{TANGLE changes for C}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [1] Change banner message
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@d banner=='This is TANGLE, Version 4'
+@d banner=='This is TANGLE, Version 4.3'
 @y
-@d banner=='This is TANGLE, C Version 4'
+@d banner=='This is TANGLE, C Version 4.3'
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -77,7 +79,6 @@ var @<Globals in the outer block@>@/
 @<Error handling procedures@>@/
 @y
 @d end_of_TANGLE = 9999 {go here to wrap it up}
-@d eof==feof
 
 @p program TANGLE;
 label end_of_TANGLE; {go here to finish}
@@ -197,9 +198,9 @@ begin reset(web_file); reset(change_file);
 end;
 @y
 @ The following code opens the input files.
-This happens after the initialize procedure has executed.
+This happens after the |initialize| procedure has executed.
 That will have called the |scan_args| procedure to set up the global
-variables |web_file_name| and |change_file_name| to the appropriate file
+variables |web_name| and |chg_name| to the appropriate file
 names.
 These globals, and the |scan_args| procedure will be defined at the end
 where they won't disturb the module numbering.
@@ -207,12 +208,12 @@ where they won't disturb the module numbering.
 
 @p procedure open_input; {prepare to read |web_file| and |change_file|}
 begin
-reset(web_file,web_file_name); reset(change_file,change_file_name);
+reset(web_file,web_name); reset(change_file,chg_name);
 end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [26] open output files
+% [26] Open output files (except for the pool file).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ The following code opens |Pascal_file| and |pool|.
@@ -231,23 +232,19 @@ according to the names given on the command line.
 
 @<Set init...@>=
 scan_args;
-rewrite(Pascal_file,pascal_file_name); rewrite(pool,pool_file_name);
+rewrite(Pascal_file,pascal_file_name);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [28] Fix f^
+% [28] Fix f^.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-if eof(f) then input_ln:=false
-else  begin while not eoln(f) do
     begin buffer[limit]:=xord[f^]; get(f);
     incr(limit);
     if buffer[limit-1]<>" " then final_limit:=limit;
     if limit=buf_size then
       begin while not eoln(f) do get(f);
 @y
-if eof(f) then input_ln:=false
-else  begin while not eoln(f) do
     begin buffer[limit]:=xord[getc(f)];
     incr(limit);
     if buffer[limit-1]<>" " then final_limit:=limit;
@@ -256,7 +253,7 @@ else  begin while not eoln(f) do
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] Fix jump_out
+% [??] Fix `jump_out'.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d fatal_error(#)==begin new_line; print(#); error; mark_fatal; jump_out;
@@ -273,7 +270,7 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [38] Data Structures: provide for larger |byte_mem| and |tok_mem|
+% [38] Provide for a larger `byte_mem' and `tok_mem'.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x Extra capacity:
 @d ww=2 {we multiply the byte capacity by approximately this amount}
@@ -290,6 +287,27 @@ end;
     begin if c>="a" then c:=c-@'40; {merge lowercase with uppercase}
 @y
     begin 
+@z
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [64] Delayed pool file opening.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@x
+@<Define and output a new string...@>=
+begin ilk[p]:=numeric; {strings are like numeric macros}
+if l-double_chars=2 then {this string is for a single character}
+  equiv[p]:=buffer[id_first+1]+@'100000
+else  begin equiv[p]:=string_ptr+@'100000;
+  l:=l-double_chars-1;
+@y
+@<Define and output a new string...@>=
+begin ilk[p]:=numeric; {strings are like numeric macros}
+if l-double_chars=2 then {this string is for a single character}
+  equiv[p]:=buffer[id_first+1]+@'100000
+else  begin
+  if string_ptr = 256 then  rewrite(pool,pool_file_name);
+  equiv[p]:=string_ptr+@'100000;
+  l:=l-double_chars-1;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -408,7 +426,7 @@ identifier: begin k:=0; j:=byte_start[cur_val]; w:=cur_val mod ww;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Fix casting bug
+% [??] Fix casting bug
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d add_in(#)==begin accumulator:=accumulator+next_sign*(#); next_sign:=+1;
@@ -457,8 +475,6 @@ We have defined plenty of procedures, and it is time to put the last
 pieces of the puzzle in place. Here is where \.{TANGLE} starts, and where
 it ends.
 @^system dependencies@>
-
-@d UNIXexit==e@&x@&i@&t
 @z
 
 @x
@@ -466,10 +482,9 @@ it ends.
 @y
 @<Print the job |history|@>;
 new_line;
-if (history <> spotless) and (history <> harmless_message) then
-    UNIXexit(1)
-else
-    UNIXexit(0);
+if (history <> spotless) and (history <> harmless_message)
+then uexit (1)
+else uexit (0);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -494,133 +509,152 @@ which introduce new modules, can be inserted here; then only the index
 itself will get a new module number.
 @^system dependencies@>
 
-@ The user calls \.{TANGLE} with arguments on the command line.
-These are either file names or flags (beginning with '-').
-The following globals are for communicating the user's desires to the rest
-of the program. The various |file_name| variables contain strings with
-the full names of those files, as UNIX knows them.
+@ The user calls \.{TANGLE} with arguments on the command line.  These
+are either file names or flags (beginning with `\.-').  The following
+globals are for communicating the user's desires to the rest of the
+program. The various filename variables contain strings with the full
+names of those files, as {\mc UNIX} knows them.
 
 There are no flags that affect \.{TANGLE} at the moment.
 
-@d max_file_name_length==60
+@d max_file_name_length==PATH_MAX
 
 @<Globals...@>=
-@!web_file_name,@!change_file_name,@!pascal_file_name,@!pool_file_name:
+@!web_name,@!chg_name,@!pascal_file_name,@!pool_file_name:
         array[1..max_file_name_length] of char;
 
 @ The |scan_args| procedure looks at the command line arguments and sets
-the |file_name| variables accordingly.
-At least one file name must be present: the \.{WEB} file.  It may have
-an extension, or it may omit it to get |'.web'| added.
-The \PASCAL\ output file name is formed by replacing the \.{WEB} file
-name extension by |'.p'|.
-Similarly, the pool file name is formed using a |'.pool'| extension.
+the |file_name| variables accordingly.  At least one file name must be
+present: the \.{WEB} file.  It may have an extension, or it may omit it
+to get |'.web'| added.  The \PASCAL\ output file name is formed by
+replacing the \.{WEB} file name extension by |'.p'|.  Similarly, the
+pool file name is formed using a |'.pool'| extension.
 
 If there is another file name present among the arguments, it is the
-change file, again either with an extension or without one to get |'.ch'|
-An omitted change file argument means that |'/dev/null'| should be used,
-when no changes are desired.
+change file, again either with an extension or without one to get
+|'.ch'| An omitted change file argument means that |'/dev/null'| should
+be used, when no changes are desired.
 
 @<Declaration of |scan_args|@>=
 procedure scan_args;
-var dot_pos,i,a: integer; {indices}
-c: char;
-@!fname: array[1..max_file_name_length-5] of char; {temporary argument holder}
-@!found_web,@!found_change: boolean; {|true| when those file names have
+  var dot_pos, slash_pos, i, a: integer; {indices}
+  c: char;
+  @!fname: array[1..max_file_name_length] of char; {temporary argument holder}
+  @!found_web,@!found_change: boolean; {|true| when those file names have
                                         been seen}
 begin
-found_web:=false;
-found_change:=false;
-for a:=1 to argc-1 do begin
-        argv(a,fname); {put argument number |a| into |fname|}
-        if fname[1]<>'-' then begin
-                if not found_web then
-                        @<Get |web_file_name|, |pascal_file_name|, and
-                                | pool_file_name| variables from |fname|@>
-                else if not found_change then
-                        @<Get |change_file_name| from |fname|@>
-                else  @<Print usage error message and quit@>;
-                end
-        else @<Handle flag argument in |fname|@>;
-        end;
-if not found_web then @<Print usage error message and quit@>;
-if not found_change then @<Set up null change file@>;
+  found_web := false;
+  found_change := false;
+
+  for a := 1 to argc - 1
+  do begin
+    argv(a,fname); {put argument number |a| into |fname|}
+    if fname[1] <> '-'
+    then begin
+      if not found_web
+      then @<Get |web_name|, |pascal_file_name|,
+             and |pool_file_name| variables from |fname|@>
+      else if not found_change
+      then @<Get |chg_name| from |fname|@>
+      else  @<Print usage error message and quit@>;
+    end else
+      @<Handle flag argument in |fname|@>;
+  end;
+    
+  if not found_web then @<Print usage error message and quit@>;
+  if not found_change then @<Set up null change file@>;
 end;
 
-@ Use all of |fname| for the |web_file_name| if there is a |'.'| in it,
-otherwise add |'.web'|.
-The other file names come from adding things after the dot.
-The |argv| procedure will not put more than |max_file_name_length-5|
-characters into |fname|, and this leaves enough room in the |file_name|
-variables to add the extensions.
+@ Use all of |fname| for the |web_name| if there is a |'.'| in it,
+otherwise add |'.web'|.  The other file names come from adding things
+after the dot.  The |argv| procedure will not put more than
+|max_file_name_length-5| characters into |fname|, and this leaves enough
+room in the |file_name| variables to add the extensions.
 
 The end of a file name is marked with a |' '|, the convention assumed by 
 the |reset| and |rewrite| procedures.
 
-@<Get |web_file_name|...@>=
+@<Get |web_name|...@>=
 begin
-dot_pos:=-1;
-i:=1;
-while (fname[i]<>' ') and (i<=max_file_name_length-5) do begin
-        web_file_name[i]:=fname[i];
-        if fname[i]='.' then dot_pos:=i;
-        incr(i);
-        end;
-if dot_pos=-1 then begin
-        dot_pos:=i;
-        web_file_name[dot_pos]:='.';
-        web_file_name[dot_pos+1]:='w';
-        web_file_name[dot_pos+2]:='e';
-        web_file_name[dot_pos+3]:='b';
-        web_file_name[dot_pos+4]:=' ';
-        end;
-for i:=1 to dot_pos do begin
-        c:=web_file_name[i];
-        pascal_file_name[i]:=c;
-        pool_file_name[i]:=c;
-        end;
-pascal_file_name[dot_pos+1]:='p';
-pascal_file_name[dot_pos+2]:=' ';
-pool_file_name[dot_pos+1]:='p';
-pool_file_name[dot_pos+2]:='o';
-pool_file_name[dot_pos+3]:='o';
-pool_file_name[dot_pos+4]:='l';
-pool_file_name[dot_pos+5]:=' ';
-found_web:=true;
+  dot_pos := -1;
+  slash_pos := -1;
+  i := 1;
+  while (fname[i] <> ' ') and (i <= max_file_name_length - 5)
+  do begin
+    web_name[i] := fname[i];
+    if fname[i] = '.' then dot_pos := i;
+    if fname[i] = '/' then slash_pos := i;
+    incr (i);
+  end;
+  web_name[i] := ' ';
+  
+  if (dot_pos = -1) or (dot_pos < slash_pos)
+  then begin
+    dot_pos := i;
+    web_name[dot_pos] :=   '.';
+    web_name[dot_pos+1] := 'w';
+    web_name[dot_pos+2] := 'e';
+    web_name[dot_pos+3] := 'b';
+    web_name[dot_pos+4] := ' ';
+  end;
+
+  for i := 1 to dot_pos
+  do begin
+    c := web_name[i];
+    pascal_file_name[i] := c;
+    pool_file_name[i] := c;
+  end;
+
+  pascal_file_name[dot_pos+1] := 'p';
+  pascal_file_name[dot_pos+2] := ' ';
+
+  pool_file_name[dot_pos+1] := 'p';
+  pool_file_name[dot_pos+2] := 'o';
+  pool_file_name[dot_pos+3] := 'o';
+  pool_file_name[dot_pos+4] := 'l';
+  pool_file_name[dot_pos+5] := ' ';
+
+  found_web := true;
 end
 
-@ @<Get |change_file_name|...@>=
+@ @<Get |chg_name|...@>=
 begin
-dot_pos:=-1;
-i:=1;
-while (fname[i]<>' ') and (i<=max_file_name_length-5)
-do begin
-        change_file_name[i]:=fname[i];
-        if fname[i]='.' then dot_pos:=i;
-        incr(i);
-        end;
-if dot_pos=-1 then begin
-        dot_pos:=i;
-        change_file_name[dot_pos]:='.';
-        change_file_name[dot_pos+1]:='c';
-        change_file_name[dot_pos+2]:='h';
-        change_file_name[dot_pos+3]:=' ';
-        end;
-found_change:=true;
+  dot_pos := -1;
+  slash_pos := -1;
+  i := 1;
+  while (fname[i] <> ' ') and (i <= max_file_name_length - 5)
+  do begin
+    chg_name[i] := fname[i];
+    if fname[i] = '.' then dot_pos := i;
+    if fname[i] = '/' then slash_pos := i;
+    incr (i);
+  end;
+  chg_name[i] := ' ';
+
+  if (dot_pos = -1) or (dot_pos < slash_pos)
+  then begin
+    dot_pos := i;
+    chg_name[dot_pos]   := '.';
+    chg_name[dot_pos+1] := 'c';
+    chg_name[dot_pos+2] := 'h';
+    chg_name[dot_pos+3] := ' ';
+  end;
+
+  found_change := true;
 end
 
 @ @<Set up null...@>=
 begin
-        change_file_name[1]:='/';
-        change_file_name[2]:='d';
-        change_file_name[3]:='e';
-        change_file_name[4]:='v';
-        change_file_name[5]:='/';
-        change_file_name[6]:='n';
-        change_file_name[7]:='u';
-        change_file_name[8]:='l';
-        change_file_name[9]:='l';
-        change_file_name[10]:=' ';
+        chg_name[1]:='/';
+        chg_name[2]:='d';
+        chg_name[3]:='e';
+        chg_name[4]:='v';
+        chg_name[5]:='/';
+        chg_name[6]:='n';
+        chg_name[7]:='u';
+        chg_name[8]:='l';
+        chg_name[9]:='l';
+        chg_name[10]:=' ';
 end
 
 @ There are no flags currently used by \.{TANGLE}, but this module can be
@@ -633,7 +667,7 @@ end
 
 @ @<Print usage error message and quit@>=
 begin
-print_ln('Usage: tangle webfile[.web] [changefile[.ch]].');
-uexit(1);
+  print_ln ('Usage: tangle webfile[.web] [changefile[.ch]].');
+  uexit (1);
 end
 @z

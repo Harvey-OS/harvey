@@ -1,0 +1,19 @@
+This is METAFONT, C Version 2.71 (INIMF)  27 MAR 1995 17:37
+**plain 
+(plain.mf
+Preloading the plain base, version 2.0: preliminaries,
+ basic constants and mathematical macros,
+ macros for converting from device-independent units to pixels,
+ macros and tables for various modes of operation,
+ macros for drawing and filling,
+ macros for proof labels and rules,
+ macros for character and font administration,
+and a few last-minute items.)
+*input modes
+(modes.mf)
+*dump
+Beginning to dump on file plain.base
+ (base=plain 95.3.27)
+1992 strings of total length 27708
+9777 memory locations dumped; current usage is 2966&6535
+892 symbolic tokens

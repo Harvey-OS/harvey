@@ -1,18 +1,43 @@
 .TH PREP 8
 .SH NAME
-disk/prep \- make disk partition table
+prep, format \- prepare hard and floppy diskettes
 .SH SYNOPSIS
 .B disk/prep
 [
-.B -r
+.B -ra
 ]
 .I special
+[
+.I type
+]
+.PP
+.B disk/format
+[
+.B -t
+.I type
+] [
+.B -f
+] [
+.B -d
+] [
+.B -b
+.I bfile
+] [
+.B -c
+.I csize
+] [
+.I -l label
+]
+.I drive
+[
+.I files
+\&... ]
 .SH DESCRIPTION
-A partition table is stored on a disk to specify the division of
+A partition table is stored on a hard disk to specify the division of
 the physical disk into a set of logical units.
 On Plan 9 the partition table is a list of triples: name, starting sector,
 and ending sector.
-The first two partitions must have the names
+The kernel fabricates the first two partitions,
 .B disk
 and
 .BR partition ;
@@ -31,9 +56,120 @@ is the maximal prefix of names of the logical units on the disk, for example
 reads and prints the associated partition table
 and then enters a simple interactive mode to control editing the table.
 .PP
-The single option
+The options are:
+.TP
 .B -r
-(readonly) prohibits writing the table on disk.
+(read only) prohibits writing the table on disk.
+.TP
+.B -a
+automatically create default partitions if no partition
+table already exists.
+These include partitions for DOS, a boot kernel, an NVRAM substitute, a
+.IR kfs (4)
+file system, and, if room remains, a swap partition.
+.PP
+.I Format
+prepares for use the floppy diskette in the disk file named
+.IR drive ,
+for example
+.BR /dev/fd0disk .
+The options are:
+.TP
+.B -f
+Do not physically format the disc. Used
+to install an MS-DOS filesystem on a
+previously formatted disc. With this option,
+.I drive
+can be a plain file.
+.TP
+.B -t
+specify a density and type of disk to be prepared.
+The possible
+.I types
+are:
+.RS
+.TP
+.B 3½DD
+3½" double density, 737280 bytes
+.TP
+.B 3½HD
+3½" high density, 1474560 bytes
+.TP
+.B 5¼DD
+5¼" double density, 368640 bytes
+.TP
+.B 5¼HD
+5¼"  high density, 1146880 bytes
+.PP
+The default is the highest possible on the device, unless
+.B -f
+is used, in which case the default is
+.BR 3½HD .
+.RE
+.TP
+.B -d
+add MS-DOS parameter block,
+file access table (FAT), and root directory to the start of
+the floppy.
+.PP
+The remaining options have effect only when
+.B -d
+is specified:
+.TP
+.B -b
+use the contents of
+.I bfile
+as the bootstrap block
+installed in sector 0.
+.TP
+.B -c
+use a DOS cluster size of
+.I csize
+sectors when creating the DOS FAT.
+.TP
+.B -l
+add a
+.I label
+when creating the DOS parameter block.
+.PP
+Again under
+.BR -d ,
+any
+.I files
+listed are added, in order,
+to the root
+directory of the MS-DOS filesytem.  The files are
+contiguously allocated and created with
+the
+.B READONLY
+attribute set.
+.PP
+The file
+.B /sys/src/boot/pc/bb
+is an example of a suitable
+.I bfile
+to make the disk a boot disk.
+It gets loaded by the BIOS at 0x7C00,
+reads the root directory into address 0x7E00, and looks at
+the first root directory entry.
+If that file is called
+.BR B.COM ,
+it uses
+single sector reads to load the file into address 0x10000 and then
+jumps to the loaded file image.
+.SH EXAMPLE
+Create a Plan 9 boot floppy on a previously formatted diskette:
+.IP
+.EX
+disk/format -f -b bb -d /dev/fd0disk /386/b.com
+.EE
+.SH SOURCE
+.B /sys/src/cmd/disk/prep.c
+.br
+.B /sys/src/cmd/disk/format.c
+.br
+.B /sys/src/boot/pc/bb.s
 .SH SEE ALSO
 .IR floppy (3),
-.IR hard (3)
+.IR wren (3),
+.IR b.com (8)

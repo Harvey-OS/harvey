@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 #include <frame.h>
 
 /*
@@ -9,10 +9,10 @@
 #define	CHUNK	16
 #define	ROUNDUP(n)	((n+CHUNK)&~(CHUNK-1))
 
-char *
+byte *
 _frallocstr(uint n)
 {
-	char *p;
+	byte *p;
 
 	p = malloc(ROUNDUP(n));
 	if(p == nil)
@@ -24,7 +24,7 @@ void
 _frinsure(Frame *f, int bn, uint n)
 {
 	Frbox *b;
-	char *p;
+	byte *p;
 
 	b = &f->box[bn];
 	if(b->nrune < 0)

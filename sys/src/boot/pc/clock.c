@@ -26,7 +26,10 @@ enum
 	Freq=	1193182,	/* Real clock frequency */
 };
 
-ulong delayloop = 1000;
+static int cpufreq = 66000000;
+static int cpumhz = 66;
+static int cputype = 486;
+static int loopconst = 100;
 
 /*
  *  delay for l milliseconds more or less.  delayloop is set by
@@ -35,63 +38,85 @@ ulong delayloop = 1000;
 void
 delay(int l)
 {
-	ulong i;
+	aamloop(l*loopconst);
+}
 
-	while(l-- > 0)
-		for(i=0; i < delayloop; i++)
-			;
+static void
+clock(Ureg*, void*)
+{
+	m->ticks++;
+	checkalarms();
 }
 
 void
 clockinit(void)
 {
 	ulong x, y;	/* change in counter */
+	ulong cycles, loops;
+
+	switch(cputype = x86()){
+	case 386:
+		loops = 10000;
+		cycles = 32;
+		break;
+	case 486:
+		loops = 10000;
+		cycles = 22;
+		break;
+	default:
+		loops = 30000;
+		cycles = 23;
+		break;
+	}
 
 	/*
 	 *  set vector for clock interrupts
 	 */
-	setvec(Clockvec, clock);
+	setvec(Clockvec, clock, 0);
 
 	/*
-	 *  make clock output a square wave with a 1/HZ period
+	 *  set clock for 1/HZ seconds
 	 */
 	outb(Tmode, Load0|Square);
 	outb(T0cntr, (Freq/HZ));	/* low byte */
 	outb(T0cntr, (Freq/HZ)>>8);	/* high byte */
 
+
 	/*
-	 *  measure time for delay(10) with current delayloop count
+	 *  measure time for the loop
+	 *
+	 *			MOVL	loops,CX
+	 *	aaml1:	 	AAM
+	 *			LOOP	aaml1
+	 *
+	 *  the time for the loop should be independent from external
+	 *  cache's and memory system since it fits in the execution
+	 *  prefetch buffer.
+	 *
 	 */
 	outb(Tmode, Latch0);
 	x = inb(T0cntr);
 	x |= inb(T0cntr)<<8;
-	delay(10);
+	aamloop(loops);
 	outb(Tmode, Latch0);
 	y = inb(T0cntr);
 	y |= inb(T0cntr)<<8;
 	x -= y;
 
 	/*
-	 *  fix count, the factor of 2 is a hack
+	 *  counter  goes at twice the frequency, once per transition,
+	 *  i.e., twice per square wave
 	 */
-	delayloop = (delayloop*1193*10)/x;
-	if(delayloop == 0)
-		delayloop = 1;
-}
+	x >>= 1;
 
-void
-clock(Ureg *ur)
-{
-	Proc *p;
+	/*
+ 	 *  figure out clock frequency and a loop multiplier for delay().
+	 */
+	cpufreq = loops*((cycles*Freq)/x);
+	loopconst = (cpufreq/1000)/cycles;	/* AAM+LOOP's for 1 ms */
 
-	m->ticks++;
-
-	checkalarms();
-
-	p = m->proc;
-	if(p){
-		p->pc = ur->pc;
-		if (p->state==Running)
-			p->time[p->insyscall]++;
-	}
+	/*
+	 *  add in possible .1% error and convert to MHz
+	 */
+	cpumhz = (cpufreq + cpufreq/1000)/1000000;
 }

@@ -611,7 +611,7 @@ REFERENCES
 .if n \\$2UNIX\(dg\\$1
 .if t \\$2\s-2UNIX\s0\(dg\\$1
 .FS
-\(dg \s-2UNIX\s0 is a trademark of AT&T Bell Laboratories.
+\(dg \s-2UNIX\s0 is a registered trademark of X/Open.
 .FE
 .nr GA 1\}
 ..
@@ -623,7 +623,7 @@ REFERENCES
 .\".if t \\$2U\s-2NIX\s0*\\$1
 .if t \\$2\s-2UNIX\s0*\\$1
 .FS
-* \s-2UNIX\s0 is a trademark of AT&T Bell Laboratories.
+* \s-2UNIX\s0 is a registered trademark of X/Open.
 .FE
 .nr GA 1\}
 ..

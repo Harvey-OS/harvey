@@ -13,8 +13,13 @@
 % Version 2.0: slightly tuned up for METAFONTware report 17 Apr 1989 DEK/TGR
 % Version 2.1: fixed paint0/endrow bug reported by John Hobby 31 Jul 1989 TGR
 % Version 2.2: minor tune up; retain previous source info 21 Nov 1989 don
+% Version 2.3: fixed a few bugs with selection of preamble types, if
+%  gf_ch < 0, or if comp_size = 1016 (both unlikely).  Removed some
+%  code that would never get executed since bad_gf terminates.  Also
+%  some other nits that don't really affect functionality.  29 Jul 1990  TGR
+%  Bugs and fixes reported by Peter Breitenlohner.
 
-\def\versiondate{21 November 1989}
+\def\versiondate{29 July 1990}
 
 % Here is TeX material that gets inserted after \input webmac
 \def\hang{\hangindent 3em\noindent\ignorespaces}
@@ -42,7 +47,7 @@
   \vfill
   \centerline{\titlefont The {\ttitlefont GFtoPK} processor}
   \vskip 15pt
-  \centerline{(Version 2.2, \versiondate)}
+  \centerline{(Version 2.3, \versiondate)}
   \vfill}
 \def\botofcontents{\vfill
   \centerline{\hsize 5in\baselineskip9pt
@@ -90,7 +95,7 @@ The |banner| string defined here should be changed whenever \.{GFtoPK}
 gets modified. The |preamble_comment| macro (near the end of the program)
 should be changed too.
 
-@d banner=='This is GFtoPK, Version 2.2' {printed when the program starts}
+@d banner=='This is GFtoPK, Version 2.3' {printed when the program starts}
 
 @ Some of the diagnostic information is printed using
 |d_print_ln|.  When debugging, it should be set the same as
@@ -145,8 +150,6 @@ will be sufficient for a character 2600 pixels high.
 
 @<Constants...@>=
 @!line_length=79; {bracketed lines of output will be at most this long}
-@!terminal_line_length=150; {maximum number of characters input in a single
-  line of input from the terminal}
 @!max_row=16000; {largest index in the main |row| array}
 
 @ Here are some macros for common programming idioms.
@@ -1255,6 +1258,7 @@ or larger than the total number of items in |f|; in the latter case,
 |set_pos(f,n)| moves to the end of file |f|.  The call |cur_pos(f)| gives the
 total number of items in |f|, if |eof(f)| is true; we use |cur_pos| only in
 such a situation.
+@^system dependencies@>
 
 @p procedure find_gf_length ;
 begin
@@ -1376,8 +1380,8 @@ begin
         bad_gf('Identification byte is incorrect');
 @.Identification byte incorrect@>
    @<Find and interpret postamble@> ;
-   open_pk_file ;
    move_to_byte(2) ;
+   open_pk_file ;
    @<Write preamble@> ;
    repeat
      gf_com := gf_byte ;
@@ -1440,22 +1444,10 @@ begin
   d_print_ln('Character ',gf_ch:1) ;
   if gf_ch>=0 then gf_ch_mod_256 := gf_ch mod 256
   else gf_ch_mod_256 := 255-((-(1+gf_ch)) mod 256);
-  if status[gf_ch_mod_256] = virgin then begin
+  if status[gf_ch_mod_256] = virgin then
     bad_gf('no character locator for character ',gf_ch:1) ;
 @.no character locator...@>
-    repeat
-      gf_com := gf_byte ;
-      case gf_com of
-sixty_four_cases(paint_0), eoc, skip0, one_sixty_five_cases(new_row_0) : ;
-@<Specials and |no_op| cases@> ;
-paint1, skip1 : i := gf_byte ;
-paint1+1, skip1+1 : begin i := gf_byte ; i := gf_byte ; end ;
-paint1+2, skip1+2 : begin i := gf_byte ; i := gf_byte ; i := gf_byte ; end ;
-othercases bad_gf('Unexpected ',gf_com:1,' while skipping character')
-@.Unexpected command@>
-      endcases ;
-    until gf_com = eoc
-  end else @<Convert character to packed form@> ;
+  @<Convert character to packed form@> ;
 end
 
 @ Communication between the procedures |convert_gf_file| and
@@ -1900,16 +1892,16 @@ which of the three formats we should use.
 @<Write character preamble@>=
 flag_byte := dyn_f * 16 ;
 if first_on then flag_byte := flag_byte + 8 ;
-if (gf_ch > 255) or (tfm_width[gf_ch_mod_256] > 16777215) or
+if (gf_ch <> gf_ch_mod_256) or (tfm_width[gf_ch_mod_256] > 16777215) or
       (tfm_width[gf_ch_mod_256] < 0) or (dy[gf_ch_mod_256] <> 0) or
       (dx[gf_ch_mod_256] < 0) or (dx[gf_ch_mod_256] mod 65536 <> 0) or
-      (comp_size > 196579) or (width > 65535) or
+      (comp_size > 196594) or (width > 65535) or
       (height > 65535) or (x_offset > 32767) or (y_offset > 32767) or
       (x_offset < -32768) or (y_offset < -32768) then
    @<Write long character preamble@>
 else if (dx[gf_ch] > 16777215) or (width > 255) or (height > 255) or
       (x_offset > 127) or (y_offset > 127) or (x_offset < -128) or
-      (y_offset < -128) or (comp_size > 1016) then
+      (y_offset < -128) or (comp_size > 1015) then
    @<Write two-byte short character preamble@>
 else
    @<Write one-byte short character preamble@>
@@ -1946,7 +1938,7 @@ begin
    pk_byte(gf_ch) ;
    pred_pk_loc := pk_loc + comp_size ;
    pk_three_bytes(tfm_width[gf_ch_mod_256]) ;
-   pk_byte(dx[gf_ch_mod_256] div 65535) ;
+   pk_byte(dx[gf_ch_mod_256] div 65536) ;
    pk_byte(width) ;
    pk_byte(height) ;
    pk_byte(x_offset) ;
@@ -2014,7 +2006,7 @@ begin
    if bit_weight <> 16 then pk_byte(output_byte) ;
 end
 
-@ This macro is for the case where we have decided to send the character raster
+@ This code is for the case where we have decided to send the character raster
 packed by bits.  It uses the bit counts as well, sending eight at a time.
 Here we have a miniature packed format interpreter, as we must repeat any rows
 that are repeated.  The algorithm to do this was a lot of fun to generate.  Can
@@ -2109,7 +2101,7 @@ until h_bit = width
 @ Now we are ready for the routine that writes the preamble of the packed
 file.
 
-@d preamble_comment == 'GFtoPK 2.2 output from '
+@d preamble_comment == 'GFtoPK 2.3 output from '
 @d comm_length = 23 {length of |preamble_comment|}
 @d from_length = 6 {length of its |' from '| part}
 

@@ -1,0 +1,654 @@
+%\iffalse
+% ====================================================================
+%  @LaTeX-documentation-file{
+%     author          = "Alan Jeffrey",
+%     version         = "2.02",
+%     date            = "03 March 1994",
+%     time            = "14:00:40 GMT",
+%     filename        = "stmaryrd.dtx",
+%     address         = "School of Cognitive and Computing Sciences
+%                        University of Sussex
+%                        Brighton BN1 9QH
+%                        UK",
+%     telephone       = "+44 273 606755 x 3238",
+%     FAX             = "+44 273 678188",
+%     checksum        = "???",
+%     email           = "alanje@cogs.sussex.ac.uk",
+%     codetable       = "ISO/ASCII",
+%     keywords        = "LaTeX math fonts",
+%     supported       = "yes",
+%     abstract        = "This is the documentation and
+%                        self-extracting archive for the stmaryrd
+%                        package.  If you run latex2e on it, it will
+%                        produce the documentation, as well as
+%                        the stmaryrd package and font definition
+%                        file.",
+%     docstring       = "The checksum field above contains a CRC-16
+%                        checksum as the first value, followed by the
+%                        equivalent of the standard UNIX wc (word
+%                        count) utility output of lines, words, and
+%                        characters.  This is produced by Robert
+%                        Solovay's checksum utility.",
+%     package         = "stands alone",
+%     dependencies    = "none",
+%  }
+% ====================================================================
+%\fi
+% \CheckSum{772}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%
+% \setcounter{StandardModuleDepth}{1}
+% \def\dst{\expandafter{\normalfont\scshape docstrip}}
+%
+% \changes{1.00}{1991/05/23}{File created}
+% \changes{1.01}{1991/05/25}{Updated for the new module.sty and
+%    stmaryrd.mf.} 
+% \changes{1.02}{1991/06/05}{By mistake, `varotimes wasn't swapped for
+%    `otimes.} 
+% \changes{1.03}{1991/06/25}{`longarrownot and `Longarrownot.}
+% \changes{1.04}{1991/06/27}{The default is now for the cmsy circles,
+%    not the heavier ones.  If you want `oplus, `otimes, etc. to
+%    generate the heavier symbols, set the tag `heavycircles.}
+% \changes{1.10}{1992/06/02}{Added the headers.}
+% \changes{2.00}{1994/03/02}{Hacked for \LaTeXe{} by Martin Ward
+%   (Martin.Ward@durham.ac.uk).}
+% \changes{2.01}{1994/03/02}{Made into a dtx file.}
+% \changes{2.02}{1994/03/03}{Fixed a couple of bugs with options.}
+%
+% \title{The St Mary's Road symbol font}
+% \author{Jeremy Gibbons \and Alan Jeffrey}
+% \date{Version 2, March 1994}
+%
+% \maketitle
+% 
+% \section{Introduction}
+% 
+% This is a brief guide to the St Mary's Road symbol font, a new symbol
+% font for \TeX\ and \LaTeX.  It is designed to live with the American
+% Mathematical Society's fonts, contained in {\tt amssymb.sty}.  
+% 
+% It provides a number of new symbols, including ones for derivation of
+% functional programming (such as $\varcurlyvee$, $\moo$ and
+% $\merge$), process algebra ($\llfloor$, $\oblong$ and
+% $\lightning$), domain theory ($\bigsqcap$), linear logic
+% ($\binampersand$ and $\bindnasrepma$), multisets ($\Lbag x \Rbag$,
+% $\nplus$, and $\subsetpluseq$) and many more.  It also fixes some `features'
+% with previous symbols ($\oplus$ used not to be circular, now you can
+% use $\varoplus$ instead) and adds obvious variants of others (such as
+% $\mapsfrom$, $\Mapsto$ and $\Mapsfrom$).
+% It is all wrapped up in a \LaTeXe package called {\tt stmaryrd},
+% which can be used by saying:
+% \begin{verbatim}
+%    \usepackage{stmaryrd}
+% \end{verbatim}
+% This package understands a large number of options:
+% \begin{itemize}
+% \item |heavycircles| says that all of the circular operators
+%    such as |\oplus| and |\otimes| should by default be heavy, and
+%    that |\varoplus| and |\varotimes| should refer to the light ones.
+% \item |only| says that only the symbols listed in the option list
+%    should be defined.  For example:
+% \begin{verbatim}
+%    \usepackage[only,mapsfrom,Mapsto,Mapsfrom]{stmaryrd}
+% \end{verbatim}
+%    says that only the symbols `$\mapsfrom$', `$\Mapsto$' and
+%    `$\Mapsfrom$' should be defined, which is useful if you use a
+%    \TeX{} implementation with limited memory.
+% \end{itemize}
+%
+% \section{Symbols}
+% 
+% The following operators are defined:
+% \begin{symbols}
+% \dosymbol\Ydown
+% \dosymbol\Yleft
+% \dosymbol\Yright
+% \dosymbol\Yup
+% \dosymbol\baro
+% \dosymbol\bbslash
+% \dosymbol\binampersand
+% \dosymbol\bindnasrepma
+% \dosymbol\boxast
+% \dosymbol\boxbar
+% \dosymbol\boxbox
+% \dosymbol\boxbslash
+% \dosymbol\boxcircle
+% \dosymbol\boxdot
+% \dosymbol\boxempty
+% \dosymbol\boxslash
+% \dosymbol\curlyveedownarrow
+% \dosymbol\curlyveeuparrow
+% \dosymbol\curlywedgedownarrow
+% \dosymbol\curlywedgeuparrow
+% \dosymbol\fatbslash
+% \dosymbol\fatsemi
+% \dosymbol\fatslash
+% \dosymbol\interleave
+% \dosymbol\leftslice
+% \dosymbol\merge
+% \dosymbol\minuso
+% \dosymbol\moo
+% \dosymbol\nplus
+% \dosymbol\obar
+% \dosymbol\oblong
+% \dosymbol\obslash
+% \dosymbol\ogreaterthan
+% \dosymbol\olessthan
+% \dosymbol\ovee
+% \dosymbol\owedge
+% \dosymbol\rightslice
+% \dosymbol\sslash
+% \dosymbol\talloblong
+% \dosymbol\varbigcirc
+% \dosymbol\varcurlyvee
+% \dosymbol\varcurlywedge
+% \dosymbol\varoast
+% \dosymbol\varobar
+% \dosymbol\varobslash
+% \dosymbol\varocircle
+% \dosymbol\varodot
+% \dosymbol\varogreaterthan
+% \dosymbol\varolessthan
+% \dosymbol\varominus
+% \dosymbol\varoplus
+% \dosymbol\varoslash
+% \dosymbol\varotimes
+% \dosymbol\varovee
+% \dosymbol\varowedge
+% \dosymbol\vartimes
+% \end{symbols}
+% The following large operators are defined:
+% \begin{symbols}
+% \dosymbol\bigbox
+% \dosymbol\bigcurlyvee
+% \dosymbol\bigcurlywedge
+% \dosymbol\biginterleave
+% \dosymbol\bignplus
+% \dosymbol\bigparallel
+% \dosymbol\bigsqcap
+% \dosymbol\bigtriangledown
+% \dosymbol\bigtriangleup
+% \end{symbols}
+% The following relations are defined:
+% \begin{symbols}
+% \dosymbol\inplus
+% \dosymbol\niplus
+% \dosymbol\ntrianglelefteqslant
+% \dosymbol\ntrianglerighteqslant
+% \dosymbol\subsetplus
+% \dosymbol\subsetpluseq
+% \dosymbol\supsetplus
+% \dosymbol\supsetpluseq
+% \dosymbol\trianglelefteqslant
+% \dosymbol\trianglerighteqslant
+% \end{symbols}
+% The following arrows are defined:
+% \begin{symbols}
+% \dosymbol\Longmapsfrom
+% \dosymbol\Longmapsto
+% \dosymbol\Mapsfrom
+% \dosymbol\Mapsto
+% \dosymbol\leftarrowtriangle
+% \dosymbol\leftrightarroweq
+% \dosymbol\leftrightarrowtriangle
+% \dosymbol\lightning
+% \dosymbol\longmapsfrom
+% \dosymbol\mapsfrom
+% \dosymbol\nnearrow
+% \dosymbol\nnwarrow
+% \dosymbol\rightarrowtriangle
+% \dosymbol\rrparenthesis
+% \dosymbol\shortdownarrow
+% \dosymbol\shortleftarrow
+% \dosymbol\shortrightarrow
+% \dosymbol\shortuparrow
+% \dosymbol\ssearrow
+% \dosymbol\sswarrow
+% \end{symbols}
+% The following delimiters are defined:
+% \begin{symbols}
+% \dosymbol\Lbag
+% \dosymbol\Rbag
+% \dosymbol\lbag
+% \dosymbol\llbracket
+% \dosymbol\llceil
+% \dosymbol\llfloor
+% \dosymbol\llparenthesis
+% \dosymbol\rbag
+% \dosymbol\rrbracket
+% \dosymbol\rrceil
+% \dosymbol\rrfloor
+% \end{symbols}
+% Note that \verb|\llbracket| and \verb|\rrbracket| are `growing'
+% delimiters that can be used with \verb|\left| and \verb|\right|:
+% \[
+%    \left\llbracket {\cal P} \right\rrbracket \quad
+%    \left\llbracket \bigbox {\cal P} \right\rrbracket \quad
+%    \left\llbracket \bigbox_{i\inplus I}^{a \varoplus b} P_i
+%        \right\rrbracket \quad
+%    \left\llbracket \begin{array}{c}a\\b\\c\end{array} \right\rrbracket \quad
+%    \left\llbracket \begin{array}{c}a\\b\\c\\d\\e\\f\end{array} \right\rrbracket
+% \]
+% The following special characters are used in building others:
+% \begin{symbols}
+% \dosymbol\Arrownot
+% \dosymbol\Mapsfromchar
+% \dosymbol\Mapstochar
+% \dosymbol\arrownot
+% \dosymbol\mapsfromchar
+% \end{symbols}
+% For example, if you type
+% \verb|$\Arrownot\Rightarrow$|
+% you get
+% $\Arrownot\Rightarrow$,
+% and if you type
+% \verb|$\arrownot\rightarrowtriangle$|
+% you get
+% $\arrownot\rightarrowtriangle$.
+%
+% \section*{Acknowledgements}
+%
+% Thanks to David Murphy for suggestions in the design of the St
+% Mary's Road font.
+% Thanks to Martin Ward for the first pass of converting the
+% |stmaryrd| package to \LaTeXe.
+% Thanks to Simon Mercer for all the wine at 45 St.~Mary's Road.
+%
+% \section*{Legal rubbish}
+%
+% This document is copyright \copyright~1991--1994 Alan Jeffrey.%
+% The St Mary's Road fonts are copyright \copyright~1991--1994 Jeremy
+% Gibbons and Alan Jeffrey.  All rights are reserved.
+% The moral right of the authors has been asserted.
+%
+% You are {\em not allowed\/} to take money for the distribution or use of
+% this file except for a nominal charge for copying, etc.
+% 
+% Redistribution of unchanged files is allowed provided that the whole
+% package is distributed.
+%
+% \StopEventually{}
+%
+% \section{Installation}
+% 
+% To begin with, the |stmaryrd| package is
+% installed by running \LaTeXe{} on this document, so we begin with
+% the instllation procedure.  This needs to use \LaTeXe:
+%    \begin{macrocode}
+%<*install>
+\NeedsTeXFormat{LaTeX2e}
+%    \end{macrocode}
+% First of all, we write out a little |.ins| file which creates the
+% |stmaryrd| package:
+%    \begin{macrocode}
+\begin{filecontents}{stmaryrd.ins}
+   \generateFile{stmaryrd.sty}{f}{
+      \from{stmaryrd.dtx}{package}}
+   \generateFile{Ustmry.fd}{f}{
+      \from{stmaryrd.dtx}{fontdef}}
+\end{filecontents}
+%    \end{macrocode}
+% Then we do some horrible low-level hacks to run docstrip on
+% |stmaryrd.ins|: 
+%    \begin{macrocode}
+\bgroup
+   \makeatletter
+   \let\@@end=\relax
+   \def\batchfile{stmaryrd.ins}
+   \input{docstrip}
+\egroup
+%    \end{macrocode}
+% That's it for the installation:
+%    \begin{macrocode}
+%</install>
+%    \end{macrocode}
+%
+% \section{Documentation}
+%
+% We now provide the documentation driver for this document:
+%    \begin{macrocode}
+%<*driver>
+\documentclass{ltxdoc}
+\DisableCrossrefs
+\OnlyDescription 
+\usepackage{stmaryrd}
+%    \end{macrocode}
+% \begin{macro}{\symbols}
+% \begin{macro}{\endsymbols}
+% \begin{macro}{\dosymbol}
+% \begin{macro}{\test}
+%    Some hacks that are used in the documentation:
+%    \begin{macrocode}
+\def\symbols{\flushleft}
+\def\endsymbols{\endflushleft}
+\def\dosymbol#1{\leavevmode\hbox to .33\textwidth{\hbox to 1.2em
+    {\hss$#1$\hfil}\footnotesize\tt\string#1\hss}\penalty10}
+\def\test#1{\par\leavevmode\llap{#1\tt\string#1:}
+   \rlap{#1$\left\llbracket\bigbox_{i \inplus I}^{a \varoplus b} P_i
+   \right\rrbracket$}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% Then we produce the documentation:
+%    \begin{macrocode}
+\begin{document}
+   \DocInput{stmaryrd.dtx}
+\end{document}
+%</driver>
+%    \end{macrocode}
+%
+% \section{The package}
+%
+% We can now implement the |stmaryrd| package.
+%    \begin{macrocode}
+%<*package>
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{stmaryrd}[1994/03/03 St Mary's Road symbol package]
+%    \end{macrocode}
+%
+% \begin{macro}{\stmry@if}
+%    Most definitions in this file are preceded by |stm@if|,
+%    which sets its second argument to be undefined, and expands to
+%    |\iftrue| if its second argument is going to be
+%    defined, for example:
+% \begin{verbatim}
+% \stmry@if\def\foo{baz}\fi
+% \end{verbatim}
+%    By default, this is always true.
+%    \begin{macrocode}
+\def\stmry@if#1#2{\let#2=\@undefined\iftrue#1#2}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ds@only}
+% \begin{macro}{\stmry@only}
+%    The |only| option causes |\stmry@if| to be true only when its
+%    second argument is defined to be |\relax|.
+%    \begin{macrocode}
+\DeclareOption{only}{\let\stmry@if=\stmry@only}
+\def\stmry@only#1#2{\ifx#2\relax\let#2=\@undefined#1#2}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\ds@heavycircles}
+% \begin{macro}{\ifstmry@heavy@}
+%    The |heavycircles| option makes sure all of the heavy circles
+%    are defined, and sets |\stmry@heavy@true|.
+%    \begin{macrocode}
+\newif\ifstmry@heavy@
+\stmry@heavy@false
+\DeclareOption{heavycircles}{%
+   \stmry@option{varotimes}\stmry@option{varoast}%
+   \stmry@option{varobar}\stmry@option{varodot}%
+   \stmry@option{varoslash}\stmry@option{varobslash}%
+   \stmry@option{varocircle}\stmry@option{varoplus}%
+   \stmry@option{varominus}\stmry@option{varbigcirc}%
+   \stmry@heavy@true
+}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\stmry@option}
+%    For every other option, we call |\stmry@option|, which defines
+%    its argument to be |\relax|. 
+%    \begin{macrocode}
+\def\stmry@option#1{\expandafter\let\csname#1\endcsname\relax}
+\DeclareOption*{\stmry@option\CurrentOption}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ds@Mapsto}
+% \begin{macro}{\ds@mapsfrom}
+% \begin{macro}{\ds@Mapsfrom}
+% \begin{macro}{\ds@longarrownot}
+% \begin{macro}{\ds@Longarrownot}
+% \begin{macro}{\ds@longmapsto}
+% \begin{macro}{\ds@Longmapsto}
+% \begin{macro}{\ds@longmapsfrom}
+% \begin{macro}{\ds@Longmapsfrom}
+%    All of the other options for |stmaryrd| are command names.  Some of
+%    the commands need others to be defined, so we declare these
+%    explicitly.
+%    \begin{macrocode}
+\DeclareOption{Mapsto}{%
+   \stmry@option{Mapsto}%
+   \stmry@option{Mapstochar}%
+}
+\DeclareOption{mapsfrom}{%
+   \stmry@option{mapsfrom}%
+   \stmry@option{mapsfromchar}%
+}
+\DeclareOption{Mapsfrom}{%
+   \stmry@option{Mapsfrom}%
+   \stmry@option{Mapsfromchar}%
+}
+\DeclareOption{longarrownot}{%
+   \stmry@option{longarrownot}%
+   \stmry@option{arrownot}%
+}
+\DeclareOption{Longarrownot}{%
+   \stmry@option{Longarrownot}%
+   \stmry@option{Arrownot}%
+}
+\DeclareOption{Longmapsto}{%
+   \stmry@option{Longmapsto}%
+   \stmry@option{Mapstochar}%
+}
+\DeclareOption{longmapsfrom}{%
+   \stmry@option{longmapsfrom}%
+   \stmry@option{mapsfromchar}%
+}
+\DeclareOption{Longmapsfrom}{%
+   \stmry@option{Longmapsfrom}%
+   \stmry@option{Mapsfromchar}%
+}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% Then we can process the options!
+%    \begin{macrocode}
+\ProcessOptions
+%    \end{macrocode}
+% Declare the symbol fonts:
+%    \begin{macrocode}
+\DeclareSymbolFont{stmry}{U}{stmry}{m}{n}
+\SetSymbolFont{stmry}{bold}{U}{stmry}{b}{n}
+%    \end{macrocode}
+% Then we load those symbols!
+%    \begin{macrocode}
+\stmry@if\DeclareMathSymbol\shortleftarrow\mathrel{stmry}{"00}\fi
+\stmry@if\DeclareMathSymbol\shortrightarrow\mathrel{stmry}{"01}\fi
+\stmry@if\DeclareMathSymbol\shortuparrow\mathrel{stmry}{"02}\fi
+\stmry@if\DeclareMathSymbol\shortdownarrow\mathrel{stmry}{"03}\fi
+\stmry@if\DeclareMathSymbol\Yup\mathbin{stmry}{"04}\fi
+\stmry@if\DeclareMathSymbol\Ydown\mathbin{stmry}{"05}\fi
+\stmry@if\DeclareMathSymbol\Yleft\mathbin{stmry}{"06}\fi
+\stmry@if\DeclareMathSymbol\Yright\mathbin{stmry}{"07}\fi
+\stmry@if\DeclareMathSymbol\varcurlyvee\mathbin{stmry}{"08}\fi
+\stmry@if\DeclareMathSymbol\varcurlywedge\mathbin{stmry}{"09}\fi
+\stmry@if\DeclareMathSymbol\minuso\mathbin{stmry}{"0A}\fi
+\stmry@if\DeclareMathSymbol\baro\mathbin{stmry}{"0B}\fi
+\stmry@if\DeclareMathSymbol\sslash\mathbin{stmry}{"0C}\fi
+\stmry@if\DeclareMathSymbol\bbslash\mathbin{stmry}{"0D}\fi
+\stmry@if\DeclareMathSymbol\moo\mathbin{stmry}{"0E}\fi
+\stmry@if\DeclareMathSymbol\varotimes\mathbin{stmry}{"0F}\fi
+\stmry@if\DeclareMathSymbol\varoast\mathbin{stmry}{"10}\fi
+\stmry@if\DeclareMathSymbol\varobar\mathbin{stmry}{"11}\fi
+\stmry@if\DeclareMathSymbol\varodot\mathbin{stmry}{"12}\fi
+\stmry@if\DeclareMathSymbol\varoslash\mathbin{stmry}{"13}\fi
+\stmry@if\DeclareMathSymbol\varobslash\mathbin{stmry}{"14}\fi
+\stmry@if\DeclareMathSymbol\varocircle\mathbin{stmry}{"15}\fi
+\stmry@if\DeclareMathSymbol\varoplus\mathbin{stmry}{"16}\fi
+\stmry@if\DeclareMathSymbol\varominus\mathbin{stmry}{"17}\fi
+\stmry@if\DeclareMathSymbol\boxast\mathbin{stmry}{"18}\fi
+\stmry@if\DeclareMathSymbol\boxbar\mathbin{stmry}{"19}\fi
+\stmry@if\DeclareMathSymbol\boxdot\mathbin{stmry}{"1A}\fi
+\stmry@if\DeclareMathSymbol\boxslash\mathbin{stmry}{"1B}\fi
+\stmry@if\DeclareMathSymbol\boxbslash\mathbin{stmry}{"1C}\fi
+\stmry@if\DeclareMathSymbol\boxcircle\mathbin{stmry}{"1D}\fi
+\stmry@if\DeclareMathSymbol\boxbox\mathbin{stmry}{"1E}\fi
+\stmry@if\DeclareMathSymbol\boxempty\mathbin{stmry}{"1F}\fi
+\stmry@if\DeclareMathSymbol\lightning\mathord{stmry}{"20}\fi
+\stmry@if\DeclareMathSymbol\merge\mathbin{stmry}{"21}\fi
+\stmry@if\DeclareMathSymbol\vartimes\mathbin{stmry}{"22}\fi
+\stmry@if\DeclareMathSymbol\fatsemi\mathbin{stmry}{"23}\fi
+\stmry@if\DeclareMathSymbol\sswarrow\mathrel{stmry}{"24}\fi
+\stmry@if\DeclareMathSymbol\ssearrow\mathrel{stmry}{"25}\fi
+\stmry@if\DeclareMathSymbol\curlywedgeuparrow\mathrel{stmry}{"26}\fi
+\stmry@if\DeclareMathSymbol\curlywedgedownarrow\mathrel{stmry}{"27}\fi
+\stmry@if\DeclareMathSymbol\fatslash\mathbin{stmry}{"28}\fi
+\stmry@if\DeclareMathSymbol\fatbslash\mathbin{stmry}{"29}\fi
+\stmry@if\DeclareMathSymbol\lbag\mathbin{stmry}{"2A}\fi
+\stmry@if\DeclareMathSymbol\rbag\mathbin{stmry}{"2B}\fi
+\stmry@if\DeclareMathSymbol\varbigcirc\mathbin{stmry}{"2C}\fi
+\stmry@if\DeclareMathSymbol\leftrightarroweq\mathrel{stmry}{"2D}\fi
+\stmry@if\DeclareMathSymbol\curlyveedownarrow\mathrel{stmry}{"2E}\fi
+\stmry@if\DeclareMathSymbol\curlyveeuparrow\mathrel{stmry}{"2F}\fi
+\stmry@if\DeclareMathSymbol\nnwarrow\mathrel{stmry}{"30}\fi
+\stmry@if\DeclareMathSymbol\nnearrow\mathrel{stmry}{"31}\fi
+\stmry@if\DeclareMathSymbol\leftslice\mathbin{stmry}{"32}\fi
+\stmry@if\DeclareMathSymbol\rightslice\mathbin{stmry}{"33}\fi
+\stmry@if\DeclareMathSymbol\varolessthan\mathbin{stmry}{"34}\fi
+\stmry@if\DeclareMathSymbol\varogreaterthan\mathbin{stmry}{"35}\fi
+\stmry@if\DeclareMathSymbol\varovee\mathbin{stmry}{"36}\fi
+\stmry@if\DeclareMathSymbol\varowedge\mathbin{stmry}{"37}\fi
+\stmry@if\DeclareMathSymbol\talloblong\mathbin{stmry}{"38}\fi
+\stmry@if\DeclareMathSymbol\interleave\mathbin{stmry}{"39}\fi
+\stmry@if\DeclareMathSymbol\obar\mathbin{stmry}{"3A}\fi
+\stmry@if\DeclareMathSymbol\obslash\mathbin{stmry}{"3B}\fi
+\stmry@if\DeclareMathSymbol\olessthan\mathbin{stmry}{"3C}\fi
+\stmry@if\DeclareMathSymbol\ogreaterthan\mathbin{stmry}{"3D}\fi
+\stmry@if\DeclareMathSymbol\ovee\mathbin{stmry}{"3E}\fi
+\stmry@if\DeclareMathSymbol\owedge\mathbin{stmry}{"3F}\fi
+\stmry@if\DeclareMathSymbol\oblong\mathbin{stmry}{"40}\fi
+\stmry@if\DeclareMathSymbol\inplus\mathrel{stmry}{"41}\fi
+\stmry@if\DeclareMathSymbol\niplus\mathrel{stmry}{"42}\fi
+\stmry@if\DeclareMathSymbol\nplus\mathbin{stmry}{"43}\fi
+\stmry@if\DeclareMathSymbol\subsetplus\mathrel{stmry}{"44}\fi
+\stmry@if\DeclareMathSymbol\supsetplus\mathrel{stmry}{"45}\fi
+\stmry@if\DeclareMathSymbol\subsetpluseq\mathrel{stmry}{"46}\fi
+\stmry@if\DeclareMathSymbol\supsetpluseq\mathrel{stmry}{"47}\fi
+\stmry@if\DeclareMathSymbol\Lbag\mathopen{stmry}{"48}\fi
+\stmry@if\DeclareMathSymbol\Rbag\mathclose{stmry}{"49}\fi
+
+\stmry@if\DeclareMathSymbol\llparenthesis\mathopen{stmry}{"4C}\fi
+\stmry@if\DeclareMathSymbol\rrparenthesis\mathclose{stmry}{"4D}\fi
+\stmry@if\DeclareMathSymbol\binampersand\mathopen{stmry}{"4E}\fi
+\stmry@if\DeclareMathSymbol\bindnasrepma\mathclose{stmry}{"4F}\fi
+\stmry@if\DeclareMathSymbol\trianglelefteqslant\mathrel{stmry}{"50}\fi
+\stmry@if\DeclareMathSymbol\trianglerighteqslant\mathrel{stmry}{"51}\fi
+\stmry@if\DeclareMathSymbol\ntrianglelefteqslant\mathrel{stmry}{"52}\fi
+\stmry@if\DeclareMathSymbol\ntrianglerighteqslant\mathrel{stmry}{"53}\fi
+\stmry@if\DeclareMathSymbol\llfloor\mathopen{stmry}{"54}\fi
+\stmry@if\DeclareMathSymbol\rrfloor\mathclose{stmry}{"55}\fi
+\stmry@if\DeclareMathSymbol\llceil\mathopen{stmry}{"56}\fi
+\stmry@if\DeclareMathSymbol\rrceil\mathclose{stmry}{"57}\fi
+\stmry@if\DeclareMathSymbol\arrownot\mathrel{stmry}{"58}\fi
+\stmry@if\DeclareMathSymbol\Arrownot\mathrel{stmry}{"59}\fi
+\stmry@if\DeclareMathSymbol\Mapstochar\mathrel{stmry}{"5A}\fi
+\stmry@if\DeclareMathSymbol\mapsfromchar\mathrel{stmry}{"5B}\fi
+\stmry@if\DeclareMathSymbol\Mapsfromchar\mathrel{stmry}{"5C}\fi
+\stmry@if\DeclareMathSymbol\leftrightarrowtriangle\mathbin{stmry}{"5D}\fi
+\stmry@if\DeclareMathSymbol\leftarrowtriangle\mathrel{stmry}{"5E}\fi
+\stmry@if\DeclareMathSymbol\rightarrowtriangle\mathrel{stmry}{"5F}\fi
+\stmry@if\DeclareMathSymbol\bigtriangledown\mathop{stmry}{"60}\fi
+\stmry@if\DeclareMathSymbol\bigtriangleup\mathop{stmry}{"61}\fi
+\stmry@if\DeclareMathSymbol\bigcurlyvee\mathop{stmry}{"62}\fi
+\stmry@if\DeclareMathSymbol\bigcurlywedge\mathop{stmry}{"63}\fi
+\stmry@if\DeclareMathSymbol\bigsqcap\mathop{stmry}{"64}\fi
+\stmry@if\DeclareMathSymbol\bigbox\mathop{stmry}{"65}\fi
+\stmry@if\DeclareMathSymbol\bigparallel\mathop{stmry}{"66}\fi
+\stmry@if\DeclareMathSymbol\biginterleave\mathop{stmry}{"67}\fi
+\stmry@if\DeclareMathSymbol\bignplus\mathop{stmry}{"70}\fi
+
+\stmry@if\DeclareMathDelimiter\llbracket{\mathopen}{stmry}{"4A}
+					  {stmry}{"71}\fi
+\stmry@if\DeclareMathDelimiter\rrbracket{\mathclose}{stmry}{"4B}
+					   {stmry}{"79}\fi
+%    \end{macrocode}
+% The heavy \varcopyright:
+%    \begin{macrocode}
+\stmry@if\def\varcopyright
+   {{\ooalign{\hfil\raise.07ex\hbox{c}\hfil\crcr%
+     \mbox{$\m@th\varbigcirc$}}}}\fi
+%    \end{macrocode}
+% The long arrow negations.
+%    \begin{macrocode}
+\stmry@if\def\longarrownot{\mathrel{\mkern5.5mu\arrownot\mkern-5.5mu}}\fi
+\stmry@if\def\Longarrownot{\mathrel{\mkern5.5mu\Arrownot\mkern-5.5mu}}\fi
+%    \end{macrocode}
+% The variants on $\mapsto$:
+%    \begin{macrocode}
+\stmry@if\def\Mapsto{\Mapstochar\Rightarrow}\fi
+\stmry@if\def\mapsfrom{\leftarrow\mapsfromchar}\fi
+\stmry@if\def\Mapsfrom{\Leftarrow\Mapsfromchar}\fi
+\stmry@if\def\Longmapsto{\Mapstochar\Longrightarrow}\fi
+\stmry@if\def\longmapsfrom{\longleftarrow\mapsfromchar}\fi
+\stmry@if\def\Longmapsfrom{\Longleftarrow\Mapsfromchar}\fi
+%    \end{macrocode}
+% The circular circles:
+%    \begin{macrocode}
+\ifstmry@heavy@
+   \def\@swap#1#2{\let\@tempa#1\let#1#2\let#2\@tempa}
+   \@swap\varotimes\otimes
+   \@swap\varolessthan\olessthan
+   \@swap\varogreaterthan\ogreaterthan
+   \@swap\varovee\ovee
+   \@swap\varowedge\owedge
+   \@swap\varoast\oast
+   \@swap\varobar\obar
+   \@swap\varodot\odot
+   \@swap\varoslash\oslash
+   \@swap\varobslash\obslash
+   \@swap\varocircle\ocircle
+   \@swap\varoplus\oplus
+   \@swap\varominus\ominus
+   \@swap\varbigcirc\bigcirc
+   \@swap\varcopyright\copyright
+\fi
+%</package>
+%    \end{macrocode}
+%
+% \section{The font definitions}
+%
+% The font definitions for the St Mary's Road fonts are:
+%    \begin{macrocode}
+%<*fontdef>
+\DeclareFontFamily{U}{stmry}{}
+\DeclareFontShape{U}{stmry}{m}{n}
+   {  <5> <6> <7> <8> <9> <10> gen * stmary
+      <10.95><12><14.4><17.28><20.74><24.88>stmary10%
+   }{}
+%</fontdef>
+%    \end{macrocode}
+%
+% \Finale
+\endinput
+
+

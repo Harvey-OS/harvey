@@ -3,34 +3,34 @@
 % 09/27/88 Pierre A. MacKay	Version 2.2.
 % 12/02/89 Karl Berry		cosmetic changes.
 % 02/04/90 Karl			new file-searching routines.
+% (more recent changes in ../ChangeLog.W2C)
 %
 % There is no terminal input to this program.  
 % Output is to stdout, and may, of course, be redirected.
-% 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [0] WEAVE: print changes only
+% [0] WEAVE: print changes only.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 \pageno=\contentspagenumber \advance\pageno by 1
 @y
 \pageno=\contentspagenumber \advance\pageno by 1
 \let\maybe=\iffalse
-\def\title{PK\lowercase{type} changes for C}
+\def\title{PK$\,$\lowercase{type} changes for C}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [1] Change banner string
+% [1] Change banner string.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@d banner=='This is PKtype, Version 2.2' 
+@d banner=='This is PKtype, Version 2.3' {printed when the program starts}
 @y
-@d banner=='This is PKtype, C Version 2.2' 
+@d banner=='This is PKtype, C Version 2.3' {printed when the program starts}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [4] Redirect PKtype output to stdout
+% [4] Redirect output to stdout.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d print_ln(#)==write_ln(output,#)
@@ -46,10 +46,10 @@
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [4] Change program header to remove IO, and eliminate label
+% [4] Change program header to remove IO, and eliminate label.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@p program PKtype(input, output);
+@p program PKtype(@!input,@!output);
 label @<Labels in the outer block@>@/
 const @<Constants in the outer block@>@/
 type @<Types in the outer block@>@/
@@ -66,13 +66,13 @@ var @<Globals in the outer block@>@/
 procedure initialize; {this procedure gets things started properly}
   var i:integer; {loop index for initializations}
   begin print_ln(banner);@/
-  setpaths;
+  set_paths (PK_FILE_PATH_BIT);
   @<Set initial values@>@/
   end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [5] Remove the unused label
+% [5] Remove the unused label.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d final_end=9999 {label for the end of it all}
@@ -82,16 +82,16 @@ procedure initialize; {this procedure gets things started properly}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [6] Make |name_length| match the value of FILENAMESIZE, and remove
+% [6] Make |name_length| match the value of PATH_MAX, and remove
 % terminal line length, since there is no dialog.  Since these were the
-% only constants, the <Constants...> module need no longer exist.
+% only constants, the <Constants...> module is not needed.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @<Constants...@>=
 @!name_length=80; {maximum length of a file name}
 @!terminal_line_length=132; {maximum length of an input line}
 @y
-@d name_length==FILENAMESIZE {from \.{site.h}}
+@d name_length==PATH_MAX
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -116,12 +116,12 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [32] remove typ_file from globals
+% [32] Remove typ_file from globals.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ @<Glob...@>=
-@!typ_file:text_file; {where the input comes from}
-@!pk_file:byte_file;  {where the final output goes}
+@!pk_file:byte_file;  {where the input comes from}
+@!typ_file:text_file; {where the final output goes}
 @^system dependencies@>
 @y
 @ @<Glob...@>=
@@ -130,50 +130,51 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [33] redo open_pk_file; scrap open_typ_file
+% [33] Redo open_pk_file; scrap open_typ_file.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@ To prepare these files for input, we |reset| them. An extension of
-\PASCAL\ is needed in the case of |typ_file|, since we want to associate
-it with external files whose names are specified dynamically (i.e., not
+@ To prepare these files for input and output, we |reset| and |rewrite| them.
+An extension of \PASCAL\ is needed, since we want to associate files
+with external names that are specified dynamically (i.e., not
 known at compile time). The following code assumes that `|reset(f,s)|'
 does this, when |f| is a file variable and |s| is a string variable that
 specifies the file name. If |eof(f)| is true immediately after
 |reset(f,s)| has acted, we assume that no file named |s| is accessible.
 @^system dependencies@>
 
-@p procedure open_typ_file; {prepares to write text data to the |typ_file|}
-begin rewrite(typ_file,typ_name);
-end;
-@#
-procedure open_pk_file; {prepares the input for reading}
+@p procedure open_pk_file; {prepares the input for reading}
 begin reset(pk_file,pk_name);
 pk_loc := 0 ;
 end;
+@#
+procedure open_typ_file; {prepares to write text data to the |typ_file|}
+begin rewrite(typ_file,typ_name);
+end;
+
 @y
-@ In C, we use the external |test_read_access| procedure, which also does path
-searching based on the user's environment or the default path.  
+@ In C, we use the external |test_read_access| procedure, which also
+does path searching based on the user's environment or the default path.  
 
 @p procedure open_pk_file; {prepares to read packed bytes in |pk_file|}
 var j,k:integer;
 begin
-    k:=1;
-    if argc <> 2 then abort('Usage: pktype <pk file>.');
-    argv(1, pk_name);
+    k := 1;
+    if argc <> 2 then abort ('Usage: pktype <pk file>.');
+    argv (1, pk_name);
     
-    if test_read_access(pk_name, PK_FILE_PATH)
+    if test_read_access (pk_name, PK_FILE_PATH)
     then begin
-        reset(pk_file, pk_name);
+        reset (pk_file, pk_name);
         cur_loc := 0;
     end else begin
-        print_pascal_string(pk_name);
-        abort(': PK file not found.');
+        print_pascal_string (pk_name);
+        abort (': PK file not found.');
     end;
 end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [34] change pk_loc to cur_loc.
+% [34] Change pk_loc to cur_loc.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @!pk_loc:integer; {how many bytes have we read?}
@@ -182,7 +183,7 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] Use modified routines to access pk_file
+% [??] Use modified routines to access pk_file.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p function pk_byte : eight_bits ;
@@ -190,7 +191,7 @@ var temp : eight_bits ;
 begin 
    temp := pk_file^ ;
    get(pk_file) ;
-   pk_loc := pk_loc + 1 ;
+   incr(pk_loc) ;
    pk_byte := temp ;
 end ;
 @y
@@ -256,11 +257,10 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [36] don't need the Open Files module.
+% [36] Don't need the <Open files> module.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@ Now we are ready to open the files and write the identification of the
-pixel file.
+@ Now we are ready to open the files.
 
 @<Open files@>=
 open_pk_file ;
@@ -275,10 +275,11 @@ t_print_ln(' ')
 
 @y
 @ This module was needed when output was directed to |typ_file|.
-It is not needed when output goes to |stdout|
+It is not needed when output goes to |stdout|.
 @z
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [37] redefine get_16 and get_32 also
+% [37] Redefine get_16 and get_32.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p function get_16 : integer ;
@@ -295,7 +296,7 @@ get_32 := a * 65536 + get_16 ; end ;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [54--55] eliminate Terminal communication
+% [54--55] Eliminate the ``Terminal communication'' chapter.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @* Terminal communication.
@@ -340,7 +341,7 @@ end ;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [56] restructure the main program
+% [56] Restructure the main program.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p begin
@@ -357,6 +358,7 @@ j := 0 ;
 while not eof(pk_file) do begin
    i := pk_byte ;
    if i <> pk_no_op then abort('Bad byte at end of file: ',i:1) ;
+@.Bad byte at end of file@>
    t_print_ln((pk_loc-1):1,':  No op') ;
    incr(j) ;
 end ;

@@ -5,8 +5,8 @@
 	int	bitbltfd;
 	Bitmap	screen;
 	Font	*font;
-static	uchar	bbuf[8192];
-	uchar	_btmp[8192];
+static	uchar	bbuf[8000];
+	uchar	_btmp[8000];
 static	uchar	*bbufp = bbuf;
 static	void	(*onerr)(char*);
 static	char	oldlabel[128+1];

@@ -1,0 +1,45 @@
+.TH VPTOVF 1 "7 Jan 92"
+.SH NAME
+vptovf - convert virtual property lists to virtual font metrics
+.SH SYNOPSIS
+.B vptovf
+[-verbose] vpl_file_name vfm_file_name tfm_file_name
+.SH DESCRIPTION
+The 
+.I vptovf
+program translates a (human-oriented) property list file to a pair of
+(program-oriented) files in the VF (virtual font) and TFM (TeX font metric)
+formats. Thus, a virtual font
+file can be edited and its exact contents
+can be displayed mnemonically.
+New virtual fonts, which map characters as seen by TeX into an arbitrary
+sequence of low-level typesetting operations,
+can also be created in this way.
+.PP
+All three file names,
+.I vpl_file_name,
+.I vf_file_name,
+and
+.I tfm_file_name,
+must be complete. No adding of default extensions or path searching is done.
+.SH OPTIONS
+Without the
+.I -verbose
+option,
+.I vptovf
+operates silently.  With it, a banner and progress report are printed on
+.IR stdout .
+See
+.BR tex (1)
+for the details of specifying options.
+.SH "SEE ALSO"
+vftovp(1)
+.br
+Donald Knuth,
+.I Virtual Fonts: More Fun for Grand Wizards,
+TUGboat 11(1), April 1990.
+.SH AUTHORS
+Donald Knuth wrote the program, based in part on an idea of David Fuchs,
+starting with the code for
+.BR pltotf (1).
+Karl Berry adapted it for compilation with web2c.

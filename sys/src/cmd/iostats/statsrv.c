@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #define Extern	extern
 #include "statfs.h"
@@ -28,6 +29,9 @@ Xsession(Fsrpc *r)
 {
 	Fcall thdr;
 
+	memset(thdr.authid, 0, sizeof(thdr.authid));
+	memset(thdr.authdom, 0, sizeof(thdr.authdom));
+	memset(thdr.chal, 0, sizeof(thdr.chal));
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
 }
@@ -47,7 +51,7 @@ Xflush(Fsrpc *r)
 				t->flushtag = r->work.tag;
 				DEBUG(2, "\tset flushtag %d\n", r->work.tag);
 				if(t->canint)
-					postnote(t->pid, "flush");
+					postnote(PNPROC, t->pid, "flush");
 				r->busy = 0;
 				return;
 			}
@@ -88,16 +92,6 @@ Xattach(Fsrpc *r)
 		rpc->loms = t;
 	if(t > rpc->hims)
 		rpc->hims = t;
-}
-
-void
-Xauth(Fsrpc *r)
-{
-	Fcall thdr;
-
-	reply(&r->work, &thdr, e[Enoauth]);
-	r->busy = 0;
-	stats->rpc[Tauth].count++;
 }
 
 void
@@ -348,6 +342,7 @@ Xremove(Fsrpc *r)
 	if(remove(path) < 0) {
 		errstr(err);
 		reply(&r->work, &thdr, err);
+		freefid(r->work.fid);
 		r->busy = 0;
 		return;
 	}

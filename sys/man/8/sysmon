@@ -5,53 +5,62 @@ sysmon, stats \- display graphs of system activity
 .B sysmon
 [
 .I machine
-]
+[
+.BI - option
+] ]
 .PP
 .B stats
+[
+.BI - option
+]
 .SH DESCRIPTION
 .I Sysmon
 displays a rolling graph of various statistics collected by the operating
 system.
-The statistics may be from a remote machine.
+The statistics may be from a remote
+.IR machine .
 A sample value is taken
 once per second. The number in the top left corner of the graph
 gives the peak value for the duration of the graph.
- Lines across the
-graph represent 75%, 50% and 25% of the peak value.
-Clicking the mouse buttons anywhere
-in the window selects a new parameter to monitor.
-The parameters are:
-.TF tlbpurge
+Lines across the
+graph represent 75%, 50%, and 25% of the peak value.
+Clicking a mouse button anywhere
+in the window cycles through the list of parameters to monitor; an
+.I option
+letter sets the initial choice.
+The option letters and parameters are:
+.TF [t]tlbpurge
 .TP
-.B mem
+.RB [ m ] " mem 
 total pages of active memory.
 The memory is displayed as a fraction
 of the machine's total memory.
 .TP
-.B ether
+.B 
+.RB [ e ] " ether
 number of packets sent and received per second.
 .TP
-.B swap
+.RB [ w ] " swap
 number of valid pages on the swap device.
 The swap is displayed as a
 fraction of the number of swap pages configured by the machine.
 .TP
-.B contxt
+.RB [ c ] " contxt
 number of process context switches per second.
 .TP
-.B intr
+.RB [ i ] " intr
 number of interrupts per second.
 .TP
-.B fault
+.RB [ f ] " fault
 number of memory faults per second.
 .TP
-.B tlbmiss
-number translation lookaside buffer misses per second.
+.RB [ t ] " tlbmiss
+number of translation look-aside buffer misses per second.
 .TP
-.B tlbpurge
-number translation lookaside buffer flushes per second.
+.RB [ p ] " tlbpurge
+number of translation lookaside buffer flushes per second.
 .TP
-.B load
+.RB [ l ] " load
 system load average.
 The load is computed as a running average of
 the number of processes ready to run multiplied by 1000 to give
@@ -66,5 +75,9 @@ to display the graph.
 .B /net/*/[0-n]/stats
 .br
 .B #c/sysstat
+.SH SOURCE
+.B /rc/bin/sysmon
+.br
+.B /sys/src/cmd/stats.c
 .SH BUGS
 Some machines do not have TLB hardware.

@@ -16,7 +16,8 @@ tindex(Type *tf, Type *tt)
 		i = tf->etype;
 		if(i >= NTYPE)
 			if(typesu[i])
-				i = j; else
+				i = j;
+			else
 				i = 0;
 	}
 	txtp = &txt[i][j];
@@ -137,7 +138,6 @@ ginit(void)
 	oinit(OASHL, AASLB, AASLW, AASLL, AGOK, AGOK);
 	oinit(OASASHL, AASLB, AASLW, AASLL, AGOK, AGOK);
 	oinit(OBIT, ABFEXTU, AGOK, AGOK, AGOK, AGOK);
-	oinit(OBITI, ABFINS, AGOK, AGOK, AGOK, AGOK);
 
 	nstring = 0;
 	mnstring = 0;
@@ -166,7 +166,6 @@ ginit(void)
 	zprog.from.index = D_NONE;
 	zprog.to = zprog.from;
 
-
 	nodret = new(ONAME, Z, Z);
 	nodret->sym = slookup(".ret");
 	nodret->type = types[TIND];
@@ -185,6 +184,8 @@ ginit(void)
 	nodrat->class = CGLOBL;
 	complex(nodrat);
 	nodrat->type = symrathole->type;
+
+	com64init();
 
 	symstatic = slookup(".static");
 	symstatic->class = CSTATIC;
@@ -247,7 +248,6 @@ oinit(int o, int ab, int aw, int al, int af, int ad)
 	opxt[i][TUSHORT] = aw;
 	opxt[i][TLONG] = al;
 	opxt[i][TULONG] = al;
-	opxt[i][TVLONG] = ad;
 	opxt[i][TIND] = al;
 	opxt[i][TFLOAT] = af;
 	opxt[i][TDOUBLE] = ad;
@@ -317,7 +317,7 @@ naddr(Node *n, Adr *a, int x)
 	case OREGISTER:
 		a->sym = S;
 		a->type = n->reg;
-		a->offset = n->offset;
+		a->offset = n->xoffset;
 		a->displace = 0;
 		break;
 
@@ -325,7 +325,7 @@ naddr(Node *n, Adr *a, int x)
 		a->etype = n->etype;
 		a->displace = 0;
 		a->sym = n->sym;
-		a->offset = n->offset;
+		a->offset = n->xoffset;
 		a->type = D_STATIC;
 		if(n->class == CSTATIC)
 			break;
@@ -364,25 +364,25 @@ naddr(Node *n, Adr *a, int x)
 
 	case OCONST:
 		a->displace = 0;
-		if(FPCHIP && typefdv[n->type->etype]) {
+		if(typefd[n->type->etype]) {
 			a->type = D_FCONST;
-			a->dval = n->ud;
+			a->dval = n->fconst;
 			break;
 		}
 		a->type = D_CONST;
-		a->offset = n->offset;
+		a->offset = n->vconst;
 		break;
 
 	case OADD:
 		l = n->left;
 		if(l->addable == 20) {
-			v = l->offset;
+			v = l->vconst;
 			naddr(n->right, a, x);
 			goto add;
 		}
 		l = n->right;
 		if(l->addable == 20) {
-			v = l->offset;
+			v = l->vconst;
 			naddr(n->left, a, x);
 			goto add;
 		}
@@ -449,7 +449,7 @@ regalloc(Type *t, int g)
 	if(t == T)
 		return D_NONE;
 	g &= D_MASK;
-	if(typefdv[t->etype]) {
+	if(typefd[t->etype]) {
 		if(g >= D_F0 && g < D_F0+NREG) {
 			fregused[g-D_F0]++;
 			return g;
@@ -524,7 +524,7 @@ regret(Type *t)
 
 	if(t == T)
 		return D_NONE;
-	if(typefdv[t->etype])
+	if(typefd[t->etype])
 		return D_F0;
 	return D_R0;
 }
@@ -598,11 +598,11 @@ gmove(Type *tf, Type *tt, int gf, Node *f, int gt, Node *t)
 	if((regbase[gf] != D_NONE && regbase[gf] == regbase[gt]) ||
 	   (gf == D_TREE && gt == D_TREE && f == t))
 		return;
-	if(typefdv[tf->etype] || typefdv[tt->etype]) {
-		if(typeu[tf->etype] && typefdv[tt->etype]) {	/* unsign->float */
+	if(typefd[tf->etype] || typefd[tt->etype]) {
+		if(typeu[tf->etype] && typefd[tt->etype]) {	/* unsign->float */
 			a = regalloc(types[TLONG], D_NONE);
 			gmove(tf, types[TLONG], gf, f, a, t);
-			if(tf->etype = TULONG) {
+			if(tf->etype == TULONG) {
 				b = regalloc(types[TDOUBLE], D_NONE);
 				gmove(types[TLONG], tt, a, t, b, t);
 				gopcode(OTST, types[TLONG], D_NONE, Z, a, t);
@@ -619,7 +619,7 @@ gmove(Type *tf, Type *tt, int gf, Node *f, int gt, Node *t)
 			regfree(a);
 			return;
 		}
-		if(typefdv[tf->etype] && !typefdv[tt->etype]) {	/* float->fix */
+		if(typefd[tf->etype] && !typefd[tt->etype]) {	/* float->fix */
 			a = regalloc(types[TLONG], D_NONE);
 			gopcode(OAS, types[TLONG], D_FPCR, t, a, t);
 			gopcode(OAS, types[TLONG], D_CONST, nodconst(16), D_FPCR, t);
@@ -632,7 +632,7 @@ gmove(Type *tf, Type *tt, int gf, Node *f, int gt, Node *t)
 			regfree(g);
 		} else
 			gopcode(OFAS, tt, gf, f, gt, t);
-		if(typefdv[tf->etype] && !typefdv[tt->etype]) {	/* float->fix */
+		if(typefd[tf->etype] && !typefd[tt->etype]) {	/* float->fix */
 			gopcode(OAS, types[TLONG], a, t, D_FPCR, t);
 			regfree(a);
 		}
@@ -682,7 +682,7 @@ gopcode(int o, Type *ty, int gf, Node *f, int gt, Node *t)
 		p->from.type = gf;
 		if(gf == D_CONST) {
 			p->from.offset = (long)f;
-			if(typefdv[i]) {
+			if(typefd[i]) {
 				p->from.type = D_FCONST;
 				p->from.dval = (long)f;
 			}
@@ -701,12 +701,6 @@ gopcode(int o, Type *ty, int gf, Node *f, int gt, Node *t)
 		p->to.field = f->type->shift;
 		if(p->from.field == 0)
 			diag(Z, "BIT zero width bit field");
-	}
-	if(o == OBITI) {
-		p->from.field = t->type->nbits;
-		p->to.field = t->type->shift;
-		if(p->from.field == 0)
-			diag(Z, "BITI zero width bit field");
 	}
 	if(p->as == AMOVL || p->as == AMOVW || p->as == AMOVB)
 		asopt();
@@ -882,7 +876,7 @@ exreg(Type *t)
 		exaregoffset--;
 		return o;
 	}
-	if(typefdv[t->etype]) {
+	if(typefd[t->etype]) {
 		if(exfregoffset <= 5)
 			return 0;
 		o = exfregoffset + D_F0;
@@ -892,6 +886,20 @@ exreg(Type *t)
 	return 0;
 }
 
+
+schar	ewidth[XTYPE] =
+{
+	-1,				/* TXXX */
+	SZ_CHAR,	SZ_CHAR,	/* TCHAR	TUCHAR */
+	SZ_SHORT,	SZ_SHORT,	/* TSHORT	TUSHORT */
+	SZ_LONG,	SZ_LONG,	/* TLONG	TULONG */
+	SZ_VLONG,	SZ_VLONG,	/* TVLONG	TUVLONG */
+	SZ_FLOAT,	SZ_DOUBLE,	/* TFLOAT	TDOUBLE */
+	SZ_IND,		0,		/* TIND		TFUNC */
+	-1,		0,		/* TARRAY	TVOID */
+	-1,		-1,		/* TSTRUCT	TUNION */
+	-1				/* TENUM */
+};
 long	ncast[XTYPE] =
 {
 	/* TXXX */	0,
@@ -901,7 +909,8 @@ long	ncast[XTYPE] =
 	/* TUSHORT */	BSHORT|BUSHORT,
 	/* TLONG */	BLONG|BULONG|BIND,
 	/* TULONG */	BLONG|BULONG|BIND,
-	/* TVLONG */	BVLONG|BDOUBLE,
+	/* TVLONG */	BVLONG|BUVLONG,
+	/* TUVLONG */	BVLONG|BUVLONG,
 	/* TFLOAT */	BFLOAT,
 	/* TDOUBLE */	BDOUBLE,
 	/* TIND */	BLONG|BULONG|BIND,

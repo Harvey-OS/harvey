@@ -1,5 +1,5 @@
 #include	"all.h"
-#include	"ureg.h"
+#include	<ureg.h>
 
 /*
  * CAUSE register

@@ -14,6 +14,7 @@ parse(char *f, int fd, int varoverride, int ruleoverride)
 	Word *head, *tail;
 	int attr, set;
 	char *prog, *inc;
+	int newfd;
 	Biobuf in;
 	Bufblock *buf;
 
@@ -37,7 +38,11 @@ parse(char *f, int fd, int varoverride, int ruleoverride)
 				fprint(2, "missing include file name\n");
 				Exit();
 			}
-			parse(inc, open(inc, 0), 0, 1);
+			if((newfd = open(inc, 0)) < 0){
+				fprint(2, "warning: skipping missing include file: ");
+				perror(inc);
+			} else
+				parse(inc, newfd, 0, 1);
 			break;
 		case ':':
 			body = rbody(&in);
@@ -112,14 +117,8 @@ rhead(char *line, Word **h, Word **t, int *attr, char **prog)
 	*prog = 0;
 /*print("SEP: %c\n", sep);*/
 	if(sep == '='){
-		pp = p;
-		while (*pp) {
-			n = chartorune(&r, pp);
-			if (r == '\'' || r == '=' || r == ' ' || r == '\t')
-				break;
-			pp += n;
-		}
-		if (*pp == '=') {
+		pp = charin(p, "'= \t");
+		if (pp && *pp == '=') {
 			while (p != pp) {
 				n = chartorune(&r, p);
 				switch(r)

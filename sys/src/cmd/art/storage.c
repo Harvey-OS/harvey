@@ -54,6 +54,7 @@ Item *additem(Item *head, int type, Flt r, Typeface *face, char *text, int group
 	ip->group=group;
 	ip->type=type;
 	ip->flags=0;
+	ip->style=0;		/* should be a parameter */
 	ip->fn=fn;
 	if(head==selection) drawsel();
 	return ip;

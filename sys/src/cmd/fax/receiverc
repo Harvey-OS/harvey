@@ -1,0 +1,32 @@
+#!/bin/rc
+spool=/mail/faxqueue
+recipients=/mail/lib/faxrecipients
+
+#
+# Arguments should be
+#	time Y|N pages [ftsi]
+#
+switch($#*){
+
+case 4
+	#
+	# Check for the NYT. It's 9 pages from
+	# area-code 202.
+	#
+	if(~ $2 Y && ~ $4 20240*){
+		if(~ $3 9){
+			for(i in 001 002 003 004 005 006 007 008 009){
+				cp $spool/$1.$i /lib/nyt/nyt.$i
+			}
+			rm -f $spool/$1.*
+		}
+		if not
+			echo NYT FAX: $* | mail rob
+	}
+	if not
+		echo FAX: page $spool/$1.* | mail `{cat $recipients}
+case 3
+	echo FAX: page $spool/$1.* | mail `{cat $recipients}
+case *
+	echo FAX BOTCH: page $spool/$1.* | mail jmk
+}

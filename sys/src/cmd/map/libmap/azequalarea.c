@@ -1,7 +1,7 @@
 #include "map.h"
 
 int
-Xazequalarea(struct place *place, float *x, float *y)
+Xazequalarea(struct place *place, double *x, double *y)
 {
 	double r;
 	r = sqrt(1. - place->nlat.s);

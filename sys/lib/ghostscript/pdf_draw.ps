@@ -1,0 +1,429 @@
+%    Copyright (C) 1994 Aladdin Enterprises.  All rights reserved.
+
+% pdf_draw.ps
+% PDF drawing operations (graphics, text, and images).
+
+% We don't handle the following PDF elements yet (identified by
+% page number in the reference manual):
+%	FirstChar, LastChar, Widths (62-63)
+%		Are these only used for font substitution,
+%		or do they override the widths in the font?
+%	style strings (63-64)
+%	font descriptor resources (71-75)
+%	text clipping modes (104)
+%		What do these mean??
+
+% The following elements have not been tested yet:
+%	Type 3 fonts
+%	in-line images
+
+/.setlanguagelevel where { pop 2 .setlanguagelevel } if
+.currentglobal true .setglobal
+/pdfdict where { pop } { /pdfdict 100 dict def } ifelse
+GS_PDF_ProcSet begin
+pdfdict begin
+
+% For simplicity, we use a single interpretation dictionary for all
+% PDF graphics operations, even though this is too liberal.
+/drawopdict 100 dict def
+
+% ================================ Graphics ================================ %
+
+% PDF adds a number of parameters to the graphics state.
+% We implement this by pushing and popping a dictionary
+% each time we do a PDF gsave or grestore.
+% The keys in this dictionary are as follows:
+%	Show
+%	TextOrigin		% origin of current line, in text space
+% (The following correspond directly to PDF state parameters.)
+%	FillColor
+%	StrokeColor
+%	TextSpacing
+%	TextHScaling
+%	Leading
+%	TextFont
+%	TextMatrix
+%	TextRise
+%	TextRenderingMode
+%	WordSpacing
+
+% ---------------- Graphics state management ---------------- %
+
+/nodict 0 dict def
+/gput		% <value> <key> gput -
+ { currentdict //nodict eq { end 2 dict begin } if
+   exch def
+ } bdef
+/beginpage
+ { //nodict begin graphicsbeginpage textbeginpage
+ } bdef
+/endpage { end } bdef
+
+/pdfgsave { gsave //nodict begin } bdef
+/pdfgrestore { end grestore } bdef
+drawopdict begin
+  /q { q //nodict begin } bdef
+  /Q { end Q } bdef
+end
+
+% ---------------- Graphics state setting ---------------- %
+
+/graphicsbeginpage
+ { initgraphics
+   0 /FillColor gput
+   0 /StrokeColor gput
+ } bdef
+% Patch around a bug in setdash (it won't accept packed arrays).
+/setdash
+ { 1 index type /packedarraytype eq { exch copyarray exch } if setdash
+ } bdef
+
+/cmmatrix matrix def
+/cm#
+ {	% See if we can represent the transformation as
+	% a translation and/or scale operation.
+   4 index 0 eq 4 index 0 eq and
+    {		% a 0 0 d e f
+      dup 0 eq 2 index 0 eq and { pop pop } { ct } ifelse
+      exch pop exch pop
+      dup 1 eq 2 index 1 eq and { pop pop } { cs } ifelse
+    }
+    { //cmmatrix astore cvx cm
+    }
+   ifelse
+ } bdef
+drawopdict begin
+  /cm { cm# } bdef
+  /i { dup currentflat eq { pop } { i } ifelse } def
+  /J { dup currentlinecap eq { pop } { J } ifelse } def
+  /d { d } def
+  /j { dup currentlinejoin eq { pop } { j } ifelse } def
+  /w { dup currentlinewidth eq { pop } { w } ifelse } def
+  /M { dup currentmiterlimit eq { pop } { M } ifelse } def
+  /g { /FillColor gput } bdef
+  /rg { 3 packedarray /FillColor gput } bdef
+  /k { 4 packedarray /FillColor gput } bdef
+  /G { /StrokeColor gput } bdef
+  /RG { 3 packedarray /StrokeColor gput } bdef
+  /K { 4 packedarray /StrokeColor gput } bdef
+end
+
+% ---------------- Paths ---------------- %
+
+drawopdict begin
+  /m { m } def
+  /l { l } def
+  /c { c } def
+  /v { v } def
+  /y { y } def
+  /re { re } def
+  /h { h } def
+end
+
+/setfillcolor { FillColor setgcolor } def
+/setstrokecolor { StrokeColor setgcolor } def
+/setgcolor	% (<gray> | [<r><g><b>/rg] | [<c><m><y><k>/k]) setgcolor -
+ { dup type /packedarraytype ne
+    { currentcolorspace 0 get /DeviceGray eq currentgray 2 index eq and
+       { pop }
+       { g }
+      ifelse
+    }
+    { dup length 3 eq
+       { aload pop currentcolorspace 0 get /DeviceRGB ne
+	  { rg }
+	  { currentrgbcolor 3 index eq exch 4 index eq and exch 4 index eq and
+	     { pop pop pop }
+	     { rg }
+	    ifelse
+	  }
+	 ifelse
+       }
+       { aload pop currentcolorspace 0 get /DeviceCMYK ne
+	  { k }
+	  { currentcmykcolor 4 index eq exch 5 index eq and
+	    exch 5 index eq and exch 5 index eq and
+	     { pop pop pop pop }
+	     { k }
+	    ifelse
+	  }
+	 ifelse
+       }
+      ifelse
+    }
+   ifelse
+ } bdef
+/fillstroke	% <fillop> <strokeop> <fillstrokeop> fillstroke -
+ { FillColor StrokeColor eq
+    { cvx exec pop pop }
+    { pop q setfillcolor exch 0 # Q cvx exec }
+   ifelse
+ } bdef
+
+drawopdict begin
+  /n { n } def
+  /S { setstrokecolor S } def
+  /s { setstrokecolor s } def
+  /f { setfillcolor f } def
+  /f* { setfillcolor f* } def
+% F seems to be a PDF 1.1 operator.  For the moment, treat it like f.
+/F /f load def
+  /B { /fill /S /B fillstroke } def
+  /b { /fill /s /b fillstroke } def
+  /B* { /eofill /S /B* fillstroke } def
+  /b* { /eofill /s /b* fillstroke } def
+% Clipping is done after the next painting operator.
+% The ProcSet handles this.
+  /W { W } def
+  /W* { W* } def
+end
+
+% ---------------- XObjects ---------------- %
+
+/xobjectprocs mark		% <dict> -proc- -
+  /Image { DoImage }
+  /Form { DoForm }
+.dicttomark readonly def
+
+/ncompdict mark
+  /DeviceGray 1
+  /DeviceRGB 3
+  /DeviceCMYK 4
+.dicttomark readonly def
+/resolvecolorspace	% <cspace> resolvecolorspace <cspace>
+ { dup type /arraytype eq
+    { dup 0 get /Indexed eq
+       { dup 3 oget dup type /stringtype eq
+	  { pop
+	  }
+	  {	% The color lookup table is a stream.
+		% Get its contents.
+	    true resolvestream
+	    1 index 2 get 1 add
+	    ncompdict 3 index 1 get get mul
+	    string readstring pop
+	    1 index 3 3 -1 roll put
+	  }
+	 ifelse
+       }
+      if
+    }
+   if
+ } bdef
+/DoImage
+ { dup /ColorSpace knownoget
+    { resolvecolorspace
+      dup type /arraytype eq { dup length 1 eq { 0 get } if } if
+      exch
+    } if
+   dup length 1 sub dict begin
+   /ImageType 1 def
+   /Width 2 copy oget def
+   /Height 2 copy oget def
+   /BitsPerComponent 2 copy oget def
+   /Decode 2 copy knownoget { def } { pop } ifelse
+   /Interpolate 2 copy knownoget { def } { pop } ifelse
+   /ImageMatrix Width 0 0 Height neg 0 Height 6 array astore def
+		% Define DataSource as the width of the row buffer,
+		% which is what is needed if we're writing PostScript.
+   /DataSource 
+     Width BitsPerComponent mul
+     mark currentcolor counttomark dup 2 add 1 roll cleartomark mul
+     7 add 8 idiv
+   def
+		% Even though we're going to read data,
+		% pass false to resolvestream so that
+		% it doesn't try to use Length (which may not be present).
+   dup false resolvestream /Is_stream exch store
+   /ImageMask .knownget dup { and } if
+   currentdict end exch { Im } { I } ifelse
+ } bdef
+% Rebind Is, which constructs the data source for the image,
+% to retrieve the stream.
+userdict /Is_stream null put
+/Is
+ { Is_stream
+ } bdef
+
+/DoForm
+ { dup [ 1 index
+    { false resolvestream pdfopdict pdfrun }
+   aload pop ] cvx /PaintProc exch put
+   execform
+ } bdef
+
+drawopdict begin
+  /Do
+    { PDFfile fileposition exch
+      Page /Resources oget /XObject oget exch oget
+      dup /Subtype get xobjectprocs exch get exec
+      PDFfile exch setfileposition
+    } bdef
+end
+
+% ---------------- In-line images ---------------- %
+
+% Undo the abbreviations in an in-line image dictionary.
+% Note that these can appear as keys, values, or members of array values.
+% /I is ambiguous; we check specially for it below.
+/unabbrevdict mark
+	% Top-level dictionary keys
+  /BPC /BitsPerComponent  /CS /ColorSpace  /D /Decode  /DP /DecodeParms
+  /F /Filter  /H /Height  /IM /ImageMask  /W /Width
+	% Values
+  /AHx /ASCIIHexDecode  /A85 /ASCII85Decode  /CCF /CCITTFaxDecode
+  /DCT /DCTDecode  /CMYK /DeviceCMYK  /G /DeviceGray  /RGB /DeviceRGB
+  /I /Indexed  /LZW /LZWDecode  /RL /RunLengthDecode
+.dicttomark readonly def
+/unabbrev		% <obj> unabbrev <obj'>
+ { dup type /nametype eq
+    { unabbrevdict 1 index .knownget { exch pop } if
+    }
+    { dup type /arraytype eq
+       { dup 0 1 2 index length 1 sub
+	  { 2 copy get unabbrev put dup
+	  }
+	 for pop
+       }
+      if
+    }
+   ifelse
+ } bdef
+
+drawopdict begin
+  /BI { mark } bdef
+  /ID
+    { counttomark
+       { counttomark 1 roll
+	 dup /I eq { pop /Interpolate } { unabbrev } ifelse
+       }
+      repeat
+      /File PDFfile
+      /FilePosition 1 index fileposition
+      .dicttomark DoImage
+      PDFfile token pop /EI ne { /ID cvx /syntaxerror signalerror } if
+    } bdef
+end
+
+% ================================ Text ================================ %
+
+% ---------------- Text state ---------------- %
+
+/textbeginpage
+ { /TextSpacing 0 def		% 0 Tc
+   /TextLeading 0 def		% 0 TL
+   /TextRenderingMode 0 def	% 0 Tr
+   /TextRise 0 def		% 0 Ts
+   /WordSpacing 0 def		% 0 Tw
+   /TextHScaling 1.0 def	% 100 Tz
+   /TextFont NullFont def
+   /Show { showfirst } def
+ } bdef
+/textrenderingprocs [
+   { setfillcolor tf }		% handled specially
+   { setstrokecolor tS }
+   { /tf /tS /tB fillstroke }
+   { tn }
+	% We don't know what the clipping modes mean....
+   4 copy
+] readonly def
+/setshowstate
+ { /Show WordSpacing 0 eq TextSpacing 0 eq and
+    { TextRenderingMode 0 eq
+       { { setfillcolor t } }
+       { { T textrenderingprocs TextRenderingMode get exec } }
+      ifelse
+    }
+    { TextRenderingMode 0 eq
+       { WordSpacing 0 eq
+          { { setfillcolor TextSpacing exch t1 } }
+	  { TextSpacing 0 eq
+	     { { setfillcolor WordSpacing exch t2 } }
+	     { { setfillcolor WordSpacing exch TextSpacing exch t3 } }
+	    ifelse
+	  }
+	 ifelse
+       }
+       { { WordSpacing TextSpacing 2 index T3
+	   textrenderingprocs TextRenderingMode get exec
+	 }
+       }
+      ifelse
+    }
+   ifelse def
+ } bdef
+/showfirst { setshowstate Show } def
+/settextmatrix
+ { TextMatrix aload pop cm#
+   TextHScaling 1 ne { TextHScaling 1 cs } if
+   TextRise 0 ne { 0 TextRise ct } if
+ } bdef
+/settextstate { ti settextmatrix } bdef
+/begintext
+ { currentdict /TextMatrix .knownget
+    { identmatrix pop }
+    { matrix /TextMatrix gput }
+   ifelse
+   currentdict /TextOrigin .knownget
+    { dup 0 0 put 1 0 put }
+    { [0 0] cvx /TextOrigin gput }
+   ifelse
+   /Show { showfirst } def
+   BT settextmatrix TextFont setfont 0 0 moveto
+ } bdef
+/endtext
+ { ET
+ } bdef
+
+/Tc { /TextSpacing gput /Show { showfirst } def } bdef
+/Tw { /WordSpacing gput /Show { showfirst } def } bdef
+drawopdict begin
+  /BT /begintext load def
+  /ET /endtext load def
+  /Tc /Tc load def
+  /TL { /TextLeading gput } bdef
+  /Tr { /TextRenderingMode gput /Show { showfirst } def } bdef
+  /Ts { /TextRise gput settextstate } bdef
+  /Tw /Tw load def
+  /Tz { 100 div /TextHScaling gput settextstate } bdef
+end
+
+% ---------------- Text positioning ---------------- %
+
+/Td
+ { TextOrigin exch 4 -1 roll add 3 1 roll add
+   2 copy /TextOrigin load astore pop m
+ } bdef
+/T*
+ { 0 TextLeading neg Td
+ } bdef
+drawopdict begin
+  /Td /Td load def
+  /TD { dup neg /TextLeading gput Td } bdef
+  /Tm
+   { TextMatrix astore pop settextstate
+     0 0 /TextOrigin load astore pop
+     z
+   } bdef
+  /T* /T* load def
+end
+
+% ---------------- Text painting ---------------- %
+
+drawopdict begin
+  /Tj /Show cvx def
+  /' { T* Show } bdef
+  /" { exch Tc exch Tw T* Show } bdef
+  /TJ
+   {  { dup type /stringtype eq
+	 { Show }
+	 { neg 1000 div x }	% probably wrong
+	ifelse
+      }
+     forall
+   } bdef
+end
+
+end			% pdfdict
+end			% GS_PDF_ProcSet
+.setglobal

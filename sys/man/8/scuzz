@@ -97,7 +97,7 @@ Unit requests that a disc be brought to a known state,
 usually by seeking to track zero.
 .TP
 .B rewind
-Rewind
+.B Rewind
 positions a tape at the beginning of current partition
 (there is usually only one partition, the beginning of tape).
 .TP
@@ -126,7 +126,7 @@ A missing
 causes the entire device to be read.
 .TP
 .BI write " file nbytes
-.I Write
+.B Write
 transfers data from the host to the target.
 A missing
 .I nbytes
@@ -153,7 +153,7 @@ The argument may be quoted in the style of
 .IR rc (1).
 .TP
 .BI seek " offset whence
-.I Seek
+.B Seek
 requests the target to seek to a position on a disc,
 arguments being in the style of
 .IR seek (2);
@@ -178,7 +178,7 @@ Write Filemarks
 writes one (default) or more filemarks on a tape.
 .TP
 .BI space\ [-b]\ [-f]\ [[--] howmany ]
-.I Space
+.B Space
 positions a tape forwards or backwards.
 The arguments
 specify logical block
@@ -200,7 +200,7 @@ option processing.
 Default is 1.
 .TP
 .B inquiry
-Inquiry
+.B Inquiry
 is issued to determine the device type of a particular target,
 and to determine some basic information about the implemented options and
 the product name.
@@ -257,8 +257,8 @@ of the CDD521 to be written to the physical medium.
 The Read TOC/PMA command transfers data from one of the tables of contents
 (TOC or PMA) on the CD medium.
 .TP
-.BI fwaddr\ [ track [ mode [ npa\ \L]]]
-The First Writeable Address command reports the next logical writeable address
+.BI fwaddr\ [ track [ mode [ npa\fP]]]
+The First Writable Address command reports the next logical writable address
 for the next
 .B write
 command.
@@ -272,7 +272,7 @@ Read Track Info reports the starting
 address, the length of a given track on the disc
 and the number of free blocks in that track.
 .TP
-.BI wtrack file [ nbytes \ [ track \ [ mode ]]]
+.B "wtrack \f2file\fP [\f2nbytes\fP [\f2track\fP [\f2mode\fP]]]
 Write Track sets up for track-writing if 
 .I nbytes
 is 0 (default), or
@@ -293,16 +293,16 @@ open or close the tray.
 .I Fixation
 writes table of contents (TOC) and LEADOUT information to the disc to
 complete a session.
-
-
 .SH FILES
-.TF #S/scsi-target-id\/data
+.TF #S/scsi-target-id/data
 .TP
 .B #S/\fIscsi-target-id\fP/cmd
 raw SCSI interface for command and status.
 .TP
 .B #S/\fIscsi-target-id\fP/data
 raw SCSI interface for I/O.
+.SH SOURCE
+.B /sys/src/cmd/scuzz
 .SH "SEE ALSO"
 .IR scsi (3)
 .br
@@ -321,4 +321,4 @@ Only one target can be open at a time.
 .LP
 LUNs other than 0 are not supported.
 .LP
-No way to force 6 or 10 byte commands.
+No way to force 6- or 10- byte commands.

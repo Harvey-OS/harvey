@@ -7,13 +7,17 @@
 % Updated to reflect new pk format, 2.0 version: 25 July 1985
 % Updated again for new pk format, 2.1 version: 15 August 1985
 % Docmentation updated, 2.2 version: 17 November 1987
-\def\versiondate{30 November 1987}
 %
+% slight editing to correspond with MFware report -- don, 21 Oct 89
+% additional editing suggested by P Breitenlohner -- don, 18 Nov 89
+
+\def\versiondate{18 November 1989}
+%
+\def\hang{\hangindent 3em\noindent\ignorespaces}
 \font\ninerm=cmr9
-\let\mc=\ninerm % medium caps for names like PASCAL
 \font\logo=logo10 % font used for the METAFONT logo
 \def\MF{{\logo META}\-{\logo FONT}}
-\def\PASCAL{{\mc Pascal}}
+\def\PASCAL{Pascal}
 \def\tamu{Texas A\char38 M}
 \def\(#1){} % this is used to make section names sort themselves better
 \def\9#1{} % this is used for sort keys in the index
@@ -25,7 +29,7 @@
   \vfill
   \centerline{\titlefont The {\ttitlefont PKtype} processor}
   \vskip 15pt
-  \centerline{(Version 2.2, \versiondate)}
+  \centerline{(Version 2.3, \versiondate)}
   \vfill}
 \def\botofcontents{\vfill
   \centerline{\hsize 5in\baselineskip9pt
@@ -44,8 +48,7 @@ format, and writes it in textual format.
 @ The |banner| string defined here should be changed whenever \.{PKtype}
 gets modified.
 
-@d banner=='This is PKtype, Version 2.2'
-         {printed when the program starts}
+@d banner=='This is PKtype, Version 2.3' {printed when the program starts}
 
 @ This program is written in standard \PASCAL, except where it is necessary
 to use extensions; for example, \.{PKtype} must read files whose names
@@ -58,14 +61,14 @@ are dynamically specified, and that would be impossible in pure \PASCAL.
 
 @ Both the input and output come from binary files.  On line interaction
 is handled through \PASCAL's standard |input| and |output| files.  Two macros
-are used to write to the type file, so this output can be easily redirected.
+are used to write to the type file, so this output can easily be redirected.
 
 @d print_ln(#)==write_ln(output,#)
 @d print(#)==write(output,#)
 @d t_print_ln(#)==write_ln(typ_file,#)
 @d t_print(#)==write(typ_file,#)
 
-@p program PKtype(input, output);
+@p program PKtype(@!input,@!output);
 label @<Labels in the outer block@>@/
 const @<Constants in the outer block@>@/
 type @<Types in the outer block@>@/
@@ -85,7 +88,7 @@ procedure initialize; {this procedure gets things started properly}
 
 @ These constants determine the maximum length of a file name and the length
 of the terminal line, as well as the widest character that can be translated.
-@^system dependancies@>
+@^system dependencies@>
 
 @<Constants...@>=
 @!name_length=80; {maximum length of a file name}
@@ -109,15 +112,15 @@ begin goto final_end;
 end;
 
 @* The character set.
-Like all programs written with the  \.{WEB} system, \.{pktype} can be
+Like all programs written with the  \.{WEB} system, \.{PKtype} can be
 used with any character set. But it uses ASCII code internally, because
 the programming for portable input-output is easier when a fixed internal
 code is used.
 
-The next few sections of \.{pktype} have therefore been copied from the
+The next few sections of \.{PKtype} have therefore been copied from the
 analogous ones in the \.{WEB} system routines. They have been considerably
-simplified, since \.{pktype} need not deal with the controversial
-ASCII codes less than @'40.
+simplified, since \.{PKtype} need not deal with the controversial
+ASCII codes less than @'40 or greater than @'176.
 
 @<Types...@>=
 @!ASCII_code=" ".."~"; {a subrange of the integers}
@@ -125,8 +128,8 @@ ASCII codes less than @'40.
 @ The original \PASCAL\ compiler was designed in the late 60s, when six-bit
 character sets were common, so it did not make provision for lower case
 letters. Nowadays, of course, we need to deal with both upper and lower case
-alphabets in a convenient way, especially in a program like \.{pktype}.
-So we shall assume that the \PASCAL\ system being used for \.{pktype}
+alphabets in a convenient way, especially in a program like \.{PKtype}.
+So we shall assume that the \PASCAL\ system being used for \.{PKtype}
 has a character set containing at least the standard visible characters
 of ASCII code (|"!"| through |"~"|).
 
@@ -147,7 +150,7 @@ inclusive. The following definitions should be adjusted if necessary.
 @<Types...@>=
 @!text_file=packed file of text_char;
 
-@ The \.{pktype} processor converts between ASCII code and
+@ The \.{PKtype} processor converts between ASCII code and
 the user's external character set by means of arrays |xord| and |xchr|
 that are analogous to \PASCAL's |ord| and |chr| functions.
 
@@ -289,10 +292,10 @@ a byte by 16.  Similarly, when bytes are combined into multiple byte
 parameters, the first byte is the most significant of the parameter.  If the
 parameter is signed, it is represented by two's-complement notation.
 
-The set of possible eight-bit values are separated into two sets, those that
+The set of possible eight-bit values is separated into two sets, those that
 introduce a character definition, and those that do not.  The values that
-introduce a character definition comprise the range from 0 to 239; byte values
-above 239 are interpreted commands.  Bytes which introduce character
+introduce a character definition range from 0 to 239; byte values
+above 239 are interpreted as commands.  Bytes that introduce character
 definitions are called flag bytes, and various fields within the byte indicate
 various things about how the character definition is encoded.  Command bytes
 have zero or more parameters, and can never appear within a character
@@ -308,7 +311,7 @@ definitions.  The very last command in the file must be the postamble.
 
 @ The packed file format is intended to be easy to read and interpret by
 device drivers.  The small size of the file reduces the input/output overhead
-each time a font is defined.  For those drivers that load and save each font
+each time a font is loaded.  For those drivers that load and save each font
 file into memory, the small size also helps reduce the memory requirements.
 The length of each character packet is specified, allowing the character raster
 data to be loaded into memory by simply counting bytes, rather than
@@ -316,8 +319,8 @@ interpreting each command; then, each character can be interpreted on a demand
 basis.  This also makes it possible for a driver to skip a particular
 character quickly if it knows that the character is unused.
 
-@ First, the command bytes shall be presented; then the format of the
-Character definitions will be defined.  Eight of the possible sixteen
+@ First, the command bytes will be presented; then the format of the
+character definitions will be defined.  Eight of the possible sixteen
 commands (values 240 through 255) are currently defined; the others are
 reserved for future extensions.  The commands are listed below.  Each command
 is specified by its symbolic name (e.g., \\{pk\_no\_op}), its opcode byte,
@@ -350,7 +353,7 @@ are being used.  \MF\ puts |scaled| numbers into |yyy|'s, as a result of
 followed by enough |pk_no_op| commands to make the file a multiple
 of four bytes long.  Zero through three bytes are usual, but any number
 is allowed.
-This should make the file easy to read on machines which pack four bytes to
+This should make the file easy to read on machines that pack four bytes to
 a word.
 
 \yskip\hang|pk_no_op| 246.  No operation, do nothing.  Any number of
@@ -368,11 +371,11 @@ file, respectively.  The checksum should match the \.{TFM} file and the
 of pixels per point, horizontally and vertically, multiplied by $2^{16}$; they
 can be used to correlate the font with specific device resolutions,
 magnifications, and ``at sizes''.  Usually, the name of the \.{PK} file is
-formed by concatenating the font name (e.g., amr10) with the resolution at
+formed by concatenating the font name (e.g., cmr10) with the resolution at
 which the font is prepared in pixels per inch multiplied by the magnification
-factor, and the letters \.{PK}.  For instance, amr10 at 300 dots per inch
-should be named AMR10.300PK; at one thousand dots per inch and magstephalf,
-it should be named AMR10.1095PK.
+factor, and the letters \.{pk}. For instance, cmr10 at 300 dots per inch
+should be named \.{cmr10.300pk}; at one thousand dots per inch and magstephalf,
+it should be named \.{cmr10.1095pk}.
 
 @ We put a few of the above opcodes into definitions for symbolic use by
 this program.
@@ -383,25 +386,26 @@ this program.
 @d pk_post = 245 {postamble}
 @d pk_no_op = 246 {no operation}
 @d pk_pre = 247 {preamble}
+@d pk_undefined == 248, 249, 250, 251, 252, 253, 254, 255
 
-@ The \.{PK} format has two conflicting goals; to pack character raster and
+@ The \.{PK} format has two conflicting goals: to pack character raster and
 size information as compactly as possible, while retaining ease of translation
 into raster and other forms.  A suitable compromise was found in the use of
 run-encoding of the raster information.  Instead of packing the individual
 bits of the character, we instead count the number of consecutive `black' or
 `white' pixels in a horizontal raster row, and then encode this number.  Run
-counts are found for each row, from the top of the character to the bottom.
-This is essentially the way the \.{GF} format works.
-Instead of presenting each row individually, however, let us concatenate all
+counts are found for each row from left to right, traversing rows from the
+top to bottom. This is essentially the way the \.{GF} format works.
+Instead of presenting each row individually, however, we concatenate all
 of the horizontal raster rows into one long string of pixels, and encode this
 row.  With knowledge of the width of the bit-map, the original character glyph
-can be easily reconstructed.  In addition, we do not need special commands to
+can easily be reconstructed.  In addition, we do not need special commands to
 mark the end of one row and the beginning of the next.
 
-Next, let us put the burden of finding the minimum bounding box on the part
+Next, we place the burden of finding the minimum bounding box on the part
 of the font generator, since the characters will usually be used much more
 often than they are generated.  The minimum bounding box is the smallest
-rectangle which encloses all `black' pixels of a character.  Let us also
+rectangle that encloses all `black' pixels of a character.  We also
 eliminate the need for a special end of character marker, by supplying
 exactly as many bits as are required to fill the minimum bounding box, from
 which the end of the character is implicit.
@@ -412,14 +416,14 @@ falling off slowly until ten, then a bit more steeply until twenty, and then
 asymptotically approaching the horizontal.  Thus, the great majority of our
 run counts will fit in a four-bit nybble.  The eight-bit byte is attractive for
 our run-counts, as it is the standard on many systems; however, the wasted four
-bits in the majority of cases seems a high price to pay.  Another possibility
+bits in the majority of cases seem a high price to pay.  Another possibility
 is to use a Huffman-type encoding scheme with a variable number of bits for
 each run-count; this was rejected because of the overhead in fetching and
 examining individual bits in the file.  Thus, the character raster definitions
 in the \.{PK} file format are based on the four-bit nybble.
 
-@ The analysis of the pixel files yielded another interesting statistic: fully
-37\char`\%\
+@ An analysis of typical pixel files yielded another interesting statistic:
+Fully 37\char`\%\
 of the raster rows were duplicates of the previous row.  Thus, the \.{PK}
 format allows the specification of repeat counts, which indicate how many times
 a horizontal raster row is to be repeated.  These repeated rows are taken out
@@ -445,7 +449,7 @@ to the row with the black pixel at the beginning.  Thus, entirely white or
 entirely black repeated rows are always packed as large run counts (in this
 case, a white run count of 54) rather than repeat counts.
 
-@ Now let us turn our attention to the actual packing of the run counts and
+@ Now we turn our attention to the actual packing of the run counts and
 repeat counts into nybbles.  There are only sixteen possible nybble values.
 We need to indicate run counts and repeat counts.  Since the run counts are
 much more common, we will devote the majority of the nybble values to them.
@@ -453,7 +457,7 @@ We therefore indicate a repeat count by a nybble of 14 followed by a packed
 number, where a packed number will be explained later.  Since the repeat
 count value of one is so common, we indicate a repeat one command by a single
 nybble of 15.  A 14 followed by the packed number 1 is still legal for a
-repeat one count, however.  The run counts are coded directly as packed
+repeat one count.  The run counts are coded directly as packed
 numbers.
 
 For packed numbers, therefore, we have the nybble values 0 through 13.  We
@@ -467,7 +471,7 @@ nybbles.  We do this with the value 0.
 |dyn_f|, to be one-nybble run counts.
 These will work for the run counts |1..dyn_f|.  For subsequent run
 counts, we will use a nybble greater than |dyn_f|, followed by a second nybble,
-whose value can run from 0 through 15.  Thus, the two-byte nybble values will
+whose value can run from 0 through 15.  Thus, the two-nybble values will
 run from |dyn_f+1..(13-dyn_f)*16+dyn_f|.  We have our definition of large run
 count values now, being all counts greater than |(13-dyn_f)*16+dyn_f|.
 
@@ -476,14 +480,14 @@ We can analyze our several dozen pixel files and determine an optimal value of
 of |dyn_f| that pack small characters well tend to pack the large characters
 poorly, and values that pack large characters well are not efficient for the
 smaller characters.  Thus, we choose the optimal |dyn_f| on a character basis,
-picking the value which will pack each individual character in the smallest
-number of nybbles.  Legal values of |dyn_f| run from 0 (with no one-byte run
-counts) to 13 (with no two-byte run counts).
+picking the value that will pack each individual character in the smallest
+number of nybbles.  Legal values of |dyn_f| run from 0 (with no one-nybble run
+counts) to 13 (with no two-nybble run counts).
 
 @ Our only remaining task in the coding of packed numbers is the large run
 counts.  We use a scheme suggested by D.~E.~Knuth
-@^Knuth, D.~E.@>
-which will simply and elegantly represent arbitrarily large values.  The
+@^Knuth, Donald Ervin@>
+that simply and elegantly represents arbitrarily large values.  The
 general scheme to represent an integer |i| is to write its hexadecimal
 representation, with leading zeros removed.  Then we count the number of
 digits, and prepend one less than that many zeros before the hexadecimal
@@ -496,10 +500,10 @@ through |(13-dyn_f)*16+dyn_f|.  In addition, the one-nybble values have
 already been taken by our other commands, which means that only the values
 from sixteen up are available to us for long run counts.  Thus, we simply
 normalize our long run counts, by subtracting |(13-dyn_f)*16+dyn_f+1| and
-adding 16, and then representing the result according to the scheme above.
+adding 16, and then we represent the result according to the scheme above.
 
 @ The final algorithm for decoding the run counts based on the above scheme
-might look like this, assuming a procedure called \\{pk\_nyb} is available
+looks like this, assuming that a procedure called \\{pk\_nyb} is available
 to get the next nybble from the file, and assuming that the global
 |repeat_count| indicates whether a row needs to be repeated.  Note that this
 routine is recursive, but since a repeat count can never directly follow
@@ -507,7 +511,7 @@ another repeat count, it can only be recursive to one level.
 
 @<Packed number procedure@>=
 function pk_packed_num : integer ;
-var i, j, k : integer ;
+var i, @!j : integer ;
 begin
    i := get_nyb ;
    if i = 0 then begin
@@ -520,10 +524,9 @@ begin
       pk_packed_num := (i-dyn_f-1)*16+get_nyb+dyn_f+1
    else begin
       if repeat_count <> 0 then abort('Second repeat count for this row!') ;
-      if i = 14 then
-         repeat_count := pk_packed_num
-      else
-         repeat_count := 1 ;
+@.Second repeat count...@>
+      repeat_count := 1; {prevent recursion more than one level}
+      if i = 14 then repeat_count := pk_packed_num;
       send_out(true, repeat_count) ;
       pk_packed_num := pk_packed_num ;
    end ;
@@ -541,26 +544,26 @@ more bytes than this, although, of course, it is legal for any character.
 Any extra bits in the last byte should be set to zero.
 
 @ At this point, we are ready to introduce the format for a character
-descripter.  It consists of three parts: a flag byte, a character preamble,
-and the raster data.  The most significant four nybbles of the flag byte
+descriptor.  It consists of three parts: a flag byte, a character preamble,
+and the raster data.  The most significant four bits of the flag byte
 yield the |dyn_f| value for that character.  (Notice that only values of
 0 through 14 are legal for |dyn_f|, with 14 indicating a bit mapped character;
 thus, the flag bytes do not conflict with the command bytes, whose upper nybble
-is always 15.)  The next bit (with weight 16) indicates whether the first run
+is always 15.)  The next bit (with weight 8) indicates whether the first run
 count is a black count or a white count, with a one indicating a black count.
 For bit-mapped characters, this bit should be set to a zero.  The next bit
-(with weight 8) indicates whether certain later parameters (referred to as size
+(with weight 4) indicates whether certain later parameters (referred to as size
 parameters) are given in one-byte or two-byte quantities, with a one indicating
 that they are in two-byte quantities.  The last two bits are concatenated on to
-the beginning of the length parameter in the character preamble, which will be
-explained below.
+the beginning of the packet-length parameter in the character preamble,
+which will be explained below.
 
 However, if the last three bits of the flag byte are all set (normally
 indicating that the size parameters are two-byte values and that a 3 should be
 prepended to the length parameter), then a long format of the character
 preamble should be used instead of one of the short forms.
 
-Therefore, there are three formats for the character preamble, and which one
+Therefore, there are three formats for the character preamble; the one that
 is used depends on the least significant three bits of the flag byte.  If the
 least significant three bits are in the range zero through three, the short
 format is used.  If they are in the range four through six, the extended short
@@ -573,46 +576,47 @@ explained below.
 If this format of the character preamble is used, the above
 parameters must all fit in the indicated number of bytes, signed or unsigned
 as indicated.  Almost all of the standard \TeX\ font characters fit; the few
-exceptions are fonts such as \.{aminch}.
+exceptions are fonts such as \.{cminch}.
 
 \yskip\hang Extended short form: |flag[1]| |pl[2]| |cc[1]| |tfm[3]| |dm[2]|
 |w[2]| |h[2]| |hoff[+2]| |voff[+2]|.  Larger characters use this extended
 format.
 
 \yskip\hang Long form: |flag[1]| |pl[4]| |cc[4]| |tfm[4]| |dx[4]| |dy[4]|
-|w[4]| |h[4]| |hoff[4]| |voff[4]|.  This is the general format which
+|w[4]| |h[4]| |hoff[4]| |voff[4]|.  This is the general format that
 allows all of the
 parameters of the \.{GF} file format, including vertical escapement.
 \vskip\baselineskip
 The |flag| parameter is the flag byte.  The parameter |pl| (packet length)
 contains the offset
-of the byte following this character descripter, with respect to the beginning
+of the byte following this character descriptor, with respect to the beginning
 of the |tfm| width parameter.  This is given so a \.{PK} reading program can,
 once it has read the flag byte, packet length, and character code (|cc|), skip
 over the character by simply reading this many more bytes.  For the two short
 forms of the character preamble, the last two bits of the flag byte should be
 considered the two most-significant bits of the packet length.  For the short
 format, the true packet length might be calculated as |(flag mod 4)*256+pl|;
-for the extended format, it might be calculated as |(flag mod 4)*65536+pl|.
+for the short extended format, it might be calculated as
+|(flag mod 4)*65536+pl|.
 
 The |w| parameter is the width and the |h| parameter is the height in pixels
 of the minimum bounding box.  The |dx| and |dy| parameters are the horizontal
 and vertical escapements, respectively.  In the short formats, |dy| is assumed
-to be zero and |dm| is |dy| but in pixels;
+to be zero and |dm| is |dx| but in pixels;
 in the long format, |dx| and |dy| are both
 in pixels multiplied by $2^{16}$.  The |hoff| is the horizontal offset from the
 upper left pixel to the reference pixel; the |voff| is the vertical offset.
 They are both given in pixels, with right and down being positive.  The
-reference pixel is the pixel which occupies the unit square in \MF; the
+reference pixel is the pixel that occupies the unit square in \MF; the
 \MF\ reference point is the lower left hand corner of this pixel.  (See the
 example below.)
 
-@ \TeX\ requires that all characters which have the same character codes
-modulo 256 also have the same |tfm| widths, and escapement values.  The \.{PK}
+@ \TeX\ requires all characters that have the same character codes
+modulo 256 to have also the same |tfm| widths and escapement values.  The \.{PK}
 format does not itself make this a requirement, but in order for the font to
 work correctly with the \TeX\ software, this constraint should be observed.
-The current version of \TeX\ (1.5) cannot output character codes greater
-than 255 anyway.
+(The standard version of \TeX\ cannot output character codes greater
+than 255, but extended versions do exist.)
 
 Following the character preamble is the raster information for the
 character, packed by run counts or by bits, as indicated by the flag byte.
@@ -627,41 +631,43 @@ of the borderline cases.  The raster for the character looks like this (the
 row numbers are chosen for convenience, and are not \MF's row numbers.)
 
 \vskip\baselineskip
+{\def\smbox{\vrule height 7pt width 7pt depth 0pt \hskip 3pt}%
+\catcode`\*=\active \let*=\smbox
 \centerline{\vbox{\baselineskip=10pt
 \halign{\hfil#\quad&&\hfil#\hfil\cr
-0& & &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M\cr
-1& & &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M\cr
-2& & &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M\cr
-3& & &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M\cr
-4& & &M&M& & & & & & & & & & & & & & & & &M&M\cr
-5& & &M&M& & & & & & & & & & & & & & & & &M&M\cr
-6& & &M&M& & & & & & & & & & & & & & & & &M&M\cr
+0& & &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*\cr
+1& & &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*\cr
+2& & &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*\cr
+3& & &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*\cr
+4& & &*&*& & & & & & & & & & & & & & & & &*&*\cr
+5& & &*&*& & & & & & & & & & & & & & & & &*&*\cr
+6& & &*&*& & & & & & & & & & & & & & & & &*&*\cr
 7\cr
 8\cr
-9& & & & &M&M& & & & & & & & & & & & &M&M& & \cr
-10& & & & &M&M& & & & & & & & & & & & &M&M& & \cr
-11& & & & &M&M& & & & & & & & & & & & &M&M& & \cr
-12& & & & &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M& & \cr
-13& & & & &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M& & \cr
-14& & & & &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M& & \cr
-15& & & & &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M& & \cr
-16& & & & &M&M& & & & & & & & & & & & &M&M& & \cr
-17& & & & &M&M& & & & & & & & & & & & &M&M& & \cr
-18& & & & &M&M& & & & & & & & & & & & &M&M& & \cr
+9& & & & &*&*& & & & & & & & & & & & &*&*& & \cr
+10& & & & &*&*& & & & & & & & & & & & &*&*& & \cr
+11& & & & &*&*& & & & & & & & & & & & &*&*& & \cr
+12& & & & &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*& & \cr
+13& & & & &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*& & \cr
+14& & & & &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*& & \cr
+15& & & & &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*& & \cr
+16& & & & &*&*& & & & & & & & & & & & &*&*& & \cr
+17& & & & &*&*& & & & & & & & & & & & &*&*& & \cr
+18& & & & &*&*& & & & & & & & & & & & &*&*& & \cr
 19\cr
 20\cr
 21\cr
-22& & &M&M& & & & & & & & & & & & & & & & &M&M\cr
-23& & &M&M& & & & & & & & & & & & & & & & &M&M\cr
-24& & &M&M& & & & & & & & & & & & & & & & &M&M\cr
-25& & &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M\cr
-26& & &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M\cr
-27& & &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M\cr
-28&*& &M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M&M\cr
-&\hphantom{M}&\hphantom{M}\cr
-}}}
+22& & &*&*& & & & & & & & & & & & & & & & &*&*\cr
+23& & &*&*& & & & & & & & & & & & & & & & &*&*\cr
+24& & &*&*& & & & & & & & & & & & & & & & &*&*\cr
+25& & &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*\cr
+26& & &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*\cr
+27& & &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*\cr
+28&+& &*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*\cr
+&\hphantom{*}&\hphantom{*}\cr
+}}}}
 The width of the minimum bounding box for this character is 20; its height
-is 29.  The `*' represents the reference pixel; notice how it lies outside the
+is 29.  The `+' represents the reference pixel; notice how it lies outside the
 minimum bounding box.  The |hoff| value is $-2$, and the |voff| is~28.
 
 The first task is to calculate the run counts and repeat counts.  The repeat
@@ -673,13 +679,13 @@ parentheses.  It is relatively easy to generate the counts list:
 \centerline{16 (4) [2] 2 (12) 2 (62) [2] 2 (16) 82}
 \vskip\baselineskip
 Note that any duplicated rows that are not all white or all black are removed
-before the repeat counts are calculated.  The rows thus removed are rows 5, 6,
+before the run counts are calculated.  The rows thus removed are rows 5, 6,
 10, 11, 13, 14, 15, 17, 18, 23, and 24.
 
 @ The next step in the encoding of this character is to calculate the optimal
 value of |dyn_f|.  The details of how this calculation is done are not
-important here; suffice it to say that there is a simple algorithm which in one
-pass over the count list can determine the best value of |dyn_f|.  For this
+important here; suffice it to say that there is a simple algorithm that can
+determine the best value of |dyn_f| in one pass over the count list.  For this
 character, the optimal value turns out to be 8 (atypically low).  Thus, all
 count values less than or equal to 8 are packed in one nybble; those from
 nine to $(13-8)*16+8$ or 88 are packed in two nybbles.  The run encoded values
@@ -717,8 +723,6 @@ Raster data&D9&E2&97\cr
 &93&2C&5E\cr
 &22&97&D9\cr}}$$
 
-@ This format was written by Tomas Rokicki in August, 1985.
-
 @* Input and output.
 There are two types of files that this program must deal with---standard
 text files and files of bytes (packed files.)
@@ -730,53 +734,51 @@ no major difficulty; you must only insure that the input function
 @<Types...@>=
 @!eight_bits=0..255; {packed file byte}
 @!byte_file=packed file of eight_bits ; {for packed file words}
-@^system dependancies@>
-
-@ @<Glob...@>=
-@!typ_file:text_file; {where the input comes from}
-@!pk_file:byte_file;  {where the final output goes}
 @^system dependencies@>
 
-@ To prepare these files for input, we |reset| them. An extension of
-\PASCAL\ is needed in the case of |typ_file|, since we want to associate
-it with external files whose names are specified dynamically (i.e., not
+@ @<Glob...@>=
+@!pk_file:byte_file;  {where the input comes from}
+@!typ_file:text_file; {where the final output goes}
+@^system dependencies@>
+
+@ To prepare these files for input and output, we |reset| and |rewrite| them.
+An extension of \PASCAL\ is needed, since we want to associate files
+with external names that are specified dynamically (i.e., not
 known at compile time). The following code assumes that `|reset(f,s)|'
 does this, when |f| is a file variable and |s| is a string variable that
 specifies the file name. If |eof(f)| is true immediately after
 |reset(f,s)| has acted, we assume that no file named |s| is accessible.
 @^system dependencies@>
 
-@p procedure open_typ_file; {prepares to write text data to the |typ_file|}
-begin rewrite(typ_file,typ_name);
-end;
-@#
-procedure open_pk_file; {prepares the input for reading}
+@p procedure open_pk_file; {prepares the input for reading}
 begin reset(pk_file,pk_name);
 pk_loc := 0 ;
+end;
+@#
+procedure open_typ_file; {prepares to write text data to the |typ_file|}
+begin rewrite(typ_file,typ_name);
 end;
 
 @ We need a place to store the names of the input and output file, as well
 as a byte counter for the output file.
 
 @<Glob...@>=
-@!typ_name,@!pk_name:packed array[1..name_length] of char; {name of input
+@!pk_name,@!typ_name:packed array[1..name_length] of char; {name of input
     and output files}
 @!pk_loc:integer; {how many bytes have we read?}
 
 @ We also need a function that will get a single byte from the \.{pk} file.
-Again, buffering may be done in this procedure.
 
 @p function pk_byte : eight_bits ;
 var temp : eight_bits ;
 begin
    temp := pk_file^ ;
    get(pk_file) ;
-   pk_loc := pk_loc + 1 ;
+   incr(pk_loc) ;
    pk_byte := temp ;
 end ;
 
-@ Now we are ready to open the files and write the identification of the
-pixel file.
+@ Now we are ready to open the files.
 
 @<Open files@>=
 open_pk_file ;
@@ -806,12 +808,14 @@ get_32 := a * 65536 + get_16 ; end ;
 @<Glob...@>=
 @!term_pos : integer ; {current terminal position}
 
-@ Now we read and check the preamble of the pk file.  In the preamble, we
+@ Now we read and check the preamble of the \.{PK} file.  In the preamble, we
 find the |hppp|, |design_size|, |checksum|.
 
 @<Read preamble@>=
-if pk_byte <> pk_pre then abort('Bad pk file!  pre command missing.') ;
-if pk_byte <> pk_id then abort('Wrong version of packed file!.') ;
+if pk_byte <> pk_pre then abort('Bad PK file:  pre command missing!') ;
+@.pre command missing@>
+if pk_byte <> pk_id then abort('Wrong version of PK file!') ;
+@.Wrong version of PK file@>
 j := pk_byte ;
 t_print('''') ;
 for i := 1 to j do t_print(xchr[pk_byte]) ;
@@ -858,7 +862,8 @@ if dy <> 0 then t_print_ln('  dy = ',dy:1) else t_print_ln(' ') ;
 t_print_ln('  Height = ',height:1,'  Width = ',width:1,'  X-offset = ',
    x_off:1, '  Y-offset = ',y_off:1) ;
 @<Read and translate raster description@> ;
-if end_of_packet <> pk_loc then abort('Bad pk file!  Bad packet length.')
+if end_of_packet <> pk_loc then abort('Bad PK file: Bad packet length!')
+@.Bad packet length@>
 
 @ We need a whole lot of globals used but not defined up there.
 
@@ -1040,7 +1045,8 @@ while rows_left > 0 do begin
 end ;
 t_print_ln(' ') ;
 if (rows_left <> 0) or (h_bit <> width) then
-   abort('Bad pk file---more bits than required!');
+   abort('Bad PK file: More bits than required!');
+@.More bits than required@>
 end
 
 @ We need to declare the repeat flag, bit counter, and color flag here.
@@ -1054,26 +1060,28 @@ end
 
 @ If any specials are found, we write them out here.
 
+@d four_cases(#)==#,#+1,#+2,#+3
+
 @p procedure skip_specials ;
-var i, j, k : integer ;
+var @!i, @!j: integer ;
 begin
    repeat
       flag_byte := pk_byte ;
       if flag_byte >= 240 then
          case flag_byte of
-            240, 241, 242, 243 :
+            four_cases(pk_xxx1):
 begin
    t_print((pk_loc-1):1,':  Special: ''') ;
    i := 0 ;
-   for j := 240 to flag_byte do i := 256 * i + pk_byte ;
+   for j := pk_xxx1 to flag_byte do i := 256 * i + pk_byte ;
    for j := 1 to i do t_print(xchr[pk_byte]) ;
    t_print_ln('''') ;
 end ;
-            244 : t_print_ln((pk_loc-1):1,':  Num special: ',get_32:1) ;
-            245 : t_print_ln((pk_loc-1):1,':  Postamble') ;
-            246 : t_print_ln((pk_loc-1):1,':  No op') ;
-            247, 248, 249, 250, 251, 252, 253, 254, 255 :
-              abort('Unexpected ', flag_byte:1,'!') ;
+          pk_yyy : t_print_ln((pk_loc-1):1,':  Num special: ',get_32:1) ;
+         pk_post : t_print_ln((pk_loc-1):1,':  Postamble') ;
+        pk_no_op : t_print_ln((pk_loc-1):1,':  No op') ;
+    pk_pre, pk_undefined : abort('Unexpected ', flag_byte:1,'!') ;
+@.Unexpected bbb@>
          endcases ;
    until (flag_byte < 240) or (flag_byte = pk_post) ;
 end ;
@@ -1130,6 +1138,7 @@ j := 0 ;
 while not eof(pk_file) do begin
    i := pk_byte ;
    if i <> pk_no_op then abort('Bad byte at end of file: ',i:1) ;
+@.Bad byte at end of file@>
    t_print_ln((pk_loc-1):1,':  No op') ;
    incr(j) ;
 end ;

@@ -114,7 +114,7 @@ cmd_check(int argc, char *argv[])
 		for(f=0; ckoption[f].option; f++)
 			if(strcmp(argv[i], ckoption[f].option) == 0)
 				goto found;
-		print("unnown check option %s\n", argv[i]);
+		print("unknown check option %s\n", argv[i]);
 		for(f=0; ckoption[f].option; f++)
 			print("	%s\n", ckoption[f].option);
 		return;

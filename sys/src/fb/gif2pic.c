@@ -1,6 +1,176 @@
 /*
- * gif2pic.c  -  based strongly on gif2ras.c, whose author requires
- * me to reproduce the following:
+ * gif2pic.c - convert Compuserve GIF images into picfiles
+ */
+#include <u.h>
+#include <libc.h>
+#include <libg.h>
+#include <fb.h>
+typedef struct Header Header;
+typedef struct Image Image;
+typedef unsigned char byte;
+struct Header{
+	char vers[3];
+	int wid;
+	int hgt;
+	int flags;
+	int bg;
+	int par;
+	byte cmap[256][3];
+	int ncmap;
+};
+#define	CMAP	0x80		/* color map follows */
+#define	NBIT	0x70		/* 1 less than # bits/pixel */
+#define	GSORT	0x08		/* global map is sorted */
+#define	NCMAP	0x07		/* 1 less than # bits/colormap */
+struct Image{
+	int left, top;
+	int wid, hgt;
+	int flags;
+	int ncmap;
+	byte cmap[256][3];
+	int x, y;
+	int dy;
+	int pass;
+	byte *image;
+};
+Header header;
+Image image;
+#define	LACE	0x40		/* image is interlaced */
+#define	LSORT	0x20		/* local map is sorted */
+#define	EXTENSION	0x21
+#define	TRAILER		0x3b
+#define	IMAGE		0x2c
+#define	NBUF	8192
+char *cmd;
+int fd;
+byte buf[NBUF];
+byte *bp, *ebp;
+int ateof;
+char *inputfile;
+#define	EOF	(-1)
+int nextc(void){
+	int n;
+	if(ateof) return EOF;
+	if(bp==ebp){
+		n=read(fd, buf, NBUF);
+		if(n<=0){
+			ateof=1;
+			return EOF;
+		}
+		bp=buf;
+		ebp=buf+n;
+	}
+	return *bp++;
+}
+int errcount;
+void err(int fatal, char *msg){
+	fprint(2, "%s: %s: %s\n", cmd, inputfile, msg);
+	if(fatal) exits(msg);
+	errcount=1;
+}
+int rdc(void){
+	int c;
+	c=nextc();
+	if(c==EOF) err(1, "unexpected EOF on GIF file");
+	return c;
+}
+int rdi(void){
+	int c1, c2;
+	c1=rdc();
+	c2=rdc();
+	return c1+c2*256;
+}
+void rdcmap(byte cmap[256][3], int ncmap){
+	int i;
+	for(i=0;i!=ncmap;i++){
+		cmap[i][0]=rdc();
+		cmap[i][1]=rdc();
+		cmap[i][2]=rdc();
+	}
+}
+void rdheader(void){
+	if(rdc()!='G' || rdc()!='I' || rdc()!='F') err(1, "input is not a GIF file");
+	header.vers[0]=rdc();
+	header.vers[1]=rdc();
+	header.vers[2]=rdc();
+	/* should we check for a legal version? */
+	header.wid=rdi();
+	header.hgt=rdi();
+	header.flags=rdc();
+	header.bg=rdc();
+	header.par=rdc();
+	if(header.flags&CMAP){
+		header.ncmap=2<<(header.flags&NCMAP);
+		rdcmap(header.cmap, header.ncmap);
+	}
+	else header.ncmap=0;
+}
+void insertpixel(int v){
+	if(image.y==-1) return;
+	if(image.y>=image.hgt){
+		err(0, "GIF code overflows image");
+		image.y=-1;
+		return;
+	}
+	image.image[image.y*image.wid+image.x]=v;
+	++image.x;
+	if(image.x==image.wid){
+		image.x=0;
+		image.y+=image.dy;
+		if(image.y>=image.hgt && image.pass<3){
+			image.y=4>>image.pass;
+			image.dy=8>>image.pass;
+			image.pass++;
+		}
+	}
+}
+int codesize;			/* how many bits rdcode should read */
+int EOFcode;			/* what to return on end-of-data */
+int nblock=0;			/* # of bytes left to read in the subblock */
+/*
+ * Read codesize bits from the GIF data stream.
+ * The data stream is a sequence of subblocks, each
+ * preceded by a byte count.  A zero count or a real EOF
+ * indicates premature end of data, at which point
+ * rdcode returns EOFcode, just to be civilized.
+ */
+int rdcode(void){
+	int code, nbit, offs;
+	static int remain=0;		/* bits read but not returned by rdcode */
+	static int nremain=0;		/* how many bits in remain? */
+	if(nblock==EOF) return EOFcode;
+	nbit=codesize;
+	offs=0;
+	code=0;
+	while(nbit>nremain){
+		code|=remain<<offs;
+		offs+=nremain;
+		nbit-=nremain;
+		if(nblock==0){
+			nblock=nextc();
+			if(nblock==EOF || nblock==0){
+				err(0, "premature GIF block terminator");
+				return EOFcode;
+			}
+		}
+		remain=nextc();
+		if(remain==EOF){
+			nblock=EOF;
+			err(0, "truncated GIF subblock");
+			return EOFcode;
+		}
+		--nblock;
+		nremain=8;
+	}
+	code|=(remain&((1<<nbit)-1))<<offs;
+	remain>>=nbit;
+	nremain-=nbit;
+	return code;
+}
+/*
+ * A previous version of rdlzw was based on code in gif2ras.c, and
+ * in the unlikely event that it still contains code that he may lay
+ * claim to, the author requires us to reproduce the following:
  *
  * gif2ras.c - Converts from a Compuserve GIF (tm) image to a Sun Raster image.
  *
@@ -20,295 +190,237 @@
  * trade secrets or any patents by this file or any part thereof.  In no
  * event will the author be liable for any lost revenue or profits or
  * other special, indirect and consequential damages.
- *
  */
-#include <u.h>
-#include <libc.h>
-#include <stdio.h>
-#include <libg.h>
-#include <fb.h>
-typedef unsigned char byte;
-typedef int boolean;
-#define NEXTBYTE (*ptr++)
-#define IMAGESEP 0x2c
-#define INTERLACEMASK 0x40
-#define COLORMAPMASK 0x80
-char *cmd;
-int numcols;
-FILE *fp;
-int BitOffset = 0,			/* Bit Offset of next code */
-	XC = 0, YC = 0,			/* Output X and Y coords of current pixel */
-	Pass = 0,			/* Used by output routine if interlaced pic */
-	OutCount = 0,			/* Decompressor output 'stack count' */
-	RWidth, RHeight,		/* screen dimensions */
-	Width, Height,			/* image dimensions */
-	LeftOfs, TopOfs,		/* image offset */
-	BitsPerPixel,			/* Bits per pixel, read from GIF header */
-	BytesPerScanline,		/* bytes per scanline in output raster */
-	ColorMapSize,			/* number of colors */
-	Background,			/* background color */
-	CodeSize,			/* Code size, read from GIF header */
-	InitCodeSize,			/* Starting code size, used during Clear */
-	Code,				/* Value returned by ReadCode */
-	MaxCode,			/* limiting value for current code size */
-	ClearCode,			/* GIF clear code */
-	EOFCode,			/* GIF end-of-information code */
-	CurCode, OldCode, InCode,	/* Decompressor variables */
-	FirstFree,			/* First free code, generated per GIF spec */
-	FreeCode,			/* Decompressor, next free slot in hash table */
-	FinChar,			/* Decompressor variable */
-	BitMask,			/* AND mask for data size */
-	ReadMask;			/* Code AND mask for current code size */
-boolean Interlace, HasColormap;
-byte *Image;				/* The result array */
-byte *RawGIF;				/* The heap array to hold it, raw */
-byte *Raster;				/* The raster data stream, unblocked */
-/* The hash table used by the decompressor */
-int Prefix[4096];
-int Suffix[4096];
-/* An output array used by the decompressor */
-int OutCode[1025];
-/* The color map, read from the GIF header */
-byte cmap[256][3];
-char *id = "GIF87a";
-void FatalError(char *s){
-	fprintf(stderr, "%s: %s\n", cmd, s);
-	exits("error");
+void rdlzw(void){
+	int clear;			/* reinitialize lzw tables when code==clear */
+	int firstfree;			/* initial lzw table free pointer */
+	int freecode;			/* lzw table free pointer */
+	int initcodesize;		/* # of bits in code, when lzw tables clear */
+	int maxcode;			/* code that causes codesize to be bumped */
+	int code;			/* input code */
+	int cur;			/* chain through lzw table */
+	int prev;			/* last code read */
+	int finchar;			/* char output for last code read */
+	int maxout;			/* largest output value, must be (1<<nbit)-1 */
+	static prefix[4096];		/* which code is the prefix of this code? */
+	static byte suffix[4096];	/* last output value for this code */
+	static byte out[1025];		/* output string buffer, should be 4096 long? */
+	byte *outp;			/* output string pointer */
+	initcodesize=rdc();
+	clear=1<<initcodesize;
+	EOFcode=clear+1;
+	firstfree=clear+2;
+	initcodesize++;
+	nblock=0;
+	maxout=image.ncmap-1;
+	outp=out;
+	codesize=initcodesize;
+	code=rdcode();
+	if(code!=clear){
+		err(0, "GIF lzw data must start with clear code");
+		maxcode=1<<codesize;
+		freecode=firstfree;
+		prev=0;
+		finchar=prev;
+	}
+	else SET(maxcode, freecode, prev, finchar);
+	for(;code!=EOFcode;code=rdcode()){
+		if(code==clear){
+			codesize=initcodesize;
+			maxcode=1<<codesize;
+			freecode=firstfree;
+			prev=rdcode();
+			finchar=prev&maxout;
+			insertpixel(finchar);
+		}
+		else{
+			cur=code;
+			if(cur>=freecode){
+				cur=prev;
+				*outp++=finchar;
+			}
+			while(cur>maxout){
+				if(outp>&out[1024]) err(1, "GIF lzw code too long!");
+				*outp++=suffix[cur];
+				cur=prefix[cur];
+			}
+			finchar=cur&maxout;
+			insertpixel(finchar);
+			while(outp!=out) insertpixel(*--outp);
+			if(freecode!=4096){
+				prefix[freecode]=prev;
+				suffix[freecode]=finchar;
+				prev=code;
+				freecode++;
+				if(freecode>=maxcode){
+					if(codesize<12){
+						codesize++;
+						maxcode<<=1;
+					}
+				}
+			}
+		}
+	}
+	if(nblock!=EOF && (nblock!=0 || nextc()!=0))
+		err(0, "extra data at end of GIF data block");
 }
-/* Fetch the next code from the raster data stream.  The codes can be
- * any length from 3 to 12 bits, packed into 8-bit bytes, so we have to
- * maintain our location in the Raster array as a BIT Offset.  We compute
- * the byte Offset into the raster array by dividing this by 8, pick up
- * three bytes, compute the bit Offset into our 24-bit chunk, shift to
- * bring the desired code to the bottom, then mask it off and return it. 
+/*
+ * skip past a group of data subblocks, stopping when a block terminator
+ * (a zero-length subblock) appears.
  */
-int ReadCode(void){
-	int RawCode, ByteOffset;
-	ByteOffset = BitOffset / 8;
-	RawCode = Raster[ByteOffset] + (0x100 * Raster[ByteOffset + 1]);
-	if (CodeSize >= 8)
-		RawCode += (0x10000 * Raster[ByteOffset + 2]);
-	RawCode >>= (BitOffset % 8);
-	BitOffset += CodeSize;
-	return(RawCode & ReadMask);
+void skipdata(void){
+	int i, n;
+	while((n=rdc())!=0) for(i=0;i!=n;i++) rdc();
 }
-void AddToPixel(byte Index){
-	if (YC<Height)
-		*(Image + YC * BytesPerScanline + XC) = Index;
-	/* Update the X-coordinate, and if it overflows, update the Y-coordinate */
-	if (++XC == Width) {
-		/* If a non-interlaced picture, just increment YC to the next scan line. 
-		 * If it's interlaced, deal with the interlace as described in the GIF
-		 * spec.  Put the decoded scan line out to the screen if we haven't gone
-		 * past the bottom of it
-		 */
-		XC = 0;
-		if (!Interlace) YC++;
-		else {
-			switch (Pass) {
-			case 0:
-				YC += 8;
-				if (YC >= Height) {
-					Pass++;
-					YC = 4;
-				}
-				break;
-			case 1:
-				YC += 8;
-				if (YC >= Height) {
-					Pass++;
-					YC = 2;
-				}
-				break;
-			case 2:
-				YC += 4;
-				if (YC >= Height) {
-					Pass++;
-					YC = 1;
-				}
-				break;
-			case 3:
-				YC += 2;
-				break;
+void rdimage(void){
+	for(;;){
+		switch(nextc()){
+		default:
+			err(1, "corrupt GIF file");
+		case TRAILER:
+		case EOF:
+			err(1, "EOF searching for GIF image");
+		case EXTENSION:
+			rdc();
+			skipdata();
+			break;
+		case IMAGE:
+			image.left=rdi();
+			image.top=rdi();
+			image.wid=rdi();
+			image.hgt=rdi();
+			image.flags=rdc();
+			if(image.flags&CMAP){
+				image.ncmap=2<<(image.flags&NCMAP);
+				rdcmap(image.cmap, image.ncmap);
 			}
+			else{
+				memcpy(image.cmap, header.cmap, 256*3);
+				image.ncmap=header.ncmap;
+			}
+			image.x=0;
+			image.y=0;
+			if(image.flags&LACE){
+				image.dy=8;
+				image.pass=0;
+			}
+			else{
+				image.dy=1;
+				image.pass=3;
+			}
+			if(image.image) free(image.image);
+			image.image=malloc(image.wid*image.hgt);
+			if(image.image==0) err(1, "can't allocate image memory");
+			return;
 		}
 	}
 }
-void LoadGIF(char *fname){
-	int filesize;
-	byte ch, ch1;
-	byte *ptr, *ptr1;
-	int i;
-	fp = fopen(fname,"r");
-	if (!fp) FatalError("file not found");
-	/* find the size of the file */
-	fseek(fp, 0L, 2);
-	filesize = ftell(fp);
-	fseek(fp, 0L, 0);
-	if (!(ptr = RawGIF = (byte *) malloc(filesize)))
-		FatalError("not enough memory to read gif file");
-	if (!(Raster = (byte *) malloc(filesize)))
-		FatalError("not enough memory to read gif file");
-	if (fread((char *)ptr, filesize, 1, fp) != 1)
-		FatalError("GIF data read failed");
-	if (strncmp((char *)ptr, id, 6))
-		FatalError("not a GIF file");
-	ptr += 6;
-	/* Get variables from the GIF screen descriptor */
-	ch = NEXTBYTE;
-	RWidth = ch + 0x100 * NEXTBYTE;	/* screen dimensions... not used. */
-	ch = NEXTBYTE;
-	RHeight = ch + 0x100 * NEXTBYTE;
-	ch = NEXTBYTE;
-	HasColormap = ((ch & COLORMAPMASK) ? 1 : 0);
-	BitsPerPixel = (ch & 7) + 1;
-	numcols = ColorMapSize = 1 << BitsPerPixel;
-	BitMask = ColorMapSize - 1;
-	Background = NEXTBYTE;		/* background color... not used. */
-	if (NEXTBYTE)		/* supposed to be NULL */
-		FatalError("corrupt GIF file (bad screen descriptor)");
-	/* Read in global colormap. */
-	if (HasColormap) {
-		for (i = 0; i < ColorMapSize; i++) {
-			cmap[i][0] = NEXTBYTE;
-			cmap[i][1] = NEXTBYTE;
-			cmap[i][2] = NEXTBYTE;
-		}
-	}
-	/* Check for image seperator */
-	if (NEXTBYTE != IMAGESEP)
-		FatalError("corrupt GIF file (no image separator)");
-	/* Now read in values from the image descriptor */
-	ch = NEXTBYTE;
-	LeftOfs = ch + 0x100 * NEXTBYTE;
-	ch = NEXTBYTE;
-	TopOfs = ch + 0x100 * NEXTBYTE;
-	ch = NEXTBYTE;
-	Width = ch + 0x100 * NEXTBYTE;
-	ch = NEXTBYTE;
-	Height = ch + 0x100 * NEXTBYTE;
-	Interlace = ((NEXTBYTE & INTERLACEMASK) ? 1 : 0);
-	/* Note that I ignore the possible existence of a local color map.
-	 * I'm told there aren't many files around that use them, and the spec
-	 * says it's defined for future use.  This could lead to an error
-	 * reading some files. 
-	 */
-	/* Start reading the raster data. First we get the intial code size
-	 * and compute decompressor constant values, based on this code size.
-	 */
-	CodeSize = NEXTBYTE;
-	ClearCode = (1 << CodeSize);
-	EOFCode = ClearCode + 1;
-	FreeCode = FirstFree = ClearCode + 2;
-	/* The GIF spec has it that the code size is the code size used to
-	 * compute the above values is the code size given in the file, but the
-	 * code size used in compression/decompression is the code size given in
-	 * the file plus one. (thus the ++).
-	 */
-	CodeSize++;
-	InitCodeSize = CodeSize;
-	MaxCode = (1 << CodeSize);
-	ReadMask = MaxCode - 1;
-	/* Read the raster data.  Here we just transpose it from the GIF array
-	 * to the Raster array, turning it from a series of blocks into one long
-	 * data stream, which makes life much easier for ReadCode().
-	 */
-	ptr1 = Raster;
-	do {
-		ch = ch1 = NEXTBYTE;
-		while (ch--) *ptr1++ = NEXTBYTE;
-		if ((Raster - ptr1) > filesize)
-			FatalError("corrupt GIF file (unblock)");
-	} while(ch1);
-	free((char *)RawGIF);		/* We're done with the raw data now... */
-	/* Allocate the X Image */
-	Image = (byte *) malloc(Width*Height);
-	if (!Image) FatalError("not enough memory for XImage");
-	BytesPerScanline = Width;
-	/* Decompress the file, continuing until you see the GIF EOF code.
-	 * One obvious enhancement is to add checking for corrupt files here.
-	 */
-	Code = ReadCode();
-	while (Code != EOFCode) {
-		/* Clear code sets everything back to its initial value, then reads the
-		 * immediately subsequent code as uncompressed data.
-		 */
-		if (Code == ClearCode) {
-			CodeSize = InitCodeSize;
-			MaxCode = (1 << CodeSize);
-			ReadMask = MaxCode - 1;
-			FreeCode = FirstFree;
-			CurCode = OldCode = Code = ReadCode();
-			FinChar = CurCode & BitMask;
-			AddToPixel(FinChar);
-		}
-		else {
-			/* If not a clear code, then must be data: save same as CurCode and InCode */
-			CurCode = InCode = Code;
-			/* If greater or equal to FreeCode, not in the hash table yet;
-			 * repeat the last character decoded
-			 */
-			if (CurCode >= FreeCode) {
-				CurCode = OldCode;
-				OutCode[OutCount++] = FinChar;
-			}
-			/* Unless this code is raw data, pursue the chain pointed to by CurCode
-			 * through the hash table to its end; each code in the chain puts its
-			 * associated output code on the output queue.
-			 */
-			while (CurCode > BitMask) {
-				if (OutCount > 1024)
-					FatalError("Corrupt GIF file (OutCount)!\n");
-				OutCode[OutCount++] = Suffix[CurCode];
-				CurCode = Prefix[CurCode];
-			}
-			/* The last code in the chain is treated as raw data. */
-			FinChar = CurCode & BitMask;
-			OutCode[OutCount++] = FinChar;
-			/* Now we put the data out to the Output routine.
-			 * It's been stacked LIFO, so deal with it that way...
-			 */
-			for (i = OutCount - 1; i >= 0; i--)
-				AddToPixel(OutCode[i]);
-			OutCount = 0;
-			/* Build the hash table on-the-fly. No table is stored in the file. */
-			Prefix[FreeCode] = OldCode;
-			Suffix[FreeCode] = FinChar;
-			OldCode = InCode;
-			/* Point to the next slot in the table.  If we exceed the current
-			 * MaxCode value, increment the code size unless it's already 12.  If it
-			 * is, do nothing: the next code decompressed better be CLEAR
-			 */
-			FreeCode++;
-			if (FreeCode >= MaxCode) {
-				if (CodeSize < 12) {
-					CodeSize++;
-					MaxCode *= 2;
-					ReadMask = (1 << CodeSize) - 1;
-				}
-			}
-		}
-		Code = ReadCode();
-	}
-	free((char *)Raster);
-	fclose(fp);
+typedef struct Remap Remap;
+struct Remap{
+	byte r, g, b, c;
+};
+int cmp(void *aa, void *bb){
+	Remap *a, *b;
+	a=aa;
+	b=bb;
+	return (a->r-b->r)*299+(a->g-b->g)*587+(a->b-b->b)*114;
 }
-main(int argc, char *argv[]){
+/*
+ * Shuffle the pixels and the color map to sidestep the
+ * 4 magic pixel values, if possible.  Otherwise, just
+ * sort the color map in luminance order.  This is just a
+ * gesture towards detente with 8½ and rio.
+ */
+void remap(void){
+	int hist[256];
+	byte zero[256];
+	Remap remap[256];
+	byte pixmap[256];
+	byte *p, *ep;
+	int i, nzero;
+	byte t;
+	for(i=0;i!=256;i++) hist[i]=0;
+	ep=image.image+image.wid*image.hgt;
+	for(p=image.image;p!=ep;p++) hist[*p]++;
+	nzero=0;
+	for(i=0;i!=256;i++) if(hist[i]==0) zero[nzero++]=i;
+	for(i=0;i!=256;i++){
+		remap[i].r=image.cmap[i][0];
+		remap[i].g=image.cmap[i][1];
+		remap[i].b=image.cmap[i][2];
+		remap[i].c=i;
+	}
+	if(nzero<4) qsort(remap, 256, 4, cmp);
+	else{
+		for(i=0;i!=4;i++){
+			remap[zero[i]]=remap[i*85];
+			remap[i*85].r=remap[i*85].g=remap[i*85].b=i*85;
+			remap[i*85].c=zero[i];
+		}
+	}
+	for(i=0;i!=256;i++){
+		image.cmap[i][0]=remap[i].r;
+		image.cmap[i][1]=remap[i].g;
+		image.cmap[i][2]=remap[i].b;
+		pixmap[remap[i].c]=i;
+	}
+	for(p=image.image;p!=ep;p++) *p=pixmap[*p];
+}
+void main(int argc, char *argv[]){
 	PICFILE *p;
-	int y;
-	if(argc!=2){
-		fprintf(stderr, "Usage: %s file\n", argv[0]);
-		exits("usage");
+	int y, i, which;
+	byte *linebuf, *elinebuf, *rgbp, *mp, *cmp;
+	argc=getflags(argc, argv, "ms:1[image #]n:1[name]");
+	switch(argc){
+	default: usage("[file]");
+	case 1: fd=0; inputfile="*stdin*"; break;
+	case 2:
+		inputfile=argv[1];
+		fd=open(inputfile, OREAD);
+		if(fd==-1){
+			fprint(2, "%s: %s: %r\n", argv[0], inputfile);
+			exits("no open");
+		}
+		break;
 	}
 	cmd=argv[0];
-	LoadGIF(argv[1]);
-	p=picopen_w("OUT", "runcode", LeftOfs, TopOfs, BytesPerScanline, Height,
-		"m", argv, HasColormap?(char *)cmap:0);
+	which=flag['s']?atoi(flag['s'][0]):1;
+	rdheader();
+	for(i=1;i!=which;i++){
+		rdimage();
+		skipdata();
+	}
+	rdimage();
+	rdlzw();
+	if(image.ncmap==0) flag['m']=flagset;
+	if(!flag['m']) image.ncmap=0;
+	if(image.ncmap) remap();
+	p=picopen_w("OUT", "runcode", image.left, image.top, image.wid, image.hgt,
+		flag['m']?"m":"rgb", argv, image.ncmap?(char *)image.cmap:0);
+	if(flag['n']) picputprop(p, "NAME", flag['n'][0]);
+	else if(argc>1) picputprop(p, "NAME", argv[1]);
+	if(errcount) picputprop(p, "COMMENT", "created from corrupt GIF input");
 	if(p==0){
-		picerror(argv[0]);
+		perror(argv[1]);
 		exits("can't create OUT");
 	}
-	for(y=0;y!=Height;y++)
-		picwrite(p, (char *)(Image+y*BytesPerScanline));
-	exits(""); 
+	if(flag['m']){
+		for(y=0;y!=image.hgt;y++)
+			picwrite(p, (char *)image.image+y*image.wid);
+	}
+	else{
+		linebuf=malloc(3*image.wid);
+		if(linebuf==0) err(1, "can't allocate scan-line buffer");
+		elinebuf=linebuf+3*image.wid;
+		for(y=0;y!=image.hgt;y++){
+			for(rgbp=linebuf,mp=image.image+y*image.wid;rgbp!=elinebuf;mp++){
+				cmp=image.cmap[*mp];
+				*rgbp++=*cmp++;
+				*rgbp++=*cmp++;
+				*rgbp++=*cmp;
+			}
+			picwrite(p, (char *)linebuf);
+		}
+	}
+	exits(errcount?"possibly bad output":0); 
 }

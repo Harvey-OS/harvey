@@ -7,10 +7,10 @@
 #define	ALARM		6
 #define	EXEC		7
 #define	EXITS		8
-#define	_X1		9
-#define	_X2		10
+#define FSESSION	9
+#define	FAUTH		10
 #define	FSTAT		11
-#define	SEGBRK		12
+#define SEGBRK		12
 #define	MOUNT		13
 #define	OPEN		14
 #define	READ		15

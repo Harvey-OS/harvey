@@ -1,7 +1,9 @@
-#define	NNAME	20
 #define	NSNAME	8
 #define	NSYM	50
 #define	NREG	32
+
+#define NOPROF	(1<<0)
+#define DUPOK	(1<<1)
 
 #define	REGZERO		0
 #define	REGRET		1
@@ -117,6 +119,28 @@ enum	as
 	AXOR,
 
 	AEND,
+
+	AMOVV,
+	AMOVVL,
+	AMOVVR,
+	ASLLV,
+	ASRAV,
+	ASRLV,
+	ADIVV,
+	ADIVVU,
+	AREMV,
+	AREMVU,
+	AMULV,
+	AMULVU,
+	AADDV,
+	AADDVU,
+	ASUBV,
+	ASUBVU,
+
+	ADYNT,
+	AINIT,
+
+	ALAST,
 };
 
 /* type/name */
@@ -136,6 +160,8 @@ enum	as
 #define	D_FCREG	(D_NONE+14)
 #define	D_MREG	(D_NONE+15)
 #define	D_FILE	(D_NONE+16)
+#define	D_OCONST (D_NONE+17)
+#define	D_FILE1	(D_NONE+18)
 
 /* name */
 #define	D_EXTERN (D_NONE+3)
@@ -147,19 +173,6 @@ enum	as
  * this is the ranlib header
  */
 #define	SYMDEF	"__.SYMDEF"
-
-typedef
-struct
-{
-	union
-	{
-		long	offset;		/* for calculation */
-		char	coffset[4];	/* in file little endian */
-	};
-	char	name[NNAME];
-	char	type;
-	char	pad[3];
-} Rlent;
 
 /*
  * this is the simulated IEEE floating point

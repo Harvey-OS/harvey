@@ -1,10 +1,10 @@
 #include <alef.h>
 #include <fcall.h>
-#include <graphics.h>
+#include <libg.h>
 #include <frame.h>
 #include "y.h"
 
-char *menu2[] =
+byte *menu2[] =
 {
 	"cut",
 	"paste",
@@ -100,13 +100,13 @@ clntmouse(Window *w, Mesg *m)
 		return;
 	}
 
-	if(m->mb == 0 && w->didscroll) {
+	if(m->buttons == 0 && w->didscroll) {
 		w->didscroll = 0;
 		return;
 	}
 
-	if(w->titleb && ptinrect(m->m, w->titler)) {
-		if(m->mb != 0)
+	if(w->titleb && ptinrect(m->xy, w->titler)) {
+		if(m->buttons != 0)
 			clntmgr(w, m);
 		return;
 	}
@@ -116,18 +116,18 @@ clntmouse(Window *w, Mesg *m)
 		return;
 	}
 
-	if(w == grab || ptinrect(m->m, w->win)) {
+	if(w == grab || ptinrect(m->xy, w->win)) {
 		w->mse = m->Mouse;
 		if(w->mouseopen) {
 			w->msedelta = 1;
-			if(m->mb)
+			if(m->buttons)
 				grab = w;
 		}
 		else
-		if(m->mb & Mouse_l)
+		if(m->buttons & Mouse_l)
 			select(w);
 		else
-		if(m->mb & Mouse_r) {
+		if(m->buttons & Mouse_r) {
 			m->type = MsgMenu1;
 			m->menu = menu2;
 			m->rchan = w->in;
@@ -136,7 +136,8 @@ clntmouse(Window *w, Mesg *m)
 		return;
 	}
 
-	if(m->mb && !w->mouseopen && w->scrollb && ptinrect(m->m, w->scroll)) {
+	if(m->buttons && !w->mouseopen &&
+	   w->scrollb && ptinrect(m->xy, w->scroll)) {
 		clntscroll(w, m);
 		return;
 	}
@@ -222,12 +223,13 @@ doio(Window *w)
 	for(m = *l; m; m = next) {
 		if(clntread(w, m)) {
 			next = m->link;
-			*l = m->link;
+			*l = next;
 			free(m);
-			continue;
 		}
-		l = &m->link;
-		next = m->link;
+		else {
+			l = &m->link;
+			next = m->link;
+		}
 	}
 
 	l = &w->wrioqhd;
@@ -236,10 +238,11 @@ doio(Window *w)
 			next = m->link;
 			*l = m->link;
 			free(m);
-			continue;
 		}
-		l = &m->link;
-		next = m->link;
+		else {
+			l = &m->link;
+			next = m->link;
+		}
 	}
 }
 
@@ -274,7 +277,7 @@ consread(Window *w, Ioreq *i)
 {
 	Buf *kb;
 	Rune *r;
-	char *p;
+	byte *p;
 	Fcall thdr;
 	int l, cnt, n;
 
@@ -406,17 +409,17 @@ clntscroll(Window *w, Mesg *m)
 	Frame *f;
 	int h, o, l;
 
-	if(m->mb & Mouse_m) {
+	if(m->buttons & Mouse_m) {
 		h = w->scroll.max.y - w->scroll.min.y;
-		o = m->m.y - w->scroll.min.y;
+		o = m->xy.y - w->scroll.min.y;
 		l = (w->input*o)/h;
 		l -= scan(w, l, 1, '\n');
 		clnto(w, l);
 		clntsel(w, w->sp0, w->sp1);
 		h = w->scroll.min.x + Dx(w->scroll)/2;
-		o = abs(h-m->m.x);
+		o = abs(h-m->xy.x);
 		if(o > 2 && o < 50)
-			cursorset(Pt(h, m->m.y));
+			cursorset(Pt(h, m->xy.y));
 		windref(w);
 
 		return;
@@ -427,12 +430,12 @@ clntscroll(Window *w, Mesg *m)
 
 	f = w->frame;
 	h = w->scroll.max.y - w->scroll.min.y;
-	o = m->m.y - w->scroll.min.y;
+	o = m->xy.y - w->scroll.min.y;
 	l = (o*f->maxlines)/h;
 	if(l == 0)
 		l = 1;
 
-	if(m->mb & Mouse_l) {
+	if(m->buttons & Mouse_l) {
 		l = scan(w, w->origin, l, '\n');
 		w->origin -= l;
 		r = w->screen->t+w->origin;
@@ -440,7 +443,7 @@ clntscroll(Window *w, Mesg *m)
 
 	}
 	else
-	if(m->mb & Mouse_r)
+	if(m->buttons & Mouse_r)
 		clntshow(w, l);
 
 	w->didscroll = 1;
@@ -460,14 +463,14 @@ clntsel(Window *w, int sp0, int sp1)
 	if(w->origin+f->p0 == sp0 && w->origin+f->p1 == sp1)
 		return;
 
-	frselectp(f, F&~D);
+	frselectp(f, frones, F&~D);
 	f->p0 = sp0-w->origin;
 	if(f->p0 < 0)
 		f->p0 = 0;
 	f->p1 = sp1-w->origin;
 	if(f->p1 < 0)
 		f->p1 = 0;
-	frselectp(f, F&~D);
+	frselectp(f, frones, F&~D);
 }
 
 void
@@ -528,10 +531,7 @@ clnto(Window *w, int o)
 void
 clntreshape(Window *w)
 {
-	Bitmap *c;
-
 	w->reshape = 1;
-	c = w->cache;
 	frclear(w->frame);
 	frinit(w->frame, w->win, font, w->cache);
 
@@ -541,7 +541,7 @@ clntreshape(Window *w)
 }
 
 void
-clntnote(Window *w, char *s)
+clntnote(Window *w, byte *s)
 {
 	write(w->notefd, s, strlen(s));
 }
@@ -692,19 +692,19 @@ clntclose(Window *w)
 void
 mouseread(Window *w, Ioreq *i)
 {
-	char *p;
+	byte *p;
 	Fcall thdr;
 
 	p = i->buf;
 	p[0] = 'm';
-	p[1] = w->mse.mb;
+	p[1] = w->mse.buttons;
 	if(w->reshape) {
 		p[1] |= 0x80;
 		w->reshape = 0;
 	}
-	BPLONG(p+2, w->mse.m.x);
-	BPLONG(p+6, w->mse.m.y);
-	BPLONG(p+14,w->mse.tick);
+	BPLONG(p+2, w->mse.xy.x);
+	BPLONG(p+6, w->mse.xy.y);
+	BPLONG(p+14,w->mse.msec);
 	thdr.data = i->buf;
 	thdr.count = 14;
 	reply(&i->fcall, &thdr, nil);
@@ -782,7 +782,7 @@ void
 labio(Window *w, Ioreq *i, int op)
 {
 	int l, n;
-	char *p, *e;
+	byte *p, *e;
 	Fcall thdr;
 
 	l = i->fcall.count;
@@ -819,7 +819,7 @@ void
 clntcons(Window *w, Ioreq *i)
 {
 	int n;
-	char *p;
+	byte *p;
 	Fcall thdr;
 
 	p = i->fcall.data;
@@ -913,7 +913,7 @@ void
 mkclient(Window *w)			/* This routine leaks a stack for now */
 {
 	int cfd;
-	char buf[2*NAMELEN];
+	byte buf[2*NAMELEN];
 
 	rfork(RFNAMEG|RFENVG|RFNOTEG);
 
@@ -930,7 +930,7 @@ mkclient(Window *w)			/* This routine leaks a stack for now */
 		error("srv %s: %r", srv);
 
 	sprint(buf, "Y%d", w->id);
-	if(mount(cfd, "/mnt/8½", MREPL, buf, "") < 0)
+	if(mount(cfd, "/mnt/8½", MREPL, buf) < 0)
 		error("client mount");
 
 	if(bind("/mnt/8½", "/dev", MBEFORE) < 0)

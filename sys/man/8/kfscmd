@@ -75,7 +75,7 @@ with option
 .B f
 (see below).
 .TP
-.B create file owner group mode [adl]
+.BI create \ file\ owner\ group\ mode\  [adl]
 Create the file.  Owner and group are users in
 .B /adm/users
 and mode is an octal number.
@@ -89,6 +89,13 @@ creates a file that is exclusive-use.
 .TP
 .B sync
 write to disk all of the dirty blocks in the memory cache.
+.TP
+.B stats
+Report statistics about the performance of the file system.
+.TP
+.B user
+Re-initialize authentication information by reading
+.BR /adm/users .
 .TP
 .B check [PRdfprtw]
 Check the file system.
@@ -121,10 +128,12 @@ fix bad tags and clear the contents of the block.
 write all of the blocks that are touched.
 .RE
 .PD
+.SH SOURCE
+.B /sys/src/cmd/disk/kfscmd.c
+.br
+.B /$objtype/bin/disk/ksync
 .SH "SEE ALSO"
 .IR kfs (4),
 .IR mkfs (8),
 .IR prep (8),
-.IR hard (3)
-.SH BUGS
-Unreliable and unsafe.
+.IR wren (3)

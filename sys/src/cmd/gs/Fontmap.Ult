@@ -1,0 +1,171 @@
+% fontmap.ult aka Fontmap.Ultrix - Ghostscript fontmap for DEC Ultrix systems.
+%
+% UNIX systems from Digital Equipment Corporation are bundled with a license
+% for Display PostScript, including certain fonts.  Using their font outlines
+% (which on my ULTRIX system are found in /usr/lib/DPS/outline/decwin)
+% improves the visual quality of documents displayed on screen.  To do that,
+% either link or copy those font outlines into ghostscript's font directory,
+% and add these lines at the end of the Fontmap file.  Or you can do what I
+% did and create a new, condensed Fontmap file without the lines that are, for
+% my uses, dead wood.
+%
+% Note that some of these fonts are found on Digital's systems but aren't in
+% the standard ghostscript distribution.
+%
+% Pete Kaiser 16 November 1993
+% kaiser@vbo.dec.com
+% +33 92.95.62.97, FAX +33 92.95.50.50
+%
+% Modified by Bjorn S. Nilsson for Ultrix 4.3 and gs 2.9.1
+% Note, that an alternative to what is described above is to add
+% /usr/lib/DPS/outline/decwin as the second argument to GS_LIB_DEFAULT
+% in your makefile
+
+/AvantGarde-Book			(AvantGarde-Book)	;
+/AvantGarde-BookOblique			(AvantGarde-BookOblique);
+/AvantGarde-Demi			(AvantGarde-Demi)	;
+/AvantGarde-DemiOblique			(AvantGarde-DemiOblique);
+
+/Courier-BoldItalic			/Courier-BoldOblique	;
+/Courier-Italic				/Courier-Oblique	;
+
+/Courier				(Courier)		;
+/Courier-Bold				(Courier-Bold)		;
+/Courier-BoldOblique			(Courier-BoldOblique)	;
+/Courier-Oblique			(Courier-Oblique)	;
+
+/Helvetica				(Helvetica)		;
+/Helvetica-Bold				(Helvetica-Bold)	;
+/Helvetica-BoldOblique			(Helvetica-BoldOblique)	;
+/Helvetica-Oblique			(Helvetica-Oblique)	;
+
+/LubalinGraph-Book			(LubalinGraph-Book)	;
+/LubalinGraph-BookOblique		(LubalinGraph-BookOblique);
+/LubalinGraph-Demi			(LubalinGraph-Demi)	;
+/LubalinGraph-DemiOblique		(LubalinGraph-DemiOblique);
+
+/NewCenturySchlbk-Bold			(NewCenturySchlbk-Bold)	;
+/NewCenturySchlbk-BoldItalic		(NewCenturySchlbk-BoldItalic);
+/NewCenturySchlbk-Italic		(NewCenturySchlbk-Italic);
+/NewCenturySchlbk-Roman			(NewCenturySchlbk-Roman);
+
+/Souvenir-Demi				(Souvenir-Demi)		;
+/Souvenir-DemiItalic			(Souvenir-DemiItalic)	;
+/Souvenir-Light				(Souvenir-Light)	;
+/Souvenir-LightItalic			(Souvenir-LightItalic)	;
+
+/Symbol					(Symbol)		;
+
+/Times-Bold				(Times-Bold)		;
+/Times-BoldItalic			(Times-BoldItalic)	;
+/Times-Italic				(Times-Italic)		;
+/Times-Roman				(Times-Roman)		;
+
+
+/AvantGarde-Book		(AvantGarde-Book)	;
+/AvantGarde-BookOblique		(AvantGarde-BookOblique)	;
+/AvantGarde-Demi		(AvantGarde-Demi)	;
+/AvantGarde-DemiOblique		(AvantGarde-DemiOblique)	;
+/Bookman-Demi			(pbkd.gsf)	;
+/Bookman-DemiItalic		(pbkdi.gsf)	;
+/Bookman-Light			(pbkl.gsf)	;
+/Bookman-LightItalic		(pbkli.gsf)	;
+/Calligraphic-Hiragana		(fhirw.gsf)	;
+/Calligraphic-Katakana		(fkarw.gsf)	;
+/CharterBT-Bold			(bchb.gsf)	;
+/CharterBT-BoldItalic		(bchbi.gsf)	;
+/CharterBT-Italic		(bchri.gsf)	;
+/CharterBT-Roman		(bchr.gsf)	;
+/Courier			(Courier)	;
+/Courier-Bold			(Courier-Bold)	;
+/Courier-BoldOblique		(Courier-BoldOblique)	;
+/Courier-Oblique		(Courier-Oblique)	;
+/Helvetica			(Helvetica)	;
+/Helvetica-Bold			(Helvetica-Bold)	;
+/Helvetica-BoldOblique		(Helvetica-BoldOblique)	;
+/Helvetica-Narrow		(phvrrn.gsf)	;
+/Helvetica-Oblique		(Helvetica-Oblique)	;
+/Hershey-Gothic-English		(hrger.gsf)	;
+/Hershey-Gothic-German		(hrgrr.gsf)	;
+/Hershey-Gothic-Italian		(hritr.gsf)	; 
+/Hershey-Plain-Duplex		(hrpld.gsf)	;
+/Hershey-Plain-Duplex-Italic	(hrpldi.gsf)	;
+/Hershey-Plain-Triplex		(hrplt.gsf)	;
+/Hershey-Plain-Triplex-Italic	(hrplti.gsf)	;
+/Hershey-Script-Complex		(hrscc.gsf)	;
+/Hershey-Script-Simplex		(hrscs.gsf)	;
+/Hershey-Gothic-English-Bold	(hrgerb.gsf)	;
+/Hershey-Gothic-English-Oblique	(hrgero.gsf)	;
+/Hershey-Gothic-English-Semibold	(hrgerd.gsf)	;
+/Hershey-Gothic-German-Bold	(hrgrrb.gsf)	;
+/Hershey-Gothic-German-Oblique	(hrgrro.gsf)	;
+/Hershey-Gothic-Italian-Bold	(hritrb.gsf)	;
+/Hershey-Gothic-Italian-Oblique	(hritro.gsf)	;
+/Hershey-Plain-Duplex-Bold	(hrpldb.gsf)	;
+/Hershey-Plain-Duplex-Bold-Italic	(hrpldbi.gsf)	;
+/Hershey-Plain-Triplex-Bold	(hrpltb.gsf)	;
+/Hershey-Plain-Triplex-Bold-Italic	(hrpltbi.gsf)	;
+/Hershey-Script-Complex-Bold	(hrsccb.gsf)	;
+/Hershey-Script-Complex-Oblique	(hrscco.gsf)	;
+/Hershey-Script-Simplex-Bold	(hrscsb.gsf)	;
+/Hershey-Script-Simplex-Oblique	(hrscso.gsf)	;
+/Hershey-Greek-Complex		(hrgkc.gsf)	;
+/Hershey-Greek-Simplex		(hrgks.gsf)	;
+/Hershey-Plain			(hrplr.gsf)	;
+/Hershey-Plain-Simplex		(hrpls.gsf)	;
+/Hershey-Plain-Bold		(hrplrb.gsf)	;
+/Hershey-Plain-Bold-Oblique	(hrplrbo.gsf)	;
+/Hershey-Plain-Oblique		(hrplro.gsf)	;
+/Hershey-Plain-Simplex-Bold	(hrplsb.gsf)	;
+/Hershey-Plain-Simplex-Bold-Oblique	(hrplsbo.gsf)	;
+/Hershey-Plain-Simplex-Oblique	(hrplso.gsf)	;
+/Hershey-Symbol			(hrsy_r.gsf)	;
+/LubalinGraph-Book		(LubalinGraph-Book)	;
+/LubalinGraph-BookOblique	(LubalinGraph-BookOblique)	;
+/LubalinGraph-Demi		(LubalinGraph-Demi)	;
+/LubalinGraph-DemiOblique	(LubalinGraph-DemiOblique)	;
+/NewCenturySchlbk-Bold		(NewCenturySchlbk-Bold)	;
+/NewCenturySchlbk-BoldItalic	(NewCenturySchlbk-BoldItalic)	;
+/NewCenturySchlbk-Italic	(NewCenturySchlbk-Italic)	;
+/NewCenturySchlbk-Roman		(NewCenturySchlbk-Roman)	;
+/NimbusRomanNo9L-Regular	(n021003l.gsf)	;
+/NimbusSansL-Regular		(n019003l.gsf)	;
+/Palatino-Bold			(pplb.gsf)	;
+/Palatino-BoldItalic		(pplbi.gsf)	;
+/Palatino-Italic		(pplri.gsf)	;
+/Palatino-Roman			(pplr.gsf)	;
+/Shareware-Cyrillic-Regular	(fcyr.gsf)	;
+/Shareware-Cyrillic-Italic	(fcyri.gsf)	;
+/Souvenir-Demi			(Souvenir-Demi)	;
+/Souvenir-DemiItalic		(Souvenir-DemiItalic)	;
+/Souvenir-Light			(Souvenir-Light)	;
+/Souvenir-LightItalic		(Souvenir-LightItalic)	;
+/Symbol				(Symbol)	;
+/Times-Bold			(Times-Bold)	;
+/Times-BoldItalic		(Times-BoldItalic)	;
+/Times-Italic			(Times-Italic)	;
+/Times-Roman			(Times-Roman)	;
+/URWAntiquaT-RegularCondensed	(u003043t.gsf)	;
+/URWGroteskT-Bold		(u004006t.gsf)	;
+/Utopia-Bold			(putb.gsf)	;
+/Utopia-BoldItalic		(putbi.gsf)	;
+/Utopia-Italic			(putri.gsf)	;
+/Utopia-Regular			(putr.gsf)	;
+/ZapfChancery			(zcr.gsf)	;
+/ZapfChancery-Bold		(zcb.gsf)	;
+/ZapfChancery-Oblique		(zcro.gsf)	;
+/ZapfDingbats			(pzdr.gsf)	;
+/Cyrillic			/Cyrillic-Regular	;
+/Cyrillic-Regular		/Shareware-Cyrillic-Regular	;
+/Cyrillic-Italic		/Shareware-Cyrillic_Italic	;
+
+% BSN additions from original Fontmap file and some more aliases
+
+/Helvetica-Narrow-Bold		/Helvetica-Narrow	;
+/ZapfChancery-MediumItalic	/ZapfChancery-Oblique	;
+/Charter-Roman			/CharterBT-Roman	;
+/Charter-Italic			/CharterBT-Italic	;
+/Charter-Bold			/CharterBT-Bold		;
+/Charter-BoldItalic		/CharterBT-BoldItalic	;
+/Courier-Italic			/Courier-Oblique	;
+/Courier-BoldItalic		/Courier-BoldOblique	;

@@ -16,6 +16,7 @@ struct Mx
 };
 static Mx mx[Nmx];
 Ndb *db;
+int debug;
 
 static int	mygetfields(char*, char**, int, char);
 static int	mxlookup(char*);
@@ -60,6 +61,8 @@ mxdial(char *dest, int *diff, char *domain)
 	/* get a list of mx entries */
 	nmx = mxlookup(domain);
 	if(nmx == 0){
+		if(debug)
+			fprint(2, "mxlookup returns nothing\n");
 		strcpy(domain, host);
 		*diff = 0;
 		return dial(dest, 0, 0, 0);
@@ -71,6 +74,8 @@ mxdial(char *dest, int *diff, char *domain)
 
 	/* dial each one in turn */
 	for(i = 0; i < nmx; i++){
+		if(debug)
+			fprint(2, "mxdial trying %s\n", mx[i].host);
 		fd = dial(netmkaddr(mx[i].host, net, service), 0, 0, 0);
 		if(fd >= 0){
 			if(strcmp(mx[i].host, domain))
@@ -118,11 +123,21 @@ mxlookup(char *host)
 	char *fields[4];
 
 	fd = open("/net/dns", ORDWR);
+	if(fd < 0){
+		fd = open("/srv/dns", ORDWR);
+		if(fd < 0)
+			return 0;
+		if(mount(fd, "/net", MAFTER, "") < 0)
+			return 0;
+		fd = open("/net/dns", ORDWR);
+	}
 	if(fd < 0)
 		return 0;
 
 	nmx = 0;
 	sprint(buf, "%.*s mx", sizeof(buf)-4, host);
+	if(debug)
+		fprint(2, "sending dns '%s'\n", buf);
 	if(write(fd, buf, strlen(buf)) >= 0){
 		seek(fd, 0, 0);
 		while(nmx < Nmx && (n = read(fd, buf, sizeof(buf)-1)) > 0){

@@ -3,13 +3,6 @@
 #include <libg.h>
 #include <gnot.h>
 
-#ifdef T386
-#define LENDIAN
-#endif
-#ifdef Thobbit
-#define LENDIAN
-#endif
-
 void
 gpoint(GBitmap *b, Point p, int s, Fcode c)
 {
@@ -21,18 +14,18 @@ gpoint(GBitmap *b, Point p, int s, Fcode c)
 		return;
 	d = gbaddr(b, p);
 	l = b->ldepth;
-#ifdef LENDIAN
-	mask = (~0UL)&((2<<l)-1);
-	l = (p.x&(0x7>>l))<<l;
-	s <<= l;
-	mask <<= l;
-#else
-	s <<= (8-(1<<l));
-	mask = (~0UL)<<(8-(1<<l));
-	l = (p.x&(0x7>>l))<<l;
-	s >>= l;
-	mask >>= l;
-#endif
+	if(LENDIAN){
+		mask = (1<<(1<<l))-1;
+		l = (p.x&(0x7>>l))<<l;
+		mask <<= l;
+		s <<= l;
+	}else{
+		s <<= (8-(1<<l));
+		mask = (~0UL)<<(8-(1<<l));
+		l = (p.x&(0x7>>l))<<l;
+		s >>= l;
+		mask >>= l;
+	}
 
 	switch(c&0x1F){
 	case Zero:

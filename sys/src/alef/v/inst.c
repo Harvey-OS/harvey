@@ -24,7 +24,7 @@ nopconv[Ntype] =
 	MUNION,			/* TUNION */
 	0,			/* TFUNC */
 	0,			/* TVOID */
-	TADT,			/* TADT */
+	MADT,			/* TADT */
 };
 
 Inst*
@@ -41,7 +41,7 @@ ai(void)
 	return i;
 }
 
-/* Emit an assembler instruction */
+/* Emit a text instruction */
 Inst*
 instruction(int op, Node *s1, Node *s2, Node *dst)
 {
@@ -55,8 +55,18 @@ instruction(int op, Node *s1, Node *s2, Node *dst)
 		mkaddr(s1, &i->src1, 1);
 
 	if(s2 && s2 != dst) {
-		if(s2->type != OREGISTER)
-			fatal("instruction %s %N,%N,%N", itab[op], s1, s2, dst);
+		switch(s2->type) {
+		case OREGISTER:
+			break;
+		case OCONST:
+			if(s2->ival == 0) {
+				s2->reg = 0;
+				break;
+			}
+			/* Fall */
+		default:
+			fatal("inst %s %N,%N,%N", itab[op], s1, s2, dst);
+		}
 		if(s2->t->type == TFLOAT)
 			i->reg = s2->reg - Freg;
 		else
@@ -77,7 +87,7 @@ void
 ilink(Inst *i)
 {
 	if(opt('c'))
-		print("(%d)%i\n", i->lineno, i);
+		print("(%d) %4d %i\n", i->lineno, i->pc, i);
 
 	if(proghead)
 		ipc->next = i;
@@ -234,6 +244,100 @@ codmop(Node *o, Node *l, Node *r, Node *dst)
 		break;
 	}
 	instruction(op, l, r, dst);
+}
+
+int
+mulcon(Node *n, Node *nn)
+{
+	int o;
+	long v;
+	Multab *m;
+	Node *l, *r, nod1, nod2, mop;
+	char code[sizeof(m->code)+2], *p;
+
+	if(n->t->type == TFLOAT)
+		return 0;
+
+	mop.t = n->t;
+	l = n->left;
+	r = n->right;
+	if(l->type == OCONST) {
+		l = r;
+		r = n->left;
+	}
+	if(r->type != OCONST)
+		return 0;
+
+	v = r->ival;
+	m = mulcon0(v);
+	if(!m) {
+		if(opt('M'))
+			print("%L multiply table: %lld\n", r->ival);
+		return 0;
+	}
+	if(opt('M'))
+		print("%L multiply: %ld\n", v);
+
+	memmove(code, m->code, sizeof(m->code));
+	code[sizeof(m->code)] = 0;
+
+	p = code;
+	if(p[1] == 'i')
+		p += 2;
+	reg(&nod1, n->t, nn);
+	genexp(l, &nod1);
+	if(v < 0) {
+		mop.type = OSUB;
+		codmop(&mop, &nod1, con(0), &nod1);
+	}
+	reg(&nod2, n->t, ZeroN);
+
+	for(;;) {
+		switch(*p) {
+		case '\0':
+			regfree(&nod2);
+			assign(&nod1, nn);
+			regfree(&nod1);
+			return 1;
+		case '+':
+			o = OADD;
+			goto addsub;
+		case '-':
+			o = OSUB;
+		addsub:	/* number is r,n,l */
+			v = p[1] - '0';
+			r = &nod1;
+			if(v&4)
+				r = &nod2;
+			n = &nod1;
+			if(v&2)
+				n = &nod2;
+			l = &nod1;
+			if(v&1)
+				l = &nod2;
+			mop.type = o;
+			codmop(&mop, l, n, r);
+			break;
+		default: /* op is shiftcount, number is r,l */
+			v = p[1] - '0';
+			r = &nod1;
+			if(v&2)
+				r = &nod2;
+			l = &nod1;
+			if(v&1)
+				l = &nod2;
+			v = *p - 'a';
+			if(v < 0 || v >= 32) {
+				diag(n, "mulcon unknown op: %c%c", p[0], p[1]);
+				break;
+			}
+			mop.type = OALSH;
+			codmop(&mop, con(v), l, r);
+			break;
+		}
+		p += 2;
+	}
+	return 0;
 }
 
 int
@@ -425,7 +529,8 @@ mkdata(Node *n, int off, int size, Inst *i)
 void
 mkaddr(Node *n, Adres *a, int ur0)
 {
-	char class;
+	long o;
+	Tinfo *ti;
 
 	a->sym = ZeroS;
 	a->reg = Nreg;
@@ -435,17 +540,18 @@ mkaddr(Node *n, Adres *a, int ur0)
 		fatal("mkaddr: %N", n);
 
 	case ONAME:
+		ti = n->ti;
+
 		a->type = A_INDREG;
-		a->etype = n->t->type;
-		a->ival = n->ti->offset;
+		a->etype = ti->t->type;
+		a->ival = ti->offset;
 		a->sym = n->sym;
-		class = n->ti->class;
-		if(class == Argument) {
+		if(ti->class == Argument) {
 			a->reg = RegSP;
 			a->class = A_NONE;
 			break;
 		}
-		a->class = class;
+		a->class = ti->class;
 		break;
 
 	case OCONST:
@@ -465,6 +571,20 @@ mkaddr(Node *n, Adres *a, int ur0)
 			a->fval = n->fval;
 			break;
 		}
+		break;
+
+	case OADD:
+		if(n->left->type == OCONST) {
+			mkaddr(n->left, a, 0);
+			o = a->ival;
+			mkaddr(n->right, a, 1);
+		}
+		else {
+			mkaddr(n->right, a, 0);
+			o = a->ival;
+			mkaddr(n->left, a, 1);
+		}
+		a->ival += o;
 		break;
 
 	case OINDREG:
@@ -521,14 +641,16 @@ preamble(Node *name)
 	i = ai();
 	i->op = ATEXT;
 	i->pc = pc++;
+	i->reg = txtprof;
+	i->lineno = name->srcline;
 
-	n = an(0, ZeroN, ZeroN);
-	*n = *name;
+	n = dupn(name);
 	n->type = ONAME;
 	mkaddr(n, &i->src1, 0);
 	mkaddr(con(0), &i->dst, 0);
 	ilink(i);
 	funentry = i;		/* To back patch arg space */
+	becomentry = i;		/* To back patch tail recursion */
 }
 
 /* Output accumulated string constants */

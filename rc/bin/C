@@ -1,0 +1,11 @@
+#!/bin/rc
+switch($1){
+case -r
+	shift
+	opt=''
+case *
+	opt=-r
+}
+if(! test -e /mnt/consoles/$1)
+	import someserver /mnt/consoles
+con -l $opt /mnt/consoles/$1

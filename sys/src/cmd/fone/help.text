@@ -1,0 +1,22 @@
+Commands are:
+
+a	 answer incoming call.
+c str	 dial str after parsing.
+c/n str	 dial str on call appearance n.
+C str	 dial str, literally.
+d	 drop.
+h	 hold.
+k str	 conference call to str.
+k	 complete conference call.
+r id	 reconnect call on hold (first one if id missing).
+q name	 query local directory.
+s	 show the status of calls.
+t name	 run `tel'(1) on name.
+T	 set clock (API phones only).
+x str	 transfer active call to str.
+x	 complete call transfer.
+!str	 run str as a (non-interactive) shell command.
+[0-9]... send touchtones if call is active, else dial.
+[#*]...
+. str	 send str as touchtones.
+?	 print this message. 

@@ -9,21 +9,9 @@ OFILES=	main.$O\
 	expr.$O\
 	list.$O\
 	builtin.$O\
-	access.$O\
-	dbif.$O\
 	proc.$O\
 	dot.$O\
 	print.$O\
-	mips.$O\
-	mipsdas.$O\
-	68020.$O\
-	68020das.$O\
-	sparc.$O\
-	sparcdas.$O\
-	386.$O\
-	386das.$O\
-	hobbit.$O\
-	hobbitdas.$O\
 
 YFILES=dbg.y
 HFILES=acid.h\

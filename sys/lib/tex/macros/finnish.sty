@@ -1,0 +1,127 @@
+%% 
+%% This is file `finnish.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% finnish.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "1.3d",
+%%%     date            = "30 June 1994",
+%%%     time            = "14:07:22 MET",
+%%%     Filename        = "finnish.doc",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "21000 264 1229 10160",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, finnish",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the finnish language
+%%%                       specific  definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionsfinnish
+\else
+  \selectlanguage{finnish}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{finnish.sty}[1994/06/30 v1.3d
+         Finnish support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty \else\originalTeX\fi
+\ifx\undefined\l@finnish
+    \@nopatterns{Finnish}
+    \adddialect\l@finnish0\fi
+\addto\captionsfinnish{%
+  \def\prefacename{Esipuhe}%
+  \def\refname{Viitteet}%
+  \def\abstractname{Tiivistelm\"a}
+  \def\bibname{Kirjallisuutta}%
+  \def\chaptername{Luku}%
+  \def\appendixname{Liite}%
+  \def\contentsname{Sis\"alt\"o}%   /* Could be "Sis\"allys" as well */
+  \def\listfigurename{Kuvat}%
+  \def\listtablename{Taulukot}%
+  \def\indexname{Hakemisto}%
+  \def\figurename{Kuva}%
+  \def\tablename{Taulukko}%
+  \def\partname{Osa}%
+  \def\enclname{Liitteet}%
+  \def\ccname{Jakelu}%
+  \def\headtoname{Vastaanottaja}%
+  \def\pagename{Sivu}%
+  \def\seename{katso}%
+  \def\alsoname{katso my\"os}}%
+\def\datefinnish{%
+\def\today{\number\day~\ifcase\month\or
+  tammikuuta\or helmikuuta\or maaliskuuta\or huhtikuuta\or
+  toukokuuta\or kes\"akuuta\or hein\"akuuta\or elokuuta\or
+  syyskuuta\or lokakuuta\or marraskuuta\or joulukuuta\fi
+  \space\number\year}}
+\addto\extrasfinnish{}
+\addto\noextrasfinnish{}
+\selectlanguage{finnish}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `finnish.sty'.

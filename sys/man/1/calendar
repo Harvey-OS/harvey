@@ -1,0 +1,34 @@
+.TH CALENDAR 1
+.SH NAME
+calendar \- print upcoming events
+.SH SYNOPSIS
+.B calendar
+[
+.I file
+]
+.SH DESCRIPTION
+.I Calendar
+reads the named file, default
+.BR /usr/$user/lib/calendar ,
+and writes to standard output any lines
+containing today's or tomorrow's date.
+Examples of recognized date formats are 
+"4/11",
+"April 11",
+"Apr 11",
+"11 April",
+and
+"11 Apr".
+All comparisons are case insensitive.
+.PP
+On Friday and Saturday, events through Monday are printed.
+.PP
+To have your calendar mailed to you every day, use
+.IR cron (8).
+.SH FILES
+.TF /usr/$user/lib/calendar
+.TP
+.B /usr/$user/lib/calendar
+personal calendar
+.SH SOURCE
+.B /sys/src/cmd/calendar.c

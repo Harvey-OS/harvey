@@ -6,13 +6,16 @@
 #define	NSHLV		50
 #define	NPLAT		(NSHLV*2)
 #define	FIXEDSIZE	546000
+#define	TWORM		MINUTE(2)
+#define	THYSTER		SECOND(2)
 
-typedef	struct	plat	Plat;
-struct	plat
+typedef	struct	Plat	Plat;
+struct	Plat
 {
 	char	status;		/* Sunload, etc */
 	char	lun;		/* if loaded, where */
 	long	time;		/* time since last access, to unspin */
+	long	stime;		/* time since last spinup, for hysteresis */
 	long	nblock;		/* number of native blocks */
 	long	block;		/* bytes per native block */
 	long	mult;		/* multiplier to get plan9 blocks */
@@ -22,10 +25,10 @@ static
 struct
 {
 	Plat	plat[NPLAT];
+	char	offline[NLUN];
 	int	shinit;		/* beginning of time flag */
 	int	active;		/* flag to slow down wormcopy */
 	Device	jagu;		/* current lun */
-	int	lungen;		/* lun generator */
 	QLock;
 } w;
 
@@ -44,11 +47,15 @@ static	void	shelves(void);
 static	void	waitworm(void);
 static	void	prshit(void);
 static	int	ascsiio(int, uchar*, int, void*, int);
-static	void	cmd_wormsearch(int, char*[]);
 static	void	cmd_wormcp(int, char*[]);
 static	void	cmd_wormeject(int, char*[]);
 static	void	cmd_wormingest(int, char*[]);
+static	void	cmd_wormoffline(int, char*[]);
+static	void	cmd_wormonline(int, char*[]);
 static	void	wcpinit(void);
+static	int	freelun(int, int);
+static	int	wormcache(Device, long, void*);
+static	int	bestlun(int plat);
 
 /*
  * mounts and spins up the device
@@ -58,11 +65,12 @@ static
 Plat*
 wormunit(Device d)
 {
-	int p, i, s;
-	Plat *v, *x;
+	int p, s, lun;
+	Plat *v;
 	uchar cmd[10], buf[8];
 	Drive *dr;
 
+loop:
 	qlock(&w);
 	if(!w.shinit) {
 		w.name = "worm";
@@ -70,18 +78,14 @@ wormunit(Device d)
 		if(dr == 0)
 			panic("worm: jagu %D", d);
 		w.jagu = d;
-		w.lungen = 0;
 		waitworm();
 		shelves();
-		x = &w.plat[0];			/* BOTCH why are platters empty?? */
-		for(i=0; i<NPLAT; i++, x++)
-			x->status = Sunload;
 
-		cmd_install("wormsearch", "[blkno] [nblock] [b/w] -- search blank on worm",
-			cmd_wormsearch);
 		cmd_install("wormcp", "funit tunit [nblock] -- worm to worm copy", cmd_wormcp);
 		cmd_install("wormeject", "unit -- shelf to outside", cmd_wormeject);
 		cmd_install("wormingest", "unit -- outside to shelf", cmd_wormingest);
+		cmd_install("wormoffline", "unit -- disable lun", cmd_wormoffline);
+		cmd_install("wormonline", "unit -- enable lun", cmd_wormonline);
 		wcpinit();
 
 		w.shinit = 1;
@@ -95,57 +99,30 @@ wormunit(Device d)
 		print("wormunit partition %D\n", d);
 		goto sbad;
 	}
-	v = &w.plat[p];
 
 	/*
 	 * if disk is unloaded, must load it
 	 * into next (circular) logical unit
 	 */
+	v = &w.plat[p];
 	if(v->status == Sunload) {
 
-		/*
-		 * release all disks that have that lun
-		 */
-		x = &w.plat[0];
-		for(i=0; i<NPLAT; i++, x++) {
-			if(x->status != Sunload && x->lun == w.lungen) {
-				if(x->status == Sstart) {
-					print("worm: stop %d; lun %d\n",
-						i, x->lun);
-					memset(cmd, 0, 6);
-					cmd[0] = 0x1b;	/* disk stop */
-					cmd[1] = x->lun << 5;
-					s = ascsiio(SCSInone, cmd, 6, buf, 0);
-					if(s)
-						goto sbad;
-					x->status = Sstop;
-				}
-				if(x->status == Sstop) {
-					print("worm: release %d; lun %d\n",
-						i, x->lun);
-					memset(cmd, 0, 6);
-					cmd[0] = 0xd7;	/* disk release */
-					cmd[1] = x->lun << 5;
-					s = ascsiio(SCSInone, cmd, 6, buf, 0);
-					if(s)
-						goto sbad;
-					x->status = Sunload;
-				}
-				if(x->status != Sunload)
-					panic("worm: disk not unload %D", d);
-			}
+		lun = bestlun(p);
+		if(lun < 0) {
+			qunlock(&w);
+			waitsec(1000);
+			goto loop;
 		}
 
-		v->lun = w.lungen;
-		w.lungen++;
-		if(w.lungen >= NLUN)
-			w.lungen = 0;
+		v->lun = lun;
 
 		print("worm: set %d; lun %d\n", p, v->lun);
 		memset(cmd, 0, 6);
 		cmd[0] = 0xd6;	/* disk set */
 		cmd[1] = v->lun << 5;
-		cmd[3] = (p << 1) | 0; /* botch make it side>=50 */
+		cmd[3] = p << 1;
+		if(p >= NSHLV)
+			cmd[3] = ((p-NSHLV) << 1) | 1;
 		s = ascsiio(SCSInone, cmd, 6, buf, 0);
 		if(s)
 			goto sbad;
@@ -172,12 +149,18 @@ wormunit(Device d)
 		if(s)
 			goto sbad;
 		v->status = Sstart;
+		v->stime = toytime();
+	}
+
+	if(v->status != Sstart) {
+		if(v->status == Sempty)
+			print("worm: unit empty %D\n", d);
+		else
+			print("worm: not started %D\n", d);
+		goto sbad;
 	}
 
 	v->time = toytime();
-	if(v->status != Sstart)
-		panic("worm: not started %D", d);
-
 	if(v->block)
 		return v;
 
@@ -221,7 +204,6 @@ wormunit(Device d)
 
 sbad:
 	qunlock(&w);
-	print("worm: no capacity %D\n", d);
 	prshit();
 	return 0;
 }
@@ -258,6 +240,103 @@ wormprobe(void)
 	}
 }
 
+static
+int
+freelun(int plat, int lun)
+{
+	Plat *x;
+	int i, s;
+	uchar cmd[10], buf[8];
+
+	/*
+	 * release all disks that have given lun.
+	 * release all disks that conflict with sides
+	 */
+	plat += NSHLV;
+	if(plat >= NPLAT)
+		plat -= NPLAT;
+
+	x = &w.plat[0];
+	for(i=0; i<NPLAT; i++, x++) {
+		if(x->lun != lun && plat != i)
+			continue;
+		if(x->status == Sstart) {
+			print("worm: stop %d; lun %d\n",
+				i, x->lun);
+			memset(cmd, 0, 6);
+			cmd[0] = 0x1b;	/* disk stop */
+			cmd[1] = x->lun << 5;
+			s = ascsiio(SCSInone, cmd, 6, buf, 0);
+			if(s)
+				return 1;
+			x->status = Sstop;
+		}
+		if(x->status == Sstop) {
+			print("worm: release %d; lun %d\n",
+				i, x->lun);
+			memset(cmd, 0, 6);
+			cmd[0] = 0xd7;	/* disk release */
+			cmd[1] = x->lun << 5;
+			s = ascsiio(SCSInone, cmd, 6, buf, 0);
+			if(s)
+				return 1;
+			x->status = Sunload;
+		}
+	}
+	return 0;
+}
+
+static
+int
+bestlun(int plat)
+{
+	Plat *x, *bx[NLUN];
+	int i, s, lun;
+	long t;
+
+	/* build table of what platters on what luns */
+	for(i=0; i<NLUN; i++)
+		bx[i] = 0;
+
+	x = &w.plat[0];
+	for(i=0; i<NPLAT; i++, x++) {
+		s = x->status;
+		if(s == Sstart || s == Sstop) {
+			lun = x->lun;
+			if(lun >= 0 && lun < NLUN)
+				bx[lun] = x;
+		}
+	}
+
+	/*
+	 * find oldest lun, but must be
+	 * at least THYSTER old.
+	 */
+	t = toytime() - THYSTER;
+	lun = -1;
+	for(i=0; i<NLUN; i++) {
+		x = bx[i];
+		if(x == 0) {
+			if(w.offline[i])
+				continue;
+			lun = i;
+			break;
+		}
+		if(w.offline[i]) {
+			freelun(plat, i);
+			continue;
+		}
+		if(x->stime < t) {
+			lun = i;
+			t = x->stime;
+		}
+	}
+
+	if(lun >= 0)
+		freelun(plat, lun);
+	return lun;
+}
+
 long
 wormsize(Device d)
 {
@@ -278,7 +357,7 @@ wormsize(Device d)
 int
 wormiocmd(Device d, int io, long b, void *c)
 {
-	int s;
+	int s, i;
 	Plat *v;
 	long l, m;
 	uchar cmd[10];
@@ -311,7 +390,52 @@ wormiocmd(Device d, int io, long b, void *c)
 	cmd[9] = 0;
 
 	s = ascsiio(io, cmd, 10, c, RBUFSIZE);
+	if(s == 0x61 && io != SCSIread) {
+		cmd[7] = 0;
+		cmd[8] = 1;
+		for(i=0; i<m; i++) {
+			cmd[2] = l>>24;
+			cmd[3] = l>>16;
+			cmd[4] = l>>8;
+			cmd[5] = l;
+			ascsiio(io, cmd, 10, c, v->block);
+			l += 1;
+			c = (char*)c + v->block;
+		}
+	}
 	qunlock(&w);
+	return s;
+}
+
+int
+exchgerr(int s)
+{
+	if(s == 0x42 || s == 0x46 || s == 0x47)
+		return 1;
+	return 0;
+}
+
+/* BOTCH - indirect level to cope with crappy sony drive */
+int
+wormiocmdx(Device d, int io, long b, void *c)
+{
+	int s, i;
+	Device xd;
+	Plat *v;
+
+	s = 0;
+	for(i=0; i<4; i++) {
+		s = wormiocmd(d, io, b, c);
+		if(!exchgerr(s))
+			break;
+
+		/* provoke disk exchange */
+		xd = d;
+		xd.part = i;
+		v = wormunit(xd);
+		if(v)
+			qunlock(&w);
+	}
 	return s;
 }
 
@@ -320,7 +444,12 @@ wormread(Device d, long b, void *c)
 {
 	int s;
 
-	s = wormiocmd(d, SCSIread, b, c);
+	if(wormcache(d, b, c)) {
+		cons.nwormhit++;
+		return 0;
+	}
+	cons.nwormmiss++;
+	s = wormiocmdx(d, SCSIread, b, c);
 	if(s) {
 		print("wormread: %D(%ld) bad status %.4x\n", d, b, s);
 		cons.nwormre++;
@@ -334,60 +463,13 @@ wormwrite(Device d, long b, void *c)
 {
 	int s;
 
-	s = wormiocmd(d, SCSIwrite, b, c);
+	s = wormiocmdx(d, SCSIwrite, b, c);
 	if(s) {
 		print("wormwrite: %D(%ld) bad status %.4x\n", d, b, s);
 		cons.nwormwe++;
 		return s;
 	}
 	return 0;
-}
-
-long
-wormsearch(Device d, int io, long b, long c)
-{
-	Plat *v;
-	long l, m;
-	uchar cmd[10], buf[6];
-
-	v = wormunit(d);
-	if(v == 0)
-		return -1;
-	if(b >= v->max) {
-		print("wormsearch out of range %D(%ld)\n", d, b);
-		goto no;
-	}
-
-	cmd[0] = io;	/* blank/written sector search */
-	cmd[1] = v->lun << 5;
-
-	m = v->mult;
-	l = b * m;
-	cmd[2] = l>>24;
-	cmd[3] = l>>16;
-	cmd[4] = l>>8;
-	cmd[5] = l;
-	cmd[6] = 0;
-
-	l = c * m;
-	if(l >= 65535) {
-		print("wormsearch nsectors %ld too big\n", c);
-		l = 65535;
-	}
-	cmd[7] = l>>8;
-	cmd[8] = l;
-	cmd[9] = 0;
-
-	if(ascsiio(SCSIread, cmd, sizeof(cmd), buf, sizeof(buf)))
-		goto no;
-	if(!(buf[1] & 1))
-		goto no;
-	qunlock(&w);
-	return ((buf[2]<<24) | (buf[3]<<16) | (buf[4]<<8) | buf[5]) / m;
-
-no:
-	qunlock(&w);
-	return -1;
 }
 
 static
@@ -430,8 +512,8 @@ static
 void
 shelves(void)
 {
-	uchar cmd[6], buf[128], *p;
-	int s, i, pass, flag;
+	uchar cmd[6], buf[128], *p, *q;
+	int s, i, j, pass, flag;
 
 	pass = 0;
 
@@ -462,6 +544,21 @@ loop:
 		}
 		if(p[0] & 0x40) {
 			if(!(p[2] & 0x80)) {
+				for(j=0; j<NSHLV; j++) {
+					q = buf+48+j;
+					if(q[0] & 0x80)		/* empty */
+						continue;
+					memset(cmd, 0, 6);
+					cmd[0] = 0xd7;	/* disk release */
+					cmd[1] = (i << 5) | 1;
+					cmd[3] = j<<1;
+					print("	lun %d drive loaded, assigning shelf %d\n", i, j);
+					s = ascsiio(SCSInone, cmd, 6, buf, 0);
+					if(s)
+						goto bad;
+					q[0] = 0x40;		/* not empty and assigned */
+					goto cont1;
+				}
 				print("	lun %d drive loaded, no return shelf\n", i);
 				goto bad;
 			}
@@ -475,6 +572,7 @@ loop:
 			if(s)
 				goto bad;
 		}
+	cont1:;
 	}
 	for(i=0; i<NSHLV; i++) {
 		p = buf+48+i;
@@ -583,14 +681,14 @@ ascsiio(int rw, uchar *param, int nparam, void *addr, int size)
 	if(s) {
 		l = (param[1]>>5) & 7;
 		s = wormsense(l);
-		print("ascsiio: bad status %.2x on opcode %.2x\n",
-			s, param[0]);
 		if(s == 0x06) {
 			print("unit attention, reissue\n");
 			s = scsiio(w.jagu, rw, param, nparam, addr, size);
 			if(s)
 				s = wormsense(l);
 		}
+		print("ascsiio: bad status %.2x on opcode %.2x lun %d\n",
+			s, param[0], l);
 	}
 	return s;
 }
@@ -619,55 +717,71 @@ getcatworm(void)
 	return devnone;
 }
 
+/*
+ * pick up a unit number from
+ * the command line. flag:
+ *	0 must not be in active fs
+ *	1 must be in active fs
+ *	2 dont care
+ */
 static
-void
-cmd_wormsearch(int argc, char *argv[])
+Device
+getwormunit(char *arg, int flag)
 {
-	Device dev;
-	int lb, hb;
-	long l, m, b, c, bw, r;
+	Device mc;
+	int hb, lb, i;
 
-	dev = getcatworm();
-	if(dev.type != Devmcat) {
-		print("device not mcat\n");
-		return;
+
+	if(*arg == 'f') {
+		flag = 2;
+		arg++;
 	}
-	lb = dev.unit;
-	hb = dev.part;
+	i = number(arg, -1, 10);
+	if(i < 0 || i >= NPLAT) {
+		print("bad unit number %s (%d)\n", arg, i);
+		goto bad;
+	}
 
-	b = 0;
-	c = 100;
-	bw = 0;
+	if(flag == 2)
+		goto ok;
 
-	if(argc > 1)
-		b = number(argv[1], b, 10);
-	if(argc > 2)
-		c = number(argv[2], c, 10);
-	if(argc > 3)
-		bw = number(argv[3], bw, 10);
-
-	if(bw)
-		bw = 0x2c;	/* blank sector search */
-	else
-		bw = 0x2d;	/* written sector search */
-
-	l = 0;
-	while(lb < hb) {
-		m = devsize(cwdevs[lb]);
-		if(b < l+m) {
-			/* botch -- crossing disks */
-			r = wormsearch(cwdevs[lb], bw, b-l, c);
-			if(r < 0)
-				print("search of %ld %ld not found\n", b, c);
-			else
-				print("search of %ld %ld = %ld\n", b, c, r+l);
-			return;
+	mc = getcatworm();
+	if(mc.type != Devmcat)
+		goto bad;
+	hb = mc.part;
+	for(lb = mc.unit; lb < hb; lb++)
+		if(cwdevs[lb].part == i) {
+			if(flag == 0) {
+				print("unit %s is active\n", arg);
+				goto bad;
+			}
+			goto ok;
 		}
-		l += m;
-		lb++;
+	if(flag == 1) {
+		print("unit %s is not active\n", arg);
+		goto bad;
 	}
-	print("no search\n");
+
+ok:
+	mc = w.jagu;
+	mc.part = i;
+	return mc;
+
+bad:
+	return devnone;
 }
+
+typedef	struct	Wcache	Wcache;
+struct	Wcache
+{
+	Device	dev;
+	long	off;
+	uchar*	p;		/* pointer into wcp.memp */
+};
+enum
+{
+	NCACHE	= 12,
+};
 
 static
 struct
@@ -681,7 +795,51 @@ struct
 	long	nblock;			/* number of native blocks */
 	long	block;			/* bytes per native block */
 	long	off;			/* current native block count */
+
+	Wcache	cache[NCACHE];
+	int	cachei;			/* circular index */
+	int	cachen;			/* number of blocks per cache entry */
+	QLock	cachelock;
 } wcp;
+
+static
+int
+wormcache(Device d, long b, void *c)
+{
+	Wcache *w;
+
+	if(wcp.memc == 0 || wcp.memp == 0 || wcp.active)
+		return 0;
+	qlock(&wcp.cachelock);
+	for(w=wcp.cache; w<wcp.cache+NCACHE; w++)
+		if(devcmp(d, w->dev) == 0 && b >= w->off && b < w->off+wcp.cachen) {
+			memmove(c, w->p+(b-w->off)*RBUFSIZE, RBUFSIZE);
+			qunlock(&wcp.cachelock);
+			return 1;
+		}
+	qunlock(&wcp.cachelock);
+	return 0;
+}
+
+static
+void
+clearcache(void)
+{
+	Wcache *w;
+	uchar *cp;
+
+	wcp.cachen = wcp.memc / (RBUFSIZE * NCACHE);
+	cp = wcp.memp;
+
+	qlock(&wcp.cachelock);
+	for(w=wcp.cache; w<wcp.cache+NCACHE; w++) {
+		w->dev = devnone;
+		w->off = 0;
+		w->p = cp;
+		cp += wcp.cachen * RBUFSIZE;
+	}
+	qunlock(&wcp.cachelock);
+}
 
 static
 void
@@ -690,6 +848,7 @@ wcpinit(void)
 	if(wcp.memp == 0) {
 		wcp.memc = conf.wcpsize;
 		wcp.memp = ialloc(wcp.memc, LINESIZE);
+		clearcache();
 	}
 }
 
@@ -699,29 +858,41 @@ cmd_wormeject(int argc, char *argv[])
 {
 	Plat *v;
 	Device dev;
-	int n, lb;
+	int s;
+	uchar cmd[6], buf[6];
 
-	dev = getcatworm();
-	if(dev.type != Devmcat) {
-		print("device not mcat\n");
-		return;
-	}
 	if(argc <= 1) {
-		print("usage: wormeject unit\n");
+		print("usage: wormeject [f]unit\n");
 		return;
 	}
-	n = number(argv[1], -1, 10);
+	dev = getwormunit(argv[1], 0);
+	if(!devcmp(dev, devnone))
+		return;
 
-	for(lb = dev.unit; lb < dev.part; lb++)
-		if(cwdevs[lb].part == n) {
-			print("unit device is active %d\n", n);
-			return;
-		}
-	dev = cwdevs[dev.unit];
-	dev.part = n;
+	if(dev.part >= NSHLV) {
+		print("dev > NSHLV %d\n", dev.part);
+		return;
+	}
+
 	v = wormunit(dev);
-	if(v)
-		qunlock(&w);
+	if(!v)
+		return;
+
+	memset(cmd, 0, sizeof(cmd));
+	cmd[0] = 0xc0;		/* disk eject */
+	cmd[1] = v->lun << 5;
+	s = ascsiio(SCSInone, cmd, 6, buf, 0);
+	if(s)
+		print("status return from eject %x\n", s);
+
+	v->status = Sempty;
+	v->block = 0;
+
+	v += NSHLV;
+	v->status = Sempty;
+	v->block = 0;
+
+	qunlock(&w);
 }
 
 static
@@ -730,7 +901,8 @@ cmd_wormingest(int argc, char *argv[])
 {
 	Plat *v;
 	Device dev;
-	int n, lb;
+	int s, lun;
+	uchar cmd[6], buf[6];
 
 	dev = getcatworm();
 	if(dev.type != Devmcat) {
@@ -738,22 +910,107 @@ cmd_wormingest(int argc, char *argv[])
 		return;
 	}
 	if(argc <= 1) {
-		print("usage: wormingest unit\n");
+		print("usage: wormingest [f]unit\n");
 		return;
 	}
-	n = number(argv[1], -1, 10);
+	dev = getwormunit(argv[1], 0);
+	if(!devcmp(dev, devnone))
+		return;
+	if(dev.part >= NSHLV) {
+		print("dev > NSHLV %d\n", dev.part);
+		return;
+	}
 
-	for(lb = dev.unit; lb < dev.part; lb++)
-		if(cwdevs[lb].part == n) {
-			print("unit device is active %d\n", n);
-			return;
-		}
+loop:
+	qlock(&w);
 
-	dev = cwdevs[dev.unit];
-	dev.part = n;
-	v = wormunit(dev);
-	if(v)
+	v = &w.plat[dev.part];
+	if(v->status != Sempty) {
+		print("unit not empty\n");
+		goto out;
+	}
+
+	lun = bestlun(dev.part);
+	if(lun < 0) {
 		qunlock(&w);
+		waitsec(1000);
+		goto loop;
+	}
+
+	memset(cmd, 0, sizeof(cmd));
+	cmd[0] = 0xd6;		/* disk set */
+	cmd[1] = lun << 5;
+	cmd[3] = 127 << 1;
+	s = ascsiio(SCSInone, cmd, 6, buf, 0);
+	if(s) {
+		print("status return from disk set of mouth %x\n", s);
+		goto out;
+	}
+
+	memset(cmd, 0, sizeof(cmd));
+	cmd[0] = 0xd7;		/* disk release */
+	cmd[1] = (lun << 5) | 1;
+	cmd[3] = dev.part << 1;
+	s = ascsiio(SCSInone, cmd, 6, buf, 0);
+	if(s) {
+		print("status return from disk release %x\n", s);
+		goto out;
+	}
+
+	v->status = Sunload;
+	v->block = 0;
+
+	v += NSHLV;
+	v->status = Sunload;
+	v->block = 0;
+
+out:
+	qunlock(&w);
+}
+
+static
+void
+cmd_wormoffline(int argc, char *argv[])
+{
+	int u, i;
+
+	if(argc <= 1) {
+		print("usage: wormoffline lun\n");
+		return;
+	}
+	u = number(argv[1], -1, 10);
+	if(u < 0 || u >= NLUN) {
+		print("bad lun %s (%d)\n", argv[1], u);
+		return;
+	}
+	if(w.offline[u])
+		print("lun %d already offline\n", u);
+	w.offline[u] = 1;
+	for(i=0; i<NLUN; i++)
+		if(w.offline[i] == 0)
+			return;
+	print("that would take all units offline\n");
+	w.offline[u] = 0;
+}
+
+static
+void
+cmd_wormonline(int argc, char *argv[])
+{
+	int u;
+
+	if(argc <= 1) {
+		print("usage: wormonline lun\n");
+		return;
+	}
+	u = number(argv[1], -1, 10);
+	if(u < 0 || u >= NLUN) {
+		print("bad lun %s (%d)\n", argv[1], u);
+		return;
+	}
+	if(!w.offline[u])
+		print("lun %d already online\n", u);
+	w.offline[u] = 0;
 }
 
 static
@@ -761,14 +1018,9 @@ void
 cmd_wormcp(int argc, char *argv[])
 {
 	Device fr, to;
-	int lb, hb, i;
 	Plat *v;
 
-	to = getcatworm();
-	if(to.type != Devmcat) {
-		print("device not mcat\n");
-		return;
-	}
+	clearcache();
 	if(argc <= 1) {
 		print("wcp active turned off\n");
 		wcp.active = 0;
@@ -783,35 +1035,15 @@ cmd_wormcp(int argc, char *argv[])
 		return;
 	}
 
-	i = -1;
-	if(argc > 1)
-		i = number(argv[1], i, 10);
-
-	fr = devnone;
-	hb = to.part;
-	for(lb = to.unit; lb < hb; lb++)
-		if(cwdevs[lb].part == i)
-			fr = cwdevs[lb];
-	if(devcmp(fr, devnone) == 0) {
-		print("'from' device not in list %d\n", i);
+	if(argc <= 2) {
+		print("argcount: wcp from to\n");
 		return;
 	}
 
-	i = -1;
-	if(argc > 2)
-		i = number(argv[2], i, 10);
-
-	if(i < 0 || i >= NPLAT || w.plat[i].status == Sempty) {
-		print("'to' device empty %d\n", i);
+	fr = getwormunit(argv[1], 1);
+	to = getwormunit(argv[2], 0);
+	if(!devcmp(fr, devnone) || !devcmp(to, devnone))
 		return;
-	}
-	for(lb = to.unit; lb < hb; lb++)
-		if(cwdevs[lb].part == i) {
-			print("'to' device is in list %d\n", i);
-			return;
-		}
-	to = fr;
-	to.part = i;
 
 	wcp.off = 0;
 	if(argc > 3)
@@ -960,11 +1192,29 @@ dowcp(void)
 {
 	Plat *v;
 	int s;
-	long l, n;
+	long l, n, count;
+	Device xd;
 	uchar cmd[10], buf[6];
 
 	if(!wcp.active)
 		return 0;
+	count = 0;
+	goto loop0;
+
+sonysucks:
+	count++;
+	if(count > 4)
+		goto stop;
+	qunlock(&w);
+
+	/* provoke disk exchange */
+	xd = wcp.fr;
+	xd.part = count;
+	v = wormunit(xd);
+	if(v)
+		qunlock(&w);
+
+loop0:
 	v = wormunit(wcp.fr);
 	if(v == 0)
 		return 0;
@@ -975,6 +1225,9 @@ dowcp(void)
 	}
 
 loop:
+	if(!wcp.active)
+		goto stop;
+
 	/*
 	 * non-blank search
 	 */
@@ -983,7 +1236,7 @@ loop:
 			wcp.fr, wcp.to, wcp.off);
 		goto stop;
 	}
-	n = 65535;
+	n = 10000;
 	if(wcp.off+n > wcp.nblock)
 		n = wcp.nblock - wcp.off;
 
@@ -1002,7 +1255,10 @@ loop:
 	cmd[9] = 0;
 
 	s = ascsiio(SCSIread, cmd, 10, buf, 6);
+
 	if(s) {
+		if(exchgerr(s))
+			goto sonysucks;
 		print("dowcp: non-blank search status %.2x\n", s);
 		goto stop;
 	}
@@ -1041,8 +1297,12 @@ loop:
 	cmd[7] = n>>8;
 	cmd[8] = n;
 	cmd[9] = 0;
+
 	s = ascsiio(SCSIread, cmd, 10, buf, 6);
+
 	if(s) {
+		if(exchgerr(s))
+			goto sonysucks;
 		print("dowcp: blank search status %.2x\n", s);
 		goto stop;
 	}
@@ -1071,7 +1331,10 @@ rloop:
 
 	s = ascsiio(SCSIread, cmd, 10, wcp.memp, n*wcp.block);
 	if(s) {
-		if(s != 0x54 && s != 0x50) {	/* unrecov read error */
+		if(exchgerr(s))
+			goto sonysucks;
+
+		if(s != 0x54 && s != 0x50 && s != 0x53) {	/* unrecov read error */
 			print("dowcp: read status %.2x\n", s);
 			goto stop;
 		}
@@ -1101,6 +1364,9 @@ rloop:
 
 	s = ascsiio(SCSIwrite, cmd, 10, wcp.memp, n*wcp.block);
 	if(s) {
+		if(exchgerr(s))
+			goto sonysucks;
+
 		if(s == 0x61) {
 			qunlock(&w);
 			wbsrch(wcp.off, wcp.nblock);

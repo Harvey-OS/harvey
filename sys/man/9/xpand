@@ -25,11 +25,11 @@ picture (default standard input)
 mapping value
 .I inlo
 to
-.I lo,
+.IR lo ,
 and
 .I inhi
 to
-.I hi.
+.IR hi .
 .I Lo
 and
 .I hi
@@ -50,7 +50,7 @@ causes all channels of the input image to be considered together when computing
 default values for
 .I inlo
 and
-.I inhi,
+.IR inhi ,
 thus preserving the hue of
 .B rgb
 pictures.
@@ -66,11 +66,11 @@ are specified on the command line.
 There is no requirement that
 .I lo
 be smaller than
-.I hi,
+.IR hi ,
 or that
 .I inlo
 be smaller than
-.I inhi,
+.IR inhi ,
 nor that any of those values be in the range 0 to 255.
 Output values not in the range 0 to 255 are clamped.
 For example,
@@ -81,5 +81,7 @@ inverts the pixel values of its input.
 For convenience,
 .I picnegate
 is a script that executes this command.
+.SH SOURCE
+.B /sys/src/fb/xpand.c
 .SH "SEE ALSO
 .IR picfile (9.6)

@@ -20,7 +20,7 @@ HFILES=grap.h\
 
 YFILES=grap.y\
 
-LFILES=grapl.l\
+LFILES=grapl.lx\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone

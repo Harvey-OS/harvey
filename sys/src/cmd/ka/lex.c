@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 	case 'D':
 		p = ARGF();
 		if(p)
-			dodefine(p);
+			Dlist[nDlist++] = p;
 		break;
 
 	case 'I':
@@ -121,7 +121,10 @@ child:
 	Binit(&obuf, of, OWRITE);
 
 	pass = 1;
+	nosched = 0;
 	pinit(*argv);
+	for(i=0; i<nDlist; i++)
+		dodefine(Dlist[i]);
 	yyparse();
 	if(nerrors) {
 		cclean();
@@ -129,8 +132,11 @@ child:
 	}
 
 	pass = 2;
+	nosched = 0;
 	outhist();
 	pinit(*argv);
+	for(i=0; i<nDlist; i++)
+		dodefine(Dlist[i]);
 	yyparse();
 	cclean();
 	if(nerrors)
@@ -428,6 +434,9 @@ struct
 	"XOR",		LXORW, AXOR,
 	"XORCC",	LADDW, AXORCC,
 
+	"SCHED",	LSCHED, 0,
+	"NOSCHED",	LSCHED, 0x80,
+
 	0
 };
 
@@ -459,6 +468,13 @@ cinit(void)
 		s = slookup(itab[i].name);
 		s->type = itab[i].type;
 		s->value = itab[i].value;
+	}
+
+	ALLOCN(pathname, 0, 100);
+	if(getwd(pathname, 99) == 0) {
+		ALLOCN(pathname, 100, 900);
+		if(getwd(pathname, 999) == 0)
+			strcpy(pathname, "/???");
 	}
 }
 
@@ -611,7 +627,7 @@ jackpot:
 		break;
 	}
 	Bputc(&obuf, a);
-	Bputc(&obuf, reg);
+	Bputc(&obuf, reg|nosched);
 	Bputc(&obuf, lineno);
 	Bputc(&obuf, lineno>>8);
 	Bputc(&obuf, lineno>>16);
@@ -629,13 +645,17 @@ outhist(void)
 {
 	Gen g;
 	Hist *h;
-	char name[NNAME], *p, *q;
+	char *p, *q, *op;
 	int n;
 
 	g = nullgen;
-	name[0] = '<';
 	for(h = hist; h != H; h = h->link) {
 		p = h->name;
+		op = 0;
+		if(p && p[0] != '/' && h->offset == 0 && pathname && pathname[0] == '/') {
+			op = p;
+			p = pathname;
+		}
 		while(p) {
 			q = strchr(p, '/');
 			if(q) {
@@ -647,14 +667,19 @@ outhist(void)
 				n = strlen(p);
 				q = 0;
 			}
-			if(n >= NNAME-1)
-				n = NNAME-2;
 			if(n) {
-				memmove(name+1, p, n);
-				name[n+1] = 0;
-				zname(name, D_FILE, 1);
+				Bputc(&obuf, ANAME);
+				Bputc(&obuf, D_FILE);	/* type */
+				Bputc(&obuf, 1);	/* sym */
+				Bputc(&obuf, '<');
+				Bwrite(&obuf, p, n);
+				Bputc(&obuf, 0);
 			}
 			p = q;
+			if(p == 0 && op) {
+				p = op;
+				op = 0;
+			}
 		}
 		g.offset = h->offset;
 

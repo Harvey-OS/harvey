@@ -1,0 +1,21 @@
+char *menu2[]={
+	"cut",
+	"snarf",
+	"paste",
+	0
+};
+char *menu3[]={
+	"read",
+	"write",
+	"exit",
+	0
+};
+void popup(void){
+	Panel *m2, *m3, *pop;
+	m2=plmenu(0, 0, menu2, PACKN|FILLX, 0);
+	m3=plmenu(0, 0, menu3, PACKN|FILLX, 0);
+	root=plframe(0, EXPAND);
+	pop=plpopup(root, EXPAND, 0, m2, m3);
+	pledit(pop, EXPAND, Pt(0,0),
+		L"How now, brown cow?", 19, 0);
+}

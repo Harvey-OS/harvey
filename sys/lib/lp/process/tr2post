@@ -1,0 +1,57 @@
+#!/bin/rc
+if (~ $DEBUG 1) flag x +
+# convert troff output to PostScript
+PATCH='%%Patch from lp'
+for (i in `{echo $IBIN|awk -F, '{ n=split($0, a, ","); for (i=1;i<=n;i++) print a[i]; }'}) {
+	switch ($i) {
+	case -P*;
+	case man manual manualfeed;
+		PATCH=$PATCH'
+statusdict begin /manualfeed true def end'
+	case simplex;
+		DUPLEX=0
+	case [0-9];
+		PATCH=$PATCH'
+systemdict /languagelevel known {languagelevel 2 eq} if
+{
+  currentpagedevice /InputAttributes get '$i' get
+  dup null eq
+  {pop}
+  {dup length 1 add dict copy
+   dup /InputAttributes
+    1 dict dup /Priority['$i'] put
+    put setpagedevice
+  } ifelse
+} {statusdict begin '$i' setpapertray end} ifelse'
+	case 11x17 ledger;
+		PATCH=$PATCH'
+statusdict begin '$i'tray end'
+	case *;
+		echo illegal option ''''-i $i'''' >[1=2]
+	}
+}
+if (! ~ $#DUPLEX 0) {
+	if (~ $DUPLEX 1 )
+		PATCH=$PATCH'
+statusdict /setduplexmode known {statusdict begin true setduplexmode end} if';
+	if (~ $DUPLEX 0 )
+		PATCH=$PATCH'
+statusdict /setduplexmode known {statusdict begin false setduplexmode end} if';
+}
+PATCH=$PATCH'
+%%EndPatch from lp
+'
+if (! ~ $PATCH '' -P*)
+	PATCH=-P''''$PATCH'''';
+switch ($LAND) {
+case -p*;
+case ''; LAND=-pp
+case 1;	LAND=-pl
+}
+if (! ~ $COPIES '' -c*) COPIES=-c^$COPIES
+if (! ~ $MAG '' -m*) MAG=-m^$MAG
+if (! ~ $NPAG '' -n*) NPAG=-n^$NPAG
+if (! ~ $XOFF '' -x*) XOFF=-x^$XOFF
+if (! ~ $YOFF '' -y*) YOFF=-y^$YOFF
+eval /$cputype/bin/aux/tr2post $XOFF $YOFF $COPIES $MAG $NPAG $LAND $OLIST $PATCH | $LPLIB/process/hpost
+exit

@@ -1,13 +1,57 @@
-% ASYMBOLS.MF                     June 1990
-% This Metafont file is part of AMSFonts 2.0.
-% Copyright (C) 1990, American Mathematical Society.
-% All rights reserved.  Copying of this file is authorized only if either:
-%   (1) you make absolutely no changes to your copy including filename; OR
-%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="asymbols.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: driver",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "06841 1959 6115 75392"
+%%     keywords="amsfonts, tex, metafont , AMSSymbols ",
+%%     abstract="This is the driver file for use with 
+%%            MSAM, the first extra symbol font in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  
 % Italic corrections have not been computed for most of these characters,
 % since they are generally not slanted.
+
+% Changed some assignments for 
+%
+%   cmchar "Circle-R brand"
+%   cmchar "Circle-S brand"
+%
+% to avoid rounding problems and the differences in TFM files for
+% different magnifications
+%
+% Changed by Stefan Lindner 15.03.1991
+%
+%   original: radius=.5(6u++cap_height)+3u; radius=radius#*hppp;
+%   changed:  radius#=.5(6u#++cap_height#)+3u#; radius:=radius#*hppp;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 
 def makesquare (suffix i,j,k,l) = 
 %% z.j, z.k are the lower left and right corners 
@@ -116,7 +160,7 @@ z0=.5[z5,z1]; % the origin of the circle
 pickup crisp.nib; 
 pos12(rule_thickness,90); pos13(bar,0); pos14(bar,0); 
 y10=y12=y8; lft x10=hround x8; 
-y13-y10=y10-y14=.16asc_height+eps; x13=x14=x10+3u+eps; 
+y13-y10=y10-y14=.19asc_height+eps; x13=x14=x10+3u+eps; 
 pos15(bar,angle(z14-z10)); z15l=z10; 
 pos16(bar,angle(z13-z10)); z16l=z10; 
 z19=.38[.5[z13,z14],z10]; 
@@ -368,7 +412,7 @@ cmchar "Downward rightward harpoon";
 beginchar(oct"027",7.5u#,asc_height#,asc_depth#); 
 adjust_fit(0,0);  
 currentpicture:=v 
-reflectedabout((0,.5(h-d)+eps),(w,.5(h-d)+eps)); 
+reflectedabout((0,.5(h-d)*aspect_ratio+eps),(w,.5(h-d)*aspect_ratio+eps)); 
 penlabels(0,1,2,3,4,5,6); endchar; 
  
 cmchar "Upward leftward harpoon"; 
@@ -383,7 +427,7 @@ cmchar "Downward leftward harpoon";
 beginchar(oct"031",7.5u#,asc_height#,asc_depth#); 
 adjust_fit(0,0);  
 currentpicture:=v 
-reflectedabout((0,.5(h-d)+eps),(w,.5(h-d)+eps)); 
+reflectedabout((0,.5(h-d)*aspect_ratio+eps),(w,.5(h-d)*aspect_ratio+eps)); 
 penlabels(0,1,2,3,4,5,6); endchar; 
  
 cmchar "Rightward arrow with tail"; 
@@ -1717,7 +1761,12 @@ cap_band, cap_notch_cut,
  o, apex_o:  $.#:=lower.$.#; endfor 
 fudge:=lower.fudge;   
 font_setup; 
-radius=.5(6u++cap_height)+3u; radius=radius#*hppp;
+% Changed by Stefan Lindner 15.03.1991         -sl
+% original: radius=.5(6u++cap_height)+3u; radius=radius#*hppp;
+radius#=.5(6u#++cap_height#)+3u#; radius:=radius#*hppp;
+% end of change
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 cmchar "Circle-R brand"; 
 beginchar(oct"162",13u#, .52cap_height#+radius#,radius#-.52cap_height#); 
 adjust_fit(4u#,4u#); 
@@ -1907,3 +1956,4 @@ circle_points; draw_circle;  % circle
 y9=y10=y2; x9=x6+3u; x10=w-x9; 
 draw z9--z10; 
 labels(1,2,3,4,5,6,7,8,9,10); endchar; 
+

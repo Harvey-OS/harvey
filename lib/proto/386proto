@@ -4,12 +4,12 @@ adm
 		*
 	users
 fd
-help
 lib
 	namespace
 	font
 		bit
 			pelm
+				euro.9.font
 				latin1.8
 				latin1.8.font
 				latin1.9
@@ -22,12 +22,11 @@ lib
 			courier
 				+
 	ndb
+		common
 		local
 	units
-	vga
-		generic
-			640x480x1
-			640x480x2
+	vgadb
+	ovgadb
 rc
 	+
 mail
@@ -38,12 +37,16 @@ mail
 		8a
 		8c
 		8l
+		acme
 		ar
 		ascii
 		astro
 		awk
 		aux
-			+
+			mouse
+			samterm
+			vga
+			ovga
 		basename
 		bc
 		bind
@@ -65,7 +68,7 @@ mail
 		deroff
 		diff
 		disk
-			+
+			*
 		dkconfig
 		dossrv
 		du
@@ -100,6 +103,7 @@ mail
 		ndb
 			cs
 			query
+		netkey
 		nm
 		p
 		pbd
@@ -113,7 +117,6 @@ mail
 		ramfs
 		rc
 		read
-		rl
 		rm
 		rx
 		sam
@@ -133,6 +136,7 @@ mail
 		tbl
 		tcs
 		tee
+		telco
 		test
 		time
 		touch
@@ -165,7 +169,6 @@ n
 	dump
 	face
 	fornax
-	pipe
 	spindle
 	tempel
 	kfs

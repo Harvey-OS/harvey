@@ -57,58 +57,59 @@ clickmatch(Window *w, int cl, int cr, int dir)
 }
 
 void
-doubleclick(Window *w, ulong p0)
+doubleclick(Window *w, long *q0, long *q1)
 {
 	int c, i;
 	Rune *r, *l;
+	long q;
 
-	w->q0 = w->q1 = p0;
+	q = 0;
 	for(i=0; left[i]; i++){
+		q = *q0;
 		l = left[i];
 		r = right[i];
 		/* try left match */
-		if(p0 == 0){
-			cp = p0;
+		if(q == 0){
+			cp = q;
 			c = '\n';
 		}else{
-			cp = p0-1;
+			cp = q-1;
 			c = wgetc(w);
 		}
 		if(strrune(l, c)){
 			if(clickmatch(w, c, r[strrune(l, c)-l], 1)){
-				w->q0 = p0;
-				w->q1 = cp-1;
+				*q1 = cp-1;
 				if(c=='\n' && (cp--,wgetc(w))!=0x04)	/* EOT is trouble */
-					w->q1++;
+					(*q1)++;
 			}
 			return;
 		}
 		/* try right match */
-		if(p0 == w->text.n){
-			cp = p0;
+		if(q == w->text.n){
+			cp = q;
 			c='\n';
 		}else{
-			cp =  p0+1;
+			cp =  q+1;
 			c = wbgetc(w);
 		}
 		if(strrune(r, c)){
 			if(clickmatch(w, c, l[strrune(r, c)-r], -1)){
-				w->q0 = cp;
+				*q0 = cp;
 				if(c!='\n' || cp!=0 || (cp=0,wgetc(w))=='\n')
-					w->q0++;
-				w->q1 = p0+(p0<w->text.n && c=='\n');
+					(*q0)++;
+				*q1 = q+(q<w->text.n && c=='\n');
 			}
 			return;
 		}
 	}
 	/* try filling out word to right */
-	cp = p0;
+	cp = q;
 	while(alnum(wgetc(w)))
-		w->q1++;
+		(*q1)++;
 	/* try filling out word to left */
-	cp = p0;
+	cp = q;
 	while(alnum(wbgetc(w)))
-		w->q0--;
+		(*q0)--;
 }
 
 int

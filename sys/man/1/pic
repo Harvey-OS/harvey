@@ -185,10 +185,10 @@ coordinate pair, but it may be specified in other ways.
 .EX
 \f2  position\fP:
 	\f2expr, expr\fP
-	\f2place\fP \(+- \f2expr, expr\fP
-	\f2place\fP \(+- ( \f2expr, expr\fP )
+	\f2place\fP ± \f2expr, expr\fP
+	\f2place\fP ± ( \f2expr, expr\fP )
 	( \f2position\fP,\f2 position\fP )	\f2x\fP\fR from one, \f2y\fP\fR the other\fP
-	\f2expr\fP [\f2of the way\fP] between \f2position\fP and \f2position\fP
+	\f2expr\fP [\fLof the way\fP] between \f2position\fP and \f2position\fP
 	\f2expr\fP < \f2position\fP , \f2position\fP >
 	( \f2position\fP )
 .EE
@@ -312,7 +312,10 @@ move
 A: ellipse 
    circle rad .1 with .w at A.e
    circle rad .05 at 0.5 <A.c, A.ne>
+   circle rad .065 at 0.5 <A.c, A.ne>
+   spline from last circle.nw left .25 then left .05 down .05
    arc from A.c to A.se rad 0.5
+   for i = 1 to 10 do { line from A.s+.025*i,.01*i down i/50 } 
 .EE
 .PP
 .PS
@@ -321,15 +324,20 @@ move
 A: ellipse 
    circle rad .1 with .w at A.e
    circle rad .05 at 0.5 <A.c, A.ne>
+   circle rad .065 at 0.5 <A.c, A.ne>
+   spline from last circle.nw left .25 then left .05 down .05
    arc from A.c to A.se rad 0.5
+   for i = 1 to 10 do { line from A.s+.025*i,.01*i down i/50 } 
 .PE
+.SH SOURCE
+.B /sys/src/cmd/pic
 .SH "SEE ALSO"
 .IR grap (1), 
 .IR doctype (1),
 .IR troff (1)
 .br
 B. W. Kernighan,
-`PIC\(ema Graphics Language for Typesetting',
+``PIC\(ema Graphics Language for Typesetting'',
 .I
-Unix Programmer's Manual,
+Unix Research System Programmer's Manual,
 Tenth Edition, Volume 2

@@ -21,7 +21,9 @@ with its standard input, output, and error connected to a
 network connection, typically TCP on an Ethernet.  It runs as user
 .B root
 and multiplexes access to multiple Plan 9
-clients over the single wire by simulating Unix permissions itself.
+clients over the single wire.
+It simulates Unix permissions itself by assuming
+Plan 9 uids match Unix login names.
 .PP
 If a
 .I directory
@@ -33,7 +35,7 @@ system call to that directory.
 .PP
 Plan 9 calls this service
 .B 9fs
-with TCP service number 17008 on the Ethernet.
+with TCP service number 564 on the Ethernet.
 Set up this way on a machine called, say,
 .BR kremvax ,
 .I u9fs
@@ -104,7 +106,7 @@ Edit the
 .B makefile
 to set
 .B LOG
-to a proper place for a log file and to set compile-time
+to a proper place for a log file and to set the compile-time
 configuration correctly.
 Then compile with an ANSI C compiler and install in
 .BR /usr/etc/u9fs .
@@ -121,6 +123,8 @@ and this in
 .EX
 9fs     564/tcp       9fs  # Plan 9 fs
 .EE
+.SH SOURCE
+.B /sys/src/cmd/unix/u9fs
 .SH DIAGNOSTICS
 Problems are reported to
 .BR /tmp/u9fs.log .
@@ -128,6 +132,7 @@ A compile-time flag enables chatty debugging.
 .SH SEE ALSO
 .IR bind (1),
 .IR srv (4),
-.IR ip (3)
+.IR ip (3),
+.IR nfsserver (8)
 .SH BUGS
 The implementation of devices is unsatisfactory.

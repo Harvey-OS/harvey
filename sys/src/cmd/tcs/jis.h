@@ -1,5 +1,5 @@
 /*
-	following goo courtesy of kogure
+	following astonishing goo courtesy of kogure.
 */
 /*
  * MicroSoft Kanji Encoding (SJIS) Transformation
@@ -8,7 +8,7 @@
 /*
  * void
  * J2S(unsigned char *_h, unsigned char *_l)
- *	JIS X 0206 to MS kanji transformation.
+ *	JIS X 208 to MS kanji transformation.
  *
  * Calling/Exit State:
  *	_h and _l should be in their valid range.
@@ -24,7 +24,7 @@
 /*
  * void
  * S2J(unsigned char *_h, unsigned char *_l)
- *	MS kanji to JIS X 0206 transformation.
+ *	MS kanji to JIS X 208 transformation.
  *
  * Calling/Exit State:
  *	_h and _l should be in valid range.
@@ -76,7 +76,7 @@
  * int
  * CANS2J(const unsigned char *_h, const unsinged char *_l)
  *	Tests given bytes form a MS kanji code point which can be
- *	transformed to a valid JIS X 0206 code point.
+ *	transformed to a valid JIS X 208 code point.
  *
  * Calling/Exit State:
  *	Returns 1 if they are, or 0 otherwise.
@@ -97,7 +97,7 @@
 /*
  * int
  * CANJ2S(const unsigned char *_h, const unsigned char *_l)
- *	Tests given bytes form valid JIS X 0206 code points
+ *	Tests given bytes form valid JIS X 208 code points
  *	(which can be transformed to MS kanji).
  *
  * Calling/Exit State:

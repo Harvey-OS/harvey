@@ -11,16 +11,18 @@
 #define	BY2PG		4096			/* bytes per page */
 #define	WD2PG		(BY2PG/BY2WD)		/* words per page */
 #define	PGSHIFT		12			/* log(BY2PG) */
-#define PGROUND(s)	(((s)+(BY2PG-1))&~(BY2PG-1))
+#define ROUND(s, sz)	(((s)+(sz-1))&~(sz-1))
+#define PGROUND(s)	ROUND(s, BY2PG)
 
 #define	MAXMACH		1			/* max # cpus system can run */
 
 /*
  * Time
  */
-#define	HZ		(20)			/* clock frequency */
+#define	HZ		(100)			/* clock frequency */
 #define	MS2HZ		(1000/HZ)		/* millisec per clock tick */
 #define	TK2SEC(t)	((t)/HZ)		/* ticks to seconds */
+#define	SEC2TK(t)	(((ulong)(t))*HZ)	/* seconds to ticks */
 #define	TK2MS(t)	((((ulong)(t))*1000)/HZ)	/* ticks to milliseconds */
 #define	MS2TK(t)	((((ulong)(t))*HZ)/1000)	/* milliseconds to ticks */
 
@@ -63,6 +65,7 @@
 #define	UDSEG	3	/* user data/stack */
 #define	UESEG	4	/* user executable */
 #define TSSSEG	5	/* task segment */
+#define N386SEG	6	/* number of segments */
 
 #define SELGDT	(0<<3)	/* selector is in gdt */
 #define	SELLDT	(1<<3)	/* selector is in ldt */

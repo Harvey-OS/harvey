@@ -18,11 +18,9 @@ IOQ	lineq;			/* lock to getc; interrupt putc's */
 IOQ	printq;
 KIOQ	kbdq;
 
-static Ref	ctl;			/* number of opens to the control file */
-static int	raw;			/* true if raw has been requested on a ctl file */
+static Ref	ctl;		/* number of opens to the control file */
+static int	raw;		/* true if raw has been requested on ctl file */
 
-char	eve[NAMELEN] = "bootes";
-char	evekey[DESKEYLEN];
 char	sysname[NAMELEN];
 
 /*
@@ -69,6 +67,7 @@ putstrn(char *str, int n)
 	 */
 	if(printq.puts == 0)
 		return;
+
 	while(n > 0){
 		t = memchr(str, '\n', n);
 		if(t){
@@ -139,6 +138,12 @@ sprint(char *s, char *fmt, ...)
 }
 
 int
+snprint(char *s, int n, char *fmt, ...)
+{
+	return doprint(s, s+n, fmt, (&fmt+1)) - s;
+}
+
+int
 print(char *fmt, ...)
 {
 	char buf[PRINTSIZE];
@@ -189,7 +194,10 @@ pprint(char *fmt, ...)
 	n = sprint(buf, "%s %d: ", u->p->text, u->p->pid);
 	n = doprint(buf+n, buf+sizeof(buf), fmt, (&fmt+1)) - buf;
 
+	if(waserror())
+		return 0;
 	(*devtab[c->type].write)(c, buf, n, c->offset);
+	poperror();
 
 	lock(c);
 	c->offset += n;
@@ -203,7 +211,7 @@ prflush(void)
 {
 	while(printq.in != printq.out) ;
 }
-
+#include <ureg.h>
 void
 echo(Rune r, char *buf, int n)
 {
@@ -320,19 +328,21 @@ consactive(void)
 
 enum{
 	Qdir,
-	Qchal,
+	Qauth,
+	Qauthcheck,
+	Qauthent,
 	Qclock,
 	Qcons,
 	Qconsctl,
 	Qcputime,
-	Qcrypt,
 	Qhz,
 	Qkey,
+	Qhostdomain,
+	Qhostowner,
 	Qklog,
 	Qlights,
 	Qmsec,
 	Qnoise,
-	Qnoteid,
 	Qnull,
 	Qpgrpid,
 	Qpid,
@@ -345,19 +355,21 @@ enum{
 };
 
 Dirtab consdir[]={
-	"chal",		{Qchal},	8,		0666,
+	"authenticate",	{Qauth},	0,		0666,
+	"authcheck",	{Qauthcheck},	0,		0666,
+	"authenticator", {Qauthent},	0,		0666,
 	"clock",	{Qclock},	2*NUMSIZE,	0444,
 	"cons",		{Qcons},	0,		0660,
 	"consctl",	{Qconsctl},	0,		0220,
 	"cputime",	{Qcputime},	6*NUMSIZE,	0444,
-	"crypt",	{Qcrypt},	0,		0666,
+	"hostdomain",	{Qhostdomain},	DOMLEN,		0664,
+	"hostowner",	{Qhostowner},	NAMELEN,	0664,
 	"hz",		{Qhz},		NUMSIZE,	0666,
 	"key",		{Qkey},		DESKEYLEN,	0622,
 	"klog",		{Qklog},	0,		0444,
 	"lights",	{Qlights},	0,		0220,
 	"msec",		{Qmsec},	NUMSIZE,	0444,
 	"noise",	{Qnoise},	0,		0220,
-	"noteid",	{Qnoteid},	NUMSIZE,	0444,
 	"null",		{Qnull},	0,		0666,
 	"pgrpid",	{Qpgrpid},	NUMSIZE,	0444,
 	"pid",		{Qpid},		NUMSIZE,	0444,
@@ -366,7 +378,7 @@ Dirtab consdir[]={
 	"sysname",	{Qsysname},	0,		0664,
 	"sysstat",	{Qsysstat},	0,		0666,
 	"time",		{Qtime},	NUMSIZE,	0664,
-	"user",		{Quser},	0,		0666,
+ 	"user",		{Quser},	NAMELEN,	0666,
 };
 
 #define	NCONS	(sizeof consdir/sizeof(Dirtab))
@@ -383,7 +395,7 @@ int
 readnum(ulong off, char *buf, ulong n, ulong val, int size)
 {
 	char tmp[64];
-	Fconv fconv = (Fconv){ tmp, tmp+sizeof(tmp), size-1, 0, 0, 'd' };
+	Fconv fconv = (Fconv){ tmp, tmp+sizeof(tmp), size-1, 0, 0, 'u' };
 
 	numbconv(&val, &fconv);
 	tmp[size-1] = ' ';
@@ -446,14 +458,14 @@ consstat(Chan *c, char *dp)
 Chan*
 consopen(Chan *c, int omode)
 {
+	c->aux = 0;
 	switch(c->qid.path){
 	case Qconsctl:
-		if(strcmp(u->p->user, eve) != 0)
+		if(!iseve())
 			error(Eperm);
 		incref(&ctl);
 		break;
 	}
-	c->aux = 0;
 	return devopen(c, omode, consdir, NCONS, devgen);
 }
 
@@ -468,15 +480,21 @@ void
 consclose(Chan *c)
 {
 	/* last close of control file turns off raw */
-	if(c->qid.path==Qconsctl && (c->flag&COPEN)){
-		lock(&ctl);
-		if(--ctl.ref == 0)
-			raw = 0;
-		unlock(&ctl);
+	switch(c->qid.path){
+	case Qconsctl:
+		if(c->flag&COPEN){
+			lock(&ctl);
+			if(--ctl.ref == 0)
+				raw = 0;
+			unlock(&ctl);
+		}
+		break;
+	case Qauth:
+	case Qauthcheck:
+	case Qauthent:
+		authclose(c);
+		break;
 	}
-	if(c->qid.path == Qcrypt && c->aux)
-		free(c->aux);
-	c->aux = 0;
 }
 
 long
@@ -485,7 +503,7 @@ consread(Chan *c, void *buf, long n, ulong offset)
 	int ch, i, k, id;
 	ulong l;
 	char *cbuf = buf;
-	char *chal, *b, *bp, *cb;
+	char *b, *bp;
 	char tmp[128];	/* must be >= 6*NUMSIZE */
 	Mach *mp;
 
@@ -545,10 +563,10 @@ consread(Chan *c, void *buf, long n, ulong offset)
 
 	case Qcputime:
 		k = offset;
-		if(k >= sizeof tmp)
+		if(k >= 6*NUMSIZE)
 			return 0;
-		if(k+n > sizeof tmp)
-			n = sizeof tmp - k;
+		if(k+n > 6*NUMSIZE)
+			n = 6*NUMSIZE - k;
 		/* easiest to format in a separate buffer and copy out */
 		for(i=0; i<6 && NUMSIZE*i<k+n; i++){
 			l = u->p->time[i];
@@ -562,9 +580,6 @@ consread(Chan *c, void *buf, long n, ulong offset)
 
 	case Qpgrpid:
 		return readnum(offset, buf, n, u->p->pgrp->pgrpid, NUMSIZE);
-
-	case Qnoteid:
-		return readnum(offset, buf, n, u->p->noteid, NUMSIZE);
 
 	case Qpid:
 		return readnum(offset, buf, n, u->p->pid, NUMSIZE);
@@ -586,34 +601,20 @@ consread(Chan *c, void *buf, long n, ulong offset)
 		memmove(buf, tmp+k, n);
 		return n;
 
-	case Qcrypt:
-		cb = c->aux;
-		if(!cb)
-			return 0;
-		if(n > MAXCRYPT)
-			n = MAXCRYPT;
-		memmove(buf, &cb[1], n);
-		return n;
-
-	case Qchal:
-		if(offset!=0 || n!=8)
-			error(Ebadarg);
-		chal = u->p->pgrp->crypt->chal;
-		chal[0] = RXschal;
-		for(i=1; i<AUTHLEN; i++)
-			chal[i] = nrand(256);
-		memmove(buf, chal, 8);
-		encrypt(evekey, buf, 8);
-		chal[0] = RXstick;
-		return n;
-
 	case Qkey:
-		if(offset!=0 || n!=DESKEYLEN)
-			error(Ebadarg);
-		if(strcmp(u->p->user, eve)!=0 || !cpuserver)
-			error(Eperm);
-		memmove(buf, evekey, DESKEYLEN);
-		return n;
+		return keyread(buf, n, offset);
+
+	case Qauth:
+		return authread(c, cbuf, n);
+
+	case Qauthent:
+		return authentread(c, cbuf, n);
+
+	case Qhostowner:
+		return readstr(offset, buf, n, eve);
+
+	case Qhostdomain:
+		return readstr(offset, buf, n, hostdomain);
 
 	case Quser:
 		return readstr(offset, buf, n, u->p->user);
@@ -737,16 +738,13 @@ conswrite(Chan *c, void *va, long n, ulong offset)
 	char cbuf[64];
 	char buf[256];
 	long l, bp;
-	char *a = va, *cb;
+	char *a = va;
 	Mach *mp;
 	int id, fd, ch;
 	Chan *swc;
 
 	switch(c->qid.path){
 	case Qcons:
-		/*
-		 * Can't page fault in putstrn, so copy the data locally.
-		 */
 		l = n;
 		while(l > 0){
 			bp = l;
@@ -764,26 +762,26 @@ conswrite(Chan *c, void *va, long n, ulong offset)
 			n = sizeof(buf)-1;
 		strncpy(buf, a, n);
 		buf[n] = 0;
-		for(a = buf; a;){
-			if(strncmp(a, "rawon", 5) == 0){
-				lock(&lineq);
-				while((ch=getc(&kbdq)) != -1){
-					*lineq.in++ = ch;
-					if(lineq.in == lineq.buf+sizeof(lineq.buf))
-						lineq.in = lineq.buf;
-				}
-				unlock(&lineq);
-				lock(&ctl);
-				raw = 1;
-				unlock(&ctl);
-			} else if(strncmp(a, "rawoff", 6) == 0){
-				lock(&ctl);
-				raw = 0;
-				unlock(&ctl);
+		if(strncmp(a, "rawon", 5) == 0){
+			lock(&lineq);
+			while((ch=getc(&kbdq)) != -1){
+				*lineq.in++ = ch;
+				if(lineq.in == lineq.buf+sizeof(lineq.buf))
+					lineq.in = lineq.buf;
 			}
-			if(a = strchr(a, ' '))
-				a++;
+			unlock(&lineq);
+			lock(&ctl);
+			raw = 1;
+			unlock(&ctl);
+		} 
+		else
+		if(strncmp(a, "rawoff", 6) == 0){
+			lock(&ctl);
+			raw = 0;
+			unlock(&ctl);
 		}
+		else
+			error(Ebadctl);
 		break;
 
 	case Qtime:
@@ -796,63 +794,26 @@ conswrite(Chan *c, void *va, long n, ulong offset)
 		boottime = strtoul(a, 0, 0)-TK2SEC(MACHP(0)->ticks);
 		break;
 
-	case Qcrypt:
-		cb = c->aux;
-		if(!cb){
-			/* first byte determines whether encrypting or decrypting */
-			cb = c->aux = smalloc(MAXCRYPT+1);
-			cb[0] = 'E';
-		}
-		if(n < 8){
-			if(n != 1 || a[0] != 'E' && a[0] != 'D')
-				error(Ebadarg);
-			cb[0] = a[0];
-			return 1;
-		}
-		if(n > MAXCRYPT)
-			n = MAXCRYPT;
-		memset(&cb[1], 0, MAXCRYPT);
-		memmove(&cb[1], a, n);
-		if(cb[0] == 'E')
-			encrypt(u->p->pgrp->crypt->key, &cb[1], n);
-		else
-			decrypt(u->p->pgrp->crypt->key, &cb[1], n);
-		break;
-
 	case Qkey:
-		if(n != DESKEYLEN)
-			error(Ebadarg);
-		memmove(u->p->pgrp->crypt->key, a, DESKEYLEN);
-		if(strcmp(u->p->user, eve) == 0)
-			memmove(evekey, a, DESKEYLEN);
-		break;
+		return keywrite(a, n);
+
+	case Qhostowner:
+		return hostownerwrite(a, n);
+
+	case Qhostdomain:
+		return hostdomainwrite(a, n);
 
 	case Quser:
-		if(offset!=0 || n>=NAMELEN-1)
-			error(Ebadarg);
-		strncpy(buf, a, NAMELEN);
-		if(strcmp(buf, "none")==0
-		|| strcmp(buf, u->p->user)==0
-		|| strcmp(u->p->user, eve)==0)
-			memmove(u->p->user, buf, NAMELEN);
-		else
-			error(Eperm);
-		if(!cpuserver && strcmp(eve, "bootes")==0)
-			memmove(eve, u->p->user, NAMELEN);
-		break;
+		return userwrite(a, n);
 
-	case Qchal:
-		if(offset != 0)
-			error(Ebadarg);
-		if(n != 8+NAMELEN+DESKEYLEN)
-			error(Ebadarg);
-		decrypt(evekey, a, n);
-		if(memcmp(u->p->pgrp->crypt->chal, a, 8) != 0)
-			error(Eperm);
-		strncpy(u->p->user, a+8, NAMELEN);
-		u->p->user[NAMELEN-1] = '\0';
-		memmove(u->p->pgrp->crypt->key, a+8+NAMELEN, DESKEYLEN);
-		break;
+	case Qauth:
+		return authwrite(c, a, n);
+
+	case Qauthcheck:
+		return authcheck(c, a, n);
+
+	case Qauthent:
+		return authentwrite(c, a, n);
 
 	case Qnull:
 		break;
@@ -892,7 +853,7 @@ conswrite(Chan *c, void *va, long n, ulong offset)
 		if(cpuserver && strcmp(u->p->user, eve) != 0)
 			error(Eperm);
 		if(buf[0]<'0' || '9'<buf[0])
-			error(Ebadarg);
+			error(Ebadusefd);
 		fd = strtoul(buf, 0, 0);
 		swc = fdtochan(fd, -1, 1, 0);
 		setswapchan(swc);

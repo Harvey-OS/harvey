@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 intern int
 cdiff(RGB c, RGB d)

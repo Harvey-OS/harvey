@@ -1,0 +1,61 @@
+%% 
+%% This is file `pifont.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% psfonts.dtx  (with options: `pifont')
+%% 
+%% Copyright (C) 1994 Sebastian Rahtz 
+%% All rights reserved. 
+%% 
+%% This file is part of the PSNFSS2e package. 
+%% ----------------------------------------- 
+%% 
+%% This is a generated file. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+\def\fileversion{4.2}
+\def\filedate{94/11/11}
+\def\docdate {94/11/06}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pifont}[\filedate\space\fileversion\space
+Pi font PSNFSS2e package]
+\newcommand{\Pifont}[1]{\fontfamily{#1}\fontencoding{U}%
+\fontseries{m}\fontshape{n}\selectfont}
+\newcommand{\Pisymbol}[2]{{\Pifont{#1}\char#2}}
+\newcommand{\Pifill}[2]{\leaders\hbox{\makebox[0.2in]{%
+       \Pisymbol{#1}{#2}}}\hfill\kern\z@}
+\newcommand{\Piline}[2]{\par\noindent\hspace{0.5in}\Pifill{#1}{#2}%
+       \hspace{0.5in}\kern\z@\par}
+\newenvironment{Pilist}[2]%
+{\begin{list}{\Pisymbol{#1}{#2}}{}}%
+{\end{list}}%
+\def\Pinumber#1#2{\protect\Pisymbol{#1}{\arabic{#2}}}
+\newenvironment{Piautolist}[2]{%
+\ifnum \@enumdepth >3 \@toodeep\else
+      \advance\@enumdepth \@ne
+      \edef\@enumctr{enum\romannumeral\the\@enumdepth}%
+  \expandafter\def\csname p@enum\romannumeral\the\@enumdepth\endcsname{}%
+  \expandafter\def\csname labelenum\romannumeral\the\@enumdepth\endcsname{%
+     \csname theenum\romannumeral\the\@enumdepth\endcsname}%
+  \expandafter\def\csname theenum\romannumeral\the\@enumdepth\endcsname{%
+     \Pinumber{#1}{enum\romannumeral\the\@enumdepth}}%
+  \list{\csname label\@enumctr\endcsname}{
+        \@nmbrlisttrue\def\@listctr{\@enumctr}\setcounter{\@enumctr}{#2}
+        \addtocounter{\@enumctr}{-1}%
+        \def\makelabel##1{\hss\llap{##1}}}
+\fi}{\endlist}
+\newcommand{\ding}{\Pisymbol{pzd}}
+\def\dingfill#1{\leaders\hbox{\makebox[0.2in]{\Pisymbol{pzd}{#1}}}\hfill}
+\def\dingline#1{\Piline{pzd}{#1}}
+\newenvironment{dinglist}[1]{\begin{Pilist}{pzd}{#1}}%
+  {\end{Pilist}}
+\newenvironment{dingautolist}[1]{\begin{Piautolist}{pzd}{#1}}%
+  {\end{Piautolist}}
+{\Pifont{pzd}}
+{\Pifont{psy}}
+\endinput
+%% 
+%% End of file `pifont.sty'.

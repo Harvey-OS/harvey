@@ -30,6 +30,7 @@ extern	char	errbuf[200];
 extern int	compile_time;	/* 1 if compiling, 0 if running */
 
 #define	RECSIZE	(3 * 1024)	/* sets limit on records, fields, etc., etc. */
+extern int	recsize;	/* variable version */
 
 extern uchar	**FS;
 extern uchar	**RS;
@@ -44,18 +45,19 @@ extern uchar	**SUBSEP;
 extern Awkfloat *RSTART;
 extern Awkfloat *RLENGTH;
 
-extern uchar	*record;
-extern int	dbg;
-extern int	lineno;
-extern int	errorflag;
+extern uchar	*record;	/* points to $0 */
+extern int	lineno;		/* line number in awk program */
+extern int	errorflag;	/* 1 if error has occurred */
 extern int	donefld;	/* 1 if record broken into fields */
 extern int	donerec;	/* 1 if record is valid (no fld has changed */
+
+extern int	dbg;
 
 #define	CBUFLEN	400
 extern uchar	cbuf[CBUFLEN];	/* miscellaneous character collection */
 
 extern	uchar	*patbeg;	/* beginning of pattern matched */
-extern	int	patlen;		/* length.  set in b.c */
+extern	int	patlen;		/* length of pattern matched.  set in b.c */
 
 /* Cell:  all information about a variable or constant */
 
@@ -95,8 +97,6 @@ extern Cell	*rlengthloc;	/* RLENGTH */
 #define FLD	0100	/* this is a field $1, $2, ... */
 #define	REC	0200	/* this is $0 */
 
-#define freeable(p)	(!((p)->tval & DONTFREE))
-
 
 /* function types */
 #define	FLENGTH	1
@@ -113,6 +113,7 @@ extern Cell	*rlengthloc;	/* RLENGTH */
 #define	FTOUPPER 12
 #define	FTOLOWER 13
 #define	FFLUSH	14
+#define	FUTF		15
 
 /* Node:  parse tree is made of nodes, with Cell's at bottom */
 
@@ -180,5 +181,6 @@ extern	int	pairstack[], paircnt;
 #define istrue(n)	((n)->csub == BTRUE)
 #define istemp(n)	((n)->csub == CTEMP)
 #define	isargument(n)	((n)->nobj == ARG)
+#define freeable(p)	(!((p)->tval & DONTFREE))
 
 #include "proto.h"

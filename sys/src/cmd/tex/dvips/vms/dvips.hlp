@@ -1,0 +1,261 @@
+1  DVIPS
+
+The dvips  program converts a TEX dvi file into a PostScript file for
+printing or distribution.  Seldom has such a seemingly easy programming
+task required so much effort. The dvips program has a number of features
+that set it apart from other PostScript drivers for TEX.  The dvips   
+driver generates excellent, standard PostScript, that can be included in
+other documents as figures or printed through a variety of spoolers.  The
+generated PostScript requires very little printer memory, so very complex
+documents with a lot of fonts can easily be printed even on PostScript
+printers without much memory, such as the original Apple LaserWriter.  The
+PostScript output is also compact, requiring less disk space to store and
+making it feasible as a transfer format. Missing fonts can be automatically
+generated if METAFONT exists on the system, or fonts can be converted from
+gf to pk   format on demand.  If a font cannot be generated, a scaled
+version of the same font at a different size can be used instead, although
+dvips  will complain loudly about the poor aesthetics of the resulting
+output.
+
+    usage:
+         DVIPS filename[.dvi]
+
+2 /COPIES
+    /COPIES=num
+    
+    Generate num copies of every page.  Default is 1. 
+    (For collated copies, see the /COLLATE option.)
+
+2 /DEBUG
+    /DEBUG=num
+    
+    Set  the  debug  flags.  This  is  intended  only  for 
+    emergencies  or  for  unusual  fact-finding  expeditions;  it 
+    will  work  only  if  dvips    has  been  compiled  with  the 
+    DEBUG option.  Use
+
+        num=1   for special
+        
+        num=2   for paths
+
+        num=4   for fonts
+
+        num=8   for pages
+
+        num=16  for headers
+
+        num=32  for font compression
+
+        num=64  for files
+
+        num=128 for memory allocation
+
+      Use a value of -1 for maximum output.
+
+2 /MAXDRIFT 
+    /MAXDRIFT=num   
+
+    Make sure that each character is placed at most this many pixels
+    from its `true' resolution-independent position on the page.  The
+    default value of this parameter is resolution dependent (it is the
+    number of entries in the list [100, 200, 300, 400, 500, 600, 800,
+    1000, 1200, 1600, 2000, 2400, 2800, 3200, : : :] that are less
+    than or equal to the resolution in dots per inch).  Allowing
+    individual characters to `drift' from their correctly rounded
+    positions by a few pixels, while regaining the true position at
+    the beginning of each new word, improves the spacing of letters in
+    words.
+
+2 /FILTER
+    
+    Run  as  a  filter.  Read  the  dvi   file  from  standard  input 
+    and  write  the  PostScript  to standard output.  The standard
+    input must be seekable, so it cannot be a pipe.  If you must use a
+    pipe, write a shell script that copies the pipe output to a
+    temporary file and then points dvips    at this file.  i-h name: 
+    Prepend file name as an additional header file.  (However,  if the
+    name is simply `- ',  suppress all header files from the output.) 
+    This header file gets added to the PostScript userdict.
+
+2 /LAST
+    /LAST=num
+
+    The last page printed will be the first one numbered num.  Default
+    is the last page in the document.
+
+
+2 /MANUAL
+
+   Specify manual feed for printer.
+
+2 /NUMBER
+     /NUMBER=num
+     At most num pages will be printed.  Default is 100000.
+
+2 /OUTPUT
+     /OUTPUT=filename.ext
+  
+    The output will be sent to file name.  If no file name is given,
+    the default name is file.ps   where the dvi   file was called
+    file.dvi .
+
+2 /START
+     /START=num
+
+    The  first  page  printed  will  be  the  first  one  numbered 
+    num.  Default  is  the  first page in the document.
+
+2 /QUIET
+
+    Run  in  quiet  mode.   Don't  chatter  about  pages  converted, 
+    etc.;  report  nothing  but errors to standard error.
+
+2 /REVERSE
+
+    Stack pages in reverse order.  Normally, page 1 will be printed
+    first.
+
+2 /SAV_RES
+   
+    Causes the entire global output to be enclosed in a save/restore
+    pair.  This causes the file to not be truly conformant, and is
+    thus not recommended, but is useful if you are driving the printer
+    directly and don't care too much about the portability of the
+    output.
+
+2 /MODE
+    /MODE=modename
+
+    This sets the paper mode to modename.  Currently, the only modes
+    allowable are 
+
+    "letter", which selects an 8.5 by 11 inch page, 
+    "a3", which selects an a3 sized page, 
+    "a4" , which selects an a4 sized page, 
+    "legal", which selects an 8.5 by 14 inch page,
+    "ledger", which selects an 11 by 17 inch page, and 
+    "landscape", which rotates a letter size document by 90 degrees. 
+
+    WARNING: always include paper format between quotation marks!
+
+    The default mode is "letter". The  upper left corner of each page in
+    the dvi file is placed one inch from the left and one inch from the top.
+
+    If you want to  specify a paper  format (e.g.  a4) AND landscape
+    mode, you must use something like  
+                                        /MODE=("landscape","a4")
+    putting "landscape" as the first value.
+
+2 /MAGNIFICATION
+    /MAGNIFICATION=num
+
+    Set the magnification ratio to num/1000.  Overrides the
+    magnification specified in the dvi   file.  Must be between 10 and
+    100000.
+
+2 /COLLATE
+    /COLLATE=num
+     
+    Create num copies, but collated (by replicating the data in the
+    PostScript file). Slower than the /COPIES option, but easier on
+    the hands, and faster than resubmitting the same PostScript file
+    multiple times.
+
+2 /DPI
+    /DPI=num
+
+    Set  the  resolution  in  dpi  (dots  per  inch)  to  num.   This 
+    affects  the  choice  of bitmap fonts that are loaded and also the
+    positioning of letters in resident PostScript fonts.  Must be
+    between 10 and 10000.  This affects both the horizontal and
+    vertical resolution.  If a high resolution (something greater than
+    400 dpi, say) is selected, the /COMPRESS flag should probably also
+    be used.
+
+2 /CTRL_D
+
+    Causes  Control-D  (ASCII  code  4)  to  be  appended  as  the 
+    very  last  character  of  the PostScript file.  This is useful
+    when dvips     is driving the printer directly instead of working
+    through a spooler, as is common on extremely small systems. 
+    Otherwise, it is not recommended.
+
+2 /INC_COM
+     /INC_COM (default)
+     /NOINC_COM
+
+    /NOINC_COM option causes comments in included PostScript graphics,
+    font files, and headers to be removed.  This is sometimes
+    necessary to get around bugs in spoolers or PostScript
+    post-processing  programs.   Specifically,  the  %%Page comments, 
+    when  left  in,  often cause difficulties.  Use of this flag can
+    cause some included graphics to fail, since the PostScript  header 
+    macros  from  some  software  packages  read  portions  of  the 
+    input stream line by line, searching for a particular comment. 
+
+2 /COMMENT
+   /COMMENT (default)
+   /NOCOMMENT
+   
+    /NOCOMMENT turns off structured comments;  this might be necessary
+    on some systems that try to interpret PostScript comments in weird
+    ways, or on some PostScript printers.  Old versions of Transcript
+    in particular cannot handle modern Encapsulated PostScript.
+
+2 /PRINTER
+    /PRINTER=printername
+
+    Sets  up  the  output  for  the  appropriate  printer. This is
+    implemented  by  reading  in  config.printername , which can set
+    various parameters such  as the font paths and any other defaults
+    for that printer only.  It is recommended that all standard
+    defaults go in the one master config.ps file and only things that
+    vary printer to printer go in the config.printername files. Note 
+    that  config.ps  is  read  before  config.printername. In 
+    addition,  another file called "/.dvipsrc   is searched for
+    immediately after config.ps;  this file is intended for user
+    defaults.  If no /PRINTER command is given, the environment
+    variable PRINTER is  checked.  If  that  variable  exists,  and  a 
+    corresponding  configuration  file exists, that configuration file
+    is read in.
+
+
+2 /VM_SAVE       
+     /VM_SAVE (default)
+     /NOVM_SAVE
+    
+    /NOVM_SAVE disables a PostScript virtual memory saving
+    optimization that  stores the character metric information in the
+    same string that is used  to store the bitmap information.  This
+    is only necessary when driving the  Xerox 4045 PostScript
+    interpreter, and it is caused by a bug in that interpreter that
+    results in `garbage' on the bottom of each character. Not
+    recommended unless you must drive this printer.
+
+2 /H_DPI
+     /H_DPI=num
+
+    Set the horizontal resolution in dots per inch to num.
+
+
+2 /V_DPI
+     /V_DPI=num
+
+    Set the vertical resolution in dots per inch to num.
+
+2 /COMPRESS
+
+    Causes bitmapped fonts to be compressed before they are
+    downloaded, thereby reducing the size of the PostScript
+    font-downloading information.  Especially useful at high
+    resolutions or when very large fonts are used.  Will slow down
+    printing somewhat, especially on early 68000-based PostScript
+    printers.
+
+2 Specials 
+
+    For a description of the special features of dvips see the dvips
+    manual a LaTeX version of which may be copied  using the command
+    
+     copy tex$postscript:dvips.tex dvips.tex
+

@@ -5,7 +5,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 #include	"arp.h"
-#include 	"ipdat.h"
+#include 	"../port/ipdat.h"
 
 #include	"devtab.h"
 
@@ -42,6 +42,7 @@ void	arpopn(Queue *, Stream *);
 void	arpcls(Queue *);
 void	arpenter(Arpentry*, int);
 void	arpflush(void);
+int	arpperm(char*);
 int	arpdelete(char*);
 void	arplinkhead(Arpcache*);
 int	arplookup(uchar*, uchar*);
@@ -65,6 +66,11 @@ Dirtab arptab[]={
 	"data",		{arpdataqid},		0,	0664,
 };
 #define Narptab (sizeof(arptab)/sizeof(Dirtab))
+
+enum
+{
+	Narp=	64,	/* size of arp cache */
+};
 
 /*
  *  create a 2-level directory
@@ -97,10 +103,10 @@ arpreset(void)
 {
 	Arpcache *ap, *ep;
 
-	arp = xalloc(sizeof(Arpcache) * conf.arp);
+	arp = xalloc(sizeof(Arpcache) * Narp);
 	arphash = (Arpcache **)xalloc(sizeof(Arpcache *) * Arphashsize);
 
-	ep = &arp[conf.arp];
+	ep = &arp[Narp];
 	for(ap = arp; ap < ep; ap++) {
 		ap->frwd = ap+1;
 		ap->prev = ap-1;
@@ -110,7 +116,7 @@ arpreset(void)
 
 	arp[0].prev = 0;
 	arplruhead = arp;
-	ap = &arp[conf.arp-1];
+	ap = &arp[Narp-1];
 	ap->frwd = 0;
 	arplrutail = ap;
 	newqinfo(&arpinfo);
@@ -211,7 +217,7 @@ arpread(Chan *c, void *a, long n, ulong offset)
 	switch((int)(c->qid.path&~CHDIR)){
 	case arpdataqid:
 		bytes = c->offset;
-		while(bytes < conf.arp*ARP_ENTRYLEN && n) {
+		while(bytes < Narp*ARP_ENTRYLEN && n) {
 			ap = &arp[bytes/ARP_ENTRYLEN];
 			part = bytes%ARP_ENTRYLEN;
 
@@ -253,17 +259,16 @@ arpread(Chan *c, void *a, long n, ulong offset)
 long
 arpwrite(Chan *c, char *a, long n, ulong offset)
 {
+	int m;
 	Arpentry entry;
-	char	 buf[20], *field[5];
-	int 	 m;
+	char buf[32], *field[5];
 
 	USED(offset);
 
 	switch(STREAMTYPE(c->qid.path)) {
 	case arpctlqid:
-
 		strncpy(buf, a, sizeof buf);
-		m = getfields(buf, field, 5, ' ');
+		m = getfields(buf, field, 5, " ");
 
 		if(strncmp(field[0], "flush", 5) == 0)
 			arpflush();
@@ -275,6 +280,16 @@ arpwrite(Chan *c, char *a, long n, ulong offset)
 			if(arpdelete(field[1]) < 0)
 				error(Enetaddr);
 		}
+		else
+		if(strcmp(field[0], "perm") == 0) {
+			if(m != 2)
+				error(Ebadarg);
+
+			if(arpperm(field[1]) < 0)
+				error(Enetaddr);
+		}
+		else
+			error(Ebadctl);
 		break;
 
 	case arpdataqid:
@@ -314,9 +329,11 @@ void
 arpoput(Queue *q, Block *bp)
 {
 	uchar ip[4];
-	Etherhdr *eh;
 	Ipaddr addr;
+	Ipdevice *p;
+	Etherhdr *eh;
 	static int dropped;
+
 
 	if(bp->type != M_DATA) {
 		if(Servq == 0 && streamparse("arpd", bp)) {
@@ -334,16 +351,24 @@ arpoput(Queue *q, Block *bp)
 		return;
 	}
 
+	/*
+	 * sleaze - we hid the next hop in the ethernet destination
+	 *  and the interface in the first byte of the source
+	 */
+	memmove(ip, eh->d, sizeof(ip));
+	p = &ipd[eh->s[0]];
+	if(p >= &ipd[Nipd] || p->q == 0)
+		p = ipd;
+
 	/* if ip broadcast, use ether bcast address */
 	addr = nhgetl(eh->dst);
-	if(Myip[Myself] == 0 || addr == Myip[Mybcast] || addr == Myip[Mynet]
-	|| ((addr & Mymask) == Myip[Mynet+1] && (addr & ~Mynetmask) == ~Mynetmask)){
+	if(p->Myip[Myself] == 0 || addr == p->Myip[Mybcast] || addr == p->Myip[Mynet]
+	|| ((addr & p->Mymask) == p->Myip[Mynet+1]
+	    && (addr & ~p->Mynetmask) == ~p->Mynetmask)){
 		memset(eh->d, 0xff, sizeof(eh->d));
 		PUTNEXT(q, bp);
 		return;
 	}
-
-	iproute(eh->dst, ip);
 
 	/* if a known ip addr, send downstream to the ethernet */
 	if(arplookup(ip, eh->d)) {
@@ -353,7 +378,7 @@ arpoput(Queue *q, Block *bp)
 
 	/* Push the packet up to the arp server for address resolution */
 	if(!Servq) {
-		if((dropped++ % 1000) == 0)
+		if((dropped++ % 100) == 99)
 			print("arp: No server, packet dropped %d.%d.%d.%d\n",
 				eh->dst[0], eh->dst[1], eh->dst[2], eh->dst[3]);
 		freeb(bp);
@@ -373,8 +398,8 @@ arplookup(uchar *ip, uchar *et)
 		if(ap->status == ARP_OK && memcmp(ap->eip, ip, sizeof(ap->eip)) == 0) {
 			memmove(et, ap->et, sizeof(ap->et));
 			arplinkhead(ap);
-			unlock(&larphash);
 			arpstats.hit++;
+			unlock(&larphash);
 			return 1;
 		}
 	}
@@ -388,7 +413,7 @@ arpflush(void)
 {
 	Arpcache *ap, *ep;
 
-	ep = &arp[conf.arp];
+	ep = &arp[Narp];
 	for(ap = arp; ap < ep; ap++)
 		ap->status = ARP_FREE;
 }
@@ -415,12 +440,15 @@ arpenter(Arpentry *ape, int type)
 	}
 
 	/* Find an entry to replace */
-	for(ap = arplrutail; ap && ap->type == ARP_PERM; ap = ap->prev)
-		;
-
+	ap = arplrutail;
+	while(ap) {
+		if(ap->type != ARP_PERM || ap->type == ARP_FREE)
+			break;
+		 ap = ap->prev;
+	}
 	if(!ap) {
-		print("arp: too many permanent entries\n");
 		unlock(&larphash);
+		print("arp: too many permanent entries\n");
 		return;
 	}
 
@@ -443,6 +471,29 @@ arpenter(Arpentry *ape, int type)
 	*l = ap;
 	arplinkhead(ap);
 	unlock(&larphash);
+}
+
+int
+arpperm(char *addr)
+{
+	Arpcache *ap;
+	uchar ip[4];
+	Ipaddr i;
+	int rv;
+
+	rv = -1;
+	i = ipparse(addr);
+	hnputl(ip, i);	
+	lock(&larphash);
+	for(ap = arplruhead; ap; ap = ap->frwd) {
+		if(memcmp(ap->eip, ip, sizeof(ap->eip)) == 0) {
+			ap->type = ARP_PERM;
+			rv = 0;
+			break;
+		}
+	}
+	unlock(&larphash);
+	return rv;
 }
 
 int
@@ -471,19 +522,21 @@ arpdelete(char *addr)
 void
 arplinkhead(Arpcache *ap)
 {
-	if(ap != arplruhead) {
-		if(ap->prev)
-			ap->prev->frwd = ap->frwd;
-		else
-			arplruhead = ap->frwd;
+	if(ap == arplruhead)
+		return;
+
+	if(ap->prev)
+		ap->prev->frwd = ap->frwd;
+	else
+		arplruhead = ap->frwd;
 	
-		if(ap->frwd)
-			ap->frwd->prev = ap->prev;
-		else
-			arplrutail = ap->prev;
+	if(ap->frwd)
+		ap->frwd->prev = ap->prev;
+	else
+		arplrutail = ap->prev;
 		
-		ap->frwd = arplruhead;
-		ap->prev = 0;
-		arplruhead = ap;
-	}
+	ap->frwd = arplruhead;
+	ap->prev = 0;
+	arplruhead->prev = ap;
+	arplruhead = ap;
 }

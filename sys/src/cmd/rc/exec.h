@@ -9,8 +9,8 @@ extern void Xrdfn(void), Xunredir(void), Xstar(void), Xreturn(void), Xsubshell(v
 extern void Xtrue(void), Xword(void), Xwrite(void), Xpipefd(void), Xcase(void);
 extern void Xlocal(void), Xunlocal(void), Xassign(void), Xsimple(void), Xpopm(void);
 extern void Xrdcmds(void), Xwastrue(void), Xif(void), Xifnot(void), Xpipewait(void);
-extern void Xdelhere(void), Xpopredir(void), Xsub(void);
-extern void Xerror(char*);
+extern void Xdelhere(void), Xpopredir(void), Xsub(void), Xeflag(void), Xsettrue();
+extern void Xerror(char*), Xperror(char*);
 /*
  * word lists are in correct order,
  * i.e. word0->word1->word2->word3->0
@@ -63,6 +63,7 @@ struct builtin{
 	char *name;
 	void (*fnc)(void);
 }Builtin[];
+int eflagok;			/* kludge flag so that -e doesn't exit in startup */
 void execcd(void), execwhatis(void), execeval(void), execexec(void);
 void execexit(void), execshift(void);
 void execwait(void), execumask(void), execdot(void), execflag(void);

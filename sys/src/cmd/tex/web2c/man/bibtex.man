@@ -1,0 +1,85 @@
+.TH BIBTEX 1 
+.SH NAME
+bibtex \- make a (La)TeX bibliography
+.SH SYNOPSIS
+.B bibtex auxname
+.SH DESCRIPTION
+BibTeX reads the top-level auxiliary
+.I (.aux)
+file that was output during the running of
+.BR (la)tex (1)
+and creates a bibliography
+.I (.bbl)
+file that will be incorporated into the document on subsequent runs of (La)TeX.
+The auxname on the command line must be given without the
+.I .aux
+extension.
+.PP
+BibTeX looks up, in the bibliographic database
+.I (.bib)
+files,
+the entries specified by the \\cite and \\nocite commands
+in the (La)TeX source file.
+It formats the information from those entries
+according to instructions in the style
+.I (.bst)
+file,
+and it outputs the results to the
+.I .bbl
+file.
+.PP
+The LaTeX manual (aka
+.I LaTeX - A Document Preparation System,
+by Leslie Lamport)
+explains what a LaTeX source file must contain to work with BibTeX.
+Appendix B of the LaTeX manual describes the format of the
+.I .bib
+files.
+The "BibTeXing" document describes extensions and details of that format,
+and it gives other useful hints for using BibTeX.
+.SH ENVIRONMENT
+.I bibtex
+searches the directories in the 
+path defined by the TEXINPUTS environment variable for
+.I .bst
+files.  If TEXINPUTS is not set, it uses the system default:
+.BR @TEXINPUTS@ .
+For
+.I .bib
+files, it uses the BIBINPUTS environment variable in a similar way.  The
+default path there is: 
+.BR @BIBINPUTS@ .
+See
+.BR tex (1)
+for the details of the searching.
+If the environment variable
+\s-2TEXMFOUTPUT\s0 is set, BibTeX attempts to put its output
+files in it, if they cannot be put in the current directory.  Again, see
+.BR tex (1).
+No special searching is done for the
+.I .aux
+file.
+.SH FILES
+.TP 20
+btxdoc.tex
+"BibTeXing" \- LaTeXable documentation for general BibTeX users
+.TP
+btxhak.tex
+"Designing BibTeX Styles" \- LaTeXable documentation for style designers
+.TP
+btxmac.tex
+macros for using BibTeX with plain TeX
+.TP
+btxdoc.bib
+database file for those two documents
+.TP
+xampl.bib
+database file giving examples of all standard entry types
+.TP
+btxbst.doc
+template file and documentation for the standard styles
+.PP
+All those files should be available somewhere on the system.
+.SH "SEE ALSO"
+.BR latex (1),
+.BR tex (1).

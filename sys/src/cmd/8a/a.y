@@ -288,9 +288,11 @@ imm:
 		$$ = $2;
 		$$.index = $2.type;
 		$$.type = D_ADDR;
+		/*
 		if($2.type == D_AUTO || $2.type == D_PARAM)
 			yyerror("constant cannot be automatic: %s",
 				$2.sym->name);
+		 */
 	}
 |	'$' LSCONST
 	{
@@ -303,6 +305,12 @@ imm:
 		$$ = nullgen;
 		$$.type = D_FCONST;
 		$$.dval = $2;
+	}
+|	'$' '(' LFCONST ')'
+	{
+		$$ = nullgen;
+		$$.type = D_FCONST;
+		$$.dval = $3;
 	}
 |	'$' '-' LFCONST
 	{

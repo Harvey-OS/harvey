@@ -1,0 +1,20 @@
+%% 
+%% This is file `showlabels.drv', generated 
+%% on <1995/2/26> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% showlabels.dtx  (with options: `driver')
+%% Style to display labels in the margin 
+\def\filename{showlabels}
+\def\fileversion{v1.0}
+\def\filedate{1994/10/03}
+\def\docdate{1994/10/03}
+\documentclass{ltxdoc}
+\begin{document}
+ % \OnlyDescription %uncomment to suppress the source listing
+ \DocInput{showlabels.dtx}
+\end{document}
+\endinput
+%% 
+%% End of file `showlabels.drv'.

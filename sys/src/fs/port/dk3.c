@@ -5,13 +5,6 @@
  * poll process
  */
 void
-calldk(Alarm *a, Dk *dk)
-{
-	cancel(a);
-	wakeup(&dk->dkto);
-}
-
-void
 dktimer(void)
 {
 
@@ -31,8 +24,7 @@ dktimer(void)
 	dk->timeout[TIMETO] = t + SECOND(20);
 
 loop:
-	alarm(300, calldk, dk);	/* 3 times/sec */
-	sleep(&dk->dkto, no, 0);
+	waitsec(300);	/* 3 times/sec */
 
 	/*
 	 * general timeouts

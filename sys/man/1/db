@@ -1,12 +1,6 @@
 .TH DB 1
-.ds TW \v'.25m'\s+2~\s-2\v'-.25m'
-.ds ST \v'.25m'*\v'-.25m'
-.ds IM \v'.1m'=\v'-.1m'\s-2\h'-.1m'>\h'.1m'\s+2
-.ds LE \(<=
-.ds LT \s-2<\s+2
-.ds GT \s-2>\s+2
 .SH NAME
-db, dbfmt \- debugger
+db \- debugger
 .SH SYNOPSIS
 .B db
 [
@@ -14,18 +8,10 @@ db, dbfmt \- debugger
 ]
 [
 .I textfile
+]
 [
-.I memfile
-]
-]
-.PP
-.B db
-[
-.B -k
-]
 .I pid
-.PP
-.B dbfmt
+]
 .SH DESCRIPTION
 .I Db
 is a general purpose debugging program.
@@ -33,35 +19,67 @@ It may be used to examine files and to provide
 a controlled environment for the execution
 of Plan 9 programs.
 .PP
-.I Textfile
-is normally an executable program file or
-.BI /proc/ pid /text .
-.I Memfile
-is the memory image of a process, usually obtained from
-.BI /proc/ pid /mem .
-If there is exactly one argument, and it is numeric, then it
-is used as a
-.I pid
-to find the
-.B text
-and
-.B mem
-files in
-.BI /proc/ pid .
+A
+.I textfile
+is a file containing the text and initialized
+data of an executable program.
+A
+.I memfile
+is the memory image of an executing process.  It is
+usually accessed via the process id
+.RI ( pid )
+of the process in
+.BI /proc/ pid /mem\f1.
+A
+.I memfile
+contains the text, data, and saved registers and
+process state.  A
+.I map
+associated with each
+.I textfile
+or
+.I memfile
+supports accesses to instructions and data in the file;
+see `Addresses'.
 .PP
-Requests to
+An argument consisting entirely of digits is assumed
+to be a process id; otherwise, it is the name of a
+.IR textfile .
+When a
+.I textfile
+is given, the textfile map
+is associated with it.
+If only a
+.I pid
+is given, the textfile map is
+associated with
+.BI /proc/ pid /text\f1.
+When a
+.I pid
+is given, the memfile map is associated with
+.BI /proc/ pid /mem\f1;
+otherwise it is undefined and accesses to the
+.I memfile
+are not permitted.
+.PP
+Commands to
 .I db
 are read from the standard input and
 responses are to the standard output.
 The options are
 .TP
-.BI -k " pid"
-Use the kernel for the
+.BI -k
+Use the kernel stack of process
+.IR pid 
+to debug the executing kernel process.
+If
 .I textfile
-and
-.IR memfile ,
-with the kernel stack of process
-.IR pid .
+is not specified, file
+.BI / $cputype /9 type
+is used, where
+.I type
+is the second word in
+.BR $terminal .
 .TP
 .B -w
 Create
@@ -81,23 +99,21 @@ commands.
 .BI -m machine
 Assume instructions are for the given CPU type
 (one of
+.BR 3210 ,
 .BR 386 ,
 .BR 68020 ,
 .BR 960 ,
-.BR hobbit ,
 .BR mips ,
 .BR mipsco ,
 .BR sparc ,
 or
 .BR sunsparc )
-instead of using the magic number in the text file to select
+instead of using the magic number to select
 the CPU type.
 .PP
-In general requests to
+Most
 .I  db
-have the following form.
-Multiple requests on one line must be separated by
-.LR ; .
+commands have the following form:
 .IP
 .RI [ address ]
 .RB [ ,
@@ -111,10 +127,10 @@ is set to
 .IR address .
 Initially dot
 is set to 0.
-In general commands are repeated
+Most commands are repeated
 .I count
-times.
-Dot advances between repetitions.
+times with
+dot advancing between repetitions.
 The default
 .I count
 is 1.
@@ -122,8 +138,11 @@ is 1.
 and
 .I count
 are expressions.
+Multiple commands on one line must be separated by
+.LR ; .
 .SS Expressions
-Expressions are evaluated as long ints.
+Expressions are evaluated as long
+.IR ints .
 .TP 7.2n
 .B .
 The value of dot.
@@ -175,7 +194,7 @@ A single-precision floating point number.
 .TP 7.2n
 .BI \' c\| \'
 The
-.SM Unicode 
+16-bit
 value of a character.
 .L \e
 may be used to escape a
@@ -184,10 +203,7 @@ may be used to escape a
 .BI < name
 The value of
 .IR name ,
-which is either a variable name or a register name.
-.I db
-maintains a number of variables
-named by single letters or digits.
+which is a register name.
 The register names are
 those printed by the
 .B $r
@@ -211,7 +227,7 @@ in
 The address of the variable
 .I name
 in the specified
-C routine.
+C or ALEF routine.
 Both
 .I routine
 and
@@ -221,7 +237,7 @@ are
 If
 .I name
 is omitted the value is the address of the
-most recently activated C stack frame
+most recently activated stack frame
 corresponding to
 .IR routine ;
 if
@@ -232,7 +248,7 @@ is assumed.
 .TP 7.2n
 .IB file : integer
 The address of the instruction corresponding
-to the C source statement at the indicated
+to the source statement at the indicated
 line number of the file.  If the source line contains
 no executable statement, the address of the
 instruction associated with the nearest
@@ -243,9 +259,10 @@ to the first file encountered in the symbol table.
 .TP 7.2n
 .BI ( exp )
 The value of the expression
-.I exp.
+.IR exp .
 .LP
 .I  Monadic operators
+.RS
 .TP 7.2n
 .BI * exp
 The contents of the location addressed
@@ -267,15 +284,18 @@ Integer negation.
 Bitwise complement.
 .TP 7.2n
 .BI % exp
-If
+When used as an
+.IR address ,
 .I exp
-is used as an address,
-it is in register space;
+is an offset into the segment named
+.IR ublock ;
 see `Addresses'.
+.RE
 .LP
 .I "Dyadic\ operators"
-are left associative
+are left-associative
 and are less binding than monadic operators.
+.RS
 .TP 7.2n
 .IB e1 + e2
 Integer addition.
@@ -299,19 +319,10 @@ Bitwise disjunction.
 .I E1
 rounded up to the next multiple of
 .IR e2 .
+.RE
 .DT
 .SS Commands
-Most commands consist of a verb followed by a modifier or list
-of modifiers.
-The following verbs are available.
-(The commands
-.L ?
-and
-.L /
-may be followed by 
-.LR * ;
-see `Addresses'
-for further details.)
+Most commands have the following syntax:
 .TP .5i
 .BI ? f
 Locations starting at
@@ -327,13 +338,12 @@ Locations starting at
 in
 .I  memfile
 are printed according to the format
-.I f.
+.IR f .
 .TP
-.BI  = f
+.BI = f
 The value of
 .I address
-itself is printed in the
-styles indicated by the format
+itself is printed according to the format
 .IR f .
 .PP
 A
@@ -349,7 +359,7 @@ print it,
 and advance (a local copy of) dot
 by the number of bytes fetched.
 The total number of bytes in a format becomes the
-.I current increment.
+.I current increment\f1.
 .ta 2.5n .5i
 .RS
 .TP
@@ -361,28 +371,28 @@ Print two-byte integer in octal.
 Print four-byte integer in octal.
 .TP
 .B q
-Print two-byte in signed octal.
+Print two-byte integer in signed octal.
 .TP
 .B Q
-Print four-byte in signed octal.
+Print four-byte integer in signed octal.
 .TP
 .B d
-Print two-byte in decimal.
+Print two-byte integer in decimal.
 .TP
 .B D
-Print four-byte in decimal.
+Print four-byte integer in decimal.
 .TP
 .B x
-Print two-byte in hexadecimal.
+Print two-byte integer in hexadecimal.
 .TP
 .B X
-Print four-byte in hexadecimal.
+Print four-byte integer in hexadecimal.
 .TP
 .B u
-Print two-byte in unsigned decimal.
+Print two-byte integer in unsigned decimal.
 .TP
 .B U
-Print four-byte in unsigned decimal.
+Print four-byte integer in unsigned decimal.
 .TP
 .B f
 Print
@@ -406,7 +416,7 @@ Printable
 characters
 are represented normally; others
 are printed in the form
-.BI \exnn .
+.BR \exnn .
 .TP
 .B s
 Print the addressed characters, as a
@@ -424,10 +434,10 @@ the escape convention (see
 above).
 .TP
 .B r
-Print the addressed two-byte integer as a rune.
+Print as UTF the addressed two-byte integer (rune).
 .TP
 .B R
-Print the addressed two-byte integers as runes
+Print as UTF the addressed two-byte integers as runes
 until a zero rune is reached.
 Advance dot
 by the length of the string,
@@ -438,12 +448,8 @@ Print a four-byte integer in date format (see
 .IR ctime (2)).
 .TP
 .B i
-Print as machine instructions.
-This style of printing causes variables
-0, (1, ...)
-to be set to the offset parts
-of the first (second, ...)
-operand of the instruction.
+Print as machine instructions.  Dot is
+incremented by the size of the instruction.
 .TP
 .B I
 As
@@ -457,11 +463,16 @@ reproduce the manufacturers' syntax.
 .TP
 .B M
 Print the addressed machine instruction in a
-machine dependent hexadecimal form.
+machine-dependent hexadecimal form.
 .TP
 .B a
 Print the value of dot
 in symbolic form.
+Dot is unaffected.
+.TP
+.B A
+Print the value of dot
+in hexadecimal.
 Dot is unaffected.
 .TP
 .B z
@@ -473,7 +484,7 @@ Print the addressed value in symbolic form.
 Dot is advanced by the size of a machine address.
 .TP
 .B t
-When preceded by an integer tabs to the next
+When preceded by an integer, tabs to the next
 appropriate tab stop.
 For example,
 .B 8t 
@@ -504,6 +515,8 @@ Dot is decremented by 1.
 Nothing is printed.
 .RE
 .PD
+.LP
+Other commands include:
 .TP
 newline
 Update dot by the current increment.
@@ -545,18 +558,15 @@ write four bytes.
 .br
 New values for
 .RI ( b,\ e,\ f )
-in the map entry named
+in the segment named
 .I s
-are recorded.  Valid map entry names are
-.I text,
-.I data,
-.I ublock,
-or
-.IR regs .
-If less than three address expressions are given then
-the remaining map parameters are left unchanged.
-The address type (instruction or data)
-is unchanged in any case.
+are recorded.  Valid segment names are
+.IR text ,
+.IR data ,
+or 
+.IR ublock .
+If less than three address expressions are given,
+the remaining parameters are left unchanged.
 If the list is terminated by
 .L ?
 or
@@ -578,7 +588,7 @@ to refer to
 Dot is assigned to the variable or register named.
 .TP
 .B !
-Tem rest of the line is passed to the
+The rest of the line is passed to
 .IR rc (1)
 for execution.
 .TP
@@ -601,34 +611,12 @@ is omitted, the current input stream is terminated.
 If a
 .I count
 is given, and is zero, the command is ignored.
-The value of the count is placed in variable
-.B 9
-before the first command in
-.I f
-is executed.
-A common use for this command is to print the fields of a structure.
-The
-.I dbfmt
-program takes a structure description on standard input and produces
-a file on standard output suitable for use in a
-.IB addr $< f
-command.
-The
-.BI -s name
-option of
-.IR 2c (1)
-produces a structure description for structure or union
-.IR name .
 .TP
 .BI << f
 Similar to
 .B <
 except it can be used in a file of commands without
 causing the file to be closed.
-Variable
-.B 9
-is saved during the execution of this command, and restored
-when it completes.
 There is a (small) limit to the number of
 .B <<
 files that can be open at once.
@@ -645,7 +633,8 @@ is omitted, output is returned to the terminal.
 .TP
 .B ?
 Print process id, the condition which caused stopping or termination,
-as well as the registers.
+the registers and the instruction addressed by
+.BR pc .
 This is the default if
 .I modifier
 is omitted.
@@ -660,8 +649,7 @@ Dot is set to
 .B R
 Like
 .BR $r ,
-but include miscellaneous registers
-such as the kernel stack pointer
+but include miscellaneous processor control registers
 and floating point registers.
 .TP
 .B f
@@ -674,38 +662,36 @@ double-precision floating point numbers.
 .TP
 .B b
 Print all breakpoints
-and their associated counts and commands.
+and their associated counts and commands.  `B' produces the same results.
 .TP
 .B c
-C stack backtrace.
+Stack backtrace.
 If
 .I address
-is given then it is taken as the
-address of the current frame;
-otherwise,
-the current C frame pointer
-is used.
+is given, it specifies the address of a pair of 32-bit
+values containing the
+.B sp
+and
+.B pc
+of an active process.  This allows selecting
+among various contexts of a multi-threaded
+process.
 If
 .B C
-is used then the names and (long) values of all
+is used, the names and (long) values of all
 parameters,
 automatic
 and static variables are printed for each active function.
 If
 .I count
-is given then only the first
+is given, only the first
 .I count
 frames are printed.
 .TP
 .B a
-Set the maximum number of arguments
-printed by
-.B $c
-or
-.B $C
-to
+Attach to the running process whose pid
+is contained in
 .IR address .
-The default is 20.
 .TP
 .B e
 The names and values of all
@@ -716,31 +702,15 @@ Set the page width for output to
 .I address
 (default 80).
 .TP
-.B s
-Set the limit for symbol matches, used in printing addresses, to
-.I address
-(default 255).
-.TP
 .B q
 Exit from
 .IR db .
-.TP
-.B v
-Print all non zero variables.
 .TP
 .B m
 Print the address maps.
 .TP
 .B k
 Simulate kernel memory management.
-.TP
-.B p
-Use kernel data and stack maps for the specified process.
-.IP
-.B $k
-and
-.B $p
-are used for system debugging (see the Examples section).
 .TP
 .BI M machine
 Set the
@@ -759,7 +729,7 @@ Available modifiers are:
 Halt
 an asynchronously running process to allow breakpointing.
 Unnecessary for processes created under
-.I db,
+.IR db ,
 e.g. by
 .BR :r .
 .TP
@@ -858,171 +828,97 @@ is specified, first delete
 pending note.
 .PD
 .RE
-.SS Variables
-.I db
-provides a number of variables.
-Named variables are set initially by
-.I db
-but are not used subsequently.
-Numbered variables are reserved for communication
-as follows.
-.TP
-.BR 0 ", " 1 ", ..."
-The offset parts of the first, second, ...
-operands of the last instruction printed.
-Meaningless if the operand was a register.
-.br
-.ns
-.TP
-.B 9
-The count on the last
-.B $<
-or
-.B $<<
-command.
-.PP
-On entry the following are set
-from the system header in the
-.IR memfile .
-If
-.I memfile
-does not appear to be a
-memory image then
-these values are set from
-.IR textfile .
-.TP
-.B b
-The base address of the data segment.
-.PD 0
-.TP
-.B d
-The data segment size.
-.TP
-.B e
-The entry point.
-.TP
-.B m
-The `magic' number (see
-.IR a.out (6)).
-.TP
-.B s
-The stack segment size.
-.TP
-.B t
-The text segment size.
-.PD
 .SS Addresses
-The address in a file associated with
-a written address is determined by a mapping
-associated with that file.
-Each mapping is represented by one or more quadruples
+The location in a file or memory image associated with
+an address is calculated from a map
+associated with the file.
+Each map contains one or more quadruples
 .RI ( "t, b, e, f" ),
-mapping an address of type
+defining a segment named
 .I t
-(text,
-data,
-user block, or
-registers)
-in the range
+(usually, 
+.IR text ,
+.IR data ,
+or
+.IR ublock )
+mapping addresses in the range
 .I b
 through
 .I e
 to the part of the file
 beginning at
-address
+offset
 .IR f .
+The memory model of a Plan 9 process assumes
+that segments are disjoint.  There
+can be more than one segment of a given type (e.g., a process
+may have more than one text segment) but segments
+may not overlap.
 An address
 .I a
-of type
-.I t
-is mapped
+is translated
 to a file address
-by finding a quadruple
-of type
-.IR t ,
+by finding a segment
 for which
-.IR b \*(LE a < e ;
-the file address
-is
-.IR address + f \(mi b .
-As a special case,
-if a text space address is not found,
-a second search is made
-for the same address in data space.
+.IR b ≤ a < e ;
+the location in the file
+is then
+.IR address + f \- b .
 .PP
-Typically,
-the text segment of a program
-is mapped as text space,
-the data and bss segments
-as data space.
-If
-.I textfile
-is an executable file
-or if
-.I memfile
-is a memory image,
-maps are set accordingly.
-Otherwise,
-a single `data space'
-map is set up,
-with
-.I b
+Usually,
+the text and initialized data of a program
+are mapped by segments called 
+.I text
 and
-.I f
-set to zero,
-and
-.I e
-set to a huge number;
-thus the entire file can be examined
+.IR data .
+Since a program file does not contain bss, stack or ublock data,
+these data are
+not mapped by the data segment.
+The text segment is mapped similarly in
+a normal (i.e., non-kernel)
+.IR memfile .
+However, the segment called 
+.I data
+maps memory from the beginning of the program's data space to
+the base of the ublock.
+This region contains the program's static data, the bss, the
+heap and the stack.  A segment
+called
+.I ublock
+maps the page containing its registers and process state.
+.PP
+Sometimes it is useful to define a map with a single segment
+mapping the region from 0 to 0xFFFFFFFF; a map of this type
+allows the entire file to be examined
 without address translation.
 .PP
+Registers are saved at a machine-dependent offset in the ublock.
+It is usually not necessary to know this offset; the
+.BR $r ,
+.BR $R ,
+.BR $f ,
+and
+.BR $F
+commands calculate it and display the register contents.
+.PP
 The
-.B ?
+.B $m
+command dumps the currently active maps.  The
+.B ?m
 and
-.B /
-commands attempt to examine
-text and data space
-respectively.
-.B ?*
-tries for data space
-(in
-.IR textfile );
-.B /*
-accesses text space
-(in
-.IR memfile ).
-.PP
-Registers in
-process and core images
-are a special case;
-they live in a special `register' address space starting at
-.BR %0 ;
-the layout of this space is machine-dependent.
-.B %
-addresses
-are mapped to the registers
-for the `current frame,'
-set by local variable references,
-and reset to the outermost frame
-(the `real' registers)
-whenever a process runs
-or a stack trace is requested.
-.PP
-Simulated memory management
-translations
-(the
-.B $k
+.B /m
+commands modify the segment parameters in the
+.I textfile
 and
-.B $p
-commands)
-are done before the mapping described above.
+.I memfile
+maps, respectively.
 .SH EXAMPLES
 To set a breakpoint at the beginning of
 .B write()
 in extant process 27:
 .IP
 .EX
-db 27
+% db 27
 :h
 write:b
 :c
@@ -1031,30 +927,16 @@ write:b
 To examine the Plan 9 kernel stack for process 27:
 .IP
 .EX
-db -k 27
+% db -k 27
 $C
 .EE
 .PP
-Similar, but using a kernel
+Similar, but using a kernel named
 .BR test :
 .IP
 .EX
-db test /proc/27/mem
-27$p
+% db -k test 27
 $C
-.EE
-.PP
-To print the fields of the
-.B Dir
-structure at address
-.BR #20000 ,
-assuming
-.B main.c
-includes a declaration of that structure:
-.IP
-.EX
-!2c -sDir -o /dev/null main.c | dbfmt > Dir.dbfmt
-#20000$<Dir.dbfmt
 .EE
 .PP
 To set a breakpoint at the entry of function
@@ -1076,6 +958,15 @@ which as a side effect sets dot; when
 is one the breakpoint will fire.
 Beware that local variables may be stored in registers; see the
 BUGS section.
+.PP
+Debug process 127 on remote machine
+.BR kremvax :
+.IP
+.EX
+% import kremvax /proc
+% db 127
+$C
+.EE
 .SH FILES
 .B /proc/*/text
 .br
@@ -1085,50 +976,35 @@ BUGS section.
 .br
 .B /proc/*/note
 .SH "SEE ALSO"
+.IR acid (1),
 .IR nm (1),
 .IR proc (3)
-.br
-J. F. Maranzano and S. R. Bourne, 
-`A Tutorial Introduction to ADB' in
-Bell Laboratories,
-.I UNIX Programmer's Manual,
-Volume\ 2,
-Holt, Rinehart and Winston (1984)
+.SH SOURCE
+.B /sys/src/cmd/db
 .SH DIAGNOSTICS
 Exit status is null, unless the last command failed or
 returned non-null status.
 .SH BUGS
-The alternate
-.B sparc
-disassembly format,
-.BR sunsparc ,
-reverses the order of the first two registers
-relative to the SUN assembler.
-.PP
 Examining a local variable with
 .I routine.name
-returns the contents of the memory allocated for the variable.
-This might return the wrong value:
-optimization may move the variable
-into a register, especially in the current stack frame.
-Compiling with the
+returns the contents of the memory allocated for the variable, but
+with optimization (suppressed by the
 .B -N
-flag may help.
+compiler flag) variables often reside in registers.
+Also, on some architectures, the first argument is always
+passed in a register.
 .PP
 Variables and parameters that have been
 optimized away do not appear in the
 symbol table, returning the error 
 .IR "bad local variable"
 when accessed by
-.I db.
+.IR db .
 .PP
-In some cases, the stack frame is not completely
-set when a breakpoint or single step stops a process
-in the first couple of instructions of a function.
-As a result, the
-.I $c
-and
-.I $C
-produce inaccurate stack traces.  Stepping
-a couple of instructions into the function sets the
-stack frame and produces accurate traces.
+Because of alignment incompatibilities, Motorola 68000
+series machines can not be debugged remotely from a
+processor of a different type.
+.PP
+Breakpoints should not be set on instructions scheduled
+in delay slots.  When a program stops on such a breakpoint,
+it is usually impossible to continue its execution.

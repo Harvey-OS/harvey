@@ -10,8 +10,6 @@
 
 static	int	convcount  = { 10 };
 
-#define	PUT(o, c)	if((o)->p < (o)->ep) *(o)->p++ = c
-
 static	int	noconv(Op*);
 static	int	cconv(Op*);
 static	int	dconv(Op*);
@@ -44,6 +42,27 @@ char	fmtindex[128] =
 	['x'] 8,
 	['%'] 9,
 };
+
+static void
+PUT(Op *o, int c)
+{
+	static int pos;
+	int opos;
+
+	if(c == '\t'){
+		opos = pos;
+		pos = (opos+8) & ~7;
+		while(opos++ < pos && o->p < o->ep)
+			*o->p++ = ' ';
+		return;
+	}
+	if(o->p < o->ep){
+		*o->p++ = c;
+		pos++;
+	}
+	if(c == '\n')
+		pos = 0;
+}
 
 int
 fmtinstall(char c, int (*f)(Op*))
@@ -117,6 +136,32 @@ l1:
 	goto loop;
 }
 
+void
+strconv(char *o, Op *op, int f1, int f2)
+{
+	int n, c;
+	char *p;
+
+	n = strlen(o);
+	if(f1 >= 0)
+		while(n < f1) {
+			PUT(op, ' ');
+			n++;
+		}
+	for(p=o; c = *p++;)
+		if(f2 != 0) {
+			PUT(op, c);
+			f2--;
+		}
+	if(f1 < 0) {
+		f1 = -f1;
+		while(n < f1) {
+			PUT(op, ' ');
+			n++;
+		}
+	}
+}
+
 int
 numbconv(Op *op, int base)
 {
@@ -183,32 +228,6 @@ sout:
 		b[--i] = '-';
 	strconv(b+i, op, op->f1, -1);
 	return r;
-}
-
-void
-strconv(char *o, Op *op, int f1, int f2)
-{
-	int n, c;
-	char *p;
-
-	n = strlen(o);
-	if(f1 >= 0)
-		while(n < f1) {
-			PUT(op, ' ');
-			n++;
-		}
-	for(p=o; c = *p++;)
-		if(f2 != 0) {
-			PUT(op, c);
-			f2--;
-		}
-	if(f1 < 0) {
-		f1 = -f1;
-		while(n < f1) {
-			PUT(op, ' ');
-			n++;
-		}
-	}
 }
 
 static	int

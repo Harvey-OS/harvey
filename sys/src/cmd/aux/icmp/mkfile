@@ -1,0 +1,10 @@
+</$objtype/mkfile
+
+TARG=ping\
+	icmp\
+
+OFILES=lock.$O
+HFILES=icmp.h lock.h
+BIN=/$objtype/bin/aux
+
+</sys/src/cmd/mkmany

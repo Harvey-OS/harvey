@@ -10,13 +10,14 @@
 #include "ether.h"
 
 enum {
-	IDport		= 0x0100,	/* anywhere between 0x0100 and 0x01F0 */
+	IDport		= 0x0110,	/* anywhere between 0x0100 and 0x01F0 */
 
 					/* Commands */
 	SelectWindow	= 0x01,		/* SelectWindow command */
 	StartCoax	= 0x02,		/* Start Coaxial Transceiver */
 	RxDisable	= 0x03,		/* RX Disable */
 	RxEnable	= 0x04,		/* RX Enable */
+	RxReset		= 0x05,		/* RX Reset */
 	RxDiscard	= 0x08,		/* RX Discard Top Packet */
 	TxEnable	= 0x09,		/* TX Enable */
 	TxDisable	= 0x0A,		/* TX Disable */
@@ -31,27 +32,43 @@ enum {
 	MyEtherAddr	= 0x01,		/* Individual address */
 	Multicast	= 0x02,		/* Group (multicast) addresses */
 	Broadcast	= 0x04,		/* Broadcast address */
-	Promiscuous	= 0x08,		/* All addresses (promiscuous mode */
+	Promiscuous	= 0x08,		/* All addresses (promiscuous mode) */
 
 					/* Window Register Offsets */
 	Command		= 0x0E,		/* all windows */
 	Status		= 0x0E,
 
-	EEPROMdata	= 0x0C,		/* window 0 */
-	EEPROMcmd	= 0x0A,
-	ResourceConfig	= 0x08,
+	ManufacturerID	= 0x00,		/* window 0 */
+	ProductID	= 0x02,
 	ConfigControl	= 0x04,
+	AddressConfig	= 0x06,
+	ResourceConfig	= 0x08,
+	EEPROMcmd	= 0x0A,
+	EEPROMdata	= 0x0C,
 
-	TxFreeBytes	= 0x0C,		/* window 1 */
-	TxStatus	= 0x0B,
+					/* AddressConfig Bits */
+	XcvrTypeMask	= 0xC000,	/* Transceiver Type Select */
+	Xcvr10BaseT	= 0x0000,
+	XcvrAUI		= 0x4000,
+	XcvrBNC		= 0xC000,
+
+					/* ConfigControl */
+	Rst		= 0x04,		/* Reset Adapter */
+	Ena		= 0x01,		/* Enable Adapter */
+
+	Fifo		= 0x00,		/* window 1 */
 	RxStatus	= 0x08,
-	Fifo		= 0x00,
+	Timer		= 0x0A,
+	TxStatus	= 0x0B,
+	TxFreeBytes	= 0x0C,
 
 					/* Status/Interrupt Bits */
 	Latch		= 0x0001,	/* Interrupt Latch */
+	Failure		= 0x0002,	/* Adapter Failure */
 	TxComplete	= 0x0004,	/* TX Complete */
 	TxAvailable	= 0x0008,	/* TX Available */
 	RxComplete	= 0x0010,	/* RX Complete */
+	RxEarly		= 0x0020,	/* RX partial packet available */
 	AllIntr		= 0x00FE,	/* All Interrupt Bits */
 	CmdInProgress	= 0x1000,	/* Command In Progress */
 
@@ -71,155 +88,30 @@ enum {
 	RxErrCRC	= 0x2800,	/*   CRC */
 	RxError		= 0x4000,	/* Error */
 	RxEmpty		= 0x8000,	/* Incomplete or FIFO empty */
+
+	FIFOdiag	= 0x04,		/* window 4 */
+	MediaStatus	= 0x0A,
+
+					/* FIFOdiag bits */
+	TxOverrun	= 0x0400,	/* TX Overrrun */
+	RxOverrun	= 0x0800,	/* RX Overrun */
+	RxStatusOverrun	= 0x1000,	/* RX Status Overrun */
+	RxUnderrun	= 0x2000,	/* RX Underrun */
+	RxReceiving	= 0x8000,	/* RX Receiving */
+
+					/* MediaStatus bits */
+	JabberEna	= 0x0040,	/* Jabber Enabled (writeable) */
+	LinkBeatEna	= 0x0080,	/* Link Beat Enabled (writeable) */
 };
 
-#define COMMAND(board, cmd, a)	outs(board->io+Command, ((cmd)<<11)|(a))
-
-/*
- * Write two 0 bytes to identify the IDport and then reset the
- * ID sequence. Then send the ID sequence to the card to get
- * the card into command state.
- */
-static void
-idseq(void)
-{
-	int i;
-	uchar al;
-
-	outb(IDport, 0);
-	outb(IDport, 0);
-	for(al = 0xFF, i = 0; i < 255; i++){
-		outb(IDport, al);
-		if(al & 0x80){
-			al <<= 1;
-			al ^= 0xCF;
-		}
-		else
-			al <<= 1;
-	}
-}
-
-/*
- * Get configuration parameters.
- */
-static int
-reset(Ctlr *ctlr)
-{
-	Board *board = ctlr->board;
-	int i, ea;
-	ushort x, acr;
-
-	/*
-	 * Do the little configuration dance. We only look
-	 * at the first board that responds, if we ever have more
-	 * than one we'll need to modify this sequence.
-	 *
-	 * 2. get to command state, reset, then return to command state
-	 */
-	idseq();
-	outb(IDport, 0xC1);
-	delay(2);
-	idseq();
-
-	/*
-	 * 3. Read the Product ID from the EEPROM.
-	 *    This is done by writing the IDPort with 0x83 (0x80
-	 *    is the 'read EEPROM command, 0x03 is the offset of
-	 *    the Product ID field in the EEPROM).
-	 *    The data comes back 1 bit at a time.
-	 *    We seem to need a delay here between reading the bits.
-	 *
-	 * If the ID doesn't match the 3C509 ID code, the adapter
-	 * probably isn't there, so barf.
-	 */
-	outb(IDport, 0x83);
-	for(x = 0, i = 0; i < 16; i++){
-		delay(5);
-		x <<= 1;
-		x |= inb(IDport) & 0x01;
-	}
-	if((x & 0xF0FF) != 0x9050)
-		return -1;
-
-	/*
-	 * 3. Read the Address Configuration from the EEPROM.
-	 *    The Address Configuration field is at offset 0x08 in the EEPROM).
-	 * 6. Activate the adapter by writing the Activate command
-	 *    (0xFF).
-	 */
-	outb(IDport, 0x88);
-	for(acr = 0, i = 0; i < 16; i++){
-		delay(20);
-		acr <<= 1;
-		acr |= inb(IDport) & 0x01;
-	}
-	outb(IDport, 0xFF);
-
-	/*
-	 * 8. Now we can talk to the adapter's I/O base addresses.
-	 *    We get the I/O base address from the acr just read.
-	 *
-	 *    Enable the adapter. 
-	 */
-	board->io = (acr & 0x1F)*0x10 + 0x200;
-	outb(board->io+ConfigControl, 0x01);
-
-	/*
-	 * Read the IRQ from the Resource Configuration Register
-	 * and the ethernet address from the EEPROM.
-	 * The EEPROM command is 8bits, the lower 6 bits being
-	 * the address offset.
-	 */
-	board->irq = (ins(board->io+ResourceConfig)>>12) & 0x0F;
-	for(ea = 0, i = 0; i < 3; i++, ea += 2){
-		while(ins(board->io+EEPROMcmd) & 0x8000)
-			;
-		outs(board->io+EEPROMcmd, (2<<6)|i);
-		while(ins(board->io+EEPROMcmd) & 0x8000)
-			;
-		x = ins(board->io+EEPROMdata);
-		ctlr->ea[ea] = (x>>8) & 0xFF;
-		ctlr->ea[ea+1] = x & 0xFF;
-	}
-
-	/*
-	 * Finished with window 0. Now set the ethernet address
-	 * in window 2.
-	 * Commands have the format 'CCCCCAAAAAAAAAAA' where C
-	 * is a bit in the command and A is a bit in the argument.
-	 */
-	COMMAND(board, SelectWindow, 2);
-	for(i = 0; i < 6; i++)
-		outb(board->io+i, ctlr->ea[i]);
-
-	/*
-	 * Finished with window 2.
-	 * Set window 1 for normal operation.
-	 */
-	COMMAND(board, SelectWindow, 1);
-
-	/*
-	 * If we have a 10BASE2 transceiver, start the DC-DC
-	 * converter. Wait > 800 microseconds.
-	 */
-	if(((acr>>14) & 0x03) == 0x03){
-		COMMAND(board, StartCoax, 0);
-		delay(1);
-	}
-
-	print("3C509 I/O addr %lux irq %d:", board->io, board->irq);
-	for(i = 0; i < sizeof(ctlr->ea); i++)
-		print(" %2.2ux", ctlr->ea[i]);
-	print("\n");
-
-	return 0;
-}
+#define COMMAND(port, cmd, a)	outs(port+Command, ((cmd)<<11)|(a))
 
 static void
 attach(Ctlr *ctlr)
 {
-	Board *board = ctlr->board;
+	ulong port;
 
+	port = ctlr->card.port;
 	/*
 	 * Set the receiver packet filter for our own and
 	 * and broadcast addresses, set the interrupt masks
@@ -228,44 +120,35 @@ attach(Ctlr *ctlr)
 	 * is the receiver interrupt. If the transmit FIFO fills up,
 	 * we will also see TxAvailable interrupts.
 	 */
-	COMMAND(board, SetRxFilter, Broadcast|MyEtherAddr);
-	COMMAND(board, SetReadZeroMask, AllIntr|Latch);
-	COMMAND(board, SetIntrMask, AllIntr|Latch);
-	COMMAND(board, RxEnable, 0);
-	COMMAND(board, TxEnable, 0);
+	COMMAND(port, SetRxFilter, Broadcast|MyEtherAddr);
+	COMMAND(port, SetReadZeroMask, AllIntr|Latch);
+	COMMAND(port, SetIntrMask, AllIntr|Latch);
+	COMMAND(port, RxEnable, 0);
+	COMMAND(port, TxEnable, 0);
 }
 
 static void
 mode(Ctlr *ctlr, int on)
 {
-	Board *board = ctlr->board;
+	ulong port;
 
+	port = ctlr->card.port;
 	if(on)
-		COMMAND(board, SetRxFilter, Promiscuous|Broadcast|MyEtherAddr);
+		COMMAND(port, SetRxFilter, Promiscuous|Broadcast|MyEtherAddr);
 	else
-		COMMAND(board, SetRxFilter, Broadcast|MyEtherAddr);
-}
-
-static int
-getdiag(Board *board)
-{
-	int bytes;
-
-	COMMAND(board, SelectWindow, 4);
-	bytes = ins(board->io+0x04);
-	COMMAND(board, SelectWindow, 1);
-	return bytes & 0xFFFF;
+		COMMAND(port, SetRxFilter, Broadcast|MyEtherAddr);
 }
 
 static void
 receive(Ctlr *ctlr)
 {
-	Board *board = ctlr->board;
 	ushort status;
 	RingBuf *rb;
 	int len;
+	ulong port;
 
-	while(((status = ins(board->io+RxStatus)) & RxEmpty) == 0){
+	port = ctlr->card.port;
+	while(((status = ins(port+RxStatus)) & RxEmpty) == 0){
 		/*
 		 * If we had an error, log it and continue
 		 * without updating the ring.
@@ -303,12 +186,10 @@ receive(Ctlr *ctlr)
 	
 				/*
 				 * Must read len bytes padded to a
-				 * doubleword. We can pick them out 16-bits
-				 * at a time (can try 32-bits at a time
-				 * later).
-				insl(board->io+Fifo, rb->pkt, HOWMANY(len, 4));
+				 * doubleword. We can pick them out 32-bits
+				 * at a time .
 				 */
-				inss(board->io+Fifo, rb->pkt, HOWMANY(len, 2));
+				insl(port+Fifo, rb->pkt, HOWMANY(len, 4));
 
 				/*
 				 * Update the ring.
@@ -322,8 +203,8 @@ receive(Ctlr *ctlr)
 		 * Discard the packet as we're done with it.
 		 * Wait for discard to complete.
 		 */
-		COMMAND(board, RxDiscard, 0);
-		while(ins(board->io+Status) & CmdInProgress)
+		COMMAND(port, RxDiscard, 0);
+		while(ins(port+Status) & CmdInProgress)
 			;
 	}
 }
@@ -331,45 +212,85 @@ receive(Ctlr *ctlr)
 static void
 transmit(Ctlr *ctlr)
 {
-	Board *board = ctlr->board;
 	RingBuf *tb;
-	int s;
 	ushort len;
+	ulong port;
 
-	s = splhi();
+	port = ctlr->card.port;
 	for(tb = &ctlr->tb[ctlr->ti]; tb->owner == Interface; tb = &ctlr->tb[ctlr->ti]){
 		/*
 		 * If there's no room in the FIFO for this packet,
 		 * set up an interrupt for when space becomes available.
+		 * Output packet must be a multiple of 4 in length and
+		 * we need 4 bytes for the preamble.
 		 */
-		if(tb->len > ins(board->io+TxFreeBytes)){
-			COMMAND(board, SetTxAvailable, tb->len);
+		len = ROUNDUP(tb->len, 4);
+		if(len+4 > ins(port+TxFreeBytes)){
+			COMMAND(port, SetTxAvailable, len);
 			break;
 		}
 
 		/*
 		 * There's room, copy the packet to the FIFO and free
 		 * the buffer back to the host.
-		 * Output packet must be a multiple of 4 in length.
 		 */
-		len = ROUNDUP(tb->len, 4)/2;
-		outs(board->io+Fifo, tb->len);
-		outs(board->io+Fifo, 0);
-		outss(board->io+Fifo, tb->pkt, len);
+		outs(port+Fifo, tb->len);
+		outs(port+Fifo, 0);
+		outsl(port+Fifo, tb->pkt, len/4);
 		tb->owner = Host;
 		ctlr->ti = NEXT(ctlr->ti, ctlr->ntb);
 	}
-	splx(s);
+}
+
+static ushort
+getdiag(Ctlr *ctlr)
+{
+	ushort bytes;
+	ulong port;
+
+	port = ctlr->card.port;
+	COMMAND(port, SelectWindow, 4);
+	bytes = ins(port+FIFOdiag);
+	COMMAND(port, SelectWindow, 1);
+	return bytes & 0xFFFF;
 }
 
 static void
 interrupt(Ctlr *ctlr)
 {
-	Board *board = ctlr->board;
-	ushort status;
+	ushort status, diag;
 	uchar txstatus, x;
+	ulong port;
 
-	status = ins(board->io+Status);
+	port = ctlr->card.port;
+	status = ins(port+Status);
+
+	if(status & Failure){
+		/*
+		 * Adapter failure, try to find out why.
+		 * Reset if necessary.
+		 * What happens if Tx is active and we reset,
+		 * need to retransmit?
+		 * This probably isn't right.
+		 */
+		diag = getdiag(ctlr);
+		print("ether509: status #%ux, diag #%ux\n", status, diag);
+
+		if(diag & TxOverrun){
+			COMMAND(port, TxReset, 0);
+			COMMAND(port, TxEnable, 0);
+		}
+
+		if(diag & RxUnderrun){
+			COMMAND(port, RxReset, 0);
+			attach(ctlr);
+		}
+
+		if(diag & TxOverrun)
+			transmit(ctlr);
+
+		return;
+	}
 
 	if(status & RxComplete){
 		receive(ctlr);
@@ -386,14 +307,14 @@ interrupt(Ctlr *ctlr)
 		 */
 		txstatus = 0;
 		do{
-			if(x = inb(board->io+TxStatus))
-				outb(board->io+TxStatus, 0);
+			if(x = inb(port+TxStatus))
+				outb(port+TxStatus, 0);
 			txstatus |= x;
-		}while(ins(board->io+Status) & TxComplete);
+		}while(ins(port+Status) & TxComplete);
 
 		if(txstatus & (TxJabber|TxUnderrun))
-			COMMAND(board, TxReset, 0);
-		COMMAND(board, TxEnable, 0);
+			COMMAND(port, TxReset, 0);
+		COMMAND(port, TxEnable, 0);
 		ctlr->oerrs++;
 	}
 
@@ -402,7 +323,7 @@ interrupt(Ctlr *ctlr)
 		 * Reset the Tx FIFO threshold.
 		 */
 		if(status & TxAvailable)
-			COMMAND(board, AckIntr, TxAvailable);
+			COMMAND(port, AckIntr, TxAvailable);
 		transmit(ctlr);
 		wakeup(&ctlr->tr);
 		status &= ~(TxAvailable|TxComplete);
@@ -414,18 +335,332 @@ interrupt(Ctlr *ctlr)
 	 * Otherwise, acknowledge the interrupt.
 	 */
 	if(status & AllIntr)
-		panic("ether509 interrupt: #%lux, #%ux\n", status, getdiag(board));
+		panic("ether509 interrupt: #%lux, #%ux\n", status, getdiag(ctlr));
 
-	COMMAND(board, AckIntr, Latch);
+	COMMAND(port, AckIntr, Latch);
 }
 
-Board ether509 = {
-	reset,
-	0,			/* init */
-	attach,
-	mode,
-	0,			/* receive */
-	transmit,
-	interrupt,
-	0,			/* watch */
+typedef struct Adapter Adapter;
+struct Adapter {
+	Adapter	*next;
+	ulong	port;
 };
+static Adapter *adapter;
+
+/*
+ * Write two 0 bytes to identify the IDport and then reset the
+ * ID sequence. Then send the ID sequence to the card to get
+ * the card into command state.
+ */
+static void
+idseq(void)
+{
+	int i;
+	uchar al;
+
+	outb(IDport, 0);
+	outb(IDport, 0);
+	for(al = 0xFF, i = 0; i < 255; i++){
+		outb(IDport, al);
+		if(al & 0x80){
+			al <<= 1;
+			al ^= 0xCF;
+		}
+		else
+			al <<= 1;
+	}
+}
+
+static ulong
+activate(int tag)
+{
+	int i;
+	ushort x, acr;
+	ulong port;
+
+	/*
+	 * Do the little configuration dance:
+	 *
+	 * 2. write the ID sequence to get to command state.
+	 */
+	idseq();
+
+	/*
+	 * 3. Read the Manufacturer ID from the EEPROM.
+	 *    This is done by writing the IDPort with 0x87 (0x80
+	 *    is the 'read EEPROM' command, 0x07 is the offset of
+	 *    the Manufacturer ID field in the EEPROM).
+	 *    The data comes back 1 bit at a time.
+	 *    We seem to need a delay here between reading the bits.
+	 *
+	 * If the ID doesn't match, there are no more adapters.
+	 */
+	outb(IDport, 0x87);
+	for(x = 0, i = 0; i < 16; i++){
+		delay(5);
+		x <<= 1;
+		x |= inb(IDport) & 0x01;
+	}
+	if(x != 0x6D50)
+		return 0;
+
+	/*
+	 * 3. Read the Address Configuration from the EEPROM.
+	 *    The Address Configuration field is at offset 0x08 in the EEPROM).
+	 */
+	outb(IDport, 0x88);
+	for(acr = 0, i = 0; i < 16; i++){
+		delay(20);
+		acr <<= 1;
+		acr |= inb(IDport) & 0x01;
+	}
+	port = (acr & 0x1F)*0x10 + 0x200;
+
+	if(tag){
+		/*
+		 * 6. Tag the adapter so it won't respond in future.
+		 * 6. Activate the adapter by writing the Activate command
+		 *    (0xFF).
+		 */
+		outb(IDport, 0xD1);
+		outb(IDport, 0xFF);
+
+		/*
+		 * 8. Now we can talk to the adapter's I/O base addresses.
+		 *    We get the I/O base address from the acr just read.
+		 *
+		 *    Enable the adapter.
+		 */
+		outs(port+ConfigControl, Ena);
+	}
+
+	return port;
+}
+
+static ulong
+tcm509(ISAConf *isa)
+{
+	static int untag;
+	ulong port;
+	Adapter *ap;
+
+	/*
+	 * One time only:
+	 *	write ID sequence to get the attention of all adapters;
+	 *	untag all adapters.
+	 * If we do a global reset here on all adapters we'll confuse any
+	 * ISA cards configured for EISA mode.
+	 */
+	if(untag == 0){
+		idseq();
+		outb(IDport, 0xD0);
+		untag = 1;
+	}
+
+	/*
+	 * Attempt to activate adapters until one matches our
+	 * address criteria. If adapter is set for EISA mode,
+	 * tag it and ignore. Otherwise, reset the adapter and
+	 * activate it fully.
+	 */
+	while(port = activate(0)){
+		if(port == 0x3F0){
+			outb(IDport, 0xD1);
+			continue;
+		}
+		outb(IDport, 0xC0);
+		delay(2);
+		if(activate(1) != port)
+			print("tcm509: activate\n");
+		
+		if(isa->port == 0 || isa->port == port)
+			return port;
+
+		ap = malloc(sizeof(Adapter));
+		ap->port = port;
+		ap->next = adapter;
+		adapter = ap;
+	}
+
+	return 0;
+}
+
+static ulong
+tcm579(ISAConf *isa)
+{
+	static int slot = 1;
+	ushort x;
+	ulong port;
+	Adapter *ap;
+
+	/*
+	 * First time through, check if this is an EISA machine.
+	 * If not, nothing to do.
+	 */
+	if(slot == 1 && strncmp((char*)(KZERO|0xFFFD9), "EISA", 4))
+		return 0;
+
+	/*
+	 * Continue through the EISA slots looking for a match on both
+	 * 3COM as the manufacturer and 3C579 or 3C579-TP as the product.
+	 * If we find an adapter, select window 0, enable it and clear
+	 * out any lingering status and interrupts.
+	 * Trying to do a GlobalReset here to re-init the card (as in the
+	 * 509 code) doesn't seem to work.
+	 */
+	while(slot < 16){
+		port = slot++*0x1000;
+		if(ins(port+0xC80+ManufacturerID) != 0x6D50)
+			continue;
+		x = ins(port+0xC80+ProductID);
+		if((x & 0xF0FF) != 0x9050/* || (x != 0x9350 && x != 0x9250)*/)
+			continue;
+
+		COMMAND(port, SelectWindow, 0);
+		outs(port+ConfigControl, Ena);
+
+		COMMAND(port, TxReset, 0);
+		COMMAND(port, RxReset, 0);
+		COMMAND(port, AckIntr, 0xFF);
+
+		if(isa->port == 0 || isa->port == port)
+			return port;
+
+		ap = malloc(sizeof(Adapter));
+		ap->port = port;
+		ap->next = adapter;
+		adapter = ap;
+	}
+
+	return 0;
+}
+
+static ulong
+tcm589(ISAConf *isa)
+{
+	USED(isa);
+	return 0;
+}
+
+/*
+ * Get configuration parameters.
+ */
+int
+ether509reset(Ctlr *ctlr)
+{
+	int i, eax;
+	uchar ea[Eaddrlen];
+	ushort x, acr;
+	ulong port;
+	Adapter *ap, **app;
+
+	/*
+	 * Any adapter matches if no port is supplied,
+	 * otherwise the ports must match.
+	 * See if we've already found an adapter that fits
+	 * the bill.
+	 * If no match then try for an EISA card, an ISA card
+	 * and finally for a PCMCIA card.
+	 */
+	port = 0;
+	for(app = &adapter, ap = *app; ap; app = &ap->next, ap = ap->next){
+		if(ctlr->card.port == 0 || ctlr->card.port == ap->port){
+			port = ap->port;
+			*app = ap->next;
+			/*free(ap);lost*/
+			break;
+		}
+	}
+	if(strcmp(ctlr->card.type, "3C589") == 0)
+		port = ctlr->card.port;
+	if(port == 0)
+		port = tcm579(&ctlr->card);
+	if(port == 0)
+		port = tcm509(&ctlr->card);
+	if(port == 0)
+		return -1;
+
+	/*
+	 * Read the IRQ from the Resource Configuration Register,
+	 * the ethernet address from the EEPROM, and the address configuration.
+	 * The EEPROM command is 8 bits, the lower 6 bits being
+	 * the address offset.
+	 */
+	if(strcmp(ctlr->card.type, "3C589") != 0)
+		ctlr->card.irq = (ins(port+ResourceConfig)>>12) & 0x0F;
+	for(eax = 0, i = 0; i < 3; i++, eax += 2){
+		while(ins(port+EEPROMcmd) & 0x8000)
+			;
+		outs(port+EEPROMcmd, (2<<6)|i);
+		while(ins(port+EEPROMcmd) & 0x8000)
+			;
+		x = ins(port+EEPROMdata);
+		ea[eax] = (x>>8) & 0xFF;
+		ea[eax+1] = x & 0xFF;
+	}
+	acr = ins(port+AddressConfig);
+
+	/*
+	 * Finished with window 0. Now set the ethernet address
+	 * in window 2.
+	 * CommandRs have the format 'CCCCCAAAAAAAAAAA' where C
+	 * is a bit in the command and A is a bit in the argument.
+	 */
+	if((ctlr->ea[0]|ctlr->ea[1]|ctlr->ea[2]|ctlr->ea[3]|ctlr->ea[4]|ctlr->ea[5]) == 0)
+		memmove(ctlr->ea, ea, Eaddrlen);
+	COMMAND(port, SelectWindow, 2);
+	for(i = 0; i < Eaddrlen; i++)
+		outb(port+i, ctlr->ea[i]);
+
+	/*
+	 * Enable the transceiver if necessary.
+	 */
+	switch(acr & XcvrTypeMask){
+
+	case Xcvr10BaseT:
+		/*
+		 * Enable Link Beat and Jabber to start the
+		 * transceiver.
+		 */
+		COMMAND(port, SelectWindow, 4);
+		outb(port+MediaStatus, LinkBeatEna|JabberEna);
+		break;
+
+	case XcvrBNC:
+		/*
+		 * Start the DC-DC converter.
+		 * Wait > 800 microseconds.
+		 */
+		COMMAND(port, StartCoax, 0);
+		delay(1);
+		break;
+	}
+
+	/*
+	 * Set window 1 for normal operation.
+	 * Clear out any lingering Tx status.
+	 */
+	COMMAND(port, SelectWindow, 1);
+	while(inb(port+TxStatus))
+		outb(port+TxStatus, 0);
+
+	ctlr->card.port = port;
+
+	/*
+	 * Set up the software configuration.
+	 */
+	ctlr->card.reset = ether509reset;
+	ctlr->card.attach = attach;
+	ctlr->card.mode = mode;
+	ctlr->card.transmit = transmit;
+	ctlr->card.intr = interrupt;
+	ctlr->card.bit16 = 1;
+
+	return 0;
+}
+
+void
+ether509link(void)
+{
+	addethercard("3C509",  ether509reset);
+}

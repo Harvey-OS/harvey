@@ -1,0 +1,4 @@
+e file | x '/regexp/' | c 'replacement'
+e file:'0,$' | x '/.*word.*\n/' | p -n
+e file | pipe command args ...
+New /absolute/file/name

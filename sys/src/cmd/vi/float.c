@@ -319,7 +319,7 @@ Icvtd(ulong ir)
 		break;	
 	case 4:
 		fmt = 'w';
-		reg.fd[fd>>1] = reg.di[fs];
+		reg.fd[fd>>1] = (long)reg.di[fs];
 		reg.ft[fd] = FPd;
 		break;
 	}
@@ -351,7 +351,7 @@ Icvts(ulong ir)
 		break;	
 	case 4:
 		fmt = 'w';
-		reg.fl[fd] = reg.di[fs];
+		reg.fl[fd] = (long)reg.di[fs];
 		reg.ft[fd] = FPs;
 		break;
 	}
@@ -362,6 +362,7 @@ Icvts(ulong ir)
 void
 Icvtw(ulong ir)
 {
+	long v;
 	char fmt;
 	int fs, fd;
 
@@ -373,21 +374,22 @@ Icvtw(ulong ir)
 	case 0:	/* single */
 		fmt = 's';
 		floatop(fs, fs, fs);
-		reg.di[fd] = reg.fl[fs];
+		v = reg.fl[fs];
 		break;	
 	case 1: /* double */
 		fmt = 'd';
 		doubop(fs, fs, fs);
-		reg.di[fd] = reg.fd[fs>>1];
+		v = reg.fd[fs>>1];
 		break;	
 	case 4:
 		fmt = 'w';
-		reg.di[fd] = reg.di[fs];
+		v = reg.di[fs];
 		break;
 	}
+	reg.di[fd] = v;
 	reg.ft[fd] = FPmemory;
 	if(trace)
-		itrace("cvt.w.%c\tf%d,f%d", fmt, fd<<1, fs);
+		itrace("cvt.w.%c\tf%d,f%d", fmt, fd, fs);
 }
 
 void

@@ -9,9 +9,9 @@
 #define	STRING(x,n)	memmove(p, f->x, n); p += n
 
 int
-convD2M(Dir *f, char *ap)
+convD2M(Dir *f, byte *ap)
 {
-	char *p;
+	byte *p;
 
 	p = ap;
 	STRING(name, sizeof(f->name));

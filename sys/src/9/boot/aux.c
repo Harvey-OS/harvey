@@ -86,6 +86,19 @@ readfile(char *name, char *buf, int len)
 	return 0;
 }
 
+int
+writefile(char *name, char *buf, int len)
+{
+	int f, n;
+
+	f = open(name, OWRITE);
+	if(f < 0)
+		return -1;
+	n = write(f, buf, len);
+	close(f);
+	return (n != len) ? -1 : 0;
+}
+
 void
 setenv(char *name, char *val)
 {
@@ -123,22 +136,40 @@ srvcreate(char *name, int fd)
 	close(f);
 }
 
+static int
+catchint(void *a, char *note)
+{
+	USED(a);
+	if(strcmp(note, "alarm") == 0)
+		return 1;
+	return 0;
+}
+
 int
-outin(char *prompt, char *def, int len)
+outin(int timeout, char *prompt, char *def, int len)
 {
 	int n;
 	char buf[256];
 
-	if(cpuflag)
-		alarm(60*1000);
-	do{
-		print("%s[%s]: ", prompt, *def ? def : "no default");
-		n = read(0, buf, len);
-	}while(n==0);
-	if(cpuflag)
+	if(timeout) {
+		atnotify(catchint, 1);
+		alarm(15*1000);
+		do{
+			print("%s[%s]: ", prompt, *def ? def : "no default");
+			n = read(0, buf, len);
+			alarm(15*1000);
+		}while(n == 0);
 		alarm(0);
+		atnotify(catchint, 0);
+	}
+	else {
+		do {
+			print("%s[%s]: ", prompt, *def ? def : "no default");
+			n = read(0, buf, len);
+		}while(n == 0);
+	}
 	if(n < 0)
-		fatal("can't read #c/cons or timeout; please reboot");
+		return 1;
 	if(n != 1){
 		buf[n-1] = 0;
 		strcpy(def, buf);

@@ -2,6 +2,10 @@
 .SH NAME
 access \- determine accessibility of file
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
 int access(char *name, int mode)
 .SH DESCRIPTION
@@ -34,8 +38,10 @@ a file may look executable, but
 .IR exec (2)
 will fail unless it is in proper format.
 .PP
+.SH SOURCE
+.B /sys/src/libc/9sys/access.c
 .SH SEE ALSO
 .IR stat (2)
 .SH DIAGNOSTICS
 Sets
-.I errstr.
+.IR errstr .

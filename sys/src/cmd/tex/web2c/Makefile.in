@@ -1,0 +1,313 @@
+# Master makefile for TeX, Metafont, and friends.
+
+# Version number of this release.
+version = 5.851c
+
+# These pathnames are used to customize the manual pages with local
+# directory names; some of them are used in `make install'.  They should
+# match the system directories in the paths you defined in `site.h'.
+prefix = /usr/local
+bindir = $(prefix)/bin
+datadir = $(prefix)/lib
+
+texdatadir = $(datadir)/tex
+texpooldir = $(texdatadir)
+texinputdir = $(texdatadir)/macros
+texfontdir = $(texdatadir)/fonts
+formatdir = $(texdatadir)/formats
+
+mfdatadir=$(datadir)/mf
+mfpooldir=$(mfdatadir)
+mfinputdir=$(mfdatadir)/macros
+basedir=$(mfdatadir)/bases
+
+cmsources=$(prefix)/src/TeX+MF/typefaces/cm
+
+manext=l
+mandir=$(prefix)/man/man$(manext)
+
+# These lines define the format and base files that `make formats' and
+# `make bases' will try to make, and `make install-formats' and `make
+# install-bases' will try to install.  See README.W2C for a brief
+# description of each of these formats.
+formats=tex.fmt latex.fmt etex.fmt
+# slitex.fmt amslatex.fmt amstex.fmt texinfo.fmt inrstex.fmt picplus.fmt
+bases=mf.base cmmf.base
+
+# The name of the file that defines your local devices, for use with
+# Metafont.  (Only relevant during `make bases'.)  I urge you to get the
+# file `modes.mf', which defines all known modes, plus useful
+# definitions for all fonts.  It's available from ftp.cs.umb.edu
+# [192.12.26.23] as pub/tex/modes.mf, among other places.
+localmodes=modes
+
+
+# Start of system configuration section.
+SHELL = /bin/sh
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+xincludedir = @xincludedir@
+xlibdir = @xlibdir@
+
+# Compiling.
+CC = @CC@
+coptimize = -O
+# Some directories add more flags to this; hence this is not CFLAGS.
+cflags = -I../$(srcdir)/lib $(coptimize) $(XCFLAGS)
+
+# Command to link an executable.
+CCLD = $(CC)
+LDFLAGS = $(XLDFLAGS)
+LIBS = @LIBS@
+
+LEX = @LEX@
+LEXLIB = @LEXLIB@
+YACC = @YACC@
+
+RANLIB = @RANLIB@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+
+# How to make a link.
+LN=@LN_S@
+
+# This line should select the libraries that match what you said in site.h.
+wlibs=@wlibs@
+
+
+
+# 
+# Stuff below here probably doesn't need to be changed.
+
+default: programs
+
+triptrapdirs=tex texware mf mfware
+progdirs=$(triptrapdirs) bibtex dviutil fontutil web
+alldirs=$(progdirs) lib man web2c
+
+# What to pass to subdirectories when making various things.
+makeargs=$(MFLAGS) \
+SHELL='$(SHELL)' CC='$(CC)' cflags='$(cflags)' CCLD='$(CCLD)' \
+LDFLAGS='$(LDFLAGS)' LIBS='$(LIBS)' RANLIB='$(RANLIB)' LN='$(LN)' \
+srcdir=$(srcdir)  wlibs='$(wlibs)' xincludedir='$(xincludedir)' \
+xlibdir='$(xlibdir)'
+
+web2cmakeargs=YACC='$(YACC)' LEX='$(LEX)' LEXLIB='$(LEXLIB)'
+
+installargs=INSTALL_DATA='$(INSTALL_DATA)'				\
+  INSTALL_PROGRAM='$(INSTALL_PROGRAM)'					\
+  bindir='$(bindir)'							\
+  texpooldir='$(texpooldir)'						\
+  mfpooldir='$(mfpooldir)'
+
+
+# The triptrap targets are for the test versions of TeX and Metafont.
+triptrap: stamp-tangle
+	for name in $(triptrapdirs);					\
+        do								\
+          (cd $${name}; $(MAKE) $(makeargs) triptrap);			\
+        done  
+
+check run-triptrap: run-trip run-trap
+
+run-trip:
+	cd tex; $(MAKE) run-trip
+
+run-trap:
+	cd mf; $(MAKE) run-trap
+
+clean-triptrap:
+	rm -f tex/tex.p mf/mf.p
+
+
+# 
+# The following targets build production versions.
+
+all: programs manpages bases formats
+
+programs: stamp-tangle
+	for name in $(progdirs);					\
+        do								\
+          (cd $${name}; echo $${name}; $(MAKE) $(makeargs) all);	\
+        done
+
+TeX:	stamp-tangle
+	cd tex; $(MAKE) $(makeargs) all
+
+MF:	stamp-tangle
+	cd mf; $(MAKE) $(makeargs) all
+
+BibTeX: stamp-tangle
+	cd bibtex; $(MAKE) $(makeargs) all
+
+
+# The targets below must be up to date for anything to be made.
+
+stamp-lib: lib/*.c
+	cd lib; $(MAKE) $(makeargs) all
+	touch stamp-lib
+
+stamp-web2c: stamp-lib web2c/*.c web2c/web2c.h
+	cd web2c; $(MAKE) $(makeargs) $(web2cmakeargs) all
+	touch stamp-web2c
+
+stamp-tangle: stamp-web2c
+	cd web; $(MAKE) $(makeargs) tangle
+	touch stamp-tangle
+
+
+manpages:
+	cd man; $(MAKE) srcdir=$(srcdir)				\
+	        bindir=$(bindir) texdatadir=$(texdatadir)		\
+		texpooldir=$(texpooldir) formatdir=$(formatdir)		\
+		texinputdir=$(texinputdir) texfontdir=$(texfontdir)	\
+		mfdatadir=$(mfdatadir) mfpooldir=$(mfpooldir)		\
+		basedir=$(basedir) mfinputdir=$(mfinputdir)		\
+                cmsources=$(cmsources) localmodes='$(localmodes)'	\
+                all
+
+bases: stamp-bases
+stamp-bases: mf/inimf
+	cd mf; MFPOOL=.; export MFPOOL; \
+          $(MAKE) bases="$(bases)" localmodes='$(localmodes)' bases
+	touch stamp-bases
+
+formats: stamp-formats
+stamp-formats: tex/initex
+	cd tex; TEXPOOL=.; export TEXPOOL; $(MAKE) formats="$(formats)" formats
+	touch stamp-formats
+
+
+# 
+# Installation targets.
+
+install: install-programs install-formats install-bases install-manpages
+
+install-programs: 
+	-if test -d $(bindir); then exit 0; else mkdir $(bindir); fi
+	for name in $(progdirs);					\
+        do								\
+          (cd $${name}; $(MAKE) $(installargs) install);		\
+        done
+
+install-formats: stamp-formats
+	-if test -d $(formatdir); then exit 0; else mkdir $(formatdir); fi
+	for f in $(formats);						\
+	do								\
+	  rm -f $(bindir)/`basename $$f .fmt`;				\
+          ln $(bindir)/virtex $(bindir)/`basename $$f .fmt`;		\
+          $(INSTALL_DATA) tex/$$f $(formatdir)/$$f;			\
+	done
+	cd $(formatdir); rm -f plain.fmt; ln tex.fmt plain.fmt
+
+install-bases: stamp-bases
+	-if test -d $(basedir); then exit 0; else mkdir $(basedir); fi
+	for f in $(bases);						\
+	do								\
+	  rm -f $(bindir)/`basename $$f .base`;				\
+	  ln $(bindir)/virmf $(bindir)/`basename $$f .base`;		\
+          $(INSTALL_DATA) mf/$$f $(basedir)/$$f;			\
+	done
+	cd $(basedir); rm -f plain.base; ln mf.base plain.base
+
+install-manpages:
+	cd man; $(MAKE) $(installargs)					\
+          srcdir=$(srcdir) mandir=$(mandir) manext=$(manext) install
+
+
+# 
+# Other targets: TAGS, dist, cleaning up.
+
+
+# We can't make useful tags files out of the web sources, more's the pity.
+TAGS:
+
+
+# Need GNU tar for this.
+# 
+dist: web2c-dist web-dist
+
+topfiles = COPYING COPYING.LIB Makefile.in *.W2C configure configure.in
+distdir=src-$(version)
+
+web2c-dist: web/tangleboot.c
+	rm -rf $(distdir)
+	find * -type d -exec mkdir -p $(distdir)/'{}' \;
+	for f in `find -name $(distdir) -prune				\
+                       -o \( -name \*.diff -o -name convert -o -name ChangeLog\
+                             -o -name Makefile -o -name \*.ch 		\
+                             -o -name fixcoerce.h			\
+                             -o -name ini_to_\*				\
+                             -o -name tr\*penv				\
+                          \) -print`; do				\
+          ln $$f $(distdir)/`dirname $$f`;				\
+        done
+	rm -f $(distdir)/Makefile $(distdir)/*/c*.ch
+	ln $(topfiles) $(distdir)
+	mv $(distdir)/ChangeLog $(distdir)/ChangeLog.W2C
+	ln man/*.man $(distdir)/man
+	ln lib/*.defines lib/*.c lib/*.h lib/*.in $(distdir)/lib
+	rm -f $(distdir)/lib/site.h
+	ln mf/MFwindow/*.c $(distdir)/mf/MFwindow
+	ln mf/MFtrap/* $(distdir)/mf/MFtrap
+	ln mfware/gftodmem.h $(distdir)/mfware
+	ln tex/TeXtrip/* $(distdir)/tex/TeXtrip
+	ln web/tangleboot.* $(distdir)/web
+	ln web2c/*.yacc web2c/*.lex web2c/*.c web2c/*.h $(distdir)/web2c
+	cd $(distdir)/web2c; rm -f web2cy.* web2cl.c y.* lex.* coerce.h
+	tar czf web2c-$(version).tar.Z $(distdir)
+	rm -rf $(distdir)
+
+web-dist:
+	rm -rf $(distdir)
+	mkdir $(distdir)
+	cd $(distdir); \
+          mkdir `cd ..; find . -name \*.web -exec dirname '{}' \; | uniq`
+	for d in `find . -name $(distdir) -prune -o -name \*.web -print` ; do\
+          ln $$d $(distdir)/`dirname $$d`;				\
+        done
+	tar czf web-$(version).tar.Z $(distdir)
+	rm -rf $(distdir)
+
+web/tangleboot.c:
+	cd web; $(MAKE) tangleboot.c
+
+
+mostlyclean:
+	for name in $(alldirs);						\
+        do								\
+          (cd $${name}; $(MAKE) $@);					\
+        done
+	rm -f stamp-*
+
+clean:
+	for name in $(alldirs);						\
+        do								\
+          (cd $${name}; $(MAKE) $@);					\
+        done
+	rm -f stamp-*
+
+distclean:
+	for name in $(alldirs);						\
+        do								\
+          (cd $${name}; $(MAKE) $@);					\
+        done
+	rm -f stamp-* Makefile lib/c-auto.h config.status
+	rm -f lib/site.h \#*\# *~ *.bak *.ckp core
+
+realclean:
+	for name in $(alldirs);						\
+        do								\
+          (cd $${name}; $(MAKE) $@);					\
+        done
+	rm -f stamp-* Makefile lib/c-auto.h config.status
+	rm -f lib/site.h \#*\# *~ *.bak *.ckp core
+
+# 
+# Local variables:
+# page-delimiter: "^# \f"
+# End:

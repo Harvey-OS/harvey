@@ -1,11 +1,38 @@
-%% CYRCSC.MF                     June 1990
-%% This Metafont file is part of AMSFonts 2.0.
-%% Cyrillic fonts developed at the Humanities and Arts Computing Center
-%% at the University of Washington.
-%% All rights reserved.  Copying of this file is authorized only if either:
-%%   (1) you make absolutely no changes to your copy including filename; OR
-%%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @mffile{
+%%     filename="cyrcsc.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: driver",
+%%     copyright="Copyright (C) Humanities and Arts Computing Center,
+%%            University of Washington;
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "13082 178 868 7566"
+%%     keywords="amsfonts, tex, metafont, cyrillic",
+%%     abstract="This is the driver file for use with 
+%%             the cyrillic cap-small-cap font."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Driver for WNCYR Washington Computer Modern Cyrillic
 
 font_coding_scheme:=if ligs=0: "TeX typewriter text"
@@ -126,13 +153,13 @@ ligtable "Z": "1"=:oct"021", "H"=:oct"021", "h"=:oct"021";
 ligtable "[": "["=:oct"074";
 ligtable "]": "]"=:oct"076";
 ligtable "`": "`"=:oct"134";
-ligtable "e": "0"=:oct"032", "1"=:oct"013", "2"=:oct"015";
+ligtable "e": "0"=:oct"033", "1"=:oct"013", "2"=:oct"015";
 % following kerns seem not to actually work out
 %         "b": "o": "r": "f": "o" kern -k#, "f" kern -k#, "e" kern -k#,
 %          "c" kern -k#, "h" kern k#;
 ligtable "c": "1"=:oct"017", "h"=:"q";
 ligtable "d": "1"=:oct"016", "2"=:oct"012", "3"=:oct"036", "j"=:oct"016";
-ligtable "i": "0"=:oct"033", "1"=:oct"014";
+ligtable "i": "0"=:oct"032", "1"=:oct"014";
 ligtable "j": "1"=:oct"037", "2"=:oct"030";
 ligtable "k": "h"=:"h";
 ligtable "l": "1"=:oct"011", "j"=:oct"011";

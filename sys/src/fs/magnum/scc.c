@@ -82,7 +82,6 @@ typedef struct {
 	ushort	sticky[16];	/* sticky write register values */
 	uchar	*ptr;		/* command/pointer register in Z8530 */
 	uchar	*data;		/* data register in Z8530 */
-	int	printing;	/* true if printing */
 	ulong	freq;		/* clock frequency */
 
 	void	(*rx)(int);	/* routine to take a received character */

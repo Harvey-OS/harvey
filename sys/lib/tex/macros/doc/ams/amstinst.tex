@@ -1,0 +1,449 @@
+%%@texfile{%
+%% filename="amstinst.tex",
+%% version="2.1a",
+%% date="4-SEP-1991",
+%% filetype="AMS-TeX: documentation",
+%% copyright="Copyright (C) American Mathematical Society, all rights
+%%   reserved.  Copying of this file is authorized only if either:
+%%   (1) you make absolutely no changes to your copy, including name;
+%%   OR (2) if you do make changes, you first rename it to some other
+%%   name.",
+%% author="American Mathematical Society",
+%% address="American Mathematical Society,
+%%   Technical Support Department,
+%%   P. O. Box 6248,
+%%   Providence, RI 02940,
+%%   USA",
+%% telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%% email="Internet: Tech-Support@Math.AMS.org",
+%% checksumtype="line count",
+%% checksum="449",
+%% codetable="ISO/ASCII",
+%% keywords="amstex, ams-tex",
+%% abstract="This file is part of the AMS-\TeX{} package, version 2.1.
+%%   It contains installation instructions. The file amsguide.tex
+%%   inputs this file, but this file is also designed so that it
+%%   can be processed separately, using only Plain \TeX{}."
+%%}
+%%% end of file header
+%
+%      This file is input by amsguide.tex, which requires AMS-TeX 2.0+.
+%      However it can also be typeset separately using Plain \TeX{}, by
+%      means of the mechanism below: we check to see if amsppt.sty has
+%      been loaded earlier; if so, we set the catcode of the ~ character
+%      to 14 so that the following section of definitions will be
+%      ignored (since the definitions would be redundant); otherwise
+%      we set the catcode to 9 ("ignore") so that the definitions
+%      will be carried out.
+%
+%      Enclosing the definitions section within the initial \if ...
+%      \else ... \fi would be problematic because of the outerness
+%      of \head and \subhead in the amsppt documentstyle.
+%
+\expandafter\ifx\csname amsppt.sty\endcsname\relax
+  \catcode`\~=9 \else \catcode`\~=14 \let\BYE\relax \fi
+~  \let\BYE\bye
+~  \hsize=30pc \vsize=47pc
+~  \def\head#1\endhead{\bigskip{\sc\noindent
+~    \leftskip0pt plus.5\hsize \rightskip=\leftskip\parfillskip=0pt 
+~    \def\\{\break}#1\par}\nobreak\smallskip}
+~  \font\sc=cmcsc10
+~  \def\subhead#1\endsubhead{\removelastskip\medskip{\bf\noindent
+~    #1\par}\nobreak\smallskip}
+~  \def\AmSTeX{{\the\textfont2 A\kern-.1667em%
+~    \lower.5ex\hbox{M}\kern-.125emS}-\TeX}
+~  \font\tenss=cmss10
+~  \long\def\usertype#1{\smallskip \moveright2pc\vbox{\def\par{\crcr}\halign{%
+~     \setbox0\hbox{\tt##}%
+~     \hbox\ifdim\wd0<10pc to10pc\fi{\unhbox0\hfil}%
+~          \kern1pc \it $\langle$return$\rangle$\hss
+~     \cr#1\crcr}}%
+~    \smallskip}
+~  \long\def\systype#1{{\rightskip=4pc\leftskip=4pc\noindent\tt #1\par}}
+~  \hfuzz1pc % to suppress reporting of overfull boxes.
+~  \hyphenation{amsppt}
+~  \def\Textures{{\it Textures\/}}
+~  \def\AMS{American Mathematical Society}
+~  \def\filnam#1{{\tt\def\\{\char`\\}\ignorespaces#1\unskip}}
+~  \hyphenchar\tentt=-1 % to prohibit hyphenation in tt text
+~  \def\cs#1{\leavevmode
+~    \skip0\lastskip\unskip\penalty0
+~    \ifdim\skip0>0pt \hskip\skip0\fi
+~    {\tt\def\{{\char`\{}\def\}{\char`\}}%
+~      \def\\{\char`\\}\char`\\\ignorespaces#1\unskip}}
+~  \newcount\rostercount
+~  \def\roster{\par\smallskip\begingroup \rostercount=0
+~    \def\par{{\endgraf}}\hangindent3pc
+~    \def\item{\futurelet\next\iitem}%
+~    \def\iitem{\ifx\next"\expandafter\iiitem
+~      \else\advance\rostercount 1 \iiitem"(\the\rostercount)"\fi}%
+~    \def\iiitem"##1"{\par \noindent\hbox to\hangindent{\hss##1\enspace}}%
+~  }
+~  \def\endroster{\par\smallskip\endgroup}
+~  \def\newpage{\vfil\eject}
+\catcode126=\active % restore ~ to normal; using `\~ here wouldn't work!
+
+\head Appendix B\\ Installation Procedures -- PC\endhead
+
+\subhead B.1. Introduction\endsubhead
+
+The \AmSTeX{} software can be used with any full implementation of \TeX{}. 
+Sections B.2--B.5 of this appendix describe the installation of \AmSTeX{} for
+DOS implementations of \TeX{} on an IBM PC or compatible machine from a DOS
+diskette or diskettes provided by the \AMS{}. PC\TeX{} (from Personal \TeX{},
+Inc.) is used as an example.  If your operating system is not DOS, or if you
+obtained \AmSTeX{} through other channels, you won't be able to use the
+\filnam{install} program that is provided. Instead, follow the generic
+installation instructions in section B.6. You will have to refer to the
+documentation for your particular implementation of \TeX{} to work out the
+details of any necessary variations. Users who encounter difficulties should
+seek help from the manufacturer of their implementation of \TeX{}, or from the
+\AMS{}'s technical support staff.
+
+The TFM files for some of AMSFonts 2.1 (\filnam{msam*}, \filnam{msbm*}, and
+\filnam{eufm*}) are needed to run \AmSTeX{} with the AMSPPT documentstyle, even
+if you don't plan to actually print anything using the AMSFonts. In the
+diskette distribution TFM files for all AMSFonts  are provided  in a directory
+named \filnam{\\tfm}. They are also available from the AMS Internet archive,
+\filnam{e-MATH.ams.org}, by anonymous FTP.
+
+\subhead B.2. Getting Started\endsubhead
+
+The installation procedures consist of moving files to the proper
+directories, and creating format files.  The first step is determining
+the names of the proper directories, which will vary with different
+implementations of \TeX{}.  You need to know the name of your {\bf \TeX{}
+inputs directory}, your {\bf \TeX{} TFM directory}, and your {\bf \TeX{}
+formats directory}. Check your directory structure or  consult the
+documentation for your implementation of \TeX{} to see what these names are.  
+If you have any difficulty determining these directories: 
+\roster
+\item"(a)"Search for
+the plain \TeX{} input file, \filnam{plain.tex}. The directory where it
+is located will be your \TeX{} inputs directory. 
+\item"(b)"Search for the font
+file \filnam{cmr10.tfm}. The directory where it is found will be your
+\TeX{} TFM directory. 
+\item"(c)"Search for the plain \TeX{} format file,
+\filnam{plain.fmt}. The directory where it is found will be your \TeX{}
+formats directory.
+\endroster
+For example, for PC\TeX{} the directory names are  \filnam{\\pctex\\texinput},
+\filnam{\\pctex\\textfms},  and
+\filnam{\\pctex\\texfmts}.{\tolerance9999\hbadness\tolerance\par}
+
+
+Note: If you currently have any  of the following files from earlier
+releases of \AmSTeX{}, backup and delete them before installing the new
+version.  They are either irrelevant or superseded in the new version of
+\AmSTeX{}, and it is best to remove them to avoid confusion.  All of
+them except for the last one would be found in your \TeX{} inputs
+directory;  \filnam{amsplain.fmt} would be found in your \TeX{} formats
+directory. 
+
+\settabs5\columns {\tt
+\+\ \ amsfil.chg& amsplain.tex& amsppt.sty& amsppt.mor& amstex.tex\cr
+\+\ \ amstex.chg& cyracc.def& cyrmemo.def& cyrmemo.tex& amsplain.fmt\cr
+} 
+
+Users who did not receive \AmSTeX{} on diskette from the AMS, or those
+using non-DOS implementations of \TeX{}, should  proceed now to section B.6.
+
+\subhead B.3. Installing \AmSTeX{} (DOS/diskette)\endsubhead
+
+The following files are used in the installation process
+for DOS implementations of \TeX{}, for \AmSTeX{} 2.1:
+\par\nobreak
+\smallskip
+\settabs3\columns
+\setbox0\vbox{\tt\+install.exe& amsinst.bat& amstex.ini\cr}
+\moveright\parindent\box0
+\smallskip
+
+For DOS installation, you need to know on which drive to install
+\AmSTeX{}. This should be the drive on which you already have installed
+\TeX{}. 
+
+{\bf For PC\TeX{},} you will
+probably want to select the first choice for each of the questions which
+the installation programs asks you. This will result in placing the
+\AmSTeX{} files in the directory \filnam{\\pctex\\texinput} and the TFM
+files in the directory \filnam{\\pctex\\textfms}.
+
+{\bf For other DOS implementations of \TeX{},}  you will
+need to know the names of your \TeX{} inputs directory and
+\TeX{} TFM directory, as described earlier, so that you can
+enter them when prompted.
+
+\smallskip When you have the disk and directory information ready, place
+the disk labeled ``\AmSTeX{} 2.1'' in your floppy disk drive  and type
+the following commands (if the disk is in drive B, substitute ``b'' for
+``a'' in the first line):
+
+\usertype{a:
+
+install }
+
+This will run the \filnam{install} program, which will ask you some
+questions.  Enter the answers which you determined from reading the
+above paragraphs.   
+
+\subhead B.4. Running INITEX to Create Format Files (DOS)\endsubhead
+
+To complete the installation procedure, you should create a
+format file.  This will enable you to run \TeX{} with \AmSTeX{}, or
+\AmSTeX{} and the AMSPPT preprint style, preloaded. This preloading
+will save quite a bit of startup time on slower systems.
+Note: Each format file takes up 150K--300K of disk space
+(depending on your implementation of \TeX{}).
+
+\smallskip 
+
+{\bf Warning:} INITEX requires much more memory to run than
+regular \TeX{}. The first time you try to run INITEX, you may get the
+message ``{\tt Not enough memory to run TeX}'' or something similar (or
+with simpler implementations, it may just crash). If this happens, you
+must remove as many memory-resident programs as possible (such as
+communications software and memory-resident utilities [TSRs]) and reboot your
+system to create enough memory to run INITEX. Consult the documentation
+for your implementation of \TeX{} for more information on running INITEX.
+\smallskip
+
+You are now ready to create a format file so that \AmSTeX{}, or \AmSTeX{} and
+the AMSPPT preprint style, can be preloaded when you typeset a document. Before
+creating your format file, you will want to consider whether you habitually use
+the AMSPPT documentstyle. If you use other documentstyles  rarely or never,
+then you would benefit from the use of a format file with \filnam{amsppt.sty}
+preloaded.  If you are likely to use other documenstyles periodically, then you
+probably do not want to preload \filnam{amsppt.sty}. To make a simple \AmSTeX{}
+format file, proceed with the next paragraph.  To make a format file with
+\filnam{amsppt.sty} preloaded, edit the file \filnam{amstex.ini} and remove the
+percent sign (comment character) at the beginning of the line
+\cs{documentstyle\{amsppt\}}, just before the \cs{dump} command.
+
+The \TeX{} file named \filnam{amstex.ini} should now be installed in your
+\TeX{} inputs directory.  Once you have decided whether to create an \AmSTeX{}
+or an AMSPPT format file (see previous paragraph), run
+INITEX on \filnam{amstex.ini}. E.g., for PC\TeX{}, you would give the command
+
+\usertype{tex amstex.ini -i}
+
+\noindent   This creates an \AmSTeX{} format file named
+\filnam{amstex.fmt}.  
+For other implementations of \TeX{} the form of the INITEX command
+may be different, e.g., {\tt tex/i amstex.ini}.
+
+{\bf Moving the format files to the right directory.}
+Some implementations of \TeX{}, including PC\TeX{}, will automatically
+place the format file in the proper directory.  Otherwise you should now
+move the file manually into your \TeX{} formats directory.
+
+\subhead B.5. Using \AmSTeX{} 2.0+ (DOS)\endsubhead
+
+On the distribution diskettes, a DOS batch file \filnam{amstex.bat} is
+provided, to make use of the format file more convenient. 
+\filnam{amstex.bat} will have been placed by the installation procedures
+in the root directory of the drive where \TeX{} is located.  If you are
+connected to that directory or if it is in your system path, you would
+run \AmSTeX{} on a file called \filnam{filename.tex} by typing
+
+\usertype{amstex filename}
+
+\subhead B.6. Installing \AmSTeX{} (Generic)\endsubhead
+
+Use these instructions if you didn't receive \AmSTeX{} on diskettes from
+the AMS, but obtained it by other methods, or if you have a non-DOS
+implementation of \TeX{}.  You will need to know the names of your
+\TeX{} inputs directory, \TeX{} TFM directory, and \TeX{} formats
+directory, as explained in section~B.2.
+\roster
+\item Copy the following files into your \TeX{} inputs directory:
+\filnam{amstex.tex}, \filnam{amsppt.sty}, \filnam{amssym.tex},
+\filnam{amstex.ini}, and \filnam{amsppt1.tex}.
+{\tolerance9999\par}
+
+\item There are three documentation files: \filnam{amsguide.tex},
+\filnam{joyerr.tex}, and \filnam{amsppt.doc}. If you have a documentation
+directory, or wish to create one, then put these files there; otherwise
+they can be put in the \TeX{} inputs directory.
+{\tolerance9999\par}
+
+\item Copy the AMSFonts TFM files to your \TeX{} TFM directory. If
+you don't plan to use any of the AMSFonts, you should still copy
+\filnam{dummy.tfm}, which is needed for \AmSTeX{}'s syntax check option, 
+and \filnam{msam*.tfm}, \filnam{msbm*.tfm}, and \filnam{eufm*.tfm},
+which are needed for typesetting the {\it User's Guide}.
+
+\item 
+You are now ready to create a format file so that \AmSTeX{}, or \AmSTeX{} and
+the AMSPPT preprint style, can be preloaded when you typeset a document. Before
+creating your format file, you will want to consider whether you habitually use
+the AMSPPT documentstyle. If you use other documentstyles  rarely or never,
+then you would benefit from the use of a format file with \filnam{amsppt.sty}
+preloaded.  If you are likely to use other documenstyles periodically, then you
+probably do not want to preload \filnam{amsppt.sty}. To make a simple \AmSTeX{}
+format file, proceed with the next paragraph.  To make a format file with
+\filnam{amsppt.sty} preloaded, edit the file \filnam{amstex.ini} and remove the
+percent sign (comment character) at the beginning of the line
+\cs{documentstyle\{amsppt\}}, just before the \cs{dump} command.
+
+\item  Check the documentation for your implementation of \TeX{} to find
+out how to run INITEX and create format files.  Format files greatly
+speed up processing when you are using a large macro package such as
+\AmSTeX{}.  If your implementation of \TeX{} doesn't automatically place format
+files in the \TeX{} formats directory (check your documentation), you
+will have to either go to the \TeX{} formats directory before running
+INITEX, or move the format files there after they are created.  The
+warning in section B.4 will also be relevant, for most PC users. Once you have
+decided whether to include AMSPPT in your format file (see above paragraph),
+run the file \filnam{amstex.ini} through INITEX, to create the file
+\filnam{amstex.fmt}.  This is a preloaded form of \AmSTeX{}. If you included
+AMSPPT, you may wish to rename it \filnam{amsppt.fmt}.
+
+\item Now move the format file that you just created into your
+\TeX{} formats directory, if you didn't create it there.
+\endroster
+
+\medskip For details of how to use format files with your implementation of
+\TeX{}, see your documentation.  Typically, you use a format file by
+specifying it on the command line preceded by an ampersand, e.g., {\tt
+tex \&amstex filename}.
+If you did not receive a printed copy of this {\it User's Guide\/} with
+your distribution, you can use your newly created \AmSTeX{} or AMSPPT
+format file to typeset the file \filnam{amsguide.tex}.
+
+\newpage
+\csname firstpage\string @true\endcsname
+
+\head Appendix C\\ Installation Procedures -- Macintosh\endhead
+
+\subhead C.1. Introduction\endsubhead
+
+These instructions describe the installation of \AmSTeX{} for use with
+\Textures{}, on the Macintosh. There is one disk in the distribution.
+The files \filnam{amstex.tex} and  \filnam{amsppt.sty} are \Textures{}
+documents to be input by \Textures{}.  The file \filnam{amsppt.doc} is
+technical documentation for the macros defined in  \filnam{amsppt.sty}.  
+The file \filnam{amstex.ini} is used in the installation to create
+format files.  The file \filnam{amsguide.tex} is the \Textures{} source
+for this {\it User's Guide.}{\tolerance9999\par}
+
+The file \filnam{joyerr.tex} is a list of errata to the 1986 edition of
+{\it The Joy of \TeX{}.} You may typeset it in \Textures{} using your
+new \AmSTeX{} format file (once it has been created).
+If you do not have AMSFonts 2.1, the
+characters in this file which come from the AMS symbol fonts will appear
+in the default system font.  The file \filnam{AMSFonts 2.1 metrics}
+contains the \TeX{} metrics information for AMSFonts 2.1. This file is
+required to use \filnam{amsppt.sty} even if you do not have AMSFonts
+2.1. ({\bf Note: }Even if you currently have AMSFonts 2.0, we {\it strongly\/}
+recommend that you obtain version 2.1, as the metrics have changed.)
+
+\AmSTeX{} Versions 2.0+ can be used with \Textures{} without AMSFonts. 
+However,  \AmSTeX{} Versions 2.0+ will not work with releases of AMSFonts
+previous to Version 2.0. Additionally, if AMSFonts 2.1 are to be used,
+they require \Textures{} version 1.2 or higher. If you have an earlier
+release of \Textures{}, you must upgrade before using these fonts. To
+upgrade \Textures{}, contact the manufacturer: Blue Sky Research, 534 SW
+Third Ave., Portland, OR 97204; 800-622-8398 or
+503-222-9571. 
+
+\subhead C.2. If You Have a Previous Version of \AmSTeX{}\endsubhead
+
+Before installing the new version of \AmSTeX{}, you should backup and
+delete files from your hard disk which are related to previous releases
+of \AmSTeX{}. In particular, you should remove the following files from
+your \filnam{Textures} folder (or any folders contained in your
+\filnam{Textures} folder):
+
+\settabs5\columns {\tt
+\+\ \ amsfil.chg&amsplain.tex&amsppt.sty&amsppt.mor&amstex.tex\cr
+\+\ \ amstex.chg&cyracc.def&cyrmemo.def&cyrmemo.tex\cr }
+
+\noindent
+and you should remove any previous \AmSTeX{} format files from
+your \filnam{TeX formats} folder.
+These files are either irrelevant or superseded in the new version of
+\AmSTeX{}, and it is best to remove them from your hard disk to avoid
+confusion.
+
+\subhead C.3. Installing \AmSTeX{}\endsubhead
+
+If you do not have a folder named \filnam{TeX inputs} inside the
+\filnam{Textures} folder on your hard disk, create a new folder inside
+your \filnam{Textures} folder and name it \filnam{TeX inputs}. Also, if
+you do not have a  \filnam{TeX formats} folder, create a new folder
+inside your \filnam{Textures}  folder and name it \filnam{TeX formats}.
+Likewise, create a \filnam{TeX fonts} folder if you do not already
+have one.
+
+To install the new version of \AmSTeX{} on your system, copy the
+following files into the  \filnam{TeX inputs} folder inside the
+\filnam{Textures} folder on your hard disk:
+
+{\tt \quad amstex.tex\quad amssym.tex\quad amsppt.sty\quad
+amsppt1.tex\quad amstex.ini} 
+
+Then copy the file \filnam{amsfonts 2.1 metrics} into the \filnam{TeX
+fonts} folder inside of the \filnam{Textures} folder on your hard disk.
+
+You are now ready to create a format file so that \AmSTeX{}, or \AmSTeX{} and
+the AMSPPT preprint style, can be preloaded when you typeset a document. Before
+creating your format file, you will want to consider whether you habitually use
+the AMSPPT documentstyle. If you use other documentstyles  rarely or never,
+then you would benefit from the use of a format file with \filnam{amsppt.sty}
+preloaded.  If you are likely to use other documenstyles periodically, then you
+probably do not want to preload \filnam{amsppt.sty}. To make a simple \AmSTeX{}
+format file, proceed with the next paragraph.  To make a format file with
+\filnam{amsppt.sty} preloaded, edit the file \filnam{amstex.ini} and remove the
+percent sign (comment character) at the beginning of the line
+\cs{documentstyle\{amsppt\}}, just before the \cs{dump} command.
+
+Open the \filnam{TeX inputs} folder (inside your \filnam{Textures} folder) and
+double-click on the file \filnam{amstex.ini} to start running \Textures{}. Make
+sure that the line \cs{input plain} is commented out (begins with a percent
+sign). If there is not a percent sign at the beginning of this line, insert
+one. Check under the Typeset menu to make sure that the Plain format is
+selected (there is a check mark next to it). Select ``Typeset'' from the
+Typeset menu. When the dialog box appears asking you what to name the format
+file, go through the folder hierarchy to place yourself inside the \filnam{TeX
+formats} folder inside your \filnam{Textures} folder. You may name the file
+what you wish, but \filnam{2.1} is a good idea.  If you included
+\filnam{amsppt.sty} in your format file, name the  format file
+\filnam{AMS-TeX/AMSPPT} or something similarly descriptive.
+
+For more information about using formats in \Textures{}, see the
+\Textures{} {\it User's Guide\/}.
+
+If you did not receive a printed copy of the {\it \AmSTeX{} User's Guide\/}
+with your distribution, you can use your newly created \AmSTeX{} or AMSPPT
+format file to typeset the file \filnam{amsguide.tex}.
+
+\medskip\noindent
+Questions concerning \Textures{} should be directed to:
+\smallskip
+
+\begingroup
+\obeylines\parindent1in \parskip0pt
+Blue Sky Research
+534 Southwest Third Avenue
+Portland, OR 97204
+Phone: 800-622-8398 \quad or\quad 503-222-9571
+\endgroup
+
+\BYE % This is = \relax if this file is input by amsguide.tex
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}

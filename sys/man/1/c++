@@ -1,63 +1,55 @@
 .TH C++ 1 
 .SH NAME
-c++/2c, c++/kc, c++/vc, c++/8c, c++/zc, c++/2l, c++/kl, c++/vl, c++/8l, c++/zl \- C++ compilers and loaders
+c++/2c, c++/kc, c++/vc, c++/8c, c++/2l, c++/kl, c++/vl, c++/8l \- C++ compilers and loaders
 .SH SYNOPSIS
 .PD 0
 .B c++/2c
 .RI [  options ]
-.I name
+.I file
 \&...
 .PP
 .B c++/8c
 .RI [  options ]
-.I name
+.I file
 \&...
 .PP
 .B c++/kc
 .RI [  options ]
-.I name
+.I file
 \&...
 .PP
 .B c++/vc
 .RI [  options ]
-.I name
-\&...
-.PP
-.B c++/zc
-.RI [  options ]
-.I name
+.I file
 \&...
 .PP
 .B c++/2l
 .RI [  options ]
-.I name
+.I file
 \&...
 .PP
 .B c++/8l
 .RI [  options ]
-.I name
+.I file
 \&...
 .PP
 .B c++/kl
 .RI [  options ]
-.I name
+.I file
 \&...
 .PP
 .B c++/vl
 .RI [  options ]
-.I name
-\&...
-.PP
-.B c++/zl
-.RI [  options ]
-.I name
+.I file
 \&...
 .PD
 .SH DESCRIPTION
 The c++
 compilers,
 .IR c++/?c,
-compile the named C++ files into object files for the specified architecture
+compile the named C++
+.I files
+into object files for the specified architecture
 (see
 .IR 2c (1)).
 They use
@@ -84,9 +76,8 @@ Let the first letter of the base name of the compiler or loader be
 .BR 2 ,
 .BR 8 ,
 .BR k ,
-.BR v ,
 or
-.BR z .
+.BR v .
 .PP
 The compiler options are:
 .TP 1i
@@ -114,10 +105,11 @@ be executed to be printed without actually executing them.
 .B -w
 Print warning messages.
 .TP
-.B -x\*S file
-Take cross compiling information from file.
+.BI -x file
+Take cross compiling information from
+.IR file .
 By default, this information is taken from
-.BI /sys/lib/c++/ O .sz .
+.BI /sys/lib/c++/ O .sz \f1.
 .TP
 .B -A
 Complain about functions used without a new-style
@@ -129,11 +121,11 @@ Turn off the action of the
 flag.
 This option is on by default.
 .TP
-.BI -D\*S name=def
+.BI -D name=def
 .br
 .ns
 .TP
-.BI -D \*Sname
+.BI -D name
 Define the
 .I name
 to the preprocessor,
@@ -150,7 +142,7 @@ Print the preprocessed and
 .I cfronted
 version of the file on standard output.
 .TP
-.BI -I \*Sdir
+.BI -I dir
 .L #include
 files whose names do not begin with 
 .L /
@@ -182,9 +174,14 @@ flag.
 Print an assembly language version of the object code
 on standard output.
 .TP
-.BI -U \*Sname
+.BI -U name
 Remove any initial definition of
 .IR name .
+.TP
+.B -a
+Instead of compiling, print on standard output acid functions (see
+.IR acid (1))
+for examining structures declared in the source files.
 .PP
 The loader options are:
 .TP 1i
@@ -192,7 +189,7 @@ The loader options are:
 Place output in file
 .IR out .
 Default is
-.IB O .out .
+.IB O .out\f1.
 .SH EXAMPLE
 To produce a MIPS executable
 .B prog
@@ -243,17 +240,19 @@ C++ to C translator.
 .TP
 .B /$cputype/bin/c++/patch
 C++ static constructor initializer.
+.SH SOURCE
+.B /sys/src/c++
 .SH "SEE ALSO"
 .IR 2c (1),
 .IR 2a (1),
 .IR 2l (1),
-.IR db (1)
+.IR db (1),
+.IR acid (1),
 .IR cpp (1),
 .IR mk (1),
 .IR nm (1),
 .IR pcc (1)
-.IR rl (1),
 .SH BUGS
-The task library works only for the MIPS and the SPARC;
-it will not work for the other machines any time soon.
+The task library works only for the MIPS and the SPARC.
 The Interrupt class is not yet supported.
+The source to the translator is not included in the distribution.

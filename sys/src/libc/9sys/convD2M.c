@@ -1,5 +1,6 @@
 #include	<u.h>
 #include	<libc.h>
+#include	<auth.h>
 #include	<fcall.h>
 
 #define	CHAR(x)		*p++ = f->x

@@ -6,7 +6,7 @@ mkdir \- make a directory
 .I dirname ...
 .SH DESCRIPTION
 .I Mkdir
-creates specified directories.
+creates the specified directories.
 It
 requires write permission in the parent directory.
 .SH "SEE ALSO"
@@ -15,6 +15,8 @@ requires write permission in the parent directory.
 .IR cd
 in
 .IR rc (1)
+.SH SOURCE
+.B /sys/src/cmd/mkdir.c
 .SH DIAGNOSTICS
 .I Mkdir
 returns null exit status if all directories were successfully made.

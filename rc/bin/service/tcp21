@@ -1,1 +1,2 @@
-#!/bin/aux/ftp
+#!/bin/rc
+exec /bin/aux/ftp -n/lib/namespace.ftp.att $*

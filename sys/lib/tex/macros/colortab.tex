@@ -1,0 +1,223 @@
+%% BEGIN colortab.tex/colortab.sty
+%%
+\def\fileversion{0.9}
+\def\filedate{93/01/11}
+%%
+%% COPYRIGHT 1993, by Timothy Van Zandt, tvz@Princeton.EDU
+%%
+%% DESCRIPTION:
+%%   colortab.tex/colortab.sty lets you shade or color the cells in a
+%%   alignment environments (e.g., \halign and \LaTeX's tabular and
+%%   array environments). It is compatible with most TeX macro packages,
+%%   including Plain TeX, LaTeX, AmSTeX, and Ams-LaTeX. You must be
+%%   use in conjunction with other color commands.
+%%
+%% INSTALLATION:
+%%   Put this file where your TeX looks for inputs, under the name
+%%   colortab.tex. Name a copy colortab.sty to use as a LaTeX style option,
+%%   or create a file colortab.sty with the lines:
+%%     \input colortab.tex
+%%     \endinput
+%%
+%% DOCUMENTATION:
+%%   See colortab.doc, which might be appended to this file.
+%%
+%% COPYING:
+%%   Copying of part or all of this file is allowed under the following
+%%   conditions only:
+%%   (1) You may freely distribute unchanged copies of the file. Please
+%%       include the documentation when you do so.
+%%   (2) You may modify a renamed copy of the file, but only for personal
+%%       use or use within an organization.
+%%   (3) You may copy fragments from the file, for personal use or for
+%%       distribution, as long as credit is given where credit is due.
+%%
+%%   You are NOT ALLOWED to take money for the distribution or use of
+%%   this file or modified versions or fragments thereof, except for
+%%   a nominal charge for copying etc.
+%%
+%% CODE:
+%
+% colortab.tex uses TeX primitives, plus the Plain TeX commands:
+%   \newcount, \newtoks, \newbox, \newif and \z@.
+%
+% The LaTeX specific macros also use some LaTeX commands.
+%
+\csname ColortabLoaded\endcsname
+\let\ColortabLoaded\endinput
+%
+\message{\space\space v\fileversion\space\space\filedate\space\space <tvz>}
+\edef\TheAtCode{\the\catcode`\@}\catcode`\@=11
+%
+% These scratch registers are set globally:
+%
+\newcount\CT@cnt
+\newdimen\CT@dim
+\newbox\CT@box
+%
+% This flag is used to shut off colortab:
+%
+\newif\ifcolortab
+\colortabtrue
+%
+% To color row cells of unknown height we first have to put the rows in an
+% alignment and measure the resulting height, then put down a row of blobs
+% (with \hrule, and then move back up the page.
+%
+% For TeX's \halign primitive, \coloralign saves the preamble in the token
+% register \CT@preamble. This is used to calculate the height of the columns
+% that are to be colored in.
+%
+\newtoks\CT@preamble
+\def\coloralign{%
+  \afterassignment\coloralign@
+  \setbox\CT@box=\hbox}
+\def\coloralign@#1\cr{%
+  \egroup
+  \CT@preamble{\halign\bgroup#1\cr}%
+  \the\CT@preamble}
+%
+% \CC reads the next row, which should contain the color commands, and then
+% the rows to be colored. The height of the latter rows is calculated, and
+% then the row of colors is processed. \CT@columncolor uses \leaders to get
+% each color to fill the column horizontally, and it uses the previously
+% calculated height to fill the columns vertically.
+%    \begin{macrocode}
+\def\CT@columncolor{%
+  \ifx\next\@nil
+    \def\next##1&\@nil{\gdef\CT@next{##1}}%
+    \expandafter\next\CT@next\@nil
+    \def\CT@temp\@nil{}%
+  \else
+    \ifx\next\CT@space
+      \def\CT@temp{%
+        \def\next{\futurelet\next\CT@columncolor}%
+        \afterassignment\next\let\CT@temp= }%
+    \else
+      \def\CT@temp{\CT@@columncolor}%
+    \fi
+  \fi
+  \CT@temp}
+\def\CT@@columncolor#1&{%
+  \ifx\next&%
+    \expandafter\gdef\expandafter\CT@next\expandafter{\CT@next\omit{}&}%
+  \else
+    \expandafter\gdef\expandafter\CT@next\expandafter{\CT@next
+      \omit{{\ignorespaces#1{\leaders\hrule height\CT@dim\hfil}}}&}%
+  \fi
+  \futurelet\next\CT@columncolor}
+{\def\\{\global\let\CT@space= }\\ }
+\def\CC@#1#2#3{%
+  \ifcolortab
+    \noalign{%
+      \setbox\CT@box=\vbox{#1#3\crcr\egroup}%
+      \CT@dim=\ht\CT@box
+      \global\advance\CT@dim by \dp\CT@box
+      \def\CT@next{}%
+      \futurelet\next\CT@columncolor#2&\@nil}%
+    \CT@next\cr
+    \noalign{\vskip-\CT@dim}%
+  \fi
+  #3}
+\def\CC#1\cr#2\ECC{\CC@{\the\CT@preamble}{#1}{#2}}
+%
+% With \LaTeX's alignment macros, the preamble is saved for us in \@preamble.
+% Otherwise, \LCC is the same as \CC.
+%
+\def\LCC#1\\#2\ECC{\CC@{\@preamble}{#1}{#2}}
+%
+% This unaligned color stuff only works with PSTricks:
+%
+\def\AC#1{%
+  \@ifundefined{color@#1}%
+    {\@pstrickserr{Color not defined: `#1'}\@ehpa}%
+    {\pstVerb{\pst@usecolor{#1}}}}
+\def\EAC{\pstVerb{\pst@currentcolor}}
+\def\NAC#1{\noalign{\AC{#1}}}
+\def\ENAC{\noalign{\EAC}}
+%
+\def\SP{\noalign{\global\let\CT@savedpreamble\@preamble}}
+\def\RP{\noalign{\global\let\@preamble\CT@savedpreamble}}
+%
+\newcount\CT@LCnum
+\def\LColors#1\\{%
+  \noalign{%
+    \ifnum\CT@LCinitflag=\c@LT@tables\else\CT@LCinit\fi
+    \ifnum\CT@LCflag=\z@
+      \global\CT@LCnum 1
+      \CT@LColors#1&\@nil
+      \global\CT@LCnum\CT@LCmax
+    \fi}}
+\def\CT@LColors#1&{%
+  \global\@namedef{LColor@\the\CT@LCnum}{#1}%
+  \@ifnextchar\@nil{\@gobble}{%
+    \global\advance\CT@LCnum 1
+    \CT@LColors}}
+\def\CT@LCinit{%
+  \ifcolortab
+    \@ifundefined{LT@\romannumeral\c@LT@tables}%
+      {\gdef\CT@LCflag{1}}{\gdef\CT@LCflag{\z@}}%
+  \else
+    \gdef{CT@LCflag{1}}%
+  \fi
+  \ifnum\CT@LCflag=\z@
+    \begingroup
+      \def\omit\kern##1&{%
+        \advance\CT@LCnum 1
+        \CT@dim=##1\relax
+        \expandafter\xdef\csname LCdim@\the\CT@LCnum\endcsname{%
+          \number\CT@dim sp}}%
+      \CT@LCnum\z@
+      \@nameuse{LT@\romannumeral\c@LT@tables}&%
+      \xdef\CT@LCmax{\the\CT@LCnum}%
+    \endgroup
+  \fi
+  \xdef\CT@LCinitflag{\the\c@LT@tables}}
+\def\CT@LCinitflag{\z@}
+\def\LC@Cell{%
+  \kern-\@tempdima
+  \ifnum\CT@LCflag=\z@
+    \ifnum\CT@LCnum=\CT@LCmax\relax
+      \global\CT@LCnum 1
+    \else
+      \global\advance\CT@LCnum 1
+    \fi
+    \CT@dim=\@nameuse{LCdim@\the\CT@LCnum}\relax
+    \advance\CT@dim-\@tempdimb
+    \expandafter\ifx\csname LColor@\the\CT@LCnum\endcsname\@empty\else
+      \begingroup
+        \@nameuse{LColor@\the\CT@LCnum}{%
+        \vrule width\CT@dim}%
+      \endgroup
+      \kern-\CT@dim
+    \fi
+  \fi}
+\def\LC{\@tempdima=\z@\@tempdimb=\z@\LC@Cell}
+\def\LCi{\LCi@\LC@Cell}
+\def\LCi@{%
+  \@tempdima=\doublerulesep
+  \ifnum\CT@LCflag=\z@
+    \ifnum\CT@LCnum=\CT@LCmax\relax
+      \@tempdimb=\arrayrulewidth
+    \else
+      \@tempdimb=\z@
+    \fi
+  \fi}
+\def\LCii{%
+  \@tempdima=\z@
+  \@tempdimb=\doublerulesep
+  \advance\@tempdimb=\arrayrulewidth
+  \LC@Cell}
+\def\LCiii{%
+  \LCi@
+  \advance\@tempdimb\doublerulesep
+  \advance\@tempdimb\arrayrulewidth
+  \LC@Cell}
+\def\LCz#1#2{%
+  \@tempdima=#1
+  \@tempdimb=#2
+  \LC@Cell}
+%
+\catcode`\@=\TheAtCode\relax
+\endinput
+%% END colortab.tex/colortab.sty

@@ -116,40 +116,48 @@ xdefine(char *p, int t, long v)
 }
 
 void
-putsymb(Sym *s, int t, long v)
+putsymb(char *s, int t, long v, int ver)
 {
 	int i, f;
-	char *n, str[STRINGSZ];
 
-	n = s->name;
 	if(t == 'f')
-		n++;
+		s++;
 	lput(v);
-	if(s->version)
+	if(ver)
 		t += 'a' - 'A';
-	CPUT(t);
-	for(i=0; i<NNAME; i++)
-		CPUT(n[i]);
-	CPUT(0);
-	CPUT(0);
-	CPUT(0);
-	symsize += 4 + 1 + NNAME + 3;
+	CPUT(t+0x80);			/* 0x80 is variable length */
+
+	if(t == 'Z' || t == 'z') {
+		CPUT(s[0]);
+		for(i=1; s[i] != 0 || s[i+1] != 0; i += 2) {
+			CPUT(s[i]);
+			CPUT(s[i+1]);
+		}
+		CPUT(0);
+		CPUT(0);
+		i++;
+	}
+	else {
+		for(i=0; s[i]; i++)
+			CPUT(s[i]);
+		CPUT(0);
+	}
+	symsize += 4 + 1 + i + 1;
+
 	if(debug['n']) {
 		if(t == 'z' || t == 'Z') {
-			str[0] = 0;
-			for(i=1; i<NNAME; i+=2) {
-				f = ((n[i]&0xff) << 8) | (n[i+1]&0xff);
-				if(f == 0)
-					break;
-				sprint(strchr(str, 0), "/%x", f);
+			Bprint(&bso, "%c %.8lux ", t, v);
+			for(i=1; s[i] != 0 || s[i+1] != 0; i+=2) {
+				f = ((s[i]&0xff) << 8) | (s[i+1]&0xff);
+				Bprint(&bso, "/%x", f);
 			}
-			Bprint(&bso, "%c %.6lux %s\n", t, v, str);
+			Bprint(&bso, "\n");
 			return;
 		}
-		if(s->version)
-			Bprint(&bso, "%c %.6lux %s<%d>\n", t, v, n, s->version);
+		if(ver)
+			Bprint(&bso, "%c %.8lux %s<%d>\n", t, v, s, ver);
 		else
-			Bprint(&bso, "%c %.6lux %s\n", t, v, n);
+			Bprint(&bso, "%c %.8lux %s\n", t, v, s);
 	}
 }
 
@@ -163,21 +171,25 @@ asmsym(void)
 
 	s = lookup("etext", 0);
 	if(s->type == STEXT)
-		putsymb(s, 'T', s->value);
+		putsymb(s->name, 'T', s->value, s->version);
 
 	for(h=0; h<NHASH; h++)
 		for(s=hash[h]; s!=S; s=s->link)
 			switch(s->type) {
+			case SCONST:
+				putsymb(s->name, 'D', s->value, s->version);
+				continue;
+
 			case SDATA:
-				putsymb(s, 'D', s->value+INITDAT);
+				putsymb(s->name, 'D', s->value+INITDAT, s->version);
 				continue;
 
 			case SBSS:
-				putsymb(s, 'B', s->value+INITDAT);
+				putsymb(s->name, 'B', s->value+INITDAT, s->version);
 				continue;
 
 			case SFILE:
-				putsymb(s, 'f', s->value);
+				putsymb(s->name, 'f', s->value, s->version);
 				continue;
 			}
 
@@ -189,102 +201,25 @@ asmsym(void)
 		/* filenames first */
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_FILE)
-				putsymb(a->sym, 'z', a->offset);
+				putsymb(a->sym->name, 'z', a->offset, 0);
 			else
 			if(a->type == D_FILE1)
-				putsymb(a->sym, 'Z', a->offset);
+				putsymb(a->sym->name, 'Z', a->offset, 0);
 
-		putsymb(s, 'T', s->value);
+		putsymb(s->name, 'T', s->value, s->version);
 
-		/* auto and param after */
+		/* frame, auto and param after */
+		putsymb(".frame", 'm', p->to.offset+4, 0);
+
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_AUTO)
-				putsymb(a->sym, 'a', -a->offset);
+				putsymb(a->sym->name, 'a', -a->offset, 0);
 			else
 			if(a->type == D_PARAM)
-				putsymb(a->sym, 'p', a->offset);
+				putsymb(a->sym->name, 'p', a->offset, 0);
 	}
 	if(debug['v'] || debug['n'])
 		Bprint(&bso, "symsize = %lud\n", symsize);
-	Bflush(&bso);
-}
-
-void
-asmsp(void)
-{
-	long oldpc, oldsp;
-	Prog *p;
-	int s;
-	long v;
-
-	oldpc = INITTEXT;
-	oldsp = 0;
-	for(p = firstp; p != P; p = p->link) {
-		if(p->stkoff == oldsp || p->as == ATEXT || p->as == ANOP) {
-			if(p->as == ATEXT)
-				curtext = p;
-			if(debug['G'])
-				Bprint(&bso, "%6lux %4ld%P\n",
-					p->pc, p->stkoff, p);
-			continue;
-		}
-		if(debug['G'])
-			Bprint(&bso, "\t\t%6ld", spsize);
-		v = (p->pc - oldpc) / MINLC;
-		while(v) {
-			s = 127;
-			if(v < 127)
-				s = v;
-			CPUT(s+128);	/* 129-255 +pc */
-			if(debug['G'])
-				Bprint(&bso, " pc+%d*2(%d)", s, s+128);
-			v -= s;
-			spsize++;
-		}
-		v = p->stkoff - oldsp;
-		oldsp = p->stkoff;
-		oldpc = p->pc + MINLC;
-		if(v & 3 || v > 64L*4L || v < -64L*4L) {
-			CPUT(0);	/* 0 vvvv +sp */
-			lput(v);
-			if(debug['G']) {
-				if(v > 0)
-					Bprint(&bso, " sp+%ld*1(%d,%ld)\n",
-						v, 0, v);
-				else
-					Bprint(&bso, " sp%ld*1(%d,%ld)\n",
-						v, 0, v);
-				Bprint(&bso, "%6lux %4ld%P\n",
-					p->pc, p->stkoff, p);
-			}
-			spsize += 5;
-			continue;
-		}
-		s = v/4;
-		if(s > 0) {
-			CPUT(0+s);	/* 1-64 +sp */
-			if(debug['G']) {
-				Bprint(&bso, " sp+%d*4(%d)\n", s, 0+s);
-				Bprint(&bso, "%6lux %4ld%P\n",
-					p->pc, p->stkoff, p);
-			}
-		} else {
-			CPUT(64-s);	/* 65-128 -sp */
-			if(debug['G']) {
-				Bprint(&bso, " sp%d*4(%d)\n", s, 64-s);
-				Bprint(&bso, "%6lux %4ld%P\n",
-					p->pc, p->stkoff, p);
-			}
-		}
-		spsize++;
-	}
-	while(spsize & 1) {
-		s = 129;
-		CPUT(s);
-		spsize++;
-	}
-	if(debug['v'] || debug['G'])
-		Bprint(&bso, "stsize = %ld\n", spsize);
 	Bflush(&bso);
 }
 
@@ -375,8 +310,17 @@ oclass(Adr *a)
 
 	if(a->type >= D_INDIR || a->index != D_NONE) {
 		if(a->index != D_NONE && a->scale == 0) {
-			if(a->type >= D_ADDR)
-				return Yi32;
+			if(a->type == D_ADDR) {
+				switch(a->index) {
+				case D_EXTERN:
+				case D_STATIC:
+					return Yi32;
+				case D_AUTO:
+				case D_PARAM:
+					return Yiauto;
+				}
+				return Yxxx;
+			}
 			return Ycol;
 		}
 		return Ym;
@@ -569,8 +513,13 @@ vaddr(Adr *a)
 	case D_EXTERN:
 		if(a->sym) {
 			v += a->sym->value;
-			if(a->sym->type != STEXT)
+			switch(a->sym->type) {
+			case STEXT:
+			case SCONST:
+				break;
+			default:
 				v += INITDAT;
+			}
 		}
 	}
 	return v;
@@ -921,6 +870,17 @@ found:
 		asmand(&p->from, reg[p->to.type]);
 		break;
 
+	case Zaut_r:
+		*andptr++ = 0x8d;	/* leal */
+		if(p->from.type != D_ADDR)
+			diag("asmins: Zaut sb type ADDR");
+		p->from.type = p->from.index;
+		p->from.index = D_NONE;
+		asmand(&p->from, reg[p->to.type]);
+		p->from.index = p->from.type;
+		p->from.type = D_ADDR;
+		break;
+
 	case Zm_o:
 		*andptr++ = op;
 		asmand(&p->from, o->op[z+1]);
@@ -1208,7 +1168,7 @@ mfound:
 		asmand(&p->from, reg[p->to.type]);
 		break;
 
-	case 6:	/* load full pointer, trash heap */
+	case 6:	/* double shift */
 		z = p->from.type;
 		switch(z) {
 		default:
@@ -1216,14 +1176,14 @@ mfound:
 		case D_CONST:
 			*andptr++ = 0x0f;
 			*andptr++ = t[4];
-			asmand(&p->to, reg[p->from.type]);
+			asmand(&p->to, reg[p->from.index]);
 			*andptr++ = p->from.offset;
 			break;
 		case D_CL:
 		case D_CX:
 			*andptr++ = 0x0f;
 			*andptr++ = t[5];
-			asmand(&p->to, reg[p->from.type]);
+			asmand(&p->to, reg[p->from.index]);
 			break;
 		}
 		break;
@@ -1236,5 +1196,4 @@ asmins(Prog *p)
 
 	andptr = and;
 	doasm(p);
-
 }

@@ -5,46 +5,22 @@ OFILES=tcs.$O\
 	conv_jis.$O\
 	conv_big5.$O\
 	conv_gb.$O\
+	conv_ksc.$O\
 	utf.$O\
-	kuten.$O\
+	kuten208.$O\
 	gb.$O\
+	ksc.$O\
 	big5.$O
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
+CFLAGS= -DPLAN9 -w
 
 tcs.$O utf.$O:		hdr.h
 tcs.$O:			jis.h
-tcs.$O kuten.$O:	kuten.h
+tcs.$O kuten208.$O:	kuten208.h
 tcs.$O big5.$O:		big5.h
+tcs.$O gb.$O:		gb.h
 tcs.$O:			cyrillic.h
 tcs.$O:			conv.h
 conv%.$O:		conv.h
-
-kuten.c:
-	cd han
-	mk ../kuten.c
-
-clean:V:
-	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG
-	cd han; mk clean
-
-nuke:V:
-	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG kuten.c 
-	cd han; mk nuke
-
-#example tcs output files
-
-examples:V:	ex1.utf ex2.utf ex3.utf ex4.utf ex6.utf
-
-ex1.utf:D:	/bin/tcs han/ex1
-	/bin/tcs -sf jis < han/ex1 > $target
-ex2.utf:D:	/bin/tcs han/ex2
-	/bin/tcs -sf jis < han/ex2 > $target
-ex3.utf:D:	/bin/tcs cyr/ex1.kio8
-	/bin/tcs -sf kio8 < cyr/ex1.kio8 > $target
-ex4.utf:D:	/bin/tcs cyr/ex2.kio8x
-	/bin/tcs -sf kio8x < cyr/ex2.kio8x > $target
-# ex5.utf is standalone; needs no generating
-ex6.utf:D:	/bin/tcs han/ex3
-	/bin/tcs -sf big5 < han/ex3 > $target

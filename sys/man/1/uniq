@@ -15,9 +15,9 @@ uniq \- report repeated lines in a file
 .SH DESCRIPTION
 .I Uniq
 copies the input
-.I file,
+.IR file ,
 or the standard input, to the
-standard output comparing adjacent lines.
+standard output, comparing adjacent lines.
 In the normal case, the second and succeeding copies
 of repeated lines are
 removed.
@@ -50,8 +50,10 @@ The first
 .IR num
 characters are ignored.
 Fields are skipped before characters.
+.SH SOURCE
+.B /sys/src/cmd/uniq.c
 .SH "SEE ALSO"
 .IR sort (1) 
 .SH BUGS
-Field-selection and comparison should be compatible with 
+Field selection and comparison should be compatible with 
 .IR sort (1).

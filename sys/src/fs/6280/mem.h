@@ -6,13 +6,15 @@
  * Sizes
  */
 
-#define	BI2BY		8		/* bits per byte */
-#define BI2WD		32		/* bits per word */
-#define	BY2WD		4		/* bytes per word */
-#define	BY2PG		16384		/* R6000 bytes per page */
-#define	WD2PG		(BY2PG/BY2WD)	/* log(BY2PG) */
-#define	MS2HZ		10		/* millisec per clock tick */
-#define	TK2MS(t)	((t)*MS2HZ)	/* ticks to milliseconds */
+#define	BI2BY		8			/* bits per byte */
+#define BI2WD		32			/* bits per word */
+#define	BY2WD		4			/* bytes per word */
+#define	BY2PG		16384			/* R6000 bytes per page */
+#define	WD2PG		(BY2PG/BY2WD)		/* log(BY2PG) */
+#define	HZ		(100)			/* clock frequency */
+#define	MS2HZ		(1000/HZ)		/* millisec per clock tick */
+#define	TK2MS(t)	((t)*MS2HZ)		/* ticks to milliseconds */
+#define	MS2TK(t)	((((ulong)(t))*HZ)/1000)/* milliseconds to ticks */
 
 #define	MAXMACH		1		/* max # cpus system can run */
 

@@ -9,6 +9,7 @@ char	*file = "k.out";
 int	datasize;
 ulong	textbase;
 Biobuf	bp, bi;
+Fhdr	fhdr;
 
 void
 main(int argc, char **argv)
@@ -22,7 +23,6 @@ main(int argc, char **argv)
 	bin = &bi;
 	Binit(bioout, 1, OWRITE);
 	Binit(bin, 0, OREAD);
-	fmtinstall('S', Sconv);
 
 	if(argc) {
 		pid = atoi(argv[0]);
@@ -39,8 +39,9 @@ main(int argc, char **argv)
 	if(text < 0)
 		fatal(1, "open text '%s'", file);
 
-	Bprint(bioout, "ki\n"); 
-	init(argc, argv);
+	Bprint(bioout, "ki\n");
+	inithdr(text);
+	initstk(argc, argv);
 
 	reg.fd[13] = 0.5;	/* Normally initialised by the kernel */
 	reg.fd[12] = 0.0;
@@ -50,18 +51,73 @@ main(int argc, char **argv)
 }
 
 void
-inithdr(int fd, Fhdr *fp)
+initmap(void)
 {
+
+	ulong t, d, b, bssend;
+	Segment *s;
+
+	t = (fhdr.txtaddr+fhdr.txtsz+(BY2PG-1)) & ~(BY2PG-1);
+	d = (t + fhdr.datsz + (BY2PG-1)) & ~(BY2PG-1);
+	bssend = t + fhdr.datsz + fhdr.bsssz;
+	b = (bssend + (BY2PG-1)) & ~(BY2PG-1);
+
+	s = &memory.seg[Text];
+	s->type = Text;
+	s->base = fhdr.txtaddr - fhdr.hdrsz;
+	s->end = t;
+	s->fileoff = fhdr.txtoff - fhdr.hdrsz;
+	s->fileend = s->fileoff + fhdr.txtsz;
+	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+
+	iprof = emalloc(((s->end-s->base)/PROFGRAN)*sizeof(long));
+	textbase = s->base;
+
+	s = &memory.seg[Data];
+	s->type = Data;
+	s->base = t;
+	s->end = t+(d-t);
+	s->fileoff = fhdr.datoff;
+	s->fileend = s->fileoff + fhdr.datsz;
+	datasize = fhdr.datsz;
+	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+
+	s = &memory.seg[Bss];
+	s->type = Bss;
+	s->base = d;
+	s->end = d+(b-d);
+	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+
+	s = &memory.seg[Stack];
+	s->type = Stack;
+	s->base = STACKTOP-STACKSIZE;
+	s->end = STACKTOP;
+	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+
+	reg.pc = fhdr.entry;
+}
+
+void
+inithdr(int fd)
+{
+	Symbol s;
+
+	extern Machdata sparcmach;
+
 	seek(fd, 0, 0);
-	if (!crackhdr(fd, fp))
+	if (!crackhdr(fd, &fhdr))
 		fatal(0, "read text header");
 
-	if(fp->type != FSPARC)
+	if(fhdr.type != FSPARC)
 		fatal(0, "bad magic number");
 
-	if(syminit(fd, fp) < 0)
-		if(symerror)
-			fatal(0, "%s\n", symerror);
+	if(syminit(fd, &fhdr) < 0)
+		fatal(0, "%r\n");
+	symmap = loadmap(symmap, fd, &fhdr);
+	if (mach->sbreg && lookup(0, mach->sbreg, &s))
+		mach->sb = s.value;
+	machdata = &sparcmach;
+	asstype = ASUNSPARC;
 }
 
 ulong
@@ -98,13 +154,28 @@ roff[] = {
 };
 
 void
+seginit(int fd, Segment *s, int idx, ulong vastart, ulong vaend)
+{
+	int n;
+
+	while(vastart < vaend) {
+		seek(fd, vastart, 0);
+		s->table[idx] = emalloc(BY2PG);
+		n = read(fd, s->table[idx], BY2PG);
+		if(n != BY2PG)
+			fatal(1, "data read");
+		vastart += BY2PG;
+		idx++;
+	}
+}
+
+void
 procinit(int pid)
 {
 	char *p;
 	Segment *s;
 	int n, m, sg, i;
-	ulong vastart, vaend, t;
-	Fhdr f;
+	ulong vastart, vaend;
 	char mfile[128], tfile[128], sfile[1024];
 
 	sprint(mfile, "/proc/%d/mem", pid);
@@ -114,7 +185,7 @@ procinit(int pid)
 	text = open(tfile, OREAD);
 	if(text < 0)
 		fatal(1, "open text %s", tfile);
-	inithdr(text, &f);
+	inithdr(text);
 
 	sg = open(sfile, OREAD);
 	if(sg < 0)
@@ -129,16 +200,7 @@ procinit(int pid)
 	if(m < 0)
 		fatal(1, "open %s", mfile);
 
-	t = (f.txtaddr+f.txtsz+(BY2PG-1)) & ~(BY2PG-1);
-	s = &memory.seg[Text];
-	s->type = Text;
-	s->base = f.txtaddr;
-	s->end = t;
-	s->fileoff = f.txtoff;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
-
-	iprof = emalloc(((s->end-s->base)/PROFGRAN)*sizeof(long));
-	textbase = s->base;
+	initmap();
 
 	p = strstr(sfile, "Data");
 	if(p == 0)
@@ -147,23 +209,13 @@ procinit(int pid)
 	vastart = strtoul(p+9, 0, 16);
 	vaend = strtoul(p+18, 0, 16);
 	s = &memory.seg[Data];
-	s->type = Data;
-	s->base = vastart;
-	s->end	= vaend;
-	s->fileoff = f.datoff;
-	s->fileend = s->fileoff + f.datsz;
-	datasize = f.datsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
-	i = 0;
-	while(vastart < vaend) {
-		seek(m, vastart, 0);
-		s->table[i] = emalloc(BY2PG);
-		n = read(m, s->table[i], BY2PG);
-		if(n != BY2PG)
-			fatal(1, "data read");
-		vastart += BY2PG;
-		i++;
+	if(s->base != vastart || s->end != vaend) {
+		s->base = vastart;
+		s->end = vaend;
+		free(s->table);
+		s->table = malloc(((s->end-s->base)/BY2PG)*BY2WD);
 	}
+	seginit(m, s, 0, vastart, vaend);
 	
 	p = strstr(sfile, "Bss");
 	if(p == 0)
@@ -172,20 +224,13 @@ procinit(int pid)
 	vastart = strtoul(p+9, 0, 16);
 	vaend = strtoul(p+18, 0, 16);
 	s = &memory.seg[Bss];
-	s->type = Bss;
-	s->base = vastart;
-	s->end = vaend;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
-	i = 0;
-	while(vastart < vaend) {
-		seek(m, vastart, 0);
-		s->table[i] = emalloc(BY2PG);
-		n = read(m, s->table[i], BY2PG);
-		if(n != BY2PG)
-			fatal(1, "data read");
-		vastart += BY2PG;
-		i++;
+	if(s->base != vastart || s->end != vaend) {
+		s->base = vastart;
+		s->end = vaend;
+		free(s->table);
+		s->table = malloc(((s->end-s->base)/BY2PG)*BY2WD);
 	}
+	seginit(m, s, 0, vastart, vaend);
 
 	reg.pc = greg(m, REGOFF(pc));
 	reg.r[1] = greg(m, REGOFF(sp));
@@ -196,21 +241,8 @@ procinit(int pid)
 		reg.r[i] = greg(m, roff[i-1]);
 
 	s = &memory.seg[Stack];
-	s->type = Stack;
-	s->base = STACKTOP-STACKSIZE;
-	s->end = STACKTOP;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
 	vastart = reg.r[1] & ~(BY2PG-1);
-	i = (vastart-s->base)/BY2PG;
-	while(vastart < STACKTOP) {
-		seek(m, vastart, 0);
-		s->table[i] = emalloc(BY2PG);
-		n = read(m, s->table[i], BY2PG);
-		if(n != BY2PG)
-			fatal(1, "data read");
-		vastart += BY2PG;
-		i++;
-	}
+	seginit(m, s, (vastart-s->base)/BY2PG, vastart, STACKTOP);
 	close(m);
 	Bprint(bioout, "ki\n"); 
 }
@@ -235,6 +267,7 @@ reset(void)
 				free(s->table[m]);
 		free(s->table);
 	}
+	free(iprof);
 	memset(&memory, 0, sizeof(memory));
 
 	for(b = bplist; b; b = b->next)
@@ -242,53 +275,13 @@ reset(void)
 }
 
 void
-init(int argc, char *argv[])
+initstk(int argc, char *argv[])
 {
-	ulong size, t, d, b, bssend;
-	ulong sp, ap;
-	Segment *s;
+	ulong size, sp, ap;
 	int i;
 	char *p;
-	Fhdr f;
 
-	inithdr(text, &f);
-	t = (f.txtaddr+f.txtsz+(BY2PG-1)) & ~(BY2PG-1);
-	d = (t + f.datsz + (BY2PG-1)) & ~(BY2PG-1);
-	bssend = t + f.datsz + f.bsssz;
-	b = (bssend + (BY2PG-1)) & ~(BY2PG-1);
-
-	s = &memory.seg[Text];
-	s->type = Text;
-	s->base = f.txtaddr;
-	s->end = t;
-	s->fileoff = f.txtoff;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
-
-	iprof = emalloc(((s->end-s->base)/PROFGRAN)*sizeof(long));
-	textbase = s->base;
-
-	s = &memory.seg[Data];
-	s->type = Data;
-	s->base = t;
-	s->end	= t+(d-t);
-	s->fileoff = f.datoff;
-	s->fileend = s->fileoff + f.datsz;
-	datasize = f.datsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
-
-	s = &memory.seg[Bss];
-	s->type = Bss;
-	s->base = d;
-	s->end = d+(b-d);
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
-
-	s = &memory.seg[Stack];
-	s->type = Stack;
-	s->base = STACKTOP-STACKSIZE;
-	s->end = STACKTOP;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
-
-	reg.pc = f.entry;
+	initmap();
 	sp = STACKTOP - 4;
 
 	/* Build exec stack */
@@ -367,96 +360,19 @@ dumpreg(void)
 	Bprint(bioout, "\n");
 }
 
-static char fpbuf[64];
-
-char*
-ieeedtos(char *fmt, ulong h, ulong l)
-{
-	double fr;
-	int exp;
-	char *p = fpbuf;
-
-	if(h & (1L<<31)){
-		*p++ = '-';
-		h &= ~(1L<<31);
-	}else
-		*p++ = ' ';
-	if(l == 0 && h == 0){
-		strcpy(p, "0.");
-		goto ret;
-	}
-	exp = (h>>20) & ((1L<<11)-1L);
-	if(exp == 0){
-		sprint(p, "DeN(%.8lux%.8lux)", h, l);
-		goto ret;
-	}
-	if(exp == ((1L<<11)-1L)){
-		if(l==0 && (h&((1L<<20)-1L)) == 0)
-			sprint(p, "Inf");
-		else
-			sprint(p, "NaN(%.8lux%.8lux)", h&((1L<<20)-1L), l);
-		goto ret;
-	}
-	exp -= (1L<<10) - 2L;
-	fr = l & ((1L<<16)-1L);
-	fr /= 1L<<16;
-	fr += (l>>16) & ((1L<<16)-1L);
-	fr /= 1L<<16;
-	fr += (h & (1L<<20)-1L) | (1L<<20);
-	fr /= 1L<<21;
-	fr = ldexp(fr, exp);
-	sprint(p, fmt, fr);
-    ret:
-	return fpbuf;
-}
-
-char*
-ieeeftos(char *fmt, ulong h)
-{
-	double fr;
-	int exp;
-	char *p = fpbuf;
-
-	if(h & (1L<<31)){
-		*p++ = '-';
-		h &= ~(1L<<31);
-	}else
-		*p++ = ' ';
-	if(h == 0){
-		strcpy(p, "0.");
-		goto ret;
-	}
-	exp = (h>>23) & ((1L<<8)-1L);
-	if(exp == 0){
-		sprint(p, "DeN(%.8lux)", h);
-		goto ret;
-	}
-	if(exp == ((1L<<8)-1L)){
-		if((h&((1L<<23)-1L)) == 0)
-			sprint(p, "Inf");
-		else
-			sprint(p, "NaN(%.8lux)", h&((1L<<23)-1L));
-		goto ret;
-	}
-	exp -= (1L<<7) - 2L;
-	fr = (h & ((1L<<23)-1L)) | (1L<<23);
-	fr /= 1L<<24;
-	fr = ldexp(fr, exp);
-	sprint(p, fmt, fr);
-    ret:
-	return fpbuf;
-}
-
 void
 dumpfreg(void)
 {
 	int i;
+	char buf[64];
 
 	i = 0;
 	while(i < 32) {
-		Bprint(bioout, "F%-2d %s\t", i, ieeeftos("%.9g", reg.di[i]));
+		ieeesftos(buf, sizeof(buf), reg.di[i]);
+		Bprint(bioout, "F%-2d %s\t", i, buf);
 		i++;
-		Bprint(bioout, "\tF%-2d %s\n", i, ieeeftos("%.9g", reg.di[i]));
+		ieeesftos(buf, sizeof(buf), reg.di[i]);
+		Bprint(bioout, "\tF%-2d %s\n", i, buf);
 		i++;
 	}
 }
@@ -465,14 +381,15 @@ void
 dumpdreg(void)
 {
 	int i;
+	char buf[64];
 
 	i = 0;
 	while(i < 32) {
-		Bprint(bioout, "F%-2d %s\t", i, 
-				ieeedtos("%.9g", reg.di[i] ,reg.di[i+1]));
+		ieeedftos(buf, sizeof(buf), reg.di[i] ,reg.di[i+1]);
+		Bprint(bioout, "F%-2d %s\t", i, buf);
 		i += 2;
-		Bprint(bioout, "\tF%-2d %s\n", i, 
-				ieeedtos("%.9g", reg.di[i], reg.di[i+1]));
+		ieeedftos(buf, sizeof(buf), reg.di[i] ,reg.di[i+1]);
+		Bprint(bioout, "\tF%-2d %s\n", i, buf);
 		i += 2;
 	}
 }

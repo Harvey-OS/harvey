@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+
+SYSTEM=plan9
+
+COMMONDIR=../common
+
+BIN=/$objtype/bin/aux
+
+TARG=p9bitpost
+OFILES=p9bitpost.$O\
+
+< /sys/src/cmd/mkone
+
+CFLAGS=-w -I$COMMONDIR

@@ -2,6 +2,10 @@
 .SH NAME
 open, create, close \- open a file for reading or writing, create file
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
 int open(char *file, int omode)
 .PP
@@ -14,7 +18,7 @@ int close(int fd)
 .I Open
 opens the
 .I file
-and returns an associated file descriptor.
+for I/O and returns an associated file descriptor.
 .I Omode
 is one of
 .BR OREAD ,
@@ -23,7 +27,8 @@ is one of
 or
 .BR OEXEC ,
 asking for permission to read, write, read and write, or execute, respectively.
-In addition, there are three values that can be ORed with the omode:
+In addition, there are three values that can be ORed with the
+.IR omode :
 .B OTRUNC
 says to truncate the file
 to zero length before opening it;
@@ -35,11 +40,7 @@ or
 system call is made;
 and
 .B ORCLOSE
-says to remove the file when it is closed (by everyone who has it open).
-The
-.I omode
-values are defined in
-.BR <libc.h> .
+says to remove the file when it is closed (by everyone who has a copy of the file descriptor).
 .I Open
 fails if the file does not exist or the user does not have
 permission to open it for the requested purpose
@@ -85,13 +86,21 @@ The created file is a directory if the
 .B CHDIR
 bit is set in
 .IR omode .
+It is an exclusive-use file if the
+.B CHEXCL
+bit is set.
+Such files may be open for I/O by only one client at a time,
+but the file descriptor may become invalid if no I/O is done
+for an extended period; see
+.IR open (5).
+.PP
 .I Create
 fails if the path up to the last element of
 .I file
 cannot be evaluated, if the user doesn't have write permission
 in the final directory, or if the file already exists and
 does not permit the access defined by
-.I omode.
+.IR omode .
 If the file is new and the directory in which it is created is
 a union directory (see
 .IR intro (2))
@@ -104,13 +113,15 @@ closes the file associated with a file descriptor.
 Provided the file descriptor is a valid open descriptor,
 .I close
 is guaranteed to close it; there will be no error.
-Files are closed upon termination of a process;
+Files are closed automatically upon termination of a process;
 .I close
 allows the file descriptor to be reused.
+.SH SOURCE
+.B /sys/src/libc/9syscall
 .SH SEE ALSO
 .IR intro (2),
 .IR bind (2),
 .IR stat (2)
 .SH DIAGNOSTICS
 These functions set
-.I errstr.
+.IR errstr .

@@ -4,19 +4,21 @@ void*
 bsearch(const void* key, const void* base, size_t nmemb, size_t size,
 		int (*compar)(const void*, const void*))
 {
-	long i, low, high;
-	int r;
+	long i, bot, top, new;
+	void *p;
 
-	for(low=-1, high=nmemb; high>low+1; ){
-		i=(high+low)/2;
-		if((r=(*compar)(key, ((char *)base)+i*size))<0)
-			high=i;
-		else if(r==0)
-			return ((char *)base)+i*size;
+	bot = 0;
+	top = bot + nmemb - 1;
+	while(bot <= top){
+		new = (top + bot)/2;
+		p = (char *)base+new*size;
+		i = (*compar)(key, p);
+		if(i == 0)
+			return p;
+		if(i > 0)
+			bot = new + 1;
 		else
-			low=i;
+			top = new - 1;
 	}
-	if((*compar)(key, ((char *)base)+low*size)==0)
-		return ((char *)base)+low*size;
 	return 0;
 }

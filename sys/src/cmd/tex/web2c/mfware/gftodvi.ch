@@ -2,70 +2,54 @@
 %
 % History:
 % 01/20/90 Karl		New gftodvi.web (same version number).
-% 
 % 12/02/89 Karl Berry	To version 3.
 % 
 % Revision 1.7.1.5  86/02/01  15:29:58  richards
-% Released again for MF 1.0 package
-% 
+% 	Released again for MF 1.0 package
 % Revision 1.7.1.4  86/02/01  15:06:50  richards
-% Added: <nl> at end of successful run
-% 
+% 	Added: <nl> at end of successful run
 % Revision 1.7.1.3  86/01/27  16:39:48  richards
-% Fixed: syntax error in previous edits
-% 
+% 	Fixed: syntax error in previous edits
 % Revision 1.7.1.2  86/01/27  15:55:58  richards
-% Added: dvi_buf_type declaration and redefined dvi_buf[] in
-% 	terms of it, so we can use it as a parameter to b_write_buf()
-% 
+% 	Added: dvi_buf_type declaration and redefined dvi_buf[] in
+% 	       terms of it, so we can use it as a parameter to b_write_buf()
 % Revision 1.7.1.1  86/01/27  15:39:10  richards
-% First edit to use new binary I/O routines
-% 
+% 	First edit to use new binary I/O routines
 % Revision 1.7  85/10/21  21:55:50  richards
-% Released for GFtoDVI 1.7
-% 
+% 	Released for GFtoDVI 1.7
 % Revision 1.3.7.1  85/10/18  22:59:01  richards
-% Updated for GFtoDVI Version 1.7 (Distributed w/ MF84 Version 0.9999)
-% 
+% 	Updated for GFtoDVI Version 1.7 (Distributed w/ MF84 Version 0.9999)
 % Revision 1.3.5.1  85/10/09  17:02:35  richards
-% First draft to run at 1.5 level
-% 
+% 	First draft to run at 1.5 level
 % Revision 1.3  85/05/27  21:15:30  richards
-% Updated for GFtoDVI Version 1.3 (Distributed w/ MF84 Version 0.91)
-% 
+% 	Updated for GFtoDVI Version 1.3 (Distributed w/ MF84 Version 0.91)
 % Revision 1.2  85/04/25  19:33:30  richards
-% Updated to GFtoDVI Version 1.2 (Distributed w/ MF84 Version 0.81)
-% 
+% 	Updated to GFtoDVI Version 1.2 (Distributed w/ MF84 Version 0.81)
 % Revision 1.1  85/03/03  21:47:17  richards
-% Updated for GF utilities distributed with MF Version 0.77
-% 
+% 	Updated for GF utilities distributed with MF Version 0.77
 % Revision 1.0  84/12/16  22:38:22  richards
-% Updated for GFtoDVI Version 1.0 (New GF file format)
-% 
+% 	Updated for GFtoDVI Version 1.0 (New GF file format)
 % Revision 0.6  84/12/05  13:32:01  richards
-% Updated for GFtoDVI Version 0.6; merged in changes from sdcarl!rusty
-% 
+% 	Updated for GFtoDVI Version 0.6; merged in changes from sdcarl!rusty
 % 	Note: still has BUGFIX in section 199 to keep GFtoDVI from trying
 % 	to use non-existent characters in a gray font
-% 
 % Revision 0.3  84/11/17  23:51:56  richards
-% Base version for GFtoDVI Version 0.3
-% 
+% 	Base version for GFtoDVI Version 0.3
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [0] WEAVE: print changes only
+% [0] WEAVE: print changes only.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 \pageno=\contentspagenumber \advance\pageno by 1
 @y
 \pageno=\contentspagenumber \advance\pageno by 1
 \let\maybe=\iffalse
-\def\title{GF\lowercase{to}DVI changes for Berkeley {\mc UNIX}}
+\def\title{GF$\,$\lowercase{to}$\,$DVI changes for C}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [1] Change banner string
+% [1] Change banner string.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d banner=='This is GFtoDVI, Version 3.0' {printed when the program starts}
@@ -88,7 +72,7 @@
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [3] Add gftodvi_ext.h, standard input to program header
+% [still 3] Fix program header.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p program GF_to_DVI(@!output);
@@ -99,8 +83,6 @@ var @<Globals in the outer block@>@/
 procedure initialize; {this procedure gets things started properly}
   var @!i,@!j,@!m,@!n:integer; {loop indices for initializations}
   begin print_ln(banner);@/
-  @<Set initial values@>@/
-  end;
 @y
 @p program GF_to_DVI;
 const @<Constants in the outer block@>@/
@@ -108,13 +90,23 @@ type @<Types in the outer block@>@/
 var @<Globals in the outer block@>@/
 procedure initialize; {this procedure gets things started properly}
   var @!i,@!j,@!m,@!n:integer; {loop indices for initializations}
-  begin print_ln(banner);@/
-  @<Set initial values@>@/
-  end;
+      @<Local variables for initialization@>
+  begin
+    if argc > n_options + arg_options + 2
+    then begin
+      print_ln
+      ('Usage: gftodvi [-verbose] [-overflow-label-offset=<real>] <gf file>.');
+@.Usage: ...@>
+      uexit (1);
+    end;
+
+    @<Initialize the option variables@>;
+    @<Parse arguments@>;
+    if verbose then print_ln (banner);@/
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] Remove the final_end label.
+% [4] Remove the final_end label.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @ If the program has to stop prematurely, it goes to the
@@ -128,12 +120,12 @@ procedure initialize; {this procedure gets things started properly}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [5] Make file_name_size to match FILENAMESIZE in site.h.
+% [5] Make file_name_size match the system constant.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @<Constants...@>=
 @y
-@d file_name_size==FILENAMESIZE
+@d file_name_size==PATH_MAX {a file name shouldn't be longer than this}
 @<Constants...@>=
 @z
 @x
@@ -147,11 +139,11 @@ procedure initialize; {this procedure gets things started properly}
 @x
 @d abort(#)==@+begin print(' ',#); jump_out;@+end
 @y
-@d abort(#)==@+begin print_ln(#); uexit(1);@+end
+@d abort(#)==@+begin print_ln (#); uexit (1);@+end
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] Fix jump_out to not do a nonlocal goto.
+% [8] Remove nonlocal goto.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @p procedure jump_out;
@@ -164,7 +156,7 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] The text_char type is used as an array index into xord.  The
+% [11] The text_char type is used as an array index into xord.  The
 % default type `char' produces signed integers, which are bad array
 % indices in C.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -175,7 +167,7 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] enable maximum character set
+% [14] Allow any input character.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 for i:=0 to @'37 do xchr[i]:='?';
@@ -187,7 +179,7 @@ for i:=@'177 to @'377 do xchr[i]:=chr(i);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [15] change update_terminal to flush(), change def'n of term_in
+% [15] Change `update_terminal' to `flush', `term_in' is stdin.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 Since the terminal is being used for both input and output, some systems
@@ -211,7 +203,7 @@ no idea what the program is waiting for.) We shall call a system-dependent
 subroutine |update_terminal| in order to avoid this problem.
 @^system dependencies@>
 
-@d update_terminal == fflush(stdout) {empty the terminal output buffer}
+@d update_terminal == flush (stdout) {empty the terminal output buffer}
 @d term_in == stdin {standard input}
 
 @<Glob...@>=
@@ -219,13 +211,9 @@ subroutine |update_terminal| in order to avoid this problem.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [16] Fix input_ln.
+% [17] Change term_in^, etc.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@ A global variable |line_length| records the first buffer position after
-the line just read.
-@^system dependencies@>
-
 @p procedure input_ln; {inputs a line from the terminal}
 begin update_terminal; reset(term_in);
 if eoln(term_in) then read_ln(term_in);
@@ -234,12 +222,7 @@ while (line_length<terminal_line_length)and not eoln(term_in) do
   begin buffer[line_length]:=xord[term_in^]; incr(line_length); get(term_in);
   end;
 end;
-
 @y
-@ A global variable |line_length| records the first buffer position after
-the line just read.
-@^system dependencies@>
-
 @p procedure input_ln; {inputs a line from the terminal}
 begin update_terminal;
 if eoln(term_in) then read_ln(term_in);
@@ -251,45 +234,9 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [45] Change type of binary file for binary (byte) files
+% [47] Open files based on paths.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-We shall stick to simple \PASCAL\ in this program, for reasons of clarity,
-even if such simplicity is sometimes unrealistic.
-
-@<Types ...@>=
-@!eight_bits=0..255; {unsigned one-byte quantity}
-@!byte_file=packed file of eight_bits; {files that contain binary data}
-@y
-For C, the standard definitions work fine.  But we need an additional
-type for our filenames.
-
-@<Types ...@>=
-@!eight_bits=0..255; {unsigned one-byte quantity}
-@!byte_file=packed file of eight_bits; {files that contain binary data}
-@!UNIX_file_name=packed array[1..file_name_size] of char;
-@z
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] We need more variables for communication between C and Pascal.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
-@<Glob...@>=
-@!gf_file:byte_file; {the character data we are reading}
-@y
-@<Glob...@>=
-@!cur_name,@!gf_name,@!tfm_name:UNIX_file_name;
-@!real_name_of_file:packed array[0..file_name_size] of char;
-@!gf_file:byte_file; {the character data we are reading}
-@z
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [47] Modify file open routines to match binary I/O library
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-@x
-variable that specifies the file name.
-@^system dependencies@>
-
 @p procedure open_gf_file; {prepares to read packed bytes in |gf_file|}
 begin reset(gf_file,name_of_file);
 cur_loc:=0;
@@ -299,81 +246,37 @@ procedure open_tfm_file; {prepares to read packed bytes in |tfm_file|}
 begin reset(tfm_file,name_of_file);
 end;
 @y
-variable that specifies the file name.
-
-In C, we use the external |test_access| procedure, which also does path
+In C, we use the external |test_read_access| procedure, which also does path
 searching based on the user's environment or the default path.  We also
 read the command line and print the banner here (since we don't want to
 print the banner if the command line is unreasonable).
 
-@d read_access_mode=4  {``read'' mode for |test_access|}
-
-@d no_file_path=0    {no path searching should be done}
-@d tex_font_file_path=3  {path specifier for \.{TFM} files}
-@d generic_font_file_path=4  {path specifier for \.{GF} files}
-@d packed_font_file_path=5  {path specifier for \.{PK} files}
-
 @p procedure open_gf_file; {prepares to read packed bytes in |gf_file|}
-var i:1..file_name_size;
-    gf_file_exists:boolean;
 begin
-   cur_name[0] := chr(0);
-   i := 1;
-   while (i < file_name_size) and (name_of_file[i] <> ' ') do begin
-      cur_name[i] := name_of_file[i];
-      incr (i);
-   end;
-   cur_name[i] := ' ';
-   gf_file_exists := test_access (read_access_mode, generic_font_file_path);
-   if gf_file_exists then begin
-      for i:=1 to file_name_size do gf_name[i]:=real_name_of_file[i-1];
-      reset (gf_file, gf_name);
+   if test_read_access (name_of_file, GF_FILE_PATH)
+   then begin
+      reset (gf_file, name_of_file);
    end else begin
-      i := 1;
-      while (i < file_name_size) and (name_of_file[i] <> ' ') do
-        incr (i);
-      print_string(name_of_file, i-1);
-      abort (': GF file not found.');
+     print_pascal_string (name_of_file);
+     abort (': GF file not found.');
    end;
    cur_loc := 0;
 end;
 @#
 procedure open_tfm_file; {prepares to read packed bytes in |tfm_file|}
-var i:1..file_name_size;
-    tfm_file_exists:boolean;
 begin
-   cur_name[0] := chr(0);
-   i := 1;
-   while (i < file_name_size) and (name_of_file[i] <> ' ') do begin
-      cur_name[i] := name_of_file[i];
-      incr (i);
-   end;
-   cur_name[i] := ' ';
-   tfm_file_exists := test_access (read_access_mode, generic_font_file_path);
-   if tfm_file_exists then begin
-      for i:=1 to file_name_size do tfm_name[i]:=real_name_of_file[i-1];
-      reset (tfm_file, tfm_name);
+   if test_read_access (name_of_file, TFM_FILE_PATH)
+   then begin
+      reset (tfm_file, name_of_file);
    end else begin
-      i := 1;
-      while (i < file_name_size) and (name_of_file[i] <> ' ') do
-          incr(i);
-      print_string (name_of_file, i-1);
+      print_pascal_string (name_of_file);
       abort (': TFM file not found.');
    end;
 end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [48] Change type declaration of name_of_file
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-@x
-@!name_of_file:packed array[1..file_name_size] of char; {external file name}
-@y
-@!name_of_file:UNIX_file_name; {external file name}
-@z
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] Fix bugs in get_n_bytes routines so they work with 16-bit math.
+% [51] Make get_n_bytes routines work with 16-bit math.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 get_two_bytes:=a*256+b;
@@ -394,11 +297,11 @@ else signed_quad:=(((a-256)*toint(256)+b)*256+c)*256+d;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] The memory_word structure is too hard to translate via web2c, so
-% we include a hand-coded memory.h.  Also, b0 (et al. )is used both as a field
-% and as a regular variable.  web2c puts field names in the global
+% [52] The memory_word structure is too hard to translate via web2c, so
+% we use a hand-coded include file.  Also, b0 (et al.) is used both as a
+% field and as a regular variable.  web2c puts field names in the global
 % symbol table, so this loses.  Rather than fix web2c (hard), we change
-% the name of the field.
+% the name of the field (ugly, but easy).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @!four_quarters = packed record@;@/
@@ -419,12 +322,12 @@ else signed_quad:=(((a-256)*toint(256)+b)*256+c)*256+d;
   @!B2:quarterword;
   @!B3:quarterword;
   end;
-@\@/@=#include "memory.h";@>@\ {note the |;| so |web2c| will translate
-                                types that come after this}
+@\@/@=#include "gftodmem.h";@>@\ {note the |;| so |web2c| will translate
+                                  types that come after this}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] fix references to .b0
+% [55] fix references to .b0
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @d char_width_end(#)==#.b0].sc
@@ -461,7 +364,7 @@ else signed_quad:=(((a-256)*toint(256)+b)*256+c)*256+d;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] fix 16-bit arithmetic bugs in TFM calculations.
+% [60] Fix 16-bit arithmetic bugs in TFM calculations.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @ @d read_two_halves_end(#)==#:=b2*256+b3
@@ -472,7 +375,7 @@ else signed_quad:=(((a-256)*toint(256)+b)*256+c)*256+d;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] More .b?'s.
+% [62] More .b?'s.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
   qw.b0:=qi(b0); qw.b1:=qi(b1); qw.b2:=qi(b2); qw.b3:=qi(b3);
@@ -481,7 +384,7 @@ else signed_quad:=(((a-256)*toint(256)+b)*256+c)*256+d;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] more arithmetic fixes.
+% [62] More arithmetic fixes.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 z:=((b0*256+b1)*256+b2)*16+(b3 div 16);
@@ -494,17 +397,17 @@ z:=((b0*toint(256)+b1)*toint(256)+b2)*16+(b3 div 16);
       else if toint(256)*(b2-128)+b3>=nk then abend;
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] cur_name is used as an external variable.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [78] Change default extension to `.2602gf'.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@!cur_name:str_number; {name of file just scanned}
+l:=3; init_str3(".")("g")("f")(gf_ext);@/
 @y
-@!cur_pool_name:str_number; {name of file just scanned}
+l:=7; init_str7(".")("2")("6")("0")("2")("g")("f")(gf_ext);@/
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [88] change home_font_area to null_string (b_open_in provides path)
+% [88] Change home_font_area to null_string.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ Font metric files whose areas are not given
@@ -520,9 +423,9 @@ l:=9; init_str9("T")("e")("X")("f")("o")("n")("t")("s")(":")(home_font_area);@/
 @ Font metric files whose areas are not given
 explicitly are assumed to appear in a standard system area called
 |home_font_area|.  This system area name will, of course, vary from place
-to place. Under the Berkeley {\mc UNIX} version, we set |home_font_area|
+to place. In the {\mc UNIX} version, we set |home_font_area|
 to |null_string| because the default areas to search for \.{TFM} files
-are built into the routine |test_access|.
+are built into the routine |test_read_access|.
 @^system dependencies@>
 
 @<Initialize the strings@>=
@@ -530,7 +433,7 @@ l:=0; init_str0(home_font_area);@/
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [90] change more_name to understand UNIX file name paths
+% [90] Change more_name to understand UNIX file name syntax.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 else  begin if (c=">")or(c=":") then
@@ -544,21 +447,8 @@ else  begin if (c="/") then
   else if c="." then ext_delimiter:=pool_ptr;
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] more cur_name's.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-@x
-  begin cur_ext:=null_string; cur_name:=make_string;
-  end
-else  begin cur_name:=str_ptr; incr(str_ptr);
-@y
-  begin cur_ext:=null_string; cur_pool_name:=make_string;
-  end
-else  begin cur_pool_name:=str_ptr; incr(str_ptr);
-@z
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [94] change start_gf to get file name from command line arguments
+% [94] Change start_gf to get file name from the command line.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ The |start_gf| procedure prompts the user for the name of the generic
@@ -595,45 +485,50 @@ some input is present; then it opens the output file.
 
 @p procedure start_gf;
 label done;
-var
-    arg_buffer: packed array [1..file_name_size] of char;
-    arg_buf_ptr: 1..file_name_size;
-begin if (argc < 1) or (argc > 2) then abort('Usage: gftodvi <gf file>.');
-if argc = 1 then begin
-    print_nl('GF file name: '); input_ln;
-@.GF file name@>
-    end
-else begin
-    argv(1, arg_buffer);
-    arg_buffer[file_name_size] := ' ';
+var arg_buffer: packed array [1..PATH_MAX] of char;
+    arg_buf_ptr: 1..PATH_MAX;
+begin
+  if optind = argc
+  then begin
+    print ('GF file name: ');
+    input_ln;
+@.GF file name:@>
+  end else begin
+    argv (optind, arg_buffer);
+    arg_buffer[PATH_MAX] := ' ';
     arg_buf_ptr := 1;
     line_length := 0;
-    while (arg_buf_ptr < file_name_size)
-    and (arg_buffer[arg_buf_ptr] = ' ') do
-        incr(arg_buf_ptr);
-    while (arg_buf_ptr < file_name_size)
-    and (line_length < terminal_line_length)
-    and (arg_buffer[arg_buf_ptr] <> ' ') do
-    begin
-        buffer[line_length] := xord[arg_buffer[arg_buf_ptr]];
-        incr(line_length);
-        incr(arg_buf_ptr);
+    while (arg_buf_ptr < PATH_MAX)
+          and (arg_buffer[arg_buf_ptr] = ' ')
+      do incr(arg_buf_ptr);
+
+    while (arg_buf_ptr < PATH_MAX)
+          and (line_length < terminal_line_length)
+          and (arg_buffer[arg_buf_ptr] <> ' ')
+    do begin
+      buffer[line_length] := xord[arg_buffer[arg_buf_ptr]];
+      incr(line_length);
+      incr(arg_buf_ptr);
     end;
-end;
+  end;
+
   buf_ptr:=0; buffer[line_length]:="?";
   while buffer[buf_ptr]=" " do incr(buf_ptr);
-  if buf_ptr<line_length then
-    begin @<Scan the file name in the buffer@>;
-    if cur_ext=null_string then cur_ext:=gf_ext;
-    pack_file_name(cur_pool_name,cur_area,cur_ext); open_gf_file;
-    end;
-job_name:=cur_pool_name; pack_file_name(job_name,null_string,dvi_ext);
-open_dvi_file;
+  if buf_ptr < line_length
+  then begin
+    @<Scan the file name in the buffer@>;
+    if cur_ext = null_string then cur_ext:=gf_ext;
+    pack_file_name (cur_name, cur_area, cur_ext);
+    open_gf_file;
+  end;
+  job_name := cur_name;
+  pack_file_name(job_name, null_string, dvi_ext);
+  open_dvi_file;
 end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [107] write_dvi is now an external C routine
+% [107] `write_dvi' is now an external C routine.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p procedure write_dvi(@!a,@!b:dvi_index);
@@ -641,12 +536,15 @@ var k:dvi_index;
 begin for k:=a to b do write(dvi_file,dvi_buf[k]);
 end;
 @y
-In C, |write_dvi| is defined as macro which does an |fwrite| library
-call.
+In C, we can write out the entire array with one call.
+@p procedure write_dvi(@!a,@!b:dvi_index);
+begin 
+  write_chunk (dvi_file, dvi_buf, a, b);
+end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] more .b?'s.
+% [111] More .b?'s.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 dvi_out(qo(font_check[f].b0));
@@ -660,17 +558,19 @@ dvi_out(qo(font_check[f].B2));
 dvi_out(qo(font_check[f].B3));@/
 @z
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] don't go to final_end, just exit.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [115] Don't go to final_end, just exit; this is the normal exit from
+% the program, so we want to end with a newline if we are being verbose.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 goto final_end;
 @y
-uexit(0);
+if verbose then print_ln (' ');
+uexit (0);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] and more .b?'s.
+% [118] And still more .b?'s.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 dummy_info.b0:=qi(0); dummy_info.b1:=qi(0); dummy_info.b2:=qi(0);
@@ -681,7 +581,7 @@ dummy_info.B3:=qi(0);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] write_ln formatting.
+% [138] write_ln formatting.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
   begin print_nl('Sorry, I can''t make diagonal rules of slant ',r:10:5,'!');
@@ -691,38 +591,226 @@ dummy_info.B3:=qi(0);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] This program runs so fast, a progress report isn't needed.
+% [164] No progress report unless verbose.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 print('[',total_pages:1); update_terminal; {print a progress report}
 @y
+if verbose
+then begin
+  print('[',total_pages:1);
+  update_terminal; {print a progress report}
+end;
 @z
+
 @x
 print(']'); update_terminal;
 @y
+if verbose
+then begin
+  print(']');
+  if total_pages mod 13 = 0
+  then print_ln (' ')
+  else print (' ');
+  update_terminal;
+end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] call set_paths before gf_start to initialize paths.
+% [170] Change offset for overflow labels.  The defaults adds about 2.1
+% inches to the right edge of the diagram, which puts it off the paper
+% for even moderately large fonts.  Instead, we make it a command-line
+% option.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@x
+over_col:=over_col+delta_x+10000000;
+@y
+over_col := over_col + delta_x + overflow_label_offset;
+@z
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [215] Some broken compilers cannot handle 165 labels for the same
+% branch of a switch.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@x
+@<Read and process...@>=
+loop  @+begin continue: case cur_gf of
+  sixty_four_cases(0): k:=cur_gf;
+  paint1:k:=get_byte;
+  paint2:k:=get_two_bytes;
+  paint3:k:=get_three_bytes;
+  eoc:goto done1;
+  skip0:end_with(blank_rows:=0; do_skip);
+  skip1:end_with(blank_rows:=get_byte; do_skip);
+  skip2:end_with(blank_rows:=get_two_bytes; do_skip);
+  skip3:end_with(blank_rows:=get_three_bytes; do_skip);
+  sixty_four_cases(new_row_0),sixty_four_cases(new_row_0+64),
+   thirty_two_cases(new_row_0+128),five_cases(new_row_0+160):
+    end_with(z:=cur_gf-new_row_0;paint_black:=true);
+  xxx1,xxx2,xxx3,xxx4,yyy,no_op:begin skip_nop; goto continue;
+    end;
+  othercases bad_gf('Improper opcode')
+  endcases;@/
+@y
+@<Read and process...@>=
+loop  @+begin continue:
+ if (cur_gf>=new_row_0)and(cur_gf<=new_row_0+164) then
+    end_with(z:=cur_gf-new_row_0;paint_black:=true)
+ else case cur_gf of
+  sixty_four_cases(0): k:=cur_gf;
+  paint1:k:=get_byte;
+  paint2:k:=get_two_bytes;
+  paint3:k:=get_three_bytes;
+  eoc:goto done1;
+  skip0:end_with(blank_rows:=0; do_skip);
+  skip1:end_with(blank_rows:=get_byte; do_skip);
+  skip2:end_with(blank_rows:=get_two_bytes; do_skip);
+  skip3:end_with(blank_rows:=get_three_bytes; do_skip);
+  xxx1,xxx2,xxx3,xxx4,yyy,no_op:begin skip_nop; goto continue;
+    end;
+  othercases bad_gf('Improper opcode')
+  endcases;@/
+@z
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [219] Call `setpaths'.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 start_gf; {open the input and output files}
 @y
-set_paths;  {initialize paths for \.{TFM} files from environment if needed}
+{initialize paths from environment variables}
+set_paths (GF_FILE_PATH_BIT + TFM_FILE_PATH_BIT);
 start_gf; {open the input and output files}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [217] finish normal end with <nl> on terminal
+% [still 219] If verbose, output a newline at the end.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-  cur_gf:=get_byte; str_ptr:=init_str_ptr; pool_ptr:=str_start[str_ptr];
-  end;
 final_end:end.
 @y
-  cur_gf:=get_byte; str_ptr:=init_str_ptr; pool_ptr:=str_start[str_ptr];
-  end;
-print_ln(' ');
+  if verbose and (total_pages mod 13 <> 0) then print_ln (' ');
 end.
 @z
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [222] System-dependent changes.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@x
+@* System-dependent changes.
+This section should be replaced, if necessary, by changes to the program
+that are necessary to make \.{GFtoDVI} work at a particular installation.
+It is usually best to design your change file so that all changes to
+previous sections preserve the section numbering; then everybody's version
+will be consistent with the printed program. More extensive changes,
+which introduce new sections, can be inserted here; then only the index
+itself will get a new section number.
+@^system dependencies@>
+@y
+@* System-dependent changes.  We want to parse a Unix-style command
+line.
+
+This macro tests if its argument is the current option, as represented
+by the index variable |option_index|.
+
+@d argument_is (#) == (strcmp (long_options[option_index].name, #) = 0)
+
+@<Parse arguments@> =
+begin
+  @<Define the option table@>;
+  repeat
+    getopt_return_val := getopt_long_only (argc, gargv, '', long_options,
+                                           address_of_int (option_index));
+    if getopt_return_val <> -1
+    then begin
+      if getopt_return_val = "?"
+      then uexit (1); {|getopt| has already given an error message.}
+      
+      if argument_is ('overflow-label-offset')
+      then begin
+        offset_in_points := atof (optarg);
+        overflow_label_offset := round (offset_in_points * 65536);
+      end
+      
+      else
+        {It was just a flag; |getopt| has already done the assignment.}
+        do_nothing;
+    end;
+  until getopt_return_val = -1;
+
+  {Now |optind| is the index of first non-option on the command line.}
+end
+
+
+@ The array of information we pass in.  The type |getopt_struct| is
+defined in C, to avoid type clashes.  We also need to know the return
+value from getopt, and the index of the current option.
+
+@<Local var...@> =
+@!long_options: array[0..n_options] of getopt_struct;
+@!getopt_return_val: integer;
+@!option_index: integer;
+@!current_option: 0..n_options;
+
+@ Here are the options we allow.  The first is just a switch that
+determines whether or not we print status information.
+@.-verbose@>
+
+@<Define the option...@> =
+current_option := 0;
+long_options[0].name := 'verbose';
+long_options[0].has_arg := 0;
+long_options[0].flag := address_of_int (verbose);
+long_options[0].val := 1;
+incr (current_option);
+
+@ Here is the variable to go with the switch.
+
+@<Glob...@> =
+@!verbose: integer;
+
+@ |verbose| starts off |false|.
+
+@<Initialize the option...@> =
+verbose := false;
+
+@ The second option determines how far from the right edge of the
+character boxes we print overflow labels.
+@.-overflow-label-offset@>
+
+@<Define the option...@> =
+long_options[current_option].name := 'overflow-label-offset';
+long_options[current_option].has_arg := 1;
+long_options[current_option].flag := 0;
+long_options[current_option].val := 0;
+incr (current_option);
+
+@ It's easier on the user to specify the value in \TeX\ points, but we
+want to store it in scaled points.
+
+@<Glob...@> =
+@!overflow_label_offset: integer; {in scaled points}
+@!offset_in_points: real;
+
+@ The default offset is ten million scaled points---a little more than
+two inches.
+
+@<Initialize the option...@> =
+overflow_label_offset := 10000000;
+
+@ An element with all zeros always ends the list.
+
+@<Define the option...@> =
+long_options[current_option].name := 0;
+long_options[current_option].has_arg := 0;
+long_options[current_option].flag := 0;
+long_options[current_option].val := 0;
+
+@ Pascal compilers won't count the number of elements in an array
+constant for us.  This doesn't include the zero-element at the end,
+because this array starts at index zero.
+
+@<Constants...@> =
+n_options = 2;
+arg_options = 1;
+@z

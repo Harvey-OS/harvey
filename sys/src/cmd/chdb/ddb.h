@@ -49,7 +49,6 @@ enum
 	Nall,
 };
 
-#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 #define	offsetof(t,x)	((ulong)&((t*)0)->x)
 #define	D		(&screen)
 #define	FROM(x)		(((x)>>6)&077)

@@ -6,7 +6,7 @@
 %term<typ>	AND OR LT LE EQ NE GT GE
 %term<typ>	UMINUS FABS FLOOR CEIL SQRT HYPOT
 %term<typ>	SIN COS TAN ASIN ACOS ATAN ATAN2 EXP LOG LOG10
-%term<typ>	SINH COSH TANH GAMMA
+%term<typ>	SINH COSH TANH
 %type<tre>	movie group range elist e ee cmd
 %right	'='
 %right	'?' ':'
@@ -105,7 +105,6 @@ e:	ID
 |	SINH '(' e ')'			{$$=tree($1, $3, NULL);}
 |	COSH '(' e ')'			{$$=tree($1, $3, NULL);}
 |	TANH '(' e ')'			{$$=tree($1, $3, NULL);}
-|	GAMMA '(' e ')'			{$$=tree($1, $3, NULL);}
 cmd:					{$$=NULL;}
 |	cmd TEXT			{$$=tree(CMDLIST, $1, $2);}
 |	cmd '[' {lexstate=EXPR;} ee ']'	{lexstate=CMD; $$=tree(CMDLIST, $1, $4);}
@@ -145,7 +144,6 @@ struct res{
 	"sinh",		SINH,
 	"cosh",		COSH,
 	"tanh",		TANH,
-	"gamma",	GAMMA,
 	NULL
 };
 int nextc(void){
@@ -390,7 +388,6 @@ double eval(Tree *tp, double f0, double f1){
 	case SINH:	return(sinh(l));
 	case COSH:	return(cosh(l));
 	case TANH:	return(tanh(l));
-	case GAMMA:	return(gamma(l));	/* wrong */
 	case '!':	return(l==0.);
 	case '?':	return(eval(l!=0.?tp->right->left:tp->right->right,
 				f0, f1));

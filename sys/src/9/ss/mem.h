@@ -28,12 +28,17 @@
 /*
  * PSR bits
  */
+#define	PSRIMPL		0xF0000000
+#define	PSRVER		0x0F000000
+#define	PSRRESERVED	0x000FC000
 #define	PSREC		0x00002000
 #define	PSREF		0x00001000
-#define PSRSUPER	0x00000080
-#define PSRPSUPER	0x00000040
+#define	PSRPIL		0x00000F00
+#define	PSRSUPER	0x00000080
+#define	PSRPSUPER	0x00000040
 #define	PSRET		0x00000020
-#define SPL(n)		(n<<8)
+#define	PSRCWP		0x0000001F
+#define	SPL(n)		(n<<8)
 
 /*
  * Magic registers

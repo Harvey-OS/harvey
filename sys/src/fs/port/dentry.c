@@ -12,7 +12,7 @@ getdir(Iobuf *p, int slot)
 }
 
 void
-accessdir(Iobuf *p, Dentry *d, int f)
+accessdir(Iobuf *p, Dentry *d, int f, int uid)
 {
 	long t;
 
@@ -23,6 +23,7 @@ accessdir(Iobuf *p, Dentry *d, int f)
 			d->atime = t;
 		if(f & FWRITE) {
 			d->mtime = t;
+			d->wuid = uid;
 			d->qid.version++;
 		}
 	}
@@ -34,6 +35,8 @@ preread(Device dev, long addr)
 	Rabuf *rb;
 
 	if(addr == 0)
+		return;
+	if(raheadq->count+10 >= raheadq->size)	/* ugly knowing layout */
 		return;
 	lock(&rabuflock);
 	rb = rabuffree;
@@ -50,45 +53,53 @@ preread(Device dev, long addr)
 }
 
 void
-dbufread(Iobuf *p, Dentry *d, long a)
+dbufread(Iobuf *p, Dentry *d, long ad, int uid)
 {
-	long addr;
+	long addr, last, a;
 
-	if(a < 0)
+	last = ad + RACHUNK + RAOVERLAP;
+
+loop:
+	a = ad;
+	if(a < 0 || a >= last)
 		return;
+	ad++;
 	if(a < NDBLOCK) {
 		addr = d->dblock[a];
-		if(addr)
-			preread(p->dev, addr);
-		return;
+		if(!addr)
+			return;
+		preread(p->dev, addr);
+		goto loop;
 	}
 	a -= NDBLOCK;
 	if(a < INDPERBUF) {
 		addr = d->iblock;
-		if(addr) {
-			addr = indfetch(p, d, addr, a, Tind1, 0);
-			if(addr)
-				preread(p->dev, addr);
-		}
-		return;
+		if(!addr)
+			return;
+		addr = indfetch(p->dev, d->qid.path, addr, a, Tind1, 0, uid);
+		if(!addr)
+			return;
+		preread(p->dev, addr);
+		goto loop;
 	}
 	a -= INDPERBUF;
 	if(a < INDPERBUF2) {
 		addr = d->diblock;
-		if(addr) {
-			addr = indfetch(p, d, addr, a/INDPERBUF, Tind2, Tind1);
-			if(addr) {
-				addr = indfetch(p, d, addr, a%INDPERBUF, Tind1, 0);
-				if(addr)
-					preread(p->dev, addr);
-			}
-		}
-		return;
+		if(!addr)
+			return;
+		addr = indfetch(p->dev, d->qid.path, addr, a/INDPERBUF, Tind2, Tind1, uid);
+		if(!addr)
+			return;
+		addr = indfetch(p->dev, d->qid.path, addr, a%INDPERBUF, Tind1, 0, uid);
+		if(!addr)
+			return;
+		preread(p->dev, addr);
+		goto loop;
 	}
 }
 
 Iobuf*
-dnodebuf(Iobuf *p, Dentry *d, long a, int tag)
+dnodebuf(Iobuf *p, Dentry *d, long a, int tag, int uid)
 {
 	Iobuf *bp;
 	long addr;
@@ -103,7 +114,7 @@ dnodebuf(Iobuf *p, Dentry *d, long a, int tag)
 		if(addr)
 			return getbuf(p->dev, addr, Bread);
 		if(tag) {
-			addr = bufalloc(p->dev, tag, d->qid.path);
+			addr = bufalloc(p->dev, tag, d->qid.path, uid);
 			if(addr) {
 				d->dblock[a] = addr;
 				p->flags |= Bmod|Bimm;
@@ -116,11 +127,11 @@ dnodebuf(Iobuf *p, Dentry *d, long a, int tag)
 	if(a < INDPERBUF) {
 		addr = d->iblock;
 		if(!addr && tag) {
-			addr = bufalloc(p->dev, Tind1, d->qid.path);
+			addr = bufalloc(p->dev, Tind1, d->qid.path, uid);
 			d->iblock = addr;
 			p->flags |= Bmod|Bimm;
 		}
-		addr = indfetch(p, d, addr, a, Tind1, tag);
+		addr = indfetch(p->dev, d->qid.path, addr, a, Tind1, tag, uid);
 		if(addr)
 			bp = getbuf(p->dev, addr, Bread);
 		return bp;
@@ -129,12 +140,12 @@ dnodebuf(Iobuf *p, Dentry *d, long a, int tag)
 	if(a < INDPERBUF2) {
 		addr = d->diblock;
 		if(!addr && tag) {
-			addr = bufalloc(p->dev, Tind2, d->qid.path);
+			addr = bufalloc(p->dev, Tind2, d->qid.path, uid);
 			d->diblock = addr;
 			p->flags |= Bmod|Bimm;
 		}
-		addr = indfetch(p, d, addr, a/INDPERBUF, Tind2, Tind1);
-		addr = indfetch(p, d, addr, a%INDPERBUF, Tind1, tag);
+		addr = indfetch(p->dev, d->qid.path, addr, a/INDPERBUF, Tind2, Tind1, uid);
+		addr = indfetch(p->dev, d->qid.path, addr, a%INDPERBUF, Tind1, tag, uid);
 		if(addr)
 			bp = getbuf(p->dev, addr, Bread);
 		return bp;
@@ -143,15 +154,90 @@ dnodebuf(Iobuf *p, Dentry *d, long a, int tag)
 	return 0;
 }
 
+/*
+ * same as dnodebuf but it calls putpuf(p)
+ * to reduce interference.
+ */
+Iobuf*
+dnodebuf1(Iobuf *p, Dentry *d, long a, int tag, int uid)
+{
+	Iobuf *bp;
+	long addr;
+	Device dev;
+	long qpath;
+
+	if(a < 0) {
+		putbuf(p);
+		print("dnodebuf1: neg\n");
+		return 0;
+	}
+
+	bp = 0;
+	dev = p->dev;
+	qpath = d->qid.path;
+	if(a < NDBLOCK) {
+		addr = d->dblock[a];
+		if(addr) {
+			putbuf(p);
+			return getbuf(dev, addr, Bread);
+		}
+		if(tag) {
+			addr = bufalloc(dev, tag, qpath, uid);
+			if(addr) {
+				d->dblock[a] = addr;
+				p->flags |= Bmod|Bimm;
+				putbuf(p);
+				bp = getbuf(dev, addr, Bmod);
+				return bp;
+			}
+		}
+		putbuf(p);
+		return 0;
+	}
+
+	a -= NDBLOCK;
+	if(a < INDPERBUF) {
+		addr = d->iblock;
+		if(!addr && tag) {
+			addr = bufalloc(dev, Tind1, d->qid.path, uid);
+			d->iblock = addr;
+			p->flags |= Bmod|Bimm;
+		}
+		putbuf(p);
+		addr = indfetch(dev, qpath, addr, a, Tind1, tag, uid);
+		if(addr)
+			bp = getbuf(dev, addr, Bread);
+		return bp;
+	}
+	a -= INDPERBUF;
+	if(a < INDPERBUF2) {
+		addr = d->diblock;
+		if(!addr && tag) {
+			addr = bufalloc(dev, Tind2, d->qid.path, uid);
+			d->diblock = addr;
+			p->flags |= Bmod|Bimm;
+		}
+		putbuf(p);
+		addr = indfetch(dev, qpath, addr, a/INDPERBUF, Tind2, Tind1, uid);
+		addr = indfetch(dev, qpath, addr, a%INDPERBUF, Tind1, tag, uid);
+		if(addr)
+			bp = getbuf(dev, addr, Bread);
+		return bp;
+	}
+	print("dnodebuf1: trip indirect\n");
+	putbuf(p);
+	return 0;
+}
+
 long
-indfetch(Iobuf *p, Dentry *d, long addr, long a, int itag, int tag)
+indfetch(Device dev, long qpath, long addr, long a, int itag, int tag, int uid)
 {
 	Iobuf *bp;
 
 	if(!addr)
 		return 0;
-	bp = getbuf(p->dev, addr, Bread);
-	if(!bp || checktag(bp, itag, d->qid.path)) {
+	bp = getbuf(dev, addr, Bread);
+	if(!bp || checktag(bp, itag, qpath)) {
 		if(!bp) {
 			print("ind fetch bp = 0\n");
 			return 0;
@@ -162,13 +248,13 @@ indfetch(Iobuf *p, Dentry *d, long addr, long a, int itag, int tag)
 	}
 	addr = ((long*)bp->iobuf)[a];
 	if(!addr && tag) {
-		addr = bufalloc(p->dev, tag, d->qid.path);
+		addr = bufalloc(dev, tag, qpath, uid);
 		if(addr) {
 			((long*)bp->iobuf)[a] = addr;
-			p->flags |= Bmod;
+			bp->flags |= Bmod;
 			if(tag == Tdir)
 				bp->flags |= Bimm;
-			settag(bp, itag, d->qid.path);
+			settag(bp, itag, qpath);
 		}
 	}
 	putbuf(bp);
@@ -176,7 +262,7 @@ indfetch(Iobuf *p, Dentry *d, long addr, long a, int itag, int tag)
 }
 
 void
-dtrunc(Iobuf *p, Dentry *d)
+dtrunc(Iobuf *p, Dentry *d, int uid)
 {
 	int i;
 
@@ -190,5 +276,5 @@ dtrunc(Iobuf *p, Dentry *d)
 	}
 	d->size = 0;
 	p->flags |= Bmod|Bimm;
-	accessdir(p, d, FWRITE);
+	accessdir(p, d, FWRITE, uid);
 }

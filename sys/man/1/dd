@@ -4,7 +4,7 @@ dd \- convert and copy a file
 .SH SYNOPSIS
 .B dd
 [
-.I \-option value
+.I option value
 ]
 \&...
 .SH DESCRIPTION
@@ -17,15 +17,25 @@ The input and output block size may be
 specified to take advantage of raw physical I/O.
 The options are
 .TP \w'\fLoseek\ \ \fIn'u
-.BI ibs\  n\^
+.BI -if\  f
+Open file
+.I f
+for input.
+.TP
+.BI -of\  f
+Open file
+.I f
+for output.
+.TP
+.BI -ibs\  n\^
 Set input block size to
 .I n\^
 bytes (default 512).
 .TP
-.BI obs\  n\^
+.BI -obs\  n\^
 Set output block size (default 512).
 .TP
-.BI bs\  n\^
+.BI -bs\  n\^
 Set both input and output block size,
 superseding
 .I ibs\^
@@ -36,36 +46,36 @@ preserve the input block size instead of packing short blocks
 into the output buffer.
 This is particularly efficient since no in-core copy need be done.
 .TP
-.BI cbs\  n\^
+.BI -cbs\  n\^
 Set conversion buffer size.
 .TP
-.BI skip\  n\^
+.BI -skip\  n\^
 Skip
 .I n
 input records before copying.
 .TP
-.BI iseek\  n\^
+.BI -iseek\  n\^
 Seek
 .I n
 records forward on input file
 before copying.
 .TP
-.BI files\  n\^
+.BI -files\  n\^
 Catenate
 .I n 
 input files (useful only for magnetic tape or similar input device).
 .TP
-.BI oseek\  n\^
+.BI -oseek\  n\^
 Seek
 .I n\^
 records from beginning of output file before copying.
 .TP
-.BI count\  n\^
+.BI -count\  n\^
 Copy only
 .I n
 input records.
 .HP
-\fLconv\ ascii\ \ \ \ \fRConvert
+\fL-conv\ ascii\ \ \ \ \fRConvert
 .SM EBCDIC
 to
 .SM ASCII.
@@ -145,7 +155,7 @@ before sending the line to the output.
 In the latter three cases, characters are read into the
 conversion buffer and blanks are added to make up an
 output record of size
-.I n.
+.IR n .
 If
 .L cbs\^
 is unspecified or zero, the
@@ -159,6 +169,8 @@ structure of the input file; the
 and
 .L block\^
 options become a simple file copy.
+.SH SOURCE
+.B /sys/src/cmd/dd.c
 .SH "SEE ALSO"
 .IR cp (1)
 .SH DIAGNOSTICS

@@ -1,0 +1,29 @@
+Thu May 14 19:21:32 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Fri Apr  3 09:54:48 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Fri Mar 20 16:23:32 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the program.
+
+Sun Feb  2 08:01:42 1992  Karl Berry  (karl at hayley)
+
+        * vftovp.ch (argument_is): use `long_options', not `option_table'.
+
+Sun Jan 12 07:49:14 1992  Karl Berry  (karl at hayley)
+
+        * pktype.ch, pktogf.ch, vftovp.ch: `cwd_test_read_access' is gone.
+
+        * Makefile (vftovp.o, vptovf.o): remove the -Dlink, as it is now
+          in common.h.

@@ -14,6 +14,10 @@ pcp \- copy pictures
 ] [
 .BI -C "channels
 ] [
+.BI -m "colormap
+] [
+.B -M
+] [
 .I input
 [
 .I output
@@ -63,5 +67,15 @@ sets the output
 attribute.
 .I Channels
 must be the same length as the selected channels of the input picture.
+.TP
+.BI -m " colormap
+attaches the given color map to the output.
+.TP
+.BI -M
+elides the color map from the output.
+.SH SOURCE
+.B /sys/src/fb/pcp.c
 .SH "SEE ALSO
-.IR picfile (9.6)
+.IR picfile (9.6),
+.IR cmap (9.6)
+

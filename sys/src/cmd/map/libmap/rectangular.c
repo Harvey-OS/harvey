@@ -1,9 +1,9 @@
 #include "map.h"
 
-static float scale;
+static double scale;
 
 static int
-Xrectangular(struct place *place, float *x, float *y)
+Xrectangular(struct place *place, double *x, double *y)
 {
 	*x = -scale*place->wlon.l;
 	*y = place->nlat.l;
@@ -11,7 +11,7 @@ Xrectangular(struct place *place, float *x, float *y)
 }
 
 proj
-rectangular(float par)
+rectangular(double par)
 {
 	scale = cos(par*RAD);
 	if(scale<.1)

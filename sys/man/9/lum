@@ -9,8 +9,10 @@ lum \- compute luminance
 .SH DESCRIPTION
 .I Lum
 computes the luminance of the input picture using the NTSC formula
-.I L=.299R+.587G+.114B.
+.IR L =.299 R +.587 G +.114\f2B\f1.
 Pixel values are mapped through the input image's color map, if any.
 The resulting image is written to standard output.
+.SH SOURCE
+.B /sys/src/fb/lum.c
 .SH "SEE ALSO
 .IR picfile (9.6)

@@ -37,8 +37,9 @@ To build
 .BR walker.c ,
 .I twig
 uses an internal template file,
-by default on appropriate for use with
+by default one appropriate for use with
 .IR fprintf (2).
+.PP
 The options are
 .TP "\w'\fL-w \fIsuffix\fLXX'u"
 .B -A
@@ -60,22 +61,25 @@ file.
 .TP
 .BI -w " suffix"
 Use the template file
-.BI /sys/lib/twig/walker. suffix.
+.BI /sys/lib/twig/walker. suffix\f1.
 .SH FILES
 .TF /sys/lib/twig
 .TP
 .B /sys/lib/twig
 System area for template files.
+.SH SOURCE
+.B /sys/src/cmd/twig
 .SH "SEE ALSO"
 .IR yacc (1)
 .br
 S. W. K. Tjiang,
-.I "The Twig Reference Manual,"
+``The Twig Reference Manual'',
+.I
 Computing Science Technical Report No. 120,
 AT&T Bell Laboratories,
 Murray Hill, N.J.
 .br
 A. V. Aho, M. Ganapathi, and S. W. K. Tjiang,
-.I "Code generation using tree matching and dynamic programming."
+``Code generation using tree matching and dynamic programming.''
 .SH BUGS
 When tree matching fails, the debugging output is cryptic.

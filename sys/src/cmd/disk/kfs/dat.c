@@ -53,7 +53,6 @@ void
 	[Tstat]		f_stat,
 	[Twstat]	f_wstat,
 	[Tclwalk]	f_clwalk,
-	[Tauth]		f_auth,
 };
 
 char*	tagnames[] =

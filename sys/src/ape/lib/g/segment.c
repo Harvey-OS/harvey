@@ -1,9 +1,11 @@
 #include <libg.h>
 
+typedef unsigned char uchar;
+
 void
 segment(Bitmap *d, Point p1, Point p2, int v, Fcode f)
 {
-	unsigned char *buf;
+	uchar *buf;
 
 	buf = bneed(22);
 	buf[0] = 'l';

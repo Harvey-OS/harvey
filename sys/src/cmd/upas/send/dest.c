@@ -97,6 +97,22 @@ d_rm_same(dest **listp)
 	return dp;
 }
 
+/* Look for a duplicate on the same list */
+int
+d_same_dup(dest *dp, dest *new)
+{
+	dest *first = dp;
+
+	if(new->repl2 == 0)
+		return 1;
+	do {
+		if(strcmp(s_to_c(dp->repl2), s_to_c(new->repl2))==0)
+			return 1;
+		dp = dp->same;
+	} while(dp != first);
+	return 0;
+}
+
 /* Insert an entry into the corresponding list linked by 'same'.  Note that
  * the basic structure is a list of lists.
  */
@@ -106,20 +122,25 @@ d_same_insert(dest **listp, dest *new)
 	dest *dp;
 	int len;
 
-	if(new->status == d_pipe) {
+	if(new->status == d_pipe || new->status == d_cat) {
 		len = new->repl2 ? strlen(s_to_c(new->repl2)) : 0;
 		if(*listp != 0){
 			dp = (*listp)->next;
 			do {
 				if(dp->status == new->status
-				&& dp->nsame < MAXSAME
-				&& dp->nchar + len < MAXSAMECHAR
 				&& strcmp(s_to_c(dp->repl1), s_to_c(new->repl1))==0){
-					new->same = dp->same;
-					dp->same = new;
-					dp->nchar += len + 1;
-					dp->nsame++;
-					return;
+					/* remove duplicates */
+					if(d_same_dup(dp, new))
+						return;
+					/* add to chain if chain small enough */
+					if(dp->nsame < MAXSAME
+					&& dp->nchar + len < MAXSAMECHAR){
+						new->same = dp->same;
+						dp->same = new;
+						dp->nchar += len + 1;
+						dp->nsame++;
+						return;
+					}
 				}
 				dp = dp->next;
 			} while (dp != (*listp)->next);

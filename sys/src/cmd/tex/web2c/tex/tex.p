@@ -1,29 +1,28 @@
 {4:}{9:}{:9}program TEX;const{11:}memmax=262140;memmin=0;bufsize=3000;
 errorline=79;halferrorline=50;maxprintline=79;stacksize=300;
-maxinopen=15;fontmax=255;fontmemsize=72000;paramsize=60;nestsize=40;
-maxstrings=7500;stringvacancies=74000;poolsize=100000;savesize=4000;
-triesize=8000;trieopsize=500;negtrieopsize=-500;dvibufsize=16384;
-poolname='tex.pool';memtop=262140;{:11}type{18:}ASCIIcode=0..255;{:18}
-{25:}eightbits=0..255;{:25}{38:}poolpointer=0..poolsize;
-strnumber=0..maxstrings;packedASCIIcode=0..255;{:38}{101:}
-scaled=integer;nonnegativeinteger=0..2147483647;smallnumber=0..63;{:101}
-{109:}{:109}{113:}quarterword=0..511;halfword=0..262143;twochoices=1..2;
-fourchoices=1..4;#include "memory.h";{:113}{150:}glueord=0..3;{:150}
-{212:}liststaterecord=record modefield:-203..203;
-headfield,tailfield:halfword;pgfield,mlfield:integer;
-auxfield:memoryword;lhmfield,rhmfield:quarterword;end;{:212}{269:}
-groupcode=0..16;{:269}{300:}
-instaterecord=record statefield,indexfield:quarterword;
+maxinopen=15;fontmax=255;fontmemsize=100000;paramsize=60;nestsize=40;
+maxstrings=15000;stringvacancies=100000;poolsize=124000;savesize=4000;
+triesize=24000;trieopsize=750;negtrieopsize=-750;mintrieop=0;
+maxtrieop=500;dvibufsize=16384;poolname=TEXPOOLNAME;memtop=262140;{:11}
+type{18:}ASCIIcode=0..255;{:18}{25:}eightbits=0..255;{:25}{38:}
+poolpointer=0..poolsize;strnumber=0..maxstrings;packedASCIIcode=0..255;
+{:38}{101:}scaled=integer;nonnegativeinteger=0..2147483647;
+smallnumber=0..63;{:101}{109:}{:109}{113:}quarterword=0..255;
+halfword=0..262143;twochoices=1..2;fourchoices=1..4;
+#include "texmfmem.h";{:113}{150:}glueord=0..3;{:150}{212:}
+liststaterecord=record modefield:-203..203;headfield,tailfield:halfword;
+pgfield,mlfield:integer;auxfield:memoryword;
+lhmfield,rhmfield:quarterword;end;{:212}{269:}groupcode=0..16;{:269}
+{300:}instaterecord=record statefield,indexfield:quarterword;
 startfield,locfield,limitfield,namefield:halfword;end;{:300}{548:}
 internalfontnumber=0..fontmax;fontindex=0..fontmemsize;{:548}{594:}
-dviindex=0..dvibufsize;{:594}{920:}triepointer=0..triesize;{:920}{925:}
-hyphpointer=0..607;{:925}var{13:}bad:integer;{:13}{20:}
-xord:array[ASCIIcode]of ASCIIcode;xchr:array[ASCIIcode]of ASCIIcode;
-{:20}{26:}
-nameoffile,realnameoffile:packed array[1..FILENAMESIZE]of char;
-namelength:0..FILENAMESIZE;{:26}{30:}
-buffer:array[0..bufsize]of ASCIIcode;first:0..bufsize;last:0..bufsize;
-maxbufstack:0..bufsize;{:30}{39:}
+dviindex=0..dvibufsize;{:594}{920:}trieopcode=mintrieop..maxtrieop;
+triepointer=0..triesize;{:920}{925:}hyphpointer=0..607;{:925}var{13:}
+bad:integer;{:13}{20:}xord:array[ASCIIcode]of ASCIIcode;
+xchr:array[ASCIIcode]of ASCIIcode;{:20}{26:}
+nameoffile:packed array[1..PATHMAX]of char;namelength:0..PATHMAX;{:26}
+{30:}buffer:array[0..bufsize]of ASCIIcode;first:0..bufsize;
+last:0..bufsize;maxbufstack:0..bufsize;{:30}{39:}
 strpool:packed array[poolpointer]of packedASCIIcode;
 strstart:array[strnumber]of poolpointer;poolptr:poolpointer;
 strptr:strnumber;initpoolptr:poolpointer;initstrptr:strnumber;{:39}{50:}
@@ -32,11 +31,12 @@ logfile:alphafile;selector:0..21;dig:array[0..22]of 0..15;tally:integer;
 termoffset:0..maxprintline;fileoffset:0..maxprintline;
 trickbuf:array[0..errorline]of ASCIIcode;trickcount:integer;
 firstcount:integer;{:54}{73:}interaction:0..3;{:73}{76:}
-deletionsallowed:boolean;history:0..3;errorcount:-1..100;{:76}{79:}
-helpline:array[0..5]of strnumber;helpptr:0..6;useerrhelp:boolean;{:79}
-{96:}interrupt:integer;OKtointerrupt:boolean;{:96}{104:}
-aritherror:boolean;remainder:scaled;{:104}{115:}tempptr:halfword;{:115}
-{116:}zmem:array[memmin..memmax]of memoryword;lomemmax:halfword;
+deletionsallowed:boolean;setboxallowed:boolean;history:0..3;
+errorcount:-1..100;{:76}{79:}helpline:array[0..5]of strnumber;
+helpptr:0..6;useerrhelp:boolean;{:79}{96:}interrupt:integer;
+OKtointerrupt:boolean;{:96}{104:}aritherror:boolean;texremainder:scaled;
+{:104}{115:}tempptr:halfword;{:115}{116:}
+zmem:array[memmin..memmax]of memoryword;lomemmax:halfword;
 himemmin:halfword;{:116}{117:}varused,dynused:integer;{:117}{118:}
 avail:halfword;memend:halfword;{:118}{124:}rover:halfword;{:124}{165:}
 ifdef('DEBUG')freearr:packed array[memmin..memmax]of boolean;
@@ -73,10 +73,11 @@ readopen:array[0..16]of 0..2;{:480}{489:}condptr:halfword;iflimit:0..4;
 curif:smallnumber;ifline:integer;{:489}{493:}skipline:integer;{:493}
 {512:}curname:strnumber;curarea:strnumber;curext:strnumber;{:512}{513:}
 areadelimiter:poolpointer;extdelimiter:poolpointer;{:513}{520:}
-TEXformatdefault:ccharpointer;{:520}{527:}nameinprogress:boolean;
-jobname:strnumber;logopened:boolean;{:527}{532:}dvifile:bytefile;
-outputfilename:strnumber;logname:strnumber;{:532}{539:}tfmfile:bytefile;
-{:539}{549:}fontinfo:array[fontindex]of memoryword;fmemptr:fontindex;
+formatdefaultlength:integer;TEXformatdefault:ccharpointer;{:520}{527:}
+nameinprogress:boolean;jobname:strnumber;logopened:boolean;{:527}{532:}
+dvifile:bytefile;outputfilename:strnumber;texmflogname:strnumber;{:532}
+{539:}tfmfile:bytefile;{:539}{549:}
+fontinfo:array[fontindex]of memoryword;fmemptr:fontindex;
 fontptr:internalfontnumber;
 fontcheck:array[internalfontnumber]of fourquarters;
 fontsize:array[internalfontnumber]of scaled;
@@ -132,24 +133,27 @@ bestbet:halfword;fewestdemerits:integer;bestline:halfword;
 actuallooseness:integer;linediff:integer;{:872}{892:}
 hc:array[0..65]of 0..256;hn:smallnumber;ha,hb:halfword;
 hf:internalfontnumber;hu:array[0..63]of 0..256;hyfchar:integer;
-curlang:ASCIIcode;lhyf,rhyf:integer;{:892}{900:}hyf:array[0..64]of 0..9;
-initlist:halfword;initlig:boolean;initlft:boolean;{:900}{905:}
-hyphenpassed:smallnumber;{:905}{907:}curl,curr:halfword;curq:halfword;
-ligstack:halfword;ligaturepresent:boolean;lfthit,rthit:boolean;{:907}
-{921:}trie:array[triepointer]of twohalves;
+curlang:ASCIIcode;lhyf,rhyf:integer;hyfbchar:halfword;{:892}{900:}
+hyf:array[0..64]of 0..9;initlist:halfword;initlig:boolean;
+initlft:boolean;{:900}{905:}hyphenpassed:smallnumber;{:905}{907:}
+curl,curr:halfword;curq:halfword;ligstack:halfword;
+ligaturepresent:boolean;lfthit,rthit:boolean;{:907}{921:}
+trietrl:array[triepointer]of halfword;
+trietro:array[triepointer]of halfword;
+trietrc:array[triepointer]of quarterword;
 hyfdistance:array[1..trieopsize]of smallnumber;
 hyfnum:array[1..trieopsize]of smallnumber;
-hyfnext:array[1..trieopsize]of quarterword;
+hyfnext:array[1..trieopsize]of trieopcode;
 opstart:array[ASCIIcode]of 0..trieopsize;{:921}{926:}
 hyphword:array[hyphpointer]of strnumber;
 hyphlist:array[hyphpointer]of halfword;hyphcount:hyphpointer;{:926}
 {943:}ifdef('INITEX')trieophash:array[negtrieopsize..trieopsize]of 0..
-trieopsize;trieused:array[ASCIIcode]of quarterword;
+trieopsize;trieused:array[ASCIIcode]of trieopcode;
 trieoplang:array[1..trieopsize]of ASCIIcode;
-trieopval:array[1..trieopsize]of quarterword;trieopptr:0..trieopsize;
-endif('INITEX'){:943}{947:}
+trieopval:array[1..trieopsize]of trieopcode;trieopptr:0..trieopsize;
+endif('INITEX')maxopused:trieopcode;smallop:boolean;{:943}{947:}
 ifdef('INITEX')triec:packed array[triepointer]of packedASCIIcode;
-trieo:packed array[triepointer]of quarterword;
+trieo:packed array[triepointer]of trieopcode;
 triel:packed array[triepointer]of triepointer;
 trier:packed array[triepointer]of triepointer;trieptr:triepointer;
 triehash:packed array[triepointer]of triepointer;endif('INITEX'){:947}
@@ -197,11 +201,11 @@ for i:=0 to 31 do xchr[i]:=chr(i);for i:=127 to 255 do xchr[i]:=chr(i);
 {:23}{24:}for i:=0 to 255 do xord[chr(i)]:=127;
 for i:=128 to 255 do xord[xchr[i]]:=i;
 for i:=0 to 126 do xord[xchr[i]]:=i;{:24}{74:}interaction:=3;{:74}{77:}
-deletionsallowed:=true;errorcount:=0;{:77}{80:}helpptr:=0;
-useerrhelp:=false;{:80}{97:}interrupt:=0;OKtointerrupt:=true;{:97}{166:}
-ifdef('DEBUG')wasmemend:=memmin;waslomax:=memmin;washimin:=memmax;
-panicking:=false;endif('DEBUG'){:166}{215:}nestptr:=0;maxneststack:=0;
-curlist.modefield:=1;curlist.headfield:=memtop-1;
+deletionsallowed:=true;setboxallowed:=true;errorcount:=0;{:77}{80:}
+helpptr:=0;useerrhelp:=false;{:80}{97:}interrupt:=0;OKtointerrupt:=true;
+{:97}{166:}ifdef('DEBUG')wasmemend:=memmin;waslomax:=memmin;
+washimin:=memmax;panicking:=false;endif('DEBUG'){:166}{215:}nestptr:=0;
+maxneststack:=0;curlist.modefield:=1;curlist.headfield:=memtop-1;
 curlist.tailfield:=memtop-1;curlist.auxfield.int:=-65536000;
 curlist.mlfield:=0;curlist.lhmfield:=0;curlist.rhmfield:=0;
 curlist.pgfield:=0;shownmode:=0;{991:}pagecontents:=0;
@@ -214,8 +218,7 @@ curlevel:=1;curgroup:=0;curboundary:=0;maxsavestack:=0;{:272}{287:}
 magset:=0;{:287}{383:}curmark[0]:=0;curmark[1]:=0;curmark[2]:=0;
 curmark[3]:=0;curmark[4]:=0;{:383}{439:}curval:=0;curvallevel:=0;
 radix:=0;curorder:=0;{:439}{481:}for k:=0 to 16 do readopen[k]:=2;{:481}
-{490:}condptr:=0;iflimit:=0;curif:=0;ifline:=0;{:490}{521:}
-TEXformatdefault:=' plain.fmt';{:521}{551:}
+{490:}condptr:=0;iflimit:=0;curif:=0;ifline:=0;{:490}{551:}
 for k:=0 to fontmax do fontused[k]:=false;{:551}{556:}
 nullcharacter.b0:=0;nullcharacter.b1:=0;nullcharacter.b2:=0;
 nullcharacter.b3:=0;{:556}{593:}totalpages:=0;maxv:=0;maxh:=0;
@@ -241,7 +244,7 @@ mem[rover].hh.rh:=262143;mem[rover].hh.lh:=1000;
 mem[rover+1].hh.lh:=rover;mem[rover+1].hh.rh:=rover;
 lomemmax:=rover+1000;mem[lomemmax].hh.rh:=0;mem[lomemmax].hh.lh:=0;
 for k:=memtop-13 to memtop do mem[k]:=mem[lomemmax];{790:}
-mem[memtop-10].hh.lh:=14114;{:790}{797:}mem[memtop-9].hh.rh:=512;
+mem[memtop-10].hh.lh:=14114;{:790}{797:}mem[memtop-9].hh.rh:=256;
 mem[memtop-9].hh.lh:=0;{:797}{820:}mem[memtop-7].hh.b0:=1;
 mem[memtop-6].hh.lh:=262143;mem[memtop-7].hh.b1:=0;{:820}{981:}
 mem[memtop].hh.b1:=255;mem[memtop].hh.b0:=1;mem[memtop].hh.rh:=memtop;
@@ -277,22 +280,24 @@ for k:=0 to 255 do eqtb[12974+k].int:=-1;eqtb[13020].int:=0;{:240}{250:}
 for k:=13230 to 13506 do eqtb[k].int:=0;{:250}{258:}hashused:=10014;
 cscount:=0;eqtb[10023].hh.b0:=116;hash[10023].rh:=498;{:258}{552:}
 fontptr:=0;fmemptr:=7;fontname[0]:=794;fontarea[0]:=335;
-hyphenchar[0]:=45;skewchar[0]:=-1;fontbc[0]:=1;fontec[0]:=0;
+hyphenchar[0]:=45;skewchar[0]:=-1;bcharlabel[0]:=fontmemsize;
+fontbchar[0]:=256;fontfalsebchar[0]:=256;fontbc[0]:=1;fontec[0]:=0;
 fontsize[0]:=0;fontdsize[0]:=0;charbase[0]:=0;widthbase[0]:=0;
 heightbase[0]:=0;depthbase[0]:=0;italicbase[0]:=0;ligkernbase[0]:=0;
 kernbase[0]:=0;extenbase[0]:=0;fontglue[0]:=0;fontparams[0]:=7;
 parambase[0]:=-1;for k:=0 to 6 do fontinfo[k].int:=0;{:552}{946:}
 for k:=-trieopsize to trieopsize do trieophash[k]:=0;
-for k:=0 to 255 do trieused[k]:=0;trieopptr:=0;{:946}{951:}
-trienotready:=true;triel[0]:=0;triec[0]:=0;trieptr:=0;{:951}{1216:}
-hash[10014].rh:=1183;{:1216}{1301:}formatident:=1248;{:1301}{1369:}
-hash[10022].rh:=1286;eqtb[10022].hh.b1:=1;eqtb[10022].hh.b0:=113;
-eqtb[10022].hh.rh:=0;{:1369}endif('INITEX'){:8}end;{57:}
-procedure println;begin case selector of 19:begin writeln(stdout);
-writeln(logfile);termoffset:=0;fileoffset:=0;end;
-18:begin writeln(logfile);fileoffset:=0;end;17:begin writeln(stdout);
-termoffset:=0;end;16,20,21:;others:writeln(writefile[selector])end;end;
-{:57}{58:}procedure printchar(s:ASCIIcode);label 10;begin if{244:}
+for k:=0 to 255 do trieused[k]:=mintrieop;maxopused:=mintrieop;
+trieopptr:=0;{:946}{951:}trienotready:=true;triel[0]:=0;triec[0]:=0;
+trieptr:=0;{:951}{1216:}hash[10014].rh:=1183;{:1216}{1301:}
+formatident:=1250;{:1301}{1369:}hash[10022].rh:=1288;
+eqtb[10022].hh.b1:=1;eqtb[10022].hh.b0:=113;eqtb[10022].hh.rh:=0;{:1369}
+endif('INITEX'){:8}end;{57:}procedure println;
+begin case selector of 19:begin writeln(stdout);writeln(logfile);
+termoffset:=0;fileoffset:=0;end;18:begin writeln(logfile);fileoffset:=0;
+end;17:begin writeln(stdout);termoffset:=0;end;16,20,21:;
+others:writeln(writefile[selector])end;end;{:57}{58:}
+procedure printchar(s:ASCIIcode);label 10;begin if{244:}
 s=eqtb[12712].int{:244}then if selector<20 then begin println;goto 10;
 end;case selector of 19:begin write(stdout,xchr[s]);
 write(logfile,xchr[s]);incr(termoffset);incr(fileoffset);
@@ -306,22 +311,23 @@ if termoffset=maxprintline then println;end;16:;
 21:begin if poolptr<poolsize then begin strpool[poolptr]:=s;
 incr(poolptr);end;end;others:write(writefile[selector],xchr[s])end;
 incr(tally);10:end;{:58}{59:}procedure print(s:integer);label 10;
-var j:poolpointer;
+var j:poolpointer;nl:integer;
 begin if s>=strptr then s:=259 else if s<256 then if s<0 then s:=259
-else if({244:}s=eqtb[12712].int{:244}
-)then if selector<20 then begin println;goto 10;end;j:=strstart[s];
+else begin if selector>20 then begin printchar(s);goto 10;end;if({244:}
+s=eqtb[12712].int{:244})then if selector<20 then begin println;goto 10;
+end;nl:=eqtb[12712].int;eqtb[12712].int:=-1;j:=strstart[s];
+while j<strstart[s+1]do begin printchar(strpool[j]);incr(j);end;
+eqtb[12712].int:=nl;goto 10;end;j:=strstart[s];
 while j<strstart[s+1]do begin printchar(strpool[j]);incr(j);end;10:end;
-{:59}{60:}procedure slowprint(s:integer);label 10;var j:poolpointer;
-begin if s>=strptr then s:=259 else if s<256 then if s<0 then s:=259
-else if({244:}s=eqtb[12712].int{:244}
-)then if selector<20 then begin println;goto 10;end;j:=strstart[s];
-while j<strstart[s+1]do begin print(strpool[j]);incr(j);end;10:end;{:60}
-{62:}procedure printnl(s:strnumber);
+{:59}{60:}procedure slowprint(s:integer);var j:poolpointer;
+begin if(s>=strptr)or(s<256)then print(s)else begin j:=strstart[s];
+while j<strstart[s+1]do begin print(strpool[j]);incr(j);end;end;end;
+{:60}{62:}procedure printnl(s:strnumber);
 begin if((termoffset>0)and(odd(selector)))or((fileoffset>0)and(selector
 >=18))then println;print(s);end;{:62}{63:}
 procedure printesc(s:strnumber);var c:integer;begin{243:}
-c:=eqtb[12708].int{:243};if c>=0 then if c<256 then print(c);print(s);
-end;{:63}{64:}procedure printthedigs(k:eightbits);
+c:=eqtb[12708].int{:243};if c>=0 then if c<256 then print(c);
+slowprint(s);end;{:63}{64:}procedure printthedigs(k:eightbits);
 begin while k>0 do begin decr(k);
 if dig[k]<10 then printchar(48+dig[k])else printchar(55+dig[k]);end;end;
 {:64}{65:}procedure printint(n:integer);var k:0..23;m:integer;
@@ -335,13 +341,13 @@ printesc(501);end else begin printesc(p-257);
 if eqtb[11383+p-257].hh.rh=11 then printchar(32);
 end else if p<1 then printesc(502)else print(p-1)else if p>=10281 then
 printesc(502)else if(hash[p].rh>=strptr)then printesc(503)else begin
-printesc(335);slowprint(hash[p].rh);printchar(32);end;end;{:262}{263:}
+printesc(hash[p].rh);printchar(32);end;end;{:262}{263:}
 procedure sprintcs(p:halfword);
 begin if p<514 then if p<257 then print(p-1)else if p<513 then printesc(
 p-257)else begin printesc(500);printesc(501);
-end else begin printesc(335);slowprint(hash[p].rh);end;end;{:263}{518:}
-procedure printfilename(n,a,e:integer);begin print(a);print(n);print(e);
-end;{:518}{699:}procedure printsize(s:integer);
+end else printesc(hash[p].rh);end;{:263}{518:}
+procedure printfilename(n,a,e:integer);begin slowprint(a);slowprint(n);
+slowprint(e);end;{:518}{699:}procedure printsize(s:integer);
 begin if s=0 then printesc(408)else if s=16 then printesc(409)else
 printesc(410);end;{:699}{1355:}procedure printwritewhatsit(s:strnumber;
 p:halfword);begin printesc(s);
@@ -353,13 +359,13 @@ procedure beginfilereading;forward;procedure openlogfile;forward;
 procedure closefilesandterminate;forward;procedure clearforerrorprompt;
 forward;procedure giveerrhelp;forward;ifdef('DEBUG')procedure debughelp;
 forward;endif('DEBUG'){:78}{81:}procedure jumpout;
-begin closefilesandterminate;begin termflush(stdout);readyalready:=0;
+begin closefilesandterminate;begin flush(stdout);readyalready:=0;
 if(history<>0)and(history<>1)then uexit(1)else uexit(0);end;end;{:81}
 {82:}procedure error;label 22,10;var c:ASCIIcode;s1,s2,s3,s4:integer;
 begin if history<2 then history:=2;printchar(46);showcontext;
 if interaction=3 then{83:}while true do begin 22:clearforerrorprompt;
-begin wakeupterminal;print(264);terminput;end;
-if last=first then goto 10;c:=buffer[first];if c>=97 then c:=c-32;{84:}
+begin;print(264);terminput;end;if last=first then goto 10;
+c:=buffer[first];if c>=97 then c:=c-32;{84:}
 case c of 48,49,50,51,52,53,54,55,56,57:if deletionsallowed then{88:}
 begin s1:=curtok;s2:=curcmd;s3:=curchr;s4:=alignstate;
 alignstate:=1000000;OKtointerrupt:=false;
@@ -380,46 +386,45 @@ println;until helpptr=0;end;begin helpptr:=4;helpline[3]:=281;
 helpline[2]:=280;helpline[1]:=282;helpline[0]:=283;end;goto 22;end{:89};
 73:{87:}begin beginfilereading;
 if last>first+1 then begin curinput.locfield:=first+1;buffer[first]:=32;
-end else begin begin wakeupterminal;print(276);terminput;end;
-curinput.locfield:=first;end;first:=last;curinput.limitfield:=last-1;
-goto 10;end{:87};81,82,83:{86:}begin errorcount:=0;interaction:=0+c-81;
-print(271);case c of 81:begin printesc(272);decr(selector);end;
-82:printesc(273);83:printesc(274);end;print(275);println;
-termflush(stdout);goto 10;end{:86};88:begin interaction:=2;jumpout;end;
-others:end;{85:}begin print(265);printnl(266);printnl(267);
-if baseptr>0 then print(268);if deletionsallowed then printnl(269);
-printnl(270);end{:85}{:84};end{:83};incr(errorcount);
-if errorcount=100 then begin printnl(263);history:=3;jumpout;end;{90:}
-if interaction>0 then decr(selector);if useerrhelp then begin println;
-giveerrhelp;end else while helpptr>0 do begin decr(helpptr);
+end else begin begin;print(276);terminput;end;curinput.locfield:=first;
+end;first:=last;curinput.limitfield:=last-1;goto 10;end{:87};
+81,82,83:{86:}begin errorcount:=0;interaction:=0+c-81;print(271);
+case c of 81:begin printesc(272);decr(selector);end;82:printesc(273);
+83:printesc(274);end;print(275);println;flush(stdout);goto 10;end{:86};
+88:begin interaction:=2;jumpout;end;others:end;{85:}begin print(265);
+printnl(266);printnl(267);if baseptr>0 then print(268);
+if deletionsallowed then printnl(269);printnl(270);end{:85}{:84};
+end{:83};incr(errorcount);if errorcount=100 then begin printnl(263);
+history:=3;jumpout;end;{90:}if interaction>0 then decr(selector);
+if useerrhelp then begin println;giveerrhelp;
+end else while helpptr>0 do begin decr(helpptr);
 printnl(helpline[helpptr]);end;println;
 if interaction>0 then incr(selector);println{:90};10:end;{:82}{93:}
 procedure fatalerror(s:strnumber);begin normalizeselector;
-begin if interaction=3 then wakeupterminal;printnl(262);print(285);end;
+begin if interaction=3 then;printnl(262);print(285);end;
 begin helpptr:=1;helpline[0]:=s;end;
 begin if interaction=3 then interaction:=2;if logopened then error;
 ifdef('DEBUG')if interaction>0 then debughelp;endif('DEBUG')history:=3;
 jumpout;end;end;{:93}{94:}procedure overflow(s:strnumber;n:integer);
-begin normalizeselector;begin if interaction=3 then wakeupterminal;
-printnl(262);print(286);end;print(s);printchar(61);printint(n);
-printchar(93);begin helpptr:=2;helpline[1]:=287;helpline[0]:=288;end;
+begin normalizeselector;begin if interaction=3 then;printnl(262);
+print(286);end;print(s);printchar(61);printint(n);printchar(93);
+begin helpptr:=2;helpline[1]:=287;helpline[0]:=288;end;
 begin if interaction=3 then interaction:=2;if logopened then error;
 ifdef('DEBUG')if interaction>0 then debughelp;endif('DEBUG')history:=3;
 jumpout;end;end;{:94}{95:}procedure confusion(s:strnumber);
 begin normalizeselector;
-if history<2 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(289);end;print(s);printchar(41);begin helpptr:=1;
-helpline[0]:=290;end;
-end else begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(291);end;begin helpptr:=2;helpline[1]:=292;helpline[0]:=293;end;
-end;begin if interaction=3 then interaction:=2;if logopened then error;
+if history<2 then begin begin if interaction=3 then;printnl(262);
+print(289);end;print(s);printchar(41);begin helpptr:=1;helpline[0]:=290;
+end;end else begin begin if interaction=3 then;printnl(262);print(291);
+end;begin helpptr:=2;helpline[1]:=292;helpline[0]:=293;end;end;
+begin if interaction=3 then interaction:=2;if logopened then error;
 ifdef('DEBUG')if interaction>0 then debughelp;endif('DEBUG')history:=3;
 jumpout;end;end;{:95}{:4}{37:}function initterminal:boolean;label 10;
 begin topenin;if last>first then begin curinput.locfield:=first;
 while(curinput.locfield<last)and(buffer[curinput.locfield]=' ')do incr(
 curinput.locfield);
 if curinput.locfield<last then begin initterminal:=true;goto 10;end;end;
-while true do begin wakeupterminal;write(stdout,'**');termflush(stdout);
+while true do begin;write(stdout,'**');flush(stdout);
 if not inputln(stdin,true)then begin writeln(stdout);
 write(stdout,'! End of file on the terminal... why?');
 initterminal:=false;goto 10;end;curinput.locfield:=first;
@@ -454,32 +459,31 @@ incr(poolptr);end else begin strpool[poolptr]:=l+87;incr(poolptr);end;
 l:=k mod 16;if l<10 then begin strpool[poolptr]:=l+48;incr(poolptr);
 end else begin strpool[poolptr]:=l+87;incr(poolptr);end;end;
 end else begin strpool[poolptr]:=k;incr(poolptr);end;g:=makestring;
-end{:48};{51:}vstrcpy(nameoffile+1,poolname);
-if aopenin(poolfile,poolpathspec)then begin c:=false;repeat{52:}
-begin if eof(poolfile)then begin wakeupterminal;
+end{:48};{51:}vstrcpy(nameoffile+1,poolname);nameoffile[0]:=' ';
+nameoffile[strlen(poolname)+1]:=' ';namelength:=strlen(poolname);
+if aopenin(poolfile,TEXPOOLPATH)then begin c:=false;repeat{52:}
+begin if eof(poolfile)then begin;
 writeln(stdout,'! tex.pool has no check sum.');aclose(poolfile);
 getstringsstarted:=false;goto 10;end;read(poolfile,m);read(poolfile,n);
 if m='*'then{53:}begin a:=0;k:=1;
-while true do begin if(xord[n]<48)or(xord[n]>57)then begin
-wakeupterminal;
+while true do begin if(xord[n]<48)or(xord[n]>57)then begin;
 writeln(stdout,'! tex.pool check sum doesn''t have nine digits.');
 aclose(poolfile);getstringsstarted:=false;goto 10;end;
 a:=10*a+xord[n]-48;if k=9 then goto 30;incr(k);read(poolfile,n);end;
-30:if a<>127541235 then begin wakeupterminal;
+30:if a<>353758006 then begin;
 writeln(stdout,'! tex.pool doesn''t match; tangle me again.');
 aclose(poolfile);getstringsstarted:=false;goto 10;end;c:=true;end{:53}
 else begin if(xord[m]<48)or(xord[m]>57)or(xord[n]<48)or(xord[n]>57)then
-begin wakeupterminal;
-writeln(stdout,'! tex.pool line doesn''t begin with two digits.');
+begin;writeln(stdout,'! tex.pool line doesn''t begin with two digits.');
 aclose(poolfile);getstringsstarted:=false;goto 10;end;
 l:=xord[m]*10+xord[n]-48*11;
-if poolptr+l+stringvacancies>poolsize then begin wakeupterminal;
+if poolptr+l+stringvacancies>poolsize then begin;
 writeln(stdout,'! You have to increase POOLSIZE.');aclose(poolfile);
 getstringsstarted:=false;goto 10;end;
 for k:=1 to l do begin if eoln(poolfile)then m:=' 'else read(poolfile,m)
 ;begin strpool[poolptr]:=xord[m];incr(poolptr);end;end;readln(poolfile);
 g:=makestring;end;end{:52};until c;aclose(poolfile);
-getstringsstarted:=true;end else begin wakeupterminal;
+getstringsstarted:=true;end else begin;
 writeln(stdout,'! I can''t read tex.pool.');getstringsstarted:=false;
 goto 10;end{:51};10:end;endif('INITEX'){:47}{66:}
 procedure printtwo(n:integer);begin n:=abs(n)mod 100;
@@ -496,7 +500,7 @@ v:=v div(strpool[j-1]-48);end;end;10:end;{:69}{70:}
 procedure printcurrentstring;var j:poolpointer;
 begin j:=strstart[strptr];
 while j<poolptr do begin printchar(strpool[j]);incr(j);end;end;{:70}
-{71:}procedure terminput;var k:0..bufsize;begin termflush(stdout);
+{71:}procedure terminput;var k:0..bufsize;begin flush(stdout);
 if not inputln(stdin,true)then fatalerror(261);termoffset:=0;
 decr(selector);
 if last<>first then for k:=first to last-1 do print(buffer[k]);println;
@@ -508,7 +512,7 @@ if jobname=0 then openlogfile;if interaction=0 then decr(selector);end;
 {:92}{98:}procedure pauseforinstructions;
 begin if OKtointerrupt then begin interaction:=3;
 if(selector=18)or(selector=16)then incr(selector);
-begin if interaction=3 then wakeupterminal;printnl(262);print(294);end;
+begin if interaction=3 then;printnl(262);print(294);end;
 begin helpptr:=3;helpline[2]:=295;helpline[1]:=296;helpline[0]:=297;end;
 deletionsallowed:=false;error;deletionsallowed:=true;interrupt:=0;end;
 end;{:98}{100:}function half(x:integer):integer;
@@ -527,19 +531,19 @@ if n=0 then multandadd:=y else if((x<=(maxanswer-y)div n)and(-x<=(
 maxanswer+y)div n))then multandadd:=n*x+y else begin aritherror:=true;
 multandadd:=0;end;end;{:105}{106:}function xovern(x:scaled;
 n:integer):scaled;var negative:boolean;begin negative:=false;
-if n=0 then begin aritherror:=true;xovern:=0;remainder:=x;
+if n=0 then begin aritherror:=true;xovern:=0;texremainder:=x;
 end else begin if n<0 then begin x:=-x;n:=-n;negative:=true;end;
-if x>=0 then begin xovern:=x div n;remainder:=x mod n;
-end else begin xovern:=-((-x)div n);remainder:=-((-x)mod n);end;end;
-if negative then remainder:=-remainder;end;{:106}{107:}
+if x>=0 then begin xovern:=x div n;texremainder:=x mod n;
+end else begin xovern:=-((-x)div n);texremainder:=-((-x)mod n);end;end;
+if negative then texremainder:=-texremainder;end;{:106}{107:}
 function xnoverd(x:scaled;n,d:integer):scaled;var positive:boolean;
 t,u,v:nonnegativeinteger;
 begin if x>=0 then positive:=true else begin x:=-x;positive:=false;end;
 t:=(x mod 32768)*n;u:=(x div 32768)*n+(t div 32768);
 v:=(u mod d)*32768+(t mod 32768);
 if u div d>=32768 then aritherror:=true else u:=32768*(u div d)+(v div d
-);if positive then begin xnoverd:=u;remainder:=v mod d;
-end else begin xnoverd:=-u;remainder:=-(v mod d);end;end;{:107}{108:}
+);if positive then begin xnoverd:=u;texremainder:=v mod d;
+end else begin xnoverd:=-u;texremainder:=-(v mod d);end;end;{:107}{108:}
 function badness(t,s:scaled):halfword;var r:integer;
 begin if t=0 then badness:=0 else if s<=0 then badness:=10000 else begin
 if t<=7230584 then r:=(t*297)div s else if s>=1663497 then r:=t div(s
@@ -786,14 +790,14 @@ printscaled(mem[p+3].int);print(329);printspec(mem[p+4].hh.rh,0);
 printchar(44);printscaled(mem[p+2].int);print(330);
 printint(mem[p+1].int);begin begin strpool[poolptr]:=46;incr(poolptr);
 end;shownodelist(mem[p+4].hh.lh);decr(poolptr);end;end{:188};8:{1356:}
-case mem[p].hh.b1 of 0:begin printwritewhatsit(1276,p);printchar(61);
+case mem[p].hh.b1 of 0:begin printwritewhatsit(1278,p);printchar(61);
 printfilename(mem[p+1].hh.rh,mem[p+2].hh.lh,mem[p+2].hh.rh);end;
 1:begin printwritewhatsit(590,p);printmark(mem[p+1].hh.rh);end;
-2:printwritewhatsit(1277,p);3:begin printesc(1278);
-printmark(mem[p+1].hh.rh);end;4:begin printesc(1280);
+2:printwritewhatsit(1279,p);3:begin printesc(1280);
+printmark(mem[p+1].hh.rh);end;4:begin printesc(1282);
 printint(mem[p+1].hh.rh);print(362);printint(mem[p+1].hh.b0);
 printchar(44);printint(mem[p+1].hh.b1);printchar(41);end;
-others:print(1283)end{:1356};10:{189:}if mem[p].hh.b1>=100 then{190:}
+others:print(1285)end{:1356};10:{189:}if mem[p].hh.b1>=100 then{190:}
 begin printesc(335);
 if mem[p].hh.b1=101 then printchar(99)else if mem[p].hh.b1=102 then
 printchar(120);print(336);printspec(mem[p+1].hh.lh,0);
@@ -869,7 +873,7 @@ flushnodelist(mem[p+5].hh.rh);freenode(p,7);goto 30;end;
 deleteglueref(mem[p+4].hh.rh);freenode(p,5);goto 30;end;8:{1358:}
 begin case mem[p].hh.b1 of 0:freenode(p,3);
 1,3:begin deletetokenref(mem[p+1].hh.rh);freenode(p,2);goto 30;end;
-2,4:freenode(p,2);others:confusion(1285)end;goto 30;end{:1358};
+2,4:freenode(p,2);others:confusion(1287)end;goto 30;end{:1358};
 10:begin begin if mem[mem[p+1].hh.lh].hh.rh=0 then freenode(mem[p+1].hh.
 lh,4)else decr(mem[mem[p+1].hh.lh].hh.rh);end;
 if mem[p+1].hh.rh<>0 then flushnodelist(mem[p+1].hh.rh);end;11,9,12:;
@@ -898,7 +902,7 @@ mem[r+4]:=mem[p+4];incr(mem[mem[p+4].hh.rh].hh.rh);
 mem[r+4].hh.lh:=copynodelist(mem[p+4].hh.lh);words:=4;end;8:{1357:}
 case mem[p].hh.b1 of 0:begin r:=getnode(3);words:=3;end;
 1,3:begin r:=getnode(2);incr(mem[mem[p+1].hh.rh].hh.lh);words:=2;end;
-2,4:begin r:=getnode(2);words:=2;end;others:confusion(1284)end{:1357};
+2,4:begin r:=getnode(2);words:=2;end;others:confusion(1286)end{:1357};
 10:begin r:=getnode(2);incr(mem[mem[p+1].hh.lh].hh.rh);
 mem[r+1].hh.lh:=mem[p+1].hh.lh;
 mem[r+1].hh.rh:=copynodelist(mem[p+1].hh.rh);end;
@@ -1083,22 +1087,22 @@ printesc(415)else if chrcode=11639 then printesc(412)else if chrcode=
 11895 then printesc(413)else if chrcode=12151 then printesc(414)else
 printesc(473);86:printsize(chrcode-11335);{:1231}{1251:}
 99:if chrcode=1 then printesc(946)else printesc(934);{:1251}{1255:}
-78:if chrcode=0 then printesc(1208)else printesc(1209);{:1255}{1261:}
-87:begin print(1217);print(fontname[chrcode]);
+78:if chrcode=0 then printesc(1210)else printesc(1211);{:1255}{1261:}
+87:begin print(1219);slowprint(fontname[chrcode]);
 if fontsize[chrcode]<>fontdsize[chrcode]then begin print(737);
 printscaled(fontsize[chrcode]);print(393);end;end;{:1261}{1263:}
 100:case chrcode of 0:printesc(272);1:printesc(273);2:printesc(274);
-others:printesc(1218)end;{:1263}{1273:}
-60:if chrcode=0 then printesc(1220)else printesc(1219);{:1273}{1278:}
-58:if chrcode=0 then printesc(1221)else printesc(1222);{:1278}{1287:}
-57:if chrcode=11639 then printesc(1228)else printesc(1229);{:1287}
-{1292:}19:case chrcode of 1:printesc(1231);2:printesc(1232);
-3:printesc(1233);others:printesc(1230)end;{:1292}{1295:}101:print(1240);
-111:print(1241);112:printesc(1242);113:printesc(1243);
-114:begin printesc(1164);printesc(1243);end;115:printesc(1244);{:1295}
-{1346:}59:case chrcode of 0:printesc(1276);1:printesc(590);
-2:printesc(1277);3:printesc(1278);4:printesc(1279);5:printesc(1280);
-others:print(1281)end;{:1346}others:print(563)end;end;{:298}
+others:printesc(1220)end;{:1263}{1273:}
+60:if chrcode=0 then printesc(1222)else printesc(1221);{:1273}{1278:}
+58:if chrcode=0 then printesc(1223)else printesc(1224);{:1278}{1287:}
+57:if chrcode=11639 then printesc(1230)else printesc(1231);{:1287}
+{1292:}19:case chrcode of 1:printesc(1233);2:printesc(1234);
+3:printesc(1235);others:printesc(1232)end;{:1292}{1295:}101:print(1242);
+111:print(1243);112:printesc(1244);113:printesc(1245);
+114:begin printesc(1164);printesc(1245);end;115:printesc(1246);{:1295}
+{1346:}59:case chrcode of 0:printesc(1278);1:printesc(590);
+2:printesc(1279);3:printesc(1280);4:printesc(1281);5:printesc(1282);
+others:print(1283)end;{:1346}others:print(563)end;end;{:298}
 ifdef('STAT')procedure showeqtb(n:halfword);
 begin if n<1 then printchar(63)else if n<10282 then{223:}
 begin sprintcs(n);printchar(61);
@@ -1174,7 +1178,7 @@ begin if saveptr>maxsavestack then begin maxsavestack:=saveptr;
 if maxsavestack>savesize-6 then overflow(537,savesize);end;
 savestack[saveptr].hh.b0:=3;savestack[saveptr].hh.b1:=curgroup;
 savestack[saveptr].hh.rh:=curboundary;
-if curlevel=511 then overflow(538,511);curboundary:=saveptr;
+if curlevel=255 then overflow(538,255);curboundary:=saveptr;
 incr(curlevel);incr(saveptr);curgroup:=c;end;{:274}{275:}
 procedure eqdestroy(w:memoryword);var q:halfword;
 begin case w.hh.b0 of 111,112,113,114:deletetokenref(w.hh.rh);
@@ -1229,13 +1233,13 @@ restoretrace(p,540);endif('STAT')end{:283};end;end;
 curboundary:=savestack[saveptr].hh.rh{:282};end else confusion(539);end;
 {:281}{288:}procedure preparemag;
 begin if(magset>0)and(eqtb[12680].int<>magset)then begin begin if
-interaction=3 then wakeupterminal;printnl(262);print(543);end;
+interaction=3 then;printnl(262);print(543);end;
 printint(eqtb[12680].int);print(544);printnl(545);begin helpptr:=2;
 helpline[1]:=546;helpline[0]:=547;end;interror(magset);
 geqworddefine(12680,magset);end;
 if(eqtb[12680].int<=0)or(eqtb[12680].int>32768)then begin begin if
-interaction=3 then wakeupterminal;printnl(262);print(548);end;
-begin helpptr:=1;helpline[0]:=549;end;interror(eqtb[12680].int);
+interaction=3 then;printnl(262);print(548);end;begin helpptr:=1;
+helpline[0]:=549;end;interror(eqtb[12680].int);
 geqworddefine(12680,1000);end;magset:=eqtb[12680].int;end;{:288}{295:}
 procedure tokenshow(p:halfword);
 begin if p<>0 then showtokenlist(mem[p].hh.rh,0,10000000);end;{:295}
@@ -1344,18 +1348,16 @@ if curinput.namefield>17 then aclose(inputfile[curinput.indexfield]);
 begin decr(inputptr);curinput:=inputstack[inputptr];end;decr(inopen);
 end;{:329}{330:}procedure clearforerrorprompt;
 begin while(curinput.statefield<>0)and(curinput.namefield=0)and(inputptr
->0)and(curinput.locfield>curinput.limitfield)do endfilereading;println;
-clearterminal;end;{:330}{336:}procedure checkoutervalidity;
-var p:halfword;q:halfword;
+>0)and(curinput.locfield>curinput.limitfield)do endfilereading;println;;
+end;{:330}{336:}procedure checkoutervalidity;var p:halfword;q:halfword;
 begin if scannerstatus<>0 then begin deletionsallowed:=false;{337:}
 if curcs<>0 then begin if(curinput.statefield=0)or(curinput.namefield<1)
 or(curinput.namefield>17)then begin p:=getavail;
 mem[p].hh.lh:=4095+curcs;begintokenlist(p,3);end;curcmd:=10;curchr:=32;
 end{:337};if scannerstatus>1 then{338:}begin runaway;
-if curcs=0 then begin if interaction=3 then wakeupterminal;printnl(262);
-print(600);end else begin curcs:=0;
-begin if interaction=3 then wakeupterminal;printnl(262);print(601);end;
-end;print(602);{339:}p:=getavail;
+if curcs=0 then begin if interaction=3 then;printnl(262);print(600);
+end else begin curcs:=0;begin if interaction=3 then;printnl(262);
+print(601);end;end;print(602);{339:}p:=getavail;
 case scannerstatus of 2:begin print(566);mem[p].hh.lh:=637;end;
 3:begin print(608);mem[p].hh.lh:=partoken;longstate:=113;end;
 4:begin print(568);mem[p].hh.lh:=637;q:=p;p:=getavail;mem[p].hh.rh:=q;
@@ -1363,9 +1365,9 @@ mem[p].hh.lh:=14110;alignstate:=-1000000;end;5:begin print(569);
 mem[p].hh.lh:=637;end;end;begintokenlist(p,4){:339};print(603);
 sprintcs(warningindex);begin helpptr:=4;helpline[3]:=604;
 helpline[2]:=605;helpline[1]:=606;helpline[0]:=607;end;error;end{:338}
-else begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(594);end;printcmdchr(105,curif);print(595);printint(skipline);
-begin helpptr:=3;helpline[2]:=596;helpline[1]:=597;helpline[0]:=598;end;
+else begin begin if interaction=3 then;printnl(262);print(594);end;
+printcmdchr(105,curif);print(595);printint(skipline);begin helpptr:=3;
+helpline[2]:=596;helpline[1]:=597;helpline[0]:=598;end;
 if curcs<>0 then curcs:=0 else helpline[2]:=599;curtok:=14113;inserror;
 end;deletionsallowed:=true;end;end;{:336}{340:}procedure firmuptheline;
 forward;{:340}{341:}procedure getnext;label 20,25,21,26,40,10;
@@ -1426,8 +1428,8 @@ curinput.locfield);if c<=57 then curchr:=c-48 else curchr:=c-87;
 if cc<=57 then curchr:=16*curchr+cc-48 else curchr:=16*curchr+cc-87;
 goto 21;end;end;if c<64 then curchr:=c+64 else curchr:=c-64;goto 21;end;
 end;curinput.statefield:=1;end{:352};16,32,48:{346:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(609);end;begin helpptr:=2;helpline[1]:=610;helpline[0]:=611;end;
+begin begin if interaction=3 then;printnl(262);print(609);end;
+begin helpptr:=2;helpline[1]:=610;helpline[0]:=611;end;
 deletionsallowed:=false;error;deletionsallowed:=true;goto 20;end{:346};
 {347:}11:{349:}begin curinput.statefield:=17;curchr:=32;end{:349};
 6:{348:}begin curinput.locfield:=curinput.limitfield+1;curcmd:=10;
@@ -1444,7 +1446,7 @@ if curinput.namefield>17 then{362:}begin incr(line);
 first:=curinput.startfield;
 if not forceeof then begin if inputln(inputfile[curinput.indexfield],
 true)then firmuptheline else forceeof:=true;end;
-if forceeof then begin printchar(41);decr(openparens);termflush(stdout);
+if forceeof then begin printchar(41);decr(openparens);flush(stdout);
 forceeof:=false;endfilereading;checkoutervalidity;goto 20;end;
 if(eqtb[12711].int<0)or(eqtb[12711].int>255)then decr(curinput.
 limitfield)else buffer[curinput.limitfield]:=eqtb[12711].int;
@@ -1455,7 +1457,7 @@ end;if selector<18 then openlogfile;
 if interaction>1 then begin if(eqtb[12711].int<0)or(eqtb[12711].int>255)
 then incr(curinput.limitfield);
 if curinput.limitfield=curinput.startfield then printnl(612);println;
-first:=curinput.startfield;begin wakeupterminal;print(42);terminput;end;
+first:=curinput.startfield;begin;print(42);terminput;end;
 curinput.limitfield:=last;
 if(eqtb[12711].int<0)or(eqtb[12711].int>255)then decr(curinput.
 limitfield)else buffer[curinput.limitfield]:=eqtb[12711].int;
@@ -1483,11 +1485,10 @@ if curcmd=63 then begintokenlist(memtop-10,2)else begintokenlist(mem[
 curalign+2].int,2);alignstate:=1000000;goto 20;end{:789}{:342};10:end;
 {:341}{363:}procedure firmuptheline;var k:0..bufsize;
 begin curinput.limitfield:=last;
-if eqtb[12691].int>0 then if interaction>1 then begin wakeupterminal;
-println;if curinput.startfield<curinput.limitfield then for k:=curinput.
+if eqtb[12691].int>0 then if interaction>1 then begin;println;
+if curinput.startfield<curinput.limitfield then for k:=curinput.
 startfield to curinput.limitfield-1 do print(buffer[k]);
-first:=curinput.limitfield;begin wakeupterminal;print(614);terminput;
-end;
+first:=curinput.limitfield;begin;print(614);terminput;end;
 if last>first then begin for k:=first to last-1 do buffer[k+curinput.
 startfield-first]:=buffer[k];
 curinput.limitfield:=curinput.startfield+last-first;end;end;end;{:363}
@@ -1512,45 +1513,42 @@ if(mem[r].hh.lh>3583)or(mem[r].hh.lh<3328)then s:=0 else begin matchchr
 22:gettoken;if curtok=mem[r].hh.lh then{394:}begin r:=mem[r].hh.rh;
 if(mem[r].hh.lh>=3328)and(mem[r].hh.lh<=3584)then begin if curtok<512
 then decr(alignstate);goto 40;end else goto 22;end{:394};{397:}
-if s<>r then if s=0 then{398:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(646);end;sprintcs(warningindex);print(647);begin helpptr:=4;
-helpline[3]:=648;helpline[2]:=649;helpline[1]:=650;helpline[0]:=651;end;
-error;goto 10;end{:398}else begin t:=s;repeat begin q:=getavail;
-mem[p].hh.rh:=q;mem[q].hh.lh:=mem[t].hh.lh;p:=q;end;incr(m);
-u:=mem[t].hh.rh;v:=s;
+if s<>r then if s=0 then{398:}begin begin if interaction=3 then;
+printnl(262);print(646);end;sprintcs(warningindex);print(647);
+begin helpptr:=4;helpline[3]:=648;helpline[2]:=649;helpline[1]:=650;
+helpline[0]:=651;end;error;goto 10;end{:398}else begin t:=s;
+repeat begin q:=getavail;mem[p].hh.rh:=q;mem[q].hh.lh:=mem[t].hh.lh;
+p:=q;end;incr(m);u:=mem[t].hh.rh;v:=s;
 while true do begin if u=r then if curtok<>mem[v].hh.lh then goto 30
 else begin r:=mem[v].hh.rh;goto 22;end;
 if mem[u].hh.lh<>mem[v].hh.lh then goto 30;u:=mem[u].hh.rh;
 v:=mem[v].hh.rh;end;30:t:=mem[t].hh.rh;until t=r;r:=s;end{:397};
 if curtok=partoken then if longstate<>112 then{396:}
-begin if longstate=111 then begin runaway;
-begin if interaction=3 then wakeupterminal;printnl(262);print(641);end;
-sprintcs(warningindex);print(642);begin helpptr:=3;helpline[2]:=643;
-helpline[1]:=644;helpline[0]:=645;end;backerror;end;
-pstack[n]:=mem[memtop-3].hh.rh;alignstate:=alignstate-unbalance;
-for m:=0 to n do flushlist(pstack[m]);goto 10;end{:396};
-if curtok<768 then if curtok<512 then{399:}begin unbalance:=1;
-while true do begin begin begin q:=avail;
+begin if longstate=111 then begin runaway;begin if interaction=3 then;
+printnl(262);print(641);end;sprintcs(warningindex);print(642);
+begin helpptr:=3;helpline[2]:=643;helpline[1]:=644;helpline[0]:=645;end;
+backerror;end;pstack[n]:=mem[memtop-3].hh.rh;
+alignstate:=alignstate-unbalance;for m:=0 to n do flushlist(pstack[m]);
+goto 10;end{:396};if curtok<768 then if curtok<512 then{399:}
+begin unbalance:=1;while true do begin begin begin q:=avail;
 if q=0 then q:=getavail else begin avail:=mem[q].hh.rh;mem[q].hh.rh:=0;
 ifdef('STAT')incr(dynused);endif('STAT')end;end;mem[p].hh.rh:=q;
 mem[q].hh.lh:=curtok;p:=q;end;gettoken;
 if curtok=partoken then if longstate<>112 then{396:}
-begin if longstate=111 then begin runaway;
-begin if interaction=3 then wakeupterminal;printnl(262);print(641);end;
-sprintcs(warningindex);print(642);begin helpptr:=3;helpline[2]:=643;
-helpline[1]:=644;helpline[0]:=645;end;backerror;end;
-pstack[n]:=mem[memtop-3].hh.rh;alignstate:=alignstate-unbalance;
-for m:=0 to n do flushlist(pstack[m]);goto 10;end{:396};
+begin if longstate=111 then begin runaway;begin if interaction=3 then;
+printnl(262);print(641);end;sprintcs(warningindex);print(642);
+begin helpptr:=3;helpline[2]:=643;helpline[1]:=644;helpline[0]:=645;end;
+backerror;end;pstack[n]:=mem[memtop-3].hh.rh;
+alignstate:=alignstate-unbalance;for m:=0 to n do flushlist(pstack[m]);
+goto 10;end{:396};
 if curtok<768 then if curtok<512 then incr(unbalance)else begin decr(
 unbalance);if unbalance=0 then goto 31;end;end;31:rbraceptr:=p;
 begin q:=getavail;mem[p].hh.rh:=q;mem[q].hh.lh:=curtok;p:=q;end;
-end{:399}else{395:}begin backinput;
-begin if interaction=3 then wakeupterminal;printnl(262);print(633);end;
-sprintcs(warningindex);print(634);begin helpptr:=6;helpline[5]:=635;
-helpline[4]:=636;helpline[3]:=637;helpline[2]:=638;helpline[1]:=639;
-helpline[0]:=640;end;incr(alignstate);longstate:=111;curtok:=partoken;
-inserror;end{:395}else{393:}
+end{:399}else{395:}begin backinput;begin if interaction=3 then;
+printnl(262);print(633);end;sprintcs(warningindex);print(634);
+begin helpptr:=6;helpline[5]:=635;helpline[4]:=636;helpline[3]:=637;
+helpline[2]:=638;helpline[1]:=639;helpline[0]:=640;end;incr(alignstate);
+longstate:=111;curtok:=partoken;inserror;end{:395}else{393:}
 begin if curtok=2592 then if mem[r].hh.lh<=3584 then if mem[r].hh.lh>=
 3328 then goto 22;begin q:=getavail;mem[p].hh.rh:=q;
 mem[q].hh.lh:=curtok;p:=q;end;end{:393};incr(m);
@@ -1595,10 +1593,9 @@ mem[p].hh.rh:=curinput.locfield;curinput.startfield:=p;
 curinput.locfield:=p;end;end{:369};107:{372:}begin r:=getavail;p:=r;
 repeat getxtoken;if curcs=0 then begin q:=getavail;mem[p].hh.rh:=q;
 mem[q].hh.lh:=curtok;p:=q;end;until curcs<>0;if curcmd<>67 then{373:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(621);end;printesc(501);print(622);begin helpptr:=2;
-helpline[1]:=623;helpline[0]:=624;end;backerror;end{:373};{374:}
-j:=first;p:=mem[r].hh.rh;
+begin begin if interaction=3 then;printnl(262);print(621);end;
+printesc(501);print(622);begin helpptr:=2;helpline[1]:=623;
+helpline[0]:=624;end;backerror;end{:373};{374:}j:=first;p:=mem[r].hh.rh;
 while p<>0 do begin if j>=maxbufstack then begin maxbufstack:=j+1;
 if maxbufstack=bufsize then overflow(256,bufsize);end;
 buffer[j]:=mem[p].hh.lh mod 256;incr(j);p:=mem[p].hh.rh;end;
@@ -1609,17 +1606,16 @@ flushlist(r);if eqtb[curcs].hh.b0=101 then begin eqdefine(curcs,0,256);
 end;curtok:=curcs+4095;backinput;end{:372};108:convtoks;109:insthetoks;
 105:conditional;106:{510:}
 if curchr>iflimit then if iflimit=1 then insertrelax else begin begin if
-interaction=3 then wakeupterminal;printnl(262);print(772);end;
-printcmdchr(106,curchr);begin helpptr:=1;helpline[0]:=773;end;error;
+interaction=3 then;printnl(262);print(772);end;printcmdchr(106,curchr);
+begin helpptr:=1;helpline[0]:=773;end;error;
 end else begin while curchr<>2 do passtext;{496:}begin p:=condptr;
 ifline:=mem[p+1].int;curif:=mem[p].hh.b1;iflimit:=mem[p].hh.b0;
 condptr:=mem[p].hh.rh;freenode(p,2);end{:496};end{:510};104:{378:}
 if curchr>0 then forceeof:=true else if nameinprogress then insertrelax
-else startinput{:378};others:{370:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(615);end;begin helpptr:=5;helpline[4]:=616;helpline[3]:=617;
-helpline[2]:=618;helpline[1]:=619;helpline[0]:=620;end;error;end{:370}
-end;end{:367}else if curcmd<115 then macrocall else{375:}
+else startinput{:378};others:{370:}begin begin if interaction=3 then;
+printnl(262);print(615);end;begin helpptr:=5;helpline[4]:=616;
+helpline[3]:=617;helpline[2]:=618;helpline[1]:=619;helpline[0]:=620;end;
+error;end{:370}end;end{:367}else if curcmd<115 then macrocall else{375:}
 begin curtok:=14115;backinput;end{:375};curval:=cvbackup;
 curvallevel:=cvlbackup;radix:=radixbackup;curorder:=cobackup;
 mem[memtop-13].hh.rh:=backupbackup;end;{:366}{380:}procedure getxtoken;
@@ -1632,10 +1628,10 @@ getnext;end;
 if curcs=0 then curtok:=(curcmd*256)+curchr else curtok:=4095+curcs;end;
 {:381}{403:}procedure scanleftbrace;begin{404:}repeat getxtoken;
 until(curcmd<>10)and(curcmd<>0){:404};
-if curcmd<>1 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(653);end;begin helpptr:=4;helpline[3]:=654;
-helpline[2]:=655;helpline[1]:=656;helpline[0]:=657;end;backerror;
-curtok:=379;curcmd:=1;curchr:=123;incr(alignstate);end;end;{:403}{405:}
+if curcmd<>1 then begin begin if interaction=3 then;printnl(262);
+print(653);end;begin helpptr:=4;helpline[3]:=654;helpline[2]:=655;
+helpline[1]:=656;helpline[0]:=657;end;backerror;curtok:=379;curcmd:=1;
+curchr:=123;incr(alignstate);end;end;{:403}{405:}
 procedure scanoptionalequals;begin{406:}repeat getxtoken;
 until curcmd<>10{:406};if curtok<>3133 then backinput;end;{:405}{407:}
 function scankeyword(s:strnumber):boolean;label 10;var p:halfword;
@@ -1647,37 +1643,35 @@ end else if(curcmd<>10)or(p<>memtop-13)then begin backinput;
 if p<>memtop-13 then begintokenlist(mem[memtop-13].hh.rh,3);
 scankeyword:=false;goto 10;end;end;flushlist(mem[memtop-13].hh.rh);
 scankeyword:=true;10:end;{:407}{408:}procedure muerror;
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(658);end;begin helpptr:=1;helpline[0]:=659;end;error;end;{:408}
-{409:}procedure scanint;forward;{433:}procedure scaneightbitint;
-begin scanint;
-if(curval<0)or(curval>255)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(683);end;begin helpptr:=2;
-helpline[1]:=684;helpline[0]:=685;end;interror(curval);curval:=0;end;
-end;{:433}{434:}procedure scancharnum;begin scanint;
-if(curval<0)or(curval>255)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(686);end;begin helpptr:=2;
-helpline[1]:=687;helpline[0]:=685;end;interror(curval);curval:=0;end;
-end;{:434}{435:}procedure scanfourbitint;begin scanint;
-if(curval<0)or(curval>15)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(688);end;begin helpptr:=2;
-helpline[1]:=689;helpline[0]:=685;end;interror(curval);curval:=0;end;
-end;{:435}{436:}procedure scanfifteenbitint;begin scanint;
-if(curval<0)or(curval>32767)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(690);end;begin helpptr:=2;
-helpline[1]:=691;helpline[0]:=685;end;interror(curval);curval:=0;end;
-end;{:436}{437:}procedure scantwentysevenbitint;begin scanint;
-if(curval<0)or(curval>134217727)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(692);end;begin helpptr:=2;
-helpline[1]:=693;helpline[0]:=685;end;interror(curval);curval:=0;end;
-end;{:437}{577:}procedure scanfontident;var f:internalfontnumber;
-m:halfword;begin{406:}repeat getxtoken;until curcmd<>10{:406};
+begin begin if interaction=3 then;printnl(262);print(658);end;
+begin helpptr:=1;helpline[0]:=659;end;error;end;{:408}{409:}
+procedure scanint;forward;{433:}procedure scaneightbitint;begin scanint;
+if(curval<0)or(curval>255)then begin begin if interaction=3 then;
+printnl(262);print(683);end;begin helpptr:=2;helpline[1]:=684;
+helpline[0]:=685;end;interror(curval);curval:=0;end;end;{:433}{434:}
+procedure scancharnum;begin scanint;
+if(curval<0)or(curval>255)then begin begin if interaction=3 then;
+printnl(262);print(686);end;begin helpptr:=2;helpline[1]:=687;
+helpline[0]:=685;end;interror(curval);curval:=0;end;end;{:434}{435:}
+procedure scanfourbitint;begin scanint;
+if(curval<0)or(curval>15)then begin begin if interaction=3 then;
+printnl(262);print(688);end;begin helpptr:=2;helpline[1]:=689;
+helpline[0]:=685;end;interror(curval);curval:=0;end;end;{:435}{436:}
+procedure scanfifteenbitint;begin scanint;
+if(curval<0)or(curval>32767)then begin begin if interaction=3 then;
+printnl(262);print(690);end;begin helpptr:=2;helpline[1]:=691;
+helpline[0]:=685;end;interror(curval);curval:=0;end;end;{:436}{437:}
+procedure scantwentysevenbitint;begin scanint;
+if(curval<0)or(curval>134217727)then begin begin if interaction=3 then;
+printnl(262);print(692);end;begin helpptr:=2;helpline[1]:=693;
+helpline[0]:=685;end;interror(curval);curval:=0;end;end;{:437}{577:}
+procedure scanfontident;var f:internalfontnumber;m:halfword;begin{406:}
+repeat getxtoken;until curcmd<>10{:406};
 if curcmd=88 then f:=eqtb[11334].hh.rh else if curcmd=87 then f:=curchr
 else if curcmd=86 then begin m:=curchr;scanfourbitint;
-f:=eqtb[m+curval].hh.rh;
-end else begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(810);end;begin helpptr:=2;helpline[1]:=811;helpline[0]:=812;end;
-backerror;f:=0;end;curval:=f;end;{:577}{578:}
+f:=eqtb[m+curval].hh.rh;end else begin begin if interaction=3 then;
+printnl(262);print(810);end;begin helpptr:=2;helpline[1]:=811;
+helpline[0]:=812;end;backerror;f:=0;end;curval:=f;end;{:577}{578:}
 procedure findfontdimen(writing:boolean);var f:internalfontnumber;
 n:integer;begin scanint;n:=curval;scanfontident;f:=curval;
 if n<=0 then curval:=fmemptr else begin if writing and(n<=4)and(n>=2)and
@@ -1687,8 +1681,8 @@ begin repeat if fmemptr=fontmemsize then overflow(817,fontmemsize);
 fontinfo[fmemptr].int:=0;incr(fmemptr);incr(fontparams[f]);
 until n=fontparams[f];curval:=fmemptr-1;end{:580}
 else curval:=n+parambase[f];end;{579:}
-if curval=fmemptr then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(795);end;printesc(hash[10024+f].rh);print(813);
+if curval=fmemptr then begin begin if interaction=3 then;printnl(262);
+print(795);end;printesc(hash[10024+f].rh);print(813);
 printint(fontparams[f]);print(814);begin helpptr:=2;helpline[1]:=815;
 helpline[0]:=816;end;error;end{:579};end;{:578}{:409}{413:}
 procedure scansomethinginternal(level:smallnumber;negative:boolean);
@@ -1698,10 +1692,9 @@ if m=12407 then begin curval:=eqtb[12407+curval].hh.rh;curvallevel:=0;
 end else if m<12407 then begin curval:=eqtb[m+curval].hh.rh;
 curvallevel:=0;end else begin curval:=eqtb[m+curval].int;curvallevel:=0;
 end;end{:414};71,72,86,87,88:{415:}
-if level<>5 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(660);end;begin helpptr:=3;helpline[2]:=661;
-helpline[1]:=662;helpline[0]:=663;end;backerror;begin curval:=0;
-curvallevel:=1;end;
+if level<>5 then begin begin if interaction=3 then;printnl(262);
+print(660);end;begin helpptr:=3;helpline[2]:=661;helpline[1]:=662;
+helpline[0]:=663;end;backerror;begin curval:=0;curvallevel:=1;end;
 end else if curcmd<=72 then begin if curcmd<72 then begin
 scaneightbitint;m:=10822+curval;end;begin curval:=eqtb[m].hh.rh;
 curvallevel:=5;end;end else begin backinput;scanfontident;
@@ -1710,14 +1703,15 @@ begin curval:=10024+curval;curvallevel:=4;end;end{:415};
 74:begin curval:=eqtb[m].int;curvallevel:=1;end;
 75:begin curval:=eqtb[m].hh.rh;curvallevel:=2;end;
 76:begin curval:=eqtb[m].hh.rh;curvallevel:=3;end;79:{418:}
-if abs(curlist.modefield)<>m then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(676);end;printcmdchr(79,m);
-begin helpptr:=4;helpline[3]:=677;helpline[2]:=678;helpline[1]:=679;
-helpline[0]:=680;end;error;if level<>5 then begin curval:=0;
-curvallevel:=1;end else begin curval:=0;curvallevel:=0;end;
+if abs(curlist.modefield)<>m then begin begin if interaction=3 then;
+printnl(262);print(676);end;printcmdchr(79,m);begin helpptr:=4;
+helpline[3]:=677;helpline[2]:=678;helpline[1]:=679;helpline[0]:=680;end;
+error;if level<>5 then begin curval:=0;curvallevel:=1;
+end else begin curval:=0;curvallevel:=0;end;
 end else if m=1 then begin curval:=curlist.auxfield.int;curvallevel:=1;
 end else begin curval:=curlist.auxfield.hh.lh;curvallevel:=0;end{:418};
-80:{422:}begin nest[nestptr]:=curlist;p:=nestptr;
+80:{422:}if curlist.modefield=0 then begin curval:=0;curvallevel:=0;
+end else begin nest[nestptr]:=curlist;p:=nestptr;
 while abs(nest[p].modefield)<>1 do decr(p);
 begin curval:=nest[p].pgfield;curvallevel:=0;end;end{:422};82:{419:}
 begin if m=0 then curval:=deadcycles else curval:=insertpenalties;
@@ -1755,11 +1749,10 @@ if mem[curlist.tailfield].hh.b1=99 then curvallevel:=3;end;
 end else if(curlist.modefield=1)and(curlist.tailfield=curlist.headfield)
 then case curchr of 0:curval:=lastpenalty;1:curval:=lastkern;
 2:if lastglue<>262143 then curval:=lastglue;end;end{:424};others:{428:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(681);end;printcmdchr(curcmd,curchr);print(682);printesc(533);
-begin helpptr:=1;helpline[0]:=680;end;error;
-if level<>5 then begin curval:=0;curvallevel:=1;
-end else begin curval:=0;curvallevel:=0;end;end{:428}end;
+begin begin if interaction=3 then;printnl(262);print(681);end;
+printcmdchr(curcmd,curchr);print(682);printesc(533);begin helpptr:=1;
+helpline[0]:=680;end;error;if level<>5 then begin curval:=0;
+curvallevel:=1;end else begin curval:=0;curvallevel:=0;end;end{:428}end;
 while curvallevel>level do{429:}
 begin if curvallevel=2 then curval:=mem[curval+1].int else if
 curvallevel=3 then muerror;decr(curvallevel);end{:429};{430:}
@@ -1777,10 +1770,9 @@ until curtok<>3115{:441};if curtok=3168 then{442:}begin gettoken;
 if curtok<4095 then begin curval:=curchr;
 if curcmd<=2 then if curcmd=2 then incr(alignstate)else decr(alignstate)
 ;end else if curtok<4352 then curval:=curtok-4096 else curval:=curtok
--4352;
-if curval>255 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(694);end;begin helpptr:=2;helpline[1]:=695;
-helpline[0]:=696;end;curval:=48;backerror;end else{443:}begin getxtoken;
+-4352;if curval>255 then begin begin if interaction=3 then;printnl(262);
+print(694);end;begin helpptr:=2;helpline[1]:=695;helpline[0]:=696;end;
+curval:=48;backerror;end else{443:}begin getxtoken;
 if curcmd<>10 then backinput;end{:443};end{:442}
 else if(curcmd>=68)and(curcmd<=89)then scansomethinginternal(0,false)
 else{444:}begin radix:=10;m:=214748364;
@@ -1792,14 +1784,13 @@ while true do begin if(curtok<3120+radix)and(curtok>=3120)and(curtok<=
 curtok>=2881)then d:=curtok-2871 else if(curtok<=3142)and(curtok>=3137)
 then d:=curtok-3127 else goto 30 else goto 30;vacuous:=false;
 if(curval>=m)and((curval>m)or(d>7)or(radix<>10))then begin if OKsofar
-then begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(697);end;begin helpptr:=2;helpline[1]:=698;helpline[0]:=699;end;
-error;curval:=2147483647;OKsofar:=false;end;
-end else curval:=curval*radix+d;getxtoken;end;30:{:445};
-if vacuous then{446:}begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(660);end;begin helpptr:=3;helpline[2]:=661;
-helpline[1]:=662;helpline[0]:=663;end;backerror;end{:446}
-else if curcmd<>10 then backinput;end{:444};
+then begin begin if interaction=3 then;printnl(262);print(697);end;
+begin helpptr:=2;helpline[1]:=698;helpline[0]:=699;end;error;
+curval:=2147483647;OKsofar:=false;end;end else curval:=curval*radix+d;
+getxtoken;end;30:{:445};if vacuous then{446:}
+begin begin if interaction=3 then;printnl(262);print(660);end;
+begin helpptr:=3;helpline[2]:=661;helpline[1]:=662;helpline[0]:=663;end;
+backerror;end{:446}else if curcmd<>10 then backinput;end{:444};
 if negative then curval:=-curval;end;{:440}{448:}
 procedure scandimen(mu,inf,shortcut:boolean);label 30,31,32,40,45,88,89;
 var negative:boolean;f:integer;{450:}num,denom:1..65536;
@@ -1829,10 +1820,10 @@ if curcmd<>10 then backinput;end{:452};end;end;
 if curval<0 then begin negative:=not negative;curval:=-curval;end;{453:}
 if inf then{454:}if scankeyword(309)then begin curorder:=1;
 while scankeyword(108)do begin if curorder=3 then begin begin if
-interaction=3 then wakeupterminal;printnl(262);print(701);end;
-print(702);begin helpptr:=1;helpline[0]:=703;end;error;
-end else incr(curorder);end;goto 88;end{:454};{455:}savecurval:=curval;
-{406:}repeat getxtoken;until curcmd<>10{:406};
+interaction=3 then;printnl(262);print(701);end;print(702);
+begin helpptr:=1;helpline[0]:=703;end;error;end else incr(curorder);end;
+goto 88;end{:454};{455:}savecurval:=curval;{406:}repeat getxtoken;
+until curcmd<>10{:406};
 if(curcmd<68)or(curcmd>89)then backinput else begin if mu then begin
 scansomethinginternal(3,false);{451:}
 if curvallevel>=2 then begin v:=mem[curval+1].int;deleteglueref(curval);
@@ -1845,12 +1836,12 @@ fontinfo[5+parambase[eqtb[11334].hh.rh]].int{:559})else goto 45;{443:}
 begin getxtoken;if curcmd<>10 then backinput;end{:443};
 40:curval:=multandadd(savecurval,v,xnoverd(v,f,65536),1073741823);
 goto 89;45:{:455};if mu then{456:}
-if scankeyword(334)then goto 88 else begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(701);end;print(706);begin helpptr:=4;
+if scankeyword(334)then goto 88 else begin begin if interaction=3 then;
+printnl(262);print(701);end;print(706);begin helpptr:=4;
 helpline[3]:=707;helpline[2]:=708;helpline[1]:=709;helpline[0]:=710;end;
 error;goto 88;end{:456};if scankeyword(700)then{457:}begin preparemag;
 if eqtb[12680].int<>1000 then begin curval:=xnoverd(curval,1000,eqtb[
-12680].int);f:=(1000*f+65536*remainder)div eqtb[12680].int;
+12680].int);f:=(1000*f+65536*texremainder)div eqtb[12680].int;
 curval:=curval+(f div 65536);f:=f mod 65536;end;end{:457};
 if scankeyword(393)then goto 88;{458:}
 if scankeyword(711)then begin num:=7227;denom:=100;
@@ -1861,18 +1852,18 @@ end else if scankeyword(715)then begin num:=7227;denom:=7200;
 end else if scankeyword(716)then begin num:=1238;denom:=1157;
 end else if scankeyword(717)then begin num:=14856;denom:=1157;
 end else if scankeyword(718)then goto 30 else{459:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(701);end;print(719);begin helpptr:=6;helpline[5]:=720;
-helpline[4]:=721;helpline[3]:=722;helpline[2]:=708;helpline[1]:=709;
-helpline[0]:=710;end;error;goto 32;end{:459};
-curval:=xnoverd(curval,num,denom);f:=(num*f+65536*remainder)div denom;
-curval:=curval+(f div 65536);f:=f mod 65536;32:{:458};
+begin begin if interaction=3 then;printnl(262);print(701);end;
+print(719);begin helpptr:=6;helpline[5]:=720;helpline[4]:=721;
+helpline[3]:=722;helpline[2]:=708;helpline[1]:=709;helpline[0]:=710;end;
+error;goto 32;end{:459};curval:=xnoverd(curval,num,denom);
+f:=(num*f+65536*texremainder)div denom;curval:=curval+(f div 65536);
+f:=f mod 65536;32:{:458};
 88:if curval>=16384 then aritherror:=true else curval:=curval*65536+f;
 30:{:453};{443:}begin getxtoken;if curcmd<>10 then backinput;end{:443};
 89:if aritherror or(abs(curval)>=1073741824)then{460:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(723);end;begin helpptr:=2;helpline[1]:=724;helpline[0]:=725;end;
-error;curval:=1073741823;aritherror:=false;end{:460};
+begin begin if interaction=3 then;printnl(262);print(723);end;
+begin helpptr:=2;helpline[1]:=724;helpline[0]:=725;end;error;
+curval:=1073741823;aritherror:=false;end{:460};
 if negative then curval:=-curval;end;{:448}{461:}
 procedure scanglue(level:smallnumber);label 10;var negative:boolean;
 q:halfword;mu:boolean;begin mu:=(level=3);{441:}negative:=false;
@@ -1950,19 +1941,18 @@ if curcmd=6 then{476:}begin s:=3328+curchr;gettoken;
 if curcmd=1 then begin hashbrace:=curtok;begin q:=getavail;
 mem[p].hh.rh:=q;mem[q].hh.lh:=curtok;p:=q;end;begin q:=getavail;
 mem[p].hh.rh:=q;mem[q].hh.lh:=3584;p:=q;end;goto 30;end;
-if t=3129 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(740);end;begin helpptr:=1;helpline[0]:=741;end;error;
+if t=3129 then begin begin if interaction=3 then;printnl(262);
+print(740);end;begin helpptr:=1;helpline[0]:=741;end;error;
 end else begin incr(t);
-if curtok<>t then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(742);end;begin helpptr:=2;helpline[1]:=743;
-helpline[0]:=744;end;backerror;end;curtok:=s;end;end{:476};
-begin q:=getavail;mem[p].hh.rh:=q;mem[q].hh.lh:=curtok;p:=q;end;end;
-31:begin q:=getavail;mem[p].hh.rh:=q;mem[q].hh.lh:=3584;p:=q;end;
-if curcmd=2 then{475:}begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(653);end;incr(alignstate);begin helpptr:=2;
-helpline[1]:=738;helpline[0]:=739;end;error;goto 40;end{:475};
-30:end{:474}else scanleftbrace;{477:}unbalance:=1;
-while true do begin if xpand then{478:}
+if curtok<>t then begin begin if interaction=3 then;printnl(262);
+print(742);end;begin helpptr:=2;helpline[1]:=743;helpline[0]:=744;end;
+backerror;end;curtok:=s;end;end{:476};begin q:=getavail;mem[p].hh.rh:=q;
+mem[q].hh.lh:=curtok;p:=q;end;end;31:begin q:=getavail;mem[p].hh.rh:=q;
+mem[q].hh.lh:=3584;p:=q;end;if curcmd=2 then{475:}
+begin begin if interaction=3 then;printnl(262);print(653);end;
+incr(alignstate);begin helpptr:=2;helpline[1]:=738;helpline[0]:=739;end;
+error;goto 40;end{:475};30:end{:474}else scanleftbrace;{477:}
+unbalance:=1;while true do begin if xpand then{478:}
 begin while true do begin getnext;if curcmd<=100 then goto 32;
 if curcmd<>109 then expand else begin q:=thetoks;
 if mem[memtop-3].hh.rh<>0 then begin mem[p].hh.rh:=mem[memtop-3].hh.rh;
@@ -1972,12 +1962,11 @@ unbalance);if unbalance=0 then goto 40;
 end else if curcmd=6 then if macrodef then{479:}begin s:=curtok;
 if xpand then getxtoken else gettoken;
 if curcmd<>6 then if(curtok<=3120)or(curtok>t)then begin begin if
-interaction=3 then wakeupterminal;printnl(262);print(745);end;
-sprintcs(warningindex);begin helpptr:=3;helpline[2]:=746;
-helpline[1]:=747;helpline[0]:=748;end;backerror;curtok:=s;
-end else curtok:=1232+curchr;end{:479};begin q:=getavail;
-mem[p].hh.rh:=q;mem[q].hh.lh:=curtok;p:=q;end;end{:477};
-40:scannerstatus:=0;if hashbrace<>0 then begin q:=getavail;
+interaction=3 then;printnl(262);print(745);end;sprintcs(warningindex);
+begin helpptr:=3;helpline[2]:=746;helpline[1]:=747;helpline[0]:=748;end;
+backerror;curtok:=s;end else curtok:=1232+curchr;end{:479};
+begin q:=getavail;mem[p].hh.rh:=q;mem[q].hh.lh:=curtok;p:=q;end;
+end{:477};40:scannerstatus:=0;if hashbrace<>0 then begin q:=getavail;
 mem[p].hh.rh:=q;mem[q].hh.lh:=hashbrace;p:=q;end;scantoks:=p;end;{:473}
 {482:}procedure readtoks(n:integer;r:halfword);label 30;var p:halfword;
 q:halfword;s:integer;m:smallnumber;begin scannerstatus:=2;
@@ -1985,23 +1974,24 @@ warningindex:=r;defref:=getavail;mem[defref].hh.lh:=0;p:=defref;
 begin q:=getavail;mem[p].hh.rh:=q;mem[q].hh.lh:=3584;p:=q;end;
 if(n<0)or(n>15)then m:=16 else m:=n;s:=alignstate;alignstate:=1000000;
 repeat{483:}beginfilereading;curinput.namefield:=m+1;
-if readopen[m]=2 then{484:}
-if interaction>1 then if n<0 then begin wakeupterminal;print(335);
-terminput;end else begin wakeupterminal;println;sprintcs(r);
-begin wakeupterminal;print(61);terminput;end;n:=-1;
-end else fatalerror(749){:484}else if readopen[m]=1 then{485:}
+if readopen[m]=2 then{484:}if interaction>1 then if n<0 then begin;
+print(335);terminput;end else begin;println;sprintcs(r);begin;print(61);
+terminput;end;n:=-1;end else fatalerror(749){:484}
+else if readopen[m]=1 then{485:}
 if inputln(readfile[m],false)then readopen[m]:=0 else begin aclose(
 readfile[m]);readopen[m]:=2;end{:485}else{486:}
 begin if not inputln(readfile[m],true)then begin aclose(readfile[m]);
 readopen[m]:=2;if alignstate<>1000000 then begin runaway;
-begin if interaction=3 then wakeupterminal;printnl(262);print(750);end;
-printesc(530);begin helpptr:=1;helpline[0]:=751;end;alignstate:=1000000;
-error;end;end;end{:486};curinput.limitfield:=last;
+begin if interaction=3 then;printnl(262);print(750);end;printesc(530);
+begin helpptr:=1;helpline[0]:=751;end;alignstate:=1000000;error;end;end;
+end{:486};curinput.limitfield:=last;
 if(eqtb[12711].int<0)or(eqtb[12711].int>255)then decr(curinput.
 limitfield)else buffer[curinput.limitfield]:=eqtb[12711].int;
 first:=curinput.limitfield+1;curinput.locfield:=curinput.startfield;
 curinput.statefield:=33;while true do begin gettoken;
-if curtok=0 then goto 30;begin q:=getavail;mem[p].hh.rh:=q;
+if curtok=0 then goto 30;
+if alignstate<1000000 then begin repeat gettoken;until curtok=0;
+alignstate:=1000000;goto 30;end;begin q:=getavail;mem[p].hh.rh:=q;
 mem[q].hh.lh:=curtok;p:=q;end;end;30:endfilereading{:483};
 until alignstate=1000000;curval:=defref;scannerstatus:=0;alignstate:=s;
 end;{:482}{494:}procedure passtext;label 30;var l:integer;
@@ -2032,9 +2022,9 @@ if thisif=0 then b:=(n=curchr)else b:=(m=curcmd);end{:506};2,3:{503:}
 begin if thisif=2 then scanint else scandimen(false,false,false);
 n:=curval;{406:}repeat getxtoken;until curcmd<>10{:406};
 if(curtok>=3132)and(curtok<=3134)then r:=curtok-3072 else begin begin if
-interaction=3 then wakeupterminal;printnl(262);print(776);end;
-printcmdchr(105,thisif);begin helpptr:=1;helpline[0]:=777;end;backerror;
-r:=61;end;if thisif=2 then scanint else scandimen(false,false,false);
+interaction=3 then;printnl(262);print(776);end;printcmdchr(105,thisif);
+begin helpptr:=1;helpline[0]:=777;end;backerror;r:=61;end;
+if thisif=2 then scanint else scandimen(false,false,false);
 case r of 60:b:=(n<curval);61:b:=(n=curval);62:b:=(n>curval);end;
 end{:503};4:{504:}begin scanint;b:=odd(curval);end{:504};
 5:b:=(abs(curlist.modefield)=1);6:b:=(abs(curlist.modefield)=102);
@@ -2063,8 +2053,8 @@ enddiagnostic(false);end{:502};
 if b then begin changeiflimit(3,savecondptr);goto 10;end;{500:}
 while true do begin passtext;
 if condptr=savecondptr then begin if curchr<>4 then goto 50;
-begin if interaction=3 then wakeupterminal;printnl(262);print(772);end;
-printesc(770);begin helpptr:=1;helpline[0]:=773;end;error;
+begin if interaction=3 then;printnl(262);print(772);end;printesc(770);
+begin helpptr:=1;helpline[0]:=773;end;error;
 end else if curchr=2 then{496:}begin p:=condptr;ifline:=mem[p+1].int;
 curif:=mem[p].hh.b1;iflimit:=mem[p].hh.b0;condptr:=mem[p].hh.rh;
 freenode(p,2);end{:496};end{:500};50:if curchr=2 then{496:}
@@ -2090,49 +2080,48 @@ incr(strptr);curext:=makestring;end;end;{:517}{519:}
 procedure packfilename(n,a,e:strnumber);var k:integer;c:ASCIIcode;
 j:poolpointer;begin k:=0;
 for j:=strstart[a]to strstart[a+1]-1 do begin c:=strpool[j];incr(k);
-if k<=FILENAMESIZE then nameoffile[k]:=xchr[c];end;
+if k<=PATHMAX then nameoffile[k]:=xchr[c];end;
 for j:=strstart[n]to strstart[n+1]-1 do begin c:=strpool[j];incr(k);
-if k<=FILENAMESIZE then nameoffile[k]:=xchr[c];end;
+if k<=PATHMAX then nameoffile[k]:=xchr[c];end;
 for j:=strstart[e]to strstart[e+1]-1 do begin c:=strpool[j];incr(k);
-if k<=FILENAMESIZE then nameoffile[k]:=xchr[c];end;
-if k<=FILENAMESIZE then namelength:=k else namelength:=FILENAMESIZE;
-for k:=namelength+1 to FILENAMESIZE do nameoffile[k]:=' ';end;{:519}
-{523:}procedure packbufferedname(n:smallnumber;a,b:integer);
-var k:integer;c:ASCIIcode;j:integer;
-begin if n+b-a+5>FILENAMESIZE then b:=a+FILENAMESIZE-n-5;k:=0;
-for j:=1 to n do begin c:=xord[TEXformatdefault[j]];incr(k);
-if k<=FILENAMESIZE then nameoffile[k]:=xchr[c];end;
+if k<=PATHMAX then nameoffile[k]:=xchr[c];end;
+if k<PATHMAX then namelength:=k else namelength:=PATHMAX-1;
+for k:=namelength+1 to PATHMAX do nameoffile[k]:=' ';end;{:519}{523:}
+procedure packbufferedname(n:smallnumber;a,b:integer);var k:integer;
+c:ASCIIcode;j:integer;begin if n+b-a+5>PATHMAX then b:=a+PATHMAX-n-5;
+k:=0;for j:=1 to n do begin c:=xord[TEXformatdefault[j]];incr(k);
+if k<=PATHMAX then nameoffile[k]:=xchr[c];end;
 for j:=a to b do begin c:=buffer[j];incr(k);
-if k<=FILENAMESIZE then nameoffile[k]:=xchr[c];end;
-for j:=6 to 9 do begin c:=xord[TEXformatdefault[j]];incr(k);
-if k<=FILENAMESIZE then nameoffile[k]:=xchr[c];end;
-if k<=FILENAMESIZE then namelength:=k else namelength:=FILENAMESIZE;
-for k:=namelength+1 to FILENAMESIZE do nameoffile[k]:=' ';end;{:523}
-{525:}function makenamestring:strnumber;var k,kstart:1..FILENAMESIZE;
-begin k:=1;
-while(k<FILENAMESIZE)and(xord[realnameoffile[k]]<>32)do incr(k);
-namelength:=k-1;
-if(poolptr+namelength>poolsize)or(strptr=maxstrings)or((poolptr-strstart
-[strptr])>0)then makenamestring:=63 else begin if(xord[realnameoffile[1]
-]=46)and(xord[realnameoffile[2]]=47)then kstart:=3 else kstart:=1;
-for k:=kstart to namelength do begin strpool[poolptr]:=xord[
-realnameoffile[k]];incr(poolptr);end;makenamestring:=makestring;end;end;
-{:525}{526:}procedure scanfilename;label 30;begin nameinprogress:=true;
-beginname;{406:}repeat getxtoken;until curcmd<>10{:406};
+if k<=PATHMAX then nameoffile[k]:=xchr[c];end;
+for j:=formatdefaultlength-3 to formatdefaultlength do begin c:=xord[
+TEXformatdefault[j]];incr(k);if k<=PATHMAX then nameoffile[k]:=xchr[c];
+end;if k<PATHMAX then namelength:=k else namelength:=PATHMAX-1;
+for k:=namelength+1 to PATHMAX do nameoffile[k]:=' ';end;{:523}{525:}
+function makenamestring:strnumber;var k:1..PATHMAX;
+begin if(poolptr+namelength>poolsize)or(strptr=maxstrings)or((poolptr-
+strstart[strptr])>0)then makenamestring:=63 else begin for k:=1 to
+namelength do begin strpool[poolptr]:=xord[nameoffile[k]];incr(poolptr);
+end;makenamestring:=makestring;end;end;
+function amakenamestring(var f:alphafile):strnumber;
+begin amakenamestring:=makenamestring;end;
+function bmakenamestring(var f:bytefile):strnumber;
+begin bmakenamestring:=makenamestring;end;
+function wmakenamestring(var f:wordfile):strnumber;
+begin wmakenamestring:=makenamestring;end;{:525}{526:}
+procedure scanfilename;label 30;begin nameinprogress:=true;beginname;
+{406:}repeat getxtoken;until curcmd<>10{:406};
 while true do begin if(curcmd>12)or(curchr>255)then begin backinput;
 goto 30;end;if not morename(curchr)then goto 30;getxtoken;end;
 30:endname;nameinprogress:=false;end;{:526}{529:}
 procedure packjobname(s:strnumber);begin curarea:=335;curext:=s;
 curname:=jobname;packfilename(curname,curarea,curext);end;{:529}{530:}
 procedure promptfilename(s,e:strnumber);label 30;var k:0..bufsize;
-begin if interaction=2 then wakeupterminal;
-if s=780 then begin if interaction=3 then wakeupterminal;printnl(262);
-print(781);end else begin if interaction=3 then wakeupterminal;
+begin if interaction=2 then;if s=780 then begin if interaction=3 then;
+printnl(262);print(781);end else begin if interaction=3 then;
 printnl(262);print(782);end;printfilename(curname,curarea,curext);
 print(783);if e=784 then showcontext;printnl(785);print(s);
-if interaction<2 then fatalerror(786);clearterminal;
-begin wakeupterminal;print(564);terminput;end;{531:}begin beginname;
-k:=first;while(buffer[k]=32)and(k<last)do incr(k);
+if interaction<2 then fatalerror(786);;begin;print(564);terminput;end;
+{531:}begin beginname;k:=first;while(buffer[k]=32)and(k<last)do incr(k);
 while true do begin if k=last then goto 30;
 if not morename(buffer[k])then goto 30;incr(k);end;30:endname;end{:531};
 if curext=335 then curext:=e;packfilename(curname,curarea,curext);end;
@@ -2140,11 +2129,11 @@ if curext=335 then curext:=e;packfilename(curname,curarea,curext);end;
 l:0..bufsize;months:ccharpointer;begin oldsetting:=selector;
 if jobname=0 then jobname:=789;packjobname(790);
 while not aopenout(logfile)do{535:}begin selector:=17;
-promptfilename(792,790);end{:535};logname:=amakenamestring(logfile);
-selector:=18;logopened:=true;{536:}
-begin write(logfile,'This is TeX, C Version 3.0');print(formatident);
-print(793);printint(eqtb[12684].int);printchar(32);
-months:=' JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC';
+promptfilename(792,790);end{:535};
+texmflogname:=amakenamestring(logfile);selector:=18;logopened:=true;
+{536:}begin write(logfile,'This is TeX, C Version 3.141');
+slowprint(formatident);print(793);printint(eqtb[12684].int);
+printchar(32);months:=' JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC';
 for k:=3*eqtb[12685].int-2 to 3*eqtb[12685].int do write(logfile,months[
 k]);printchar(32);printint(eqtb[12686].int);printchar(32);
 printtwo(eqtb[12683].int div 60);printchar(58);
@@ -2153,22 +2142,28 @@ inputstack[inputptr]:=curinput;printnl(791);l:=inputstack[0].limitfield;
 if buffer[l]=eqtb[12711].int then decr(l);
 for k:=1 to l do print(buffer[k]);println;selector:=oldsetting+2;end;
 {:534}{537:}procedure startinput;label 30;begin scanfilename;
-if curext=335 then curext:=784;packfilename(curname,curarea,curext);
+packfilename(curname,curarea,curext);
 while true do begin beginfilereading;
-if aopenin(inputfile[curinput.indexfield],inputpathspec)then goto 30;
+if(curext<>784)and(namelength+5<PATHMAX)and(not extensionirrelevantp(
+nameoffile,'tex'))then begin nameoffile[namelength+1]:=46;
+nameoffile[namelength+2]:=116;nameoffile[namelength+3]:=101;
+nameoffile[namelength+4]:=120;namelength:=namelength+4;end;
+if aopenin(inputfile[curinput.indexfield],TEXINPUTPATH)then goto 30;
+if curext=784 then curext:=335;packfilename(curname,curarea,curext);
+if aopenin(inputfile[curinput.indexfield],TEXINPUTPATH)then goto 30;
 endfilereading;promptfilename(780,784);end;
 30:curinput.namefield:=amakenamestring(inputfile[curinput.indexfield]);
 if jobname=0 then begin jobname:=curname;openlogfile;end;
 if termoffset+(strstart[curinput.namefield+1]-strstart[curinput.
 namefield])>maxprintline-3 then println else if(termoffset>0)or(
 fileoffset>0)then printchar(32);printchar(40);incr(openparens);
-print(curinput.namefield);termflush(stdout);curinput.statefield:=33;
-{538:}begin if inputln(inputfile[curinput.indexfield],false)then;
-firmuptheline;
+slowprint(curinput.namefield);flush(stdout);curinput.statefield:=33;
+{538:}begin line:=1;
+if inputln(inputfile[curinput.indexfield],false)then;firmuptheline;
 if(eqtb[12711].int<0)or(eqtb[12711].int>255)then decr(curinput.
 limitfield)else buffer[curinput.limitfield]:=eqtb[12711].int;
 first:=curinput.limitfield+1;curinput.locfield:=curinput.startfield;
-line:=1;end{:538};end;{:537}{560:}function readfontinfo(u:halfword;
+end{:538};end;{:537}{560:}function readfontinfo(u:halfword;
 nom,aire:strnumber;s:scaled):internalfontnumber;label 30,11,45;
 var k:fontindex;fileopened:boolean;
 lf,lh,bc,ec,nw,nh,nd,ni,nl,nk,ne,np:halfword;f:internalfontnumber;
@@ -2200,8 +2195,8 @@ if np>127 then goto 11;tfmtemp:=getc(tfmfile);np:=np*256+tfmtemp;end;
 if lf<>6+lh+(ec-bc+1)+nw+nh+nd+ni+nl+nk+ne+np then goto 11;end{:565};
 {566:}lf:=lf-6-lh;if np<7 then lf:=lf+7-np;
 if(fontptr=fontmax)or(fmemptr+lf>fontmemsize)then{567:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(795);end;sprintcs(u);printchar(61);printfilename(nom,aire,335);
+begin begin if interaction=3 then;printnl(262);print(795);end;
+sprintcs(u);printchar(61);printfilename(nom,aire,335);
 if s>=0 then begin print(737);printscaled(s);print(393);
 end else if s<>-1000 then begin print(796);printint(-s);end;print(805);
 begin helpptr:=4;helpline[3]:=806;helpline[2]:=807;helpline[1]:=808;
@@ -2288,7 +2283,7 @@ b:=tfmtemp;tfmtemp:=getc(tfmfile);c:=tfmtemp;tfmtemp:=getc(tfmfile);
 d:=tfmtemp;sw:=(((((d*z)div 256)+(c*z))div 256)+(b*z))div beta;
 if a=0 then fontinfo[parambase[f]+k-1].int:=sw else if a=255 then
 fontinfo[parambase[f]+k-1].int:=sw-alpha else goto 11;end;
-if eof(tfmfile)then goto 11;
+if feof(tfmfile)then goto 11;
 for k:=np+1 to 7 do fontinfo[parambase[f]+k-1].int:=0;end{:575};{576:}
 if np>=7 then fontparams[f]:=np else fontparams[f]:=7;
 hyphenchar[f]:=eqtb[12709].int;skewchar[f]:=eqtb[12710].int;
@@ -2301,17 +2296,16 @@ charbase[f]:=charbase[f];widthbase[f]:=widthbase[f];
 ligkernbase[f]:=ligkernbase[f];kernbase[f]:=kernbase[f];
 extenbase[f]:=extenbase[f];decr(parambase[f]);fmemptr:=fmemptr+lf;
 fontptr:=f;g:=f;goto 30{:576}{:562};11:{561:}
-begin if interaction=3 then wakeupterminal;printnl(262);print(795);end;
-sprintcs(u);printchar(61);printfilename(nom,aire,335);
-if s>=0 then begin print(737);printscaled(s);print(393);
-end else if s<>-1000 then begin print(796);printint(-s);end;
-if fileopened then print(797)else print(798);begin helpptr:=5;
-helpline[4]:=799;helpline[3]:=800;helpline[2]:=801;helpline[1]:=802;
-helpline[0]:=803;end;error{:561};30:if fileopened then bclose(tfmfile);
-readfontinfo:=g;end;{:560}{581:}
+begin if interaction=3 then;printnl(262);print(795);end;sprintcs(u);
+printchar(61);printfilename(nom,aire,335);if s>=0 then begin print(737);
+printscaled(s);print(393);end else if s<>-1000 then begin print(796);
+printint(-s);end;if fileopened then print(797)else print(798);
+begin helpptr:=5;helpline[4]:=799;helpline[3]:=800;helpline[2]:=801;
+helpline[1]:=802;helpline[0]:=803;end;error{:561};
+30:if fileopened then bclose(tfmfile);readfontinfo:=g;end;{:560}{581:}
 procedure charwarning(f:internalfontnumber;c:eightbits);
 begin if eqtb[12698].int>0 then begin begindiagnostic;printnl(818);
-print(c);print(819);print(fontname[f]);printchar(33);
+print(c);print(819);slowprint(fontname[f]);printchar(33);
 enddiagnostic(false);end;end;{:581}{582:}
 function newcharacter(f:internalfontnumber;c:eightbits):halfword;
 label 10;var p:halfword;
@@ -2424,12 +2418,11 @@ r:=getavail;mem[q].hh.rh:=r;mem[r].hh.lh:=14117;begintokenlist(q,4);
 begintokenlist(mem[p+1].hh.rh,15);q:=getavail;mem[q].hh.lh:=379;
 begintokenlist(q,4);oldmode:=curlist.modefield;curlist.modefield:=0;
 curcs:=writeloc;q:=scantoks(false,true);gettoken;
-if curtok<>14117 then{1372:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1287);end;begin helpptr:=2;helpline[1]:=1288;helpline[0]:=1005;
-end;error;repeat gettoken;until curtok=14117;end{:1372};
-curlist.modefield:=oldmode;endtokenlist{:1371};oldsetting:=selector;
-j:=mem[p+1].hh.lh;
+if curtok<>14117 then{1372:}begin begin if interaction=3 then;
+printnl(262);print(1289);end;begin helpptr:=2;helpline[1]:=1290;
+helpline[0]:=1005;end;error;repeat gettoken;until curtok=14117;
+end{:1372};curlist.modefield:=oldmode;endtokenlist{:1371};
+oldsetting:=selector;j:=mem[p+1].hh.lh;
 if writeopen[j]then selector:=j else begin if(j=17)and(selector=19)then
 selector:=18;printnl(335);end;tokenshow(defref);println;
 flushlist(defref);selector:=oldsetting;end;{:1370}{1373:}
@@ -2441,9 +2434,9 @@ writefile[j]);
 if mem[p].hh.b1=2 then writeopen[j]:=false else if j<16 then begin
 curname:=mem[p+1].hh.rh;curarea:=mem[p+2].hh.lh;curext:=mem[p+2].hh.rh;
 if curext=335 then curext:=784;packfilename(curname,curarea,curext);
-while not aopenout(writefile[j])do promptfilename(1290,784);
+while not aopenout(writefile[j])do promptfilename(1292,784);
 writeopen[j]:=true;end;end;end{:1374};3:specialout(p);4:;
-others:confusion(1289)end;end;{:1373}procedure hlistout;
+others:confusion(1291)end;end;{:1373}procedure hlistout;
 label 21,13,14,15;var baseline:scaled;leftedge:scaled;
 saveh,savev:scaled;thisbox:halfword;gorder:glueord;gsign:0..2;
 p:halfword;saveloc:integer;leaderbox:halfword;leaderwd:scaled;lx:scaled;
@@ -2578,15 +2571,14 @@ end;if termoffset>maxprintline-9 then println else if(termoffset>0)or(
 fileoffset>0)then printchar(32);printchar(91);j:=9;
 while(eqtb[12718+j].int=0)and(j>0)do decr(j);
 for k:=0 to j do begin printint(eqtb[12718+k].int);
-if k<j then printchar(46);end;termflush(stdout);
+if k<j then printchar(46);end;flush(stdout);
 if eqtb[12697].int>0 then begin printchar(93);begindiagnostic;
 showbox(p);enddiagnostic(true);end;{640:}{641:}
 if(mem[p+3].int>1073741823)or(mem[p+2].int>1073741823)or(mem[p+3].int+
 mem[p+2].int+eqtb[13249].int>1073741823)or(mem[p+1].int+eqtb[13248].int>
-1073741823)then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(826);end;begin helpptr:=2;helpline[1]:=827;
-helpline[0]:=828;end;error;
-if eqtb[12697].int<=0 then begin begindiagnostic;printnl(829);
+1073741823)then begin begin if interaction=3 then;printnl(262);
+print(826);end;begin helpptr:=2;helpline[1]:=827;helpline[0]:=828;end;
+error;if eqtb[12697].int<=0 then begin begindiagnostic;printnl(829);
 showbox(p);enddiagnostic(true);end;goto 30;end;
 if mem[p+3].int+mem[p+2].int+eqtb[13249].int>maxv then maxv:=mem[p+3].
 int+mem[p+2].int+eqtb[13249].int;
@@ -2614,7 +2606,7 @@ lastbop:=pageloc;curv:=mem[p+3].int+eqtb[13249].int;tempptr:=p;
 if mem[p].hh.b0=1 then vlistout else hlistout;begin dvibuf[dviptr]:=140;
 incr(dviptr);if dviptr=dvilimit then dviswap;end;incr(totalpages);
 curs:=-1;30:{:640};if eqtb[12697].int<=0 then printchar(93);
-deadcycles:=0;termflush(stdout);{639:}
+deadcycles:=0;flush(stdout);{639:}
 ifdef('STAT')if eqtb[12694].int>1 then begin printnl(823);
 printint(varused);printchar(38);printint(dynused);printchar(59);end;
 endif('STAT')flushnodelist(p);
@@ -2835,8 +2827,8 @@ freenode(b,7);b:=newglue(12);mem[b].hh.rh:=p;
 while mem[p].hh.rh<>0 do p:=mem[p].hh.rh;mem[p].hh.rh:=newglue(12);
 rebox:=hpack(b,w,0);end else begin mem[b+1].int:=w;rebox:=b;end;end;
 {:715}{716:}function mathglue(g:halfword;m:scaled):halfword;
-var p:halfword;n:integer;f:scaled;begin n:=xovern(m,65536);f:=remainder;
-p:=getnode(4);
+var p:halfword;n:integer;f:scaled;begin n:=xovern(m,65536);
+f:=texremainder;if f<0 then begin decr(n);f:=f+65536;end;p:=getnode(4);
 mem[p+1].int:=multandadd(n,mem[g+1].int,xnoverd(mem[g+1].int,f,65536),
 1073741823);mem[p].hh.b0:=mem[g].hh.b0;
 if mem[p].hh.b0=0 then mem[p+2].int:=multandadd(n,mem[g+2].int,xnoverd(
@@ -2846,7 +2838,8 @@ if mem[p].hh.b1=0 then mem[p+3].int:=multandadd(n,mem[g+3].int,xnoverd(
 mem[g+3].int,f,65536),1073741823)else mem[p+3].int:=mem[g+3].int;
 mathglue:=p;end;{:716}{717:}procedure mathkern(p:halfword;m:scaled);
 var n:integer;f:scaled;
-begin if mem[p].hh.b1=99 then begin n:=xovern(m,65536);f:=remainder;
+begin if mem[p].hh.b1=99 then begin n:=xovern(m,65536);f:=texremainder;
+if f<0 then begin decr(n);f:=f+65536;end;
 mem[p+1].int:=multandadd(n,mem[p+1].int,xnoverd(mem[p+1].int,f,65536),
 1073741823);mem[p].hh.b1:=0;end;end;{:717}{718:}procedure flushmath;
 begin flushnodelist(mem[curlist.headfield].hh.rh);
@@ -2870,11 +2863,11 @@ if r<>0 then if mem[r].hh.rh=0 then if not(r>=himemmin)then if mem[r].hh
 .b0=11 then begin freenode(r,2);mem[q].hh.rh:=0;end;end{:721};
 cleanbox:=x;end;{:720}{722:}procedure fetch(a:halfword);
 begin curc:=mem[a].hh.b1;curf:=eqtb[11335+mem[a].hh.b0+cursize].hh.rh;
-if curf=0 then{723:}begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(335);end;printsize(cursize);printchar(32);
-printint(mem[a].hh.b0);print(877);print(curc);printchar(41);
-begin helpptr:=4;helpline[3]:=878;helpline[2]:=879;helpline[1]:=880;
-helpline[0]:=881;end;error;curi:=nullcharacter;mem[a].hh.rh:=0;end{:723}
+if curf=0 then{723:}begin begin if interaction=3 then;printnl(262);
+print(335);end;printsize(cursize);printchar(32);printint(mem[a].hh.b0);
+print(877);print(curc);printchar(41);begin helpptr:=4;helpline[3]:=878;
+helpline[2]:=879;helpline[1]:=880;helpline[0]:=881;end;error;
+curi:=nullcharacter;mem[a].hh.rh:=0;end{:723}
 else begin if(curc>=fontbc[curf])and(curc<=fontec[curf])then curi:=
 fontinfo[charbase[curf]+curc].qqqq else curi:=nullcharacter;
 if not((curi.b0>0))then begin charwarning(curf,curc);mem[a].hh.rh:=0;
@@ -3203,10 +3196,10 @@ procedure normalparagraph;forward;procedure initalign;label 30,31,32,22;
 var savecsptr:halfword;p:halfword;begin savecsptr:=curcs;pushalignment;
 alignstate:=-1000000;{776:}
 if(curlist.modefield=203)and((curlist.tailfield<>curlist.headfield)or(
-curlist.auxfield.int<>0))then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(676);end;printesc(516);print(887);
-begin helpptr:=3;helpline[2]:=888;helpline[1]:=889;helpline[0]:=890;end;
-error;flushmath;end{:776};pushnest;{775:}
+curlist.auxfield.int<>0))then begin begin if interaction=3 then;
+printnl(262);print(676);end;printesc(516);print(887);begin helpptr:=3;
+helpline[2]:=888;helpline[1]:=889;helpline[0]:=890;end;error;flushmath;
+end{:776};pushnest;{775:}
 if curlist.modefield=203 then begin curlist.modefield:=-1;
 curlist.auxfield.int:=nest[nestptr-2].auxfield.int;
 end else if curlist.modefield>0 then curlist.modefield:=-curlist.
@@ -3219,9 +3212,9 @@ curalign:=mem[curalign].hh.rh{:778};if curcmd=5 then goto 30;{779:}
 if curcmd=6 then goto 31;
 if(curcmd<=5)and(curcmd>=4)and(alignstate=-1000000)then if(p=memtop-4)
 and(curloop=0)and(curcmd=4)then curloop:=curalign else begin begin if
-interaction=3 then wakeupterminal;printnl(262);print(896);end;
-begin helpptr:=3;helpline[2]:=897;helpline[1]:=898;helpline[0]:=899;end;
-backerror;goto 31;
+interaction=3 then;printnl(262);print(896);end;begin helpptr:=3;
+helpline[2]:=897;helpline[1]:=898;helpline[0]:=899;end;backerror;
+goto 31;
 end else if(curcmd<>10)or(p<>memtop-4)then begin mem[p].hh.rh:=getavail;
 p:=mem[p].hh.rh;mem[p].hh.lh:=curtok;end;end;31:{:783};
 mem[curalign].hh.rh:=newnullbox;curalign:=mem[curalign].hh.rh;
@@ -3229,11 +3222,11 @@ mem[curalign].hh.lh:=memtop-9;mem[curalign+1].int:=-1073741824;
 mem[curalign+3].int:=mem[memtop-4].hh.rh;{784:}p:=memtop-4;
 mem[p].hh.rh:=0;while true do begin 22:getpreambletoken;
 if(curcmd<=5)and(curcmd>=4)and(alignstate=-1000000)then goto 32;
-if curcmd=6 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(900);end;begin helpptr:=3;helpline[2]:=897;
-helpline[1]:=898;helpline[0]:=901;end;error;goto 22;end;
-mem[p].hh.rh:=getavail;p:=mem[p].hh.rh;mem[p].hh.lh:=curtok;end;
-32:mem[p].hh.rh:=getavail;p:=mem[p].hh.rh;mem[p].hh.lh:=14114{:784};
+if curcmd=6 then begin begin if interaction=3 then;printnl(262);
+print(900);end;begin helpptr:=3;helpline[2]:=897;helpline[1]:=898;
+helpline[0]:=901;end;error;goto 22;end;mem[p].hh.rh:=getavail;
+p:=mem[p].hh.rh;mem[p].hh.lh:=curtok;end;32:mem[p].hh.rh:=getavail;
+p:=mem[p].hh.rh;mem[p].hh.lh:=14114{:784};
 mem[curalign+2].int:=mem[memtop-4].hh.rh{:779};end;
 30:scannerstatus:=0{:777};newsavelevel(6);
 if eqtb[10820].hh.rh<>0 then begintokenlist(eqtb[10820].hh.rh,13);
@@ -3268,10 +3261,9 @@ r:=mem[curloop+2].int;while r<>0 do begin mem[q].hh.rh:=getavail;
 q:=mem[q].hh.rh;mem[q].hh.lh:=mem[r].hh.lh;r:=mem[r].hh.rh;end;
 mem[q].hh.rh:=0;mem[p+2].int:=mem[memtop-4].hh.rh{:794};
 curloop:=mem[curloop].hh.rh;mem[p].hh.rh:=newglue(mem[curloop+1].hh.lh);
-end{:793}else begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(903);end;printesc(892);begin helpptr:=3;
-helpline[2]:=904;helpline[1]:=905;helpline[0]:=906;end;
-mem[curalign+5].hh.lh:=257;error;end{:792};
+end{:793}else begin begin if interaction=3 then;printnl(262);print(903);
+end;printesc(892);begin helpptr:=3;helpline[2]:=904;helpline[1]:=905;
+helpline[0]:=906;end;mem[curalign+5].hh.lh:=257;error;end{:792};
 if mem[curalign+5].hh.lh<>256 then begin unsave;newsavelevel(6);{796:}
 begin if curlist.modefield=-102 then begin adjusttail:=curtail;
 u:=hpack(mem[curlist.headfield].hh.rh,0,1);w:=mem[u+1].int;
@@ -3279,7 +3271,7 @@ curtail:=adjusttail;adjusttail:=0;
 end else begin u:=vpackage(mem[curlist.headfield].hh.rh,0,1,0);
 w:=mem[u+3].int;end;n:=0;if curspan<>curalign then{798:}
 begin q:=curspan;repeat incr(n);q:=mem[mem[q].hh.rh].hh.rh;
-until q=curalign;if n>511 then confusion(907);q:=curspan;
+until q=curalign;if n>255 then confusion(907);q:=curspan;
 while mem[mem[q].hh.lh].hh.rh<n do q:=mem[q].hh.lh;
 if mem[mem[q].hh.lh].hh.rh>n then begin s:=getnode(2);
 mem[s].hh.lh:=mem[q].hh.lh;mem[s].hh.rh:=n;mem[q].hh.lh:=s;
@@ -3398,12 +3390,12 @@ q:=mem[q].hh.rh;end{:805};flushnodelist(p);popalignment;{812:}
 auxsave:=curlist.auxfield;p:=mem[curlist.headfield].hh.rh;
 q:=curlist.tailfield;popnest;if curlist.modefield=203 then{1206:}
 begin doassignments;if curcmd<>3 then{1207:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1163);end;begin helpptr:=2;helpline[1]:=888;helpline[0]:=889;end;
-backerror;end{:1207}else{1197:}begin getxtoken;
-if curcmd<>3 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(1159);end;begin helpptr:=2;helpline[1]:=1160;
-helpline[0]:=1161;end;backerror;end;end{:1197};popnest;
+begin begin if interaction=3 then;printnl(262);print(1163);end;
+begin helpptr:=2;helpline[1]:=888;helpline[0]:=889;end;backerror;
+end{:1207}else{1197:}begin getxtoken;
+if curcmd<>3 then begin begin if interaction=3 then;printnl(262);
+print(1159);end;begin helpptr:=2;helpline[1]:=1160;helpline[0]:=1161;
+end;backerror;end;end{:1197};popnest;
 begin mem[curlist.tailfield].hh.rh:=newpenalty(eqtb[12674].int);
 curlist.tailfield:=mem[curlist.tailfield].hh.rh;end;
 begin mem[curlist.tailfield].hh.rh:=newparamglue(3);
@@ -3424,7 +3416,7 @@ end else if curcmd=2 then finalign else if(curcmd=5)and(curchr=258)then
 goto 20 else begin initrow;initcol;end;end;{:785}{:800}{815:}{826:}
 function finiteshrink(p:halfword):halfword;var q:halfword;
 begin if noshrinkerroryet then begin noshrinkerroryet:=false;
-begin if interaction=3 then wakeupterminal;printnl(262);print(910);end;
+begin if interaction=3 then;printnl(262);print(910);end;
 begin helpptr:=5;helpline[4]:=911;helpline[3]:=912;helpline[2]:=913;
 helpline[1]:=914;helpline[0]:=915;end;error;end;q:=newspec(p);
 mem[q].hh.b1:=0;deleteglueref(p);finiteshrink:=q;end;{:826}{829:}
@@ -3624,16 +3616,14 @@ incr(mem[eqtb[10290].hh.rh].hh.rh);goto 30;
 end else begin if mem[q].hh.b0=7 then{882:}begin t:=mem[q].hh.b1;{883:}
 if t=0 then r:=mem[q].hh.rh else begin r:=q;
 while t>1 do begin r:=mem[r].hh.rh;decr(t);end;s:=mem[r].hh.rh;
-if not(s>=himemmin)then if mem[curp+1].hh.lh<>0 then if mem[mem[curp+1].
-hh.lh+1].hh.rh=s then s:=r;r:=mem[s].hh.rh;mem[s].hh.rh:=0;
-flushnodelist(mem[q].hh.rh);mem[q].hh.b1:=0;end{:883};
-if mem[q+1].hh.rh<>0 then{884:}begin s:=mem[q+1].hh.rh;
-while mem[s].hh.rh<>0 do s:=mem[s].hh.rh;mem[s].hh.rh:=r;
-r:=mem[q+1].hh.rh;mem[q+1].hh.rh:=0;postdiscbreak:=true;end{:884};
-if mem[q+1].hh.lh<>0 then{885:}begin s:=mem[q+1].hh.lh;mem[q].hh.rh:=s;
-while mem[s].hh.rh<>0 do s:=mem[s].hh.rh;mem[q+1].hh.lh:=0;q:=s;
-end{:885};mem[q].hh.rh:=r;discbreak:=true;end{:882}
-else if(mem[q].hh.b0=9)or(mem[q].hh.b0=11)then mem[q+1].int:=0;
+r:=mem[s].hh.rh;mem[s].hh.rh:=0;flushnodelist(mem[q].hh.rh);
+mem[q].hh.b1:=0;end{:883};if mem[q+1].hh.rh<>0 then{884:}
+begin s:=mem[q+1].hh.rh;while mem[s].hh.rh<>0 do s:=mem[s].hh.rh;
+mem[s].hh.rh:=r;r:=mem[q+1].hh.rh;mem[q+1].hh.rh:=0;postdiscbreak:=true;
+end{:884};if mem[q+1].hh.lh<>0 then{885:}begin s:=mem[q+1].hh.lh;
+mem[q].hh.rh:=s;while mem[s].hh.rh<>0 do s:=mem[s].hh.rh;
+mem[q+1].hh.lh:=0;q:=s;end{:885};mem[q].hh.rh:=r;discbreak:=true;
+end{:882}else if(mem[q].hh.b0=9)or(mem[q].hh.b0=11)then mem[q+1].int:=0;
 end else begin q:=memtop-3;while mem[q].hh.rh<>0 do q:=mem[q].hh.rh;end;
 {886:}r:=newparamglue(8);mem[r].hh.rh:=mem[q].hh.rh;mem[q].hh.rh:=r;
 q:=r{:886};30:{:881};{887:}r:=mem[q].hh.rh;mem[q].hh.rh:=0;
@@ -3747,20 +3737,18 @@ repeat if strpool[u]<hc[j]then goto 45;if strpool[u]>hc[j]then goto 30;
 incr(j);incr(u);until j>hn;{932:}s:=hyphlist[h];
 while s<>0 do begin hyf[mem[s].hh.lh]:=1;s:=mem[s].hh.rh;end{:932};
 decr(hn);goto 40;end;30:{:931};if h>0 then decr(h)else h:=607;end;
-45:decr(hn){:930};if trie[curlang+1].b1<>curlang then goto 10;hc[0]:=0;
+45:decr(hn){:930};if trietrc[curlang+1]<>curlang then goto 10;hc[0]:=0;
 hc[hn+1]:=0;hc[hn+2]:=256;
-for j:=0 to hn-rhyf+1 do begin z:=trie[curlang+1].rh+hc[j];l:=j;
-while hc[l]=trie[z].b1 do begin if trie[z].b0<>0 then{924:}
-begin v:=trie[z].b0;repeat v:=v+opstart[curlang];i:=l-hyfdistance[v];
-if hyfnum[v]>hyf[i]then hyf[i]:=hyfnum[v];v:=hyfnext[v];until v=0;
-end{:924};incr(l);z:=trie[z].rh+hc[l];end;end;
+for j:=0 to hn-rhyf+1 do begin z:=trietrl[curlang+1]+hc[j];l:=j;
+while hc[l]=trietrc[z]do begin if trietro[z]<>mintrieop then{924:}
+begin v:=trietro[z];repeat v:=v+opstart[curlang];i:=l-hyfdistance[v];
+if hyfnum[v]>hyf[i]then hyf[i]:=hyfnum[v];v:=hyfnext[v];
+until v=mintrieop;end{:924};incr(l);z:=trietrl[z]+hc[l];end;end;
 40:for j:=0 to lhyf-1 do hyf[j]:=0;
 for j:=0 to rhyf-1 do hyf[hn-j]:=0{:923};{902:}
 for j:=lhyf to hn-rhyf do if odd(hyf[j])then goto 41;goto 10;41:{:902};
 {903:}q:=mem[hb].hh.rh;mem[hb].hh.rh:=0;r:=mem[ha].hh.rh;
-mem[ha].hh.rh:=0;bchar:=256;
-if not(hb>=himemmin)then if mem[hb].hh.b0=6 then if odd(mem[hb].hh.b1)
-then bchar:=fontbchar[hf];
+mem[ha].hh.rh:=0;bchar:=hyfbchar;
 if(ha>=himemmin)then if mem[ha].hh.b0<>hf then goto 42 else begin
 initlist:=ha;initlig:=false;hu[0]:=mem[ha].hh.b1;
 end else if mem[ha].hh.b0=6 then if mem[ha+1].hh.b0<>hf then goto 42
@@ -3809,14 +3797,15 @@ flushnodelist(r);end else begin mem[s].hh.rh:=r;mem[r].hh.b1:=rcount;
 end;s:=majortail{:918};hyphenpassed:=j-1;mem[memtop-4].hh.rh:=0;
 until not odd(hyf[j-1]){:914};until j>hn;mem[s].hh.rh:=q{:913};
 flushlist(initlist){:903};10:end;{:895}{942:}ifdef('INITEX'){944:}
-function newtrieop(d,n:smallnumber;v:quarterword):quarterword;label 10;
-var h:negtrieopsize..trieopsize;u:quarterword;l:0..trieopsize;
+function newtrieop(d,n:smallnumber;v:trieopcode):trieopcode;label 10;
+var h:negtrieopsize..trieopsize;u:trieopcode;l:0..trieopsize;
 begin h:=abs(toint(n)+313*toint(d)+361*toint(v)+1009*toint(curlang))mod(
 trieopsize+trieopsize)-trieopsize;while true do begin l:=trieophash[h];
 if l=0 then begin if trieopptr=trieopsize then overflow(942,trieopsize);
-u:=trieused[curlang];if u=511 then overflow(943,511);incr(trieopptr);
-incr(u);trieused[curlang]:=u;hyfdistance[trieopptr]:=d;
-hyfnum[trieopptr]:=n;hyfnext[trieopptr]:=v;
+u:=trieused[curlang];
+if u=maxtrieop then overflow(943,maxtrieop-mintrieop);incr(trieopptr);
+incr(u);trieused[curlang]:=u;if u>maxopused then maxopused:=u;
+hyfdistance[trieopptr]:=d;hyfnum[trieopptr]:=n;hyfnext[trieopptr]:=v;
 trieoplang[trieopptr]:=curlang;trieophash[h]:=trieopptr;
 trieopval[trieopptr]:=u;newtrieop:=u;goto 10;end;
 if(hyfdistance[l]=d)and(hyfnum[l]=n)and(hyfnext[l]=v)and(trieoplang[l]=
@@ -3839,12 +3828,12 @@ l,r:triepointer;ll:1..256;begin c:=triec[p];z:=triemin[c];
 while true do begin h:=z-c;{954:}
 if triemax<h+256 then begin if triesize<=h+256 then overflow(944,
 triesize);repeat incr(triemax);trietaken[triemax]:=false;
-trie[triemax].rh:=triemax+1;trie[triemax].lh:=triemax-1;
+trietrl[triemax]:=triemax+1;trietro[triemax]:=triemax-1;
 until triemax=h+256;end{:954};if trietaken[h]then goto 45;{955:}
-q:=trier[p];while q>0 do begin if trie[h+triec[q]].rh=0 then goto 45;
-q:=trier[q];end;goto 40{:955};45:z:=trie[z].rh;end;40:{956:}
+q:=trier[p];while q>0 do begin if trietrl[h+triec[q]]=0 then goto 45;
+q:=trier[q];end;goto 40{:955};45:z:=trietrl[z];end;40:{956:}
 trietaken[h]:=true;triehash[p]:=h;q:=p;repeat z:=h+triec[q];
-l:=trie[z].lh;r:=trie[z].rh;trie[r].lh:=l;trie[l].rh:=r;trie[z].rh:=0;
+l:=trietro[z];r:=trietrl[z];trietro[r]:=l;trietrl[l]:=r;trietrl[z]:=0;
 if l<256 then begin if z<256 then ll:=z else ll:=256;
 repeat triemin[l]:=r;incr(l);until l=ll;end;q:=trier[q];until q=0{:956};
 end;{:953}{957:}procedure triepack(p:triepointer);var q:triepointer;
@@ -3852,10 +3841,10 @@ begin repeat q:=triel[p];
 if(q>0)and(triehash[q]=0)then begin firstfit(q);triepack(q);end;
 p:=trier[p];until p=0;end;{:957}{959:}procedure triefix(p:triepointer);
 var q:triepointer;c:ASCIIcode;z:triepointer;begin z:=triehash[p];
-repeat q:=triel[p];c:=triec[p];trie[z+c].rh:=triehash[q];
-trie[z+c].b1:=c;trie[z+c].b0:=trieo[p];if q>0 then triefix(q);
+repeat q:=triel[p];c:=triec[p];trietrl[z+c]:=triehash[q];
+trietrc[z+c]:=c;trietro[z+c]:=trieo[p];if q>0 then triefix(q);
 p:=trier[p];until p=0;end;{:959}{960:}procedure newpatterns;label 30,31;
-var k,l:smallnumber;digitsensed:boolean;v:quarterword;p,q:triepointer;
+var k,l:smallnumber;digitsensed:boolean;v:trieopcode;p,q:triepointer;
 firstchild:boolean;c:ASCIIcode;
 begin if trienotready then begin if eqtb[12713].int<=0 then curlang:=0
 else if eqtb[12713].int>255 then curlang:=0 else curlang:=eqtb[12713].
@@ -3863,12 +3852,12 @@ int;scanleftbrace;{961:}k:=0;hyf[0]:=0;digitsensed:=false;
 while true do begin getxtoken;case curcmd of 11,12:{962:}
 if digitsensed or(curchr<48)or(curchr>57)then begin if curchr=46 then
 curchr:=0 else begin curchr:=eqtb[11639+curchr].hh.rh;
-if curchr=0 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(950);end;begin helpptr:=1;helpline[0]:=949;end;error;
-end;end;if k<63 then begin incr(k);hc[k]:=curchr;hyf[k]:=0;
-digitsensed:=false;end;end else if k<63 then begin hyf[k]:=curchr-48;
-digitsensed:=true;end{:962};10,2:begin if k>0 then{963:}begin{965:}
-if hc[1]=0 then hyf[0]:=0;if hc[k]=0 then hyf[k]:=0;l:=k;v:=0;
+if curchr=0 then begin begin if interaction=3 then;printnl(262);
+print(950);end;begin helpptr:=1;helpline[0]:=949;end;error;end;end;
+if k<63 then begin incr(k);hc[k]:=curchr;hyf[k]:=0;digitsensed:=false;
+end;end else if k<63 then begin hyf[k]:=curchr-48;digitsensed:=true;
+end{:962};10,2:begin if k>0 then{963:}begin{965:}
+if hc[1]=0 then hyf[0]:=0;if hc[k]=0 then hyf[k]:=0;l:=k;v:=mintrieop;
 while true do begin if hyf[l]<>0 then v:=newtrieop(k-l,hyf[l],v);
 if l>0 then decr(l)else goto 31;end;31:{:965};q:=0;hc[0]:=curlang;
 while l<=k do begin c:=hc[l];incr(l);p:=triel[q];firstchild:=true;
@@ -3876,20 +3865,19 @@ while(p>0)and(c>triec[p])do begin q:=p;p:=trier[q];firstchild:=false;
 end;if(p=0)or(c<triec[p])then{964:}
 begin if trieptr=triesize then overflow(944,triesize);incr(trieptr);
 trier[trieptr]:=p;p:=trieptr;triel[p]:=0;
-if firstchild then triel[q]:=p else trier[q]:=p;triec[p]:=c;trieo[p]:=0;
-end{:964};q:=p;end;
-if trieo[q]<>0 then begin begin if interaction=3 then wakeupterminal;
+if firstchild then triel[q]:=p else trier[q]:=p;triec[p]:=c;
+trieo[p]:=mintrieop;end{:964};q:=p;end;
+if trieo[q]<>mintrieop then begin begin if interaction=3 then;
 printnl(262);print(951);end;begin helpptr:=1;helpline[0]:=949;end;error;
 end;trieo[q]:=v;end{:963};if curcmd=2 then goto 30;k:=0;hyf[0]:=0;
-digitsensed:=false;end;
-others:begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(948);end;printesc(946);begin helpptr:=1;helpline[0]:=949;end;
-error;end end;end;30:{:961};
-end else begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(945);end;printesc(946);begin helpptr:=1;helpline[0]:=947;end;
-error;mem[memtop-12].hh.rh:=scantoks(false,false);flushlist(defref);end;
-end;{:960}{966:}procedure inittrie;var p:triepointer;j,k,t:integer;
-r,s:triepointer;h:twohalves;begin{952:}{945:}opstart[0]:=-0;
+digitsensed:=false;end;others:begin begin if interaction=3 then;
+printnl(262);print(948);end;printesc(946);begin helpptr:=1;
+helpline[0]:=949;end;error;end end;end;30:{:961};
+end else begin begin if interaction=3 then;printnl(262);print(945);end;
+printesc(946);begin helpptr:=1;helpline[0]:=947;end;error;
+mem[memtop-12].hh.rh:=scantoks(false,false);flushlist(defref);end;end;
+{:960}{966:}procedure inittrie;var p:triepointer;j,k,t:integer;
+r,s:triepointer;begin{952:}{945:}opstart[0]:=-mintrieop;
 for j:=1 to 255 do opstart[j]:=opstart[j-1]+trieused[j-1];
 for j:=1 to trieopptr do trieophash[j]:=opstart[trieoplang[j]]+trieopval
 [j];
@@ -3899,14 +3887,14 @@ t:=hyfnum[k];hyfnum[k]:=hyfnum[j];hyfnum[j]:=t;t:=hyfnext[k];
 hyfnext[k]:=hyfnext[j];hyfnext[j]:=t;trieophash[j]:=trieophash[k];
 trieophash[k]:=k;end{:945};for p:=0 to triesize do triehash[p]:=0;
 triel[0]:=compresstrie(triel[0]);for p:=0 to trieptr do triehash[p]:=0;
-for p:=0 to 255 do triemin[p]:=p+1;trie[0].rh:=1;triemax:=0{:952};
+for p:=0 to 255 do triemin[p]:=p+1;trietrl[0]:=1;triemax:=0{:952};
 if triel[0]<>0 then begin firstfit(triel[0]);triepack(triel[0]);end;
-{958:}h.rh:=0;h.b0:=0;h.b1:=0;
-if triel[0]=0 then begin for r:=0 to 256 do trie[r]:=h;triemax:=256;
-end else begin triefix(triel[0]);r:=0;repeat s:=trie[r].rh;trie[r]:=h;
-r:=s;until r>triemax;end;trie[0].b1:=63;{:958};trienotready:=false;end;
-{:966}endif('INITEX'){:942}
-procedure linebreak(finalwidowpenalty:integer);
+{958:}if triel[0]=0 then begin for r:=0 to 256 do begin trietrl[r]:=0;
+trietro[r]:=mintrieop;trietrc[r]:=0;end;triemax:=256;
+end else begin triefix(triel[0]);r:=0;repeat s:=trietrl[r];
+begin trietrl[r]:=0;trietro[r]:=mintrieop;trietrc[r]:=0;end;r:=s;
+until r>triemax;end;trietrc[0]:=63;{:958};trienotready:=false;end;{:966}
+endif('INITEX'){:942}procedure linebreak(finalwidowpenalty:integer);
 label 30,31,32,33,34,35,22;var{862:}autobreaking:boolean;prevp:halfword;
 q,r,s,prevs:halfword;f:internalfontnumber;{:862}{893:}j:smallnumber;
 c:0..255;{:893}begin packbeginline:=curlist.mlfield;{816:}
@@ -4004,14 +3992,17 @@ int>0)then goto 32 else goto 31;22:prevs:=s;s:=mem[prevs].hh.rh;end;
 if hyfchar>255 then goto 31;ha:=prevs{:896};
 if lhyf+rhyf>63 then goto 31;{897:}hn:=0;
 while true do begin if(s>=himemmin)then begin if mem[s].hh.b0<>hf then
-goto 33;c:=mem[s].hh.b1;if eqtb[11639+c].hh.rh=0 then goto 33;
-if hn=63 then goto 33;hb:=s;incr(hn);hu[hn]:=c;
-hc[hn]:=eqtb[11639+c].hh.rh;end else if mem[s].hh.b0=6 then{898:}
+goto 33;hyfbchar:=mem[s].hh.b1;c:=hyfbchar;
+if eqtb[11639+c].hh.rh=0 then goto 33;if hn=63 then goto 33;hb:=s;
+incr(hn);hu[hn]:=c;hc[hn]:=eqtb[11639+c].hh.rh;hyfbchar:=256;
+end else if mem[s].hh.b0=6 then{898:}
 begin if mem[s+1].hh.b0<>hf then goto 33;j:=hn;q:=mem[s+1].hh.rh;
-while q>0 do begin c:=mem[q].hh.b1;
+if q>0 then hyfbchar:=mem[q].hh.b1;while q>0 do begin c:=mem[q].hh.b1;
 if eqtb[11639+c].hh.rh=0 then goto 33;if j=63 then goto 33;incr(j);
 hu[j]:=c;hc[j]:=eqtb[11639+c].hh.rh;q:=mem[q].hh.rh;end;hb:=s;hn:=j;
-end{:898}else if(mem[s].hh.b0<>11)or(mem[s].hh.b1<>0)then goto 33;
+if odd(mem[s].hh.b1)then hyfbchar:=fontbchar[hf]else hyfbchar:=256;
+end{:898}
+else if(mem[s].hh.b0=11)and(mem[s].hh.b1=0)then hb:=s else goto 33;
 s:=mem[s].hh.rh;end;33:{:897};{899:}if hn<lhyf+rhyf then goto 31;
 while true do begin if not((s>=himemmin))then case mem[s].hh.b0 of 6:;
 11:if mem[s].hh.b1<>0 then goto 34;8,10,12,3,5,4:goto 34;
@@ -4093,11 +4084,11 @@ while true do begin getxtoken;21:case curcmd of 11,12,68:{937:}
 if curchr=45 then{938:}begin if n<63 then begin q:=getavail;
 mem[q].hh.rh:=p;mem[q].hh.lh:=n;p:=q;end;end{:938}
 else begin if eqtb[11639+curchr].hh.rh=0 then begin begin if interaction
-=3 then wakeupterminal;printnl(262);print(938);end;begin helpptr:=2;
-helpline[1]:=939;helpline[0]:=940;end;error;
-end else if n<63 then begin incr(n);hc[n]:=eqtb[11639+curchr].hh.rh;end;
-end{:937};16:begin scancharnum;curchr:=curval;curcmd:=68;goto 21;end;
-10,2:begin if n>1 then{939:}begin incr(n);hc[n]:=curlang;
+=3 then;printnl(262);print(938);end;begin helpptr:=2;helpline[1]:=939;
+helpline[0]:=940;end;error;end else if n<63 then begin incr(n);
+hc[n]:=eqtb[11639+curchr].hh.rh;end;end{:937};16:begin scancharnum;
+curchr:=curval;curcmd:=68;goto 21;end;10,2:begin if n>1 then{939:}
+begin incr(n);hc[n]:=curlang;
 begin if poolptr+n>poolsize then overflow(257,poolsize-initpoolptr);end;
 h:=0;for j:=1 to n do begin h:=(h+h+hc[j])mod 607;
 begin strpool[poolptr]:=hc[j];incr(poolptr);end;end;s:=makestring;{940:}
@@ -4112,12 +4103,12 @@ until u=strstart[k+1];40:q:=hyphlist[h];hyphlist[h]:=p;p:=q;
 t:=hyphword[h];hyphword[h]:=s;s:=t;45:{:941};
 if h>0 then decr(h)else h:=607;end;hyphword[h]:=s;hyphlist[h]:=p{:940};
 end{:939};if curcmd=2 then goto 10;n:=0;p:=0;end;others:{936:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(676);end;printesc(934);print(935);begin helpptr:=2;
-helpline[1]:=936;helpline[0]:=937;end;error;end{:936}end;end{:935};
-10:end;{:934}{968:}function prunepagetop(p:halfword):halfword;
-var prevp:halfword;q:halfword;begin prevp:=memtop-3;
-mem[memtop-3].hh.rh:=p;while p<>0 do case mem[p].hh.b0 of 0,1,2:{969:}
+begin begin if interaction=3 then;printnl(262);print(676);end;
+printesc(934);print(935);begin helpptr:=2;helpline[1]:=936;
+helpline[0]:=937;end;error;end{:936}end;end{:935};10:end;{:934}{968:}
+function prunepagetop(p:halfword):halfword;var prevp:halfword;
+q:halfword;begin prevp:=memtop-3;mem[memtop-3].hh.rh:=p;
+while p<>0 do case mem[p].hh.b0 of 0,1,2:{969:}
 begin q:=newskipparam(10);mem[prevp].hh.rh:=q;mem[q].hh.rh:=p;
 if mem[tempptr+1].int>mem[p+3].int then mem[tempptr+1].int:=mem[tempptr
 +1].int-mem[p+3].int else mem[tempptr+1].int:=0;p:=0;end{:969};
@@ -4150,10 +4141,10 @@ if mem[p].hh.b0=11 then q:=p else begin q:=mem[p+1].hh.lh;
 activewidth[2+mem[q].hh.b0]:=activewidth[2+mem[q].hh.b0]+mem[q+2].int;
 activewidth[6]:=activewidth[6]+mem[q+3].int;
 if(mem[q].hh.b1<>0)and(mem[q+3].int<>0)then begin begin if interaction=3
-then wakeupterminal;printnl(262);print(954);end;begin helpptr:=4;
-helpline[3]:=955;helpline[2]:=956;helpline[1]:=957;helpline[0]:=915;end;
-error;r:=newspec(q);mem[r].hh.b1:=0;deleteglueref(q);mem[p+1].hh.lh:=r;
-q:=r;end;end;activewidth[1]:=activewidth[1]+prevdp+mem[q+1].int;
+then;printnl(262);print(954);end;begin helpptr:=4;helpline[3]:=955;
+helpline[2]:=956;helpline[1]:=957;helpline[0]:=915;end;error;
+r:=newspec(q);mem[r].hh.b1:=0;deleteglueref(q);mem[p+1].hh.lh:=r;q:=r;
+end;end;activewidth[1]:=activewidth[1]+prevdp+mem[q+1].int;
 prevdp:=0{:976};
 45:if prevdp>d then begin activewidth[1]:=activewidth[1]+prevdp-d;
 prevdp:=d;end;{:972};prevp:=p;p:=mem[prevp].hh.rh;end;
@@ -4163,11 +4154,10 @@ begin v:=eqtb[11078+n].hh.rh;
 if curmark[3]<>0 then begin deletetokenref(curmark[3]);curmark[3]:=0;
 deletetokenref(curmark[4]);curmark[4]:=0;end;{978:}
 if v=0 then begin vsplit:=0;goto 10;end;
-if mem[v].hh.b0<>1 then begin begin if interaction=3 then wakeupterminal
-;printnl(262);print(335);end;printesc(958);print(959);printesc(960);
-begin helpptr:=2;helpline[1]:=961;helpline[0]:=962;end;error;vsplit:=0;
-goto 10;end{:978};q:=vertbreak(mem[v+5].hh.rh,h,eqtb[13236].int);{979:}
-p:=mem[v+5].hh.rh;
+if mem[v].hh.b0<>1 then begin begin if interaction=3 then;printnl(262);
+print(335);end;printesc(958);print(959);printesc(960);begin helpptr:=2;
+helpline[1]:=961;helpline[0]:=962;end;error;vsplit:=0;goto 10;end{:978};
+q:=vertbreak(mem[v+5].hh.rh,h,eqtb[13236].int);{979:}p:=mem[v+5].hh.rh;
 if p=q then mem[v+5].hh.rh:=0 else while true do begin if mem[p].hh.b0=4
 then if curmark[3]=0 then begin curmark[3]:=mem[p+1].int;
 curmark[4]:=curmark[3];mem[curmark[3]].hh.lh:=mem[curmark[3]].hh.lh+2;
@@ -4199,13 +4189,12 @@ printnl(829);showbox(eqtb[11078+n].hh.rh);enddiagnostic(true);
 flushnodelist(eqtb[11078+n].hh.rh);eqtb[11078+n].hh.rh:=0;end;{:992}
 {993:}procedure ensurevbox(n:eightbits);var p:halfword;
 begin p:=eqtb[11078+n].hh.rh;
-if p<>0 then if mem[p].hh.b0=0 then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(982);end;begin helpptr:=3;
-helpline[2]:=983;helpline[1]:=984;helpline[0]:=985;end;boxerror(n);end;
-end;{:993}{994:}{1012:}procedure fireup(c:halfword);label 10;
-var p,q,r,s:halfword;prevp:halfword;n:0..255;wait:boolean;
-savevbadness:integer;savevfuzz:scaled;savesplittopskip:halfword;
-begin{1013:}
+if p<>0 then if mem[p].hh.b0=0 then begin begin if interaction=3 then;
+printnl(262);print(982);end;begin helpptr:=3;helpline[2]:=983;
+helpline[1]:=984;helpline[0]:=985;end;boxerror(n);end;end;{:993}{994:}
+{1012:}procedure fireup(c:halfword);label 10;var p,q,r,s:halfword;
+prevp:halfword;n:0..255;wait:boolean;savevbadness:integer;
+savevfuzz:scaled;savesplittopskip:halfword;begin{1013:}
 if mem[bestpagebreak].hh.b0=12 then begin geqworddefine(12702,mem[
 bestpagebreak+1].int);mem[bestpagebreak+1].int:=10000;
 end else geqworddefine(12702,10000){:1013};
@@ -4213,10 +4202,10 @@ if curmark[2]<>0 then begin if curmark[0]<>0 then deletetokenref(curmark
 [0]);curmark[0]:=curmark[2];incr(mem[curmark[0]].hh.lh);
 deletetokenref(curmark[1]);curmark[1]:=0;end;{1014:}
 if c=bestpagebreak then bestpagebreak:=0;{1015:}
-if eqtb[11333].hh.rh<>0 then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(335);end;printesc(405);print(996);
-begin helpptr:=2;helpline[1]:=997;helpline[0]:=985;end;boxerror(255);
-end{:1015};insertpenalties:=0;savesplittopskip:=eqtb[10292].hh.rh;
+if eqtb[11333].hh.rh<>0 then begin begin if interaction=3 then;
+printnl(262);print(335);end;printesc(405);print(996);begin helpptr:=2;
+helpline[1]:=997;helpline[0]:=985;end;boxerror(255);end{:1015};
+insertpenalties:=0;savesplittopskip:=eqtb[10292].hh.rh;
 if eqtb[12716].int<=0 then{1018:}begin r:=mem[memtop].hh.rh;
 while r<>memtop do begin if mem[r+2].hh.lh<>0 then begin n:=mem[r].hh.b1
 ;ensurevbox(n);
@@ -4269,10 +4258,10 @@ mem[memtop].hh.rh:=memtop{:1019}{:1014};
 if(curmark[0]<>0)and(curmark[1]=0)then begin curmark[1]:=curmark[0];
 incr(mem[curmark[0]].hh.lh);end;
 if eqtb[10813].hh.rh<>0 then if deadcycles>=eqtb[12703].int then{1024:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(998);end;printint(deadcycles);print(999);begin helpptr:=3;
-helpline[2]:=1000;helpline[1]:=1001;helpline[0]:=1002;end;error;
-end{:1024}else{1025:}begin outputactive:=true;incr(deadcycles);pushnest;
+begin begin if interaction=3 then;printnl(262);print(998);end;
+printint(deadcycles);print(999);begin helpptr:=3;helpline[2]:=1000;
+helpline[1]:=1001;helpline[0]:=1002;end;error;end{:1024}else{1025:}
+begin outputactive:=true;incr(deadcycles);pushnest;
 curlist.modefield:=-1;curlist.auxfield.int:=-65536000;
 curlist.mlfield:=-line;begintokenlist(eqtb[10813].hh.rh,6);
 newsavelevel(8);normalparagraph;scanleftbrace;goto 10;end{:1025};{1023:}
@@ -4318,9 +4307,9 @@ int,1000)*eqtb[12718+n].int;pagesofar[0]:=pagesofar[0]-h-mem[q+1].int;
 pagesofar[2+mem[q].hh.b0]:=pagesofar[2+mem[q].hh.b0]+mem[q+2].int;
 pagesofar[6]:=pagesofar[6]+mem[q+3].int;
 if(mem[q].hh.b1<>0)and(mem[q+3].int<>0)then begin begin if interaction=3
-then wakeupterminal;printnl(262);print(991);end;printesc(391);
-printint(n);begin helpptr:=3;helpline[2]:=992;helpline[1]:=993;
-helpline[0]:=915;end;error;end;end{:1009};
+then;printnl(262);print(991);end;printesc(391);printint(n);
+begin helpptr:=3;helpline[2]:=992;helpline[1]:=993;helpline[0]:=915;end;
+error;end;end{:1009};
 if mem[r].hh.b0=1 then insertpenalties:=insertpenalties+mem[p+1].int
 else begin mem[r+2].hh.rh:=p;
 delta:=pagesofar[0]-pagesofar[1]-pagesofar[7]+pagesofar[6];
@@ -4372,10 +4361,10 @@ if mem[p].hh.b0=11 then q:=p else begin q:=mem[p+1].hh.lh;
 pagesofar[2+mem[q].hh.b0]:=pagesofar[2+mem[q].hh.b0]+mem[q+2].int;
 pagesofar[6]:=pagesofar[6]+mem[q+3].int;
 if(mem[q].hh.b1<>0)and(mem[q+3].int<>0)then begin begin if interaction=3
-then wakeupterminal;printnl(262);print(987);end;begin helpptr:=4;
-helpline[3]:=988;helpline[2]:=956;helpline[1]:=957;helpline[0]:=915;end;
-error;r:=newspec(q);mem[r].hh.b1:=0;deleteglueref(q);mem[p+1].hh.lh:=r;
-q:=r;end;end;pagesofar[1]:=pagesofar[1]+pagesofar[7]+mem[q+1].int;
+then;printnl(262);print(987);end;begin helpptr:=4;helpline[3]:=988;
+helpline[2]:=956;helpline[1]:=957;helpline[0]:=915;end;error;
+r:=newspec(q);mem[r].hh.b1:=0;deleteglueref(q);mem[p+1].hh.lh:=r;q:=r;
+end;end;pagesofar[1]:=pagesofar[1]+pagesofar[7]+mem[q+1].int;
 pagesofar[7]:=0{:1004};80:{1003:}
 if pagesofar[7]>pagemaxdepth then begin pagesofar[1]:=pagesofar[1]+
 pagesofar[7]-pagemaxdepth;pagesofar[7]:=pagemaxdepth;end;{:1003};{998:}
@@ -4403,11 +4392,10 @@ mem[mainp+3].int:=xnoverd(mem[mainp+3].int,1000,curlist.auxfield.hh.lh){
 :1044};q:=newglue(mainp);mem[mainp].hh.rh:=0;end;
 mem[curlist.tailfield].hh.rh:=q;curlist.tailfield:=q;end;{:1043}{1047:}
 procedure insertdollarsign;begin backinput;curtok:=804;
-begin if interaction=3 then wakeupterminal;printnl(262);print(1010);end;
+begin if interaction=3 then;printnl(262);print(1010);end;
 begin helpptr:=2;helpline[1]:=1011;helpline[0]:=1012;end;inserror;end;
-{:1047}{1049:}procedure youcant;
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(681);end;printcmdchr(curcmd,curchr);print(1013);
+{:1047}{1049:}procedure youcant;begin begin if interaction=3 then;
+printnl(262);print(681);end;printcmdchr(curcmd,curchr);print(1013);
 printmode(curlist.modefield);end;{:1049}{1050:}
 procedure reportillegalcase;begin youcant;begin helpptr:=4;
 helpline[3]:=1014;helpline[2]:=1015;helpline[1]:=1016;helpline[0]:=1017;
@@ -4437,11 +4425,10 @@ begin mem[curlist.tailfield].hh.rh:=newkern(curval);
 curlist.tailfield:=mem[curlist.tailfield].hh.rh;end;
 mem[curlist.tailfield].hh.b1:=s;end;{:1061}{1064:}procedure offsave;
 var p:halfword;begin if curgroup=0 then{1066:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(772);end;printcmdchr(curcmd,curchr);begin helpptr:=1;
-helpline[0]:=1036;end;error;end{:1066}else begin backinput;p:=getavail;
-mem[memtop-3].hh.rh:=p;begin if interaction=3 then wakeupterminal;
-printnl(262);print(621);end;{1065:}
+begin begin if interaction=3 then;printnl(262);print(772);end;
+printcmdchr(curcmd,curchr);begin helpptr:=1;helpline[0]:=1036;end;error;
+end{:1066}else begin backinput;p:=getavail;mem[memtop-3].hh.rh:=p;
+begin if interaction=3 then;printnl(262);print(621);end;{1065:}
 case curgroup of 14:begin mem[p].hh.lh:=14111;printesc(512);end;
 15:begin mem[p].hh.lh:=804;printchar(36);end;
 16:begin mem[p].hh.lh:=14112;mem[p].hh.rh:=getavail;p:=mem[p].hh.rh;
@@ -4450,12 +4437,12 @@ printchar(125);end end{:1065};print(622);
 begintokenlist(mem[memtop-3].hh.rh,4);begin helpptr:=5;
 helpline[4]:=1030;helpline[3]:=1031;helpline[2]:=1032;helpline[1]:=1033;
 helpline[0]:=1034;end;error;end;end;{:1064}{1069:}
-procedure extrarightbrace;
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1041);end;case curgroup of 14:printesc(512);15:printchar(36);
-16:printesc(870);end;begin helpptr:=5;helpline[4]:=1042;
-helpline[3]:=1043;helpline[2]:=1044;helpline[1]:=1045;helpline[0]:=1046;
-end;error;incr(alignstate);end;{:1069}{1070:}procedure normalparagraph;
+procedure extrarightbrace;begin begin if interaction=3 then;
+printnl(262);print(1041);end;case curgroup of 14:printesc(512);
+15:printchar(36);16:printesc(870);end;begin helpptr:=5;
+helpline[4]:=1042;helpline[3]:=1043;helpline[2]:=1044;helpline[1]:=1045;
+helpline[0]:=1046;end;error;incr(alignstate);end;{:1069}{1070:}
+procedure normalparagraph;
 begin if eqtb[12682].int<>0 then eqworddefine(12682,0);
 if eqtb[13247].int<>0 then eqworddefine(13247,0);
 if eqtb[12704].int<>1 then eqworddefine(12704,1);
@@ -4481,12 +4468,11 @@ if((curcmd=26)and(abs(curlist.modefield)<>1))or((curcmd=27)and(abs(
 curlist.modefield)=1))or((curcmd=28)and(abs(curlist.modefield)=203))then
 begin appendglue;mem[curlist.tailfield].hh.b1:=boxcontext-(1073742237);
 mem[curlist.tailfield+1].hh.rh:=curbox;
-end else begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1059);end;begin helpptr:=3;helpline[2]:=1060;helpline[1]:=1061;
-helpline[0]:=1062;end;backerror;flushnodelist(curbox);end;end{:1078}
-else shipout(curbox);end;{:1075}{1079:}
-procedure beginbox(boxcontext:integer);label 10,30;var p,q:halfword;
-m:quarterword;k:halfword;n:eightbits;
+end else begin begin if interaction=3 then;printnl(262);print(1059);end;
+begin helpptr:=3;helpline[2]:=1060;helpline[1]:=1061;helpline[0]:=1062;
+end;backerror;flushnodelist(curbox);end;end{:1078}else shipout(curbox);
+end;{:1075}{1079:}procedure beginbox(boxcontext:integer);label 10,30;
+var p,q:halfword;m:quarterword;k:halfword;n:eightbits;
 begin case curchr of 0:begin scaneightbitint;
 curbox:=eqtb[11078+curval].hh.rh;eqtb[11078+curval].hh.rh:=0;end;
 1:begin scaneightbitint;curbox:=copynodelist(eqtb[11078+curval].hh.rh);
@@ -4504,11 +4490,11 @@ hh.b1 do p:=mem[p].hh.rh;if p=curlist.tailfield then goto 30;end;
 q:=mem[p].hh.rh;until q=curlist.tailfield;curbox:=curlist.tailfield;
 mem[curbox+4].int:=0;curlist.tailfield:=p;mem[p].hh.rh:=0;30:end{:1081};
 end;end{:1080};3:{1082:}begin scaneightbitint;n:=curval;
-if not scankeyword(835)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(1066);end;begin helpptr:=2;
-helpline[1]:=1067;helpline[0]:=1068;end;error;end;
-scandimen(false,false,false);curbox:=vsplit(n,curval);end{:1082};
-others:{1083:}begin k:=curchr-4;savestack[saveptr+0].int:=boxcontext;
+if not scankeyword(835)then begin begin if interaction=3 then;
+printnl(262);print(1066);end;begin helpptr:=2;helpline[1]:=1067;
+helpline[0]:=1068;end;error;end;scandimen(false,false,false);
+curbox:=vsplit(n,curval);end{:1082};others:{1083:}begin k:=curchr-4;
+savestack[saveptr+0].int:=boxcontext;
 if k=102 then if(boxcontext<1073741824)and(abs(curlist.modefield)=1)then
 scanspec(3,true)else scanspec(2,true)else begin if k=1 then scanspec(4,
 true)else begin scanspec(5,true);k:=1;end;normalparagraph;end;pushnest;
@@ -4521,10 +4507,9 @@ procedure scanbox(boxcontext:integer);begin{404:}repeat getxtoken;
 until(curcmd<>10)and(curcmd<>0){:404};
 if curcmd=20 then beginbox(boxcontext)else if(boxcontext>=1073742337)and
 ((curcmd=36)or(curcmd=35))then begin curbox:=scanrulespec;
-boxend(boxcontext);
-end else begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1069);end;begin helpptr:=3;helpline[2]:=1070;helpline[1]:=1071;
-helpline[0]:=1072;end;backerror;end;end;{:1084}{1086:}
+boxend(boxcontext);end else begin begin if interaction=3 then;
+printnl(262);print(1069);end;begin helpptr:=3;helpline[2]:=1070;
+helpline[1]:=1071;helpline[0]:=1072;end;backerror;end;end;{:1084}{1086:}
 procedure package(c:smallnumber);var h:scaled;p:halfword;d:scaled;
 begin d:=eqtb[13237].int;unsave;saveptr:=saveptr-3;
 if curlist.modefield=-102 then curbox:=hpack(mem[curlist.headfield].hh.
@@ -4559,18 +4544,17 @@ begin mem[curlist.tailfield].hh.rh:=p;
 curlist.tailfield:=mem[curlist.tailfield].hh.rh;end;end;end;{:1093}
 {1095:}procedure headforvmode;
 begin if curlist.modefield<0 then if curcmd<>36 then offsave else begin
-begin if interaction=3 then wakeupterminal;printnl(262);print(681);end;
-printesc(517);print(1075);begin helpptr:=2;helpline[1]:=1076;
-helpline[0]:=1077;end;error;end else begin backinput;curtok:=partoken;
-backinput;curinput.indexfield:=4;end;end;{:1095}{1096:}
-procedure endgraf;
+begin if interaction=3 then;printnl(262);print(681);end;printesc(517);
+print(1075);begin helpptr:=2;helpline[1]:=1076;helpline[0]:=1077;end;
+error;end else begin backinput;curtok:=partoken;backinput;
+curinput.indexfield:=4;end;end;{:1095}{1096:}procedure endgraf;
 begin if curlist.modefield=102 then begin if curlist.headfield=curlist.
 tailfield then popnest else linebreak(eqtb[12669].int);normalparagraph;
 errorcount:=0;end;end;{:1096}{1099:}procedure begininsertoradjust;
 begin if curcmd=38 then curval:=255 else begin scaneightbitint;
-if curval=255 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(1078);end;printesc(327);printint(255);
-begin helpptr:=1;helpline[0]:=1079;end;error;curval:=0;end;end;
+if curval=255 then begin begin if interaction=3 then;printnl(262);
+print(1078);end;printesc(327);printint(255);begin helpptr:=1;
+helpline[0]:=1079;end;error;curval:=0;end;end;
 savestack[saveptr+0].int:=curval;incr(saveptr);newsavelevel(11);
 scanleftbrace;normalparagraph;pushnest;curlist.modefield:=-1;
 curlist.auxfield.int:=-65536000;end;{:1099}{1101:}procedure makemark;
@@ -4598,7 +4582,7 @@ begin c:=curchr;scaneightbitint;p:=eqtb[11078+curval].hh.rh;
 if p=0 then goto 10;
 if(abs(curlist.modefield)=203)or((abs(curlist.modefield)=1)and(mem[p].hh
 .b0<>1))or((abs(curlist.modefield)=102)and(mem[p].hh.b0<>0))then begin
-begin if interaction=3 then wakeupterminal;printnl(262);print(1090);end;
+begin if interaction=3 then;printnl(262);print(1090);end;
 begin helpptr:=3;helpline[2]:=1091;helpline[1]:=1092;helpline[0]:=1093;
 end;error;goto 10;end;
 if c=1 then mem[curlist.tailfield].hh.rh:=copynodelist(mem[p+5].hh.rh)
@@ -4627,20 +4611,19 @@ curlist.modefield:=-102;curlist.auxfield.hh.lh:=1000;end;end;{:1117}
 n:integer;begin unsave;{1121:}q:=curlist.headfield;p:=mem[q].hh.rh;n:=0;
 while p<>0 do begin if not(p>=himemmin)then if mem[p].hh.b0>2 then if
 mem[p].hh.b0<>11 then if mem[p].hh.b0<>6 then begin begin if interaction
-=3 then wakeupterminal;printnl(262);print(1100);end;begin helpptr:=1;
-helpline[0]:=1101;end;error;begindiagnostic;printnl(1102);showbox(p);
-enddiagnostic(true);flushnodelist(p);mem[q].hh.rh:=0;goto 30;end;q:=p;
-p:=mem[q].hh.rh;incr(n);end;30:{:1121};p:=mem[curlist.headfield].hh.rh;
-popnest;
+=3 then;printnl(262);print(1100);end;begin helpptr:=1;helpline[0]:=1101;
+end;error;begindiagnostic;printnl(1102);showbox(p);enddiagnostic(true);
+flushnodelist(p);mem[q].hh.rh:=0;goto 30;end;q:=p;p:=mem[q].hh.rh;
+incr(n);end;30:{:1121};p:=mem[curlist.headfield].hh.rh;popnest;
 case savestack[saveptr-1].int of 0:mem[curlist.tailfield+1].hh.lh:=p;
 1:mem[curlist.tailfield+1].hh.rh:=p;2:{1120:}
 begin if(n>0)and(abs(curlist.modefield)=203)then begin begin if
-interaction=3 then wakeupterminal;printnl(262);print(1094);end;
-printesc(346);begin helpptr:=2;helpline[1]:=1095;helpline[0]:=1096;end;
+interaction=3 then;printnl(262);print(1094);end;printesc(346);
+begin helpptr:=2;helpline[1]:=1095;helpline[0]:=1096;end;
 flushnodelist(p);n:=0;error;end else mem[curlist.tailfield].hh.rh:=p;
-if n<=511 then mem[curlist.tailfield].hh.b1:=n else begin begin if
-interaction=3 then wakeupterminal;printnl(262);print(1097);end;
-begin helpptr:=2;helpline[1]:=1098;helpline[0]:=1099;end;error;end;
+if n<=255 then mem[curlist.tailfield].hh.b1:=n else begin begin if
+interaction=3 then;printnl(262);print(1097);end;begin helpptr:=2;
+helpline[1]:=1098;helpline[0]:=1099;end;error;end;
 if n>0 then curlist.tailfield:=q;decr(saveptr);goto 10;end{:1120};end;
 incr(savestack[saveptr-1].int);newsavelevel(10);scanleftbrace;pushnest;
 curlist.modefield:=-102;curlist.auxfield.hh.lh:=1000;10:end;{:1119}
@@ -4665,31 +4648,29 @@ curlist.tailfield:=newkern(-a-delta);mem[curlist.tailfield].hh.b1:=2;
 mem[p].hh.rh:=curlist.tailfield;p:=q;end{:1125};
 mem[curlist.tailfield].hh.rh:=p;curlist.tailfield:=p;
 curlist.auxfield.hh.lh:=1000;end;end;{:1123}{1127:}procedure alignerror;
-begin if abs(alignstate)>2 then{1128:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1107);end;printcmdchr(curcmd,curchr);
+begin if abs(alignstate)>2 then{1128:}begin begin if interaction=3 then;
+printnl(262);print(1107);end;printcmdchr(curcmd,curchr);
 if curtok=1062 then begin begin helpptr:=6;helpline[5]:=1108;
 helpline[4]:=1109;helpline[3]:=1110;helpline[2]:=1111;helpline[1]:=1112;
 helpline[0]:=1113;end;end else begin begin helpptr:=5;helpline[4]:=1108;
 helpline[3]:=1114;helpline[2]:=1111;helpline[1]:=1112;helpline[0]:=1113;
 end;end;error;end{:1128}else begin backinput;
-if alignstate<0 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(653);end;incr(alignstate);curtok:=379;
-end else begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1103);end;decr(alignstate);curtok:=637;end;begin helpptr:=3;
-helpline[2]:=1104;helpline[1]:=1105;helpline[0]:=1106;end;inserror;end;
-end;{:1127}{1129:}procedure noalignerror;
-begin begin if interaction=3 then wakeupterminal;printnl(262);
+if alignstate<0 then begin begin if interaction=3 then;printnl(262);
+print(653);end;incr(alignstate);curtok:=379;
+end else begin begin if interaction=3 then;printnl(262);print(1103);end;
+decr(alignstate);curtok:=637;end;begin helpptr:=3;helpline[2]:=1104;
+helpline[1]:=1105;helpline[0]:=1106;end;inserror;end;end;{:1127}{1129:}
+procedure noalignerror;begin begin if interaction=3 then;printnl(262);
 print(1107);end;printesc(523);begin helpptr:=2;helpline[1]:=1115;
 helpline[0]:=1116;end;error;end;procedure omiterror;
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1107);end;printesc(526);begin helpptr:=2;helpline[1]:=1117;
-helpline[0]:=1116;end;error;end;{:1129}{1131:}procedure doendv;
+begin begin if interaction=3 then;printnl(262);print(1107);end;
+printesc(526);begin helpptr:=2;helpline[1]:=1117;helpline[0]:=1116;end;
+error;end;{:1129}{1131:}procedure doendv;
 begin if curgroup=6 then begin endgraf;if fincol then finrow;
 end else offsave;end;{:1131}{1135:}procedure cserror;
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(772);end;printesc(501);begin helpptr:=1;helpline[0]:=1119;end;
-error;end;{:1135}{1136:}procedure pushmath(c:groupcode);begin pushnest;
+begin begin if interaction=3 then;printnl(262);print(772);end;
+printesc(501);begin helpptr:=1;helpline[0]:=1119;end;error;end;{:1135}
+{1136:}procedure pushmath(c:groupcode);begin pushnest;
 curlist.modefield:=-203;curlist.auxfield.int:=0;newsavelevel(c);end;
 {:1136}{1138:}procedure initmath;label 21,40,45,30;var w:scaled;
 l:scaled;s:scaled;p:halfword;q:halfword;f:internalfontnumber;n:integer;
@@ -4757,17 +4738,17 @@ curlist.tailfield:=p;end;end;{:1155}{1159:}procedure mathlimitswitch;
 label 10;
 begin if curlist.headfield<>curlist.tailfield then if mem[curlist.
 tailfield].hh.b0=17 then begin mem[curlist.tailfield].hh.b1:=curchr;
-goto 10;end;begin if interaction=3 then wakeupterminal;printnl(262);
-print(1123);end;begin helpptr:=1;helpline[0]:=1124;end;error;10:end;
-{:1159}{1160:}procedure scandelimiter(p:halfword;r:boolean);
+goto 10;end;begin if interaction=3 then;printnl(262);print(1123);end;
+begin helpptr:=1;helpline[0]:=1124;end;error;10:end;{:1159}{1160:}
+procedure scandelimiter(p:halfword;r:boolean);
 begin if r then scantwentysevenbitint else begin{404:}repeat getxtoken;
 until(curcmd<>10)and(curcmd<>0){:404};
 case curcmd of 11,12:curval:=eqtb[12974+curchr].int;
 15:scantwentysevenbitint;others:curval:=-1 end;end;
-if curval<0 then{1161:}begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(1125);end;begin helpptr:=6;helpline[5]:=1126;
-helpline[4]:=1127;helpline[3]:=1128;helpline[2]:=1129;helpline[1]:=1130;
-helpline[0]:=1131;end;backerror;curval:=0;end{:1161};
+if curval<0 then{1161:}begin begin if interaction=3 then;printnl(262);
+print(1125);end;begin helpptr:=6;helpline[5]:=1126;helpline[4]:=1127;
+helpline[3]:=1128;helpline[2]:=1129;helpline[1]:=1130;helpline[0]:=1131;
+end;backerror;curval:=0;end{:1161};
 mem[p].qqqq.b0:=(curval div 1048576)mod 16;
 mem[p].qqqq.b1:=(curval div 4096)mod 256;
 mem[p].qqqq.b2:=(curval div 256)mod 16;mem[p].qqqq.b3:=curval mod 256;
@@ -4780,9 +4761,9 @@ mem[curlist.tailfield+3].hh:=emptyfield;
 mem[curlist.tailfield+2].hh:=emptyfield;
 scandelimiter(curlist.tailfield+4,true);scanmath(curlist.tailfield+1);
 end;{:1163}{1165:}procedure mathac;begin if curcmd=45 then{1166:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1132);end;printesc(519);print(1133);begin helpptr:=2;
-helpline[1]:=1134;helpline[0]:=1135;end;error;end{:1166};
+begin begin if interaction=3 then;printnl(262);print(1132);end;
+printesc(519);print(1133);begin helpptr:=2;helpline[1]:=1134;
+helpline[0]:=1135;end;error;end{:1166};
 begin mem[curlist.tailfield].hh.rh:=getnode(5);
 curlist.tailfield:=mem[curlist.tailfield].hh.rh;end;
 mem[curlist.tailfield].hh.b0:=28;mem[curlist.tailfield].hh.b1:=0;
@@ -4821,17 +4802,16 @@ tailfield+2+curcmd-7;t:=mem[p].hh.rh;end;if(p=0)or(t<>0)then{1177:}
 begin begin mem[curlist.tailfield].hh.rh:=newnoad;
 curlist.tailfield:=mem[curlist.tailfield].hh.rh;end;
 p:=curlist.tailfield+2+curcmd-7;
-if t<>0 then begin if curcmd=7 then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(1136);end;begin helpptr:=1;
-helpline[0]:=1137;end;
-end else begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1138);end;begin helpptr:=1;helpline[0]:=1139;end;end;error;end;
-end{:1177};scanmath(p);end;{:1176}{1181:}procedure mathfraction;
-var c:smallnumber;begin c:=curchr;if curlist.auxfield.int<>0 then{1183:}
+if t<>0 then begin if curcmd=7 then begin begin if interaction=3 then;
+printnl(262);print(1136);end;begin helpptr:=1;helpline[0]:=1137;end;
+end else begin begin if interaction=3 then;printnl(262);print(1138);end;
+begin helpptr:=1;helpline[0]:=1139;end;end;error;end;end{:1177};
+scanmath(p);end;{:1176}{1181:}procedure mathfraction;var c:smallnumber;
+begin c:=curchr;if curlist.auxfield.int<>0 then{1183:}
 begin if c>=3 then begin scandelimiter(memtop-12,false);
 scandelimiter(memtop-12,false);end;
 if c mod 3=0 then scandimen(false,false,false);
-begin if interaction=3 then wakeupterminal;printnl(262);print(1146);end;
+begin if interaction=3 then;printnl(262);print(1146);end;
 begin helpptr:=3;helpline[2]:=1147;helpline[1]:=1148;helpline[0]:=1149;
 end;error;end{:1183}else begin curlist.auxfield.int:=getnode(6);
 mem[curlist.auxfield.int].hh.b0:=25;mem[curlist.auxfield.int].hh.b1:=0;
@@ -4850,12 +4830,11 @@ mem[curlist.auxfield.int+1].int:=curval;end;
 procedure mathleftright;var t:smallnumber;p:halfword;begin t:=curchr;
 if(t=31)and(curgroup<>16)then{1192:}
 begin if curgroup=15 then begin scandelimiter(memtop-12,false);
-begin if interaction=3 then wakeupterminal;printnl(262);print(772);end;
-printesc(870);begin helpptr:=1;helpline[0]:=1150;end;error;
-end else offsave;end{:1192}else begin p:=newnoad;mem[p].hh.b0:=t;
-scandelimiter(p+1,false);if t=30 then begin pushmath(16);
-mem[curlist.headfield].hh.rh:=p;curlist.tailfield:=p;
-end else begin p:=finmlist(p);unsave;
+begin if interaction=3 then;printnl(262);print(772);end;printesc(870);
+begin helpptr:=1;helpline[0]:=1150;end;error;end else offsave;end{:1192}
+else begin p:=newnoad;mem[p].hh.b0:=t;scandelimiter(p+1,false);
+if t=30 then begin pushmath(16);mem[curlist.headfield].hh.rh:=p;
+curlist.tailfield:=p;end else begin p:=finmlist(p);unsave;
 begin mem[curlist.tailfield].hh.rh:=newnoad;
 curlist.tailfield:=mem[curlist.tailfield].hh.rh;end;
 mem[curlist.tailfield].hh.b0:=23;mem[curlist.tailfield+1].hh.rh:=3;
@@ -4866,33 +4845,30 @@ d:scaled;s:scaled;g1,g2:smallnumber;r:halfword;t:halfword;{:1198}
 begin danger:=false;{1195:}
 if(fontparams[eqtb[11337].hh.rh]<22)or(fontparams[eqtb[11353].hh.rh]<22)
 or(fontparams[eqtb[11369].hh.rh]<22)then begin begin if interaction=3
-then wakeupterminal;printnl(262);print(1151);end;begin helpptr:=3;
-helpline[2]:=1152;helpline[1]:=1153;helpline[0]:=1154;end;error;
-flushmath;danger:=true;
+then;printnl(262);print(1151);end;begin helpptr:=3;helpline[2]:=1152;
+helpline[1]:=1153;helpline[0]:=1154;end;error;flushmath;danger:=true;
 end else if(fontparams[eqtb[11338].hh.rh]<13)or(fontparams[eqtb[11354].
 hh.rh]<13)or(fontparams[eqtb[11370].hh.rh]<13)then begin begin if
-interaction=3 then wakeupterminal;printnl(262);print(1155);end;
-begin helpptr:=3;helpline[2]:=1156;helpline[1]:=1157;helpline[0]:=1158;
-end;error;flushmath;danger:=true;end{:1195};m:=curlist.modefield;
-l:=false;p:=finmlist(0);if curlist.modefield=-m then begin{1197:}
-begin getxtoken;
-if curcmd<>3 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(1159);end;begin helpptr:=2;helpline[1]:=1160;
-helpline[0]:=1161;end;backerror;end;end{:1197};curmlist:=p;curstyle:=2;
+interaction=3 then;printnl(262);print(1155);end;begin helpptr:=3;
+helpline[2]:=1156;helpline[1]:=1157;helpline[0]:=1158;end;error;
+flushmath;danger:=true;end{:1195};m:=curlist.modefield;l:=false;
+p:=finmlist(0);if curlist.modefield=-m then begin{1197:}begin getxtoken;
+if curcmd<>3 then begin begin if interaction=3 then;printnl(262);
+print(1159);end;begin helpptr:=2;helpline[1]:=1160;helpline[0]:=1161;
+end;backerror;end;end{:1197};curmlist:=p;curstyle:=2;
 mlistpenalties:=false;mlisttohlist;a:=hpack(mem[memtop-3].hh.rh,0,1);
 unsave;decr(saveptr);if savestack[saveptr+0].int=1 then l:=true;
 danger:=false;{1195:}
 if(fontparams[eqtb[11337].hh.rh]<22)or(fontparams[eqtb[11353].hh.rh]<22)
 or(fontparams[eqtb[11369].hh.rh]<22)then begin begin if interaction=3
-then wakeupterminal;printnl(262);print(1151);end;begin helpptr:=3;
-helpline[2]:=1152;helpline[1]:=1153;helpline[0]:=1154;end;error;
-flushmath;danger:=true;
+then;printnl(262);print(1151);end;begin helpptr:=3;helpline[2]:=1152;
+helpline[1]:=1153;helpline[0]:=1154;end;error;flushmath;danger:=true;
 end else if(fontparams[eqtb[11338].hh.rh]<13)or(fontparams[eqtb[11354].
 hh.rh]<13)or(fontparams[eqtb[11370].hh.rh]<13)then begin begin if
-interaction=3 then wakeupterminal;printnl(262);print(1155);end;
-begin helpptr:=3;helpline[2]:=1156;helpline[1]:=1157;helpline[0]:=1158;
-end;error;flushmath;danger:=true;end{:1195};m:=curlist.modefield;
-p:=finmlist(0);end else a:=0;if m<0 then{1196:}
+interaction=3 then;printnl(262);print(1155);end;begin helpptr:=3;
+helpline[2]:=1156;helpline[1]:=1157;helpline[0]:=1158;end;error;
+flushmath;danger:=true;end{:1195};m:=curlist.modefield;p:=finmlist(0);
+end else a:=0;if m<0 then{1196:}
 begin begin mem[curlist.tailfield].hh.rh:=newmath(eqtb[13231].int,0);
 curlist.tailfield:=mem[curlist.tailfield].hh.rh;end;curmlist:=p;
 curstyle:=2;mlistpenalties:=(curlist.modefield>0);mlisttohlist;
@@ -4903,10 +4879,10 @@ begin mem[curlist.tailfield].hh.rh:=newmath(eqtb[13231].int,1);
 curlist.tailfield:=mem[curlist.tailfield].hh.rh;end;
 curlist.auxfield.hh.lh:=1000;unsave;end{:1196}
 else begin if a=0 then{1197:}begin getxtoken;
-if curcmd<>3 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(1159);end;begin helpptr:=2;helpline[1]:=1160;
-helpline[0]:=1161;end;backerror;end;end{:1197};{1199:}curmlist:=p;
-curstyle:=0;mlistpenalties:=false;mlisttohlist;p:=mem[memtop-3].hh.rh;
+if curcmd<>3 then begin begin if interaction=3 then;printnl(262);
+print(1159);end;begin helpptr:=2;helpline[1]:=1160;helpline[0]:=1161;
+end;backerror;end;end{:1197};{1199:}curmlist:=p;curstyle:=0;
+mlistpenalties:=false;mlisttohlist;p:=mem[memtop-3].hh.rh;
 adjusttail:=memtop-5;b:=hpack(p,0,1);p:=mem[b+5].hh.rh;t:=adjusttail;
 adjusttail:=0;w:=mem[b+1].int;z:=eqtb[13244].int;s:=eqtb[13245].int;
 if(a=0)or danger then begin e:=0;q:=0;end else begin e:=mem[a+1].int;
@@ -4948,23 +4924,23 @@ curlist.auxfield.hh.rh:=0;{443:}begin getxtoken;
 if curcmd<>10 then backinput;end{:443};if nestptr=1 then buildpage;end;
 {:1200}{1211:}{1215:}procedure getrtoken;label 20;
 begin 20:repeat gettoken;until curtok<>2592;
-if(curcs=0)or(curcs>10014)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(1177);end;begin helpptr:=5;
-helpline[4]:=1178;helpline[3]:=1179;helpline[2]:=1180;helpline[1]:=1181;
-helpline[0]:=1182;end;if curcs=0 then backinput;curtok:=14109;inserror;
-goto 20;end;end;{:1215}{1229:}procedure trapzeroglue;
+if(curcs=0)or(curcs>10014)then begin begin if interaction=3 then;
+printnl(262);print(1177);end;begin helpptr:=5;helpline[4]:=1178;
+helpline[3]:=1179;helpline[2]:=1180;helpline[1]:=1181;helpline[0]:=1182;
+end;if curcs=0 then backinput;curtok:=14109;inserror;goto 20;end;end;
+{:1215}{1229:}procedure trapzeroglue;
 begin if(mem[curval+1].int=0)and(mem[curval+2].int=0)and(mem[curval+3].
 int=0)then begin incr(mem[0].hh.rh);deleteglueref(curval);curval:=0;end;
 end;{:1229}{1236:}procedure doregistercommand(a:smallnumber);
 label 40,10;var l,q,r,s:halfword;p:0..3;begin q:=curcmd;{1237:}
 begin if q<>89 then begin getxtoken;
 if(curcmd>=73)and(curcmd<=76)then begin l:=curchr;p:=curcmd-73;goto 40;
-end;if curcmd<>89 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(681);end;printcmdchr(curcmd,curchr);print(682);
-printcmdchr(q,0);begin helpptr:=1;helpline[0]:=1203;end;error;goto 10;
-end;end;p:=curchr;scaneightbitint;case p of 0:l:=curval+12718;
-1:l:=curval+13251;2:l:=curval+10300;3:l:=curval+10556;end;end;40:{:1237}
-;if q=89 then scanoptionalequals else if scankeyword(1199)then;
+end;if curcmd<>89 then begin begin if interaction=3 then;printnl(262);
+print(681);end;printcmdchr(curcmd,curchr);print(682);printcmdchr(q,0);
+begin helpptr:=1;helpline[0]:=1203;end;error;goto 10;end;end;p:=curchr;
+scaneightbitint;case p of 0:l:=curval+12718;1:l:=curval+13251;
+2:l:=curval+10300;3:l:=curval+10556;end;end;40:{:1237};
+if q=89 then scanoptionalequals else if scankeyword(1199)then;
 aritherror:=false;if q<91 then{1238:}
 if p<2 then begin if p=0 then scanint else scandimen(false,false,false);
 if q=90 then curval:=curval+eqtb[l].int;end else begin scanglue(p);
@@ -4989,9 +4965,9 @@ mem[r+3].int:=multandadd(mem[s+3].int,curval,0,1073741823);
 end else begin mem[r+1].int:=xovern(mem[s+1].int,curval);
 mem[r+2].int:=xovern(mem[s+2].int,curval);
 mem[r+3].int:=xovern(mem[s+3].int,curval);end;curval:=r;end;end{:1240};
-if aritherror then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(1200);end;begin helpptr:=2;helpline[1]:=1201;
-helpline[0]:=1202;end;error;goto 10;end;
+if aritherror then begin begin if interaction=3 then;printnl(262);
+print(1200);end;begin helpptr:=2;helpline[1]:=1201;helpline[0]:=1202;
+end;error;goto 10;end;
 if p<2 then if(a>=4)then geqworddefine(l,curval)else eqworddefine(l,
 curval)else begin trapzeroglue;
 if(a>=4)then geqdefine(l,117,curval)else eqdefine(l,117,curval);end;
@@ -5000,48 +4976,49 @@ begin if curchr<>abs(curlist.modefield)then reportillegalcase else begin
 c:=curchr;scanoptionalequals;
 if c=1 then begin scandimen(false,false,false);
 curlist.auxfield.int:=curval;end else begin scanint;
-if(curval<=0)or(curval>32767)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(1204);end;begin helpptr:=1;
-helpline[0]:=1205;end;interror(curval);
-end else curlist.auxfield.hh.lh:=curval;end;end;end;{:1243}{1244:}
-procedure alterprevgraf;var p:0..nestsize;begin nest[nestptr]:=curlist;
-p:=nestptr;while abs(nest[p].modefield)<>1 do decr(p);
-scanoptionalequals;scanint;
-if curval<0 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(948);end;printesc(528);begin helpptr:=1;
-helpline[0]:=1206;end;interror(curval);
-end else begin nest[p].pgfield:=curval;curlist:=nest[nestptr];end;end;
-{:1244}{1245:}procedure alterpagesofar;var c:0..7;begin c:=curchr;
-scanoptionalequals;scandimen(false,false,false);pagesofar[c]:=curval;
-end;{:1245}{1246:}procedure alterinteger;var c:0..1;begin c:=curchr;
-scanoptionalequals;scanint;
-if c=0 then deadcycles:=curval else insertpenalties:=curval;end;{:1246}
-{1247:}procedure alterboxdimen;var c:smallnumber;b:eightbits;
+if(curval<=0)or(curval>32767)then begin begin if interaction=3 then;
+printnl(262);print(1206);end;begin helpptr:=1;helpline[0]:=1207;end;
+interror(curval);end else curlist.auxfield.hh.lh:=curval;end;end;end;
+{:1243}{1244:}procedure alterprevgraf;var p:0..nestsize;
+begin nest[nestptr]:=curlist;p:=nestptr;
+while abs(nest[p].modefield)<>1 do decr(p);scanoptionalequals;scanint;
+if curval<0 then begin begin if interaction=3 then;printnl(262);
+print(948);end;printesc(528);begin helpptr:=1;helpline[0]:=1208;end;
+interror(curval);end else begin nest[p].pgfield:=curval;
+curlist:=nest[nestptr];end;end;{:1244}{1245:}procedure alterpagesofar;
+var c:0..7;begin c:=curchr;scanoptionalequals;
+scandimen(false,false,false);pagesofar[c]:=curval;end;{:1245}{1246:}
+procedure alterinteger;var c:0..1;begin c:=curchr;scanoptionalequals;
+scanint;if c=0 then deadcycles:=curval else insertpenalties:=curval;end;
+{:1246}{1247:}procedure alterboxdimen;var c:smallnumber;b:eightbits;
 begin c:=curchr;scaneightbitint;b:=curval;scanoptionalequals;
 scandimen(false,false,false);
 if eqtb[11078+b].hh.rh<>0 then mem[eqtb[11078+b].hh.rh+c].int:=curval;
 end;{:1247}{1257:}procedure newfont(a:smallnumber);label 50;
 var u:halfword;s:scaled;f:internalfontnumber;t:strnumber;
-oldsetting:0..21;begin if jobname=0 then openlogfile;getrtoken;u:=curcs;
-if u>=514 then t:=hash[u].rh else if u>=257 then if u=513 then t:=1210
-else t:=u-257 else begin oldsetting:=selector;selector:=21;print(1210);
+oldsetting:0..21;flushablestring:strnumber;
+begin if jobname=0 then openlogfile;getrtoken;u:=curcs;
+if u>=514 then t:=hash[u].rh else if u>=257 then if u=513 then t:=1212
+else t:=u-257 else begin oldsetting:=selector;selector:=21;print(1212);
 print(u-1);selector:=oldsetting;
 begin if poolptr+1>poolsize then overflow(257,poolsize-initpoolptr);end;
 t:=makestring;end;if(a>=4)then geqdefine(u,87,0)else eqdefine(u,87,0);
 scanoptionalequals;scanfilename;{1258:}nameinprogress:=true;
-if scankeyword(1211)then{1259:}begin scandimen(false,false,false);
-s:=curval;if(s<=0)or(s>=134217728)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(1213);end;printscaled(s);print(1214);
-begin helpptr:=2;helpline[1]:=1215;helpline[0]:=1216;end;error;
-s:=10*65536;end;end{:1259}else if scankeyword(1212)then begin scanint;
+if scankeyword(1213)then{1259:}begin scandimen(false,false,false);
+s:=curval;
+if(s<=0)or(s>=134217728)then begin begin if interaction=3 then;
+printnl(262);print(1215);end;printscaled(s);print(1216);
+begin helpptr:=2;helpline[1]:=1217;helpline[0]:=1218;end;error;
+s:=10*65536;end;end{:1259}else if scankeyword(1214)then begin scanint;
 s:=-curval;
-if(curval<=0)or(curval>32768)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(548);end;begin helpptr:=1;
-helpline[0]:=549;end;interror(curval);s:=-1000;end;end else s:=-1000;
-nameinprogress:=false{:1258};{1260:}
+if(curval<=0)or(curval>32768)then begin begin if interaction=3 then;
+printnl(262);print(548);end;begin helpptr:=1;helpline[0]:=549;end;
+interror(curval);s:=-1000;end;end else s:=-1000;
+nameinprogress:=false{:1258};{1260:}flushablestring:=strptr-1;
 for f:=1 to fontptr do if streqstr(fontname[f],curname)and streqstr(
-fontarea[f],curarea)then begin if s>0 then begin if s=fontsize[f]then
-goto 50;
+fontarea[f],curarea)then begin if curname=flushablestring then begin
+begin decr(strptr);poolptr:=strstart[strptr];end;curname:=fontname[f];
+end;if s>0 then begin if s=fontsize[f]then goto 50;
 end else if fontsize[f]=xnoverd(fontdsize[f],-s,1000)then goto 50;
 end{:1260};f:=readfontinfo(u,curname,curarea,s);50:eqtb[u].hh.rh:=f;
 eqtb[10024+f]:=eqtb[u];hash[10024+f].rh:=t;end;{:1257}{1265:}
@@ -5053,15 +5030,14 @@ f:internalfontnumber;j:halfword;k:fontindex;p,q:halfword;n:integer;
 e:boolean;begin a:=0;
 while curcmd=93 do begin if not odd(a div curchr)then a:=a+curchr;{404:}
 repeat getxtoken;until(curcmd<>10)and(curcmd<>0){:404};
-if curcmd<=70 then{1212:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
+if curcmd<=70 then{1212:}begin begin if interaction=3 then;printnl(262);
 print(1172);end;printcmdchr(curcmd,curchr);printchar(39);
 begin helpptr:=1;helpline[0]:=1173;end;backerror;goto 10;end{:1212};end;
 {1213:}
-if(curcmd<>97)and(a mod 4<>0)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(681);end;printesc(1164);print(1174);
-printesc(1165);print(1175);printcmdchr(curcmd,curchr);printchar(39);
-begin helpptr:=1;helpline[0]:=1176;end;error;end{:1213};{1214:}
+if(curcmd<>97)and(a mod 4<>0)then begin begin if interaction=3 then;
+printnl(262);print(681);end;printesc(1164);print(1174);printesc(1165);
+print(1175);printcmdchr(curcmd,curchr);printchar(39);begin helpptr:=1;
+helpline[0]:=1176;end;error;end{:1213};{1214:}
 if eqtb[12706].int<>0 then if eqtb[12706].int<0 then begin if(a>=4)then
 a:=a-4;end else begin if not(a>=4)then a:=a+4;end{:1214};
 case curcmd of{1217:}
@@ -5093,10 +5069,9 @@ curval);
 curval);
 6:if(a>=4)then geqdefine(p,72,10822+curval)else eqdefine(p,72,10822+
 curval);end;end end;end;{:1224}{1225:}96:begin scanint;n:=curval;
-if not scankeyword(835)then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(1066);end;begin helpptr:=2;
-helpline[1]:=1193;helpline[0]:=1194;end;error;end;getrtoken;p:=curcs;
-readtoks(n,p);
+if not scankeyword(835)then begin begin if interaction=3 then;
+printnl(262);print(1066);end;begin helpptr:=2;helpline[1]:=1193;
+helpline[0]:=1194;end;error;end;getrtoken;p:=curcs;readtoks(n,p);
 if(a>=4)then geqdefine(p,111,curval)else eqdefine(p,111,curval);end;
 {:1225}{1226:}71,72:begin q:=curcs;
 if curcmd=71 then begin scaneightbitint;p:=10822+curval;
@@ -5128,7 +5103,7 @@ curchr=12151 then n:=32767 else if curchr=12974 then n:=16777215 else n
 :=255{:1233};p:=curchr;scancharnum;p:=p+curval;scanoptionalequals;
 scanint;
 if((curval<0)and(p<12974))or(curval>n)then begin begin if interaction=3
-then wakeupterminal;printnl(262);print(1195);end;printint(curval);
+then;printnl(262);print(1195);end;printint(curval);
 if p<12974 then print(1196)else print(1197);printint(n);
 begin helpptr:=1;helpline[0]:=1198;end;error;curval:=0;end;
 if p<12407 then if(a>=4)then geqdefine(p,120,curval)else eqdefine(p,120,
@@ -5139,19 +5114,23 @@ scanfourbitint;p:=p+curval;scanoptionalequals;scanfontident;
 if(a>=4)then geqdefine(p,120,curval)else eqdefine(p,120,curval);end;
 {:1234}{1235:}89,90,91,92:doregistercommand(a);{:1235}{1241:}
 98:begin scaneightbitint;if(a>=4)then n:=256+curval else n:=curval;
-scanoptionalequals;scanbox(1073741824+n);end;{:1241}{1242:}79:alteraux;
-80:alterprevgraf;81:alterpagesofar;82:alterinteger;83:alterboxdimen;
-{:1242}{1248:}84:begin scanoptionalequals;scanint;n:=curval;
+scanoptionalequals;
+if setboxallowed then scanbox(1073741824+n)else begin begin if
+interaction=3 then;printnl(262);print(676);end;printesc(532);
+begin helpptr:=2;helpline[1]:=1204;helpline[0]:=1205;end;error;end;end;
+{:1241}{1242:}79:alteraux;80:alterprevgraf;81:alterpagesofar;
+82:alterinteger;83:alterboxdimen;{:1242}{1248:}
+84:begin scanoptionalequals;scanint;n:=curval;
 if n<=0 then p:=0 else begin p:=getnode(2*n+1);mem[p].hh.lh:=n;
 for j:=1 to n do begin scandimen(false,false,false);
 mem[p+2*j-1].int:=curval;scandimen(false,false,false);
 mem[p+2*j].int:=curval;end;end;
 if(a>=4)then geqdefine(10812,118,p)else eqdefine(10812,118,p);end;
 {:1248}{1252:}99:if curchr=1 then begin ifdef('INITEX')newpatterns;
-goto 30;endif('INITEX')begin if interaction=3 then wakeupterminal;
-printnl(262);print(1207);end;helpptr:=0;error;repeat gettoken;
-until curcmd=2;goto 10;end else begin newhyphexceptions;goto 30;end;
-{:1252}{1253:}77:begin findfontdimen(true);k:=curval;scanoptionalequals;
+goto 30;endif('INITEX')begin if interaction=3 then;printnl(262);
+print(1209);end;helpptr:=0;error;repeat gettoken;until curcmd=2;goto 10;
+end else begin newhyphexceptions;goto 30;end;{:1252}{1253:}
+77:begin findfontdimen(true);k:=curval;scanoptionalequals;
 scandimen(false,false,false);fontinfo[k].int:=curval;end;
 78:begin n:=curchr;scanfontident;f:=curval;scanoptionalequals;scanint;
 if n=0 then hyphenchar[f]:=curval else skewchar[f]:=curval;end;{:1253}
@@ -5161,28 +5140,35 @@ if aftertoken<>0 then begin curtok:=aftertoken;backinput;aftertoken:=0;
 end{:1269};10:end;{:1211}{1270:}procedure doassignments;label 10;
 begin while true do begin{404:}repeat getxtoken;
 until(curcmd<>10)and(curcmd<>0){:404};if curcmd<=70 then goto 10;
-prefixedcommand;end;10:end;{:1270}{1275:}procedure openorclosein;
-var c:0..1;n:0..15;begin c:=curchr;scanfourbitint;n:=curval;
+setboxallowed:=false;prefixedcommand;setboxallowed:=true;end;10:end;
+{:1270}{1275:}procedure openorclosein;var c:0..1;n:0..15;
+begin c:=curchr;scanfourbitint;n:=curval;
 if readopen[n]<>2 then begin aclose(readfile[n]);readopen[n]:=2;end;
 if c<>0 then begin scanoptionalequals;scanfilename;
-if curext=335 then curext:=784;packfilename(curname,curarea,curext);
-if aopenin(readfile[n],readpathspec)then readopen[n]:=1;end;end;{:1275}
-{1279:}procedure issuemessage;var oldsetting:0..21;c:0..1;s:strnumber;
-begin c:=curchr;mem[memtop-12].hh.rh:=scantoks(false,true);
+packfilename(curname,curarea,curext);
+if(curext<>784)and(namelength+5<PATHMAX)and(not extensionirrelevantp(
+nameoffile,'tex'))then begin nameoffile[namelength+1]:=46;
+nameoffile[namelength+2]:=116;nameoffile[namelength+3]:=101;
+nameoffile[namelength+4]:=120;namelength:=namelength+4;end;
+if aopenin(readfile[n],TEXINPUTPATH)then readopen[n]:=1 else begin if
+curext=784 then curext:=335;packfilename(curname,curarea,curext);
+if aopenin(readfile[n],TEXINPUTPATH)then readopen[n]:=1;end;end;end;
+{:1275}{1279:}procedure issuemessage;var oldsetting:0..21;c:0..1;
+s:strnumber;begin c:=curchr;mem[memtop-12].hh.rh:=scantoks(false,true);
 oldsetting:=selector;selector:=21;tokenshow(defref);
 selector:=oldsetting;flushlist(defref);
 begin if poolptr+1>poolsize then overflow(257,poolsize-initpoolptr);end;
 s:=makestring;if c=0 then{1280:}
 begin if termoffset+(strstart[s+1]-strstart[s])>maxprintline-2 then
 println else if(termoffset>0)or(fileoffset>0)then printchar(32);
-print(s);termflush(stdout);end{:1280}else{1283:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);print(s);
-end;
+slowprint(s);flush(stdout);end{:1280}else{1283:}
+begin begin if interaction=3 then;printnl(262);print(335);end;
+slowprint(s);
 if eqtb[10821].hh.rh<>0 then useerrhelp:=true else if longhelpseen then
-begin helpptr:=1;helpline[0]:=1223;
+begin helpptr:=1;helpline[0]:=1225;
 end else begin if interaction<3 then longhelpseen:=true;
-begin helpptr:=4;helpline[3]:=1224;helpline[2]:=1225;helpline[1]:=1226;
-helpline[0]:=1227;end;end;error;useerrhelp:=false;end{:1283};
+begin helpptr:=4;helpline[3]:=1226;helpline[2]:=1227;helpline[1]:=1228;
+helpline[0]:=1229;end;end;error;useerrhelp:=false;end{:1283};
 begin decr(strptr);poolptr:=strstart[strptr];end;end;{:1279}{1288:}
 procedure shiftcase;var b:halfword;p:halfword;t:halfword;c:eightbits;
 begin b:=curchr;p:=scantoks(false,false);p:=mem[defref].hh.rh;
@@ -5194,71 +5180,69 @@ begin mem[defref].hh.rh:=avail;avail:=defref;ifdef('STAT')decr(dynused);
 endif('STAT')end;end;{:1288}{1293:}procedure showwhatever;label 50;
 var p:halfword;begin case curchr of 3:begin begindiagnostic;
 showactivities;end;1:{1296:}begin scaneightbitint;begindiagnostic;
-printnl(1245);printint(curval);printchar(61);
+printnl(1247);printint(curval);printchar(61);
 if eqtb[11078+curval].hh.rh=0 then print(406)else showbox(eqtb[11078+
-curval].hh.rh);end{:1296};0:{1294:}begin gettoken;
-if interaction=3 then wakeupterminal;printnl(1239);
-if curcs<>0 then begin sprintcs(curcs);printchar(61);end;printmeaning;
-goto 50;end{:1294};others:{1297:}begin p:=thetoks;
-if interaction=3 then wakeupterminal;printnl(1239);tokenshow(memtop-3);
+curval].hh.rh);end{:1296};0:{1294:}begin gettoken;if interaction=3 then;
+printnl(1241);if curcs<>0 then begin sprintcs(curcs);printchar(61);end;
+printmeaning;goto 50;end{:1294};others:{1297:}begin p:=thetoks;
+if interaction=3 then;printnl(1241);tokenshow(memtop-3);
 flushlist(mem[memtop-3].hh.rh);goto 50;end{:1297}end;{1298:}
-enddiagnostic(true);begin if interaction=3 then wakeupterminal;
-printnl(262);print(1246);end;
+enddiagnostic(true);begin if interaction=3 then;printnl(262);
+print(1248);end;
 if selector=19 then if eqtb[12692].int<=0 then begin selector:=17;
-print(1247);selector:=19;end{:1298};
+print(1249);selector:=19;end{:1298};
 50:if interaction<3 then begin helpptr:=0;decr(errorcount);
 end else if eqtb[12692].int>0 then begin begin helpptr:=3;
-helpline[2]:=1234;helpline[1]:=1235;helpline[0]:=1236;end;
-end else begin begin helpptr:=5;helpline[4]:=1234;helpline[3]:=1235;
-helpline[2]:=1236;helpline[1]:=1237;helpline[0]:=1238;end;end;error;end;
+helpline[2]:=1236;helpline[1]:=1237;helpline[0]:=1238;end;
+end else begin begin helpptr:=5;helpline[4]:=1236;helpline[3]:=1237;
+helpline[2]:=1238;helpline[1]:=1239;helpline[0]:=1240;end;end;error;end;
 {:1293}{1302:}ifdef('INITEX')procedure storefmtfile;label 41,42,31,32;
 var j,k,l:integer;p,q:halfword;x:integer;begin{1304:}
-if saveptr<>0 then begin begin if interaction=3 then wakeupterminal;
-printnl(262);print(1249);end;begin helpptr:=1;helpline[0]:=1250;end;
+if saveptr<>0 then begin begin if interaction=3 then;printnl(262);
+print(1251);end;begin helpptr:=1;helpline[0]:=1252;end;
 begin if interaction=3 then interaction:=2;if logopened then error;
 ifdef('DEBUG')if interaction>0 then debughelp;endif('DEBUG')history:=3;
-jumpout;end;end{:1304};{1328:}selector:=21;print(1263);print(jobname);
+jumpout;end;end{:1304};{1328:}selector:=21;print(1265);print(jobname);
 printchar(32);printint(eqtb[12686].int mod 100);printchar(46);
 printint(eqtb[12685].int);printchar(46);printint(eqtb[12684].int);
 printchar(41);if interaction=0 then selector:=18 else selector:=19;
 begin if poolptr+1>poolsize then overflow(257,poolsize-initpoolptr);end;
 formatident:=makestring;packjobname(779);
-while not wopenout(fmtfile)do promptfilename(1264,779);printnl(1265);
-print(wmakenamestring(fmtfile));begin decr(strptr);
-poolptr:=strstart[strptr];end;printnl(formatident){:1328};{1307:}
-putfmtint(127541235);putfmtint(0);putfmtint(memtop);putfmtint(13506);
-putfmtint(7919);putfmtint(607){:1307};{1309:}putfmtint(poolptr);
-putfmtint(strptr);dumpthings(strstart[0],strptr+1);
-dumpthings(strpool[0],poolptr);println;printint(strptr);print(1251);
-printint(poolptr){:1309};{1311:}sortavail;varused:=0;
-putfmtint(lomemmax);putfmtint(rover);p:=0;q:=rover;x:=0;
-repeat dumpthings(mem[p],q+2-p);x:=x+q+2-p;varused:=varused+q-p;
-p:=q+mem[q].hh.lh;q:=mem[q+1].hh.rh;until q=rover;
-varused:=varused+lomemmax-p;dynused:=memend+1-himemmin;
-dumpthings(mem[p],lomemmax+1-p);x:=x+lomemmax+1-p;putfmtint(himemmin);
-putfmtint(avail);dumpthings(mem[himemmin],memend+1-himemmin);
+while not wopenout(fmtfile)do promptfilename(1266,779);printnl(1267);
+slowprint(wmakenamestring(fmtfile));begin decr(strptr);
+poolptr:=strstart[strptr];end;printnl(335);slowprint(formatident){:1328}
+;{1307:}dumpint(353758006);dumpint(0);dumpint(memtop);dumpint(13506);
+dumpint(7919);dumpint(607){:1307};{1309:}dumpint(poolptr);
+dumpint(strptr);dumpthings(strstart[0],strptr+1);
+dumpthings(strpool[0],poolptr);println;printint(strptr);print(1253);
+printint(poolptr){:1309};{1311:}sortavail;varused:=0;dumpint(lomemmax);
+dumpint(rover);p:=0;q:=rover;x:=0;repeat dumpthings(mem[p],q+2-p);
+x:=x+q+2-p;varused:=varused+q-p;p:=q+mem[q].hh.lh;q:=mem[q+1].hh.rh;
+until q=rover;varused:=varused+lomemmax-p;dynused:=memend+1-himemmin;
+dumpthings(mem[p],lomemmax+1-p);x:=x+lomemmax+1-p;dumpint(himemmin);
+dumpint(avail);dumpthings(mem[himemmin],memend+1-himemmin);
 x:=x+memend+1-himemmin;p:=avail;while p<>0 do begin decr(dynused);
-p:=mem[p].hh.rh;end;putfmtint(varused);putfmtint(dynused);println;
-printint(x);print(1252);printint(varused);printchar(38);
+p:=mem[p].hh.rh;end;dumpint(varused);dumpint(dynused);println;
+printint(x);print(1254);printint(varused);printchar(38);
 printint(dynused){:1311};{1313:}{1315:}k:=1;repeat j:=k;
 while j<12662 do begin if(eqtb[j].hh.rh=eqtb[j+1].hh.rh)and(eqtb[j].hh.
 b0=eqtb[j+1].hh.b0)and(eqtb[j].hh.b1=eqtb[j+1].hh.b1)then goto 41;
 incr(j);end;l:=12663;goto 31;41:incr(j);l:=j;
 while j<12662 do begin if(eqtb[j].hh.rh<>eqtb[j+1].hh.rh)or(eqtb[j].hh.
 b0<>eqtb[j+1].hh.b0)or(eqtb[j].hh.b1<>eqtb[j+1].hh.b1)then goto 31;
-incr(j);end;31:putfmtint(l-k);dumpthings(eqtb[k],l-k);k:=j+1;
-putfmtint(k-l);until k=12663{:1315};{1316:}repeat j:=k;
+incr(j);end;31:dumpint(l-k);dumpthings(eqtb[k],l-k);k:=j+1;dumpint(k-l);
+until k=12663{:1315};{1316:}repeat j:=k;
 while j<13506 do begin if eqtb[j].int=eqtb[j+1].int then goto 42;
 incr(j);end;l:=13507;goto 32;42:incr(j);l:=j;
 while j<13506 do begin if eqtb[j].int<>eqtb[j+1].int then goto 32;
-incr(j);end;32:putfmtint(l-k);dumpthings(eqtb[k],l-k);k:=j+1;
-putfmtint(k-l);until k>13506{:1316};putfmtint(parloc);
-putfmtint(writeloc);{1318:}putfmtint(hashused);cscount:=10013-hashused;
-for p:=514 to hashused do if hash[p].rh<>0 then begin putfmtint(p);
-putfmthh(hash[p]);incr(cscount);end;
-dumpthings(hash[hashused+1],10280-hashused);putfmtint(cscount);println;
-printint(cscount);print(1253){:1318}{:1313};{1320:}putfmtint(fmemptr);
-{1322:}begin dumpthings(fontinfo[0],fmemptr);putfmtint(fontptr);
+incr(j);end;32:dumpint(l-k);dumpthings(eqtb[k],l-k);k:=j+1;dumpint(k-l);
+until k>13506{:1316};dumpint(parloc);dumpint(writeloc);{1318:}
+dumpint(hashused);cscount:=10013-hashused;
+for p:=514 to hashused do if hash[p].rh<>0 then begin dumpint(p);
+dumphh(hash[p]);incr(cscount);end;
+dumpthings(hash[hashused+1],10280-hashused);dumpint(cscount);println;
+printint(cscount);print(1255){:1318}{:1313};{1320:}dumpint(fmemptr);
+{1322:}begin dumpthings(fontinfo[0],fmemptr);dumpint(fontptr);
 dumpthings(fontcheck[0],fontptr+1);dumpthings(fontsize[0],fontptr+1);
 dumpthings(fontdsize[0],fontptr+1);dumpthings(fontparams[0],fontptr+1);
 dumpthings(hyphenchar[0],fontptr+1);dumpthings(skewchar[0],fontptr+1);
@@ -5272,26 +5256,27 @@ dumpthings(extenbase[0],fontptr+1);dumpthings(parambase[0],fontptr+1);
 dumpthings(fontglue[0],fontptr+1);dumpthings(bcharlabel[0],fontptr+1);
 dumpthings(fontbchar[0],fontptr+1);
 dumpthings(fontfalsebchar[0],fontptr+1);
-for k:=0 to fontptr do begin printnl(1256);printesc(hash[10024+k].rh);
+for k:=0 to fontptr do begin printnl(1258);printesc(hash[10024+k].rh);
 printchar(61);printfilename(fontname[k],fontarea[k],335);
 if fontsize[k]<>fontdsize[k]then begin print(737);
 printscaled(fontsize[k]);print(393);end;end;end{:1322};println;
-printint(fmemptr-7);print(1254);printint(fontptr-0);print(1255);
-if fontptr<>1 then printchar(115){:1320};{1324:}putfmtint(hyphcount);
-for k:=0 to 607 do if hyphword[k]<>0 then begin putfmtint(k);
-putfmtint(hyphword[k]);putfmtint(hyphlist[k]);end;println;
-printint(hyphcount);print(1257);if hyphcount<>1 then printchar(115);
-if trienotready then inittrie;putfmtint(triemax);
-dumpthings(trie[0],triemax+1);putfmtint(trieopptr);
+printint(fmemptr-7);print(1256);printint(fontptr-0);print(1257);
+if fontptr<>1 then printchar(115){:1320};{1324:}dumpint(hyphcount);
+for k:=0 to 607 do if hyphword[k]<>0 then begin dumpint(k);
+dumpint(hyphword[k]);dumpint(hyphlist[k]);end;println;
+printint(hyphcount);print(1259);if hyphcount<>1 then printchar(115);
+if trienotready then inittrie;dumpint(triemax);
+dumpthings(trietrl[0],triemax+1);dumpthings(trietro[0],triemax+1);
+dumpthings(trietrc[0],triemax+1);dumpint(trieopptr);
 dumpthings(hyfdistance[1],trieopptr);dumpthings(hyfnum[1],trieopptr);
-dumpthings(hyfnext[1],trieopptr);printnl(1258);printint(triemax);
-print(1259);printint(trieopptr);print(1260);
-if trieopptr<>1 then printchar(115);print(1261);printint(trieopsize);
+dumpthings(hyfnext[1],trieopptr);printnl(1260);printint(triemax);
+print(1261);printint(trieopptr);print(1262);
+if trieopptr<>1 then printchar(115);print(1263);printint(trieopsize);
 for k:=255 downto 0 do if trieused[k]>0 then begin printnl(793);
-printint(trieused[k]);print(1262);printint(k);putfmtint(k);
-putfmtint(trieused[k]);end{:1324};{1326:}putfmtint(interaction);
-putfmtint(formatident);putfmtint(69069);eqtb[12694].int:=0{:1326};
-{1329:}wclose(fmtfile){:1329};end;endif('INITEX'){:1302}{1348:}{1349:}
+printint(trieused[k]);print(1264);printint(k);dumpint(k);
+dumpint(trieused[k]);end{:1324};{1326:}dumpint(interaction);
+dumpint(formatident);dumpint(69069);eqtb[12694].int:=0{:1326};{1329:}
+wclose(fmtfile){:1329};end;endif('INITEX'){:1302}{1348:}{1349:}
 procedure newwhatsit(s:smallnumber;w:smallnumber);var p:halfword;
 begin p:=getnode(w);mem[p].hh.b0:=8;mem[p].hh.b1:=s;
 mem[curlist.tailfield].hh.rh:=p;curlist.tailfield:=p;end;{:1349}{1350:}
@@ -5321,7 +5306,7 @@ curlist.auxfield.hh.rh:=0 else curlist.auxfield.hh.rh:=curval;
 mem[curlist.tailfield+1].hh.rh:=curlist.auxfield.hh.rh;
 mem[curlist.tailfield+1].hh.b0:=normmin(eqtb[12714].int);
 mem[curlist.tailfield+1].hh.b1:=normmin(eqtb[12715].int);end{:1377};
-others:confusion(1282)end;end;{:1348}{1376:}procedure fixlanguage;
+others:confusion(1284)end;end;{:1348}{1376:}procedure fixlanguage;
 var l:ASCIIcode;
 begin if eqtb[12713].int<=0 then l:=0 else if eqtb[12713].int>255 then l
 :=0 else l:=eqtb[12713].int;
@@ -5330,14 +5315,13 @@ mem[curlist.tailfield+1].hh.rh:=l;curlist.auxfield.hh.rh:=l;
 mem[curlist.tailfield+1].hh.b0:=normmin(eqtb[12714].int);
 mem[curlist.tailfield+1].hh.b1:=normmin(eqtb[12715].int);end;end;{:1376}
 {1068:}procedure handlerightbrace;var p,q:halfword;d:scaled;f:integer;
-begin case curgroup of 1:unsave;
-0:begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1037);end;begin helpptr:=2;helpline[1]:=1038;helpline[0]:=1039;
-end;error;end;14,15,16:extrarightbrace;{1085:}2:package(0);
-3:begin adjusttail:=memtop-5;package(0);end;4:begin endgraf;package(0);
-end;5:begin endgraf;package(4);end;{:1085}{1100:}11:begin endgraf;
-q:=eqtb[10292].hh.rh;incr(mem[q].hh.rh);d:=eqtb[13236].int;
-f:=eqtb[12705].int;unsave;decr(saveptr);
+begin case curgroup of 1:unsave;0:begin begin if interaction=3 then;
+printnl(262);print(1037);end;begin helpptr:=2;helpline[1]:=1038;
+helpline[0]:=1039;end;error;end;14,15,16:extrarightbrace;{1085:}
+2:package(0);3:begin adjusttail:=memtop-5;package(0);end;
+4:begin endgraf;package(0);end;5:begin endgraf;package(4);end;{:1085}
+{1100:}11:begin endgraf;q:=eqtb[10292].hh.rh;incr(mem[q].hh.rh);
+d:=eqtb[13236].int;f:=eqtb[12705].int;unsave;decr(saveptr);
 p:=vpackage(mem[curlist.headfield].hh.rh,0,1,1073741823);popnest;
 if savestack[saveptr+0].int<255 then begin begin mem[curlist.tailfield].
 hh.rh:=getnode(5);curlist.tailfield:=mem[curlist.tailfield].hh.rh;end;
@@ -5353,13 +5337,13 @@ mem[curlist.tailfield].hh.b0:=5;mem[curlist.tailfield].hh.b1:=0;
 mem[curlist.tailfield+1].int:=mem[p+5].hh.rh;deleteglueref(q);end;
 freenode(p,7);if nestptr=0 then buildpage;end;8:{1026:}
 begin if(curinput.locfield<>0)or((curinput.indexfield<>6)and(curinput.
-indexfield<>3))then{1027:}
-begin begin if interaction=3 then wakeupterminal;printnl(262);
-print(1003);end;begin helpptr:=2;helpline[1]:=1004;helpline[0]:=1005;
-end;error;repeat gettoken;until curinput.locfield=0;end{:1027};
-endtokenlist;endgraf;unsave;outputactive:=false;insertpenalties:=0;
-{1028:}if eqtb[11333].hh.rh<>0 then begin begin if interaction=3 then
-wakeupterminal;printnl(262);print(1006);end;printesc(405);printint(255);
+indexfield<>3))then{1027:}begin begin if interaction=3 then;
+printnl(262);print(1003);end;begin helpptr:=2;helpline[1]:=1004;
+helpline[0]:=1005;end;error;repeat gettoken;until curinput.locfield=0;
+end{:1027};endtokenlist;endgraf;unsave;outputactive:=false;
+insertpenalties:=0;{1028:}
+if eqtb[11333].hh.rh<>0 then begin begin if interaction=3 then;
+printnl(262);print(1006);end;printesc(405);printint(255);
 begin helpptr:=3;helpline[2]:=1007;helpline[1]:=1008;helpline[0]:=1009;
 end;boxerror(255);end{:1028};
 if curlist.tailfield<>curlist.headfield then begin mem[pagetail].hh.rh:=
@@ -5369,10 +5353,10 @@ if mem[memtop-2].hh.rh<>0 then begin if mem[memtop-1].hh.rh=0 then nest[
 mem[memtop-1].hh.rh:=mem[memtop-2].hh.rh;mem[memtop-2].hh.rh:=0;
 pagetail:=memtop-2;end;popnest;buildpage;end{:1026};{:1100}{1118:}
 10:builddiscretionary;{:1118}{1132:}6:begin backinput;curtok:=14110;
-begin if interaction=3 then wakeupterminal;printnl(262);print(621);end;
-printesc(892);print(622);begin helpptr:=1;helpline[0]:=1118;end;
-inserror;end;{:1132}{1133:}7:begin endgraf;unsave;alignpeek;end;{:1133}
-{1168:}12:begin endgraf;unsave;saveptr:=saveptr-2;
+begin if interaction=3 then;printnl(262);print(621);end;printesc(892);
+print(622);begin helpptr:=1;helpline[0]:=1118;end;inserror;end;{:1132}
+{1133:}7:begin endgraf;unsave;alignpeek;end;{:1133}{1168:}
+12:begin endgraf;unsave;saveptr:=saveptr-2;
 p:=vpackage(mem[curlist.headfield].hh.rh,savestack[saveptr+1].int,
 savestack[saveptr+0].int,1073741823);popnest;
 begin mem[curlist.tailfield].hh.rh:=newnoad;
@@ -5501,8 +5485,8 @@ rthit:=false;end;mem[curq].hh.rh:=mainp;curlist.tailfield:=mainp;
 ligaturepresent:=false;end;if insdisc then begin insdisc:=false;
 if curlist.modefield>0 then begin mem[curlist.tailfield].hh.rh:=newdisc;
 curlist.tailfield:=mem[curlist.tailfield].hh.rh;end;end;end{:1035};
-90:{1036:}if ligstack=0 then goto 21;curq:=curlist.tailfield;curl:=curr;
-91:if not(ligstack>=himemmin)then goto 95;
+90:{1036:}if ligstack=0 then goto 21;curq:=curlist.tailfield;
+curl:=mem[ligstack].hh.b1;91:if not(ligstack>=himemmin)then goto 95;
 92:if(curchr<fontbc[mainf])or(curchr>fontec[mainf])then begin
 charwarning(mainf,curchr);begin mem[ligstack].hh.rh:=avail;
 avail:=ligstack;ifdef('STAT')decr(dynused);endif('STAT')end;goto 60;end;
@@ -5595,57 +5579,57 @@ begin j:=curinput.locfield;
 if buffer[curinput.locfield]=38 then begin incr(curinput.locfield);
 j:=curinput.locfield;buffer[last]:=32;while buffer[j]<>32 do incr(j);
 packbufferedname(0,curinput.locfield,j-1);
-if wopenin(fmtfile)then goto 40;wakeupterminal;
+if wopenin(fmtfile)then goto 40;;
 writeln(stdout,'Sorry, I can''t find that format;',
-' will try the default.');termflush(stdout);end;packbufferedname(5,1,0);
-if not wopenin(fmtfile)then begin wakeupterminal;
+' will try the default.');flush(stdout);end;
+packbufferedname(formatdefaultlength-4,1,0);
+if not wopenin(fmtfile)then begin;
 writeln(stdout,'I can''t find the default format file!');
 openfmtfile:=false;goto 10;end;40:curinput.locfield:=j;
 openfmtfile:=true;10:end;{:524}function loadfmtfile:boolean;
 label 6666,10;var j,k:integer;p,q:halfword;x:integer;begin{1308:}
-getfmtint(x);if x<>127541235 then goto 6666;getfmtint(x);
-if x<>0 then goto 6666;getfmtint(x);if x<>memtop then goto 6666;
-getfmtint(x);if x<>13506 then goto 6666;getfmtint(x);
-if x<>7919 then goto 6666;getfmtint(x);if x<>607 then goto 6666{:1308};
-{1310:}begin getfmtint(x);if x<0 then goto 6666;
-if x>poolsize then begin wakeupterminal;
+undumpint(x);if x<>353758006 then goto 6666;undumpint(x);
+if x<>0 then goto 6666;undumpint(x);if x<>memtop then goto 6666;
+undumpint(x);if x<>13506 then goto 6666;undumpint(x);
+if x<>7919 then goto 6666;undumpint(x);if x<>607 then goto 6666{:1308};
+{1310:}begin undumpint(x);if x<0 then goto 6666;
+if x>poolsize then begin;
 writeln(stdout,'---! Must increase the ','string pool size');goto 6666;
-end else poolptr:=x;end;begin getfmtint(x);if x<0 then goto 6666;
-if x>maxstrings then begin wakeupterminal;
+end else poolptr:=x;end;begin undumpint(x);if x<0 then goto 6666;
+if x>maxstrings then begin;
 writeln(stdout,'---! Must increase the ','max strings');goto 6666;
 end else strptr:=x;end;undumpthings(strstart[0],strptr+1);
 undumpthings(strpool[0],poolptr);initstrptr:=strptr;
-initpoolptr:=poolptr{:1310};{1312:}begin getfmtint(x);
+initpoolptr:=poolptr{:1310};{1312:}begin undumpint(x);
 if(x<1019)or(x>memtop-14)then goto 6666 else lomemmax:=x;end;
-begin getfmtint(x);if(x<20)or(x>lomemmax)then goto 6666 else rover:=x;
+begin undumpint(x);if(x<20)or(x>lomemmax)then goto 6666 else rover:=x;
 end;p:=0;q:=rover;repeat undumpthings(mem[p],q+2-p);p:=q+mem[q].hh.lh;
 if(p>lomemmax)or((q>=mem[q+1].hh.rh)and(mem[q+1].hh.rh<>rover))then goto
 6666;q:=mem[q+1].hh.rh;until q=rover;undumpthings(mem[p],lomemmax+1-p);
 if memmin<-2 then begin p:=mem[rover+1].hh.lh;q:=memmin+1;
 mem[memmin].hh.rh:=0;mem[memmin].hh.lh:=0;mem[p+1].hh.rh:=q;
 mem[rover+1].hh.lh:=q;mem[q+1].hh.rh:=rover;mem[q+1].hh.lh:=p;
-mem[q].hh.rh:=262143;mem[q].hh.lh:=-0-q;end;begin getfmtint(x);
+mem[q].hh.rh:=262143;mem[q].hh.lh:=-0-q;end;begin undumpint(x);
 if(x<lomemmax+1)or(x>memtop-13)then goto 6666 else himemmin:=x;end;
-begin getfmtint(x);if(x<0)or(x>memtop)then goto 6666 else avail:=x;end;
+begin undumpint(x);if(x<0)or(x>memtop)then goto 6666 else avail:=x;end;
 memend:=memtop;undumpthings(mem[himemmin],memend+1-himemmin);
-getfmtint(varused);getfmtint(dynused){:1312};{1314:}{1317:}k:=1;
-repeat getfmtint(x);if(x<1)or(k+x>13507)then goto 6666;
-undumpthings(eqtb[k],x);k:=k+x;getfmtint(x);
+undumpint(varused);undumpint(dynused){:1312};{1314:}{1317:}k:=1;
+repeat undumpint(x);if(x<1)or(k+x>13507)then goto 6666;
+undumpthings(eqtb[k],x);k:=k+x;undumpint(x);
 if(x<0)or(k+x>13507)then goto 6666;
 for j:=k to k+x-1 do eqtb[j]:=eqtb[k-1];k:=k+x;until k>13506{:1317};
-begin getfmtint(x);if(x<514)or(x>10014)then goto 6666 else parloc:=x;
-end;partoken:=4095+parloc;begin getfmtint(x);
+begin undumpint(x);if(x<514)or(x>10014)then goto 6666 else parloc:=x;
+end;partoken:=4095+parloc;begin undumpint(x);
 if(x<514)or(x>10014)then goto 6666 else writeloc:=x;end;{1319:}
-begin getfmtint(x);if(x<514)or(x>10014)then goto 6666 else hashused:=x;
-end;p:=513;repeat begin getfmtint(x);
-if(x<p+1)or(x>hashused)then goto 6666 else p:=x;end;getfmthh(hash[p]);
+begin undumpint(x);if(x<514)or(x>10014)then goto 6666 else hashused:=x;
+end;p:=513;repeat begin undumpint(x);
+if(x<p+1)or(x>hashused)then goto 6666 else p:=x;end;undumphh(hash[p]);
 until p=hashused;undumpthings(hash[hashused+1],10280-hashused);
-getfmtint(cscount){:1319}{:1314};{1321:}begin getfmtint(x);
-if x<7 then goto 6666;if x>fontmemsize then begin wakeupterminal;
+undumpint(cscount){:1319}{:1314};{1321:}begin undumpint(x);
+if x<7 then goto 6666;if x>fontmemsize then begin;
 writeln(stdout,'---! Must increase the ','font mem size');goto 6666;
 end else fmemptr:=x;end;{1323:}begin undumpthings(fontinfo[0],fmemptr);
-begin getfmtint(x);if x<0 then goto 6666;
-if x>fontmax then begin wakeupterminal;
+begin undumpint(x);if x<0 then goto 6666;if x>fontmax then begin;
 writeln(stdout,'---! Must increase the ','font max');goto 6666;
 end else fontptr:=x;end;undumpthings(fontcheck[0],fontptr+1);
 undumpthings(fontsize[0],fontptr+1);
@@ -5667,34 +5651,33 @@ undumpthings(fontglue[0],fontptr+1);
 undumpthings(bcharlabel[0],fontptr+1);
 undumpthings(fontbchar[0],fontptr+1);
 undumpthings(fontfalsebchar[0],fontptr+1);end{:1323};{:1321};{1325:}
-begin getfmtint(x);if(x<0)or(x>607)then goto 6666 else hyphcount:=x;end;
-for k:=1 to hyphcount do begin begin getfmtint(x);
-if(x<0)or(x>607)then goto 6666 else j:=x;end;begin getfmtint(x);
+begin undumpint(x);if(x<0)or(x>607)then goto 6666 else hyphcount:=x;end;
+for k:=1 to hyphcount do begin begin undumpint(x);
+if(x<0)or(x>607)then goto 6666 else j:=x;end;begin undumpint(x);
 if(x<0)or(x>strptr)then goto 6666 else hyphword[j]:=x;end;
-begin getfmtint(x);
+begin undumpint(x);
 if(x<0)or(x>262143)then goto 6666 else hyphlist[j]:=x;end;end;
-begin getfmtint(x);if x<0 then goto 6666;
-if x>triesize then begin wakeupterminal;
+begin undumpint(x);if x<0 then goto 6666;if x>triesize then begin;
 writeln(stdout,'---! Must increase the ','trie size');goto 6666;
 end else j:=x;end;ifdef('INITEX')triemax:=j;
-endif('INITEX')undumpthings(trie[0],j+1);begin getfmtint(x);
-if x<0 then goto 6666;if x>trieopsize then begin wakeupterminal;
+endif('INITEX')undumpthings(trietrl[0],j+1);
+undumpthings(trietro[0],j+1);undumpthings(trietrc[0],j+1);
+begin undumpint(x);if x<0 then goto 6666;if x>trieopsize then begin;
 writeln(stdout,'---! Must increase the ','trie op size');goto 6666;
 end else j:=x;end;ifdef('INITEX')trieopptr:=j;
 endif('INITEX')undumpthings(hyfdistance[1],j);undumpthings(hyfnum[1],j);
 undumpthings(hyfnext[1],j);
 ifdef('INITEX')for k:=0 to 255 do trieused[k]:=0;endif('INITEX')k:=256;
-while j>0 do begin begin getfmtint(x);
-if(x<0)or(x>k-1)then goto 6666 else k:=x;end;begin getfmtint(x);
+while j>0 do begin begin undumpint(x);
+if(x<0)or(x>k-1)then goto 6666 else k:=x;end;begin undumpint(x);
 if(x<1)or(x>j)then goto 6666 else x:=x;end;
 ifdef('INITEX')trieused[k]:=x;endif('INITEX')j:=j-x;opstart[k]:=j;end;
 ifdef('INITEX')trienotready:=false endif('INITEX'){:1325};{1327:}
-begin getfmtint(x);if(x<0)or(x>3)then goto 6666 else interaction:=x;end;
-begin getfmtint(x);
-if(x<0)or(x>strptr)then goto 6666 else formatident:=x;end;getfmtint(x);
-if(x<>69069)or eof(fmtfile)then goto 6666{:1327};loadfmtfile:=true;
-goto 10;6666:wakeupterminal;
-writeln(stdout,'(Fatal format file error; I''m stymied)');
+begin undumpint(x);if(x<0)or(x>3)then goto 6666 else interaction:=x;end;
+begin undumpint(x);
+if(x<0)or(x>strptr)then goto 6666 else formatident:=x;end;undumpint(x);
+if(x<>69069)or feof(fmtfile)then goto 6666{:1327};loadfmtfile:=true;
+goto 10;6666:;writeln(stdout,'(Fatal format file error; I''m stymied)');
 loadfmtfile:=false;10:end;{:1303}{1330:}{1333:}
 procedure closefilesandterminate;var k:integer;begin{1378:}
 for k:=0 to 15 do if writeopen[k]then aclose(writefile[k]){:1378};
@@ -5719,7 +5702,7 @@ writeln(logfile,' out of ',607:1);
 writeln(logfile,' ',maxinstack:1,'i,',maxneststack:1,'n,',maxparamstack:
 1,'p,',maxbufstack+1:1,'b,',maxsavestack+6:1,'s stack positions out of '
 ,stacksize:1,'i,',nestsize:1,'n,',paramsize:1,'p,',bufsize:1,'b,',
-savesize:1,'s');end{:1334};endif('STAT'){642:}
+savesize:1,'s');end{:1334};endif('STAT');{642:}
 while curs>-1 do begin if curs>0 then begin dvibuf[dviptr]:=142;
 incr(dviptr);if dviptr=dvilimit then dviswap;
 end else begin begin dvibuf[dviptr]:=140;incr(dviptr);
@@ -5732,7 +5715,7 @@ begin dvibuf[dviptr]:=maxpush div 256;incr(dviptr);
 if dviptr=dvilimit then dviswap;end;
 begin dvibuf[dviptr]:=maxpush mod 256;incr(dviptr);
 if dviptr=dvilimit then dviswap;end;
-begin dvibuf[dviptr]:=totalpages div 256;incr(dviptr);
+begin dvibuf[dviptr]:=(totalpages div 256)mod 256;incr(dviptr);
 if dviptr=dvilimit then dviswap;end;
 begin dvibuf[dviptr]:=totalpages mod 256;incr(dviptr);
 if dviptr=dvilimit then dviswap;end;{643:}
@@ -5745,26 +5728,26 @@ while k>0 do begin begin dvibuf[dviptr]:=223;incr(dviptr);
 if dviptr=dvilimit then dviswap;end;decr(k);end;{599:}
 if dvilimit=halfbuf then writedvi(halfbuf,dvibufsize-1);
 if dviptr>0 then writedvi(0,dviptr-1){:599};printnl(831);
-print(outputfilename);print(284);printint(totalpages);print(832);
+slowprint(outputfilename);print(284);printint(totalpages);print(832);
 if totalpages<>1 then printchar(115);print(833);
 printint(dvioffset+dviptr);print(834);bclose(dvifile);end{:642};
 if logopened then begin writeln(logfile);aclose(logfile);
-selector:=selector-2;if selector=17 then begin printnl(1266);
-print(logname);printchar(46);end;end;println;
+selector:=selector-2;if selector=17 then begin printnl(1268);
+slowprint(texmflogname);printchar(46);end;end;println;
 if(editnamestart<>0)and(interaction>0)then calledit(strpool,
 editnamestart,editnamelength,editline);end;{:1333}{1335:}
 procedure finalcleanup;label 10;var c:smallnumber;begin c:=curchr;
-if jobname=0 then openlogfile;while openparens>0 do begin print(1267);
+if jobname=0 then openlogfile;while openparens>0 do begin print(1269);
 decr(openparens);end;if curlevel>1 then begin printnl(40);
-printesc(1268);print(1269);printint(curlevel-1);printchar(41);end;
-while condptr<>0 do begin printnl(40);printesc(1268);print(1270);
-printcmdchr(105,curif);if ifline<>0 then begin print(1271);
-printint(ifline);end;print(1272);ifline:=mem[condptr+1].int;
+printesc(1270);print(1271);printint(curlevel-1);printchar(41);end;
+while condptr<>0 do begin printnl(40);printesc(1270);print(1272);
+printcmdchr(105,curif);if ifline<>0 then begin print(1273);
+printint(ifline);end;print(1274);ifline:=mem[condptr+1].int;
 curif:=mem[condptr].hh.b1;condptr:=mem[condptr].hh.rh;end;
 if history<>0 then if((history=1)or(interaction<3))then if selector=19
-then begin selector:=17;printnl(1273);selector:=19;end;
+then begin selector:=17;printnl(1275);selector:=19;end;
 if c=1 then begin ifdef('INITEX')storefmtfile;goto 10;
-endif('INITEX')printnl(1274);goto 10;end;10:end;{:1335}{1336:}
+endif('INITEX')printnl(1276);goto 10;end;10:end;{:1335}{1336:}
 ifdef('INITEX')procedure initprim;begin nonewcontrolsequence:=false;
 {226:}primitive(372,75,10282);primitive(373,75,10283);
 primitive(374,75,10284);primitive(375,75,10285);primitive(376,75,10286);
@@ -5883,46 +5866,47 @@ primitive(415,85,12407);primitive(412,85,11639);primitive(413,85,11895);
 primitive(414,85,12151);primitive(473,85,12974);primitive(408,86,11335);
 primitive(409,86,11351);primitive(410,86,11367);{:1230}{1250:}
 primitive(934,99,0);primitive(946,99,1);{:1250}{1254:}
-primitive(1208,78,0);primitive(1209,78,1);{:1254}{1262:}
+primitive(1210,78,0);primitive(1211,78,1);{:1254}{1262:}
 primitive(272,100,0);primitive(273,100,1);primitive(274,100,2);
-primitive(1218,100,3);{:1262}{1272:}primitive(1219,60,1);
-primitive(1220,60,0);{:1272}{1277:}primitive(1221,58,0);
-primitive(1222,58,1);{:1277}{1286:}primitive(1228,57,11639);
-primitive(1229,57,11895);{:1286}{1291:}primitive(1230,19,0);
-primitive(1231,19,1);primitive(1232,19,2);primitive(1233,19,3);{:1291}
-{1344:}primitive(1276,59,0);primitive(590,59,1);writeloc:=curval;
-primitive(1277,59,2);primitive(1278,59,3);primitive(1279,59,4);
-primitive(1280,59,5);{:1344};nonewcontrolsequence:=true;end;
+primitive(1220,100,3);{:1262}{1272:}primitive(1221,60,1);
+primitive(1222,60,0);{:1272}{1277:}primitive(1223,58,0);
+primitive(1224,58,1);{:1277}{1286:}primitive(1230,57,11639);
+primitive(1231,57,11895);{:1286}{1291:}primitive(1232,19,0);
+primitive(1233,19,1);primitive(1234,19,2);primitive(1235,19,3);{:1291}
+{1344:}primitive(1278,59,0);primitive(590,59,1);writeloc:=curval;
+primitive(1279,59,2);primitive(1280,59,3);primitive(1281,59,4);
+primitive(1282,59,5);{:1344};nonewcontrolsequence:=true;end;
 endif('INITEX'){:1336}{1338:}ifdef('DEBUG')procedure debughelp;
-label 888,10;var k,l,m,n:integer;
-begin while true do begin wakeupterminal;printnl(1275);
-termflush(stdout);read(stdin,m);
+label 888,10;var k,l,m,n:integer;begin while true do begin;
+printnl(1277);flush(stdout);read(stdin,m);
 if m<0 then goto 10 else if m=0 then dumpcore else begin read(stdin,n);
 case m of{1339:}1:printword(mem[n]);2:printint(mem[n].hh.lh);
 3:printint(mem[n].hh.rh);4:printword(eqtb[n]);5:printword(fontinfo[n]);
 6:printword(savestack[n]);7:showbox(n);8:begin breadthmax:=10000;
 depththreshold:=poolsize-poolptr-10;shownodelist(n);end;
-9:showtokenlist(n,0,1000);10:print(n);11:checkmem(n>0);12:searchmem(n);
-13:begin read(stdin,l);printcmdchr(n,l);end;
+9:showtokenlist(n,0,1000);10:slowprint(n);11:checkmem(n>0);
+12:searchmem(n);13:begin read(stdin,l);printcmdchr(n,l);end;
 14:for k:=0 to n do print(buffer[k]);15:begin fontinshortdisplay:=0;
 shortdisplay(n);end;16:panicking:=not panicking;{:1339}
 others:print(63)end;end;end;10:end;endif('DEBUG'){:1338}{:1330}{1332:}
-procedure texbody;label{6:}1,9998,9999;{:6}var bufindx:0..bufsize;
-begin history:=3;;setpaths;if readyalready=314159 then goto 1;{14:}
-bad:=0;if(halferrorline<30)or(halferrorline>errorline-15)then bad:=1;
+procedure texbody;begin history:=3;;
+setpaths(TEXFORMATPATHBIT+TEXINPUTPATHBIT+TEXPOOLPATHBIT+TFMFILEPATHBIT)
+;if readyalready=314159 then goto 1;{14:}bad:=0;
+if(halferrorline<30)or(halferrorline>errorline-15)then bad:=1;
 if maxprintline<60 then bad:=2;if dvibufsize mod 8<>0 then bad:=3;
 if 1100>memtop then bad:=4;if 7919>9500 then bad:=5;
 if maxinopen>=128 then bad:=6;if memtop<267 then bad:=7;{:14}{111:}
 ifdef('INITEX')if(memmin<>0)or(memmax<>memtop)then bad:=10;
 endif('INITEX')if(memmin>0)or(memmax<memtop)then bad:=10;
-if(0>0)or(511<127)then bad:=11;if(0>0)or(262143<32767)then bad:=12;
-if(0<0)or(511>262143)then bad:=13;
+if(0>0)or(255<127)then bad:=11;if(0>0)or(262143<32767)then bad:=12;
+if(0<0)or(255>262143)then bad:=13;
 if(memmin<0)or(memmax>=262143)or(-0-memmin>262144)then bad:=14;
-if(0<0)or(fontmax>511)then bad:=15;if fontmax>256 then bad:=16;
+if(0<0)or(fontmax>255)then bad:=15;if fontmax>256 then bad:=16;
 if(savesize>262143)or(maxstrings>262143)then bad:=17;
-if bufsize>262143 then bad:=18;if 511<255 then bad:=19;{:111}{290:}
-if 14376>262143 then bad:=21;{:290}{522:}if 9>FILENAMESIZE then bad:=31;
-{:522}{1249:}if 2*262143<memtop-memmin then bad:=41;{:1249}
+if bufsize>262143 then bad:=18;if 255<255 then bad:=19;{:111}{290:}
+if 14376>262143 then bad:=21;{:290}{522:}
+if formatdefaultlength>PATHMAX then bad:=31;{:522}{1249:}
+if 2*262143<memtop-memmin then bad:=41;{:1249}
 if bad>0 then begin writeln(stdout,
 'Ouch---my internal constants have been clobbered!','---case ',bad:1);
 goto 9999;end;initialize;
@@ -5931,13 +5915,13 @@ initstrptr:=strptr;initpoolptr:=poolptr;
 dateandtime(eqtb[12683].int,eqtb[12684].int,eqtb[12685].int,eqtb[12686].
 int);endif('INITEX')readyalready:=314159;1:{55:}selector:=17;tally:=0;
 termoffset:=0;fileoffset:=0;{:55}{61:}
-write(stdout,'This is TeX, C Version 3.0');
-if formatident>0 then print(formatident);println;termflush(stdout);{:61}
+write(stdout,'This is TeX, C Version 3.141');
+if formatident>0 then slowprint(formatident);println;flush(stdout);{:61}
 {528:}jobname:=0;nameinprogress:=false;logopened:=false;{:528}{533:}
 outputfilename:=0;{:533};{1337:}begin{331:}begin inputptr:=0;
 maxinstack:=0;inopen:=0;openparens:=0;maxbufstack:=0;paramptr:=0;
-maxparamstack:=0;bufindx:=bufsize;repeat buffer[bufindx]:=0;
-decr(bufindx);until bufindx=0;scannerstatus:=0;warningindex:=0;first:=1;
+maxparamstack:=0;first:=bufsize;repeat buffer[first]:=0;decr(first);
+until first=0;scannerstatus:=0;warningindex:=0;first:=1;
 curinput.statefield:=33;curinput.startfield:=1;curinput.indexfield:=0;
 line:=0;curinput.namefield:=0;forceeof:=false;alignstate:=1000000;
 if not initterminal then goto 9999;curinput.limitfield:=last;
@@ -5955,6 +5939,6 @@ int);{765:}magicoffset:=strstart[885]-9*16{:765};{75:}
 if interaction=0 then selector:=16 else selector:=17{:75};
 if(curinput.locfield<curinput.limitfield)and(eqtb[11383+buffer[curinput.
 locfield]].hh.rh<>0)then startinput;end{:1337};history:=0;maincontrol;
-finalcleanup;9998:closefilesandterminate;9999:begin termflush(stdout);
+finalcleanup;closefilesandterminate;9999:begin flush(stdout);
 readyalready:=0;if(history<>0)and(history<>1)then uexit(1)else uexit(0);
 end;end;{:1332}

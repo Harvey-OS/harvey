@@ -1,0 +1,386 @@
+   Copyright (C) 1990, 1991, 1993, 1994 Aladdin Enterprises.  All rights reserved.
+  
+  This file is part of Aladdin Ghostscript.
+  
+  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+  or distributor accepts any responsibility for the consequences of using it,
+  or for whether it serves any particular purpose or works at all, unless he
+  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+  License (the "License") for full details.
+  
+  Every copy of Aladdin Ghostscript must include a copy of the License,
+  normally in a plain ASCII text file named PUBLIC.  The License grants you
+  the right to copy, modify and redistribute Aladdin Ghostscript, but only
+  under certain conditions described in the License.  Among other things, the
+  License requires that the copyright notice and this notice be preserved on
+  all copies.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+This file, fonts.doc, describes the fonts and font facilities supplied
+with Ghostscript.
+
+For an overview of Ghostscript and a list of the documentation files, see
+README.
+
+About Ghostscript fonts
+=======================
+
+Most of Ghostscript's font files have a .gsf extension.  Each file defines
+one (transformable) font specified in outline form.  They are ordinary
+Type 1 PostScript outline fonts, and can be given to any PostScript
+language interpreter; however, they are not compatible with Adobe Type
+Manager or with tools that don't include a full PostScript language
+interpreter.  Ghostscript also includes a few files with .pfa extension,
+which *are* compatible with Adobe Type Manager.
+
+The other font-related file that Ghostscript needs for proper operation is
+a file called Fontmap.  This file maps font names (such as /Times-Roman)
+to font file names (such as ptmr.gsf).
+
+Most of the fonts supplied with Ghostscript are based on various public
+domain bitmap fonts, primarily the ones supplied with the X11 distribution
+from MIT, and on the public domain Hershey fonts.  The fonts are
+distributed in the file `ghostscript-N.NNfonts.tar.Z'.  The bitmap-derived
+fonts include the usual Helvetica, Times-Roman, and so on; see the file
+`Fontmap' for the complete list, in the usual roman, italic, bold, and
+bold italic styles (for the most part).  The Hershey fonts, on the other
+hand, are quite different from traditional ones; the file `hershey.doc'
+describes them in more detail.
+
+The file gs_fonts.ps, which is loaded as part of Ghostscript
+initialization, arranges to load fonts on demand using the information
+from Fontmap.  If you want to preload all of the known fonts, invoke the
+procedure
+	loadallfonts
+This is not done by default, since the fonts occupy about 50K each and there
+are a lot of them.
+
+Ghostscript fonts are actually ordinary Ghostscript programs: they use the
+extension .gsf instead of .ps simply to be informative.  This convention
+is only embodied in the Fontmap file: there is no code that knows about
+it.
+
+If you want to try out the fonts, prfont.ps contains code for printing a
+sampler.  Load this program, by including it in the gs command line or by
+invoking
+	(prfont.ps) run
+and then to produce a sampler of a particular font, invoke
+	/fontName DoFont
+e.g.
+	/Times-Roman DoFont
+
+About the Kanji fonts
+---------------------
+
+Mr. Tetsurou Tanaka of the Department of Engineering, University of Tokyo,
+has created a set of free Kanji fonts that is freely available on the
+Internet for anonymous FTP from moe.ipl.t.u-tokyo.ac.jp:/Font and is
+distributed with Ghostscript.  Anyone can use these fonts as they are or
+with some format translation, and redistribute them without reporting.  If
+you redistribute them, you must inform the recipient that he can get the
+original from the abovementioned FTP site, so that he could get the newest
+version later.
+
+The fonts include a README file in Japanese.  Here is some English
+documentation supplied by Mr. Kiyotaka Sakai, also of the University of
+Tokyo.
+
+    The following four fonts are different styles of the same characters
+    (JISX208). These fonts also needs wadalab-sym.tar.Z in common.
+
+    wadalab-mincho-0-8.tar.gz
+    wadalab-mincho-0-12.6.tar.gz
+    wadalab-gothic-0-13.5.tar.gz
+    wadalab-maru-0-8.4.tar.gz
+
+    And the following two fonts are the other different styles of the same
+    characters(JISX0212).
+
+    wadalab-mincho-1-8.tar.gz
+    wadalab-maru-1-8.tar.gz
+
+    These fonts are postscript(type1) fonts. You can convert them to
+    Metafont, Type1(PFA) font, TeX font(for japanese TeX), BDF font,
+    Shotaikurabu font by using wftomf.c, wftopfa.c, wftodm.c, bdfmerge.c
+    wftovf.c in tools directory.
+
+In order to conform to MS-DOS naming restrictions, we have renamed the
+original font files as follows:
+	Name		Original name
+	----		-------------
+	got013-5.taz	wadalab-gothic-0-13.5.tar.gz
+	mar08-4.taz	wadalab-maru-0-8.4.tar.gz
+	mar18.taz	wadalab-maru-1-8.tar.gz
+	min012-6.taz	wadalab-mincho-0-12.6.tar.gz
+	min08-4.taz	wadalab-mincho-0-8.4.tar.gz
+	min18.taz	wadalab-mincho-1-8.tar.gz
+	sym-4.taz	wadalab-sym.4.tar.gz
+
+Platform fonts
+==============
+
+Starting with release 2.6.1, Ghostscript uses whatever font technology is
+provided by the system on which it runs, by using the system's API for
+displaying text.  On MS Windows this may be TrueType, or it may be ATM;
+Ghostscript neither knows nor cares.  Note that Ghostscript does not
+contain a TrueType rasterizer, so it cannot read disk files containing
+TrueType fonts; don't put the names of TrueType font files (.FON or .TTF
+or .PTF whatever they are called) in Ghostscript's Fontmap.
+
+The PostScript language specifies that fonts are data structures with
+particular contents (e.g., they include a bounding box for the font, an
+Encoding vector for specifying the character set, etc.), and it is fairly
+common for PostScript files to make use of this fact; also, characters can
+be used as clipping regions, and can be arbitrarily rotated, skewed,
+expanded/condensed, etc. algorithmically.  Most of this information is
+available in one form or another from the underlying graphics system, but
+one crucial piece is not: the actual scalable outlines of the characters,
+which Ghostscript needs in order to implement clipping with character
+shapes and to implement arbitrarily transformed characters.  Consequently,
+
+	Ghostscript needs the scalable outlines of any font mentioned
+	in a document, and will load them from the disk (.PFA, .PFB, or
+	.GSF file) in the usual way, even if it uses the platform's font
+	machinery for displaying the characters.
+
+To make matters worse, platforms use different names for their standard
+fonts.  For example, the Times Roman font, for which PostScript files use
+the name "Times-Roman", may be known as "Times-Roman", "Times Roman", "Tms
+Rmn", "Times New Roman", or "TimesNewRoman".  The name may even be
+completely different: the usual Helvetica-equivalent TrueType font is
+called "Arial".  Now, it is possible to cope with this situation by
+introducing aliases in Fontmap, but there are two reasons why the
+current Ghostscript release does not do this:
+
+	1) Naming in different systems is so unstandardized that there
+does not seem to be a small set of alternative names that is likely to
+cover most of the situations.  All 5 of the above names for Times Roman
+have been seen in Windows and OS/2 environments, depending on system
+version, TrueType vs.  ATM, and other unknown factors.
+
+	2) Each alias takes up a substantial amount of space (several
+hundred bytes) at run time.  If each of the standard 35 fonts has 3
+additional aliases, this might amount to 50K of wasted space.  This is a
+lot on a PC, although running under Windows in enhanced mode, it might not
+be a problem.
+
+If you don't seem to be getting nice characters on the screen under MS
+Windows, you can try adding aliases to the Fontmap, according to the
+documentation found there.
+
+Adding your own fonts
+=====================
+
+Ghostscript can use any Type 1 or Type 3 font that is acceptable to other
+PostScript language interpreters.  Ghostscript also provides a way to
+construct a Type 1 font from a bitmap font in BDF format, which is a
+popular format in the Unix world.
+
+If you want to add fonts of your own, you must edit Fontmap to include an
+entry for your new font at the end.  The format for entries is documented
+in the Fontmap file.  Since later entries in Fontmap override earlier
+entries, any fonts you add will supersede the corresponding fonts supplied
+with Ghostscript.
+
+In the PC world, Type 1 fonts are customarily given names ending in .PFA
+or .PFB.  Ghostscript can use these directly; you just need to make the
+entry in Fontmap.  If you are going to use a commercial Type 1 font (such
+as fonts obtained in conjunction with Adobe Type Manager) with
+Ghostscript, please read carefully the license that accompanies the font;
+Aladdin Enterprises takes no responsibility for any possible violations of
+such licenses.
+
+Converting BDF fonts
+--------------------
+
+If you want to convert a BDF file to a scalable outline, use the program
+bdftops.ps (and invoking shell script bdftops.bat or bdftops).  Run the
+shell command
+	bdftops <BDF_file_name> [<AFM_file1_name> ...] <your_gsf_file_name>
+	  <font_name> <uniqueID> [<XUID>] [<encoding_name>]
+e.g.,
+	bdftops pzdr.bdf ZapfDingbats.afm pzdr.gsf
+	  ZapfDingbats 4100000 1000000.1.41
+(Obviously, you would enter this all on one line; the example is split so
+it will fit on the page.)  Then make an entry for the .gsf file in Fontmap
+as described above.  You may find it helpful to read, and to add an entry
+to, the fonts.mak file, which is a makefile for converting the standard
+Ghostscript fonts.
+
+For developers only
+===================
+
+The rest of this document is very unlikely to be of value to ordinary
+users.
+
+Contents of fonts
+-----------------
+
+A Ghostscript font is a dictionary with a standard set of keys as follows.
+The keys marked with a * have the same meanings as in P*stScr*pt fonts;
+those marked with # have the same meanings as in Adobe Type 1 fonts.  Note
+that FontName is required, and StrokeWidth is required for all stroked or
+outlined fonts.
+
+*	- FontMatrix <array>: the transformation from character
+	  coordinates to user coordinates.
+
+*	- FontType <integer>: the type of the font, either 1 or 3.
+
+*	- FontBBox <array>: the bounding box of the font.
+
+*	- Encoding <array>: the map from character codes to character
+	  names.
+
+*	- FontName <name>: the name of the font.
+
+*	- PaintType <integer>: an indication of how to interpret the
+	  character description from CharInfo.
+
+*	- StrokeWidth <number>: the stroke width for outline fonts.
+
+*	- FontInfo <dictionary>: additional information about the font
+	  (optional, not used by the standard Ghostscript software).
+
+*	- UniqueID <integer>: a unique number identifying the font.
+
+*	- BuildChar <procedure>: the procedure for showing a character
+	  (not required in type 1 fonts).
+
+#	- CharStrings <dictionary>: the map from character names to character
+	  descriptions (relevant only in type 1 fonts).
+
+#	- Private <dictionary>: additional information used by the
+	  algorithms for rendering outlines fonts (relevant only in type 1
+	  fonts).
+
+The format of values in the CharStrings and Private dictionaries are
+described in the Adobe Type 1 Font Format book.
+
+Precompiling fonts
+------------------
+
+You can compile any Type 1 font into C and link it into the Ghostscript
+executable.  (Type 1 fonts include any font whose name ends with .pfa or
+.pfb, and it also includes all the Ghostscript .gsf fonts except for the
+Hershey fonts.)  This doesn't have any effect on rendering speed, but it
+eliminates the time for loading the font dynamically, which may make a big
+difference in total rendering time, especially for multi-page documents.
+(Because of RAM and compiler limitations, you should only use compiled
+fonts on MS-DOS systems if you are using a 32-bit compiler such as Watcom
+C/386 or djgpp; you will run out of memory if you use compiled fonts with
+the Borland compiler.)  Fonts that have been precompiled and linked in
+this way do not need to appear in the Fontmap, although if they do appear
+there, no harm is done.
+
+The utility for precompiling fonts is called font2c.  Note that font2c is
+a PostScript language program, so you must have Ghostscript already
+running to be able to run font2c; you must also have entries in the
+Fontmap for the fonts you want to compile.  For example, to precompile
+the Times-Italic font,
+	font2c Times-Italic ptmri.c
+where the first argument is the font name and the second is the name of
+the .c file.  You can use any file name you want, as long as it ends in
+.c.  It doesn't have to be limited to 8 characters, unless your operating
+system requires this.  We suggest that you use names xxxx.c, where
+xxxx.gsf or xxxx.pfa is the name of the font file in the Fontmap file,
+just so you don't have to keep track of another set of names.  (If you are
+running on a VMS platform, or another platform where the C compiler has a
+limit on the length of identifiers, you must do something slightly more
+complicated; see the section 'Platforms with identifier length limits'
+below.  Also, on VMS, you must put quotes "" around the font name so that
+the VMS command processor doesn't convert the name to lower case.)
+
+For VMS environments, see the directions in the file make.doc, and ignore
+the rest of this section.
+
+Note that ncrr.c, ptmr.c, etc. are not supplied with the Ghostscript
+fileset, since they are quite large and can easily be recreated using the
+font2c program as described above.  There is a makefile called cfonts.mak
+that will run font2c on all the fonts supplied with Ghostscript.  Invoke it
+with
+	make -f cfonts.mak
+On some systems, you may have to omit the space following the -f, i.e.,
+	make -fcfonts.mak
+
+Besides running font2c, you must arrange things so that the fonts will be
+compiled, and linked into the executable.  To do this, add the compiled
+fonts "feature" to your platform-specific makefile.  On MS-DOS systems, you
+edit tc.mak, bc.mak, bcwin.mak, msc.mak, or watc.mak; on Unix systems, you
+edit makefile.  Find the definition of FEATURE_DEVS in the makefile, e.g.,
+	FEATURE_DEVS=filter.dev dps.dev
+Add ccfonts.dev on the end, e.g.,
+	FEATURE_DEVS=filter.dev dps.dev ccfonts.dev
+
+Next, you must add the specific fonts to the generic makefile.  On MS-DOS
+systems, you edit gs.mak; on Unix systems, you edit makefile.  The makefile
+already has rules for the standard 35 fonts supplied with Ghostscript.
+Find the line in the relevant makefile that says
+	#ccfonts1_=<something>
+Remove the # mark from this line, and from all the following lines down to
+and including the one that says
+	#ccfonts9=<something>
+This is all you need to do for the standard fonts.  The next couple of
+paragraphs describe how to compile in other fonts, such as the Utopia or
+Kana fonts or your own fonts.
+
+Suppose you want to compile the Kana fonts into the executable.  First,
+pick one of ccfonts10 through 15 as the place you will do this, say
+ccfonts10.  Add your compiled font file names, e.g.,
+	ccfonts10_=fhirw.$(OBJ)
+If the line gets too long, use another line of the same form, e.g.,
+	ccfonts11_=fkarw.$(OBJ)
+Just below this, you will find a line that says
+	ccfonts10_=
+Add your own fonts to the end of this line, e.g.,
+	ccfonts10=Calligraphic_Hiragana
+Notice that you must replace `-' by `_' in the font name.  Again, if
+the line gets too long, add another line of the same form, e.g.,
+	ccfonts10=Calligraphic_Hiragana
+	ccfonts11=Calligraphic_Katakana
+
+After all the lines of this form, add a pair of lines to compile each font,
+separating these entries from the ccfonts* lines and from each other by a
+blank line.  In our example:
+
+	fhirw.$(OBJ): fhirw.c $(CCFONT)
+		$(CCCF) fhirw.c
+
+	fkarw.$(OBJ): fkarw.c $(CCFONT)
+		$(CCCF) fkarw.c
+
+Finally, run `make'.  The executable will now include the fonts you added.
+They will be present in FontDirectory when Ghostscript starts up.
+
+Precompiling fonts on platforms with identifier length limits
+-------------------------------------------------------------
+
+On some platforms, the C compiler and/or linker have a limit on the number
+of significant characters in an identifier.  On such platforms, you must
+do a little extra work.
+
+Let N be the maximum number of significant characters in an identifier
+(typically 31).  For each font whose name is longer than N-5 characters,
+pick an arbitrary identifier that we will call the "short name".  This can
+be any string you want, as long as it contains only letters, digits, and
+underscores; is no longer than N-5 characters; and is not the same as any
+other font name or short name.  A good choice for this would be to use the
+name of the C file.  (There is no harm in doing this for fonts with names
+shorter than N-5 characters, it's just not necessary.)
+
+You must do two different things for fonts that require a short name.
+First, you must supply the short name as a third argument to the font2c
+program.  For example, to compile NewCenturySchlbk-BoldItalic using the
+short name "pncbi",
+	font2c NewCenturySchlbk-BoldItalic pncbi.c pncbi
+Then when you add the font to the gsaddmod line in the makefile, use the
+short name, not the actual font name, e.g.,
+	ccfonts2=pncbi
+instead of
+	ccfonts2=NewCenturySchlbk_BoldItalic
+Everything else is as described above.
+
+This procedure doesn't change the name of the font in the Fontmap, or as
+seen from within Ghostscript; it's just a workaround for a limitation of
+some older compilers.

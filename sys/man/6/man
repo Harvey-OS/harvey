@@ -47,19 +47,19 @@ roman, the main font, preferred for diagnostics
 .PD 0
 .TP
 .B I
-italic, preferred for parameters, short names of commands
+italic, preferred for parameters, short names of commands,
 names of manual pages,
 and naked function names
 .TP
 .L B
-`bold', actually the constant width font CW,
+`bold', actually the constant width font,
 preferred for examples, file names, declarations, keywords, names of
 .B struct
 members, and literals
 (numbers are rarely literals)
 .TP
 .B L
-also font CW.
+also the constant width font.
 In
 .I troff
 .BR L = B ;
@@ -96,9 +96,9 @@ These strings are predefined by
 .TP
 .B \e*R
 .if t `\*R', `(Reg)' in
-.if t .I nroff.
+.if t .IR nroff .
 .if n `(Reg)', trademark symbol in
-.if n .I troff.
+.if n .IR troff .
 .br
 .ns
 .TP
@@ -141,13 +141,8 @@ alternating bold and Roman.
 .ti0
 \&\fL.EX\fR	yes		Begin displayed example
 .ti0
-\&\fL.FR\fR \fIt\fR	no	\fIt\fR=n.t.l.	Join
-words of
-.I t
-alternating file name and Roman.
-.ti0
 \&\fL.HP\fR \fIi\fR	yes	\fIi\fR=p.i.*	Set prevailing indent to
-.I i.
+.IR i .
 Begin paragraph with hanging indent.
 .ti0
 \&\fL.I\fR \fIt\fR	no	\fIt\fR=n.t.l.	Text
@@ -160,7 +155,7 @@ words of
 alternating italic and bold.
 .ti0
 \&\fL.IP\fR \fIx i\fR	yes	\fIx\fR=""	Same as \fL.TP\fP with tag
-.I x.
+.IR x .
 .ti0
 \&\fL.IR\fR \fIt\fR	no	\fIt\fR=n.t.l.	Join
 words of
@@ -179,18 +174,13 @@ words of
 alternating literal and Roman.
 .ti0
 \&\fL.PD\fR \fId\fR	no	\fId\fR=\fL.4v\fP	Interparagraph distance is
-.I d.
+.IR d .
 .ti0
 \&\fL.PP\fR	yes		Begin paragraph.
 Set prevailing indent to default.
 .ti0
 \&\fL.RE\fR	yes		End of relative indent.
 Set prevailing indent to amount of starting \fL.RS\fP.
-.ti0
-\&\fL.RF\fR \fIt\fR	no	\fIt\fR=n.t.l.	Join
-words of
-.I t
-alternating Roman and file name.
 .ti0
 \&\fL.RI\fR \fIt\fR	no	\fIt\fR=n.t.l.	Join
 words of
@@ -204,7 +194,7 @@ alternating Roman and literal.
 .ti0
 \&\fL.RS\fR \fIi\fR	yes	\fIi\fR=p.i.	Start relative indent,
 move left margin in distance
-.I i.
+.IR i .
 Set prevailing indent to default for nested indents.
 .ti0
 \&\fL.SH\fR \fIt\fR	yes	\fIt\fR=""	Subhead; reset paragraph distance.
@@ -231,7 +221,7 @@ is extra commentary, e.g. `local', for page head.
 Set prevailing indent and tabs to default.
 .ti0
 \&\fL.TP\fR \fIi\fR	yes	\fIi\fR=p.i.	Set prevailing indent to
-.I i.
+.IR i .
 Restore default indent if
 .IR i =0.
 Begin indented paragraph

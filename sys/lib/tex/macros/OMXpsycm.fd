@@ -1,0 +1,14 @@
+%Filename: OMXpsycm.fd
+%Created by: tex fontptcm
+%Created using fontinst v1.331
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OMX}{psycm}{}
+
+\DeclareFontShape{OMX}{psycm}{m}{n}{
+   <-> zpsycmrv
+}{}
+
+
+\endinput

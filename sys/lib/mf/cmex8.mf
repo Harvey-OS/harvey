@@ -1,14 +1,41 @@
-% CMEX8.MF                     June 1990
-% This Metafont file is part of AMSFonts 2.0.
-% Copyright (C) 1990, American Mathematical Society.
-% All rights reserved.  Copying of this file is authorized only if either:
-%   (1) you make absolutely no changes to your copy including filename; OR
-%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="cmex8.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: parameter",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "18679 118 668 6144"
+%%     keywords="amsfonts, tex, metafont  ",
+%%     abstract="This is the parameter file for use with 
+%%            cmex8, in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Computer Modern Math Extension 8 point
 if unknown cmbase: input cmbase fi
 
-font_identifier:="CMEX"; font_size 8pt#;
+font_identifier:="CMEX V2.2"; font_size 8pt#;
 
 u#:=17/36pt#;               % unit width
 width_adj#:=0pt#;          % width adjustment for certain characters
@@ -79,8 +106,8 @@ variant_g:=false;          % should an italic-style g be used?
 low_asterisk:=false;          % should the asterisk be centered at the axis?
 math_fitting:=false;          % should math-mode spacing be used?
 
-% the following font parameters are explained in {\sl The \TeX book}, Appendix G
-fontdimen 8:     % parameters $\sigma_8$ through $\sigma_{22}$ will now be listed
+%the following font parameters are explained in {\sl The \TeX book}, Appendix G
+fontdimen 8:     % parameters $\xi_8$ through $\xi_{13}$ will now be listed
 rule_thickness#,                % default \_rule\_thickness
 32/36pt#,                       % big\_op\_spacing1
 48/36pt#,                       % big\_op\_spacing2

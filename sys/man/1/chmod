@@ -71,7 +71,7 @@ to add
 to the file's mode,
 .B -
 to take away
-.I permission
+.IR permission ,
 and
 .B =
 to assign
@@ -96,6 +96,8 @@ and
 .PP
 Only the owner of a file or the group leader of its group
 may change the file's mode.
+.SH SOURCE
+.B /sys/src/cmd/chmod.c
 .SH "SEE ALSO"
 .IR ls (1),
 .IR stat (2),

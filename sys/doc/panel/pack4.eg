@@ -1,0 +1,6 @@
+Panel *b;
+root=plframe(0,0);
+b=plbutton(root, PACKN, "one", 0);
+b->ipad=Pt(10,10);
+b=plbutton(root, PACKN, "two", 0);
+b->pad=Pt(10,10);

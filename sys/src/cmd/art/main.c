@@ -72,11 +72,13 @@ void main(int argc, char *argv[]){
 		fprint(2, "Usage: %s [-f font] [-b background]\n", cmdname);
 		exits("bad font");
 	}ARGEND
+	faint=0x55555555&((1<<(1<<screen.ldepth))-1);
+	dark=screen.ldepth==0?1:faint<<1;
 	cur=balloc(Rect(0, 0, 16, 16), 1);
 	anchormark=balloc(Rect(0, 0, 16, 16), 1);
 	for(p.y=0;p.y!=16;p.y++) for(p.x=0;p.x!=16;p.x++){
-		point(cur, p, tcur[p.y]&(1<<p.x)?FAINT:0, S);
-		point(anchormark, p, anc[p.y]&(1<<p.x)?FAINT:0, S);
+		point(cur, p, tcur[p.y]&(1<<p.x)?faint:0, S);
+		point(anchormark, p, anc[p.y]&(1<<p.x)?faint:0, S);
 	}
 	gravity=.13;
 	scene=addhead();

@@ -1,0 +1,32 @@
+#!/bin/rc
+rfork e
+
+user=$1
+
+disk/kfscmd allow
+disk/kfscmd 'newuser '$user
+
+home=/usr/$user
+cd $home
+x='$'
+cat > lib/profile <<!
+bind -a $x^home/bin/rc /bin
+bind -a $x^home/bin/$x^cputype /bin
+font = /lib/font/bit/pelm/euro.9.font
+switch($x^service){
+case terminal
+	prompt=('term% ' '	')
+	fn term%{ $x^* }
+	exec 8½
+case cpu
+	bind -b /mnt/term/mnt/8½ /dev
+	prompt=('cpu% ' '	')
+	echo -n $x^sysname > /dev/label
+	fn cpu%{ $x^* }
+	news
+case con
+	prompt=('cpu% ' '	')
+	news
+}
+!
+disk/kfscmd disallow

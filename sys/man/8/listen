@@ -1,6 +1,6 @@
 .TH LISTEN 8
 .SH NAME
-listen, dkcpu, dkcpunote, dkdiscard, dkecho, dkexportfs, dkexportfs0, dkrexexec, dkwhoami, dksmtp, dkdcon, dklogin, dkfsauth, dkrexauth, dkchal, dkchangekey, dkcheck, dkguard, il7, il9, il565, il17005, il17006, il17007, il17009, il17020, il17021, il17022, il17023, il17024, tcp7, tcp9, tcp21, tcp23, tcp25, tcp513, tcp564, tcp565, tcp17007, tcp6000 \- listen for calls on a network device
+listen, dkcpu, dkcpunote, dkdiscard, dkecho, dkexportfs, dkrexexec, dkticket, dkwhoami, dksmtp, dkdcon, dklogin, dkguard, il7, il9, il565, il566, il17005, il17006, il17007, il17009, tcp2, tcp7, tcp9, tcp21, tcp23, tcp80, tcp25, tcp513, tcp515, tcp564, tcp565, tcp566, tcp17007, tcp6000 \- listen for calls on a network device
 .SH SYNOPSIS
 .B aux/listen
 .RB [ -q ]
@@ -39,7 +39,7 @@ are executed as user
 services found in
 .I trustsrvdir
 as executed as the user who started
-.I listen.
+.IR listen .
 Option
 .B -q
 suppresses affirmative log information.
@@ -49,10 +49,8 @@ the network with the name of the service or port.
 For example,
 an inbound call on the TCP network for port 565 executes service
 .BR tcp565 ,
-while a call on the Datakit network for service whoami executes service dkwhoami.
-Services are executed with the name of the service,
-the network name, and the stream directory
-of the incoming call as arguments.
+while a call on the Datakit network for service whoami executes service
+.BR dkwhoami .
 .PP
 The following services are available in
 .BR /bin/service .
@@ -73,7 +71,7 @@ serve a piece of the name space using the Plan 9 file system protocol,
 with authentication (typically used by
 .IR cpu (1)).
 .TP
-.B dkexportfs0 il17008 tcp564
+.B tcp564
 like 17007, without authentication (used by Unix
 systems to see Plan 9 files).
 .TP
@@ -85,6 +83,14 @@ report the address of the incoming call.
 .TP
 .B tcp21
 FTP daemon
+.TP
+.B tcp80
+HTTP daemon; see
+.IR httpd (8).
+.TP
+.B tcp515
+LP daemon; see
+.IR lp (8).
 .TP
 .B tcp6000
 X-window callback
@@ -99,10 +105,15 @@ research Unix terminal connection.
 generic terminal connection.
 .TP
 .B tcp23
-telnet terminal connection.
+.B telnet
+terminal connection.
 .TP
 .B tcp513
-rlogin terminal connection.
+.B rlogin
+terminal connection.
+.TP
+.B tcp2
+hold the connection open; sleep for a long time
 .TP
 .B dkecho il7 tcp7
 echo any bytes received (bit mirror)
@@ -115,23 +126,11 @@ The following services are available in
 .BR /bin/service.auth .
 .TF dkwhoami\ il565\ tcp565
 .TP
-.B dkfsauth il17020
-file system authentication.
-.TP
-.B dkrexauth il17021
-remote execution authentication.
-.TP
-.B dkchangekey il17022
-change a user's password.
-.TP
-.B dkchal il17023
-SecureNet CPU authentication.
-.TP
-.B "dkcheck il17024"
-check a user's password.
-.TP
-.B dkguard
+.B dkguard tcp566
 check a SecureNet box.
+.TP
+.B dkticket il566
+authentication requests.
 .SH FILES
 .TF /env/sysname
 .TP
@@ -146,6 +145,15 @@ by convention, TCP device bind point
 .TP
 .B /env/sysname
 default announced name
+.SH SOURCE
+The source to
+.I listen
+is in
+.BR /sys/src/cmd/aux/listen.c .
+The other commands are
+.IR rc (1)
+scripts in
+.BR /rc/bin/service .
 .SH "SEE ALSO"
 .IR dkconfig (8),
 .IR auth (6),

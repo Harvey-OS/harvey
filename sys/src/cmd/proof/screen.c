@@ -21,7 +21,6 @@ mapscreen(void)
 {
 	binit(0, 0, "proof");
 	einit(Ekeyboard|Emouse);
-	screen.r = inset(screen.r,3);
 }
 
 void
@@ -40,7 +39,7 @@ screenprint(char *fmt, ...)
 	va_start(args, fmt);
 	doprint(buf, &buf[sizeof buf], fmt, args);
 	va_end(args);
-	p = add(screen.r.min, Pt(40, Dy(screen.r)-40));
+	p = Pt(screen.clipr.min.x+40, screen.clipr.max.y-40);
 	string(&screen, p, font, buf, S);
 }
 
@@ -52,12 +51,13 @@ getcmdstr(void)
 {
 	Event ev;
 	int e;
-	ulong timekey = 0;
+	static ulong timekey = 0;
 	ulong tracktm = 0;
 	Dir dir;
 
 	if(track){
-		timekey = etimer(0, 5000);
+		if(timekey == 0)
+			timekey = etimer(0, 5000);
 		if(dirstat(track, &dir) >= 0)
 			tracktm = dir.mtime;
 	}
@@ -142,62 +142,39 @@ Menu	mbut2	= { m2, 0, 0 };
 int	last_hit;
 int	last_but;
 
-Point blackrect(int but, Rectangle r, Rectangle sr);
-
-char *pan(int but)
+char *pan(void)
 {
-	Rectangle r;
-	Rectangle sr = Rect(0, 0, 2*85, 2*110);		/* tiny screen rectangle */
-	Point dp;
-	double xf, yf;
+	Point dd, xy, lastxy, min, max;
 
 	cursorswitch(&blot);
-	xf = Dx(screen.r) / 850.0;			/* should be params */
-	yf = Dy(screen.r) / 1100.0;
-	r = Rect(0, 0, Dx(sr)*xf, Dy(sr)*yf);
-	/* print("in: xf,yf=%g,%g, r=%R, sr=%R\n", xf, yf, r, sr); /* */
-	dp = blackrect(but, r, sr);
+	waitdown();
+	xy = mouse.xy;
+	do{
+		lastxy = mouse.xy;
+		mouse = emouse();
+		dd = sub(mouse.xy, lastxy);
+		min = add(screen.clipr.min, dd);
+		max = add(screen.clipr.max, dd);
+		bitblt(&screen, add(screen.r.min, sub(mouse.xy, lastxy)), &screen, screen.r, S);
+		if(mouse.xy.x < lastxy.x)	/* moved left, clear right */
+			bitblt(&screen, Pt(max.x, screen.r.min.y), &screen,
+				Rect(max.x, screen.r.min.y, screen.r.max.x, screen.r.max.y), 0);
+		else	/* moved right, clear left*/
+			bitblt(&screen, screen.r.min, &screen,
+				Rect(screen.r.min.x, screen.r.min.y, min.x, screen.r.max.y), 0);
+		if(mouse.xy.y < lastxy.y)	/* moved up, clear down */
+			bitblt(&screen, Pt(screen.r.min.x, max.y), &screen,
+				Rect(screen.r.min.x, max.y, screen.r.max.x, screen.r.max.y), 0);
+		else		/* moved down, clear up */
+			bitblt(&screen, screen.r.min, &screen,
+				Rect(screen.r.min.x, screen.r.min.y, screen.r.max.x, min.y), 0);
+		bflush();
+	}while(mouse.buttons);
 
-	/* needs a bailout test here */
-	xf = (double) dp.x / (Dx(sr) - Dx(r));
-	yf = (double) dp.y / (Dy(sr) - Dy(r));
+	xyoffset = add(xyoffset, sub(mouse.xy, xy));
 
-	xyoffset.x = - xf * ( 850 - Dx(screen.r));
-	xyoffset.y = - yf * (1100 - Dy(screen.r));
-
-	/* print("screen %R, r %R, dp %P xf,yf %g,%g  xyoffset %P\n",
-		screen.r, r, dp, xf, yf, xyoffset); /* */
 	cursorswitch(0);
 	return "p";
-}
-
-Point
-blackrect(int but, Rectangle r, Rectangle sr)
-{
-	Point dp = Pt(0,0);
-	Bitmap *bp;
-	int b = butcvt(but);
-
-	if (waitdown() != b) {
-		waitup();
-		return dp;
-	}
-	cursorset(add(screen.r.min, Pt(2,2)));
-	raddp(r, Pt(2,2));
-	raddp(sr, Pt(2,2));
-	bp = balloc(r, screen.ldepth);
-	border(&screen, raddp(sr, screen.r.min), 1, F&~D);	/* outline working area */
-	bitblt(&screen, screen.r.min, bp, r, DxnorS);
-	dp = screen.r.min;
-	do {
-		mouse = emouse();
-		bitblt(&screen, add(r.min, dp), bp, r, DxnorS);
-		dp = sub(mouse.xy, r.min);
-		bitblt(&screen, add(r.min, dp), bp, r, DxnorS);
-	} while (mouse.buttons & b);
-	bitblt(&screen, add(r.min, dp), bp, r, DxnorS);
-	bfree(bp);
-	return sub(dp, screen.r.min);
 }
 
 char *getmousestr(void)
@@ -225,7 +202,7 @@ char *getmousestr(void)
 			sprint(buf, "m%g", mag / 1.1);
 			return buf;
 		case Pan:
-			return pan(3);
+			return pan();
 		case Quit:
 			return "q";
 		default:

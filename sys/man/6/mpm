@@ -30,12 +30,14 @@ pages vertically by stretching vertical spaces that result from
 and
 .BR .QS / .QE .
 The packages support different styles:
+.TF -mspe
 .TP
 -mpm
 generic 
 .TP
 .B -mspe
 .I Software\(emPractice and Experience
+.PD
 .PP
 The following macros are different from or not part of
 .BR -ms .
@@ -43,6 +45,7 @@ Values denoted
 .I n
 have default value
 .BR 1v .
+.TF xTmxtext
 .TP
 .BR .BP
 Begin a new page.
@@ -66,10 +69,10 @@ are permitted.
 .BI .NE \ n
 Start new page if remaining vertical space on this page
 is less than
-.I n .
+.IR n .
 .TP
 .B .P1
-Begin a program display (Courier font).
+Begin a program display (constant width font).
 .TP
 .B .P2
 End a program display.
@@ -83,7 +86,7 @@ Insert optional break point in program display.
 .TP
 .BI .SP " n " 
 Insert vertical space of height
-.I n,
+.IR n ,
 stretchable unless
 .B exactly
 is present.
@@ -102,7 +105,7 @@ as part of a device-dependent output sequence
 .B X
 .IR "text" .
 Equivalent to
-.BI \eX' text ' .
+.BI \eX' text ' \f1.
 .PD
 .PP
 Useful number registers:
@@ -137,13 +140,17 @@ Even and odd page title commands, as
 .B /sys/lib/tmac/tmac.pm
 .br
 .B /$cputype/bin/aux/pm
+.SH SOURCE
+.B /sys/src/cmd/pm
 .SH "SEE ALSO"
 .IR ms (6), 
 .IR troff (1)
 .br
 B. W. Kernighan and C. J. Van Wyk,
-`The \-mpm Macro Package',
-UNIX Research System Programmer's Manual, Volume\ 2
+``The \-mpm Macro Package'',
+.I
+Unix Research System Programmer's Manual,
+Tenth Edition, Volume 2.
 .SH BUGS
 These features of
 .B -ms

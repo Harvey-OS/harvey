@@ -1,5 +1,5 @@
 #include	"all.h"
-#include	"ureg.h"
+#include	<ureg.h>
 #include	<bootexec.h>
 
 void	arginit(void);
@@ -32,7 +32,6 @@ main(void)
 {
 	struct	mipsexec hdr;
 	long off;
-	int i, c;
 
 	delay(1000);
 	icflush(0, 32*1024);
@@ -190,8 +189,6 @@ arginit(void)
 void
 exit(void)
 {
-	int i;
-
 	splhi();
 	screenputs("\nexiting", 8);
 	delay(2000);
@@ -233,7 +230,6 @@ panic(char *fmt, ...)
 void
 delay(int ms)
 {
-	ulong t, *p;
 	int i;
 
 	ms *= 7000;	/* experimentally determined */

@@ -1,8 +1,8 @@
 /*
  * cpu.c - Make a connection to a cpu server
  *
- *	   Invoked by listen as 'cpu -R | -L service net netdir'
- *	    	   by users  as 'cpu [-p] [-h system] [-c cmd args ...]'
+ *	   Invoked by listen as 'cpu -R | -N service net netdir'
+ *	    	   by users  as 'cpu [-h system] [-c cmd args ...]'
  */
 
 #include <u.h>
@@ -17,17 +17,26 @@ void	catcher(void*, char*);
 void	remotenote(void);
 void	usage(void);
 void	writestr(int, char*, char*, int);
-void	readstr(int, char*, int, char*);
+int	readstr(int, char*, int);
 char	*rexcall(int*, char*, char*);
 
 int 	notechan;
 char	system[32];
 int	cflag;
 int	hflag;
+int	dbg;
+char 	notebuf[ERRLEN];
 
 char	*srvname = "cpu";
 char	*notesrv = "cpunote";
 char	*exportfs = "/bin/exportfs";
+
+void
+usage(void)
+{
+	fprint(2, "usage: cpu [-h system] [-c cmd args ...]\n");
+	exits("usage");
+}
 
 void
 main(int argc, char **argv)
@@ -36,6 +45,9 @@ main(int argc, char **argv)
 	int data;
 
 	ARGBEGIN{
+	case 'd':
+		dbg++;
+		break;
 	case 'R':				/* From listen */
 		remoteside();
 		break;
@@ -58,8 +70,6 @@ main(int argc, char **argv)
 			strcat(cmd, p);
 		}
 		break;
-	default:
-		usage();
 	}ARGEND;
 
 	if(argv);
@@ -84,12 +94,14 @@ main(int argc, char **argv)
 	else
 		writestr(data, dat, "dir", 0);
 
-	readstr(data, buf, sizeof(buf), "pid");
+	if(readstr(data, buf, sizeof(buf)) < 0)
+		fatal(1, "bad pid");
 	noteproc(buf);
 
 	/* Wait for the other end to execute and start our file service
 	 * of /mnt/term */
-	readstr(data, buf, sizeof(buf), "FS");
+	if(readstr(data, buf, sizeof(buf)) < 0)
+		fatal(1, "waiting for FS");
 	if(strncmp("FS", buf, 2) != 0) {
 		print("remote cpu: %s", buf);
 		exits(buf);
@@ -99,7 +111,10 @@ main(int argc, char **argv)
 	close(0);
 	dup(data, 0);
 	close(data);
-	execl(exportfs, exportfs, 0);
+	if(dbg)
+		execl(exportfs, exportfs, "-d", 0);
+	else
+		execl(exportfs, exportfs, 0);
 	fatal(1, "starting exportfs");
 }
 
@@ -116,17 +131,18 @@ fatal(int syserr, char *fmt, ...)
 	exits(buf);
 }
 
+
 /* Invoked with stdin, stdout and stderr connected to the network connection */
 void
 remoteside(void)
 {
-	char *err, user[NAMELEN], home[128], buf[128], xdir[128], cmd[128];
+	char user[NAMELEN], home[128], buf[128], xdir[128], cmd[128];
 	int i, n, fd, badchdir, gotcmd;
 
-	if(err = srvauth(user))
-		fatal(1, err);
-	if(err = newns(user, 0))
-		fatal(1, err);
+	if(srvauth(0, user) < 0)
+		fatal(1, "srvauth");
+	if(newns(user, 0) < 0)
+		fatal(1, "newns");
 
 	/* Set environment values for the user */
 	putenv("user", user);
@@ -135,11 +151,13 @@ remoteside(void)
 
 	/* Now collect invoking cpus current directory or possibly a command */
 	gotcmd = 0;
-	readstr(0, xdir, sizeof(xdir), "dir/cmd");
+	if(readstr(0, xdir, sizeof(xdir)) < 0)
+		fatal(1, "dir/cmd");
 	if(xdir[0] == '!') {
 		strcpy(cmd, &xdir[1]);
 		gotcmd = 1;
-		readstr(0, xdir, sizeof(xdir), "dir");
+		if(readstr(0, xdir, sizeof(xdir)) < 0)
+			fatal(1, "dir");
 	}
 
 	/* Establish the new process at the current working directory of the
@@ -164,18 +182,19 @@ remoteside(void)
 		exits("remote tree");
 
 	fd = dup(1, -1);
-	if(mount(fd, "/mnt/term", MREPL, "", "") < 0)
+	if(amount(fd, "/mnt/term", MREPL, "") < 0)
 		exits("mount failed");
-
 	close(fd);
 
 	for(i = 0; i < 3; i++)
 		close(i);
 
-	if(open("/mnt/term/dev/cons", OREAD) != 0)
+	if(open("/mnt/term/dev/cons", OREAD) != 0){
 		exits("open stdin");
-	if(open("/mnt/term/dev/cons", OWRITE) != 1)
+	}
+	if(open("/mnt/term/dev/cons", OWRITE) != 1){
 		exits("open stdout");
+	}
 	dup(1, 2);
 
 	if(badchdir)
@@ -201,8 +220,6 @@ noteproc(char *pid)
 	if(notepid == 0)
 		return;
 
-	notify(catcher);
-
 	if(err = rexcall(&notechan, system, notesrv))
 		fprint(2, "cpu: can't dial for notify: %s: %r\n", err);
 	else{
@@ -210,9 +227,12 @@ noteproc(char *pid)
 		writestr(notechan, cmd, "notepid", 0);
 	}
 
+	notify(catcher);
+
 	for(;;) {
 		n = wait(&w);
 		if(n < 0) {
+			writestr(notechan, notebuf, "catcher", 1);
 			errstr(syserr);
 			if(strcmp(syserr, "interrupted") != 0){
 				fprint(2, "cpu: wait: %s\n", syserr);
@@ -229,45 +249,43 @@ void
 catcher(void *a, char *text)
 {
 	if(a);
-	writestr(notechan, text, "catcher", 1);
+	strcpy(notebuf, text);
 	noted(NCONT);
 }
 
 void
 remotenote(void)
 {
-	char buf[128], *err;
-	int pid;
+	int pid, e;
+	char buf[128];
 
-	if(err = srvauth(buf))
-		exits(err);
-	readstr(0, buf, sizeof(buf), "read pid");
-	pid = -atoi(buf);
-	for(;;) {
-		readstr(0, buf, sizeof(buf), 0);
-		if(postnote(pid, buf) < 0)
-			exits("posting");
+	if(srvauth(0, buf) < 0)
+		exits("srvauth");
+	if(readstr(0, buf, sizeof(buf)) < 0)
+		fatal(1, "read pid");
+	pid = atoi(buf);
+	e = 0;
+	while(e == 0) {
+		if(readstr(0, buf, sizeof(buf)) < 0) {
+			strcpy(buf, "hangup");
+			e = 1;
+		}
+		if(postnote(PNGROUP, pid, buf) < 0)
+			e = 1;
 	}
-}
-
-void
-usage(void)
-{
-	fprint(2, "usage: cpu [-h system] [-c cmd args ...]\n");
-	exits("usage");
+	exits("remotenote");
 }
 
 char*
 rexcall(int *fd, char *host, char *service)
 {
-	char *err;
 	char *na;
 
 	na = netmkaddr(host, 0, service);
 	if((*fd = dial(na, 0, 0, 0)) < 0)
 		return "can't dial";
-	if(err = auth(*fd, na))
-		return err;
+	if(auth(*fd) < 0)
+		return "can't authenticate";
 	return 0;
 }
 
@@ -282,22 +300,19 @@ writestr(int fd, char *str, char *thing, int ignore)
 		fatal(1, "writing network: %s", thing);
 }
 
-void
-readstr(int fd, char *str, int len, char *thing)
+int
+readstr(int fd, char *str, int len)
 {
 	int n;
 
 	while(len) {
 		n = read(fd, str, 1);
-		if(n < 0) {
-			if(thing == 0)
-				exits("readstr");
-			fatal(1, "reading network: %s", thing);
-		}
+		if(n < 0) 
+			return -1;
 		if(*str == '\0')
-			return;
+			return 0;
 		str++;
 		len--;
 	}
-	fatal(0, "%s: too long", thing);
+	return -1;
 }

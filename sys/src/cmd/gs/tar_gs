@@ -1,0 +1,83 @@
+if ( test -f $1/tar_gs ) then
+	for sub in dll gnu
+	do
+		echo Writing $1${sub}.tar.gz....
+		cd $1
+		rm -f $1
+		ln -s ${sub} $1
+		tar -cvfh - $1/* | gzip -c > ../$1${sub}.tar.gz
+		rm -f $1
+		cd ..
+		echo Wrote $1${sub}.tar.gz.
+	done
+	echo Writing $1jpeg.tar.gz....
+	tar -cvf - $1/jpeg/* | gzip -c > $1jpeg.tar.gz
+	echo Wrote $1jpeg.tar.gz.
+	echo Writing $1.tar.gz....
+	cd $1
+	./tar_cat
+	rm -f arch.h gconfig.h j*.h lib*.tr obj.tr q* t.* _temp_*
+	echo quit >quit.ps
+	cd ..
+	ctf -u $1/*.bat $1/*.cmd
+	tar -cvf - $1/*.1 $1/g*.asm $1/i*.asm $1/*.bat \
+$1/ansi2knr.c $1/echogs.c $1/ega.c \
+$1/g*.c $1/i*.c $1/s*.c $1/z*.c $1/turboc.cfg $1/*.cmd $1/*.com \
+$1/*.doc $1/*.h $1/*.icx $1/*.lis $1/*.mak $1/*.ps \
+$1/gs*.def $1/gs*.rc $1/*.sh $1/*.tr $1/tar_cat \
+$1/Fontmap $1/Fontmap.ATB $1/Fontmap.ATM $1/Fontmap.OS2 \
+$1/Fontmap.OSF1 $1/Fontmap.Ultrix $1/Fontmap.VMS \
+$1/COPYING $1/NEWS $1/PUBLIC $1/README \
+$1/ccgs $1/gsaddmod $1/gssetdev $1/gssetmod \
+$1/bdftops $1/font2c $1/gsbj $1/gsdj $1/gslp $1/gslj $1/gsnd \
+$1/ps2ascii $1/ps2epsi \
+| gzip -c > $1.tar.gz
+	echo Wrote $1.tar.gz.
+	if ( test -f $1/gs.exe ) then
+		echo Writing $1pc.tar.gz....
+		cp dos4gw.exe $1
+		cp *.dll $1
+		cd $1
+		chmod u+w dos4gw.exe *.dll
+		for f in *.bat
+		do
+			ctf -d ${f} -o `basename ${f} .bat`.BAT
+		done
+		for f in *.cmd
+		do
+			ctf -d ${f} -o `basename ${f} .cmd`.CMD
+		done
+		for f in *.doc
+		do
+			ctf -d ${f} -o `basename ${f} .doc`.DOC
+		done
+		for f in *.ps
+		do
+			ctf -d ${f} -o `basename ${f} .ps`.PS
+		done
+		ctf -d Fontmap -o FONTMAP
+		ctf -d Fontmap.ATB -o FONTMAP.ATB
+		ctf -d Fontmap.ATM -o FONTMAP.ATM
+		ctf -d Fontmap.OS2 -o FONTMAP.OS2
+		ctf -d COPYING -o COPYING.
+		ctf -d NEWS -o NEWS.
+		ctf -d PUBLIC -o PUBLIC.
+		ctf -d README -o README.
+		cd ..
+		tar -cvf - $1/gs*.exe $1/dos4gw.exe $1/*.dll \
+$1/*.ico $1/*.res \
+$1/*.BAT $1/*.CMD $1/*.DOC $1/*.PS \
+$1/FONTMAP $1/FONTMAP.ATB $1/FONTMAP.ATM $1/FONTMAP.OS2 \
+$1/COPYING. $1/NEWS. $1/PUBLIC. $1/README. \
+| gzip -c > $1pc.tar.gz
+		cd $1
+		rm dos4gw.exe *.dll
+		rm *.BAT *.CMD *.DOC *.PS
+		rm FONTMAP FONTMAP.ATB FONTMAP.ATM FONTMAP.OS2
+		rm COPYING. NEWS. PUBLIC. README.
+		cd ..
+		echo Wrote $1pc.tar.gz.
+	fi
+else
+	echo The Ghostscript files must be in the directory ./$1.
+fi

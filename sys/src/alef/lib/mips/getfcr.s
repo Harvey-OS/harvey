@@ -1,0 +1,17 @@
+TEXT	getfsr(SB), $0
+	MOVW	FCR31, R1
+	RET
+
+TEXT	setfsr(SB), $0
+	MOVW	x+0(FP), R1
+	MOVW	R1, FCR31
+	RET
+
+TEXT	getfcr(SB), $0
+	MOVW	FCR31, R1
+	RET
+
+TEXT	setfcr(SB), $0
+	MOVW	x+0(FP), R1
+	MOVW	R1, FCR31
+	RET

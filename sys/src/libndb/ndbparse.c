@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 #include <ctype.h>
-#include "ndb.h"
+#include <ndb.h>
 #include "ndbhf.h"
 
 /*
@@ -19,106 +19,6 @@
  *  form a ring along the second dimension.
  */
 
-static Ndbtuple *tfree;
-
-#define ISWHITE(x) ((x) == ' ' || (x) == '\t')
-#define EATWHITE(x) while(ISWHITE(*(x)))(x)++
-
-/*
- *  parse a single tuple
- */
-static char*
-parsetuple(char *cp, Ndbtuple **tp)
-{
-	char *p;
-	int len;
-	Ndbtuple *t;
-
-	/* a '#' starts a comment lasting till new line */
-	EATWHITE(cp);
-	if(*cp == '#' || *cp == '\n')
-		return 0;
-
-	/* we keep our own free list to reduce mallocs */
-	if(tfree){
-		t = tfree;
-		tfree = tfree->entry;
-	} else {
-		t = malloc(sizeof(Ndbtuple));
-		if(t == 0)
-			return 0;
-	}
-	memset(t, 0, sizeof(*t));
-	*tp = t;
-
-	/* parse attribute */
-	p = cp;
-	while(*cp != '=' && !ISWHITE(*cp) && *cp != '\n')
-		cp++;
-	len = cp - p;
-	if(len >= Ndbalen)
-		len = Ndbalen;
-	strncpy(t->attr, p, len);
-
-	/* parse value */
-	EATWHITE(cp);
-	if(*cp == '='){
-		cp++;
-		EATWHITE(cp);
-		if(*cp == '"'){
-			p = ++cp;
-			while(*cp != '\n' && *cp != '"')
-				cp++;
-			len = cp - p;
-			if(*cp == '"')
-				cp++;
-		} else {
-			p = cp;
-			while(!ISWHITE(*cp) && *cp != '\n')
-				cp++;
-			len = cp - p;
-		}
-		if(len >= Ndbvlen)
-			len = Ndbvlen;
-		strncpy(t->val, p, len);
-	}
-
-	return cp;
-}
-
-/*
- *  parse all tuples in a line.  we assume that the 
- *  line ends in a '\n'.
- *
- *  the tuples are linked as a list using ->entry and
- *  as a ring using ->line.
- */
-static Ndbtuple*
-parseline(char *cp)
-{
-	Ndbtuple *t;
-	Ndbtuple *first, *last;
-
-	first = last = 0;
-	while(*cp != '#' && *cp != '\n'){
-		t = 0;
-		cp = parsetuple(cp, &t);
-		if(cp == 0)
-			break;
-		if(first){
-			last->line = t;
-			last->entry = t;
-		} else
-			first = t;
-		last = t;
-		t->line = 0;
-		t->entry = 0;
-	}
-	if(first)
-		last->line = first;
-	return first;
-}
-
 /*
  *  parse the next entry in the file
  */
@@ -132,24 +32,16 @@ ndbparse(Ndb *db)
 
 	first = last = 0;
 	for(;;){
-		if(db->line){
-			line = db->line;
-			db->line = 0;
-			len = db->linelen;
-		} else {
-			if((line = Brdline(db, '\n')) == 0)
-				break;
-			len = Blinelen(db);
-			if(line[len-1] != '\n')
-				break;
-		}
-		if(first && !ISWHITE(*line)){
-			db->line = line;
-			db->linelen = len;
+		if((line = Brdline(&db->b, '\n')) == 0)
+			break;
+		len = Blinelen(&db->b);
+		if(line[len-1] != '\n')
+			break;
+		if(first && !ISWHITE(*line) && *line != '#'){
+			Bseek(&db->b, -len, 1);
 			return first;
 		}
-		db->offset += len;
-		t = parseline(line);
+		t = _ndbparseline(line);
 		if(t == 0)
 			continue;
 		if(first)
@@ -161,23 +53,6 @@ ndbparse(Ndb *db)
 			last = last->entry;
 	}
 	return first;
-}
-
-/*
- *  free a parsed entry
- */
-void
-ndbfree(Ndbtuple *t)
-{
-	Ndbtuple *tn;
-
-	if(t == 0)
-		return;
-	for(; t; t = tn){
-		tn = t->entry;
-		t->entry = tfree;
-		tfree = t;
-	}
 }
 
 
@@ -206,7 +81,8 @@ ndbreopen(Ndb *db)
 	/* forget what we know about the open files */
 	if(db->mtime){
 		hffree(db);
-		Bclose(db);
+		close(Bfildes(&db->b));
+		Bterm(&db->b);
 		db->mtime = 0;
 	}
 
@@ -221,26 +97,20 @@ ndbreopen(Ndb *db)
 
 	db->qid = d.qid;
 	db->mtime = d.mtime;
-	db->line = 0;
-	db->offset = 0;
-	Binits(db, fd, OREAD, db->buf, sizeof(db->buf));
+	db->length = d.length;
+	Binits(&db->b, fd, OREAD, db->buf, sizeof(db->buf));
 	return 0;
 }
 
-Ndb*
-ndbopen(char *file)
-{
-	Ndb *db, *gdb;
+static char *deffile = "/lib/ndb/local";
 
-	if(file == 0){
-		db = ndbopen("/lib/ndb/local");
-		gdb = ndbopen("/lib/ndb/global");
-		if(db){
-			db->next = gdb;
-			return db;
-		}else
-			return gdb;
-	}
+/*
+ *  lookup the list of files to use in the specified database file
+ */
+static Ndb*
+doopen(char *file)
+{
+	Ndb *db;
 
 	db = (Ndb*)malloc(sizeof(Ndb));
 	if(db == 0)
@@ -257,6 +127,47 @@ ndbopen(char *file)
 
 	return db;
 }
+Ndb*
+ndbopen(char *file)
+{
+	Ndb *db, *first, *last;
+	Ndbs s;
+	Ndbtuple *t, *nt;
+
+	if(file == 0)
+		file = deffile;
+	db = doopen(file);
+	if(db == 0)
+		return 0;
+	first = last = db;
+	t = ndbsearch(db, &s, "database", "");
+	Bseek(&db->b, 0, 0);
+	if(t == 0)
+		return db;
+	for(nt = t; nt; nt = nt->entry){
+		if(strcmp(nt->attr, "file") != 0)
+			continue;
+		if(strcmp(nt->val, file) == 0){
+			/* default file can be reordered in the list */
+			if(first->next == 0)
+				continue;
+			if(strcmp(first->file, file) == 0){
+				db = first;
+				first = first->next;
+				last->next = db;
+				db->next = 0;
+				last = db;
+			}
+			continue;
+		}
+		db = doopen(nt->val);
+		if(db == 0)
+			continue;
+		last->next = db;
+		last = db;
+	}
+	return first;
+}
 
 void
 ndbclose(Ndb *db)
@@ -266,18 +177,8 @@ ndbclose(Ndb *db)
 	for(; db; db = nextdb){
 		nextdb = db->next;
 		hffree(db);
-		Bclose(db);
+		close(Bfildes(&db->b));
+		Bterm(&db->b);
 		free(db);
 	}
-}
-
-long
-ndbseek(Ndb *db, long off, int whence)
-{
-	if(whence == 0 && off == db->offset)
-		return off;
-
-	db->line = 0;
-	db->offset = off;
-	return Bseek(db, off, whence);
 }

@@ -23,17 +23,6 @@ Sqrt(double x)
 }
 
 double
-Gamma(double x)
-{
-	double y;
-	extern int signgam;
-	y=errcheck(gamma(x), "gamma");
-	if(y>88.0)
-		execerror("gamma result out of range", (char *)0);
-	return signgam*exp(y);
-}
-
-double
 Exp(double x)
 {
 	return errcheck(exp(x), "exp");

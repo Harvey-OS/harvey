@@ -22,5 +22,7 @@ Don't report files that can't be removed.
 Recursively delete the
 entire contents of a directory
 and the directory itself.
+.SH SOURCE
+.B /sys/src/cmd/rm.c
 .SH "SEE ALSO"
 .IR remove (2)

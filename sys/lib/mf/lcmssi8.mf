@@ -1,4 +1,4 @@
-% SliTeX Sans-Serif Slanted 8 point, derived from 
+% SliTeX Sans-Serif Slanted 8 point, derived from
 % Computer Modern Sans Serif Quotation Style Slanted
 % by Pierre A. MacKay, 19 August, 1986
 if unknown cmbase: input cmbase fi
@@ -75,3 +75,4 @@ low_asterisk:=false;    % should the asterisk be centered at the axis?
 math_fitting:=false;    % should math-mode spacing be used?
 
 generate sroman      % switch to the SliTeX driver file.
+

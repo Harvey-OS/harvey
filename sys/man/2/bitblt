@@ -1,4 +1,4 @@
-.TH BITBLT 2G
+.TH BITBLT 2
 .SH NAME
 bitblt, bitbltclip, clipline, point, segment, polysegment, arc, circle, disc, ellipse, texture, border, string, strsize, strwidth, Fcode \- graphics functions
 .SH SYNOPSIS
@@ -55,8 +55,8 @@ Point	strsize(Font *ft, char *s)
 .B
 long	strwidth(Font *ft, char *s)
 .PP
-.ft L
 .ta 8n +\w'xxxxxxxxxx'u +\w'xxxxxxxxxx'u +\w'xxxxxxxxxx'u +\w'xxxxxxxxxx'u
+.ft L
 enum Fcode {
 	Zero,	DnorS,	DandnotS,	notS,
 	notDandS,	notD,	DxorS,	DnandS,
@@ -103,7 +103,7 @@ For example,
 computes the result as the logical
 .I or
 of the destination pixel's old value and the overlaying source pixel's value.
-If pixels are more than one bit deep, the operations are bitwise.
+If pixels are more than one bit deep, the operations are still bitwise.
 The
 .B Zero
 and
@@ -120,7 +120,7 @@ putting the small value into the high order bits, and replicating it as many tim
 as necessary to fill the lower order bits.
 .PP
 All of the drawing graphics functions clip the rectangle against the
-source and destination bitmaps, so that only
+source and destination bitmaps' clip rectangles, so that only
 pixels within the destination bitmap are changed and none are changed
 that would have come from areas outside the source bitmap.
 .I Bitbltclip
@@ -164,13 +164,13 @@ and a source pixel with value
 .IR v.
 .I Arc
 draws a circular arc centered on
-.I p0,
+.IR p0 ,
 traveling clockwise from
 .I p1
 to
 .I p2
 or a point on the circle near
-.I p2.
+.IR p2 .
 .I Segment
 draws a line segment in bitmap
 .I b
@@ -190,7 +190,7 @@ draws the
 segments joining the
 .I n
 points in the array pointed to by
-.I pp.
+.IR pp .
 .I Clipline
 clips the line segment from
 .RI * p0
@@ -285,6 +285,16 @@ this can be outside
 .I b
 if the string was clipped.
 .PP
+If a character in the string would have zero width, either explicitly or because
+no image is present for the character in the font,
+.I string
+replaces it with the image of the character with value zero (traditionally a `Peter
+.if t face', \s+1\(pw\s-1).
+.if n face').
+If that character has zero width,
+.I string
+will get a fatal error.
+.PP
 The bounding box for text to be drawn with
 .I string
 in font
@@ -302,8 +312,11 @@ returns the
 of the
 .B max
 point.
+.SH SOURCE
+.B /sys/src/libg
 .SH SEE ALSO
 .IR graphics (2),
-.IR utf (6)
+.IR utf (6),
+.IR add (2)
 .SH DIAGNOSTICS
 These routines call the graphics error function on fatal errors.

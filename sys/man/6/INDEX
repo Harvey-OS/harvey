@@ -3,11 +3,9 @@ intro 0intro
 a.out a.out
 ar ar
 auth auth
-chal auth
-changekey auth
-fsauth auth
-rexauth auth
+ticket auth
 bitmap bitmap
+face face
 font font
 subfont font
 keyboard keyboard
@@ -21,9 +19,11 @@ namespace namespace
 ndb ndb
 plot plot
 regexp regexp
+rewrite rewrite
 users users
 ASCII utf
 UTF utf
 Unicode utf
 rune utf
 utf utf
+vgadb vgadb

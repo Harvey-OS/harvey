@@ -1,6 +1,6 @@
 .TH MOTO 9.1
 .SH NAME
-moto \(mi create animation scripts
+moto \- create animation scripts
 .SH SYNOPSIS
 .B fb/moto
 [
@@ -160,7 +160,7 @@ Expressions may be parenthesized to alter precedence.
 .PP
 The following math functions are available:
 .EX
-	fabs floor ceil sqrt hypot sin cos tan gamma
+	fabs floor ceil sqrt hypot sin cos tan
 	asin acos atan exp log log10 sinh cosh tanh
 .EE
 All math functions are as described in the C library,
@@ -215,8 +215,15 @@ Each file's contents will announce its name.
 .PP
 As is true for all sufficiently large programs,
 .I moto
-has a shell escape.  A group separated from its
+has a shell escape.  The text of a group separated from its
 guards by an exclamation point
 .B !
-instead of a colon has its result text interpreted
-by a subshell.
+causes a copy of
+.IR rc (1)
+to be started.  The group's text is sent to
+.IR rc 's
+standard input, and its standard output inserted into
+.IR moto 's
+output.
+.SH SOURCE
+.B /sys/src/fb/moto.y

@@ -18,6 +18,7 @@ struct	Cmd
 	int	retstat;
 	QLock	ulock;		/* to get at each queue */
 	Rendez	ren;
+	char	name[32];
 };
 
 static
@@ -274,14 +275,15 @@ loop:
 	memset(ctl, 0, sizeof(Ctlr));
 	ctl->vme = vp;
 	qlock(ctl);
-	ctl->name = "jagc";
+	ctl->name = vp->name;
 	qunlock(ctl);
 	for(i=0; i<NDRIVE; i++) {
 		cp = &ctl->cmd[i];
 		lock(&cp->ren);
 		unlock(&cp->ren);
 		qlock(&cp->ulock);
-		cp->ulock.name = "jagu";
+		sprint(cp->name, "jagu%d.%d", vp->ctlr, i);
+		cp->ulock.name = cp->name;
 		qunlock(&cp->ulock);
 	}
 
@@ -501,11 +503,11 @@ scsiio(Device d, int rw, uchar *param, int nparam, void *addr, int size)
 	static int uniq;
 
 	if(d.ctrl >= MaxJag)
-		return GREG;
+		panic("scsiio: d.ctrl = %d\n", d.ctrl);
 	ctl = &ctlr[d.ctrl];
 	vp = ctl->vme;
 	if(vp == 0)
-		return GREG;
+		panic("scsiio: dev %D, vp == 0\n", d);
 	cp = &ctl->cmd[d.unit];
 
 	qlock(&cp->ulock);
@@ -575,7 +577,7 @@ stats(Ctlr *ctl)
 	Drive *dr;
 	int i, s;
 
-	print("jaguar stats %d\n", ctlr - ctl);
+	print("jaguar stats %d\n", ctl - ctlr);
 	for(i=0; i<NDRIVE; i++) {
 		dr = &ctl->drive[i];
 		if(dr->fflag == 0)

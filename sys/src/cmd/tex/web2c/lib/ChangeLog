@@ -1,0 +1,287 @@
+Thu May 14 19:21:40 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Wed May 13 14:32:14 1992  Karl Berry  (karl@hayley)
+
+        * pathsrch.c (initalize_path_list): initialize path to the
+          original path.
+
+Mon May  4 14:50:20 1992  Karl Berry  (karl@hayley)
+
+        * c-auto.h.in: doc fix.
+
+Sun May  3 08:06:07 1992  Karl Berry  (karl@hayley)
+
+        * main.c (argv): use a prototype if possibile.
+
+        * texmf.ch (*dumpthings): parenthesize `len'.
+
+Wed Apr 29 16:07:52 1992  Karl Berry  (karl@hayley)
+
+        * texmfmem.h (memoryword): had mutually exclusive #if's.
+        (twohalves.u): don't need junk at the end?
+
+Sat Apr 25 08:55:34 1992  Karl Berry  (karl@hayley)
+
+        * c-auto.h.in (__CHAR_UNSIGNED__): protect with #ifndef.
+
+        * site.h.in: remove #ifndef's from around the #define's.  I don't
+          think these help anything.
+
+Thu Apr 23 07:49:18 1992  Karl Berry  (karl@hayley)
+
+        * c-auto.h.in: new file.
+
+Wed Apr 22 12:43:30 1992  Karl Berry  (karl@hayley)
+
+        * texmf.c: SIGTYPE is now RETSIGTYPE.
+
+Sun Apr 19 10:26:16 1992  Karl Berry  (karl@hayley)
+
+        * texmf.c: had sense of tests on FMTBASE_SWAP reversed.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Tue Apr 14 17:06:57 1992  Karl Berry  (karl@hayley)
+
+        * common.defines (BSTINPUTPATHBIT): define.
+
+Sun Apr 12 11:42:14 1992  Karl Berry  (karl@hayley)
+
+        * common.defines (BSTINPUTPATH): define.
+        * ourpaths.h (path_constant_type): add BSTINPUTPATH.
+        (BSTINPUTPATHBIT): define.
+        * site.h-dist (BSTINPUTS): default is TEXINPUTS.
+        * ourpaths.c (setpaths): add stuff for BSTINPUTS.
+
+Sat Apr 11 09:26:55 1992  Karl Berry  (karl@hayley)
+
+        * uexit.c: include config.h, for EXIT_SUCCESS_CODE.
+
+Fri Apr 10 16:56:18 1992  Karl Berry  (karl@hayley)
+
+        * ourpaths.c (setpaths): don't pass cwd to initialize_path_list.
+
+        * site.h-dist (*INPUTS, TEXFONTS): add . to these paths.
+
+Wed Apr  8 15:34:21 1992  Karl Berry  (karl@hayley)
+
+        * texmf.c [FMTBASE_SWAP]: make swapping conditional.
+        * site.h-dist: add it here for configuration.
+
+        * main.c (do_undump) [VMS]: add code from joe.
+
+        * main.c: use exit, not exit.
+
+        * Makefile (objs): add uexit.o.
+        * uexit.c: new file.
+        * pascal.h (uexit): remove this, as it's now a function.
+
+Fri Apr  3 09:55:00 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Thu Apr  2 11:57:06 1992  Karl Berry  (karl at apollo.cs.umb.edu)
+
+        * c-memstr.h (memcpy) [!NEED_MEMORY_H]: conditionalize.
+
+Thu Apr  2 10:51:11 1992  Karl Berry  (karl at ra.cs.umb.edu)
+
+        * xstat.c (xlstat): (un)prototype-ize.
+
+        * c-limits.h: test for FLOAT_H_MISSING instead of relying on
+          _POSIX_VERSION to include <float.h>.
+
+        * c-pathmx.h [_POSIX_VERSION]: don't do pathconf stuff.
+
+Wed Apr  1 16:57:30 1992  Karl Berry  (karl at hayley)
+
+        * common.h (FATAL): use `str' as the arg name, not `s', since we
+          need to do `%s'.
+
+        * xopendir.c (xclosedir): prototype-ize it.
+
+        * dir-p (leaf_dir_p): don't initialize a structure (!).
+
+        * {concat,pathsrch,texmf,xmalloc,xstrdup,xrealloc}.c: cast results from
+          xmalloc/malloc/realloc (argh).
+
+        * alloca.c: comment things after #endif.
+
+        * site.h-dist (REGFIX): put this back.
+
+        * c-proto.h (P5C) [!__STDC__]: insert missing backslash.
+
+Mon Mar 30 07:28:25 1992  Karl Berry  (karl at hayley)
+
+        * texmfmem.h (u, v, twohalves) [big MF]: define the halfword junks
+          again.
+
+Sun Mar 29 15:33:29 1992  Karl Berry  (karl at hayley)
+
+        * alloca.c: new version from gcc 2.1.
+
+Sat Mar 28 09:46:53 1992  Karl Berry  (karl at hayley)
+
+        * main.c (main): return int, exit (EXIT_SUCCESS_CODE).
+        * texmf.c (main): likewise.
+
+        * config.h (SCHAR_TYPE): use `__CHAR_UNSIGNED__' again.
+
+Thu Mar 26 06:57:38 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (clean, realclean): depend on mostlyclean.
+
+Sun Mar 22 09:16:04 1992  Karl Berry  (karl at hayley)
+
+        * common.h [BibTeX]: remove the include of <setjmp.h>, as
+          bibtex/convert does it.
+
+Sat Mar 21 11:09:55 1992  Karl Berry  (karl at hayley)
+
+        * common.defines (input2ints): for patgen2.
+        * inputint.c (zinput2ints): new routine.
+        * pascal.h (input2ints): new macro to call it.
+
+        * config.h: include c-pathmx.h.
+
+        * common.defines (TEXPOOLNAME): declare as a constant.
+
+Fri Mar 20 16:10:44 1992  Karl Berry  (karl at hayley)
+
+        * paths.h: new file.
+
+        * config.h: update for new files c-*.h.
+        * common.h: remove stuff that is now in lib.h.
+
+Thu Mar 19 11:52:17 1992  Karl Berry  (karl at hayley)
+
+        * ourpaths.c (append_path_list): remove this.
+
+        * ourpaths.c (setpaths): use the envvar TEXFONTS if VFFONTS isn't set.
+
+Tue Feb 11 10:27:38 1992  Karl Berry  (karl at hayley)
+
+        * config.h [NEED_MEMORY_H]: include <memory.h>.
+
+        * config.h [LIMITS_H_MISSING]: include <sys/param.h>.
+
+Sun Feb  2 07:54:53 1992  Karl Berry  (karl at hayley)
+
+        * pathsearch.c (parse_envpath): remove the second / before doing
+          subdirectories.
+
+        * pascal.h (optiontable): remove, as getopt no longer has a global
+          table for the long options.
+
+Sat Feb  1 15:32:50 1992  Karl Berry  (karl at hayley)
+
+        * ourpaths.c (setpaths): use TEXFONTS if PKFONTS/GFFONTS is not
+          set for GF/PK files, as the documentation claims.
+
+        * ourpaths.c (setpaths): remove subdirectory stuff.
+        * pathsearch.[ch]: new versions to integrate subdirectories into
+          the main paths.
+
+        * texmf{,mem}.c (WEB2C_BIGENDIAN): rename to WORDS_BIGENDIAN.
+
+Fri Jan 31 11:54:46 1992  Karl Berry  (karl at hayley)
+
+        * strpascal.c ({null,space}_terminate): do not translate using
+          xord/xchr (from raichle@azu.informatik.uni-stuttgart.de).
+
+Fri Jan 24 07:14:05 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+        * config.h (__CHAR_UNSIGNED__) [CHAR_UNSIGNED]: define as autoconf
+          uses the latter and gcc sometimes the former.
+
+        * config.h: move from config.
+
+        * openinout.c (extensionirrelevantp): new function.
+        * common.defines: declare it.
+
+        * ourpaths.h (path_constant_type): rename from `path_constants'.
+        * openinout.c (open_input): use it for the path arg.
+
+Wed Jan 15 11:13:45 1992  Karl Berry  (karl at hayley)
+
+        * xgetcwd.c, xchdir.c: don't need these.
+        * Makefile (objs): remove from list.
+        * dirio.h: remove decls.
+
+        * pathsearch.c (check_subdir): do not cd to the directory we're
+          testing.
+        (add_directory): test if the name is a directory before adding it
+          to the list.
+        (parse_envpath): don't test if the names are directories here.
+        (initialize_path_list): don't find and cd to the current directory
+          between each subdirectory.
+
+Tue Jan 14 16:06:24 1992  Karl Berry  (karl at hayley)
+
+        * texmf.c: do not include <sys/types.h>; it's in config.h now.
+        * types.h: likewise.
+
+Sun Jan 12 07:41:34 1992  Karl Berry  (karl at hayley)
+
+        * pathsearch.c (initialize_path_list): cd back to . after checking
+          each subdirectory.
+
+        * dirio.h: change directory header stuff as suggested in the
+          autoconf manual.
+
+        * ourpaths.h: make the path list an enumeration type.
+
+        * openinout.c (open_input): correctly compute namelength.
+
+        * texmfmem.h (memoryword) [TeX]: make declaration of `glueratio'
+          conditional.
+
+        * openinout.c: rearrange ifdefs for coherency.
+
+        * ourpaths.c (append_path_list): overwrite the null in the first
+          list.
+
+        * pathsearch.c (initialize_path_list): unconditionally call
+          parse_envpath.
+        (parse_envpath): if the envvar name is null, don't call getenv.
+        If both args are null, do nothing.
+
+        * ourpaths.c (setpaths): initialize the TFM path.
+
+        * common.h (FATAL*): new macros.
+
+        * pascal.h (real): define to be `double'.
+
+        * xfopen-pas.c: new file.
+
+        * eofeoln.c (test_eof): rename to `eof'.
+        * pascal.h (eof): remove.       
+
+        * pascal.h (reset, rewrite): `checked_fopen' => `xfopen_pas'.
+
+        * common.h (link): define as `link_var', to avoid conflicts
+          between the system call and the web var.
+
+        * common.defines (FILENAMESIZE): rename to `PATHMAX'.
+
+Tue Jan  7 11:26:02 1992  Karl Berry  (karl at hayley)
+
+        * getopt*: new versions.
+
+        * extra.c (getwd) [GETWD_MISSING]: conditionalize.
+
+        * extra.c (zinput3ints): new implementation, from jmr@nada.kth.se.
+
+        * texmf.c (swap_items) [!WEB2C_BIG_ENDIAN]: ifdef on this.
+        * texmfmem.h (twohalves, fourquarters): incorporate changes from
+          raichle@azu.informatik.uni-stuttgart.de which he says make
+          format files finally work.
+
+        * common.h (SCHAR_TYPE): use `signed_char' if ANSI, `short' if
+          char is unsigned, otherwise `char'.

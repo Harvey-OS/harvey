@@ -1,9 +1,11 @@
+/* web2c.yacc -- parse most of Pascal, and output C.  */
+
 %token	array_tok begin_tok case_tok const_tok do_tok downto_tok else_tok
 	end_tok file_tok for_tok function_tok goto_tok if_tok label_tok
 	of_tok procedure_tok program_tok record_tok repeat_tok then_tok
-	to_tok type_tok until_tok var_tok while_tok integer_tok real_tok
+	to_tok type_tok until_tok var_tok while_tok 
 	others_tok r_num_tok i_num_tok string_literal_tok single_char_tok
-	assign_tok two_dots_tok unknown_tok undef_id_tok var_id_tok
+	assign_tok two_dots_tok undef_id_tok var_id_tok
 	proc_id_tok proc_param_tok fun_id_tok fun_param_tok const_id_tok
 	type_id_tok hhb0_tok hhb1_tok field_id_tok define_tok field_tok
 	break_tok
@@ -17,10 +19,12 @@
 %{
 #include "web2c.h"
 
+#define YYDEBUG 1
+
 #define	symbol(x)	sym_table[x].id
 #define	MAX_ARGS	50
 
-static char function_return_type[50], for_stack[300], control_var[50],
+static char fn_return_type[50], for_stack[300], control_var[50],
             relation[3];
 static char arg_type[MAX_ARGS][30];
 static int last_type = -1, ids_typed;
@@ -28,109 +32,100 @@ char my_routine[100];	/* Name of routine being parsed, if any */
 static char array_bounds[80], array_offset[80];
 static int uses_mem, uses_eqtb, lower_sym, upper_sym;
 static FILE *orig_std;
-boolean doing_statements = FALSE;
-static boolean var_formals = FALSE;
+boolean doing_statements = false;
+static boolean var_formals = false;
 static int param_id_list[MAX_ARGS], ids_paramed=0;
 
 extern char conditional[], temp[], *std_header;
 extern int tex, mf, strict_for;
-extern boolean ansi;
 extern FILE *coerce;
 extern char coerce_name[];
 extern boolean debug;
 
-/* Forward refs */
-#ifdef	ANSI
-static long labs(long x);
-static void compute_array_bounds(void);
-static void fixup_var_list(void);
-static void do_proc_args(void);
-static void gen_function_head(void);
-static boolean doreturn(char *label);
-extern int yylex(void);
-#else	/* Not ANSI */
-static long labs();
+static long my_labs();
 static void compute_array_bounds(), fixup_var_list();
 static void do_proc_args(), gen_function_head();
 static boolean doreturn();
-#endif	/* Not ANSI */
 
 %}
 
 %start PROGRAM
 
 %%
+PROGRAM:
+	DEFS
+        PROGRAM_HEAD
+ 	  { block_level++;
+ 	    printf ("#include \"%s\"\n", std_header);
+	  }
+	LABEL_DEC_PART CONST_DEC_PART TYPE_DEC_PART
+	VAR_DEC_PART
+	  { printf ("\n#include \"%s\"\n", coerce_name); }
+	P_F_DEC_PART
+	BODY
+	  { YYACCEPT; }
+        ;
 
-PROGRAM:	DEFS
-		PROGRAM_HEAD
-			{block_level++;
-			 printf("#include \"%s\"\n", std_header);}
-		LABEL_DEC_PART CONST_DEC_PART TYPE_DEC_PART
-		VAR_DEC_PART
-			{printf("\n#include \"%s\"\n", coerce_name); }
-		P_F_DEC_PART
-		BODY
-			{YYACCEPT;}
-		;
+DEFS:
+	  /* empty */
+	| DEFS DEF
+	;
 
-DEFS:		/* empty */
-		| DEFS DEF
-		;
+DEF:
+	  define_tok field_tok undef_id_tok ';' 
+	    {
+	      ii = add_to_table (last_id); 
+	      sym_table[ii].typ = field_id_tok;
+	    }
+	| define_tok function_tok undef_id_tok ';'
+	    {
+	      ii = add_to_table (last_id); 
+	      sym_table[ii].typ = fun_id_tok;
+	    }
+	| define_tok const_tok undef_id_tok ';'
+	    {
+	      ii = add_to_table (last_id); 
+	      sym_table[ii].typ = const_id_tok;
+	    }
+	| define_tok function_tok undef_id_tok '(' ')' ';'
+	    {
+	      ii = add_to_table (last_id); 
+	      sym_table[ii].typ = fun_param_tok;
+	    }
+	| define_tok procedure_tok undef_id_tok ';'
+	    {
+	      ii = add_to_table (last_id); 
+	      sym_table[ii].typ = proc_id_tok;
+	    }
+	| define_tok procedure_tok undef_id_tok '(' ')' ';'
+	    {
+	      ii = add_to_table (last_id); 
+	      sym_table[ii].typ = proc_param_tok;
+	    }
+	| define_tok type_tok undef_id_tok ';'
+	    {
+	      ii = add_to_table (last_id); 
+	      sym_table[ii].typ = type_id_tok;
+	    }
+	| define_tok type_tok undef_id_tok '=' SUBRANGE_TYPE ';'
+	    {
+	      ii = add_to_table (last_id); 
+	      sym_table[ii].typ = type_id_tok;
+	      sym_table[ii].val = lower_bound;
+	      sym_table[ii].val_sym = lower_sym;
+	      sym_table[ii].upper = upper_bound;
+	      sym_table[ii].upper_sym = upper_sym;
+	    }
+	| define_tok var_tok undef_id_tok ';'
+	    {
+	      ii = add_to_table (last_id); 
+	      sym_table[ii].typ = var_id_tok;
+	    }
+	;
 
-DEF:			define_tok field_tok undef_id_tok ';' 
-			{
-			    ii = add_to_table(last_id); 
-			    sym_table[ii].typ = field_id_tok;
-			}
-		|	define_tok function_tok undef_id_tok ';'
-			{
-			    ii = add_to_table(last_id); 
-			    sym_table[ii].typ = fun_id_tok;
-			}
-		|	define_tok const_tok undef_id_tok ';'
-			{
-			    ii = add_to_table(last_id); 
-			    sym_table[ii].typ = const_id_tok;
-			}
-		|	define_tok function_tok undef_id_tok '(' ')' ';'
-			{
-			    ii = add_to_table(last_id); 
-			    sym_table[ii].typ = fun_param_tok;
-			}
-		|	define_tok procedure_tok undef_id_tok ';'
-			{
-			    ii = add_to_table(last_id); 
-			    sym_table[ii].typ = proc_id_tok;
-			}
-		|	define_tok procedure_tok undef_id_tok '(' ')' ';'
-			{
-			    ii = add_to_table(last_id); 
-			    sym_table[ii].typ = proc_param_tok;
-			}
-		|	define_tok type_tok undef_id_tok ';'
-			{
-			    ii = add_to_table(last_id); 
-			    sym_table[ii].typ = type_id_tok;
-			}
-		|	define_tok type_tok undef_id_tok '=' 
-			SUBRANGE_TYPE ';'
-			{
-			    ii = add_to_table(last_id); 
-			    sym_table[ii].typ = type_id_tok;
-			    sym_table[ii].val = lower_bound;
-			    sym_table[ii].val_sym = lower_sym;
-			    sym_table[ii].upper = upper_bound;
-			    sym_table[ii].upper_sym = upper_sym;
-			}
-		|	define_tok var_tok undef_id_tok ';'
-			{
-			    ii = add_to_table(last_id); 
-			    sym_table[ii].typ = var_id_tok;
-			}
-		;
-		
-PROGRAM_HEAD:	program_tok undef_id_tok ';'
-		;
+PROGRAM_HEAD:
+	  program_tok undef_id_tok ';'
+	;
 
 BLOCK:
 		      {	if (block_level > 0) my_output("{");
@@ -139,9 +134,9 @@ BLOCK:
 		  LABEL_DEC_PART
 		  CONST_DEC_PART TYPE_DEC_PART
 			{if (block_level == 2) {
-			    if (strcmp(function_return_type, "void")) {
+			    if (strcmp(fn_return_type, "void")) {
 			      my_output("register");
-			      my_output(function_return_type);
+			      my_output(fn_return_type);
 			      my_output("Result;");
 			    }
 			    if (tex) {
@@ -155,11 +150,11 @@ BLOCK:
 		  VAR_DEC_PART
 			{if (block_level == 1)
 				puts("\n#include \"coerce.h\"");
-			 doing_statements = TRUE;
+			 doing_statements = true;
 			}
 		  STAT_PART
 			{if (block_level == 2) {
-			    if (strcmp(function_return_type,"void")) {
+			    if (strcmp(fn_return_type,"void")) {
 			      my_output("return(Result)");
 			      semicolon();
 			     }
@@ -185,7 +180,7 @@ BLOCK:
 			 }
 			 indent--; block_level--;
 			 my_output("}"); new_line();
-			 doing_statements = FALSE;
+			 doing_statements = false;
 			}
 		;
 
@@ -228,7 +223,7 @@ CONST_DEC:
 CONSTANT:		i_num_tok
 				{
 				  (void) sscanf(temp, "%ld", &last_i_num);
-				  if (labs((long) last_i_num) > 32767)
+				  if (my_labs((long) last_i_num) > 32767)
 				      (void) strcat(temp, "L");
 				  my_output(temp);
 				  $$ = ex_32;
@@ -339,7 +334,7 @@ SIMPLE_TYPE:		SUBRANGE_TYPE
 					my_output("short");
 	  			    else if (lower_bound >= 0
 				      && upper_bound <= 65535)
-					my_output("unsigned short");
+					my_output(UNSIGNED_SHORT_STRING);
 	  			    else my_output("integer");
 				  }
 				  else my_output("integer");
@@ -379,17 +374,21 @@ TYPE_ID:		type_id_tok
 	 my_output(last_id); }
 		;
 
-STRUCTURED_TYPE:	ARRAY_TYPE
-				{if (last_type >= 0)
-				    sym_table[last_type].var_not_needed = TRUE;}
-		|	RECORD_TYPE
-		|	FILE_TYPE
-				{if (last_type >= 0)
-				    sym_table[last_type].var_not_needed = TRUE;}
-		|	POINTER_TYPE
-				{if (last_type >= 0)
-				    sym_table[last_type].var_not_needed = TRUE;}
-		;
+STRUCTURED_TYPE:
+	  ARRAY_TYPE
+	    { if (last_type >= 0)
+	        sym_table[last_type].var_not_needed = true;
+            }
+	| RECORD_TYPE
+	| FILE_TYPE
+	    { if (last_type >= 0)
+	        sym_table[last_type].var_not_needed = true;
+            }
+	| POINTER_TYPE
+	    { if (last_type >= 0)
+	        sym_table[last_type].var_not_needed = true;
+            }
+	;
 
 POINTER_TYPE:		'^' type_id_tok
 	{if (last_type >= 0) {
@@ -499,20 +498,20 @@ VAR_DEC_LIST:		VAR_DEC
 		;
 
 VAR_DEC: 
-				{ var_list[0] = 0;
-				  array_bounds[0] = 0;
-				  array_offset[0] = 0;
-				  var_formals = FALSE;
-				  ids_paramed = 0;
-				}
-			VAR_ID_DEC_LIST ':'
-				{
-				  array_bounds[0] = 0;	
-				  array_offset[0] = 0;
-				}
-			TYPE ';'
-				{ fixup_var_list(); }
-		;
+	    { var_list[0] = 0;
+	      array_bounds[0] = 0;
+	      array_offset[0] = 0;
+	      var_formals = false;
+	      ids_paramed = 0;
+	    }
+	  VAR_ID_DEC_LIST ':'
+	    {
+	      array_bounds[0] = 0;	
+	      array_offset[0] = 0;
+	    }
+	  TYPE ';'
+	    { fixup_var_list(); }
+	;
 
 VAR_ID_DEC_LIST:	VAR_ID
 		|	VAR_ID_DEC_LIST ',' VAR_ID
@@ -562,17 +561,22 @@ VAR_ID:			undef_id_tok
 				}
 		;
 
-BODY:		/* empty */
-		| 	begin_tok 
-				{ my_output("void main_body() {");
-				  indent++;
-			      	  new_line();
-                                }
-			STAT_LIST end_tok '.'
-				{ indent--; my_output("}"); new_line(); }
-		;
+BODY:
+	  /* empty */
+	| begin_tok 
+		{ my_output ("void main_body() {");
+		  indent++;
+		  new_line ();
+		}
+	  STAT_LIST end_tok '.'
+		{ indent--;
+                  my_output ("}");
+                  new_line ();
+                }
+	;
 
-P_F_DEC_PART:		P_F_DEC
+P_F_DEC_PART:		/* empty */
+                |       P_F_DEC
 		|	P_F_DEC_PART P_F_DEC
 		;
 
@@ -585,77 +589,83 @@ P_F_DEC:		PROCEDURE_DEC ';'
 PROCEDURE_DEC:		PROCEDURE_HEAD BLOCK
 		;
 
-PROCEDURE_HEAD:		procedure_tok undef_id_tok 
-				{ ii = add_to_table(last_id);
-				  if (debug)
-				  (void) fprintf(stderr, "%3d Procedure %s\n",
-					pf_count++, last_id);
-				  sym_table[ii].typ = proc_id_tok;
-				  (void) strcpy(my_routine, last_id);
-				  uses_eqtb = uses_mem = FALSE;
-				  my_output("void");
-				  orig_std = std;
-				  std = 0;
-				}
-			PARAM ';'
-				{(void) strcpy(function_return_type, "void");
-				 do_proc_args();
-				 gen_function_head();}
-		|	procedure_tok DECLARED_PROC
-				{ ii = l_s; 
-				  if (debug)
-				  (void) fprintf(stderr, "%3d Procedure %s\n",
-					pf_count++, last_id);
-				  (void) strcpy(my_routine, last_id);
-				  my_output("void");
-				}
-			PARAM ';'
-				{(void) strcpy(function_return_type, "void");
-				 do_proc_args();
-				 gen_function_head();}
-		;
+PROCEDURE_HEAD:
+	  procedure_tok undef_id_tok
+	    { ii = add_to_table(last_id);
+	      if (debug)
+	        (void) fprintf(stderr, "%3d Procedure %s\n",
+                  pf_count++, last_id);
+	      sym_table[ii].typ = proc_id_tok;
+	      (void) strcpy(my_routine, last_id);
+	      uses_eqtb = uses_mem = false;
+	      my_output("void");
+	      orig_std = std;
+	      std = 0;
+	    }
+	  PARAM ';'
+	    { (void) strcpy(fn_return_type, "void");
+	      do_proc_args();
+	      gen_function_head();}
+	| procedure_tok DECLARED_PROC
+	    { ii = l_s; 
+	      if (debug)
+	        (void) fprintf(stderr, "%3d Procedure %s\n",
+                               pf_count++, last_id);
+	      (void) strcpy(my_routine, last_id);
+	      my_output("void");
+	    }
+	  PARAM ';'
+	    { (void) strcpy(fn_return_type, "void");
+	      do_proc_args();
+	      gen_function_head();
+            }
+	;
 
-PARAM:			/* empty */
-				{ (void) strcpy(z_id, last_id);
-				  mark();
-				  ids_paramed = 0;
-				}
-		|	'('
-				{ if (ansi) (void) strcpy(z_id, last_id);
-				  else (void) sprintf(z_id, "z%s", last_id);
-				  ids_paramed = 0;
- 				  if (sym_table[ii].typ == proc_id_tok)
-				  	sym_table[ii].typ = proc_param_tok;
-				  else if (sym_table[ii].typ == fun_id_tok)
-					sym_table[ii].typ = fun_param_tok;
-				  mark();
-				}
-			FORM_PAR_SEC_L ')'
-		;
+PARAM:
+	  /* empty */
+	    {
+              (void) strcpy (z_id, last_id);
+	      mark ();
+	      ids_paramed = 0;
+	    }
+	| '('
+	    { sprintf (z_id, "z%s", last_id);
+	      ids_paramed = 0;
+	      if (sym_table[ii].typ == proc_id_tok)
+	        sym_table[ii].typ = proc_param_tok;
+	      else if (sym_table[ii].typ == fun_id_tok)
+	        sym_table[ii].typ = fun_param_tok;
+	      mark();
+	    }
+	  FORM_PAR_SEC_L ')'
+	;
 
 FORM_PAR_SEC_L:		FORM_PAR_SEC
 		|	FORM_PAR_SEC_L ';' FORM_PAR_SEC
 		;
 
-FORM_PAR_SEC1: 			{ ids_typed = ids_paramed;}
-			VAR_ID_DEC_LIST ':' type_id_tok
-				{int i, need_var;
-				 i = search_table(last_id);
-				 need_var = !sym_table[i].var_not_needed;
-				 for (i=ids_typed; i<ids_paramed; i++) {
-					(void) strcpy(arg_type[i], last_id);
-		if (need_var && sym_table[param_id_list[i]].var_formal)
-					(void) strcat(arg_type[i], " *");
-		else sym_table[param_id_list[i]].var_formal = FALSE;
-				 }
-				}
-		;
+FORM_PAR_SEC1:
+	    { ids_typed = ids_paramed;}
+	  VAR_ID_DEC_LIST ':' type_id_tok
+	    { int i, need_var;
+	      i = search_table(last_id);
+	      need_var = !sym_table[i].var_not_needed;
+	      for (i=ids_typed; i<ids_paramed; i++)
+                {
+	          (void) strcpy(arg_type[i], last_id);
+		  if (need_var && sym_table[param_id_list[i]].var_formal)
+	            (void) strcat(arg_type[i], " *");
+		  else
+                    sym_table[param_id_list[i]].var_formal = false;
+	        }
+	    }
+	;
 
 FORM_PAR_SEC:		{var_formals = 0;} FORM_PAR_SEC1
 		|	var_tok {var_formals = 1;} FORM_PAR_SEC1
 		;
 
-DECLARED_PROC	:	proc_id_tok
+DECLARED_PROC:		proc_id_tok
 		|	proc_param_tok
 		;
 
@@ -671,7 +681,7 @@ FUNCTION_HEAD:		function_tok undef_id_tok
 					pf_count++, last_id);
 	  			  sym_table[ii].typ = fun_id_tok;
 				  (void) strcpy(my_routine, last_id);
-				  uses_eqtb = uses_mem = FALSE;
+				  uses_eqtb = uses_mem = false;
 				}
 			PARAM ':'
 				{ normal();
@@ -679,7 +689,7 @@ FUNCTION_HEAD:		function_tok undef_id_tok
 				  array_offset[0] = 0;
 				}
 			RESULT_TYPE
-			    {(void) strcpy(function_return_type, yytext);
+			    {(void) strcpy(fn_return_type, yytext);
 			     do_proc_args();
 			     gen_function_head();
 			    }
@@ -689,10 +699,11 @@ FUNCTION_HEAD:		function_tok undef_id_tok
 				{ orig_std = std;
 				  std = 0;
 				  ii = l_s;
+				  if (debug)
 				  (void) fprintf(stderr, "%3d Function %s\n",
 					pf_count++, last_id);
 				  (void) strcpy(my_routine, last_id);
-				  uses_eqtb = uses_mem = FALSE;
+				  uses_eqtb = uses_mem = false;
 				}
 			PARAM ':'
 				{ normal();
@@ -700,14 +711,14 @@ FUNCTION_HEAD:		function_tok undef_id_tok
 				  array_offset[0] = 0;
 				}
 			RESULT_TYPE
-			    {(void) strcpy(function_return_type, yytext);
+			    {(void) strcpy(fn_return_type, yytext);
 			     do_proc_args();
 			     gen_function_head();
 			    }
 			';'
 		;
 
-DECLARED_FUN	:	fun_id_tok
+DECLARED_FUN:		fun_id_tok
 		|	fun_param_tok
   		;
 
@@ -915,7 +926,7 @@ PROC_STAT:		proc_id_tok
 
 GO_TO_STAT:		goto_tok i_num_tok
 				{if (doreturn(temp)) {
-				    if (strcmp(function_return_type,"void"))
+				    if (strcmp(fn_return_type,"void"))
 					my_output("return(Result)");
 				    else
 					my_output("return");
@@ -1047,8 +1058,9 @@ FOR_STATEMENT:		for_tok
 				  new_line();}
 			STATEMENT
 				{
-				  char *top = rindex(for_stack, '#');
-				  indent--; new_line();
+				  char *top = strrchr (for_stack, '#');
+				  indent--;
+                                  new_line();
 				  my_output("while"); 
 				  my_output("("); 
 				  my_output(top+1); 
@@ -1141,73 +1153,74 @@ static void compute_array_bounds()
     }
 }
 
-static void fixup_var_list()
-{
-    int i, j;
-    char output_string[100], real_symbol[100];
 
-    for (i=0; var_list[i++] == '!'; ) {
-	for (j=0; real_symbol[j++] = var_list[i++];);
-	if (*array_offset) {
-	    (void) fprintf(std, "\n#define %s (%s %s)\n  ",
-	        real_symbol, next_temp, array_offset);
-	    (void) strcpy(real_symbol, next_temp);
-	    find_next_temp();
-	}
-	(void) sprintf(output_string, "%s%s%c",
-	    real_symbol, array_bounds, (var_list[i]=='!' ? ',' : ' '));
-	my_output(output_string);
-    }
-    semicolon();
+/* Kludge around negative lower array bounds.  */
+
+static void
+fixup_var_list ()
+{
+  int i, j;
+  char output_string[100], real_symbol[100];
+
+  for (i = 0; var_list[i++] == '!'; )
+    {
+      for (j = 0; real_symbol[j++] = var_list[i++]; )
+        ;
+      if (*array_offset)
+        {
+          (void) fprintf (std, "\n#define %s (%s %s)\n  ",
+                          real_symbol, next_temp, array_offset);
+          (void) strcpy (real_symbol, next_temp);
+          /* Add the temp to the symbol table, so that change files can
+             use it later on if necessary.  */
+          j = add_to_table (next_temp);
+          sym_table[j].typ = var_id_tok;
+          find_next_temp ();
+        }
+      (void) sprintf (output_string, "%s%s%c", real_symbol, array_bounds,
+                      var_list[i] == '!' ? ',' : ' ');
+      my_output (output_string);
+  }
+  semicolon ();
 }
 
 
-/*
- * If we're not processing TeX, we return 0 (false).  Otherwise,
- * return 1 if the label is "10" and we're not in one of four TeX
- * routines where the line labeled "10" isn't the end of the routine.
- * Otherwise, return 0.
- */
-static boolean doreturn(label)
-char *label;
+/* If we're not processing TeX, we return false.  Otherwise,
+   return true if the label is "10" and we're not in one of four TeX
+   routines where the line labeled "10" isn't the end of the routine.
+   Otherwise, return 0.  */
+   
+static boolean
+doreturn (label)
+    char *label;
 {
-    if (!tex) return(FALSE);
-    if (strcmp(label, "10")) return(FALSE);
-    if (strcmp(my_routine, "macrocall") == 0) return(FALSE);
-    if (strcmp(my_routine, "hpack") == 0) return(FALSE);
-    if (strcmp(my_routine, "vpackage") == 0) return(FALSE);
-    if (strcmp(my_routine, "trybreak") == 0) return(FALSE);
-    return(TRUE);
+    return
+      tex
+      && STREQ (label, "10")
+      && !STREQ (my_routine, "macrocall")
+      && !STREQ (my_routine, "hpack")
+      && !STREQ (my_routine, "vpackage")
+      && !STREQ (my_routine, "trybreak");
 }
 
 
-/* Return the absolute value of a long */
-static long labs(x)
-long x;
+/* Return the absolute value of a long.  */
+static long 
+my_labs (x)
+  long x;
 {
     if (x < 0L) return(-x);
     return(x);
 }
 
-static void do_proc_args()
+static void
+do_proc_args ()
 {
-    int i;
-
-    if (ansi) {
-	fprintf(coerce, "%s %s(", function_return_type, z_id);
-	if (ids_paramed == 0) fprintf(coerce, "void");
-	for (i=0; i<ids_paramed; i++) {
-	    if (i > 0) putc(',', coerce);
-	    fprintf(coerce, "%s %s",
-		arg_type[i],
-		symbol(param_id_list[i]));
-	}
-	fprintf(coerce, ");\n");
-    } else
-	fprintf(coerce, "%s %s();\n", function_return_type, z_id);
+  fprintf (coerce, "%s %s();\n", fn_return_type, z_id);
 }
 
-static void gen_function_head()
+static void
+gen_function_head()
 {
     int i;
 
@@ -1222,13 +1235,9 @@ static void gen_function_head()
 	fprintf(coerce, ") %s(", z_id);
 	for (i=0; i<ids_paramed; i++) {
 	    if (i > 0)
-		fprintf(coerce, ", (%s) %s(%s)",
-		    arg_type[i],
-		    sym_table[param_id_list[i]].var_formal?"&":"",
-		    symbol(param_id_list[i]));
-	    else
-		fprintf(coerce, "(%s) %s(%s)",
-		    arg_type[i],
+		fputs(", ", coerce);
+	    fprintf(coerce, "(%s) ", arg_type[i]);
+	    fprintf(coerce, "%s(%s)",
 		    sym_table[param_id_list[i]].var_formal?"&":"",
 		    symbol(param_id_list[i]));
 	}
@@ -1237,25 +1246,15 @@ static void gen_function_head()
     std = orig_std;
     my_output(z_id);
     my_output("(");
-    if (ansi) {
-	for (i=0; i<ids_paramed; i++) {
-	    if (i > 0) my_output(",");
-	    my_output(arg_type[i]);
-	    my_output(symbol(param_id_list[i]));
-	}
-	my_output(")");
-	indent_line();
-    } else {	/* Not ansi */
-	for (i=0; i<ids_paramed; i++) {
-	    if (i > 0) my_output(",");
-	    my_output(symbol(param_id_list[i]));
-	}
-	my_output(")");
-	indent_line();
-	for (i=0; i<ids_paramed; i++) {
-	    my_output(arg_type[i]);
-	    my_output(symbol(param_id_list[i]));
-	    semicolon();
-	}
+    for (i=0; i<ids_paramed; i++) {
+        if (i > 0) my_output(",");
+        my_output(symbol(param_id_list[i]));
+    }
+    my_output(")");
+    indent_line();
+    for (i=0; i<ids_paramed; i++) {
+        my_output(arg_type[i]);
+        my_output(symbol(param_id_list[i]));
+        semicolon();
     }
 }

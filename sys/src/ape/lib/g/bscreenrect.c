@@ -1,10 +1,12 @@
 #include <unistd.h>
 #include <libg.h>
 
+typedef unsigned char uchar;
+
 Rectangle
-bscreenrect(void)
+bscreenrect(Rectangle *clipr)
 {
-	unsigned char buf[18];
+	uchar buf[34];
 	Rectangle r;
 
 	bneed(0);
@@ -16,5 +18,11 @@ bscreenrect(void)
 	r.min.y = BGLONG(buf+6);
 	r.max.x = BGLONG(buf+10);
 	r.max.y = BGLONG(buf+14);
+	if(clipr){
+		clipr->min.x = BGLONG(buf+18);
+		clipr->min.y = BGLONG(buf+22);
+		clipr->max.x = BGLONG(buf+26);
+		clipr->max.y = BGLONG(buf+30);
+	}
 	return r;
 }

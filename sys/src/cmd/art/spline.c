@@ -191,6 +191,6 @@ void drawpart(Item *ip, int index, Dpoint offs){
 	for(i=i0;i!=i1;i++){
 		s2b(ip, i, p);
 		for(j=0;j!=ORDER;j++) p[j]=dadd(p[j], offs);
-		drawbezier(p, DARK, &screen, S^D);
+		drawbezier(p, dark, &screen, S^D);
 	}
 }

@@ -1,6 +1,6 @@
 .TH PICOPEN 9.2
 .SH NAME
-picopen_r, picopen_w, picread, picwrite, picclose, rdpicfile, wrpicfile, picputprop, picgetprop, picunpack, picpack, picerror \- picture file I/O
+picopen_r, picopen_w, picread, picwrite, picclose, rdpicfile, wrpicfile, picputprop, picgetprop, picunpack, picpack \- picture file I/O
 .SH SYNOPSIS
 .B
 #include <libg.h>
@@ -41,17 +41,10 @@ void picunpack(PICFILE *pf, char *pix, char *fmt, ...)
 .B
 void picpack(PICFILE *pf, char *pix, char *fmt, ...)
 .PP
-.B
-void picerror(char *string)
 .SH DESCRIPTION
 These functions read and write raster images in
 .IR picfile (9.6)
 format.
-They are loaded by option
-.B -lfb
-of
-.IR 2l (1)
-et al.
 Open picture files are referred to by pointers of type
 .BR PICFILE* .
 .PP
@@ -91,7 +84,7 @@ is a string specifying the order of channels for the
 .B CHAN
 attribute; the length of this string becomes the value of
 .BR NCHAN .
-.I Argv,
+.IR Argv ,
 if nonzero, is
 conventionally the second argument of the main program;
 see
@@ -101,7 +94,7 @@ It becomes a
 attribute recording the provenance of the file.
 .PP
 The special call
-.B picopen_w(
+.B picopen_w(\c
 .IB name ,
 .BI PIC_SAMEARGS( pf ))
 creates a file with the same attributes as an already open
@@ -116,7 +109,7 @@ and
 .I picwrite
 read or write a single row of pixels using the
 character array
-.I buf.
+.IR buf .
 The length of the row is determined from the file's
 .B WINDOW
 and
@@ -136,7 +129,7 @@ are decoded into conventional
 channels.
 .PP
 .I Picclose
-closes a picfile and frees associated storage.
+closes a picture file and frees associated storage.
 .PP
 .I Wrpicfile
 copies a bitmap into a picture file.
@@ -168,7 +161,7 @@ returns a pointer to the value of the named attribute, or
 In both
 .I Picputprop
 and
-.I picgetprop,
+.IR picgetprop ,
 with multiple appearances (e.g.
 .BR COMMAND )
 are expressed as a sequence of
@@ -205,14 +198,6 @@ designates a picfile channel to be skipped.
 reverses the process.
 These routines effect a standard machine-independent byte
 ordering.
-.PP
-.IR Picerror
-prints messages for errors resulting from calls to
-.I picfile
-routines.
-.RI ( Perror (3)
-cannot describe some error conditions,
-like malformed header lines.)
 .SH EXAMPLES
 Unpack the green and z channels from a file with channels
 .B rgbz...
@@ -248,6 +233,8 @@ while (picread(in, buffer)) {
 	picwrite(out, buffer);
 }
 .EE
+.SH SOURCE
+.B /sys/src/libfb
 .SH SEE ALSO
 .IR picfile (9.6)
 .SH DIAGNOSTICS
@@ -258,6 +245,9 @@ returns 1 on success, 0 on end of file or error.
 and
 .I picopen_w
 return 0 for unopenable files.
+All three set
+.IR errstr (2)
+to explain their failure.
 .SH BUGS
 .I Picpack
 and
@@ -269,8 +259,8 @@ and
 using native floating-point, rather than something
 transportable.
 .PP
-The code required to support
+There is no code to support
 .B TYPE=ccir601
 and the various
 .B ccitt
-fax compression types is missing!
+fax compression types.

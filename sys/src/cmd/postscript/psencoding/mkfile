@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+SYSTEM=plan9
+VERSION=3.3.1
+
+POSTLIB=/sys/lib/postscript/prologues
+POSTBIN=/sys/lib/postscript/bin
+
+all:V:	psencoding
+
+install installall:V:	$POSTBIN/psencoding $POSTLIB/Latin1.enc $POSTLIB/UTF.enc
+
+clean nuke:V:
+	rm -f psencoding
+
+$POSTBIN/psencoding:	psencoding
+	cp $prereq $target
+
+$POSTLIB/%.enc:	%.enc
+	cp $prereq $target
+
+psencoding:	psencoding.rc
+	sed 's?^POSTLIB=.*?POSTLIB='$POSTLIB'?' psencoding.rc >psencoding
+	chmod 775 psencoding

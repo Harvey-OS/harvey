@@ -10,11 +10,13 @@
 % Version 2.5 improved the case of zero pages (May, 1984).
 % Version 2.6 introduced max_drift (June, 1984).
 % Version 2.7 had minor editorial changes (August, 1984).
-% Version 2.8 maked default resolution 300/1 (April, 1985).
+% Version 2.8 made default resolution 300/1 (April, 1985).
 % Version 2.9 changed negative scaling as in TeX version 2.7 (November, 1987).
 % Version 3 introduced an intermediate level of verbosity (October,1989).
 % Version 3.1 gave magnification info in final font list (November, 1989).
 % Version 3.2 doublechecked design size of each font (January, 1990).
+% Version 3.3 had more robust for loops in print_font, define_font (May, 1990).
+% Version 3.4 more robustness in presence of bad fonts (September, 1990).
 
 % Here is TeX material that gets inserted after \input webmac
 \def\hang{\hangindent 3em\indent\ignorespaces}
@@ -33,7 +35,7 @@
   \vfill
   \centerline{\titlefont The {\ttitlefont DVItype} processor}
   \vskip 15pt
-  \centerline{(Version 3.2, January 1990)}
+  \centerline{(Version 3.4, September 1990)}
   \vfill}
 \def\botofcontents{\vfill
   \centerline{\hsize 5in\baselineskip9pt
@@ -81,7 +83,7 @@ went through several versions on different computers as the format of
 The |banner| string defined here should be changed whenever \.{DVItype}
 gets modified.
 
-@d banner=='This is DVItype, Version 3.2' {printed when the program starts}
+@d banner=='This is DVItype, Version 3.4' {printed when the program starts}
 
 @ This program is written in standard \PASCAL, except where it is necessary
 to use extensions; for example, \.{DVItype} must read files whose names
@@ -739,7 +741,7 @@ Font definitions must appear before the first use of a particular font number.
 Once font |k| is defined, it must not be defined again; however, we
 shall see below that font definitions appear in the postamble as well as
 in the pages, so in this sense each font number is defined exactly twice,
-if at all. Like |nop| commands and \\{xxx} commands, font definitions can
+if at all. Like |nop| commands, font definitions can
 appear before the first |bop|, or between an |eop| and a |bop|.
 
 @ The last page in a \.{DVI} file is followed by `|post|'; this command
@@ -1029,12 +1031,13 @@ first unused position of the |width| array.
 @d char_width_end(#)==#]
 @d char_width(#)==width[width_base[#]+char_width_end
 @d invalid_width==@'17777777777
+@d invalid_font==max_fonts
 
 @<Glob...@>=
 @!font_num:array [0..max_fonts] of integer; {external font numbers}
-@!font_name:array [0..max_fonts] of 0..name_size; {starting positions
+@!font_name:array [0..max_fonts] of 1..name_size; {starting positions
   of external font names}
-@!names:array [0..name_size] of ASCII_code; {characters of names}
+@!names:array [1..name_size] of ASCII_code; {characters of names}
 @!font_check_sum:array [0..max_fonts] of integer; {check sums}
 @!font_scaled_size:array [0..max_fonts] of integer; {scale factors}
 @!font_design_size:array [0..max_fonts] of integer; {design sizes}
@@ -1048,13 +1051,15 @@ first unused position of the |width| array.
 @!width_ptr:0..max_widths; {the number of known character widths}
 
 @ @<Set init...@>=
-nf:=0; width_ptr:=0; font_name[0]:=0; font_space[0]:=0;
+nf:=0; width_ptr:=0; font_name[0]:=1;@/
+font_space[invalid_font]:=0; {for |out_space| and |out_vmove|}
+font_bc[invalid_font]:=1; font_ec[invalid_font]:=0;
 
 @ It is, of course, a simple matter to print the name of a given font.
 
 @p procedure print_font(@!f:integer); {|f| is an internal font number}
 var k:0..name_size; {index into |names|}
-begin if f=nf then print('UNDEFINED!')
+begin if f=invalid_font then print('UNDEFINED!')
 @.UNDEFINED@>
 else  begin for k:=font_name[f] to font_name[f+1]-1 do
     print(xchr[names[k]]);
@@ -1234,7 +1239,8 @@ if wp>0 then for k:=width_ptr to wp-1 do
 @* Optional modes of output.
 \.{DVItype} will print different quantities of information based on some
 options that the user must specify: The |out_mode| level is set to one of
-four values (|errors_only|, |terse|, |verbose|, |the_works|), giving
+five values (|errors_only|, |terse|, |mnemonics_only|,
+|verbose|, |the_works|), giving
 different degrees of output; and the typeout can be confined to a
 restricted subset of the pages by specifying the desired starting page and
 the maximum number of pages. Furthermore there is an option to specify the
@@ -1553,7 +1559,8 @@ end
 c:=signed_quad; font_check_sum[nf]:=c;@/
 q:=signed_quad; font_scaled_size[nf]:=q;@/
 d:=signed_quad; font_design_size[nf]:=d;@/
-m:=round((1000.0*conv*q)/(true_conv*d));
+if (q<=0) or (d<=0) then m:=1000
+else m:=round((1000.0*conv*q)/(true_conv*d));
 p:=get_byte; n:=get_byte;
 if font_name[nf]+n+p>name_size then
   abort('DVItype capacity exceeded (name size=',name_size:1,')!');
@@ -1565,7 +1572,7 @@ else print('Font ',e:1,': ');
 if n+p=0 then print('null font name!')
 @.null font name@>
 else for k:=font_name[nf] to font_name[nf+1]-1 do names[k]:=get_byte;
-incr(nf); print_font(nf-1); decr(nf);
+print_font(nf);
 if not showing then if m<>1000 then print(' scaled ',m:1)
 @.scaled@>
 
@@ -1609,7 +1616,6 @@ if d<>100 then
   end;
 @.this font is magnified@>
 incr(nf); {now the new font is officially present}
-font_space[nf]:=0; {for |out_space| and |out_vmove|}
 end
 
 @ If |p=0|, i.e., if no font directory has been specified, \.{DVItype}
@@ -1818,7 +1824,7 @@ var o:eight_bits; {operation code of the current command}
 @!p,@!q:integer; {parameters of the current command}
 @!a:integer; {byte number of the current command}
 @!hhh:integer; {|h|, rounded to the nearest pixel}
-begin cur_font:=nf; {set current font undefined}
+begin cur_font:=invalid_font; {set current font undefined}
 s:=0; h:=0; v:=0; w:=0; x:=0; y:=0; z:=0; hh:=0; vv:=0;
   {initialize the state variables}
 while true do @<Translate the next command in the \.{DVI} file;
@@ -2028,7 +2034,8 @@ if q=invalid_width then
   begin error('character ',p:1,' invalid in font ');
 @.character $c$ invalid...@>
   print_font(cur_font);
-  if cur_font<>nf then print('!'); {font |nf| has `\.!' in its name}
+  if cur_font<>invalid_font then
+     print('!'); {the invalid font has `\.!' in its name}
   end;
 if o>=put1 then goto done;
 if q=invalid_width then q:=0
@@ -2135,6 +2142,10 @@ goto done
 @ @<Finish a command that changes the current font...@>=
 font_num[nf]:=p; cur_font:=0;
 while font_num[cur_font]<>p do incr(cur_font);
+if cur_font=nf then
+  begin cur_font:=invalid_font;
+  error('invalid font selection: font ',p:1,' was never defined!');
+  end;
 if showing then if out_mode>mnemonics_only then
   begin print(' current font is '); print_font(cur_font);
   end;

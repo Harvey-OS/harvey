@@ -1,3 +1,0 @@
-(mapfont d 2 (fontname cmr10))
-
-(character d 65 (map (setchar c B)))

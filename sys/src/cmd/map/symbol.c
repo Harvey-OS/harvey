@@ -4,19 +4,20 @@
 
 enum flag { POINT,ENDSEG,ENDSYM };
 struct symb {
-	float x, y;
+	double x, y;
 	char name[10+1];
 	enum flag flag;
 } *symbol[NSYMBOL];
 
 static int nsymbol;
-static float halfrange = 1;
+static double halfrange = 1;
 extern int halfwidth;
+extern int vflag;
 
 static int	getrange(FILE *);
 static int	getsymbol(FILE *, int);
 static void	setrot(struct place *, double, int);
-static void	dorot(struct symb *, float *, float *);
+static void	dorot(struct symb *, double *, double *);
 
 
 void
@@ -33,7 +34,7 @@ getsyms(char *file)
 static int
 getsymbol(FILE *sf, int n)
 {
-	float x,y;
+	double x,y;
 	char s[2];
 	int i;
 	struct symb *sp;
@@ -76,7 +77,7 @@ getsymbol(FILE *sf, int n)
 		default:
 			ungetc(s[0],sf);
 		case 'v':
-			if(fscanf(sf,"%f %f",&x,&y)!=2)
+			if(fscanf(sf,"%lf %lf",&x,&y)!=2)
 				break;
 			sp->x = x*halfwidth/halfrange;
 			sp->y = y*halfwidth/halfrange;
@@ -99,8 +100,8 @@ getsymbol(FILE *sf, int n)
 static int
 getrange(FILE *sf)
 {
-	float x,y,xmin,ymin;
-	if(fscanf(sf,"%*s %f %f %f %f",
+	double x,y,xmin,ymin;
+	if(fscanf(sf,"%*s %lf %lf %lf %lf",
 		&xmin,&ymin,&x,&y)!=4)
 		return 0;
 	x -= xmin;
@@ -117,7 +118,7 @@ putsym(struct place *p, char *name, double s, int r)
 {
 	int x,y,n;
 	struct symb *sp;
-	float dx,dy;
+	double dx,dy;
 	int conn = 0;
 	for(n=0; symbol[n]; n++)
 		if(strcmp(name,symbol[n]->name)==0)
@@ -125,7 +126,7 @@ putsym(struct place *p, char *name, double s, int r)
 	sp = symbol[n];
 	if(sp==0)
 		return 0;
-	if(!doproj(p,&x,&y))
+	if(doproj(p,&x,&y)*vflag <= 0)
 		return 1;
 	setrot(p,s,r);
 	for(;;) {
@@ -145,12 +146,12 @@ putsym(struct place *p, char *name, double s, int r)
 	return 1;
 }
 
-static float rot[2][2];
+static double rot[2][2];
 
 static void
 setrot(struct place *p, double s, int r)
 {
-	float x0,y0,x1,y1;
+	double x0,y0,x1,y1;
 	struct place up;
 	up = *p;
 	up.nlat.l += .5*RAD;
@@ -181,7 +182,7 @@ unit:
 }
 
 static void
-dorot(struct symb *sp, float *px, float *py)
+dorot(struct symb *sp, double *px, double *py)
 {
 	*px = rot[0][0]*sp->x + rot[0][1]*sp->y;
 	*py = rot[1][0]*sp->x + rot[1][1]*sp->y;

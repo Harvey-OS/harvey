@@ -1,0 +1,138 @@
+.TH MOTHRA 1
+.SH NAME
+mothra \- retrieve World-Wide Web files
+.SH SYNOPSIS
+.B mothra
+[
+.I url
+]
+.SH DESCRIPTION
+.I Mothra
+retrieves and displays files from the World-Wide Web,
+by name or through hypertext links.
+Web names, called URLs, have a peculiar syntax:
+.IP
+.EX
+http://netlib.att.com/netlib/1127/www/1127.html
+http://akebono.stanford.edu:80/yahoo/
+http://www.teleport.com/~crowell/
+file:/sys/lib/mothra/help.html
+file:html2.elements.html#ADDRESS
+ftp://ftp.gmd.de/music/scores/harrington/Harrington.readme
+gopher://gopher.bev.net/11/BevBus/King.Video
+.EE
+.PP
+The part up to the first colon gives the protocol for
+retrieving the file.
+.BR http: ,
+Hyper-Text Transfer
+Protocol, is the usual way of accessing web files.
+.B file:
+names a file in the local file system.
+.B ftp:
+and
+.B gopher:
+are standard Internet services.
+.PD
+.PP
+.B //
+begins the Internet address of the server where the file resides.
+The address may contain a colon and a TCP port
+number, which overrides the 
+default port number for the service.  Next comes a
+file name.  Finally, the file name may be followed by
+.B #
+and a string giving a label within the file where the
+display should begin.
+.PP
+.I Mothra
+starts with the
+.I url
+given on the command line, defaulting to
+the environment variable
+.BR $url ,
+and finally to
+.BR file:/sys/lib/mothra/start.html .
+.PP
+The display contains the last message from
+.I mothra,
+a box where typed commands appear,
+a scrollable list of previously visited files,
+the title and URL of the current file,
+and the scrollable text of the current file.
+.PP
+Button 1 selects and displays a file, either from the list
+of previously visited pages or from a link (indicated
+by underlined text or a boxed image) in the
+current file.  Button 2 shows the URL of a file,
+but does not retrieve or display it.
+Button 3 pops up a menu of commands:
+.TF save\ back
+.TP
+.B save back
+Place a link to the current file in a `back list'
+for future reference.
+.TP
+.B get back
+Retrieve and display the back list.
+.TP
+.B fix cmap
+Adjust the display's color map so that images will
+have correct colors.
+.TP
+.B exit
+Ask for confirmation and quit.
+.PD
+.PP
+The typed commands are:
+.TF save\ back
+.TP
+.BI g " url
+Get the page with the given URL.
+.TP
+.BI s " file
+Save the current file in the given
+.I file.
+.TP
+.B q
+Quit.
+.TP
+.B ?
+.TP
+.B h
+Get help.
+.PD
+.PP
+When
+.I mothra
+retrieves a file that is not an
+HTML document (for example a GIF or JPEG
+image), it will start up an appropriate viewer, for example
+.B fb/9v
+(see
+.IR 9v (9.1))
+for image files.
+.SH FILES
+.B /sys/lib/mothra/*
+.br
+.B $home/lib/mothra/back.html 
+the back list
+.br
+.B $home/lib/mothra/mothra.url
+log of visited URLs
+.br
+.B $home/lib/mothra/mothra.err
+log of error messages, including HTML syntax errors
+.SH SOURCE
+.B /sys/src/cmd/mothra
+.SH BUGS
+.B ftp:
+URLs are not supported.
+.br
+Files are saved in the form received,
+not in the form suggested by the name in an
+.B s
+command.
+.br
+.I Mothra
+is distributed in a preliminary state; it has more than its share of bugs.

@@ -1,0 +1,17 @@
+char *menu1[]={
+	"abort",
+	"retry",
+	"fail",
+	0
+};
+void mbar(void){
+	Panel *m1, *m2, *m3;
+	m1=plmenu(0, 0, menu1, PACKN|FILLX, 0);
+	m2=plmenu(0, 0, menu2, PACKN|FILLX, 0);
+	m3=plmenu(0, 0, menu3, PACKN|FILLX, 0);
+	root=plframe(0, EXPAND);
+	plmenubar(root, PACKN|FILLX, PACKW|EXPAND,
+		"panic", m1, "edit", m2, "file", m3, 0);
+	pledit(root, EXPAND, Pt(0,0),
+		L"How now, brown cow?", 19, 0);
+}

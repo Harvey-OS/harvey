@@ -210,7 +210,7 @@ cmdloop(void)
 		}
 		ocurfile = curfile;
 		loaded = curfile && curfile->state!=Unread;
-		if(cmdexec(curfile, cmdp)==0)
+		if(cmdexec(curfile, cmdp) == 0)
 			break;
 		freecmd();
 		cmdupdate();

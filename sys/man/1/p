@@ -1,6 +1,6 @@
 .TH P 1
 .SH NAME
-p \(mi paginate
+p \- paginate
 .SH SYNOPSIS
 .B p
 [
@@ -15,10 +15,9 @@ copies its standard input, or the named files if given,
 to its standard output,
 stopping at the end of every 22nd line, and between files,
 to wait for a newline from the user.
-The page size may be set by
-saying (for example)
-.IP
-.L p -60
+The option sets the
+.I number
+of lines on a page.
 .PP
 While waiting for a newline,
 .I p
@@ -30,3 +29,5 @@ Pass the rest of the line to the shell as a command.
 .B q
 Quit.
 .PP
+.SH SOURCE
+.B /sys/src/cmd/p.c

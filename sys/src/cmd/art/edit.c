@@ -16,62 +16,62 @@ void Oedit(void){
 	reheat();		/* does a redraw! */
 	s->flags&=!INVIS;
 	(*s->fn->edit)();
-	draw(s, scoffs, DARK, S|D);
+	draw(s, scoffs, dark, S|D);
 	if(heatnew) heat(s);
 	activate(s);
 	argument();
 }
 void movep(Item *ip, int i, Dpoint p){
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 	ip->p[i]=p;
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 }
 void mover(Item *ip, int i, Dpoint p){
 	Flt r;
 	r=dist(p, ip->p[0]);
 	if(r!=ip->r){
-		draw(ip, scoffs, DARK, S^D);
+		draw(ip, scoffs, dark, S^D);
 		ip->r=r;
-		draw(ip, scoffs, DARK, S^D);
+		draw(ip, scoffs, dark, S^D);
 	}
 }
 void movex0(Item *ip, int i, Dpoint p){
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 	ip->p[0].x=p.x;
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 }
 void movey0(Item *ip, int i, Dpoint p){
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 	ip->p[0].y=p.y;
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 }
 void movex1(Item *ip, int i, Dpoint p){
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 	ip->p[1].x=p.x;
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 }
 void movey1(Item *ip, int i, Dpoint p){
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 	ip->p[1].y=p.y;
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 }
 void movex0y1(Item *ip, int i, Dpoint p){
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 	ip->p[0].x=p.x;
 	ip->p[1].y=p.y;
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 }
 void movex1y0(Item *ip, int i, Dpoint p){
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 	ip->p[1].x=p.x;
 	ip->p[0].y=p.y;
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 }
 void moveall(Item *ip, int i, Dpoint p){
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 	(*ip->fn->translate)(ip, dsub(p, svpoint));
 	svpoint=p;
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 }
 Cursor dxx = {
 0,0,
@@ -129,7 +129,7 @@ void Oline(void){
 	ip=addline(scene, arg[0], arg[0]);
 	hotpoint(arg[0]);
 	track(movep, 1, ip);
-	draw(ip, scoffs, DARK, S|D);
+	draw(ip, scoffs, dark, S|D);
 	if(heatnew) heat(ip);
 	activate(ip);
 	argument();
@@ -144,7 +144,7 @@ void Ocircle(void){
 	ip=addcircle(scene, arg[0], 0.);
 	hotpoint(arg[0]);
 	track(mover, 0, ip);
-	draw(ip, scoffs, DARK, S|D);
+	draw(ip, scoffs, dark, S|D);
 	if(heatnew) heat(ip);
 	activate(ip);
 	argument();
@@ -161,12 +161,12 @@ void Ospline(void){
 	}
 	if(s && (s->type==SPLINE /*|| s->type==LINE*/)){
 		if(!use1("extend a spline")) return;
-		draw(s, scoffs, DARK, S^D);
+		draw(s, scoffs, dark, S^D);
 		setselection(0);
 		n=morespline(s, arg[0]);
 		for(i=0;i!=s->np;i++) if(i!=n) hotpoint(s->p[i]);
 		track(movespline, n, s);
-		draw(s, scoffs, DARK, S|D);
+		draw(s, scoffs, dark, S|D);
 		if(heatnew) heat(s);
 		activate(s);
 		argument();
@@ -176,16 +176,16 @@ void Ospline(void){
 	ip=addspline(scene, arg[0], arg[0]);
 	hotpoint(arg[0]);
 	track(movep, 1, ip);
-	draw(ip, scoffs, DARK, S|D);
+	draw(ip, scoffs, dark, S|D);
 	if(heatnew) heat(ip);
 	activate(ip);
 	argument();
 }
 void sweepbox(Item *ip, int i, Dpoint p){
 	Item *lp;
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 	ip->p[1]=p;
-	draw(ip, scoffs, DARK, S^D);
+	draw(ip, scoffs, dark, S^D);
 }
 void Obox(void){
 	Item *ip;
@@ -194,7 +194,7 @@ void Obox(void){
 	hotline(curpt, dadd(curpt, Dpt(0.,1.)), L);
 	ip=addbox(scene, curpt, curpt);
 	track(sweepbox, 0, ip);
-	draw(ip, scoffs, DARK, S|D);
+	draw(ip, scoffs, dark, S|D);
 	if(heatnew) heat(ip);
 	activate(ip);
 	argument();
@@ -211,7 +211,7 @@ void Oarc(void){
 	hotpoint(arg[0]);
 	hotpoint(arg[1]);
 	track(movep, 0, ip);
-	draw(ip, scoffs, DARK, S|D);
+	draw(ip, scoffs, dark, S|D);
 	if(heatnew) heat(ip);
 	activate(ip);
 	argument();
@@ -241,7 +241,7 @@ void Ogroup(void){
 	setselection(0);
 	delete(box);
 	group[grpnum]=addhead();
-	draw(scene, scoffs, DARK, S^D);	/* nonce */
+	draw(scene, scoffs, dark, S^D);	/* nonce */
 	for(ip=scene->next;ip->type!=HEAD;ip=next){
 		next=ip->next;
 		if(ip->flags&BOXED){
@@ -255,7 +255,7 @@ void Ogroup(void){
 	}
 	ip=addgroup(scene, grpnum, Dpt(0., 0.));
 	if(heatnew) heat(ip);
-	draw(scene, scoffs, DARK, S^D);	/* nonce */
+	draw(scene, scoffs, dark, S^D);	/* nonce */
 	setselection(ip);
 	argument();
 	msg(cmdname);
@@ -279,7 +279,7 @@ void Ocopy(void){
 	cool(s);
 	reheat();
 	track(moveall, 0, s);
-	draw(s, scoffs, DARK, S|D);
+	draw(s, scoffs, dark, S|D);
 	if(heatnew) heat(s);
 	activate(s);
 	argument();

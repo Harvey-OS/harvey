@@ -86,9 +86,7 @@ and
 select the initial depth of the icons. 
 .B -2
 is default.
+.SH SOURCE
+.B /sys/src/cmd/mugs.c
 .SH SEE ALSO
 .IR picfile (9.6)
-.SH BUGS
-Preservation of the selected icon through an
-.B out
-operation leads to strained ranges.

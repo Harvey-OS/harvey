@@ -1,0 +1,943 @@
+% \iffalse meta-comment
+%
+% Copyright 1994 the LaTeX3 project and the individual authors.
+% All rights reserved. For further copyright information see the file
+% legal.txt, and any other copyright indicated in this file.
+% 
+% This file is part of the LaTeX2e system.
+% ----------------------------------------
+% 
+%  This system is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see bugs.txt.
+% 
+% Please do not request updates from us directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{170}
+%
+%\iffalse        This is a META comment
+%
+% File `cmfonts.fdd'.
+% Copyright (C) 1989-1994 Frank Mittelbach and Rainer Sch\"opf,
+% all rights reserved.
+%
+%<T1cmr,    >\ProvidesFile{T1cmr.fd}
+%<T1cmfib,  >\ProvidesFile{T1cmfib.fd}
+%<T1cmfr,   >\ProvidesFile{T1cmfr.fd}
+%<T1cmss,   >\ProvidesFile{T1cmss.fd}
+%<T1cmtt,   >\ProvidesFile{T1cmtt.fd}
+%<T1cmdh,   >\ProvidesFile{T1cmdh.fd}
+%<T1ccr,    >\ProvidesFile{T1ccr.fd}
+%<OT1cmr,   >\ProvidesFile{OT1cmr.fd}
+%<Ucmr,     >\ProvidesFile{Ucmr.fd}
+%<OT1cmss,  >\ProvidesFile{OT1cmss.fd}
+%<Ucmss,    >\ProvidesFile{Ucmss.fd}
+%<OT1cmtt,  >\ProvidesFile{OT1cmtt.fd}
+%<Ucmtt,    >\ProvidesFile{Ucmtt.fd}
+%<OT1cmfr,  >\ProvidesFile{OT1cmfr.fd}
+%<OT1cmdh,  >\ProvidesFile{OT1cmdh.fd}
+%<OT1cmfib, >\ProvidesFile{OT1cmfib.fd}
+%<OMLcmm,   >\ProvidesFile{OMLcmm.fd}
+%<OMLcmr,   >\ProvidesFile{OMLcmr.fd}
+%<OMScmsy,  >\ProvidesFile{OMScmsy.fd}
+%<OMScmr,   >\ProvidesFile{OMScmr.fd}
+%<OMXcmex,  >\ProvidesFile{OMXcmex.fd}
+%<OT1ccr,   >\ProvidesFile{OT1ccr.fd}
+%<OMLccm,   >\ProvidesFile{OMLccm.fd}
+%<OT2cmr,   >\ProvidesFile{OT2cmr.fd}
+%<OT2cmss,  >\ProvidesFile{OT2cmss.fd}
+%<*driver,  >
+             \ProvidesFile{cmfonts.drv}
+%</driver,  >
+        [1994/12/02 v2.3e Standard LaTeX font definitions]
+%
+%<*driver>
+\documentclass{ltxdoc}
+\GetFileInfo{cmfonts.drv}
+\providecommand\dst{\expandafter{\normalfont\scshape docstrip}}
+\title{The file \texttt{cmfonts.fdd} for use with
+      \LaTeXe.\thanks{This file has version
+           number \fileversion, dated \filedate.}}
+\date{\filedate}
+\author{Frank Mittelbach \and Rainer Sch\"opf}
+\begin{document}
+\maketitle
+ \DocInput{cmfonts.fdd}
+\end{document}
+%</driver>
+%
+%\fi
+%
+%
+% \changes{v2.3d}{1994/11/02}{Added more font substitutions for
+%    \cs{pounds}.} 
+% \changes{v2.3d}{1994/10/30}{Added OMLcmr.fd and OMScmr.fd.}
+% \changes{v2.3b}{1994/05/12}{Added \cs{ProvidesFile} commands}
+% \changes{v2.3a}{1994/05/03}{Included definitions for
+%                             AMS-supplied cm fonts.}
+% \changes{v2.2f}{1994/02/07}{Added missing size 10.95 for
+%             cmr/b/n and cmr/m/ui.}
+% \changes{v2.2e}{1994/02/02}{Corrected encoding scheme U.}
+% \changes{v2.2d}{1994/01/27}{Replaced most ssub with sub}
+% \changes{v2.2a}{1993/12/13}{Removed \cmd{CodelineIndex} from the
+%                           driver code.}
+%
+% \changes{v2.1a}{1993/10/17}{Shape u renamed to ui.}
+% \changes{v2.1a}{1993/10/17}{File renamed to cmfonts.fdd.}
+%
+%
+%
+% \section{Introduction}
+%
+% This file contains the external font information needed to load
+% the Computer Modern fonts designed by Don Knuth and distributed with
+% \TeX.
+%
+% From this file all {\ttfamily.fd} files (font definition files) for
+% the Computer Modern fonts, both with old encoding (|OT1|) and Cork
+% encoding (|T1|) are generated. The Cork encoded fonts are known
+% under the name DC-fonts.
+%
+% \section{Customization}
+%
+% If you plan to install the AMS font package or if you have it
+% already installed, please note that within this package there are
+% additional sizes of the Computer Modern symbol and math italic
+% fonts.  You should therefore use the |.fd| files from AMS package in
+% cases where they overlap with this basic set. These are the files:
+% \begin{quote}
+%   |OT1cmsy.fd| and |OT1cmm.fd|
+% \end{quote}
+%
+% By default the font definition files are generated conservatively,
+% which means that only the basic font sizes coming with a normal
+% \LaTeX{} installation are included into the |\DeclareFontShape|
+% commands.  However, on many installations, people have added missing
+% sizes by scaling up or down available Metafont sources. For example,
+% the Computer Modern Roman italic font |cmti| is only available in
+% the sizes 7, 8, 9, and 10pt. Nevertheless one could generate it for
+% the sizes 5, and 6pt by using the source from |cmti7| scaled
+% downwards. The enlarged font set can be generated if the \dst{}
+% directive |ori| is not used. When you generate the |.fd| files using
+% the installation script |cmfonts.ins| you will be asked if you want
+% to get the enlarged font set and afterwards the installation script
+% runs through statements like
+% \begin{verbatim}
+%   \generateFile{OT1cmr.fd}{t}{\from{cmfonts.fdd}{OT1cmr}}
+%\end{verbatim}
+% rather than
+% \begin{verbatim}
+%   \generateFile{OT1cmr.fd}{t}{\from{cmfonts.fdd}{OT1cmr,ori}}
+%\end{verbatim}
+%
+% \StopEventually{}
+%
+% \section{The \texttt{docstrip} modules}
+%
+% The following modules are used to direct \texttt{docstrip} in
+% generating external files:
+% \begin{center}
+% \begin{tabular}{ll}
+%   driver & produce a documentation driver file \\
+%   ori    & make conservative |.fd| files\\
+%   fd     & produce a font definition file \\[2pt]
+%   OMLccm   & make Concrete Roman Math italic\\
+%   OMLcmm   & make Computer Modern Math italic\\
+%   OMLcmr   & make Computer Modern Roman (math italic encoding)\\
+%   OMScmsy  & make Computer Modern Symbols \\
+%   OMScmr   & make Computer Modern Roman (math symbol encoding)\\
+%   OMXcmex  & make Computer Modern large Symbols\\
+%   OT1ccr   & make Concrete Roman (old encoding) \\
+%   OT1cmdh  & make Computer Modern Dunhill (old encoding)\\
+%   OT1cmfib & make Computer Modern Fibonacci (old encoding)\\
+%   OT1cmfr  & make Computer Modern Funny (old encoding)\\
+%   OT1cmr   & make Computer Modern Roman (old encoding)\\
+%   OT1cmss  & make Computer Modern Sans (old encoding)\\
+%   OT1cmtt  & make Computer Modern Typewriter (old encoding)\\
+%   OT2cmr   & make Computer Modern Roman (cyrillic encoding)\\
+%   OT2cmss  & make Computer Modern Sans (cyrillic encoding)\\
+%   T1ccr    & make Concrete Roman (Cork encoding)\\
+%   T1cmdh   & make Computer Modern Dunhill (Cork encoding)\\
+%   T1cmfib  & make Computer Modern Fibonacci (Cork encoding)\\
+%   T1cmfr   & make Computer Modern Funny (Cork encoding)\\
+%   T1cmr    & make Computer Modern Roman (Cork encoding)\\
+%   T1cmss   & make Computer Modern Sans (Cork encoding)\\
+%   T1cmtt   & make Computer Modern Typewriter (Cork encoding)\\
+%   Ucmr    & make Computer Modern Roman (unknown encoding)\\
+%   Ucmss   & make Computer Modern Sans (unknown encoding)\\
+%   Ucmtt   & make Computer Modern Typewriter (unknown encoding)\\
+% \end{tabular}
+% \end{center}
+% A typical \texttt{docstrip} command file would then have entries like:
+% \begin{verbatim}
+%\generateFile{OT1cmr.fd}{t}{\from{cmfonts.fdd}{fd,OT1cmr}}
+%\end{verbatim}
+%
+%
+%  \section{The font definition files}
+%
+%    As always we begin by identifying the latest version of the files
+%    in the \textsf{log} file. The explicit spaces are necessary in an
+%    |.fd| file and the |\string| guards against situations where |`|,
+%    |<| or |>| is active.
+% \changes{v2.2g}{1994/02/15}{Removed surplus `string}
+%
+%  \subsection{Fonts with Cork encoding (\texttt{T1})}
+%
+%    We start with the DC-fonts. These are Computer Modern fonts
+%    reimplemented by Norbert Schwarz. You can get them from \TeX{}
+%    archives and from \TeX{} organizations. We strongly recommend
+%    that you use them because they are encoded in the approved
+%    standard encoding for text fonts.
+%
+%  \subsubsection{The Computer Modern Roman}
+%
+%    This family is available in the shapes |n|, |sl|, |it|, |sc|, and
+%    |u|.
+%    \begin{macrocode}
+%<*T1cmr>
+\DeclareFontFamily{T1}{cmr}{}
+\DeclareFontShape{T1}{cmr}{m}{n}{%
+      <5> <6> <7> <8> <9> gen * dcr
+      <10> <10.95>dcr10
+      <12> <14.4>dcr12
+      <17.28> <20.74> <24.88>dcr17}{}
+\DeclareFontShape{T1}{cmr}{m}{sl}{
+      <5> <6> <7> <8>dcsl8
+      <9>dcsl9
+      <10> <10.95>dcsl10
+      <12> <14.4>dcsl12
+      <17.28> <20.74> <24.88>dcsl17
+      }{}
+\DeclareFontShape{T1}{cmr}{m}{it}{
+      <5> <6> dcti7
+      <7> <8> <9> gen * dcti
+      <10> <10.95>dcti10
+      <12> <14.4>dcti12
+      <17.28> <20.74> <24.88>dcti17
+      }{}
+\DeclareFontShape{T1}{cmr}{m}{sc}{
+      <5> <6> <7> <8> <9> <10> <10.95>dccsc10
+      <12> <14.4>dccsc12
+      <17.28> <20.74> <24.88>dccsc17
+      }{}
+\DeclareFontShape{T1}{cmr}{m}{ui}{
+      <5> <6> dcu7
+      <7> <8> <9> gen * dcu
+      <10> <10.95>dcu10
+      <12> <14.4>dcu12
+      <17.28> <20.74> <24.88>dcu17
+      }{}
+%    \end{macrocode}
+%    There is a bold `|b|' series, but unfortunately only the normal
+%    shape is available in this series.
+%    \begin{macrocode}
+%<+T1cmr>%%%%%%% bold series
+\DeclareFontShape{T1}{cmr}{b}{n}{
+      <5> <6> <7> <8> <9> gen * dcb
+      <10> <10.95>dcb10
+      <12> <14.4>dcb12
+      <17.28> <20.74> <24.88>dcb17
+      }{}
+%    \end{macrocode}
+%    Finally there is a bold extended series `|bx|' with the shapes
+%    |n|, |sl|, and |it|.
+%    \begin{macrocode}
+%<+T1cmr>%%%%%%%% bold extended series
+\DeclareFontShape{T1}{cmr}{bx}{n}{
+      <5> <6> <7> <8> <9> gen * dcbx
+      <10> <10.95>dcbx10
+      <12> <14.4> <17.28> <20.74> <24.88>dcbx12
+      }{}
+\DeclareFontShape{T1}{cmr}{bx}{sl}{
+      <5> <6> <7> <8> <9> gen * dcbxsl
+      <10> <10.95>dcbxsl10
+      <12> <14.4> <17.28> <20.74> <24.88>dcbxsl12
+      }{}
+\DeclareFontShape{T1}{cmr}{bx}{it}{
+      <5> <6> <7> <8> <9> <10> <10.95> dcbxti10
+      <12> <14.4> dcbxti12
+      <17.28> <20.74> <24.88> dcbxti17
+      }{}
+%</T1cmr>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Fibonacci}
+%
+%    This family was created by Don Knuth as an experiment, supplying
+%    only Fibonacci numbers to the parameters of the Metafont sources
+%    of the Computer Modern Meta family.
+%    \begin{macrocode}
+%<*T1cmfib>
+\DeclareFontFamily{T1}{cmfib}{}
+\DeclareFontShape{T1}{cmfib}{m}{n}{%
+      <8>  <9> <10> <12> gen * dcfib
+      }{}
+%</T1cmfib>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Funny (Roman)}
+%
+%    This family was created by Don Knuth as another experiment.
+%    \begin{macrocode}
+%<*T1cmfr>
+\DeclareFontFamily{T1}{cmfr}{}
+\DeclareFontShape{T1}{cmfr}{m}{n}{%
+      <10> dcff10
+    }{}
+\DeclareFontShape{T1}{cmfr}{m}{it}{%
+      <10> dcfi10
+    }{}
+%</T1cmfr>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Sans}
+%
+%    \begin{macrocode}
+%<*T1cmss>
+\DeclareFontFamily{T1}{cmss}{}
+\DeclareFontShape{T1}{cmss}{m}{n}{%
+      <5> <6> <7> <8>dcss8
+      <9>dcss9
+      <10> <10.95>dcss10
+      <12> <14.4>dcss12
+      <17.28> <20.74> <24.88>dcss17
+      }{}
+\DeclareFontShape{T1}{cmss}{m}{it}
+      {<->sub*cmss/m/sl}{}
+\DeclareFontShape{T1}{cmss}{m}{sl}{
+      <5> <6> <7> <8>dcssi8
+      <9>dcssi9
+      <10> <10.95>dcssi10
+      <12> <14.4>dcssi12
+      <17.28> <20.74> <24.88>dcssi17
+      }{}
+%    \end{macrocode}
+%    The next substitution is very questionable.
+%    \begin{macrocode}
+%<+T1cmss>%%%%%% Font/shape undefined, therefore substituted
+\DeclareFontShape{T1}{cmss}{m}{sc}
+       {<->sub*cmr/m/sc}{}
+%    \end{macrocode}
+%    The next font group is quite attractive for display.
+%    \begin{macrocode}
+%<+T1cmss>%%%%%%% semibold condensed series
+\DeclareFontShape{T1}{cmss}{sbc}{n}{
+      <5> <6> <7> <8> <9> <10> <10.95> <12> <14.4> <17.28>
+      <20.74> <24.88> dcssdc10
+       }{}
+%    \end{macrocode}
+%    And here the ones usually in headings.
+%    \begin{macrocode}
+%<+T1cmss>%%%%%%%% bold extended series
+\DeclareFontShape{T1}{cmss}{bx}{n}{
+      <5> <6> <7> <8> <9> <10> <10.95> <12> <14.4> <17.28>
+      <20.74> <24.88> dcssbx10
+      }{}
+%</T1cmss>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Typewriter}
+%
+%    Perhaps the best font in the Computer Modern suite.
+%    \begin{macrocode}
+%<*T1cmtt>
+\DeclareFontFamily{T1}{cmtt}{\hyphenchar \font\m@ne}
+\DeclareFontShape{T1}{cmtt}{m}{n}{
+      <8> <9> gen * dctt
+      <10> <10.95>dctt10
+      <12> <14.4> <17.28> <20.74> <24.88>dctt12
+      }{}
+\DeclareFontShape{T1}{cmtt}{m}{it}{
+      <8> <9> gen  * dcitt
+      <10> <10.95>dcitt10
+      <12> <14.4>dcitt12
+      <17.28> <20.74> <24.88>dcitt17
+      }{}
+\DeclareFontShape{T1}{cmtt}{m}{sl}{
+      <8> <9> gen * dcsltt
+      <10> <10.95>dcsltt10
+      <12> <14.4> <17.28> <20.74> <24.88>dcsltt12
+      }{}
+\DeclareFontShape{T1}{cmtt}{m}{sc}{
+      <10> <10.95>dctcsc10
+      <12> <14.4>dctcsc12
+      <17.28> <20.74> <24.88>dctcsc17
+      }{}
+%</T1cmtt>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Dunhill}
+%
+%   The smoker's choice? Within the Cork encoding this font comes with
+%   a full size range by default but only with one series.
+%    \begin{macrocode}
+%<*T1cmdh>
+\DeclareFontFamily{T1}{cmdh}{}
+\DeclareFontShape{T1}{cmdh}{m}{n}{
+      <5> <6> <7> <8> <9> gen * dcdunh
+      <10> <10.95>dcdunh10
+      <12> <14.4>dcdunh12
+      <17.28> <20.74> <24.88>dcdunh17}{}
+%</T1cmdh>
+%    \end{macrocode}
+%
+% \subsubsection{Concrete Roman}
+%
+%   A font near to Computer Modern Typewriter designed to go with the
+%   Euler Math fonts.
+%    \begin{macrocode}
+%<*T1ccr>
+\DeclareFontFamily{T1}{ccr}{}{}
+\DeclareFontShape{T1}{ccr}{m}{n}{%
+   <5> <6> <7> <8> <9> <10> <12> gen * dccr
+   <10.95> dccr11 <14.4> dccr14
+   <17.28> <20.74> <24.88> dccr17}{}
+\DeclareFontShape{T1}{ccr}{m}{it}{
+   <10> <10.95> <12>dcti10}{}
+\DeclareFontShape{T1}{ccr}{m}{sc}{
+   <10> <10.95>  <12> dccsc10 }{}
+%    \end{macrocode}
+%    Note the condensed slanted variant.
+%    \begin{macrocode}
+\DeclareFontShape{T1}{ccr}{c}{sl}{<9>dcslc9}{}
+%    \end{macrocode}
+%    Finally a few substitution fonts for combinations not available.
+%    As suggested by Leslie Lamport and several others the
+%    substitution should warn by default. We control this my a \dst{}
+%    module so that one can modify this behavior from the outside.
+% \changes{v2.0f}{1993/09/24}{Added substitution fonts}
+%    \begin{macrocode}
+\DeclareFontShape{T1}{ccr}{bx}{sl}{
+%<-nowarn>     <->sub * cmr/bx/it
+%<+nowarn>     <->ssub * cmr/bx/it
+}{}
+\DeclareFontShape{T1}{ccr}{bx}{n}{
+%<-nowarn>     <->sub * cmr/bx/n
+%<+nowarn>     <->ssub * cmr/bx/n
+}{}
+\DeclareFontShape{T1}{ccr}{bx}{it}{
+%<-nowarn>     <->sub * cmr/bx/it
+%<+nowarn>     <->ssub * cmr/bx/it
+}{}
+%</T1ccr>
+%    \end{macrocode}
+%
+%  \subsection{Fonts with the old \TeX{} text encoding (\texttt{OT1})}
+%
+%    Note that in contrast to the Cork encoding, which is fully
+%    defined, the old \TeX{} text encoding isn't implemented consistent
+%    within all fonts. Most noticeably is that a dollar sign (\$) in
+%    some fonts is replaced by a pound symbol (\pounds) in others,
+%    which produced quite a number of bug fixes in the NFSS1. Also the
+%    typewriter fonts contain a few different characters which are not
+%    present in other fonts.
+%
+%    If one would use the philosophy of NFSS2 consequently all these
+%    would therefore be different encodings and font mixing would
+%    therefore be nearly impossible with older fonts. Therefore such
+%    encodings are considered the same but one should be remember that
+%    in some situations this may cause problems.
+%
+%    In other words, use |T1| encoding whenever possible, the |OT..|
+%    encodings will be removed in some future release.
+%
+% \subsubsection{Computer Modern Roman (\texttt{OT1})}
+%
+%  Beside the |OT1| encoding we also define the same family as |U|
+%  encoded which is used for accepting old sources with stuff like
+%  |\newmathalphabet| in it.
+%    \begin{macrocode}
+%<*OT1cmr,Ucmr>
+%<+OT1cmr>\DeclareFontFamily{OT1}{cmr}{}
+%<+Ucmr>\DeclareFontFamily{U}{cmr}{}
+%<+OT1cmr>\DeclareFontShape{OT1}{cmr}{m}{n}
+%<+Ucmr>\DeclareFontShape{U}{cmr}{m}{n}
+   {  <5> <6> <7> <8> <9> <10> <12> gen * cmr
+      <10.95> cmr10
+      <14.4>  cmr12
+      <17.28><20.74><24.88>cmr17}{}
+%<+OT1cmr>\DeclareFontShape{OT1}{cmr}{m}{sl}
+%<+Ucmr>\DeclareFontShape{U}{cmr}{m}{sl}
+    {
+%<+ori>      <5-8>sub*cmr/m/n%
+%<-ori>      <5><6><7>cmsl8%
+      <8> <9> gen * cmsl
+      <10><10.95>cmsl10%
+      <12><14.4><17.28><20.74><24.88>cmsl12%
+      }{}
+%<+OT1cmr>\DeclareFontShape{OT1}{cmr}{m}{it}
+%<+Ucmr>\DeclareFontShape{U}{cmr}{m}{it}
+    {
+%<+ori>      <5-7>sub*cmr/m/n%
+%<+ori>      <7>cmti7%
+%<-ori>      <5><6><7>cmti7%
+      <8>cmti8%
+      <9>cmti9%
+      <10><10.95>cmti10%
+      <12><14.4><17.28><20.74><24.88>cmti12%
+      }{}
+%<+OT1cmr>\DeclareFontShape{OT1}{cmr}{m}{sc}
+%<+Ucmr>\DeclareFontShape{U}{cmr}{m}{sc}
+    {
+%<+ori>      <5-8>sub * cmr/m/n
+%<+ori>      <8><9><10><10.95><12>
+%<+ori>      <14.4><17.28><20.74><24.88> cmcsc10
+%<-ori>      <5><6><7><8><9><10><10.95><12>
+%<-ori>      <14.4><17.28><20.74><24.88> cmcsc10
+      }{}
+%    \end{macrocode}
+%    Here we try to cure the famous \$ $\to$ \pounds{} bug:
+% \changes{v2.2c}{1994/01/18}{Corrected forgotten renaming of font
+%            shape u to ui in substitution.}
+%    \begin{macrocode}
+%<+OT1cmr,Ucmr>% Warning: please note that the upright shape below is
+%<+OT1cmr,Ucmr>%          used for the \pounds symbol of LaTeX. So this
+%<+OT1cmr,Ucmr>%          font definition shouldn't be removed.
+%<+OT1cmr,Ucmr>%
+%<+ori>%          If cmu below 10pt is not available we substitute
+%<+ori>%          cmti as far as possible (sizes 7, 8, 9). This is
+%<+ori>%          done because cmu is used mainly for producing the
+%<+ori>%          the \pound symbol and it is better to get a slanted
+%<+ori>%          (or bigger) pound then to get a $ sign in such
+%<+ori>%          situations.
+%<+OT1cmr>\DeclareFontShape{OT1}{cmr}{m}{ui}
+%<+Ucmr>\DeclareFontShape{U}{cmr}{m}{ui}
+   {
+%<+ori>      <7> subf *cmti7%
+%<+ori>      <8> subf *cmti8%
+%<+ori>      <9> subf *cmti9%
+%<+ori>      <10><10.95><12><14.4><17.28><20.74><24.88>cmu10%
+%<-ori>      <5><6><7><8><9><10><10.95><12>%
+%<-ori>      <14.4><17.28><20.74><24.88>cmu10%
+      }{}
+%<+OT1cmr,Ucmr>%%%%%%% bold series
+%<+OT1cmr>\DeclareFontShape{OT1}{cmr}{b}{n}
+%<+Ucmr>\DeclareFontShape{U}{cmr}{b}{n}
+     {
+%<+ori>      <-10> sub * cmr/bx/n
+%<+ori>      <10><10.95><12><14.4><17.28><20.74><24.88> cmb10
+%<-ori>      <5><6><7><8><9><10><10.95><12>
+%<-ori>      <14.4><17.28><20.74><24.88> cmb10
+      }{}
+%<+OT1cmr,Ucmr>%%%%%%%% bold extended series
+%<+OT1cmr>\DeclareFontShape{OT1}{cmr}{bx}{n}
+%<+Ucmr>\DeclareFontShape{U}{cmr}{bx}{n}
+   {
+      <5> <6> <7> <8> <9> gen * cmbx
+      <10><10.95> cmbx10
+      <12><14.4><17.28><20.74><24.88>cmbx12
+      }{}
+%<+OT1cmr>\DeclareFontShape{OT1}{cmr}{bx}{sl}
+%<+Ucmr>\DeclareFontShape{U}{cmr}{bx}{sl}
+      {
+%<+ori>      <-10> sub* cmr/bx/n
+%<+ori>      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmbxsl10
+%<-ori>      <5> <6> <7> <8> <9>
+%<-ori>      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmbxsl10
+      }{}
+%<+OT1cmr>\DeclareFontShape{OT1}{cmr}{bx}{it}
+%<+Ucmr>\DeclareFontShape{U}{cmr}{bx}{it}
+      {
+%<+ori>      <-10>sub * cmr/bx/n
+%<+ori>      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmbxti10
+%<-ori>      <5> <6>  <7>  <8> <9>
+%<-ori>      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmbxti10
+      }{}
+%<+OT1cmr,Ucmr>% Again this is necessary for a correct \pounds symbol in
+%<+OT1cmr,Ucmr>% the cmr fonts Hopefully the dc/ec font layout will take
+%<+OT1cmr,Ucmr>% over soon.
+%<+OT1cmr,Ucmr>%
+%<+OT1cmr>\DeclareFontShape{OT1}{cmr}{bx}{ui}
+%<+Ucmr>\DeclareFontShape{U}{cmr}{bx}{ui}
+%<+nowarn>      {<->sub * cmr/m/ui}{}
+%<-nowarn>      {<->ssub * cmr/m/ui}{}
+%</OT1cmr,Ucmr>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Sans (\texttt{OT1})}
+%
+%    Same game for the Sans family.
+%    \begin{macrocode}
+%<*OT1cmss,Ucmss>
+%<+OT1cmss>\DeclareFontFamily{OT1}{cmss}{}
+%<+Ucmss>\DeclareFontFamily{U}{cmss}{}
+%<+OT1cmss>\DeclareFontShape{OT1}{cmss}{m}{n}
+%<+Ucmss>\DeclareFontShape{U}{cmss}{m}{n}
+     {
+%<+ori>      <-8>sub*cmr/m/n
+%<+ori>      <8>cmss8
+%<-ori>      <5><6><7><8>cmss8
+      <9>cmss9
+      <10><10.95>cmss10
+      <12><14.4>cmss12
+      <17.28><20.74><24.88>cmss17
+      }{}
+%<+OT1cmss,Ucmss>% Font undefined, therefore substituted
+%<+OT1cmss>\DeclareFontShape{OT1}{cmss}{m}{it}
+%<+Ucmss>\DeclareFontShape{U}{cmss}{m}{it}
+%<-nowarn>      {<->sub*cmss/m/sl}{}
+%<+nowarn>      {<->ssub*cmss/m/sl}{}
+%<+OT1cmss>\DeclareFontShape{OT1}{cmss}{m}{sl}
+%<+Ucmss>\DeclareFontShape{U}{cmss}{m}{sl}
+    {
+%<+ori>      <-8>sub*cmss/m/n
+%<+ori>      <8> <9> gen * cmssi
+%<-ori>      <5><6><7><8>cmssi8 <9> cmssi9
+      <10><10.95>cmssi10
+      <12><14.4>cmssi12
+      <17.28><20.74><24.88>cmssi17
+      }{}
+%<+OT1cmss,Ucmss>%%%%%%% Font/shape undefined, therefore substituted
+%<+OT1cmss>\DeclareFontShape{OT1}{cmss}{m}{sc}
+%<+Ucmss>\DeclareFontShape{U}{cmss}{m}{sc}
+       {<->sub*cmr/m/sc}{}
+%<+OT1cmss,Ucmss>%%%%%%% Font/shape undefined, therefore substituted
+%<+OT1cmss>\DeclareFontShape{OT1}{cmss}{m}{ui}
+%<+Ucmss>\DeclareFontShape{U}{cmss}{m}{ui}
+       {<->sub*cmr/m/ui}{}
+%<+OT1cmss,Ucmss>%%%%%%%% semibold condensed series
+%<+OT1cmss>\DeclareFontShape{OT1}{cmss}{sbc}{n}
+%<+Ucmss>\DeclareFontShape{U}{cmss}{sbc}{n}
+     {
+%<+ori>      <-10> sub * cmss/m/n
+%<-ori>      <5> <6> <7> <8> <9> cmssdc10
+       <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>cmssdc10
+       }{}
+ 
+%<+OT1cmss,Ucmss>%%%%%%%%% bold extended series
+%<+OT1cmss>\DeclareFontShape{OT1}{cmss}{bx}{n}
+%<+Ucmss>\DeclareFontShape{U}{cmss}{bx}{n}
+     {
+%<+ori>      <-10> sub * cmss/m/n
+%<-ori>      <5> <6> <7> <8> <9> cmssbx10
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmssbx10
+      }{}
+%<+OT1cmss,Ucmss>%%%%%%% Font/shape undefined, therefore substituted
+%<+OT1cmss>\DeclareFontShape{OT1}{cmss}{bx}{ui}
+%<+Ucmss>\DeclareFontShape{U}{cmss}{bx}{ui}
+       {<->sub*cmr/bx/ui}{}
+%</OT1cmss,Ucmss>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Typewriter (\texttt{OT1})}
+%
+%    Notice that this encoding is in fact quite different and we
+%    shouldn't therefore substitute some other font group if the
+%    correct size or shape isn't available. Otherwise, we may end with
+%    a |\verb| suddenly producing a lot of funny chars instead of the
+%    desired ones.
+%    \begin{macrocode}
+%<*OT1cmtt,Ucmtt>
+%<+OT1cmtt>\DeclareFontFamily{OT1}{cmtt}{\hyphenchar \font\m@ne}
+%<+Ucmtt>\DeclareFontFamily{U}{cmtt}{\hyphenchar \font\m@ne}
+%<+OT1cmtt>\DeclareFontShape{OT1}{cmtt}{m}{n}
+%<+Ucmtt>\DeclareFontShape{U}{cmtt}{m}{n}
+     {
+%    \end{macrocode}
+%    This substitution for |ori| is wrong and only in here because
+%    that was the way stuff has be set up in the old |lfonts.tex| file.
+%    \begin{macrocode}
+%<+ori>      <-8>sub*cmr/m/n
+%<+ori>      <8> <9> gen * cmtt
+%<-ori>      <5><6><7><8>cmtt8 <9> cmtt9
+      <10><10.95>cmtt10
+      <12><14.4><17.28><20.74><24.88>cmtt12
+      }{}
+%<+OT1cmtt,Ucmtt>%%%%%% make sure subst shapes are available
+%<+OT1cmtt>\DeclareFontShape{OT1}{cmtt}{m}{it}
+%<+Ucmtt>\DeclareFontShape{U}{cmtt}{m}{it}
+     {
+%    \end{macrocode}
+%    The following substitution however is okay since both fonts have
+%    the same encoding.
+%    \begin{macrocode}
+%<+ori>      <-10>sub*cmtt/m/n
+%<-ori>      <5> <6> <7> <8> <9>
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmitt10
+      }{}
+%<+OT1cmtt>\DeclareFontShape{OT1}{cmtt}{m}{sl}
+%<+Ucmtt>\DeclareFontShape{U}{cmtt}{m}{sl}
+     {
+%<+ori>      <-10>sub*cmtt/m/n
+%<-ori>      <5> <6> <7> <8> <9>
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmsltt10
+      }{}
+%<+OT1cmtt>\DeclareFontShape{OT1}{cmtt}{m}{sc}
+%<+Ucmtt>\DeclareFontShape{U}{cmtt}{m}{sc}
+     {
+%<+ori>      <-10>sub*cmtt/m/n
+%<-ori>      <5> <6> <7> <8> <9>
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmtcsc10
+      }{}
+%<+OT1cmtt>\DeclareFontShape{OT1}{cmtt}{m}{ui}
+%<+Ucmtt>\DeclareFontShape{U}{cmtt}{m}{ui}
+%<-nowarn>  {<->sub * cmtt/m/it}{}
+%<+nowarn>  {<->ssub * cmtt/m/it}{}
+%<+OT1cmtt>\DeclareFontShape{OT1}{cmtt}{bx}{n}
+%<+Ucmtt>\DeclareFontShape{U}{cmtt}{bx}{n}
+%<-nowarn>  {<->sub * cmtt/m/n}{}
+%<+nowarn>  {<->ssub * cmtt/m/n}{}
+%<+OT1cmtt>\DeclareFontShape{OT1}{cmtt}{bx}{it}
+%<+Ucmtt>\DeclareFontShape{U}{cmtt}{bx}{it}
+%<-nowarn>  {<->sub * cmtt/m/it}{}
+%<+nowarn>  {<->ssub * cmtt/m/it}{}
+%<+OT1cmtt>\DeclareFontShape{OT1}{cmtt}{bx}{ui}
+%<+Ucmtt>\DeclareFontShape{U}{cmtt}{bx}{ui}
+%<-nowarn>  {<->sub * cmtt/m/it}{}
+%<+nowarn>  {<->ssub * cmtt/m/it}{}
+%</OT1cmtt,Ucmtt>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Funny (\texttt{OT1})}
+%
+%    \begin{macrocode}
+%<*OT1cmfr>
+\DeclareFontFamily{OT1}{cmfr}{}
+\DeclareFontShape{OT1}{cmfr}{m}{n}{%
+      <10> cmff10
+    }{}
+\DeclareFontShape{OT1}{cmfr}{m}{it}{%
+      <10> cmfi10
+    }{}
+%</OT1cmfr>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Dunhill (\texttt{OT1})}
+%
+%    \begin{macrocode}
+%<*OT1cmdh>
+\DeclareFontFamily{OT1}{cmdh}{}
+\DeclareFontShape{OT1}{cmdh}{m}{n}{
+      <10> cmdunh10
+    }{}
+%</OT1cmdh>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Fibonacci (\texttt{OT1})}
+%
+%    \begin{macrocode}
+%<*OT1cmfib>
+\DeclareFontFamily{OT1}{cmfib}{}
+\DeclareFontShape{OT1}{cmfib}{m}{n}{
+      <8> cmfib8
+    }{}
+%</OT1cmfib>
+%    \end{macrocode}
+%
+%  \subsection{Math fonts}
+%
+%  \subsubsection{Computer Modern Math italics}
+%  \changes{v2.0d}{1993/06/12}{OML/cmm/bx/it added for `oldstylenums}
+%  \changes{v2.3a}{1994/05/02}{Included font definitions for
+%                              AMS-supplied cm fonts.}
+%    \begin{macrocode}
+%<*OMLcmm>
+\DeclareFontFamily{OML}{cmm}{\skewchar\font'177}
+\DeclareFontShape{OML}{cmm}{m}{it}
+    { <5> <6> <7> <8> <9> gen * cmmi
+      <10><10.95>cmmi10
+      <12><14.4><17.28><20.74><24.88>cmmi12
+      }{}
+\DeclareFontShape{OML}{cmm}{b}{it}{%
+      <5> <6> <7> <8> <9> gen * cmmib
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmmib10
+      }{}
+%    \end{macrocode}
+%    This will allow the |\oldstylenums| command to work within
+%    |\textbf|.
+%    \begin{macrocode}
+\DeclareFontShape{OML}{cmm}{bx}{it}
+   {<-> ssub * cmm/b/it}{}
+%</OMLcmm>
+%    \end{macrocode}
+%
+%  \subsubsection{Computer Modern Roman Math italics}
+%
+%  \changes{v2.3d}{1994/10/30}{Added OMLcmr font substitutions pointing 
+%     to OMLcmm. }
+%
+%  Some text symbols like `\t oo' and `$<$' are kept in the OML encoding, 
+%  so we need font substititutions from OML/cmr to OML/cmm.
+%    \begin{macrocode}
+%<*OMLcmr>
+\DeclareFontFamily{OML}{cmm}{\skewchar\font'177}
+\DeclareFontShape{OML}{cmr}{m}{n}
+   {<-> ssub * cmm/m/it}{}
+\DeclareFontShape{OML}{cmr}{m}{it}
+   {<-> ssub * cmm/m/it}{}
+\DeclareFontShape{OML}{cmr}{m}{sl}
+   {<-> ssub * cmm/m/it}{}
+\DeclareFontShape{OML}{cmr}{m}{sc}
+   {<-> ssub * cmm/m/it}{}
+\DeclareFontShape{OML}{cmr}{bx}{n}
+   {<-> ssub * cmm/b/it}{}
+\DeclareFontShape{OML}{cmr}{bx}{it}
+   {<-> ssub * cmm/b/it}{}
+\DeclareFontShape{OML}{cmr}{bx}{sl}
+   {<-> ssub * cmm/b/it}{}
+\DeclareFontShape{OML}{cmr}{bx}{sc}
+   {<-> ssub * cmm/b/it}{}
+%</OMLcmr>
+%    \end{macrocode}
+% 
+%  \subsubsection{Computer Modern Math symbols}
+%
+%  \changes{v2.3a}{1994/05/02}{Included font definitions for
+%                              AMS-supplied cm fonts.}
+%    \begin{macrocode}
+%<*OMScmsy>
+\DeclareFontFamily{OMS}{cmsy}{\skewchar\font'60}
+\DeclareFontShape{OMS}{cmsy}{m}{n}{%
+      <5> <6> <7> <8> <9> <10> gen * cmsy
+      <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmsy10
+      }{}
+\DeclareFontShape{OMS}{cmsy}{b}{n}{%
+      <5> <6> <7> <8> <9> gen * cmbsy
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>cmbsy10
+      }{}
+%</OMScmsy>
+%    \end{macrocode}
+%
+%  \subsubsection{Computer Modern Roman Math symbols}
+%
+%  \changes{v2.3d}{1994/10/30}{Added OMLcmr font substitutions pointing 
+%     to OMLcmm. }
+%
+%  Some text symbols like `\P' and `\dag' are kept in the OMS encoding, 
+%  so we need font substititutions from OMS/cmr to OMS/cmsy.
+%    \begin{macrocode}
+%<*OMScmr>
+\DeclareFontFamily{OMS}{cmm}{\skewchar\font'60}
+\DeclareFontShape{OMS}{cmr}{m}{n}
+   {<-> ssub * cmsy/m/n}{}
+\DeclareFontShape{OMS}{cmr}{m}{it}
+   {<-> ssub * cmsy/m/n}{}
+\DeclareFontShape{OMS}{cmr}{m}{sl}
+   {<-> ssub * cmsy/m/n}{}
+\DeclareFontShape{OMS}{cmr}{m}{sc}
+   {<-> ssub * cmsy/m/n}{}
+\DeclareFontShape{OMS}{cmr}{bx}{n}
+   {<-> ssub * cmsy/b/n}{}
+\DeclareFontShape{OMS}{cmr}{bx}{it}
+   {<-> ssub * cmsy/b/n}{}
+\DeclareFontShape{OMS}{cmr}{bx}{sl}
+   {<-> ssub * cmsy/b/n}{}
+\DeclareFontShape{OMS}{cmr}{bx}{sc}
+   {<-> ssub * cmsy/b/n}{}
+%</OMScmr>
+%    \end{macrocode}
+%
+%  \subsubsection{Computer Modern large symbols}
+%
+%    \begin{macrocode}
+%<*OMXcmex>
+\DeclareFontFamily{OMX}{cmex}{}{}
+\DeclareFontShape{OMX}{cmex}{m}{n}{
+   <-> sfixed * cmex10
+   }{}
+%</OMXcmex>
+%    \end{macrocode}
+%
+%
+%  \subsubsection{Concrete Roman}
+%
+%  \changes{v2.3d}{1994/07/13}{Added new concrete shapes}
+%    \begin{macrocode}
+%<*OT1ccr>
+\DeclareFontFamily{OT1}{ccr}{}{}
+\DeclareFontShape{OT1}{ccr}{m}{n}{%
+   <5> <6> <7> <8> <9> <10> gen * ccr
+   <10.95> <12> <14.4> <17.28> <20.74> <24.88>ccr10}{}
+\DeclareFontShape{OT1}{ccr}{m}{it}{
+   <10> <10.95> <12>ccti10}{}
+\DeclareFontShape{OT1}{ccr}{m}{sc}{
+   <10> <10.95>  <12> cccsc10 }{}
+\DeclareFontShape{OT1}{ccr}{m}{sl}{
+   <9>ccsl9
+   <10> <10.95> <12>ccsl10}{}
+\DeclareFontShape{OT1}{ccr}{c}{sl}{<9>ccslc9}{}
+%    \end{macrocode}
+%    Finally a few substitution fonts for combinations not available.
+% \changes{v2.0f}{1993/09/24}{Added substitution fonts}
+%    \begin{macrocode}
+\DeclareFontShape{OT1}{ccr}{bx}{n}
+     {<->sub * cmr/bx/n  }{}
+\DeclareFontShape{OT1}{ccr}{bx}{sl}
+     {<->sub * cmr/bx/sl }{}
+\DeclareFontShape{OT1}{ccr}{bx}{it}
+     {<->sub * cmr/bx/it }{}
+%</OT1ccr>
+%    \end{macrocode}
+%
+%  \subsubsection{Concrete Roman math italic}
+%
+%    \begin{macrocode}
+%<*OMLccm>
+\DeclareFontFamily{OML}{ccm}{\skewchar\font'177}
+\DeclareFontShape{OML}{ccm}{m}{it}{<10>ccmi10}{}
+%</OMLccm>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Roman in \texttt{OT2} encoding}
+%
+%    These fonts are from the University of Washington. They do not
+%    belong into this file but at the moment there is no other place.
+%    \begin{macrocode}
+%<*OT2cmr>
+\DeclareFontFamily{OT2}{cmr}{}{}
+\DeclareFontShape{OT2}{cmr}{m}{n}{%
+   <5> <6> <7> <8> <9> gen * wncyr
+   <10> <10.95> <12> <14.4> <17.28> <20.74>  <24.88>wncyr10}{}
+\DeclareFontShape{OT2}{cmr}{m}{it}{%
+   <5> <6> <7> <8> <9> gen * wncyi
+   <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> wncyi10}{}
+\DeclareFontShape{OT2}{cmr}{m}{sc}{%
+   <5> <6> <7> <8> <9> <10> <10.95> <12> <14.4>
+   <17.28> <20.74> <24.88>wncysc10}{}
+%<+OT2cmr>%%%%%%%%%%%%% bold series
+\DeclareFontShape{OT2}{cmr}{b}{n}{%
+   <5> <6> <7> <8> <9> gen * wncyb
+   <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>wncyb10}{}
+%</OT2cmr>
+%    \end{macrocode}
+%
+% \subsubsection{Computer Modern Sans in \texttt{OT2} encoding}
+%
+%    Some more fonts  from the University of Washington.
+%    \begin{macrocode}
+%<*OT2cmss>
+\DeclareFontFamily{OT2}{cmss}{}{}
+\DeclareFontShape{OT2}{cmss}{m}{n}{%
+   <8> <9> gen * wncyss
+   <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88>wncyss10}{}
+%</OT2cmss>
+%    \end{macrocode}
+%
+%    The next line goes into all files and in addition prevents \dst{}
+%    from adding any further code from the main source file (such as a
+%    character table.
+%    \begin{macrocode}
+\endinput
+%    \end{macrocode}
+%
+% \Finale
+%

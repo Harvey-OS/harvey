@@ -1,0 +1,359 @@
+#!/bin/ape/sh
+# Script to produce documentation of various packages
+# Usage: printdoc package          -- to print on printer $LPDEST
+#        printdoc package outfile  -- to put postscript in outfile
+#        printdoc ?       prints available packages
+
+case $# in
+	1)
+		PACK=$1
+		;;
+	2)
+		PACK=$1
+		case $2 in
+		    /*)
+				OUT=$2
+				;;
+			*)
+				OUT=`pwd`/$2
+				;;
+		esac
+		;;
+	*)
+		echo 'Usage: /usr/lib/tex/macros/doc/printdoc package'
+		echo 'printdoc ?       prints available packages'
+		exit
+		;;
+esac
+
+DOCDIR=/sys/lib/tex/macros/doc
+TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR
+BIBINPUTS=:$DOCDIR
+export TEXINPUTS BIBINPUTS
+
+TEMPDIR=/tmp/prdoc.$$
+ANS=noanswer
+
+# Clean up on normal or abnormal exit
+trap "rm -rf $TEMPDIR $DESTDIR/prdoc.$$" 0 1 2 15
+
+mkdir $TEMPDIR
+cd $TEMPDIR
+
+case $PACK in
+	cfgguide|clsguide|fntguide|ltnews01|ltnew02|usrguide)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/base
+		IN=$PACK
+		RUN=LLL
+		ANS=$pack.dvi
+		;;
+	amsdiff12)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/ams
+		IN=diff12.tex
+		RUN=LL
+		ANS=diff12.dvi
+		;;
+	amslatex)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/ams
+		IN=amsldoc.tex
+		RUN=LL
+		ANS=amsldoc.dvi
+		;;
+	amstex)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/ams
+		IN=amsguide.tex
+		RUN=T
+		ANS=amsguide.dvi
+		;;
+	afterpage|array|dcolumn|delarray|enumerate|fileerr|fontsmpl|ftnright|hhline|indentfirst|layout|longtable|multicol|rawfonts|showkeys|somedefs|tabularx|theorem|varioref|verbatimdef|xr|xspace)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/tools
+		IN=$PACK.dtx
+		RUN=LL
+		ANS=$PACK.dvi
+		;;
+	babel)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/babel
+		IN=user.drv
+		RUN=LLL
+		ANS=user.dvi
+		;;
+	graphics)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/graphics
+		IN=grfguide.tex
+		RUN=LL
+		ANS=grfguide.dvi
+		;;
+	a4|acronym|calc|caption|count1to|everyshi|float|labels|mailing|makebst|natbib|prelim2e|printtim|refman|rotating|stmaryrd|subeqnarray|textfit)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/supported
+		IN=$PACK.dtx
+		RUN=LL
+		ANS=$PACK.dvi
+		;;
+	answers|deleq|endfloat|eqnarray|euler|mflogo|rplain|showlabels|ssqquote|textmerg|vector|wasysym)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/supported
+		IN=$PACK.drv
+		RUN=LL
+		ANS=$PACK.dvi
+		;;
+	harpoon|ntgclass|spdoc)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/supported
+		IN=$PACK
+		RUN=LL
+		ANS=$PACK.dvi
+		;;
+	minitoc)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/supported
+		IN=$PACK
+		RUN=LLL
+		ANS=$PACK.dvi
+		;;
+	maple)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/supported
+		IN=maplems
+		RUN=LL
+		ANS=maplems.dvi
+		;;
+	program)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/supported
+		IN=program-demo
+		RUN=LL
+		ANS=program-demo.dvi
+		;;
+	mcite)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/supported
+		BIBINPUTS=:$DOCDIR/supported
+		IN=$PACK.drv
+		BIN=$PACK
+		RUN=LBLL
+		ANS=$PACK.dvi
+		;;
+	harvard)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/supported
+		BIBINPUTS=:$DOCDIR/supported
+		IN=$PACK
+		BIN=$PACK
+		RUN=LBLL
+		ANS=$PACK.dvi
+		;;
+	hyper|newalg)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/supported
+		IN=$PACK.dtx
+		RUN=LLL
+		ANS=$PACK.dvi
+		;;
+	elsevier)
+		ANS=$DOCDIR/supported/instraut.ps
+		;;
+	dvips)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/programs
+		IN=$PACK
+		RUN=T
+		ANS=$PACK.dvi
+		;;
+	wasydoc)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/fonts
+		IN=$PACK
+		RUN=T
+		ANS=$PACK.dvi
+		;;
+	amsfonts)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/fonts
+		IN=amsfndoc
+		RUN=TT
+		ANS=amsfndoc.dvi
+		;;
+	ipa)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/fonts
+		IN=ipaman
+		RUN=LL
+		ANS=ipaman.dvi
+		;;
+	floatflt)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/other
+		IN=$PACK.drv
+		RUN=LL
+		ANS=$PACK.dvi
+		;;
+	fancyheadings)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/other
+		IN=$PACK
+		RUN=LLL
+		ANS=$PACK.dvi
+		;;
+	siam)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/other
+		IN=docultex
+		RUN=LLL
+		ANS=$IN.dvi
+		;;
+	psfig)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/other
+		IN=psfig-doc
+		RUN=LL
+		ANS=$IN.dvi
+		;;
+	seminar)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/seminar
+		IN=sem-user
+		RUN=LL
+		ANS=$IN.dvi
+		;;
+	2up)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/seminar
+		IN=$PACK.doc
+		RUN=LL
+		ANS=$PACK.dvi
+		;;
+	btxdoc|btxhak)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/bibtex
+		BIBINPUTS=:$DOCDIR/bibtex
+		IN=$PACK.tex
+		BIN=$PACK
+		RUN=LBLL
+		ANS=$PACK.dvi
+		;;
+	pstricks)
+		TEXINPUTS=:/sys/lib/tex/macros:$DOCDIR/pstricks
+		d=/sys/lib/tex/macros/doc/pstricks
+		cat $d/pst-usr1.ps $d/pst-usr2.ps $d/pst-quik.ps > pst.ps
+		latex samples
+		dvips -r0 samples.dvi >> pst.ps
+		RUN=
+		ANS=pst.ps
+		;;
+	*)
+		RUN=NONE
+		echo 'Usage: printdoc package'
+		echo 'Available packages:'
+		echo
+		echo 'a4            Use a4 paper size'
+		echo 'acronym       Keep track of acronyms'
+		echo 'afterpage     Register actions for end of pages'
+		echo 'amsdiff12     AMS-LaTeX differences from older version'
+		echo 'amsfonts      AMS fonts'
+		echo 'amslatex      AMS-LaTeX user guide'
+		echo 'amstex        AMS-TeX user guide'
+		echo 'answers       Exercises and answers'
+		echo 'array         Enhanced array environment'
+		echo 'babel         Multi-lingual support'
+		echo 'btxdoc     BibTeX user documentation'
+		echo 'btxhak     BibTeX style-writer documentation'
+		echo 'calc          Infix arithmetic'
+		echo 'caption       Enhanced caption environment'
+		echo 'cfgguide      LaTeX2e configuration options'
+		echo 'clsguide      Guide to writing classes and packages'
+		echo 'count1to      Set registers for easy page selection'
+		echo 'dcolumn       Columns aligned on decimal point'
+		echo 'delarray      Delimiters around arrays'
+		echo 'deleq         Enhanced equation numbering'
+		echo 'dvips         Dvi-to-Postscript translator'
+		echo 'elsevier      Elsevier package'
+		echo 'eqnarray      Enhanced aligned equations'
+		echo 'endfloat      Put floats at end of document'
+		echo 'enumerate     Enhanced enumerate environment'
+		echo 'euler         Euler math fonts'
+		echo 'everyshi      Register commands for every shipout'
+		echo 'fancyheadings Enhanced page headers and footers'
+		echo 'fileerr       How to respond to file-not-found'
+		echo 'float         Enhanced floats'
+		echo 'floatflt      Floats with text flowing around'
+		echo 'fntguide      Guide to writing font selection files'
+		echo 'fontsmpl      Printing font samples'
+		echo 'ftnright      Footnotes in right column'
+		echo 'graphics      Graphics packages'
+		echo 'harpoon       Harpoons over and around text'
+		echo 'harvard       Harvard bibliograpy styles'
+		echo 'hhline        Enhanced horizontal lines'
+		echo 'hyper         Hypertext references'
+		echo 'indentfirst   Indent first lines of sections'
+		echo 'labels        Print sticky labels'
+		echo 'layout        Diagram of current page layout'
+		echo 'longtable     Tables that span pages'
+		echo 'ltnews01      LaTeX2e news, issue 1'
+		echo 'ltnews02      LaTeX2e news, issue 2'
+		echo 'mailing       Form letters'
+		echo 'makebst       Generate custom bibliography styles'
+		echo 'maple         Maple support'
+		echo 'mcite         Collapse multiple citations'
+		echo 'mflogo        Access to Metafont logo font'
+		echo 'minitoc       Per-chapter tables of contents'
+		echo 'multicol      Multicolumn package'
+		echo 'natbib        Natural Sciences citations'
+		echo 'newalg        Algorithm formatting'
+		echo 'prelim2e      Put "Preliminary" footer on each page'
+		echo 'printtim      Format current time'
+		echo 'program       Program formatting'
+		echo 'psfig         Psfig (PostScript figure inclusion)'
+		echo 'pstricks      Pstricks (PostScript effects)'
+		echo 'rawfonts      Allow \\tenrm, etc.'
+		echo 'refman        Reference manual class'
+		echo 'rplain        Page numbers at lower right'
+		echo 'showlabels    Print labels in margin'
+		echo 'showkeys      Print reference keys in margin'
+		echo 'siam          Siam style'
+		echo 'somedefs      Switch definitions on and off'
+		echo 'spdoc         Scholar (lips, relsize, includex, tmacros)'
+		echo 'ssqquote      Access to cmssq fonts'
+		echo 'tabularx      Tables with equalized columns'
+		echo 'seminar       Seminar (slides) style'
+		echo 'stmary        Access to St Marys Road fonts'
+		echo 'subeqnarray   Equation numbering inside arrays'
+		echo 'textfit       Scale text to fit given size'
+		echo 'textmerg      Merge text, form letters'
+		echo 'theorem       Enhanced theorem-like environments'
+		echo 'usrguide      Guide to LaTeX2e for authors'
+		echo 'varioref      Near and far page references'
+		echo 'vector        Vector names (underlined, bold, etc.)'
+		echo 'verbatim      Enhanced verbatim environment'
+		echo 'wasydoc       Wasy Symbol font'
+		echo 'wasysym       Wasy Symbol font (LaTeX)'
+		echo 'xr            References to external documents'
+		echo 'xspace        Space after command names'
+		echo '2up        Print 2 pages side by side'
+		;;
+esac
+
+case $RUN in
+	LL)
+		latex $IN
+		latex $IN
+		;;
+	LLL)
+		latex $IN
+		latex $IN
+		latex $IN
+		;;
+	LBLL)
+		latex $IN
+		bibtex $BIN
+		latex $IN
+		latex $IN
+		;;
+	T)
+		tex $IN
+		;;
+	*)
+		;;
+esac
+
+if test -r $ANS
+then
+	case $# in
+	    1)
+			lp $ANS
+			echo $ANS sent to $LPDEST
+			;;
+		2)
+			case $ANS in
+				*.dvi)
+					dvips -Tgnot $ANS > $OUT
+					;;
+				*)
+					cp $ANS $OUT
+					;;
+			esac
+			echo Postscript left in $OUT
+			;;
+	esac
+fi
+exit 0

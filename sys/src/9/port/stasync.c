@@ -102,6 +102,12 @@ static ushort crc_table[256] = {
 #define	CRCSTART	(crc_table[0xff])
 #define	CRCFUNC(crc,x)	(crc_table[((crc)^(x))&0xff]^((crc)>>8))
 
+void
+stasynclink(void)
+{
+	newqinfo(&asyncinfo);
+}
+
 /*
  *  create the async structures
  */
@@ -194,8 +200,11 @@ aswrite(Async *ap)
 {
 	if(ap->bp->rptr == ap->bp->wptr)
 		return;
+	if(asyncdebug > 2)
+		showframe("out", ap, ap->bp->rptr, BLEN(ap->bp));
 	FLOWCTL(ap->wq, ap->bp);
 	ap->bp = 0;
+	ap->count = 0;
 }
 
 void
@@ -219,8 +228,6 @@ asputf(Async *ap)
 	*p++ = FRAME;
 	*p++ = FRAME;
 	ap->bp->wptr = p;
-	if(asyncdebug > 2)
-		showframe("out", ap, ap->bp->rptr, BLEN(ap->bp));
 	aswrite(ap);
 }
 
@@ -231,7 +238,7 @@ asputc(Async *ap, int c)
 	uchar *p;
 
 	if(ap->bp == 0)
-		ap->bp = allocb(MAXFRAME+4);
+		ap->bp = allocb(2*MAXFRAME+8);	/* worst-case expansion */
 	p = ap->bp->wptr;
 	if(ap->count <= 0) {
 		*p++ = d = 0x80|((ap->chan>>5)&0x7e);
@@ -246,8 +253,6 @@ asputc(Async *ap, int c)
 	ap->bp->wptr = p;
 	if(++ap->count >= MAXFRAME-4)
 		asputf(ap);
-	else if(ap->bp->lim - p < 8)
-		aswrite(ap);
 }
 
 /*

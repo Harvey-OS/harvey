@@ -1,7 +1,7 @@
 .TH SAM 1
 .ds a \fR*\ \fP
 .SH NAME
-sam, B \- screen editor with structural regular expressions 
+sam, B, sam.save \- screen editor with structural regular expressions 
 .SH SYNOPSIS
 .B sam
 [
@@ -38,10 +38,11 @@ The external file is not read into
 the editor's file until it first becomes the current file\(emthat to
 which editing commands apply\(emwhereupon its menu entry is printed.
 The options are
+.TF -rmachine
 .TP
 .B -d
-Do not download the terminal part of
-.I sam.
+Do not `download' the terminal part of
+.IR sam .
 Editing will be done with the command language only, as in
 .IR ed (1).
 .TP
@@ -58,6 +59,7 @@ option.
 .BI -t " path
 Start the terminal part from the specified file.  Useful
 for debugging.
+.PD
 .SS Regular expressions
 Regular expressions are as in
 .IR regexp (6)
@@ -89,10 +91,11 @@ means the
 .IR n -th
 match,
 starting at the beginning of the file, of the regular expression
-.L .*\en? .
+.LR .*\en? .
 All files always have a current substring, called dot,
 that is the default address.
 .SS Simple Addresses
+.PD0
 .TP
 .BI # n
 The empty string after character
@@ -102,7 +105,9 @@ is the beginning of the file.
 .TP
 .I n
 Line
-.IR n .
+.IR n ;
+.B 0
+is the beginning of the file.
 .TP
 .BI  / regexp /
 .PD0
@@ -118,6 +123,9 @@ and if necessary continuing the search from the other end to the
 starting point of the search.
 The matched substring may straddle
 the starting point.
+When entering a pattern containing a literal question mark
+for a backward search, the question mark should be
+specified as a member of a class.
 .PD
 .TP
 .B 0
@@ -145,12 +153,14 @@ Preceding a simple address (default
 .BR . ),
 refers to the address evaluated in the unique file whose menu line
 matches the regular expression.
+.PD
 .SS Compound Addresses
 In the following,
 .I a1
 and
 .I a2
 are addresses.
+.TF a1+a2
 .TP
 .IB a1 + a2
 The address
@@ -183,11 +193,12 @@ is substituted.
 .TP
 .IB  a1 ; a2
 Like
-.IB a1 , a2,
+.IB a1 , a2\f1,
 but with
 .I a2
 evaluated at the end of, and dot set to,
 .IR a1 .
+.PD
 .PP
 The operators
 .B +
@@ -231,8 +242,8 @@ is reversed.
 .PP
 It is an error for a compound address to represent a malformed substring.
 Some useful idioms: 
-.IB a1 +- 
-.RI ( a1 \&\fL-+\fP )
+.IB a1 +-
+\%(\f2a1\fL-+\f1)
 selects the line containing
 the end (beginning) of a1.
 .BI 0/ regexp /
@@ -303,6 +314,7 @@ or
 .B .
 Insert the text into the file after the range.
 Set dot.
+.PD
 .TP
 .B c\fP
 .br
@@ -364,13 +376,15 @@ are substituted.
 .ns
 .TP
 .BI t " a1
-Move the range to after
-.I a1
-.RB ( m ),
-or copy it
-.RB ( t ).
+Move
+.RB ( m )
+or copy
+.RB ( t )
+the range to after
+.IR a1 .
 Set dot.
 .SS Display commands
+.PD 0
 .TP
 .B p
 Print the text in the range.
@@ -381,7 +395,9 @@ Print the line address and character address of the range.
 .TP
 .B =#
 Print just the character address of the range.
+.PD
 .SS File commands
+.PD0
 .TP
 .BI \*ab " file-list
 Set the current file to the first file named in the list
@@ -403,21 +419,21 @@ and all file names in the list are examined.
 Print a menu of files.
 The format is:
 .RS
-.TP \w'\ \ or\ blank\ \'u
+.TP 11
 .BR ' " or blank
 indicating the file is modified or clean,
-.TP
+.TP 11
 .BR - " or \&" +
 indicating the file is unread or has been read
 (in the terminal,
 .B *
 means more than one window is open),
-.TP
+.TP 11
 .BR . " or blank
 indicating the current file,
-.TP
+.TP 11
 a blank,
-.TP
+.TP 11
 and the file name.
 .RE
 .TP 0
@@ -429,7 +445,9 @@ It is an error to
 a modified file, but a subsequent
 .B D
 will delete such a file.
+.PD
 .SS I/O Commands
+.PD0
 .TP
 .BI \*ae " filename
 Replace the file by the contents of the named external file.
@@ -449,7 +467,7 @@ Set the file name and print the resulting menu entry.
 .PP
 If the file name is absent from any of these, the current file name is used.
 .B e
-always sets the file name,
+always sets the file name;
 .B r
 and
 .B w
@@ -460,7 +478,7 @@ Replace the range by the standard output of the
 Plan 9 command.
 .TP
 .BI > " Plan 9-command
-Sends the range to the standard input of the
+Send the range to the standard input of the
 Plan 9 command.
 .TP
 .BI | " Plan 9-command
@@ -477,6 +495,7 @@ Change working directory.
 If no directory is specified,
 .B $home
 is used.
+.PD
 .PP
 In any of
 .BR < ,
@@ -491,7 +510,10 @@ is omitted the last
 (of any type) is substituted.
 If
 .I sam
-is downloaded,
+is
+.I downloaded
+(using the mouse and bitmap display, i.e. not using option
+.BR -d ),
 .B !
 sets standard input to
 .BR /dev/null ,
@@ -507,6 +529,7 @@ for all) is placed in
 .B /tmp/sam.err
 and the first few lines are printed.
 .SS Loops and Conditionals
+.PD0
 .TP
 .BI x/ regexp / " command
 For each match of the regular expression in the range, run the command
@@ -521,12 +544,12 @@ of the range and at the end of the range.
 .TP
 .BI y/ regexp / " command
 Like
-.B x,
+.BR x ,
 but run the command for each substring that lies before, between,
 or after
 the matches that would be generated by
 .BR x .
-There is no default behavior.
+There is no default regular expression.
 Null substrings potentially occur before every character
 in the range.
 .TP
@@ -576,7 +599,9 @@ defaults to
 and
 .B v
 do not have defaults.
+.PD
 .SS Miscellany
+.TF (empty)
 .TP
 .B k
 Set the current file's mark to the range.  Does not set dot.
@@ -680,12 +705,12 @@ where the null rectangle is.
 .B new
 Create a new, empty file.
 .TP
-.B xerox
+.B zerox
 Create a copy of an existing window.
 .TP
 .B reshape
 As in
-.I 8½.
+.IR 8½ .
 .TP
 .B close
 Delete the window.
@@ -728,7 +753,7 @@ starts, is an ordinary window except that text typed to it
 is interpreted as commands for the editor rather than passive text,
 and text printed by editor commands appears in it.
 The behavior is like
-.I 8½,
+.IR 8½ ,
 with an `output point' that separates commands being typed from
 previous output.
 Commands typed in the command window apply to the
@@ -736,14 +761,14 @@ current open file\(emthe file in the most recently
 current window.
 .SS Manipulating text
 Button 1 changes selection, much like
-.I 8½.
+.IR 8½ .
 Pointing to a non-current window with button 1 makes it current;
 within the current window, button 1 selects text, thus setting dot.
 Double-clicking selects text to the boundaries of words, lines,
 quoted strings or bracketed strings, depending on the text at the click.
 .PP
 Button 2 provides a menu of editing commands:
-.PD0
+.TF /regexp
 .TP
 .B cut
 Delete dot and save the deleted text in the snarf buffer.
@@ -790,7 +815,7 @@ commands from the shell.
 is a shell-level command that causes an instance of
 .I sam
 running on the same terminal to load the named
-.I files.
+.IR files .
 The option allows a line number to be specified for
 the initial position to display in the last named file.
 .SS Abnormal termination
@@ -808,16 +833,33 @@ The answer
 .L y
 causes writing; anything else skips the file.
 .SH FILES
+.TF /sys/src/cmd/samterm
+.TP
 .B $home/sam.save
-.br
+.TP
 .B $home/sam.err
-.br
+.TP
 .B /sys/lib/samsave
 the program called to unpack
 .BR $home/sam.save .
+.SH SOURCE
+.TF /sys/src/cmd/samterm
+.TP
+.B /sys/src/cmd/sam
+source for
+.I sam
+itself
+.TP
+.B /sys/src/cmd/samterm
+source for the separate terminal part
+.TP
+.B /rc/bin/B
 .SH SEE ALSO
 .IR ed (1),
 .IR sed (1),
 .IR grep (1),
 .IR 8½ (1),
 .IR regexp (6).
+.PP
+Rob Pike,
+``The text editor sam''.

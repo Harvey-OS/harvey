@@ -1,0 +1,67 @@
+.SH
+Sync Copy and WORM Copy Processes
+.PP
+The
+.CW scp
+process
+wakes up every ten seconds and
+issues writes to blocks in the buffer cache
+that have been modified.
+This is done automatically on important
+console commands such as
+.CW halt
+and
+.CW dump .
+.PP
+The
+.CW wcp
+process also wakes up every ten seconds
+and tries to copy a
+.CW dump
+block from the cache to the WORM.
+As long as there are
+.CW dump
+blocks to copy and there is no competition for
+the WORM device,
+the copy will continue at full speed.
+Whenever there is competition for the WORM
+or there are no more blocks to
+copy,
+then the process will sleep ten seconds
+before looking again.
+.PP
+The Sony WORM jukebox consists of
+50 disks divided into 100 sides
+or platters.
+Platter 0 is the
+.I A
+side of disk 0.
+Platter 1 is the
+.I A
+side of the disk 1.
+Platter 50 is the
+.I B
+side of disk 0.
+On Bootes,
+the main file system is configured
+on both sides of the first 45 disks,
+platters 0-44 and 50-94.
+Slots 46-49 are available for mounting
+blank disks for making backup copies of platters.
+To back up the logical 57th platter in the file system, which is physical platter 62,
+insert the blank platter in the input
+carrier and type
+.P1
+    wormingest 49
+    wormcp 62 49
+.P2
+To have the backup disk have the
+correct platters on its two sides,
+the blank platter inserted should be the
+.I B
+side up of the disk containing the
+backup of logical (and physical) platter 12.
+When the copy is done, type
+.P1
+    wormeject 49
+.P2

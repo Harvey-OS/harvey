@@ -1,0 +1,88 @@
+.TH HTTPD 8
+.SH NAME
+httpd, echo \- HTTP server
+.SH SYNOPSIS
+.PP
+.B http/httpd
+[
+.B -n
+.I namespace
+]
+.I srvname netname netdir
+.PP
+.B http/echo
+[
+.B -n
+.I namespace
+] [
+.B -d
+.I domain
+] [
+.B -r
+.I remoteip
+]
+.I method version uri
+[
+.I search
+]
+.SH DESCRIPTION
+.I Httpd
+serves the file system described by
+.I namespace
+(default
+.BR /lib/namespace.http ),
+using version 1.0 of the HTTP protocol.
+It is usually executed by
+.IR listen (8)
+in response to an incoming call on TCP port 80, the HTTP port.
+.I Srvname
+is the name of the service invoked, typically
+.BR tcp80 ,
+.I netname 
+is the name of the network, typically TCP,
+and
+.I netdir
+is the network directory for the connection.
+.PP
+.I Httpd
+supports only the GET and HEAD methods of the HTTP protocol.
+The Content-type
+(default application/octet-stream)
+and Content-encoding
+(default binary)
+of a file are determined by looking for suffixes of the file name in
+.BR /sys/lib/http .
+.PP
+If the requested URI begins with
+.BI  /magic/ server /\f1,
+.I httpd
+executes the file
+.BI /bin/http/ server
+to finish servicing the request.
+.IR Method ,
+.IR version ,
+and
+.I uri
+are those received on the first line of the request,
+which is the only line read by
+.I httpd
+before executing the magical server.
+.PP
+.I Echo
+is a trivial server that just returns the method, URI, any search,
+and the headers sent by the client.
+.SH FILES
+.TF /lib/namespace.http
+.TP
+.B /sys/lib/http
+content type description file
+.TP
+.B /lib/namespace.http
+default namespace file for httpd
+.SH SOURCE
+.B /sys/src/cmd/httpd
+.SH "SEE ALSO"
+.I newns
+in
+.IR auth (2),
+.IR listen (8)

@@ -550,6 +550,9 @@ setsource(char *name, int fd, char *str)
 	s->lineinc = 0;
 	s->fd = fd;
 	s->filename = name;
+	s->next = cursource;
+	s->ifdepth = 0;
+	cursource = s;
 	/* slop at right for EOB */
 	if (str) {
 		len = strlen(str);
@@ -557,15 +560,15 @@ setsource(char *name, int fd, char *str)
 		s->inp = s->inb;
 		strncpy((char *)s->inp, str, len);
 	} else {
-		s->inb = domalloc(INS+4);
+		Dir d;
+		if (dirfstat(fd, &d) < 0)
+			d.length = 0;
+		s->inb = domalloc((d.length<INS? INS: d.length)+4);
 		s->inp = s->inb;
 		len = 0;
 	}
 	s->inl = s->inp+len;
 	s->inl[0] = s->inl[1] = EOB;
-	s->next = cursource;
-	s->ifdepth = 0;
-	cursource = s;
 	return s;
 }
 

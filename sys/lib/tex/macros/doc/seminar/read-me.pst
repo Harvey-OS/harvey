@@ -1,0 +1,347 @@
+%% BEGIN read-me.pst
+***********************************************************************
+****      "readme" file for PSTricks package, v0.93a, 93/03/12     ****
+***********************************************************************
+
+COPYRIGHT 1992, 1993 by Timothy Van Zandt, tvz@Princeton.EDU
+
+COPYING:
+
+  Copying of part or all of any file in the PSTricks package
+  is allowed under the following conditions only:
+
+  (1) You may freely distribute unchanged copies of the files. Please
+      include the documentation when you do so.
+  (2) You may modify a renamed copy of any file, but only for personal
+      use or use within an organization.
+  (3) You may copy fragments from the files, for personal use or for use
+      in a macro package for distribution, as long as credit is given
+      where credit is due.
+
+  You are NOT ALLOWED to take money for the distribution or use of
+  these files or modified versions or fragments thereof, except for
+  a nominal charge for copying etc.
+
+DESCRIPTION:
+
+  pstricks.tex is an extensive collection of PostScript macros that is
+  compatible with most TeX macro packages, including Plain TeX , LaTeX
+  AmSTeX and AmS-LaTeX. Included are macros for color, graphics, rotation,
+  trees and overlays. It has many special features, including:
+
+    * There is a wide variety of graphics (picture drawing) macros, with
+      a flexible interface and with color support. All lines and outlines
+      can be solid, dotted or dashed. Lines and curves can have arrowheads,
+      t-bars, brackets or circles on the ends. Regions can be filled
+      with solid colors, lines or crosshatch.
+    * There is support for polar and cartesian coordinate systems.
+    * There are macros for plots and axes.
+    * Nested rotations can be made with respect to the physical page.
+    * There are flexible node macros, useful for trees, mathematical
+      diagrams, and linking information of any kind.
+    * There is a powerful loop macro that is useful for making pictures.
+    * There are macros for coloring or shading the cells of tables.
+
+  PSTricks puts the icing (PostScript) on your cake (TeX)!
+
+GETTING PSTRICKS
+
+  The PSTricks package is available from
+
+    Princeton.EDU:/pub/tvz
+
+  and from several TeX ftp and mail-server archives.
+
+  A bug list pstricks.bug is kept up-to-date on Princeton.EDU:/pub/tvz.
+
+  Send requests to get on or off a PSTricks mailing list to the author.
+
+FILES:
+
+  Inputs:
+    pstricks.con : PSTricks configuration file.
+    pstricks.tex : Main macro file, for use with pstricks.pro.
+    pstricks.sty : Same as pstricks.tex.
+    pst-node.tex : Nodes and node connections, for use with pst-node.pro.
+    pst-node.sty : Same as pst-node.tex.
+    pst-plot.tex : Plots and axes.
+    pst-plot.sty : Same as pst-plot.tex.
+    pst-coil.tex : Coil and zigzag graphics objects, for use with pst-coil.pro.
+    pst-coil.sty : Same as pst-coil.tex.
+    gradient.tex : Gradient fill style.
+    gradient.sty : Same as gradient.tex.
+    charpath.tex : For filling and stroking character paths.
+    charpath.sty : Same as charpath.tex.
+    textpath.tex : For typesetting text along a path.
+    textpath.sty : Same as textpath.tex.
+    pst2eps.tex  : For creating eps files.
+    pst2eps.sty  : Same as pst2eps.tex.
+    multido.tex  : Contains the \multido macro.
+    multido.sty  : Same as multido.tex.
+    colortab.tex : For adding color to tables and other alignments.
+    colortab.sty : Same as colortab.tex.
+    fancybox.sty : Tips and tricks for LaTeX LR-boxes.
+
+  PostScript:
+    pstricks.pro : PostScript prologue for pstricks.tex and Rokicki's dvips.
+    pst-node.pro : PostScript prologue for pst-node.tex.
+    pst-coil.pro : PostScript prologue for pst-coil.tex.
+    gradient.pro : PostScript prologue for gradient.tex.
+    textpath.pro : PostScript prologue for textpath.tex.
+
+  Contributed:
+    palette.tex  : A palette of RGB colors, by Fred Knight.
+    palette.sty  : The same as palette.tex.
+    piechart.sh  : Unix shell script for making pie charts, by Denis Girou.
+    pie-data.sh  : Supplement to piechart.sh, by Denis Girou.
+
+  Documentation:
+    read-me.pst  : This file (ASCII).
+    pst-usr1.ps  : User's Guide, part 1 (PostScript).
+    pst-usr2.ps  : User's Guide, part 2 (PostScript).
+    pst-usr3.ps  : User's Guide, part 3 (PostScript).
+    pst-usr4.ps  : User's Guide, part 4 (PostScript).
+    pst-quik.ps  : Quick Reference (PostScript).
+    changes.tex  : List of changes (LaTeX).
+    samples.tex  : A file of samples (LaTeX).
+    pst-test.tex : A test file (Plain TeX).
+    filetest.tex : Test various read and write operations (Plain TeX).
+    filetest.dat : A data file for testfile.tex (ASCII).
+    filetest.raw : PostScript input for testfile.tex (ASCII).
+    chartest.tex : Test file for charpath.tex (Plain TeX).
+    denis1.tex   : Another test file for charpath.tex (Plain TeX).
+    denis2.tex   : Another test file for charpath.tex (Plain TeX).
+    tp-test.tex  : Test file for textpath.tex (LaTeX).
+    tp-test.ps   : Output from tp-test.tex (PostScript).
+    multido.doc  : Documentation for multido.tex (LaTeX).
+    fancybox.doc : Documentation for fancybox.sty (LaTeX).
+    colortab.doc : Documentation for colortab.tex (LaTeX).
+
+  Sources:
+    pstricks.doc : Source for pstricks.tex and pstricks.pro.
+    pst-node.doc : Source for pst-node.tex and pst-node.pro.
+    pst-coil.doc : Source for pst-coil.tex and pst-coil.pro.
+    pst-code.tex : LaTeX file for typesetting pstricks.doc.
+    pst-user.tex : LaTeX source for User's Guide.
+    pst-user.sty : Hacks for pst-user.tex.
+    defaults.pst : List of parameter defaults, for pst-user.tex.
+    pst-user.ind : Index for User's Guide.
+    tvz-hax.sty  : Hacks for pst-user.tex and pst-code.tex.
+    tvz-user.sty : Hacks for pst-user.tex.
+    tvz-code.sty : Hacks for pst-code.tex.
+    npsfont.sty  : Font macros for pst-user.tex.
+    pst-make.tex : For making .tex and .pro files
+
+SYSTEM REQUIREMENTS:
+
+  You need a PostScript output device and a DVI-to-PS converter, of
+  course.
+
+  BigTeX is necessary if using AmS-LaTeX, or to use all the
+  features with LaTeX.
+
+  A good PostScript screen previewer is very helpful.
+
+UPGRADING FROM EARLIER VERSIONS
+
+  !!!! Typeset and read changes.tex carefully !!!!
+
+  You need to reinstall the package in its entirety.
+
+  There are a few incompatible changes from v0.92,
+  and many from earlier versions (see changes.tex).
+
+  If using seminar.sty, you must upgrade to seminar.sty v0.93 or
+  the frame styles in semcolor.sty won't work.
+
+PRINTING THE USER'S GUIDE:
+
+  The User's Guide is distributed in PostScript format as
+  pst-usr1.ps, pst-usr2.ps and pst-usr3.ps.
+  There is also a quick reference, pst-quik.ps.
+
+  Sun Newsprint/Pageview users: See relevant section below.
+
+  The user's guide should print adequately on A4 paper, and it should
+  be possible to bind the users guide with or without 2-sided printing.
+  However, if you are a perfectionist, you can recompile pst-user.tex
+  with the a4 or twoside option, AFTER installing PSTricks. Good luck.
+
+  The User's Guide uses less than 150K of virtual memory, which is well
+  below the minimal PostScript configuration. If you run out of memory,
+  try turning off the printer to flush out stuff left in memory
+  from previous jobs.
+
+  Any other problems printing the .ps files should be reported to me.
+  However, you are on your own if you choose to typeset the LaTeX source
+  (pst-user.tex). LaTeXing pst-user.tex is NOT a good way to test PSTricks,
+  as there are too many other macros involved.
+
+INSTALLATION FOR USERS OF ROKICKI'S DVIPS:
+
+  1. Put the input files where your TeX looks for inputs.
+
+  2. Put the PostScript .pro files where dvips looks for headers.
+     Probably /usr/lib/tex/ps on unix systems (if you cannot
+     write to this directory, put them in another directory and
+     include the path in the definition of \pstheader in pstricks.con).
+
+  3. Typeset the LaTeX file samples.pst as a test and to see the samples.
+
+  3. Have fun!
+
+INSTALLATION FOR USERS OF ARBORTEXT'S DVIPS AND TEXTURES:
+
+  1. Examine the configuration file pstricks.con.
+     Remove the configuration for Rokicki's dvips from the top of the file.
+     Replace it by the configuration for Arbortext's dvips or Textures,
+     which can be found towards the end of pstricks.con.
+
+  2. If using Textures, decide whether you want to use a header file.
+
+  3. Examine the end of pst-make.tex, and make changes if you do not want
+     to use a header file. Run pst-make.tex.
+
+  4. Follow the instructions above for Rokicki's dvips, using
+     the pstricks.tex/.pro, pst-coil.tex/.pro and pst-node.tex/.pro
+     files that you generated rather than the ones that came with the package.
+
+INSTALLATION FOR USERS OF OTHER DVI-TO-PS DRIVERS:
+
+  PSTricks should be adaptable to other drivers with similar capabilities.
+  Feel free to contact me for help.
+
+  1. Use pstricks.doc, pst-node.doc and pst-coil.doc as input files,
+     rather than the corresponding .tex files.
+
+  2. Examine the configuration file pstricks.con.
+     Remove the configuration for Rokicki's dvips from the beginning
+     of the file.
+     Try to define the required commands appropriately for you driver,
+     perhaps using some of the configurations at the end for inspiration.
+     See the instructions in pstricks.con for details.
+
+  3. Run pst-test.tex through Plain TeX until you get things to work
+     as well as possible. You may not be able to use all of PSTricks features,
+     but if you can define \pstverb and \pstunit, you at least can use
+     all the graphics objects.
+
+  4. Decide whether your driver supports inclusion of a PostScript
+     header file. (PSTricks runs much more efficiently with a header,)
+
+  5. See the end of pst-make.tex, and modify if not using a header file.
+     Run pst-make through Plain TeX or LaTeX.
+
+  4. Follow the instructions above for Rokicki's dvips, using
+     the pstricks.tex/.pro, pst-coil.tex/.pro and pst-node.tex/.pro
+     files that you generated rather than the ones that came with the package.
+
+CREATING A TEX FORMAT WITH PSTRICKS PRELOADED:
+
+  See pstricks.con for instructions.
+
+TIPS FOR HACKERS:
+
+  The files pstricks.doc, pst-node.doc and pst-coil.doc contain
+  documentation and code, using Frank Mittelbach's doc system.
+  You can typeset pstricks.doc and pst-node.doc, if desired, by
+  running LaTeX on pst-code.tex. See pst-code.tex for details.
+  Don't expect too much from the documentation.
+
+  If you want to modify the internals of PSTricks, use pstricks.doc,
+  pst-node.doc and pst-coil.doc as your input files, instead of the
+  corresponding .tex files. This allows you to modify
+  both the TeX and the PostScript macros.
+
+  When you don't expect to make more changes for a while, run
+  pst-make.tex to generate new compact macro files and new
+  PostScript header file (if desired).
+
+  Beware that the internal code in PSTricks is still unstable.
+
+USING PSTRICKS WITH SUN'S PAGEVIEW/NEWSPRINT/OPENWINDOWS
+
+  Sun's PageView/NeWSPrint/OpenWindows have many bugs.
+  Workarounds for several known problems of these have been coded into
+  PSTricks. A workaround for another bug is described below. Report other
+  problems to me.
+
+  WARNING: The following has not been tested with PSTricks v0.93.
+
+  A bug under Sun's PageView/NeWSprint 3.0 (perhaps fixed in 3.0.1),
+  causes vertical arrows to disturb the lines. To see if you have this problem,
+  try previewing the section in pst-usr*.ps on axes.
+
+  As a workaround, add the following to the customization section of
+  pstricks.con, or replace the definitions of BeginArrow and EndArrow
+  in pstricks.doc with the following and rerun pst-make.tex.
+
+    \pst@def{BeginArrow}<%
+      ADict begin
+        /@y1 ED /@x1 ED   % Tip
+        /@y2 ED /@x2 ED   % Tail
+        gsave
+          @x1 @y1 T
+          /@angle @x1 @x2 sub @y2 @y1 sub \tx@Atan def
+          @angle rotate
+          newpath>
+    \pst@def{EndArrow}<%
+          @x2 @y2
+          currentpoint
+          grestore
+        @angle matrix identmatrix rotate transform
+        @y1 add exch @x1 add exch
+      end>
+
+  The arrow styles <<->>, >-<, >>-<<, and |*-|* will not work
+  right with this patch.
+
+CONTRIBUTING TO PSTRICKS
+
+  Please send me:
+
+   * Whatever you can spare.
+   * Pretty/interesting/clever things you have created with PSTricks,
+     for possible inclusion in the User's Guide or samples.tex. Don't
+     be bashful!
+   * High level macros for trees/graphs, math diagrams, and linguistic
+     diagrams, based on PSTricks' node macros.
+   * Any other macros based on PSTricks.
+   * Contributions to the Tips and Tricks section of the User's Guide.
+   * Reports on +/- experiences with DVI-to-PS converters and previewers.
+   * Bug reports.
+   * pstricks.doc -- cleaned up, optimized, and documented.
+   * To Nepal.
+
+PSTRICKS AND SEMINAR.STY
+
+  The PSTricks package grew out of macros originally written for the
+  seminar.sty package.  seminar.sty is a LaTeX style for slides and notes.
+  seminar.sty, combined with pstricks.tex and your favorite macros for
+  inclusion of EPS files, make a complete TeX presentation software package.
+
+  PSTricks v0.93 works with seminar.sty version 0.93, and maybe later
+  versions as well. The seminar.sty package is also available from
+  Princeton.EDU, and perhaps from wherever else you got PSTricks.
+
+
+ACKNOWLEDGEMENTS:
+
+  The basic idea for the node macros is from Emma Pease's tree-dvips.sty.
+
+  The algorithm in the \pscurve macro was adapted from a C program by
+  Shamim Zvonko Mohamed.
+
+  Thanks to Geoffrey Tobin, David Jaffe, Thomas Worsch, Denis Girous,
+  and many other users for helpful comments.
+
+  The author is thankful to Frank Mittelbach for his documentation system.
+
+  Thanks to various contributors to samples.pst.
+
+
+DISCLAIMERS:
+
+  This is just an elaborate hack. Not for use as children's sleepware.
+
+%% END read-me.pst

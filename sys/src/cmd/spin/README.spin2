@@ -1,0 +1,171 @@
+SPIN - version 2.2 - February, 1995
+
+===================
+General Description
+===================
+   SPIN is an efficient on-the-fly verification system
+   (or `model checker') for concurrent asynchronous systems,
+   such as data communication protocols, distributed
+   operating systems, database systems, etc.
+   It can be used to prove both safety and liveness properties,
+   including all correctness requirements expressible in linear
+   time temporal logic.
+   SPIN can handle dynamically growing and shrinking numbers of
+   asynchronous processes, supports both rendezvous and buffered
+   message passing, and communication through shared memory.
+
+   The software includes a random simulator, exhaustive and reduced
+   reachability analyzers, and an efficient implementation of the
+   supertrace verification technique to handle very large verification
+   problems.
+
+   Also included is an useful X-windows interface to the SPIN
+   based on Tcl/Tk (called XSPIN, and distributed as: xspin.tar)
+
+   There are currently close to 1,100 users of the SPIN software.
+   See the mailing list information at the end of this file.
+
+==================
+Installation Notes
+==================
+   cd to directory Src from this distribution and type `make'.
+
+   Spin should compile cleanly without compiler warnings.
+   Install the executable version of spin in a directory that
+   is within your default search path (such as your home bin
+   directory, or /usr/local/bin etc.)
+
+   You may have to adapt the makefile to pick up an ANSI C
+   standard C compiler (gcc, for instance, should work).
+   Spin assumes that the standard C preprocessor cpp is stored
+   in file "/lib/cpp".  On some systems this is not so.
+   On a Solaris system, for instance, you have to change the
+   string "/lib/cpp" in file Src/main.c to "/usr/ccs/lib/cpp".
+
+   To test the basic sanity of the Spin executable, do:
+	$ cd Test
+	$ spin -V
+	Spin Version 2.0 -- 1 January 1995
+	$ spin hello
+	passed first test!
+	$ spin -a loops
+	$ cc -o pan pan.c	# or: gcc -ansi -o pan pan.c
+	$ pan
+	(Spin Version 2.0 -- 1 January 1995)
+	...no errors, check:
+	      17 states, stored
+	       5 states, matched
+	      22 transitions (= stored+matched)
+	       0 atomic steps
+	...
+	$ pan -l
+	...no errors, check:
+	      17 states, stored (31 visited)
+	      17 states, matched
+	      48 transitions (= visited+matched)
+	       0 atomic steps
+	$ pan -a
+	...1 error, check:
+	      15 states, stored (28 visited)
+	       3 states, matched
+	      31 transitions (= visited+matched)
+	       0 atomic steps
+	...
+	$ spin -t -p loops
+	...prints error-trace from above
+	$ rm -f pan*  loops.trail	# clean up debris from tests
+
+==============================
+Updates - Quick Upgrade Method
+==============================
+   SPIN will continue to evolve.  Small bug-fixes will be made
+   available as soon as they are made in the spin tar file.
+   To avoid having to reload and reinstall all sources for each
+   minor update, there is also a shell-script called `upgrades'
+   in this directory that you can execute in your existing Src
+   directory to apply all changes.  This is safe to do even if
+   you sources happen already to be up to date, and independent
+   of the particular version of SPIN that you have (as long as
+   it is SPIN version 2.0 or later).  Each modification of the
+   sources will also be described in the file Doc/V2.Updates.
+   (All modifications made to the Version 1 sources between
+   January 1991 and December 1994 remain available in the file
+   Doc/V1.Updates, although the version 1 sources are no longer
+   distributed.)
+
+=============
+Documentation
+=============
+0  A short manual page on SPIN is included in: Doc/spin.1
+
+1  A basic manual is included in: Doc/Manual.ps
+
+2  A short checklist of the mechanics of setting
+   up and performing verifications with SPIN is in: Doc/Roadmap
+   (For new users it may be easier to get started by using Xspin.)
+
+3  For a quick introduction to SPIN, see the tutorial in:
+   Computer Networks, Vol 25, No. 9, Apr. 1993, pp. 981-1017.
+
+4  A more detailed description of the software and its
+   applications can be found in:
+   `Design and Validation of Computer Protocols,'
+   Gerard J. Holzmann, Prentice Hall, 1991, ISBN 0-13-539925-4.
+
+   More explanation on chapter 6 is in:   Doc/Book.Ch6.add
+   Errata are in:                         Doc/Book.Errata
+   SPIN examples used in the book are in: Doc/Book.samples
+
+5  The main changes between versions 1 and 2 of SPIN are described
+   in detail in: Doc/WhatsNew.ps
+
+6  A partial list of projects at various places to extend the
+   SPIN software is given in: Doc/Spin.projects
+
+7  A new set of course notes, documenting all the algorithms
+   used in SPIN version 2.0, is in preparation.  A draft will
+   be made available through netlib later this year.
+
+=======================
+SPIN-Users Mailing List
+=======================
+   Starting with SPIN version 2.0 (January 1995) a mailing list
+   of SPIN users is being maintained.  With every a new release of
+   the software a brief update to this mailing list will be
+   sent out.  The update will also occassionally include
+   answers to frequently asked questions, describe main new
+   applications or projects with SPIN, and can serve to establish
+   contacts between people using the SPIN software in different places.
+
+   To get on the list, email a one line message: "subscribe to SPIN list"
+   to gerard@research.att.com and you will be kept up to date.
+
+   Anyone who wants to announce an extension of the basic SPIN
+   software, to seek advice from or contacts with other SPIN users,
+   to make available postscript versions of papers on SPIN usage
+   (e.g. by anonymous ftp or as a URL on the internet) for feedback
+   or communication, can also submit such items for inclusion in
+   announcements to the mailing list.
+
+   The current URL for SPIN software is:
+   http://netlib.att.com/netlib/att/cs/home/holzmann-spin.html
+
+   The URL for SPIN News letters is:
+   http://netlib.att.com/netlib/spin/news.html
+
+=============
+PLAN9 VERSION
+=============
+
+This version differs from the one distributed through
+netlib in just 3 points:  the makefile refers to /bin/yacc
+instead of /usr/bin/yacc,  the include file <memory.h> is
+omitted from spin.h, and the include file <malloc.h> is
+omitted from main.c
+
+To compile on plan9, execute `make' in the ape environment:
+	/rc/bin/ape/psh
+	make
+
+Xspin is not installed here - pending a more complete
+implementation of the X libraries.

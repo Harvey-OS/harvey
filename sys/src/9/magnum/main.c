@@ -37,6 +37,7 @@ main(void)
 	active.machs = 1;
 	machinit();
 	arginit();
+	screentype(consname[0]);
 	confinit();
 	xinit();
 	printinit();
@@ -95,13 +96,14 @@ tlbinit(void)
 void
 vecinit(void)
 {
-	ulong *p, *q;
 	int size;
+	ulong *p, *q;
 
 	p = (ulong*)EXCEPTION;
 	q = (ulong*)vector80;
 	for(size=0; size<4; size++)
 		*p++ = *q++;
+
 	p = (ulong*)UTLBMISS;
 	q = (ulong*)vector0;
 	for(size=0; size<0x80/sizeof(*q); size++)
@@ -211,6 +213,7 @@ exit(int ispanic)
 	int i;
 
 	u = 0;
+	wipekeys();
 	lock(&active);
 	active.machs &= ~(1<<m->machno);
 	active.exiting = 1;
@@ -237,7 +240,7 @@ enum
 ulong
 meminit(void)
 {
-	long x, i;
+	long x, i, j;
 	ulong *mirror, *zero, save0;
 	ulong creg;
 
@@ -266,20 +269,18 @@ meminit(void)
 	if((*mirror != x) || (*mirror == *zero))
 		setsimmtype(1);
 
-	/*
-	 * size memory, looking at every 8MB.
-	 * this should catch the one possible 1MB bank
-	 * after one or more 4MB banks.
-	 */
-	for(i = 8; i < 128; i += 8){
-		mirror = (ulong*)(KSEG1+(i*1024L*1024L));
+	for(i = 2; i < 128; i += 1){
+		mirror = (ulong*)(KSEG1+((i+1)*1024L*1024L-4));
 		*mirror = x;
-		*zero = ZeroVal;
 		wbflush();
-		if(*mirror != x || *mirror == *zero)
+		for(j = 0; j < i; j++){
+			zero = (ulong*)(KSEG1+((j+1)*1024L*1024L-4));
+			*zero = ~x;
+			wbflush();
+		}
+		if(*mirror != x)
 			break;
 		x += ZeroInc;
-		zero = mirror;
 	}
 
 	/*
@@ -319,7 +320,7 @@ confinit(void)
 	conf.base1 = 4*1024*1024;
 
 	conf.npage = conf.npage0+conf.npage1;
-	conf.upages = (conf.npage*70)/100;
+	conf.upages = (conf.npage*(70-screenbits()*2))/100;
 
 	ktop = PGROUND((ulong)end);
 	ktop = PADDR(ktop);
@@ -331,13 +332,9 @@ confinit(void)
 		mul = 2;
 	conf.nmach = 1;
 	conf.nproc = 20 + 50*mul;
-	conf.nswap = conf.nproc*80;
+	conf.nswap = conf.nproc*160;
 	conf.nimage = 50;
 	conf.copymode = 0;			/* copy on write */
-	conf.ipif = 4;
-	conf.ip = mul*64;
-	conf.arp = 32;
-	conf.frag = 128;
 
 	if(cpuserver)
 		conf.nproc = 500;

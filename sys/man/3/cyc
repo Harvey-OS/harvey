@@ -57,7 +57,7 @@ Thenceforth all activity on
 will be mediated by the mount driver
 .IR mnt (3)).
 .SH FILES
-.TF \w'/sys/src/fs/cycXXXX'u
+.TF /sys/src/fs/cyc
 .TP
 .B /sys/src/fs/cyc
 Directory of on-board software for the Cyclone.
@@ -68,6 +68,8 @@ and
 .I
 SQFBR User's Manual,
 Cyclone Microsystems, Inc., New Haven, CT, 1-203-7865536
+.SH SOURCE
+.B /sys/src/9/power/devcyc.c
 .SH BUGS
 The driver is specific to the SGI Power Series, although the device
 should operate on any VME bus.

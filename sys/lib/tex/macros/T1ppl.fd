@@ -1,0 +1,49 @@
+%Filename: T1ppl.fd
+%Created by: tex 16778palatino
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{ppl}{}
+
+\DeclareFontShape{T1}{ppl}{b}{n}{
+   <-> pplbq
+}{}
+
+\DeclareFontShape{T1}{ppl}{b}{sc}{
+   <-> pplbcq
+}{}
+
+\DeclareFontShape{T1}{ppl}{b}{it}{
+   <-> pplbiq
+}{}
+
+\DeclareFontShape{T1}{ppl}{b}{sl}{
+   <-> pplboq
+}{}
+
+\DeclareFontShape{T1}{ppl}{m}{n}{
+   <-> pplrq
+}{}
+
+\DeclareFontShape{T1}{ppl}{m}{sc}{
+   <-> pplrcq
+}{}
+
+\DeclareFontShape{T1}{ppl}{m}{it}{
+   <-> pplriq
+}{}
+
+\DeclareFontShape{T1}{ppl}{m}{sl}{
+   <-> pplroq
+}{}
+
+\DeclareFontShape{T1}{ppl}{bx}{n}{<->ssub * ppl/b/n}{}
+\DeclareFontShape{T1}{ppl}{bx}{sc}{<->ssub * ppl/b/sc}{}
+\DeclareFontShape{T1}{ppl}{bx}{it}{<->ssub * ppl/b/it}{}
+\DeclareFontShape{T1}{ppl}{b}{ui}{<->sub * ppl/b/it}{}
+\DeclareFontShape{T1}{ppl}{bx}{ui}{<->ssub * ppl/b/ui}{}
+\DeclareFontShape{T1}{ppl}{bx}{sl}{<->ssub * ppl/b/sl}{}
+\DeclareFontShape{T1}{ppl}{m}{ui}{<->sub * ppl/m/it}{}
+
+\endinput

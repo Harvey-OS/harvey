@@ -73,7 +73,7 @@ main(int argc, char *argv[]){
 	clrline(line, r, g, b, a, chan, wid);
 	out=picopen_w("OUT", "runcode", x0, y0, wid, hgt, chan, (char **)0, (char *)0);
 	if(out==0){
-		picerror(argv[0]);
+		perror(argv[0]);
 		exits("create output");
 	}
 	for(y=0;y!=hgt;y++) picwrite(out, line);

@@ -1,0 +1,143 @@
+%% 
+%% This is file `english.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% english.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "3.3c",
+%%%     date            = "26 June 1994",
+%%%     time            = "00:40:45 MET",
+%%%     filename        = "english.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "46572 339 1547 13293",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, english",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the english language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionsenglish
+\else
+  \selectlanguage{english}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{english.sty}[1994/06/26 v3.3c
+         English support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty\fi
+\originalTeX
+\ifx\undefined\l@english
+  \@nopatterns{English}
+  \adddialect\l@english0\fi
+\adddialect\l@american\l@english
+\addto\captionsenglish{%
+  \def\prefacename{Preface}%
+  \def\refname{References}%
+  \def\abstractname{Abstract}%
+  \def\bibname{Bibliography}%
+  \def\chaptername{Chapter}%
+  \def\appendixname{Appendix}%
+  \def\contentsname{Contents}%
+  \def\listfigurename{List of Figures}%
+  \def\listtablename{List of Tables}%
+  \def\indexname{Index}%
+  \def\figurename{Figure}%
+  \def\tablename{Table}%
+  \def\partname{Part}%
+  \def\enclname{encl}%
+  \def\ccname{cc}%
+  \def\headtoname{To}%
+  \def\pagename{Page}%
+  \def\seename{see}%
+  \def\alsoname{see also}}
+\let\captionsamerican\captionsenglish
+\def\dateenglish{%
+\def\today{\ifcase\day\or
+  1st\or 2nd\or 3rd\or 4th\or 5th\or
+  6th\or 7th\or 8th\or 9th\or 10th\or
+  11th\or 12th\or 13th\or 14th\or 15th\or
+  16th\or 17th\or 18th\or 19th\or 20th\or
+  21st\or 22nd\or 23rd\or 24th\or 25th\or
+  26th\or 27th\or 28th\or 29th\or 30th\or
+  31st\fi~\ifcase\month\or
+  January\or February\or March\or April\or May\or June\or
+  July\or August\or September\or October\or November\or December\fi
+  \space \number\year}}
+\def\dateamerican{%
+\def\today{\ifcase\month\or
+  January\or February\or March\or April\or May\or June\or
+  July\or August\or September\or October\or November\or December\fi
+  \space\number\day, \number\year}}
+\addto\extrasenglish{}
+\addto\noextrasenglish{}
+\let\extrasamerican\extrasenglish
+\let\noextrasamerican\noextrasenglish
+\selectlanguage{english}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `english.sty'.

@@ -1,6 +1,7 @@
 #include "mem.h"
 
 #define OP16	BYTE	$0x66
+#define NOP	XCHGL	AX,AX
 
 /*
  *	about to walk all over ms/dos - turn off interrupts
@@ -104,8 +105,8 @@ TEXT	mode32bit(SB),$0
 	LEAL	tpt-KZERO(SB),AX	/* get phys addr of temporary page table */
 	ADDL	$(BY2PG-1),AX		/* must be page alligned */
 	ANDL	$(~(BY2PG-1)),AX	/* ... */
-	MOVL	$(4*1024),CX		/* pte's per page */
-	MOVL	$((((4*1024)-1)<<PGSHIFT)|PTEVALID|PTEKERNEL|PTEWRITE),BX
+	MOVL	$(1024),CX		/* pte's per page */
+	MOVL	$((((1024)-1)<<PGSHIFT)|PTEVALID|PTEKERNEL|PTEWRITE),BX
 setpte:
 	MOVL	BX,-4(AX)(CX*4)
 	SUBL	$(1<<PGSHIFT),BX
@@ -116,27 +117,19 @@ setpte:
 	 *  16 meg of memory to 0 thru 16meg and to KZERO thru KZERO+16meg
 	 */
 	MOVL	AX,BX
-	ADDL	$(4*BY2PG),AX
+	ADDL	$(BY2PG),AX
 	ADDL	$(PTEVALID|PTEKERNEL|PTEWRITE),BX
 	MOVL	BX,0(AX)
 	MOVL	BX,((((KZERO>>1)&0x7FFFFFFF)>>(2*PGSHIFT-1-4))+0)(AX)
-	ADDL	$BY2PG,BX
-	MOVL	BX,4(AX)
-	MOVL	BX,((((KZERO>>1)&0x7FFFFFFF)>>(2*PGSHIFT-1-4))+4)(AX)
-	ADDL	$BY2PG,BX
-	MOVL	BX,8(AX)
-	MOVL	BX,((((KZERO>>1)&0x7FFFFFFF)>>(2*PGSHIFT-1-4))+8)(AX)
-	ADDL	$BY2PG,BX
-	MOVL	BX,12(AX)
-	MOVL	BX,((((KZERO>>1)&0x7FFFFFFF)>>(2*PGSHIFT-1-4))+12)(AX)
 
 	/*
-	 *  point processor to top level page & turn on paging
+	 *  point processor to top level page & turn on paging & make
+	 *  supervisor obey the R/W bit in the page map
 	 */
 	MOVL	AX,CR3
 	MOVL	CR0,AX
-	ORL	$0X80000000,AX
-	ANDL	$~(0x8|0x2),AX	/* TS=0, MP=0 */
+	ORL	$0X80010000,AX
+	ANDL	$~(0x40000000|0x20000000|0x8|0x2),AX	/* CD=0, NW=0, TS=0, MP=0 */
 	MOVL	AX,CR0
 
 	/*
@@ -172,7 +165,7 @@ loop:
 GLOBL	mach0+0(SB), $MACHSIZE
 GLOBL	u(SB), $4
 GLOBL	m(SB), $4
-GLOBL	tpt(SB), $(BY2PG*6)
+GLOBL	tpt(SB), $(BY2PG*3)
 
 /*
  *  gdt to get us to 32-bit/segmented/unpaged mode
@@ -251,7 +244,6 @@ TEXT	ins(SB), $0
 	OP16; INL
 	RET
 
-
 /*
  *  input a string of shorts from a port
  */
@@ -261,6 +253,16 @@ TEXT	inss(SB),$0
 	MOVL	a+4(FP),DI
 	MOVL	c+8(FP),CX
 	CLD; REP; OP16; INSL
+	RET
+
+/*
+ * input a long from a port
+ */
+TEXT	inl(SB), $0
+
+	MOVL	p+0(FP), DX
+	XORL	AX, AX
+	INL
 	RET
 
 /*
@@ -295,6 +297,15 @@ TEXT	outss(SB),$0
 	RET
 
 /*
+ * output a long to a port
+ */
+TEXT	outl(SB), $0
+	MOVL	p+0(FP), DX
+	MOVL	s+4(FP), AX
+	OUTL
+	RET
+
+/*
  *  output a string of longs to a port
  */
 TEXT	outsl(SB),$0
@@ -311,6 +322,15 @@ TEXT	outsl(SB),$0
 TEXT	tas(SB),$0
 	MOVL	$0xdeadead,AX
 	MOVL	l+0(FP),BX
+	XCHGL	AX,(BX)
+	RET
+
+/*
+ *  exchange 2 32-bit words, this is an interlocked (LOCK#) instruction
+ */
+TEXT	ilputl(SB),$0
+	MOVL	v+4(FP),AX
+	MOVL	a+0(FP),BX
 	XCHGL	AX,(BX)
 	RET
 
@@ -500,7 +520,7 @@ TEXT	intr31(SB),$0
 	JMP	intrcommon
 TEXT	intr32(SB),$0
 	PUSHL	$0
-	PUSHL	$16
+	PUSHL	$32
 	JMP	intrcommon
 TEXT	intr33(SB),$0
 	PUSHL	$0
@@ -553,10 +573,12 @@ intrcommon:
 	CALL	trap(SB)
 	POPL	AX
 	POPAL
+	NOP
 	POPL	GS
 	POPL	FS
 	POPL	ES
 	POPL	DS
+	NOP
 	ADDL	$8,SP	/* error code and trap type */
 	IRETL
 
@@ -574,10 +596,12 @@ intrscommon:
 	CALL	trap(SB)
 	POPL	AX
 	POPAL
+	NOP
 	POPL	GS
 	POPL	FS
 	POPL	ES
 	POPL	DS
+	NOP
 	ADDL	$8,SP	/* error code and trap type */
 	IRETL
 
@@ -765,4 +789,119 @@ l20:
 	SHRL	$8,BX
 	MOVB	BX,-1(DI)(CX*1)
 	LOOP	l20
+	RET
+
+/*
+ * The DP8390 ethernet chip needs some time between
+ * successive chip selects, so we force a jump into
+ * the instruction stream to break the pipeline.
+ */
+TEXT dp8390inb(SB), $0
+	MOVL	p+0(FP),DX
+	XORL	AX,AX				/* CF = 0 */
+	INB
+
+	JCC	_dp8390inb0			/* always true */
+	MOVL	AX,AX
+
+_dp8390inb0:
+	RET
+
+TEXT dp8390outb(SB), $0
+	MOVL	p+0(FP),DX
+	MOVL	b+4(FP),AX
+	OUTB
+
+	CLC					/* CF = 0 */
+	JCC	_dp8390outb0			/* always true */
+	MOVL	AX,AX
+
+_dp8390outb0:
+	RET
+
+/*
+ * dsp outb string called from devdsp.c
+ */
+	TEXT	dspoutb+0(SB), $0
+
+	MOVL	a+4(FP), BX
+	MOVL	n+8(FP), CX
+
+	MOVL	base+0(FP), DX
+	ADDL	$2, DX			/* Pcontrol */
+
+	MOVL	c2+12(FP), DI
+	MOVL	c3+16(FP), SI
+
+dsploop:
+	MOVL	DI, AX			/* normal */
+	OUTB
+
+	SUBL	$1, CX
+	CMPL	CX, $0
+	JLT	dspout
+
+	SUBL	$2, DX			/* Pdata */
+	MOVB	(BX), AX
+	ADDL	$1, BX
+	OUTB
+
+	ADDL	$2, DX			/* Pcontrol */
+	MOVL	SI, AX			/* strobe */
+	OUTB
+
+	JMP	dsploop
+
+dspout:
+	RET
+
+
+/*
+ *  return cpu type (586 == pentium or better)
+ */
+TEXT	x86cpuid(SB),$0
+
+	PUSHFL
+	MOVL	0(SP),AX
+	XORL	$0x240000,AX
+	PUSHL	AX
+	POPFL
+	PUSHFL
+	MOVL	0(SP),AX
+	XORL	4(SP),AX
+	MOVL	AX, BX
+	ANDL	$0x40000,BX	/* on 386 we can't change this bit */
+	JZ	is386
+	ANDL	$0x200000,AX	/* if we can't change this, there's no CPUID */
+	JZ	is486
+	MOVL	$1,AX
+	/* CPUID */
+	 BYTE $0x0F
+	 BYTE $0xA2
+	JMP	done
+is486:
+	MOVL	$(4<<8),AX
+	MOVL	$0,DX
+	JMP	done
+is386:
+	MOVL	$(3<<8),AX
+	MOVL	$0,DX
+done:
+	MOVL	a+0(FP),CX
+	MOVL	AX,0(CX)
+	MOVL	d+4(FP),CX
+	MOVL	DX,0(CX)
+	POPFL
+	POPL	BX
+	RET
+
+/*
+ *  basic timing loop to determine CPU frequency
+ */
+TEXT	aamloop(SB),$0
+
+	MOVL	c+0(FP),CX
+aaml1:
+	AAM
+	LOOP	aaml1
 	RET

@@ -1,0 +1,38 @@
+.TH ANSI2KNR 1 "29 July 1994"
+.SH NAME
+ansi2knr \- convert ANSI C to Kernighan & Ritchie C
+.SH SYNOPSIS
+.I ansi2knr
+[-Ovarargs=convert] input_file output_file
+.SH DESCRIPTION
+If no output_file is supplied, output goes to stdout.
+.br
+If the -Ovarargs=convert switch is supplied,
+.I ansi2knr
+will attempt to convert a ... argument to va_alist and va_dcl.
+If this switch is not supplied,
+.I ansi2knr
+will simply drop any such arguments.
+.br
+There are no error messages.
+.sp
+.I ansi2knr
+recognizes functions by seeing a non-keyword identifier at the left margin,
+followed by a left parenthesis, with a right parenthesis as the last
+character on the line.  It will recognize a multi-line header provided that
+the last character of the last line of the header is a right parenthesis,
+and no intervening line ends with a left brace or a semicolon.  These
+algorithms ignore whitespace and comments, except that the function name
+must be the first thing on the line.
+.sp
+The following constructs will confuse it:
+.br
+     - Any other construct that starts at the left margin and follows the
+above syntax (such as a macro or function call).
+.br
+     - Macros that tinker with the syntax of the function header.
+.SH AUTHOR
+L. Peter Deutsch <ghost@aladdin.com> wrote the original ansi2knr and
+continues to maintain the current version; most of the code in the current
+version is his work.  ansi2knr also includes contributions by Francois
+Pinard <pinard@iro.umontreal.ca> and Jim Avera <jima@netcom.com>.

@@ -1,0 +1,379 @@
+% ASTROSYM.CAL : AstroSym (Version 1.00, May 1, 1992) - file 5 of 7
+% Peter Schmitt                     eMail: a8131dal@awiuni11.bitnet
+% Institute of Mathematics, University of Vienna    Vienna, Austria
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+beginchar(O+0,U#,U#,0u#); "Sol";
+   D:=2P;                                       % diameter of central circle
+   corners; centers;
+   PEN; draw BC..CL..TC..CR..BC..cycle;                   % main circle
+   Pen; draw fullcircle scaled D shifted CC;              % central circle
+   endchar;
+
+beginchar(O+1,46u#,80u#,16u#); "Mercurius";
+   corners; centers;
+   VV:=(CC-CL) rotated 90;
+     bC := CC-VV;
+   VV:=2VV+vP/3;
+     tL:=CL+VV; tC:=CC+VV; tR:=CR+VV;
+   R:=length(tL-hd-tC);                        % upper circle: outer radius
+   s:=length(TC+vd-tC); a:= angle(R+-+s,s);    % upper partial sector: angle
+   Tl:= (tL-hd) rotatedaround (tC,-a);         % upper circle: outer endpoints
+   Tr:= (tR+hd) rotatedaround (tC, a);
+   tl:= (tL+hd) rotatedaround (tC,-a+10);      % upper circle: inner endpoints
+   tr:= (tR-hd) rotatedaround (tC, a-10);
+   D:=length(CR-CL);                           % central circle: diameter
+   SPEN; cross (bC,BC, 3/2,-2P);                         % bottom cross
+   PEN;
+   draw fullcircle scaled D shifted CC;                  % central circle
+   Pen; Fill
+      ( Tl..(tL-hd){down}..{up}(tR+hd)..Tr        % upper circle: outside
+      & Tr--tr
+      & tr..(tR-hd){down}..{up}(tL+hd)..tl        % upper circle: inside
+      & tl--Tl--cycle
+      );
+   endchar;
+
+beginchar(O+5,44u#,70u#,0u#); "Iuppiter";
+   Corners (P,0,0,P); Centers (2/3,2/7); Top (6/7);
+   RPEN; draw tC--BC;                                   % right vertical bar
+   RPEN rotated 90; draw (CL+hd)--CR;                   % horizontal bar
+   Pen; Fill                                            % left vertical arc
+      ( (CL-vd-hd){tC-CL}..{TL-CC}(TL+(1-sqrt2)*vP-hd)  % - left
+      & (TL+(1-sqrt2)*vP-hd)--(TL+vd-(1-sqrt2)*hP)      % - top
+      & (TL+vd-(1-sqrt2)*hP){CC-TL}..{CL-tC}(CL-vd+hd)  % - right
+      & (CL-vd+hd)--(CL-vd-hd)                          % - bottom
+      & (CL-vd-hd)..cycle
+      );
+   endchar;
+
+beginchar(O+6,44u#,72u#,12u#); "Saturnus";
+   Corners (P,P,d+P,P);
+   Centers (1/6,5/9);                       % BC and TC : left vertical bar
+   RT (1/2,1);                              % bR        : right arc (right)
+   HOR (0,1/3); Top (6/7);                  % tl and tr : upper horizontal bar
+   BOT (2/3,7/9); Bl:=Bl-vd;                % Bl
+   Br:=Br-(0,d)+((P-(P*sqrt(2))*sind(45+20),0) rotated -70);  % Br
+   SPEN; draw tl--tr; draw BC--TC;                            % left cross
+    PEN; draw CC{dir 20}..{down}bR..{dir250}Bl..{dir-70}Br;   % right arc
+   RPEN rotated 20; draw Br--(Br+(hP rotated -70));           % sharpen arc end
+   endchar;
+
+beginchar(O+10,10/11U#,U#,0u#); "Luna";
+  Corners(p,p,p,p); Centers(4/11,1/2);
+  b:=1;                                       % reduction of stroke breadth
+% outer circumference: big circle
+  VV:=(TL-BL)/2; HH:=VV rotated -90;
+  BC:=BL+HH; TC:=TL+HH; % CL=BL+VV;
+  MM:=CL+HH; 
+% outer circumference: calculating small circle
+  R:=length(HH); D:=length(BR-BL);
+  s:=(R+-+(D-R)); t:=s/2R;
+  CC:=CC+hP;
+  D:=length(CR-CC);
+  r := D/2 + s*s/2D;
+  RT (1/2-t,1/2+t);
+  mm:=CC+(r,0);
+% inner circumference:
+  D:=length(mm-MM); R:=R-2(b*P-p); r:=r+2b*(P-p);
+  a:=(R*R-r*r+D*D)/2D;
+  tr:=MM+(a,R+-+a);
+  br:=MM+(a,-(R+-+a));
+Pen;
+Fill ( tR..CL..bR
+     & bR..CC..tR
+     & tR..cycle
+     );
+unfill tr..(CL+2b*hd)..br
+     & br..(CC-2b*hd)..tr
+     & tr..cycle;
+endchar;
+
+beginchar(O+11,1U#,72u#,2u#); "Aries";
+   Corners(p,p,p+d,p);
+   BOT (1/2,1/2);
+                               % upper boundary :
+   vv:=7vd;                         % estimated correction
+   bl:=Bl+vv; br:=Br+vv;            % bl = br : lower middle point
+   TOP (1/6,5/6);                   % (temporary) Tl and Tr : upper arcs (tops) 
+   HH:= Tl-TL; VV:= HH rotated -90;
+   tr:=Tr+VV;                            % tr : right upper halfcircle (centre)
+   D:=length(tr-br); R:=length(HH); s:=D+-+R;   % calculating direction of bar
+   b:=angle(s,R); b:=b+angle(tr-br);
+   Tr:=tr+(HH rotated (b+90));           % Tr :          (left endpoint)
+   tR:=tr+(HH rotated (b-90));           % tR :          (right endpoint)
+   tl:=Tl+VV; a:=180-b;                  % tl : left upper halfcircle (centre)
+   Tl:=tl+(HH rotated (a-90));           % Tl :          (right endpoint)
+   tL:=tl+(HH rotated (a+90));           % tL :          (left endpoint) 
+                                % lower boundary :
+    s:=2(P-p)/sind(90-b);               % caculating |Bl-bl|
+       Bl:= bl-(0,s); Br:=br-(0,s);
+    t:=2(P-p)/length(HH);
+       tl:=Tl-t*(HH rotated (a-90));   % left upper halfcircle: right endpoint
+       tr:=Tr-t*(HH rotated (b+90));   % right upper halfcircle: left endpoint
+   Pen; Fill 
+           ( bl--Tl{dir a}..{dir (a-180)}tL       % left part: upper boundary
+           & tL{dir (a-6)}..{dir (a-180)}tl--Bl   % left part: lower boundary
+           & Bl--bl..cycle
+           );
+        Fill
+           ( br--Tr{dir b}..{dir (b-180)}tR       % right part: upper boundary
+           & tR{dir (b+6)}..{dir (b-180)}tr--Br   % right part: lower boundary
+           & Br--br..cycle
+           );
+   endchar;
+
+beginchar(O+12,1U#,72u#,8u#); "Taurus";
+   Corners(P,P,P,p);
+   Centers (1/2,5/9);             % BC and CC : lower circle (top and bottom)
+   HOR (1/8,7/8);                 % Tl and Tr : upper arcs (tops)
+   Bot (5/18);                    % bl and br : lower circle (left and right)
+   LFT (0,4/5); RT (0,4/5);       % tL and tR : upper arcs (left and right)
+   Pen; Fill 
+      ( Tl{dir 223}..{down}(tL-hd)..(CC-vd)          % left upper arc: outside
+              ..(br-hd)..(BC+vd)..(bl+hd)..(CC-vd)   % lower circle: inside
+              ..{up}(tR+hd)..{dir 137}Tr             % right upper arc: outside
+      & Tr{dir -47}..{down}(tR-hd/2+vd/2)..(CC+vd)   % right upper arc: inside
+              ..(bl-hd)..(BC-vd)..(br+hd)..(CC+vd)   % lower circle: outside
+              ..{up}(tL+hd/2+vd/2)..{dir 47}Tl       % left upper arc: inside
+      & Tl..Tl..cycle
+      );
+   endchar;
+
+beginchar(O+13,56u#,72u#,8u#); "Gemini";
+   Corners (p,p,p,p);
+   HOR (2/7,5/7);
+   Top (7/8); Bot (1/8);
+   Pen; Fill ( BL..(bl-vd)..(br-vd)..BR          % bottom arc: lower boundary
+             & BR..(br+vd)..(bl+vd)..BL          % bottom arc: upper boundary
+             & BL--cycle
+             );
+   Fill ( TL..(tl-vd)..(tr-vd)..TR               % top arc: lower boundary
+        & TR..(tr+vd)..(tl+vd)..TL               % top arc: upper boundary
+        & TL--cycle
+        );
+   RPEN; draw tl--bl; draw tr--br;               % left and right vertical bar
+   endchar;
+
+beginchar(O+14,80u#,68u#,0u#); "Cancer";
+   corners; centers;
+   Cl:=2/7[CL,CR]; RT (0,4/5);
+   PEN; draw CL{up}..{down}Cl..{up}CL;             % left circle
+   Pen; Fill ( (CL-hd){up}..{right}(TC+vd)..tR     % upper arc: upper boundary
+             & tR..{left}(TC-vd/2)..{down}(CL+hd)  % upper arc: lower boundary
+             & (CL+hd)--(CL-hd)..cycle
+             );
+   picture upper; upper := currentpicture;         % adding rotated copy
+   addto currentpicture also upper rotated 180 shifted 2CC;
+   endchar;
+
+beginchar(O+15,68u#,80u#,10u#); "Leo";
+   Corners(P,p,d+P,P); centers;                              % TC
+   HOR (1/6,17/20); Top (3/4);         % tl and tr : main arc (left and right)
+   BOT (1/3,2/3); rr:=(Bl-BL)/2;
+   bL:=BL+(rr rotated 90); bl:=bL+2rr;       % bL and bl : lower left circle
+   Br:=BR+hd-(2d,0)-vP; BR:=BR-vP;           % Br and BR : lower right arc
+   PEN; draw bL{down}..{up}bl                   % lower left circle: lower arc
+             ..{up}tl..{right}TC..{down}tr..{down}Br;        % main arc
+   Pen; Fill                                                 % lower right arc
+      ( (Br-hd){down}..{up}BR                                %       outside 
+      & BR{dir265}..{up}(Br+hd)                              %       inside
+      & (Br+hd)--(Br-hd)..cycle
+      );
+   Fill ( (bL+hd){up}..bl             % lower left circle: upper arc, ouside
+        & bl{up}..{down}(bL-hd)       %                               inside 
+        & (bL-hd)--(bL+hd)..cycle
+        );
+   endchar;
+
+beginchar(O+16,100u#,68u#,10u#); "Virgo";
+   Corners (P,P,d,0);
+   LFT (0,3/4);                   %        tL : left upper arc (left end)
+   HOR (1/3,2/3); Top (3/4);      % tl and tr : upper arcs (endpoints)
+   TOP (4/14,4/14+1/3);           % Tl and Tr : upper arcs (tops)
+   RT (1/5,3/4);                  %        tR : right upper arc (right end)
+                                  % bR and tR : right vertical bar (ends)
+   TR:=(4/14+2/3)[TL,TR];         %        TR : right upper arc (top)
+   bC:=.5[Bl,Br]-(0,d/2);         % bC : lower right stroke (endpoint)
+   br:=Br-(0,d);                  % br : middle right bar (lower end)
+   Br:=Br+vP;                     % Br : lower right vertical stroke (left)
+   BR:=2/3[Br,BR+vP];             % BR : lower right vertical stroke (right)
+   RPEN; draw TL--BL; draw tl--Bl; draw tr--br; draw tR--bR;   % vertical bars
+   Pen; Fill                                             % left upper arc
+      ( tL{dir 42}..{right}(Tl-4vp)..{down}(tl+hd)       %     upper boundary
+      & (tl+hd)--(tl-hd)
+      & (tl-hd){up}..(Tl-2vP-2vp)..{dir 215}tL..cycle    %     lower boundary
+      ); 
+   Fill                                                  % middle upper arc
+      ( tl{dir 42}..{right}(Tr-4vp)..{down}(tr+hd)       %     upper boundary
+      & (tr+hd)--(tr-hd)
+      & (tr-hd){up}..(Tr-2vP-2vp)..{dir 215}tl..cycle    %     lower boundary
+      );
+   Fill                                                  % right upper arc
+      ( tr{dir 45}..{right}(TR-1vp)..{down}(tR+hd)       %     upper boundary
+      & (tR+hd)--(tR-hd)
+      & (tR-hd){up}..(TR-2vd-0vp)..{dir 215}tr..cycle    %     lower boundary
+      ); 
+   PEN; draw bR{dir250}..{dir190}BR--Br;     % lower right stroke: right part
+   Pen; Fill                                
+      ( (Br+vd){left}..{dir 235}bC           % lower right stroke: left part
+      & bC{dir 50}..{right}(Br-vd)
+      & (Br-vd)--(Br+vd)..cycle
+      );
+   endchar;
+
+beginchar(O+17,64u#,56u#,-8u#); "Libra";
+   corners;
+   Centers (1/2,7/15);                 % CL and CR : upper bars (outer ends)
+   TOP (1/4,3/4);
+   VV:=(TC-Tl) rotated -90;
+     tl:=Tl+VV; tr:=Tr+VV;             % tl and tr : upper arc (left and right)
+     R:=length(VV); D:=length(TC-CC);           % calculating intersection of
+     t:=(R+-+(D-R))/length(BR-BL);              %    upper arc with upper bars
+   HOR (1/2-t,1/2+t); Bot (7/15);               % (bl and cl renamed:)
+   Cl:=bl; Cr:=br;                         % Cl and Cr : upper arc (inner ends)
+%   Cl:=bl+hP; Cr:=br-hP;                  % Cl and Cr : upper arc (inner ends)
+   bL:=CL-vP; bl:=Cl-vP; br:=Cr-vP; bR:=CR-vP; % shift upper bars slightly down
+%   bL:=CL; bl:=Cl; br:=Cr; bR:=CR; % shift upper bars slightly down
+   SPEN; draw BL--BR;                            % bottom bar
+   SPEN; draw bL--bl; draw br--bR;               % left and right upper bars
+    Pen; Fill                                    % left upper bar: left end
+       ( CL{dir 170}..{dir 105}(CL+vd-hd)        %   inner boundary
+       & (CL+vd-hd)--(CL-hd)--CL                 %   left and lower boundary
+       & CL.. cycle
+       );
+    Pen; Fill                                    % right upper bar: right end
+       ( CR{dir 10}..{dir 75}(CR+vd+hd)          %   inner boundary
+       & (CR+vd+hd)--(CR+hd)--CR                 %   right and lower boundary
+       & CR.. cycle
+       );
+   PEN; draw Cl..{up}tl..{right}TC..{down}tr..Cr;                % upper arc
+   endchar;
+
+beginchar(O+18,(14/15)*100u#-(13/15)*P#+p#,68u#,10u#); "Scorpio";
+   Corners (P,p,d,0);
+   LFT (0,3/4);                      %        tL : left upper arc (left end)
+   HOR (5/14,10/14); Top (3/4);      % tl and tr : upper arcs (endpoints)
+   TOP (4/14,9/14);                  % Tl and Tr : upper arcs (tops)
+   RT (1/6,1);                       %        bR : lower right arrow (point)
+   br:=1/3[Br,BR]-(0,d)+vp;          %        br : lower right arc (bottom)
+   BR:=2/3[Br,BR]+vp;                % Br and BR : lower right arc (endpoints)
+   RPEN; draw TL--BL; draw tl--Bl; draw tr--Br;          % vertical bars
+   Pen; Fill                                             % left upper arc
+      ( tL{dir 42}..{right}(Tl-4vp)..{down}(tl+hd)       %     upper boundary
+      & (tl+hd)--(tl-hd)
+      & (tl-hd){up}..(Tl-2vP-2vp)..{dir 215}tL..cycle    %     lower boundary
+      ); 
+   Fill                                                  % right upper arc
+      ( tl{dir 42}..{right}(Tr-4vp)..{down}(tr+hd)       %     upper boundary
+      & (tr+hd)--(tr-hd)
+      & (tr-hd){up}..(Tr-2vP-2vp)..{dir 215}tl..cycle    %     lower boundary
+      );
+   Fill                                                  % lower right arc
+      ( (Br+hd){down}..{right}(br+vd)..{dir angle((br-BR) rotated 0)}BR
+      & BR{dir angle((BR-br) rotated 6)}..{left}br..{up}(Br-hd)
+      & (Br-hd)--(Br+hd)..cycle
+      );
+   arrow (BR+2hp,bR, 1, 1/4,1/2);                        % lower right arrow
+   endchar;
+
+beginchar(O+19,56u#,80u#,8u#); "Sagittarius";
+   Corners(P*(h+d)/((h+d)++w),p,P*w/((h+d)++w),p);
+   bl:=(1/5)[BL,TR]; tr:=(3/4)[BL,TR]; 
+   VV:=TR-BL; a:=angle(VV);
+   HH:= VV/8 rotated 90;
+   bL:= bl+HH; Bl:= bl-HH;
+   RPEN rotated (a+90); draw BL--tr;            % shaft
+   RPEN rotated a; draw bL--Bl;                 % short bar
+   Pen; arrow (tr,TR, 6/7, .3,.6);              % point
+   endchar;
+
+beginchar(O+20,56u#,1U#,0); "Capricornus";
+   Corners(p,p,p,p);                             % TR: top bar (right end)
+   Centers (2/3,2/3);                     % BC and CC: loop (bottom and top)
+   HOR (1/3,1); Bot (1/3);                % bl and br: loop (left and right)
+   TOP(1/4,1); Tl:=Tl-hd;                        % Tl: top bar (left end)
+   LFT (.45,1);                                  % bL: end of loop
+   Pen; Fill 
+      ( Tl--TR                                       % top bar: upper boundary
+      & TR{dir225}..{down}(bl+hd)..{right}(BC+2vd)   % loop from TR to bL
+            ..{up}(br-2hd)..{left}(CC-.5vd-hd)..bL
+      & bL..{right}(CC+.5vd)..{down}br..{left}BC     % loop back from bL to TR
+            ..{up}(bl-hd)..{dir45}(TR-2vd-3hd)
+      & (TR-2vd-3hd)--(Tl-2vd)--Tl                 % top bar: lower boundary
+      & Tl..Tl..cycle
+      );
+   endchar;
+
+beginchar(O+22,56u#,72u#,8u#); "Pisces";
+   Corners(p,p,p,p);
+   HOR (1/4,3/4); Top (1/2);
+   Pen; Fill ( BL..(tl-hd)..TL           % left arc: left boundary
+             & TL..(tl+hd)..BL           % left arc: right boundary
+             & BL--cycle
+             );
+   Fill ( BR..(tr-hd)..TR                % right arc: left boundary
+        & TR..(tr+hd)..BR                % right arc: right boundary
+        & BR--cycle
+        );
+   PEN; draw tl--tr;                     % vertical bar
+   endchar;
+
+beginchar(O+23,44u#,72u#,12u#); "Saturnus 2";
+   corners; Centers (4/9,8/11);
+   HOR (0,8/9); Top (19/22);
+   RT (6.3/11,1);                                            % bR
+   Bl:=2/9[BL,BR]; Bot(.8/12);                               % bl
+   bC:=1/5[BC,TC];                                           % bC
+   Bl:=Bl+((P-(P*sqrt(2))*sind(45+20),0) rotated -70);       % Bl
+   SPEN; draw tl--tr; draw CC--TC;                               % upper cross
+    PEN; draw CC{right}..{down}bR..bC..{dir250}bl..{dir-70}Bl;   % lower arc
+   RPEN rotated 20; draw Bl--(Bl+(hP rotated -70));          % sharpen arc end
+   endchar;
+
+beginchar(O+27,76u#,50u#,-22u#); "Aquarius 2";
+   Corners (p,p,p,p);
+                           % upper strokes:
+   Centers (3/5,1/2);      % CL and CC : left stroke (left end, right bottom)
+   TOP (1/4,4/5);          % Tl and Tr : left stroke (left top, right end)
+   Pen;
+   Fill ( (CL+vp)..{right}Tl..{right}(CC+vd)..(Tr-vP)      % left stroke: upper
+        & (Tr-vP)..{left}(CC+vp)..{left}(Tl-2vd)..(CL+vp)  % left stroke: lower
+        & (CL+vp)..cycle
+        );
+   Fill ( (Tr+hP/2)..{right}(CR+2vd)              % right stroke: upper 
+        & (CR+2vd){-hP/2-2vd}..{left}(CR-hP+vp)   % right stroke: lower
+              ..(Tr-2vd-hP/2)                     %         ( from Tr to CR )
+        & (Tr-2vd-hP/2)--(Tr+hP/2)                % right stroke: left end
+        & (Tr+hP/2)..cycle
+        );
+   picture upper; upper:= currentpicture;                  % lower strokes
+   addto currentpicture also upper shifted (0,-(h+d)/2);
+   endchar;
+
+beginchar(O+28,78u#,56u#,-9u#); "Aquarius 3";
+   Corners(p,p,(h+d)/2+P,P);
+                                  % upper stroke : points on central line:
+   centers;                                      % CL and CR : ends
+   HOR (1/5,3/5); Bot(1/2);                      % bl and br : down crossing
+   HOR (2/5,4/5); Top(1/2);                      % tl and tr : up crossing
+   PEN;
+   draw bl{down}..tl{up}..br{down}..tr{up};      % middle part
+   Pen; Fill
+        ( CL{up}..{down}(bl+hd)                  % left end : upper boundary
+        & (bl+hd)--(bl-hd)
+        & (bl-hd){up}..{dir 225}CL               %            lower boundary
+        & CL..cycle
+        );
+   Fill ( CR{up}..{down}(tr-hd)                  % right end : upper boundary
+        & (tr-hd)--(tr+hd)
+        & (tr+hd){up}..{dir -45}CR               %             lower boundary
+        & CR..cycle
+        );
+   picture upper; upper:= currentpicture;                   % lower stroke
+   addto currentpicture also upper shifted (0,-(h+d)/2);
+   endchar;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% end of ASTROSYM.CAL %%%

@@ -3,7 +3,6 @@ intro 0intro
 attach attach
 nop attach
 session attach
-auth auth
 clone clone
 clunk clunk
 clwalk clwalk

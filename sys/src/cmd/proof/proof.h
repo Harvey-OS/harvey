@@ -25,11 +25,12 @@ void	clearscreen(void);
 char	*getcmdstr(void);
 
 void	readmapfile(char *);
-void	dochar(uchar *);
+void	dochar(Rune*);
 void	bufput(void);
 void	loadfontname(int, char *);
 void	allfree(void);
 void	readpage(void);
+int	isspace(int);
 
 #define	dprint	if (dbg) fprint
 

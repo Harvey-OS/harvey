@@ -1,0 +1,42 @@
+</$cputype/mkfile
+</sys/doc/fonts
+NPROC=1
+negs=`{echo *.neg}
+egs=`{echo *.eg}
+hits=`{echo *.hit}
+ske=`{echo skel?.c}
+hel=`{echo hello?.c}
+edi=`{echo edit?.c}
+ps=${egs:%.eg=%.ps}\
+	${hits:%.hit=%.ps}
+inclusions=$ske\
+	$hel\
+	$edi\
+	pack.pic\
+	$ps
+panel.ps:D:	intro.trout
+	lp -dstdout intro.trout >panel.ps
+intro.trout:D:	intro.ms $inclusions hello edit
+	{ echo $FONTS; pic intro.ms } | troff -ms -mpictures >intro.trout
+$ps:	figures
+%.ps:	%.eg
+	figures $stem | fb/pic2ps >$stem.ps
+%.ps:	%.hit
+	rc $stem.hit | fb/pic2ps >$stem.ps
+%.pic:	%.art
+	art2pic $stem.art >$stem.pic
+figures:	figures.c $egs $negs
+	$CC -o figures.$O figures.c
+	$LD -o figures figures.$O
+hello:	hello.c $hel
+	$CC -o hello.$O hello.c
+	$LD -o hello hello.$O
+edit:	edit.c $edi
+	$CC -o edit.$O edit.c
+	$LD -o edit edit.$O
+lp:V:	intro.ps
+	lp -dfn intro.ps
+clean:V:
+	rm -f figures hello edit intro.trout *.pic *.[$OS] [$OS].out
+nuke:V:	clean
+	rm *.ps

@@ -14,7 +14,7 @@ struct
 	"map",		10001,	10001,
 	"doc",		10002,	0,
 	"upas",		10003,	10003,
-	"cda",		10004,	0,
+	"font",		10004,	0,
 	"bootes",	10005,	10005,
 	0
 };
@@ -38,7 +38,6 @@ cmd_users(int argc, char *argv[])
 	int u, g, o, line, n;
 	char *file, *p, *uname, *ulead, *unext;
 
-
 	file = "/adm/users";
 	if(argc > 1)
 		file = argv[1];
@@ -48,19 +47,17 @@ cmd_users(int argc, char *argv[])
 		return;
 	}
 
-	wlock(&uidgc.uidlock);
 	uidgc.uidbuf = getbuf(devnone, Cuidbuf, 0);
-
 	if(walkto(file) || con_open(FID2, 0)) {
 		print("cmd_users: cannot access %s\n", file);
 		putbuf(uidgc.uidbuf);
-		wunlock(&uidgc.uidlock);
 		return;
 	}
 
 	uidgc.flen = 0;
 	uidgc.find = 0;
 	cons.offset = 0;
+	cons.nuid = 0;
 
 	u = 0;
 	line = 0;
@@ -83,7 +80,8 @@ cmd_users(int argc, char *argv[])
 		}
 		strcpy(uid[u].name, p);
 		uid[u].uid = number(buf, 0, 10);
-		memset(uid[u].key, 0, DESKEYLEN);
+		uid[u].lead = 0;
+		uid[u].ngrp = 0;
 		u++;
 		if(u >= conf.nuid) {
 			print("conf.nuid too small (%d)\n", conf.nuid);
@@ -91,12 +89,17 @@ cmd_users(int argc, char *argv[])
 		}
 	}
 
+	/* Sorted by uid for use in uidtostr */
+	wlock(&uidgc.uidlock);
+	qsort(uid, u, sizeof(uid[0]), byuid);
 	cons.nuid = u;
+	wunlock(&uidgc.uidlock);
 
 	/* Parse group table */
 	uidgc.flen = 0;
 	uidgc.find = 0;
 	cons.offset = 0;
+	cons.ngid = 0;
 
 	g = 0;
 	line = 0;
@@ -125,8 +128,8 @@ cmd_users(int argc, char *argv[])
 		/* set to owner if name not known */
 		ui->lead = 0;
 		if(ulead[0]) {
-			o = strtouid(ulead, 0);
-			if(o != 0)
+			o = strtouid(ulead);
+			if(o >= 0)
 				ui->lead = o;
 			else
 				ui->lead = ui->uid;
@@ -137,8 +140,8 @@ cmd_users(int argc, char *argv[])
 			if(p == 0)
 				break;
 			unext = getword(p, L',', 0, 0);
-			o = strtouid(p, 0);
-			if(o != 0) {
+			o = strtouid(p);
+			if(o >= 0) {
 				gidspace[g++] = o;
 				ui->ngrp++;
 			}	
@@ -146,16 +149,10 @@ cmd_users(int argc, char *argv[])
 		}
 	}
 
-	/* Sorted by uid for use in uidtostr */
-	qsort(uid, cons.nuid, sizeof(uid[0]), byuid);
-
 	cons.ngid = g;
 
 	putbuf(uidgc.uidbuf);
-	wunlock(&uidgc.uidlock);
-
-	print("%d uids read, %d groups used\n", u, g);
-	cmd_exec("auth");
+	print("%d uids read, %d groups used\n", cons.nuid, cons.ngid);
 }
 
 void
@@ -172,11 +169,7 @@ cmd_newuser(int argc, char *argv[])
 		print("	name -name -- delete member\n");
 		return;
 	}
-	wlock(&uidgc.uidlock);
 	do_newuser(argc, argv);
-	wunlock(&uidgc.uidlock);
-
-	cmd_exec("auth");
 }
 
 void
@@ -226,6 +219,8 @@ do_newuser(int argc, char *argv[])
 			print("conf.nuid too small (%d)\n", conf.nuid);
 			return;
 		}
+
+		wlock(&uidgc.uidlock);
 		ui = &uid[cons.nuid++];
 		ui->uid = nuid;
 		ui->lead = 0;
@@ -235,6 +230,10 @@ do_newuser(int argc, char *argv[])
 		}
 		strcpy(ui->name, argv[1]);
 		ui->ngrp = 0;
+
+		qsort(uid, cons.nuid, sizeof(uid[0]), byuid);
+
+		wunlock(&uidgc.uidlock);
 		break;
 
 	case '=':
@@ -272,11 +271,14 @@ do_newuser(int argc, char *argv[])
 				return;
 			}
 		}
+
+		wlock(&uidgc.uidlock);
 		s = gidspace+cons.ngid;
 		memmove(s, ui->gtab, ui->ngrp*sizeof(*s));
 		ui->gtab = s;
 		s[ui->ngrp++] = u2->uid;
 		cons.ngid += ui->ngrp+1;
+		wunlock(&uidgc.uidlock);
 		break;
 
 	case '-':
@@ -295,9 +297,12 @@ do_newuser(int argc, char *argv[])
 			print("%s not in group\n", p);
 			return;
 		}
+
+		wlock(&uidgc.uidlock);
 		s = ui->gtab+i;
 		ui->ngrp--;
 		memmove(s, s+1, (ui->ngrp-i)*sizeof(*s));
+		wunlock(&uidgc.uidlock);
 		break;
 
 	default:
@@ -318,11 +323,13 @@ do_newuser(int argc, char *argv[])
 			print("name %s too long\n", argv[2]);
 			return;
 		}
+
+		wlock(&uidgc.uidlock);
 		strcpy(ui->name, argv[2]);
+		wunlock(&uidgc.uidlock);
 		break;
 	}
 
-	qsort(uid, cons.nuid, sizeof(uid[0]), byuid);
 
 	if(walkto("/adm/users") || con_open(FID2, MWRITE|MTRUNC)) {
 		print("can't open /adm/users for write");
@@ -340,11 +347,9 @@ do_newuser(int argc, char *argv[])
 	}
 
 	if(md != 0) {
-		wunlock(&uidgc.uidlock);
 		sprint(buf, "create /usr/%s %s %s 755 d", md, md, md);
 		print("%s\n", buf);
 		cmd_exec(buf);
-		wlock(&uidgc.uidlock);
 	}
 }
 
@@ -398,7 +403,6 @@ setminusers(void)
 		strcpy(uid[u].name, minusers[u].name);
 		uid[u].uid = minusers[u].uid;
 		uid[u].lead = minusers[u].lead;
-		memset(uid[u].key, 0, DESKEYLEN);
 	}
 	cons.nuid = u;
 	qsort(uid, u, sizeof(uid[0]), byuid);
@@ -433,21 +437,19 @@ getword(char *buf, Rune delim, char *error, int line)
 }
 
 int
-strtouid(char *name, int dolock)
+strtouid(char *name)
 {
 	Uid *u;
 	int id;
 
-	if(dolock)
-		rlock(&uidgc.uidlock);
+	rlock(&uidgc.uidlock);
 
 	u = uidpstr(name);
-	id = 0;
+	id = -1;
 	if(u != 0)
 		id = u->uid;
 
-	if(dolock)
-		runlock(&uidgc.uidlock);
+	runlock(&uidgc.uidlock);
 
 	return id;
 }
@@ -491,19 +493,6 @@ uidtostr(char *name, int id, int dolock)
 }
 
 int
-nametokey(char *name, char *key)
-{
-	Uid *u;
-
-	u = uidpstr(name);
-	if(u != 0) {
-		memmove(key, u->key, DESKEYLEN);
-		return 0;
-	}
-	return 1;
-}
-
-int
 ingroup(int u, int g)
 {
 	Uid *p;
@@ -532,6 +521,10 @@ leadgroup(int ui, int gi)
 {
 	int i;
 	Uid *u;
+
+	/* user 'none' cannot be a group leader */
+	if(ui == 0)
+		return 0;
 
 	rlock(&uidgc.uidlock);
 	u = uidtop(gi);

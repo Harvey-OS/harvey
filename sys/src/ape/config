@@ -8,12 +8,9 @@ LD=pcc				# loader
 CFLAGS=				# global defaults
 FAMILY=plan9
 AR=ar				# manipulating libraries
-RANLIB=$RL			# for updating libraries
+RANLIB=echo			# for updating libraries
 
 INSTALL=$APELIB/install		# install script
 INSOWNER=()			# default installation parameter
 INSGROUP=bin			# default installation parameter
 INSMODE=775			# default installation parameter
-
-NPROC=2				# go fast
-

@@ -16,7 +16,6 @@ dev
 	rtc	r
 	scsi	S	scsi scsibuf
 	wren	w
-	vid	v
 	cdrom	R
 
 stream
@@ -24,7 +23,7 @@ stream
 	fcall
 
 misc
-	9660srv.root
+	k9660srv.root
 
 port
 	int cpuserver = 0;

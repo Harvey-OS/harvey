@@ -29,9 +29,17 @@ f_session(Chan *cp, Fcall *in, Fcall *ou)
 {
 
 	USED(in);
-	USED(ou);
 	if(CHAT(cp))
 		print("c_session %d\n", cp->chan);
+	memmove(cp->rchal, in->chal, sizeof(cp->rchal));
+	mkchallenge(cp);
+	memmove(ou->chal, cp->chal, sizeof(ou->chal));
+	if(noauth || wstatallow)
+		memset(ou->authid, 0, sizeof(ou->authid));
+	else
+		memmove(ou->authid, nvr.authid, sizeof(ou->authid));
+
+	sprint(ou->authdom, "%s.%s", service, nvr.authdom);
 	fileinit(cp);
 }
 
@@ -65,17 +73,17 @@ f_attach(Chan *cp, Fcall *in, Fcall *ou)
 
 	u = -1;
 	if(cp != cons.chan) {
-		if(noattach) {
+		if(noattach && strcmp(in->uname, "none")) {
 			ou->err = Enoattach;
 			goto out;
 		}
-		u = strtouid(in->uname, 1);
-		if(u < 0 && cp != cons.chan) {
-			ou->err = Ebadu;
+		if(authorize(cp, in, ou) == 0 || strcmp(in->uname, "adm") == 0) {
+			ou->err = Eauth;
 			goto out;
 		}
-		if(authorise(f, in) == 0 || strcmp(in->uname, "adm") == 0) {
-			ou->err = Eauth;
+		u = strtouid(in->uname);
+		if(u < 0) {
+			ou->err = Ebadu;
 			goto out;
 		}
 	}
@@ -104,7 +112,7 @@ f_attach(Chan *cp, Fcall *in, Fcall *ou)
 		goto out;
 	}
 	f->uid = u;
-	accessdir(p, d, FREAD);
+	accessdir(p, d, FREAD, f->uid);
 	f->qid.path = fakeqid(d);
 	f->qid.version = d->qid.version;
 	f->fs = fs;
@@ -128,8 +136,11 @@ out:
 			in->uname, time(), errstr[ou->err]);
 	if(p)
 		putbuf(p);
-	if(f)
+	if(f) {
 		qunlock(f);
+		if(ou->err)
+			freefp(f);
+	}
 }
 
 void
@@ -226,8 +237,11 @@ out:
 	ou->fid = fid;
 	if(f1)
 		qunlock(f1);
-	if(f2)
+	if(f2) {
 		qunlock(f2);
+		if(ou->err)
+			freefp(f2);
+	}
 }
 
 void
@@ -238,7 +252,7 @@ f_walk(Chan *cp, Fcall *in, Fcall *ou)
 	File *f;
 	Wpath *w;
 	int slot;
-	long addr;
+	long addr, qpath;
 
 	if(CHAT(cp)) {
 		print("c_walk %d\n", cp->chan);
@@ -272,7 +286,7 @@ f_walk(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Eaccess;
 		goto out;
 	}
-	accessdir(p, d, FREAD);
+	accessdir(p, d, FREAD, f->uid);
 	if(strcmp(in->name, ".") == 0)
 		goto setdot;
 	if(strcmp(in->name, "..") == 0) {
@@ -297,8 +311,18 @@ f_walk(Chan *cp, Fcall *in, Fcall *ou)
 		goto found;
 	}
 	for(addr=0;; addr++) {
-		p1 = dnodebuf(p, d, addr, 0);
-		if(!p1 || checktag(p1, Tdir, d->qid.path) ) {
+		if(p == 0) {
+			p = getbuf(f->fs->dev, f->addr, Bread);
+			d = getdir(p, f->slot);
+			if(!d || checktag(p, Tdir, QPNONE) || !(d->mode & DALLOC)) {
+				ou->err = Ealloc;
+				goto out;
+			}
+		}
+		qpath = d->qid.path;
+		p1 = dnodebuf1(p, d, addr, 0, f->uid);
+		p = 0;
+		if(!p1 || checktag(p1, Tdir, qpath) ) {
 			if(p1)
 				putbuf(p1);
 			ou->err = Eentry;
@@ -469,16 +493,19 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 			ou->err = Elocked;
 			goto out;
 		}
-		t->file = f;
 	}
 	if(in->mode & MRCLOSE)
 		fmod |= FREMOV;
 	f->open = fmod;
 	if(in->mode & MTRUNC)
-		if(!(d->mode & DAPND))
-			dtrunc(p, d);
+		if(!(d->mode & DAPND)) {
+			dtrunc(p, d, f->uid);
+			qid.version = d->qid.version;
+		}
 	f->tlock = t;
-	f->lastra = 0;
+	if(t)
+		t->file = f;
+	f->lastra = 1;
 	goto out;
 
 badaccess:
@@ -545,7 +572,7 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Eaccess;
 		goto out;
 	}
-	accessdir(p, d, FREAD);
+	accessdir(p, d, FREAD, f->uid);
 	if(!strncmp(in->name, ".", sizeof(in->name)) ||
 	   !strncmp(in->name, "..", sizeof(in->name))) {
 		ou->err = Edot;
@@ -558,11 +585,11 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 	addr1 = 0;
 	slot1 = 0;	/* set */
 	for(addr=0;; addr++) {
-		p1 = dnodebuf(p, d, addr, 0);
+		p1 = dnodebuf(p, d, addr, 0, f->uid);
 		if(!p1) {
 			if(addr1)
 				break;
-			p1 = dnodebuf(p, d, addr, Tdir);
+			p1 = dnodebuf(p, d, addr, Tdir, f->uid);
 		}
 		if(p1 == 0) {
 			ou->err = Efull;
@@ -649,10 +676,12 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 	if(in->perm & PLOCK) {
 		d1->mode |= DLOCK;
 		t = tlocked(p1, d1);
+		/* if 0, out of tlock structures */
 	}
-	accessdir(p1, d1, FWRITE);
+	accessdir(p1, d1, FWRITE, f->uid);
+	qid = d1->qid;
 	putbuf(p1);
-	accessdir(p, d, FWRITE);
+	accessdir(p, d, FWRITE, f->uid);
 
 	/*
 	 * do a walk to new directory entry
@@ -668,14 +697,14 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 	f->wpath = w;
 	f->qid = qid;
 	f->tlock = t;
-	f->lastra = 0;
+	if(t)
+		t->file = f;
+	f->lastra = 1;
 	if(in->mode & MRCLOSE)
 		fmod |= FREMOV;
 	f->open = fmod;
 	f->addr = addr1;
 	f->slot = slot1;
-	if(t)
-		t->file = f;
 	goto out;
 
 badaccess:
@@ -751,7 +780,7 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 		/* renew the lock */
 		t->time = tim + TLOCK;
 	}
-	accessdir(p, d, FREAD);
+	accessdir(p, d, FREAD, f->uid);
 	if(d->mode & DDIR) {
 		addr = 0;
 		goto dread;
@@ -759,15 +788,25 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 	if(offset+count > d->size)
 		count = d->size - offset;
 	while(count > 0) {
+		if(p == 0) {
+			p = getbuf(f->fs->dev, f->addr, Bread);
+			d = getdir(p, f->slot);
+			if(!d || !(d->mode & DALLOC)) {
+				ou->err = Ealloc;
+				goto out;
+			}
+		}
 		addr = offset / BUFSIZE;
-		if(addr == f->lastra+1)
-			dbufread(p, d, addr+1);
-		f->lastra = addr;
+		if(addr == f->lastra) {
+			dbufread(p, d, addr, f->uid);
+			f->lastra = addr + RACHUNK;
+		}
 		o = offset % BUFSIZE;
 		n = BUFSIZE - o;
 		if(n > count)
 			n = count;
-		p1 = dnodebuf(p, d, addr, 0);
+		p1 = dnodebuf1(p, d, addr, 0, f->uid);
+		p = 0;
 		if(p1) {
 			if(checktag(p1, Tfile, QPNONE)) {
 				ou->err = Ephase;
@@ -785,7 +824,16 @@ f_read(Chan *cp, Fcall *in, Fcall *ou)
 	goto out;
 
 dread:
-	p1 = dnodebuf(p, d, addr, 0);
+	if(p == 0) {
+		p = getbuf(f->fs->dev, f->addr, Bread);
+		d = getdir(p, f->slot);
+		if(!d || !(d->mode & DALLOC)) {
+			ou->err = Ealloc;
+			goto out;
+		}
+	}
+	p1 = dnodebuf1(p, d, addr, 0, f->uid);
+	p = 0;
 	if(!p1)
 		goto out;
 	if(checktag(p1, Tdir, QPNONE)) {
@@ -836,7 +884,7 @@ f_write(Chan *cp, Fcall *in, Fcall *ou)
 	Dentry *d;
 	File *f;
 	Tlock *t;
-	long offset, addr, tim;
+	long offset, addr, tim, qpath;
 	int count, nwrite, o, n;
 
 	if(CHAT(cp)) {
@@ -890,23 +938,33 @@ f_write(Chan *cp, Fcall *in, Fcall *ou)
 		/* renew the lock */
 		t->time = tim + TLOCK;
 	}
-	accessdir(p, d, FWRITE);
+	accessdir(p, d, FWRITE, f->uid);
 	if(d->mode & DAPND)
 		offset = d->size;
 	if(offset+count > d->size)
 		d->size = offset+count;
 	while(count > 0) {
+		if(p == 0) {
+			p = getbuf(f->fs->dev, f->addr, Bread|Bmod);
+			d = getdir(p, f->slot);
+			if(!d || !(d->mode & DALLOC)) {
+				ou->err = Ealloc;
+				goto out;
+			}
+		}
 		addr = offset / BUFSIZE;
 		o = offset % BUFSIZE;
 		n = BUFSIZE - o;
 		if(n > count)
 			n = count;
-		p1 = dnodebuf(p, d, addr, Tfile);
+		qpath = d->qid.path;
+		p1 = dnodebuf1(p, d, addr, Tfile, f->uid);
+		p = 0;
 		if(p1 == 0) {
 			ou->err = Efull;
 			goto out;
 		}
-		if(checktag(p1, Tfile, d->qid.path)) {
+		if(checktag(p1, Tfile, qpath)) {
 			putbuf(p1);
 			ou->err = Ephase;
 			goto out;
@@ -962,7 +1020,7 @@ doremove(File *f, int iscon)
 		err = Eaccess;
 		goto out;
 	}
-	accessdir(p1, d1, FWRITE);
+	accessdir(p1, d1, FWRITE, f->uid);
 	putbuf(p1);
 	p1 = 0;
 
@@ -985,7 +1043,7 @@ doremove(File *f, int iscon)
 	 */
 	if((d->mode & DDIR))
 	for(addr=0;; addr++) {
-		p1 = dnodebuf(p, d, addr, 0);
+		p1 = dnodebuf(p, d, addr, 0, f->uid);
 		if(!p1)
 			break;
 		if(checktag(p1, Tdir, d->qid.path)) {
@@ -1005,7 +1063,7 @@ doremove(File *f, int iscon)
 	/*
 	 * do it
 	 */
-	dtrunc(p, d);
+	dtrunc(p, d, f->uid);
 	memset(d, 0, sizeof(Dentry));
 	settag(p, Tdir, QPNONE);
 
@@ -1038,7 +1096,8 @@ f_clunk(Chan *cp, Fcall *in, Fcall *ou)
 		tim = toytime();
 		if(t->time < tim || t->file != f)
 			ou->err = Ebroken;
-		t->time = 0;	/* free the lock */
+		if(t->file == f)
+			t->time = 0;	/* free the lock */
 		f->tlock = 0;
 	}
 	if(f->open & FREMOV)
@@ -1210,7 +1269,7 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 	 * must have write permission in parent
 	 */
 	while(strncmp(d->name, xd.name, sizeof(d->name)) != 0) {
-		if(checkname(xd.name)) {
+		if(checkname(xd.name) || !d1) {
 			ou->err = Ename;
 			goto out;
 		}
@@ -1221,7 +1280,7 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 		 */
 		putbuf(p);
 		for(addr=0;; addr++) {
-			p = dnodebuf(p1, d1, addr, 0);
+			p = dnodebuf(p1, d1, addr, 0, f->uid);
 			if(!p)
 				break;
 			if(checktag(p, Tdir, d1->qid.path)) {
@@ -1260,11 +1319,12 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 	}
 
 	/*
-	 * if mode, either
+	 * if mode/time, either
 	 *	a) owner
 	 *	b) leader of either group
 	 */
-	while((d->mode^xd.mode) & (DAPND|DLOCK|0777)) {
+	while(d->mtime != xd.mtime ||
+	     ((d->mode^xd.mode) & (DAPND|DLOCK|0777))) {
 		if(wstatallow)			/* set to allow chmod during boot */
 			break;
 		if(d->uid == f->uid)
@@ -1276,12 +1336,13 @@ f_wstat(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Enotu;
 		goto out;
 	}
+	d->mtime = xd.mtime;
 	d->uid = xd.uid;
 	d->gid = xd.gid;
 	d->mode = (xd.mode & (DAPND|DLOCK|0777)) | (d->mode & (DALLOC|DDIR));
 
 	strncpy(d->name, xd.name, sizeof(d->name));
-	accessdir(p, d, FREAD);
+	accessdir(p, d, FREAD, f->uid);
 
 out:
 	if(p)
@@ -1291,106 +1352,4 @@ out:
 	if(f)
 		qunlock(f);
 	ou->fid = in->fid;
-}
-
-/* f_auth is called from ilauth, dkauth etc. */
-void
-f_auth(Chan *cp, Fcall *in, Fcall *ou)
-{
-	char buf[256], key[DESKEYLEN];
-	int i, r, k1, k2;
-	File *f;
-
-	if(CHAT(cp)) {
-		print("c_auth %d\n", cp->chan);
-		print("	fid = %d\n", in->fid);
-	}
-
-	f = filep(cp, in->fid, 1);
-	if(!f) {
-		ou->err = Efid;
-		return;
-	}
-	ou->fid = in->fid;
-
-	/* File system is the authtication service */
-	if(authchan == 0) {	
-		if(nametokey(in->uname, key)) {
-			ou->err = Eauth;
-			goto out;
-		}
-
-		decrypt(key, in->chal, AUTHSTR+NAMELEN);
-		if(strncmp(service, in->chal+AUTHSTR, NAMELEN) != 0 &&
-		   strcmp("any", in->chal+AUTHSTR) != 0) {
-			ou->err = Eauth;
-			goto out;
-		}
-
-		if(in->chal[0] != FScchal) {
-			ou->err = Eauth;
-			goto out;
-		}
-
-		in->chal[0] = FSctick;
-		memmove(ou->chal, in->chal, AUTHSTR);
-		f->ticket[0] = FSstick;
-		for(i = 1; i < AUTHSTR; i++)
-			f->ticket[i] = nrand(256);
-
-		k1 = AUTHSTR;
-		k2 = 2*AUTHSTR+DESKEYLEN;
-		for(i = 0; i < DESKEYLEN; i++) {
-			r = nrand(256);
-			ou->chal[k1++] = r;
-			ou->chal[k2++] = r;
-		}
-
-		memmove(ou->chal+AUTHSTR+DESKEYLEN, f->ticket, AUTHSTR);
-		encrypt(nvr.authkey, ou->chal+AUTHSTR+DESKEYLEN, AUTHSTR+DESKEYLEN);
-		encrypt(key, ou->chal, 2*AUTHSTR+2*DESKEYLEN);
-		goto out;
-	}
-
-	/* Use external authentication server */
-
-	buf[0] = FSschal;
-	for(i = 1; i < AUTHSTR; i++)
-		buf[i] = nrand(256);
-
-	memmove(f->ticket, buf, AUTHSTR);
-	strncpy(&buf[i], in->uname, NAMELEN);
-	i += NAMELEN;
-	memmove(&buf[i], in->chal, AUTHSTR+NAMELEN);
-	i += AUTHSTR+NAMELEN;
-
-	encrypt(nvr.authkey, buf, i);
-	strncpy(&buf[i], service, NAMELEN);
-	i += NAMELEN;
-
-	i = authsrv(authchan, buf, i);
-	if(i < 0) {
-		ou->err = Eauth;
-		goto out;
-	}	
-	
-	decrypt(nvr.authkey, buf, i);
-
-	if(buf[0] == FSerr){
-		buf[AUTHSTR+ERRREC] = '\0';
-		print("auth failed: %d '%s'\n", i, buf+AUTHSTR);
-		ou->err = Eauth;
-		goto out;;
-	}
-
-	f->ticket[0] = FSok;
-	if(memcmp(f->ticket, buf, AUTHSTR) || i != AUTHSTR+2*AUTHSTR+2*DESKEYLEN){
-		print("auth reply: len %d ticket mismatch\n", i);
-		ou->err = Eauth;
-		goto out;
-	}
-	memmove(ou->chal, &buf[AUTHSTR], i-AUTHSTR);
-	f->ticket[0] = FSstick;
-out:
-	qunlock(f);
 }

@@ -36,7 +36,7 @@ picture is read from standard input.
 Options yield all possible symmetries of the square grid:
 .TP
 .B -d
-reflects the image through its descending diagonal (the default.)
+reflects the image through its descending diagonal (the default).
 .TP
 .B -a
 reflects the image through its ascending diagonal.
@@ -68,10 +68,19 @@ the input and output files have the same upper-left corner.
 .I Transpose
 is particularly useful to convince programs that work on the rows of a picture file to
 operate on columns.  For example
+.IP
 .EX
-	fb/transpose big|fb/resample 48|fb/transpose|fb/resample 48 >tiny
+fb/transpose big |
+	fb/resample 48 |
+	fb/transpose |
+	fb/resample 48 >tiny
 .EE
-makes a tiny 48\(mu48 version of a big picture.
+.LP
+makes a tiny 48×48 version of a big picture.
+.SH SOURCE
+.B /sys/src/fb/rotate.c
+.br
+.B /sys/src/fb/transpose.c
 .SH "SEE ALSO
 .IR picfile (9.6),
 .IR resample (9.1)

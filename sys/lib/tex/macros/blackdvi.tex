@@ -2,14 +2,15 @@
 % 1992, written by Jim Hafner, HAFNER@ALMADEN, or hafner@almaden.ibm.com.
 % This file turns all color commands defined by COLORDVI.STY or COLORDVI.TEX
 % into no-ops and so can be used to get B/W printing without having to
-% ferret out all the color macros.
+% ferret out all the color macros.  Modified by Tomas Rokicki to be a
+% bit smaller.
 %
-% For example, just use
+% 20 Aug. 1992: Revised by J. Hafner, by adding \globalColor as a no-op.
+%
+% For example, with FoilTeX, just use
 %   \documentstyle[blackdvi]{foils}
 % in place of
 %   \documentstyle[colordvi]{foils}
-% It should be compatible with any other COLOR*.STY file (e.g.,
-% COLORPS.STY) intended for use with a non-PostScript driver.
 %
 % This file can be used anywhere COLORDVI.STY or COLORDVI.TEX is used.  In
 % particular, It can be used in any flavor of LaTeX (e.g. LaTeX,
@@ -20,12 +21,24 @@
 %
 % Here is the background command
 \def\background#1{}%
-\def\newColor #1 {\expandafter\def\csname text#1\endcsname{}%
-   \expandafter\def\csname #1\endcsname##1{}}%
 %
+% This is used to define all the \newColor macros defined by \newColor
+% as no-ops.
+\def\newColor #1 {\expandafter\def\csname text#1\endcsname{}%
+   \expandafter\def\csname #1\endcsname##1{##1}}%
+%
+% Here are the two macros used for user-definable colors
 \def\textColor#1{}
 \def\Color#1#2{#2}
-
+%
+% This is the macro that is used to protect certain regions of the
+% text from corruption by local color commands.  See COLORDVI.STY for
+% more information.  We make it a no-op in this style.
+\def\globalColor#1{#1}
+%
+% Here are the preset color names.  This list should match the list
+% in <colordvi.[tex,sty]>.
+%
 \newColor GreenYellow
 \newColor Yellow
 \newColor Goldenrod

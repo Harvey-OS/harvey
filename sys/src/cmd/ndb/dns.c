@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #include <bio.h>
 #include <ctype.h>
@@ -15,7 +16,6 @@ enum
 
 typedef struct Mfile	Mfile;
 typedef struct Network	Network;
-
 
 int vers;		/* incremented each clone/attach */
 
@@ -39,6 +39,7 @@ Fcall	*rhp;
 Fcall	*thp;
 int	debug;
 
+void	rsession(void);
 void	rsimple(void);
 void	rflush(int tag);
 void	rattach(Mfile*);
@@ -76,9 +77,11 @@ char *mname[]={
 	[Tremove]	"Tremove",
 	[Tstat]		"Tstat",
 	[Twstat]	"Twstat",
-	[Tauth]		"Tauth",
 			0,
 };
+
+char *logfile = "dns";
+char *dbfile;
 
 void
 main(int argc, char *argv[])
@@ -87,12 +90,16 @@ main(int argc, char *argv[])
 	Fcall	thdr;
 	int	serve;
 
+
 	serve = 0;
 	rhp = &rhdr;
 	thp = &thdr;
 	ARGBEGIN{
 	case 'd':
 		debug = 1;
+		break;
+	case 'f':
+		dbfile = ARGF();
 		break;
 	case 's':
 		serve = 1;	/* serve network */
@@ -101,28 +108,19 @@ main(int argc, char *argv[])
 	USED(argc);
 	USED(argv);
 
-	/* Clean up */
-	remove("/srv/dns");
+	remove("#s/dns");
 	unmount("/net/dns", "/net");
-	dbinit();
-	dninit();
-
 	mountinit("#s/dns");
 
-	switch(fork()){
-	case 0:
-		syslog(1, "dns", "started%s%s", serve?" serving":"",
-			debug?" debuging":"");
-		if(serve)
-			dnserver();
-		io();
-		exits(0);
-		break;
-	case -1:
-		fatal("fork");
-	default:
-		exits(0);
-	}
+	fmtinstall('F', fcallconv);
+	dninit();
+
+	syslog(1, logfile, "started%s%s", serve?" serving":"",
+		debug?" debuging":"");
+	if(serve)
+		dnserver();
+	io();
+	exits(0);
 }
 
 void
@@ -134,12 +132,15 @@ mountinit(char *service)
 
 	if(pipe(p) < 0)
 		fatal("pipe failed");
-	switch(fork()){
+	switch(rfork(RFFDG|RFPROC|RFNAMEG)){
 	case 0:
+		close(p[1]);
 		break;
 	case -1:
 		fatal("fork failed\n");
 	default:
+		close(p[0]);
+
 		/*
 		 *  make a /srv/dns
 		 */
@@ -154,10 +155,9 @@ mountinit(char *service)
 		/*
 		 *  put ourselves into the file system
 		 */
-		if(mount(p[1], "/net", MAFTER, "", "") < 0)
+		if(mount(p[1], "/net", MAFTER, "") < 0)
 			fatal("mount failed\n");
-		exits(0);
-/*BUG: no wait!*/
+		_exits(0);
 	}
 	mfd[0] = mfd[1] = p[0];
 }
@@ -208,7 +208,7 @@ io(void)
 	/*
 	 *  a slave process is sometimes forked to wait for replies from other
 	 *  servers.  The master process returns immediately via a longjmp
-	 *  through 'iojmp'.
+	 *  through 'mret'.
 	 */
 	setjmp(req.mret);
 	req.isslave = 0;
@@ -221,26 +221,21 @@ io(void)
 	if(rhp->fid<0)
 		fatal("fid out of range");
 	mf = newfid(rhp->fid);
-/*	if(debug)
-		fprint(2, "msg: %d %s on %d mf = %lux\n", rhp->type,
-			mname[rhp->type]? mname[rhp->type] : "mystery",
-			rhp->fid, mf); /**/
+	if(debug)
+		syslog(0, logfile, "%F", rhp);
 	mf->tag = rhp->tag;
 	switch(rhp->type){
 	default:
 		fatal("type");
 		break;
 	case Tsession:
-		rsimple();
+		rsession();
 		break;
 	case Tnop:
 		rsimple();
 		break;
 	case Tflush:
 		rflush(rhp->tag);
-		break;
-	case Tauth:
-		rauth();
 		break;
 	case Tattach:
 		rattach(mf);
@@ -285,6 +280,15 @@ io(void)
 	if(req.isslave)
 		_exits(0);
 	goto loop;
+}
+
+void
+rsession(void)
+{
+	memset(thp->authid, 0, sizeof(thp->authid));
+	memset(thp->authdom, 0, sizeof(thp->authdom));
+	memset(thp->chal, 0, sizeof(thp->chal));
+	sendmsg(0);
 }
 
 void
@@ -462,7 +466,7 @@ rread(Mfile *mf)
 		toff = 0;
 		n = 0;
 		thp->data = buf;
-		for(rp = mf->rp; rp && rp->type == mf->type ; rp = rp->next){
+		for(rp = mf->rp; rp && tsame(mf->type, rp->type); rp = rp->next){
 			len = snprint(buf, sizeof(buf), "%R", rp);
 			if(toff + len > off){
 				toff = off - toff;
@@ -500,10 +504,19 @@ rwrite(Mfile *mf, Request *req)
 	rhp->data[cnt] = 0;
 
 	/*
+	 *  toggle debugging
+	 */
+	if(strncmp(rhp->data, "debug", 5)==0){
+		debug ^= 1;
+		goto send;
+	} else if(strncmp(rhp->data, "dump", 4)==0){
+		dndump("/lib/ndb/dnsdump");
+		goto send;
+	}
+
+	/*
 	 *  break up request (into a name and a type)
 	 */
-	if(debug)
-		fprint(2, "%s ->", rhp->data);
 	atype = strchr(rhp->data, ' ');
 	if(atype == 0){
 		err = "illegal request";
@@ -520,10 +533,7 @@ rwrite(Mfile *mf, Request *req)
 	mf->rp = dnresolve(rhp->data, Cin, mf->type, req, 0);
 	if(mf->rp == 0){
 		err = "not found";
-		if(debug)
-			fprint(2, "not found\n");
-	} else if(debug)
-		fprint(2, "%R\n", mf->rp);
+	}
 
 	/* don't reply if the request was flushed */
 	if(mf->tag < 0)
@@ -560,9 +570,14 @@ rstat(Mfile *mf)
 {
 	Dir dir;
 
-	memmove(dir.name, "dns", NAMELEN);
+	if(mf->qid.path & CHDIR){
+		strcpy(dir.name, ".");
+		dir.mode = CHDIR|0555;
+	} else {
+		strcpy(dir.name, "dns");
+		dir.mode = 0666;
+	}
 	dir.qid = mf->qid;
-	dir.mode = 0666;
 	dir.length = 0;
 	dir.hlength = 0;
 	strcpy(dir.uid, mf->user);
@@ -593,6 +608,8 @@ sendmsg(char *err)
 		thp->fid = rhp->fid;
 	}
 	thp->tag = rhp->tag;
+	if(debug)
+		syslog(0, logfile, "%F", thp);
 	n = convS2M(thp, mdata);
 	if(write(mfd[1], mdata, n)!=n)
 		fatal("mount write");

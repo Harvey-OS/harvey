@@ -1,6 +1,6 @@
-.TH FGETC 2S
+.TH FGETC 2
 .SH NAME
-fgetc, getc, getchar, fputc, putc, putchar, ungetc, fgets, gets, fputs, puts, fread, fwrite \- stdio input and output
+fgetc, getc, getchar, fputc, putc, putchar, ungetc, fgets, gets, fputs, puts, fread, fwrite \- Stdio input and output
 .SH SYNOPSIS
 .B #include <stdio.h>
 .ta \w'\fLlong 'u
@@ -44,7 +44,7 @@ long	fread(void *ptr, long itemsize, long nitems, FILE *stream)
 .B
 long	fwrite(void *ptr, long itemsize, long nitems, FILE *stream)
 .SH DESCRIPTION
-The functions described here work on open stdio streams (see
+The functions described here work on open Stdio streams (see
 .IR fopen ).
 .PP
 .I Fgetc
@@ -54,7 +54,7 @@ the next
 .B unsigned
 .B char
 from input stream
-.I f.
+.IR f .
 If the stream is at end-of-file, the end-of-file indicator for the
 stream is set and
 .I fgetc
@@ -90,7 +90,7 @@ on
 .I f
 discards any pushed-back characters for
 .IR f .
-One character of pushback is guaranteed.
+One character of push-back is guaranteed.
 .I Ungetc
 returns the character pushed back (converted to
 .B unsigned
@@ -179,10 +179,12 @@ reads from the named input
 .IR stream 
 at most
 .I nitems
-of data of the type of
+of data of size
+.I itemsize
+and the type of
 .I *ptr
 into a block beginning at
-.I ptr.
+.IR ptr .
 It returns the number of items actually read.
 .PP
 .I Fwrite
@@ -190,12 +192,18 @@ appends to the named output
 .I stream
 at most
 .I nitems
-of data of the type of
+of data of size
+.I itemsize
+and the type of
 .I *ptr
 from a block beginning at
-.I ptr.
+.IR ptr .
 It returns the number of items actually written.
+.SH SOURCE
+.B /sys/src/libstdio
 .SH "SEE ALSO"
 .IR read (2), 
 .IR fopen (2),
 .IR bio (2)
+.SH BUGS
+Stdio does not handle UTF or runes; use Bio instead.

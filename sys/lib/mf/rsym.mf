@@ -1,0 +1,1732 @@
+% This is RSYM.MF in text format, version 1.1
+
+cmchar "therefore";
+beginchar(hex"05",12u#,x_height#,0);
+italcorr 0;
+adjust_fit(0,0); pickup fine.nib;
+numeric dot_diam#; dot_diam#=if monospace: 5/4 fi\\ dot_size#;
+define_whole_blacker_pixels(dot_diam);
+pos1(dot_diam,0); pos2(dot_diam,90);
+pos3(dot_diam,0); pos4(dot_diam,90);
+pos5(dot_diam,0); pos6(dot_diam,90);
+lft x1l=hround(.5w-.5dot_diam); y1+.5dot_diam=vround(x_height+.5dot_diam);
+x1=.5[x3,x5];  y3=y5; bot y4l=0;
+sqrt3 * (x5-x3) = 2(y1-y4);
+z1=z2; dot(1,2);  % dots
+z3=z4; dot(3,4);
+z5=z6; dot(5,6);
+penlabels(1,2,3,4,5,6); endchar;
+
+cmchar "pointer";
+beginchar(hex"09",9u#,fig_height#,0);
+italcorr 0;
+adjust_fit(0,0); pickup rule.nib;
+lft x1 = hround .5u;
+rt  x4 = hround (w-.6u);
+x7=x1; x2=x3=x5=x6=.5[x1,x4];
+(top y5) - (bot y3) = h;
+y5-y6 = y2-y3 = vround .3h;
+y4=good.y .5[-d,h]=.5[y3,y5];
+y1=y2; y7=y6;
+draw z1--z2--z3--z4--z5--z6--z7--cycle;
+labels(1,2,3,4,5,6,7); endchar;
+
+cmchar "lightning";
+beginchar(hex"12",8u#,asc_height#,.5desc_depth#);
+italcorr 0;
+adjust_fit(0,0); pickup rule.nib;
+x1 = .5w; x3 = w-u; x2 = u; x5 = .5w - u;
+top y1 = h; bot y5 = -d; y2=y3=.5[y4,y1]; z4=1/5[z5,z3];
+z6 = 2[z5,z4] = .5[z7,z8]; y8 = y6; x8-x7 = .5(x3-x2);
+x5'=.5[x4,x5]; y5'=y5;
+draw z1--z2--z3--z4;
+filldraw z5'--z7--z8--cycle;
+labels(1,2,3,4,5,6,7); endchar;
+
+cmchar "inverse logical not sign";
+beginchar(hex"18",12u#,x_height#,0);
+italcorr x_height#*slant-.5u#;
+adjust_fit(if monospace: -1.5u#,-1.5u# else: 0,0 fi); pickup rule.nib;
+lft x2=hround u-eps; x3=w-x2; x1=x2;
+y2=y3=good.y .5[bar_height,h]; y3-y1=1.2(h-bar_height);
+draw z1--z2--z3;  % bar and stem
+labels(1,2,3); endchar;
+
+cmchar "aries";
+beginchar(hex"17",asc_height#+2u#,asc_height#,0);
+italcorr 2/3asc_height#*slant;
+adjust_fit(0,0); pickup rule.nib;
+y1=y6; y2-y1=x2-x1; top y2 = h+oo; y5=y2; bot y4 = 0-oo;
+y3=.85[y4,y1];
+x3-x1 = x6-x3 = 1/2h; x3 = x4 = good.x .5w;
+x2=.5[x1,x3]; x5=.5[x3,x6];
+draw z1{dir 100}..z2..z3---z4 & z4---z3..z5..{dir -100}z6;
+labels(1,2,3); endchar;
+
+cmchar "taurus";
+beginchar(hex"5D",asc_height#+2u#,asc_height#,0);
+italcorr .7asc_height#*slant;
+adjust_fit(0,0);
+pickup rule.nib; autorounded;
+x4 = good.x .5w; y8-y4=x2-x6=2/3h; y2=good.y .34h;
+circle_points;
+draw_circle;
+x2'=x2; x6'=x6; y2'=y6'=h;
+x8'=x4; y8'=2h;
+draw z2'{z2'-z8'}..z8..{z8'-z6'}z6';
+labels(1,2,3,4,5,6,7,8);
+labels(2',6',8'); endchar;
+
+cmchar "gemini";
+beginchar(hex"5E",asc_height#+2u#,asc_height#,0);
+italcorr 2/3asc_height#*slant;
+adjust_fit(0,0); pickup rule.nib;
+top y2 = h+u; bot y1 = 0-u; y4 = y1; y3 = y2;
+x1 = x2 = u; x3 = x4 = w-u; 
+bot y5 = 1/18h; top y6 = 17/18h;  y8 = y5;  y7 = y6;
+x5 = x6 = 1/3w;  x7 = x8 = 2/3w;
+draw z5--z6;
+draw z7--z8;
+draw z1..z5..z8..z4;
+draw z2..z6..z7..z3;
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "capricorn";
+beginchar(hex"64",asc_height#+2u#,asc_height#,0);
+italcorr 2/3asc_height#*slant;
+adjust_fit(0,0); pickup rule.nib;
+top y1 = h; x1 = hround u;
+y2 = y1; x2 = hround (w-u);
+x3 = 0.42w; y3 = 0.60h;
+x4 = 0.60w; bot y4 = 0;
+x5 = x2 + oo; y5 = 0.28h;
+x6 = x1; y6 = 0.35h;
+draw z1--z2{dir 200}..z3..z4..z5..z3..z6;
+labels(1,2,3,4,5,6); endchar;
+
+cmchar "pisces";
+beginchar(hex"66",asc_height#+2u#,asc_height#,0);
+italcorr 2/3asc_height#*slant;
+adjust_fit(0,0); pickup rule.nib;
+top y2 = h; bot y1 = 0; y4 = y1; y3 = y2;
+y2 - y5 = y5 - y1;  y6 = y5;
+x5 = 1/3w; x5-x1 = x3-x6;
+x1 = x2 = hround u; x3 = x4 = hround w-u; 
+draw z5--z6;
+draw z1..z5..z2;
+draw z3..z6..z4;
+labels(1,2,3,4,5,6); endchar;
+
+cmchar "virgo";
+beginchar(hex"60",1.5asc_height#+2u#,asc_height#,desc_depth#);
+italcorr .7asc_height#*slant;
+adjust_fit(0,0);
+pickup rule.nib; autorounded;
+top y1 = h; x1 = hround u;
+bot y2 = 0; x2 = hround u + (w-2u)/7;
+y4-y3 = x3-x1;  x3=x2;
+y4=y7=y10=y1; x4-x3=x5-x4=x7-x5=x8-x7=x10-x8=0.77(x11-x10)=x3-x1;
+x5=x6; x8=x9;
+y5=y8=y11=y3;
+y6=y9=y2;
+x9'=x9+1/4(x11-x9);
+y9'=y9+2/3(y12-y9);
+bot y12 = -d; x12-x6 = x9-x12;
+draw z1{right}..{down}z3--z2--z3..z4..z5--z6--z5..z7..z8--z9{down}..z9';
+draw z9--z8..z10..z11{down}..z12;
+labels(1,2,3,4,5,6,7,8,9,10,11,12);
+endchar;
+
+cmchar "scorpio";
+beginchar(hex"62",1.5asc_height#+2u#,asc_height#,desc_depth#);
+italcorr .7asc_height#*slant;
+adjust_fit(0,0);
+pickup rule.nib; autorounded;
+top y1 = h; x1 = hround u;
+bot y2 = 0; x2 = hround u + (w-2u)/7;
+y4-y3 = x3-x1;  x3=x2;
+y4=y7=y10=y1; x4-x3=x5-x4=x7-x5=x8-x7=x10-x8=0.77(x11-x10)=x3-x1;
+x5=x6; x8=x9;
+y5=y8=y3;
+y6=y9=y11=y2;
+x12=x11; y12=y11-2u;
+x13=x11-2u; y13=y11;
+draw z1{right}..{down}z3--z2--z3..z4..z5--z6--z5..z7..z8
+ --z9{down}..{dir 45}z11;
+draw z12--z11--z13;
+labels(1,2,3,4,5,6,7,8,9,10,11,12);
+endchar;
+
+cmchar "cancer";
+beginchar(hex"5F",1.3asc_height#+2u#,asc_height#,0);
+italcorr .7asc_height#*slant;
+adjust_fit(0,0);
+pickup rule.nib; autorounded;
+y6 = 0.5h; x6 = hround u; x2-x6 = y8-y4 = 0.35h;
+circle_points;
+y1'=y1; y2'=y2; y3'=y3; y4'=y4; y5'=y5; y6'=y6; y7'=y7; y8'=y8;
+x6'= hround (w-u);
+x9 = hround (0.55w); top y9 = h; bot y9' = 0;
+x10 = hround (w-u-1/7h); y10-y8' = 1/7h; y4-y10' = 1/7h;
+x2'-x6'=x6-x2; x3'-x6'=x6-x3; x4'-x6'=x6-x4; x5'-x6'=x6-x5;
+x1'-x6'=x6-x1; x7'-x6'=x6-x7; x8'-x6'=x6-x8; x9'-x6'=x6-x9;
+x10'-x6'=x6-x10;
+draw z6{up}...z7{z8-z6}
+  ...z8{right}...z1{z2-z8}...z2{down}...z3{z4-z2}...z4{left}
+  ...z5{z6-z4}...z6{up}..z9{right}..z10;
+draw z6'{down}...z5'{z4'-z6'}
+  ...z4'{left}...z3'{z2'-z4'}...z2'{up}...z1'{z8'-z2'}...z8'{right}
+  ...z7'{z6'-z8'}...z6'{down}..z9'{left}..z10';
+labels(1,2,3,4,5,6,7,8,9,10);
+labels(1',2',3',4',5',6',7',8',9',10');
+endchar;
+
+cmchar "libra";
+beginchar(hex"61",1.5asc_height#+2u#,0.75asc_height#,0);
+italcorr .7asc_height#*slant;
+adjust_fit(0,0);
+pickup rule.nib; autorounded;
+x4 = good.x .5w; y8-y4=x2-x6=.5w-2u; bot y4 = 0;
+circle_points;
+top y6' = bot y6;  x6' = x6;
+top y2' = bot y2;  x2' = x2;
+y9 = y10 = y2'; x10-x9 = w-2u; x10-x4 = x4-x9;
+y11 = y12 = y4; x11=x9; x12=x10;
+draw z11--z12;
+draw z9--z6'{dir 95}..z7..z8..z1..{dir -95}z2'--z10;
+labels(1,2',3,4,5,6',7,8,9,10,11,12);
+endchar;
+
+cmchar "aquarius";
+beginchar(hex"65",1.5asc_height#+2u#,x_height#,0);
+italcorr .7asc_height#*slant;
+adjust_fit(0,0);
+pickup rule.nib; autorounded;
+x1 = hround u; x6 = hround (w-u);
+x2-x1 = x3-x2 = x4-x3 = x5-x4 = x6-x5;
+top y2 = h; y2=y4=y6;
+bot y1 = 0.55h; y1=y3=y5;
+x1'=x1;x2'=x2;x3'=x3;x4'=x4;x5'=x5;x6'=x6;
+bot y1' = 0; y1'=y3'=y5';
+y2'-y1' = y2-y1; y2'=y4'=y6';
+draw z1..z2..z3..z4..z5..z6;
+draw z1'..z2'..z3'..z4'..z5'..z6';
+labels(1,2.3,4,5,6);
+labels(1',2',3',4',5',6');
+endchar;
+
+cmchar "sun";
+beginchar(hex"2E",asc_height#+2u#,asc_height#,0);
+italcorr .5asc_height#*slant;
+adjust_fit(0,0);
+pickup rule.nib; autorounded;
+x4 = good.x .5w; y8-y4=x2-x6=3/5h; y2=good.y .5h;
+circle_points;
+z1'=4/3[z5,z1];
+z2'=4/3[z6,z2];
+z3'=4/3[z7,z3];
+z4'=4/3[z8,z4];
+z5'=4/3[z1,z5];
+z6'=4/3[z2,z6];
+z7'=4/3[z3,z7];
+z8'=4/3[z4,z8];
+draw_circle;
+for n=1 upto 8: draw z[n]--z[n]'; endfor
+labels(1,2,3,4,5,6,7,8);
+labels(1',2',3',4',5',6',7',8'); endchar;
+
+cmchar "check";
+beginchar(8,.90*asc_height#+2u#,asc_height#,0);
+italcorr asc_height#*slant - .5u#;
+adjust_fit(0,0); pickup crisp.nib;
+x1=u; x2=x1+.26h; x3=x2+.65h;
+y1=.35h; bot y2=0; top y3l=h-eps;
+pos1(hair,45); pos2(stem,0); pos3(hair,-45);
+filldraw stroke z1e{(1,-1)}..z2e;
+filldraw stroke z2e..{(1,1)}z3e;
+penlabels(1,2,3); endchar;
+
+cmchar "bell";
+beginchar(10,1.7math_axis#+u#,1.9math_axis#,0);
+italcorr u#*slant + .5u#;
+adjust_fit(0,0); pickup crisp.nib;
+x11=good.x u; x14 = good.x .5w; x17-x14=x14-x11;
+x12=x11; x16=x17; x13=1/3[x12,x14]; x15=1/3[x16,x14];
+bot y11=1.5u; y17=y11; y12=y11+stem; y16=y12;
+top y14=h; y13=y15=.5[y12,y14];
+filldraw z11--z12{right}..z13..z14{right}..z15..{right}z16--z17--cycle;
+x1=x3=x14; y1-y3=x2-x4=1.6u; x1=.5[x2,x4]; y4=y2=.5[y1,y3]=good.y .8u;
+filldraw z1..z2..z3..z4..cycle;
+labels(1,2,3,4,11,12,13,14,15,16,17); endchar;
+
+cmchar "1/8 note";
+beginchar(11,10u#,asc_height#,0);
+italcorr 1/3asc_height#*slant;
+adjust_fit(0,0); pickup crisp.nib;
+lft x1=u; rt x3r=.5w; rt x7r = w-u;
+x5=x5'=x3; x7'=x7; x2=x4=.5[x1,x3r];
+bot y2=0; top y4=3u; y1=y3=.5[y2,y4];
+top y5=h; y7=1/3h; z6=.5[z5,z7];
+pos3(hair,0); pos5(hair,0); pos7(hair,0);
+pos5'(hair,0); pos7'(hair,0);
+y5-y5'=y7'-y7=1.0u;
+pos6(2u,45);
+filldraw z1..z2..z3r..z4..cycle; % corpus
+filldraw stroke z3e--z5e; % beam
+filldraw stroke z5'e{down}...z6e...{down}z7'e--z7e; % flag
+penlabels(3,5,5',6,7,7'); labels(1,2,4); endchar;
+
+cmchar "1/4 note";
+beginchar(12,6u#,asc_height#,0);
+italcorr 1/3asc_height#*slant;
+adjust_fit(0,0); pickup crisp.nib;
+lft x1=u; rt x3r=w-u;
+x5=x3; x2=x4=.5[x1,x3r];
+bot y2=0; top y4=3u; y1=y3=.5[y2,y4];
+top y5=h;
+pos3(hair,0); pos5(hair,0);
+filldraw z1..z2..z3r..z4..cycle; % corpus
+filldraw stroke z3e--z5e; % beam
+penlabels(3,5); labels(1,2,4); endchar;
+
+cmchar "1/2 note";
+beginchar(13,6u#,asc_height#,0);
+italcorr 1/3asc_height#*slant;
+adjust_fit(0,0); pickup crisp.nib;
+.5[x1,x3] = good.x .5w; x3r-x1r=4u;
+x5=x3; x2=x4=.5[x1,x3];
+bot y2=0; top y4=3u; y1=y3=.5[y2,y4];
+top y5=h;
+pos1(hair,180); pos3(hair,0); pos5(hair,0);
+pos2(2hair,-90); pos4(2hair,90);
+penstroke z1e..z2e..z3e..z4e..cycle; % corpus
+filldraw stroke z3e--z5e; % beam
+penlabels(1,2,3,4,5); endchar;
+
+cmchar "1/1 note";
+beginchar(14,7u#,3.5u#,0.5u#);
+italcorr 1/3asc_height#*slant;
+adjust_fit(0,0); pickup crisp.nib;
+.5[x1,x3] = good.x .5w; x3r-x1r=5u;
+x2=x4=.5[x1,x3];
+y4r-y2r=vround h+eps; y1=y3=.5[y2,y4]=good.y .5(h-d);
+pos1(2.5hair,180); pos3(2.5hair,0);
+pos2(vair,-90); pos4(vair,90);
+penstroke z1e..z2e..z3e..z4e..cycle; % corpus
+penlabels(1,2,3,4); endchar;
+
+cmchar "2 1/8 notes";
+beginchar(15,13u#,asc_height#,0);
+italcorr 1/3asc_height#*slant;
+adjust_fit(0,0); pickup crisp.nib;
+lft x1=u; x3=x1+4u;
+x5=x3; x2=x4=.5[x1,x3r];
+bot y2=.2h; top y4=y2+3u; y1=y3=.5[y2,y4];
+top y5=h;
+x1'=x3'-4u; rt x3'r=w-u;
+x5'=x3'; x2'=x4'=.5[x1',x3'r];
+bot y2'=0; top y4'=3u; y1'=y3'=.5[y2',y4'];
+top y5'=.8h;
+pos3(hair,0); pos5(hair,0);
+pos3'(hair,0); pos5'(hair,0);
+pos6(3hair,-90); pos6'(3hair,-90);
+x6=x5l; x6'=x5'r;
+y6'l=y5'; y6l=y5 + (hair/(x6'-x6))*(y5-y5') + eps;
+filldraw z1..z2..z3r..z4..cycle; % corpus 1
+filldraw z1'..z2'..z3'r..z4'..cycle; % corpus 2
+filldraw stroke z3e--z5e; % beam 1
+filldraw stroke z3'e--z5'e; % beam 2
+filldraw stroke z6e--z6'e; % bar
+penlabels(3,5,6,7); labels(1,2,4); endchar;
+
+cmchar "female";
+beginchar(hex"19",x_height#+2u#,1.7x_height#-desc_depth#,desc_depth#);
+italcorr 1/2x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+lft x6=hround u; x8=good.x (.5x_height + u);
+y6 = good.y (h-.5x_height); y8-y4=x2-x6;
+circle_points;
+x9 := x8;
+numeric a; a = round .5(h+d-x_height) + eps;
+x10=x8-a;
+x11=x8+a;
+y10 = y11; y11 = -d+a;
+y9 = -desc_depth;
+draw_circle;
+draw z10--z11; draw z4--z9;
+math_fit(0,ic#);
+labels(1,2,3,4,5,6,7,8,9,10,11); endchar;
+
+cmchar "earth";
+beginchar(hex"26",x_height#+2u#,1.7x_height#,0);
+italcorr 1/2x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+lft x6=hround u; x8=good.x (.5x_height + u);
+y6 = good.y .5x_height; y8-y4=x2-x6;
+circle_points;
+x9 := x8;
+numeric a; a = round .5(h-x_height) + eps;
+x10=x8-a;
+x11=x8+a;
+y10 = y11 = h-a;
+y9 = h;
+draw_circle;
+draw z10--z11; draw z8--z9;
+math_fit(0,ic#);
+labels(1,2,3,4,5,6,7,8,9,10,11); endchar;
+
+cmchar "Uranus";
+beginchar(hex"5A",x_height#+2u#,v_center(1.7x_height#));
+italcorr 1/2x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+lft x6=hround u; x12 = x8 = good.x (.5x_height + u);
+y12 = y6 = good.y (.5x_height-d); y8-y4=x2-x6;
+circle_points;
+x9 := x8;
+numeric a; a = round .5(h+d-x_height) + eps;
+x10=x8-a+.5u;
+x11=x8+a-.5u;
+y10 = y11 = h-a+.5u;
+y9 = h;
+draw_circle;
+draw z8--z9;
+draw z10--z9--z11;
+drawdot z12;
+math_fit(0,ic#);
+labels(1,2,3,4,5,6,7,8,9,10,11,12); endchar;
+
+cmchar "Neptun";
+beginchar(hex"5B",x_height#+4u#,v_center(2x_height#));
+italcorr 2x_height#*slant - .5u#;
+adjust_fit(0,0);
+pickup rule.nib; autorounded;
+lft x6=hround u; x8 = good.x (.5x_height + u);
+y6 = good.y (.5x_height-d); y8-y4=x2-x6;
+circle_points;
+x9 = x11 = x11' = x8;
+x10=x10'=x6; x12=x12'=x2;
+top y10' = top y11' = top y12' = h;
+top y10 = top y11 = top y12 = h-u;
+y10-y9 = x9-x10;
+pos10(2u,0);
+pos11(2u,0);
+pos12(2u,0);
+draw_circle;
+draw z8--z11';
+draw z10'---z10..z9..z12---z12';
+draw z10l--z10'--z10r;
+draw z11l--z11'--z11r;
+draw z12l--z12'--z12r;
+math_fit(0,ic#);
+penlabels(10,11,12);
+labels(1,2,3,4,5,6,7,8,9,10',11',12'); endchar;
+
+cmchar "Mercury";
+beginchar(hex"27",x_height#+2u#,2.2x_height#-desc_depth#,desc_depth#);
+italcorr 1/2x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+lft x6=hround u; x8=good.x (.5x_height + u);
+y6 = good.y (h-x_height); y8-y4=x2-x6;
+circle_points;
+x9 := x8;
+numeric a; a = round .5(h+d-1.5x_height) + eps;
+x10=x8-a;
+x11=x8+a;
+y10 = y11; y11 = -d+a;
+y9 = -desc_depth;
+x12=x6; x13=x2; y12=y13; y12-y8=y8-y2;
+draw_circle;
+draw z10--z11; draw z4--z9;
+draw z12{down}...z8{right}...{up}z13;
+math_fit(0,ic#);
+labels(1,2,3,4,5,6,7,8,9,10,11); endchar;
+
+cmchar "male";
+numeric this_size#;
+this_size# = x_height#*(1+0.9/sqrt2);
+beginchar(hex"1A",this_size#+1.7u#,this_size#,0);
+italcorr this_size#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+lft x6=hround u; x2=x_height+2u-x6; y2=.5x_height; bot y4=0;
+circle_points;
+z9 = 1.9[z5,z1];
+draw_circle;
+x9 := good.x x9;
+y9 := good.y y9;
+x10 = x9;    y11 = y9;
+y10 = y9-3.5u; x11 = x9-3.5u;
+draw z1--z9;
+draw z10--z9--z11;
+labels(1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "sagittarius";
+numeric this_size#;
+this_size# = x_height#*(1+0.9/sqrt2);
+beginchar(hex"63",this_size#,this_size#,0);
+italcorr this_size#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+lft x7=hround u; x2-x6 = y8-y4 = x_height; bot y5=0;
+circle_points;
+z9 = 1.9[z5,z1];
+x9 := good.x x9;
+y9 := good.y y9;
+x10 = x9;    y11 = y9;
+y10 = y9-3.5u; x11 = x9-3.5u;
+draw z5--z9;
+draw z3--z7;
+draw z10--z9--z11;
+labels(1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "conjunction";
+numeric this_size#;
+this_size# = x_height#*(1+0.9/sqrt2);
+beginchar(hex"56",this_size#+1.7u#,this_size#,0);
+italcorr this_size#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+lft x6=hround u; x2=x_height+2u-x6; y2=.5x_height; bot y4=0;
+circle_points;
+z9 = 1.9[z5,z1];
+draw_circle;
+x9 := good.x x9;
+y9 := good.y y9;
+draw z1--z9;
+labels(1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "opposition";
+beginchar(hex"57",2x_height#+2u#,
+     2.2x_height#-0.5desc_depth#,0.5desc_depth#);
+italcorr 1.5x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+lft x6=hround u; x2-x6=y8-y4=x_height; bot y4=-d-oo;
+circle_points;
+draw_circle;
+x10 = w-u-x2; y10=h+oo-y8;
+for n=1 upto 8: z[n]' = z[n] + z10; endfor
+draw z8'{right}...z1'{z2-z8}...z2'{down}...z3'{z4-z2}...z4'{left}
+  ...z5'{z6-z4}...z6'{up}...z7'{z8-z6}...cycle;
+draw z1--z5';
+labels(1',2',3',4',5',6',7',8');
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "automatic telephone recorder";
+beginchar(hex"06",
+ 1.13 min(asc_height#,9/7x_height#)+2u#,
+ min(asc_height#,9/7x_height#),0);
+italcorr x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+x4 = good.x .5w; x2-x6=y8-y4; y2=good.y .5h; bot y4=-oo;
+circle_points;
+z9  = 1.30[z1,z5];
+z10 = 0.70[z1,z5];
+draw_circle;
+draw z9--z10;
+labels(1,2,3,4,5,6,7,8,9,10,11,12); endchar;
+
+cmchar "currency";
+beginchar(hex"1B",
+ 1.13 min(asc_height#,9/7x_height#)+2u#,
+ min(asc_height#,9/7x_height#),0);
+italcorr x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+x4 = good.x .5w; x2-x6=y8-y4; y2=good.y .5h; bot y4=-oo;
+circle_points;
+z9 = 1.30[z5,z1];
+z10 = 1.30[z7,z3];
+z11 = 1.30[z1,z5];
+z12 = 1.30[z3,z7];
+draw_circle;
+draw z1--z9;
+draw z3--z10;
+draw z5--z11;
+draw z7--z12;
+labels(1,2,3,4,5,6,7,8,9,10,11,12); endchar;
+
+cmchar "clock";
+beginchar(hex"1C",asc_height#+2u#,0.95asc_height#,0);
+italcorr x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+x8=good.x .5w; x2-x6=y8-y4; y2=good.y .5h; bot y4=0;
+circle_points;
+draw_circle;
+z9 = 0.55[z5,z1];
+z10 = 0.55[z7,z3];
+z11 = 0.55[z1,z5];
+z12 = 0.55[z3,z7];
+z13 = 0.5[z2,z6];
+z14 = 0.25[z2,z6];
+z15 = 0.15[z8,z4];
+filldraw z9..z10..z11..z12..cycle;
+draw z14--z13--z15;
+labels(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16); endchar;
+
+cmchar "smiley";
+beginchar(hex"2C",asc_height#+2u#,0.95asc_height#,0);
+italcorr x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+x8=good.x .5w; x2-x6=y8-y4; y2=good.y .5h; bot y4=0;
+circle_points;
+draw_circle;          % circle
+pickup crisp.nib;
+numeric ethickness;
+numeric mthickness;
+ethickness = min(1.2stem,max(1,round(h/4)-1));
+mthickness = min(stem,max(1,round(h/11)));
+z7' = .27[z7,z3]; pos7'(ethickness,45); z17 = z7'; pos17(ethickness,-45);
+z1' = .27[z1,z5]; pos1'(ethickness,45); z11 = z1'; pos11(ethickness,-45);
+x3' = .23[x3,x7];
+y3' = .28[y3,y7]; pos3'(hair,135);
+x5' = .23[x5,x1];
+y5' = .28[y5,y1]; pos5'(hair,45);
+z4' = .25[z4,z8]; pos4'(mthickness,90);
+filldraw stroke z5'e...z4'e{right}...z3'e; % mouth
+filldraw z7'r...z17l...z7'l...z17r...cycle;      % eyes
+filldraw z1'r...z11l...z1'l...z11r...cycle;
+penlabels(1',11,3',4',5',7',17);
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "frowney";
+beginchar(hex"2F",asc_height#+2u#,0.95asc_height#,0);
+italcorr x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+x8=good.x .5w; x2-x6=y8-y4; y2=good.y .5h; bot y4=0;
+circle_points;
+draw_circle;          % circle
+pickup crisp.nib;
+numeric ethickness;
+numeric mthickness;
+ethickness = min(1.2stem,max(1,round(h/4)-1));
+mthickness = min(stem,max(1,round(h/11)));
+z7' = .27[z7,z3]; pos7'(ethickness,45); z17 = z7'; pos17(ethickness,-45);
+z1' = .27[z1,z5]; pos1'(ethickness,45); z11 = z1'; pos11(ethickness,-45);
+x3' = .25[x3,x7];
+y3' = .15[y3,y7]; pos3'(hair,45);
+x5' = .25[x5,x1];
+y5' = .15[y5,y1]; pos5'(hair,135);
+z4' = .35[z4,z8]; pos4'(mthickness,90);
+filldraw stroke z5'e...z4'e{right}...z3'e; % mouth
+filldraw z7'r...z17l...z7'l...z17r...cycle;      % eyes
+filldraw z1'r...z11l...z1'l...z11r...cycle;
+penlabels(1',11,3',4',5',7',17);
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "black smiley";
+beginchar(hex"2D",asc_height#+2u#,0.95asc_height#,0);
+italcorr x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup crisp.nib; autorounded;
+x8=good.x .5w; x2-x6=y8-y4; y2=good.y .5h; bot y4=0;
+circle_points;
+numeric ethickness;
+numeric mthickness;
+ethickness = min(1.2stem,max(1,round(h/4)-1))+1;
+mthickness = min(stem,max(1,round(h/11)))+1;
+z7' = .27[z7,z3]; pos7'(ethickness,45); z17 = z7'; pos17(ethickness,-45);
+z1' = .27[z1,z5]; pos1'(ethickness,45); z11 = z1'; pos11(ethickness,-45);
+z3' = .25[z3,z7]; pos3'(1.5hair,135);
+z5' = .25[z5,z1]; pos5'(1.5hair,45);
+z4' = .25[z4,z8]; pos4'(mthickness,90);
+filldraw z8{right}...z1{z2-z8}...z2{down}...z3{z4-z2}...z4{left}
+  ...z5{z6-z4}...z6{up}...z7{z8-z6}...cycle;
+unfilldraw stroke z5'e...z4'e{right}...z3'e; % mouth
+unfilldraw z7'r...z17l...z7'l...z17r...cycle;      % eyes
+unfilldraw z1'r...z11l...z1'l...z11r...cycle;
+penlabels(1',11,3',4',5',7',17);
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "varprop";
+beginchar(hex"1D",14u#,x_height#,0);
+italcorr x_height#*slant-.5u#;
+adjust_fit(if monospace: -u#,-u# else: 0,0 fi);
+pickup light_rule.nib;
+lft x1 = hround 1.5u; y1 := good.y math_axis;
+numeric a; a = round(2.75u);
+x2 := good.x .5(w+a);
+y2 = y1;
+x3 = x4 = x1+a; y3 = y1 + a;  y4 = y1 - a;
+x5 = x6 = w-x1; y5 = y3;      y6 = y4;
+draw z5{left}..z2..z4..z1..z3..z2..{right}z6;
+labels(1,2,3,4,5,6); endchar;
+
+cmchar "variant angle";
+compute_spread(.45x_height#,.55x_height#);
+spread#':=spread#; spread':=spread; % the spread of `$=$'
+compute_spread(5/4x_height#,3/2x_height#);
+beginchar(hex"1E",14u#,v_center(spread#'+spread#+rule_thickness#));
+italcorr h#*slant-u#;
+adjust_fit(0,0);
+lft x10=hround 1.5u-eps; x9=x11=w-x10;
+y9-y11=spread; y10=.5[y9,y11]=math_axis;
+x4 = x10;  x6 = 0.7[x10,x11];  y6 = y10;  x6 - x1 = y4 - y1;
+pickup rule.nib; autorounded;
+circle_points;
+draw z5{z6-z4}..z6..{z8-z6}z7;
+pickup light_rule.nib;
+draw z9--z10--z11;
+labels(1,2,3,4,5,6,7,8,9,10,11); endchar;
+
+cmchar "reverse diameter";
+beginchar(hex"15",1.5556x_height#+2u#,v_center(1.5556x_height#));
+italcorr 1.348x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+numeric diam; diam := max(round(x_height/rule_thickness),1);
+diam := round( diam*rule_thickness ); if odd diam: diam := diam + 1; fi
+x0=x8=good.x .5w; y8-y4=x2-x6=diam;
+y0=y2=good.y math_axis;
+circle_points;
+z9' = 2.2[z0,z7];
+numeric delta; delta = round(y9'-y8);
+lft x9 = x6-delta+eps;
+top y9 = y8+delta+eps;
+rt x10 = x2+delta+eps;
+bot y10 = y4-delta+eps;
+draw_circle;
+draw z9--z10;
+labels(0,1,2,3,4,5,6,7,8,9,10); endchar;
+
+cmchar "diameter";
+beginchar(hex"1F",1.5556x_height#+2u#,v_center(1.5556x_height#));
+italcorr 1.348x_height#*slant;
+adjust_fit(if monospace: u#,u# else: 0,0 fi);
+pickup rule.nib; autorounded;
+numeric diam; diam := max(round(x_height/rule_thickness),1);
+diam := round( diam*rule_thickness ); if odd diam: diam := diam + 1; fi
+x0=x8=good.x .5w; y8-y4=x2-x6=diam;
+y0=y2=good.y math_axis;
+circle_points;
+z9' = 2.2[z0,z7];
+numeric delta; delta = round(y9'-y8);
+lft x9 = x6-delta+eps;
+bot y9 = y4-delta+eps;
+rt x10 = x2+delta+eps;
+top y10 = y8+delta+eps;
+draw_circle;
+draw z9--z10;
+labels(1,2,3,4,5,6,7,8,9,10); endchar;
+
+cmchar "rightcycle";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(hex"21",
+          18u#,asc_height#,desc_depth#);
+adjust_fit(if monospace:-2u#,-2u# else: 0,0 fi);
+italcorr x_height#*slant;
+pickup light_rule.nib; autorounded;
+numeric a; a = h + d + 2o - (spread+rule_thickness);
+x4 = good.x .5w; x2-x6=a; y8-y4=a;
+top y8=asc_height+o-.5(spread+rule_thickness);
+circle_points;
+y10=y8-eps; rt x10=hround .4[x8,x1];
+draw z1{z2-z8}...z2{down}...z3{z4-z2}...z4{left}
+  ...z5{z6-z4}...z6{up}...z7{z8-z6}...{right}z8;
+pickup crisp.nib;
+pos13(bar,0); pos14(bar,0);
+y13-y10=y10-y14=.24asc_height+eps; x13=x14=x10-3u-eps;
+pos15(bar,angle(z14-z10)); z15l=z10; pos16(bar,angle(z13-z10)); z16l=z10;
+z19=.381966[.5[z13,z14],z10];
+numeric t[]; path p[];
+(t1,t2)=(z14l{z19-z14}..z16r) intersectiontimes (z13l{z19-z13}..z15r);
+z20=(z14l{z19-z14}..z16r) intersectionpoint (z13l{z19-z13}..z15r);
+filldraw z10..{z14-z19}z14r--subpath (0,t1) of (z14l{z19-z14}..z16r)
+ --z20--subpath (t2,0) of (z13l{z19-z13}..z15r)--z13r{z19-z13}..z10
+ & cycle;  % arrowhead
+penlabels(10,13,14,15,16,19,20);
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "leftcycle";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(hex"22",
+          18u#,asc_height#,desc_depth#);
+adjust_fit(if monospace:-2u#,-2u# else: 0,0 fi);
+italcorr x_height#*slant;
+pickup light_rule.nib; autorounded;
+numeric a; a = h + d + 2o - (spread+rule_thickness);
+x4 = good.x .5w; x2-x6=a; y8-y4=a;
+top y8=asc_height+o-.5(spread+rule_thickness);
+circle_points;
+y10=y8-eps; lft x10=hround .4[x8,x7];
+draw z8{right}...z1{z2-z8}...z2{down}...z3{z4-z2}...z4{left}
+  ...z5{z6-z4}...z6{up}...{z8-z6}z7;
+pickup crisp.nib;
+pos13(bar,180); pos14(bar,180);
+y13-y10=y10-y14=.24asc_height+eps; x13=x14=x10+3u+eps;
+pos15(bar,angle(z14-z10)); z15l=z10; pos16(bar,angle(z13-z10)); z16l=z10;
+z19=.381966[.5[z13,z14],z10];
+numeric t[]; path p[];
+(t1,t2)=(z14l{z19-z14}..z16r) intersectiontimes (z13l{z19-z13}..z15r);
+z20=(z14l{z19-z14}..z16r) intersectionpoint (z13l{z19-z13}..z15r);
+filldraw z10..{z14-z19}z14r--subpath (0,t1) of (z14l{z19-z14}..z16r)
+ --z20--subpath (t2,0) of (z13l{z19-z13}..z15r)--z13r{z19-z13}..z10
+ & cycle;  % arrowhead
+penlabels(10,13,14,15,16,19,20);
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "ocircle same size as operators";
+beginarithchar(hex"23"); pickup light_rule.nib; autorounded;
+lft x6=hround u; x2=w-x6; y2=math_axis; top y8=h;
+circle_points; draw_circle;  % circle
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "pentagon";
+beginarithchar(hex"44"); pickup rule.nib;
+x0=good.x .5w; y0=good.y math_axis;
+x8=x0;         top y8=h;
+numeric theta; theta=360/5; % degrees between points
+z0=.5[z4,z8]; z9-z0=(z8-z0) rotated theta;
+z10-z0=(z9-z0) rotated theta;
+z12-z0=(z8-z0) rotated (-theta);
+z11-z0=(z12-z0) rotated (-theta);
+draw z8--z9--z10--z11--z12--cycle;
+labels(0,8,9,10,11,12); endchar;
+
+cmchar "ostar five-ended star in circle";
+beginarithchar(hex"16"); pickup light_rule.nib; autorounded;
+lft x6=hround u; x2=w-x6; y2=math_axis; top y8=h;
+circle_points; draw_circle;  % circle
+numeric theta; theta=360/5; % degrees between points
+z0=.5[z4,z8]; z9-z0=(z8-z0) rotated theta;
+z10-z0=(z9-z0) rotated theta;
+z11-z0=(z8-z0) rotated (-theta);
+z12-z0=(z11-z0) rotated (-theta);
+draw z0--z8; draw z0--z9;
+draw z0--z10; draw z0--z11;
+draw z0--z12;
+labels(0,1,2,3,4,5,6,7,8,9,10,11,12); endchar;
+
+cmchar "pentastar";
+beginarithchar(hex"45"); pickup light_rule.nib; autorounded;
+top y8=h; x0=x8=good.x .5w;
+numeric theta; theta=360/5; % degrees between points
+y0=.5h; z9-z0=(z8-z0) rotated theta;
+z10-z0=(z9-z0) rotated theta;
+z11-z0=(z8-z0) rotated (-theta);
+z12-z0=(z11-z0) rotated (-theta);
+draw z0--z8; draw z0--z9;
+draw z0--z10; draw z0--z11;
+draw z0--z12;
+labels(0,8,9,10,11,12); endchar;
+
+cmchar "Filled ocircle";
+beginarithchar(hex"20"); pickup crisp.nib; autorounded;
+lft x6=hround u; x2=w-x6; y2=math_axis; top y8=h;
+circle_points;
+filldraw z8{right}...z1{z2-z8}...z2{down}...z3{z4-z2}...z4{left}
+  ...z5{z6-z4}...z6{up}...z7{z8-z6}...cycle;
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "Filled left half ocircle";
+beginarithchar(hex"47"); pickup crisp.nib; autorounded;
+lft x6=hround u; x2=w-x6; y2=math_axis; top y8=h;
+circle_points;
+filldraw z8---z4{left}...z5{z6-z4}...z6{up}...z7{z8-z6}...{right}cycle;
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "Filled right half ocircle";
+beginarithchar(hex"48"); pickup crisp.nib; autorounded;
+lft x6=hround u; x2=w-x6; y2=math_axis; top y8=h;
+circle_points;
+filldraw z8---z4{right}...z3{z2-z4}...z2{up}...z1{z8-z2}...{left}cycle;
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "Left half ocircle";
+beginarithchar(hex"49"); pickup light_rule.nib; autorounded;
+lft x6=hround u; x2=w-x6; y2=math_axis; top y8=h;
+circle_points;
+draw z8---z4{left}...z5{z6-z4}...z6{up}...z7{z8-z6}...{right}cycle;
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "Right half ocircle";
+beginarithchar(hex"4A"); pickup light_rule.nib; autorounded;
+lft x6=hround u; x2=w-x6; y2=math_axis; top y8=h;
+circle_points;
+draw z8---z4{right}...z3{z2-z4}...z2{up}...z1{z8-z2}...{left}cycle;
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "Open moon";
+beginarithchar(hex"24"); pickup rule.nib; autorounded;
+lft x6=hround u; x2=w-x6; y2=math_axis; top y8=h;
+circle_points;
+z9=1/3[z6,z2];
+x8:=x8+u;
+x4:=x8;
+draw z4{(-1,-0.1)}..z5{z6-z4}..z6{up}..z7{z8-z6}..{(1,-0.1)}z8
+   & z8..z9{down}..z4;
+labels(1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "Close moon";
+beginarithchar(hex"25"); pickup rule.nib; autorounded;
+lft x2=hround u; x6=w-x2; y2=math_axis; top y8=h;
+circle_points;
+z9=1/3[z6,z2];
+x8:=x8-u;
+x4:=x8;
+draw z4{(1,-0.1)}..z5{z6-z4}..z6{up}..z7{z8-z6}..{(-1,-0.1)}z8
+   & z8..z9{down}..z4;
+labels(1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "Jupiter";
+beginchar(hex"58",.7cap_height#+4u#,cap_height#,0);
+pickup rule.nib;
+lft x1 = hround u; x3-x2=y4-y5; y2=good.y .35h; bot y5=0;
+x4=x5=.505[x2,x3]; y2=y3=.5[y4,y5];
+x1=x2-2u; bot y1=top y4;
+top y1'=h; x1'=.35[x1,x4];
+draw z1..z1'{right}..{(-1,-2)}z2--z3;
+draw z4--z5;
+labels(1,2,3,4,5); endchar;
+
+cmchar "Saturn";
+beginchar(hex"59",10.5u#,cap_height#,desc_depth#);
+pickup rule.nib;
+lft x1 = hround 2.5u; rt x5 = w-u; x6=x5; x4=.5[x1,x5]; x2=x3=x1;
+bot y1=0; top y2=h; y4=x_height; y3=y5=.51x_height; bot y6=-d;
+y7=y8=h-2.0u; lft x7=x1-2.0u; rt x8=x1+2.0u;
+draw z1--z2;
+draw z3{up}...z4{right}..z5{down}..{right}z6;
+draw z7--z8;
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "Pluto";
+beginchar(hex"5C",10.5u#,cap_height#,0);
+pickup rule.nib; autorounded;
+lft x2 = hround u; x3=x5=x2; x1=x4=w-x2;
+bot y2 = 0; y1=y2; top y3=h; y5=good.y .45[y2,y3]; y4=.5[y3,y5];
+draw z1--z2--z3{right}...z4...{left}z5;
+labels(1,2,3,4,5); endchar;
+
+cmchar "Ascendent";
+beginchar(hex"13",15u#,v_center(0.9(asc_height#+desc_depth#)));
+italcorr 0.8asc_height#*slant;
+adjust_fit(0,0); pickup rule.nib;
+y1=y3=y8=y10=1/7(h+d)-d;
+y4=y9=-d;
+y5=y7=0.7(h+d)-d;
+y6=h;
+y1=.5[y2,y4];
+x3=u; x5=2u;
+x10=w-u; x7=w-2u;
+x6=.5w;
+x10-x8=x1-x3=y2-y4;
+x2=x4=.5[x1,x3];
+x9=.5[x8,x10];
+draw z1{up}...z2{left}...z3{down}...z4{right}...z1{up}...z5{up}
+     ...z6{right}...z7{down}...z8{down}...z9{right}...{up}z10;
+labels(1,2,3,4,5,6,7,8,9,10); endchar;
+
+cmchar "Descendent";
+beginchar(hex"14",15u#,v_center(0.9(asc_height#+desc_depth#)));
+italcorr 0.8asc_height#*slant;
+adjust_fit(0,0); pickup rule.nib;
+y1=y3=y8=y10=6/7(h+d)-d;
+y4=y9=h;
+y5=y7=0.3(h+d)-d;
+y6=-d;
+y1=.5[y2,y4];
+x3=u; x5=2u;
+x10=w-u; x7=w-2u;
+x6=.5w;
+x10-x8=x1-x3=y4-y2;
+x2=x4=.5[x1,x3];
+x9=.5[x8,x10];
+draw z1{down}...z2{left}...z3{up}...z4{right}...z1{down}...z5{down}
+     ...z6{right}...z7{up}...z8{up}...z9{right}...{down}z10;
+labels(1,2,3,4,5,6,7,8,9,10); endchar;
+
+cmchar "Square";
+beginchar(hex"32",2.1math_axis#+4u#,
+          v_center(2.1math_axis#));
+italcorr math_axis#*slant;
+adjust_fit(0,0); pickup rule.nib;
+numeric a; a=round(2.1math_axis);
+if odd a: a := a + 1; fi
+x1=x4; x2=x3=x1+a; x5 = .5[x1,x2] = good.x .5w;
+y3=y4; y1=y2=y3+a;
+y5 = .5[y1,y3] = good.y .5(h-d);
+draw z1--z2--z3--z4--cycle;
+labels(1,2,3,4,5); endchar;
+
+cmchar "sharp triangle, delta form";
+beginchar(hex"00",12u#,asc_height#,0);
+italcorr asc_height#*slant;
+adjust_fit(0,0); pickup rule.nib;
+lft x1=hround u; x3=w-x1; x2=.5[x1,x3];
+y1=y3; bot y1=-oo; top y2=h;
+draw z1--z2--z3--cycle;
+labels(1,2,3,4,5); endchar;
+
+cmchar "sharp triangle, nabla form";
+beginchar(hex"46",12u#,asc_height#,0);
+italcorr asc_height#*slant;
+adjust_fit(0,0); pickup rule.nib;
+lft x1=hround u; x3=w-x1; x2=.5[x1,x3];
+y1=y3; top y3=h; bot y2=-oo;
+draw z1--z2--z3--cycle;
+labels(1,2,3,4,5); endchar;
+
+cmchar "Crossedsquare";
+beginchar(hex"34",2.1math_axis#+4u#,
+          v_center(2.1math_axis#));
+italcorr math_axis#*slant;
+adjust_fit(0,0); pickup rule.nib;
+numeric a; a=round(2.1math_axis);
+if odd a: a := a + 1; fi
+x1=x4; x2=x3=x1+a; x5 = .5[x1,x2] = good.x .5w;
+y3=y4; y1=y2=y3+a;
+y5 = .5[y1,y3] = good.y .5(h-d);
+draw z1--z2--z3--z4--cycle;
+draw z1--z3;
+draw z2--z4;
+labels(1,2,3,4,5); endchar;
+
+cmchar "Lozenge";
+beginchar(hex"35",2.1math_axis#+4u#,
+          v_center(2.1math_axis#));
+italcorr math_axis#*slant;
+adjust_fit(0,0); pickup rule.nib;
+numeric a; a=round(2.1math_axis);
+x1=x4; x2=x3=x1+a; .5(x1+x2) = good.x .5w;
+y3=y4; y1=y2=y3+a;
+y5 = good.y .5(h-d);
+z5=.5[z1,z3];
+x13-x5=x5-x11=1/3a;  y13=y11=y5;
+y12-y5=y5-y14=1/3a;  x12=x14=x5;
+draw z1...z12...z2
+   & z2...z13...z3
+   & z3...z14...z4
+   & z4...z11...z1 & cycle;
+labels(1,2,3,4,5,11,12,13,14); endchar;
+
+cmchar "Kreuz";
+beginchar(hex"36",2.1math_axis#+4u#,
+          v_center(2.1math_axis#));
+italcorr math_axis#*slant;
+adjust_fit(0,0); pickup crisp.nib;
+numeric a; a=round(2.1math_axis)+eps;
+numeric outerthickness; outerthickness=round(math_axis);
+numeric innerthickness; innerthickness=stem;
+x1=x4; x2=x3=x1+a; .5(x1+x2) = good.x .5w;
+y3=y4; y1=y2=y3+a;
+y5 = good.y .5(h-d);
+z5=.5[z1,z3];
+lft x10=x1; x11=x5; rt x12=x2; y10=y11=y12=y5;
+pos10(outerthickness,90);
+pos11(innerthickness,90);
+pos12(outerthickness,90);
+filldraw stroke z10e...z11e...z12e;
+bot y13=y1; y14=y5; top y15=y4; x13=x14=x15=x5;
+pos13(outerthickness,0);
+pos14(innerthickness,0);
+pos15(outerthickness,0);
+filldraw stroke z13e...z14e...z15e;
+labels(1,2,3,4,5);
+penlabels(10,11,12,13,14,15); endchar;
+
+cmchar "Very high frequency";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(hex"40",14u#,v_center(1.9math_axis#+rule_thickness#));
+adjust_fit(0,0); pickup rule.nib;
+numeric a; a=round(.45math_axis);
+numeric b; b=round(math_axis+rule_thickness);
+if odd b: b := b+1; fi
+y11=y13=y15=math_axis; y12-a=y14+a=good.y math_axis;
+x11=u; x15=w-u; x13=.5[x11,x15]; x12=.5[x11,x13]; x14=.5[x13,x15];
+path p; p=z12{right}...z13...z14{right};
+pos11(b,90);
+pos12(b,90);
+pos13(b,90);
+pos14(b,90);
+pos15(b,90);
+draw z11{dir(-angle direction 1 of p)}...z12{right}...z13...
+     z14{right}...z15{dir(-angle direction 1 of p)};
+draw z11r{dir(-angle direction 1 of p)}...z12r{right}...z13r...
+     z14r{right}...z15r{dir(-angle direction 1 of p)};
+draw z11l{dir(-angle direction 1 of p)}...z12l{right}...z13l...
+     z14l{right}...z15l{dir(-angle direction 1 of p)};
+penlabels(11,12,13,14,15); endchar;
+
+cmchar "APL comment";
+beginchar(hex"7F",9u#,9u#,0);
+adjust_fit(0,0); pickup rule.nib; autorounded;
+lft x6=hround u; x2=w-x6; top y8=h; bot y4=2u;
+circle_points;
+y9 = y10 = 0; x9=x2; x10=x6;
+draw_circle;  % circle
+draw z2--z9; draw z6--z10;
+labels(1,2,3,4,5,6,7,8,9,10); endchar;
+
+cmchar "APLleftarrowbox";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(hex"70",14u#,7u#+math_axis#,7u#-math_axis#);
+italcorr math_axis#*slant-.5u#;
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,90); pos2(rule_thickness,90);
+pos3(bar,0); pos4(bar,0);
+y0=y1=y2=math_axis; x1+rule_thickness=hround(w-1.5u);
+lft x0=hround 1.5u;
+y3-y0=y0-y4=.24asc_height+eps; x3=x4=x0+3u+eps;
+pos5(bar,angle(z4-z0)); z5l=z0; pos6(bar,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4r{z9-z4}..z6r;
+t=xpart(p intersectiontimes((0,y2l)--(w,y2l))); x2=xpart point t of p;
+filldraw z0..{z4-z9}z4l--subpath (0,t) of\\(z4r{z9-z4}..z6r)
+ --z2l---z1l..z1r---z2r--subpath (t,0) of\\(z3r{z9-z3}..z5r)
+ --z3l{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9);
+pickup rule.nib;
+y+.5dot_size=vround(math_axis+math_spread[.5x_height,.6x_height]
++.5dot_size);
+lft x11=hround u-eps; x11'=x11; x12=x12'=w-x11;
+y11=y12=math_axis-1.8(y-math_axis);
+y11'=y12'=math_axis+1.8(y-math_axis);
+draw z11--z12--z12'--z11'--cycle;
+penlabels(11,12,11',12'); endchar;
+
+cmchar "APLrightarrowbox";
+compute_spread(.45x_height#,.55x_height#);
+beginchar(hex"71",14u#,7u#+math_axis#,7u#-math_axis#);
+italcorr math_axis#*slant-.5u#;
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,90); pos2(rule_thickness,90);
+pos3(bar,0); pos4(bar,0);
+y0=y1=y2=math_axis; x1-rule_thickness=hround 1.5u;
+rt x0=hround(w-1.5u);
+y3-y0=y0-y4=.24asc_height+eps; x3=x4=x0-3u-eps;
+pos5(bar,angle(z4-z0)); z5l=z0; pos6(bar,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4l{z9-z4}..z6r;
+t=xpart(p intersectiontimes((0,y2l)--(w,y2l))); x2=xpart point t of p;
+filldraw z0..{z4-z9}z4r--subpath (0,t) of\\(z4l{z9-z4}..z6r)
+ --z2l---z1l..z1r---z2r--subpath (t,0) of\\(z3l{z9-z3}..z5r)
+ --z3r{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9);
+pickup rule.nib;
+y+.5dot_size=vround(math_axis+math_spread[.5x_height,.6x_height]
++.5dot_size);
+lft x11=hround u-eps; x11'=x11; x12=x12'=w-x11;
+y11=y12=math_axis-1.8(y-math_axis);
+y11'=y12'=math_axis+1.8(y-math_axis);
+draw z11--z12--z12'--z11'--cycle;
+penlabels(11,12,11',12'); endchar;
+
+cmchar "APLuparrowbox";
+beginchar(hex"6E",14u#,7u#+math_axis#,7u#-math_axis#);
+italcorr math_axis#*slant-.5u#;
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,0); pos2(rule_thickness,0);
+pos3(bar,90); pos4(bar,90);
+lft x1l=hround(.5w-.5rule_thickness); bot y1-rule_thickness=-d;
+x0=x1=x2; top y0=h-.5u; x0-x3=x4-x0=3u+eps;
+y3=y4=y0-.24asc_height-eps;
+pos5(bar,angle(z4-z0)); z5l=z0;
+pos6(bar,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4l{z9-z4}..z6r;
+t=xpart(p intersectiontimes((x2r,-d)--(x2r,h))); y2=ypart point t of p;
+filldraw z0..{z4-z9}z4r--subpath (0,t) of\\(z4l{z9-z4}..z6r)
+ --z2r---z1r..z1l---z2l--subpath (t,0) of\\(z3l{z9-z3}..z5r)
+ --z3r{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9);
+pickup rule.nib;
+y+.5dot_size=vround(math_axis+math_spread[.5x_height,.6x_height]
++.5dot_size);
+lft x11=hround u-eps; x11'=x11; x12=x12'=w-x11;
+y11=y12=math_axis-1.8(y-math_axis);
+y11'=y12'=math_axis+1.8(y-math_axis);
+draw z11--z12--z12'--z11'--cycle;
+penlabels(11,12,11',12'); endchar;
+
+cmchar "APLdownarrowbox";
+beginchar(hex"6F",14u#,7u#+math_axis#,7u#-math_axis#);
+italcorr math_axis#*slant-.5u#;
+adjust_fit(0,0); pickup crisp.nib;
+pos1(rule_thickness,0); pos2(rule_thickness,0);
+pos3(bar,90); pos4(bar,90);
+lft x1l=hround(.5w-.5rule_thickness); top y1+rule_thickness=h;
+x0=x1=x2; bot y0=-d+.5u; x0-x3=x4-x0=3u+eps;
+y3=y4=y0+.24asc_height+eps;
+pos5(bar,angle(z4-z0)); z5l=z0;
+pos6(bar,angle(z3-z0)); z6l=z0;
+z9=.381966[.5[z3,z4],z0];
+numeric t; path p; p=z4r{z9-z4}..z6r;
+t=xpart(p intersectiontimes((x2r,-d)--(x2r,h))); y2=ypart point t of p;
+filldraw z0..{z4-z9}z4l--subpath (0,t) of\\(z4r{z9-z4}..z6r)
+ --z2r---z1r..z1l---z2l--subpath (t,0) of\\(z3r{z9-z3}..z5r)
+ --z3l{z9-z3}..z0 & cycle;  % arrowhead and stem
+penlabels(0,1,2,3,4,5,6,9);
+pickup rule.nib;
+y+.5dot_size=vround(math_axis+math_spread[.5x_height,.6x_height]
++.5dot_size);
+lft x11=hround u-eps; x11'=x11; x12=x12'=w-x11;
+y11=y12=math_axis-1.8(y-math_axis);
+y11'=y12'=math_axis+1.8(y-math_axis);
+draw z11--z12--z12'--z11'--cycle;
+penlabels(11,12,11',12'); endchar;
+
+cmchar "APL box";
+beginchar(hex"7E",14u#,7u#+math_axis#,7u#-math_axis#);
+italcorr math_axis#*slant-.5u#;
+adjust_fit(0,0);
+pickup rule.nib;
+y+.5dot_size=vround(math_axis+math_spread[.5x_height,.6x_height]
++.5dot_size);
+lft x1=hround u-eps; x1'=x1; x2=x2'=w-x1;
+y1=y2=math_axis-1.8(y-math_axis);
+y1'=y2'=math_axis+1.8(y-math_axis);
+draw z1--z2--z2'--z1'--cycle;
+penlabels(1,2,1',2'); endchar;
+
+cmchar "APL input";
+beginchar(hex"7D",14u#,7u#+math_axis#,7u#-math_axis#);
+italcorr math_axis#*slant-.5u#;
+adjust_fit(0,0);
+pickup rule.nib;
+y+.5dot_size=vround(math_axis+math_spread[.5x_height,.6x_height]
++.5dot_size);
+rt x2 - lft x1=w-2u; x1'=x1; x2=x2'=w-x1;
+y1=y2=math_axis-1.8(y-math_axis);
+y3=y4=y1'=y2'=math_axis+1.8(y-math_axis);
+y5=.66[y1,y1'];
+x5=.5[x1,x2];
+x2-x4 = x3-x1;
+x4-x3 = 1.5rule_thickness;
+draw z1--z2--z2'--z1'--cycle;
+filldraw z3--z4--z5--cycle;
+penlabels(1,2,3,4,5,1',2'); endchar;
+
+cmchar "Hexagon";
+beginchar(hex"37",2.43math_axis#+2u#,
+          v_center(2.1math_axis#));
+italcorr math_axis#*slant;
+adjust_fit(0,0); pickup rule.nib;
+numeric a; a=2.1math_axis/sqrt 3;
+x4=x1+2a; x3=x2+a; x2=x6; x3=x5; .5[x2,x3] = .5[x1,x4] = good.x .5w;
+y1 = y4 = .5[y2,y6] = good.y .5(h-d);
+y2=y3; y5=y6; y6-y2=2.1math_axis;
+draw z1--z2--z3--z4--z5--z6--cycle;
+labels(1,2,3,4,5,6); endchar;
+
+cmchar "Hexagon B";
+beginchar(hex"39",2.1math_axis#+2u#,
+          v_center(2.43math_axis#));
+italcorr math_axis#*slant;
+adjust_fit(0,0); pickup rule.nib;
+numeric a; a=2.1math_axis/sqrt 3;
+y4=y1+2a; y3=y2+a; y2=y6; y3=y5; .5[y2,y3] = .5[y1,y4] = good.y .5(h-d);
+x1 = x4 = .5[x2,x6] = good.x .5w;
+x2=x3; x5=x6; x6-x2=2.1math_axis;
+draw z1--z2--z3--z4--z5--z6--cycle;
+labels(1,2,3,4,5,6); endchar;
+
+cmchar "Hexastar";
+beginchar(hex"41",2.65math_axis#+2u#,
+          v_center(2.3math_axis#));
+italcorr math_axis#*slant;
+adjust_fit(0,0); pickup light_rule.nib;
+numeric a; a=2.3math_axis/sqrt 3;
+x4=x1+2a; x3=x2+a; x2=x6; x3=x5; .5[x2,x3] = .5[x1,x4] = good.x .5w;
+y1 = y4 = .5[y2,y6] = good.y .5(h-d);
+y2=y3; y5=y6; y6-y2=2.3math_axis;
+draw z1--z4; draw z2--z5; draw z3--z6;
+labels(1,2,3,4,5,6); endchar;
+
+cmchar "Hexastar B";
+beginchar(hex"42",2.3math_axis#+2u#,
+          v_center(2.65math_axis#));
+italcorr math_axis#*slant;
+adjust_fit(0,0); pickup light_rule.nib;
+numeric a; a=2.3math_axis/sqrt 3;
+y4=y1+2a; y3=y2+a; y2=y6; y3=y5; .5[y2,y3] = .5[y1,y4] = good.y .5(h-d);
+x1 = x4 = .5[x2,x6] = good.x .5w;
+x2=x3; x5=x6; x6-x2=2.3math_axis;
+draw z1--z4; draw z2--z5; draw z3--z6;
+labels(1,2,3,4,5,6); endchar;
+
+cmchar "Davids star";
+beginchar(hex"43",2.3math_axis#+2u#,
+          v_center(2.65math_axis#));
+italcorr math_axis#*slant;
+adjust_fit(0,0); pickup light_rule.nib;
+numeric a; a=2.3math_axis/sqrt 3;
+y4=y1+2a; y3=y2+a; y2=y6; y3=y5; .5[y2,y3] = .5[y1,y4] = good.y .5(h-d);
+x1 = x4 = .5[x2,x6] = good.x .5w;
+x2=x3; x5=x6; x6-x2=2.3math_axis;
+draw z1--z3--z5--cycle; draw z2--z4--z6--cycle;
+labels(1,2,3,4,5,6); endchar;
+
+cmchar "Approximate less than sign";
+compute_spread(.45x_height#,.55x_height#);
+spread#':=spread#; spread':=spread; % the spread of `$=$'
+compute_spread(5/4x_height#,3/2x_height#);
+beginchar(hex"3E",14u#,v_center(spread#+1.2spread#'+rule_thickness#));
+italcorr h#*slant-u#;
+adjust_fit(0,0); pickup rule.nib;
+lft x2=hround 1.5u-eps; x1=x3=w-x2;
+y1-y3=spread; y2=.5[y1,y3]=good.y h-.5(spread+rule_thickness);
+draw z1--z2--z3;  % diagonals
+pickup pencircle xscaled .7rule_thickness yscaled 1.4rule_thickness;
+if vair#>.8curve#: pickup rule.nib; autorounded; fi % monoline
+x1'=x2; x2'=4u; x3'=w-x2'; x4'=w-x1';
+bot y1'=bot y3'=-d; top y2'=top y4'=.8spread'-d;
+draw z1'{up}...z2'{right}..{right}z3'...{up}z4';  % stroke
+labels(1,2,3,1',2',3',4'); endchar;
+
+cmchar "Approximate greater than sign";
+compute_spread(.45x_height#,.55x_height#);
+spread#':=spread#; spread':=spread; % the spread of `$=$'
+compute_spread(5/4x_height#,3/2x_height#);
+beginchar(hex"3F",14u#,v_center(spread#+1.2spread#'+rule_thickness#));
+italcorr h#*slant-u#;
+adjust_fit(0,0); pickup rule.nib;
+lft x1=hround 1.5u-eps; x1=x3; x2=w-x1;
+y1-y3=spread; y2=.5[y1,y3]=good.y h-.5(spread+rule_thickness);
+draw z1--z2--z3;  % diagonals
+pickup pencircle xscaled .7rule_thickness yscaled 1.4rule_thickness;
+if vair#>.8curve#: pickup rule.nib; autorounded; fi % monoline
+x1'=x1; x2'=4u; x3'=w-x2'; x4'=w-x1';
+bot y1'=bot y3'=-d; top y2'=top y4'=.8spread'-d;
+draw z1'{up}...z2'{right}..{right}z3'...{up}z4';  % stroke
+labels(1,2,3,1',2',3',4'); endchar;
+
+cmchar "double bar";
+beginchar(hex"7C",2u#,asc_height#,0);
+italcorr asc_height#*slant - u#;
+adjust_fit(0,0); pickup rule.nib;
+bot y1 = good.y oo; top y2 = good.y (h-oo);
+top y1' + 1.5u = bot y2'; .5[y1',y2'] = .5h;
+x1=x1'=x2=x2'=good.x .5w;
+draw z1--z1'; draw z2--z2';
+labels(1,2,1',2'); endchar;
+
+cmchar "octagon";
+beginchar(hex"38",
+          18u#,asc_height#,desc_depth#);
+pickup light_rule.nib;
+y1=y8; x2=x3; y4=y5; x6=x7; y2=y7; y3=y6; x8=x5; x1=x4;
+.5[y2,y3]=.5[y1,y4]=good.y .5(h-d);
+.5[x1,x8]=.5[x2,x7]=good.x .5w;
+x1-x8 = y3-y2 = sqrt2*(x2-x1) = (h+d)/2.62;
+y4-y1=x2-x7;
+draw (z1--z2--z3--z4--z5--z6--z7--z8--cycle);
+labels(1,2,3,4,5,6,7,8); endchar;
+
+cmchar "Gluon element";
+beginchar(hex"50",6u#,v_center(1.4x_height#));
+adjust_fit(0,0); pickup rule.nib;
+y1=y5=h; y3=-d; y3'=0.8[y3,y1];
+x1=0; x5=w; x3=x3'=.5w;
+y2=y4=0.35[y3,y3'];
+x2-x3=x3-x4=0.33w;
+draw z1{right}...z3'...z2{down}...z3{left}...z4{up}...z3'...{right}z5;
+labels(1,2,3,3',4,5); endchar;
+
+cmchar "Gluon begin element";
+beginchar(hex"51",6u#,v_center(1.4x_height#));
+adjust_fit(0,0); pickup rule.nib;
+y1=good.y math_axis; y2=h;
+x1=0; x2=w;
+draw z1{(1,2)}...{right}z2;
+labels(1,2); endchar;
+
+cmchar "Gluon end element";
+beginchar(hex"52",6u#,v_center(1.4x_height#));
+adjust_fit(0,0); pickup rule.nib;
+y2=good.y math_axis; y1=h;
+x1=0; x2=w;
+draw z1{right}...{(1,-2)}z2;
+labels(1,2); endchar;
+
+cmchar "Telephone";
+beginchar(hex"07",1.5asc_height#,asc_height#,0);
+adjust_fit(0,0); pickup crisp.nib; autorounded;
+numeric uu; uu = 1/20 asc_height;
+bot y1 = 0; y2 = 3uu; y3 = 13uu; y4=y2; y5=y1; y0 = good.y 9uu;
+lft x1 = hround (4uu+eps); x2 = x1; x4 = x5 = w-x1; x0 = x3 = .5 w;
+y6 = y8 = y0 = .5[y9,y7]; x7 = x9 = x0 = .5[x8,x6];
+y7-y9 = 8uu; x6-x8 = 9uu;
+y6' = y8' = y0 = .5[y9',y7']; x7' = x9' = x0 = .5[x8',x6'];
+y7'-y9' = 10.5uu+0.5+eps; x6'-x8' = 11.5uu+0.5+eps;
+y10 = y15 = 10uu; y11 = y12 = y14 = y17 = y10+2uu;
+y13 = y16 = y18 = y20 = y10+5uu; y21 = y10+5uu+eps; y19 = y10+8uu+eps;
+x19=x21=x0; x20=hround(uu+eps); x18 = w-x20;
+x12=hround(uu+eps); x17 = w-x12; x10= 2uu+eps; x15 = w-x10;
+x11=x10+6uu; x13=x12+6uu; x14=x15-6uu; x16=x17-6uu;
+filldraw z1---z2...z3...z4---z5--cycle; % body
+erase filldraw z6'...z7'...z8'...z9'...cycle; % space for dial
+filldraw z6...z7...z8...z9...cycle; % dial
+filldraw z10--z11--z13--z12--cycle;
+filldraw z14--z15--z17--z16--cycle;
+filldraw z20{(3,1)}...z19{right}...{(3,-1)}z18--z17{(-3,1)}...
+         z21{left}...{(-3,-1)}z12--cycle;
+labels(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20);
+labels(6',7',8',9'); endchar;
+
+
+cmchar "\textstyle integral sign";
+beginchar(hex"72",11u#,0,100/54dh#);
+italcorr 3.5u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(0,-ic#); pickup fine.nib;
+pos1(curve,0); pos2(hair,0); pos3(vair,90); pos4(curve,180);
+pos5(curve,180); pos5'(curve,0); z5'=z5; pos6(curve,0);
+pos7(vair,-90); pos8(hair,-180); pos9(curve,-180);
+rt x1r=hround(w-u); x9=w-x1; x7=w-x3=3u;
+x5=x4=x6; lft x5r=hround(.5w-.5curve);
+top y3r=0; bot y7r=-d; y9-.5curve=vround(top y7l+.25curve);
+y3-y1=y9-y7; y5=.5[y3,y7]=.5[y4,y6]; y4-y6=.6(y3-y7);
+bulb(3,2,1); bulb(7,8,9);  % bulbs
+filldraw stroke z3e{left}...z4e{(z5e-z4e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z5-z4}z5e;  % upper curve
+filldraw stroke z5'e{z6-z5}..tension atleast.8 and atleast 1
+ ..{(z6e-z5'e)xscaled 1.1}z6e...{left}z7e;  % lower curve
+penlabels(1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "\textstyle loop-integral sign";
+beginchar(hex"75",13u#,0,100/54dh#);
+italcorr 0; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(0,-ic#); pickup fine.nib;
+pos11(curve,0); pos12(hair,0); pos13(vair,90); pos14(curve,180);
+pos15(curve,180); pos15'(curve,0); z15'=z15; pos16(curve,0);
+pos17(vair,-90); pos18(hair,-180); pos19(curve,-180);
+rt x11r=hround(w-2u); x19=w-x11; x17=w-x13=4u;
+x15=x14=x16; lft x15r=hround(.5w-.5curve);
+top y13r=0; bot y17r=-d; y19-.5curve=vround(top y17l+.25curve);
+y13-y11=y19-y17; y15=.5[y13,y17]=.5[y14,y16]; y14-y16=.6(y13-y17);
+bulb(13,12,11); bulb(17,18,19);  % bulbs
+filldraw stroke z13e{left}...z14e{(z15e-z14e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z15-z14}z15e;  % upper curve
+filldraw stroke z15'e{z16-z15}..tension atleast.8 and atleast 1
+ ..{(z16e-z15'e)xscaled 1.1}z16e...{left}z17e;  % lower curve
+pickup light_rule.nib;
+x4 = x15; y8-y4=x2-x6=.8(y14-y16); y2=y15;
+circle_points;
+draw_circle;
+labels(1,2,3,4,5,6,7,8);
+penlabels(11,12,13,14,15,16,17,18,19); endchar;
+
+cmchar "\textstyle two-dimensional integral sign";
+beginchar(hex"73",17u#,0,100/54dh#);
+italcorr 3.5u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(0,-ic#); pickup fine.nib;
+pos1(curve,0); pos2(hair,0); pos3(vair,90); pos4(curve,180);
+pos11(curve,0); pos12(hair,0); pos13(vair,90); pos14(curve,180); %2
+pos5(curve,180); pos5'(curve,0); z5'=z5; pos6(curve,0);
+pos15(curve,180); pos15'(curve,0); z15'=z15; pos16(curve,0); %2
+pos7(vair,-90); pos8(hair,-180); pos9(curve,-180);
+pos17(vair,-90); pos18(hair,-180); pos19(curve,-180); %2
+numeric ww; ww = 2/3w-2/3u;
+numeric xx; xx = 1/3w+2/3u;
+rt x1r=hround(ww-u); x9=ww-x1; x7=ww-x3=3u;
+rt x11r=hround(w-u); x19=w-x1; x17=w-x3; w-x13=3u; %2
+x5=x4=x6; lft x5r=hround(.5ww-.5curve);
+x15=x14=x16; lft x15r=hround(.5[xx,w]-.5curve); %2
+top y3r=0; bot y7r=-d; y9-.5curve=vround(top y7l+.25curve);
+y3-y1=y9-y7; y5=.5[y3,y7]=.5[y4,y6]; y4-y6=.6(y3-y7);
+y11=y1; y13=y3; y14=y4; y15=y5; y16=y6; y17=y7; y19=y9; %2
+bulb(3,2,1); bulb(7,8,9);  % bulbs
+bulb(13,12,11); bulb(17,18,19);  %2 bulbs
+filldraw stroke z3e{left}...z4e{(z5e-z4e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z5-z4}z5e;  % upper curve
+filldraw stroke z5'e{z6-z5}..tension atleast.8 and atleast 1
+ ..{(z6e-z5'e)xscaled 1.1}z6e...{left}z7e;  % lower curve
+filldraw stroke z13e{left}...z14e{(z15e-z14e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z15-z14}z15e;  % upper curve
+filldraw stroke z15'e{z16-z15}..tension atleast.8 and atleast 1
+ ..{(z16e-z15'e)xscaled 1.1}z16e...{left}z17e;  % lower curve
+pickup light_rule.nib;
+penlabels(1,2,3,4,5,6,7,8,9);
+penlabels(11,12,13,14,15,16,17,18,19); endchar;
+
+cmchar "\textstyle two-dimensional surface-integral sign";
+beginchar(hex"76",17u#,0,100/54dh#);
+italcorr 3.5u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(0,-ic#); pickup fine.nib;
+pos21(curve,0); pos22(hair,0); pos23(vair,90); pos24(curve,180);
+pos11(curve,0); pos12(hair,0); pos13(vair,90); pos14(curve,180); %2
+pos25(curve,180); pos25'(curve,0); z25'=z25; pos26(curve,0);
+pos15(curve,180); pos15'(curve,0); z15'=z15; pos16(curve,0); %2
+pos27(vair,-90); pos28(hair,-180); pos29(curve,-180);
+pos17(vair,-90); pos18(hair,-180); pos19(curve,-180); %2
+numeric ww; ww = 2/3w-2/3u;
+numeric xx; xx = 1/3w+2/3u;
+rt x21r=hround(ww-u); x29=ww-x21; x27=ww-x23=3u;
+rt x11r=hround(w-u); x19=w-x21; x17=w-x23; w-x13=3u; %2
+x25=x24=x26; lft x25r=hround(.5ww-.5curve);
+x15=x14=x16; lft x15r=hround(.5[xx,w]-.5curve); %2
+top y23r=0; bot y27r=-d; y29-.5curve=vround(top y27l+.25curve);
+y23-y21=y29-y27; y25=.5[y23,y27]=.5[y24,y26]; y24-y26=.6(y23-y27);
+y11=y21; y13=y23; y14=y24; y15=y25; y16=y26; y17=y27; y19=y29; %2
+bulb(23,22,21); bulb(27,28,29);  % bulbs
+bulb(13,12,11); bulb(17,18,19);  %2 bulbs
+filldraw stroke z23e{left}...z24e{(z25e-z24e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z25-z24}z25e;  % upper curve
+filldraw stroke z25'e{z26-z25}..tension atleast.8 and atleast 1
+ ..{(z26e-z25'e)xscaled 1.1}z26e...{left}z27e;  % lower curve
+filldraw stroke z13e{left}...z14e{(z15e-z14e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z15-z14}z15e;  % upper curve
+filldraw stroke z15'e{z16-z15}..tension atleast.8 and atleast 1
+ ..{(z16e-z15'e)xscaled 1.1}z16e...{left}z17e;  % lower curve
+pickup light_rule.nib;
+x4 = x25+.75u; y8-y4=x2-x6=.8(y14-y16); y2=y15;
+circle_points;
+x4' = x8' = x15-.75u;
+x1' := x1 + (x4'-x4); x2' := x2 + (x4'-x4); x3' := x3 + (x4'-x4);
+y1'=y1; y2'=y2; y3'=y3; y4'=y4; y8'=y8;
+draw z8---z8'...z1'...z2'...z3'...z4'---z4...z5...z6...z7...cycle;
+labels(1',2',3',4',4,5,6,7,8,8');
+penlabels(11,12,13,14,15,16,17,18,19);
+penlabels(21,22,23,24,25,26,27,28,29); endchar;
+
+cmchar "\textstyle three-dimensional integral sign";
+beginchar(hex"74",23u#,0,100/54dh#);
+italcorr 3.5u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(0,-ic#); pickup fine.nib;
+pos1(curve,0); pos2(hair,0); pos3(vair,90); pos4(curve,180);
+pos11(curve,0); pos12(hair,0); pos13(vair,90); pos14(curve,180); %2
+pos21(curve,0); pos22(hair,0); pos23(vair,90); pos24(curve,180); %3
+pos5(curve,180); pos5'(curve,0); z5'=z5; pos6(curve,0);
+pos15(curve,180); pos15'(curve,0); z15'=z15; pos16(curve,0); %2
+pos25(curve,180); pos25'(curve,0); z25'=z25; pos26(curve,0); %3
+pos7(vair,-90); pos8(hair,-180); pos9(curve,-180);
+pos17(vair,-90); pos18(hair,-180); pos19(curve,-180); %2
+pos27(vair,-90); pos28(hair,-180); pos29(curve,-180); %3
+numeric ww; ww = 1/2w-u;
+numeric xx; xx = 1/4w+.5u;
+numeric www; www = 3/4w-.5u;
+numeric xxx; xxx = 1/2w+u;
+rt x1r=hround(ww-u); x9=ww-x1; x7=ww-x3=3u;
+rt x11r=hround(www-u); x19=www-x1; x17=www-x3; www-x13=3u; %2
+rt x21r=hround(w-u); x29=w-x1; x27=w-x3; w-x23=3u; %3
+x5=x4=x6; lft x5r=hround(.5ww-.5curve);
+x15=x14=x16; lft x15r=hround(.5[xx,www]-.5curve); %2
+x25=x24=x26; lft x25r=hround(.5[xxx,w]-.5curve); %3
+top y3r=0; bot y7r=-d; y9-.5curve=vround(top y7l+.25curve);
+y3-y1=y9-y7; y5=.5[y3,y7]=.5[y4,y6]; y4-y6=.6(y3-y7);
+y11=y1; y13=y3; y14=y4; y15=y5; y16=y6; y17=y7; y19=y9; %2
+y21=y1; y23=y3; y24=y4; y25=y5; y26=y6; y27=y7; y29=y9; %3
+bulb(3,2,1); bulb(7,8,9);  % bulbs
+bulb(13,12,11); bulb(17,18,19);  %2 bulbs
+bulb(23,22,21); bulb(27,28,29);  %3 bulbs
+filldraw stroke z3e{left}...z4e{(z5e-z4e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z5-z4}z5e;  % upper curve
+filldraw stroke z5'e{z6-z5}..tension atleast.8 and atleast 1
+ ..{(z6e-z5'e)xscaled 1.1}z6e...{left}z7e;  % lower curve
+filldraw stroke z13e{left}...z14e{(z15e-z14e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z15-z14}z15e;  % upper curve
+filldraw stroke z15'e{z16-z15}..tension atleast.8 and atleast 1
+ ..{(z16e-z15'e)xscaled 1.1}z16e...{left}z17e;  % lower curve
+filldraw stroke z23e{left}...z24e{(z25e-z24e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z25-z24}z25e;  % upper curve
+filldraw stroke z25'e{z26-z25}..tension atleast.8 and atleast 1
+ ..{(z26e-z25'e)xscaled 1.1}z26e...{left}z27e;  % lower curve
+penlabels(1,2,3,4,5,6,7,8,9);
+penlabels(11,12,13,14,15,16,17,18,19);
+penlabels(21,22,23,24,25,26,27,28,29); endchar;
+
+cmchar "\displaystyle integral sign";
+beginchar(hex"77",14u#,0,150/54dh#);
+italcorr 4u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(0,-ic#); pickup fine.nib;
+numeric bulb_size, max_size;
+bulb_size=hround(bold+dw); max_size=bold+dw;
+pos1(bulb_size,0); pos2(hair,0); pos3(vair,90); pos4(max_size,180);
+pos5(max_size,180); pos5'(max_size,0); z5'=z5; pos6(max_size,0);
+pos7(vair,-90); pos8(hair,-180); pos9(bulb_size,-180);
+rt x1r=hround(w-u); x9=w-x1; x7=w-x3=3u;
+x5=x4=x6; lft x5r=hround(.5w-.5curve);
+top y3r=0; bot y7r=-d;
+y9-.5bulb_size=vround(top y7l+.25bulb_size); y3-y1=y9-y7;
+y5=.5[y3,y7]=.5[y4,y6]; y4-y6=.6(y3-y7);
+bulb(3,2,1); bulb(7,8,9);  % bulbs
+filldraw stroke z3e{left}...z4e{(z5e-z4e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z5-z4}z5e;  % upper curve
+filldraw stroke z5'e{z6-z5}..tension atleast.8 and atleast 1
+ ..{(z6e-z5'e)xscaled 1.1}z6e...{left}z7e;  % lower curve
+penlabels(1,2,3,4,5,6,7,8,9); endchar;
+
+cmchar "\displaystyle loop-integral sign";
+beginchar(hex"7A",14u#,0,150/54dh#);
+italcorr 4u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(0,-ic#); pickup fine.nib;
+numeric bulb_size, max_size;
+bulb_size=hround(bold+dw); max_size=bold+dw;
+pos11(bulb_size,0); pos12(hair,0); pos13(vair,90); pos14(max_size,180);
+pos15(max_size,180); pos15'(max_size,0); z15'=z15; pos16(max_size,0);
+pos17(vair,-90); pos18(hair,-180); pos19(bulb_size,-180);
+rt x11r=hround(w-u); x19=w-x11; x17=w-x13=3u;
+x15=x14=x16; lft x15r=hround(.5w-.5curve);
+top y13r=0; bot y17r=-d;
+y19-.5bulb_size=vround(top y17l+.25bulb_size); y13-y11=y19-y17;
+y15=.5[y13,y17]=.5[y14,y16]; y14-y16=.6(y13-y17);
+bulb(13,12,11); bulb(17,18,19);  % bulbs
+filldraw stroke z13e{left}...z14e{(z15e-z14e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z15-z14}z15e;  % upper curve
+filldraw stroke z15'e{z16-z15}..tension atleast.8 and atleast 1
+ ..{(z16e-z15'e)xscaled 1.1}z16e...{left}z17e;  % lower curve
+pickup light_rule.nib;
+x4 = x15; y8-y4=x2-x6=.76(y14-y16); y2=y15;
+circle_points;
+draw_circle;
+labels(1,2,3,4,5,6,7,8);
+penlabels(11,12,13,14,15,16,17,18,19); endchar;
+
+cmchar "\displaystyle two-dimensional integral sign";
+beginchar(hex"78",23u#,0,150/54dh#);
+italcorr 4u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(0,-ic#); pickup fine.nib;
+numeric bulb_size, max_size;
+bulb_size=hround(bold+dw); max_size=bold+dw;
+pos1(bulb_size,0); pos2(hair,0); pos3(vair,90); pos4(max_size,180);
+pos11(bulb_size,0); pos12(hair,0); pos13(vair,90); pos14(max_size,180); %2
+pos5(max_size,180); pos5'(max_size,0); z5'=z5; pos6(max_size,0);
+pos15(max_size,180); pos15'(max_size,0); z15'=z15; pos16(max_size,0); %2
+pos7(vair,-90); pos8(hair,-180); pos9(bulb_size,-180);
+pos17(vair,-90); pos18(hair,-180); pos19(bulb_size,-180); %2
+numeric ww; ww = 2/3w-4/3u;
+numeric xx; xx = 1/3w+4/3u;
+rt x1r=hround(ww-u); x9=ww-x1; x7=ww-x3=3u;
+rt x11r=hround(w-u); x19=w-x1; x17=w-x3; w-x13=3u; %2
+x5=x4=x6; lft x5r=hround(.5ww-.5curve);
+x15=x14=x16; lft x15r=hround(.5[xx,w]-.5curve); %2
+top y3r=0; bot y7r=-d;
+y9-.5bulb_size=vround(top y7l+.25bulb_size); y3-y1=y9-y7;
+y5=.5[y3,y7]=.5[y4,y6]; y4-y6=.6(y3-y7);
+y11=y1; y13=y3; y14=y4; y15=y5; y16=y6; y17=y7; y19=y9; %2
+bulb(3,2,1); bulb(7,8,9);  % bulbs
+bulb(13,12,11); bulb(17,18,19);  %2 bulbs
+filldraw stroke z3e{left}...z4e{(z5e-z4e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z5-z4}z5e;  % upper curve
+filldraw stroke z5'e{z6-z5}..tension atleast.8 and atleast 1
+ ..{(z6e-z5'e)xscaled 1.1}z6e...{left}z7e;  % lower curve
+filldraw stroke z13e{left}...z14e{(z15e-z14e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z15-z14}z15e;  % upper curve
+filldraw stroke z15'e{z16-z15}..tension atleast.8 and atleast 1
+ ..{(z16e-z15'e)xscaled 1.1}z16e...{left}z17e;  % lower curve
+penlabels(1,2,3,4,5,6,7,8,9);
+penlabels(11,12,13,14,15,16,17,18,19); endchar;
+
+cmchar "\displaystyle two-dimensional surface-integral sign";
+beginchar(hex"7B",23u#,0,150/54dh#);
+italcorr 4u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(0,-ic#); pickup fine.nib;
+numeric bulb_size, max_size;
+bulb_size=hround(bold+dw); max_size=bold+dw;
+pos21(bulb_size,0); pos22(hair,0); pos23(vair,90); pos24(max_size,180);
+pos11(bulb_size,0); pos12(hair,0); pos13(vair,90); pos14(max_size,180); %2
+pos25(max_size,180); pos25'(max_size,0); z25'=z25; pos26(max_size,0);
+pos15(max_size,180); pos15'(max_size,0); z15'=z15; pos16(max_size,0); %2
+pos27(vair,-90); pos28(hair,-180); pos29(bulb_size,-180);
+pos17(vair,-90); pos18(hair,-180); pos19(bulb_size,-180); %2
+numeric ww; ww = 2/3w-4/3u;
+numeric xx; xx = 1/3w+4/3u;
+rt x21r=hround(ww-u); x29=ww-x21; x27=ww-x23=3u;
+rt x11r=hround(w-u); x19=w-x21; x17=w-x23; w-x13=3u; %2
+x25=x24=x26; lft x25r=hround(.5ww-.5curve);
+x15=x14=x16; lft x15r=hround(.5[xx,w]-.5curve); %2
+top y23r=0; bot y27r=-d;
+y29-.5bulb_size=vround(top y27l+.25bulb_size); y23-y21=y29-y27;
+y25=.5[y23,y27]=.5[y24,y26]; y24-y26=.6(y23-y27);
+y11=y21; y13=y23; y14=y24; y15=y25; y16=y26; y17=y27; y19=y29; %2
+bulb(23,22,21); bulb(27,28,29);  % bulbs
+bulb(13,12,11); bulb(17,18,19);  %2 bulbs
+filldraw stroke z23e{left}...z24e{(z25e-z24e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z25-z24}z25e;  % upper curve
+filldraw stroke z25'e{z26-z25}..tension atleast.8 and atleast 1
+ ..{(z26e-z25'e)xscaled 1.1}z26e...{left}z27e;  % lower curve
+filldraw stroke z13e{left}...z14e{(z15e-z14e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z15-z14}z15e;  % upper curve
+filldraw stroke z15'e{z16-z15}..tension atleast.8 and atleast 1
+ ..{(z16e-z15'e)xscaled 1.1}z16e...{left}z17e;  % lower curve
+pickup light_rule.nib;
+x4 = x25+2u; y8-y4=x2-x6=.76(y14-y16); y2=y15;
+circle_points;
+x4' = x8' = x15-2u;
+x1' := x1 + (x4'-x4); x2' := x2 + (x4'-x4); x3' := x3 + (x4'-x4);
+y1'=y1; y2'=y2; y3'=y3; y4'=y4; y8'=y8;
+draw z8---z8'...z1'...z2'...z3'...z4'---z4...z5...z6...z7...cycle;
+labels(1',2',3',4',4,5,6,7,8,8');
+penlabels(21,22,23,24,25,26,27,28,29);
+penlabels(11,12,13,14,15,16,17,18,19); endchar;
+
+cmchar "\displaystyle three-dimensional integral sign";
+beginchar(hex"79",32u#,0,150/54dh#);
+italcorr 4u#; % \TeX\ kerning between upper limit and lower limit
+adjust_fit(0,-ic#); pickup fine.nib;
+numeric bulb_size, max_size;
+bulb_size=hround(bold+dw); max_size=bold+dw;
+pos1(bulb_size,0); pos2(hair,0); pos3(vair,90); pos4(max_size,180);
+pos11(bulb_size,0); pos12(hair,0); pos13(vair,90); pos14(max_size,180); %2
+pos21(bulb_size,0); pos22(hair,0); pos23(vair,90); pos24(max_size,180); %3
+pos5(max_size,180); pos5'(max_size,0); z5'=z5; pos6(max_size,0);
+pos15(max_size,180); pos15'(max_size,0); z15'=z15; pos16(max_size,0); %2
+pos25(max_size,180); pos25'(max_size,0); z25'=z25; pos26(max_size,0); %3
+pos7(vair,-90); pos8(hair,-180); pos9(bulb_size,-180);
+pos17(vair,-90); pos18(hair,-180); pos19(bulb_size,-180); %2
+pos27(vair,-90); pos28(hair,-180); pos29(bulb_size,-180); %3
+numeric ww; ww = 1/2w-2u;
+numeric xx; xx = 1/4w+u;
+numeric www; www = 3/4w-u;
+numeric xxx; xxx = 1/2w+2u;
+rt x1r=hround(ww-u); x9=ww-x1; x7=ww-x3=3u;
+rt x11r=hround(www-u); x19=www-x1; x17=www-x3; www-x13=3u; %2
+rt x21r=hround(w-u); x29=w-x1; x27=w-x3; w-x23=3u; %3
+x5=x4=x6; lft x5r=hround(.5ww-.5curve);
+x15=x14=x16; lft x15r=hround(.5[xx,www]-.5curve); %2
+x25=x24=x26; lft x25r=hround(.5[xxx,w]-.5curve); %3
+top y3r=0; bot y7r=-d;
+y9-.5bulb_size=vround(top y7l+.25bulb_size); y3-y1=y9-y7;
+y5=.5[y3,y7]=.5[y4,y6]; y4-y6=.6(y3-y7);
+y11=y1; y13=y3; y14=y4; y15=y5; y16=y6; y17=y7; y19=y9; %2
+y21=y1; y23=y3; y24=y4; y25=y5; y26=y6; y27=y7; y29=y9; %3
+bulb(3,2,1); bulb(7,8,9);  % bulbs
+bulb(13,12,11); bulb(17,18,19);  %2 bulbs
+bulb(23,22,21); bulb(27,28,29);  %3 bulbs
+filldraw stroke z3e{left}...z4e{(z5e-z4e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z5-z4}z5e;  % upper curve
+filldraw stroke z5'e{z6-z5}..tension atleast.8 and atleast 1
+ ..{(z6e-z5'e)xscaled 1.1}z6e...{left}z7e;  % lower curve
+filldraw stroke z13e{left}...z14e{(z15e-z14e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z15-z14}z15e;  % upper curve
+filldraw stroke z15'e{z16-z15}..tension atleast.8 and atleast 1
+ ..{(z16e-z15'e)xscaled 1.1}z16e...{left}z17e;  % lower curve
+filldraw stroke z23e{left}...z24e{(z25e-z24e)xscaled 1.1}
+ ..tension atleast 1 and atleast .8..{z25-z24}z25e;  % upper curve
+filldraw stroke z25'e{z26-z25}..tension atleast.8 and atleast 1
+ ..{(z26e-z25'e)xscaled 1.1}z26e...{left}z27e;  % lower curve
+penlabels(1,2,3,4,5,6,7,8,9);
+penlabels(11,12,13,14,15,16,17,18,19);
+penlabels(21,22,23,24,25,26,27,28,29); endchar;
+
+cmchar "ataribox (Alternate)";                                
+beginchar(hex"6D",5.5pt#,7.5pt#,0); 
+   pickup pencircle scaled .85pt;                                               
+   x1=0.05w; y1=0;                                                              
+   x2=x1;    y2=h;                                                              
+   x3=0.95w; y3=y2;                                                             
+   x4=x3;    y4=y1;                                                             
+   fill z1--z2--z3--z4--cycle;                                                  
+   x5=x1;    y5=.5h;                                                            
+   x6=.5w;   y6=h;                                                              
+   x7=x3;    y7=y5;                                                             
+   x8=x6;    y8=0;                                                              
+   undraw z5--z6--z7--z8--cycle;                                                
+   penlabels(1,2,3,4,5,6,7,8);                                                  
+endchar;                                                                        
+
+charlist hex"72": hex"77";  % integral signs
+charlist hex"73": hex"78";  % iintegral signs
+charlist hex"74": hex"79";  % iiintegral signs
+charlist hex"75": hex"7A";  % ointegral signs
+charlist hex"76": hex"7B";  % oiintegral signs
+
+input wasychr

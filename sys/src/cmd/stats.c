@@ -76,7 +76,7 @@ main(int argc, char **argv)
 		type = Load;
 		break;
 	default:
-		fprint(2, "usage: stats [option]\n");
+		fprint(2, "usage: stats [-mwecisftpl]\n");
 		exits("usage");
 	}ARGEND
 

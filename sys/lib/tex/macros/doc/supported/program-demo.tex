@@ -1,0 +1,307 @@
+\documentclass{article}
+\usepackage{program}
+\setlength{\parskip}{1ex}
+
+% Number algorithms separately:
+%\newtheorem{algorithm}{Algorithm} 
+
+% Number algorithms within sections:
+\newtheorem{algorithm}{Algorithm}[section] 
+
+% For "floating" algorithms, use:
+% \begin{figure}
+% \begin{program}
+% ...
+% \end{program}
+% \end{figure}
+
+
+\begin{document}
+\title{A demonstration of the {\tt program} environment}
+\author{Martin Ward\\
+Centre for Software Maintenance\\
+University of Durham}
+\maketitle
+
+\tableofcontents
+
+\section{Example with |first_set| and $|first_set|$.}
+
+The {\tt program} style defines two environments, {\tt program} and {\tt
+programbox} for typesetting programs and algorithms. Within the program
+environment:
+\begin{enumerate}
+	\item Newlines are significant;
+	\item Each line is in math mode, so for example spaces in the input
+file are not significant;
+	\item The command \verb:\\: within a line causes an extra
+linebreak in the output;
+	\item The indentation of each line is calculated automatically;
+	\item To cause extra indentation, use the commands \verb:\tab: to
+set a new tab, and \verb:\untab: to remove it (see the examples below);
+	\item Vertical bars are used to delimit long variable names with
+underscores (and other unusual characters).
+\end{enumerate}
+
+
+Here is a small program: 
+\( |first_set|:= \set{x | x^2 + y_1 > 0 } \)
+It shows how to typeset mathematics as part of a program. Since each line is
+typeset in maths mode, all spacing is done automatically. The set brackets
+expand automatically, for example in this program (which also demonstrates the
+\verb:\tab: and \verb:\untab: commands):
+\begin{program}
+t := \set{x | \displaystyle\frac{x}{y} = z};
+t := t \setminus u;
+z := a \tab {} + b + c + d
+	    {} + e + f + g
+	    {} + h + i + j; \untab
+\IF x = 0 \THEN y :=0 \FI
+\end{program}
+
+You can use |variable_names| in text or math mode: $|variable_name|^2 = 2$.
+Names can have |odd_characters:!@#$%^&*:;_like_this!|.
+
+Note that \verb:\(: and \verb:\): are redefined to typeset a program in
+a minipage. (This is useful in running text, or to keep a short program all on
+one page). There is some notation for sequences: \( \seq{x_1,x_2,\dots,x_n} \)
+and for universal and existential quantifiers: $ \Forall x. \Exists y. y>x $
+(yes, I use these in my programs!)
+
+I often use bold letters to represent program fragments, formulas etc. so
+I have set up commands \S{}, \R{} etc. for the most common ones. The
+commands have one argument (a subscript, eg \S1, \S2, \S{23}) or a
+sequence of ``prime'' characters: \S', \S''''' etc. If you want both a 
+subscript and one or more primes, then you must use maths mode, eg $\S2'$
+Consider the difference between typing \verb:``\S2'': which gives ``\S2'' and
+\verb:``$\S2''$'': which gives ``$\S2''$''. Outside maths mode, \verb:\S: 
+assumes any primes after a subscript are either closing quotes or apostrophes.
+
+Here are two program examples with different indentation styles. Note that
+all indentation is calculated automatically in either style:
+
+\noindent
+% programbox keeps the program on one page - like parbox
+\begin{programbox}
+\IF \T1
+    \THEN \IF \T2
+	      \THEN \IF \T3
+			\THEN \S4 
+			\ELSE \S3
+		    \FI
+	      \ELSE \S2
+	  \FI
+    \ELSE \S1
+\FI;
+% Blank lines are ignored, so you need a ~ on the line
+% to get a blank line in the output:
+~
+\IF \T1 \THEN \IF \T2 \THEN \IF \T3 \THEN \S4
+				    \ELSE \S3 \FI
+		      \ELSE \S2 \FI
+	\ELSE \S1 \FI;
+\end{programbox}
+
+Note that \keyword{then} and \keyword{else} should be at the {\em start} of
+a line (as in the examples above), not at the end. This is so that you can
+line them up in short \keyword{if} statements, for example:
+\begin{program}
+\IF x=1 \THEN |a_long_procedure_name|(|arg1|, |arg2|, \dots)
+	\ELSE |another_long_procedure_name|(|arg1|, |arg2|, \dots) \FI
+\end{program}
+If the test is long, then you probably want an extra linebreak:
+\begin{program}
+\IF |a_long_boolean_function_name?|(|arg1|, |arg2|, \dots)
+   \THEN |a_long_procedure_name|(|arg1|, |arg2|, \dots)
+   \ELSE |another_long_procedure_name|(|arg1|, |arg2|, \dots) \FI
+\end{program}
+Compare this with the following (which has linebreaks in the ``wrong'' places):
+\begin{program}
+\IF |a_long_boolean_function_name?|(|arg1|, |arg2|, \dots) \THEN
+  |a_long_procedure_name|(|arg1|, |arg2|, \dots)
+	\ELSE
+  |another_long_procedure_name|(|arg1|, |arg2|, \dots) \FI
+\end{program}
+
+
+
+Just to show that {\tt\origbar} still works normally to indicate the
+placing of vertical lines) in the preamble of a tabular
+(or array) environment:
+
+\begin{tabular}{|r|l|} \hline
+\bf Statement & \bf Conditions  \\
+\hline
+\S1     & \B1 \\
+\S2     & \B2 \\
+\hline
+\end{tabular}
+
+\section{Procedures and Functions}
+
+Turning on line numbering here. Also using the algoritm enviroment to number
+the algorithms within the sections.
+\NumberProgramstrue
+\begin{algorithm}
+\begin{program}
+\label{one}%
+\mbox{A fast exponentiation function:} \\ % You can use \mbox for comments
+\BEGIN % 
+  \FOR i:=1 \TO 10 \STEP 1 \DO
+     |print|(|expt|(2,i)); \\ |newline|() \OD
+\WHERE
+\FUNCT |expt|(x,n) \BODY
+	  \EXP z:=1;
+	       \WHILE n \ne 0 \DO 
+		  \WHILE |even|(n) \DO
+		     n:=n/2; x:=x*x \OD; \label{foo}
+		  n:=n-1; z:=z*x \OD;
+	       z \ENDEXP \ENDFUNCT
+\END\label{last}
+\end{program}
+\end{algorithm}
+First line is line~\ref{one}, last is line~\ref{last}.
+Line~\ref{foo} is what makes this function fast!
+
+\begin{algorithm}
+\begin{program}
+\mbox{A fast exponentiation procedure:}
+\BEGIN %
+  \FOR i:=1 \TO 10 \STEP 1 \DO
+     |expt|(2,i); \\ |newline|() \OD %
+\rcomment{This text will be set flush to the right margin}
+\WHERE
+\PROC |expt|(x,n) \BODY
+	  z:=1;
+	  \DO \IF n=0 \THEN \EXIT \FI;
+	     \DO \IF |odd|(n) \THEN \EXIT \FI;
+\COMMENT{This is a comment statement};
+		n:=n/2; x:=x*x \OD;
+	     \{ n>0 \};
+	     n:=n-1; z:=z*x \OD;
+	  |print|(z) \ENDPROC
+\END
+\end{program}
+\end{algorithm}
+
+\noindent An action system equivalent to a \keyword{while} loop:
+\[
+\( \ACTIONS A:
+	A \EQ \IF \B{} \THEN \S{}; \CALL A
+		       \ELSE \CALL Z \FI \QE
+   \ENDACTIONS \)
+\EQT
+\( \WHILE \B{} \DO \S{} \OD \)
+\]
+Note the use of \verb:\(: and \verb:\): to enclose the two program boxes.
+Turning off line numbers here.
+\NumberProgramsfalse
+
+\noindent Dijkstra conditionals and loops:
+\begin{program}
+\IF x = 1 \AR y:=y+1
+\BAR x = 2 \AR y:=y^2
+\utdots
+\BAR x = n \AR y:=\displaystyle\sum_{i=1}^n y_i \FI
+
+\DO 2 \origbar x \AND x>0 \AR x:= x/2
+\BAR \NOT 2 \origbar x    \AR x:= \modbar{x+3} \OD
+\end{program}
+
+\noindent Loops with multiple \keyword{exit}s:
+\begin{program} 
+\DO \DO \IF \B1 \THEN \EXIT \FI;
+	\S1;
+	\IF \B2 \THEN \EXIT(2) \FI \OD;
+    \IF \B1 \THEN \EXIT \FI \OD
+\end{program} 
+
+\noindent I hope you get the idea!
+
+\section{A Reverse Engineering Example}
+
+Here's the original program:
+\begin{algorithm}
+\begin{program} 
+ \VAR \seq{m := 0, p := 0, |last| := `` ''}; 
+ \ACTIONS |prog|: 
+|prog| \ACTIONEQ %
+    \seq{|line| := `` '', m := 0, i := 1};
+    \CALL |inhere| \ENDACTION
+l \ACTIONEQ %
+    i := i+1; 
+    \IF (i=(n+1)) \THEN \CALL |alldone| \FI ; 
+    m := 1; 
+    \IF |item|[i] \neq |last|
+	\THEN |write|(|line|); |line| := `` ''; m := 0;
+	      \CALL |inhere| \FI ; 
+    \CALL |more| \ENDACTION
+|inhere| \ACTIONEQ %
+    p := |number|[i]; |line| := |item|[i];
+    |line| := |line| \concat `` '' \concat p;
+    \CALL |more| \ENDACTION
+|more| \ACTIONEQ %
+    \IF (m=1) \THEN p := |number|[i];
+    |line| := |line| \concat ``, '' \concat p \FI ; 
+    |last| := |item|[i]; 
+    \CALL l  \ENDACTION  
+|alldone| \ACTIONEQ |write|(|line|); \CALL Z \ENDACTION \ENDACTIONS \END 
+\end{program} 
+\end{algorithm}
+
+And here's the transformed and corrected version:
+\begin{algorithm}
+\begin{program} 
+\seq{|line| := `` '', i := 1};
+\WHILE i \neq n+1 \DO 
+  |line| := |item|[i] \concat `` '' \concat |number|[i]; 
+  i := i+1; 
+  \WHILE i \neq n+1 \AND |item|[i] = |item|[i-1] \DO 
+    |line| := |line| \concat ``, '' \concat |number|[i]);
+    i := i+1 \OD ; 
+  |write|(|line|) \OD 
+\end{program}
+\end{algorithm}
+
+These are the same programs in a sans-serif style, using the command
+\verb:\sfvariables::
+\sfvariables
+\begin{program}
+ \VAR \seq{m := 0, p := 0, |last| := `` ''}; 
+ \ACTIONS |prog|: 
+|prog| \ACTIONEQ %
+    \seq{|line| := `` '', m := 0, i := 1};
+    \CALL |inhere| \ENDACTION
+l \ACTIONEQ %
+    i := i+1; 
+    \IF (i=(n+1)) \THEN \CALL |alldone| \FI ; 
+    m := 1; 
+    \IF |item|[i] \neq |last|
+	\THEN |write|(|line|); |line| := `` ''; m := 0;
+	      \CALL |inhere| \FI ; 
+    \CALL |more| \ENDACTION
+|inhere| \ACTIONEQ %
+    p := |number|[i]; |line| := |item|[i];
+    |line| := |line| \concat `` '' \concat p;
+    \CALL |more| \ENDACTION
+|more| \ACTIONEQ %
+    \IF (m=1) \THEN p := |number|[i];
+    |line| := |line| \concat ``, '' \concat p \FI ; 
+    |last| := |item|[i]; 
+    \CALL l  \ENDACTION  
+|alldone| \ACTIONEQ |write|(|line|); \CALL Z \ENDACTION \ENDACTIONS \END 
+\end{program} 
+
+\begin{program}
+\seq{|line|:=`` '', i:=1}; 
+\WHILE i \neq n+1 \DO 
+  |line| := |item|[i] \concat `` '' \concat |number|[i]; 
+  i := i+1; 
+  \WHILE i \neq n+1 \AND |item|[i] = |item|[i-1] \DO 
+    |line| := |line| \concat ``, '' \concat |number|[i]);
+    i := i+1 \OD ; 
+  |write|(|line|) \OD 
+\end{program}
+
+\end{document}
+

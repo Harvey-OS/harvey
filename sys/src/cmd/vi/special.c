@@ -158,7 +158,7 @@ Ssrlv(ulong inst)
 	if(trace)
 		itrace("srlv\tr%d,r%d,r%d", rd, rt, rs);
 
-	reg.r[rd] = reg.r[rt]>>(reg.r[rs]&0x1f);
+	reg.r[rd] = (ulong)reg.r[rt] >> (reg.r[rs]&0x1f);
 }
 
 void
@@ -171,7 +171,7 @@ Ssrav(ulong inst)
 		itrace("srav\tr%d,r%d,r%d", rd, rt, rs);
 
 	shamt = reg.r[rs]&0x1f;
-	if(reg.r[rt]&0x80000000)
+	if(shamt != 0 && (reg.r[rt] & SIGNBIT))
 		reg.r[rd] = reg.r[rt]>>shamt | ~((1<<(32-shamt))-1);
 	else
 		reg.r[rd] = reg.r[rt]>>shamt;
@@ -187,7 +187,7 @@ Ssrl(ulong inst)
 	if(trace)
 		itrace("srl\tr%d,r%d,%d", rd, rt, shamt);
 
-	reg.r[rd] = reg.r[rt]>>shamt;
+	reg.r[rd] = (ulong)reg.r[rt] >> shamt;
 }
 
 void
@@ -200,7 +200,7 @@ Ssra(ulong inst)
 	if(trace)
 		itrace("sra\tr%d,r%d,%d", rd, rt, shamt);
 
-	if(reg.r[rt]&0x80000000)
+	if(shamt != 0 && (reg.r[rt] & SIGNBIT))
 		reg.r[rd] = reg.r[rt]>>shamt | ~((1<<(32-shamt))-1);
 	else
 		reg.r[rd] = reg.r[rt]>>shamt;

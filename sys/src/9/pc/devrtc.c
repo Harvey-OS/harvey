@@ -22,6 +22,9 @@ enum {
 	Year=		0x09,
 	Status=		0x0A,
 
+	Nvoff=		128,	/* where usable nvram lives */
+	Nvsize=		256,
+
 	Nbcd=		6,
 };
 
@@ -43,9 +46,10 @@ enum{
 	Qnvram,
 };
 
-#define	NRTC	1
+#define	NRTC	2
 Dirtab rtcdir[]={
-	"rtc",		{Qrtc, 0},	0,	0666,
+	"nvram",	{Qnvram, 0},	Nvsize,	0664,
+	"rtc",		{Qrtc, 0},	0,	0664,
 };
 
 ulong rtc2sec(Rtc*);
@@ -96,7 +100,7 @@ rtcopen(Chan *c, int omode)
 			error(Eperm);
 		break;
 	case Qnvram:
-		if(strcmp(u->p->user, eve)!=0 || !cpuserver)
+		if(strcmp(u->p->user, eve)!=0)
 			error(Eperm);
 	}
 	return devopen(c, omode, rtcdir, NRTC, devgen);
@@ -160,20 +164,42 @@ long
 rtcread(Chan *c, void *buf, long n, ulong offset)
 {
 	ulong t, ot;
+	char *a;
 
 	if(c->qid.path & CHDIR)
 		return devdirread(c, buf, n, rtcdir, NRTC, devgen);
 
-	qlock(&rtclock);
-	t = rtctime();
-	do{
-		ot = t;
-		t = rtctime();	/* make sure there's no skew */
-	}while(t != ot);
-	qunlock(&rtclock);
-	n = readnum(offset, buf, n, t, 12);
-	return n;
-
+	switch(c->qid.path){
+	case Qrtc:
+		qlock(&rtclock);
+		t = rtctime();
+		do{
+			ot = t;
+			t = rtctime();	/* make sure there's no skew */
+		}while(t != ot);
+		qunlock(&rtclock);
+		n = readnum(offset, buf, n, t, 12);
+		return n;
+	case Qnvram:
+		a = buf;
+		if(waserror()){
+			qunlock(&rtclock);
+			nexterror();
+		}
+		qlock(&rtclock);
+		for(t = offset; t < offset + n; t++){
+			if(t >= Nvsize)
+				break;
+			outb(Paddr, Nvoff+t);
+			delay(1);
+			*a++ = inb(Pdata);
+		}
+		qunlock(&rtclock);
+		poperror();
+		return t - offset;
+	}
+	error(Ebadarg);
+	return 0;
 }
 
 #define PUTBCD(n,o) bcdclock[o] = (n % 10) | (((n / 10) % 10)<<4)
@@ -181,6 +207,8 @@ rtcread(Chan *c, void *buf, long n, ulong offset)
 long	 
 rtcwrite(Chan *c, void *buf, long n, ulong offset)
 {
+	int t;
+	char *a;
 	Rtc rtc;
 	ulong secs;
 	uchar bcdclock[Nbcd];
@@ -190,42 +218,63 @@ rtcwrite(Chan *c, void *buf, long n, ulong offset)
 	if(offset!=0)
 		error(Ebadarg);
 
-	/*
-	 *  read the time
-	 */
-	cp = ep = buf;
-	ep += n;
-	while(cp < ep){
-		if(*cp>='0' && *cp<='9')
-			break;
-		cp++;
+
+	switch(c->qid.path){
+	case Qrtc:
+		/*
+		 *  read the time
+		 */
+		cp = ep = buf;
+		ep += n;
+		while(cp < ep){
+			if(*cp>='0' && *cp<='9')
+				break;
+			cp++;
+		}
+		secs = strtoul(cp, 0, 0);
+	
+		/*
+		 *  convert to bcd
+		 */
+		sec2rtc(secs, &rtc);
+		PUTBCD(rtc.sec, 0);
+		PUTBCD(rtc.min, 1);
+		PUTBCD(rtc.hour, 2);
+		PUTBCD(rtc.mday, 3);
+		PUTBCD(rtc.mon, 4);
+		PUTBCD(rtc.year, 5);
+
+		/*
+		 *  write the clock
+		 */
+		qlock(&rtclock);
+		outb(Paddr, Seconds);	outb(Pdata, bcdclock[0]);
+		outb(Paddr, Minutes);	outb(Pdata, bcdclock[1]);
+		outb(Paddr, Hours);	outb(Pdata, bcdclock[2]);
+		outb(Paddr, Mday);	outb(Pdata, bcdclock[3]);
+		outb(Paddr, Month);	outb(Pdata, bcdclock[4]);
+		outb(Paddr, Year);	outb(Pdata, bcdclock[5]);
+		qunlock(&rtclock);
+		return n;
+	case Qnvram:
+		a = buf;
+		if(waserror()){
+			qunlock(&rtclock);
+			nexterror();
+		}
+		qlock(&rtclock);
+		for(t = offset; t < offset + n; t++){
+			if(t >= Nvsize)
+				break;
+			outb(Paddr, Nvoff+t);
+			outb(Pdata, *a++);
+		}
+		qunlock(&rtclock);
+		poperror();
+		return t - offset;
 	}
-	secs = strtoul(cp, 0, 0);
-
-	/*
-	 *  convert to bcd
-	 */
-	sec2rtc(secs, &rtc);
-	PUTBCD(rtc.sec, 0);
-	PUTBCD(rtc.min, 1);
-	PUTBCD(rtc.hour, 2);
-	PUTBCD(rtc.mday, 3);
-	PUTBCD(rtc.mon, 4);
-	PUTBCD(rtc.year, 5);
-
-	/*
-	 *  write the clock
-	 */
-	qlock(&rtclock);
-	outb(Paddr, Seconds);	outb(Pdata, bcdclock[0]);
-	outb(Paddr, Minutes);	outb(Pdata, bcdclock[1]);
-	outb(Paddr, Hours);	outb(Pdata, bcdclock[2]);
-	outb(Paddr, Mday);	outb(Pdata, bcdclock[3]);
-	outb(Paddr, Month);	outb(Pdata, bcdclock[4]);
-	outb(Paddr, Year);	outb(Pdata, bcdclock[5]);
-	qunlock(&rtclock);
-
-	return n;
+	error(Ebadarg);
+	return 0;
 }
 
 void	 
@@ -361,5 +410,6 @@ uchar
 nvramread(int offset)
 {
 	outb(Paddr, offset);
+	delay(1);
 	return inb(Pdata);
 }

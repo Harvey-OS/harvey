@@ -1,40 +1,25 @@
 APE=/sys/src/ape
-< $APE/config
-L=/$objtype/lib/ape/lib9.a
-CFLAGS=$CFLAGS -I. -D_POSIX_SOURCE -D_PLAN9_SOURCE
-BUILTINS=
+<$APE/config
 
-NAMES=U=errstr bind mount unmount rfork segattach segdetach segflush segfree rendezvous getfcr
-OBJ=U=${NAMES:%=$L(%.$O)}
+LIB=/$objtype/lib/ape/lib9.a
+OFILES=errstr.$O\
+	bind.$O\
+	mount.$O\
+	unmount.$O\
+	rfork.$O\
+	segattach.$O\
+	segdetach.$O\
+	segflush.$O\
+	segfree.$O\
+	rendezvous.$O\
+	getfcr.$O\
 
-install:VQ:	$L
-	echo done $L
+</sys/src/cmd/mksyslib
 
-compile:V:	$L
-test:VQ:
-	echo lib9 has no test
-clean:V:
-	rm -f *.[$OS]
-
-nuke:V:		clean
-	rm -f $L
-
-installall:V:
-	for (objtype in $CPUS)
-		mk install
-
-$L:	$OBJ
-	names=`{membername $newprereq}
-	$AR rv $L $names && rm -f $names
-	$RANLIB $L
-
-$L(%.$O):N:	%.$O
-
-%.$O:	%.c
-	$CC $CFLAGS -c $stem.c
+CFLAGS=-c $CFLAGS -D_POSIX_SOURCE -D_PLAN9_SOURCE
 
 %.$O:	$objtype/%.s
 	$AS $prereq
 
 %.$O:	$objtype/%.c
-	$CC $CFLAGS -c $objtype/$stem.c
+	$CC $CFLAGS $prereq

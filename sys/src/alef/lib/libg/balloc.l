@@ -1,12 +1,12 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 Bitmap*
 balloc(Rectangle r, int ldepth)
 {
 	int id;
 	Bitmap *b;
-	char *buf, xbuf[3];
+	byte *buf, xbuf[3];
 
 	bneed(0);		/* flush so if there's an error we know it's our fault */
 	buf = bneed(18);
@@ -43,7 +43,7 @@ balloc(Rectangle r, int ldepth)
 void
 bfree(Bitmap *b)
 {
-	char *buf;
+	byte *buf;
 
 	buf = bneed(3);
 	buf[0] = 'f';

@@ -56,6 +56,10 @@ getamv(short *mv)
 		bgen();
 	else
 		wgen();
+	if(lmp-mv >= MAXMG) {
+		fprint(2, "MAXMG (%d) too small\n", MAXMG);
+		exits("maxmg");
+	}
 	*lmp = 0;
 }
 
@@ -69,6 +73,10 @@ getmv(short *mv)
 		bgen();
 	else
 		wgen();
+	if(lmp-mv >= MAXMG) {
+		fprint(2, "MAXMG (%d) too small\n", MAXMG);
+		exits("maxmg");
+	}
 	*lmp = 0;
 	lmp = mv;
 	for(i=0; mv[i]; i++) {

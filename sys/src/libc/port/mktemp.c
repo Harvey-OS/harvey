@@ -25,6 +25,7 @@ mktemp(char *as)
 			return "/";
 		*s = i++;
 	}
+	err[0] = 0;
 	errstr(err);	/* clear the error */
 	return as;
 }

@@ -1,0 +1,320 @@
+\begin{filecontents}{bibtexlogo.sty}
+\def\lowBibTeX{{\reset@font\rmfamily B\kern-.05em%
+    \raise.0ex\hbox{\scshape i\kern-.025em b}\kern-.08em%
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\def\BibTeX{\protect\lowBibTeX}
+\end{filecontents}
+\documentclass[a4paper]{article}
+\usepackage{harvard}
+\usepackage{bibtexlogo}
+
+\newcommand{\comname}[1]{{\bf $\backslash$#1}}
+\newcommand{\keyword}[1]{{\bf #1}}
+\newcommand{\varname}[1]{{\em #1}}
+\newcommand{\harvard}{{\sf harvard}}
+\newcommand{\Harvard}{{\sf Harvard}}
+
+\title{The \Harvard\ Family of Bibliography Styles}
+\author{Peter Williams \\ (peterw@archsci.arch.su.edu.au) \and
+Thorsten Schnier \\ (thorsten@archsci.arch.su.edu.au)}
+
+\hyphenation{cite-as-noun poss-ess-ive-cite cit-at-ion-mode cite-year
+cite-name bib-lio-gr-aphy-sty-le cit-at-ion-sty-le har-vard-par-en-this
+har-vard-year-par-en-this har-vard-item bib-item har-vard-and use-pack-age}
+
+\begin{document}
+\bibliographystyle{agsm}
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+
+This document describes the \harvard\ family of bibliographic styles which
+are provided in addition to those described in \citeasnoun{latex} and \citeasnoun{btxdoc}.
+This style is primarily intended for use with the \BibTeX\ bibliographic
+database management system.
+However, provision is also made for hand coding of bibliographies.
+
+\section{Citations}
+
+\subsection{Complete Citations}
+
+There are two primary forms of citation in the \harvard\ style dependent
+upon whether the reference is used as a noun or parenthetically.
+Additionally, where there are more than two authors, all authors are listed in
+the first citation and in subsequent citations just the first author's name
+followed by `et al.' is used.
+The following example from \citeasnoun{agsm}\ illustrates these points.
+\begin{quote}
+The major improvement concerns the structure of the interview
+(Ulrich~\& Trumbo~1965, p.~112) \ldots .
+Later reports (Carlson, Thayer, Mayfield~\& Peterson 1971) record greatly 
+increased interviewer reliability for structured interviews.
+Wright (1969, p.~408) comments that `undoubtedly interviewer skill is
+directly related to the validity, quantity and quality of the interview output',
+and this would suggest some sort of interviewer training is called for.
+Rowe (1960), for example, found that trained interviewers are better able to
+evaluate applicants with some measure of reliability.
+In addition Wexley, Sanders~\& Yukl (1973) showed that by extensive interviewer
+training all significant contrast effects could be eliminated.
+The results of the 1971 study (Carlson et al. 1971) are still relevant, but
+efforts to~\ldots.
+\end{quote}
+
+To facilitate using a citation as a noun a new command
+\comname{citeasnoun} has been created which has the same syntax as the
+\comname{cite} command except that multiple citations are {\em not}
+permitted.
+The effect of this command is that
+\begin{verbatim}
+As \citeasnoun{btxdoc} and \citeasnoun[Annex~B]{latex} describe \ldots
+\end{verbatim}
+produces
+\begin{quote}
+As \citeasnoun{btxdoc} and \citeasnoun[Annex~B]{latex} describe \ldots
+\end{quote}
+whereas
+\begin{verbatim}
+The \BibTeX\ \cite{btxdoc} and \LaTeX\ \cite[Annex~B]{latex} manuals \ldots
+\end{verbatim}
+produces
+\begin{quote}
+The \BibTeX\ \cite{btxdoc} and \LaTeX\ \cite[Annex~B]{latex} manuals \ldots
+\end{quote}
+A second new command \comname{possessivecite} is provided for those
+instances where it is desired to use the citation as a possessive noun phrase.
+This is a variation on the \comname{citeasnoun} command and
+multiple citations are not permitted.
+As an example of its use
+\begin{verbatim}
+\possessivecite{latex} description of this feature is \ldots
+\end{verbatim}
+produces
+\begin{quote}
+\possessivecite{latex} description of this feature is \ldots
+\end{quote}
+A third new command \comname{citeaffixed} allows text to be affixed
+inside the beginning of the parenthesis of a parenthetical citation.
+This command is like the the \comname{cite} command except that it
+takes a second argument -- the text to be affixed after the opening 
+parenthesis.
+For example
+\begin{verbatim}
+\BibTeX\ manuals \citeaffixed{latex,btxdoc}{e.g.} describe \ldots
+\end{verbatim}
+produces
+\begin{quote}
+\BibTeX\ manuals \citeaffixed{latex,btxdoc}{e.g.} describe \ldots
+\end{quote}
+
+\subsection{Citation Modes}
+
+By default,
+where appropriate, citations are abbreviated automatically after the first
+reference when bibliographies are produced by \BibTeX.
+Provision is also made for this feature to be accessed during manual coding.
+This feature may be overridden by using the \comname{citationmode}
+command which takes \keyword{full}, \keyword{abbr} or \keyword{default} as its single
+argument.
+The command \comname{citationmode\{full\}} makes the system use
+full citations, \comname{citationmode\{abbr\}} makes the system use
+abbreviated citations and \comname{citationmode\{default\}} causes
+the default behaviour of using full citations for the first instance and
+abbreviated citations thereafter.
+
+Alternatively, the citation mode may be selected as an
+\keyword{full}, \keyword{abbr} or \keyword{default}
+option to the
+\comname{usepackage} command that invokes the \harvard\ package.
+Use of the \keyword{default} option is redundant in that, if no citation
+mode option is used, that mode will be selected automatically.
+
+\subsection{Partial Citations}
+
+In addition to the primary forms of citation, the citation commands
+\comname{citeyear} and \comname{citename} are provided as building blocks
+for more complex citations that authors may (from time to time) require.
+\comname{citeyear} behaves like the
+\comname{cite} command except that only the year portion of the
+citation label is used.
+For example,
+\begin{verbatim}
+\citeyear{btxdoc,latex}
+\end{verbatim}
+produces \citeyear{btxdoc,latex}.
+The parenthesis around the year list may be omitted by modifying the command
+name with a single asterisk (e.g. \verb+\citeyear*{btxdoc}+).
+\comname{citename} behaves like the
+\comname{citeasnoun} command except that only the author name(s)
+portion of the citation label is used.
+For example,
+\begin{verbatim}
+\citename{btxdoc}
+\end{verbatim}
+produces
+\begin{quote}
+\citename{btxdoc}.
+\end{quote}
+The use of these commands does not trigger the use of abbreviated citations for
+subsequent \comname{citeasnoun} and \comname{cite}
+references.
+
+\subsection{Exceptions for Individual Citations}
+
+Occasions arise where an author wishes to override the default behaviour for
+an individual citation (e.g. she may wish the citation to use the full list
+of authors where the default would use the abbreviated form).
+All commands that introduce authors' names into a document (i.e.
+\comname{cite}, \comname{citeasnoun}, \comname{citeaffixed},
+\comname{possesivcite} and \comname{citename}) may be modified with the
+addition of a single asterisk in order to force them to use the full
+list of authors names and by a double asterisk to force them to use the
+abbreviated form.
+
+\section{Styles}
+\subsection{Bibliography Styles}
+There are six bibliography styles currently available within the
+\harvard\ family, \keyword{agsm} (used in this document) which is based on 
+\citeasnoun[pp.~95--98]{agsm}, \keyword{dcu}
+which is based upon the conventions in use in the Design Computing Unit,
+Department of Architectural and Design Science, University of Sydney,
+\keyword{jmr} for the Journal of Management Research,
+\keyword{jphysicsB} for the Journal of Physics B,
+\keyword{kluwer} which aspires to conform to the requirements of Kluwer Academic
+Publishers and \keyword{nederlands} which conforms to Dutch conventions.
+They are invoked by the \comname{bibliographystyle} as described in
+\citeasnoun[p.~74]{latex} and effect the layout of the entries in the bibliography.
+
+Provided there is no name clash with other \harvard\ options the
+bibliography style may be selected by passing it as an option to the
+\comname{usepackage} command that invokes the \harvard\ package.
+
+\subsection{Citation Styles}
+There are two citation styles currently available within the \harvard\ 
+family, \keyword{agsm} (used in this document) and \keyword{dcu} which for the previous
+example would produce:
+\begin{quote}\citationstyle{dcu}
+The \BibTeX\ \cite{btxdoc} and \LaTeX\ \cite[Annex~B]{latex} manuals \ldots
+\end{quote}
+and for multiple citations such as
+\begin{verbatim}
+  The original documentation \cite{btxdoc,latex} say \ldots
+\end{verbatim}
+the \keyword{agsm} citation style produces
+\begin{quote}\citationstyle{agsm}
+The original documentation \cite{btxdoc,latex} say \ldots
+\end{quote}
+and the \keyword{dcu} citation style produces
+\begin{quote}\citationstyle{dcu}
+The original documentation \cite{btxdoc,latex} say \ldots
+\end{quote}
+The default citation style is \keyword{agsm} and both styles have no effect on the
+appearance of the \comname{citeasnoun} citation format.
+
+These styles are invoked by the \comname{citationstyle} command,
+for example:
+\begin{verbatim}
+  \citationstyle{agsm}.
+\end{verbatim}
+Because these styles affect the format of parenthetical citations, this command 
+should appear before any \comname{cite} commands.
+Additionally the
+citation style may be selected by passing an option to the
+\comname{usepackage} command that invokes the \harvard\ package.
+In order to avoid name clashes with the \keyword{agsm} and \keyword{dcu}
+bibliography styles the options \keyword{agsmcite} and \keyword{dcucite} are
+used with the \comname{usepackage} command in order to select \keyword{agsm}
+and \keyword{dcu} citation modes respectively.
+
+\subsection{Parenthesis Style}
+The type of parenthesis used in citations may be set using the
+\comname{harvardparenthesis}
+command which takes one argument.
+The argument to this command must be one of
+\keyword{round}, \keyword{curly}, \keyword{angle}, \keyword{square} or
+\keyword{none}.
+The default value is \keyword{round}.
+If it is a requirement that different parenthesis types are required for
+parenthetical cites that for the year portion for a \comname{citeasnoun}
+citation then the command \comname{harvardyearparenthesis} may be
+used to set the year parenthesis seperately.
+This command must be issued after any \comname{harvardparenthesis} command
+as that command sets both parenthetical and year parenthesis.
+If the bibliographic style chosen is \keyword{agsm} or \keyword{dcu} then the parenthesis
+style chosen using \comname{harvardyearparenthesis} is used with the
+year portion of the entries in the bibliographic listing.
+The options \keyword{round}, \keyword{curly}, \keyword{angle}, \keyword{square}
+and \keyword{none} may also be used with the the \comname{usepackage} command
+that invokes the \harvard\ package.
+
+Authors of style files for use with the \harvard\ family who wish to make
+use of this feature should use the strings \verb+" \harvardleft "+ and
+\verb+" \harvardright "+ instead of the respective parenthesis characters where
+they wish them to be effected by the selection made with
+\comname{harvardparenthesis}.
+
+\subsection{Conjunction Style}
+In the previous examples for the \keyword{agsm} bibliographic
+style a ``\&'' character is used to signify conjunction between a pair of names
+or between the last two names of a list of names.
+Similarly the word ``and'' is used for the \keyword{dcu} style.
+With these two styles this convention may be overwritten by using
+\comname{renewcommand} to redefine the command
+\comname{harvardand}.
+This should be done after the \comname{citationstyle} command
+(if used) as this
+command resets it to the default for the style selected.
+
+\section{World Wide Web (WWW) References}
+
+The \keyword{agsm}, \keyword{dcu}, \keyword{jmr}, \keyword{jphysicsB} and
+\keyword{kluwer} bibliographic styles support a new bibliographic entry
+field \keyword{URL} for specifying the \keyword{URL} of documents that are
+available via the World Wide Web.
+An example of this is the reference to \possessivecite{latex2htmldoc}
+documentation for his \LaTeX 2{\sc html} package in the file
+\verb+harvard.bib+ that is enclosed with the source for this document.
+When processed by \LaTeX 2{\sc html} documents using the \harvard\ bibliographic
+package will have hypertext links created from the citation within the text
+to the reference list.
+If an entry in the reference list has an \keyword{URL} field then a
+hypertext link to the document will be created using the data in that field.
+
+\section{Doing It By Hand}
+Hand coding is accomplished much the same as described in \citeasnoun[p.~73]{latex}
+except that the new command \comname{harvarditem} is used in place
+of \comname{bibitem}.
+The syntax of this command is
+\begin{quote}
+\comname{harvarditem} [\varname{abbr-citation}]\{\varname{full-citation}\}\{\varname{citation-year}\}\{\varname{cite-key}\}
+\end{quote}
+where
+\begin{description}
+\item[\varname{abbr-citation}] is the (optional) abbreviated citation
+(minus the year) to be used in the text
+subsequent to the first mention of a particular reference,
+\item[\varname{full-citation}] is the full citation (minus the year)
+to be used in the text
+on the first mention of a particular reference,
+\item[\varname{citation-year}] the year portion of the citation including any
+suffices required to disambiguate citations, and
+\item[\varname{cite-key}] is the key used in the \comname{cite} and
+\comname{citeasnoun} commands.
+\end{description}
+
+\section{Acknowledgement}
+The motivation for this style came from Fay Sudweeks of the Design Computing
+Unit who also originated the formats for the \keyword{dcu} style and proofread
+their implementation.
+
+The \keyword{nederlands} bibliographic style was implemented by Werenfried Spit
+(spit@vm.ci.uv.es).
+
+The idea for \comname{citeyear} came from Renate Schmidt
+(Renate.Schmidt@mpi-sb.mpg.de).
+
+The solution to the mysterious \comname{enddocument} problem came
+from Berwin A. Turlach (berwin@core.ucl.ac.be) as did the identification
+of a subtle problem with sorting entries in the reference list.
+\bibliography{harvard}
+\end{document}

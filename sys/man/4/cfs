@@ -75,7 +75,7 @@ A
 followed immediately by a
 .B walk
 is converted into a
-.B clwalk.
+.BR clwalk .
 If possible, a
 .B read
 is satisfied by cached data.
@@ -84,3 +84,5 @@ Otherwise, the file server is queried for any missing data.
 .TP
 .B /dev/hd0cache
 Default file used for storing cached data.
+.SH SOURCE
+.B /sys/src/cmd/cfs

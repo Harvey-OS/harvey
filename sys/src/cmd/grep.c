@@ -5,6 +5,7 @@
 
 int	grep(Biobuf*, Reprog*, char*);
 char*	lower(char*);
+char	tmp[Bsize+1];
 
 int	negate = 0;
 int	cflag = 0;
@@ -67,7 +68,7 @@ main(int argc, char *argv[])
 			fprint(2, "grep: can't open %s: %r\n", argv[i]);
 		else{
 			match |= grep(b, r, argv[i]);
-			Bclose(b);
+			Bterm(b);
 		}
 	}
 	if(match)
@@ -80,17 +81,19 @@ grep(Biobuf *b, Reprog *r, char *file)
 {
 	char *buf;
 	int count;
-	long line;
+	long line, n;
 	char map[Bsize];
 
 	count = 0;
 	line = 0;
     Loop:
 	while((buf=Brdline(b, '\n')) != 0){
+		n = BLINELEN(b);
 		line++;
-		buf[BLINELEN(b)-1] = 0;
+    Search:
+		buf[n-1] = 0;
 		if(iflag){
-			memmove(map, buf, BLINELEN(b));
+			memmove(map, buf, n);
 			lower(map);
 		}
 		if(regexec(r, iflag? map : buf, 0, 0) ^ negate){
@@ -101,19 +104,28 @@ grep(Biobuf *b, Reprog *r, char *file)
 					print("%s:%s\n", file, buf);
 					break;
 				case (1<<1)|0:
-					print("%s:%d:%s\n", file, line, buf);
+					print("%s:%d: %s\n", file, line, buf);
 					break;
 				case (0<<1)|1:
 					print("%s\n", buf);
 					break;
 				case (1<<1)|1:
-					print("%d:%s\n", line, buf);
+					print("%d: %s\n", line, buf);
 					break;
 				}
 		}
 	}
-	if(BLINELEN(b) > 0){	/* line too long; skip and continue */
-		Bseek(b, BLINELEN(b), 1);
+	n = BLINELEN(b);
+	if(n > 0){	/* ill-formed line */
+		if(n > Bsize){
+			Bseek(b, BLINELEN(b), 1);
+			goto Loop;
+		}
+		buf = tmp;
+		if(Bread(b, buf, n) == n){
+			n++;
+			goto Search;
+		}
 		goto Loop;
 	}
 	if(cflag && !sflag){

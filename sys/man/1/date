@@ -21,7 +21,7 @@ Report Greenwich Mean Time (GMT) rather than local time.
 .TP
 .B -n
 Report the date as the number of seconds since the
-epoch, 00:00:00 local time, January 1, 1970.
+epoch, 00:00:00 GMT, January 1, 1970.
 .PP
 The conversion from Greenwich Mean Time to local time depends on the
 .B $timezone
@@ -46,3 +46,5 @@ Default timezone file, copied by
 .IR init (8)
 into
 .BR /env/timezone .
+.SH SOURCE
+.B /sys/src/cmd/date.c

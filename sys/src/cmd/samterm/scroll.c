@@ -46,6 +46,7 @@ scrdraw(Flayer *l, long tot)
 	Rectangle r, r1, r2;
 	Bitmap *b;
 	static Bitmap *x;
+	int h;
 
 	if(l->f.b == 0)
 		panic("scrdraw");
@@ -54,7 +55,9 @@ scrdraw(Flayer *l, long tot)
 	r1 = r;
 	if(l->visible == All){
 		if(x == 0){
-			x = balloc(Rect(0, 0, 32, 1024), l->f.b->ldepth);
+			if (screensize(0, &h) == 0)
+				h = 2048;
+			x = balloc(Rect(0, 0, 32, h), l->f.b->ldepth);
 			if(x == 0)
 				panic("scrdraw balloc");
 		}

@@ -1,11 +1,38 @@
-%% WNCYI10.MF                     June 1990
-%% This Metafont file is part of AMSFonts 2.0.
-%% Cyrillic fonts developed at the Humanities and Arts Computing Center
-%% at the University of Washington.
-%% All rights reserved.  Copying of this file is authorized only if either:
-%%   (1) you make absolutely no changes to your copy including filename; OR
-%%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="wncyi10.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: parameter",
+%%     copyright="Copyright (C) Humanities and Arts Computing Center,
+%%            University of Washington;
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "26737 116 671 5541"
+%%     keywords="amsfonts, tex, metafont , cyrillic ",
+%%     abstract="This is the parameter file for use with 
+%%            wncyi10, the italic cyrillic font in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This is WNCYI10.MF, Washington Computer Modern Cyrillic Italic 10 point,
 % which is based on CMTI10.MF (Computer Modern Text Italic 10 point)
 % as of May 5, 1986.
@@ -14,7 +41,7 @@
 
 if unknown cmbase: input cmbase fi
 
-font_identifier:="WNCYI"; font_size 10pt#;
+font_identifier:="WNCYI V2.2"; font_size 10pt#;
 
 u#:=18.4/36pt#;      % unit width
 width_adj#:=0pt#;    % width adjustment for certain characters

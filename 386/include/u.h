@@ -3,7 +3,8 @@ typedef	unsigned char	uchar;
 typedef unsigned long	ulong;
 typedef unsigned int	uint;
 typedef   signed char	schar;
-typedef	long		vlong;
+typedef	long long	vlong;
+typedef	unsigned long long uvlong;
 typedef	ushort		Rune;
 typedef union
 {

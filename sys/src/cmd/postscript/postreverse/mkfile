@@ -1,0 +1,29 @@
+</$objtype/mkfile
+
+SYSTEM=plan9
+VERSION=3.3.1
+
+TARG=postreverse
+OFILES=postreverse.$O\
+
+COMMONDIR=../common
+
+HFILES=postreverse.h\
+	$COMMONDIR/comments.h\
+	$COMMONDIR/ext.h\
+	$COMMONDIR/gen.h\
+	$COMMONDIR/path.h\
+
+BIN=/$objtype/bin/aux
+LIB=$COMMONDIR/com.a$O
+
+</sys/src/cmd/mkone
+
+CC=pcc
+LD=pcc
+CFLAGS=-c -D$SYSTEM -D_POSIX_SOURCE -I$COMMONDIR -B
+
+$LIB:
+	cd $COMMONDIR
+	mk install
+	mk clean

@@ -1,0 +1,22 @@
+include("/sys/src/cmd/acme/syms");
+
+defn stacks(){
+	local i;
+
+	mainpid = pid;
+	procstk(*mousepid, "mouseproc");
+	procstk(*keyboardpid, "keyboardproc");
+	procstk(*waitpid, "waitproc");
+	procstk(*fsyspid, "fsysproc");
+	procstk(mainpid, "main");
+
+	taskstk(*mousetid, "mousetask");
+	taskstk(*keytid, "keyboardtask");
+	taskstk(*waittid, "waittask");
+	taskstk(*xfidalloctid, "xfidalloctask");
+
+	loop i = 0, *nxfidtid-1 do{
+		taskstk(*(*xfidtid+4*i), "xfidtask["+itoa(i)+"]");
+		i = i + 1;
+	}
+}

@@ -1,12 +1,11 @@
 #include <alef.h>
 
-intern char user[NAMELEN+1];
+intern byte user[NAMELEN+1];
 
-char *
+byte *
 getuser(void)
 {
-	int fd;
-	int n;
+	int fd, n;
 
 	fd = open("/dev/user", OREAD);
 	if(fd < 0)

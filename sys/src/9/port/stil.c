@@ -9,11 +9,11 @@
 #include	"io.h"
 #include	"../port/error.h"
 #include	"arp.h"
-#include 	"ipdat.h"
+#include 	"../port/ipdat.h"
 
 #define	 DBG	if(0)print
 int 		ilcksum = 1;
-static 	int 	initseq = 25000;
+static 	int 	initseq = 25001;
 static	Rendez	ilackr;
 
 char	*ilstate[] = 
@@ -42,7 +42,7 @@ static char *etime = "connection timed out";
 enum
 {
 	Iltickms 	= 100,
-	Slowtime 	= 200*Iltickms,
+	Slowtime 	= 350*Iltickms,
 	Fasttime 	= 4*Iltickms,
 	Acktime		= 2*Iltickms,
 	Ackkeepalive	= 6000*Iltickms,
@@ -73,19 +73,13 @@ ilopen(Queue *q, Stream *s)
 	Ipconv *ipc;
 	static int ilkproc;
 
-	if(!Ipoutput) {
-		Ipoutput = WR(q);
-		s->opens++;
-		s->inuse++;
-	}
-
 	if(ilkproc == 0) {
 		ilkproc = 1;
 		kproc("ilack", ilackproc, ipifc[s->dev]);
 	}
 
 	ipc = ipcreateconv(ipifc[s->dev], s->id);
-	initipifc(ipc->ifc, IP_ILPROTO, ilrcvmsg, 1500, 60, ETHER_HDR);
+	initipifc(ipc->ifc, IP_ILPROTO, ilrcvmsg);
 
 	ipc->readq = RD(q);	
 	RD(q)->ptr = (void *)ipc;
@@ -173,17 +167,18 @@ iloput(Queue *q, Block *bp)
 	/* Ip fields */
 	ih->frag[0] = 0;
 	ih->frag[1] = 0;
-	hnputl(ih->src, Myip[Myself]);
 	hnputl(ih->dst, ipc->dst);
+	if(ipc->src == 0)
+		ipc->src = ipgetsrc(ih->dst);
+	hnputl(ih->src, ipc->src);
 	ih->proto = IP_ILPROTO;
 	/* Il fields */
 	hnputs(ih->illen, dlen+IL_HDRSIZE);
 	hnputs(ih->ilsrc, ipc->psrc);
 	hnputs(ih->ildst, ipc->pdst);
 
-	lock(&ic->nxl);
+	qlock(&ic->ackq);
 	id = ic->next++;
-	unlock(&ic->nxl);
 	hnputl(ih->ilid, id);
 
 	hnputl(ih->ilack, ic->recvd);
@@ -196,6 +191,7 @@ iloput(Queue *q, Block *bp)
 	if(ilcksum)
 		hnputs(ih->ilsum, ptcl_csum(bp, IL_EHSIZE, dlen+IL_HDRSIZE));
 	ilackq(ic, bp);
+	qunlock(&ic->ackq);
 
 	/* Start the round trip timer for this packet if the timer is free */
 	if(ic->rttack == 0) {
@@ -204,7 +200,7 @@ iloput(Queue *q, Block *bp)
 	}
 	ic->acktime = Ackkeepalive;
 
-	PUTNEXT(q, bp);
+	ipmuxoput(0, bp);
 }
 
 void
@@ -214,7 +210,6 @@ ilackq(Ilcb *ic, Block *bp)
 
 	/* Enqueue a copy on the unacked queue in case this one gets lost */
 	np = copyb(bp, blen(bp));
-	qlock(&ic->ackq);
 	if(ic->unacked)
 		ic->unackedtail->list = np;
 	else {
@@ -224,7 +219,6 @@ ilackq(Ilcb *ic, Block *bp)
 	}
 	ic->unackedtail = np;
 	np->list = 0;
-	qunlock(&ic->ackq);
 }
 
 void
@@ -237,7 +231,7 @@ ilackto(Ilcb *ic, ulong ackto)
 	if(ic->rttack == ackto) {
 		t = TK2MS(MACHP(0)->ticks - ic->ackms);
 		/* Guard against the ulong zero wrap if MACP->ticks */
-		if(t < 100*ic->rtt)
+		if(t < 1000*ic->rtt)
 			ic->rtt = (ic->rtt*(ILgain-1)+t)/ILgain;
 		if(ic->rtt < Iltickms)
 			ic->rtt = Iltickms;
@@ -277,6 +271,7 @@ ilrcvmsg(Ipifc *ifc, Block *bp)
 	Ipconv *s, **p, **etab, *new, *spec, *gen;
 	short sp, dp;
 	Ipaddr dst;
+	char *st;
 
 	ih = (Ilhdr *)bp->rptr;
 	plen = blen(bp);
@@ -291,9 +286,10 @@ ilrcvmsg(Ipifc *ifc, Block *bp)
 	dp = nhgets(ih->ilsrc);
 	dst = nhgetl(ih->src);
 
+
 	if(ilcksum && ptcl_csum(bp, IL_EHSIZE, illen) != 0) {
 		ifc->chkerrs++;
-/*		st = (ih->iltype < 0 || ih->iltype > Ilclose) ? "?" : iltype[ih->iltype];
+		st = (ih->iltype < 0 || ih->iltype > Ilclose) ? "?" : iltype[ih->iltype];
 		print("il: cksum error, pkt(%s id %lud ack %lud %d.%d.%d.%d/%d->%d)\n",
 			st, nhgetl(ih->ilid), nhgetl(ih->ilack), fmtaddr(dst), sp, dp); /**/
 		goto drop;
@@ -311,7 +307,6 @@ ilrcvmsg(Ipifc *ifc, Block *bp)
 			return;
 		}
 	}
-
 	if(ih->iltype != Ilsync)
 		goto drop;
 
@@ -351,6 +346,7 @@ ilrcvmsg(Ipifc *ifc, Block *bp)
 	new->psrc = sp;
 	new->pdst = dp;
 	new->dst = nhgetl(ih->src);
+	new->src = nhgetl(ih->dst);
 
 	ic = &new->ilctl;
 	ic->state = Ilsyncee;
@@ -450,7 +446,7 @@ _ilprocess(Ipconv *s, Ilhdr *h, Block *bp)
 	case Ilestablished:
 		switch(h->iltype) {
 		case Ilsync:
-			if(id != ic->start)
+			if(id != ic->rstart)
 				ilhangup(s, "remote close");
 			else {
 				ilsendctl(s, 0, Ilack, ic->next, ic->rstart);
@@ -546,7 +542,7 @@ ilrexmit(Ilcb *ic)
 	if(ilcksum)
 		hnputs(h->ilsum, ptcl_csum(nb, IL_EHSIZE, nhgets(h->illen)));
 
-	PUTNEXT(Ipoutput, nb);
+	ipmuxoput(0, nb);
 }
 
 /* DEBUG */
@@ -647,7 +643,7 @@ iloutoforder(Ipconv *s, Ilhdr *h, Block *bp)
 {
 	Block *f, **l;
 	Ilcb *ic;
-	ulong id;
+	ulong id, newid;
 	uchar *lid;
 
 	ic = &s->ilctl;
@@ -669,7 +665,13 @@ iloutoforder(Ipconv *s, Ilhdr *h, Block *bp)
 		l = &ic->outoforder;
 		for(f = *l; f; f = f->list) {
 			lid = ((Ilhdr*)(f->rptr))->ilid;
-			if(id < nhgetl(lid)) {
+			newid = nhgetl(lid);
+			if(id <= newid) {
+				if(id == newid) {
+					qunlock(&ic->outo);
+					freeb(bp);
+					return;
+				}
 				bp->list = f;
 				*l = bp;
 				qunlock(&ic->outo);
@@ -698,7 +700,6 @@ ilsendctl(Ipconv *ipc, Ilhdr *inih, int type, ulong id, ulong ack)
 
 	/* Ip fields */
 	ih->proto = IP_ILPROTO;
-	hnputl(ih->src, Myip[Myself]);
 	hnputs(ih->illen, IL_HDRSIZE);
 	ih->frag[0] = 0;
 	ih->frag[1] = 0;
@@ -717,6 +718,9 @@ ilsendctl(Ipconv *ipc, Ilhdr *inih, int type, ulong id, ulong ack)
 		hnputl(ih->ilack, ack);
 		ic->acktime = Ackkeepalive;
 	}
+	if(ipc->src == 0)
+		ipc->src = ipgetsrc(ih->dst);
+	hnputl(ih->src, ipc->src);
 	ih->iltype = type;
 	ih->ilspec = 0;
 	ih->ilsum[0] = 0;
@@ -729,23 +733,23 @@ ilsendctl(Ipconv *ipc, Ilhdr *inih, int type, ulong id, ulong ack)
 		iltype[ih->iltype], nhgetl(ih->ilid), nhgetl(ih->ilack), 
 		nhgets(ih->ilsrc), nhgets(ih->ildst));
 */
-	PUTNEXT(Ipoutput, bp);
+	ipmuxoput(0, bp);
 }
 
 void
 ilackproc(void *a)
 {
 	Ipifc *ifc;
-	Ipconv **base, **p, **end, *s;
+	Ipconv **base, **p, **last, *s;
 	Ilcb *ic;
 
 	ifc = (Ipifc*)a;
 	base = ifc->conv;
-	end = &base[Nipconv];
+	last = &base[Nipconv];
 
 	for(;;) {
 		tsleep(&ilackr, return0, 0, Iltickms);
-		for(p = base; p < end && *p; p++) {
+		for(p = base; p < last && *p; p++) {
 			s = *p;
 			ic = &s->ilctl;
 			ic->timeout += Iltickms;

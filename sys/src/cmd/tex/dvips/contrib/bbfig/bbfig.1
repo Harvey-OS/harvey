@@ -1,0 +1,40 @@
+.TH BBFIG LOCAL
+.SH NAME
+bbfig \- calculate bounding boxes in PostScript
+.SH SYNTAX
+.B bbfig
+[ file \&.\|.\|. ]
+.SH USAGE
+.I Bbfig
+should be piped into
+.I psprint
+or the equivalant.
+.SH DESCRIPTION
+The concatenation of the list of files, or standard input
+if no file names are supplied, is
+assumed to be a PostScript program for which the bounding box is desired.
+.I Bbfig
+prepends code that
+calculates the bounding box,
+and places the result on standard output.
+The actual
+calculation is done in the PostScript printer; the output is
+in the form of a dashed line demarcating the bounding box and
+and the corresponding
+.B %%BoundingBox
+header line printed just below the box.
+The
+.B %%BoundingBox
+line
+should be added to the header of the PostScript file.
+.SH BUGS
+.I Bbfig
+is known to be confused by images and clipping paths. If the box
+around the figure clearly is not the minimal one, a ruler is the
+best bet for calculating the correct box.  Remember that the
+bounding box values are in PostScript points (72 to the inch)
+relative to an origin at the lower left corner of the page, and
+that (a,b) is the lower left hand corner of the bounding box, and
+(c,d) is the upper right corner.
+.SH Author
+Ned Batchelder, modified by Bernie Cosell [cosell@bbn.com]

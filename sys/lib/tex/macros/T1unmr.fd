@@ -1,0 +1,31 @@
+%% 
+%% This is file `T1unmr.fd', generated 
+%% on <1995/2/23> with the docstrip utility (1).
+%% 
+%% The original source files were:
+%% 
+%% nimbus.dtx  (with options: `T1')
+%% Copyright (C) 1994 Sebastian Rahtz. All rights reserved. 
+%% This is a generated file for *PSNFSS2e*. Permission is granted to to 
+%% customize the declarations in this file to serve the needs of your 
+%% installation. However, no permission is granted to distribute a 
+%% modified version of this file under its original name. 
+%% 
+\def\fileversion{2}
+\def\filedate{94/04/7}
+\def\docdate {94/04/7}
+%% File: nimbus.dtx Copyright (C) 1994 Peter Dyballa
+\typeout{File\space T1unmr.fd\space loading \space URW\space NimbusRoman-Regular}%
+\DeclareFontFamily{T1}{unmr}{}%
+\DeclareFontShape{T1}{unmr}{m}{n}{<->unmrq}{}%
+\DeclareFontShape{T1}{unmr}{m}{sc}{<->unmrcq}{}%
+\DeclareFontShape{T1}{unmr}{m}{it}{<->sub * unmr/m/sl}{}%
+\DeclareFontShape{T1}{unmr}{m}{sl}{<->unmroq}{}%
+\DeclareFontShape{T1}{unmr}{mn}{n}{<->unmrnq}{}%
+\DeclareFontShape{T1}{unmr}{b}{n}{<->sub * ptmr/b/n}{}%
+\DeclareFontShape{T1}{unmr}{b}{it}{<->sub * ptm/b/sl}{}%
+\DeclareFontShape{T1}{unmr}{b}{sc}{<->sub * ptm/b/sc}{}%
+\DeclareFontShape{T1}{unmr}{b}{sl}{<->sub * ptm/b/sl}{}%
+\endinput
+%% 
+%% End of file `T1unmr.fd'.

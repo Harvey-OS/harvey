@@ -1,5 +1,7 @@
 #!/bin/rc
 
+. /sys/man/fonts
+
 cmd=n
 sec=()
 S=/sys/man
@@ -8,12 +10,11 @@ d=0
 fn roff {
 	preproc=()
 	if (~ $2 $S/1/eqn) preproc=eqn
+	if (~ $2 $S/6/auth) preproc=eqn
 	if (~ $2 $S/1/tbl) preproc=tbl
-	if (~ $2 $S/10/fizz_format) preproc=(tbl)
 	if (~ $1 t) {
 		if (~ $2 $S/1/pic) preproc=pic
 		if (~ $2 $S/1/grap) preproc=(grap pic)
-		if (~ $2 $S/10/paddle) preproc=(pic)
 		Nflag=-Tutf
 	}
 	if not {
@@ -21,11 +22,11 @@ fn roff {
 	}
 	switch($#preproc) {
 		case 0
-			troff $Nflag -man $2 < /dev/null
+			{echo -n $FONTS; cat $2< /dev/null} | troff $Nflag -$MAN 
 		case 1
-			$preproc $2 | troff $Nflag -man
+			{echo -n $FONTS; cat $2< /dev/null} | $preproc | troff $Nflag -$MAN
 		case *
-			$preproc(1) $2 | $preproc(2) | troff $Nflag -man
+			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | troff $Nflag -$MAN
 	}
 }
 
@@ -36,7 +37,6 @@ while(~ $d 0) {
 	}
 	switch($1) {
 		case [0-9] ; sec=($sec $1) ; shift
-		case 1[0-9] ; sec=($sec $1) ; shift
 		case -t ; cmd=t ; shift
 		case -n ; cmd=n ; shift
 		case -p ; cmd=p ; shift
@@ -44,7 +44,7 @@ while(~ $d 0) {
 	}
 }
 if(~ $#sec 0) {
-	sec=`{ls -pd $S/[0-9] $S/1[0-9]}
+	sec=`{ls -pd $S/[0-9]* }
 }
 ix=$S/$sec/INDEX
 if(~ $#* 1) pat='^'^$1^' '
@@ -59,7 +59,7 @@ for(i in $S/$sec){
 }
 # bug: should also do following loop if not all pages found
 if(~ $#fils 0) {
-	# nothing in INDEX. try for file of given name.something
+	# nothing in INDEX. try for file of given name
 	for(i) {
 		for(n in $sec) {
 			try=$S/$n/$i

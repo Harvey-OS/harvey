@@ -1,0 +1,52 @@
+%% BEGIN semcolor.sty
+\def\fileversion{1.0}
+\def\filedate{93/04/01}
+%%
+%% LaTeX style option `semcolor.sty'.
+%% For use with LaTeX v2.09 and the `seminar' document style.
+%%
+%% COPYRIGHT 1993, by Timothy Van Zandt, tvz@Princeton.EDU
+%% See seminar.sty or seminar.doc for copying restrictions.
+%%
+%% You must install the PSTricks package v0.9 or later to use semcolor.sty.
+%%
+\@ifundefined{SemcolorFrameOps}{}{\endinput}
+\typeout{Style Option: `semcolor' for doc style `seminar'
+  \fileversion\space <\filedate> (tvz)}
+\input{pstricks}
+%
+% Set up the frame styles:
+\def\SemcolorFrameOps{\psset{%
+  fillstyle=none,%
+  linewidth=\slideframewidth,%
+  framesep=\slideframesep,%
+  cornersize=absolute,%
+  linearc=.5cm,%
+  shadowsize=2pt,%
+  shadowcolor=darkgray}}%
+\newslideframe{scplain}[\SemcolorFrameOps]{\psframebox{#1}}
+\newslideframe{scdouble}[\SemcolorFrameOps]{\psdblframebox{#1}}
+\newslideframe{scshadow}[\SemcolorFrameOps]{\psshadowbox{#1}}
+\slideframe{scplain}
+%
+% Rotation:
+\def\leftsliderotation#1{\rotateleft{#1}}
+\def\rightsliderotation#1{\rotateright{#1}}
+\sliderotation{left}
+%
+% Color:
+\addto@hook\after@slidepage{\pstVerb{0 setgray}}
+%
+% Overlays:
+\def\make@overlay#1{%
+  \setbox\@slidebox=\hbox{%
+    \pst@initoverlay{#1}%
+    \pst@Verb{(0) BOL}%
+    \copy\@@slidebox
+    \pst@Verb{(all) BOL}}}
+\def\@overlay{\pst@overlay}
+\addto@hook\before@newslide{\def\curr@overlay{0}}
+\@ifundefined{overlaystrue}{}{\ifarticle\else\overlaystrue\layerstrue\fi}
+%
+\endinput
+%% END semcolor.sty

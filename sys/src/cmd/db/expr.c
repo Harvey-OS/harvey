@@ -9,14 +9,48 @@
 
 static long	round(long, long);
 
-WORD	var[NVARS];
-
 extern	char	lastc, peekc;
 
 extern	ADDR	ditto;
-extern	int	ditsp;
 WORD	expv;
-int	expsp;
+
+static WORD
+ascval(void)
+{
+	Rune r;
+	int i;
+	char buf[UTFmax+1];
+
+	for (i = 0; i < UTFmax; i++) {	/* extract a rune */
+		if (fullrune(buf, i))
+			break;
+		if (readchar() == 0)
+			return (0);
+		buf[i] = lastc;
+	}
+	buf[i] = 0;
+	chartorune(&r, buf);
+	while(quotchar())	/*discard chars to ending quote */
+		;
+	return((WORD) r);
+}
+
+/*
+ * read a floating point number
+ * the result must fit in a WORD
+ */
+
+static WORD
+fpin(char *buf)
+{
+	union {
+		WORD w;
+		float f;
+	} x;
+
+	x.f = atof(buf);
+	return (x.w);
+}
 
 WORD
 defval(WORD w)
@@ -34,7 +68,6 @@ expr(int a)
 
 	rdc();
 	reread();
-	expsp = SEGNONE;
 	rc=term(a);
 	while (rc) {
 		lhs = expv;
@@ -101,15 +134,14 @@ term(int a)
 
 	case '*':
 		term(a|1);
-		get4(cormap, (ADDR)expv, SEGDATA, &expv);
-		expsp = SEGNONE;
-		chkerr();
+		if (get4(cormap, (ADDR)expv, &expv) < 0)
+			error("%r");
 		return(1);
 
 	case '@':
 		term(a|1);
-		get4(symmap, (ADDR)expv, SEGTEXT, &expv);
-		expsp = SEGNONE;
+		if (get4(symmap, (ADDR)expv, &expv) < 0)
+			error("%r");
 		return(1);
 
 	case '-':
@@ -130,7 +162,8 @@ term(int a)
 
 	case '%':
 		term(a|1);
-		expsp = SEGREGS;
+		if (get4(cormap, (ADDR)expv+mach->kbase, &expv) < 0)
+			error("%r");
 		return(1);
 
 	default:
@@ -140,8 +173,8 @@ term(int a)
 }
 
 item(int a)
-{	/* name [ . local ] | number | . | ^ | <var | <register | 'x | | */
-	int	base;
+{	/* name [ . local ] | number | . | ^  | <register | 'x | | */
+	char	*base;
 	char	savc;
 	Symbol s;
 	char gsym[MAXSYM], lsym[MAXSYM];
@@ -158,8 +191,7 @@ item(int a)
 				expv = 1;	/* file begins at line 1 */
 			expv = file2pc(gsym, expv);
 			if (expv == -1)
-				error(symerror);
-			expsp = SEGNONE;
+				error("%r");
 			return 1;
 		}
 		error("bad file location");
@@ -167,12 +199,16 @@ item(int a)
 		readsym(gsym);
 		if (lastc=='.') {
 			readchar();	/* ugh */
-			if (!symchar(0))
-				localaddr(gsym, 0);
-			else {
+			if (lastc == '.') {
+				lsym[0] = '.';
+				readchar();
+				readsym(lsym+1);
+			} else if (symchar(0)) {
 				readsym(lsym);
-				localaddr(gsym, lsym);
-			}
+			} else
+				lsym[0] = 0;
+			if (localaddr(cormap, gsym, lsym, &expv, rget) < 0)
+				error("%r");
 		}
 		else {
 			if (lookup(0, gsym, &s) == 0)
@@ -184,32 +220,31 @@ item(int a)
 		;
 	} else if (lastc=='.') {	
 		readchar();
-		if (!symchar(0)) {
+		if (!symchar(0) && lastc != '.') {
 			expv = dot;
-			expsp = dotsp;
 		} else {
-			readsym(lsym);
-			localaddr(0, lsym);
+			if (findsym(rget(cormap, mach->pc), CTEXT, &s) == 0)
+				error("no current function");
+			if (lastc == '.') {
+				lsym[0] = '.';
+				readchar();
+				readsym(lsym+1);
+			} else
+				readsym(lsym);
+			if (localaddr(cormap, s.name, lsym, &expv, rget) < 0)
+				error("%r");
 		}	
 		reread();
 	} else if (lastc=='"') {
 		expv=ditto;
-		expsp = ditsp;
 	} else if (lastc=='+') {
 		expv=inkdot(dotinc);
-		expsp = ditsp;
 	} else if (lastc=='^') {
 		expv=inkdot(-dotinc);
-		expsp = ditsp;
 	} else if (lastc=='<') {
 		savc=rdc();
-		base = getreg(savc);
-		if (base != BADREG)
-			expv = rget(base);
-		else if ((base = varchk(savc)) != -1)
-			expv = var[base];
-		else
-			error("bad variable");
+		base = regname(savc);
+		expv = rget(cormap, base);
 	}
 	else if (lastc=='\'')
 		expv = ascval();
@@ -336,15 +371,6 @@ symchar(int dig)
 		return(TRUE);
 	}
 	return(isalpha(lastc) || lastc=='_' || dig && isdigit(lastc));
-}
-
-varchk(int name)
-{
-	if (isdigit(name))
-		return(name-'0');
-	if (isalpha(name))
-		return((name&037)-1+10);
-	return(-1);
 }
 
 static long

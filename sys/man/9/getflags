@@ -3,15 +3,20 @@
 getflags, usage \- process flag arguments in argv
 .SH SYNOPSIS
 .nf
-.B #include <libg.h>
+.B
+#include <libg.h>
 .PP
-.B #include <fb.h>
+.B
+#include <fb.h>
 .PP
-.B int getflags(int argc, char *argv[], char *flags)
+.B
+int getflags(int argc, char *argv[], char *flags)
 .PP
-.B int usage(char *tail)
+.B
+int usage(char *tail)
 .PP
-.B extern char **flag[], cmdline[], *cmdname, *flagset[];
+.B
+extern char **flag[], cmdline[], *cmdname, *flagset[];
 .fi
 .SH DESCRIPTION
 .I Getflags
@@ -50,7 +55,7 @@ has no parameters
 Flags not found
 are marked with a zero.
 Flags and their parameters are deleted from
-.I argv.
+.IR argv .
 .I Getflags
 returns the adjusted argument count.
 .PP
@@ -64,7 +69,7 @@ which is deleted.
 places a pointer to 
 .IB argv [0]
 in the external variable
-.I cmdname.
+.IR cmdname .
 It also concatenates the original members of
 .IR argv ,
 separated by spaces, and places the result in the external array
@@ -74,7 +79,7 @@ separated by spaces, and places the result in the external array
 constructs a usage message, prints it on the standard error file,
 and exits with status 1.
 The command name printed is
-.IB argv [0] .
+.IB argv [0]\f1.
 Appropriate flag usage syntax is generated from
 .IR flags .
 As an aid,
@@ -100,14 +105,16 @@ might print:
 	Illegal flag -u
 	Usage: grep [-vinclbhs] [-e expr] [file ...]
 .EE
+.SH SOURCE
+.B /sys/src/libfb/getflags.c
 .SH "SEE ALSO"
 .IR ARG (2)
 .SH DIAGNOSTICS
 .I Getflags
 returns \-1 on error:
 a syntax error in
-.I flags,
+.IR flags ,
 setting a flag more than once, setting a flag not mentioned
 in
 .IR flags ,
-or running out of argv while collecting a flag's parameters.
+or running out of arguments while collecting a flag's parameters.

@@ -10,9 +10,9 @@
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
 int
-convM2S(char *ap, Fcall *f, int n)
+convM2S(byte *ap, Fcall *f, int n)
 {
-	char *p;
+	byte *p;
 
 	p = ap;
 	CHAR(type);
@@ -23,9 +23,11 @@ convM2S(char *ap, Fcall *f, int n)
 		return 0;
 
 	case Tnop:
+	case Tosession:
 		break;
 
 	case Tsession:
+		STRING(chal, sizeof(f->chal));
 		break;
 
 	case Tflush:
@@ -36,13 +38,21 @@ convM2S(char *ap, Fcall *f, int n)
 		SHORT(fid);
 		STRING(uname, sizeof(f->uname));
 		STRING(aname, sizeof(f->aname));
+		STRING(ticket, sizeof(f->ticket));
 		STRING(auth, sizeof(f->auth));
+		break;
+
+	case Toattach:
+		SHORT(fid);
+		STRING(uname, sizeof(f->uname));
+		STRING(aname, sizeof(f->aname));
+		STRING(ticket, NAMELEN);
 		break;
 
 	case Tauth:
 		SHORT(fid);
 		STRING(uname, sizeof(f->uname));
-		STRING(chal, 8+NAMELEN);
+		STRING(ticket, 8+NAMELEN);
 		break;
 
 	case Tclone:
@@ -78,7 +88,7 @@ convM2S(char *ap, Fcall *f, int n)
 		VLONG(offset);
 		SHORT(count);
 		p++;	/* pad(1) */
-		f->data = (char*)p; p += f->count;
+		f->data = p; p += f->count;
 		break;
 
 	case Tclunk:
@@ -106,9 +116,13 @@ convM2S(char *ap, Fcall *f, int n)
 /*
  */
 	case Rnop:
+	case Rosession:
 		break;
 
 	case Rsession:
+		STRING(chal, sizeof(f->chal));
+		STRING(authid, sizeof(f->authid));
+		STRING(authdom, sizeof(f->authdom));
 		break;
 
 	case Rerror:
@@ -122,11 +136,18 @@ convM2S(char *ap, Fcall *f, int n)
 		SHORT(fid);
 		LONG(qid.path);
 		LONG(qid.vers);
+		STRING(rauth, sizeof(f->rauth));
+		break;
+
+	case Roattach:
+		SHORT(fid);
+		LONG(qid.path);
+		LONG(qid.vers);
 		break;
 
 	case Rauth:
 		SHORT(fid);
-		STRING(chal, 8+8+7+7);
+		STRING(ticket, 8+8+7+7);
 		break;
 
 	case Rclone:
@@ -156,8 +177,7 @@ convM2S(char *ap, Fcall *f, int n)
 		SHORT(fid);
 		SHORT(count);
 		p++;	/* pad(1) */
-		f->data = p;
-		p += f->count;
+		f->data = p; p += f->count;
 		break;
 
 	case Rwrite:

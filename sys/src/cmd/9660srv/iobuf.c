@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #include "dat.h"
 #include "fns.h"
@@ -47,7 +48,13 @@ getbuf(Xdata *dev, long addr)
 	p->addr = addr;
 	p->dev = dev;
 	p->busy++;
+	if(waserror()) {
+		p->addr = 0;	/* stop caching */
+		putbuf(p);
+		nexterror();
+	}
 	xread(p);
+	poperror();
 	return p;
 }
 

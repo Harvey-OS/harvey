@@ -19,6 +19,9 @@ OFILES=\
 	strchr.$O\
 	strcmp.$O\
 	strcpy.$O\
+	sqrt.$O\
+	vlrt.$O\
+	vlop.$O\
 
 HFILES=/sys/include/libc.h
 

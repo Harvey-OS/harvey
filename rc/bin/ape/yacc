@@ -1,5 +1,5 @@
 #!/bin/rc
-ifs='' eval `{getflags dltvb:1p:1 $*}
+ifs='' eval `{aux/getflags dltvb:1p:1 $*}
 y=-S
 if (~ $#FLAGd 1) y=($y -d)
 if (~ $#FLAGt 1) y=($y -D2)

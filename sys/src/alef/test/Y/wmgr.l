@@ -1,6 +1,6 @@
 #include <alef.h>
 #include <fcall.h>
-#include <graphics.h>
+#include <libg.h>
 #include <frame.h>
 #include "y.h"
 
@@ -48,7 +48,7 @@ Cursor sight = {
 	 0x21, 0x84, 0x31, 0x8C, 0x0F, 0xF0, 0x00, 0x00,}
 };
 
-char rboxbits[] =
+byte rboxbits[] =
 {
 	0xff, 0xff, 0x81, 0x11, 0x80, 0x01, 0x81, 0x11, 
 	0x80, 0x01, 0x81, 0x11, 0x80, 0x01, 0xd5, 0x11, 
@@ -56,7 +56,7 @@ char rboxbits[] =
 	0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0xff, 0xff, 
 };
 
-char yboxbits[] =
+byte yboxbits[] =
 {
 	0xff, 0xff, 0x80, 0x01, 0xbc, 0x3d, 0x98, 0x19, 
 	0x8c, 0x31, 0x86, 0x61, 0x83, 0xc1, 0x81, 0x81, 
@@ -64,7 +64,7 @@ char yboxbits[] =
 	0x81, 0x81, 0x83, 0xc1, 0x80, 0x01, 0xff, 0xff, 
 };
 
-char hboxbits[] =
+byte hboxbits[] =
 {
 	0xff, 0xff, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 
 	0x81, 0x81, 0x83, 0xc1, 0x87, 0xe1, 0x87, 0xe1, 
@@ -72,7 +72,7 @@ char hboxbits[] =
 	0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0xff, 0xff, 
 };
 
-char sboxbits[] =
+byte sboxbits[] =
 {
 	0xff, 0xff, 0x80, 0x01, 0x80, 0x01, 0x9d, 0xb9, 
 	0x80, 0x01, 0x9b, 0x79, 0x80, 0x01, 0x9d, 0xd9, 
@@ -82,7 +82,7 @@ char sboxbits[] =
 
 void	init(Window*);
 
-char *menu1[] =
+byte *menu1[] =
 {
 	"New",
 	"Move",
@@ -93,7 +93,7 @@ char *menu1[] =
 	nil
 };
 
-char *hidelist[Hidemax];
+byte *hidelist[Hidemax];
 
 enum
 {
@@ -140,31 +140,31 @@ winmgr()
 		m = <-wmgr;
 		switch(m.type) {
 		case MsgMouse:
-			br = m.mb&Mouse_r;
+			br = m.buttons&Mouse_r;
 			if(sweep.doit) {
 				if(br == 0) {
 					execute(mgrstate);
 					break;
 				}
 				if(mgrstate == Move) {
-					deltam = sub(m.m, lastm);
+					deltam = sub(m.xy, lastm);
 					sweep.on = raddp(sweep.on, deltam);	
 				}
 				else {			/* Reshape */
 					sweep.on.min = sweep.start;
-					sweep.on.max = m.m;
+					sweep.on.max = m.xy;
 					sweep.on = rcanon(sweep.on);
 				}
 			}
 			if(br)
 				bleft(&m);
 			else
-			if(m.mb&Mouse_m)
+			if(m.buttons&Mouse_m)
 				dohides(&m);
 			else
-			if(m.mb&Mouse_l)
+			if(m.buttons&Mouse_l)
 				wraise(&m);
-			lastm = m.m;
+			lastm = m.xy;
 			break;
 
 		case MsgMenu1:
@@ -199,7 +199,7 @@ wraise(Mesg *m)
 	Window *w;
 
 	for(w = whead; w; w = w->next) {
-		if(ptinrect(m->m, w->cache->r)) {
+		if(ptinrect(m->xy, w->cache->r)) {
 			wtrls = 1;
 			setcur(w);
 			tofront(w);
@@ -258,7 +258,7 @@ bleft(Mesg *m)
 		return;
 	}
 
-	sweep.start = m->m;
+	sweep.start = m->xy;
 	switch(mgrstate) {
 	case Move:
 		sweep.w = wsearch();
@@ -314,11 +314,11 @@ clntmgr(Window *w, Mesg *m)
 {
 	int x, mx;
 
-	if(mgrstate != 0 || (m->mb&(Mouse_r|Mouse_m|Mouse_l)) == 0)
+	if(mgrstate != 0 || (m->buttons&(Mouse_r|Mouse_m|Mouse_l)) == 0)
 		return;
 
 	x = w->titler.max.x - (3*20);
-	mx = m->m.x;
+	mx = m->xy.x;
 	if(mx > x && mx < x+20) {
 		wtrls = 1;
 		w->hidden = 1;
@@ -362,7 +362,7 @@ clntmgr(Window *w, Mesg *m)
 	sweep.on = w->cache->r;
 	sweep.off = zeror;
 	mgrcurs = &boxcurs;
-	lastm = m->m;
+	lastm = m->xy;
 }
 
 Window*
@@ -513,6 +513,7 @@ tofront(Window *w)
 	if(w == whead)
 		return;
 
+	p = nil;
 	for(s = whead; s; s = s->next) {
 		if(s == w) {
 			p->out = w->out;
@@ -520,7 +521,7 @@ tofront(Window *w)
 			w->out = whead->in;
 			w->next = whead;
 			whead = w;
-			return;
+			break;
 		}
 		p = s;
 	}
@@ -538,6 +539,7 @@ todel(Window *w)
 		return;
 	}
 
+	p = nil;
 	for(f = whead; f; f = f->next) {
 		if(f == w)
 			break;
@@ -591,7 +593,7 @@ titlebar(Window *w)
 		p1.y += 2;
 		p2.y += 2;
 	}
-	w->titler = (Rectangle){ {cache->r.min.x, cache->r.min.y}, { p2.x, p2.y}};
+	w->titler = (Rectangle)((cache->r.min.x, cache->r.min.y), (p2.x, p2.y));
 
 	wid = cache->r.min.x+((cache->r.max.x-cache->r.min.x)/2)-(pf.x/2);
 	p1 = Pt(wid, cache->r.min.y+4);

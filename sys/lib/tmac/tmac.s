@@ -220,6 +220,11 @@
 .	fp 2 PI
 .	fp 3 PB
 .	fp 4 PX\}
+.if '\\$1'lucidasans'\{\
+.	fp 1 R LucidaSans
+.	fp 2 I LucidaSansI
+.	fp 3 B LucidaSansB
+.	fp 5 CW LucidaCW\}
 .if '\\$1'century'\{\
 .	ie '\\*(.T'202'\{\
 .		fp 1 NR Centsb
@@ -1133,7 +1138,7 @@ Piscataway, New Jersey 08854
 .nr 1T 1
 .nr CS 0
 .S\\n(ST
-.rm S0 S1 S2 S3 OD OK TX AX WT CS TM IM MF MR RP I1 I2 I3 I4 I5 CB E1 E2
+.rm S0 S1 S2 S3 OD OK TX AX WT CS TM IM MF MR RP I1 I2 I3 I4 I5 E1 E2
 .de TL
 .ft 3
 .sp
@@ -1475,7 +1480,7 @@ Naperville, Illinois 60540
 * UNIX is a
 .ie \\$3=1 Footnote
 .el registered trademark
-of AT&T.
+of X/Open.
 .FE\}
 .el \\$2\s-1UNIX\\s0\\$1\\f1\(rg\\fP
 .nr GA 1\}

@@ -1,10 +1,10 @@
 #include "map.h"
 
 int
-Xpolyconic(struct place *place, float *x, float *y)
+Xpolyconic(struct place *place, double *x, double *y)
 {
 	double r, alpha;
-	float lat2, lon2;
+	double lat2, lon2;
 	if(fabs(place->nlat.l) > .01) {
 		r = place->nlat.c / place->nlat.s;
 		alpha = place->wlon.l * place->nlat.s;

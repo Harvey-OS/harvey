@@ -15,3 +15,6 @@ void	puttlbx(int, ulong, ulong);
 
 void	scsiintr(int);
 void	scsiinit(void);
+ulong	getstatus(void);
+
+void	duartintr(void);

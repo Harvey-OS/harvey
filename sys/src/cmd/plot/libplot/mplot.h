@@ -25,16 +25,17 @@ struct seg {
 	char stat;
 };
 /*
- * Color values
+ * Color values -- these only work with ldepth=3 & standard plan 9 color map
  */
-#define ZERO 3
-#define RED 2
-#define GREEN 2
-#define YELLOW 1
-#define BLUE 2
-#define MAGENTA 1
-#define CYAN 1
-#define WHITE 0
+#define	RGB(r,g,b) (255&~(((r)<<5)|((g)<<2)|((b)>>1)))
+#define ZERO	RGB(0,0,0)	/* really should be ~0, but bcolor uses neg for error */
+#define RED	RGB(7,0,0)
+#define GREEN	RGB(0,7,0)
+#define YELLOW	RGB(7,7,0)
+#define BLUE	RGB(0,0,7)
+#define MAGENTA	RGB(7,0,7)
+#define CYAN	RGB(0,7,7)
+#define WHITE	RGB(7,7,7)
 /*
  * display parameters
  */

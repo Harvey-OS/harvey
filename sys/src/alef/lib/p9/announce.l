@@ -1,19 +1,19 @@
 #include <alef.h>
 
-intern int	nettrans(char*, char*, int na, char*, int);
+intern int	nettrans(byte*, byte*, int na, byte*, int);
 
 /*
  *  announce a network service.
  */
 int
-announce(char *addr, char *dir)
+announce(byte *addr, byte *dir)
 {
 	int ctl, n, m;
-	char buf[3*NAMELEN];
-	char buf2[3*NAMELEN];
-	char netdir[2*NAMELEN];
-	char naddr[3*NAMELEN];
-	char *cp;
+	byte buf[3*NAMELEN];
+	byte buf2[3*NAMELEN];
+	byte netdir[2*NAMELEN];
+	byte naddr[3*NAMELEN];
+	byte *cp;
 
 	/*
 	 *  translate the address
@@ -62,11 +62,11 @@ announce(char *addr, char *dir)
  *  listen for an incoming call
  */
 int
-listen(char *dir, char *newdir)
+listen(byte *dir, byte *newdir)
 {
 	int ctl, n, m;
-	char buf[3*NAMELEN];
-	char *cp;
+	byte buf[3*NAMELEN];
+	byte *cp;
 
 	/*
 	 *  open listen, wait for a call
@@ -103,10 +103,10 @@ listen(char *dir, char *newdir)
  *  accept a call, return an fd to the open data file
  */
 int
-accept(int ctl, char *dir)
+accept(int ctl, byte *dir)
 {
-	char buf[128];
-	char *num;
+	byte buf[128];
+	byte *num;
 	int n;
 
 	num = strrchr(dir, '/');
@@ -127,10 +127,10 @@ accept(int ctl, char *dir)
  *  reject a call, tell device the reason for the rejection
  */
 int
-reject(int ctl, char *dir, char *cause)
+reject(int ctl, byte *dir, byte *cause)
 {
-	char buf[128];
-	char *num;
+	byte buf[128];
+	byte *num;
 	int n;
 
 	num = strrchr(dir, '/');
@@ -149,10 +149,10 @@ reject(int ctl, char *dir, char *cause)
  *  perform the identity translation (in case we can't reach cs)
  */
 intern int
-identtrans(char *addr, char *naddr, int na, char *file, int nf)
+identtrans(byte *addr, byte *naddr, int na, byte *file, int)
 {
-	char reply[4*NAMELEN];
-	char *p;
+	byte reply[4*NAMELEN];
+	byte *p;
 
 	/* parse the network */
 	strncpy(reply, addr, sizeof(reply));
@@ -172,11 +172,11 @@ identtrans(char *addr, char *naddr, int na, char *file, int nf)
  *  call up the connection server and get a translation
  */
 intern int
-nettrans(char *addr, char *naddr, int na, char *file, int nf)
+nettrans(byte *addr, byte *naddr, int na, byte *file, int nf)
 {
 	int fd;
-	char reply[4*NAMELEN];
-	char *cp;
+	byte reply[4*NAMELEN];
+	byte *cp;
 	int n;
 
 	/*

@@ -31,9 +31,11 @@ access to the local non-volatile RAM.
 For example,
 .IR boot (8)
 reads the machine's key
+from there
 (see
-.IR auth (8))
-from there.
+.IR auth (8)).
 .SH SEE ALSO
 .IR auth (8),
 .IR boot (8)
+.SH SOURCE
+.B /sys/src/9/*/devrtc.c

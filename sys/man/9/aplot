@@ -13,14 +13,15 @@ aplot \- isometric plots of data arrays
 ] [
 .BI -r range
 ] [
-.BI -w "x0 y0 x1 y1
+.B -w
+.I x0 y0 x1 y1
 ]
 .I file
 .SH DESCRIPTION
 .I Aplot
 draws an anti-aliased isometric perspective plot of the square array of elevations that it
 reads from
-.I file.
+.IR file .
 The output is a picture file, written on standard output.
 .PP
 Option
@@ -68,7 +69,7 @@ contains lines of the following forms:
 .TP
 .BI light " x y z brightness
 specifies light source of the given brightness shining in direction
-.I (x,y,z).
+.RI ( x , y , z\f1).
 There can be up to 16 light sources.
 The default light is in direction (2,3,9) and has brightness 1.
 .TP
@@ -95,11 +96,13 @@ suppresses writing an
 channel into the output file.
 By default, the output has
 .BR CHAN=ma .
+.SH SOURCE
+.B /sys/src/fb/aplot.c
 .SH "SEE ALSO
 .IR picfile (9.6),
 .IR filters (9.1)
 .SH BUGS
-Input files assumed to use native byte order and
+Input files are assumed to use native byte order and
 floating point format, and so are not transportable,
-except for
+except under option
 .BR "-t u" .

@@ -17,7 +17,7 @@ void setselection(Item *p){
  * It would be nice if this were faster
  */
 void drawselprim(Item *ip, Item *op){
-	(*ip->fn->draw)(ip, FAINT, sel, S|D);
+	(*ip->fn->draw)(ip, faint, sel, S|D);
 }
 void drawsel(void){
 	if(selection==0) return;

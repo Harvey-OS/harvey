@@ -3,7 +3,8 @@
 #include	"io.h"
 #include	"ureg.h"
 
-Alarm	*alarmtab;
+Alarm*	alarmtab;
+Talarm	talarm;
 
 /*
  * Insert new into list after where
@@ -39,6 +40,7 @@ alarm(int ms, void (*f)(Alarm*, void*), void *arg)
 {
 	Alarm *a, *w, *pw;
 	ulong s;
+
 	if(ms < 0)
 		ms = 0;
 	a = newalarm();
@@ -109,7 +111,7 @@ struct
 	int	nfilter;
 	Filter*	filters[100];
 	int	time;
-	int	duart;
+	int	cons;
 } f;
 
 void
@@ -124,6 +126,36 @@ dofilter(Filter *ft)
 	}
 	f.filters[i] = ft;
 	f.nfilter = i+1;
+}
+
+void
+checkalarms(void)
+{
+	User *p;
+	ulong now;
+
+	if(talarm.list == 0 || canlock(&talarm) == 0)
+		return;
+
+	now = MACHP(0)->ticks;
+	for(;;) {
+		p = talarm.list;
+		if(p == 0)
+			break;
+
+		if(p->twhen == 0) {
+			talarm.list = p->tlink;
+			p->trend = 0;
+			continue;
+		}
+		if(now < p->twhen)
+			break;
+		wakeup(p->trend);
+		talarm.list = p->tlink;
+		p->trend = 0;
+	}
+
+	unlock(&talarm);
 }
 
 void
@@ -151,9 +183,9 @@ clock(ulong n, ulong pc)
 
 	lights(Lreal, (m->ticks>>6)&1);
 	if(m->machno == 0){
-		if(f.duart >= 0) {
-			duartxmit(f.duart);
-			f.duart = -1;
+		if(f.cons >= 0) {
+			(*consputc)(f.cons);
+			f.cons = -1;
 		}
 		p = m->proc;
 		if(p == 0)
@@ -183,10 +215,14 @@ clock(ulong n, ulong pc)
 			}
 		}
 	}
+
 	if(active.exiting && active.machs&(1<<m->machno)){
 		print("someone's exiting\n");
 		exit();
 	}
+
+	checkalarms();
+
 	if(canlock(&m->alarmlock)){
 		if(m->alarm){
 			a = m->alarm;
@@ -205,7 +241,7 @@ clock(ulong n, ulong pc)
 }
 
 void
-duartstart(int c)
+consstart(int c)
 {
-	f.duart = c;
+	f.cons = c;
 }

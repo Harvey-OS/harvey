@@ -1,6 +1,5 @@
 #!/bin/rc
-if(! test -e /n/dump/1991)
-	9fs dump
+if(! 9fs dump) exit
 fn nummon{
 	switch($1){
 	case Jan
@@ -43,6 +42,10 @@ case -c
 	shift
 }
 switch($1){
+case -?
+	mon=`{nummon `{date|sed 's/^....(...).*/\1/'}}
+	last=/n/dump/$year/$mon ^`{echo $1|sed 's/^-/0/'}
+	shift
 case -??
 	mon=`{nummon `{date|sed 's/^....(...).*/\1/'}}
 	last=/n/dump/$year/$mon ^`{echo $1|sed 's/^-//'}
@@ -73,13 +76,13 @@ if(~ $#* 0)
 if(! test -e $last){
 	echo 'yesterday:' \
 		`{echo $last|sed 's/.n.dump.(....).(..)(..)/\1 \2 \3/'} \
-		'is not a backup day'
+		'is not a backup day' >[1=2]
 	exit 'bad date'
 }
 
 dir=`{pwd}
 if(! ~ $status ''){
-	echo 'yesterday: can''t find directory'
+	echo 'yesterday: can''t find directory' >[1=2]
 	exit 'pwd failed'
 }
 

@@ -1,0 +1,156 @@
+\def\fileversion{v24}
+\def\filedate{1994/12/21}
+% minitocoff.sty % version #24
+% disables user commands of minitoc.sty
+\NeedsTeXFormat{LaTeX2e}%%%% This file will not work with latex2.09
+\ProvidesPackage{minitocoff}[\filedate\space\fileversion\space
+                            The minitocoff package]
+\let\c@minitocdepth\count@
+\let\mtcindent\dimen@
+\let\chapterend\relax
+\let\chapterbegin\relax
+\let\faketableofcontents\relax
+\let\fakelistoffigures\relax
+\let\fakelistoftables\relax
+
+\let\c@parttocdepth\count@
+\let\ptcindent\dimen@
+\let\partend\relax
+\let\partbegin\relax
+
+\let\c@secttocdepth\count@
+\let\stcindent\dimen@
+\let\sectend\relax
+\let\sectbegin\relax
+
+\let\c@mtc\count@
+\let\c@ptc\count@
+\let\c@stc\count@
+
+\def\dominitoc{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\dominilof{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\dominilot{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+
+\def\minitoc{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\minilof{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\minilot{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+
+\def\doparttoc{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\dopartlof{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\dopartlot{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+
+\def\parttoc{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\partlof{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\partlot{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+
+\def\dosecttoc{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\dosectlof{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\dosectlot{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+
+\def\secttoc{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\sectlof{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+\def\sectlot{\@ifnextchar[{\gobbleopt@}{\gobbleopt@[l]}}
+
+\def\gobbleopt@[#1]{\relax}
+
+% disables internal commands
+\let\tf@mtc\count@
+\let\mtc@string\relax
+\let\appendixmtc\relax
+\let\l@xchapter\@gobbletwo
+\let\xchapter\relax
+\let\pchapter\relax
+\let\l@xpart\@gobbletwo
+\let\xpart\relax
+\let\l@xsect\@gobbletwo
+\let\xsect\relax
+% disables font commands
+% with \empty and not \relax,
+% because some users have done \renewcommand\mtcfont...
+% which will not work if we use \relax here.
+\let\mtcfont\empty
+\let\mtcSfont\empty
+\let\mtcSSfont\empty
+\let\mtcSSSfont\empty
+\let\mtcPfont\empty
+\let\mtcSPfont\empty
+\let\mlffont\empty
+\let\mltfont\empty
+\let\mtifont\empty
+
+\let\ptcfont\empty
+\let\ptcCfont\empty
+\let\ptcSfont\empty
+\let\ptcSSfont\empty
+\let\ptcSSSfont\empty
+\let\ptcPfont\empty
+\let\ptcSPfont\empty
+\let\plffont\empty
+\let\pltfont\empty
+\let\ptifont\empty
+
+\let\stcfont\empty
+\let\stcSSfont\empty
+\let\stcSSSfont\empty
+\let\stcPfont\empty
+\let\stcSPfont\empty
+\let\slffont\empty
+\let\sltfont\empty
+\let\stifont\empty
+
+\@ifundefined{part}{}{\let\l@starpart\l@part}
+\@ifundefined{chapter}{}{\let\l@starchapter\l@chapter}
+\@ifundefined{section}{}{\let\l@starsection\l@section}
+\@ifundefined{subsection}{}{\let\l@starsubsection\l@subsection}
+\@ifundefined{subsubsection}{}{\let\l@starsubsubsection\l@subsubsection}
+\@ifundefined{paragraph}{}{\let\l@starparagraph\l@paragraph}
+\@ifundefined{subparagraph}{}{\let\l@starsubparagraph\l@subparagraph}
+
+\let\firstpartis\@gobble
+\let\firstchapteris\@gobble
+\let\firstsectionis\@gobble
+\let\ptcrule\relax
+\let\noptcrule\relax 
+\let\mtcrule\relax
+\let\nomtcrule\relax 
+\let\stcrule\relax
+\let\nostcrule\relax 
+
+\let\mtcpagenumbers\relax
+\let\nomtcpagenumbers\relax
+\let\stcpagenumbers\relax
+\let\nostcpagenumbers\relax
+\let\ptcpagenumbers\relax
+\let\noptcpagenumbers\relax
+\let\mlfpagenumbers\relax
+\let\nomlfpagenumbers\relax
+\let\slfpagenumbers\relax
+\let\noslfpagenumbers\relax
+\let\plfpagenumbers\relax
+\let\noplfpagenumbers\relax
+\let\mltpagenumbers\relax
+\let\nomltpagenumbers\relax
+\let\sltpagenumbers\relax
+\let\nosltpagenumbers\relax
+\let\pltpagenumbers\relax
+\let\nopltpagenumbers\relax
+
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\endinput
+%% 
+%% End of file `minitocoff.sty'.

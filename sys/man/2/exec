@@ -1,13 +1,20 @@
 .TH EXEC 2
 .SH NAME
-exec, execl \- execute a file
+exec, execl, _clock \- execute a file
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .nf
 .B
 int exec(char *name, char* argv[])
 .PP
 .B
 int execl(char *name, ...)
+.PP
+.B
+long	*_clock;
 .fi
 .SH DESCRIPTION
 .I Exec
@@ -94,7 +101,7 @@ into the open mode; see
 and the working directory and environment
 (see
 .IR env (3))
-remain the same
+remain the same.
 However, a newly
 .I exec'ed
 process has no notification handler
@@ -121,12 +128,46 @@ followed by a terminating null pointer; and
 the return register (e.g.
 .B R0
 on the 68020) contains the address of the clock.
+.SS Alef
+In Alef, the intent and syntax are the same but the implementation is
+different.
+.I Exec
+(or
+.IR execl ;
+this description applies to either) may be called only by a
+.B proc
+holding a single task, typically the implicit main task of the
+.BR proc .
+First,
+.IR access (2)
+is called to see if the named file exists and has execute permission.
+If not,
+.I exec
+returns \-1 immediately.  Otherwise, it will never return:
+it frees resources private to the invoking
+.B proc
+and calls the
+.I exec
+system call.  If this fails, it calls the bare
+.B _exits
+system call
+(see
+.IR exits (2))
+with the error string as argument.
+Therefore, if the file looks executable, the calling process
+is lost, whether the
+.I exec
+succeeds or not.
+.SH SOURCE
+.B /sys/src/libc/9syscall
+.br
+.B /sys/src/libc/port/execl.c
 .SH SEE ALSO
 .IR intro (2),
 .IR stat (2)
 .SH DIAGNOSTICS
 If these functions fail, they return and set
-.I errstr.
+.IR errstr .
 There can be no return from a successful
 .I exec
 or

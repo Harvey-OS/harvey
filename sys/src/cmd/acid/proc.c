@@ -7,6 +7,44 @@
 #include "acid.h"
 #include "y.tab.h"
 
+static void install(int);
+
+static void
+fixregs(Map *map)
+{
+	Reglist *rp;
+	Lsym *l;
+	long flen;
+
+	static int doneonce;
+
+	switch(mach->mtype) {
+	default:
+	case MMIPS:
+	case MSPARC:
+		return;
+	case MI386:
+		if (doneonce)
+			return;
+		doneonce = 1;
+		flen = 0;
+		break;
+	case M68020:
+		if (machdata->ufixup(map, &flen) < 0)
+			error("fixregs: %r\n");
+		break;
+	}
+	for (rp = mach->reglist; rp->rname; rp++) {
+		if ((rp->rflags&RFLT))
+			continue;
+		l = look(rp->rname);
+		if(l == 0)
+			print("lost register %s\n", rp->rname);
+		else
+			l->v->ival = mach->kbase+rp->roffs-flen;
+	}
+}
+
 void
 sproc(int pid)
 {
@@ -40,17 +78,15 @@ sproc(int pid)
 		close(fd);
 	}
 
-	cormap = newmap(cormap, fcor);
+	cormap = newmap(cormap, fcor, 3);
 	if (cormap == 0)
 		error("setproc: cant make coremap");
 
-	setmap(cormap, SEGDATA, mach->pgsize, mach->kbase&~mach->ktmask, mach->pgsize);
-	setmap(cormap, SEGUBLK, mach->kbase, mach->kbase+mach->pgsize, mach->kbase);
-
+	setmap(cormap, fhdr.txtaddr, fhdr.txtaddr+fhdr.txtsz, fhdr.txtaddr, "*text");
+	setmap(cormap, fhdr.dataddr, mach->kbase&~mach->ktmask, fhdr.dataddr, "*data");
+	setmap(cormap, mach->kbase, mach->kbase+mach->pgsize, mach->kbase, "*ublock");
 	install(pid);
-
-	if(machdata->rsnarf)
-		(*machdata->rsnarf)(mach->reglist);
+	fixregs(cormap);
 }
 
 int
@@ -139,8 +175,7 @@ dostop(int pid)
 	Lsym *s;
 	Node *np, *p;
 
-	if(machdata->rsnarf)
-		(*machdata->rsnarf)(mach->reglist);
+	fixregs(cormap);
 
 	s = look("stopped");
 	if(s && s->proc) {
@@ -155,7 +190,7 @@ dostop(int pid)
 	}
 }
 
-void
+static void
 install(int pid)
 {
 	Lsym *s;
@@ -238,4 +273,41 @@ msg(int pid, char *msg)
 		}
 	}
 	error("msg: pid=%d: not found for %s", pid, msg);
+}
+
+char *
+getstatus(int pid)
+{
+	int fd;
+	char *p;
+
+	static char buf[128];
+
+	sprint(buf, "/proc/%d/status", pid);
+	fd = open(buf, OREAD);
+	if(fd < 0)
+		error("open %s: %r", buf);
+	read(fd, buf, sizeof(buf));
+	close(fd);
+	p = buf+56+12;			/* Do better! */
+	while(*p == ' ')
+		p--;
+	p[1] = '\0';
+	return buf+56;			/* ditto */
+}
+
+char *
+waitfor(int pid)
+{
+	int n;
+
+	static Waitmsg w;
+
+	for(;;) {
+		n = wait(&w);
+		if(n < 0)
+			error("wait %r");
+		if(n == pid)
+			return w.msg;
+	}
 }

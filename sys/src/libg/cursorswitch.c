@@ -22,14 +22,3 @@ cursorswitch(Cursor *c)
 	memmove(b+41, c->set, 2*16);
 	bflush();
 }
-
-void
-cursormode(int onoff)
-{
-	uchar *b;
-
-	b = bneed(2);
-	b[0] = 'c';
-	b[1] = onoff;
-	bflush();
-}

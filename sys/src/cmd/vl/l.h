@@ -10,11 +10,11 @@ typedef	struct	Prog	Prog;
 typedef	struct	Optab	Optab;
 typedef	struct	Oprang	Oprang;
 typedef	uchar	Opcross[32][2][32];
+typedef	struct	Count	Count;
 
-#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 #define	P		((Prog*)0)
 #define	S		((Sym*)0)
-#define	TNAME		(curtext?curtext->from.sym->name:noname)
+#define	TNAME		(curtext&&curtext->from.sym?curtext->from.sym->name:noname)
 
 struct	Adr
 {
@@ -54,9 +54,11 @@ struct	Prog
 };
 struct	Sym
 {
-	char	name[NNAME];
+	char	*name;
 	short	type;
 	short	version;
+	short	become;
+	short	frame;
 	long	value;
 	Sym*	link;
 };
@@ -82,16 +84,11 @@ struct	Oprang
 	Optab*	start;
 	Optab*	stop;
 };
-union
+struct	Count
 {
-	struct
-	{
-		uchar	cbuf[8192];			/* output buffer */
-		uchar	xbuf[8192];			/* input buffer */
-		Rlent	rlent[8192/sizeof(Rlent)];	/* ranlib buf */
-	};
-	char	dbuf[1];
-} buf;
+	long	count;
+	long	outof;
+};
 
 enum
 {
@@ -102,6 +99,7 @@ enum
 	SXREF,
 	SLEAF,
 	SFILE,
+	SCONST,
 
 	C_NONE		= 0,
 	C_REG,
@@ -133,16 +131,17 @@ enum
 	C_LOREG,
 	C_GOK,
 
-	FOLL		= 1<<0,
+	NSCHED		= 20,
 
-	LABEL		= 1<<0,
-	LEAF		= 1<<1,
-	ACTIVE1		= 1<<2,
-	ACTIVE2		= 1<<3,
+/* mark flags */
+	FOLL		= 1<<0,
+	LABEL		= 1<<1,
+	LEAF		= 1<<2,
+	SYNC		= 1<<3,
 	BRANCH		= 1<<4,
 	LOAD		= 1<<5,
-	COMPARE		= 1<<6,
-	MFROM		= 1<<7,
+	FCMP		= 1<<6,
+	NOSCHED		= 1<<7,
 
 	BIG		= 32766,
 	STRINGSZ	= 200,
@@ -150,7 +149,19 @@ enum
 	NHUNK		= 100000,
 	MINSIZ		= 64,
 	NENT		= 100,
+	MAXIO		= 8192,
+	MAXHIST		= 20,				/* limit of path elements for history symbols */
 };
+
+union
+{
+	struct
+	{
+		uchar	cbuf[MAXIO];			/* output buffer */
+		uchar	xbuf[MAXIO];			/* input buffer */
+	};
+	char	dbuf[1];
+} buf;
 
 long	HEADR;			/* length of header */
 int	HEADTYPE;		/* type of header */
@@ -176,7 +187,7 @@ Prog*	firstp;
 char	fnuxi8[8];
 char*	noname;
 Sym*	hash[NHASH];
-Sym*	histfrog[NNAME/2-1];
+Sym*	histfrog[MAXHIST];
 int	histfrogp;
 int	histgen;
 char*	library[50];
@@ -187,15 +198,15 @@ char	inuxi2[2];
 char	inuxi4[4];
 Prog*	lastp;
 long	lcsize;
-char	literal[NNAME];
+char	literal[32];
 int	nerrors;
 long	nhunk;
 long	offset;
-Opcross	opcross[7];
-Oprang	oprange[AEND];
+Opcross	opcross[8];
+Oprang	oprange[ALAST];
 char*	outfile;
 long	pc;
-uchar	repop[AEND];
+uchar	repop[ALAST];
 long	symsize;
 Prog*	textp;
 long	textsize;
@@ -203,6 +214,17 @@ long	thunk;
 int	version;
 char	xcmp[32][32];
 Prog	zprg;
+int	dtype;
+
+struct
+{
+	Count	branch;
+	Count	fcmp;
+	Count	load;
+	Count	mfrom;
+	Count	page;
+	Count	jump;
+} nop;
 
 extern	char*	anames[];
 extern	Optab	optab[];
@@ -228,10 +250,8 @@ void	buildrep(int, int);
 void	cflush(void);
 int	cmp(int, int);
 int	compound(Prog*);
-int	conflict(long, long);
 double	cputime(void);
 void	datblk(long, long);
-int	depend(long, long);
 void	diag(char*, ...);
 void	dodata(void);
 void	doprof1(void);
@@ -245,6 +265,7 @@ void	gethunk(void);
 void	histtoauto(void);
 double	ieeedtod(Ieee*);
 long	ieeedtof(Ieee*);
+int	isnop(Prog*);
 void	ldobj(int, long, char*);
 void	loadlib(int, int);
 void	listinit(void);
@@ -267,12 +288,13 @@ Prog*	prg(void);
 int	pseudo(Prog*);
 void	putsymb(char*, int, long, int);
 long	regoff(Adr*);
-long	regused(Prog*);
 int	relinv(int);
 long	rnd(long, long);
 void	sched(Prog*, Prog*);
 void	span(void);
+void	strnput(char*, int);
 void	undef(void);
 void	xdefine(char*, int, long);
 void	xfol(Prog*);
 void	xfol(Prog*);
+void	nopstat(char*, Count*);

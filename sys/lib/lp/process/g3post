@@ -1,0 +1,9 @@
+#!/bin/rc
+# convert CCITT G3 Fax format to PostScript
+
+if (~ $MAG '') MAG=1
+if (~ $MAG [.0-9]*) MAG=-m^`{echo $MAG '*' .5 | hoc}^,^$MAG
+
+if (! ~ $LAND '') LAND=-L
+eval /$cputype/bin/aux/g3p9bit | /$cputype/bin/aux/p9bitpost $MAG $LAND | $LPLIB/process/hpost
+exit

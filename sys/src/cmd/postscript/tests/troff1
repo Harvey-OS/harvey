@@ -1,0 +1,18 @@
+.EQ
+delim $$
+.EN
+.TS
+doublebox;
+c c
+l l.
+Name	Definition
+.sp
+.vs +2p
+Gamma	$GAMMA (z) = int sub 0 sup inf t sup {z-1} e sup -t dt$
+Sine	$sin (x) = 1 over 2i ( e sup ix - e sup -ix )$
+Error	$ roman erf (z) = 2 over sqrt pi int sub 0 sup z e sup {-t sup 2} dt$
+Bessel	$ J sub 0 (z) = 1 over pi int sub 0 sup pi cos ( z sin theta ) d theta $
+Zeta	$ zeta (s) = sum from k=1 to inf k sup -s ~~( Re~s > 1)$
+.vs -2p
+.sp 2
+.TE

@@ -26,5 +26,18 @@
 /* _x,_y becomes current point */
 #define move(_x, _y)  printf("m %d %d\n", _x, _y)
 
-/* specify style for drawing lines: "dotted", "solid", "dotdash" */
+/* specify style for drawing lines */
+
+#define SOLID "solid"
+#define DOTTED "dotted"
+#define DASHED "dashed"
+#define DOTDASH "dotdash"
+
 #define pen(_s)  printf("pe %s\n", _s)
+
+#define BLACK "black"
+#define RED "red"
+#define GREEN "green"
+#define BLUE "blue"
+
+#define colorx(s)	/* funny name is all ken's fault */

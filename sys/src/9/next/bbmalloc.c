@@ -30,6 +30,9 @@ static ulong	*bbcur[narena] = {&bbarena[0][0], &bbarena[1][0]};
 static ulong	*bblast[narena] = {0, 0};
 
 #define INTLEVEL(v)	((v)&0x700)
+
+extern	flushvirtpage(void (*)(void));
+
 void *
 bbmalloc(int nbytes)
 {
@@ -78,4 +81,17 @@ bbonstack(void)
 	if(u)
 		return 1;
 	return 0;
+}
+
+void
+bbexec(void (*memstart)(void), int len, int onstack)
+{
+	if(onstack) {
+		flushvirtpage(memstart);
+		memstart();
+	} else {
+		bbdflush(memstart, len);
+		memstart();
+		bbfree(memstart, len);
+	}
 }

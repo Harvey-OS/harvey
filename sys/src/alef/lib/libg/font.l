@@ -1,22 +1,24 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 intern int	resize(Font*, int, int);
 intern int	freeup(Font*);
 
+#define	PJW	0	/* use NUL==pjw for invisible characters */
+
 int
-cachechars(Font *f, char **s, usint *cp, int max, int *wp)
+cachechars(Font *f, byte **s, usint *cp, int max, int *wp)
 {
 	int i, th, sh, h, ld, w, wid, nc;
-	char *sp;
+	byte *sp;
 	Rune r, vr;
-	int a;
+	uint a;
 	Cacheinfo *c, *tc, *ec;
 
 	sp = *s;
 	wid = 0;
 	for(i=0; *sp && i<max; sp+=w){
-		r = *(char*)sp;
+		r = *(byte*)sp;
 		if(r < Runeself)
 			w = 1;
 		else{
@@ -51,7 +53,7 @@ cachechars(Font *f, char **s, usint *cp, int max, int *wp)
 			th++;
 		}
 
-		if(a && (f->age-a)<2000){	/* kicking out too recent; resize */
+		if(a && (f->age-a)<500){	/* kicking out too recent; resize */
 			nc = 2*(f->ncache-NFLOOK) + NFLOOK;
 			if(nc <= MAXFCACHE){
 				if(i == 0)
@@ -86,8 +88,8 @@ cachechars(Font *f, char **s, usint *cp, int max, int *wp)
 int
 charwidth(Font *f, Rune r)
 {
-	char buf[UTFmax+1];
-	char *p;
+	byte buf[UTFmax+1];
+	byte *p;
 	usint c;
 	int wid;
 	int n;
@@ -105,8 +107,8 @@ charwidth(Font *f, Rune r)
 	p = buf;
 	n = 0;
 	while(cachechars(f, &p, &c, 1, &wid) <= 0)
-		if(++n > 10)
-			berror("charwidth");
+		if(++n > 3)
+			return 0;
 	agefont(f);
 	return wid;
 }
@@ -156,23 +158,23 @@ agefont(Font *f)
 int
 loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush)
 {
-	int fd, i, oi, wid, try;
+	int fd, i, oi, wid;
 	Rune pic;
 	Fontchar *fi;
 	Cachefont *cf;
 	Cachesubf *subf, *of;
-	char *b;
+	byte *b;
 
 	pic = r;
-	try = 1;
     Again:
 	for(i=0; i<f->nsub; i++){
 		cf = f->sub[i];
 		if(cf->min<=pic && pic<=cf->max)
 			goto Found;
 	}
-	if(++try == 2){
-		pic = 0;	/* use NUL==pjw for invisible characters */
+    TryPJW:
+	if(pic != PJW){
+		pic = PJW;
 		goto Again;
 	}
 	return 0;
@@ -218,8 +220,8 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush)
 	subf->cf = nil;
 	fd = -1;
 	if(!cf->abs){
-		char tmp1[128], tmp2[128];
-		char *t, *u;
+		byte tmp1[128], tmp2[128];
+		byte *t, *u;
 		/*
 		 * prefix name with directory if necessary
 		 * and try to find a file suffixed with the right ldepth.
@@ -253,7 +255,9 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush)
 		if(fd >= 0)
 			close(fd);
 		fprint(2, "loadchar: can't open %s: %r\n", cf->name);
-		return 0;
+		cf->min = 1;
+		cf->max = 0;	/* can't possibly match */
+		goto TryPJW;
 	}
 	subf->f = rdsubfontfile(fd, nil);
 	if(subf->f == nil){
@@ -270,14 +274,12 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush)
     Found2:
 	subf->age = f->age;
 
+	pic += cf->offset;
 	if(pic-cf->min >= subf->f->n)
-		return 0;
+		goto TryPJW;
 	fi = &subf->f->info[pic - cf->min];
-	if(fi->width==0 && pic!=0){
-		pic = 0;
-		try = 2;
-		goto Again;
-	}
+	if(fi->width == 0)
+		goto TryPJW;
 	wid = (fi+1)->x - fi->x;
 	if(f->width < wid || f->width == 0){
 		/*
@@ -335,7 +337,7 @@ freeup(Font *f)
 intern int
 resize(Font *f, int wid, int ncache)
 {
-	char *b;
+	byte *b;
 	Cacheinfo *i;
 	int nf, ret;
 
@@ -350,8 +352,15 @@ resize(Font *f, int wid, int ncache)
 		if(f != font)
 			nf += freeup(font);
 		if(wid != f->width){
-			if(nf == 0)
+			if(nf < 2){
+				/* try to gain space by shrinking cache */
+				if(ncache != NFCACHE+NFLOOK){
+					ret = resize(f, wid, NFCACHE+NFLOOK);
+					if(ret >= 0)
+						return ret;
+				}
 				berror("font resize failed");
+			}
 			return -1;	/* will trigger retry */
 		}
 		/* it's survivable: just clean existing cache */

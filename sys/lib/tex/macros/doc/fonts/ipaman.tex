@@ -1,0 +1,531 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%                International Phonetic Alphabet                  %%%%%
+%%%%%                            -- Manual --                         %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%
+%%%%% adapted to LaTeX by W. Antweiler, UnivCologneCompCen, 05/28/90
+%%%%%
+%%%%% adapted by Andrej Brodnik (Andy) for NFSS, University of
+%%%%% Waterloo, 11.01.93
+%%%%%
+%%%%% adapted by Andrej Brodnik and Denis Roegel for NFSS2, CRIN
+%%%%% (Centre de Recherche en Informatique de Nancy), F-54506
+%%%%% VANDOEUVRE-LES-NANCY, for NFSS2, 16.07.94
+%%%%%
+\documentstyle[ipa,12pt]{article}
+\newcommand{\B}[1]{$\backslash$#1}
+\newcommand{\MF}{{\rm\sc{}metafont}}
+\newcommand{\wsu}{{\small\rm WSUIPA}}
+\newcommand{\ipam}{{\small\rm IPAMACS}}
+\newcommand{\ipas}{{\small\rm IPA}}
+\newcommand{\PL}{{\em Phonetic Symbol Guide}}
+
+\begin{document}
+\title{Using the WSU International Phonetic Alphabet}
+\author{Washington State University}
+\date{
+  January 9, 1990   \\
+  January 11, 1993\footnote{Adapted for \LaTeX\ and NFSS} \\
+  July 16, 1994\footnote{Adapted for \LaTeX\ and NFSS2}
+}
+\maketitle
+
+\section{Preface}
+
+This users guide is intended to serve as a help and supplement to the
+Washington State University International Phonetic Alphabet (\wsu)
+fonts. It is not intended to be a manual on \TeX, \LaTeX, linguistics,
+or the correct usage of the characters, accents and diacritics
+contained within the font. It is assumed that the user is familiar
+with the version of \LaTeX\ he or she is using and with the characters
+contained within the \wsu\ font. Because the uses for a phonetic
+alphabet font are probably as varied as the many disciplines which use
+the characters, this guide is intended to merely show some of the most
+common ways of using the \wsu\ font. Surely each person who implements
+the font will develop his or her own favorite way of working with and
+using the font.
+
+The principal source of information regarding the characters and their
+shapes has come from sources within the linguistic field---most
+notably, Geoffrey K. Pullum and William A. Ladusaw, whose book, {\em
+Phonetic Symbol Guide} was used extensively. The \PL\ not only lists
+the International Phonetic Alphabet (IPA) characters and diacritics,
+it also gives an enlarged illustration of each character which shows
+its baseline, height, depth and x-height. These character
+illustrations were invaluable in the design of the \wsu\ \MF\
+characters.
+
+Several other people involved in the wonderful world of linguistics
+also aided in the design of the \wsu\ font. Their input concerning
+everything from character shape, to placement within the font, to
+determining which characters should be included, is gratefully
+acknowledged. I would especially like to thank Karen Mullen, Associate
+Professor of English, University of Louisville, Louisville, Kentucky.
+She tested, used the \wsu\ fonts, and took the time to give several
+suggestions and recommendations that have improved the font. Also,
+Christina A. Thiele, Managing Director, Journal Production Centre,
+Carleton University, Ottawa, Ontario, who not only provided a wealth
+of phonetic information, but also a wealth of encouragement throughout
+the entire font designing process.
+
+Included with the \wsu\ fonts are:
+%
+\begin{itemize}
+  \item The basic \wsu\ font which contains 128 phonetic characters
+and/or diacritics in five different point sizes (8, 9, 10, 11 and 12)
+and in three typefaces (roman, slanted and bold extended).
+  \item Each size and typeface includes a TFM (\TeX\ Font Metric) file
+and its related GF, PK or PXL file (after you generate them).
+  \item A macro package (\ipam.TEX) for use with the \wsu\ font for
+\TeX\ and \LaTeX\ without NFSS users. Note, that this package is not
+necessary for NFSS \LaTeX users.
+  \item A style file (\ipas.STY) for NFSS \LaTeX\ users, and
+  \item three {\em WSUIPA Font User's Guides}. The first one is for
+\TeX\ ({\small\rm IPAMAN.TEX} -- the original manual), the second one
+for \LaTeX\ without NFSS ({\small\rm IPAMAN.LTX} -- the manual adapted
+by W.~Antweiler) and the third one is this one.
+\end{itemize}
+
+This guide is divided into three main sections:
+%
+\begin{enumerate}
+  \item an introduction to the \wsu\ font,
+  \item a description of the font layout and the characters included
+in the font and
+  \item how to use \ipas\ more in more sophisticated and in simpler
+way.
+\end{enumerate}
+
+Although the \wsu\ fonts are written in \MF, the user does not need
+experience with or knowledge of \MF\ to use the font.
+
+
+\section{Introduction to the WSUIPA Font}
+
+The \wsu\ fonts are written in \MF\ and use the same font parameter
+values as their Computer Modern (CM) counterparts (cmr and cmbx). In
+fact, while designing the character shapes, the computer modern code
+was left intact or modified only slightly whenever possible.
+Therefore, the \wsu\ fonts are totally compatible with computer modern
+fonts---the design and shape of the characters are computer modern
+wherever possible. For the characters that are drastically different
+from any computer modern characters or symbols, such as the ``Gamma,''
+``Baby Gamma'' and the ``Esh,'' Pullum and Ladusaw's \PL\ was used as
+the character design standard.
+
+The \wsu\ fonts are obviously not an exhaustive collection of phonetic
+or even recognized International Phonetic Alphabet characters. The
+characters included in the \wsu\ font were chosen either because they
+were listed as a ``major'' entry in Pullum and Ladusaw's \PL, or
+because of the recommendations from various people with an interest in
+the font.
+
+\PL\ contains what it classifies as ``major'' and ``minor''
+characters, based upon whether the symbol is an officially recognized
+IPA character or is determined by Pullum and Ladusaw to be a standard
+symbol in current American transcriptual practice. \PL\ lists 78
+``major'' entries which are not easily attainable in the CM fonts. All
+78 of these characters are included in the \wsu\ font, along with 50
+``minor'' entries from \PL. The selection of which ``minor'' entries
+to include was based on information and requests from various
+phoneticians and linguists who contacted WSU during the beginning
+stages of the creation of the font.
+
+
+\section{The Layout of the WSUIPA Font}
+
+The character-grouping pattern followed by Pullum and Ladusaw in their
+\PL\ was adopted as the basis for the \wsu\ font layout. The
+characters are grouped together according to shape rather than usage.
+Therefore, the ``a'' shapes occupy the first positions: '00 through
+'04, ``b'' shapes are in positions '05 through '11 and so forth. The
+accents and diacritics follow the character shapes and are in the last
+positions in the font. This approach was taken because under it was
+assumed that under most circumstances, the user would most likely be
+accessing the characters with the use of macros rather than by typing
+large portions of entirely phonetic text. Aside from keeping like
+shapes together, the positioning of the \wsu\ font was fairly
+arbitrary.
+
+
+\section{Character Description}
+
+Within this section each of the \wsu\ characters are shown in a \MF\
+``smoke mode'' proof. The octal character position is indicated, along
+with the corresponding macro name in \ipam, and the name of the
+character given in \PL. Only the roman characters will be illustrated
+since the shapes of the slanted and bold extended are the same.
+
+There are several Greek characters included in the \wsu\ font, and
+initially it may appear these are merely copies of the corresponding
+CM Greek characters. That is true with one very important distinction:
+the \wsu\ Greek characters included are not italic. All the lowercase
+Greek characters included in the CM fonts are italic which makes them
+unsuitable for some situations in phonetics where a non-italic Greek
+character is essential.
+
+\newcommand{\D}[1]{#1&{\ipa\char#1}}
+\raggedbottom
+\begin{center}
+\begin{tabular}{|l|c|l|l|}
+\hline
+\multicolumn{4}{|c|}{\bf WSUIPA Characters}\\
+\hline\hline
+Char&Char&{\sc IPAMACS}&{\sc Pullum \&\ Ladusaw}\\
+Code&    &  Name       &  Name\\
+\hline
+\D{'00} &\B{inva}  &turned a\\
+\D{'01} &\B{scripta} &script a\\
+\D{'02} &\B{nialpha} &lowercase non-italic alpha\\
+\D{'03} &\B{invscripta} &turned script a\\
+\D{'04} &\B{invv} &inverted v\\
+\D{'05} &\B{crossb} &crossed b\\
+\D{'06} &\B{barb} &barred b\\
+\D{'07} &\B{slashb} &slashed b\\
+\D{'10} &\B{hookb} &hooktop b\\
+\D{'11} &\B{nibeta} &non-italic lowercase beta\\
+\D{'12} &\B{slashc} &slashed c\\
+\D{'13} &\B{curlyc} &curly-tail c\\
+\D{'14} &\B{clickc} &stretched c\\
+\D{'15} &\B{crossd} &crossed d\\
+\D{'16} &\B{bard} &barred d\\
+\D{'17} &\B{slashd} &slashed d\\
+\D{'20} &\B{hookd} &hooktop d\\
+\D{'21} &\B{taild} &right-tail d\\
+\D{'22} &\B{dz} &d-yogh ligature\\
+\D{'23} &\B{eth} &eth\\
+\D{'24} &\B{scd} &small capital D\\
+\D{'25} &\B{schwa} &schwa\\
+\D{'26} &\B{er} &right-hook schwa\\
+\D{'27} &\B{reve} &reversed e\\
+\D{'30} &\B{niepsilon} &non-italic greek epsilon\\
+\D{'31} &\B{revepsilon} &reversed non-italic epsilon\\
+\D{'32} &\B{hookrevepsilon} &right-hook reversed non-italic epsilon\\
+\D{'33} &\B{closedrevepsilon} &closed reversed non-italic epsilon\\
+\D{'34} &\B{scriptg} &lowercase variant g\\
+\D{'35} &\B{hookg} &hooktop g\\
+\D{'36} &\B{scg} &small capital G\\
+\D{'37} &\B{nigamma} &non-italic gamma\\
+\hline
+\end{tabular}
+\end{center}
+\newpage
+\begin{center}
+\begin{tabular}{|l|c|l|l|}
+\hline
+\multicolumn{4}{|c|}{\bf WSUIPA Characters}\\
+\hline\hline
+Char&Char&{\sc IPAMACS}&{\sc Pullum \&\ Ladusaw}\\
+Code&    &  Name       &  Name\\
+\hline
+\D{'40} &\B{ipagamma} &IPA Gamma\\
+\D{'41} &\B{babygamma} &baby gamma\\
+\D{'42} &\B{hv} &h-v ligature\\
+\D{'43} &\B{crossh} &crossed h\\
+\D{'44} &\B{hookg} &hooktop g\\
+\D{'45} &\B{hookheng} &hooktop heng\\
+\D{'46} &\B{invh} &turned h\\
+\D{'47} &\B{bari} &barred i\\
+\D{'50} &\B{dlbari} &barred dotless i\\
+\D{'51} &\B{niiota} &non-italic greek iota\\
+\D{'52} &\B{sci} &small capital I\\
+\D{'53} &\B{barsci} &barred small capital I\\
+\D{'54} &\B{invf} &barred dotless j\\
+\D{'55} &\B{tildel} &l with tilde\\
+\D{'56} &\B{barl} &barred l\\
+\D{'57} &\B{latfric} &belted l\\
+\D{'60} &\B{taill} &l with right tail\\
+\D{'61} &\B{lz} &l-yogh ligature\\
+\D{'62} &\B{nilambda} &non-italic greek lambda\\
+\D{'63} &\B{crossnilambda} &crossed lambda\\
+\D{'64} &\B{labdentalnas} &m with leftward tail at right\\
+\D{'65} &\B{invm} &turned m\\
+\D{'66} &\B{legm} &turned m with long right leg\\
+\D{'67} &\B{nj} &n with leftward hook at left\\
+\D{'70} &\B{eng} &eng\\
+\D{'71} &\B{tailn} &n with right tail\\
+\D{'72} &\B{scn} &small capital N\\
+\D{'73} &\B{clickb} &bull's eye\\
+\D{'74} &\B{baro} &barred o\\
+\D{'75} &\B{openo} &open o\\
+\D{'76} &\B{niomega} &non-italic lowercase greek omega\\
+\D{'77} &\B{closedniomega} &closed omega\\
+\hline
+\end{tabular}
+\end{center}
+\newpage
+\begin{center}
+\begin{tabular}{|l|c|l|l|}
+\hline
+\multicolumn{4}{|c|}{\bf WSUIPA Characters}\\
+\hline\hline
+Char&Char&{\sc IPAMACS}&{\sc Pullum \&\ Ladusaw}\\
+Code&    &  Name       &  Name\\
+\hline
+\D{'100} &\B{oo} &double o\\
+\D{'101} &\B{barp} &barred p\\
+\D{'102} &\B{thorn} &thorn\\
+\D{'103} &\B{niphi} &non-italic lowercase greek phi\\
+\D{'104} &\B{flapr} &fish hook r\\
+\D{'105} &\B{legr} &r with long leg\\
+\D{'106} &\B{tailr} &r with right tail\\
+\D{'107} &\B{invr} &turned r\\
+\D{'110} &\B{tailinvr} &turned r with right tail\\
+\D{'111} &\B{invlegr} &turned long-legged r\\
+\D{'112} &\B{scr} &small capital R\\
+\D{'113} &\B{invscr} &inverted small capital R\\
+\D{'114} &\B{tails} &s with right tail\\
+\D{'115} &\B{esh} &esh\\
+\D{'116} &\B{curlyesh} &curly-tail esh\\
+\D{'117} &\B{nisigma} &non-italic lowercase greek sigma\\
+\D{'120} &\B{tailt} &t with right tail\\
+\D{'121} &\B{tesh} &t-esh ligature\\
+\D{'122} &\B{clickt} &turned t\\
+\D{'123} &\B{nitheta} &non-italic lowercase greek theta\\
+\D{'124} &\B{baru} &barred u\\
+\D{'125} &\B{slashu} &slashed u\\
+\D{'126} &\B{niupsilon} &non-italic lowercase greek upsilon\\
+\D{'127} &\B{scu} &small capital U\\
+\D{'130} &\B{barscu} &barred small capital U\\
+\D{'131} &\B{scriptv} &script v\\
+\D{'132} &\B{invw} &inverted w\\
+\D{'133} &\B{nichi} &non-italic lowercase greek chi\\
+\D{'134} &\B{invy} &turned y\\
+\D{'135} &\B{scy} &small capital Y\\
+\D{'136} &\B{curlyz} &curly-tail z\\
+\D{'137} &\B{tailz} &z with right tail\\
+\hline
+\end{tabular}
+\end{center}
+\newpage
+\begin{center}
+\begin{tabular}{|l|c|l|l|}
+\hline
+\multicolumn{4}{|c|}{\bf WSUIPA Characters}\\
+\hline\hline
+Char&Char&{\sc IPAMACS}&{\sc Pullum \&\ Ladusaw}\\
+Code&    &  Name       &  Name\\
+\hline
+\D{'140} &\B{yogh} &yogh\\
+\D{'141} &\B{curlyyogh} &curly-tail yogh\\
+\D{'142} &\B{glotstop} &glottal stop\\
+\D{'143} &\B{revglotstop} &reversed glottal stop\\
+\D{'144} &\B{invglotstop} &inverted glottal stop\\
+\D{'145} &\B{ejective} &ejective\\
+\D{'146} &\B{reveject} &reversed ejective\\
+\D{'147} &\B{dental{\char'043}1} &subscript bridge\\
+\D{'150} &\B{stress} &vertical stroke (superior)\\
+\D{'151} &\B{secstress} &vertical stroke (inferior)\\
+\D{'152} &\B{syllabic} &syllabicity mark\\
+\D{'153} &\B{corner} &corner\\
+\D{'154} &\B{upt} &IPA pointer\\
+\D{'155} &\B{downt} &IPA pointer\\
+\D{'156} &\B{leftt} &IPA pointer\\
+\D{'157} &\B{rightt} &IPA pointer\\
+\D{'160} &\B{halflength} &half-length mark\\
+\D{'161} &\B{length} &length mark\\
+\D{'162} &\B{underdots} &subscript umlaut\\
+\D{'163} &\B{ain} &reversed apostrophe\\
+\D{'164} &\B{upp} &pointer\\
+\D{'165} &\B{downp} &pointer\\
+\D{'166} &\B{leftp} &pointer\\
+\D{'167} &\B{rightp} &pointer\\
+\D{'170} &\B{overring} &over-ring\\
+\D{'171} &\B{underring} &under-ring\\
+\D{'172} &\B{open} &subscript left half-ring\\
+\D{'173} &\B{midtilde} &superimposed (mid-) tilde\\
+\D{'174} &\B{undertilde} &subscript tilde\\
+\D{'175} &\B{underwedge} &subscript wedge\\
+\D{'176} &\B{polishhook} &polish hook\\
+\D{'177} &\B{underarch} &subscript arch\\
+\hline
+\end{tabular}
+\end{center}
+\newpage
+\flushbottom
+
+
+\section{Using the {\tt{}ipa.sty} Style File}
+
+In addition to the necessary font-related files, the \wsu\ font
+package also includes a file called {\ipas.STY}. This is a macro style
+file which supports \LaTeX\ under NFSS (new font selection scheme). It
+greatly simplifies the usage of new font as it will be seen in this
+section. The file also defines mnemonics for simpler usage of
+characters from a new font. They are the same as ones given in tables
+in the previous section.
+
+If you are using IPA font all what you need to do is to mention \ipas\
+style file in the header of your \LaTeX\ source. For example:
+%
+\begin{verbatim}
+\documentstyle[ipa]{article}
+\end{verbatim}
+
+The \ipas\ style file defines a new font family \B{ipa}, but you
+don't need to know this, because you will use it only through the
+mnemonics.
+
+Because the new font is installed under NFSS, the system will also
+always choose the correct shape, series, and size whenever you wish to
+use it. For example:
+%
+\begin{quote}\begin{verbatim}
+A shibilant is a term occasionally found for a
+fricative corresponding to a ``hushing'' sound,
+e.g., IPA [\esh] (more technically, a grooved
+laminal fricative with a sign {\large\bf \esh}.).
+\end{verbatim}\end{quote}
+%
+which will print as:
+%
+\begin{quote}
+A shibilant is a term occasionally found for a
+fricative corresponding to a ``hushing'' sound,
+e.g., IPA [\esh] (more technically, a grooved
+laminal fricative with a sign {\large\bf \esh}.).
+\end{quote}
+%
+or even
+%
+\begin{quote}\begin{verbatim}
+\dots which is the case in the aforementioned
+instances, however, {\large\bf we get the other
+retroflex consonants:
+[\nj], [\taill], [\taild], and [\tailr]}. They
+are printed {\small\sl also as
+[\nj], [\taill], [\taild], and [\tailr]}.
+\end{verbatim}\end{quote}
+%
+will print as,
+%
+\begin{quote}
+\dots which is the case in the aforementioned
+instances, however, {\bf\large we get the
+other retroflex consonants:
+[\nj], [\taill], [\taild], and [\tailr]}. They
+are printed {\sl\small also as
+[\nj], [\taill], [\taild], and [\tailr]}.
+\end{quote}
+%
+%
+This means that you can freely change sizes, series, shapes and fonts
+(assuming that there exists a wanted font -- note however, that IPA
+font comes only in bold extended and medium series, and in normal and
+slanted shape.)
+
+A number of \wsu\ diacritics can be used on top or the bottom of other
+characters. To handle this \ipas\ provides two macros: \B{diatop} and
+\B{diaunder}. The first one (\B{diatop}) has the syntax:
+%
+\begin{center}
+\verb+\diatop[diacritics|character]+
+\end{center}
+%
+It takes one argument which is delimited by square brackets ([])
+rather than curly braces, and has two parts.\footnote{From the \LaTeX\
+perspective more correctly would be to use curly braces (\{\}) instead
+of square brackets ([]), but we left the square brackets to remain
+compatible with the previous versions of the \ipam\ file.}
+%
+The first part of the argument is delimited, or separated, from the
+second part by a vertical bar ($\vert$). The macro \B{diatop} puts the
+first part of the argument over the second.
+
+Using \B{diatop} we can put a ring over another character by,
+%
+\begin{quote}\begin{verbatim}
+The overring may be used over letters with descenders
+as an alternative to under-ring to indicate devoicing,
+e.g. [\diatop[\overring|g]].
+\end{verbatim}\end{quote}
+%
+and the output would be,
+%
+\begin{quote}
+The overring may be used over letters with descenders as an
+alternative to under-ring to indicate devoicing, e.g.
+[\diatop[\overring|g]].
+\end{quote}
+
+The \B{diatop} macro also allows placement more than one character
+stacked over another character. For example,
+%
+\begin{quote}\begin{verbatim}
+For a really special \diatop[{\diatop[\'|\overring]}|n]
+\end{verbatim}\end{quote}
+%
+will print as:
+%
+\begin{quote}
+For a really special \diatop[{\diatop[\'|\overring]}|n]
+\end{quote}
+%
+Notice the use of curly braces to group the argument of the first \B{diatop}
+when more than one \B{diatop} command is used.
+
+The second macro (\B{diaunder}) has a similar syntax:
+%
+\begin{center}
+\verb+\diaunder[diacritics|character]+
+\end{center}
+%
+As \B{diatop} it also takes one argument which is delimited by square
+brackets, and has two parts separated by a vertical bar ($\vert$). It
+puts the first part of the argument under the second.
+
+Using \B{diaunder} we can put \underring under r as in:
+%
+\begin{quote}\begin{verbatim}
+A voiceless trilled r \diaunder[\underring|r]
+in certain Scottish dialects.
+\end{verbatim}\end{quote}
+%
+which will print as:
+%
+\begin{quote}
+A voiceless trilled r \diaunder[\underring|r]
+in certain Scottish dialects.
+\end{quote}
+%
+
+Furthermore, it is also possible to get one or more accents over a
+character and another accent or character under it. For example:
+%
+\begin{quote}\begin{verbatim}
+This is a really, really special
+\diatop[\overring|{\diaunder[\underring|r]}]
+\end{verbatim}\end{quote}
+%
+will print as:
+%
+\begin{quote}
+This is a really, really special
+\diatop[\overring|{\diaunder[\underring|r]}]
+\end{quote}
+
+\section{Historical remarks}
+
+The first version of this manual was written by W.\ Antweiler of the
+University of Cologne Computing Centre, Robert-Koch-Str.\ 10, D-5000
+K\"{o}ln 41, Germany, e-mail: {\tt a0062@uvax.rrz.uni-koeln.de}. This
+manual did not include information about the original author. All
+fonts along with the \TeX-macros and the original manual can be
+retrieved via anonymous ftp from {\tt ymir.claremont.edu}.
+
+The next version consisted of a changed manual and new \LaTeX\ style
+file {\tt ipa.sty}, which supported NFSS. The style file was based on
+previous \TeX-macros. It with an accompanying WSUIPA manual was
+prepared by Andrej Brodnik (Andy) of the University of Waterloo,
+Department of Computer Science, 200 University Avenue West, Waterloo,
+Ontario, N2L 3G1, Canada, e-mail: {\tt abrodnik@uwaterloo.ca}.
+
+This version of the manual is almost the same as the previous one,
+only style file was upgraded for \LaTeX\ NFSS2. They were prepared by
+Denis Roegel of CRIN (Centre de Recherche en Informatique de Nancy),
+F-54506 Vandoeuvre-les-Nancy, France, e-mail: {\tt roegel@loria.fr}
+and Andrej Brodnik.
+
+\end{document}
+
+

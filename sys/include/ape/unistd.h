@@ -135,6 +135,11 @@ extern pid_t tcgetpgrp(int);
 extern int tcsetpgrp(int, pid_t);
 #endif
 
+/* berkeley specific functions */
+#ifdef _BSD_EXTENSION
+#include <bsd.h>
+#endif
+
 #ifdef __cplusplus
 }
 #endif

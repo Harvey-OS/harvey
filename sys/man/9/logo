@@ -12,7 +12,9 @@ logo \- convert image into an AT&T logo
 ]
 .SH DESCRIPTION
 .I Logo
-converts the input image into a simulacrum of the AT&T logo.
+converts the input image
+.I file
+(default standard input) into a simulacrum of the AT&T logo.
 .I Height
 is the height in pixels of the logo's stripes.
 The result image is written to standard output.
@@ -22,5 +24,7 @@ Option
 makes the background dark (the default);
 .B -l
 makes the background light.
+.SH SOURCE
+.B /sys/src/fb/logo.c
 .SH "SEE ALSO
 .IR picfile (9.6)

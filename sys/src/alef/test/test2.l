@@ -17,7 +17,7 @@ test(int k)
 }
 
 void
-main(int argc, char **argv)
+main(void)
 {
 	int i;
 

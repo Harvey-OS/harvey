@@ -22,6 +22,9 @@ OFILES=\
 	strchr.$O\
 	strcpy.$O\
 	strlen.$O\
+	sqrt.$O\
+	vlrt.$O\
+	vlop.$O\
 
 HFILES=/sys/include/libc.h
 

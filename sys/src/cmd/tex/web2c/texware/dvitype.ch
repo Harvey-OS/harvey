@@ -3,30 +3,29 @@
 % The original version of this file was created by Howard Trickey, and
 % modified by Pavel Curtis.
 %
-% History:
-%  04/04/83 (PC)  Merged with Pavel's change file and made to work with the
-%                 version 1.0 of DVItype released with version 0.95 of TeX in
-%                 February, 1983.
-%  04/18/83 (PC)  Added changes to module 47 so that it would work the same
-%                 when input was a file (or pipe) as with a terminal.
-%  06/29/83 (HWT) Brought up to version 1.1 as released with version 0.99 of
-%	          TeX, with new change file format
-%  07/28/83 (HWT) Brought up to version 2 as released with version 0.999.
-%		  Only the banner changes.
-%  11/21/83 (HWT) Brought up to version 2.2 as released with version 1.0.
-%  02/19/84 (HWT) Made it use TEXFONTS environment.
-%  03/23/84 (HWT) Brought up to version 2.3.
-%  07/11/84 (HWT) Brought up to version 2.6 as released with version 1.1.
-%  11/07/84 (ETM) Brought up to version 2.7 as released with version 1.2.
-%  03/09/88 (ETM) Brought up to version 2.9
-%  03/16/88 (ETM) Converted for use with WEB to C.
-%  11/30/89 (KB)  To version 3.
-%  01/16/90 (SR)  To version 3.2.
-% 
+% 04/04/83 (PC)  Merged with Pavel's change file and made to work with the
+%                version 1.0 of DVItype released with version 0.95 of TeX in
+%                February, 1983.
+% 04/18/83 (PC)  Added changes to module 47 so that it would work the same
+%                when input was a file (or pipe) as with a terminal.
+% 06/29/83 (HWT) Brought up to version 1.1 as released with version 0.99 of
+%                TeX, with new change file format
+% 07/28/83 (HWT) Brought up to version 2 as released with version 0.999.
+%	         Only the banner changes.
+% 11/21/83 (HWT) Brought up to version 2.2 as released with version 1.0.
+% 02/19/84 (HWT) Made it use the TEXFONTS environment variable.
+% 03/23/84 (HWT) Brought up to version 2.3.
+% 07/11/84 (HWT) Brought up to version 2.6 as released with version 1.1.
+% 11/07/84 (ETM) Brought up to version 2.7 as released with version 1.2.
+% 03/09/88 (ETM) Brought up to version 2.9
+% 03/16/88 (ETM) Converted for use with WEB to C.
+% 11/30/89 (KB)  To version 3.
+% 01/16/90 (SR)  To version 3.2.
+% (more recent changes in ../ChangeLog.W2C)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [0] WEAVE: print changes only
+% [0] WEAVE: print changes only.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 \pageno=\contentspagenumber \advance\pageno by 1
@@ -37,16 +36,16 @@
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [1] Change banner string
+% [1] Change banner string.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@d banner=='This is DVItype, Version 3.2' {printed when the program starts}
+@d banner=='This is DVItype, Version 3.4' {printed when the program starts}
 @y
-@d banner=='This is DVItype, C Version 3.2' {printed when the program starts}
+@d banner=='This is DVItype, C Version 3.4' {printed when the program starts}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [3] Change filenames in program statement
+% [3] Change filenames in program statement, etc.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d print(#)==write(#)
@@ -54,8 +53,8 @@
 
 @p program DVI_type(@!dvi_file,@!output);
 @y
-@d print(#)==write(dvityout,#)
-@d print_ln(#)==write_ln(dvityout,#)
+@d print(#)==write(stdout, #)
+@d print_ln(#)==write_ln(stdout, #)
 
 @p program DVI_type;
 @z
@@ -64,19 +63,24 @@
   begin print_ln(banner);@/
 @y
   begin
-  setpaths; {read environment, to find \.{TEXFONTS}, if there}
-  rewrite(dvityout,' dvitype.out'); {prepare typescript for output}
-  print_ln(banner);@/
+  {read environment to find \.{TEXFONTS}}
+  set_paths (TFM_FILE_PATH_BIT);
+  {The banner will be printed before the dialogue.}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [5] Make name_length match FILENAMESIZE in site.h.
+% [5] Make name_length match the system constant, and allow more widths.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @<Constants...@>=
 @y
-@d name_length==FILENAMESIZE
+@d name_length==PATH_MAX
 @<Constants...@>=
+@z
+@x
+@!max_widths=10000; {maximum number of different characters among all fonts}
+@y
+@!max_widths=25000; {maximum number of different characters among all fonts}
 @z
 @x
 @!name_length=50; {a file name shouldn't be longer than this}
@@ -84,7 +88,7 @@
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] Remove non-local goto
+% [7] Remove non-local goto.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ If the \.{DVI} file is badly malformed, the whole process must be aborted;
@@ -122,7 +126,7 @@ actually a macro which calls exit() with a non-zero exit status.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] Permissive input.
+% [8] Permissive input.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @!ASCII_code=" ".."~"; {a subrange of the integers}
@@ -131,7 +135,7 @@ actually a macro which calls exit() with a non-zero exit status.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] The text_char type is used as an array index into xord.  The
+% [9] The text_char type is used as an array index into `xord'.  The
 % default type `char' produces signed integers, which are bad array
 % indices in C.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -146,7 +150,7 @@ actually a macro which calls exit() with a non-zero exit status.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [23] Fix up opening the binary files
+% [23] Fix up opening the binary files.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p procedure open_dvi_file; {prepares to read packed bytes in |dvi_file|}
@@ -158,75 +162,34 @@ procedure open_tfm_file; {prepares to read packed bytes in |tfm_file|}
 begin reset(tfm_file,cur_name);
 end;
 @y
-In C, we use the external |test_access| procedure, which also does path
-searching based on the user's environment or the default path.
-
-@d read_access_mode=4  {``read'' mode for |test_access|}
-@d write_access_mode=2 {``write'' mode for |test_access|}
-
-@d no_file_path=0    {no path searching should be done}
-@d font_file_path=3  {path specifier for \.{TFM} files}
+In C, we use the external |test_read_access| procedure, which also does path
+searching based on the user's environment or the default path.  Our
+version of |reset| will abort the program if its argument can't be
+opened.
 
 @p procedure open_dvi_file; {prepares to read packed bytes in |dvi_file|}
 var i:integer;
 begin
-    argv(1, cur_name);
-    if test_access(read_access_mode,no_file_path) then begin
-        for i:=1 to FILENAMESIZE do
-            cur_name[i]:=real_name_of_file[i-1];
-        reset(dvi_file, cur_name);
-    end else begin
-        i := 1;
-        while (i < name_length) and (cur_name[i] <> ' ') do
-           incr(i);
-	print_string(cur_name, i-1);
-        abort(': DVI file not found.');
-    end;
-    cur_loc:=0;
+    argv (1, cur_name);
+    reset (dvi_file, cur_name);
+    cur_loc := 0;
 end;
 @#
 procedure open_tfm_file; {prepares to read packed bytes in |tfm_file|}
 var i:integer;
 begin
-if test_access(read_access_mode,font_file_path) then begin
-    for i:=1 to FILENAMESIZE do
-        cur_name[i]:=real_name_of_file[i-1];
-    reset(tfm_file,cur_name);
-end else begin
-    i := 1;
-    while (i < name_length) and (cur_name[i] <> ' ') do
-        incr(i);
-    print_string(cur_name, i-1);
-    abort(': TFM file not found.');
-end;
+  if test_read_access (cur_name, TFM_FILE_PATH)
+  then begin
+    reset (tfm_file, cur_name);
+  end else begin
+    errprint_pascal_string (cur_name);
+    abort (': TFM file not found.');
+  end;
 end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [25] Declare real_name_of_file.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-@x
-|dvi_file|, and |cur_name| is a string variable that will be set to the
-current font metric file name before |open_tfm_file| is called.
-
-@<Glob...@>=
-@!cur_loc:integer; {where we are about to look, in |dvi_file|}
-@!cur_name:packed array[1..name_length] of char; {external name,
-  with no lower case letters}
-@y
-|dvi_file|, and |cur_name| is a string variable that will be set to the
-current font metric file name before |open_tfm_file| is called.
-In C, we also have a |real_name_of_file| string, that gets
-set by the external |test_access| procedure after path searching.
-
-@<Glob...@>=
-@!cur_loc:integer; {where we are about to look, in |dvi_file|}
-@!cur_name:packed array[1..name_length] of char;
-@!real_name_of_file:packed array[0..name_length] of char;
-@z
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [27] Fix bugs in get_n_bytes routines so they work with 16-bit math.
+% [27] Make get_n_bytes routines work with 16-bit math.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 get_two_bytes:=a*256+b;
@@ -254,7 +217,7 @@ else signed_quad:=(((a-256)*toint(256)+b)*256+c)*256+d;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [28] Make dvi_length() and move_to_byte() work.
+% [28] dvi_length and move_to_byte.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p function dvi_length:integer;
@@ -266,19 +229,21 @@ begin set_pos(dvi_file,n); cur_loc:=n;
 end;
 @y
 @p function dvi_length:integer;
-begin zfseek(dvi_file, 0, 2);
-cur_loc:=ftell(dvi_file);
-dvi_length:=cur_loc;
+begin
+  checked_fseek (dvi_file, 0, 2);
+  cur_loc := ftell(dvi_file);
+  dvi_length := cur_loc;
 end;
 @#
 procedure move_to_byte(n:integer);
-begin zfseek(dvi_file, n, 0); cur_loc:=n;
-cur_loc:=n;
+begin
+  checked_fseek (dvi_file, n, 0);
+  cur_loc:=n;
 end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [34] Fix 16-bit bugs in TFM calculations.
+% [34] Make 16-bit TFM calculations work.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 read_tfm_word; lh:=b2*256+b3;
@@ -296,7 +261,7 @@ read_tfm_word; font_bc[nf]:=b0*toint(256)+b1; font_ec[nf]:=b2*toint(256)+b3;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [45] Define term_in and term_out and declare dvityout
+% [45] Define term_in and term_out.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 and |term_out| for terminal output.
@@ -311,15 +276,14 @@ and |term_out| for terminal output.
 @^system dependencies@>
 
 @d term_in==stdin
-@d term_out==stdout
+@d term_out==stderr
 
 @<Glob...@>=
 @!buffer:array[0..terminal_line_length] of ASCII_code;
-@!dvityout:text;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [46] Define update_terminal
+% [46] Define update_terminal.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d update_terminal == break(term_out) {empty the terminal output buffer}
@@ -355,7 +319,7 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [50] Remove call to rewrite(term_out)
+% [50] Remove call to rewrite(term_out).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 begin rewrite(term_out); {prepare the terminal for output}
@@ -364,24 +328,25 @@ begin
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] Fix printing of floating point number
+% [56] Fix printing of floating point number.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 print_ln('  Resolution = ',resolution:12:8,' pixels per inch');
 if new_mag>0 then print_ln('  New magnification factor = ',new_mag/1000:8:3)
 @y
-print('  Resolution = ');
-dvi_print_real(resolution,12,8);
-print_ln(' pixels per inch');
-if new_mag>0 then begin
-  print('  New magnification factor = ');
-  dvi_print_real(new_mag/1000.0,8,3);
+print ('  Resolution = ');
+print_real (resolution, 12, 8);
+print_ln (' pixels per inch');
+if new_mag > 0
+then begin
+  print ('  New magnification factor = ');
+  print_real (new_mag / 1000.0, 8, 3);
   print_ln('')
 end
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [64] Set default_directory_name
+% [64] Don't set default_directory_name.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d default_directory_name=='TeXfonts:' {change this to the correct name}
@@ -390,23 +355,24 @@ end
 @<Glob...@>=
 @!default_directory:packed array[1..default_directory_name_length] of char;
 @y
-Actually, under UNIX the standard area is defined in an external
+Under UNIX the standard area is defined in an external
 file \.{site.h}.  And the users have a path searched for fonts,
 by setting the \.{TEXFONTS} environment variable.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [65] Remove initialization of now-defunct array
+% [65] Remove initialization of default_directory.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ @<Set init...@>=
 default_directory:=default_directory_name;
 @y
-@ (No initialization to be done.  Keep this module to preserve numbering.)
+@ (No initialization needs to be done.  Keep this module to preserve
+numbering.)
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [66] Fix addition of ".tfm" suffix for portability and keep lowercase
+% [66] Append `.tfm', keep lowercase.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ The string |cur_name| is supposed to be set to the external name of the
@@ -417,8 +383,7 @@ to upper case, since |cur_name| is a \PASCAL\ string.
 @y
 @ The string |cur_name| is supposed to be set to the external name of the
 \.{TFM} file for the current font. This usually means that we need to,
-at most sites, append the
-suffix ``.tfm''. 
+at most sites, append the suffix \.{.tfm}. 
 @z
 
 @x
@@ -445,14 +410,17 @@ cur_name[r+1]:='.'; cur_name[r+2]:='t'; cur_name[r+3]:='f'; cur_name[r+4]:='m'
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [106] Check usage; print newline at end of program; remove unused label
+% [106] Check usage; print newline at end of program; remove unused
+% label.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 dialog; {set up all the options}
 @y
-if argc <> 2 then
-  begin write_ln('Usage: dvitype <DVI file>.'); jump_out;
-  end;
+if argc <> 2
+then begin
+  write_ln ('Usage: dvitype <dvi file>.');
+  jump_out;
+end;
 dialog; {set up all the options}
 @z
 
@@ -463,12 +431,12 @@ print_ln(' '); end.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Fix another floating point print
+% [109] Fix another floating point print.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 print_ln('magnification=',mag:1,'; ',conv:16:8,' pixels per DVI unit')
 @y
-print('magnification=',mag:1,'; ');
-dvi_print_real(conv,16,8);
-print_ln(' pixels per DVI unit')
+print ('magnification=', mag:1, '; ');
+print_real (conv, 16, 8);
+print_ln (' pixels per DVI unit')
 @z

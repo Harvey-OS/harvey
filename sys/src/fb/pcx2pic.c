@@ -65,8 +65,15 @@ main(int argc, char **argv)
 {
 	Pcxhdr *h;
 	int c, i, j, k, n;
+	char *name=0;
 
 	ARGBEGIN{
+	default:
+		fprint(2, "Usage: %s [-rD] [-n name] [file]\n", argv0);
+		exits("usage");
+	case 'n':
+		name=ARGF();
+		break;
 	case 'r':
 		++rflag;
 		break;
@@ -101,6 +108,8 @@ main(int argc, char **argv)
 	Bprint(out, "NCHAN=%d\n", h->nplanes);
 	Bprint(out, "CHAN=m\n");
 	Bprint(out, "RES=%d %d\n", h->hres, h->vres);
+	if(name) Bprint(out, "NAME=%s", name);
+	else if(argc>0) Bprint(out, "NAME=%s", argv[0]);
 	if(h->cmap)
 		Bprint(out, "CMAP=\n");
 	Bprint(out, "\n");

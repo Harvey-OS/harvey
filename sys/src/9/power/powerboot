@@ -26,6 +26,7 @@ port
 	void kproftimer(ulong pc) {USED(pc);}
 	void consdebug(void){}
 	void bitdebug(void){}
+	long rtctime(void){ return 0; }
 	int cpuserver = 1;
 
 boot bboot

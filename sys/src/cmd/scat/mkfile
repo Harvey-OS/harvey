@@ -2,12 +2,22 @@
 
 TARG=scat
 OFILES=scat.$O\
+	bitinput.$O\
 	desc.$O\
+	display.$O\
+	dssread.$O\
+	header.$O\
+	hinv.$O\
+	image.$O\
 	patch.$O\
+	posn.$O\
 	prose.$O\
+	qtree.$O\
 	util.$O\
 
 HFILES=sky.h
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
+
+scat.$O:	strings.c

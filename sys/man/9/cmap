@@ -8,10 +8,10 @@ In a monochrome picture, pixel values index
 the color map to yield red, green and blue, like this:
 .IP
 .EX
-unsigned char cmap[256][3];
-red=cmap[pixel][0];
-green=cmap[pixel][1];
-blue=cmap[pixel][2];
+uchar cmap[256][3];
+red = cmap[pixel][0];
+green = cmap[pixel][1];
+blue = cmap[pixel][2];
 .EE
 .PP
 In a full-color picture,
@@ -26,7 +26,7 @@ and
 .B cmap[blue][2]
 maps blue channels.
 .PP
-A colormap file is just a 768-byte file containing the color map,
+A color map file is just a 768-byte file containing the color map,
 stored in the order implied by the declaration of
 .B cmap
 above.

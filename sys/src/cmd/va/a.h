@@ -1,13 +1,12 @@
 #pragma	lib	"../cc/cc.a$O"
 
 typedef	struct	Sym	Sym;
-typedef	struct	Ref	Ref;
 typedef	struct	Gen	Gen;
 typedef	struct	Io	Io;
 typedef	struct	Hist	Hist;
 
 #define	FPCHIP		1
-#define	NSYMB		500
+#define	NSYMB		8192
 #define	BUFSIZ		8192
 #define	HISTSZ		20
 #define	NINCLUDE	10
@@ -41,19 +40,13 @@ typedef	struct	Hist	Hist;
 struct	Sym
 {
 	Sym*	link;
-	Ref*	ref;
 	char*	macro;
 	long	value;
 	ushort	type;
-	char	name[NNAME];
+	char	*name;
 	char	sym;
 };
 #define	S	((Sym*)0)
-
-struct	Ref
-{
-	int	class;
-};
 
 struct
 {
@@ -107,6 +100,8 @@ enum
 
 char	debug[256];
 Sym*	hash[NHASH];
+char*	Dlist[30];
+int	nDlist;
 Hist*	ehist;
 int	newflag;
 Hist*	hist;
@@ -118,10 +113,12 @@ Io*	iostack;
 long	lineno;
 int	nerrors;
 long	nhunk;
+int	nosched;
 int	ninclude;
 Gen	nullgen;
 char*	outfile;
 int	pass;
+char*	pathname;
 long	pc;
 int	peekc;
 int	sym;
@@ -165,7 +162,7 @@ void	macend(void);
 void	outhist(void);
 void	dodefine(char*);
 void	prfile(long);
-void	linehist(char*, long);
+void	linehist(char*, int);
 void	gethunk(void);
 void	yyerror(char*, ...);
 int	yyparse(void);

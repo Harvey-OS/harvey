@@ -26,10 +26,12 @@ typedef struct
 	Lock;
 	Proc	*head;
 	Proc	*tail;
-}Schedq;
+	int	n;
+} Schedq;
 
-Schedq	runhiq, runloq;
 int	nrdy;
+int	lastreadied;
+Schedq	runq[Nrq];
 
 char *statename[] =
 {			/* BUG: generate automatically */
@@ -67,7 +69,7 @@ schedinit(void)		/* never returns */
 			p->state = Dead;
 			/* 
 			 * Holding locks from pexit:
-			 * 	procalloc, debug, palloc
+			 * 	procalloc, palloc
 			 */
 			mmurelease(p);
 			simpleputpage(p->upage);
@@ -77,7 +79,6 @@ schedinit(void)		/* never returns */
 			procalloc.free = p;
 		
 			unlock(&palloc);
-			qunlock(&p->debug);
 			unlock(&procalloc);
 		}
 		p->mach = 0;
@@ -110,73 +111,168 @@ sched(void)
 	gotolabel(&p->sched);
 }
 
+/*
+ *  this should be called in clock() to implement round robin
+ */
 int
 anyready(void)
 {
-	return runloq.head != 0 || runhiq.head != 0;
+	return nrdy;
 }
+
+/*
+ *  this should be called in non-clock traps to implement preemptive scheduling
+ */
+int
+anyhigher(void)
+{
+	int x;
+
+	x = lastreadied;
+	lastreadied = 0;
+	return nrdy && x >= u->p->priority;
+}
+
+enum
+{
+	Squantum = (HZ+Nrq-1)/Nrq,
+};
 
 void
 ready(Proc *p)
 {
+	int s, pri;
 	Schedq *rq;
-	int s;
 
 	s = splhi();
 
-	if(p->state == Running)
-		rq = &runloq;
-	else
-		rq = &runhiq;
+	/* history counts */
+	if(p->state == Running){
+		p->rt++;
+		pri = ((p->art + (p->rt<<1))>>2)/Squantum;
+	} else {
+		p->art = (p->art + (p->rt<<1))>>2;
+		p->rt = 0;
+		pri = p->art/Squantum;
+	}
+	pri = p->basepri - pri;
+	if(pri < 0)
+		pri = 0;
 
-	lock(&runhiq);
+	/* the only intersection between the classes is at PriNormal */
+	if(pri < PriNormal && p->basepri > PriNormal)
+		pri = PriNormal;
+	p->priority = pri;
+	rq = &runq[p->priority];
+
+	lock(runq);
 	p->rnext = 0;
 	if(rq->tail)
 		rq->tail->rnext = p;
 	else
 		rq->head = p;
 	rq->tail = p;
-
+	rq->n++;
 	nrdy++;
+	p->readytime = m->ticks;
 	p->state = Ready;
-	unlock(&runhiq);
+	if(p->priority > lastreadied)
+		lastreadied = p->priority;
+	unlock(runq);
 	splx(s);
 }
 
 /*
  * Always called splhi
  */
+#include "io.h"
 Proc*
 runproc(void)
 {
+	int i;
 	Schedq *rq;
-	Proc *p;
+	Proc *p, *l;
+	static ulong lastfair;
 
 loop:
+
+	/*
+	 *  find a process that last ran on this processor (affinity),
+	 *  or one that hasn't moved in a while (load balancing).
+	 */
 	spllo();
-	while(runhiq.head==0 && runloq.head==0)
-		;
+	for(;;){
+		/*
+		 *  Once a second we look for a long waiting process
+		 *  in the lowest priority queue to make sure nothing
+		 *  gets starved out by a malfunctioning high priority
+		 *  process.
+		 */
+		if(m->machno == 0 && m->ticks - lastfair > HZ){
+			lastfair = m->ticks;
+			for(rq = runq; rq < &runq[Nrq]; rq++){
+				p = rq->head;
+				if(p){
+					i = m->ticks - p->readytime;
+					if(i > HZ){
+						p->art = 0;
+						p->movetime = 0;
+						goto found;
+					}
+					break;
+				}
+			}
+		}
+
+		/*
+		 *  get highest priority process that this
+		 *  processor can run given affinity constraints
+		 */
+		for(rq = &runq[Nrq-1]; rq >= runq; rq--){
+			if(rq->head == 0)
+				continue;
+			for(p = rq->head; p; p = p->rnext){
+				if(p->mp == m || m->ticks - p->movetime > HZ/2)
+					goto found;
+			}
+		}
+	}
+
+
+found:
 	splhi();
+	lock(runq);
 
-	lock(&runhiq);
-	if(runhiq.head)
-		rq = &runhiq;
-	else
-		rq = &runloq;
+	l = 0;
+	for(p = rq->head; p; p = p->rnext){
+		if(p->mp == m || m->ticks - p->movetime > HZ/2)
+			break;
+		l = p;
+	}
 
-	p = rq->head;
-	if(p==0 || p->mach){	/* p->mach==0 only when process state is saved */
-		unlock(&runhiq);
+	/*
+	 *  p->mach==0 only when process state is saved
+	 */
+	if(p == 0 || p->mach){	
+		unlock(runq);
 		goto loop;
 	}
 	if(p->rnext == 0)
-		rq->tail = 0;
-	rq->head = p->rnext;
+		rq->tail = l;
+	if(l)
+		l->rnext = p->rnext;
+	else
+		rq->head = p->rnext;
+	rq->n--;
 	nrdy--;
 	if(p->state != Ready)
 		print("runproc %s %d %s\n", p->text, p->pid, statename[p->state]);
-	unlock(&runhiq);
+	unlock(runq);
+
 	p->state = Scheding;
+	if(p->mp != m)
+		p->movetime = m->ticks;
+	p->mp = m;
 	return p;
 }
 
@@ -186,13 +282,13 @@ canpage(Proc *p)
 	int ok = 0;
 
 	splhi();
-	lock(&runhiq);
+	lock(&runq[0]);
 	/* Only reliable way to see if we are Running */
 	if(p->mach == 0) {
 		p->newtlb = 1;
 		ok = 1;
 	}
-	unlock(&runhiq);
+	unlock(&runq[0]);
 	spllo();
 
 	return ok;
@@ -223,6 +319,8 @@ newproc(void)
 			p->kp = 0;
 			p->procctl = 0;
 			p->notepending = 0;
+			p->mp = 0;
+			p->movetime = 0;
 			memset(p->seg, 0, sizeof p->seg);
 			p->pid = incref(&pidalloc);
 			p->noteid = incref(&noteidalloc);
@@ -394,6 +492,9 @@ postnote(Proc *p, int dolock, char *n, int flag)
 	if(dolock)
 		qlock(&p->debug);
 
+	if(p->kp)
+		print("sending %s to kproc %d %s\n", n, p->pid, p->text);
+
 	if(p->upage == 0){
 		if(dolock)
 			qunlock(&p->debug);
@@ -451,11 +552,11 @@ postnote(Proc *p, int dolock, char *n, int flag)
 		for(d = *l; d; d = d->rendhash) {
 			if(d == p) {
 				*l = p->rendhash;
+				ready(p);
 				break;
 			}
 			l = &d->rendhash;
 		}
-		ready(p);
 	}
 	unlock(p->pgrp);
 	return ret;
@@ -570,6 +671,7 @@ pexit(char *exitstr, int freemem)
 		if(exitstr && exitstr[0]){
 			n = sprint(wq->w.msg, "%s %d:", c->text, c->pid);
 			strncpy(wq->w.msg+n, exitstr, ERRLEN-n);
+			wq->w.msg[ERRLEN-1] = 0;
 		}
 		else
 			wq->w.msg[0] = '\0';
@@ -587,7 +689,7 @@ pexit(char *exitstr, int freemem)
 			p->waitq = wq;
 			p->nwait++;
 			unlock(&p->exl);
-	
+
 			wakeup(&p->waitr);
 		}
 		else {
@@ -623,6 +725,7 @@ pexit(char *exitstr, int freemem)
 		c->pdbg = 0;
 	}
 
+	qunlock(&u->p->debug);
 	lock(&procalloc);
 	lock(&palloc);
 
@@ -649,6 +752,14 @@ pwait(Waitmsg *w)
 
 	p = u->p;
 
+	if(!canqlock(&p->qwaitr))
+		error(Einuse);
+
+	if(waserror()) {
+		qunlock(&p->qwaitr);
+		nexterror();
+	}
+
 	lock(&p->exl);
 	if(p->nchild == 0 && p->waitq == 0) {
 		unlock(&p->exl);
@@ -663,6 +774,9 @@ pwait(Waitmsg *w)
 	p->waitq = wq->next;
 	p->nwait--;
 	unlock(&p->exl);
+
+	qunlock(&p->qwaitr);
+	poperror();
 
 	if(w)
 		memmove(w, &wq->w, sizeof(Waitmsg));
@@ -684,6 +798,7 @@ procdump(void)
 	char *s;
 	Proc *p;
 	ulong bss;
+	Schedq *rq;
 
 	for(i=0; i<conf.nproc; i++){
 		p = procalloc.arena+i;
@@ -701,6 +816,15 @@ procdump(void)
 				p->time[1], p->r, p->qlockpc, bss);
 		}
 	}
+	for(rq = runq; rq < &runq[Nrq]; rq++){
+		if(rq->head == 0)
+			continue;
+		print("rq%d:", rq-runq);
+		for(p = rq->head; p; p = p->rnext)
+			print(" %d(%d)", p->pid, m->ticks - p->readytime);
+		print("\n");
+	}
+	print("nrdy %d\n", nrdy);
 }
 
 void
@@ -736,6 +860,9 @@ kproc(char *name, void (*func)(void *), void *arg)
 	memmove((void*)(upa+BY2PG-n), (void*)(USERADDR+BY2PG-n), n);
 	up->p = p;
 
+	p->basepri = PriKproc;
+	p->priority = p->basepri;
+
 	/*
 	 * Refs
 	 */
@@ -746,7 +873,7 @@ kproc(char *name, void (*func)(void *), void *arg)
 	 * Sched
 	 */
 	if(setlabel(&p->sched)){
-		p->state = Running;
+ 		p->state = Running; 
 		p->mach = m;
 		m->proc = p;
 		spllo();
@@ -785,6 +912,7 @@ void
 procctl(Proc *p)
 {
 	char *state;
+	ulong s;
 
 	switch(p->procctl) {
 	case Proc_exitme:
@@ -801,16 +929,18 @@ procctl(Proc *p)
 		state = p->psstate;
 		p->psstate = "Stopped";
 		/* free a waiting debugger */
+		s = spllo();
 		qlock(&p->debug);
 		if(p->pdbg) {
 			wakeup(&p->pdbg->sleep);
 			p->pdbg = 0;
 		}
 		qunlock(&p->debug);
-		p->state = Stopped;
-		sched();		/* sched returns spllo() */
 		splhi();
+		p->state = Stopped;
+		sched();
 		p->psstate = state;
+		splx(s);
 		return;
 	}
 }
@@ -820,6 +950,7 @@ procctl(Proc *p)
 void
 error(char *err)
 {
+	spllo();
 	strncpy(u->error, err, ERRLEN);
 	nexterror();
 }

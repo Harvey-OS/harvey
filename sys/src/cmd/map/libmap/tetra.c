@@ -32,16 +32,16 @@
 #define TFUZZ 0.00001
 
 static struct place tpole[4];	/* point of tangency of tetrahedron face*/
-static float tpoleinit[4][2] = {
+static double tpoleinit[4][2] = {
 	1.,	0.,
 	1.,	180.,
 	-1.,	90.,
 	-1.,	-90.
 };
 static struct tproj {
-	float tlat,tlon;	/* center of stereo projection*/
-	float ttwist;		/* rotatn before stereo*/
-	float trot;		/*rotate after projection*/
+	double tlat,tlon;	/* center of stereo projection*/
+	double ttwist;		/* rotatn before stereo*/
+	double trot;		/*rotate after projection*/
 	struct place projpl;	/*same as tlat,tlon*/
 	struct coord projtw;	/*same as ttwist*/
 	struct coord postrot;	/*same as trot*/
@@ -66,23 +66,23 @@ static struct tproj {
  /*32*/	{-90.,	0.,	0.,	90.},
  /*33*/ {0.} 
 }};
-static float tx[4] = {	/*where to move facet after final rotation*/
+static double tx[4] = {	/*where to move facet after final rotation*/
 	0.,	0.,	-1.,	1.	/*-1,1 to be sqrt(3)*/
 };
-static float ty[4] = {
+static double ty[4] = {
 	0.,	2.,	-1.,	-1.
 };
 static double root3;
-static float rt3inv;
+static double rt3inv;
 static double two_rt3;
 static double tkc,tk,tcon;
-static float f0r,f0i,fpir,fpii;
+static double f0r,f0i,fpir,fpii;
 
 static void
 twhichp(struct place *g, int *p, int *q)
 {
 	int i,j,k;
-	float cosdist[4];
+	double cosdist[4];
 	struct place *tp;
 	for(i=0;i<4;i++) {
 		tp = &tpole[i];
@@ -104,12 +104,12 @@ twhichp(struct place *g, int *p, int *q)
 }
 
 int
-Xtetra(struct place *place, float *x, float *y)
+Xtetra(struct place *place, double *x, double *y)
 {
 	int i,j;
 	struct place pl;
 	register struct tproj *tpp;
-	float vr, vi;
+	double vr, vi;
 	double br, bi;
 	double zr,zi,z2r,z2i,z4r,z4i,sr,si,tr,ti;
 	twhichp(place,&i,&j);
@@ -153,7 +153,7 @@ Xtetra(struct place *place, float *x, float *y)
 }
 
 int
-tetracut(struct place *g, struct place *og, float *cutlon)
+tetracut(struct place *g, struct place *og, double *cutlon)
 {
 	int i,j,k;
 	if((g->nlat.s<=-rt3inv&&og->nlat.s<=-rt3inv) && 
@@ -173,7 +173,7 @@ tetra(void)
 	int j;
 	register struct place *tp;
 	register struct tproj *tpp;
-	float t;
+	double t;
 	root3 = sqrt(3.);
 	rt3inv = 1/root3;
 	two_rt3 = 2*root3;

@@ -1,0 +1,3 @@
+NAME dvips WINDOWCOMPAT NEWFILES
+DESCRIPTION 'TeX DVI -> PostScript converter for OS/2 and DOS'
+STACKSIZE 0x2000

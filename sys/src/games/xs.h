@@ -412,6 +412,8 @@ drop(int f)
 		eread(Emouse, &e);
 		lastmx = e.mouse.xy.x;
 	}
+	while(ecanread(Ekeyboard))
+		eread(Ekeyboard, &e);
 	return 0;
 }
 
@@ -543,8 +545,8 @@ main(int argc, char *argv[])
 	}
 	tb = 0;
 	if(screen.ldepth != 0){
-		if(screen.ldepth == 3)
-			tb = balloc(Rect(0,0,1,1),3);
+		if(screen.ldepth > 1)
+			tb = balloc(Rect(0,0,1,1),screen.ldepth);
 		else
 			tb = balloc(Rect(0,0,16,16),0);
 		if(tb == 0){
@@ -556,7 +558,7 @@ main(int argc, char *argv[])
 		tx[i] = balloc(Rect(0, 0, 16, 16), screen.ldepth);
 		if(screen.ldepth == 0)
 			wrbitmap(tx[i], 0, 16, txbits[i]);
-		else if(screen.ldepth == 3){
+		else if(screen.ldepth > 1){
 			pix = rgbpix(&screen, txcol[i]);
 			point(tb, Pt(0,0), pix, S);
 			texture(tx[i], tx[i]->r, tb, S);

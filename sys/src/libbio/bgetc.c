@@ -25,13 +25,16 @@ loop:
 	 */
 	memmove(bp->bbuf-Bungetsize, bp->ebuf-Bungetsize, Bungetsize);
 	i = read(bp->fid, bp->bbuf, bp->bsize);
+	bp->gbuf = bp->bbuf;
 	if(i <= 0) {
 		if(i < 0)
 			bp->state = Binactive;
 		return Beof;
 	}
-	if(i < bp->bsize)
+	if(i < bp->bsize) {
 		memmove(bp->ebuf-i-Bungetsize, bp->bbuf-Bungetsize, i+Bungetsize);
+		bp->gbuf = bp->ebuf-i;
+	}
 	bp->icount = -i;
 	bp->offset += i;
 	goto loop;

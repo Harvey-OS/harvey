@@ -10,19 +10,20 @@ int wrpicfile(PICFILE *f, Bitmap *b){
 	int y, shift;
 	char *fbuf, *efbuf, *fp;
 	uchar *bbuf, *bp;
-	if(width!=b->r.max.x-b->r.min.x);
+	if(width!=b->r.max.x-b->r.min.x) return -1;
 	fbuf=malloc(width*nchan);
 	if(fbuf==0) return -1;
+	efbuf=fbuf+width*nchan;
 	if(depth==nchan*8){	/* simple case, why fool around? */
-		for(y=b->r.min.x;y!=b->r.max.x;y++){
+		for(y=b->r.min.y;y!=b->r.max.y;y++){
 			rdbitmap(b, y, y+1, (uchar *)fbuf);
+			for(fp=fbuf;fp!=efbuf;fp++) *fp=~*fp;
 			picwrite(f, fbuf);
 		}
 		free(fbuf);
 		return 0;
 	}
 	memset(fbuf, 0, width*nchan);
-	efbuf=fbuf+width*nchan;
 	/*
 	 * The code below fails to work if ldepth>3
 	 */

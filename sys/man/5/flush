@@ -20,7 +20,7 @@ a
 .B Tflush
 request is sent to the server to purge the pending response.
 The message being flushed is identified by
-.I oldtag.
+.IR oldtag .
 The semantics of
 .B flush
 depends on messages arriving in order.

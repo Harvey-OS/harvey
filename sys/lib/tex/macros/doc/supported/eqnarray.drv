@@ -1,0 +1,8 @@
+\documentclass{article}
+\usepackage{doc}
+\usepackage{array}
+\usepackage{eqnarray}
+\setlength{\parindent}{0ex}
+\begin{document}
+  \DocInput{eqnarray.dtx}
+\end{document}

@@ -11,6 +11,7 @@ struct{
 	Xbang, "Xbang",
 	Xclose, "Xclose",
 	Xdup, "Xdup",
+	Xeflag, "Xeflag",
 	Xexit, "Xexit",
 	Xfalse, "Xfalse",
 	Xifnot, "Xifnot",

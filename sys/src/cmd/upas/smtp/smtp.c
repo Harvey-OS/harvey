@@ -6,12 +6,12 @@ char*	connect(char*);
 char*	hello(char*);
 char*	mailfrom(char*);
 char*	rcptto(char*);
-char*	data(char*, char*, int);
+char*	data(String*, int);
 void	quit(void);
 int	getreply(void);
-void	addhostdom(String*, char*, char*);
-String*	bangtoat(char*, char*);
-void	convertheader(char*);
+void	addhostdom(String*, char*);
+String*	bangtoat(char*);
+void	convertheader(String*);
 void	printheader(void);
 char*	domainify(char*, char*);
 void	putcrnl(char*, int);
@@ -26,13 +26,16 @@ int	dBprint(char*, ...);
 
 int	debug;		/* true if we're debugging */
 String	*reply;		/* last reply */
+String	*toline;
 char	*sender;	/* who to bounce message to */
 int	last = 'n';	/* last character sent by putcrnl() */
 int	filter;
+int	unix;
 int	gateway;	/* true if we are traversing a mail gateway */
 char	ddomain[1024];	/* domain name of destination machine */
 char	*gdomain;	/* domain name of gateway */
 char	*uneaten;	/* first character after rfc822 headers */
+char	hostdomain[256];
 Biobuf	bin;
 Biobuf	bout;
 Biobuf	berr;
@@ -41,7 +44,18 @@ void
 usage(void)
 {
 	fprint(2, "usage: smtp [-du] [-hhost] [.domain] net!host[!service] sender rcpt-list\n");
-	exits("usage"); 
+	exits(Giveup); 
+}
+
+void
+timeout(void *x, char *msg)
+{
+	USED(x);
+	if(strstr(msg, "alarm")){
+		fprint(2, "smtp timeout: no retries");
+		exits(Giveup);
+	}
+	noted(NDFLT);
 }
 
 void
@@ -52,13 +66,11 @@ main(int argc, char **argv)
 	String *from;
 	String *fromm;
 	char *addr;
-	int unix;
-	char hostdomain[256];
 	char *rv;
 
 	reply = s_new();
 	unix = 0;
-	domain = host = 0;
+	host = 0;
 	ARGBEGIN{
 	case 'f':
 		filter = 1;
@@ -85,6 +97,7 @@ main(int argc, char **argv)
 	/*
 	 *  get domain and add to host name
 	 */
+	domain = csquery("soa", "", "dom");
 	if(*argv && **argv=='.')
 		domain = *argv++;
 	if(host == 0)
@@ -102,6 +115,8 @@ main(int argc, char **argv)
 	 *  get sender's machine.
 	 *  get sender in internet style.  domainify if necessary.
 	 */
+	if(*argv == 0)
+		usage();
 	sender = *argv++;
 	fromm = s_copy(sender);
 	rv = strrchr(s_to_c(fromm), '!');
@@ -109,7 +124,7 @@ main(int argc, char **argv)
 		*rv = 0;
 	else
 		*s_to_c(fromm) = 0;
-	from = bangtoat(sender, domain);
+	from = bangtoat(sender);
 
 	/*
 	 *  send the mail
@@ -119,6 +134,7 @@ main(int argc, char **argv)
 		Binit(&bout, 1, OWRITE);
 	} else {
 		/* 10 minutes to get through the initial handshake */
+		notify(timeout);
 		alarm(10*60*1000);
 
 		if((rv = connect(addr)) != 0)
@@ -133,7 +149,7 @@ main(int argc, char **argv)
 
 		alarm(0);
 	}
-	rv = data(s_to_c(from), domain, unix);
+	rv = data(from, unix);
 	if(rv != 0)
 		goto error;
 	if(!filter)
@@ -167,7 +183,7 @@ connect(char* net)
 
 	if(fd < 0){
 		errstr(buf);
-		Bprint(&berr, "smtp: %s \n", buf, addr);
+		Bprint(&berr, "smtp: %s %s\n", buf, addr);
 		if(strstr(buf, "illegal") || strstr(buf, "rejected"))
 			return Giveup;
 		else
@@ -211,7 +227,10 @@ hello(char *me)
 char *
 mailfrom(char *from)
 {
-	dBprint("MAIL FROM:<%s>\r\n", from);
+	if(strchr(from, '@'))
+		dBprint("MAIL FROM:<%s>\r\n", from);
+	else
+		dBprint("MAIL FROM:<%s@%s>\r\n", from, hostdomain);
 	switch(getreply()){
 	case 2:
 		break;
@@ -229,10 +248,22 @@ mailfrom(char *from)
 char *
 rcptto(char *to)
 {
-	if(gateway)
-		dBprint("RCPT TO:<%s@%s>\r\n", to, ddomain);
-	else
-		dBprint("RCPT TO:<%s>\r\n", to);
+	String *s;
+
+	s = bangtoat(to);
+	if(toline == 0){
+		toline = s_new();
+		s_append(toline, "To: ");
+	} else
+		s_append(toline, ", ");
+	s_append(toline, s_to_c(s));
+	if(strchr(s_to_c(s), '@'))
+		dBprint("RCPT TO:<%s>\r\n", s_to_c(s));
+	else{
+		s_append(toline, "@");
+		s_append(toline, ddomain);
+		dBprint("RCPT TO:<%s@%s>\r\n", s_to_c(s), ddomain);
+	}
 	switch(getreply()){
 	case 2:
 		break;
@@ -248,11 +279,12 @@ rcptto(char *to)
  *  send the damn thing
  */
 char *
-data(char *from, char *domain, int unix)
+data(String *from, int unix)
 {
 	char buf[16*1024];
 	int i, n;
 	int eof;
+	static char errmsg[ERRLEN];
 
 	/*
 	 *  input the first 16k bytes.  The header had better fit.
@@ -273,7 +305,7 @@ data(char *from, char *domain, int unix)
 	yyinit(buf);
 	if(!unix){
 		yyparse();
-		convertheader(domain);
+		convertheader(from);
 	}
 
 	/*
@@ -298,7 +330,9 @@ data(char *from, char *domain, int unix)
 	uneaten = buf;
 	if(!unix){
 		if(originator==0 && usender)
-			Bprint(&bout, "From: %s\r\n", from);
+			Bprint(&bout, "From: %s\r\n", s_to_c(from));
+		if(destination == 0 && toline)
+			Bprint(&bout, "%s\r\n", s_to_c(toline));
 		if(date==0 && udate)
 			printdate(udate);
 		if (usys)
@@ -313,8 +347,16 @@ data(char *from, char *domain, int unix)
 	 */
 	putcrnl(uneaten, buf+n - uneaten);
 	if(eof == 0)
-		while(n = read(0, buf, sizeof(buf)))
+		for(;;){
+			n = read(0, buf, sizeof(buf));
+			if(n < 0){
+				errstr(errmsg);
+				return errmsg;
+			}
+			if(n == 0)
+				break;
 			putcrnl(buf, n);
+		}
 	if(!filter){
 		if(last != '\n')
 			dBprint("\r\n.\r\n");
@@ -371,13 +413,13 @@ getreply(void)
  *	   a.x.y!b.p.o!c!d ->	@a.x.y:c!d@b.p.o
  */
 void
-addhostdom(String *buf, char *host, char *domain)
+addhostdom(String *buf, char *host)
 {
 	s_append(buf, "@");
-	s_append(buf, domainify(host, domain));
+	s_append(buf, host);
 }
 String *
-bangtoat(char *addr, char *domain)
+bangtoat(char *addr)
 {
 	String *buf;
 	register int i;
@@ -401,8 +443,6 @@ bangtoat(char *addr, char *domain)
 	 *  count leading domain fields (non-domains don't count)
 	 */
 	d = 0;
-	if(domain)
-		d++;
 	for( ; d<i-1; d++)
 		if(strchr(field[d], '.')==0)
 			break;
@@ -411,7 +451,7 @@ bangtoat(char *addr, char *domain)
 	 *  put them in as source routing
 	 */
 	if(d > 1){
-		addhostdom(buf, field[0], domain);
+		addhostdom(buf, field[0]);
 		for(j=1; j<d-1; j++){
 			s_append(buf, ",");
 			s_append(buf, "@");
@@ -429,7 +469,7 @@ bangtoat(char *addr, char *domain)
 		s_append(buf, field[j]);
 	}
 	if(d)
-		addhostdom(buf, field[d-1], domain);
+		addhostdom(buf, field[d-1]);
 	return buf;
 }
 
@@ -439,18 +479,26 @@ bangtoat(char *addr, char *domain)
  *  make sure it falls in the domain.
  */
 void
-convertheader(char *domain)
+convertheader(String *from)
 {
 	Field *f;
 	Node *p;
 	String *a;
 
+	if(!unix && strchr(s_to_c(from), '@') == 0){
+		s_append(from, "@");
+		s_append(from, hostdomain);
+	}
 	for(f = firstfield; f; f = f->next){
 		for(p = f->node; p; p = p->next){
 			if(!p->addr)
 				continue;
-			a = bangtoat(s_to_c(p->s), f->source ? domain : 0);
+			a = bangtoat(s_to_c(p->s));
 			s_free(p->s);
+			if(!unix && strchr(s_to_c(a), '@') == 0){
+				s_append(a, "@");
+				s_append(a, hostdomain);
+			}
 			p->s = a;
 		}
 	}
@@ -499,6 +547,8 @@ domainify(char *name, char *domain)
 
 	s = s_reset(s);
 	s_append(s, name);
+	if(*domain != '.')
+		s_append(s, ".");
 	s_append(s, domain);
 	return s_to_c(s);
 }

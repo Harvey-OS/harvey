@@ -25,6 +25,8 @@ looks up port numbers and addresses in the network databases
 to print symbolic names if possible.
 .SH FILES
 .B /net/*/*
+.SH SOURCE
+.B /sys/src/cmd/netstat.c
 .SH "SEE ALSO"
 .IR dkconfig (8), 
 .IR ipconfig (8)

@@ -1,0 +1,148 @@
+%% 
+%% This is file `calc.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% calc.dtx  (with options: `package')
+%% File `calc.dtx'.
+%% Copyright (C) 1992--1994 Kresten Krab Thorup and Frank Jensen.
+%% All rights reserved.
+
+\def\fileversion{v4.0b (TEST)}
+\def\filedate{95/02/09}
+
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{calc}[\filedate\space\fileversion]
+\typeout{Package: `calc' \fileversion\space <\filedate> (KKT and FJ)}
+\def\calc@assign@generic#1#2#3#4{\let\calc@A#1\let\calc@B#2%
+    \calc@open(#4!\global\calc@A\calc@B\endgroup#3\calc@B}
+\def\calc@assign@count{\calc@assign@generic\calc@Acount\calc@Bcount}
+\def\calc@assign@dimen{\calc@assign@generic\calc@Adimen\calc@Bdimen}
+\def\calc@assign@skip{\calc@assign@generic\calc@Askip\calc@Bskip}
+\newcount\calc@Acount   \newcount\calc@Bcount
+\newdimen\calc@Adimen   \newdimen\calc@Bdimen
+\newskip\calc@Askip     \newskip\calc@Bskip
+\def\setcounter#1#2{\@ifundefined{c@#1}{\@nocounterr{#1}}%
+   {\calc@assign@count{\global\csname c@#1\endcsname}{#2}}}
+\def\addtocounter#1#2{\@ifundefined{c@#1}{\@nocounterr{#1}}%
+   {\calc@assign@count{\global\advance\csname c@#1\endcsname}{#2}}}
+\DeclareRobustCommand\setlength{\calc@assign@skip}
+\DeclareRobustCommand\addtolength[1]{\calc@assign@skip{\advance#1}}
+\def\calc@pre@scan#1{%
+   \ifx(#1%
+       \let\calc@next\calc@open
+   \else
+       \let\calc@next\calc@numeric
+   \fi
+   \calc@next#1}
+\def\calc@open({\begingroup\aftergroup\calc@initB
+   \begingroup\aftergroup\calc@initB
+   \calc@pre@scan}
+\def\calc@initB{\calc@B\calc@A}
+\def\calc@numeric{\afterassignment\calc@post@scan \global\calc@A}
+\def\calc@post@scan#1{%
+   \ifx#1!\let\calc@next\endgroup \else
+    \ifx#1+\let\calc@next\calc@add \else
+     \ifx#1-\let\calc@next\calc@subtract \else
+      \ifx#1*\let\calc@next\calc@multiplyx \else
+       \ifx#1/\let\calc@next\calc@dividex \else
+        \ifx#1)\let\calc@next\calc@close \else \calc@error#1%
+        \fi
+       \fi
+      \fi
+     \fi
+    \fi
+   \fi
+   \calc@next}
+\def\calc@add{\calc@generic@add\calc@addAtoB}
+\def\calc@subtract{\calc@generic@add\calc@subtractAfromB}
+\def\calc@generic@add#1{\endgroup\global\calc@A\calc@B\endgroup
+   \begingroup\aftergroup#1\begingroup\aftergroup\calc@initB
+   \calc@pre@scan}
+\def\calc@addAtoB{\advance\calc@B\calc@A}
+\def\calc@subtractAfromB{\advance\calc@B-\calc@A}
+\def\calc@multiplyx#1{\def\calc@tmp{#1}%
+   \ifx\calc@tmp\calc@ratio@x \let\calc@next\calc@ratio@multiply \else
+      \ifx\calc@tmp\calc@real@x \let\calc@next\calc@real@multiply \else
+         \let\calc@next\calc@multiply
+      \fi
+   \fi
+   \calc@next#1}
+\def\calc@dividex#1{\def\calc@tmp{#1}%
+   \ifx\calc@tmp\calc@ratio@x \let\calc@next\calc@ratio@divide \else
+      \ifx\calc@tmp\calc@real@x \let\calc@next\calc@real@divide \else
+         \let\calc@next\calc@divide
+      \fi
+   \fi
+   \calc@next#1}
+\def\calc@ratio@x{\ratio}
+\def\calc@real@x{\real}
+\def\calc@multiply{\calc@generic@multiply\calc@multiplyBbyA}
+\def\calc@divide{\calc@generic@multiply\calc@divideBbyA}
+\def\calc@generic@multiply#1{\endgroup\begingroup
+   \let\calc@A\calc@Acount \let\calc@B\calc@Bcount
+   \aftergroup#1\calc@pre@scan}
+\def\calc@multiplyBbyA{\multiply\calc@B\calc@Acount}
+\def\calc@divideBbyA{\divide\calc@B\calc@Acount}
+\def\calc@close
+   {\endgroup\global\calc@A\calc@B
+    \endgroup\global\calc@A\calc@B
+    \calc@post@scan}
+\def\calc@ratio@multiply\ratio{\calc@ratio@evaluate}
+\def\calc@ratio@divide\ratio#1#2{\calc@ratio@evaluate{#2}{#1}}
+\let\calc@numerator=\calc@Bcount
+\newcount\calc@denominator
+\def\calc@ratio@evaluate#1#2{%
+   \endgroup\begingroup
+      \calc@assign@dimen\calc@numerator{#1}%
+      \calc@assign@dimen\calc@denominator{#2}%
+      \gdef\calc@the@ratio{}%
+      \ifnum\calc@numerator<0 \calc@numerator-\calc@numerator
+         \gdef\calc@the@ratio{-}%
+      \fi
+      \ifnum\calc@denominator<0 \calc@denominator-\calc@denominator
+         \xdef\calc@the@ratio{\calc@the@ratio-}%
+      \fi
+      \calc@Acount\calc@numerator
+      \divide\calc@Acount\calc@denominator
+      \xdef\calc@the@ratio{\calc@the@ratio\number\calc@Acount.}%
+      \calc@next@digit \calc@next@digit \calc@next@digit
+      \calc@next@digit \calc@next@digit \calc@next@digit
+   \endgroup
+   \calc@multiply@by@real\calc@the@ratio
+   \begingroup
+   \calc@post@scan}
+\def\calc@next@digit{%
+      \multiply\calc@Acount\calc@denominator
+      \advance\calc@numerator -\calc@Acount
+      \multiply\calc@numerator 10
+      \calc@Acount\calc@numerator
+      \divide\calc@Acount\calc@denominator
+      \xdef\calc@the@ratio{\calc@the@ratio\number\calc@Acount}}
+\def\calc@multiply@by@real#1{\calc@Bdimen #1\calc@B \calc@B\calc@Bdimen}
+\def\calc@real@multiply\real#1{\endgroup
+   \calc@multiply@by@real{#1}\begingroup
+   \calc@post@scan}
+\def\calc@real@divide\real#1{\calc@ratio@evaluate{1pt}{#1pt}}
+\def\calc@error#1{%
+   \errhelp{Calc error: I expected to see one of: + - * / )}%
+   \errmessage{Invalid character `#1' in arithmetic expression}}
+\endinput
+%% 
+%% End of file `calc.sty'.

@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 /*
  * This code (and the devbit interface) will have to change
@@ -10,8 +10,8 @@
 void
 rdcolmap(Bitmap *b, RGB *m)
 {
-	char *buf, *p;
-	char ans[256*12];
+	byte *buf, *p;
+	byte ans[256*12];
 	int i, n;
 
 	bneed(0);

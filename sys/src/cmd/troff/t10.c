@@ -50,10 +50,10 @@ void t_ptinit(void)
 	if ((p = getenv("TYPESETTER")) != 0)
 		strcpy(devname, p);
 	if (termtab[0] == 0)
-		strcpy(termtab, FONTDIR);
+		strcpy(termtab, DWBfontdir);
 	if (fontdir[0] == 0)
-		strcpy(fontdir, FONTDIR);
-	if(devname[0] == 0)
+		strcpy(fontdir, DWBfontdir);
+	if (devname[0] == 0)
 		strcpy(devname, TDEVNAME);
 	hyf = 1;
 	lg = 1;
@@ -73,8 +73,9 @@ void t_ptinit(void)
 		setfp(i, fontlab[i], (char *) 0, 0);
 	sps = EM/3;	/* space size */
 	ics = EM;	/* insertion character space */
-	for (i = 0; i < NTAB; i++)
+	for (i = 0; i < (NTAB - 1) && DTAB * (i + 1) < TABMASK; i++)
 		tabtab[i] = DTAB * (i + 1);
+	tabtab[NTAB] = 0;
 	pl = 11 * INCH;			/* paper length */
 	po = PO;		/* page offset */
 	spacesz = SS;
@@ -96,11 +97,19 @@ void t_ptout(Tchar i)
 	int dv;
 	Tchar *k;
 	int temp, a, b;
+	int diff;
 
 	if (cbits(i) != '\n') {
-		if (olinep >= oline + OLNSIZE) {
-			ERROR "Output line overflow." WARN;
-			done(2);
+		if (olinep >= oline + olnsize) {
+			diff = olinep - oline;
+			olnsize += OLNSIZE;
+			if ((oline = (Tchar *)realloc((char *)oline, olnsize * sizeof(Tchar))) != NULL) {
+				if (diff && olinep)
+					olinep = oline + diff;
+			} else {
+				ERROR "Output line overflow." WARN;
+				done(2);
+			}
 		}
 		*olinep++ = i;
 		return;
@@ -149,7 +158,6 @@ int ptout0(Tchar *pi)
 	int z, dx, dy, dx2, dy2, n;
 	Tchar i;
 	int outsize;	/* size of object being printed */
-	char *chn;
 
 	outsize = 1;	/* default */
 	i = *pi;
@@ -165,6 +173,7 @@ int ptout0(Tchar *pi)
 		return(outsize);
 	}
 	if (k == CHARHT) {
+		xpts = fbits(i);	/* sneaky, font bits as size bits */
 		if (xpts != mpts)
 			ptps();
 		OUT "x H %d\n", sbits(i) PUT;
@@ -202,7 +211,7 @@ int ptout0(Tchar *pi)
 		xon--;
 		return j+1;
 	}
-	if (k < ' ' && k != DRAWFCN)
+	if (k < 040 && k != DRAWFCN)
 		return(outsize);
 	j = z = 0;
 	if (k != DRAWFCN) {
@@ -253,6 +262,15 @@ int ptout0(Tchar *pi)
 			break;
 		case DRAWELLIPSE:
 			OUT "D%c %d %d\n", DRAWELLIPSE, dx, dy PUT;
+			hpos += dx;
+			break;
+		case DRAWBUILD:
+			k = cbits(pi[2]);
+			OUT "D%c %d ", DRAWBUILD, dx PUT;
+			if (k < ALPHABET)
+				OUT "%c\n", k PUT;
+			else
+				ptchname(k);
 			hpos += dx;
 			break;
 		case DRAWLINE:	/* line */
@@ -387,13 +405,16 @@ void ptps(void)
 			k = pstab[--j];
 			break;
 		}
-	OUT "s%d\n", k PUT;	/* really should put out string rep of size */
+	if (!ascii)
+		OUT "s%d\n", k PUT;	/* really should put out string rep of size */
 	mpts = i;
 }
 
 void ptfont(void)
 {
 	mfont = xfont;
+	if (ascii)
+		return;
 	if (xfont > nfonts) {
 		ptfpcmd(0, fonts[xfont].longname, 0);	/* Put the desired font in the
 					 * fontcache of the filter */
@@ -404,8 +425,6 @@ void ptfont(void)
 
 void ptfpcmd(int f, char *s, char *longname)
 {
-	if (ascii)
-		return;
 	if (f > nfonts)		/* a bit risky? */
 		f = 0;
 	if (longname) {
@@ -429,15 +448,16 @@ void t_ptlead(void)
 void ptesc(void)
 {
 	hpos += esc;
-	if (esc > 0) {
-		oput('h');
-		if (esc>=10 && esc<100) {
-			oput(esc/10 + '0');
-			oput(esc%10 + '0');
+	if (!ascii)
+		if (esc > 0) {
+			oput('h');
+			if (esc>=10 && esc<100) {
+				oput(esc/10 + '0');
+				oput(esc%10 + '0');
+			} else
+				OUT "%d", esc PUT;
 		} else
-			OUT "%d", esc PUT;
-	} else
-		OUT "H%d\n", hpos PUT;
+			OUT "H%d\n", hpos PUT;
 	esc = 0;
 }
 

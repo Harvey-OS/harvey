@@ -1,34 +1,21 @@
 APE=/sys/src/ape
-< $APE/config
-L=/$objtype/lib/ape/libv.a
-CFLAGS=$CFLAGS -I.
-BUILTINS=
+<$APE/config
 
-NAMES=U=ftw getopt getpass tty rand nrand getfields min max error \
-	nap popen telldir lstat
-OBJ=U=${NAMES:%=$L(%.$O)}
+LIB=/$objtype/lib/ape/libv.a
 
-install:VQ:	$L
-	echo done $L
+OFILES=getpass.$O\
+	tty.$O\
+	rand.$O\
+	nrand.$O\
+	getfields.$O\
+	min.$O\
+	max.$O\
+	error.$O\
+	nap.$O
 
-compile:V:	$L
-test:VQ:
-	echo libv has no test
-clean:V:
-	rm -f *.[$OS]
+</sys/src/cmd/mksyslib
 
-nuke:V:		clean
-	rm -f $L
-
-$L:	$OBJ
-	names=`{membername $newprereq}
-	$AR rv $L $names && rm -f $names
-	$RANLIB $L
-
-$L(%.$O):N:	%.$O
-
-%.$O:	%.c
-	$CC $CFLAGS -c $stem.c
+CFLAGS=-c
 
 %.$O:	$FAMILY/%.c
-	$CC $CFLAGS -c $prereq
+	$CC $CFLAGS $prereq

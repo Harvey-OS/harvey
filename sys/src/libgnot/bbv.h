@@ -252,19 +252,6 @@ typedef	long	Type;
 		*p++ = OR(Rd,Rs,Rs);		\
 	}
 
-extern void	wbflush(void);
-extern void	icflush(void *, int);
-#define Execandfree(memstart,onstack)			\
-	tmp = (p-memstart) * sizeof(Type);		\
-	if(onstack) {					\
-		icflush(memstart, tmp);			\
-		(*(void (*)(void))memstart)();		\
-	} else {					\
-		wbflush();				\
-		(*(void (*)(void))memstart)();		\
-		bbfree(memstart, tmp);			\
-	}
-
 #define Emitop			\
 	p[0] = fi[0];		\
 	p[1] = fi[1];		\

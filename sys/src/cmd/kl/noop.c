@@ -4,23 +4,45 @@ void
 noops(void)
 {
 	Prog *p, *p1, *q, *q1;
-	int o;
+	int o, curframe, curbecome, maxbecome;
 
 	/*
-	 * 1. find leaf subroutines
-	 * 2. strip NOPs
-	 * 3. expand RETURN pseudo
+	 * find leaf subroutines
+	 * become sizes
+	 * frame sizes
+	 * strip NOPs
+	 * expand RET
+	 * expand BECOME pseudo
 	 */
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f noops\n", cputime());
 	Bflush(&bso);
 
+	curframe = 0;
+	curbecome = 0;
+	maxbecome = 0;
+	curtext = 0;
 	q = P;
 	for(p = firstp; p != P; p = p->link) {
+
+		/* find out how much arg space is used in this TEXT */
+		if(p->to.type == D_OREG && p->to.reg == REGSP)
+			if(p->to.offset > curframe)
+				curframe = p->to.offset;
+
 		switch(p->as) {
 		/* too hard, just leave alone */
 		case ATEXT:
+			if(curtext && curtext->from.sym) {
+				curtext->from.sym->frame = curframe;
+				curtext->from.sym->become = curbecome;
+				if(curbecome > maxbecome)
+					maxbecome = curbecome;
+			}
+			curframe = 0;
+			curbecome = 0;
+
 			q = p;
 			p->mark |= LABEL|LEAF|SYNC;
 			if(p->link)
@@ -180,6 +202,11 @@ noops(void)
 			continue;
 
 		case ARETURN:
+			/* special form of RETURN is BECOME */
+			if(p->from.type == D_CONST)
+				if(p->from.offset > curbecome)
+					curbecome = p->from.offset;
+
 			q = p;
 			if(p->link != P)
 				p->link->mark |= LABEL;
@@ -194,6 +221,42 @@ noops(void)
 		default:
 			q = p;
 			continue;
+		}
+	}
+	if(curtext && curtext->from.sym) {
+		curtext->from.sym->frame = curframe;
+		curtext->from.sym->become = curbecome;
+		if(curbecome > maxbecome)
+			maxbecome = curbecome;
+	}
+
+	if(debug['b'])
+		print("max become = %d\n", maxbecome);
+	xdefine("ALEFbecome", STEXT, maxbecome);
+
+	curtext = 0;
+	for(p = firstp; p != P; p = p->link) {
+		switch(p->as) {
+		case ATEXT:
+			curtext = p;
+			break;
+
+		case AJMPL:
+			if(curtext != P && curtext->from.sym != S && curtext->to.offset >= 0) {
+				o = maxbecome - curtext->from.sym->frame;
+				if(o <= 0)
+					break;
+				/* calling a become or calling a variable */
+				if(p->to.sym == S || p->to.sym->become) {
+					curtext->to.offset += o;
+					if(debug['b']) {
+						curp = p;
+						print("%D calling %D increase %d\n",
+							&curtext->from, &p->to, o);
+					}
+				}
+			}
+			break;
 		}
 	}
 
@@ -361,6 +424,8 @@ noops(void)
 			break;
 
 		case ARETURN:
+			if(p->from.type == D_CONST)
+				goto become;
 			if(curtext->mark & LEAF) {
 				if(!autosize) {
 					p->as = AJMP;
@@ -423,6 +488,60 @@ noops(void)
 			q1->link = q->link;
 			q->link = q1;
 			break;
+
+		become:
+			if(curtext->mark & LEAF) {
+
+				q = prg();
+				q->line = p->line;
+				q->as = AJMP;
+				q->from = zprg.from;
+				q->to = p->to;
+				q->cond = p->cond;
+				q->link = p->link;
+				q->mark |= BRANCH;
+				p->link = q;
+
+				p->as = AADD;
+				p->from = zprg.from;
+				p->from.type = D_CONST;
+				p->from.offset = autosize;
+				p->to = zprg.to;
+				p->to.type = D_REG;
+				p->to.reg = REGSP;
+
+				break;
+			}
+			q = prg();
+			q->line = p->line;
+			q->as = AJMP;
+			q->from = zprg.from;
+			q->to = p->to;
+			q->cond = p->cond;
+			q->mark |= BRANCH;
+			q->link = p->link;
+			p->link = q;
+
+			q = prg();
+			q->line = p->line;
+			q->as = AADD;
+			q->from.type = D_CONST;
+			q->from.offset = autosize;
+			q->to.type = D_REG;
+			q->to.reg = REGSP;
+			q->link = p->link;
+			p->link = q;
+
+			p->as = AMOVW;
+			p->from = zprg.from;
+			p->from.type = D_OREG;
+			p->from.offset = 0;
+			p->from.reg = REGSP;
+			p->to = zprg.to;
+			p->to.type = D_REG;
+			p->to.reg = REGLINK;
+
+			break;
 		}
 	}
 
@@ -433,6 +552,20 @@ noops(void)
 	for(p = firstp; p != P; p = p1) {
 		p1 = p->link;
 		o++;
+		if(p->mark & NOSCHED){
+			if(q1 != p){
+				sched(q1, q);
+			}
+			for(; p != P; p = p->link){
+				if(!(p->mark & NOSCHED))
+					break;
+				q = p;
+			}
+			p1 = p;
+			q1 = p;
+			o = 0;
+			continue;
+		}
 		if(p->mark & (LABEL|SYNC)) {
 			if(q1 != p)
 				sched(q1, q);

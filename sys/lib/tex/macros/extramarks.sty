@@ -1,0 +1,56 @@
+% extra marks for latex.
+% This gives you two additional marks. \extramarks{m1}{m2} define two extra
+% marks for headers/footers (especially for use with fancyheadings), which
+% can be retrieved by \firstxmark and \lastxmark resp. Usually m1 is what
+% would appear at the top of the page, m2 at the bottom of the page.
+% Typical usage:
+% \pagestyle{fancy}
+% \lhead{\firstxmark}
+% \rfoot{\lastxmark}
+%
+% \extramarks{}{Continued on next page...}
+% text text text text text text text text text text text text text text text 
+% text text text text text text text text text text text text text text text 
+% text text text text text text text text text text text text text text text 
+% text text text text text text text text text text text text text text text 
+% text text text text text text text text text text text text text text text 
+% \extramarks{Continued}{}
+% This package also provides two extra handles to the standard LaTeX marks,
+% namely \firstleftmark and \lastrightmark (the standard \leftmark and
+% \rightmark of LaTeX always give you the last and first, respectively.
+% These are the complementary values).
+
+% Note: there is an extra command \topxmark, but this doesn't work properly
+% if marginpars or floats are used, as LaTeX clobbers TeX's topmark in this
+% case. 
+
+\def\@leftmark#1#2#3#4{#1}
+\def\@rightmark#1#2#3#4{#2}
+
+\def\markboth#1#2{{\def\protect{\noexpand\protect\noexpand}
+     \let\label\relax \let\index\relax \let\glossary\relax
+     \expandafter\@markboth\@themark{#1}{#2}
+     \mark{\@themark}}\if@nobreak\ifvmode\nobreak\fi\fi}
+\def\markright#1{{\def\protect{\noexpand\protect\noexpand}
+     \let\label\relax \let\index\relax \let\glossary\relax
+     \expandafter\@markright\@themark{#1}
+     \mark{\@themark}}\if@nobreak\ifvmode\nobreak\fi\fi}
+\def\@markright#1#2#3#4#5{\gdef\@themark{{#1}{#5}{#3}{#4}}}
+\def\@markboth#1#2#3#4#5#6{\gdef\@themark{{#5}{#6}{#3}{#4}}}
+\def\leftmark{\expandafter\@leftmark\botmark{}{}{}{}}
+\def\rightmark{\expandafter\@rightmark\firstmark{}{}{}{}}
+\def\firstleftmark{\expandafter\@leftmark\firstmark{}{}{}{}}
+\def\lastrightmark{\expandafter\@rightmark\botmark{}{}{}{}}
+
+\def\@themark{{}{}{}{}}
+
+\def\extramarks#1#2{{\let\protect\@unexpandable@protect
+     \let\label\relax \let\index\relax \let\glossary\relax
+     \expandafter\@markextra\@themark{#1}{#2}
+     \mark{\@themark}}\if@nobreak\ifvmode\nobreak\fi\fi}
+\def\@markextra#1#2#3#4#5#6{\gdef\@themark{{#1}{#2}{#5}{#6}}}
+\def\firstxmark{\expandafter\@firstxmark\firstmark{}{}{}{}}
+\def\topxmark{\expandafter\@firstxmark\topmark{}{}{}{}}
+\def\lastxmark{\expandafter\@lastxmark\botmark{}{}{}{}}
+\def\@firstxmark#1#2#3#4{#3}
+\def\@lastxmark#1#2#3#4{#4}

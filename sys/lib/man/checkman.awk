@@ -2,8 +2,8 @@
 #
 # Checks:
 #	- .TH is first line, and has proper name section number
-#	- sections are in order NAME, SYNOPSIS, DESCRIPTION, SEE ALSO,
-#		DIAGNOSTICS, BUGS
+#	- sections are in order NAME, SYNOPSIS, DESCRIPTION, EXAMPLES,
+#		FILES, SOURCE, SEE ALSO, DIAGNOSTICS, BUGS
 #	- there's a manual page for each cross-referenced page
 
 BEGIN {
@@ -16,10 +16,11 @@ BEGIN {
 	Weight["EXAMPLE"] = 8
 	Weight["EXAMPLES"] = 16
 	Weight["FILES"] = 32
-	Weight["SEE ALSO"] = 64
-	Weight["DIAGNOSTICS"] = 128
-	Weight["SYSTEM CALLS"] = 256
-	Weight["BUGS"] = 512
+	Weight["SOURCE"] = 64
+	Weight["SEE ALSO"] = 128
+	Weight["DIAGNOSTICS"] = 256
+	Weight["SYSTEM CALLS"] = 512
+	Weight["BUGS"] = 1024
 }
 
 FNR==1	{
@@ -46,6 +47,9 @@ FNR==1	{
 	}
 
 $1 == ".SH" {
+		if(inex)
+			print "Unterminated .EX in", FILENAME, ":", $0
+		inex = 0;
 		if (substr($2, 1, 1) == "\"") {
 			if (NF == 2) {
 				print "Unneeded quote in", FILENAME, ":", $0
@@ -63,12 +67,30 @@ $1 == ".SH" {
 		}
 }
 
+$1 == ".EX" {
+		if(inex)
+			print "Nested .EX in", FILENAME, ":", $0
+		inex = 1
+}
+
+$1 == ".EE" {
+		if(!inex)
+			print "Bad .EE in", FILENAME, ":", $0
+		inex = 0;
+}
+
 $0 ~ /^\..*\([0-9]\)/ {
 		if ($1 == ".IR" && $3 ~ /\([0-9]\)/) {
 			name = $2
 			section = $3
+		}else if ($1 == ".RI" && $2 == "(" && $4 ~ /\([0-9]\)/) {
+			name = $3
+			section = $4
 		}else if ($1 == ".IR" && $3 ~ /9.\([0-9]\)/) {
 			name = $2
+			section = "9"
+		}else if ($1 == ".RI" && $2 == "(" && $4 ~ /9.\([0-9]\)/) {
+			name = $3
 			section = "9"
 		} else {
 			print "Possible bad cross-reference format in", FILENAME
@@ -125,6 +147,7 @@ END {
 	getnmlist("/mips/lib/libndb.a")
 	getnmlist("/mips/lib/libregexp.a")
 	getnmlist("/mips/lib/libstdio.a")
+	getnmlist("/mips/lib/libpanel.a")
 	for (i in List) {
 		if (!(i in Index))
 			print "Need", i, "(in " List[i] ")"

@@ -2,78 +2,19 @@
 #include <libc.h>
 #include <libg.h>
 
-enum
-{
-	MAXSLAVE = 32,
-};
+Slave	eslave[MAXSLAVE];
+int	Skeyboard = -1;
+int	Smouse = -1;
+int	Stimer = -1;
+int	logfid;
 
-typedef struct Slave	Slave;
-typedef struct Ebuf	Ebuf;
-
-struct Slave{
-	int	pid;
-	Ebuf	*head;		/* queue of messages for this descriptor */
-	Ebuf	*tail;
-};
-
-struct Ebuf{
-	Ebuf	*next;
-	int	n;		/* number of bytes in buf */
-	uchar	buf[EMAXMSG];
-};
-
-static	Slave	eslave[MAXSLAVE];
 static	int	nslave;
-static	int	Smouse = -1;
-static	int	Skeyboard = -1;
-static	int	Stimer = -1;
 static	int	isparent;
 static	int	epipe[2];
-static	Ebuf	*ebread(Slave*);
 static	int	eforkslave(ulong);
 static	void	extract(void);
 static	void	ekill(void);
 static	int	enote(void *, char *);
-int logfid;
-
-Mouse
-emouse(void)
-{
-	Mouse m;
-	Ebuf *eb;
-	static but[2];
-	int b;
-
-	if(Smouse < 0)
-		berror("events: mouse not initialzed");
-	eb = ebread(&eslave[Smouse]);
-	b = eb->buf[1] & 15;
-	but[b>>3] = b & 7;
-	m.buttons = but[0] | but[1];
-	m.xy.x = BGLONG(eb->buf+2);
-	m.xy.y = BGLONG(eb->buf+6);
-	m.msec = BGLONG(eb->buf+10);
-	if (b & 8)		/* window relative */
-		m.xy = add(m.xy, screen.r.min);
-	if (logfid)
-		fprint(logfid, "b: %d xy: %d %d\n", m.buttons, m.xy);
-	free(eb);
-	return m;
-}
-
-int
-ekbd(void)
-{
-	Ebuf *eb;
-	int c;
-
-	if(Skeyboard < 0)
-		berror("events: keyboard not initialzed");
-	eb = ebread(&eslave[Skeyboard]);
-	c = eb->buf[0] + (eb->buf[1]<<8);
-	free(eb);
-	return c;
-}
 
 ulong
 event(Event *e)
@@ -99,7 +40,7 @@ eread(ulong keys, Event *e)
 				else if(i == Stimer)
 					eslave[i].head = 0;
 				else{
-					eb = ebread(&eslave[i]);
+					eb = _ebread(&eslave[i]);
 					e->n = eb->n;
 					memmove(e->data, eb->buf, e->n);
 					free(eb);
@@ -234,14 +175,14 @@ einit(ulong keys)
 	if(keys&Ekeyboard){
 		fd = open("/dev/cons", OREAD);
 		ctl = open("/dev/consctl", OWRITE);
-		if(fd < 0 || ctl < 0)
+		if(fd < 0)
 			berror("events: can't open /dev/cons");
+		if(ctl < 0)
+			berror("events: can't open /dev/consctl");
 		write(ctl, "rawon", 5);
 		for(Skeyboard=0; Ekeyboard & ~(1<<Skeyboard); Skeyboard++)
 			;
 		ekeyslave(fd);
-		close(ctl);	/* keyboard child holds it open */
-		close(fd);
 	}
 	if(keys&Emouse){
 		fd = open("/dev/mouse", OREAD);
@@ -250,12 +191,11 @@ einit(ulong keys)
 		estart(Emouse, fd, 14);
 		for(Smouse=0; Emouse & ~(1<<Smouse); Smouse++)
 			;
-		close(fd);
 	}
 }
 
-static Ebuf*
-ebread(Slave *s)
+Ebuf*
+_ebread(Slave *s)
 {
 	Ebuf *eb;
 	Dir d;
@@ -281,12 +221,16 @@ extract(void)
 	Ebuf *eb;
 	int i, n;
 	uchar ebuf[EMAXMSG+1];
+	char msg[100];
 
 	bflush();
 loop:
-	if((n=read(epipe[0], ebuf, EMAXMSG+1)) < 0
-	|| ebuf[0] >= MAXSLAVE)
-		exits("eof on event pipe");
+	if((n=read(epipe[0], ebuf, EMAXMSG+1)) <= 0)
+		berror("eof on event pipe");
+	if(ebuf[0] >= MAXSLAVE){
+		sprint(msg, "bad slave %d on event pipe", ebuf[0]);
+		berror(msg);
+	}
 	if(n == 0)
 		goto loop;
 	i = ebuf[0];
@@ -305,9 +249,9 @@ loop:
 		if(ebuf[2] & 0x80)
 			ereshaped(bscreenrect(&screen.clipr));
 		/* squash extraneous mouse events */
-		if(s->head){
-			free(s->head);
-			s->head = s->tail = 0;
+		if((eb=s->tail) && eb->buf[1] == ebuf[2]){
+			memmove(eb->buf, &ebuf[1], n - 1);
+			return;
 		}
 	}
 	/* try to save space by only alloacting as much buffer as we need */
@@ -332,10 +276,13 @@ eforkslave(ulong key)
 		if((key & ~(1<<i)) == 0 && eslave[i].pid == 0){
 			if(nslave <= i)
 				nslave = i + 1;
-			switch(eslave[i].pid = fork()){
+			/*
+			 * share the file descriptors so the last child
+			 * out closes all connections to the window server
+			 */
+			switch(eslave[i].pid = rfork(RFPROC)){
 			case 0:
 				atexitdont(bexit);
-				close(epipe[0]);
 				isparent = 0;
 				return MAXSLAVE+i;
 			case -1:
@@ -352,8 +299,7 @@ eforkslave(ulong key)
 static int
 enote(void *v, char *s)
 {
-	char buf[32];
-	int fd, i, pid;
+	int i, pid;
 
 	USED(v, s);
 	pid = getpid();
@@ -362,13 +308,10 @@ enote(void *v, char *s)
 	for(i=0; i<nslave; i++){
 		if(pid == eslave[i].pid)
 			continue;	/* don't kill myself */
-		sprint(buf, "/proc/%d/note", eslave[i].pid);
-		fd = open(buf, OWRITE);
-		if(fd > 0){
-			write(fd, "die", 3);
-			close(fd);
-		}
+		postnote(PNPROC, eslave[i].pid, "die");
 	}
+	close(epipe[0]);
+	close(epipe[1]);
 	return 0;
 }
 

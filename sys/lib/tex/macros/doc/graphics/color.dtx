@@ -1,0 +1,712 @@
+%
+% \iffalse
+%
+%% color.dtx Copyright (C) 1994 David Carlisle
+%%
+%% This file is part of the Standard LaTeX `Graphics Bundle'.
+%%
+%% It should be distributed *unchanged* and together with all other
+%% files in the graphics bundle. The file 00readme.txt contains a list
+%% of all of these files.
+%%
+%% A modified version of this file may be distributed, but it should
+%% be distributed with a *different* name. Changed files must be
+%% distributed *together with a complete and unchanged* distribution
+%% of these files.
+%%
+%<*dtx>
+          \ProvidesFile{color.dtx}
+%</dtx>
+%<package>\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+%<package>\ProvidesPackage{color}
+%<driver> \ProvidesFile{color.drv}
+% \fi
+%         \ProvidesFile{color.dtx}
+          [1994/11/22 v0.3h Standard LaTeX Color (DPC)]
+%
+% \iffalse
+%<*driver>
+\documentclass{ltxdoc}
+\begin{document}
+ \DocInput{color.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% \GetFileInfo{color.dtx}
+%
+% \title{The \textsf{color} package\thanks{This file
+%        has version number \fileversion, last
+%        revised \filedate.}}
+% \author{D. P. Carlisle}
+% \date{\filedate}
+% \maketitle
+%
+% \CheckSum{427}
+%
+%
+% \title{The implementation of the \LaTeX\ Colour interface.}
+%
+% \StopEventually{}
+%
+%
+% \section{Options}
+%
+% \changes{v0.2a}{1994/04/13}
+%     {TEMP KLUDGE for Feb 94 release of 2e: 
+%      Add extra groups}
+% \changes{v0.2d}{1994/05/13}
+%     {All support for Feb 1994 release removed (so used optional arg
+%     of \cs{NeedsTeXFormat}).}
+%
+%    \begin{macrocode}
+%<*package>
+%    \end{macrocode}
+%
+% First we save the catcodes of some characters, and set them to
+% fixed values whilst this file is being read.
+% \changes{v0.3b}{1994/09/14}
+%     {Save and restore catcodes}
+%    \begin{macrocode}
+\edef\Gin@codes{%
+ \catcode`\noexpand\^^A\the\catcode`\^^A\relax
+ \catcode`\noexpand\"\the\catcode`\"\relax
+ \catcode`\noexpand\*\the\catcode`\*\relax
+ \catcode`\noexpand\!\the\catcode`\!\relax
+ \catcode`\noexpand\:\the\catcode`\:\relax}
+\catcode`\^^A=\catcode`\%
+\catcode`\"=12
+\catcode`\*=11
+\catcode`\!=12
+\catcode`\:=12
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\providecommand\Gin@driver{}
+%    \end{macrocode}
+%
+% The |monochrome| should be used \emph{in addition} to one of the
+% standard driver options.
+%    \begin{macrocode}
+\DeclareOption{monochrome}{%
+  \AtEndOfPackage{%
+    \def\set@color{%
+      \c@lor@special\m@ne
+        {color push \current@color}\aftergroup\reset@color}%
+    \def\reset@color{\c@lor@special\m@ne{color pop}}%
+    \def\set@page@color{%
+      \c@lor@special\m@ne{background \current@color}}%
+    \def\define@color##1##2{%
+      \c@lor@special\m@ne{define ##1 ##2}}}}
+%    \end{macrocode}
+%
+%
+% Now the options for supported drivers.
+%    \begin{macrocode}
+\DeclareOption{dvips}{\def\Gin@driver{dvips.def}%
+                      \def\c@lor@namefile{dvipsnam.def}}
+\DeclareOption{xdvi}{\ExecuteOptions{dvips,monochrome}}
+\DeclareOption{dvgt}{\def\Gin@driver{dvgt.def}}
+\DeclareOption{dvi2ps}{\def\Gin@driver{dvi2ps.def}}
+\DeclareOption{dvialw}{\def\Gin@driver{dvialw.def}}
+\DeclareOption{dvilaser}{\def\Gin@driver{dvilaser.def}}
+\DeclareOption{dvipsone}{\def\Gin@driver{dvipsone.def}}
+\DeclareOption{dvitops}{\def\Gin@driver{dvitops.def}}
+\DeclareOption{dviwindo}{\def\Gin@driver{dviwindo.def}}
+\DeclareOption{emtex}{\def\Gin@driver{emtex.def}}
+\DeclareOption{dviwin}{\def\Gin@driver{dviwin.def}}
+\DeclareOption{oztex}{\def\Gin@driver{oztex.def}}
+\DeclareOption{psprint}{\def\Gin@driver{psprint.def}}
+\DeclareOption{pubps}{\def\Gin@driver{pubps.def}}
+\DeclareOption{textures}{\def\Gin@driver{textures.def}}
+\DeclareOption{pctexps}{\def\Gin@driver{pctexps.def}}
+\DeclareOption{pctexwin}{\def\Gin@driver{pctexwin.def}}
+\DeclareOption{pctexhp}{\def\Gin@driver{pctexhp.def}}
+%    \end{macrocode}
+%
+% By default the named colour model has no pre-declared names.
+% The |dvipsnames| option predeclares all the names in the colour
+% prologue of dvips. The |dvips| option automatically implies
+% |dvipsnames| unless this choice is overruled with the |nodvipsnames|
+% option. For other drivers, eg |textures| you may use this option to
+% explicitly request that these names be declared.
+%    \begin{macrocode}
+\DeclareOption{dvipsnames}{\def\c@lor@namefile{dvipsnam.def}}
+\DeclareOption{nodvipsnames}{\let\c@lor@namefile\relax}
+%    \end{macrocode}
+%
+% The |usenames| option modifies the behaviour of |\DefineNamedColor|
+% So that it declares the same name as a ```user's colour'' for use in
+% a |\color| command, as well as a name in the |named| colour model.
+% The normal behaviour is just to decalare the name in the named colour
+% model.
+%    \begin{macrocode}
+\let\c@lor@usename\@gobble
+\DeclareOption{usenames}{%
+  \def\c@lor@usename##1{%
+    \expandafter\color@named\csname\string\color @##1\endcsname{##1}}}
+%    \end{macrocode}
+%
+% \section{Using Colours}
+%
+% \subsection{Declarative form}
+%
+%  \begin{macro}{\color}
+% |\color{|\emph{declared-colour}|}| switches to the colour
+% \emph{declared-colour}, which must previously have been defined
+% using |\definecolor|. This colour will stay in effect until the end of
+% the current \TeX\ group.
+%
+% |\color[|\emph{model}|]{|\emph{colour-specification}|}| is similar
+% to the above, but uses a colour not declared by |\definecolor|. The
+% allowed \emph{model}'s vary depending on the driver. The syntax of
+% the \emph{colour-specification} argument depends on the model.
+%
+% \changes{v0.3a}{1994/07/20}
+%     {Make \cs{color} robust}
+%    \begin{macrocode}
+\DeclareRobustCommand\color{%
+  \@ifnextchar[\@undeclaredcolor\@declaredcolor}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\@undeclaredcolor}
+% \changes{v0.2c}{1994/05/09}
+%     {Improve error messages}
+% \changes{v0.3a}{1994/07/20}
+%     {New internal implementation of colour commands}
+% Call the driver-dependent command |\color@|\meta{model} to define
+% |\current@color|, then call |\set@color| to change the current colour
+% accordingly.
+%    \begin{macrocode}
+\def\@undeclaredcolor[#1]#2{%
+  \@ifundefined{color@#1}%
+    {\@latex@error{Undefined color model `#1'}\@ehd}%
+    {\csname color@#1\endcsname\current@color{#2}%
+     \set@color}%
+  \ignorespaces}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\@declaredcolor}%
+% \changes{v0.1c}{1994/04/01}
+%     {Add \cs{ignorespaces}}
+% \changes{v0.1e}{1994/05/14}
+%     {Minor change to error message}
+% \changes{v0.3a}{1994/07/20}
+%     {New internal implementation of colour commands}
+% |\let| |\current@color| to the internal representation of the colour
+% if the colour has  been declared, otherwise generate an error.
+% Finally call |\set@color| to effect the colour change.
+%    \begin{macrocode}
+\def\@declaredcolor#1{%
+  \@ifundefined{\string\color @#1}%
+    {\@latex@error{Undefined color `#1'}\@ehd}%
+    {\expandafter\let\expandafter\current@color
+     \csname\string\color @#1\endcsname
+     \set@color}%
+  \ignorespaces}
+%    \end{macrocode}
+%  \end{macro}
+%
+% \subsection{Command (Argument) Form}
+%
+%  \begin{macro}{\textcolor}
+% |\textcolor{|\emph{declared-colour}|}{|\emph{text}|}| and
+% |\textcolor[|\emph{model}|]{|\emph{colour-spec}|}{|\emph{text}|}|
+% are just alternative syntax for |\color|, in
+% which the groups are added implicitly. Thus \emph{text} appears in the
+% specified colour, but then the colour reverts to its previous value.
+% The naming is by analogy with |\textrm| (as opposed to |\rm| and
+% |\rmfamily|) although it is slightly a misnomer as the command also
+% works in math-mode.
+% \changes{v0.3a}{1994/07/20}
+%     {Stop command being \cs{long}, and make robust.}
+%    \begin{macrocode}
+\def\textcolor#1#{\@textcolor{#1}}
+\def\@textcolor#1#2#3{{\color#1{#2}#3}}
+%    \end{macrocode}
+%  \end{macro}
+%
+% \subsection{Background (Page) Colour}
+%
+% \begin{macro}{\pagecolor}
+% |\pagecolor|, which has the same argument forms as |\color|, specifies
+% the background colour for the current, and all following, pages. It is
+% a global declaration which does not respect \TeX\ groups.
+%
+% \changes{v0.1c}{1994/04/01}
+%     {end the group even if the colour command generates an error}
+% \changes{v0.3c}{1994/09/19}
+%     {Use \cs{color} to parse arguments}
+%    \begin{macrocode}
+\def\pagecolor{%
+  \begingroup
+      \let\ignorespaces\endgroup
+      \let\set@color\set@page@color
+      \color}
+%    \end{macrocode}
+%  \end{macro}
+%
+% \section{Defining Colours}
+%
+%  \begin{macro}{\definecolor}
+% |\definecolor{|\emph{name}|}{|\emph{model}|}{|\emph{colour-spec}|}|
+% defines the color \emph{name}, which may then be used in subsequent
+% |\color| or |\textcolor| commands to refer to a colour specified by
+% \emph{colour-spec} in the colour model \emph{model}.
+%
+% |\definecolor| associates the \emph{name} the to a  colour in
+% \emph{model}. So |\color{|\emph{name}|}| would check \emph{name}
+% then issue a |\special| for the colour model \emph{model}.
+%
+% |\definecolor| just calls an internal macro that defines the colour
+% for a particular model. This macro must have been defined by the
+% driver file that supports the requested \emph{model}.
+%
+% \changes{v0.1b}{1994/03/15}
+%     {change name from \cmd\newcolor to \cmd\definecolor}
+% \changes{v0.1e}{1994/05/14}
+%     {Minor change to error message}
+% \changes{v0.3a}{1994/07/20}
+%     {New internal implementation of colour commands}
+% \changes{v0.3f}{1994/10/04}
+%     {Give info about redefinitions}
+%    \begin{macrocode}
+\def\definecolor#1#2#3{%
+  \@ifundefined{color@#2}%
+    {\@latex@error{Undefined color model `#2'}\@ehd}%
+    {\@ifundefined{\string\color @#1}{}%
+      {\PackageInfo{color}{Redefining color #1}}%
+     \csname color@#2\expandafter\endcsname
+         \csname\string\color @#1\endcsname{#3}}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%
+%  \begin{macro}{\DefineNamedColor}
+% \changes{v0.3d}{1994/09/29}
+%     {Macro added}
+% \changes{v0.3e}{1994/10/03}
+%     {usenames option added}
+% \changes{v0.3f}{1994/10/04}
+%     {Give info about redefinitions}
+%
+% Driver files may opt to define a `named' colour model.
+% Placing colour names rather than numeric specifications into the dvi
+% file has certain advantages, in that post processing software can 
+% tune the colour specifications to the particular technology being
+% used, and more easily make colour separations for that colour.
+% The disadvantage is that the driver must `know' the colour
+% names.
+%
+% The `color1' drivers (dvips) currently ignore the specification of
+% the colour, and once a name is defined, just put the colour name in
+% the dvi file. For dvips, The header file \texttt{color.pro} is used to
+% give the cmyk equivalents of the names.
+%
+% The `color2' drivers (textures) use a special postscript operator
+% that takes both the name and the cmyk equivalent. so if the names are
+% no being used, fall back' definitions in the cmyk model are available.
+% These drivers also allow a numeric value to affect the `density'
+% of the colour to use.
+%
+% Drivers based on `color3' do not support named colours at the dvi
+% level, but to ease document portability, the named model is still
+% defined, but the |\special|'s just put the colour specifications, not
+% the names, into the dvi file.
+%
+% Normally after a colour, say |JungleGreen|, has been declared with:\\
+% |\DefineNamedColor{named}{JungleGreen}{cmyk}{1,2,3,4}|\\
+%  it is available in the `named' colour model, for
+% instance by\\
+%  |\color[named]{JungleGreen}|\\
+% A user may give a more convenient name, using\\
+%  |\definecolor{mygreen}{named}{JungleGreen}|\\
+% If however you are  happy with the original names, and want to use
+% them directly, as in |\color{JungleGreen}| without specifying
+% |[named]| all the time, just give the package option |usenames|, which
+% will redefine |\DefineNamedColor|, so that the colour name is declared
+% as a user-colour as well as a name in the `named' model.
+%    \begin{macrocode}
+\def\DefineNamedColor#1#2#3#4{%
+  \@ifundefined{define@color@#1}%
+    {\@latex@error{Undefined color model `#1'}\@ehd}%
+    {\@ifundefined{color@#3}%
+      {\@latex@error{Undefined color model `#3'}\@ehd}%
+      {\@ifundefined{c@lor@#1@#2}{}%
+        {\PackageInfo{color}{Redefining color #2 in named color model}}%
+      \csname color@#3\endcsname\@tempa{#4}%
+      \csname define@color@#1\endcsname{#2}\@tempa
+      \c@lor@usename{#2}}}}
+\@onlypreamble\DefineNamedColor
+%    \end{macrocode}
+%  \end{macro}
+%
+% \section{Colour Switch}
+%
+%  \begin{macro}{\ifcolor@}
+% This boolean can be tested by higher level macros that may want to
+% alter their behaviour if a monochrome driver is being used.
+%    \begin{macrocode}
+\newif\ifcolors@
+\colors@true
+%    \end{macrocode}
+%  \end{macro}
+%
+% \section{Whatsit\ldots}
+%
+% \begin{macro}{\c@lor@special}
+% Some drivers can not support all the features of this package. They
+% should always put a \meta{whatsit} in the current list though. the
+% following macro has most of the features of |\special|, but does not 
+% put anything into the |dvi| file. It does write to the log file or the
+% terminal (depending on the value of |#1|).
+%    \begin{macrocode}
+\def\c@lor@special#1#2{%
+  \edef\@tempa{\write#1{#2}}\@tempa}
+%    \end{macrocode}
+%  \end{macro}
+%
+% \section{Processing Options}
+%
+% A local configuration file may declare more options.
+% It should also make one driver option the default, by calling
+% |\ExecuteOptions| with the appropriate option.
+%    \begin{macrocode}
+\InputIfFileExists{color.cfg}{}{}
+%    \end{macrocode}
+%
+% After the options are processed, load the appropriate driver file.
+% If a site wants a default driver (eg |dvips|) it just needs to put
+% |\ExecuteOptions{dvips}| in a |color.cfg| file.
+% \changes{v0.3b}{1994/09/14}
+%                {New style of loading driver files}
+%    \begin{macrocode}
+\ProcessOptions
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\if!\Gin@driver!
+  \PackageError{color}
+    {No driver specified}
+    {You should make a default driver option in a file \MessageBreak
+     color.cfg\MessageBreak
+     eg: \protect\ExecuteOptions{dvips}%
+     }
+\else
+  \PackageInfo{color}{Driver file: \Gin@driver}
+  \@ifundefined{ver@\Gin@driver}{\input{\Gin@driver}}{}
+\fi
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\@ifundefined{c@lor@namefile}{}{\input{\c@lor@namefile}}
+%    \end{macrocode}
+%
+% \section{Default Colour}
+%
+% \begin{macro}{\normalcolor}
+% Early versions of this package redefined |\reset@font| to reset the
+% color as well. Current versions do not do this (there are too many
+% |\reset@font| commands hidden in strange places) and so defines a
+% separate command, |\normalcolor| to reset the colour to the colour in
+% effect at the start of the document.
+%
+% |\normalcolor| is defined (to |\relax|) in the \LaTeX\ kernel, so it
+% is safe to use this in macros that may possibly be used in
+% conjunction with colour. It will have no effect until the |color|
+% package is also loaded.
+% \changes{v0.2b}{1994/04/18}
+%     {Only reset the colour with \cmd{\reset@font} not 
+%      \cmd{\normalfont}}
+% \changes{v0.2d}{1994/05/13}
+%     {Stop changing \cs{reset@font}. Use the new \cs{normalfont}
+%     instead.}
+%    \begin{macrocode}
+\def\normalcolor{\let\current@color\default@color\set@color}
+%    \end{macrocode}
+% \end{macro}
+%
+%  \begin{macro}{\default@color}
+% Internal macro to store the `default' colour used by |\normalcolor|.
+%    \begin{macrocode}
+\AtBeginDocument{\let\default@color\current@color}
+%    \end{macrocode}
+% \end{macro}
+%
+% |\current@color| contains an internal representation of the colour
+% at this point in the document. (This can only be an approximation to
+% the truth as the `macro layer' of \TeX\ does not know where the output
+% routine is going to re-insert floats. This is why drivers must
+% maintain their own stack of colours in order to fully support these
+% commands. 
+%
+% For dvips, the |\current@color| it is something like `|Black|' or
+% `|rgb 0 1 0|', but other packages should not rely on any particular
+% format for this macro.
+%
+% The driver file \emph{must} initialise |\current@color| to a
+% specification for Black. This initialisation can not occur here, as
+% the possible colour models (and thus the syntax for `black')
+% are not known at this point.
+%
+% \section{Higher Level Commands}
+% 
+% With the basic colour primitives specified above we may define a few
+% higer level commands for coloured boxes etc. This is still quite a low
+% level and presumably packages and classes making use of colour will
+% define more appropriate document-level commands.
+%
+% \subsection{Colour Block}
+%
+% \begin{macro}{\color@block}
+% |\color@block{|\emph{width}|}{|\emph{height}|}{|\emph{depth}|}|\\
+% Should take up no space for \TeX, but produce a block in the current
+% colour of the specified size. It is mainly used for producing box
+% backgrounds. 
+%
+% The definition here works by selecting a colour, and then drawing a
+% \TeX\ rule (unless |\ifcolors@false|). This allows the `driver
+% independent' colour specials to be used. However it is defined using
+% |\providecommand|, so that this file will not over-write any other
+% definition of this command. A graphics package may want to define it
+% using a special to produce (for example) a PostScript line. Producing
+% the line in the |\special| has the advantage that on a preview that
+% does not understand |\special|s, the line is automatically omited,
+% without needing to modify the source of the document (for instance by
+% adding the |monochrome| option).
+%
+%    \begin{macrocode}
+\def\color@block#1#2#3{%
+  {\set@color\rlap{\ifcolors@\vrule\@width#1\@height#2\@depth#3\fi}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Coloured Boxes}
+%
+% \begin{macro}{\colorbox}
+% |\colorbox| takes the same argument forms as |\textcolor|, but the
+% colour specifies the \emph{background} colour of the box.
+% \changes{v0.3b}{1994/09/14}
+%                {New implementation}
+% \begin{macro}{\color@box}
+%    \begin{macrocode}
+\def\colorbox#1#{\color@box{#1}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\color@box#1#2{\color@b@x\leavevmode{\color#1{#2}}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\fcolorbox}
+% |\fcolorbox| has an extra \emph{colour-spec} argument, and puts a
+% frame of the first colour around a box with a background specified by
+% the second colour. If an optional argument is given, it specifies the
+% colour model for both colours.
+% \changes{v0.3b}{1994/09/14}
+%                {New implementation}
+% \begin{macro}{\fcolorbox}
+%    \begin{macrocode}
+\def\fcolorbox#1#{\color@fbox{#1}}
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\color@fbox#1#2#3{%
+  \color@b@x{\fboxsep\z@\color#1{#2}\fbox}{\color#1{#3}}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+
+%  \begin{macro}{\color@b@x}
+% Internal macro for |\colorbox| and |\fcolorbox|.
+% \changes{v0.3b}{1994/09/14}
+%                {Macro added.}
+%    \begin{macrocode}
+\long\def\color@b@x#1#2#3{%
+ \setbox\z@\hbox{\kern\fboxsep{\set@color#3}\kern\fboxsep}%
+ \dimen@\ht\z@\advance\dimen@\fboxsep\ht\z@\dimen@
+ \dimen@\dp\z@\advance\dimen@\fboxsep\dp\z@\dimen@
+ {#1{#2\color@block{\wd\z@}{\ht\z@}{\dp\z@}%
+      \box\z@}}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%
+% \section{Extra Groups}
+% Turning on extra groups in the standard \LaTeX\ commands, so that
+% colour commands are scoped corectly.
+%
+% Like |\normalcolor|, the following five commands are defined in the
+% kernel, with empty definitions (|\relax|). This means that they can
+% be used to make macros in packages `colour safe'. The commands
+% will not have any effect unless a user also uses this colour
+% package, when the `active definitions' here will take effect and
+% keep colour commands correctly scoped.
+%
+% \begin{macro}{\color@setgroup}
+% This is to be used in contexts (eg `lrbox') where text is to be
+% saved and used after some other, unknown, text that may contain
+% colour commands. A matching |\color@endgroup| should be used at the
+% end of the text.
+% \changes{v0.2d}{1994/05/13}
+%     {Macro added}
+%    \begin{macrocode}
+\def\color@setgroup{\begingroup\set@color}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\color@begingroup}
+% This is to be used at the start of contexts that may contain colour
+% commands, but where it is not necessary to save the current colour.
+% Examples of this are in the box commands of |ltboxes.dtx| where
+% user-supplied text is saved internally in a box between
+% |\color@begingroup|, |\color@endgroup|, but the box is used before
+% any other colour commands could intervene. A matching
+% |\color@endgroup| should be used at the  end of the text.
+% \changes{v0.2d}{1994/05/13}
+%     {New definition, was previously like \cs{color@setgroup}}
+%    \begin{macrocode}
+\let\color@begingroup\begingroup
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\color@endgroup}
+% To be used to close the `group' started by one of the above two
+% commands. The |\endgraf| in its definition is required in the case
+% of groups of text in vertical `par' mode, but doesn't do any harm in
+% horizontal `LR' contexts.
+% \changes{v0.2d}{1994/05/13}
+%     {New definition, was previously just \cs{endroup}}
+%    \begin{macrocode}
+\def\color@endgroup{\endgraf\endgroup}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\color@hbox}
+% To be used to open a `coloured hbox'
+% \changes{v0.3g}{1994/11/08}
+%     {Macro added}
+%    \begin{macrocode}
+\def\color@hbox{\hbox\bgroup\color@begingroup}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\color@vbox}
+% To be used to open a `coloured hbox'
+% \changes{v0.3h}{1994/11/22}
+%     {Macro added}
+%    \begin{macrocode}
+\def\color@vbox{\vbox\bgroup\color@begingroup}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\color@endbox}
+% To be used to close a `coloured hbox'
+% \changes{v0.3g}{1994/11/08}
+%     {Macro added}
+%    \begin{macrocode}
+\def\color@endbox{\color@endgroup\egroup}
+%    \end{macrocode}
+%  \end{macro}
+%
+% \section{Remaining changes}
+%
+% \changes{v0.2d}{1994/05/13}
+%     {tabbing support removed (now in kernel)}
+%
+% \begin{macro}{\underbar}
+%    \begin{macrocode}
+\def\underbar#1{%
+  $\setbox\z@\hbox{\color@begingroup#1\color@endgroup}%
+  \dp\z@\z@\m@th\underline{\box\z@}$}
+%    \end{macrocode}
+%  \end{macro}
+%
+% \changes{v0.3h}{1994/11/22}
+%     {marginpar, phantom and smash now supported in kernel}
+%
+% \begin{macro}{\showhyphens}
+%    \begin{macrocode}
+\def\showhyphens#1{\setbox0\vbox{%
+  \color@begingroup
+  \parfillskip\z@skip\hsize\maxdimen
+  \reset@font
+  \pretolerance\m@ne\tolerance\m@ne\hbadness0\showboxdepth0\ %
+    #1%
+  \color@endgroup}}
+%    \end{macrocode}
+%  \end{macro}
+%
+%
+% \section{Predefining Colours}
+%
+% As long as the driver file has defined sufficient colour models, we
+% define a few colours, just to get people started.
+%
+% \begin{macro}{black}
+% \begin{macro}{white}
+% Black and white `colours'.
+%    \begin{macrocode}
+\ifx\color@gray\@undefined
+  \ifx\color@rgb\@undefined
+  \else
+    \definecolor{black}{rgb}{0,0,0}
+    \definecolor{white}{rgb}{1,1,1}
+  \fi
+\else
+  \definecolor{black}{gray}{0}
+  \definecolor{white}{gray}{1}
+\fi
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{red}
+% \begin{macro}{green}
+% \begin{macro}{blue}
+% Additive primaries.
+%    \begin{macrocode}
+\ifx\color@rgb\@undefined\else
+  \definecolor{red}{rgb}{1,0,0}
+  \definecolor{green}{rgb}{0,1,0}
+  \definecolor{blue}{rgb}{0,0,1}
+\fi
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{cyan}
+% \begin{macro}{magenta}
+% \begin{macro}{yellow}
+% Subtractive primaries.
+%    \begin{macrocode}
+\ifx\color@cmyk\@undefined\else
+  \definecolor{cyan}{cmyk}{1,0,0,0}
+  \definecolor{magenta}{cmyk}{0,1,0,0}
+  \definecolor{yellow}{cmyk}{0,0,1,0}
+\fi
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+%</package>
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+%
+% \section{And Finally}
+%
+% Restore Catcodes
+%    \begin{macrocode}
+\Gin@codes
+\let\Gin@codes\relax
+%    \end{macrocode}
+%
+% \Finale
+%

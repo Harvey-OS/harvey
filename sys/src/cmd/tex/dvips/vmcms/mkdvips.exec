@@ -1,0 +1,521 @@
+/* MKDVIPS exec: a make-like utility for DVIPS on VM/CMS.         */
+/* This is version 2.0 as of 10 Nov. 1992.                        */
+/* Written by Jim Hafner (hafner@almaden.ibm.com).                */
+/*                                                                */
+/* Command is:                                                    */
+/*     mkdvips options                                            */
+/* where options includes any or all of the following keywords:   */
+/*     DVIPS HEADERS AFM2TFM CLEAN ALL ?                          */
+/* The '?" option displays this header.  Any of the first three   */
+/* will cause only that part of the installation/compilation to   */
+/* be done.  'CLEAN' removes all the TEXT and LOAD MAP files      */
+/* after everthing is complete.  Finally, 'ALL' is equivalent to  */
+/* specifying the first four options together.                    */
+/*                                                                */
+/* There are more comments in the exec itself that might be of    */
+/* interest to installers.                                        */
+
+/* END OF HEADER (this line must be preceded by a blank line) */
+
+/*
+ * This is part of the VM/CMS distribution of Rokicki's DVIPS program.
+ * Installers may need to customize this exec extensively, though we
+ * have tried to make it as generic as possible.
+ *
+ * You are welcome to modify this exec in any way you choose.
+ *
+ * ************* SITE DEPENDENCIES************************************
+ * This EXEC is designed for the C/370 compiler.  It surely NOT work
+ * without revision with other compilers like Waterloo C.  Changes
+ * will probably be required in the sections where the compiler
+ * environments are set up, in the 'compile' procedure, in the 'makemod'
+ * procedure, in the system dependent defines (SYSDEFS) and in
+ * the compiler option flags (OPT).
+ * ****** End of SITE DEPENDENCIES************************************
+ *
+ *  11/10/92.  Significantly revised to make it easier to maintain
+ *  and update with new source files and to be a little snazzier.
+ *  -- Any new .c files should be added to the SRC list.
+ *  -- Any new .pro (target) files should be added to the HEADERS list.
+ *
+ *  -- Now, all source files are compiled by scanning a list and calling
+ *     a procedure for each name in the list. Similarly for header files.
+ *     Also, we get return codes from each call to CC and CMOD so that
+ *     we can exit early if there are any problems.
+ *
+ *  -- We've also rearranged the DEFS a little more logically.  There is
+ *     one DEF for each of the system independent stuff like 'specials'
+ *     (all the TeX installation dependencies) and one for ALL the
+ *     system dependent stuff.
+ *
+ *  -- There are some places in this code that are site dependent.  We
+ *     have tried to label them with SITE DEPENDENCIES, to help you
+ *     find them and adjust them for your system.
+ *
+ *  -- For fun, we added some command line options to this exec to allow
+ *     users to compile only DVIPS, only AFM2TFM, only the header files,
+ *     all of them or combinations.  In this way, if parts of the
+ *     installation work OK, you don't need to repeat the successes
+ *     for the other parts OR have to hack at this exec to comment out
+ *     the irrelevant parts.
+ *     The recognized command line keywords are
+ *        DVIPS HEADERS AFM2TFM CLEAN ALL ?
+ *     Specifying no keywords is the same as DVIPS HEADERS AFM2TFM.
+ *     Specifying CLEAN removes all the * TEXT  and * MAP files and
+ *     can be used with any other keywords.
+ *     Specifying ALL does all four operations.
+ *     Specifying ? calls the help utility.
+ *
+ *  -- To get even more fancy, this exec now tries to simulate the
+ *     Unix 'make' utility.  It compares the time stamp of the TEXT
+ *     files with that of the C file and ALL H files and only calls
+ *     the compiler if TEXT is older.  We hope the algorithms are
+ *     robust enough and will make recompiling and tweaking easier.
+ *     (We only do this with the compile operation, not with the
+ *     CMOD or SQUEEZE operations for simplicity.)
+ *     See the comments below on 'SITE DEPENDENCIES -- H FILES' for
+ *     more information.
+ *
+ * THANKS:
+ *   We gratefully acknowledge the help, suggestions and testing done by
+ *   all the others who have contributed to the VM/CMS port.  Most
+ *   notably, are Ronald Kappert (R.Kappert@uci.kun.nl), Alessio
+ *   Guglielmi (ALESSIO@IPISNSIB.BITNET) and Michel Goossens
+ *   (goossens@cernvm.cern.ch).
+ */
+
+address 'COMMAND'
+
+/* initialize the booleans for command line selections */
+dodvips = 0 ; doheaders = 0 ; doafm2tfm = 0 ; doclean = 0 ;
+
+
+/* ************* SITE DEPENDENCIES -- H FILES ***********************
+   we are going to search for the newest of all the H files around.
+   so we can use that date to compare against TEXT files for a need
+   to recompile.   We default to '*' in case you have the DVIPS
+   H files on two separate disks (e.g., you keep the originals on
+   your B-disk and only the ones you change on your A-disk as I
+   do when I'm testing or having to make lots of changes.  This
+   default will perhaps mean very extensive searching for newest
+   H file.  If you have all your DVIPS H files on one disk to stay,
+   then you can change the default to that disk letter.
+   ****** End of SITE DEPENDENCIES -- H FILES ***********************/
+HfileMode = '*'
+
+/* We grab the command line: */
+parse upper arg args
+if 'WORDS'(args) == 0 then do
+      dodvips = 1 ;
+      doheaders = 1 ;
+      doafm2tfm = 1 ;
+      end ;
+else do i = 1 to 'WORDS'(args)
+select ;
+   when 'WORD'(args,i) == "ALL" then do
+      dodvips = 1 ;
+      doheaders = 1 ;
+      doafm2tfm = 1 ;
+      doclean = 1 ;
+      end ;
+   when 'WORD'(args,i) == "DVIPS" then do
+      dodvips = 1 ;
+      end ;
+   when 'WORD'(args,i) == "HEADERS" then do
+      doheaders = 1 ;
+      end ;
+   when 'WORD'(args,i) == "AFM2TFM" then do
+      doafm2tfm = 1 ;
+      end ;
+   when 'WORD'(args,i) == "CLEAN" then do
+      doclean = 1 ;
+      end ;
+   when 'WORD'(args,i) == "?" then do
+      call show_header ;
+      end ;
+   otherwise do
+say "Command option "'WORD'(args,i)" not recognized and will be ignored."
+      end ;
+   end ;
+end i
+
+/* check that there is still something to do */
+if dodvips + doheaders + doafm2tfm + doclean == 0 then do
+   say "You didn't specify (correctly) any legitimate keyword." ;
+   say "Please try again." ;
+   exit ;
+   end ;
+
+
+/*
+ * If you DON'T want EMTEX specials, define the following.
+ * EMTEX = " "
+ */
+EMTEX = "DEF(EMTEX)"
+
+/*
+ * If you DON'T want TPIC specials, define the following.
+ * TPIC = " "
+ */
+TPIC = "DEF(TPIC)"
+
+/*
+ * the default paper format, if other than letter. Not sure about syntax.
+ * DEFPFMT = 'DEFPFMT=\"a4\"'
+ * (This flag no longer needed.)
+*/
+/* DEFPFMT = ' ' */
+
+/*
+ * set the default resolution with the command below, appropriately.
+*/
+DEFRES = "DEF(DEFRES=300)"
+
+/*
+ * set this if you want DVIPS's debugging capability
+ */
+DEBUG = "DEF(DEBUG)"
+
+/* Collect all the TeX/dvips installation dependencies together */
+TEXDEFS = EMTEX TPIC DEFRES DEBUG
+
+/*
+ * Next we build up the PATHS, these are all null of course, but
+ * they are needed in 5.472+ since paths.h doesn't predefine them
+ * anymore
+*/
+TFMPATH = 'TFMPATH=\" \" '
+PKPATH = 'PKPATH=\" \" '
+VFPATH = 'VFPATH=\" \" '
+FIGPATH = 'FIGPATH=\" \" '
+HEADERPATH = 'HEADERPATH=\" \" '
+CONFIGPATH = 'CONFIGPATH=\" \" '
+PATHS = "DEF("TFMPATH", "PKPATH", "VFPATH", "FIGPATH", "HEADERPATH",
+   "CONFIGPATH")"
+
+/* Add a default configuration file */
+CONFIGFILE = 'DEF(CONFIGFILE=\"CONFIG.PS\")'
+
+
+/*
+ * ************* SITE DEPENDENCIES************************************
+ * These are for system dependent DEFs.
+ * You must use VMCMS for this operating system.
+ * You must use SYSV and IGNORE_CWD for C/370 (don't know about
+ * Waterloo C).
+*/
+SYSDEFS = "DEF(VMCMS, SYSV, IGNORE_CWD)"
+
+/*
+ * Use OPT for compiler instructions.
+ * For C/370, FLAG(W) suppresses the warnings with RC>=4;
+ * OPT can include tags for optimizing the code or LONGNAME if you have
+ * version 2.1 or later, e.g.,
+ *  OPT = "FLAG(W) LONGNAME INLINE OPTIMIZE(2)"
+ */
+OPT = "FLAG(W)"
+/******** End of SITE DEPENDENCIES ************************************/
+
+CFLAGS = SYSDEFS OPT TEXDEFS PATHS CONFIGFILE
+
+/*
+ * Here is a list of all the source files that need to be compiled.
+ * All .c files that are part of DVIPS itself should be listed here.
+ * Do NOT include SQUEEZE or AFM2TFM!
+ */
+
+SRC = "dospecial.c dviinput.c fontdef.c loadfont.c dvips.c tfmload.c" ,
+    "download.c prescan.c scanpage.c skippage.c output.c scalewidth.c",
+    "dosection.c dopage.c resident.c search.c unpack.c drawPS.c",
+    "header.c makefont.c repack.c virtualfont.c dpicheck.c finclude.c",
+    "flib.c color.c papersiz.c pprescan.c bbox.c emspecial.c"
+
+/*
+ * Here is the list of all the TARGET prologue files that need to
+ * be generated.  This should include TEXC even though TEXC.LPRO
+ * is built during the running of this exec.
+ */
+
+HEADERS = "tex texc texps special finclude color crop"
+
+
+/*
+ * Here we build the listof object files and load files from SRC.
+ * we don't need OBJ list of *.text files so we comment out that
+ * part of the code, in case it might be needed at a later time.
+ */
+OBJ = "" ; CMODOBJ = ""
+
+do i = 1 to 'WORDS'(SRC)
+   fullfilename = 'STRIP'('WORD'(SRC,i))
+   filename = 'STRIP'('STRIP'(fullfilename,T,'c'),T,'.')
+   upper filename
+/* OBJ = OBJ filename".text" */
+   if "DVIPS" ^= 'STRIP'(filename) then  /* we don't include DVIPS! */
+      CMODOBJ = CMODOBJ filename ;
+   end i
+
+/*
+ * Now we get the time stamp for the most recent H file.  See the
+ * comments above (near the line about 'HfileMode' for more information.
+ * 'checkHfiles' computes the time stamp for the most recent H file,
+ * on the assumption that if one of these is newer than any TEXT file,
+ * then we will need to recompile everything.
+ */
+call checkHfiles
+/*
+ * now that all the flags are set, we invoke the compiler on every
+ * .c file and then do the final linking for the DVIPS.MODULE,
+ * provided we were requested to do so at the beginning.
+ * We do this by parsing the words in the string CMODOBJ.
+ */
+
+/*
+ *************** SITE DEPENDENCIES************************************
+ * Now we finally access all the necessary disks and libraries.
+ * YOU WILL NEED TO CUSTOMIZE THIS FOR YOUR SITE, PARTICULARLY THE 'GIME'
+ * LINES TO ACCESS THE C/370 PROGRAMS.
+ * (Commented commands are optional (I think).
+ */
+'EXEC GIME PRODUCT 387'
+/* now reset libraries, saving the current library state also */
+
+call resetLibs
+
+/* 'SET CMSTYPE HT' */
+'FILEDEF EDC DISK EDCLINK LOADLIB *(PERM'
+/* 'NUCXDROP EDCXV'
+   'NUCXDROP EDCX24' */
+'NUCXLOAD EDCXV EDCXV EDC(SYSTEM'
+'NUCXLOAD EDCX24 EDCX24 EDC(SYSTEM'
+/* 'SET CMSTYPE RT' */
+/******* End of SITE DEPENDENCIES*************************************/
+
+if dodvips == 1 then do
+   call compile dvips  ;   /* we have to do this separate since it's
+                              not part of CMODOBJ */
+   do i = 1 to 'WORDS'(CMODOBJ)
+      filename = 'WORD'(CMODOBJ,i) ;
+      call compile filename ;
+      end i ;
+   call makemod dvips CMODOBJ /* Link Time, if compiling worked OK */
+end /* dodvips */
+
+/* build the SQUEEZE MODULE */
+if doheaders == 1 then do
+   call compile squeeze  ;
+   call makemod squeeze  ;
+/*
+ * Time to build the header files.
+ * First we build TEXC.LPRO and then run the list of headers
+ */
+   say "EXEC TEXC TEX.LPRO TEXC.LPRO" ;
+       "EXEC TEXC TEX.LPRO TEXC.LPRO" ;
+   do i = 1 to 'WORDS'(HEADERS)
+       filename = 'STRIP'(WORD(HEADERS,i)) ;
+       call dosqueeze filename ;
+       end i
+end /* doheaders */
+
+/* Time to build the AFM2TFM program */
+if doafm2tfm == 1 then do
+   call compile afm2tfm ;
+   call makemod afm2tfm ;
+end /* doafm2tfm */
+
+/*
+ * If we got this far, (and did something) then everything went
+ * well and we can quit.
+ */
+
+if dodvips + doheaders + doafm2tfm > 0 then do
+   say " " ;
+   say "If you didn't get any compiler errors, then";
+   say "I've completed creating all the necessary files and modules." ;
+   say "You should check that the EXEC's supplied with the package run" ;
+   say "correctly on your machine." ;
+end
+
+if doclean == 1 then do
+   say "Will now clean up * TEXT and LOAD MAP files as requested."
+   "ERASE * TEXT" ;
+   "ERASE LOAD MAP" ;
+   end ;
+
+/* restore original library settings before exiting */
+call restoreLibs ;
+exit 0
+
+/* here are the procedures that we use */
+
+compile:
+   arg filename
+/* do a check to see if this needs to be recompiled (i.e., if time stamp
+   on C file or any H file is newer than existing TEXT file */
+   do_newer = checknewer(filename)
+   if do_newer = 1 then do
+      say " "
+      say "EXEC CC "filename" ("CFLAGS ;
+          "EXEC CC "filename" ("CFLAGS ;
+      ccrc = rc
+      if ccrc > 4  then do  /* exit if compiler complained too much */
+         say "Compiler failed on file "filename"." ;
+         call restoreLibs ; /* restore original libraries before exit */
+         exit(ccrc) ;
+         end ;
+      end ;
+   return ;
+
+
+makemod: procedure
+   arg modname objects
+   say " "
+   say "EXEC CMOD "modname objects ;
+       "EXEC CMOD "modname objects ;
+/* check return code from CMOD and exit if not zero */
+   cmodrc = rc ;
+   if cmodrc ^= 0 then do
+      say " " ;
+      say "LOAD and/or GENMOD failed generating the "modname" MODULE." ;
+      say "Quiting until you can resolve the problems." ;
+      call restoreLibs ; /* restore original libraries before exit */
+      exit(cmodrc) ;
+      end ;
+    return ;
+
+dosqueeze: procedure
+    arg filename
+    say " "
+    say "SQUEEZE "filename".LPRO "filename".PRO" ;
+        "SQUEEZE "filename".LPRO "filename".PRO" ;
+    return ;
+
+checknewer:
+    upper arg filename
+    do_newer = 0
+/* get time stamp for C file */
+    call getTimeStamp filename 'C'
+    c_date = file_date
+    c_time = file_time
+/* get time stamp for TEXT file */
+    call getTimeStamp filename 'TEXT'
+    text_date = file_date
+    text_time = file_time
+/* check time stamp of C file against time stamp of TEXT file */
+    if c_date > text_date then do_newer = 1
+    else if ( c_date = text_date & c_time > text_time ) then do_newer = 1
+/* check time stamp of all H files against time stamp of TEXT file */
+    if h_date > text_date then do_newer = 1
+    else if ( h_date = text_date & h_time > text_time ) then do_newer = 1
+/* return value 1 if C or H is newer */
+    return do_newer
+
+getTimeStamp: procedure expose file_date file_time
+   arg fn ft
+   'STATE' fn ft '*'
+   if  rc ^= 0 then
+      if ( ft = 'TEXT' ) then do
+        file_date = 0
+        file_time = 0
+        return
+        end
+      else do
+        file_date = 999999
+        file_time = 999999
+        return
+      end
+   'MAKEBUF'
+   'LISTFILE' fn ft '* (NOHEADER DATE STACK'
+   pull fn ft fm . . . . file_date file_time .
+   parse var file_date file_month'/'file_day'/'file_year
+   parse var file_time file_hour':'file_minute':'file_second
+   if file_month < 10 then file_month = '0'||file_month
+   file_date = file_year||file_month||file_day
+   file_time = file_hour||file_minute||file_second
+   'DROPBUF'
+   return
+
+
+checkHfiles: procedure expose h_date h_time HfileMode
+   maxH_date = 0
+   maxH_time = 0
+   'MAKEBUF'
+/***************** SITE DEPENDENCIES -- H FILES ************************
+   We search ALL H files everywhere since it could be that the
+   files in the DVIPS package live on different disks.  We
+   hope this is still fast enough, particularly since it is
+   only called once.  Besides, it is unlikely that the H files
+   for other NON-DVIPS programs will get changed during the compiling
+   and building of DVIPS
+ *
+   If you have all your H files for DVIPS on a single disk (even
+   the ones you might have a need to edit) then you can change
+   the value of HfileMode at the beginning of this exec.
+ ********* End of SITE DEPENDENCIES -- H FILES ************************/
+   'LISTFILE * H' HfileMode '(NOHEADER DATE STACK'
+   if rc ^= 0 then do
+      say "Couldn't find any H files!  Are the right disks accessed?"
+      say "I'll exit until you can figure this out."
+      exit 200
+      end
+   cnt=queued()
+   do i = 1 to cnt
+   pull fn ft fm . . . . f_date f_time .
+   parse var f_date f_month'/'f_day'/'f_year
+   parse var f_time f_hour':'f_minute':'f_second
+   if f_month < 10 then f_month='0'||f_month
+   f_date = f_year||f_month||f_day
+   f_time = f_hour||f_minute||f_second
+   if f_date > maxH_date then do
+      maxH_date = f_date
+      maxH_time = f_time
+      end
+   else if ( f_date = maxH_date & f_time > maxH_time ) then do
+      maxH_date = f_date
+      maxH_time = f_time
+      end
+   end
+   'DROPBUF'
+   h_date = maxH_date
+   h_time = maxH_time
+   return
+
+
+Savelibs: procedure
+   arg library
+   'MAKEBUF';
+   tmplibs = ''
+   'QUERY' library '(STACK'
+   do i = 1 to queued()
+     pull Mode Eq_sign Tmptmplibs
+     if Tmptmplibs = 'NONE' then tmplibs = ''
+        else tmplibs = tmplibs Tmptmplibs
+   end;
+   'DROPBUF';
+   return tmplibs  ;
+
+resetLibs:
+   /* get current status of library settings */
+   Txtlibs=Savelibs(TXTLIB)
+   Loadlibs=Savelibs(LOADLIB)
+   /* Establish environment for compiler */
+   'GLOBAL TXTLIB IBMLIB EDCBASE'
+   'GLOBAL LOADLIB EDCLINK'
+   return ;
+
+restoreLibs:
+   'GLOBAL TXTLIB' Txtlibs
+   'GLOBAL LOADLIB' Loadlibs
+   return ;
+
+show_header:
+   index=1
+   line=Sourceline(index)
+   Do While Substr(line,1,2)="/*"
+      parse var line '/*' middle '*/'
+      Say middle
+      index=index+1
+      line=Sourceline(index)
+      End
+   Exit
+

@@ -1,9 +1,11 @@
 #include <libg.h>
 
+typedef unsigned char uchar;
+
 void
 cursorset(Point p)
 {
-	unsigned char *buf;
+	uchar *buf;
 
 	buf = bneed(9);
 	buf[0] = 'x';

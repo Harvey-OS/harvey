@@ -1,22 +1,35 @@
 objtype=mips
 </$objtype/mkfile
 
-n = l main screen devscc print kbd queue chat bio devscsi trap fblt defont0
-o = ${n:%=%.$O}
+OFILES=\
+	l.$O\
+	main.$O\
+	screen.$O\
+	devscc.$O\
+	print.$O\
+	kbd.$O\
+	queue.$O\
+	chat.$O\
+	bio.$O\
+	devscsi.$O\
+	trap.$O\
+	fblt.$O\
+	defont0.$O\
 
+HFILES=\
+	all.h\
+	dat.h\
+	fns.h\
+	io.h\
+	lib.h\
+	mem.h\
+	u.h\
+
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+all:V:		partboot
 install:V:	partboot
-
-boot:	$o
-	$LD -o $target -l -R4 -H1 -T0x80600000 $prereq -lgnot -lg -lc
-
-partboot: boot bstrip
-	bstrip boot >$target
-
-bstrip:	bstrip.$O
-	$LD -o $target $prereq
-
-clean:V:
-	rm -f *.$O bstrip boot
+installall:V:	partboot
 
 %.$O:	%.s
 	$AS $stem.s
@@ -24,4 +37,22 @@ clean:V:
 %.$O:	%.c
 	$CC -w $stem.c
 
-%.$O:	u.h lib.h mem.h dat.h fns.h io.h
+%.$O:	$HFILES
+
+bstrip.$O:	mips.out.h dvh.h
+main.$O trap.$O:	/$objtype/include/ureg.h
+
+partboot: boot $cpuobjtype.bstrip
+	$cpuobjtype.bstrip boot >$target
+
+boot:	$OFILES
+	$LD -o $target -l -R4 -H1 -T0x80600000 $prereq -lgnot -lg -lc
+
+$cpuobjtype.bstrip:	bstrip.$cpuobjtype
+	$cpuobjtype^l -o $target bstrip.$cpuobjtype
+
+bstrip.$cpuobjtype:	bstrip.c
+	$cpuobjtype^c -w bstrip.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].bstrip boot

@@ -1,0 +1,60 @@
+Thu May 14 19:22:45 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Sat Apr 25 09:15:13 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (libs): new variable to abbreviate `../lib/lib.a ($LIBS)'.
+
+Thu Apr 23 08:17:14 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (web2cy.h): new target, depends on web2cy.c (from Andreas).
+
+        * web2c.c (main): fclose coerce.h.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Wed Apr  8 15:38:41 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (regfix,fixwrites,splitup): link with lib.a.
+        * {regfix,fixwrites,splitup,web2c}.c: use uexit, not exit.
+
+Fri Apr  3 09:56:27 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Thu Apr  2 16:32:56 1992  Karl Berry  (karl@hal)
+
+        * Makefile (.SUFFIXES): add rule for .c.o.
+
+Thu Apr  2 13:38:45 1992  Karl Berry  (karl at ds1.cs.umb.edu)
+
+        * web2c.yacc (labs): rename to `my_labs', to avoid conflict with
+          system `labs'.
+
+Sat Mar 28 16:36:58 1992  Karl Berry  (karl at hayley)
+
+        * fixwrites.c, regfix.c, splitup.c, web2c.c (main): return int,
+          use EXIT_SUCCESS_CODE instead of zero.
+
+Fri Mar 20 16:43:17 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the program.
+
+Fri Jan 24 09:19:24 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+Sat Jan 11 17:33:14 1992  Karl Berry  (karl at hayley)
+
+        * web2c.lex: #undef read after the #include's, since the scanner
+          does a system call.
+
+        * Makefile: rearrange for new configuration.
+
+        * splitup.c (FILENAMESIZE): rename to `PATH_MAX'.

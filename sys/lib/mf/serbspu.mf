@@ -1,11 +1,38 @@
-%% SERBSPU.MF                     June 1990
-%% This Metafont file is part of AMSFonts 2.0.
-%% Cyrillic fonts developed at the Humanities and Arts Computing Center
-%% at the University of Washington.
-%% All rights reserved.  Copying of this file is authorized only if either:
-%%   (1) you make absolutely no changes to your copy including filename; OR
-%%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="serbspu.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: driver",
+%%     copyright="Copyright (C) Humanities and Arts Computing Center,
+%%            University of Washington;
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "29666 183 765 8548"
+%%     keywords="amsfonts, tex, metafont , cyrillic ",
+%%     abstract="This is the driver file for use with 
+%%            the cyrillic fonts in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %This is serbspu.mf containing serbian and other letters with offsets
 %of 8 between upper and lower case.
 %spu = separate upper and lower case.
@@ -154,4 +181,3 @@ arm(53,54,m,beak_darkness,.7beak_jut);  % right arm and beak
 pos55(hair,180); x55=w-x54-4u; y55=y54;
 arm(53,55,p,beak_darkness,-.7beak_jut);  % left arm and beak
 math_fit(0,.5ic#); penlabels(1,2,3,4,5,6,7,8,9,10,11,12); endchar;
-

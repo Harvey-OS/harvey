@@ -63,7 +63,9 @@ enum
 
 	/* wr 11 */
 	TRxCOutBR=	2,
+	TxClockTRxC=	1<<3,
 	TxClockBR=	2<<3,
+	RxClockTRxC=	1<<5,
 	RxClockBR=	2<<5,
 	TRxCOI=		1<<2,
 
@@ -92,19 +94,19 @@ struct SCC
 {
 	QLock;
 	ushort	sticky[16];	/* sticky write register values */
-	uchar	*ptr;		/* command/pointer register in Z8530 */
-	uchar	*data;		/* data register in Z8530 */
+	uchar*	ptr;		/* command/pointer register in Z8530 */
+	uchar*	data;		/* data register in Z8530 */
 	int	printing;	/* true if printing */
 	ulong	freq;		/* clock frequency */
 	uchar	mask;		/* bits/char */
 
 	/* console interface */
 	int	special;	/* can't use the stream interface */
-	IOQ	*iq;		/* input character queue */
-	IOQ	*oq;		/* output character queue */
+	IOQ*	iq;		/* input character queue */
+	IOQ*	oq;		/* output character queue */
 
 	/* stream interface */
-	Queue	*wq;		/* write queue */
+	Queue*	wq;		/* write queue */
 	Rendez	r;		/* kproc waiting for input */
  	int	kstarted;	/* kproc started */
 
@@ -113,6 +115,7 @@ struct SCC
 	int	blocked;	/* abstinence */
 };
 
+int	invrtsdtr;	/* set to 1 on indigo's */
 int	nscc;
 SCC	*scc[8];	/* up to 4 8530's */
 #define CTLS	023
@@ -233,12 +236,30 @@ sccbits(SCC *sp, int n)
 }
 
 /*
+ *  set/clear external clock mode; the indigo uses the CTS pin,
+ *  so we disable external interrupts.
+ */
+void
+sccextclk(SCC *sp, int n)
+{
+	if(n){
+		sp->sticky[1] &= ~ExtIntEna;
+		sp->sticky[11] = TxClockTRxC | RxClockTRxC;
+	}else{
+		sp->sticky[1] |= ExtIntEna;
+		sp->sticky[11] = TxClockBR | RxClockBR | TRxCOutBR;
+	}
+	sccwrreg(sp, 1, 0);
+	sccwrreg(sp, 11, 0);
+}
+
+/*
  *  toggle DTR
  */
 void
 sccdtr(SCC *sp, int n)
 {
-	if(n)
+	if((n!=0)^invrtsdtr)
 		sp->sticky[5] |= TxDTR;
 	else
 		sp->sticky[5] &=~TxDTR;
@@ -251,7 +272,7 @@ sccdtr(SCC *sp, int n)
 void
 sccrts(SCC *sp, int n)
 {
-	if(n)
+	if((n!=0)^invrtsdtr)
 		sp->sticky[5] |= TxRTS;
 	else
 		sp->sticky[5] &=~TxRTS;
@@ -275,6 +296,27 @@ sccbreak(SCC *sp, int ms)
 		sp->sticky[1] |= TxIntEna;
 		sccwrreg(sp, 1, 0);
 	}
+}
+
+/*
+ *  set number of stop bits
+ */
+void
+sccnstop(SCC *sp, char code)
+{
+	sp->sticky[4] &=~Rx2stop;
+	switch(code){
+	default:
+		sp->sticky[4] |= Rx1stop;
+		break;
+	case 'h':
+		sp->sticky[4] |= Rx1hstop;
+		break;
+	case '2':
+		sp->sticky[4] |= Rx2stop;
+		break;
+	}
+	sccwrreg(sp, 4, 0);
 }
 
 /*
@@ -336,6 +378,33 @@ sccsetup(void *addr, ulong freq, int brsource)
 	sp->freq = freq;
 	sccsetup0(sp, brsource);
 	nscc += 2;
+}
+
+void
+sccputc(int port, char ch)
+{
+	SCC *sp;
+
+	sp = scc[port];
+	for(;;) {
+		onepointseven();
+		if(*sp->ptr & TxReady)
+			break;
+	}
+	onepointseven();
+	*sp->data = ch;
+}
+
+int
+iprint(char *fmt, ...)
+{
+	int n, i;
+	char buf[512];
+
+	n = doprint(buf, buf+sizeof(buf), fmt, (&fmt+1)) - buf;
+	for(i = 0; i < n; i++)
+		sccputc(1, buf[i]);
+	return n;
 }
 
 /*
@@ -413,6 +482,7 @@ sccintr0(SCC *sp, uchar x)
 		unlock(cq);
 	}
 }
+
 int
 sccintr(void)
 {
@@ -485,6 +555,13 @@ void
 sccspecial(int port, IOQ *oq, IOQ *iq, int baud)
 {
 	SCC *sp = scc[port];
+
+	/* let output drain */
+	if(sp->oq){
+		while(cangetc(sp->oq))
+			sleep(&sp->oq->r, cangetc, sp->oq);
+		tsleep(&sp->oq->r, cangetc, sp->oq, 50);
+	}
 
 	sp->special = 1;
 	sp->oq = oq;
@@ -585,7 +662,9 @@ sccoput(Queue *q, Block *bp)
 		nexterror();
 	}
 	if(bp->type == M_CTL){
-		while (cangetc(cq))	/* let output drain */
+		if(*bp->rptr == '!')	/* do it now! */
+			++bp->rptr;
+		else while(cangetc(cq))	/* else let output drain */
 			sleep(&cq->r, cangetc, cq);
 		n = strtoul((char *)(bp->rptr+1), 0, 0);
 		switch(*bp->rptr){
@@ -595,6 +674,10 @@ sccoput(Queue *q, Block *bp)
 				sccbreak(sp, 0);
 			else
 				sccsetbaud(sp, n);
+			break;
+		case 'C':
+		case 'c':
+			sccextclk(sp, n);
 			break;
 		case 'D':
 		case 'd':
@@ -616,6 +699,10 @@ sccoput(Queue *q, Block *bp)
 		case 'R':
 		case 'r':
 			sccrts(sp, n);
+			break;
+		case 'S':
+		case 's':
+			sccnstop(sp, *(bp->rptr+1));
 			break;
 		case 'W':
 		case 'w':

@@ -1,0 +1,7827 @@
+%!PS-Adobe-2.0
+%%Version: 0.1
+%%DocumentFonts: (atend)
+%%Pages: (atend)
+%%EndComments
+%
+% Version 3.3.2 prologue for troff files.
+%
+
+/#copies 1 store
+/aspectratio 1 def
+/formsperpage 1 def
+/landscape false def
+/linewidth .3 def
+/magnification 1 def
+/margin 0 def
+/orientation 0 def
+/resolution 720 def
+/rotation 1 def
+/xoffset 0 def
+/yoffset 0 def
+
+/roundpage true def
+/useclippath true def
+/pagebbox [0 0 612 792] def
+
+/R  /Times-Roman def
+/I  /Times-Italic def
+/B  /Times-Bold def
+/BI /Times-BoldItalic def
+/H  /Helvetica def
+/HI /Helvetica-Oblique def
+/HB /Helvetica-Bold def
+/HX /Helvetica-BoldOblique def
+/CW /Courier def
+/CO /Courier def
+/CI /Courier-Oblique def
+/CB /Courier-Bold def
+/CX /Courier-BoldOblique def
+/PA /Palatino-Roman def
+/PI /Palatino-Italic def
+/PB /Palatino-Bold def
+/PX /Palatino-BoldItalic def
+/Hr /Helvetica-Narrow def
+/Hi /Helvetica-Narrow-Oblique def
+/Hb /Helvetica-Narrow-Bold def
+/Hx /Helvetica-Narrow-BoldOblique def
+/KR /Bookman-Light def
+/KI /Bookman-LightItalic def
+/KB /Bookman-Demi def
+/KX /Bookman-DemiItalic def
+/AR /AvantGarde-Book def
+/AI /AvantGarde-BookOblique def
+/AB /AvantGarde-Demi def
+/AX /AvantGarde-DemiOblique def
+/NR /NewCenturySchlbk-Roman def
+/NI /NewCenturySchlbk-Italic def
+/NB /NewCenturySchlbk-Bold def
+/NX /NewCenturySchlbk-BoldItalic def
+/ZD /ZapfDingbats def
+/ZI /ZapfChancery-MediumItalic def
+/S  /S def
+/S1 /S1 def
+/GR /Symbol def
+
+/inch {72 mul} bind def
+/min {2 copy gt {exch} if pop} bind def
+
+/show {{//show} 0 get exec} bind def	% so later references don't bind
+/widthshow {{//widthshow} 0 get exec} bind def
+/stringwidth {{//stringwidth} 0 get exec} bind def
+
+/setup {
+	counttomark 2 idiv {def} repeat pop
+
+	landscape {/orientation 90 orientation add def} if
+	/scaling 72 resolution div def
+	linewidth setlinewidth
+	1 setlinecap
+
+	pagedimensions
+	xcenter ycenter translate
+	orientation rotation mul rotate
+	width 2 div neg height 2 div translate
+	xoffset inch yoffset inch neg translate
+	margin 2 div dup neg translate
+	magnification dup aspectratio mul scale
+	scaling scaling scale
+
+	addmetrics
+	0 0 moveto
+} def
+
+/pagedimensions {
+	useclippath userdict /gotpagebbox known not and {
+		/pagebbox [clippath pathbbox newpath] def
+		roundpage currentdict /roundpagebbox known and {roundpagebbox} if
+	} if
+	pagebbox aload pop
+	4 -1 roll exch 4 1 roll 4 copy
+	landscape {4 2 roll} if
+	sub /width exch def
+	sub /height exch def
+	add 2 div /xcenter exch def
+	add 2 div /ycenter exch def
+	userdict /gotpagebbox true put
+} def
+
+/addmetrics {
+	/Symbol /S null Sdefs cf
+	/Times-Roman /S1 StandardEncoding dup length array copy S1defs cf
+} def
+
+/pagesetup {
+	/page exch def
+	currentdict /pagedict known currentdict page known and {
+		page load pagedict exch get cvx exec
+	} if
+} def
+
+/decodingdefs [
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg /y exch def counttomark 2 idiv {y moveto show} repeat}
+	{neg moveto {2 index stringwidth pop sub exch div 0 32 4 -1 roll widthshow} repeat}
+	{neg moveto {spacewidth sub 0.0 32 4 -1 roll widthshow} repeat}
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg setfunnytext}
+] def
+
+/setdecoding {/t decodingdefs 3 -1 roll get bind def} bind def
+
+/w {neg moveto show} bind def
+/m {neg dup /y exch def moveto} bind def
+/done {/lastpage where {pop lastpage} if} def
+
+/f {
+	dup /font exch def findfont exch
+	dup /ptsize exch def scaling div dup /size exch def scalefont setfont
+	linewidth ptsize mul scaling 10 mul div setlinewidth
+	/spacewidth ( ) stringwidth pop def
+} bind def
+
+/changefont {
+	/fontheight exch def
+	/fontslant exch def
+	currentfont [
+		1 0
+		fontheight ptsize div fontslant sin mul fontslant cos div
+		fontheight ptsize div
+		0 0
+	] makefont setfont
+} bind def
+
+/sf {f} bind def
+
+/cf {
+	dup length 2 idiv
+	/entries exch def
+	/chtab exch def
+	/newencoding exch def
+	/newfont exch def
+
+	findfont dup length 1 add dict
+	/newdict exch def
+	{1 index /FID ne {newdict 3 1 roll put}{pop pop} ifelse} forall
+
+	newencoding type /arraytype eq {newdict /Encoding newencoding put} if
+
+	newdict /Metrics entries dict put
+	newdict /Metrics get
+	begin
+		chtab aload pop
+		1 1 entries {pop def} for
+		newfont newdict definefont pop
+	end
+} bind def
+
+%
+% A few arrays used to adjust reference points and character widths in some
+% of the printer resident fonts. If square roots are too high try changing
+% the lines describing /radical and /radicalex to,
+%
+%	/radical	[0 -75 550 0]
+%	/radicalex	[-50 -75 500 0]
+%
+% Move braceleftbt a bit - default PostScript character is off a bit.
+%
+
+/Sdefs [
+	/bracketlefttp		[201 500]
+	/bracketleftbt		[201 500]
+	/bracketrighttp		[-81 380]
+	/bracketrightbt		[-83 380]
+	/braceleftbt		[203 490]
+	/bracketrightex		[220 -125 500 0]
+	/radical		[0 0 550 0]
+	/radicalex		[-50 0 500 0]
+	/parenleftex		[-20 -170 0 0]
+	/integral		[100 -50 500 0]
+	/infinity		[10 -75 730 0]
+] def
+
+/S1defs [
+	/underscore		[0 80 500 0]
+	/endash			[7 90 650 0]
+] def
+%
+% Tries to round clipping path dimensions, as stored in array pagebbox, so they
+% match one of the known sizes in the papersizes array. Lower left coordinates
+% are always set to 0.
+%
+
+/roundpagebbox {
+    7 dict begin
+	/papersizes [8.5 inch 11 inch 14 inch 17 inch] def
+
+	/mappapersize {
+		/val exch def
+		/slop .5 inch def
+		/diff slop def
+		/j 0 def
+		0 1 papersizes length 1 sub {
+			/i exch def
+			papersizes i get val sub abs
+			dup diff le {/diff exch def /j i def} {pop} ifelse
+		} for
+		diff slop lt {papersizes j get} {val} ifelse
+	} def
+
+	pagebbox 0 0 put
+	pagebbox 1 0 put
+	pagebbox dup 2 get mappapersize 2 exch put
+	pagebbox dup 3 get mappapersize 3 exch put
+    end
+} bind def
+
+%%EndProlog
+%%BeginSetup
+mark
+%
+% Encoding vector and redefinition of findfont for the ISO Latin1 standard.
+% The 18 characters missing from ROM based fonts on older printers are noted
+% below.
+%
+
+/ISOLatin1Encoding [
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/space
+	/exclam
+	/quotedbl
+	/numbersign
+	/dollar
+	/percent
+	/ampersand
+	/quoteright
+	/parenleft
+	/parenright
+	/asterisk
+	/plus
+	/comma
+	/minus
+	/period
+	/slash
+	/zero
+	/one
+	/two
+	/three
+	/four
+	/five
+	/six
+	/seven
+	/eight
+	/nine
+	/colon
+	/semicolon
+	/less
+	/equal
+	/greater
+	/question
+	/at
+	/A
+	/B
+	/C
+	/D
+	/E
+	/F
+	/G
+	/H
+	/I
+	/J
+	/K
+	/L
+	/M
+	/N
+	/O
+	/P
+	/Q
+	/R
+	/S
+	/T
+	/U
+	/V
+	/W
+	/X
+	/Y
+	/Z
+	/bracketleft
+	/backslash
+	/bracketright
+	/asciicircum
+	/underscore
+	/quoteleft
+	/a
+	/b
+	/c
+	/d
+	/e
+	/f
+	/g
+	/h
+	/i
+	/j
+	/k
+	/l
+	/m
+	/n
+	/o
+	/p
+	/q
+	/r
+	/s
+	/t
+	/u
+	/v
+	/w
+	/x
+	/y
+	/z
+	/braceleft
+	/bar
+	/braceright
+	/asciitilde
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/dotlessi
+	/grave
+	/acute
+	/circumflex
+	/tilde
+	/macron
+	/breve
+	/dotaccent
+	/dieresis
+	/.notdef
+	/ring
+	/cedilla
+	/.notdef
+	/hungarumlaut
+	/ogonek
+	/caron
+	/space
+	/exclamdown
+	/cent
+	/sterling
+	/currency
+	/yen
+	/brokenbar		% missing
+	/section
+	/dieresis
+	/copyright
+	/ordfeminine
+	/guillemotleft
+	/logicalnot
+	/hyphen
+	/registered
+	/macron
+	/degree			% missing
+	/plusminus		% missing
+	/twosuperior		% missing
+	/threesuperior		% missing
+	/acute
+	/mu			% missing
+	/paragraph
+	/periodcentered
+	/cedilla
+	/onesuperior		% missing
+	/ordmasculine
+	/guillemotright
+	/onequarter		% missing
+	/onehalf		% missing
+	/threequarters		% missing
+	/questiondown
+	/Agrave
+	/Aacute
+	/Acircumflex
+	/Atilde
+	/Adieresis
+	/Aring
+	/AE
+	/Ccedilla
+	/Egrave
+	/Eacute
+	/Ecircumflex
+	/Edieresis
+	/Igrave
+	/Iacute
+	/Icircumflex
+	/Idieresis
+	/Eth			% missing
+	/Ntilde
+	/Ograve
+	/Oacute
+	/Ocircumflex
+	/Otilde
+	/Odieresis
+	/multiply		% missing
+	/Oslash
+	/Ugrave
+	/Uacute
+	/Ucircumflex
+	/Udieresis
+	/Yacute			% missing
+	/Thorn			% missing
+	/germandbls
+	/agrave
+	/aacute
+	/acircumflex
+	/atilde
+	/adieresis
+	/aring
+	/ae
+	/ccedilla
+	/egrave
+	/eacute
+	/ecircumflex
+	/edieresis
+	/igrave
+	/iacute
+	/icircumflex
+	/idieresis
+	/eth			% missing
+	/ntilde
+	/ograve
+	/oacute
+	/ocircumflex
+	/otilde
+	/odieresis
+	/divide			% missing
+	/oslash
+	/ugrave
+	/uacute
+	/ucircumflex
+	/udieresis
+	/yacute			% missing
+	/thorn			% missing
+	/ydieresis
+] def
+
+/NewFontDirectory FontDirectory maxlength dict def
+
+%
+% Apparently no guarantee findfont is defined in systemdict so the obvious
+%
+%	systemdict /findfont get exec
+%
+% can generate an error. So far the only exception is a VT600 (version 48.0).
+%
+
+userdict /@RealFindfont known not {
+	userdict begin
+		/@RealFindfont systemdict begin /findfont load end def
+	end
+} if
+
+/findfont {
+	dup NewFontDirectory exch known not {
+		dup
+		%dup systemdict /findfont get exec	% not always in systemdict
+		dup userdict /@RealFindfont get exec
+		dup /Encoding get StandardEncoding eq {
+			dup length dict begin
+				{1 index /FID ne {def}{pop pop} ifelse} forall
+				/Encoding ISOLatin1Encoding def
+				currentdict
+			end
+			/DummyFontName exch definefont
+		} if
+		NewFontDirectory 3 1 roll put
+	} if
+	NewFontDirectory exch get
+} bind def
+
+%%Patch from lp
+%%EndPatch from lp
+
+setup
+%%EndSetup
+%%Page: 1 1
+/saveobj save def
+mark
+1 pagesetup
+12 /LucidaSans-Demi f
+(Installing the) 1867 1230 w
+(Plan 9) 2727 1230 w
+(Distribution) 3143 1230 w
+10 /LucidaSans-Demi f
+(The software) 720 1920 w
+10 /LucidaSansUnicode00 f
+(The) 970 2076 w
+(distribution) 1199 2076 w
+(is) 1811 2076 w
+(packaged) 1939 2076 w
+(on) 2450 2076 w
+(four) 2621 2076 w
+(1.44MB) 2870 2076 w
+(floppy) 3283 2076 w
+(diskettes) 3636 2076 w
+(and) 4122 2076 w
+(one) 4351 2076 w
+(CD-ROM.) 4579 2076 w
+(Many) 720 2196 w
+(software) 1014 2196 w
+(packages) 1468 2196 w
+(for) 1958 2196 w
+(PCs) 2136 2196 w
+(can) 2349 2196 w
+(install) 2555 2196 w
+(either) 2885 2196 w
+(from) 3204 2196 w
+(CD-ROM) 3474 2196 w
+(or) 3941 2196 w
+(diskette,) 4081 2196 w
+(but) 4538 2196 w
+(Plan) 4738 2196 w
+(9) 4977 2196 w
+(is) 720 2316 w
+(different.) 838 2316 w
+(The) 1358 2316 w
+(diskettes) 1577 2316 w
+(and) 2054 2316 w
+(the) 2273 2316 w
+(CD-ROM) 2467 2316 w
+(have) 2935 2316 w
+10 /LucidaSans-Italic f
+(different) 3199 2316 w
+10 /LucidaSansUnicode00 f
+(software) 3658 2316 w
+(on) 4112 2316 w
+(them.) 4274 2316 w
+(The) 4625 2316 w
+(first) 4845 2316 w
+(diskette) 720 2436 w
+(is) 1145 2436 w
+(used) 1263 2436 w
+(to) 1533 2436 w
+(install) 1669 2436 w
+(the) 1999 2436 w
+(other) 2192 2436 w
+(versions) 2487 2436 w
+(of) 2928 2436 w
+(the) 3064 2436 w
+(system;) 3257 2436 w
+(it) 3667 2436 w
+(occupies) 3770 2436 w
+(about) 4231 2436 w
+(1.4) 4546 2436 w
+(mega\255) 4741 2436 w
+(bytes) 720 2556 w
+(of) 1014 2556 w
+(the) 1147 2556 w
+(DOS) 1337 2556 w
+(partition) 1579 2556 w
+(on) 2028 2556 w
+(your) 2186 2556 w
+(hard) 2437 2556 w
+(drive.) 2693 2556 w
+(The) 3033 2556 w
+(other) 3249 2556 w
+(three) 3541 2556 w
+(diskettes) 3828 2556 w
+(contain) 4301 2556 w
+(a) 4693 2556 w
+(small) 4783 2556 w
+(version) 720 2676 w
+(of) 1122 2676 w
+(Plan) 1270 2676 w
+(9) 1521 2676 w
+(for) 1634 2676 w
+(PCs,) 1823 2676 w
+(intended) 2079 2676 w
+(to) 2556 2676 w
+(let) 2703 2676 w
+(you) 2874 2676 w
+(familiarize) 3098 2676 w
+(yourself) 3657 2676 w
+(with) 4095 2676 w
+(the) 4349 2676 w
+(system;) 4553 2676 w
+(it) 4974 2676 w
+(occupies) 720 2796 w
+(a) 1186 2796 w
+(separate) 1283 2796 w
+(20) 1739 2796 w
+(megabyte) 1907 2796 w
+(partition) 2423 2796 w
+(at) 2879 2796 w
+(the) 3013 2796 w
+(end) 3210 2796 w
+(of) 3433 2796 w
+(a) 3573 2796 w
+(hard) 3670 2796 w
+(disk,) 3933 2796 w
+(or) 4208 2796 w
+(on) 4352 2796 w
+(an) 4518 2796 w
+(entirely) 4678 2796 w
+(non-DOS) 720 2916 w
+(disk.) 1235 2916 w
+(The) 1565 2916 w
+(CD-ROM) 1811 2916 w
+(has) 2305 2916 w
+(the) 2538 2916 w
+(full) 2758 2916 w
+(system,) 2980 2916 w
+(including) 3417 2916 w
+(all) 3931 2916 w
+(the) 4109 2916 w
+(programs) 4329 2916 w
+(and) 4860 2916 w
+(sources) 720 3036 w
+(for) 1140 3036 w
+(all) 1326 3036 w
+(the) 1486 3036 w
+(architectures) 1688 3036 w
+(supported) 2364 3036 w
+(by) 2909 3036 w
+(Plan) 3072 3036 w
+(9.) 3321 3036 w
+(You) 3496 3036 w
+(will) 3729 3036 w
+(need) 3941 3036 w
+(a) 4226 3036 w
+(500) 4329 3036 w
+(megabyte) 4566 3036 w
+(partition) 720 3156 w
+(or) 1172 3156 w
+(disk) 1312 3156 w
+(to) 1551 3156 w
+(unpack) 1687 3156 w
+(the) 2076 3156 w
+(CD-ROM,) 2269 3156 w
+(although) 2768 3156 w
+(you) 3236 3156 w
+(may) 3449 3156 w
+(choose) 3687 3156 w
+(to) 4067 3156 w
+(remove) 4203 3156 w
+(pieces) 4599 3156 w
+(of) 4942 3156 w
+(the) 720 3276 w
+(distribution,) 921 3276 w
+(such) 1563 3276 w
+(as) 1835 3276 w
+(binaries) 1987 3276 w
+(for) 2419 3276 w
+(machines) 2605 3276 w
+(you) 3111 3276 w
+(don) 3333 3276 w
+10 /LucidaSansUnicode20 f
+(\031) 3519 3276 w
+10 /LucidaSansUnicode00 f
+(t) 3551 3276 w
+(have,) 3635 3276 w
+(after) 3939 3276 w
+(installation.) 4212 3276 w
+(The) 4859 3276 w
+(CD-ROM does not install itself; you must use the first diskette to install it.) 720 3396 w
+10 /LucidaSans-Demi f
+(The hardware) 720 3636 w
+10 /LucidaSansUnicode00 f
+(An) 970 3792 w
+(accompanying) 1137 3792 w
+(document,) 1869 3792 w
+10 /LucidaSansUnicode20 f
+(\030\030) 2422 3792 w
+10 /LucidaSansUnicode00 f
+(The) 2486 3792 w
+(Various) 2703 3792 w
+(Ports) 3103 3792 w
+10 /LucidaSansUnicode20 f
+(\031\031) 3348 3792 w
+10 /LucidaSansUnicode00 f
+(,) 3412 3792 w
+(discusses) 3480 3792 w
+(the) 3981 3792 w
+(hardware) 4172 3792 w
+(require\255) 4659 3792 w
+(ments) 720 3912 w
+(for) 1056 3912 w
+(the) 1232 3912 w
+(system;) 1424 3912 w
+(you) 1833 3912 w
+(should) 2045 3912 w
+(read) 2410 3912 w
+(all) 2662 3912 w
+(the) 2812 3912 w
+(sections) 3004 3912 w
+(that) 3439 3912 w
+(describe) 3667 3912 w
+(hardware) 4114 3912 w
+(on) 4600 3912 w
+(which) 4759 3912 w
+(you) 720 4032 w
+(are) 949 4032 w
+(planning) 1155 4032 w
+(to) 1633 4032 w
+(run) 1785 4032 w
+(Plan) 2004 4032 w
+(9.) 2259 4032 w
+(Throughout) 2440 4032 w
+(this) 3067 4032 w
+(document,) 3300 4032 w
+(we) 3871 4032 w
+(will) 4058 4032 w
+(be) 4276 4032 w
+(talking) 4449 4032 w
+(only) 4836 4032 w
+(about PCs unless other machines are explicitly mentioned.) 720 4152 w
+10 /LucidaSans-Italic f
+(Note:) 970 4308 w
+(Although) 1271 4308 w
+(Plan) 1758 4308 w
+(9) 2015 4308 w
+(runs) 2125 4308 w
+(on) 2394 4308 w
+(a) 2561 4308 w
+(number) 2670 4308 w
+(of) 3097 4308 w
+(different) 3240 4308 w
+(machine) 3708 4308 w
+(architectures,) 4166 4308 w
+(the) 4887 4308 w
+(installation) 720 4428 w
+(package) 1304 4428 w
+(is) 1748 4428 w
+(designed) 1865 4428 w
+(to) 2333 4428 w
+(be) 2467 4428 w
+(run) 2620 4428 w
+(on) 2831 4428 w
+(a) 2989 4428 w
+(PC,) 3089 4428 w
+(even) 3286 4428 w
+(when) 3547 4428 w
+(installing) 3841 4428 w
+(the) 4329 4428 w
+(system) 4521 4428 w
+(for) 4897 4428 w
+(other architectures.) 720 4548 w
+(Note:) 970 4704 w
+(If) 1265 4704 w
+(you) 1373 4704 w
+(have) 1588 4704 w
+(a) 1860 4704 w
+(copy) 1963 4704 w
+(of) 2228 4704 w
+(the) 2365 4704 w
+(1993) 2560 4704 w
+(distribution) 2854 4704 w
+(of) 3459 4704 w
+(the) 3596 4704 w
+(system,) 3791 4704 w
+(its) 4202 4704 w
+(9P) 4360 4704 w
+(protocol) 4523 4704 w
+(is) 4962 4704 w
+(incompatible) 720 4824 w
+(with) 1384 4824 w
+(this) 1632 4824 w
+(version.) 1851 4824 w
+(You) 2308 4824 w
+(must) 2528 4824 w
+(install) 2810 4824 w
+(this) 3147 4824 w
+(distribution) 3365 4824 w
+(without) 3968 4824 w
+(using) 4372 4824 w
+(any) 4675 4824 w
+(old) 4893 4824 w
+(Plan 9 systems.) 720 4944 w
+10 /LucidaSansUnicode00 f
+(Plan) 970 5100 w
+(9) 1209 5100 w
+(runs) 1310 5100 w
+(in) 1564 5100 w
+(32-bit) 1693 5100 w
+(protected) 2044 5100 w
+(mode) 2547 5100 w
+(on) 2858 5100 w
+(i386) 3019 5100 w
+(or) 3275 5100 w
+(later) 3415 5100 w
+(processors.) 3671 5100 w
+(It) 4300 5100 w
+(does) 4404 5100 w
+(not) 4673 5100 w
+(use) 4871 5100 w
+(the) 720 5220 w
+(BIOS,) 929 5220 w
+(so) 1234 5220 w
+(not) 1400 5220 w
+(all) 1614 5220 w
+(hardware) 1780 5220 w
+(is) 2283 5220 w
+(automatically) 2416 5220 w
+(supported,) 3114 5220 w
+(only) 3696 5220 w
+(that) 3953 5220 w
+(for) 4197 5220 w
+(which) 4389 5220 w
+(Plan) 4723 5220 w
+(9) 4977 5220 w
+(drivers) 720 5340 w
+(exist.) 1091 5340 w
+(A) 1427 5340 w
+(summary) 1534 5340 w
+(of) 2019 5340 w
+(the) 2155 5340 w
+(hardware) 2348 5340 w
+(requirements:) 2836 5340 w
+(An) 3553 5340 w
+(IBM) 3722 5340 w
+(PC) 3933 5340 w
+(clone) 4095 5340 w
+(with) 4392 5340 w
+(an) 4635 5340 w
+(i386,) 4790 5340 w
+(i486,) 720 5460 w
+(or) 1016 5460 w
+(Pentium) 1164 5460 w
+(processor,) 1604 5460 w
+(eight) 2158 5460 w
+(megabytes) 2450 5460 w
+(of) 3020 5460 w
+(memory,) 3163 5460 w
+(ISA) 3636 5460 w
+(or) 3833 5460 w
+(EISA) 3980 5460 w
+(bus,) 4231 5460 w
+(IDE) 4484 5460 w
+(or) 4687 5460 w
+(SCSI) 4834 5460 w
+(disks,) 720 5580 w
+(VGA,) 1048 5580 w
+(and) 1330 5580 w
+(a) 1554 5580 w
+(3-button) 1654 5580 w
+(serial) 2142 5580 w
+(or) 2448 5580 w
+(PS/2) 2595 5580 w
+(mouse.) 2865 5580 w
+(The) 3297 5580 w
+(disk) 3523 5580 w
+10 /LucidaTypewriter f
+(A:) 3769 5580 w
+10 /LucidaSansUnicode00 f
+(must) 3958 5580 w
+(be) 4246 5580 w
+(a) 4410 5580 w
+(3\275") 4510 5580 w
+(floppy) 4735 5580 w
+(drive.) 720 5700 w
+(Even within these parameters, though, there are a number of restrictions.) 1057 5700 w
+10 /LucidaSans-Italic f
+(Make) 970 5856 w
+(sure) 1274 5856 w
+(you) 1536 5856 w
+(read) 1760 5856 w
+(the) 2033 5856 w
+(section) 2236 5856 w
+(of) 2624 5856 w
+(``The) 2769 5856 w
+(Various) 3060 5856 w
+(Ports'') 3485 5856 w
+(describing) 3849 5856 w
+(``The) 4402 5856 w
+(IBM) 4693 5856 w
+(PC) 4914 5856 w
+(operating system'' before you try installing the system.) 720 5976 w
+10 /LucidaSans-Demi f
+(Ways to install Plan 9) 720 6216 w
+10 /LucidaSansUnicode00 f
+(This) 970 6372 w
+(section) 1211 6372 w
+(gives) 1594 6372 w
+(an) 1880 6372 w
+(overview) 2033 6372 w
+(of) 2493 6372 w
+(how) 2627 6372 w
+(the) 2863 6372 w
+(installation) 3054 6372 w
+(procedure) 3626 6372 w
+(is) 4157 6372 w
+(arranged;) 4274 6372 w
+(make) 4778 6372 w
+(sure you read it before proceeding.) 720 6492 w
+10 /LucidaSans-Italic f
+(Before) 970 6648 w
+(installing) 1344 6648 w
+(Plan) 1859 6648 w
+(9,) 2135 6648 w
+(you) 2296 6648 w
+(must) 2536 6648 w
+(first) 2844 6648 w
+(use) 3113 6648 w
+(diskette) 3344 6648 w
+(1) 3790 6648 w
+(to) 3920 6648 w
+(establish) 4082 6648 w
+(a) 4580 6648 w
+(special) 4708 6648 w
+(installation) 720 6768 w
+(setup) 1308 6768 w
+(as) 1615 6768 w
+(a) 1769 6768 w
+(set) 1874 6768 w
+(of) 2058 6768 w
+(DOS) 2197 6768 w
+(files) 2448 6768 w
+(in) 2690 6768 w
+(the) 2825 6768 w
+(directory) 3022 6768 w
+10 /LucidaTypewriter f
+(C:\\plan9) 3504 6768 w
+10 /LucidaSans-Italic f
+(.) 4080 6768 w
+(You) 4187 6768 w
+(will) 4410 6768 w
+(then) 4618 6768 w
+(use) 4876 6768 w
+(that software to install the real Plan 9 system.) 720 6888 w
+10 /LucidaSansUnicode00 f
+(Using) 970 7044 w
+(the) 1281 7044 w
+(installation) 1474 7044 w
+(software,) 2048 7044 w
+(you) 2533 7044 w
+(have) 2746 7044 w
+(several) 3009 7044 w
+(choices) 3387 7044 w
+(about) 3786 7044 w
+(what) 4102 7044 w
+(sort) 4371 7044 w
+(of) 4600 7044 w
+(Plan) 4737 7044 w
+(9) 4977 7044 w
+(environment) 720 7164 w
+(to) 1368 7164 w
+(build.) 1503 7164 w
+(Throughout) 1850 7164 w
+(this) 2460 7164 w
+(document,) 2676 7164 w
+(these) 3230 7164 w
+(setups) 3529 7164 w
+(are) 3886 7164 w
+(referred) 4075 7164 w
+(to) 4503 7164 w
+(by) 4638 7164 w
+(num\255) 4790 7164 w
+(ber:) 720 7284 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 1 1
+%%Page: 2 2
+/saveobj save def
+mark
+2 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 2 \255) 2783 480 w
+(1.) 720 840 w
+(Install) 970 840 w
+(the) 1297 840 w
+(three) 1487 840 w
+(diskettes) 1774 840 w
+(\(numbered) 2247 840 w
+(2,) 2811 840 w
+(3,) 2941 840 w
+(and) 3071 840 w
+(4\)) 3286 840 w
+(onto) 3417 840 w
+(a) 3674 840 w
+(separate) 3765 840 w
+(partition) 4215 840 w
+(on) 4665 840 w
+(your) 4824 840 w
+(hard disk.) 970 960 w
+(This requires 20 megabytes of disk space.) 1520 960 w
+(2.) 720 1116 w
+(Install) 970 1116 w
+(the) 1298 1116 w
+(CD-ROM) 1489 1116 w
+(onto) 1954 1116 w
+(a) 2211 1116 w
+(separate) 2302 1116 w
+(partition) 2752 1116 w
+(on) 3202 1116 w
+(your) 3361 1116 w
+(hard) 3613 1116 w
+(disk.) 3871 1116 w
+(This) 4173 1116 w
+(requires) 4415 1116 w
+(500) 4851 1116 w
+(megabytes of disk space.) 970 1236 w
+(3.) 720 1392 w
+(Use) 970 1392 w
+(the) 1190 1392 w
+(network) 1389 1392 w
+(to) 1825 1392 w
+(install) 1967 1392 w
+(a) 2303 1392 w
+(separate) 2402 1392 w
+(stand-alone) 2860 1392 w
+(file) 3493 1392 w
+(server) 3688 1392 w
+(and) 4029 1392 w
+(use) 4253 1392 w
+(it) 4466 1392 w
+(to) 4577 1392 w
+(supply) 4720 1392 w
+(files to other Plan 9 systems \(of any type\) on the network.) 970 1512 w
+(4.) 720 1668 w
+(In a network setup, convert the PC into a CPU server and authentication server,) 970 1668 w
+(with) 4835 1668 w
+(its files stored on the remote file server.) 970 1788 w
+(The best way to start is to use step 1) 720 1944 w
+(to) 2549 1944 w
+(build) 2680 1944 w
+(a) 2959 1944 w
+(system) 3047 1944 w
+(to) 3420 1944 w
+(use) 3551 1944 w
+(for) 3753 1944 w
+(learning) 3925 1944 w
+(about) 4354 1944 w
+(the) 4665 1944 w
+(sys\255) 4853 1944 w
+(tem,) 720 2064 w
+(even) 976 2064 w
+(if) 1240 2064 w
+(you) 1344 2064 w
+(plan) 1556 2064 w
+(to) 1802 2064 w
+(do) 1937 2064 w
+(something) 2098 2064 w
+(more) 2648 2064 w
+(ambitious) 2936 2064 w
+(later.) 3453 2064 w
+(With) 3772 2064 w
+(that) 4023 2064 w
+(system,) 4251 2064 w
+(you) 4660 2064 w
+(can) 4872 2064 w
+(access) 720 2184 w
+(the) 1072 2184 w
+(CD-ROM) 1264 2184 w
+(for) 1730 2184 w
+(anything) 1906 2184 w
+(else) 2365 2184 w
+(that) 2595 2184 w
+(might) 2824 2184 w
+(interest) 3145 2184 w
+(you.) 3552 2184 w
+(Once) 3829 2184 w
+(you) 4114 2184 w
+10 /LucidaSansUnicode20 f
+(\031) 4289 2184 w
+10 /LucidaSansUnicode00 f
+(re) 4321 2184 w
+(comfortable) 4456 2184 w
+(with) 720 2304 w
+(that,) 962 2304 w
+(if) 1222 2304 w
+(you) 1325 2304 w
+(have) 1537 2304 w
+(the) 1799 2304 w
+(disk) 1991 2304 w
+(space) 2229 2304 w
+(you) 2542 2304 w
+(can) 2754 2304 w
+(use) 2958 2304 w
+(step) 3163 2304 w
+(2) 3406 2304 w
+(to) 3505 2304 w
+(build) 3639 2304 w
+(a) 3921 2304 w
+(full) 4012 2304 w
+(Plan) 4205 2304 w
+(9) 4442 2304 w
+(system) 4541 2304 w
+(on) 4917 2304 w
+(your) 720 2424 w
+(PC.) 976 2424 w
+(If) 1204 2424 w
+(you) 1310 2424 w
+(have) 1525 2424 w
+(a) 1790 2424 w
+(networked) 1885 2424 w
+(environment) 2436 2424 w
+(or) 3087 2424 w
+(machines) 3229 2424 w
+(other) 3729 2424 w
+(than) 4027 2424 w
+(PCs,) 4284 2424 w
+(you) 4532 2424 w
+(would) 4748 2424 w
+(probably) 720 2544 w
+(choose) 1189 2544 w
+(to) 1573 2544 w
+(skip) 1713 2544 w
+(step) 1956 2544 w
+(2) 2205 2544 w
+(and) 2310 2544 w
+(use) 2532 2544 w
+(steps) 2743 2544 w
+(3) 3043 2544 w
+(and) 3148 2544 w
+(4) 3370 2544 w
+(to) 3475 2544 w
+(establish) 3615 2544 w
+(a) 4090 2544 w
+(full-blown) 4187 2544 w
+(Plan) 4735 2544 w
+(9) 4977 2544 w
+(environment.) 720 2664 w
+(The) 970 2820 w
+(most) 1184 2820 w
+(important) 1460 2820 w
+(thing) 1972 2820 w
+(the) 2258 2820 w
+(small) 2447 2820 w
+(installation) 2738 2820 w
+(system) 3308 2820 w
+(does) 3682 2820 w
+(is) 3947 2820 w
+(record) 4061 2820 w
+(a) 4408 2820 w
+(description) 4497 2820 w
+(of) 720 2940 w
+(your) 853 2940 w
+(hardware) 1104 2940 w
+(in) 1589 2940 w
+(a) 1715 2940 w
+(form) 1805 2940 w
+(that) 2072 2940 w
+(Plan) 2298 2940 w
+(9) 2534 2940 w
+(can) 2632 2940 w
+(read) 2835 2940 w
+(it.) 3084 2940 w
+(This) 3248 2940 w
+(information) 3487 2940 w
+(is) 4088 2940 w
+(kept) 4202 2940 w
+(in) 4450 2940 w
+(a) 4575 2940 w
+(text) 4664 2940 w
+(file) 4889 2940 w
+(called) 720 3060 w
+10 /LucidaTypewriter f
+(plan9.ini) 1041 3060 w
+10 /LucidaSansUnicode00 f
+(stored) 1727 3060 w
+(on) 2074 3060 w
+(the) 2235 3060 w
+(DOS) 2428 3060 w
+(file) 2673 3060 w
+(system,) 2863 3060 w
+(in) 3274 3060 w
+(the) 3404 3060 w
+(directory) 3598 3060 w
+10 /LucidaTypewriter f
+(C:\\plan9) 4068 3060 w
+10 /LucidaSansUnicode00 f
+(.) 4644 3060 w
+(Famil\255) 4747 3060 w
+(iarize) 720 3180 w
+(yourself) 1025 3180 w
+(with) 1452 3180 w
+(your) 1695 3180 w
+(hardware) 1949 3180 w
+(configuration) 2437 3180 w
+(before) 3124 3180 w
+(you) 3476 3180 w
+(begin,) 3689 3180 w
+(so) 4031 3180 w
+(you) 4180 3180 w
+10 /LucidaSansUnicode20 f
+(\031) 4355 3180 w
+10 /LucidaSansUnicode00 f
+(ll) 4387 3180 w
+(be) 4482 3180 w
+(ready) 4638 3180 w
+(to) 4942 3180 w
+(answer questions about your disks, VGA, and so on.) 720 3300 w
+10 /LucidaSans-Demi f
+(Disks) 720 3540 w
+10 /LucidaSansUnicode00 f
+(All) 970 3696 w
+(four) 1135 3696 w
+(Plan) 1374 3696 w
+(9) 1613 3696 w
+(diskettes) 1714 3696 w
+(are) 2190 3696 w
+(in) 2380 3696 w
+(DOS) 2509 3696 w
+(format.) 2754 3696 w
+(The) 3180 3696 w
+(first) 3399 3696 w
+(is) 3632 3696 w
+(a) 3750 3696 w
+(boot) 3843 3696 w
+(diskette) 4104 3696 w
+(containing) 4530 3696 w
+(installation) 720 3816 w
+(software) 1318 3816 w
+(to) 1795 3816 w
+(configure) 1955 3816 w
+(your) 2478 3816 w
+(system) 2756 3816 w
+(and) 3158 3816 w
+(install) 3400 3816 w
+(the) 3754 3816 w
+(other) 3971 3816 w
+(three) 4289 3816 w
+(diskettes) 4602 3816 w
+(and/or the CD-ROM.) 720 3936 w
+(Your) 970 4092 w
+(PC) 1237 4092 w
+(must) 1402 4092 w
+(have) 1686 4092 w
+(DOS) 1952 4092 w
+(installed) 2200 4092 w
+(on) 2652 4092 w
+(the) 2816 4092 w
+(hard) 3012 4092 w
+(disk.) 3274 4092 w
+(You) 3580 4092 w
+(will) 3806 4092 w
+(also) 4012 4092 w
+(need) 4250 4092 w
+(a) 4529 4092 w
+(separate) 4626 4092 w
+(disk) 720 4212 w
+10 /LucidaSans-Italic f
+(partition) 959 4212 w
+10 /LucidaSansUnicode00 f
+(for) 1420 4212 w
+(storing) 1597 4212 w
+(the) 1978 4212 w
+(Plan) 2171 4212 w
+(9) 2410 4212 w
+(file) 2511 4212 w
+(system.) 2700 4212 w
+(DOS) 3142 4212 w
+(has) 3387 4212 w
+(a) 3593 4212 w
+(partition) 3686 4212 w
+(table) 4137 4212 w
+(at) 4414 4212 w
+(the) 4543 4212 w
+(begin\255) 4735 4212 w
+(ning) 720 4332 w
+(of) 981 4332 w
+(the) 1125 4332 w
+(disk) 1326 4332 w
+(and) 1573 4332 w
+(normally) 1799 4332 w
+(uses) 2267 4332 w
+(the) 2533 4332 w
+(whole) 2734 4332 w
+(disk) 3065 4332 w
+(area.) 3312 4332 w
+(To) 3629 4332 w
+(coexist) 3799 4332 w
+(with) 4191 4332 w
+(DOS,) 4443 4332 w
+(Plan) 4729 4332 w
+(9) 4977 4332 w
+(puts) 720 4452 w
+(its) 967 4452 w
+(partition) 1118 4452 w
+(table) 1566 4452 w
+(at) 1840 4452 w
+(the) 1966 4452 w
+10 /LucidaSans-Italic f
+(high) 2155 4452 w
+10 /LucidaSansUnicode00 f
+(end) 2403 4452 w
+(of) 2618 4452 w
+(the) 2750 4452 w
+(disk.) 2939 4452 w
+(You) 3238 4452 w
+(can) 3457 4452 w
+(avoid) 3659 4452 w
+(repartitioning) 3953 4452 w
+(the) 4651 4452 w
+(disk) 4839 4452 w
+(by) 720 4572 w
+(installing) 875 4572 w
+(Plan) 1360 4572 w
+(9) 1601 4572 w
+(on) 1704 4572 w
+(a) 1867 4572 w
+(separate) 1962 4572 w
+(disk,) 2416 4572 w
+(so) 2689 4572 w
+(if) 2841 4572 w
+(you) 2947 4572 w
+(have) 3163 4572 w
+(a) 3429 4572 w
+(spare) 3525 4572 w
+(disk) 3832 4572 w
+(we) 4074 4572 w
+(recommend) 4248 4572 w
+(you) 4865 4572 w
+(use it.) 720 4692 w
+10 /LucidaSans-Demi f
+(Finding some disk space for Plan 9) 720 4932 w
+10 /LucidaSansUnicode00 f
+(The) 970 5088 w
+(first) 1194 5088 w
+(thing) 1432 5088 w
+(you) 1727 5088 w
+(need) 1945 5088 w
+(to) 2225 5088 w
+(do) 2366 5088 w
+(is) 2534 5088 w
+(establish) 2658 5088 w
+(a) 3135 5088 w
+(disk) 3234 5088 w
+(partition) 3479 5088 w
+(to) 3937 5088 w
+(hold) 4079 5088 w
+(the) 4338 5088 w
+(Plan) 4537 5088 w
+(9) 4782 5088 w
+(file) 4889 5088 w
+(system.) 720 5208 w
+(It) 1180 5208 w
+(must) 1302 5208 w
+(hold) 1601 5208 w
+(either) 1871 5208 w
+(20) 2207 5208 w
+(megabytes) 2388 5208 w
+(\(or) 2968 5208 w
+(more\)) 3158 5208 w
+(for) 3497 5208 w
+(installation) 3691 5208 w
+(step) 4282 5208 w
+(1,) 4544 5208 w
+(or) 4694 5208 w
+(500) 4851 5208 w
+(megabytes) 720 5328 w
+(\(or) 1297 5328 w
+(more\)) 1484 5328 w
+(for) 1820 5328 w
+(step) 2011 5328 w
+(2.) 2271 5328 w
+(Unless) 2451 5328 w
+(you) 2822 5328 w
+(already) 3050 5328 w
+(have) 3454 5328 w
+(a) 3732 5328 w
+(suitable) 3840 5328 w
+(spare) 4275 5328 w
+(partition,) 4594 5328 w
+(which) 720 5448 w
+(could) 1034 5448 w
+(be) 1333 5448 w
+(all) 1485 5448 w
+(of) 1631 5448 w
+(a) 1762 5448 w
+(spare) 1850 5448 w
+(disk,) 2149 5448 w
+(you) 2415 5448 w
+(will) 2623 5448 w
+(need to repartition your hard disk.) 2820 5448 w
+(This must) 4560 5448 w
+(be) 720 5568 w
+(done) 874 5568 w
+(carefully) 1151 5568 w
+(because) 1598 5568 w
+(changing) 2027 5568 w
+(the) 2507 5568 w
+(size) 2697 5568 w
+(of) 2925 5568 w
+(an) 3058 5568 w
+(existing) 3210 5568 w
+(partition) 3633 5568 w
+(will) 4083 5568 w
+(destroy) 4283 5568 w
+(its) 4680 5568 w
+(con\255) 4833 5568 w
+(tents.) 720 5688 w
+(If) 1065 5688 w
+(you) 1169 5688 w
+(already) 1382 5688 w
+(know) 1771 5688 w
+(how) 2067 5688 w
+(to) 2305 5688 w
+(repartition,) 2440 5688 w
+(use) 3020 5688 w
+(the) 3226 5688 w
+(method) 3418 5688 w
+(that) 3827 5688 w
+(you) 4055 5688 w
+(are) 4267 5688 w
+(comfortable) 4456 5688 w
+(with.) 720 5808 w
+(Otherwise,) 1045 5808 w
+(this) 1620 5808 w
+(section) 1855 5808 w
+(is) 2258 5808 w
+(a) 2394 5808 w
+(thorough) 2505 5808 w
+(explanation) 3009 5808 w
+(of) 3635 5808 w
+(a) 3789 5808 w
+(simple-minded) 3900 5808 w
+(way) 4701 5808 w
+(to) 4942 5808 w
+(repartition;) 720 5928 w
+(use) 1313 5928 w
+(this) 1532 5928 w
+(procedure) 1761 5928 w
+(if) 2305 5928 w
+(you) 2421 5928 w
+10 /LucidaSansUnicode20 f
+(\031) 2596 5928 w
+10 /LucidaSansUnicode00 f
+(re) 2628 5928 w
+(the) 2774 5928 w
+(least) 2978 5928 w
+(bit) 3255 5928 w
+(unsure) 3433 5928 w
+(how) 3816 5928 w
+(DOS) 4065 5928 w
+(uses) 4321 5928 w
+(its) 4590 5928 w
+(disks.) 4756 5928 w
+(Even) 720 6048 w
+(if) 978 6048 w
+(you) 1078 6048 w
+(already) 1287 6048 w
+(know) 1673 6048 w
+(how) 1966 6048 w
+(to) 2201 6048 w
+(repartition) 2334 6048 w
+(your) 2880 6048 w
+(disk,) 3131 6048 w
+(though,) 3399 6048 w
+(you) 3812 6048 w
+(should) 4022 6048 w
+(read) 4385 6048 w
+(this) 4635 6048 w
+(sec\255) 4849 6048 w
+(tion so you know how Plan 9 is going to use the disk.) 720 6168 w
+(Throughout) 970 6324 w
+(this) 1590 6324 w
+(section,) 1816 6324 w
+(the) 2242 6324 w
+(explanation) 2444 6324 w
+(is) 3061 6324 w
+(structured) 3188 6324 w
+(as) 3736 6324 w
+(a) 3889 6324 w
+(description) 3991 6324 w
+(of) 4581 6324 w
+(what) 4726 6324 w
+10 /LucidaSansUnicode20 f
+(\031) 4957 6324 w
+10 /LucidaSansUnicode00 f
+(s) 4989 6324 w
+(about) 720 6444 w
+(to) 1050 6444 w
+(happen,) 1200 6444 w
+(followed) 1645 6444 w
+(by) 2110 6444 w
+(the) 2277 6444 w
+(DOS) 2484 6444 w
+(commands) 2743 6444 w
+(to) 3324 6444 w
+(use) 3474 6444 w
+(and) 3695 6444 w
+(their) 3927 6444 w
+(output.) 4204 6444 w
+(In) 4641 6444 w
+(other) 4783 6444 w
+(words,) 720 6564 w
+(don) 1085 6564 w
+10 /LucidaSansUnicode20 f
+(\031) 1271 6564 w
+10 /LucidaSansUnicode00 f
+(t) 1303 6564 w
+(do) 1380 6564 w
+(any) 1544 6564 w
+(step) 1753 6564 w
+(until) 2000 6564 w
+(you) 2259 6564 w
+10 /LucidaSansUnicode20 f
+(\031) 2434 6564 w
+10 /LucidaSansUnicode00 f
+(ve) 2466 6564 w
+(read) 2614 6564 w
+(the) 2869 6564 w
+(words) 3064 6564 w
+(and) 3397 6564 w
+(the) 3617 6564 w
+(output) 3813 6564 w
+(of) 4176 6564 w
+(the) 4315 6564 w
+(commands) 4511 6564 w
+(presented here.) 720 6684 w
+(The) 970 6840 w
+(first) 1188 6840 w
+(step) 1420 6840 w
+(is) 1664 6840 w
+(to) 1781 6840 w
+(back) 1916 6840 w
+(up) 2180 6840 w
+(the) 2342 6840 w
+(DOS) 2534 6840 w
+(system) 2778 6840 w
+(to) 3156 6840 w
+(floppy) 3292 6840 w
+(disks.) 3635 6840 w
+(Then) 3989 6840 w
+(you) 4270 6840 w
+(will) 4483 6840 w
+(reparti\255) 4685 6840 w
+(tion the disk.) 720 6960 w
+(Finally, you will restore DOS into its new, smaller partition.) 1425 6960 w
+(Our) 970 7116 w
+(procedure) 1190 7116 w
+(backs) 1723 7116 w
+(up) 2040 7116 w
+(DOS) 2204 7116 w
+(to) 2450 7116 w
+(floppy) 2587 7116 w
+(disks.) 2931 7116 w
+(The) 3286 7116 w
+(backup) 3506 7116 w
+(will) 3897 7116 w
+(take) 4100 7116 w
+(approximately) 4345 7116 w
+(one) 720 7236 w
+(floppy) 935 7236 w
+(for) 1276 7236 w
+(every) 1451 7236 w
+(1.4) 1744 7236 w
+(megabytes) 1938 7236 w
+(in) 2499 7236 w
+(use.) 2626 7236 w
+(If) 2895 7236 w
+(you) 2997 7236 w
+(have) 3208 7236 w
+(a) 3469 7236 w
+(well-loaded) 3560 7236 w
+(system,) 4172 7236 w
+(start) 4579 7236 w
+(with) 4835 7236 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 2 2
+%%Page: 3 3
+/saveobj save def
+mark
+3 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 3 \255) 2783 480 w
+(lots of blank floppies.) 720 840 w
+(Label one diskette) 970 996 w
+10 /LucidaSans-Italic f
+(PC system disk) 1888 996 w
+10 /LucidaSansUnicode00 f
+(, format it, and copy some useful stuff onto it:) 2612 996 w
+9 /LucidaTypewriter f
+(C:\\>) 1008 1166 w
+(format) 1333 1166 w
+(a:) 1788 1166 w
+(/s) 1983 1166 w
+(C:\\>) 1008 1276 w
+(cd) 1333 1276 w
+(dos) 1528 1276 w
+(C:\\>) 1008 1386 w
+(copy) 1333 1386 w
+(format.*) 1658 1386 w
+(a:) 2243 1386 w
+(C:\\>) 1008 1496 w
+(copy) 1333 1496 w
+(backup.*) 1658 1496 w
+(a:) 2243 1496 w
+(C:\\>) 1008 1606 w
+(copy) 1333 1606 w
+(restore.*) 1658 1606 w
+(a:) 2308 1606 w
+(C:\\>) 1008 1716 w
+(copy) 1333 1716 w
+(fdisk.*) 1658 1716 w
+(a:) 2178 1716 w
+10 /LucidaSansUnicode00 f
+(Next,) 720 1932 w
+(use) 1018 1932 w
+(the) 1225 1932 w
+10 /LucidaTypewriter f
+(backup) 1418 1932 w
+10 /LucidaSansUnicode00 f
+(program) 1888 1932 w
+(to) 2342 1932 w
+(copy) 2478 1932 w
+(the) 2743 1932 w
+(DOS) 2936 1932 w
+(system) 3181 1932 w
+(to) 3559 1932 w
+(the) 3695 1932 w
+(floppies.) 3889 1932 w
+(You) 4381 1932 w
+10 /LucidaSansUnicode20 f
+(\031) 4566 1932 w
+10 /LucidaSansUnicode00 f
+(ll) 4598 1932 w
+(end) 4695 1932 w
+(up) 4915 1932 w
+(inserting) 720 2052 w
+(empty) 1190 2052 w
+(floppies) 1532 2052 w
+(one) 1962 2052 w
+(after) 2182 2052 w
+(another) 2449 2052 w
+(as) 2864 2052 w
+(it) 3011 2052 w
+(asks) 3118 2052 w
+(for) 3374 2052 w
+(them.) 3554 2052 w
+(As) 3907 2052 w
+(each) 4068 2052 w
+(diskette) 4332 2052 w
+(is) 4759 2052 w
+(fin\255) 4879 2052 w
+(ished, add to its label) 720 2172 w
+10 /LucidaSans-Italic f
+(DOS backup n) 1801 2172 w
+10 /LucidaSansUnicode00 f
+(where) 2519 2172 w
+10 /LucidaSans-Italic f
+(n) 2843 2172 w
+10 /LucidaSansUnicode00 f
+(is the number of the diskette in the series:) 2937 2172 w
+9 /LucidaTypewriter f
+(C:\\>) 1008 2342 w
+(backup) 1333 2342 w
+(c:) 1788 2342 w
+(a:) 1983 2342 w
+(/s) 2178 2342 w
+10 /LucidaSansUnicode00 f
+(Now) 720 2558 w
+(reboot) 968 2558 w
+(the) 1323 2558 w
+(system) 1514 2558 w
+(with) 1890 2558 w
+(the) 2131 2558 w
+10 /LucidaSans-Italic f
+(PC) 2322 2558 w
+(system) 2484 2558 w
+(disk) 2857 2558 w
+10 /LucidaSansUnicode00 f
+(in) 3090 2558 w
+(drive) 3217 2558 w
+10 /LucidaTypewriter f
+(A:) 3495 2558 w
+10 /LucidaSansUnicode00 f
+(.) 3639 2558 w
+(When) 3740 2558 w
+(booting,) 4043 2558 w
+(the) 4487 2558 w
+(PC) 4679 2558 w
+(may) 4840 2558 w
+(ask you to enter date and time; just press) 720 2678 w
+10 /LucidaTypewriter f
+(Enter) 2777 2678 w
+10 /LucidaSansUnicode00 f
+(.) 3137 2678 w
+(You) 970 2834 w
+(are) 1199 2834 w
+(about) 1396 2834 w
+(to) 1719 2834 w
+(repartition) 1862 2834 w
+(the) 2418 2834 w
+(hard) 2618 2834 w
+(disk) 2884 2834 w
+(by) 3130 2834 w
+(first) 3290 2834 w
+(removing) 3530 2834 w
+(the) 4031 2834 w
+(current) 4231 2834 w
+(partition) 4626 2834 w
+(and) 720 2954 w
+(then) 942 2954 w
+(creating) 1201 2954 w
+(a) 1636 2954 w
+(new) 1733 2954 w
+(smaller) 1970 2954 w
+(one.) 2366 2954 w
+(Run) 2651 2954 w
+10 /LucidaTypewriter f
+(FDISK) 2880 2954 w
+10 /LucidaSansUnicode00 f
+(.) 3240 2954 w
+(It) 3345 2954 w
+(is) 3452 2954 w
+(menu-driven;) 3573 2954 w
+(we) 4280 2954 w
+(present) 4454 2954 w
+(one) 4861 2954 w
+(step per menu:) 720 3074 w
+9 /LucidaTypewriter f
+(A:\\>) 1008 3244 w
+(FDISK) 1333 3244 w
+10 /LucidaSansUnicode00 f
+(Choose) 720 3460 w
+10 /LucidaTypewriter f
+(FDISK) 1112 3460 w
+10 /LucidaSansUnicode00 f
+(option 3, ) 1504 3460 w
+10 /LucidaSansUnicode20 f
+(\030\030) 1976 3460 w
+10 /LucidaSansUnicode00 f
+(Delete DOS Partition) 2040 3460 w
+10 /LucidaSansUnicode20 f
+(\031\031) 3026 3460 w
+10 /LucidaSansUnicode00 f
+(:) 3090 3460 w
+9 /LucidaTypewriter f
+(FDISK) 2048 3630 w
+(Options) 2438 3630 w
+(1.) 1008 3850 w
+(Create) 1203 3850 w
+(DOS) 1658 3850 w
+(partition) 1918 3850 w
+(or) 2568 3850 w
+(Logical) 2763 3850 w
+(DOS) 3283 3850 w
+(Drive) 3543 3850 w
+(2.) 1008 3960 w
+(Set) 1203 3960 w
+(active) 1463 3960 w
+(partition) 1918 3960 w
+(3.) 1008 4070 w
+(Delete) 1203 4070 w
+(DOS) 1658 4070 w
+(partition) 1918 4070 w
+(4.) 1008 4180 w
+(...) 1203 4180 w
+(Enter) 1008 4400 w
+(choice) 1398 4400 w
+([3]) 1853 4400 w
+10 /LucidaSansUnicode00 f
+(Select the primary partition:) 720 4616 w
+9 /LucidaTypewriter f
+(Delete) 2048 4786 w
+(DOS) 2503 4786 w
+(Partition) 2763 4786 w
+(or) 3413 4786 w
+(...) 3608 4786 w
+(1.) 1008 5006 w
+(Delete) 1203 5006 w
+(Primary) 1658 5006 w
+(DOS) 2178 5006 w
+(Partition) 2438 5006 w
+(2.) 1008 5116 w
+(Delete) 1203 5116 w
+(Extended) 1658 5116 w
+(DOS) 2243 5116 w
+(Partition) 2503 5116 w
+(3.) 1008 5226 w
+(...) 1203 5226 w
+(4.) 1008 5336 w
+(...) 1203 5336 w
+(Enter) 1008 5556 w
+(choice) 1398 5556 w
+([1]) 1853 5556 w
+10 /LucidaSansUnicode00 f
+(Confirm that you really want to do it, choose partition 1, and don) 720 5772 w
+10 /LucidaSansUnicode20 f
+(\031) 3892 5772 w
+10 /LucidaSansUnicode00 f
+(t enter a label:) 3924 5772 w
+9 /LucidaTypewriter f
+(Delete) 1904 5942 w
+(Primary) 2359 5942 w
+(DOS) 2879 5942 w
+(Partition) 3139 5942 w
+(WARNING!) 864 6162 w
+(Data) 1449 6162 w
+(in) 1774 6162 w
+(the) 1969 6162 w
+(Deleted) 2229 6162 w
+(Primary) 2749 6162 w
+(DOS) 3269 6162 w
+(Partition) 3529 6162 w
+(will) 4179 6162 w
+(be) 4504 6162 w
+(lost) 4699 6162 w
+(What) 864 6272 w
+(primary) 1189 6272 w
+(partition) 1709 6272 w
+(do) 2359 6272 w
+(you) 2554 6272 w
+(want) 2814 6272 w
+(to) 3139 6272 w
+(delete..?) 3334 6272 w
+([1]) 3984 6272 w
+(Enter) 864 6382 w
+(Volume) 1254 6382 w
+(Label..............................?) 1709 6382 w
+([) 4114 6382 w
+(]) 4829 6382 w
+(Are) 864 6492 w
+(you) 1124 6492 w
+(sure) 1384 6492 w
+(\(Y/N\)..............................?) 1709 6492 w
+([Y]) 4114 6492 w
+10 /LucidaSansUnicode00 f
+(Press) 720 6708 w
+10 /LucidaTypewriter f
+(Esc) 1006 6708 w
+10 /LucidaSansUnicode00 f
+(to get back to the top level menu.) 1254 6708 w
+(Create a new DOS partition by choosing option 1 on the next menu:) 720 6864 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 3 3
+%%Page: 4 4
+/saveobj save def
+mark
+4 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 4 \255) 2783 480 w
+9 /LucidaTypewriter f
+(FDISK) 2048 830 w
+(Options) 2438 830 w
+(1.) 1008 1050 w
+(Create) 1203 1050 w
+(DOS) 1658 1050 w
+(partition) 1918 1050 w
+(or) 2568 1050 w
+(Logical) 2763 1050 w
+(DOS) 3283 1050 w
+(Drive) 3543 1050 w
+(2.) 1008 1160 w
+(Set) 1203 1160 w
+(active) 1463 1160 w
+(partition) 1918 1160 w
+(3.) 1008 1270 w
+(Delete) 1203 1270 w
+(DOS) 1658 1270 w
+(partition) 1918 1270 w
+(4.) 1008 1380 w
+(...) 1203 1380 w
+(Enter) 1008 1600 w
+(choice) 1398 1600 w
+([1]) 1853 1600 w
+10 /LucidaSansUnicode00 f
+(Create a primary partition by choosing option 1:) 720 1816 w
+9 /LucidaTypewriter f
+(Create) 2048 1986 w
+(DOS) 2503 1986 w
+(Partition) 2763 1986 w
+(or) 3413 1986 w
+(...) 3608 1986 w
+(1.) 1008 2206 w
+(Create) 1203 2206 w
+(Primary) 1658 2206 w
+(DOS) 2178 2206 w
+(Partition) 2438 2206 w
+(2.) 1008 2316 w
+(Create) 1203 2316 w
+(Extended) 1658 2316 w
+(DOS) 2243 2316 w
+(Partition) 2503 2316 w
+(3.) 1008 2426 w
+(...) 1203 2426 w
+(4.) 1008 2536 w
+(...) 1203 2536 w
+(Enter) 1008 2756 w
+(choice) 1398 2756 w
+([1]) 1853 2756 w
+10 /LucidaSansUnicode00 f
+(Now) 970 2972 w
+(you) 1222 2972 w
+(need) 1437 2972 w
+(to) 1714 2972 w
+(pick) 1853 2972 w
+(a) 2095 2972 w
+(size) 2191 2972 w
+(for) 2425 2972 w
+(the) 2605 2972 w
+(primary) 2801 2972 w
+(DOS) 3216 2972 w
+(partition.) 3464 2972 w
+(Since) 3983 2972 w
+(you) 4276 2972 w
+(will) 4492 2972 w
+(restore) 4697 2972 w
+(DOS) 720 3092 w
+(back) 972 3092 w
+(into) 1244 3092 w
+(it) 1478 3092 w
+(and) 1589 3092 w
+(will) 1814 3092 w
+(need) 2023 3092 w
+(some) 2305 3092 w
+(free) 2610 3092 w
+(disk) 2844 3092 w
+(space,) 3089 3092 w
+(you) 3441 3092 w
+(must) 3660 3092 w
+(use) 3947 3092 w
+(a) 4160 3092 w
+(larger) 4259 3092 w
+(size) 4587 3092 w
+(than) 4824 3092 w
+(what) 720 3212 w
+(you) 984 3212 w
+(saved) 1192 3212 w
+(on) 1502 3212 w
+(the) 1658 3212 w
+(floppies.) 1846 3212 w
+(If) 2332 3212 w
+(you) 2431 3212 w
+(just) 2639 3212 w
+(want) 2852 3212 w
+(to) 3117 3212 w
+(install) 3249 3212 w
+(using) 3575 3212 w
+(Plan) 3875 3212 w
+(9) 4110 3212 w
+(installation) 4207 3212 w
+(setep) 4777 3212 w
+(1,) 720 3332 w
+(give) 853 3332 w
+(DOS) 1090 3332 w
+(all) 1334 3332 w
+(but) 1484 3332 w
+(20) 1683 3332 w
+(megabytes.) 1846 3332 w
+(\(The) 2472 3332 w
+(20) 2723 3332 w
+(megabytes) 2886 3332 w
+(for) 3448 3332 w
+(Plan) 3624 3332 w
+(9) 3862 3332 w
+(provides) 3962 3332 w
+(8) 4415 3332 w
+(megabytes) 4515 3332 w
+(for) 720 3452 w
+(files) 909 3452 w
+(unpacked) 1161 3452 w
+(from) 1681 3452 w
+(the) 1963 3452 w
+(diskettes) 2168 3452 w
+(and) 2656 3452 w
+(12) 2886 3452 w
+(megabytes) 3062 3452 w
+(for) 3637 3452 w
+(new) 3826 3452 w
+(files.\)) 4071 3452 w
+(For) 4420 3452 w
+(setup) 4626 3452 w
+(2,) 4945 3452 w
+(you) 720 3572 w
+10 /LucidaSansUnicode20 f
+(\031) 895 3572 w
+10 /LucidaSansUnicode00 f
+(ll need 500 megabytes to hold the contents of the CD-ROM.) 927 3572 w
+(To) 970 3728 w
+(make) 1135 3728 w
+(things) 1439 3728 w
+(concrete,) 1784 3728 w
+(we) 2273 3728 w
+10 /LucidaSansUnicode20 f
+(\031) 2406 3728 w
+10 /LucidaSansUnicode00 f
+(ll) 2438 3728 w
+(assume) 2538 3728 w
+(you) 2948 3728 w
+10 /LucidaSansUnicode20 f
+(\031) 3123 3728 w
+10 /LucidaSansUnicode00 f
+(re) 3155 3728 w
+(leaving) 3294 3728 w
+(39) 3681 3728 w
+(megabytes) 3849 3728 w
+(for) 4416 3728 w
+(DOS,) 4597 3728 w
+(but) 4878 3728 w
+(be sure to use the number you) 720 3848 w
+10 /LucidaSansUnicode20 f
+(\031) 2215 3848 w
+10 /LucidaSansUnicode00 f
+(ve decided for your system:) 2247 3848 w
+9 /LucidaTypewriter f
+(Create) 2048 4018 w
+(Primary) 2503 4018 w
+(DOS) 3023 4018 w
+(Partition) 3283 4018 w
+(Do) 1008 4238 w
+(you) 1203 4238 w
+(wish) 1463 4238 w
+(to) 1788 4238 w
+(use) 1983 4238 w
+(the) 2243 4238 w
+(maximum) 2503 4238 w
+(available) 3023 4238 w
+(size) 3673 4238 w
+(for) 3998 4238 w
+(a) 4258 4238 w
+(Primary) 4388 4238 w
+(DOS) 1008 4348 w
+(Partition) 1268 4348 w
+(and) 1918 4348 w
+(make) 2178 4348 w
+(the) 2503 4348 w
+(partition) 2763 4348 w
+(active\(Y/N\).....?[N]) 3413 4348 w
+(Enter) 1008 4568 w
+(partition) 1398 4568 w
+(size) 2048 4568 w
+(in) 2373 4568 w
+(Mbytes) 2568 4568 w
+(or) 3023 4568 w
+(percent) 3218 4568 w
+(of) 3738 4568 w
+(disk) 3933 4568 w
+(space) 4258 4568 w
+(\(%\)) 4648 4568 w
+(to) 4908 4568 w
+(create) 1008 4678 w
+(a) 1463 4678 w
+(Primary) 1593 4678 w
+(DOS) 2113 4678 w
+(Partition...............[39]) 2373 4678 w
+10 /LucidaSansUnicode00 f
+(Press) 720 4894 w
+10 /LucidaTypewriter f
+(Esc) 1018 4894 w
+10 /LucidaSansUnicode00 f
+(to) 1278 4894 w
+(get) 1420 4894 w
+(back) 1619 4894 w
+(to) 1890 4894 w
+(the) 2032 4894 w
+(top) 2231 4894 w
+(level) 2436 4894 w
+(menu.) 2702 4894 w
+(Set) 3083 4894 w
+(the) 3274 4894 w
+(partition) 3473 4894 w
+(you) 3931 4894 w
+(just) 4150 4894 w
+(created) 4374 4894 w
+(to) 4778 4894 w
+(be) 4921 4894 w
+10 /LucidaSansUnicode20 f
+(\030\030) 720 5014 w
+10 /LucidaSansUnicode00 f
+(active) 784 5014 w
+10 /LucidaSansUnicode20 f
+(\031\031) 1064 5014 w
+10 /LucidaSansUnicode00 f
+(:) 1128 5014 w
+9 /LucidaTypewriter f
+(FDISK) 2048 5184 w
+(Options) 2438 5184 w
+(1.) 1008 5404 w
+(Create) 1203 5404 w
+(DOS) 1658 5404 w
+(partition) 1918 5404 w
+(or) 2568 5404 w
+(Logical) 2763 5404 w
+(DOS) 3283 5404 w
+(Drive) 3543 5404 w
+(2.) 1008 5514 w
+(Set) 1203 5514 w
+(active) 1463 5514 w
+(partition) 1918 5514 w
+(3.) 1008 5624 w
+(Delete) 1203 5624 w
+(DOS) 1658 5624 w
+(partition) 1918 5624 w
+(4.) 1008 5734 w
+(...) 1203 5734 w
+(Enter) 1008 5954 w
+(choice) 1398 5954 w
+([2]) 1853 5954 w
+10 /LucidaSansUnicode00 f
+(then:) 720 6170 w
+9 /LucidaTypewriter f
+(Set) 1960 6340 w
+(Active) 2220 6340 w
+(Partition) 2675 6340 w
+(Enter) 920 6560 w
+(the) 1310 6560 w
+(number) 1570 6560 w
+(of) 2025 6560 w
+(the) 2220 6560 w
+(partition) 2480 6560 w
+(you) 3130 6560 w
+(want) 3390 6560 w
+(to) 3715 6560 w
+(make) 3910 6560 w
+(active...[1]) 4235 6560 w
+10 /LucidaSansUnicode00 f
+(Press) 720 6776 w
+10 /LucidaTypewriter f
+(Esc) 1006 6776 w
+10 /LucidaSansUnicode00 f
+(twice to get out of) 1254 6776 w
+10 /LucidaTypewriter f
+(FDISK) 2175 6776 w
+10 /LucidaSansUnicode00 f
+(.) 2535 6776 w
+(The machine will now reboot automatically.) 2631 6776 w
+(Now) 720 6932 w
+(you) 971 6932 w
+(must) 1185 6932 w
+(format) 1467 6932 w
+(the) 1830 6932 w
+(resized) 2024 6932 w
+(DOS) 2416 6932 w
+(partition) 2662 6932 w
+(to) 3115 6932 w
+(be) 3253 6932 w
+(a) 3412 6932 w
+(DOS) 3507 6932 w
+(bootable) 3754 6932 w
+(partition;) 4219 6932 w
+(there) 4705 6932 w
+10 /LucidaSansUnicode20 f
+(\031) 4957 6932 w
+10 /LucidaSansUnicode00 f
+(s) 4989 6932 w
+(no need to label it:) 720 7052 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 4 4
+%%Page: 5 5
+/saveobj save def
+mark
+5 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 5 \255) 2783 480 w
+9 /LucidaTypewriter f
+(A:\\>) 1008 830 w
+(format) 1333 830 w
+(c:) 1788 830 w
+(/s) 1983 830 w
+(WARNING,) 1008 1050 w
+(ALL) 1593 1050 w
+(DATA) 1853 1050 w
+(ON) 2178 1050 w
+(THE) 2373 1050 w
+(NON-REMOVABLE) 2633 1050 w
+(DISK) 3543 1050 w
+(DRIVE) 1008 1160 w
+(C:) 1398 1160 w
+(WILL) 1593 1160 w
+(BE) 1918 1160 w
+(LOST!) 2113 1160 w
+(Proceed) 1008 1270 w
+(with) 1528 1270 w
+(format\(Y/N\)?y) 1853 1270 w
+(Volume) 1008 1490 w
+(label) 1463 1490 w
+(\(11) 1853 1490 w
+(characters,) 2113 1490 w
+(ENTER) 2893 1490 w
+(for) 3283 1490 w
+(none\)?) 3543 1490 w
+10 /LucidaSansUnicode00 f
+(Now) 720 1706 w
+(restore) 967 1706 w
+(your) 1345 1706 w
+(DOS) 1596 1706 w
+(system) 1838 1706 w
+(from) 2213 1706 w
+(the) 2480 1706 w
+(backup) 2670 1706 w
+(floppies.) 3057 1706 w
+(You) 3545 1706 w
+(will) 3765 1706 w
+(be) 3965 1706 w
+(asked) 4120 1706 w
+(to) 4439 1706 w
+(insert) 4573 1706 w
+(the) 4885 1706 w
+(backup) 720 1826 w
+(floppies) 1107 1826 w
+(in) 1531 1826 w
+(the) 1657 1826 w
+(same) 1847 1826 w
+(order) 2137 1826 w
+(as) 2434 1826 w
+(you) 2575 1826 w
+(made) 2785 1826 w
+(them.) 3087 1826 w
+(This) 3434 1826 w
+(is) 3674 1826 w
+(as) 3789 1826 w
+(exciting) 3930 1826 w
+(as) 4352 1826 w
+(making) 4492 1826 w
+(the) 4885 1826 w
+(backup:) 720 1946 w
+9 /LucidaTypewriter f
+(A>) 1008 2116 w
+(restore) 1203 2116 w
+(a:) 1723 2116 w
+(c:) 1918 2116 w
+(/s) 2113 2116 w
+10 /LucidaSans-Demi f
+(Installing diskette 1 on your DOS hard drive) 720 2416 w
+10 /LucidaSansUnicode00 f
+(With) 970 2572 w
+(disk) 1226 2572 w
+(space) 1469 2572 w
+(established,) 1787 2572 w
+(you) 2414 2572 w
+10 /LucidaSansUnicode20 f
+(\031) 2589 2572 w
+10 /LucidaSansUnicode00 f
+(re) 2621 2572 w
+(now) 2761 2572 w
+(ready) 3004 2572 w
+(to) 3314 2572 w
+(start) 3455 2572 w
+(installing) 3719 2572 w
+(Plan) 4207 2572 w
+(9.) 4451 2572 w
+(The) 4621 2572 w
+(first) 4845 2572 w
+(step) 720 2692 w
+(is) 962 2692 w
+(to) 1077 2692 w
+(use) 1210 2692 w
+(diskette) 1414 2692 w
+(1) 1836 2692 w
+(to) 1934 2692 w
+(build) 2067 2692 w
+(a) 2348 2692 w
+(special) 2437 2692 w
+(installation-only) 2805 2692 w
+(version) 3637 2692 w
+(of) 4023 2692 w
+(Plan) 4155 2692 w
+(9) 4390 2692 w
+(on) 4487 2692 w
+(the) 4644 2692 w
+(DOS) 4833 2692 w
+(file) 720 2812 w
+(system) 920 2812 w
+(on) 1309 2812 w
+(your) 1481 2812 w
+(hard) 1746 2812 w
+(disk.) 2016 2812 w
+(Insert) 2330 2812 w
+(diskette) 2655 2812 w
+(1) 3091 2812 w
+(in) 3203 2812 w
+(the) 3343 2812 w
+(floppy) 3547 2812 w
+(drive) 3901 2812 w
+10 /LucidaTypewriter f
+(A:) 4191 2812 w
+10 /LucidaSansUnicode00 f
+(and) 4384 2812 w
+(boot) 4613 2812 w
+(the) 4885 2812 w
+(machine.) 720 2932 w
+(If) 1227 2932 w
+(you) 1328 2932 w
+(have) 1538 2932 w
+(problems) 1798 2932 w
+(doing) 2290 2932 w
+(this,) 2602 2932 w
+(now) 2848 2932 w
+(or) 3083 2932 w
+(later,) 3220 2932 w
+(you) 3505 2932 w
+(can) 3715 2932 w
+(also) 3918 2932 w
+(bring) 4149 2932 w
+(DOS) 4441 2932 w
+(up) 4683 2932 w
+(nor\255) 4843 2932 w
+(mally and then switch to the) 720 3052 w
+10 /LucidaTypewriter f
+(A:) 2127 3052 w
+10 /LucidaSansUnicode00 f
+(drive and run) 2303 3052 w
+10 /LucidaTypewriter f
+(B) 2985 3052 w
+10 /LucidaSansUnicode00 f
+(, that is:) 3057 3052 w
+9 /LucidaTypewriter f
+(C:\\>) 1008 3222 w
+(A:) 1333 3222 w
+(A:\\>) 1008 3332 w
+(B) 1333 3332 w
+10 /LucidaSansUnicode00 f
+(The program) 720 3512 w
+10 /LucidaTypewriter f
+(B) 1381 3512 w
+10 /LucidaSansUnicode00 f
+(, also known as) 1453 3512 w
+10 /LucidaTypewriter f
+(b.com) 2235 3512 w
+10 /LucidaSansUnicode00 f
+(, is documented in the) 2595 3512 w
+(manual) 3718 3512 w
+(section) 4107 3512 w
+10 /LucidaSans-Italic f
+(b.com) 4487 3512 w
+10 /LucidaSansUnicode00 f
+(\(8\);) 4780 3512 w
+(it) 4974 3512 w
+(is the Plan 9 bootstrap program that loads the kernel into memory.) 720 3632 w
+(If) 970 3788 w
+(your) 1072 3788 w
+(PC) 1324 3788 w
+(has) 1484 3788 w
+10 /LucidaSans-Italic f
+(only) 1688 3788 w
+10 /LucidaSansUnicode00 f
+(SCSI) 1927 3788 w
+(disks,) 2169 3788 w
+(you) 2489 3788 w
+(will) 2700 3788 w
+(need) 2901 3788 w
+(to) 3175 3788 w
+(configure) 3310 3788 w
+(diskette) 3808 3788 w
+(1) 4232 3788 w
+(for) 4332 3788 w
+(the) 4508 3788 w
+(system) 4700 3788 w
+(to) 720 3908 w
+(recognize) 867 3908 w
+(what) 1391 3908 w
+(kind) 1671 3908 w
+(of) 1932 3908 w
+(SCSI) 2079 3908 w
+(controller) 2334 3908 w
+(you) 2851 3908 w
+(have.) 3075 3908 w
+(The) 3413 3908 w
+(installer) 3643 3908 w
+(will) 4081 3908 w
+(then) 4294 3908 w
+(write) 4560 3908 w
+(that) 4849 3908 w
+(information) 720 4028 w
+10 /LucidaSans-Italic f
+(on) 1322 4028 w
+(the) 1476 4028 w
+(diskette,) 1664 4028 w
+10 /LucidaSansUnicode00 f
+(whereupon) 2110 4028 w
+(you) 2685 4028 w
+(can) 2895 4028 w
+(reboot) 3098 4028 w
+(the) 3452 4028 w
+(system) 3642 4028 w
+(and) 4017 4028 w
+(it) 4232 4028 w
+(should) 4333 4028 w
+(behave) 4696 4028 w
+(like) 720 4148 w
+(a) 932 4148 w
+(regular) 1027 4148 w
+(PC.) 1413 4148 w
+(Because) 1641 4148 w
+(the) 2070 4148 w
+(install) 2265 4148 w
+(program) 2597 4148 w
+(must) 3053 4148 w
+(write) 3335 4148 w
+(on) 3614 4148 w
+(the) 3776 4148 w
+(diskette,) 3970 4148 w
+(you) 4428 4148 w
+(will) 4642 4148 w
+(first) 4845 4148 w
+(need) 720 4268 w
+(to) 994 4268 w
+(make) 1129 4268 w
+(a) 1428 4268 w
+(writable) 1520 4268 w
+(copy) 1944 4268 w
+(of) 2208 4268 w
+(it:) 2343 4268 w
+(the) 2479 4268 w
+(original) 2672 4268 w
+(diskette) 3078 4268 w
+(is) 3503 4268 w
+(write-protected.) 3621 4268 w
+(The) 4486 4268 w
+(easiest) 4705 4268 w
+(way to do this is with the DOS command:) 720 4388 w
+9 /LucidaTypewriter f
+(DISKCOPY) 1008 4558 w
+(A:) 1593 4558 w
+(A:) 1788 4558 w
+(/V) 1983 4558 w
+10 /LucidaSansUnicode00 f
+(Note:) 970 4774 w
+(if) 1278 4774 w
+(you) 1392 4774 w
+(have) 1615 4774 w
+(trouble) 1888 4774 w
+(doing) 2285 4774 w
+(any) 2610 4774 w
+(of) 2827 4774 w
+(these) 2974 4774 w
+(steps,) 3285 4774 w
+(you) 3624 4774 w
+(should) 3848 4774 w
+(read) 4225 4774 w
+(the) 4489 4774 w
+(section) 4693 4774 w
+(called) 720 4894 w
+10 /LucidaSansUnicode20 f
+(\030\030) 1039 4894 w
+10 /LucidaSansUnicode00 f
+(Read) 1103 4894 w
+(this) 1376 4894 w
+(section) 1590 4894 w
+(if) 1972 4894 w
+(you) 2073 4894 w
+(have) 2283 4894 w
+(trouble) 2543 4894 w
+(installing) 2927 4894 w
+(on) 3407 4894 w
+(the) 3565 4894 w
+(PC) 3755 4894 w
+10 /LucidaSansUnicode20 f
+(\031\031) 3879 4894 w
+10 /LucidaSansUnicode00 f
+(and) 3978 4894 w
+(follow) 4193 4894 w
+(its) 4522 4894 w
+(instruc\255) 4674 4894 w
+(tions to make a clean DOS boot diskette.) 720 5014 w
+(Once) 970 5170 w
+(you) 1258 5170 w
+10 /LucidaSansUnicode20 f
+(\031) 1433 5170 w
+10 /LucidaSansUnicode00 f
+(ve) 1465 5170 w
+(booted) 1614 5170 w
+(from) 1996 5170 w
+(diskette) 2269 5170 w
+(1,) 2697 5170 w
+(the) 2833 5170 w
+(system) 3029 5170 w
+(will) 3410 5170 w
+(automatically) 3615 5170 w
+(load) 4301 5170 w
+(the) 4551 5170 w
+(install) 4748 5170 w
+(program.) 720 5290 w
+(Eventually it will display a line across the top of the screen that reads) 1232 5290 w
+9 /LucidaTypewriter f
+(System) 1008 5460 w
+(Installation) 1463 5460 w
+(&) 2308 5460 w
+(Configuration) 2438 5460 w
+10 /LucidaSansUnicode00 f
+(It will then put up a) 720 5640 w
+(menu.) 1702 5640 w
+(Use) 2072 5640 w
+(the) 2281 5640 w
+(arrow) 2469 5640 w
+(keys) 2777 5640 w
+(to) 3027 5640 w
+(navigate) 3158 5640 w
+(the) 3599 5640 w
+(various) 3787 5640 w
+(menus) 4171 5640 w
+(as) 4528 5640 w
+(you) 4667 5640 w
+(run) 4875 5640 w
+(this) 720 5760 w
+(program;) 944 5760 w
+(for) 1437 5760 w
+(those) 1621 5760 w
+(without) 1933 5760 w
+(arrow) 2343 5760 w
+(keys,) 2663 5760 w
+10 /LucidaTypewriter f
+(Tab) 2957 5760 w
+10 /LucidaSansUnicode00 f
+(also) 3218 5760 w
+(cycles) 3459 5760 w
+(through) 3794 5760 w
+(the) 4226 5760 w
+(menu) 4425 5760 w
+(items.) 4742 5760 w
+(The) 720 5880 w
+10 /LucidaTypewriter f
+(Enter) 933 5880 w
+10 /LucidaSansUnicode00 f
+(key selects from the menu.) 1325 5880 w
+(If you) 970 6036 w
+(boot) 1276 6036 w
+(from) 1531 6036 w
+(this) 1796 6036 w
+(disk) 2008 6036 w
+(more) 2242 6036 w
+(than) 2526 6036 w
+(once,) 2775 6036 w
+(you) 3070 6036 w
+(may) 3278 6036 w
+(be) 3511 6036 w
+(asked) 3663 6036 w
+(if) 3979 6036 w
+(you) 4078 6036 w
+(want) 4286 6036 w
+(to) 4550 6036 w
+(remove) 4681 6036 w
+(the) 720 6156 w
+(Plan) 910 6156 w
+(9) 1146 6156 w
+(installation) 1244 6156 w
+(already) 1815 6156 w
+(on) 2201 6156 w
+(the) 2359 6156 w
+(hard) 2549 6156 w
+(disk.) 2805 6156 w
+(It) 3105 6156 w
+(is) 3206 6156 w
+(always) 3321 6156 w
+(safe) 3675 6156 w
+(to) 3909 6156 w
+(remove) 4042 6156 w
+(that) 4435 6156 w
+(installa\255) 4660 6156 w
+(tion) 720 6276 w
+(and) 947 6276 w
+(let) 1165 6276 w
+(the) 1325 6276 w
+(install) 1518 6276 w
+(process) 1848 6276 w
+(install) 2260 6276 w
+(it) 2590 6276 w
+(again.) 2694 6276 w
+(Another) 3059 6276 w
+(option) 3485 6276 w
+(at) 3836 6276 w
+(this) 3966 6276 w
+(stage) 4183 6276 w
+(is) 4482 6276 w
+(to) 4600 6276 w
+(recon\255) 4736 6276 w
+(figure) 720 6396 w
+(the) 1043 6396 w
+(system,) 1233 6396 w
+(which) 1640 6396 w
+(is) 1956 6396 w
+(also) 2071 6396 w
+(safe;) 2302 6396 w
+(it) 2568 6396 w
+(just) 2669 6396 w
+(writes) 2884 6396 w
+(a) 3210 6396 w
+(new) 3300 6396 w
+(Plan) 3530 6396 w
+(9) 3766 6396 w
+(configuration) 3864 6396 w
+(file.) 4548 6396 w
+(Later) 4798 6396 w
+(in) 720 6516 w
+(the) 862 6516 w
+(installation) 1068 6516 w
+(process,) 1655 6516 w
+(you) 2112 6516 w
+(may) 2338 6516 w
+(return) 2589 6516 w
+(to) 2940 6516 w
+(this) 3090 6516 w
+(stage) 3321 6516 w
+(and) 3634 6516 w
+(use) 3866 6516 w
+(the) 4087 6516 w
+(reconfiguration) 4294 6516 w
+(option) 720 6636 w
+(to) 1074 6636 w
+(rewrite) 1213 6636 w
+(the) 1591 6636 w
+(configuration.) 1786 6636 w
+(The) 2539 6636 w
+(final) 2760 6636 w
+(option,) 3012 6636 w
+(after) 3397 6636 w
+(you) 3663 6636 w
+(have) 3878 6636 w
+(brought) 4143 6636 w
+(up) 4571 6636 w
+(Plan) 4736 6636 w
+(9) 4977 6636 w
+(on) 720 6756 w
+(your) 877 6756 w
+(hard) 1127 6756 w
+(disk,) 1382 6756 w
+(is) 1649 6756 w
+(to) 1763 6756 w
+(boot) 1895 6756 w
+(from) 2151 6756 w
+(diskette) 2417 6756 w
+(1) 2838 6756 w
+(again) 2935 6756 w
+(and) 3233 6756 w
+(choose) 3448 6756 w
+(the) 3825 6756 w
+10 /LucidaSansUnicode20 f
+(\030\030) 4015 6756 w
+10 /LucidaSansUnicode00 f
+(File) 4079 6756 w
+(System) 4282 6756 w
+(Installa\255) 4660 6756 w
+(tion) 720 6876 w
+10 /LucidaSansUnicode20 f
+(\031\031) 909 6876 w
+10 /LucidaSansUnicode00 f
+(option.) 1015 6876 w
+(This) 1434 6876 w
+(is) 1680 6876 w
+(necessary) 1801 6876 w
+(to) 2317 6876 w
+(install) 2456 6876 w
+(a) 2789 6876 w
+(network-based) 2885 6876 w
+(Plan) 3664 6876 w
+(9) 3906 6876 w
+(setup,) 4010 6876 w
+(as) 4352 6876 w
+(will) 4499 6876 w
+(be) 4704 6876 w
+(dis\255) 4864 6876 w
+(cussed below.) 720 6996 w
+(The) 970 7152 w
+(install) 1192 7152 w
+(program) 1525 7152 w
+(will) 1982 7152 w
+(tell) 2187 7152 w
+(you) 2379 7152 w
+(what) 2595 7152 w
+(it) 2867 7152 w
+10 /LucidaSansUnicode20 f
+(\031) 2933 7152 w
+10 /LucidaSansUnicode00 f
+(s) 2965 7152 w
+(doing) 3057 7152 w
+(each) 3375 7152 w
+(step) 3640 7152 w
+(of) 3888 7152 w
+(the) 4027 7152 w
+(way.) 4224 7152 w
+(First) 4514 7152 w
+(it) 4768 7152 w
+(will) 4876 7152 w
+(ask) 720 7272 w
+(you) 943 7272 w
+(to) 1177 7272 w
+(approve) 1334 7272 w
+(copying) 1783 7272 w
+(1.44) 2221 7272 w
+(megabytes) 2500 7272 w
+(onto) 3083 7272 w
+10 /LucidaTypewriter f
+(C:) 3362 7272 w
+10 /LucidaSansUnicode00 f
+(,) 3506 7272 w
+(and) 3596 7272 w
+(then) 3834 7272 w
+(put) 4109 7272 w
+(up) 4329 7272 w
+(a) 4512 7272 w
+(scrolling) 4625 7272 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 5 5
+%%Page: 6 6
+/saveobj save def
+mark
+6 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 6 \255) 2783 480 w
+(window) 720 840 w
+(of) 1123 840 w
+(the) 1255 840 w
+(files) 1444 840 w
+(it) 1680 840 w
+10 /LucidaSansUnicode20 f
+(\031) 1746 840 w
+10 /LucidaSansUnicode00 f
+(s) 1778 840 w
+(copying.) 1863 840 w
+(Once) 2341 840 w
+(the) 2622 840 w
+(files) 2811 840 w
+(are) 3047 840 w
+(installed,) 3233 840 w
+(it) 3710 840 w
+(will) 3810 840 w
+(ask) 4008 840 w
+(you) 4206 840 w
+(to) 4415 840 w
+(define) 4547 840 w
+(the) 4885 840 w
+(configuration) 720 960 w
+(of) 1410 960 w
+(the) 1549 960 w
+(devices) 1745 960 w
+(on) 2144 960 w
+(your) 2308 960 w
+(PC.) 2565 960 w
+(Use) 2794 960 w
+(the) 3011 960 w
+(menu) 3207 960 w
+(to) 3521 960 w
+(define) 3660 960 w
+(which) 4004 960 w
+(VGA) 4326 960 w
+(controller) 4572 960 w
+(and) 720 1080 w
+(monitor,) 933 1080 w
+(mouse) 1383 1080 w
+(port,) 1740 1080 w
+(Ethernet) 2008 1080 w
+(card) 2447 1080 w
+(if) 2691 1080 w
+(any,) 2791 1080 w
+(and) 3026 1080 w
+(so) 3240 1080 w
+(on) 3386 1080 w
+(down) 3543 1080 w
+(the) 3840 1080 w
+(list.) 4029 1080 w
+(For) 4273 1080 w
+(now,) 4463 1080 w
+(ignore) 4729 1080 w
+(the entry that says) 720 1200 w
+9 /LucidaTypewriter f
+(File) 1008 1370 w
+(system) 1333 1370 w
+(console) 1788 1370 w
+10 /LucidaSansUnicode00 f
+(If) 720 1550 w
+(you) 824 1550 w
+(make) 1037 1550 w
+(a) 1337 1550 w
+(mistake) 1430 1550 w
+(in) 1847 1550 w
+(the) 1976 1550 w
+(definition,) 2169 1550 w
+(you) 2704 1550 w
+(can) 2917 1550 w
+(go) 3123 1550 w
+(back) 3284 1550 w
+(and) 3549 1550 w
+(change) 3767 1550 w
+(anything) 4154 1550 w
+(from) 4614 1550 w
+(the) 4885 1550 w
+(main configuration menu \(the one that starts with) 720 1670 w
+10 /LucidaTypewriter f
+(VGA) 3172 1670 w
+(setup) 3420 1670 w
+10 /LucidaSansUnicode00 f
+(\).) 3780 1670 w
+(Once) 970 1826 w
+(you) 1272 1826 w
+(choose) 1502 1826 w
+(the) 1899 1826 w
+10 /LucidaTypewriter f
+(Save) 2109 1826 w
+(configuration) 2452 1826 w
+10 /LucidaSansUnicode00 f
+(option,) 3444 1826 w
+(the) 3845 1826 w
+(install) 4056 1826 w
+(program) 4404 1826 w
+(will) 4876 1826 w
+(show) 720 1946 w
+(you) 1077 1946 w
+(the) 1357 1946 w
+(format) 1617 1946 w
+(of) 2046 1946 w
+(the) 2249 1946 w
+(file) 2509 1946 w
+(it) 2765 1946 w
+(is) 2936 1946 w
+(going) 3121 1946 w
+(to) 3502 1946 w
+(create) 3705 1946 w
+(as) 4106 1946 w
+(the) 4317 1946 w
+(DOS) 4577 1946 w
+(file) 4889 1946 w
+10 /LucidaTypewriter f
+(C:\\plan9\\plan9.ini) 720 2066 w
+10 /LucidaSansUnicode00 f
+(.) 2016 2066 w
+(This) 2134 2066 w
+(file) 2393 2066 w
+(tells) 2598 2066 w
+(Plan) 2854 2066 w
+(9) 3109 2066 w
+(what) 3226 2066 w
+(the) 3511 2066 w
+(hardware) 3720 2066 w
+(configuration) 4224 2066 w
+(is.) 4928 2066 w
+(Inspect) 720 2186 w
+(it) 1115 2186 w
+(carefully,) 1227 2186 w
+(and) 1717 2186 w
+(if) 1943 2186 w
+(it) 2055 2186 w
+(looks) 2167 2186 w
+(right,) 2473 2186 w
+10 /LucidaTypewriter f
+(Save) 2782 2186 w
+10 /LucidaSansUnicode00 f
+(it;) 3116 2186 w
+(if) 3260 2186 w
+(not,) 3372 2186 w
+(use) 3610 2186 w
+(the) 3825 2186 w
+10 /LucidaTypewriter f
+(Redo) 4026 2186 w
+10 /LucidaSansUnicode00 f
+(option) 4359 2186 w
+(on) 4717 2186 w
+(the) 4885 2186 w
+(submenu) 720 2306 w
+(to) 1249 2306 w
+(return) 1427 2306 w
+(to) 1807 2306 w
+(the) 1986 2306 w
+(configuration) 2222 2306 w
+(menu.) 2952 2306 w
+(If) 3370 2306 w
+(you) 3517 2306 w
+(try) 3773 2306 w
+(to) 3984 2306 w
+(use) 4163 2306 w
+(an) 4413 2306 w
+(incorrect) 4611 2306 w
+10 /LucidaTypewriter f
+(plan9.ini) 720 2426 w
+10 /LucidaSansUnicode00 f
+(file,) 1408 2426 w
+(the) 1631 2426 w
+(system) 1825 2426 w
+(will) 2204 2426 w
+(not) 2407 2426 w
+(work) 2606 2426 w
+(properly,) 2882 2426 w
+(but) 3359 2426 w
+(you) 3560 2426 w
+(can) 3774 2426 w
+(return) 3981 2426 w
+(to) 4319 2426 w
+(the) 4456 2426 w
+10 /LucidaSansUnicode20 f
+(\030\030) 4650 2426 w
+10 /LucidaSansUnicode00 f
+(Recon\255) 4714 2426 w
+(figure) 720 2546 w
+(system) 1049 2546 w
+10 /LucidaSansUnicode20 f
+(\031\031) 1389 2546 w
+10 /LucidaSansUnicode00 f
+(option) 1495 2546 w
+(on) 1850 2546 w
+(the) 2015 2546 w
+(first) 2212 2546 w
+(screen) 2449 2546 w
+(of) 2808 2546 w
+(the) 2949 2546 w
+(installation) 3147 2546 w
+(program) 3726 2546 w
+(and) 4185 2546 w
+(create) 4408 2546 w
+(a) 4747 2546 w
+(new) 4845 2546 w
+10 /LucidaTypewriter f
+(plan9.ini) 720 2666 w
+10 /LucidaSansUnicode00 f
+(any) 1408 2666 w
+(time.) 1617 2666 w
+(If) 1936 2666 w
+(you) 2042 2666 w
+10 /LucidaSansUnicode20 f
+(\031) 2217 2666 w
+10 /LucidaSansUnicode00 f
+(re) 2249 2666 w
+(confused) 2386 2666 w
+(about) 2869 2666 w
+(what) 3187 2666 w
+(the) 3458 2666 w
+(file) 3652 2666 w
+(should) 3842 2666 w
+(look) 4209 2666 w
+(like) 4457 2666 w
+(or) 4668 2666 w
+(what) 4809 2666 w
+(hardware) 720 2786 w
+(parameters) 1206 2786 w
+(there) 1790 2786 w
+(are,) 2078 2786 w
+(look) 2298 2786 w
+(at) 2543 2786 w
+(the) 2671 2786 w
+(manual) 2862 2786 w
+(page) 3254 2786 w
+10 /LucidaSans-Italic f
+(plan9.ini) 3526 2786 w
+10 /LucidaSansUnicode00 f
+(\(8\)) 3954 2786 w
+(in) 4119 2786 w
+(Volume) 4247 2786 w
+(1) 4650 2786 w
+(of) 4750 2786 w
+(the) 4885 2786 w
+(manual) 720 2906 w
+(and) 1110 2906 w
+(also) 1323 2906 w
+(the) 1552 2906 w
+10 /LucidaSansUnicode20 f
+(\030\030) 1740 2906 w
+10 /LucidaSansUnicode00 f
+(Various) 1804 2906 w
+(Ports) 2201 2906 w
+10 /LucidaSansUnicode20 f
+(\031\031) 2446 2906 w
+10 /LucidaSansUnicode00 f
+(document.) 2543 2906 w
+(If) 3125 2906 w
+(you) 3224 2906 w
+10 /LucidaSansUnicode20 f
+(\031) 3399 2906 w
+10 /LucidaSansUnicode00 f
+(re) 3431 2906 w
+(unsure) 3561 2906 w
+(of) 3928 2906 w
+(the) 4059 2906 w
+(specifications) 4247 2906 w
+(of) 4942 2906 w
+(your) 720 3026 w
+(hardware,) 978 3026 w
+(you) 1502 3026 w
+(should) 1719 3026 w
+(find) 2089 3026 w
+(most) 2322 3026 w
+(of) 2606 3026 w
+(the) 2746 3026 w
+(information) 2943 3026 w
+(you) 3552 3026 w
+(need) 3769 3026 w
+(in) 4049 3026 w
+(the) 4183 3026 w
+(manuals) 4381 3026 w
+(sup\255) 4831 3026 w
+(plied by the manufacturers of the devices.) 720 3146 w
+(Once) 970 3302 w
+(you) 1268 3302 w
+(use) 1494 3302 w
+(the) 1714 3302 w
+10 /LucidaTypewriter f
+(Save) 1920 3302 w
+10 /LucidaSansUnicode00 f
+(option) 2260 3302 w
+(to) 2625 3302 w
+(write) 2775 3302 w
+(the) 3067 3302 w
+10 /LucidaTypewriter f
+(plan9.ini) 3274 3302 w
+10 /LucidaSansUnicode00 f
+(file) 3974 3302 w
+(to) 4177 3302 w
+(the) 4327 3302 w
+(hard) 4534 3302 w
+(disk,) 4807 3302 w
+(remove) 720 3422 w
+(the) 1112 3422 w
+(floppy) 1300 3422 w
+(from) 1638 3422 w
+(drive) 1903 3422 w
+10 /LucidaTypewriter f
+(A:) 2177 3422 w
+10 /LucidaSansUnicode00 f
+(and) 2354 3422 w
+(follow) 2567 3422 w
+(the) 2894 3422 w
+(directions) 3082 3422 w
+(to) 3595 3422 w
+(reboot DOS.) 3726 3422 w
+(When you get) 4380 3422 w
+(back to the) 720 3542 w
+10 /LucidaTypewriter f
+(C:\\>) 1296 3542 w
+10 /LucidaSansUnicode00 f
+(DOS prompt, type) 1648 3542 w
+9 /LucidaTypewriter f
+(PLAN9\\B) 1008 3712 w
+10 /LucidaSansUnicode00 f
+(and) 720 3892 w
+(press) 939 3892 w
+10 /LucidaTypewriter f
+(Enter) 1240 3892 w
+10 /LucidaSansUnicode00 f
+(.) 1600 3892 w
+(If) 1703 3892 w
+(all) 1808 3892 w
+(goes) 1960 3892 w
+(well,) 2229 3892 w
+(the) 2491 3892 w
+(system) 2685 3892 w
+(will) 3065 3892 w
+(bring) 3269 3892 w
+(up) 3566 3892 w
+(a) 3731 3892 w
+(new) 3826 3892 w
+(install) 4061 3892 w
+(program) 4393 3892 w
+(that) 4849 3892 w
+(reads, across the top of the screen,) 720 4012 w
+9 /LucidaTypewriter f
+(File) 1008 4182 w
+(System) 1333 4182 w
+(Installation) 1788 4182 w
+10 /LucidaSansUnicode00 f
+(You) 720 4362 w
+(are) 947 4362 w
+(now) 1141 4362 w
+(ready) 1383 4362 w
+(to) 1692 4362 w
+(use) 1833 4362 w
+(the) 2045 4362 w
+(little) 2243 4362 w
+(version) 2503 4362 w
+(of) 2898 4362 w
+(Plan) 3039 4362 w
+(9) 3283 4362 w
+(on) 3389 4362 w
+(your) 3555 4362 w
+10 /LucidaTypewriter f
+(C:) 3814 4362 w
+10 /LucidaSansUnicode00 f
+(drive) 4001 4362 w
+(to) 4285 4362 w
+(install) 4426 4362 w
+(a) 4761 4362 w
+(real) 4859 4362 w
+(Plan) 720 4482 w
+(9) 954 4482 w
+(from) 1050 4482 w
+(diskettes) 1315 4482 w
+(2,) 1786 4482 w
+(3,) 1914 4482 w
+(and) 2042 4482 w
+(4) 2255 4482 w
+(and/or) 2351 4482 w
+(the) 2719 4482 w
+(CD-ROM.) 2907 4482 w
+(You) 3433 4482 w
+(will) 3651 4482 w
+(see a menu with the var\255) 3848 4482 w
+(ious options displayed.) 720 4602 w
+(The next few sections go through these options.) 1908 4602 w
+(The) 4330 4602 w
+(numbered) 4544 4602 w
+(sections) 720 4722 w
+(refer) 1155 4722 w
+(to) 1423 4722 w
+(items) 1558 4722 w
+(in) 1861 4722 w
+(the) 1989 4722 w
+(top) 2181 4722 w
+(menu.) 2379 4722 w
+(Other) 2753 4722 w
+(sections) 3064 4722 w
+(provide) 3499 4722 w
+(background) 3901 4722 w
+(to) 4516 4722 w
+(the) 4651 4722 w
+(pro\255) 4842 4722 w
+(cedures.) 720 4842 w
+10 /LucidaSans-Demi f
+(1. Install 3 Diskette System to local drive.) 720 5082 w
+10 /LucidaSansUnicode00 f
+(In this installation option, you will install the version of) 970 5238 w
+(the) 3678 5238 w
+(system) 3866 5238 w
+(on) 4239 5238 w
+(floppies) 4395 5238 w
+(2,) 4817 5238 w
+(3,) 4945 5238 w
+(and) 720 5358 w
+(4) 939 5358 w
+(onto) 1041 5358 w
+(a) 1301 5358 w
+(separate) 1395 5358 w
+(Plan) 1848 5358 w
+(9) 2088 5358 w
+(partition) 2190 5358 w
+(on) 2643 5358 w
+(a) 2805 5358 w
+(hard) 2899 5358 w
+(disk.) 3159 5358 w
+(After) 3463 5358 w
+(it) 3742 5358 w
+(is) 3847 5358 w
+(installed,) 3966 5358 w
+(you) 4448 5358 w
+(will) 4662 5358 w
+(still) 4865 5358 w
+(use) 720 5478 w
+(DOS) 929 5478 w
+(to) 1176 5478 w
+(bootstrap) 1314 5478 w
+(Plan) 1823 5478 w
+(9) 2064 5478 w
+(by) 2167 5478 w
+(the) 2322 5478 w
+(usual) 2517 5478 w
+(method:) 2816 5478 w
+(typing) 3260 5478 w
+10 /LucidaTypewriter f
+(PLAN9\\B) 3605 5478 w
+10 /LucidaSansUnicode00 f
+(to) 4149 5478 w
+(run) 4287 5478 w
+(the) 4492 5478 w
+(version) 4688 5478 w
+(of) 720 5598 w
+10 /LucidaTypewriter f
+(b.com) 850 5598 w
+10 /LucidaSansUnicode00 f
+(installed on DOS drive) 1242 5598 w
+10 /LucidaTypewriter f
+(C:) 2352 5598 w
+10 /LucidaSansUnicode00 f
+(.) 2496 5598 w
+(The) 970 5754 w
+(first) 1208 5754 w
+(thing) 1461 5754 w
+(you) 1771 5754 w
+(will) 2004 5754 w
+(need) 2226 5754 w
+(to) 2521 5754 w
+(define) 2677 5754 w
+(is) 3038 5754 w
+(which) 3176 5754 w
+(drive) 3515 5754 w
+(has) 3814 5754 w
+(the) 4040 5754 w
+(partition) 4253 5754 w
+(you) 4725 5754 w
+10 /LucidaSansUnicode20 f
+(\031) 4900 5754 w
+10 /LucidaSansUnicode00 f
+(ve) 4932 5754 w
+(reserved) 720 5874 w
+(to) 1181 5874 w
+(hold) 1324 5874 w
+(the) 1584 5874 w
+(Plan) 1784 5874 w
+(9) 2030 5874 w
+(file) 2138 5874 w
+(system.) 2334 5874 w
+(The) 2783 5874 w
+(installer) 3009 5874 w
+(will) 3443 5874 w
+(prompt) 3652 5874 w
+(you) 4055 5874 w
+(with) 4275 5874 w
+(a) 4525 5874 w
+(menu) 4625 5874 w
+(of) 4942 5874 w
+(disks) 720 5994 w
+(it) 1017 5994 w
+(discovers) 1128 5994 w
+(in) 1628 5994 w
+(your) 1764 5994 w
+(hardware.) 2025 5994 w
+(When) 2584 5994 w
+(you) 2896 5994 w
+10 /LucidaSansUnicode20 f
+(\031) 3071 5994 w
+10 /LucidaSansUnicode00 f
+(ve) 3103 5994 w
+(chosen,) 3257 5994 w
+(the) 3678 5994 w
+(installer) 3879 5994 w
+(will) 4314 5994 w
+(set) 4524 5994 w
+(up) 4714 5994 w
+(the) 4885 5994 w
+(Plan) 720 6114 w
+(9) 973 6114 w
+(partition) 1088 6114 w
+(table) 1554 6114 w
+(at) 1846 6114 w
+(the) 1990 6114 w
+(end) 2197 6114 w
+(of) 2430 6114 w
+(that) 2580 6114 w
+(disk,) 2823 6114 w
+(start) 3108 6114 w
+(up) 3381 6114 w
+(the) 3558 6114 w
+(file) 3765 6114 w
+(system) 3968 6114 w
+(program,) 4360 6114 w
+(and) 4860 6114 w
+(prompt you to insert diskette 2.) 720 6234 w
+(As) 970 6390 w
+(the) 1131 6390 w
+(diskettes) 1327 6390 w
+(unpack,) 1806 6390 w
+(a) 2230 6390 w
+(scrolling) 2326 6390 w
+(window) 2782 6390 w
+(will) 3192 6390 w
+(show) 3397 6390 w
+(the) 3689 6390 w
+(files) 3885 6390 w
+(being) 4129 6390 w
+(copied) 4443 6390 w
+(from) 4808 6390 w
+(the) 720 6510 w
+(diskette) 918 6510 w
+(to) 1348 6510 w
+(the) 1489 6510 w
+(new) 1687 6510 w
+(file) 1925 6510 w
+(system.) 2118 6510 w
+(After) 2564 6510 w
+(all) 2846 6510 w
+(three) 3001 6510 w
+(diskettes) 3295 6510 w
+(have) 3775 6510 w
+(been) 4042 6510 w
+(unpacked,) 4321 6510 w
+(you) 4865 6510 w
+(will see this menu:) 720 6630 w
+9 /LucidaTypewriter f
+(Make) 1008 6800 w
+(the) 1333 6800 w
+(newly) 1593 6800 w
+(installed) 1983 6800 w
+(Plan) 2633 6800 w
+(9) 2958 6800 w
+(the) 3088 6800 w
+(default) 3348 6800 w
+(Reconfigure) 1008 6910 w
+(the) 1788 6910 w
+(system) 2048 6910 w
+(Exit) 1008 7020 w
+(to) 1333 7020 w
+(system) 1528 7020 w
+(Reboot) 1008 7130 w
+10 /LucidaSansUnicode00 f
+(Take) 720 7310 w
+(the) 992 7310 w
+(first) 1187 7310 w
+(option,) 1422 7310 w
+(which) 1807 7310 w
+(will) 2128 7310 w
+(update) 2333 7310 w
+(your) 2710 7310 w
+10 /LucidaTypewriter f
+(plan9.ini) 2967 7310 w
+10 /LucidaSansUnicode00 f
+(to) 3656 7310 w
+(make) 3795 7310 w
+(the) 4098 7310 w
+(system) 4294 7310 w
+(use) 4675 7310 w
+(the) 4885 7310 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 6 6
+%%Page: 7 7
+/saveobj save def
+mark
+7 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 7 \255) 2783 480 w
+(newly) 720 840 w
+(created) 1034 840 w
+(file) 1431 840 w
+(system) 1620 840 w
+(when) 1998 840 w
+(you) 2293 840 w
+(reboot.) 2506 840 w
+(After) 2927 840 w
+(you) 3205 840 w
+10 /LucidaSansUnicode20 f
+(\031) 3380 840 w
+10 /LucidaSansUnicode00 f
+(ve) 3412 840 w
+(done) 3558 840 w
+(this,) 3838 840 w
+(the) 4087 840 w
+(menu) 4280 840 w
+(will) 4591 840 w
+(auto\255) 4792 840 w
+(matically) 720 960 w
+(select) 1196 960 w
+(the) 1522 960 w
+10 /LucidaTypewriter f
+(Reboot) 1723 960 w
+10 /LucidaSansUnicode00 f
+(option.) 2201 960 w
+(Remove) 2624 960 w
+(the) 3051 960 w
+(diskette) 3252 960 w
+(from) 3685 960 w
+(drive) 3963 960 w
+10 /LucidaTypewriter f
+(A:) 4251 960 w
+10 /LucidaSansUnicode00 f
+(and) 4442 960 w
+(use) 4669 960 w
+(the) 4885 960 w
+10 /LucidaTypewriter f
+(Reboot) 720 1080 w
+10 /LucidaSansUnicode00 f
+(option on the menu.) 1184 1080 w
+(For) 970 1236 w
+(the) 1162 1236 w
+(record,) 1354 1236 w
+(the) 1736 1236 w
+(second) 1928 1236 w
+(option) 2309 1236 w
+(on) 2659 1236 w
+(this) 2819 1236 w
+(menu) 3035 1236 w
+(gets) 3345 1236 w
+(you) 3588 1236 w
+(back) 3800 1236 w
+(to) 4064 1236 w
+(the) 4199 1236 w
+(configuration) 4391 1236 w
+(menu;) 720 1356 w
+(the) 1069 1356 w
+(third) 1268 1356 w
+(exits) 1544 1356 w
+(to) 1822 1356 w
+(the) 1964 1356 w
+(little) 2163 1356 w
+(Plan) 2424 1356 w
+(9) 2669 1356 w
+(on) 2775 1356 w
+10 /LucidaTypewriter f
+(C:) 2941 1356 w
+10 /LucidaSansUnicode00 f
+(,) 3085 1356 w
+(which) 3160 1356 w
+(is) 3484 1356 w
+(only) 3607 1356 w
+(for) 3854 1356 w
+(troubleshooting;) 4036 1356 w
+(the) 4885 1356 w
+(last will reboot DOS.) 720 1476 w
+(After) 970 1632 w
+(the) 1251 1632 w
+(reboot,) 1447 1632 w
+(you) 1839 1632 w
+(will) 2055 1632 w
+(be) 2260 1632 w
+(back) 2420 1632 w
+(in) 2688 1632 w
+(DOS) 2820 1632 w
+(and) 3068 1632 w
+(should) 3290 1632 w
+(run) 3660 1632 w
+10 /LucidaTypewriter f
+(PLAN9\\B) 3867 1632 w
+10 /LucidaSansUnicode00 f
+(.) 4371 1632 w
+(The) 4477 1632 w
+(system) 4700 1632 w
+(will come up, but not all the way.) 720 1752 w
+(It will stop with a line that reads something like this:) 2396 1752 w
+9 /LucidaTypewriter f
+(root) 1008 1922 w
+(is) 1333 1922 w
+(from) 1528 1922 w
+(\(local,) 1853 1922 w
+(9600,) 2373 1922 w
+(19200,) 2763 1922 w
+(il\)[local!#H/hd0fs]:) 3218 1922 w
+10 /LucidaSansUnicode00 f
+(This) 720 2102 w
+(is) 966 2102 w
+(asking) 1087 2102 w
+(you) 1445 2102 w
+(to) 1661 2102 w
+(choose) 1800 2102 w
+(which) 2183 2102 w
+(device) 2505 2102 w
+(to) 2853 2102 w
+(use) 2992 2102 w
+(as) 3202 2102 w
+(the) 3349 2102 w
+(root) 3546 2102 w
+(file) 3788 2102 w
+(system;) 3981 2102 w
+(you) 4395 2102 w
+(want) 4612 2102 w
+(the) 4885 2102 w
+(default,) 720 2222 w
+(whatever) 1162 2222 w
+(is) 1669 2222 w
+(in) 1820 2222 w
+(the) 1982 2222 w
+(square) 2208 2222 w
+(brackets,) 2607 2222 w
+(so) 3121 2222 w
+(press) 3303 2222 w
+10 /LucidaTypewriter f
+(Enter) 3635 2222 w
+10 /LucidaSansUnicode00 f
+(.) 3995 2222 w
+(Then) 4129 2222 w
+(you) 4442 2222 w
+(will) 4687 2222 w
+(be) 4921 2222 w
+(prompted for a user name:) 720 2342 w
+9 /LucidaTypewriter f
+(user[none]:) 1008 2512 w
+10 /LucidaSansUnicode00 f
+(Again,) 720 2692 w
+(take) 1068 2692 w
+(the) 1313 2692 w
+(default.) 1507 2692 w
+(The) 1949 2692 w
+(system) 2170 2692 w
+(will) 2550 2692 w
+(turn) 2754 2692 w
+(on) 2996 2692 w
+(the) 3159 2692 w
+(VGA) 3354 2692 w
+(and) 3600 2692 w
+(ask) 3820 2692 w
+(you) 4024 2692 w
+(if) 4239 2692 w
+(it) 4345 2692 w
+(should) 4451 2692 w
+(start) 4819 2692 w
+(the) 720 2812 w
+(window) 915 2812 w
+(system.) 1324 2812 w
+(Say) 1768 2812 w
+(yes,) 1969 2812 w
+(and) 2200 2812 w
+(you) 2420 2812 w
+10 /LucidaSansUnicode20 f
+(\031) 2595 2812 w
+10 /LucidaSansUnicode00 f
+(re) 2627 2812 w
+(off.) 2764 2812 w
+(Click) 3003 2812 w
+(the) 3279 2812 w
+(left) 3474 2812 w
+(mouse) 3673 2812 w
+(button) 4035 2812 w
+(over) 4396 2812 w
+(the) 4645 2812 w
+(win\255) 4839 2812 w
+(dow holding text, and you) 720 2932 w
+10 /LucidaSansUnicode20 f
+(\031) 1995 2932 w
+10 /LucidaSansUnicode00 f
+(re ready to type commands.) 2027 2932 w
+(The next section describes how to establish a private environment.) 970 3088 w
+10 /LucidaSans-Demi f
+(Setting up a stand-alone machine) 720 3328 w
+10 /LucidaSansUnicode00 f
+(If) 970 3484 w
+(you) 1069 3484 w
+(have) 1277 3484 w
+(set) 1535 3484 w
+(up) 1712 3484 w
+(a) 1870 3484 w
+(PC) 1958 3484 w
+(using) 2115 3484 w
+(option) 2414 3484 w
+(1) 2760 3484 w
+(or) 2856 3484 w
+(2) 2992 3484 w
+(of) 3089 3484 w
+(the) 3221 3484 w
+(installation) 3410 3484 w
+(menu,) 3980 3484 w
+(you) 4319 3484 w
+(will) 4528 3484 w
+(have) 4726 3484 w
+(a) 4985 3484 w
+(self-contained) 720 3604 w
+(Plan) 1466 3604 w
+(9) 1706 3604 w
+(environment.) 1808 3604 w
+(The) 2522 3604 w
+(first) 2742 3604 w
+(thing) 2976 3604 w
+(you) 3267 3604 w
+(need) 3481 3604 w
+(to) 3756 3604 w
+(know) 3892 3604 w
+(about) 4188 3604 w
+(is) 4504 3604 w
+(the) 4622 3604 w
+(local) 4815 3604 w
+(file) 720 3724 w
+(system.) 909 3724 w
+(Whenever) 1351 3724 w
+(you) 1860 3724 w
+(are) 2073 3724 w
+(running) 2263 3724 w
+(a) 2681 3724 w
+(local) 2774 3724 w
+(Plan) 3037 3724 w
+(9) 3276 3724 w
+(file) 3377 3724 w
+(system) 3566 3724 w
+(from) 3945 3724 w
+(hard) 4216 3724 w
+(disk,) 4476 3724 w
+(a) 4748 3724 w
+(pro\255) 4842 3724 w
+(gram) 720 3844 w
+(called) 1010 3844 w
+10 /LucidaTypewriter f
+(kfs) 1331 3844 w
+10 /LucidaSansUnicode00 f
+(\(see) 1585 3844 w
+10 /LucidaSans-Italic f
+(kfs) 1819 3844 w
+10 /LucidaSansUnicode00 f
+(\(4\)\)) 1964 3844 w
+(is) 2164 3844 w
+(providing) 2282 3844 w
+(file) 2782 3844 w
+(service.) 2971 3844 w
+(It) 3409 3844 w
+(has) 3513 3844 w
+(a) 3719 3844 w
+(set) 3812 3844 w
+(of) 3994 3844 w
+(commands) 4130 3844 w
+(to) 4697 3844 w
+(con\255) 4833 3844 w
+(figure) 720 3964 w
+(and) 1052 3964 w
+(control) 1277 3964 w
+(the) 1664 3964 w
+(file) 1864 3964 w
+(system;) 2060 3964 w
+(see) 2477 3964 w
+10 /LucidaSans-Italic f
+(kfscmd) 2686 3964 w
+10 /LucidaSansUnicode00 f
+(\(8\)\).) 3035 3964 w
+(Before) 3307 3964 w
+(you) 3662 3964 w
+(reboot,) 3883 3964 w
+(you) 4280 3964 w
+(should) 4501 3964 w
+(run) 4875 3964 w
+(the command) 720 4084 w
+9 /LucidaTypewriter f
+(disk/kfscmd) 1008 4254 w
+(halt) 1788 4254 w
+10 /LucidaSansUnicode00 f
+(and) 720 4434 w
+(wait) 935 4434 w
+(for) 1168 4434 w
+(the) 1342 4434 w
+(command) 1532 4434 w
+(to) 2045 4434 w
+(complete) 2178 4434 w
+(in) 2659 4434 w
+(order) 2785 4434 w
+(to) 3083 4434 w
+(shut) 3217 4434 w
+(down) 3465 4434 w
+(safely.) 3764 4434 w
+(Other) 4144 4434 w
+(useful) 4454 4434 w
+(argu\255) 4787 4434 w
+(ments) 720 4554 w
+(to) 1061 4554 w
+10 /LucidaTypewriter f
+(disk/kfscmd) 1201 4554 w
+10 /LucidaSansUnicode00 f
+(are) 2035 4554 w
+10 /LucidaTypewriter f
+(sync) 2229 4554 w
+10 /LucidaSansUnicode00 f
+(,) 2517 4554 w
+(which) 2590 4554 w
+(flushes) 2912 4554 w
+10 /LucidaTypewriter f
+(kfs) 3301 4554 w
+10 /LucidaSansUnicode20 f
+(\031) 3517 4554 w
+10 /LucidaSansUnicode00 f
+(s) 3549 4554 w
+(buffer) 3641 4554 w
+(cache;) 3978 4554 w
+10 /LucidaTypewriter f
+(allow) 4326 4554 w
+10 /LucidaSansUnicode00 f
+(,) 4686 4554 w
+(which) 4759 4554 w
+(allows) 720 4674 w
+(anyone) 1064 4674 w
+(to) 1454 4674 w
+(read) 1594 4674 w
+(and) 1851 4674 w
+(write) 2073 4674 w
+(the) 2355 4674 w
+(files;) 2552 4674 w
+(and) 2828 4674 w
+10 /LucidaTypewriter f
+(disallow) 3051 4674 w
+10 /LucidaSansUnicode00 f
+(,) 3627 4674 w
+(which) 3702 4674 w
+(restores) 4026 4674 w
+(normal) 4463 4674 w
+(per\255) 4847 4674 w
+(mission) 720 4794 w
+(checking.) 1141 4794 w
+(The) 1681 4794 w
+10 /LucidaTypewriter f
+(allow) 1907 4794 w
+10 /LucidaSansUnicode00 f
+(command) 2311 4794 w
+(is) 2833 4794 w
+(necessary) 2957 4794 w
+(to) 3476 4794 w
+(get) 3618 4794 w
+(users) 3817 4794 w
+(established) 4122 4794 w
+(on) 4718 4794 w
+(the) 4885 4794 w
+(file) 720 4914 w
+(system.) 924 4914 w
+(Even) 1381 4914 w
+(if) 1658 4914 w
+(you) 1777 4914 w
+10 /LucidaSansUnicode20 f
+(\031) 1952 4914 w
+10 /LucidaSansUnicode00 f
+(re) 1984 4914 w
+(planning) 2134 4914 w
+(to) 2611 4914 w
+(be) 2762 4914 w
+(the) 2934 4914 w
+(only) 3142 4914 w
+(person) 3399 4914 w
+(to) 3787 4914 w
+(use) 3939 4914 w
+(the) 4162 4914 w
+(machine,) 4371 4914 w
+(you) 4865 4914 w
+(should) 720 5034 w
+(create) 1081 5034 w
+(a) 1410 5034 w
+(user) 1498 5034 w
+(name) 1741 5034 w
+(for) 2040 5034 w
+(yourself.) 2212 5034 w
+(In) 2698 5034 w
+(particular,) 2822 5034 w
+(don) 3350 5034 w
+10 /LucidaSansUnicode20 f
+(\031) 3536 5034 w
+10 /LucidaSansUnicode00 f
+(t) 3568 5034 w
+(use) 3638 5034 w
+10 /LucidaTypewriter f
+(none) 3840 5034 w
+10 /LucidaSansUnicode00 f
+(,) 4128 5034 w
+(which has special) 4193 5034 w
+(meaning in Plan 9.) 720 5154 w
+(The) 970 5310 w
+(permissions) 1184 5310 w
+(checking) 1804 5310 w
+(in) 2268 5310 w
+(kfs) 2392 5310 w
+(is) 2571 5310 w
+(not) 2684 5310 w
+(supposed) 2877 5310 w
+(to) 3380 5310 w
+(be) 3511 5310 w
+(secure,) 3663 5310 w
+(it) 4046 5310 w
+10 /LucidaSansUnicode20 f
+(\031) 4112 5310 w
+10 /LucidaSansUnicode00 f
+(s) 4144 5310 w
+(just) 4229 5310 w
+(to) 4443 5310 w
+(stop) 4575 5310 w
+(acci\255) 4821 5310 w
+(dents) 720 5430 w
+(from) 1036 5430 w
+(escalating) 1315 5430 w
+(into) 1849 5430 w
+(disaster.) 2085 5430 w
+(Stand-alone) 2579 5430 w
+(Plan) 3218 5430 w
+(9) 3465 5430 w
+(file) 3574 5430 w
+(servers) 3771 5430 w
+(have) 4165 5430 w
+(much) 4436 5430 w
+(better) 4750 5430 w
+(security, and therefore take more work to set up.) 720 5550 w
+(We) 3171 5550 w
+10 /LucidaSansUnicode20 f
+(\031) 3313 5550 w
+10 /LucidaSansUnicode00 f
+(ll return to them in a later section.) 3345 5550 w
+(For each user name to be established on the file system, run the command) 970 5706 w
+9 /LucidaTypewriter f
+(/sys/lib/kfsuser) 1008 5876 w
+(username) 2113 5876 w
+10 /LucidaSansUnicode00 f
+(This) 720 6056 w
+(will) 960 6056 w
+(do) 1159 6056 w
+(all) 1318 6056 w
+(the) 1466 6056 w
+(necessary) 1656 6056 w
+(work) 2166 6056 w
+(to) 2438 6056 w
+(establish) 2571 6056 w
+(a) 3039 6056 w
+(basic) 3129 6056 w
+(Plan) 3413 6056 w
+(9) 3650 6056 w
+(environment) 3749 6056 w
+(for) 4396 6056 w
+(that) 4571 6056 w
+(user.) 4798 6056 w
+(You) 720 6176 w
+(might) 952 6176 w
+(even) 1282 6176 w
+(take) 1555 6176 w
+(a) 1808 6176 w
+(look) 1910 6176 w
+(at) 2165 6176 w
+(the) 2303 6176 w
+(command) 2504 6176 w
+(to) 3028 6176 w
+(see) 3172 6176 w
+(how) 3381 6176 w
+(it) 3627 6176 w
+(works;) 3739 6176 w
+(it) 4105 6176 w
+10 /LucidaSansUnicode20 f
+(\031) 4171 6176 w
+10 /LucidaSansUnicode00 f
+(s) 4203 6176 w
+(an) 4300 6176 w
+10 /LucidaSans-Italic f
+(rc) 4463 6176 w
+10 /LucidaSansUnicode00 f
+(\(1\)) 4561 6176 w
+(script.) 4736 6176 w
+(After a user name has been added this way, run the command) 720 6296 w
+9 /LucidaTypewriter f
+(disk/kfscmd) 1008 6466 w
+(users) 1788 6466 w
+10 /LucidaSansUnicode00 f
+(to cause) 720 6646 w
+10 /LucidaTypewriter f
+(kfs) 1157 6646 w
+10 /LucidaSansUnicode00 f
+(to reread the) 1405 6646 w
+10 /LucidaTypewriter f
+(/adm/users) 2066 6646 w
+10 /LucidaSansUnicode00 f
+(file.) 2818 6646 w
+(When) 970 6802 w
+(you) 1282 6802 w
+(reboot) 1503 6802 w
+(and) 1868 6802 w
+(log) 2094 6802 w
+(in) 2293 6802 w
+(using) 2431 6802 w
+(a) 2744 6802 w
+(real) 2846 6802 w
+(user) 3074 6802 w
+(name,) 3331 6802 w
+(you) 3676 6802 w
+(will) 3898 6802 w
+(be) 4109 6802 w
+(prompted) 4275 6802 w
+(for) 4799 6802 w
+(a) 4985 6802 w
+(password;) 720 6922 w
+(just) 1266 6922 w
+(press) 1498 6922 w
+10 /LucidaTypewriter f
+(Enter) 1812 6922 w
+10 /LucidaSansUnicode00 f
+(until) 2224 6922 w
+(you) 2495 6922 w
+(have) 2722 6922 w
+(an) 2999 6922 w
+(authentication) 3168 6922 w
+(server) 3915 6922 w
+(set) 4263 6922 w
+(up,) 4458 6922 w
+(another) 4666 6922 w
+(topic we) 720 7042 w
+10 /LucidaSansUnicode20 f
+(\031) 1126 7042 w
+10 /LucidaSansUnicode00 f
+(ll visit later.) 1158 7042 w
+(To) 970 7198 w
+(use) 1131 7198 w
+(the) 1337 7198 w
+(Ethernet,) 1529 7198 w
+(you) 2003 7198 w
+10 /LucidaSansUnicode20 f
+(\031) 2178 7198 w
+10 /LucidaSansUnicode00 f
+(ll) 2210 7198 w
+(have) 2305 7198 w
+(to) 2567 7198 w
+(add) 2702 7198 w
+(an) 2920 7198 w
+(entry) 3074 7198 w
+(in) 3359 7198 w
+10 /LucidaTypewriter f
+(/lib/ndb/local) 3487 7198 w
+10 /LucidaSansUnicode00 f
+(describing) 4533 7198 w
+(your) 720 7318 w
+(machine.) 976 7318 w
+(See) 1488 7318 w
+(the) 1694 7318 w
+(man) 1889 7318 w
+(page) 2139 7318 w
+10 /LucidaSans-Italic f
+(ndb) 2415 7318 w
+10 /LucidaSansUnicode00 f
+(\(6\)) 2599 7318 w
+(or) 2768 7318 w
+(look) 2910 7318 w
+(at) 3159 7318 w
+(the) 3291 7318 w
+(example) 3486 7318 w
+(for) 3938 7318 w
+(the) 4116 7318 w
+(machine) 4310 7318 w
+(called) 4757 7318 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 7 7
+%%Page: 8 8
+/saveobj save def
+mark
+8 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 8 \255) 2783 480 w
+10 /LucidaTypewriter f
+(term) 720 840 w
+10 /LucidaSansUnicode00 f
+(in) 1058 840 w
+(the) 1200 840 w
+(section) 1406 840 w
+(of) 1804 840 w
+(this) 1953 840 w
+(document) 2183 840 w
+(called) 2719 840 w
+10 /LucidaSansUnicode20 f
+(\030\030) 3053 840 w
+10 /LucidaSansUnicode00 f
+(Make) 3117 840 w
+(this) 3423 840 w
+(PC) 3653 840 w
+(a) 3828 840 w
+(CPU) 3934 840 w
+(or) 4178 840 w
+(Authentication) 4331 840 w
+(Server) 720 960 w
+10 /LucidaSansUnicode20 f
+(\031\031) 1020 960 w
+10 /LucidaSansUnicode00 f
+(.) 1084 960 w
+10 /LucidaSans-Demi f
+(2. Install CD-ROM to local drive) 720 1200 w
+10 /LucidaSansUnicode00 f
+(This) 970 1356 w
+(proceeds) 1208 1356 w
+(just) 1684 1356 w
+(like) 1898 1356 w
+(setup) 2104 1356 w
+(option) 2407 1356 w
+(1,) 2754 1356 w
+(but) 2883 1356 w
+(installs) 3079 1356 w
+(a) 3456 1356 w
+(500) 3545 1356 w
+(megabyte) 3768 1356 w
+(file) 4276 1356 w
+(system) 4461 1356 w
+(with) 4835 1356 w
+(all) 720 1476 w
+(the) 868 1476 w
+(software.) 1058 1476 w
+(You) 1572 1476 w
+(will) 1792 1476 w
+(need) 1991 1476 w
+(to) 2263 1476 w
+(tell) 2396 1476 w
+(the) 2582 1476 w
+(installer) 2771 1476 w
+(which) 3194 1476 w
+(drive) 3509 1476 w
+(holds) 3784 1476 w
+(the) 4084 1476 w
+(CD-ROM.) 4273 1476 w
+(After) 4800 1476 w
+(that, the sequence is as in option 1.) 720 1596 w
+(Once) 970 1752 w
+(the) 1251 1752 w
+(CD-ROM) 1440 1752 w
+(is) 1903 1752 w
+(unpacked,) 2017 1752 w
+(which) 2553 1752 w
+(will) 2868 1752 w
+(take) 3066 1752 w
+(several) 3306 1752 w
+(hours,) 3680 1752 w
+(you) 4024 1752 w
+(will) 4234 1752 w
+(see) 4433 1752 w
+(the) 4631 1752 w
+(top-) 4821 1752 w
+(level menu discussed under option 1; use it the same way.) 720 1872 w
+(When) 970 2028 w
+(the) 1276 2028 w
+(system) 1471 2028 w
+(reboots,) 1851 2028 w
+(follow) 2293 2028 w
+(the) 2627 2028 w
+(same) 2822 2028 w
+(directions) 3117 2028 w
+(as) 3637 2028 w
+(under) 3784 2028 w
+(option) 4109 2028 w
+(1.) 4463 2028 w
+(The) 4631 2028 w
+(sys\255) 4853 2028 w
+(tem should come up the same way, but with many more files visible.) 720 2148 w
+(See the previous section to see how to get a private environment established now.) 970 2304 w
+10 /LucidaSans-Demi f
+(Building a Plan 9 network) 720 2544 w
+10 /LucidaSansUnicode00 f
+(A) 970 2700 w
+(full) 1072 2700 w
+(Plan) 1262 2700 w
+(9) 1496 2700 w
+(environment) 1592 2700 w
+(includes) 2237 2700 w
+(networked) 2674 2700 w
+(file) 3219 2700 w
+(servers,) 3404 2700 w
+(CPU) 3818 2700 w
+(servers,) 4045 2700 w
+(and) 4459 2700 w
+(authen\255) 4673 2700 w
+(tication) 720 2820 w
+(servers.) 1117 2820 w
+(Before) 1565 2820 w
+(setting) 1910 2820 w
+(up) 2280 2820 w
+(such) 2441 2820 w
+(an) 2703 2820 w
+(environment,) 2855 2820 w
+(you) 3533 2820 w
+(should) 3743 2820 w
+(familiarize) 4106 2820 w
+(yourself) 4651 2820 w
+(with the simple stand-alone system built) 720 2940 w
+(from) 2743 2940 w
+(the) 3008 2940 w
+(previous) 3196 2940 w
+(installation) 3644 2940 w
+(procedures.) 4213 2940 w
+(You) 4855 2940 w
+(should also read enough of the manuals to have an idea how the system is structured.) 720 3060 w
+(None of the networked machines needs to be a) 970 3216 w
+(PC,) 3295 3216 w
+(but) 3484 3216 w
+(the) 3679 3216 w
+(distribution) 3867 3216 w
+(is) 4464 3216 w
+(packaged) 4577 3216 w
+(to) 720 3336 w
+(install) 854 3336 w
+10 /LucidaSans-Italic f
+(from) 1182 3336 w
+10 /LucidaSansUnicode00 f
+(a) 1454 3336 w
+(PC.) 1545 3336 w
+(For) 1769 3336 w
+(example,) 1961 3336 w
+(you) 2442 3336 w
+(can) 2653 3336 w
+(use) 2857 3336 w
+(the) 3062 3336 w
+(diskettes) 3253 3336 w
+(to) 3727 3336 w
+(set) 3861 3336 w
+(up) 4041 3336 w
+(a) 4202 3336 w
+(SUN) 4293 3336 w
+(file) 4525 3336 w
+(server,) 4711 3336 w
+(but you must do so from a PC talking to the SUN over the Ethernet.) 720 3456 w
+(The steps to install a Plan 9 network are as follows:) 970 3612 w
+10 /LucidaSansUnicode20 f
+(") 720 3768 w
+10 /LucidaSansUnicode00 f
+(Boot a file server.) 970 3768 w
+10 /LucidaSansUnicode20 f
+(") 720 3924 w
+10 /LucidaSansUnicode00 f
+(Use) 970 3924 w
+(the) 1189 3924 w
+(installation) 1387 3924 w
+(package) 1966 3924 w
+(to) 2409 3924 w
+(load) 2550 3924 w
+(the) 2801 3924 w
+(CD-ROM) 2999 3924 w
+(onto) 3471 3924 w
+(the) 3736 3924 w
+(file) 3935 3924 w
+(server) 4130 3924 w
+(\(installation) 4471 3924 w
+(option 3\).) 970 4044 w
+10 /LucidaSansUnicode20 f
+(") 720 4200 w
+10 /LucidaSansUnicode00 f
+(The) 970 4200 w
+(file) 1191 4200 w
+(server) 1382 4200 w
+(is) 1719 4200 w
+(now) 1839 4200 w
+(running) 2079 4200 w
+(without) 2499 4200 w
+(authentication.) 2904 4200 w
+(While) 3703 4200 w
+(it) 4005 4200 w
+10 /LucidaSansUnicode20 f
+(\031) 4071 4200 w
+10 /LucidaSansUnicode00 f
+(s) 4103 4200 w
+(in) 4194 4200 w
+(this) 4326 4200 w
+(state,) 4546 4200 w
+(edit) 4855 4200 w
+(administrative) 970 4320 w
+(files) 1712 4320 w
+(holding) 1967 4320 w
+(information) 2387 4320 w
+(about) 3006 4320 w
+(network) 3336 4320 w
+(addresses,) 3780 4320 w
+(users,) 4351 4320 w
+(and) 4696 4320 w
+(so) 4928 4320 w
+(on.) 970 4440 w
+10 /LucidaSansUnicode20 f
+(") 720 4596 w
+10 /LucidaSansUnicode00 f
+(Use the file server unauthenticated for a while to get comfortable with the setup.) 970 4596 w
+10 /LucidaSansUnicode20 f
+(") 720 4752 w
+10 /LucidaSansUnicode00 f
+(Turn) 970 4752 w
+(a) 1231 4752 w
+(PC) 1319 4752 w
+(into) 1476 4752 w
+(a) 1698 4752 w
+(combined) 1786 4752 w
+(CPU) 2297 4752 w
+(server) 2523 4752 w
+(and) 2853 4752 w
+(authentication) 3066 4752 w
+(server) 3794 4752 w
+(\(installation) 4124 4752 w
+(option) 4727 4752 w
+(4\).) 970 4872 w
+10 /LucidaSansUnicode20 f
+(") 720 5028 w
+10 /LucidaSansUnicode00 f
+(Enable authentication on the file server.) 970 5028 w
+10 /LucidaSans-Demi f
+(3a. Make a PC file server boot disk) 720 5268 w
+10 /LucidaSansUnicode00 f
+(This) 970 5424 w
+(section) 1210 5424 w
+(tells) 1592 5424 w
+(you) 1829 5424 w
+(how) 2039 5424 w
+(to) 2274 5424 w
+(build) 2407 5424 w
+(a) 2688 5424 w
+(boot) 2778 5424 w
+(diskette) 3035 5424 w
+(to) 3457 5424 w
+(bring) 3590 5424 w
+(up) 3882 5424 w
+(a) 4042 5424 w
+(PC) 4132 5424 w
+(as) 4291 5424 w
+(a) 4433 5424 w
+(file) 4524 5424 w
+(server.) 4711 5424 w
+(If) 720 5544 w
+(your) 819 5544 w
+(file) 1068 5544 w
+(server) 1252 5544 w
+(is) 1582 5544 w
+(not) 1695 5544 w
+(going) 1888 5544 w
+(to) 2197 5544 w
+(be) 2328 5544 w
+(a) 2480 5544 w
+(PC,) 2568 5544 w
+(ignore) 2757 5544 w
+(this) 3101 5544 w
+(section.) 3313 5544 w
+(You) 3757 5544 w
+(will,) 3975 5544 w
+(however, need to) 4204 5544 w
+(find) 720 5664 w
+(a) 955 5664 w
+(way) 1054 5664 w
+(to) 1282 5664 w
+(get) 1424 5664 w
+(the) 1623 5664 w
+(file) 1822 5664 w
+(server) 2017 5664 w
+(booted) 2359 5664 w
+(using) 2745 5664 w
+(to) 3056 5664 w
+(load) 3199 5664 w
+(the) 3452 5664 w
+(appropriate) 3652 5664 w
+(kernel) 4261 5664 w
+(from) 4608 5664 w
+(the) 4885 5664 w
+(CD-ROM; see) 720 5784 w
+10 /LucidaSans-Italic f
+(booting) 1408 5784 w
+10 /LucidaSansUnicode00 f
+(\(8\).) 1773 5784 w
+(Boot) 970 5940 w
+(from) 1221 5940 w
+(diskette) 1487 5940 w
+(1,) 1908 5940 w
+(and) 2037 5940 w
+(choose) 2251 5940 w
+(the) 2627 5940 w
+10 /LucidaSansUnicode20 f
+(\030\030) 2817 5940 w
+10 /LucidaSansUnicode00 f
+(File) 2881 5940 w
+(System) 3084 5940 w
+(Installation) 3462 5940 w
+10 /LucidaSansUnicode20 f
+(\031\031) 3998 5940 w
+10 /LucidaSansUnicode00 f
+(option.) 4097 5940 w
+(Reboot) 4509 5940 w
+(the) 4885 5940 w
+(machine,) 720 6060 w
+(start) 1212 6060 w
+(Plan) 1485 6060 w
+(9) 1738 6060 w
+(normally,) 1852 6060 w
+(and) 2357 6060 w
+(it) 2588 6060 w
+(will) 2705 6060 w
+(automatically) 2920 6060 w
+(run) 3616 6060 w
+(the) 3832 6060 w
+(installation) 4038 6060 w
+(software) 4625 6060 w
+(again.) 720 6180 w
+(Choose the appropriate option from its top-level menu.) 1079 6180 w
+(This) 970 6336 w
+(installation) 1214 6336 w
+(option) 1789 6336 w
+(writes) 2141 6336 w
+(a) 2471 6336 w
+(new) 2565 6336 w
+(diskette) 2799 6336 w
+(that) 3225 6336 w
+(will) 3455 6336 w
+(boot) 3658 6336 w
+(a) 3919 6336 w
+(Plan) 4013 6336 w
+(9) 4253 6336 w
+(PC) 4356 6336 w
+(file) 4520 6336 w
+(server.) 4711 6336 w
+(To) 720 6456 w
+(do) 887 6456 w
+(this,) 1054 6456 w
+(you) 1308 6456 w
+(must) 1526 6456 w
+(have) 1812 6456 w
+(a) 2080 6456 w
+(CD-ROM) 2178 6456 w
+(drive) 2649 6456 w
+(on) 2932 6456 w
+(the) 3097 6456 w
+(machine) 3294 6456 w
+(you) 3744 6456 w
+(are) 3961 6456 w
+(using) 4155 6456 w
+(to) 4463 6456 w
+(write) 4603 6456 w
+(the) 4885 6456 w
+(diskette,) 720 6576 w
+(as) 1173 6576 w
+(it) 1313 6576 w
+(will) 1413 6576 w
+(hold) 1611 6576 w
+(files) 1860 6576 w
+(that) 2096 6576 w
+(are) 2321 6576 w
+(only) 2507 6576 w
+(shipped) 2745 6576 w
+(on) 3166 6576 w
+(the) 3324 6576 w
+(CD-ROM.) 3514 6576 w
+(This) 4042 6576 w
+(also) 4282 6576 w
+(means) 4513 6576 w
+(you) 4865 6576 w
+(must have the) 720 6696 w
+10 /LucidaTypewriter f
+(plan9.ini) 1439 6696 w
+10 /LucidaSansUnicode00 f
+(file set up correctly to access the CD-ROM.) 2119 6696 w
+(First) 970 6852 w
+(you) 1220 6852 w
+(need) 1433 6852 w
+(to) 1708 6852 w
+(select) 1844 6852 w
+(a) 2162 6852 w
+(CD-ROM) 2255 6852 w
+(drive) 2722 6852 w
+(and) 3001 6852 w
+(load) 3220 6852 w
+(the) 3467 6852 w
+(CD-ROM) 3661 6852 w
+(in) 4129 6852 w
+(the) 4259 6852 w
+(drive.) 4453 6852 w
+(Then) 4797 6852 w
+(place) 720 6972 w
+(a) 1029 6972 w
+(writable) 1139 6972 w
+(blank) 1581 6972 w
+(diskette) 1903 6972 w
+(in) 2344 6972 w
+(drive) 2489 6972 w
+10 /LucidaTypewriter f
+(A:) 2784 6972 w
+10 /LucidaSansUnicode00 f
+(.) 2928 6972 w
+(The) 3046 6972 w
+(install) 3281 6972 w
+(program) 3627 6972 w
+(will) 4097 6972 w
+(write) 4315 6972 w
+(the) 4609 6972 w
+(boot) 4818 6972 w
+(diskette.) 720 7092 w
+(At) 970 7248 w
+(this) 1114 7248 w
+(point,) 1331 7248 w
+(you) 1654 7248 w
+(need) 1868 7248 w
+(to) 2144 7248 w
+(provide) 2281 7248 w
+(the) 2685 7248 w
+(configuration) 2879 7248 w
+(information) 3567 7248 w
+10 /LucidaSans-Italic f
+(for) 4173 7248 w
+(the) 4355 7248 w
+(file) 4547 7248 w
+(server) 4735 7248 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 8 8
+%%Page: 9 9
+/saveobj save def
+mark
+9 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 9 \255) 2783 480 w
+10 /LucidaSans-Italic f
+(machine.) 720 840 w
+10 /LucidaSansUnicode00 f
+(Walk through the menus as usual, but this time also select the) 1226 840 w
+9 /LucidaTypewriter f
+(File) 1008 1010 w
+(system) 1333 1010 w
+(console) 1788 1010 w
+10 /LucidaSansUnicode00 f
+(option.) 720 1190 w
+(This) 1143 1190 w
+(defines) 1395 1190 w
+(which) 1796 1190 w
+(device) 2124 1190 w
+(will) 2478 1190 w
+(serve) 2689 1190 w
+(as) 2992 1190 w
+(the) 3145 1190 w
+(administrative) 3347 1190 w
+(console) 4083 1190 w
+(for) 4501 1190 w
+(the) 4687 1190 w
+(file) 4889 1190 w
+(server) 720 1310 w
+(machine.) 1065 1310 w
+(You) 1585 1310 w
+(probably) 1818 1310 w
+(want) 2293 1310 w
+(to) 2572 1310 w
+(choose) 2718 1310 w
+(the) 3108 1310 w
+10 /LucidaTypewriter f
+(CGA) 3311 1310 w
+10 /LucidaSansUnicode00 f
+(option) 3575 1310 w
+(unless) 3935 1310 w
+(you) 4293 1310 w
+(plan) 4515 1310 w
+(to) 4771 1310 w
+(do) 4916 1310 w
+(something) 720 1430 w
+(like) 1275 1430 w
+(put) 1489 1430 w
+(a) 1693 1430 w
+(remote) 1790 1430 w
+(terminal) 2176 1430 w
+(on) 2620 1430 w
+(a) 2785 1430 w
+(file) 2882 1430 w
+(server) 3075 1430 w
+(housed) 3415 1430 w
+(in) 3813 1430 w
+(a) 3947 1430 w
+(machine) 4045 1430 w
+(room.) 4496 1430 w
+(The) 4859 1430 w
+10 /LucidaTypewriter f
+(VGA) 720 1550 w
+(setup) 975 1550 w
+10 /LucidaSansUnicode00 f
+(option) 1374 1550 w
+(is) 1726 1550 w
+(not) 1845 1550 w
+(important,) 2044 1550 w
+(because) 2592 1550 w
+(the) 3024 1550 w
+(system) 3217 1550 w
+(won) 3595 1550 w
+10 /LucidaSansUnicode20 f
+(\031) 3795 1550 w
+10 /LucidaSansUnicode00 f
+(t) 3827 1550 w
+(use) 3902 1550 w
+(the) 4109 1550 w
+(VGA,) 4302 1550 w
+(but) 4578 1550 w
+(make) 4778 1550 w
+(sure you define the) 720 1670 w
+10 /LucidaTypewriter f
+(Ethernet) 1691 1670 w
+10 /LucidaSansUnicode00 f
+(and) 2299 1670 w
+10 /LucidaTypewriter f
+(SCSI) 2512 1670 w
+(Device) 2833 1670 w
+10 /LucidaSansUnicode00 f
+(options:) 3298 1670 w
+(the) 3727 1670 w
+(file) 3915 1670 w
+(server) 4099 1670 w
+(must) 4429 1670 w
+(talk) 4705 1670 w
+(on) 4917 1670 w
+(the Ethernet and the Plan 9 file sever supports only SCSI disks \(see ) 720 1790 w
+10 /LucidaSansUnicode20 f
+(\030\030) 3989 1790 w
+10 /LucidaSansUnicode00 f
+(The Various Ports) 4053 1790 w
+10 /LucidaSansUnicode20 f
+(\031\031) 4907 1790 w
+10 /LucidaSansUnicode00 f
+(\).) 4971 1790 w
+(When) 970 1946 w
+(the) 1277 1946 w
+(configuration) 1473 1946 w
+(is) 2163 1946 w
+(written) 2284 1946 w
+(to) 2664 1946 w
+(the) 2803 1946 w
+(diskette,) 2999 1946 w
+(try) 3459 1946 w
+(booting) 3630 1946 w
+(the) 4046 1946 w
+(file) 4242 1946 w
+(server) 4435 1946 w
+(using) 4774 1946 w
+(the) 720 2066 w
+(diskette) 911 2066 w
+(as) 1334 2066 w
+(a) 1476 2066 w
+(boot) 1567 2066 w
+(disk.) 1825 2066 w
+(Read) 2126 2066 w
+(the) 2399 2066 w
+(next) 2590 2066 w
+(section) 2842 2066 w
+(before) 3224 2066 w
+(doing) 3573 2066 w
+(this,) 3885 2066 w
+(so) 4131 2066 w
+(you) 4278 2066 w
+(understand) 4488 2066 w
+(how) 720 2186 w
+(the) 972 2186 w
+(file) 1179 2186 w
+(server) 1382 2186 w
+(comes) 1731 2186 w
+(up:) 2095 2186 w
+(it) 2304 2186 w
+10 /LucidaSansUnicode20 f
+(\031) 2370 2186 w
+10 /LucidaSansUnicode00 f
+(s) 2402 2186 w
+(a) 2505 2186 w
+(completely) 2612 2186 w
+(different) 3191 2186 w
+(arrangement) 3661 2186 w
+(from) 4333 2186 w
+(a) 4617 2186 w
+(Plan) 4724 2186 w
+(9) 4977 2186 w
+(machine) 720 2306 w
+(running) 1161 2306 w
+(the) 1574 2306 w
+(normal) 1762 2306 w
+(kernel.) 2136 2306 w
+(The) 2535 2306 w
+(PC) 2749 2306 w
+(file server behaves much like any other Plan) 2906 2306 w
+(9) 720 2426 w
+(file) 820 2426 w
+(server.) 1008 2426 w
+(The) 1406 2426 w
+(one) 1624 2426 w
+(peculiarity) 1840 2426 w
+(is) 2381 2426 w
+(that) 2499 2426 w
+(it) 2728 2426 w
+(uses) 2832 2426 w
+(the) 3090 2426 w
+(floppy) 3283 2426 w
+(both) 3626 2426 w
+(as) 3887 2426 w
+(a) 4031 2426 w
+(boot) 4124 2426 w
+(disk) 4384 2426 w
+(and) 4623 2426 w
+(as) 4841 2426 w
+(a) 4985 2426 w
+(place) 720 2546 w
+(to) 1016 2546 w
+(store) 1156 2546 w
+(precious) 1444 2546 w
+(information) 1900 2546 w
+(stored) 2509 2546 w
+(in) 2860 2546 w
+(non-volatile) 2992 2546 w
+(RAM) 3624 2546 w
+(on) 3883 2546 w
+(other) 4047 2546 w
+(machines;) 4345 2546 w
+(see) 4877 2546 w
+(the) 720 2666 w
+10 /LucidaTypewriter f
+(nvr) 907 2666 w
+10 /LucidaSansUnicode00 f
+(entry in) 1155 2666 w
+10 /LucidaSans-Italic f
+(plan9.ini) 1558 2666 w
+10 /LucidaSansUnicode00 f
+(\(8\).) 1986 2666 w
+(If) 970 2822 w
+(the) 1077 2822 w
+(diskette) 1273 2822 w
+(has) 1701 2822 w
+(a) 1910 2822 w
+(bad) 2006 2822 w
+(configuration,) 2228 2822 w
+(you) 2950 2822 w
+(can) 3166 2822 w
+(return) 3376 2822 w
+(to) 3717 2822 w
+(the) 3857 2822 w
+(installation) 4054 2822 w
+(machine) 4632 2822 w
+(and write a new configuration file, iterating until it works.) 720 2942 w
+10 /LucidaSans-Demi f
+(Starting up the file server) 720 3182 w
+10 /LucidaSans-Italic f
+(Carefully read) 970 3338 w
+(this) 1701 3338 w
+(section) 1912 3338 w
+(before) 2283 3338 w
+(booting) 2626 3338 w
+(the) 3024 3338 w
+(file) 3210 3338 w
+(server.) 3392 3338 w
+(You) 3794 3338 w
+(are) 4007 3338 w
+(about) 4202 3338 w
+(to) 4514 3338 w
+(write) 4642 3338 w
+(all) 4921 3338 w
+(over) 720 3458 w
+(some) 970 3458 w
+(disks.) 1260 3458 w
+10 /LucidaSansUnicode00 f
+(Also) 1608 3458 w
+(read) 1856 3458 w
+10 /LucidaSans-Italic f
+(fs) 2109 3458 w
+10 /LucidaSansUnicode00 f
+(\(8\)) 2196 3458 w
+(and) 2362 3458 w
+10 /LucidaSans-Italic f
+(fsconfig) 2579 3458 w
+10 /LucidaSansUnicode00 f
+(\(8\)) 2963 3458 w
+(to) 3129 3458 w
+(learn) 3264 3458 w
+(about) 3544 3458 w
+(the) 3859 3458 w
+(commands) 4051 3458 w
+(available) 4617 3458 w
+(on the server console.) 720 3578 w
+(When) 970 3734 w
+(you) 1277 3734 w
+(have) 1493 3734 w
+(a) 1759 3734 w
+(boot) 1855 3734 w
+(disk) 2119 3734 w
+(for) 2362 3734 w
+(a) 2543 3734 w
+(PC) 2640 3734 w
+(file) 2806 3734 w
+(server,) 2999 3734 w
+(or) 3370 3734 w
+(have) 3514 3734 w
+(found) 3781 3734 w
+(a) 4108 3734 w
+(way) 4205 3734 w
+(to) 4431 3734 w
+(bootstrap) 4571 3734 w
+(another) 720 3854 w
+(type) 1136 3854 w
+(of) 1386 3854 w
+(file) 1526 3854 w
+(server,) 1719 3854 w
+(boot) 2090 3854 w
+(the) 2354 3854 w
+(server) 2551 3854 w
+(machine.) 2890 3854 w
+(The) 3404 3854 w
+(system) 3627 3854 w
+(will) 4009 3854 w
+(chatter) 4214 3854 w
+(a) 4594 3854 w
+(bit) 4690 3854 w
+(and) 4860 3854 w
+(eventually print) 720 3974 w
+9 /LucidaTypewriter f
+(**) 1073 4144 w
+(NVR) 1268 4144 w
+(config) 1528 4144 w
+(checksum) 1983 4144 w
+(is) 2568 4144 w
+(incorrect) 2763 4144 w
+(**) 3413 4144 w
+10 /LucidaSansUnicode00 f
+(and) 720 4324 w
+(enter) 949 4324 w
+10 /LucidaSansUnicode20 f
+(\030) 1250 4324 w
+10 /LucidaSansUnicode00 f
+(config) 1282 4324 w
+10 /LucidaSansUnicode20 f
+(\031) 1584 4324 w
+10 /LucidaSansUnicode00 f
+(mode.) 1665 4324 w
+(If) 2052 4324 w
+(you) 2168 4324 w
+(boot) 2393 4324 w
+(the) 2665 4324 w
+(disk) 2870 4324 w
+(a) 3121 4324 w
+(second) 3226 4324 w
+(time,) 3620 4324 w
+(the) 3917 4324 w
+(checksum) 4122 4324 w
+(in) 4656 4324 w
+(non-) 4797 4324 w
+(volatile RAM will be correct and the system will say) 720 4444 w
+9 /LucidaTypewriter f
+(for) 1008 4614 w
+(config) 1268 4614 w
+(mode) 1723 4614 w
+(hit) 2048 4614 w
+(a) 2308 4614 w
+(key) 2438 4614 w
+(within) 2698 4614 w
+(5) 3153 4614 w
+(seconds) 3283 4614 w
+10 /LucidaSansUnicode00 f
+(Do what it says.) 720 4794 w
+(The system will prompt you with) 970 4950 w
+9 /LucidaTypewriter f
+(config:) 1008 5120 w
+10 /LucidaSansUnicode00 f
+(To) 720 5300 w
+(this) 879 5300 w
+(prompt) 1093 5300 w
+(you) 1486 5300 w
+(must) 1696 5300 w
+(type) 1974 5300 w
+(several) 2217 5300 w
+(lines) 2592 5300 w
+(of) 2854 5300 w
+(text) 2987 5300 w
+(to) 3213 5300 w
+(set) 3347 5300 w
+(up) 3527 5300 w
+(the) 3688 5300 w
+(configuration) 3879 5300 w
+(of) 4564 5300 w
+(the) 4698 5300 w
+(file) 4889 5300 w
+(system.) 720 5420 w
+(The) 1172 5420 w
+(first) 1401 5420 w
+(thing) 1644 5420 w
+(to) 1944 5420 w
+(set) 2090 5420 w
+(is) 2282 5420 w
+(the) 2410 5420 w
+(system) 2613 5420 w
+10 /LucidaSansUnicode20 f
+(\031) 2953 5420 w
+10 /LucidaSansUnicode00 f
+(s) 2985 5420 w
+(name) 3084 5420 w
+(as) 3398 5420 w
+(known) 3552 5420 w
+(to) 3920 5420 w
+(the) 4066 5420 w
+(network.) 4269 5420 w
+(If) 4772 5420 w
+(the) 4885 5420 w
+(machine is called) 720 5540 w
+10 /LucidaTypewriter f
+(kremvax) 1587 5540 w
+10 /LucidaSansUnicode00 f
+(, type) 2091 5540 w
+9 /LucidaTypewriter f
+(service) 1008 5710 w
+(kremvax) 1528 5710 w
+10 /LucidaSansUnicode00 f
+(and a newline.) 720 5890 w
+(Then set the machine) 1486 5890 w
+10 /LucidaSansUnicode20 f
+(\031) 2532 5890 w
+10 /LucidaSansUnicode00 f
+(s IP address,) 2564 5890 w
+(IP) 3208 5890 w
+(subnet) 3325 5890 w
+(mask,) 3689 5890 w
+(and) 4011 5890 w
+(the) 4224 5890 w
+(IP) 4412 5890 w
+(address) 4529 5890 w
+(of) 4942 5890 w
+(the gateway by typing \(using the correct addresses\):) 720 6010 w
+9 /LucidaTypewriter f
+(ip) 1008 6180 w
+(123.111.112.113) 1203 6180 w
+(ipgw) 1008 6290 w
+(123.111.112.1) 1333 6290 w
+(ipmask) 1008 6400 w
+(255.255.0.0) 1463 6400 w
+10 /LucidaSansUnicode00 f
+(Now) 970 6616 w
+(you) 1226 6616 w
+(must) 1445 6616 w
+(establish) 1733 6616 w
+(the) 2211 6616 w
+(disk) 2411 6616 w
+(configuration.) 2657 6616 w
+(First) 3415 6616 w
+(pick) 3672 6616 w
+(a) 3918 6616 w
+(single) 4018 6616 w
+(SCSI) 4352 6616 w
+(disk) 4603 6616 w
+(that) 4849 6616 w
+(will) 720 6736 w
+(store) 920 6736 w
+(the) 1202 6736 w
+(configuration) 1393 6736 w
+(information) 2078 6736 w
+(in) 2681 6736 w
+(block) 2808 6736 w
+(0) 3106 6736 w
+(of) 3205 6736 w
+(the) 3339 6736 w
+(drive.) 3530 6736 w
+(This) 3871 6736 w
+(information) 4112 6736 w
+(is) 4715 6736 w
+(held) 4830 6736 w
+(in a block \(number zero\) not otherwise used by the file system.) 720 6856 w
+(Typically, but not) 3857 6856 w
+(neces\255) 4731 6856 w
+(sarily,) 720 6976 w
+(it) 1043 6976 w
+(will) 1143 6976 w
+(live) 1341 6976 w
+(on) 1541 6976 w
+(the) 1698 6976 w
+(same) 1887 6976 w
+(drive) 2176 6976 w
+(as) 2451 6976 w
+(the) 2591 6976 w
+(main) 2780 6976 w
+(file) 3053 6976 w
+(system.) 3237 6976 w
+(Say) 3674 6976 w
+(that) 3868 6976 w
+10 /LucidaSansUnicode20 f
+(\031) 4059 6976 w
+10 /LucidaSansUnicode00 f
+(s) 4091 6976 w
+(SCSI) 4175 6976 w
+(unit) 4414 6976 w
+(4.) 4637 6976 w
+(Then) 4797 6976 w
+(type) 720 7096 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 9 9
+%%Page: 10 10
+/saveobj save def
+mark
+10 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 10 \255) 2752 480 w
+9 /LucidaTypewriter f
+(config) 1008 830 w
+(w4) 1463 830 w
+10 /LucidaSansUnicode00 f
+(The) 720 1010 w
+10 /LucidaTypewriter f
+(w) 938 1010 w
+10 /LucidaSansUnicode00 f
+(stands) 1047 1010 w
+(for) 1403 1010 w
+10 /LucidaSansUnicode20 f
+(\030) 1579 1010 w
+10 /LucidaSansUnicode00 f
+(wren) 1611 1010 w
+10 /LucidaSansUnicode20 f
+(\031) 1847 1010 w
+10 /LucidaSansUnicode00 f
+(,) 1879 1010 w
+(Plan) 1948 1010 w
+(9) 2186 1010 w
+10 /LucidaSansUnicode20 f
+(\031) 2249 1010 w
+10 /LucidaSansUnicode00 f
+(s) 2281 1010 w
+(generic) 2369 1010 w
+(name) 2763 1010 w
+(for) 3066 1010 w
+(SCSI) 3242 1010 w
+(magnetic) 3485 1010 w
+(disks.) 3967 1010 w
+(Next) 4320 1010 w
+(you) 4585 1010 w
+(must) 4797 1010 w
+(define) 720 1130 w
+(the) 1058 1130 w
+(layout) 1248 1130 w
+(of) 1579 1130 w
+(the) 1712 1130 w
+(disks) 1902 1130 w
+(that) 2189 1130 w
+(the) 2415 1130 w
+(machine) 2605 1130 w
+(will) 3048 1130 w
+(use.) 3247 1130 w
+(Here) 3515 1130 w
+(are) 3777 1130 w
+(a) 3964 1130 w
+(couple) 4054 1130 w
+(of) 4411 1130 w
+(examples;) 4544 1130 w
+(if) 720 1250 w
+(you) 829 1250 w
+(can) 1047 1250 w
+10 /LucidaSansUnicode20 f
+(\031) 1215 1250 w
+10 /LucidaSansUnicode00 f
+(t) 1247 1250 w
+(confidently) 1327 1250 w
+(extrapolate) 1909 1250 w
+(from) 2503 1250 w
+(them) 2778 1250 w
+(to) 3069 1250 w
+(your) 3210 1250 w
+(setup,) 3469 1250 w
+(see) 3813 1250 w
+10 /LucidaSans-Italic f
+(fsconfig) 4019 1250 w
+10 /LucidaSansUnicode00 f
+(\(8\).) 4403 1250 w
+(A) 4639 1250 w
+(single) 4751 1250 w
+(SCSI disk on unit 4:) 720 1370 w
+9 /LucidaTypewriter f
+(filsys) 1008 1540 w
+(main) 1463 1540 w
+(w4) 1788 1540 w
+10 /LucidaSansUnicode00 f
+(A main file system on unit 4, another on unit 5:) 720 1720 w
+9 /LucidaTypewriter f
+(filsys) 1008 1890 w
+(main) 1463 1890 w
+(w4) 1788 1890 w
+(filsys) 1008 2000 w
+(other) 1463 2000 w
+(w5) 1853 2000 w
+10 /LucidaSansUnicode00 f
+(A single file system spanning units 4 and 5:) 720 2180 w
+9 /LucidaTypewriter f
+(filsys) 1008 2350 w
+(main) 1463 2350 w
+(\(w4w5\)) 1788 2350 w
+10 /LucidaSansUnicode00 f
+(A single file system spanning units 4 and 5, blockwise interleaved:) 720 2530 w
+9 /LucidaTypewriter f
+(filsys) 1008 2700 w
+(main) 1463 2700 w
+([w4w5]) 1788 2700 w
+10 /LucidaSansUnicode00 f
+(One) 720 2880 w
+(of) 964 2880 w
+(the) 1110 2880 w
+(file) 1313 2880 w
+(systems) 1512 2880 w
+(you) 1951 2880 w
+(define) 2174 2880 w
+(must) 2525 2880 w
+(be) 2816 2880 w
+(called) 2983 2880 w
+10 /LucidaTypewriter f
+(main) 3314 2880 w
+10 /LucidaSansUnicode00 f
+(,) 3602 2880 w
+(the) 3682 2880 w
+(default) 3885 2880 w
+(file) 4272 2880 w
+(system) 4472 2880 w
+(this) 4861 2880 w
+(machine will serve.) 720 3000 w
+(Now initialize the structure on the disks:) 1708 3000 w
+9 /LucidaTypewriter f
+(ream) 1008 3170 w
+(main) 1333 3170 w
+10 /LucidaSansUnicode00 f
+(\(Ream any other file systems you) 720 3350 w
+10 /LucidaSansUnicode20 f
+(\031) 2323 3350 w
+10 /LucidaSansUnicode00 f
+(ve established, too.\)) 2355 3350 w
+(Take) 970 3506 w
+(a) 1236 3506 w
+(careful) 1325 3506 w
+(look) 1690 3506 w
+(at) 1933 3506 w
+(what) 2059 3506 w
+(you) 2324 3506 w
+10 /LucidaSansUnicode20 f
+(\031) 2499 3506 w
+10 /LucidaSansUnicode00 f
+(ve) 2531 3506 w
+(typed.) 2673 3506 w
+(If) 3042 3506 w
+(it) 3142 3506 w
+10 /LucidaSansUnicode20 f
+(\031) 3208 3506 w
+10 /LucidaSansUnicode00 f
+(s) 3240 3506 w
+(wrong,) 3325 3506 w
+(reset) 3695 3506 w
+(the) 3971 3506 w
+(machine) 4161 3506 w
+(and) 4604 3506 w
+(start) 4819 3506 w
+(again.) 720 3626 w
+(Here) 1079 3626 w
+10 /LucidaSansUnicode20 f
+(\031) 1306 3626 w
+10 /LucidaSansUnicode00 f
+(s a representative display of what the screen should look like:) 1338 3626 w
+9 /LucidaTypewriter f
+(config:) 1008 3796 w
+(service) 1528 3796 w
+(kremvax) 2048 3796 w
+(config:) 1008 3906 w
+(ip) 1528 3906 w
+(123.111.112.113) 1723 3906 w
+(config:) 1008 4016 w
+(ipgw) 1528 4016 w
+(123.111.112.1) 1853 4016 w
+(config:) 1008 4126 w
+(ipmask) 1528 4126 w
+(255.255.0.0) 1983 4126 w
+(config:) 1008 4236 w
+(config) 1528 4236 w
+(w4) 1983 4236 w
+(config:) 1008 4346 w
+(filsys) 1528 4346 w
+(main) 1983 4346 w
+([w4w5]) 2308 4346 w
+(config:) 1008 4456 w
+(ream) 1528 4456 w
+(main) 1853 4456 w
+10 /LucidaSansUnicode00 f
+(All) 970 4672 w
+(the) 1132 4672 w
+(configuration) 1322 4672 w
+(commands) 2007 4672 w
+(do) 2572 4672 w
+(is) 2732 4672 w
+(set) 2848 4672 w
+(up) 3028 4672 w
+(data) 3189 4672 w
+(structures;) 3435 4672 w
+(they) 3992 4672 w
+(do) 4235 4672 w
+(no) 4395 4672 w
+(real) 4554 4672 w
+(work.) 4771 4672 w
+(Once) 720 4792 w
+(you) 1008 4792 w
+(leave) 1224 4792 w
+(config) 1513 4792 w
+(mode,) 1856 4792 w
+(the) 2202 4792 w
+(file) 2398 4792 w
+(system) 2590 4792 w
+(will) 2970 4792 w
+(establish) 3174 4792 w
+(the) 3647 4792 w
+(structure) 3842 4792 w
+(you) 4320 4792 w
+(described.) 4535 4792 w
+(This) 720 4912 w
+(means) 972 4912 w
+(that) 1336 4912 w
+(if) 1574 4912 w
+(you) 1687 4912 w
+(make) 1909 4912 w
+(a) 2218 4912 w
+(mistake) 2320 4912 w
+(you) 2746 4912 w
+(can) 2969 4912 w
+(reset) 3185 4912 w
+(the) 3474 4912 w
+(machine) 3677 4912 w
+(without) 4133 4912 w
+(doing) 4546 4912 w
+(any) 4871 4912 w
+(damage.) 720 5032 w
+(To get out of config mode and on to real work, type) 1200 5032 w
+9 /LucidaTypewriter f
+(end) 1008 5202 w
+10 /LucidaSansUnicode00 f
+(After you leave config mode, the file server will initialize its disk and prompt you:) 970 5418 w
+9 /LucidaTypewriter f
+(kremvax:) 1008 5588 w
+10 /LucidaSansUnicode00 f
+(The prompt may get lost among the other output; type a couple of newlines.) 720 5768 w
+(If) 970 5924 w
+(the) 1084 5924 w
+(system) 1288 5924 w
+(crashes) 1677 5924 w
+(horribly) 2093 5924 w
+(at) 2520 5924 w
+(this) 2661 5924 w
+(point,) 2889 5924 w
+(it) 3222 5924 w
+10 /LucidaSansUnicode20 f
+(\031) 3288 5924 w
+10 /LucidaSansUnicode00 f
+(s) 3320 5924 w
+(probably) 3420 5924 w
+(because) 3896 5924 w
+(the) 4339 5924 w
+(file) 4543 5924 w
+(server) 4743 5924 w
+(can) 720 6044 w
+10 /LucidaSansUnicode20 f
+(\031) 888 6044 w
+10 /LucidaSansUnicode00 f
+(t) 920 6044 w
+(find) 993 6044 w
+(its) 1220 6044 w
+(disks.) 1373 6044 w
+(The) 1725 6044 w
+(likeliest) 1941 6044 w
+(reasons) 2350 6044 w
+(are) 2762 6044 w
+(that) 2949 6044 w
+(the) 3175 6044 w
+(configuration) 3365 6044 w
+(was) 4049 6044 w
+(specified) 4267 6044 w
+(wrong) 4737 6044 w
+(or) 720 6164 w
+(the) 868 6164 w
+(NVRAM) 1069 6164 w
+(contains) 1472 6164 w
+(bad) 1926 6164 w
+(information.) 2153 6164 w
+(If) 2830 6164 w
+(the) 2942 6164 w
+(file) 3143 6164 w
+(server) 3340 6164 w
+(is) 3683 6164 w
+(a) 3809 6164 w
+(PC,) 3910 6164 w
+(write) 4112 6164 w
+(a) 4399 6164 w
+(new) 4501 6164 w
+(server) 4743 6164 w
+(boot) 720 6284 w
+(diskette) 979 6284 w
+(with) 1402 6284 w
+(the) 1643 6284 w
+(correct) 1834 6284 w
+(information;) 2208 6284 w
+(this) 2843 6284 w
+(will) 3058 6284 w
+(also) 3258 6284 w
+(clear) 3490 6284 w
+(the) 3758 6284 w
+(NVRAM) 3949 6284 w
+(section.) 4342 6284 w
+(If) 4789 6284 w
+(it) 4891 6284 w
+10 /LucidaSansUnicode20 f
+(\031) 4957 6284 w
+10 /LucidaSansUnicode00 f
+(s) 4989 6284 w
+(not) 720 6404 w
+(a) 930 6404 w
+(PC,) 1035 6404 w
+(reboot) 1241 6404 w
+(the) 1610 6404 w
+(system,) 1815 6404 w
+(enter) 2237 6404 w
+(config) 2540 6404 w
+(mode,) 2893 6404 w
+(and) 3249 6404 w
+(make) 3480 6404 w
+(sure) 3793 6404 w
+(the) 4054 6404 w
+(configuration) 4260 6404 w
+(is) 4960 6404 w
+(right.) 720 6524 w
+(When the server has prompted you with its service name, type) 970 6680 w
+9 /LucidaTypewriter f
+(users) 1008 6850 w
+(default) 1398 6850 w
+10 /LucidaSansUnicode00 f
+(to) 720 7030 w
+(establish) 860 7030 w
+(a) 1335 7030 w
+(minimal) 1432 7030 w
+(set) 1864 7030 w
+(of) 2050 7030 w
+(users) 2190 7030 w
+(to) 2494 7030 w
+(own) 2635 7030 w
+(the) 2878 7030 w
+(files) 3076 7030 w
+(unpacked) 3321 7030 w
+(from) 3834 7030 w
+(the) 4109 7030 w
+(disk.) 4307 7030 w
+(See) 4615 7030 w
+10 /LucidaSans-Italic f
+(fs) 4824 7030 w
+10 /LucidaSansUnicode00 f
+(\(8\)) 4911 7030 w
+(for more information about such commands.) 720 7150 w
+(Check the time the file server has recorded by typing) 970 7306 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 10 10
+%%Page: 11 11
+/saveobj save def
+mark
+11 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 11 \255) 2752 480 w
+9 /LucidaTypewriter f
+(date) 1008 830 w
+10 /LucidaSansUnicode00 f
+(If it) 720 1010 w
+10 /LucidaSansUnicode20 f
+(\031) 884 1010 w
+10 /LucidaSansUnicode00 f
+(s wrong, fix it by adjusting the time in seconds; for example, to advance it an hour:) 916 1010 w
+9 /LucidaTypewriter f
+(date) 1008 1180 w
+(+3600) 1333 1180 w
+10 /LucidaSansUnicode00 f
+(We) 720 1360 w
+(apologize) 912 1360 w
+(for) 1435 1360 w
+(this) 1624 1360 w
+(interface,) 1853 1360 w
+(but) 2359 1360 w
+(in) 2571 1360 w
+(our) 2712 1360 w
+(lab) 2926 1360 w
+(we) 3123 1360 w
+(get) 3306 1360 w
+(the) 3511 1360 w
+(time) 3717 1360 w
+(from) 3983 1360 w
+(a) 4266 1360 w
+(local) 4372 1360 w
+(network) 4648 1360 w
+(server so the command is unused.) 720 1480 w
+(You) 970 1636 w
+(now) 1197 1636 w
+(have) 1439 1636 w
+(a) 1706 1636 w
+(file) 1803 1636 w
+(server) 1996 1636 w
+(that) 2335 1636 w
+(will) 2568 1636 w
+(let) 2775 1636 w
+(you) 2940 1636 w
+(connect) 3158 1636 w
+(and) 3581 1636 w
+(talk) 3804 1636 w
+(to) 4026 1636 w
+(it,) 4167 1636 w
+10 /LucidaSans-Italic f
+(as) 4308 1636 w
+(long) 4461 1636 w
+(as) 4713 1636 w
+(you) 4866 1636 w
+(connect) 720 1756 w
+(with) 1148 1756 w
+(user) 1411 1756 w
+(name) 1679 1756 w
+10 /LucidaTypewriter f
+(none) 2004 1756 w
+10 /LucidaSansUnicode00 f
+(.) 2292 1756 w
+(If) 2412 1756 w
+(you) 2534 1756 w
+(try) 2764 1756 w
+(to) 2949 1756 w
+(connect) 3102 1756 w
+(as) 3537 1756 w
+(someone) 3698 1756 w
+(else,) 4193 1756 w
+(you) 4472 1756 w
+(will) 4702 1756 w
+(be) 4921 1756 w
+(rejected) 720 1876 w
+(as) 1156 1876 w
+(an) 1308 1876 w
+10 /LucidaSansUnicode20 f
+(\030) 1471 1876 w
+10 /LucidaSansUnicode00 f
+(unknown) 1503 1876 w
+(user) 1993 1876 w
+10 /LucidaSansUnicode20 f
+(\031) 2203 1876 w
+10 /LucidaSansUnicode00 f
+(.) 2235 1876 w
+(As) 2345 1876 w
+10 /LucidaTypewriter f
+(none) 2511 1876 w
+10 /LucidaSansUnicode00 f
+(,) 2799 1876 w
+(though,) 2878 1876 w
+(you) 3303 1876 w
+(will) 3525 1876 w
+(be) 3736 1876 w
+(able) 3902 1876 w
+(to) 4152 1876 w
+(install) 4297 1876 w
+(the) 4636 1876 w
+(CD-) 4838 1876 w
+(ROM.) 720 1996 w
+10 /LucidaSans-Demi f
+(3b. Install CD-ROM to network file server) 720 2236 w
+10 /LucidaSansUnicode00 f
+(When) 970 2392 w
+(the) 1272 2392 w
+(file) 1463 2392 w
+(server) 1650 2392 w
+(is) 1983 2392 w
+(up,) 2099 2392 w
+(go) 2292 2392 w
+(back) 2452 2392 w
+(to) 2716 2392 w
+(the) 2851 2392 w
+(installation) 3043 2392 w
+(PC) 3616 2392 w
+(and) 3777 2392 w
+(select) 3994 2392 w
+(this) 4311 2392 w
+(option.) 4527 2392 w
+(\(If) 4941 2392 w
+(you) 720 2512 w
+(didn) 935 2512 w
+10 /LucidaSansUnicode20 f
+(\031) 1152 2512 w
+10 /LucidaSansUnicode00 f
+(t) 1184 2512 w
+(do) 1261 2512 w
+(step) 1424 2512 w
+(3a,) 1670 2512 w
+(read) 1859 2512 w
+(what) 2113 2512 w
+(it) 2383 2512 w
+(says) 2488 2512 w
+(about) 2736 2512 w
+(getting) 3053 2512 w
+(the) 3437 2512 w
+(installation) 3631 2512 w
+(software) 4206 2512 w
+(running) 4660 2512 w
+(again.\)) 720 2632 w
+(You will be prompted for the) 1112 2632 w
+(IP) 2544 2632 w
+(addresses) 2661 2632 w
+(of) 3181 2632 w
+(the) 3312 2632 w
+(installation) 3500 2632 w
+(PC,) 4069 2632 w
+(the) 4258 2632 w
+(gateway) 4446 2632 w
+10 /LucidaSansUnicode20 f
+(\031) 4840 2632 w
+10 /LucidaSansUnicode00 f
+(s) 4872 2632 w
+(IP) 4956 2632 w
+(address,) 720 2752 w
+(and) 1183 2752 w
+(the) 1414 2752 w
+(subnet) 1620 2752 w
+(mask.) 2002 2752 w
+(The) 2374 2752 w
+(installation) 2606 2752 w
+(must) 3193 2752 w
+(be) 3487 2752 w
+(done) 3656 2752 w
+(with) 3948 2752 w
+(machines) 4203 2752 w
+(on) 4712 2752 w
+(the) 4885 2752 w
+(same) 720 2872 w
+(subnet,) 1021 2872 w
+(but) 1431 2872 w
+(the) 1640 2872 w
+(information) 1842 2872 w
+(you) 2456 2872 w
+(provide) 2678 2872 w
+(here) 3090 2872 w
+(will) 3352 2872 w
+(be) 3563 2872 w
+(used) 3729 2872 w
+(to) 4008 2872 w
+(build) 4153 2872 w
+(the) 4446 2872 w
+(network) 4648 2872 w
+(databases on the file server.) 720 2992 w
+(After) 970 3148 w
+(specifying) 1262 3148 w
+(the) 1806 3148 w
+(IP) 2013 3148 w
+(information) 2150 3148 w
+(for) 2770 3148 w
+(the) 2962 3148 w
+(PC,) 3170 3148 w
+(supply) 3379 3148 w
+(the) 3752 3148 w
+(IP) 3960 3148 w
+(address) 4097 3148 w
+(of) 4530 3148 w
+(the) 4681 3148 w
+(file) 4889 3148 w
+(server and its fully-qualified domain name, e.g.,) 720 3268 w
+9 /LucidaTypewriter f
+(gnu-prep.ai.mit.edu) 1008 3438 w
+10 /LucidaSansUnicode00 f
+(Next) 970 3654 w
+(the) 1233 3654 w
+(installer) 1423 3654 w
+(will) 1847 3654 w
+(ask) 2046 3654 w
+(you) 2245 3654 w
+(to) 2455 3654 w
+(choose) 2588 3654 w
+(whether) 2966 3654 w
+(to) 3393 3654 w
+(dial) 3527 3654 w
+(the) 3739 3654 w
+(server) 3930 3654 w
+(using) 4263 3654 w
+(IL) 4565 3654 w
+(or) 4683 3654 w
+(TCP.) 4821 3654 w
+(You) 720 3774 w
+(want) 939 3774 w
+(to) 1204 3774 w
+(use) 1336 3774 w
+(IL;) 1539 3774 w
+(the) 1687 3774 w
+(TCP) 1876 3774 w
+(option) 2097 3774 w
+(is) 2444 3774 w
+(for) 2558 3774 w
+(those) 2731 3774 w
+(trying) 3032 3774 w
+(to) 3349 3774 w
+(set) 3480 3774 w
+(up) 3657 3774 w
+(a) 3815 3774 w
+(UNIX) 3903 3774 w
+(machine) 4171 3774 w
+(as) 4612 3774 w
+(a) 4751 3774 w
+(Plan) 4839 3774 w
+(9 file server, an arrangement not covered in this installation guide \(see) 720 3894 w
+10 /LucidaSans-Italic f
+(u9fs) 4198 3894 w
+10 /LucidaSansUnicode00 f
+(\(4\)\).) 4410 3894 w
+(The installer will now connect to the server.) 970 4050 w
+(Now) 970 4206 w
+(load) 1219 4206 w
+(the) 1464 4206 w
+(CD-ROM,) 1656 4206 w
+(tell) 2154 4206 w
+(the) 2342 4206 w
+(installer) 2534 4206 w
+(its) 2960 4206 w
+(configuration,) 3114 4206 w
+(and) 3832 4206 w
+(you) 4049 4206 w
+10 /LucidaSansUnicode20 f
+(\031) 4224 4206 w
+10 /LucidaSansUnicode00 f
+(re) 4256 4206 w
+(off.) 4390 4206 w
+(As) 4626 4206 w
+(when) 4783 4206 w
+(installing to local disk, this will take a few hours.) 720 4326 w
+10 /LucidaSans-Demi f
+(A few more facts about the file server) 720 4566 w
+10 /LucidaSansUnicode00 f
+(If) 970 4722 w
+(you) 1092 4722 w
+(need) 1323 4722 w
+(to) 1616 4722 w
+(reboot) 1770 4722 w
+(the) 2145 4722 w
+(file) 2356 4722 w
+(server) 2563 4722 w
+(after) 2916 4722 w
+(you) 3198 4722 w
+(have) 3430 4722 w
+(installed) 3712 4722 w
+(the) 4180 4722 w
+(CD-ROM) 4392 4722 w
+(but) 4878 4722 w
+(before) 720 4842 w
+(you) 1084 4842 w
+(have) 1309 4842 w
+(authentication) 1584 4842 w
+(enabled,) 2329 4842 w
+(you) 2795 4842 w
+(will) 3020 4842 w
+(need) 3234 4842 w
+(to) 3521 4842 w
+(cheat) 3668 4842 w
+(a) 3978 4842 w
+(little.) 4082 4842 w
+(The) 4412 4842 w
+(reaming) 4642 4842 w
+(process) 720 4962 w
+(turns) 1127 4962 w
+(off) 1413 4962 w
+(authentication) 1581 4962 w
+(to) 2309 4962 w
+(make) 2440 4962 w
+(it) 2736 4962 w
+(easy) 2836 4962 w
+(to) 3084 4962 w
+(establish) 3216 4962 w
+(the) 3683 4962 w
+(administration) 3872 4962 w
+(files,) 4610 4962 w
+(but) 4878 4962 w
+(that) 720 5082 w
+(state) 956 5082 w
+(is) 1237 5082 w
+(lost) 1362 5082 w
+(if) 1585 5082 w
+(the) 1696 5082 w
+(system) 1896 5082 w
+(is) 2281 5082 w
+(rebooted.) 2406 5082 w
+(To) 2953 5082 w
+(restore) 3122 5082 w
+(that) 3509 5082 w
+(state) 3744 5082 w
+(after) 4024 5082 w
+(a) 4294 5082 w
+(reboot,) 4393 5082 w
+(enter) 4788 5082 w
+(config) 720 5202 w
+(mode) 1069 5202 w
+(\(by) 1389 5202 w
+(typing) 1584 5202 w
+(quickly) 1936 5202 w
+(when) 2328 5202 w
+(prompted) 2633 5202 w
+(after) 3158 5202 w
+(the) 3432 5202 w
+(reboot\)) 3635 5202 w
+(and) 4035 5202 w
+(issue) 4263 5202 w
+(an) 4560 5202 w
+10 /LucidaSansUnicode20 f
+(\030) 4725 5202 w
+10 /LucidaSansUnicode00 f
+(allow) 4757 5202 w
+10 /LucidaSansUnicode20 f
+(\031) 5008 5202 w
+10 /LucidaSansUnicode00 f
+(command:) 720 5322 w
+9 /LucidaTypewriter f
+(config:) 1008 5492 w
+(allow) 1528 5492 w
+10 /LucidaSansUnicode00 f
+(This turns off authentication and permission checking; don) 720 5672 w
+10 /LucidaSansUnicode20 f
+(\031) 3597 5672 w
+10 /LucidaSansUnicode00 f
+(t make a habit of it.) 3629 5672 w
+(On) 970 5828 w
+(SUNs,) 1150 5828 w
+(writing) 1470 5828 w
+(the) 1847 5828 w
+(configuration) 2042 5828 w
+(information) 2731 5828 w
+(to) 3338 5828 w
+(NVRAM) 3477 5828 w
+(destroys) 3875 5828 w
+(the) 4328 5828 w
+(checksum.) 4524 5828 w
+(When) 720 5948 w
+(you) 1026 5948 w
+(eventually) 1241 5948 w
+(reboot,) 1771 5948 w
+(the) 2162 5948 w
+(ROM) 2357 5948 w
+(will) 2624 5948 w
+(decide) 2828 5948 w
+(its) 3186 5948 w
+(NVRAM) 3343 5948 w
+(is) 3740 5948 w
+(untrustworthy) 3859 5948 w
+(and) 4580 5948 w
+(reset) 4799 5948 w
+(all) 720 6068 w
+(the) 871 6068 w
+(values.) 1064 6068 w
+(You) 1471 6068 w
+10 /LucidaSansUnicode20 f
+(\031) 1656 6068 w
+10 /LucidaSansUnicode00 f
+(ll) 1688 6068 w
+(need) 1784 6068 w
+(to) 2059 6068 w
+(set) 2195 6068 w
+(them) 2377 6068 w
+(back) 2663 6068 w
+(to) 2928 6068 w
+(what) 3064 6068 w
+(you) 3333 6068 w
+(want.) 3546 6068 w
+(The) 3879 6068 w
+(ROM) 4099 6068 w
+(will) 4365 6068 w
+(not) 4568 6068 w
+(touch) 4767 6068 w
+(the) 720 6188 w
+(Plan) 908 6188 w
+(9) 1142 6188 w
+(configuration) 1238 6188 w
+(information,) 1920 6188 w
+(though.) 2552 6188 w
+(Here) 2995 6188 w
+10 /LucidaSansUnicode20 f
+(\031) 3222 6188 w
+10 /LucidaSansUnicode00 f
+(s) 3254 6188 w
+(what) 3338 6188 w
+(we) 3602 6188 w
+(type) 3768 6188 w
+(to get the state back;) 4009 6188 w
+(your state might be different:) 720 6308 w
+9 /LucidaTypewriter f
+(setenv) 1008 6478 w
+(diag-switch?) 1463 6478 w
+(false) 2308 6478 w
+(setenv) 1008 6588 w
+(selftest-#megs) 1463 6588 w
+(0) 2438 6588 w
+(setenv) 1008 6698 w
+(auto-boot?) 1463 6698 w
+(false) 2178 6698 w
+(setenv) 1008 6808 w
+(boot-device) 1463 6808 w
+(net) 2243 6808 w
+10 /LucidaSansUnicode00 f
+(You) 720 6988 w
+10 /LucidaSansUnicode20 f
+(\031) 905 6988 w
+10 /LucidaSansUnicode00 f
+(ll) 937 6988 w
+(only) 1031 6988 w
+(need) 1271 6988 w
+(to) 1544 6988 w
+(do) 1678 6988 w
+(this) 1838 6988 w
+(once;) 2053 6988 w
+(afterwards) 2351 6988 w
+(everyone) 2900 6988 w
+(will) 3372 6988 w
+(be) 3572 6988 w
+(happy.) 3728 6988 w
+(The) 4124 6988 w
+(same) 4342 6988 w
+(problem) 4634 6988 w
+(applies to writing the password; see below.) 720 7108 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 11 11
+%%Page: 12 12
+/saveobj save def
+mark
+12 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 12 \255) 2752 480 w
+10 /LucidaSans-Demi f
+(4. Make this PC a CPU or Authentication Server) 720 840 w
+10 /LucidaSansUnicode00 f
+(Before) 970 996 w
+(a) 1318 996 w
+(PC) 1412 996 w
+(can) 1575 996 w
+(be) 1782 996 w
+(turned) 1940 996 w
+(into) 2300 996 w
+(a) 2528 996 w
+(CPU) 2622 996 w
+(or) 2854 996 w
+(authentication) 2995 996 w
+(server,) 3729 996 w
+(it) 4097 996 w
+(must) 4202 996 w
+(first) 4485 996 w
+(have) 4720 996 w
+(a) 4985 996 w
+(Plan) 720 1116 w
+(9) 957 1116 w
+(partition) 1056 1116 w
+(table) 1506 1116 w
+(on) 1782 1116 w
+(its) 1941 1116 w
+(disk.) 2093 1116 w
+(The) 2393 1116 w
+(easiest) 2609 1116 w
+(way) 2979 1116 w
+(to) 3198 1116 w
+(do) 3331 1116 w
+(this) 3490 1116 w
+(is) 3704 1116 w
+(to) 3819 1116 w
+(use) 3952 1116 w
+(installation) 4156 1116 w
+(option) 4727 1116 w
+(1) 720 1236 w
+(\(3) 818 1236 w
+(diskette\)) 949 1236 w
+(or) 1404 1236 w
+(2) 1541 1236 w
+(\(CD-ROM\)) 1639 1236 w
+(to) 2169 1236 w
+(create) 2302 1236 w
+(a) 2634 1236 w
+(file) 2725 1236 w
+(system) 2912 1236 w
+(on) 3288 1236 w
+(the) 3447 1236 w
+(hard) 3638 1236 w
+(drive.) 3895 1236 w
+(If) 4236 1236 w
+(you) 4338 1236 w
+10 /LucidaSansUnicode20 f
+(\031) 4513 1236 w
+10 /LucidaSansUnicode00 f
+(ve) 4545 1236 w
+(already) 4689 1236 w
+(installed) 720 1356 w
+(Plan) 1167 1356 w
+(9) 1404 1356 w
+(on) 1503 1356 w
+(this) 1662 1356 w
+(machine,) 1877 1356 w
+(boot) 2353 1356 w
+(the) 2611 1356 w
+(first) 2802 1356 w
+(diskette) 3032 1356 w
+(and) 3454 1356 w
+(select) 3669 1356 w
+(the) 3984 1356 w
+10 /LucidaSansUnicode20 f
+(\030\030) 4174 1356 w
+10 /LucidaSansUnicode00 f
+(Reconfigure) 4238 1356 w
+(sys\255) 4853 1356 w
+(tem) 720 1476 w
+10 /LucidaSansUnicode20 f
+(\031\031) 906 1476 w
+10 /LucidaSansUnicode00 f
+(option.) 1005 1476 w
+(Define) 1417 1476 w
+(the) 1767 1476 w
+(configuration) 1957 1476 w
+(of) 2641 1476 w
+(the) 2775 1476 w
+(machine,) 2966 1476 w
+(and) 3442 1476 w
+(on) 3658 1476 w
+(the) 3817 1476 w
+(next) 4008 1476 w
+(menu) 4260 1476 w
+(select) 4569 1476 w
+(the) 4885 1476 w
+(option) 720 1596 w
+(to) 1077 1596 w
+(run) 1218 1596 w
+(the) 1426 1596 w
+(build) 1624 1596 w
+(procedure.) 1913 1596 w
+(When) 2514 1596 w
+(the) 2823 1596 w
+(system) 3021 1596 w
+(reboots,) 3404 1596 w
+(it) 3849 1596 w
+(will) 3958 1596 w
+(come) 4165 1596 w
+(up) 4469 1596 w
+(with) 4637 1596 w
+(the) 4885 1596 w
+(top-level menu of installation options.) 720 1716 w
+(If) 970 1872 w
+(you) 1077 1872 w
+10 /LucidaSansUnicode20 f
+(\031) 1252 1872 w
+10 /LucidaSansUnicode00 f
+(ve) 1284 1872 w
+(just) 1434 1872 w
+(done) 1656 1872 w
+(the) 1940 1872 w
+(installation,) 2137 1872 w
+(the) 2747 1872 w
+(installer) 2944 1872 w
+(will) 3375 1872 w
+(already) 3581 1872 w
+(know) 3974 1872 w
+(the) 4274 1872 w
+(pertinent) 4471 1872 w
+(IP) 4956 1872 w
+(addresses) 720 1992 w
+(for) 1255 1992 w
+(this) 1442 1992 w
+(machine;) 1669 1992 w
+(if) 2157 1992 w
+(not,) 2271 1992 w
+(you) 2511 1992 w
+10 /LucidaSansUnicode20 f
+(\031) 2686 1992 w
+10 /LucidaSansUnicode00 f
+(ll) 2718 1992 w
+(have) 2824 1992 w
+(to) 3097 1992 w
+(provide) 3243 1992 w
+(them.) 3656 1992 w
+(In) 4016 1992 w
+(either) 4155 1992 w
+(case,) 4483 1992 w
+(you) 4775 1992 w
+10 /LucidaSansUnicode20 f
+(\031) 4950 1992 w
+10 /LucidaSansUnicode00 f
+(ll) 4982 1992 w
+(have) 720 2112 w
+(to) 985 2112 w
+(provide) 1123 2112 w
+(the) 1528 2112 w
+(IP) 1723 2112 w
+(address) 1847 2112 w
+(and) 2267 2112 w
+(fully-qualified) 2488 2112 w
+(domain) 3219 2112 w
+(name) 3623 2112 w
+(of) 3930 2112 w
+(the) 4069 2112 w
+(file) 4265 2112 w
+(server.) 4457 2112 w
+(The) 4859 2112 w
+(installer) 720 2232 w
+(will) 1150 2232 w
+(then) 1355 2232 w
+(connect) 1613 2232 w
+(to) 2033 2232 w
+(the) 2171 2232 w
+(server) 2366 2232 w
+(and) 2703 2232 w
+(then) 2923 2232 w
+(ask) 3180 2232 w
+(you) 3384 2232 w
+(to) 3599 2232 w
+(choose) 3737 2232 w
+(which) 4119 2232 w
+(hard) 4440 2232 w
+(disk) 4701 2232 w
+(to) 4942 2232 w
+(use) 720 2352 w
+(to) 927 2352 w
+(store) 1063 2352 w
+(the) 1347 2352 w
+(boot) 1540 2352 w
+(kernel.) 1800 2352 w
+(A) 2205 2352 w
+(partition) 2313 2352 w
+(named) 2766 2352 w
+10 /LucidaTypewriter f
+(boot) 3134 2352 w
+10 /LucidaSansUnicode00 f
+(is) 3461 2352 w
+(used) 3580 2352 w
+(to) 3851 2352 w
+(store) 3988 2352 w
+(the) 4273 2352 w
+(kernel) 4467 2352 w
+(from) 4808 2352 w
+(which) 720 2472 w
+(a) 1038 2472 w
+(Plan) 1130 2472 w
+(9) 1368 2472 w
+(PC) 1467 2472 w
+(boots) 1627 2472 w
+(if) 1936 2472 w
+(the) 2038 2472 w
+(root) 2229 2472 w
+(file) 2465 2472 w
+(system) 2652 2472 w
+(is) 3028 2472 w
+(not) 3144 2472 w
+(a) 3340 2472 w
+(DOS) 3431 2472 w
+(file) 3674 2472 w
+(system.) 3861 2472 w
+(For) 4301 2472 w
+(example,) 4493 2472 w
+(if) 4974 2472 w
+(the disk is SCSI unit 0, the partition will be) 720 2592 w
+(a) 2820 2592 w
+(file) 2908 2592 w
+(named) 3092 2592 w
+10 /LucidaTypewriter f
+(#w0/sd0boot) 3454 2592 w
+10 /LucidaSansUnicode00 f
+(or,) 4279 2592 w
+(if) 4446 2592 w
+(the) 4545 2592 w
+(device) 4733 2592 w
+(is) 720 2712 w
+(bound) 845 2712 w
+(to) 1201 2712 w
+10 /LucidaTypewriter f
+(/dev) 1344 2712 w
+10 /LucidaSansUnicode00 f
+(,) 1632 2712 w
+10 /LucidaTypewriter f
+(/dev/sd0boot) 1709 2712 w
+10 /LucidaSansUnicode00 f
+(.) 2573 2712 w
+(The) 2682 2712 w
+(installer) 2908 2712 w
+(is) 3342 2712 w
+(asking) 3467 2712 w
+(you) 3829 2712 w
+(to) 4049 2712 w
+(identify) 4191 2712 w
+(the) 4600 2712 w
+(drive) 4799 2712 w
+(whose boot partition will be written.) 720 2832 w
+(Now) 970 2988 w
+(you) 1232 2988 w
+(need) 1457 2988 w
+(to) 1744 2988 w
+(choose) 1892 2988 w
+(an) 2284 2988 w
+10 /LucidaSansUnicode20 f
+(\030) 2451 2988 w
+10 /LucidaSansUnicode00 f
+(authentication) 2483 2988 w
+(user) 3229 2988 w
+(id) 3490 2988 w
+10 /LucidaSansUnicode20 f
+(\031) 3582 2988 w
+10 /LucidaSansUnicode00 f
+(,) 3614 2988 w
+(or) 3697 2988 w
+10 /LucidaSansUnicode20 f
+(\030) 3850 2988 w
+10 /LucidaSansUnicode00 f
+(authid) 3882 2988 w
+10 /LucidaSansUnicode20 f
+(\031) 4190 2988 w
+10 /LucidaSansUnicode00 f
+(.) 4222 2988 w
+(This) 4337 2988 w
+(is) 4593 2988 w
+(a) 4724 2988 w
+(user) 4830 2988 w
+(name) 720 3108 w
+(that) 1024 3108 w
+(applies) 1253 3108 w
+(to) 1637 3108 w
+(this) 1773 3108 w
+(authentication) 1990 3108 w
+(domain;) 2723 3108 w
+(it) 3156 3108 w
+(is) 3260 3108 w
+(the) 3378 3108 w
+(user) 3571 3108 w
+(name) 3819 3108 w
+(that) 4122 3108 w
+(all) 4350 3108 w
+(the) 4500 3108 w
+(servers) 4692 3108 w
+(in) 720 3228 w
+(that) 850 3228 w
+(domain) 1080 3228 w
+(will) 1482 3228 w
+(use) 1685 3228 w
+(to) 1893 3228 w
+(identify) 2030 3228 w
+(themselves) 2434 3228 w
+(to) 3016 3228 w
+(the) 3153 3228 w
+(authentication) 3347 3228 w
+(server;) 4081 3228 w
+(its) 4450 3228 w
+(authenti\255) 4607 3228 w
+(cation) 720 3348 w
+(key) 1050 3348 w
+(is) 1251 3348 w
+(stored) 1366 3348 w
+(on) 1710 3348 w
+(the) 1868 3348 w
+(local) 2058 3348 w
+(machine.) 2318 3348 w
+(On) 2825 3348 w
+(PCs,) 3000 3348 w
+(the) 3242 3348 w
+(key) 3432 3348 w
+(is) 3633 3348 w
+(stored) 3748 3348 w
+(in) 4092 3348 w
+(a) 4218 3348 w
+(partition) 4308 3348 w
+(called) 4757 3348 w
+10 /LucidaTypewriter f
+(nvram) 720 3468 w
+10 /LucidaSansUnicode00 f
+(;) 1080 3468 w
+(on) 1147 3468 w
+(other) 1306 3468 w
+(machines,) 1599 3468 w
+(it) 2126 3468 w
+10 /LucidaSansUnicode20 f
+(\031) 2192 3468 w
+10 /LucidaSansUnicode00 f
+(s) 2224 3468 w
+(stored) 2311 3468 w
+(in) 2656 3468 w
+(real) 2783 3468 w
+(non-volatile) 3000 3468 w
+(RAM.) 3627 3468 w
+(The) 3945 3468 w
+(same) 4162 3468 w
+(authid) 4453 3468 w
+(must) 4797 3468 w
+(be used on all other file servers, CPU servers, and authentication servers in this domain.) 720 3588 w
+(After) 970 3744 w
+(you) 1246 3744 w
+10 /LucidaSansUnicode20 f
+(\031) 1421 3744 w
+10 /LucidaSansUnicode00 f
+(ve) 1453 3744 w
+(defined) 1597 3744 w
+(the) 1999 3744 w
+(authid,) 2190 3744 w
+(the) 2566 3744 w
+(installer) 2757 3744 w
+(will) 3182 3744 w
+(place) 3382 3744 w
+10 /LucidaTypewriter f
+(/386/9pccpu) 3672 3744 w
+10 /LucidaSansUnicode00 f
+(in) 4500 3744 w
+(the) 4627 3744 w
+(boot) 4818 3744 w
+(partition.) 720 3864 w
+(This is a PC kernel for CPU service with its root file system on a remote server.) 1230 3864 w
+(The) 970 4020 w
+(installer) 1189 4020 w
+(will) 1616 4020 w
+(then) 1818 4020 w
+(ask) 2073 4020 w
+(you) 2275 4020 w
+(to) 2489 4020 w
+(reboot.) 2626 4020 w
+(Get) 3048 4020 w
+(back) 3252 4020 w
+(to) 3518 4020 w
+(the) 3655 4020 w
+(DOS) 3849 4020 w
+(prompt,) 4095 4020 w
+(then) 4524 4020 w
+(go) 4780 4020 w
+(to) 4942 4020 w
+(the console of the file server.) 720 4140 w
+(On its console, type the command) 2203 4140 w
+9 /LucidaTypewriter f
+(passwd) 1008 4310 w
+10 /LucidaSansUnicode00 f
+(This) 720 4490 w
+(will) 965 4490 w
+(prompt) 1169 4490 w
+(you) 1567 4490 w
+(for) 1782 4490 w
+(a) 1961 4490 w
+(password.) 2056 4490 w
+(This) 2622 4490 w
+(is) 2867 4490 w
+(the) 2987 4490 w
+(password) 3182 4490 w
+(to) 3684 4490 w
+(be) 3822 4490 w
+(used) 3981 4490 w
+(by) 4253 4490 w
+(all) 4408 4490 w
+(servers) 4561 4490 w
+(in) 4949 4490 w
+(the) 720 4610 w
+(authentication) 915 4610 w
+(domain;) 1650 4610 w
+(it) 2085 4610 w
+(is) 2191 4610 w
+(authid) 2311 4610 w
+10 /LucidaSansUnicode20 f
+(\031) 2619 4610 w
+10 /LucidaSansUnicode00 f
+(s) 2651 4610 w
+(password.) 2742 4610 w
+(Type) 3308 4610 w
+(the) 3582 4610 w
+(password,) 3777 4610 w
+(confirm) 4310 4610 w
+(it,) 4723 4610 w
+(and) 4860 4610 w
+(then) 720 4730 w
+(you) 971 4730 w
+(will) 1180 4730 w
+(be) 1378 4730 w
+(asked) 1531 4730 w
+(to) 1848 4730 w
+(give) 1980 4730 w
+(an) 2213 4730 w
+(authid.) 2364 4730 w
+(Give) 2770 4730 w
+(the) 3013 4730 w
+(same) 3202 4730 w
+(one) 3491 4730 w
+(as) 3704 4730 w
+(on) 3844 4730 w
+(the) 4001 4730 w
+(CPU) 4190 4730 w
+(server.) 4417 4730 w
+(Next) 4812 4730 w
+(you) 720 4850 w
+(will) 929 4850 w
+(need) 1127 4850 w
+(to) 1398 4850 w
+(give) 1530 4850 w
+(the) 1763 4850 w
+(authentication) 1952 4850 w
+(domain) 2681 4850 w
+(name.) 3078 4850 w
+(This) 3441 4850 w
+(will) 3679 4850 w
+(typically) 3876 4850 w
+(be) 4306 4850 w
+(the) 4458 4850 w
+(same) 4646 4850 w
+(as) 4934 4850 w
+(your) 720 4970 w
+(authentication) 983 4970 w
+(domain) 1725 4970 w
+(name.) 2135 4970 w
+(If) 2512 4970 w
+(your) 2625 4970 w
+(authid) 2888 4970 w
+(is) 3244 4970 w
+10 /LucidaTypewriter f
+(eduardo) 3372 4970 w
+10 /LucidaSansUnicode00 f
+(and) 3924 4970 w
+(your) 4152 4970 w
+(file) 4416 4970 w
+(server) 4615 4970 w
+(is) 4960 4970 w
+(named) 720 5090 w
+10 /LucidaTypewriter f
+(kremvax.kremlin.mos.su) 1081 5090 w
+10 /LucidaSansUnicode00 f
+(, the file server) 2665 5090 w
+10 /LucidaSansUnicode20 f
+(\031) 3396 5090 w
+10 /LucidaSansUnicode00 f
+(s screen will now look like this:) 3428 5090 w
+9 /LucidaTypewriter f
+(kremvax:) 1008 5260 w
+(passwd) 1593 5260 w
+(New) 1008 5370 w
+(password:) 1268 5370 w
+(Confirm) 1008 5480 w
+(password:) 1528 5480 w
+(Authentication) 1008 5590 w
+(id:eduardo) 1983 5590 w
+(Authentication) 1008 5810 w
+(domain:kremlin.mos.su) 1983 5810 w
+10 /LucidaSansUnicode00 f
+(Finally, still on the file server, type the command) 720 5990 w
+9 /LucidaTypewriter f
+(newuser) 1008 6160 w
+(eduardo) 1528 6160 w
+10 /LucidaSansUnicode00 f
+(This) 720 6340 w
+(adds) 986 6340 w
+(the) 1279 6340 w
+(authid) 1495 6340 w
+(to) 1864 6340 w
+(the) 2023 6340 w
+10 /LucidaTypewriter f
+(/adm/users) 2239 6340 w
+10 /LucidaSansUnicode00 f
+(database) 3021 6340 w
+(file.) 3518 6340 w
+(The) 3795 6340 w
+(file) 4038 6340 w
+(server) 4251 6340 w
+(now) 4610 6340 w
+(has) 4872 6340 w
+(authentication established.) 720 6460 w
+(Now) 970 6616 w
+(go) 1225 6616 w
+(back) 1391 6616 w
+(to) 1661 6616 w
+(the) 1802 6616 w
+(CPU) 2000 6616 w
+(server) 2236 6616 w
+(PC) 2576 6616 w
+(and) 2743 6616 w
+(reboot) 2966 6616 w
+(it) 3328 6616 w
+(normally.) 3437 6616 w
+(You) 3966 6616 w
+(will) 4194 6616 w
+(be) 4401 6616 w
+(prompted) 4563 6616 w
+(for) 720 6736 w
+(a) 895 6736 w
+(device) 986 6736 w
+(from) 1329 6736 w
+(which) 1597 6736 w
+(to) 1914 6736 w
+(get) 2048 6736 w
+(the) 2239 6736 w
+(root) 2430 6736 w
+(file) 2666 6736 w
+(system;) 2853 6736 w
+(use) 3261 6736 w
+10 /LucidaTypewriter f
+(il) 3466 6736 w
+10 /LucidaSansUnicode00 f
+(.) 3610 6736 w
+(There) 3709 6736 w
+(will) 4022 6736 w
+(be) 4221 6736 w
+(a) 4375 6736 w
+(pause) 4465 6736 w
+(while) 4787 6736 w
+(the) 720 6856 w
+(system) 929 6856 w
+(BOOTPs) 1323 6856 w
+(to) 1760 6856 w
+(find) 1912 6856 w
+(out) 2157 6856 w
+(network) 2371 6856 w
+(information.) 2817 6856 w
+(Until) 3503 6856 w
+(you) 3784 6856 w
+(get) 4014 6856 w
+(a) 4224 6856 w
+(Plan) 4334 6856 w
+(9) 4590 6856 w
+(BOOTP) 4708 6856 w
+(server) 720 6976 w
+(going,) 1055 6976 w
+(the) 1401 6976 w
+(system) 1594 6976 w
+(will) 1972 6976 w
+(not) 2173 6976 w
+(find) 2370 6976 w
+(what) 2598 6976 w
+(it) 2866 6976 w
+(needs,) 2969 6976 w
+(and) 3326 6976 w
+(after) 3543 6976 w
+(a) 3806 6976 w
+(few) 3898 6976 w
+(seconds) 4105 6976 w
+(it) 4537 6976 w
+(will) 4640 6976 w
+(give) 4841 6976 w
+(up) 720 7096 w
+(and) 883 7096 w
+(ask) 1101 7096 w
+(you.) 1304 7096 w
+(Type) 1582 7096 w
+(the) 1855 7096 w
+(appropriate) 2049 7096 w
+(information,) 2652 7096 w
+(giving) 3290 7096 w
+(all) 3625 7096 w
+(the) 3777 7096 w
+(relevant) 3971 7096 w
+(IP) 4398 7096 w
+(addresses.) 4521 7096 w
+(When) 720 7216 w
+(you) 1035 7216 w
+(are) 1259 7216 w
+(asked) 1460 7216 w
+(for) 1792 7216 w
+(the) 1980 7216 w
+(IP) 2183 7216 w
+(address) 2315 7216 w
+(of) 2743 7216 w
+(the) 2889 7216 w
+(authentication) 3092 7216 w
+(server,) 3835 7216 w
+(take) 4212 7216 w
+(the) 4466 7216 w
+(default,) 4669 7216 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 12 12
+%%Page: 13 13
+/saveobj save def
+mark
+13 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 13 \255) 2752 480 w
+(0.0.0.0.) 720 840 w
+(This) 1180 840 w
+(peculiar) 1433 840 w
+(address) 1867 840 w
+(tells) 2295 840 w
+(the) 2545 840 w
+(kernel) 2748 840 w
+(to) 3099 840 w
+(use) 3246 840 w
+(the) 3464 840 w
+(local) 3668 840 w
+(key) 3942 840 w
+(for) 4157 840 w
+(authentication) 4345 840 w
+(instead) 720 960 w
+(of) 1125 960 w
+(talking) 1275 960 w
+(to) 1659 960 w
+(a) 1809 960 w
+(remote) 1916 960 w
+(server;) 2312 960 w
+(since) 2693 960 w
+(this) 2994 960 w
+(machine) 3225 960 w
+(is) 3685 960 w
+(to) 3817 960 w
+(be) 3967 960 w
+(the) 4138 960 w
+(authentication) 4345 960 w
+(server, its local key is the one to use.) 720 1080 w
+(After all the IP addresses are specified, the) 2590 1080 w
+(system) 4700 1080 w
+(will) 720 1200 w
+(come) 918 1200 w
+(up) 1213 1200 w
+(and) 1372 1200 w
+(ask) 1585 1200 w
+(for) 1782 1200 w
+(a) 1954 1200 w
+(password.) 2042 1200 w
+(Type) 2601 1200 w
+(the) 2868 1200 w
+(authid) 3056 1200 w
+(password,) 3397 1200 w
+10 /LucidaSans-Italic f
+(the) 3924 1200 w
+(same) 4110 1200 w
+(one) 4399 1200 w
+(you) 4604 1200 w
+(gave) 4811 1200 w
+(on) 720 1320 w
+(the) 886 1320 w
+(file) 1086 1320 w
+(server.) 1282 1320 w
+10 /LucidaSansUnicode00 f
+(The) 1698 1320 w
+(PC) 1926 1320 w
+(should) 2097 1320 w
+(come) 2472 1320 w
+(up) 2780 1320 w
+(and) 2952 1320 w
+(be) 3179 1320 w
+(a) 3345 1320 w
+(CPU) 3447 1320 w
+(server) 3687 1320 w
+(as) 4031 1320 w
+(well) 4185 1320 w
+(as) 4424 1320 w
+(providing) 4578 1320 w
+(authentication service to other machines.) 720 1440 w
+(You) 970 1596 w
+(should) 1215 1596 w
+(now) 1604 1596 w
+(install) 1865 1596 w
+(Plan) 2218 1596 w
+(9,) 2480 1596 w
+(probably) 2636 1596 w
+(just) 3124 1596 w
+(using) 3365 1596 w
+(installation) 3692 1596 w
+(option) 4289 1596 w
+(1,) 4663 1596 w
+(onto) 4819 1596 w
+(another) 720 1716 w
+(PC) 1138 1716 w
+(or) 1306 1716 w
+(get) 1452 1716 w
+(some) 1651 1716 w
+(other) 1956 1716 w
+(machine) 2257 1716 w
+(bootstrapped.) 2709 1716 w
+(This) 3468 1716 w
+(machine) 3717 1716 w
+(will) 4169 1716 w
+(be) 4377 1716 w
+(a) 4540 1716 w
+(terminal) 4638 1716 w
+(that) 720 1836 w
+(uses) 961 1836 w
+(the) 1231 1836 w
+(file) 1436 1836 w
+(server) 1637 1836 w
+(for) 1984 1836 w
+(its) 2173 1836 w
+(files) 2340 1836 w
+(and) 2592 1836 w
+(the) 2823 1836 w
+(authentication) 3029 1836 w
+(server) 3775 1836 w
+(for) 4123 1836 w
+(authentication.) 4313 1836 w
+(Then) 720 1956 w
+(edit) 1008 1956 w
+(the) 1238 1956 w
+(network) 1437 1956 w
+(database) 1873 1956 w
+10 /LucidaTypewriter f
+(/lib/ndb/local) 2352 1956 w
+10 /LucidaSansUnicode00 f
+(to) 3404 1956 w
+(add) 3546 1956 w
+(an) 3771 1956 w
+(entry) 3932 1956 w
+(for) 4224 1956 w
+(the) 4407 1956 w
+(terminal.) 4606 1956 w
+(\(Do) 720 2076 w
+(this) 931 2076 w
+(on) 1152 2076 w
+(the) 1317 2076 w
+(CPU) 1514 2076 w
+(server,) 1749 2076 w
+(and) 2120 2076 w
+(feel) 2342 2076 w
+(free) 2563 2076 w
+(to) 2796 2076 w
+(run) 2937 2076 w
+10 /LucidaTypewriter f
+(aux/vga) 3145 2076 w
+10 /LucidaSansUnicode00 f
+(and) 3692 2076 w
+10 /LucidaTypewriter f
+(8\275) 3915 2076 w
+10 /LucidaSansUnicode00 f
+(if) 4102 2076 w
+(you) 4211 2076 w
+(want) 4429 2076 w
+(a) 4703 2076 w
+(nicer) 4801 2076 w
+(environment.\)) 720 2196 w
+(The entry for a PC named) 1460 2196 w
+10 /LucidaTypewriter f
+(term) 2728 2196 w
+10 /LucidaSansUnicode00 f
+(might be:) 3048 2196 w
+9 /LucidaTypewriter f
+(ip=123.111.112.7) 1008 2366 w
+(ether=00608cf2325b) 2113 2366 w
+(sys=term) 3348 2366 w
+(dom=term.kremlin.mos.su) 1528 2476 w
+(bootf=/386/9pc) 1528 2586 w
+(proto=il) 1528 2696 w
+10 /LucidaSansUnicode00 f
+(Once the terminal is set up, make sure its Ethernet is working by booting with) 720 2876 w
+9 /LucidaTypewriter f
+(plan9\\b) 1008 3046 w
+10 /LucidaSansUnicode00 f
+(and selecting the root file system) 720 3226 w
+(to) 2372 3226 w
+(come) 2503 3226 w
+(from) 2797 3226 w
+10 /LucidaTypewriter f
+(il) 3062 3226 w
+10 /LucidaSansUnicode00 f
+(.) 3206 3226 w
+(This) 3303 3226 w
+(can) 3541 3226 w
+(be) 3742 3226 w
+(automated) 3894 3226 w
+(later) 4446 3226 w
+(by) 4697 3226 w
+(put\255) 4845 3226 w
+(ting the line) 720 3346 w
+9 /LucidaTypewriter f
+(bootfile=e!0) 1008 3516 w
+10 /LucidaSansUnicode00 f
+(in) 720 3696 w
+10 /LucidaTypewriter f
+(plan9.ini) 843 3696 w
+10 /LucidaSansUnicode00 f
+(.) 1491 3696 w
+(Now) 970 3852 w
+(you) 1223 3852 w
+(should) 1439 3852 w
+(add) 1809 3852 w
+(users) 2032 3852 w
+(to) 2335 3852 w
+(the) 2475 3852 w
+(authentication) 2672 3852 w
+(databases.) 3409 3852 w
+(To) 4001 3852 w
+(install) 4167 3852 w
+(a) 4501 3852 w
+(user,) 4598 3852 w
+(say) 4882 3852 w
+(Ethel, do the following) 720 3972 w
+10 /LucidaSansUnicode20 f
+(") 720 4128 w
+10 /LucidaSansUnicode00 f
+(On the authentication server, type the command) 970 4128 w
+9 /LucidaTypewriter f
+(auth/changeuser) 1258 4298 w
+(ethel) 2298 4298 w
+10 /LucidaSansUnicode00 f
+(and) 970 4478 w
+(provide) 1195 4478 w
+(the) 1605 4478 w
+(requested) 1805 4478 w
+(information.) 2335 4478 w
+(Ethel) 3011 4478 w
+(will) 3294 4478 w
+(need) 3503 4478 w
+(to) 3786 4478 w
+(provide) 3930 4478 w
+(her) 4341 4478 w
+(password.) 4546 4478 w
+(This step puts) 970 4598 w
+10 /LucidaTypewriter f
+(ethel) 1691 4598 w
+10 /LucidaSansUnicode00 f
+(in the authentication server) 2083 4598 w
+10 /LucidaSansUnicode20 f
+(\031) 3417 4598 w
+10 /LucidaSansUnicode00 f
+(s key database.) 3449 4598 w
+10 /LucidaSansUnicode20 f
+(") 720 4754 w
+10 /LucidaSansUnicode00 f
+(On the file server, type) 970 4754 w
+9 /LucidaTypewriter f
+(newuser) 1258 4924 w
+(ethel) 1778 4924 w
+10 /LucidaSansUnicode00 f
+(This) 970 5104 w
+(puts) 1244 5104 w
+10 /LucidaTypewriter f
+(ethel) 1526 5104 w
+10 /LucidaSansUnicode00 f
+(in) 1955 5104 w
+(the) 2115 5104 w
+(file) 2339 5104 w
+(server) 2559 5104 w
+10 /LucidaSansUnicode20 f
+(\031) 2856 5104 w
+10 /LucidaSansUnicode00 f
+(s) 2888 5104 w
+(list) 3008 5104 w
+(of) 3223 5104 w
+(users) 3390 5104 w
+(and) 3720 5104 w
+(creates) 3969 5104 w
+(the) 4385 5104 w
+(directory) 4609 5104 w
+10 /LucidaTypewriter f
+(/usr/ethel) 970 5224 w
+10 /LucidaSansUnicode00 f
+(.) 1690 5224 w
+10 /LucidaSansUnicode20 f
+(") 720 5380 w
+10 /LucidaSansUnicode00 f
+(Boot the) 970 5380 w
+(terminal) 1407 5380 w
+(and) 1842 5380 w
+(have) 2055 5380 w
+(Ethel) 2313 5380 w
+(log) 2584 5380 w
+(in) 2769 5380 w
+(there,) 2893 5380 w
+(complete) 3210 5380 w
+(with) 3689 5380 w
+(password.) 3927 5380 w
+(The) 4486 5380 w
+(system) 4700 5380 w
+(should get the VGA going and then complain about missing files.) 970 5500 w
+(Type:) 4203 5500 w
+9 /LucidaTypewriter f
+(/sys/lib/newuser) 1258 5670 w
+10 /LucidaSansUnicode00 f
+(This) 970 5850 w
+(will) 1208 5850 w
+(establish) 1405 5850 w
+(a) 1871 5850 w
+(basic) 1959 5850 w
+(profile) 2241 5850 w
+(and) 2590 5850 w
+(start) 2803 5850 w
+(the) 3058 5850 w
+(window) 3247 5850 w
+(system.) 3650 5850 w
+(The) 4088 5850 w
+(next) 4303 5850 w
+(time) 4553 5850 w
+(Ethel) 4802 5850 w
+(logs in, the window system will start automatically.) 970 5970 w
+(Later,) 970 6126 w
+(when) 1299 6126 w
+(everything) 1611 6126 w
+(seems) 2175 6126 w
+(solid,) 2537 6126 w
+(you) 2857 6126 w
+(should) 3088 6126 w
+(convert) 3472 6126 w
+(the) 3888 6126 w
+(CPU/authentication) 4099 6126 w
+(server to boot from local disk.) 720 6246 w
+(It will then be able to serve Plan 9 BOOTP requests.) 2251 6246 w
+(To) 970 6402 w
+(keep) 1143 6402 w
+(things) 1425 6402 w
+(simple,) 1777 6402 w
+(this) 2179 6402 w
+(procedure) 2407 6402 w
+(has) 2950 6402 w
+(given) 3167 6402 w
+(the) 3477 6402 w
+(authentication) 3682 6402 w
+(machine) 4427 6402 w
+(the) 4885 6402 w
+(name) 720 6522 w
+10 /LucidaTypewriter f
+(p9auth) 1021 6522 w
+10 /LucidaSansUnicode00 f
+(.) 1453 6522 w
+(If) 1552 6522 w
+(you) 1653 6522 w
+(want) 1863 6522 w
+(to) 2128 6522 w
+(call) 2260 6522 w
+(it) 2458 6522 w
+(something) 2558 6522 w
+(else,) 3105 6522 w
+(wait) 3363 6522 w
+(until) 3595 6522 w
+(everything) 3848 6522 w
+(looks) 4391 6522 w
+(like) 4685 6522 w
+(it) 4891 6522 w
+10 /LucidaSansUnicode20 f
+(\031) 4957 6522 w
+10 /LucidaSansUnicode00 f
+(s) 4989 6522 w
+(working) 720 6642 w
+(and) 1152 6642 w
+(change) 1374 6642 w
+(its) 1764 6642 w
+(name) 1923 6642 w
+(in) 2231 6642 w
+(the) 2364 6642 w
+(file) 2561 6642 w
+10 /LucidaTypewriter f
+(/lib/ndb/local) 2754 6642 w
+10 /LucidaSansUnicode00 f
+(;) 3762 6642 w
+(there) 3836 6642 w
+(will) 4131 6642 w
+(be) 4338 6642 w
+(changes) 4500 6642 w
+(to) 4942 6642 w
+(the) 720 6762 w
+(entries) 914 6762 w
+(for) 1285 6762 w
+(the) 1463 6762 w
+(machine) 1657 6762 w
+(itself) 2104 6762 w
+(and) 2382 6762 w
+(for) 2601 6762 w
+(the) 2779 6762 w
+(authentication) 2972 6762 w
+(server) 3705 6762 w
+(in) 4040 6762 w
+(the) 4169 6762 w
+10 /LucidaTypewriter f
+(ipnet) 4362 6762 w
+10 /LucidaSansUnicode00 f
+(entry.) 4760 6762 w
+(When) 720 6882 w
+(you) 1026 6882 w
+10 /LucidaSansUnicode20 f
+(\031) 1201 6882 w
+10 /LucidaSansUnicode00 f
+(re) 1233 6882 w
+(doing) 1370 6882 w
+(that,) 1687 6882 w
+(you) 1950 6882 w
+(can) 2165 6882 w
+(also) 2374 6882 w
+(remove) 2611 6882 w
+(the) 3011 6882 w
+(lines) 3207 6882 w
+(marked) 3475 6882 w
+10 /LucidaTypewriter f
+(#INSTALL) 3882 6882 w
+10 /LucidaSansUnicode00 f
+(and) 4499 6882 w
+10 /LucidaTypewriter f
+(#END) 4720 6882 w
+10 /LucidaSansUnicode00 f
+(;) 5008 6882 w
+(they) 720 7002 w
+10 /LucidaSansUnicode20 f
+(\031) 927 7002 w
+10 /LucidaSansUnicode00 f
+(re tags left over from the installation process.) 959 7002 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 13 13
+%%Page: 14 14
+/saveobj save def
+mark
+14 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 14 \255) 2752 480 w
+10 /LucidaSans-Demi f
+(When it all works) 720 840 w
+10 /LucidaSansUnicode00 f
+(Sometime) 970 996 w
+(soon,) 1483 996 w
+(check) 1784 996 w
+(that) 2096 996 w
+(you) 2321 996 w
+(can) 2530 996 w
+(compile) 2732 996 w
+(the) 3148 996 w
+(kernels,) 3337 996 w
+(change) 3756 996 w
+(the) 4138 996 w
+(authid,) 4327 996 w
+(and) 4701 996 w
+(do) 4916 996 w
+(other) 720 1116 w
+(administrative) 1067 1116 w
+(things.) 1846 1116 w
+(The) 2303 1116 w
+(file) 2574 1116 w
+10 /LucidaTypewriter f
+(/adm/timezone/timezone) 2815 1116 w
+10 /LucidaSansUnicode00 f
+(contains) 4488 1116 w
+(a) 4985 1116 w
+(description) 720 1236 w
+(of) 1301 1236 w
+(the) 1437 1236 w
+(default) 1630 1236 w
+(time) 2007 1236 w
+(zone;) 2260 1236 w
+(if) 2566 1236 w
+(that) 2670 1236 w
+(directory) 2899 1236 w
+(contains) 3368 1236 w
+(a) 3814 1236 w
+(file) 3907 1236 w
+(that) 4096 1236 w
+(describes) 4325 1236 w
+(your) 4824 1236 w
+(time) 720 1356 w
+(zone,) 969 1356 w
+(copy) 1271 1356 w
+(it) 1532 1356 w
+(to) 1632 1356 w
+(the) 1764 1356 w
+(default) 1953 1356 w
+(file.) 2326 1356 w
+(The) 2574 1356 w
+(file) 2788 1356 w
+10 /LucidaTypewriter f
+(/lib/sky/here) 2972 1356 w
+10 /LucidaSansUnicode00 f
+(contains) 3941 1356 w
+(the) 4382 1356 w
+(local) 4570 1356 w
+(geo\255) 4828 1356 w
+(graphic) 720 1476 w
+(coordinates,) 1129 1476 w
+(which) 1774 1476 w
+(are) 2101 1476 w
+(certainly) 2299 1476 w
+(not) 2757 1476 w
+(the) 2963 1476 w
+(same) 3165 1476 w
+(as) 3467 1476 w
+(the) 3620 1476 w
+(location) 3822 1476 w
+(of) 4254 1476 w
+(our) 4399 1476 w
+(espresso) 4610 1476 w
+(machine.) 720 1596 w
+(Read) 970 1752 w
+(the) 1245 1752 w
+(manual.) 1438 1752 w
+(Make) 1896 1752 w
+(sure) 2189 1752 w
+(to) 2437 1752 w
+(look) 2573 1752 w
+(at) 2820 1752 w
+10 /LucidaSans-Italic f
+(u9fs) 2950 1752 w
+10 /LucidaSansUnicode00 f
+(\(4\)) 3162 1752 w
+(to) 3329 1752 w
+(see) 3465 1752 w
+(how) 3666 1752 w
+(to) 3904 1752 w
+(set) 4040 1752 w
+(up) 4222 1752 w
+(Plan) 4385 1752 w
+(9) 4624 1752 w
+(access) 4725 1752 w
+(to) 720 1872 w
+(Unix) 898 1872 w
+(file) 1199 1872 w
+(systems,) 1430 1872 w
+(and) 1933 1872 w
+10 /LucidaSans-Italic f
+(nfsserver) 2192 1872 w
+10 /LucidaSansUnicode00 f
+(\(8\)) 2646 1872 w
+(to) 2854 1872 w
+(go) 3031 1872 w
+(the) 3233 1872 w
+(other) 3467 1872 w
+(way.) 3803 1872 w
+(See) 4130 1872 w
+(the) 4375 1872 w
+(directory) 4609 1872 w
+10 /LucidaTypewriter f
+(/sys/src/cmd/unix) 720 1992 w
+10 /LucidaSansUnicode00 f
+(for some Unix-resident programs whose source is included.) 1976 1992 w
+(You have a system!) 970 2148 w
+10 /LucidaSans-Demi f
+(Troubleshooting) 720 2388 w
+10 /LucidaSansUnicode00 f
+(This) 970 2544 w
+(section) 1211 2544 w
+(collects) 1594 2544 w
+(comments) 1995 2544 w
+(about) 2535 2544 w
+(how) 2850 2544 w
+(to) 3087 2544 w
+(work) 3222 2544 w
+(around) 3496 2544 w
+(difficulties) 3877 2544 w
+(in) 4424 2544 w
+(the) 4552 2544 w
+(instal\255) 4744 2544 w
+(lation process.) 720 2664 w
+(If) 970 2820 w
+(the) 1083 2820 w
+(VGA) 1285 2820 w
+(will) 1538 2820 w
+(not) 1749 2820 w
+(turn) 1956 2820 w
+(on) 2205 2820 w
+(properly,) 2375 2820 w
+(try) 2860 2820 w
+(using) 3037 2820 w
+(the) 3350 2820 w
+(configuration) 3552 2820 w
+10 /LucidaTypewriter f
+(monitor=vga) 4248 2820 w
+10 /LucidaSansUnicode00 f
+(and) 720 2940 w
+(resolution) 941 2940 w
+(640x480x1.) 1471 2940 w
+(If) 2139 2940 w
+(this) 2246 2940 w
+(works,) 2466 2940 w
+(you) 2827 2940 w
+(may) 3043 2940 w
+(be) 3284 2940 w
+(able) 3444 2940 w
+(to) 3688 2940 w
+(teach) 3826 2940 w
+(the) 4127 2940 w
+(system) 4322 2940 w
+(how) 4702 2940 w
+(to) 4942 2940 w
+(use) 720 3060 w
+(a) 936 3060 w
+(higher-resolution) 1038 3060 w
+(mode.) 1944 3060 w
+(Reconfigure) 2328 3060 w
+(the) 2955 3060 w
+(system) 3157 3060 w
+(to) 3544 3060 w
+(have) 3689 3060 w
+(no) 3961 3060 w
+(VGA) 4131 3060 w
+(or) 4385 3060 w
+(mouse,) 4535 3060 w
+(or) 4938 3060 w
+(edit) 720 3180 w
+10 /LucidaTypewriter f
+(plan9.ini) 940 3180 w
+10 /LucidaSansUnicode00 f
+(to) 1623 3180 w
+(remove) 1756 3180 w
+(the) 2150 3180 w
+(lines) 2340 3180 w
+(defining) 2602 3180 w
+(the) 3037 3180 w
+(VGA,) 3227 3180 w
+(mouse,) 3500 3180 w
+(and) 3889 3180 w
+(monitor.) 4103 3180 w
+(When) 4585 3180 w
+(the) 4885 3180 w
+(system) 720 3300 w
+(reboots,) 1098 3300 w
+(it) 1539 3300 w
+(will) 1644 3300 w
+(then) 1847 3300 w
+(continue) 2103 3300 w
+(to) 2562 3300 w
+(use) 2699 3300 w
+(CGA) 2907 3300 w
+(mode,) 3156 3300 w
+(and) 3500 3300 w
+(you) 3719 3300 w
+(will) 3933 3300 w
+(be) 4136 3300 w
+(able) 4294 3300 w
+(to) 4536 3300 w
+(explore) 4673 3300 w
+(the) 720 3420 w
+(system.) 934 3420 w
+(The) 1397 3420 w
+(file) 1637 3420 w
+10 /LucidaTypewriter f
+(/lib/vgadb) 1847 3420 w
+10 /LucidaSansUnicode00 f
+(contains) 2626 3420 w
+(descriptions) 3093 3420 w
+(for) 3746 3420 w
+(the) 3944 3420 w
+(various) 4158 3420 w
+(VGA) 4568 3420 w
+(con\255) 4833 3420 w
+(trollers.) 720 3540 w
+(See) 1170 3540 w
+(if) 1377 3540 w
+(you) 1484 3540 w
+(can) 1700 3540 w
+(find) 1909 3540 w
+(one) 2141 3540 w
+(that) 2361 3540 w
+(looks) 2593 3540 w
+(close,) 2895 3540 w
+(and) 3217 3540 w
+(add) 3439 3540 w
+(a) 3662 3540 w
+(configuration) 3759 3540 w
+(line) 4450 3540 w
+(for) 4668 3540 w
+(that) 4849 3540 w
+(controller; these strings look like) 720 3660 w
+9 /LucidaTypewriter f
+(0xC0039="CL-GD540") 1008 3830 w
+(#) 2568 3830 w
+(Cirrus) 2698 3830 w
+(Logic) 3153 3830 w
+(BIOS) 3543 3830 w
+10 /LucidaSansUnicode00 f
+(and) 720 4010 w
+(define) 950 4010 w
+(what) 1303 4010 w
+(string) 1584 4010 w
+(is) 1916 4010 w
+(at) 2046 4010 w
+(what) 2188 4010 w
+(hexadecimal) 2469 4010 w
+(address.) 3129 4010 w
+(To) 3623 4010 w
+(find) 3798 4010 w
+(such) 4040 4010 w
+(a) 4317 4010 w
+(string,) 4423 4010 w
+(enter) 4788 4010 w
+10 /LucidaTypewriter f
+(DEBUG) 720 4130 w
+10 /LucidaSansUnicode00 f
+(from) 1114 4130 w
+(DOS,) 1380 4130 w
+(dump) 1653 4130 w
+(the) 1967 4130 w
+(BIOS) 2155 4130 w
+(memory) 2407 4130 w
+(starting) 2836 4130 w
+(at) 3243 4130 w
+10 /LucidaTypewriter f
+(C000:0) 3368 4130 w
+10 /LucidaSansUnicode00 f
+(,) 3800 4130 w
+(and) 3865 4130 w
+(look) 4078 4130 w
+(for) 4320 4130 w
+(an) 4492 4130 w
+(identify\255) 4642 4130 w
+(ing string.) 720 4250 w
+(For more information, see) 1283 4250 w
+10 /LucidaSans-Italic f
+(vgadb) 2580 4250 w
+10 /LucidaSansUnicode00 f
+(\(6\) and) 2878 4250 w
+10 /LucidaSans-Italic f
+(vga) 3251 4250 w
+10 /LucidaSansUnicode00 f
+(\(8\).) 3427 4250 w
+(It) 970 4406 w
+(is) 1077 4406 w
+(possible) 1198 4406 w
+(to) 1642 4406 w
+(examine) 1781 4406 w
+(the) 2234 4406 w
+(CD-ROM) 2430 4406 w
+(from) 2900 4406 w
+(a) 3173 4406 w
+(system) 3269 4406 w
+(other) 3650 4406 w
+(than) 3948 4406 w
+(Plan) 4205 4406 w
+(9.) 4447 4406 w
+(The) 4615 4406 w
+(CD-) 4838 4406 w
+(ROM) 720 4526 w
+(contains) 980 4526 w
+(a) 1421 4526 w
+(single) 1509 4526 w
+(ISO-9660) 1831 4526 w
+(file) 2335 4526 w
+(system.) 2519 4526 w
+(That file system is the complete Plan 9 dis\255) 2955 4526 w
+(tribution,) 720 4646 w
+(structured) 1206 4646 w
+(as) 1740 4646 w
+(it) 1879 4646 w
+(will) 1978 4646 w
+(be) 2175 4646 w
+(after) 2327 4646 w
+(you) 2586 4646 w
+(install) 2794 4646 w
+(it.) 3119 4646 w
+(However,) 3282 4646 w
+(since) 3765 4646 w
+(Plan) 4048 4646 w
+(9) 4283 4646 w
+(file) 4380 4646 w
+(names) 4565 4646 w
+(do) 4916 4646 w
+(not) 720 4766 w
+(respect) 914 4766 w
+(9660) 1303 4766 w
+(rules) 1589 4766 w
+(and) 1862 4766 w
+(because) 2075 4766 w
+(9660) 2502 4766 w
+(directories) 2787 4766 w
+(do) 3335 4766 w
+(not) 3492 4766 w
+(contain) 3685 4766 w
+(enough) 4075 4766 w
+(information) 4473 4766 w
+(for) 720 4886 w
+(our) 901 4886 w
+(purposes,) 1107 4886 w
+(the) 1629 4886 w
+(directories) 1826 4886 w
+(on) 2383 4886 w
+(the) 2548 4886 w
+(disk) 2745 4886 w
+(are) 2988 4886 w
+(extended) 3182 4886 w
+(in) 3678 4886 w
+(a) 3811 4886 w
+(way) 3908 4886 w
+(that) 4134 4886 w
+(only) 4367 4886 w
+(our) 4614 4886 w
+(soft\255) 4821 4886 w
+(ware) 720 5006 w
+(understands.) 994 5006 w
+(\(ISO-9660) 1706 5006 w
+(has) 2255 5006 w
+(rules) 2468 5006 w
+(for) 2752 5006 w
+(doing) 2936 5006 w
+(this) 3258 5006 w
+(safely.\)) 3481 5006 w
+(Thus) 3902 5006 w
+(the) 4184 5006 w
+(structure) 4383 5006 w
+(you) 4865 5006 w
+(see with other software will be slightly different.) 720 5126 w
+(In particular:) 3132 5126 w
+(The) 970 5282 w
+(full) 1185 5282 w
+(status) 1376 5282 w
+(of) 1703 5282 w
+(the) 1835 5282 w
+(file) 2024 5282 w
+10 /LucidaSansUnicode20 f
+(\024) 2209 5282 w
+10 /LucidaSansUnicode00 f
+(owner,) 2343 5282 w
+(group,) 2706 5282 w
+(permissions,) 3061 5282 w
+(etc.) 3715 5282 w
+10 /LucidaSansUnicode20 f
+(\024) 3926 5282 w
+10 /LucidaSansUnicode00 f
+(is) 4061 5282 w
+(not) 4176 5282 w
+(visible) 4371 5282 w
+(to) 4715 5282 w
+(reg\255) 4848 5282 w
+(ular 9660 software.) 970 5402 w
+(If) 970 5558 w
+(the) 1073 5558 w
+(name) 1265 5558 w
+(of) 1568 5558 w
+(the) 1703 5558 w
+(file) 1896 5558 w
+(as) 2085 5558 w
+(stored) 2229 5558 w
+(in) 2576 5558 w
+(9660,) 2705 5558 w
+(after) 3027 5558 w
+(translation) 3291 5558 w
+(to) 3848 5558 w
+(lower) 3984 5558 w
+(case,) 4286 5558 w
+(is) 4569 5558 w
+(not) 4687 5558 w
+(the) 4885 5558 w
+(file) 970 5678 w
+(name) 1164 5678 w
+(as) 1473 5678 w
+(Plan) 1622 5678 w
+(9) 1866 5678 w
+(wants) 1972 5678 w
+(it,) 2297 5678 w
+(a) 2438 5678 w
+(special) 2535 5678 w
+(rule) 2911 5678 w
+(is) 3141 5678 w
+(applied.) 3263 5678 w
+(The) 3727 5678 w
+(file) 3950 5678 w
+(will) 4143 5678 w
+(have) 4349 5678 w
+(a) 4616 5678 w
+(strictly) 4713 5678 w
+(legal) 970 5798 w
+(9660) 1240 5798 w
+(name,) 1531 5798 w
+(in) 1868 5798 w
+(the) 1998 5798 w
+(form) 2192 5798 w
+(of) 2463 5798 w
+(either) 2600 5798 w
+10 /LucidaTypewriter f
+(F000023) 2921 5798 w
+10 /LucidaSansUnicode00 f
+(for) 3465 5798 w
+(a) 3644 5798 w
+(regular) 3739 5798 w
+(file) 4125 5798 w
+(and) 4316 5798 w
+10 /LucidaTypewriter f
+(D000314) 4536 5798 w
+10 /LucidaSansUnicode00 f
+(for) 970 5918 w
+(a) 1147 5918 w
+(directory.) 1240 5918 w
+(The) 1773 5918 w
+(Plan) 1992 5918 w
+(9-specific) 2231 5918 w
+(part) 2756 5918 w
+(of) 2989 5918 w
+(the) 3124 5918 w
+(directory) 3316 5918 w
+(will,) 3784 5918 w
+(however,) 4017 5918 w
+(contain) 4491 5918 w
+(the) 4885 5918 w
+(correct) 970 6038 w
+(Plan) 1428 6038 w
+(9) 1749 6038 w
+(name.) 1932 6038 w
+(All) 2382 6038 w
+(such) 2629 6038 w
+(mappings) 2976 6038 w
+(are) 3575 6038 w
+(recorded) 3848 6038 w
+(in) 4401 6038 w
+(the) 4613 6038 w
+(file) 4889 6038 w
+10 /LucidaTypewriter f
+(/_CONFORM.MAP) 970 6158 w
+10 /LucidaSansUnicode00 f
+(.) 1906 6158 w
+(Each) 2004 6158 w
+(line) 2260 6158 w
+(of) 2470 6158 w
+(that) 2602 6158 w
+(file) 2827 6158 w
+(gives) 3012 6158 w
+(the) 3296 6158 w
+(mapping) 3485 6158 w
+(for) 3946 6158 w
+(one) 4119 6158 w
+(file) 4332 6158 w
+(basename,) 4517 6158 w
+(for example) 970 6278 w
+9 /LucidaTypewriter f
+(F000023) 1258 6448 w
+(8\275.c) 2103 6448 w
+10 /LucidaSansUnicode00 f
+(This allows non-Plan 9 software to discover, if desired, the proper file names.) 970 6628 w
+(When) 970 6784 w
+(you) 1275 6784 w
+(read) 1489 6784 w
+(the) 1743 6784 w
+(file) 1937 6784 w
+(system) 2127 6784 w
+(from) 2506 6784 w
+(Plan) 2777 6784 w
+(9,) 3017 6784 w
+(of) 3151 6784 w
+(course,) 3288 6784 w
+(you) 3681 6784 w
+(see) 3895 6784 w
+(all) 4097 6784 w
+(the) 4250 6784 w
+(files) 4445 6784 w
+(as) 4687 6784 w
+(they) 4833 6784 w
+(are intended to be.) 720 6904 w
+(You must therefore use Plan 9 to unpack the distribution.) 1709 6904 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 14 14
+%%Page: 15 15
+/saveobj save def
+mark
+15 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 15 \255) 2752 480 w
+10 /LucidaSans-Demi f
+(Read this section if you have trouble installing on the PC) 720 840 w
+10 /LucidaSansUnicode00 f
+(As) 970 996 w
+(you) 1141 996 w
+(follow) 1367 996 w
+(the) 1712 996 w
+(instructions) 1918 996 w
+(in) 2542 996 w
+(the) 2684 996 w
+(rest) 2890 996 w
+(of) 3126 996 w
+(this) 3275 996 w
+(document,) 3505 996 w
+(you) 4073 996 w
+(may) 4300 996 w
+(encounter) 4552 996 w
+(problems) 720 1116 w
+(such) 1225 1116 w
+(as) 1499 1116 w
+(lockups) 1653 1116 w
+(installing) 2076 1116 w
+(or) 2569 1116 w
+(running) 2719 1116 w
+(the) 3147 1116 w
+(system.) 3350 1116 w
+(If) 3801 1116 w
+(that) 3914 1116 w
+(happens,) 4152 1116 w
+(the) 4643 1116 w
+(first) 4845 1116 w
+(thing) 720 1236 w
+(to) 1012 1236 w
+(try) 1150 1236 w
+(is) 1320 1236 w
+(to) 1441 1236 w
+(define) 1580 1236 w
+(a) 1924 1236 w
+(minimal) 2020 1236 w
+(hardware) 2451 1236 w
+(configuration) 2942 1236 w
+(for) 3632 1236 w
+(Plan) 3812 1236 w
+(9.) 4054 1236 w
+(Put) 4222 1236 w
+(diskette) 4417 1236 w
+(1) 4845 1236 w
+(in) 4949 1236 w
+(drive) 720 1356 w
+10 /LucidaTypewriter f
+(A:) 1009 1356 w
+10 /LucidaSansUnicode00 f
+(and) 1201 1356 w
+(reboot) 1429 1356 w
+(your) 1796 1356 w
+(machine.) 2060 1356 w
+(If) 2580 1356 w
+(that) 2694 1356 w
+(doesn) 2933 1356 w
+10 /LucidaSansUnicode20 f
+(\031) 3226 1356 w
+10 /LucidaSansUnicode00 f
+(t) 3258 1356 w
+(work,) 3343 1356 w
+(bring) 3660 1356 w
+(up) 3965 1356 w
+(DOS) 4137 1356 w
+(normally) 4391 1356 w
+(and) 4860 1356 w
+(then type) 720 1476 w
+9 /LucidaTypewriter f
+(A:B) 1008 1646 w
+10 /LucidaSansUnicode00 f
+(to) 720 1826 w
+(the) 856 1826 w
+(DOS) 1049 1826 w
+(prompt.) 1294 1826 w
+(Once) 1754 1826 w
+(the) 2039 1826 w
+(install) 2232 1826 w
+(package) 2562 1826 w
+(is) 3000 1826 w
+(up,) 3118 1826 w
+(use) 3314 1826 w
+(it) 3522 1826 w
+(to) 3627 1826 w
+(define) 3764 1826 w
+(the) 4106 1826 w
+(following) 4300 1826 w
+(hard\255) 4786 1826 w
+(ware) 720 1946 w
+(configuration) 982 1946 w
+10 /LucidaSans-Italic f
+(only) 1664 1946 w
+10 /LucidaSansUnicode00 f
+(:) 1867 1946 w
+10 /LucidaTypewriter f
+(VGA) 1932 1946 w
+10 /LucidaSansUnicode00 f
+(640x480x1,) 2181 1946 w
+10 /LucidaTypewriter f
+(Monitor) 2809 1946 w
+(vga) 3346 1946 w
+10 /LucidaSansUnicode00 f
+(,) 3562 1946 w
+(and) 3627 1946 w
+10 /LucidaTypewriter f
+(Mouse) 3840 1946 w
+10 /LucidaSansUnicode00 f
+(to) 4233 1946 w
+(be the correct) 4364 1946 w
+(port) 720 2066 w
+(or) 961 2066 w
+(PS/2.) 1102 2066 w
+(If) 1430 2066 w
+(your) 1535 2066 w
+(primary) 1790 2066 w
+(DOS) 2203 2066 w
+(partition) 2449 2066 w
+(is) 2902 2066 w
+(on) 3021 2066 w
+(the) 3183 2066 w
+(SCSI,) 3377 2066 w
+(you) 3654 2066 w
+(must) 3868 2066 w
+(also) 4150 2066 w
+(configure) 4385 2066 w
+(the) 4885 2066 w
+(SCSI) 720 2186 w
+(controller.) 960 2186 w
+(Save) 1526 2186 w
+(that) 1777 2186 w
+(configuration,) 2002 2186 w
+(take) 2717 2186 w
+(out) 2957 2186 w
+(the) 3151 2186 w
+(diskette) 3340 2186 w
+(from) 3760 2186 w
+(drive) 4025 2186 w
+10 /LucidaTypewriter f
+(A:) 4299 2186 w
+10 /LucidaSansUnicode00 f
+(,) 4443 2186 w
+(and) 4508 2186 w
+(reboot) 4721 2186 w
+(DOS.) 720 2306 w
+(Then type) 1023 2306 w
+9 /LucidaTypewriter f
+(PLAN9\\B) 1008 2476 w
+10 /LucidaSansUnicode00 f
+(to) 720 2656 w
+(the) 853 2656 w
+(DOS) 1043 2656 w
+(prompt.) 1285 2656 w
+(If) 1742 2656 w
+(that) 1843 2656 w
+(works,) 2069 2656 w
+(perform) 2424 2656 w
+(the) 2852 2656 w
+(installation) 3043 2656 w
+(of) 3615 2656 w
+(the) 3749 2656 w
+(3-diskette) 3940 2656 w
+(system) 4484 2656 w
+(and) 4860 2656 w
+(use it to experiment with the configuration to get the rest of your hardware going.) 720 2776 w
+(If) 970 2932 w
+(you) 1072 2932 w
+(still) 1283 2932 w
+(have) 1494 2932 w
+(trouble,) 1755 2932 w
+(try) 2172 2932 w
+(starting) 2338 2932 w
+(up) 2748 2932 w
+(the) 2909 2932 w
+(system) 3100 2932 w
+(using) 3476 2932 w
+(a) 3778 2932 w
+(fresh) 3869 2932 w
+(DOS) 4152 2932 w
+(boot) 4395 2932 w
+(diskette) 4653 2932 w
+(instead) 720 3052 w
+(of) 1124 3052 w
+(booting) 1273 3052 w
+(from) 1699 3052 w
+(your) 1982 3052 w
+(hard) 2249 3052 w
+(drive.) 2521 3052 w
+(This) 2877 3052 w
+(will) 3133 3052 w
+(create) 3347 3052 w
+(the) 3693 3052 w
+(system) 3898 3052 w
+(environment) 4288 3052 w
+(in) 4949 3052 w
+(which Plan 9 is meant to be installed.) 720 3172 w
+(The) 970 3328 w
+(following) 1196 3328 w
+(steps) 1688 3328 w
+(will) 1991 3328 w
+(create) 2201 3328 w
+(a) 2543 3328 w
+(DOS) 2644 3328 w
+(boot) 2897 3328 w
+(disk;) 3165 3328 w
+(follow) 3444 3328 w
+(them) 3784 3328 w
+(exactly.) 4078 3328 w
+(Make) 4529 3328 w
+(sure) 4830 3328 w
+(you) 720 3448 w
+(understand) 936 3448 w
+(what) 1529 3448 w
+(these) 1801 3448 w
+(steps) 2104 3448 w
+(do.) 2403 3448 w
+(Check) 2632 3448 w
+(your) 2969 3448 w
+(DOS) 3226 3448 w
+(manual) 3474 3448 w
+(if) 3871 3448 w
+(you) 3978 3448 w
+(don) 4193 3448 w
+10 /LucidaSansUnicode20 f
+(\031) 4379 3448 w
+10 /LucidaSansUnicode00 f
+(t) 4411 3448 w
+(understand) 4488 3448 w
+(something.) 720 3568 w
+(1.) 720 3724 w
+(First get a blank 1.44MB diskette.) 970 3724 w
+(Type) 2667 3724 w
+10 /LucidaTypewriter f
+(C:) 2933 3724 w
+10 /LucidaSansUnicode00 f
+(and press) 3109 3724 w
+10 /LucidaTypewriter f
+(Enter) 3615 3724 w
+10 /LucidaSansUnicode00 f
+(.) 3975 3724 w
+(2.) 720 3880 w
+(Insert the blank diskette into drive) 970 3880 w
+10 /LucidaTypewriter f
+(A:) 2677 3880 w
+10 /LucidaSansUnicode00 f
+(.) 2821 3880 w
+(3.) 720 4036 w
+(Type) 970 4036 w
+10 /LucidaTypewriter f
+(FORMAT) 1236 4036 w
+(A:/S) 1700 4036 w
+10 /LucidaSansUnicode00 f
+(and press) 2020 4036 w
+10 /LucidaTypewriter f
+(Enter) 2526 4036 w
+10 /LucidaSansUnicode00 f
+(.) 2886 4036 w
+(4.) 720 4192 w
+(You) 970 4192 w
+(will) 1212 4192 w
+(be) 1433 4192 w
+(prompted) 1609 4192 w
+(to) 2143 4192 w
+(insert) 2298 4192 w
+(a) 2632 4192 w
+(blank) 2745 4192 w
+(diskette) 3070 4192 w
+(into) 3515 4192 w
+(drive) 3762 4192 w
+10 /LucidaTypewriter f
+(A:) 4061 4192 w
+10 /LucidaSansUnicode00 f
+(.) 4205 4192 w
+(If) 4327 4192 w
+(you) 4451 4192 w
+(haven) 4684 4192 w
+10 /LucidaSansUnicode20 f
+(\031) 4971 4192 w
+10 /LucidaSansUnicode00 f
+(t) 5003 4192 w
+(already, insert it now.) 970 4312 w
+(When the diskette is in, press) 2087 4312 w
+10 /LucidaTypewriter f
+(Enter) 3552 4312 w
+10 /LucidaSansUnicode00 f
+(.) 3912 4312 w
+(5.) 720 4468 w
+(Once) 970 4468 w
+(the) 1259 4468 w
+(disk) 1456 4468 w
+(has) 1699 4468 w
+(been) 1909 4468 w
+(formatted,) 2188 4468 w
+(you) 2742 4468 w
+(will) 2959 4468 w
+(be) 3165 4468 w
+(asked) 3326 4468 w
+(to) 3652 4468 w
+(label) 3793 4468 w
+(the) 4068 4468 w
+(disk.) 4266 4468 w
+(Type) 4574 4468 w
+(in) 4851 4468 w
+(a) 4985 4468 w
+(label or press) 970 4588 w
+10 /LucidaTypewriter f
+(Enter) 1662 4588 w
+10 /LucidaSansUnicode00 f
+(for no label.) 2054 4588 w
+(6.) 720 4744 w
+(You will now be asked whether to format another disk.) 970 4744 w
+(Type) 3693 4744 w
+10 /LucidaTypewriter f
+(N) 3959 4744 w
+10 /LucidaSansUnicode00 f
+(and press) 4063 4744 w
+10 /LucidaTypewriter f
+(Enter) 4569 4744 w
+10 /LucidaSansUnicode00 f
+(.) 4929 4744 w
+(7.) 720 4900 w
+(You) 970 4900 w
+(must) 1190 4900 w
+(now) 1468 4900 w
+(create) 1703 4900 w
+(a) 2034 4900 w
+10 /LucidaTypewriter f
+(CONFIG.SYS) 2124 4900 w
+10 /LucidaSansUnicode00 f
+(file) 2879 4900 w
+(on) 3065 4900 w
+(your) 3223 4900 w
+(new) 3474 4900 w
+(boot) 3704 4900 w
+(disk) 3961 4900 w
+(by) 4197 4900 w
+(typing) 4348 4900 w
+(the) 4689 4900 w
+(fol\255) 4880 4900 w
+(lowing command at the) 970 5020 w
+10 /LucidaTypewriter f
+(C:) 2143 5020 w
+10 /LucidaSansUnicode00 f
+(prompt:) 2319 5020 w
+9 /LucidaTypewriter f
+(EDIT) 1258 5190 w
+(A:\\CONFIG.SYS) 1583 5190 w
+10 /LucidaSansUnicode00 f
+(and press) 970 5370 w
+10 /LucidaTypewriter f
+(Enter) 1476 5370 w
+10 /LucidaSansUnicode00 f
+(.) 1836 5370 w
+(When the edit screen appears, type:) 970 5526 w
+9 /LucidaTypewriter f
+(DEVICE=C:\\DOS\\HIMEM.SYS) 1258 5696 w
+(DOS=HIGH) 1258 5806 w
+(FILES=30) 1258 5916 w
+10 /LucidaSansUnicode00 f
+(8.) 720 6132 w
+(Exit and save the file by pressing:) 970 6132 w
+9 /LucidaTypewriter f
+(ALT-F) 1258 6302 w
+(X) 1258 6412 w
+(Y) 1258 6522 w
+10 /LucidaSansUnicode00 f
+(9.) 720 6738 w
+(You) 970 6738 w
+(will) 1188 6738 w
+(also) 1417 6738 w
+(need) 1646 6738 w
+(an) 1916 6738 w
+10 /LucidaTypewriter f
+(AUTOEXEC.BAT) 2067 6738 w
+10 /LucidaSansUnicode00 f
+(file) 2965 6738 w
+(on) 3150 6738 w
+(your) 3307 6738 w
+(new) 3557 6738 w
+(boot) 3786 6738 w
+(disk.) 4042 6738 w
+(To) 4341 6738 w
+(create) 4499 6738 w
+(one,) 4829 6738 w
+(type:) 970 6858 w
+9 /LucidaTypewriter f
+(EDIT) 1258 7028 w
+(A:\\AUTOEXEC.BAT) 1583 7028 w
+10 /LucidaSansUnicode00 f
+(and press) 970 7208 w
+10 /LucidaTypewriter f
+(Enter) 1476 7208 w
+10 /LucidaSansUnicode00 f
+(.) 1836 7208 w
+(When the edit screen appears, type:) 1932 7208 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 15 15
+%%Page: 16 16
+/saveobj save def
+mark
+16 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 16 \255) 2752 480 w
+9 /LucidaTypewriter f
+(@ECHO) 1258 830 w
+(OFF) 1648 830 w
+(C:) 1258 940 w
+10 /LucidaSansUnicode00 f
+(10.) 720 1156 w
+(Exit and save the file by pressing:) 970 1156 w
+9 /LucidaTypewriter f
+(ALT-F) 1258 1326 w
+(X) 1258 1436 w
+(Y) 1258 1546 w
+10 /LucidaSansUnicode00 f
+(You) 970 1762 w
+(now) 1191 1762 w
+(have) 1427 1762 w
+(a) 1688 1762 w
+(DOS) 1779 1762 w
+(boot) 2022 1762 w
+(diskette.) 2280 1762 w
+(Insert) 2768 1762 w
+(it) 3081 1762 w
+(into) 3184 1762 w
+(drive) 3410 1762 w
+10 /LucidaTypewriter f
+(A:) 3688 1762 w
+10 /LucidaSansUnicode00 f
+(and) 3869 1762 w
+(reboot) 4086 1762 w
+(the) 4442 1762 w
+(PC.) 4634 1762 w
+(The) 4859 1762 w
+(computer) 720 1882 w
+(will) 1240 1882 w
+(boot) 1460 1882 w
+(up) 1738 1882 w
+(to) 1919 1882 w
+(the) 2073 1882 w
+10 /LucidaTypewriter f
+(C:) 2284 1882 w
+10 /LucidaSansUnicode00 f
+(prompt.) 2484 1882 w
+(If) 2962 1882 w
+(you) 3083 1882 w
+(have) 3313 1882 w
+(not) 3593 1882 w
+(been) 3808 1882 w
+(able) 4100 1882 w
+(to) 4358 1882 w
+(get) 4511 1882 w
+(Plan) 4721 1882 w
+(9) 4977 1882 w
+(diskette) 720 2002 w
+(1) 1140 2002 w
+(to) 1236 2002 w
+(boot,) 1367 2002 w
+(you) 1654 2002 w
+(can) 1862 2002 w
+(now) 2063 2002 w
+(eject) 2296 2002 w
+(the) 2559 2002 w
+(DOS) 2747 2002 w
+(boot) 2987 2002 w
+(disk) 3242 2002 w
+(and) 3477 2002 w
+(insert) 3691 2002 w
+(Plan) 4001 2002 w
+(9) 4236 2002 w
+(diskette) 4333 2002 w
+(1) 4754 2002 w
+(into) 4851 2002 w
+(drive) 720 2122 w
+10 /LucidaTypewriter f
+(A:) 993 2122 w
+10 /LucidaSansUnicode00 f
+(.) 1137 2122 w
+(Then type:) 1233 2122 w
+9 /LucidaTypewriter f
+(A:b) 1008 2292 w
+10 /LucidaSansUnicode00 f
+(and) 720 2472 w
+(press) 943 2472 w
+10 /LucidaTypewriter f
+(Enter) 1248 2472 w
+10 /LucidaSansUnicode00 f
+(to) 1651 2472 w
+(boot) 1792 2472 w
+(Plan) 2057 2472 w
+(9) 2301 2472 w
+(diskette) 2408 2472 w
+(1.) 2839 2472 w
+(If) 3010 2472 w
+(you) 3120 2472 w
+(have) 3339 2472 w
+(already) 3608 2472 w
+(successfully) 4003 2472 w
+(installed) 4629 2472 w
+(Plan 9 onto the) 720 2592 w
+10 /LucidaTypewriter f
+(C:) 1488 2592 w
+10 /LucidaSansUnicode00 f
+(drive, make sure there is no diskette in drive) 1664 2592 w
+10 /LucidaTypewriter f
+(A:) 3871 2592 w
+10 /LucidaSansUnicode00 f
+(and type:) 4047 2592 w
+9 /LucidaTypewriter f
+(plan9\\b) 1008 2762 w
+10 /LucidaSansUnicode00 f
+(and press) 720 2942 w
+10 /LucidaTypewriter f
+(Enter) 1226 2942 w
+10 /LucidaSansUnicode00 f
+(to bring up Plan 9 using the installed Plan 9 system on drive) 1618 2942 w
+10 /LucidaTypewriter f
+(C:) 4578 2942 w
+10 /LucidaSansUnicode00 f
+(.) 4722 2942 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 16 16
+%%Trailer
+done
+%%DocumentFonts: LucidaSansUnicode20 LucidaSansUnicode00 LucidaSans-Demi LucidaSans-Italic LucidaTypewriter
+%%Pages: 16

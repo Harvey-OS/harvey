@@ -47,6 +47,7 @@ static char *emsg[]={
 	"tag match too long",
 	"too many subexpressions",
 	"temporary file too large",
+	"file is append-only",
 };
 static char *wmsg[]={
 	/* warn_s */

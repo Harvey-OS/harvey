@@ -4,12 +4,12 @@
  *  make an address, add the defaults
  */
 
-intern char addr[4*(NAMELEN+1)];
 
-char *
-netmkaddr(char *linear, char *defnet, char *defsrv)
+byte *
+netmkaddr(byte *linear, byte *defnet, byte *defsrv)
 {
-	char *cp;
+	byte *cp;
+	byte addr[4*(NAMELEN+1)];
 
 	/*
 	 *  dump network name

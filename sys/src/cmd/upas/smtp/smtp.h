@@ -24,11 +24,13 @@ extern Node	*usender;
 extern Node	*usys;
 extern Node	*udate;
 extern int	originator;
+extern int	destination;
 extern int	date;
 
 Node*	anonymous(Node*);
 Node*	address(Node*);
 Node*	bang(Node*, Node*);
+Node*	colon(Node*, Node*);
 int	cistrcmp(char*, char*);
 Node*	link2(Node*, Node*);
 Node*	link3(Node*, Node*, Node*);
@@ -40,3 +42,4 @@ int	yyparse(void);
 int	yylex(void);
 String*	yywhite(void);
 Node*	whiten(Node*);
+void	yycleanup(void);

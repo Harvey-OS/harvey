@@ -349,7 +349,7 @@ SRstart(ScsiReq *rp, uchar code)
 long
 SRrcapacity(ScsiReq *rp, uchar *data)
 {
-	uchar cmd[6];
+	uchar cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdRcapacity;
@@ -634,7 +634,7 @@ wormdevopen(ScsiReq *rp)
 int
 SRopenraw(ScsiReq *rp, int id)
 {
-	char name[128];
+	char name[128], data[128];
 
 	if((rp->flags & Fopen) || id >= NTargetID || id == CtlrID){
 		rp->status = Status_BADARG;
@@ -642,13 +642,19 @@ SRopenraw(ScsiReq *rp, int id)
 	}
 	memset(rp, 0, sizeof(*rp));
 	rp->id = id;
-	sprint(name, "#S/%d/cmd", id);
+	if(bus) {
+		sprint(name, "#S%d/%d/cmd", bus, id);
+		sprint(data, "#S%d/%d/data", bus, id);
+	}
+	else {
+		sprint(name, "#S/%d/cmd", id);
+		sprint(data, "#S/%d/data", id);
+	}
 	if((rp->cmd.fd = open(name, ORDWR)) == -1){
 		rp->status = Status_NX;
 		return -1;
 	}
-	sprint(name, "#S/%d/data", id);
-	if((rp->data.fd = open(name, ORDWR)) == -1){
+	if((rp->data.fd = open(data, ORDWR)) == -1){
 		close(rp->cmd.fd);
 		rp->status = Status_NX;
 		return -1;
@@ -667,11 +673,13 @@ SRopen(ScsiReq *rp, int id)
 		switch(rp->inquiry[0]){
 
 		default:
+			fprint(2, "unknown device type 0x%.2x\n", rp->inquiry[0]);
 			rp->status = Status_NX;
 			break;
 
 		case 0x00:	/* Direct access (disk) */
 		case 0x05:	/* CD-rom */
+		case 0x07:	/* rewriteable MO */
 			if(dirdevopen(rp) == -1)
 				break;
 			return 0;
@@ -680,6 +688,10 @@ SRopen(ScsiReq *rp, int id)
 			rp->flags |= Fseqdev;
 			if(seqdevopen(rp) == -1)
 				break;
+			return 0;
+
+		case 0x02:	/* Printer */
+			rp->flags |= Fprintdev;
 			return 0;
 
 		case 0x04:	/* Worm */

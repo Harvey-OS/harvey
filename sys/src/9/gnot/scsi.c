@@ -121,11 +121,6 @@ scsiexec(Scsi *p, int rflag)
 	debug = scsidebugs[p->target&7];
 	DPRINT("scsi %d.%d %2.2ux ", p->target, p->lun, *(p->cmd.ptr));
 	qlock(&scsilock);
-	if(waserror()){
-		qunlock(&scsilock);
-		DPRINT(" error return\n");
-		nexterror();
-	}
 	scsirflag = rflag;
 	p->rflag = rflag;
 	datap = p->data.base;
@@ -150,6 +145,8 @@ scsiexec(Scsi *p, int rflag)
 	scsibusy = 1;
 	PUT(Cmd, Select_and_Xfr);
 	/*PUT(Cmd, Select_with_ATN_and_Xfr);*/
+	while(waserror())
+		;
 	DPRINT("S<");
 	sleep(&scsirendez, scsidone, 0);
 	DPRINT(">\n");

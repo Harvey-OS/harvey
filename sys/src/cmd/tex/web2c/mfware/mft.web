@@ -1150,6 +1150,16 @@ pr7("j")("o")("b")("n")("a")("m")("e")(bold);@/
 pr10("r")("e")("a")("d")("s")("t")("r")("i")("n")("g")(bold);@/
 pr9("p")("e")("n")("c")("i")("r")("c")("l")("e")(bold);@/
 pr4("g")("o")("o")("d")(special_tag);@/
+pr2("=")(":")(as_is);@/
+pr3("=")(":")("|")(as_is);@/
+pr4("=")(":")("|")(">")(as_is);@/
+pr3("|")("=")(":")(as_is);@/
+pr4("|")("=")(":")(">")(as_is);@/
+pr4("|")("=")(":")("|")(as_is);@/
+pr5("|")("=")(":")("|")(">")(as_is);@/
+pr6("|")("=")(":")("|")(">")(">")(as_is);@/
+pr4("k")("e")("r")("n")(binary);
+pr6("s")("k")("i")("p")("t")("o")(command);@/
 
 @ (Does anybody out there remember the commercials that went \.{LS-MFT}?)
 
@@ -1326,16 +1336,7 @@ pr8("l")("i")("g")("t")("a")("b")("l")("e")(command);@/
 pr10("e")("x")("t")("e")("n")("s")("i")("b")("l")("e")(command);@/
 pr10("h")("e")("a")("d")("e")("r")("b")("y")("t")("e")(command);@/
 pr9("f")("o")("n")("t")("d")("i")("m")("e")("n")(command);@/
-pr2("=")(":")(as_is);@/
-pr3("=")(":")("|")(as_is);@/
-pr4("=")(":")("|")(">")(as_is);@/
-pr3("|")("=")(":")(as_is);@/
-pr4("|")("=")(":")(">")(as_is);@/
-pr4("|")("=")(":")("|")(as_is);@/
-pr5("|")("=")(":")("|")(">")(as_is);@/
-pr6("|")("=")(":")("|")(">")(">")(as_is);@/
-pr4("k")("e")("r")("n")(binary);
-pr6("s")("k")("i")("p")("t")("o")(command);@/
+pr7("s")("p")("e")("c")("i")("a")("l")(command);@/
 pr10("n")("u")("m")("s")("p")("e")("c")("i")("a")("l")(command);@/
 pr1("%")(comment);@/
 pr2("%")("%")(verbatim);@/
@@ -1636,7 +1637,7 @@ backslash was in a string constant that's being output ``verbatim.'')
 @p procedure break_out; {finds a way to break the output line}
 label exit;
 var k:0..line_length; {index into |out_buf|}
-@!c,@!d:ASCII_code; {characters from the buffer}
+@!d:ASCII_code; {character from the buffer}
 begin k:=out_ptr;
 loop@+  begin if k=0 then
     @<Print warning message, break the line, |return|@>;

@@ -1,11 +1,38 @@
-%% CYRPUNC.MF                     June 1990
-%% This Metafont file is part of AMSFonts 2.0.
-%% Cyrillic fonts developed at the Humanities and Arts Computing Center
-%% at the University of Washington.
-%% All rights reserved.  Copying of this file is authorized only if either:
-%%   (1) you make absolutely no changes to your copy including filename; OR
-%%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="cyrpunc.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: driver",
+%%     copyright="Copyright (C) Humanities and Arts Computing Center,
+%%            University of Washington;
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "52922 786 2797 33831"
+%%     keywords="amsfonts, tex, metafont , cyrillic ",
+%%     abstract="This is the driver file for use with 
+%%            the cyrillic fonts in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % cyrpunc punctuation and digits for cyrillic
 
 cmchar "Exclamation point";
@@ -757,4 +784,3 @@ penstroke pulled_arc.e(71,72) & pulled_arc.e(72,73)
 x81=lft x72r; x82=rt x74r; y81=y82=.8x_height-3u; pos81(bar,90); pos82(bar,90);
 filldraw stroke z81e--z82e;
 math_fit(0,max(.5ic#-.5u#,0)); penlabels(1,1',2,3,4,4',5,6,7); endchar;
-

@@ -16,7 +16,7 @@ struct
 } Mp;
 
 int	mpatof(char*, double*);
-int	mpatol(char *s, long *l);
+int	mpatov(char *s, vlong *v);
 void	mpint(Mp*, int);
 void	mppow(Mp*, int, int);
 void	mpmul(Mp*, int);
@@ -257,7 +257,8 @@ mppow(Mp *a, int b, int e)
 {
 	int b1;
 
-	b1 = b*b*b*b;
+	b1 = b*b;
+	b1 = b1*b1;
 	while(e >= 4) {
 		mpmul(a, b1);
 		e -= 4;
@@ -271,14 +272,14 @@ mppow(Mp *a, int b, int e)
 }
 
 /*
- * convert a string, s, to long in *l
+ * convert a string, s, to vlong in *v
  * return conversion overflow.
  * required syntax is [0[x]]d*
  */
 int
-mpatol(char *s, long *l)
+mpatov(char *s, vlong *v)
 {
-	long n, nn;
+	vlong n, nn;
 	int c;
 
 	n = 0;
@@ -314,24 +315,25 @@ hex:
 	s++;
 	while(c = *s++) {
 		if(c >= '0' && c <= '9')
-			nn = n*16 + c-'0';
+			c += 0-'0';
 		else
 		if(c >= 'a' && c <= 'f')
-			nn = n*16 + c-'a' + 10;
+			c += 10-'a';
 		else
 		if(c >= 'A' && c <= 'F')
-			nn = n*16 + c-'A' + 10;
+			c += 10-'A';
 		else
 			goto bad;
+		nn = n*16 + c;
 		if(n < 0 && nn >= 0)
 			goto bad;
 		n = nn;
 	}
 out:
-	*l = n;
+	*v = n;
 	return 0;
 
 bad:
-	*l = ~0;
+	*v = ~0;
 	return 1;
 }

@@ -1,7 +1,11 @@
-.TH MALLOC 2 
+.TH MALLOC 2
 .SH NAME
-malloc, free, realloc, calloc, mstats \- memory allocator
+malloc, free, realloc, calloc \- memory allocator
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .ta \w'\fLvoid* 'u
 .B
 void*	malloc(long size)
@@ -54,10 +58,32 @@ allocates space for
 an array of
 .I nelem
 elements of size
-.I elsize.
+.IR elsize .
 The space is initialized to zeros.
 .I Free
 frees such a block.
+.SS Alef
+Except for
+.IR calloc ,
+these routines are available from Alef; they use the same arena as
+.BR alloc .
+.I Malloc
+and
+.I realloc
+execute a
+.B check
+when they fail, rather than return
+.BR nil .
+Memory returned by
+.I malloc
+is cleared.
+.I Realloc
+does not guarantee new memory is cleared unless
+.I ptr
+is
+.BR nil .
+.SH SOURCE
+.B /sys/src/libc/port/malloc.c
 .SH SEE ALSO
 .IR brk (2)
 .SH DIAGNOSTICS

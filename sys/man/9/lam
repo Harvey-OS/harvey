@@ -15,7 +15,7 @@ lam, posit, piccat, picjoin \- combine several images
 .I input ...
 .SH DESCRIPTION
 .I Lam
-overlays (``laminates'')
+overlays (laminates)
 several picture files, writing the resulting picture file to standard output.
 The output
 .B WINDOW=
@@ -29,11 +29,11 @@ corresponding input pixels, with later input pictures
 .B over
 earlier ones.
 If the input images have no
-.I alpha
+α
 channel,
 .I posit
 has the same effect as
-.I lam.
+.IR lam .
 .PP
 .I Piccat
 concatenates a list of picture files, each above the next,
@@ -44,6 +44,14 @@ the space to their right will be zero in the output picture.
 .PP
 .I Picjoin
 is similar, but joins the pictures left-to right.
+.SH SOURCE
+.B /sys/src/fb/lam.c
+.br
+.B /sys/src/fb/posit.c
+.br
+.B /sys/src/fb/piccat.c
+.br
+.B /sys/src/fb/picjoin.c
 .SH "SEE ALSO
 .IR picfile (9.6),
 Thomas Porter and Tom Duff,

@@ -415,7 +415,7 @@ etherstatsfill(Chan *c, char* p, int n)
 	char buf[256];
 
 	USED(c);
-	sprint(buf, "in: %d\nout: %d\nwait: %lud\ncrc: %d\noverflows: %d\nframing %d\nbuff: %d\noerr: %d\naddr: %.02x:%.02x:%.02x:%.02x:%.02x:%.02x\n",
+	sprint(buf, "in: %d\nout: %d\nwait: %lud\ncrc: %d\noverflows: %d\nframing: %d\nbuff: %d\noerr: %d\naddr: %.02x:%.02x:%.02x:%.02x:%.02x:%.02x\n",
 		enet.inpackets, enet.outpackets, enet.wait, enet.crcs,
 		enet.overflows, enet.frames, enet.buffs, enet.oerrs,
 		enet.ea[0], enet.ea[1], enet.ea[2], enet.ea[3], enet.ea[4], enet.ea[5]);

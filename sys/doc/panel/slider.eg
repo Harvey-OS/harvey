@@ -1,0 +1,16 @@
+Panel *sliderlabel;
+char sliderval[8]=" 57/100";
+void hit(Panel *p, int buttons, int val, int range){
+	USED(p, buttons);
+	sprint(sliderval, "%3d/100", val*100/range);
+	plinitlabel(sliderlabel, PACKE, sliderval);
+	pldraw(sliderlabel, &screen);
+}
+void slider(void){
+	Panel *sl;
+	root=plframe(0, 0);
+	pllabel(root, PACKN|PLACEE, "test value");
+	sl=plslider(root, PACKW|FILLY, Pt(137, 0), hit);
+	plsetslider(sl, 57, 100);
+	sliderlabel=pllabel(root, PACKE, sliderval);
+}

@@ -23,7 +23,7 @@ Vmedevice vmedevtab[] =
 };
 
 long	mktime		= DATE;				/* set by mkfile */
-long	startsb		= 10085912;			/* as of 4/27/92 */
+long	startsb		= 30518235;			/* as of 2/28/95 */
 int	ioid;
 int	probeflag;
 
@@ -63,8 +63,8 @@ touser(void)
 
 	/*
 	 * cyclone cpu link
-	cyclstart();
 	 */
+	cyclstart();
 
 	/*
 	 * read ahead processes

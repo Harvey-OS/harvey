@@ -1,0 +1,41 @@
+.TH PLTOTF 1 "7 Jan 92"
+.SH NAME
+pltotf - convert property list files to font metric (tfm) format
+.SH SYNOPSIS
+.B pltotf
+[-verbose] pl_file_name tfm_file_name
+.SH DESCRIPTION
+The 
+.I pltotf
+program translates a (human-oriented) property list file to a
+(program-oriented) font metric file. Thus, after editing the property
+list file, a TFM file can be generated for use with, for example,
+.BR tex (1).
+.PP
+Both the
+.I pl_file_name
+and the
+.I tfm_file_name
+must be complete. No adding of default extensions or path searching is done.
+.SH OPTIONS
+Without the
+.I -verbose
+option,
+.I pltotf
+operates silently.  With it, a banner and progress report are printed on
+.IR stdout .
+See
+.BR tex (1)
+for the details of specifying options.
+.SH "SEE ALSO"
+tftopl(1)
+.br
+Donald Knuth,
+.I TeXware, The METAFONTbook
+.SH AUTHORS
+Donald Knuth wrote the program. It was published as
+part of the
+.I TeXware
+technical report, available from the TeX Users Group.
+Howard Trickey, Pavel Curtis, and Richard Furuta originally ported it to
+Unix.

@@ -3,19 +3,59 @@
 ndb \- Network database
 .SH DESCRIPTION
 .PP
-The network database consists of the two files
-.B /lib/ndb/local
-and
-.BR /lib/ndb/global .
-The files comprise multi-line entries made up of
+The network database consists of files
+describing machines known to the local
+installation and machines known publicly.
+The files comprise multi-line tuples made up of
 attribute/value pairs of the form
-.IR attr = value .
-Each line starting without white space starts a new entry.
+.IB attr = value
+or sometimes just
+.IR attr .
+Each line starting without white space starts a new tuple.
 Lines starting with
 .B #
 are comments.
 .PP
-Within entries pairs on the same line bind tighter than
+The file
+.B /lib/ndb/local
+is the root of the database.
+Other files are included in the
+database if a tuple with an
+attribute-value pair of attribute
+.B database
+and no value exists in
+.BR /lib/ndb/local .
+Within the
+.B database
+tuple,
+each tuple with attribute
+.B file
+identifies a file to be included in the database.  The files are searched
+in the order they appear.
+For example:
+.IP
+.EX
+database=
+	file=/lib/ndb/common
+	file=/lib/ndb/local
+	file=/lib/ndb/global
+.EE
+.PP
+declares the database to be composed of the three files
+.BR /lib/ndb/common ,
+.BR /lib/ndb/local ,
+and 
+.BR /lib/ndb/global .
+By default,
+.B /lib/ndb/local
+is searched before the others.
+However,
+.B /lib/ndb/local
+may be included in the
+.B database
+to redefine its ordering.
+.PP
+Within tuples, pairs on the same line bind tighter than
 pairs on different lines.
 .PP
 The program
@@ -35,8 +75,8 @@ by returning the
 from the
 .IB attribute = value
 most closely related to the resolving host.
-The attribute-value pair comes from the entry for the system, its subnet, or its network
-with the system entry having precedence, subnet next, and network last.
+The attribute-value pair comes from the tuple for the system, its subnet, or its network
+with the system tuple having precedence, subnet next, and network last.
 .PP
 A number of attributes are meaningful to programs and thus
 reserved.
@@ -95,19 +135,26 @@ less that 1024
 .B proto
 a protocol supported by a host.
 The pair
-.I proto=il
+.B proto=il
 is needed by
 .I cs
 (see
 .IR ndb (8))
-in entries for hosts that support the IL protocol.
+in tuples for hosts that support the IL protocol.
 .TP
 .B 9P
 parameters for the 9P file protocol, in particular whether the server authenticates
 .RB ( 9P=auth ).
+.sp
+.PP
+The file
+.B /lib/ndb/auth
+is used during authentication to decide who has the power to `speak for' other
+users; see
+.IR auth (6).
 .SH EXAMPLES
 .LP
-An entry for the CPU server, spindle.
+A tuple for the CPU server, spindle.
 .LP
 .EX
 sys = spindle
@@ -154,4 +201,4 @@ second database file searched
 .IR ndb (8),
 .IR bootp (8),
 .IR ipconfig (8),
-.IR con (1),
+.IR con (1)

@@ -1,14 +1,16 @@
 #include <u.h>
 #include <libc.h>
+#include <ip.h>
 #include "dns.h"
-#include "ip.h"
 
-static int	udpannounce(void);
+int	udpannounce(void);
 static RR*	getipaddr(DN*);
 static void	recurse(DNSmsg*, Request*);
 static void	local(DNSmsg*);
 static void	reply(int, uchar*, DNSmsg*);
 static void	hint(RR**, RR*);
+
+extern char *logfile;
 
 /*
  *  a process to act as a dns server for outside reqeusts
@@ -22,7 +24,7 @@ dnserver(void)
 	Request req;
 	DNSmsg reqmsg;
 	DNSmsg repmsg;
-	uchar buf[Udphdrlen + Maxudp];
+	uchar buf[Udphdrsize + Maxudp];
 	char tname[32];
 
 	/* fork sharing text, data, and bss with parent */
@@ -44,17 +46,17 @@ dnserver(void)
 	for(;;){
 		memset(&repmsg, 0, sizeof(repmsg));
 		len = read(fd, buf, sizeof(buf));
-		err = convM2DNS(&buf[Udphdrlen], len, &reqmsg);
+		err = convM2DNS(&buf[Udphdrsize], len, &reqmsg);
 		if(err){
-			syslog(0, "dns", "server: input error: %s from %I", err, buf);
+			syslog(0, logfile, "server: input error: %s from %I", err, buf);
 			continue;
 		}
 		if(reqmsg.qdcount < 1){
-			syslog(0, "dns", "server: no questions from %I", buf);
+			syslog(0, logfile, "server: no questions from %I", buf);
 		} else if(reqmsg.flags & Fresp){
-			syslog(0, "dns", "server: reply not request from %I", buf);
+			syslog(0, logfile, "server: reply not request from %I", buf);
 		} else if(reqmsg.qd->owner->class != Cin){
-			syslog(0, "dns", "server: class %d from %I", reqmsg.qd->owner->class,
+			syslog(0, logfile, "server: class %d from %I", reqmsg.qd->owner->class,
 				buf);
 			memset(&repmsg, 0, sizeof(repmsg));
 			repmsg.id = reqmsg.id;
@@ -62,12 +64,12 @@ dnserver(void)
 			repmsg.qd = reqmsg.qd;
 			reply(fd, buf, &repmsg);
 		} else if((reqmsg.flags & Omask) != Oquery){
-			syslog(0, "dns", "server: op %d from %I", reqmsg.flags & Omask, buf);
+			syslog(0, logfile, "server: op %d from %I", reqmsg.flags & Omask, buf);
 		} else {
 			/* loop through each question */
 			while(reqmsg.qd){
 				if(debug)
-					syslog(0, "dns", "serve %s %s",
+					syslog(0, logfile, "serve %s %s",
 						reqmsg.qd->owner->name,
 						rrname(reqmsg.qd->type, tname));
 				memset(&repmsg, 0, sizeof(repmsg));
@@ -155,10 +157,22 @@ local(DNSmsg *mp)
 	}
 
 	/*
+	 *  Quick grab, see if it's a 'relative to my domain' request.
+	 *  I'm not sure this is a good idea but our x-terminals want it.
+	 */
+	if(strchr(dp->name, '.') == 0){
+		nsrp = dblookup(dp->name, dp->class, type, 1);
+		if(nsrp){
+			rrcat(&mp->an, nsrp, type);
+			return;
+		}
+	}
+
+	/*
  	 *  walk up the domain name looking for
 	 *  a name server for the domain.
 	 */
-	for(cp = dp->name; mp->an && cp; cp = walkup(cp)){
+	for(cp = dp->name; /* mp->an==0 && */ cp; cp = walkup(cp)){
 		/* look for ns in cache and database */
 		nsdp = dnlookup(cp, dp->class, 0);
 		nsrp = 0;
@@ -187,13 +201,17 @@ static void
 reply(int fd, uchar *buf, DNSmsg *rep)
 {
 	int len;
+	char tname[32];
 
-	len = convDNS2M(rep, &buf[Udphdrlen], Maxudp);
+	if(debug)
+		syslog(0, logfile, "reply (%I/%d) %s %s an %R ns %R ar %R",
+			buf, ((buf[4])<<8)+buf[5], rep->qd->owner->name,
+			rrname(rep->qd->type, tname), rep->an, rep->ns, rep->ar);
+
+	len = convDNS2M(rep, &buf[Udphdrsize], Maxudp);
 	if(len <= 0)
 		fatal("dnserver: converting reply");
-	len += Udphdrlen;
-	if(debug)
-		syslog(0, "dns", "%d byte reply", len);
+	len += Udphdrsize;
 	if(write(fd, buf, len) != len)
 		fatal("dnserver: sending reply");
 }
@@ -234,7 +252,7 @@ getipaddr(DN *dp)
  */
 static char *hmsg = "headers";
 
-static int
+int
 udpannounce(void)
 {
 	int data, ctl;

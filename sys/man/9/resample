@@ -1,13 +1,20 @@
 .TH RESAMPLE 9.1
 .SH NAME
-resample \- resample a picture horizontally
+resample, pdup \- resample a picture
 .SH SYNOPSIS
 .B fb/resample
 .I width
 [
 .I input
 ] [
-.I B C
+.I B
+.I C
+]
+.PP
+.B fb/pdup
+.I sx sy
+[
+.I input
 ]
 .SH DESCRIPTION
 .I Resample
@@ -21,10 +28,27 @@ for assistance with vertical resampling.
 The reference explains the optional filter parameters
 .I B
 and
-.I C.
+.IR C .
 The default values give optimal alias rejection, and should not
 normally be tampered with.
+.PP
+.I Pdup
+scales an image by pixel duplication.
+.I Sx
+and
+.I sy
+are the horizontal and vertical scale factors.  They must be
+positive integers.  In the output image (written on standard output),
+each pixel of the input image (default standard input) generates an
+.I sx×sy
+block of identical pixels.
+.SH SOURCE
+.B /sys/src/fb/resample.c
+.br
+.B /sys/src/fb/pdup.c
 .SH "SEE ALSO
 .IR picfile (9.6),
-``Reconstruction in Computer Graphics'', by Mitchell and Netravali in
-SIGGRAPH 88 Proceedings.
+Don P. Mitchell and Arun Netravali,
+``Reconstruction in Computer Graphics'',
+.I
+SIGGRAPH '88 Conference Proceedings.

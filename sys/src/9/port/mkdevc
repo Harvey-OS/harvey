@@ -5,6 +5,12 @@ if(! ~ $#* 1){
 	exit 1
 }
 
+#
+# The following programs are allowed to be placed in #/ as
+# file systems for root
+#
+rootfilsys='kfs|dossrv|k9660srv'
+
 cat <<'---'
 #include	"u.h"
 #include	"../port/lib.h"
@@ -44,13 +50,32 @@ echo '};'
 	'
 
 ../port/mkextract stream 0 $* | awk '
+	BEGIN{	print "extern Qinfo perminfo;" }
 	{	print "extern Qinfo\t" $1 "info;" }
 	'
-../port/mkextract stream 0 $* | awk '
-	BEGIN{	print "void streaminit(void){" }
-	{	print "\tnewqinfo(&" $1 "info);" }
-	END{	print "}" }
+../port/mkextract link 0 $* | awk '
+	{	print "extern void\t" $1 "link(void);" }
 	'
+../port/mkextract misc 0 $* | sed -n 's/[ 	]*(.*)\.root/\1/p' | awk '
+	/^'$rootfilsys'$/	{	print "extern uchar\tfscode[];"
+				print "extern ulong\tfslen;"
+				next }
+			{	print "extern uchar\t" $1 "code[];"
+				print "extern ulong\t" $1 "len;" }
+	'
+../port/mkextract stream 0 $* | awk '
+	BEGIN{	print "void streaminit(void){\n\tnewqinfo(&perminfo);" }
+	{	print "\tnewqinfo(&" $1 "info);" }
+	'
+../port/mkextract link 0 $* | awk '
+	{ print "\t" $1 "link();" }
+	'
+../port/mkextract misc 0 $* | sed -n 's/[ 	]*(.*)\.root/\1/p' | awk '
+	/^'$rootfilsys'$/	{ print "\taddrootfile(\"fs\", fscode, fslen);"
+				  next }
+			{ print "\taddrootfile(\"" $1 "\", " $1 "code, " $1 "len);" }
+	'
+echo '}'
 
 ../port/mkextract port 0 $*
 

@@ -3,6 +3,7 @@
  */
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #define Extern
 #include "statfs.h"
@@ -26,7 +27,6 @@ void (*fcalls[])(Fsrpc*) =
 	[Tstat]		Xstat,
 	[Twstat]	Xwstat,
 	[Tclwalk]	Xclwalk,
-	[Tauth]		Xauth,
 };
 
 int p[2];
@@ -80,7 +80,7 @@ main(int argc, char **argv)
 			fatal("no working directory");
 
 		rfork(RFENVG|RFNAMEG|RFNOTEG);
-		if(mount(p[0], "/", MREPL, "", "") < 0)
+		if(mount(p[0], "/", MREPL, "") < 0)
 			fatal("mount /");
 
 		bind("#c/pid", "/dev/pid", MREPL);
@@ -103,7 +103,7 @@ main(int argc, char **argv)
 	default:
 		while(cpid != wait(0))
 			;
-		postnote(fspid, DONESTR);
+		postnote(PNPROC, fspid, DONESTR);
 		while(fspid != wait(0))
 			;
 		exits(0);
@@ -140,7 +140,6 @@ main(int argc, char **argv)
 	stats->rpc[Tstat].name = "stat";
 	stats->rpc[Twstat].name = "wstat";
 	stats->rpc[Tclwalk].name = "clwalk";
-	stats->rpc[Tauth].name = "auth";
 
 	for(n = 0; n < MAXRPC; n++)
 		stats->rpc[n].loms = 10000000;
@@ -187,7 +186,7 @@ main(int argc, char **argv)
 
 	/* Clear away the slave children */
 	for(m = Proclist; m; m = m->next)
-		postnote(m->pid, "kill");
+		postnote(PNPROC, m->pid, "kill");
 
 	rpc = &stats->rpc[Tread];
 	brpsec = (float)stats->totread / (((float)rpc->time/1000.0)+.000001);
@@ -470,7 +469,7 @@ fatal(char *s)
 
 	/* Clear away the slave children */
 	for(m = Proclist; m; m = m->next)
-		postnote(m->pid, "exit");
+		postnote(PNPROC, m->pid, "exit");
 
 	exits("fatal");
 }

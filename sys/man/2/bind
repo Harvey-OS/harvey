@@ -2,11 +2,15 @@
 .SH NAME
 bind, mount, unmount \- change name space
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
 int bind(char *name, char *old, int flag)
 .PP
 .B
-int mount(int fd, char *old, int flag, char *aname, char *authserv)
+int mount(int fd, char *old, int flag, char *aname)
 .PP
 .B
 int unmount(char *name, char *old)
@@ -85,7 +89,8 @@ and new files must be directories,
 or both must not be directories.
 .I Flag
 can be one of:
-.TP 10
+.TF MBEFORE
+.TP 
 .B MREPL
 Replace the
 .I old
@@ -113,7 +118,7 @@ After an
 .B MBEFORE
 .I bind
 or
-.I mount,
+.IR mount ,
 the new directory will be searched first when evaluating file names
 in the union directory.
 .TP
@@ -143,14 +148,14 @@ the
 fails.
 .PP
 With
-.I mount,
+.IR mount ,
 the file descriptor
 .I fd
 must be open for reading and writing
 and prepared to respond to 9P messages
 (see Section 5).
 After the
-.I mount,
+.IR mount ,
 the file tree starting at
 .I old
 is served by a kernel
@@ -161,22 +166,6 @@ That device will turn operations in the tree into messages on
 .I Aname
 selects among different
 file trees on the server; the null string chooses the default tree.
-.I Authserv
-is the textual name of the file server.
-It
-is used during authentication to assure that
-.I fd
-is a connection to the intended server.
-If
-.I authserv
-is the empty string, no authentication is performed and the empty
-string is used as the authentication key in the
-.B attach
-message
-(see
-.IR auth (5)
-and
-.IR attach (5)).
 .PP
 The file descriptor
 .I fd
@@ -189,7 +178,7 @@ The effects of
 and
 .I mount
 can be undone by
-.I unmount.
+.IR unmount .
 If
 .I name
 is zero, everything bound to or mounted upon
@@ -202,16 +191,23 @@ is not zero, it is evaluated as described above for
 and the effect of binding or mounting that particular result on
 .I old
 is undone.
+.SH SOURCE
+.B /sys/src/libc/9syscall
 .SH SEE ALSO
 .IR bind (1),
 .IR intro (2),
 .IR fcall (2),
+.IR auth (2)
+(particularly
+.BR amount ),
 .IR intro (5),
 .IR mnt (3),
 .IR srv (3)
 .SH DIAGNOSTICS
+The return value is a positive integer (a unique sequence number) for
+success, -1 for failure.
 These routines set
-.I errstr.
+.IR errstr .
 .SH BUGS
 .I Mount
 will not return until it has successfully attached

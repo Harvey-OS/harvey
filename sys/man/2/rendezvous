@@ -2,6 +2,10 @@
 .SH NAME
 rendezvous \- user level process synchronization
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
 ulong rendezvous(ulong tag, ulong value)
 .SH DESCRIPTION
@@ -12,7 +16,7 @@ In conjunction with the shared memory system calls
 .IR segattach (2)
 and
 .IR fork (2)),
-it enables parallel programs to access the system scheduler.
+it enables parallel programs to control their scheduling.
 .PP
 Two processes wishing to synchronize call
 .I rendezvous
@@ -32,14 +36,32 @@ system calls.
 Both processes are awakened when
 the rendezvous succeeds.
 .PP
-The tag space is common to processes in the same file name space.
+The tag space is common to processes in the same file name space, so
+.I rendezvous
+only works between processes in the same file name space.
 .PP
 If a rendezvous is interrupted the return value is
 .BR ~0 ,
 so that value should not be used in normal communication.
+.SH SOURCE
+.B /sys/src/libc/9syscall
 .SH SEE ALSO
 .IR segattach (2),
 .IR fork (2)
 .SH DIAGNOSTICS
 Sets
-.I errstr.
+.IR errstr .
+.SH BUGS
+The correlation of rendezvous tags and file name space is a historical accident.
+If two unrelated processes happen to be in the same name space and do a
+.BR  rendezvous ,
+trouble will result.
+The solution is to call
+.B rfork(RFNAMEG)
+(see
+.IR fork (2))
+in programs that use
+.I rendezvous
+unless they need to share the name space with
+their parent.
+This is especially important in Alef programs.

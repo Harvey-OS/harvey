@@ -3,11 +3,11 @@
 /* For Albers formulas see Deetz and Adams "Elements of Map Projection", */
 /* USGS Special Publication No. 68, GPO 1921 */
 
-static float r0sq, r1sq, d2, n, den, sinb1, sinb2;
+static double r0sq, r1sq, d2, n, den, sinb1, sinb2;
 static struct coord plat1, plat2;
 static southpole;
 
-static float num(float s)
+static double num(double s)
 {
 	if(d2==0)
 		return(1);
@@ -18,10 +18,10 @@ static float num(float s)
 /* Albers projection for a spheroid, good only when N pole is fixed */
 
 static int
-Xspalbers(struct place *place, float *x, float *y)
+Xspalbers(struct place *place, double *x, double *y)
 {
-	float r = sqrt(r0sq-2*(1-d2)*place->nlat.s*num(place->nlat.s)/n);
-	float t = n*place->wlon.l;
+	double r = sqrt(r0sq-2*(1-d2)*place->nlat.s*num(place->nlat.s)/n);
+	double t = n*place->wlon.l;
 	*y = r*cos(t);
 	*x = -r*sin(t);
 	if(!southpole)
@@ -33,10 +33,10 @@ Xspalbers(struct place *place, float *x, float *y)
 
 /* lat1, lat2: std parallels; e2: squared eccentricity */
 
-static proj albinit(float lat1, float lat2, float e2)
+static proj albinit(double lat1, double lat2, double e2)
 {
-	float r1,r2;
-	float t;
+	double r1,r2;
+	double t;
 	for(;;) {
 		if(lat1 < -90)
 			lat1 = -180 - lat1;
@@ -71,25 +71,25 @@ static proj albinit(float lat1, float lat2, float e2)
 }
 
 proj
-sp_albers(float lat1, float lat2)
+sp_albers(double lat1, double lat2)
 {
 	return(albinit(lat1,lat2,EC2));
 }
 
 proj
-albers(float lat1, float lat2)
+albers(double lat1, double lat2)
 {
 	return(albinit(lat1,lat2,0.));
 }
 
-static float scale = 1;
-static float twist = 0;
+static double scale = 1;
+static double twist = 0;
 
 void
-albscale(float x, float y, float lat, float lon)
+albscale(double x, double y, double lat, double lon)
 {
 	struct place place;
-	float alat, alon, x1,y1;
+	double alat, alon, x1,y1;
 	scale = 1;
 	twist = 0;
 	invalb(x,y,&alat,&alon);
@@ -101,10 +101,10 @@ albscale(float x, float y, float lat, float lon)
 }
 
 void
-invalb(float x, float y, float *lat, float *lon)
+invalb(double x, double y, double *lat, double *lon)
 {
 	int i;
-	float sinb_den, sinp;
+	double sinb_den, sinp;
 	x *= scale;
 	y *= scale;
 	*lon = atan2(-x,fabs(y))/(RAD*n) + twist;

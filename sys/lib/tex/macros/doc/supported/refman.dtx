@@ -1,0 +1,3664 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1988 - 94 by H. Partl.
+% Copyright (C) 1994 by Axel Kielhorn.  All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is to be used with the LaTeX2e system.
+% ------------------------------------------------
+% 
+%  This system is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see upload file.
+% 
+% Please do not request updates from us directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+%
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{2363}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%
+% \iffalse
+% \section{Identification}
+%
+%    These document classes can only be used with \LaTeXe, so we make
+%    sure that an appropriate message is displayed when another \TeX{}
+%    format is used.
+%    \begin{macrocode}
+%<+refart|refrep>\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+%    \end{macrocode}
+%
+%    Announce the Class name and its version:
+%    \begin{macrocode}
+%<+refart>\ProvidesClass{refart}
+%<+refrep>\ProvidesClass{refrep}
+%<*driver>
+\ProvidesFile{refman.drv}
+%</driver>
+              [1994/10/30 v1.9e
+%<+refart|refrep>     LaTeX document class]
+%    \end{macrocode}
+% \fi
+%
+% \iffalse
+% \section{A driver for this document}
+%
+% The next bit of code contains the documentation driver file for
+% \TeX{}, i.e., the file that will produce the documentation you are
+% currently reading. It will be extracted from this file by the 
+% {\sc docstrip} program.
+% Whenever I refer to Refman, I'm talking about both classes.
+% When I'm talking about things that are special to one class I refer
+% to the filenames \file{refart} and \file{refrep}.
+%    \begin{macrocode}
+%<*driver>
+]
+\documentclass{ltxdoc}
+%    \end{macrocode}
+%
+%    We don't want everything to appear in the index
+%    \begin{macrocode}
+\DoNotIndex{\',\.,\@M,\@@input,\@addtoreset,\@arabic,\@badmath}
+\DoNotIndex{\@centercr,\@cite}
+\DoNotIndex{\@dotsep,\@empty,\@float,\@gobble,\@gobbletwo,\@ignoretrue}
+\DoNotIndex{\@input,\@ixpt,\@m}
+\DoNotIndex{\@minus,\@mkboth,\@ne,\@nil,\@nomath,\@plus,\@set@topoint}
+\DoNotIndex{\@tempboxa,\@tempcnta,\@tempdima,\@tempdimb}
+\DoNotIndex{\@tempswafalse,\@tempswatrue,\@viipt,\@viiipt,\@vipt}
+\DoNotIndex{\@vpt,\@warning,\@xiipt,\@xipt,\@xivpt,\@xpt,\@xviipt}
+\DoNotIndex{\@xxpt,\@xxvpt,\\,\ ,\addpenalty,\addtolength,\addvspace}
+\DoNotIndex{\advance,\Alph,\alph}
+\DoNotIndex{\arabic,\ast,\begin,\begingroup,\bfseries,\bgroup,\box}
+\DoNotIndex{\bullet}
+\DoNotIndex{\cdot,\cite,\CodelineIndex,\cr,\day,\DeclareOption}
+\DoNotIndex{\def,\DisableCrossrefs,\divide,\DocInput,\documentclass}
+\DoNotIndex{\DoNotIndex,\egroup,\ifdim,\else,\fi,\em,\endtrivlist}
+\DoNotIndex{\EnableCrossrefs,\end,\end@dblfloat,\end@float,\endgroup}
+\DoNotIndex{\endlist,\everycr,\everypar,\ExecuteOptions,\expandafter}
+\DoNotIndex{\fbox}
+\DoNotIndex{\filedate,\filename,\fileversion,\fontsize,\framebox,\gdef}
+\DoNotIndex{\global,\halign,\hangindent,\hbox,\hfil,\hfill,\hrule}
+\DoNotIndex{\hsize,\hskip,\hspace,\hss,\if@tempswa,\ifcase,\or,\fi,\fi}
+\DoNotIndex{\ifhmode,\ifvmode,\ifnum,\iftrue,\ifx,\fi,\fi,\fi,\fi,\fi}
+\DoNotIndex{\input}
+\DoNotIndex{\jobname,\kern,\leavevmode,\let,\leftmark}
+\DoNotIndex{\list,\llap,\long,\m@ne,\m@th,\mark,\markboth,\markright}
+\DoNotIndex{\month,\newcommand,\newcounter,\newenvironment}
+\DoNotIndex{\NeedsTeXFormat,\newdimen}
+\DoNotIndex{\newlength,\newpage,\nobreak,\noindent,\null,\number}
+\DoNotIndex{\numberline,\OldMakeindex,\OnlyDescription,\p@}
+\DoNotIndex{\pagestyle,\par,\paragraph,\paragraphmark,\parfillskip}
+\DoNotIndex{\penalty,\PrintChanges,\PrintIndex,\ProcessOptions}
+\DoNotIndex{\protect,\ProvidesClass,\raggedbottom,\raggedright}
+\DoNotIndex{\refstepcounter,\relax,\renewcommand,\reset@font}
+\DoNotIndex{\rightmargin,\rightmark,\rightskip,\rlap,\rmfamily,\roman}
+\DoNotIndex{\roman,\secdef,\selectfont,\setbox,\setcounter,\setlength}
+\DoNotIndex{\settowidth,\sfcode,\skip,\sloppy,\slshape,\space}
+\DoNotIndex{\symbol,\the,\trivlist,\typeout,\tw@,\undefined,\uppercase}
+\DoNotIndex{\usecounter,\usefont,\usepackage,\vfil,\vfill,\viiipt}
+\DoNotIndex{\viipt,\vipt,\vskip,\vspace}
+\DoNotIndex{\wd,\xiipt,\year,\z@}
+%    \end{macrocode}
+%    We do want an index, using linenumbers
+%    \begin{macrocode}
+\EnableCrossrefs
+%    \end{macrocode}
+%    We use so many \file{docstrip} modules that we set the
+%    \texttt{StandardModuleDepth} counter to 1.
+%    \begin{macrocode}
+\setcounter{StandardModuleDepth}{1}
+%    \end{macrocode}
+%    The following command retrieves the date and version information
+%    from the file.
+%    \begin{macrocode}
+\GetFileInfo{refman.drv}
+%    \end{macrocode}
+%    Some commonly used abbreviations
+%    \begin{macrocode}
+\newcommand\Lopt[1]{\textsf {#1}}
+\newcommand\file[1]{\texttt {#1}}
+\newcommand\Lcount[1]{\textsl {\small#1}}
+\newcommand\pstyle[1]{\textsl {#1}}
+%    \end{macrocode}
+%    We also want the full details.
+%    \begin{macrocode}
+\begin{document}
+\DocInput{refman.dtx}
+\PrintIndex
+% ^^A\PrintChanges
+\end{document}
+%</driver>
+%    \end{macrocode}
+%
+% \fi
+%
+%
+% \title{Document Class \texttt{refman} for \LaTeX{} version 2e\thanks
+%	{This file has version number \fileversion, last revised
+%	\filedate.}}
+%
+% \author{%
+% Copyright (C) 1988 by Hubert Partl \and
+% Copyright (C) 1994-94 by Axel Kielhorn
+% }
+% \date{\filedate}
+% \maketitle
+% \tableofcontents
+%
+% \StopEventually{}    ^^A 
+%
+% \section{The {\sc docstrip} modules}
+%
+% The following modules are used in the implementation to direct
+% {\sc docstrip} in generating the external files:
+% \begin{center}
+% \begin{tabular}{ll}
+%   refart & produce the documentclass refart\\
+%   refrep   & produce the documentclass refrep\\
+%   driver   & produce a documentation driver file \\
+% \end{tabular}
+% \end{center}
+%
+% \section{Initial Code}
+%
+%    In this part we define a few commands that are used later on.
+%
+% \begin{macro}{\@ptsize}
+%    This control sequence is used to store the second digit of the
+%    pointsize we are typesetting in. So, normally, it's value is one
+%    of 0, 1 or 2.
+%    \begin{macrocode}
+%<*refart|refrep>
+\newcommand\@ptsize{}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\if@restonecol}
+%    Only the index may be printed in twocolumn-layout, but this is not 
+%    implemented yet. Nevertheless we provide the neccesary commands.
+%    \begin{macrocode}
+\newif\if@restonecol
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\if@titlepage}
+%    A switch to indicate if a titlepage has to be produced.  For the
+%    \file{refart} document class the default is not to make a seperate
+%    titlepage.
+%    \begin{macrocode}
+\newif\if@titlepage
+%<+refart>\@titlepagefalse
+%<+refrep>\@titlepagetrue
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\if@openright}
+%    A switch to indicate if chapters must start on a right-hand page.
+%    The default for the \file{refman} class is no. There are no
+%    chapters in the \file{refart} class
+%    \begin{macrocode}
+%<+refrep>\newif\if@openright
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\if@openbib}
+%    A switch to indicate if the bibliography has to be produced in
+%    the ``open'' format. The default is to use a ``closed'' format.
+%    \begin{macrocode}
+\newif\if@openbib
+\@openbibfalse
+%    \end{macrocode}
+% \end{macro}
+%
+% \section{Declaration of Options}
+%
+%
+% \subsection{Setting Paper Sizes}
+%
+%    The variables |\paperwidth| and |\paperheight| should reflect the
+%    physical paper size after trimming. For desk printer output this
+%    is usually the real paper size since there is no post-processing.
+%    Classes for real book production will probably add other paper
+%    sizes and additionally the production of crop marks for trimming.
+%    Since \file{repbook} does not exist now you may change the
+%    papersizes if needed.
+%    \begin{macrocode}
+\DeclareOption{a4paper}
+   {\setlength\paperheight {297mm}%
+    \setlength\paperwidth  {210mm}}
+\DeclareOption{a5paper}
+   {\setlength\paperheight {210mm}%
+    \setlength\paperwidth  {148mm}}
+\DeclareOption{b5paper}
+   {\setlength\paperheight {250mm}%
+    \setlength\paperwidth  {176mm}}
+\DeclareOption{letterpaper}
+   {\setlength\paperheight {11in}%
+    \setlength\paperwidth  {8.5in}}
+\DeclareOption{legalpaper}
+   {\setlength\paperheight {14in}%
+    \setlength\paperwidth  {8.5in}}
+\DeclareOption{executivepaper}
+   {\setlength\paperheight {10.5in}%
+    \setlength\paperwidth  {7.25in}}
+%    \end{macrocode}
+%
+%    The option \Lopt{landscape} switches the values of |\paperheight|
+%    and |\paperwidth|, assuming the dimensions were given for portrait
+%    paper.
+%    \begin{macrocode}
+\DeclareOption{landscape}
+   {\setlength\@tempdima   {\paperheight}%
+    \setlength\paperheight {\paperwidth}%
+    \setlength\paperwidth  {\@tempdima}}
+%    \end{macrocode}
+%
+%    The option \Lopt{square} assigns the values of |\paperwidth|
+%    to |\paperheight|, which will result in a square layout.
+%    If you use \Lopt{landscape} first you will get a square layout
+%    which uses the height of yo you original paper.
+%    \begin{macrocode}
+\DeclareOption{square}
+   {\setlength\paperheight {\paperwidth}}
+%    \end{macrocode}
+%
+% \subsection{Choosing the type size}
+%
+%    The type size options are handled by defining |\@ptsize| to contain
+%    the last digit of the size in question and branching on |\ifcase|
+%    statements. This is done for historical reasons to stay compatible
+%    with other packages that use the |\@ptsize| variable to select
+%    special actions. It makes the declarations of size options less
+%    than 10pt difficult, although one can probably use \texttt{9}
+%    and \texttt{8} assuming that a class wont define both
+%    \Lopt{8pt} and \Lopt{18pt} options.
+%
+%    \begin{macrocode}
+\DeclareOption{10pt}{\renewcommand\@ptsize{0}}
+\DeclareOption{11pt}{\renewcommand\@ptsize{1}}
+\DeclareOption{12pt}{\renewcommand\@ptsize{2}}
+%    \end{macrocode}
+%
+%
+%  \subsection{Two-side or one-side printing}
+%
+%    For two-sided printing we use the switch |\if@twoside|.
+%    We set  |\if@mparswitch| which does nothing now but
+%    is kept for compatibility reasons. It may vanish in the
+%    final 2.0 version.
+%    \begin{macrocode}
+\DeclareOption{oneside}{\@twosidefalse \@mparswitchfalse}
+\DeclareOption{twoside}{\@twosidetrue  \@mparswitchtrue}
+%    \end{macrocode}
+%
+%
+%  \subsection{Draft option}
+%
+%    If the user requests \Lopt{draft} we show any overfull boxes.
+%    We could probably add some more interesting stuff to this option.
+%    \begin{macrocode}
+\DeclareOption{draft}{\setlength\overfullrule{5pt}}
+\DeclareOption{final}{\setlength\overfullrule{0pt}}
+%    \end{macrocode}
+%
+%  \subsection{Titlepage option}
+%    A refman usually has no separate titlepage, but the user can
+%    request one.
+%    \begin{macrocode}
+\DeclareOption{titlepage}{\@titlepagetrue}
+\DeclareOption{notitlepage}{\@titlepagefalse}
+%    \end{macrocode}
+%
+%
+%  \subsection{openright option}
+%    This option determines whether or not a chapter must start on
+%    a right-hand page and request one.
+%    \begin{macrocode}
+%<+refrep>\DeclareOption{openright}{\@openrighttrue}
+%<+refrep>\DeclareOption{openany}{\@openrightfalse}
+%    \end{macrocode}
+%
+%  \subsection{Twocolumn printing}
+%
+%    Two-column is used in the index. There is no user command
+%    or option to request twocolumn printing. Therefore
+%    \Lopt{twocolumn} will lead to an error message.
+%    \begin{macrocode}
+\DeclareOption{onecolumn}{\@twocolumnfalse}
+\DeclareOption{twocolumn}{%
+%<+refart>    \ClassError{Refart}
+%<+refrep>    \ClassError{Refrep}
+    {There is no twocolumn layout in this class!}
+    {Can you imagine how twocolumn layout will look\MessageBreak
+     in this class? That's why!}
+    \@twocolumnfalse}
+%
+%    \end{macrocode}
+%
+%  \subsection{Equation numbering on the left}
+%
+%    The option \Lopt{leqno} can be used to get the equation numbers
+%    on the left side of the equation. \file{leqno.clo} is defined in
+%    \file{classes.dtx}.
+%    \begin{macrocode}
+\DeclareOption{leqno}{\input{leqno.clo}}
+%    \end{macrocode}
+%
+%  \subsection{Flush left displays}
+%
+%    The option \Lopt{fleqn} redefines the displayed math environmens
+%    in such a way that they come out flush left, with an indentation
+%    of |\mathindent| from the prevailing left margin.\file{fleqn.clo}
+%    is defined in \file{classes.dtx}.
+%    \begin{macrocode}
+\DeclareOption{fleqn}{\input{fleqn.clo}}
+%    \end{macrocode}
+%
+% \subsection{Open bibliography}
+%
+%    The option \Lopt{openbib} produces the ``open'' bibliography
+%    style, in which each block starts on a new line, and succeeding
+%    lines in a block are indented by |\bibindent|.
+%    \begin{macrocode}
+\DeclareOption{openbib}{\@openbibtrue}
+%    \end{macrocode}
+%
+% \subsection{User flags}
+%
+%   There are some flags the user may change to control the
+%   behaviour of some commands:
+%
+%   \begin{macro}{\ifdescriptioncolon}
+%   This switch controls whether there is a colon in the
+%   description item or not.
+%    \begin{macrocode}
+\newif\ifdescriptioncolon \descriptioncolontrue
+%    \end{macrocode}
+%   \end{macro}
+%
+%   \begin{macro}{\ifdescriptionleft}
+%   This switch controls whether the description items
+%   are set left bound or right bound.
+%    \begin{macrocode}
+\newif\ifdescriptionleft  \descriptionleftfalse
+%    \end{macrocode}
+%   \end{macro}
+%
+%   \begin{macro}{\ifmaxipagerule}
+%   This switch controls whether there is a rule at the
+%   beginning and end of a maxipage. This flag may later be used
+%   to select rules at other places (like part or chapter) as well.
+%
+%    \begin{macrocode}
+\newif\ifmaxipagerule     \maxipageruletrue
+%    \end{macrocode}
+%   \end{macro}
+%
+%
+% \section{Executing Options}
+%
+%    Here we execute the default options to initialize certain
+%    variables.
+%    \begin{macrocode}
+%<*refart>
+\ExecuteOptions{letterpaper,10pt,oneside,onecolumn,final}
+%</refart>
+%<*refrep>
+\ExecuteOptions{letterpaper,10pt,oneside,onecolumn,final,openany}
+%</refrep>
+%    \end{macrocode}
+%
+%    The |\ProcessOptions| command causes the execution of the code
+%    for every option \Lopt{FOO}
+%    which is declared and for which the user typed
+%    the \Lopt{FOO} option in his
+%    |\documentclass| command.  For every option \Lopt{BAR} he typed,
+%    which is not declared, the option is assumed to be a global option.
+%    All options will be passed as document options to any
+%    |\usepackage| command in the document preamble.
+%    \begin{macrocode}
+\ProcessOptions
+%    \end{macrocode}
+%    Now that all the options have been executed we can load the
+%    chosen class option file that contains all size dependent code.
+%    We are using the \file{sizexx.clo} Files from classes.dtx now
+%    and do the page layout caculation inside the class-file.
+%    \begin{macrocode}
+%<*refart|refrep>
+\input{size1\@ptsize.clo}
+%</refart|refrep>
+%    \end{macrocode}
+%
+%  \section{Loading Packages}
+%
+%  The standard class files do not load additional packages.
+%
+%
+% \section{Document Layout}
+% \label{sec:maincode}
+%
+%  In this section we are finally dealing with the nasty typographical
+%  details.
+%
+% \subsection{Fonts}
+%
+%    \LaTeX\ offers the user commands to change the size of the font,
+%    relative to the `main' size. Each relative size changing command
+%    |\size| executes the command
+%    |\@setfontsize||\size|\meta{font-size}\meta{baselineskip} where:
+%
+%    \begin{description}
+%    \item[\meta{font-size}] The absolute size of the font to use from
+%        now on.
+%
+%    \item[\meta{baselineskip}] The normal value of |\baselineskip|
+%        for the size of the font selected. (The actual value will be
+%        |\baselinestretch| * \meta{baselineskip}.)
+%    \end{description}
+%
+%    A number of commands, defined in the \LaTeX{} kernel, shorten the
+%    following  definitions and are used throughout. They are:
+% \begin{center}
+% \begin{tabular}{ll@{\qquad}ll@{\qquad}ll}
+%  \verb=\@vpt= & 5 & \verb=\@vipt= & 6 & \verb=\@viipt= & 7 \\
+%  \verb=\@viiipt= & 8 & \verb=\@ixpt= & 9 & \verb=\@xpt= & 10 \\
+%  \verb=\@xipt= & 10.95 & \verb=\@xiipt= & 12 & \verb=\@xivpt= & 14.4\\
+%  ...
+%  \end{tabular}
+%  \end{center}
+%
+% \begin{macro}{\normalsize}
+% \begin{macro}{\@normalsize}
+%
+%    The user level command for the main size is |\normalsize|.
+%    Internally \LaTeX{} uses |\@normalsize| when it refers to the
+%    main size. |\@normalsize| will be defined to work like
+%    |\normalsize| if the latter is redefined from its default
+%    definition (that just issues an error message). Otherwise
+%    |\@normalsize| simply selects a 10pt/12pt size.
+%
+%    See \file{classes.dtx} for documentaion on \file{sizexx.clo}
+%
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Paragraphing}
+%
+% \begin{macro}{\lineskip}
+% \begin{macro}{\normallineskip}
+%    These parameters control \TeX's behaviour when two lines tend to
+%    come too close together.
+%    \begin{macrocode}
+%<*refart|refrep>
+\setlength\lineskip{1\p@}
+\setlength\normallineskip{1\p@}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\baselinestretch}
+%    This is used as a multiplier for |\baselineskip|. The default is
+%    to {\em not\/} stretch the baselines.
+%    \begin{macrocode}
+\renewcommand\baselinestretch{}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\parskip}
+% \begin{macro}{\parindent}
+%    |\parskip| gives extra vertical space between paragraphs and
+%    |\parindent| is the width of the paragraph indentation. The value
+%    of |\parindent| is set to 0.
+%    \begin{macrocode}
+\setlength\parskip{0.5\baselineskip \@plus 2\p@}
+\setlength\parindent {\z@}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@lowpenalty}
+% \begin{macro}{\@medpenalty}
+% \begin{macro}{\@highpenalty}%
+%    The commands |\nopagebreak| and |\nolinebreak| put in penalties
+%    to discourage these breaks at the point they are put in.
+%    They use |\@lowpenalty|, |\@medpenalty| or |\@highpenalty|,
+%    dependent on their argument.
+%    \begin{macrocode}
+\@lowpenalty   51
+\@medpenalty  151
+\@highpenalty 301
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\clubpenalty}
+% \begin{macro}{\widowpenalty}
+%    These penalties are use to discourrage club and widow lines.
+%    Because we use their default values we only show them here,
+%    commented out.
+%    \begin{macrocode}
+% \clubpenalty  150
+% \widowpenalty 150
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\displaywidowpenalty}
+% \begin{macro}{\predisplaypenalty}
+% \begin{macro}{\postdisplaypenalty}
+%    Discourrage (but not so much) widows in front of a math display
+%    and forbid breaking directly in front of a display. Allow break
+%    after a display without a penalty. Again the default values are
+%    used, therefore we only show them here.
+%    \begin{macrocode}
+% \displaywidowpenalty 50
+% \predisplaypenalty   10000
+% \postdisplaypenalty  0
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\interlinepenalty}
+%    Allow the breaking of a page in the middle of a paragraph.
+%    \begin{macrocode}
+% \interlinepenalty 0
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\brokenpenalty}
+%    We allow the breaking of a page after a hyphenated line.
+%    \begin{macrocode}
+% \brokenpenalty 100
+%</refart|refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsection{Page Layout}
+%
+%    All margin dimensions are measured from a point one inch from the
+%    top and lefthand side of the page.
+%
+% \subsubsection{Vertical spacing}
+%
+% \begin{macro}{\headheight}
+% \begin{macro}{\headsep}
+% \begin{macro}{\topskip}
+%    The |\headheight| is the height of the box that will contain the
+%    running head. The |\headsep| is the distance between the bottom
+%    of the running head and the top of the text. |\topskip| is the
+%    |\baselineskip| for the first line on a page. Only the definition
+%    of |\headsep| differs from \file{sizexx} and has to be changed.
+%    \begin{macrocode}
+%<*refart|refrep>
+\setlength\headsep   {\baselineskip}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+%
+% \subsubsection{The dimension of text}
+%
+% \begin{macro}{\fullwidth}
+% \begin{macro}{\textwidth}
+% \begin{macro}{\leftmarginwidth}
+%    There is no need to supply a compatibility mode since the
+%    independend \texttt{refman.sty} was never released to the
+%    public.
+%
+%    We will set the dimensions differently,
+%    taking into account the paper size for instance.
+%
+%    First, we calculate the maximum textwidth, which will fit on the
+%    selected paper and store it in |\@tempdima|.
+%    \begin{macrocode}
+\newdimen\leftmarginwidth
+\newdimen\fullwidth
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \begin{macro}{\emptyfoottopmargin}
+% \begin{macro}{\emptyheadtopmargin}
+%    \begin{macrocode}
+\newdimen\emptyfoottopmargin
+\newdimen\emptyheadtopmargin
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%  We define a macro to change the fraction of the part of
+%  |\fullwidth| that is occupied with text. There are no
+%  sanitychecks so make sure this is less or equal to 1.
+%
+%  \begin{macro}{\settextfraction}
+%    \begin{macrocode}
+\newcommand\settextfraction[1]%
+{
+  \setlength\@tempdima{\paperwidth}
+  \addtolength\@tempdima{-2in}
+%    \end{macrocode}
+% \end{macro}
+%
+%    Now we can set the |\textwidth|, depending on whether we will be
+%    setting one or two columns.
+%
+%    \begin{macrocode}
+  \if@twocolumn
+      \setlength\textwidth{\@tempdima}
+  \else
+      \setlength\fullwidth{\@tempdima}
+      \@settopoint\fullwidth
+      \setlength\textwidth{#1\fullwidth} % This may change
+  \fi
+%    \end{macrocode}
+%
+%    Here we modify the width of the text a little to be a whole
+%    number of points.
+%    \begin{macrocode}
+  \@settopoint\textwidth
+  \setlength\leftmarginwidth{\fullwidth}
+  \addtolength\leftmarginwidth{-\textwidth}
+%    \end{macrocode}
+%
+% \subsubsection{Horizontal margins}
+%
+% \begin{macro}{\oddsidemargin}
+% \begin{macro}{\evensidemargin}
+% \begin{macro}{\marginparwidth}
+%
+%    The values for |\oddsidemargin| and |\marginparwidth| will be set
+%    independing on the status of the |\if@twoside|. (We have the same
+%    layout on odd and even pages.)
+%
+%    For one-sided printing we center the text on the page, by
+%    calculating the difference between |textwidth| and
+%    |\paperwidth|$-$|2in|. Half of that difference is than used for
+%    the margin. The amount of space that can be used for marginal
+%    notes is |leftmarginwidth| $-$ |marginparsep|
+%    to which we add any `leftover' space.
+%    \begin{macrocode}
+  \setlength\@tempdima        {\paperwidth}
+  \addtolength\@tempdima      {-2in}
+  \addtolength\@tempdima      {-\fullwidth}
+  \setlength\oddsidemargin    {.5\@tempdima}
+  \addtolength\oddsidemargin  {\leftmarginwidth}
+  \@settopoint\oddsidemargin
+%    \end{macrocode}
+%
+%    Then |\evensidemargin| and |\marginparwidth| are set to 
+%    |\oddsidemargin|. |\marginparwidth| will be modified later.
+%    \begin{macrocode}
+  \setlength\evensidemargin  {\oddsidemargin}
+  \setlength\marginparwidth  {\oddsidemargin}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\marginparsep}
+% \begin{macro}{\marginparpush}
+%    The horizontal space between the main text and marginal notes is
+%    determined by |\marginparsep| (defined in \file{sizexx}),
+%    the minimum vertical separation
+%    between two marginal notes is controlled by |\marginparpush| which
+%    is set to 0 because we will have lots of margin notes. The width
+%    of the |marginpar| is reduced by |marginparsep| to produce flushleft
+%    pages.
+%    \begin{macrocode}
+  \addtolength\marginparwidth {-\marginparsep}
+  \setlength\marginparpush{0\p@}
+}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%  Now we call |\settextfraction| with the default value of 0.7
+%
+%    \begin{macrocode}
+\settextfraction	{0.7}
+%    \end{macrocode}
+
+
+% \begin{macro}{\textheight}
+%    Now that we have computed the width of the text, we have to take
+%    care of the height. The |\textheight| is the height of text
+%    (including footnotes and figures, excluding running head and
+%    foot).
+%
+%    Again we compute this, depending on the papersize and depending
+%    on the baselineskip that is used, in order to have a whole number
+%    of lines on the page.
+%    \begin{macrocode}
+\setlength\@tempdima{\paperheight}
+%    \end{macrocode}
+%
+%    We leave at least a 1 inch margin on the top and the bottom of
+%    the page.
+%    \begin{macrocode}
+\addtolength\@tempdima{-2in}
+%    \end{macrocode}
+%
+%    The running headers and footers extend partly into the top
+%    and bottom margins.
+%    \begin{macrocode}
+\addtolength\@tempdima{-.5in}
+%    \end{macrocode}
+%
+%    Then we divide the result by the current |\baselineskip| and
+%    store this in the count register |\@tempcnta|, which then
+%    contains the number of lines that fit on this page.
+%    \begin{macrocode}
+\divide\@tempdima\baselineskip
+\@tempcnta=\@tempdima
+%    \end{macrocode}
+%
+%    From this we can calculate the height of the text.
+%    \begin{macrocode}
+\setlength\textheight{\@tempcnta\baselineskip}
+%    \end{macrocode}
+%
+%    The first line on the page has a height of |\topskip|.
+%    \begin{macrocode}
+\advance\textheight by \topskip
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Vertical margins}
+%
+% \begin{macro}{\topmargin}
+%    The |\topmargin| is the distance between the top of `the
+%    printable area' --which is 1 inch below the top of the paper--
+%    and the top of the box which contains the running head.
+%
+%    It can now be computed from the values set above.
+%    \begin{macrocode}
+\setlength\topmargin{\paperheight}
+\addtolength\topmargin{-2in}
+\addtolength\topmargin{-\headheight}
+\addtolength\topmargin{-\headsep}
+\addtolength\topmargin{-\textheight}
+\addtolength\topmargin{-\footskip}     % this might be wrong!
+%    \end{macrocode}
+%    By changing the factor in the next line the complete page
+%    can be shifted vertically.
+%
+%    The contents of the page is shifted up or down by one
+%    |\baselineskip| depending on the pagestyle.
+%    Do not combine headings and footings
+%    in one document!
+%    \begin{macrocode}
+\addtolength\topmargin{-.5\topmargin}
+\@settopoint\topmargin
+\setlength\emptyfoottopmargin{\topmargin}
+\addtolength\emptyfoottopmargin{\baselineskip}
+\setlength\emptyheadtopmargin{\topmargin}
+\addtolength\emptyheadtopmargin{-\baselineskip}
+%</refart|refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Float placement parameters}
+%
+% All float parameters are given default values in the \LaTeXe{}
+% kernel. For this reason counters only need to be set with
+% |\setcounter| and other parameters are set using |\renewcommand|.
+%
+% \paragraph{Limits for the placement of floating objects}
+%
+% \begin{macro}{\c@topnumber}
+%    The \Lcount{topnumber} counter holds the maximum number of
+%    floats that can appear on the top of a text page.
+%    \begin{macrocode}
+%<*refart|refrep>
+\setcounter{topnumber}{2}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\topfraction}
+%    This indicates the maximum part of a text page that can be
+%    occupied by floats at the top.
+%    \begin{macrocode}
+\renewcommand\topfraction{.7}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\c@bottomnumber}
+%    The \Lcount{bottomnumber} counter holds the maximum number of
+%    floats that can appear on the bottom of a text page.
+%    \begin{macrocode}
+\setcounter{bottomnumber}{1}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\bottomfraction}
+%    This indicates the maximum part of a text page that can be
+%    occupied by floats at the bottom.
+%    \begin{macrocode}
+\renewcommand\bottomfraction{.3}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\c@totalnumber}
+%    This indicates the maximum number of floats that can appear on
+%    any text page.
+%    \begin{macrocode}
+\setcounter{totalnumber}{3}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\textfraction}
+%    This indicates the minimum part of a text page that has to be
+%    occupied by text.
+%    \begin{macrocode}
+\renewcommand\textfraction{.2}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\floatpagefraction}
+%    This indicates the minimum part of a page that has to be
+%    occupied by floating objects before a `float page' is produced.
+%    \begin{macrocode}
+\renewcommand\floatpagefraction{.5}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\c@dbltopnumber}
+%    The \Lcount{dbltopnumber} counter holds the maximum number of
+%    two column floats that can appear on the top of a two column text
+%    page.
+%    \begin{macrocode}
+\setcounter{dbltopnumber}{2}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dbltopfraction}
+%    This indicates the maximum part of a two column text page that
+%    can be occupied by two column floats at the top.
+%    \begin{macrocode}
+\renewcommand\dbltopfraction{.7}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dblfloatpagefraction}
+%    This indicates the minimum part of a page that has to be
+%    occupied by two column wide floating objects before a `float
+%    page' is produced.
+%    \begin{macrocode}
+\renewcommand\dblfloatpagefraction{.5}
+%</refart|refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Page Styles}
+%
+%    The page style \pstyle{foo} is defined by defining the command
+%    |\ps@foo|.   This command should make only local definitions.
+%    There should be no stray spaces in the definition, since they
+%    could lead to mysterious extra spaces in the output (well, that's
+%    something that should be always avoided).
+%
+% \begin{macro}{\@evenhead}
+% \begin{macro}{\@oddhead}
+% \begin{macro}{\@evenfoot}
+% \begin{macro}{\@oddfoot}
+%    The |\ps@...| command defines the macros |\@oddhead|,
+%    |\@oddfoot|, |\@evenhead|, and |\@evenfoot| to define the running
+%    heads and feet---e.g., |\@oddhead| is the macro to produce the
+%    contents of the heading box for odd-numbered pages.  It is called
+%    inside an |\hbox| of width |\textwidth|.
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsubsection{Marking conventions}
+%
+%    To make headings determined by the sectioning commands, the page
+%    style defines the commands |\chaptermark|, |\sectionmark|,
+%    \ldots, where |\chaptermark{|\meta{TEXT}|}| is called by
+%    |\chapter| to set a mark, and so on.
+%
+%    The |\...mark| commands and the |\...head| macros are defined
+%    with the help of the following macros.  (All the |\...mark|
+%    commands should be initialized to no-ops.)
+%
+%    \LaTeX{} extends \TeX's |\mark| facility by producing two kinds
+%    of marks, a `left' and a `right' mark, using the following
+%    commands:
+%    \begin{flushleft}
+%     |\markboth{|\meta{LEFT}|}{|\meta{RIGHT}|}|: Adds both marks.
+%
+%     |\markright{|\meta{RIGHT}|}|: Adds a `right' mark.
+%
+%     |\leftmark|: Used in the |\@oddhead|, |\@oddfoot|, |\@evenhead|
+%                  or |\@evenfoot| macros, it gets the current `left'
+%                  mark.  |\leftmark| works like \TeX's |\botmark|
+%                  command.
+%
+%     |\rightmark|: Used in the |\@oddhead|, |\@oddfoot|, |\@evenhead|
+%                   or  |\@evenfoot| macros, it gets the current
+%                   `right' mark. |\rightmark| works like \TeX's
+%                   |\firstmark| command.
+%    \end{flushleft}
+%
+%    The marking commands work reasonably well for right marks
+%    `numbered within' left marks--e.g., the left mark is changed by a
+%    |\chapter| command and the right mark is changed by a |\section|
+%    command.  However, it does produce somewhat anomalous results if
+%    two |\markboth|'s occur on the same page.
+%
+%
+%    Commands like |\tableofcontents| that should set the marks in some
+%    page styles use a |\@mkboth| command, which is |\let| by the
+%    pagestyle command (|\ps@...|)  to |\markboth| for setting the
+%    heading or to |\@gobbletwo| to do nothing.
+%
+%
+%    \begin{macrocode}
+% %%%\mark{{}{}}   % Initializes TeX's marks   <--- can vanish
+%    \end{macrocode}
+%
+% \subsubsection{Defining the page styles}
+% \label{sec:pagestyle}
+%
+%    The pagestyles \pstyle{empty} is defined in
+%    \file{latex.dtx}.
+%
+% \begin{macro}{\ps@plain}
+%    We have to redefine \pstyle{plain} to support \Lopt{twoside}
+%    layout.
+%
+%  \begin{macrocode}
+%<*refart|refrep>
+\if@twoside
+  \def\ps@plain{%
+    \let\@mkboth\@gobbletwo
+    \let\@oddhead\@empty
+    \let\@evenhead\@empty
+    \def\@oddfoot{\reset@font\rmfamily\hfil\thepage}
+    \def\@evenfoot{\reset@font\rmfamily\thepage\hfil}}
+\else
+  \def\ps@plain{%
+    \let\@mkboth\@gobbletwo
+    \let\@oddhead\@empty
+    \def\@oddfoot{\reset@font\rmfamily\hfil\thepage\hfil}
+    \let\@evenhead\@empty
+    \let\@evenfoot\@oddfoot}
+\fi
+%  \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ps@headings}
+%    The definition of the page style \pstyle{headings} has to be
+%    different for two sided printing than it is for one sided
+%    printing.
+%
+%    \begin{macrocode}
+\if@twoside
+    \def\ps@headings{%
+%    \end{macrocode}
+%    The running feet are empty in this page style, the running head
+%    contains the page number and one of the marks.
+%    \begin{macrocode}
+      \let\@oddfoot\@empty\let\@evenfoot\@empty
+      \def\@evenhead{\hss\vbox to \z@{\vss\hsize=\fullwidth
+      \hbox to \fullwidth{\thepage\hfil\slshape\leftmark}
+      \vskip 3\p@ \hrule}}%
+      \def\@oddhead{\hss\vbox to \z@{\vss\hsize=\fullwidth
+      \hbox to \fullwidth{{\slshape\rightmark}\hfil\thepage}
+      \vskip 3\p@ \hrule}}%
+%    \end{macrocode}
+%
+%    When using this page style, the contents of the running head is
+%    determined by the chapter and section titles. So we |\let|
+%    |\@mkboth| to |\markboth|.
+%    \begin{macrocode}
+      \let\@mkboth\markboth
+%    \end{macrocode}
+%
+%   We shift the page one |\baselineskip| to the bottom to
+%   compensate for the headings.
+%
+%    \begin{macrocode}
+      \topmargin\emptyfoottopmargin
+%</refart|refrep>
+%    \end{macrocode}
+%
+%    For the refart document class we define |\sectionmark| to clear
+%    the right mark and put the number of the section (when it is
+%    numbered) and its title in the left mark. The rightmark is set by
+%    |\subsectionmark| to contain the subsection titles.
+%
+%    Note the use of |##1| for the parameter of the |\sectionmark|
+%    command, which will be defined when |\ps@headings| is executed.
+%
+%    \begin{macrocode}
+%<*refart>
+      \def\sectionmark##1{%
+        \markboth {\ifnum \c@secnumdepth >\z@
+            \thesection\hskip 1em\relax\fi
+            ##1}{}}%
+      \def\subsectionmark##1{%
+        \markright {\ifnum \c@secnumdepth >\@ne
+            \thesubsection\hskip 1em\relax \fi
+            ##1}}}
+%</refart>
+%    \end{macrocode}
+%
+%    In the refrep document class we use the |\chaptermark|
+%    and |\sectionmark| macros to fill the running heads.
+%
+%    Note the use of |##1| for the parameter of the |\chaptermark|
+%    command, which will be defined when |\ps@headings| is executed.
+%
+%    \begin{macrocode}
+%<*refrep>
+      \def\chaptermark##1{%
+        \markboth {\ifnum \c@secnumdepth >\m@ne
+            \@chapapp\ \thechapter \ \fi
+            ##1}{}}%
+      \def\sectionmark##1{%
+        \markright {\ifnum \c@secnumdepth >\z@
+            \thesection \ \fi
+            ##1}}}
+%</refrep>
+%    \end{macrocode}
+%
+%    The definition of |\ps@headings| for one sided printing can be
+%    much simpler, because we treat even and odd pages the same.
+%    Therefore we don't need to define |\@even...|.
+%    \begin{macrocode}
+%<*refart|refrep>
+\else
+    \def\ps@headings{%
+      \let\@oddfoot\@empty
+      \def\@oddhead{\hss\vbox to \z@{\vss\hsize=\fullwidth
+      \hbox to \fullwidth{{\slshape\rightmark}\hfil\thepage}
+      \vskip 3\p@ \hrule}}%
+      \let\@mkboth\markboth
+%</refart|refrep>
+%    \end{macrocode}
+%
+%   We shift the page one |\baselineskip| to the bottom to
+%   compensate for the headings.
+%
+%    \begin{macrocode}
+      \topmargin\emptyfoottopmargin
+%    \end{macrocode}
+%
+%    We use |\markright| now instead of |\markboth| as we did for two
+%    sided printing.
+%    \begin{macrocode}
+%<*refart>
+      \def\sectionmark##1{%
+        \markright {\ifnum \c@secnumdepth >\m@ne
+            \thesection\hskip 1em\relax \fi
+            ##1}}}
+%</refart>
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+%<*refrep>
+      \def\chaptermark##1{%
+        \markright {\ifnum \c@secnumdepth >\m@ne
+            \@chapapp\ \thechapter \ \fi
+            ##1}}}
+%</refrep>
+%<*refart|refrep>
+\fi
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\ps@footings}
+%    The definition of the page style \pstyle{footings} has to be
+%    different for two sided printing than it is for one sided
+%    printing.
+%
+%    \begin{macrocode}
+\if@twoside
+    \def\ps@footings{%
+%    \end{macrocode}
+%    The running head is empty in this page style, the running foot
+%    contains the page number and one of the marks.
+%    \begin{macrocode}
+      \let\@oddhead\@empty\let\@evenhead\@empty
+      \def\@evenfoot{\hss\vbox to \z@{\vss\hsize=\fullwidth
+      \hrule \vskip 3\p@
+      \hbox to \fullwidth{\thepage\hfil\slshape\leftmark}}}%
+      \def\@oddfoot{\hss\vbox to \z@{\vss\hsize=\fullwidth
+      \hrule \vskip 3\p@
+      \hbox to \fullwidth{{\slshape\rightmark}\hfil\thepage}}}%
+%    \end{macrocode}
+%
+%    When using this page style, the contents of the running foot is
+%    determined by the chapter and section titles. So we |\let|
+%    |\@mkboth| to |\markboth|.
+%    \begin{macrocode}
+      \let\@mkboth\markboth
+%    \end{macrocode}
+%
+%   We shift the page one |\baselineskip| to the top to
+%   compensate for the footings.
+%
+%    \begin{macrocode}
+      \topmargin\emptyheadtopmargin
+%</refart|refrep>
+%    \end{macrocode}
+%
+%    For the refart document class we define |\sectionmark| to clear
+%    the right mark and put the number of the section (when it is
+%    numbered) and its title in the left mark. The rightmark is set by
+%    |\subsectionmark| to contain the subsection titles.
+%
+%    Note the use of |##1| for the parameter of the |\sectionmark|
+%    command, which will be defined when |\ps@headings| is executed.
+%
+%    \begin{macrocode}
+%<*refart>
+      \def\sectionmark##1{%
+        \markboth {\ifnum \c@secnumdepth >\z@
+            \thesection\hskip 1em\relax\fi
+            ##1}{}}%
+      \def\subsectionmark##1{%
+        \markright {\ifnum \c@secnumdepth >\@ne
+            \thesubsection\hskip 1em\relax \fi
+            ##1}}}
+%</refart>
+%    \end{macrocode}
+%
+%    In the refrep document class we use the |\chaptermark|
+%    and |\sectionmark| macros to fill the running heads.
+%
+%    Note the use of |##1| for the parameter of the |\chaptermark|
+%    command, which will be defined when |\ps@footings| is executed.
+%
+%    \begin{macrocode}
+%<*refrep>
+      \def\chaptermark##1{%
+        \markboth {\ifnum \c@secnumdepth >\m@ne
+            \@chapapp\ \thechapter \ \fi
+            ##1}{}}%
+      \def\sectionmark##1{%
+        \markright {\ifnum \c@secnumdepth >\z@
+            \thesection \ \fi
+            ##1}}}
+%</refrep>
+%    \end{macrocode}
+%
+%    The definition of |\ps@footings| for one sided printing can be
+%    much simpler, because we treat even and odd pages the same.
+%    Therefore we don't need to define |\@even...|.
+%    \begin{macrocode}
+%<*refart|refrep>
+\else
+    \def\ps@footings{%
+      \let\@oddhead\@empty
+      \def\@oddfoot{\hss\vbox to \z@{\vss\hsize=\fullwidth
+      \hrule \vskip 3\p@
+      \hbox to \fullwidth{{\slshape\rightmark}\hfil\thepage}}}%
+      \let\@mkboth\markboth
+%    \end{macrocode}
+%
+%   We shift the page one |\baselineskip| to the top to
+%   compensate for the footings.
+%
+%    \begin{macrocode}
+      \topmargin\emptyheadtopmargin
+%</refart|refrep>
+%    \end{macrocode}
+%
+%    We use |\markright| now instead of |\markboth| as we did for two
+%    sided printing.
+%    \begin{macrocode}
+%<*refart>
+      \def\sectionmark##1{%
+        \markright {\ifnum \c@secnumdepth >\m@ne
+            \thesection\hskip 1em\relax \fi
+            ##1}}}
+%</refart>
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+%<*refrep>
+      \def\chaptermark##1{%
+        \markright {\ifnum \c@secnumdepth >\m@ne
+            \@chapapp\ \thechapter \ \fi
+            ##1}}}
+%</refrep>
+%<*refart|refrep>
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\ps@myheadings}
+%    The definition of the page style \pstyle{myheadings} is fairly
+%    simple because the user determines the contents of the running
+%    head himself by using the |\markboth| and |\markright| commands.
+%
+%    \begin{macrocode}
+\def\ps@myheadings{%
+    \let\@oddfoot\@empty\let\@evenfoot\@empty
+    \def\@evenhead{\hss\vbox to \z@{\vss\hsize=\fullwidth
+    \hbox to \fullwidth{\thepage\hfil\slshape\leftmark}
+    \vskip 3\p@ \hrule}}%
+    \def\@oddhead{\hss\vbox to \z@{\vss\hsize=\fullwidth
+    \hbox to \fullwidth{{\slshape\rightmark}\hfil\thepage}
+    \vskip 3\p@ \hrule}}%
+%    \end{macrocode}
+%
+%    We have to make sure that the marking commands that are used by
+%    the chapter and section headings are disabled. We do this
+%    |\let|ting them to a macro that gobbles its argument(s).
+%    \begin{macrocode}
+    \let\@mkboth\@gobbletwo
+%<+refrep>    \let\chaptermark\@gobble
+    \let\sectionmark\@gobble
+%<+refart>    \let\subsectionmark\@gobble
+%    \end{macrocode}
+%
+%   We shift the page one |\baselineskip| to the bottom to
+%   compensate for the headings.
+%
+%    \begin{macrocode}
+    \topmargin\emptyfoottopmargin
+    }
+%    \end{macrocode}
+%
+% \end{macro}
+%
+% \begin{macro}{\ps@myfootings}
+%    The definition of the page style \pstyle{myfootings} is fairly
+%    simple because the user determines the contents of the running
+%    head himself by using the |\markboth| and |\markright| commands.
+%
+%    \begin{macrocode}
+\def\ps@myfootings{%
+      \let\@oddhead\@empty\let\@evenhead\@empty
+      \def\@evenfoot{\hss\vbox to \z@{\vss\hsize=\fullwidth
+      \hrule \vskip 3\p@
+      \hbox to \fullwidth{\thepage\hfil\slshape\leftmark}}}%
+      \def\@oddfoot{\hss\vbox to \z@{\vss\hsize=\fullwidth
+      \hrule \vskip 3\p@
+      \hbox to \fullwidth{{\slshape\rightmark}\hfil\thepage}}}%
+%    \end{macrocode}
+%
+%    We have to make sure that the marking commands that are used by
+%    the chapter and section footings are disabled. We do this
+%    |\let|ting them to a macro that gobbles its argument(s).
+%    \begin{macrocode}
+    \let\@mkboth\@gobbletwo
+%<+refrep>    \let\chaptermark\@gobble
+    \let\sectionmark\@gobble
+%<+refart>    \let\subsectionmark\@gobble
+%    \end{macrocode}
+%
+%   We shift the page one |\baselineskip| to the top to
+%   compensate for the footings.
+%
+%    \begin{macrocode}
+    \topmargin\emptyheadtopmargin
+    }
+%    \end{macrocode}
+%
+% \end{macro}
+%
+% \section{Document Markup}
+%
+% \subsection{The title}
+%
+% \begin{macro}{\title}
+% \begin{macro}{\author}
+% \begin{macro}{\date}
+%    These three macros are provided by \file{latex.dtx} to provide
+%    information about the title, author(s) and date of the document.
+%    The information is stored away in internal control sequences.
+%    It is the task of the |\maketitle| command to use the
+%    information provided. The definitions of these macros are shown
+%    here for information.
+%    \begin{macrocode}
+% \newcommand\title[1]{\gdef\@title{#1}}
+% \newcommand\author[1]{\gdef\@author{#1}}
+% \newcommand\date[1]{\gdef\@date{#1}}
+%    \end{macrocode}
+%    The |\date| macro gets today's date by default.
+%    \begin{macrocode}
+% \gdef\@date{\today}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\maketitle}
+%    The definition of |\maketitle| depends on whether a seperate
+%    title page is made. This is the default for the refman
+%    document class, but for the refart class it is optional.
+%
+%    When we are making a title page, we locally redefine
+%    |\footnotesize| and |footnoterule| to change the appearance of
+%    the footnotes that are produced by the |\thanks| command.
+%    \begin{macrocode}
+\if@titlepage
+  \newcommand\maketitle{\begin{titlepage}%
+  \let\footnotesize\small
+  \let\footnoterule\relax
+%    \end{macrocode}
+%    We center the entire title vertically; the centering is set off a
+%    little by adding a |\vskip|. In compatibility mode the pagenumber
+%    is set to 0 to keep the behaviour of \LaTeX\ 2.09 style files
+%    \begin{macrocode}
+  \null\vfil
+  \vskip 60\p@
+%    \end{macrocode}
+%    Then we set the title, in a |\LARGE| font; leave a little space
+%    and set the author(s) in a |\large| font. We do this inside a
+%    tabular environment to get them in a single column.
+%    Before the date we leave a little whitespace again.
+%    \begin{macrocode}
+  \begin{center}%
+    {\LARGE \@title \par}%
+    \vskip 3em%
+    {\large
+     \lineskip .75em%
+      \begin{tabular}[t]{c}%
+        \@author
+      \end{tabular}\par}%
+      \vskip 1.5em%
+    {\large \@date \par}%       % Set date in \large size.
+  \end{center}\par
+%    \end{macrocode}
+%    Then we call |\@thanks| to print the information that goes into
+%    the footnote and finish the page.
+%    \begin{macrocode}
+  \@thanks
+  \vfil\null
+  \end{titlepage}%
+%    \end{macrocode}
+%    We reset the \Lcount{footnote} counter, disable |\thanks| and
+%    |\maketitle| and save some storage space by emptying the internal
+%    information macros.
+%    \begin{macrocode}
+  \setcounter{footnote}{0}%
+  \let\thanks\relax\let\maketitle\relax
+  \gdef\@thanks{}\gdef\@author{}\gdef\@title{}}
+%    \end{macrocode}
+%    When the title is not on a page of its own, the layout of the
+%    title is a little different. We use symbols to mark the footnotes
+%    and we have to deal with two column documents.
+%
+%    Therefore we first start a new group to keep changes local. Then
+%    we redefine |\thefootnote| to use |\fnsymbol|; and change
+%    |\@makefnmark| so that footnotemarks have zero width (to make the
+%    centering of the author names look better).
+%    \begin{macrocode}
+\else
+  \newcommand\maketitle{\par
+    \begingroup
+      \renewcommand\thefootnote{\fnsymbol{footnote}}%
+      \def\@makefnmark{\hbox to\z@{$\m@th^{\@thefnmark}$\hss}}%
+      \long\def\@makefntext##1{\parindent 1em\noindent
+            \hbox to1.8em{\hss$\m@th^{\@thefnmark}$}##1}%
+%    \end{macrocode}
+%    If this is a twocolumn document we start a new page in twocolumn
+%    mode, with the title set to the full width of the text. The
+%    actual printing of the title information is left to
+%    |\@maketitle|.
+%    \begin{macrocode}
+      \if@twocolumn
+        \ifnum \col@number=\@ne
+          \@maketitle
+        \else
+          \twocolumn[\@maketitle]%
+        \fi
+      \else
+%    \end{macrocode}
+%    When this is not a twocolumn document we just start a new page,
+%    prevent floating objects from appearing on the top of this page
+%    and print the title information.
+%    \begin{macrocode}
+        \newpage
+        \global\@topnum\z@   % Prevents figures from going at top of page.
+        \@maketitle
+      \fi
+%    \end{macrocode}
+%    This page gets a \pstyle{plain} layout. We call |\@thanks| to
+%    produce the footnotes.
+%    \begin{macrocode}
+      \thispagestyle{plain}\@thanks
+%    \end{macrocode}
+%    Now we can close the group, reset the \Lcount{footnote} counter,
+%    disable |\thanks|, |\maketitle| and |\@maketitle| and save some
+%    storage space by emptying the internal information macros.
+%    \begin{macrocode}
+    \endgroup
+    \setcounter{footnote}{0}%
+    \let\thanks\relax
+    \let\maketitle\relax\let\@maketitle\relax
+    \gdef\@thanks{}\gdef\@author{}\gdef\@title{}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@maketitle}
+%    This macro takes care of formatting the title information when we
+%    have no seperate title page.
+%
+%    We always start a new page and put the title flushleft
+%    using a |\Large| bold font with
+%    thick rules above and below. Then we put the autor information
+%    flushright in slanted type. This title will allways show the
+%    date unless it is set to nothing, using the |\date{}| command.
+%    \begin{macrocode}
+  \def\@maketitle{%
+    \newpage
+    \null
+    %\vskip 2em%
+    \longthickrule\vskip1.5em%
+    {\secshape \parskip\z@ \parindent\z@
+    \Large\bfseries \@title \par}%
+    \vskip1.5em\longthickrule\vskip1.5em%
+    {\normalsize
+      \lineskip .5em%
+      \begin{flushright}%
+        {\slshape\@author\par}
+        \vskip 1em%
+        {\@date}%
+      \end{flushright}\par}%
+    \vskip 1.5em}
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Chapters and Sections}
+%
+% \subsubsection{Building blocks}
+%    The definitions in this part of the class file make use of two
+%    macros, |\@startsection| and |\secdef|, which are defined by
+%    \file{latex.dtx}. They are not described here, see the
+%    \file{classes.dtx} for more information.
+%
+% \subsubsection{Mark commands}
+%
+% \begin{macro}{\chaptermark}
+% \begin{macro}{\sectionmark}
+% \begin{macro}{\subsectionmark}
+% \begin{macro}{\subsubsectionmark}
+% \begin{macro}{\paragraphmark}
+% \begin{macro}{\subparagraphmark}
+%    Default initializations of |\...mark| commands.  These commands
+%    are used in the definition of the page styles (see
+%    section~\ref{sec:pagestyle}) Most of them are already defined by
+%    \file{latex.dtx}, so they are only shown here.
+%
+%    \begin{macrocode}
+%<+refrep>\newcommand\chaptermark[1]{}
+% \newcommand\sectionmark[1]{}
+% \newcommand\subsectionmark[1]{}
+% \newcommand\subsubsectionmark[1]{}
+% \newcommand\paragraphmark[1]{}
+% \newcommand\subparagraphmark[1]{}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsubsection{Define Counters}
+%
+% \begin{macro}{\c@secnumdepth}
+%    The value of the counter \Lcount{secnumdepth} gives the depth of
+%    the highest-level sectioning command that is to produce section
+%    numbers.
+%    \begin{macrocode}
+%<+refart>\setcounter{secnumdepth}{3}
+%<+refrep>\setcounter{secnumdepth}{2}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\c@part}
+% \begin{macro}{\c@chapter}
+% \begin{macro}{\c@section}
+% \begin{macro}{\c@subsection}
+% \begin{macro}{\c@subsubsection}
+% \begin{macro}{\c@paragraph}
+% \begin{macro}{\c@subparagraph}
+%    These counters are used for the section numbers. The macro
+%    |\newcounter{|\meta{newctr}|}[|\meta{oldctr}|]| defines
+%    \meta{newctr} to be a counter, which is reset to zero when
+%    counter \meta{oldctr} is stepped. Counter \meta{oldctr} must
+%    already be defined.
+%
+%    \begin{macrocode}
+\newcounter {part}
+%<+refart>\newcounter {section}
+%<*refrep>
+\newcounter {chapter}
+\newcounter {section}[chapter]
+%</refrep>
+\newcounter {subsection}[section]
+\newcounter {subsubsection}[subsection]
+\newcounter {paragraph}[subsubsection]
+\newcounter {subparagraph}[paragraph]
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\thepart}
+% \begin{macro}{\thechapter}
+% \begin{macro}{\thesection}
+% \begin{macro}{\thesubsection}
+% \begin{macro}{\thesubsubsection}
+% \begin{macro}{\theparagraph}
+% \begin{macro}{\thesubparagraph}
+%    For any counter \Lcount{CTR}, |\theCTR| is a macro that defines
+%    the printed version of counter \Lcount{CTR}.  It is defined in
+%    terms of the following macros:
+%
+%    |\arabic{|\Lcount{COUNTER}|}| prints the value of
+%    \Lcount{COUNTER} as an arabic numeral.
+%
+%    |\roman{|\Lcount{COUNTER}|}| prints the value of
+%    \Lcount{COUNTER} as a lowercase roman numberal.
+%
+%    |\Roman{|\Lcount{COUNTER}|}| prints the value of
+%    \Lcount{COUNTER} as an uppercase roman numberal.
+%
+%    |\alph{|\Lcount{COUNTER}|}| prints the value of \Lcount{COUNTER}
+%    as a lowercase letter: $1 =$~a, $2 =$~ b, etc.
+%
+%    |\Alph{|\Lcount{COUNTER}|}| prints the value of \Lcount{COUNTER}
+%    as an uppercase letter: $1 =$~A, $2 =$~B, etc.
+%
+%    \begin{macrocode}
+\renewcommand\thepart          {\Roman{part}}
+%<+refart>\renewcommand\thesection       {\arabic{section}}
+%<*refrep>
+\renewcommand\thechapter       {\arabic{chapter}}
+\renewcommand\thesection       {\thechapter.\arabic{section}}
+%</refrep>
+\renewcommand\thesubsection    {\thesection.\arabic{subsection}}
+\renewcommand\thesubsubsection {\thesubsection .\arabic{subsubsection}}
+\renewcommand\theparagraph     {\thesubsubsection.\arabic{paragraph}}
+\renewcommand\thesubparagraph  {\theparagraph.\arabic{subparagraph}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@chapapp}
+%    |\@chapapp| is initially defined to be empty. The
+%    |\appendix| command redefines it to be `|\appendixname|'.
+%
+%    \begin{macrocode}
+%<+refrep>\newcommand\@chapapp{}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Parts}
+%
+% \begin{macro}{\part}
+%    The command to start a new part of our document.
+%
+%    In the refart class the definition of |\part| is rather simple;
+%    we start a new paragraph, add a little white space, suppress the
+%    indentation of the first paragraph and make use of |\@secdef|.
+%    \begin{macrocode}
+%<*refart>
+\newcommand\part{\par
+   \addvspace{4ex}%
+   \@afterindentfalse
+   \secdef\@part\@spart}
+%</refart>
+%    \end{macrocode}
+%
+%    For the refrep class things are a bit different.
+%
+%    We start a new (righthand) page and use the \pstyle{plain}.
+%    \begin{macrocode}
+%<*refrep>
+\newcommand\part{\cleardoublepage
+                 \thispagestyle{plain}%
+%    \end{macrocode}
+%    When we are making a two column document, this will be a one
+%    column page. We use |@tempswa| to remember to switch back to two
+%    columns.
+%    \begin{macrocode}
+                 \if@twocolumn
+                   \onecolumn
+                   \@tempswatrue
+                 \else
+                   \@tempswafalse
+                 \fi
+%    \end{macrocode}
+%    We need an empty box to prevent the fil glue from disappearing.
+%    \begin{macrocode}
+                 \hbox{}\vfil
+%    \end{macrocode}
+%    Here we use |\secdef| to indicate which commands to use to make
+%    the actual heading.
+%    \begin{macrocode}
+                 \secdef\@part\@spart}
+%</refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@part}
+%    This macro does the actual formatting of the title of the part.
+%    Again the macro is differently defined for the refart document
+%    class than for the document class refrep.
+
+%    When \Lcount{secnumdepth} is larger than $-1$ for the
+%    document class refart or $-2$ for the document class refrep,
+%    we have a numbered part, otherwise it is unnumbered.
+%    \begin{macrocode}
+%<*refart|refrep>
+\def\@part[#1]#2{%
+%<+refart>    \ifnum \c@secnumdepth >\m@ne
+%<+refrep>    \ifnum \c@secnumdepth >-2\relax
+      \refstepcounter{part}%
+      \addcontentsline{toc}{part}{\thepart\hspace{1em}#1}%
+    \else
+      \addcontentsline{toc}{part}{#1}%
+    \fi
+%    \end{macrocode}
+%    We  print the title flush left, we also
+%    prevent breaking between lines and reset the font.
+%    \begin{macrocode}
+     \longrule\medskip
+    {\parindent \z@ \raggedright
+     \interlinepenalty \@M
+     \reset@font
+%    \end{macrocode}
+%    When this is a numbered part we have to print the number and the
+%    title. The |\nobreak| should prevent a page break here.
+%    \begin{macrocode}
+     \Large
+%<+refart>     \ifnum \c@secnumdepth >\m@ne
+%<+refrep>     \ifnum \c@secnumdepth >-2 \relax
+     \thepart.\quad
+     \fi
+     #2\par \medskip
+     \longrule\bigskip%
+%    \end{macrocode}
+%    Then we empty the mark registers, leave some white space and call
+%    |\@afterheading| to  takes care of suppressing the indentation.
+%    \begin{macrocode}
+     \markboth{}{}\par}%
+    \nobreak
+    \vskip 3ex
+    \@afterheading}
+%</refart|refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@spart}
+%    This macro does the actual formatting of the title of the part
+%    when the star form of the user command was used. In this case we
+%    {\em never} print a number. Otherwise the formatting is the same.
+%    \begin{macrocode}
+%<*refart|refrep>
+\def\@spart#1{%
+    \longrule\medskip
+    {\parindent \z@ \raggedright
+     \interlinepenalty \@M
+     \reset@font
+     \Large #1\par}%
+    \medskip\longrule
+     \nobreak
+     \vskip 3ex
+     \@afterheading}
+%</refart|refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsubsection{Chapters}
+%
+% \begin{macro}{\chapter}
+%    A chapter should always start on a new page therefore we start by
+%    calling |\clearpage| and setting the pagestyle for this page to
+%    \pstyle{plain}.
+%    \begin{macrocode}
+%<*refrep>
+\newcommand\chapter{\if@openright\cleardoublepage\else\clearpage\fi
+                           \if@pageperchapter\setcounter{page}{1}\fi
+                    \thispagestyle{plain}%
+%    \end{macrocode}
+%    Then we prevent floats from appearing at the top of this page
+%    because it looks weird to see a floating object above a chapter
+%    title.
+%    \begin{macrocode}
+                    \global\@topnum\z@
+%    \end{macrocode}
+%    Then we suppress the indentation of the first paragraph by
+%    setting the switch |\@afterindent| to |false|. We use |\secdef|
+%    to specify the macros to use for actually setting the chapter
+%    title.
+%    \begin{macrocode}
+                    \@afterindentfalse
+                    \secdef\@chapter\@schapter}
+%    \end{macrocode}
+%    \end{macro}
+%
+% \begin{macro}{\@chapter}
+%    This macro is called when we have a numbered chapter. When
+%    \Lcount{secnumdepth} is larger than $-1$ we display the chapter
+%    number. We also inform the user that a new chapter is about to be
+%    typeset by writing a message to the terminal.
+%    \begin{macrocode}
+\def\@chapter[#1]#2{\ifnum \c@secnumdepth >\m@ne
+                      \refstepcounter{chapter}%
+                      \typeout{\@chapapp\space\thechapter.}%
+                      \addcontentsline{toc}{chapter}%
+                                   {\protect\numberline{\thechapter}#1}%
+                    \else
+                      \addcontentsline{toc}{chapter}{#1}
+                    \fi
+%    \end{macrocode}
+%    After having written an entry to the table of contents we store
+%    the (alternative) title of this chapter with |\chaptermark| and
+%    add some white space to the lists of figures and tables.
+%    \begin{macrocode}
+                    \chaptermark{#1}%
+                    \addtocontents{lof}{\protect\addvspace{10\p@}}%
+                    \addtocontents{lot}{\protect\addvspace{10\p@}}%
+%    \end{macrocode}
+%    Then we call upon |\@makechapterhead| to format the actual
+%    chapter title. We have to do this in a special way when we are in
+%    twocolumn mode in order to have the chapter title use the entire
+%    |\textwidth|. In one column mode we call |\@afterheading| which
+%    takes care of suppressing the indentation.
+%    \begin{macrocode}
+                    \if@twocolumn
+                      \@topnewpage[\@makechapterhead{#2}]%
+                    \else
+                      \@makechapterhead{#2}%
+                      \@afterheading
+                    \fi}
+%    \end{macrocode}
+%    \end{macro}
+%
+% \begin{macro}{\@makechapterhead}
+%    The macro above uses |\@makechapterhead|\meta{text} to format the
+%    heading of the chapter.
+%
+%    We begin by leaving some white space. The we open a group in
+%    which we have a paragraph indent of 0pt, and in which we have the
+%    text set ragged right. We also reset the font.
+%    \begin{macrocode}
+\def\@makechapterhead#1{%
+  \longthickrule\bigskip%
+  {\parindent \z@ \secshape \reset@font \Large\bfseries
+%    \end{macrocode}
+%    Then we check whether the number of the chapter has to be printed.
+%    If so we leave some whitespace between the chapternumber and its
+%    title.
+%    \begin{macrocode}
+  \ifnum \c@secnumdepth >\m@ne
+     \@chapapp{} \thechapter.\quad
+  \fi
+%    \end{macrocode}
+%    Now we set the title in a large bold font. We prevent a pagebreak
+%    at this point and leave some whitespace before the text begins.
+%    \begin{macrocode}
+  #1\par}
+  \bigskip\longthickrule\bigskip
+  }
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@schapter}
+%    This macro is called when we have an unnumbered chapter. It is
+%    much simpler than |\@chapter| because it only needs to typeset
+%    the chapter title.
+%    \begin{macrocode}
+\def\@schapter#1{\if@twocolumn
+                   \@topnewpage[\@makeschapterhead{#1}]%
+                 \else
+                   \@makeschapterhead{#1}%
+                   \@afterheading
+                 \fi}
+%    \end{macrocode}
+%   \end{macro}
+%
+% \begin{macro}{\@makeschapterhead}
+%    The macro above uses |\@makeschapterhead|\meta{text}to format
+%    the heading of the chapter. It is similar to |\@makechapterhead|
+%    except that it never has to print a chapter number.
+%
+%    \begin{macrocode}
+\def\@makeschapterhead#1{%
+    \longthickrule\bigskip%
+    {\parindent \z@ \secshape \reset@font
+    \Large \bfseries  #1\par}
+    \bigskip\longthickrule\bigskip
+    }
+%</refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \subsubsection{Lower level headings}
+% \begin{macro}{\secshape}
+%    \begin{macrocode}
+\newcommand\secshape{\leftskip=-\leftmarginwidth%
+                     \rightskip=\@flushglue%
+                     \hyphenpenalty=2000}
+%    \end{macrocode}
+%  \end{macro}
+%
+%    These commands all make use of |\@startsection|.
+% \begin{macro}{\section}
+%    This gives a normal heading with white space above and below the
+%    heading, the title set in |\large\bfseries|, and no indentation
+%    on the first paragraph.
+%    \begin{macrocode}
+\newcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-2ex \@plus -1ex \@minus -.2ex}%
+                                   {0.5ex \@plus .2ex}%
+                                   {\secshape\reset@font\large\bfseries}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\subsection}
+%    This gives a normal heading with white space above and below the
+%    heading, the title set in |\large\bfseries|, and no indentation
+%    on the first paragraph.
+%    \begin{macrocode}
+\newcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                     {-1.5ex\@plus -.5ex \@minus -.2ex}%
+                                     {0.5ex \@plus .2ex}%
+                                     {\secshape\reset@font\normalsize\bfseries}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\subsubsection}
+%    This gives a normal heading with white space above and below the
+%    heading, the title set in |\normalsize\bfseries|, and no
+%    indentation on the first paragraph.
+%    \begin{macrocode}
+\newcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                     {-1.5ex\@plus -.5ex \@minus -.2ex}%
+                                     {0.5ex \@plus .2ex}%
+                                     {\secshape\reset@font\normalsize\mdseries}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\paragraph}
+%    This gives a run-in heading with white space above and to the
+%    right of the heading, the title set in |\normalsize\bfseries|.
+%    \begin{macrocode}
+\newcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+                                    {2ex\@plus 1ex \@minus .2ex}%
+                                    {-1em}%
+                                    {\reset@font\normalsize\bfseries}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\subparagraph}
+%    This gives an indented run-in heading with white space above and
+%    to the right of the heading, the title set in
+%    |\normalsize\bfseries|.
+%    \begin{macrocode}
+\newcommand\subparagraph{\@startsection{subparagraph}{5}{\parindent}%
+                                       {2ex \@plus 1ex \@minus .2ex}%
+                                       {-1em}%
+                                       {\reset@font\normalsize\bfseries}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Lists}
+%
+% \subsubsection{General List Parameters}
+%
+% The following commands are used to set the default values for the list
+% environment's parameters. See the \LaTeX{} manual for an explanation
+% of the meanings of the parameters.  Defaults for the list
+% environment are set as follows.  First, |\rightmargin|,
+% |\listparindent| and |\itemindent| are set to 0pt.  Then, for a Kth
+% level list, the command |\@listK| is called, where `K' denotes `i',
+% '`i', ... , `vi'.  (I.e., |\@listiii| is called for a third-level
+% list.)  By convention, |\@listK| should set |\leftmargin| to
+% |\leftmarginK|.
+%
+% \begin{macro}{\leftmargin}
+% \begin{macro}{\leftmargini}
+% \begin{macro}{\leftmarginii}
+% \begin{macro}{\leftmarginiii}
+% \begin{macro}{\leftmarginiv}
+% \begin{macro}{\leftmarginv}
+% \begin{macro}{\leftmarginvi}
+% For efficiency, level-one list's values are defined at top level, and
+% |\@listi| is defined to set only |\leftmargin|.
+%
+% When we are in two column mode some of the margins are set somewhat
+% smaller.
+%    \begin{macrocode}
+\if@twocolumn
+  \setlength\leftmargini  {2em}
+\else
+  \setlength\leftmargini  {2.5em}
+\fi
+%    \end{macrocode}
+%    The following three are calculated so  that they are larger than
+%    the sum of |\labelsep| and the width of the default labels (which
+%    are `(m)', `vii.' and `M.').
+%    \begin{macrocode}
+\setlength\leftmarginii  {2.2em}
+\setlength\leftmarginiii {1.87em}
+\setlength\leftmarginiv  {1.7em}
+\if@twocolumn
+  \setlength\leftmarginv  {.5em}
+  \setlength\leftmarginvi {.5em}
+\else
+  \setlength\leftmarginv  {1em}
+  \setlength\leftmarginvi {1em}
+\fi
+%    \end{macrocode}
+%    Here we set the top level leftmargin.
+%    \begin{macrocode}
+\setlength\leftmargin    {\leftmargini}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\labelsep}
+% \begin{macro}{\labelwidth}
+%    |\labelsep| is the distance between the label and the text of an
+%    item; |\labelwidth| is the width of the label.
+%    \begin{macrocode}
+\setlength  \labelsep  {.5em}
+\setlength  \labelwidth{\leftmargini}
+\addtolength\labelwidth{-\labelsep}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%
+% \begin{macro}{\@beginparpenalty}
+% \begin{macro}{\@endparpenalty}
+%    These penalties are inserted before and after a list or paragraph
+%    environment. They are set to a bonus value to encourage page
+%    breaking at these points.
+% \begin{macro}{\@itempenalty}
+%    This penalty is inserted between list items.
+%    \begin{macrocode}
+%<*refart|refrep>
+\@beginparpenalty -\@lowpenalty
+\@endparpenalty   -\@lowpenalty
+\@itempenalty     -\@lowpenalty
+%</refart|refrep>
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@listI}
+% \begin{macro}{\@listi}
+% |\@listI| defines top level and |\@listi| values of
+% |\leftmargin|, |\parsep|, |\topsep|, and |\itemsep|
+%
+%    \begin{macrocode}
+%<*refart|refrep>
+\def\@listI{\leftmargin\leftmargini
+            \parsep \parskip
+            \topsep \z@
+            \itemsep\z@}
+\let\@listi\@listI
+%    \end{macrocode}
+%    We have to initialise these parameters.
+%    \begin{macrocode}
+\@listi
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@listii}
+% \begin{macro}{\@listiii}
+% \begin{macro}{\@listiv}
+% \begin{macro}{\@listv}
+% \begin{macro}{\@listvi}
+%    Here are the same macros for the higher level lists.
+%    \begin{macrocode}
+\def\@listii {\leftmargin\leftmarginii
+              \labelwidth\leftmarginii
+              \advance\labelwidth-\labelsep
+              \topsep    \z@
+              \parsep    \parskip
+              \itemsep   \z@}
+\def\@listiii{\leftmargin\leftmarginiii
+              \labelwidth\leftmarginiii
+              \advance\labelwidth-\labelsep
+              \topsep    \z@
+              \parsep    \parskip
+              \partopsep \z@
+              \itemsep   \topsep}
+\def\@listiv {\leftmargin\leftmarginiv
+              \labelwidth\leftmarginiv
+              \advance\labelwidth-\labelsep}
+\def\@listv  {\leftmargin\leftmarginv
+              \labelwidth\leftmarginv
+              \advance\labelwidth-\labelsep}
+\def\@listvi {\leftmargin\leftmarginvi
+              \labelwidth\leftmarginvi
+              \advance\labelwidth-\labelsep}
+%<*refart|refrep>
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsubsection{Enumerate}
+%
+%    The enumerate environment uses  four counters: \Lcount{enumi},
+%    \Lcount{enumii}, \Lcount{enumiii} and \Lcount{enumiv}, where
+%    \Lcount{enumN} controls the numbering of the Nth level
+%    enumeration.
+%
+% \begin{macro}{\theenumi}
+% \begin{macro}{\theenumii}
+% \begin{macro}{\theenumiii}
+% \begin{macro}{\theenumiv}
+%    The counters are already defined in \file{latex.dtx}, but their
+%    representation is changed here.
+%
+%    \begin{macrocode}
+%<*refart|refrep>
+\renewcommand\theenumi{\arabic{enumi}}
+\renewcommand\theenumii{\alph{enumii}}
+\renewcommand\theenumiii{\roman{enumiii}}
+\renewcommand\theenumiv{\Alph{enumiv}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\labelenumi}
+% \begin{macro}{\labelenumii}
+% \begin{macro}{\labelenumiii}
+% \begin{macro}{\labelenumiv}
+%    The label for each item is generated by the commands
+%    |\labelenumi| ... |\labelenumiv|.
+%    \begin{macrocode}
+\newcommand\labelenumi{\theenumi.}
+\newcommand\labelenumii{(\theenumii)}
+\newcommand\labelenumiii{\theenumiii.}
+\newcommand\labelenumiv{\theenumiv.}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\p@enumii}
+% \begin{macro}{\p@enumiii}
+% \begin{macro}{\p@enumiv}
+%    The expansion of |\p@enumN||\theenumN| defines the output of a
+%    |\ref| command when referencing an item of the Nth level of an
+%    enumerated list.
+%    \begin{macrocode}
+\renewcommand\p@enumii{\theenumi}
+\renewcommand\p@enumiii{\theenumi(\theenumii)}
+\renewcommand\p@enumiv{\p@enumiii\theenumiii}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsubsection{Itemize}
+%
+% \begin{macro}{\labelitemi}
+% \begin{macro}{\labelitemii}
+% \begin{macro}{\labelitemiii}
+% \begin{macro}{\labelitemiv}
+% Itemization is controlled by four commands: |\labelitemi|,
+% |\labelitemii|, |\labelitemiii|, and |\labelitemiv|, which define
+% the labels of thevarious itemization levels: the symbols used are
+% bullet, bold en-dash, asterisk and centred dot.
+%
+%    \begin{macrocode}
+\newcommand\labelitemi{$\m@th\bullet$}
+\newcommand\labelitemii{\normalfont\bfseries --}
+\newcommand\labelitemiii{$\m@th\ast$}
+\newcommand\labelitemiv{$\m@th\cdot$}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsubsection{Description}
+%
+% \begin{macro}{\description}
+% \begin{macro}{\descriptionlabel}
+%    The description environment is defined here -- while the itemize
+%    and enumerate environments are defined in \file{latex.dtx}.
+%
+%    To change the formatting of the label, you must redefine
+%    |\descriptionlabel|.
+%
+%    \begin{macrocode}
+\newcommand\descriptionlabel[1]{%
+            \ifdescriptionleft\else \hfil\fi
+            \normalfont #1 \ifdescriptioncolon :\fi
+            \ifdescriptionleft \hfil \fi}
+\newenvironment{description}
+               {\list{}{%
+                    \labelsep\marginparsep
+                    \labelwidth\leftmarginwidth
+                    %\advance\labelwidth by \@totalleftmargin
+                    \advance\labelwidth by \leftmargin
+                    \advance\labelwidth by -\labelsep
+                    \let\makelabel\descriptionlabel}}
+               {\endlist}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Defining new environments}
+%
+% \subsubsection{Abstract}
+%
+% \begin{macro}{\abstract}
+%    When we are producing a separate titlepage we also put the
+%    abstract on a page of its own. It will be centred vertically on
+%    the page.
+%
+%    \begin{macrocode}
+\if@titlepage
+  \newenvironment{abstract}{%
+      \titlepage
+      \null\vfil
+      \begin{center}
+        \bfseries \abstractname
+      \end{center}}
+     {\par\vfil\null\endtitlepage}
+%    \end{macrocode}
+%    When we are not making a seperate titlepage --the default for the
+%    refart document class-- we have to check if we are in twocolumn
+%    mode. In that case the abstract is as a |\section*|, otherwise
+%    the quote environment is used to typeset the abstract.
+%    \begin{macrocode}
+\else
+  \newenvironment{abstract}{%
+      \if@twocolumn
+        \section*{\abstractname}%
+      \else
+        \small
+        \begin{center}%
+          {\bfseries \abstractname\vspace{-.5em}\vspace{\z@}}%
+        \end{center}%
+        \quote
+      \fi}
+      {\if@twocolumn\else\endquote\fi}
+\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Verse}
+%
+% \begin{macro}{\verse}
+%   The verse environment is defined by making clever use of the
+%   list environment's parameters.  The user types |\\| to end a line.
+%   This is implemented by |\let|'ing |\\| equal |\@centercr|.
+%
+%    \begin{macrocode}
+\newenvironment{verse}
+               {\let\\=\@centercr
+                \list{}{\itemsep      \z@
+                        \itemindent   -1.5em%
+                        \listparindent\itemindent
+                        \rightmargin  \leftmargin
+                        \advance\leftmargin 1.5em}%
+                \item[]}
+               {\endlist}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Quotation}
+%
+% \begin{macro}{\quotation}
+%   The quotation environment is also defined by making clever use of
+%   the list environment's parameters. The lines in the environment
+%   are set smaller than |\textwidth|. The first line of a paragraph
+%   inside this environment is indented.
+%
+%    \begin{macrocode}
+\newenvironment{quotation}
+               {\list{}{\listparindent 1.5em%
+                        \itemindent    \listparindent
+                        \rightmargin   \leftmargin
+                        \parsep        \z@ \@plus\p@}%
+                \item[]}
+               {\endlist}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Quote}
+%
+% \begin{macro}{\quote}
+%   The quote environment is like the quotation environment except
+%   that paragraphs are not indented.
+%
+%    \begin{macrocode}
+\newenvironment{quote}
+               {\list{}{\rightmargin\leftmargin}%
+                \item[]}
+               {\endlist}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Example}
+%
+% \begin{macro}{\example}
+%   The example environment is a verse environment with tt font
+%   which tries to avoid pagebrakes at the |\begin{example}|.
+%
+%    \begin{macrocode}
+\newenvironment{example}
+               {\@beginparpenalty=\highpenalty
+               \let\\=\@centercr
+                \list{}{\itemsep      \z@
+                        \itemindent   -1.5em%
+                        \listparindent\itemindent
+                        \rightmargin  \leftmargin
+                        \advance\leftmargin 1.5em}%
+                \ttfamily
+                \item[]}
+               {\endlist}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Theorem}
+%
+%    This document class does not define it's own theorem environments,
+%    the defaults, supplied by \file{latex.dtx} are available.
+%
+% \subsubsection{Titlepage}
+%
+% \begin{macro}{\titlepage}
+%  In the normal environments, the titlepage environment does nothing
+%  but start and end a page, and inhibit page numbers.  It also resets
+%  the page number to zero.  In two-column style, it still makes a
+%  one-column page.
+%
+%    \begin{macrocode}
+\newenvironment{titlepage}
+               {\if@twocolumn
+                  \@restonecoltrue\onecolumn
+                \else
+                  \@restonecolfalse\newpage
+                \fi
+                \thispagestyle{empty}%
+                \setcounter{page}{1}}
+               {\if@restonecol\twocolumn \else \newpage \fi
+               \setcounter{page}{1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Appendix}
+%
+% \begin{macro}{\appendix}
+%
+%    The |\appendix| command is not really an environment, it is a
+%    macro that makes some changes in the way things are done.
+%
+%    In the article document class the |\appendix| command must do the
+%    following:
+%    \begin{itemize}
+%    \item reset the section and subsection counters to zero,
+%    \item redefine |\thesection| to produce alphabetic appendix
+%        numbers.
+%    \end{itemize}
+%
+%    \begin{macrocode}
+%<*refart>
+\newcommand\appendix{\par
+  \setcounter{section}{0}%
+  \setcounter{subsection}{0}%
+  \renewcommand\thesection{\Alph{section}}}
+%</refart>
+%    \end{macrocode}
+%
+%    In the report and book document classes the |\appendix| command
+%    must do the following:
+%    \begin{itemize}
+%    \item reset the chapter and section counters to zero,
+%    \item set |\@chapapp| to |\appendixname| (for messages),
+%    \item redefine the chapter counter to produce appendix numbers,
+%    \item possibly redefine the |\chapter| command if appendix titles
+%        and headings are to look different from chapter titles and
+%        headings.
+%    \end{itemize}
+%
+%    \begin{macrocode}
+%<*refrep>
+\newcommand\appendix{\par
+  \setcounter{chapter}{0}%
+  \setcounter{section}{0}%
+  \renewcommand\@chapapp{\appendixname}%
+  \renewcommand\thechapter{\Alph{chapter}}}
+%</refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Setting parameters for existing environments}
+%
+% \subsubsection{Array and tabular}
+%
+% \begin{macro}{\arraycolsep}
+%    The columns in an array environment are separated by
+%    2|\arraycolsep|.
+%    \begin{macrocode}
+\setlength\arraycolsep{5\p@}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\tabcolsep}
+%    The columns in an tabular environment are separated by
+%    2|\tabcolsep|.
+%    \begin{macrocode}
+\setlength\tabcolsep{6\p@}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\arrayrulewidth}
+%    The width of rules in the array and tabular environments is given
+%    by |\arrayrulewidth|.
+%    \begin{macrocode}
+\setlength\arrayrulewidth{.4\p@}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\doublerulesep}
+%    The space between adjacent rules in the array and tabular
+%    environments is given by |\doublerulesep|.
+%    \begin{macrocode}
+\setlength\doublerulesep{2\p@}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Tabbing}
+%
+% \begin{macro}{\tabbingsep}
+%    This controls the space that the |\'| command puts in. (See
+%    \LaTeX{} manual for an explanation.)
+%    \begin{macrocode}
+\setlength\tabbingsep{\labelsep}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Minipage}
+%
+% \begin{macro}{\@minipagerestore}
+%    The macro |\@minipagerestore| is called upon entry to a minipage
+%    environment to set up things that are to be handled differently
+%    inside a minipage environment. In the current styles, it does
+%    nothing.
+% \end{macro}
+%
+% \begin{macro}{\@mpfootins}
+%    Minipages have their own footnotes; |\skip||\@mpfootins| plays
+%    same r\^ole for footnotes in a minipage as |\skip||\footins| does
+%    for ordinary footnotes.
+%
+%    \begin{macrocode}
+\skip\@mpfootins = \skip\footins
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{Framed boxes}
+%
+% \begin{macro}{\fboxsep}
+%    The space left by |\fbox| and |\framebox| between the box and the
+%    text in it.
+% \begin{macro}{\fboxrule}
+%    The width of the rules in the box made by |\fbox| and |\framebox|.
+%    \begin{macrocode}
+\setlength\fboxsep{3\p@}
+\setlength\fboxrule{.4\p@}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \subsubsection{Equation and eqnarray}
+%
+% \begin{macro}{\theequation}
+%    The equation counter will be reset at beginning of a new chapter
+%    and the equation number will be prefixed by the chapter number.
+%
+%    This code  must follow the |\chapter| definition, or more exactly
+%    the definition of the chapter counter.
+%    \begin{macrocode}
+%<+refart>\renewcommand\theequation{\arabic{equation}}
+%<*refrep>
+\@addtoreset{equation}{chapter}
+\renewcommand\theequation{\thechapter.\arabic{equation}}
+%</refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\jot}
+%    |\jot| is the extra space added between lines of an eqnarray
+%    environment. The default value is used.
+%    \begin{macrocode}
+% \setlength\jot{3pt}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@eqnnum}
+%    The macro |\@eqnnum| defines how equation numbers are to appear in
+%    equations. Again the default is used.
+%
+%    \begin{macrocode}
+% \def\@eqnnum{(\theequation)}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Floating objects}
+%
+%    The file \file{latex.dtx} only defines a number of tools with
+%    which floating objects can be defined. This is done in the
+%    document class. It needs to define the following macros for each
+%    floating object of type \texttt{TYPE} (e.g., \texttt{TYPE} =
+%    figure).
+%
+%    \begin{description}
+%    \item[\texttt{\bslash fps@TYPE}]
+%        The default placement specifier for floats of type
+%        \texttt{TYPE}.
+%
+%    \item[\texttt{\bslash ftype@TYPE}]
+%        The type number for floats of type \texttt{TYPE}.  Each
+%        \texttt{TYPE} has associated a unique positive {\texttt
+%        TYPE} number, which is a power of two.  E.g., figures might
+%        have type number 1, tables type number 2, programs type
+%        number 4, etc.
+%
+%    \item[\texttt{\bslash ext@TYPE}]
+%        The file extension indicating the file on which the contents
+%        list for float type \texttt{TYPE} is stored.  For example,
+%        |\ext@figure| = `lof'.
+%
+%    \item[\texttt{\bslash fnum@TYPE}]
+%        A macro to generate the figure number for a caption. For
+%        example, |\fnum@TYPE| == `Figure |\thefigure|'.
+%
+%    \item[\texttt{\bslash @makecaption{\meta{num}}{\meta{text}}}]
+%        A macro to make a caption, with \meta{num} the value produced
+%        by |\fnum@...| and \meta{text} the text of the caption. It
+%        can assume it's in a |\parbox| of the appropriate width.
+%        This will be used for {\em all} floating objects.
+%
+%    \end{description}
+%
+%    The actual environment that implements a floating object such as
+%    a figure is defined using the macros |\@float| and |\end@float|,
+%    which are defined in \file{latex.dtx}.
+%
+%    An environment that implements a single column floating object is
+%    started with |\@float{|\texttt{TYPE}|}[|\meta{placement}|]| of type
+%    \texttt{TYPE} with \meta{placement} as the placement specifier.
+%    The default value of \meta{PLACEMENT} is defined by |\fps@TYPE|.
+%
+%    The environment is ended by |\end@float|.  E.g., |\figure| ==
+%    |\@float|{figure}, |\endfigure| == |\end@float|.
+%
+% \subsubsection{Figure}
+%
+%    Here is the implementation of the figure environment.
+%
+% \begin{macro}{\c@figure}
+%    First we have to allocate a counter to number the figures. In the
+%    report and book document classes the figures are numbered per
+%    chapter.
+%    \begin{macrocode}
+%<*refart>
+\newcounter{figure}
+\renewcommand\thefigure{\@arabic\c@figure}
+%</refart>
+%<*refrep>
+\newcounter{figure}[chapter]
+\renewcommand\thefigure{\thechapter.\@arabic\c@figure}
+%</refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\fps@figure}
+% \begin{macro}{\ftype@figure}
+% \begin{macro}{\ext@figure}
+% \begin{macro}{\num@figure}
+%    Here are the parameters for the floating objects of type `figure'.
+%    \begin{macrocode}
+\def\fps@figure{tbp}
+\def\ftype@figure{1}
+\def\ext@figure{lof}
+\def\fnum@figure{\figurename~\thefigure}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{environment}{figure}
+% \begin{environment}{figure*}
+%    And the definition of the actual environment. The form with the
+%    |*| is used for double column figures.
+%    \begin{macrocode}
+\newenvironment{figure}
+               {\@float{figure}}
+               {\end@float}
+\newenvironment{figure*}
+               {\@dblfloat{figure}}
+               {\end@dblfloat}
+%    \end{macrocode}
+% \end{environment}
+% \end{environment}
+%
+% \subsubsection{Table}
+%
+%    Here is the implementation of the table environment. It is very
+%    much the same as the figure environment.
+%
+% \begin{macro}{\c@table}
+%    First we have to allocate a counter to number the tables. In the
+%    report and book document classes the tables are numbered per
+%    chapter.
+%    \begin{macrocode}
+%<*refart>
+\newcounter{table}
+\renewcommand\thetable{\@arabic\c@table}
+%</refart>
+%<*refrep>
+\newcounter{table}[chapter]
+\renewcommand\thetable{\thechapter.\@arabic\c@table}
+%</refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\fps@table}
+% \begin{macro}{\ftype@table}
+% \begin{macro}{\ext@table}
+% \begin{macro}{\num@table}
+%    Here are the parameters for the floating objects of type `table'.
+%    \begin{macrocode}
+\def\fps@table{tbp}
+\def\ftype@table{2}
+\def\ext@table{lot}
+\def\fnum@table{\tablename~\thetable}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{environment}{table}
+% \begin{environment}{table*}
+%    And the definition of the actual environment. The form with the
+%    |*| is used for double column tables.
+%    \begin{macrocode}
+\newenvironment{table}
+               {\@float{table}}
+               {\end@float}
+\newenvironment{table*}
+               {\@dblfloat{table}}
+               {\end@dblfloat}
+%    \end{macrocode}
+% \end{environment}
+% \end{environment}
+%
+% \subsubsection{Captions}
+%
+% \begin{macro}{\@makecaption}
+%    The |\caption| command calls |\@makecaption| to format the
+%    caption of floating objects. It gets two arguments,
+%    \meta{number}, the number of the floating object and \meta{text},
+%    the text of the caption. Usually \meta{number} contains a string
+%    such as `Figure 3.2'. The macro can assume it is called inside a
+%    |\parbox| of right width, with |\normalsize|.
+%
+% \begin{macro}{\abovecaptionskip}
+% \begin{macro}{\belowcaptionskip}
+%    These lengths contain the amount of white space to leave above
+%    and below the caption.
+%    \begin{macrocode}
+\newlength\abovecaptionskip
+\newlength\belowcaptionskip
+\setlength\abovecaptionskip{10\p@}
+\setlength\belowcaptionskip{0\p@}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%    The definition of this macro is |\long| in order to allow more
+%    then one paragraph in a caption.
+%    \begin{macrocode}
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+%    \end{macrocode}
+%    We want to see if the caption fits on one line on the page,
+%    therefore we first typeset it in a temporary box.
+%    \begin{macrocode}
+  \sbox\@tempboxa{#1: #2}%
+%    \end{macrocode}
+%    We can the measure its width. It that is larger than the current
+%    |\hsize| we typeset the caption as an ordinary paragraph.
+%    \begin{macrocode}
+  \ifdim \wd\@tempboxa >\hsize
+    #1: #2\par
+%    \end{macrocode}
+%    If the caption fits, we center it.
+%    \begin{macrocode}
+  \else
+    \hbox to\hsize{\hfil\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Font changing}
+%
+%    Here we supply the declarative font changing commands that were
+%    common in \LaTeX\ version 2.09 and earlier. These commands work
+%    in text mode \emph{and} in math mode. They are provided for
+%    compatibility, but one should start using the |\text...| and
+%    |\math...| commands instead. These commands are defined using
+%    |\@newfontswitch|, a command with three arguments: the user
+%    command to be defined; \LaTeX\ commands to execute in text mode
+%    and \LaTeX\ commands to execute in math mode.
+%
+%  \begin{macro}{\rm}
+%  \begin{macro}{\tt}
+%  \begin{macro}{\sf}
+%
+%    The commands to change the family. When in compatibility mode we
+%    select the `default' font first, to get \LaTeX2.09 behviour.
+%    \begin{macrocode}
+\DeclareOldFontCommand{\rm}{\normalfont\rmfamily}{\mathrm}
+\DeclareOldFontCommand{\sf}{\normalfont\sffamily}{\mathsf}
+\DeclareOldFontCommand{\tt}{\normalfont\ttfamily}{\mathtt}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%  \end{macro}
+%
+%  \begin{macro}{\bf}
+%    The command to change to the bold series. One should use
+%    |\mdseries| to explicitly switch back to medium series.
+%    \begin{macrocode}
+\DeclareOldFontCommand{\bf}{\normalfont\bfseries}{\mathbf}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\sl}
+%  \begin{macro}{\it}
+%  \begin{macro}{\sc}
+%
+%    And the commands to change the shape of the font. The slanted and
+%    small caps shapes are not available by default as math alphabets,
+%    so those changes do nothing in math mode. One should use
+%    |\upshape| to explicitly change back to the upright shape.
+%    \begin{macrocode}
+\DeclareOldFontCommand{\it}{\normalfont\itshape}{\mathit}
+\DeclareOldFontCommand{\sl}{\normalfont\slshape}{\@nomath\sl}
+\DeclareOldFontCommand{\sc}{\normalfont\scshape}{\@nomath\sc}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%  \end{macro}
+%
+% \begin{macro}{\cal}
+% \begin{macro}{\mit}
+%
+%    The commands |\cal| and |\mit| should only be used in math mode,
+%    outside math mode they have no effect. Currently the New Font
+%    Selection Scheme defines these commands to generate warning
+%    messages. Therefore we have to define them `by hand'.
+%    \begin{macrocode}
+\renewcommand{\cal}{\protect\pcal}
+\newcommand{\pcal}{\@fontswitch{\relax}{\mathcal}}
+\renewcommand{\mit}{\protect\pmit}
+\newcommand{\pmit}{\@fontswitch{\relax}{\mathnormal}}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%
+% \section{Cross Referencing}
+% \subsection{Table of Contents, etc.}
+%
+%     A |\section| command writes a
+%     |\contentsline{section}{|\meta{title}|}{|\meta{page}|}| command
+%     on the \file{.toc} file, where \meta{title} contains the
+%     contents of the entry and \meta{page} is the page number. If
+%     sections are being numbered, then \meta{title} will be of the
+%     form |\numberline{|\meta{num}|}{|\meta{heading}|}| where
+%     \meta{num} is the number produced by |\thesection|.  Other
+%     sectioning commands work similarly.
+%
+%     A |\caption| command in a `figure' environment writes
+%
+%     |\contentsline{figure}{\numberline{|\meta{num}|}{|%
+%                    \meta{caption}|}}{|\meta{page}|}|
+%
+%     on the .\file{lof} file, where \meta{num} is the number produced
+%     by |\thefigure| and \meta{caption} is the figure caption.  It
+%     works similarly for a `table' environment.
+%
+%    The command |\contentsline{|\meta{name}|}| expands to
+%    |\l@|\meta{name}.  So, to specify the table of contents, we must
+%    define |\l@chapter|, |\l@section|, |\l@subsection|, ... ; to
+%    specify the list of figures, we must define |\l@figure|; and so
+%    on.  Most of these can be defined with the |\@dottedtocline|
+%    command, which works as follows.
+%
+%    |\@dottedtocline{|\meta{level}|}{|\meta{indent}|}{|^^A
+%                      \meta{numwidth}|}{|^^A
+%                      \meta{title}|}{|\meta{page}|}|
+%
+%    \begin{description}
+%    \item[\meta{level}] An entry is produced only if\meta{ level}
+%        $<=$ value of the \Lcount{tocdepth} counter.  Note,
+%        |\chapter| is level 0, |\section| is level 1, etc.
+%    \item[\meta{indent}] The indentation from the outer left margin
+%        of the start   of the contents line.
+%    \item[\meta{numwidth}] The width of a box in which the section
+%        number is to go, if \meta{title} includes a |\numberline|
+%        command.
+%    \end{description}
+%
+% \begin{macro}{\@pnumwidth}
+% \begin{macro}{\@tocrmarg}
+% \begin{macro}{\@dotsep}
+%    This command uses the following three parameters, which are set
+%    with a |\newcommand| (so em's can be used to make them depend upon
+%    the font).
+%    \begin{description}
+%    \item[\texttt{\bslash @pnumwidth}] The width of a box in which the
+%        page number is put.
+%    \item[\texttt{\bslash @tocrmarg}] The right margin for multiple
+%        line entries.  One wants |\@tocrmarg| > or = |\@pnumwidth|
+%    \item[\texttt{\bslash @dotsep}] Separation between dots, in mu
+%        units. Should be defined as a number like 2 or 1.7
+%    \end{description}
+%
+%    \begin{macrocode}
+\newcommand\@pnumwidth{1.55em}
+\newcommand\@tocrmarg {2.55em}
+\newcommand\@dotsep{4.5}
+%<+refart>\setcounter{tocdepth}{3}
+%<+refrep>\setcounter{tocdepth}{2}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsubsection{Table of Contents}
+%
+% \begin{macro}{\tableofcontents}
+%    This macro is used to request that \LaTeX{} produces a table of
+%    contents. In the report and book document classes the tables of
+%    contents, figures etc. are always set in single-column style.
+%
+%    \begin{macrocode}
+\newcommand\tableofcontents{%
+%<*refrep>
+    \if@twocolumn
+      \@restonecoltrue\onecolumn
+    \else
+      \@restonecolfalse
+    \fi
+%    \end{macrocode}
+%    The title is set using the |\chapter*| command, making sure that
+%    the running head --if one is required-- contains the right
+%    information.
+%    \begin{macrocode}
+    \chapter*{\contentsname
+%</refrep>
+%<+refart>    \section*{\contentsname
+        \@mkboth{\contentsname}{\contentsname}}%
+%    \end{macrocode}
+%    The the actual table of contents is made by calling
+%    |\@starttoc{toc}|. After that we restore twocolumn mode if
+%    necessary.
+%    \begin{macrocode}
+    \@starttoc{toc}%
+    \if@restonecol\twocolumn\fi
+    }
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\l@part}
+%    Each sectioning command needs an additional macro  to format its
+%    entry in the table of contents, as described above. The macro for
+%    the entry for parts is defined in a special way.
+%
+%    First we make sure that if a pagebreak should occur, it occurs
+%    {\em before} this entry. Also a little whitespace is added and a
+%    group begun to keep changes local.
+%    \begin{macrocode}
+\newcommand\l@part[2]{%
+  \ifnum \c@tocdepth >-2\relax
+%<+refart>    \addpenalty{\@secpenalty}%
+%<+refrep>    \addpenalty{-\@highpenalty}%
+    \addvspace{2.25em \@plus\p@}%
+    \begingroup
+%    \end{macrocode}
+%    The macro |\numberline| requires that the width of the box that
+%    holds the part number is stored in \LaTeX's scratch register
+%    |\@tempdima|. Therefore we put it there.
+%    \begin{macrocode}
+      \setlength\@tempdima{3em}%
+%    \end{macrocode}
+%    The we set |\parindent| to 0pt and use |\rightskip| to leave
+%    enough room for the pagenumbers. To prevent overfull box messages
+%    the |\parfillskip| is set to a negative value.
+%    \begin{macrocode}
+      \parindent \z@ \rightskip \@pnumwidth
+      \parfillskip -\@pnumwidth
+%    \end{macrocode}
+%    Now we can set the entry, in a large bold font. We make sure to
+%    leave vertical mode, set the part title and add the pagenumber,
+%    set flush right.
+%    \begin{macrocode}
+      {\leavevmode
+       \large \bfseries #1\hfil \hbox to\@pnumwidth{\hss #2}}\par
+%    \end{macrocode}
+%    Prevent a pagebreak immediately after this entry, but use
+%    |\everypar| to reset the |\if@nobreak| switch. Finally we close
+%    the group.
+%    \begin{macrocode}
+       \nobreak
+         \global\@nobreaktrue
+         \everypar{\global\@nobreakfalse\everypar{}}
+      \endgroup
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\l@chapter}
+%    This macro formats the entries in the table of contents for
+%    chapters. It is very similar to |\l@part|
+%
+%    First we make sure that if a pagebreak should occur, it occurs
+%    {\em before} this entry. Also a little whitespace is added and a
+%    group begun to keep changes local.
+%    \begin{macrocode}
+%<*refrep>
+\newcommand\l@chapter[2]{%
+  \ifnum \c@tocdepth >\m@ne
+    \addpenalty{-\@highpenalty}%
+    \vskip 1.0em \@plus\p@
+%    \end{macrocode}
+%
+%    The macro |\numberline| requires that the width of the box that
+%    holds the part number is stored in \LaTeX's scratch register
+%    |\@tempdima|. Therefore we put it there. We begin a group, and
+%    change some of the paragraph parameters.
+%    \begin{macrocode}
+    \setlength\@tempdima{1.5em}%
+    \begingroup
+    \parindent \z@ \rightskip \@pnumwidth
+    \parfillskip -\@pnumwidth
+%    \end{macrocode}
+%    Then we leave vertical mode and switch to a bold font.
+%    \begin{macrocode}
+    \leavevmode \bfseries
+%    \end{macrocode}
+%    Because we do not use |\numberline| here, we have do some fine
+%    tuning `by hand', before we can set the entry. We discourage but
+%    not disallow a pagebreak immediately after a chapter entry.
+%    \begin{macrocode}
+    \advance\leftskip\@tempdima
+    \hskip -\leftskip
+    #1\nobreak\hfil \nobreak\hbox to\@pnumwidth{\hss #2}\par
+    \penalty\@highpenalty
+   \endgroup
+  \fi}
+%</refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\l@section}
+%    In the article document class the entry in the table of contents
+%    for sections looks much like the chapter entries for the report
+%    and book document classes.
+%
+%    First we make sure that if a pagebreak should occur, it occurs
+%    {\em before} this entry. Also a little whitespace is added and a
+%    group begun to keep changes local.
+%    \begin{macrocode}
+%<*refart>
+\newcommand\l@section[2]{%
+  \ifnum \c@tocdepth >\z@
+    \addpenalty{\@secpenalty}%
+    \addvspace{1.0em \@plus\p@}%
+%    \end{macrocode}
+%
+%    The macro |\numberline| requires that the width of the box that
+%    holds the part number is stored in \LaTeX's scratch register
+%    |\@tempdima|. Therefore we put it there. We begin a group, and
+%    change some of the paragraph parameters.
+%    \begin{macrocode}
+    \setlength\@tempdima{1.5em}%
+    \begingroup
+    \parindent \z@ \rightskip \@pnumwidth
+    \parfillskip -\@pnumwidth
+%    \end{macrocode}
+%    Then we leave vertical mode and switch to a bold font.
+%    \begin{macrocode}
+    \leavevmode \bfseries
+%    \end{macrocode}
+%    Because we do not use |\numberline| here, we have do some fine
+%    tuning `by hand', before we can set the entry. We discourage but
+%    not disallow a pagebreak immediately after a chapter entry.
+%    \begin{macrocode}
+    \advance\leftskip\@tempdima
+    \hskip -\leftskip
+    #1\nobreak\hfil \nobreak\hbox to\@pnumwidth{\hss #2}\par
+   \endgroup
+ \fi}
+%</refart>
+%    \end{macrocode}
+%    In the report and book document classes the definition for
+%    |\l@section| is much simpler.
+%    \begin{macrocode}
+%<*refrep>
+\newcommand\l@section      {\@dottedtocline{1}{1.5em}{2.3em}}
+%</refrep>
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\l@subsection}
+% \begin{macro}{\l@subsubsection}
+% \begin{macro}{\l@paragraph}
+% \begin{macro}{\l@subparagraph}
+%    All lower level entries are defined using the macro
+%    |\@dottedtocline| (see above).
+%    \begin{macrocode}
+%<*refart>
+\newcommand\l@subsection   {\@dottedtocline{2}{1.5em}{2.3em}}
+\newcommand\l@subsubsection{\@dottedtocline{3}{3.8em}{3.2em}}
+\newcommand\l@paragraph    {\@dottedtocline{4}{7.0em}{4.1em}}
+\newcommand\l@subparagraph {\@dottedtocline{5}{10em}{5em}}
+%</refart>
+%<*refrep>
+\newcommand\l@subsection   {\@dottedtocline{2}{3.8em}{3.2em}}
+\newcommand\l@subsubsection{\@dottedtocline{3}{7.0em}{4.1em}}
+\newcommand\l@paragraph    {\@dottedtocline{4}{10em}{5em}}
+\newcommand\l@subparagraph {\@dottedtocline{5}{12em}{6em}}
+%</refrep>
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsubsection{List of figures}
+%
+% \begin{macro}{\listoffigures}
+%    This macro is used to request that \LaTeX{} produces a list of
+%    figures. It is very similar to |\tableofcontents|.
+%
+%    \begin{macrocode}
+\newcommand\listoffigures{%
+%<*refrep>
+    \if@twocolumn
+      \@restonecoltrue\onecolumn
+    \else
+      \@restonecolfalse
+    \fi
+    \chapter*{\listfigurename
+%</refrep>
+%<+refart>    \section*{\listfigurename
+      \@mkboth{\listfigurename}%
+              {listfigurename}}%
+    \@starttoc{lof}%
+%<+refrep>    \if@restonecol\twocolumn\fi
+    }
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\l@figure}
+%    This macro produces an entry in the list of figures.
+%    \begin{macrocode}
+\newcommand\l@figure{\@dottedtocline{1}{1.5em}{2.3em}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsubsection{List of tables}
+%
+% \begin{macro}{\listoftables}
+%    This macro is used to request that \LaTeX{} produces a list of
+%    tables. It is very similar to |\tableofcontents|.
+%
+%    \begin{macrocode}
+\newcommand\listoftables{%
+%<*refrep>
+    \if@twocolumn
+      \@restonecoltrue\onecolumn
+    \else
+      \@restonecolfalse
+    \fi
+    \chapter*{\listtablename
+%</refrep>
+%<+refart>    \section*{\listtablename
+      \@mkboth{\listtablename}{\listtablename}}%
+    \@starttoc{lot}%
+%<+refrep>    \if@restonecol\twocolumn\fi
+    }
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\l@table}
+%    This macro produces an entry in the list of tables.
+%    \begin{macrocode}
+\let\l@table\l@figure
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Bibliography}
+%
+% \begin{macro}{\bibindent}
+%    The ``open'' bibliography format uses an indentation of
+%    |\bibindent|.
+%    \begin{macrocode}
+\newdimen\bibindent
+\bibindent=1.5em
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\thebibliography}
+% \begin{macro}{\newblock}
+%    The `thebibliography' environment executes the following
+%    commands:
+%
+%    |\renewcommand\newblock{\hskip .11em \@plus .33em \@minus .07em}|
+%      -- Defines the ``closed'' format, where the blocks (major units
+%      of information) of an entry run together.
+%
+%    |\sloppy|  -- Used because it's rather hard to do line breaks in
+%      bibliographies,
+%
+%    |\sfcode`\.=1000\relax| --
+%      Causes a `.' (period) not to produce an end-of-sentence space.
+%
+%    The implementation of this environment is based on the generic
+%    list environment. It uses the \Lcount{enumiv} counter internally
+%    to generate the labels of the list.
+%
+%    When an empty `thebijliography' environment is found, a warning
+%    is issued.
+%
+%    \begin{macrocode}
+\newcommand\newblock{}
+\newenvironment{thebibliography}[1]
+%<+refart>     {\section*{\refname
+%<+refart>         \@mkboth{\refname}{\refname}}%
+%<+refrep>     {\chapter*{\bibname
+%<+refrep>         \@mkboth{\bibname}{\bibname}}%
+      \list{\@biblabel{\arabic{enumiv}}}%
+   {\settowidth\labelwidth{\@biblabel{#1}}%
+            \leftmargin\labelwidth
+            \advance\leftmargin\labelsep
+            \if@openbib
+              \advance\leftmargin\bibindent
+              \itemindent -\bibindent
+              \listparindent \itemindent
+              \parsep \z@
+            \fi
+            \usecounter{enumiv}%
+            \let\p@enumiv\@empty
+            \renewcommand\theenumiv{\arabic{enumiv}}}%
+      \if@openbib
+        \renewcommand\newblock{\par}
+      \else
+        \renewcommand\newblock{\hskip .11em \@plus.33em \@minus.07em}%
+      \fi
+      \sloppy\clubpenalty4000\widowpenalty4000%
+      \sfcode`\.=\@m}
+     {\def\@noitemerr{\@warning{Empty `thebibliography' environment}}%
+      \endlist}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@biblabel}
+%    The label for a |\bibitem[...]| command is produced by this
+%    macro. The default from \file{latex.dtx} is used.
+%    \begin{macrocode}
+% \renewcommand\@biblabel[1]{[#1]\hfill}
+%(   \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@cite}
+%    The output of the |\cite| command is produced by this macro. The
+%    default from \file{latex.dtx} is used.
+%    \begin{macrocode}
+% \renewcommand\@cite[1]{[#1]}
+%    \end{macrocode}
+% \end{macro}
+%
+%  \subsection{The index}
+%
+% \begin{macro}{\theindex}
+%    The environment `theindex' can be used for indices. It makes an
+%    index with two columns, with each entry a seperate paragraph. At
+%    the user level the commands |\item|, |\subitem| and |\subsubitem|
+%    are used to produce index entries of various levels. When a new
+%    letter of the alphabet is encountered an amount of |\indexspace|
+%    white space can be added.
+%
+%
+%    \begin{macrocode}
+\newenvironment{theindex}
+               {\if@twocolumn
+                  \@restonecolfalse
+                \else
+                  \@restonecoltrue
+                \fi
+                \begin{fullpage}
+                \let\twocolumn\REF@twocolumn
+                \columnseprule \z@
+                \columnsep 35\p@
+%<+refart>                \twocolumn[\section*{\indexname}]%
+%<+refrep>                \twocolumn[\@makeschapterhead{\indexname}]%
+                \@mkboth{\indexname}%
+                        {\indexname}%
+                \thispagestyle{plain}\parindent\z@
+                \parskip\z@ \@plus .3\p@\relax
+                \let\item\@idxitem}
+%    \end{macrocode}
+%    When the document continues after the index and it was a one
+%    column document we have to switch back to one column after the
+%    index.
+%    \begin{macrocode}
+               {\end{fullpage}\if@restonecol\onecolumn\else\clearpage\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@idxitem}
+% \begin{macro}{\subitem}
+% \begin{macro}{\subsubitem}
+%    Thsee macros are used to format the entries in the index. ^^AA ???
+%    \begin{macrocode}
+\newcommand\@idxitem  {\par\hangindent 40\p@}
+\newcommand\subitem   {\par\hangindent 40\p@ \hspace*{20\p@}}
+\newcommand\subsubitem{\par\hangindent 40\p@ \hspace*{30\p@}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\indexspace}
+%    The amount of white space that is inserted between `letter
+%    blocks' in the index.
+%    \begin{macrocode}
+\newcommand\indexspace{\par \vskip 10\p@ \@plus5\p@ \@minus3\p@\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Footnotes}
+%
+% \begin{macro}{\footnoterule}
+%    Usually, footnotes are separated from the main body of the text
+%    by a small rule. This rule is drawn by the macro |\footnoterule|.
+%    We have to make sure that the rule takes no vertical space (see
+%    \file{plain.tex}) so we compensate for the natural heigth of the
+%    rule of 0.4pt by adding the right amount of vertical skip.
+%
+%    To prevent the rule from colliding with the footnote we first add
+%    a little negative vertical skip, then we put the rule and make
+%    sure we end up at the same point where we begun this operation.
+%    \begin{macrocode}
+\renewcommand\footnoterule{%
+  \kern-3\p@
+  \hrule width .4\columnwidth
+  \kern 2.6\p@}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\c@footnote}
+%    Footnotes are numbered within chapters in the report and book
+%    document styles.
+%    \begin{macrocode}
+% \newcounter{footnote}
+%<+refrep>\@addtoreset{footnote}{chapter}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@makefntext}
+%    The footnote mechanism of \LaTeX{} calls the macro |\@makefntext|
+%    to produce the actual footnote. The macro gets the text of the
+%    footnote as its argument and should use |\@thefnmark| as the mark
+%    of the footnote. The macro |\@makefntext|is called when
+%    effectively inside a |\parbox| of width |\columnwidth| (i.e.,
+%    with |\hsize| = |\columnwidth|).
+%
+%   An example of what can be achieved is given by the following piece
+%   of \TeX\ code.
+% \begin{verbatim}
+%          \long\def\@makefntext#1{%
+%             \@setpar{\@@par
+%                      \@tempdima = \hsize
+%                      \advance\@tempdima-10\p@
+%                      \parshape \@ne 10\p@ \@tempdima}%
+%             \par
+%             \parindent 1em\noindent
+%             \hbox to \z@{\hss$\m@th^{\@thefnmark}$}#1}
+% \end{verbatim}
+%    The effect of this definition is that all lines of the footnote
+%    are indented by 10pt, while the first line of a new paragraph is
+%    indented by 1em. To change these dimensions, just substitute the
+%    desired value for `10pt' (in both places) or `1em'.  The mark is
+%    flushright against the footnote.
+%
+%    In these document classes we use a simpler macro, in which the
+%    footnote text is set like an ordinary text paragraph, with no
+%    indentation except on the first line of a paragraph, and the
+%    first line of the footnote. Thus, all the macro must do is set
+%    |\parindent| to the appropriate value for succeeding paragraphs
+%    and put the proper indentation before the mark.
+%
+%    \begin{macrocode}
+\long\def\@makefntext#1{%
+    \@setpar{\@@par
+            \@tempdima = \hsize
+            \advance\@tempdima -1em
+            \parshape \@ne 1em \@tempdima}%
+    \par
+    \parindent 1em \noindent
+    \hbox to \z@{\hss\@makefnmark}#1}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@makefnmark}
+%    The footnote markers that are printed in the text to point to the
+%    footnotes should be produced by the macro |\@makefnmark|. We use
+%    the default definition for it.
+%    \begin{macrocode}
+%\def\@makefnmark{\hbox{$^{\@thefnmark}\m@th$}}
+%    \end{macrocode}
+% \end{macro}
+%
+%  \section{New commands}
+%
+%    \begin{macro}{\@addmarginpar}
+%   Redefine the |\@addmarginpar| command to only use the left
+%   margin.
+%
+%    \begin{macrocode}
+\def\@addmarginpar{\@next\@marbox\@currlist{\@cons\@freelist\@marbox
+    \@cons\@freelist\@currbox}\@latexbug\@tempcnta\@ne
+    \if@twocolumn
+     (  \if@firstcolumn \@tempcnta\m@ne \fi
+    \else
+         \@tempcnta\m@ne
+    \fi
+    \ifnum\@tempcnta <\z@  \global\setbox\@marbox\box\@currbox \fi
+    \@tempdima\@mparbottom
+    \advance\@tempdima -\@pageht
+    \advance\@tempdima\ht\@marbox
+    \ifdim\@tempdima >\z@
+      \@@warning{Marginpar on page \thepage\space moved}%
+    \else
+      \@tempdima\z@
+    \fi
+    \global\@mparbottom\@pageht
+    \global\advance\@mparbottom\@tempdima
+    \global\advance\@mparbottom\dp\@marbox
+    \global\advance\@mparbottom\marginparpush
+    \advance\@tempdima -\ht\@marbox
+    \global\setbox \@marbox
+                   \vbox {\vskip \@tempdima \box \@marbox}%
+    \global \ht\@marbox \z@
+    \global \dp\@marbox \z@
+    \kern -\@pagedp
+    \nointerlineskip
+    \hbox to\columnwidth
+      {\ifnum \@tempcnta >\z@
+          \hskip\columnwidth \hskip\marginparsep
+       \else
+          \hskip -\marginparsep \hskip -\marginparwidth
+       \fi
+       \box\@marbox \hss}%
+    \nointerlineskip
+    \hbox{\vrule \@height\z@ \@width\z@ \@depth\@pagedp}}
+%    \end{macrocode}
+%   \end{macro}
+%
+%   \subsection{Margin commands}
+%
+%   \begin{macro}{\marginlable}
+%   \begin{macro}{\attention}
+%   \begin{macro}{\seealso}
+%
+%   This defines three commands to put information in the margin:
+%   |\marginlabel| buts the argument into a flushright marginpar,
+%   |\attention| puts !$\rightarrow$ to the left of the text to mark
+%   an important piece of text and |\seealso| puts a $\rightarrow$ to
+%   the left oft the margin to mark a reference within the text.
+%
+%    \begin{macrocode}
+\def\marginlabel#1{\mbox{}\marginpar{\raggedleft #1}\ignorespaces}
+\def\attention{\mbox{}\marginpar{\raggedleft \large\bfseries ! 
+               $\rightarrow$}}
+\def\seealso#1{\mbox{}\marginpar{\small $\rightarrow$ #1}\ignorespaces}
+%    \end{macrocode} 
+%   \end{macro}
+%   \end{macro}
+%   \end{macro}
+%
+%   \subsection{Rules}
+%
+%   \begin{macro}{\longrule}
+%   \begin{macro}{\longthickrule}
+%
+%   These rules are used in several places, like the title, new
+%   parts and chapters and for maxi and fullpages.
+%    \begin{macrocode}
+\def\longrule{\par\hbox to \linewidth{\hss
+              \vrule width \fullwidth height 0.4\p@ depth \z@}\par}
+\def\longthickrule{\par\hbox to \linewidth{\hss
+              \vrule width \fullwidth height 1.0\p@ depth \z@}\par}
+%    \end{macrocode}
+%   \end{macro}
+%   \end{macro}
+%
+%   \subsection{Pages}
+%
+%   \begin{macro}{\maxipage}
+%   \begin{macro}{\fullpage}
+%
+%   The |\maxipage| is a minipage which uses the full width of
+%   the page with optional rules on the top and bottom. A maxipage
+%   can not split over pages. You can use it for wide tables, long
+%   math equations and the like. It can be used in floats.
+%
+%   The |\fullpage| changes the page layout such that normal text
+%   and all environments use the full width of the page. This will
+%   be used in the index. (Not implemented yet!)
+%
+%    \begin{macrocode}
+\newenvironment{maxipage}{\par
+              \mbox{}\kern-\leftmarginwidth %\kern-\@totalleftmargin
+              \begin{minipage}{\fullwidth}
+                \medskip \ifmaxipagerule \hrule\medskip \fi
+                \parskip = 0.5\baselineskip
+                \def\marginpar{%
+%<+refart>                \ClassError{Refart}
+%<+refrep>                \ClassError{Refrep}
+                {Marginpar not allowed within Maxipage.}
+                {Where should I put them?\MessageBreak
+                 I'm using the full pagewidth.}}}
+              {\par \vskip\parskip
+                 \medskip \ifmaxipagerule \hrule\medskip \fi
+               \end{minipage}\par}
+\newenvironment{fullpage}{%
+              \textwidth=\fullwidth
+              \addtolength\oddsidemargin  {-\leftmarginwidth}
+              \setlength\evensidemargin{\oddsidemargin}              
+              \linewidth=\fullwidth
+              \columnwidth=\fullwidth
+              \clearpage
+              \def\marginpar{%
+%<+refart>                \ClassError{Refart}
+%<+refrep>                \ClassError{Refrep}
+                {Marginpar not allowed within Fullpage.}
+                {Where should I put them? I'm already\MessageBreak
+                 using the whole page for text.}}}
+              {\clearpage}
+%    \end{macrocode}
+%   \end{macro}
+%   \end{macro}
+%
+%   \subsection{Miscellaneous}
+%
+%   \begin{macro}{\condbreak}
+%   \begin{macro}{\noparskip}
+%    The |\condbreak{length}| controls pagebreaks:
+%    If less then length is left on this page it will be moved
+%    to the next page. Thus it will remain together, either on
+%    this page or on the next.
+%
+%    |\noparskip| removes the vertical parskip like |\noindent|
+%    removes the parindent.
+%    \begin{macrocode}
+\def\condbreak#1{@vskip \z@ plus #1\pagebreak[3]\vskip \z@ plus -#1\relax}
+\def\noparskip{\vskip-\parskip}
+%    \end{macrocode}
+%   \end{macro}
+%   \end{macro}
+%
+%   \begin{macro}{\REF@twocolumn}
+%   \begin{macro}{\twocolumn}
+%     Since this layout does not support |\twocolumn| the
+%     command is disabled but saved in |\REF@twocolumn|. The
+%     saved version will be used in the index. This is still
+%     experimental! Don't rely on it in future releases.
+%    \begin{macrocode}
+\let\REF@twocolumn\twocolumn
+\def\twocolumn{%
+%<+refart>\ClassError{Refart}
+%<+refrep>\ClassError{Refrep}
+{Sorry, there is no twocolumn layout in this class}
+{Can you imagine how twocolumn layout will look?\MessageBreak
+ That's why!}}
+%    \end{macrocode}
+%   \end{macro}
+%   \end{macro}
+%
+%   \subsection{Obsolete commands}
+%
+%   Well, these comands are not really obsolete, but they are not
+%   implemented in this version and will not be implemented later
+%   unless there is popular demand.
+%
+%   |\makeauthor|: The author is printed when |\maketitel| is
+%   executed thus there is no need for this command.
+%
+%   |\setleftmarginwidth| has been used in version 1.1 to
+%   change the horizontal layout. I would prefer to set the
+%   |leftmarginfraction| instead but I'm still open to
+%   suggestions from users.
+%
+%   \subsection{Future commands}
+%
+%   The following commands are not yet implemented but sound
+%   like a good idea.
+%
+%   \begin{macro}{\pagebychapter}
+%    This gives you a pagecount per chapter like 1-1, 1-2, 2-1.
+%    Since this is often requested and would be usefull in a
+%    reference manual style. |\pageperchapter| is only supported
+%    in refrep.cls
+%    \begin{macrocode}
+%<+refrep>\newif\if@pageperchapter \@pageperchapterfalse
+%<+refrep>\newcommand{\pageperchapter}
+%<+refrep>    {\@pageperchaptertrue
+%<+refrep>     \renewcommand\@pnumwidth{2.55em}
+%<+refrep>     \@openrighttrue
+%<+refrep>     \renewcommand\thepage{%
+%<+refrep>       \ifnum \c@chapter = \z@
+%<+refrep>          \arabic{page}
+%<+refrep>       \else
+%<+refrep>          \arabic{chapter} -- \arabic{page}
+%<+refrep>       \fi
+%<+refrep>       }
+%<+refrep>     }
+%    \end{macrocode}
+
+%   \end{macro}
+%
+%   \begin{macro}{\leftmarginfraction}
+%   This provides an interface to change the horizontal layout.
+%   In this version the margin is set to 0.3 |fullwidth|, this
+%   may change in future versions.
+%
+%   \end{macro}
+%
+%
+% \section{Initialization}
+%
+% \subsection{Words}
+%
+% \begin{macro}{\contentsname}
+% \begin{macro}{\listfigurename}
+% \begin{macro}{\listtablename}
+% \begin{macro}{\refname}
+% \begin{macro}{\bibname}
+% \begin{macro}{\indexname}
+% \begin{macro}{\figurename}
+% \begin{macro}{\tablename}
+% \begin{macro}{\partname}
+% \begin{macro}{\chaptername}
+% \begin{macro}{\appendixname}
+% \begin{macro}{\abstractname}
+% This document class is for documents prepared in the English language.
+% To prepare a version for another language, various English words must
+% be replaced.  All the English words that require replacement are
+% defined below in command names.
+%
+%    \begin{macrocode}
+\newcommand\contentsname{Contents}
+\newcommand\listfigurename{List of Figures}
+\newcommand\listtablename{List of Tables}
+%<+refart>\newcommand\refname{References}
+%<+refrep>\newcommand\bibname{Bibliography}
+\newcommand\indexname{Index}
+\newcommand\figurename{Figure}
+\newcommand\tablename{Table}
+\newcommand\partname{Part}
+%<+refrep>\newcommand\chaptername{Chapter}
+\newcommand\appendixname{Appendix}
+\newcommand\abstractname{Abstract}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+% \subsection{Date}
+%
+% \begin{macro}{\today}
+%    This macro uses the \TeX\ primitives |\month|, |\day| and |\year|
+%    to provide the date of the \LaTeX-run.
+%    \begin{macrocode}
+\newcommand\today{\ifcase\month\or
+  January\or February\or March\or April\or May\or June\or
+  July\or August\or September\or October\or November\or December\fi
+  \space\number\day, \number\year}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Two column mode}
+%
+% \begin{macro}{\columnsep}
+%    This gives the distance between two columns in two column mode.
+%    \begin{macrocode}
+\setlength\columnsep{10\p@}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\columnseprule}
+%    This gives the width of the rule between two columns in two
+%    column mode. We have no visible rule.
+%    \begin{macrocode}
+\setlength\columnseprule{0\p@}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{The page style}
+%    We have \pstyle{plain} pages in the document classes refart
+%    and refrep unless the user specified otherwise.
+%    We use arabic pagenumbers.
+%    \begin{macrocode}
+\pagestyle{plain}
+\pagenumbering{arabic}      % Arabic page numbers
+%    \end{macrocode}
+%
+% \subsection{Single or double sided printing}
+%
+%    When the \Lopt{twoside} option was specified, we don't try to
+%    make each page as long as all the others.
+%    \begin{macrocode}
+\if@twoside
+\else
+  \raggedbottom
+\fi
+%    \end{macrocode}
+%    When the \Lopt{twocolumn} option was specified we call
+%    |\twocolumn| to activate this mode. We try to make each column as
+%    long as the others, but call |sloppy| to make our life easier.
+%    \begin{macrocode}
+\if@twocolumn
+  \twocolumn
+  \sloppy
+  \flushbottom
+%    \end{macrocode}
+%    Normally we call |\onecolumn| to initiate typesetting in one
+%    column.
+%    \begin{macrocode}
+\else
+  \onecolumn
+\fi
+%</refart|refrep>
+%    \end{macrocode}
+%
+% \Finale
+%
+\endinput

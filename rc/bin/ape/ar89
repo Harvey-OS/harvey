@@ -1,5 +1,5 @@
 #!/bin/rc
-ifs='' eval `{getflags cdprtxuv $*}
+ifs='' eval `{aux/getflags cdprtxuv $*}
 
 key=''
 if (~ $#FLAGc 1) key=$key^c

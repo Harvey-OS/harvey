@@ -1,0 +1,318 @@
+\def\fileversion{2.6}
+\def\filedate{95/01/06}
+\def\docdate {95/01/06}
+%
+% \iffalse
+%% File: rotating.dtx Copyright (C) 1994 Sebastian Rahtz and Leonor Barroca
+% A package to provide a rotation environment, and
+% rotating floats and captions
+% 
+%  This package is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%
+%<*driver>
+\documentclass{ltxdoc}
+\begin{document}
+ \title{A style option for rotated objects in \LaTeX\thanks{This file
+        has version number \fileversion, last
+        revised \filedate.}}
+ \author{Sebastian Rahtz \and Leonor Barroca}
+ \author{Leonor Barroca}
+ \date{\filedate}
+ \maketitle
+ \tableofcontents
+ \listoffigures
+ \listoftables
+ \DocInput{rotating.dtx}
+\end{document}
+%</driver>
+% \fi
+% \CheckSum{280}
+% \begin{abstract}
+% This article documents a \LaTeX\ package, `rotating.sty',
+% which perform all the different sorts of
+% rotation one might like, including complete figures.
+% \end{abstract}
+% \section{History}
+%
+% Version 2.0 is a complete re-write, with most of the work now
+% being done by the \LaTeXe\ graphics package.
+%
+% Version 2.1 provides a `clockwise' option to reinstate the behaviour
+% described in the `\LaTeX\ Companion'
+%
+% Version 2.2 just intercepts the standard float macros instead
+% of copying and changing the. The `twoside' option is obeyed.
+%
+% Version 2.5 corrects problems in sideways figures.
+%
+% Version 2.6 is a rewrite of the sideways floats via Frank Mittelbach
+% (to whom many thanks for lookingat the  mangy code).
+%
+% Version 2.7 is checked for \LaTeX\ of December 94, and adds the option
+% of twoside behaviour independent of the general twoside.
+% \section{Usage} 
+% This style option provides three \LaTeX\ environments:
+% \begin{description}
+% \item[sideways] prints the contents turned through 90 degrees
+%      counterclockwise
+% \item[turn] prints the contents turned through an arbitrary angle
+% \item[rotate] prints the contents turned through an arbitrary angle
+%      but does \emph{not} leave any space for the result
+% \end{description}
+% A full set of examples are given in the file |examples.tex|
+% Now we present the documented code.
+% \section{Setup}
+% \StopEventually{}
+%    \begin{macrocode}
+%<*package>
+\ProvidesPackage{rotating}[\filedate\space\fileversion\space Rotation package]
+\NeedsTeXFormat{LaTeX2e}
+\newif\if@rot@twoside
+\DeclareOption{clockwise}{% this is for compatibility
+ \AtBeginDocument{\setkeys{Grot}{units=360}}%
+}
+\DeclareOption{counterclockwise}{%
+ \AtBeginDocument{\setkeys{Grot}{units=-360}}%
+}
+%    \end{macrocode}
+% Sideways figures and tables always take up the whole page. They can be
+% rotated so that the bottom ot the figures is on the left or the right;
+% the default is to always turn to the right. If the `twoside' option
+% has been given to the main document class, this package then starts
+% rotating sideways figures according to the page number (this requires
+% two passes through \LaTeX{} at least). If you want the `twoside'
+% option, but want the figures always in one direction, use the
+% `figuresright' or `riguresleft' options to `rotating'.
+%    \begin{macrocode}
+\DeclareOption{figuresleft}{%
+  \@rot@twosidefalse 
+  \def\rot@LR{0}%
+}
+\DeclareOption{figuresright}{%
+ \@rot@twosidefalse 
+ \def\rot@LR{-1}%
+}
+\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{graphics}}
+\PassOptionsToPackage{dvips}{graphics}
+\ExecuteOptions{clockwise}
+\if@twoside 
+  \@rot@twosidetrue
+\else
+  \@rot@twosidefalse
+\fi
+\def\rot@LR{-1}
+\ProcessOptions
+\RequirePackage{graphicx}
+\RequirePackage{ifthen}
+\def\rotdriver#1{\makeatletter\input{#1.def}\makeatother}
+\newcount\r@tfl@t
+\r@tfl@t0
+%    \end{macrocode}
+% \section{Turning and rotation environments}
+% \begin{macro}{sideways}
+% Environment to turn the contents through 90 degrees.
+%    \begin{macrocode}
+\def\sideways{%
+  \Grot@setangle{90}%
+  \setbox\z@\hbox\bgroup\ignorespaces}
+\def\endsideways{%
+  \unskip\egroup
+  \Grot@x\z@
+  \Grot@y\z@
+  \Grot@box
+}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{turn}
+% Rotate the contents of the environment, leaving the appropriate space
+%    \begin{macrocode}
+\def\turn#1{%
+  \Grot@setangle{#1}%
+  \setbox\z@\hbox\bgroup\ignorespaces}
+\def\endturn{%
+  \unskip\egroup
+  \Grot@x\z@
+  \Grot@y\z@
+  \Grot@box
+}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{rotate}
+% Rotate the contents of the environment, leaving \emph{no space}.
+%    \begin{macrocode}
+\def\rotate#1{%
+  \Grot@setangle{#1}%
+  \setbox\z@\hbox\bgroup\ignorespaces}
+\def\endrotate{%
+  \unskip\egroup
+  \Grot@x\z@
+  \Grot@y\z@
+  \wd0\z@\dp0\z@\ht0\z@
+  \Grot@box
+}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\turnbox}
+% A macro version of the `rotate' environment. 
+%    \begin{macrocode}
+\def\turnbox#1#2{%
+  \Grot@setangle{#1}%
+  \setbox\z@\hbox{{#2}}%
+  \Grot@x\z@\Grot@y\z@
+  \wd0\z@\dp0\z@\ht0\z@
+  \Grot@box
+}
+%    \end{macrocode}
+% \end{macro}
+% \section{Sideways figures and tables}
+% Now for the macros to provide a complete
+% environment for sideways figures and tables.
+% We define two environments |sidewaysfigure| and 
+% |sidewaystable| that
+% fit in with the normal table and figure floats. These are `fixed'
+% environments that  just do 90 degree rotation, but it would be easy
+% to parameterize this to do other rotations if needed (the mind
+% boggles\ldots)
+% 
+% First a generalised `rotfloat' environment. We need to intercept
+% \LaTeX's float macros, in order to change the assumed width of a
+% float being |\columnwidth|. We want it to work on a width of
+% |\textheight| so that when we rotate the float, it comes out
+% the right height. This is not actually very satisfactory, since what
+% we \emph{really} want is for rotated floats to occupy the space they
+% actually \emph{use}. The captions are a problem --- since they can
+% precede the figure or table, we cannot set them in a box of the
+% right width (ie the \emph{height} of the forthcoming object), because
+% it has not happened yet. The result of these difficulties is that
+% rotated figures  always end up as full page figures.
+%    \begin{macrocode}
+\newsavebox\rot@float@box
+\def\@rotfloat#1{%
+  \@ifnextchar[%
+    {\@xrotfloat{#1}}%
+    {\edef\@tempa{\noexpand\@xrotfloat{#1}[\csname fps@#1\endcsname]}\@tempa}%
+}
+\def\@xrotfloat#1[#2]{%
+  \@float{#1}[#2]%
+%    \end{macrocode}
+% Set the float contents in
+% a box of |\textheight| instead of |\columnwidth|. 
+%    \begin{macrocode}
+  \begin{lrbox}\rot@float@box
+  \begin{minipage}\textheight
+ }
+%    \end{macrocode}
+% We call the |\end@float| macro having previously rotated
+% the box |\@currbox|
+% The rotation is either clockwise or
+% anti-clockwise, depending on whether the page is odd or even;
+% in oneside mode it is always odd.
+%    \begin{macrocode}
+\def\end@rotfloat{%
+%    \end{macrocode}
+% If we are going to know whether pages are odd or even, 
+% we need to use the |\pageref| mechanism, and labels. But
+% Labels won't work \emph{unless} the user has put in a
+% caption. Beware!
+%    \begin{macrocode}
+   \end{minipage}\end{lrbox}%
+   \global\advance\r@tfl@t by 1
+   \label{RF\the\r@tfl@t}%
+   \message{Adding sideways figure on }%
+   \def\R@@page{\pageref{RF\the\r@tfl@t}}%
+   \wd\rot@float@box\z@
+   \ht\rot@float@box\z@
+   \dp\rot@float@box\z@
+   \vbox to \textheight{%
+%    \end{macrocode}
+% We need to know for sure which direction rotation is going to
+% be in, so locally reset the graphics units.
+%    \begin{macrocode}
+    \setkeys{Grot}{units=360}%
+    \if@rot@twoside
+      \def\R@@page{\pageref{RF\the\r@tfl@t}}%
+    \else
+      \let\R@@page\rot@LR
+    \fi 
+    \ifthenelse{\isodd{\R@@page}}{% 
+    \message{right hand page}%
+    \vfill 
+    \centerline{\rotatebox{90}{\box\rot@float@box}}%
+         }{% 
+    \message{left hand page}% 
+    \centerline{\rotatebox{-90}{\box\rot@float@box}}%
+     \vfill
+         }% 
+ }% 
+   \end@float
+}
+%    \end{macrocode}
+% The following definitions set up two environments, 
+% \texttt{sidewaystable} and \texttt{sidewaysfigure}, which uses this
+% type of float. Naturally, users may need to change these to suit
+% their local style. Both contribute to the normal lists of figures
+% and tables.
+%    \begin{macrocode}
+\def\sidewaysfigure{\let\make@caption\make@rcaption
+\@rotfloat{figure}}
+%
+\let\endsidewaysfigure\end@rotfloat
+%
+\def\sidewaystable{\let\make@caption\make@rcaption
+\@rotfloat{table}}
+\let\endsidewaystable\end@rotfloat
+%    \end{macrocode}
+%We need to copy a standard
+%|\@makecaption| to set the caption on a width of the \emph{height}
+%of the float (ie the text height). This macro is normally defined in
+%\LaTeX\ style files, so style file writers who change that will also
+%need to redefine |\r@caption|.
+%    \begin{macrocode}
+\long\def\@makercaption#1#2{%
+   \vskip 10\p@
+   \setbox\@tempboxa\hbox{#1: #2}%
+   \ifdim \wd\@tempboxa >\vsize
+       #1: #2\par
+     \else
+       \hbox to\vsize{\hfil\box\@tempboxa\hfil}%
+   \fi}%
+%    \end{macrocode}
+%\subsection{Rotated captions only}
+% Sometimes you may find that the rotation of complete figures does
+% not give quite the right result, since they always take up the whole
+% page. You may prefer to rotate the caption and the float contents
+% separately within a conventional figure. Here we offer a suggestion
+% for a |\rotcaption| command, which inserts the caption rotated
+% by 90 degrees. It is essentially a copy of the normal captioning
+% code.
+% Styles which define the |\@makecaption| command may also need
+% to define |\@makerotcaption|.
+%    \begin{macrocode}
+\def\rotcaption{\refstepcounter\@captype\@dblarg{\@rotcaption\@captype}}
+\long\def\@rotcaption#1[#2]#3{%
+\addcontentsline{\csname ext@#1\endcsname}{#1}{%
+ \protect\numberline{\csname the#1\endcsname}{\ignorespaces #2}}%
+  \par
+  \begingroup
+    \@parboxrestore
+    \normalsize
+    \@makerotcaption{\csname fnum@#1\endcsname}{#3}%
+  \endgroup}
+\long\def\@makerotcaption#1#2{%
+ \setbox\@tempboxa\hbox{#1: #2}%
+ \ifdim \wd\@tempboxa > .8\vsize
+    \rotatebox{90}{%
+    \begin{minipage}{.8\textheight}#1 #2\end{minipage}%
+    }\par
+ \else%
+    \rotatebox{90}{\box\@tempboxa}%
+ \fi
+ \hspace{12pt}%
+}
+%    \end{macrocode}
+%</package>
+% \Finale
+\endinput
+%

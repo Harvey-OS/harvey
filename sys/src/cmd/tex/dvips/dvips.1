@@ -1,0 +1,405 @@
+.TH DVIPS 1 "13 February 1992" TeXware
+.SH NAME
+dvips \- convert a TeX DVI file to PostScript
+.SH SYNOPSIS
+.B dvips
+[
+.I options
+]
+.IR file [.dvi]
+.br
+.SH DESCRIPTION
+The program
+.B dvips
+takes a DVI file
+.IR file [.dvi]
+produced by TeX (or by some other processor such as GFtoDVI)
+and converts it to PostScript, normally
+sending the result directly to the laserprinter.
+The DVI file may be specified without the
+.I .dvi
+extension.
+Fonts used may either be resident in the printer or defined as bitmaps
+in PK files, or a `virtual' combination of both.
+If the
+.B MakeTeXPK
+program is installed,
+.B dvips
+will automatically invoke METAFONT to generate fonts that don't already exist.
+.PP
+For more information, see the manual 
+.I dvips.tex 
+in the TEXINPUTS directory.  
+The manual can be printed with the following commands:
+.EX 4
+.IP
+tex dvips
+.br
+dvips dvips -o dvips.ps
+.br
+lpr dvips.ps
+.LP
+.EE
+.SH OPTIONS
+.TP
+.B -a
+Conserve memory by making three passes over the .dvi file
+instead of two and only loading those characters actually used.
+Generally only useful on machines with a very limited amount of
+memory, like some PCs.
+.TP
+.B -A
+Print only odd pages (TeX pages, not sequence pages).
+.TP
+.B -b num
+Generate
+.I num
+copies of each page, but duplicating the page body rather than using the
+.I #numcopies
+option.  This can be useful in conjunction with a header file setting
+.I char92bop-hook
+to do color separations or other neat tricks.
+.TP
+.B -B
+Print only even pages (TeX pages, not sequence pages).
+.TP
+.B -c num
+Generate
+.I num
+copies of every page.  Default is 1.
+(For collated copies, see the
+.I -C
+option below.)
+.TP
+.B -C num
+Create
+.I num 
+copies, but collated (by replicating the data in the PostScript file).
+Slower than the
+.I -c
+option, but easier on the hands, and faster than resubmitting the same
+PostScript file multiple times.
+.TP
+.B -d num
+Set the debug flags.  This is intended only for emergencies or for unusual
+fact-finding expeditions; it will work only if
+.I dvips
+has been compiled with the DEBUG option.
+For more information on possible values see section 15 of
+.I dvips.tex.
+.TP
+.B -D num
+Set the resolution in dpi (dots per inch) to
+.I num.
+This affects the choice of bitmap fonts that are loaded and also the positioning
+of letters in resident PostScript fonts. Must be between 10 and 10000.
+This affects both the horizontal and vertical resolution.  If a high resolution
+(something greater than 400 dpi, say) is selected, the
+.I -Z
+flag should probably also be used.
+.TP
+.B -e num
+Make sure that each character is placed at most this many pixels from its
+`true' resolution-independent position on the page. The default value of this
+parameter is resolution dependent.  Allowing individual characters to `drift'
+from their correctly rounded positions by a few pixels, while regaining the
+true position at the beginning of each new word, improves the spacing of
+letters in words.
+.TP
+.B -E
+makes
+.I dvips
+attempt to generate an EPSF file with a tight bounding box.
+This only works on one-page files, and it only looks at marks made
+by characters and rules, not by any included graphics.  In addition, it
+gets the glyph metrics from the
+.I tfm
+file, so characters that lie outside their enclosing
+.I tfm
+box may confuse it.  In addition,
+the bounding box might be a bit too loose if the character glyph has
+significant left or right side bearings.  Nonetheless, this option works
+well for creating small EPSF files for equations or tables or the like.
+(Note, of course, that
+.I dvips
+output is resolution dependent and
+thus does not make very good EPSF files, especially if the images are
+to be scaled; use these EPSF files with a great deal of care.)
+.TP
+.B -f
+Read the
+.I .dvi
+file from standard input and write the PostScript to
+standard output.  The standard input must be seekable, so it cannot
+be a pipe.  If you must use a pipe, write a shell script that copies
+the pipe output to a temporary file and then points
+.I dvips
+at this file.  This option also disables the automatic reading of the
+.I PRINTER
+environment variable, and turns off the automatic sending of control D
+if it was turned on with the
+.I -F
+option or in the configuration file; use
+.I -F
+after this option if you want both.
+.TP
+.B -F
+Causes Control-D (ASCII code 4) to be appended as the very last character
+of the PostScript file.  This is useful when
+.I dvips
+is driving the printer directly instead of working through a spooler,
+as is common on extremely small systems.  NOTE! DO NOT USE THIS OPTION!
+.TP
+.B -h name
+Prepend file
+.I name
+as an additional header file. (However, if the name is simply `-' suppress all
+header files from the output.)  This header file gets added to the PostScript
+.I userdict.
+.TP
+.B -i
+Make each section be a separate file.  Under certain circumstances,
+.I dvips
+will split the document up into `sections' to be processed independently;
+this is most often done for memory reasons.  Using this option tells
+.I dvips
+to place each section into a separate file; the new file names are created
+replacing the suffix of the supplied output file name by a three-digit sequence
+number.  This option is most often used in conjunction with the
+.I -S
+option which sets the maximum section length in pages.
+For instance, some phototypesetters cannot print more than
+ten or so consecutive pages before running out of steam; these options
+can be used to automatically split a book into ten-page sections, each
+to its own file.
+.TP
+.B -k
+Print crop marks.  This option increases the paper size (which should be
+specified, either with a paper size special or with the
+.I -T
+option) by a half inch in each dimension.  It
+translates each page by a quarter inch and draws cross-style
+crop marks.  It is mostly useful with typesetters that can set
+the page size automatically.
+.TP
+.B -K
+This option causes comments in included PostScript graphics, font files,
+and headers to be removed.  This is sometimes necessary to get around bugs
+in spoolers or PostScript post-processing programs.  Specifically, the
+%%Page comments,  when left in, often cause difficulties.
+Use of this flag can cause some included graphics to fail, since the
+PostScript header macros from some software packages read portions of
+the input stream line by line, searching for a particular comment.
+This option has been turned off by default because PostScript previewers
+and spoolers have been getting better.
+.TP
+.B -l num
+The last page printed will be the first one numbered
+.I num
+Default is the last page in the document.  If the
+.I num
+is prefixed by an equals sign, then it (and any argument to the
+.I -p
+option) is treated as a sequence number, rather than a value to compare with
+.I char92 count0
+values.  Thus, using
+.I -l =9
+will end with the ninth page of the document,
+no matter what the pages are actually numbered.
+.TP
+.B -m
+Specify manual feed for printer.
+.TP
+.B -M
+Turns off the automatic font generation facility.  If any fonts are
+missing, commands to generate the fonts are appended to the file
+.I missfont.log
+in the current directory; this file can then be
+executed and deleted to create the missing fonts.
+.TP
+.B -n num
+At most
+.I num
+pages will be printed. Default is 100000.
+.TP
+.B -N
+Turns off structured comments; this might be necessary on some systems
+that try to interpret PostScript comments in weird ways, or on some
+PostScript printers.  Old versions of TranScript in particular cannot
+handle modern Encapsulated PostScript.
+.TP
+.B -o name
+The output will be sent to file
+.I name
+If no file name is given, the default name is
+.I file.ps
+where the .dvi file was called
+.I file.dvi;
+if this option isn't given, any default in the configuration file is used.
+If the first character of the supplied output file name is an
+exclamation mark, then the remainder will be used as an argument to
+.I popen;
+thus, specifying
+.I !lpr
+as the output file will automatically queue the file for printing.
+This option also disables the automatic reading of the
+.I PRINTER
+environment variable, and turns off the automatic sending of control D
+if it was turned on with the
+.I -F
+option or in the configuration file; use
+.I -F
+after this option if you want both.
+.TP
+.B -O offset
+Move the origin by a certain amount.  The
+.I offset
+is a comma-separated pair of dimensions, such as
+.I .1in,-.3cm
+(in the same syntax used in the
+.I papersize
+special).  The origin of the page is shifted from the
+default position (of one inch down, one inch to the right from the upper
+left corner of the paper) by this amount.
+.TP
+.B -p num
+The first page printed will be the first one numbered
+.I num.
+Default is the first page in the document.  If the
+.I num
+is prefixed by an equals sign, then it (and any argument to the
+.I -l
+option) is treated as a sequence number, rather than a value to compare with
+.I char92 count0
+values.  Thus, using
+.I -p =3
+will start with the third page of the document, no matter what the pages are
+actually numbered.
+.TP
+.B -pp pagelist
+A comma-separated list of pages and ranges (a-b) may be given, which
+will be interpreted as 
+.I char92 count0
+values.  Pages not specified will not be printed.  Multiple 
+.B -pp
+options may be specified or all pages and page ranges can be 
+specified with one
+.B -pp
+option.
+.TP
+.B -P printername
+Sets up the output for the appropriate printer.  This is implemented
+by reading in
+.I config.printername
+, which can then set the output pipe (as in,
+.I !lpr -Pprintername
+as well as the font paths and any other
+.I config.ps
+defaults for that printer only.  Note that
+.I config.ps
+is read before
+.I config.printername
+In addition, another file called
+.I ~/.dvipsrc
+is searched for immediately after
+.I config.ps;
+this file is intended for user defaults.  If no
+.I -P
+command is given, the environment variable
+.I PRINTER
+is checked.  If that variable exists, and a corresponding configuration
+file exists, that configuration file is read in.
+.TP
+.B -q
+Run in quiet mode.  Don't chatter about pages converted, etc.; report nothing
+but errors to standard error.
+.TP
+.B -r
+Stack pages in reverse order.  Normally, page 1 will be printed first.
+.TP
+.B -s
+Causes the entire global output to be enclosed in a save/restore pair.
+This causes the file to not be truly conformant, and is thus not recommended,
+but is useful if you are driving the printer directly and don't care too
+much about the portability of the output.
+.TP
+.B -S num
+Set the maximum number of pages in each `section'.  This option is most
+commonly used with the
+.I -i
+option; see that documentation above for more information.
+.TP
+.B -t papertype
+This sets the paper type to
+.I papertype.
+The
+.I papertype should be defined in one of the configuration files, along with
+the appropriate code to select it.
+(Currently known types include
+.I letter,
+.I legal,
+.I ledger,
+.I a4,
+.I a3,
+) You can also specify
+.I -t landscape,
+which rotates a document by 90 degrees.  To rotate a document whose size is
+not letter, you can use the
+.I -t
+option twice, once for the page size, and once for landscape.
+The upper left corner of each page in the
+.I .dvi
+file is placed one inch from the left and one inch from the top.
+Use of this option is highly dependent on the configuration file.
+Note that executing the
+.I letter
+or
+.I a4
+or other PostScript operators cause the document to be nonconforming and can
+cause it not to print on certain printers, so the paper size should not execute
+such an operator if at all possible.
+.TP
+.B -T offset
+Set the paper size to the given pair of dimensions.  This option takes
+its arguments in the same style as
+.I -O.
+It overrides any paper size special in the dvi file.
+.TP
+.B -U
+Disable a PostScript virtual memory saving optimization that stores the
+character metric information in the same string that is used to store
+the bitmap information.  This is only necessary when driving the Xerox
+4045 PostScript interpreter.  It is caused by a bug in that interpreter
+that results in `garbage' on the bottom of each character.  Not
+recommended unless you must drive this printer.
+.TP
+.B -x num
+Set the magnification ratio to
+.I num
+/1000. Overrides the magnification specified in the .dvi file.
+Must be between 10 and 100000.
+.TP
+.B -X num
+Set the horizontal resolution in dots per inch to
+.I num.
+.TP
+.B -Y num
+Set the vertical resolution in dots per inch to
+.I num.
+.TP
+.B -Z
+Causes bitmapped fonts to be compressed before they are downloaded,
+thereby reducing the size of the PostScript font-downloading information.
+Especially useful at high resolutions or when very large fonts are
+used.  Will slow down printing somewhat, especially on early 68000-based
+PostScript printers.
+.SH "SEE ALSO"
+mf(1), afm2tfm(1), tex(1), latex(1), lpr(1), 
+.I dvips.tex.
+.SH DIAGNOSTICS
+.LP
+.SH NOTES
+PostScript is a registered trademark of Adobe Systems Incorporated.
+.SH AUTHOR
+Tomas Rokicki <rokicki@cs.stanford.edu>; extended to virtual fonts
+by Don Knuth.

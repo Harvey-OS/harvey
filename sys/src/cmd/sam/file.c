@@ -82,8 +82,8 @@ Fclose(File *f)
 {
 	if(f == lastfile)
 		lastfile = 0;
-	Bclose(f->buf);
-	Bclose(f->transcript);
+	Bterm(f->buf);
+	Bterm(f->transcript);
 	Strclose(&f->name);
 	Strclose(&f->cache);
 	if(f->rasp)

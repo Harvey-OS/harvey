@@ -14,7 +14,7 @@
 
 	MOVW	R0,R8
 	MOVW	R8,4(R1)
-	JMPL	exits(SB)
+	JMPL	terminate(SB)
 	RETURN
 /*
  *	Return R7 which at func entry contains 
@@ -42,10 +42,18 @@ done:	RETURN
  *	link to a coroutine
  */
 	TEXT	ALEF_linktask(SB),$-4
+	CMP	R0, R7
+	BE	nofree
+	SUB	$8, R1
+	MOVW	R7, 4(R1)
+	JMPL	free(SB)
+	ADD	$8, R1
+nofree:
 	MOVW	0(R1),R7
+	MOVW	R0, 0(R1)		/* terminate stack root for acid */
 	JMPL	(R7)
 	MOVW	R0,4(R1)
-	JMPL	exits(SB)
+	JMPL	terminate(SB)
 	RETURN
 
 	TEXT	abort(SB),$-4

@@ -1,0 +1,412 @@
+% \CheckSum{71}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%
+%
+% \changes{1.0} {1994/05/02}{initial version}
+% \changes{1.1} {1994/05/06}{changed assignments for bold series}
+% \changes{1.1a}{1994/05/10}{revised documentation}
+% \changes{1.1b}{1994/05/12}{revised documentation}
+% \changes{1.1c}{1994/05/16}{changed \cmd\MPS to \cmd\MP}
+% \changes{1.1d}{1994/05/18}{updated TTN reference}
+% \changes{1.2} {1994/05/21}{clean-up for public release}
+%
+%
+% \title{The \texttt{mflogo} Package for \LaTeXe}
+%
+% \author{Copyright (C) 1994 by Ulrik Vieth}
+%
+% \maketitle
+% ^^A\tableofcontents
+%
+% \def\file#1{\texttt{#1}}
+% \def\book#1{\textit{#1}}
+% \def\Lcs#1{\texttt{\bslash{}#1}}
+%
+% \def\NFSS{\textsf{NFSS}\@}
+% \def\DOCSTRIP{\textsc{Docstrip}\@}
+%
+%
+% \section{Introduction}
+%
+%    This contributed package for \LaTeXe{} provides the necessary
+%    font declarations needed to access the \file{logo} font family
+%    in terms of \NFSS.^^A
+%    \footnote{Throughout this document, the term \NFSS{} should be
+%       understood to refer to release~2 of \NFSS, i.e.~the release
+%       that's part of \LaTeXe{} and that's intended to become part
+%       of \LaTeX3 in the future.}
+%    It also provides a little example package file that shows how
+%    to define the \MF{} and \MP{} logos and some appropriate font
+%    changing commands in these terms.
+%
+%    Using this package, there should no longer be a need to define
+%    special macros for the slanted version of these logos, and
+%    it should be possible to avoid such errors as on page~2 of
+%    \book{The \LaTeX{} Companion} where the \MF{} logo appears
+%    in upright shape within an italics context of a book title.
+%
+%    \DescribeMacro{\logofamily}
+%    \DescribeMacro{\textlogo}
+%    Once you have installed the font definition file \file{Ulogo.fd}
+%    provided here, you can use low-level \NFSS{} commands to access
+%    the \file{logo} fonts in your documents, even if you do not plan
+%    to use the example package \file{mflogo.sty}. Apart from defining
+%    the \MF{} and \MP{} logos in terms of \NFSS, that package file 
+%    also provides a declarative font changing command |\logofamily| 
+%    and a font changing command |\textlogo| with one argument.
+%    Perhaps these font changing commands might prove to be useful
+%    for typesetting little ``teasers'' such as in TTN~3;2, page~28.
+%
+% \StopEventually{}
+%
+%
+% \section{The \DOCSTRIP{} modules}
+%
+%    The following \DOCSTRIP{} modules are used in this package:
+%    \begin{quote}
+%    \begin{tabular}{ll}
+%    |driver|      & produces the documentation driver\\
+%    |package|     & produces the example package file\\
+%    |Ulogo|       & produces the standard font definition file\\
+%    |Ulogo&local| & produces the extended font definition file\\
+%    |logosl9|     & produces a \MF{} source file\\
+%    |logosl8|     & produces a \MF{} source file
+%    \end{tabular}
+%    \end{quote}
+%
+%    \noindent
+%    Except for the documentation driver (and the \MF{} source files)
+%    every module intended for \TeX{} should contain the following
+%    information for identifcation purposes.
+%    \begin{macrocode}
+%<*package|Ulogo>
+\def\filename{mflogo.dtx}
+\def\filedate{1994/05/21}
+\def\fileversion{1.2}
+%</package|Ulogo>
+%    \end{macrocode}
+%
+%
+% \section[The \MF{} source files:
+%          \file{logosl9.mf} and \file{logosl8.mf}]
+%         {The \MF{} source files:\\
+%          \file{logosl9.mf} and \file{logosl8.mf}}
+%
+%    In this package, we assume that your \TeX{} distribution includes
+%    the \MF{} source files for the \file{logo} font family, available 
+%    from the directory \file{/systems/knuth/lib} on the CTAN network.
+%    These consists of the \MF{} program file \file{logo.mf} and a
+%    number of \MF{} driver files for various font shapes and sizes.^^A
+%    \footnote{Please note that the file \file{logo.mf} has been
+%       updated by DEK in 1993, adding the letters `\textlogo{P}' 
+%	and~`\textlogo{S}' for the \MP{} logo. If \TeX{} complains
+%       about missing characters in some of the \file{logo} fonts
+%       while processing this documentation, you should consider
+%       updating your copy of~\file{logo.mf} and regenerating all
+%       the \file{logo} fonts.}
+%    Some additional variants are also available from the directory
+%    \file{/systems/knuth/local/lib}, but those are not assumed to
+%    be present in every installation. However, we will support them
+%    if they are available at your site.
+%
+%    In order to provide a reasonably orthogonal range of sizes and
+%    shapes, some additional \MF{} driver files are provided as part
+%    of this package. The 9-point version of \file{logosl} provided
+%    here is also available from \file{/systems/knuth/local/lib};
+%    it has been included verbatim from that directory and should
+%    be identical to DEK's version.^^A
+%    \footnote{Actually, the 9-point version of \file{logosl}
+%       generated from this \DOCSTRIP{} source will not be fully 
+%       identical to DEK's \file{logosl9.mf} because it will 
+%       contain a \DOCSTRIP{} header and a character table, etc.
+%       To avoid this, we will include the \MF{} source files
+%       separately in the distribution, but we show them here
+%       for your information.}
+%    The 8-point version, however, is new and has been added by the
+%    author of this package for completeness. Installing these two
+%    additional fonts should ensure that upright and slanted shapes
+%    of the \file{logo} font family will be available in the same
+%    range of sizes.
+%
+%    First, here is the 9-point version, included verbatim from
+%    DEK's original file in \file{/systems/knuth/local/lib}.
+%    \begin{macrocode}
+%<*logosl9>
+% 9-point slanted METAFONT logo
+slant := 1/4;
+input logo9
+%</logosl9>
+%    \end{macrocode}
+%
+%    Next, here is the 8-point version added for completeness.
+%    We have simply replaced every~`9' by~`8'.
+%    \begin{macrocode}
+%<*logosl8>
+% 8-point slanted METAFONT logo
+slant := 1/4;
+input logo8
+%</logosl8>
+%    \end{macrocode}
+%
+%
+% \section{The font defintion file: \file{Ulogo.fd}}
+%
+%    Following the tradition of the standard \LaTeXe{} distribution,
+%    we begin by identifying the latest version of this file in the
+%    \file{log} file.
+%    \begin{macrocode}
+%<*Ulogo>
+\wlog{Fontdef\space file\space produced\space from\string:\space
+  \string`mflogo.dtx\string'\space \fileversion\space
+  \string<\filedate\string>\space \string(Ulrik Vieth\string)}
+%    \end{macrocode}
+%
+%    The first thing to do now is to declare a new font family
+%    \file{logo} using an appropriate encoding scheme. According
+%    to \book{The \MF{}book} the \file{logo} fonts have the font
+%    encoding scheme \texttt{"AEFMNOT only"}, but this has been
+%    changed to \texttt{"AEFMNOPST only"} recently. Clearly, this
+%    is a well-defined encoding scheme, but not one of those
+%    presently supported by \NFSS. One might be tempted to define
+%    some new encoding scheme~`MF', but the letter~`M' is already
+%    reserved for 256-character math fonts. Therefore, we will use
+%    the encoding scheme~`U' for the font family~\file{logo}.
+%    \begin{macrocode}
+\DeclareFontFamily{U}{logo}{}
+%    \end{macrocode}
+%
+% \subsection{Font shape declarations for medium series}
+%
+%    Now, we will discuss the font shape declarations for the medium
+%    series. We will support sizes in the range from 8\,pt up to
+%    magstep~5, which should be sufficient to cover the range from
+%    |\footnotesize| to~|\Huge|. We assign the \file{logosl} fonts
+%    to |\itshape| because their slant parameter matches that of 
+%    Computer Modern Italics rather than that of Computer Modern
+%    Slanted.^^A
+%    \footnote{This might be due to the fact that the \file{logosl} 
+%       fonts were first used in combination with Computer Modern 
+%       Italics in the running heads of \book{The \MF{}book}. Thus
+%       they may have been tuned for this purpose.}
+%    For |\slshape| we provide a silent font substitution.
+%    \begin{macrocode}
+\DeclareFontShape{U}{logo}{m}{n}{
+  <8> <9> gen * logo
+  <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> logo10
+}{}
+\DeclareFontShape{U}{logo}{m}{it}{
+  <8> <9> gen * logosl
+  <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> logosl10
+}{}
+\DeclareFontShape{U}{logo}{m}{sl}{
+  <-> ssub * logo/m/it
+}{}
+%    \end{macrocode}
+%
+% \subsection{Font shape delarations for bold Series}
+%
+%    Finally, we turn to the font shape declarations for the bold
+%    and bold extended series. At present, there are no slanted
+%    versions of bold \file{logo} fonts, but they could be created
+%    easily if desired. However, we do not attempt to create them
+%    here because the resulting name would be too long to fit into
+%    8~characters, and it is not clear how it should be abbreviated.
+%
+%    We assign the \file{logobf} font to the semibold condensed
+%    series because there are some indications that it was designed
+%    to match Computer Modern Sans Serif Demibold Condensed, the
+%    font that was used in chapter headings in the \TeX{} and \MF{}
+%    manuals. In sizes below 10\,pt, we simply substitute medium
+%    series because we want to avoid scaling down fonts below their
+%    design size.
+%    \begin{macrocode}
+\DeclareFontShape{U}{logo}{sbc}{n}{
+  <8> <9> sub * logo/m/n
+  <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> logobf10
+}{}
+%    \end{macrocode}
+%
+%    For the bold and bold extended series we normally provide
+%    silent font substitutions. However, if you have the \file{logod}
+%    font from DEK's additional font shapes, we leave out these font
+%    substitutions because we prefer to use \file{logod} in that case.
+%    When running the installation script, you will be asked if the
+%    \file{logod} font is available in your \TeX{} installation, and
+%    different font definition files will be produced accordingly.
+%    This is controlled by the \DOCSTRIP{} option |local|.
+%    \begin{macrocode}
+%<*!local>
+\DeclareFontShape{U}{logo}{b}{n}{
+  <-> ssub * logo/sbc/n
+}{}
+\DeclareFontShape{U}{logo}{bx}{n}{
+  <-> ssub * logo/sbc/n
+}{}
+%</!local>
+%    \end{macrocode}
+%
+%    If you do have the additional font shapes from
+%    \file{/systems/knuth/local/lib}, we assign the \file{logod}
+%    font to the bold and bold extended series instead of the
+%    \file{logobf} font.
+%
+%    Since the name \file{logod} implies a demibold version, this
+%    decision may seem a little odd, but there is a good reason
+%    behind it: As mentioned before, \file{logobf} was originally
+%    designed to match the semibold condensed version of Computer
+%    Modern Sans Serif. It also fits well in combination with the
+%    bold extended version of that font family because the weight
+%    of these two versions is not too different. However, when
+%    used in combination with the bold or bold extended version
+%    of Computer Modern Roman, the \file{logobf} font turns out
+%    to be slighlty too heavy, and the \file{logod} font seems
+%    to be a more appropriate alternative.^^A
+%    \footnote{The history of the \file{logod} font is not very
+%       clear. It was first released together with updates for
+%       \TeX{} and \MF{} in March~1992. It might have been used
+%       in DEK's book \book{Literate Programming} where bold
+%       extended Computer Modern Roman is used in headings.}
+%
+%    For this reason, we assign the \file{logod} font to the bold
+%    series (only available in Computer Modern Roman) and we also
+%    assign it to the bold extended series, assuming that Computer
+%    Modern Roman will be used in |\bfseries| much more frequently
+%    than Computer Modern Sans Serif. However, when using bold
+%    extended Computer Modern Sans Serif, \file{logod} will be
+%    the wrong choice and one would prefer \file{logobf} instead.
+%
+%    Unfortunately, there is no completely satisfactory solution
+%    to this problem because \NFSS{} uses weight attributes relative
+%    to the generic weight of a font family, and there is no absolute
+%    weight attribute to classify different font families. Perhaps
+%    one would have to assign bold extended Computer Modern Sans
+%    Serif to ultrabold extended compared to bold extended Computer
+%    Modern Roman. However, this would only cause confusion because
+%    it would require changing the standard font definition files.
+%    \begin{macrocode}
+%<*local>
+\DeclareFontShape{U}{logo}{b}{n}{
+  <8> <9> sub * logo/m/n
+  <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> logod10
+}{}
+\DeclareFontShape{U}{logo}{bx}{n}{
+  <-> ssub * logo/b/n
+}{}
+%</local>
+%</Ulogo>
+%    \end{macrocode}
+%
+%
+% \section{The package file: \file{mflogo.sty}}
+%
+%    After having discussed the font definition file, we now turn
+%    to the example package that shows how to access the \file{logo}
+%    font family by defining high-level macros based on the low-level
+%    macros of \NFSS.
+%
+%    As usual, we begin by identifying the package and its current
+%    version.
+%    \begin{macrocode}
+%<*package>
+\ProvidesPackage{mflogo}[\filedate\space\fileversion\space
+                         Contributed LaTeX2e package]
+\typeout{Package: `mflogo'
+  \fileversion\space <\filedate> (Ulrik Vieth)}
+%    \end{macrocode}
+%
+% \begin{macro}{\logofamily}
+%    First, we define the declarative font changing command |\logofamily|.
+%    This is accomplished using the low-level \NFSS{} commands
+%    |\fontencoding| and |\fontfamily| followed by |\selectfont|.
+%    \begin{macrocode}
+\def\logofamily{%
+  \fontencoding{U}\fontfamily{logo}\selectfont}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\textlogo}
+%    Next, we define a font changing command with one argument. Since
+%    it is very unlikely that the \file{logo} fonts will be used in
+%    math mode, we do not attempt to make a robust version, instead
+%    the |\textlogo| macro defined here simply selects |\logofamily| 
+%    within a group. However, we will protect it, so that it can be
+%    used within moving arguments without problems.
+%    \begin{macrocode}
+\def\textlogo{\protect\ptextlogo}
+\def\ptextlogo#1{{\logofamily #1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\MF}
+% \begin{macro}{\MP}
+%    Finally, we define macros for the \MF{} and \MP{} logos.
+%    Since the letters `\textlogo{P}' and~`\textlogo{S}' needed for
+%    the \MP{} logo were added as recently as 1993, this will only
+%    work if you have an up-to-date version of the \file{logo} fonts.
+%    To update them, you just need to install the new version of the
+%    \MF{} program file \file{logo.mf} and regenerate the \file{logo}
+%    fonts using exactly the same \MF{} driver files as before.
+%
+%    There should be no doubt that |\MF| is the standard abbreviation 
+%    for the \MF{} logo. However, there apparently doesn't seem to be
+%    standard abbreviation for the \MP{} logo yet. We have decided
+%    to call it |\MP| here because according to John Hobby's article
+%    in the \book{Euro\TeX{} 1992 Proceedings} \MP{} uses \file{.mp}
+%    as the extension of its input files just like \MF{} uses \file{.mf}.
+%    However, we prefer to leave the final decision to John Hobby
+%    himself.
+%    \begin{macrocode}
+\def\MF{\textlogo{META}\-\textlogo{FONT}}
+\def\MP{\textlogo{META}\-\textlogo{POST}}
+%</package>
+%    \end{macrocode}
+%    In closing, it should be pointed out that the above definition
+%    of the \MF{} logo will make it honour all font changing commands
+%    just like the \TeX{} logo does. Thus both logos will finally
+%    behave identically with respect to font changes.
+% \end{macro}
+% \end{macro}
+%
+%
+% \section{The documentation driver file}
+%
+%    We have our own document class to format the \LaTeXe{}
+%    documentation. In additon, we use the \file{mflogo}
+%    package because we frequently use the \MF{} and \MP{}
+%    logos in this documentation.
+%    \begin{macrocode}
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{mflogo}
+%    \end{macrocode}
+%    We do not need an index.
+%    \begin{macrocode}
+\DisableCrossrefs
+%    \end{macrocode}
+%    We do want the full details.
+%    \begin{macrocode}
+\begin{document}
+\DocInput{mflogo.dtx}
+% \PrintIndex
+% \PrintChanges
+\end{document}
+%</driver>
+%    \end{macrocode}
+%
+% \Finale
+%
+\endinput

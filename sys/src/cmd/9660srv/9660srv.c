@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #include "dat.h"
 #include "fns.h"
@@ -49,15 +50,15 @@ iattach(Xfile *root)
 	int fmt, blksize;
 
 	p = getbuf(cd->d, VOLDESC);
-	v = (Voldesc *)(p->iobuf);
+	v = (Voldesc*)(p->iobuf);
 	if(memcmp(v->byte, "\01CD001\01", 7) == 0){		/* iso */
 		fmt = 'z';
-		dp = (Drec *)v->z.desc.rootdir;
+		dp = (Drec*)v->z.desc.rootdir;
 		blksize = l16(v->z.desc.blksize);
 		chat("iso, blksize=%d...", blksize);
 	}else if(memcmp(&v->byte[8], "\01CDROM\01", 7) == 0){	/* high sierra */
 		fmt = 'r';
-		dp = (Drec *)v->r.desc.rootdir;
+		dp = (Drec*)v->r.desc.rootdir;
 		blksize = l16(v->r.desc.blksize);
 		chat("high sierra, blksize=%d...", blksize);
 	}else{

@@ -1,6 +1,6 @@
 .TH INIT 8
 .SH NAME
-init \- initialize machine or connection
+init \- initialize machine upon booting
 .SH SYNOPSIS
 .B /$cputype/init
 [
@@ -79,6 +79,8 @@ on the console.
 is invoked by
 .IR boot (8),
 which sets the arguments as appropriate.
+.SH SOURCE
+.B /sys/src/cmd/init.c
 .SH "SEE ALSO"
 .IR rc (1),
 .IR auth (2),

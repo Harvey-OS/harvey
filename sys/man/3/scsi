@@ -3,10 +3,12 @@
 scsi \- SCSI command interface
 .SH SYNOPSIS
 .nf
-.B #S/id
-.B #S/0/cmd
-.B #S/0/data
-.B #S/0/debug
+.B bind #S /dev
+
+.B /dev/scsiid
+.B /dev/0/cmd
+.B /dev/0/data
+.B /dev/0/debug
 \&...
 .fi
 .SH DESCRIPTION
@@ -14,11 +16,11 @@ scsi \- SCSI command interface
 The
 .I scsi
 interface is accessed through a two-level directory.
-The single-byte
-.B id
+The
+.B scsiid
 file contains the
 .SM SCSI
-id of the host interface, typically 7.
+id of the host interface, typically 7, represented textually.
 Some implementations allow this to be changed by writing to the file;
 in many cases, the higher-order bits are hardware specific.
 .PP
@@ -26,8 +28,7 @@ Each
 .SM SCSI
 target
 .I n
-.if n .RI "(0<=" n "<=7)"
-.if t .RI "(0\(<=" n "\(<=7)"
+.RI "(0≤" n "≤7)"
 is associated with a subdirectory
 .BI "#S/" n
 containing files
@@ -66,4 +67,8 @@ writing a
 turns the tracing off.
 .PP
 .SH SEE ALSO
-.IR hard (3)
+.IR wren (3)
+.SH SOURCE
+.B /sys/src/9/port/devscsi.c
+.br
+.B /sys/src/9/*/scsi.c

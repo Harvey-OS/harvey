@@ -1,5 +1,6 @@
 %{
 #include <u.h>
+#include <libc.h>
 #include <bio.h>
 #include <mach.h>
 #define Extern extern
@@ -16,11 +17,12 @@
 }
 
 %type <node> expr monexpr term stmnt name args zexpr slist
+%type <node> member members mname castexpr idlist
+%type <sym> zname
 
 %left	';'
-%left	','
-%right	'=' 
-%right	'?'
+%right	'='
+%left	Tfmt
 %left	Toror
 %left	Tandand
 %left	'|'
@@ -34,11 +36,11 @@
 %right	Tdec Tinc Tindir '.' '[' '('
 
 %token <sym>	Tid
-%token <ival>	Tconst
+%token <ival>	Tconst Tfmt
 %token <fval>	Tfconst
 %token <string>	Tstring
 %token Tif Tdo Tthen Telse Twhile Tloop Thead Ttail Tappend Tfn Tret Tlocal
-%token Tcomplex Twhat Tdelete
+%token Tcomplex Twhat Tdelete Teval
 
 %%
 
@@ -53,17 +55,64 @@ bigstmnt	: stmnt
 			if(interactive)
 				Bprint(bout, "acid: ");
 		}
-		| Tfn Tid '(' args ')' stmnt
+		| Tfn Tid '(' args ')' zsemi '{' slist '}'
 		{
 			if($2->builtin)
-				error("cannot redefine a builtin function");
-
-			$2->proc = an(OLIST, $4, $6);
+				print("warning: %s() is a builtin; definition ignored\n", $2->name);
+			else
+				$2->proc = an(OLIST, $4, $8);
 		}
-		| Twhat Tid
+		| Tcomplex name '{' members '}' ';'
 		{
-			whatis($2);
+			defcomplex($2, $4);
 		}
+		;
+
+zsemi		:
+		| ';' zsemi
+
+members		: member
+		| members member
+		{
+			$$ = an(OLIST, $1, $2);
+		}
+		;
+
+mname		: Tid
+		{
+			$$ = an(ONAME, ZN, ZN);
+			$$->sym = $1;
+		}
+		;
+
+member		: Tconst Tconst mname ';'
+		{
+			$3->ival = $2;
+			$3->fmt = $1;
+			$$ = $3;
+		}
+		| Tconst mname Tconst mname ';'
+		{
+			$4->ival = $3;
+			$4->fmt = $1;
+			$4->right = $2;
+			$$ = $4;
+		}
+		| mname Tconst mname ';'
+		{
+			$3->ival = $2;
+			$3->left = $1;
+			$$ = $3;
+		}
+		| '{' members '}' ';'
+		{
+			$$ = an(OCTRUCT, $2, ZN);
+		}
+		;
+
+zname		: 
+		{ $$ = 0; }
+		| Tid
 		;
 
 slist		: stmnt
@@ -98,16 +147,26 @@ stmnt		: zexpr ';'
 		{
 			$$ = an(ORET, $2, ZN);
 		}
-		| Tlocal Tid
+		| Tlocal idlist
 		{
-			$$ = an(OLOCAL, ZN, ZN);
+			$$ = an(OLOCAL, $2, ZN);
+		}
+		| Tcomplex Tid name ';'
+		{
+			$$ = an(OCOMPLEX, $3, ZN);
 			$$->sym = $2;
 		}
-		| Tcomplex Tid Tid ';'
+		;
+
+idlist		: Tid
 		{
-			$$ = an(OCOMPLEX, an(ONAME, ZN, ZN), ZN);
-			$$->sym = $2;
-			$$->left->sym = $3;
+			$$ = an(ONAME, ZN, ZN);
+			$$->sym = $1;
+		}
+		| idlist ',' Tid
+		{
+			$$ = an(ONAME, $1, ZN);
+			$$->sym = $3;
 		}
 		;
 
@@ -116,7 +175,7 @@ zexpr		:
 		| expr
 		;
 
-expr		: monexpr
+expr		: castexpr
 		| expr '*' expr
 		{
 			$$ = an(OMUL, $1, $3); 
@@ -193,6 +252,18 @@ expr		: monexpr
 		{
 			$$ = an(OASGN, $1, $3);
 		}
+		| expr Tfmt
+		{
+			$$ = an(OFMT, $1, con($2));
+		}
+		;
+
+castexpr	: monexpr
+		| '(' Tid ')' monexpr
+		{
+			$$ = an(OCAST, $4, ZN);
+			$$->sym = $2;
+		}
 		;
 
 monexpr		: term
@@ -246,6 +317,10 @@ monexpr		: term
 		{
 			$$ = an(OXOR, $2, con(-1));
 		}
+		| Teval monexpr
+		{
+			$$ = an(OEVAL, $2, ZN);	
+		}
 		;
 
 term		: '(' expr ')'
@@ -291,6 +366,7 @@ term		: '(' expr ')'
 		{
 			$$ = an(OCONST, ZN, ZN);
 			$$->type = TFLOAT;
+			$$->fmt = 'f';
 			$$->fval = $1;
 		}
 		| Tstring
@@ -299,6 +375,11 @@ term		: '(' expr ')'
 			$$->type = TSTRING;
 			$$->string = $1;
 			$$->fmt = 's';
+		}
+		| Twhat zname
+		{
+			$$ = an(OWHAT, ZN, ZN);
+			$$->sym = $2;
 		}
 		;
 

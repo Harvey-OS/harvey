@@ -2,12 +2,16 @@
 .SH NAME
 getenv, putenv \- access environment variables
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .nf
 .B
-char*	getenv(char *name)
+char* getenv(char *name)
 .br
 .B
-int	putenv(char *name, char *val)
+int   putenv(char *name, char *val)
 .fi
 .SH DESCRIPTION
 .I Getenv
@@ -31,8 +35,10 @@ to it.  The terminating
 .B 0
 is not written.
 If the file value cannot be written, \-1 is returned.
+.SH SOURCE
+.B /sys/src/libc/9sys
 .SH SEE ALSO
 .IR env (3)
 .SH DIAGNOSTICS
 Sets
-.I errstr.
+.IR errstr .

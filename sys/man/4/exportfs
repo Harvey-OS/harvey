@@ -1,34 +1,35 @@
 .TH EXPORTFS 4
 .SH NAME
-exportfs \- network file server plumbing
+exportfs, srvfs \- network file server plumbing
 .SH SYNOPSIS
 .B exportfs
 [
-.B -a
+.B -an
 ]
 [
 .B -c
 .I ctlfile
 ]
+.PP
+.B srvfs
+.I name
+.I dir
 .SH DESCRIPTION
 .I Exportfs
-is a user level file server that allows Plan 9 compute servers,
-rather than file servers,
-to export
-portions of a name space across networks.
+is a user level file server that allows Plan 9 compute servers, rather
+than file servers, to export portions of a name space across networks.
 The service is started either by the
 .IR cpu (1)
-command or by a network listener process.
-An initial
-protocol establishes a root directory for the exported name space.
-The connection
-to
+command or by a network listener process.  An initial protocol
+establishes a root directory for the exported name space.  The
+connection to
 .I exportfs
-is then mounted.
+is then mounted, typically on
+.BR /mnt/term .
 .I Exportfs
-then acts as a relay file server: operations
-in the imported file tree are executed on the remote server and the results returned.
-This gives the appearance of exporting a name space from a remote machine
+then acts as a relay file server: operations in the imported file
+tree are executed on the remote server and the results returned.  This
+gives the appearance of exporting a name space from a remote machine
 into a local file tree.
 .PP
 The
@@ -39,24 +40,48 @@ to authenticate the user, usually because it is
 being invoked from a remote machine.
 .PP
 The
+.B -n
+option disallows export to
+user
+.BR none .
+.PP
+The
 .B -c
 options specifies a network control file onto which
 .I exportfs
 will push the
 .I fcall
-line discipline.
-This option is intended for networks that do not preserve
-read/write boundaries.
+line discipline.  This option is intended for networks that do not
+preserve read/write boundaries.
 .PP
 The
 .B cpu
 command uses
 .I exportfs
-to serve device files in the terminal.
-The
+to serve device files in the terminal.  The
 .IR import (4)
 command calls
 .I exportfs
-on a remote machine, permitting users to
-access
-arbitrary pieces of name space on other systems.
+on a remote machine, permitting users to access arbitrary pieces of
+name space on other systems.
+.PP
+.I Srvfs
+uses
+.I exportfs
+to create a mountable file system from a name space: a subsequent
+.I mount
+(see
+.IR bind (1))
+of
+.BI /srv/ name
+will reproduce the name space rooted at
+.IR dir .
+One might use
+.I srvfs
+to enable mounting of an FTP file system (see
+.IR ftpfs (4))
+in several windows.
+.SH SOURCE
+.B /sys/src/cmd/exportfs
+.br
+.B /sys/src/cmd/srvfs.c

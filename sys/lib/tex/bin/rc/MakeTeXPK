@@ -1,0 +1,159 @@
+#!/bin/ape/sh
+#
+#  Do not run this script, or dvips, as setuid programs!  This will
+#  result in a major security hole!
+#
+#   This script file makes a new TeX PK font, because one wasn't
+#   found.  Parameters are:
+#
+#   name dpi bdpi magnification [mode [subdir]]
+#
+#   `name' is the name of the font, such as `cmr10'.  `dpi' is
+#   the resolution the font is needed at.  `bdpi' is the base
+#   resolution, useful for figuring out the mode to make the font
+#   in.  `magnification' is a string to pass to MF as the
+#   magnification.  `mode', if supplied, is the mode to use.
+#
+#   Note that this file must execute Metafont, and then gftopk,
+#   and place the result in the correct location for the PostScript
+#   driver to find it subsequently.  If this doesn't work, it will
+#   be evident because MF will be invoked over and over again.
+#
+#   Of course, it needs to be set up for your site.
+#
+TEXDIR=/sys/lib/tex
+TEXBIN=/sys/lib/tex/bin/$cputype
+# LOCALDIR=/LocalLibrary/Fonts/TeXFonts
+# DESTDIR=$LOCALDIR/pk
+#
+# TEMPDIR needs to be unique for each process because of the possibility
+# of simultaneous processes running this script.
+#
+if test "$TMPDIR" = ""
+then
+   TEMPDIR=/tmp/mtpk.$$
+else
+   TEMPDIR=$TMPDIR/mtpk.$$
+fi
+NAME=$1
+DPI=$2
+BDPI=$3
+MAG=$4
+MODE=$5
+#
+if test "$MODE" = "default"
+then
+   MODE=""
+fi
+#
+#   Prevent display under the X Window System.  Except it doesn't always
+#   work; some sh'ells don't seem to understand unset.  There are also some
+#   versions of METAFONT that don't work if the DISPLAY isn't set and
+#   the term type is set to xterm.
+#
+# unset DISPLAY
+umask 0
+
+if test "$MODE" = ""
+then
+   if test $BDPI = 300
+   then
+      MODE=canon
+   elif test $BDPI = 600
+   then
+      MODE=ljfour
+   elif test $BDPI = 200
+   then
+      MODE=fax
+   elif test $BDPI = 100
+   then
+      MODE=gnot
+   elif test $BDPI = 1200
+   then
+      MODE=xante
+   elif test $BDPI = 1270
+   then
+      MODE=lino
+   else
+      echo "I don't know the mode for $BDPI"
+      echo "Have your system admin update MakeTeXPK"
+      exit 1
+   fi
+fi
+
+#  Something like the following is useful at some sites.
+DESTDIR=/sys//lib/tex/fonts/$MODE'pk'
+GFNAME=$NAME.$DPI'gf'
+PKNAME=$NAME.$DPI'pk'
+
+# Clean up on normal or abnormal exit
+trap "cd /; rm -rf $TEMPDIR $DESTDIR/pktmp.$$" 0 1 2 15
+
+
+if test ! -d $DESTDIR
+then
+   mkdir $DESTDIR
+   chmod 777 $DESTDIR
+fi
+
+if test "$6" != ""
+then
+   DESTDIR=$DESTDIR"$6"
+   if test ! -d $DESTDIR
+   then
+      mkdir $DESTDIR
+      chmod 777 $DESTDIR
+   fi
+fi
+
+# added by gwb, to allow searching in current dir before cd'ing
+if test "$MFINPUTS" != ""
+then
+   MFINPUTS=$MFINPUTS:`pwd`; export MFINPUTS
+fi
+mkdir $TEMPDIR
+cd $TEMPDIR
+
+if test -r $DESTDIR/$PKNAME
+then
+   echo "$DESTDIR/$PKNAME already exists!"
+   exit 0
+fi
+
+# check also in the standard place
+
+if test "$6" = ""
+then
+   if test -r $TEXDIR/fonts/$MODE'pk'/$PKNAME
+   then
+      echo $TEXDIR/fonts/$MODE'pk'/$PKNAME already exists!
+      exit 0
+   fi
+else
+   if test -r $TEXDIR/fonts/$MODE'pk'/$6"$PKNAME"
+   then
+      echo $TEXDIR/fonts/$MODE'pk'/$6"$PKNAME" already exists!
+      exit 0
+   fi
+fi
+
+unset DISPLAY
+echo "mf \"\\mode:=$MODE; mag:=$MAG; scrollmode; input $NAME\" </dev/null"
+mf "\mode:=$MODE; mag:=$MAG; scrollmode; input $NAME" </dev/null
+if test ! -r $GFNAME
+then
+   echo "Metafont failed for some reason on $GFNAME"
+   exit 1
+fi
+
+$TEXBIN/gftopk -v ./$GFNAME ./$PKNAME
+
+# Install the PK file carefully, since others may be doing the same
+# as us simultaneously.
+
+mv $PKNAME $DESTDIR/pktmp.$$
+cd $DESTDIR
+mv pktmp.$$ $PKNAME
+chmod a+r $PKNAME
+
+exit 0

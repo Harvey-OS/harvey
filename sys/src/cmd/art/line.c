@@ -7,6 +7,8 @@ Dpoint nearline(Item *ip, Dpoint testp){
 }
 void drawline(Item *ip, int bits, Bitmap *b, Fcode c){
 	segment(b, D2P(ip->p[0]), D2P(ip->p[1]), bits, c);
+	if(ip->style&ARROW0) arrowhead(ip->p[0], ip->p[1], bits, b, c);
+	if(ip->style&ARROW1) arrowhead(ip->p[1], ip->p[0], bits, b, c);
 }
 void editline(void){
 	Flt dm=dist(arg[0], dmidpt(selection->p[0], selection->p[1]));
@@ -28,7 +30,9 @@ void translateline(Item *ip, Dpoint delta){
 void deleteline(Item *ip){
 }
 void writeline(Item *ip, int f){
-	fprint(f, "l %.3f %.3f %.3f %.3f\n", ip->p[0].x, ip->p[0].y, ip->p[1].x, ip->p[1].y);
+	fprint(f, "l %.3f %.3f %.3f %.3f", ip->p[0].x, ip->p[0].y, ip->p[1].x, ip->p[1].y);
+	writestyle(f, ip->style);
+	fprint(f, "\n");
 }
 void activateline(Item *ip){
 	hotline(ip->p[0], ip->p[1], L|R);

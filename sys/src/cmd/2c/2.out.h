@@ -1,4 +1,3 @@
-#define	NNAME	20
 #define	NSYM	50
 #define	NSNAME	8
 
@@ -478,6 +477,8 @@ enum
 	D_URP,
 	D_SRP,
 
+	D_FILE1,
+
 	D_MASK		= 63/(D_SRP>=63?0:1),
 
 	I_DIR		= (D_MASK+1)*0,
@@ -505,19 +506,6 @@ enum
  * this is the ranlib header
  */
 #define	SYMDEF	"__.SYMDEF"
-
-typedef	struct	rlent	Rlent;
-struct	rlent
-{
-	union
-	{
-		long	offset;		/* for calculation */
-		char	coffset[4];	/* in file little endian */
-	};
-	char	name[NNAME];
-	char	type;
-	char	pad[3];
-};
 
 /*
  * this is the simulated IEEE floating point

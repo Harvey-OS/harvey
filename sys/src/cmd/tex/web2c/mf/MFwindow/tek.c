@@ -1,11 +1,14 @@
-/* 
- * Tektronix Terminal Window interface for MetaFont
- */
+/* Tektronix terminal window interface for Metafont.  */
 
 #define	EXTERN	extern
 #include "../mfd.h"
 
 #ifdef TEKTRONIXWIN		/* Whole file */
+
+#ifdef SYSV
+#define bzero(s,n)	memset (s, 0, n)
+#define bcmp(s1,s2,n)	memcmp (s1, s2, n)
+#endif
 
 #define FORMFEED	12
 #define ESCAPE		27
@@ -33,12 +36,8 @@ char	zero_array[WIDTHINBYTES];
 
 mf_tektronix_initscreen()
 {
-#ifdef	BSD
     bzero(zero_array, sizeof(zero_array));
-#else /* SYS V */
-    memset(zero_array, (char) 0, sizeof(zero_array));
-#endif
-    return(1);
+    return 1;
 }
 
 /*

@@ -62,7 +62,7 @@ getuser(void)
 }
 
 int
-statfile(char *name, ulong *dev, ulong *id, long *time, long *length)
+statfile(char *name, ulong *dev, ulong *id, long *time, long *length, long *appendonly)
 {
 	Dir dirb;
 
@@ -76,11 +76,13 @@ statfile(char *name, ulong *dev, ulong *id, long *time, long *length)
 		*time = dirb.mtime;
 	if(length)
 		*length = dirb.length;
+	if(appendonly)
+		*appendonly = dirb.mode & CHAPPEND;
 	return 1;
 }
 
 int
-statfd(int fd, ulong *dev, ulong *id, long *time, long *length)
+statfd(int fd, ulong *dev, ulong *id, long *time, long *length, long *appendonly)
 {
 	Dir dirb;
 
@@ -94,6 +96,8 @@ statfd(int fd, ulong *dev, ulong *id, long *time, long *length)
 		*time = dirb.mtime;
 	if(length)
 		*length = dirb.length;
+	if(appendonly)
+		*appendonly = dirb.mode & CHAPPEND;
 	return 1;
 }
 

@@ -67,16 +67,28 @@ or standard output (for keys
 .B c
 and
 .BR r ).
+.TP
+.B u
+Use the next (numeric) argument as the user id for files in
+the output archive.  This is only useful when moving files to
+a non-Plan 9 system.
+.TP
+.B g
+Use the next (numeric) argument as the group id for files in
+the output archive.
 .SH EXAMPLES
 .I Tar
-can be used to move hierarchies thus:
+can be used to copy hierarchies thus:
 .IP
 .EX
 {cd fromdir; tar c .} | {cd todir; tar x}
 .EE
+.SH SOURCE
+.B /sys/src/cmd/tar.c
 .SH SEE ALSO
 .IR ar (1),
-.IR bundle (1)
+.IR bundle (1),
+.IR tapefs (1)
 .SH BUGS
 There is no way to ask for any but the last
 occurrence of a file.

@@ -1,11 +1,11 @@
 #include "map.h"
 
 static struct coord stdpar0, stdpar1;
-static float k;
-static float yeq;
+static double k;
+static double yeq;
 
 static int
-Xortelius(struct place *place, float *x, float *y)
+Xortelius(struct place *place, double *x, double *y)
 {
 	*y = yeq + fabs(place->nlat.l);
 	*x = *y*k*place->wlon.l;
@@ -15,7 +15,7 @@ Xortelius(struct place *place, float *x, float *y)
 }
 
 proj
-ortelius(float par0, float par1)
+ortelius(double par0, double par1)
 {
 	par0 = fabs(par0);
 	par1 = fabs(par1);

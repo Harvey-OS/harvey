@@ -1,0 +1,84 @@
+.TH WREN 3 
+.SH NAME
+wren, ata \- hard disk interface
+.SH SYNOPSIS
+.B bind
+.BI #H[ drive ]
+.B /dev
+.br
+.B bind
+.BI #w[ target [. lun ]]
+.B /dev
+
+.nf
+.B /dev/hd0disk
+.B /dev/hd0partition
+.B /dev/sd0disk
+.B /dev/sd0partition
+ ...
+.fi
+.SH DESCRIPTION
+.PP
+The hard disk interfaces
+.RI ( wren ,
+.BR #w ,
+is a SCSI disk;
+.IR ata ,
+.BR #H ,
+is an IDE or ATA disk)
+serve a one-level directory giving access to the
+hard disk partitions.
+The parameter to
+.B attach
+defines the numerical SCSI
+.I target
+and logical unit number
+or the IDE
+.I drive
+number to access.
+Both default to zero.
+.PP
+Each partition name is prefixed by 
+.B hd
+and the numeric drive identifier.
+The partition
+.L disk
+always exists and covers the entire disk.
+The size of each partition as reported by
+.IR stat (2)
+is the number of bytes
+in the partition, so the size of
+.L disk
+is the size of the entire disk.
+.PP
+The partition
+.L partition
+also always exists; it is the last block on the disk for SCSI, second to last
+for IDE.
+If it contains valid partition data, those partitions will be visible as well.
+Every time the device is bound, the partitions are updated to reflect any changes
+in the partition file.
+.PP
+The format of the
+.B partition
+file is the string
+.IP
+.B
+plan9 partitions
+.PP
+on a line,
+followed by partition specifications, one per line, consisting of a name
+and textual strings for the block start and limit for each partition on the disk.
+.PP
+The program
+.IR prep (8)
+writes the
+.B partition
+table for the disk; its use is preferred to writing it by hand.
+.SH SEE ALSO
+.IR prep (8),
+.IR scsi (3)
+.SH SOURCE
+.B /sys/src/9/port/devwren.c
+.br
+.B /sys/src/9/pc/devata.c

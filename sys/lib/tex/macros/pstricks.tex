@@ -1,0 +1,2061 @@
+%% BEGIN: pstricks.tex
+%% Generated on <1993/3/12> from `pstricks.doc'.
+%% For use with the PostScript header file `pstricks.pro'.
+%%
+\def\fileversion{0.93a}
+\def\filedate{93/03/12}
+%%
+%% See the PSTricks read-me file and the User's Guide for documentation.
+%%
+%% COPYRIGHT 1993, by Timothy Van Zandt, tvz@Princeton.EDU
+%%
+%% Copying of part or all of any file in the pstricks.tex package
+%% is allowed under the following conditions only:
+%% (1) You may freely distribute unchanged copies of the files. Please
+%% include the documentation when you do so.
+%% (2) You may modify a renamed copy of any file, but only for personal
+%% use or use within an organization.
+%% (3) You may copy fragments from the files, for personal use or for use
+%% in a macro package for distribution, as long as credit is given
+%% where credit is due.
+%%
+%% You are NOT ALLOWED to take money for the distribution or use of
+%% these files or modified versions or fragments thereof, except for
+%% a nominal charge for copying etc.
+%%
+\csname PSTricksLoaded\endcsname
+\let\PSTricksLoaded\endinput
+\edef\PstAtCode{\the\catcode`\@}
+\catcode`\@=11\relax
+\expandafter\ifx\csname @latexerr\endcsname\relax
+\long\def\@ifundefined#1#2#3{\expandafter\ifx\csname
+#1\endcsname\relax#2\else#3\fi}
+\def\@namedef#1{\expandafter\def\csname #1\endcsname}
+\def\@nameuse#1{\csname #1\endcsname}
+\def\@eha{%
+Your command was ignored.^^J
+Type \space I <command> <return> \space to replace
+it with another command,^^J
+or \space <return> \space to continue without it.}
+\def\@spaces{\space\space\space\space}
+\def\typeout#1{\immediate\write\@unused{#1}}
+\alloc@7\write\chardef\sixt@@n\@unused
+\def\@empty{}
+\def\@gobble#1{}
+\def\@nnil{\@nil}
+\def\@ifnextchar#1#2#3{%
+\let\@tempe#1\def\@tempa{#2}\def\@tempb{#3}\futurelet\@tempc\@ifnch}
+\def\@ifnch{%
+\ifx\@tempc\@sptoken
+\let\@tempd\@xifnch
+\else
+\ifx\@tempc\@tempe \let\@tempd\@tempa \else \let\@tempd\@tempb \fi
+\fi
+\@tempd}
+\begingroup
+\def\:{\global\let\@sptoken= } \:
+\def\:{\@xifnch} \expandafter\gdef\: {\futurelet\@tempc\@ifnch}
+\endgroup
+\fi
+\typeout{`PSTricks' v\fileversion\space\space <\filedate> (tvz)}
+\def\@pstrickserr#1#2{%
+\begingroup
+\newlinechar`\^^J
+\edef\pst@tempc{#2}%
+\expandafter\errhelp\expandafter{\pst@tempc}%
+\typeout{%
+PSTricks error. \space See User's Guide for further information.^^J
+\@spaces\@spaces\@spaces\@spaces
+Type \space H <return> \space for immediate help.}%
+\errmessage{#1}%
+\endgroup}
+\def\@ehpa{%
+Your command was ignored. Default value substituted.^^J
+Type \space <return> \space to procede.}
+\def\@ehpb{%
+Your command was ignored. Will recover best I can.^^J
+Type \space <return> \space to procede.}
+\def\@ehpc{%
+You better fix this before proceding.^^J
+See the PSTricks User's Guide or ask your system administrator for help.^^J
+Type \space X <return> \space to quit.}
+\def\pst@misplaced#1{\@pstrickserr{Misplaced \string#1 command}\@ehpb}
+\newdimen\pst@dima
+\newdimen\pst@dimb
+\newdimen\pst@dimc
+\newdimen\pst@dimd
+\newdimen\pst@dimg
+\newdimen\pst@dimh
+\newbox\pst@hbox
+\newbox\pst@boxg
+\newcount\pst@cnta
+\newcount\pst@cntb
+\newcount\pst@cntc
+\newcount\pst@cntd
+\newcount\pst@cntg
+\newcount\pst@cnth
+\newif\if@pst
+\newif\if@star
+\def\pst@ifstar#1{%
+\@ifnextchar*{\@startrue\def\next*{#1}\next}{\@starfalse#1}}
+\def\pst@expandafter#1#2{%
+\def\next{#1}%
+\edef\@tempa{#2}%
+\ifx\@tempa\@empty
+\@pstrickserr{Unexpected empty argument!}\@ehpb
+\def\@tempa{\@empty}%
+\fi
+\expandafter\next\@tempa}
+\def\pst@dimtonum#1#2{\edef#2{\pst@@dimtonum#1}}
+\def\pst@@dimtonum#1{\expandafter\pst@@@dimtonum\the#1}
+{\catcode`\p=12 \catcode`\t=12 \global\@namedef{pst@@@dimtonum}#1pt{#1}}
+\def\pst@pyth#1#2#3{%
+\ifdim#1>#2\pst@@pyth#1#2#3\else\pst@@pyth#2#1#3\fi}
+\def\pst@@pyth#1#2#3{%
+\ifdim4#1>9#2%
+#3=#1\advance#3 .2122#2%
+\else
+#3=.8384#1\advance#3 .5758#2%
+\fi}
+\def\pst@divide#1#2#3{%
+\begingroup
+\pst@dimg=#1\relax\pst@dimh=#2\relax
+\pst@cnta=\pst@dimg
+\pst@cntb=1073741824
+\pst@cntc=65536
+\def\pst@tempa{\fi\ifnum}%
+\loop\ifnum\pst@cnta<\pst@cntb
+\pst@tempa\pst@cntc>\@ne
+\multiply\pst@cnta2\divide\pst@cntc2
+\repeat
+\divide\pst@dimh\pst@cntc
+\divide\pst@cnta\pst@dimh
+\global\pst@dimg\number\pst@cnta sp
+\endgroup
+\pst@dimtonum\pst@dimg#3}
+\def\pst@configerr#1{%
+\@pstrickserr{\string#1 not defined in pstricks.con}\@ehpc}
+% % \begin{macrocode}
+\def\pstVerb#1{\pst@configerr\pstVerb}
+\def\pstverb#1{\pst@configerr\pstverb}
+\def\pstverbscale{\pst@configerr\pstverbscale}
+\def\pstrotate{\pst@configerr\pstrotate}
+\def\pstheader#1{\pst@configerr\pstheader}
+\def\pstdriver{\pst@configerr\pstdriver}
+\@ifundefined{pstcustomize}%
+{\def\pstcustomize{\endinput\let\pstcustomize\relax}}{}
+\input pstricks.con
+\newif\ifPSTricks
+\PSTrickstrue
+\def\PSTricksOff{%
+\def\pstheader##1{}%
+\def\pstverb##1{}%
+\def\pstVerb##1{}%
+\PSTricksfalse}
+\@ifundefined{pst@def}{\def\pst@def#1<#2>{\@namedef{tx@#1}{#2 }}}{}
+\@ifundefined{pst@ATH}{\def\pst@ATH<#1>{}}{}
+\pstheader{pstricks.pro}
+\def\pst@dict{tx@Dict begin }
+\def\pst@theheaders{pstricks.pro}
+\def\pst@Verb#1{\pstVerb{\pst@dict #1 end}}
+\def\tx@Atan{Atan }
+\def\tx@Div{Div }
+\def\tx@NET{NET }
+\def\tx@Pyth{Pyth }
+\def\tx@PtoC{PtoC }
+\def\tx@PathLength@{PathLength@ }
+\def\tx@PathLength{PathLength }
+\pst@dimg=\pstunit\relax
+\ifdim\pst@dimg=1bp
+\def\pst@stp{.996264 dup scale}
+\else
+\edef\pst@stp{1 \pst@@dimtonum\pst@dimg\space div dup scale}
+\fi
+\def\tx@STP{STP }
+\def\tx@STV{STV }
+\def\pst@number#1{\pst@@dimtonum#1\space}
+\def\pst@checknum#1#2{%
+\edef\next{#1}%
+\ifx\next\@empty
+\let\pst@num\z@
+\else
+\expandafter\pst@@checknum\next..\@nil
+\fi
+\ifnum\pst@num=\z@
+\@pstrickserr{Bad number: `#1'. 0 substituted.}\@ehpa
+\def#2{0 }%
+\else
+\edef#2{\ifnum\pst@num=2 -\fi\the\pst@cntg.%
+\expandafter\@gobble\the\pst@cnth\space}%
+\fi}
+\def\pst@@checknum{%
+\@ifnextchar-%
+{\def\pst@num{2}\expandafter\pst@@@checknum\@gobble}%
+{\def\pst@num{1}\pst@@@checknum}}
+\def\pst@@@checknum#1.#2.#3\@nil{%
+\afterassignment\pst@@@@checknum\pst@cntg=0#1\relax\@nil
+\afterassignment\pst@@@@checknum\pst@cnth=1#2\relax\@nil}
+\def\pst@@@@checknum#1\relax\@nil{%
+\ifx\@nil#1\@nil\else\let\pst@num\z@\fi}
+\def\pst@getnumii#1 #2 #3\@nil{%
+\pst@checknum{#1}\pst@tempg
+\pst@checknum{#2}\pst@temph}
+\def\pst@getnumiii#1 #2 #3 #4\@nil{%
+\pst@checknum{#1}\pst@tempg
+\pst@checknum{#2}\pst@temph
+\pst@checknum{#3}\pst@tempi}
+\def\pst@getnumiv#1 #2 #3 #4 #5\@nil{%
+\pst@checknum{#1}\pst@tempg
+\pst@checknum{#2}\pst@temph
+\pst@checknum{#3}\pst@tempi
+\pst@checknum{#4}\pst@tempj}
+\def\pst@getdimnum#1 #2 #3\@nil{%
+\pssetlength\pst@dimg{#1}%
+\pst@checknum{#2}\pst@tempg}
+\def\pst@getscale#1#2{%
+\pst@expandafter\pst@getnumii{#1 #1} {} {} {}\@nil
+\edef#2{\pst@tempg\space \pst@temph\space scale }%
+\ifdim\pst@tempg\p@=\z@
+\@pstrickserr{Bad scaling argument `#1'}\@ehpa
+\def#2{}%
+\else
+\ifdim\pst@temph\p@=\z@
+\@pstrickserr{Bad scaling argument}\@ehpa
+\def#2{}%
+\else
+\ifdim\pst@tempg\p@=\p@ \ifdim\pst@temph\p@=\p@ \def#2{}\fi\fi
+\fi
+\fi}
+\def\pst@getint#1#2{%
+\pst@cntg=#1\relax
+\edef#2{\the\pst@cntg\space}}
+\begingroup
+\catcode`\{=12
+\catcode`\}=12
+\catcode`\[=1
+\catcode`\]=2
+\gdef\pslbrace[{ ]
+\gdef\psrbrace[} ]
+\endgroup
+\def\@newcolor#1#2{%
+\expandafter\edef\csname #1\endcsname{\noexpand\pst@color{#2}}%
+\expandafter\edef\csname color@#1\endcsname{#2}%
+\ignorespaces}
+\def\pst@color#1{%
+\def\pst@currentcolor{#1}\pstVerb{#1}\aftergroup\pst@endcolor}
+\def\pst@endcolor{\pstVerb{\pst@currentcolor}}
+\def\pst@currentcolor{0 setgray}
+\def\altcolormode{%
+\def\pst@color##1{%
+\pstVerb{gsave ##1}\aftergroup\pst@endcolor}%
+\def\pst@endcolor{\pstVerb{\pst@grestore}}}
+\def\pst@grestore{%
+currentpoint
+matrix currentmatrix
+currentfont
+grestore
+setfont
+setmatrix
+moveto}
+\def\pst@usecolor#1{\csname color@#1\endcsname\space}
+\def\newgray#1#2{%
+\pst@checknum{#2}\pst@tempg
+\@newcolor{#1}{\pst@tempg setgray}}
+\def\newrgbcolor#1#2{%
+\pst@expandafter\pst@getnumiii{#2} {} {} {} {}\@nil
+\@newcolor{#1}{\pst@tempg \pst@temph \pst@tempi setrgbcolor}}
+\def\newhsbcolor#1#2{%
+\pst@expandafter\pst@getnumiii{#2} {} {} {} {}\@nil
+\@newcolor{#1}{\pst@tempg \pst@temph \pst@tempi sethsbcolor}}
+\def\newcmykcolor#1#2{%
+\pst@expandafter\pst@getnumiv{#2} {} {} {} {} {}\@nil
+\@newcolor{#1}{\pst@tempg \pst@temph \pst@tempi \pst@tempj setcmykcolor}}
+\newgray{black}{0}
+\newgray{darkgray}{.25}
+\newgray{gray}{.5}
+\newgray{lightgray}{.75}
+\newgray{white}{1}
+\newrgbcolor{red}{1 0 0}
+\newrgbcolor{green}{0 1 0}
+\newrgbcolor{blue}{0 0 1}
+\newrgbcolor{yellow}{1 1 0}
+\newrgbcolor{cyan}{0 1 1}
+\newrgbcolor{magenta}{1 0 1}
+\def\psset#1{\@psset#1,\@nil\ignorespaces}
+\def\@psset#1,{%
+\@@psset#1==\@nil
+\@ifnextchar\@nil{\@gobble}{\@psset}}
+\def\@@psset#1=#2=#3\@nil{%
+\@ifundefined{psset@#1}%
+{\@pstrickserr{Graphics parameter `#1' not defined.}\@ehpa}%
+{\@nameuse{psset@#1}{#2}}}%
+\def\psset@style#1{%
+\@ifundefined{pscs@#1}%
+{\@pstrickserr{Custom style `#1' undefined}\@ehpa}%
+{\@nameuse{pscs@#1}}}
+\def\newpsstyle#1#2{\@namedef{pscs@#1}{\psset{#2}}}
+\def\@none{none}
+\def\pst@getcolor#1#2{%
+\@ifundefined{color@#1}%
+{\@pstrickserr{Color `#1' not defined}\@eha}%
+{\edef#2{#1}}}
+\newdimen\psunit \psunit 1cm
+\newdimen\psxunit \psxunit 1cm
+\newdimen\psyunit \psyunit 1cm
+\let\psrunit\psunit
+\def\pstunit@off{\let\@psunit\ignorespaces\ignorespaces}
+\def\pssetlength#1#2{%
+\let\@psunit\psunit
+\afterassignment\pstunit@off
+#1 #2\@psunit}
+\def\psaddtolength#1#2{%
+\let\@psunit\psunit
+\afterassignment\pstunit@off
+\advance#1 #2\@psunit}
+\def\pssetxlength#1#2{%
+\let\@psunit\psxunit
+\afterassignment\pstunit@off
+#1 #2\@psunit}
+\def\pssetylength#1#2{%
+\let\@psunit\psyunit
+\afterassignment\pstunit@off
+#1 #2\@psunit}
+\def\psset@unit#1{%
+\pssetlength\psunit{#1}%
+\psxunit=\psunit
+\psyunit=\psunit}
+\def\psset@runit#1{\pssetlength\psrunit{#1}}
+\def\psset@xunit#1{\pssetxlength\psxunit{#1}}
+\def\psset@yunit#1{\pssetylength\psyunit{#1}}
+\def\pst@getlength#1#2{%
+\pssetlength\pst@dimg{#1}%
+\edef#2{\pst@number\pst@dimg}}
+\def\pst@@getlength#1#2{%
+\pssetlength\pst@dimg{#1}%
+\edef#2{\number\pst@dimg sp}}
+\def\pst@getcoor#1#2{\pst@@getcoor{#1}\let#2\pst@coor}
+\def\pst@coor{0 0 }
+\def\pst@getcoors#1#2{%
+\def\pst@aftercoors{\addto@pscode{#1 \pst@coors }#2}%
+\def\pst@coors{}%
+\pst@@getcoors}
+\def\pst@@getcoors(#1){%
+\pst@@getcoor{#1}%
+\edef\pst@coors{\pst@coor\pst@coors}%
+\@ifnextchar({\pst@@getcoors}{\pst@aftercoors}}
+\def\pst@getangle#1#2{\pst@@getangle{#1}\let#2\pst@angle}
+\def\pst@angle{0 }
+\def\cartesian@coor#1,#2,#3\@nil{%
+\pssetxlength\pst@dimg{#1}%
+\pssetylength\pst@dimh{#2}%
+\edef\pst@coor{\pst@number\pst@dimg \pst@number\pst@dimh}}
+\def\NormalCoor{%
+\def\pst@@getcoor##1{\pst@expandafter\cartesian@coor{##1},\relax,\@nil}%
+\def\pst@@getangle##1{%
+\pst@checknum{##1}\pst@angle
+\edef\pst@angle{\pst@angle \pst@angleunit}}%
+\def\psput@##1{\pst@@getcoor{##1}\leavevmode\psput@cartesian}}
+\NormalCoor
+\def\degrees{\@ifnextchar[{\@degrees}{\def\pst@angleunit{}}}
+\def\@degrees[#1]{%
+\pst@checknum{#1}\pst@tempg
+\edef\pst@angleunit{360 \pst@tempg div mul }%
+\ignorespaces}
+\def\radians{\def\pst@angleunit{57.2956 mul }}
+\def\pst@angleunit{}
+\def\SpecialCoor{%
+\def\pst@@getcoor##1{\pst@expandafter\special@coor{##1}||\@nil}%
+\def\pst@@getangle##1{\pst@expandafter\special@angle{##1}\@empty)\@nil}%
+\def\psput@##1{\pst@@getcoor{##1}\leavevmode\psput@special}}
+\def\special@coor#1|#2|#3\@nil{%
+\ifx#3|\relax
+\mixed@coor{#1}{#2}%
+\else
+\special@@coor#1;;\@nil
+\fi}
+\def\special@@coor#1{%
+\ifcat#1a\relax
+\def\next{\node@coor#1}%
+\else
+\ifx#1[\relax
+\def\next{\Node@coor[}%
+\else
+\ifx#1!\relax
+\def\next{\raw@coor}%
+\else
+\def\next{\special@@@coor#1}%
+\fi
+\fi
+\fi
+\next}
+\def\special@@@coor#1;#2;#3\@nil{%
+\ifx#3;\relax
+\polar@coor{#1}{#2}%
+\else
+\cartesian@coor#1,\relax,\@nil
+\fi}
+\def\mixed@coor#1#2{%
+\begingroup
+\specialcoor@ii#1;;\@nil
+\let\pst@tempa\pst@coor
+\specialcoor@ii#2;;\@nil
+\xdef\pst@tempg{\pst@tempa pop \pst@coor exch pop }%
+\endgroup
+\let\pst@coor\pst@tempg}
+\def\polar@coor#1#2{%
+\pssetlength\pst@dimg{#1}%
+\pst@@getangle{#2}%
+\edef\pst@coor{\pst@number\pst@dimg \pst@angle \tx@PtoC}}
+\def\raw@coor#1;#2\@nil{%
+\edef\pst@coor{%
+#1 \pst@number\psyunit mul exch \pst@number\psxunit mul exch }}
+\def\node@coor#1\@nil{%
+\@pstrickserr{You must load `pst-node.tex' to use node coordinates.}\@ehps
+\def\pst@coor{0 0 }}
+\def\Node@coor{\node@coor}
+\def\special@angle#1#2)#3\@nil{%
+\ifx#1!\relax
+\edef\pst@angle{#2 \pst@angleunit}%
+\else
+\ifx#1(\relax
+\pst@@getcoor{#2}%
+\edef\pst@angle{\pst@coor exch \tx@Atan}%
+\else
+\pst@checknum{#1#2}\pst@angle
+\edef\pst@angle{\pst@angle \pst@angleunit}%
+\fi
+\fi}
+\def\Cartesian{%
+\def\cartesian@coor##1,##2,##3\@nil{%
+\pssetxlength\pst@dimg{##1}%
+\pssetylength\pst@dimh{##2}%
+\edef\pst@coor{\pst@number\pst@dimg \pst@number\pst@dimh}}%
+\@ifnextchar({\Cartesian@}{}}
+\def\Cartesian@(#1,#2){%
+\pssetxlength\psxunit{#1}%
+\pssetylength\psyunit{#2}%
+\ignorespaces}
+\def\Polar{%
+\def\psput@cartesian{\psput@special}%
+\def\cartesian@coor##1,##2,##3\@nil{\polar@coor{##1}{##2}}}%
+\def\psset@origin#1{%
+\pst@@getcoor{#1}%
+\edef\psk@origin{\pst@coor \tx@NET }}
+\def\psk@origin{}
+\newif\ifswapaxes
+\def\psset@swapaxes#1{%
+\@nameuse{@pst#1}%
+\if@pst
+\def\psk@swapaxes{-90 rotate -1 1 scale }%
+\else
+\def\psk@swapaxes{}%
+\fi}
+\psset@swapaxes{false}
+\newif\ifshowpoints
+\def\psset@showpoints#1{\@nameuse{showpoints#1}}
+\psset@showpoints{false}
+\let\pst@setrepeatarrowsflag\relax
+\def\psset@border#1{%
+\pst@getlength{#1}\psk@border
+\pst@setrepeatarrowsflag}
+\psset@border{0pt}
+\def\psset@bordercolor#1{\pst@getcolor{#1}\psbordercolor}
+\psset@bordercolor{white}
+\newif\ifpsdoubleline
+\def\psset@doubleline#1{%
+\@nameuse{psdoubleline#1}%
+\pst@setrepeatarrowsflag}
+\psset@doubleline{false}
+\def\psset@doublesep#1{\def\psdoublesep{#1}}
+\psset@doublesep{1.25\pslinewidth}
+\def\psset@doublecolor#1{\pst@getcolor{#1}\psdoublecolor}
+\psset@doublecolor{white}
+\newif\ifpsshadow
+\def\psset@shadow#1{%
+\@nameuse{psshadow#1}%
+\pst@setrepeatarrowsflag}
+\psset@shadow{false}
+\def\psset@shadowsize#1{\pst@getlength{#1}\psk@shadowsize}
+\psset@shadowsize{3pt}
+\def\psset@shadowangle#1{\pst@getangle{#1}\psk@shadowangle}
+\psset@shadowangle{-45}
+\def\psset@shadowcolor#1{\pst@getcolor{#1}\psshadowcolor}
+\psset@shadowcolor{darkgray}
+\def\pst@repeatarrowsflag{\z@}
+\def\pst@setrepeatarrowsflag{%
+\edef\pst@repeatarrowsflag{%
+\ifdim\psk@border\p@>\z@ 1\else\ifpsdoubleline 1\else
+\ifpsshadow 1\else \z@\fi\fi\fi}}
+\def\psls@none{}
+\newdimen\pslinewidth
+\def\psset@linewidth#1{\pssetlength\pslinewidth{#1}}
+\psset@linewidth{.8pt}
+\def\psset@linecolor#1{\pst@getcolor{#1}\pslinecolor}
+\psset@linecolor{black}
+\def\psls@solid{0 setlinecap stroke }
+\def\psset@dash#1{%
+\pst@expandafter\psset@@dash{#1} * * *\@nil
+\edef\psk@dash{\pst@number\pst@dimg \pst@number\pst@dimh}}
+\def\psset@@dash#1 #2 #3\@nil{%
+\pssetlength\pst@dimg{#1}%
+\pssetlength\pst@dimh{#2}}
+\psset@dash{5pt 3pt}
+\def\psls@dashed{\psk@dash \pst@linetype\space \tx@DashLine}
+\def\tx@DashLine{DashLine }
+\def\psset@dotsep#1{\pst@getlength{#1}\psk@dotsep}
+\psset@dotsep{3pt}
+\def\psls@dotted{\psk@dotsep \pst@linetype\space \tx@DotLine}%
+\def\tx@DotLine{DotLine }
+\def\psset@linestyle#1{%
+\@ifundefined{psls@#1}%
+{\@pstrickserr{Line style `#1' not defined}\@eha}%
+{\edef\pslinestyle{#1}}}
+\psset@linestyle{solid}
+\def\psfs@none{}
+\def\psset@fillcolor#1{\pst@getcolor{#1}\psfillcolor}
+\psset@fillcolor{white}
+\def\psfs@solid{\pst@usecolor\psfillcolor fill }
+\def\psset@hatchwidth#1{\pst@getlength{#1}\psk@hatchwidth}
+\psset@hatchwidth{.8pt}
+\def\psset@hatchsep#1{\pst@getlength{#1}\psk@hatchsep}
+\psset@hatchsep{4pt}
+\def\psset@hatchcolor#1{\pst@getcolor{#1}\pshatchcolor}
+\psset@hatchcolor{black}
+\def\psset@hatchangle#1{\pst@getangle{#1}\psk@hatchangle}
+\psset@hatchangle{45}
+\def\psfs@hlines{%
+\psk@hatchangle rotate
+\psk@hatchwidth SLW
+\pst@usecolor\pshatchcolor
+\psk@hatchsep \tx@LineFill}
+\@namedef{psfs@hlines*}{gsave \psfs@solid grestore \psfs@hlines}
+\def\tx@LineFill{LineFill }
+\def\tx@LineFill{LineFill }
+\def\psfs@vlines{%
+90 rotate
+\psfs@hlines}
+\@namedef{psfs@vlines*}{gsave \psfs@solid grestore \psfs@vlines}
+\def\psfs@crosshatch{gsave \psfs@hlines grestore \psfs@vlines}
+\@namedef{psfs@crosshatch*}{%
+gsave \psfs@solid grestore
+gsave \psfs@hlines grestore
+\psfs@vlines}
+\def\psset@fillstyle#1{%
+\@ifundefined{psfs@#1}%
+{\@pstrickserr{Undefined fill style: `#1'}\@eha}%
+{\edef\psfillstyle{#1}}}
+\psset@fillstyle{none}
+\def\psset@arrows#1{%
+\begingroup
+\pst@activearrows
+\xdef\pst@tempg{#1}%
+\endgroup
+\expandafter\psset@@arrows\pst@tempg\@empty-\@empty\@nil
+\if@pst\else
+\@pstrickserr{Bad arrows specification: #1}\@ehpa
+\fi}
+\def\psset@@arrows#1-#2\@empty#3\@nil{%
+\@psttrue
+\def\next##1,#1-##2,##3\@nil{\def\pst@tempg{##2}}%
+\expandafter\next\pst@arrowtable,#1-#1,\@nil
+\@ifundefined{psas@\pst@tempg}%
+{\@pstfalse\def\psk@arrowA{}}%
+{\let\psk@arrowA\pst@tempg}%
+\@ifundefined{psas@#2}%
+{\@pstfalse\def\psk@arrowB{}}%
+{\def\psk@arrowB{#2}}}
+\def\psk@arrowA{}
+\def\psk@arrowB{}
+\def\pst@arrowtable{,<->,<<->>,>-<,>>-<<,(-),[-]}
+\begingroup
+\catcode`\<=13
+\catcode`\>=13
+\catcode`\|=13
+\gdef\pst@activearrows{\def<{\string<}\def>{\string>}\def|{\string|}}
+\endgroup
+\def\tx@BeginArrow{BeginArrow }
+\def\tx@EndArrow{EndArrow }
+\def\psset@arrowscale#1{\pst@getscale{#1}\psk@arrowscale}
+\psset@arrowscale{1}
+\def\psset@arrowsize#1{%
+\pst@expandafter\pst@getdimnum{#1} {} {} {}\@nil
+\edef\psk@arrowsize{\pst@number\pst@dimg \pst@tempg}}
+\psset@arrowsize{2pt 3}
+\def\psset@arrowlength#1{\pst@checknum{#1}\psk@arrowlength}
+\psset@arrowlength{1.4}
+\def\psset@arrowinset#1{\pst@checknum{#1}\psk@arrowinset}%
+\psset@arrowinset{.4}
+\def\tx@Arrow{Arrow }
+\@namedef{psas@>}{%
+false \psk@arrowinset \psk@arrowlength \psk@arrowsize \tx@Arrow}
+\@namedef{psas@>>}{%
+false \psk@arrowinset \psk@arrowlength \psk@arrowsize \tx@Arrow
+0 h T
+gsave
+newpath
+false \psk@arrowinset \psk@arrowlength \psk@arrowsize \tx@Arrow
+CP
+grestore
+CP newpath moveto
+2 copy
+L
+stroke
+moveto}
+\@namedef{psas@<}{%
+true \psk@arrowinset \psk@arrowlength \psk@arrowsize \tx@Arrow}
+\@namedef{psas@<<}{%
+true \psk@arrowinset \psk@arrowlength \psk@arrowsize \tx@Arrow
+CP newpath moveto 0 a neg L stroke 0 h neg T
+false \psk@arrowinset \psk@arrowlength \psk@arrowsize \tx@Arrow}
+\def\psset@tbarsize#1{%
+\pst@expandafter\pst@getdimnum{#1} {} {} {}\@nil
+\edef\psk@tbarsize{\pst@number\pst@dimg \pst@tempg}}
+\psset@tbarsize{2pt 5}
+\def\tx@Tbar{Tbar }
+\@namedef{psas@|}{\psk@tbarsize \tx@Tbar}
+\@namedef{psas@|*}{0 CLW -2 div T \psk@tbarsize \tx@Tbar}
+\def\psset@bracketlength#1{\pst@checknum{#1}\psk@bracketlength}
+\psset@bracketlength{.15}
+\def\tx@Bracket{Bracket }
+\@namedef{psas@]}{\psk@bracketlength \psk@tbarsize \tx@Bracket}
+\def\psset@rbracketlength#1{\pst@checknum{#1}\psk@rbracketlength}
+\psset@rbracketlength{.15}
+\def\tx@RoundBracket{RoundBracket }
+\@namedef{psas@)}{\psk@rbracketlength \psk@tbarsize \tx@RoundBracket}
+\def\psas@c{1 \psas@@c}
+\def\psas@cc{0 CLW 2 div T 1 \psas@@c}
+\def\psas@C{2 \psas@@c}
+\def\psas@@c{%
+setlinecap
+0 0 moveto
+0 CLW 2 div L
+stroke
+0 0 moveto}
+\def\psas@{}
+\psset@arrows{-}
+\def\pst@par{}
+\def\addto@par#1{%
+\ifx\pst@par\@empty
+\def\pst@par{#1}%
+\else
+\expandafter\def\expandafter\pst@par\expandafter{\pst@par,#1}%
+\fi}
+\def\use@par{%
+\ifx\pst@par\@empty\else
+\expandafter\@psset\pst@par,\@nil
+\def\pst@par{}%
+\fi}
+\def\pst@object#1{%
+\pst@ifstar{\@ifnextchar[{\pst@@object{#1}}{\@nameuse{#1@i}}}}
+\def\pst@@object#1[#2]{%
+\addto@par{#2}\@ifnextchar+{\@nameuse{#1@i}}{\@nameuse{#1@i}}}
+\def\newpsobject#1#2#3{%
+\@ifundefined{#2@i}%
+{\@pstrickserr{Graphics object `#2' not defined}\@eha}%
+{\@namedef{#1}{\def\pst@par{#3}\pst@object{#2}}}\ignorespaces}
+\def\pst@getarrows#1{\@ifnextchar({#1}{\pst@@getarrows{#1}}}
+\def\pst@@getarrows#1#2{\addto@par{arrows=#2}#1}
+\def\begin@ClosedObj{%
+\leavevmode
+\pst@killglue
+\begingroup
+\use@par
+\solid@star
+\ifpsdoubleline \pst@setdoublesep \fi
+\init@pscode}
+\def\end@ClosedObj{%
+\ifpsshadow \pst@closedshadow \fi
+\ifdim\psk@border\p@>\z@ \pst@addborder \fi
+\pst@fill
+\pst@stroke
+\ifpsdoubleline \pst@doublestroke \fi
+\ifshowpoints
+\addto@pscode{Points aload length 2 div cvi /N ED \psdots@iii}%
+\fi
+\use@pscode
+\endgroup
+\ignorespaces}
+\def\begin@OpenObj{%
+\begin@ClosedObj
+\let\pst@linetype\pst@arrowtype
+\pst@addarrowdef}
+\def\begin@AltOpenObj{%
+\begin@ClosedObj
+\def\pst@repeatarrowsflag{\z@}%
+\def\pst@linetype{0}}
+\def\end@OpenObj{%
+\ifpsshadow \pst@openshadow \fi
+\ifdim\psk@border\p@>\z@ \pst@addborder \fi
+\pst@fill
+\pst@stroke
+\ifpsdoubleline \pst@doublestroke \fi
+\ifnum\pst@repeatarrowsflag>\z@ \pst@repeatarrows \fi
+\ifshowpoints \pst@OpenShowPoints \fi
+\use@pscode
+\endgroup
+\ignorespaces}
+\def\begin@SpecialObj{%
+\leavevmode
+\pst@killglue
+\begingroup
+\use@par
+\init@pscode}
+\def\end@SpecialObj{%
+\use@pscode
+\endgroup
+\ignorespaces}
+\def\pst@code{}%
+\def\init@pscode{%
+\addto@pscode{%
+\pst@number\pslinewidth SLW
+\pst@usecolor\pslinecolor}}
+\def\addto@pscode#1{\xdef\pst@code{\pst@code#1\space}}
+\def\use@pscode{%
+\pstverb{%
+\pst@dict
+\tx@STP
+newpath
+\psk@origin
+\psk@swapaxes
+\pst@code
+end}%
+\gdef\pst@code{}}
+\def\KillGlue{%
+\def\pst@killglue{\unskip\ifdim\lastskip>\z@\expandafter\pst@killglue\fi}}
+\def\DontKillGlue{\let\pst@killglue\relax}
+\DontKillGlue
+\def\solid@star{%
+\if@star
+\pslinewidth=\z@
+\psdoublelinefalse
+\def\pslinestyle{none}%
+\def\psfillstyle{solid}%
+\let\psfillcolor\pslinecolor
+\fi}
+\def\pst@setdoublesep{%
+\pst@getlength\psdoublesep\psdoublesep
+\pslinewidth=2\pslinewidth
+\advance\pslinewidth\psdoublesep\p@
+\let\pst@setdoublesep\relax}
+\def\tx@Shadow{Shadow }
+\def\pst@closedshadow{%
+\addto@pscode{%
+gsave
+\psk@shadowsize \psk@shadowangle \tx@PtoC
+\tx@Shadow
+\pst@usecolor\psshadowcolor
+gsave fill grestore
+stroke
+grestore
+gsave
+\pst@usecolor\psfillcolor
+gsave fill grestore
+stroke
+grestore}}
+\def\pst@openshadow{%
+\addto@pscode{%
+gsave
+\psk@shadowsize \psk@shadowangle \tx@PtoC
+\tx@Shadow
+\pst@usecolor\psshadowcolor
+\ifx\psfillstyle\@none\else
+gsave fill grestore
+\fi
+stroke}%
+\pst@repeatarrows
+\addto@pscode{grestore}
+\ifx\psfillstyle\@none\else
+\addto@pscode{%
+gsave
+\pst@usecolor\psfillcolor
+gsave fill grestore
+stroke
+grestore}
+\fi}
+\def\pst@addborder{%
+\addto@pscode{%
+gsave
+\psk@border 2 mul
+CLW add SLW
+\pst@usecolor\psbordercolor
+stroke
+grestore}}
+\def\pst@stroke{%
+\ifx\pslinestyle\@none\else
+\addto@pscode{%
+gsave
+\pst@number\pslinewidth SLW
+\pst@usecolor\pslinecolor
+\@nameuse{psls@\pslinestyle}
+grestore}%
+\fi}
+\def\pst@fill{%
+\ifx\psfillstyle\@none\else
+\addto@pscode{gsave \@nameuse{psfs@\psfillstyle} grestore}%
+\fi}
+\def\pst@doublestroke{%
+\addto@pscode{%
+gsave
+\psdoublesep SLW
+\pst@usecolor\psdoublecolor
+stroke
+grestore}}
+\def\pst@arrowtype{%
+\ifx\psk@arrowB\@empty 0 \else -2 \fi
+\ifx\psk@arrowA\@empty 0 \else -1 \fi
+add}
+\def\pst@addarrowdef{%
+\addto@pscode{%
+/ArrowA {
+\ifx\psk@arrowA\@empty
+\pst@oplineto
+\else
+\pst@arrowdef{A}
+moveto
+\fi
+} def
+/ArrowB {
+\ifx\psk@arrowB\@empty \else \pst@arrowdef{B} \fi
+} def}}
+\def\pst@arrowdef#1{%
+\ifnum\pst@repeatarrowsflag>\z@
+/Arrow#1c [ 6 2 roll ] cvx def Arrow#1c
+\fi
+\tx@BeginArrow
+\psk@arrowscale
+\@nameuse{psas@\@nameuse{psk@arrow#1}}
+\tx@EndArrow}
+\def\pst@repeatarrows{%
+\addto@pscode{%
+gsave
+\ifx\psk@arrowA\@empty\else
+ArrowAc ArrowA pop pop
+\fi
+\ifx\psk@arrowB\@empty\else
+ArrowBc ArrowB pop pop pop pop
+\fi
+grestore}}
+\def\pst@OpenShowPoints{%
+\addto@pscode{%
+gsave
+\psk@dotsize
+\@nameuse{psds@\psk@dotstyle}
+/TheDot {
+gsave T \psk@dotangle \psk@dotscale Dot grestore
+} def
+newpath
+Points aload length 2 div 2 sub cvi /N ED
+N 0 ge
+{ \ifx\psk@arrowA\@empty
+TheDot
+\else
+pop pop
+\fi
+N { TheDot } repeat
+\ifx\psk@arrowB\@empty
+TheDot
+\else
+pop pop
+\fi }
+{ N 2 mul { pop } repeat }
+ifelse
+grestore}}
+\def\pscustom{\def\pst@par{}\pst@object{pscustom}}
+\long\def\pscustom@i#1{%
+\begin@SpecialObj
+\solid@star
+\let\pst@ifcustom\iftrue
+\let\begin@ClosedObj\begin@CustomObj
+\let\end@ClosedObj\endgroup
+\def\begin@OpenObj{\begin@CustomObj\pst@addarrowdef}%
+\let\end@OpenObj\endgroup
+\let\begin@AltOpenObj\begin@CustomObj
+\def\begin@SpecialObj{%
+\begingroup
+\pst@misplaced{special graphics object}%
+\def\addto@pscode####1{}
+\let\end@SpecialObj\endgroup}%
+\def\@multips(##1)(##2)##3##4{\pst@misplaced\multips}%
+\def\psclip##1{\pst@misplaced\psclip}%
+\def\pst@repeatarrowsflag{\z@}%
+\let\pst@setrepeatarrowsflag\relax
+\showpointsfalse
+\let\showpointstrue\relax
+\def\pst@linetype{\pslinetype}%
+\let\psset@liftpen\psset@@liftpen
+\psset@liftpen{\z@}%
+\def\pst@cp{/currentpoint load stopped pop }%
+\def\pst@oplineto{/lineto load stopped { moveto } if }%
+\def\pst@optcp##1##2{%
+\ifnum##1=\z@\def##2{/currentpoint load stopped { 0 0 } if }\fi}%
+\let\caddto@pscode\addto@pscode
+\def\cuse@par##1{{\use@par##1}}%
+\the\pst@customdefs
+\setbox\pst@hbox=\hbox{#1}%
+\pst@fill
+\pst@stroke
+\end@SpecialObj}
+\def\begin@CustomObj{%
+\begingroup
+\use@par
+\addto@pscode{%
+\pst@number\pslinewidth SLW
+\pst@usecolor\pslinecolor}}
+\def\pst@oplineto{moveto }
+\def\pst@cp{}
+\def\pst@optcp#1#2{}
+\def\psset@liftpen#1{}
+\def\psset@@liftpen#1{%
+\ifcase#1\relax
+\def\psk@liftpen{\z@}%
+\def\pst@cp{/currentpoint load stopped pop }%
+\def\pst@oplineto{/lineto load stopped { moveto } if }%
+\or
+\def\psk@liftpen{1}%
+\def\pst@cp{}%
+\def\pst@oplineto{/lineto load stopped { moveto } if }%
+\or
+\def\psk@liftpen{2}%
+\def\pst@cp{}%
+\def\pst@oplineto{moveto }%
+\fi}
+\psset@liftpen{0}
+\def\psk@liftpen{-1}
+\def\psset@linetype#1{%
+\pst@getint{#1}\pslinetype
+\ifnum\pst@dimg<-3
+\@pstrickserr{linetype must be greater than -3}\@ehpa
+\def\pslinetype{0}%
+\fi}
+\psset@linetype{0}
+\def\caddto@pscode#1{%
+\@pstrickserr{Command can only be used in \string\pscustom}\@ehpa}
+\let\cuse@par\caddto@pscode
+\def\tx@MSave{%
+/msavemtrx
+[ tx@Dict /msavemtrx known { msavemtrx aload pop } if CM ]
+def }
+\def\tx@MRestore{%
+tx@Dict /msavemtrx known { length 0 gt } { false } ifelse
+{ /msavematrx [ msavematrx aload pop setmatrix ] def }
+if }
+\newtoks\pst@customdefs
+\pst@customdefs{%
+\def\newpath{\addto@pscode{newpath}}%
+\def\moveto(#1){\pst@@getcoor{#1}\addto@pscode{\pst@coor moveto}}%
+\def\closepath{\addto@pscode{closepath}}%
+\def\gsave{\begingroup\addto@pscode{gsave}}%
+\def\grestore{\endgroup\addto@pscode{grestore}}%
+\def\translate(#1){\pst@@getcoor{#1}\addto@pscode{\pst@coor moveto}}%
+\def\rotate#1{\pst@@getangle{#1}\addto@pscode{\pst@angle rotate}}%
+\def\scale#1{\pst@getscale{#1}\pst@tempg\addto@pscode{\pst@tempg}}%
+\def\msave{\addto@pscode{\tx@MSave}}%
+\def\mrestore{\addto@pscode{\tx@MRestore}}%
+\def\swapaxes{\addto@pscode{-90 rotate -1 1 scale}}%
+\def\stroke{\def\pst@par{}\pst@object{stroke}}%
+\def\fill{\def\pst@par{}\pst@object{fill}}%
+\def\openshadow{\def\pst@par{}\pst@object{openshadow}}%
+\def\closedshadow{\def\pst@par{}\pst@object{closedshadow}}%
+\def\movepath(#1){\pst@@getcoor{#1}\addto@pscode{\pst@coor tx@Shadow}}%
+\def\lineto{\pst@onecoor{lineto}}%
+\def\rlineto{\pst@onecoor{rlineto}}%
+\def\curveto{\pst@threecoor{curveto}}%
+\def\rcurveto{\pst@threecoor{rcurveto}}%
+\def\code#1{\addto@pscode{#1}}%
+\def\coor(#1){\pst@@getcoor{#1}\addto@pscode\pst@coor\@ifnextchar({\coor}{}}%
+\def\rcoor{\pst@getcoors{}{}}%
+\def\dim#1{\pssetlength\pst@dimg{#1}\addto@pscode{\pst@number\pst@dimg}}%
+\def\setcolor#1{%
+\@ifundefined{color@#1}{}{\addto@pscode{\use@color{#1}}}}%
+\def\arrows#1{{\psset@arrows{#1}\pst@addarrowdef}}%
+\let\file\pst@rawfile
+} % END \pst@customdefs
+\def\closedshadow@i{\cuse@par\pst@closedshadow}
+\def\openshadow@i{\cuse@par\pst@openshadow}
+\def\stroke@i{\cuse@par\pst@stroke}%
+\def\fill@i{\cuse@par\pst@fill}%
+\def\pst@onecoor#1(#2){%
+\pst@@getcoor{#2}%
+\addto@pscode{\pst@coor #1}}
+\def\pst@threecoor#1(#2)#3(#4)#5(#6){%
+\begingroup
+\pst@getcoor{#2}\pst@tempa
+\pst@getcoor{#4}\pst@tempb
+\pst@getcoor{#6}\pst@tembc
+\addto@pscode{\pst@tempa \pst@tempb \pst@tempc #1}%
+\endgroup}
+\def\pst@rawfile#1{%
+\begingroup
+\def\do##1{\catcode`##1=12\relax}"
+\dospecials
+\catcode`\%=14
+\pst@@rawfile{#1}%
+\endgroup}
+\def\pst@@rawfile#1{%
+\immediate\openin1 #1
+\ifeof1
+\@pstrickserr{File `#1' not found}\@ehpa
+\else
+\immediate\read1 to \pst@tempg
+\loop
+\ifeof1 \@pstfalse\else\@psttrue\fi
+\if@pst
+\addto@pscode\pst@tempg
+\immediate\read1 to \pst@tempg
+\repeat
+\fi
+\immediate\closein1\relax}
+\def\tx@SD{SD }
+\def\tx@SQ{SQ }
+\def\tx@ST{ST }
+\def\tx@SP{SP }
+\@namedef{psds@*}{/Dot { 0 0 DS \tx@SD } def}
+\@namedef{psds@o}{%
+/r2 DS CLW sub def
+/Dot { 0 0 DS \tx@SD \pst@usecolor\psfillcolor 0 0 r2 \tx@SD } def}
+\@namedef{psds@square*}{%
+/r1 DS .886 mul def
+/Dot { r1 \tx@SQ } def}
+\@namedef{psds@square}{%
+/r1 DS .886 mul def /r2 r1 CLW sub def
+/Dot { r1 \tx@SQ \pst@usecolor\psfillcolor r2 \tx@SQ } def}
+\@namedef{psds@triangle*}{%
+/y1 DS .778 mul neg def /x1 y1 1.732 mul neg def
+/Dot { x1 y1 \tx@ST } def}
+\@namedef{psds@triangle}{%
+/y1 DS .778 mul neg def /x1 y1 1.732 mul neg def
+/y2 y1 CLW add def /x2 y2 1.732 mul neg def
+/Dot { x1 y1 \tx@ST \pst@usecolor\psfillcolor x2 y2 \tx@ST } def}
+\@namedef{psds@pentagon*}{%
+/r1 DS 1.149 mul def
+/Dot { r1 \tx@SP } def}
+\@namedef{psds@pentagon}{%
+DS .93 mul dup 1.236 mul /r1 ED CLW sub 1.236 mul /r2 ED
+/Dot { r1 \tx@SP \pst@usecolor\psfillcolor
+r2 \tx@SP } def}
+\@namedef{psds@+}{%
+/DS DS 1.253 mul def
+/Dot { DS 0 moveto DS neg 0 L stroke
+0 DS moveto 0 DS neg L stroke } def}
+\@namedef{psds@|}{%
+\psk@tbarsize CLW mul add 2 div /DS ED
+/Dot { 0 DS moveto 0 DS neg L stroke } def}
+\def\psset@dotstyle#1{%
+\@ifundefined{psds@#1}%
+{\@pstrickserr{Dot style `#1' not defined}\@eha}%
+{\edef\psk@dotstyle{#1}}}
+\psset@dotstyle{*}
+\def\tx@NArray{NArray }
+\def\tx@NArray{NArray }
+\def\tx@Line{Line }
+\def\tx@Arcto{Arcto }
+\def\tx@CheckClosed{CheckClosed }
+\def\tx@Polygon{Polygon }
+\def\tx@CCA{CCA }
+\def\tx@CCA{CCA }
+\def\tx@CC{CC }
+\def\tx@IC{IC }
+\def\tx@BOC{BOC }
+\def\tx@NC{NC }
+\def\tx@EOC{EOC }
+\def\tx@BAC{BAC }
+\def\tx@NAC{NAC }
+\def\tx@EAC{EAC }
+\def\tx@OpenCurve{OpenCurve }
+\def\tx@AltCurve{AltCurve }
+\def\tx@ClosedCurve{ClosedCurve }
+\def\psset@curvature#1{%
+\edef\pst@tempg{#1 }%
+\expandafter\psset@@curvature\pst@tempg * * * \@nil}
+\def\psset@@curvature#1 #2 #3 #4\@nil{%
+\pst@checknum{#1}\pst@tempg
+\pst@checknum{#2}\pst@temph
+\pst@checknum{#3}\pst@tempi
+\edef\psk@curvature{\pst@tempg \pst@temph \pst@tempi}}
+\psset@curvature{1 .1 0}
+\def\pscurve{\def\pst@par{}\pst@object{pscurve}}
+\def\pscurve@i{%
+\pst@getarrows{%
+\begin@OpenObj
+\pst@getcoors[\pscurve@ii}}
+\def\pscurve@ii{%
+\addto@pscode{%
+\pst@cp
+\psk@curvature\space /c ED /b ED /a ED
+\ifshowpoints true \else false \fi
+\tx@OpenCurve}%
+\end@OpenObj}
+\def\psecurve{\def\pst@par{}\pst@object{psecurve}}
+\def\psecurve@i{%
+\pst@getarrows{%
+\begin@OpenObj
+\pst@getcoors[\psecurve@ii}}
+\def\psecurve@ii{%
+\addto@pscode{%
+\psk@curvature\space /c ED /b ED /a ED
+\ifshowpoints true \else false \fi
+\tx@AltCurve}%
+\end@OpenObj}
+\def\psccurve{\def\pst@par{}\pst@object{psccurve}}
+\def\psccurve@i{%
+\begin@ClosedObj
+\pst@getcoors[\psccurve@ii}
+\def\psccurve@ii{%
+\addto@pscode{%
+\psk@curvature\space /c ED /b ED /a ED
+\ifshowpoints true \else false \fi
+\tx@ClosedCurve}%
+\def\pst@linetype{1}%
+\end@ClosedObj}
+\def\psset@dotsize#1{%
+\edef\pst@tempg{#1 }%
+\expandafter\psset@@dotsize\pst@tempg -1 -1 -1\@nil}
+\def\psset@@dotsize#1 #2 #3\@nil{%
+\pst@checknum{#2}\pst@tempg
+\pssetlength\pst@dimg{#1}%
+\edef\psk@dotsize{%
+/DS \pst@number\pst@dimg \pst@tempg CLW mul add 2 div def }}
+\psset@dotsize{.5pt 2.5}
+\def\psset@dotscale#1{\pst@getscale{#1}\psk@dotscale}
+\psset@dotscale{1}
+\def\pst@Getangle#1#2{%
+\pst@getangle{#1}\pst@tempg
+\def\pst@temph{0. }%
+\ifx\pst@tempg\pst@temph
+\def#2{}%
+\else
+\edef#2{\pst@tempg\space rotate }%
+\fi}
+\def\psset@dotangle#1{\pst@Getangle{#1}\psk@dotangle}
+\psset@dotangle{0}
+\def\psdots{\def\pst@par{}\pst@object{psdots}}
+\def\psdots@i{%
+\begin@SpecialObj
+\pst@getcoors[\psdots@ii}
+\def\psdots@ii{%
+\addto@pscode{false \tx@NArray \psdots@iii}%
+\end@SpecialObj}
+\def\psdots@iii{%
+\psk@dotsize
+\@nameuse{psds@\psk@dotstyle}
+newpath
+n { gsave T \psk@dotangle \psk@dotscale Dot grestore } repeat}
+\def\tx@EndDot{EndDot }
+\def\psas@oo{{\pst@usecolor\psfillcolor true} true \psk@dotsize \tx@EndDot}
+\def\psas@o{{\pst@usecolor\psfillcolor true} false \psk@dotsize \tx@EndDot}
+\@namedef{psas@**}{{false} true \psk@dotsize \tx@EndDot}
+\@namedef{psas@*}{{false} false \psk@dotsize \tx@EndDot}
+\newdimen\pslinearc
+\def\psset@linearc#1{\pssetlength\pslinearc{#1}}
+\psset@linearc{0pt}
+\def\psline{\def\pst@par{}\pst@object{psline}}
+\def\psline@i{%
+\pst@getarrows{%
+\begin@OpenObj
+\pst@getcoors[\psline@ii}}
+\def\psline@ii{%
+\addto@pscode{\pst@cp \psline@iii \tx@Line}%
+\end@OpenObj}
+\def\psline@iii{%
+\ifdim\pslinearc>\z@
+/r \pst@number\pslinearc def
+/Lineto { \tx@Arcto } def
+\else
+/Lineto /lineto load def
+\fi
+\ifshowpoints true \else false \fi}
+\def\qline(#1)(#2){%
+\def\pst@par{}%
+\begin@SpecialObj
+\def\pst@linetype{0}%
+\pst@getcoor{#1}\pst@tempa
+\pst@@getcoor{#2}%
+\addto@pscode{%
+\pst@tempa moveto \pst@coor L
+\@nameuse{psls@\pslinestyle}}%
+\end@SpecialObj}
+\def\pspolygon{\def\pst@par{}\pst@object{pspolygon}}
+\def\pspolygon@i{%
+\begin@ClosedObj
+\def\pst@cp{}%
+\pst@getcoors[\pspolygon@ii}
+\def\pspolygon@ii{%
+\addto@pscode{\psline@iii \tx@Polygon}%
+\def\pst@linetype{1}%
+\end@ClosedObj}
+\def\psset@framearc#1{\pst@checknum{#1}\psk@framearc}
+\psset@framearc{0}
+\def\psset@cornersize#1{%
+\pst@expandafter\psset@@cornersize{#1}\@nil}
+\def\psset@@cornersize#1#2\@nil{%
+\if #1a\relax
+\def\psk@cornersize{\pst@number\pslinearc false }%
+\else
+\def\psk@cornersize{\psk@framearc true }%
+\fi}
+\psset@cornersize{relative}
+\def\tx@Rect{Rect }
+\def\tx@OvalFrame{OvalFrame }
+\def\tx@Frame{Frame }
+\def\psset@dimen#1{%
+\pst@expandafter\psset@@dimen{#1}\@nil}
+\def\psset@@dimen#1#2\@nil{%
+\if #1o\relax
+\def\psk@dimen{.5 }%
+\else
+\if #1m\relax
+\def\psk@dimen{0 }%
+\else
+\if #1i\relax
+\def\psk@dimen{-.5 }%
+\fi
+\fi
+\fi}
+\psset@dimen{outer}
+\def\psframe{\def\pst@par{}\pst@object{psframe}}
+\def\psframe@i(#1){%
+\@ifnextchar({\psframe@ii(#1)}{\psframe@ii(0,0)(#1)}}
+\def\psframe@ii(#1)(#2){%
+\begin@ClosedObj
+\pst@getcoor{#1}\pst@tempa
+\pst@@getcoor{#2}%
+\addto@pscode{\psk@cornersize \pst@tempa \pst@coor \psk@dimen \tx@Frame}%
+\def\pst@linetype{2}%
+\showpointsfalse
+\end@ClosedObj}
+\def\psbezier{\def\pst@par{}\pst@object{psbezier}}
+\def\psbezier@i{\pst@getarrows\psbezier@ii}
+\def\psbezier@ii#1(#2)#3(#4)#5(#6){%
+\@ifnextchar({\psbezier@iii{1}(#2)(#4)(#6)}%
+{\psbezier@iii{\z@}(0,0)(#2)(#4)(#6)}}
+\def\psbezier@iii#1(#2)(#3)(#4)(#5){%
+\begin@OpenObj
+\pst@getcoor{#2}\pst@tempa
+\pst@getcoor{#3}\pst@tempb
+\pst@getcoor{#4}\pst@tempc
+\pst@getcoor{#5}\pst@tempd
+\pst@optcp{#1}\pst@tempa
+\ifshowpoints\psbezier@iv\fi
+\addto@pscode{
+\pst@tempb \pst@tempa ArrowA
+\pst@tempc \pst@tempd ArrowB
+curveto}%
+\end@OpenObj}
+\def\psbezier@iv{%
+\addto@pscode{%
+gsave
+\pst@tempa \pst@tempb \pst@tempc \pst@tempd
+newpath moveto L L L
+CLW 2 div SLW
+[ \psk@dash\space ] 0 setdash stroke
+grestore
+/Points [\pst@tempa\pst@tempb\pst@tempc\pst@tempd] def}}
+\def\tx@Parab{Parab }
+\def\parabola{\def\pst@par{}\pst@object{parabola}}
+\def\parabola@i{\pst@getarrows\parabola@ii}
+\def\parabola@ii#1(#2)#3(#4){%
+\begin@OpenObj
+\pst@getcoor{#2}\pst@tempa
+\pst@@getcoor{#4}%
+\addto@pscode{\pst@tempa \pst@coor \tx@Parab}%
+\end@OpenObj}
+\def\psset@gridwidth#1{\pst@getlength{#1}\psk@gridwidth}
+\psset@gridwidth{.8pt}
+\def\psset@griddots#1{%
+\pst@cntg=#1\relax
+\edef\psk@griddots{\the\pst@cntg}}
+\psset@griddots{0}
+\def\psset@gridcolor#1{\pst@getcolor{#1}\psgridcolor}
+\psset@gridcolor{black}
+\def\psset@subgridwidth#1{\pst@getlength{#1}\psk@subgridwidth}
+\psset@subgridwidth{.4pt}
+\def\psset@subgridcolor#1{\pst@getcolor{#1}\pssubgridcolor}
+\psset@subgridcolor{gray}
+\def\psset@subgriddots#1{%
+\pst@cntg=#1\relax\edef\psk@subgriddots{\the\pst@cntg}}
+\psset@subgriddots{0}
+\def\psset@subgriddiv#1{%
+\pst@cntg=#1\relax\edef\psk@subgriddiv{\the\pst@cntg}}
+\psset@subgriddiv{5}
+\def\psset@gridlabels#1{\pst@getlength{#1}\psk@gridlabels}
+\psset@gridlabels{10pt}
+\def\psset@gridlabelcolor#1{\pst@getcolor{#1}\psgridlabelcolor}
+\psset@gridlabelcolor{black}
+\def\tx@Grid{Grid }
+\def\psgrid{\def\pst@par{}\pst@object{psgrid}}
+\def\psgrid@i{\@ifnextchar(%
+{\psgrid@ii}{\expandafter\psgrid@iv\pic@coor}}
+\def\psgrid@ii(#1){\@ifnextchar(%
+{\psgrid@iii(#1)}{\psgrid@iv(0,0)(0,0)(#1)}}
+\def\psgrid@iii(#1)(#2){\@ifnextchar(%
+{\psgrid@iv(#1)(#2)}{\psgrid@iv(#1)(#1)(#2)}}
+\def\psgrid@iv(#1)(#2)(#3){%
+\begin@SpecialObj
+\pst@getcoor{#1}\pst@tempa
+\pst@getcoor{#2}\pst@tempb
+\pst@@getcoor{#3}%
+\ifnum\psk@subgriddiv>1
+\addto@pscode{gsave
+\psk@subgridwidth SLW \pst@usecolor\pssubgridcolor
+\pst@tempb \pst@coor \pst@tempa
+\pst@number\psxunit \pst@number\psyunit
+\psk@subgriddiv\space \psk@subgriddots\space
+{} 0 \tx@Grid grestore}%
+\fi
+\addto@pscode{gsave
+\psk@gridwidth SLW \pst@usecolor\psgridcolor
+\pst@tempb \pst@coor \pst@tempa
+\pst@number\psxunit \pst@number\psyunit
+1 \psk@griddots\space { \pst@usecolor\psgridlabelcolor }
+\psk@gridlabels \tx@Grid grestore}%
+\end@SpecialObj}
+\newif\ifpsmathbox
+\psmathboxtrue
+\def\pst@mathflag{\z@}
+\newtoks\everypsbox
+\long\def\pst@makenotverbbox#1#2{%
+\edef\pst@mathflag{%
+\ifpsmathbox\ifmmode\ifinner 1\else 2\fi\else \z@\fi\else \z@\fi}%
+\setbox\pst@hbox=\hbox{%
+\ifcase\pst@mathflag\or$\m@th\textstyle\or$\m@th\displaystyle\fi
+{\the\everypsbox#2}%
+\ifnum\pst@mathflag>\z@$\fi}%
+#1}
+\def\pst@makeverbbox#1{%
+\def\pst@afterbox{#1}%
+\edef\pst@mathflag{%
+\ifpsmathbox\ifmmode\ifinner 1\else 2\fi\else \z@\fi\else \z@\fi}%
+\afterassignment\pst@beginbox
+\setbox\pst@hbox\hbox}
+\def\pst@beginbox{%
+\ifcase\pst@mathflag\or$\m@th\or$\m@th\displaystyle\fi
+\bgroup\aftergroup\pst@endbox
+\the\everypsbox}
+\def\pst@endbox{%
+\ifnum\pst@mathflag>\z@$\fi
+\egroup
+\pst@afterbox}
+\def\pst@makebox{\pst@@makebox}
+\def\psverbboxtrue{\def\pst@@makebox{\pst@makeverbbox}}
+\def\psverbboxfalse{\def\pst@@makebox{\pst@makenotverbbox}}
+\psverbboxfalse
+\def\pst@longbox{%
+\def\pst@makebox{%
+\gdef\pst@makebox{\pst@@makebox}%
+\pst@makelongbox}}
+\def\pst@makelongbox#1{%
+\def\pst@afterbox{#1}%
+\edef\pst@mathflag{%
+\ifpsmathbox\ifmmode\ifinner 1\else 2\fi\else \z@\fi\else \z@\fi}%
+\setbox\pst@hbox\hbox\bgroup
+\aftergroup\pst@afterbox
+\ifcase\pst@mathflag\or$\m@th\or$\m@th\displaystyle\fi
+\begingroup
+\the\everypsbox}
+\def\pst@endlongbox{%
+\endgroup
+\ifnum\pst@mathflag>\z@$\fi
+\egroup}
+\def\pslongbox#1#2{%
+\@namedef{#1}{\pst@longbox#2}%
+\@namedef{end#1}{\pst@endlongbox}}
+\newdimen\psframesep
+\def\psset@framesep#1{\pssetlength\psframesep{#1}}
+\psset@framesep{3pt}
+\newif\ifpsboxsep
+\def\psset@boxsep#1{\@nameuse{psboxsep#1}}
+\psset@boxsep{true}
+\def\pst@useboxpar{%
+\use@par
+\if@star
+\let\pslinecolor\psfillcolor
+\solid@star
+\let\solid@star\relax
+\fi
+\ifpsdoubleline \pst@setdoublesep \fi}
+\def\psframebox{\def\pst@par{}\pst@object{psframebox}}
+\def\psframebox@i{\pst@makebox\psframebox@ii}
+\def\psframebox@ii{%
+\begingroup
+\pst@useboxpar
+\pst@dima=\pslinewidth
+\advance\pst@dima by \psframesep
+\pst@dimc=\wd\pst@hbox\advance\pst@dimc by \pst@dima
+\pst@dimb=\dp\pst@hbox\advance\pst@dimb by \pst@dima
+\pst@dimd=\ht\pst@hbox\advance\pst@dimd by \pst@dima
+\setbox\pst@hbox=\hbox{%
+\ifpsboxsep\kern\pst@dima\fi
+\begin@ClosedObj
+\addto@pscode{%
+\psk@cornersize
+\pst@number\pst@dima neg
+\pst@number\pst@dimb neg
+\pst@number\pst@dimc
+\pst@number\pst@dimd
+.5
+\tx@Frame}%
+\def\pst@linetype{2}%
+\showpointsfalse
+\end@ClosedObj
+\box\pst@hbox
+\ifpsboxsep\kern\pst@dima\fi}%
+\ifpsboxsep\dp\pst@hbox=\pst@dimb\ht\pst@hbox=\pst@dimd\fi
+\leavevmode\box\pst@hbox
+\endgroup}
+\def\psdblframebox{\def\pst@par{}\pst@object{psdblframebox}}
+\def\psdblframebox@i{\addto@par{doubleline=true}\psframebox@i}
+\def\psclip#1{%
+\leavevmode
+\begingroup
+\begin@psclip
+\begingroup
+\def\use@pscode{%
+\pstVerb{%
+\pst@dict
+/mtrxc CM def
+CP CP T
+\tx@STV
+\psk@origin
+\psk@swapaxes
+newpath
+\pst@code
+clip
+newpath
+mtrxc setmatrix
+moveto
+0 setgray
+end}%
+\gdef\pst@code{}}%
+\def\@multips(##1)(##2)##3##4{\pst@misplaced\multips}%
+\def\nc@object##1##2##3##4{\pst@misplaced{node connection}}%
+\hbox to\z@{#1}%
+\endgroup
+\def\endpsclip{%
+\end@psclip
+\endgroup}%
+\ignorespaces}
+\def\endpsclip{\pst@misplaced\endpsclip}
+\let\begin@psclip\relax
+\def\end@psclip{\pstVerb{currentpoint initclip moveto}}
+\def\AltClipMode{%
+\def\end@psclip{\pstVerb{\pst@grestore}}%
+\def\begin@psclip{\pstVerb{gsave}}}
+\def\clipbox{\@ifnextchar[{\psclipbox@}{psclipbox@[\z@]}}
+\def\clipbox@[#1]{\pst@makebox\psclipbox@@{#1}}
+\def\clipbox@@#1{%
+\pssetlength\pst@dimg{#1}%
+\leavevmode\hbox{%
+\begin@psclip
+\pst@Verb{%
+CM \tx@STV CP T newpath
+/a \pst@number\pst@dimg def
+/w \pst@number{\wd\pst@hbox}a add def
+/d \pst@number{\dp\pst@hbox}a add neg def
+/h \pst@number{\ht\pst@hbox}a add def
+a neg d moveto
+a neg h L
+w h L
+w d L
+closepath
+clip
+newpath
+0 0 moveto
+setmatrix}%
+\unhbox\pst@hbox
+\end@psclip}}
+\def\psshadowbox{%
+\def\pst@par{}\pst@object{psshadowbox}}
+\def\psshadowbox@i{\pst@makebox\psshadowbox@ii}
+\def\psshadowbox@ii{%
+\begingroup
+\pst@useboxpar
+\psshadowtrue
+\psboxseptrue
+\def\psk@shadowangle{-45 }%
+\setbox\pst@hbox=\hbox{\psframebox@ii}%
+\pst@dimh=\psk@shadowsize\p@
+\pst@dimh=.7071\pst@dimh
+\pst@dimg=\dp\pst@hbox
+\advance\pst@dimg\pst@dimh
+\dp\pst@hbox=\pst@dimg
+\pst@dimg=\wd\pst@hbox
+\advance\pst@dimg\pst@dimh
+\wd\pst@hbox=\pst@dimg
+\leavevmode
+\box\pst@hbox
+\endgroup}
+\def\pscirclebox{\def\pst@par{}\pst@object{pscirclebox}}
+\def\pscirclebox@i{\pst@makebox{\pscirclebox@ii{}}}
+\def\pscirclebox@ii#1{%
+\begingroup
+\pst@useboxpar
+\setbox\pst@hbox=\hbox{#1\pscirclebox@iii\box\pst@hbox}%
+\ifpsboxsep
+\pst@dima=.5\wd\pst@hbox
+\pst@pyth\pst@dima\pst@dimb\pst@dimc
+\advance\pst@dimc\pslinewidth
+\advance\pst@dimc\psframesep
+\setbox\pst@hbox=\hbox to2\pst@dimc{%
+\hss
+\vbox{\vskip\pst@dimc\vskip-\pst@dimb\box\pst@hbox}%
+\hss}%
+\advance\pst@dimc-\pst@dimb
+\dp\pst@hbox=\pst@dimc
+\fi
+\leavevmode\box\pst@hbox
+\endgroup}
+\def\pscirclebox@iii{%
+\if@star
+\pslinewidth\z@
+\pstverb{\pst@dict \tx@STP \pst@usecolor\psfillcolor
+newpath \pscirclebox@iv \tx@SD end}%
+\else
+\begin@ClosedObj
+\def\pst@linetype{4}\showpointsfalse
+\addto@pscode{%
+\pscirclebox@iv CLW 2 div add 0 360 arc closepath}%
+\end@ClosedObj
+\fi}
+\def\pscirclebox@iv{%
+\pst@number{\wd\pst@hbox}2 div
+\pst@number{\ht\pst@hbox}\pst@number{\dp\pst@hbox}add 2 div
+2 copy \pst@number{\dp\pst@hbox}sub 4 2 roll
+\tx@Pyth \pst@number\psframesep add }
+\def\psovalbox{\def\pst@par{}\pst@object{psovalbox}}
+\def\psovalbox@i{\pst@makebox{\psovalbox@ii{}}}
+\def\psovalbox@ii#1{%
+\begingroup
+\pst@useboxpar
+\pst@dimd=.707\pslinewidth\advance\pst@dimd by 1.414\psframesep
+\pst@dimg=\ht\pst@hbox\advance\pst@dimg\dp\pst@hbox
+\pst@dimb=.707\pst@dimg\advance\pst@dimb\pst@dimd
+\pst@dima=.707\wd\pst@hbox\advance\pst@dima\pst@dimd
+\setbox\pst@hbox=\hbox{#1\psovalbox@iii\box\pst@hbox}%
+\ifpsboxsep
+\setbox\pst@hbox\hbox to 2\pst@dima{\hss\unhbox\pst@hbox\hss}%
+\advance\pst@dimb-.5\pst@dimg
+\pst@dimg\ht\pst@hbox
+\advance\pst@dimg\pst@dimb
+\ht\pst@hbox=\pst@dimb
+\pst@dimg=\dp\pst@hbox
+\advance\pst@dimg\pst@dimb
+\dp\pst@hbox=\pst@dimb
+\fi
+\leavevmode\box\pst@hbox
+\endgroup}
+\def\psovalbox@iii{%
+\begin@ClosedObj
+\addto@pscode{%
+0 360
+\pst@number\pst@dima \pst@number\pst@dimb
+\pst@number{\wd\pst@hbox}2 div
+\pst@number\pst@dimg 2 div \pst@number{\dp\pst@hbox}sub
+\tx@Ellipse
+closepath}%
+\def\pst@linetype{2}%
+\end@ClosedObj}
+\def\psset@arcsepA#1{\pst@getlength{#1}\psk@arcsepA}
+\def\psset@arcsepB#1{\pst@getlength{#1}\psk@arcsepB}
+\def\psset@arcsep#1{%
+\psset@arcsepA{#1}\let\psk@arcsepB\psk@arcsepA}
+\psset@arcsep{0}
+\def\tx@ArcArrow{ArcArrow }
+\def\psarc{\def\pst@par{}\pst@object{psarc}}
+\def\psarc@i{%
+\@ifnextchar({\psarc@iii}{\psarc@ii}}
+\def\psarc@ii#1{\addto@par{arrows=#1}%
+\@ifnextchar({\psarc@iii}{\psarc@iii(0,0)}}
+\def\psarc@iii(#1)#2#3#4{%
+\begin@OpenObj
+\pst@getangle{#3}\pst@tempa
+\pst@getangle{#4}\pst@tempb
+\pst@@getcoor{#1}%
+\pssetlength\pst@dima{#2}%
+\addto@pscode{\psarc@iv \psarc@v}%
+\gdef\psarc@type{0}%
+\showpointsfalse
+\end@OpenObj}
+\def\psarc@iv{%
+\pst@coor /y ED /x ED
+/r \pst@number\pst@dima def
+/c 57.2957 r \tx@Div def
+/angleA
+\pst@tempa
+\psk@arcsepA c mul 2 div
+\ifcase \psarc@type add \or sub \fi
+def
+/angleB
+\pst@tempb
+\psk@arcsepB c mul 2 div
+\ifcase \psarc@type sub \or add \fi
+def
+\ifshowpoints\psarc@showpoints\fi
+\ifx\psk@arrowA\@empty
+\ifnum\psk@liftpen=2
+r angleA \tx@PtoC
+y add exch x add exch
+moveto
+\fi
+\fi}
+\def\psarc@v{%
+x y r
+angleA
+\ifx\psk@arrowA\@empty\else
+{ ArrowA CP }
+{ \ifcase\psarc@type add \or sub \fi }
+\tx@ArcArrow
+\fi
+angleB
+\ifx\psk@arrowB\@empty\else
+{ ArrowB }
+{ \ifcase\psarc@type sub \or add \fi }
+\tx@ArcArrow
+\fi
+\ifcase\psarc@type arc \or arcn \fi}
+\def\psarc@type{0}
+\def\psarc@showpoints{%
+gsave
+newpath
+x y moveto
+x y r \pst@tempa \pst@tempb
+\ifcase\psarc@type arc \or arcn \fi
+closepath
+CLW 2 div SLW
+[ \psk@dash\space ] 0 setdash stroke
+grestore }
+\def\psarcn{\def\pst@par{}\pst@object{psarcn}}
+\def\psarcn@i{\def\psarc@type{1}\psarc@i}
+\def\pscircle{\def\pst@par{}\pst@object{pscircle}}
+\def\pscircle@i{\@ifnextchar({\pscircle@do}{\pscircle@do(0,0)}}
+\def\pscircle@do(#1)#2{%
+\if@star
+{\use@par\qdisk(#1){#2}}%
+\else
+\begin@ClosedObj
+\pst@@getcoor{#1}%
+\pssetlength\pst@dimc{#2}%
+\def\pst@linetype{4}%
+\addto@pscode{%
+\pst@coor
+\pst@number\pst@dimc
+\psk@dimen CLW mul sub
+0 360 arc
+closepath}%
+\showpointsfalse
+\end@ClosedObj
+\fi
+\ignorespaces}
+\def\qdisk(#1)#2{%
+\def\pst@par{}%
+\begin@SpecialObj
+\pst@@getcoor{#1}%
+\pssetlength\pst@dimg{#2}%
+\addto@pscode{\pst@coor \pst@number\pst@dimg \tx@SD}%
+\end@SpecialObj}
+\def\pswedge{\def\pst@par{}\pst@object{pswedge}}
+\def\pswedge@i{\@ifnextchar({\pswedge@ii}{\pswedge@ii(0,0)}}
+\def\pswedge@ii(#1)#2#3#4{%
+\begin@ClosedObj
+\pssetlength\pst@dimc{#2}
+\pst@getangle{#3}\pst@tempa
+\pst@getangle{#4}\pst@tempb
+\pst@@getcoor{#1}%
+\def\pst@linetype{1}%
+\addto@pscode{%
+\pst@coor
+2 copy
+moveto
+\pst@number\pst@dimc \psk@dimen CLW mul sub % Adjusted radius
+\pst@tempa \pst@tempb
+arc
+closepath}%
+\showpointsfalse
+\end@ClosedObj}
+\def\tx@Ellipse{Ellipse }
+\def\psellipse{\def\pst@par{}\pst@object{psellipse}}
+\def\psellipse@i(#1){\@ifnextchar(%
+{\psellipse@ii(#1)}{\psellipse@ii(0,0)(#1)}}
+\def\psellipse@ii(#1)(#2){%
+\begin@ClosedObj
+\pst@getcoor{#1}\pst@tempa
+\pst@@getcoor{#2}%
+\addto@pscode{%
+0 360
+\pst@coor
+\ifdim\psk@dimen\p@=\z@\else
+\psk@dimen CLW mul dup 3 1 roll
+sub 3 1 roll sub exch
+\fi
+\pst@tempa
+\tx@Ellipse
+closepath}%
+\def\pst@linetype{2}%
+\end@ClosedObj}
+\def\multirput{%
+\begingroup\pst@getref{\pst@getrputrot\multirput@i}}
+\def\multirput@i(#1){\@ifnextchar(%
+{\multirput@ii(#1)}{\multirput@ii(0,0)(#1)}}
+\def\multirput@ii(#1,#2)(#3,#4)#5{%
+\pst@makebox{\multirput@iii(#1,#2)(#3,#4){#5}}}
+\def\multirput@iii(#1,#2)(#3,#4)#5{%
+\pst@makesmall\pst@hbox
+\ifx\pst@rot\@empty\else\pst@rotate\pst@hbox\fi
+\pssetxlength\pst@dima{#1}\pssetylength\pst@dimb{#2}
+\pssetxlength\pst@dimc{#3}\pssetylength\pst@dimd{#4}
+\pst@cntg=#5\relax\pst@cnth=0\relax
+\leavevmode
+\loop\ifnum\pst@cntg>\pst@cnth
+\vbox to \z@{\vss\hbox to \z@{%
+\kern\pst@dima\copy\pst@hbox\hss}\vskip\pst@dimb}%
+\advance\pst@dima by\pst@dimc
+\advance\pst@dimb by\pst@dimd
+\advance\pst@cnth by 1
+\repeat
+\endgroup\ignorespaces}
+\def\multips{\begingroup\pst@getrputrot\multips@i}
+\def\multips@i(#1){\@ifnextchar({\@multips@ii(#1)}{\@multips@ii(0,0)(#1)}}
+\def\@multips@ii(#1)(#2)#3#4{%
+\pst@getcoor{#1}\pst@tempa
+\pst@@getcoor{#2}%
+\pst@cnta=#3\relax
+\addto@pscode{%
+\pst@tempa T \the\pst@cnta\space \pslbrace
+gsave \ifx\pst@rot\@empty\else\pst@rot rotate \fi }%
+\hbox to\z@{%
+\def\init@pscode{%
+\addto@pscode{%
+gsave
+\pst@number\pslinewidth SLW
+\pst@usecolor\pslinecolor}}%
+\def\use@pscode{\addto@pscode{grestore}}%
+\def\psclip##1{\pst@misplaced\psclip}%
+\def\nc@object##1##2##3##4{\pst@misplaced{node connection}}%
+#4}%
+\addto@pscode{grestore \pst@coor T \psrbrace repeat}%
+\leavevmode
+\use@pscode
+\endgroup
+\ignorespaces}
+\def\scalebox#1{%
+\begingroup
+\pst@getscale{#1}\pst@tempa
+\pst@makebox{\@scalebox}}
+\def\@scalebox{%
+\leavevmode
+\ifx\pst@tempa\@empty
+\box\pst@hbox
+\else
+\hbox{%
+\ht\pst@hbox=\pst@temph\ht\pst@hbox%
+\dp\pst@hbox=\pst@temph\dp\pst@hbox%
+\pst@dima=\pst@tempg\wd\pst@hbox%
+\ifdim\pst@dima<\z@\kern-\pst@dima\fi
+\pst@Verb{CP CP T \pst@tempa \tx@NET}%
+\hbox to \z@{\box\pst@hbox\hss}%
+\pst@Verb{%
+CP CP T
+1 \pst@tempg\space div 1 \pst@temph\space div scale
+\tx@NET}%
+\ifdim\pst@dima>\z@\kern\pst@dima\fi}%
+\fi
+\endgroup}
+\pslongbox{Scalebox}{\scalebox}
+\def\scaleboxto(#1,#2){%
+\begingroup
+\pssetlength\pst@dima{#1}%
+\pssetlength\pst@dimb{#2}%
+\pst@makebox{\@scaleboxto\@scalebox}}
+\def\@scaleboxto{%
+\ifdim\pst@dima=\z@\else
+\pst@divide{\pst@dima}{\wd\pst@hbox}\pst@tempg
+\fi
+\ifdim\pst@dimb=\z@
+\let\pst@temph\pst@tempg
+\else
+\pst@dimc=\ht\pst@hbox\advance\pst@dimc\dp\pst@hbox
+\pst@divide{\pst@dimb}{\pst@dimc}\pst@temph
+\ifdim\pst@dima=\z@\let\pst@tempg\pst@temph\fi
+\fi
+\edef\pst@tempa{\pst@tempg\space\pst@temph\space scale }%
+\ifdim\pst@dima=\z@
+\ifdim\pst@dimb=\z@
+\@pstrickserr{%
+\string\scaleboxto\space dimensions cannot both be zero}\@ehpa
+\def\pst@tempa{}%
+\fi\fi}
+\pslongbox{Scaleboxto}{\scaleboxto}
+\def\tx@Rot{Rot }
+\def\rotateleft{\pst@makebox{\@rotateleft\pst@hbox}}
+\def\@rotateleft#1{%
+\leavevmode\hbox{\hskip\ht#1\hskip\dp#1\vbox{\vskip\wd#1%
+\pst@Verb{90 \tx@Rot}
+\vbox to \z@{\vss\hbox to \z@{\box#1\hss}\vskip\z@}%
+\pst@Verb{-90 \tx@Rot}}}}
+\def\rotateright{\pst@makebox{\@rotateright\pst@hbox}}
+\def\@rotateright#1{%
+\hbox{\hskip\ht#1\hskip\dp#1\vbox{\vskip\wd#1%
+\pst@Verb{-90 \tx@Rot}
+\vbox to \z@{\hbox to \z@{\hss\box#1}\vss}%
+\pst@Verb{90 \tx@Rot}}}}
+\def\rotatedown{\pst@makebox{\@rotatedown\pst@hbox}}
+\def\@rotatedown#1{%
+\hbox{\hskip\wd#1\vbox{\vskip\ht#1\vskip\dp#1%
+\pst@Verb{180 \tx@Rot}%
+\vbox to \z@{\hbox to \z@{\box#1\hss}\vss}%
+\pst@Verb{-180 \tx@Rot}}}}
+\pslongbox{Rotateleft}{\rotateleft}
+\pslongbox{Rotateright}{\rotateright}
+\pslongbox{Rotatedown}{\rotatedown}
+\def\pst@getref#1{%
+\@ifnextchar[%
+{\def\refpoint@x{.5}\def\refpoint@y{.5}\pst@@getref{#1}}%
+{\let\refpoint@x\relax#1}}
+\def\pst@@getref#1[#2]{%
+\pst@expandafter\pst@@@getref{#2}\@empty,,\@nil#1}
+\def\pst@@@getref#1#2,#3,#4\@nil{%
+\ifx\@empty#3\@empty
+\@nameuse{getref@#1}\@nameuse{getref@#2}%
+\else
+\pst@checknum{#1#2}\refpoint@x
+\pst@checknum{#3}\refpoint@y
+\fi}
+\def\getref@t{\def\refpoint@y{1}}
+\def\getref@b{\def\refpoint@y{0}}
+\def\getref@B{\let\refpoint@y\relax}
+\def\getref@l{\def\refpoint@x{0}}
+\def\getref@r{\def\refpoint@x{1}}
+\def\pst@makesmall#1{%
+\ifx\refpoint@x\relax
+\setbox#1=\hbox to\z@{\hss\vbox to \z@{\vss\box#1\vss}\hss}%
+\else
+\pst@@makesmall{#1}%
+\fi}
+\def\pst@@makesmall#1{%
+\pst@dimh=\refpoint@x\wd#1%
+\ifx\refpoint@y\relax
+\pst@dimg=\dp#1%
+\else
+\pst@dimg=\refpoint@y\ht#1%
+\advance\pst@dimg\refpoint@y\dp#1%
+\fi
+\setbox#1=\hbox to\z@{%
+\hskip-\pst@dimh\vbox to\z@{\vss\box#1\vskip-\pst@dimg}\hss}}
+\def\pst@getrputrot#1{%
+\@ifnextchar(%
+{\def\pst@rot{}#1}%
+{\pst@getrot{\@ifnextchar({#1}{#1(0,0)}}}}
+\def\pst@getrot#1#2{%
+\pst@expandafter{\@ifnextchar*{\pst@@@getrot}{\pst@@getrot}}{#2}\@nil
+\ifx\pst@rotlist\@empty\else
+\edef\pst@rotlist{\pst@rotlist \pst@rot add }%
+\fi
+#1}
+\def\pst@@getrot#1\@nil{%
+\def\next##1@#1=##2@##3\@nil{%
+\ifx\relax##2%
+\pst@getangle{#1}\pst@rot
+\else
+\def\pst@rot{##2}%
+\fi}%
+\expandafter\next\pst@rottable @#1=\relax @\@nil}
+\def\pst@@@getrot#1#2\@nil{%
+\pst@@getrot#2\@nil
+\edef\pst@rot{\pst@rotlist neg \ifx\pst@rot\@empty\else\pst@rot add \fi}}%
+\def\pst@rotlist{0 }
+\def\pst@rot{}
+\def\pst@rottable{%
+@0=%
+@U=%
+@L=90 %
+@D=180 %
+@R=-90 %
+@N=\pst@rotlist neg %
+@W=\pst@rotlist neg 90 add %
+@S=\pst@rotlist neg 180 add %
+@E=\pst@rotlist neg 90 sub }
+\def\pst@rotate#1{%
+\setbox#1=\hbox{%
+\pst@Verb{\pst@rot \tx@Rot}%
+\box#1%
+\pst@Verb{\pst@rot neg \tx@Rot}}}
+\def\psput@cartesian#1{%
+\hbox to \z@{\kern\pst@dimg{\vbox to \z@{\vss\box#1\vskip\pst@dimh}\hss}}}
+\def\psput@special#1{%
+\hbox{%
+\pst@Verb{{ \pst@coor } \tx@PutCoor \tx@PutBegin}%
+\box#1%
+\pst@Verb{\tx@PutEnd}}}
+\def\tx@PutCoor{PutCoor }
+\def\tx@PutBegin{PutBegin }
+\def\tx@PutEnd{PutEnd }
+\def\begin@psput#1{\begingroup\pst@killglue\leavevmode\pst@ifstar{#1}}%
+\def\end@psput#1(#2){%
+\pst@makebox{%
+\if@star
+\setbox\pst@hbox\hbox{\psframebox*[boxsep=false]{\unhbox\pst@hbox}}%
+\fi
+#1(#2)%
+\endgroup
+\ignorespaces}}
+\def\rput{\begin@psput{\pst@getref{\pst@getrputrot{\end@psput\rput@i}}}}
+\def\rput@i(#1){%
+\pst@makesmall\pst@hbox
+\ifx\pst@rot\@empty\else\pst@rotate\pst@hbox\fi
+\psput@{#1}\pst@hbox}
+\def\cput{\def\pst@par{}\pst@object{cput}}
+\def\cput@i{\begingroup\pst@killglue\leavevmode\pst@getrputrot\cput@ii}
+\def\cput@ii(#1){\pst@makebox{\cput@iii{}(#1)}}
+\def\cput@iii#1(#2){%
+\setbox\pst@hbox=\hbox{\psboxsepfalse\pscirclebox@ii{#1}}%
+\let\refpoint@x\relax
+\rput@i(#2)%
+\endgroup
+\ignorespaces}
+\newdimen\pslabelsep
+\def\psset@labelsep#1{\pssetlength\pslabelsep{#1}}
+\psset@labelsep{5pt}
+\def\pst@getrefangle#1\@nil{%
+\def\next##1@#1=##2"##3@##4\@nil{%
+\ifx\relax##2%
+\pst@getangle{#1}\pst@refangle
+\def\pst@uputref{}%
+\else
+\edef\pst@refangle{##2}%
+\edef\pst@uputref{##3}%
+\fi}%
+\expandafter\next\pst@refangletable @#1=\relax"@\@nil}
+\def\pst@refangletable{%
+@r=0"20%
+@u=90"02%
+@l=180"10%
+@d=-90"01%
+@ur=45"22%
+@ul=135"12%
+@dr=-135"21%
+@dl=-45"11}
+\def\uput{\begin@psput{\@ifnextchar[{\uput@ii}{\uput@i}}}
+\def\uput@i#1{\pssetlength\pslabelsep{#1}\uput@ii}
+\def\uput@ii[#1]{%
+\pst@expandafter\pst@getrefangle{#1}\@nil
+\pst@getrputrot{\end@psput\uput@iii}}
+\def\uput@iii(#1){%
+\ifx\pst@uputref\@empty
+\uput@iv\tx@UUput
+\else
+\ifx\pst@rot\@empty
+\expandafter\uput@v\pst@uputref
+\else
+\uput@iv\tx@UUput
+\fi
+\fi
+\psput@{#1}\pst@hbox}
+\def\uput@iv#1{%
+\edef\pst@coor{%
+\pst@number\pslabelsep
+\pst@number{\wd\pst@hbox}%
+\pst@number{\ht\pst@hbox}%
+\pst@number{\dp\pst@hbox}%
+\pst@refangle\space \ifx\pst@rot\@empty\else\pst@rot\space sub \fi
+\tx@Uput #1}%
+\setbox\pst@hbox=\hbox to\z@{\hss\vbox to\z@{\vss\box\pst@hbox\vss}\hss}%
+\setbox\pst@hbox=\psput@special\pst@hbox
+\ifx\pst@rot\@empty\else\pst@rotate\pst@hbox\fi}
+\def\uput@v#1#2{%
+\ifnum#1>\z@\ifnum#2>\z@\pslabelsep=.707\pslabelsep\fi\fi
+\setbox\pst@hbox=\vbox to\z@{%
+\ifnum#2=1 \vskip\pslabelsep\else\vss\fi
+\hbox to\z@{%
+\ifnum#1=2 \hskip\pslabelsep\else\hss\fi
+\box\pst@hbox
+\ifnum#1=1 \hskip\pslabelsep\else\hss\fi}%
+\ifnum#2=2 \vskip\pslabelsep\else\vss\fi}}
+\def\tx@Uput{Uput }
+\def\tx@UUput{UUput }
+\def\pst@getlabelsep#1{%
+\@ifnextchar[%
+{\def\refpoint@x{.5}\def\refpoint@y{.5}\pst@@getref{#1}}%
+{\pst@@getlabelsep{#1}}}
+\def\pst@@getlabelsep#1#2{\pssetlength\pslabelsep{#2}\pst@getref{#1}}
+\def\Rput{%
+\begin@psput{\pst@getlabelsep{\pst@getrputrot{\end@psput{\Rput@i\rput@i}}}}}
+\def\Rput@i{%
+\pst@dimg=\dp\pst@hbox
+\advance\pst@dimg\pslabelsep
+\dp\pst@hbox=\pst@dimg
+\pst@dimg=\ht\pst@hbox
+\advance\pst@dimg\pslabelsep
+\ht\pst@hbox=\pst@dimg
+\setbox\pst@hbox\hbox{\kern\pslabelsep\box\pst@hbox\kern\pslabelsep}}%
+\def\pspicture{\begingroup\pst@ifstar\pst@picture}
+\def\pst@picture{%
+\@ifnextchar[{\pst@@picture}{\pst@@picture[0]}}
+\def\pst@@picture[#1]#2(#3,#4){%
+\@ifnextchar({\pst@@@picture[#1](#3,#4)}%
+{\pst@@@picture[#1](0,0)(#3,#4)}}
+\def\pst@@@picture[#1](#2,#3)(#4,#5){%
+\pssetxlength\pst@dima{#2}\pssetylength\pst@dimb{#3}%
+\pssetxlength\pst@dimc{#4}\pssetylength\pst@dimd{#5}%
+\def\pst@tempa{#1}%
+\setbox\pst@hbox=\hbox\bgroup
+\begingroup\KillGlue
+\@ifundefined{@latexerr}{}{\let\unitlength\psunit}%
+\edef\pic@coor{(#2,#3)(#2,#3)(#4,#5)}\ignorespaces}
+\def\pic@coor{(0,0)(0,0)(10,10)}
+\def\endpspicture{%
+\pst@killglue
+\endgroup
+\egroup
+\ifdim\wd\pst@hbox=\z@\else
+\@pstrickserr{Extraneous space in the pspicture environment}%
+{Type \space <return> \space to procede.}%
+\fi
+\ht\pst@hbox=\pst@dimd
+\dp\pst@hbox=-\pst@dimb
+\setbox\pst@hbox=\hbox{%
+\kern-\pst@dima
+\ifx\pst@tempa\@empty\else
+\advance\pst@dimd-\pst@dimb
+\pst@dimd=\pst@tempa\pst@dimd
+\advance\pst@dimd\pst@dimb
+\lower\pst@dimd
+\fi
+\box\pst@hbox
+\kern\pst@dimc}%
+\if@star\setbox\pst@hbox=\hbox{\clipbox@@\z@}\fi
+\leavevmode\box\pst@hbox
+\endgroup}
+\@namedef{pspicture*}{\pspicture*}
+\@namedef{endpspicture*}{\endpspicture}
+\def\tx@BeginOL{BeginOL }
+\pst@dimg=40in
+\edef\pst@OLunit{\pst@number\pst@dimg}
+\def\tx@InitOL{InitOL }
+\def\pst@initoverlay#1{\pst@Verb{\tx@InitOL /TheOL (#1) def}}
+\def\pst@overlay#1{%
+\edef\curr@overlay{#1}%
+\pst@Verb{(#1) BOL}%
+\aftergroup\pst@endoverlay}
+\def\pst@endoverlay{%
+\pst@Verb{(\curr@overlay) BOL}}
+\def\curr@overlay{all}
+\newbox\theoverlaybox
+\def\overlaybox{%
+\setbox\theoverlaybox=\hbox\bgroup
+\begingroup
+\let\psoverlay\pst@overlay
+\def\overlaybox{%
+\@pstrickserr{Overlays cannot be nested}\@eha}%
+\def\putoverlaybox{%
+\@pstrickserr{You must end the overlay box
+before using \string\putoverlaybox}}%
+\psoverlay{main}}
+\def\endoverlaybox{\endgroup\egroup}
+\def\putoverlaybox#1{%
+\hbox{\pst@initoverlay{#1}\copy\theoverlaybox}}
+\def\psoverlay{\@pstrickserr{\string\psoverlay\space
+can only be used after \string\overlaybox}}
+\ifx\pstcustomize\relax \input pstricks.con \fi
+\catcode`\@=\PstAtCode\relax
+\endinput
+%%
+%% END: pstricks.tex

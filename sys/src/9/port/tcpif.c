@@ -5,7 +5,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 #include 	"arp.h"
-#include 	"ipdat.h"
+#include 	"../port/ipdat.h"
 
 extern int tcpdbg;
 #define DPRINT	if(tcpdbg) print
@@ -26,6 +26,7 @@ tcpxstate(Ipconv *s, char oldstate, char newstate)
 		s->psrc = 0;		/* This connection is toast */
 		s->pdst = 0;
 		s->dst = 0;
+		/* fall through */
 
 	case Close_wait:		/* Remote closes */
 		if(s->err) {
@@ -51,6 +52,10 @@ tcpxstate(Ipconv *s, char oldstate, char newstate)
 				freeb(bp);
 		} else
 			PUTNEXT(s->readq, bp);
+		if(tcb){
+			tcb->sndfull = 0;
+			wakeup(&tcb->sndr);
+		}
 		poperror();
 		qunlock(s);
 		break;
@@ -72,8 +77,11 @@ tcpstart(Ipconv *s, int mode, ushort window, char tos)
 	Tcpctl *tcb;
 
 	tcb = &s->tcpctl;
-	if(tcb->state != Closed)
-		return;
+	if(tcb->state != Closed || tcb->sndq != 0){
+		print("tcpstart: %lux %d sndq %lux dest %d.%d.%d.%d %d to %d\n",
+			s, tcb->state, tcb->sndq, fmtaddr(s->dst), s->pdst, s->psrc);
+		error(Einuse);
+	}
 
 	init_tcpctl(s);
 
@@ -101,8 +109,11 @@ tcpstart(Ipconv *s, int mode, ushort window, char tos)
 		poperror();
 		qunlock(tcb);
 		tsleep(&tcb->syner, notsyner, tcb, 120*1000);
-		if(tcb->state != Established && tcb->state != Syn_received)
+		if(tcb->state != Established && tcb->state != Syn_received){
+			if(s->err)
+				error(s->err);
 			error(Etimedout);
+		}
 		break;
 	}
 }

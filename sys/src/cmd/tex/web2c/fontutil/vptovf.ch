@@ -1,7 +1,5 @@
 % vptovf.ch for C compilation with web2c.
-% 
-% 01/20/90 Karl Berry		Version 1.
-% 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [0] WEAVE: print changes only.
@@ -11,16 +9,16 @@
 @y
 \pageno=\contentspagenumber \advance\pageno by 1
 \let\maybe=\iffalse
-\def\title{VP\lowercase{to}VF changes for C}
+\def\title{VP$\,$\lowercase{to}$\,$VF changes for C}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [1] Change banner string.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@d banner=='This is VPtoVF, Version 1' {printed when the program starts}
+@d banner=='This is VPtoVF, Version 1.3' {printed when the program starts}
 @y
-@d banner=='This is VPtoVF, C Version 1' {printed when the program starts}
+@d banner=='This is VPtoVF, C Version 1.3' {printed when the program starts}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -39,18 +37,21 @@
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [6] Open VPL file
+% [6] Open VPL file.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 reset(vpl_file);
 @y
-if argc < 4 then begin
-  print_ln('Usage: vptovf <vpl file> <vfm file> <tfm file>.');
-  uexit(1);
+if (argc < 4) or (argc > n_options + 4)
+then begin
+  print_ln ('Usage: vptovf [-verbose] <vpl file> <vfm file> <tfm file>.');
+  uexit (1);
 end;
-argv(1, vpl_name);
-reset(vpl_file, vpl_name);
-print_ln(banner);
+@<Initialize the option variables@>;
+@<Parse arguments@>;
+argv (optind, vpl_name);
+reset (vpl_file, vpl_name);
+if verbose then print_ln (banner);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,7 +61,7 @@ print_ln(banner);
 @!tfm_file:packed file of 0..255;
 @y
 @!tfm_file:packed file of 0..255;
-@!vf_name,@!tfm_name,@!vpl_name:packed array[1..FILENAMESIZE] of char;
+@!vf_name,@!tfm_name,@!vpl_name:packed array[1..PATH_MAX] of char;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,8 +82,19 @@ packed file of bytes.
 @^system dependencies@>
 
 @<Set init...@>=
-argv(2, vf_name); rewrite(vf_file, vf_name);
-argv(3, tfm_name); rewrite(tfm_file, tfm_name);
+argv(optind + 1, vf_name);
+rewrite(vf_file, vf_name);
+argv(optind + 2, tfm_name);
+rewrite(tfm_file, tfm_name);
+@z
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [118] No output unless verbose.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@x
+@<Print |c| in octal notation@>;
+@y
+if verbose then @<Print |c| in octal notation@>;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -173,7 +185,7 @@ begin if fabs(x/design_units)>=16.0 then
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [175] Change VF-byte output to fix ranges
+% [175] Change VF-byte output to fix ranges.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d vout(#)==write(vf_file,#)
@@ -182,10 +194,93 @@ begin if fabs(x/design_units)>=16.0 then
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [181] Print final newline.
+% [181] Be quiet unless verbose. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-end.
+read_input; print_ln('.');@/
 @y
-print_ln(' '); end.
+read_input;
+if verbose then print_ln('.');
+@z
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [182] System-dependent changes.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@x
+@* System-dependent changes.
+This section should be replaced, if necessary, by changes to the program
+that are necessary to make \.{VPtoVF} work at a particular installation.
+It is usually best to design your change file so that all changes to
+previous sections preserve the section numbering; then everybody's version
+will be consistent with the printed program. More extensive changes,
+which introduce new sections, can be inserted here; then only the index
+itself will get a new section number.
+@^system dependencies@>
+@y
+@* System-dependent changes.  We want to parse a Unix-style command line.
+
+@<Parse arguments@> =
+begin
+  @<Define the option table@>;
+  repeat
+    getopt_return_val := getopt_long_only (argc, gargv, '', long_options,
+                                           address_of_int (option_index));
+    if getopt_return_val <> -1
+    then begin
+      if getopt_return_val = "?"
+      then uexit (1); {|getopt| has already given an error message.}
+      {We don't have any non-flag options.}
+    end;
+  until getopt_return_val = -1;
+
+  {Now |optind| is the index of first non-option on the command line.}
+end
+
+
+@ The array of information we pass in.  The type |getopt_struct| is
+defined in C, to avoid type clashes.  We also need to know the return
+value from getopt, and the index of the current option.
+
+@<Local var...@> =
+@!long_options: array[0..n_options] of getopt_struct;
+@!getopt_return_val: integer;
+@!option_index: integer;
+
+
+@ Here are the options we allow.
+
+@<Define the option...@> =
+long_options[0].name := 'verbose';
+long_options[0].has_arg := 0;
+long_options[0].flag := address_of_int (verbose);
+long_options[0].val := 1;
+
+
+@ The global variable |verbose| determines whether or not we print
+progress information.
+
+@<Glob...@> =
+@!verbose: integer;
+
+@ It starts off |false|.
+
+@<Initialize the option...@> =
+verbose := false;
+
+
+@ An element with all zeros always ends the list.
+
+@<Define the option...@> =
+long_options[1].name := 0;
+long_options[1].has_arg := 0;
+long_options[1].flag := 0;
+long_options[1].val := 0;
+
+
+@ Pascal compilers won't count the number of elements in an array
+constant for us.  This doesn't include the zero-element at the end,
+because this array starts at index zero.
+
+@<Constants...@> =
+n_options = 1;
 @z

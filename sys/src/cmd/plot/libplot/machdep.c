@@ -44,6 +44,110 @@ void m_vector(int x0, int y0, int x1, int y1, int c){
 	if(c>(1<<(1<<screen.ldepth))-1) c=(2<<screen.ldepth)-1;
 	segment(offscreen, Pt(x0, y0), Pt(x1, y1), c, S);
 }
+Rectangle scr;
+int scrset=0;
+char *scanint(char *s, int *n){
+	while(*s<'0' || '9'<*s){
+		if(*s=='\0'){
+			fprint(2, "plot: bad -Wxmin,ymin,xmax,ymax\n");
+			exits("bad arg");
+		}
+		s++;
+	}
+	*n=0;
+	while('0'<=*s && *s<='9'){
+		*n=*n*10+*s-'0';
+		s++;
+	}
+	return s;
+}
+void setwindow(char *s){
+	s=scanint(s, &scr.min.x);
+	s=scanint(s, &scr.min.y);
+	s=scanint(s, &scr.max.x);
+	scanint(s, &scr.max.y);
+	scrset=1;
+}
+Rectangle getscr(void){
+	int fd;
+	char buf[12*5];
+	fd=open("/dev/screen", OREAD);
+	if(fd==-1) fd=open("/mnt/term/dev/screen", OREAD);
+	if(fd==-1) return Rect(0,0,1024,1024);
+	if(read(fd, buf, sizeof buf)!=sizeof buf){
+		fprint(2, "Can't read /dev/screen: %r\n");
+		exits("screen read");
+	}
+	return Rect(atoi(buf+12), atoi(buf+24), atoi(buf+36), atoi(buf+48));
+}
+char *rdenv(char *name){
+	char *v;
+	int fd, size;
+	fd=open(name, OREAD);
+	if(fd<0) return 0;
+	size=seek(fd, 0, 2);
+	v=malloc(size+1);
+	if(v==0){
+		fprint(2, "Can't malloc: %r\n");
+		exits("no mem");
+	}
+	seek(fd, 0, 0);
+	read(fd, v, size);
+	v[size]=0;
+	close(fd);
+	return v;
+}
+void winit(void (*errfun)(char *), char *font, char *label, Rectangle r){
+	char *srv, *mntsrv;
+	char spec[100];
+	int srvfd, cons, pid;
+	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFENVG|RFNOTEG|RFNOWAIT)){
+	case -1:
+		fprint(2, "Can't fork: %r\n");
+		exits("no fork");
+	case 0:
+		break;
+	default:
+		exits(0);
+	}
+	srv=rdenv("/env/8½srv");
+	if(srv==0){
+		free(srv);
+		mntsrv=rdenv("/mnt/term/env/8½srv");
+		srv=malloc(strlen(mntsrv)+10);
+		sprint(srv, "/mnt/term%s", mntsrv);
+		free(mntsrv);
+		pid=0;		/* 8½srv can't send notes to remote processes! */
+	}
+	else pid=getpid();
+	srvfd=open(srv, ORDWR);
+	free(srv);
+	if(srvfd==-1){
+		fprint(2, "Can't open %s: %r\n", srv);
+		exits("no srv");
+	}
+	sprint(spec, "N%d,%d,%d,%d,%d\n", pid, r.min.x, r.min.y, r.max.x, r.max.y);
+	if(mount(srvfd, "/mnt/8½", 0, spec)==-1){
+		fprint(2, "Can't mount: %r\n");
+		exits("no mount");
+	}
+	close(srvfd);
+	bind("/mnt/8½", "/dev", MBEFORE);
+	cons=open("/dev/cons", OREAD);
+	if(cons==-1){
+	NoCons:
+		fprint(2, "Can't open /dev/cons: %r");
+		exits("no cons");
+	}
+	dup(cons, 0);
+	close(cons);
+	cons=open("/dev/cons", OWRITE);
+	if(cons==-1) goto NoCons;
+	dup(cons, 1);
+	dup(cons, 2);
+	close(cons);
+	binit(errfun, font, label);
+}
 /*
  * Startup initialization
  */
@@ -52,7 +156,12 @@ void m_initialize(char *s){
 	int dx, dy;
 	USED(s);
 	if(first){
-		binit(0,0,0);
+		if(!scrset){
+			scr=getscr();
+			scr.min=div(sub(add(scr.min, scr.max), Pt(520, 520)), 2);
+			scr.max=add(scr.min, Pt(520, 520));
+		}
+		winit(0,0,0,scr);
 		clipminx=mapminx=screen.r.min.x+4;
 		clipminy=mapminy=screen.r.min.y+4;
 		clipmaxx=mapmaxx=screen.r.max.x-5;

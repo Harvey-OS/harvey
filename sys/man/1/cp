@@ -1,23 +1,11 @@
 .TH CP 1 
 .SH NAME
-cp, mv, rename  \- copy, move files
+cp, mv  \- copy, move files
 .SH SYNOPSIS
 .B cp
-[
-.B -z
-[
-.I bufsize
-]
-]
 .I file1 file2
 .br
 .B cp
-[
-.B -z
-[
-.I bufsize
-]
-]
 .I file ... directory
 .PP
 .B mv
@@ -54,12 +42,6 @@ are preserved if it already
 exists; the mode of
 .I file1
 is used otherwise.
-The
-.B -z
-option says to preserve `holes'; see
-.IR seek (2).
-The reads and writes are done in hunks of size
-.IR bufsize .
 .PP
 .I Mv
 moves
@@ -72,14 +54,19 @@ is just renamed;
 otherwise
 .I mv
 behaves like
-.IR cp .
+.I cp
+followed by
+.IR rm .
 .I Mv
 will rename directories,
 but it refuses to move a directory into another directory.
+.SH SOURCE
+.B /sys/src/cmd/cp.c
+.br
+.B /sys/src/cmd/mv.c
 .SH "SEE ALSO"
 .IR cat (1),
-.IR stat (2),
-.IR push (1)
+.IR stat (2)
 .SH DIAGNOSTICS
 .I Cp
 and

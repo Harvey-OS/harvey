@@ -26,17 +26,66 @@ static char *binop[] =
 	[OLOR]	"|",
 	[OCAND]	"&&",
 	[OCOR]	"||",
-	[OASGN]	" = "
+	[OASGN]	" = ",
 };
 
 static char *tabs = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
-static char *type[] =
+char *typestr[] =
 {
 	[TINT]		"integer",
 	[TFLOAT]	"float",
 	[TSTRING]	"string",
 	[TLIST]		"list",
+	[TCODE]		"code",
 };
+
+int
+cmp(char **a, char **b)
+{
+	return strcmp(*a, *b);
+}
+
+void
+fundefs(void)
+{
+	Lsym *l;
+	char **vec;
+	int i, j, n, max, col, f, g, s;
+
+	max = 0;
+	f = 0;
+	g = 100;
+	vec = malloc(sizeof(char*)*g);
+	if(vec == 0)
+		fatal("out of memory");
+
+	for(i = 0; i < Hashsize; i++) {
+		for(l = hash[i]; l; l = l->hash) {
+			if(l->proc == 0 && l->builtin == 0)
+				continue;
+			n = strlen(l->name);
+			if(n > max)
+				max = n;
+			if(f >= g) {
+				g *= 2;
+				vec = realloc(vec, sizeof(char*)*g);
+				if(vec == 0)
+					fatal("out of memory");
+			}
+			vec[f++] = l->name;
+		}
+	}
+        qsort(vec, f, sizeof(char*), cmp);
+	max++;
+	col = 60/max;
+	s = (f+col-1)/col;
+
+	for(i = 0; i < s; i++) {
+		for(j = i; j < f; j += s)
+			Bprint(bout, "%-*s", max, vec[j]);
+		Bprint(bout, "\n");
+	}
+}
 
 void
 whatis(Lsym *l)
@@ -45,26 +94,49 @@ whatis(Lsym *l)
 	int def;
 	Type *ti;
 
+	if(l == 0) {
+		fundefs();
+		return;
+	}
+
 	def = 0;
 	if(l->v->set) {
 		t = l->v->type;
-		Bprint(bout, "%s variable", type[t]);
+		Bprint(bout, "%s variable", typestr[t]);
 		if(t == TINT || t == TFLOAT)
 			Bprint(bout, " format %c", l->v->fmt);
+		if(l->v->comt)
+			Bprint(bout, " complex %s",
+						l->v->comt->base->name);
 		Bputc(bout, '\n');
 		def = 1;
 	}
 	if(l->lt) {
-		Bprint(bout, "complex {\n");
-		for(ti = l->lt; ti; ti = ti->next)
-			Bprint(bout, "\t%s %s\n", ti->type, ti->name);
-		Bprint(bout, "}\n");
+		Bprint(bout, "complex %s {\n", l->name);
+		for(ti = l->lt; ti; ti = ti->next) {
+			if(ti->type) {
+				if(ti->fmt == 'a') {
+					Bprint(bout, "\t%s %d %s;\n",
+					ti->type->name, ti->offset,
+					ti->tag->name);
+				}
+				else {
+					Bprint(bout, "\t'%c' %s %d %s;\n",
+					ti->fmt, ti->type->name, ti->offset,
+					ti->tag->name);
+				}
+			}
+			else
+				Bprint(bout, "\t'%c' %d %s;\n",
+				ti->fmt, ti->offset, ti->tag->name);
+		}
+		Bprint(bout, "};\n");
 		def = 1;
 	}
 	if(l->proc) {
 		Bprint(bout, "defn %s(", l->name);
 		pexpr(l->proc->left);
-		Bprint(bout, ")\n{\n");
+		Bprint(bout, ") {\n");
 		pcode(l->proc->right, 1);
 		Bprint(bout, "}\n");
 		def = 1;
@@ -111,7 +183,15 @@ pcode(Node *n, int d)
 		pcode(n->right, d);
 		break;
 	case OLOCAL:
-		Bprint(bout, "%.*slocal %s;\n", d, tabs, n->sym->name);
+		Bprint(bout, "%.*slocal", d, tabs);
+		while(l) {
+			Bprint(bout, " %s", l->sym->name);
+			l = l->left;
+			if(l == 0)
+				Bprint(bout, ";\n");
+			else
+				Bprint(bout, ",");
+		}
 		break;
 	case OCOMPLEX:
 		Bprint(bout, "%.*scomplex %s %s;\n", d, tabs, n->sym->name, l->sym->name);
@@ -199,6 +279,12 @@ pexpr(Node *n)
 	case OLOR:
 	case OCAND:
 	case OCOR:
+		Bputc(bout, '(');
+		pexpr(l);
+		Bprint(bout, binop[n->op]);
+		pexpr(r);
+		Bputc(bout, ')');
+		break;
 	case OASGN:
 		pexpr(l);
 		Bprint(bout, binop[n->op]);
@@ -260,6 +346,12 @@ pexpr(Node *n)
 		Bprint(bout, ",");
 		pexpr(r);
 		break;
+	case ODELETE:
+		Bprint(bout, "delete ");
+		pexpr(l);
+		Bprint(bout, ",");
+		pexpr(r);
+		break;
 	case ORET:
 		Bprint(bout, "return ");
 		pexpr(l);
@@ -271,13 +363,32 @@ pexpr(Node *n)
 		Bprint(bout, "]");
 		break;
 	case OINDC:
-		Bprint(bout, " @");
+		Bprint(bout, "@");
 		pexpr(l);
 		break;
 	case ODOT:
-		fatal("dot");
+		pexpr(l);
+		Bprint(bout, ".%s", n->sym->name);
+		break;
 	case OFRAME:
-		Bprint(bout, "%s:%s", n->sym->name, r->sym->name);
+		Bprint(bout, "%s:%s", n->sym->name, l->sym->name);
+		break;
+	case OCAST:
+		Bprint(bout, "(%s)", n->sym->name);
+		pexpr(l);
+		break;
+	case OFMT:
+		pexpr(l);
+		Bprint(bout, "\\%c", r->ival);
+		break;
+	case OEVAL:
+		Bprint(bout, "eval ");
+		pexpr(l);
+		break;
+	case OWHAT:
+		Bprint(bout, "whatis", n->sym->name);
+		if(n->sym)
+			Bprint(bout, " %s", n->sym->name);
 		break;
 	}
 }

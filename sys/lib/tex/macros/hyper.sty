@@ -1,0 +1,552 @@
+%% 
+%% This is file `hyper.sty', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% hyper.dtx  (with options: `hyper')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file hyper.dtx .
+%% 
+%% File: hyper.dtx Copyright (C) 1995 Michael Mehlich
+\def\fileversion{V2.3}
+\def\filedate{1995/02/12}
+\def\docdate{1995/02/12}
+%%
+%% \CharacterTable 
+%% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z 
+%%  Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z 
+%%  Digits        \0\1\2\3\4\5\6\7\8\9 
+%%  Exclamation   \!     Double quote  \"     Hash (number) \# 
+%%  Dollar        \$     Percent       \%     Ampersand     \& 
+%%  Acute accent  \'     Left paren    \(     Right paren   \) 
+%%  Asterisk      \*     Plus          \+     Comma         \, 
+%%  Minus         \-     Point         \.     Solidus       \/ 
+%%  Colon         \:     Semicolon     \;     Less than     \< 
+%%  Equals        \=     Greater than  \>     Question mark \? 
+%%  Commercial at \@     Left bracket  \[     Backslash     \\ 
+%%  Right bracket \]     Circumflex    \^     Underscore    \_ 
+%%  Grave accent  \`     Left brace    \{     Vertical bar  \| 
+%%  Right brace   \}     Tilde         \~} 
+%% 
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\ProvidesPackage{hyper}[\filedate\space HyperLaTeX2e extension] 
+\bgroup
+  \catcode`\!00\relax
+  \catcode`\"12\relax
+  !catcode`!\12!relax
+  !gdef!hyper@quote{"}
+  !gdef!hyper@backslash{\}
+  !global!edef!hyper@hash{!string#} 
+!egroup
+\bgroup
+  \catcode`\<12\catcode`\>12\relax%
+  \catcode`\:12\catcode`\=12\catcode`\/12\relax%
+  \gdef\hyper{%
+    \def\set@fragilehyperreference##1##2{%
+      \ifvmode\leavevmode\fi%
+      \special{%
+        html:<a href=\hyper@quote##1\hyper@quote>%
+      }%
+        \hyper@ref@color{##2}%
+      \special{html:</a>}%
+    }%
+    \def\f@hyper@ref@ext[##1][##2]\end@hyper@ref{%
+      \set@fragilehyperreference{##1\hyper@hash##2}%
+    }
+    \def\f@hyper@ref@int##1\end@hyper@ref{%
+      \set@fragilehyperreference{\hyper@hash##1}%
+    }
+    \def\f@hyper@ref{%
+      \@ifnextchar[{\f@hyper@ref@ext}{\f@hyper@ref@int}%
+    }
+    \def\fragilehyperreference##1{%
+      \expandafter\expandafter\expandafter\f@hyper@ref##1\end@hyper@ref%
+    }
+    \def\fragilehyperanchor##1##2{%
+      \ifvmode\leavevmode\fi%
+      \special{%
+        html:<a name=\hyper@quote##1\hyper@quote>%
+      }%
+        \hyper@anchor@color{##2}%
+      \special{html:</a>}%
+    }
+    \def\fragileblindhyperanchor##1{%
+      \special{%
+        html:<a name=\hyper@quote##1\hyper@quote></a>%
+      }%
+    }
+    \def\fragilehyperURL##1##2##3##4{%
+      \ifvmode\leavevmode\fi%
+      \special{html:<a href=\hyper@quote##1://##2/##3\hyper@quote>}%
+        {##4}%
+      \special{html:</a>}%
+    }
+  }
+\egroup
+\hyper
+\def\nohyper{%
+  \def\fragilehyperreference##1##2{\ifvmode\leavevmode\fi##2}%
+  \def\fragilehyperanchor##1##2{\ifvmode\leavevmode\fi##2}%
+  \def\fragileblindhyperanchor##1{}%
+  \def\fragilehyperURL##1##2##3##4{\ifvmode\leavevmode\fi##4}%
+}
+\def\hyperreference{\protect\fragilehyperreference}
+\def\hyperanchor{\protect\fragilehyperanchor}
+\def\blindhyperanchor{\protect\fragileblindhyperanchor}
+\def\hyperURL{\protect\fragilehyperURL}
+\def\hyper@color{%
+  \definecolor{refcolor}{rgb}{1,0,0}%
+  \definecolor{anchorcolor}{rgb}{0,1,0}%
+  \def\hyper@ref@color##1{\textcolor{refcolor}{##1}}%
+  \def\hyper@anchor@color##1{\textcolor{anchorcolor}{##1}}%
+}
+\def\hyper@gray{%
+  \definecolor{refcolor}{gray}{0.666}%
+  \definecolor{anchorcolor}{gray}{0.333}%
+  \def\hyper@ref@color##1{\textcolor{refcolor}{##1}}%
+  \def\hyper@anchor@color##1{\textcolor{anchorcolor}{##1}}%
+}
+\def\hyper@black{%
+  \def\hyper@ref@color##1{##1}%
+  \def\hyper@anchor@color##1{##1}%
+}
+\hyper@black
+\newcount\hypercount
+\hypercount=0\relax
+\def\@currenthyper{}
+\def\hyper@setcurrent{%
+  \global\advance\hypercount1\relax%
+  \edef\@currenthyper{\the\hypercount}%
+}%
+\def\hyper@ref@toggle#1#2#3{#3[\hyperreference{#1}{#2}]}
+\def\ref@by@expanded@hyper#1\end@hyper{{#1}}
+\def\callwithexpandedhyperref#1#2{%
+  \expandafter\expandafter\expandafter\hyper@ref@toggle%
+    \expandafter\ref@by@expanded@hyper\@currenthyper\end@hyper%
+  {#2}{#1}%
+}
+\def\hyperlabel#1{\@bsphack
+  \protected@write\@auxout{}%
+         {\string\newlabel{#1}%
+   {{\@currenthyper}{\@currentlabel}{\hyper@thepage}}}%
+  \@esphack}
+\def\@firstofthree#1#2#3{#1}
+\def\@secondofthree#1#2#3{#2}
+\def\@thirdofthree#1#2#3{#3}
+\def\hyper@setref#1#2#3#4{%
+  \ifx#1\relax%
+     \protect\G@refundefinedtrue%
+     #4\nfss@text{\reset@font\bfseries ??}%
+     \@latex@warning{Reference `#3' on page \thepage \space undefined}%
+  \else%
+    \ifx#2\@firstofthree%
+      \hyperreference{\expandafter\@firstofthree#1}{#4}\null%
+    \else\ifx#2\@secondofthree%
+      \hyperreference%
+        {\expandafter\@firstofthree#1}%
+        {#4\expandafter#2#1\null}\null%
+    \else%
+      \hyperreference%
+        {page.\expandafter\@thirdofthree#1}%
+        {#4\expandafter#2#1\null}\null%
+    \fi\fi%
+  \fi%
+}
+\def\@@hypernoref[#1]#2{%
+  \expandafter\hyper@setref\csname r@#2\endcsname%
+    \@firstofthree{#2}{#1}%
+}
+\def\@hypernoref[#1]{\@@hypernoref[#1]}
+\def\hypernoref{\@ifnextchar[{\@hypernoref}{\@@hypernoref[]}}
+\def\@@hyperref[#1]#2{%
+  \expandafter\hyper@setref\csname r@#2\endcsname%
+    \@secondofthree{#2}{#1}%
+}
+\def\@hyperref[#1]{\@@hyperref[#1~]}
+\def\hyperref{\@ifnextchar[{\@hyperref}{\@@hyperref[]}}
+\def\@@hyperpageref[#1]#2{%
+   \expandafter\hyper@setref\csname r@#2\endcsname%
+     \@thirdofthree{#2}{#1}%
+}
+\def\@hyperpageref[#1]{\@@hyperpageref[#1~]}
+\def\hyperpageref{\@ifnextchar[{\@hyperpageref}{\@@hyperpageref[]}}
+\let\label\hyperlabel
+\let\noref\hypernoref
+\let\ref\hyperref
+\let\pageref\hyperpageref
+\def\labeltext#1#2{%
+  \hyper@setcurrent%
+  \bgroup%
+    \def\@currentlabel{#2}%
+    \label{#1}%
+    \hyperanchor{\@currenthyper}{#2}%
+  \egroup%
+}
+\def\refcurrent#1{\hyperreference{\@currenthyper}{#1}}
+\def\hyper@next#1#2{\bgroup%
+  \hypercount=#1\relax\advance\hypercount1\relax%
+  \hyperreference{\the\hypercount}{#2}%
+\egroup}
+\def\refnext#1{\protect\hyper@next{\the\hypercount}{#1}}
+\let\hyper@refstepcounter\refstepcounter
+\def\refstepcounter{\hyper@setcurrent\hyper@refstepcounter}
+\def\ignore@next@refstepcounter{%
+  \def\refstepcounter##1{%
+    \def\refstepcounter{\hyper@setcurrent\hyper@refstepcounter}%
+  }%
+}
+\let\hyper@thepage\thepage
+\def\hyper@ref@page#1{\hyperreference{page.#1}{#1}}
+\def\hyper@refpage{\hyper@ref@page\hyper@thepage}
+\let\thepage\hyper@refpage
+\let\hyper@pagenumbering\pagenumbering
+\def\pagenumbering#1{%
+  \hyper@pagenumbering{#1}%
+  \global\let\hyper@thepage\thepage%
+  \global\let\thepage\hyper@refpage%
+}
+\def\addcontentsline#1#2#3{%
+  \bgroup%
+    \protected@write\@auxout
+        {\let\label\@gobble \let\index\@gobble \let\glossary\@gobble }%
+        {\string\@writefile{#1}%
+           {\protect\contentsline{#2}{#3}{\hyper@thepage}}}%
+  \egroup%
+}
+\def\@wrindex#1{%
+   \protected@write\@indexfile{}%
+      {\string\indexentry{#1}{\hyper@thepage}}%
+ \endgroup
+ \@esphack
+}
+\def\@wrglossary#1{%
+   \protected@write\@glossaryfile{}%
+      {\string\glossaryentry{#1}{\hyper@thepage}}%
+ \endgroup
+ \@esphack
+}
+\let\hyper@protected@write\protected@write
+\def\protected@write#1#2#3{%
+  \begingroup%
+    \let\hyper@thepage\relax%
+    \hyper@protected@write{#1}{#2}{#3}%
+  \endgroup%
+}
+\let\hyper@contentsline\contentsline
+\def\contentsline#1#2#3{%
+  \hyper@contentsline{#1}{#2}{\hyper@ref@page{#3}}%
+}
+\def\hyper@anchorpage{\hyperanchor{page.\hyper@thepage}{\hyper@thepage}}
+\let\hyper@shipoutsetup\@shipoutsetup
+\def\hyper@evenhead{\bgroup%
+  \let\thepage\hyper@anchorpage\@evenhead%
+\egroup}
+\def\hyper@oddhead{\bgroup%
+  \let\thepage\hyper@anchorpage\@oddhead%
+\egroup}
+\def\hyper@evenfoot{\bgroup%
+  \let\thepage\hyper@anchorpage\@evenfoot%
+\egroup}
+\def\hyper@oddfoot{\bgroup%
+  \let\thepage\hyper@anchorpage\@evenfoot%
+\egroup}
+\def\@shipoutsetup{%
+  \hyper@shipoutsetup%
+     \if@twoside%
+       \ifodd\count\z@%
+         \let\@thehead\hyper@oddhead%
+         \let\@thefoot\hyper@oddfoot%
+         \let\@themargin\oddsidemargin%
+       \else%
+         \let\@thehead\hyper@evenhead%
+         \let\@thefoot\hyper@evenfoot%
+         \let\@themargin\evensidemargin%
+       \fi%
+     \else%
+       \let\@thehead\hyper@oddhead%
+       \let\@thefoot\hyper@oddfoot%
+     \fi%
+}
+\let\hyper@latex@warning\@latex@warning
+\def\@latex@warning#1{%
+  \bgroup%
+    \let\thepage\hyper@thepage%
+    \hyper@latex@warning{#1}%
+  \egroup%
+}
+\let\hyper@sect\@sect
+\def\@sect#1#2#3#4#5#6[#7]#8{%
+  \ifnum #2>\c@secnumdepth%
+    \hyper@setcurrent%
+  \else%
+    \refstepcounter{#1}%
+    \ignore@next@refstepcounter%
+  \fi%
+  \global\let\@currenthyper\@currenthyper%
+  \callwithexpandedhyperref%
+    {\hyper@sect{#1}{#2}{#3}{#4}{#5}{#6}}%
+    {#7}%
+    {\hyperanchor{\@currenthyper}{#8}}
+}
+\let\hyper@ssect\@ssect
+\def\@ssect#1#2#3#4#5{%
+  \hyper@setcurrent%
+  \global\let\@currenthyper\@currenthyper%
+  \hyper@ssect{#1}{#2}{#3}{#4}{\hyperanchor{\@currenthyper}{#5}}%
+}
+\def\@lbibitem[#1]#2{%
+  \hyper@setcurrent%
+  \item[\@biblabel{\hyperanchor{\@currenthyper}{#1}}\hfill]%
+  \if@filesw%
+      {\let\protect\@unexpandable@protect%
+       \immediate%
+       \write\@auxout{%
+         \string\bibcite{#2}{\hyperreference{\@currenthyper}{#1}}%
+       }%
+      }%
+  \fi%
+  \ignorespaces%
+}
+\def\@bibitem{%
+  \stepcounter{\@listctr}%
+  \@lbibitem[\the\value{\@listctr}]%
+}
+\def\@eqnnum{%
+  \hyperanchor{\@currenthyper}{\reset@font\rmfamily (\theequation)}%
+}
+\let\hyper@eqnarray\eqnarray
+\def\eqnarray{%
+  \hyper@setcurrent%
+  \def\@currenthyper{\the\hypercount}%
+  \hyper@eqnarray%
+}
+\let\hyper@eqncr\@eqncr
+\def\@eqncr{\hyper@eqncr\hyper@setcurrent}
+\long\def\@caption#1[#2]#3{\par%
+  \addcontentsline%
+    {\csname ext@#1\endcsname}%
+    {#1}%
+    {\protect\numberline{\csname the#1\endcsname}%
+     {\ignorespaces \hyperreference{\@currenthyper}{#2}}%
+    }%
+  \begingroup%
+    \@parboxrestore%
+    \normalsize%
+    \@makecaption{\csname fnum@#1\endcsname}{\ignorespaces #3}\par%
+  \endgroup%
+}
+\def\@makefnmark{%
+  \hbox{$^{\hyperreference%
+             {fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage}%
+             {\@thefnmark}%
+          }\m@th$%
+       }%
+}
+\newcount\hyper@minipage@cnt
+\hyper@minipage@cnt=0
+\edef\hyper@minipage@label{}
+\let\hyper@minipage\minipage
+\let\hyper@endminipage\endminipage
+\def\minipage{%
+  \bgroup%
+    \global\advance\hyper@minipage@cnt1\relax%
+    \edef\hyper@minipage@label{\the\hyper@minipage@cnt}%
+    \hyper@minipage%
+}
+\def\endminipage{%
+    \hyper@endminipage%
+  \egroup%
+}
+\let\hyper@item\@item
+\def\@item[#1]{%
+  \if@noitemarg%
+    \if@nmbrlist%
+      \hyper@item[\hyperanchor{\@currenthyper}{#1}]%
+    \else%
+      \hyper@item[#1]%
+    \fi%
+  \else%
+    \hyper@item[#1]%
+  \fi%
+}
+\ifnum%
+  \ifx\@indexfile\@undefined0\else1\fi%
+  \ifx\@glossaryfile\@undefined0\else1\fi%
+  >0\relax
+\RequirePackage{defpattern}
+\defpattern\hyper@page@range[#2]{\hyper@ref@page{#2}}
+\defpattern\hyper@page@range[#2--#3]{%
+  \hyper@ref@page{#2}--\hyper@ref@page{#3}%
+}
+\defpattern\hyper@page@range[#2, #3]{%
+  \hyper@page@range[#2], \hyper@page@range[#3]%
+}
+\def\hyper@page@cmd[#1]#2{#1{\hyper@page@range[#2]}}
+\def\hyper@page@nocmd#1{\hyper@page@range[#1]}
+\def\hyperpage{\@ifnextchar[{\hyper@page@cmd}{\hyper@page@nocmd}}
+\let\hyper@index\index
+\let\hyper@glossary\glossary
+\defpattern\hyper@ig@pat[#2|#3]{#2{#3|hyperpage}}
+\defpattern\hyper@ig@pat[#2|#3|#4]{%
+  #2{#3|hyperpage[\hyper@backslash#4]}%
+}
+\defpattern\hyper@ig@pat[#2|#3|(#4]{%
+  #2{#3|(hyperpage[\hyper@backslash#4]}%
+}
+\defpattern\hyper@ig@pat[#2|#3|)#4]{%
+  #2{#3|)hyperpage[\hyper@backslash#4]}%
+}
+\defpattern\hyper@ig@pat[#2|#3|(]{#2{#3|(hyperpage}}
+\defpattern\hyper@ig@pat[#2|#3|)]{#2{#3|)hyperpage}}
+\def\hyper@ig{%
+  \bgroup%
+    \catcode`\|12\catcode`\@12\catcode`\!12\relax%
+    \hyper@ig@%
+}
+\def\hyper@ig@#1#2{%
+    \hyper@ig@pat[#1|#2]%
+  \egroup%
+}
+\def\index{\hyper@ig\hyper@index}
+\def\glossary{\hyper@ig\hyper@glossary}
+\fi
+\let\hyper@begintheorem\@begintheorem%
+\def\@begintheorem#1#2{\trivlist%
+   \item[\hskip%
+         \labelsep{\hyperanchor{\@currenthyper}{\bfseries #1\ #2}}%
+        ]\itshape%
+}
+\def\@opargbegintheorem#1#2#3{\trivlist%
+      \item[\hskip%
+            \labelsep%
+               {\hyperanchor{\@currenthyper}{\bfseries #1\ #2}\ (#3)}%
+           ]\itshape%
+}
+\def\hyper@set@option#1#2#3{%
+  \ifx#1\@undefined%
+    \def#1{#2}%
+  \else%
+    \errmessage{#3}%
+  \fi}
+\def\set@hyper@class#1{%
+  \hyper@set@option\hyper@class{#1}%
+    {Only one class is allowed in option list}%
+}
+\def\set@hyper@do#1{%
+  \hyper@set@option\hyper@do{#1}%
+    {Excluding options 'yes' and 'no' in option list found}%
+}
+\def\set@hyper@color#1{%
+  \hyper@set@option\hyper@this@color{#1}%
+    {Multiple color options in option list found}%
+}
+\def\hyper@packages{}
+\def\add@hyper@package#1{%
+  \edef\hyper@packages{\hyper@packages(#1)}%
+}
+\DeclareOption{article}{\set@hyper@class{article}}
+\DeclareOption{book}{\set@hyper@class{book}}
+\DeclareOption{letter}{\set@hyper@class{letter}}
+\DeclareOption{ltxdoc}{\set@hyper@class{ltxdoc}}
+\DeclareOption{ltxguide}{\set@hyper@class{ltxguide}}
+\DeclareOption{ltnews}{\set@hyper@class{ltnews}}
+\DeclareOption{proc}{\set@hyper@class{proc}}
+\DeclareOption{report}{\set@hyper@class{report}}
+\DeclareOption{slides}{\set@hyper@class{slides}}
+\DeclareOption{amsart}{\set@hyper@class{amsart}}
+\DeclareOption{amsproc}{\set@hyper@class{amsproc}}
+\DeclareOption{amsbook}{\set@hyper@class{amsbook}}
+\DeclareOption{amsdtx}{\set@hyper@class{amsdtx}}
+\DeclareOption{amsldoc}{\set@hyper@class{amsldoc}}
+\DeclareOption{yes}{\set@hyper@do{\hyper}}
+\DeclareOption{no}{\set@hyper@do{\nohyper}}
+\DeclareOption{color}{\set@hyper@color{\hyper@color}}
+\DeclareOption{gray}{\set@hyper@color{\hyper@gray}}
+\DeclareOption{black}{\set@hyper@color{\hyper@black}}
+\DeclareOption*{\add@hyper@package{\CurrentOption}}
+\ProcessOptions
+\ifx\hyper@class\@undefined
+  \@ifclassloaded{slides}{\def\hyper@class{slides}}{}
+  \@ifclassloaded{report}{\def\hyper@class{report}}{}
+  \@ifclassloaded{letter}{\def\hyper@class{letter}}{}
+  \@ifclassloaded{book}{\def\hyper@class{book}}{}
+  \@ifclassloaded{article}{\def\hyper@class{article}}{}
+  \@ifclassloaded{proc}{\def\hyper@class{proc}}{}
+  \@ifclassloaded{ltnews}{\def\hyper@class{ltnews}}{}
+  \@ifclassloaded{ltxguide}{\def\hyper@class{ltxguide}}{}
+  \@ifclassloaded{ltxdoc}{\def\hyper@class{ltxdoc}}{}
+  \@ifclassloaded{amsart}{\def\hyper@class{amsart}}{}
+  \@ifclassloaded{amsproc}{\def\hyper@class{amsproc}}{}
+  \@ifclassloaded{amsbook}{\def\hyper@class{amsbook}}{}
+  \@ifclassloaded{amsdtx}{\def\hyper@class{amsdtx}}{}
+  \@ifclassloaded{amsldoc}{\def\hyper@class{amsldoc}}{}
+\fi
+\ifx\hyper@class\@undefined
+  \errmessage{Document class can't be determined. %
+              Please add one to the option list.%
+     }
+\else
+  \InputIfFileExists{\hyper@class.hyp}{}%
+    {\errmessage{\hyper@class.hyp not found. %
+                 Please reinstall the complete package%
+                }%
+    }%
+\fi
+\ifx\hyper@this@color\@undefined
+\else
+  \expandafter\ifx\hyper@this@color\hyper@gray
+    \RequirePackage{color}
+  \else\expandafter\ifx\hyper@this@color\hyper@color
+    \RequirePackage{color}
+  \fi\fi
+  \hyper@this@color
+\fi
+\@ifclasswith\hyper@class{leqno}%
+  {\InputIfFileExists{leqno.hyp}{}%
+     {\errmessage{leqno.hyp not found. %
+                  Please reinstall the complete package%
+                 }%
+     }%
+  }%
+  {}
+\def\hyper@loadpackage#1{%
+  \@ifpackageloaded{#1}%
+    {\InputIfFileExists{#1.hyp}%
+       {\expandafter\edef\csname hyper@loaded@#1\endcsname{#1.hyp}}%
+       {\errmessage{#1.hyp not found. %
+                    Please reinstall the complete package%
+                   }%
+       }%
+    }%
+    {}
+}
+\hyper@loadpackage{amsmath}
+\hyper@loadpackage{amstex}
+\hyper@loadpackage{amsthm}
+\hyper@loadpackage{doc}
+\hyper@loadpackage{ftnright}
+\hyper@loadpackage{longtable}
+\hyper@loadpackage{theorem}
+\hyper@loadpackage{upref}
+\hyper@loadpackage{xr}
+\def\@hyper@load@pkg(#1){%
+  \expandafter\ifx\csname hyper@loaded@#1\endcsname\relax%
+    \IfFileExists{#1.hyp}%
+      {\RequirePackage{#1}%
+       \input{#1.hyp}%
+       \expandafter\edef\csname hyper@loaded@#1\endcsname{#1.hyp}%
+      }%
+      {\errmessage{Modification file #1.hyp not found}}%
+  \fi%
+  \hyper@loadpackage%
+}
+\def\hyper@loadpackage{\@ifnextchar({\@hyper@load@pkg}{}}
+\expandafter\hyper@loadpackage\hyper@packages\relax
+\ifx\hyper@do\@undefined\else\hyper@do\fi
+\endinput
+%% 
+%% End of file `hyper.sty'.

@@ -1,0 +1,13 @@
+char *genlist(int which){
+	static char buf[7];
+	if(which<0 || 26<=which) return 0;
+	sprint(buf, "item %c", which+'a');
+	return buf;
+}
+void scroll(void){
+	Panel *l, *s;
+	root=plgroup(0, 0);
+	l=pllist(root, PACKE, genlist, 8, 0);
+	s=plscrollbar(root, PACKW|FILLY);
+	plscroll(l, 0, s);
+}

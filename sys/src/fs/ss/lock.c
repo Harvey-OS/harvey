@@ -18,10 +18,31 @@ lock(Lock *l)
 	for (i = 0; i < 1000000; i++) {
     		if (tas(l) == 0)
 			return;
+		/* If we are spl low resched */
+		if((getpsr() & SPL(15)) == 0)
+			sched();
 	}
 	l->sbsem = 0;
 
 	panic("lock loop 0x%lux held by pc 0x%lux\n", l, l->pc);
+}
+
+void
+ilock(Lock *l)
+{
+	l->sr = splhi();
+	lock(l);
+}
+
+void
+iunlock(Lock *l)
+{
+	ulong sr;
+
+	sr = l->sr;
+	l->sbsem = 0;
+	l->pc = 0;
+	splx(sr);
 }
 
 int

@@ -1,0 +1,133 @@
+%% 
+%% This is file `bahasa.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% bahasa.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%% @LaTeX-style-file{
+%%%    author_1            = "Terry Mart",
+%%%    author_2            = "J"org Knappen",
+%%%    version             = "0.9d",
+%%%    date                = "26 June 1994",
+%%%    time                = "02:15:34 MET",
+%%%    filename            = "bahasa.dtx",
+%%%    address             = "Institut f\"ur Kernphysik
+%%%                           Johannes Gutenberg-Universit\"at Mainz
+%%%                           D-55099 Mainz
+%%%                           Germany",
+%%%    telephone           = "",
+%%%    FAX                 = "",
+%%%    checksum            = "21315 246 1122 9276",
+%%%    email_1             = "mart@vkpmzd.kph.uni-mainz.de (Internet)",
+%%%    email_2             = "knappen@vkpmzd.kph.uni-mainz.de (Internet)",
+%%%    codetable           = "ISO/ASCII",
+%%%    keywords            = "",
+%%%    supported           = "yes",
+%%%    abstract            = "",
+%%%    docstring           = "The checksum field above contains a CRC-16
+%%%                           checksum as the first value, followed by the
+%%%                           equivalent of the standard UNIX wc (word
+%%%                           count) utility output of lines, words, and
+%%%                           characters.  This is produced by Robert
+%%%                           Solovay's checksum utility.",
+%%% }
+%%%
+%%% ====================================================================
+%%% \fi
+\ifx\undefined\captionsbahasa
+\else
+  \selectlanguage{bahasa}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{bahasa.sty}[1994/06/26 v0.9c
+         Bahasa support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty\else\originalTeX\fi
+\ifx\undefined\l@bahasa
+  \@nopatterns{Bahasa}
+  \adddialect\l@bahasa0\fi
+\addto\captionsbahasa{%
+  \def\prefacename{Pendahuluan}%
+  \def\refname{Pustaka}%
+  \def\abstractname{Ringkasan}% (sometime it's called 'intisari'
+                              %  or 'ikhtisar')
+  \def\bibname{Bibliografi}%
+  \def\chaptername{Bab}%
+  \def\appendixname{Lampiran}%
+  \def\contentsname{Daftar Isi}%
+  \def\listfigurename{Daftar Gambar}%
+  \def\listtablename{Daftar Tabel}%
+  \def\indexname{Indeks}%
+  \def\figurename{Gambar}%
+  \def\tablename{Tabel}%
+  \def\partname{Bagian}%
+  \def\enclname{Lampiran}%
+  \def\ccname{cc}%
+  \def\headtoname{Kepada}%
+  \def\pagename{Halaman}%
+  \def\seename{lihat}%
+  \def\alsoname{lihat juga}}
+\def\datebahasa{%
+\def\today{\number\day~\ifcase\month\or
+  Januari\or Februari\or Maret\or April\or Mei\or Juni\or
+  Juli\or Agustus\or September\or Oktober\or Nopember\or Desember\fi
+  \space \number\year}}
+\addto\extrasbahasa{}
+\addto\noextrasbahasa{}
+\selectlanguage{bahasa}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `bahasa.sty'.

@@ -1,5 +1,6 @@
 #include "common.h"
 #include <auth.h>
+#include <ndb.h>
 
 /*
  *  number of predefined fd's
@@ -278,7 +279,7 @@ sysclose(Biobuf *bp)
 {
 	int rv;
 
-	rv = Bclose(bp);
+	rv = Bterm(bp);
 	close(Bfildes(bp));
 	free(bp);
 	return rv;
@@ -332,9 +333,42 @@ sysname_read(void)
 
 	cp = getenv("site");
 	if(cp == 0)
+		cp = alt_sysname_read();
+	if(cp == 0)
 		cp = "kremvax";
 	strcpy(name, cp);
 	return name;
+}
+extern char *
+alt_sysname_read(void)
+{
+	static char name[128];
+	int n, fd;
+
+	fd = open("/dev/sysname", OREAD);
+	if(fd < 0)
+		return 0;
+	n = read(fd, name, sizeof(name)-1);
+	close(fd);
+	if(n <= 0)
+		return 0;
+	name[n] = 0;
+	return name;
+}
+
+/*
+ *  get domain name
+ */
+extern char *
+domainname_read(void)
+{
+	static char domain[Ndbvlen];
+	Ndbtuple *t;
+
+	t = csgetval("sys", alt_sysname_read(), "dom", domain);
+	if(t)
+		ndbfree(t);
+	return domain;
 }
 
 /*
@@ -505,11 +539,74 @@ becomenone(void)
 	if(fd < 0 || write(fd, "none", strlen("none")) < 0)
 		fprint(2, "can't become none\n");
 	close(fd);
-	fd = open("#c/key", OWRITE);
-	if(fd >= 0){
-		write(fd, "1234567", 7);
-		close(fd);
-	}
 	if(newns("none", 0))
 		fprint(2, "can't set new namespace\n");
+}
+
+/*
+ *  query the connection server
+ */
+char*
+csquery(char *attr, char *val, char *rattr)
+{
+	char token[Ndbvlen+4];
+	char buf[256], *p, *sp;
+	int fd, n;
+
+	fd = open("/net/cs", ORDWR);
+	if(fd < 0)
+		return 0;
+	fprint(fd, "!%s=%s", attr, val);
+	seek(fd, 0, 0);
+	snprint(token, sizeof(token), "%s=", rattr);
+	for(;;){
+		n = read(fd, buf, sizeof(buf)-1);
+		if(n <= 0)
+			break;
+		buf[n] = 0;
+		p = strstr(buf, token);
+		if(p && (p == buf || *(p-1) == 0)){
+			close(fd);
+			sp = strchr(p, ' ');
+			if(sp)
+				*sp = 0;
+			p = strchr(p, '=');
+			if(p == 0)
+				return 0;
+			return strdup(p+1);
+		}
+	}
+	close(fd);
+	return 0;
+}
+
+extern int
+islikeatty(int fd)
+{
+	Dir d;
+
+	if(dirfstat(fd, &d) < 0)
+		return 0;
+	return strcmp(d.name, "cons") == 0;
+}
+
+extern int
+holdon(void)
+{
+	int fd;
+
+	if(!islikeatty(0))
+		return -1;
+
+	fd = open("/dev/consctl", OWRITE);
+	write(fd, "holdon", 6);
+
+	return fd;
+}
+
+extern void
+holdoff(int fd)
+{
+	write(fd, "holdoff", 7);
+	close(fd);
 }

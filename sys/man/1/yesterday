@@ -40,11 +40,11 @@ The
 .I date
 option selects other day's dumps, with a format of
 2, 4, 6, or 8 digits of the form
-.I dd,
-.I mmdd,
-.I yymmdd,
+.IR dd ,
+.IR mmdd ,
+.IR yymmdd ,
 or
-.I yyyymmdd.
+.IR yyyymmdd .
 .PP
 .I Yesterday
 does not guarantee that the string it prints represents an existing file.
@@ -69,6 +69,8 @@ v.out
 .EE
 .SH FILES
 .B /n/dump
+.SH SOURCE
+.B /rc/bin/yesterday
 .SH SEE ALSO
 .IR fs (4)
 .SH BUGS

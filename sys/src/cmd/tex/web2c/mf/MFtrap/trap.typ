@@ -1,6 +1,6 @@
-This is GFtype, Version 3
+This is GFtype, Version 3.1
 Options selected: Mnemonic output = true; pixel output = true.
-' METAFONT output 1990.03.25:0034'
+' METAFONT output 1992.01.25:0858'
 
 35: beginning of char 5: -4096<=m<=4094 -2<=n<=1
 (initially n=1) paint (4095)1

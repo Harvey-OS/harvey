@@ -33,19 +33,19 @@ main(int argc, char *argv[])
 	else
 		f = open(file, OREAD);
 	if(f < 0) {
-		print("cant open %s\n", file);
+		print("cant open %s: %r\n", file);
 		exits("open");
 	}
 	l = seek(f, 0, 2) / sizeof(long);
 
 	b = malloc(l*sizeof(long));
 	if(b == 0) {
-		print("cant malloc %s\n", file);
+		print("cant malloc %s: %r\n", file);
 		exits("malloc");
 	}
 	seek(f, 0, 0);
 	if(read(f, b, l*sizeof(long)) != l*sizeof(long)) {
-		print("short read %s\n", file);
+		print("short read %s: %r\n", file);
 		exits("read");
 	}
 
@@ -53,9 +53,9 @@ main(int argc, char *argv[])
 	hibits = 0;
 	for(i=0; i<l; i++) {
 		a = b[i];
-		if(a & (1L<<0))
+		if(a & (1L<<7))
 			lobits++;
-		if(a & (1L<<24))
+		if(a & (1L<<31))
 			hibits++;
 	}
 
@@ -70,18 +70,20 @@ main(int argc, char *argv[])
 	qsort(b, l, sizeof(ulong), ulcmp);
 
 	tot = 0;
-	for(j=0; j<50; j++) {
+	for(j=0; j<100; j++) {
 		lo = j*Wormsize;
 		hi = lo + Wormsize;
+
 		x = 0;
 		for(i=0; i<l; i++) {
 			a = b[i];
 			if(a >= lo && a < hi)
 				x++;
 		}
-		if(x)
+		if(x) {
 			print("disk %2d %6ld blocks\n", j, x);
-		tot += x;
+			tot += x;
+		}
 	}
 	print("total   %6ld blocks\n", tot);
 

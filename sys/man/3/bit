@@ -3,17 +3,18 @@
 bit \- screen graphics, mouse
 .SH SYNOPSIS
 .nf
-.B bind #b /dev
+.B bind -a #b /dev
 
 .B /dev/bitblt
 .B /dev/mouse
+.B /dev/mousectl
 .B /dev/screen
 
 .ft L
 #include <u.h>
 #include <libg.h>
 
-.ta \w'short 'u
+.ta \w'ushort 'u
 ushort	BGSHORT(uchar *p)
 ulong	BGLONG(uchar *p)
 void	BPSHORT(uchar *p, ushort v)
@@ -23,9 +24,10 @@ void	BPLONG(uchar *p, ulong v)
 .SH DESCRIPTION
 The
 .I bit
-device provides the
+device provides the files
 .BR bitblt ,
 .BR mouse ,
+.BR mousectl ,
 and
 .B screen
 on machines with a bitmapped screen
@@ -37,15 +39,15 @@ The
 device provides, through the
 .B bitblt
 file, access to
-.I bitmaps,
-.I fonts,
+.IR bitmaps ,
+.IR fonts ,
 and
 .I subfonts
 in its private storage,
 as described in
 .IR graphics (2).
 Each object is identified by a short, its
-.I id.
+.IR id .
 The bitmap with id zero is special: it represents the visible display.
 The subfont with id zero is also special: it is initialized to
 a default subfont that is always available.
@@ -131,7 +133,7 @@ to a congruent
 rectangle at Point
 .B dstpt
 in the bitmap identified by
-.I dstid.
+.IR dstid .
 The rectangle is clipped against both
 source and destination bitmaps. See
 .IR bitblt (2).
@@ -188,13 +190,13 @@ holding offsets from the previous point in the list.
 .br
 Free the resources associated with the allocated bitmap
 identified by
-.I id.
+.IR id .
 .HP
 .B g
 .IR id [2]
 .br
 Free the resources associated with the allocated subfont identified by
-.I id,
+.IR id ,
 including its bitmap.
 If the subfont is cached,
 the associated data may be recoverable even after it has
@@ -204,7 +206,7 @@ been freed; see below.
 .IR id [2]
 .br
 Free the resources associated with the allocated font identified by
-.I id.
+.IR id .
 .HP
 .B i
 .br
@@ -234,7 +236,7 @@ and
 .RI 6 n ,
 where
 .I n
-is the number of characters in the font.
+is the number of characters in the subfont.
 The ids of the screen bitmap and default subfont are both zero.
 .HP
 .B j
@@ -323,7 +325,7 @@ Read the colormap associated with the bitmap with the specified
 The next read of
 .B bitblt
 will return
-.if t 12\(mu2\u\s-2\fIn\fP\s+2\d
+.if t 12×2\u\s-2\fIn\fP\s+2\d
 .if n 12*2^\fIn\fP
 bytes of colormap data where
 .I n
@@ -336,10 +338,10 @@ is the number of bits per pixel in the bitmap.
 .IR ncache [2]
 .br
 Allocate a font with the given
-.I height,
-.I ascent,
+.IR height ,
+.IR ascent ,
 and
-.I ldepth.
+.IR ldepth .
 The id of the allocated font is recovered by reading
 from
 .B bitblt
@@ -393,9 +395,13 @@ in
 A subsequent read of
 .B bitblt
 will return the requested rows of pixels.
-Note: in this case, the response does not begin an
+Note: in this case, the response does not begin with an
 .LR R ,
 to simplify the reading of large bitmaps.
+Also, the reply may be too large to fit in a single 9P message (see
+.IR read (5)),
+so multiple reads may be necessary; each read will return
+only complete rows.
 .HP
 .B s
 .IR id [2]
@@ -415,7 +421,7 @@ specified by the
 cache
 .I indices
 in font
-.I fontid,
+.IR fontid ,
 starting with the upper left corner at
 .IR pt .
 .HP
@@ -446,11 +452,11 @@ in
 .IR width [2]
 .br
 Reset, resize, and clear the cache for font
-.I id;
+.IR id ;
 the maximum width of the
 .I ncache
 characters the cache may hold is set to
-.I width.
+.IR width .
 Must be done before the first load of a cache slot.
 If the cache cannot be resized, the write of this message
 will fail but the cache will be unaffected.
@@ -494,7 +500,7 @@ in subfont
 into slot
 .I cacheindex
 of font
-.I id.
+.IR id .
 .HP
 .B z
 .IR id [2]
@@ -534,10 +540,40 @@ is a time stamp, in units of milliseconds, and
 has set the 1, 2, and 4 bits when the mouse's left, middle, and right
 buttons, respectively, are down.
 .PP
+Writing to the
+.B mousectl
+file configures and controls the mouse.
+The messages are:
+.IP
+.B serial \fIn\fR
+sets serial port
+.I n
+to be the mouse port.
+.IP
+.B ps2
+sets the PS2 port to be the mouse port.
+.IP
+.B accelerated
+turns on mouse acceleration.
+.IP
+.B linear
+turns off mouse acceleration
+.IP
+.B res \fIn\fR
+sets mouse resolution to a setting between 0 and
+3 inclusive.
+.IP
+.B swap
+swaps the left and right buttons on the mouse.
+.br
+Which messages are implemented is machine-dependent.
+.PP
 The
 .B screen
 file contains the screen bitmap in the format described in
 .IR bitmap (6).
+.SH SOURCE
+.B /sys/src/9/port/devbit.c
 .SH DIAGNOSTICS
 Most messages to
 .B bitblt
@@ -550,6 +586,10 @@ of the data containing the erroneous message.
 The most common error is a failure to allocate
 because of insufficient free resources.  Most other errors occur
 only when the protocol is mishandled by the application.
+.IR Errstr (2)
+will report details.
 .SH BUGS
 Because each message must fit in a single 9P message,
 subfonts are limited to about 1300 characters.
+.br
+Can only change the color map of bitmap 0.

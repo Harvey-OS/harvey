@@ -24,6 +24,7 @@ struct rule {
 	rule *next;
 };
 static rule *rulep;
+static rule *rlastp;
 
 /* predeclared */
 static String *substitute(String *, Resub *, char *);
@@ -35,7 +36,7 @@ static rule *findrule(String *, int);
  *  the name of the local system.
  */
 extern String *
-rule_parse(String *line)
+rule_parse(String *line, char *system, int *backl)
 {
 	String *token;
 	String *expanded;
@@ -50,7 +51,8 @@ rule_parse(String *line)
 	for(cp = s_to_c(token); *cp; cp++) {
 		if(*cp == '\\') switch(*++cp) {
 		case 'l':
-			s_append(expanded, thissys);
+			s_append(expanded, system);
+			*backl = 1;
 			break;
 		case '\\':
 			s_putc(expanded, '\\');
@@ -67,6 +69,62 @@ rule_parse(String *line)
 	return(expanded);
 }
 
+static int
+getrule(String *line, String *type, char *system)
+{
+	rule	*rp;
+	String	*re;
+	int	backl;
+
+	backl = 0;
+
+	/* get a rule */
+	re = rule_parse(s_restart(line), system, &backl);
+	if(re == 0)
+		return 0;
+	rp = (rule *)malloc(sizeof(rule));
+	if (rp == 0) {
+		perror("getrules:");
+		exit(1);
+	}
+	rp->next = 0;
+	s_tolower(re);
+	rp->matchre = s_new();
+	if(*s_to_c(re)!='^')
+		s_append(rp->matchre, "^");
+	s_append(rp->matchre, s_to_c(re));
+	s_append(rp->matchre, "$");
+	USE(s_restart(rp->matchre));
+	s_free(re);
+	s_parse(line, s_restart(type));
+	rp->repl1 = rule_parse(line, system, &backl);
+	rp->repl2 = rule_parse(line, system, &backl);
+	rp->program = 0;
+	if (strcmp(s_to_c(type), "|") == 0)
+		rp->type = d_pipe;
+	else if (strcmp(s_to_c(type), ">>") == 0)
+		rp->type = d_cat;
+	else if (strcmp(s_to_c(type), "alias") == 0)
+		rp->type = d_alias;
+	else if (strcmp(s_to_c(type), "translate") == 0)
+		rp->type = d_translate;
+	else if (strcmp(s_to_c(type), "auth") == 0)
+		rp->type = d_auth;
+	else {
+		s_free(rp->matchre);
+		s_free(rp->repl1);
+		s_free(rp->repl2);
+		free((char *)rp);
+		fprint(2,"illegal rewrite rule: %s\n", s_to_c(line));
+		return 0;
+	}
+	if (rulep == 0)
+		rulep = rlastp = rp;
+	else
+		rlastp = rlastp->next = rp;
+	return backl;
+}
+
 /*
  *  rules are of the form:
  *	<reg exp> <String> <repl exp> [<repl exp>]
@@ -75,11 +133,9 @@ extern int
 getrules(void)
 {
 	Biobuf	*rfp;
-	rule	*rp, *rlastp=0;
 	String	*line;
 	String	*type;
 	String	*file;
-	String	*re;
 
 	file = abspath(RULEBiobuf, MAILROOT, (String *)0);
 	rfp = sysopen(s_to_c(file), "r", 0);
@@ -87,52 +143,12 @@ getrules(void)
 		rulep = 0;
 		return -1;
 	}
+	rlastp = 0;
 	line = s_new();
 	type = s_new();
-	while(s_getline(rfp, s_restart(line))){
-		/* get a rule */
-		rp = (rule *)malloc(sizeof(rule));
-		if (rp == 0) {
-			perror("getrules:");
-			exit(1);
-		}
-		rp->next = 0;
-		re = rule_parse(s_restart(line));
-		s_tolower(re);
-		rp->matchre = s_new();
-		if(*s_to_c(re)!='^')
-			s_append(rp->matchre, "^");
-		s_append(rp->matchre, s_to_c(re));
-		s_append(rp->matchre, "$");
-		USE(s_restart(rp->matchre));
-		s_free(re);
-		s_parse(line, s_restart(type));
-		rp->repl1 = rule_parse(line);
-		rp->repl2 = rule_parse(line);
-		rp->program = 0;
-		if (strcmp(s_to_c(type), "|") == 0)
-			rp->type = d_pipe;
-		else if (strcmp(s_to_c(type), ">>") == 0)
-			rp->type = d_cat;
-		else if (strcmp(s_to_c(type), "alias") == 0)
-			rp->type = d_alias;
-		else if (strcmp(s_to_c(type), "translate") == 0)
-			rp->type = d_translate;
-		else if (strcmp(s_to_c(type), "auth") == 0)
-			rp->type = d_auth;
-		else {
-			s_free(rp->matchre);
-			s_free(rp->repl1);
-			s_free(rp->repl2);
-			free((char *)rp);
-			fprint(2,"illegal rewrite rule: %s\n", s_to_c(line));
-			continue;
-		}
-		if (rulep == 0)
-			rulep = rlastp = rp;
-		else
-			rlastp = rlastp->next = rp;
-	}
+	while(s_getline(rfp, s_restart(line)))
+		if(getrule(line, type, thissys) && altthissys)
+			getrule(s_restart(line), type, altthissys);
 	s_free(type);
 	s_free(line);
 	s_free(file);

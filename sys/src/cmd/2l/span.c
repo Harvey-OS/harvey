@@ -287,7 +287,7 @@ void
 putsymb(Sym *s, int t, long v)
 {
 	int i, f;
-	char *n, str[STRINGSZ];
+	char *n;
 
 	n = s->name;
 	if(t == 'f')
@@ -295,29 +295,39 @@ putsymb(Sym *s, int t, long v)
 	lput(v);
 	if(s->version)
 		t += 'a' - 'A';
-	CPUT(t);
-	for(i=0; i<NNAME; i++)
-		CPUT(n[i]);
-	CPUT(0);
-	CPUT(0);
-	CPUT(0);
-	symsize += 4 + 1 + NNAME + 3;
+	CPUT(t+0x80);			/* 0x80 is variable length */
+
+	if(t == 'Z' || t == 'z') {
+		CPUT(n[0]);
+		for(i=1; n[i] != 0 || n[i+1] != 0; i += 2) {
+			CPUT(n[i]);
+			CPUT(n[i+1]);
+		}
+		CPUT(0);
+		CPUT(0);
+		i++;
+	}
+	else {
+		for(i=0; n[i]; i++)
+			CPUT(n[i]);
+		CPUT(0);
+	}
+	symsize += 4 + 1 + i + 1;
+
 	if(debug['n']) {
 		if(t == 'z' || t == 'Z') {
-			str[0] = 0;
-			for(i=1; i<NNAME; i+=2) {
+			Bprint(&bso, "%c %.8lux ", t, v);
+			for(i=1; n[i] != 0 || n[i+1] != 0; i+=2) {
 				f = ((n[i]&0xff) << 8) | (n[i+1]&0xff);
-				if(f == 0)
-					break;
-				sprint(strchr(str, 0), "/%x", f);
+				Bprint(&bso, "/%x", f);
 			}
-			Bprint(&bso, "%c %.6lux %s\n", t, v, str);
+			Bprint(&bso, "\n");
 			return;
 		}
 		if(s->version)
-			Bprint(&bso, "%c %.6lux %s<%d>\n", t, v, n, s->version);
+			Bprint(&bso, "%c %.8lux %s<%d>\n", t, v, n, s->version);
 		else
-			Bprint(&bso, "%c %.6lux %s\n", t, v, n);
+			Bprint(&bso, "%c %.8lux %s\n", t, v, n);
 	}
 }
 
@@ -362,7 +372,7 @@ asmsym(void)
 			if(a->type == D_FILE)
 				putsymb(a->sym, 'z', a->offset);
 			else
-			if(a->type == D_DFC)
+			if(a->type == D_FILE1)
 				putsymb(a->sym, 'Z', a->offset);
 
 		putsymb(s, 'T', s->value);

@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 /*
  * Cobble fake font using existing subfont
@@ -8,7 +8,7 @@ Font*
 mkfont(Subfont *subfont, Rune min)
 {
 	Font *font;
-	char *gbuf;
+	byte *gbuf;
 	Cachefont *c;
 
 	font = malloc(sizeof(Font));

@@ -1,200 +1,161 @@
-typedef struct Conf	Conf;
-typedef struct FPsave	FPsave;
-typedef struct Label	Label;
-typedef struct Lock	Lock;
-typedef struct MMU	MMU;
-typedef struct Mach	Mach;
-typedef struct Page	Page;
-typedef struct PMMU	PMMU;
-typedef struct Segdesc	Segdesc;
-typedef struct Ureg	Ureg;
-typedef struct User	User;
+typedef struct List {
+	void	*next;
+} List;
 
-#define	MACHP(n)	(n==0? &mach0 : *(Mach**)0)
+typedef struct Alarm {
+	List;
+	int	busy;
+	long	dt;
+	void	(*f)(void*);
+	void	*arg;
+} Alarm;
 
-extern	Mach	mach0;
-extern  void	(*kprofp)(ulong);
-
-/*
- *  parameters for sysproc.c
- */
-#define AOUT_MAGIC	I_MAGIC
-
-struct Lock
-{
-	ulong	key;
-	ulong	pc;
+typedef struct IOQ IOQ;
+typedef struct IOQ {
+	uchar	buf[4096];
+	uchar	*in;
+	uchar	*out;
+	int	state;
+	int	(*getc)(IOQ*);
+	int	(*putc)(IOQ*, int);
+	void	*ptr;
 };
 
-struct Label
-{
-	ulong	sp;
-	ulong	pc;
+enum {
+	Eaddrlen	= 6,
+	ETHERMINTU	= 60,		/* minimum transmit size */
+	ETHERMAXTU	= 1514,		/* maximum transmit size */
+	ETHERHDRSIZE	= 14,		/* size of an ethernet header */
+
+	MaxEther	= 2,
 };
 
+typedef struct {
+	uchar	d[Eaddrlen];
+	uchar	s[Eaddrlen];
+	uchar	type[2];
+	uchar	data[1500];
+	uchar	crc[4];
+} Etherpkt;
 
-/*
- * FPsave.status
- */
-enum
-{
-	FPinit,
-	FPactive,
-	FPinactive,
+enum {
+	Maxxfer		= 16*1024,	/* maximum transfer size/cmd */
+	Npart		= 8+2,		/* 8 sub partitions, disk, and partition */
 };
 
-struct	FPsave	/* ??? needs to be fixed ??? */
-{
-	long	status;
-	char	reg[66];
+typedef struct {
+	ulong	start;
+	ulong	end;
+	char	name[NAMELEN+1];
+} Partition;
+
+typedef struct {
+	int	online;
+	int	npart;		/* number of real partitions */
+	Partition p[Npart];
+	ulong	offset;
+	Partition *current;	/* current partition */
+
+	ulong	cap;		/* total bytes */
+	int	bytes;		/* bytes/sector */
+	int	sectors;	/* sectors/track */
+	int	heads;		/* heads/cyl */
+	long	cyl;		/* cylinders/drive */
+
+	char	lba;		/* true if drive has logical block addressing */
+	char	multi;		/* non-zero if drive does multiple block xfers */
+} Disc;
+
+enum {
+	ScsiTestunit	= 0x00,
+	ScsiExtsens	= 0x03,
+	ScsiInquiry	= 0x12,
+	ScsiModesense	= 0x1a,
+	ScsiStartunit	= 0x1B,
+	ScsiStopunit	= 0x1B,
+	ScsiGetcap	= 0x25,
+	ScsiRead	= 0x08,
+	ScsiWrite	= 0x0a,
+	ScsiExtread	= 0x28,
+	ScsiExtwrite	= 0x2a,
+
+	/* data direction */
+	ScsiIn		= 1,
+	ScsiOut		= 0,
 };
 
-struct Conf
-{
-	ulong	nmach;		/* processors */
-	ulong	nproc;		/* processes */
-	ulong	npgrp;		/* process groups */
-	ulong	npage0;		/* total physical pages in bank0 */
-	ulong	npage1;		/* total physical pages in bank1 */
-	ulong	npage;		/* total physical pages of memory */
-	ulong	nseg;		/* number of segments */
-	ulong	nimage;		/* number of page cache image headers */
-	ulong 	npagetab;	/* number of pte tables */
-	ulong	nswap;		/* number of swap pages */
-	ulong	nalarm;		/* alarms */
-	ulong	nchan;		/* channels */
-	ulong	nenv;		/* distinct environment values */
-	ulong	nenvchar;	/* environment text storage */
-	ulong	npgenv;		/* environment files per process group */
-	ulong	nmtab;		/* mounted-upon channels per process group */
-	ulong	nmount;		/* mounts */
-	ulong	nmntdev;	/* mounted devices (devmnt.c) */
-	ulong	nmntbuf;	/* buffers for devmnt.c messages */
-	ulong	nmnthdr;	/* headers for devmnt.c messages */
-	ulong	nstream;	/* streams */
-	ulong	nqueue;		/* stream queues */
-	ulong	nblock;		/* stream blocks */
-	ulong	nsrv;		/* public servers (devsrv.c) */
-	ulong	nbitmap;	/* bitmap structs (devbit.c) */
-	ulong	nbitbyte;	/* bytes of bitmap data (devbit.c) */
-	ulong	nfont;		/* font structs (devbit.c) */
-	ulong	nnoifc;		/* number of nonet interfaces */
-	ulong	nnoconv;	/* number of nonet conversations/ifc */
-	ulong	nurp;		/* max urp conversations */
-	ulong	nasync;		/* number of async protocol modules */
-	ulong	npipe;		/* number of pipes */
-	ulong	maxialloc;	/* maximum bytes used by ialloc */
-	ulong	base0;		/* base of bank 0 */
-	ulong	base1;		/* base of bank 1 */
-	ulong	copymode;	/* 0 is copy on write, 1 is copy on reference */
-	ulong	ipif;		/* Ip protocol interfaces */
-	ulong	ip;		/* Ip conversations per interface */
-	ulong	arp;		/* Arp table size */
-	ulong	frag;		/* Ip fragment assemble queue size */
-	ulong	cntrlp;		/* panic on ^P */
-	ulong	nfloppy;
-	ulong	nhard;
+typedef struct Scsibuf Scsibuf;
+typedef struct Scsibuf {
+	void*		virt;
+	void*		phys;
+	Scsibuf*	next;
 };
 
-/*
- *  MMU stuff in proc
- */
-#define MAXMMU	4
-#define MAXSMMU	1
-struct PMMU
-{
-	int	mmuvalid;
-	Page	*mmu[MAXMMU+MAXSMMU];	/* bottom level page tables */
-	ulong	mmue[MAXMMU+MAXSMMU];	/* top level pointers to mmup pages */
-};
+typedef struct Scsidata {
+	uchar*		base;
+	uchar*		lim;
+	uchar*		ptr;
+} Scsidata;
 
-#include "portdat.h"
+typedef struct Ureg Ureg;
 
-/*
- *  machine dependent definitions not used by ../port/dat.h
- */
+typedef struct Scsi {
+	ulong		pid;
+	ushort		target;
+	ushort		lun;
+	ushort		rflag;
+	ushort		status;
+	Scsidata 	cmd;
+	Scsidata 	data;
+	Scsibuf*	b;
+	uchar*		save;
+	uchar		cmdblk[16];
+} Scsi;
 
-struct Mach
-{
-	int	machno;			/* physical id of processor */
-	ulong	splpc;			/* pc of last caller to splhi */
-	int	mmask;			/* 1<<m->machno */
-	ulong	ticks;			/* of the clock since boot time */
-	Proc	*proc;			/* current process on this processor */
-	Label	sched;			/* scheduler wakeup */
-	Lock	alarmlock;		/* access to alarm list */
-	void	*alarm;			/* alarms bound to this clock */
-	int	fpstate;		/* state of fp registers on machine */
-
-	int	tlbfault;
-	int	tlbpurge;
-	int	pfault;
-	int	cs;
-	int	syscall;
-	int	spinlock;
-	int	intr;
-
-	int	stack[1];
-};
-
-/*
- * Fake kmap
- */
-typedef void		KMap;
-#define	VA(k)		((ulong)(k))
-#define	kmap(p)		(KMap*)((p)->pa|KZERO)
-#define	kunmap(k)
-
-#define	NERR	15
-#define	NNOTE	5
-struct User
-{
-	Proc	*p;
-	int	nerrlab;
-	Label	errlab[NERR];
-	char	error[ERRLEN];
-	FPsave	fpsave;			/* address of this is known by vdb */
-	char	elem[NAMELEN];		/* last name element from namec */
-	Chan	*slash;
-	Chan	*dot;
-	/*
-	 * Rest of structure controlled by devproc.c and friends.
-	 * lock(&p->debug) to modify.
-	 */
-	Note	note[NNOTE];
-	short	nnote;
-	short	notified;		/* sysnoted is due */
-	Note	lastnote;
-	int	(*notify)(void*, char*);
-	void	*ureg;
-	ushort	svvo;
-	ushort	svsr;
-};
-
-/*
- *  segment descriptor/gate
- */
-struct Segdesc
-{
+typedef struct Segdesc {
 	ulong	d0;
 	ulong	d1;
-};
+} Segdesc;
 
+typedef struct Mach {
+	ulong	ticks;			/* of the clock since boot time */
+	void	*alarm;			/* alarms bound to this clock */
+} Mach;
 
-struct
+extern Mach *m;
+
+#define I_MAGIC		((((4*11)+0)*11)+7)
+
+typedef struct Exec Exec;
+struct	Exec
 {
-	Lock;
-	short	machs;
-	short	exiting;
-}active;
-
-extern Mach	*m;
-extern User	*u;
-
-extern int	flipD[];
-extern int	have9part;
+	uchar	magic[4];		/* magic number */
+	uchar	text[4];	 	/* size of text segment */
+	uchar	data[4];	 	/* size of initialized data */
+	uchar	bss[4];	  		/* size of uninitialized data */
+	uchar	syms[4];	 	/* size of symbol table */
+	uchar	entry[4];	 	/* entry point */
+	uchar	spsz[4];		/* size of sp/pc offset table */
+	uchar	pcsz[4];		/* size of pc/line number table */
+};
 
 /*
  *  bootline passed by boot program
  */
 #define BOOTLINE ((char *)0x80000100)
+
+/*
+ * Where we leave configuration info.
+ */
+#define BOOTARGS	((char*)(KZERO|1024))
+#define	BOOTARGSLEN	1024
+#define	MAXCONF		32
+
+typedef struct  ISAConf {
+	char	type[NAMELEN];
+	ulong	port;
+	ulong	irq;
+	ulong	mem;
+	ulong	size;
+	uchar	ea[6];
+} ISAConf;

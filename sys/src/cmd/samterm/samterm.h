@@ -137,6 +137,7 @@ void	Strcpy(Rune*, Rune*);
 void	Strncpy(Rune*, Rune*, long);
 void	flushtyping(int);
 void	dumperrmsg(int, int, int, int);
+int	screensize(int*,int*);
 
 #include "../sam/mesg.h"
 
@@ -146,8 +147,11 @@ void	outTl(Tmesg, long);
 void	outTslS(Tmesg, int, long, Rune*);
 void	outTsll(Tmesg, int, long, long);
 void	outTsl(Tmesg, int, long);
+void	outTsv(Tmesg, int, void*);
+void	outTv(Tmesg, void*);
 void	outstart(Tmesg);
 void	outcopy(int, uchar*);
 void	outshort(int);
 void	outlong(long);
+void	outvlong(void*);
 void	outsend(void);

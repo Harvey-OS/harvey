@@ -3,6 +3,7 @@
 % 09/19/88 Pierre A. MacKay	version 1.0.
 % 12/02/89 Karl Berry		cosmetic changes.
 % 02/04/90 Karl			new file-searching routines.
+% (more recent changes in ../ChangeLog.W2C)
 %
 % One major change in output format is incorporated by this change
 % file.  The local pktogf preamble comment is ignored and the 
@@ -10,7 +11,6 @@
 % provides a continuous check on the origin of fonts in both
 % gf and pk formats.  PKtoGF runs silently unless it is given the
 % -v switch in the command line.
-%
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -28,10 +28,10 @@
 % [1] Change banner string
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@d banner=='This is PKtoGF, Version 1.0'
+@d banner=='This is PKtoGF, Version 1.1'
          {printed when the program starts}
 @y
-@d banner=='This is PKtoGF, C Version 1.0 ' {printed when the program starts}
+@d banner=='This is PKtoGF, C Version 1.1 ' {printed when the program starts}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -74,7 +74,7 @@ var @<Globals in the outer block@>@/
 procedure initialize; {this procedure gets things started properly}
   var i:integer; {loop index for initializations}
   begin
-  setpaths;
+  set_paths (PK_FILE_PATH_BIT);
   @<Set initial values@>@/
   end;
 @z
@@ -102,7 +102,7 @@ a non-local goto, which we don't use in C.
 @!name_length=80; {maximum length of a file name}
 @!terminal_line_length=132; {maximum length of an input line}
 @y
-@d name_length==FILENAMESIZE {from \.{site.h}}
+@d name_length==PATH_MAX
 
 @<Constants...@>=
 @z
@@ -176,40 +176,80 @@ begin
 end;
 @#
 procedure open_gf_file; {prepares to write packed bytes in |gf_file|}
-var j,k:integer;
+var dot_pos, slash_pos, last, gf_index, pk_index:integer;
 begin
-    if argc = gf_arg then argv(argc-1, gf_name)
-    else
-    begin
-	j := name_length; k := 1;@/
-	while (j > 1) and (pk_name[j] <> xchr["/"]) do@/
-	    decr(j);
-	if (pk_name[j]=xchr["/"]) then incr(j); { to avoid picking up the / }
-        print(xchr["["]); print(xchr[" "]);
-	while (j < name_length)
-	    and (not (pk_name[j] = xchr["."]) or 
-                     (pk_name[j] = xchr[" "])) do begin @/
-            print(xchr[xord[pk_name[j]]]);
-	    gf_name[k] := pk_name[j];
-	    incr(j); incr(k)
-	end;
-	while (j < name_length)
-	and not (pk_name[j] = xchr["p"]) do begin @/
-	    if pk_name[j] = xchr[" "] then abort(' No pk in suffix');
-	    gf_name[k] := pk_name[j];
-            print(xchr[xord[pk_name[j]]]);
-	    incr(k); incr(j)
-	end;
-        print(xchr[xord[pk_name[j]]]);incr(j);print(xchr[xord[pk_name[j]]]);
-        print(xchr[" "]);print(xchr["-"]);print(xchr[">"]); print(xchr[" "]);
-	gf_name[k] := xchr["g"]; incr(k);
-	gf_name[k] := xchr["f"]; incr(k);
-	gf_name[k] := xchr[" "];
-        for j:=1 to k do print(xchr[xord[gf_name[j]]]);
-        print_ln(xchr["]"])
+  if argc = gf_arg
+  then argv (argc - 1, gf_name)
+  else begin
+    dot_pos := -1;
+    slash_pos := -1;
+    last := 1;
+    
+    {Find the end of |pk_name|.}
+    while (pk_name[last] <> ' ') and (last <= PATH_MAX - 5)
+    do begin
+      if pk_name[last] = '.' then dot_pos := last;
+      if pk_name[last] = '/' then slash_pos := last;
+      incr (last);
     end;
-    rewrite(gf_file,gf_name);
-    gf_loc:=0
+    
+    {If no \./ in |pk_name|, use it from the beginning.}
+    if slash_pos = -1 then slash_pos := 0;
+    
+    {Filenames like \.{./foo} will have |dot_pos<slash_pos|.  In that
+     case, we want to move |dot_pos| to the end of |pk_name|.  Similarly
+     if |dot_pos| is still |-1|.}
+    if dot_pos < slash_pos then dot_pos := last - 1;
+    
+    {Copy |pk_name| from |slash_pos+1| to |dot_pos| into |gf_name|.}
+    gf_index := 1;
+    for pk_index := slash_pos + 1 to dot_pos
+    do begin
+      gf_name[gf_index] := pk_name[pk_index];
+      incr (gf_index);
+    end;
+    
+    {Now we are ready to deal with the extension.  Copy everything to
+     the first \.p.  Then add \.{gf}.  This loses on filenames like
+     \.{foo.p300pk}, but no one uses such filenames, anyway.}
+    pk_index := dot_pos + 1;
+    while (pk_index < last) and (pk_name[pk_index] <> 'p')
+    do begin
+      gf_name[gf_index] := pk_name[pk_index];
+      incr (pk_index);
+      incr (gf_index);
+    end;
+    
+    gf_name[gf_index] := 'g';
+    gf_name[gf_index + 1] := 'f';
+    gf_name[gf_index + 2] := ' ';
+  end;
+
+  {Report the filename mapping.}
+  print (xchr[xord['[']]);
+
+  pk_index := 1;
+  while pk_name[pk_index] <> ' ' 
+  do begin
+    print (xchr[xord[pk_name[pk_index]]]);
+    incr (pk_index);
+  end;
+  
+  print (xchr[xord['-']]);
+  print (xchr[xord['>']]);
+
+  gf_index := 1;
+  while gf_name[gf_index] <> ' ' 
+  do begin
+    print (xchr[xord[gf_name[gf_index]]]);
+    incr (gf_index);
+  end;
+  
+  print (xchr[xord[']']]);
+  print_ln (xchr[xord[' ']]);
+
+  rewrite(gf_file,gf_name);
+  gf_loc:=0
 end;
 @z
 

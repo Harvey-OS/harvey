@@ -74,8 +74,6 @@ remote systems.
 .TP
 .B /960
 .TP
-.B /hobbit
-.TP
 .B /mips
 Each CPU architecture supported by Plan 9 has a directory in the root containing
 architecture-specific files, to be selected according to
@@ -141,8 +139,11 @@ and libraries for the shell,
 Directory of shell executable files.
 .TP
 .B /rc/lib
-Directory of shell libraries.  Holds only one file,
-.BR rcmain .
+Directory of shell libraries.
+.TP
+.B /rc/lib/rcmain
+Startup code for
+.IR rc (1).
 .TP
 .B /lib
 Collections of data, generally not parts of programs.
@@ -171,12 +172,29 @@ The file used by
 to establish the default name space; see
 .IR namespace (6).
 .TP
+.B /lib/font/bit
+Bitmap font files.
+.TP
+.B /lib/font/hershey
+Vector font files.
+.TP
 .B /sys
 System software.
+.TP
+.B /sys/include
+Directory of machine-independent C include files.
+.TP
+.B /sys/include/alef
+Directory of ALEF include files.
 .TP
 .B /sys/lib
 Pieces of programs not easily held in the various
 .BR bins .
+.TP
+.B /sys/lib/acid
+Directory of
+.IR acid (1)
+load modules.
 .TP
 .B /sys/lib/troff
 Directory of
@@ -214,6 +232,16 @@ Source to the operating system for file servers.
 .B /sys/src/lib*
 Source to the libraries.
 .TP
+.B /sys/src/alef
+Source for
+.SM ALEF
+compilers and libraries.
+.TP
+.B /sys/src/alef/lib
+Source for
+.SM ALEF
+libraries.
+.TP
 .B /mail
 Directory of electronic mail; see
 .IR mail (1).
@@ -224,11 +252,13 @@ Directory of users' mail box files.
 .B /mail/lib
 Directory of alias files, etc.
 .TP
-.B /mail/log
-Directory of mail log files.
+.B /acme
+Directory of tools for
+.IR acme (1).
 .TP
-.B /mail/log/status
-Log of mail activity.
+.B /cron
+Directory of files for
+.IR cron (8).
 .PD
 .PP
 The following files and directories are modified in the standard
@@ -280,7 +310,7 @@ etc.
 The window system,
 .IR 8½ (1),
 prefixes
-this directory with its ownn version,
+this directory with its own version,
 overriding many device
 files with its own, multiplexed simulations of them.
 .TP

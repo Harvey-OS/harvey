@@ -44,6 +44,8 @@ getxfs(char *name)
 			continue;
 		if(strcmp(xf->name, name) != 0 || xf->dev < 0)
 			continue;
+		if(devcheck(xf) < 0) /* look for media change */
+			continue;
 		chat("incref \"%s\", dev=%d...", xf->name, xf->dev);
 		++xf->ref;
 		unlock(&xlock);

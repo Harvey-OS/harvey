@@ -44,6 +44,7 @@ struct Item{
 	Typeface *face;		/* font if text */
 	char *text;		/* characters of text */
 	int group;		/* index in group table */
+	char style;		/* line style */
 	char type;		/* what kind of object */
 	char flags;		/* various Boolean annotations */
 	Itemfns *fn;		/* object-orientedness */
@@ -67,6 +68,13 @@ struct Item{
 #define	BOXED	4			/* item is boxed */
 #define	FLAT	8			/* item was created by flattening scene */
 #define	INVIS	16			/* don't draw this! */
+/*
+ * line style bits
+ */
+#define	ARROW0	1			/* arrowhead at p[0] */
+#define	ARROW1	2			/* arrowhead at p[np-1] */
+#define	DASH	4			/* dashed line */
+#define	DOT	8			/* dotted line */
 struct Itemfns{
 	void (*delete)(Item *);				/* delete item, free up storage */
 	void (*write)(Item *, int);			/* put in file */
@@ -144,8 +152,7 @@ Rectangle echobox;			/* character echo area */
 Rectangle msgbox;			/* message area */
 Mouse mouse;				/* mouse data */
 int heatnew;				/* should new or edited items be heated */
-#define	DARK	2			/* color of scene is DARK */
-#define	FAINT	1			/* color of alignment lines is FAINT */
+int faint, dark;			/* colors of faint and dark items */
 #define	radians(deg)	((deg)*.0174532925199432957)
 #define	degrees(rad)	((rad)*57.29577951308232103)
 #define	NGROUP	100

@@ -1,11 +1,11 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 #include <frame.h>
 
 Point
 _frptofcharptb(Frame *f, uint p, Point pt, int bn)
 {
-	char *s;
+	byte *s;
 	Frbox *b;
 	int w, l;
 	Rune r;
@@ -22,7 +22,7 @@ _frptofcharptb(Frame *f, uint p, Point pt, int bn)
 					if(r < Runeself)
 						w = 1;
 					else
-						w = chartorune(&r, (char*)s);
+						w = chartorune(&r, (byte*)s);
 					pt.x += charwidth(f->font, r);
 					if(r==0 || pt.x>f->r.max.x)
 						berror("frptofchar");
@@ -73,7 +73,7 @@ frcharofpt(Frame *f, Point pt)
 {
 	Point qt;
 	int w, bn, nrune;
-	char *s;
+	byte *s;
 	Frbox *b;
 	uint p;
 	Rune r;
@@ -110,7 +110,7 @@ frcharofpt(Frame *f, Point pt)
 					if(r < Runeself)
 						w = 1;
 					else
-						w = chartorune(&r, (char*)s);
+						w = chartorune(&r, (byte*)s);
 					if(r == 0)
 						berror("end of string in frcharofpt");
 					s += w;

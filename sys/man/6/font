@@ -8,18 +8,20 @@ Fonts and subfonts are described in
 .IR cachechars (2).
 .PP
 External fonts are described by a plain text file that can be read using
-.I rdfontfile.
+.IR rdfontfile .
 The format of the file is a header followed by any number of
 subfont range specifications.
-The header contains two numbers: the height and the ascent.
+The header contains two numbers: the height and the ascent, both in pixels.
 The height is the inter-line spacing and the ascent is the distance
 from the top of the line to the baseline.  These numbers are chosen
 to display consistently all the subfonts of the font.
-A subfont range specification contains two numbers and a file name.
+A subfont range specification contains two or three numbers and a file name.
 The numbers are the inclusive range of characters covered by the subfont,
+with an optional starting position within the subfont,
 and the file name names an external file suitable for
 .IR rdsubfontfile .
-The minimum number of a covered range is mapped to character zero of the
+The minimum number of a covered range is mapped to the specified starting position
+(default zero) of the
 corresponding subfont.
 If the subfont file name does not begin with a slash, it is taken relative to the
 directory containing the font file.
@@ -65,6 +67,17 @@ is used to calculate the bitmap width
 of the previous character; the other fields in the last
 .B Fontchar
 are irrelevant.
+.PP
+Note that the convention of using the character with value zero (NUL) to represent
+characters of zero width (see
+.IR bitblt (2))
+means that fonts should have, as their zeroth character,
+one with non-zero width.
+.SH FILES
+.TF /lib/font/bit/*
+.TP
+.B /lib/font/bit/*
+font directories
 .SH "SEE ALSO"
 .IR graphics (2),
 .IR bitblt (2),

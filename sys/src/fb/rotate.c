@@ -28,7 +28,7 @@ main(int argc, char *argv[]){
 	}
 	in=picopen_r(inname);
 	if(in==0){
-		picerror(inname);
+		perror(inname);
 		exits("open input");
 	}
 	c=cos(atof(argv[1])*PI/180.)*SCALE;
@@ -46,7 +46,7 @@ main(int argc, char *argv[]){
 		argv,
 		in->cmap);
 	if(out==0){
-		picerror(argv[0]);
+		perror(argv[0]);
 		exits("create output");
 	}
 	fb=malloc(nx*ny*nchan);

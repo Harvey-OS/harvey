@@ -13,16 +13,18 @@ interprets plotting instructions (see
 from the
 .I files
 or standard input,
-drawing the results on the screen, or in the current
+drawing the results in a newly created
 .IR 8½ (1)
 window.
+Plot persists until a newline is typed in the window.
 Various options may be interspersed with the
 .I file
 arguments; they take effect at the given point in processing.
 Options are:
 .TP "\w'\fL-g \fIgrade\fLXX'u"
 .B -d
-Double buffer: make a copy off screen before writing the screen.
+Double buffer: accumulate the plot off-screen and write to the screen all at once
+when an erase command is encountered or at end of file.
 .TP
 .B -e
 Erase the screen.
@@ -39,8 +41,21 @@ Set the background color.
 Set the quality factor for arcs.
 Higher grades give better quality.
 .TP
+.BI -p " col"
+Set the pen color.
+.TP
+.BI -w
+Pause until a newline is typed on standard input.
+.TP
 .B -C
 Close the current plot.
+.TP
+.B -W " x0,y0,x1,y1"
+Specify the bounding rectangle of plot's window.
+By default it uses a 512×512 window in the
+middle of the screen.
+.SH SOURCE
+.B /sys/src/cmd/plot
 .SH "SEE ALSO"
 .IR 8½ (1),
 .IR plot (6)

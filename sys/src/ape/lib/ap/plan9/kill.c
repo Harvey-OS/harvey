@@ -6,32 +6,53 @@
 #include <stdio.h>
 #include <errno.h>
 
-/*
- * BUG: negative pids (not -1) mean find the pgrp with
- * that pgrpid and kill it.
- */
-#include <stdio.h>
-int
-kill(pid_t pid, int sig)
+static int
+note(int pid, char *msg, char *fmt)
 {
-	char *msg, pname[50];
 	int f;
+	char pname[50];
 
-	msg = _sigstring(sig);
-	if(pid < 0) {
-		errno = EINVAL;
-		return -1;
-	} else if(pid == 0){
-		pid = getpid();
-		sprintf(pname, "/proc/%d/notepg", pid);
-	} else
-		sprintf(pname, "/proc/%d/note", pid);
+	sprintf(pname, fmt, pid);
 	f = open(pname, O_WRONLY);
-	if(f == -1 || write(f, msg, strlen(msg)) == -1){
+	if(f < 0){
+		errno = ESRCH;
+		return -1;
+	}
+	if(msg != 0 && write(f, msg, strlen(msg)) < 0){
 		close(f);
-		errno = EINVAL;
+		errno = EPERM;
 		return -1;
 	}
 	close(f);
 	return 0;
+}
+
+int
+kill(pid_t pid, int sig)
+{
+	char *msg;
+	int sid, r, mpid;
+
+	if(sig == 0)
+		msg = 0;
+	else {
+		msg = _sigstring(sig);
+		if(msg == 0) {
+			errno = EINVAL;
+			return -1;
+		} 
+	}
+
+	if(pid < 0) {
+		sid = getpgrp();
+		mpid = getpid();
+		setpgid(mpid, -pid);
+		r = note(mpid, msg, "/proc/%d/notepg");
+		setpgid(mpid, sid);
+	} else if(pid == 0)
+		r = note(getpid(), msg, "/proc/%d/notepg");
+	else
+		r = note(pid, msg, "/proc/%d/note");
+
+	return r;
 }

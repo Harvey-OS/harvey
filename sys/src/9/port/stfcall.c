@@ -24,14 +24,14 @@ static uchar msglen[256] =
 {
 	[Tnop]		3,
 	[Rnop]		3,
-	[Tsession]	3,
-	[Rsession]	3,
+	[Tsession]	3+CHALLEN,
+	[Rsession]	3+NAMELEN+DOMLEN+CHALLEN,
 	[Terror]	0,
 	[Rerror]	67,
 	[Tflush]	5,
 	[Rflush]	3,
-	[Tattach]	89,
-	[Rattach]	13,
+	[Tattach]	5+2*NAMELEN+TICKETLEN+AUTHENTLEN,
+	[Rattach]	13+AUTHENTLEN,
 	[Tclone]	7,
 	[Rclone]	5,
 	[Twalk]		33,
@@ -54,9 +54,13 @@ static uchar msglen[256] =
 	[Rwstat]	5,
 	[Tclwalk]	35,
 	[Rclwalk]	13,
-	[Tauth]		69,
-	[Rauth]		35,
 };
+
+void
+stfcalllink(void)
+{
+	newqinfo(&fcallinfo);
+}
 
 static void
 fcallreset(void)
@@ -160,9 +164,16 @@ fcalliput(Queue *q, Block *bp)
 	
 		if(q->len < len)
 			return;
-	
-		pullup(q->first, len);
-		bp = q->first;
+
+		/*
+		 *  the lock here is wrong.  it should be a qlock since
+		 *  the pullup may block.  not worth fixing.
+		 */
+		lock(q);
+		bp = q->first = pullup(q->first, len);
+		if(bp == 0)
+			q->len = 0;
+		unlock(q);
 		need = len+bp->rptr[off]+(bp->rptr[off+1]<<8);
 		if(q->len < need)
 			return;

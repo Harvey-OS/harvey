@@ -3,6 +3,9 @@
 ctime, localtime, gmtime, asctime, timezone \- convert date and time to
 .SM ASCII
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
 .PP
 .ta \w'\fLchar* 'u
 .B
@@ -16,6 +19,9 @@ Tm*	gmtime(long clock)
 .PP
 .B
 char*	asctime(Tm *tm)
+.PP
+.B
+/env/timezone
 .SH DESCRIPTION
 .I Ctime
 converts a time
@@ -24,6 +30,7 @@ such as returned by
 .IR time (2)
 into
 .SM ASCII
+(sic)
 and returns a pointer to a
 30-byte string
 in the following form.
@@ -45,7 +52,8 @@ converts directly to GMT.
 converts a broken-down time to
 .SM ASCII
 and returns a pointer
-to a 30-character string.
+to a 30-byte string.
+.IP
 .EX
 .ta 6n +\w'char 'u +\w'zone[4];    'u
 typedef
@@ -90,7 +98,10 @@ Greenwich Mean Time is represented by
 .EX
 GMT 0
 .EE
+.SH SOURCE
+.B /sys/src/libc/9sys
 .SH "SEE ALSO"
+.IR date (1),
 .IR time (2),
 .IR init (8)
 .SH BUGS
@@ -101,4 +112,4 @@ Daylight Savings Time is ``normal'' in the Southern hemisphere.
 .br
 These routines are not equipped to handle non-\c
 .SM ASCII
-text.
+text, and are provincial anyway.

@@ -1,5 +1,7 @@
 % This program by D. E. Knuth is not copyrighted and can be used freely.
 % Version 1 was implemented in December 1989.
+% Version 1.1 fixed problems of strict Pascal (April 1990).
+% Version 1.2 fixed various bugs found by Peter Breitenlohner (September 1990).
 
 % Here is TeX material that gets inserted after \input webmac
 \def\hang{\hangindent 3em\indent\ignorespaces}
@@ -18,7 +20,7 @@
   \vfill
   \centerline{\titlefont The {\ttitlefont VFtoVP} processor}
   \vskip 15pt
-  \centerline{(Version 1, December 1989)}
+  \centerline{(Version 1.2, September 1990)}
   \vfill}
 \def\botofcontents{\vfill
   \centerline{\hsize 5in\baselineskip9pt
@@ -53,7 +55,7 @@ called \.{AMFtoXPL}.
 The |banner| string defined here should be changed whenever \.{VFtoVP}
 gets modified.
 
-@d banner=='This is VFtoVP, Version 1' {printed when the program starts}
+@d banner=='This is VFtoVP, Version 1.2' {printed when the program starts}
 
 @ This program is written entirely in standard \PASCAL, except that
 it occasionally has lower case letters in strings that are output.
@@ -106,6 +108,13 @@ reduce \.{VFtoVP}'s capacity.
 @d incr(#) == #:=#+1 {increase a variable by unity}
 @d decr(#) == #:=#-1 {decrease a variable by unity}
 @d do_nothing == {empty statement}
+@d exit=10 {go here to leave a procedure}
+@d not_found=45 {go here when you've found nothing}
+@d return==goto exit {terminate a procedure call}
+@f return==nil
+
+@<Types...@>=
+@!byte=0..255; {unsigned eight-bit quantity}
 
 @* Virtual fonts.  The idea behind \.{VF} files is that a general
 interface mechanism is needed to switch between the myriad font
@@ -184,7 +193,7 @@ is identical to the design size found in the corresponding \.{TFM} file.
 @d id_byte=202
 
 @<Glob...@>=
-@!vf_file:packed file of 0..255;
+@!vf_file:packed file of byte;
 
 @ The preamble is followed by zero or more character packets, where each
 character packet begins with a byte that is $<243$. Character packets have
@@ -224,8 +233,10 @@ as subroutines or macros, implicitly enclosing them with |push| and |pop|.
 Each subroutine begins with |w=x=y=z=0|, and with current font~|f| the
 number of the first-defined in the preamble (undefined if there's no
 such font). After the |dvi| commands have been
-performed, the |h| and~|v| position registers of \.{DVI} format are restored
-to their former values, and then |h| is increased by the \.{TFM} width
+performed, the |h| and~|v| position registers of \.{DVI} format and the
+current font~|f| are restored to their former values;
+then, if the subroutine has been invoked by a \\{set\_char} or \\{set}
+command, |h|~is increased by the \.{TFM} width
 (properly scaled)---just as if a simple character had been typeset.
 
 @d long_char=242 {\.{VF} command for general character packet}
@@ -276,7 +287,7 @@ byte interpretation, and so does \.{VFtoVP}. Note that the bytes
 are considered to be unsigned numbers.
 
 @<Glob...@>=
-@!tfm_file:packed file of 0..255;
+@!tfm_file:packed file of byte;
 
 @ On some systems you may have to do something special to read a
 packed file of bytes. For example, the following code didn't work
@@ -567,7 +578,6 @@ The first thing \.{VFtoVP} does is read the entire |tfm_file| into an array of
 bytes, |tfm[0..(4*lf-1)]|.
 
 @<Types...@>=
-@!byte=0..255; {unsigned eight-bit quantity}
 @!index=0..tfm_size; {address of a byte in |tfm|}
 
 @ @<Glob...@>=
@@ -614,7 +624,7 @@ to see if they check out.
 @.One of the subfile sizes...@>
   #:=tfm[tfm_ptr]*@'400+tfm[tfm_ptr+1];
   tfm_ptr:=tfm_ptr+2;
-  end;
+  end
 
 @<Set subfile sizes |lh|, |bc|, \dots, |np|@>=
 begin tfm_ptr:=2;@/
@@ -768,8 +778,8 @@ read_vf(temp_byte);
 if temp_byte<>id_byte then vf_abort('Wrong VF version number in second byte!');
 @.Wrong VF version...@>
 if eof(vf_file) then vf_abort('The input file is only two bytes long!');
-read_vf(count); {read the length of introductory comment}
-vf_count:=11; vf_ptr:=0; vf_store(count);
+read_vf(temp_byte); {read the length of introductory comment}
+vf_count:=11; vf_ptr:=0; vf_store(temp_byte);
 for k:=0 to vf_ptr-1 do print(xchr[vf[k]]);
 print_ln(' '); count:=0;
 for k:=0 to 7 do
@@ -859,7 +869,8 @@ the fourth.
 @!cur_name:packed array[1..name_length] of char; {external name,
   with no lower case letters}
 @!b0,@!b1,@!b2,@!b3: byte; {four bytes input at once}
-@!font_bc,@!font_ec: integer; {character range of current local font}
+@!font_lh:0..@'77777; {header length of current local font}
+@!font_bc,@!font_ec:0..@'77777; {character range of current local font}
 
 @ The |read_tfm_word| procedure sets |b0| through |b3| to the next
 four bytes in the current \.{TFM} file.
@@ -883,23 +894,31 @@ reset(tfm_file,cur_name);
 if eof(tfm_file) then
   print_ln('---not loaded, TFM file can''t be opened!')
 @.TFM file can\'t be opened@>
-else  begin read_tfm_word; lh:=b2*256+b3;
-  read_tfm_word; font_bc:=b0*256+b1; font_ec:=b2*256+b3;
-  if font_bc<=font_ec then
-    begin for k:=0 to 3+lh do
-      begin read_tfm_word;
-      if k=4 then @<Check the check sum@>;
-      if k=5 then @<Check the design size@>;
-      end;
-    for k:=font_bc to font_ec do
-      begin read_tfm_word;
-      if b0>0 then {character |k| exists in the font}
-        begin vf[vf_ptr]:=k; incr(vf_ptr);
-        if vf_ptr=vf_size then vf_abort('I''m out of VF memory!');
-@.I'm out of VF memory@>
-        end;
+else  begin font_bc:=0; font_ec:=256; {will cause error if not modified soon}
+  read_tfm_word;
+  if b2<128 then
+    begin font_lh:=b2*256+b3; read_tfm_word;
+    if (b0<128) and (b2<128) then
+      begin font_bc:=b0*256+b1; font_ec:=b2*256+b3;
       end;
     end;
+  if font_bc<=font_ec then
+    if font_ec>255 then print_ln('---not loaded, bad TFM file!')
+@.bad TFM file@>
+    else begin for k:=0 to 3+font_lh do
+        begin read_tfm_word;
+        if k=4 then @<Check the check sum@>;
+        if k=5 then @<Check the design size@>;
+        end;
+      for k:=font_bc to font_ec do
+        begin read_tfm_word;
+        if b0>0 then {character |k| exists in the font}
+          begin vf[vf_ptr]:=k; incr(vf_ptr);
+          if vf_ptr=vf_size then vf_abort('I''m out of VF memory!');
+@.I'm out of VF memory@>
+          end;
+        end;
+      end;
   if eof(tfm_file) then
     print_ln('---trouble is brewing, TFM file ended too soon!');
 @.trouble is brewing...@>
@@ -977,13 +996,15 @@ cur_name[r+1]:='.'; cur_name[r+2]:='T'; cur_name[r+3]:='F'; cur_name[r+4]:='M'
 @ It's convenient to have a subroutine
 that reads a |k|-byte number from |vf_file|.
 
+@d get_vf(#)==if eof(vf_file) then #:=0 @+else read_vf(#)
+
 @p function vf_read(@!k:integer):integer; {actually |1<=k<=4|}
 var @!b:byte; {input byte}
 @!a:integer; {accumulator}
-begin a:=0; vf_count:=vf_count+k;
-while k>0 do
-  begin if eof(vf_file) then b:=0 @+else read_vf(b);
-  if k=4 then if b>=128 then b:=b-256; {4-byte numbers are signed}
+begin vf_count:=vf_count+k; get_vf(b); a:=b;
+if k=4 then if b>=128 then a:=a-256; {4-byte numbers are signed}
+while k>1 do
+  begin get_vf(b);
   a:=256*a+b; decr(k);
   end;
 vf_read:=a;
@@ -1721,7 +1742,8 @@ for c:=bc to ec do if width_index(c)>0 then
   list_tag: @<Output the character link unless there is a problem@>;
   ext_tag: @<Output an extensible character recipe@>;
   end;@/
-  do_map(c); right;
+  if not do_map(c) then goto final_end;
+  right;
   end
 
 @ @<Output the character's width@>=
@@ -1877,7 +1899,6 @@ $(x,y)$ in a hash table from which the values $z$ and $class$ can be read.
 @!hash_ptr:0..hash_size; {the number of nonzero entries in |hash|}
 @!hash_list:array[0..hash_size] of 0..hash_size; {list of those nonzero entries}
 @!h,@!hh:0..hash_size; {indices into the hash table}
-@!garbage:integer; {value that is computed but not examined}
 @!x_lig_cycle,@!y_lig_cycle:0..256; {problematic ligature pair}
 
 @ @<Check for ligature cycles@>=
@@ -1921,26 +1942,27 @@ until i>=nl
 is efficient when the lookup of a random key tends to be unsuccessful.
 
 @p procedure hash_input; {enter data for character |c| and command |i|}
-label 30; {go here for a quick exit}
+label exit;
 var @!cc:simple..both_z; {class of data being entered}
 @!zz:0..255; {function value or ligature character being entered}
 @!y:0..255; {the character after the cursor}
 @!key:integer; {value to be stored in |hash|}
 @!t:integer; {temporary register for swapping}
-begin if hash_ptr=hash_size then goto 30;
+begin if hash_ptr=hash_size then return;
 @<Compute the command parameters |y|, |cc|, and |zz|@>;
 key:=256*c+y+1; h:=(1009*key) mod hash_size;
 while hash[h]>0 do
   begin if hash[h]<=key then
-    begin if hash[h]=key then goto 30; {unused ligature command}
+    begin if hash[h]=key then return; {unused ligature command}
     t:=hash[h]; hash[h]:=key; key:=t; {do ordered-hash-table insertion}
     t:=class[h]; class[h]:=cc; cc:=t; {namely, do a swap}
     t:=lig_z[h]; lig_z[h]:=zz; zz:=t;
     end;
   if h>0 then decr(h)@+else h:=hash_size;
   end;
-hash[h]:=key; class[h]:=cc; lig_z[h]:=zz; incr(hash_ptr); hash_list[hash_ptr]:=h;
-30:end;
+hash[h]:=key; class[h]:=cc; lig_z[h]:=zz;
+incr(hash_ptr); hash_list[hash_ptr]:=h;
+exit:end;
 
 @ We must store kern commands as well as ligature commands, because the former
 might make the latter inapplicable.
@@ -2098,7 +2120,7 @@ else begin left; out('MAP'); out_ln;
   while vf_ptr<vf_limit do
     begin o:=vf[vf_ptr]; incr(vf_ptr);
     case o of
-    @<Cases of \.{DVI} instructions that can appear in character packets@>
+    @<Cases of \.{DVI} instructions that can appear in character packets@>@;
     improper_DVI_for_VF: bad_vf('Illegal DVI code ',o:1,' will be ignored');
     end; {there are no other cases}
     end;
@@ -2252,23 +2274,29 @@ on some systems, since some \PASCAL\ compilers place a strict limit on the
 size of a routine. The packaging is done here in an attempt to avoid some
 system-dependent changes.
 
-First comes the |organize| procedure, which reads the input data and
-gets ready for subsequent events. If something goes wrong, the routine
-returns |false|.
+First come the |vf_input| and |organize| procedures, which read the input data
+and get ready for subsequent events. If something goes wrong, the routines
+return |false|.
 
-@p function organize:boolean;
-label final_end, 30;
-var tfm_ptr:index; {an index into |tfm|}
-@!vf_ptr:0..vf_size; {an index into |vf|}
+@p function vf_input:boolean;
+label final_end, exit;
+var vf_ptr:0..vf_size; {an index into |vf|}
 @!k:integer; {all-purpose index}
 @!c:integer; {character code}
+begin @<Read the whole \.{VF} file@>;
+vf_input:=true; return;
+final_end: vf_input:=false;
+exit: end;
+@#
+function organize:boolean;
+label final_end, exit;
+var tfm_ptr:index; {an index into |tfm|}
 begin @<Read the whole \.{TFM} file@>;
 @<Set subfile sizes |lh|, |bc|, \dots, |np|@>;
 @<Compute the base addresses@>;
-@<Read the whole \.{VF} file@>;
-organize:=true; goto 30;
+organize:=vf_input; return;
 final_end: organize:=false;
-30: end;
+exit: end;
 
 @ Next we do the simple things.
 
@@ -2285,18 +2313,24 @@ end;
 
 @ And then there's a routine for individual characters.
 
-@p procedure do_map(@!c:byte);
+@p function do_map(@!c:byte):boolean;
+label final_end,exit;
 var @!k:integer;
 @!f:0..vf_size; {current font number}
 begin @<Do the packet for character |c|@>;
-end;
+do_map:=true; return;
+final_end: do_map:=false;
+exit:end;
 @#
-procedure do_characters;
+function do_characters:boolean;
+label final_end, exit;
 var @!c:byte; {character being done}
 @!k:index; {a random index}
 @!ai:0..lig_size; {index into |activity|}
 begin @<Do the characters@>;@/
-end;
+do_characters:=true; return;
+final_end: do_characters:=false;
+exit:end;
 
 @ Here is where \.{VFtoVP} begins and ends.
 @p begin initialize;@/
@@ -2304,7 +2338,8 @@ if not organize then goto final_end;
 do_simple_things;@/
 @<Do the ligatures and kerns@>;
 @<Check the extensible recipes@>;
-do_characters; print_ln('.');@/
+if not do_characters then goto final_end;
+print_ln('.');@/
 if level<>0 then print_ln('This program isn''t working!');
 @.This program isn't working@>
 if not perfect then

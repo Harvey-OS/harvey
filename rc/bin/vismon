@@ -5,7 +5,9 @@ case terminal
 	case 1
 		9fs $1
 		x=`{echo $1 | awk '{n=split($1,out,"[/!]"); print out[n]}'}
-		exec seemail /n/$x/usr/spool/mail/mail.log
+		if(test -f /n/$x/usr/spool/mail/mail.log)
+			exec seemail /n/$x/usr/spool/mail/mail.log
+		exec seemail /n/$x/usr/mail/mail.log
 	case *
 		echo usage: vismon system
 	}

@@ -1,0 +1,13 @@
+APE=/sys/src/ape
+<$APE/config
+
+TARG=expr
+OFILES=y.tab.$O
+YFILES=expr.y
+HFILES=regexp.h
+
+BIN=$APEBIN
+</sys/src/cmd/mkone
+
+YFLAGS=-S
+CFLAGS=-B -c

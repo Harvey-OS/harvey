@@ -1,0 +1,11 @@
+CC=xc
+LD=xl
+O=x
+RL=rl
+AS=xa
+OS=2kv86x
+CPUS=mips 68020 sparc 386
+CFLAGS=
+LEX=lex
+YACC=yacc
+MK=/bin/mk

@@ -30,11 +30,11 @@ main(int argc, char *argv[]){
 	if(nmap<=0 || NMAP<nmap) usage("[picfile]");
 	in=picopen_r(argc==2?argv[1]:"IN");
 	if(in==0){
-		picerror(argc==2?argv[1]:"IN");
+		perror(argc==2?argv[1]:"IN");
 		exits("open input");
 	}
 	if(PIC_NCHAN(in)<3){
-		fprint(2, "%s: not rgb\n", argv[1]);
+		fprint(2, "%s: not rgb (CHAN=%s)\n", argv[1], in->chan);
 		exits("not rgb");
 	}
 	inline=malloc(PIC_WIDTH(in)*PIC_NCHAN(in));
@@ -45,8 +45,8 @@ main(int argc, char *argv[]){
 	for(y=0;y!=PIC_HEIGHT(in);y++){
 		picread(in, inline);
 		for(x=0,p=inline;x!=PIC_WIDTH(in);x++,p+=PIC_NCHAN(in)){
-			count[(p[0]&255)*(NR-1)/255][(p[1]&255)*(NR-1)/255]
-				[(p[2]&255)*(NR-1)/255]++;
+			count[(p[0]&255)*(NR-1)/255][(p[1]&255)*(NG-1)/255]
+				[(p[2]&255)*(NB-1)/255]++;
 		}
 	}
 	cmap[0].count=PIC_WIDTH(in)*PIC_HEIGHT(in);

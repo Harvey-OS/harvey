@@ -1,6 +1,6 @@
 .TH SCAT 7
 .SH NAME
-scat \- sky catalogue
+scat \- sky catalogue and Digitized Sky Survey
 .SH SYNOPSIS
 .B scat
 .SH DESCRIPTION
@@ -8,10 +8,13 @@ scat \- sky catalogue
 looks up items in catalogues of objects
 outside the solar system
 and implements database-like manipulations
-on sets of such objects.
+on sets of such objects.  It also displays images from the
+Space Telescope Science Institute's
+Digitized Sky Survey, keyed to the catalogues.
 .PP
 Items are read, one per line, from the standard input
 and looked up in the catalogs.
+Input is case-insensitive.
 The result of the lookup becomes the set of objects available
 to the database commands.
 After each lookup or command, if more than two objects are
@@ -24,27 +27,37 @@ descriptions or cross-index listings (suitable for input to
 An item is in one of the following formats:
 .TP
 .B ngc1234
-Number 1234 in the Revised New General Catalogue of
-Nonstellar Objects.
+Number 1234 in the New General Catalogue of
+Nonstellar Objects, NGC2000.0.
 The output identifies the type 
-.RB( eg =galaxy,
-.BR pn =planetary
+.RB( Gx =galaxy,
+.BR Pl =planetary
 nebula, 
-.BR gc =globular
+.BR OC =open
 cluster, 
-.BR oc =open
+.BR Gb =globular
 cluster, 
-.BR dn =diffuse
-nebula or 
-.BR nc =nebular
-cluster),
-possibly contained within the Large Magellanic Cloud 
-.RB ( in\ lmc )
-or Small
-Magellanic Cloud 
-.RB ( in\ smc ),
-its position in 2000.0 coordinates
-and galactic coordinates, and a brief description.
+.BR Nb =bright
+nebula,
+.BR C+N =cluster
+associated with nebulosity,
+.BR Ast =asterism,
+.BR Kt =knot
+or nebulous region in a galaxy,
+.BR *** =triple
+star,
+.BR D* =double
+star,
+.BR ? =uncertain,
+.BR - =nonexistent,
+.BR PD =plate
+defect, and
+(blank)=unverified or unknown),
+its position in 2000.0 coordinates,
+its size in minutes of arc, a brief description, and popular names.
+.TP
+.B ic1234
+Like NGC references, but from the Index Catalog.
 .TP
 .B sao12345
 Number 12345 in the Smithsonian Astrophysical Star Catalogue.
@@ -56,27 +69,38 @@ class, and HD number.
 Catalog number 4 in Messier's catalog.
 The output is the NGC number.
 .TP
+.B abell1701
+Catalog number 1701 in the Abell and Zwicky
+catalog of clusters of galaxies.
+Output identifies the magnitude of the tenth brightest member of the cluster,
+radius of the cluster in degrees, its distance in megaparsecs,
+2000.0 coordinates, galactic latitude and longitude,
+magnitude range of the cluster (the `distance group'),
+number of members (the `richness group'), population
+per square degree, and popular names.
+.TP
 .B planetarynebula
 The set of NGC objects of the specified type.
-The type may be a two-letter NGC code or a full name, as above, with no blank.
+The type may be a compact NGC code or a full name, as above, with no blank.
 .TP 
 \fL"α umi"\fP
-Star names are provided in double quotes.
+Names are provided in double quotes.
 Known names are the Greek
-letter designations, proper names such as Betelgeuse, and bright variable stars.
+letter designations, proper names such as Betelgeuse, bright variable stars,
+and some proper names of stars, NGC objects, and Abell clusters.
 Greek letters may be spelled out, e.g.
 .BR alpha .
 Constellation names must be the three-letter abbreviations.
 The output
 is the SAO number.
-For non-Greek names, SAO numbers and names are listed for all stars with
+For non-Greek names, catalog numbers and names are listed for all objects with
 names for which the given name is a prefix.
 .TP
 .B 12h34m -16
 Coordinates in the sky are translated to the nearest `patch',
 approximately one square degree of sky.
 The output is the coordinates identifying the patch,
-the constellations touching the patch, and the NGC and SAO
+the constellations touching the patch, and the Abell, NGC, and SAO
 objects in the patch.
 The program prints sky positions in several formats corresponding
 to different precisions; any output format is understood as input.
@@ -85,6 +109,7 @@ to different precisions; any output format is understood as input.
 All the patches in the named constellation.
 .PP
 The commands are:
+.TF print
 .TP
 .BI add " item"
 Add the named item to the set.
@@ -98,6 +123,8 @@ all NGC objects
 .RB ( ngc ),
 all M objects
 .RB ( m ),
+all Abell clusters
+.RB ( abell ),
 or a specified brightness range.
 Brightness ranges are specified by a leading
 .B >
@@ -107,9 +134,8 @@ followed by a magnitude.
 Remember that brighter objects have lesser magnitudes.
 .TP
 .BI drop " class ..."
-Like
-.I keep,
-but keeps only the objects not in the specified classes.
+Complement to
+.BR keep .
 .TP
 .BI flat
 Some items such as patches represents sets of items.
@@ -119,7 +145,7 @@ flattens the set so
 holds all the information available for the objects in the set.
 .TP
 .BI print
-Print the contents of the set.  If the information seems meagre, try
+Print the contents of the set.  If the information seems meager, try
 flattening the set.
 .TP
 .BI expand " n"
@@ -139,6 +165,38 @@ The only option is
 .B nogrid
 to suppress the lines of declination and right ascension.
 Symbols for NGC objects are as in Sky Atlas 2000.0.
+Abell clusters are plotted as a triangle of ellipses.
+.TP
+.B "plate \f1[[\f2ra dec\f1] \f2rasize\f1 [\f2decsize\f1]]"
+Display the section of the Digitized Sky Survey (plate scale
+approximately 1.7 arcseconds per pixel) centered on the
+given right ascension and declination or, if no position is specified, the
+current set of objects.  The maximum area that will be displayed
+is one degree on a side.  The horizontal and vertical sizes may
+be specified in the usual notation for angles.
+If the second size is omitted, a square region is displayed.
+If no size is specified, the size is sufficient to display the centers
+of all the
+objects in the current set.  If a single object is in the set, the
+500×500 pixel block from the survey containing the center
+of the object is displayed.
+The survey is stored in the CD-ROM juke box; run
+.B 9fs
+.B juke
+before running
+.IR scat .
+.TP
+.BI gamma " value"
+Set the gamma for converting plates to bitmaps.  Default is \-1.0.
+Negative values display white stars, positive black.
+The images look best on displays with ldepth 3.
+.I Scat
+does not change the hardware color map, which
+should be set externally to a grey scale; try the command
+.B fb/getmap gamma
+(see
+.IR getmap (9.1)).
+.PD
 .SH EXAMPLES
 Plot the NGC objects and naked-eye stars in Orion.
 .EX
@@ -153,13 +211,23 @@ Draw a map of the Pleiades.
 	expand 1
 	plot
 .EE
+.PP
+Show a pretty galaxy.
+.EX
+	ngc1300
+	plate 10'
+.EE
 .SH FILES
 .B /lib/sky/*.scat
+.SH SOURCE
+.B /sys/src/cmd/scat
 .SH SEE ALSO
 .IR astro (7)
 .br
-.B /lib/sky/constelnames
-for the three-letter abbreviations of the constellation names.
+.B /lib/sky/constelnames\ \ 
+the three-letter abbreviations of the constellation names.
 .PP
 The data was provided by the Astronomical Data Center at the NASA Goddard
-Space Flight Center.
+Space Flight Center, except for NGC2000.0, which is Copyright © 1988, Sky
+Publishing Corporation, used by permission.  The Digitized Sky Survey, 102
+CD-ROMs, is not distributed with the system.

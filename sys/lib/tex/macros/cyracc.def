@@ -1,32 +1,45 @@
-%  CYRACC.DEF                                           February 1990
-%
-%  This file contains definitions of accents and special characters
-%  required for use of cyrillic fonts arranged according to the AMS scheme.
-%
-%  American Mathematical Society, Technical Support Group, P. O. Box 6248,
-%        Providence, RI 02940
-%  800-321-4AMS or 401-455-4080;  Internet: Tech-Support@Math.AMS.com
-%
-%  Copyright (C) 1990, American Mathematical Society.
-%  All rights reserved.  Copying of this file is authorized only if either:
-%       (1) you make absolutely no changes to your copy including name; OR
-%       (2) if you do make changes, you first rename it to some other name.
-%
-%
-%  The \font specification(s) should be made elsewhere, and should include
-%       \newfam\cyrfam
-%       \font\...cyr=wncyr...   (e.g. \font\tencyr=wncyr10 )
-%
-%  An appropriate definition for cyrillic, usable in math and text, is
-%       \def\cyr{\fam\cyrfam\...cyr\cyracc}
-%
-%  More extensive instructions for using cyrillic fonts are included in
-%  the AMSFonts 2.0 User's Guide.
-%
-%  See end of file (after \endinput) for additional notes.
+%% @texfile{
+%%     filename="cyracc.def",
+%%     version="2.2",
+%%     date="4-JAN-1995",
+%%     filetype="TeX: option",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "13270 278 1342 9802" ,
+%%     keywords="amsfonts, tex, cyrillic",
+%%     abstract="This file contains definitions of accents and 
+%%         special characters required for use of cyrillic fonts 
+%%         arranged according to the AMS scheme.
+%%      The \font specification(s) should be made elsewhere, and should include
+%%              \newfam\cyrfam
+%%              \font\...cyr=wncyr...   (e.g. \font\tencyr=wncyr10 )
+%%      An appropriate definition for cyrillic, usable in math and text, is
+%%              \def\cyr{\fam\cyrfam\...cyr\cyracc}
+%%      More extensive instructions for using cyrillic fonts are included in
+%%      the AMSFonts 2.2 User's Guide."
+%%      docstring       = "The checksum field above contains a CRC-16
+%%                         checksum as the first value, followed by the
+%%                         equivalent of the standard UNIX wc (word
+%%                         count) utility output of lines, words, and
+%%                         characters.  This is produced by Robert
+%%                         Solovay's checksum utility.",
+%%     }
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 \chardef\tempcat=\the\catcode`\@
 \catcode`\@=11

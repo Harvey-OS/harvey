@@ -30,7 +30,7 @@ accesses more detailed data
 classified by feature.
 .TP
 .BR -f " [ \fIfeature\fR ... ]"
-Features are ranked 1 (default) to 4 from major to minor
+Features are ranked 1 (default) to 4 from major to minor.
 Higher-numbered ranks include all lower-numbered ones.
 Features are
 .RS
@@ -89,7 +89,7 @@ projection at hand.
 .BI -k " S N E W
 Set the scale as if for a map with limits
 .B -l
-.I "S N E W".
+.I "S N E W"\f1.
 Do not consider any
 .B -l
 or
@@ -121,7 +121,7 @@ Missing arguments are filled out from the list
 In the absence of
 .BR - o ,
 the orientation is 90, 0,
-.I m,
+.IR m ,
 where
 .I m
 is the middle of the longitude range.
@@ -140,10 +140,10 @@ varies inversely with area!)
 .BI -d " n"
 For speed, plot only every
 .IR n th
-one.
+point.
 .TP
 .B  -r
-Reverse left and right,
+Reverse left and right
 (good for star charts and inside-out views).
 .ns
 .TP
@@ -157,8 +157,8 @@ command.
 .TP
 .BI -g " dlat dlon res"
 Grid spacings are
-.I dlat,
-.I dlon.
+.IR dlat ,
+.IR dlon .
 Zero spacing means no grid.
 Missing
 .I dlat
@@ -169,10 +169,10 @@ is taken the same as
 .IR dlat .
 Grid lines are drawn to a resolution of
 .I res
-(2\(de or less by default).
+(2° or less by default).
 In the absence of
-.BR \- g ,
-grid spacing is 10\(de.
+.BR - g ,
+grid spacing is 10°.
 .TP
 .BI -p " lat lon extent"
 Position the point
@@ -196,10 +196,11 @@ have been performed, rotate the image
 .I rot
 degrees counterclockwise about the center 
 and move the center to position
-.I x, y,
+.IR x ,
+.IR y ,
 where the nominal plotting area is
-.RI \-1 \(<= x \(<= 1,
-.RI \-1 \(<= y \(<= 1.
+.RI \-1≤ x ≤1,
+.RI \-1≤ y ≤1.
 Missing arguments are taken to be 0.
 .TP
 .BR -m " [ \fIfile\fP ... ]"
@@ -385,7 +386,7 @@ conformal, projected from opposite pole
 .TP
 .B laue
 .IR radius " = tan(2\(mu" colatitude ),
-used in xray crystallography
+used in X-ray crystallography
 .TP
 .BI fisheye " r"
 .IR radius " = log(" colatitude / r ):
@@ -453,7 +454,7 @@ conformal, maps whole sphere into a circle
 .BI bicentric " lon0"
 points plotted at true azimuth from two
 centers on the equator at longitudes
-.I \(+-lon0,
+.IR ±lon0 ,
 great circles are straight lines
 (a stretched
 .IR gnomonic
@@ -462,7 +463,7 @@ great circles are straight lines
 .BI elliptic " lon0"
 points plotted at true distance from
 two centers on the equator at longitudes
-.I \(+-lon0
+.I ±lon0
 .TP
 .B globular
 hemisphere is circle,
@@ -472,9 +473,13 @@ circular arc parallels equally spaced on 0- and 90-degree meridians
 .B vandergrinten
 sphere is circle,
 meridians as in
-.I globular,
+.IR globular ,
 circular arc parallels resemble 
 .I mercator
+.TP
+.B gilbert
+sphere mapped conformally to hemisphere and
+viewed orthographically, horizontal parallels
 .PD
 .PP
 Doubly periodic conformal projections.
@@ -558,8 +563,8 @@ the invisible part of the world:
 .LR "map perspective 1.025 -o 40.75 74 -l 20 60 30 100".
 A circular border can be forced by adding option
 .LR "-w 77.33" .
-(Latitude 77.33\(de falls just inside a polar cap of
-opening angle arccos(1.025) = 12.6804\(de.)
+(Latitude 77.33° falls just inside a polar cap of
+opening angle arccos(1.025) = 12.6804°.)
 .TP
 .L
 map mercator -o 49.25 -106 180
@@ -568,7 +573,7 @@ centered on New York.
 The pole of the map is placed 90\(de away (40.75+49.25=90)
 on the
 other side of the earth.
-A 180\(de twist around the pole of the map arranges that the
+A 180° twist around the pole of the map arranges that the
 `Prime Meridian' of the map runs from the pole of the
 map over the North Pole to New York
 instead of down the back side of the earth.
@@ -582,10 +587,10 @@ A customary curved-latitude map of the United States.
 .TP
 .L
 map harrison 2 30 -l -90 90 120 240 -o 90 0 0
-A fan view covering 60\(de on either
+A fan view covering 60° on either
 side of the Date Line, as seen from one earth radius
 above the North Pole gazing at the
-earth's limb, which is 30\(de off vertical.
+earth's limb, which is 30° off vertical.
 The
 .B -o
 option overrides the default
@@ -608,10 +613,12 @@ map indexes
 .TP
 .B /bin/aux/mapd
 Map driver program
+.SH SOURCE
+.B /sys/src/cmd/map
 .SH "SEE ALSO"
 .IR map (6), 
 .IR plot (1),
-.IR tiger (7)
+.IR road (7)
 .SH DIAGNOSTICS
 `Map seems to be empty'\(ema coarse survey found
 zero extent within the 
@@ -620,22 +627,18 @@ and
 .BR -w 
 bounds; for maps of limited extent
 the grid resolution,
-.I res,
+.IR res ,
 or the limits may have to be refined.
 .SH BUGS
 Windows (option
 .BR -w )
 cannot cross the Date Line.
-.br
 No borders appear along edges arising from
 visibility limits.
-.br
 Segments that cross a border are dropped, not clipped.
-.br
 Excessively large scale or
 .B -d
 setting may cause long line segments to be dropped.
-.br
 .I Map
 tries to draw grid lines dotted and
 .B -t
@@ -643,6 +646,5 @@ tracks dot-dashed.
 As very few plotting filters properly support
 curved textured lines, these lines are likely to
 appear solid.
-.br
 The west-longitude-positive convention
 betrays Yankee chauvinism.

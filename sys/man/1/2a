@@ -1,6 +1,6 @@
 .TH 2A 1 
 .SH NAME
-2a, 6a, 8a, ka, va, za \- assemblers
+2a, 6a, 8a, ka, va, xa \- assemblers
 .SH SYNOPSIS
 .B 2a
 [
@@ -42,7 +42,7 @@
 .I name ...
 ]
 .br
-.B za
+.B xa
 [
 .I option ...
 ]
@@ -57,10 +57,13 @@
 .IR ka ,
 .IR va ,
 and
-.I za
-assemble the named files into MC68020, i960, i386, SPARC, MIPS, and Hobbit object files.
-The assemblers handle the most common C preprocessor directives and associated
-command-line options.
+.IR xa
+assemble the named files into MC68020, i960, i386, SPARC, MIPS, and ATT3210 object files.
+The assemblers handle the most common C preprocessor directives and the associated
+command-line options
+.BR -D
+and
+.BR -I .
 Other options are:
 .TP
 .BI -o " obj"
@@ -81,8 +84,11 @@ The directory
 is searched for include files after
 machine-dependent files in
 .BR /$objtype/include .
+.SH SOURCE
+.BR /sys/src/cmd/2a ,
+etc.
 .SH SEE ALSO
 .IR 2c (1),
 .IR 2l (1).
 .PP
-Rob Pike, ``A manual for the Plan 9 assembler.''
+Rob Pike, ``A manual for the Plan 9 assembler''

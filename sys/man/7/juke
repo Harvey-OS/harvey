@@ -1,0 +1,222 @@
+.TH JUKE 7
+.SH NAME
+juke \-
+.SM CD-ROM
+jukebox
+.SH SYNOPSIS
+.B 9fs juke
+.SH DESCRIPTION
+Each disc in the jukebox appears as a directory in
+.BR /n/juke .
+Here are descriptions of many of them.
+.nr zz \w'\f(CWsupercomputing.93\fP'u/1n+2
+.TP \n(zz
+.B ada
+Ada Software Repository, 1993 edition.
+.TP
+.B bookshelf
+Microsoft bookshelf, 1987 edition.
+.TP
+.B bookshop
+Literature from Aeschylus to Wollstonecraft.
+.TP
+.B bsd386
+.SM BSD\c
+\&/386 1.0 binary and source release from 
+Berkeley Software Design, Inc.
+.TP
+.B bwp.*
+Business white pages for the U.S. (different issue dates),
+from PhoneDisc.
+.TP
+.B chess.[12]
+Ken's chess endgames.
+.TP
+.B comp.books
+More literature, including ``Revolt of the Cyberslaves''.
+.TP
+.B comstock.v2
+Black-and-white stock photographs on business themes.
+.TP
+.B cug
+C and C++ source code from the C Users' Group, vols. 100-382 (1993).
+.TP
+.B dcw.[1-4]
+Digital Chart of the World from U.S. Department of Defense, 1992 edition.
+.TP
+.B dss.???
+Digitized Sky Survey (102 discs covering the night sky); access with
+.IR scat (7).
+.TP
+.B etl.[cd]
+Library of images intended for
+.SM OCR
+research.
+.TP
+.B fractals
+Fractal Frenzy, V2.0 (1994): images by Lee H. Skinner, with source code.
+.TP
+.B freeware
+\&``A lot of free software for
+.SM UNIX\c
+,'' from
+.SM DEC
+(Nov., 1992; cf.
+.BR ptf.* ).
+.TP
+.B gifs.galore
+Thousands of full color
+.SM GIF
+images in dozens of categories.
+.TP
+.B giga.games
+.SM
+DOS
+and Windows executables.
+.TP
+.B gnu
+Code from the Free Software Foundation: X10R4, X11R2, and X11R3 (1989).
+.TP
+.B gnux11r5
+Code from the Free Software Foundation: X11R5 (1991).
+.TP
+.B graphics_formats
+Disc accompanying
+.I "Encyclopedia of Graphics File Formats"
+by James D. Murray and William vanRyper (O'Reilly and Associates, 1994),
+ISBN 1-56592-058-9.
+.TP
+.B grips2
+Government Raster Image Processing Software.
+.TP
+.B gutenberg
+Electronic Texts of the Gutenberg Project
+for 1991, 1992, and the first half of 1993.
+.TP
+.B internet
+\&``12,000 documents about computers and networks.''
+.TP
+.B lanl.92
+\&``Scientific visualizations'' from Los Alamos National Laboratory.
+.TP
+.B libris_britannia
+Public Domain/Shareware Library (\c
+.SM PDSL\c
+) from Great Britain.
+.TP
+.B meckler
+.SM CDROM\c
+s in print.
+.TP
+.B nasamg.05
+.SM NASA
+Magellan data (Venus).
+.TP
+.B nasavg.??
+.SM NASA
+Voyager outer-planet data (12 discs).
+.TP
+.B nasavo.2001
+.SM NASA
+Viking orbiter data (Mars).
+.TP
+.B nist.hsf
+National Institute of Standards and Technology
+Handwriting Sample Forms (experimental
+.SM OCR
+system).
+.TP
+.B plan_9.*
+Releases of the Plan 9 operating system.
+.TP
+.B ptf.*
+Prime Time Freeware updates (4 discs; cf.
+.BR freeware ).
+.TP
+.B qrz!
+Ham radio stuff.
+.TP
+.B rwp[ew].*
+Residential white pages for eastern and western regions of the
+U.S. (different issue dates), from PhoneDisc; access with
+.IR 411 .
+.TP
+.B shakespeare
+The immortal works of the bard (c. 1600).
+.TP
+.B simtel_msdos
+Simtel
+.SM MSDOS
+Archive, October 1993 Edition.
+.TP
+.B source
+The Simtel20 Unix-C archive, the
+.SM USENET
+source
+archives, and a large collection of
+.SM MSDOS
+source code (1992).
+.TP
+.B space
+Space and Astronomy
+.SM CDROM\c
+\&; materials collected by Space Station Freedom
+.SM BBS\c
+\&, Louisville, KY.
+.TP
+.B sprite
+.SM UCB\c
+\&'s Sprite network operating system.
+.TP
+.B supercomputing.93
+Conference proceedings.
+.TP
+.B taxinfo.93
+For Windows; as yet not cracked for Plan 9.
+.TP
+.B tiger90.*
+Tiger geographic data base used in the 1990 U.S. census (44 discs);
+cf.
+.IR road (7).
+.TP
+.B torontosun.90
+The Toronto Sun for 1990; includes all the articles, plus
+.SM PCX
+images of the front page.
+.TP
+.B travel.adven
+Photographs of cities, landscapes, mountains, and oceans from around
+the world, in
+.SM GIF
+and
+.SM TIFF
+format.
+.TP
+.B uwedid1.[12]
+\&``University of Washington English Document Image Database I.''
+.TP
+.B worldfact.90
+.SM
+CIA
+World Fact Book, 1990 edition.
+.TP
+.B wp[cesw].*
+White pages for central, eastern, southern, and western regions
+of the U.S. (different issue dates), from ProPhone.
+.TP
+.B wpf.*
+The
+.SM AT&T
+800-number directory (different issue dates), from ProPhone.
+.TP
+.B ym.games
+Games in source form intended for a Unix environment.
+.SH NOTE
+An
+.SM NFS
+server is provided for Unix systems.  The invocation is:
+.IP
+.B /etc/mount -o soft,intr dj:/ /n/juke
+.SH BUGS
+There are only four readers for hundreds of discs.
+This material is not distributed outside Bell Labs.

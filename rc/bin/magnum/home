@@ -1,7 +1,7 @@
 #!/bin/rc
 
 echo creating partitions
-disk/prep /dev/hd0 > /dev/null <<EOF
+disk/prep /dev/sd0 > /dev/null <<EOF
 partboot
 
 64
@@ -23,13 +23,13 @@ EOF
 ls '#w'
 
 echo copying partboot
-dd -bs 512 -conv sync < /sys/src/boot/magnum/partboot > /dev/hd0partboot
+dd -bs 512 -conv sync < /sys/src/boot/magnum/partboot > /dev/sd0partboot
 
 echo copying kernel
-dd -bs 512 -conv sync < /mips/9magnumdisk > /dev/hd0boot
+dd -bs 512 -conv sync < /mips/9magnumdisk > /dev/sd0boot
 
 echo making file system
-disk/kfs -rb 4096 -f /dev/hd0fs
+disk/kfs -rb 4096 -f /dev/sd0fs
 
 echo copying over files
 cputype=mips disk/mkfs /lib/proto/portproto /lib/proto/usrproto

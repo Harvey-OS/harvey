@@ -1,0 +1,451 @@
+%!PS-Adobe-2.0
+%%BeginProcSet: "(AppleDict md)" 70 0
+statusdict begin product(LaserWriter II NT)eq revision 1 eq and
+{userdict begin/oldcds/cleardictstack load def/cleardictstack{31 sendpcmd 4 eq tonerlight/oldcds load  exec}bind def
+end
+currentfile eexec
+}{save currentfile 359 string readhexstring pop pop restore}ifelse
+35de8eabfc7fa5eac0431edc501ad43f5fcbdf9fdd321cce93b525f4439dd94696bf56ac13a0a2aad1e6bcf444711e941d7217138d20ae0500145f815439cc14e697ad201df728ea4ccad4ac
+331aa03a7aacde10760bf4ee12bbf73c77cdcbf1796f26f0dd255d2407e1ac41
+d27489a69d6b69c6a841468b46720b75ad65650700e0c528e7af61e7e3e821b59445c44b69831ebc9deaf0e3aecc14b7a1c2e18bc1fa42a59219f1e36f236e3d6c89114b1f231999c3dbce6b43f3e2918fcb85575941a9d1e65c86aa08e6eea86cc66ce90e5e4add57f2585e
+7b1c0b5203cfc46868d6e3c0d66db79174e7091e32e307679732da062e440e41dabd36a161b611a7e4523a49694026206803dbfd5be5c5fe433f0f18a40057db6f1302848c8da4a10a7f14c6
+3d512806362b1be092ad5dbd36d75fe63e4cae2ba9b72390f580cac344a08bdf6eb9e36ec45bad2a0b82829a72e0efa2d87332c482196e690361168271c55053341ab3
+end
+/sc {60 45 {abs exch abs 2 copy add 1 gt{1.0 sub dup mul exch 1.0 sub dup mul add 1.0 sub}{dup mul exch dup mul add 1.0 exch sub}
+ifelse}setscreen} bind def statusdict begin product(LaserWriter II)anchorsearch end
+{pop pop/letter [/letter load /exec load /sc load /exec load]cvx def/legal [/legal load /exec load /sc load /exec load]cvx def/a4 [/a4 load /exec load /sc load /exec load]cvx def/b5 [/b5 load /exec load /sc load /exec load]cvx def
+/lettersmall [/lettersmall load /exec load /sc load /exec load]cvx def/a4small [/a4small load /exec load /sc load /exec load]cvx def/note [/note load /exec load /sc load /exec load]cvx def}{pop}ifelse
+systemdict/currentpacking known{currentpacking true setpacking}if
+/LW{save statusdict/product get(LaserWriter)anchorsearch
+exch pop{length 0 eq{1}{2}ifelse}{0}ifelse exch restore}bind def
+/LW+{LW 2 eq}bind def
+/ok{systemdict/statusdict known dup{LW 0 gt and}if}bind def
+ok{statusdict begin 9 sccinteractive 3 ne exch 0 ne or{9 0 3 setsccinteractive}if end}if
+/md 270 dict def md begin
+/av 0 def
+/T true def/F false def/mtx matrix def/s75 75 string def/sa8 8 string def/sb8 8 string def
+/sc8 8 string def/sd8 8 string def/s1 ( ) def/pxs 1 def/pys 1 def
+/ns false def
+1 0 mtx defaultmatrix dtransform exch atan/pa exch def/nlw .24 def/ppr [-32 -29.52 762 582.48] def
+/pgr [0 0 0 0] def
+/pgs 1 def/por true def/xb 500 array def/so true def/tso true def/fillflag false def/pnm 1 def/fmv true def
+/sfl false def/ma 0 def/invertflag false def/dbinvertflag false def/xflip false def/yflip false def/noflips true def/scaleby96 false def/fNote true def/fBitStretch true def
+/4colors false def/3colors false def/2colors false def
+/wtkey false def
+statusdict begin/waittimeout where{pop waittimeout 300 lt{md /wtkey true put}if}if end
+wtkey{statusdict begin/setdefaulttimeouts where{pop 0 60 300 setdefaulttimeouts}if end}if
+/fg (Rvd\001\001\000\000\177) def
+/bdf{bind def}bind def
+/xdf{exch def}bdf
+/xl{neg exch neg translate}bdf
+/fp{pnsh 0 ne pnsv 0 ne and}bdf
+/nop{}bdf/lnop[/nop load]cvx bdf
+/vrb[
+{fp{fg 6 get 0 ne{gsave stroke grestore}{gsave 1 setlinewidth pnsh pnsv scale stroke grestore}ifelse}if newpath}bind
+/eofill load
+dup
+/newpath load
+2 index
+dup
+{clip newpath}bind
+{}bind
+dup
+2 copy
+]def
+systemdict/currentcolorscreen known{currentcolorscreen/dkspf xdf/dkrot xdf/dkfreq xdf/dyspf xdf/dyrot xdf/dyfreq xdf/dmspf xdf/dmrot xdf/dmfreq xdf
+/dcspf xdf/dcrot xdf/dcfreq xdf}{currentscreen/spf xdf/rot xdf/freq xdf}ifelse
+/doop{vrb exch get exec}bdf
+/psu{/udf xdf/tso xdf /fNote xdf/fBitStretch xdf/scaleby96 xdf/yflip xdf/xflip xdf
+/invertflag xdf/dbinvertflag invertflag statusdict begin version cvr 47.0 ge product (LaserWriter) eq not and end invertflag and {not}if def
+xflip yflip or{/noflips false def}if
+/pgs xdf 2 index .72 mul exch div/pys xdf div .72 mul/pxs xdf ppr astore pop pgr astore pop/por xdf sn and/so xdf}bdf
+/tab{statusdict /11x17 known{statusdict begin /11x17 load end}{statusdict /setpage known{statusdict begin 792 1224 1 setpage end}{statusdict /setpageparams known{statusdict begin 792 1224 0 1 setpageparams end}if}ifelse}ifelse}bdf
+/a3Size{statusdict /a3 known{statusdict begin /a3 load end}{statusdict /setpageparams known{statusdict begin 842 1191 0 1 setpageparams end}if}ifelse}bdf
+/txpose{fNote{smalls}{bigs}ifelse pgs get exec pxs pys scale ppr aload pop por{noflips{pop exch neg exch translate pop 1 -1 scale}if
+xflip yflip and{pop exch neg exch translate 180 rotate 1 -1 scale ppr 3 get ppr 1 get neg sub neg ppr 2 get ppr 0 get neg sub neg translate}if 
+xflip yflip not and{pop exch neg exch translate pop 180 rotate ppr 3 get ppr 1 get neg sub neg 0 translate}if yflip xflip not and{ppr 1 get neg ppr 0 get neg translate}if}
+{noflips{translate pop pop 270 rotate 1 -1 scale}if xflip yflip and{translate pop pop 90 rotate 1 -1 scale ppr 3 get ppr 1 get neg sub neg ppr 2 get ppr 0 get neg sub neg translate}if
+xflip yflip not and{translate pop pop 90 rotate ppr 3 get ppr 1 get neg sub neg 0 translate}if yflip xflip not and{translate pop pop 270 rotate ppr 2 get ppr 0 get neg sub neg 0 exch translate}if}ifelse
+wtkey{statusdict/waittimeout 300 put}if 
+scaleby96{ppr aload pop 4 -1 roll add 2 div 3 1 roll add 2 div 2 copy translate .96 dup scale neg exch neg exch translate}if}bdf
+/fr{4 copy pgr aload pop 3 -1 roll add 3 1 roll exch add 6 2 roll 3 -1 roll
+sub 3 1 roll exch sub 3 -1 roll exch div 3 1 roll div exch scale pop pop xl}bdf
+/obl{{0.212557 mul}{pop 0}ifelse}bdf
+/sfd{ps fg 5 -1 roll get mul 100 div 0 ps 5 -1 roll obl ps neg 0 0 6a astore makefont setfont}bdf
+/fnt{findfont sfd}bdf
+/bt{sa 3 1 roll 3 index and put}bdf
+/sa(\000\000\000\000\000\000\000\000\000\000)def
+/fs{0 1 bt 1 2 bt 2 4 bt 3 8 bt 4 16 bt 5 32 bt 6 64 bt 7 128 bt sa exch 8 exch put}bdf
+/mx1 matrix def
+/mx2 matrix def
+/mx3 matrix def
+/bu{currentpoint 4colors{currentcmykcolor}{currentrgbcolor}ifelse currentlinewidth currentlinecap currentlinejoin 
+currentdash exch aload length fg 5 sfl{1}{0}ifelse put pnsv pnsh 
+2t aload pop 3a aload pop mx2 aload pop mx1 aload pop mtx currentmatrix aload pop
+mx3 aload pop ps pm restore/ps xdf mx3 astore pop}bdf
+/bn{/pm save def mx3 setmatrix newpath 0 0 moveto ct dup 39 get 0 exch getinterval cvx exec mtx astore setmatrix mx1 astore pop mx2 astore pop 3a 
+astore pop 2t astore pop/pnsh xdf/pnsv xdf gw
+/sfl fg 5 get 0 ne def array astore exch setdash setlinejoin setlinecap 
+setlinewidth 4colors{setcmykcolor}{setrgbcolor}ifelse moveto}bdf
+/fc{save vmstatus exch sub 50000 lt
+{(%%[|0|]%%)=print flush}if pop restore}bdf
+/tc{32768 div add 3 1 roll 32768 div add 2t astore pop}bdf
+/3a [0 0 0] def
+/2t 2 array def
+/tp{3a astore pop}bdf
+/tt{mx2 currentmatrix pop currentpoint 2 copy 2t aload pop qa 2 copy translate 3a aload pop exch dup 0 eq
+{pop}{1 eq{-1 1}{1 -1}ifelse scale}ifelse rotate pop neg exch neg exch translate moveto}bdf
+/te{mx2 setmatrix}bdf
+/th{3 -1 roll div 3 1 roll exch div 2 copy mx1 scale pop scale/sfl true def}bdf
+/tu{1 1 mx1 itransform scale/sfl false def}bdf
+/ts{1 1 mx1 transform scale/sfl true def}bdf
+/fz{/ps xdf}bdf
+/dv{dup 0 ne{div}{pop}ifelse}bdf
+/pop4{pop pop pop pop}bdf
+/it{sfl{mx1 itransform}if}bdf
+/gm{exch it moveto}bdf/rm{it rmoveto}bdf
+/lm{currentpoint sfl{mx1 transform}if exch pop sub 0 exch it rmoveto}bdf
+/fm{statusdict/manualfeed known}bdf
+/se{statusdict exch/manualfeed exch put}bdf
+/mf{dup/ma exch def 0 gt{fm se/t1 5 st ok ma 1 gt and{/t2 0 st/t3 0 st
+statusdict/manualfeedtimeout 3600 put
+}if}if}bdf
+/jn{/statusdict where exch pop{statusdict exch /jobname exch put}if}bdf
+/pen{pnm mul/pnsh xdf pnm mul/pnsv xdf pnsh setlinewidth}bdf
+/min{2 copy gt{exch}if pop}bdf
+/max{2 copy lt{exch}if pop}bdf
+/dh{fg 6 1 put array astore dup {1 pxs div mul exch}forall astore exch pop exch pop exch setdash}bdf
+/ih[currentdash]def
+/rh{fg 6 0 put ih aload pop setdash}bdf
+/dl{gsave nlw pys div setlinewidth 0 setgray}bdf
+/dlin{exch currentpoint currentlinewidth 2 div dup
+translate newpath moveto lineto currentpoint stroke grestore moveto}bdf
+/lin{fg 6 get 0 ne{exch lineto currentpoint 0 doop moveto}
+{exch currentpoint/pnlv xdf/pnlh xdf gsave newpath/@1 xdf/@2 xdf fp{pnlh @2 lt{pnlv @1 ge
+{pnlh pnlv moveto @2 @1 lineto pnsh 0 rlineto
+0 pnsv rlineto pnlh pnsh add pnlv pnsv add lineto pnsh neg 0 rlineto}
+{pnlh pnlv moveto pnsh 0 rlineto @2 pnsh add @1 lineto 0 pnsv rlineto
+pnsh neg 0 rlineto pnlh pnlv pnsv add lineto}ifelse}{pnlv @1 gt
+{@2 @1 moveto pnsh 0 rlineto pnlh pnsh add pnlv lineto 0 pnsv rlineto
+pnsh neg 0 rlineto @2 @1 pnsv add lineto}{pnlh pnlv moveto pnsh 0 rlineto
+0 pnsv rlineto @2 pnsh add @1 pnsv add lineto pnsh neg 0 rlineto
+0 pnsv neg rlineto}ifelse}ifelse
+closepath fill}if @2 @1 grestore moveto}ifelse}bdf
+/gw{/pnm fg 3 get fg 4 get div def}bdf
+/lw{fg exch 4 exch put fg exch 3 exch put gw pnsv pnsh pen}bdf
+/barc{/@1 xdf/@2 xdf/@3 xdf/@4 xdf/@5 xdf
+/@6 xdf/@7 xdf/@8 xdf gsave
+@5 @7 add 2 div @6 @8 add 2 div translate newpath 0 0 moveto
+@5 @7 sub @6 @8 sub mtx currentmatrix pop scale @1{newpath}if
+0 0 0.5 @4 @3 arc @4 @3 sub abs 360 ge{closepath}if
+mtx setmatrix @2 doop grestore}bdf
+/ar{dup 0 eq barc}bdf
+/ov{0 exch 360 exch true barc}bdf
+/rc{/@t xdf currentpoint 6 2 roll newpath 4 copy 4 2 roll exch moveto
+6 -1 roll lineto lineto lineto closepath @t doop moveto}bdf
+/mup{dup pnsh 2 div le exch pnsv 2 div le or}bdf
+/rr{/@1 xdf 2. div/@2 xdf 2. div/@3 xdf
+/@4 xdf/@5 xdf/@6 xdf/@7 xdf
+@7 @5 eq @6 @4 eq @2 mup or or{@7 @6 @5 @4 @1 rc}
+{@4 @6 sub 2. div dup @2 lt{/@2 xdf}{pop}ifelse
+@5 @7 sub 2. div dup @2 lt{/@2 xdf}{pop}ifelse
+@1 0 eq{/@2 @2 pnsh 2 div 2 copy gt{sub def}{0 pop4}ifelse}if
+currentpoint newpath
+@4 @6 add 2. div @7 moveto
+@4 @7 @4 @5 @2 arcto pop4
+@4 @5 @6 @5 @2 arcto pop4
+@6 @5 @6 @7 @2 arcto pop4
+@6 @7 @4 @7 @2 arcto pop4
+closepath @1 doop moveto}ifelse}bdf
+/pr{gsave newpath/pl{exch moveto/pl{exch lineto}def}def}bdf
+/pl{exch lineto}bdf
+/ep{dup 0 eq{{moveto}{exch lin}{}{(%%[|1|]%%)= flush}pathforall
+pop grestore}{doop grestore}ifelse currentpoint newpath moveto}bdf
+/gr{64. div setgray}bdf
+/savescreen{ns not{/ns true def systemdict/currentcolorscreen known{currentcolorscreen/pkspf xdf/pkrot xdf/pkfreq xdf/pyspf xdf/pyrot xdf/pyfreq xdf/pmspf xdf/pmrot xdf/pmfreq xdf
+/pcspf xdf/pcrot xdf/pcfreq xdf}{currentscreen/sspf xdf/srot xdf/sfreq xdf}ifelse}if}bdf
+/restorescreen{/ns false def systemdict/setcolorscreen known{pcfreq pcrot/pcspf load pmfreq pmrot/pmspf load pyfreq pyrot/pyspf load
+pkfreq pkrot/pkspf load setcolorscreen}{sfreq srot/sspf load setscreen}ifelse}bdf
+/pat{savescreen sa8 
+copy pop 9.375 pa por not{90 add}if{1 add 4 mul cvi sa8 exch get exch 1 add 4 mul cvi 7 sub bitshift 1 and}setscreen exch not{gr}{pop}ifelse}bdf
+/sg{restorescreen gr}bdf
+/cpat{savescreen 10 2 roll 7 -1 roll sa8 copy pop 9.375 pa por not{90 add}if{1 add 4 mul cvi sa8 exch get exch 1 add 4 mul cvi 7 sub bitshift 1 and}8 -1 roll sb8 copy pop 9.375 pa por not{90 add}if{1 add 4 mul cvi sb8
+exch get exch 1 add 4 mul cvi 7 sub bitshift 1 and}9 -1 roll sc8 copy pop 9.375 pa por not{90 add}if{1 add 4 mul cvi sc8 exch get exch 1 add 4 mul cvi 7 sub bitshift 1 and}10 -1 roll sd8 copy pop 9.375 pa por not{90 add}if{1 add 4 mul cvi sd8
+exch get exch 1 add 4 mul cvi 7 sub bitshift 1 and}psuedo1 dsc 4{4 -1 roll 1 exch 64 div sub}repeat setcmykcolor pop pop}bdf
+systemdict/setcolorscreen known{/psuedo1 lnop bdf/dsc/setcolorscreen load def}{/psuedo1{16{pop}repeat sa8 copy pop 9.375 pa por not{90 add}if{1 add 4 mul cvi sa8 exch get exch 1 add 4 mul cvi 7 sub bitshift 1 and}}bdf
+/bwsc{setscreen dup gr 0 exch 0 exch 64 exch 64 exch 64 exch}bdf/dsc/bwsc load def
+}ifelse
+systemdict/setcmykcolor known not{/setcmykcolor{1 sub 4 1 roll 3{3 index add neg dup 0 lt{pop 0}if 3 1 roll}repeat setrgbcolor pop}bdf}if
+/dc{transform round .5 sub exch round .5 sub exch itransform}bdf
+/sn{userdict/smooth4 known}bdf
+/x8{3 bitshift}bdf
+/x4{2 bitshift}bdf
+/d4{-2 bitshift}bdf
+/d8{-3 bitshift}bdf
+/rb{15 add -4 bitshift 1 bitshift}bdf
+/db{/@7 save def/@1 xdf/@2 xdf/@3 xdf/@4 xdf/@5 xdf/@6 @5 @3 4 add mul def
+dc translate scale/xdbit 1 1 idtransform abs/ydbit exch def abs def{0 0 1 ydbit add 1 10 rc clip}if
+@1 0 eq @1 4 eq or{currentrgbcolor 1 setgray ydbit 0 1 ydbit add 1 2 rc setrgbcolor}if
+@1 3 eq @1 7 eq or{1 setgray}{currentrgbcolor 2 index eq exch 2 index eq and exch pop{0 setgray}if}ifelse/@9 @1 0 eq @1 1 eq @1 3 eq or or dbinvertflag xor def/@13 @6 def
+@2 fBitStretch or{/@10 @4 x4 def/@11 @3 x4 def/@12 @10 rb def/@13 @12 @11 mul def/@15 1 1 dtransform abs/calcY 1 index def round cvi/@14 exch def
+abs/calcX 1 index def round cvi scaleby96 not{1 add}if def/@16 @15 rb def/@17 @16 @14 mul def}if
+sn @13 60000 lt and @2 fBitStretch or and{mtx currentmatrix dup 1 get exch 2 get 0. eq exch 0. eq and @17 60000 lt and fBitStretch and{@16 3 bitshift @14 @9 [calcX 0 0 calcY 0 0]{@17 string @13 string
+currentfile @6 string readhexstring pop 1 index @4 @3 @5 @12 @2 smooth4
+@10 @11 @12 dup string 5 index @15 @14 @16 dup string stretch}imagemask}{@12 x8 @11 @9 [@10 0 0 @11 0 0]{@13 string
+currentfile @6 string readhexstring pop 1 index @4 @3 @5 @12 @2 smooth4}imagemask}ifelse}{@5 3 bitshift @3 4 add @9 [@4 0 0 @3 0 2]{currentfile @6 string readhexstring pop}imagemask}ifelse
+@7 restore}bdf
+systemdict/setcmykcolor known{/psuedo lnop bdf/di/colorimage load def}{/routines[{.3 mul add 1}bind{.59 mul add 2}bind{.11 mul add round cvi str exch i exch put/i i 1 add def 0 0}bind]def
+/psuedo{/i 0 def 0 exch 0 exch{exch routines exch get exec}forall pop pop str}bdf/bwi{pop pop image}bdf/di/bwi load def}ifelse
+/cdb{/@7 save def/@1 xdf/@2 xdf/@3 xdf/@4 xdf/@5 xdf
+systemdict/setcmykcolor known not{dc}if translate scale /@6 xdf
+/@18 @5 dup 60000 ge{pop 60000}if string def @6 not{/str @18 0 @18 length 3 idiv getinterval def}if @4 @3 8 [@4 0 0 @3 0 0]@6{{currentfile @18 readhexstring pop}image}{{currentfile @18 readhexstring pop psuedo}false 3 di}ifelse @7 restore}bdf
+/wd 16 dict def
+/mfont 14 dict def
+/mdf{mfont wcheck not{/mfont 14 dict def}if mfont begin xdf end}bdf
+/cf{{1 index/FID ne{def}{pop pop}ifelse}forall}bdf/rf{/@1 exch def/@2 exch def
+FontDirectory @2 known{cleartomark pop}{findfont dup begin dup length @1 add dict begin
+cf{/Encoding macvec def}{Encoding dup length array copy/Encoding exch def
+counttomark 2 idiv{Encoding 3 1 roll put}repeat}ifelse
+pop
+exec currentdict end end @2 exch definefont pop}ifelse}bdf
+/bmbc{exch begin wd begin
+/cr xdf
+save
+CharTable cr 6 mul 6 getinterval{}forall
+/bitheight xdf/bitwidth xdf
+.96 div/width xdf
+Gkernmax add/XOffset xdf Gdescent add/YOffset xdf/rowbytes xdf
+rowbytes 255 eq{0 0 0 0 0 0 setcachedevice}
+{Gnormsize dup scale
+width 0 XOffset YOffset bitwidth XOffset add bitheight YOffset add
+setcachedevice
+rowbytes 0 ne{
+XOffset YOffset translate newpath 0 0 moveto
+bitwidth bitheight scale
+sn{
+/xSmt bitwidth x4 def
+/ySmt bitheight x4 def
+/rSmt xSmt rb def
+rSmt x8 ySmt true
+[xSmt 0 0 ySmt neg 0 ySmt]
+{rSmt ySmt mul string CharData cr get
+1 index bitwidth bitheight rowbytes rSmt tso smooth4}
+}{rowbytes 3 bitshift bitheight 4 add true
+[bitwidth 0 0 bitheight neg 0 bitheight 2 add]
+{CharData cr get}
+}ifelse
+imagemask
+}if
+}ifelse
+restore
+end end
+}bdf
+/bb{.96 exch div/Gnormsize mdf 2 index
+/Gkernmax mdf 1 index/Gdescent mdf
+3 index div 4 1 roll
+2 index div 1. 5 2 roll
+exch div 4 1 roll
+4 array astore/FontBBox mdf
+}bdf
+/cdf{mfont/CharData get 3 1 roll put}bdf
+/bf{
+mfont begin
+/FontType 3 def
+/FontMatrix [1 0 0 1 0 0] def
+/Encoding macvec def
+/MFontType 0 def
+/BuildChar/bmbc load def
+end
+mfont definefont pop
+}bdf
+/wi LW 1 eq{{gsave 0 0 0 0 0 0 0 0 moveto lineto lineto lineto closepath clip stringwidth grestore}bind}{/stringwidth load}ifelse def
+/aps{0 get 124 eq}bdf
+/xc{s75 cvs dup}bdf
+/xp{put cvn}bdf
+/scs{xc 3 67 put dup 0 95 xp}bdf
+/sos{xc 3 79 xp}bdf
+/sbs{xc 1 66 xp}bdf
+/sis{xc 2 73 xp}bdf
+/sob{xc 2 79 xp}bdf
+/sss{xc 4 83 xp}bdf
+/dd{exch 1 index add 3 1 roll add exch}bdf
+/smc{moveto dup show}bdf
+/ndf2{udf{dup /FontType get 0 eq{/FDepVector get{dup /FontType get 0 eq{ndf2}{dup /df2 known{begin df2 0 null put end
+}{pop}ifelse}ifelse}forall}{/df2 known{dup begin df2 0 null put end}if}ifelse}{pop}ifelse}bdf
+/kwn{FontDirectory 1 index known{findfont dup ndf2 exch pop}}bdf
+/gl{1 currentgray sub setgray}bdf
+/newmm{dup /FontType get 0 eq{dup maxlength dict begin{1 index/FID ne 2 index/UniqueID ne and{def}{pop pop}ifelse}forall currentdict end
+dup /FDepVector 2 copy get[exch 6 index exch 6 index exch{newmm 3 1 roll}forall pop pop] put dup
+}{/mfont 10 dict def mfont begin/FontMatrix [1 0 0 1 0 0] def
+/FontType 3 def/Encoding macvec def/df 1 index def/df2 1 array def/FontBBox [0 0 1 1] def/StyleCode 2 index def
+/mbc{bcarray StyleCode get}def/BuildChar{exch begin	wd begin/cr exch def/cs s1 dup 0 cr put def df /MFontType known not{
+df2 0 get null eq{df dup length 2 add dict begin{1 index/FID ne 2 index/UniqueID ne and{def}{pop pop}ifelse}forall
+/StrokeWidth nlw 1000 mul pys div ps div dup 12 lt{pop 12}if def/PaintType 2 def currentdict end
+/q exch definefont df2 exch 0 exch put}if}if mbc exec end end}def end mfont}ifelse
+3 index exch definefont exch pop}bdf
+/mb{dup sbs kwn{0 2 index findfont newmm exch pop exch pop exch pop}ifelse sfd}bdf
+/mo{dup sos kwn{2 2 index findfont newmm exch pop exch pop exch pop}ifelse sfd}bdf
+/ms{dup sss kwn{4 2 index findfont newmm exch pop exch pop exch pop}ifelse sfd}bdf
+/ou{dup sos kwn{mfont/df2 known{mfont begin df2 0 null put end}if 3 2 index findfont newmm exch pop exch pop exch pop}ifelse sfd}bdf
+/su{dup sss kwn{mfont/df2 known{mfont begin df2 0 null put end}if 5 2 index findfont newmm exch pop exch pop exch pop}ifelse sfd}bdf
+/ao{/fmv true def ou}bdf/as{/fmv true def su}bdf
+/vo{/fmv false def ou}bdf/vs{/fmv false def su}bdf
+/c{currentrgbcolor dup 4 1 roll eq 3 1 roll eq and/gray xdf}bdf
+/bcarray[{/da .03 def df setfont gsave cs wi 1 index 0 ne{exch da add exch}if grestore setcharwidth
+cs 0 0 smc da 0 smc da da smc 0 da moveto show}bind dup{/da 1 ps div def df setfont gsave cs wi 1 index 0 ne{exch da add exch}if grestore setcharwidth
+cs 0 0 smc da 0 smc da da smc 0 da smc c gray{gl}{1 setgray}ifelse da 2. div dup moveto show}bind
+{df setfont gsave cs wi grestore setcharwidth c gray{gl}{currentrgbcolor 1 setgray}ifelse cs 0 0 smc df2 0 get setfont
+gray{gl}{4 1 roll setrgbcolor}ifelse 0 0 moveto show}bind
+{/da 1 ps div def/ds .05 def/da2 da 2. div def df setfont gsave cs wi 1 index 0 ne{exch ds add da2 add exch}if grestore setcharwidth
+cs ds da2 add .01 add 0 smc 0 ds da2 sub translate 0 0 smc da 0 smc da da smc 0 da smc c gray{gl}{1 setgray}ifelse da 2. div dup moveto show}bind
+{/da .05 def df setfont gsave cs wi 1 index 0 ne{exch da add exch}if grestore setcharwidth c cs da .01 add 0 smc 0 da translate
+gray{gl}{currentrgbcolor 1 setgray 4 -1 roll}ifelse 0 0 smc gray{gl}{4 1 roll setrgbcolor}ifelse df2 0 get setfont 0 0 moveto show}bind]def
+/st{1000 mul usertime add dup 2147483647 gt{2147483647 sub}if def}bdf
+/the{usertime sub dup 0 lt exch -2147483648 gt and}bdf
+/6a 6 array def
+/2a 2 array def
+/3q 3 array def
+/qs{3 -1 roll sub exch 3 -1 roll sub exch}bdf
+/qa{3 -1 roll add exch 3 -1 roll add exch}bdf
+/qm{3 -1 roll 1 index mul 3 1 roll mul}bdf
+/qn{6a exch get mul}bdf
+/qA .166667 def/qB .833333 def/qC .5 def
+/qx{6a astore pop
+qA 0 qn qB 2 qn add   qA 1 qn qB 3 qn add
+qB 2 qn qA 4 qn add   qB 3 qn qA 5 qn add
+qC 2 qn qC 4 qn add   qC 3 qn qC 5 qn add}bdf
+/qp{6 copy 12 -2 roll pop pop}bdf
+/qc{exch qp qx curveto}bdf
+/qi{{exch 4 copy 2a astore aload pop qa .5 qm newpath moveto}{exch 2 copy 6 -2 roll 2 qm qs 4 2 roll}ifelse}bdf
+/qq{{qc 2a aload pop qx curveto}{exch 4 copy qs qa qx curveto}ifelse}bdf
+/pt{currentpoint newpath moveto}bdf
+/qf{/fillflag true def}bdf
+/ec{dup 4 and 0 ne{closepath}if 1 and 0 ne{0 doop}if grestore currentpoint newpath moveto/fillflag false def}bdf
+/eu{currentpoint fp{0 ep}{grestore newpath}ifelse moveto/fillflag false def}bdf
+/bp{currentpoint newpath 2 copy moveto}bdf
+/ef{gsave fillflag{gsave eofill grestore}if}bdf
+/sm{0 exch{@1 eq{1 add}if}forall}bdf
+/lshow{4 1 roll exch/@1 exch def{1 index wi pop sub 1 index sm dv 0 @1 4 -1 roll widthshow}{1 index wi pop sub
+1 index dup sm 10 mul exch length 1 sub add dv dup 10. mul 0 @1 4 -1 roll 0 6 -1 roll awidthshow}ifelse}bdf
+/setTxMode{sa 9 2 index put exch not{3 eq{1}{0}ifelse setgray}{pop}ifelse}bdf
+/SwToSym{{}mark false/Symbol/|______Symbol 0 rf 0 sa 6 get 0 ne{pop 1}{sa 7 get 0 eq{pop 2}if}ifelse
+sa 1 get 0 ne/|______Symbol
+sa 4 get 0 ne{vs}{sa 3 get 0 ne{vo}{fnt}ifelse}ifelse}bdf
+/mc{0 3 1 roll transform neg exch pop}bdf
+/ul{dup 0 ne sa 2 get 0 ne and{gsave 0 0
+/UnderlinePosition kif{mc}{ps -10 div}ifelse/UnderlineThickness kif{mc}{ps 15 div}ifelse
+abs setlinewidth neg rmoveto
+sa 4 get 0 ne{gsave currentlinewidth 2. div dup rmoveto currentpoint newpath moveto
+2 copy rlineto stroke grestore}if
+sa 3 get sa 4 get or 0 ne{gsave currentrgbcolor dup 4 1 roll eq 3 1 roll eq and{gl}{1 setgray}ifelse 2 copy rlineto stroke grestore rlineto strokepath nlw pys div setlinewidth}{rlineto}ifelse
+stroke grestore}{pop}ifelse}bdf
+/sgt{2 copy known{get true}{pop pop false}ifelse}bdf
+/kif{currentfont dup/FontMatrix get exch/FontInfo sgt{true}{currentfont/df sgt
+{dup/FontInfo sgt{3 1 roll/FontMatrix get mtx concatmatrix exch true}{pop pop pop false}
+ifelse}{pop pop false}ifelse}ifelse{3 -1 roll sgt{exch true}{pop false}ifelse}{false}ifelse}bdf
+/blank/Times-Roman findfont/CharStrings get/space get def
+/macvec 256 array def
+/NUL/SOH/STX/ETX/EOT/ENQ/ACK/BEL/BS/HT/LF/VT/FF/CR/SO/SI
+/DLE/DC1/DC2/DC3/DC4/NAK/SYN/ETB/CAN/EM/SUB/ESC/FS/GS/RS/US
+macvec 0 32 getinterval astore pop
+macvec 32/Times-Roman findfont/Encoding get
+32 96 getinterval putinterval macvec dup 39/quotesingle put 96/grave put
+/Adieresis/Aring/Ccedilla/Eacute/Ntilde/Odieresis/Udieresis/aacute
+/agrave/acircumflex/adieresis/atilde/aring/ccedilla/eacute/egrave
+/ecircumflex/edieresis/iacute/igrave/icircumflex/idieresis/ntilde/oacute
+/ograve/ocircumflex/odieresis/otilde/uacute/ugrave/ucircumflex/udieresis
+/dagger/degree/cent/sterling/section/bullet/paragraph/germandbls
+/registered/copyright/trademark/acute/dieresis/notequal/AE/Oslash
+/infinity/plusminus/lessequal/greaterequal/yen/mu/partialdiff/summation
+/product/pi/integral/ordfeminine/ordmasculine/Omega/ae/oslash
+/questiondown/exclamdown/logicalnot/radical/florin/approxequal/Delta/guillemotleft
+/guillemotright/ellipsis/blank/Agrave/Atilde/Otilde/OE/oe
+/endash/emdash/quotedblleft/quotedblright/quoteleft/quoteright/divide/lozenge
+/ydieresis/Ydieresis/fraction/currency/guilsinglleft/guilsinglright/fi/fl
+/daggerdbl/periodcentered/quotesinglbase/quotedblbase/perthousand/Acircumflex/Ecircumflex/Aacute
+/Edieresis/Egrave/Iacute/Icircumflex/Idieresis/Igrave/Oacute/Ocircumflex
+/apple/Ograve/Uacute/Ucircumflex/Ugrave/dotlessi/circumflex/tilde
+/macron/breve/dotaccent/ring/cedilla/hungarumlaut/ogonek/caron
+macvec 128 128 getinterval astore pop
+{}mark true/Courier/|______Courier 0 rf
+{/Metrics 21 dict begin/zero 600 def/one 600 def/two 600 def/three 600 def/four 600 def/five 600 def/six 600 def/seven 600 def/eight 600 def
+/nine 600 def/comma 600 def/period 600 def/dollar 600 def/numbersign 600 def/percent 600 def/plus 600 def/hyphen 600 def/E 600 def/parenleft 600 def/parenright 600 def/space 600 def
+currentdict end def currentdict/UniqueID known{/UniqueID 16#800000 def}if/FontBBox FontBBox 4 array astore def}mark true/Helvetica/|______Seattle 1 rf
+/oldsettransfer/settransfer load def
+/concatprocs{/proc2 exch cvlit def/proc1 exch cvlit def/newproc proc1 length proc2 length add array def
+newproc 0 proc1 putinterval newproc proc1 length proc2 putinterval newproc cvx}def
+/settransfer{currenttransfer concatprocs oldsettransfer}def
+/PaintBlack{{1 exch sub}settransfer gsave newpath clippath 1 setgray fill grestore}def
+/od{(Rvd\001\001\000\000\177) fg copy pop txpose
+1 0 mtx defaultmatrix dtransform exch atan/pa exch def
+newpath clippath mark
+{transform{itransform moveto}}{transform{itransform lineto}}
+{6 -2 roll transform 6 -2 roll transform 6 -2 roll transform
+{itransform 6 2 roll itransform 6 2 roll itransform 6 2 roll curveto}}
+{{closepath}}pathforall newpath counttomark array astore/gc xdf pop ct 39 0 put
+10 fz 0 fs 2 F/|______Courier fnt invertflag{PaintBlack}if
+statusdict/processcolors known{statusdict begin processcolors end dup 4 eq{/4colors true def pop}{3 eq{/3colors true def}{/2color true def}ifelse}ifelse}{/2colors true def}ifelse}bdf
+/cd{}bdf
+/op{/sfl false def systemdict/currentcolorscreen known{dcfreq dcrot/dcspf load dmfreq dmrot/dmspf load dyfreq dyrot/dyspf load
+dkfreq dkrot/dkspf load setcolorscreen}{freq rot/spf load setscreen}ifelse savescreen
+/ns false def/pm save def}bdf
+/cp{not{userdict/#copies 0 put}if ma 0 gt{{t1 the{exit}if}loop}if{copypage}{showpage}ifelse pm restore}bdf
+/px{0 3 1 roll tp tt}bdf
+/psb{/us save def}bdf
+/pse{us restore}bdf
+/ct 40 string def
+/nc{currentpoint initclip newpath gc{dup type dup/arraytype eq exch/packedarraytype eq or{exec}if}
+forall clip newpath moveto}def
+/kp{ct 0 2 index length 2 index 39 2 index put getinterval copy cvx exec mx3 currentmatrix pop}bdf
+/av 70 def
+end
+LW 1 eq userdict/a4small known not and{/a4small
+[[300 72 div 0 0 -300 72 div -120 3381]
+280 3255
+{statusdict/jobstate (printing) put 0 setblink
+margins
+exch 196 add exch 304 add 8 div round cvi frametoroket
+statusdict/jobstate (busy) put
+1 setblink}
+/framedevice load
+60 45{dup mul exch dup mul add 1.0 exch sub}/setscreen load
+{}/settransfer load/initgraphics load/erasepage load]cvx
+statusdict begin bind end readonly def}if
+md begin/bigs[lnop userdict/letter known{/letter load}{lnop}ifelse userdict/legal known{/legal load}{lnop}ifelse userdict/a4 known{/a4 load}{lnop}ifelse userdict/b5 known{/b5 load}{lnop}ifelse 
+lnop lnop lnop /tab load/a3Size load]def
+/smalls[lnop userdict/lettersmall known{/lettersmall load}{userdict/note known{/note load}{lnop}ifelse}ifelse
+userdict/legal known{/legal load}{lnop}ifelse userdict/a4small known{/a4small load}{lnop}ifelse 
+userdict/b5 known{/b5 load}{userdict/note known{/note load}{lnop}ifelse}ifelse lnop lnop lnop /tab load/a3Size load]def end
+systemdict/currentpacking known{setpacking}if
+/checkload{{currentfile eexec} {/junk save def/mystring 65000 string def
+/endexec (e%endeexec) def{currentfile mystring readline not{stop}if endexec eq{exit}if}loop junk restore}ifelse}bind def
+ok userdict/stretch known not and checkload
+373A767D4B7FD94FE5903B7014B1B8D3BED02632C855D56F458B118ACF3AF73FC4EF5E81F5749042B5F9CF1016D093B75F250B7D8280B2EACE05A37037F7BDF6E12226D7D4E2DF2C52FAFD5FD40FE72A0D3AC4BD485D8369D4C87636E920D1DAF222D92155A9CB1667E715F0B82799B37CC8F5B32B74B39CF494536DC39C7EF04A7BCB29E2CEC79073CADCCFB23B4AA1363F876F5121B618071B7B4EB1E5DE75FAA2368A3E5DB2B198623AFE92AE9484270FE7F57A850E88C0D3EEA156611C91D8E480D4370B025CCA6929A2BF40AD3D01B2CB7EE6DFB46E12A830542337F7819B67F9765210F76DB06F34DA5B13A11759305C582E16D2B854939F6D9121F2A4F285282F5DCD3D15896D121E3D6F5BE79E087451BB0ED233CDBEF090D3B4AC2DC34B97E70C61D95FB072B8C12D2ABD843520949A39DCF99E2C1AA8FBCD025E47E0A82A8D96E75BAF40F52AD402495BBD4DE0F356C8B14E764874E639C9F045A0D1908EC6456EB6C5B8A6F826192F767EF2C55A21C58F5F9CC1F59247B55F2387828C7FE89D5E7D8484D1BC86CB6673BDBE4FE17DD9BDE95224FE645136F41330BF155A4DDE1B0A32233BF471CE58FBC660DC7E641B0A0D30018454E2191C414A3011FF3FED1C0D88FE1FF9F75DCC456D097947226FBEC92509146D3A4CFFC0471B31C53222ED9DD88566F60F6C0D705AD79DACF53B070026F083ED28B5CF757AAA0A169F6F320A75E9D2ED50ABD939AF85B6346C2ADB25D168F10508E1516D194C635E6B187FADEA0829DBF0390C0F003F0265E215BC96CA3CC13D4A8E01570BE193CA75A620728CD275ACF1986EFFB3A13419FE55EA7C4467B7E7EEDC1FC29C9F8C46A557D2CCDB914EF7B93E7530D555DFC2398AFC68CAD991F062EF85BAA1884EC166C7C5DF8543666D8C41BE267D706BD1588F1F662F705CAE4D29DC38EF66BFAA89470D8A099B6F1B4587F7B024412276106FCD3EB5AE17A5D1DF1781992DC40EA0A992F706F701304CEA9D9073E7A74F1E687D81C3E5841D31CF86855BAAAD9B5D30317C75150A857C6B114735315CDD1AEF36C26BBB0645499406DEE2F24B3B1C72FEC97C7BA31AA2CDAB25418BB1DC4C7E4757F1D625087B0FD0300C03A65F2A72CE734925735277E034CDCF599129679F70CC8B66E03878851DB75041F275E1E5761F3EC753BE1359CA364A22047AE4886217F9259FE19FF5B116E8019B98B143114B313E8BEF87EC949D85C82E0812E6F50525E73890AF362CC8EE8A85F4197E6AC18638EF12E56A808D439AF1BFD363F140314BF4E534485C42F1856688CC35288E8D770120A420FB9F1FCF8AE8BD6D6156CC23E6C51119FE4DE1B68C9DF3487E9974BF9ED31F8D3CE93FF101867319F2FF492D5D398B4F09A66F2F55BCAB34B99173B7EE89039D00DD21A7B3A52E9F028F8301B5FC12D409412E064513BC579AAC498F577EA8ECD1FE3E42DC3CC320786C7B00194FEDF344402C33FC492D4BA86992B01683F440220FFE756BC88A94223D316078D69D33560E8EAB76B24CB7AA4320CF435593D76F624324ABE00B5587A4F283C725EA24567133F25F472B5E2E4474DDB5A16AC5F2DF32350395D3E3892FE361F4D5C9A610C654C9227614FBBAFF3356A90A2266E00F66234061075491571A65616211257F160000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+cleartomark
+e%endeexec
+
+ok userdict/smooth4 known not and checkload
+F94E00EE41A71C59E5CAEED1EDBCF23D1DBA1EE99B9BB356492923BD8B1BA83A87CEB0E07377A31FD6241E814681118E17DC7CACE570399506E6E441B871B6043831BD03EFC11DBBD8001EE2FF8CFBD485065D455A2E15AC36F1A84AD8789FA6461199C7CD14CB9FD64D4B06452B7FC0A8FC263F70F1CCB893295D4DE70ADAB771C0F84396FA98C60B11DA02ABA157298DF0A23621853BEF167443A985ADC09BEFFD51CB4D29179E2B34609EF38A49DA61F4BFC256A3DE0732D7D29754A194857B9C9E9971227AA1DD0611FBB10E44E5FF66C062D9C24ED3290529330BC317825E876929582DB0E39B9FC5EFD20CC1D4F94920EB9C534D0DA90DE70D25BC7287319CF28602B3F46633C242CAFC8905E960317E3C2FA20AB8DB06ADBAF292FC7BA2CA14EE65DF28B99CC11666B70AD33E8E1D57D63D4B89ECC615AE5747C1CA752C833D8D6DE54CD4A0350B44310555CE3BD2C615ADD27B634CDB350AF3A432CE78AACD2909A5B586F666CD87919A36DB1CBE86B3CE281DFD01CD7E1B8A18A4B415CECBFF79A5C4390A15EA77D14D6BE12BAB5A8268C3F286D0590060647CABED674443CD258F11415E866AB330A251691B61F2422A61AFE59B6B4FBDCF85ED9BA0F8E483C034089E6877FF5923698D3A0DC0EED6B9CFD32DF0839BC4EA5F6D1FCB6DD0920391E57E84745131D02D100179F4E0A68EC0A5FF6680A6F463D038B04AF63FFA13D743B995A26A743C26D387209023C91DE43DF047A16F328AC9DDC08573B38BE9EA341EA16C78EC32F3A1B36B90D95A50610F4D050EC1C33497F3F3A81A1B4C8BEF0BA84EE2FAA32DC112DAC490AF53E1749C4A0D866CAF7B893E52383B0D38065C333FB122B700D7246F7EE87D942AE3DB5C1DD77E9E76C80CC5AD63D28DFED0E229CE604673F78CD47F258FDF5BF3A3EAEC5C9BC8E482D8DBA9D268A35DA8C095A690679ED2123E8B8F5E4826FA3B199EAA5D482D4B6AA86572E387CECEB7149C8947F41D6339328A748A17F8C4AD3B0555F1E409450BA0C564F1F488BB5096EB003568D4D5EF6489897E27409547D0EE4487D30184793B0F27BD265A64BDB3EA6761569DA955620C612E718677B77D6D81B999C6298877AFE0D1D6F6F358377A8BD2402F669C64B972B3A065EF7DD4BDEFFFE17E63DB8898FA6E69166B710AAD6BA2EA9AF61E4B8C8701638D4D6E4DFFFC192AEF6BC027095C4C72D748979675BA29FAF61E75343E14E61034602E5A79CD2519796ED6A9CC4EDEA46A9B59D4A807E786B5EE46F25B0360BC8E7C12D723122CDEEF247C9776F4C99C8EBED6828AA19744B5ADF0D07D95D98B3072372388D41B0FAB1CCE2775170679575ECDCA13B22A17FE9C6605C3445F58F1A829512DAB6C528F83580C8AA53C35D605F626F5AD0B7FC1EA87D69A835E3F53A1F450FB0AF42A5772F89D92A50D10F15BDBDA409F50C0B8AB93FE8A16D029DD8BB5C480D1466735ED4D9CAF637E5ECD6C2ECB6BF3B3EFBEE7AB936D2C568E3009D156B87CACB1FB3A48A70BC91B2EC35CC9147FFB1A524E2B2F2E4E2C1B12F1C1C63768BB95CD62FEC01CBA79B9FA282DD4DF49990F27FF8EE4E2DDE2F0ACD83BC9D4BE0090192C7A799967EC4DC2D63C0835E22D4C4B366D7FDCF3A05A4B53DF780F986EF25C79B665D5C00EFF7F17C0BB6D544F9D83A7FDAC47D9C5683A656011374253C918FF6EA64749DD971B2300DD5320033E01EC591F6318CCE94CE2B81C04322EC52B624E50643B52391CCD2AB56396A2AD8E2D3CA61B80D9D4CC363B2DF7863526958CDF3497E36648406C317E58EC563E7C26149A2A3C643ADFB39A8DD92974C6D2A2A9D7B71CDF3FEBBF32BB02E7B45CF53AAEAD5E963A4AA4AF9A149A08A4EC303D5F2369977E93F54897EEAD31B06C5845D63F49D65F8E5573962241A57CCD717CE6CA8C784A11192943616EA059B51BC38429E18D0121FCBB6FBD5D909B0D89E616C66DEF6A0F165A7030BD911A1B120468329CBB006C8D37720E531CF31E878CB4AAAC137633675C3D546F5162487AB35F470C042BDEB945E0F2532BF92AA6FD53434440221ECD3533A7AA89900CB19EFE2CD872DF8B7969AF0D3B72BF31DC5DD69CA6460966F61AB17CB507964098DBA3AF122EEC3128A9BAFE1034493F372B36BD1351205E9043A67C544402D8BCE24358C8A5CE33867A00794CF7097D59C88279A11EE9C854E7E7AAE881F9828C569D208F5F33375F59E9A3818CFA38AAD0CBFBA32F9F44A8BB79DE4C40E3886457C16DA4A27953AA1E99472E35F2323F0BAA5E37DC28CBA46FEFB73B190016055ADD4D27615D748499A0E1C4B8C7EC339C1C4D95A813A85918A8D01EEB485DDCDCEA6EA3F2C2A9D85C139CD90CCB352634F9AFE836BCAC0C274E352BA2071B5269D5DE4CCDE3FF990CBA974980C7332AE1545A9C60D5D1459D3AE95C1AC065733AF14FADB440A110DD539563B8D850CD0704C52F3F7CCCB53630D776560CBD22D8FF08F5B354487A171AEC15F5F54DE9CAB668BCAC573E788D92762EF63E76087005F4AC2D02E0CAC173C11BE62ACE5DC4D3374F2F9746C9981E125FF9AB8CAE76D13039E2C54DFD708E028A619EA1ED78E6B46F06DF0D0B74BBEDD8C190C7C0CEBDE8F7A4888CC36575313478DD2CFE392E9BB7B2416955D44B7024A3BA43FBF37293B386D64746D7748895411D243FAEC50638F2AA33337D7FA018ADDAC5835A0DDFAE99AD6299DFB4CA6872C59853E3AC12FC9E3D26629C5B49CF844C87B3C4BFBE3074E3A1CE6984758C20C661084381CD6B4582D84F19C0000B5FC0DCB42B567E396031601C095D7016283EBE5F13CD8A3A374A74DDBBABD36081149F8BC242085F2F7297CC97FD3B8BAD206D8AC9707A39ECCC7963B522E08DA391A1EF12DD4D746DBDDDCC0834F88160CF189A9645567CEC2F023A571AF0DFD15DB85B744C28C000DF53B05F8F210841F6E87A04F20C777B7C0BE6182BE2E90226E5301A12532A745F2FAAA81637CF11B78CD2B99A4D18B862D6C5DBD31793FB16A2D9AAD376D4484D75AA833D0068B1D34DB74E3302480854E3B5484D8A47E39A89A2FA927BC3641EA7F8E004FDE4C2F08D40D99F1ACB47CAF6887629BF6DFE12968D297596D28CE0CF148B12E7DCB49FB94F5ADBD214C3A6CE1E249831BA9EB8A189F2CE1ABE39A7B537253E369A508A2AF2ADB9463F9B56BBBFF31D535FF997F537C6675C196E7ECBD493F652FA7CC6D9C1CA3379BFDB5AF7513C6E834054494296B91A6EE800114363D5D5D0759F41B4DECB653B9DE3E94583579EF549ED5F3FAFB12661ABC0C57A332406517ED3454EDED34B386C60F78DC976266E0EAF54FC245FB0E3EFC8016236436B599C1C97A8C5E0AC8F7836161873C71F01ED9CC25C236420F41FD8277993D3959205912FA0927B59E3DAE7377D82079447D6E41EE5AEC0DFFF79AF8F4ED47F17EE708FEA45877860D56F8CBCE65A061E8E1CA4A5FBAF0E13429A7F0ADB6F178FA449F46CC539BBC0107E3A53B1C362A04B20E6D721E7E6E1E4976A11DDC98C7614D22B53DFBB6DAE533AC9BE882021A735C30DAA4A44AED09F49A390E8CFF59BD9C30667AF21B03EC5CEBD5C2C3AA2769E8D714191A48E7DDF50B13D1560E82EFB65FCE601AE9E8C351FBA1DED80B7351314E7F9F9A784BFE3759B7E322A84E7B51F9DC5F5D9C8050CD79B27C0A4B0DD68A3C27A948AD6858E35B960D2DEA838C479CAEA83B1A912174ACB2100E55E7A14892D7A9B3711FF0B20065C1995B49E1F23464A92DD140642E3A7B1973849E64D1A3CF60000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000
+cleartomark
+e%endeexec
+%% TJD hacks 6/91 to get lprep 70 and psfig to work with pageview:
+md begin
+/nc{currentpoint initclip newpath gc{dup type dup/arraytype eq exch/packedarraytype eq or{exec}if}
+forall % clip
+newpath moveto}def
+end
+%%EndProcSet

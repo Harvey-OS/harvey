@@ -31,8 +31,9 @@ main(int argc, char *argv[]){
 	Rectangle win;
 	int t, y;
 	char *ldepth;
+	char cmapbuf[256*3];
 	switch(getflags(argc, argv,
-	    "w:4[x0 y0 x1 y1]o:2[x y]t:1[pictype]c:1[rgbaz...]C:1[rgbaz...]l:1[ldepth]")){
+	    "w:4[x0 y0 x1 y1]o:2[x y]t:1[pictype]c:1[rgbaz...]C:1[rgbaz...]l:1[ldepth]m:1[colormap]M")){
 	default:
 		usage("[infile [outfile]]");
 	case 3:
@@ -48,9 +49,13 @@ main(int argc, char *argv[]){
 		out.name="OUT";
 		break;
 	}
+	if(flag['m'] && flag['M']){
+		fprint(2, "%s: -m requires a color map, -M forbids one!\n", argv[0]);
+		exits("usage");
+	}
 	in.pf=picopen_r(in.name);
 	if(in.pf==0){
-		picerror(in.name);
+		perror(in.name);
 		exits("open input");
 	}
 	if(flag['l']) ldepth=flag['l'][0];
@@ -95,6 +100,12 @@ main(int argc, char *argv[]){
 	out.chan=flag['c']?flag['c'][0]:in.chan;
 	out.nchan=strlen(out.chan);
 	conversion(in.chan, out.chan, cmap);
+	if(flag['M']) needcmap=0;
+	if(flag['m']){
+		needcmap=1;
+		getcmap(flag['m'][0], (uchar *)cmapbuf);
+		cmap=cmapbuf;
+	}
 	if(flag['C']){
 		if(strlen(flag['C'][0])!=out.nchan){
 			fprint(2, "%s: -C argument wrong length (%s vs. %s)\n", argv[0],
@@ -115,7 +126,7 @@ main(int argc, char *argv[]){
 		out.chan, 0, needcmap?cmap:0);
 	if(ldepth) picputprop(out.pf, "LDEPTH", ldepth);
 	if(out.pf==0){
-		picerror(out.name);
+		perror(out.name);
 		exits("create output");
 	}
 	for(y=out.r.min.y;y!=out.r.max.y;y++){
@@ -137,7 +148,7 @@ int readp(int y){
 }
 int writep(int y){
 	if(!picwrite(out.pf, out.buf)){
-		picerror(out.name);
+		perror(out.name);
 		exits("write error");
 	}
 }

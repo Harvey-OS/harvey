@@ -1,17 +1,17 @@
-TEXT	_mainp(SB), 1, $0
+TEXT	_mainp(SB), 1, $4
 	MOVL	AX, _clock(SB)
 	CALL	_profmain(SB)
 	MOVL	__prof+4(SB), AX
 	MOVL	AX, __prof+0(SB)
-	LEAL	inargv+0(FP), AX
-	PUSHL	AX
 	MOVL	inargc-4(FP), AX
-	PUSHL	AX
+	MOVL	AX, 0(SP)
+	LEAL	inargv+0(FP), AX
+	MOVL	AX, 4(SP)
 	CALL	main(SB)
 
 loop:
 	MOVL	$_exits<>(SB), AX
-	PUSHL	AX
+	MOVL	AX, 0(SP)
 	CALL	exits(SB)
 	MOVL	$_profin(SB), AX	/* force loading of profile */
 	JMP	loop

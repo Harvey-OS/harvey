@@ -124,7 +124,7 @@ kprofclose(Chan *c)
 long
 kprofread(Chan *c, void *va, long n, ulong offset)
 {
-	ulong end;
+	ulong tabend;
 	ulong w, *bp;
 	uchar *a, *ea;
 
@@ -133,15 +133,15 @@ kprofread(Chan *c, void *va, long n, ulong offset)
 		return devdirread(c, va, n, kproftab, Nkproftab, devgen);
 
 	case Kprofdataqid:
-		end = kprof.nbuf*SZ;
+		tabend = kprof.nbuf*SZ;
 		if(offset & (SZ-1))
 			error(Ebadarg);
-		if(offset >= end){
+		if(offset >= tabend){
 			n = 0;
 			break;
 		}
-		if(offset+n > end)
-			n = end-offset;
+		if(offset+n > tabend)
+			n = tabend-offset;
 		n &= ~(SZ-1);
 		a = va;
 		ea = a + n;
@@ -176,6 +176,8 @@ kprofwrite(Chan *c, char *a, long n, ulong offset)
 			kprof.time = 1;
 		else if(strncmp(a, "stop", 4) == 0)
 			kprof.time = 0;
+		else
+			error(Ebadctl);
 		break;
 	default:
 		error(Ebadusefd);
@@ -194,7 +196,7 @@ kproftimer(ulong pc)
 	 *  if the pc is coming out of spllo or splx,
 	 *  use the pc saved when we went splhi.
 	 */
-	if(pc>=(ulong)spllo && pc<=(ulong)spldone)
+	if(pc>=(ulong)splx && pc<=(ulong)spldone)
 		pc = m->splpc;
 
 	kprof.buf[0] += TK2MS(1);

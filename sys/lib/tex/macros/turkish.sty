@@ -1,0 +1,184 @@
+%% 
+%% This is file `turkish.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% turkish.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ===========================================================
+%%%  @LaTeX-style-file{
+%%%     author-1        = "Mustafa Burc",
+%%%     author-2        = "Braams J.L.",
+%%%     version         = "1.2b",
+%%%     date            = "26 June 1994",
+%%%     time            = "02:11:18 MET",
+%%%     filename        = "turkish.doc",
+%%%     address-1       = "Hamburg
+%%%                        Germany",
+%%%     address-2       = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone-1     = "(40) 2503476",
+%%%     telephone-2     = "(70) 3325051",
+%%%     FAX-2           = "(70) 3326477",
+%%%     checksum        = "54850 334 1418 12575",
+%%%     email-1         = "rz6001@rziris01.rrz.uni-hamburg.de",
+%%%     email-2         = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, turkish",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the turkish language
+%%%                        specific definitions for the babel system.
+%%%
+%%%                        The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionsturkish
+\else
+  \selectlanguage{turkish}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{turkish.sty}[1994/06/26 v1.2c
+         Turkish support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty\fi
+\originalTeX
+\ifx\undefined\l@turkish
+  \@nopatterns{Turkish}
+  \adddialect\l@turkish0\fi
+\addto\captionsturkish{%
+  \def\prefacename{Preface}% <-- This needs translation!!
+  \def\refname{Ba\c svurulan Kitaplar}%
+  \def\abstractname{Konu}%
+  \def\bibname{Bibliografi}%
+  \def\chaptername{Anab\"ol\"um}%
+  \def\appendixname{Appendix}%
+  \def\contentsname{\.I\c cindekiler}%
+  \def\listfigurename{\c Sekiller Listesi}%
+  \def\listtablename{Tablolar\i{}n Listesi}%
+  \def\indexname{\.Index}%
+  \def\figurename{\c Sekiller}%
+  \def\tablename{Tablo}%
+  \def\partname{B\"ol\"um}%
+  \def\enclname{Ekler}%
+  \def\ccname{G\"onderen}%
+  \def\headtoname{Al\i{}c\i}%
+  \def\pagename{Sayfa}%
+  \def\subjectname{To}% <-- This needs translation!!
+  \def\seename{see}% <-- This needs translation!!
+  \def\alsoname{see also}% <-- This needs translation!!
+}%
+\def\dateturkish{%
+  \def\today{\number\day.~\ifcase\mont\or
+    Ocak\or \c Subat\or Mart\or Nisan\or May\i{}s\or Haziran\or
+    Temmuz\or A\u gustos\or Eyl\"ul\or Ekim\or Kas\i{}m\or
+    Aral\i{}k\fi
+    \space\number\year}}
+}
+\addto\extrasturkish{%
+  \babel@add@special\:%
+  \babel@add@special\!%
+  \babel@add@special\=}
+\addto\noextrasturkish{%
+  \babel@remove@special\:%
+  \babel@remove@special\!%
+  \babel@remove@special\=}
+\addto\extrasturkish{%
+  \babel@savevariable{\catcode`\:}\babel@save\active@co
+  \babel@savevariable{\catcode`\!}\babel@save\active@em
+  \babel@savevariable{\catcode`\=}\babel@save\active@es
+}
+\addto\extrasturkish{\catcode`\:\active\catcode`\!\active
+                     \catcode`\=\active}
+\begingroup
+  \catcode`\:\active
+  \catcode`\!\active
+  \catcode`\=\active
+  \def\x{\endgroup
+    \addto\extrasturkish{%
+      \babel@save:\babel@save!\babel@save=%
+      \def:{\protect\active@co}\let\active@co\turkish@active@co
+      \def!{\protect\active@em}\let\active@em\turkish@active@em
+      \def={\protect\active@es}\let\active@es\turkish@active@es}}
+\x
+\addto\extrasturkish{%
+  \ifnum\the\sfcode`\.=\@m
+    \frenchspacing
+    \addto\noextrasturkish{\nonfrenchspacing}%
+  \fi}
+\turkish@active@co{\ifmmode\string:\else\relax
+    \ifhmode\ifdim\lastskip>\z@
+    \unskip\penalty\@M\thinspace\fi\fi\string:\fi}
+\def\turkish@active@em{\ifmmode\string!\else\relax
+     \ifhmode\ifdim\lastskip>\z@
+    \unskip\penalty\@M\thinspace\fi\fi\string!\fi}
+\def\turkish@active@es{\ifmmode\string=\else\relax
+    \ifhmode\ifdim\lastskip>\z@
+    \unskip\kern\fontdimen2\font
+     \kern-1.4\fontdimen3\font
+    \fi\fi
+    \string=\fi}
+\selectlanguage{turkish}
+\catcode`\@\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `turkish.sty'.

@@ -3,12 +3,6 @@
 #include "regexp.h"
 #include "regcomp.h"
 
-/*
- *	Machine state
- */
-Relist*	_relist[2];
-Relist*	_reliste[2];
-int	_relistsize = LISTINCREMENT;
 
 /*
  *  save a new match in mp
@@ -36,8 +30,8 @@ _renewmatch(Resub *mp, int ms, Resublist *sp)
  */
 extern Relist*
 _renewthread(Relist *lp,	/* _relist to add to */
-	Reinst *ip,	/* instruction to add */
-	Resublist *sep)	/* pointers to subexpressions */
+	Reinst *ip,		/* instruction to add */
+	Resublist *sep)		/* pointers to subexpressions */
 {
 	Relist *p;
 
@@ -54,3 +48,52 @@ _renewthread(Relist *lp,	/* _relist to add to */
 	return p;
 }
 
+/*
+ * same as renewthread, but called with
+ * initial empty start pointer.
+ */
+extern Relist*
+_renewemptythread(Relist *lp,	/* _relist to add to */
+	Reinst *ip,		/* instruction to add */
+	char *sp)		/* pointers to subexpressions */
+{
+	Relist *p;
+
+	for(p=lp; p->inst; p++){
+		if(p->inst == ip){
+			if(sp < p->se.m[0].sp) {
+				memset(&p->se, 0, sizeof(p->se));
+				p->se.m[0].sp = sp;
+			}
+			return 0;
+		}
+	}
+	p->inst = ip;
+	memset(&p->se, 0, sizeof(p->se));
+	p->se.m[0].sp = sp;
+	(++p)->inst = 0;
+	return p;
+}
+
+extern Relist*
+_rrenewemptythread(Relist *lp,	/* _relist to add to */
+	Reinst *ip,		/* instruction to add */
+	Rune *rsp)		/* pointers to subexpressions */
+{
+	Relist *p;
+
+	for(p=lp; p->inst; p++){
+		if(p->inst == ip){
+			if(rsp < p->se.m[0].rsp) {
+				memset(&p->se, 0, sizeof(p->se));
+				p->se.m[0].rsp = rsp;
+			}
+			return 0;
+		}
+	}
+	p->inst = ip;
+	memset(&p->se, 0, sizeof(p->se));
+	p->se.m[0].rsp = rsp;
+	(++p)->inst = 0;
+	return p;
+}

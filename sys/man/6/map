@@ -30,7 +30,11 @@ struct {
 where
 .B short
 stands for 16-bit integers and there is no padding within or between
-.B structs.
+.BR structs .
+Shorts are stored in little-endian order, low byte first.
+To assure portability,
+.I map
+accesses them bytewise.
 .PP
 Fields
 .L patchlatitude
@@ -66,7 +70,7 @@ index to the first segment of each patch
 in a file named
 .I data
 is kept in an associated file named
-.IB data .x .
+.IB data .x\f1.
 Each line of an index file contains
 .L patchlatitude,
 .L patchlongitude
@@ -75,11 +79,9 @@ of the patch
 in the map file.
 Both the map file and the index file are ordered by
 patch latitude and longitude.
-.PP
-Shorts are stored in little-endian order, low byte first, 
-regardless of computer architecture.
-To assure portability,
-.I map
-accesses them bytewise.
 .SH "SEE ALSO"
 .IR map (7)
+.br
+The data comes from the World Data Bank I and II and
+U.S. Government sources: the Census Bureau, Geological
+Survey, and CIA.

@@ -1,8 +1,19 @@
-X=`{cd ../port;echo *.c | sed 's/fcall.c //'}
-PFILES=`{echo $X | sed 's/ /|/g' | sed 's/\.c//g'}
 
-^($PFILES).$O:R:	'../port/\1.c'
-	$CC $CFLAGS ../port/$stem1.c
+%.$O:	../port/%.c
+	$CC $CFLAGS ../port/$stem.c
 
-fcall.$O:R: ../port/fcall.c
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	$HFILES
+
+dk1.$O dk2.$O dk3.$O:	../port/dk.h
+
+fcall.$O:	../port/fcall.c
 	$CC -w ../port/fcall.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out $TARG

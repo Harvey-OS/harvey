@@ -1,0 +1,66 @@
+.TH KTRANS 1
+.SH NAME
+ktrans \- language transliterator
+.SH SYNOPSIS
+.B ktrans
+.SH DESCRIPTION
+The
+.I ktrans
+program installs itself between the keyboard and
+.B /dev/cons
+and transliterates typed letter
+sequences into characters in languages that do not use the Latin character set.
+The language is selected by typing a control character:
+.TP
+.B ctl-E
+return to default English mode (no transliteration).
+.TP
+.B ctl-G
+Japanese hiragana:
+interpret lower-case letters as a Hepburn representation
+of hiragana.
+In this mode, typing
+.B ctl-T
+looks up the last `word' in a hiragana-kanji dictionary
+and replaces it.
+Subsequent
+.B ctl-T
+characters cycle through the possibilities.
+A word is the longest immediately preceding
+unbroken string of hiragana characters.
+.TP
+.B ctl-K
+Japanese katakana.
+.TP
+.B ctl-R
+Russian: interpret letters as Cyrillic;
+the transliteration is mostly phonetic, with
+.B '
+for
+.IR myagkij-znak
+(ь),
+.B ''
+for
+.I tverdyj-znak
+(ъ)
+.I yo
+for ё,
+.B j
+for
+.IR i-kratkaya
+(й).
+.TP
+.B ctl-L
+Greek.
+.PP
+.SH FILES
+.B /dev/kbd
+.SH SOURCE
+.B /sys/src/cmd/ktrans
+.SH "SEE ALSO"
+.IR 8½ (1)
+.SH BUGS
+Considerably more sophistication is required to support
+ideographic languages properly.
+.PP
+There is no way to generate the control characters literally.

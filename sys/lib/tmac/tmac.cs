@@ -193,7 +193,7 @@
 .nr aa 0
 .nr TV 1
 .ie !'\\n(.F'<standard input>' \{\
-.	sy /sys/lib/tmac/timestamp \\n(.F>/tmp/tp\\n($$
+.	sy timestamp \\n(.F>/tmp/tp\\n($$
 .	so /tmp/tp\\n($$
 .	sy rm /tmp/tp\\n($$
 .	br \}			\" don't remove br - gets around troff bug
@@ -989,10 +989,10 @@ Internal Technical Document Service
 .vs
 .if \\n(aa \{\
 .	sy pwd >/tmp/sx\\n($$
-.	sy sed "s/^/cd /" /tmp/sx\\n($$ >/tmp/sc\\n($$
-.	sy echo "/lib/tmac/sendcover" \\n(.F \\n(qq >>/tmp/sc\\n($$
-.	sy echo "rm" /tmp/sx\\n($$ /tmp/sc\\n($$>>/tmp/sc\\n($$
-.	sy sh /tmp/sc\\n($$&
+.	sy sed 's/^/cd /' /tmp/sx\\n($$ >/tmp/sc\\n($$
+.	sy echo /sys/lib/tmac/sendcover \\n(.F \\n(qq >>/tmp/sc\\n($$
+.	sy echo rm /tmp/sx\\n($$ /tmp/sc\\n($$>>/tmp/sc\\n($$
+.	sy rc /tmp/sc\\n($$&
 .	br \}
 .SR
 ..

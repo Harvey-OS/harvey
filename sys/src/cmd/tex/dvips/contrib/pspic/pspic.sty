@@ -1,0 +1,168 @@
+\typeout{Document Style `PostScript PICTURE' <jan 22 1991>.}
+%----------------------------------------------------------------------
+%
+%    PostScript PICTURE
+%
+%    For use with DVIPS (by Tomas Rokicki)
+%
+%
+%    By: Kresten Krab Thorup, University of Aalborg, Denmark
+%        <krab@iesd.auc.dk>
+%        January 1991
+%
+%----------------------------------------------------------------------
+%
+% ==================================
+%             psbox
+% ==================================
+%
+\def\psbox#1{%
+ \vbox{%
+  \hbox{%
+   \special{" \number\unitlength.0 65781.75 div dup scale 
+              picdict begin
+	      /lwidth \number\@wholewidth.0 \number\unitlength.0 div def
+              lwidth setlinewidth	
+              \moveto(0,0) #1 end}}}}
+%
+% ==================================
+%  Commands for use in \psbox
+% ==================================
+%
+\def\moveto(#1,#2){ /x #1 def /y #2 def x y moveto}
+\def\rline(#1,#2){ newpath 
+         x y moveto 
+	 #1 #2 rlineto 
+	 linedash 0 setdash stroke 
+     /x x #1 add def 
+     /y y #2 add def}
+%
+% ==================================
+%   Commands for use in LaTeX 
+% ==================================
+%
+%----------------------------------------------------------------------
+% \line command of LaTeX
+%----------------------------------------------------------------------
+\def\line(#1,#2)#3{\psbox{%
+     \@ccolour setgray
+     /linedash \linedash def
+        #1 0 eq
+	    {/fac{#2 abs div #3 mul}def} 
+	    {/fac{#3 #1 abs div mul}def}
+        ifelse
+    \rline( #1 fac , #2 fac ) }}
+%----------------------------------------------------------------------
+% \vector command of LaTeX
+%----------------------------------------------------------------------
+\def\vector(#1,#2)#3{\psbox{%
+   \@ccolour setgray
+   /linedash \linedash def 
+        #1 0 eq
+	    {/fac{#2 abs div #3 mul}def} 
+	    {/fac{#3 #1 abs div mul}def}
+        ifelse
+   newpath 
+      0 0 #1 fac #2 fac lwidth lwidth \number\headwidth.0 mul 
+      lwidth \number\headlength.0 mul arrow fill}}
+%----------------------------------------------------------------------
+% \circle and \circle* commands of LaTeX
+%----------------------------------------------------------------------
+\def\circle{\@ifstar{\@dot}{\@circle}}
+\def\@circle#1{\psbox{ newpath 
+          0 0 #1 2 div 0 360 arc 
+	  [] 0 setdash 
+	  \@ccolour setgray stroke}}
+\def\@dot#1{\psbox{newpath 
+          0 0 #1 2 div 0 360 arc 
+	  \@ccolour setgray fill}}
+%----------------------------------------------------------------------
+% \bezier(x1,y1)(x2,y2)(x3,y3)
+%----------------------------------------------------------------------
+\def\bezier(#1,#2)(#3,#4)(#5,#6){%
+\psbox{#1 #2 #3 #4 #5 #6 curveto \@ccolour setgray \linedash 0 setdash stroke}%
+}%
+%----------------------------------------------------------------------
+% \oval command of LaTeX
+%----------------------------------------------------------------------
+\def\oval(#1,#2){\@ifnextchar[{\@oval(#1,#2)}{\@oval(#1,#2)[full]}}
+\def\@oval(#1,#2)[#3]{%
+   \begingroup 
+   \@ovxx = #1\unitlength 
+   \@ovyy =#2\unitlength 
+   \@tempdimb \ifdim \@ovyy >\@ovxx =\@ovxx\else =\@ovyy \fi 
+   \ifnum\@tempdimb>\maxovaldiam \@tempdimb=\maxovaldiam \fi 
+   \psbox{/rad \number\@tempdimb.0 \number\unitlength.0 div 2 div def 
+         /dx #1 2 div rad sub def 
+	 /dy #2 2 div rad sub def 
+         \@ccolour setgray
+	    newpath #3 [] 0 setdash stroke }%
+   \endgroup}
+%----------------------------------------------------------------------
+% \ctext{...}  Text to be written with the current grayscale
+%----------------------------------------------------------------------
+\def\ctext#1{\special{ps:gsave \@ccolour
+                  setgray}{}#1\special{ps:grestore}}
+%----------------------------------------------------------------------
+% Customization 
+%----------------------------------------------------------------------
+\def\vectorhead#1#2{\headlength=#1 \headwidth=#2 }
+\def\dashpattern[#1]{\xdef\linedash{[#1] }}        
+\def\colour#1{\def\@ccolour{\@nameuse{CC#1}}}
+\def\shade#1{\def\@ccolour{ 1 #1 100 div sub }}
+%
+% ==================================
+%          Initialization
+% ==================================
+%
+\newdimen\maxovaldiam 
+\maxovaldiam=14mm                   % Max diameter of LaTeX circle
+%
+\newcount\headlength                % length of arrowhead in terms of
+				    % linewidth
+\newcount\headwidth                 % width of arrowhead in terms of linewidth
+\vectorhead{9}{5}                   % default vectorhead dimentions
+%
+\dashpattern[]                      % set default type of linedashes 
+%
+\def\CCwhite{1 }
+\def\CCblack{0 }
+\def\CCgray{.5 }
+\def\CClightgray{.75 }
+\def\CCdarkgray{.25 }
+\colour{black}
+%----------------------------------------------------------------------
+% The P*stScr*pt dictionary
+%----------------------------------------------------------------------
+\special{!/picdict 200 dict def picdict begin 
+/tr { 0 0 moveto newpath dx dy rad 0 90 arc} def 
+/tl { 0 0 moveto newpath -1 dx mul dy rad 90 180 arc} def 
+/bl { 0 0 moveto newpath -1 dx mul -1 dy mul rad 180 270 arc} def 
+/br { 0 0 moveto newpath dx -1 dy mul rad 270 360 arc} def 
+/b { bl stroke newpath br -1 dx mul -1 dy mul rad sub moveto dx 2 mul
+     0 rlineto} def 
+/t { tl stroke newpath tr -1 dx mul dy rad add moveto dx 2 mul 0
+     rlineto } def
+/l { bl stroke newpath tl -1 dx mul rad sub -1 dy mul moveto 0 dy 2
+     mul rlineto } def 
+/r { tr stroke newpath br dx rad add -1 dy mul moveto 0 dy 2 mul
+     rlineto } def
+/full { t stroke newpath r stroke newpath b stroke newpath l } def 
+/mtrx matrix def 
+%
+/arrow { 
+/headlength exch def /halfheadthickness exch 2 div def
+/halfthickness exch 2 div def /tipy exch def /tipx exch def /taily
+exch def /tailx exch def /dx tipx tailx sub def /dy tipy taily sub def
+/arrowlength dx dx mul dy dy mul add sqrt def /angle dy dx atan def
+/base arrowlength headlength sub def /savematrix mtrx currentmatrix
+def tailx taily translate angle rotate gsave newpath 0 0 moveto base 0
+lineto linedash 0 setdash stroke grestore base halfheadthickness neg
+moveto arrowlength 0 lineto base halfheadthickness lineto base
+halfthickness lineto closepath savematrix setmatrix
+} def
+%%
+end}
+%----------------------------------------------------------------------
+%  end of pspic.sty
+%----------------------------------------------------------------------

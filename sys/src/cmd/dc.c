@@ -164,7 +164,7 @@ void	putwd(Blk *p, Blk *c);
 Blk*	lookwd(Blk *p);
 char*	nalloc(char *p, unsigned nbytes);
 
-/********debug only**
+/********debug only**/
 void
 tpr(char *cp, Blk *bp)
 {
@@ -178,7 +178,7 @@ tpr(char *cp, Blk *bp)
 	}
 	print("\n");
 }
-************/
+/************/
 
 void
 main(int argc, char *argv[])
@@ -248,6 +248,7 @@ commnds(void)
 			binop('*');
 			p = pop();
 			if(savk>k && savk>sk1 && savk>sk2) {
+				sclobber(p);
 				sk = sk1;
 				if(sk<sk2)
 					sk = sk2;
@@ -1447,7 +1448,7 @@ loop:
 		goto loop;
 	}
 	if(curfile != &bin) {
-		Bclose(curfile);
+		Bterm(curfile);
 		curfile = &bin;
 		goto loop;
 	}

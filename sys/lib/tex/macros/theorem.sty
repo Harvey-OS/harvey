@@ -1,24 +1,24 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% THEOREM.STY						    July 1990      %
-%                                                                          %
-% This file is part of the AMS-LaTeX Version 1.0 distribution              %
-%   American Mathematical Society, Technical Support Group,                %
-%   P. O. Box 6248, Providence, RI 02940                                   %
-%   800-321-4AMS (321-4267) or 401-455-4080                                %
-%   Internet: Tech-Support@Math.AMS.com                                    %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 
-%% This is file `theorem.sty' generated
-%% on <1990/6/25> with the docstrip utility (v1.1j). 
+%% This is file `theorem.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
 %% 
-%% The original source file was `theorem.doc'.
+%% The original source files were:
 %% 
-
-\def\fileversion{v2.1b}
-\def\filedate{90/06/04}
-\def\docdate {90/06/04}
-
-%% \CheckSum{509}
+%% theorem.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is part of the `tools' bundle 
+%% in the LaTeX2e distribution. 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file, and 
+%% in the file readme.txt distributed with the 
+%% tools bundle. 
+%% 
+\def\fileversion{v2.2a}
+\def\filedate{1994/02/03}
+\def\docdate {1994/02/28}
 %% \CharacterTable
 %%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
 %%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
@@ -34,11 +34,19 @@
 %%   Right bracket \]     Circumflex    \^     Underscore    \_
 %%   Grave accent  \`     Left brace    \{     Vertical bar  \|
 %%   Right brace   \}     Tilde         \~}
+%% 
+%% Package `theorem' to use with LaTeX2e
+%% Copyright (C) 1989-1994 Frank Mittelbach, all rights reserved.
 %%
+%% For error reports for UNCHANGED versions see readme.txt.
+%%   The next few lines define theorem sets which are used
+%%   in the example section of the documentation.
 \@ifundefined{theorem@style}{}{\endinput}
-\typeout{Style option: `theorem' \fileversion \space\space
-         <\filedate>  (FMi)}
-\typeout{English documentation as of \space\space\space
+\ProvidesPackage{theorem}[\filedate\space
+                           LaTeX2e package \fileversion]
+\typeout{Package: `theorem' \fileversion 
+         \@spaces <\filedate>  (FMi)}
+\typeout{English documentation as of 
          <\docdate>  (FMi)}
 \gdef\theoremstyle#1{%
    \@ifundefined{th@#1}{\@warning
@@ -52,21 +60,29 @@
 \global\let\@opargbegintheorem\relax
 \newtoks\theorem@style
 \global\theorem@style{plain}
-\newtoks\theorembodyfont
-\global\theorembodyfont{}
+\gdef\theorembodyfont#1{%
+   \def\@tempa{#1}%
+   \ifx\@tempa\@empty
+    \theorem@bodyfont{}%
+   \else
+    \theorem@bodyfont{\reset@font#1}%
+   \fi
+   }
+\newtoks\theorem@bodyfont
+\global\theorem@bodyfont{}
 \gdef\theoremheaderfont#1{\gdef\theorem@headerfont{#1}%
        \gdef\theoremheaderfont##1{%
         \typeout{\string\theoremheaderfont\space should be used
                  only once.}}}
-\ifx\normalshape\undefined
-\gdef\theorem@headerfont{\bf}
-\else \gdef\theorem@headerfont{\normalshape\bf}\fi
-\gdef\th@plain{\input thp.sty}
-\gdef\th@break{\input thb.sty}
-\gdef\th@marginbreak{\input thmb.sty}
-\gdef\th@changebreak{\input thcb.sty}
-\gdef\th@change{\input thc.sty}
-\gdef\th@margin{\input thm.sty}
+\ifx\upshape\undefined
+\gdef\theorem@headerfont{\bfseries}
+\else \gdef\theorem@headerfont{\normalfont\bfseries}\fi
+\gdef\th@plain{\@input@{thp.sty}}
+\gdef\th@break{\@input@{thb.sty}}
+\gdef\th@marginbreak{\@input@{thmb.sty}}
+\gdef\th@changebreak{\@input@{thcb.sty}}
+\gdef\th@change{\@input@{thc.sty}}
+\gdef\th@margin{\@input@{thm.sty}}
 \gdef\@xnthm#1#2[#3]{\expandafter\@ifdefinable\csname #1\endcsname
    {%
     \@definecounter{#1}\@addtoreset{#1}{#3}%
@@ -76,7 +92,7 @@
     \def\@tempa{\global\@namedef{#1}}%
     \expandafter \@tempa \expandafter{%
       \csname th@\the \theorem@style
-            \expandafter \endcsname \the \theorembodyfont
+            \expandafter \endcsname \the \theorem@bodyfont
      \@thm{#1}{#2}}%
     \global \expandafter \let \csname end#1\endcsname \@endtheorem
    }}
@@ -85,14 +101,14 @@
     \expandafter\xdef\csname the#1\endcsname{\@thmcounter{#1}}%
     \def\@tempa{\global\@namedef{#1}}\expandafter \@tempa
      \expandafter{\csname th@\the \theorem@style \expandafter
-     \endcsname \the\theorembodyfont \@thm{#1}{#2}}%
+     \endcsname \the\theorem@bodyfont \@thm{#1}{#2}}%
     \global \expandafter \let \csname end#1\endcsname \@endtheorem}}
 \gdef\@othm#1[#2]#3{\expandafter\@ifdefinable\csname #1\endcsname
   {\expandafter \xdef \csname the#1\endcsname
      {\expandafter \noexpand \csname the#2\endcsname}%
     \def\@tempa{\global\@namedef{#1}}\expandafter \@tempa
      \expandafter{\csname th@\the \theorem@style \expandafter
-     \endcsname \the\theorembodyfont \@thm{#2}{#3}}%
+     \endcsname \the\theorem@bodyfont \@thm{#2}{#3}}%
     \global \expandafter \let \csname end#1\endcsname \@endtheorem}}
 \gdef\@thm#1#2{\refstepcounter{#1}%
    \trivlist
@@ -107,11 +123,13 @@
 \global\setlength\theorempreskipamount{12pt plus 5pt minus 3pt}
 \global\setlength\theorempostskipamount{8pt plus 3pt minus 1.5pt}
 \global\let\@endtheorem=\endtrivlist
-{\def\do{\noexpand\do\noexpand}
-\xdef\@preamblecmds{\@preamblecmds \do\@xnthm \do\@ynthm \do\@othm
-        \do\newtheorem \do\theoremstyle \do\theorembodyfont
-        \do\theoremheaderfont}
-}
+\@onlypreamble\@xnthm
+\@onlypreamble\@ynthm
+\@onlypreamble\@othm
+\@onlypreamble\newtheorem
+\@onlypreamble\theoremstyle
+\@onlypreamble\theorembodyfont
+\@onlypreamble\theoremheaderfont
 \theoremstyle{plain}
 
 \endinput

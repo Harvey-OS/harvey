@@ -1,0 +1,298 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989-1994 by Johannes Braams
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the Babel system, release 3.4 patchlevel 2.
+% ----------------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from me directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{150}
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author-1        = "Chlebikova Jana",
+%%%     author-2        = "Braams J.L.",
+%%%     version         = "1.2d",
+%%%     date            = "30 June 1994",
+%%%     time            = "14:10:13 MET",
+%%%     filename        = "slovak.doc",
+%%%     address-1       = "Department of Artificial Intelligence
+%%%                        Faculty of Mathematics and Physics
+%%%                        Mlynska dolina
+%%%                        84215 Bratislava
+%%%                        Slovakia",
+%%%     address-2       = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone-1     = "(42)(7) 720003 l. 835",
+%%%     telephone-2     = "(70) 3325051",
+%%%     FAX-1           = "(42)(7) 725882",
+%%%     FAX-2           = "(70) 3326477",
+%%%     checksum        = "51098 265 1214 10014",
+%%%     email-1         = "chlebikj@mff.uniba.cs (Internet)",
+%%%     email-2         = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, slovak",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the slovak language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+% \def\filename{slovak.dtx}
+% \def\fileversion{v1.2d}
+% \def\filedate{1994/06/30}
+%
+% \iffalse
+% Babel DOCUMENT-STYLE option for LaTeX version 2e
+% Copyright (C) 1989 - 1994
+%           by Johannes Braams, PTT Research Neher Laboratories
+%           and Chlebikova Jana
+%
+% Please report errors to: J.L. Braams  <J.L.Braams@research.ptt.nl>
+%                          Chlebikova Jana <chlebikj@mff.uniba.cs>
+%
+%    This file is part of the babel system, it provides the source code for
+%    the Slovak language-specific file.
+%<*filedriver>
+\documentclass{ltxdoc}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+\newcommand\note[1]{}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\begin{document}
+ \DocInput{slovak.dtx}
+\end{document}
+%</filedriver>
+%\fi
+% \changes{slovak-1.0}{15 july 92}{First version}
+% \changes{slovak-1.2}{1994/02/27}{Update for LaTeX2e}
+% \changes{slovak-1.2d}{1994/06/26}{Removed the use of \cs{filedate}
+%    and moved identification after the loading of babel.def}
+%
+%  \section{The Slovak language}
+%
+%    The file \file{\filename}\footnote{The file described in this
+%    section has version number \fileversion\ and was last revised on
+%    \filedate.  It was written by Chlebikova Jana ({\tt
+%    chlebik@euromath.dk}).}  defines all the language-specific macros
+%    for the Slovak language.
+%
+%    For this language the macro |\q| is defined. It is used with the
+%    letters ({\tt t}, {\tt d}, {\tt l}, and {\tt L}) and adds a
+%    {\tt'} to them to simulate a `hook' that should be there.  The
+%    result looks like t\kern-2pt\char'47.
+%
+% \StopEventually{}
+%
+%    As this file needs to be read only once, we check whether it was
+%    read before. If it was, the command |\captionsslovak| is already
+%    defined, so we can stop processing. If this command is undefined
+%    we proceed with the various definitions and first show the
+%    current version of this file.
+%
+%    \begin{macrocode}
+\ifx\undefined\captionsslovak
+\else
+  \selectlanguage{slovak}
+  \expandafter\endinput
+\fi
+%    \end{macrocode}
+%
+%  \begin{macro}{\atcatcode}
+%    This file, \file{slovak.sty}, may have been read while \TeX\ is
+%    in the middle of processing a document, so we have to make sure
+%    the category code of {\tt @} is `letter' while this file is being
+%    read.  We save the category code of the @-sign in |\atcatcode|
+%    and make it `letter'. Later the category code can be restored to
+%    whatever it was before.
+%
+%    \begin{macrocode}
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+%    \end{macrocode}
+% \end{macro}
+%
+%    Now we determine whether the the common macros from the file
+%    \file{babel.def} need to be read. We can be in one of two
+%    situations: either another language option has been read earlier
+%    on, in which case that other option has already read
+%    \file{babel.def}, or {\tt slovak} is the first language option to
+%    be processed. In that case we need to read \file{babel.def} right
+%    here before we continue.
+%
+%    \begin{macrocode}
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+%    \end{macrocode}
+%
+%    Tell the \LaTeX\ system who we are and write an entry on the
+%    transcript.
+%    \begin{macrocode}
+\ProvidesFile{slovak.sty}[1994/06/30 v1.2d
+         Slovak support from the babel system]
+%    \end{macrocode}
+%
+%    Another check that has to be made, is if another language
+%    specific file has been read already. In that case its definitions
+%    have been activated. This might interfere with definitions this
+%    file tries to make. Therefore we make sure that we cancel any
+%    special definitions. This can be done by checking the existence
+%    of the macro |\originalTeX|. If it exists we simply execute it,
+%    otherwise it is |\let| to |\empty|.
+%
+%    \begin{macrocode}
+\ifx\undefined\originalTeX \let\originalTeX\empty \else\originalTeX\fi
+%    \end{macrocode}
+%
+%    When this file is read as an option, i.e. by the |\usepackage|
+%    command, {\tt slovak} will be an `unknown' languagein which case
+%    we have to make it known. So we check for the existence of
+%    |\l@slovak| to see whether we have to do something here.
+%
+% \changes{slovak-1.2d}{1994/06/26}{Now use \cs{@nopatterns} to
+%    produce the warning}
+%    \begin{macrocode}
+\ifx\undefined\l@slovak
+    \@nopatterns{Slovak}
+    \adddialect\l@slovak0\fi
+%    \end{macrocode}
+%
+%    The next step consists of defining commands to switch to (and
+%    from) the Slovak language.
+%
+% \begin{macro}{\captionsslovak}
+%    The macro |\captionsslovak| defines all strings used in the four
+%    standard documentclasses provided with \LaTeX.
+%    \begin{macrocode}
+\addto\captionsslovak{%
+  \def\prefacename{\'Uvod}%
+  \def\refname{Referencia}%
+  \def\abstractname{Abstrakt}%
+  \def\bibname{Literat\'ura}%
+  \def\chaptername{Kapitola}%
+  \def\appendixname{Dodatok}%
+  \def\contentsname{Obsah}%
+  \def\listfigurename{Zoznam obr\'azkov}%
+  \def\listtablename{Zoznam tabuliek}%
+  \def\indexname{Index}%
+  \def\figurename{Obr\'azok}%
+  \def\tablename{Tabu\q lka}%%% special letter l with hook
+  \def\partname{\v{C}as\q t}%%% special letter t with hook
+  \def\enclname{Pr\'{\i}loha}%
+  \def\ccname{CC}%
+  \def\headtoname{Komu}%
+  \def\pagename{Strana}%
+  \def\seename{vi\q d}%%%  Special letter d with hook
+  \def\alsoname{vi\q d tie\v z}}%%%  Special letter d with hook
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dateslovak}
+%    The macro |\dateslovak| redefines the command |\today| to produce
+%    Slovak dates.
+%    \begin{macrocode}
+\def\dateslovak{%
+\def\today{\number\day.~\ifcase\month\or
+janu\'ara\or febru\'ara\or marca\or apr\'{\i}la\or m\'aja\or j\'una\or
+  j\'ula\or augusat\or septembra\or okt\'obra\or
+  novembra\or decembra\fi
+    \space \number\year}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\extrasslovak}
+% \begin{macro}{\noextrasslovak}
+%    The macro |\extrasslovak| will perform all the extra definitions
+%    needed for the Slovak language. The macro |\noextrasslovak| is
+%    used to cancel the actions of |\extrasslovak|.  This currently
+%    means saving the meaning of one one-letter control sequence
+%    before defining it.
+%
+%    \begin{macrocode}
+\addto\extrasslovak{\babel@save\q\let\q\slovak@q}
+%    \end{macrocode}
+%
+% \changes{slovak-1.2b}{1994/06/04}{Added setting of left- and
+%    righthyphenmin}
+%
+%    The slovak hyphenation patterns should be used with
+%    |\lefthyphenmin| set to~2 and |\righthyphenmin| set to~2.
+%    \begin{macrocode}
+\addto\extrasdutch{\babel@savevariable\lefthyphenmin
+  \babel@savevariable\righthyphenmin
+  \lefthyphenmin\tw@\righthyphenmin\tw@}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\slovak@q}
+%    To simulate some special Slovak letters (like
+%    L\kern-2pt\char'47\relax), a new macro is defined. It can be used
+%    with the letters ({\tt t}, {\tt d}, {\tt l}, and {\tt L}) and
+%    adds a {\tt'} to them to simulate a `hook' that should be there.
+%    \begin{macrocode}
+\def\slovak@q#1{#1\kern-2pt\char'47}%
+%    \end{macrocode}
+% \end{macro}
+%
+%    Our last action is to activate the commands we have just defined,
+%    by calling the macro |\selectlanguage|.
+%    \begin{macrocode}
+\selectlanguage{slovak}
+%    \end{macrocode}
+%    Finally, the category code of {\tt @} is reset to its original
+%    value. The macrospace used by |\atcatcode| is freed.
+%    \begin{macrocode}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%    \end{macrocode}
+%
+% \Finale
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput

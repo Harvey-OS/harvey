@@ -11,6 +11,8 @@ static	char	statsdef[20];	/* default stats list */
 void
 consserve(void)
 {
+	int i;
+
 	strncpy(cons.chan->whochan, "console", sizeof(cons.chan->whochan));
 	installcmds();
 	con_session();
@@ -18,7 +20,13 @@ consserve(void)
 	cmd_exec("users");
 	cmd_exec("version");
 
-	cmd_exec("cwcmd touchsb");
+	for(i = 0; command[i].arg0; i++){
+		if(strcmp("cwcmd", command[i].arg0) == 0){
+			cmd_exec("cwcmd touchsb");
+			break;
+		}
+	}
+
 	userinit(consserve1, 0, "con");
 }
 
@@ -145,6 +153,27 @@ cmd_halt(int argc, char *argv[])
 
 static
 void
+cmd_duallow(int argc, char *argv[])
+{
+	int uid;
+
+	if(argc <= 1) {
+		duallow = 0;
+		return;
+	}
+
+	uid = strtouid(argv[1]);
+	if(uid < 0)
+		uid = number(argv[1], -1, 10);
+	if(uid < 0) {
+		print("bad uid %s\n", argv[1]);
+		return;
+	}
+	duallow = uid;
+}
+
+static
+void
 cmd_stats(int argc, char *argv[])
 {
 	int i, c;
@@ -206,6 +235,8 @@ cmd_stata(int argc, char *argv[])
 
 	print("	ioerr=    %3ld wr %3ld ww %3ld dr %3ld dw\n",
 		cons.nwormre, cons.nwormwe, cons.nwrenre, cons.nwrenwe);
+	print("	cache=     %9ld hit %9ld miss\n",
+		cons.nwormhit, cons.nwormmiss);
 }
 
 static
@@ -366,7 +397,7 @@ cmd_date(int argc, char *argv[])
 
 	ct = time();
 	arg = argv[1];
-	switch(*argv) {
+	switch(*arg) {
 	default:
 		t = number(arg, -1, 10);
 		if(t <= 0)
@@ -418,18 +449,18 @@ cmd_create(int argc, char *argv[])
 	memset(elem, 0, sizeof(elem));
 	strcpy(elem, p);
 
-	uid = strtouid(argv[2], 1);
-	if(uid == 0)
-		uid = number(argv[2], 0, 10);
-	if(uid == 0) {
+	uid = strtouid(argv[2]);
+	if(uid < 0)
+		uid = number(argv[2], -1, 10);
+	if(uid < 0) {
 		print("bad uid %s\n", argv[2]);
 		return;
 	}
 
-	gid = strtouid(argv[3], 1);
-	if(gid == 0)
-		gid = number(argv[3], 0, 10);
-	if(gid == 0) {
+	gid = strtouid(argv[3]);
+	if(gid < 0)
+		gid = number(argv[3], -1, 10);
+	if(gid < 0) {
 		print("bad gid %s\n", argv[3]);
 		return;
 	}
@@ -520,6 +551,7 @@ cmd_prof(int argc, char *argv[])
 {
 	int n;
 	long m, o;
+	char *p;
 
 	if(cons.profbuf == 0) {
 		print("no buffer\n");
@@ -544,6 +576,16 @@ cmd_prof(int argc, char *argv[])
 			print("cant open /adm/kprofdata\n");
 			return;
 		}
+		p = (char*)cons.profbuf;
+		for(m=0; m<cons.nprofbuf; m++) {
+			n = cons.profbuf[m];
+			p[0] = n>>24;
+			p[1] = n>>16;
+			p[2] = n>>8;
+			p[3] = n>>0;
+			p += 4;
+		}
+
 		m = cons.nprofbuf*sizeof(cons.profbuf[0]);
 		o = 0;
 		while(m > 0) {
@@ -586,6 +628,39 @@ cmd_noattach(int argc, char *argv[])
 		print("attaches are DISABLED\n");
 }
 
+void
+cmd_files(int argc, char *argv[])
+{
+	long i, n;
+	Chan *cp;
+
+	USED(argc, argv);
+	for(cp = chans; cp; cp = cp->next)
+		cp->nfile = 0;
+
+	lock(&flock);
+	n = 0;
+	for(i=0; i<conf.nfile; i++)
+		if(files[i].cp) {
+			n++;
+			files[i].cp->nfile++;
+		}
+	print("%ld out of %ld files used\n", n, conf.nfile);
+	unlock(&flock);
+
+	n = 0;
+	for(cp = chans; cp; cp = cp->next) {
+		if(cp->nfile) {
+			print("%3d: %5ld\n",
+				cp->chan,
+				cp->nfile);
+			prflush();
+			n += cp->nfile;
+		}
+	}
+	print("%ld out of %ld files used\n", n, conf.nfile);
+}
+
 static
 void
 installcmds(void)
@@ -595,6 +670,7 @@ installcmds(void)
 	cmd_install("clri", "[file ...] -- purge files/dirs", cmd_clri);
 	cmd_install("create", "path uid gid perm [lad] -- make a file/dir", cmd_create);
 	cmd_install("date", "[[+-]seconds] -- print/set date", cmd_date);
+	cmd_install("duallow", "uid -- duallow", cmd_duallow);
 	cmd_install("flag", "-- print set flags", cmd_flag);
 	cmd_install("halt", "-- return to boot rom", cmd_halt);
 	cmd_install("help", "", cmd_help);
@@ -608,9 +684,9 @@ installcmds(void)
 	cmd_install("users", "[file] -- read /adm/users", cmd_users);
 	cmd_install("version", "-- print time of mk and boot", cmd_version);
 	cmd_install("who", "[user ...] -- print attaches", cmd_who);
-	cmd_install("passwd", "passwd -- set passkey", cmd_passwd);
-	cmd_install("auth", "[file] -- control authentication", cmd_auth);
+	cmd_install("passwd", "passwd -- set passkey, id, and domain", cmd_passwd);
 	cmd_install("noattach", "toggle noattach flag", cmd_noattach);
+	cmd_install("files", "report on files structure", cmd_files);
 
 	attachflag = flag_install("attach", "-- attach calls");
 	chatflag = flag_install("chat", "-- verbose");

@@ -1,0 +1,44 @@
+dev
+	root	/
+	cons	c
+	env	e
+	mnt	M
+	bit	b
+	uart	t
+	pipe	|
+	floppy	f
+	ata	H
+	srv	s
+	dup	d
+	proc	p
+	rtc	r
+	dk	k
+	lpt	L
+	ether	l
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	arp	a
+	iproute	P
+	vga	v
+	i82365	y
+
+link
+	stfcall
+	stip
+	sturp
+	streboot
+	ether509
+	ether8003	ether8390
+	vgaet4000
+	vgas3
+	vgabt485
+	vgatvp3020
+
+port
+	int cpuserver = 1;
+	long cfslen = 0; ulong cfscode[1];
+	long fslen = 0; ulong fscode[1];
+	void consdebug(void){}
+
+boot cpu
+	il
+	incon

@@ -1,15 +1,12 @@
 /*
  *  substitution list
  */
+#define NSUBEXP 32
 typedef struct Resublist	Resublist;
 struct	Resublist
 {
-	Resub	m[32];
+	Resub	m[NSUBEXP];
 };
-
-/* max subexpressions per program */
-Resublist ReSuBlIsT;
-#define NSUBEXP (sizeof(ReSuBlIsT.m)/sizeof(Resub))
 
 /* max character classes per program */
 Reprog	RePrOg;
@@ -46,16 +43,28 @@ Reprog	RePrOg;
 /*
  *  regexec execution lists
  */
-#define LISTINCREMENT 8
+#define LISTSIZE	10
+#define BIGLISTSIZE	(10*LISTSIZE)
 typedef struct Relist	Relist;
 struct Relist
 {
-	Reinst		*inst;		/* Reinstruction of the thread */
+	Reinst*		inst;		/* Reinstruction of the thread */
 	Resublist	se;		/* matched subexpressions in this thread */
 };
-extern Relist*	_relist[2];
-extern Relist*	_reliste[2];
-extern int	_relistsize;
+typedef struct Reljunk	Reljunk;
+struct	Reljunk
+{
+	Relist*	relist[2];
+	Relist*	reliste[2];
+	int	starttype;
+	Rune	startchar;
+	char*	starts;
+	char*	eol;
+	Rune*	rstarts;
+	Rune*	reol;
+};
 
 extern Relist*	_renewthread(Relist*, Reinst*, Resublist*);
 extern void	_renewmatch(Resub*, int, Resublist*);
+extern Relist*	_renewemptythread(Relist*, Reinst*, char*);
+extern Relist*	_rrenewemptythread(Relist*, Reinst*, Rune*);

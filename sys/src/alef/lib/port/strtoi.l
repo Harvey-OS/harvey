@@ -4,9 +4,9 @@
 #define LONG_MIN	-2147483648
 
 int
-strtoi(char *nptr, char **endptr, int base)
+strtoi(byte *nptr, byte **endptr, int base)
 {
-	char *p;
+	byte *p;
 	int n, nn;
 	int c, ovfl, v, neg, ndig;
 

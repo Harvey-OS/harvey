@@ -15,14 +15,16 @@ int msgfd = -1;		/* mesgld file descriptor (for signals to be written to) */
 int outfd = 1;		/* local output file descriptor */
 int cooked;		/* non-zero forces cooked mode */
 int returns;		/* non-zero forces carriage returns not to be filtered out */
+int	strip;		/* strip off parity bits */
 char firsterr[2*ERRLEN];
 char transerr[2*ERRLEN];
 int limited;
 char *remuser;
 int verbose;
+int baud;
 
 typedef struct Msg Msg;
-#define MAXMSG 8192
+#define MAXMSG (2*8192)
 
 int	dkauth(int);
 int	dodial(char*, char*, char*);
@@ -48,7 +50,7 @@ void	dosystem(int, char*);
 int	wasintr(void);
 void	punt(char*);
 char*	syserr(void);
-void	seterr(char*, char*);
+void	seterr(char*);
 
 /* protocols */
 void	dcon(char*, char*);
@@ -60,7 +62,7 @@ void	simple(char*, char*);
 void
 usage(void)
 {
-	punt("usage: con [-drCv] [-l [user]] [-c cmd] net!host[!service]");
+	punt("usage: con [-drCvs] [-l [user]] [-c cmd] net!host[!service]");
 }
 
 void
@@ -71,6 +73,9 @@ main(int argc, char *argv[])
 
 	returns = 1;
 	ARGBEGIN{
+	case 'b':
+		baud = atoi(ARGF());
+		break;
 	case 'd':
 		debug = 1;
 		break;
@@ -91,6 +96,9 @@ main(int argc, char *argv[])
 	case 'v':
 		verbose = 1;
 		break;
+	case 's':
+		strip = 1;
+		break;
 	default:
 		usage();
 	}ARGEND
@@ -108,9 +116,9 @@ main(int argc, char *argv[])
 		simple(dest, cmd);	/* doesn't return if dialout succeeds */
 		rlogin(dest, cmd);	/* doesn't return if dialout succeeds */
 	} else {
+		rlogin(dest, cmd);	/* doesn't return if dialout succeeds */
 		mesgdcon(dest, cmd);	/* doesn't return if dialout succeeds */
 		dcon(dest, cmd);	/* doesn't return if dialout succeeds */
-		rlogin(dest, cmd);	/* doesn't return if dialout succeeds */
 		simple(dest, cmd);	/* doesn't return if dialout succeeds */
 	}
 	punt(firsterr);
@@ -242,9 +250,11 @@ device(char *dest, char *cmd)
 
 	net = open(dest, ORDWR);
 	if(net < 0)
-		return;
+		punt(syserr());
 	sprint(cname, "%sctl", dest);
 	ctl = open(cname, ORDWR);
+	if(ctl >= 0 && baud > 0)
+		fprint(ctl, "b%d", baud);
 
 	if(cmd)
 		dosystem(net, cmd);
@@ -313,7 +323,7 @@ rawoff(void)
 /*
  *  control menu
  */
-#define STDHELP	"\t(b)reak, (q)uit, (i)nterrupt, (.)continue, (!cmd)\n"
+#define STDHELP	"\t(b)reak, (q)uit, (i)nterrupt, (r)eturns, (.)continue, (!cmd)\n"
 
 int
 menu(int net)
@@ -357,7 +367,11 @@ menu(int net)
 			if(msgfd >= 0)
 				sendctl(msgfd, M_BREAK);
 			else if(ctl >= 0)
-				write(ctl, "break", 5);
+				write(ctl, "k", 1);
+			done = 1;
+			break;
+		case 'r':
+			returns = 1-returns;
 			done = 1;
 			break;
 		default:
@@ -392,12 +406,12 @@ stdcon(int net)
 	case 0:
 		notify(notifyf);
 		fromnet(net);
-		postnote(ttypid, "kill");
+		postnote(PNPROC, ttypid, "kill");
 		exits(0);
 	default:
 		notify(notifyf);
 		fromkbd(net);
-		postnote(netpid, "kill");
+		postnote(PNPROC, netpid, "kill");
 		exits(0);
 	}
 }
@@ -456,6 +470,10 @@ fromnet(int net)
 		if(n == 0)
 			continue;
 
+		if (strip)
+			for (cp=buf; cp<buf+n; cp++)
+				*cp &= 0177;
+
 		if(!returns){
 			/* convert cr's to null's */
 			cp = buf;
@@ -491,7 +509,7 @@ dodial(char *dest, char *net, char *service)
 	strcpy(name, netmkaddr(dest, net, service));
 	data = dial(name, 0, devdir, &ctl);
 	if(data < 0){
-		seterr(name, devdir);
+		seterr(name);
 		return -1;
 	}
 	fprint(2, "connected to %s on %s\n", name, devdir);
@@ -572,6 +590,8 @@ system(int fd, char *cmd)
 	}
 	outfd = pfd[1];
 
+	close(consctl);
+	consctl = -1;
 	switch(pid = fork()){
 	case -1:
 		perror("con");
@@ -581,7 +601,6 @@ system(int fd, char *cmd)
 		dup(pfd[0], 0);
 		dup(pfd[0], 1);
 		close(ctl);
-		close(consctl);
 		close(fd);
 		close(pfd[0]);
 		if(*cmd)
@@ -602,18 +621,14 @@ system(int fd, char *cmd)
 					break;
 			}
 		}
-		for(;;){
-			p = wait(&msg);
-			if(p < 0)
-				return "lost child";
-			if(p == pid)
-				return msg.msg;	
-		}
+		p = wait(&msg);
 		outfd = 1;
 		close(pfd[1]);
+		if(p < 0 || p != pid)
+			return "lost child";
 		break;
 	}
-	return 0;
+	return msg.msg;
 }
 
 int
@@ -640,12 +655,12 @@ syserr(void)
 }
 
 void
-seterr(char *addr, char *dev)
+seterr(char *addr)
 {
 	char *se = syserr();
 
 	if(verbose)
-		fprint(2, "%s calling %s on %s\n", se, addr, dev);
+		fprint(2, "'%s' calling %s\n", se, addr);
 	if(firsterr[0] && (strstr(se, "translate") ||
 	 strstr(se, "file does not exist") ||
 	 strstr(se, "unknown address") ||
@@ -714,7 +729,7 @@ mesgdcon(char *dest, char *cmd)
 	int net;
 	int netpid;
 
-	net = dodial(dest, 0, "mesgdcon");
+	net = dodial(dest, "dk", "mesgdcon");
 	if(net < 0)
 		return;
 
@@ -733,12 +748,12 @@ mesgdcon(char *dest, char *cmd)
 	case 0:
 		notify(notifyf);
 		msgfromnet(net);
-		postnote(ttypid, "kill");
+		postnote(PNPROC, ttypid, "kill");
 		exits(0);
 	default:
 		notify(msgnotifyf);
 		msgfromkbd(net);
-		postnote(netpid, "kill");
+		postnote(PNPROC, netpid, "kill");
 		exits(0);
 	}
 }
@@ -838,6 +853,10 @@ msgfromnet(int net)
 			break;
 		}
 		len = get2byte(m.h.size);
+		if(len > sizeof(m.b)){
+			len = sizeof(m.b);
+			fprint(2, "con: mesgld message too long\n");
+		}
 		if(len && readupto(net, m.b, len) < 0)
 			break;
 
@@ -863,7 +882,7 @@ msgfromnet(int net)
 		default:
 			/* ignore */
 			if(debug)
-				fprint(2, "unknown message\n");
+				fprint(2, "con: unknown message\n");
 			continue;
 		}
 	

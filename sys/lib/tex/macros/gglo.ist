@@ -1,0 +1,64 @@
+%% 
+%% This is file `gglo.ist', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% doc.dtx  (with options: `gglo')
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% Copyright (C) 1992-1994 Frank Mittelbach. All rights reserved. 
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%% Package `doc' to use with LaTeX 2e
+%% Copyright (C) 1989-1994 Frank Mittelbach, all rights reserved.
+%% This is a MAKEINDEX style file which should be used to
+%% generate the formatted change history for use with the doc
+%% package. The TeX commands used below are defined in
+%% doc.sty.  The commands for MAKEINDEX like `level'
+%% `item_x1' are described in `` Makeindex, A General
+%% Purpose, Formatter-Independent Index Processor'' by
+%% Pehong Chen.
+
+actual '='
+quote '!'
+level '>'
+item_x1   "\\efill \n \\subitem "
+item_x2   "\\ "
+delim_0   "\\pfill "
+delim_1   "\\pfill "
+delim_2   "\\pfill "
+% The next lines will produce some warnings when
+% running Makeindex as they try to cover two different
+% versions of the program:
+lethead_prefix   "{\\bfseries\\hfil "
+lethead_suffix   "\\hfil}\\nopagebreak\n"
+lethead_flag       0
+heading_prefix   "{\\bfseries\\hfil "
+heading_suffix   "\\hfil}\\nopagebreak\n"
+headings_flag       0
+preamble
+"\n \\begin{theglossary} \n
+    \\makeatletter\\scan@allowedfalse\n"
+postamble
+"\n\n \\end{theglossary}\n"
+keyword "\\glossaryentry"
+%% 
+%% End of file `gglo.ist'. 

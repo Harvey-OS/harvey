@@ -29,3 +29,5 @@ The kernel does an
 of
 .B /boot
 when initializing.
+.SH SOURCE
+.B /sys/src/9/port/devroot.c

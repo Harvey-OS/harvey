@@ -4,9 +4,12 @@ snoopy \- spy on Ethernet packets
 .SH SYNOPSIS
 .B snoopy
 [
-.B \-abeiltup9
-][
-.B \-np
+.B -abceiltup9
+] [
+.B -np
+] [
+.B -N
+.I count
 ]
 .SH DESCRIPTION
 .I Snoopy
@@ -23,6 +26,9 @@ ARP
 .TP
 .B b
 BOOTP
+.TP
+.B c
+ICMP
 .TP
 .B e
 all Ethernet packets
@@ -56,11 +62,18 @@ is running on to be displayed.
 Option
 .B 9
 causes the data of TCP and IL messages to be interpreted and displayed as
-9P messages.
+9P messages.  The
+.B N
+option sets the
+.I count
+(default 20)
+of the number of bytes to dump in hexadecimal from each packet.
 .SH FILES
 .TP
 .B /net/ether
 Ethernet device
+.SH SOURCE
+.B /sys/src/cmd/ip/snoopy.c
 .SH BUGS
 .PP
 The CPU servers do not take well to running in promiscuous mode.

@@ -3,8 +3,8 @@
 int
 getpid(void)
 {
-	char b[20];
 	int f;
+	byte b[20];
 
 	memset(b, 0, sizeof(b));
 	f = open("#c/pid", 0);

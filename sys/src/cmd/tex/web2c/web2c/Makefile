@@ -1,59 +1,62 @@
 # Makefile for TeX to C conversion programs.
-#
 
-SITEDIR=..
-CC=/usr/ape/apebin/pcc
-OPT=-g
-CFLAGS=$(OPT) -I$(SITEDIR)
-LDFLAGS=$(OPT)
 SHELL=/bin/sh
 
-# You can substitute `bison -y' for `yacc' if you like.
-YACC=yacc
-# Note: If you're going to use flex, compile web2cl.c with "-DFLEX".
-LEX=lex
+CC=gcc
+CCLD=$(CC)
+cflags=-g -I../lib
+CFLAGS=$(cflags)
 
-all:		web2c fixwrites splitup regfix
+YACC=bison -y
+LEX=flex
+LEXLIB=/usr/local/lib/libfl.a
 
-web2c:		web2cy.o web2cl.o web2c.o
-		$(CC) $(LDFLAGS) -o web2c web2c.o web2cy.o web2cl.o -ll
+libs=../lib/lib.a $(LIBS)
 
-web2cl.o:	web2cl.c web2c.h web2cy.h symtab.h $(SITEDIR)/site.h
-web2cy.o:	web2cy.c web2c.h symtab.h $(SITEDIR)/site.h
-web2c.o:	web2c.c symtab.h web2cy.h $(SITEDIR)/site.h
+.SUFFIXES:
+.SUFFIXES: .o .c
+.c.o:
+		$(CC) $(CFLAGS) -c $*.c
 
-web2cl.c:	web2c.lex
-		$(LEX) web2c.lex
-		mv -f lex.yy.c web2cl.c
+all: web2c fixwrites splitup regfix
 
-web2cy.c:	web2c.yacc
-		$(YACC) -d web2c.yacc
-		mv -f y.tab.c web2cy.c
-		-if test -f web2cy.h; \
-                  then cmp y.tab.h web2cy.h || cp y.tab.h web2cy.h; \
-                  else cp y.tab.h web2cy.h; \
-                fi
+web2c: web2cy.o web2cl.o web2c.o
+	$(CCLD) -o web2c $(LDFLAGS) web2c.o web2cy.o web2cl.o $(LEXLIB) $(libs)
 
-fixwrites:	fixwrites.c
-		$(CC) $(CFLAGS) -o fixwrites fixwrites.c
+web2cl.o: web2cl.c web2c.h web2cy.h
+web2cy.o: web2cy.c web2c.h
+web2c.o: web2c.c web2cy.h
 
-splitup:	splitup.c $(SITEDIR)/site.h
-		$(CC) $(CFLAGS) -o splitup splitup.c
+web2cl.c: web2c.lex
+	$(LEX) web2c.lex
+	rm -f web2cl.c
+	mv lex.yy.c web2cl.c
 
-regfix:		regfix.c $(SITEDIR)/site.h
-		$(CC) $(CFLAGS) -o regfix regfix.c
+web2cy.h: web2cy.c
 
-veryclean:	clean
-		rm -f \#*\# *~ *.bak *.ckp core
+web2cy.c: web2c.yacc
+	@echo Expect 3 shift/reduce conflicts.
+	$(YACC) -d -v web2c.yacc
+	rm -f web2cy.c web2cy.h
+	mv y.tab.c web2cy.c
+	mv y.tab.h web2cy.h
 
-clean:
-		rm -f *.o regfix splitup fixwrites web2c \
-			web2cy.c web2cl.c web2cy.h y.tab.h
+fixwrites: fixwrites.c
+	$(CCLD) -o fixwrites $(LDFLAGS) $(CFLAGS) fixwrites.c $(libs)
 
-check:		lint
+splitup: splitup.c
+	$(CCLD) -o splitup $(LDFLAGS) $(CFLAGS) splitup.c $(libs)
 
-lint:		web2cy.c web2cl.c
-		lint -I${SITEDIR} -zhx web2cy.c web2cl.c web2c.c
-		lint -I${SITEDIR} -zhx fixwrites.c
-		lint -I${SITEDIR} -zhx splitup.c
-		lint -I${SITEDIR} -zhx regfix.c
+regfix: regfix.c
+	$(CCLD) -o regfix $(LDFLAGS) $(CFLAGS) regfix.c $(libs)
+
+mostlyclean:
+	rm -f *.o regfix splitup fixwrites web2c
+
+clean: mostlyclean
+	rm -f web2cy.c web2cl.c web2cy.h y.tab.h lex.yy.c y.output coerce.h
+
+distclean: clean
+	rm -f \#*\# *~ *.bak *.ckp core yacc.*
+
+realclean: distclean

@@ -21,13 +21,12 @@ corresponds to open file descriptor
 in the current process.
 .PP
 An
-.IR open (5)
+.IR open (2)
 of file
 .I n
 results in a file descriptor identical to
-what would be returned from a
-.IB dup ( n ", -1)"
-system call.
+what would be returned from a system call
+.IB dup ( n ", -1)."
 Note that the result is no longer a file in the
 .I dup
 device.
@@ -44,3 +43,5 @@ for the mode, depending on whether the dup target is open
 for reading, writing, or both.
 .SH SEE ALSO
 .IR dup (2)
+.SH SOURCE
+.B /sys/src/9/port/devdup.c

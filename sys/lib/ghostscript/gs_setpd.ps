@@ -1,0 +1,427 @@
+%    Copyright (C) 1994 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of Aladdin Ghostscript.
+% 
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
+% 
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
+
+% The current implementation of setpagedevice is extremely limited.
+% It is intended only to support a minimal set of keys that common
+% applications expect to be able to read and set, namely those given
+% as the value of .pagedevicekeys below.  In particular, it does not
+% support media selection or Policies.  It runs the Install procedure
+% at the appropriate time, but does not save the resulting CTM as the
+% one for initmatrix or defaultmatrix.
+
+languagelevel 1 .setlanguagelevel
+level2dict begin
+
+% setpagedevice ignores all keys other than the ones below; it does not
+% give an error or invoke Policies for unknown keys.
+
+/.pagedevicekeys mark
+	{ /BeginPage /EndPage /HWResolution /ImagingBBox
+	  /Install /Margins /NumCopies /OutputDevice /PageSize
+	  /ProcessColorModel
+	}
+	{ dup } forall
+.dicttomark def
+
+/.pagedevicedict	% <device> .pagedevicedict <dict>
+ { .pagedevicekeys .getdeviceparams .dicttomark
+ } bind def
+
+% currentpagedevice just selects the page device keys from the entire
+% set of device parameters.
+
+/currentpagedevice
+ { .currentpagedevice dup length 0 eq
+    { pop currentdevice .pagedevicedict dup .setpagedevice
+    }
+   if
+ } bind odef
+
+/.defaultdevicename 0 .getdevice .devicename def
+
+% setpagedevice is complex, but nothing compared to its full specification!
+
+/setpagedevice
+ {
+   currentpagedevice
+
+		% Check whether we are changing OutputDevice;
+		% also handle the case where the current device
+		% is not a page device.
+		% Stack: <request> <current>
+
+   dup /OutputDevice .knownget
+    {		% Current device is a page device.
+      2 index /OutputDevice .knownget
+       {	% A specific OutputDevice was requested.
+	 2 copy eq
+	  { pop pop null }
+	  { exch pop }
+	 ifelse
+       }
+       { pop null
+       }
+      ifelse
+    }
+    {		% Current device is not a page device.
+		% Use the default device.
+      1 index /OutputDevice .knownget not { .defaultdevicename } if
+    }
+   ifelse
+   dup null eq
+    { pop }
+    { exch pop finddevice .pagedevicedict }
+   ifelse
+
+		% Merge the current and requested dictionaries.
+		% Stack: <request> <orig>
+
+   dup length 2 index length add dict copy copy
+
+		% Construct the new device, and attempt to set its attributes.
+		% Stack: <merged>
+
+   currentdevice .devicename 1 index /OutputDevice get eq
+    { currentdevice }
+    { 1 index /OutputDevice get finddevice }
+  ifelse
+		%**************** We should copy the device here,
+		%**************** but since we can't close the old device,
+		%**************** we don't.  This is WRONG.
+		% Stack: <merged> <device>
+	%****************copydevice
+
+   null false	% Ignore undefined keys.
+   mark 4 index
+    { 1 index /OutputDevice eq { pop pop } if
+    } forall
+DEBUG { (Putting.\n) print pstack flush } if
+   .putdeviceparams
+DEBUG { (Result of putting.\n) print pstack flush } if
+   dup type /nametype eq
+    {		% The request failed.
+		% Stack: <merged> <device> <policies> <mark>
+		%   <name> <value> ...
+      counttomark 1 add 1 roll cleartomark exch pop exch pop
+      /setpagedevice load exch signalerror
+    }
+   if
+
+		% The attempt succeeded.  Install the new device.
+		% Stack: <merged> <device> <eraseflag>
+DEBUG { (Installing.\n) print pstack flush } if
+
+   pop 2 .endpage
+    { 1 true .outputpage
+      (>>setpagedevice, press <return> to continue<<\n) .confirm
+    }
+   if
+   .setdevice pop
+   dup /Install .knownget { exec } if
+   erasepage initgraphics
+   .setpagedevice .beginpage
+
+ } odef
+
+%****************************************************************
+% The remainder of this file contains an implementation of setpagedevice
+% that is not ready for use yet; we just skip over it.
+%****************************************************************
+(%END) .skipeof
+
+% The implementation of setpagedevice is quite complex.  Currently,
+% everything but the media matching algorithm is implemented here.
+
+%**************** Need an implementation of currentpagedevice using
+%**************** .currentpagedevice.
+
+% Define the parameters that require special action to merge into the
+% combined page device dictionary.  The procedures are called as follows:
+%	<merged> <key> <new_value> -proc- <merged> <key> <new_value'>
+/.mergespecial mark
+  /InputAttributes
+   { dup null eq
+      { pop null
+      }
+      { 3 copy pop .knownget
+	 { dup null eq
+	    { pop dup length dict }
+	    { dup length 2 index length add dict copy }
+	   ifelse
+	 }
+	 { dup length dict
+	 }
+        ifelse copy readonly
+      }
+     ifelse
+   } bind
+  /OutputAttributes 1 index
+  /Policies
+    { 3 copy pop .knownget
+       { dup length 2 index length add dict copy }
+       { dup length dict }
+      ifelse copy readonly
+    } bind
+.dicttomark readonly def
+
+% Define the keys used in input attribute matching.
+/.inputattrkeys [
+  /PageSize /MediaColor /MediaWeight /MediaType /InsertSheet
+] readonly def
+
+% Define the keys used in output attribute matching.
+/.outputattrkeys [
+  /OutputType
+] readonly def
+
+% Define the parameters that should not be presented to the device.
+% The procedures are called as follows:
+%	<merged> <key> <value> -proc-
+% The procedure leaves all its operands on the stack and returns
+% true iff the key/value pair should be presented to .putdeviceparams.
+/.presentspecial mark
+  /Name false
+  /OutputDevice false
+  /InputAttributes false
+  .inputattrkeys { pop { 2 index /InputAttributes get null eq } } forall
+  /OutputAttributes false
+  .outputattrkeys { pop { 2 index /OutputAttributes get null eq } } forall
+  /Install false
+  /BeginPage false
+  /EndPage false
+  /Policies false
+.dicttomark readonly def
+
+% Define the required attributes of all page devices.
+% We don't include attributes such as PageSize, which all devices
+% are guaranteed to supply on their own.
+/.requiredattrs mark
+  /InputAttributes null
+  /OutputAttributes null
+  /Install {.callinstall} bind
+  /BeginPage {.callbeginpage} bind
+  /EndPage {.callendpage} bind
+  /Policies mark
+    /PolicyNotFound 1
+    /PageSize 0
+    /PolicyReport {pop} bind
+  .dicttomark readonly
+.dicttomark readonly def
+
+% Define access to device defaults.
+/.defaultdevicename 0 .getdevice .devicename def
+/.defaultdeviceparams
+ { finddevice null .getdeviceparams
+ } bind def
+
+% Select media (input or output).
+/.selectmedia		% <orig> <request> <merged> <failed>
+			%   (these are retained)
+			%   <attrdict> <attrkeys> <mediakey> .selectmedia
+ { 4 index 4 -1 roll 3 index .matchmedia
+    { 4 index 3 1 roll put pop
+    }
+    {	% Adobe's implementations have a "big hairy heuristic"
+	% to choose the set of keys to report as having failed the match.
+	% For the moment, we report any keys that are in the request
+	% and don't have the same value as in the original dictionary.
+      3 index exch undef
+       {	% Stack: <orig> <request> <merged> <failed> <attrkey>
+	 3 index 1 index .knownget
+	  { 5 index 2 index .knownget { ne } { pop true } ifelse }
+	  { true }
+	 ifelse		% Stack: ... <failed> <attrkey> <report>
+	  { 2 copy /rangecheck put }
+	 if pop
+       }
+      forall
+    }
+   ifelse
+ } bind def
+
+% Apply Policies to any unprocessed failed requests.
+% As we process each request entry, we replace the error name
+% in the <failed> dictionary with the policy value,
+% and we remove the key from the <merged> dictionary.
+/.applypolicies		% <merged> <failed> .applypolicies <merged'> <failed'>
+ { 1 index /Policies get 1 index
+    { type /integertype eq
+       { pop		% already processed
+       }
+       { 2 copy .knownget not { 1 index /PolicyNotFound get } if
+			% Stack: <merged> <failed> <Policies> <key> <policy>
+	 dup 1 ne
+	  {	% Set errorinfo and signal a configurationerror.
+		% Note that we currently treat all Policy values other than 1
+		% the same as 0.
+	    pop dup 4 index exch get 2 array astore
+	    $error /errorinfo 3 -1 roll put
+	    cleartomark
+	    /setpagedevice load /configurationerror signalerror
+	  }
+	  {	% Ignore the failed request.
+	    3 index 2 index 3 -1 roll put
+	    3 index exch undef
+	  }
+	 ifelse
+       }
+      ifelse
+    }
+   forall pop
+ } bind def
+
+% Try setting the device parameters from the merged request.
+/.trysetparams		% ... <merged> <(ignored)> <device> <Policies>
+			%   .trysetparams
+ { true mark 5 index dup
+    {			% Stack: <merged> <key> <value>
+      .presentspecial 2 index .knownget
+       { exec { 3 -1 roll } { pop pop } ifelse }
+       { 3 -1 roll }
+      ifelse
+    }
+   forall pop
+DEBUG { (Putting.\n) print pstack flush } if
+   .putdeviceparams
+DEBUG { (Result of putting.\n) print pstack flush } if
+ } bind def
+
+% Finally, define setpagedevice.
+/setpagedevice
+ {
+   mark exch currentpagedevice
+
+		% Check whether we are changing OutputDevice;
+		% also handle the case where the current device
+		% is not a page device.
+		% Stack: mark <request> <current>
+DEBUG { (Checking.\n) print pstack flush } if
+
+   dup /OutputDevice .knownget
+    {		% Current device is a page device.
+      2 index /OutputDevice .knownget
+       {	% A specific OutputDevice was requested.
+	 2 copy eq
+	  { pop pop null }
+	  { exch pop }
+	 ifelse
+       }
+       { pop null
+       }
+      ifelse
+    }
+    {		% Current device is not a page device.
+		% Use the default device.
+      1 index /OutputDevice .knownget not { .defaultdevicename } if
+    }
+   ifelse
+   dup null eq
+    { pop
+    }
+    { exch pop .defaultdeviceparams
+      counttomark 2 idiv .requiredattrs length add dict
+      .requiredattrs exch copy
+      begin counttomark 2 idiv { def } repeat pop currentdict end
+    }
+   ifelse
+
+		% Merge the current and requested dictionaries.
+		% Stack: mark <request> <orig>
+DEBUG { (Merging.\n) print pstack flush } if
+
+   exch 1 index dup length 2 index length add dict copy
+   dup 2 index
+    {		% stack: <orig> <request> <merged> <merged> <rkey> <rvalue>
+      .mergespecial 2 index .knownget { exec } if
+      put dup
+    }
+   forall pop
+
+		% Select input and output media.
+		% Stack: mark <orig> <request> <merged>
+DEBUG { (Selecting.\n) print pstack flush } if
+
+   0 dict	% <failed>
+   1 index /InputAttributes get .inputattrkeys (%MediaSource) cvn .selectmedia
+   1 index /OutputAttributes get .outputattrkeys (%MediaDestination) cvn .selectmedia
+   .applypolicies
+
+		% Construct the new device, and attempt to set its attributes.
+		% Stack: mark <orig> <request> <merged> <failed>
+DEBUG { (Constructing.\n) print pstack flush } if
+
+   currentdevice .devicename 2 index /OutputDevice get eq
+    { currentdevice }
+    { 1 index /OutputDevice get finddevice }
+   ifelse
+		%**************** We should copy the device here,
+		%**************** but since we can't close the old device,
+		%**************** we don't.  This is WRONG.
+	%****************copydevice
+   2 index /Policies get
+   .trysetparams
+   dup type /nametype eq
+    {		% The request failed.
+		% Stack: ... <failed> <device> <Policies> <mark>
+		%   <name> <value> ...
+      counttomark 4 add -1 roll
+      counttomark 2 idiv { dup 4 -2 roll put } repeat
+      exch pop 3 1 roll
+		% Stack: mark ... <merged> <failed> <device> <Policies>
+      4 2 roll .applypolicies 4 -2 roll
+      .trysetparams		% shouldn't fail!
+      dup type /booleantype ne
+       { 2 { counttomark 1 add 1 roll cleartomark } repeat
+         /setpagedevice load exch signalerror
+       }
+      if
+    }
+   if
+
+		% The attempt succeeded.  Install the new device.
+		% Stack: mark ... <merged> <failed> <device> <eraseflag>
+DEBUG { (Installing.\n) print pstack flush } if
+
+   pop 2 .endpage
+    { 1 true .outputpage
+      (>>setpagedevice, press <return> to continue<<\n) .confirm
+    }
+   if
+   .setdevice pop
+   1 index /Install .knownget { exec } if
+   erasepage initgraphics
+   1 index .setpagedevice .beginpage
+
+		% Clean up, calling PolicyReport if needed.
+		% Stack: mark ... <merged> <failed>
+DEBUG { (Finishing.\n) print pstack flush } if
+
+   dup length 0 ne
+    { 1 index /Policies get /PolicyReport get
+      counttomark 1 add 2 roll cleartomark
+      exec
+    }
+    { cleartomark
+    }
+   ifelse
+
+ } odef
+
+%END
+
+end				% level2dict
+.setlanguagelevel

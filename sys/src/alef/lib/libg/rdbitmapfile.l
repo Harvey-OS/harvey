@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 #define	CHUNK	6000
 
@@ -7,13 +7,13 @@ Bitmap*
 rdbitmapfile(int fd)
 {
 	Bitmap *b;
-	char *data;
+	byte *data;
 	Rectangle r;
 	uint l, t, n;
-	char hdr[5*12+1];
+	byte hdr[5*12+1];
 	int dy, px, miny, maxy, ld;
 
-	if(read(fd, hdr, 5*12)!=5*12)
+	if(readn(fd, hdr, 5*12)!=5*12)
 		berror("rdbitmapfile read");
 	ld = atoi(hdr+0*12);
 	r.min.x = atoi(hdr+1*12);
@@ -47,7 +47,7 @@ rdbitmapfile(int fd)
 		if(dy*l > CHUNK)
 			dy = CHUNK/l;
 		n = dy*l;
-		if(read(fd, data, n) != n){
+		if(readn(fd, data, n) != n){
 			free(data);
 			bfree(b);
 			berror("rdbitmapfile read");

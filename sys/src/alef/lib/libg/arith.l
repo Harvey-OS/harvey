@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 /* These routines are NOT portable, but they are fast. */
 

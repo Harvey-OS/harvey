@@ -1,0 +1,98 @@
+%% BEGIN semsamp1.tex
+%
+% This is a sample document for seminar.sty, v0.93 (and maybe later).
+%
+% Try this with and without the article option:
+
+\documentstyle[fancybox,article]{seminar}
+
+\def\printlandscape{\special{landscape}}    % Works with dvips.
+
+\articlemag{1}
+
+%\twoup   % Try me.
+
+\newpagestyle{327}%
+  {Economics 327 \hspace{\fill}\rightmark \hspace{\fill}\thepage}{}%
+\pagestyle{327}
+
+\markright{Choice under uncertainty}
+
+\slideframe{Oval}
+
+\newcommand{\heading}[1]{%
+  \begin{center}
+    \large\bf
+    \shadowbox{#1}%
+  \end{center}
+  \vspace{1ex minus 1ex}}
+
+\newcommand{\BF}[1]{{\bf #1:}\hspace{1em}\ignorespaces}
+
+\begin{document}
+
+
+\begin{slide}
+\heading{A heading}
+
+One thing this example illustrates is how the {\tt article} style option is
+good for printing slides two-up, for distribution to a seminar audience or
+class, or just for proofreading.
+
+\BF{Definition}
+$p$ (weakly) first-order stochastically dominates $q$ if for every $\bar z\in
+Z$,
+\[
+  p(z\leq \bar z) \leq q(z\leq \bar z)
+\]
+\end{slide}
+
+
+\begin{slide}
+\heading{Problems with stochastic dominance as a DT}
+
+\begin{center}
+  \begin{tabular}{|r|l|}\hline
+    $z$ & $p(z)$\\ \hline
+    \$999 & .01\\ \hline
+    \$1,000,000 & .99 \\ \hline
+  \end{tabular}%
+  \hspace{1cm}%
+  \begin{tabular}{|r|l|}\hline
+    $z$ & $q(z)$\\ \hline
+    \$1,000 & 1\\ \hline
+  \end{tabular}
+\end{center}
+\end{slide}
+
+\begin{slide}
+\heading{Candidate Theory \#3: Expected utility}
+
+Let $Z$ be an arbitrary set of outcomes. Let $u:Z\rightarrow R$ be a utility
+representation of the DM's preferences over the elements of $Z$ as certain
+outcomes. (I.e., $u(y)\geq u(z)$ iff $y \geq z$.)
+
+\end{slide}
+
+
+\begin{slide}
+\heading{Expected utility \& the St.\ Petersburg Paradox}
+
+This can get around even St.\ Petersburg Paradox, because we don't require
+that utility be linear in money:
+
+\begin{center}
+  \begin{tabular}{r|c|c|c|c|c}\cline{2-6}
+    Prize & \$2 & \$4 & \$8 & \$16 & $\ldots$\\ \cline{2-6}
+    $u(z)=\log_2(z)$ & 1 & 2 & 3 & 4 & $\ldots$ \\ \cline{2-6}
+    Prob. & 1/2 &  1/4 & 1/8 & 1/16 & $\ldots$\\ \cline{2-6}
+  \end{tabular}
+\end{center}
+
+Expected utility is $\sum_{k=1}^\infty k/2^k = 2$, and so lottery gives same
+expected utility as getting \$4 for sure.
+\end{slide}
+
+
+\end{document}
+%% END semsamp1.tex

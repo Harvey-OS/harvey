@@ -1,0 +1,7 @@
+#!/bin/rc
+shift
+sender=$1
+shift
+addr=$1
+shift
+/bin/upas/smtp -g research.att.com $addr $sender $*

@@ -4,18 +4,29 @@ query, mkhash, mkdb, cs, csquery, dns, dnsquery \- network database
 .SH SYNOPSIS
 .B ndb/query
 .I "attr value"
-.RI [ rattr ]
+[
+.I rattr
+]
 .br
 .B ndb/mkhash
 .I "file attr"
 .br
 .B ndb/cs
+[
+.B -n
+] [
+.B -f
+.I dbfile
+]
 .br
 .B ndb/csquery
 .br
 .B ndb/dns
 [
 .B -s
+] [
+.B -f
+.I dbfile
 ]
 .br
 .B ndb/dnsquery
@@ -56,6 +67,11 @@ and by the ndb library routines.
 is a server used by
 .IR dial (2)
 to translate network names.
+Option
+.B -f
+supplies the name of the data base file to use,
+default
+.BR /lib/ndb/local .
 It is started at boot time.
 It finds out what networks are configured
 by looking for
@@ -66,12 +82,15 @@ to
 .B /net/cs
 a message of the form:
 .IP
-.BR "add net1 net2 ..." .
+.B "add net1 net2 ..."
 .PP
 .I Ndb/cs
 also sets the system name in
 .B /dev/sysname
 if it can figure it out.
+Option
+.B -n
+causes cs to do nothing but set the system name.
 .I Ndb/csquery
 can be used to query
 .I ndb/cs
@@ -92,7 +111,7 @@ By default
 serves only requests written to
 .BR /net/dns .
 Option
-.B \-s
+.B -s
 causes the server to also answer domain requests sent to UDP port 53.
 Name resolution is performed by searching the local database
 and by querying remote servers.
@@ -129,7 +148,7 @@ Here, the
 entry is the mail address of the person responsible for the
 domain (default
 .BR postmaster ).
-Wildcarded domain names can also be used.
+Wild-carded domain names can also be used.
 For example, to specify a mail forwarder for all AT&T research systems:
 .EX
 
@@ -149,15 +168,33 @@ prompts for commands of the form
 where
 .I request-type
 can be
-.I "ip, mx, ns, cname, ..."
+.IR "ip, mx, ns, cname, ptr..." .
+In the case of the inverse query type,
+.IR ptr ,
+.I dnsquery
+will reverse the ip address and tack on the
+.B .in-addr.arpa
+for you.
 .PP
 .I Ndb/mkdb
 is used in concert with
 .IR awk (1)
 scripts to convert
-uucp systems files, IP hosts files, and Datakit configuration
+uucp systems files, IP host files, and Datakit configuration
 files into database files.
 It is very specific to the situation at Murray Hill.
+.PP
+When the database files change underfoot,
+.I ndb/cs
+and
+.I ndb/dns
+track them properly.  Nonetheless, to keep the database searches efficient
+it is necessary to run
+.I ndb/mkhash
+whenever the files are modified.
+It may be profitable to control this by a frequent
+.IR cron (8)
+job.
 .SH EXAMPLES
 .EX
 % ndb/query sys helix
@@ -167,6 +204,12 @@ sys=helix dom=helix.research.att.com bootf=/mips/9powerboot
 	proto=il 
 % ndb/query sys helix ip
 135.104.117.31
+% ndb/dnsquery
+> 9net.research.att.com ip
+9net.research.att.com ip	192.20.225.252
+> 192.20.225.252 ptr
+252.225.20.192.in-addr.arpa ptr	9net.research.att.com
+> 
 .EE
 .SH FILES
 .TF /lib/ndb/local.*xxx
@@ -174,16 +217,9 @@ sys=helix dom=helix.research.att.com bootf=/mips/9powerboot
 .B /lib/ndb/local
 first database file searched
 .TP
-.B /lib/ndb/global
-second database file searched
-.TP
 .B /lib/ndb/local.*
 hash files for
 .B /lib/ndb/local
-.TP
-.B /lib/ndb/global.*
-hash files for
-.B /lib/ndb/global
 .TP
 .B /srv/cs
 service file for
@@ -193,6 +229,17 @@ service file for
 where
 .B /srv/cs
 gets mounted
+.TP
+.B /srv/dns
+service file for
+.I ndb/dns
+.TP
+.B /net/dns
+where
+.B /srv/dns
+gets mounted
+.SH SOURCE
+.B /sys/src/cmd/ndb
 .SH SEE ALSO
 .IR ndb (2)
 .IR ndb (6)

@@ -1,0 +1,208 @@
+%% 
+%% This is file `dutch.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% dutch.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "3.6c",
+%%%     date            = "26 June 1994",
+%%%     time            = "02:19:03 MET",
+%%%     filename        = "dutch.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "18631 699 3432 28815",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, dutch",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the dutch language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%% ====================================================================
+%%% \fi
+\ifx\undefined\captionsdutch
+\else
+  \selectlanguage{dutch}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{dutch.sty}[1994/06/26 v3.6c
+         Dutch support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty \fi
+\originalTeX
+\ifx\undefined\l@dutch
+  \@nopatterns{Dutch}
+  \adddialect\l@dutch0
+\fi
+\addto\captionsdutch{%
+  \def\prefacename{Voorwoord}%
+  \def\refname{Referenties}%
+  \def\abstractname{Samenvatting}%
+  \def\bibname{Bibliografie}%
+  \def\chaptername{Hoofdstuk}%
+  \def\appendixname{Bijlage}%
+  \def\contentsname{Inhoudsopgave}%
+  \def\listfigurename{Lijst van figuren}%
+  \def\listtablename{Lijst van tabellen}%
+  \def\indexname{Index}%
+  \def\figurename{Figuur}%
+  \def\tablename{Tabel}%
+  \def\partname{Deel}%
+  \def\enclname{Bijlage(n)}%
+  \def\ccname{cc}%
+  \def\headtoname{Aan}%
+  \def\pagename{Pagina}%
+  \def\seename{zie}%
+  \def\alsoname{zie ook}}
+\def\datedutch{%
+\def\today{\number\day~\ifcase\month\or
+  januari\or februari\or maart\or april\or mei\or juni\or juli\or
+  augustus\or september\or oktober\or november\or december\fi
+  \space \number\year}}
+\addto\extrasdutch{\babel@add@special\"}
+\addto\noextrasdutch{\babel@remove@special\"}
+\addto\extrasdutch{%
+  \babel@savevariable{\catcode`\"}%
+  \babel@save\active@dq
+  \catcode`\"\active \let\active@dq\dutch@active@dq}
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \addto\extrasdutch{\babel@save"\let"\dutch@@active@dq}}
+\x
+\addto\extrasdutch{\babel@save\"}
+\addto\extrasdutch{\def\"{\protect\dutch@umlaut}}
+\addto\extrasdutch{\babel@savevariable\lefthyphenmin
+  \babel@savevariable\righthyphenmin
+  \lefthyphenmin\tw@\righthyphenmin\thr@@}
+\expandafter\ifx\csname U@D\endcsname\relax
+  \csname newdimen\endcsname\U@D
+\fi
+\def\dutch@umlaut#1{\@umlaut#1\allowhyphens}
+\def\@umlaut#1{%
+  {\U@D 1ex%
+  {\setbox\z@\hbox{\char127}\dimen@ -.45ex\advance\dimen@\ht\z@
+  \ifdim 1ex<\dimen@ \fontdimen5\font\dimen@ \fi}%
+  \accent127\fontdimen5\font\U@D #1}}
+\def\dlqq{\protect\@dlqq}
+\def\@dlqq{\save@sf@q{\set@low@box{''}\box\z@\kern-.04em\allowhyphens}}
+\def\drqq{\protect\@drqq}
+\def\@drqq{\save@sf@q{''}}
+\begingroup \catcode`\"12
+  \def\x{\endgroup
+  \def\@MATHUMLAUT{\mathaccent"707F }
+  \def\dq{"}}
+\x
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \let"\dq
+  \let\active@dq\dq}
+\x
+\let\dieresis\"
+\def\@trema#1{%
+  \allowhyphens\discretionary{-}{#1}{\@umlaut #1}\allowhyphens}
+\def\dutch@dqmacro#1{\csname d@dq@\string #1@dq@\endcsname}
+\def\dutch@@active@dq#1{\expandafter\expandafter\expandafter
+  \ifx\dutch@dqmacro{#1}\relax \expandafter\normal@dq
+  \else \expandafter\dutch@@@active@dq \fi {#1}}
+\def\normal@dq#1{\dq #1}
+\def\dutch@@@active@dq#1{%
+  \ifx\protect\relax \else \expandafter\protect \fi
+  \active@dq{#1\empty}}
+\def\dutch@active@dq#1{%
+  \csname dutch@dq@\ifmmode second\else first\fi
+    \expandafter\expandafter\expandafter\expandafter
+    \expandafter\expandafter\expandafter
+  \endcsname
+  \dutch@dqmacro{#1}}
+\def\dutch@dq@first#1#2{#1}
+\def\dutch@dq@second#1#2{#2}
+\def\def@dutch@dqmacro#1#2#3{\expandafter\expandafter\expandafter
+  \def\dutch@dqmacro{#1}{{#2}{#3}}}
+\def\let@dutch@dqmacro#1#2{\begingroup
+  \edef\x{\endgroup \let
+    \expandafter\expandafter\expandafter\noexpand\dutch@dqmacro{#1}%
+    \expandafter\expandafter\expandafter\noexpand\dutch@dqmacro{#2}}%
+  \x}
+\def@dutch@dqmacro{a}{\@trema a}{\@MATHUMLAUT a}
+\def@dutch@dqmacro{e}{\@trema e}{\@MATHUMLAUT e}
+\def@dutch@dqmacro{i}%
+        {\allowhyphens\discretionary{-}{i}{\dieresis\i}\allowhyphens}%
+        {\@MATHUMLAUT \imath}
+\def@dutch@dqmacro{o}{\@trema o}{\@MATHUMLAUT o}
+\def@dutch@dqmacro{u}{\@trema u}{\@MATHUMLAUT u}
+\def@dutch@dqmacro{`}{\dlqq{}}{\dlqq{}}
+\def@dutch@dqmacro{'}{\drqq{}}{\drqq{}}
+\def@dutch@dqmacro{-}{\allowhyphens-\allowhyphens}%
+                     {\allowhyphens-\allowhyphens}
+\def@dutch@dqmacro{|}{\discretionary{-}{}{\kern.03em}}{}
+\def@dutch@dqmacro{y}{\allowhyphens i\kern-0.06\p@ j\allowhyphens}%
+                     {\@MATHUMLAUT y}
+\def@dutch@dqmacro{Y}{\allowhyphens I\kern-0.06\p@ J\allowhyphens}%
+                     {\@MATHUMLAUT Y}
+\addto\extrasdutch{\babel@save\-}
+\addto\extrasdutch{\def\-{\allowhyphens
+                          \discretionary{-}{}{}\allowhyphens}}
+\selectlanguage{dutch}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `dutch.sty'.

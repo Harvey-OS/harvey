@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 #include "sys9.h"
 #include "dir.h"
 
@@ -22,6 +23,7 @@ int errno;
 unsigned long _clock;
 static char name[NAME_MAX+5] = "#e";
 static void fdsetup(char *, char *);
+static void sigsetup(char *, char *);
 
 enum {
 	Envhunk=7000,
@@ -35,12 +37,14 @@ _envsetup(void)
 	int n, m, i, f;
 	int psize, cnt;
 	int nohandle;
+	int fdinited;
 	char *ps, *p;
 	char **pp;
 	char cd[DIRLEN];
 	Dir db;
 
 	nohandle = 0;
+	fdinited = 0;
 	cnt = 0;
 	d = opendir(name);
 	if(!d) {
@@ -76,14 +80,19 @@ _envsetup(void)
 			if(p[n+1+i] == 0)
 				p[n+1+i] = 1;
 		p[n+1+m] = 0;
-		if(strcmp(de->d_name, "_fdinfo") == 0)
-			fdsetup(p+n+1, p+n+1+m);
-		if(strcmp(de->d_name, "nohandle") == 0)
+		if(strcmp(de->d_name, "_fdinfo") == 0) {
+			_fdinit(p+n+1, p+n+1+m);
+			fdinited = 1;
+		} else if(strcmp(de->d_name, "_sighdlr") == 0)
+			sigsetup(p+n+1, p+n+1+m);
+		else if(strcmp(de->d_name, "nohandle") == 0)
 			nohandle = 1;
 		p += n+m+2;
 		cnt++;
 	}
 	closedir(d);
+	if(!fdinited)
+		_fdinit(0, 0);
 	environ = pp = malloc((1+cnt)*sizeof(char *));
 	p = ps;
 	for(i = 0; i < cnt; i++) {
@@ -99,27 +108,17 @@ _envsetup(void)
 }
 
 static void
-fdsetup(char *s, char *se)
+sigsetup(char *s, char *se)
 {
-	unsigned long fd, fl, ofl;
+	int i, sig;
 	char *e;
 
 	while(s < se){
-		fd = strtoul(s, &e, 10);
+		sig = strtoul(s, &e, 10);
 		if(s == e)
 			break;
 		s = e;
-		fl = strtoul(s, &e, 10);
-		if(s == e)
-			break;
-		s = e;
-		ofl = strtoul(s, &e, 10);
-		if(s == e)
-			break;
-		s = e;
-		if(fd < OPEN_MAX){
-			_fdinfo[fd].flags = fl;
-			_fdinfo[fd].oflags = ofl;
-		}
+		if(sig <= MAXSIG)
+			_sighdlr[sig] = SIG_IGN;
 	}
 }

@@ -1,0 +1,22 @@
+ARCH=\
+	indigo\
+	magnum\
+	pc\
+
+all:V:
+	for(i in $ARCH)@{
+		cd $i
+		mk
+	}
+
+installall:V:
+	for(i in $ARCH) @{
+		cd $i
+		mk installall
+	}
+
+clean:V:
+	for(i in $ARCH) @{
+		cd $i
+		mk clean
+	}

@@ -18,9 +18,9 @@ enum {
 	nbbarena=4096	/* number of words in an arena */
 };
 
-static ulong	bbarena[narena][nbbarena];
-static ulong	*bbcur[narena] = {&bbarena[0][0], &bbarena[1][0]};
-static ulong	*bblast[narena] = {0, 0};
+static ulong	*bbarena[narena];
+static ulong	*bbcur[narena];
+static ulong	*bblast[narena];
 
 #define INTENABLED(v)	((v)&(1<<9))
 void *
@@ -33,15 +33,30 @@ bbmalloc(int nbytes)
 	nw = nbytes/sizeof(long);
 	s = splhi();
 	a = INTENABLED(s) ? 0 : 1;
-	if(bbcur[a] + nw > &bbarena[a][nbbarena])
+	if(bbcur[a] + nw > bbarena[a] + nbbarena)
 		ans = bbarena[a];
 	else
 		ans = bbcur[a];
 	bbcur[a] = ans + nw;
-	splx(s);
 	bblast[a] = ans;
+	splx(s);
 	return ans;
 }
+
+void
+bbinit(void)
+{
+	int i;
+
+	if(bbarena[0])
+		return;
+	for(i = 0; i < narena; i++){
+		bbarena[i] = xalloc(nbbarena * sizeof(long));
+		bbcur[i] = bbarena[i];
+		bblast[i] = 0;
+	}
+}
+
 
 void
 bbfree(void *p, int n)
@@ -65,4 +80,11 @@ int
 bbonstack(void)
 {
 	return 0;
+}
+
+void
+bbexec(void (*memstart)(void), int len, int onstack)
+{
+	USED(len, onstack);
+	memstart();
 }

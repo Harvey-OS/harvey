@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 int
 rectclip(Rectangle *rp, Rectangle b)		/* first by reference, second by value */

@@ -25,11 +25,12 @@ Numtab numtab[NN] = {
 	{ PAIR('$', '$') },
 };
 
+
 int	alphabet	= 256;	/* latin-1 */
 int	pto	= 10000;
 int	pfrom	= 1;
 int	print	= 1;
-char	nextf[NS] = TMACDIR;
+char	nextf[NS]	= TMACDIR;
 char	mfiles[NMF][NS];
 int	nmfi	= 0;
 int	oldbits	= -1;
@@ -51,15 +52,14 @@ int	pnlist[NPN] = { -1 };
 
 int	*pnp	= pnlist;
 int	npn	= 1;
-int	npnflg	= 1;
-int	dpn	= -1;
-int	totout	= 1;
-int	ulfont	= ULFONT;
-int	tabch	= TAB;
-int	ldrch	= LEADER;
+int	npnflg	=  1;
+int	dpn	=  -1;
+int	totout	=  1;
+int	ulfont	=  ULFONT;
+int	tabch	=  TAB;
+int	ldrch	=  LEADER;
 
 
-#define	C(a,b)	{a, 0, b, 0}
 Contab contab[NM] = {
 	C(PAIR('d', 's'), caseds),
 	C(PAIR('a', 's'), caseas),
@@ -74,6 +74,7 @@ Contab contab[NM] = {
 	C(PAIR('p', 'o'), casepo),
 	C(PAIR('t', 'l'), casetl),
 	C(PAIR('t', 'm'), casetm),
+	C(PAIR('f', 'm'), casefm),
 	C(PAIR('b', 'p'), casebp),
 	C(PAIR('c', 'h'), casech),
 	C(PAIR('p', 'n'), casepn),
@@ -148,10 +149,12 @@ Contab contab[NM] = {
 	C(PAIR('c', 'f'), casecf),
 	C(PAIR('s', 'y'), casesy),
 	C(PAIR('l', 'f'), caself),
+	C(PAIR('p', 't'), casept),
+	C(PAIR('g', 'd'), casegd),
 };
 
 
-Tchar oline[OLNSIZE];
+Tbuf _oline;
 
 /*
  * troff environment block
@@ -183,6 +186,7 @@ Env env[NEV] = { {	/* this sets up env[0] */
 /* int	ad	 */	1,
 /* int	nms	 */	1,	/* .nm multiplier */
 /* int	ndf	 */	1,	/* .nm separator */
+/* int	nmwid	 */	3,	/* max width of .nm numbers */
 /* int	fi	 */	1,
 /* int	cc	 */	'.',
 /* int	c2	 */	'\'',
@@ -225,12 +229,11 @@ Env env[NEV] = { {	/* this sets up env[0] */
 /* int	spread	 */	0,
 /* int	it	 */	0,	/* input trap count */
 /* int	itmac	 */	0,
-/* int	lnsize	 */	LNSIZE,
 } };
 
 Env	*envp	= env;	/* start off in env 0 */
 
-
+Numerr	numerr;
 
 Stack	*frame, *stk, *ejl;
 Stack	*nxf;
@@ -268,7 +271,7 @@ int	ifi;
 int	iflg;
 int	rargc;
 char	**argp;
-ushort	trtab[NTRTAB];
+Ushort	trtab[NTRTAB];
 int	lgf;
 int	copyf;
 Offset	ip;
@@ -325,7 +328,6 @@ Wcache	widcache[NWIDCACHE];
 Diver	d[NDI];
 Diver	*dip;
 
-
 int	c_hyphen;
 int	c_emdash;
 int	c_rule;
@@ -365,3 +367,24 @@ Spnames	spnames[] =
 	&c_isalnum,	"__",
 	0, 0
 };
+
+
+Tchar	(*hmot)(void);
+Tchar	(*makem)(int i);
+Tchar	(*setabs)(void);
+Tchar	(*setch)(int c);
+Tchar	(*sethl)(int k);
+Tchar	(*setht)(void);
+Tchar	(*setslant)(void);
+Tchar	(*vmot)(void);
+Tchar	(*xlss)(void);
+int	(*findft)(int i);
+int	(*width)(Tchar j);
+void	(*mchbits)(void);
+void	(*ptlead)(void);
+void	(*ptout)(Tchar i);
+void	(*ptpause)(void);
+void	(*setfont)(int a);
+void	(*setps)(void);
+void	(*setwd)(void);
+

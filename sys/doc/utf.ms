@@ -1,22 +1,31 @@
-.tr -\(hy
 .TL
 Hello World
 .br
 or
 .br
+.ft R
 Καλημέρα κόσμε
+.ft
 .br
 or
 .br
-こんにちは 世界
+\f(Jpこんにちは 世界\fP
 .AU
 Rob Pike
 Ken Thompson
-.AI
-.MH
+.sp
+rob,ken@plan9.att.com
 .AB
+.FS
+Originally appeared, in a slightly different form, in
+.I
+Proc. of the Winter 1993 USENIX Conf.,
+.R
+pp. 43-50,
+San Diego
+.FE
 Plan 9 from Bell Labs has recently been converted from ASCII
-to an ASCII-compatible variant of Unicode, a 16-bit character set.
+to an ASCII-compatible variant of the Unicode Standard, a 16-bit character set.
 In this paper we explain the reasons for the change,
 describe the character set and representation we chose,
 and present the programming models and software changes
@@ -32,7 +41,7 @@ Introduction
 .PP
 The world is multilingual but most computer systems
 are based on English and ASCII.
-The release of Plan 9 [Pike90], a new distributed operating
+The first release of Plan 9 [Pike90], a new distributed operating
 system from Bell Laboratories, seemed a good occasion
 to correct this chauvinism.
 It is easier to make such deep changes when building new systems than
@@ -70,17 +79,17 @@ there were only two viable options:
 ISO 10646 [ISO10646] and Unicode [Unicode].
 The documents describing both proposals were still in the draft stage.
 .PP
-ISO 10646 was not
+The draft of ISO 10646 was not
 very attractive to us.
-The standard defines a sparse set of 32-bit characters,
+It defined a sparse set of 32-bit characters,
 which would be
 hard to implement
 and have punitive storage requirements.
-Also, the standard attempts to
+Also, the draft attempted to
 mollify national interests by allocating
 16-bit subspaces to national committees
 to partition individually.
-The suggested mode of use is to
+The suggested mode of use was to
 ``flip'' between separate national
 standards to implement the international standard.
 This did not strike us as a sound basis for a character set.
@@ -90,11 +99,11 @@ Since the standard does not define a byte order for such
 transmission, the byte stream would also have to carry
 state to enable the values to be recovered.
 .PP
-Unicode is a proposal by a consortium of mostly American
+The Unicode Standard is a proposal by a consortium of mostly American
 computer companies formed
 to protest the technical
 failings of ISO 10646.
-Unicode defines a uniform 16-bit code based on the
+It defines a uniform 16-bit code based on the
 principle of unification:
 two characters are the same if they look the
 same even though they are from different
@@ -103,28 +112,29 @@ This principle, called Han unification,
 allows the large Japanese, Chinese, and Korean
 character sets to be packed comfortably into a 16-bit representation.
 .PP
-We chose Unicode for its technical merits and because its
+We chose the Unicode Standard for its technical merits and because its
 code space was better defined.
 Moreover,
-the existence of Unicode was derailing the
+the Unicode Consortium was derailing the
 ISO 10646 standard.
-ISO 10646 is now in its second draft and
-has only one 16-bit group defined,
-which is almost exactly Unicode.
-Most people expect the two standards bodies
-to reach a détente so that
-ISO 10646 and Unicode will represent the same character set.
+(Now, in 1995,
+ISO 10646 is a standard
+with one 16-bit group defined,
+which is almost exactly the Unicode Standard.
+As most people expected, the two standards bodies
+reached a détente and
+ISO 10646 and Unicode represent the same character set.)
 .PP
-Unicode defines an adequate character set
+The Unicode Standard defines an adequate character set
 but an unreasonable representation.
-The Unicode standard states that all characters
+It states that all characters
 are 16 bits wide and are communicated and stored in
 16-bit units.
 It also reserves a pair of characters
 (hexadecimal FFFE and FEFF) to detect byte order
 in transmitted text, requiring state in the byte stream.
-(The Unicode committee was thinking of files, not pipes.)
-To adopt Unicode,
+(The Unicode Consortium was thinking of files, not pipes.)
+To adopt this encoding,
 we would have had to convert all text going
 into and out of Plan 9 between ASCII and Unicode, which cannot be done.
 Within a single program, in command of all its input and output,
@@ -134,17 +144,17 @@ hundreds of applications on diverse machines
 by different manufacturers,
 it is impossible.
 .PP
-We needed a way to adapt Unicode to the tools-and-pipes
+We needed a way to adapt the Unicode Standard to the tools-and-pipes
 model of text processing embodied by the Unix system.
 To do that, we
 needed an ASCII-compatible textual
-representation of Unicode for transmission
+representation of Unicode characters for transmission
 and storage.
-In the ISO standard there is an informative
+In the draft ISO standard there was an informative
 (non-required)
 Annex
 called UTF
-that provides a byte stream encoding
+that provided a byte stream encoding
 of the 32-bit ISO code.
 The encoding uses multibyte sequences composed
 from the 190 printable characters of Latin-1
@@ -180,7 +190,7 @@ tabs, and blanks provide synchronization points.
 .PP
 In August 1992,
 X-Open circulated a proposal for another UTF-like
-byte encoding of Unicode.
+byte encoding of Unicode characters.
 Their major concern was that an embedded character
 in a file name
 (in particular a slash)
@@ -194,39 +204,44 @@ Multibyte sequences would contain only characters
 with the high bit set.
 We proposed a modification to the new UTF that
 would address our synchronization problem.
-The modified new proposal is now informally called UTF-2
-and is being proposed as another informative Annex to ISO 10646.
+Our proposal, which was  originally known informally as UTF-2 and FSS-UTF,
+is now referred to as UTF-8 and has been approved by ISO to become
+Annex P to ISO 10646.
 .PP
 The model for text in Plan 9 is chosen from these
 three standards*:
 .FS
 * ``That's the nice thing about standards\(emthere's so many to choose from.'' \- Andy Tannenbaum (no, the other one)
 .FE
-the Unicode character set encoded as byte stream by
-UTF-2, from an X-Open proposed modification of
-Annex F of ISO 10646.
-Although this may seem like a precarious position for us to adopt,
+the Unicode character set encoded as a byte stream by
+UTF-8, from
+(soon to be) Annex P of ISO 10646.
+Although this mixture may seem like a precarious position for us to adopt,
 it is not as bad as it sounds.
-If, as expected,
-ISO adopts Unicode as Group 0 of 10646
-and ISO publishes UTF-2 as an Annex,
-then
-Plan 9 will be ISO/UTF-2 compatible.
+ISO 10646 and the Unicode Standard have converged,
+other systems such as Linux have adopted the same character set and encoding,
+and the general feeling seems to be that Unicode and UTF-8 will be accepted as the way
+to exchange text between systems.
+The prognosis for wide acceptance is good.
 .PP
-There are a couple of aspects of Unicode we have not faced.
+There are a couple of aspects of the Unicode Standard we have not faced.
 One is the issue of right-to-left text such as Hebrew or Arabic.
 Since that is an issue of display, not representation, we believe
 we can defer that problem for the moment without affecting our
 ability to solve it later.
-Another issue is diacriticals, which cause overstriking of multiple
-Unicode characters.
-Again, these are display issues and, since the Unicode
-committee is still deciding their finer points,
-we felt comfortable deferring.  Mañana.
+Another issue is diacriticals and `combining characters',
+which cause overstriking of multiple Unicode characters.
+Although necessary for some scripts, such as Thai, Arabic, and Hebrew,
+such characters confuse the issues for Latin languages because they
+generate multiple representations for accented characters.
+ISO 10646 describes three levels of implementation;
+in Plan 9 we decided not to address the issue.
+Again, this can be labeled as a display issue and its finer points are still being debated,
+so we felt comfortable deferring.  Mañana.
 .PP
 Although we converted Plan 9 in the altruistic interests of
 serving foreign languages, we have found the large character
-set attractive for other reasons.  Unicode includes many
+set attractive for other reasons.  The Unicode Standard includes many
 characters\(emmathematical symbols, scientific notation,
 more general punctuation, and more\(emthat we now use
 daily in our work.  We no longer test our imaginations
@@ -242,7 +257,7 @@ in the IPA font, foreign phrases properly rendered, and so on,
 .I "in plain text.
 .PP
 In the rest of this paper, except when
-stated otherwise, the term `UTF' refers to the UTF-2 encoding
+stated otherwise, the term `UTF' refers to the UTF-8 encoding
 of Unicode characters as adopted by Plan 9.
 .SH
 C Compiler
@@ -299,14 +314,14 @@ There are surprises; for example:
 L'x'	\f1is 120\fP
 \&'x'	\f1is 120\fP
 L'ÿ'	\f1is 255\fP
-\&'ÿ'	\f1is \-1, stdio \fPEOF\f1 (if \fPchar\f1 is signed)\fP
-L'α'	\f1is 945\fP
-\&'α'	\f1is illegal\fP
+\&'ÿ'	\f1is -1, stdio \fPEOF\f1 (if \fPchar\f1 is signed)\fP
+L'\f1α\fP'	\f1is 945\fP
+\&'\f1α\fP'	\f1is illegal\fP
 .P2
 In the string constants,
 .P1
-"こんにちは 世界"
-L"こんにちは 世界",
+"\f(Jpこんにちは 世界\fP"
+L"\f(Jpこんにちは 世界\fP",
 .P2
 the former is an array of
 .CW chars
@@ -344,7 +359,7 @@ printed under
 .CW %c
 will be identical,
 but
-.CW L'α'
+.CW L'\f1α\fP'
 will print as the Unicode
 character with decimal value 177.
 The character conversion
@@ -354,7 +369,7 @@ to 16 bits before converting to UTF.
 Thus
 .CW L'ÿ'
 and
-.CW L'α'
+.CW L'\f1α\fP'
 will print correctly under
 .CW %C ,
 but
@@ -393,8 +408,8 @@ Here is a complete example:
 .P1
 #include <u.h>
 
-char c[] = "こんにちは 世界";
-Rune s[] = L"こんにちは 世界";
+char c[] = "\f(Jpこんにちは 世界\fP";
+Rune s[] = L"\f(Jpこんにちは 世界\fP";
 
 main(void)
 {
@@ -424,7 +439,7 @@ This change breaks two deep-rooted symmetries implicit in most C programs:
 A character is no longer a
 .CW char .
 .IP 2.
-The internal representation (Unicode) of a character now differs from its
+The internal representation (Rune) of a character now differs from its
 external representation (UTF).
 .PP
 In the sections that follow,
@@ -467,8 +482,8 @@ Also defined are several constants relevant to UTF:
 enum
 {
     UTFmax    = 3,    /* maximum bytes per rune */
-    Runesync  = 0x80, /* cannot represent part of a UTF sequence (<) */
-    Runeself  = 0x80, /* rune and UTF sequences are the same (<) */
+    Runesync  = 0x80, /* can't appear in UTF sequence (<) */
+    Runeself  = 0x80, /* rune==UTF sequence (<) */
     Runeerror = 0x80, /* decoding error in UTF */
 };
 .P2
@@ -505,11 +520,11 @@ This technique does have the unfortunate property that converting
 invalid UTF byte strings in and out of runes does not preserve the input,
 but this circumstance only occurs when non-textual input is
 given to a textual program.
-Unicode defines an error character, value FFFD, to represent
-characters from other sets that are not represented in Unicode.
+The Unicode Standard defines an error character, value FFFD, to stand for
+characters from other sets that it does not represent.
 The
 .CW Runeerror
-character is a different concept, related to UTF rather than Unicode, so we
+character is a different concept, related to the encoding rather than the character set, so we
 chose a different character for it.
 .PP
 The Plan 9 C library contains a number of routines for
@@ -562,7 +577,7 @@ and
 a pointer to the last.
 .CW Utfutf
 searches for the first occurrence of a UTF string in another UTF string.
-Given the synchronizing property of UTF-2,
+Given the synchronizing property of UTF-8,
 .CW utfutf
 is the same as
 .CW strstr
@@ -671,8 +686,8 @@ to write real applications comfortably.
 Converting the tools
 .PP
 The source for our tools and applications had already been converted to
-work with Latin-1, so it was `8-bit safe', but the conversion to Unicode
-and UTF is more involved.
+work with Latin-1, so it was `8-bit safe', but the conversion to the Unicode
+Standard and UTF is more involved.
 Some programs needed no change at all:
 .CW cat ,
 for instance,
@@ -778,7 +793,7 @@ With sorting options enabled, however,
 .CW sort
 may need to convert its input to runes: for example,
 option
-.CW -tα
+.CW -t\f1α\fP
 requires searching for alphas in the input text to
 crack the input into fields.
 The field specifier
@@ -823,7 +838,7 @@ An existing library for compiling and executing regular expressions
 was adapted to work on runes, with two entry points for searching
 in arrays of runes and arrays of chars (the pattern is always UTF text).
 Character classes are represented internally as runs of runes;
-the reserved Unicode value
+the reserved value
 .CW FFFF
 marks the end of the class.
 Then
@@ -853,7 +868,8 @@ its input;
 the number of invalid sequences.
 .PP
 It took us several months to convert all the software in the system
-to Unicode and the old UTF.  When we decided to convert from that to the new UTF,
+to the Unicode Standard and the old UTF.
+When we decided to convert from that to the new UTF,
 only three things needed to be done.
 First, we rewrote the library routines to encode and decode the
 new UTF.  This took an evening.
@@ -894,7 +910,7 @@ Unicode equivalent of a plain text terminal.
 With 128 or even 256 characters, a font can be just
 an array of bitmaps.  With 65536 characters,
 a more sophisticated design is necessary.  To store the ideographs
-for just Japanese as 16\(mu16\(mu1 bit images,
+for just Japanese as 16×16×1 bit images,
 the smallest they can reasonably be, takes over a quarter of a
 megabyte.  Make the images a little larger, store more bits per
 pixel, and hold a copy in every running application, and the
@@ -936,7 +952,7 @@ For example, one subfont
 might hold the images of the first 256 characters of the Unicode space,
 corresponding to the Latin-1 character set;
 another might hold the standard phonetic character set, Unicode characters
-with value 0250 to 02A8.
+with value 0250 to 02E9.
 These files are collected in directories corresponding to typefaces:
 .CW /lib/font/bit/pelm
 contains the Pellucida Monospace character set, with subfonts holding
@@ -961,7 +977,7 @@ applications.
 Here is the beginning of the font file
 .CW /lib/font/bit/pelm/jis.9.font ,
 which describes the layout of a font covering that portion of
-Unicode for which we have characters of typical
+the Unicode Standard for which we have characters of typical
 display size, using Japanese characters
 to cover the Han space:
 .P1
@@ -981,6 +997,8 @@ to cover the Han space:
 0x2300	0x232C	../misc/tech
 0x2500	0x257F	../misc/chart
 0x2600	0x266F	../misc/ding
+.P2
+.P1
 0x3000	0x303f	../jis/jis3000.16
 0x30a1	0x30fe	../jis/katakana.16
 0x3041	0x309e	../jis/hiragana.16
@@ -1103,12 +1121,15 @@ as input to the system.
 We selected an unused key on our ASCII keyboards
 to serve as a prefix for multi-keystroke
 sequences that generate Unicode characters.
-For example, the character ü is generated by the prefix key
+For example, the character
+.CW ü
+is generated by the prefix key
 (typically
 .CW ALT
 or
 .CW Compose )
-followed by a double quote and a lower-case u.
+followed by a double quote and a lower-case
+.CW u .
 When that character is read by the application, from the file
 .CW /dev/cons ,
 it is of course presented as its UTF encoding.
@@ -1133,7 +1154,7 @@ These methods
 are clearly unsatisfactory when working in a non-English language.
 In the native country of such a language
 the appropriate keyboard is likely to be at hand.
-But it's also reasonable\(emespecially now the system handles Unicode\(emto
+But it's also reasonable\(emespecially now that the system handles Unicode characters\(emto
 work in a language foreign to the keyboard.
 .PP
 For alphabetic languages such as Greek or Russian, it is
@@ -1188,34 +1209,31 @@ We thank them all.
 .SH
 References
 .LP
-[ANSIC] \f2American National Standard for Information Systems \(en
+[ANSIC] \f2American National Standard for Information Systems \-
 Programming Language C\f1, American National Standards Institute, Inc.,
-New York, 1990
+New York, 1990.
 .LP
 [ISO10646]
 ISO/IEC DIS 10646-1:1993
-\f2Information technology \(en
+\f2Information technology \-
 Universal Multiple-Octet Coded Character Set (UCS) \(em
-Part 1: Architecture and Basic Multilingual Plane\fP
+Part 1: Architecture and Basic Multilingual Plane\fP.
 .LP
 [Pike90] R. Pike, D. Presotto, K. Thompson, H. Trickey,
 ``Plan 9 from Bell Labs'',
 UKUUG Proc. of the Summer 1990 Conf.,
 London, England,
-1990
+1990.
 .LP
-[Pike91] Pike, R., ``8.5, The Plan 9 Window System'', USENIX Summer
-Conf. Proc., Nashville, 1991
+[Pike91] R. Pike, ``8½, The Plan 9 Window System'', USENIX Summer
+Conf. Proc., Nashville, 1991, reprinted in this volume.
 .LP
-[Pike92] Pike, R., ``How to Use the Plan 9 C Compiler'', in
-\f2The Plan 9 Programmer's Manual\f1,
-AT&T Bell Laboratories,
-Murray Hill, NJ, 1992
+[Pike92] R. Pike, ``How to Use the Plan 9 C Compiler'', this volume.
 .LP
 [Pong and Zhang] Man-Chi Pong and Yongguang Zhang, ``cxterm:
 A Chinese Terminal Emulator for the X Window System'',
 .I
-Software\(enPractice and Experience,
+Software\(emPractice and Experience,
 .R
 Vol 22(1), 809-926, October 1992.
 .LP
@@ -1226,4 +1244,4 @@ Version 1.0, Volume 1\f1,
 The Unicode Consortium,
 Addison Wesley,
 New York,
-1991
+1991.

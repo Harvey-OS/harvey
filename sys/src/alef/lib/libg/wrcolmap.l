@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 /*
  * This code (and the devbit interface) will have to change
@@ -10,7 +10,7 @@
 void
 wrcolmap(Bitmap *b, RGB *m)
 {
-	char *buf;
+	byte *buf;
 	int i, n;
 
 	n = 1<<(1<<b->ldepth);

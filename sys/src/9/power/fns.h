@@ -2,6 +2,7 @@
 
 void	arginit(void);
 void	clearmmucache(void);
+void	clock(Ureg*);
 void	clockinit(void);
 ulong	confeval(char*);
 void	confread(void);
@@ -29,6 +30,7 @@ void	gettlb(int, ulong*);
 ulong	gettlbvirt(int);
 void	gotopc(ulong);
 ulong	getcallerpc(void*);
+ulong	getstatus(void);
 void	icflush(void *, ulong);
 void	ioboardinit(void);
 void	intr(Ureg*);
@@ -39,6 +41,7 @@ void	lanceparity(void);
 void	lancesetup(Lance*);
 void	launchinit(void);
 void	launch(int);
+#define	mmunewpage(x)
 int	muxlock(int*, int*);
 void	newstart(void);
 int	newtlbpid(Proc*);
@@ -57,12 +60,13 @@ void	puttlb(ulong, ulong);
 void	puttlbx(int, ulong, ulong);
 int	readlog(ulong, char*, ulong);
 void	restfpregs(FPsave*, ulong);
-#define	screenputs syslog
+#define	screenputs 
 void	scsiintr(int);
 void	setvmevec(int, void (*)(int));
 void	sinit(void);
 uchar*	smap(int, uchar*);
 void	sunmap(int, uchar*);
+long	syscall(Ureg*);
 void	sysloginit(void);
 void	syslog(char*, int);
 void	tlbinit(void);

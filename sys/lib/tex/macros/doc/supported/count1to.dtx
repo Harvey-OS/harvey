@@ -1,0 +1,413 @@
+% \iffalse
+%% File: count1to.dtx Copyright (C) 1994 Martin Schr\"oder
+%
+%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\ProvidesPackage{count1to}
+%<package>         [1994/12/09 v1.01 Count1to9 Package (MS)]
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{count1to}
+\GetFileInfo{count1to.sty}
+\setcounter{IndexColumns}{2}
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\setcounter{IndexColumns}{2}
+\setlength{\IndexMin}{30ex}
+\AtBeginDocument{\addtocontents{toc}{\protect\begin{multicols}{2}}}
+\AtEndDocument{\addtocontents{toc}{\protect\end{multicols}}}
+\begin{document}
+\makeatletter
+\makeatother
+\DocInput{count1to.dtx}
+\end{document}
+%</driver>
+%
+% Copyright (C) 1994 by Martin Schr\"oder.  All rights reserved.
+%
+% IMPORTANT NOTICE:
+%
+% You are not allowed to change this file.  You may however copy
+% this file to a file with a different name and then change the
+% copy if you obey the restrictions on file changes described in
+% count1to.ins.
+%
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of this file
+% (or a changed version) except for a nominal charge for copying
+% etc.
+%
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in
+% count1to.ins.
+%
+% If you receive only some of these files from someone, complain!
+%
+% However, if these files are distributed by established suppliers
+% as part of a complete TeX distribution, and the structure of the
+% distribution would make it difficult to distribute the whole set
+% of files, *those parties* are allowed to distribute only some of
+% the files provided that it is made clear that the user will get
+% a complete distribution-set upon request to that supplier (not
+% me).  Notice that this permission is not granted to the end
+% user.
+%
+%
+% For error reports in case of UNCHANGED versions see count1to.ins
+%
+% \fi
+%
+% \CheckSum{103}
+%
+%% \CharacterTable
+%% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%  Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%  Digits        \0\1\2\3\4\5\6\7\8\9
+%%  Exclamation   \!     Double quote  \"     Hash (number) \#
+%%  Dollar        \$     Percent       \%     Ampersand     \&
+%%  Acute accent  \'     Left paren    \(     Right paren   \)
+%%  Asterisk      \*     Plus          \+     Comma         \,
+%%  Minus         \-     Point         \.     Solidus       \/
+%%  Colon         \:     Semicolon     \;     Less than     \<
+%%  Equals        \=     Greater than  \>     Question mark \?
+%%  Commercial at \@     Left bracket  \[     Backslash     \\
+%%  Right bracket \]     Circumflex    \^     Underscore    \_
+%%  Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%  Right brace   \}     Tilde         \~}
+%%
+%% \iffalse meta-comment
+%% ===================================================================
+%%  @LaTeX-style-file{
+%%     author          = {Martin Schr\"oder},
+%%     version         = "1.01",
+%%     date            = "9 December 1993",
+%%     filename        = "count1to.sty",
+%%     address         = {Martin Schr\"oder
+%%                        Friedrich-Humbert-Stra\ss{}e 124
+%%                        D-28759 Bremen
+%%     telephone       = "+49-421-628813",
+%%     email           = "MS@Dream.HB.North.DE (INTERNET)",
+%%     codetable       = "ISO/ASCII",
+%%     keywords        = "LaTeX, pages",
+%%     supported       = "yes",
+%%     docstring       = "LaTeX package which sets count1 to count9,
+%%                        which can be used to select certain pages
+%%                        with a driver.
+%%                        Uses the everyshi package."
+%%  }
+%% ===================================================================
+%% \fi
+%
+%  \changes{v1.00}{1994/12/07}{New}
+%  \changes{v1.01}{1994/12/09}{Documentation improved}
+%
+%  \newcommand{\Count}[1]{\texttt{\symbol{92}count#1}}
+%
+%  \IndexPrologue{^^A
+%     \section*{Index}^^A
+%     \markboth{Index}{Index}^^A
+%     Numbers written in {\it italic\/} refer to the page where the
+%     corresponding entry is described, the ones
+%     \underline{underlined} to the definition, the rest to the places
+%     where the entry is used.}
+%
+% ^^A -----------------------------
+%
+%  \title{\unskip
+%         The \textsf{count1to} package^^A
+%           \thanks{^^A
+%              The version umber of this file is \fileversion,
+%              last revised \filedate.\newline
+%              The name \textsf{count1to} is a tribute to the $8+3$ 
+%              file-naming convention of certain ``operating 
+%              systems''; strictly speaking it should be
+%              \textsf{count1to9}.}^^A
+%        }
+%  \author{Martin Schr\"oder\\[0.5ex]
+%          \normalsize  Friedrich-Humbert-Stra\ss{}e 124\\
+%          \normalsize  D-28759 Bremen\\
+%          \normalsize  MS@Dream.HB.North.DE (INTERNET)}
+%  \date{\filedate}
+%  \maketitle
+%
+% ^^A -----------------------------
+%
+%
+%  \begin{abstract}
+%     This package sets \Count{1} to \Count{8} with the values
+%     of \texttt{page} to \texttt{subparagraph}.
+%     \Count{9} is used to flag odd pages.
+%     The values of these counters are displayed and written in the
+%     \textsf{.dvi} file by \TeX{} and can later be used to select
+%     the pages of certain parts of the document for printing if the
+%     device driver supports this.
+%  \end{abstract}
+%
+%  \pagestyle{headings}
+%
+% ^^A -----------------------------
+%
+%  \tableofcontents
+%
+% ^^A -----------------------------
+%
+%  \section{Introduction}
+%
+%  Most of the time users want to print only certain parts of a 
+%  document; but these can only be selected by using the page numbers
+%  of these parts with most device drivers.
+%  This can be dif\/ficult or impossible if pages in dif\/ferent 
+%  parts of the document have the same number---e.\,g. in the 
+%  frontmatter and the first text pages (iii vs. 3).
+%
+%  \TeX{} provides an easy solution to this problem: whenever a page
+%  is completed by the output routine and shipped out via 
+%  \cs{shipout}, it displayes the values of \Count{0} to \Count{9}
+%  on the display (e.\,g. \texttt{[1]}) \emph{and writes them to the
+%  \textsf.{dvi} file}.
+%
+%  \begin{quote}
+%     ``The first ten \Count{} registers, \Count{0} to \Count{9},
+%     are reserved for a special purpose: \TeX{} displays these ten
+%     counts on your terminal whenever ouputting a page, and it 
+%     transmits them to the output file as an identification of that
+%     page.
+%     The counts are separated by decimal points on your terminal, 
+%     with trailing `\texttt{.0}' patterns suppressed.
+%     Thus, for example, if \Count{0=5} and \Count{2=7} when a
+%     page is shipped out to the \texttt{dvi} file, and if the other
+%     counters are zero, \TeX{} will type `\texttt{[5.0.7]}'.
+%     Plain \TeX{} uses \Count{0} for the page number, and it keeps
+%     \Count{1} through \Count{9} equal to zero; that is why you
+%     see `\texttt{[1]}' when a page 1 is being output.
+%     In more complex applications the page numbers have further 
+%     structure; ten counts are shipped out so that there will be
+%     plenty of identification.''\cite[p. 119]{KnuthTeXa}
+%  \end{quote}
+%
+%  Surprinsingly, until recently there existed no package for 
+%  \LaTeX{} that used these \Count{}ers although some drivers allow 
+%  the selection of pages based on other \Count{}s then \Count{0} 
+%  (e.\,g. em\TeX).
+%
+%  This package is the solution: It uses the \textsf{everyshi}
+%  package to set \Count{1} to \Count{9} before each \cs{shipout}
+%  with these values:
+%
+%  \begin{center}
+%  \DeleteShortVerb{\|}
+%  \begin{tabular}{|c|l|}\hline
+%  \Count{} & value  \\ \hline
+%  0        & relative page number (set by \LaTeX)\\
+%  1        & absolute page number\\
+%  2        & number of current \cs{part} \\
+%  3        & number of current \cs{chapter} (0 with article class)\\
+%  4        & number of current \cs{section} \\
+%  5        & number of current \cs{subsection} \\
+%  6        & number of current \cs{subsubsection} \\
+%  7        & number of current \cs{paragraph} \\
+%  8        & number of current \cs{subparagraph} \\
+%  9        & 1 on odd pages, 0 on even pages\footnotemark\\ \hline
+%  \end{tabular}
+%  \end{center}
+%  \footnotetext{^^A
+%     If you have a better application for \Count{9}, let me know.}
+%
+%
+%  \textsf{count1to} also works with classes that do not define some
+%  or all of the sectioning commands and their counters, like 
+%  \textsf{letter}.
+%  Although it is of somewhat little use then \texttt{:-)}.
+%
+%  A note for users of this package: When you select the pages of
+%  some part of your document with a lower structure than 
+%  \cs{chapter}, remember that only \cs{part}s and \cs{chapter}s
+%  start on a new page; if you want to print a complete
+%  \cs{section}, you should also select the first page of the next
+%  \cs{section}.
+%  Also note that \TeX{} ships out the values of the counters instead
+%  of their visual representation (produced with 
+%  \cs{the}\emph{counter}), so appendix A sets \Count{4} to 1 in the
+%  article class.
+%
+%  A note for developers of device drivers: Please add support for
+%  \Count{1} to \texttt{9} to your programs.
+%  It would also be nice if users could easily select the next 
+%  page(s) after a certain count (something like 
+%  ``\texttt{*.*.*.*.2+1.*}'' should be possible for selecting all
+%  pages with \Count{4}~$\mapsto$~section $=$ 2 plus the first 
+%  page of section 3).
+%
+% ^^A -----------------------------
+%
+%  \section{Options}
+%
+%  The package has no options.
+%
+% ^^A -----------------------------
+%
+%  \section{Required packages}
+%
+%  The package does require the \textsf{everyshi} package.
+%
+% ^^A -----------------------------
+%
+%  \StopEventually{^^A
+%     \PrintIndex\PrintChanges
+%     ^^A Make sure that the index is not printed twice
+%     ^^A (ltxdoc.cfg might have a second \PrintIndex command)
+%     \let\PrintChanges\relax
+%     \let\PrintIndex\relax
+%     }
+%
+% ^^A -----------------------------
+%
+%  \section{The implementation}
+%
+%  \setlength{\parindent}{0pt}
+%    \begin{macrocode}
+%<*package>
+%    \end{macrocode}
+%
+%  We need the \textsf{everyshi} package.
+%    \begin{macrocode}
+\RequirePackage{everyshi}[1994/12/09]
+%    \end{macrocode}
+%
+%  We need various \cs{if}s to check if the used counters are
+%  defined.
+%    \begin{macrocode}
+\newif\if@have@part
+\newif\if@have@chapter
+\newif\if@have@section
+\newif\if@have@subsection
+\newif\if@have@subsubsection
+\newif\if@have@paragraph
+\newif\if@have@subparagraph
+%    \end{macrocode}
+%
+%  \begin{macro}{\@countItoIX@ifs}
+%  \cs{@countItoIX@ifs} is used to set all these \cs{if}s at
+%  \cs{begin\{document\}}.
+%    \begin{macrocode}
+\newcommand{\@countItoIX@ifs}{
+   \@ifundefined{c@part}           {}{\@have@parttrue}
+   \@ifundefined{c@chapter}        {}{\@have@chaptertrue}
+   \@ifundefined{c@section}        {}{\@have@sectiontrue}
+   \@ifundefined{c@subsection}     {}{\@have@subsectiontrue}
+   \@ifundefined{c@subsubsection}  {}{\@have@subsubsectiontrue}
+   \@ifundefined{c@paragraph}      {}{\@have@paragraphtrue}
+   \@ifundefined{c@subparagraph}   {}{\@have@subparagraphtrue}
+   }
+\AtBeginDocument{\@countItoIX@ifs}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\@countItoIX@bugfix}
+%  The current release of \LaTeX{} has the ``feature'' that only the 
+%  first level of counters associated with a counter via the optional
+%  argument of \cs{newcounter} is reset when the counter is stepped;
+%  so when you start a new chapter, the number for the subsection is
+%  not reset.
+%  This is normally no problem, but with this package, it is: If this
+%  bug is not fixed or worked-around, then whenever you use
+%  \cs{subparagraph} or some other lower sectioning command, and 
+%  after that a sectioning command that is at least two levels higher 
+%  (e.\,g. \cs{subsubsection}), the value of \texttt{subparagraph} 
+%  would not be reset and would still be displayed and shipped out.
+%  So we have to associate \emph{all} lower-level sectioning commands
+%  with the higher levels.
+%  This is done via \cs{@addtoreset} at \cs{begin\{document\}}.
+%    \begin{macrocode}
+\newcommand{\@countItoIX@bugfix}{
+   \if@have@part
+      \@addtoreset{section}      {part}
+      \@addtoreset{subsection}   {part}
+      \@addtoreset{subsubsection}{part}
+      \@addtoreset{paragraph}    {part}
+      \@addtoreset{subparagraph} {part}
+   \fi
+   \if@have@chapter
+      \@addtoreset{subsection}   {chapter}
+      \@addtoreset{subsubsection}{chapter}
+      \@addtoreset{paragraph}    {chapter}
+      \@addtoreset{subparagraph} {chapter}
+   \fi
+   \if@have@section
+      \@addtoreset{subsubsection}{section}
+      \@addtoreset{paragraph}    {section}
+      \@addtoreset{subparagraph} {section}
+   \fi
+   \if@have@subsection
+      \@addtoreset{paragraph}    {subsection}
+      \@addtoreset{subparagraph} {subsection}
+   \fi
+   \if@have@subsubsection
+      \@addtoreset{subparagraph} {subsubsection}
+   \fi
+   }
+\AtBeginDocument{\@countItoIX@bugfix}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\@countItoIX@shipout}
+%  \cs{@countItoIX@shipout} is used for setting \Count{1} to 
+%  \Count{9} at each \cs{shipout}.
+%    \begin{macrocode}
+\newcommand{\@countItoIX@shipout}{
+%    \end{macrocode}
+%  \Count{1} is the absolute page number, which we have to maintain
+%  by ourselves.
+%    \begin{macrocode}
+   \global\advance \count1 by 1
+%    \end{macrocode}
+%  \Count{2} to \Count{8} are set with the values of
+%  \cs{part} to \cs{subparagraph}, if these commands are defined.^^A
+%     \footnote{We should probably also check the value of 
+%        \texttt{secnumdepth}, but I don't think this is necessary.}
+%    \begin{macrocode}
+   \if@have@part              \count2\value{part}           \fi
+   \if@have@chapter           \count3\value{chapter}        \fi
+   \if@have@section           \count4\value{section}        \fi
+   \if@have@subsection        \count5\value{subsection}     \fi
+   \if@have@subsubsection     \count6\value{subsubsection}  \fi
+   \if@have@paragraph         \count7\value{paragraph}      \fi
+   \if@have@subparagraph      \count8\value{subparagraph}   \fi
+%    \end{macrocode}
+%  \Count{9} is set to 1 on odd pages and to 0 on even pages.
+%    \begin{macrocode}
+   \ifodd\count1\count9=1     \else\count9=0                \fi
+   }
+\EveryShipout{\@countItoIX@shipout}
+%    \end{macrocode}
+%  \end{macro}
+%
+%    \begin{macrocode}
+%</package>
+%    \end{macrocode}
+%
+% ^^A -----------------------------
+%
+%  \section{Acknowledgements}
+%
+%  As usual Rebecca Stiels improved the quality of this documentation.
+%  If you need a translator from English or Fran\c{c}ais to German, 
+%  send her an e-mail to \texttt{Rebecca@Andurg.HB.North.DE}.
+%  And if you need a \TeX{}nician or computer scientist, send 
+%  \emph{me} an e-mail; I'm looking for a job.
+%
+% ^^A -----------------------------
+%
+%  \begin{thebibliography}{1}
+%     \bibitem{KnuthTeXa}
+%        Donald~E.\ Knuth.
+%        \newblock \emph{The {\TeX}Book}, volume~A of \emph{Computers
+%           and Typesetting}.
+%        \newblock Addison-Wes\-ley, 1986.
+%        \newblock Eleventh printing, revised, May 1991.
+%  \end{thebibliography}
+%
+% ^^A -----------------------------
+%
+%  \Finale

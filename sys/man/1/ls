@@ -4,13 +4,13 @@ ls, lc \- list contents of directory
 .SH SYNOPSIS
 .B ls
 [
-.B -dlnpqrstu
+.B -dlnpqrstuF
 ]
 .I name ...
 .PP
 .B lc
 [
-.B -dlnpqrstu
+.B -dlnqrstuF
 ]
 .I name ...
 .SH DESCRIPTION
@@ -25,7 +25,7 @@ By default, the output is sorted alphabetically by name.
 .PP
 .I Lc
 is the same as
-.I ls,
+.IR ls ,
 but sets the
 .B -p
 option and pipes the output through
@@ -77,6 +77,14 @@ sort by time of last access;
 under
 .B -l
 print time of last access.
+.TP
+.B  -F
+Add the character
+.B /
+after all directory names
+and the character
+.B *
+after all executable files.
 .PP
 The mode printed under the
 .B -l
@@ -126,6 +134,10 @@ if the file is executable;
 .B  -
 if none of the above permissions is granted.
 .PD
+.SH SOURCE
+.B /sys/src/cmd/ls.c
+.br
+.B /rc/bin/lc
 .SH SEE ALSO
 .IR stat (2)
 .IR mc (1)

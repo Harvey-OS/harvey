@@ -1,7 +1,7 @@
 #include <alef.h>
 
 int
-strlen(char *s)
+strlen(byte *s)
 {
 	return strchr(s, 0) - s;
 }

@@ -131,11 +131,7 @@ rectXrect(Rectangle r, Rectangle s)
 int
 rectinrect(Rectangle r, Rectangle s)
 {
-	/* !ptinrect(r.min, s) in line for speed */
-	if(!(r.min.x>=s.min.x && r.min.x<s.max.x &&
-	    r.min.y>=s.min.y && r.min.y<s.max.y))
-		return 0;
-	return r.max.x<=s.max.x && r.max.y<=s.max.y;
+	return s.min.x<=r.min.x && r.max.x<=s.max.x && s.min.y<=r.min.y && r.max.y<=s.max.y;
 }
 
 int

@@ -1,0 +1,3 @@
+-W	print out object file as it is read in
+-X	print out scheduling info
+-a	print assembled output

@@ -5,6 +5,7 @@ OFILES=\
 	asm.$O\
 	list.$O\
 	noop.$O\
+	sched.$O\
 	obj.$O\
 	optab.$O\
 	pass.$O\

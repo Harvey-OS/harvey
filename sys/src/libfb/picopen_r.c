@@ -30,14 +30,14 @@ PICFILE *picopen_r(char *file){
 	int x0, y0, x1, y1, i, n, first;
 	PICFILE *p=(PICFILE *)malloc(sizeof(PICFILE));
 	if(p==0){
-		_PICerror="Can't allocate PICFILE";
+		werrstr("Can't allocate PICFILE");
 		return 0;
 	}
 	p->flags=PIC_NOCLOSE|PIC_INPUT;
 	p->argc=-1;
 	p->cmap=0;
 	if(strcmp(file, "IN")==0)
-		p->fd=0;
+		p->fd=dup(0, -1);
 	else{
 		p->fd=open(file, 0);
 		if(p->fd<0){
@@ -61,11 +61,11 @@ PICFILE *picopen_r(char *file){
 		lp=line;
 		do{
 			if(lp==&line[NLINE]){
-				_PICerror="header line too long";
+				werrstr("header line too long");
 				goto Error;
 			}
 			if(read(p->fd, lp, 1)!=1){
-				_PICerror="Can't read header";
+				werrstr("Can't read header");
 				goto Error;
 			}
 			if(first && lp==line+12*5-1 && _PICplan9header(p, line))
@@ -77,7 +77,7 @@ PICFILE *picopen_r(char *file){
 		lp[-1]='\0';
 		lp=strchr(line, '=');
 		if(lp==0){
-			_PICerror="Ill-formed header line";
+			werrstr("Ill-formed header line");
 			goto Error;
 		}
 		*lp++='\0';
@@ -85,14 +85,14 @@ PICFILE *picopen_r(char *file){
 	}
 AllRead:
 	if(strncmp(p->argv[0], "TYPE=", 5)!=0){
-		_PICerror="First header line not TYPE=";
+		werrstr("First header line not TYPE=");
 		goto Error;
 	}
 	p->type=p->argv[0]+5;
 	for(i=0;_PICconf[i].type;i++)
 		if(strcmp(p->type, _PICconf[i].type)==0) break;
 	if(!_PICconf[i].type){
-		_PICerror="Illegal TYPE";
+		werrstr("Illegal TYPE");
 		goto Error;
 	}
 	p->rd=_PICconf[i].rd;
@@ -105,7 +105,7 @@ AllRead:
 	if(_PICconf[i].nchan){
 		p->nchan=_PICconf[i].nchan;
 		if(nchan && p->nchan!=atoi(nchan)){
-			_PICerror="wrong NCHAN for this TYPE";
+			werrstr("wrong NCHAN for this TYPE");
 			goto Error;
 		}
 		if(p->chan==0) switch(p->nchan){
@@ -118,14 +118,14 @@ AllRead:
 	else if(p->chan)
 		p->nchan=strlen(p->chan);
 	else{
-		_PICerror="Neither CHAN nor NCHAN in header";
+		werrstr("Neither CHAN nor NCHAN in header");
 		goto Error;
 	}
 	if(p->chan==0 && p->nchan<=16)
 		p->chan="????????????????"+16-p->nchan;
 	window=picgetprop(p, "WINDOW");
 	if(window==0){
-		_PICerror="No WINDOW in header";
+		werrstr("No WINDOW in header");
 		goto Error;
 	}
 	window=scanint(window, &x0); if(window==0) goto Error;
@@ -151,13 +151,13 @@ AllRead:
 	if(picgetprop(p, "CMAP")){
 		p->cmap=malloc(3*256);
 		if(p->cmap==0){
-			_PICerror="Can't allocate color map";
+			werrstr("Can't allocate color map");
 			goto Error;
 		}
 		for(i=3*256,lp=p->cmap;i!=0;i-=n,lp+=n){
 			n=read(p->fd, lp, i);
 			if(n<=0){
-				_PICerror="Can't read color map";
+				werrstr("Can't read color map");
 				goto Error;
 			}
 		}

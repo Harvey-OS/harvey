@@ -1,0 +1,21 @@
+fetch mul input for inst - 1 < accumulate inst - 3
+fetch x regs < fetch y regs < update last z regs < update x regs
+update x regs < fetch y regs 
+update x reg < fetch z regs
+fetch z reg < update y reg
+fetch x reg < fetch y reg < last ireg fetch < fetch z reg
+last ireg fetch < update x regs
+store ireg == fetch last y reg (conflict)
+store ireg < store inst-4 zreg
+fetch dau flags < accumulate inst-3 or set dau flags == accumlate
+
+fetch & update x & y regs or i regs & flags
+fetch x mem for inst - 1 or fetch mem for inst - 1
+fetch y mem for inst - 1 or store to mem
+update last z reg
+fetch z regs
+fetch next inst??
+store z addr for inst - 4
+mul for inst - 2
+accumulate or special op && update flags for inst - 3
+pc leads by 8

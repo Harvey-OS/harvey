@@ -305,7 +305,6 @@ TEXT	syncintr(SB), $0		/* level 6 */
 	BSR	clock(SB)
 	/* fall through */
 retintr:
-	BSR	mousetry(SB)
 	ADDL	$4, A7
 	MOVL	((8+8)*BY2WD)(A7), A0
 	MOVL	A0, USP

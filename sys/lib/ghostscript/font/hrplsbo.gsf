@@ -1,0 +1,4 @@
+%!
+/Hershey-Plain-Simplex findfont /CharData get
+/Hershey-Plain-Simplex-Bold-Oblique 5066565 [107 0 5066565]
+  2.1 -20 StandardEncoding makeHersheyFontGS993

@@ -101,10 +101,6 @@ Fcode	curf;
 void	*mem;
 #endif
 
-extern void	*bbmalloc(int);
-extern void	bbfree(void *, int);
-extern int	bbonstack(void);
-
 /*
  * set up to compile -DT$objtype
  */
@@ -137,7 +133,7 @@ extern int	bbonstack(void);
  * W2L is the number of words in a long
  * WMASK has bits set for the low order word of a long
  * WType is a pointer to a word
- * if LENDIAN is defined, then left-to-right in bitmap
+ * if LENDIAN is true, then left-to-right in bitmap
  * means low-order-bit to high-order-bit within a word,
  * otherwise it is high-order-bit to low-order-bit.
  */
@@ -154,17 +150,10 @@ typedef ulong	*WType;
  * scrpix(v,i,l) gets the value of pixel i within word v when ldepth is l
  * scrmask(i,l) has ones for pixel i when ldepth is l
  */
-#ifdef LENDIAN
-#define scrshl(v,o)	((v)>>(o))
-#define scrshr(v,o)	((v)<<(o))
-#define scrpix(v,i,l)	(((v)>>((i)<<(l)))&((1<<(1<<(l)))-1))
-#define scrmask(i,l)	(((1<<(1<<(l)))-1)<<((i)<<(l)))
-#else
-#define scrshl(v,o)	((v)<<(o))
-#define scrshr(v,o)	((v)>>(o))
-#define scrpix(v,i,l)	(((v)>>(32-(((i)+1)<<(l))))&((1<<(1<<(l)))-1))
-#define scrmask(i,l)	(((1<<(1<<(l)))-1)<<(32-(((i)+1)<<l)))
-#endif
+#define scrshl(v,o)	(LENDIAN? ((v)>>(o)) : ((v)<<(o)))
+#define scrshr(v,o)	(LENDIAN? ((v)<<(o)) : ((v)>>(o)))
+#define scrpix(v,i,l)	(LENDIAN? (((v)>>((i)<<(l)))&((1<<(1<<(l)))-1)) : (((v)>>(32-(((i)+1)<<(l))))&((1<<(1<<(l)))-1)))
+#define scrmask(i,l)	(LENDIAN? (((1<<(1<<(l)))-1)<<((i)<<(l))) : (((1<<(1<<(l)))-1)<<(32-(((i)+1)<<l))))
 
 void
 gbitblt(GBitmap *dm, Point pt, GBitmap *sm, Rectangle r, Fcode fcode)
@@ -1248,7 +1237,7 @@ gbitblt(GBitmap *dm, Point pt, GBitmap *sm, Rectangle r, Fcode fcode)
 		print("Increase Progmax to at least %d!\n", p - memstart);
 	mem = memstart;
 #endif
-	Execandfree(memstart,onstack);
+	bbexec((void*)memstart, (p-memstart)*sizeof(Type), onstack);
 }
 
 #ifdef TEST

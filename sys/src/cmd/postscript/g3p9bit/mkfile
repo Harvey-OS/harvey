@@ -1,0 +1,10 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/aux
+
+TARG=g3p9bit
+OFILES=g3p9bit.$O
+HFILES=wtab btab
+
+< /sys/src/cmd/mkone
+

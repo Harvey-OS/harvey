@@ -1,0 +1,54 @@
+.ds @w Your Institution
+.ds @d Your Division
+.ds @t Your Division\'s Title
+.ds @l Your Location
+.ds @f Your Fax Number
+.ds @v Your Voice Number
+.ds @e Your Email Address
+.LP
+\l'6i'\v'12u'\l'-6i'
+.sp 1.5
+.ps 14
+.vs 12
+.ft HB
+.ce 1
+.tl '\*(@w'FAX''
+.sp -0.5
+.ce 1
+\l'6i'
+.sp
+.tl '\*(@d''\*(@t'
+.br
+\l'6i'\v'12u'\l'-6i'
+.sp 2
+.nf
+.na
+.ta 2i 4.6i
+Date/time: ddd		No.Pages: ppp
+.sp 3
+To: TTT
+.sp
+Location: 
+.sp
+Fax: fff
+.sp
+Voice: 
+.sp
+Email: 
+.sp 3
+From: FFF
+.sp
+Location: \*(@l
+.sp
+Fax: \*(@f
+.sp
+Voice: \*(@v
+.sp
+Email: \*(@e
+.sp 2
+.br
+\l'6i'\v'12u'\l'-6i'
+.sp
+Comments:
+.sp 12
+\l'6i'\v'12u'\l'-6i'

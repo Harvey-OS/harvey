@@ -1,9 +1,9 @@
 #include "map.h"
 
-static float a;
+static double a;
 
 static int
-Xcylequalarea(struct place *place, float *x, float *y)
+Xcylequalarea(struct place *place, double *x, double *y)
 {
 	*x = - place->wlon.l * a;
 	*y = place->nlat.s;
@@ -11,7 +11,7 @@ Xcylequalarea(struct place *place, float *x, float *y)
 }
 
 proj
-cylequalarea(float par)
+cylequalarea(double par)
 {
 	struct coord stdp0;
 	if(par > 89.0)

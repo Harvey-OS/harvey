@@ -1,62 +1,71 @@
 APE=/sys/src/ape
-< $APE/config
+<$APE/config
 
-L=/$objtype/lib/ape/libap.a
-#L=libap.a$O
-BUILTINS=
-NREP=2
-CFLAGS=-D_POSIX_SOURCE
+LIB=/$objtype/lib/ape/libap.a
 EXTRAOBJS=`{extraobjs}
 
-STDIO=U=S__IO_getc S__IO_putc S__dtoa S__fconv S_clearerr S_fclose \
-	S_feof S_ferror S_fflush S_fgetc \
-	S_fgetpos S_fgets S_fopen S_fprintf S_fputc S_fputs S_fread S_freopen \
-	S_fscanf S_fseek S_fsetpos S_ftell S_ftoa S_fwrite S_getc S_getchar \
-	S_gets S_perror  S_printf S_putc S_putchar S_puts S_rdline S_remove \
-	9_rename S_rewind S_scanf S_sclose S_setbuf \
-	S_setvbuf S_sopenr S_sopenw S_sprintf S_sscanf S_stdio S_strerror S_strtod \
-	9_tmpfile S_tmpnam S_ungetc S_vfprintf S_vfscanf S_vprintf S_vsprintf S_exit \
-	S_fileno S_pow10 S_fdopen
-MATH=U= M_asin M_atan M_atan2 M_erf M_exp M_fabs M_floor M_fmod M_gamma M_hypot \
-	M_j0 M_j1 M_jn M_log M_pow M_sin M_sinh 9_sqrt M_tan M_tanh \
-	9_frexp
-# machine specific string/mem stuff from extraobjs:
-#    strcat strchr strcmp strcpy strlen strncmp strrchr
-#    memchr memcmp memcpy memmove memset
-STRING=U=G_strcoll G_strcspn G_strncat G_strncpy G_strpbrk G_strspn \
-	G_strstr G_strtok G_strxfrm \
-	G_itoa G_itol
-GEN=U=9_malloc 9_brk G_ctype G_strtol G_strtoul \
-	G_atoi G_atol G_atof 9_system 9_ctime G_div G_ldiv \
-	9__exit G_toupper G_isalnum G_abs G__assert \
-	G_rand G_qsort G_bsearch G_clock G_difftime G_mktime G_mbwc \
-	G_strftime 9_raise
-POSIX=U= 9_access 9_alarm 9_chdir 9_chmod 9_chown 9_close \
-	9_creat 9_ctermid 9_cuserid 9_dirtostat \
-	9_dup 9_execl 9_execle 9_execlp \
-	9_execv 9_execve 9_execvp 9_fcntl \
-	9_fork 9_fstat 9_getcwd \
-	G_getenv 9_getgid 9_getgrgid \
-	9_getgrnam 9_getlogin 9_getpid 9_getpgrp 9_getppid \
-	9_getpwnam 9_getpwuid 9_getuid 9_isatty \
-	9_kill 9_link P_locale 9_lseek 9_mkdir P_mkfifo 9_open \
-	9_opendir P_pathconf 9_pause 9_pipe 9_read \
-	9_rmdir 9_setgid 9${O}_setjmp 9_setpgid 9_setsid 9_setuid P_sigset 9_signal \
-	9_sigaction 9_sigprocmask 9_sigpending 9_sigsuspend 9_sleep 9_stat \
-	P_sysconf 9_tcgetattr 9_time 9_times 9_ttyname P_tzset 9_uname \
-	9_umask 9_unlink 9_utime 9_wait 9_write \
-	G_calloc S_abort $EXTRAOBJS
-EXTRA=U=9__envsetup 9__buf 9__dirconv 9__errno 9__fcall 9__getpw 9__nap \
-	9_select 9_pcons 9_profile 9${O}__ALARM 9${O}__BIND 9${O}__BRK_ \
-	9${O}__CHDIR 9${O}__CLOSE 9${O}__CREATE 9${O}__DUP \
-	9${O}__ERRSTR 9${O}__EXEC 9${O}__EXITS \
-	9${O}__FSTAT 9${O}__FWSTAT 9${O}__MOUNT 9${O}__NOTED 9${O}__NOTIFY \
-	9${O}__OPEN 9${O}__PIPE 9${O}__READ 9${O}__REMOVE 9${O}__RENDEZVOUS \
-	9${O}__RFORK 9${O}__SEEK 9${O}__SEGATTACH 9${O}__SEGBRK 9${O}__SEGDETACH \
-	9${O}__SEGFLUSH 9${O}__SEGFREE 9${O}__SLEEP 9${O}__STAT 9${O}__UNMOUNT \
-	9${O}__WAIT 9${O}__WRITE 9${O}__WSTAT \
-	9${O}_main9 9${O}_main9p \
-	9_Xaccess 9_Xchdir 9_Xcreat 9_Xlink 9_Xopen 9_Xstat 9_Xunlink
+STDIO=S__IO_getc.$O S__IO_putc.$O S__dtoa.$O S__fconv.$O S_clearerr.$O\
+	S_fclose.$O S_feof.$O S_ferror.$O S_fflush.$O S_fgetc.$O \
+	S_fgetpos.$O S_fgets.$O S_fopen.$O S_fprintf.$O S_fputc.$O\
+	S_fputs.$O S_fread.$O S_freopen.$O S_fscanf.$O S_fseek.$O\
+	S_fsetpos.$O S_ftell.$O S_ftoa.$O S_fwrite.$O S_getc.$O S_getchar.$O\
+	S_gets.$O S_perror.$O  S_printf.$O S_putc.$O S_putchar.$O S_puts.$O\
+	S_rdline.$O S_remove.$O 9_rename.$O S_rewind.$O S_scanf.$O\
+	S_sclose.$O S_setbuf.$O S_setvbuf.$O S_sopenr.$O S_sopenw.$O\
+	S_sprintf.$O S_sscanf.$O S_stdio.$O S_strerror.$O S_strtod.$O\
+	9_tmpfile.$O S_tmpnam.$O S_ungetc.$O S_vfprintf.$O S_vfscanf.$O\
+	S_vprintf.$O S_vsprintf.$O S_exit.$O S_fileno.$O S_pow10.$O S_fdopen.$O
+
+MATH= M_asin.$O M_atan.$O M_atan2.$O M_erf.$O M_exp.$O M_fabs.$O\
+	M_floor.$O M_fmod.$O M_gamma.$O M_hypot.$O M_j0.$O M_j1.$O\
+	M_jn.$O M_log.$O M_pow.$O M_sin.$O M_sinh.$O 9_sqrt.$O M_tan.$O\
+	M_tanh.$O 9_frexp.$O
+
+#		machine specific string/mem stuff from extraobjs:
+#	strcat strchr strcmp strcpy strlen strncmp strrchr
+#	memchr memcmp memcpy memmove memset
+
+STRING=G_strcoll.$O G_strcspn.$O G_strncat.$O G_strncpy.$O G_strpbrk.$O\
+	G_strspn.$O G_strstr.$O G_strtok.$O G_strxfrm.$O\
+	G_itoa.$O G_itol.$O
+
+GEN=9_malloc.$O 9_brk.$O G_ctype.$O G_strtol.$O G_strtoul.$O\
+	G_atoi.$O G_atol.$O G_atof.$O 9_system.$O 9_ctime.$O G_div.$O\
+	G_ldiv.$O 9__exit.$O G_toupper.$O G_isalnum.$O G_abs.$O G__assert.$O\
+	G_rand.$O G_qsort.$O G_bsearch.$O G_clock.$O G_difftime.$O\
+	G_mktime.$O G_mbwc.$O G_strftime.$O 9_raise.$O
+
+POSIX= 9_access.$O 9_alarm.$O 9_cfgetospeed.$O 9_chdir.$O\
+	9_chmod.$O 9_chown.$O 9_close.$O\
+	9_creat.$O 9_ctermid.$O 9_cuserid.$O 9_dirtostat.$O 9_dup.$O\
+	9_execl.$O 9_execle.$O 9_execlp.$O 9_execv.$O 9_execve.$O\
+	9_execvp.$O 9_fcntl.$O 9_fork.$O 9_fstat.$O 9_getcwd.$O\
+	G_getenv.$O 9_getgid.$O 9_getgrgid.$O 9_getgrnam.$O 9_getlogin.$O\
+	9_getpid.$O 9_getpgrp.$O 9_getppid.$O 9_getpwnam.$O 9_getpwuid.$O\
+	9_getuid.$O 9_isatty.$O 9_kill.$O 9_link.$O P_locale.$O 9_lseek.$O\
+	9_mkdir.$O P_mkfifo.$O 9_open.$O 9_opendir.$O P_pathconf.$O\
+	9_pause.$O 9_pipe.$O 9_read.$O 9_rmdir.$O 9_setgid.$O\
+	9_setjmp.$O 9_setpgid.$O 9_setsid.$O 9_setuid.$O P_sigset.$O\
+	9_signal.$O 9_sigprocmask.$O 9_sigpending.$O 9_sigsetjmp.$O\
+	9_sigsuspend.$O 9_sleep.$O 9_stat.$O P_sysconf.$O 9_tcgetattr.$O\
+	9_time.$O 9_times.$O 9_ttyname.$O P_tzset.$O 9_uname.$O\
+	9_umask.$O 9_unlink.$O 9_utime.$O 9_wait.$O 9_write.$O\
+	G_calloc.$O S_abort.$O $EXTRAOBJS
+
+EXTRA=9__envsetup.$O 9__buf.$O 9__dirconv.$O 9__errno.$O 9__fcall.$O\
+	9__fdinfo.$O 9__getpw.$O 9__nap.$O \
+	9_notetramp.$O 9_profile.$O 9_lock.$O 9_tas.$O\
+	9__ALARM.$O 9__BIND.$O 9__BRK_.$O 9__CHDIR.$O\
+	9__CLOSE.$O 9__CREATE.$O 9__DUP.$O 9__ERRSTR.$O\
+	9__EXEC.$O 9__EXITS.$O 9__FSESSION.$O 9__FSTAT.$O 9__FWSTAT.$O\
+	9__MOUNT.$O 9__NOTED.$O 9__NOTIFY.$O 9__OPEN.$O\
+	9__PIPE.$O 9__READ.$O 9__REMOVE.$O 9__RENDEZVOUS.$O\
+	9__RFORK.$O 9__SEEK.$O 9__SEGATTACH.$O 9__SEGBRK.$O\
+	9__SEGDETACH.$O 9__SEGFLUSH.$O 9__SEGFREE.$O\
+	9__SLEEP.$O 9__STAT.$O 9__UNMOUNT.$O 9__WAIT.$O\
+	9__WRITE.$O 9__WSTAT.$O 9_main9.$O 9_main9p.$O\
+
+
 # toupper has tolower
 # isalnum has isalpha, iscntrl, isdigit, isgraph, islower, isprint,
 #             ispunct, isspace, isupper, isxdigit
@@ -69,65 +78,67 @@ EXTRA=U=9__envsetup 9__buf 9__dirconv 9__errno 9__fcall 9__getpw 9__nap \
 # abs has labs
 # locale has setlocale, localeconv
 # rand has srand
-NAMES=U=$STDIO $MATH $STRING $GEN $POSIX $EXTRA
-OBJ=U=${NAMES:%=$L(%.$O)}
 
-install:V:	$L $M $MP
-compile:V:	$L $M $MP
-test:VQ:
-	echo libap has no test
-clean:V:
-	rm -f *.[$OS] *.a[$OS]
-nuke:V:		clean
-	rm -f $L
-installall:V:
-	for (objtype in $CPUS)
-		mk install
+OFILES=$STDIO $MATH $STRING $GEN $POSIX $EXTRA
+OBJ=${OFILES:%.$O=$LIB(%.$O)}
 
-$L:NQ:	$OBJ
-	flag e -
+CFLAGS=-c -D_POSIX_SOURCE -D_PLAN9_SOURCE -D_BSD_EXTENSION
+AFLAGS=
+
+none:Q:
+	echo usage: mk entry, all, clean, install, entry.all, installall, nuke
+
+all:V:	$LIB
+
+$LIB:Q:	$OBJ
 	names=`{membername $newprereq}
-	$AR rv $L $names && rm -f $names
-	$RANLIB $L
+	$AR rv $LIB $names && rm -f $names
 
-$L(%.$O):N:	%.$O
+$LIB(%.$O):N:	%.$O
+
+&:NQ:	&.$O
+	ar vu $LIB $stem.$O
+	rm -f $stem.$O
+
+%.$O:	%.c
+	$CC $CFLAGS $prereq
+
+%.$O:	%.s
+	$AS $AFLAGS $prereq
+
+install:V: $LIB
+
+installall:V:
+	for(objtype in $CPUS) {
+		mk install
+	}
+
+%.all:V:
+	for(objtype in $CPUS) mk $stem
+
+clean:V:
+	rm -f *.[$OS] [$OS].out
+
+nuke:V:	clean
+	rm -f $LIB
 
 S_%.$O:	stdio/%.c
-	$CC $CFLAGS -I. -c $prereq && cp $stem.$O $target && rm $stem.$O
+	$CC $CFLAGS $prereq && mv $stem.$O $target
 
 M_%.$O:	math/%.c
-	$CC $CFLAGS -I. -c $prereq && cp $stem.$O $target && rm $stem.$O
+	$CC $CFLAGS $prereq && mv $stem.$O $target
 
 G_%.$O:	gen/%.c
-	$CC $CFLAGS -I. -c $prereq && cp $stem.$O $target && rm $stem.$O
+	$CC $CFLAGS $prereq && mv $stem.$O $target
 
 P_%.$O:	posix/%.c
-	$CC $CFLAGS -I. -c $prereq && cp $stem.$O $target && rm $stem.$O
+	$CC $CFLAGS $prereq && mv $stem.$O $target
 
 9_%.$O:	plan9/%.c
-	$CC $CFLAGS -I. -c $prereq && cp $stem.$O $target && rm $stem.$O
+	$CC $CFLAGS $prereq && mv $stem.$O $target
 
-plan9/X%.c:D:	plan9/%.c
-	sed 's/^'$"stem'\(/__&/' < $prereq > $target
+9_%.$O:	$objtype/%.s
+	$AS $AFLAGS -o $target $prereq
 
-plan9/Xcreat.c:D:	plan9/creat.c
-	sed 's/^creat\(/__&/
-	s/open\(/__&/' < $prereq > $target
-
-9v_%.$O:	plan9mips/%.s
-	$AS $prereq && cp $stem.$O $target && rm $stem.$O
-
-92_%.$O:	plan968020/%.s
-	$AS $prereq && cp $stem.$O $target && rm $stem.$O
-
-9k_%.$O:	plan9sparc/%.s
-	$AS $prereq && cp $stem.$O $target && rm $stem.$O
-
-98_%.$O:	plan9386/%.s
-	$AS $prereq && cp $stem.$O $target && rm $stem.$O
-
-9z_%.$O:	plan9hobbit/%.s
-	$AS $prereq && cp $stem.$O $target && rm $stem.$O
-
-########	exceptions...
-
+9_%.$O:	$objtype/%.c
+	$CC $CFLAGS $prereq && mv $stem.$O $target

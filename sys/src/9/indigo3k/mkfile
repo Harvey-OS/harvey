@@ -1,0 +1,69 @@
+CONF=indigo3k
+CONFLIST=indigo3k
+
+objtype=mips
+</$objtype/mkfile
+CFLAGS=-w
+
+DEV=`{rc ../port/mkdevlist $CONF}
+STREAM=`{rc ../port/mkstreamlist $CONF}
+MISC=`{rc ../port/mkmisclist $CONF}
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+OBJ=\
+	l.$O\
+	alarm.$O\
+	alloc.$O\
+	bbmalloc.$O\
+	chan.$O\
+	clock.$O\
+	dev.$O\
+	fault.$O\
+	faultmips.$O\
+	fptrap.$O\
+	kbd.$O\
+	latin1.$O\
+	taslock.$O\
+	main.$O\
+	mmu.$O\
+	net.$O\
+	page.$O\
+	pgrp.$O\
+	print.$O\
+	proc.$O\
+	qlock.$O\
+	queue.$O\
+	screen.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	trap.$O\
+	$DEV\
+	$MISC\
+	boot$CONF.root.$O\
+	$STREAM\
+	stream.$O\
+	auth.$O
+
+default:V: 9$CONF
+
+9$CONF:	$OBJ $CONF.c /$objtype/lib/libgnot.a /$objtype/lib/libg.a
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -l -R4 -H1 -T0x80020000 $OBJ $CONF.$O -lgnot -lg -lauth -lc
+	size $target
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	$AS initcode
+	$LD -l -s -o init.out -R4 initcode.v
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+clock.$O faultmips.$O fptrap.$O:	/$objtype/include/ureg.h
+
+screen.$O:	screen.h lg1.h
+
+<../port/portmkfile
+<indigomkfile

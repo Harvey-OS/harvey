@@ -1,0 +1,39 @@
+Here are some things left to do, roughly in the order I am thinking of
+implementing them.
+
+* Implement fontname mapping in TeX via an external file.
+
+* Give TeX options: -name to read a particular .fmt file;
+  -output-file to say where DVI file should go (including stdout);
+  -no-timestamps to omit timestamps in the dvi file (for testing).
+
+* Merge Ken's dynamic array changes.
+
+* Do the documentation in Texinfo, and generate the man pages automatically.
+
+* Make MFT understand tabs.  Maybe make \write and \special understand tabs?
+
+* -charset=iso8859 (for example) to specify what the visible characters are.
+
+* -trace-fonts, -trace-inputs, etc. to show what's getting read where.
+
+* Implement a way to get all-octal character codes in VFtoVP and TFtoPL,
+  in the out_char routine.
+
+* Echo \openout filenames, for ``security'' reasons.
+
+* Make initex an option, instead of a second program?
+
+* Why does web2c.yacc have shift/reduce conflicts? 
+
+* Make DVItype not do a dialog, a la GFtype.  Generally unixify all the
+  programs. 
+
+* Make web2c handle fields correctly, i.e., to put the field identifier
+  in the symbol table of the type, instead of the global symbol table. 
+  This would simplify the GFtoDVI change file a fair amount.
+
+* Make web2c handle variant records.  This would make the TeX, Metafont,
+  and GFtoDVI change files all simpler.
+
+* Typeset `TeX' correctly in all the man pages.

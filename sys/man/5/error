@@ -6,14 +6,18 @@ error \- return an error
 .B
 Rerror
 .IR tag [2]
-.IR ename [28]
+.IR ename [64]
 .SH DESCRIPTION
 The
 .B Rerror
 request
 (there is no
 .BR Terror )
-is used to return an error string describing the
+is used to return an error string, of length 64
+.RB ( ERRLEN
+in
+.BR <libc.h> ),
+describing the
 failure of a transaction.
 It replaces the corresponding reply message
 that would accompany a successful call; its tag is that

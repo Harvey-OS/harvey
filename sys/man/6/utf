@@ -3,17 +3,19 @@
 UTF, Unicode, ASCII, rune \- character set and format
 .SH DESCRIPTION
 The Plan 9 character set and representation are
-based on Unicode and on a proposed X-Open multibyte
-.SM FSS-UCS-TF
-(File System Safe Universal Character
-Set Transformation Format) encoding.
-Unicode represents its characters in 16
+based on the Unicode Standard and on the ISO multibyte
+.SM UTF-8
+encoding (Universal Character
+Set Transformation Format, 8 bits wide).
+The Unicode Standard represents its characters in 16
 bits;
-.SM FSS-UCS-TF,
-or just
-.SM UTF,
-represent such
+.SM UTF-8
+represents such
 values in an 8-bit byte stream.
+Throughout this manual,
+.SM UTF-8
+is shortened to
+.SM UTF.
 .PP
 In Plan 9, a
 .I rune
@@ -35,7 +37,7 @@ bytes with values only from 80 to FF.
 .PP
 The
 .SM UTF
-encoding of Unicode is backward compatible with
+encoding of the Unicode Standard is backward compatible with
 .SM ASCII\c
 :
 programs presented only with
@@ -63,11 +65,11 @@ a rune x is converted to a multibyte
 sequence
 as follows:
 .PP
-01. x in [00000000.0bbbbbbb] → 0bbbbbbb
+01.   x in [00000000.0bbbbbbb] → 0bbbbbbb
 .br
-10. x in [00000bbb.bbbbbbbb] → 110bbbbb, 10bbbbbb
+10.   x in [00000bbb.bbbbbbbb] → 110bbbbb, 10bbbbbb
 .br
-11. x in [bbbbbbbb.bbbbbbbb] → 1110bbbb, 10bbbbbb, 10bbbbbb
+11.   x in [bbbbbbbb.bbbbbbbb] → 1110bbbb, 10bbbbbb, 10bbbbbb
 .br
 .PP
 Conversion 01 provides a one-byte sequence that spans the
@@ -81,7 +83,7 @@ the shortest encoding is used.
 .PP
 In the inverse mapping,
 any sequence except those described above
-is incorrect and is converted to rune 0080.
+is incorrect and is converted to rune hexadecimal 0080.
 .SH FILES
 .TF "/lib/unicode "
 .TP

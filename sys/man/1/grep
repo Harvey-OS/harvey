@@ -16,7 +16,7 @@ searches the input
 .I files\^
 (standard input default)
 for lines (with newlines excluded) that match the
-.I pattern,
+.IR pattern ,
 a regular expression as defined in
 .IR regexp (6).
 Normally, each line matching the pattern is `selected',
@@ -68,7 +68,9 @@ in
 it is safest to enclose the
 entire expression
 in single quotes
-.BR \&\|\(fm \|.\|.\|.\| \(fm .
+.BR \&\|' \|.\|.\|.\| ' .
+.SH SOURCE
+.B /sys/src/cmd/grep.c
 .SH SEE ALSO
 .IR ed (1),
 .IR awk (1),
@@ -77,4 +79,4 @@ in single quotes
 .IR regexp (6)
 .SH DIAGNOSTICS
 Exit status is null if any lines are selected,
-or non-null when none are selected or an error occurs.
+or non-null when no lines are selected or an error occurs.

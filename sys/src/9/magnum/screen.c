@@ -20,16 +20,9 @@ enum
 	colmaxxvis=	1280,
 	colmaxy=	1024,
 	colrepl=	  16,	/* each scanline is repeated this many times */
-	lcdmaxx=	768,
-	lcdmaxy=	1024,
 };
 
 #define MONOWORDS ((monomaxx*monomaxy)/BI2WD)
-#define LCDLD	1
-#define LCDBI2PIX	(1<<LCDLD)
-#define LCDWORDS ((lcdmaxx*lcdmaxy*LCDBI2PIX)/BI2WD)
-#define LCDLEN	(2+lcdmaxx)
-#define LCDWID	(lcdmaxx*LCDBI2PIX/8)
 
 static Rectangle NULLMBB = {10000, 10000, -10000, -10000};
 
@@ -44,22 +37,29 @@ struct
 	int	bwid;
 }out;
 
+static GBitmap hwcursor=
+{
+	0,		/* base filled in by malloc when needed */
+	0,
+	4,
+	1,
+	{0, 0, 64, 64},
+	{0, 0, 64, 64}
+};
+
 GBitmap	gscreen;
-static Rectangle mbb;
-Rendez	lcdmouse;
+
+Lock palettelock;			/* access to DAC registers */
 
 enum {
 	Mono = 1,
 	Color = 2,
-	Lcd = 3,
 };
 
 
-int		islcd;			/* might be initialized by conf */
 static int	scr;			/* Mono or Color or Not at all*/
 
 static ulong	rep(ulong, int);
-static int	iscolor(void);
 
 static void
 monodmaoff(DMAdev *dev)
@@ -87,120 +87,9 @@ monodmaon(DMAdev *dev, ulong mono)
 	dev->mode = Enable | Autoreload;
 }
 
-static Scsibuf *lcdbuf;
-static lcddev = 4<<3;
-static ulong swiz13[256];
-
-/*
- * need a process to do scsi transactions to update mouse on LCD
- */
-static void
-lcdmousep(void *a)
-{
-	extern void lockedupdate(void);
-	USED(a);
-	for(;;){
-		sleep(&lcdmouse, return0, 0);
-		lockedupdate();
-		mbb = NULLMBB;
-	}
-}
-
 void
-mousescreenupdate(void)
+screentype(int use)
 {
-	if (islcd)
-		wakeup(&lcdmouse);
-}
-
-static void
-lcdscsion(void)
-{
-	ulong x;
-	lcdbuf = scsialloc(LCDLEN);
-	for (x = 0; x < 256; x++)
-		swiz13[x] = (x&0xc0)<<18 | (x&0x30)<<12 | (x&0xc)<<6 | x&3;
-	kproc("lcdmouse", lcdmousep, 0);
-	mbb = NULLMBB;
-}
-
-void
-screenupdate(void)
-{
-	ulong x, y, m;
-	uchar *s, *p;
-	Rectangle r=mbb;
-
-	if(!islcd)
-		return;
-	if(r.max.y <= r.min.y)
-		return;
-	r.min.y &= ~3;
-	if(r.min.y < 0)
-		r.min.y = 0;
-	if(r.max.y > lcdmaxy)
-		r.max.y = lcdmaxy;
-	for (y = r.min.y; y < r.max.y; y += 4) {
-		s = (uchar *) gaddr(&gscreen, Pt(0, y));
-		p = (uchar *) (lcdbuf->virt);
-		p[0] = y >> 8;
-		p[1] = (y >> 2) & 0x3f;
-		p += 2;
-		for (x = 0; x < lcdmaxx; x += 4, s++, p += 4) {
-			m = swiz13[s[0]];
-			m |= swiz13[s[LCDWID]] << 2;
-			m |= swiz13[s[2*LCDWID]] << 4;
-			m |= swiz13[s[3*LCDWID]] << 6;
-			p[0] = m>>24;
-			p[1] = m>>16;
-			p[2] = m>>8;
-			p[3] = m;
-		}
-		scsibwrite(lcddev, lcdbuf, 1, LCDLEN, 0);/**/
-	}
-	mbb = NULLMBB;
-}
-
-void
-mbbrect(Rectangle r)
-{
-	if(!islcd)
-		return;
-	if (r.min.x < mbb.min.x)
-		mbb.min.x = r.min.x;
-	if (r.min.y < mbb.min.y)
-		mbb.min.y = r.min.y;
-	if (r.max.x > mbb.max.x)
-		mbb.max.x = r.max.x;
-	if (r.max.y > mbb.max.y)
-		mbb.max.y = r.max.y;
-}
-
-void
-mbbpt(Point p)
-{
-	if(!islcd)
-		return;
-	if (p.x < mbb.min.x)
-		mbb.min.x = p.x;
-	if (p.y < mbb.min.y)
-		mbb.min.y = p.y;
-	if (p.x >= mbb.max.x)
-		mbb.max.x = p.x+1;
-	if (p.y >= mbb.max.y)
-		mbb.max.y = p.y+1;
-}
-
-void
-screeninit(int use)
-{
-
-	int i;
-	ulong r, g, b;
-	DMAdev *dev = DMA2;
-	ulong mono;
-
-	monodmaoff(dev);
 	switch(use){
 	case '0':
 	case '1':
@@ -213,10 +102,31 @@ screeninit(int use)
 		scr = iscolor() ? Color : Mono;
 		break;
 	}
-	if(islcd)
-		scr = Lcd;
+}
 
-	if(scr == Mono){
+void
+screeninit(int use)
+{
+
+	int i;
+	ulong r, g, b;
+	DMAdev *dev = DMA2;
+	ulong mono;
+	Cursor zero;
+	Physseg *ps;
+
+	ps = physseg;
+	while(ps->name) {
+		if(strcmp(ps->name, "fb") == 0)
+			break;
+		ps++;
+	}
+
+	monodmaoff(dev);
+	screentype(use);
+
+	switch(scr) {
+	case Mono:
 		mono = (ulong)xspanalloc(MONOWORDS*BY2WD, BY2PG, 512*1024);
 		mono &= ~KZERO;
 		gscreen.base = (ulong*)(UNCACHED|mono);
@@ -224,32 +134,58 @@ screeninit(int use)
 		gscreen.ldepth = 0;
 		gscreen.r = Rect(0, 0, monomaxx, monomaxy);
 		monodmaon(dev, mono);
-	}
-	else
-	if(scr == Lcd){
-/*		mono = (ulong)xalloc(LCDWORDS*BY2WD);	/**/
-		mono = (ulong)xspanalloc(LCDWORDS*BY2WD, BY2PG, 512*1024);
-		mono &= ~KZERO;
-		gscreen.base = (ulong*)(UNCACHED|mono);
-		gscreen.width = lcdmaxx*LCDBI2PIX/BI2WD;
-		gscreen.ldepth = LCDLD;
-		gscreen.r = Rect(0, 0, lcdmaxx, lcdmaxy);
-		lcdscsion();
-		monodmaon(dev, mono);
-	}
-	else
-	if(scr == Color){
+		if(ps->name) {
+			ps->pa = PADDR(mono);
+			ps->size = PGROUND(MONOWORDS*BY2WD);
+		}
+		break;
+	case Color:
 		gscreen.base = COLORFB;
 		gscreen.width = colmaxx*colrepl/BY2WD;
 		gscreen.ldepth = 3;
 		gscreen.r = Rect(0, 0, colmaxxvis, colmaxy);
-		/*
-		 * For now, just use a fixed colormap, where pixel i is
-		 * regarded as 3 bits of red, 3 bits of green, and 2 bits of blue.
-		 * Intensities are inverted so that 0 means white, 255 means black.
-		 * Exception: pixels 85 and 170 are set to intermediate grey values
-		 * so that 2-bit grey scale images will look ok on this screen.
-		 */
+		if(ps->name) {
+			ps->pa = PADDR(COLORFB);
+			ps->size = PGROUND(gscreen.width*BY2WD*colmaxy);
+		}
+		/* cursor color 1: white */
+		*COLORADDRH = 01;
+		*COLORADDRL = 0x81;
+		*COLOR = 0xFF;
+		*COLOR = 0xFF;
+		*COLOR = 0xFF;
+		/* cursor color 2: noir */
+		*COLORADDRH = 01;
+		*COLORADDRL = 0x82;
+		*COLOR = 0;
+		*COLOR = 0;
+		*COLOR = 0;
+		/* cursor color 3: schwarz */
+		*COLORADDRH = 01;
+		*COLORADDRL = 0x83;
+		*COLOR = 0;
+		*COLOR = 0;
+		*COLOR = 0;
+
+		/* initialize with all-transparent cursor */
+		memset(&zero, 0, sizeof zero);
+		setcursor(&zero);
+
+		/* enable both planes of cursor */
+		lock(&palettelock);
+		hwcurs = 1;
+		*COLORADDRH = 03;
+		*COLORADDRL = 00;
+		*COLOR = 0xc0;
+		unlock(&palettelock);
+
+	/*
+	 * For now, just use a fixed colormap, where pixel i is
+	 * regarded as 3 bits of red, 3 bits of green, and 2 bits of blue.
+	 * Intensities are inverted so that 0 means white, 255 means black.
+	 * Exception: pixels 85 and 170 are set to intermediate grey values
+	 * so that 2-bit grey scale images will look ok on this screen.
+	 */
 		for(i = 0; i<256; i++) {
 			r = ~rep((i>>5) & 7, 3);
 			g = ~rep((i>>2) & 7, 3);
@@ -258,8 +194,8 @@ screeninit(int use)
 		}
 		setcolor(85, 0xAAAAAAAA, 0xAAAAAAAA, 0xAAAAAAAA);
 		setcolor(170, 0x55555555, 0x55555555, 0x55555555);
-	}
-	else {
+		break;
+	default:
 		mono = (ulong)xspanalloc(BY2PG, BY2PG, 0);
 		mono &= ~KZERO;
 		gscreen.base = (ulong*)(UNCACHED|mono);
@@ -337,10 +273,18 @@ screenputs(char *s, int n)
 	unlock(&screenlock);
 }
 
+/* bits per pixel */
 int
 screenbits(void)
 {
-	return scr==Mono? 1 : 8;	/* bits per pixel */
+	switch(scr){
+	default:
+		return 0;
+	case Mono:
+		return 1;
+	case Color:
+		return 8;
+	}
 }
 
 void
@@ -386,11 +330,13 @@ setcolor(ulong p, ulong r, ulong g, ulong b)
 		/* not reliable unless done while vertical blanking */
 		while(!(*kr & 0x20))
 			continue;
+		lock(&palettelock);
 		*COLORADDRH = 0;
 		*COLORADDRL = p & 0xFF;
 		*COLORPALETTE = r >> 24;
 		*COLORPALETTE = g >> 24;
 		*COLORPALETTE = b >> 24;
+		unlock(&palettelock);
 		return 1;
 	}
 }
@@ -398,7 +344,7 @@ setcolor(ulong p, ulong r, ulong g, ulong b)
 /*
  *  look at blanking for a change
  */
-static int
+int
 iscolor(void)
 {
 	uchar *kr = COLORKREG;
@@ -412,24 +358,91 @@ iscolor(void)
 }
 
 int
-hwcursset(uchar *s, uchar *c, int ox, int oy)
+hwgcmove(Point p)
 {
-	USED(s, c, ox, oy);
+	if(canlock(&palettelock) == 0)
+		return 1;
+
+	p.x += 328 /* adjusted by experiment */;
+	p.y += -4 /* adjusted by experiment */;
+
+	*COLORADDRH = 03;
+	*COLORADDRL = 01;
+	*COLOR = p.x&0xFF;
+	*COLOR = (p.x>>8)&0xF;
+	*COLOR = p.y&0xFF;
+	*COLOR = (p.y>>8)&0xF;
+
+	unlock(&palettelock);
 	return 0;
 }
 
-int
-hwcursmove(int x, int y)
+static void
+hwgcset(Cursor *curs)
 {
-	USED(x, y);
-	return 0;
+	Point org;
+	uchar *p, *kr;
+	int x, y, i, t;
+	ulong s[16], c[16], spix, cpix, dpix;
+
+	kr = COLORKREG;
+
+	for(i=0; i<16; i++){
+		p = (uchar*)&s[i];
+		*p = curs->set[2*i];
+		*(p+1) = curs->set[2*i+1];
+		p = (uchar*)&c[i];
+		*p = curs->clr[2*i];
+		*(p+1) = curs->clr[2*i+1];
+	}
+	hwcursor.base = (ulong *)malloc(1024);
+	if(hwcursor.base == 0)
+		error(Enomem);
+	/* hw cursor is 64x64 with hot point at (32,32) */
+	org = add(Pt(32,32), curs->offset); 
+	for(x = 0; x < 16; x++) {
+		for(y = 0; y < 16; y++) {
+			spix = (s[y]>>(31-(x&0x1F)))&1;
+			cpix = (c[y]>>(31-(x&0x1F)))&1;
+			dpix = (spix<<1) | cpix;
+			gpoint(&hwcursor, add(Pt(x,y), org), dpix, S);
+		}
+	}
+
+	/* not reliable unless done while blanking */
+	for(t = 1000000; !(*kr & 0x20) && t; t--)
+		;
+
+	/* now set the bits */
+	lock(&palettelock);
+	*COLORADDRH = 04;
+	*COLORADDRL = 00;
+	for(x = 0; x < 1024; x++)
+		*COLOR = ((uchar *)hwcursor.base)[x];
+	unlock(&palettelock);
+
+	free(hwcursor.base);
+
+	hwgcmove(curs->offset);
 }
 
 void
-mouseclock(void)	/* called splhi */
+setcursor(Cursor *curs)
 {
-	if(scr)
-		mouseupdate(1);
+	uchar *p;
+	int i;
+	extern GBitmap set, clr;
+
+	if(hwcurs)
+		hwgcset(curs);
+	else for(i=0; i<16; i++){
+		p = (uchar*)&set.base[i];
+		*p = curs->set[2*i];
+		*(p+1) = curs->set[2*i+1];
+		p = (uchar*)&clr.base[i];
+		*p = curs->clr[2*i];
+		*(p+1) = curs->clr[2*i+1];
+	}
 }
 
 /* replicate (from top) value in v (n bits) until it fills a ulong */
@@ -473,7 +486,7 @@ mousectl(char *arg)
 	int n;
 	char *field[3];
 
-	n = getfields(arg, field, 3, ' ');
+	n = getfields(arg, field, 3, " ");
 	if(strncmp(field[0], "serial", 6) == 0){
 		switch(n){
 		case 1:
@@ -488,4 +501,6 @@ mousectl(char *arg)
 			break;
 		}
 	}
+	else
+		error(Ebadctl);
 }

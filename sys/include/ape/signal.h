@@ -4,9 +4,16 @@
 
 typedef int sig_atomic_t;
 
-#define SIG_DFL ((void (*)(int))0)
-#define SIG_ERR ((void (*)(int))-1)
-#define SIG_IGN ((void (*)(int))1)
+/*
+ * We don't give arg types for signal handlers, in spite of ANSI requirement
+ * that it be 'int' (the signal number), because some programs need an
+ * additional context argument.  So the real type of signal handlers is
+ *      void handler(int sig, char *, struct Ureg *)
+ * where the char * is the Plan 9 message and Ureg is defined in <ureg.h>
+ */
+#define SIG_DFL ((void (*)())0)
+#define SIG_ERR ((void (*)())-1)
+#define SIG_IGN ((void (*)())1)
 
 #define	SIGHUP	1	/* hangup */
 #define	SIGINT	2	/* interrupt */
@@ -30,11 +37,15 @@ typedef int sig_atomic_t;
 #define SIGTTIN	18	/* read from ctl tty by member of background */
 #define SIGTTOU	19	/* write to ctl tty by member of background */
 
+#ifdef _BSD_EXTENSION
+#define NSIG 20
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern void (*signal(int, void (*)(int)))(int);
+extern void (*signal(int, void (*)()))();
 extern int raise(int);
 
 #ifdef __cplusplus
@@ -45,10 +56,10 @@ extern int raise(int);
 
 typedef long sigset_t;
 struct sigaction {
-	void		(*sa_handler)(int);
+	void		(*sa_handler)();
 	sigset_t	sa_mask;
 	int		sa_flags;
-};\
+};
 /* values for sa_flags */
 #define SA_NOCLDSTOP	1
 

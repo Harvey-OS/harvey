@@ -1,11 +1,11 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 #define	CHUNK	6000
 void
-wrbitmap(Bitmap *b, int miny, int maxy, char *data)
+wrbitmap(Bitmap *b, int miny, int maxy, byte *data)
 {
-	char *buf;
+	byte *buf;
 	int dy, px;
 	uint l, t, n;
 

@@ -1,6 +1,6 @@
-.TH TMPFILE 2S
+.TH TMPFILE 2
 .SH NAME
-tmpfile, tmpnam \- stdio temporary files
+tmpfile, tmpnam \- Stdio temporary files
 .SH SYNOPSIS
 .B #include <stdio.h>
 .PP
@@ -14,7 +14,7 @@ char	*tmpnam(char *s)
 .I Tmpfile
 creates a temporary file that will automatically
 be removed when the file is closed or the program exits.
-The return value is a stdio
+The return value is a Stdio
 .B FILE*
 opened in update mode (see
 .IR fopen (2)).
@@ -46,6 +46,8 @@ file names.
 template for
 .I tmpnam
 file names.
+.SH SOURCE
+.B /sys/src/libstdio
 .SH BUGS
 The files created by
 .I tmpfile

@@ -48,7 +48,7 @@ codgen(Node *n, Node *nn)
 		if(thisfn->link->etype != TVOID)
 			warn(Z, "no return at end of function: %s", n2->sym->name);
 	noretval(3);
-	if(thisfn && thisfn->link && typefdv[thisfn->link->etype])
+	if(thisfn && thisfn->link && typefd[thisfn->link->etype])
 		gins(AFLDZ, Z, Z);
 	gbranch(ORETURN);
 
@@ -98,12 +98,12 @@ loop:
 		l = n->left;
 		if(l == Z) {
 			noretval(3);
-			if(typefdv[n->type->etype])
+			if(typefd[n->type->etype])
 				gins(AFLDZ, Z, Z);
 			gbranch(ORETURN);
 			break;
 		}
-		if(typesu[n->type->etype]) {
+		if(typesu[n->type->etype] || typev[n->type->etype]) {
 			sugen(l, nodret, n->type->width);
 			noretval(3);
 			gbranch(ORETURN);
@@ -112,7 +112,7 @@ loop:
 		regret(&nod, n);
 		cgen(l, &nod);
 		regfree(&nod);
-		if(typefdv[n->type->etype])
+		if(typefd[n->type->etype])
 			noretval(1);
 		else
 			noretval(2);
@@ -122,7 +122,7 @@ loop:
 	case OLABEL:
 		l = n->left;
 		if(l) {
-			l->offset = pc;
+			l->xoffset = pc;
 			if(l->label)
 				patch(l->label, pc);
 		}
@@ -140,8 +140,8 @@ loop:
 			return;
 		}
 		gbranch(OGOTO);
-		if(n->offset) {
-			patch(p, n->offset);
+		if(n->xoffset) {
+			patch(p, n->xoffset);
 			return;
 		}
 		if(n->label)
@@ -166,7 +166,7 @@ loop:
 		if(l->op == OCONST)
 		if(typechl[l->type->etype]) {
 			cas();
-			cases->val = l->offset;
+			cases->val = l->vconst;
 			cases->def = 0;
 			cases->label = pc;
 			goto rloop;
@@ -500,7 +500,7 @@ xcom(Node *n)
 		g = vlog(r);
 		if(g >= 0) {
 			n->op = OASHL;
-			r->offset = g;
+			r->vconst = g;
 			if(g < 4)
 				n->addable = 7;
 			break;
@@ -512,7 +512,7 @@ xcom(Node *n)
 			l = r;
 			r = n->right;
 			n->op = OASHL;
-			r->offset = g;
+			r->vconst = g;
 			if(g < 4)
 				n->addable = 7;
 			break;
@@ -529,7 +529,7 @@ xcom(Node *n)
 				n->op = OASHR;
 			else
 				n->op = OLSHR;
-			r->offset = g;
+			r->vconst = g;
 		}
 		break;
 
@@ -540,7 +540,7 @@ xcom(Node *n)
 		g = vlog(r);
 		if(g >= 0) {
 			n->op = OASASHL;
-			r->offset = g;
+			r->vconst = g;
 		}
 		break;
 
@@ -554,7 +554,7 @@ xcom(Node *n)
 				n->op = OASASHR;
 			else
 				n->op = OASLSHR;
-			r->offset = g;
+			r->vconst = g;
 		}
 		break;
 
@@ -579,6 +579,10 @@ brk:
 	}
 	if(n->complex == 0)
 		n->complex++;
+
+	if(com64(n))
+		return;
+
 	switch(n->op) {
 
 	case OFUNC:
@@ -682,11 +686,11 @@ indx(Node *n)
 	} else
 	if(l->right->addable == 20) {
 		idx.regtree = l->left;
-		idx.scale = 1 << l->right->offset;
+		idx.scale = 1 << l->right->vconst;
 	} else
 	if(l->left->addable == 20) {
 		idx.regtree = l->right;
-		idx.scale = 1 << l->left->offset;
+		idx.scale = 1 << l->left->vconst;
 	} else
 		diag(n, "bad index");
 
@@ -707,6 +711,7 @@ bcomplex(Node *n)
 	if(tcompat(n, T, n->type, tnot))
 		n->type = T;
 	if(n->type != T) {
+		bool64(n);
 		boolgen(n, 1, Z);
 	} else
 		gbranch(OGOTO);

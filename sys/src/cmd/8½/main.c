@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <libg.h>
 #include <frame.h>
 #include <layer.h>
@@ -9,7 +10,6 @@
 int	cfd;		/* client end of pipe */
 int	sfd;		/* service end of pipe */
 int	clockfd;	/* /dev/time */
-long	clicktime;	/* ms since last click */
 Proc	*pmouse;
 Proc	*pkbd;
 int	mouseslave;
@@ -29,7 +29,6 @@ uchar	kbdc[NKBDC];
 int	kbdcnt;
 Subfont	*subfont;
 
-#define	CLICKTIME	500	/* milliseconds for double click */
 
 int	mkslave(char*, int, int);
 void	killslaves(void);
@@ -306,7 +305,7 @@ mkslave(char *file, int count, int raw)
 				error("slave consctl open");
 			write(fd3, "rawon", 5);
 		}
-		if(mount(cfd, "/dev", MBEFORE, "slave", "") < 0)
+		if(mount(cfd, "/dev", MBEFORE, "slave") < 0)
 			error("slave mount");
 		fd2 = open(file, OWRITE);
 		if(fd2 < 0)
@@ -350,7 +349,7 @@ spawn(int slot)
 		close(clockfd);
 		bclose();
 		write(p[1], "start", 5);
-		if(mount(cfd, "/mnt/8½", MREPL, buf, "") < 0)
+		if(amount(cfd, "/mnt/8½", MREPL, buf) < 0)
 			error("client mount");
 		if(bind("/mnt/8½", "/dev", MBEFORE) < 0)
 			error("client bind");
@@ -429,20 +428,23 @@ mousectl(void)
 void
 kbdctl(void)
 {
-	Rune r;
+	Rune r[1];
 	int w;
 
 	for(;;){
 		while(!fullrune((char*)kbdc, kbdcnt))
 			sched();
-		if(input && input->kbdc>=0)
+		if(input && input->rawbuf.n>0)
 			sched();
-		w = chartorune(&r, (char*)kbdc);
+		w = chartorune(r, (char*)kbdc);
 		memmove(kbdc, kbdc+w, kbdcnt-w);
 		kbdcnt -= w;
 		clicktime = 0;
-		if(input && r){
-			input->kbdc = r;
+		if(input && r[0]){
+			if (input->kbdopen)
+				textinsert(input, &input->kbdbuf, r, 1, input->kbdbuf.n, 1);
+			else
+				textinsert(input, &input->rawbuf, r, 1, input->rawbuf.n, 1);
 			run(input->p);
 		}
 	}
@@ -596,7 +598,6 @@ windowctl(void)
 	Mouse *m;
 	Rectangle r;
 	Window *w;
-	long cc;
 	Point p1, p2, p3;
 	int i, n, buttons;
 
@@ -606,7 +607,7 @@ windowctl(void)
 		frgetmouse();
 		checkcursor(0);
 		if(input && input->mouseopen){
-			if(ptinrect(m->xy, input->l->r) || buttons){
+			if(termwhich(m->xy)==input || buttons){
 				input->p->mouse = *m;
 				input->mousechanged = 1;
 				buttons = m->buttons;
@@ -626,23 +627,8 @@ windowctl(void)
 				if(w && w!=input){
 					current(w);
 					clicktime = 0;
-				}else if(w && w==input){
-					frselect(&w->f, m);
-					if(w->f.p0==w->f.p1){
-						cc = mouse.msec;
-						if(w->q0==w->org+w->f.p0
-						&& clicktime
-						&& cc-clicktime<CLICKTIME){
-							doubleclick(w, w->org+w->f.p0);
-							termhighlight(w, w->q0, w->q1);
-							clicktime = 0;
-						}else
-							clicktime = cc;
-					}else
-						clicktime = 0;
-					w->q0 = w->org+w->f.p0;
-					w->q1 = w->org+w->f.p1;
-				}
+				}else if(w && w==input)
+					termselect(w, m);
 				break;
 
 			case 2:
@@ -850,6 +836,12 @@ int
 sprint(char *s, char *fmt, ...)
 {
 	return doprint(s, s+PRINTSIZE, fmt, (&fmt+1)) - s;
+}
+
+int
+snprint(char *s, int len, char *fmt, ...)
+{
+	return doprint(s, s+len, fmt, (&fmt+1)) - s;
 }
 
 void *

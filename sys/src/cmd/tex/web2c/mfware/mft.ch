@@ -2,25 +2,25 @@
 % 
 % 11/27/89 Karl Berry		version 2.0.
 % 01/20/90 Karl			new mft.web (still 2.0, though).
+% (more recent changes in ../ChangeLog.W2C)
 % 
 % From Pierre Mackay's version for pc, which was in turn based on Howard
 % Trickey's and Pavel Curtis's change file for weave.
-% 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [0] MFT: print changes only
+% [0] WEAVE: print changes only.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 \pageno=\contentspagenumber \advance\pageno by 1
 @y
 \pageno=\contentspagenumber \advance\pageno by 1
 \let\maybe=\iffalse
-\def\title{MFT changes for Berkeley {\mc UNIX}}
+\def\title{MFT changes for C}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [2] Change banner message
+% [2] Change banner message.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d banner=='This is MFT, Version 2.0'
@@ -29,7 +29,7 @@
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] No need for the final label in C.
+% [3] No need for the final label in C.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @d end_of_MFT = 9999 {go here to wrap it up}
@@ -37,7 +37,7 @@
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] main program header, remove external label.
+% [3] Main program header, remove external label.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 program MFT(@!mf_file,@!change_file,@!style_file,@!tex_file);
@@ -72,7 +72,7 @@ procedure initialize;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] The text_char type is used as an array index into xord.  The
+% [13] The text_char type is used as an array index into xord.  The
 % default type `char' produces signed integers, which are bad array
 % indices in C.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -83,7 +83,7 @@ procedure initialize;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] enable maximum character set
+% [17] Allow any input character.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 for i:=0 to @'37 do xchr[i]:=' ';
@@ -94,7 +94,7 @@ for i:=@'177 to @'377 do xchr[i]:=chr(i);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] terminal output: use standard i/o
+% [20] Terminal I/O.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d print(#)==write(term_out,#) {`|print|' means write on the terminal}
@@ -104,7 +104,7 @@ for i:=@'177 to @'377 do xchr[i]:=chr(i);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] Remove term_out.
+% [20] Remove term_out.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 @x
 @<Globals...@>=
@@ -113,7 +113,7 @@ for i:=@'177 to @'377 do xchr[i]:=chr(i);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] init terminal
+% [21] Don't initialize the terminal.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ Different systems have different ways of specifying that the output on a
@@ -133,16 +133,16 @@ certain file will appear on the user's terminal.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [22] flush terminal buffer
+% [22] `break' is `flush'.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d update_terminal == break(term_out) {empty the terminal output buffer}
 @y
-@d update_terminal == fflush(term_out) {empty the terminal output buffer}
+@d update_terminal == flush(term_out) {empty the terminal output buffer}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] open input files
+% [24] Open input files.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ The following code opens the input files.  Since these files were listed
@@ -156,38 +156,33 @@ begin reset(mf_file); reset(change_file); reset(style_file);
 end;
 @y
 @ The following code opens the input files.  This is called after
-|scan_args| has set the file name variables appropriately.  We use this
-opportunity to define some constants related to file opening and the use
-of paths.  These constants are repeated in \.{mfwarext.c} and must match the
-values given there.
-
-The |test_access| routine expects a name in the global variable
-|cur_name|, so we have to do a string copy to it.  |test_access| puts
-the filename into |real_name_of_file|.  Likewise, the |reset|
-macro expects a leading space before the filename, so we have to set
-|style_file_name| to |real_name_of_file|, offset by one.  What a mess.
-
+|scan_args| has set the file name variables appropriately.
 @^system dependencies@>
 
-@d read_access_mode=4  {``read'' mode for |test_access|}
-@d style_file_path=2  {path specifier for style files}
-
 @p procedure open_input; {prepare to read inputs}
-var i:integer;
-begin reset(mf_file,mf_file_name);
-      reset(change_file,change_file_name);
-      for i:=1 to FILENAMESIZE do
-         cur_name[i]:=style_file_name[i];
-      if test_access(read_access_mode,style_file_path) then begin
-         for i:=1 to FILENAMESIZE do
-            style_file_name[i]:=real_name_of_file[i-1];
-         reset(style_file,style_file_name);
-      end
+begin
+  if test_read_access (mf_file_name, MF_INPUT_PATH)
+  then reset (mf_file, mf_file_name)
+  else begin
+    print_pascal_string (mf_file_name);
+    print (': Metafont source file not found');
+    uexit (1);
+  end;
+  
+  reset (change_file, change_file_name);
+
+  if test_read_access (style_file_name, TEX_INPUT_PATH)
+  then reset (style_file, style_file_name)
+  else begin
+    print_pascal_string (style_file_name);
+    print (': Style file not found');
+    uexit (1);
+  end;
 end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] Opening the .tex file.
+% [26] Opening the .tex file.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ The following code opens |tex_file|.
@@ -205,17 +200,13 @@ The |scan_args| procedure is used to set up |tex_file_name| as required.
 
 @<Set init...@>=
 scan_args;
-rewrite(tex_file,tex_file_name);
+rewrite (tex_file,tex_file_name);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] faster input_ln
+% [28] Fix f^.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@p function input_ln(var f:text_file):boolean;
-  {inputs a line or returns |false|}
-var final_limit:0..buf_size; {|limit| without trailing blanks}
-begin limit:=0; final_limit:=0;
 if eof(f) then input_ln:=false
 else  begin while not eoln(f) do
     begin buffer[limit]:=xord[f^]; get(f);
@@ -223,42 +214,18 @@ else  begin while not eoln(f) do
     if buffer[limit-1]<>" " then final_limit:=limit;
     if limit=buf_size then
       begin while not eoln(f) do get(f);
-      decr(limit); {keep |buffer[buf_size]| empty}
-      if final_limit>limit then final_limit:=limit;
-      print_nl('! Input line too long'); loc:=0; error;
-@.Input line too long@>
-      end;
-    end;
-  read_ln(f); limit:=final_limit; input_ln:=true;
-  end;
-end;
 @y
-With C, we call an external C procedure, |line_read|.  That routine
-fills |buffer| from 0 onwards with the |xord|'ed values of the next
-line, setting |limit| appropriately (ignoring trailing blanks).  It will
-stop if |limit=buf_size|, and the following will cause an error message.
-For bootstrapping purposes it is all right to use the original
-form of |input_ln|; it will just run slower.
-
-@p function input_ln(var f:text_file):boolean;
-  {inputs a line or returns |false|}
-begin limit:=0;
-if test_eof(f) then input_ln:=false
-else  begin line_read(f);
+if eof(f) then input_ln:=false
+else  begin while not eoln(f) do
+    begin buffer[limit]:=xord[getc(f)];
+    incr(limit);
+    if buffer[limit-1]<>" " then final_limit:=limit;
     if limit=buf_size then
-      begin
-      decr(limit); {keep |buffer[buf_size]| empty}
-      {if final_limit>limit then final_limit:=limit;}
-      print_nl('! Input line too long'); loc:=0; error;
-@.Input line too long@>
-      end;
-   input_ln:=true;
-  end;
-end;
+      begin while not eoln(f) do vgetc(f);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] Fix jump_out
+% [31] Fix jump_out.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ The |jump_out| procedure just cuts across all active procedure levels
@@ -300,20 +267,9 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [??] print newline at end of run, exit based upon value of history,
+% [112] Print newline at end of run, exit based upon value of history,
 % and remove the end_of_MFT label.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-@x
-Let's put it all together now: \.{MFT} starts and ends here.
-@^system dependencies@>
-
-@y
-Let's put it all together now: \.{MFT} starts and ends here.
-@^system dependencies@>
-
-@d UNIXexit==e@&x@&i@&t
-@z
-
 @x
 end_of_MFT:{here files should be closed if the operating system requires it}
 @<Print the job |history|@>;
@@ -321,15 +277,14 @@ end.
 @y
 @<Print the job |history|@>;
 new_line;
-if (history <> spotless) and (history <> harmless_message) then
-    UNIXexit(1)
-else
-    UNIXexit(0);
+if (history <> spotless) and (history <> harmless_message)
+then uexit (1)
+else uexit (0);
 end.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [112] system dependent changes--the scan_args procedure
+% [114] System dependent changes--the scan_args procedure
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @* System-dependent changes.
@@ -354,10 +309,9 @@ The flags that affect \.{MFT} are \.{-c} and \.{-s}, whose
 statuses is kept in |no_change| and |no_style|, respectively.
 
 @<Globals...@>=
-@!mf_file_name,@!change_file_name,@!style_file_name,@!tex_file_name,
-        @!cur_name:packed array[1..FILENAMESIZE] of char;
-@!real_name_of_file:packed array[0..FILENAMESIZE] of char;
-@!no_change,no_style:boolean;
+@!mf_file_name,@!change_file_name,@!style_file_name,@!tex_file_name:
+packed array[1..PATH_MAX] of char;
+@!no_change,@!no_style:boolean;
 
 @ The |scan_args| procedure looks at the command line arguments and sets
 the |file_name| variables accordingly.
@@ -369,9 +323,9 @@ replacing the \.{mf} file name extension by |'.tex'|.  Thus, the command
 line \.{mf foo} implies the use of the \METAFONT\ input file \.{foo.mf}
 and the output file \.{foo.tex}.  If this style of command line, with
 only one argument is used, the default style file, |plain.mft|, will be
-used to provide minimal formatting.
+used to provide basic formatting.
 
-An argument beginning with a minus sign is a flag.  Any letters
+An argument beginning with a hyphen is a flag.  Any letters
 following the minus sign may cause global flag variables to be set.
 Currently, a \.c means that there is a change file, and an \.s means
 that there is a style file.  The auxiliary files must of course appear
@@ -381,16 +335,17 @@ followed by the name of the |style_file| first, and then the name of the
 
 @<|scan_args|...@>=
 procedure scan_args;
-var dot_pos,i,a: integer; {indices}
+var @!dot_pos,@!slash_pos,i,a: integer; {indices}
 @!which_file_next: char;
-@!fname: array[1..FILENAMESIZE] of char; {temporary argument holder}
+@!fname: array[1..PATH_MAX] of char; {temporary argument holder}
 @!found_mf,@!found_change,found_style: boolean; {|true| when those 
                                                  file names have been seen}
 begin
-set_paths; {Get style file path from the environment variable \.{TEXINPUTS}}
+{get style file path from the environment variable \.{TEXINPUTS}}
+set_paths (MF_INPUT_PATH_BIT + TEX_INPUT_PATH_BIT);
 found_mf:=false;
-@<Set up null change file@>; found_change:=true; {Default to no change file}
-@<Set up plain style file@>; found_style:=true; {Default to plain style file}
+@<Set up null change file@>; found_change:=true; {default to no change file}
+@<Set up plain style file@>; found_style:=true; {default to plain style file}
 for a:=1 to argc-1 do begin
   argv(a,fname); {put argument number |a| into |fname|}
   if fname[1]<>'-' then begin
@@ -420,10 +375,10 @@ end;
 @ Use all of |fname| for the |mf_file_name| if there is a |'.'| in it,
 otherwise add |'.mf'|.  The \TeX\ file name comes from adding things
 after the dot.  The |argv| procedure will not put more than
-|FILENAMESIZE-5| characters into |fname|, and this leaves enough room in
+|PATH_MAX-5| characters into |fname|, and this leaves enough room in
 the |file_name| variables to add the extensions.  We declared |fname| to
-be of size |FILENAMESIZE| instead of |FILENAMESIZE-5| because the latter
-implies |FILENAMESIZE| must be a numeric constant---and we don't want to
+be of size |PATH_MAX| instead of |PATH_MAX-5| because the latter
+implies |PATH_MAX| must be a numeric constant---and we don't want to
 repeat the value from \.{site.h} just to save five bytes of memory.
 
 The end of a file name is marked with a |' '|, the convention assumed by 
@@ -432,13 +387,15 @@ the |reset| and |rewrite| procedures.
 @<Get |mf_file_name|...@>=
 begin
 dot_pos:=-1;
+slash_pos:=-1;
 i:=1;
-while (fname[i]<>' ') and (i<=FILENAMESIZE-5) do begin
+while (fname[i]<>' ') and (i<=PATH_MAX-5) do begin
         mf_file_name[i]:=fname[i];
         if fname[i]='.' then dot_pos:=i;
+        if fname[i]='/' then slash_pos:=i;
         incr(i);
         end;
-if dot_pos=-1 then begin
+if (dot_pos=-1) or (dot_pos < slash_pos) then begin
         dot_pos:=i;
         mf_file_name[dot_pos]:='.';
         mf_file_name[dot_pos+1]:='m';
@@ -462,14 +419,16 @@ otherwise add |'.ch'|.
 @<Get |change_file_name|...@>=
 begin
 dot_pos:=-1;
+slash_pos:=-1;
 i:=1;
-while (fname[i]<>' ') and (i<=FILENAMESIZE-5)
+while (fname[i]<>' ') and (i<=PATH_MAX-5)
 do begin
         change_file_name[i]:=fname[i];
         if fname[i]='.' then dot_pos:=i;
+        if fname[i]='/' then slash_pos:=i;
         incr(i);
         end;
-if dot_pos=-1 then begin
+if (dot_pos=-1) or (dot_pos < slash_pos) then begin
         dot_pos:=i;
         change_file_name[dot_pos]:='.';
         change_file_name[dot_pos+1]:='c';
@@ -480,21 +439,23 @@ which_file_next := 'z';
 found_change:=true;
 end
 
-@ Use all of |fname| for the |style_file_name| if there is a |'.'| in it,
-otherwise add |'.mft'|.
+@ Use all of |fname| for the |style_file_name| if there is a |'.'| in it;
+otherwise, add |'.mft'|.
 
 
 @<Get |style_file_name|...@>=
 begin
 dot_pos:=-1;
+slash_pos:=-1;
 i:=1;
-while (fname[i]<>' ') and (i<=FILENAMESIZE-5)
+while (fname[i]<>' ') and (i<=PATH_MAX-5)
 do begin
         style_file_name[i]:=fname[i];
         if fname[i]='.' then dot_pos:=i;
+        if fname[i]='/' then slash_pos:=i;
         incr(i);
         end;
-if dot_pos=-1 then begin
+if (dot_pos=-1) or (dot_pos < slash_pos) then begin
         dot_pos:=i;
         style_file_name[dot_pos]:='.';
         style_file_name[dot_pos+1]:='m';
@@ -543,7 +504,7 @@ end
 @<Handle flag...@>=
 begin
 i:=2;
-while (fname[i]<>' ') and (i<=FILENAMESIZE-5) do begin
+while (fname[i]<>' ') and (i<=PATH_MAX-5) do begin
         if fname[i]='c' then begin found_change:=false;
                 if which_file_next <> 's' then which_file_next := 'c'
                 end

@@ -24,6 +24,7 @@ struct Lock
 {
 	char	key;
 	ulong	pc;
+	ulong	sr;
 };
 
 struct Label
@@ -78,10 +79,6 @@ struct Conf
 	ulong	nswap;		/* number of swap blocks */
 	int	copymode;	/* 0 is copy on write, 1 is copy on reference */
 	int	portispaged;	/* ??? */
-	ulong	ipif;		/* Ip protocol interfaces */
-	ulong	ip;		/* Ip conversations per interface */
-	ulong	arp;		/* Arp table size */
-	ulong	frag;		/* Ip fragment assemble queue size */
 	int	nfloppy;
 };
 
@@ -104,8 +101,11 @@ struct PMMU
 
 struct Mach
 {
+	/* OFFSETS OF THE FOLLOWING KNOWN BY l.s */
 	int	machno;			/* physical id of processor */
 	ulong	splpc;			/* pc of last caller to splhi */
+
+	/* ordering from here on irrelevant */
 	int	mmask;			/* 1<<m->machno */
 	ulong	ticks;			/* of the clock since boot time */
 	Proc	*proc;			/* current process on this processor */
@@ -123,6 +123,7 @@ struct Mach
 	int	intr;
 	Proc	*lproc;
 
+	/* MUST BE LAST */
 	int	stack[1];
 };
 

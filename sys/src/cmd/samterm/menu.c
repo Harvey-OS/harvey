@@ -31,7 +31,7 @@ enum Menu2
 enum Menu3
 {
 	New,
-	Xerox,
+	Zerox,
 	Reshape,
 	Close,
 	Write,
@@ -49,7 +49,7 @@ char	*menu2str[] = {
 
 char	*menu3str[] = {
 	"new",
-	"xerox",
+	"zerox",
 	"reshape",
 	"close",
 	"write",
@@ -122,7 +122,7 @@ menu3hit(void)
 			sweeptext(1, 0);
 		break;
 
-	case Xerox:
+	case Zerox:
 	case Reshape:
 		if(!lock){
 			cursorswitch(&bullseye);
@@ -141,11 +141,11 @@ menu3hit(void)
 			buttons(Down);
 			if((mouse.buttons&4) && (l = flwhich(mouse.xy)) && !lock){
 				t=(Text *)l->user1;
-				if(t!=&cmd || t->nwin>1){
-					if(t->nwin>1)
-						closeup(l);
-					else
-						outTs(Tclose, t->tag);
+				if (t->nwin>1)
+					closeup(l);
+				else if(t!=&cmd) {
+					outTs(Tclose, t->tag);
+					setlock();
 				}
 			}
 			cursorswitch(cursor);
@@ -191,7 +191,7 @@ sweeptext(int new, int tag)
 	Text *t;
 
 	if(getr(&r) && (t = malloc(sizeof(Text)))){
-		memset(t, 0, sizeof(Text));
+		memset((void*)t, 0, sizeof(Text));
 		current((Flayer *)0);
 		flnew(&t->l[0], gettext, 0, (char *)t);
 		flinit(&t->l[0], r, font);	/*bnl*/

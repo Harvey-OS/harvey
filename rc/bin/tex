@@ -1,2 +1,2 @@
 #!/bin/rc
-/sys/lib/tex/bin/$cputype/virtex '&plain' $*
+/sys/lib/tex/bin/$cputype/virtex '&tex' $*

@@ -8,7 +8,7 @@ The copyright notice above does not evidence any
 actual or intended publication of such source code.
 */
 
-char	*version = "version Feb 20, 1992";
+char	*version = "version April 22, 1994";
 
 #define DEBUG
 #include <stdio.h>
@@ -20,6 +20,7 @@ char	*version = "version Feb 20, 1992";
 #include "y.tab.h"
 
 extern	char	**environ;
+extern	int	nfields;
 
 int	dbg	= 0;
 uchar	*cmdname;	/* gets argv[0] for error messages */
@@ -36,16 +37,17 @@ int	curpfile = 0;	/* current filename */
 
 main(int argc, uchar *argv[])
 {
-	uchar *fs = NULL;
+	uchar *fs = NULL, *marg;
+	int temp;
 
 	cmdname = argv[0];
 	if (argc == 1) {
-		fprintf(stderr, "Usage: %s [-f programfile | 'program'] [-Ffieldsep] [-v var=value] [files]\n", cmdname);
+		fprintf(stderr, "Usage: %s [-f programfile | 'program'] [-Ffieldsep] [-v var=value] [-mf n] [-mr n] [files]\n", cmdname);
 		exit(1);
 	}
 	signal(SIGFPE, fpecatch);
 	yyin = NULL;
-	syminit();
+	symtab = makesymtab(NSYMTAB);
 	while (argc > 1 && argv[1][0] == '-' && argv[1][1] != '\0') {
 		if (strcmp((char *) argv[1], "--") == 0) {	/* explicit end of args */
 			argc--;
@@ -80,6 +82,20 @@ main(int argc, uchar *argv[])
 			if (argv[1][2] == '\0' && --argc > 1 && isclvar((++argv)[1]))
 				setclvar(argv[1]);
 			break;
+		case 'm':	/* more memory: -mr=record, -mf=fields */
+			marg = argv[1];
+			if (argv[1][3])
+				temp = atoi(&argv[1][3]);
+			else {
+				argv++; argc--;
+				temp = atoi(&argv[1][0]);
+			}
+			switch (marg[2]) {
+			case 'r':	recsize = temp; break;
+			case 'f':	nfields = temp; break;
+			default: ERROR "unknown option %s\n", marg FATAL;
+			}
+			break;
 		case 'd':
 			dbg = atoi(&argv[1][2]);
 			if (dbg == 0)
@@ -95,13 +111,18 @@ main(int argc, uchar *argv[])
 	}
 	/* argv[1] is now the first argument */
 	if (npfile == 0) {	/* no -f; first argument is program */
-		if (argc <= 1)
+		if (argc <= 1) {
+			if (dbg)
+				exit(0);
 			ERROR "no program given" FATAL;
+		}
 		dprintf( ("program = |%s|\n", argv[1]) );
 		lexprog = argv[1];
 		argc--;
 		argv++;
 	}
+	recinit(recsize);
+	syminit();
 	compile_time = 1;
 	argv[0] = cmdname;	/* put prog name at front of arglist */
 	dprintf( ("argc=%d, argv[0]=%s\n", argc, argv[0]) );
@@ -119,7 +140,7 @@ main(int argc, uchar *argv[])
 	return(errorflag);
 }
 
-pgetc(void)		/* get program character */
+pgetc(void)		/* get 1 character from awk program */
 {
 	int c;
 
@@ -134,7 +155,8 @@ pgetc(void)		/* get program character */
 		}
 		if ((c = getc(yyin)) != EOF)
 			return c;
-		fclose(yyin);
+		if (yyin != stdin)
+			fclose(yyin);
 		yyin = NULL;
 		curpfile++;
 	}

@@ -1,0 +1,1935 @@
+%% BEGIN sem-user.tex
+\def\FileDate{93/04/01}
+\def\FileVersion{1.0}
+%%
+%% COPYRIGHT 1993, by Timothy Van Zandt, tvz@Princeton.EDU
+%%
+%% Copying of part or all of any file in the seminar.sty package
+%% is allowed under the following conditions only:
+%% (1) You may freely distribute unchanged copies of the files. Please
+%%     include the documentation when you do so.
+%% (2) You may modify a renamed copy of any file, but only for personal
+%%     use or use within an organization.
+%% (3) You may copy fragments from the files, for personal use or for use
+%%     in a macro package for distribution, as long as credit is given
+%%     where credit is due.
+%%
+%% You are NOT ALLOWED to take money for the distribution or use of
+%% these files or modified versions or fragments thereof, except for
+%% a nominal charge for copying etc.
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% This LaTeX file prints the User's Guide for seminar.sty.
+%% You must have my tvz-hax.sty, tvz-user.sty, and fancybox.sty,
+%% which are distributed with seminar.sty.
+%%
+%% This is distributed with the index file sem-user.ind.
+%% To make an new index, run, e.g.:
+%%   makeindex sem-user.idx
+%%
+%% STYLE OPTIONS:
+%%   `a4'       : For A4 paper.
+%%   `twoside'  : For two-sided printing.
+%%   `2up'      : For two-up printing. (Uses non-standard font magnifications.
+%%                                      See 2up.doc for details.)
+%%
+
+\documentstyle[12pt]{tvz-user}
+
+\makeindex
+
+% Used with twoside option:
+\def\theheadertitle{seminar.sty: User's Guide}
+
+% No headers, 1in top margin
+\setlength{\topmargin}{0pt}
+\setlength{\headheight}{0pt}
+\setlength{\headsep}{0pt}
+\setlength{\textheight}{8.75in}
+\setlength{\footskip}{.625in}
+\papersizeadjust
+
+% Change part environment:
+\renewcommand{\part}[1]{%
+  \clearpage
+  \refstepcounter{part}
+  \addcontentsline{toc}{part}{\protect\numberline{\thepart}#1}%
+  \hrule height 1pt\relax
+  \vskip 1ex
+  \hbox to\columnwidth{\strut\huge\bf\thepart\hfil#1}%
+  \vskip 1ex
+  \hrule height 1pt\relax
+  \vskip 3ex}
+
+\def\MainFont{\tt}            % For macro definitions.
+
+\ShortVerb
+\ShortMeta
+
+\let\filedate\FileDate
+
+\begin{document}
+
+\thispagestyle{empty}
+
+\null
+\vfill
+
+\begin{center}
+  {\huge\bf seminar.sty}\\[9pt]
+  {\LARGE\bf A \bLaTeX\ style for slides and notes}\\[14pt]
+  {\LARGE\bf User's Guide}\par
+  \vskip 1.5em
+  \large
+  \renewcommand{\thefootnote}{\fnsymbol{footnote}}
+  Timothy Van Zandt\\
+  {\normalsize\tt tvz@Princeton.EDU}
+  \vskip 1em
+  \thefiledate\\ Version \FileVersion\par
+\end{center}
+\par
+\setlength{\unitlength}{1cm}
+\thicklines
+\centerline{\lower.8in\hbox{%
+\begin{picture}(0,0)
+\put(2,-11){\framebox(4,2){}}
+\put(2,-11){\line(-2,3){1}}
+\put(2,-9){\line(-2,3){1}}
+\put(6,-9){\line(-2,3){1}}
+\put(1,-9.5){\line(0,1){2}}
+\put(1,-7.5){\line(1,0){4}}
+\put(5.8,-8.7){\line(0,1){2}}
+\put(5.0,-6.7){\oval(1.6,1.6)[tr]}
+\put(5.0,-5.9){\line(-1,0){.7}}
+\put(3.1,-6.4){\framebox(1.2,1){}}
+\put(3.1,-6.4){\line(-1,2){.3}}
+\put(3.1,-5.4){\line(-1,3){.3}}
+\put(4.3,-5.4){\line(-1,3){.3}}
+\put(2.8,-5.8){\line(0,1){1.3}}
+\put(2.8,-4.5){\line(1,0){1.2}}
+\put(0,6.2){\oval(14,10)}
+\put(.02,6.18){\oval(14,10)}
+\thinlines
+\put(2.8,-5.8){\line(-4,3){9.6}}
+\put(2.8,-4.5){\line(-3,5){9.35}}
+\put(4,-4.5){\line(1,6){2.6}}
+\put(6.8,1.4){\line(-1,-3){2.5}}
+\end{picture}}}
+\par
+\bigskip
+\rightskip=0pt plus 2em\relax
+\parshape=20
+0cm 2.3cm
+0cm 2.9cm
+0cm 3.5cm
+0cm 4.1cm
+0cm 4.7cm
+0cm 5.3cm
+0cm 5.9cm
+0cm 6.5cm
+0cm 7.1cm
+0cm 7.7cm
+0cm 8.3cm
+0cm 8.3cm
+0cm 8.3cm
+0cm 7.3cm
+0cm 7.3cm
+0cm 7.3cm
+0cm 7.3cm
+0cm 7.3cm
+0cm 7.3cm
+0cm 7.3cm
+seminar.sty is a \LaTeX\ style for typesetting slides or
+transparencies, and accompanying notes. Here are some of its special features:
+It is compatible with \AmS-\LaTeX, and you can use PostScript and \AmS{}
+fonts. Slides can be landscape and portrait. There is support for color and
+frames. The magnification can be changed easily.
+Overlays can be produced from a single slide environment. Accompanying notes,
+such as the text of a presentation, can be put
+    outside the slide environments. The slides, notes or both together
+    can then be typeset in a variety of formats.
+
+\vfill
+
+\twosideclearpage
+\pagenumbering{roman}
+\tableofcontents
+
+\twosideclearpage
+
+\section*{Getting Started}
+\addcontentsline{toc}{section}{Getting Started}
+\markboth{Getting Started}{Getting Started}
+
+"seminar.sty" is a \LaTeX{} document style for typesetting slides, and more.
+
+You should know how to use \LaTeX, as described in Leslie Lamport's \LaTeX:
+{\em User's Guide and Reference Manual}.
+
+Let's get started:
+\begin{enumerate}
+\item If you are installing "seminar.sty", read the the accompanying read-me
+file, and put the input files where your \TeX\ looks for inputs.
+
+\item Typeset the sample file, "semsamp1.tex", to see that everything is
+working. You can use \LaTeX\ or \AmS-\LaTeX.
+
+\item Read Appendix \ref{short-fonts}, on page \pageref{short-fonts}.
+
+\item To start making landscape slides, use
+\begin{LVerbatim}
+  \documentstyle{seminar}
+  \begin{document}
+  \begin{slide}
+    foo
+  \end{slide}
+  \end{document}
+\end{LVerbatim}
+and print out your document in landscape mode.
+
+\item To start making portrait slides, include the \o{portrait} style option,
+and use the \e{slide*} environment instead of \e{slide}:
+\begin{LVerbatim}
+  \documentstyle[portrait]{seminar}
+  \begin{document}
+  \begin{slide*}
+    foo
+  \end{slide*}
+  \end{document}
+\end{LVerbatim}
+
+\item If you have used \SliTeX, see Section \ref{slitex}.
+
+\item For A4 paper, use the "a4" style option.
+
+\item When you are ready to explore "seminar.sty"'s special features, skim the
+{\em User's Guide}, including the appendices.
+
+\item Play around with the sample file "semsamp2.tex" to try out some of
+"seminar.sty"'s special features.
+
+\item When you run into problems, look for help in Part \ref{Help}.
+
+\end{enumerate}
+
+\twosideclearpage
+
+\pagenumbering{arabic}
+
+\part{Just slides}
+
+\section{Landscape and portrait slides}
+
+"seminar.sty" is a \LaTeX\ (or \AmS-\LaTeX) document style. Thus, begin your
+document with
+\begin{LVerbatim}
+  \documentstyle{seminar}
+\end{LVerbatim}
+
+The slide environments are\MainEnvIndex{slide}\MainEnvIndex{slide*}%
+\begin{LVerbatim}
+  \begin{slide}    ...    \end{slide}
+  \begin{slide*}   ...    \end{slide*}
+\end{LVerbatim}
+\e{slide} is for landscape slides and \e{slide*} is for portrait slides.
+
+By default, the document is typeset in landscape mode, but if you include the
+\O{portrait} style option, the document is typeset in portrait mode.
+Typesetting the document in landscape mode is different from printing it in
+landscape mode; you may have to take care of the latter when printing with
+your dvi driver (see Appendix \ref{S-landscape}).
+
+If you have both landscape and portrait slides in your file, there are two
+ways to print the slides:
+\begin{itemize}
+  \item If you dvi driver supports rotation, then you can print all the slides
+at once. See Appendix \ref{S-landscape} for details.
+  \item You can first print your landscape slides by putting the command
+\begin{MD}
+  \landscapeonly
+\end{MD}
+in the preamble, and then print the portrait slides by inserting instead the
+command
+\begin{MD}
+  \portraitonly
+\end{MD}
+and including the \o{portrait} style option.
+\end{itemize}
+
+\section{The height and width of slides\label{slidedim}}
+
+The dimensions of the slides are set by the lengths
+\begin{MD}
+  \slidewidth\\
+  \slideheight
+\end{MD}
+The ``width'' refers to the width of a slide when looking at it in landscape
+orientation, whether it is a landscape or portrait slide (and the same goes
+for ``height''). The default width is 8.5 inches and the default height is 6.3
+inches.
+
+The slide environments have an optional argument that lets you change the
+dimensions of a single slide, as in
+\begin{LVerbatim}
+  \begin{slide*}[7.5in,6in]
+\end{LVerbatim}
+The first dimension is the slide's ``width'', and the second dimension is the
+slides ``height''. If you remember what we said about what ``width'' and
+``height'' mean, you will see that the above example begins a portrait slide
+that is 7.5 inches high and 6 inches wide.
+
+
+\section{Margins within a slide}
+
+When a slide is not full, the material is vertically centered within the
+slide. The command
+\begin{MD}
+  \centerslidesfalse
+\end{MD}
+cause the material to be flush to the top, instead. The command
+\begin{MD}
+  \centerslidestrue
+\end{MD}
+switches back to vertical centering.
+
+The right margin in slides is ragged by default. You can change this with the
+command
+\begin{MD}
+  \raggedslides[len]
+\end{MD}
+<len> should be the maximum space between the end of the line and the right
+margin. The argument is optional; \n\raggedslides\ is equivalent to
+\begin{LVerbatim}
+  \raggedslides[1fil]
+\end{LVerbatim}
+which gives a ragged right margin, as in \LaTeX's "flushleft" environment (the
+default). On the other hand,
+\begin{LVerbatim}
+  \raggedslides[0pt]
+\end{LVerbatim}
+gives a justified margin, and
+\begin{LVerbatim}
+  \raggedslides[2em]
+\end{LVerbatim}
+gives a semi-ragged margin. Note that as a margin becomes less ragged,
+hyphenation becomes more likely and more material fits on a slide.
+
+\section{Page breaking within a slide environment\label{S-pagebreak}}
+
+A slide environment can contain more than one ``page'' of slides; \TeX\ will
+break slides into pages automatically.
+
+If the mere idea disturbs you, put the command
+\begin{LVerbatim}
+  \extraslideheight{10in}
+\end{LVerbatim}
+in your document. You can then divide slides into pages yourself by starting
+new slide environments or using the
+\begin{MD}
+  \newslide
+\end{MD}
+command within a slide environment. And you need read this section no further.
+
+If instead you use the command
+\begin{LVerbatim}
+  \extraslideheight{0pt}
+\end{LVerbatim}
+then \TeX\ will break pages the way you would expect. This is a quick and
+dirty way to break a whole paper or a long proof into slides.
+
+However, dividing material into slides is usually too delicate a matter to be
+left up to \TeX, and ultimately you will make all the page breaks yourself. On
+the other hand, automatic page breaking can still be helpful at the early
+stages, letting \TeX\ find preliminary page breaks for you.
+
+Setting the "\extraslideheight" to "0pt" doesn't give you much flexibility
+about where to put the page breaks. Of course, you can always put a page break
+earlier than the one found by \TeX, but occasionally you will prefer to let a
+slide overflow by a small amount rather than rewrite the whole slide.
+
+Therefore, by default, "seminar.sty" uses\MainIndex{\extraslideheight}%
+\begin{LVerbatim}
+  \extraslideheight{10pt}
+\end{LVerbatim}
+This adds on an extra "10pt" to the target slide height (as determined by
+"\slideheight" for landscape slides and "\slidewidth" for portrait slides)
+{\em for the purpose of page-breaking only}.
+
+If the resulting slide exceeds the slide height, you will get a message like
+\begin{LVerbatim}
+  LaTeX Error: Slide 3 overfull by 9pt.
+\end{LVerbatim}
+"seminar.sty" then tries to reduce the slide to its maximum height by
+squeezing out rubber vertical space (e.g., tightening up the interline
+spacing). If the slide is still too full, you will get another warning like:
+\begin{LVerbatim}
+  Overfull \vbox by 4.4pt while output was active.
+\end{LVerbatim}
+You can go back and look for a way to make the slide shorter, or you can
+insert a "\newslide" command to change the page-break, or you can just ignore
+these warnings.
+
+The recommended value to give in the argument of "\extraslideheight" is the
+largest length by which you might be willing to let  a slide overflow.
+
+After you have decided on the page breaks, you can shut up the warnings about
+overfull slides and "\vbox"'s with
+\begin{LVerbatim}
+  \renewcommand{\slidefuzz}{1in}
+\end{LVerbatim}
+The value of \n\slidefuzz\ (which should be length, even though \n\slidefuzz\
+is an ordinary command sequence) is the threshold above which "seminar.sty"
+gives a warning about an overfull slide. The default definition is "2pt".
+
+
+\section{Margins on the page\label{S-slidemargins}}
+
+After "seminar.sty" makes a slide (or a slide page) as described above, it
+(optionally) frames the slide. This is described in Section \ref{S-frames}.
+For making and framing the slide, "seminar.sty" does not need to know anything
+about the paper you are printing on, or the margins you want. Hence, none of
+\LaTeX's standard page parameters are relevant within a slide environment.
+(However, for the sake of consistency, "seminar.sty" sets "\textwidth" to the
+width of the slide and "\textheight" to the height of the slide within a slide
+environment.)
+
+Now "seminar.sty" has to do something with the finished slide. As you read
+this User's Guide, you will find that there are various options. However,
+right now we are making slides for printing on transparencies, and so we have
+to position the slide on the transparency and add headers and footers.
+"seminar.sty" does not use \LaTeX's page parameters for this either. Instead,
+it uses the following parameters:
+\begin{center}
+  \begin{tabular}{lc}
+  {\em Parameter:} & \em Default:\\
+    \N\slideleftmargin & .5in\\
+    \N\sliderightmargin & .5in\\
+    \N\slidetopmargin & .5in\\
+    \N\slidebottommargin & .5in
+  \end{tabular}
+\end{center}
+There are commands, to be set with "\renewcommand".\footnote{The only true
+length parameters (meaning that thay should be set with "\setlength") in
+"seminar.sty" are \n\slidewidth, \n\slideheight, \n\slideframewidth,
+\n\slideframesep, \n\semin, and \n\semcm.}
+
+\begin{figure}
+\hrule  height 1pt\relax
+\begin{center}
+\setlength\unitlength{.7cm}
+\begin{picture}(13,11.5)(-1,-1.5)
+\thicklines
+\put(0,0){\framebox(11,8.5){\Huge My slide}}
+\put(5.5,4.25){\fancyoval(8.5,6){}}
+
+\thinlines
+\put(0,8.65){\line(0,1){.3}}
+\put(.75,8.65){\line(0,1){.3}}
+\put(.5,8.8){\vector(1,0){.25}}
+\put(.5,8.8){\vector(-1,0){.5}}
+\put(.375,9.1){\makebox(0,0)[b]{\n\slideleftmargin}}
+
+\put(10.25,8.65){\line(0,1){.3}}
+\put(11,8.65){\line(0,1){.3}}
+\put(10.75,8.8){\vector(1,0){.25}}
+\put(10.75,8.8){\vector(-1,0){.5}}
+\put(10.625,9.1){\makebox(0,0)[b]{\n\sliderightmargin}}
+
+\put(0,-.15){\line(0,-1){.3}}
+\put(11,-.15){\line(0,-1){.3}}
+\put(5.5,-.3){\vector(1,0){5.5}}
+\put(5.5,-.3){\vector(-1,0){5.5}}
+\put(5.5,-.6){\makebox(0,0)[t]{\n\paperheight}}
+
+\put(-.15,0){\line(-1,0){.3}}
+\put(-.15,.75){\line(-1,0){.3}}
+\put(-.3,.5){\vector(0,1){.25}}
+\put(-.3,.5){\vector(0,-1){.5}}
+\put(-.6,.375){\makebox(0,0)[r]{\n\slidebottommargin}}
+
+\put(-.15,8.5){\line(-1,0){.3}}
+\put(-.15,7.75){\line(-1,0){.3}}
+\put(-.3,8){\vector(0,1){.5}}
+\put(-.3,8){\vector(0,-1){.25}}
+\put(-.6,8.125){\makebox(0,0)[r]{\n\slidetopmargin}}
+
+\put(11.15,0){\line(1,0){.3}}
+\put(11.15,8.5){\line(1,0){.3}}
+\put(11.3,4.25){\vector(0,1){4.25}}
+\put(11.3,4.25){\vector(0,-1){4.25}}
+\put(11.6,4.25){\makebox(0,0)[l]{\n\paperwidth}}
+
+\put(.75,7.75){\makebox(0,0)[bl]{Here is my header}}
+\put(10.25,7.75){\makebox(0,0)[br]{9/30/99}}
+\put(.75,.75){\makebox(0,0)[tl]{Here is my footer}}
+\put(10.25,.75){\makebox(0,0)[tr]{7-9}}
+\end{picture}
+
+\caption{Slide margins.\label{SlideMargins}}
+\end{center}
+\hrule  height 1pt\relax
+\end{figure}
+
+Look at Figure \ref{SlideMargins}. Note that the headers and footers lie {\em
+inside} the top and bottom margins, respectively. The slide is then centered
+horizontally and vertically between the margins.
+
+
+\section{Magnification and lengths}
+
+"seminar.sty" changes \TeX's magnification so that the output is larger than
+when typesetting an article. This means, for example, that if you paste some
+input from a paper you are writing with \LaTeX\ into a slide, it will look
+pretty much the same in the slide, except that it is magnified. For example,
+"\vspace{.5in}" produces a space that gets bigger along with the fonts and
+everything else. Of course, it won't look identical, since "seminar.sty" uses
+its own spacing parameters and margins.
+
+\TeX's standard magnifications are in magsteps. $n$ magsteps means a
+magnification of $1.2^n$. "seminar.sty"'s default magnification is 4 magsteps,
+but you can change this with the command
+\begin{MD}
+  \slidesmag{n}
+\end{MD}
+<n> should be an integer between $-5$ and 9.
+
+As noted above, lengths grow with the magnification. For spacing, like the
+parameter "\parindent" or using "\\[2pt]" to add a little extra space between
+lines, this is great, because it is easier to think in unmagnified dimensions.
+Setting "\parindent" to ".5cm" will look the same (relative to everything
+else) whatever the magnification.
+
+However, if you want to set the unit in a "picture" environment to 1cm, {\em
+as it appears on the slide}, use
+\begin{LVerbatim}
+  \setslidelength{\unitlength}{1cm}
+\end{LVerbatim}
+"\setslidelength" is like \LaTeX's "\setlength", but it scales the size down
+so that the resulting size after magnification is, in this example, 1cm (in
+the process, it removes any stretch from rubber lengths).%
+\footnote{If you know what {\tt true} dimensions are, you may be wondering why
+they haven't been mentioned. These are not recommended because you will not be
+able to print the slides two-up or use the {\tt article} format.}
+There is also a
+\begin{MD}
+  \addtoslidelength{cmd}{len}
+\end{MD}
+command.
+
+"seminar.sty" also provides the lengths
+\begin{MD}
+  \semin\\
+  \semcm
+\end{MD}
+which are equal to an inch and a centimeter, scaled down to ``before
+magnification'' size. For example,
+\begin{LVerbatim}
+  \rule{1pt}{4\semcm}
+\end{LVerbatim}
+makes a line 4 centimeters long on the transparency,.\footnote{Suppose you
+want to use another unit, such as millimeters, instead of centimeters. Then
+try this:
+\begin{LVerbatim}
+  \newcommand{\semmm}{\semcm}
+  \renewcommand{\semcmlength}{1mm}
+  \setslidelength{\semmm}{1mm}
+\end{LVerbatim}}
+
+"\textwidth", "\textheight", "\columnwidth" and "\linewidth" all have the
+expected values in slides. (But "\slidewidth" and "\slideheight" do not.)
+Thus, this would
+\begin{LVerbatim}
+  \rule{1pt}{.5\textwidth}
+\end{LVerbatim}
+make a line that is 1/2 the width of the slide.
+
+For help getting an EPS file to be the right size, see page \pageref{EPS}.
+
+Finally, there are some parameters that "seminar.sty" scales for you, and
+hence you can (and should) set them at their magnified values (the actual size
+on transparencies):
+\begin{itemize}
+  \item "\slidewidth" and "\slideheight"
+  \item "\slideframewidth" and "\slideframesep" (see Section \ref{S-frames}).
+  \item The slide margin parameters (see Section \ref{S-slidemargins}).
+  \item The \LaTeX\ page parameters, {\em when they are set in the
+preamble}.\footnote{The \LaTeX\ page parameters are listed on page 163 of
+Lamport's {\em \LaTeX\ User's Guide and Reference Manual}. They are used for
+notes (see Section \ref{S-notes}) and the \o{article} option (see Sections
+\ref{S-twoup} and \ref{S-article}), but not for printing slides onto
+transparencies. Lamport warns that resetting page parameters in the middle of
+the document is tricky; here it is more so, because you do have to worry about
+scaling them. But you can use "\setslidelength" for this.}
+\end{itemize}
+
+Note that the warnings about overfull slides (see Section \ref{S-pagebreak})
+report unmagnified dimensions.
+
+
+\section{Font sizes}
+
+The "\slidesmag" command lets you change the magnification of your document.
+You can effectively fine tune the magnification by using the "11pt" and "12pt"
+style options. For example, instead of increasing the magnification from 4 to
+5, you can switch to the "12pt" style option. There are differences---e.g.,
+magnification affects the space you get from "\hspace{1in}"---but the fonts
+will at least be roughly the same size either way. The "11pt" option gives a
+half-step, somewhat like "\slidesmag{4.5}", if the latter were permitted.
+
+Sometimes you want to use smaller font sizes for a single slide, in order to
+fit in that little bit of extra material, or to use larger font sizes, so that
+the few things you have to say on a slide don't look too lonely. You can't
+changing the magnification in the middle of the document, but you can change
+the size of the fonts with the command
+\begin{MD}
+  \ptsize{n}
+\end{MD}
+This switches to the font sizes that are in effect when you use the "<n>pt"
+option. Actually, <n> can be 8, 9, 10, 11, 12, 14 or 17, whether you have
+"art<n>.sty" or not.
+
+
+\section{Spacing parameters\label{S-spacing}}
+
+\begin{figure}
+\hrule height 1pt
+\begin{center}
+\begin{tabular}{llc}
+{\em Command:} & {\em Initializes:} & {\em Default} \\[2pt]
+\N\slideparskip & "\parskip" & "1ex minus .2ex"\\
+\N\slideparindent & "\parindent" & "0pt"\\
+\N\slidefootnotesep & "\footnotesep" & "1.2ex"\\
+\N\slideleftmargini & "\leftmargini" & "1.8em" \\
+\N\slideleftmarginii & "\leftmarginii" & "1.4em" \\
+\N\slideleftmarginiii & "\leftmarginiii" & "1em" \\
+\N\slidelabelsep & "\labelsep" & ".5em" \\
+\N\slideitemsep & "\itemsep" & ".8ex minus .2ex" \\
+\N\slidepartopsep & "\partopsep" & "1ex minus .2ex" \\
+\N\slidestretch & "\baselinestretch" & "1.2"\\
+\N\slidearraystretch & "\arraystretch" & "1.2"
+\end{tabular}
+
+\caption{Slide spacing parameters.\label{SpacingDefaults}}
+\end{center}
+\hrule height 1pt
+\end{figure}
+
+The commands in Figure \ref{SpacingDefaults} are used to initialize some of
+the spacing parameters at the beginning of each slide environment and when
+"\ptsize" is used in a slide environment. These are spacing parameters that
+should depend on the size of fonts and that in \LaTeX's "article" style would
+be set in "art10.sty", etc. These commands should all be changed with
+"\renewcommand", even though, except for the "stretch" parameters, their
+values should be lengths.
+Note that "ex" and "em" units are used because these are the units that depend
+of font sizes.
+
+Outside a slide environment, redefine the commands on the left if you want to
+change these spacing parameters. Within a slide environment, reset the
+parameters directly, or redefine the commands on the left and then use the
+"\ptsize" command.
+
+In other \LaTeX\ styles, the extra distance between lines that is inserted
+when "\baselinestretch" exceeds 1 is eaten up by tall or deep lines. E.g., if
+the line  contains a table or a large math operator, there is probably no
+extra space at all. The advantage of this system is that the distance between
+baselines does not fluctuate with every tilde. The disadvantage is that lines
+can end up too close.
+
+In "seminar.sty", on the other hand, fraction
+\begin{MD}
+  \slideskip
+\end{MD}
+of the extra space cannot be eaten, but up to fraction
+\begin{MD}
+  \slideshrink
+\end{MD}
+of this extra space that cannot be eaten can be removed if there is too much
+material on the slide. This gives you added flexibility about how much
+material to include on a slide. Both \n\slideskip\ and \n\slideshrink\ can be
+set with "\renewcommand" to a number between 0 and 1. The default value of
+\n\slideskip\ is ".75" and the default value of \n\slideshrink\ is ".25". Set
+\n\slideskip\ to "0" to revert to \LaTeX's usual behavior, as described above.
+
+For example, suppose you are using a 10pt font, \n\slidestretch\ is "1.2",
+\n\slideskip\ is ".75", and \n\slideshrink\ is ".25". The "\baselineskip" for
+a 10pt font is normally 12pt, leaving a little space between the lines. Then
+"\baselineskip" is set to
+\begin{center}
+  "\slidestretch" $\times$ "12pt" $=$ 1.2$\times$12pt $=$ 14.4pt
+\end{center}
+The extra space between lines that is inserted is thus 2.4pt, and
+\begin{center}
+  "\slideskip" $\times$ 2.4pt $=$ .75$\times$2.4pt $=$ 1.8pt
+\end{center}
+of this cannot be eaten by tall or deep lines. However, the space between
+lines can be reduced by up to
+\begin{center}
+  "\slideshrink" $\times$ 1.8pt $=$ .25$\times$1.8pt $=$ .45pt
+\end{center}
+if the slide would otherwise be too long.
+
+
+\section{Slide frames\label{S-frames}}
+
+Slides can be framed. The command
+\begin{MD}
+  \slideframe[commands]{style}
+\end{MD}
+specifies the frame style to use. Valid frame styles are "none" and "plain",
+unless you use macros that define additional styles. For example, the
+\o{fancybox} style option defines the frames "shadow", "double", "oval" and
+"Oval" (corresponding to the "\shadowbox", "\doublebox", "\ovalbox" and
+"\Ovalbox" commands defined in that style option). The \o{semcolor}
+ option defines the styles "scplain", "scdouble", and "scshadow".
+
+All the frame styles use the lengths
+\begin{MD}
+  \slideframewidth\\
+  \slideframesep
+\end{MD}
+which are the (magnified) width of the line (default 4pt) and the distance
+between the slide and the frame (default .4in), respectively.
+
+\n\slideframe's optional argument is for commands that you want to use to
+customize the slide frame style. For example:
+\begin{LVerbatim}
+  \slideframe[\setlength{shadowsize}{12pt}]{shadow}\\
+  \slideframe[\psset{fillstyle=gradient}]{scplain}
+\end{LVerbatim}
+
+If you want to build your own custom slide frame, use the command
+\begin{MD}
+  \newslideframe{style}[commands]{frame command}
+\end{MD}
+<style> is the name of the frame, "[<commands>]", which is optional, will be
+inserted before the frame command and before the <commands> given by
+"\slideframe"'s optional argument. These commands can be used to set some
+default parameter values. Then the final argument should frame "#1".
+
+For example, if "\myframe{foo}" frames "foo", and if "\myframe" uses the
+length "\baldness" as a parameter, then you might write
+\begin{LVerbatim}
+  \newslideframe{wildframe}[\setlength{\baldness}{.2cm}]%
+    {\myframe{#1}}
+\end{LVerbatim}
+You can still override the default value of "\baldness", as in
+\begin{LVerbatim}
+  \slideframe[\setlength{\baldness}{.1cm}]{wildframe}
+\end{LVerbatim}
+
+There is a starred version of \n\slideframe\ that adds the frame to previously
+specified frames.\footnote{If using color or PostScript images, note that each
+frame gets added to the background.} This can be used for special tricks. For
+example, if you are using the \o{fancybox} and \o{semcolor} options, then
+\begin{LVerbatim}
+  \newslideframe{draft}%
+    {\boxput{\rput{30}{\Huge\gray DRAFT}}{#1}}
+  \slideframe{draft}
+  \slideframe*{scdouble}
+\end{LVerbatim}
+puts the word ``DRAFT'' in the background of each slide, gray and rotated 30
+degrees, and then adds a double frame.\footnote{Use "\boxput*" to put "DRAFT"
+in the foreground. See "fancybox.doc" for details.}
+
+
+\part{Advanced Features}
+
+\section{Counters}
+
+The counter for slides is \C{slide}. The default definition of \N\theslide\ is
+"\arabic{slide}". You can use "\label" and "\ref" to cross-reference slides,
+and the page number in slide environments is set to
+\n\theslide.\footnote{However, these page or slide cross-references are not
+always accurate when you let \TeX\ break pages for you within a slide.} Thus,
+you can write, for example,
+\begin{LVerbatim}
+  See equation (\ref{foo}) on Slide \pageref{foo}.
+\end{LVerbatim}
+
+You may want some counters, such as equation counters, to be reset with each
+new slide environment or \n\newslide\ command. By default, only the "footnote"
+counter is reset this way, but you can specify your own (comma-separated) list
+of counters to be reset with the command
+\begin{MD}
+  \slidereset{list}
+\end{MD}
+If you want to reset additional counters, rather than replace the list
+entirely, use
+\begin{MD}
+  \addtoslidereset{list}
+\end{MD}
+
+There is another way in which the footnote counter gets special treatment. The
+command
+\begin{MD}
+  \theslidefootnote
+\end{MD}
+is used for the counter text instead of "\thefootnote". The default definition
+is
+\begin{LVerbatim}
+  \alph{footnote}
+\end{LVerbatim}
+
+\section{Selectively including or excluding slides}
+
+The commands
+\begin{MD}
+  \onlyslides{list}\\
+  \notslides{list}
+\end{MD}
+can be used to include or exclude only those slides in the given list. The
+argument should expand to a comma-separated list of numbers or ranges. The
+numbers do not need to be in order, the list can contain numbers that do not
+correspond to any slide, and there can be duplicate numbers. Negative numbers
+should be enclosed in curly braces. Since the argument is first expanded, you
+can use the "\ref" command in the argument. For example,
+\begin{LVerbatim}
+  \onlyslides{{-2},\ref{dp}-10,\ref{chart},0,17-999}
+\end{LVerbatim}
+is legal. If "\label{dp}" appears in slide 5 and "\label{chart}" appears in
+slide 12, this is equivalent to:
+\begin{LVerbatim}
+  \onlyslides{{-2},5-10,12,0,17-999}
+\end{LVerbatim}
+
+\section{Printing your slides two-up\label{S-twoup}}
+
+Printing your slides two-up is useful both for previewing slides and for
+making hard copies to distribute or for proofreading.
+
+One way to print your slides two-up is to include the \O{article} style
+option. This is described further below.
+
+Another way is to include the command
+\begin{MD}
+  \twoup[n]
+\end{MD}
+in the preamble. This inputs "2up.tex", which contains generic macros for
+two-up printing, and sets the parameters to values that are likely to work.
+Including the optional argument "[<n>]" increases the two-up magnification by
+$n$ magsteps. $n$ can be a positive or negative integer. If you are not able
+to get the right layout, then include the \O{2up} style option, read the
+documentation of "2up.tex", and set the parameters yourself, rather than using
+the \n\twoup\ command.
+
+The \o{article} style option is also called the article {\em format} (as
+opposed to the slides format). In the article format without the \o{portrait}
+option, the slides are centered horizontally and vertically, two to a page (if
+they fit---landscape slides do fit by default). With the portrait option, the
+slides are printed side-by-side, two to a page. In the \o{article} format, you
+can mix landscape and portrait slides with different orientations, but this
+does not work well with the \o{portrait} option.
+
+You can change the article format's magnification with
+\begin{MD}
+  \articlemag{n}
+\end{MD}
+This command works like the "\slidesmag" command (page \pageref{+slidesmag}).
+The default is
+\begin{LVerbatim}
+  \articlemag{0}
+\end{LVerbatim}
+Increase the article magnification if the slides look too lonely; decrease it
+if they are not coming out two-up.
+
+The size of the slides depends on the {\em difference} between the
+magnifications in the slides and article format. E.g., since the default
+slides magnification is 4 magsteps, the slides are scaled down in the article
+format by 4 magsteps. When you change the slides magnification with
+\n\slidesmag, you also have to change the article magnification with
+\n\articlemag\ by the same amount if you want the size of the slides in the
+article format to remain the same. However, when the article magnification in
+magsteps is negative , you will be using non-standard font magnifications
+(which will produce terrible results if you cannot generate the needed
+fonts---see Appendix \ref{bitmaps} for advice).
+
+Whether or not landscape slides (or rotated portrait slides) come out two-up
+in the article format without the \o{portrait} option depends on (i) the
+difference between the slides and article magnification, (ii) the values of
+\n\slidewidth\ and \n\slideheight\, (iii) the size of the slide frame, and
+(iv) the article format's page parameters. With the default values of
+(ii)--(iv), the slides will still come out two-up if you change the difference
+between the slides and article magnification to 3 (e.g., increase the value of
+\n\articlemag\ by 1). Try this if you want the slides to be larger.
+
+If you use the \o{article} option {\em and} the \n\twoup\ command, then your
+slides should be printed four-up!
+
+You will notice labels on the side or bottom of each slide in the \o{article}
+format. The command
+\begin{MD}
+  \slidestyle{style}
+\end{MD}
+determines where these labels go. There are three predefined slide styles:
+\begin{description}
+\item[\tt empty] No captions or labels are used.
+\item[\tt left]  The labels go on the left of each slide (the default when the
+\o{portrait} option is not used).
+\item[\tt bottom] The labels go on the bottom (the default with the
+\o{portrait} option).
+\end{description}
+The label you get is the value of \N\slidelabel. The default definition of
+\n\slidelabel\ is
+\begin{LVerbatim}
+  \bf Slide \theslide
+\end{LVerbatim}
+
+\section{Notes\label{S-notes}}
+
+In addition to slides, you can include a few comments following each slide to
+remind you of what to say, or even the entire text of your presentation for
+your own benefit or to be distributed to others. These comments or text,
+referred to in this documentation as ``notes'', do not go inside any special
+environment. However, a slide cannot go in the middle of a paragraph of notes.
+
+To include notes this way, you have to use one of the following style options,
+which determine what is printed:
+\begin{quote}
+  \begin{tabular}{ll}
+    \O{slidesonly} & Only the slides are printed.\\
+    \O{notes} & Both notes and slides are printed.\\
+    \O{notesonly} & Only the notes are printed.\\
+  \end{tabular}
+\end{quote}
+These style options are referred to as {\em selections} in this documentation.
+
+The pages of notes following slide 5 are numbered 5.1, 5.2, etc.
+
+You can use the "portrait" option to print out your notes, even if you don't
+use this option when printing the slides.
+
+With the "notesonly" selection, the slides are not printed, but they are
+processed. This means that one can still refer in the notes to slides or to
+equations in slides.
+
+The fact that various spacing parameters are initialized at the beginning of
+each slide (see Section \ref{S-spacing}) means that when you reset these
+parameters outside a slide environment, only the notes are affected. This lets
+you use different values for notes and slides. The command \N\slidefonts\ can
+be used for any special font commands that should apply only to slides. Also,
+the command \N\everyslide\ is executed at the beginning of every slide, and
+you can use this for any other customizations you want to include.
+
+You can also use the "11pt" or "12pt" style option for your notes, without
+changing the size of the fonts in the slides, by using the "\ptsize" command
+to set the font sizes for slides. For example, suppose that the "12pt"
+document style option is used, but the preamble contains  the command
+\begin{LVerbatim}
+  \ptsize{11}
+\end{LVerbatim}
+and the second slide begins with the command
+\begin{LVerbatim}
+  \ptsize{9}
+\end{LVerbatim}
+Then the notes use the "12pt" font size declarations, all the slides but the
+second one use the "11pt" font size declarations, and the second slide uses
+the "9pt" font size declarations.
+
+Notes are typeset using \LaTeX's standard output routines, and \LaTeX's
+standard page parameters.
+
+ Finally, it is even possible to use a different page style for notes and
+slides. The page style for notes is set by the "\pagestyle" and
+"\thispagestyle" commands. The command
+\begin{MD}
+  \slidepagestyle{style}
+\end{MD}
+sets a different page style for the slides. If the argument is empty, then the
+page style for slides reverts to the one for notes.\footnote{There is no
+"\thisslidepagestyle" command.}
+
+With the command
+\begin{MD}
+  \onlynotestoo
+\end{MD}
+the "\onlyslides" and "\notslides" commands apply to the notes as well.
+
+
+\section{How notes are omitted\label{omit}}
+
+In the previous section, it was stated that notes are not enclosed in a
+special environment. "seminar.sty" omits notes using special
+macros\footnote{Defined in {\tt xcomment.sty}} that comment out everything
+{\em outside} the slide environments (and a few other environments mentioned
+below). Global declarations that should be processed even when slides are
+omitted go in \e{allversions*} environments, described below.
+
+"seminar.sty" also let you use a more conventional approach to notes. If you
+put the command
+\begin{MD}
+  \noxcomment
+\end{MD}
+in the preamble, then the notes go inside \E{note} environments, and you can
+put all the global declarations outside any environment. "xcomment.sty" is
+used to make \e{note} a comment environment when note should be omitted, and
+otherwise the \e{note} environment does nothing. This mode of operation is
+more robust than omitting everything outside the slide environments, but
+remembering to insert the
+\begin{LVerbatim}
+  \begin{note} ... \end{note}
+\end{LVerbatim}
+is more tedious.
+
+Here are a few technicalities that have to do with "xcomment.sty" and that
+apply whether or not you use \n\noxcomment.
+\begin{enumerate}
+\item The text that follows the beginning of a slide environment (when not
+using \n\noxcomment) or the end of a \e{note} environment {\em must have
+balanced curly braces}.
+\item "\input" and "\include" commands are followed, even when found in
+omitted notes, but you must use the \LaTeX\ syntax "\input{<file>}" (as
+opposed to \verb*+\input <file> +), and the inputted file must end with
+"\endinput" (this is a good practice anyway).
+\item In omitted text, "%" is still a comment character (hence it is possible
+to comment out a slide or note environment).
+\item A temporary file, "\jobname.tmp", is created (this is of no
+consequence---just in case you wanted to know where it comes from).
+\end{enumerate}
+
+The rest of this section deals with special considerations when omitting
+everything outside the slide environments.
+
+If you might want to make a global change to one of the slide parameters after
+the document preamble, you cannot include it in a slide environment because
+the change will be local, and you cannot include it in the notes because the
+change won't be processed when the notes are omitted.
+
+To get around this problem, an environment \E{allversions*} is provided. It is
+processed even when notes are omitted, and any parameter changes or command
+definitions made within the environment are global. Don't generate any output
+within this environment.
+
+On a rare occasion you might want to include some text that should be typeset
+even when the other notes are omitted (e.g.,  a list of the slides, or a cover
+page). The \E{allversions} environment is provided for this purpose.
+
+If you do any serious hacking, you might want to add to the list of
+environments that should be included with the "slidesonly" selection. Do this
+with the command
+\begin{MD}
+  \addtoslidelist{list}
+\end{MD}
+where <list> is a comma separated list of environments, without spaces.
+
+\section{The article format\label{S-article}}
+
+The \o{article} style option was described in Section \ref{S-twoup} as a way
+to print your slides two-up. This option is also a good way to print your
+notes.
+
+The \o{article} option gets its name because your document is typeset somewhat
+like it would be with \LaTeX's "article" style. (It uses \LaTeX's standard
+page parameters, but some of the default values are different.) It is also
+called the article {\em format}; the slides format is what you get without the
+\o{article} option.
+
+You probably don't want to use the \o{portrait} style option with the
+\o{article} format except when you are only printing portrait slides. But you
+are welcome to experiment.
+
+With the \o{notesonly} selection, you can make the notes as big as you want
+using the \n\articlemag\ command (e.g., for easy reading while giving a
+presentation). Just as in the \o{slides} format, the page parameters are
+scaled at the beginning of the document so that they can be set with their
+true dimensions in the preamble.
+
+The commands
+\begin{MD}
+  \setartlength{cmd}{len}\\
+  \addtoartlength{cmd}{len}
+\end{MD}
+are analogous to "\setslidelength" and "\addtoslidelength", but they scale the
+lengths so that they end up at the specified size after magnification in the
+"article" format. You never would use such a command in slide environments or
+to set slide parameters, but you might use these in the notes if you were
+planning on typesetting your notes with the "article" format rather than the
+"slides" format.
+
+You can change the placement of slides in the \o{article} format using the
+\begin{MD}
+  \slideplacement{name}
+\end{MD}
+command. Here are the valid placement names:
+\begin{description}
+  \item[float] The slides are floated. This is the default with the \o{notes}
+selection and the \o{portrait} option.
+  \item[float*] Like "float", but if the notes are printed in a two-column
+format the slides extend across both columns (e.g., like "table" versus
+"table*"). This is the default with the \o{notes} selection without the
+\o{portrait} option.
+  \item[onepercol] Each slide is centered horizontally and vertically within a
+single column. This is the default when only slides are printed and the
+\o{portrait} option is used.
+  \item[twopercol] Each slide is centered horizontally, two or one per column,
+depending on how many fit. This is the default when only slides are printed
+and the \o{portrait} option is not used.
+  \item[here] Each slide is centered horizontally, separated from adjoining
+text or other slides by the rubber length \N\slidesep.  The default value of
+\n\slidesep\ is "\intextskip". This is useful with the \o{notes} selection
+when you want the slides to precede accompanying comments and when you do not
+mind large spaces at the bottom of pages.
+  \item[here*] This is like "here*", but with "here*" the length \n\slidesep\
+is not lost when it falls at the beginning of a page or after a slide.
+\end{description}
+
+If you want each slide environment to begin a new page (with any of the
+selections), put the command
+\begin{MD}
+  \slideclearpagetrue
+\end{MD}
+in the preamble.
+
+The \o{notesonly} selection has a starred version, \O{notesonly*}, which
+produces a slide marker for each slide environment, like this one:
+\begin{center}
+\leavevmode
+\vbox{%
+\hrule height 1pt
+\kern 8pt
+\hbox to \linewidth{\hss \LARGE\bf Slide 4 \hss}%
+\kern 8pt
+\hrule height 1pt}
+\end{center}
+
+
+Commands that are irrelevant in the "article" format are simply ignored. The
+idea is that it should be possible to switch back and forth between the two
+formats without making any other changes in the document. However, this is not
+entirely possible. Changing "\parindent" or "\textwidth" in the preamble
+affects both formats. You can get around this using the \n\ifarticle\
+conditional. For example,
+\begin{LVerbatim}
+  \ifarticle
+    blah blah
+  \else
+    blee blee
+  \fi
+\end{LVerbatim}
+The "\else" part is optional.
+
+
+\section{Page styles}
+
+The page styles "empty", "plain", "headings" and "myheadings" work like in
+\LaTeX's article style. There is also a page style "align" which puts "+"
+signs in the corners, like in \SliTeX.\footnote{See question \ref{Pagestyle}
+in Section \ref{tips} for suggestions on defining new page styles.} You can
+change the size of the fonts used in headers and footers in the slides format
+by setting the commands
+\begin{MD}
+  \slideheadfont\\
+  \slidefootfont
+\end{MD}
+to the desired size, using "\renewcommand" (but any explicit font declarations
+in a page style override these commands). The default definition of these
+commands is "\scriptsize".
+
+
+\section{Other style options\label{options}}
+
+The style options described so far, "portrait", "article", "slidesonly",
+"notes", and "notesonly", were designed specifically for "seminar.sty". There
+are other such style options described elsewhere in this documentation: 
+"semrot" (page \pageref{o+semrot}), \o{semlayer} (page \pageref{o+semlayer}).
+\o{semcolor} (page \pageref{o+semcolor}), "semhelv" (page
+\pageref{o+semhelv}), "semlcmss" (page \pageref{o+semlcmss}), and "a4" (page
+\pageref{o+a4}).
+
+Here are two more style options that are part of the "seminar.sty" package,
+but that can be used with other document styles:
+\begin{description}
+\item[fancybox] "fancybox.sty" is specific to slides, but it contains commands
+and documentation that are useful for making slides.
+
+\item[slidesec] This sets up some sectioning/heading commands for slides, and
+lets you print a list of slides or a table of contents. See the file
+"slidesec.sty" for details.
+\end{description}
+
+It is impossible to predict, much less describe, the consequences of using all
+the other available \LaTeX{} style option with each selection and format.
+Since this document style is an extension of \LaTeX's "article" style, style
+options and commands that do not work with \SliTeX{} may well work here. Just
+about any style option that works with \LaTeX's "article" style will work with
+the "article" format. When unsure of the effect of an option, just try it and
+see for yourself what happens.
+
+\section{Overlays\label{S-overlays}}
+
+For overlays, you must use both the \O{semlayer} and \o{semcolor} style
+options (see page \pageref{o+semcolor}).
+
+Overlays have two purposes. First, you can use overlays to gradually add
+layers of information on a slide during a presentation. Second, you can use
+overlays to make color layers; each layer is printed in black-on-white on
+paper, and then you use some kind of color copying service to put each layer
+on a transparency in a different color. This is not nearly as nice as having a
+color printer or using a color printing service, but it's the next best thing.
+
+"seminar.sty" lets you make both types of overlays (and the main slide) from a
+single slide environment. The command\footnote{You can also write
+\begin{Ex}
+  "\begin{overlay}{<n>}" $\ldots$ "\end{overlay}"
+\end{Ex}}
+\begin{MD}
+  \overlay{n}
+\end{MD}
+puts whatever is in its scope (\TeX\ group) on overlay $n$, where
+$n=0,\ldots,9$. Actually, overlay 0 refers to the main slide, but you might
+use "\overlay{0}" because overlay commands can be nested. As implemented by
+the "semcolor" style option, these overlay commands can be used just about
+anywhere, including in math mode, tables, and around an included graphics file
+(if it is a conforming EPS file, at least). Also, it is all right to use
+non-consecutive overlay numbers.
+
+For color layers, you have to start by defining some colors using the command
+\begin{MD}
+  \colorlayers{colors}
+\end{MD}
+<colors> should be a comma separated list of color names, without spaces, as
+in
+\begin{LVerbatim}
+  \colorlayers{red,green,blue}
+\end{LVerbatim}
+Then you can use the command "\red" just like the command \n\overlay"{<n>}";
+everything in its scope goes on a red color layer.
+
+The "\colorlayers" command obeys the usual rules on scope. You can use this
+command any time, including in a slide environment. The command is cumulative,
+meaning that previously defined color layers continue to exist. The command
+was purposely defined so that it does not complain when a color name is
+already defined; this makes it easier to switch from some other color system
+to a layer system. However, you should be careful not to inadvertently
+redefine some command that you need. Fortunately, there are no \TeX{}
+primitives whose names are the names of colors.
+
+When you print out the slides, the main slide is printed, followed by each of
+the color layers (if any) for the main slide. Then each of the overlays is
+printed, together with each of its color layers. Only overlays or color layers
+that are actually used (i.e., that are not empty) are printed.
+
+You can turn overlays and color layers on and off with the commands
+\begin{MD}
+  \overlaystrue\\
+  \overlaysfalse\\
+  \layerstrue\\
+  \layersfalse
+\end{MD}
+These commands can be used at any time, and they obey the usual scoping rules.
+The default is for overlays to be active in the "slides" format and suppressed
+in the "article" format.
+
+The counter \C{overlay} keeps track of the overlays. The default definition of
+\N\theoverlay\ is:
+\begin{LVerbatim}
+  \theslide-\alph{overlay}
+\end{LVerbatim}
+Overlays can be cross-referenced.
+
+The command \N\currlayer\ is set to the name of the current color layer.
+\N\thelayer\ makes a label for layers; its default definition is:
+\begin{LVerbatim}
+  \theoverlay-\currlayer
+\end{LVerbatim}
+Color layers cannot be cross-referenced.
+
+For example, if slide 7 has overlays 1 and 2 and colors "red" and "green",
+then the main slide is numbered 7, followed by layers 7-red and 7-green,
+followed by overlay 7-a, followed by layers 7-a-red and 7-a-green, followed by
+overlay 7-b, followed by layers 7-b-red and 7-b-green.
+
+The caption used in the slide styles is \n\overlaylabel\ for overlays and
+\N\layerlabel\ for layers. The defaults are, respectively,
+\begin{LVerbatim}
+  \bf Overlay \theoverlay
+  \bf Layer \thelayer
+\end{LVerbatim}
+
+By default the overlays and layers use the same page styles in the "slides"
+format as their ``owner.'' You can specify special page styles with the
+commands:
+\begin{MD}
+  \overlaypagestyle{style}\\
+  \layerpagestyle{style}
+\end{MD}
+
+Finally, by default the overlays and layers use the same frame style as their
+``owner.'' You can specify special frame styles with the commands:
+\begin{MD}
+  \overlayframe[commands]{style}\\
+  \layerframe[commands]{style}
+\end{MD}
+
+
+\part{Help\label{Help}}
+
+Road map:
+\begin{itemize}
+  \item If you just want to figure out how to do something, check Section
+\ref{tips}, ``Tips and tricks.''
+  \item If you are trying to decipher an error message, check Section
+\ref{errors}, ``Errors.''
+  \item If you are trying to solve some system-dependent problem that has
+arisen, check Section \ref{trouble}, ``Troubleshooting.''
+  \item To convert \SliTeX\ files, see Section \ref{slitex}, ``Converting
+\SliTeX\ files''.
+\end{itemize}
+
+\section{Tips and tricks\label{tips}}
+
+\faq{How can I fit more material in the slides?}
+
+Or alternatively, make the little material you have fill up the slide.
+
+Let us count the ways:
+\begin{enumerate}
+\item Change the magnification with \n\slidesmag"{<n>}" (affects all the
+slides).
+\item Change the height and/or width of one or all the slides.
+\item Use "\ptsize{<n>}".
+\item Change \n\slidestretch.
+\item Use the \n\raggedslides\ command, which changes the propensity to
+hyphenate.
+\end{enumerate}
+
+\faq{How do I include an Encapsulated PostScript figure?\label{EPS}}
+
+The only thing tricky about including EPS files is getting the size right. For
+example, suppose the you want to include a postscript file in a slide using
+the "epsf.sty" macros, and you want it to be 6 inches wide. Then this will do
+the trick:
+\begin{LVerbatim}
+  \setslidelength{\epsfxsize}{6in}
+  \epsffile{mypic.eps}
+\end{LVerbatim}
+
+If you include the command
+\begin{MD}
+  \espfslidesize
+\end{MD}
+(e.g., in the preamble), then "epsf.sty" will take care of scaling the size
+for you, and so you can just set "\epsfxsize" and "\epsfysize" to their
+magnified sizes (using "\setlength" rather than "\setslidelength"). Or you can
+not set these parameters at all, and then the eps file  appears at its natural
+size on the slide.
+
+Either way, this will have the expected effect:
+\begin{LVerbatim}
+  \setlength{\epsfysize}{.8\textheight}
+  \epsffile{mypic.eps}
+\end{LVerbatim}
+
+"psfig.tex" does not handle magnification properly. By using magnified
+dimensions, without "\setslidelength", as in
+\begin{LVerbatim}
+  \psfig{file=mypic.eps,width=6in}
+\end{LVerbatim}
+the picture should appear correctly within a slide, but then it will not scale
+properly if you try to use the \o{article} option or the \n\twoup\ command.
+The solution, if using Rokicki's "dvips", is to use "epsf.sty" (written by the
+man himself).
+
+\faq{How can I print just selected overlays, layers or pages of notes in the
+{\tt slides} format?}
+
+The "\onlyslides" and "\notslides" commands affect only slides. If a slide is
+omitted, so are all its overlays and color layers. To be more selective, you
+have to use your dvi driver to select the pages to be printed.
+
+In the "slides" format, the page numbers recognized by dvi drivers correspond
+to the numbers of the slides. This means that a slide and all the overlays,
+layers and notes that correspond to that slide have the same page number. Some
+drivers allow one to select occurrence $n$ of a page number. E.g., with
+"dvips",
+\begin{LVerbatim}
+  dvips -p2.1 -l2.4 myslides
+\end{LVerbatim}
+will print the first through fourth page of overlays or notes that follow
+slide 2.
+
+If your dvi driver does not support such selection, and you would prefer that
+the driver recognize physical page numbers, then put the command
+\N\truepagenumbers\ in the preamble.
+
+
+\faq{How do I define custom page styles?}
+\label{Pagestyle}
+
+There is nothing special about defining new page styles in "seminar.sty".
+However, to make it easier to do this in the preamble, the commands
+\begin{MD}
+  \newpagestyle{style}{header}{footer}\\
+  \renewpagestyle{style}{header}{footer}
+\end{MD}
+are provided.\footnote{%
+  You can also use the macros in "fancyheadings.sty", which is available from
+various archives. However, you have to set the pagestyle {\em after}
+"\begin{document}".
+Otherwise, the dimensions get screwed up. If using the \o{slidesonly}
+selection, then you also need to enclose the "\pagestyle" command in
+an \e{allversions*} environment. E.g.,
+\begin{LVerbatim}
+  \begin{allversions*}
+    \pagestyle{fancy}
+  \end{allversions*}
+\end{LVerbatim}}
+
+<style> is the name of the page style, and <header> is the header, and
+<footer> is the footer. These can only be used for simple page styles that are
+the same for odd and even pages, and that do not do anything special with
+section marks.
+
+Headers and footers are set in an "\hbox" the width of the page
+("\textwidth"). You can use stretchable space such as "\hspace*{\fill}" or
+"\hfil" to center some information or put it flush against the margins. See
+the definitions of page styles in "latex.tex" and "article.sty" for examples.
+
+Here is an example: Professor Starr wants lots of information in the headers
+and footers for the slides, and so she defines the page style
+"mypagestyle":\footnote{{\tt\string\thedate} is set with the {\tt\string\date}
+command.}
+\begin{LVerbatim}
+  \newpagestyle{mypagestyle}%
+    {\sl Big U \hfil \thedate \hfil \thepage}%
+    {\hfil File \jobname.tex; printed \today\hfil}
+\end{LVerbatim}
+Prof.\ Starr wants to use the standard "headings" page style for notes and the
+"mypagestyle" page style for slides, and she wants overlays to just have the
+overlay number. Therefore, she defines another page style for the overlays:
+\begin{LVerbatim}
+  \newpagestyle{myoverlays}{\hfil \thepage}{}
+\end{LVerbatim}
+and she puts
+\begin{LVerbatim}
+  \pagestyle{headings}
+  \slidepagestyle{mypagestyle}
+  \overlaypagestyle{myoverlays}
+\end{LVerbatim}
+in the preamble.
+
+\faq{How do I change a parameter only for the {\tt slides} format?}
+\label{conditionals}
+
+The conditionals
+\begin{MD}
+  \ifarticle\ $\ldots$ "\else" $\ldots$ "\fi"\\
+  \ifslidesonly\ $\ldots$ "\else" $\ldots$ "\fi"\\
+  \ifnotes\ $\ldots$ "\else" $\ldots$ "\fi"\\
+  \ifnotesonly\ $\ldots$ "\else" $\ldots$ "\fi"\\
+  \ifportrait\ $\ldots$ "\else" $\ldots$ "\fi"
+\end{MD}
+allow one to select for what versions material is to be processed. "\ifnotes"
+is true if and only if the "notes" selection is in effect, and so on. The
+"\else" clause is optional. See {\em The \TeX book}, Chapter 20, for more
+information about using conditionals.
+
+For example, the first line below sets the slide rotation to "right" in the
+"article" format only. The second line changes the page style for the "notes"
+and "notesonly" selections and "article" format:
+\begin{LVerbatim}
+  \ifarticle\sliderotation{right}\fi
+  \ifarticle\ifslidesonly\else\pagestyle{myheadings}\fi\fi
+\end{LVerbatim}
+
+\faq{Why does extra space get inserted at the top of a slide when I begin the
+slide with a color or overlay command (when using the \o{semcolor} option)?}
+
+Color and overlay commands with the "semcolor" option use "\special"'s. \TeX{}
+adds the space "\parskip" between the "\special"'s and the first material in
+the slide.
+
+Here is the workaround: If that material is an ordinary paragraph, put the
+command "\leavevmode" just after the color or overlay command. In other cases,
+if you are sure this is the problem, put "\vskip-\parskip" just before the
+color or overlay command.
+
+\section{Errors\label{errors}}
+
+There are several errors that identify themselves as being from "seminar.sty",
+but the error messages are so self-explanatory that that there is no need to
+describe them here. Instead, this section explains a few especially cryptic
+\TeX{} error messages that can arise when using "seminar.sty". These errors
+may also arise for reasons that are not particular to the "seminar.sty"
+macros. See your favorite \TeX{} and \LaTeX{} manuals for more help in
+debugging your documents.
+
+\error"! File ended while scanning use of \next."
+
+You are missing an "\end{document}" on the main file or an "\endinput" on a
+file that is input.
+
+
+\error"! File ended within \read."
+
+You may have an unmatched curly brace following "\begin{slide}" on the same
+line. See Section \ref{omit}.
+
+
+\error"! Paragraph ended before \begin@slide was complete."
+
+You have not specified the optional argument for the "slide" or "slide*"
+environment correctly (see Section \ref{slidedim}), or the first character in
+a slide environment is a "[" (put a pair "{}" of braces before the "[").
+
+\section{Troubleshooting\label{trouble}}
+\setcounter{faq}{0}
+
+\faq{A few slides do not come out two-up with the \o{article} option.}
+
+First, read Section \ref{S-twoup} carefully. If the slides still do not come
+out twoup, it might be that there is extraneous output between the slides. Try
+putting the commands
+\begin{LVerbatim}
+  \slideplacement{here*}
+  \setlength{\slidesep}{8pt plus 1fill}
+\end{LVerbatim}
+in the preamble ("8pt" should be one-half the minimum distance between
+slides). If this solves the problem, look for the extraneous output, or just
+leave those commands in the preamble.
+
+
+\faq{What kind of incompatibilities are there between {\tt seminar.sty} and
+other macros?}
+
+Of course, whenever you load macros that are not part of the standard \LaTeX{}
+distribution and that were not designed to work with "seminar.sty", problems
+may arise because of name conflicts. What are listed here are changes made to
+\LaTeX{} commands that may conflict with other macros that also redefine these
+command. The problems listed here are very unlikely to occur, however, unless
+you have a habit of seriously hacking the standard \LaTeX{} macro files.
+
+\begin{enumerate}
+\item This style modifies the definitions of the \LaTeX{} primitive
+"\document". It generally will not be upset by, nor will it void,
+modifications to "\document" made before "seminar.sty" is input. However,
+subsequent modifications of "\document" may cause problems.
+
+\item "xcomment.sty", which is input by "seminar.sty" with the "slidesonly"
+selection, modifies the definition of "\end" within included environments.
+This is generally compatible with modifications to "\end" made outside
+environments, but may conflict with modifications to "\end" made inside
+environments.
+\end{enumerate}
+
+\faq{Why are the landscape slides displayed sideways and the portrait slides
+displayed upside down on my previewer?}
+
+This document style makes frequent use of landscape mode. Some DVI-to-PS
+converters, such as older versions of Rokicki's "dvips", use their own
+PostScript macros to print a landscape document, rather than simply
+instructing PostScript to use landscape mode.
+If the PostScript output of such a converter is viewed using a PostScript
+previewer that does not allow you to choose the orientation of the display,
+the output will be positioned correctly on the page, but the page will always
+be displayed in portrait mode. When viewing slides without the "portrait"
+option, the landscape slides will be sideways, and the portrait slides will be
+upside-down!
+
+There is nothing this style can do to coerce the page to be displayed in
+landscape mode. There are various ways to minimize neck strain, however:
+\begin{enumerate}
+\item The direction in which the portrait slides are rotated can be reversed,
+so that they end up right-side-up. Just put
+\begin{LVerbatim}
+  \sliderotation{right}
+\end{LVerbatim}
+before the beginning of the document (assuming that you are using rotation
+macros).
+\item You can also get the portrait slides to be displayed right-side-up by
+using the "portrait" style option (Section \ref{options}).
+\item In the "article" format, the document is typeset in portrait mode
+(unless the "portrait" option is used), and so the landscape slides are
+right-side-up. You can use this format when composing and proof-reading the
+slides.
+\end{enumerate}
+
+\faq{Why is my dvi driver soooo slow?}
+
+Probably it cannot find the right font bitmaps, and so it is either
+automatically generating new ones, or it is scaling the ones it can find.
+Either way, as long as you can somehow generate the missing font bitmaps, this
+problem is transitory. See Appendix \ref{bitmaps} for details.
+
+\faq{Why does \TeX{} complain about missing circle fonts?}
+
+Older versions of the NFSS use the names "circle10" and "circlew10" for the
+\LaTeX circle fonts, instead of the otherwise standard names "lcircle10" and
+"lcirclew10". You can copy your ".pk" and ".tfm" files to the new names, or
+get a new version of the NFSS.
+
+\section{Converting \SliTeX\ files}\label{slitex}
+
+"seminar.sty" can do everything \SliTeX\ can do, and much
+more\footnote{However, color layers and overlays require PSTricks and a
+PostScript printer.} Here is a brief and incomplete description of how to do
+with "seminar.sty" what you can do with \SliTeX, and how to convert \SliTeX\
+files.
+
+\begin{itemize}
+  \item Use "seminar" as your document style, instead of "slides".
+
+  \item Run \LaTeX\ or \AmS-\LaTeX, instead of \SliTeX.
+
+  \item With "seminar.sty", the preamble and slides can all go in the same
+file.
+
+  \item The default in "seminar.sty" is to get landscape slides. If you want
+to convert a \SliTeX\ file containing portrait slides, add the "portrait" 
+style option, and replace your "slide" environments by "slide*" environments.
+
+  \item With "seminar.sty", notes do not need to go in a separate environment.
+To convert a \SliTeX\ file containing "note" environments, define a note
+environment that does nothing:
+\begin{LVerbatim}
+  \newenvironment{note}{}{}
+\end{LVerbatim}
+
+  \item For color layers:
+  \begin{itemize}
+    \item Use the "\colorlayers" command instead of the "\colors" command.
+    \item Delete the argument to the "slide" and "slide*" environments that
+lists the color layers.
+    \item Include the \o{semlayer} style option.
+  \end{itemize}
+
+  \item "seminar.sty" does not use separate environments for overlays:
+  \begin{itemize}
+    \item Remove the "overlay" environments.
+    \item Replace "\invisible" commands by "\overlay{1}", "\overlay{2}", etc.
+    \item Include the \o{semlayer} style option.
+  \end{itemize}
+
+  \item To actually produce the overlays and color layers, you have to have
+PSTricks and a PostScript printer, and you must include the \o{semcolor} style
+option.
+
+  \item Use \n\onlyslides"{<list>}" and \n\onlynotestoo\ instead of
+"\onlynotes".
+\end{itemize}
+
+
+\begingroup
+\def\addcontentsline#1#2#3{}%
+\def\thepart{Appendices:}
+\part{Configuration}
+\endgroup
+\begingroup
+\def\thepart{}
+\addcontentsline{toc}{part}{Appendices:\hspace{1em}Configuration}
+\endgroup
+\appendix
+
+Before reading this appendix, you should follow the installation instructions
+in the file "sem-read.me" that is distributed with "seminar.sty".
+
+\section{The short story about fonts}\label{short-fonts}
+
+"seminar.sty" is a \LaTeX{} style, and you can use whatever fonts that are
+compatible with \LaTeX\ (or \AmS-\LaTeX). However, you are likely to want to
+use special fonts with "seminar.sty"; see Appendix \ref{fonts} for help.
+Furthermore, you are likely to want to use fonts in sizes that are larger than
+the standard sizes; see Appendix \ref{bitmaps} for help.
+
+But if you don't want to read these appendices, you can just use whatever
+\LaTeX\ fonts you know how to use (e.g., the standard Computer Modern fonts).
+To be sure you need only standard font magnifications:\footnote{This is not a
+consideration if you are using only PostScript or other scalable fonts.}
+\begin{itemize}\label{font-res}
+  \item Don't use the "11pt" or "12pt" style options  (or the \n\ptsize{}
+command).
+  \item Don't change the document magnification (or only use 0--4 magsteps).
+  \item Don't use any font size larger than "\large".
+  \item Don't use the \n\twoup\ command.
+\end{itemize}
+
+\section{Choosing fonts\label{fonts}}
+
+So that you can use different fonts for the notes and the slides (if you
+want), the command "\slidefonts" is invoked at the beginning of every slide
+environment. Define it to set up any special fonts for the slides.
+
+Here are the font configurations that come ready-to-use with "seminar.sty".
+You might also use these as a starting point for your own configurations.
+\begin{enumerate}
+\item You can just use the regular old Computer Modern fonts that you probably
+grew up on. For this, you don't have to do anything at all. Ain't that easy?
+But see the next section about font bitmaps.
+
+\item The \O{semhelv} style option sets up the PostScript Helvetica text fonts
+for the slides. The Computer Modern fonts are still used for math and for the
+notes with the \o{article} format. You need a PostScript printer, a dvi-to-ps
+driver that supports PostScript fonts (e.g., Rokicki's "dvips"), and the New
+Font Selection Scheme. You should also check the font file names used in
+"semhelv.sty", and change them if necessary to match the names on your system.
+
+This combination of fonts is highly recommended because sans serif fonts look
+good for slides, Helvetica is a resident font in just about all PostScript
+printers, and the fonts are scalable and thus there is no problem of needing
+new bitmaps.
+
+\item The \O{semlcmss} style option sets up the \SliTeX\ sans serif fonts for
+the slides, and uses the Computer Modern fonts for notes with the \o{article}
+format. The \SliTeX\ fonts are ugly, but they might be the only usable sans
+serif font you have on your system and you are really dying for that kind of
+font. Also, they usually come ready for printing magnified documents, and so
+you won't need too many new font bitmaps. You must have the New Font Selection
+Scheme. "semlcmss" uses
+\begin{LVerbatim}
+  \slidesmag{4}
+  \ptsize{10}
+\end{LVerbatim}
+Deviating from this will increase the need for new font bitmaps.
+\end{enumerate}
+
+The New Font Selection Scheme (NFSS) mentioned above is a macro package for
+\LaTeX{} that greatly simplifies using non-standard fonts. The NFSS was
+written by Frank Mittelbach and Rainer Sch\"opf, and is available from various
+archives, including:
+\begin{center}
+"ftp.uni-stuttgart.de"
+\end{center}
+It is far easier to take the 10 minutes or so that are required (in theory, at
+least) to install the NFSS, than it is to try to muck around with \LaTeX's
+font primitives.
+
+
+\section{Font bitmaps\label{bitmaps}}
+
+If you are only using PostScript or other scalable fonts, or if you obey the
+restrictions listed on page \pageref{font-res}, then you can ignores this
+appendix.
+
+To use "seminar.sty", you may need font bitmap sizes that are not currently
+found on your system. This section describes how to avoid this and what to do
+about it. First, a few paragraphs about magnification and font bitmaps.
+
+\TeX's Metafont fonts are designed for a type size, such as 5pt. Most font
+families are available at least in the sizes 5pt, 6pt, 7pt, 8pt, 9pt and 10pt.
+Some are also available in the sizes 12pt and 17pt (and others), but often any
+size above 10pt is obtained by scaling the 10pt fonts. Table \ref{font-mag}
+lists the possible magnifications for fonts, depending on which option you are
+using ("10pt", "11pt" or "12pt"), and depending on the \LaTeX{} type size
+declaration that is in effect (e.g., "\small"). The magnifications are given
+in magsteps, which is \TeX's standard unit for font magnifications. $n$
+magsteps means a magnification of $1.2^n$.
+
+\begin{table}
+\hrule  height 1pt\relax
+\begin{center}
+\begin{tabular}{l|c|c|c|}
+\multicolumn{1}{l}{size} &
+\multicolumn{1}{c}{default (10pt)} &
+  \multicolumn{1}{c}{11pt option}  &
+  \multicolumn{1}{c}{12pt option}\\
+\cline{2-4} "\tiny"       & 0  & 0 & 0\\
+\cline{2-4} "\scriptsize" & 0  & 0 & 0\\
+\cline{2-4} "\footnotesize" & 0 & 0 & 0 \\
+\cline{2-4} "\small"        & 0 & 0 & 1/2 \\
+\cline{2-4} "\normalsize" & 0 & 1/2 & 1 \\
+\cline{2-4} "\large"      & 1 & 1 & 2 \\
+\cline{2-4} "\Large"      & 2 & 2 & 3 \\
+\cline{2-4} "\LARGE"      & 3 & 3 & 4\\
+\cline{2-4} "\huge"       & 4 & 4 & 5\\
+\cline{2-4} "\Huge"       & 5 & 5 & 5\\
+\cline{2-4}
+\end{tabular}
+
+\caption{Font magnification in magsteps ($n$ means a magnification of $1.2^n$)
+for a font that is available in 5pt, 6pt, 7pt, 8pt, 9pt and 10pt
+sizes.\label{font-mag}}
+\end{center}
+\hrule  height 1pt\relax
+\end{table}
+
+Both the "article" and the "slides" formats may also magnify the document. By
+default, the magnification of the "slides" format is 4 magsteps, and the
+magnification of the "article" format is 0. To find the total font
+magnification, add the magnification listed in the table to the magnification
+of the document. E.g., in the "slides" format with the "12pt" option (or the
+command "\ptsize{12}" at the beginning of a slide), the "\large" command may
+invoke fonts that  have a magnification of up to 7 magsteps.
+
+Most systems have font bitmaps for 0, 1/2, 1, 2, 3, 4 and 5 magsteps. If you
+obey the restrictions listed on page \pageref{font-res}, then you will only
+need fonts in these standard magnifications. However, if you want to use other
+font magnifications, then check with your system administrator to determine
+which of the following applies to you (or just plunge ahead and see what
+happens):
+\begin{enumerate}
+\item If you have Metafont and "dvips" or some other driver that automatically
+generates font bitmaps as needed, and if this feature is enabled, then you
+will simply notice that it takes a long time to print documents at first,
+because the driver has to wait for the new font bitmaps to be made.
+Eventually, you will have generated all the extra bitmaps you need, and this
+delay will go away.
+\item If you have Metafont, but your dvi driver does not automatically
+generate needed bitmaps, then you just need to keep track of what font bitmaps
+you are missing as you use "seminar.sty" and occasionally run Metafont to make
+them. You will also notice a delay when a font bitmap is missing, because your
+driver will probably scale the closest bitmap it finds, and this can take time
+on some systems.
+\item If you do not even have Metafont, then you have to try to get by without
+the extra bitmaps. Scaled fonts look lousy, but an occasional scaled font in a
+heading is not so bad.
+\end{enumerate}
+
+Of course, PostScript and other scalable fonts do not present any problem, and
+so it is a good idea to use these as much as possible. The Computer Modern
+fonts are available from Blue Sky Research in PostScript Type I format. If you
+do not have PostScript versions of the CM fonts, and you instead use other
+PostScript fonts for text, then you are likely to still need bitmapped fonts
+for mathematics. However, since mathematics is usually set at "\normalsize" or
+smaller, this is not a big problem.
+
+If you are installing "seminar.sty" on a multi-user system, then hopefully you
+will make the needed fonts available.
+
+\section{Color}
+
+You can use whatever color commands you ordinarily use with \LaTeX. You might
+try the \o{semcolor} style option, which lets you use the PSTricks color
+commands for printing on a color PostScript printer. The \o{semcolor} option
+combined with the \o{semlayer} option (see Section \ref{S-overlays}) lets you
+print color layers.
+
+\section{Landscape printing and slide rotation\label{S-landscape}}
+
+If your dvi driver supports a "\special" for landscape printing, then you can
+define \N\printlandscape\ in the preamble of your document to invoke this
+command. E.g., for "dvips" put the line
+\begin{LVerbatim}
+  \renewcommand{\printlandscape}{\special{landscape}}
+\end{LVerbatim}
+in the preamble. Otherwise, "seminar.sty" will display a message reminding you
+to print your document in landscape mode, when appropriate.
+
+You can print both landscape and portrait slides in one shot if you can rotate
+the portrait slides when printing in landscape mode or the landscape slides
+when printing in portrait mode. If you are using a PostScript printer, you
+probably are using a dvi driver that supports rotation; otherwise, you
+probably are not. Here are suggestions for setting up rotation:
+\begin{itemize}
+\item The \o{semcolor} option provides an interface to the rotation macros in
+PSTricks (see Appendix \ref{S-semcolor}); it works with many popular dvi-to-ps
+drivers.
+
+\item If you are using Rokicki's "dvips" and want rotation but do not want to
+load the entire PSTricks package, then use the \O{semrot} option instead of
+the \o{semcolor} option.
+
+\item If the \o{semcolor} and \o{semrot} options do not work for you, but you
+have your own rotation macros, then you have to define the commands
+\begin{MD}
+  \leftsliderotation\\
+  \rightsliderotation
+\end{MD}
+so that they rotate something left and right, respectively. For example,
+\begin{LVerbatim}
+  \renewcommand{\leftsliderotation}[1]{\rotateleft{#1}}
+\end{LVerbatim}
+\end{itemize}
+
+In any case, you can determine the direction of rotation using
+\begin{MD}
+  \sliderotation{direction}
+\end{MD}
+where valid directions are "none", "left" and "right". The default is "left".
+
+By default, the headers and footers aren't rotated, but you can switch between
+rotating and not rotating the headers with the commands:
+\begin{MD}
+  \rotateheaderstrue\\
+  \rotateheadersfalse
+\end{MD}
+
+\section{The semcolor style option\label{S-semcolor}}
+
+The \O{semcolor} option sets up an interface between "seminar.sty" and the
+PSTricks package. PSTricks is a collection of PostScript macros for \TeX. It
+works with Rokicki's "dvips", and several other dvi-to-ps drivers. You can
+probably get the PSTricks package from wherever you obtained "seminar.sty", or
+check the archives listed in the PSTricks read-me file, "read-me.pst", which
+is distributed with "seminar.sty".
+
+What the \o{semcolor} style option gives you, compared to just using the
+PSTricks package, is:
+\begin{description}
+\item[Color] A small patch to make the PSTricks color commands more robust in
+slides.
+\item[Rotation] The rotations "left" and "right" are defined. "left" is the
+default.
+\item[Framing] The frame styles "scplain" (using "\psframebox"), "scdouble"
+(using "\psdblframebox") and "scshadow" (using "\psshadowbox").
+\item[Overlays] Overlays and layers, when used in conjunction with the
+\o{semlayer} option.
+\end{description}
+
+\section{A4 and other paper sizes\label{S-papersizes}}
+
+Use the \O{a4} option when using A4 paper. Note that this option does not
+correspond to an independent file.
+
+If you want to configure seminar.sty for A4 paper by default (without having
+to include style options), then you can do one of the following:
+\begin{enumerate}
+
+  \item Add the following line to "seminar.con" (see Appendix
+\ref{S-configfile}):
+\begin{LVerbatim}
+  \input{sem-a4.sty}
+\end{LVerbatim}
+
+  \item Add the following lines to "seminar.con" (these lines are just the
+contents of "sem-a4.sty"):
+\begin{LVerbatim}
+  \def\paperwidth{210mm}
+  \def\paperheight{297mm}
+  \input sem-page.sty
+  \slidewidth 222mm
+  \slideheight 152mm
+\end{LVerbatim}
+
+  \item Create a file such as "mysem.sty", to be used as a document {\em
+style} (rather than style {\em option}), with the following lines:
+\begin{LVerbatim}
+  \def\paperwidth{210mm}
+  \def\paperheight{297mm}
+  \input seminar.sty
+  \slidewidth 222mm
+  \slideheight 152mm
+\end{LVerbatim}
+
+\end{enumerate}
+
+For other paper sizes, you can create a style option by modifying
+"sem-a4.sty". Then any of the options described above is available to you,
+(with the appropriate parameter values). However, this will give satisfactory
+results only for paper sizes that are close to A4 or 8.5in by 11in.
+
+Note that for any paper size, even 8.5in by 11in, the page parameters that are
+set this way are just suggested defaults, and most people will want to
+customize them. Because of the variety of ways in which "seminar.sty"
+documents can be printed, this is a little more complex than with most
+document styles. Examine "sem-page.sty" to see what page parameters need to be
+set, and when.
+
+\section{Configuration file\label{S-configfile}}
+
+You can put customizations to "seminar.sty" in a file named "seminar.con".
+This file is optional. It is loaded by "seminar.sty" if it exists, {\em
+before} loading the style option files.  E.g., "seminar.con" might contain the
+following lines:
+\begin{LVerbatim}
+  \input semhelv.sty
+  \input semcolor.sty
+  \renewcommand{\printlandscape}{\special{landscape}}
+  \endinput
+\end{LVerbatim}
+
+\clearpage
+\PrintUserIndex
+
+\end{document}
+%% END sem-user.tex

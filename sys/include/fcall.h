@@ -1,7 +1,6 @@
 #pragma	lib	"libc.a"
 
-typedef	struct	Fcall	Fcall;
-
+typedef
 struct	Fcall
 {
 	char	type;
@@ -11,15 +10,19 @@ struct	Fcall
 		struct {
 			ushort	oldtag;		/* Tflush */
 			Qid	qid;		/* Rattach, Rwalk, Ropen, Rcreate */
+			char	rauth[AUTHENTLEN];	/* Rattach */
 		};
 		struct {
-			char	uname[NAMELEN];	/* Tauth, Tattach */
-			char	aname[NAMELEN];	/* Tattach */
-			char	auth[NAMELEN];	/* Tattach */
-			char	chal[8+NAMELEN];/* Tauth, Rauth */
+			char	uname[NAMELEN];		/* Tattach */
+			char	aname[NAMELEN];		/* Tattach */
+			char	ticket[TICKETLEN];	/* Tattach */
+			char	auth[AUTHENTLEN];	/* Tattach */
 		};
 		struct {
-			char	ename[ERRLEN];	/* Rerror */
+			char	ename[ERRLEN];		/* Rerror */
+			char	authid[NAMELEN];	/* Rsession */
+			char	authdom[DOMLEN];	/* Rsession */
+			char	chal[CHALLEN];		/* Tsession/Rsession */
 		};
 		struct {
 			long	perm;		/* Tcreate */ 
@@ -36,26 +39,24 @@ struct	Fcall
 			char	stat[DIRLEN];	/* Twstat, Rstat */
 		};
 	};
-};
+} Fcall;
 
 #define	MAXFDATA	8192
-#define	MAXMSG		128	/* max header sans data */
+#define	MAXMSG		160	/* max header sans data */
 #define NOTAG		0xFFFF	/* Dummy tag */
 
 enum
 {
-	Tmux =		48,
-	Rmux,			/* illegal */
 	Tnop =		50,
 	Rnop,
-	Tsession =	52,
-	Rsession,
+	Tosession =	52,	/* illegal */
+	Rosession,		/* illegal */
 	Terror =	54,	/* illegal */
 	Rerror,
 	Tflush =	56,
 	Rflush,
-	Tattach =	58,
-	Rattach,
+	Toattach =	58,	/* illegal */
+	Roattach,		/* illegal */
 	Tclone =	60,
 	Rclone,
 	Twalk =		62,
@@ -78,8 +79,12 @@ enum
 	Rwstat,
 	Tclwalk =	80,
 	Rclwalk,
-	Tauth =		82,
-	Rauth,
+	Tauth =		82,	/* illegal */
+	Rauth,			/* illegal */
+	Tsession =	84,
+	Rsession,
+	Tattach =	86,
+	Rattach,
 };
 
 int	convM2S(char*, Fcall*, int);
@@ -93,3 +98,4 @@ int	dirconv(void *, Fconv*);
 int	dirmodeconv(void *, Fconv*);
 
 char*	getS(int, char*, Fcall*, long*);
+

@@ -90,8 +90,7 @@ screenputs(char *s, int n)
 		}else if(r == '\b'){
 			if(out.pos.x >= out.bwid+MINX){
 				out.pos.x -= out.bwid;
-				screenputs(" ", 1);
-				out.pos.x -= out.bwid;
+				gsubfstring(&gscreen, out.pos, defont, " ", S);
 			}
 		}else{
 			if(out.pos.x >= gscreen.r.max.x-out.bwid)
@@ -107,51 +106,35 @@ screenputs(char *s, int n)
 void
 kbdstate(int ch)
 {
-	static int lstate, k1, k2;
+	static int collecting, nk;
 	static uchar kc[5];
-	int c, i, nk;
+	int c, i;
 
 	if(ch == 0xff){
-		lstate = 0;
+		collecting = 0;
 		return;
 	}
 	if(ch == -1){
-		lstate = 1;
+		collecting = 1;
+		nk = 0;
 		return;
 	}
-	switch(lstate){
-	case 1:
-		kc[0] = ch;
-		lstate = 2;
-		if(ch == 'X')
-			lstate = 3;
-		break;
-	case 2:
-		kc[1] = ch;
-		c = latin1(kc);
-		nk = 2;
-	putit:
-		lstate = 0;
-		if(c != -1)
-			kbdputc(&kbdq, c);
-		else for(i=0; i<nk; i++)
-			kbdputc(&kbdq, kc[i]);
-		break;
-	case 3:
-	case 4:
-	case 5:
-		kc[lstate-2] = ch;
-		lstate++;
-		break;
-	case 6:
-		kc[4] = ch;
-		c = unicode(kc);
-		nk = 5;
-		goto putit;
-	default:
+	if(!collecting){
 		kbdrepeat(1);
 		kbdputc(&kbdq, ch);
+		return;
 	}
+	kc[nk++] = ch;
+	c = latin1(kc, nk);
+	if(c < -1)	/* need more keystrokes */
+		return;
+	if(c != -1)	/* valid sequence */
+		kbdputc(&kbdq, c);
+	else	/* dump characters */
+		for(i=0; i<nk; i++)
+			kbdputc(&kbdq, kc[i]);
+	nk = 0;
+	collecting = 0;
 }
 
 int altcmd;	/* state of left alt and command keys */
@@ -182,7 +165,7 @@ kbdmouseintr(void)
 					dx |= ~0x7F;
 				if(dy & 0x40)
 					dy |= ~0x7F;
-				mousedelta(b, 3*-dx, 3*-dy);
+				mousetrack(b, 3*-dx, 3*-dy);
 			}else{
 				/* alt key + right mouse button == middle mouse button */
 				if((d&0x2000))
@@ -273,11 +256,6 @@ setcolor(ulong p, ulong r, ulong g, ulong b)
 	return 0;	/* can't change mono screen colormap */
 }
 
-void
-mouseclock(void)	/* called splhi */
-{
-	mouseupdate(1);
-}
 
 /*
  *  a fatter than usual cursor for the safari
@@ -303,6 +281,30 @@ bigcursor(void)
 	extern Cursor arrow;
 
 	memmove(&arrow, &fatarrow, sizeof(fatarrow));
+}
+
+int
+hwgcmove(Point p)
+{
+	USED(p);
+	return 0;
+}
+
+void
+setcursor(Cursor *curs)
+{
+	uchar *p;
+	int i;
+	extern GBitmap set, clr;
+
+	for(i = 0; i < 16; i++){
+		p = (uchar*)&set.base[i];
+		*p = curs->set[2*i];
+		*(p+1) = curs->set[2*i+1];
+		p = (uchar*)&clr.base[i];
+		*p = curs->clr[2*i];
+		*(p+1) = curs->clr[2*i+1];
+	}
 }
 
 /*
@@ -333,7 +335,7 @@ mousectl(char *arg)
 	int n;
 	char *field[3];
 
-	n = getfields(arg, field, 3, ' ');
+	n = getfields(arg, field, 3, " ");
 	if(strncmp(field[0], "serial", 6) == 0){
 		switch(n){
 		case 1:
@@ -348,4 +350,6 @@ mousectl(char *arg)
 			break;
 		}
 	}
+	else
+		error(Ebadctl);
 }

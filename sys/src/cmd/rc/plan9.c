@@ -10,9 +10,8 @@
 #include "getflags.h"
 char *Signame[]={
 	"sigexit",	"sighup",	"sigint",	"sigquit",
-	"sigalrm",	"sigbpt",	"sigrange",	"sigodd",
-	"sigbadsys",	"sigoddstack",	"sigpipe",	"sigtrap",
-	"sigfpe",	0
+	"sigalrm",	"sigkill",	"sigfpe",	"sigterm",
+	0
 };
 char *syssigname[]={
 	"exit",		/* can't happen */
@@ -20,14 +19,9 @@ char *syssigname[]={
 	"interrupt",
 	"quit",		/* can't happen */
 	"alarm",
-	"sys: breakpoint",
-	"sys: bad address",
-	"sys: odd address",
-	"sys: bad sys call",
-	"sys: odd stack",
-	"sys: write on closed pipe",
-	"sys: trap: ",
+	"kill",
 	"sys: fp: ",
+	"term",
 	0
 };
 char Rcmain[]="/rc/lib/rcmain";
@@ -166,29 +160,23 @@ void execfinit(void){
 }
 #endif
 int Waitfor(int pid, int persist){
-	char errbuf[ERRLEN];
 	thread *p;
 	Waitmsg w;
 	int cpid;
-	for(;;){
-		if((cpid=wait(&w))<0){
-			errstr(errbuf);
-			if(strcmp(errbuf, "interrupt") != 0)
-				return -1;
-			break;
-		}
+	char errbuf[ERRLEN];
+	while((cpid=wait(&w))>=0){
 		if(pid==cpid){
 			setstatus(w.msg);
-			if(flag['e'] && !truestatus()) Exit(getstatus());
-			break;
+			return 0;
 		}
 		for(p=runq->ret;p;p=p->ret)
 			if(p->pid==cpid){
 				p->pid=-1;
 				strcpy(p->status, w.msg);
-				break;
 			}
 	}
+	errstr(errbuf);
+	if(strcmp(errbuf, "interrupted")==0) return -1;
 	return 0;
 }
 char **mkargv(word *a)
@@ -250,13 +238,23 @@ void Updenv(void){
 void Execute(word *args, word *path)
 {
 	char **argv=mkargv(args);
-	char file[512];
+	char file[1024];
+	int nc;
 	Updenv();
 	for(;path;path=path->next){
-		strcpy(file, path->word);
-		if(file[0]) strcat(file, "/");
-		strcat(file, argv[1]);
-		exec(file, argv+1);
+		nc=strlen(path->word);
+		if(nc<1024){
+			strcpy(file, path->word);
+			if(file[0]){
+				strcat(file, "/");
+				nc++;
+			}
+			if(nc+strlen(argv[1])<1024){
+				strcat(file, argv[1]);
+				exec(file, argv+1);
+			}
+			else werrstr("command name too long");
+		}
 	}
 	errstr(file);
 	pfmt(err, "%s: %s\n", argv[1], file);
@@ -354,8 +352,10 @@ notifyf(void *a, char *s)
 	noted(NDFLT);
 	return;
 Out:
-	trap[i]++;
-	ntrap++;
+	if(strcmp(s, "interrupt")!=0 || trap[i]==0){
+		trap[i]++;
+		ntrap++;
+	}
 	if(ntrap>=32){	/* rc is probably in a trap loop */
 		pfmt(err, "rc: Too many traps (trap %s), aborting\n", s);
 		abort();
@@ -415,6 +415,7 @@ int Isatty(int fd){
 	Dir d1, d2;
 
 	if(dirfstat(0, &d1)==-1) return 0;
+	if(strncmp(d1.name, "ptty", 4)==0) return 1;	/* fwd complaints to philw */
 	if(dirstat("/dev/cons", &d2)==-1) return 0;
 	return d1.type==d2.type&&d1.dev==d2.dev&&d1.qid.path==d2.qid.path;
 }
@@ -429,4 +430,10 @@ void Memcpy(char *a, char *b, long n)
 }
 void *Malloc(ulong n){
 	return malloc(n);
+}
+char *Geterrstr(void){
+	static char error[ERRLEN];
+	error[0]='\0';
+	errstr(error);
+	return error;
 }

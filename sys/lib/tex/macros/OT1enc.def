@@ -1,0 +1,86 @@
+%% 
+%% This is file `OT1enc.def', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% ltoutenc.dtx  (with options: `OT1')
+%% 
+%% Copyright (C) 1994 LaTeX3 project, Frank Mittelbach, Rainer Schoepf 
+%% and Alan Jeffrey. 
+%% All rights reserved. 
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% This is a generated file. 
+%% 
+%% No permission is granted to modify this file. 
+%% 
+%%% File: ltoutenc
+\ProvidesFile{OT1enc.def}[1994/12/14 Standard LaTeX file]
+\DeclareFontEncoding{OT1}{}{}
+\DeclareTextAccent{\"}{OT1}{127}
+\DeclareTextAccent{\'}{OT1}{19}
+\DeclareTextAccent{\.}{OT1}{95}
+\DeclareTextAccent{\=}{OT1}{22}
+\DeclareTextAccent{\^}{OT1}{94}
+\DeclareTextAccent{\`}{OT1}{18}
+\DeclareTextAccent{\~}{OT1}{126}
+\DeclareTextAccent{\H}{OT1}{125}
+\DeclareTextAccent{\u}{OT1}{21}
+\DeclareTextAccent{\v}{OT1}{20}
+\DeclareTextAccent{\r}{OT1}{23}
+\DeclareTextCommand{\b}{OT1}[1]
+   {\oalign{\null#1\crcr\hidewidth\sh@ft{29}%
+    \vbox to.2ex{\hbox{\char22}\vss}\hidewidth}}
+\DeclareTextCommand{\c}{OT1}[1]
+   {\setbox\z@\hbox{#1}\ifdim\ht\z@=1ex\accent24 #1%
+    \else{\ooalign{\unhbox\z@\crcr\hidewidth\char24\hidewidth}}\fi}
+\DeclareTextCommand{\d}{OT1}[1]
+   {\oalign{\null#1\crcr\hidewidth\sh@ft{08}.\hidewidth}}
+\DeclareTextSymbol{\AE}{OT1}{29}
+\DeclareTextSymbol{\OE}{OT1}{30}
+\DeclareTextSymbol{\O}{OT1}{31}
+\DeclareTextSymbol{\ae}{OT1}{26}
+\DeclareTextSymbol{\i}{OT1}{16}
+\DeclareTextSymbol{\j}{OT1}{17}
+\DeclareTextSymbol{\oe}{OT1}{27}
+\DeclareTextSymbol{\o}{OT1}{28}
+\DeclareTextSymbol{\ss}{OT1}{25}
+\DeclareTextSymbol{\textemdash}{OT1}{124}
+\DeclareTextSymbol{\textendash}{OT1}{123}
+\DeclareTextSymbol{\textexclamdown}{OT1}{60}
+\DeclareTextSymbol{\textquestiondown}{OT1}{62}
+\DeclareTextSymbol{\textquotedblleft}{OT1}{92}
+\DeclareTextSymbol{\textquotedblright}{OT1}{`\"}
+\DeclareTextSymbol{\textquoteleft}{OT1}{`\`}
+\DeclareTextSymbol{\textquoteright}{OT1}{`\'}
+\DeclareTextCommand{\aa}{OT1}
+   {{\accent23a}}
+\DeclareTextCommand{\L}{OT1}
+   {\leavevmode\setbox0\hbox{L}\hbox to\wd0{\hss\char32L}}
+\DeclareTextCommand{\l}{OT1}
+   {{\char32l}}
+\DeclareTextCommand{\AA}{OT1}
+   {\leavevmode\setbox0\hbox{h}\dimen@\ht0\advance\dimen@-1ex%
+    \rlap{\raise.67\dimen@\hbox{\char'27}}A}
+\DeclareTextCommand{\SS}{OT1}
+   {SS}
+\DeclareTextCommand{\textdollar}{OT1}{{%
+   \ifdim \fontdimen\@ne\font >\z@
+      \slshape
+   \else
+      \upshape
+   \fi
+   \char`\$}}
+\DeclareTextCommand{\textsterling}{OT1}{{%
+   \ifdim \fontdimen\@ne\font >\z@
+      \itshape
+   \else
+      \fontshape{ui}\selectfont
+   \fi
+   \char`\$}}
+\endinput
+%% 
+%% End of file `OT1enc.def'.

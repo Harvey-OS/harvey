@@ -1,0 +1,293 @@
+%% 
+%% This is file `ltxcheck.tex', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% ltdirchk.dtx  (with options: `ltxcheck')
+%% 
+%% Copyright 1994 the LaTeX3 project and the individual authors. 
+%% All rights reserved. For further copyright information see the file 
+%% legal.txt, and any other copyright indicated in this file. 
+%% 
+%% This file is part of the LaTeX2e system. 
+%% ---------------------------------------- 
+%% 
+%% This system is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme files. 
+%% 
+%% Please do not request updates from us directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in 00readme.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% File: ltdirchk
+\NeedsTeXFormat{LaTeX2e}
+\makeatletter
+\typeout{^^J%
+LaTeX2e installation check file^^J%
+===============================}
+
+\typeout{^^J%
+ Before running this file through LaTeX2e you should have installed^^J%
+ the Standard LaTeX files in their final `system' directories.^^J%
+ This file should *not* be run in a directory that contains article.cls}
+\def\pause{%
+  \typeout{}%
+  \message{** Hit return to continue: }%
+  \read -1  to \xxx
+  \typeout{}}
+\typeout{^^J%
+  After certain tests, LaTeX will pause so that you can read the^^J%
+  output without it scrolling off the screen.^^J%
+  When you are ready just hit <return> and LaTeX will continue.^^J%
+  When LaTeX pauses, you will see a prompt like the one below.^^J^^J%
+  If a test fails, a message will be displayed followed by^^J%
+  an error message starting `! BAD'.^^J%
+  LaTeX will quit if you try to scroll past some error messages.}
+\pause
+\typeout{^^J%
+  Checking the current directory syntax^^J%
+  =====================================}
+\newif\iftest\testfalse
+\ifx\@currdir\@undefined
+  \typeout{^^J%
+  \noexpand\@currdir is undefined !!^^J%
+  Something is seriously wrong with the LaTeX2e initialisation.^^J%
+  Either you have corrupted files or this is a LaTeX bug.}
+  \errmessage{BAD LaTeX2e system!!}
+  \expandafter\@@end
+\fi
+\ifx\@currdir\@empty
+  \typeout{^^J%
+  \noexpand\@currdir is defined to be empty.^^J%
+  This means that LaTeX can not distinguish between a file^^J%
+  aaaaa.tex^^J%
+  that exists in the current directory, and  a file aaaaa.tex^^J%
+  in another directory.^^J%
+  It may be that this Operating System has no concept of `directory'^^J%
+  in which case the setting is correct. If however it is possible to^^J%
+  uniquely refer to a file then a suitable definition of
+    \noexpand\@currdir^^J%
+  should be added to texsys.cfg, and the format remade.}
+  \pause
+\else
+  \typeout{^^J%
+\noexpand\@currdir is defined as
+    \expandafter\strip@prefix\meaning\@currdir^^J%
+  (Testing...)}
+\begingroup
+\endlinechar=-1
+\count@\time
+\divide\count@ 60
+\count2=-\count@
+\multiply\count2 60
+\advance\count2 \time
+\edef\today{%
+  \the\year/\two@digits{\the\month}/\two@digits{\the\day}:%
+    \two@digits{\the\count@}:\two@digits{\the\count2}}
+  \immediate\openout15=ltxcheck.aux
+  \immediate\write15{\today^^J}
+  \immediate\closeout15 %
+  \openin\@inputcheck\@currdir ltxcheck.aux %
+  \ifeof\@inputcheck
+    \typeout{\@currdir ltxcheck.aux  not found}%
+  \else
+    \read\@inputcheck to \reserved@a
+    \ifx\reserved@a\today
+      \typeout{\@currdir ltxcheck.aux found}
+      \testtrue
+    \else
+      \typeout{BAD: old file \reserved@a(should be \today)}%
+      \testfalse
+    \fi
+  \fi
+  \closein\@inputcheck
+  \iftest
+    \endgroup
+    \typeout{\noexpand \@currdir OK!}
+  \else
+  \endgroup
+  \typeout{^^J%
+    The LaTeX2e installation has defined \noexpand\@currdir^^J%
+    to be \expandafter\strip@prefix\meaning\@currdir.^^J%
+    This appears to be incorrect.^^J%
+    You should add a correct definition to texsys.cfg^^J%
+    and rebuild the format.}
+  \errmessage{BAD LaTeX2e system!!}
+  \expandafter\expandafter\expandafter\@@end
+  \fi
+  \pause
+\fi
+\typeout{^^J%
+  Checking the input path^^J%
+  =======================^^J}
+\begingroup
+\let\input@path\@undefined
+\ifx\@currdir\@empty\else
+  \IfFileExists{\@currdir article.cls}
+   {\typeout{%
+      article.cls appears to be in current directory!^^J^^J%
+      If this is the case, install article.cls into a^^J%
+      `standard input directory'^^J%
+      and copy ltxcheck.tex to another directory before^^J%
+      processing with LaTeX.^^J%
+      ^^J%
+      If article.cls is not in the current directory,^^J%
+      then you need to edit texsys.cfg.^^J%
+      Read the comments in that file. If nothing else works, add:^^J%
+      \string\let\string\@currdir\string\@empty^^J}%
+    \errhelp{Move files, or edit texsys.cfg}
+    \def\ArticleClassFoundInCurrentDirectory{%
+      This file should not be run in a `standard input directory'}
+    \errmessage{BAD: \ArticleClassFoundInCurrentDirectory}}
+    {}
+\fi
+\endgroup
+\IfFileExists{article.cls}
+  {\typeout{input path OK!}}
+  {\typeout{^^J%
+     LaTeX claims that article.cls is not on the system.^^J%
+     Either LaTeX has been incorrectly installed, or the
+     \noexpand\input@path^^J%
+     is incorrect. A correct definition should be added to^^J%
+     texsys.cfg, and the format remade.}
+   \pause
+   \typeout{^^J%
+     Typical definitions of \noexpand\input@path include:^^J^^J%
+     \string\let\string\input@path=\noexpand\@undefined
+      (the default definition)^^J^^J%
+     \string\def\string\input@path{\@percentchar^^J
+       {/usr/lib/tex/inputs/} {/usr/local/lib/tex/inputs/} }^^J^^J%
+     \string\def\string\input@path{\@percentchar^^J
+       {c:/tex/inputs/} {a:/} }^^J^^J%
+     \string\def\string\input@path{\@percentchar^^J
+       {tex_inputs:} {[SOMEWHERE.TEX.INPUTS]} }^^J}%
+   \pause
+   \typeout{^^J%
+     Note that \noexpand\input@path should be undefined
+       unless your^^J%
+     TeX installation does not make
+       \noexpand\openin and \noexpand\input^^J%
+     search the same directories.^^J%
+     If \noexpand\input@path is defined, entries should be^^J%
+     in the same syntax as \noexpand\@currdir^^J%
+     ie full directory names that may be concatenated with the^^J%
+     basename (note the final / and ] in the above examples).^^J%
+     Some systems may need more complicated settings.^^J%
+     See texsys.cfg for more examples.^^J%
+    ! BAD \noexpand\input@path!!}
+   \@@end}%
+\pause
+\typeout{^^J%
+  Checking the TeX version^^J%
+  ========================}
+\dimen@\ifx\@TeXversion\@undefined4\else\@TeXversion\fi\p@%
+\ifx\noboundary\relax
+  \typeout{^^J%
+    This is TeX 2. You will not be able to use all the new features^^J%
+    of LaTeX2e with such an old TeX.^^J%
+    The current version (1994/10/11) is TeX 3.1415.^^J%
+    Consider upgrading your TeX.}
+  \ifdim\dimen@<3\p@\else
+     \errhelp{Check that texsys.cfg has not defined \@TeXversion}
+     \def\OldTeX{%
+       BAD: \noexpand\@TeXversion is incorrect: \meaning\@TeXversion}
+     \errmessage{\OldTeX}
+  \fi
+\else
+    \ifdim\dimen@>3.14\p@
+      \typeout{This appears to be a recent version of TeX!^^J%
+       If the following `lines' all appear on the same line,^^J%
+       separated by \string^\string^J %
+       then there has been an incorrect installation.}
+    \else
+      \typeout{^^J%
+       This appears to be a TeX between 3.0 and 3.14^^J%
+       but the current version (1994/10/11) is TeX 3.1415^^J%
+       consider upgrading your TeX.^^J%
+       The following `lines' will appear on the same line,^^J%
+       separated by \string^\string^J;^^J%
+       the same problem may affect other messages from LaTeX.}
+     \fi
+\message{line1^^Jline2^^Jline3}
+\pause
+\fi
+\typeout{^^J%
+  Checking fonts^^J%
+  =====================================}
+\def\checkfont#1{%
+  \batchmode
+  \font\test=#1\relax
+  \errorstopmode
+  \ifx\test\nullfont
+    \typeout{\@spaces! BAD: #1.tfm not found!}
+    \@tempswatrue
+  \else
+    \typeout{\@spaces OK: #1.tfm found}
+  \fi}
+\typeout{^^JChecking Standard TeX fonts...}
+\@tempswafalse
+\checkfont{cmr10}
+\checkfont{cmr12}
+\checkfont{cmmi10}
+\if@tempswa
+  \errhelp{Obtain a complete standard TeX font distribution.}
+  \errmessage{BAD: Missing Standard Fonts}
+\fi
+\typeout{^^JChecking LaTeX Picture Mode fonts...}
+\@tempswafalse
+\checkfont{lcircle10}
+\checkfont{lcirclew10}
+\if@tempswa
+  \@tempswafalse
+  \checkfont{circle10}
+  \checkfont{circlew10}
+  \if@tempswa
+    \typeout{^^J! BAD: You do not have the picture mode fonts:^^J%
+           lcircle10 and lcirclew10}
+  \else
+    \typeout{^^J! BAD:%
+           You have the picture mode fonts with their old names:^^J%
+           circle10 and circlew10 have been renamed to^^J%
+           lcircle10 and lcirclew10}
+  \fi
+  \errhelp{Obtain a complete standard LaTeX font distribution.}
+  \errmessage{BAD: Missing LaTeX Fonts}
+\fi
+\typeout{^^JChecking Extra LaTeX Computer Modern fonts...}
+\@tempswafalse
+\checkfont{cmmib5}
+\checkfont{cmmib7}
+\checkfont{cmex7}
+\if@tempswa
+\typeout{! BAD:^^J%
+ LaTeX2e uses a few `extra' Computer Modern fonts produced by^^J%
+ The American Mathematical Society.^^J%
+ If you install The AMSFONTS font collection, then these, and other,^^J%
+ fonts will be available to LaTeX.^^J%
+ Although installing AMSFONTS is recommended, LaTeX does not require^^J%
+ The full collection; you may obtain a minimal set of extra LaTeX^^J%
+ fonts from any ctan archive, in the directory macros/latex/fonts/}
+\errhelp{Obtain LaTeX fonts or  the AMSFONTS collection.}
+\errmessage{BAD: Missing LaTeX Fonts}
+\fi
+\@@end
+\endinput
+%% 
+%% End of file `ltxcheck.tex'.

@@ -1,3 +1,4 @@
+#pragma	src	"/sys/src/libbio"
 #pragma	lib	"libbio.a"
 
 typedef	struct	Biobuf	Biobuf;
@@ -30,6 +31,7 @@ struct	Biobufhdr
 	int	bsize;		/* size of buffer */
 	uchar*	bbuf;		/* pointer to beginning of buffer */
 	uchar*	ebuf;		/* pointer to end of buffer */
+	uchar*	gbuf;		/* pointer to good data in buf */
 };
 
 struct	Biobuf
@@ -54,16 +56,13 @@ struct	Biobuf
 	(bp)->fid
 
 int	Bbuffered(Biobufhdr*);
-int	Bclose(Biobufhdr*);
-void	Berase(Biobufhdr*);
-long	Bfildes(Biobufhdr*);
+int	Bfildes(Biobufhdr*);
 int	Bflush(Biobufhdr*);
 int	Bgetc(Biobufhdr*);
 int	Bgetd(Biobufhdr*, double*);
 long	Bgetrune(Biobufhdr*);
 int	Binit(Biobuf*, int, int);
 int	Binits(Biobufhdr*, int, int, uchar*, int);
-void	Bkill(Biobufhdr*);
 int	Blinelen(Biobufhdr*);
 long	Boffset(Biobufhdr*);
 Biobuf*	Bopen(char*, int);
@@ -73,6 +72,7 @@ int	Bputrune(Biobufhdr*, long);
 void*	Brdline(Biobufhdr*, int);
 long	Bread(Biobufhdr*, void*, long);
 long	Bseek(Biobufhdr*, long, int);
+int	Bterm(Biobufhdr*);
 int	Bungetc(Biobufhdr*);
 int	Bungetrune(Biobufhdr*);
 long	Bwrite(Biobufhdr*, void*, long);

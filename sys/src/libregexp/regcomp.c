@@ -232,6 +232,7 @@ optimize(Reprog *pp)
 	Reinst *inst, *target;
 	int size;
 	Reprog *npp;
+	Reclass *cl;
 	int diff;
 
 	/*
@@ -261,9 +262,13 @@ optimize(Reprog *pp)
 		case STAR:
 		case PLUS:
 		case QUEST:
+			*(char **)&inst->right += diff;
+			break;
 		case CCLASS:
 		case NCCLASS:
 			*(char **)&inst->right += diff;
+			cl = inst->cp;
+			*(char **)&cl->end += diff;
 			break;
 		}
 		*(char **)&inst->left += diff;

@@ -5,6 +5,9 @@ units \- conversion program
 .SH SYNOPSIS
 .B units
 [
+.B -v
+]
+[
 .I file
 ]
 .SH DESCRIPTION
@@ -22,16 +25,19 @@ you want: cm
 .EE
 .PP
 A quantity is specified as a multiplicative combination
-of units optionally preceded by a numeric multiplier.
-Powers are indicated by suffixed positive integers,
-division by the usual sign:
+of units and floating point numbers.
+Operators have the following precedence:
 .IP
 .EX
-you have: 15 pounds force/in2
-you want: atm
-    * 1.02069
-    / .97973
+.ta \w'\fLXXXXXXXXXXXXXXX'u
+\fL+\fP \fL-\fP	\f1add and subtract
+\fL*\fP \fL/\fP \fL×\fP \fL÷\fP	\f1multiply and divide
+catenation	multiply
+\fL²\fP \fL³\fP \fL^\fP	\f1exponentiation
+\fL|\fP	\f1divide
+\fL(\fP ... \fL)\fP	\f1grouping
 .EE
+.PP
 Most familiar units,
 abbreviations, and metric prefixes are recognized,
 together with a generous leavening of exotica
@@ -42,7 +48,7 @@ and a few constants of nature including:
 ..
 .ta \w'\fLwaterXXX'u
 .nf
-.fq pi ratio of circumference to diameter
+.fq pi,\f1π\fP ratio of circumference to diameter
 .fq c speed of light
 .fq e charge on an electron
 .fq g acceleration of gravity
@@ -74,8 +80,22 @@ argument to
 .I units
 specifies a file to be used instead of
 .BR /lib/units.
+The
+.B -v
+flag causes
+.I units
+to print its entire database.
+.SH EXAMPLE
+.EX
+you have: 15 pounds force/in²
+you want: atm
+    * 1.02069
+    / .97973
+.EE
 .SH FILES
 .B /lib/units
+.SH SOURCE
+.B /sys/src/cmd/units.y
 .SH BUGS
 Since
 .I units

@@ -128,6 +128,12 @@ extern FILE* fdopen(int, const char*);
 extern char *ctermid(char *);
 #endif
 
+#ifdef _BSD_EXTENSION
+#pragma lib "/$M/lib/ape/libbsd.a"
+extern FILE *popen(char *, char *);
+extern int	pclose(FILE *);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

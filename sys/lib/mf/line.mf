@@ -28,7 +28,7 @@ numeric qht,qwd,absdely;
 if dely > 0:
       if delx > dely: qwd# := qqw#; qht# := dely*qqw#/delx;
               else: qht# := qqw#; qwd# := delx*qqw#/dely;    fi;
- % fixed by DEK on 24 Jan 89; previous code buggy but caused no harm
+   % fixed by DEK on 24 Jan 89; previous code buggy but caused no harm
   else:
       absdely=-dely;
       if delx > absdely: qwd# := qqw#; qht# := absdely*qqw#/delx;

@@ -1,0 +1,138 @@
+%% 
+%% This is file `flafter.sty', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% ltoutput.dtx  (with options: `flafter,trace')
+%% 
+%% Copyright 1994 the LaTeX3 project and the individual authors. 
+%% All rights reserved. For further copyright information see the file 
+%% legal.txt, and any other copyright indicated in this file. 
+%% 
+%% This file is part of the LaTeX2e system. 
+%% ---------------------------------------- 
+%% 
+%% This system is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme files. 
+%% 
+%% Please do not request updates from us directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in 00readme.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% File: ltoutput
+\def \@addtocurcol {%
+  \tr@ce{***Start addtocurcol}%
+   \@insertfalse
+   \@setfloattypecounts
+   \ifnum \@fpstype=8
+     \tr@ce{fpstype !p only (addtocurcol): \the \@fpstype = 8?}%
+   \else
+     \ifnum \@fpstype=24
+       \tr@ce{fpstype p only (addtocurcol): \the \@fpstype = 24?}%
+     \else
+       \@flsettextmin
+       \tr@ce{textfloatsheight (before) = \the \@textfloatsheight}%
+       \advance \@textmin \@textfloatsheight
+       \@reqcolroom \@pageht
+       \tr@ce{textmin + textfloatsheight: \the \@textmin}%
+       \tr@ce{page-so-far: \the \@reqcolroom}%
+       \ifdim \@textmin>\@reqcolroom
+         \@reqcolroom \@textmin
+         \tr@ce{ORD? textmin being used}%
+       \fi
+       \advance \@reqcolroom \ht\@currbox
+       \tr@ce{float size = \the \ht \@currbox (addtocurcol)}%
+       \tr@ce{colroom = \the \@colroom (addtocurcol)}%
+       \tr@ce{reqcolroom = \the \@reqcolroom (addtocurcol)}%
+       \ifdim \@colroom>\@reqcolroom
+         \@flsetnum \@colnum
+         \ifnum \@colnum>\z@
+           \@bitor\@currtype\@deferlist
+           \tr@ce{deferlist: \@deferlist: (addtocurcol-before)}%
+           \if@test
+             \tr@ce{type already on list: defer (addtocurcol)}%
+           \else
+             \@bitor\@currtype\@botlist
+           \tr@ce{botlist: \@botlist: (addtocurcol-before)}%
+             \if@test
+               \tr@ce{type already on list: bot---sent to addtobot}%
+               \@addtobot
+             \else
+               \tr@ce{fpstype \ifodd \@tempcnta OK \else not \fi
+                      here: \the \@fpstype}%
+               \ifodd \count\@currbox
+                 \advance \@reqcolroom \intextsep
+                 \ifdim \@colroom>\@reqcolroom
+                   \global \advance \@colnum \m@ne
+                   \global \advance \@textfloatsheight \ht\@currbox
+                   \global \advance \@textfloatsheight 2\intextsep
+                   \@cons \@midlist \@currbox
+                   \tr@ce{***Success: here}%
+                   \tr@ce{textfloatsheight (after-here) =
+                        \the \@textfloatsheight}%
+                   \tr@ce{colnum (after-here) = \the \@colnum}%
+                   \if@nobreak
+                   \else
+                     \addpenalty \interlinepenalty
+                   \fi
+                   \vskip \intextsep
+                   \box\@currbox
+                   \penalty\interlinepenalty
+                   \vskip\intextsep
+                   \ifnum\outputpenalty <-\@Mii \vskip -\parskip\fi
+                   \outputpenalty \z@
+                   \@inserttrue
+                 \else
+                   \tr@ce{Fail---no room at 2nd test of colroom
+                                 (addtocorcol \string\intextsep)}%
+                 \fi
+               \fi
+               \if@insert
+               \else
+                 \tr@ce{not here: sent to addtobot}%
+                 \@addtobot
+               \fi
+             \fi
+           \fi
+         \else
+           \tr@ce{Fail: colnum = \the \@colnum:
+                        fpstype \the \@fpstype=ORD?}%
+           \ifnum \@fpstype<\sixt@@n
+             \tr@ce{ERROR: BANG float not successful (addtocurcol)}%
+           \fi
+         \fi
+       \else
+         \tr@ce{Fail---no room: fl box ht: \the \ht \@currbox
+                                                     (addtocurcol)}%
+       \fi
+     \fi
+   \fi
+   \if@insert
+   \else
+     \@resethfps
+     \tr@ce{put on deferlist (addtocurcol)}%
+     \@cons\@deferlist\@currbox
+     \tr@ce{deferlist: \@deferlist: (addtocurcol-after)}%
+   \fi
+}
+\providecommand\tr@ce[1]{}
+\endinput
+%% 
+%% End of file `flafter.sty'.

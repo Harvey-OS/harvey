@@ -16,8 +16,7 @@ if (test -d $LPDEST) {
 		}
 	}
 }
-switch ($THIS_HOST) {
-case $DEST_HOST;	$KILL_CMD;
-case *;	@ {echo -d$LPDEST -k;echo $KILLARGS;sleep 7} | lpsend.rc $DEST_HOST
+if (! ~ $THIS_HOST $DEST_HOST) {
+	@{echo -d$LPDEST -k;echo $KILLARGS;sleep 7} | lpsend.rc $DEST_HOST
 }
-exit 0
+exit ''

@@ -264,6 +264,7 @@ exit(int ispanic)
 	int i;
 
 	u = 0;
+	wipekeys();
 	spllo();
 	while(consactive())
 		for(i=0; i<1000; i++)
@@ -323,7 +324,7 @@ confinit(void)
 	pcnt = 70 - (pcnt*10);
 	conf.upages = (conf.npage*pcnt)/100;
 
-	ktop = PGROUND((ulong)end);
+	ktop = PGROUND((ulong)end) + 256*1024;	/* cf. mmuinit */
 	ktop = PADDR(ktop);
 	conf.npage0 -= ktop/BY2PG;
 	conf.base0 += ktop;

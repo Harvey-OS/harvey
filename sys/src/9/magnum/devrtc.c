@@ -39,7 +39,6 @@ static Dirtab rtcdir[]={
 };
 #define	NRTC	(sizeof(rtcdir)/sizeof(rtcdir[0]))
 void	setrtc(Rtc*);
-long	rtctime(void);
 
 void
 rtcreset(void)

@@ -75,7 +75,7 @@ for the next command.
 .BI o " string"
 Open plotting device.
 For 
-.I troff,
+.IR troff ,
 .I string
 specifies the size of the plot
 (default is
@@ -142,7 +142,7 @@ to
 with center
 .I "xc yc"
 and radius
-.I r.
+.IR r .
 If the radius is positive, the arc is drawn counterclockwise;
 negative, clockwise.
 The starting point is exact but the ending point is approximate.
@@ -151,7 +151,7 @@ The starting point is exact but the ending point is approximate.
 Draw a circle centered at
 .I "xc yc"
 with radius
-.I r.
+.IR r .
 If the range and frame parameters do not specify a square,
 the `circle' will be elliptical.
 .TP 10
@@ -238,13 +238,13 @@ with double endpoints.
 .TP 10
 .BI in " filename"
 (include) Take commands from
-.I filename.
+.IR filename .
 .TP 10
 .BI de " string " { " commands " }
 Define
 .I string
 as
-.I commands.
+.IR commands .
 .TP 10
 .BI ca " string scale"
 Invoke commands defined as
@@ -258,7 +258,7 @@ to all coordinates.
 .TP 10
 .BI co " string"
 Draw lines with color
-.I string.
+.IR string .
 Possible colors:
 .BR black ,
 .BR red ,

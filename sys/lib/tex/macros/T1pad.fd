@@ -1,0 +1,66 @@
+%Filename: T1pad.fd
+%Created by: tex 19847adobegar
+%Created using fontinst v1.331
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{pad}{}
+
+\DeclareFontShape{T1}{pad}{sb}{n}{
+   <-> padsq
+}{}
+
+\DeclareFontShape{T1}{pad}{sb}{sc}{
+   <-> padscq
+}{}
+
+\DeclareFontShape{T1}{pad}{sb}{it}{
+   <-> padsiq
+}{}
+
+\DeclareFontShape{T1}{pad}{sb}{sl}{
+   <-> padsoq
+}{}
+
+\DeclareFontShape{T1}{pad}{b}{n}{
+   <-> padbq
+}{}
+
+\DeclareFontShape{T1}{pad}{b}{sc}{
+   <-> padbcq
+}{}
+
+\DeclareFontShape{T1}{pad}{b}{it}{
+   <-> padbiq
+}{}
+
+\DeclareFontShape{T1}{pad}{b}{sl}{
+   <-> padboq
+}{}
+
+\DeclareFontShape{T1}{pad}{m}{n}{
+   <-> padrq
+}{}
+
+\DeclareFontShape{T1}{pad}{m}{sc}{
+   <-> padrcq
+}{}
+
+\DeclareFontShape{T1}{pad}{m}{it}{
+   <-> padriq
+}{}
+
+\DeclareFontShape{T1}{pad}{m}{sl}{
+   <-> padroq
+}{}
+
+\DeclareFontShape{T1}{pad}{sb}{ui}{<->sub * pad/sb/it}{}
+\DeclareFontShape{T1}{pad}{b}{ui}{<->ssub * pad/sb/ui}{}
+\DeclareFontShape{T1}{pad}{bx}{ui}{<->ssub * pad/b/ui}{}
+\DeclareFontShape{T1}{pad}{bx}{n}{<->ssub * pad/b/n}{}
+\DeclareFontShape{T1}{pad}{bx}{sc}{<->ssub * pad/b/sc}{}
+\DeclareFontShape{T1}{pad}{bx}{it}{<->ssub * pad/b/it}{}
+\DeclareFontShape{T1}{pad}{bx}{sl}{<->ssub * pad/b/sl}{}
+\DeclareFontShape{T1}{pad}{m}{ui}{<->sub * pad/m/it}{}
+
+\endinput

@@ -1,0 +1,46 @@
+%Filename: T1hlct.fd
+%Created by: tex 2802luctypew
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{T1hlct.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for T1/hlct.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{T1}{hlct}{\hyphenchar \font =-1}
+
+\DeclareFontShape{T1}{hlct}{b}{n}{
+ <->s * [\LucidaScale]hlcbtq
+}{}
+
+\DeclareFontShape{T1}{hlct}{b}{sc}{
+ <->s * [\LucidaScale]hlcbtcq
+}{}
+
+\DeclareFontShape{T1}{hlct}{b}{sl}{
+ <->s * [\LucidaScale]hlcbotq
+}{}
+
+\DeclareFontShape{T1}{hlct}{m}{n}{
+ <->s * [\LucidaScale]hlcrtq
+}{}
+
+\DeclareFontShape{T1}{hlct}{m}{sc}{
+ <->s * [\LucidaScale]hlcrtcq
+}{}
+
+\DeclareFontShape{T1}{hlct}{m}{sl}{
+ <->s * [\LucidaScale]hlcrotq
+}{}
+
+\DeclareFontShape{T1}{hlct}{bx}{n}{<->ssub * hlct/b/n}{}
+\DeclareFontShape{T1}{hlct}{bx}{sc}{<->ssub * hlct/b/sc}{}
+\DeclareFontShape{T1}{hlct}{bx}{sl}{<->ssub * hlct/b/sl}{}
+\DeclareFontShape{T1}{hlct}{b}{it}{<->ssub * hlct/b/sl}{}
+\DeclareFontShape{T1}{hlct}{bx}{it}{<->ssub * hlct/b/it}{}
+\DeclareFontShape{T1}{hlct}{b}{ui}{<->sub * hlct/b/it}{}
+\DeclareFontShape{T1}{hlct}{bx}{ui}{<->ssub * hlct/b/ui}{}
+\DeclareFontShape{T1}{hlct}{m}{it}{<->ssub * hlct/m/sl}{}
+\DeclareFontShape{T1}{hlct}{m}{ui}{<->sub * hlct/m/it}{}
+
+\endinput

@@ -40,7 +40,7 @@ To post a news item, create a file in
 You may arrange to receive news automatically by 
 registering your mail address in
 .BR /sys/lib/subscribers .
-A daemon mails sends recent news
+A daemon mails recent news
 to all addresses on the list.
 .SH FILES
 .TF /sys/lib/subscribers
@@ -49,7 +49,9 @@ to all addresses on the list.
 articles
 .TP
 .B $HOME/lib/newstime
-modify times is time of last read news
+modify time is time news was last read
 .TP
 .B /sys/lib/subscribers
 who gets news mailed to them
+.SH SOURCE
+.B /sys/src/cmd/news.c

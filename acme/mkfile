@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+DIRS=acid\
+	bin\
+	edit\
+	mail\
+
+none:VQ:
+	echo mk all, install, clean, nuke, installall
+
+all install clean nuke installall:V:
+	for (i in $DIRS) @{
+		cd $i/src
+		mk $target
+	}

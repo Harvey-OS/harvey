@@ -1,0 +1,290 @@
+\documentstyle[psfig]{article}
+\begin{document}
+\pssilent
+\psfigurepath{figs}
+\def\Ps{Post\-Script}
+%
+\title{Psfig/\TeX\ 1.10 Users Guide}
+\author{Trevor Darrell \\ {\it trevor@media.mit.edu}}
+\date{\ }
+\maketitle
+
+\section{Introduction}
+Psfig/\TeX\ is a macro package for \TeX\ that facilitates the
+inclusion of  \Ps\ figures into \TeX\ documents. With the
+help of a compatible postprocessor,
+\footnote{The {\tt dvips} program developed by T. Rokicki 
+has full psfig support; it is available via anonymous FTP from {\tt labrea.stanford.edu}. OzTeX also supports psfig and is available from various ftp sites. Psfig is available from {\tt whitechapel.media.mit.edu}.}
+\Ps\ figures are automatically
+scaled and positioned on the page, and the proper amount of space is
+reserved.  
+Custom characters such as
+`\psfig{figure=pretzel.ps,height=8pt,silent=}' and 
+`\psfig{figure=cm.ps,height=8pt,silent=}'
+may be created and used freely throughout a document, or figures can
+be presented as traditional broken-out displays:
+\par
+\hbox{
+\hspace{.3in}
+\vbox{\psfig{figure=zip.ps}\vspace{.5in}}
+\psfig{figure=piechart.ps,height=1.5in}
+\vbox{\psfig{figure=starlines.ps}\vspace{.6in}}
+}
+
+\section{Simple figures}
+To include a \Ps\ figure with psfig, include the psfig style at the top
+of your document:
+\begin{quote}
+{\tt\verb+\documentstyle[psfig,...]{article}+}
+\end{quote}
+and then, when you wish to include a figure, invoke the macro
+\begin{quote}
+{\tt\verb+\+psfig\{figure={\it input}\}}
+\end{quote}
+where {\it input} is the name of a \Ps\ file.  Psfig will
+automatically position the figure at the current point on the page,
+and reserve the proper amount of space in \TeX\ so that it doesn't
+block any other objects on the page.  For example, if we have a file
+called `piechart.ps' which contains the \Ps\ code to draw the chart in
+the introduction, we could use the commands
+\begin{quote}
+\tt
+\verb+\+par \\
+\verb+\+centerline\{\verb+\+psfig\{figure=piechart.ps\}\} \\
+\verb+\+par
+\end{quote}
+to include it as a centered paragraph.
+Since no mention of size was made in the above example, psfig draws the figure 
+at its natural size (as if it was printed directly on 
+a \Ps\ printer.) The pie's natural size is several inches across, which
+is a little large; the pie in the introduction was produced with:
+\begin{quote}
+\tt\verb+\+centerline\{\verb+\+psfig\{figure=piechart.ps,height=1.5in\}\}
+\end{quote}
+The {\tt height} option specifies how tall the figure should be on the
+page. Since no {\tt width} was specified, the figure was scaled
+equally in both dimensions. (This will also happen with a {\tt width}
+but no {\tt height} option.)  By listing both a {\tt height} and {\tt
+width}, figures can be scaled disproportionately, with interesting
+results:
+\par
+\centerline{\hbox{
+\psfig{figure=rosette.ps,height=.8in,width=.15in}
+\psfig{figure=rosette.ps,height=.8in,width=.35in}
+\psfig{figure=rosette.ps,height=.8in}
+\psfig{figure=rosette.ps,height=.8in,width=1.2in}
+\psfig{figure=rosette.ps,height=.8in,width=1.5in}
+}}
+\par
+\noindent This figure was produced with:
+\begin{quote}
+\tt\verb+\+centerline\{\verb+\+hbox\{ \\
+\verb+\+psfig\{figure=rosette.ps,height=.8in,width=.15in\}\\
+\verb+\+psfig\{figure=rosette.ps,height=.8in,width=.35in\}\\
+\verb+\+psfig\{figure=rosette.ps,height=.8in\} \\
+\verb+\+psfig\{figure=rosette.ps,height=.8in,width=1.2in\}\\
+\verb+\+psfig\{figure=rosette.ps,height=.8in,width=1.5in\}\\
+\}\} 
+\end{quote}
+The \verb+\psfig+ macro is (unfortunately) sensitive to whitespace, and will be
+confused by any extra spaces or newlines in its argument.
+\section{Sources of figures}
+\hbox{
+\vbox{\psfig{figure=trevor.ps,height=1in}}
+\hspace{.15in}
+\vbox{\parbox{3.5in} {Any program that produces \Ps\ as output
+can be used for psfig figures
+as long as it adheres to the bounding box comment convention (see below).
+For instance, the bitmap image
+of the author was included as a figure at left.}\vspace{.2in}}}
+
+Since the Macintosh drawing applications produce \Ps, they can be used
+to create figures.  However, the \Ps produced by most Macintosh
+applications is often not well suited to be included directly as
+aBpsfig figure, unless it is saved as an ``EPSF compliant'' file. If
+the file is not EPSF compliant then the postscript may have to be
+edited before being used as an included figure.
+
+\section{Draft figures and Silent mode}
+\begin{figure}
+\centerline{
+\psfig{figure=rosette.ps,height=2in}
+\psdraft
+\psfig{figure=rosette.ps,height=2in}
+\psfull
+}
+\vspace{.25in}
+\centerline{Figure 2: The rosette.ps figure, in non-draft and draft mode}
+\end{figure}
+Normally, psfig will print advisory messages to remind you that it is
+including figures as TeX processes a document. This behavior can
+be disabled with {\tt \verb+\+pssilent}, and re-enabled with
+{\tt \verb+\+psnoisy}.
+\par
+Some \Ps\ figures can take quite a long time to transmit and print;
+for these figures a draft mode is available to speed printing of draft
+versions of the document.  A figure printed in draft mode will appear
+as an outlined box (Figure 2).  The macro {\tt
+\verb+\+psdraft} will switch into draft mode, and all subsequent psfig
+macros will produce draft figures until reaching the macro {\tt
+\verb+\+psfull}, which switches out of draft mode.
+
+No {\tt
+\verb+\+special} commands are used in draft mode, so a draft document
+can be previewed using any Dvi viewer.  Psfig uses the \LaTeX\ {\tt
+\verb+\+fbox} command to produce the draft box; thus draft boxes will
+not work in plain \TeX. The printing of boxes in draft mode can be
+disabled/enabled with {\tt
+\verb+\+psnodraftbox} and {\tt
+\verb+\+psdraftbox}. 
+
+\section{Bounding boxes}
+To properly translate and scale a figure psfig must know its `natural'
+position on the page; this information is present
+in what is called the {\it bounding box} of a \Ps\ program. The 
+bounding box is an outer limit to the marks created by a program,
+and is specified as four coordinates of a rectangle: the lower-left $x$ coordinate
+(bbllx), the lower-left $y$ coordinate (bblly), the upper-right
+$x$ coordinate (bburx), and the upper-right $y$ coordinate (bbury).
+Adobe has defined a convention whereby the bounding box of a program
+is contained in a `bounding box comment'.
+\footnote{See `Appendix J: \Ps\ File Structuring Conventions' in
+{\it The \Ps\ Language Reference Manual}}
+This comment, which must be present in any file to be used as a psfig figure,
+is a line of the form
+\begin{quote}
+\tt \verb+%%+BoundingBox: \it bbllx bblly bburx bbury
+\end{quote}
+All values are in \Ps\ points, relative to the {\it default}
+transformation matrix. The only mandatory \Ps\ convention is
+that the first line of the file should begin with the characters
+`\verb+%+!' (a `\verb+%+' begins a comment in \Ps.) A good place for the
+bounding box comment is as the second line of the file.
+\par
+If a bounding box comment is present in the figure file, psfig will
+extract its values.  The bounding box values may instead be specified
+directly in the {\tt \verb+\+psfig} argument, using clauses of the
+form {\tt bbllx=\it bbllx},{\tt bblly=\it bblly},..., in which case
+the figure file is not searched for the bounding box.
+
+\section{Reserved size}
+\par
+\psfig{figure=box.ps,rheight=0bp,rwidth=0bp,height=1.25in,width=\textwidth,silent=}
+\par
+There are two sizes associated with each psfig figure: the size
+at which it is to be printed on the page
+and the size it reserves in \TeX. This latter size is appropriately
+termed the {\it reserved size}, and is expressed as clauses of the form
+``{\tt rheight={\it dimen}}''
+and ``{\tt rwidth={\it dimen}}''. If omitted, the reserved size defaults
+to the real size. Some special effects need to be transparent
+to \TeX\ and thus have a zero reserved size, such as the grey
+box enclosing
+this paragraph.
+
+\section{Clipping}
+Normally a \Ps\ program can be expected to not mark the page 
+outside its bounding box. If this is not the case, or if you
+want to specify a bounding box so as to isolate part of a larger figure,
+there is an option that sets the \Ps\ clip path so that
+no marks will show up outside the declared bounding box. Currently
+this is invoked by adding a clause of the form ``{\tt clip=}''.
+Here a slice has been taken out of the pie chart in the example by
+specifying a smaller bounding box and adding the clip option.
+\par
+\centerline{\protect\fbox{\psfig{figure=piechart.ps,height=2in,bbllx=306bp,bblly=396bp,bburx=486bp,bbury=546bp,clip=}}}
+\centerline{A piece of the pie.}
+\vspace{.2in}
+\par
+Some \Ps\ programs use the clipping path to position their output on
+the page; if a figure is being drawn at its natural size and position
+despite psfig commands to the contrary, it may need the clip option.
+
+\newpage
+\section{Rotating figures}
+Figures can be rotated by psfig using the {\tt angle={\it degrees}}
+clause. For example, here is the rosette and its 90 degree rotation:
+
+\centerline{\hbox{
+\psfig{figure=rosette.ps,height=1.0in}
+\psfig{figure=rosette.ps,height=1.0in,angle=90}
+}} 
+
+By default psfig scales the figure so that its rotated bounding box
+fits within the desired size. This can lead to counterintuitive results
+when rotating to angles which are not multiples of 90 degrees. Here
+is the rosette rotated to 0,20,40, and 60 degrees.
+
+\centerline{\hbox{
+\psfig{figure=rosette.ps,height=1.0in}
+\psfig{figure=rosette.ps,height=1.0in,angle=20}
+\psfig{figure=rosette.ps,height=1.0in,angle=40}
+\psfig{figure=rosette.ps,height=1.0in,angle=60}
+}} 
+
+With autoscaling, some rotated figures come out smaller because the
+diagonal of their bounding box is of course longer than their height
+or width alone.  This behavior can be disabled with {\tt
+\verb+\+psscalefirst}, and re-enabled with {\tt
+\verb+\+psrotatefirst}. With {\tt \verb+\+psscalefirst} a new
+height and width is computed after the bounding box;
+the previous figure would now look like:
+
+\psscalefirst
+\centerline{\hbox{
+\psfig{figure=rosette.ps,height=1.0in}
+\psfig{figure=rosette.ps,height=1.0in,angle=20}
+\psfig{figure=rosette.ps,height=1.0in,angle=40}
+\psfig{figure=rosette.ps,height=1.0in,angle=60}
+}} 
+
+While the rotated figures will all come out at the same
+size their reserved sizes will be different, thus
+they may not be aligned correctly.
+
+\section{Compressed Figures}
+Psfig allows the inclusion of compressed \Ps files when using 
+the {\tt dvips} dvi processor.
+The shell script {\tt pscompress} is used to compress figures, and 
+produces two files: {\it filename}{\tt .bb} and {\it filename}{\tt .Z}.
+The first file contains the bounding box comment only, while the second
+file contains the actual compressed PostScript file. Usage:
+\begin{quote}
+\tt \verb+%+ pscompress \it filename
+\end{quote}
+When psfig searches for a figure, if it fails to find 
+{\it filename}, it then searches for {\it filename}{\tt .bb}.
+If that file exists, it is used for bounding box processing,
+and a command to  decompress and include the file {\it filename}{\tt .Z}
+is issued to dvips.
+
+\section{Figure search path}
+
+Psfig first searches in the current directory for a figure (or
+in the specified directory if given an absolute path). If it fails
+to find the figure in the current directory, it optionally searches
+a search path of figure directories to see if the figure is
+present. To specify the figure search path, use
+\begin{quote}
+\tt \verb+\+psfigurepath\verb+{+\it dir1 \tt :\it dir2\tt :\it ...\tt :\it dirn\tt\verb+}+
+\end{quote}
+where {\it dir1...dirn} are the directories figures are to be found in.
+\newpage
+\section{Acknowledgements}
+\par
+This work was done while the author was with the Department of
+Computer and Information Science, University of Pennsylvania.  Ned
+Batchelder co-developed the original {\it troff} version of this
+program with the author, and was responsible for much of the overall
+design.  For more detailed information on the original version of \Ps\
+see {\it Psfig -- A Ditroff Preprocessor for PostScript Figures} in
+the USENIX 87 proceedings, or {\it Bringing troff up to speed} in the
+July 1987 issue of Unix Review.
+
+Greg Hager provided the initial pure-\TeX\ implementation of psfig.
+J. Daniel Smith of Schlumberger CAD/CAM implemented the rotation
+feature and improved the file scanning routines, using certain code
+fragments from Tom Rokicki's dvips program.
+\par 
+\end{document}
+

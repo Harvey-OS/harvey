@@ -1,0 +1,304 @@
+Here is the list of configurations that have passed the trip and trap tests.
+See also ./PROBLEMS.WEB2C.
+
+Except as otherwise noted:
+* REGFIX is either defined or irrelevant
+* optimization is maximally turned on.
+
+Here are email addresses for the `who':
+elizabeth = elisabet@u.washington.edu
+kabal = kabal@aldebaran.INSL.McGill.CA
+karl = karl@cs.umb.edu
+payne = payne@stsci.edu
+
+machine		operating system	compiler			who
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DEC DS2100	Ultrix 4.2		cc				kabal
+	Same diffs in trap test as for the 5000/20.
+        coptimize="-O -Olimit 1000".
+
+DEC 5000/20	Ultrix 4.2a		cc				karl
+	I get these changes from the trap test; it appears to be a
+        compiler bug, as compiling with gcc works ok.  People report
+        that they can use MF with no ill effects, though, despite this.
+        3752c3752
+        < ### -3062.5o2*4 = -xpart %CAPSULE1237-2500.00002oo+1000o3-32758.99998
+        ---
+        > ### -3062.5o2*4 = -xpart %CAPSULE1237-2500.00002oo+1000o3+32767.99998
+        3754c3754
+        < ### -0.04578o3 = -o4+0.44112oo+8.50041
+        ---
+        > ### -0.04578o3 = -o4+0.44112oo+11.5
+        3756c3756
+        < ### 0.21834o5 = -%CAPSULE1213+0.09631oo+3ooo+1.85596
+        ---
+        > ### 0.21834o5 = -%CAPSULE1213+0.09631oo+3ooo+2.5109
+
+DEC 5000/20	Ultrix 4.2a		gcc 2.1				karl
+	-O fails on tangle (at least; I gave up on -O after that).
+
+DEC 5000/240	Ultrix 4.2a rev.47	gcc 2.1			      elizabeth
+	Without optimization.
+
+HP 9000/[34]00	HP-UX 8.0		cc (builtin or optional)	pfs
+	web2cy.c, mf9.c and gftodvi.c must be compiled with +O1, not -O.
+
+HP 9000/370	MORE/bsd 4.3		cc				karl
+
+HP 9000/700	HP-UX 8.05		cc (builtin or optional)	pfs
+	+O1 compilation for everything.
+
+HP 9000/830	HP-UX 8.05		cc				rz32
+	XCFLAGS="-Aa -D_HPUX_SOURCE -UANSI".  mf2.c needed +O1.
+
+HP 9000/834	HP-UX 7.0		cc,gcc 1.39			karl
+
+IBM RS/6000	AIX			xlc				karl
+	xlc cannot compile the flex-generated scanner.
+
+IBM RT		AOS (BSD 4.3)		gcc 2.1				karl
+
+IBM RT		AOS (BSD 4.3)		pcc -w				karl
+        This doesn't work, since pcc can't handle
+            typedef void *address; extern address xmalloc ();
+
+IBM RT		AOS (BSD 4.3)		hc -w				karl
+	-O fails on TeX, at least: trip hangs.
+
+Intel 386	Interactive Unix 2.2.1	cc -Xp -D_POSIX_SOURCE		karl
+	cc and flex/bison don't cooperate.
+        -O doesn't work on tangle, at least: assembler errors.
+        
+Intel 386	Interactive Unix 2.2.1	gcc 2.1				karl
+
+Sun 3		SunOS 4.1.1		cc				karl
+	-O hangs on mf2.c.
+
+Sun 3		SunOS 4.0.3		cc, gcc 1.36		      elizabeth
+
+Sun 3		SunOS 4.1.1		gcc 1.40			karl
+	flex and <stdlib.h> don't mix.
+
+Sun 386i	SunOS 4.0.2		cc				karl
+	mf4.c breaks the optimizer.
+
+Sun 386i	SunOS 4.0.2		gcc 1.40			karl
+	flex and <stdlib.h> don't mix.
+
+Sun Sparc	SunOS 4.1.1		acc 1.0 1 Mar 91		payne
+
+Sun Sparc	SunOS 4.1.1		cc				karl
+
+Sun Sparc	SunOS 4.1.1		gcc 1.40			karl
+	flex and <stdlib.h> don't mix.
+
+
+
+Below here is list for pre-5.851.
+
+andy = andy@csvax.cs.caltech.edu
+bernd = raichle@azu.informatik.uni-stuttgart.de
+beebe = beebe@science.utah.edu
+broman = broman@nosc.mil
+bells = bells@ibm.com
+casterln = casterln@are.berkeley.edu
+corrigan = corrigan@weber.ucsd.edu
+dick = dick@sprite.stanford.edu
+d.love = d.love@daresbury.ac.uk
+dorab = dorab@twinsun.com
+doug = doug@csd4.csd.uwm.edu
+dsmith = dsmith@applga.aa.cad.slb.com
+edh = edh@ux.acs.umn.edu
+Helmut = root@freeman.phys.nwu.edu
+hrp = hrp@boring.cray.com
+karl = karl@cs.umb.edu
+ken = ken@csis.dit.csiro.au
+klaus = cnix!klaus@uunet.uu.net
+jmr = jmr@nada.kth.se
+kabal = kabal@aldebaran.insl.mcgill.ca
+lgy = lgy@newton.phys.washington.edu
+mackay = mackay@cs.washington.edu
+maj = maj@computer-lab.cambridge.ac.uk
+mark = mark@comp.vuw.ac.nz
+mok = mok@kemi.aau.dk
+morgan = morgan@ics.uci.edu
+newton = newton@gumby.cs.caltech.edu
+pfs = p.f.smith@aberdeen.ac.uk
+piet = piet@cs.ruu.nl
+spqr = sqpr@ecs.southampton.ac.uk
+uri = uri@ibm.com
+wittman = wittman@urz.ku-eichstatt.dbp.de
+xitikgun = xitikgun@ddathd21.bitnet
+
+machine		operating system	compiler	who
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Acorn R140	RiscIX 1.14		cc (Norcroft C 300/331) maj
+
+Apollo DN2500	SR 10.2			cc		Helmut Erschbaumer
+
+Apollo DN3500	SR 10.2			cc 6.7(316)	broman
+
+AT&T Unix PC				gcc		andy
+	Define ANSI.  The big TeX is too big.
+
+Convex C1-XP	4.2bsd/8.0		vc 3.0		doug
+	cc -O also works, except web2c itself fails.  Compiled with
+        vc -O1, TeX is faster anyway.  vc -O2 also works, at least with
+        the big TeX, but doesn't seem to gain much.
+
+Convex C220	OS 8.1			cc 4.0		d.love
+	OPT=-O1.  tftopl produces bizarre indentation.
+
+DEC DECstation 3100 Ultrix 4.1		gcc 1.39	jmn
+	Define BSD.
+
+DEC DECstation 3100 Ultrix 4.2		cc		dsmith
+
+DEC DECstation 3100 Ultrix 4.2		gcc		beebe
+	With -U__STDC__ for mf/MFwindow/x11-xt.c.
+
+DEC DECstation 5000 Ultrix 4.1 #52	cc 3.1		karl
+	Define BSD.  -O makes the trip test fail.
+
+DEC DECstation 5000 Ultrix 4.0 #179	cc 2.1		kabal
+	Define BSD.  Metafont and -O don't mix.
+
+DEC DECsystem 5820 Ultrix 4.1
+
+DEC uvax II	Ultrix-32 3.1		cc		karl
+
+DEC uvax 3600	Ultrix-32 3.0		gcc		dick
+	Works with glue_ratio = float; didn't try double.
+
+DEC uvax 3600	T2.1-0 (Ultrix 4.0beta)	cc 1.31		karl
+	Define BSD.  -O fails.  With REGFIX DEFINED.
+
+DEC uvax 5400	RISC/Ultrix4.0/rev 174	cc 2.0		dick
+	Define BSD.  With REGFIX defined.
+
+DEC Vax 11/750	4.3bsd			gcc 1.37	karl
+
+DG Aviion	DG/UX 4.3[01]		gcc-DG-1.37	newton
+	Define BSD.
+
+Encore Multimax 520 Umax 4.3				edh
+
+ESV3+					cc		mok
+
+Harris HCX-9	HCX/UX 3.5		gcc 1.37.1	piet
+	Define BSD, ANSI, SIGNAL_HANDLER_RETURN_TYPE=int.
+
+HP9000/[34]00	HP-UX 7.0[x]		cc		pfs
+	Define _POSIX_SOURCE and HP.  Set OPT=-O +Nw500 +Ns2500.
+        Optimization loses on web2cy.c, web2cl.c, web2c.c, mf9.c, and
+        gftodvi.c.
+
+HP9000/700				cc		dsmith
+	Define HP and SYSV.  Set OPT="_Aa -D_HPUX_SOURCE" (perhaps
+        unnecessary). TeX is OK optimized at level +O2; Metafont
+        is OK only at +01.
+
+HP9000/7[23]0	HP-UX 8.05		cc		tim
+	Define SYSV, HP, and REGFIX.  MF works with -O, but TeX only
+        works at +O1.
+
+HP9000/800	HP-UX 7.0		cc		mark
+	dvitype breaks the optimizer.
+
+HP9000/827	HP-UX 8.02		cc		corrigan
+	OPT=-Aa -D_HPUX_SOURCE; no ANSI.
+
+HP9000/834	HP-UX 7.0		cc		karl
+	Define HP and SYSV.  dvitype breaks the optimizer.
+
+HP9000/850	HP-UX 6.5		gcc 1.37	beebe
+	dvitype breaks the optimizer.
+
+IBM 3090						beebe
+
+IBM AIX/370				cc		bells
+	Without optimization; define AIX and ANSI.
+
+IBM AIX/RT				cc		bells
+        Define AIX and SIGNAL_HANDLER_RETURN_TYPE=int;
+        with OPT="-O -G -a -Nn3000"; d
+
+IBM BSD/RT	ACIS			hc		karl
+	-O fails.
+
+IBM PS/2				cc		bells
+        Without optimization; define AIX, ANSI, and
+        SIGNAL_HANDLER_RETURN_TYPE=int; the X11 support does not work.
+
+IBM RS/6000	AIX 3.1			cc		karl
+	Define AIX.
+        
+IBM RS/6000	AIX 3.1			bsdcc		bernd
+	Define ANSI, not AIX.
+
+Intel 386	ESIX Rev.D		gcc 1.37.1	uri
+	Define SYSV; add -lnet, -lnsl_s, -lbsd to wlibs.
+
+Intel 386       Interactive Unix 2.2.1	gcc 1.40,cc	karl
+	cc -O fails.
+
+Intel 386	SCO Unix 3.2.0		gcc 1.37.1	wittman
+
+Intel 386	Xenix			gcc		klaus
+	Define SYSV.
+
+Masscomp 5600	RTU 4.1A		cc		spqr
+	But pltotf and dvitype don't work.
+
+MIPS/2000	RISC/os 4.5            cc 2.10		lgy
+	For systype=bsd43 or systype=sysv.  With -O2, the compiler
+        breaks on ztakescaled in mf0.c; declare the integer variable
+        `becareful' as `volatile integer becareful' to avoid this.
+
+MIPS ?		RISC/os 4.52		cc 2.11		jlp
+	With -O -Olimit 2000.
+
+Pyramid 9820	OSx 4.4c		gcc 1.37, cc	jmr
+	In either the ucb or att universe; SIGNAL_HANDLER_RETURN_TYPE=int.
+
+Sequent Symmetry Dynix 3.0.12		cc		morgan
+	Metafont breaks the optimizer.
+
+Sequent Symmetry Dynix 3.0.12		gcc 1.36.93	morgan
+	mf9.c must be compiled with cc.
+
+SGI Indigo	IRIX 4.0		cc		beebe
+	Define SYSV, ANSI, _POSIX_SOURCE.
+
+Sun 2		SunOS 3.2 and 3.4	cc		mackay
+        Long lines in mf2.c and mf4.c break the compiler.  Simple
+	editing corrects this.
+        
+Sun 3		Sun Unix 3.4		gcc 1.37,cc	karl
+
+Sun 3		SunOS 4.0.3		gcc 1.37	beebe
+
+Sun 3		SunOS 4.1		gcc 1.39	karl
+	Define BSD.
+
+Sun 386i	SunOS 4.0.1		gcc 1.39,cc	karl
+        Define BSD.  cc -O fails with Metafont: see ./PROBLEMS.
+
+Sun 4/20	SunOS 4.1		gcc 1.37	hrp
+
+Sun 4/110	Sun Unix 3.4		gcc 1.37	karl
+
+Sun 4/470	SunOS 4.1.1		gcc		casterln
+	Define BSD.
+
+Sun 4/490	SunOS 4.1		cc, gcc 1.39 	karl
+	Define BSD.
+
+Sun Sparcstation 1 SunOS 4.0.3c		gcc 1.39, cc	karl
+	Define BSD.
+
+Sun sparc	SunOS 4.1		cc		dorab
+
+Tandy 6000				cc		ken
+	Define TANDY, REGFIX, glueratio=float,
+        SIGNAL_HANDLER_RETURN_TYPE=int; with OPT="-Dvoid=int -DM_VOID -O"

@@ -7,7 +7,7 @@ man, lookman \- print or find pages of this manual
 .I option ...
 ]
 [
-.I section section ...
+.I section ...
 ]
 .I title ...
 .PP
@@ -43,9 +43,10 @@ Run
 on the specified man pages.
 .TP
 .B -t
-Send the
+Run
 .I troff
-output to standard output.
+and send its output
+to standard output.
 .TP
 .B -n
 (Default)
@@ -74,6 +75,10 @@ command to make an index for a given section
 .B /sys/lib/man/lookman/index
 index for
 .I lookman
+.SH SOURCE
+.B /rc/bin/man
+.br
+.B /rc/bin/lookman
 .SH "SEE ALSO"
 .IR proof (1)
 .SH BUGS

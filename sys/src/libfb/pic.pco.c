@@ -14,12 +14,12 @@ int _PRDpco(PICFILE *f, void *vbuf){
 	if(f->line==0){
 		f->buf=malloc(f->width);
 		if(f->buf==0){
-			_PICerror="Can't allocate buffer";
+			werrstr("Can't allocate buffer");
 			return 0;
 		}
 	}
 	if(f->line==f->height){
-		_PICerror="Read past end of picture";
+		werrstr("Read past end of picture");
 		return 0;
 	}
 	offs=seek(f->fd, 0L, 1);
@@ -27,7 +27,7 @@ int _PRDpco(PICFILE *f, void *vbuf){
 	for(i=0;i!=f->nchan;i++){
 		n=_PICread(f->fd, f->buf, f->width);
 		if(n<=0){
-			if(n==0) _PICerror="End of file reading picture";
+			if(n==0) werrstr("End of file reading picture");
 			return 0;
 		}
 		inp=f->buf;
@@ -46,13 +46,13 @@ int _PWRpco(PICFILE *f, void *vbuf){
 	if(f->line==0){
 		f->buf=malloc(f->width);
 		if(f->buf==0){
-			_PICerror="Can't allocate buffer";
+			werrstr("Can't allocate buffer");
 			return 0;
 		}
 		_PWRheader(f);
 	}
 	if(f->line==f->height){
-		_PICerror="Write past end of picture";
+		werrstr("Write past end of picture");
 		return 0;
 	}
 	offs=seek(f->fd, 0L, 1);

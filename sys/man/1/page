@@ -1,0 +1,60 @@
+.TH PAGE 1
+.SH NAME
+page \- view FAX, bitmap, and PostScript files
+.SH SYNOPSIS
+.B page
+.I file ...
+.SH DESCRIPTION
+.I Page
+reads each
+.IR file ,
+either a CCITT Group 3 encoded file (such as a FAX page),
+Plan 9 bitmap file (see
+.IR bitmap (6)),
+or
+.I PostScript
+in sequence and displays it in its window.
+Pressing and holding button 1 permits panning about the page.
+Typing a
+.B q
+or
+control-D exits the program.
+Typing any other character or clicking button 2 advances to the next
+.IR file .
+Button 3 has a menu of the
+.I files
+to be selected for viewing in any order.
+.PP
+When possible,
+.I page
+overlaps the read of the next page with the display of the current one.
+.PP
+.I Page
+calls
+.IR gs (1)
+to convert PostScript
+.I files
+to Group 3 encoded files.  All are converted before any pages are displayed.
+The menu then displays one line for each page of the documents.
+.SH FILES
+.TF /lib/nyt/*
+.TP
+.B /lib/nyt/*
+New York Times FAX files, updated daily.
+.SH "SEE ALSO
+.IR gs (1)
+.SH SOURCE
+.B /sys/src/cmd/page
+.SH DIAGNOSTICS
+The mouse cursor changes to an arrow and ellipsis
+when
+.I page
+is reading a file.
+.SH BUGS
+.I Page
+is written in ALEF and therefore has binaries only for
+MIPS, SPARC, and i386 machines.
+.br
+If any of the
+.I files
+are PostScript, they all must be.

@@ -53,19 +53,19 @@ char pix[SIZE][SIZE];
 char curval=3;
 enum{ Paint, Fill, Relief}mode=Paint;
 Rectangle bigr, smallr;
-rectf(Bitmap *b, Rectangle r, Fcode f){
+void rectf(Bitmap *b, Rectangle r, Fcode f){
 	bitblt(b, r.min, b, r, f);
 }
-myborder(Bitmap *b, Rectangle r, int n, Fcode f){
+void myborder(Bitmap *b, Rectangle r, int n, Fcode f){
 	if(n<0)
 		border(b, inset(r, n), -n, f);
 	else
 		border(b, r, n, f);
 }
-show(Point p){
+void show(Point p){
 	int v=pix[p.y][p.x];
 	bitblt(&screen, add(bigr.min, mul(p, MAG)), flat[v], flat[v]->r, S);
-	point(&screen, add(smallr.min, p), v, S);
+	bitblt(&screen, add(smallr.min, p), flat[v], Rect(1,1,2,2), S);
 }
 char pattern[16][16]={
 3,0,0,0,3,0,0,0,3,0,0,0,3,0,0,0,
@@ -85,7 +85,7 @@ char pattern[16][16]={
 0,0,0,0,0,0,3,0,0,0,0,0,0,0,3,0,
 0,0,0,0,0,3,0,0,0,0,0,0,0,3,0,0,
 };
-set(Point p, char v){
+void set(Point p, char v){
 	if(v==4) v=pattern[p.y%16][p.x%16];
 	if(pix[p.y][p.x]!=v){
 		pix[p.y][p.x]=v;
@@ -93,7 +93,7 @@ set(Point p, char v){
 	}
 }
 char region[SIZE][SIZE];
-getregion1(Point p, char v){
+void getregion1(Point p, char v){
 	if(pix[p.y][p.x]!=v || region[p.y][p.x]) return;
 	region[p.y][p.x]=1;
 	if(p.x!=SIZE-1) getregion1(Pt(p.x+1, p.y), v);
@@ -101,12 +101,12 @@ getregion1(Point p, char v){
 	if(p.y!=SIZE-1) getregion1(Pt(p.x, p.y+1), v);
 	if(p.y!=0)      getregion1(Pt(p.x, p.y-1), v);
 }
-getregion(Point p){
+void getregion(Point p){
 	int x, y;
 	for(y=0;y!=SIZE;y++) for(x=0;x!=SIZE;x++) region[y][x]=0;
 	getregion1(p, pix[p.y][p.x]);
 }
-fill(Point p, char v){
+void fill(Point p, char v){
 	int x, y;
 	getregion(p);
 	for(y=0;y!=SIZE;y++)
@@ -114,10 +114,10 @@ fill(Point p, char v){
 			if(region[y][x])
 				set(Pt(x, y), v);
 }
-inregion(int x, int y){
+int inregion(int x, int y){
 	return 0<=x && x<SIZE && 0<=y && y<SIZE && region[y][x];
 }
-relief(Point p){
+void relief(Point p){
 	int x, y;
 	getregion(p);
 	for(y=0;y!=SIZE;y++) for(x=0;x!=SIZE;x++) if(inregion(x, y)){
@@ -145,7 +145,7 @@ void ereshaped(Rectangle r){
 	myborder(&screen, screen.r, BORDER, F);
 	for(y=0;y!=SIZE;y++) for(x=0;x!=SIZE;x++) show(Pt(x, y));
 }
-initflats(void){
+void initflats(void){
 	int i, x, y;
 	for(i=0;i!=NVAL;i++){
 		flat[i]=balloc(Rect(0, 0, MAG, MAG), 1);
@@ -179,17 +179,17 @@ char *mbut3[]={
 	0
 };
 Menu menu3={mbut3};
-see(Bitmap *b){
+void see(Bitmap *b){
 	uchar buf[SIZE][SIZE/4];
 	int x, y;
 	rdbitmap(b, 0, SIZE, (uchar *)buf);
 	for(y=0;y!=SIZE;y++) for(x=0;x!=SIZE;x++)
 		set(Pt(x, y), (buf[y][x/4]>>(6-x%4*2))&3);
 }
-save(Bitmap *b){
+void save(Bitmap *b){
 	bitblt(b, b->r.min, &screen, smallr, S);
 }
-input(char *name){
+void input(char *name){
 	int i;
 	Bitmap *b;
 	int fd=open(name, OREAD);
@@ -206,9 +206,8 @@ input(char *name){
 	}
 	close(fd);
 }
-output(char *name){
+void output(char *name){
 	int i;
-	Bitmap *b;
 	int fd=create(name, OWRITE, 0666);
 	if(fd<0){
 		fprintf(stderr, "Can't create %s\n", name);
@@ -218,15 +217,15 @@ output(char *name){
 		wrbitmapfile(fd, piece[i].bitmap);
 	close(fd);
 }
-main(int argc, char *argv[]){
+void main(int argc, char *argv[]){
 	Mouse m;
 	int i=0;
 	if(argc!=3){
 		fprintf(stderr, "Usage: %s input output\n", argv[0]);
-		exit(1);
+		exits("usage");
 	}
-	binit((void (*)(char *))0, (char *)0);
-	einit();
+	binit(0, 0, 0);
+	einit(Emouse|Ekeyboard);
 	initflats();
 	ereshaped(screen.r);
 	input(argv[1]);
@@ -284,7 +283,7 @@ main(int argc, char *argv[]){
 			case 3:
 				save(piece[i].bitmap);
 				output(argv[2]);
-				exits("");
+				exits(0);
 			}
 			break;
 		}

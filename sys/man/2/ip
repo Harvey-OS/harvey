@@ -1,7 +1,11 @@
-.TH IP 2X
+.TH IP 2
 .SH NAME
-eipconv, parseip, parseether, myipaddr, myetheraddr, maskip, etherip, equivip \- Internet protocol
+eipconv, parseip, parseether, myipaddr, myetheraddr, maskip, equivip \- Internet protocol
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
 .B #include <ip.h>
 .PP
 .B
@@ -44,16 +48,16 @@ The string representation of Ethernet addresses is exactly
 is a
 .IR print (2)
 formatter for Ethernet (verb
-.BR I )
-and Internet protocol (verb
 .BR E )
+and Internet protocol (verb
+.BR I )
 addresses.
 .PP
 .I Parseip
 converts a string pointed to by
 .I str
 to a 4-byte IP address starting at
-.I ipaddr.
+.IR ipaddr .
 .I Myipaddr
 reads the IP address string from file
 .BI / net /1/local
@@ -65,7 +69,7 @@ Both routines return a negative number on errors.
 converts a string pointed to by
 .I str
 to a 6 byte Ethernet address starting at
-.I eaddr.
+.IR eaddr .
 .I Myetheraddr
 reads the Ethernet address string from file
 .IB net /1/stats
@@ -81,5 +85,7 @@ to by the third.
 .I Equivip
 returns non-zero if the IP addresses pointed to by its two
 arguments are equal.
+.SH SOURCE
+.B /sys/src/libip
 .SH SEE ALSO
 .IR print (2)

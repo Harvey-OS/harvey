@@ -12,8 +12,8 @@ Syscall sysdup;
 Syscall sysalarm;
 Syscall sysexec;
 Syscall sysexits;
-Syscall sys_x1;
-Syscall sys_x2;
+Syscall sysfsession;
+Syscall sysfauth;
 Syscall sysfstat;
 Syscall syssegbrk;
 Syscall sysmount;
@@ -52,8 +52,8 @@ Syscall *systab[]={
 	[ALARM]		sysalarm,
 	[EXEC]		sysexec,
 	[EXITS]		sysexits,
-	[_X1]		sysdeath,
-	[_X2]		sysdeath,
+	[FSESSION]	sysfsession,
+	[FAUTH]		sysfauth,
 	[FSTAT]		sysfstat,
 	[SEGBRK]	syssegbrk,
 	[MOUNT]		sysmount,
@@ -92,8 +92,8 @@ char *sysctab[]={
 	[ALARM]		"Alarm",
 	[EXEC]		"Exec",
 	[EXITS]		"Exits",
-	[_X1]		"_x1",
-	[_X2]		"_x2",
+	[FSESSION]	"Fsession",
+	[FAUTH]		"Fauth",
 	[FSTAT]		"Fstat",
 	[SEGBRK]	"Segbrk",
 	[MOUNT]		"Mount",

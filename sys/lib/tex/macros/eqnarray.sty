@@ -1,0 +1,109 @@
+%% 
+%% This is file `eqnarray.sty', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source file was `eqnarray.dtx'.
+%% 
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file eqnarray.dtx.
+%% 
+\def\fileversion{1.1}
+\def\filedate{jan 1993}
+\def\docdate{9 jan 1995}
+\typeout{equationarray \fileversion\space<\filedate>}
+\typeout{English documentation\space\space<\docdate>}
+\def\equationarray{%
+ \col@sep\arraycolsep
+ \def\d@llarbegin{$\displaystyle}%
+ \def\d@llarend{$}%
+ \stepcounter{equation}%
+ \let\@currentlabel=\theequation
+ \set@eqnsw \global\@eqcnt\z@ \global\@eqargcnt\z@
+ \let\@classz\@eqnclassz
+ \def\multicolumn##1##2##3{\@eqnmulticolumn{##1}{##2}{##3}%
+                           \global\advance\@eqcnt##1
+                           \global\advance\@eqcnt\m@ne}%
+ \def\@halignto{to\displaywidth}%
+ \@ifnextchar[{\@equationarray}{\@equationarray[c]}}
+\let\@eqnmulticolumn=\multicolumn
+\def\yesnumber{\global\@eqnswtrue}
+\let\set@eqnsw=\yesnumber
+\def\@amper{&}
+\newcount\@eqargcnt  % counts number of columns
+\def\@equationarray[#1]#2{%
+     \@tempdima \ht \strutbox
+     \advance \@tempdima by\extrarowheight
+     \setbox\@arstrutbox=\hbox{\vrule
+               \@height\arraystretch \@tempdima
+               \@depth\arraystretch \dp \strutbox
+               \@width\z@}%
+     \gdef\advance@eqargcnt{\global\advance\@eqargcnt\@ne}%
+     \begingroup
+     \@mkpream{#2}%
+     \xdef\@preamble{%
+      \if #1l\tabskip\z@ \else\if #1r\tabskip\@centering
+                         \else\tabskip\@centering \fi\fi
+      \halign \@halignto
+      \bgroup \tabskip\z@ \@arstrut \@preamble
+      \if #1l\tabskip\@centering \else\if #1r\tabskip\z@
+                                 \else\tabskip\@centering \fi\fi
+      \@amper\llap{\@sharp}\tabskip\z@\cr}%
+     \endgroup
+     \gdef\advance@eqargcnt{}%
+     \bgroup
+     \let\@sharp## \let\protect\relax
+     \m@th   \let\\=\@equationcr
+     \let\par\@empty
+     $$                            % $$ BRACE MATCHING HACK
+     \lineskip \z@
+     \baselineskip \z@
+     \@preamble}
+\def\@eqnclassz{\@classx
+   \@tempcnta \count@
+   \advance@eqargcnt
+   \prepnext@tok
+   \@addtopreamble{%
+      \global\advance\@eqcnt\@ne
+      \ifcase \@chnum
+      \hfil \d@llarbegin \insert@column \d@llarend\hfil \or
+      \d@llarbegin \insert@column \d@llarend \hfil \or
+      \hfil\kern\z@ \d@llarbegin \insert@column \d@llarend \or
+      $\vcenter
+      \@startpbox{\@nextchar}\insert@column \@endpbox $\or
+      \vtop \@startpbox{\@nextchar}\insert@column \@endpbox \or
+      \vbox \@startpbox{\@nextchar}\insert@column \@endpbox
+      \fi}\prepnext@tok}
+\def\endequationarray{\@zequationcr
+   \egroup
+   \global\advance\c@equation\m@ne $$  % $$ BRACE MATCHING HACK
+   \egroup\global\@ignoretrue
+   \gdef\@preamble{}}
+\def\@equationcr{${\ifnum0=`}\fi\@ifstar{\global\@eqpen\@M
+    \@xequationcr}{\global\@eqpen\interdisplaylinepenalty
+                   \@xequationcr}}
+\def\@xequationcr{%
+    \@ifnextchar[{\@argequationcr}{\ifnum0=`{\fi}${}%
+    \@zequationcr}}
+\def\@argequationcr[#1]{\ifnum0=`{\fi}${}\ifdim #1>\z@
+   \@xargequationcr{#1}\else
+   \@yargequationcr{#1}\fi}
+\def\@xargequationcr#1{\unskip
+   \@tempdima #1\advance\@tempdima \dp \@arstrutbox
+   \vrule \@depth\@tempdima \@width\z@
+   \@zequationcr\noalign{\penalty\@eqpen}}
+\def\@yargequationcr#1{%
+   \@zequationcr\noalign{\penalty\@eqpen\vskip #1}}
+\def\@zequationcr{\@whilenum\@eqcnt <\@eqargcnt
+   \do{\@amper\omit\global\advance\@eqcnt\@ne}%
+   \@amper
+   \if@eqnsw\@eqnnum\stepcounter{equation}\fi
+   \set@eqnsw\global\@eqcnt\z@\cr}
+\@namedef{equationarray*}{%
+   \let\set@eqnsw=\nonumber \equationarray}
+\@namedef{endequationarray*}{\endequationarray}
+\endinput
+%% 
+%% End of file `eqnarray.sty'.

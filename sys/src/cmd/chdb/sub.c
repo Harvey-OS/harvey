@@ -648,6 +648,7 @@ dowrite(int ch, char *name)
 		yyerror("unknown write type");
 		return;
 	case 'a':	/* ascii */
+	case 'f':	/* figurine */
 		if(*name == 0)
 			name = "wa.out";
 		break;
@@ -659,6 +660,10 @@ dowrite(int ch, char *name)
 		if(*name == 0)
 			name = "wm.out";
 		break;
+	case 'r':	/* result only */
+		if(*name == 0)
+			name = "wr.out";
+		break;
 	}
 	f = create(name, OWRITE, 0666);
 	if(f < 0) {
@@ -666,7 +671,10 @@ dowrite(int ch, char *name)
 		return;
 	}
 
-	chessinit('G', 0, 0);	/* always use ascii for writing */
+	if(ch == 'f')
+		chessinit('G', 0, 2);	/* figurine */
+	else
+		chessinit('G', 0, 0);	/* ascii */
 	Binit(&buf, f, OWRITE);
 	s = &str[1];
 	i = 1;
@@ -677,6 +685,7 @@ dowrite(int ch, char *name)
 	t = 0;
 	switch(ch) {
 	case 'a':
+	case 'f':
 		for(; i<ngames; i++,s++) {
 			decode(&g, s);
 			if(g.nmoves <= 0)
@@ -698,14 +707,20 @@ dowrite(int ch, char *name)
 			t += bputs(&buf, g.opening);
 			t += bputs(&buf, "\nresult: ");
 			t += bputs(&buf, g.result);
-			t += Bprint(&buf, "\n%G", g.moves[0]);
+			t += Bprint(&buf, "\n1 %G", g.moves[0]);
 			for(j=1; j<g.nmoves; j++) {
 				move(g.moves[j-1]);
 				m = g.moves[j];
 				if(printcol >= 60)
-					t += Bprint(&buf, "\n%G", m);
+					if(j & 1)
+						t += Bprint(&buf, "\n%G", m);
+					else
+						t += Bprint(&buf, "\n%d %G", (j+2)/2, m);
 				else
-					t += Bprint(&buf, " %G", m);
+					if(j & 1)
+						t += Bprint(&buf, " %G", m);
+					else
+						t += Bprint(&buf, " %d %G", (j+2)/2, m);
 			}
 			if(printcol > 0)
 				t += Bprint(&buf, "\n");
@@ -774,6 +789,37 @@ dowrite(int ch, char *name)
 			t += (m + 1)*2;
 		}
 		break;
+
+	case 'r':
+		for(; i<ngames; i++,s++) {
+			decode(&g, s);
+			if(g.nmoves <= 0)
+				continue;
+			if(strcmp(g.result, "1-0") == 0) {
+				t += bputs(&buf, g.white);
+				Bputc(&buf, '>');
+				t += bputs(&buf, g.black);
+				Bputc(&buf, '\n');
+				t += 2;
+			} else
+			if(strcmp(g.result, "0-1") == 0) {
+				t += bputs(&buf, g.white);
+				Bputc(&buf, '<');
+				t += bputs(&buf, g.black);
+				Bputc(&buf, '\n');
+				t += 2;
+			} else
+			if(strcmp(g.result, "½-½") == 0 ||
+			   strcmp(g.result, "+-+") == 0) {
+				t += bputs(&buf, g.white);
+				Bputc(&buf, '=');
+				t += bputs(&buf, g.black);
+				Bputc(&buf, '\n');
+				t += 2;
+			}
+		}
+		break;
+
 	}
 
 	Bflush(&buf);

@@ -1,0 +1,46 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+LIBA= p9 port sys
+DIRS=libbio libregexp libnet libframe libg libauth $LIBA
+
+none:V:
+	echo mk all, install, installall, clean, or nuke
+
+all install:V:
+	for (i in $DIRS $objtype) @{
+		switch ($i) {
+		case 68020
+		
+		case *
+			cd $i
+			mk $target
+		}
+	}
+
+libA:V:
+	for (i in $LIBA $objtype) @{
+		switch ($i) {
+		case 68020
+		
+		case *
+			cd $i
+			mk install
+		}
+	}
+
+clean nuke:V:
+	for (i in $DIRS $CPUS) @{
+		cd $i
+		mk $target
+	}
+
+installall:V:
+	for (i in $DIRS $CPUS) @{
+		cd $i
+		mk installall
+	}
+	for (i in $DIRS $CPUS) @{
+		cd $i
+		mk clean
+	}

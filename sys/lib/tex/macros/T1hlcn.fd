@@ -1,0 +1,30 @@
+%Filename: T1hlcn.fd
+%Created by: tex 3187luccasua
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{T1hlcn.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for T1/hlcn.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{T1}{hlcn}{}
+
+\DeclareFontShape{T1}{hlcn}{m}{n}{
+ <->s * [\LucidaScale]hlcrnq
+}{}
+
+\DeclareFontShape{T1}{hlcn}{m}{sc}{
+ <->s * [\LucidaScale]hlcrncq
+}{}
+
+\DeclareFontShape{T1}{hlcn}{m}{it}{
+ <->s * [\LucidaScale]hlcrinq
+}{}
+
+\DeclareFontShape{T1}{hlcn}{m}{sl}{
+ <->s * [\LucidaScale]hlcronq
+}{}
+
+\DeclareFontShape{T1}{hlcn}{m}{ui}{<->sub * hlcn/m/it}{}
+
+\endinput

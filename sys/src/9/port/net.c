@@ -136,32 +136,7 @@ netwalk(Chan *c, char *name, Network *np)
 void
 netstat(Chan *c, char *db, Network *np)
 {
-	int i;
-	Dir dir;
-
-	for(i=0;; i++)
-		switch(netgen(c, (Dirtab*)np, 0, i, &dir)){
-		case -1:
-			/*
-			 * devices with interesting directories usually don't get
-			 * here, which is good because we've lost the name by now.
-			 */
-			if(c->qid.path & CHDIR){
-				devdir(c, c->qid, ".", 0L, eve, CHDIR|0555, &dir);
-				convD2M(&dir, db);
-				return;
-			}
-			print("netstat %C %lux\n", devchar[c->type], c->qid.path);
-			error(Enonexist);
-		case 0:
-			break;
-		case 1:
-			if(eqqid(c->qid, dir.qid)){
-				convD2M(&dir, db);
-				return;
-			}
-			break;
-		}
+	devstat(c, db, (Dirtab*)np, 1, netgen);
 }
 
 Chan *

@@ -157,14 +157,10 @@ extern char shell[], shellname[];
 #define		D_EXEC		0x04
 
 #define	COUNT	long			/* size of count arguments */
-#define	CREAT(f, m)	create(f, 1, m)
-#define	DUP2(a, b)	dup(a, b)
-#define EXECLP		execl
 #define	LSEEK(f,o,p)	seek(f,o,p)
 #define	SHELL		"/bin/rc"
-#define	UNLINK(f)	remove(f)
-#define NOCLOSEEXIT(e)	_exits((e)? "error" : 0)
 
 #define	PERCENT(ch)	(((ch) == '%') || ((ch) == '&'))
+#define	QUOTE(ch)	((ch) == '\'')
 
 #include	"fns.h"

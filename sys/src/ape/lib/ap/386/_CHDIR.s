@@ -1,0 +1,4 @@
+TEXT _CHDIR(SB), 1, $0
+MOVL $3, AX
+INT $64
+RET

@@ -3,6 +3,7 @@
 #include <libg.h>
 #include <frame.h>
 #include <layer.h>
+#include <auth.h>
 #include <fcall.h>
 #include "dat.h"
 #include "fns.h"
@@ -17,15 +18,27 @@ scrdraw(Window *w)
 	Bitmap *b;
 	long tot;
 	static Bitmap *x;
+	int y, h, fd;
+	char buf[5*12];
 
 	tot = w->text.n;
 	r = w->scrollr;
 	r.min.x += 1;	/* border between margin and bar */
 	r1 = r;
 	if(x==0){
-		x = balloc(Rect(0, 0, 32, 1024), screen.ldepth);
+		h = 1024;
+		fd = open("/dev/screen", OREAD);
+		if(fd > 0){
+			if(read(fd, buf, sizeof buf) == sizeof buf){
+				y = atoi(buf+4*12)-atoi(buf+2*12);
+				if(y > 0)
+					h = y;
+			}
+			close(fd);
+		}
+		x = balloc(Rect(0, 0, 32, h), w->l->ldepth);
 		if(x == 0)
-			berror("scrdraw balloc");
+			berror("scroll balloc");
 	}
 	b = x;
 	r1.min.x = 0;

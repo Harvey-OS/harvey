@@ -7,16 +7,6 @@
 #define	EXTERN	extern
 #include "../mfd.h"
 
-#ifdef	SYSV
-#ifndef	ANSI
-extern int sprintf();
-#endif
-#else
-#ifndef ANSI
-extern char *sprintf();
-#endif
-#endif
-
 #ifdef	X10WIN
 #include <X/Xlib.h>
 

@@ -1,8 +1,9 @@
-% siam11.sty 5 Feb 88, based on art11.sty 22 Dec 87
+% ====================== SIAM11.STY ============================== % 
+% siam11.sty 4 Sep 92, based on art11.sty 22 Dec 87
 \lineskip 1pt \normallineskip 1pt
 \def\baselinestretch{1}
 
-\def\@normalsize{\@setsize\normalsize{13.6pt}\xipt\@ixpt
+\def\@normalsize{\@setsize\normalsize{13.6pt}\xipt\@xipt
 \abovedisplayskip 11pt plus3pt minus6pt\belowdisplayskip \abovedisplayskip
 \abovedisplayshortskip \abovedisplayskip
 \belowdisplayshortskip \belowdisplayskip \let\@listi\@listI}
@@ -24,7 +25,7 @@
 \def\huge{\@setsize\huge{25pt}\xxpt\@xxpt}
 \def\Huge{\@setsize\Huge{30pt}\xxvpt\@xxvpt}
 \normalsize 
-
+
 \voffset -.4in
 \oddsidemargin  .3in \evensidemargin .3in
 \marginparwidth 1.14in \marginparsep .25in
@@ -40,12 +41,12 @@ minus 2pt \dbltextfloatsep 20pt plus 2pt minus 4pt \@dblmaxsep 20pt
 \@fptop 0pt plus 1fil \@fpsep 8pt plus 2fil \@fpbot 0pt plus 1fil 
 \@dblfptop 0pt plus 1fil \@dblfpsep 8pt plus 2fil \@dblfpbot 0pt plus 1fil
 \marginparpush 5pt 
-
+
 \parskip 0pt plus 1pt \parindent .275in \partopsep \z@
 \@lowpenalty 51 \@medpenalty 151 \@highpenalty 301 
 \@beginparpenalty -\@lowpenalty \@endparpenalty -\@lowpenalty \@itempenalty
 -\@lowpenalty 
-
+
 
 \def\part{\par \addvspace{4ex} \@afterindentfalse \secdef\@part\@spart} 
 \def\@part[#1]#2{\ifnum \c@secnumdepth >\m@ne \refstepcounter{part}
@@ -74,7 +75,7 @@ minus 2pt \dbltextfloatsep 20pt plus 2pt minus 4pt \@dblmaxsep 20pt
  \setcounter{section}{0}
  \setcounter{subsection}{0}
  \def\thesection{\Alph{section}}}
-
+
 
 \leftmargini .55in
 \leftmarginii 2.2em \leftmarginiii 1.87em \leftmarginiv 1.7em \leftmarginv 1em
@@ -101,4 +102,5 @@ minus 2pt \dbltextfloatsep 20pt plus 2pt minus 4pt \@dblmaxsep 20pt
  \labelwidth\leftmarginv\advance\labelwidth-\labelsep}
 \def\@listvi{\leftmargin\leftmarginvi
  \labelwidth\leftmarginvi\advance\labelwidth-\labelsep}
+
 

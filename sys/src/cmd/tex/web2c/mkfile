@@ -8,22 +8,23 @@ TEXFORMATS=/sys/lib/tex/macros
 MFBASES=/sys/lib/mf
 MFPOOL=/sys/lib/mf
 
-APEBINPROGS=tex latex slitex mf bibtex
+APEBINPROGS=tex latex mf bibtex
 TEXS=initex virtex
 MFS=inimf virmf
 MFWARE=gftodvi gftopk gftype mft
 TEXWARE=dvitype patgen pltotf pooltype tftopl
 WEBWARE=tangle weave
 FONTUTILS=pktogf pktype vftovp vptovf
-ALL=$APEBINPROGS $TEXS $MFS $MFWARE $TEXWARE $WEBWARE $FONTUTILS
+DVIUTILS=dvicopy
+ALL=$APEBINPROGS $TEXS $MFS $MFWARE $TEXWARE $WEBWARE $FONTUTILS $DVIUTILS
 
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 
-compile:V: $ALL
+compile:V: everything
 
-all:V:	$ALL
+all:V:	everything
 
-install:V: $ALL
+install:V: everything
 	for (i in $TEXS)
 		$INSTALL tex/$O.$i $TEXBIN/$i $INSOWNER $INSGROUP $INSMODE
 	for (i in $MFS)
@@ -36,13 +37,17 @@ install:V: $ALL
 		$INSTALL web/$O.$i $TEXBIN/$i $INSOWNER $INSGROUP $INSMODE
 	for (i in $FONTUTILS)
 		$INSTALL fontutil/$O.$i $TEXBIN/$i $INSOWNER $INSGROUP $INSMODE
+	for (i in $DVIUTILS)
+		$INSTALL dviutil/$O.$i $TEXBIN/$i $INSOWNER $INSGROUP $INSMODE
 	$INSTALL bibtex/$O.out $BIN/bibtex $INSOWNER $INSGROUP $INSMODE
 	$INSTALL tex/tex.pool $TEXPOOL/tex.pool $INSOWNER $INSGROUP 664
 	$INSTALL mf/mf.pool $MFPOOL/mf.pool $INSOWNER $INSGROUP 664
-	$INSTALL tex/plain.fmt $TEXFORMATS/tex.fmt $INSOWNER $INSGROUP 664
-	$INSTALL tex/lplain.fmt $TEXFORMATS/latex.fmt $INSOWNER $INSGROUP 664
-	$INSTALL tex/splain.fmt $TEXFORMATS/slitex.fmt $INSOWNER $INSGROUP 664
+	$INSTALL tex/tex.fmt $TEXFORMATS/tex.fmt $INSOWNER $INSGROUP 664
+	$INSTALL tex/latex.fmt $TEXFORMATS/latex.fmt $INSOWNER $INSGROUP 664
 	$INSTALL mf/plain.base $MFBASES/mf.base $INSOWNER $INSGROUP 664
+
+everything:V:	stamp-lib.$objtype
+	mk $ALL
 
 installall:V:
 	for (objtype in $CPUS) mk install
@@ -60,85 +65,70 @@ texinit:V:	$TEXS
 	objtype=$cputype
 	mk $cpuobjtype.initex
 
-$MFS:V: stamp-web2c.$cputype stamp-tangle.$cputype
+$MFS:V: stamp-web2c.$cputype stamp-tangle.$cputype stamp-lib.$objtype
 	mk MF
 
-tangle:V: stamp-tangle.$cputype
+tangle:V: stamp-tangle.$cputype stamp-lib.$objtype
 	cd web; mk $O.tangle
 
-weave:V: stamp-web2c.$cputype stamp-tangle.$cputype
+weave:V: stamp-web2c.$cputype stamp-tangle.$cputype stamp-lib.$objtype
 	cd web; mk $O.weave
 
-$MFWARE:V: stamp-web2c.$cputype stamp-tangle.$cputype
+$MFWARE:V: stamp-web2c.$cputype stamp-tangle.$cputype stamp-lib.$objtype
 	cd mfware; mk all
 
-$TEXWARE:V: stamp-web2c.$cputype stamp-tangle.$cputype
+$TEXWARE:V: stamp-web2c.$cputype stamp-tangle.$cputype stamp-lib.$objtype
 	cd texware; mk all
 
-$FONTUTILS:V: stamp-web2c.$cputype stamp-tangle.$cputype
+$FONTUTILS:V: stamp-web2c.$cputype stamp-tangle.$cputype stamp-lib.$objtype
 	cd fontutil; mk all
 
-bibtex:V: stamp-web2c.$cputype stamp-tangle.$cputype
+$DVIUTILS:V: stamp-web2c.$cputype stamp-tangle.$cputype stamp-lib.$objtype
+	cd dviutil; mk all
+
+bibtex:V: stamp-web2c.$cputype stamp-tangle.$cputype stamp-lib.$objtype
 	cd bibtex; mk
 
 tex:V: texinit
 	cd tex
+	TEXPOOL=.
 	#redirected to stop chatter - remove redirection for debugging
 	$cpuobjtype.initex 'plain \dump' > /dev/null
+	mv plain.fmt tex.fmt
 
 latex:V: texinit
 	cd tex
+	TEXPOOL=.
 	#redirected to stop chatter - remove redirection for debugging
-	echo lfonts.ori | $cpuobjtype.initex 'lplain \dump' > /dev/null
-
-slitex:V: texinit
-	cd tex
-	#redirected to stop chatter - remove redirection for debugging
-	$cpuobjtype.initex 'splain \dump' > /dev/null
+	$cpuobjtype.initex 'latex.ltx \dump' > /dev/null
 
 mf:V: $MFS
 	cd mf
+	TEXPOOL=.
 	objtype=$cputype mk $cpuobjtype.inimf
 	#redirected to stop chatter - remove redirection for debugging
-	$cpuobjtype.inimf 'plain ; input att; dump' > /dev/null
+	$cpuobjtype.inimf 'plain ; input modes; dump' > /dev/null
 
 # stuff from overall Makefile for making TeX, etc
 # 
 
-# TeX 3.0 + Metafont 2.0 + web2c c
-version=5.0c
+# TeX 3.141 + Metafont 2.71 + web2c 5.851c
+version = 5.851c
 
-# Directory that site.h is in. (`..' means the directory containing
-# this Makefile.)
-# 
-SITEDIR=..
+# Start of system configuration section.
+SHELL=/bin/rc
 
-# Default flags to give the C compiler.  (Don't define CFLAGS directly.)
-OPT=-B
-
-# Default flags to give to the loader.
-LDFLAGS=
-
-# Support libraries for Metafont.
-x10lib=-lX
-x11lib=-lXt -lX11
-sunlib=-lsuntool -lsunwindow -lpixrect
-
-# This line should select the libraries that match what you said in site.h.
-wlibs=
-
+# Compiling.
+CC=pcc
+coptimize=
+XCFLAGS=-B
+# Some directories add more flags to this; hence this is not CFLAGS.
+cflags = -Ilib $coptimize $XCFLAGS
 
 # Stuff below here probably doesn't need to be changed.
-# The order here doesn't really matter, but it's nice to do TeX first,
-# since that's what most people care about.
-# 
-alldirs=web tex texware mf mfware fontutil bibtex
 triptrapdirs=tex texware mf mfware
-
-# Make sure we use the sh.  If your sh is broken, you might try bash,
-# the GNU version.
-# 
-SHELL=/bin/rc
+progdirs=$triptrapdirs bibtex dviutil fontutil web
+alldirs=$progdirs lib web2c
 
 triptrap:V: stamp-web2c.$cputype stamp-tangle.$cputype
 	for (name in $triptrapdirs) @{
@@ -153,17 +143,25 @@ clean-triptrap:V:
 	@{ cd tex; mk nuke }
 	cd mf; mk nuke
 
-TeX:V:	stamp-web2c.$cputype stamp-tangle.$cputype
+TeX:V:	stamp-web2c.$cputype stamp-tangle.$cputype stamp-lib.$objtype
 	cd tex; mk all
 
-MF:V:	stamp-web2c.$cputype stamp-tangle.$cputype
+MF:V:	stamp-web2c.$cputype stamp-tangle.$cputype stamp-lib.$objtype
 	cd mf; mk all
+
+stamp-lib.$objtype:
+	@{ cd lib; mk all }
+	touch stamp-lib.$objtype
+
+stamp-lib.$cputype:
+	@{ cd lib; objtype=$cputype mk all }
+	touch stamp-lib.$cputype
 
 stamp-tangle.$cputype:	stamp-web2c.$cputype
 	@{ cd web; objtype=$cputype mk $cpuobjtype.tangle }
 	touch stamp-tangle.$cputype
 
-stamp-web2c.$cputype:
+stamp-web2c.$cputype: stamp-lib.$cputype
 	@{ cd web2c; objtype=$cputype mk all }
 	touch stamp-web2c.$cputype
 

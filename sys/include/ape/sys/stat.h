@@ -43,6 +43,17 @@ struct	stat {
 #define	S_IWOTH	00002		/* write permission: other */
 #define	S_IXOTH	00001		/* execute permission: other */
 
+#ifdef _BSD_EXTENSION
+#define S_IFMT S__MASK
+#define S_IFDIR 0040000
+#define S_IFCHR 0020000
+#define S_IFBLK 0060000
+#define S_IFREG 0100000
+#define S_IFIFO 0010000
+#define S_IFLNK 0120000
+#define S_IFSOCK S_IFIFO
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,6 +64,13 @@ extern int mkfifo(const char *, mode_t);
 extern int stat(const char *, struct stat *);
 extern int fstat(int, struct stat *);
 extern int chmod(const char *, mode_t);
+
+#ifdef _BSD_EXTENSION
+#pragma lib "/$M/lib/ape/libbsd.a"
+extern int	lstat(char *, struct stat *);
+extern int	symlink(char *, char *);
+extern int	readlink(char *, char*, int);
+#endif
 
 #ifdef __cplusplus
 }

@@ -218,7 +218,7 @@ char *chan[]={
 	"rgbz...",
 	"rgbaz..."
 };
-void output(void){
+void output(char *name){
 	PICFILE *f;
 	int i;
 	if(utah.ncolors<=0 || 8<=utah.ncolors){
@@ -227,16 +227,25 @@ void output(void){
 	}
 	f=picopen_w("OUT", "runcode", utah.xpos, utah.ypos, utah.xsize, utah.ysize,
 		chan[utah.ncolors], 0, 0);
+	if(name) picputprop(f, "NAME", name);
 	if(f==0){
-		picerror("utah2pic");
+		perror("utah2pic");
 		exits("can't open output");
 	}
 	for(i=utah.ysize-1;i>=0;--i)
 		picwrite(f, utah.image+i*utah.xsize*utah.ncolors);
 }
 void main(int argc, char *argv[]){
-	if(getflags(argc, argv, "")!=2) usage("file");
-	rdimage(rdhdr(argv[1]));
-	output();
-	exits("");
+	switch(getflags(argc, argv, "n:1[name]")){
+	default:	usage("[file]");
+	case 1:
+		rdimage(rdhdr("/fd/0"));
+		output(flag['n']?flag['n'][0]:0);
+		break;
+	case 2:
+		rdimage(rdhdr(argv[1]));
+		output(flag['n']?flag['n'][0]:argv[1]);
+		break;
+	}
+	exits(0);
 }

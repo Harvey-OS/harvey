@@ -1,0 +1,16 @@
+# bootes' root
+mount -a #s/boot /
+mount -a #s/fornax /n/fornax
+
+# visible things go here
+bind /n/fornax/sys/doc /usr/none/plan9/doc
+bind /sys/src/cmd/unix /usr/none/plan9/unixsrc
+bind /usr/ehg/netlib/pub /usr/none/netlib
+bind /usr/ehg/netlib/800 /usr/none/dir800
+bind /usr/ehg/netlib/800 /usr/none/800
+bind /usr/ehg/netlib/pub/att/cs/home /usr/none/csrc
+bind -c /usr/andrew/incoming /usr/none/incoming/andrew
+# mount -a #s/netlib.depend.pub /usr/none/netlib.depend
+
+# this cuts off everything not mounted below /usr/none
+bind /usr/none /

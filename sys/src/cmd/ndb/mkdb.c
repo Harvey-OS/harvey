@@ -87,8 +87,13 @@ isip(char *name)
 	return dot;
 }
 
-char tup[64][64];
-int ttype[64];
+enum
+{
+	Ntuple=	64,
+};
+
+char tup[Ntuple][64];
+int ttype[Ntuple];
 int ntup;
 
 void
@@ -137,6 +142,8 @@ tprint(void)
 	}
 }
 
+#define NFIELDS 64
+
 /*
  *  make a database file from a merged uucp/inet database
  */
@@ -145,8 +152,8 @@ main(void)
 {
 	int n, i, j;
 	char *l;
-	char *fields[12];
-	int ftype[12];
+	char *fields[NFIELDS];
+	int ftype[NFIELDS];
 	int same, match;
 
 	Binit(&in, 0, OREAD);
@@ -155,7 +162,7 @@ main(void)
 	ntup = 0;
 	while(l = Brdline(&in, '\n')){
 		l[Blinelen(&in)-1] = 0;
-		n = getmfields(l, fields, 12);
+		n = getmfields(l, fields, NFIELDS);
 		same = 0;
 		for(i = 0; i < n; i++){
 			if(iscomment(fields[i])){
@@ -189,7 +196,7 @@ main(void)
 					break;
 				}
 			}
-			if(!match){
+			if(!match && ntup < Ntuple){
 				ttype[ntup] = ftype[i];
 				strcpy(tup[ntup], fields[i]);
 				ntup++;

@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 void
 border(Bitmap *l, Rectangle r, int i, Fcode c)

@@ -41,12 +41,14 @@ devdir(Chan *c, Qid qid, char *n, long length, char *user, long perm, Dir *db)
 		db->mode = CHDIR|perm;
 	else
 		db->mode = perm;
+	if(c->flag&CMSG)
+		db->mode |= CHMOUNT;
 	db->atime = seconds();
 	db->mtime = kerndate;
 	db->hlength = 0;
 	db->length = length;
-	strncpy(db->uid, user, NAMELEN);
-	strncpy(db->gid, eve, NAMELEN);
+	memmove(db->uid, user, NAMELEN);
+	memmove(db->gid, eve, NAMELEN);
 }
 
 int
@@ -133,7 +135,7 @@ devstat(Chan *c, char *db, Dirtab *tab, int ntab, Devgen *gen)
 			 *  by namec.
 			 */
 			if(c->qid.path & CHDIR){
-				devdir(c, c->qid, ".", 0L, eve, CHDIR|0700, &dir);
+				devdir(c, c->qid, ".", 0L, eve, CHDIR|0775, &dir);
 				convD2M(&dir, db);
 				return;
 			}
@@ -144,6 +146,8 @@ devstat(Chan *c, char *db, Dirtab *tab, int ntab, Devgen *gen)
 			break;
 		case 1:
 			if(eqqid(c->qid, dir.qid)){
+				if(c->flag&CMSG)
+					dir.mode |= CHMOUNT;
 				convD2M(&dir, db);
 				return;
 			}

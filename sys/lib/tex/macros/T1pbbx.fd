@@ -1,0 +1,46 @@
+%Filename: T1pbbx.fd
+%Created by: tex 8836xbembo
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{pbbx}{}
+
+\DeclareFontShape{T1}{pbbx}{b}{n}{
+   <-> pbbbxq
+}{}
+
+\DeclareFontShape{T1}{pbbx}{b}{sc}{
+   <-> pbbbxcq
+}{}
+
+\DeclareFontShape{T1}{pbbx}{b}{sl}{
+   <-> pbbboxq
+}{}
+
+\DeclareFontShape{T1}{pbbx}{b}{it}{
+   <-> pbbbixq
+}{}
+
+\DeclareFontShape{T1}{pbbx}{m}{n}{
+   <-> pbbrxq
+}{}
+
+\DeclareFontShape{T1}{pbbx}{m}{sc}{
+   <-> pbbrxcq
+}{}
+
+\DeclareFontShape{T1}{pbbx}{m}{sl}{
+   <-> pbbroxq
+}{}
+
+\DeclareFontShape{T1}{pbbx}{m}{it}{
+   <-> pbbrixq
+}{}
+
+\DeclareFontShape{T1}{pbbx}{bx}{n}{<->ssub * pbbx/b/n}{}
+\DeclareFontShape{T1}{pbbx}{bx}{sc}{<->ssub * pbbx/b/sc}{}
+\DeclareFontShape{T1}{pbbx}{bx}{sl}{<->ssub * pbbx/b/sl}{}
+\DeclareFontShape{T1}{pbbx}{bx}{it}{<->ssub * pbbx/b/it}{}
+
+\endinput

@@ -252,10 +252,6 @@ extern void	bbdflush(void *, int);
 				bbfree(memstart, tmp);			\
 			}
 
-
-/* execute program starting at p (c bytes long) */
-#define Execute(p,c,onstack)
-
 /* emit code seq at fi (at most 3 shorts) */
 #define Emitop					\
 	*(long *)p = *(long *)fi;		\

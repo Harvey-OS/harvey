@@ -11,13 +11,13 @@ enum
 	NONE	= -1000,
 	MAXFMT	= 512,
 
-	FPLUS	= (1<<0),
-	FMINUS	= (1<<1),
-	FSHARP	= (1<<2),
-	FLONG	= (1<<3),
-	FSHORT	= (1<<4),
-	FUNSIGN	= (1<<5),
-	FVLONG	= (1<<6),
+	FPLUS	= 1<<0,
+	FMINUS	= 1<<1,
+	FSHARP	= 1<<2,
+	FLONG	= 1<<3,
+	FSHORT	= 1<<4,
+	FUNSIGN	= 1<<5,
+	FVLONG	= 1<<6,
 };
 
 #define	PTR	sizeof(char*)
@@ -39,6 +39,7 @@ static	int	cconv(void*, Fconv*);
 static	int	rconv(void*, Fconv*);
 static	int	sconv(void*, Fconv*);
 static	int	percent(void*, Fconv*);
+static	int	column(void*, Fconv*);
 
 int	numbconv(void*, Fconv*);
 int	fltconv(void*, Fconv*);
@@ -101,6 +102,10 @@ initfmt(void)
 	fmtindex['%'] = cc;
 	cc++;
 
+	fmtconv[cc] = column;
+	fmtindex['|'] = cc;
+	cc++;
+
 	convcount = cc;
 }
 
@@ -111,9 +116,9 @@ fmtinstall(int c, int (*f)(void*, Fconv*))
 	if(convcount == 0)
 		initfmt();
 	if(c < 0 || c >= MAXFMT)
-		return 1;
+		return -1;
 	if(convcount >= MAXCONV)
-		return 1;
+		return -1;
 	fmtconv[convcount] = f;
 	fmtindex[c] = convcount;
 	convcount++;
@@ -274,6 +279,11 @@ numbconv(void *o, Fconv *fp)
 		r = VLONG;
 		break;
 
+	case FUNSIGN|FVLONG|FLONG:
+		vl = *(uvlong*)o;
+		r = VLONG;
+		break;
+
 	case FLONG:
 		v = *(long*)o;
 		r = LONG;
@@ -306,14 +316,21 @@ numbconv(void *o, Fconv *fp)
 		r = INT;
 		break;
 	}
-	if(!(fp->f3 & FUNSIGN) && v < 0) {
-		v = -v;
-		f = 1;
+	if(fp->f3 & FVLONG) {
+		if(!(fp->f3 & FUNSIGN) && vl < 0) {
+			vl = -vl;
+			f = 1;
+		}
+	} else {
+		if(!(fp->f3 & FUNSIGN) && v < 0) {
+			v = -v;
+			f = 1;
+		}
 	}
 	s[IDIGIT-1] = 0;
 	for(i = IDIGIT-2;; i--) {
 		if(fp->f3 & FVLONG)
-			n = vl % b;
+			n = (uvlong)vl % b;
 		else
 			n = (ulong)v % b;
 		n += '0';
@@ -326,22 +343,23 @@ numbconv(void *o, Fconv *fp)
 		if(i < 2)
 			break;
 		if(fp->f3 & FVLONG)
-			vl = vl / b;
+			vl = (uvlong)vl / b;
 		else
 			v = (ulong)v / b;
 		if(fp->f2 != NONE && i >= IDIGIT-fp->f2)
 			continue;
-		if(fp->f3 & FVLONG)
+		if(fp->f3 & FVLONG) {
 			if(vl <= 0)
 				break;
+			continue;
+		}
 		if(v <= 0)
 			break;
 	}
-	if(fp->f3 & FSHARP)
-	if(s[i] != '0') {
-		if(b == 8)
+
+	if(fp->f3 & FSHARP) {
+		if(b == 8 && s[i] != '0')
 			s[--i] = '0';
-		else
 		if(b == 16) {
 			if(ucase)
 				s[--i] = 'X';
@@ -492,7 +510,10 @@ noconv(void *o, Fconv *fp)
 			n = fmtindex[fp->chr];
 		return (*fmtconv[n])(o, fp);
 	}
-	sprint(s, "*%c*", fp->chr);
+	s[0] = '*';
+	s[1] = fp->chr;
+	s[2] = '*';
+	s[3] = 0;
 	fp->f1 = 0;
 	fp->f2 = NONE;
 	fp->f3 = 0;
@@ -508,6 +529,7 @@ rconv(void *o, Fconv *fp)
 
 	USED(o);
 
+	s[0] = 0;
 	errstr(s);
 	fp->f2 = NONE;
 	strconv(s, fp);
@@ -560,6 +582,27 @@ percent(void *o, Fconv *fp)
 	USED(o);
 	if(fp->out < fp->eout)
 		*fp->out++ = '%';
+	printcol++;
+	return 0;
+}
+
+static
+int
+column(void *o, Fconv *fp)
+{
+	int col, pc;
+
+	col = *(int*)o;
+	while(fp->out < fp->eout && printcol < col) {
+		pc = (printcol+8) & ~7;
+		if(pc <= col) {
+			*fp->out++ = '\t';
+			printcol = pc;
+		} else {
+			*fp->out++ = ' ';
+			printcol++;
+		}
+	}
 	return 0;
 }
 

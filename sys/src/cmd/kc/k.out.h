@@ -1,7 +1,8 @@
-#define	NNAME	20
 #define	NSNAME	8
 #define	NSYM	50
 #define	NREG	32
+#define NOPROF	(1<<0)
+#define DUPOK	(1<<1)
 
 enum
 {
@@ -200,7 +201,10 @@ enum	as
 	AXNORCC,
 	AXOR,
 	AXORCC,
-	AEND
+	AEND,
+	ADYNT,
+	AINIT,
+	ALAST
 };
 
 /* type/name */
@@ -227,6 +231,7 @@ enum
 	D_CREG,
 	D_PREG,
 	D_FILE,
+	D_FILE1,
 
 /* reg names iff type is D_PREG */
 	D_CPQ	= 0,
@@ -243,19 +248,6 @@ enum
  * this is the ranlib header
  */
 #define	SYMDEF	"__.SYMDEF"
-
-typedef
-struct
-{
-	union
-	{
-		long	offset;		/* for calculation */
-		char	coffset[4];	/* in file little endian */
-	};
-	char	name[NNAME];
-	char	type;
-	char	pad[3];
-} Rlent;
 
 /*
  * this is the simulated IEEE floating point

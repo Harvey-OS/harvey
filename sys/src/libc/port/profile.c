@@ -44,6 +44,7 @@ _profin(void)
 	p = __prof.next + 1;
 	if(p >= __prof.last) {
 		__prof.pp = 0;
+		write(2, "/env/profsize too small\n", 24);
 		return arg;
 	}
 	__prof.next = p;

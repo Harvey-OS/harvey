@@ -34,7 +34,8 @@ void println ( )
     break ; 
   } 
 } 
-void printchar ( ASCIIcode s ) 
+void zprintchar ( s ) 
+ASCIIcode s ; 
 {/* 10 */ printchar_regmem 
   if ( s == eqtb [ 12712 ] .cint ) 
   if ( selector < 20 ) 
@@ -99,18 +100,38 @@ void printchar ( ASCIIcode s )
   } 
   incr ( tally ) ; 
 } 
-void print ( integer s ) 
+void zprint ( s ) 
+integer s ; 
 {/* 10 */ print_regmem 
   poolpointer j  ; 
+  integer nl  ; 
   if ( s >= strptr ) 
   s = 259 ; 
   else if ( s < 256 ) 
   if ( s < 0 ) 
   s = 259 ; 
-  else if ( ( s == eqtb [ 12712 ] .cint ) ) 
-  if ( selector < 20 ) 
-  {
-    println () ; 
+  else {
+      
+    if ( selector > 20 ) 
+    {
+      printchar ( s ) ; 
+      return ; 
+    } 
+    if ( ( s == eqtb [ 12712 ] .cint ) ) 
+    if ( selector < 20 ) 
+    {
+      println () ; 
+      return ; 
+    } 
+    nl = eqtb [ 12712 ] .cint ; 
+    eqtb [ 12712 ] .cint = -1 ; 
+    j = strstart [ s ] ; 
+    while ( j < strstart [ s + 1 ] ) {
+	
+      printchar ( strpool [ j ] ) ; 
+      incr ( j ) ; 
+    } 
+    eqtb [ 12712 ] .cint = nl ; 
     return ; 
   } 
   j = strstart [ s ] ; 
@@ -120,44 +141,42 @@ void print ( integer s )
     incr ( j ) ; 
   } 
 } 
-void slowprint ( integer s ) 
-{/* 10 */ slowprint_regmem 
+void zslowprint ( s ) 
+integer s ; 
+{slowprint_regmem 
   poolpointer j  ; 
-  if ( s >= strptr ) 
-  s = 259 ; 
-  else if ( s < 256 ) 
-  if ( s < 0 ) 
-  s = 259 ; 
-  else if ( ( s == eqtb [ 12712 ] .cint ) ) 
-  if ( selector < 20 ) 
-  {
-    println () ; 
-    return ; 
-  } 
-  j = strstart [ s ] ; 
-  while ( j < strstart [ s + 1 ] ) {
+  if ( ( s >= strptr ) || ( s < 256 ) ) 
+  print ( s ) ; 
+  else {
       
-    print ( strpool [ j ] ) ; 
-    incr ( j ) ; 
+    j = strstart [ s ] ; 
+    while ( j < strstart [ s + 1 ] ) {
+	
+      print ( strpool [ j ] ) ; 
+      incr ( j ) ; 
+    } 
   } 
 } 
-void printnl ( strnumber s ) 
+void zprintnl ( s ) 
+strnumber s ; 
 {printnl_regmem 
   if ( ( ( termoffset > 0 ) && ( odd ( selector ) ) ) || ( ( fileoffset > 0 ) 
   && ( selector >= 18 ) ) ) 
   println () ; 
   print ( s ) ; 
 } 
-void printesc ( strnumber s ) 
+void zprintesc ( s ) 
+strnumber s ; 
 {printesc_regmem 
   integer c  ; 
   c = eqtb [ 12708 ] .cint ; 
   if ( c >= 0 ) 
   if ( c < 256 ) 
   print ( c ) ; 
-  print ( s ) ; 
+  slowprint ( s ) ; 
 } 
-void printthedigs ( eightbits k ) 
+void zprintthedigs ( k ) 
+eightbits k ; 
 {printthedigs_regmem 
   while ( k > 0 ) {
       
@@ -167,7 +186,8 @@ void printthedigs ( eightbits k )
     else printchar ( 55 + dig [ k ] ) ; 
   } 
 } 
-void printint ( integer n ) 
+void zprintint ( n ) 
+integer n ; 
 {printint_regmem 
   schar k  ; 
   integer m  ; 
@@ -199,7 +219,8 @@ void printint ( integer n )
   } while ( ! ( n == 0 ) ) ; 
   printthedigs ( k ) ; 
 } 
-void printcs ( integer p ) 
+void zprintcs ( p ) 
+integer p ; 
 {printcs_regmem 
   if ( p < 514 ) 
   if ( p >= 257 ) 
@@ -223,12 +244,12 @@ void printcs ( integer p )
   printesc ( 503 ) ; 
   else {
       
-    printesc ( 335 ) ; 
-    slowprint ( hash [ p ] .v.RH ) ; 
+    printesc ( hash [ p ] .v.RH ) ; 
     printchar ( 32 ) ; 
   } 
 } 
-void sprintcs ( halfword p ) 
+void zsprintcs ( p ) 
+halfword p ; 
 {sprintcs_regmem 
   if ( p < 514 ) 
   if ( p < 257 ) 
@@ -240,19 +261,19 @@ void sprintcs ( halfword p )
     printesc ( 500 ) ; 
     printesc ( 501 ) ; 
   } 
-  else {
-      
-    printesc ( 335 ) ; 
-    slowprint ( hash [ p ] .v.RH ) ; 
-  } 
+  else printesc ( hash [ p ] .v.RH ) ; 
 } 
-void printfilename ( integer n , integer a , integer e ) 
+void zprintfilename ( n , a , e ) 
+integer n ; 
+integer a ; 
+integer e ; 
 {printfilename_regmem 
-  print ( a ) ; 
-  print ( n ) ; 
-  print ( e ) ; 
+  slowprint ( a ) ; 
+  slowprint ( n ) ; 
+  slowprint ( e ) ; 
 } 
-void printsize ( integer s ) 
+void zprintsize ( s ) 
+integer s ; 
 {printsize_regmem 
   if ( s == 0 ) 
   printesc ( 408 ) ; 
@@ -260,7 +281,9 @@ void printsize ( integer s )
   printesc ( 409 ) ; 
   else printesc ( 410 ) ; 
 } 
-void printwritewhatsit ( strnumber s , halfword p ) 
+void zprintwritewhatsit ( s , p ) 
+strnumber s ; 
+halfword p ; 
 {printwritewhatsit_regmem 
   printesc ( s ) ; 
   if ( mem [ p + 1 ] .hh .v.LH < 16 ) 
@@ -275,7 +298,7 @@ void jumpout ( )
 {jumpout_regmem 
   closefilesandterminate () ; 
   {
-    termflush ( stdout ) ; 
+    flush ( stdout ) ; 
     readyalready = 0 ; 
     if ( ( history != 0 ) && ( history != 1 ) ) 
     uexit ( 1 ) ; 
@@ -295,7 +318,7 @@ void error ( )
       
     lab22: clearforerrorprompt () ; 
     {
-      wakeupterminal () ; 
+      ; 
       print ( 264 ) ; 
       terminput () ; 
     } 
@@ -407,7 +430,7 @@ void error ( )
 	else {
 	    
 	  {
-	    wakeupterminal () ; 
+	    ; 
 	    print ( 276 ) ; 
 	    terminput () ; 
 	  } 
@@ -441,7 +464,7 @@ void error ( )
 	} 
 	print ( 275 ) ; 
 	println () ; 
-	termflush ( stdout ) ; 
+	flush ( stdout ) ; 
 	return ; 
       } 
       break ; 
@@ -490,12 +513,13 @@ void error ( )
   incr ( selector ) ; 
   println () ; 
 } 
-void fatalerror ( strnumber s ) 
+void zfatalerror ( s ) 
+strnumber s ; 
 {fatalerror_regmem 
   normalizeselector () ; 
   {
     if ( interaction == 3 ) 
-    wakeupterminal () ; 
+    ; 
     printnl ( 262 ) ; 
     print ( 285 ) ; 
   } 
@@ -517,12 +541,14 @@ void fatalerror ( strnumber s )
     jumpout () ; 
   } 
 } 
-void overflow ( strnumber s , integer n ) 
+void zoverflow ( s , n ) 
+strnumber s ; 
+integer n ; 
 {overflow_regmem 
   normalizeselector () ; 
   {
     if ( interaction == 3 ) 
-    wakeupterminal () ; 
+    ; 
     printnl ( 262 ) ; 
     print ( 286 ) ; 
   } 
@@ -549,14 +575,15 @@ void overflow ( strnumber s , integer n )
     jumpout () ; 
   } 
 } 
-void confusion ( strnumber s ) 
+void zconfusion ( s ) 
+strnumber s ; 
 {confusion_regmem 
   normalizeselector () ; 
   if ( history < 2 ) 
   {
     {
       if ( interaction == 3 ) 
-      wakeupterminal () ; 
+      ; 
       printnl ( 262 ) ; 
       print ( 289 ) ; 
     } 
@@ -571,7 +598,7 @@ void confusion ( strnumber s )
       
     {
       if ( interaction == 3 ) 
-      wakeupterminal () ; 
+      ; 
       printnl ( 262 ) ; 
       print ( 291 ) ; 
     } 
@@ -611,9 +638,9 @@ boolean initterminal ( )
   } 
   while ( true ) {
       
-    wakeupterminal () ; 
+    ; 
     (void) Fputs( stdout ,  "**" ) ; 
-    termflush ( stdout ) ; 
+    flush ( stdout ) ; 
     if ( ! inputln ( stdin , true ) ) 
     {
       (void) putc('\n',  stdout );
@@ -642,7 +669,9 @@ strnumber makestring ( )
   Result = strptr - 1 ; 
   return(Result) ; 
 } 
-boolean streqbuf ( strnumber s , integer k ) 
+boolean zstreqbuf ( s , k ) 
+strnumber s ; 
+integer k ; 
 {/* 45 */ register boolean Result; streqbuf_regmem 
   poolpointer j  ; 
   boolean result  ; 
@@ -661,7 +690,9 @@ boolean streqbuf ( strnumber s , integer k )
   lab45: Result = result ; 
   return(Result) ; 
 } 
-boolean streqstr ( strnumber s , strnumber t ) 
+boolean zstreqstr ( s , t ) 
+strnumber s ; 
+strnumber t ; 
 {/* 45 */ register boolean Result; streqstr_regmem 
   poolpointer j, k  ; 
   boolean result  ; 
@@ -682,13 +713,15 @@ boolean streqstr ( strnumber s , strnumber t )
   lab45: Result = result ; 
   return(Result) ; 
 } 
-void printtwo ( integer n ) 
+void zprinttwo ( n ) 
+integer n ; 
 {printtwo_regmem 
   n = abs ( n ) % 100 ; 
   printchar ( 48 + ( n / 10 ) ) ; 
   printchar ( 48 + ( n % 10 ) ) ; 
 } 
-void printhex ( integer n ) 
+void zprinthex ( n ) 
+integer n ; 
 {printhex_regmem 
   schar k  ; 
   k = 0 ; 
@@ -700,7 +733,8 @@ void printhex ( integer n )
   } while ( ! ( n == 0 ) ) ; 
   printthedigs ( k ) ; 
 } 
-void printromanint ( integer n ) 
+void zprintromanint ( n ) 
+integer n ; 
 {/* 10 */ printromanint_regmem 
   poolpointer j, k  ; 
   nonnegativeinteger u, v  ; 
@@ -747,7 +781,7 @@ void printcurrentstring ( )
 void terminput ( ) 
 {terminput_regmem 
   integer k  ; 
-  termflush ( stdout ) ; 
+  flush ( stdout ) ; 
   if ( ! inputln ( stdin , true ) ) 
   fatalerror ( 261 ) ; 
   termoffset = 0 ; 
@@ -760,7 +794,8 @@ void terminput ( )
   println () ; 
   incr ( selector ) ; 
 } 
-void interror ( integer n ) 
+void zinterror ( n ) 
+integer n ; 
 {interror_regmem 
   print ( 284 ) ; 
   printint ( n ) ; 
@@ -786,7 +821,7 @@ void pauseforinstructions ( )
     incr ( selector ) ; 
     {
       if ( interaction == 3 ) 
-      wakeupterminal () ; 
+      ; 
       printnl ( 262 ) ; 
       print ( 294 ) ; 
     } 
@@ -802,14 +837,16 @@ void pauseforinstructions ( )
     interrupt = 0 ; 
   } 
 } 
-integer half ( integer x ) 
+integer zhalf ( x ) 
+integer x ; 
 {register integer Result; half_regmem 
   if ( odd ( x ) ) 
   Result = ( x + 1 ) / 2 ; 
   else Result = x / 2 ; 
   return(Result) ; 
 } 
-scaled rounddecimals ( smallnumber k ) 
+scaled zrounddecimals ( k ) 
+smallnumber k ; 
 {register scaled Result; rounddecimals_regmem 
   integer a  ; 
   a = 0 ; 
@@ -821,7 +858,8 @@ scaled rounddecimals ( smallnumber k )
   Result = ( a + 1 ) / 2 ; 
   return(Result) ; 
 } 
-void printscaled ( scaled s ) 
+void zprintscaled ( s ) 
+scaled s ; 
 {printscaled_regmem 
   scaled delta  ; 
   if ( s < 0 ) 
@@ -841,7 +879,11 @@ void printscaled ( scaled s )
     delta = delta * 10 ; 
   } while ( ! ( s <= delta ) ) ; 
 } 
-scaled multandadd ( integer n , scaled x , scaled y , scaled maxanswer ) 
+scaled zmultandadd ( n , x , y , maxanswer ) 
+integer n ; 
+scaled x ; 
+scaled y ; 
+scaled maxanswer ; 
 {register scaled Result; multandadd_regmem 
   if ( n < 0 ) 
   {
@@ -860,7 +902,9 @@ scaled multandadd ( integer n , scaled x , scaled y , scaled maxanswer )
   } 
   return(Result) ; 
 } 
-scaled xovern ( scaled x , integer n ) 
+scaled zxovern ( x , n ) 
+scaled x ; 
+integer n ; 
 {register scaled Result; xovern_regmem 
   boolean negative  ; 
   negative = false ; 
@@ -868,7 +912,7 @@ scaled xovern ( scaled x , integer n )
   {
     aritherror = true ; 
     Result = 0 ; 
-    remainder = x ; 
+    texremainder = x ; 
   } 
   else {
       
@@ -881,19 +925,22 @@ scaled xovern ( scaled x , integer n )
     if ( x >= 0 ) 
     {
       Result = x / n ; 
-      remainder = x % n ; 
+      texremainder = x % n ; 
     } 
     else {
 	
       Result = - (integer) ( ( - (integer) x ) / n ) ; 
-      remainder = - (integer) ( ( - (integer) x ) % n ) ; 
+      texremainder = - (integer) ( ( - (integer) x ) % n ) ; 
     } 
   } 
   if ( negative ) 
-  remainder = - (integer) remainder ; 
+  texremainder = - (integer) texremainder ; 
   return(Result) ; 
 } 
-scaled xnoverd ( scaled x , integer n , integer d ) 
+scaled zxnoverd ( x , n , d ) 
+scaled x ; 
+integer n ; 
+integer d ; 
 {register scaled Result; xnoverd_regmem 
   boolean positive  ; 
   nonnegativeinteger t, u, v  ; 
@@ -913,16 +960,18 @@ scaled xnoverd ( scaled x , integer n , integer d )
   if ( positive ) 
   {
     Result = u ; 
-    remainder = v % d ; 
+    texremainder = v % d ; 
   } 
   else {
       
     Result = - (integer) u ; 
-    remainder = - (integer) ( v % d ) ; 
+    texremainder = - (integer) ( v % d ) ; 
   } 
   return(Result) ; 
 } 
-halfword badness ( scaled t , scaled s ) 
+halfword zbadness ( t , s ) 
+scaled t ; 
+scaled s ; 
 {register halfword Result; badness_regmem 
   integer r  ; 
   if ( t == 0 ) 
@@ -943,7 +992,8 @@ halfword badness ( scaled t , scaled s )
   return(Result) ; 
 } 
 #ifdef DEBUG
-void printword ( memoryword w ) 
+void zprintword ( w ) 
+memoryword w ; 
 {printword_regmem 
   printint ( w .cint ) ; 
   printchar ( 32 ) ; 
@@ -968,7 +1018,10 @@ void printword ( memoryword w )
   printint ( w .qqqq .b3 ) ; 
 } 
 #endif /* DEBUG */
-void showtokenlist ( integer p , integer q , integer l ) 
+void zshowtokenlist ( p , q , l ) 
+integer p ; 
+integer q ; 
+integer l ; 
 {/* 10 */ showtokenlist_regmem 
   integer m, c  ; 
   ASCIIcode matchchr  ; 
@@ -1117,7 +1170,8 @@ halfword getavail ( )
   Result = p ; 
   return(Result) ; 
 } 
-void flushlist ( halfword p ) 
+void zflushlist ( p ) 
+halfword p ; 
 {flushlist_regmem 
   halfword q, r  ; 
   if ( p != 0 ) 
@@ -1135,7 +1189,8 @@ void flushlist ( halfword p )
     avail = p ; 
   } 
 } 
-halfword getnode ( integer s ) 
+halfword zgetnode ( s ) 
+integer s ; 
 {/* 40 10 20 */ register halfword Result; getnode_regmem 
   halfword p  ; 
   halfword q  ; 
@@ -1208,7 +1263,9 @@ halfword getnode ( integer s )
   Result = r ; 
   return(Result) ; 
 } 
-void freenode ( halfword p , halfword s ) 
+void zfreenode ( p , s ) 
+halfword p ; 
+halfword s ; 
 {freenode_regmem 
   halfword q  ; 
   mem [ p ] .hh .v.LH = s ; 
@@ -1252,7 +1309,10 @@ halfword newrule ( )
   Result = p ; 
   return(Result) ; 
 } 
-halfword newligature ( quarterword f , quarterword c , halfword q ) 
+halfword znewligature ( f , c , q ) 
+quarterword f ; 
+quarterword c ; 
+halfword q ; 
 {register halfword Result; newligature_regmem 
   halfword p  ; 
   p = getnode ( 2 ) ; 
@@ -1264,7 +1324,8 @@ halfword newligature ( quarterword f , quarterword c , halfword q )
   Result = p ; 
   return(Result) ; 
 } 
-halfword newligitem ( quarterword c ) 
+halfword znewligitem ( c ) 
+quarterword c ; 
 {register halfword Result; newligitem_regmem 
   halfword p  ; 
   p = getnode ( 2 ) ; 
@@ -1284,7 +1345,9 @@ halfword newdisc ( )
   Result = p ; 
   return(Result) ; 
 } 
-halfword newmath ( scaled w , smallnumber s ) 
+halfword znewmath ( w , s ) 
+scaled w ; 
+smallnumber s ; 
 {register halfword Result; newmath_regmem 
   halfword p  ; 
   p = getnode ( 2 ) ; 
@@ -1294,7 +1357,8 @@ halfword newmath ( scaled w , smallnumber s )
   Result = p ; 
   return(Result) ; 
 } 
-halfword newspec ( halfword p ) 
+halfword znewspec ( p ) 
+halfword p ; 
 {register halfword Result; newspec_regmem 
   halfword q  ; 
   q = getnode ( 4 ) ; 
@@ -1306,7 +1370,8 @@ halfword newspec ( halfword p )
   Result = q ; 
   return(Result) ; 
 } 
-halfword newparamglue ( smallnumber n ) 
+halfword znewparamglue ( n ) 
+smallnumber n ; 
 {register halfword Result; newparamglue_regmem 
   halfword p  ; 
   halfword q  ; 
@@ -1320,7 +1385,8 @@ halfword newparamglue ( smallnumber n )
   Result = p ; 
   return(Result) ; 
 } 
-halfword newglue ( halfword q ) 
+halfword znewglue ( q ) 
+halfword q ; 
 {register halfword Result; newglue_regmem 
   halfword p  ; 
   p = getnode ( 2 ) ; 
@@ -1332,7 +1398,8 @@ halfword newglue ( halfword q )
   Result = p ; 
   return(Result) ; 
 } 
-halfword newskipparam ( smallnumber n ) 
+halfword znewskipparam ( n ) 
+smallnumber n ; 
 {register halfword Result; newskipparam_regmem 
   halfword p  ; 
   tempptr = newspec ( eqtb [ 10282 + n ] .hh .v.RH ) ; 
@@ -1342,7 +1409,8 @@ halfword newskipparam ( smallnumber n )
   Result = p ; 
   return(Result) ; 
 } 
-halfword newkern ( scaled w ) 
+halfword znewkern ( w ) 
+scaled w ; 
 {register halfword Result; newkern_regmem 
   halfword p  ; 
   p = getnode ( 2 ) ; 
@@ -1352,7 +1420,8 @@ halfword newkern ( scaled w )
   Result = p ; 
   return(Result) ; 
 } 
-halfword newpenalty ( integer m ) 
+halfword znewpenalty ( m ) 
+integer m ; 
 {register halfword Result; newpenalty_regmem 
   halfword p  ; 
   p = getnode ( 2 ) ; 
@@ -1363,7 +1432,8 @@ halfword newpenalty ( integer m )
   return(Result) ; 
 } 
 #ifdef DEBUG
-void checkmem ( boolean printlocs ) 
+void zcheckmem ( printlocs ) 
+boolean printlocs ; 
 {/* 31 32 */ checkmem_regmem 
   halfword p, q  ; 
   boolean clobbered  ; 
@@ -1476,7 +1546,8 @@ void checkmem ( boolean printlocs )
 } 
 #endif /* DEBUG */
 #ifdef DEBUG
-void searchmem ( halfword p ) 
+void zsearchmem ( p ) 
+halfword p ; 
 {searchmem_regmem 
   integer q  ; 
   {register integer for_end; q = memmin ; for_end = lomemmax ; if ( q <= 
@@ -1547,7 +1618,8 @@ void searchmem ( halfword p )
   while ( q++ < for_end ) ; } 
 } 
 #endif /* DEBUG */
-void shortdisplay ( integer p ) 
+void zshortdisplay ( p ) 
+integer p ; 
 {shortdisplay_regmem 
   integer n  ; 
   while ( p > memmin ) {
@@ -1610,7 +1682,8 @@ void shortdisplay ( integer p )
     p = mem [ p ] .hh .v.RH ; 
   } 
 } 
-void printfontandchar ( integer p ) 
+void zprintfontandchar ( p ) 
+integer p ; 
 {printfontandchar_regmem 
   if ( p > memend ) 
   printesc ( 307 ) ; 
@@ -1623,7 +1696,8 @@ void printfontandchar ( integer p )
     print ( mem [ p ] .hh.b1 ) ; 
   } 
 } 
-void printmark ( integer p ) 
+void zprintmark ( p ) 
+integer p ; 
 {printmark_regmem 
   printchar ( 123 ) ; 
   if ( ( p < himemmin ) || ( p > memend ) ) 
@@ -1631,13 +1705,17 @@ void printmark ( integer p )
   else showtokenlist ( mem [ p ] .hh .v.RH , 0 , maxprintline - 10 ) ; 
   printchar ( 125 ) ; 
 } 
-void printruledimen ( scaled d ) 
+void zprintruledimen ( d ) 
+scaled d ; 
 {printruledimen_regmem 
   if ( ( d == -1073741824L ) ) 
   printchar ( 42 ) ; 
   else printscaled ( d ) ; 
 } 
-void printglue ( scaled d , integer order , strnumber s ) 
+void zprintglue ( d , order , s ) 
+scaled d ; 
+integer order ; 
+strnumber s ; 
 {printglue_regmem 
   printscaled ( d ) ; 
   if ( ( order < 0 ) || ( order > 3 ) ) 
@@ -1654,7 +1732,9 @@ void printglue ( scaled d , integer order , strnumber s )
   else if ( s != 0 ) 
   print ( s ) ; 
 } 
-void printspec ( integer p , strnumber s ) 
+void zprintspec ( p , s ) 
+integer p ; 
+strnumber s ; 
 {printspec_regmem 
   if ( ( p < memmin ) || ( p >= lomemmax ) ) 
   printchar ( 42 ) ; 
@@ -1675,14 +1755,16 @@ void printspec ( integer p , strnumber s )
     } 
   } 
 } 
-void printfamandchar ( halfword p ) 
+void zprintfamandchar ( p ) 
+halfword p ; 
 {printfamandchar_regmem 
   printesc ( 460 ) ; 
   printint ( mem [ p ] .hh.b0 ) ; 
   printchar ( 32 ) ; 
   print ( mem [ p ] .hh.b1 ) ; 
 } 
-void printdelimiter ( halfword p ) 
+void zprintdelimiter ( p ) 
+halfword p ; 
 {printdelimiter_regmem 
   integer a  ; 
   a = mem [ p ] .qqqq .b0 * 256 + mem [ p ] .qqqq .b1 ; 
@@ -1691,7 +1773,9 @@ void printdelimiter ( halfword p )
   printint ( a ) ; 
   else printhex ( a ) ; 
 } 
-void printsubsidiarydata ( halfword p , ASCIIcode c ) 
+void zprintsubsidiarydata ( p , c ) 
+halfword p ; 
+ASCIIcode c ; 
 {printsubsidiarydata_regmem 
   if ( ( poolptr - strstart [ strptr ] ) >= depththreshold ) 
   {
@@ -1732,7 +1816,8 @@ void printsubsidiarydata ( halfword p , ASCIIcode c )
     decr ( poolptr ) ; 
   } 
 } 
-void printstyle ( integer c ) 
+void zprintstyle ( c ) 
+integer c ; 
 {printstyle_regmem 
   switch ( c / 2 ) 
   {case 0 : 
@@ -1752,7 +1837,8 @@ void printstyle ( integer c )
     break ; 
   } 
 } 
-void printskipparam ( integer n ) 
+void zprintskipparam ( n ) 
+integer n ; 
 {printskipparam_regmem 
   switch ( n ) 
   {case 0 : 
@@ -1814,7 +1900,8 @@ void printskipparam ( integer n )
     break ; 
   } 
 } 
-void shownodelist ( integer p ) 
+void zshownodelist ( p ) 
+integer p ; 
 {/* 10 */ shownodelist_regmem 
   integer n  ; 
   real g  ; 
@@ -1947,7 +2034,7 @@ void shownodelist ( integer p )
       switch ( mem [ p ] .hh.b1 ) 
       {case 0 : 
 	{
-	  printwritewhatsit ( 1276 , p ) ; 
+	  printwritewhatsit ( 1278 , p ) ; 
 	  printchar ( 61 ) ; 
 	  printfilename ( mem [ p + 1 ] .hh .v.RH , mem [ p + 2 ] .hh .v.LH , 
 	  mem [ p + 2 ] .hh .v.RH ) ; 
@@ -1960,17 +2047,17 @@ void shownodelist ( integer p )
 	} 
 	break ; 
       case 2 : 
-	printwritewhatsit ( 1277 , p ) ; 
+	printwritewhatsit ( 1279 , p ) ; 
 	break ; 
       case 3 : 
 	{
-	  printesc ( 1278 ) ; 
+	  printesc ( 1280 ) ; 
 	  printmark ( mem [ p + 1 ] .hh .v.RH ) ; 
 	} 
 	break ; 
       case 4 : 
 	{
-	  printesc ( 1280 ) ; 
+	  printesc ( 1282 ) ; 
 	  printint ( mem [ p + 1 ] .hh .v.RH ) ; 
 	  print ( 362 ) ; 
 	  printint ( mem [ p + 1 ] .hh.b0 ) ; 
@@ -1980,7 +2067,7 @@ void shownodelist ( integer p )
 	} 
 	break ; 
 	default: 
-	print ( 1283 ) ; 
+	print ( 1285 ) ; 
 	break ; 
       } 
       break ; 

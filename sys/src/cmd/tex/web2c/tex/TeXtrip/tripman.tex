@@ -239,9 +239,9 @@ Then use \.{TFtoPL} to convert \.{TRIP.TFM} into \.{TMP.PL}. Check that
 and \.{TFtoPL}). Install \.{TRIP.TFM} in the standard file area for
 \TeX\ font metric files.
 
-\item{2.} Prepare a version of \.{INITEX}. (This means that your \.{WEB}
+\item{2.} Prepare a special version of \.{INITEX}. (This means that your \.{WEB}
 change file should have {\bf init} and {\bf tini} defined to be null.)
-The {\bf stats} and {\bf tats} macros should also be null, so that
+The {\bf stat} and {\bf tats} macros should also be null, so that
 statistics are kept and other special features are enabled.  Set
 \\{mem\_min} and \\{mem\_bot} equal to~1, and set \\{mem\_top} and
 \\{mem\_max} equal to~3000, for purposes of this test version.  Also set
@@ -251,7 +251,8 @@ the test output, so your job will be much easier if you use the same
 settings that were used to produce Appendix~E. You probably should also
 use the ``normal'' settings of other parameters found in \.{TEX.WEB}
 (e.g., $\\{stack\_size}=200$, $\\{font\_max}=75$, etc.), since these show
-up in a few lines of the test output.
+up in a few lines of the test output. Your test version should not
+change the default definition of unprintable characters (\S49 of the program).
 
 \item{3.} Run the \.{INITEX} prepared in step 2. In response to the first
 `\.{**}' prompt, type carriage return (thus getting another `\.{**}').

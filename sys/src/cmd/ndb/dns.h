@@ -17,7 +17,6 @@ enum
 	Tminfo=	14,
 	Tmx=	15,
 	Ttxt=	16,
-	Thigh=	Ttxt+1,
 
 	/* query types (all RR types are also queries) */
 	Taxfr=	252,	/* zone transfer */
@@ -68,7 +67,6 @@ enum
 	Week=		7*Day,		/* Tsoa, Tns */
 
 	/* packet header sizes */
-	Udphdrlen=	6,	/* udp header length */
 	Maxudp=		512,	/* maximum bytes per udp message */
 };
 
@@ -174,9 +172,10 @@ extern int	rrconv(void*, Fconv*);
 extern int	rrtype(char*);
 extern char*	rrname(int, char*);
 extern int	cistrcmp(char*, char*);
+extern int	tsame(int, int);
+extern void	dndump(char*);
 
 /* dblookup.c */
-extern void	dbinit(void);
 extern RR*	dblookup(char*, int, int, int);
 extern RR*	dbinaddr(DN*);
 
@@ -196,7 +195,5 @@ extern int	convDNS2M(DNSmsg*, uchar*, int);
 /* convM2DNS.c */
 extern char*	convM2DNS(uchar*, int, DNSmsg*);
 
-/* malloc.c */
-extern void	paralloc(void);
-
 extern int debug;
+extern char *dbfile;

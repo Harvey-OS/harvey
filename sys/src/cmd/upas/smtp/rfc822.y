@@ -4,6 +4,7 @@
 #include <ctype.h>
 
 char	*yylp;		/* next character to be lex'd */
+char	*yybuffer;	/* first parsed character */
 Node	*root;
 Field	*firstfield;
 Field	*lastfield;
@@ -11,6 +12,7 @@ Node	*usender;
 Node	*usys;
 Node	*udate;
 int	originator;
+int	destination;
 int	date;
 %}
 
@@ -24,6 +26,7 @@ int	date;
 %term RESENT_FROM
 %term RESENT_SENDER
 %term RESENT_REPLY_TO
+%term SUBJECT
 %term TO
 %term CC
 %term BCC
@@ -32,7 +35,11 @@ int	date;
 %term RESENT_BCC
 %term REMOTE
 %term FROM
-%term OPTIONAL
+%term MIMEVERSION
+%term CONTENTTYPE
+%term MESSAGEID
+%term RECEIVED
+%term MAILER
 %start msg
 %%
 
@@ -47,7 +54,10 @@ field		: dates
 		| originator
 			{ originator = 1; }
 		| destination
+			{ destination = 1; }
+		| subject
 		| optional
+		| ignored
 		;
 unixfrom	: FROM route_addr unix_date_time REMOTE FROM word
 			{ freenode($1); freenode($4); freenode($5);
@@ -87,6 +97,16 @@ destination	: TO ':' address_list
 		| RESENT_BCC ':' address_list
 			{ newfield(link3($1, $2, $3), 0); }
 		;
+subject		: SUBJECT ':' things
+			{ newfield(link3($1, $2, $3), 0); }
+		;
+ignored		: ignoredhdr ':' things
+			{ newfield(link3($1, $2, $3), 0); }
+		| ignoredhdr ':'
+			{ newfield(link2($1, $2), 0); }
+		;
+ignoredhdr	: MIMEVERSION | CONTENTTYPE | MESSAGEID | RECEIVED | MAILER
+		;
 optional	: other ':' things
 			{ newfield(link3($1, $2, $3), 0); }
 		| other ':'
@@ -99,8 +119,8 @@ address_list	: address
 address		: mailbox
 		| group
 		;
-group		: phrase ':' mailbox_list ';'
-			{ $$ = link3($1, $2, link2($3, $4)); }
+group		: phrase local_part ';'
+			{ $$ = link2($1, $2); }
 		;
 mailbox_list	: mailbox
 		| mailbox_list ',' mailbox
@@ -115,7 +135,7 @@ brak_addr	: '<' route_addr '>'
 		| '<' '>'
 			{ $$ = anonymous($2); freenode($1); }
 		;
-route_addr	: route ':' addr_spec
+route_addr	: route ':' at_addr
 			{ $$ = bang($1, $3); freenode($2); }
 		| addr_spec
 		;
@@ -126,10 +146,15 @@ route		: '@' domain
 		;
 addr_spec	: local_part
 			{ $$ = address($1); }
-		| local_part '@' domain
-			{ $$ = bang($3, $1); freenode($2); }
+		| at_addr
+		;
+at_addr		: local_part '@' domain
+			{ $$ = bang($3, $1); freenode($2);}
 		;
 local_part	: word
+		| word ':' word
+			{ $$ = colon($1, $3); }
+		;
 		;
 domain		: word
 		;
@@ -154,7 +179,8 @@ unix_time	: word
 		;
 word		: WORD | DATE | RESENT_DATE | RETURN_PATH | FROM | SENDER
 		| REPLY_TO | RESENT_FROM | RESENT_SENDER | RESENT_REPLY_TO
-		| TO | CC | BCC | RESENT_TO | RESENT_CC | RESENT_BCC | REMOTE
+		| TO | CC | BCC | RESENT_TO | RESENT_CC | RESENT_BCC | REMOTE | SUBJECT
+		| MIMEVERSION | CONTENTTYPE | MESSAGEID | RECEIVED | MAILER
 		;
 other		: WORD | REMOTE
 		;
@@ -166,6 +192,7 @@ other		: WORD | REMOTE
 void
 yyinit(char *p)
 {
+	yybuffer = p;
 	yylp = p;
 	firstfield = lastfield = 0;
 }
@@ -196,6 +223,12 @@ Keyword key[] = {
 	{ "resent-cc", RESENT_CC },
 	{ "resent-bcc", RESENT_BCC },
 	{ "remote", REMOTE },
+	{ "subject", SUBJECT },
+	{ "mime-version", MIMEVERSION },
+	{ "content-type", CONTENTTYPE },
+	{ "message-id", MESSAGEID },
+	{ "received", RECEIVED },
+	{ "mailer", MAILER },
 	{ "who-the-hell-cares", WORD }
 };
 
@@ -210,7 +243,7 @@ yylex(void)
 	int quoting;
 	char *start;
 	Keyword *kp;
-	int c;
+	int c, d;
 
 /*	print("lexing\n"); /**/
 	if(*yylp == 0)
@@ -233,6 +266,13 @@ yylex(void)
 					c = '\\';
 				}
 				break;
+			case '\n':
+				d = (*(yylp+1))&0x7f;
+				if(d != ' ' && d != '\t'){
+					quoting = 0;
+					yylp--;
+				}
+				break;
 			case '"':
 				quoting = 0;
 				break;
@@ -252,6 +292,13 @@ yylex(void)
 			case '\r':
 				goto out;
 			case '\n':
+				if(yylp == start){
+					yylp++;
+/*					print("lex(c %c)\n", c); /**/
+					yylval->end = yylp;
+					return yylval->c = c;
+				}
+				goto out;
 			case '@':
 			case '>':
 			case '<':
@@ -409,6 +456,26 @@ link3(Node *p1, Node *p2, Node *p3)
 }
 
 /*
+ *  make a:b, move all white space after both
+ */
+Node*
+colon(Node *p1, Node *p2)
+{
+	if(p1->white){
+		if(p2->white)
+			s_append(p1->white, s_to_c(p2->white));
+	} else
+		p1->white = p2->white;
+
+	s_append(p1->s, ":");
+	if(p2->s)
+		s_append(p1->s, s_to_c(p2->s));
+
+	freenode(p2);
+	return p1;
+}
+
+/*
  *  make a!b, move all white space after both
  */
 Node*
@@ -537,4 +604,25 @@ whiten(Node *p)
 	if(tp->white == 0)
 		tp->white = s_copy(" ");
 	return p;
+}
+
+void
+yycleanup(void)
+{
+	Field *f, *fnext;
+	Node *np, *next;
+
+	for(f = firstfield; f; f = fnext){
+		for(np = f->node; np; np = next){
+			if(np->s)
+				s_free(np->s);
+			if(np->white)
+				s_free(np->white);
+			next = np->next;
+			free(np);
+		}
+		fnext = f->next;
+		free(f);
+	}
+	firstfield = lastfield = 0;
 }

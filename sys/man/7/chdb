@@ -19,9 +19,9 @@ If
 .I x
 is the name of the file, it is looked for under the names
 .IR x ,
-.IB x .m.out ,
+.IB x .m.out\f1,
 and
-.BI /lib/chess/ x .m.out .
+.BI /lib/chess/ x .m.out\f1.
 .PP
 After reading the files,
 .I chdb
@@ -44,7 +44,7 @@ button 2 to jump to an absolute position.
 With buttons 1 and 3, the scroll bars are calibrated in units
 of 1 through 8 corresponding to the ranks and
 files of the board.  The units measure games on the vertical
-scroll bar; ply (half-moves) on the horizontal scroll bar.
+scroll bar, ply (half-moves) on the horizontal scroll bar.
 For example, clicking button 3 on the horizontal scroll bar
 under the
 .B d
@@ -57,7 +57,7 @@ For the first method,
 point at the piece to be moved,
 press button 1,
 point to the place to move that piece,
-and then release button 1.
+and release button 1.
 In the second method,
 point at the place where a piece is to
 move and press button 1.
@@ -87,11 +87,11 @@ If
 is prefixed with a
 .B +
 or
-.B - ,
+.BR - ,
 it is interpreted as a relative position in the current set of games (see below).
 .I N
 defaults to
-.B +1 .
+.BR +1 .
 .TP
 .BI p " n
 Go to whole move
@@ -102,13 +102,13 @@ If
 is prefixed with a
 .B +
 or
-.B - ,
+.BR - ,
 it is interpreted as an offset in
 .I ply
 from the current position.
 .I N
 defaults to
-.B +1 .
+.BR +1 .
 .TP
 .BI k " n
 Mark the current set of games with tag
@@ -117,7 +117,7 @@ Mark the current set of games with tag
 .TP
 .BI w " type file
 Write the current set of games to
-.I file.
+.IR file .
 .I Type
 is either
 .B a
@@ -130,7 +130,7 @@ Patterns select subsets of the games.
 A pattern is one of the following, in decreasing precedence order.
 Parentheses can be used for grouping.
 .TP
-.B .
+.BR .
 The current game.
 .TP
 .B *
@@ -141,7 +141,7 @@ The games previously
 marked with a
 .B k
 command with the same
-.I n.
+.IR n .
 .TP
 .B []
 .TP
@@ -226,11 +226,14 @@ Select games that Botvinnik lost:
 .IP
 .EX
 (/Botv/w/0-1/r)|(/Botv/b/1-0/r)
+.EE
 .SH FILES
 .TF /lib/chess
 .TP
 .B /lib/chess
 directory of databases.
+.SH SOURCE
+.B /sys/src/cmd/chdb
 .SH SEE ALSO
 .IR regexp (6).
 .SH BUGS

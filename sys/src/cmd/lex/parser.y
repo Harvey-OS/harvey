@@ -236,11 +236,11 @@ yylex(void)
 				getl(p=buf);
 				switch(*p){
 				case '%':
-					switch(c= *(p+1)){
+					switch(*(p+1)){
 					case '%':
 						lgate();
-						fprintf(fout,"#define YYNEWLINE %d\n",'\n');
-						fprintf(fout,"yylex(void){\nint nstr; extern int yyprevious;\n");
+						Bprint(&fout,"#define YYNEWLINE %d\n",'\n');
+						Bprint(&fout,"yylex(void){\nint nstr; extern int yyprevious;\n");
 						sectbegin = TRUE;
 						i = treesize*(sizeof(*name)+sizeof(*left)+
 							sizeof(*right)+sizeof(*nullstr)+sizeof(*parent))+ALITTLEEXTRA;
@@ -260,7 +260,7 @@ yylex(void)
 						while(*p && !isdigit(*p))p++;
 						maxpos = atol((char*)p);
 # ifdef DEBUG
-						if (debug) printf("positions (%%p) now %d\n",maxpos);
+						if (debug) print("positions (%%p) now %d\n",maxpos);
 # endif
 						if(report == 2)report = 1;
 						continue;
@@ -268,7 +268,7 @@ yylex(void)
 						while(*p && !isdigit(*p))p++;
 						nstates = atol((char*)p);
 # ifdef DEBUG
-						if(debug)printf( " no. states (%%n) now %d\n",nstates);
+						if(debug)print( " no. states (%%n) now %d\n",nstates);
 # endif
 						if(report == 2)report = 1;
 						continue;
@@ -276,7 +276,7 @@ yylex(void)
 						while(*p && !isdigit(*p))p++;
 						treesize = atol((char*)p);
 # ifdef DEBUG
-						if (debug) printf("treesize (%%e) now %d\n",treesize);
+						if (debug) print("treesize (%%e) now %d\n",treesize);
 # endif
 						if(report == 2)report = 1;
 						continue;
@@ -290,7 +290,7 @@ yylex(void)
 						if(report == 2)report = 1;
 						ntrans = atol((char*)p);
 # ifdef DEBUG
-						if (debug)printf("N. trans (%%a) now %d\n",ntrans);
+						if (debug)print("N. trans (%%a) now %d\n",ntrans);
 # endif
 						continue;
 					case 'k': case 'K': /* overriden packed char classes */
@@ -299,14 +299,14 @@ yylex(void)
 						free(pchar);
 						pchlen = atol((char*)p);
 # ifdef DEBUG
-						if (debug) printf( "Size classes (%%k) now %d\n",pchlen);
+						if (debug) print( "Size classes (%%k) now %d\n",pchlen);
 # endif
 						pchar=pcptr=myalloc(pchlen, sizeof(*pchar));
 						continue;
 					case '{':
 						lgate();
 						while(getl(p) && strcmp((char*)p,"%}") != 0)
-							fprintf(fout, "%s\n",p);
+							Bprint(&fout, "%s\n",p);
 						if(p[0] == '%') continue;
 						error("Premature eof");
 					case 's': case 'S':		/* start conditions */
@@ -321,7 +321,7 @@ yylex(void)
 							*p++ = 0;
 							if (*t == 0) continue;
 							i = sptr*2;
-							fprintf(fout,"#define %s %d\n",t,i);
+							Bprint(&fout,"#define %s %d\n",t,i);
 							strcpy((char*)sp, (char*)t);
 							sname[sptr++] = sp;
 							sname[sptr] = 0;	/* required by lookup */
@@ -338,7 +338,7 @@ yylex(void)
 					}	/* end of switch after seeing '%' */
 				case ' ': case '\t':		/* must be code */
 					lgate();
-					fprintf(fout, "%s\n",p);
+					Bprint(&fout, "%s\n",p);
 					continue;
 				default:		/* definition */
 					while(*p && !isspace(*p)) p++;
@@ -384,9 +384,9 @@ yylex(void)
 				}
 				if(!funcflag)phead2();
 				funcflag = TRUE;
-				fprintf(fout,"case %d:\n",casecount);
+				Bprint(&fout,"case %d:\n",casecount);
 				if(cpyact())
-					fprintf(fout,"break;\n");
+					Bprint(&fout,"break;\n");
 				while((c=gch()) && c != '\n');
 				if(peek == ' ' || peek == '\t' || sectbegin == TRUE){
 					warning("Executable statements should occur right after %%");
@@ -399,19 +399,19 @@ yylex(void)
 				if(peek == '{'){	/* included code */
 					getl(buf);
 					while(!eof && getl(buf) && strcmp("%}",(char*)buf) != 0)
-						fprintf(fout,"%s\n",buf);
+						Bprint(&fout,"%s\n",buf);
 					continue;
 				}
 				if(peek == '%'){
-					c = gch();
-					c = gch();
+					gch();
+					gch();
 					x = DELIM;
 					break;
 				}
 				goto character;
 			case '|':
 				if(peek == ' ' || peek == '\t' || peek == '\n'){
-					fprintf(fout,"%d\n",30000+casecount++);
+					Bprint(&fout,"%d\n",30000+casecount++);
 					continue;
 				}
 				x = '|';
@@ -509,7 +509,7 @@ yylex(void)
 			case '"':
 				i = 0;
 				while((c=gch()) && c != '"' && c != '\n'){
-					if(c == '\\') c = usescape(c=gch());
+					if(c == '\\') c = usescape(gch());
 					token[i++] = c;
 					if(i > TOKENSIZE){
 						warning("String too long");
@@ -540,12 +540,12 @@ yylex(void)
 					c = gch();
 				}
 				while(c != ']' && c){
-					if(c == '\\') c = usescape(c=gch());
+					if(c == '\\') c = usescape(gch());
 					symbol[c] = 1;
 					j = c;
 					if((c=gch()) == '-' && peek != ']'){		/* range specified */
 						c = gch();
-						if(c == '\\') c = usescape(c=gch());
+						if(c == '\\') c = usescape(gch());
 						k = c;
 						if(j > k) {
 							n = j;
@@ -580,7 +580,7 @@ yylex(void)
 				cclinter(x==CCL);
 				break;
 			case '\\':
-				c = usescape(c=gch());
+				c = usescape(gch());
 			default:
 			character:
 				if(iter){	/* second part of an iteration */
@@ -617,10 +617,10 @@ yylex(void)
 	ptail();
 # ifdef DEBUG
 	if(debug)
-		fprintf(fout,"\n/*this comes from section three - debug */\n");
+		Bprint(&fout,"\n/*this comes from section three - debug */\n");
 # endif
 	while(getl(buf) && !eof)
-		fprintf(fout,"%s\n",buf);
+		Bprint(&fout,"%s\n",buf);
 	return(freturn(0));
 }
 /* end of yylex */
@@ -629,9 +629,9 @@ int
 freturn(int i)
 {
 	if(yydebug) {
-		printf("now return ");
+		print("now return ");
 		if(i < NCH) allprint(i);
-		else printf("%d",i);
+		else print("%d",i);
 		printf("   yylval = ");
 		switch(i){
 			case STR: case CCL: case NCCL:
@@ -641,10 +641,10 @@ freturn(int i)
 				allprint(yylval.i);
 				break;
 			default:
-				printf("%d",yylval.i);
+				print("%d",yylval.i);
 				break;
 		}
-		putchar('\n');
+		print("\n");
 	}
 	return(i);
 }

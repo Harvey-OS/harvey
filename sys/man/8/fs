@@ -11,10 +11,6 @@ fs, exsort \- file server maintenance
 .B arp
 .I subcommand
 .PP
-.B auth
-.RB [ on ]
-.RI [ system | file ]
-.PP
 .B cfs
 .I filesystem
 .PP
@@ -41,7 +37,12 @@ fs, exsort \- file server maintenance
 .RB [[ +- ]
 .IR seconds ]
 .PP
+.B duallow
+.RI [ uid ]
+.PP
 .B dump
+.PP
+.B files
 .PP
 .B flag
 .I flag
@@ -51,12 +52,11 @@ fs, exsort \- file server maintenance
 .PP
 .B halt
 .PP
-.B netdb
-.RI [ file ]
-.PP
 .B newuser
 .I name
 .RI [ options ]
+.PP
+.B noattach
 .PP
 .B passwd
 .PP
@@ -66,15 +66,10 @@ fs, exsort \- file server maintenance
 .B remove
 .RI [ files ...]
 .PP
-.B search
-.RI [ blockno
-.RI [ nblock
-.RB [ bw ]]]
+.B route
+.I subcommand
 .PP
-.BR stat [ acejklw ]
-.PP
-.B statp
-.RI [ proc ]
+.BR stat [ acdejklw ]
 .PP
 .B stats
 .RB [[ - ]
@@ -91,6 +86,8 @@ fs, exsort \- file server maintenance
 .B users
 .RI [ file ]
 .PP
+.B vcache
+.PP
 .B version
 .PP
 .B who
@@ -101,6 +98,26 @@ fs, exsort \- file server maintenance
 .I funit
 .I tunit
 .RI [ nblock ]]
+.PP
+.B wormeject
+[
+.I tunit
+]
+.PP
+.B wormingest
+[
+.I tunit
+]
+.PP
+.B wormoffline
+[
+.I tunit
+]
+.PP
+.B wormonline
+[
+.I tunit
+]
 .PD
 .PP
 .B disk/exsort
@@ -108,54 +125,30 @@ fs, exsort \- file server maintenance
 .RI [ file ]
 .SH DESCRIPTION
 Except for
-.I exsort,
+.IR exsort ,
 these commands are available only on the console of an
 .IR fs (4)
 file server.
-.PP
-.I Help
-prints a `usage string' for the named
-.I commands,
-by default all commands.
-Also, many commands print menus of their options if given
-incorrect or incomplete parameters.
 .PP
 The console requires the machine's password to be supplied before
 accepting commands.  Typing a control-D will cause
 the server to request
 the password again.
 .PP
+.I Help
+prints a `usage string' for the named
+.IR commands ,
+by default all commands.
+Also, many commands print menus of their options if given
+incorrect or incomplete parameters.
+.PP
 .I Arp
 has two
-.I subcommands:
+.IR subcommands :
 .B print
 prints the contents of the ARP cache and
 .B flush
 flushes it.
-.PP
-.I Auth
-starts authentication.  It reads authentication keys from
-.I file
-(default
-.BR /adm/keys ).
-If
-.I file
-is of the form
-.BI il! IP.address
-it is taken to be a
-.I system
-from which to authenticate using IL, rather than reading its own keys file.
-The address must be a numeric IP address and only IL is supported.
-If the optional string
-.B on
-is provided,
-.I auth
-records in non-volatile RAM the
-.I file
-or
-.I system
-from which to authenticate.
-Once on, authentication can never be turned off, even by rebooting.
 .PP
 .I Cfs
 changes the current file system, that is, the file tree to which
@@ -163,7 +156,6 @@ commands
 .RB ( check ,
 .BR clri ,
 .BR create ,
-.BR netdb ,
 .BR newuser ,
 .BR profile ,
 .BR remove ,
@@ -180,13 +172,17 @@ verifies the consistency of the current file system.
 With no options it checks and reports the status.
 It suspends service while running.
 Options are:
-.TF setqidxx
+.TF touch
 .PD
 .TP
 .B rdall
 Read every block in the file system (can take a
 .I long
 time).
+Normally,
+.I check
+will stop short of the actual contents
+of a file and just verify the block addresses.
 .TP
 .B tag
 Fix bad
@@ -194,31 +190,53 @@ Fix bad
 each block has a tag that acts as a backwards pointer for
 consistency checking.
 .TP
+.B ream
+Fix bad tags
+and also clear the contents
+of blocks that have bad tags.
+.TP
 .B pfile
-Print every file name (can take a
-.I long
-time).
+Print every file name.
+.TP
+.B pdir
+Print every directory name.
 .TP
 .B free
-Rebuild the list of free blocks.
-.TP
-.B setqid
-Resequence the qids
-in the file system, starting at one; all outstanding fids become invalid.
+Rebuild the list of free blocks
+with all blocks that are not referenced.
+This option is only useful on non-cache/WORM
+file systems.
 .TP
 .B bad
-For each block with a bad tag,
-create a new block, copy the data from the bad block,
-and write the correct tag in the new block.
+Each block address that is out of range or duplicate is cleared.
+Note that only the second and subsequent
+use of a block is cleared.
+Often the problems in a file system are
+caused by one bad file that has a lot of
+garbage block addresses.
+In such a case,
+it is wiser to use
+.I check
+to find the bad file
+(by number of diagnostic messages)
+and then use
+.I clri
+to clear the addresses in that file.
+After that,
+.I check
+can be used to reclaim the free list.
 .TP
 .B touch
 Cause every directory and indirect block not on the current WORM disk
 to be advanced to the current WORM on the next dump.
+This is a discredited idea to try to keep operating
+on the knee of the cache working set.
+Buy more cache disk.
 .PP
 .I Clri
 clears the internal directory entry and abandons storage
 associated with
-.I files.
+.IR files .
 It ignores the usual rules for sanity, such as checking against
 removing a non-empty directory.
 A subsequent
@@ -228,6 +246,8 @@ will place the abandoned storage in the free list.
 .PP
 .I Cpu
 prints the CPU utilization and state of the processes in the file server.
+If the name of a process type argument is given,
+then CPU utilization for only those processes is printed.
 .PP
 .I Create
 creates a file on the current file system.
@@ -246,27 +266,44 @@ or
 creates a locked file, append-only file, or directory.
 .PP
 .I Cwcmd
-controls the cached WORM file systems.
+controls the cached WORM file systems.  The subcommands are:
 .TP
-.BI mvstate " state1 state2
+.BI mvstate " state1 state2 " [ platter ]
 States are
 .BR none ,
+.BR dirty ,
 .BR dump ,
 .BR dump1 ,
+.BR error ,
 .BR read ,
 and
 .BR write .
 A
-.B mvstate dump1 write
-will cause I/O errors in the last dump to be retried in the next dump.
+.B mvstate
+.B dump1
+.B dump
+will cause I/O errors in the last dump to be retried.
 A
-.B mvstate read none
+.B mvstate
+.B dump1
+.B write
+will cause I/O errors in the last dump to be retried in
+reallocated slots in the next dump.
+A
+.B mvstate
+.B read
+.B none
 will flush the cache associated with the WORM.
 A
-.B mvstate dump write
+.B mvstate
+.B dump
+.B write
 aborts the background process dumping to WORM; as a consequence it
 leaves holes in the dump file system.
 Other uses are possible but arcane.
+The optional
+.I platter
+limits affected blocks to those on that platter.
 .TP
 .BR prchain " [\fIstart\fP] [\fLback\fP]
 Print the chain of superblocks for the directory containing the
@@ -276,13 +313,16 @@ roots of the dumped file systems, starting at block number
 .B back
 is supplied).
 .TP
-.B savecache
-Copy the block numbers, in native endian longwords, of all blocks in the
+.BR savecache " [\fIpercent\fP]
+Copy the block numbers, in native endian longwords, of blocks in the
 .B read
 state to the file
 .BR /adm/cache
 for use by
 .BR disk/exsort .
+If an argument is given,
+then that percent (most recently used) of each cache bucket
+is copied.
 .TP
 .BR loadcache " [\fIdskno\fP]
 Read
@@ -296,43 +336,46 @@ is not supplied, all blocks in
 .B /adm/cache
 are read.
 .TP
-.B wormcmp [\fIdskno\fP]
-Read WORM disk
-.I dskno
-and compare it to the contents of the cache, block by block.
-.I Dskno
-is zero by default.
-.TP
 .BR startdump \ [ 01 ]
 Suspend
 .RB ( 0 )
 or restart
 .RB ( 1 )
 the background dump process.
+.TP
+.B touchsb
+Verify that the superblock on the WORM is readable, ignoring the cached copy.
+.TP
+.B acct
+Prints how many times each user has caused the system to allocate new space on the WORM;
+the units are megabytes.
+.TP
+.B clearacct
+Clears the accounting records for
+.BR acct .
 .PP
 .I Cycl
 controls the Cyclone fiber link to the main CPU server.
-The subcommands are
-.TF verbosexxx
-.PD
-.TP
-.B reboot
-Reinitialize the Cyclone board and connection.
-.TP
-.B verbose
-Put the Cyclone driver in verbose debugging mode.
-.TP
-.B ping
-Bounce a packet off the remote Cyclone board; used internally to
-resynchronize after an error on the fiber.
+The one subcommand is
+.BR reboot ,
+which reinitializes the Cyclone board and connection.
 .PP
 .I Date
 prints the current date.  It may be adjusted
 using
-.BI +- seconds.
+.BI +- seconds\f1.
 With no sign, it sets the date to the absolute number of seconds
 since 00:00 Jan 1, 1970 GMT; with a sign it trims the current
 time.
+.PP
+.I Duallow
+sets permissions such that
+the named
+.I user
+can read and search any directories.
+This is the permission necessary to do a
+.IR du (1)
+command anywhere in the file system to discover disk usage.
 .PP
 .I Dump
 starts a dump to WORM immediately for all file systems that have
@@ -340,10 +383,12 @@ a WORM associated.
 File service is suspended while the cache is scanned;
 service resumes when the copy to WORM starts.
 .PP
+.I Files
+prints for every connection the number of allocated fids.
+.PP
 .I Flag
 toggles flags, initially all off:
 .TF attachxx
-.PD
 .TP
 .B arp
 Report ARP activity.
@@ -355,12 +400,20 @@ Report as connections are made to the file server.
 (Very noisy.)  Print all 9P messages to and from the server.
 .TP
 .B dkit
-Report datakit activity.
+Report Datakit activity.
+.TP
+.B route
+Report received RIP packets.
+.TP
+.B ro
+Report I/O on the WORM device.
+.PD
 .PP
 If given a second numeric
-.I channel,
+.I channel
+argument,
 as reported by
-.I who,
+.IR who ,
 the flag is altered only on that connection.
 .PP
 .I Halt
@@ -368,32 +421,26 @@ does a
 .B sync
 and halts the machine, returning to the boot ROM.
 .PP
-.I Netdb
-reads
-.B /lib/ndb/local
-to establish network information.
-.PP
 .I Newuser
 requires a
 .I name
 argument.
 With no options it adds user
-.I name,
+.IR name ,
 with group leader
-.I name,
+.IR name ,
 to
 .B /adm/users
 and makes the directory
 .BI /usr/ name
 owned by user and group
-.I name.
+.IR name .
 The options are
 .TF =leaderxx
-.PD
 .TP
 .B ?
 Print the entry for
-.I name.
+.IR name .
 .TP
 .B :
 Add a group: add the name to
@@ -405,13 +452,13 @@ By convention, groups are numbered starting from 10000, users from 0.
 Rename existing user
 .I name
 to
-.I newname.
+.IR newname .
 .TP
 .BI = leader
 Change the leader of
 .I name
 to
-.I leader.
+.IR leader .
 If
 .I leader
 is missing, remove the existing leader.
@@ -420,19 +467,29 @@ is missing, remove the existing leader.
 Add
 .I member
 to the member list of
-.I name.
+.IR name .
 .TP
 .BI - member
 Remove existing
 .I member
 from the member list of
-.I name.
+.IR name .
+.PD
 .PP
 After a successful
 .I newuser
 command the file server overwrites
 .B /adm/users
 to reflect the internal state of the user table.
+.PP
+.I Noattach
+disables
+.IR attach (5)
+messages, in particular for system maintenance.
+Previously attached connections are unaffected.
+Another
+.I noattach
+will enable normal behavior.
 .PP
 .I Passwd
 sets the machine's password and writes it in non-volatile RAM.
@@ -452,22 +509,33 @@ If a number is not specified, the profiling state toggles.
 .PP
 .I Remove
 removes
-.I files.
+.IR files .
 .PP
-.I Search
-looks on the WORM for written
-.RB ( w ;
-default) or blank
-.RB ( b )
-blocks starting at block
-.I blockno
-(default 0)
-through
-.I nblock
-(default 100)
-following blocks.
-Block numbers are as reported by
-.I statw.
+.I Route
+maintains an IP routing table.  The
+.I subcommands are:
+.TF "add dest gate mask"
+.TP
+.B add \f2dest gate \fP[\f2mask\fP]
+Add a static route from IP address
+.I dest
+using gateway
+.I gate
+with an optional subnet
+.IR mask .
+.TP
+.B delete \f2dest\fP
+Delete an entry from the routing table.
+.TP
+.B print
+Display the contents of the routing table.
+.TP
+.B ripon
+Enables the table to be filled from RIP packets.
+.TP
+.B ripoff
+Disables the table from being updated by RIP packets.
+.PD
 .PP
 The
 .I stat
@@ -475,6 +543,8 @@ commands are connected with a service or device identified by the
 last character of the name:
 .BR c ,
 Cyclone fiber link;
+.BR d ,
+SCSI targets;
 .BR e ,
 Eagle Ethernet controller;
 .BR j ,
@@ -506,7 +576,7 @@ writes dirty blocks in memory to the magnetic disk cache.
 .PP
 .I Time
 reports the time required to execute the
-.I command.
+.IR command .
 .PP
 .I Trace
 with no options prints the set of queue-locks held by each process in
@@ -520,7 +590,7 @@ uses the contents of
 .I file
 (default
 .BR /adm/users )
-to initializes the file server's internal representation of the users
+to initialize the file server's internal representation of the users
 structure.
 Incorrectly formatted entries in
 .I file
@@ -546,14 +616,18 @@ table looks like this:
 .EX
 -1:adm:adm:
 0:none:adm:
-1:rob:rob:
+1:tor:tor:
 10000:sys::
 10001:map:map:
 10002:doc::
 10003:upas:upas:
-10004:cda::
+10004:font::
 10005:bootes:bootes:
 .EE
+.PP
+.I Vcache
+displays statistics about the virtual buffer cache on machines with mapped
+caches such as the Sparcstation 2.
 .PP
 .I Version
 reports when the file server was last compiled and last rebooted.
@@ -588,13 +662,37 @@ With no arguments,
 .I wormcp
 stops a running copy.
 .PP
+.I Wormeject
+moves the WORM disk in slot
+.I tunit
+to the output shelf.
+.PP
+.I Wormingest
+moves the WORM disk from the input shelf to
+slot
+.IR tunit .
+.PP
+.I Wormoffline
+will take the designated
+WORM controller out of service.
+This is done in software by
+ignoring that logical unit when
+changing platters.
+Note that the controller will
+be restored on a reboot.
+.PP
+.I Wormonline
+will restore the designated
+.I unit
+to service.
+.PP
 When the file server boots, it prints the message
 .IP
 .EX
 for config mode hit a key within 5 seconds
 .EE
 .PP
-If a character are typed within 5 seconds of the message appearing,
+If a character is typed within 5 seconds of the message appearing,
 the server will enter config mode.
 See
 .IR fsconfig (8)
@@ -616,6 +714,13 @@ It then prints statistics about the cache.
 With option
 .B -w
 it writes the sorted data back to
-.I file.
+.IR file .
+.SH SOURCE
+.B /sys/src/fs
+.br
+.B /sys/src/cmd/disk/exsort.c
 .SH SEE ALSO
 .IR fs (4)
+.br
+Ken Thompson,
+``The Plan 9 File Server''.

@@ -22,7 +22,6 @@ typedef ulong ADDR;
 
 typedef	int	BOOL;
 
-#define	NVARS	36
 #define MAXPOS	80
 #define MAXLIN	128
 #define	ARB	512
@@ -76,7 +75,6 @@ typedef struct bkpt	BKPT;
  */
 
 extern	WORD	expv, adrval;
-extern	int	expsp;
 extern	int	adrflg;
 extern	WORD	cntval;
 extern	int	cntflg;
@@ -87,10 +85,7 @@ extern	ADDR	maxfile;
 extern	ADDR	maxstor;
 
 extern	ADDR	dot;
-extern	int	dotsp;
 extern	WORD	dotinc;
-
-extern	WORD	var[];
 
 extern	int	xargc;
 
@@ -106,10 +101,8 @@ extern	int	pcsactive;
 extern	int	nnote;
 extern	char	note[NNOTE][ERRLEN];
 
-extern	char	*errflg;
 extern	int	ending;
-extern	Map	*cormap, *symmap;
+extern	Map	*cormap, *symmap, *dotmap;
 
 extern	BKPT	*bkpthead;
-extern	int	dascase;
 extern	int	kflag;

@@ -1,11 +1,14 @@
-%   Change file for patgen, for use with WEB to C.
-%   This file was created by Howard Trickey.
+% patgen.ch for C compilation with web2c.
+% 
+% The original version of this file was created by Howard Trickey.
+%
+% 07/01/83 (HWT) Original version, made to work with patgen released with
+%		 version 0.99 of TeX in July 1983.  It may not work
+%		 properly---it is hard to test without more information.
+% 03/23/88 (ETM) Brought up to date, converted for use with WEB to C.
+% (more recent changes in ../ChangeLog.W2C)
 
-% History:
-%  7/1/83 (HWT)	Original version, made to work with patgen released with
-%		version 0.99 of TeX in July 1983.  It may not work
-%		properly---it is hard to test without more information.
-% 3/23/88 (ETM) Brought up to date, converted for use with WEB to C.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % WEAVE: print changes only
@@ -48,16 +51,7 @@ program PATGEN;
 @!dictionary, @!patterns, @!pattmp: file of text_char;
 @y
 @!dictionary, @!patterns, @!pattmp, @!outfile: file of text_char;
-@!f_name: packed array [1..FILENAMESIZE] of char;
-@z
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% C-isms: We'll do these as C macros
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-@x
-@d incr(#)==#:=#+1 {increase a variable by unity}
-@d decr(#)==#:=#-1 {decrease a variable by unity}
-@y
+@!f_name: packed array [1..PATH_MAX] of char;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,48 +1,127 @@
 .TH VGA 3 
 .SH NAME
-vga \- vgasize, vgatype, vgaport
+vga \- VGA controller device
 .SH SYNOPSIS
 .nf
 .B bind #v /dev
 
-.B /dev/vgasize
-.B /dev/vgatype
-.B /dev/vgaport
+.B /dev/vgactl
+.B /dev/vgaiob
+.B /dev/vgaiow
+.B /dev/vgaiol
 .fi
 .SH DESCRIPTION
-The vga device allows configuration of a graphics controller
-on a pc.
-.PP
-Writing a string to the file
-.B vgasize
-of the form:
-.IR xmax X ymax X bits ,
-where
-.IR xmax ,
-.IR ymax
+The VGA device allows configuration of a graphics controller
+on a PC.
+.B Vgactl
+allows control over higher-level settings such as display height, width, depth,
+controller and hardware-cursor type.
+.BR Vgaiob ,
+.B vgaiow 
 and
-.I bits
-are numbers, tells the kernel the width and
+.B vgaiol
+allow control over individual 8-bit, 16-bit and 32-bit
+x86
+I/O-ports respectively, such as those
+used to implement configuration and setup registers on a VGA controller card.
+These functions are normally carried out by
+.IR vga (8).
+.PP
+Writes to
+.B vgactl
+are of the form
+.RI ` attribute\ value '.
+Valid attributes are
+.TP
+.I size
+.I value
+is 
+.IB 'X x Y x Z'
+, where
+.IR X ,
+.I Y
+and
+.I Z
+are numbers that tell the kernel the width and
 height of the screen in pixels and the number of
 bits per pixel.
-Reading
-.B vgasize
-returns the current setting.
-.PP
-Writing a string to
-.B vgatype
-tells the kernel what kind of controller is
-being used.
-The possibilities are currently
-.I generic
+.TP
+.I type
+tells the kernel which type of controller is
+being used, mainly to enable the correct code for display-memory bank switching
+at resolutions greater than 640x480x1. The names
+.IR vga ,
+.IR clgd542x ,
+.IR et4000 ,
+.IR mach32 ,
 and
-.I tseng.
-.PP
-Vgaport provides user level access to the byte port space.
-Reads and writes to offsets in this file perform 386 inb
-and outb operations on ports equal to the offset.
-Offsets below 0x300 are illegal.
-This device is used by the command
+.I s3
+are supported for
+.IR value .
+.IP
+Note that this list does not indicate the full set of VGA chips
+supported. For example,
+.I s3
+includes the 86C801/5, 86C928, Vision864, and Vision964.
+It is the job of
 .IR vga (8)
-to configure a VGA controller chip.
+to recognize which particular chip is being used and to initialize it
+appropriately.
+.TP
+.I hwgc
+tells the kernel to use a particular type of hardware graphics cursor.
+.IR Bt485hwgc ,
+.IR et4000hwgc ,
+.I s3hwgc
+and
+.IR tvp3020hwgc ,
+are currently recognized values.
+A value of
+.I off
+reverts to using the software cursor.
+.PP
+Reading
+.B vgactl
+returns the current settings, one per line.
+.SH EXAMPLES
+The following reverts to using the software graphics
+cursor
+.EX
 
+	echo -n 'hwgc off' >/dev/vgactl
+
+.EE
+Sample code to read an
+x86
+8-bit I/O port
+.EX
+
+	uchar
+	inportb(long port)
+	{
+		uchar data;
+	
+		if(iobfd == -1)
+			iobfd = open("#v/vgaiob", ORDWR);
+	
+		seek(iobfd, port, 0);
+		if(read(iobfd, &data, sizeof(data)) != sizeof(data))
+			error("inportb(0x%4.4x): %r\n", port);
+		return data;
+	}
+
+.EE
+.SH SOURCE
+.B /sys/src/9/pc/devvga.c
+.SH SEE ALSO
+.IR vga (8)
+.SH BUGS
+There should be some restriction on the range of valid ports.
+.PP
+There should be support for the hardware graphics cursor on the
+.I clgd54[23]x
+VGA controller chips.
+.PP
+The hardware graphics cursor on the
+.I et4000
+does not work in 2x8-bit mode.

@@ -151,7 +151,7 @@ inconsetctl(Incon *ip, Block *bp)
 	int cnt;
 
 	del = 15;
-	n = getfields((char *)bp->rptr, field, 3, ' ');
+	n = getfields((char *)bp->rptr, field, 3, " ");
 	switch(n){
 	default:
 		freeb(bp);

@@ -7,6 +7,9 @@ sed \- stream editor
 .B -n
 ]
 [
+.B -g
+]
+[
 .B -e
 .I script
 ]
@@ -37,7 +40,10 @@ the flag
 may be omitted.
 The
 .B -n
-option suppresses the default output.
+option suppresses the default output;
+.B -g
+causes all substitutions to be global, as if suffixed
+.BR g .
 .PP
 A script consists of editing commands, one per line,
 of the following form:
@@ -68,7 +74,7 @@ input lines cumulatively across files, a
 .L $
 that
 addresses the last line of input, or a context address,
-.BI / regular-expression / ,
+.BI / regular-expression / \f1,
 in the style of
 .IR regexp (6),
 with the added convention that
@@ -140,7 +146,7 @@ reading the next input line.
 Branch to the 
 .B :
 command bearing the
-.I label.
+.IR label .
 If
 .I label
 is empty, branch to the end of the script.
@@ -269,7 +275,7 @@ is empty, branch to the end of the script.
 .br
 Write.
 Append the pattern space to
-.I wfile.
+.IR wfile .
 .TP
 .B x
 Exchange the contents of the pattern and hold spaces.
@@ -279,7 +285,7 @@ Transform.
 Replace all occurrences of characters in
 .I string1
 with the corresponding character in
-.I string2.
+.IR string2 .
 The lengths of
 .I
 string1
@@ -359,6 +365,8 @@ ${
 .IP
 Delete all but one of each group of empty lines from a
 formatted manuscript.
+.SH SOURCE
+.B /sys/src/cmd/sed.c
 .SH SEE ALSO
 .IR ed (1), 
 .IR grep (1), 

@@ -117,7 +117,7 @@ iformat(Icache *ic, int f, ulong nino, char *name, int bsize, int psize)
 	if(dformat(ic, f, name, bsize, psize) < 0)
 		return -1;
 
-	fprint(2, "formating inodes\n");
+	fprint(2, "formatting inodes\n");
 
 	i2b = (bsize - sizeof(Dihdr))/sizeof(Inode);
 	nib = (nino + i2b - 1)/i2b;

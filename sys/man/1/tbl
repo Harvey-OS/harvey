@@ -12,7 +12,9 @@ is a preprocessor for formatting tables for
 .I nroff
 or
 .IR troff (1).
-The input files are copied to the standard output,
+The input
+.I files
+are copied to the standard output,
 except for segments of the form
 .IP
 .nf
@@ -85,8 +87,7 @@ The last line describes all rows until the next
 where the format changes,
 or the end of the table at
 .BR .TE .
-A format is specified by key letters, one per column, upper or
-lower case
+A format is specified by key letters, one per column, either upper or lower case:
 .RS
 .TP 0
 .B L
@@ -118,7 +119,7 @@ Vertical span: continue item from previous row into this row.
 .B -
 Draw a horizontal rule in this column.
 .TP
-.B _
+.B =
 Draw a double horizontal rule in this column.
 .PD
 .RE
@@ -141,7 +142,7 @@ Default is 3.
 .TP
 .BI F font
 Use specified
-.I font.
+.IR font .
 .B B
 and
 .B I
@@ -157,7 +158,7 @@ vertical centering (with
 .TP
 .BI P n
 Use point size
-.I n.
+.IR n .
 .TP
 .BI V n
 Use
@@ -226,7 +227,7 @@ The remainder of the data line follows at that point.
 .RE
 .PP
 When it is used in a pipeline with
-.I eqn,
+.IR eqn ,
 the
 .I tbl
 command should be first, to minimize the volume
@@ -267,13 +268,18 @@ Bedminster	789	3.26
 Bernards Twp.	3087	3.74
 Bernardsville	2018	3.30
 .TE
+.EE
 .if t \{.sp3
 .1C\}
-.PP
+.SH SOURCE
+.B /sys/src/cmd/tbl
 .SH SEE ALSO
 .IR troff (1), 
-.IR eqn (1) 
+.IR eqn (1),
+.IR doctype (1)
 .br
 M. E. Lesk and L. L. Cherry,
-`TBL\(ema Program to Format Tables',
-Unix Research System Programmer's Manual, Volume\ 2
+``TBL\(ema Program to Format Tables'',
+.I
+Unix Research System Programmer's Manual,
+Tenth Edition, Volume 2.

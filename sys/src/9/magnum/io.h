@@ -216,49 +216,9 @@ struct SCSIdev
 /*
  * Color graphics board (uses Brooktree 459 RAMDAC)
  */
-typedef struct COLORdev COLORdev;
-struct COLORdev {
-	uchar	resv0[256];
-	uchar	olaycol[16];	/* overlay colors (write 3 times: R G B) */
-	uchar	pad0[112];
-	uchar	curcol[3];	/* cursor colors (write 3 times: R G B) */
-	uchar	pad1[125];
-	uchar	id;		/* should be 0x4a (offset 0x200) */
-	uchar	cmd0;		/* command register 0 */
-	uchar	cmd1;		/* command register 1 */
-	uchar	cmd2;		/* command register 2 */
-	uchar	rmask;		/* pixel read mask */
-	uchar	resv1;
-	uchar	bmask;		/* pixel blink mask */
-	uchar	resv2;
-	uchar	ormask;		/* overlay read mask */
-	uchar	obmask;		/* overlay blink mask */
-	uchar	ileave;		/* interleave */
-	uchar	test;		/* test register */
-	uchar	rsig;		/* red signature */
-	uchar	gsig;		/* green signature */
-	uchar	bsig;		/* blue signature */
-	uchar	pad2[241];
-	uchar	curcmd;		/* cursor command (offset 0x300) */
-	uchar	curxl;		/* cursor x (low) */
-	uchar	curxh;		/* cursor x (high) */
-	uchar	curyl;		/* cursor y (low) */
-	uchar	curyh;		/* cursor y (high) */
-	uchar	winxl;		/* window x (low) */
-	uchar	winxh;		/* window x (high) */
-	uchar	winyl;		/* window y (low) */
-	uchar	winyh;		/* window y (high) */
-	uchar	winwl;		/* window width (low) */
-	uchar	winwh;		/* window width (high) */
-	uchar	winhl;		/* window height (low) */
-	uchar	winhh;		/* window height (high) */
-	uchar	pad3[243];
-	uchar	cursor[1024];	/* cursor RAM (64x64 (x 2 bits) ) (offset 0x400) */
-};
-
 #define COLORADDRL	IO(uchar, 0x4000003)
 #define COLORADDRH	IO(uchar, 0x4080003)
-#define COLOR		IO(COLORdev, 0x4100003)
+#define COLOR		IO(uchar, 0x4100003)
 #define COLORPALETTE	IO(uchar, 0x4180003)
 #define COLORXREG	IO(uchar, 0x6000007)
 #define COLORKREG	IO(uchar, 0x6080007)

@@ -25,27 +25,27 @@ and
 .BR r.max.y .
 Each number is right-justified and blank padded in 11 characters, followed by a blank.
 The rest of the file contains the
-.BR r.max.y \- r.min.y
+.B r.max.y-r.min.y
 rows of bitmap data.
 A
 .I row
 consists of the byte containing pixel
 .B r.min.x
 and all the bytes up to and including the byte containing pixel
-.B r.min.x\fR\(mi1.
+.BR r.max.x- 1.
 A pixel with x-coordinate =
 .I x
 in a bitmap with
 .B ldepth
 =
-.I l
+.I ld
 will appear as
-.if t \fIw\fP = 2\u\s8\fIl\fP\s10\d
-.if n w = 2^l
+.if t \fIw\fP = 2\u\s-1\fIld\fP\s+1\d
+.if n w = 2^ld
 contiguous bits in a byte, with the pixel's high order bit
 starting at the byte's bit number
-.if t \fIw\fP\(mu((\fIx\fP mod 8)/\fIw\fP),
-.if n w*(x mod 8/w),
+.if t \fIw\fP\(mu(\fIx\fP mod (8/\fIw\fP)),
+.if n w*(x mod (8/w)),
 where bits within a byte are numbered 0 to 7 from the
 high order to the low order bit.
 If
@@ -69,7 +69,7 @@ as used by
 (see
 .IR mail (1))
 and 16\(mu16
-cursors, are stored textually, suitable for inclusion in C source.
+cursors, can be stored textually, suitable for inclusion in C source.
 Each line of text represents one scan line as a
 comma-separated sequence of hexadecimal
 bytes, shorts, or words in C format.
@@ -87,4 +87,5 @@ These formats reflect history rather than design.
 .IR graphics (2),
 .IR bitblt (2),
 .IR balloc (2),
+.IR face (6),
 .IR font (6)

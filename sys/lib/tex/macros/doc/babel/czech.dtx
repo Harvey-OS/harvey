@@ -1,0 +1,328 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989-1994 by Johannes Braams
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the Babel system, release 3.4 patchlevel 2.
+% ----------------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from me directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{167}
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "1.3c",
+%%%     date            = "26 June 1994",
+%%%     time            = "01:44:32 MET",
+%%%     filename        = "czech.doc",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "36325 295 1403 11239",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, czech",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the czech language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+% \def\filename{czech.dtx}
+% \def\fileversion{v1.3d}
+% \def\filedate{1994/06/26}
+%
+% \iffalse
+% Babel DOCUMENT-STYLE option for LaTeX version 2e
+% Copyright (C) 1989 - 1994
+%           by Johannes Braams, PTT Research Neher Laboratories
+%
+% Please report errors to: J.L. Braams
+%                          J.L.Braams@research.ptt.nl
+%
+%    This file is part of the babel system, it provides the source
+%    code for the Czech language-specific file.
+%    Contributions were made by Milos Lokajicek (LOKAJICK@CERNVM).
+%<*filedriver>
+\documentclass{ltxdoc}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+\newcommand\note[1]{}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\begin{document}
+ \DocInput{czech.dtx}
+\end{document}
+%</filedriver>
+%\fi
+% \changes{czech-1.0a}{15 july 91}{Renamed babel.sty in babel.com}
+% \changes{czech-1.1}{15 feb 92}{Brought up-to-date with babel 3.2a}
+% \changes{czech-1.2}{11 jul 93}{Included some features from Kasal's
+%    czech.sty}
+% \changes{czech-1.3}{1994/02/27}{Update for LaTeX2e}
+% \changes{czech-1.3d}{1994/06/26}{Removed the use of \cs{filedate}
+%    and moved identification after the loading of babel.def}
+%
+%  \section{The Czech language}
+%
+%    The file \file{\filename}\footnote{The file described in this
+%    section has version number \fileversion\ and was last revised on
+%    \filedate.  Contributions were made by Milos Lokajicek ({\tt
+%    LOKAJICK@CERNVM}).}  defines all the language-specific macros for
+%    the Czech language.
+%
+%    For this language |\frenhspacing| is set and two macros |\q| and
+%    |\w| for easy access to two accents are defined.
+%
+%    The command |\q| is used with the letters ({\tt t}, {\tt d}, {\tt
+%    l}, and {\tt L}) and adds a {\tt'} to them to simulate a `hook'
+%    that should be there.  The result looks like
+%    t\kern-2pt\char'47. The command |\w| is used to put the accent
+%    that appears in \aa ngstr\o m over the letters {\tt u} and {\tt
+%    U}.
+%
+% \StopEventually{}
+%
+%    As this file needs to be read only once, we check whether it was
+%    read before. If it was, the command |\captionsczech| is already
+%    defined, so we can stop processing. If this command is undefined
+%    we proceed with the various definitions and first show the
+%    current version of this file.
+%
+% \changes{czech-1.0a}{15 july 91}{Added reset of catcode of @ before
+%    {\tt\bsl endinput}.}
+% \changes{czech-1.0b}{27 okt 91}{Removed use of {\tt\bsl
+%    @ifundefined}}
+%    \begin{macrocode}
+\ifx\undefined\captionsczech
+\else
+  \selectlanguage{czech}
+  \expandafter\endinput
+\fi
+%    \end{macrocode}
+%
+%  \begin{macro}{\atcatcode}
+%    This file, \file{czech.sty}, may have been read while \TeX\ is in
+%    the middle of processing a document, so we have to make sure the
+%    category code of {\tt @} is `letter' while this file is being
+%    read.  We save the category code of the @-sign in |\atcatcode|
+%    and make it `letter'. Later the category code can be restored to
+%    whatever it was before.
+%
+% \changes{czech-1.0a}{15 july 91}{Modified handling of catcode of @
+%    again.}
+% \changes{czech-1.0b}{27 okt 91}{Removed use of {\tt\bsl
+%    makeatletter} and hence the need to load {\tt latexhax.com}}
+%    \begin{macrocode}
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+%    \end{macrocode}
+% \end{macro}
+%
+%    Now we determine whether the the common macros from the file
+%    \file{babel.def} need to be read. We can be in one of two
+%    situations: either another language option has been read earlier
+%    on, in which case that other option has already read
+%    \file{babel.def}, or {\tt czech} is the first language option to
+%    be processed. In that case we need to read \file{babel.def} right
+%    here before we continue.
+%
+% \changes{czech-1.1}{15 feb 92}{Added {\tt\bsl relax} after the
+%    argument of {\tt\bsl input}}
+%    \begin{macrocode}
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+%    \end{macrocode}
+%
+%    Tell the \LaTeX\ system who we are and write an entry on the
+%    transcript.
+%    \begin{macrocode}
+\ProvidesFile{czech.sty}[1994/06/26 v1.3d
+         Czech support from the babel system]
+%    \end{macrocode}
+%
+%    Another check that has to be made, is if another language
+%    specific file has been read already. In that case its definitions
+%    have been activated. This might interfere with definitions this
+%    file tries to make. Therefore we make sure that we cancel any
+%    special definitions. This can be done by checking the existence
+%    of the macro |\originalTeX|. If it exists we simply execute it,
+%    otherwise it is |\let| to |\empty|.
+% \changes{czech-1.0a}{15 july 91}{Added {\tt\bsl let\bsl originalTeX%
+%    \bsl relax} to test for existence}
+% \changes{czech-1.1}{15 feb 92}%
+%        {{\tt\bsl originalTeX} should be expandable, {\tt\bsl let} it
+%         to {\tt\bsl empty}}
+%    \begin{macrocode}
+\ifx\undefined\originalTeX \let\originalTeX\empty \else\originalTeX\fi
+%    \end{macrocode}
+%
+%    When this file is read as an option, i.e. by the |\usepackage|
+%    command, {\tt czech} will be an `unknown' language in which case
+%    we have to make it known. So we check for the existence of
+%    |\l@czech| to see whether we have to do something here.
+%
+% \changes{czech-1.0b}{27 okt 91}{Removed use of {\tt\bsl
+%    @ifundefined}}
+% \changes{czech-1.1}{15 feb 92}{Added a warning when no hyphenation
+%    patterns were loaded.}
+% \changes{czech-1.3d}{1994/06/26}{Now use \cs{@nopatterns} to produce
+%    the warning}
+%    \begin{macrocode}
+\ifx\undefined\l@czech
+    \@nopatterns{Czech}
+    \adddialect\l@czech0\fi
+%    \end{macrocode}
+%
+%    The next step consists of defining commands to switch to (and
+%    from) the Czech language.
+%
+% \begin{macro}{\captionsczech}
+%    The macro |\captionsczech| defines all strings used in the four
+%    standard documentlasses provided with \LaTeX.
+% \changes{czech-1.1}{15 feb 92}{Added {\tt\bsl seename}, {\tt\bsl
+%    alsoname} and {\tt\bsl prefacename}}
+%    \begin{macrocode}
+\addto\captionsczech{%
+  \def\prefacename{P\v redmluva}%
+  \def\refname{Reference}%
+  \def\abstractname{Abstrakt}%
+  \def\bibname{Literatura}%
+  \def\chaptername{Kapitola}%
+  \def\appendixname{Dodatek}%
+  \def\contentsname{Obsah}%
+  \def\listfigurename{Seznam obr\'azk\w{u}}% \def\w#1{\accent'27 #1}
+  \def\listtablename{Seznam tabulek}%
+  \def\indexname{Index}%
+  \def\figurename{Obr\'azek}%
+  \def\tablename{Tabulka}%
+  \def\partname{\v{C}\'ast}%
+  \def\enclname{P\v{r}\'{\i}loha}%
+  \def\ccname{cc}%
+  \def\headtoname{Komu}%
+  \def\pagename{Strana}%
+  \def\seename{viz}%
+  \def\alsoname{viz tek\'e}}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\dateczech}
+%    The macro |\dateczech| redefines the command |\today| to produce
+%    Czech dates.
+%    \begin{macrocode}
+\def\dateczech{%
+\def\today{\number\day.~\ifcase\month\or
+  ledna\or \'unora\or b\v{r}ezna\or dubna\or kv\v{e}tna\or \v{c}ervna\or
+  \v{c}ervence\or srpna\or z\'a\v{r}\'{\i}\or \v{r}\'{\i}jna\or
+  listopadu\or prosince\fi
+  \space \number\year}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\extrasczech}
+% \begin{macro}{\noextrasczech}
+%    The macro |\extrasczech| will perform all the extra definitions
+%    needed for the Czech language. The macro |\noextrasczech| is used
+%    to cancel the actions of |\extrasczech|.  This means saving the
+%    meaning of two one-letter control sequences before defining them.
+%
+% \changes{czech-1.1a}{07/07/92}{Removed typo from, `q was restored
+%    twice, once too many.}
+%    \begin{macrocode}
+\addto\extrasczech{\babel@save\q\let\q\czech@q}
+\addto\extrasczech{\babel@save\w\let\w\czech@w}
+%    \end{macrocode}
+%    For Czech texts |\frenchspacing| should be in effect. We make
+%    sure this is the case and reset it if necessary.
+%    \begin{macrocode}
+\addto\extrasczech{%
+  \ifnum\the\sfcode`\.=\@m
+    \frenchspacing
+    \addto\noextrasczech{\nonfrenchspacing}%
+  \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\czech@q}
+%    To simulate some special Czech letters (like
+%    t\kern-2pt\char'47\relax), a new macro is defined. It can be used
+%    with the letters ({\tt t}, {\tt d}, {\tt l}, and {\tt L}) and
+%    adds a {\tt'} to them to simulate a `hook' that should be there.
+%    \begin{macrocode}
+\def\czech@q#1{#1\kern-2pt\char'47}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\czech@w}
+%    In the Czech language the accent that appears in \aa ngstr\o m is
+%    also used over the letters {\tt u} and {\tt U}. For this purpose
+%    the macro |\czech@w| is defined.
+%    \begin{macrocode}
+\def\czech@w#1{\accent'23 #1}%
+%    \end{macrocode}
+% \end{macro}
+%
+%    Our last action is to activate the commands we have just defined,
+%    by calling the macro |\selectlanguage|.
+%    \begin{macrocode}
+\selectlanguage{czech}
+%    \end{macrocode}
+%    Finally, the category code of {\tt @} is reset to its original
+%    value. The macrospace used by |\atcatcode| is freed.
+% \changes{czech-1.0a}{15 july 91}{Modified handling of catcode of
+%    @-sign.}
+%    \begin{macrocode}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%    \end{macrocode}
+%
+% \Finale
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput

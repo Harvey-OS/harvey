@@ -70,8 +70,8 @@ tm2sec(Tm tm)
 	 *  seconds per month
 	 */
 	d2m = yrsize(tm.year);
-	for(i = 1; i < tm.mon; i++)
-		secs += d2m[i] * SEC2DAY;
+	for(i = 0; i < tm.mon; i++)
+		secs += d2m[i+1] * SEC2DAY;
 
 	/*
 	 * secs in last month

@@ -1,10 +1,12 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <../boot/boot.h>
 
 void
 configbri(Method *mp)
 {
+	char trbuf[TICKREQLEN];
 	int devno = 0;
 	int fd, n, chan, i;
 	int pfd[2];
@@ -26,7 +28,9 @@ configbri(Method *mp)
 	fd = connectlocal();
 	if(fd < 0)
 		fatal("no local file system");
-	if(mount(fd, "/", MAFTER|MCREATE, "", "") < 0)
+	if(fsession(fd, trbuf) < 0)
+		fatal("fsession failed on #s/kfs");
+	if(mount(fd, "/", MAFTER|MCREATE, "") < 0)
 		fatal("can't mount kfs");
 	close(fd);
 
@@ -57,7 +61,9 @@ configbri(Method *mp)
 		break;
 	}
 	close(pfd[1]);
-	if(mount(pfd[0], "/dev", MAFTER, "", "") < 0)
+	if(fsession(pfd[0], trbuf) < 0)
+		fatal("fsession failed on /dev/bri0");
+	if(mount(pfd[0], "/dev", MAFTER, "") < 0)
 		fatal("can't mount /dev/bri0");
 	close(pfd[0]);
 
@@ -67,7 +73,7 @@ configbri(Method *mp)
 		if(fd < 0)
 			fatal(file);
 		memset(dialstr, 0, sizeof(dialstr));
-		outin("Number please ", dialstr, sizeof(dialstr));
+		outin(0, "Number please ", dialstr, sizeof(dialstr));
 		fprint(fd, "c/0 %s\n", dialstr);
 		n = read(fd, buf, sizeof buf-1);
 		close(fd);
@@ -84,7 +90,7 @@ configbri(Method *mp)
 	chan = strtoul(p, 0, 0);
 	if(chan < 1 || chan > 2)
 		fatal("bad channel from bri server");
-	sprint(file, "#I%d/b1xb2", devno);
+	sprint(file, "#J%d/b1xb2", devno);
 	fd = open(file, OWRITE);
 	if(fd < 0)
 		fatal(file);

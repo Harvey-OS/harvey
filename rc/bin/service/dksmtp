@@ -2,4 +2,4 @@
 #smtp serv net incalldir user
 
 user=`{cat /dev/user}
-exec upas/smtpd -d
+exec upas/smtpd

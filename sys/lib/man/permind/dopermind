@@ -1,5 +1,5 @@
 #!/bin/rc
-troff <<'!'
+{echo -n $FONTS; cat <<'!'} | troff
 .so /sys/lib/tmac/tmac.s
 .nr LL 6.5i
 .nr LT 6.5i
@@ -30,13 +30,12 @@ troff <<'!'
 ..
 .nr HM \n(HMu-10p
 .nr FO \n(FOu+10p
-.cs I 24
 .de xx
 .if !""\\$1" \{\
-.ie !""\\$2" \\$1\ \fI\a\ \fR\\$2\t\\$3\ \fI\a\fR\t\s-1\\$5\s0\t\\$6
-.el \\$1\ \fI\a\fR\\$2\t\\$3\ \fI\a\fR\t\s-1\\$5\s0\t\\$6\}
-.if !""\\$4" \t\\$2\t\\$3\ \fI\a\ \fR\\$4\t\s-1\\$5\s0\t\\$6
-.if ""\\$1\\$4" \t\\$2\t\\$3\ \fI\a\fR\t\s-1\\$5\s0\t\\$6
+.ie !""\\$2" \\$1\ \fI\a\ \fR\\$2\t\\$3\ \fI\a\fR\t\\$5\t\\$6
+.el \\$1\ \fI\a\fR\\$2\t\\$3\ \fI\a\fR\t\\$5\t\\$6\}
+.if !""\\$4" \t\\$2\t\\$3\ \fI\a\ \fR\\$4\t\\$5\t\\$6
+.if ""\\$1\\$4" \t\\$2\t\\$3\ \fI\a\fR\t\\$5\t\\$6
 ..
 .TL
 PERMUTED INDEX
@@ -58,6 +57,8 @@ of `strcat' and `strchr'.
 .nr VS 9
 .vs \n(VSp
 .nf
-.ta 2.5iR 2.6iL 5.3iR 6.15iR 6.5iR
+.ta 2.6iR 2.7iL 5.3iR 6.15iR 6.5iR
+.fp 2 I I
+.cs I 24
 .so permindex
 !

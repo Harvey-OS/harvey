@@ -1,0 +1,263 @@
+    %!
+    % moore business forms -- synthetic "image" and complex clipping
+
+    /tms /Times-Roman findfont def
+    /tmb /Times-Bold findfont def
+    /sws /Helvetica findfont def
+    /t22 tmb 22 scalefont def
+    /s24 sws 24 scalefont def
+    /s10 sws 10 scalefont def
+    /s12 sws 12 scalefont def
+    /s6 sws 6 scalefont def
+
+    /lightorange {.9 setgray}def
+    /medorange {.5 setgray}def
+    /darkbrown {0 setgray}def
+    /white {1 setgray}def
+    /inch {72 mul}def
+
+    %do rounded borders
+    /borders
+      {medorange
+       12 194 moveto 0 194 0 750 8 arcto
+       0 750 450 750 8 arcto
+       450 750 450 606 8 arcto
+       450 606 862 606 4 arcto
+       862 606 862 194 8 arcto
+       862 194 428 194 8 arcto
+       428 194 428 88 4 arcto
+       428 88 716 88 4 arcto
+       716 88 716 0 8 arcto
+       716 0 0 0 8 arcto
+       0 0 0 72 8 arcto
+       0 72 lineto
+       0 194 12 194 8 arcto
+       12 194 lineto
+       4 setlinewidth stroke
+       716 44 moveto
+       716 88 862 88 8 arcto
+       862 88 862 0 8 arcto
+       862 0 716 0 8 arcto
+       716 0 716 43 8 arcto
+       closepath
+       4 setlinewidth stroke
+
+     %Start the inner border
+       darkbrown
+       /dx 6 def /dy 6 def
+       12 194 dy add moveto 0 dx add 194 dy add 0 dx add 750 dy sub 4 arcto
+       0 dx add 750 dy sub 450 dx sub 750 dy sub 4 arcto
+       450 dx sub 750 dy sub 450 dx sub 606 dy sub 4 arcto
+       450 dx sub 606 dy sub 862 dx sub 606 dy sub 8 arcto
+       862 dx sub 606 dy sub 862 dx sub 194 dy add 4 arcto
+       862 dx sub 194 dy add  428 dx sub 194 dy add 4 arcto
+       428 dx sub 194 dy add  428 dx sub 88 dy sub 8 arcto
+       428 dx sub 88 dy sub 716 dx sub  88 dy sub 8 arcto
+       716 dx sub 88 dy sub 716 dx sub 0 dy add 4 arcto
+       716 dx sub 0 dy add  0 dx add 0 dy add 4 arcto
+       0 dx add 0 dy add 0 dx add 72  4 arcto
+       0 dx add 72 lineto
+       0 dx add 194 dy sub 12 194 dy sub 4 arcto
+       12 194 dy sub lineto
+       4 setlinewidth stroke
+     }def
+
+    /bx				% make a box
+     {/ury exch def /urx exch def /lly exch def /llx exch def
+      llx lly moveto llx ury lineto urx ury lineto urx lly lineto closepath
+     }def
+
+    /labelbox
+     {/pts exch def
+      /tary exch def
+      /lcnt tary length def
+      /ury exch def /urx exch def /lly exch def /llx exch def
+      darkbrown
+      llx lly moveto llx ury lineto urx ury lineto urx lly lineto closepath
+      fill
+      white
+      /st ury ury lly sub lcnt pts mul sub 2 div sub pts .75 mul sub def
+      tary
+       {dup stringwidth pop 2 div urx llx add 2 div exch sub st moveto show
+	/st st pts sub def
+       }forall
+      }def
+
+    %given cx y array of strings, then center text.
+    /ctext
+     {/pts exch def
+      /tary exch def
+      /lcnt tary length def
+      /ty exch def /ctx exch def
+      darkbrown
+      tary
+       {dup stringwidth pop 2 div ctx exch sub ty moveto show
+	/ty ty pts sub def
+       }forall
+      }def
+
+    %Build the procedures necessary to implement the fountain.
+    /fountainstring 256 string def
+    0 1 255 
+      {fountainstring exch dup
+       255 div 180 mul cos neg 2 div .5 add 128 mul 127 add cvi
+       put
+      } for
+
+    /rfountainstring 256 string def
+    0 1 255
+      {rfountainstring exch dup
+       255 div 180 mul cos neg 2 div .5 add 128 mul 128 exch sub 127 add cvi put
+      }for
+
+    /fount %take string llx lly urx ury
+     {/fnt exch def
+      /ury exch def /urx exch def
+      /lly exch def /llx exch def
+      gsave llx lly translate 
+      urx llx sub ury lly sub scale
+      1 256 8 [1 0 0 -256 0 256] {fnt} image
+      grestore
+      }def
+
+    /fountain
+     {fountainstring fount}def
+
+    /rfountain
+     {rfountainstring fount}def
+
+    %This is the logo for the moore business form example.
+    /slogo
+     {18 18 scale
+      slogo1 slogo2
+      1 18 div dup scale
+     }def
+
+    /slogo2
+      {0 .3 moveto
+      2 1 3 2.3 3 5 curveto
+      3 10.5 lineto
+      5.1 10.5 lineto
+      5.1 5 lineto
+      5.1 2.5 2 .3 0 .3 curveto closepath
+      2 0 moveto
+      5 .5 6 1 7 3 curveto
+      8 5 9 6 11 6 curveto
+      11 1 7 0 4 0 curveto closepath
+     }def
+
+    /slogo1
+     {0 .3 moveto
+      0 10.5 lineto
+      2.3 10.5 lineto
+      2.3 5 lineto
+      2.3 2.3 1 1 0 .3 curveto closepath
+      0 .2 moveto
+      3 .2 5.5 2.5 5.6 5 curveto
+      5.7 7.5 7 10.5 11 10.5 curveto
+      11 7 lineto
+      9 7 8 6 7 4 curveto
+      6 2 5 0 0 0 curveto closepath
+     }def
+
+
+    % now do it
+
+    8.5 inch 1 inch  translate 90 rotate
+    36 40 translate
+    .7 .7 scale
+
+    borders
+
+    s6 setfont
+    lightorange
+    10 630 442 742 bx fill
+    10 600 66 624 bx fill
+    67 600 124 624 bx fill
+    124 600 168 624 [(Date)]6 labelbox
+    lightorange
+    168 600 232 624 bx fill
+    232 600 340 624 [(Customer's Order No.)]6 labelbox
+    lightorange
+    341 600 442 624 bx fill
+    %new set
+    darkbrown
+    10 568 102 592 [(PART)(NUMBER)] 6 labelbox
+    103 568 441 592 [(DESCRIPTION)] 6 labelbox
+    442 568 513 580 [(ORDERED)] 6 labelbox
+    514 568 585 580 [(SHIPPED)] 6 labelbox
+    586 568 657 580 [(BALANCE DUE)] 6 labelbox
+    442 581 657 592 [(QUANTITY)] 6 labelbox
+    658 568 729 592 [(UNIT)(PRICE)] 6 labelbox
+    730 568 772 592 [(%)(DISCOUNT)] 6 labelbox
+    773 568 852 592 [(AMOUNT)] 6 labelbox
+    %new set (main body)
+    gsave
+    103 208 441 568 bx 
+    514 208 585 568 bx 
+    658 208 729 568 bx 
+    773 208 852 568 bx 
+    clip
+    103 208 852 568 rfountain
+    grestore
+    gsave
+    10 208 102 568 bx 
+    2.5 inch 4 inch translate slogo -2.5 inch -4 inch translate
+    442 208 513 568 bx 
+    586 208 657 568 bx 
+    730 208 772 568 bx 
+    clip
+    10 208 772 568 fountain
+    grestore
+    gsave
+    10 14 translate
+    lightorange 0 0 100 143 bx fill  0 143 100 167 [(SUB TOTAL)] 6 labelbox
+    102 0 translate
+    lightorange 0 0 100 143 bx fill  0 143 100 167 [(TAX)] 6 labelbox
+    102 0 translate
+    lightorange 0 0 100 143 bx fill  0 143 100 167 [(FREIGHT)] 6 labelbox
+    102 0 translate
+    lightorange 0 0 100 143 bx fill  0 143 100 167 [(TOTAL)] 6 labelbox
+    grestore
+    gsave
+    10 14 translate
+    5{0 24 moveto 403 24 lineto 1 setlinewidth stroke 0 24 translate}repeat
+    grestore
+    gsave
+    44 672 translate
+    5.4 5.4 scale
+    darkbrown slogo1 fill
+    medorange slogo2 fill
+    grestore
+    darkbrown
+    t22 setfont
+    124 698 moveto
+    (J. Sinclair Electronics Inc.)show
+    s10 setfont
+    124 680 moveto
+    (2972 CONEY ISLAND DRIVE SO.)show
+    124 670 moveto
+    (SAN RAPHAEL, CALIFORNIA 98568)show
+    124 650 moveto
+    (Telephone (609) 992-4293)show
+    445 65 moveto
+    (Received in good condition by:)show
+    445 20 moveto
+    s24 setfont 
+    (X)show 3.25 72 mul 0 rlineto 1 setlinewidth stroke
+    lightorange
+    722 16 856 50 bx fill
+    s12 setfont
+    722 50 856 72 [(TOTAL DUE)] 12 labelbox
+    789 140 [(PAY THIS)(AMOUNT)] 12 ctext
+    lightorange
+    742 124 moveto 836 124 lineto 789 100 lineto closepath fill
+    8.6 inch 10.25 inch
+    [(This business form)
+    (was composed and set)
+    (by PostScript(TM))
+    (from a master provided by)
+    (Moore Business Forms.)]
+    12 ctext
+
+    showpage

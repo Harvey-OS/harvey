@@ -1,20 +1,13 @@
 CFLAGS=-w
 AFLAGS=
 
-none:Q:
-	echo usage: mk entry, all, clean, install, entry.all, installall, nuke
-
 all:V:	$LIB
 
 $LIB:V:	$OFILES			# force archive even when not needed
 	ar vu $LIB $newprereq
-	$RL $LIB
-	rm -f $OFILES
-	
+
 &:n:	&.$O
 	ar vu $LIB $stem.$O
-	$RL $LIB
-	rm -f $stem.$O
 
 %.$O:	$HFILES			# don't combine with following %.$O rules
 
@@ -24,12 +17,21 @@ $LIB:V:	$OFILES			# force archive even when not needed
 %.$O:	%.s
 	$AS $AFLAGS $stem.s
 
+(.*)\.[vk8]'$':R:	\1.l
+	$ALEF $CFLAGS $stem1.l
+
+(.*)\.[2z]'$':RQ:	\1.l
+	;
+
 install:V: $LIB
 
 installall:V:
 	for(objtype in $CPUS) mk install
 
 %.all:V:
+	for(objtype in $CPUS) mk $stem
+
+%.installall:V:
 	for(objtype in $CPUS) mk $stem
 
 clean:V:

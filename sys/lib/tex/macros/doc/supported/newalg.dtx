@@ -1,0 +1,449 @@
+% \iffalse
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{newalg}
+ %\EnableCrossrefs         
+ \DisableCrossrefs % Say \DisableCrossrefs if index is ready
+\RecordChanges                  % Gather update information
+ \OnlyDescription  % comment out for implementation details
+ %\OldMakeindex     % use if your MakeIndex is pre-v2.9
+\begin{document}
+   \DocInput{newalg.dtx}
+\end{document}
+%</driver>
+%<package>\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+%<package>\ProvidesPackage{newalg}[1994/12/15 Format code algorithms nicely]
+% \fi
+%
+% \title{The \texttt{newalg} Package}
+% \author{Rick Farnbach\thanks{Email:  rick\_farnbach@mentorg.com} \\
+%        Paul Furnanz\thanks{Email:  paul\_furnanz@mentrog.com}}
+% \maketitle
+%
+% \begin{abstract}
+%   The package contains the definitions that are needed to typeset code
+%   algorithms in a pretty way.  The Formatted algorithms follow the style
+%   set forth in the book ``Introduction to Algorithms'' by Corman,
+%   Leiserson and Rivest.
+% \end{abstract}
+% \newif\ifmulticols
+% \IfFileExists{multicol.sty}{\multicolstrue}{}
+%
+% \tableofcontents
+%
+% \section{Introduction}
+%
+% The \LaTeX{} macros which are described here allow descriptions of
+% algorithms to be typeset in a pretty way.  This is very useful for
+% functional specifications for a software project or to document an
+% algorithm for a white paper.
+%
+% The idea for this macro package comes from the book ``Introduction to
+% Algorithms'' by Cormen, Leiserson, and Rivest.  Any examples in this
+% document come directly from that book and should not be reproduced
+% without proper attribution.
+%
+% \section{User Interface}
+%
+% \subsection{The \textsf{algorithm} environment}
+%
+% \DescribeEnv{algorithm}
+% Use the \textsf{algorithm} environment to typeset algorithm code.
+% This environment makes several new commands available that help in
+% typesetting code algorithms.  The \textsf{algorithm} environment uses
+% math mode and the array enviroment to do the typesetting.  Everything
+% typed is interpreted in math mode.  To leave math mode use the
+% \textsf{text} command.  Here is an example of the output produced by
+% using the \textsf{algorithm} environment.
+%
+% \showboxdepth=10
+% \showboxbreadth=10
+% \[
+% \parbox{2.0in}{\hbadness2000
+%     \begin{algorithm}{Allocate-Object}{}
+%       \begin{IF}{free = \NIL}
+%         \ERROR{out of space}
+%       \ELSE
+%         x \= free \\
+%         free \= next[x] \\
+%         \RETURN x
+%       \end{IF}
+%     \end{algorithm}}
+% \hspace{10pt}
+% \vcenter{\hsize=2.6in
+%    \begin{verbatim}
+%     \begin{algorithm}{Allocate-Object}{}
+%       \begin{IF}{free = \NIL}
+%         \ERROR{out of space}
+%       \ELSE
+%         x \= free \\
+%         free \= next[x] \\
+%         \RETURN x
+%       \end{IF}
+%     \end{algorithm}
+%     \end{verbatim}
+% }\]
+%
+% \subsection{Flow Control Environments}
+%
+% \DescribeEnv{IF}
+% Use the environment \textsf{IF} to format an if statement.  When
+% inside the \textsf{IF} environment, the \textsf{ELSE} macro becomes
+% available to show the else clause.  The environment takes one argument
+% that is the condition for the if statement.  For an example of its
+% usage, see the above example.
+%
+% \DescribeEnv{FOR}
+% Use the \textsf{FOR} environment to format a for loop and takes one
+% argument.  There are two kinds of for loops supported by this macro.
+% The first type of for loop is generally know as the \emph{for-each}
+% loop.  This type of loop is used to iterate over the values of some
+% set.  The syntax for the argument to the environment is 
+% ``|\EACH <var> \IN <set>|''.  The other type of loop supported is used
+% to assign a variable to a range of values.  The syntax for the argument
+% in this case is ``|<var> \= <beginning> \TO <end>|''.  Here is an
+% example usage.
+% \[
+% \parbox{2.0in}{\hbadness2000
+% \begin{algorithm}
+%   {Greedy-Activity-Selector}{s,f}
+%   n \= length[s] \\
+%   A \= {1} \\
+%   j \= 1 \\
+%   \begin{FOR}{i \= 2 \TO n}
+%     \begin{IF}{s_i \geq f_j}
+%       A \= A \cup {i} \\
+%       j \= i
+%     \end{IF}
+%   \end{FOR} \\
+%   \RETURN A
+% \end{algorithm}}
+% \hspace{10pt}
+% \vcenter{\hsize=2.4in
+%   \begin{verbatim}
+% \begin{algorithm}
+%   {Greedy-Activity-Selector}{s,f}
+%   n \= length[s] \\
+%   A \= {1} \\
+%   j \= 1 \\
+%   \begin{FOR}{i \= 2 \TO n}
+%     \begin{IF}{s_i \geq f_j}
+%       A \= A \cup {i} \\
+%       j \= i 
+%     \end{IF}
+%   \end{FOR} \\
+%   \RETURN A
+% \end{algorithm}
+% \end{verbatim}
+% }\]
+%
+% \DescribeEnv{WHILE}
+% Uset the \textsf{WHILE} environment to format a while loop.  The
+% environment takes one argument.  The argument is the exit condition
+% for the loop.  The loop will iterate until the condition is false.
+% Here is an example usage.
+% \[
+% \parbox{2.0in}{\hbadness2000
+% \begin{algorithm}{Tree-Successor}{x}
+%   \begin{IF}{right[x] \neq \NIL}
+%     \RETURN 
+%       \CALL{Tree-Min}(right[x])
+%   \end{IF} \\
+%   y \= p[x] \\
+%   \begin{WHILE}
+%      {y \neq \NIL \text{and} x=right[y]}
+%     x \= y \\
+%     y \= p[y]
+%   \end{WHILE} \\
+%   \RETURN y
+% \end{algorithm}}
+% \hspace{10pt}
+% \vcenter{\hsize=2.6in
+%   \begin{verbatim}
+% \begin{algorithm}{Tree-Successor}{x}
+%   \begin{IF}{right[x] \neq \NIL}
+%     \RETURN 
+%        \CALL{Tree-Min}(right[x])
+%   \end{IF} \\
+%   y \= p[x] \\
+%   \begin{WHILE}
+%      {y \neq \NIL \text{and} x=right[y]}
+%     x \= y \\
+%     y \= p[y]
+%   \end{WHILE} \\
+%   \RETURN y
+% \end{algorithm}
+% \end{verbatim}
+% }\]
+%
+% \DescribeEnv{REPEAT}
+% Use the \textsf{REPEAT} environment to format a repeat-until loop.
+% The environment takes no arguments.  The condition for the loop should
+% be given after the |\end{REPEAT}| line.  Here is an example usage.
+%
+% \[
+% \parbox{2.0in}{\hbadness2000
+% \begin{algorithm}{Hash-Search}{T,k}
+%   i \= 0 \\
+%   \begin{REPEAT}
+%     j \= h(k,i) \\
+%     \begin{IF}{T[j] = k}
+%       \RETURN j
+%     \end{IF} \\
+%     i \= i+1
+%   \end{REPEAT} T[j]=\NIL\text{or} i=m \\
+%   \RETURN \NIL
+% \end{algorithm}}
+% \hspace{10pt}
+% \vcenter{\hsize=2.4in
+% \begin{verbatim}
+% \begin{algorithm}{Hash-Search}{T,k}
+%   i \= 0 \\
+%   \begin{REPEAT}
+%     j \= h(k,i) \\
+%     \begin{IF}{T[j] = k}
+%       \RETURN j
+%     \end{IF} \\
+%     i \= i+1
+%   \end{REPEAT} T[j]=\NIL\text{or} i=m \\
+%   \RETURN \NIL
+% \end{algorithm}
+% \end{verbatim}
+% }\]
+%
+% \DescribeEnv{SWITCH}
+% Use the \textsf{SWICH} environment to format a very general switch
+% statement.  The environment is like an itemize environment.  Use the
+% command |\item{<condition>}| to create a new case label.  The
+% conditions can be anything, and don't all have to test the same
+% variable.  This is the most general switch statement.  The formatting
+% conventions show that the first case condition to match will be
+% executed.  The text |\DEFAULT| may be used for the condition to
+% provide a default action.  Here is an example usage.
+%
+% \[
+% \parbox{2.0in}{\hbadness2000
+% \begin{algorithm}{Select}{x, i}
+%   r \= size[left[x]] + 1 \\
+%   \begin{SWITCH}
+%   \item{i = r} \\
+%     \RETURN x
+%   \item{i < r} \\
+%     \RETURN 
+%     \CALL{Select}(left[x], i)
+%   \item{\DEFAULT} \\
+%     \RETURN 
+%     \CALL{Select}(right[x], i - r)
+%   \end{SWITCH}
+% \end{algorithm}}
+% \hspace{10pt}
+% \vcenter{\hsize=2.4in
+% \begin{verbatim}
+% \begin{algorithm}{Select}(x, i)
+%   r \= size[left[x]] + 1 \\
+%   \begin{SWITCH}
+%   \item{i = r} \\
+%     \RETURN x
+%   \item{i < r} \\
+%     \RETURN 
+%     \CALL{Select}(left[x], i)
+%   \item{\DEFAULT} \\
+%     \RETURN 
+%     \CALL{Select}(right[x], i - r)
+%   \end{SWITCH}
+% \end{algorithm}
+% \end{verbatim}
+% }\]
+%
+% \subsection{Macros}
+%
+% \DescribeMacro{CALL}
+% Use the \textsf{CALL} macro to format a function call.  The macro
+% takes one argument.  The argument is the name of the function
+% to call. It is usually followed by the parametes to the function call.
+% For example, ``|\CALL{Sort-Array}(array, length)|''.
+%
+% \DescribeMacro{ERROR}
+% Use the \textsf{CALL} macro to signal that some sort of error has
+% occured.  The macro takes one argument that the reason for the error.
+% The text will be formatted in text mode (not math mode) and will be
+% surrounded by quotation marks.
+%
+% \DescribeMacro{algkey}
+% Use the \textsf{algkey} to format key words.  If this package does not
+% define a keyword that you want to use, then this macro is used to
+% format your keyword like the other keywords.
+%
+% \subsection{Additional keywords and symbols}
+%
+% \DescribeMacro{RETURN}
+% Use the \textsf{RETURN} macro to print out the return keyword.
+% Usually this macro is followed by information that is to be returned
+% from the algorithm but this is not an argument to the macro.
+%
+% \DescribeMacro{NIL}
+% Use the \textsf{NIL} macro to print the nil keyword.  This keywod is
+% used to represent a variable that has no value assinged.
+% \DescribeMacro{\=}
+% Use the text |\=| to signal assinment.  This command produces this
+% symbol in the formatted text, ``$\leftarrow$''.
+%
+% \section{Future Work}
+%
+% The current implementation of the \textsf{algorithm} environment is
+% sensitive to the proper placement of |\\| in the text.  See the
+% examples for this.  The environments should work without being so
+% fussy on this point.  (Sometime you need a |\\| at the end of and
+% environment, sometimes you don't).
+% 
+% I would like the syntax of the repeat loop to be the same as the while
+% loop.  I was having some trouble getting the stack commands to work,
+% so that I could save of the argument.  This environment is not very
+% consistent with the rest of the algorithm environments.
+%
+% There is probably a better way to do the formatting then using the
+% array environment.  Currently \LaTeX{} is formatting the algorithms by
+% using the \textsf{array} environment.  This is pretty silly, because
+% this is not really an array.
+%
+% You cannot center the algorithm environment.  This is probably becase
+% it is being implemented as an array.  The current workaround for this
+% problem is to include the algorithm in a |\begin{minipage}{1pt}|
+% ... |\end{minipage}|.  Seems to work in every case that I have come
+% accross.
+%
+% There is probably a better way to make a mode that is like math mode
+% that does not insert |$| characters everywhere.
+%
+% I am not very experienced in writing modes for \LaTeX{}, so if you
+% have any suggestions for improvements or know how to solve any of the
+% above listed problems, please send me email.  The address is on the
+% front page of this document.
+
+
+\newbox\algstack 
+\newbox\algtab 
+\newcount\algline 
+\newtoks\alga
+\newtoks\algb
+
+
+\newif\ifalgisenv
+
+\def\alglpsh#1\to#2{\alga={#1\\}\algb=\expandafter{#2}
+  \global\edef#2{\the\alga\the\algb}}
+\def\alglpop#1\to#2{\ifx\empty#1\def#2{}
+  \else\global\expandafter\algllop#1\algllop#1#2\fi}
+\def\algllop#1\\#2\algllop#3#4{\def#3{#2}\def#4{#1}}
+\def\algltop#1\to#2{\ifx\empty#1\def\#2{}\else
+  \expandafter\alglttop#1\alglttop#2\fi}
+\def\alglttop#1\\#2\alglttop#3{\def#3{#1}}
+\def\algckenv#1{\algltop\alglenv\to\algenv
+  \def\algarg{#1}
+  \ifx \algarg\algenv \algisenvtrue \else \algisenvfalse \fi}
+
+\def\algsol{\global\advance\algline by 1
+  \the\algline&\hbox\bgroup\copy\algtab$\ignorespaces}
+\def\algeol{$\egroup\cr\algsol}
+\def\algpush{\global\setbox\algstack\hbox{\unhbox\algstack\box\algtab}}
+\def\algpop{\global\setbox\algstack\hbox{\unhbox\algstack
+    \global\setbox\algtab\lastbox}}
+\def\algset{$\egroup\setbox0=\lastbox\algpush
+  \global\setbox\algtab\hbox to \wd0{}\hbox\bgroup\unhbox0$}
+\def\algorithm#1#2{\bgroup
+  \let\\=\algeol
+  \let\==\leftarrow
+  \let\IF=\algIF
+  \let\RETURN=\algRETURN
+  \let\ELSE=\algELSE
+  \let\endIF=\endalgIF
+  \let\ERROR=\algERROR
+  \let\NIL=\algNIL
+  \let\WHILE=\algWHILE
+  \let\endWHILE=\endalgWHILE
+  \let\FOR=\algFOR
+  \let\endFOR=\endalgFOR
+  \let\CALL=\algCALL
+  \let\text=\algtext
+  \let\TO=\algTO
+  \let\EACH=\algEACH
+  \let\SWITCH=\algSWITCH
+  \let\item=\algitem
+  \let\endSWITCH=\endalgSWITCH
+  \let\DEFAULT=\algDEFAULT
+  \let\REPEAT=\algREPEAT
+  \let\UNTIL=\endalgREPEAT
+  \let\endREPEAT=\UNTIL
+  \let\IN=\algIN
+  \let\begin=\algbegin
+  \let\end=\algend
+  \let\endalgorithm=\algalmostend
+  \global\setbox\algtab\null
+  \global\setbox\algstack\null
+  \global\algline=0
+  \def\alglenv{algorithm\\}
+  \halign\bgroup\space\hfill##&\quad##\hss \cr
+  \omit\CALL{#1}$(#2)$\span\omit\hfill \cr
+  \algsol}
+\def\algalmostend{$\egroup\cr\egroup\egroup\strut\end{algorithm}}
+%\def\endalgorithm{$\egroup\cr\egroup\egroup\strut}
+\def\algkey#1{\mbox{\bf #1\ }}
+\def\algIF#1{\algkey{if}\algset#1 \\
+  \algkey{then}\algset}
+\def\algELSE{\algckenv{IF}
+  \ifalgisenv
+    \algpop \\
+    {\setbox0\hbox{\algkey{then}}
+      \hbox to \wd0{\algkey{else}\hfill}}
+    \algset
+  \else
+    \PackageError{newalg}
+    {\string\ELSE\space is only allowed in the IF environment}
+    {You have an \protect\ELSE\space command without a \string\begin{IF}}
+  \fi}
+\def\endalgIF{\algpop\algpop}
+\def\algERROR#1{\algkey{error}\mbox{``#1''}}
+\def\algRETURN{\algkey{return}}
+\def\algconst#1{\mbox{\sc #1}}
+\def\algNIL{\algconst{nil}}
+\def\algWHILE#1{\algkey{while}#1 \\
+  \indent\algkey{do}\algset}
+\def\endalgWHILE{\algpop}
+\def\algCALL#1{\mbox{\sc #1}}
+\def\algFOR#1{\algkey{for}#1 \\
+  \indent\algkey{do}\algset}
+\def\endalgFOR{\algpop}
+\def\algtext#1{\mbox{ #1 }}
+\def\algTO{\algkey{ to}}
+\def\algEACH{\algkey{ each}}
+\def\algSWITCH{\algkey{switch}\algpush}
+\def\algitem#1{\algckenv{SWITCH}
+  \ifalgisenv
+    \algpop \\
+    \quad\algkey{case}\algset #1:
+  \else
+    \PackageError{newalg}
+    {\string\item\space can only be used in a SWITCH environment}
+    {You have an item that is not inside of the correct environment}
+  \fi}
+\def\endalgSWITCH{\algpop}
+\def\algDEFAULT{\algkey{default}}
+\def\algREPEAT#1{
+  \algkey{repeat}\algset\\}
+\def\endalgREPEAT{\algpop \\
+  \quad\algkey{until}}
+\def\algIN{\algkey{ in}}
+\def\algbegin#1{\alglpsh#1\to\alglenv
+  \csname #1\endcsname}
+\def\algend#1{\alglpop\alglenv\to\algenv
+  \def\algarg{#1}
+  \ifx \algarg\algenv
+    \relax
+  \else
+    \PackageError{newalg}
+    {\string\begin{\algenv}\space ended by \string\end{\algarg}}
+    {We are confused.  Try to return now}
+  \fi
+  \csname end#1\endcsname
+}
+

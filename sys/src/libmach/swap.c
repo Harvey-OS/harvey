@@ -47,14 +47,3 @@ leswal(long l)
 	p = (uchar*)&l;
 	return (p[3]<<24) | (p[2]<<16) | (p[1]<<8) | p[0];
 }
-
-long
-_round(long a, long b)
-{
-	long w;
-
-	w = (a/b)*b;
-	if (a!=w)
-		w += b;
-	return(w);
-}

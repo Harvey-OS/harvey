@@ -40,6 +40,10 @@ time and the amount of data involved with each 9P
 message type.
 The final section gives an I/O summary for each file used
 by the program in terms of opens, reads and writes.
+.SH SOURCE
+.B /sys/src/cmd/iostats
 .SH BUGS
 Poor clock resolution means that large amounts of I/O must be done to
 get accurate rate figures.
+.PP
+Can be fooled by programs that do fresh mounts outside its purview.

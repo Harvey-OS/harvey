@@ -145,7 +145,7 @@ portread(Chan *c, char *a, long n, ulong offset)
 	long s, k;
 	if (n == 0)
 		return 0;
-	switch ((int)(c->qid.path & ~CHDIR)) {
+	switch (c->qid.path & ~CHDIR) {
 	case Qdir:
 		return devdirread(c, a, n, portdir, NPORT, devgen);
 	case Qdata:

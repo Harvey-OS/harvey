@@ -66,6 +66,11 @@ True if
 is not the null string.
 (Deprecated.)
 .TP
+.BI -n " s1"
+True if the length of string
+.I s1
+is non-zero.
+.TP
 .BI -z " s1"
 True if the length of string
 .I s1
@@ -87,9 +92,9 @@ or
 may be used in place of
 .BR -eq .
 The (nonstandard) construct
-.BI -l " string,
+.BI -l " string\f1,
 meaning the length of
-.I string,
+.IR string ,
 may be used in place of an integer.
 .PD
 .PP
@@ -114,6 +119,14 @@ operator; higher precedence than
 .BI "( " expr " )"
 parentheses for grouping.
 .PD
+.PP
+The primitives
+.BR -b ,
+.BR -u ,
+.BR -g ,
+and
+.BR -s
+return false; they are recognized for compatibility with POSIX.
 .PP
 Notice that all the operators and flags are separate
 arguments to
@@ -149,5 +162,7 @@ Test whether
 is in the current directory.
 .IP
 .B test -f abc -o -d abc
+.SH SOURCE
+.B /sys/src/cmd/test.c
 .SH "SEE ALSO"
 .IR rc (1) 

@@ -11,6 +11,9 @@
 #include	"screen.h"
 #include	"vga.h"
 
+static void setscreen(int, int, int);
+static void vgaupdate(void);
+
 #define	MINX	8
 
 struct{
@@ -25,138 +28,86 @@ extern	GBitmap cursorback;
 
 /* exported */
 GSubfont *defont;
-int islittle = 1;		/* little endian bit ordering in bytes */
-GBitmap	gscreen;
+int islittle = 1;			/* little endian bit ordering in bytes */
+GBitmap	vgascreen;			/* hard screen */
+GBitmap	gscreen;			/* soft screen */
+Lock palettelock;			/* access to DAC registers */
+Cursor curcursor;			/* current cursor */
 
 /* local */
-static	Lock vgalock;
-static	GBitmap	vgascreen;
-static	ulong colormap[256][3];
-static	int cga = 1;		/* true if in cga mode */
+static	ulong	colormap[Pcolours][3];
+static	int	cga = 1;		/* true if in cga mode */
+static	int	vgachanging;		/* true while vga is being worked on */
+
+static	Rectangle mbb;
+static	Rectangle NULLMBB = {10000, 10000, -10000, -10000};
 
 /*
  *  screen dimensions
  */
-#define MAXX	640
-#define MAXY	480
+#define	CGAWIDTH	160
+#define	CGAHEIGHT	24
 
 /*
- *  'soft' screen bitmap
+ *  screen memory addresses
  */
+#define SCREENMEM	(0xA0000 | KZERO)
+#define CGASCREEN	((uchar*)(0xB8000 | KZERO))
 
-typedef struct VGAmode	VGAmode;
-struct VGAmode
-{
-	uchar	general[2];
-	uchar	sequencer[5];
-	uchar	crt[0x19];
-	uchar	graphics[9];
-	uchar	attribute[0x15];
+static void nopage(int);
+
+static Vgac vga = {
+	"vga",
+	nopage,
+
+	0,
+};
+
+static Vgac *vgactlr = &vga;			/* available VGA ctlrs */
+static Vgac *vgac = &vga;			/* current VGA ctlr */
+static Hwgc *hwgctlr;				/* available HWGC's */
+Hwgc *hwgc;					/* current HWGC */
+
+static char interlaced[2];
+
+Cursor fatarrow = {
+	{ -1, -1 },
+	{
+		0xff, 0xff, 0x80, 0x01, 0x80, 0x02, 0x80, 0x0c, 
+		0x80, 0x10, 0x80, 0x10, 0x80, 0x08, 0x80, 0x04, 
+		0x80, 0x02, 0x80, 0x01, 0x80, 0x02, 0x8c, 0x04, 
+		0x92, 0x08, 0x91, 0x10, 0xa0, 0xa0, 0xc0, 0x40, 
+	},
+	{
+		0x00, 0x00, 0x7f, 0xfe, 0x7f, 0xfc, 0x7f, 0xf0, 
+		0x7f, 0xe0, 0x7f, 0xe0, 0x7f, 0xf0, 0x7f, 0xf8, 
+		0x7f, 0xfc, 0x7f, 0xfe, 0x7f, 0xfc, 0x73, 0xf8, 
+		0x61, 0xf0, 0x60, 0xe0, 0x40, 0x40, 0x00, 0x00, 
+	},
 };
 
 /*
- *  640x480 display, 1, 2, or 4 bit color.
+ *  vga device
  */
-VGAmode mode12 = 
-{
-	/* general */
-	0xe7, 0x00,
-	/* sequence */
-	0x03, 0x01, 0x0f, 0x00, 0x06,
-	/* crt */
-	0x65, 0x4f, 0x50, 0x88, 0x55, 0x9a, 0x09, 0x3e,
-	0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0xe8, 0x8b, 0xdf, 0x28, 0x00, 0xe7, 0x04, 0xe3,
-	0xff,
-	/* graphics */
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x0f,
-	0xff,
-	/* attribute */
-	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-	0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-	0x01, 0x10, 0x0f, 0x00, 0x00,
-};
-
-/*
- *  320x200 display, 8 bit color.
- */
-VGAmode mode13 = 
-{
-	/* general */
-	0x63, 0x00,
-	/* sequence */
-	0x03, 0x01, 0x0f, 0x00, 0x0e,
-	/* crt */
-	0x5f, 0x4f, 0x50, 0x82, 0x54, 0x80, 0xbf, 0x1f,
-	0x00, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28,
-	0x9c, 0x8e, 0x8f, 0x28, 0x40, 0x96, 0xb9, 0xa3,
-	0xff,
-	/* graphics */
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x05, 0x0f,
-	0xff,
-	/* attribute */
-	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-	0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-	0x41, 0x10, 0x0f, 0x00, 0x00,
-};
-
-static	Rectangle mbb;
-static	Rectangle NULLMBB = {10000, 10000, -10000, -10000};
-static	void nopage(int), tsengpage(int), tridentpage(int), parapage(int);
-static	void vgaupdate(void);
-
-/*
- *  definitions of known cards
- */
-typedef struct Vgacard	Vgacard;
-struct Vgacard
-{
-	char	*name;
-	void	(*setpage)(int);
-};
-
-enum
-{
-	Ati,		/* ATI */
-	Pvga1a,		/* paradise */
-	Trident,	/* Trident 8900 */
-	Tseng,		/* tseng labs te4000 */
-	Generic,
-};
-
-Vgacard vgacards[] =
-{
-[Ati]		{ "ati", nopage, },
-[Pvga1a]	{ "pvga1a", parapage, },
-[Trident]	{ "trident", tridentpage, },
-[Tseng]		{ "tseng", tsengpage, },
-[Generic]	{ "generic", nopage, },
-		{ 0, 0, },
-};
-
-Vgacard	*vgacard;	/* current vga card */
-
-/*
- *  vga device directory
- */
-enum
-{
-	Qdir=		0,
-	Qvgasize=	1,
-	Qvgatype=	2,
-	Qvgaport=	3,
-	Nvga=		4,
+enum {
+	Qdir		= 0,
+	Qvgaiob		= 1,
+	Qvgaiow		= 2,
+	Qvgaiol		= 3,
+	Qvgactl		= 4,
+	Nvga		= Qvgactl,
 };
 Dirtab vgadir[]={
-	"vgasize",	{Qvgasize},	0,		0666,
-	"vgatype",	{Qvgatype},	0,		0666,
-	"vgaport",	{Qvgaport},	0,		0666,
+	"vgaiob",	{ Qvgaiob },	0,	0666,
+	"vgaiow",	{ Qvgaiow },	0,	0666,
+	"vgaiol",	{ Qvgaiol },	0,	0666,
+	"vgactl",	{ Qvgactl },	0,	0666,
 };
 
 void
 vgareset(void)
 {
-	vgacard = &vgacards[Generic];
+	bbinit();
 }
 
 void
@@ -191,7 +142,17 @@ vgastat(Chan *c, char *dp)
 Chan*
 vgaopen(Chan *c, int omode)
 {
-	return devopen(c, omode, vgadir, Nvga, devgen);
+	c = devopen(c, omode, vgadir, Nvga, devgen);
+	switch(c->qid.path){
+	case Qvgaiob:
+	case Qvgaiow:
+	case Qvgaiol:
+		lock(&palettelock);
+		vgachanging++;
+		unlock(&palettelock);
+		break;
+	}
+	return c;
 }
 
 void
@@ -204,107 +165,200 @@ vgacreate(Chan *c, char *name, int omode, ulong perm)
 void
 vgaclose(Chan *c)
 {
-	USED(c);
+	if(c->flag & COPEN)
+		switch(c->qid.path){
+		case Qvgaiob:
+		case Qvgaiow:
+		case Qvgaiol:
+			lock(&palettelock);
+			vgachanging--;
+			vgaupdate();
+			unlock(&palettelock);
+			break;
+		}
 }
 
 long
 vgaread(Chan *c, void *buf, long n, ulong offset)
 {
 	int port;
-	uchar *cp = buf;
+	uchar *cp;
 	char cbuf[64];
+	ushort *sp;
+	ulong *lp;
+	Vgac *vgacp;
 
 	switch(c->qid.path&~CHDIR){
 	case Qdir:
 		return devdirread(c, buf, n, vgadir, Nvga, devgen);
-	case Qvgasize:
-		sprint(cbuf, "%dx%dx%d", gscreen.r.max.x, gscreen.r.max.y,
-			1<<gscreen.ldepth);
+	case Qvgactl:
+		if(cga)
+			return readstr(offset, buf, n, "type: cga\n");
+		vgacp = vgac;
+		port = sprint(cbuf, "type: %s\n", vgacp->name);
+		port += sprint(cbuf+port, "size: %dx%dx%d%s\n",
+			gscreen.r.max.x, gscreen.r.max.y,
+			1<<gscreen.ldepth, interlaced);
+		port += sprint(cbuf+port, "hwgc: ");
+		if(hwgc)
+			sprint(cbuf+port, "%s\n", hwgc->name);
+		else
+			sprint(cbuf+port, "off\n");
 		return readstr(offset, buf, n, cbuf);
-	case Qvgatype:
-		return readstr(offset, buf, n, vgacard->name);
-	case Qvgaport:
-		/* at the moment, I need freedom for the ATI card - ches
-		if (offset + n >= 0x8000 || offset < 0x300)
-			error(Ebadarg);
-		*/
-		for (port=offset; port<offset+n; port++)
-			*cp++ = inb(port);
+	case Qvgaiob:
+		port = offset;
+		/*
+		 * It would be nice to be able to do this, but
+		 * impractical as all the cards are different.
+		if(checkvgaport(port, n))
+			error(Eperm);
+		 */
+		for(cp = buf; port < offset+n; port++)
+			*cp++ = vgai(port);
 		return n;
+	case Qvgaiow:
+		if((n & 01) || (offset & 01))
+			error(Ebadarg);
+		n /= 2;
+		for (sp = buf, port=offset; port<offset+n; port+=2)
+			*sp++ = ins(port);
+		return n*2;
+	case Qvgaiol:
+		if((n & 03) || (offset & 03))
+			error(Ebadarg);
+		n /= 4;
+		for (lp = buf, port=offset; port<offset+n; port+=4)
+			*lp++ = inl(port);
+		return n*4;
 	}
 	error(Eperm);
 	return 0;
 }
 
+static void
+vgactl(char *arg)
+{
+	int x, y, z;
+	char *cp, *field[3];
+	Hwgc *hwgcp;
+	Vgac *vgacp;
+
+	if(getfields(arg, field, 3, " \t\n") != 2)
+		error(Ebadarg);
+
+	if(strcmp(field[0], "hwgc") == 0){
+		if(strcmp(field[1], "off") == 0){
+			if(hwgc){
+				(*hwgc->disable)();
+				hwgc = 0;
+				hwcurs = 0;
+				cursoron(1);
+			}
+			return;
+		}
+
+		for(hwgcp = hwgctlr; hwgcp; hwgcp = hwgcp->link){
+			if(strcmp(field[1], hwgcp->name) == 0){
+				if(hwgc)
+					(*hwgc->disable)();
+				else
+					cursoroff(1);
+				hwgc = hwgcp;
+				hwcurs = 1;
+				(*hwgc->enable)();
+				setcursor(&curcursor);
+				cursoron(1);
+				return;
+			}
+		}
+	}
+	else if(strcmp(field[0], "type") == 0){
+		for(vgacp = vgactlr; vgacp; vgacp = vgacp->link){
+			if(strcmp(field[1], vgacp->name) == 0){
+				vgac = vgacp;
+				return;
+			}
+		}
+	}
+	else if(strcmp(field[0], "size") == 0){
+		x = strtoul(field[1], &cp, 0);
+		if(x == 0 || x > 2048)
+			error(Ebadarg);
+
+		if(*cp)
+			cp++;
+		y = strtoul(cp, &cp, 0);
+		if(y == 0 || y > 1280)
+			error(Ebadarg);
+
+		if(*cp)
+			cp++;
+		z = 0;	/* to make the compiler happy */
+		switch(strtoul(cp, &cp, 0)){
+		case 8:
+			z = 3; break;
+		case 4:
+			z = 2; break;
+		case 2:
+			z = 1; break;
+		case 1:
+			z = 0; break;
+		default:
+			error(Ebadarg);
+		}
+		interlaced[0] = *cp;
+
+		cursoroff(1);
+		setscreen(x, y, z);
+		cursoron(1);
+		return;
+	}
+
+	error(Ebadarg);
+}
+
 long
 vgawrite(Chan *c, void *buf, long n, ulong offset)
 {
-	char cbuf[64], *cp;
-	Vgacard *vp;
-	int port, maxx, maxy, ldepth;
+	int port;
+	uchar *cp;
+	char cbuf[64];
+	ushort *sp;
+	ulong *lp;
 
 	switch(c->qid.path&~CHDIR){
 	case Qdir:
 		error(Eperm);
-	case Qvgatype:
-		if(offset != 0 || n >= sizeof(cbuf) || n < 1)
-			error(Ebadarg);
-		memmove(cbuf, buf, n);
-		cbuf[n] = 0;
-		if(cp = strchr(cbuf, '\n'))
-			*cp = 0;
-		for(vp = vgacards; vp->name; vp++)
-			if(strcmp(cbuf, vp->name) == 0){
-				vgacard = vp;
-				return n;
-			}
-		error(Ebadarg);
-	case Qvgasize:
+	case Qvgactl:
 		if(offset != 0 || n >= sizeof(cbuf))
 			error(Ebadarg);
 		memmove(cbuf, buf, n);
 		cbuf[n] = 0;
-		cp = cbuf;
-		maxx = strtoul(cp, &cp, 0);
-		if(*cp!=0)
-			cp++;
-		maxy = strtoul(cp, &cp, 0);
-		if(*cp!=0)
-			cp++;
-		switch(strtoul(cp, &cp, 0)){
-		case 1:
-			ldepth = 0;
-			break;
-		case 2:
-			ldepth = 1;
-			break;
-		case 4:
-			ldepth = 2;
-			break;
-		case 8:
-			ldepth = 3;
-			break;
-		default:
-			ldepth = -1;
-		}
-		if(maxx == 0 || maxy == 0
-		|| maxx > 1280 || maxy > 1024
-		|| ldepth > 3 || ldepth < 0)
-			error(Ebadarg);
-		cursoroff(1);
-		setscreen(maxx, maxy, ldepth);
-		cursoron(1);
+		vgactl(cbuf);
 		return n;
-	case Qvgaport:
-		cp = buf;
+	case Qvgaiob:
+		port = offset;
 		/*
-		if (offset + n >= 0x8000 || offset < 0x300)
-			error(Ebadarg);
-		*/
-		for (port=offset; port<offset+n; port++) {
-			outb(port, *cp++);
-		}
+		if(checkvgaport(port, n))
+			error(Eperm);
+		 */
+		for(cp = buf; port < offset+n; port++)
+			vgao(port, *cp++);
 		return n;
+	case Qvgaiow:
+		if((n & 01) || (offset & 01))
+			error(Ebadarg);
+		n /= 2;
+		for (sp = buf, port=offset; port<offset+n; port+=2)
+			outs(port, *sp++);
+		return n*2;
+	case Qvgaiol:
+		if((n & 03) || (offset & 03))
+			error(Ebadarg);
+		n /= 4;
+		for (lp = buf, port=offset; port<offset+n; port+=4)
+			outl(port, *lp++);
+		return n*4;
 	}
 	error(Eperm);
 	return 0;
@@ -324,129 +378,104 @@ vgawstat(Chan *c, char *dp)
 	error(Eperm);
 }
 
-void
-genout(int reg, int val)
+int
+vgaxi(long port, uchar index)
 {
-	if(reg == 0)
-		outb(EMISCW, val);
-	else if (reg == 1)
-		outb(EFCW, val);
+	uchar data;
+
+	switch(port){
+
+	case Seqx:
+	case Crtx:
+	case Grx:
+		outb(port, index);
+		data = inb(port+1);
+		break;
+
+	case Attrx:
+		/*
+		 * Allow processor access to the colour
+		 * palette registers. Writes to Attrx must
+		 * be preceded by a read from Status1 to
+		 * initialise the register to point to the
+		 * index register and not the data register.
+		 * Processor access is allowed by turning
+		 * off bit 0x20.
+		 */
+		inb(Status1);
+		if(index < 0x10){
+			outb(Attrx, index);
+			data = inb(Attrx+1);
+			inb(Status1);
+			outb(Attrx, 0x20|index);
+		}
+		else{
+			outb(Attrx, 0x20|index);
+			data = inb(Attrx+1);
+		}
+		break;
+
+	default:
+		return -1;
+	}
+
+	return data & 0xFF;
 }
-void
-srout(int reg, int val)
+
+int
+vgaxo(long port, uchar index, uchar data)
 {
-	outb(SRX, reg);
-	outb(SR, val);
+	switch(port){
+
+	case Seqx:
+	case Crtx:
+	case Grx:
+		/*
+		 * We could use an outport here, but some chips
+		 * (e.g. 86C928) have trouble with that for some
+		 * registers.
+		 */
+		outb(port, index);
+		outb(port+1, data);
+		break;
+
+	case Attrx:
+		inb(Status1);
+		if(index < 0x10){
+			outb(Attrx, index);
+			outb(Attrx, data);
+			inb(Status1);
+			outb(Attrx, 0x20|index);
+		}
+		else{
+			outb(Attrx, 0x20|index);
+			outb(Attrx, data);
+		}
+		break;
+
+	default:
+		return -1;
+	}
+
+	return 0;
 }
-void
-grout(int reg, int val)
+
+/*
+ *  expand n bits of color to 32
+ */
+static ulong
+xnto32(uchar x, int n)
 {
-	outb(GRX, reg);
-	outb(GR, val);
-}
-void
-arout(int reg, int val)
-{
-	inb(0x3DA);
-	if (reg <= 0xf) {
-		outb(ARW, reg | 0x0);
-		outb(ARW, val);
-		inb(0x3DA);
-		outb(ARW, reg | 0x20);
-	} else {
-		outb(ARW, reg | 0x20);
-		outb(ARW, val);
-	}
-}
+	int s;
+	ulong y;
 
-void
-crout(int reg, int val)
-{
-	outb(CRX, reg);
-	outb(CR, val);
-}
-
-void
-setmode(VGAmode *v)
-{
-	int i;
-
-	/* turn screen off (to avoid damage) */
-	srout(1, 0x21);
-
-	for(i = 0; i < sizeof(v->general); i++)
-		genout(i, v->general[i]);
-
-	for(i = 0; i < sizeof(v->sequencer); i++)
-		if(i == 1)
-			srout(i, v->sequencer[i]|0x20);		/* avoid enabling screen */
-		else
-			srout(i, v->sequencer[i]);
-
-	crout(Cvre, 0);	/* allow writes to CRT registers 0-7 */
-	for(i = 0; i < sizeof(v->crt); i++)
-		crout(i, v->crt[i]);
-
-	for(i = 0; i < sizeof(v->graphics); i++)
-		grout(i, v->graphics[i]);
-
-	for(i = 0; i < sizeof(v->attribute); i++)
-		arout(i, v->attribute[i]);
-
-	/* turn screen on */
-	srout(1, v->sequencer[1]);
-}
-
-void
-getmode(VGAmode *v) {
-	int i;
-	v->general[0] = inb(0x3cc);
-	v->general[1] = inb(0x3ca);
-	for(i = 0; i < sizeof(v->sequencer); i++) {
-		outb(SRX, i);
-		v->sequencer[i] = inb(SR);
-	}
-	for(i = 0; i < sizeof(v->crt); i++) {
-		outb(CRX, i);
-		v->crt[i] = inb(CR);
-	}
-	for(i = 0; i < sizeof(v->graphics); i++) {
-		outb(GRX, i);
-		v->graphics[i] = inb(GR);
-	}
-	for(i = 0; i < sizeof(v->attribute); i++) {
-		inb(0x3DA);
-		outb(ARW, i | 0x20);
-		v->attribute[i] = inb(ARR);
-	}
-}
-
-void
-printmode(VGAmode *v) {
-	int i;
-	print("g %2.2x %2x\n",
-		v->general[0], v->general[1]);
-
-	print("s ");
-	for(i = 0; i < sizeof(v->sequencer); i++) {
-		print(" %2.2x", v->sequencer[i]);
-	}
-
-	print("\nc ");
-	for(i = 0; i < sizeof(v->crt); i++) {
-		print(" %2.2x", v->crt[i]);
-	}
-
-	print("\ng ");
-	for(i = 0; i < sizeof(v->graphics); i++) {
-		print(" %2.2x", v->graphics[i]);
-	}
-
-	print("\na ");
-	for(i = 0; i < sizeof(v->attribute); i++) {
-		print(" %2.2x", v->attribute[i]);
-	}
-	print("\n");
+	x &= (1<<n)-1;
+	y = 0;
+	for(s = 32 - n; s > 0; s -= n)
+		y |= x<<s;
+	if(s < 0)
+		y |= x>>(-s);
+	return y;
 }
 
 /*
@@ -478,21 +507,17 @@ setscreen(int maxx, int maxy, int ldepth)
 	int len, vgamaxy, width, i, x, s;
 	ulong *p, *oldp;
 
-	if(ldepth == 3)
-		setmode(&mode13);
-	else
-		setmode(&mode12);
-
 	/* allocate a new soft bitmap area */
 	width = (maxx*(1<<ldepth))/32;
 	len = width * BY2WD * maxy;
 	p = xalloc(len);
 	if(p == 0)
 		error(Enobitstore);
+	memset(p, 0xff, len);
 	mbb = NULLMBB;
 
 	/*
-	 *  zero hard screen and setup a bitmap for the new size
+	 *  setup a bitmap for the new size
 	 */
 	if(ldepth == 3)
 		vgascreen.ldepth = 3;
@@ -540,8 +565,11 @@ setscreen(int maxx, int maxy, int ldepth)
 	 */
 	switch(ldepth){
 	case 3:
-		for(i = 0; i < 256; i++)
+		for(i = 0; i < Pcolours; i++)
 			setcolor(i, x3to32(i>>5), x3to32(i>>2), x3to32(i<<1));
+		setcolor(0x55, xnto32(0x15, 6), xnto32(0x15, 6), xnto32(0x15, 6));
+		setcolor(0xaa, xnto32(0x2a, 6), xnto32(0x2a, 6), xnto32(0x2a, 6));
+		setcolor(0xff, xnto32(0x3f, 6), xnto32(0x3f, 6), xnto32(0x3f, 6));
 		break;
 	case 2:
 	case 1:
@@ -554,11 +582,11 @@ setscreen(int maxx, int maxy, int ldepth)
 		gscreen.ldepth = ldepth;
 		break;
 	}
-	cga = 0;
 
 	/*
 	 * clear screen
 	 */
+	cga = 0;
 	mbb = gscreen.r;
 	vgaupdate();
 }
@@ -572,6 +600,7 @@ screeninit(void)
 	/*
 	 *  arrow is defined as a big endian
 	 */
+	memmove(&arrow, &fatarrow, sizeof(fatarrow));
 	pixreverse(arrow.set, 2*16, 0);
 	pixreverse(arrow.clr, 2*16, 0);
 
@@ -587,7 +616,6 @@ screeninit(void)
 		defont->bits->width*BY2WD*Dy(defont->bits->r), 0);
 
 	cga = 1;
-	crout(0x0a, 0xff);		/* turn off cursor */
 	memset(CGASCREEN, 0, CGAWIDTH*CGAHEIGHT);
 }
 
@@ -629,24 +657,9 @@ nopage(int page)
 {
 	USED(page);
 }
-static void
-tridentpage(int page)
-{
-	srout(0x0e, page^0x02);	/* yes, the page bit needs to be toggled! */
-}
-static void
-tsengpage(int page)
-{
-	outb(0x3cd, (page<<4)|page);
-}
-static void
-parapage(int page)
-{
-	grout(9, page<<4);
-}
 
 /*
- *  copy litte endian soft screen to big endian hard screen
+ *  copy little endian soft screen to big endian hard screen
  */
 static void
 vgaupdate(void)
@@ -656,8 +669,15 @@ vgaupdate(void)
 	Rectangle r;
 	void* (*f)(void*, void*, long);
 
+	if(cga || vgachanging)
+		return;
+
 	r = mbb;
 	mbb = NULLMBB;
+
+	/* pad a few bits */
+	r.min.y -= 2;
+	r.max.y += 2;
 
 	if(Dy(r) < 0)
 		return;
@@ -713,7 +733,7 @@ vgaupdate(void)
 	sp = ((uchar*)gscreen.base) + off;
 
 	edisp = ((uchar*)vgascreen.base) + 64*1024;
-	vgacard->setpage(page);
+	vgac->page(page);
 	for(y = r.min.y; y < r.max.y; y++){
 		if(hp + inch < edisp){
 			f(hp, sp, len);
@@ -724,12 +744,12 @@ vgaupdate(void)
 			if(off <= len){
 				if(off > 0)
 					f(hp, sp, off);
-				vgacard->setpage(++page);
+				vgac->page(++page);
 				if(len - off > 0)
 					f(vgascreen.base, sp+off, len - off);
 			} else {
 				f(hp, sp, len);
-				vgacard->setpage(++page);
+				vgac->page(++page);
 			}
 			sp += incs;
 			hp += inch - 64*1024;
@@ -740,18 +760,38 @@ vgaupdate(void)
 void
 screenupdate(void)
 {
-	lock(&vgalock);
+	lock(&palettelock);
 	vgaupdate();
-	unlock(&vgalock);
+	unlock(&palettelock);
 }
 
 void
 mousescreenupdate(void)
 {
-	if(canlock(&vgalock)){
+	int x;
+
+	if(canlock(&palettelock)){
+		x = spllo();
 		vgaupdate();
-		unlock(&vgalock);
+		splx(x);
+		unlock(&palettelock);
 	}
+}
+
+static int pos;
+
+static void
+cgaregw(uchar index, uchar data)
+{
+	outb(0x03D4, index);
+	outb(0x03D4+1, data);
+}
+
+static void
+movecursor(void)
+{
+	cgaregw(0x0E, (pos/2>>8) & 0xFF);
+	cgaregw(0x0F, pos/2 & 0xFF);
 }
 
 static void
@@ -759,7 +799,6 @@ cgascreenputc(int c)
 {
 	int i;
 	static int color;
-	static int pos;
 
 	if(c == '\n'){
 		pos = pos/CGAWIDTH;
@@ -782,6 +821,7 @@ cgascreenputc(int c)
 		memset(&CGASCREEN[CGAWIDTH*(CGAHEIGHT-1)], 0, CGAWIDTH);
 		pos = CGAWIDTH*(CGAHEIGHT-1);
 	}
+	movecursor();
 }
 
 void
@@ -816,6 +856,8 @@ screenputs(char *s, int n)
 	char buf[4];
 	Rectangle rect;
 
+	if(vgachanging)
+		return;
 	if(cga) {
 		cgascreenputs(s, n);
 		return;
@@ -868,75 +910,69 @@ void
 getcolor(ulong p, ulong *pr, ulong *pg, ulong *pb)
 {
 	p &= (1<<(1<<gscreen.ldepth))-1;
-	lock(&vgalock);
-	*pr = colormap[p][0];
-	*pg = colormap[p][1];
-	*pb = colormap[p][2];
-	unlock(&vgalock);
+	lock(&palettelock);
+	*pr = colormap[p][Pred];
+	*pg = colormap[p][Pgreen];
+	*pb = colormap[p][Pblue];
+	unlock(&palettelock);
 }
 
 int
 setcolor(ulong p, ulong r, ulong g, ulong b)
 {
 	p &= (1<<(1<<gscreen.ldepth))-1;
-	lock(&vgalock);
-	colormap[p][0] = r;
-	colormap[p][1] = g;
-	colormap[p][2] = b;
-	outb(CMWX, p);
-	outb(CM, r>>(32-6));
-	outb(CM, g>>(32-6));
-	outb(CM, b>>(32-6));
-	unlock(&vgalock);
+	lock(&palettelock);
+	colormap[p][Pred] = r;
+	colormap[p][Pgreen] = g;
+	colormap[p][Pblue] = b;
+	vgao(PaddrW, p);
+	vgao(Pdata, r>>(32-6));
+	vgao(Pdata, g>>(32-6));
+	vgao(Pdata, b>>(32-6));
+	unlock(&palettelock);
 	return ~0;
 }
 
 int
-hwcursset(uchar *s, uchar *c, int ox, int oy)
+hwgcmove(Point p)
 {
-	USED(s, c, ox, oy);
-	return 0;
-}
-
-int
-hwcursmove(int x, int y)
-{
-	USED(x, y);
+	if(hwgc)
+		return (*hwgc->move)(p);
 	return 0;
 }
 
 void
-mouseclock(void)
+setcursor(Cursor *curs)
 {
-	spllo();	/* so we don't cause lost chars on the uart */
-	mouseupdate(1);
+	uchar *p;
+	int i;
+	extern GBitmap set, clr;
+
+	if(hwgc)
+		(*hwgc->load)(curs);
+	else for(i=0; i<16; i++){
+		p = (uchar*)&set.base[i];
+		*p = curs->set[2*i];
+		*(p+1) = curs->set[2*i+1];
+		p = (uchar*)&clr.base[i];
+		*p = curs->clr[2*i];
+		*(p+1) = curs->clr[2*i+1];
+		memmove(&curcursor, curs, sizeof(Cursor));
+	}
 }
 
-/*
- *  a fatter than usual cursor for the safari
- */
-Cursor fatarrow = {
-	{ -1, -1 },
-	{
-		0xff, 0xff, 0x80, 0x01, 0x80, 0x02, 0x80, 0x0c, 
-		0x80, 0x10, 0x80, 0x10, 0x80, 0x08, 0x80, 0x04, 
-		0x80, 0x02, 0x80, 0x01, 0x80, 0x02, 0x8c, 0x04, 
-		0x92, 0x08, 0x91, 0x10, 0xa0, 0xa0, 0xc0, 0x40, 
-	},
-	{
-		0x00, 0x00, 0x7f, 0xfe, 0x7f, 0xfc, 0x7f, 0xf0, 
-		0x7f, 0xe0, 0x7f, 0xe0, 0x7f, 0xf0, 0x7f, 0xf8, 
-		0x7f, 0xfc, 0x7f, 0xfe, 0x7f, 0xfc, 0x73, 0xf8, 
-		0x61, 0xf0, 0x60, 0xe0, 0x40, 0x40, 0x00, 0x00, 
-	},
-};
+void
+addhwgclink(Hwgc *hwgcp)
+{
+	hwgcp->link = hwgctlr;
+	hwgctlr = hwgcp;
+}
 
 void
-bigcursor(void)
+addvgaclink(Vgac *vgacp)
 {
-	memmove(&arrow, &fatarrow, sizeof(fatarrow));
-	pixreverse(arrow.set, 2*16, 0);
-	pixreverse(arrow.clr, 2*16, 0);
+	vgacp->link = vgactlr;
+	vgactlr = vgacp;
 }
 
 /*

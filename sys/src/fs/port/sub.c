@@ -192,8 +192,6 @@ int
 iaccess(File *f, Dentry *d, int m)
 {
 
-	if(wstatallow)
-		return 0;
 	/*
 	 * other is easiest
 	 */
@@ -210,6 +208,14 @@ iaccess(File *f, Dentry *d, int m)
 	 */
 	if(ingroup(f->uid, d->gid))
 		if((m<<3) & d->mode)
+			return 0;
+	/*
+	 * various forms of superuser
+	 */
+	if(wstatallow)
+		return 0;
+	if(duallow != 0 && duallow == f->uid)
+	if((d->mode & DDIR) && (m == DREAD || m == DEXEC))
 			return 0;
 	return 1;
 }
@@ -230,8 +236,8 @@ tlocked(Iobuf *p, Dentry *d)
 		if(t->time >= tim)
 		if(devcmp(t->dev, dev) == 0)
 			return 0;		/* its locked */
-		if(!t1 && t->time < tim)
-			t1 = t;			/* steal first lock */
+		if(!t1 && t->time == 0)
+			t1 = t;			/* take last free lock */
 	}
 	if(t1) {
 		t1->dev = dev;
@@ -353,7 +359,7 @@ buffree(Device dev, long addr, int d)
 }
 
 long
-bufalloc(Device dev, int tag, long qid)
+bufalloc(Device dev, int tag, long qid, int uid)
 {
 	Iobuf *bp, *p;
 	Superb *sb;
@@ -361,24 +367,37 @@ bufalloc(Device dev, int tag, long qid)
 	int n;
 
 	p = getbuf(dev, superaddr(dev), Bread|Bmod);
-	if(!p || checktag(p, Tsuper, QPSUPER))
-		panic("bufalloc: super block");
+	if(!p || checktag(p, Tsuper, QPSUPER)) {
+		print("bufalloc: super block\n");
+		if(p)
+			putbuf(p);
+		return 0;
+	}
 	sb = (Superb*)p->iobuf;
 
 loop:
 	n = --sb->fbuf.nfree;
 	sb->tfree--;
-	if(n < 0 || n >= FEPERBUF)
-		panic("bufalloc: bad freelist");
+	if(n < 0 || n >= FEPERBUF) {
+		print("bufalloc: bad freelist\n");
+		n = 0;
+		sb->fbuf.free[0] = 0;
+	}
 	a = sb->fbuf.free[n];
 	if(n <= 0) {
 		if(a == 0) {
 			sb->tfree = 0;
 			sb->fbuf.nfree = 1;
-			if(dev.type == Devcw)
-				if(cwgrow(dev, sb))
+			if(dev.type == Devcw) {
+				n = uid;
+				if(n < 0 || n >= nelem(growacct))
+					n = 0;
+				growacct[n]++;
+				if(cwgrow(dev, sb, uid))
 					goto loop;
+			}
 			putbuf(p);
+			print("fs full uid=%d\n", uid);
 			return 0;
 		}
 		bp = getbuf(dev, a, Bread);
@@ -391,6 +410,7 @@ loop:
 		sb->fbuf = *(Fbuf*)bp->iobuf;
 		putbuf(bp);
 	}
+
 	bp = getbuf(dev, a, Bmod);
 	memset(bp->iobuf, 0, RBUFSIZE);
 	settag(bp, tag, qid);
@@ -596,12 +616,13 @@ rootream(Device dev, long addr)
 	d->uid = -1;
 	d->gid = -1;
 	d->mode = DALLOC | DDIR |
-		((DREAD|DWRITE|DEXEC) << 6) |
-		((DREAD|DWRITE|DEXEC) << 3) |
-		((DREAD|DWRITE|DEXEC) << 0);
+		((DREAD|DEXEC) << 6) |
+		((DREAD|DEXEC) << 3) |
+		((DREAD|DEXEC) << 0);
 	d->qid = QID(QPROOT|QPDIR,0);
 	d->atime = time();
 	d->mtime = d->atime;
+	d->wuid = 0;
 	putbuf(p);
 }
 
@@ -646,20 +667,20 @@ mbinit(void)
 	msgalloc.smsgbuf = 0;
 	for(i=0; i<conf.nlgmsg; i++) {
 		mb = ialloc(sizeof(Msgbuf), 0);
-if(1)
-mb->xdata = ialloc(LARGEBUF+256, 256);
-else
-		mb->xdata = ialloc(LARGEBUF+OFFMSG, LINESIZE);
+		if(1)
+			mb->xdata = ialloc(LARGEBUF+256, 256);
+		else
+			mb->xdata = ialloc(LARGEBUF+OFFMSG, LINESIZE);
 		mb->flags = LARGE;
 		mbfree(mb);
 		cons.nlarge++;
 	}
 	for(i=0; i<conf.nsmmsg; i++) {
 		mb = ialloc(sizeof(Msgbuf), 0);
-if(1)
-mb->xdata = ialloc(SMALLBUF+256, 256);
-else
-		mb->xdata = ialloc(SMALLBUF+OFFMSG, LINESIZE);
+		if(1)
+			mb->xdata = ialloc(SMALLBUF+256, 256);
+		else
+			mb->xdata = ialloc(SMALLBUF+OFFMSG, LINESIZE);
 		mb->flags = 0;
 		mbfree(mb);
 		cons.nsmall++;
@@ -681,17 +702,17 @@ mballoc(int count, Chan *cp, int category)
 {
 	Msgbuf *mb;
 
-	lock(&msgalloc);
+	ilock(&msgalloc);
 	if(count > SMALLBUF) {
 		if(count > LARGEBUF)
 			panic("msgbuf count");
 		mb = msgalloc.lmsgbuf;
 		if(mb == 0) {
 			mb = ialloc(sizeof(Msgbuf), 0);
-if(1)
-mb->xdata = ialloc(LARGEBUF+256, 256);
-else
-			mb->xdata = ialloc(LARGEBUF+OFFMSG, LINESIZE);
+			if(1)
+				mb->xdata = ialloc(LARGEBUF+256, 256);
+			else
+				mb->xdata = ialloc(LARGEBUF+OFFMSG, LINESIZE);
 			cons.nlarge++;
 		} else
 			msgalloc.lmsgbuf = mb->next;
@@ -700,36 +721,37 @@ else
 		mb = msgalloc.smsgbuf;
 		if(mb == 0) {
 			mb = ialloc(sizeof(Msgbuf), 0);
-if(1)
-mb->xdata = ialloc(SMALLBUF+256, 256);
-else
-			mb->xdata = ialloc(SMALLBUF+OFFMSG, LINESIZE);
+			if(1)
+				mb->xdata = ialloc(SMALLBUF+256, 256);
+			else
+				mb->xdata = ialloc(SMALLBUF+OFFMSG, LINESIZE);
 			cons.nsmall++;
 		} else
 			msgalloc.smsgbuf = mb->next;
 		mb->flags = 0;
 	}
 	mballocs[category]++;
-	unlock(&msgalloc);
+	iunlock(&msgalloc);
 	mb->count = count;
 	mb->chan = cp;
 	mb->param = 0;
 	mb->category = category;
-if(1)
-mb->data = mb->xdata+256;
-else
-	mb->data = mb->xdata+OFFMSG;
+	if(1)
+		mb->data = mb->xdata+256;
+	else
+		mb->data = mb->xdata+OFFMSG;
 	return mb;
 }
 
 void
 mbfree(Msgbuf *mb)
 {
-	lock(&msgalloc);
-	mballocs[mb->category]--;
-	mb->category = 0;
 	if(mb->flags & FREE)
 		panic("mbfree already free");
+
+	ilock(&msgalloc);
+	mballocs[mb->category]--;
+	mb->category = 0;
 	mb->flags |= FREE;
 	if(mb->flags & LARGE) {
 		mb->next = msgalloc.lmsgbuf;
@@ -739,7 +761,7 @@ mbfree(Msgbuf *mb)
 		msgalloc.smsgbuf = mb;
 	}
 	mb->data = 0;
-	unlock(&msgalloc);
+	iunlock(&msgalloc);
 }
 
 /*

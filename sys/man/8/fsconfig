@@ -52,18 +52,16 @@ The syntax of a
 .I device
 is more complicated:
 .TP
-.BI w. n1 . n2 . n3
+.BI w n1 . n2 . n3
 A SCSI disk on target id
 .IR n2 ,
 unit
 .IR n1 ,
 and partition
 .IR n3 .
-The values
-.I n1
-and
-.I n3
-(and their associated periods) are optional; they default to zero.
+A single number specifies a unit, while two numbers specify
+.IB unit . partition\f1,
+with the missing numbers defaulting to zero.
 Any one of the numbers may be replaced by
 .BI < m - n >
 to represent the values
@@ -74,7 +72,7 @@ inclusive.  For example,
 .B (w<1-4>)
 is the concatenation of SCSI targets 1 through 4.
 .TP
-.BI r. n1 . n2 . n3
+.BI r n1 . n2 . n3
 A SCSI WORM disk on unit
 .IR n1 ,
 target
@@ -141,13 +139,13 @@ The
 command configures a file system on
 .I device
 and calls it
-.I name.
+.IR name .
 .I Name
 is used as the specifier in
 .B attach
 messages to connect to that file system.
 (The file system
-.I main
+.CW main
 is the one attached to if the specifier is null; see
 .IR attach (5)).
 .PP
@@ -171,9 +169,11 @@ that change the owner and group of files,
 to enable initializing a fresh file system from a
 .IR mkfs (8)
 archive.
-.TP
-.BI recover " name
-The named file system
+.PP
+For the
+.I recover
+command, the
+named file system
 must be a cached WORM.
 .I Recover
 clears the associated magnetic cache and initializes the file
@@ -214,7 +214,7 @@ ream main
 Initialize a file server
 .B kremvax
 with a single disk on target 0 partitioned as a cached pseudo-WORM
-file system with the the cache on the third quarter of the drive
+file system with the cache on the third quarter of the drive
 and the pseudo-WORM on the interleave of the first, second, and
 fourth quarters.
 .IP
@@ -225,4 +225,8 @@ filsys main cp(w0)50.25f[p(w0)0.25p(w0)25.25p(w0)75.25]
 filsys dump o
 ream main
 .EE
-.SH BUGS
+.SH SOURCE
+.BR /sys/src/fs/port/config.c
+.SH "SEE ALSO
+Ken Thompson,
+``The Plan 9 File Server''.

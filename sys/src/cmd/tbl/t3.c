@@ -38,10 +38,10 @@ getcomm(void)
 		*(lp->optadd) = 0;
 	texname = texstr[texct=0];
 	tab = '\t';
-	printf(".nr %d \\n(.s\n", LSIZE);
+	Bprint(&tabout, ".nr %d \\n(.s\n", LSIZE);
 	gets1(line, sizeof(line));
 	/* see if this is a command line */
-	if (strchr(line, ';') == NULL) {
+	if (strchr(line, ';') == 0) {
 		backrest(line);
 		return;
 	}
@@ -70,7 +70,7 @@ getcomm(void)
 						*(lp->optadd) = nb[0];
 				}
 				if (lp->optadd == &linsize)
-					printf(".nr %d %s\n", LSIZE, nb);
+					Bprint(&tabout, ".nr %d %s\n", LSIZE, nb);
 				if (lp->optadd == &delim1) {
 					delim1 = nb[0];
 					delim2 = nb[1];

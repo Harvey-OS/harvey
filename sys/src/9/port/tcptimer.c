@@ -5,7 +5,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 #include 	"arp.h"
-#include 	"ipdat.h"
+#include 	"../port/ipdat.h"
 
 static	Timer 	*timers;	/* List of active timers */
 static	QLock 	tl;		/* Protect timer list */

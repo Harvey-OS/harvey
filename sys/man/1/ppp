@@ -1,0 +1,135 @@
+.TH PPP 1
+.SH NAME
+pppclient, pppserver \- point to point protocol
+.SH SYNOPSIS
+.B pppclient
+[
+.B -d
+][
+.B -b
+.I baudrate
+][
+.B -i
+.I myipaddr
+][
+.B -p
+.I peeripaddr
+][
+.I dialdevice
+]
+.PP
+.B pppserver
+[
+.B -d
+]
+.I ndev
+.I myipaddr
+.I firstipaddr
+.I firstdev
+[
+.I baud0 baud1 ...
+]
+.SH DESCRIPTION
+The Point to Point Protocol is used to encapsulate Internet Protocol packets
+for transfer over serial lines or other protocol connections.
+.PP
+.I Pppclient
+makes a connection to a PPP server and
+passes IP packets over the connection.
+If
+.I dialdevice
+is omitted, standard input and output are used as the connection.
+If
+.I dialdevice
+begins with a 
+slash,
+.I pppclient
+assumes it is a file name,
+.IR open (2)'s
+it, and uses the result as the connection.
+Otherwise,
+.I dialdevice
+is passed as the
+destination address to
+.IR dial (2)
+to set up the connection.
+.PP
+If the connection is successful,
+.I pppclient
+creates a pipe, pushes the IP line discipline onto it, and sets the
+local and remote addresses of the IP interface to
+.I myipaddr
+and
+.IR peeripaddr.
+It then loops transferring packets between the pipe and the connection.
+If either
+.I myipaddr
+or
+.I peeripaddr
+is omitted,
+.I pppclient
+requests them from the server.
+.PP
+The options are
+.RS
+.TP
+.B d
+print debugging information.
+.TP
+.B b
+baud rate of the serial line.
+.TP
+.B p
+peer ip address (in case the peer asks for its ip address over IPCP).
+.TP
+.B i
+the local ip address to be established for this connection.
+.RE
+.PP
+.I Pppserver
+treats serial lines as PPP connections, switching packets between
+them and the local machine.
+It creates a pipe for a local IP interface (address
+.IR myipaddr ),
+opens a set of serial lines,
+and switches packets between the local interface
+and the serial lines.
+.I Ndev
+specifies the number of serial devices to serve.
+The devices are named
+.BI /dev/eia{ firstdev }
+through 
+.BI /dev/eia{ firstdev+ndev\-1 }\f1.
+Their remote IP addresses are
+.I firstipaddr
+through 
+.IR firstipaddr+ndev\-1 .
+The default baud rate is 9600.
+If any arguments follow
+.I firstdev
+.RI ( baud0 ,
+.IR baud1 ,
+\&...), they are used as baud rates for the serial lines.
+The only option,
+.BR -d ,
+turns on debugging output.
+.PP
+Both
+.I pppclient
+and 
+.I pppserver
+accept all options defined in RFCs 1331 and 1332.
+.SH EXAMPLES
+.PP
+Start up a server for serial lines
+.BR /dev/eia[2-6] 
+with remote IP addresses 131.107.1.100 through
+131.107.1.103 and baud rates of
+19200, 2400, 9600, 9600.
+The local IP address is 131.107.1.1.
+.IP
+.EX
+pppserver 4 131.107.1.1 131.107.1.100 2 19200 2400
+.EE
+.SH SOURCE
+.B /sys/src/cmd/ppp

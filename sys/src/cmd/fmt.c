@@ -56,7 +56,7 @@ main(int argc, char **argv)
 			else{
 				Binit(&bin, f, OREAD);
 				fmt(&bin);
-				Bclose(&bin);
+				Bterm(&bin);
 				if(i!=argc-1)
 					Bputc(&bout, '\n');
 			}
@@ -188,7 +188,7 @@ puncttest(void)
 		case '.':
 			if(isupper(*word)&&rp-word<=3)
 				return;
-		case '?': case ':': case '!':
+		case '?': case '!': /*case ':':*/
 			punct = 1;
 		default:
 			return;

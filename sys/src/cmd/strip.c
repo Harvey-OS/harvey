@@ -39,6 +39,7 @@ strip(char *file)
 	char *data;
 	Dir d;
 	long n, len;
+	int i, j;
 
 	/*
 	 *  make sure file is executable
@@ -47,9 +48,8 @@ strip(char *file)
 		perror(file);
 		return 1;
 	}
-	if((d.qid.path & (CHDIR|CHAPPEND|CHEXCL))
-	|| !(d.mode & (0111))){
-		fprint(2, "%s must be executable\n", file);
+	if((d.qid.path & (CHDIR|CHAPPEND|CHEXCL))){
+		fprint(2, "strip: %s must be executable\n", file);
 		return 1;
 	}
 	/*
@@ -62,32 +62,28 @@ strip(char *file)
 	}
 	n = read(fd, &exec, sizeof exec);
 	if (n != sizeof(exec)) {
-		fprint(2, "Unable to read header of %s\n", file);
+		fprint(2, "strip: Unable to read header of %s\n", file);
 		close(fd);
 		return 1;
 	}
-	switch(ben(exec.magic))
-	{
-	case V_MAGIC:
-	case Z_MAGIC:
-	case K_MAGIC:
-	case A_MAGIC:
-	case I_MAGIC:
+	i = ben(exec.magic);
+	for (j = 8; j < 24; j++)
+		if (i == _MAGIC(j))
 			break;
-	default:
-		fprint(2, "%s is not a recognizable binary\n", file);
+	if (j >= 24) {
+		fprint(2, "strip: %s is not a recognizable binary\n", file);
 		close(fd);
 		return 1;
 	}
 
 	len = ben(exec.data) + ben(exec.text);
 	if(len+sizeof(exec) == d.length) {
-		fprint(2, "%s is already stripped\n", file);
+		fprint(2, "strip: %s is already stripped\n", file);
 		close(fd);
 		return 0;
 	}
 	if(len+sizeof(exec) > d.length) {
-		fprint(2, "%s has strange length\n", file);
+		fprint(2, "strip: %s has strange length\n", file);
 		close(fd);
 		return 1;
 	}
@@ -97,7 +93,7 @@ strip(char *file)
 	 */
 	data = malloc(len+sizeof(exec));
 	if (!data) {
-		fprint(2, "Malloc failure. %s too big to strip.\n", file);
+		fprint(2, "strip: Malloc failure. %s too big to strip.\n", file);
 		close(fd);
 		return 1;
 	}

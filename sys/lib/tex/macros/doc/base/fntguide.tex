@@ -1,0 +1,1576 @@
+% \iffalse meta-comment
+%
+% Copyright 1994 the LaTeX3 project and the individual authors.
+% All rights reserved. For further copyright information see the file
+% legal.txt, and any other copyright indicated in this file.
+% 
+% This file is part of the LaTeX2e system.
+% ----------------------------------------
+% 
+%  This system is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see bugs.txt.
+% 
+% Please do not request updates from us directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% Filename: fntguide.tex
+ 
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+ 
+\documentclass{ltxguide}[1994/11/20]
+ 
+\title{\LaTeXe{} font selection}
+ 
+\author{\copyright~Copyright 1994, \LaTeX3 Project Team.\\
+   All rights reserved.}
+ 
+\date{1 December 1994}
+ 
+\begin{document}
+ 
+\maketitle
+ 
+\tableofcontents
+ 
+\section{Introduction}
+ 
+This document describes the new font selection features of the \LaTeX{}
+Document Preparation System.  It is intended for package writers who
+want to write font-loading packages similar to |times| or |latexsym|.
+This document is only a brief introduction to the
+new facilities and is intended for package writers who are familiar with
+\TeX{} fonts and \LaTeX{} packages.  It is \emph{neither} a user-guide
+\emph{nor} a reference manual for fonts in \LaTeXe.
+ 
+\subsection{\LaTeXe~fonts}
+ 
+The most important difference between \LaTeX~2.09 and \LaTeXe{} is the
+way that fonts are selected.  In \LaTeX~2.09, the Computer Modern fonts
+were built into the \LaTeX~format, and so customizing \LaTeX{} to use
+other fonts was a major effort.
+ 
+In \LaTeXe, very few fonts are built into the format, and there are
+commands to load new text and math fonts.  Packages such as |times| or
+|latexsym| allow authors to access these fonts.
+This document describes how to write similar font-loading packages.
+ 
+The \LaTeXe{} font selection system was first released as the `New Font
+Selection Scheme' (NFSS) in 1989, and then in release~2 in 1993.
+\LaTeXe{} includes NFSS release~2 as standard.
+ 
+\subsection{Overview}
+ 
+This document contains an overview of the new font commands
+of \LaTeX.
+ 
+\begin{description}
+ 
+\item[Section~\ref{Sec:text}] describes the commands for selecting fonts
+   in classes and packages.  It lists the five \LaTeX{} font
+   attributes, and lists the commands for selecting fonts.  It also
+   describes how to customize the author commands such as |\textrm| and
+   |\textit| to suit your document design.
+ 
+\item[Section~\ref{Sec:math}] explains the commands for controlling
+   \LaTeX{} math fonts.  It describes how to specify new math fonts and
+   new math symbols.
+ 
+\item[Section~\ref{Sec:install}] explains how to install new fonts into
+   \LaTeX.  It shows how \LaTeX{} font attributes are turned into \TeX{}
+   font names, and how to specify your own fonts using font definition
+   files.
+ 
+\item[Section~\ref{Sec:encode}] discusses text font encodings.
+   It describes how to declare a new encoding and how to define
+   commands, such as |\AE| or |\"|, which have different definitions in
+   different encodings, depending on whether ligatures, etc.\ are
+   available in the encoding.
+ 
+\item[Section~\ref{Sec:misc}] covers font miscellania.  It describes how
+   \LaTeX{} performs font substitution, how to customize fonts that are
+   preloaded in the \LaTeX{} format, and the naming conventions used in
+   \LaTeX{} font selection.
+ 
+\end{description}
+ 
+\subsection{Further information}
+ 
+For a general introduction to \LaTeX, including the new features of
+\LaTeXe, you should read \emph{\LaTeXbook},
+Leslie Lamport, Addison Wesley, 2nd~ed, 1994.
+ 
+A more detailed description of the \LaTeX{} font selection scheme is to
+be found in \emph{\LaTeXcomp}, Goossens, Mittelbach and Samarin, Addison
+Wesley, 1994.
+ 
+The \LaTeX{} font selection scheme is based on \TeX, which is described
+by its developer in \emph{The \TeX book}, Donald E.~Knuth, Addison
+Wesley, 1986, revised in 1991 to include the features of \TeX~3.
+ 
+Sebastian Rahtz's |psnfss| software contains the software for using a
+large number of Type~1 fonts (including the Adobe Laser Writer 35 and
+the Monotype CD-ROM fonts) in \LaTeX.  It should be available from the
+same source as your copy of \LaTeX.
+ 
+ 
+The |psnfss| software uses fonts generated by Alan Jeffrey's
+|fontinst| software.  This can convert fonts from Adobe Font Metric
+format into a format readable by \LaTeX, including the generation of
+the |.fd| files described in Section~\ref{Sec:install}.  The
+|fontinst| software should be available from the same source as your
+copy of \LaTeX.
+ 
+Whenever practical, \LaTeX{} uses the font naming scheme
+described in \emph{Filenames for fonts}, Karl Berry,
+\emph{TUGboat} 11(4), 1990.
+ 
+The class-writer's guide \emph{\clsguide} describes
+the new \LaTeX{} features for writers of document classes and packages
+and is kept in |clsguide.tex|.
+ 
+We are gradually turning the source code for \LaTeX{} into a \LaTeX{}
+document \emph{\sourcecode}.  This document includes an index of
+\LaTeX{} commands and can be typeset from |source2e.tex|.
+ 
+For more information about \TeX{} and \LaTeX, please contact your local
+\TeX{} Users Group, or the international \TeX{} Users Group, P.~O.\
+Box~869, Santa Barbara, CA 93102-0869, USA, Fax:~+1 805 963 8358,
+E-mail:~tug@tug.org.
+ 
+\section{Text fonts}
+\label{Sec:text}
+ 
+This section describes the commands available to class and package
+writers for specifying and selecting fonts.
+ 
+\subsection{Text font attributes}
+ 
+Every text font in \LaTeX{} has five \emph{attributes}:
+\begin{description}
+ 
+\item[encoding] This specifies the order that characters appear in the
+   font.  The two most common text encodings used in \LaTeX{} are
+   Knuth's `\TeX{} text' encoding, and the `\TeX{} text extended'
+   encoding developed by the \TeX{} Users Group members during a \TeX{}
+   Conference at Cork in~1990 (hence its informal name `Cork encoding').
+ 
+\item[family] The name for a collection of fonts, usually grouped under
+   a common name by the font foundry.  For example, `Adobe Times', `ITC
+   Garamond', and Knuth's `Computer Modern Roman' are all font families.
+ 
+\item[series] How heavy or expanded a font is.  For example, `medium
+   weight', `narrow' and `bold extended' are all series.
+ 
+\item[shape] The form of the letters within a font family.  For
+   example, `italic', `oblique' and `upright' (sometimes called
+   `roman') are all font shapes.
+ 
+\item[size] The design size of the font, for example `10pt'.
+ 
+\end{description}
+The possible values for these attributes are given short acronyms by
+\LaTeX.  The most common values for the font encoding are:
+\begin{center}
+\begin{minipage}{.7\linewidth}
+   \begin{tabular}{rl}
+      |OT1|   & \TeX{} text  \\
+      |T1|    & \TeX{} extended text \\
+      |OML|   & \TeX{} math italic \\
+      |OMS|   & \TeX{} math symbols \\
+      |OMX|   & \TeX{} math large symbols \\
+      |U|     & Unknown \\
+      |L<xx>| & A local encoding
+   \end{tabular}
+\end{minipage}
+\end{center}
+The `local' encodings are intended for font encodings which are only
+locally available, for example a font containing a university logo
+in various sizes.
+ 
+There are far too many font families to list them all, but some common
+ones are:
+\begin{center}
+\begin{minipage}{.7\linewidth}
+   \begin{tabular}{rl}
+      |cmr|  & Computer Modern Roman \\
+      |cmss| & Computer Modern Sans \\
+      |cmtt| & Computer Modern Typewriter \\
+      |cmm|  & Computer Modern Math Italic \\
+      |cmsy| & Computer Modern Math Symbols \\
+      |cmex| & Computer Modern Math Extensions \\
+      |ptm|  & Adobe Times \\
+      |phv|  & Adobe Helvetica \\
+      |pcr|  & Adobe Courier
+   \end{tabular}
+\end{minipage}
+\end{center}
+The most common values for the font series are:
+\begin{center}
+\begin{minipage}{.7\linewidth}
+   \begin{tabular}{rl}
+      |m|    & Medium  \\
+      |b|    & Bold  \\
+      |bx|   & Bold extended \\
+      |sb|   & Semi-bold \\
+      |c|    & Condensed
+   \end{tabular}
+\end{minipage}
+\end{center}
+The most common values for the font shape are:
+\begin{center}
+\begin{minipage}{.7\linewidth}
+   \begin{tabular}{rl}
+      |n|    & Normal (that is `upright' or `roman') \\
+      |it|   & Italic \\
+      |sl|   & Slanted (or `oblique') \\
+      |sc|   & Caps and small caps
+   \end{tabular}
+\end{minipage}
+\end{center}
+The font size is specified as a dimension, for example |10pt| or
+|1.5in| or |3mm|.  These five parameters specify every \LaTeX{} font,
+for example:
+\begin{center}
+   \begin{tabular}{@{}c@{\,}c@{\,}c@{\,}c@{\,}ccc@{}}
+      \multicolumn{5}{@{}c}{\emph{\LaTeX{} specification}} &
+      \emph{Font} &
+      \emph{\TeX{} font name} \\
+      |OT1| & |cmr| & |m| & |n| & |10pt| &
+      Computer Modern Roman 10pt &
+      |cmr10| \\
+      |OT1| & |cmss| & |m| & |sl| & |12pt| &
+      Computer Modern Sans Oblique 12pt &
+      |cmssi12| \\
+      |OML| & |cmm| & |m| & |it| & |10pt| &
+      Computer Modern Math Italic 10pt &
+      |cmmi10| \\
+      |T1| & |ptm| & |b| & |it| & |18pt| &
+      Adobe Times Bold Italic 18pt &
+      |ptmbq at 18pt|
+   \end{tabular}
+\end{center}
+These five parameters are displayed whenever \LaTeX{} gives an overfull
+box warning, for example:
+\begin{verbatim}
+   Overfull \hbox (3.80855pt too wide) in paragraph at lines 314--318
+   []\OT1/cmr/m/n/10 Normally [] and [] will be iden-ti-cal,
+\end{verbatim}
+The author commands for fonts set the five attributes:
+\begin{center}
+   \begin{tabular}{rcl}
+      \emph{Author command} &
+      \emph{Attribute} &
+      \emph{Value in} |article| \emph{class} \\
+      |\textrm{..}| or |\rmfamily|    & family & |cmr| \\
+      |\textsf{..}| or |\sffamily|    & family & |cmss| \\
+      |\texttt{..}| or |\ttfamily|    & family & |cmtt| \\
+      |\textmd{..}| or |\mdseries|    & series & |m| \\
+      |\textbf{..}| or |\bfseries|    & series & |bx| \\
+      |\textup{..}| or |\upshape|     & shape  & |n| \\
+      |\textit{..}| or |\itshape|     & shape  & |it| \\
+      |\textsl{..}| or |\slshape|     & shape  & |sl| \\
+      |\textsc{..}| or |\scshape|     & shape  & |sc| \\
+      |\tiny|         & size   & |5pt| \\
+      |\scriptsize|   & size   & |7pt| \\
+      |\footnotesize| & size   & |8pt| \\
+      |\small|        & size   & |9pt| \\
+      |\normalsize|   & size   & |10pt| \\
+      |\large|        & size   & |12pt| \\
+      |\Large|        & size   & |14.4pt| \\
+      |\LARGE|        & size   & |17.28pt| \\
+      |\huge|         & size   & |20.74pt| \\
+      |\Huge|         & size   & |24.88pt|
+   \end{tabular}
+\end{center}
+The values used by these commands are determined by the document class,
+using the parameters defined in Section~\ref{Sec:text.param}.
+ 
+Note that there are no author commands for selecting new encodings.
+These should be provided by packages, such as the |fontenc| package.
+ 
+This section does not explain how \LaTeX{} font specifications are
+turned into \TeX{} font names.  This is described in
+Section~\ref{Sec:install}.
+ 
+\subsection{Selection commands}
+ 
+The low-level commands used to select a text font are as follows.
+ 
+\begin{decl}
+|\fontencoding| \arg{encoding} \\
+|\fontfamily|  \arg{family}\\
+|\fontseries| \arg{series}\\
+|\fontshape| \arg{shape}\\
+|\fontsize| \arg{size} \arg{baselineskip}
+\end{decl}
+ 
+Each of these commands sets one of the font
+attributes; |\fontsize| also sets |\baselineskip|. The
+actual font in use is not altered by these commands, but the current
+attributes are used to determine which font to use after the next
+|\selectfont| command.
+ 
+\begin{decl}
+|\selectfont|
+\end{decl}
+Selects a text font, based on the current values of the font attributes.
+ 
+\emph{Warning}: there \emph{must} be a |\selectfont| command
+immediately after any settings of the font parameters by (some of)
+the five |\font<parameter>| commands, before any following text.
+For example, it is legal to say:
+\begin{verbatim}
+   \fontfamily{ptm}\fontseries{b}\selectfont Some text.
+\end{verbatim}
+but it is \emph{not} legal to say:
+\begin{verbatim}
+   \fontfamily{ptm} Some \fontseries{b}\selectfont text.
+\end{verbatim}
+You may get unexpected results if you put text between a
+|\font<parameter>| command and a |\selectfont|.
+ 
+\begin{decl}
+|\usefont| \arg{encoding} \arg{family} \arg{series} \arg{shape}
+\end{decl}
+A short hand for the equivalent |\font|\ldots{} commands followed by a
+call to |\selectfont|.
+ 
+ 
+\subsection{Internals}
+ 
+The current values of the font attributes are held in internal macros.
+ 
+\begin{decl}
+      |\f@encoding| \\
+      |\f@family|  \\
+      |\f@series|  \\
+      |\f@shape|  \\
+      |\f@size|    \\
+      |\f@baselineskip| \\
+      |\tf@size|  \\
+      |\sf@size|  \\
+      |\ssf@size|
+\end{decl}
+ 
+These hold the current values of the encoding, the family, the series,
+the shape, the size, the baseline skip, the main math size, the script
+math size and the scriptscript math size. The last three are accessible
+only within a formula; outside of math they may contain arbitrary
+values.
+ 
+For example, to set the size to 12 without
+changing the baseline skip:
+\begin{verbatim}
+   \fontsize{12}{\f@baselineskip}
+\end{verbatim}
+However, you should \emph{never} alter the values of the internal
+commands directly; they must only be modified using the low-level
+commands like |\fontfamily|, |\fontseries|, etc. If you disobey this
+warning you might produce code that loops.
+ 
+\subsection{Parameters for author commands}
+\label{Sec:text.param}
+ 
+The parameter values set by author commands such as |\textrm| and
+|\rmfamily|, etc.\ are not hard-wired into \LaTeX; instead these
+commands use the values of a number of parameters set by the document
+class and packages.  For example, |\rmdefault| is the name of the
+default family selected by |\textrm| and |\rmfamily|. Thus to set a
+document in Adobe Times, Helvetica and Courier, the document designer
+specifies:
+\begin{verbatim}
+   \renewcommand{\rmdefault}{ptm}
+   \renewcommand{\sfdefault}{phv}
+   \renewcommand{\ttdefault}{pcr}
+\end{verbatim}
+ 
+\begin{decl}
+ |\encodingdefault| \\
+ |\familydefault|   \\
+ |\seriesdefault|   \\
+ |\shapedefault|
+\end{decl}
+The encoding, family, series and shape of the main body font.  By
+default these are |OT1|, |\rmdefault|, |m| and |n|.  Note that since
+the default family is |\rmdefault|, this means that changing
+|\rmdefault| will change the main body font of the document.
+ 
+\begin{decl}
+ |\rmdefault|  \\
+ |\sfdefault| \\
+ |\ttdefault|
+\end{decl}
+The families selected by |\textrm|, |\rmfamily|, |\textsf|,
+|\sffamily|, |\texttt| and |\ttfamily|.  By default these are |cmr|,
+|cmss| and |cmtt|.
+ 
+\begin{decl}
+ |\bfdefault| \\
+ |\mddefault|
+\end{decl}
+The series selected by |\textbf|, |\bfseries|, |\textmd| and
+|\mdseries|.  By default these are |bx| and |m|.
+These values are suitable for the default families used. If other
+fonts are used as standard document fonts, for example, some
+PostScript fonts, it might be necessary to adjust the value of
+|\bfdefault| to |b| since only a few such families have `bold
+extended' series.  An alternative (taken for the fonts provided by
+|psnfss|) is to define silent substitutions from |bx| series to |b|
+series with special |\DeclareFontShape| declarations and the |ssub|
+size function, see Section~\ref{sec:sizefunct}.
+ 
+ 
+\begin{decl}
+ |\itdefault| \\
+ |\sldefault| \\
+ |\scdefault| \\
+ |\updefault|
+\end{decl}
+The shapes selected by |\textit|, |\itshape|, |\textsl|, |\slshape|,
+|\textsc|, |\scshape|, |\textup| and |\upshape|.  By default these are
+|it|, |sl|, |sc| and |n|.
+ 
+Note that there are no parameters for the size commands.  These should
+be defined directly in class files, for example:
+\begin{verbatim}
+   \renewcommand{\normalsize}{\fontsize{10}{12}\selectfont}
+\end{verbatim}
+More elaborate examples (setting additional parameters when the text
+size is changed) can be found in |classes.dtx| the source
+documentation for the classes |article|, |report|, and |book|.
+ 
+ 
+\subsection{Special font declaration commands}
+ 
+\begin{decl}
+|\DeclareFixedFont| \arg{cmd} \arg{ENC} \arg{family} \arg{series}
+                    \arg{shape} \arg{size}
+\end{decl}
+ 
+Declares command \m{cmd} to be a font switch which selects the font
+that is specified by the attributes \m{ENC}, \m{family}, \m{series},
+\m{shape}, and \m{size}.
+ 
+The font is selected without any adjustments to baselineskip and other
+surrounding conditions.
+ 
+This example makes |{\picturechar .}| select a small dot very quickly:
+\begin{verbatim}
+   \DeclareFixedFont{\picturechar}{OT1}{cmr}{m}{n}{5}
+\end{verbatim}
+ 
+ 
+\begin{decl}
+|\DeclareTextFontCommand| \arg{cmd} \arg{font-switches}
+\end{decl}
+ 
+Declares command \m{cmd} to be a font command with one argument.
+The current font attributes are locally modified by \m{font-switches}
+and then the argument of \m{cmd} is typeset in the resulting new font.
+ 
+Commands defined by |\DeclareTextFontCommand| automatically take care
+of any necessary italic correction (on either side).
+ 
+The following example shows how |\textrm| is defined by the kernel.
+\begin{verbatim}
+   \DeclareTextFontCommand{\textrm}{\rmfamily}
+\end{verbatim}
+ 
+To define a command that always typeset its argument in the italic
+shape of the main document font you could declare:
+\begin{verbatim}
+   \DeclareTextFontCommand{\normalit}{\normalfont\itshape}
+\end{verbatim}
+ 
+This declaration can be used to change the meaning of a command; if
+\m{cmd} is already defined, a log that it has been redefined
+is put in the transcript file.
+ 
+\begin{decl}
+|\DeclareOldFontCommand| \arg{cmd} \arg{text-switch}
+                                   \arg{math-switch}
+\end{decl}
+ 
+Declares command \m{cmd} to be a font switch (i.e.~used with the
+syntax |{<cmd>...}|) having the definition \m{text-switch}
+when used in text and the definition \m{math-switch} when used in a
+formula.
+Math alphabet commands, like |\mathit|, when used within \m{math-switch}
+should not have an argument.  Their use in this argument causes their
+semantics to change so that they here act as a font switch, as
+required by the usage of the \m{cmd}.
+ 
+This declaration is useful for setting up commands like |\rm| to behave
+as they did in \LaTeX~2.09. We strongly urge you \emph{not} to misuse
+this declaration to invent new font commands.
+ 
+The following example defines |\it| to produce the italic shape of the
+main document font if used in text and to switch to the font that would
+normally be produced by the math alphabet |\mathit| if used in a
+formula.
+\begin{verbatim}
+   \DeclareOldFontCommand{\it}{\normalfont\itshape}{\mathit}
+\end{verbatim}
+ 
+This declaration can be used to change the meaning of a command; if
+\m{cmd} is already defined, a log that it has been redefined
+is put in the transcript file.
+ 
+ 
+\section{Math fonts}
+\label{Sec:math}
+ 
+This section describes the commands available to class and package
+writers for specifying math fonts and math commands.
+ 
+\subsection{Math font attributes}
+ 
+The selection of fonts within math mode is quite different to that of
+text fonts.
+ 
+Some  math fonts are selected explicitly by one-argument commands such
+as |\mathsf{max}| or |\mathbf{vec}|: these are called \emph{math
+alphabets}.  These math alphabet commands affect only the font used
+for letters and symbols of type |\mathalpha| (see
+Section~\ref{Sec:math.commands}); other symbols within the argument
+will be left unchanged.  The predefined math alphabets are:
+\begin{center}
+   \begin{tabular}{ccc}
+      \emph{Alphabet} & \emph{Description} & \emph{Example} \\
+      |\mathnormal|   & default      & $abcXYZ$ \\
+      |\mathrm|       & roman        & $\mathrm{abcXYZ}$ \\
+      |\mathbf|       & bold roman   & $\mathbf{abcXYZ}$ \\
+      |\mathsf|       & sans serif   & $\mathsf{abcXYZ}$ \\
+      |\mathit|       & text italic  & $\mathit{abcXYZ}$ \\
+      |\mathtt|       & typewriter   & $\mathtt{abcXYZ}$ \\
+      |\mathcal|      & calligraphic & $\mathcal{XYZ}$
+   \end{tabular}
+\end{center}
+Other math fonts are selected implicitly by \TeX{} for symbols, with
+commands such as |\oplus| (producing $\oplus$) or with straight
+characters like |>>| or |+|.  Fonts containing such math symbols are
+called \emph{math symbol fonts}.  The predefined math symbol fonts
+are:
+\begin{center}
+   \begin{tabular}{ccc}
+  \emph{Symbol font} & \emph{Description}         & \emph{Example} \\
+      |operators|    & symbols from |\mathrm|     & $[\;+\;]$ \\
+      |letters|      & symbols from |\mathnormal| & $<<\star>>$ \\
+      |symbols|      & most \LaTeX{} symbols      & $\leq*\geq$ \\
+      |largesymbols| & large symbols              & $\sum\prod\int$
+   \end{tabular}
+\end{center}
+Some math fonts are both \emph{math alphabets} and \emph{math symbol
+fonts}, for example |\mathrm| and |operators| are the same font, and
+|\mathnormal| and |letters| are the same font.
+ 
+Math fonts in \LaTeX{} have the same five attributes as text fonts:
+encoding, family, series, shape and size.  However, there are no
+commands that allow the attributes to be individually changed.
+Instead,
+the conversion from math fonts to these five attributes is controlled
+by the \emph{math version}.  For example, the |normal| math version
+maps:
+\begin{center}
+   \begin{tabular}{rlc@{ }c@{ }c@{ }c}
+      \multicolumn{2}{c}{\emph{Math font}} &
+      \multicolumn{4}{c}{\emph{External font}} \\
+      \emph{Alphabets} & \emph{Symbol fonts} &
+      \multicolumn{4}{c}{\emph{Attributes}} \\
+      |\mathnormal| & |letters|      & |OML| & |cmm|  & |m|  & |it| \\
+      |\mathrm|     & |operators|    & |OT1| & |cmr|  & |m|  & |n|  \\
+      |\mathcal|    & |symbols|      & |OMS| & |cmsy| & |m|  & |n|  \\
+                    & |largesymbols| & |OMX| & |cmex| & |m|  & |n|  \\
+      |\mathbf|     &                & |OT1| & |cmr|  & |bx| & |n|  \\
+      |\mathsf|     &                & |OT1| & |cmss| & |m|  & |n|  \\
+      |\mathit|     &                & |OT1| & |cmr|  & |m|  & |it| \\
+      |\mathtt|     &                & |OT1| & |cmtt| & |m|  & |n|
+   \end{tabular}
+\end{center}
+The |bold| math version is similar except that it contains bold fonts.
+The command |\boldmath| selects the |bold| math version.
+ 
+Math versions can only be changed outside of math mode.
+ 
+The two predefined math versions are:
+\begin{center}
+   \begin{tabular}{rl}
+      |normal| & the default math version \\
+      |bold|   & the bold math version
+   \end{tabular}
+\end{center}
+Packages may define new math alphabets, math symbol fonts, and math
+versions.  This section describes the commands for writing such
+packages.
+ 
+\subsection{Selection commands}
+ 
+There are no commands for selecting symbol fonts.  Instead, these are
+selected indirectly through symbol commands like |\oplus|.
+Section~\ref{Sec:math.commands} explains how to define symbol commands.
+ 
+\begin{decl}
+      |\mathnormal{<math>}|\\
+      |\mathcal{<math>}|\\
+      |\mathrm{<math>}|\\
+      |\mathbf{<math>}|\\
+      |\mathsf{<math>}|\\
+      |\mathit{<math>}|\\
+      |\mathtt{<math>}|
+\end{decl}
+Each math alphabet is a command which can only be used inside math
+mode.  For example, |$x + \mathsf{y} + \mathcal{Z}$| produces $x +
+\mathsf{y} + \mathcal{Z}$.
+ 
+\begin{decl}
+|\mathversion{<version-name>}|
+\end{decl}
+This command selects a math version; it can only be used outside math
+mode.  For example, |\boldmath| is defined to be |\mathversion{bold}|.
+ 
+\subsection{Declaring math versions}
+ 
+\begin{decl}
+|\DeclareMathVersion| \arg{version-name}
+\end{decl}
+ 
+Defines \m{version-name} to be a math version.
+ 
+The newly declared version is initialised with the defaults for all
+symbol fonts and math alphabets
+declared so far (see the commands
+|\DeclareSymbolFont| and |\DeclareMathAlphabet|).
+ 
+If used on an already existing version, an information message is
+written to the transcript file and all previous |\SetSymbolFont| or
+|\SetMathAlphabet| declarations for this version are overwritten by
+the math alphabet and symbol font defaults, i.e.~one ends up with a
+virgin math version.
+ 
+Example:
+\begin{verbatim}
+   \DeclareMathVersion{normal}
+\end{verbatim}
+ 
+ 
+\subsection{Declaring math alphabets}
+ 
+\begin{decl}
+|\DeclareMathAlphabet| \arg{math-alph} \arg{encoding} \arg{family}
+                       \arg{series} \arg{shape}
+\end{decl}
+ 
+Defines \m{math-alph} to be a new math alphabet.
+ 
+The arguments \m{encoding} \m{family} \m{series} \m{shape} are the
+default values for this math alphabet in all math versions; these can
+be reset later for a particular math version by a |\SetMathAlphabet|
+command.  If \m{shape} is empty then the \m{math-alph} is declared to
+be invalid in all versions, unless it is set by a later
+|\SetMathAlphabet| command.
+ 
+Checks that \m{math-alph} can be used and that \m{encoding} is a valid
+encoding scheme.
+ 
+In these examples, |\foo| is defined everywhere but |\baz|,
+by default, is defined nowhere.
+\begin{verbatim}
+   \DeclareMathAlphabet{\foo}{OT1}{cmtt}{m}{n}
+   \DeclareMathAlphabet{\baz}{OT1}{}{}{}
+\end{verbatim}
+ 
+ 
+\begin{decl}
+|\SetMathAlphabet| \arg{math-alph} \arg{version-name}\\
+        \null\hfill\arg{encoding} \arg{family} \arg{series} \arg{shape}
+\end{decl}
+ 
+Changes, or sets, the font for the math alphabet \m{math-alph} in math
+version \m{version-name} to \m{encoding}\m{family}\m{series}\m{shape}.
+ 
+Checks that \m{math-alph} is a math alphabet, \m{version-name} is a
+math version and \m{encoding} is a known encoding scheme.
+ 
+This example defines |\baz| for the `normal' math version only:
+\begin{verbatim}
+   \SetMathAlphabet\baz{normal}{OT1}{cmss}{m}{n}
+\end{verbatim}
+ 
+Note that this declaration is not used for all math alphabets:
+Section~\ref{sec:symalph} describes |\DeclareSymbolFontAlphabet|,
+which is used to set up math alphabets contained in fonts which have
+are declared as symbol fonts.
+ 
+ 
+\subsection{Declaring symbol fonts}
+\label{sec:symalph}
+ 
+\begin{decl}
+|\DeclareSymbolFont| \arg{sym-font-name} \arg{encoding} \arg{family}
+                     \arg{series} \arg{shape}
+\end{decl}
+ 
+Defines \m{sym-font-name} to be a new symbol font.
+ 
+The arguments \m{encoding} \m{family} \m{series} \m{shape} are the
+default values for this symbol font in all math versions; these can be
+reset later for a particular math version by a |\SetSymbolFont|
+command.
+ 
+Checks that \m{sym-font-name} can be used and that \m{encoding} is a
+declared encoding scheme.
+ 
+ 
+For example, the following sets up the first four standard math symbol
+fonts:
+\begin{verbatim}
+   \DeclareSymbolFont{operators}{OT1}{cmr}{m}{n}
+   \DeclareSymbolFont{letters}{OML}{cmm}{m}{it}
+   \DeclareSymbolFont{symbols}{OMS}{cmsy}{m}{n}
+   \DeclareSymbolFont{largesymbols}{OMX}{cmex}{m}{n}
+\end{verbatim}
+ 
+ 
+\begin{decl}
+|\SetSymbolFont| \arg{sym-font-name} \arg{version name}\\
+     \null\hfill \arg{encoding} \arg{family} \arg{series} \arg{shape}
+\end{decl}
+ 
+Changes the symbol font \m{sym-font-name} for math version \m{version
+  name} to \m{encoding} \m{family} \m{series} \m{shape}.
+ 
+Checks that \m{sym-font-name} is a symbol font, \m{version name} is a
+known math version and \m{encoding} is a declared encoding scheme.
+ 
+For example, the following come from the set up of the `bold'
+math version:
+\begin{verbatim}
+   \SetSymbolFont{operators}{bold}{OT1}{cmr}{bx}{n}
+   \SetSymbolFont{letters}{bold}{OML}{cmm}{b}{it}
+\end{verbatim}
+ 
+ 
+\begin{decl}
+|\DeclareSymbolFontAlphabet| \arg{math-alph} \arg{sym-font-name}
+\end{decl}
+ 
+Allows the previously declared symbol font \m{sym-font-name} to be
+also the math alphabet \m{id} (in all math versions).
+ 
+This declaration should be used in preference to
+|\DeclareMathAlphabet| and |\SetMathAlphabet| when a math alphabet is
+the same as a symbol font; this is because it makes better use of the
+limited number (only 16) of \TeX's math groups.
+ 
+Checks that \m{math-alph} can be defined and that
+\m{sym-font-name} is a symbol font.
+ 
+Example:
+\begin{verbatim}
+   \DeclareSymbolFontAlphabet{\mathrm}{operators}
+   \DeclareSymbolFontAlphabet{\mathcal}{symbols}
+\end{verbatim}
+ 
+ 
+\subsection{Declaring math symbols}
+\label{Sec:math.commands}
+ 
+\begin{decl}
+|\DeclareMathSymbol| \arg{symbol} \arg{type} \arg{sym-font-name}
+                     \arg{slot}
+\end{decl}
+ 
+The \m{symbol} can be either a single character such as `|>>|', or a
+macro name, such as |\sum|.
+ 
+Defines the \m{symbol} to be a math symbol of type
+\m{type} in slot \m{slot} of symbol font \m{sym-font-name}. The
+\m{type} can be given as a number or as a command:
+\begin{center}
+   \begin{tabular}{ccc}
+      \emph{Type} & \emph{Meaning} & \emph{Example} \\
+      |0| or |\mathord  | & Ordinary           & $\alpha$ \\
+      |1| or |\mathop   | & Large operator     & $\sum$ \\
+      |2| or |\mathbin  | & Binary operation   & $\times$ \\
+      |3| or |\mathrel  | & Relation           & $\leq$ \\
+      |4| or |\mathopen | & Opening            & $\langle$ \\
+      |5| or |\mathclose| & Closing            & $\rangle$ \\
+      |6| or |\mathpunct| & Punctuation        & $;$ \\
+      |7| or |\mathalpha| & Alphabet character & $A$
+   \end{tabular}
+\end{center}
+Only symbols of type |\mathalpha| will be affected by math alphabet
+commands: within the argument of a math alphabet command they will
+produce the character in slot \m{slot} of that math alphabet's font.
+Symbols of other types will always produce the same symbol
+(within one math version).
+ 
+|\DeclareMathSymbol| allows a macro \m{symbol} to be redefined only if
+it was previously defined to be a math symbol.
+It also checks that the \m{sym-font-name} is a
+declared symbol font.
+ 
+Example:
+\begin{verbatim}
+   \DeclareMathSymbol{\alpha}{0}{letters}{"0B}
+   \DeclareMathSymbol{\lessdot}{\mathbin}{AMSb}{"0C}
+   \DeclareMathSymbol{\foo}{\mathalpha}{AMSb}{"0C}
+\end{verbatim}
+ 
+ 
+\begin{decl}
+ |\DeclareMathDelimiter| \arg{cmd}   \arg{type}
+               \arg{sym-font-name-1} \arg{slot-1}\\
+  \null\hfill  \arg{sym-font-name-2} \arg{slot-2}
+\end{decl}
+Defines \m{cmd} to be a math delimiter where the small
+variant is in slot \m{slot-1} of symbol font
+\m{sym-font-name-1} and the large variant is in slot
+\m{slot-2} of symbol font \m{sym-font-name-2}.  Both symbol fonts
+must have been declared previously.
+ 
+Checks that \m{sym-font-name-i} are both
+declared symbol fonts.
+ 
+If \TeX{} is not looking for a delimiter, \m{cmd} is treated just as
+if it had been defined with |\DeclareMathSymbol| using
+\m{type},\m{sym-font-name-1} and \m{slot-1}.  In other words, if a
+command is defined as a delimiter then this automatically defines it
+as a math symbol.
+ 
+Example:
+\begin{verbatim}
+   \DeclareMathDelimiter{\langle}{\mathopen}{symbols}{"68}
+                                            {largesymbols}{"0A}
+\end{verbatim}
+ 
+ 
+\begin{decl}
+|\DeclareMathAccent| \arg{cmd} \arg{type} \arg{sym-font-name} \arg{slot}
+\end{decl}
+ 
+Defines \m{cmd} to act as a math accent.
+ 
+The accent character comes from slot \m{slot} in
+\m{sym-font-name}. The \m{type} can be either
+|\mathord| or |\mathalpha|; in the latter case the accent character
+changes font when used in a math alphabet.
+ 
+Example:
+\begin{verbatim}
+   \DeclareMathAccent{\acute}{\mathalpha}{operators}{"13}
+   \DeclareMathAccent{\vec}{\mathord}{letters}{"7E}
+\end{verbatim}
+ 
+ 
+\begin{decl}
+|\DeclareMathRadical| \arg{cmd}
+                    \arg{sym-font-name-1} \arg{slot-1}\\
+       \null\hfill  \arg{sym-font-name-2} \arg{slot-2}
+\end{decl}
+ 
+Defines \m{cmd} to be a radical where the small variant is in
+slot \m{slot-1} of symbol font \m{sym-font-name-1} and the
+large variant is in slot \m{slot-2} of symbol font
+\m{sym-font-name-2}.  Both symbol fonts must have been declared
+previously.
+ 
+Example (probably the only use for it!):
+\begin{verbatim}
+   \DeclareMathRadical{\sqrt}{symbols}{"70}{largesymbols}{"70}
+\end{verbatim}
+ 
+\subsection{Declaring math sizes}
+ 
+\begin{decl}
+|\DeclareMathSizes| \arg{t-size} \arg{mt-size} \arg{s-size}
+                    \arg{ss-size}
+\end{decl}
+ 
+Declares that \m{mt-size} is the math text size, \m{s-size} is the
+script size and \m{ss-size} the scriptscript size to be used in math,
+when \m{t-size} is the current text size. For text sizes for which no
+such declaration is given the script and scriptscript size will be
+calculated and then fonts are loaded for the calculated sizes or the
+best approximation (this may result in a warning message).
+ 
+Normally, \m{t-size} and \m{mt-size} will be identical; however, if,
+for example, PostScript text fonts are mixed with bit-map math fonts
+then you may not have available a \m{mt-size} for every \m{t-size}.
+ 
+Example:
+\begin{verbatim}
+   \DeclareMathSizes{13.82}{12.4}{10}{7}
+\end{verbatim}
+ 
+\section{Font installation}
+\label{Sec:install}
+ 
+This section explains how \LaTeX's font attributes are turned into
+\TeX{} font specifications.
+ 
+\subsection{Font definition files}
+ 
+The description of how \LaTeX{} font attributes are turned into \TeX{}
+fonts is usually kept in a \emph{font definition} (|.fd|) file.  The
+|.fd| file for family \m{family} in encoding \m{encoding} is called
+|<ENC><family>.fd|, for example |OT1cmr.fd| for Computer Modern Roman
+or |T1ptm.fd| for Adobe Times.
+ 
+Whenever \LaTeX{} encounters an encoding/family combination that it
+does not know (e.g.~if the document designer says
+|\fontfamily{ptm}\selectfont|) then \LaTeX{} attempts to load the
+appropriate |.fd| file.  ``Not known'' means: there was no
+|\DeclareFontFamily| declaration issued for this encoding/family
+combination.
+ 
+The declarations in the |.fd| file are responsible for telling
+\LaTeX{} how to load fonts for that encoding/family combination.  If
+the |.fd| file could not be found, a warning is issued and font
+substitutions are made.
+ 
+ 
+\subsection{Font definition file commands}
+ 
+The |.fd| files should contain only commands from this section.
+Note that those commands can also be used outside a |.fd| file:
+they can be put in package or class files, or even in the preamble
+of a document.
+ 
+\begin{decl}
+   |\ProvidesFile{<file-name>}[<release-info>]|
+\end{decl}
+The |.fd| file should announce itself with a |\ProvidesFile| command,
+as described in \emph{\clsguide}.  For example:
+\begin{verbatim}
+   \ProvidesFile{T1ptm.fd}[1994/06/01 Adobe Times font definitions]
+\end{verbatim}
+ 
+\begin{decl}
+|\DeclareFontFamily| \arg{encoding} \arg{family} \arg{loading-settings}
+\end{decl}
+ 
+Declares a font family \m{family} to be available in encoding scheme
+\m{encoding}.
+ 
+The \m{loading-settings} are executed immediately after loading any
+font with this encoding and family.
+ 
+Checks that \m{encoding} was previously declared.
+ 
+This example refers to the Computer Modern Typewriter font family in
+the Cork encoding:
+\begin{verbatim}
+   \DeclareFontFamily{T1}{cmtt}{\hyphenchar\font=-1}
+\end{verbatim}
+ 
+Each |.fd| file should contain exactly one |\DeclareFontFamily|
+command, and it should be for the appropriate encoding/family
+combination.
+ 
+\begin{decl}
+|\DeclareFontShape| \arg{encoding} \arg{family} \arg{series}
+                    \arg{shape}\\
+        \null\hfill \arg{loading-info} \arg{loading-option}
+\end{decl}
+ 
+Declares a font shape combination; here \m{loading-info} contains the
+information that combines sizes with external fonts. The syntax is
+complex and is described in Section~\ref{sec:loadinfo} below.
+ 
+The \m{loading-settings} are executed after loading any font with this
+font shape.  They are executed immediately after the
+`loading-settings' which were declared by |\DeclareFontFamily| and so
+they can be used to overwrite the settings made at the family level.
+ 
+Checks that the combination \m{encoding}\m{family} was previously
+declared via |\DeclareFontFamily|.
+ 
+Example:
+\begin{verbatim}
+   \DeclareFontShape{OT1}{cmr}{m}{sl}{%
+             <<5-8>> sub * cmr/m/n
+             <<8>> cmsl8
+             <<9>> cmsl9
+             <<10>> <<10.95>> cmsl10
+             <<12>> <<14.4>> <<17.28>> <<20.74>> <<24.88>> cmsl12
+             }{}
+\end{verbatim}
+An |.fd| file can contain any number of |\DeclareFontShape| commands,
+which should be for the appropriate \m{encoding} and \m{family}.
+ 
+\subsection{Font file loading information}
+\label{sec:loadinfo}
+ 
+The information which tells \LaTeX{} exactly which font ({\tt .tfm})
+files to load is contained in the \m{loading-info} part of a
+|\DeclareFontShape| declaration. This part consists of one or more
+\m{fontshape-decl}s, each of which has the following form:
+ 
+\begin{center}
+\begin{tabular}{r@{ $::=$ }l}
+ \m{fontshape-decl} &  \m{size-infos} \m{font-info} \\
+ \m{size-infos}     &  \m{size-infos} \m{size-info} $\mid$
+                       \m{size-info} \\
+ \m{size-info}      & ``|<<|''  \m{number-or-range} ``|>>|'' \\
+ \m{font-info}      & $[$ \m{size-function} ``|*|''  $]$
+                      $[$ ``|[|'' \m{optarg} ``|]|'' $]$ \m{fontarg} \\
+\end{tabular}
+\end{center}
+The \m{number-or-range} denotes the size or size-range
+for which this entry applies.
+ 
+If it contains a hyphen it is a
+range: lower bound on the left (if missing, zero implied), upper bound
+on the right (if missing, $\infty$ implied). For ranges, the
+upper bound is \emph{not} included in the range and the lower bound is.
+ 
+Examples:
+\begin{center}
+\begin{tabular}{lll}
+   |<<10>>|     &  simple size& 10pt only\\
+   |<<-8>>|     &  range& all sizes less than 8pt\\
+   |<<8-14.4>>| &  range& all sizes greater than or equal to 8pt\\
+              &       & \ but less than 14.4pt\\
+   |<<14.4->>|  &  range& all sizes greater than or equal 14.4pt
+\end{tabular}
+\end{center}
+If more than one \m{size-info} entry follows without any
+intervening \m{font-info}, they all share the next \m{font-info}.
+ 
+The \m{size-function}, if present, handles the use of \m{font-info}.
+If not present, the `empty' \m{size-function} is assumed.
+ 
+All the \m{size-info}s are inspected in the order in which they appear
+in the font shape declaration. If a \m{size-info} matches the
+requested size, its \m{size-function} is executed. If |\external@font|
+is non-empty afterwards this process stops, otherwise the next
+\m{size-info} is inspected. (See also |\DeclareSizeFunction|.)
+ 
+If this process does not lead to a non-empty |\external@font|,
+\LaTeX{} tries the nearest simple size. If the entry contains only
+ranges an error is returned.
+ 
+ 
+\subsection{Size functions}
+\label{sec:sizefunct}
+ 
+ 
+\LaTeX{} provides the following size functions, whose `inputs' are
+\m{fontarg} and \m{optarg} (when present).
+ 
+\begin{description}
+\item[`' (empty)]
+Load the external font \m{fontarg} at the user-requested size. If
+\m{optarg} is present, it is used as the scale-factor.
+ 
+\item[s]
+Like the empty function but without terminal warnings, only
+loggings.
+ 
+\item[gen]
+Generates the external font from \m{fontarg} followed by
+the user-requested size, e.g. |<<8>> <<9>> <<10>> gen * cmtt|
+ 
+\item[sgen]
+Like the `gen' function but without terminal warnings, only loggings.
+ 
+\item[sub]
+Tries to load a font from a different font shape declaration given by
+\m{fontarg} in the form \m{family}|/|\m{series}|/|\m{shape}.
+ 
+\item[ssub]
+Silent variant of `sub', only loggings.
+ 
+\item[subf]
+Like the empty function but issues a warning that it has to substitute
+the external font \m{fontarg} because the desired font shape was not
+available in the requested size.
+ 
+\item[ssubf]
+Silent variant of `subf', only loggings.
+ 
+\item[fixed]
+Load font \m{fontarg} as is, disregarding the user-requested size.
+If present, \m{optarg} gives the ``at \ldots pt'' size to be used.
+ 
+\item[sfixed]
+Silent variant of `fixed', only loggings.
+ 
+\end{description}
+ 
+Examples for the use of most of the above size functions can be found
+in the file |cmfonts.fdd|---the source for the standard |.fd| files
+describing the Computer Modern fonts by Donald Knuth.
+ 
+ 
+\begin{decl}
+|\DeclareSizeFunction| \arg{name} \arg{code}
+\end{decl}
+ 
+Declares a size-function \m{name} for use in |\DeclareFontShape|
+commands.  The interface is still under development but there should be
+no real need to a define new size functions.
+ 
+The \m{code} is executed when the size or size-range in
+|\DeclareFontShape| matches the user-requested size.
+ 
+The arguments of the size-function are automatically parsed and placed
+into |\mandatory@arg| and |\optional@arg| for use in \m{code}. Also
+available, of course, is |\f@size|, which is the user-requested size.
+ 
+To signal success \m{code} must define the command |\external@font|
+to contain the external name and any scaling options (if present) for
+the font to be loaded.
+ 
+This example sets up the `empty' size function (simplified):
+\begin{verbatim}
+   \DeclareSizeFunction{}
+           {\edef\external@font{\mandatory@arg\space at\f@size}
+\end{verbatim}
+ 
+ 
+\section{Encodings}
+\label{Sec:encode}
+ 
+This section explains how to declare and use new font encodings and
+how to declare commands for use with particular encodings.
+ 
+\subsection{The \textsf{fontenc} package}
+ 
+Users can select new font encodings using the |fontenc| package.  The
+|fontenc| package has options for encodings; the last option becomes
+the default encoding.  For example, to use the |OT2| (Washington
+University Cyrillic encoding) and |T1| encodings, with |T1| as the
+default, an author types:
+\begin{verbatim}
+   \usepackage[OT2,T1]{fontenc}
+\end{verbatim}
+ 
+This package loads the \emph{encoding definition files}
+(|<ENC>enc.def| files) for each font encoding \m{ENC} given as an
+option but not already declared; it also sets |\encodingdefault| to be
+the last encoding in the option list.
+ 
+\LaTeX{} currently predefines the |OT1| and |T1| text encodings, and
+provides the files |OT1enc.def| and |T1enc.def|. Other encoding
+set-ups might be added to the distribution at a later stage.
+ 
+Thus the example above loads the file |OT2enc.def| and sets
+|\encodingdefault| to |T1|.
+ 
+\subsection{Encoding definition files}
+\label{Sec:encode.def}
+ 
+{\bf Warning:} Some aspects of the contents of font definition files
+are still under development.  Therefore, the current versions of the
+files |OT1enc.def| and |T1enc.def| are temporary versions and should
+not be used as models for producing further such files.  For further
+information you should read the documentation in |ltoutenc.dtx|.
+ 
+The declarations in the encoding definition file are  responsible for
+declaring the encoding and telling \LaTeX{} how to produce characters
+in this encoding.
+ 
+The |<ENC>enc.def| files should contain only commands from this
+section.  As with the font definition file commands, it is also
+possible (although normally not necessary) to use these declarations
+directly within a class or package file.
+ 
+\begin{decl}
+   |\ProvidesFile{<file-name>}[<release-info>]|
+\end{decl}
+The |<ENC>enc.def| file should announce itself with a |\ProvidesFile|
+command, described in \emph{\clsguide}.  For example:
+\begin{verbatim}
+   \ProvidesFile{OT2enc.def}
+                [1994/06/01 Washington Univ. Cyrillic encoding]
+\end{verbatim}
+ 
+ 
+\begin{decl}
+|\DeclareFontEncoding| \arg{encoding} \arg{text-settings}
+                       \arg{math-settings}
+\end{decl}
+ 
+Declares a new encoding scheme \m{encoding}.
+ 
+The \m{text-settings} are
+declarations which are executed every time |\selectfont| changes the
+encoding to be \m{encoding}.
+ 
+The \m{math-settings} are similar but are for math alphabets. They
+are executed whenever a math alphabet with this encoding is
+called.
+ 
+Spaces within the arguments are ignored to avoid surplus
+spaces in the document. If a real space is necessary
+use |\space|.
+ 
+Example:
+\begin{verbatim}
+   \DeclareFontEncoding{OT1}{}{}
+\end{verbatim}
+ 
+Some author commands need to change their definition depending on
+which encoding is currently in use.  For example, in the |OT1|
+encoding, the letter `\AE' is in slot |"1D|, whereas in the |T1|
+encoding it is in slot |"C6|.  So the definition of |\AE| has to
+change depending on whether the current encoding is |OT1| or |T1|.
+The following commands allow this to happen.
+ 
+\begin{decl}
+   |\DeclareTextCommand| \arg{cmd} \arg{encoding}
+   \oarg{num} \oarg{default} \arg{definition}
+\end{decl}
+This command is like |\newcommand|, except that it defines a
+command which is specific to one encoding.  For example, the
+definition of |\aa| in the |OT1| encoding is:
+\begin{verbatim}
+  \DeclareTextCommand{\aa}{OT1}{{\accent23a}}
+\end{verbatim}
+|\DeclareTextCommands| takes the same optional arguments as
+|\newcommand|.
+ 
+The resulting command is
+robust, even if the code in \m{definition} is fragile.
+ 
+It does not produce an error if the command has already
+been defined but logs the redefinition in the transcript file.
+ 
+\begin{decl}[1994/12/01]
+   |\ProvideTextCommand| \arg{cmd} \arg{encoding}
+   \oarg{num} \oarg{default} \arg{definition}
+\end{decl}
+This command is the same as |\DeclareTextCommand|, except that
+if \m{cmd} is already defined in encoding \m{encoding}, then the
+definition is ignored.
+ 
+\begin{decl}
+   |\DeclareTextSymbol| \arg{cmd} \arg{encoding} \arg{slot}
+\end{decl}
+This command defines a text symbol with slot \m{slot} in the
+encoding.  For example, the definition of |\ss| in the |OT1| encoding
+is:
+\begin{verbatim}
+   \DeclareTextSymbol{\ss}{OT1}{25}
+\end{verbatim}
+It does not produce an error if the command has already
+been defined but logs the redefinition in the transcript file.
+ 
+\begin{decl}
+   |\DeclareTextAccent| \arg{cmd} \arg{encoding} \arg{slot}
+\end{decl}
+This command declares a text accent, with the accent taken from slot
+\m{slot} in the encoding.  For example, the definition of |\"| in
+the |OT1| encoding is:
+\begin{verbatim}
+   \DeclareTextAccent{\"}{OT1}{127}
+\end{verbatim}
+It does not produce an error if the command has already
+been defined but logs the redefinition in the transcript file.
+ 
+\begin{decl}
+   |\DeclareTextComposite| \arg{cmd} \arg{encoding} \arg{letter}
+                           \arg{slot}
+\end{decl}
+This command declares that the composite letter formed from applying
+\m{cmd} to \m{letter} is defined to be simply slot \m{slot} in the
+encoding.   The \m{letter} should be a single letter (such as |a|) or
+a single command (such as |\i|).
+ 
+ 
+For example, the definition of |\'{a}|
+in the |T1| encoding could be declared like this:
+\begin{verbatim}
+   \DeclareTextComposite{\'}{T1}{a}{225}
+\end{verbatim}
+ 
+The \m{cmd} should have been previously declared with
+|\DeclareTextAccent|, or as a one-argument |\DeclareTextCommand|.
+ 
+\begin{decl}[1994/12/01]
+   |\DeclareTextCompositeCommand| \arg{cmd} \arg{encoding} \arg{letter}
+                           \arg{definition}
+\end{decl}
+This is a more general form of |\DeclareTextComposite|, which allows for 
+an arbitrary \m{definition}, not just a \m{slot}.  The main use for this 
+is to allow accents on |i| to act like accents on |\i|, for example:
+\begin{verbatim}
+   \DeclareTextCompositeCommand{\'}{OT1}{i}{\'\i}
+\end{verbatim}
+It has the same restrictions as |\DeclareTextComposite|.
+ 
+\subsection{Default definitions}
+ 
+\NEWdescription{1994/12/01}
+   The commands in \m{ENC}|enc.def| files allow encoding-specific 
+   commands to be defined, but they do not allow commands to be used in 
+   other encodings.  For example, the OMS encoding contains the symbol 
+   `\S', but we need to be able to use the command |\S| in any encoding, 
+   not just OMS.
+   
+   To allow this, \LaTeX{} has commands for giving default definitions 
+   for commands, which are used when the command is not defined in the 
+   current encoding.  For example, the default encoding for |\S| is OMS, 
+   and so in an encoding (such as OT1) which does not contain |\S|, the 
+   OMS version is selected.  But in an encoding (such as T1) which does 
+   contain |\S|, the version for that encoding is used.
+   
+   \emph{Note} these commands should \emph{not} occur in 
+   \m{ENC}|enc.def| files, since these should only define commands 
+   for that encoding.  They should instead be placed in packages.
+ 
+\begin{decl}[1994/12/01]
+   |\DeclareTextCommandDefault| \arg{cmd} \arg{definition} \\
+\end{decl}
+This command allows an encoding-specific command to be given a default 
+definition.  For example, the default definition for |\copyright| is 
+defined be be a circled `c' with:
+\begin{verbatim}
+   \DeclareTextCommandDefault{\copyright}{\textcircled{c}}
+\end{verbatim}
+\begin{decl}[1994/12/01]
+   |\DeclareTextAccentDefault| \arg{cmd} \arg{encoding} \\
+   |\DeclareTextSymbolDefault| \arg{cmd} \arg{encoding}
+\end{decl}
+These commands allow an encoding-specific command to be given a
+default encoding.  For example, the default encoding for |\"| and
+|\ae| is set to be OT1 by:
+\begin{verbatim}
+   \DeclareTextAccentDefault{\"}{OT1}
+   \DeclareTextSymbolDefault{\ae}{OT1}
+\end{verbatim}
+Note that |\DeclareTextAccentDefault| can be used on any one-argument 
+encoding-specific command, not just those defined with 
+|\DeclareTextAccent|.  Similarly, |\DeclareTextSymbolDefault| can be used 
+on any encoding-specific command with no arguments, not just those 
+defined with |\DeclareTextSymbol|.
+ 
+For more examples of these definitions, see |ltoutenc.dtx|.  
+ 
+\begin{decl}[1994/12/01]
+   |\ProvideTextCommandDefault| \arg{cmd} \arg{definition}
+\end{decl}
+This command is the same as |\DeclareTextCommandDefault|, except that if 
+the command already has a default definition, then the definition is 
+ignored.  This is useful to give `faked' definitions of symbols which may 
+be given `real' definitions by other packages.  For example, a package 
+might give a fake definition of |\textonequarter| by saying:
+\begin{verbatim}
+   \ProvideTextCommandDefault{\textonequarter}{$\m@th\frac14$}
+\end{verbatim}
+ 
+ 
+\subsection{Encoding defaults}
+ 
+\begin{decl}
+|\DeclareFontEncodingDefaults| \arg{text-settings} \arg{math-settings}
+\end{decl}
+ 
+Declares \m{text-settings} and \m{math-settings} for all encoding
+schemes.  These are executed before the encoding scheme dependent ones
+are executed so that one can use the defaults for the major cases and
+overwrite them if necessary using |\DeclareFontEncoding|.
+ 
+If |\relax| is used as an argument, the current setting of this default
+is left unchanged.
+ 
+This example is used by amsfonts.sty for accent positioning; it changes
+only the math settings:
+\begin{verbatim}
+   \DeclareFontEncodingDefaults{\relax}{\def\accentclass@{7}}
+\end{verbatim}
+ 
+ 
+\begin{decl}
+|\DeclareFontSubstitution|  \arg{encoding} \arg{family} \arg{series}
+                            \arg{shape}
+\end{decl}
+ 
+Declares the default values for font substitution which will be used
+when a font with encoding \m{encoding}
+should be loaded but no font can be found with the current
+attributes.
+ 
+These substitutions are local to the encoding scheme because the
+encoding scheme is never substituted!  They are tried in the order
+\m{shape} then  \m{series} and finally \m{family}.
+ 
+If no defaults are set up for an encoding, the values given by
+|\DeclareErrorFont| are used.
+ 
+The font specification for
+\m{encoding}\m{family}\m{series}\m{shape}
+must have been defined by |\DeclareFontShape|
+before the |\begin{document}| is reached.
+ 
+Example:
+\begin{verbatim}
+   \DeclareFontSubstitution{T1}{cmr}{m}{n}
+\end{verbatim}
+ 
+ 
+\section{Miscellania}
+\label{Sec:misc}
+ 
+ 
+This section covers the remaining font commands of \LaTeX.
+ 
+\subsection{Font substitution}
+ 
+\begin{decl}
+|\DeclareErrorFont| \arg{encoding} \arg{family} \arg{series}
+                    \arg{shape} \arg{size}
+\end{decl}
+ 
+Declares \m{encoding}\m{family}\m{series}\m{shape} to be the font shape
+used in cases where the standard substitution mechanism fails
+(i.e.~would loop). For the standard mechanism see the command
+|\DeclareFontSubstitution| above.
+ 
+The font specification for
+\m{encoding}\m{family}\m{series}\m{shape}
+must have been defined by |\DeclareFontShape|
+before the |\begin{document}| is reached.
+ 
+Example:
+\begin{verbatim}
+   \DeclareErrorFont{OT1}{cmr}{m}{n}{10}
+\end{verbatim}
+ 
+ 
+\begin{decl}
+|\fontsubfuzz|
+\end{decl}
+ 
+This parameter is used to decide whether or not to produce a terminal
+warning if a font size substitution takes place. If the difference
+between the requested and the chosen size is less than |\fontsubfuzz|
+the warning is only written to the transcript file. The default value
+is |0.4pt|.  This can be redefined with |\renewcommand|, for example:
+\begin{verbatim}
+   \renewcommand{\fontsubfuzz}{0pt}   % always warn
+\end{verbatim}
+ 
+\subsection{Preloading}
+ 
+\begin{decl}
+|\DeclarePreloadSizes| \arg{encoding} \arg{family} \arg{series}
+                       \arg{shape}
+\arg{size-list}
+\end{decl}
+ 
+ 
+Specifies the fonts that should be preloaded by the format.  These
+commands should be put in a |preload.cfg| file, which is read in when
+the \LaTeX{} format is being built.
+Read |preload.dtx| for more information on how to built such a
+configuration file.
+ 
+Example:
+\begin{verbatim}
+   \DeclarePreloadSizes{OT1}{cmr}{m}{sl}{10,10.95,12}
+\end{verbatim}
+ 
+ 
+\subsection{Naming conventions}
+ 
+\begin{itemize}
+\item
+Math alphabet commands all start with |\math...|: examples are
+|\mathbf|, |\mathcal|, etc.
+ 
+\item
+The text font changing commands with arguments all start with
+|\text...|: e.g.~|\textbf| and |\textrm|.  The exception to this is
+|\emph|, since it occurs very commonly in author documents and so
+deserves a shorter name.
+ 
+\item
+Names for encoding schemes are strings of up to three letters, all
+upper case.  The \LaTeX3 project reserves the use of encodings
+starting with |T| (standard 256-long text encodings), |M| (standard
+256-long math encodings), |S| (standard 256-long symbol encodings),
+|OT| (standard 128-long text encodings) and |OM| (standard 128-long
+math encodings).  Please do not use the above starting letters for
+non-portable encodings.  If new standard encoding emerge then we
+shall add them in a later release of \LaTeX.
+ 
+Encoding schemes which are local to a site should start with |L|.
+ 
+\item
+Font family names should contain up to five lower case letters.
+Where possible, these should conform to the \emph{Filenames for fonts}
+font naming scheme.
+ 
+\item
+Font series names should contain up to four lower case letters.
+ 
+\item
+Font shapes should contain up to two letters lower case.
+ 
+\item
+Names for symbol fonts are built from lower and upper case letters
+with no restriction.
+\end{itemize}
+ 
+Whenever possible, you should use the series and shape names suggested
+in \emph{\LaTeXcomp} since this will make it easier to combine new
+fonts with existing fonts.
+ 
+\NEWdescription{1994/12/01}
+   Where possible, text symbols should be named as |\text| followed by
+   the Adobe glyph name: for example |\textonequarter| or 
+   |\textsterling|.  Similarly, math symbols should be named as 
+   |\math| followed by the glyph name, for example |\mathonequarter| 
+   or |\mathsterling|.  Commands which can be used in text or math can
+   then be defined using |\ifmmode|, for example:
+\begin{verbatim}
+   \DeclareRobustCommand{\pounds}{%
+      \ifmmode \mathsterling \else \textsterling \fi
+   }
+\end{verbatim}
+   Note that commands defined in this way must be robust, in case they
+   get put into a section title or other moving argument.
+
+   
+\begin{thebibliography}{1}
+ 
+\bibitem{A-W:GMS94}
+Michel Goossens, Frank Mittelbach and Alexander Samarin.
+\newblock {\em The {\LaTeX} Companion}.
+\newblock Addison-Wesley, Reading, Massachusetts, 1994.
+ 
+\bibitem{tub:DKn89}
+Donald~E. Knuth.
+\newblock Typesetting concrete mathematics.
+\newblock {\em {TUG}boat}, 10(1):31--36, April 1989.
+ 
+\bibitem{A-W:LLa94}
+Leslie Lamport.
+\newblock {\em {\LaTeX:} A Document Preparation System}.
+\newblock Addison-Wesley, Reading, Massachusetts, second edition, 1994.
+ 
+\end{thebibliography}
+ 
+\end{document}
+ 

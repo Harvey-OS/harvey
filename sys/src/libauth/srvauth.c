@@ -1,66 +1,58 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
-#include "srv.h"
+#include "authlocal.h"
 
-enum{
-	CHALLEN	= 2 * AUTHLEN + 2 * NAMELEN,
-	RESPLEN	= 2 * AUTHLEN + NAMELEN + DESKEYLEN,
-	SULEN	= AUTHLEN + NAMELEN + DESKEYLEN,
-	MAXLEN	= 2*AUTHLEN + 2*NAMELEN + DESKEYLEN,
-};
+static char *abmsg = "/dev/authenticate: %r";
+static char *cgmsg = "client gave up";
 
-char *
-srvauth(char *user)
+int
+srvauth(int fd, char *user)
 {
-	char buf[MAXLEN], chal[AUTHLEN];
-	int fd;
+	int n, afd;
+	char trbuf[TICKREQLEN];
+	char tbuf[2*TICKETLEN];
 
-	/*
-	 * get the kernel challenge and pass it to the terminal
-	 */
-	fd = open("#c/chal", OREAD);
-	if(fd < 0)
-		return "can't open challenge file";
-	if(read(fd, chal, AUTHLEN) != AUTHLEN){
-		close(fd);
-		return "can't read challenge";
+	/* get ticket request from kernel and pass to client */
+	afd = open("/dev/authenticate", ORDWR);
+	if(afd < 0){
+		werrstr(abmsg);
+		return -1;
 	}
-	close(fd);
-	if(write(1, chal, AUTHLEN) != AUTHLEN)
-		return "can't write challenge";
+	n = read(afd, trbuf, TICKREQLEN);
+	if(n != TICKREQLEN){
+		close(afd);
+		werrstr(abmsg);
+		return -1;
+	}
+	if(write(fd, trbuf, TICKREQLEN) < 0){
+		close(afd);
+		werrstr(cgmsg);
+		return -1;
+	}
 
-	/*
-	 * forward the encrypted challenge from the terminal
-	 * to the auth server
-	 */
-	if(read(0, buf, CHALLEN) != CHALLEN)
-		return "can't read terminal challege";
-	strncpy(user, &buf[2*AUTHLEN+NAMELEN], NAMELEN);
-	fd = authdial("rexauth");
-	if(fd < 0)
-		return "can't call authentication server";
-	if(write(fd, buf, CHALLEN) != CHALLEN){
-		close(fd);
-		return "can't write terminal challenge";
+	/* get reply from client and pass to kernel */
+	if(_asreadn(fd, tbuf, TICKETLEN+AUTHENTLEN) < 0){
+		close(afd);
+		werrstr(cgmsg);
+		return -1;
 	}
-	if(read(fd, buf, RESPLEN) != RESPLEN){
-		close(fd);
-		return "failed to authenticate";
+	if(write(afd, tbuf, TICKETLEN+AUTHENTLEN) < 0){
+		close(afd);
+		memset(tbuf, 0, AUTHENTLEN);
+		write(fd, tbuf, AUTHENTLEN);
+		werrstr("permission denied");
+		return -1;
 	}
-	close(fd);
 
-	if(write(1, buf, RESPLEN) != RESPLEN)
-		return "can't write to terminal";
-	if(read(0, buf, SULEN) != SULEN)
-		return "can't read from terminal";
-	netchown(user);
-	fd = open("#c/chal", OWRITE|OTRUNC);
-	if(fd < 0 || write(fd, buf, SULEN) != SULEN){
-		close(fd);
-		return "can't set user name";
+	/* get authenticator from kernel and pass to client*/
+	read(afd, tbuf, AUTHENTLEN);
+	close(afd);
+	if(write(fd, tbuf, AUTHENTLEN) < 0){
+		werrstr("permission denied");
+		return -1;
 	}
-	close(fd);
-	write(1, "OK", 2);
+
+	strcpy(user, getuser());
 	return 0;
 }

@@ -31,6 +31,7 @@ enum {					/* flags */
 	Fwritten	= 0x04,		/* device written */
 	Fronly		= 0x08,		/* device is read-only */
 	Fwormdev	= 0x10,		/* write-once read-multiple device */
+	Fprintdev	= 0x20,		/* printer */
 };
 
 enum {					/* status */
@@ -63,7 +64,7 @@ enum {					/* SCSI command codes */
 	ScmdRcapacity	= 0x25,		/* read capacity */
 
 	ScmdFlushcache	= 0x35,		/* flush cache */
-	ScmdRdiscinfo	= 0x43,		/* flush cache */
+	ScmdRdiscinfo	= 0x43,		/* read TOC data */
 	ScmdFwaddr	= 0xE2,		/* first writeable address */
 	ScmdTreserve	= 0xE4,		/* reserve track */
 	ScmdTinfo	= 0xE5,		/* read track info */
@@ -103,3 +104,5 @@ extern int SRopenraw(ScsiReq*, int);
 extern int SRopen(ScsiReq*, int);
 
 extern void makesense(ScsiReq*);
+
+extern int bus;

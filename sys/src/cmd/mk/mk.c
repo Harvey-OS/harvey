@@ -197,9 +197,9 @@ pcmp(char *prog, char *n1, char *n2)
 	Bflush(&stdout);
 	if(pid == 0){
 		sprint(buf, "%s '%s' '%s'", prog, n1, n2);
-		EXECLP(shell, shellname, "-Ic", buf, (char *)0);
+		execl(shell, shellname, "-Ic", buf, (char *)0);
 		perror("exec shell");
-		NOCLOSEEXIT(1);
+		_exits("shell exec error");
 	} else {
 		while(waitup(-3, &pid) >= 0)
 			;

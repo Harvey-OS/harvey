@@ -1,0 +1,78 @@
+#
+# This Plan 9 mkfile is for easy building.  To configure, use ape/sh and make
+# to create a new gconfig.h, remove all the .o's, and run mk normally.
+# use make -f plan9.mak
+#
+</$objtype/mkfile
+BIN=/$objtype/bin
+
+TARG=gs
+
+GEN = gconfig.$O gp_nofb.$O gp_unifn.$O gp_unifs.$O gp_unix.$O \
+	ialloc.$O ibnum.$O idebug.$O idict.$O idparam.$O igc.$O igcref.$O \
+	igcstr.$O iinit.$O iname.$O interp.$O iparam.$O isave.$O iscan.$O \
+	iscanbin.$O iscannum.$O iscantab.$O istack.$O iutil.$O iutil2.$O  \
+	sbcp.$O sbhc.$O sbits.$O sbwbs.$O scfd.$O scfdtab.$O scfe.$O \
+	scfetab.$O scftab.$O sdctc.$O sdctd.$O sdcte.$O seexec.$O sfile.$O \
+	sfilter1.$O sfilter2.$O shc.$O shcgen.$O sjpegc.$O sjpegd.$O \
+	sjpege.$O sjpegerr.$O slzwd.$O slzwe.$O sstring.$O stream.$O 
+
+GS = gs.$O gsbitops.$O gschar.$O gschar0.$O gscie.$O gscolor.$O \
+	gscolor1.$O gscolor2.$O gscoord.$O gscsepr.$O gsdevice.$O \
+	gsdparam.$O gsdps1.$O gsfont.$O gsfont0.$O gsht.$O gsht1.$O \
+	gshtscr.$O gsimage.$O gsimage1.$O gsimage2.$O gsimage3.$O \
+	gsimpath.$O gsiodev.$O gsiscale.$O gsline.$O gsmain.$O \
+	gsmatrix.$O gsmemory.$O gsmisc.$O gspaint.$O gspath.$O \
+	gspath2.$O gspcolor.$O gsstate.$O gstype1.$O gsutil.$O gswppm.$O
+
+GDEV = gdevabuf.$O gdevdfax.$O gdevm1.$O gdevm16.$O gdevm2.$O \
+	gdevm24.$O gdevm32.$O gdevm4.$O gdevm8.$O gdevmem.$O \
+	gdevmpla.$O gdevpbm.$O gdevpipe.$O gdevprn.$O gdevtfax.$O 
+
+GX = gxacpath.$O gxccache.$O gxccman.$O gxcht.$O gxclip2.$O \
+	gxclist.$O gxclread.$O gxcmap.$O gxcpath.$O gxdcconv.$O \
+	gxdither.$O gxdraw.$O gxfill.$O gxhint1.$O gxhint2.$O gxhint3.$O \
+	gxht.$O gxpath.$O gxpath2.$O gxpcmap.$O gxpcopy.$O gxstroke.$O
+
+JPEG = jcapi.$O jccoefct.$O jccolor.$O jcdctmgr.$O jchuff.$O jcmainct.$O \
+	jcmarker.$O jcmaster.$O jcomapi.$O jcparam.$O jcprepct.$O \
+	jcsample.$O jdapi.$O jdcoefct.$O jdcolor.$O jddctmgr.$O jdhuff.$O \
+	jdmainct.$O jdmarker.$O jdmaster.$O jdpostct.$O jdsample.$O \
+	jfdctint.$O jidctint.$O jmemmgr.$O jutils.$O
+
+
+Z = zarith.$O zarray.$O zbseq.$O zchar.$O zchar1.$O zchar2.$O zcie.$O \
+	zcolor.$O zcolor1.$O zcolor2.$O zcontrol.$O zcsindex.$O zcssepr.$O \
+	zdevice.$O zdevice2.$O zdict.$O zdps1.$O zfbcp.$O zfdctc.$O \
+	zfdctd.$O zfdcte.$O zfdecode.$O zfile.$O zfileio.$O zfilter.$O \
+	zfilter2.$O zfname.$O zfont.$O zfont0.$O zfont1.$O zfont2.$O \
+	zfproc.$O zgeneric.$O zgstate.$O zht.$O zht1.$O zht2.$O zimage2.$O \
+	ziodev.$O ziodev2.$O zmath.$O zmatrix.$O zmisc.$O zmisc1.$O \
+	zmisc2.$O zpacked.$O zpaint.$O zpath.$O zpath2.$O zpcolor.$O \
+	zrelbit.$O zstack.$O zstring.$O zsysvm.$O ztoken.$O ztype.$O \
+	zupath.$O zvmem.$O zvmem2.$O
+
+HFILES = $objtype.h
+OFILES = $GEN $GDEV $GS $GX $JPEG $Z
+
+</sys/src/cmd/mkone
+
+%.$O:	jpeg-5/%.c
+	cp jpeg-5/$stem.c .; $CC $CFLAGS $stem.c; rm -f $stem.c
+
+#use genarch to build $objtype.h.  genarch must run on same cpu type.
+genarch:	genarch.c
+	if(! ~ $objtype $cputype) {echo can''''t build $objtype on $cputype; exit false}
+	rfork e
+	objtype=$cputype
+	pcc -o genarch genarch.c
+
+$objtype.h:	genarch
+	genarch $objtype.h
+	rm -f genarch
+
+gconfig.$O:	gconfig.c gconfig.h
+	pcc -c -DPlan9 '-DGS_INIT="gs_init.ps"' gconfig.c
+
+CC=pcc
+CFLAGS=-c -DPlan9 -D_POSIX_SOURCE -D_BSD_EXTENSION -Ijpeg-5 -DT$objtype

@@ -10,16 +10,16 @@ main(int argc, char *argv[]){
 	if(argc!=1 && argc!=2) usage("[picture]");
 	in=picopen_r(argc==2?argv[1]:"IN");
 	if(in==0){
-		picerror(argc==2?argv[1]:"IN");
+		perror(argc==2?argv[1]:"IN");
 		exits("open input");
 	}
 	out=picopen_w("OUT", PIC_SAMEARGS(in));
 	if(out==0){
-		picerror("OUT");
+		perror("OUT");
 		exits("creat output");
 	}
 	map(in, out, filter, NWIN);
-	return 0;
+	exits(0);
 }
 #define	new(t, n)	((t *)emalloc((n)*sizeof(t)))
 char *emalloc(int n){

@@ -1,9 +1,9 @@
 #include <alef.h>
 
-char*
-strdup(char *s) 
+byte*
+strdup(byte *s) 
 {  
-	char *os;
+	byte *os;
 
 	os = malloc(strlen(s) + 1);
 	if(os)

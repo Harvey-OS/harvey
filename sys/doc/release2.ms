@@ -11,7 +11,7 @@ This software contains proprietary information of
 AT&T and is not to be disclosed or used except in
 accordance with applicable agreements.
 
-Copyright \(co 1993 AT&T
+Copyright © 1993 AT&T
 
 Unpublished and not for publication
 All Rights Reserved
@@ -55,7 +55,7 @@ Some serious bugs have been fixed in the paging code.
 The internal SGI SCSI is now supported.
 TCP has flow control.
 A variety of mice are now supported; the command
-.CW aux/vga
+.CW aux/mouse
 queries the mouse at boot time and reports to the mouse driver.
 There is a driver for the Nextstation's audio hardware.
 In

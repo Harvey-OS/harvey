@@ -1,247 +1,323 @@
 /*
- * Convert a 3 channel picture to the best 1 channel picture with the
- * given colormap.
+ * 3to1 -- convert a 24 bit picture to 8 bits
+ *	also does color-map replacement on 8 bit inputs
  */
 #include <u.h>
 #include <libc.h>
 #include <libg.h>
 #include <fb.h>
-#define	NMAP	256
-struct box{
-	int map[3];
-}cmap[NMAP];
-int nmap;
-#define	RED	0
-#define	GRN	1
-#define	BLU	2
-char **picargv;
-short error[4098*3];
-char *progcmd;
-void buildkd(void);
-int closest(int r, int g, int b);
-main(int argc, char *argv[]){
-	int x, y;
-	char *p, *q;
-	short *e;
-	int i, t;
+#define	NCMAP	256		/* how many color map entries? */
+#define	NCOLOR	256		/* 0<=r,g,b<NCOLOR */
+void initcindex(uchar [][3], int);
+int fclook(int, int, int);
+int clook(int, int, int);
+void main(int argc, char *argv[]){
 	PICFILE *in, *out;
-	struct box *bp;
-	char inline[4096*8], outline[4096], cmapbuf[256*3];
-	short herror[3];
-	argc=getflags(argc, argv, "en:1[ncolor]");
-	if(argc!=2 && argc!=3) usage("cmap [picture]");
-	nmap=flag['n']?atoi(flag['n'][0]):NMAP;
-	if(nmap<=0 || NMAP<nmap) usage("cmap [picture]");
-	if(!getcmap(argv[1], (unsigned char *)cmapbuf)){
-		perror(argv[1]);
+	char *infile, *s, *inbuf, *outbuf, *ip, *op, *eop;
+	int wid, hgt, nchan, offs, y, mapped, i, t;
+	uchar cmap[NCMAP][3];
+	uchar icmap[NCMAP][3];
+	short *e, *error, herror[3];
+	int ncmap;
+	switch(getflags(argc, argv, "en:1[ncolor]")){
+	default:
+		usage("cmap [picture]");
+	case 3:
+		infile=argv[2];
+		break;
+	case 2:
+		infile="IN";
+		break;
+	}
+	if(!getcmap(argv[1], (uchar *)cmap)){
+		fprint(2, "%s: can't get colormap %s\n", argv[0], argv[1]);
 		exits("no cmap");
 	}
-	for(bp=cmap,p=cmapbuf;bp!=&cmap[nmap];bp++,p+=3){
-		bp->map[0]=p[0]&255;
-		bp->map[1]=p[1]&255;
-		bp->map[2]=p[2]&255;
+	ncmap=flag['n']?atoi(flag['n'][0]):NCMAP;
+	if(ncmap>NCMAP){
+		fprint(2, "%s: sorry, can't handle ncolor>%d\n", argv[0], NCMAP);
+		exits("range error");
 	}
-	buildkd();
-	for(bp=cmap,p=cmapbuf;bp!=&cmap[nmap];bp++,p+=3){
-		p[0]=bp->map[0];
-		p[1]=bp->map[1];
-		p[2]=bp->map[2];
-	}
-	in=picopen_r(argc==3?argv[2]:"IN");
+	in=picopen_r(infile);
 	if(in==0){
-		picerror(argc==3?argv[2]:"IN");
-		exits("open input");
+		perror(infile);
+		exits("no input");
 	}
-	if(PIC_NCHAN(in)<3){
-		fprint(2, "%s: not rgb\n", argv[1]);
-		exits("not rgb");
-	}
-	out=picopen_w("OUT", in->type,
-		PIC_XOFFS(in), PIC_YOFFS(in), PIC_WIDTH(in), PIC_HEIGHT(in),
-		"m", argv, cmapbuf);
-	if(out==0){
-		picerror("OUT");
-		exits("create output");
-	}
-	for(y=0;y!=PIC_HEIGHT(in);y++){
-		picread(in, inline);
-		if(flag['e']){
-			for(x=0,p=inline,q=outline;x!=PIC_WIDTH(in);x++,p+=PIC_NCHAN(in),q++)
-				*q=closest(p[0]&255, p[1]&255, p[2]&255);
+	s=strstr(in->chan, "rgb");
+	if(s==0){
+		mapped=1;
+		s=strstr(in->chan, "m");
+		if(s==0){
+			fprint(2, "%s: can't convert CHAN=%s\n", argv[0], in->chan);
+			exits("unk chan");
 		}
-		else{
+		if(in->cmap) memmove(icmap, in->cmap, 256*3);
+		else for(y=0;y!=256;y++) icmap[y][0]=icmap[y][1]=icmap[y][2]=y;
+	}
+	else
+		mapped=0;
+	offs=s-in->chan;
+	wid=PIC_WIDTH(in);
+	hgt=PIC_HEIGHT(in);
+	nchan=PIC_NCHAN(in);
+	inbuf=malloc(wid*nchan);
+	outbuf=malloc(wid);
+	error=malloc((wid+1)*3*sizeof(short));
+	memset(error, 0, (wid+1)*3*sizeof(short));
+	if(inbuf==0 || outbuf==0 || error==0){
+		fprint(2, "%s: can't malloc\n", argv[0]);
+		exits("no malloc");
+	}
+	out=picopen_w("OUT", in->type, PIC_XOFFS(in), PIC_YOFFS(in), wid, hgt, "m", 0,
+		(char *)cmap);
+	initcindex(cmap, ncmap);
+	eop=outbuf+wid;
+	for(y=0;y!=hgt;y++){
+		picread(in, inbuf);
+		if(flag['e']){
+			if(mapped){
+				for(op=outbuf,ip=inbuf+offs;op!=eop;op++,ip+=nchan)
+					*op=fclook(icmap[*ip&255][0]&255,
+						icmap[*ip&255][1]&255,
+						icmap[*ip&255][2]&255);
+			}
+			else{
+				for(op=outbuf,ip=inbuf+offs;op!=eop;op++,ip+=nchan)
+					*op=fclook(ip[0]&255, ip[1]&255, ip[2]&255);
+			}
+		}
+		else if(mapped){
 			herror[0]=herror[1]=herror[2]=0;
-			for(x=0,p=inline,q=outline,e=error+3;
-			    x!=PIC_WIDTH(in);
-			    x++,p+=PIC_NCHAN(in),q++,e+=3){
-				*q=closest((p[0]&255)+e[0], (p[1]&255)+e[1], (p[2]&255)+e[2]);
+			for(op=outbuf,ip=inbuf+offs,e=error+3;op!=eop;op++,ip+=nchan,e+=3){
+				*op=clook((icmap[*ip&255][0]&255)+e[0],
+					  (icmap[*ip&255][1]&255)+e[1],
+					  (icmap[*ip&255][2]&255)+e[2]);
 				for(i=0;i!=3;i++){
-					t=(p[i]&255)-cmap[*q&255].map[i];
+					t=(icmap[*ip&255][i]&255)-cmap[*op&255][i];
 					e[i]=3*t/8+herror[i];
 					herror[i]=t/4;
 					e[i+3]+=t-(5*t/8);
 				}
 			}
 		}
-		picwrite(out, outline);
-	}
-	exits("");
-}
-struct kd{
-	int dim, split;
-	struct kd *left, *right;
-	struct box *leaf;
-}kd[2*NMAP], *ekd=kd;
-int test[3];		/* test point */
-struct box *closep;	/* closest colormap entry found to test point */
-int closed;		/* square of distance from test point to closep */
-int lo[3], hi[3];	/* space delimited by kd-tree partitions */
-#define	INF	0x7FFFFFFF
-int sqdist(int r, int g, int b){ return r*r+g*g+b*b; }
-int overlap(void);
-/*
- * Find the closest color-map entry to the test point, using
- * kd-tree nearest neighbor search algorithm from Friedman, Bentley & Finkel:
- * ``An Algorithm for Finding Best Matches in Logarithmic Expected Time,''
- * ACM Trans. on Math. Soft. 3, pp. 209-226
- *
- * N.B.: kdlook(.) and its subroutine overlap() typically account for 65% of
- * this program's run-time, split evenly between the two.  Everything else is
- * down in the noise.
- */
-void kdlook(struct kd *kd){
-	int t, d;
-	if(kd->leaf){
-		t=sqdist(test[RED]-kd->leaf->map[RED],
-			test[GRN]-kd->leaf->map[GRN],
-			test[BLU]-kd->leaf->map[BLU]);
-		if(t<closed){
-			closep=kd->leaf;
-			closed=t;
+		else{
+			herror[0]=herror[1]=herror[2]=0;
+			for(op=outbuf,ip=inbuf+offs,e=error+3;op!=eop;op++,ip+=nchan,e+=3){
+				*op=clook((ip[0]&255)+e[0],
+					  (ip[1]&255)+e[1],
+					  (ip[2]&255)+e[2]);
+				for(i=0;i!=3;i++){
+					t=(ip[i]&255)-cmap[*op&255][i];
+					e[i]=3*t/8+herror[i];
+					herror[i]=t/4;
+					e[i+3]+=t-(5*t/8);
+				}
+			}
 		}
+		picwrite(out, outbuf);
+	}
+}
+/*
+ * Color-map reverse indexing using a bucket list
+ *
+ * cindex[r>>RSH][g>>GSH][b>>BSH] points to a list of colors
+ * that might be the closest to (r,g,b).
+ */
+#define	RSH	4	/* tune this for speed */
+#define	GSH	4	/* tune this for speed */
+#define	BSH	4	/* tune this for speed */
+#define	NR	(NCOLOR>>RSH)
+#define	NG	(NCOLOR>>GSH)
+#define	NB	(NCOLOR>>BSH)
+typedef struct Interval Interval;
+typedef struct Color Color;
+struct Interval{
+	int lo, hi;
+};
+struct Color{
+	uchar r, g, b, i;
+	Color *next;
+};
+Color *cindex[NR][NG][NB];
+/*
+ * Look (r,g,b) up by indexing
+ * cindex and walking through the list
+ * of possible closest colors
+ */
+int clook(int r, int g, int b){
+	Color *cp, *bestp;
+	int bestd, dr, dg, db, d;
+	if(r<0) r=0; else if(r>=NCOLOR) r=NCOLOR-1;
+	if(g<0) g=0; else if(g>=NCOLOR) g=NCOLOR-1;
+	if(b<0) b=0; else if(b>=NCOLOR) b=NCOLOR-1;
+	cp=cindex[r>>RSH][g>>GSH][b>>BSH];
+	bestp=cp;
+	if(cp->next){
+		dr=cp->r-r;
+		dg=cp->g-g;
+		db=cp->b-b;
+		bestd=dr*dr+dg*dg+db*db;
+		while((cp=cp->next)!=0){
+			dr=cp->r-r;
+			dg=cp->g-g;
+			db=cp->b-b;
+			d=dr*dr+dg*dg+db*db;
+			if(d<bestd){
+				bestd=d;
+				bestp=cp;
+			}
+		}
+	}
+	return bestp->i;
+}
+/*
+ * Same as above, but without range check
+ */
+int fclook(int r, int g, int b){
+	Color *cp, *bestp;
+	int bestd, dr, dg, db, d;
+	cp=cindex[r>>RSH][g>>GSH][b>>BSH];
+	bestp=cp;
+	if(cp->next){
+		dr=cp->r-r;
+		dg=cp->g-g;
+		db=cp->b-b;
+		bestd=dr*dr+dg*dg+db*db;
+		while((cp=cp->next)!=0){
+			dr=cp->r-r;
+			dg=cp->g-g;
+			db=cp->b-b;
+			d=dr*dr+dg*dg+db*db;
+			if(d<bestd){
+				bestd=d;
+				bestp=cp;
+			}
+		}
+	}
+	return bestp->i;
+}
+/*
+ * Interval addition
+ */
+Interval iadd(Interval a, Interval b){
+	a.lo+=b.lo;
+	a.hi+=b.hi;
+	return a;
+}
+/*
+ * Interval square
+ */
+Interval isq(Interval a){
+	int t;
+	if(a.hi<=0){
+		t=a.hi*a.hi;
+		a.hi=a.lo*a.lo;
+		a.lo=t;
+	}
+	else if(a.lo>=0){
+		a.lo*=a.lo;
+		a.hi*=a.hi;
 	}
 	else{
-		d=kd->dim;
-		if(test[d]<kd->split){
-			t=hi[d];
-			hi[d]=kd->split;
-			kdlook(kd->left);
-			hi[d]=t;
-			t=lo[d];
-			lo[d]=kd->split;
-			if(overlap()) kdlook(kd->right);
-			lo[d]=t;
-		}
-		else{
-			t=lo[d];
-			lo[d]=kd->split;
-			kdlook(kd->right);
-			lo[d]=t;
-			t=hi[d];
-			hi[d]=kd->split;
-			if(overlap()) kdlook(kd->left);
-			hi[d]=t;
-		}
+		if(-a.lo>=a.hi)
+			a.hi=a.lo*a.lo;
+		else
+			a.hi*=a.hi;
+		a.lo=0;
 	}
+	return a;
 }
 /*
- * Does the sphere centered on the test point and with closep on its
- * surface overlap the bound volume?
+ * interval ((r<<RSH)-c.r)^2 + ((g<<GSH)-c.g)^2 + ((b<<BSH)-c.b)^2
+ *
+ * This tells us how far c can be from any point in
+ * the box (r,g,b)
  */
-int overlap(void){
-	register dsq, t;
-	if(test[RED]<lo[RED]){
-		t=lo[RED]-test[RED];
-		dsq=t*t;
-	}
-	else if(test[RED]>hi[RED]){
-		t=hi[RED]-test[RED];
-		dsq=t*t;
-	}
-	else dsq=0;
-	if(test[GRN]<lo[GRN]){
-		t=lo[GRN]-test[GRN];
-		dsq+=t*t;
-	}
-	else if(test[GRN]>hi[GRN]){
-		t=hi[GRN]-test[GRN];
-		dsq+=t*t;
-	}
-	if(test[BLU]<lo[BLU]){
-		t=lo[BLU]-test[BLU];
-		dsq+=t*t;
-	}
-	else if(test[BLU]>hi[BLU]){
-		t=hi[BLU]-test[BLU];
-		dsq+=t*t;
-	}
-	return dsq<=closed;
-}
-int closest(int r, int g, int b){
-	test[RED]=r;
-	test[GRN]=g;
-	test[BLU]=b;
-	lo[RED]=lo[GRN]=lo[BLU]=-INF;
-	hi[RED]=hi[GRN]=hi[BLU]=INF;
-	closed=INF;
-	kdlook(kd);
-	return closep-cmap;
-}
-int kddim;
-int kdcmp(struct box *a, struct box *b){
-	return a->map[kddim]-b->map[kddim];
+Interval rsq(Color c, Interval r, Interval g, Interval b){
+	r.lo=(r.lo<<RSH)-c.r;
+	r.hi=(r.hi<<RSH)-c.r;
+	g.lo=(g.lo<<GSH)-c.g;
+	g.hi=(g.hi<<GSH)-c.g;
+	b.lo=(b.lo<<BSH)-c.b;
+	b.hi=(b.hi<<BSH)-c.b;
+	return iadd(iadd(isq(r), isq(g)), isq(b));
 }
 /*
- * build the kd-tree
+ * map[ncmap] is a list of colors that might be the closest
+ * color to some point in the interval box (r,g,b).
+ *
+ * First, we trim the list to remove colors whose minimum distance
+ * to a point in (r,g,b) is larger than the maximum of some other
+ * color, since those can never be the closest to any point in (r,g,b).
+ *
+ * If there is only one color in the list, or if there is only one point
+ * in the box, we're done.
+ *
+ * Otherwise, we subdivide the (r,g,b) box in its longest dimension and
+ * proceed recursively.
  */
-struct kd *makekd(struct box *p0, struct box *p1){
-	register struct box *p;
-	register struct kd *kp=ekd++;
-	register dim;
-	int lo[3], hi[3];
-	if(p1==p0+1){
-		kp->leaf=p0;
-		return kp;
+void rangemap(Color map[NCMAP], int ncmap, Interval r, Interval g, Interval b){
+	Interval range[NCMAP], new;
+	Color submap[NCMAP], *clist;
+	int i, j, k, minhi, nsubmap, dr, dg, db;
+	minhi=255*255*3+1;
+	for(i=0;i!=ncmap;i++){
+		range[i]=rsq(map[i], r, g, b);
+		if(range[i].hi<minhi)
+			minhi=range[i].hi;
 	}
-	for(dim=0;dim!=3;dim++){
-		lo[dim]=hi[dim]=p0->map[dim];
-		for(p=p0+1;p!=p1;p++){
-			if(p->map[dim]<lo[dim]) lo[dim]=p->map[dim];
-			else if(p->map[dim]>hi[dim]) hi[dim]=p->map[dim];
+	nsubmap=0;
+	for(i=0;i!=ncmap;i++){
+		if(range[i].lo<=minhi){
+			submap[nsubmap]=map[i];
+			nsubmap++;
 		}
 	}
-	if(hi[RED]-lo[RED]>hi[GRN]-lo[GRN] && hi[RED]-lo[RED]>hi[BLU]-lo[BLU])
-		kddim=RED;
-	else if(hi[GRN]-lo[GRN]>hi[BLU]-lo[BLU])
-		kddim=GRN;
-	else
-		kddim=BLU;
-	qsort((char *)p0, p1-p0, sizeof(struct box), kdcmp);
-	kp->dim=kddim;
-	p=p0+(p1-p0)/2;
-	kp->split=p->map[kddim];
-	while(p!=p1 && p->map[kddim]==kp->split) p++;
-	if(p==p1){
-		--p;
-		while(p>=p0 && p->map[kddim]==kp->split) --p;
-		if(p<p0){
-			fprint(2, "tiny cell %d\n", p1-p0);
-			kp->leaf=p0;
-			return kp;
-		}
-		kp->split=p++->map[kddim];
+	dr=r.hi-r.lo;
+	dg=g.hi-g.lo;
+	db=b.hi-b.lo;
+	if(nsubmap==1 || dr*dg*db<=1){
+		clist=malloc(nsubmap*sizeof(Color));
+		memmove(clist, submap, nsubmap*sizeof(Color));
+		for(i=1;i!=nsubmap;i++) clist[i-1].next=clist+i;
+		clist[nsubmap-1].next=0;
+		for(i=r.lo;i!=r.hi;i++) for(j=g.lo;j!=g.hi;j++) for(k=b.lo;k!=b.hi;k++)
+			cindex[i][j][k]=clist;
 	}
-	kp->left=makekd(p0, p);
-	kp->right=makekd(p, p1);
-	return kp;
+	else if(dr>=dg && dr>=db){
+		new.lo=r.lo;
+		new.hi=r.lo+dr/2;
+		rangemap(submap, nsubmap, new, g, b);
+		new.lo=new.hi;
+		new.hi=r.hi;
+		rangemap(submap, nsubmap, new, g, b);
+	}
+	else if(dg>=db){
+		new.lo=g.lo;
+		new.hi=g.lo+dg/2;
+		rangemap(submap, nsubmap, r, new, b);
+		new.lo=new.hi;
+		new.hi=g.hi;
+		rangemap(submap, nsubmap, r, new, b);
+	}
+	else{
+		new.lo=b.lo;
+		new.hi=b.lo+db/2;
+		rangemap(submap, nsubmap, r, g, new);
+		new.lo=new.hi;
+		new.hi=b.hi;
+		rangemap(submap, nsubmap, r, g, new);
+	}
 }
-void buildkd(void){
-	register struct kd *kp;
-	for(kp=kd;kp!=ekd;kp++){
-		kp->left=0;
-		kp->right=0;
-		kp->leaf=0;
+Interval rrange={0,NR}, grange={0,NG}, brange={0,NB};
+void initcindex(uchar input[NCMAP][3], int ncmap){
+	int i;
+	Color map[NCMAP];
+	for(i=0;i!=ncmap;i++){
+		map[i].r=input[i][0];
+		map[i].g=input[i][1];
+		map[i].b=input[i][2];
+		map[i].i=i;
 	}
-	ekd=kd;
-	makekd(cmap, &cmap[nmap]);
+	rangemap(map, ncmap, rrange, grange, brange);
 }

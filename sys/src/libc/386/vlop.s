@@ -1,0 +1,14 @@
+TEXT	_mulv(SB), $0
+	MOVL	r+0(FP), CX
+	MOVL	a+4(FP), AX
+	MULL	b+12(FP)
+	MOVL	AX, 0(CX)
+	MOVL	DX, BX
+	MOVL	a+4(FP), AX
+	MULL	b+16(FP)
+	ADDL	AX, BX
+	MOVL	a+8(FP), AX
+	MULL	b+12(FP)
+	ADDL	AX, BX
+	MOVL	BX, 4(CX)
+	RET

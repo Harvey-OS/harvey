@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 	if (f.type == FNONE)
 		error(0, "text file not an a.out");
 	if (syminit(fd, &f) < 0)
-		error(0, symerror);
+		error(1, "syminit");
 	close(fd);
 	/*
 	 * Read timing data

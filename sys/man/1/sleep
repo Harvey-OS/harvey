@@ -20,10 +20,12 @@ Execute a command
 Repeat a command every 30 seconds.
 .IP
 .EX
-while (~ 1 1){
+while (){
 	command
 	sleep 30
 }
 .EE
+.SH SOURCE
+.B /sys/src/cmd/sleep.c
 .SH "SEE ALSO"
 .IR sleep (2)

@@ -1,64 +1,4 @@
 #include	"l.h"
-/*
- *	astro -d << 1992 7 1
- *	07.10
-		3598885       Memory cycles
-		3150860   87% Instruction cycles
-		41158      1% Annulled branch cycles
-		448025    12% Data cycles
-		
-		220695     7% Stores
-		227330     7% Loads
-		   441390   Store stall
-		   49702    Load stall
-		619872    19% Arithmetic
-		1650340   52% Floating point
-		6          0% Sparc special register load/stores
-		38         0% System calls
-		391421    12% Branches
-		   320754    81% Branches taken
-		   344689    88% Delay slots
-		   73620     18% Unused delay slots
-		73620      2% Program total delay slots
- *	09.20
-		3600253       Memory cycles
-		3152228   87% Instruction cycles
-		42512      1% Annulled branch cycles
-		448025    12% Data cycles
-		
-		220695     7% Stores
-		227330     7% Loads
-		   441390   Store stall
-		   51384    Load stall
-		619886    19% Arithmetic
-		1650340   52% Floating point
-		6          0% Sparc special register load/stores
-		38         0% System calls
-		391421    12% Branches
-		   320754    81% Branches taken
-		   343335    87% Delay slots
-		   73634     18% Unused delay slots
-		73634      2% Program total delay slots
- *	09.24
-		3598885       Memory cycles
-		3150860   87% Instruction cycles
-		41158      1% Annulled branch cycles
-		448025    12% Data cycles
-		
-		220695     7% Stores
-		227330     7% Loads
-		   441390   Store stall
-		   49702    Load stall
-		619872    19% Arithmetic
-		1650340   52% Floating point
-		6          0% Sparc special register load/stores
-		38         0% System calls
-		391421    12% Branches
-		   320754    81% Branches taken
-		   344689    88% Delay slots
-		   73620     18% Unused delay slots
-		73620      2% Program total delay slots
- */
 
 enum
 {
@@ -91,7 +31,7 @@ struct	Sch
 	char	comp;
 };
 
-void	regused(Sch*);
+void	regused(Sch*, Prog*);
 int	depend(Sch*, Sch*);
 int	conflict(Sch*, Sch*);
 int	offoverlap(Sch*, Sch*);
@@ -110,12 +50,20 @@ sched(Prog *p0, Prog *pe)
 	for(p=p0;; p=p->link) {
 		memset(s, 0, sizeof(*s));
 		s->p = *p;
-		regused(s);
+		regused(s, p);
 		if(debug['X']) {
 			Bprint(&bso, "%P\tset", &s->p);
 			dumpbits(s, &s->set);
 			Bprint(&bso, "; used");
 			dumpbits(s, &s->used);
+			if(s->comp)
+				Bprint(&bso, "; compound");
+			if(s->p.mark & LOAD)
+				Bprint(&bso, "; load");
+			if(s->p.mark & BRANCH)
+				Bprint(&bso, "; branch");
+			if(s->p.mark & FCMP)
+				Bprint(&bso, "; fcmp");
 			Bprint(&bso, "\n");
 		}
 		s++;
@@ -250,7 +198,7 @@ sched(Prog *p0, Prog *pe)
 }
 
 void
-regused(Sch *s)
+regused(Sch *s, Prog *realp)
 {
 	int c, ar, ad, ld, sz;
 	ulong m;
@@ -259,7 +207,10 @@ regused(Sch *s)
 	p = &s->p;
 	s->comp = compound(p);
 	s->nop = 0;
-
+	if(s->comp) {
+		s->set.ireg |= 1<<REGTMP;
+		s->used.ireg |= 1<<REGTMP;
+	}
 	ar = 0;		/* dest is really reference */
 	ad = 0;		/* source/dest is really address */
 	ld = 0;		/* opcode is load instruction */
@@ -270,7 +221,7 @@ regused(Sch *s)
  */
 	switch(p->as) {
 	case ATEXT:
-		curtext = p;
+		curtext = realp;
 		autosize = p->to.offset + 4;
 		ad = 1;
 		break;
@@ -431,11 +382,11 @@ regused(Sch *s)
 		break;
 	case C_SACON:
 	case C_LACON:
-		s->used.ireg |= REGSP;
+		s->used.ireg |= 1<<REGSP;
 		break;
 	case C_SECON:
 	case C_LECON:
-		s->used.ireg |= REGSB;
+		s->used.ireg |= 1<<REGSB;
 		break;
 	case C_REG:
 		if(ar)
@@ -509,6 +460,9 @@ regused(Sch *s)
 	case C_NONE:
 	case C_SBRA:
 	case C_LBRA:
+		c = p->from.reg;
+		if(c != NREG)
+			s->used.ireg |= 1<<c;
 		break;
 	case C_CREG:
 	case C_FSR:

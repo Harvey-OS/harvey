@@ -4,33 +4,27 @@
 
 APE=/sys/src/ape
 < $APE/config
-SITEDIR=..
-OPT=-B
 SHELL=/bin/rc
 
 TARG=gftype gftodvi gftopk mft
 
-OFILES=mfwarext.$O\
+OFILES=
 
-HFILES=mfware.h\
-	$SITEDIR/site.h\
+HFILES=../lib/common.h
+
+LIB=../lib/lib.a$O
 
 </sys/src/cmd/mkmany
 
-CFLAGS=$OPT -Dlink=link_array -I$SITEDIR -c
+CFLAGS=-B -D_POSIX_SOURCE -I../lib -c
 LDFLAGS=
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 
 all:V:		triptrap
 triptrap:V:	$O.gftype
 
-$O.mft:		mftext.$O
-
-mfwarext.c mftext.c:Q:		#dummy to keep these out of %.c rule
-		echo -n
-
-%.c:		%.p mfware.defines
-		$SHELL ./convert $stem.p $stem.c
+%.c:		%.p
+		$SHELL ../lib/convert $stem.p $stem.c
 
 %.p:		%.ch %.web ../stamp-tangle.$cputype
 		# redirected to stop chatter - remove redirection for debugging

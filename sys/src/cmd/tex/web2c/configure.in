@@ -1,0 +1,79 @@
+dnl Process this file with autoconf to produce a configure script for TeX.
+AC_INIT(tex/tex.web)
+
+dnl Write output here, instead of putting -D's on the command line.
+AC_HEADER_FILE(lib/c-auto.h)
+
+[# Make sure they've decided on their preferences.
+sitedir=$srcdir/lib
+siteh=$sitedir/site.h
+if test ! -r $siteh
+then
+  echo "Please copy $sitedir/site.h.in to $siteh, and edit it."
+  echo "Then run configure again."
+  exit 1
+fi]
+
+dnl We use the prefix to guess the location of the flex library.
+AC_PREFIX(tex)
+
+dnl Use gcc if we have it.
+AC_PROG_GCC_G
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+AC_PROG_BISON
+AC_PROG_FLEX
+AC_PROG_CPP
+AC_DECLARE_YYTEXT
+AC_LN_S
+
+AC_ISC_POSIX
+
+AC_DIR_HEADER
+AC_HEADER_MISSING(float.h, AC_DEFINE(FLOAT_H_MISSING))
+AC_HEADER_MISSING(limits.h, AC_DEFINE(LIMITS_H_MISSING))
+AC_MEMORY_H
+AC_STDC_HEADERS
+AC_UNISTD_H
+AC_USG
+
+AC_RETSIGTYPE
+
+AC_CHAR_UNSIGNED
+AC_WORDS_BIGENDIAN
+
+[echo checking for window system libraries
+# Figure out window system libraries by inspecting site.h.
+if grep -s define.*SUNWIN $siteh
+then wlibs="$wlibs -lsuntool -lsunwindow -lpixrect"
+fi
+if grep -s define.*X11WIN $siteh
+then wlibs="$wlibs -lXt -lX11"
+elif grep define.*X10WIN $siteh
+then wlibs="$wlibs -lX"
+fi
+]dnl
+AC_ISC_WLIBS
+AC_X11_LOCATION
+
+[echo setting up TeX/MF/BibTeX change files
+(cd tex; rm -f ctex.ch; cp tex.ch ctex.ch)
+if test -n "`grep '#define.*SMALLTeX' $siteh`"
+then
+  (cd tex; patch ctex.ch small.diff)]
+  AC_DEFINE(GLUERATIO_TYPE, float)
+[fi
+# Similarly for Metafont.
+(cd mf; rm -f cmf.ch; cp mf.ch cmf.ch)
+if test -n "`grep '#define.*SMALLMF' $siteh`"
+then (cd mf; patch cmf.ch small.diff)
+fi
+# And similarly for BibTeX.
+(cd bibtex; rm -f cbibtex.ch; cp bibtex.ch cbibtex.ch)
+if test -n "`grep '#define.*SMALLBibTeX' $siteh`"
+then (cd bibtex; patch cbibtex.ch small.diff)
+fi
+]
+
+dnl This generates `Makefile'(s), `config.status', and our header file.
+AC_OUTPUT(./Makefile)

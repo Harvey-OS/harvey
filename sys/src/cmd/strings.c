@@ -48,33 +48,34 @@ stringit(char *str)
 	}
 
 	start = 0;
-	for(posn = BOFFSET(fin);
-			(c = Bgetrune(fin)) >= 0; posn = BOFFSET(fin)) {
+	posn = BOFFSET(fin);
+	while((c = Bgetrune(fin)) >= 0) {
 		if(isprint(c)) {
 			if(start == 0)
 				start = posn;
 			buf[cnt++] = c;
 			if(cnt == BUFSIZE-1) {
+				buf[cnt] = 0;
 				Bprint(&fout, "%8d: %S ...\n", start, buf);
 				start = 0;
 				cnt = 0;
 			}
-		}
-		else {
-			 if(cnt > MINSPAN) {
+		} else {
+			 if(cnt >= MINSPAN) {
 				buf[cnt] = 0;
 				Bprint(&fout, "%8d: %S\n", start, buf);
 			}
 			start = 0;
 			cnt = 0;
 		}	
+		posn = BOFFSET(fin);
 	}
 
-	if(cnt > MINSPAN){
+	if(cnt >= MINSPAN){
 		buf[cnt] = 0;
 		Bprint(&fout, "%8d: %S\n", start, buf);
 	}
-	Bclose(fin);
+	Bterm(fin);
 }
 
 int

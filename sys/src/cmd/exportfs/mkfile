@@ -9,6 +9,3 @@ HFILES=exportfs.h\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-
-installall:V:
-	for(objtype in mips 68020 386 sparc) mk install

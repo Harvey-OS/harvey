@@ -19,7 +19,7 @@ tee \- pipe fitting
 .I Tee
 transcribes the standard input to the standard
 output and makes copies in the
-.I files.
+.IR files .
 The options are
 .TP
 .B -i
@@ -32,3 +32,5 @@ rather than rewriting them.
 .TP
 .B -u
 Unbuffered: write the output one character at a time.
+.SH SOURCE
+.B /sys/src/cmd/tee.c

@@ -1,25 +1,41 @@
 objtype=386
-BUILTINS=
-</$objtype/mkfile
+< /$objtype/mkfile
+CPUS=386
+BIN=/$objtype/bin/aux
 
-OFILES=vga.$O
+TARG=vga
 
-$O.out:	$OFILES
-	$LD $OFILES
+OFILES=\
+	att20c49x.$O\
+	att21c498.$O\
+	bt485.$O\
+	ch9294.$O\
+	clgd542x.$O\
+	data.$O\
+	db.$O\
+	et4000.$O\
+	et4000hwgc.$O\
+	ibm8514.$O\
+	icd2061a.$O\
+	ics2494.$O\
+	io.$O\
+	mach32.$O\
+	mach64.$O\
+	main.$O\
+	palette.$O\
+	s3801.$O\
+	s3928.$O\
+	s3clock.$O\
+	s3generic.$O\
+	s3hwgc.$O\
+	sc15025.$O\
+	stg1702.$O\
+	tvp3020.$O\
+	tvp3025.$O\
+	tvp3025clock.$O\
+	vga.$O\
+	vision864.$O\
 
-%.$O:	%.c
-	$CC $stem.c
+HFILES=vga.h
 
-vga.$O:	pc/vga.h pc/common.c
-
-%.db$O:
-	$CC -o/dev/null -s$stem draw.c | dbfmt > $stem.db$O
-
-clean:V:
-	rm -f *.[$OS] *.db[$OS] [$OS].out
-
-install:V:	$O.out
-	cp $O.out /$objtype/bin/aux/nvga
-
-installall:V:
-	objtype=386 mk install
+</sys/src/cmd/mkone

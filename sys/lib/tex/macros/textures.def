@@ -1,0 +1,138 @@
+%% 
+%% This is file `textures.def', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% drivers.dtx  (with options: `textures,color2,macrules')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file drivers.dtx .
+%% 
+%% drivers.dtx Copyright (C) 1994 David Carlisle Sebastian Rahtz
+%%
+%% This file is part of the Standard LaTeX `Graphics Bundle'.
+%%
+%% It should be distributed *unchanged* and together with all other
+%% files in the graphics bundle. The file 00readme.txt contains a list
+%% of all of these files.
+%%
+%% A modified version of this file may be distributed, but it should
+%% be distributed with a *different* name. Changed files must be
+%% distributed *together with a complete and unchanged* distribution
+%% of these files.
+%%
+\ProvidesFile{textures.def}
+        [1994/12/12 v2.6 Driver-dependant file (DPC,SPQR)]
+\def\c@lor@arg#1{%
+  \dimen@#1\p@
+  \ifdim\dimen@<\z@\dimen@\maxdimen\fi
+  \ifdim\dimen@>\p@
+    \PackageError{color}{Argument `#1' not in range [0,1]}\@ehd
+  \fi}
+\def\color@gray#1#2{%
+  \c@lor@arg{#2}%
+  \def#1{rgb #2. #2. #2.}%
+  }
+\def\color@cmyk#1#2{\c@lor@@cmyk#2\@@#1}
+\def\c@lor@@cmyk#1,#2,#3,#4\@@#5{%
+  \c@lor@arg{#1}%
+  \c@lor@arg{#2}%
+  \c@lor@arg{#3}%
+  \c@lor@arg{#4}%
+  \def#5{cmyk #1. #2. #3. #4.}%
+  }
+\def\color@rgb#1#2{\c@lor@@rgb#2\@@#1}
+\def\c@lor@@rgb#1,#2,#3\@@#4{%
+  \c@lor@arg{#1}%
+  \c@lor@arg{#2}%
+  \c@lor@arg{#3}%
+  \def#4{rgb #1. #2. #3.}%
+  }
+\def\color@named#1#2{\c@lor@@named#2,,\@@#1}
+\def\c@lor@@named#1,#2,#3\@@#4{%
+  \@ifundefined{col@#1}%
+    {\PackageError{color}{Undefined color `#1'}\@ehd}%
+  {\edef#4{ #1 \if!#2!\else #2.\fi}}%
+  }
+\def\c@lor@to@ps#1 #2\@@{\csname c@lor@ps@#1\endcsname#2 \@@}
+\def\c@lor@to@ps@#1 #2\@@{\csname c@lor@ps@#1@\endcsname#2 \@@}
+\def\c@lor@ps@#1 #2\@@{%
+  \expandafter\expandafter\expandafter
+     \c@lor@to@ps@\csname col@#1\expandafter\endcsname\space#2. \@@{#1}}
+\def\c@lor@ps@rgb#1. #2. #3. #4\@@{#1 #2 #3 setrgbcolor}
+\def\c@lor@ps@rgb@#1. #2. #3. #4. #5\@@#6{#1 #2 #3 setrgbcolor}
+\def\c@lor@ps@cmyk#1. #2. #3. #4. #5. #6\@@{#1 #2 #3 #4 setcmykcolor}
+\def\c@lor@ps@cmyk@#1. #2. #3. #4. #5. #6\@@#7{%
+       #1 #2 #3 #4  (#7)  findcustomcmykcolor 
+       \if!\@firstofone#5!1 \else#5 \fi setcustomcolor}
+\def\current@color{rgb 0. 0. 0.}
+\def\set@color{%
+  \special{color push}%
+  \special{color \current@color}%
+  \aftergroup\reset@color}
+\def\reset@color{\special{color pop}}
+\def\set@page@color{\c@lor@special\sixt@@n{background \current@color}}
+\def\define@color@named#1#2{%
+  \special{color define #1 #2}%
+  \expandafter\edef\csname col@#1\endcsname{#2}}
+
+\PackageInfo{graphics/color}
+  {This file uses the advanced color support\MessageBreak
+   available in textures1.7\MessageBreak
+   If you are using color with an earlier version\MessageBreak
+   of textures, edit graphics.ins where marked,\MessageBreak
+   and re-latex graphics.ins.\MessageBreak\MessageBreak
+   If you are using textures1.7\MessageBreak
+   you may want to delete this warning\MessageBreak
+   from textures.def.\MessageBreak\MessageBreak
+   The code for scaling/rotation and file inclusion\MessageBreak
+   in this file is still rudimentary, and does not\MessageBreak
+   use textures' full capabilities.\MessageBreak\MessageBreak  
+   A new textures.def is currently being developed\@gobble}
+
+\def\Ginclude@eps{\Textures@Include{illustration}}
+\def\Ginclude@pict{\Textures@Include{pictfile}}
+\def\Textures@Include#1#2{%
+ \def\@tempa{!}%
+ \ifx\Gin@scaley\@tempa
+     \let\Gin@scaley\Gin@scalex
+ \else
+    \ifx\Gin@scalex\@tempa\let\Gin@scalex\Gin@scaley\fi
+ \fi
+ \setlength\@tempdima{\Gin@scalex pt}%
+ \setlength\@tempdimb{\Gin@scaley pt}%
+ \ifdim\@tempdima>\@tempdimb
+    \let\Gin@scalex\Gin@scaley
+ \fi
+ \ifGin@clip
+  \typeout{no clipping support in Textures}%
+ \fi
+ \@tempdimb=1000sp%
+ \setlength\@tempdima{\Gin@scalex\@tempdimb}%
+ \special{#1 #2\space scaled \number\@tempdima}%
+}
+\def\Grot@start{\special{postscript
+  0 0 transform
+  grestore
+  matrix currentmatrix
+  3 1 roll
+  itransform
+  dup 3 -1 roll
+  dup 4 1 roll exch
+  translate
+  \Grot@angle\space neg rotate
+  neg exch neg exch translate
+  gsave}}
+\def\Grot@end{\special{postscript grestore  setmatrix  gsave}}
+\def\Gin@extensions{{},.ps,.eps,.pict}
+\@namedef{Gin@rule@.ps}#1{{eps}{.ps}{#1}}
+\@namedef{Gin@rule@.eps}#1{{eps}{.eps}{#1}}
+\@namedef{Gin@rule@.pict}#1{{pict}{}{#1}}
+\@namedef{Gin@rule@.pntg}#1{{pntg}{}{#1}}
+\@namedef{Gin@rule@}#1{{pict}{\relax}{#1}}
+\endinput
+%% 
+%% End of file `textures.def'.

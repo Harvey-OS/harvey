@@ -33,16 +33,17 @@ struct Waitmsg
 #define CHWRITE		0x2		/* mode bit for write permission */
 #define CHEXEC		0x1		/* mode bit for execute permission */
 
-#define FORKNSG		(1<<0)		/* arguments to rfork */
-#define	FORKEVG		(1<<1)
-#define	FORKFDG		(1<<2)
-#define	FORKNTG		(1<<3)
-#define	FORKPCS		(1<<4)
-#define	FORKMEM		(1<<5)
-#define	FORKNOW		(1<<6)
-#define	FORKCNSG	(1<<10)
-#define	FORKCEVG	(1<<11)
-#define	FORKCFDG	(1<<12)
+#define RFNAMEG		(1<<0)		/* arguments to rfork */
+#define	RFENVG		(1<<1)
+#define	RFFDG		(1<<2)
+#define	RFNOTEG		(1<<3)
+#define	RFPROC		(1<<4)
+#define	RFMEM		(1<<5)
+#define	RFNOWAIT		(1<<6)
+#define	RFCNAMEG	(1<<10)
+#define	RFCENVG	(1<<11)
+#define	RFCFDG	(1<<12)
+#define	RFREND	(1<<13)
 
 extern	int	_ALARM(unsigned long);
 extern	int	_BIND(char*, char*, int);
@@ -53,9 +54,10 @@ extern	int	_DUP(int, int);
 extern	int	_ERRSTR(char*);
 extern	int	_EXEC(char*, char*[]);
 extern	void	_EXITS(char *);
+extern	int	_FSESSION(int, char*);
 extern	int	_FSTAT(int, char*);
 extern	int	_FWSTAT(int, char*);
-extern	int	_MOUNT(int, char*, int, char*, char*);
+extern	int	_MOUNT(int, char*, int, char*);
 extern	int	_NOTED(int);
 extern	int	_NOTIFY(int(*)(void*, char*));
 extern	int	_OPEN(char*, int);

@@ -1,0 +1,390 @@
+.TH PLBUTTON 2
+.SH NAME
+plbutton, plcanvas, plcheckbutton, pledit, plentry, plframe, plgroup, plidollist, pllabel, pllist, plmenu, plmenubar, plmessage, plpopup, plpulldown, plradiobutton, plscrollbar, plslider, pltextview \- panel-creation functions
+.SH SYNOPSIS
+.nf
+.B #include <u.h>
+.br
+.B #include <libg.h>
+.br
+.B #include <panel.h>
+.PP
+.B
+Panel *plbutton(Panel *parent, int flags, Icon *label,
+.B
+	           void (*hit)(Panel *pl, int))
+.PP
+.B
+Panel *plcanvas(Panel *parent, int flags,
+.B
+	           void (*draw)(Panel*), void (*hit)(Panel*, Mouse*))
+.PP
+.B
+Panel *plcheckbutton(Panel *parent, int flags, Icon *label,
+.B
+	                void (hit*)(Panel*, int, int))
+.PP
+.B
+Panel *pledit(Panel *parent, int flags, Point size, Rune *text,
+.B
+	         int ntext, void (*hit)(Panel*))
+.PP
+.B
+Panel *plentry(Panel *parent, int flags, int width, char *text,
+.B
+	          void (*enter)(Panel*, char*))
+.PP
+.B
+Panel *plframe(Panel *parent, int flags)
+.PP
+.B
+Panel *plgroup(Panel *parent, int flags)
+.PP
+.B
+Panel *pllabel(Panel *parent, int flags, Icon *label)
+.PP
+.B
+Panel *pllist(Panel *parent, int flags, char *(*gen)(int),
+.B
+	         int length, void(*hit)(Panel*, int, int))
+.PP
+.B
+Panel *plmenu(Panel *parent, int flags, Icon **items,
+.B
+	         int itemflags, void (*hit)(int, int))
+.PP
+.B
+Panel *plmenubar(Panel *parent, int flags, int itemflags,
+.B
+	            Icon *label1, Panel *p1, Icon *label2, ...)
+.PP
+.B
+Panel *plmessage(Panel *parent, int flags, int width, char *text)
+.PP
+.B
+Panel *plpopup(Panel *parent, int flags,
+.B
+	          Panel *left, Panel *middle, Panel *right)
+.PP
+.B
+Panel *plpulldown(Panel *parent, int flags,
+.B
+	             Icon *label, Panel *pull, int side)
+.PP
+.B
+Panel *plradiobutton(Panel *parent, int flags, Icon *label,
+.B
+	                void (*hit)(Panel*, int, int))
+.PP
+.B
+Panel *plscrollbar(Panel *parent, int flags)
+.PP
+.B
+Panel *plslider(Panel *parent, int flags, Point size,
+.B
+	           void(*hit)(Panel*, int, int, int))
+.PP
+.B
+Panel *pltextview(Panel *parent, int flags, Point size,
+.B
+	             Rtext *text, void (*hit)(Panel*, int, Rtext*))
+.SH DESCRIPTION
+Each of these functions creates and initializes a new node of a
+.B Panel
+tree and returns a pointer to the newly created panel.
+Existing panels may be reinitialized (for example
+to change the label on a button) by functions enumerated in
+.IR plinitbutton (2).
+.PP
+The first two arguments of each panel-creation function are a
+pointer to the new panel's parent and the flags that control
+.B plpack
+(see
+.IR plinit (2)).
+Arguments of type
+.B Icon*
+(a synonym for
+.BR void* )
+are either
+.B Bitmap
+or text labels.  If the
+.B BITMAP
+bit of the flag word is set, they are of type
+.BR Bitmap* .
+Otherwise, their type is
+.BR char* .
+.TP
+.I plbutton
+.PD 0
+.TP
+.I plcheckbutton
+.TP
+.I plradiobutton
+.PD
+These three functions create pushbuttons.
+.I Plbutton
+creates an ordinary button.
+.I Plcheckbutton
+creates a button with a check mark that toggles
+on and off when the button is hit.
+.I Plradiobutton
+likewise creates a button with a check mark, but
+with the additional feature that toggling the
+check mark on toggles off the checks of
+its siblings in
+the
+.B Panel
+tree.
+All three take similar arguments:
+.I label
+is the text or bitmap drawn on the button, and
+.I hit
+is the function called when a hit is registered
+on the button.  Its arguments are a pointer to the button and
+the mouse buttons active when the hit occurred.
+The
+.I hit
+functions of
+.I plcheckbutton
+and
+.I plradiobutton
+take a third argument that indicates the state of the
+button's check mark.
+.IP
+Occasionally, a button or other panel
+may wish to take no action on sensing a hit.  This is indicated by passing
+a null
+.I hit
+function pointer to the creation function.
+.TP
+.I plframe
+.PD 0
+.TP
+.I plgroup
+.PD
+These two functions create compound panels that enclose
+their children in a rectangular area.  The difference is
+that
+.I plframe
+draws a frame around its children, but
+.I plgroup
+does not.
+.TP
+.I pllabel
+.PD 0
+.TP
+.I plmessage
+.PD
+These two functions create passive (insensitive to
+mouse or keyboard events) panels.  The
+.I pllabel
+entry draws a label containing a text string or
+a
+.BR Bitmap .
+.I Plmessage
+draws longer messages.  Its arguments are the desired
+width of the panel, in pixels, and a pointer to the
+text to be drawn.  The text is displayed on multiple
+lines, wrapping around at word boundaries.
+.TP
+.I plcanvas
+creates an empty rectangle in a panel tree.
+The
+.I draw
+argument is a function to be called by
+the panel library to redraw the panel.
+.I Draw's
+argument points to the canvas to be drawn on.
+The
+.I hit
+argument is a function called whenever a mouse event
+is registered in the panel.  Its arguments are a pointer
+to the panel and a pointer to the mouse event.
+.I Hit
+receives all mouse events with points within the canvas's
+rectangle and with a button down.
+In addition, an event is sent when the buttons are released
+over the canvas, or when the mouse moves out of the canvas's
+rectangle.  In the latter case, the mouse event's
+.I buttons
+field has the
+.B OUT
+bit set.
+.TP
+.I pledit
+creates a panel that displays editable single-font text.
+Arguments are the minimum acceptable size for the panel,
+a pointer to an array of
+.B Runes
+that initializes the panel, the number of runes in the
+array, and a function to be called every time a selection
+is swept out with the mouse.  The functions
+.IR pleget ,
+.IR plelen ,
+.IR plegetsel ,
+.IR plepaste ,
+.IR plesel ,
+.IR plescroll ,
+and
+.IR pleshowsel ,
+described in
+.IR plinit (2),
+manipulate the contents of edit panels.
+.TP
+.I plentry
+creates a single-line text entry panel.
+Arguments are the minimum acceptable width of the panel, in pixels,
+a string that is the initial contents of the panel,
+and a hit function to be called whenever a newline is typed in the panel.
+The hit function's arguments are a pointer to the panel and a pointer to
+the string entered.  Clicking the mouse over an entry makes it the
+keyboard focus (the recipient of typed characters), as does calling
+.B plgrabkb
+(described in
+.IR plinit (2)).
+.TP
+.I pllist
+creates a panel containing a scrollable list of text items.
+Its arguments are
+.IR gen ,
+a pointer to a function that, when passed an integer argument,
+returns the text of the appropriate list item,
+.IR length ,
+the minimum acceptable number of items to be displayed on the screen, and
+.IR hit ,
+a function to be called when an item is selected with the mouse.
+.I Hit's
+arguments are a pointer to the panel, which mouse buttons were used to
+make the selection, and the number of the item selected.
+.TP
+.I plmenu
+calls
+.I plgroup
+and
+.I plbutton
+to create an array of buttons.
+The
+.I items
+argument points to an array of strings or
+.B Bitmap
+pointers,
+one per button.  A null pointer ends the list.
+.I Itemflags
+is the flag argument used to create each button.
+The
+.I hit
+function's arguments are the mouse buttons pressed
+to register the hit and the button's index in
+.IR items .
+.TP
+.I plpopup
+creates a group, as in
+.IR plgroup ,
+except that where
+.I plgroup
+always passes mouse events on to its children,
+.I plpopup
+may instead temporarily pop up a new panel and
+divert mouse events to it.  The arguments
+.IR left ,
+.IR middle ,
+and
+.I right
+are pointers to panels to be popped up when the
+corresponding mouse button is pushed.  A null
+pointer causes events to pass through to
+.IR plpopup 's
+children.
+.TP
+.I plpulldown
+.PD 0
+.TP
+.I plmenubar
+.PD
+.I Plpulldown
+creates a button that, when triggered by a mouse button push,
+temporarily pops up a new panel.
+The
+.I label
+argument points to a Bitmap or text label,
+.I pull
+points to the panel that appears when the button is pushed, and
+.I side
+is a flag whose value is one of
+.BR PACKN ,
+.BR PACKE ,
+.BR PACKS ,
+or
+.BR PACKW ,
+indicating the side of the button on which the pulled-down menu should appear.
+The
+.I plmenubar
+entry calls
+.I plgroup
+and
+.I plpulldown
+to create an array of pull-down buttons.  Its
+.IR itemflags
+argument gives the flags to be used when creating each pull-down button.
+Then follow an indefinite number of pairs giving the labels and pulled-down
+panels of the buttons.  The list ends with a null label pointer.
+.TP
+.I plslider
+creates a continuously variable slider.  The
+.I size
+argument gives the smallest acceptable size.
+If
+.IB size . x\c
+>\c
+.IB size . y
+the slider is drawn horizontally, otherwise
+vertically.
+The
+.I hit
+function is called whenever a mouse event
+changes the slider's value.  Its arguments
+are a pointer to the slider, the mouse buttons,
+the slider's value, and the possible range of
+values.  The value is always between 0 and
+the range.
+.TP
+.I plscrollbar
+creates a scroll bar.  If the
+.I flags
+argument has
+.B PACKE
+or
+.B PACKW
+set, the scroll bar slides vertically, otherwise
+horizontally.  Scroll bars are associated with
+the panels that they scroll by a call to
+.IR plscroll ,
+described in
+.IR plinit (2).
+.TP
+.I pltextview
+creates a panel containing hit-sensitive formatted
+multi-font text with bitmap illustrations. Its arguments
+are the minimum acceptable size of the panel, in pixels,
+a pointer to a data structure describing the text to be
+displayed, and a function to be called upon registering a
+mouse hit.  The arguments of the hit function are a
+pointer to the panel, the mouse buttons that caused the hit,
+and a pointer to the text element that the mouse pointed
+at.  The functions
+.I plrtstring
+and
+.IR plrtbitmap ,
+which create the
+.B Rtext
+data structure that describes the text, are described in
+.IR plinit (2).
+.SH SOURCE
+.B /sys/src/libpanel
+.SH SEE ALSO
+.IR plinit (2),
+.IR plinitbutton (2),
+.IR graphics (2)
+.br
+Tom Duff,
+``A quick introduction to the panel library''.

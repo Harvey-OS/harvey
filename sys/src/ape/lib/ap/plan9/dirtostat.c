@@ -4,32 +4,48 @@
 #include "sys9.h"
 #include "dir.h"
 
+/* fi is non-null if there is an fd associated with s */
 void
-_dirtostat(struct stat *s, char *cd)
+_dirtostat(struct stat *s, char *cd, Fdinfo *fi)
 {
 	Dir *d, db;
 	int num;
-	char *nam, *mem;
+	char *nam;
 
 	convM2D(cd, &db);
 	d = &db;
 	s->st_dev = (d->type<<8)|(d->dev&0xFF);
 	s->st_ino = d->qid.path;
-	s->st_mode = d->mode&0777 |
-	   ((d->mode&0x80000000) ? 0040000 : 
-	    	((d->type != 'M' && d->type != 'R') ? 0020000: 0100000));
+	s->st_mode = d->mode&0777;
+	if(fi && (fi->flags&FD_ISTTY))
+		s->st_mode |= S_IFCHR;
+	else if(d->mode & 0x80000000)
+		s->st_mode |= S_IFDIR;
+	else if(d->type == '|' || d->type == 's')
+		s->st_mode |= S_IFIFO;
+	else if(d->type != 'M')
+		s->st_mode |= S_IFCHR;
+	else
+		s->st_mode |= S_IFREG;
 	s->st_nlink = 1;
 	s->st_uid = 1;
 	s->st_gid = 1;
-	s->st_size = d->length;
+	if(fi && (fi->flags&FD_BUFFERED))
+		s->st_size = fi->buf->n;
+	else
+		s->st_size = d->length;
 	s->st_atime = d->atime;
 	s->st_mtime = d->mtime;
 	s->st_ctime = d->mtime;
-	mem = 0;
-	nam = db.uid;
-	if(_getpw(&num, &nam, &mem))
-		s->st_uid = num;
-	nam = db.gid;
-	if(_getpw(&num, &nam, &mem))
-		s->st_gid = num;
+	if(fi){
+		s->st_uid = fi->uid;
+		s->st_gid = fi->gid;
+	} else {
+		nam = db.uid;
+		if(_getpw(&num, &nam, 0))
+			s->st_uid = num;
+		nam = db.gid;
+		if(_getpw(&num, &nam, 0))
+			s->st_gid = num;
+	}
 }

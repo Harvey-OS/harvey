@@ -1,8 +1,13 @@
-.TH SYMBOL 2X
+.TH SYMBOL 2
 .SH NAME
-syminit, getsym, symbase, pc2sp, pc2line, line2addr, lookup, findlocal, getauto, 
-findsym, localsym, globalsym, textsym, file2pc, fileelem, filesym, fileline, symerror \- symbol table access functions
+syminit, getsym, symbase, pc2sp, pc2line, textseg, line2addr, lookup, findlocal,
+getauto, findsym, localsym, globalsym, textsym, file2pc, fileelem, filesym,
+fileline, fnbound \- symbol table access functions
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
 .B #include <bio.h>
 .br
 .B #include <mach.h>
@@ -28,6 +33,9 @@ long pc2sp(ulong pc)
 .PP
 .B
 long pc2line(ulong pc)
+.PP
+.B
+void textseg(ulong base, Fhdr *fp)
 .PP
 .B
 long line2addr(ulong line, ulong basepc)
@@ -60,29 +68,19 @@ long file2pc(char *file, ulong line)
 int fileline(char *str, int n, ulong addr)
 .PP
 .B
-Map  *newmap(Map *map, int fd)
-.PP
-.B
-extern char *symerror
+int fnbound(long addr, ulong *bounds)
 .SH DESCRIPTION
 These functions provide machine-independent access to the
-symbol tables
-of an executable file or executing process image.
+symbol table of an executable file or executing process.
 The latter is accessible by opening the device
 .B /proc/\fIpid\fP/text
 as described in
 .IR proc (3).
-The functions are stored in library
-.BR libmach.a ;
-the library is automatically searched by the loader
-when header file
-.I mach.h
-is included in a source file.
 .IR Mach (2)
 and
 .IR object (2)
 describe additional library functions
-for processing symbol tables and object files.
+for processing executable and object files.
 .PP
 .IR Syminit ,
 .IR getsym ,
@@ -95,7 +93,7 @@ and
 process the symbol table contained in an executable file
 or the
 .B text
-file associated with an executing program.
+image of an executing program.
 The symbol table is stored internally as an array of
 .B Sym
 data structures as defined in
@@ -111,7 +109,7 @@ structure filled by
 to read the raw symbol tables from the open file descriptor
 .IR fd .
 It returns the count of the number of symbols
-or -1 if an error occurs.
+or \-1 if an error occurs.
 .PP
 .I Getsym
 returns the address of the
@@ -126,7 +124,7 @@ returns the address of the first
 .B Sym
 structure in the symbol table.  The number of
 entries in the symbol table is returned in
-.I nsyms .
+.IR nsyms .
 .PP
 .I Fileelem
 converts a file name, encoded as described in
@@ -148,7 +146,7 @@ address of a receiving character buffer and its length.
 .I Fileelem
 returns the length of the null-terminated string
 that is at most
-.I n-1
+.IR n \-1
 bytes long.
 .PP
 .I Filesym
@@ -160,9 +158,9 @@ with the name of the
 .IR i th
 file and returns the length of the null-terminated string
 that is at most
-.I n-1
+.IR n \-1
 bytes long.
-The file names are retrieved in no particular order, although
+File names are retrieved in no particular order, although
 the order of retrieval does not vary from one pass to the next.
 A zero is returned when
 .I index
@@ -173,10 +171,12 @@ conversion.
 returns an offset associated with 
 a given value of the program counter.  Adding this offset
 to the current value of the stack pointer gives the address
-of the current stack frame.  This approach only applys
-to the 386 and 68020 architectures; other architectures
-use a fixed stack frame accessible through a dummy local variable
-defined in the symbol table.
+of the current stack frame.  This approach only applies
+to the 68020 architecture; other architectures
+use a fixed stack frame offset by a constant contained
+in a dummy local variable (called
+.BR .frame )
+in the symbol table.
 .PP
 .I Pc2line
 returns the line number of the statement associated
@@ -184,15 +184,34 @@ with the instruction address
 .IR pc .
 The
 line number is the absolute line number in the
-file as seen by the compiler after pre-processing; the
-original line number in the source file may derived from this
+source file as seen by the compiler after pre-processing; the
+original line number in the source file may be derived from this
 value using the history stacks contained in the symbol table.
+.PP
+.I Pc2sp
+and
+.I pc2line
+must know the start and end addresses of the text segment
+for proper operation.  These values are calculated from the
+file header by function
+.IR syminit .
+If the text segment address is changed, the application
+program must invoke
+.I textseg
+to recalculate the boundaries of the segment.
+.I Base
+is the new base address of the text segment and
+.I fp
+points to the
+.I Fhdr
+data structure filled by
+.IR crackhdr .
 .PP
 .I Line2addr
 converts a line number to an instruction address.  The
 first argument is the absolute line number in
 a file.  Since a line number does not uniquely identify
-an instruction location (every source file has line 1),
+an instruction location (e.g., every source file has line 1),
 a second argument specifies a text address
 from which the search begins.  Usually this
 is the address of the first function in the file of interest.
@@ -220,7 +239,7 @@ and provide higher-level access to the basic symbol
 table data.
 .I Syminit
 must be called
-prior to invoking these functions.
+prior to using these functions.
 The
 .B Symbol
 data structure:
@@ -265,7 +284,9 @@ structure with symbol table information.  Global variables
 and functions are represented by a single name; local variables
 and parameters are uniquely specified by a function and
 variable name pair.  Arguments
-.IR fn and var
+.I fn
+and
+.I var
 contain the
 name of a function and variable, respectively.
 If both
@@ -274,7 +295,7 @@ or automatic variable.  If only
 .I var
 is
 zero, the text symbol table is searched for function
-.I fn.
+.IR fn .
 If only
 .I fn
 is zero, the global variable table
@@ -298,7 +319,7 @@ searches the local symbols associated with function
 .I s1
 for an automatic variable or parameter located at stack
 offset
-.I off .
+.IR off .
 .I Class
 selects the class of
 variable:
@@ -331,8 +352,8 @@ searches the text table first, then the global table.
 .I Localsym
 returns the
 .IR i th
-local variable associated with the function
-indicated by
+local variable in the function
+associated with
 .IR s .
 .I S
 may reference a function or a local variable; the latter
@@ -362,7 +383,8 @@ by increasing address.
 returns a text address associated with
 .I line
 in file
-.IR file .
+.IR file ,
+or -1 on an error.
 .PP
 .I Fileline
 converts text address
@@ -371,15 +393,26 @@ to its equivalent
 line number in a source file.  The result,
 a null terminated character string of
 the form
-.LR file:line
+.LR file:line ,
 is placed in buffer
 .I str
 of
 .I n
 bytes.
-Up to
-.I n-1
-characters are copied to the buffer.
+.PP
+.I Fnbound
+returns the start and end addresses of the function containing
+the text address supplied as the first argument.  The second
+argument is an array of two unsigned longs;
+.I fnbound
+places the bounding addresses of the function in the first
+and second elements of this array.  The start address is the
+address of the first instruction of the function; the end
+address is the address of the start of the next function
+in memory, so it is beyond the end of the target function.
+.I Fnbound
+returns 1 if the address is within a text function, or zero
+if the address selects no function.
 .PP
 Functions
 .I file2pc
@@ -389,9 +422,15 @@ may produce inaccurate results when applied to
 optimized code.
 .PP
 Unless otherwise specified, all functions return 1
-on success, or 0 on error.
+on success, or 0 on error.  When an error occurs,
+a message describing it is stored in the system
+error buffer where it is available via
+.IR errstr .
+.SH SOURCE
+.B /sys/src/libmach
 .SH "SEE ALSO"
 .IR mach (2),
 .IR object (2),
+.IR errstr (2),
 .IR proc (3),
 .IR a.out (6)

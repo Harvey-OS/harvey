@@ -21,11 +21,16 @@ allocb(ulong size)
 {
 	Block *bp;
 	uchar *base, *lim;
+	int n;
 
 	bp = smalloc(sizeof(Block)+size);
 
 	base = (uchar*)bp + sizeof(Block);
-	lim = (uchar*)bp + msize(bp);
+	n = msize(bp);
+	lim = (uchar*)bp + n;
+	n -= size + sizeof(Block);
+	if(n > 0)
+		memset(lim - n, 0, n);
 	bp->wptr = bp->rptr = lim - size;
 	bp->base = base;
 	bp->lim = lim;
@@ -33,6 +38,7 @@ allocb(ulong size)
 	bp->next = 0;
 	bp->list = 0;
 	bp->type = M_DATA;
+	bp->pc = getcallerpc(((uchar*)&size) - sizeof(size));
 	return bp;
 }
 
@@ -662,7 +668,7 @@ hash(int type, int dev, int id)
  *  create a new stream, if noopen is non-zero, don't increment the open count
  */
 Stream *
-streamnew(ushort type, ushort dev, ushort id, Qinfo *qi, int noopen)
+streamnew(ushort type, ushort dev, ulong id, Qinfo *qi, int noopen)
 {
 	Stream *s;
 	Queue *q;
@@ -1241,12 +1247,13 @@ streamstat(Chan *c, char *db, char *name, long perm)
 	long n;
 
 	s = c->stream;
-	if(s == 0)
-		n = 0;
-	else {
+	n = 0;
+	if(s) {
 		q = RD(s->procq);
+		if(q->flag & QHUNGUP)
+			error(Ehungup);
 		lock(q);
-		for(n=0, bp=q->first; bp; bp = bp->next){
+		for(bp=q->first; bp; bp = bp->next){
 			n += BLEN(bp);
 			if(bp->flags&S_DELIM)
 				break;
@@ -1268,7 +1275,10 @@ hangup(Stream *s)
 
 	bp = allocb(0);
 	bp->type = M_HANGUP;
-	(*s->devq->put)(s->devq, bp);
+	if(s->devq && s->devq->put)
+		(*s->devq->put)(s->devq, bp);
+	else
+		freeb(bp);
 }
 
 /*
@@ -1307,18 +1317,47 @@ streamparse(char *name, Block *bp)
  *  like andrew's getmfields but no hidden state
  */
 int
-getfields(char *lp, char **fields, int n, char sep)
+getfields(char *lp, char **fields, int n, char *sep)
 {
 	int i;
 
 	for(i=0; lp && *lp && i<n; i++){
-		while(*lp == sep)
+		while(*lp && strchr(sep, *lp) != 0)
 			*lp++=0;
 		if(*lp == 0)
 			break;
 		fields[i]=lp;
-		while(*lp && *lp != sep)
+		while(*lp && strchr(sep, *lp) == 0)
 			lp++;
 	}
 	return i;
+}
+
+static Streamopen	permstopen;
+static Streamput	permstput;
+
+/*
+ *  pushing this line discipline makes the stream unclosable, i.e., always there
+ */
+Qinfo perminfo =
+{
+	permstput,
+	permstput,
+	permstopen,
+	0,
+	"permanent"
+};
+
+static void
+permstopen(Queue *q, Stream *s)
+{
+	USED(q);
+	s->opens++;
+	s->inuse++;
+}
+
+static void
+permstput(Queue *q, Block *bp)
+{
+	PUTNEXT(q, bp);
 }

@@ -16,7 +16,7 @@ and to create, remove, read, and write files.
 The prototypical server is a separate machine that stores
 large numbers of user files on permanent media;
 such a machine is called, somewhat confusingly, a
-.I file server.
+.I file server\f1.
 Another possibility for a server is to synthesize
 files on demand, perhaps based on information on data structures
 inside the kernel; the
@@ -77,7 +77,7 @@ is given in brackets after the field name.
 The two-, four-, and eight-byte fields may hold unsigned
 integers represented in little-endian order
 (least significant byte first).
-Fields that contain names are 28-character strings
+Fields that contain names are 28-byte strings
 (including a terminal NUL (zero) byte).
 Other than the NUL terminator,
 all characters are legal
@@ -86,7 +86,9 @@ in file names.
 to reduce syntactic problems,
 for example to remove slashes from name components,
 but the protocol has no such restriction.
-Plan 9 names may contain any printable character except slash and blank.)
+Plan 9 names may contain any printable character (that is, any character
+outside hexadecimal 00-1F and 80-9F)
+except slash and blank.)
 Messages are transported in byte form to allow for machine independence;
 .IR fcall (2)
 describes routines that convert to and from this form into a machine-dependent
@@ -103,10 +105,14 @@ C structure.
 .B
 Tsession	
 .IR tag [2]
+.IR chal [8]
 .br
 .B
 Rsession	
 .IR tag [2]
+.IR chal [8]
+.IR authid [28]
+.IR authdom [48]
 .IP
 .B
 Rerror	
@@ -123,31 +129,20 @@ Rflush
 .IR tag [2]
 .IP
 .B
-Tauth	
-.IR tag [2]
-.IR fid [2]
-.IR uid [28]
-.IR chal [36]
-.br
-.B
-Rauth	
-.IR tag [2]
-.IR fid [2]
-.IR chal [30]
-.br
-.B
 Tattach	
 .IR tag [2]
 .IR fid [2]
 .IR uid [28]
 .IR aname [28]
-.IR auth [28]
+.IR ticket [72]
+.IR auth [13]
 .br
 .B
 Rattach	
 .IR tag [2]
 .IR fid [2]
 .IR qid [8]
+.IR rauth [13]
 .IP
 .B
 Tclone	
@@ -329,7 +324,7 @@ requests is called a
 .IR session .
 .PP
 Most T-messages contain a
-.I fid,
+.IR fid ,
 a 16-bit unsigned integer that the client uses to identify
 a ``current file'' on the server.
 Fids are somewhat like file descriptors in a user process,
@@ -342,7 +337,7 @@ Fids are chosen by the client.
 All requests on a connection share the same fid space;
 when several clients share a connection,
 the agent managing the sharing must arrange
-that no two clients choose the same fids.
+that no two clients choose the same fid.
 .PP
 The first fid supplied (in an
 .B attach
@@ -375,7 +370,7 @@ such as keyboard characters.
 Replies (R-messages) to
 .BR attach ,
 .BR walk ,
-.BR open
+.BR open ,
 and
 .B create
 requests convey a
@@ -405,7 +400,7 @@ The version is a version number for a file;
 typically, it is incremented every time the file is modified.
 .PP
 An existing file can be
-.B opened,
+.BR opened ,
 or a new file may be
 .B created
 in the current (directory) file.
@@ -426,7 +421,7 @@ transaction deletes files.
 .PP
 The
 .B stat
-request returns information about the file.
+transaction retrieves information about the file.
 The
 .I stat
 field in the reply includes the file's
@@ -487,7 +482,7 @@ or
 (dot).
 The parent of the root directory of a server's tree is itself.
 .SH "ACCESS PERMISSIONS"
-Each server maintains a set of user and group names.
+Each file server maintains a set of user and group names.
 Each user can be a member of any number of groups.
 Each group has a
 .I group leader

@@ -192,8 +192,9 @@ main(int argc, char *argv[])
 
 	/* send the size of the file to be sent */
 	i = sprint(lnbuf, "%d\n", bsize);
-	if (write(netfd, lnbuf, i) != i) {
-		error(0, "write error while sending size\n");
+	if ((rv=write(netfd, lnbuf, i)) != i) {
+		perror("write error while sending size");
+		error(0, "write returned %d\n", rv);
 		exits("write error while sending size");
 	}
 

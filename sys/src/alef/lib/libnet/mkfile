@@ -1,0 +1,25 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+
+LIB=/$objtype/lib/alef/libnet.a
+OFILES = eipconv.$O\
+	parseip.$O\
+	parseether.$O\
+	myipaddr.$O\
+	myetheraddr.$O\
+	classmask.$O\
+	equivip.$O\
+	ndbhash.$O\
+	ndbparse.$O\
+	ndbgetval.$O\
+	ipattr.$O\
+	ipinfo.$O\
+	bo.$O\
+
+HFILES=/sys/include/alef/net.h\
+	/sys/include/alef/bio.h\
+
+</sys/src/cmd/mksyslib
+
+/68020/lib/alef/libnet.a:Q:	$OFILES
+	echo 'no alef compiler for 68020'

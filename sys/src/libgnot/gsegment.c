@@ -2,18 +2,7 @@
 #include <libg.h>
 #include <gnot.h>
 
-#ifdef T386
-#define LENDIAN
-#endif
-#ifdef Thobbit
-#define LENDIAN
-#endif
-
-#ifdef	LENDIAN
-#define	PSHIFT(x, y)	x <<= y
-#else
-#define	PSHIFT(x, y)	x >>= y
-#endif
+#define	PSHIFT(x, y)	{if(LENDIAN) x <<= y; else x >>= y;}
 
 int
 _setdda(int x, int y, Linedesc *l)
@@ -83,9 +72,8 @@ gsegment(GBitmap *b, Point p, Point q, int src, Fcode f)
 	lom = ((1<<bpp)-1);
 	him = lom<<(8-bpp);
 	xshift = (p.x&(7>>ld))<<ld;
-#ifdef	LENDIAN
-	xshift = 8-bpp - xshift;
-#endif
+	if(LENDIAN)
+		xshift = 8-bpp - xshift;
 	k = him>>xshift;	/* mask */
 	lo = src&lom;
 
@@ -139,11 +127,11 @@ gsegment(GBitmap *b, Point p, Point q, int src, Fcode f)
 		f = 2;
 	}
 
-#ifdef	LENDIAN
-	him >>= 8-bpp;
-	him0 >>= 8-bpp;
-	him1 >>= 8-bpp;
-#endif
+	if(LENDIAN){
+		him >>= 8-bpp;
+		him0 >>= 8-bpp;
+		him1 >>= 8-bpp;
+	}
 	
 	dw = b->width*sizeof(ulong);
 	if(dy < 0){

@@ -1,11 +1,38 @@
-%% CYRSPU.MF                     June 1990
-%% This Metafont file is part of AMSFonts 2.0.
-%% Cyrillic fonts developed at the Humanities and Arts Computing Center
-%% at the University of Washington.
-%% All rights reserved.  Copying of this file is authorized only if either:
-%%   (1) you make absolutely no changes to your copy including filename; OR
-%%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="cyrspu.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: driver",
+%%     copyright="Copyright (C) Humanities and Arts Computing Center,
+%%            University of Washington;
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "54447 284 1071 13384"
+%%     keywords="amsfonts, tex, metafont , cyrillic ",
+%%     abstract="This is the driver file for use with 
+%%            the cyrillic fonts in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % cyrspu Uppercase forms having distinct lowercase forms
 % including O
 
@@ -255,4 +282,3 @@ else: penpos6(bot_vair,-90); x6=2.5u; y6r=-oo;
  lft x7l=hround u; bot y7r=vround-oo; y7l:=good.y y7l;
  filldraw stroke term.e(6',7,left,1,4); fi % arc and terminal
 penlabels(0,1,2,3,4,5,6,7,8,9); endchar;
-

@@ -1,5 +1,7 @@
 #include <libg.h>
 
+typedef unsigned long ulong;
+
 static long
 cdiff(RGB c, RGB d)
 {
@@ -12,12 +14,12 @@ cdiff(RGB c, RGB d)
 	return ans;
 }
 
-unsigned long
+ulong
 rgbpix(Bitmap *b, RGB col)
 {
 	RGB map[256];
 	int i, n, besti;
-	unsigned long d, bestd;
+	ulong d, bestd;
 
 	n = 1<<(1<<b->ldepth);
 	if(n > 256)

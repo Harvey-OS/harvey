@@ -1,4 +1,5 @@
 #include <u.h>
+#include <libc.h>
 #include <libg.h>
 #include <frame.h>
 

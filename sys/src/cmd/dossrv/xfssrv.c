@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #include "iotrack.h"
 #include "dat.h"
@@ -87,14 +88,13 @@ main(int argc, char **argv)
 		close(2);
 		open("#c/cons", OWRITE);
 	}
-	while((n = read(srvfd, data, sizeof data)) > 0){
+	while((n = read9p(srvfd, data, sizeof data)) > 0){
 		if(convM2S(data, &thdr, n) <= 0)
 			panic("convM2S");
 		errno = 0;
 		switch(thdr.type){
 		default:	panic("type");	break;
 		case Tnop:	rnop();		break;
-		case Tauth:	rauth();	break;
 		case Tsession:	rsession();	break;
 		case Tflush:	rflush();	break;
 		case Tattach:	rattach();	break;
@@ -121,9 +121,10 @@ main(int argc, char **argv)
 			xerrstr(errno), errno);
 		if((n = convS2M(&rhdr, data)) <= 0)
 			panic("convS2M");
-		if(write(srvfd, data, n) != n)
+		if(write9p(srvfd, data, n) != n)
 			panic("write");
 	}
+	chat((n<0) ? "server read error: %r\n" : "server EOF\n");
 	exits(0);
 }
 
@@ -140,30 +141,4 @@ xerrstr(int e)
 		return "no such error";
 	else
 		return errmsg[e];
-}
-
-int
-fork2(void)
-{
-	int i, j;
-	char buf[20], *p;
-	Waitmsg w;
-
-	i = fork();
-	if(i != 0){
-		if(i < 0)
-			return -1;
-		do; while((j=wait(&w))!=-1 && j!=i);
-		if(j == i){
-			p = strchr(w.msg, ':');
-			return atoi(p?p+1:w.msg); /* pid of final child */
-		}
-		return j;
-	}
-	i = fork();
-	if(i != 0){
-		sprint(buf, "%d", i);
-		_exits(buf);
-	}
-	return 0;
 }

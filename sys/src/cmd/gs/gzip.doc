@@ -1,0 +1,495 @@
+1. Algorithm
+
+The deflation algorithm used by zip and gzip is a variation of LZ77
+(Lempel-Ziv 1977, see reference below). It finds duplicated strings in
+the input data.  The second occurrence of a string is replaced by a
+pointer to the previous string, in the form of a pair (distance,
+length).  Distances are limited to 32K bytes, and lengths are limited
+to 258 bytes. When a string does not occur anywhere in the previous
+32K bytes, it is emitted as a sequence of literal bytes.  (In this
+description, 'string' must be taken as an arbitrary sequence of bytes,
+and is not restricted to printable characters.)
+
+Literals or match lengths are compressed with one Huffman tree, and
+match distances are compressed with another tree. The trees are stored
+in a compact form at the start of each block. The blocks can have any
+size (except that the compressed data for one block must fit in
+available memory). A block is terminated when zip determines that it
+would be useful to start another block with fresh trees. (This is
+somewhat similar to compress.)
+
+Duplicated strings are found using a hash table. All input strings of
+length 3 are inserted in the hash table. A hash index is computed for
+the next 3 bytes. If the hash chain for this index is not empty, all
+strings in the chain are compared with the current input string, and
+the longest match is selected.
+
+The hash chains are searched starting with the most recent strings, to
+favor small distances and thus take advantage of the Huffman encoding.
+The hash chains are singly linked. There are no deletions from the
+hash chains, the algorithm simply discards matches that are too old.
+
+To avoid a worst-case situation, very long hash chains are arbitrarily
+truncated at a certain length, determined by a runtime option (zip -1
+to -9). So zip does not always find the longest possible match but
+generally finds a match which is long enough.
+
+zip also defers the selection of matches with a lazy evaluation
+mechanism. After a match of length N has been found, zip searches for a
+longer match at the next input byte. If a longer match is found, the
+previous match is truncated to a length of one (thus producing a single
+literal byte) and the longer match is emitted afterwards.  Otherwise,
+the original match is kept, and the next match search is attempted only
+N steps later.
+
+The lazy match evaluation is also subject to a runtime parameter. If
+the current match is long enough, zip reduces the search for a longer
+match, thus speeding up the whole process. If compression ratio is more
+important than speed, zip attempts a complete second search even if
+the first match is already long enough.
+
+The lazy match evaluation is no performed for the fastest compression
+modes (speed options -1 to -3). For these fast modes, new strings
+are inserted in the hash table only when no match was found, or
+when the match is not too long. This degrades the compression ratio
+but saves time since there are both fewer insertions and fewer searches.
+
+
+2. gzip file format
+
+The pkzip format imposes a lot of overhead in various headers, which
+are useful for an archiver but not necessary when only one file is
+compressed. gzip uses a much simpler structure. Numbers are in little
+endian format, and bit 0 is the least significant bit.
+A gzip file is a sequence of compressed members. Each member has the
+following structure:
+
+2 bytes  magic header  0x1f, 0x8b (\037 \213)  
+1 byte   compression method (0..7 reserved, 8 = deflate)
+1 byte   flags
+            bit 0 set: file probably ascii text
+            bit 1 set: continuation of multi-part gzip file
+            bit 2 set: extra field present
+            bit 3 set: original file name present
+            bit 4 set: file comment present
+            bit 5 set: file is encrypted
+            bit 6,7:   reserved
+4 bytes  file modification time in Unix format
+1 byte   extra flags (depend on compression method)
+1 byte   operating system on which compression took place
+
+2 bytes  optional part number (second part=1)
+2 bytes  optional extra field length
+? bytes  optional extra field
+? bytes  optional original file name, zero terminated
+? bytes  optional file comment, zero terminated
+12 bytes optional encryption header
+? bytes  compressed data
+4 bytes  crc32
+4 bytes  uncompressed input size modulo 2^32
+
+The format was designed to allow single pass compression without any
+backwards seek, and without a priori knowledge of the uncompressed
+input size or the available size on the output media. If input does
+not come from a regular disk file, the file modification time is set
+to the time at which compression started.
+
+The time stamp is useful mainly when one gzip file is transferred over
+a network. In this case it would not help to keep ownership
+attributes. In the local case, the ownership attributes are preserved
+by gzip when compressing/decompressing the file. A time stamp of zero
+is ignored.
+
+Bit 0 in the flags is only an optional indication, which can be set by
+a small lookahead in the input data. In case of doubt, the flag is
+cleared indicating binary data. For systems which have different
+file formats for ascii text and binary data, the decompressor can
+use the flag to choose the appropriate format.
+
+The extra field, if present, must consist of one or more subfields,
+each with the following format:
+
+  subfield id   : 2 bytes
+  subfield size : 2 bytes  (little-endian format)
+  subfield data
+
+The subfield id can consist of two letters with some mnemonic value.
+Please send any such id to jloup@chorus.fr. Ids with a zero second
+byte are reserved for future use. The following ids are defined:
+
+  Ap (0x41, 0x70) : Apollo file type information
+
+The subfield size is the size of the subfield data and does not
+include the id and the size itself. The field 'extra field length' is
+the total size of the extra field, including subfield ids and sizes.
+
+It must be possible to detect the end of the compressed data with any
+compression format, regardless of the actual size of the compressed
+data. If the compressed data cannot fit in one file (in particular for
+diskettes), each part starts with a header as described above, but
+only the last part has the crc32 and uncompressed size. A decompressor
+may prompt for additional data for multipart compressed files. It is
+desirable but not mandatory that multiple parts be extractable
+independently so that partial data can be recovered if one of the
+parts is damaged. This is possible only if no compression state is
+kept from one part to the other. The compression-type dependent flags
+can indicate this.
+
+If the file being compressed is on a file system with case insensitive
+names, the original name field must be forced to lower case. There is
+no original file name if the data was compressed from standard input.
+
+Compression is always performed, even if the compressed file is
+slightly larger than the original. The worst case expansion is
+a few bytes for the gzip file header, plus 5 bytes every 32K block,
+or an expansion ratio of 0.015% for large files. Note that the actual
+number of used disk blocks almost never increases.
+
+The encryption is that of zip 1.9. For the encryption check, the
+last byte of the decoded encryption header must be zero. The time
+stamp of an encrypted file might be set to zero to avoid giving a clue
+about the construction of the random header.
+
+Jean-loup Gailly
+jloup@chorus.fr
+
+References:
+
+[LZ77] Ziv J., Lempel A., "A Universal Algorithm for Sequential Data
+Compression", IEEE Transactions on Information Theory", Vol. 23, No. 3,
+pp. 337-343.
+
+APPNOTE.TXT documentation file in PKZIP 1.93a. It is available by
+ftp in ftp.cso.uiuc.edu:/pc/exec-pc/pkz193a.exe [128.174.5.59]
+Use "unzip pkz193a.exe APPNOTE.TXT" to extract (note: unzip, not gunzip).
+
+To: ghost@aladdin.com (L. Peter Deutsch)
+Cc: Jean-loup.Gailly@chorus.fr
+Subject: specification of the gzip compressed data format
+In-Reply-To: Your message of Thu, 05 Jan 95 08:55:00 -0800.
+             <m0rPvSw-0000c2C@aladdin.com> 
+Date: Thu, 05 Jan 95 19:56:22 +0100
+From: Jean-loup Gailly <jloup@chorus.fr>
+
+[gzip uses only the deflate algorithm, but I'm including the
+specification of the implode algorithm because the description
+for deflate relies on it. Don't be misled by the term
+"Shannon-Fano", the trees used by gzip are actually all Huffman
+trees, not Shannon-Fano trees.
+
+The following description, written by PKware, was all I had when I
+started coding zip and I managed to end up with working code
+compatible with pkzip, so in theory this description is sufficient to
+completely describe the data format and compression algorithm. In
+practice, it would be very desirable to have a better description of
+what's going on, and in particular a description of how to compress,
+not just decompress.
+
+Jean-loup]
+
+      CRC-32: (4 bytes)
+
+          The CRC-32 algorithm was generously contributed by
+          David Schwaderer and can be found in his excellent
+          book "C Programmers Guide to NetBIOS" published by
+          Howard W. Sams & Co. Inc.  The 'magic number' for
+          the CRC is 0xdebb20e3.  The proper CRC pre and post
+          conditioning is used, meaning that the CRC register
+          is pre-conditioned with all ones (a starting value
+          of 0xffffffff) and the value is post-conditioned by
+          taking the one's complement of the CRC residual.
+
+Imploding - Method 6
+--------------------
+
+The Imploding algorithm is actually a combination of two distinct
+algorithms.  The first algorithm compresses repeated byte
+sequences using a sliding dictionary.  The second algorithm is
+used to compress the encoding of the sliding dictionary ouput,
+using multiple Shannon-Fano trees.
+
+The Imploding algorithm can use a 4K or 8K sliding dictionary
+size. The dictionary size used can be determined by bit 1 in the
+general purpose flag word; a 0 bit indicates a 4K dictionary
+while a 1 bit indicates an 8K dictionary.
+
+The Shannon-Fano trees are stored at the start of the compressed
+file. The number of trees stored is defined by bit 2 in the
+general purpose flag word; a 0 bit indicates two trees stored, a
+1 bit indicates three trees are stored.  If 3 trees are stored,
+the first Shannon-Fano tree represents the encoding of the
+Literal characters, the second tree represents the encoding of
+the Length information, the third represents the encoding of the
+Distance information.  When 2 Shannon-Fano trees are stored, the
+Length tree is stored first, followed by the Distance tree.
+
+The Literal Shannon-Fano tree, if present is used to represent
+the entire ASCII character set, and contains 256 values.  This
+tree is used to compress any data not compressed by the sliding
+dictionary algorithm.  When this tree is present, the Minimum
+Match Length for the sliding dictionary is 3.  If this tree is
+not present, the Minimum Match Length is 2.
+
+The Length Shannon-Fano tree is used to compress the Length part
+of the (length,distance) pairs from the sliding dictionary
+output.  The Length tree contains 64 values, ranging from the
+Minimum Match Length, to 63 plus the Minimum Match Length.
+
+The Distance Shannon-Fano tree is used to compress the Distance
+part of the (length,distance) pairs from the sliding dictionary
+output. The Distance tree contains 64 values, ranging from 0 to
+63, representing the upper 6 bits of the distance value.  The
+distance values themselves will be between 0 and the sliding
+dictionary size, either 4K or 8K.
+
+The Shannon-Fano trees themselves are stored in a compressed
+format. The first byte of the tree data represents the number of
+bytes of data representing the (compressed) Shannon-Fano tree
+minus 1.  The remaining bytes represent the Shannon-Fano tree
+data encoded as:
+
+    High 4 bits: Number of values at this bit length + 1. (1 - 16)
+    Low  4 bits: Bit Length needed to represent value + 1. (1 - 16)
+
+The Shannon-Fano codes can be constructed from the bit lengths
+using the following algorithm:
+
+1)  Sort the Bit Lengths in ascending order, while retaining the
+    order of the original lengths stored in the file.
+
+2)  Generate the Shannon-Fano trees:
+
+    Code <- 0
+    CodeIncrement <- 0
+    LastBitLength <- 0
+    i <- number of Shannon-Fano codes - 1   (either 255 or 63)
+
+    loop while i >= 0
+        Code = Code + CodeIncrement
+        if BitLength(i) <> LastBitLength then
+            LastBitLength=BitLength(i)
+            CodeIncrement = 1 shifted left (16 - LastBitLength)
+        ShannonCode(i) = Code
+        i <- i - 1
+    end loop
+
+
+3)  Reverse the order of all the bits in the above ShannonCode()
+    vector, so that the most significant bit becomes the least
+    significant bit.  For example, the value 0x1234 (hex) would
+    become 0x2C48 (hex).
+
+4)  Restore the order of Shannon-Fano codes as originally stored
+    within the file.
+
+Example:
+
+    This example will show the encoding of a Shannon-Fano tree
+    of size 8.  Notice that the actual Shannon-Fano trees used
+    for Imploding are either 64 or 256 entries in size.
+
+Example:   0x02, 0x42, 0x01, 0x13
+
+    The first byte indicates 3 values in this table.  Decoding the
+    bytes:
+            0x42 = 5 codes of 3 bits long
+            0x01 = 1 code  of 2 bits long
+            0x13 = 2 codes of 4 bits long
+
+    This would generate the original bit length array of:
+    (3, 3, 3, 3, 3, 2, 4, 4)
+
+    There are 8 codes in this table for the values 0 thru 7.  Using the
+    algorithm to obtain the Shannon-Fano codes produces:
+
+                                  Reversed     Order     Original
+Val  Sorted   Constructed Code      Value     Restored    Length
+---  ------   -----------------   --------    --------    ------
+0:     2      1100000000000000        11       101          3
+1:     3      1010000000000000       101       001          3
+2:     3      1000000000000000       001       110          3
+3:     3      0110000000000000       110       010          3
+4:     3      0100000000000000       010       100          3
+5:     3      0010000000000000       100        11          2
+6:     4      0001000000000000      1000      1000          4
+7:     4      0000000000000000      0000      0000          4
+
+
+The values in the Val, Order Restored and Original Length columns
+now represent the Shannon-Fano encoding tree that can be used for
+decoding the Shannon-Fano encoded data.  How to parse the
+variable length Shannon-Fano values from the data stream is beyond the
+scope of this document.  (See the references listed at the end of
+this document for more information.)  However, traditional decoding
+schemes used for Huffman variable length decoding, such as the
+Greenlaw algorithm, can be succesfully applied.
+
+The compressed data stream begins immediately after the
+compressed Shannon-Fano data.  The compressed data stream can be
+interpreted as follows:
+
+loop until done
+    read 1 bit from input stream.
+
+    if this bit is non-zero then       (encoded data is literal data)
+        if Literal Shannon-Fano tree is present
+            read and decode character using Literal Shannon-Fano tree.
+        otherwise
+            read 8 bits from input stream.
+        copy character to the output stream.
+    otherwise                   (encoded data is sliding dictionary match)
+        if 8K dictionary size
+            read 7 bits for offset Distance (lower 7 bits of offset).
+        otherwise
+            read 6 bits for offset Distance (lower 6 bits of offset).
+
+        using the Distance Shannon-Fano tree, read and decode the
+          upper 6 bits of the Distance value.
+
+        using the Length Shannon-Fano tree, read and decode
+          the Length value.
+
+        Length <- Length + Minimum Match Length
+
+        if Length = 63 + Minimum Match Length
+            read 8 bits from the input stream,
+            add this value to Length.
+
+        move backwards Distance+1 bytes in the output stream, and
+        copy Length characters from this position to the output
+        stream.  (if this position is before the start of the output
+        stream, then assume that all the data before the start of
+        the output stream is filled with zeros).
+end loop
+
+Deflating - Method 8
+-----------------
+
+The Deflate algorithm is similar to the Implode algorithm using
+a sliding dictionary of up to 32K with secondary compression
+>from Huffman/Shannon-Fano codes.
+
+The compressed data is stored in blocks with a header describing
+the block and the Huffman codes used in the data block.  The header
+format is as follows:
+
+   Bit 0: Last Block bit     This bit is set to 1 if this is the last
+                             compressed block in the data.
+   Bits 1-2: Block type
+      00 (0) - Block is stored - All stored data is byte aligned.
+               Skip bits until next byte, then next word = block length,
+               followed by the ones compliment of the block length word.
+               Remaining data in block is the stored data.
+
+      01 (1) - Use fixed Huffman codes for literal and distance codes.
+               Lit Code    Bits             Dist Code   Bits
+               ---------   ----             ---------   ----
+                 0 - 143    8                 0 - 31      5
+               144 - 255    9
+               256 - 279    7
+               280 - 287    8
+
+               Literal codes 286-287 and distance codes 30-31 are never
+               used but participate in the huffman construction.
+
+      10 (2) - Dynamic Huffman codes.  (See expanding Huffman codes)
+
+      11 (3) - Reserved - Flag a "Error in compressed data" if seen.
+
+Expanding Huffman Codes
+-----------------------
+If the data block is stored with dynamic Huffman codes, the Huffman
+codes are sent in the following compressed format:
+
+   5 Bits: # of Literal codes sent - 257 (257 - 286)
+           All other codes are never sent.
+   5 Bits: # of Dist codes - 1           (1 - 32)
+   4 Bits: # of Bit Length codes - 4     (4 - 19)
+
+The Huffman codes are sent as bit lengths and the codes are built as
+described in the implode algorithm.  The bit lengths themselves are
+compressed with Huffman codes.  There are 19 bit length codes:
+
+   0 - 15: Represent bit lengths of 0 - 15
+       16: Copy the previous bit length 3 - 6 times.
+           The next 2 bits indicate repeat length (0 = 3, ... ,3 = 6)
+              Example:  Codes 8, 16 (+2 bits 11), 16 (+2 bits 10) will
+                        expand to 12 bit lengths of 8 (1 + 6 + 5)
+       17: Repeat a bit length of 0 for 3 - 10 times. (3 bits of length)
+       18: Repeat a bit length of 0 for 11 - 138 times (7 bits of length)
+
+The lengths of the bit length codes are sent packed 3 bits per value
+(0 - 7) in the following order:
+
+   16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15
+
+The Huffman codes should be built as described in the Implode algorithm
+except codes are assigned starting at the shortest bit length, i.e. the
+shortest code should be all 0's rather than all 1's.  Also, codes with
+a bit length of zero do not participate in the tree construction.  The
+codes are then used to decode the bit lengths for the literal and distance
+tables.
+
+The bit lengths for the literal tables are sent first with the number
+of entries sent described by the 5 bits sent earlier.  There are up
+to 286 literal characters; the first 256 represent the respective 8
+bit character, code 256 represents the End-Of-Block code, the remaining
+29 codes represent copy lengths of 3 thru 258.  There are up to 30
+distance codes representing distances from 1 thru 32k as described
+below.
+
+                             Length Codes
+                             ------------
+      Extra             Extra              Extra              Extra
+ Code Bits Length  Code Bits Lengths  Code Bits Lengths  Code Bits Length(s)
+ ---- ---- ------  ---- ---- -------  ---- ---- -------  ---- ---- ---------
+  257   0     3     265   1   11,12    273   3   35-42    281   5  131-162
+  258   0     4     266   1   13,14    274   3   43-50    282   5  163-194
+  259   0     5     267   1   15,16    275   3   51-58    283   5  195-226
+  260   0     6     268   1   17,18    276   3   59-66    284   5  227-257
+  261   0     7     269   2   19-22    277   4   67-82    285   0    258
+  262   0     8     270   2   23-26    278   4   83-98
+  263   0     9     271   2   27-30    279   4   99-114
+  264   0    10     272   2   31-34    280   4  115-130
+
+                            Distance Codes
+                            --------------
+      Extra           Extra             Extra               Extra
+ Code Bits Dist  Code Bits  Dist   Code Bits Distance  Code Bits Distance
+ ---- ---- ----  ---- ---- ------  ---- ---- --------  ---- ---- --------
+   0   0    1      8   3   17-24    16    7  257-384    24   11  4097-6144
+   1   0    2      9   3   25-32    17    7  385-512    25   11  6145-8192
+   2   0    3     10   4   33-48    18    8  513-768    26   12  8193-12288
+   3   0    4     11   4   49-64    19    8  769-1024   27   12 12289-16384
+   4   1   5,6    12   5   65-96    20    9 1025-1536   28   13 16385-24576
+   5   1   7,8    13   5   97-128   21    9 1537-2048   29   13 24577-32768
+   6   2   9-12   14   6  129-192   22   10 2049-3072
+   7   2  13-16   15   6  193-256   23   10 3073-4096
+
+The compressed data stream begins immediately after the
+compressed header data.  The compressed data stream can be
+interpreted as follows:
+
+do
+   read header from input stream.
+
+   if stored block
+      skip bits until byte aligned
+      read count and 1's compliment of count
+      copy count bytes data block
+   otherwise
+      loop until end of block code sent
+         decode literal character from input stream
+         if literal < 256
+            copy character to the output stream
+         otherwise
+            if literal = end of block
+               break from loop
+            otherwise
+               decode distance from input stream
+
+               move backwards distance bytes in the output stream, and
+               copy length characters from this position to the output
+               stream.
+      end loop
+while not last block

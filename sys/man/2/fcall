@@ -1,10 +1,12 @@
 .TH FCALL 2
 .SH NAME
-fcall, convS2M, convD2M, convM2S, convM2D, getS, fcallconv, dirconv, dirmodeconv \- interface to Plan 9 File protocol
+Fcall, convS2M, convD2M, convM2S, convM2D, getS, fcallconv, dirconv, dirmodeconv \- interface to Plan 9 File protocol
 .SH SYNOPSIS
 .B #include <u.h>
 .br
 .B #include <libc.h>
+.br
+.B #include <auth.h>
 .br
 .B #include <fcall.h>
 .PP
@@ -24,13 +26,13 @@ int convM2D(char *ap, Dir *d)
 char *getS(int fd, char *ap, Fcall *f, long *lp)
 .PP
 .B
-int dirconv(void *o, int f1, int f2, int f3, int chr)
+int dirconv(void *o, Fconv*)
 .PP
 .B
-int fcallconv(void *o, int f1, int f2, int f3, int chr)
+int fcallconv(void *o, Fconv*)
 .PP
 .B
-int dirmodeconv(void *o, int f2, int f2, int f3, int chr)
+int dirmodeconv(void *o, Fconv*)
 .SH DESCRIPTION
 These
 routines convert messages in the machine-independent format of
@@ -39,9 +41,10 @@ the Plan 9 file protocol,
 an
 .B Fcall
 structure:
+.PP
 .EX
-.if n .ta 4n +6n +4n +6n +16n
-.if t .ta \w'xxxx'u +\w'short 'u +\w'xxxx'u +\w'short 'u +\w'aname[NAMELEN]; 'u
+.if n .ta 4n +6n +5n +6n +18n +4n
+.if t .ta \w'xxxx'u +\w'short 'u +\w'xxxx'u +\w'ushort 'u +\w'ticket[TICKETLEN]; 'u +\w'/* 'u
 typedef
 struct Fcall {
 	char	type;
@@ -49,28 +52,34 @@ struct Fcall {
 	short	tag;
 	union {
 		struct {
-			ushort	oldtag;		/* Tflush */
-			Qid	qid;		/* Rattach, Rwalk, Ropen, Rcreate */
+			ushort	oldtag;	/* Tflush */
+			Qid	qid;	/* Rattach, Rwalk,
+						Ropen, Rcreate */
+			char	rauth[AUTHENTLEN];	/* Rattach */
 		};
 		struct {
-			char	uname[NAMELEN];	/* Tauth, Tattach */
+			char	uname[NAMELEN];	/* Tattach */
 			char	aname[NAMELEN];	/* Tattach */
-			char	auth[NAMELEN];	/* Tattach */
-			char	chal[8+NAMELEN];/* Tauth, Rauth */
+			char	ticket[TICKETLEN];	/* Tattach */
+			char	auth[AUTHENTLEN];	/* Tattach */
 		};
 		struct {
 			char	ename[ERRLEN];	/* Rerror */
+			char	authid[NAMELEN];	/* Rsession */
+			char	authdom[DOMLEN];	/* Rsession */
+			char	chal[CHALLEN];	/* Tsession/Rsession */
 		};
 		struct {
-			long	perm;		/* Tcreate */ 
-			short	newfid;		/* Tclone, Tclwalk */
-			char	name[NAMELEN];	/* Twalk, Tclwalk, Tcreate */
-			char	mode;		/* Tcreate, Topen */
+			long	perm;	/* Tcreate */ 
+			short	newfid;	/* Tclone, Tclwalk */
+			char	name[NAMELEN];	/* Twalk, Tclwalk,
+						Tcreate */
+			char	mode;	/* Tcreate, Topen */
 		};
 		struct {
-			long	offset;		/* Tread, Twrite */
-			long	count;		/* Tread, Twrite, Rread */
-			char	*data;		/* Twrite, Rread */
+			long	offset;	/* Tread, Twrite */
+			long	count;	/* Tread, Twrite, Rread */
+			char	*data;	/* Twrite, Rread */
 		};
 		struct {
 			char	stat[DIRLEN];	/* Twstat, Rstat */
@@ -223,6 +232,8 @@ assumes that
 .I dirconv
 has been installed with format letter
 .LR D .
+.SH SOURCE
+.B /sys/src/libc/9sys
 .SH SEE ALSO
 .IR intro (2),
 .IR stat (2),
@@ -230,7 +241,7 @@ has been installed with format letter
 .SH DIAGNOSTICS
 .I GetS
 sets
-.I errstr.
+.IR errstr .
 .SH BUGS
 The offset and directory length fields have 8 bytes in the protocol,
 but these routines assume they fit into a long.

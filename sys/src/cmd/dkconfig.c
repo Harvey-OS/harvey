@@ -16,6 +16,7 @@ int	asyncconfig(char*, char*, char*, int, int, int, char*);
 int	muxconfig(char*, char*, int, int, int);
 void	dkconfig(int, char*, int, int, int);
 char*	system(int, char*);
+void	csaddnet(char*);
 
 /*
  *  default is:
@@ -124,6 +125,7 @@ main(int argc, char *argv[])
 			dev = "#h";
 		muxconfig(net, dev, csc, chans, ws);
 	}
+	csaddnet(net);
 	exits(0);
 }
 
@@ -166,17 +168,21 @@ asyncconfig(char *net, char *dev, char *baud, int csc, int chans, int ws, char *
 	int cfd, dfd;
 	char buf[NAMELEN+3];
 
-	sprint(buf, "%sctl", dev);
-	cfd = open(buf, ORDWR);
-	if(cfd < 0)
-		error(buf);
-	sendmsg(cfd, baud);
 
-	dfd = open(dev, ORDWR);
-	if(dfd < 0)
-		error(dev);
-	if(cmd)
-		system(dfd, cmd);
+	if(strchr(dev, '!')){
+		dfd = dial(dev, 0, 0, &cfd);
+	} else {
+		sprint(buf, "%sctl", dev);
+		cfd = open(buf, ORDWR);
+		if(cfd < 0)
+			error(buf);
+		sendmsg(cfd, baud);
+		dfd = open(dev, ORDWR);
+		if(dfd < 0)
+			error(dev);
+		if(cmd)
+			system(dfd, cmd);
+	}
 	connect(dfd, cfd);
 	close(dfd);
 	sendmsg(cfd, "push async");
@@ -219,10 +225,7 @@ sendmsg(int fd, char *msg)
 void
 error(char *s)
 {
-	char buf[64];
-
-	errstr(buf);
-	fprint(2, "%s: %s: %s\n", argv0, s, buf);
+	fprint(2, "%s: %s: %r\n", argv0, s);
 	exits(0);
 }
 
@@ -259,7 +262,7 @@ connect(int fd, int cfd)
 
 		for(;;) {
 			read(0, xbuf, 1);
-			switch(xbuf[0]) {
+			switch(xbuf[0]&0xff) {
 			case CtrlD:
 				kill(pid);
 				close(ctl);
@@ -304,14 +307,14 @@ system(int fd, char *cmd)
 
 	switch(pid = fork()){
 	case -1:
-		perror("con");
+		fprint(2, "%s: can't fork: %r\n", argv0);
 		return "fork failed";
 	case 0:
 		dup(fd, 0);
 		dup(fd, 1);
 		close(fd);
 		execl("/bin/rc", "rc", "-c", cmd, 0);
-		perror("dkconfig");
+		fprint(2, "%s: can't exec /bin/rc: %r\n", argv0);
 		exits("exec");
 		return 0;
 	default:
@@ -325,4 +328,18 @@ system(int fd, char *cmd)
 		break;
 	}
 	return 0;
+}
+
+void
+csaddnet(char *name)
+{
+	int fd;
+	char buf[NAMELEN+6];
+
+	sprint(buf, "add %s", name);
+	fd = open("/net/cs", OWRITE);
+	if(fd < 0)
+		return;
+	write(fd, buf, strlen(buf));
+	close(fd);
 }

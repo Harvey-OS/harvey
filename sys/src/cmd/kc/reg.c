@@ -36,6 +36,7 @@ void
 regopt(Prog *p)
 {
 	Reg *r, *r1, *r2;
+	Prog *p1;
 	int i, z;
 	long initpc, val;
 	ulong vreg;
@@ -383,27 +384,28 @@ brk:
 	for(r = firstr; r != R; r = r1) {
 		r->pc = val;
 		p = r->prog;
+		p1 = P;
 		r1 = r->link;
-		if(r1 == R)
-			break;
-		while(p != r1->prog)
-		switch(p->as) {
+		if(r1 != R)
+			p1 = r1->prog;
+		for(; p != p1; p = p->link) {
+			switch(p->as) {
+			default:
+				val++;
+				break;
 
-		default:
-			val++;
-
-		case ADATA:
-		case AGLOBL:
-		case ANAME:
-			p = p->link;
+			case ANOP:
+			case ADATA:
+			case AGLOBL:
+			case ANAME:
+				break;
+			}
 		}
 	}
-	pc = val + 1;
+	pc = val;
 
 	/*
-	 * last pass
 	 * fix up branches
-	 * free aux structures
 	 */
 	if(debug['R'])
 		if(bany(&addrs))
@@ -415,6 +417,16 @@ brk:
 		if(p->to.type == D_BRANCH)
 			p->to.offset = r->s2->pc;
 		r1 = r;
+	}
+
+	/*
+	 * last pass
+	 * eliminate nops
+	 * free aux structures
+	 */
+	for(p = firstr->prog; p != P; p = p->link){
+		while(p->link && p->link->as == ANOP)
+			p->link = p->link->link;
 	}
 	if(r1 != R) {
 		r1->link = freer;
@@ -546,7 +558,7 @@ out:
 	if(n == D_PARAM)
 		for(z=0; z<BITS; z++)
 			params.b[z] |= bit.b[z];
-	if(v->etype != et || !typscalar[et])	/* funny punning */
+	if(v->etype != et || !typechlpfd[et])	/* funny punning */
 		for(z=0; z<BITS; z++)
 			addrs.b[z] |= bit.b[z];
 	if(t == D_CONST) {

@@ -1,0 +1,4 @@
+</sys/doc/fonts
+
+acme.ps:D:	acme.ms
+	{echo $FONTS; cat acme.ms} | troff -mpm -mpictures -mnihongo | lp -dstdout >acme.ps

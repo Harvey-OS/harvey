@@ -1,26 +1,26 @@
-.TH FPRINTF 2S
+.TH FPRINTF 2
 .SH NAME
 fprintf, printf, sprintf, vfprintf, vprintf,  vsprintf \- print formatted output
 .SH SYNOPSIS
-.B "#include <stdio.h>"
+.B #include <stdio.h>
 .PP
 .B
-int fprintf (FILE *f, char *format, ...);
+int fprintf(FILE *f, char *format, ...);
 .PP
 .B
 int printf(char *format, ...);
 .PP
 .B
-int sprintf (char *s, char *format, ...);
+int sprintf(char *s, char *format, ...);
 .PP
 .B
-int vfprintf (FILE *f, char *format, char *args);
+int vfprintf(FILE *f, char *format, char *args);
 .PP
 .B
 int vprintf(char *format, char *args);
 .PP
 .B
-int vsprintf (char *s, char *format, char *args);
+int vsprintf(char *s, char *format, char *args);
 .SH DESCRIPTION
 .I Fprintf
 places output on the named output stream
@@ -224,14 +224,14 @@ the field width or precision.
 The arguments specifying field width or precision, or both,
 shall appear (in that order) before the argument (if any) to be converted.
 A negative field width argument is taken as a
-.B \-
+.B -
 flag followed by a positive field width.
 A negative precision is taken as if it were missing.
 .PP
 The flag characters and their meanings are:
 .PD 0
 .TP 10
-.B \-
+.B -
 The result of the conversion is left-justified within the field.
 .TP
 .B +
@@ -306,7 +306,7 @@ are used to pad the field width; no space padding is performed.
 If the
 .B 0
 and
-.B \-
+.B -
 flags both appear, the
 .B 0
 flag will be ignored.
@@ -365,7 +365,7 @@ The
 .B double
 argument is converted to decimal notation
 in the style
-[\-]\fIddd\f(CW.\fIddd\fR,
+[\-]\fIddd\fL.\fIddd\fR,
 where the number of digits after the decimal point
 is equal to the precision specification.
 If the precision
@@ -379,7 +379,7 @@ no decimal point appears.
 The
 .B double
 argument is converted in the style
-[\-]\fId\f(CW.\fIddd\f(CWe\fR\(+-\fIdd\fR,
+[\-]\fId\fL.\fIddd\fLe\fR±\fIdd\fR,
 where there is one digit before the decimal point and
 the number of digits after it is equal to the
 precision;
@@ -475,9 +475,14 @@ conversion), the behavior is undefined.
 In no case does a nonexistent or small field width cause truncation
 of a field; if the result of a conversion is wider than the field width,
 the field is expanded to contain the conversion result.
+.SH SOURCE
+.B /sys/src/libstdio
 .SH SEE ALSO
 .IR fopen (2),
 .IR fscanf (2),
 .IR print (2)
 .SH BUGS
-There is no way to print a wide character (rune).
+There is no way to print a wide character (rune); use
+.IR print (2)
+or
+.IR bio (2).

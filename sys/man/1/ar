@@ -1,4 +1,4 @@
-.TH AR 1 
+.TH AR 1
 .SH NAME
 ar \- archive and library maintainer
 .SH SYNOPSIS
@@ -25,14 +25,14 @@ It can be used, though, for any similar purpose.
 .PP
 .I Key
 is one character from the set
-.B drqtpmx,
+.BR drqtpmx ,
 optionally concatenated with
 one or more of
-.B vuaibcl.
+.BR vuaibclo .
 The
 .I files
 are constituents of the archive
-.I afile.
+.IR afile .
 The meanings of the
 .I key
 characters are:
@@ -45,7 +45,7 @@ from the archive file.
 .B r
 Replace
 .I files 
-in the archive file.
+in the archive file, or add them if missing.
 Optional modifiers are
 .RS
 .PD0
@@ -86,6 +86,12 @@ Move the named files to the end or elsewhere,
 specified as with 
 .LR r .
 .TP
+.B o
+Preserve the access and modification times of files
+extracted with the
+.B x
+command.
+.TP
 .B x
 Extract the named files.
 If no names are given, all files in the archive are
@@ -103,7 +109,7 @@ With
 .BR p ,
 precede each file with a name.
 With
-.B t,
+.BR t ,
 give a long listing of all information about the files,
 somewhat like a listing by
 .IR ls (1),
@@ -132,10 +138,29 @@ Normally
 places its temporary files in the directory
 .BR /tmp .
 This option causes them to be placed in the local directory.
+.PP
+When a
+.BR d ,
+.BR r ,
+or
+.BR m
+.I key
+is specified and all members of the archive are valid object files for
+the same architecture,
+.I ar
+inserts a table of contents, required by the loaders, at
+the front of the library.
+The table of contents is
+rebuilt whenever the archive is modified, except
+when the
+.B q
+.I key
+is specified or when the table of contents is
+explicitly moved or deleted.
 .SH EXAMPLE
 .TP
 .L
-ar cr lib.a *.o; rl lib.a
+ar cr lib.a *.o
 Replace the contents of library
 .L lib.a
 with the object files in the current directory.
@@ -144,6 +169,8 @@ with the object files in the current directory.
 .TP
 .B /tmp/v*
 temporaries
+.SH SOURCE
+.B /sys/src/cmd/ar.c
 .SH "SEE ALSO"
 .IR 2l (1), 
 .IR ar (6)

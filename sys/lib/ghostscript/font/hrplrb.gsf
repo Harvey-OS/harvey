@@ -1,0 +1,4 @@
+%!
+/Hershey-Plain findfont /CharData get
+/Hershey-Plain-Bold 5066561 [107 0 5066561]
+  2.2 0 StandardEncoding makeHersheyFontGS993

@@ -1,4 +1,7 @@
 #pragma	lib	"libc.a"
+#pragma src	"/sys/src/libc"
+
+#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 
 /*
  * mem routines
@@ -28,6 +31,7 @@ extern	long	strlen(char*);
 extern	long	strspn(char*, char*);
 extern	long	strcspn(char*, char*);
 extern	char*	strstr(char*, char*);
+extern	int	tokenize(char*, char**, int);
 
 enum
 {
@@ -113,11 +117,8 @@ extern	double	atan(double);
 extern	double	log(double);
 extern	double	log10(double);
 extern	double	exp(double);
-extern	double	erf(double);
-extern	double	erfc(double);
 extern	double	floor(double);
 extern	double	ceil(double);
-extern	double	gamma(double);
 extern	double	hypot(double, double);
 extern	double	sin(double);
 extern	double	cos(double);
@@ -162,7 +163,11 @@ extern	long	times(long*);
 /*
  * one-of-a-kind
  */
-#define DESKEYLEN	7		/* length of a des key for encrypt/decrypt */
+enum
+{
+	PNPROC		= 1,
+	PNGROUP		= 2,
+};
 
 extern	int	abs(int);
 extern	int	atexit(void(*)(void));
@@ -189,7 +194,7 @@ extern	double	modf(double, double*);
 extern	int	netcrypt(void*, void*);
 extern	void	notejmp(void*, jmp_buf, int);
 extern	void	perror(char*);
-extern  int	postnote(int, char *);
+extern  int	postnote(int, int, char *);
 extern	double	pow10(int);
 extern	int	putenv(char*, char*);
 extern	void	qsort(void*, long, long, int (*)(void*, void*));
@@ -239,12 +244,19 @@ extern	int	reject(int, char*, char*);
 #define	OCEXEC	32	/* or'ed in, close on exec */
 #define	ORCLOSE	64	/* or'ed in, remove on close */
 
+/* Segattch */
+#define	SG_RONLY	0040	/* read only */
+#define	SG_CEXEC	0100	/* detach on exec */
+
 #define	NCONT	0	/* continue after note */
 #define	NDFLT	1	/* terminate after note */
+#define	NSAVE	2	/* clear note but hold state */
+#define	NRSTR	3	/* restore saved state */
 
 #define CHDIR		0x80000000	/* mode bit for directories */
 #define CHAPPEND	0x40000000	/* mode bit for append only files */
 #define CHEXCL		0x20000000	/* mode bit for exclusive use files */
+#define CHMOUNT		0x10000000	/* mode bit for mounted channel */
 #define CHREAD		0x4		/* mode bit for read permission */
 #define CHWRITE		0x2		/* mode bit for write permission */
 #define CHEXEC		0x1		/* mode bit for execute permission */
@@ -311,19 +323,23 @@ extern	int	execl(char*, ...);
 extern  int	filsys(int, int, char*);
 extern	int	fork(void);
 extern	int	rfork(int);
+extern	int	fauth(int, char*);
+extern	int	fsession(int, char*);
 extern	int	fstat(int, char*);
 extern	int	fwstat(int, char*);
-extern	int	mount(int, char*, int, char*, char*);
+extern	int	mount(int, char*, int, char*);
 extern	int	unmount(char*, char*);
 extern	int	noted(int);
 extern	int	notify(void(*)(void*, char*));
 extern	int	open(char*, int);
 extern	int	pipe(int*);
 extern	long	read(int, void*, long);
+extern	long	readn(int, void*, long);
+#define		read9p read
 extern	int	remove(char*);
 extern	void*	sbrk(ulong);
 extern	long	seek(int, long, int);
-extern	int	segattach(int, char*, void*, ulong);
+extern	long	segattach(int, char*, void*, ulong);
 extern	int	segbrk(void*, void*);
 extern	int	segdetach(void*);
 extern	int	segflush(void*, ulong);
@@ -332,6 +348,7 @@ extern	int	sleep(long);
 extern	int	stat(char*, char*);
 extern	int	wait(Waitmsg*);
 extern	long	write(int, void*, long);
+#define		write9p write
 extern	int	wstat(char*, char*);
 extern	int	rendezvous(ulong, ulong);
 
@@ -342,10 +359,8 @@ extern	int	dirfwstat(int, Dir*);
 extern	long	dirread(int, Dir*, long);
 extern	int	getpid(void);
 extern	int	getppid(void);
+extern	void	werrstr(char*, ...);
 
-/*
- * argument processing
- */
 extern char *argv0;
 #define	ARGBEGIN	for((argv0? 0: (argv0=*argv)),argv++,argc--;\
 			    argv[0] && argv[0][0]=='-' && argv[0][1];\

@@ -1,0 +1,35 @@
+objtype=mips
+</$objtype/mkfile
+
+BOOTS=\
+	partboot.3k\
+	partboot.4k\
+
+HFILES=\
+	dvh.h\
+
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+all:V:		$BOOTS
+install:V:	$BOOTS
+installall:V:	$BOOTS
+
+%.$O:	%.c
+	$CC -w $stem.c
+
+%.$O:	$HFILES
+
+partboot.%: /mips/9indigo% $cpuobjtype.mkboot
+	$cpuobjtype.mkboot /mips/9indigo$stem >$target
+
+$cpuobjtype.mkboot:	mkboot.$cpuobjtype
+	$cpuobjtype^l -o $target mkboot.$cpuobjtype
+
+mkboot.$cpuobjtype:	mkboot.c
+	$cpuobjtype^c -w mkboot.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].mkboot
+
+nuke:V:
+	rm -f *.[$OS] [$OS].mkboot partboot.*

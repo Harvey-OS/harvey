@@ -7,6 +7,8 @@
 
 char	*noname		= "<none>";
 char	symname[]	= SYMDEF;
+char	thechar		= 'k';
+char	*thestring 	= "sparc";
 
 /*
  *	-H0 -T0x200000 -R0		is boot
@@ -20,6 +22,7 @@ main(int argc, char *argv[])
 	char *a;
 
 	Binit(&bso, 1, OWRITE);
+	cout = -1;
 	listinit();
 	outfile = 0;
 	nerrors = 0;
@@ -131,6 +134,7 @@ main(int argc, char *argv[])
 	textp = P;
 	datap = P;
 	pc = 0;
+	dtype = 4;
 	if(outfile == 0)
 		outfile = "k.out";
 	cout = create(outfile, 1, 0775);
@@ -149,8 +153,9 @@ main(int argc, char *argv[])
 		INITENTRY = "_main";
 		if(debug['p'])
 			INITENTRY = "_mainp";
-	}
-	if(!debug['l'])
+		if(!debug['l'])
+			lookup(INITENTRY, 0)->type = SXREF;
+	} else
 		lookup(INITENTRY, 0)->type = SXREF;
 
 	while(*argv)
@@ -216,19 +221,19 @@ errorexit(void)
 void
 objfile(char *file)
 {
-	long off, esym, cnt, i, l;
+	long off, esym, cnt, l;
 	int f, work;
 	Sym *s;
 	char magbuf[SARMAG];
 	char name[100], pname[150];
 	struct ar_hdr arhdr;
-	Rlent *e;
+	char *e, *start, *stop;
 
 	if(file[0] == '-' && file[1] == 'l') {
 		if(debug['9'])
-			strcpy(name, "/sparc/lib/lib");
+			sprint(name, "/%s/lib/lib", thestring);
 		else
-			strcpy(name, "/usr/klib/lib");
+			sprint(name, "/usr/%clib/lib", thechar);
 		strcat(name, file+2);
 		strcat(name, ".a");
 		file = name;
@@ -242,10 +247,14 @@ objfile(char *file)
 		errorexit();
 	}
 	l = read(f, magbuf, SARMAG);
-	if(l != SARMAG)
-		goto ldone;
-	if(strncmp(magbuf, ARMAG, SARMAG))
-		goto ldone;
+	if(l != SARMAG || strncmp(magbuf, ARMAG, SARMAG)){
+		/* load it as a regular file */
+		l = seek(f, 0L, 2);
+		seek(f, 0L, 0);
+		ldobj(f, l, file);
+		close(f);
+		return;
+	}
 
 	l = read(f, &arhdr, sizeof(struct ar_hdr));
 	if(l != sizeof(struct ar_hdr)) {
@@ -256,61 +265,57 @@ objfile(char *file)
 		diag("%s: first entry not symbol header\n", file);
 		goto out;
 	}
-	esym = SARMAG + sizeof(struct ar_hdr) + atolwhex(arhdr.size);
 
-loop:	/* start over */
-	work = 0;
+	esym = SARMAG + sizeof(struct ar_hdr) + atolwhex(arhdr.size);
 	off = SARMAG + sizeof(struct ar_hdr);
 
-l1:	/* read next block */
+	/*
+	 * just bang the whole symbol file into memory
+	 */
 	seek(f, off, 0);
 	cnt = esym - off;
-	if(cnt > sizeof(buf.rlent))
-		cnt = sizeof(buf.rlent);
-	cnt = read(f, buf.rlent, cnt);
-	if(cnt <= 0) {
-		if(work)
-			goto loop;
+	start = malloc(cnt + 10);
+	cnt = read(f, start, cnt);
+	if(cnt <= 0){
 		close(f);
 		return;
 	}
-	cnt /= sizeof(buf.rlent[0]);
-	off += cnt*sizeof(buf.rlent[0]);
-	e = &buf.rlent[0];
-	for(i=0; i<cnt; i++,e++) {
-		e->name[NNAME-1] = 0;
-		s = lookup(e->name, 0);
-		if(s->type != SXREF)
-			continue;
-		sprint(pname, "%s(%s)", file, e->name);
-		if(debug['v'])
-			Bprint(&bso, "%5.2f library: %s\n", cputime(), pname);
-		Bflush(&bso);
-		l = e->coffset[0] & 0xff;
-		l |= (e->coffset[1] & 0xff) << 8;
-		l |= (e->coffset[2] & 0xff) << 16;
-		l |= (e->coffset[3] & 0xff) << 24;
-		seek(f, l, 0);
-		l = read(f, &arhdr, sizeof(struct ar_hdr));
-		if(l != sizeof(struct ar_hdr))
-			goto bad;
-		if(strncmp(arhdr.fmag, ARFMAG, sizeof(arhdr.fmag)))
-			goto bad;
-		l = atolwhex(arhdr.size);
-		ldobj(f, l, pname);
-		if(s->type == SXREF) {
-			diag("%s: failed to load: %s\n", file, s->name);
-			errorexit();
-		}
-		work = 1;
-	}
-	goto l1;
+	stop = &start[cnt];
+	memset(stop, 0, 10);
 
-ldone:	/* load it as a regular file */
-	l = seek(f, 0L, 2);
-	seek(f, 0L, 0);
-	ldobj(f, l, file);
-	close(f);
+	work = 1;
+	while(work){
+		if(debug['v'])
+			Bprint(&bso, "%5.2f library pass: %s\n", cputime(), file);
+		Bflush(&bso);
+		work = 0;
+		for(e = start; e < stop; e = strchr(e+5, 0) + 1) {
+			s = lookup(e+5, 0);
+			if(s->type != SXREF)
+				continue;
+			sprint(pname, "%s(%s)", file, s->name);
+			if(debug['v'])
+				Bprint(&bso, "%5.2f library: %s\n", cputime(), pname);
+			Bflush(&bso);
+			l = e[1] & 0xff;
+			l |= (e[2] & 0xff) << 8;
+			l |= (e[3] & 0xff) << 16;
+			l |= (e[4] & 0xff) << 24;
+			seek(f, l, 0);
+			l = read(f, &arhdr, sizeof(struct ar_hdr));
+			if(l != sizeof(struct ar_hdr))
+				goto bad;
+			if(strncmp(arhdr.fmag, ARFMAG, sizeof(arhdr.fmag)))
+				goto bad;
+			l = atolwhex(arhdr.size);
+			ldobj(f, l, pname);
+			if(s->type == SXREF) {
+				diag("%s: failed to load: %s\n", file, s->name);
+				errorexit();
+			}
+			work = 1;
+		}
+	}
 	return;
 
 bad:
@@ -327,9 +332,15 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 	Sym *s;
 	Auto *u;
 
+	c = p[2];
+	if(c < 0 || c > NSYM){
+		print("sym out of range: %d\n", c);
+		p[0] = AEND+1;
+		return 0;
+	}
 	a->type = p[0];
 	a->reg = p[1];
-	a->sym = h[p[2]];
+	a->sym = h[c];
 	a->name = p[3];
 	c = 4;
 
@@ -404,7 +415,7 @@ out:
 void
 addlib(long line)
 {
-	char name[100], comp[100], *p;
+	char name[MAXHIST*NAMELEN], comp[4*NAMELEN], *p;
 	int i;
 
 	USED(line);
@@ -420,33 +431,33 @@ addlib(long line)
 		i = 0;
 	} else {
 		if(debug['9'])
-			strcpy(name, "/sparc/lib");
+			sprint(name, "/%s/lib", thestring);
 		else
-			strcpy(name, "/usr/klib");
+			sprint(name, "/usr/%clib", thechar);
 		i = 0;
 	}
 
 	for(; i<histfrogp; i++) {
-		sprint(comp, histfrog[i]->name+1);
+		snprint(comp, 2*NAMELEN, histfrog[i]->name+1);
 		for(;;) {
 			p = strstr(comp, "$O");
 			if(p == 0)
 				break;
 			memmove(p+1, p+2, strlen(p+2)+1);
-			p[0] = 'k';
+			p[0] = thechar;
 		}
 		for(;;) {
 			p = strstr(comp, "$M");
 			if(p == 0)
 				break;
-			memmove(p+5, p+2, strlen(p+2)+1);
-			p[0] = 's';
-			p[1] = 'p';
-			p[2] = 'a';
-			p[3] = 'r';
-			p[4] = 'c';
+			memmove(p+strlen(thestring), p+2, strlen(p+2)+1);
+			memmove(p, thestring, strlen(thestring));
+			if(strlen(comp) > NAMELEN) {
+				diag("library component too long");
+				return;
+			}
 		}
-		if(strlen(name) + strlen(comp) + 3 >= sizeof(name)) {
+		if(strlen(comp) > NAMELEN || strlen(name) + strlen(comp) + 3 >= sizeof(name)) {
 			diag("library component too long");
 			return;
 		}
@@ -457,19 +468,12 @@ addlib(long line)
 		if(strcmp(name, library[i]) == 0)
 			return;
 
-	i = strlen(name) + 1;
-	while(i & 3)
-		i++;
-	while(nhunk < i)
-		gethunk();
-	p = (char*)hunk;
-	nhunk -= i;
-	hunk += i;
-
+	p = malloc(strlen(name) + 1);
 	strcpy(p, name);
 	library[libraryp] = p;
 	libraryp++;
 }
+
 void
 addhist(long line, int type)
 {
@@ -477,17 +481,9 @@ addhist(long line, int type)
 	Sym *s;
 	int i, j, k;
 
-	while(nhunk < sizeof(Auto))
-		gethunk();
-	u = (Auto*)hunk;
-	nhunk -= sizeof(Auto);
-	hunk += sizeof(Auto);
-
-	while(nhunk < sizeof(Sym))
-		gethunk();
-	s = (Sym*)hunk;
-	nhunk -= sizeof(Sym);
-	hunk += sizeof(Sym);
+	u = malloc(sizeof(Auto));
+	s = malloc(sizeof(Sym));
+	s->name = malloc(2*(histfrogp+1) + 1);
 
 	u->sym = s;
 	u->type = type;
@@ -517,72 +513,134 @@ histtoauto(void)
 }
 
 void
+collapsefrog(Sym *s)
+{
+	int i;
+
+	/*
+	 * bad encoding of path components only allows
+	 * MAXHIST components. if there is an overflow,
+	 * first try to collapse xxx/..
+	 */
+	for(i=1; i<histfrogp; i++)
+		if(strcmp(histfrog[i]->name+1, "..") == 0) {
+			memmove(histfrog+i-1, histfrog+i+1,
+				(histfrogp-i-1)*sizeof(histfrog[0]));
+			histfrogp--;
+			goto out;
+		}
+
+	/*
+	 * next try to collapse .
+	 */
+	for(i=0; i<histfrogp; i++)
+		if(strcmp(histfrog[i]->name+1, ".") == 0) {
+			memmove(histfrog+i, histfrog+i+1,
+				(histfrogp-i-1)*sizeof(histfrog[0]));
+			goto out;
+		}
+
+	/*
+	 * last chance, just truncate from front
+	 */
+	memmove(histfrog+0, histfrog+1,
+		(histfrogp-1)*sizeof(histfrog[0]));
+
+out:
+	histfrog[histfrogp-1] = s;
+}
+
+void
+nopout(Prog *p)
+{
+	p->as = ANOP;
+	p->from.type = D_NONE;
+	p->to.type = D_NONE;
+}
+
+uchar*
+readsome(int f, uchar *buf, uchar *good, uchar *stop, int max)
+{
+	int n;
+
+	n = stop - good;
+	memmove(buf, good, stop - good);
+	stop = buf + n;
+	n = MAXIO - n;
+	if(n > max)
+		n = max;
+	n = read(f, stop, n);
+	if(n <= 0)
+		return 0;
+	return stop + n;
+}
+
+void
 ldobj(int f, long c, char *pn)
 {
 	Prog *p, *t;
-	Sym *h[NSYM], *s;
-	char name[NNAME];
-	int v, o, i, r;
+	Sym *h[NSYM], *s, *di;
+	int v, o, r, skip;
 	long ipc;
-	uchar *bloc, *bsize;
+	uchar *bloc, *bsize, *stop;
 
 	bsize = buf.xbuf;
 	bloc = buf.xbuf;
+	di = S;
 
 newloop:
 	memset(h, 0, sizeof(h));
 	histfrogp = 0;
 	version++;
 	ipc = pc;
+	skip = 0;
 
 loop:
 	if(c <= 0)
 		goto eof;
 	r = bsize - bloc;
 	if(r < 100 && r < c) {		/* enough for largest prog */
-		i = (ulong)r & 7;	/* non allignment factor */
-		if(i)
-			i = 8-i;
-		memmove(buf.xbuf+i, bloc, r);
-		bloc = buf.xbuf+i;
-		v = sizeof(buf.xbuf) - (i+r);
-		if(v > c)
-			v = c;
-		v = read(f, bloc+r, v);
-		if(v <= 0)
+		bsize = readsome(f, buf.xbuf, bloc, bsize, c);
+		if(bsize == 0)
 			goto eof;
-		bsize = bloc+r + v;
+		bloc = buf.xbuf;
 		goto loop;
 	}
 	o = bloc[0];		/* as */
-	if(o <= 0 || o > AEND) {
+	if(o <= 0 || o >= ALAST) {
 		diag("%s: opcode out of range %d\n", pn, o);
 		print("	probably not a .k file\n");
 		errorexit();
 	}
 	if(o == ANAME) {
+		stop = memchr(&bloc[3], 0, bsize-&bloc[3]);
+		if(stop == 0){
+			bsize = readsome(f, buf.xbuf, bloc, bsize, c);
+			if(bsize == 0)
+				goto eof;
+			bloc = buf.xbuf;
+			stop = memchr(&bloc[3], 0, bsize-&bloc[3]);
+			if(stop == 0){
+				fprint(2, "%s: name too long\n", pn);
+				errorexit();
+			}
+		}
 		v = bloc[1];	/* type */
 		o = bloc[2];	/* sym */
 		bloc += 3;
 		c -= 3;
-		memset(name, 0, NNAME);
-		for(i=0;; i++) {
-			r = bloc[0];
-			bloc++;
-			c--;
-			if(r == 0)
-				break;
-			if(i < NNAME)
-				name[i] = r;
-		}
+
 		r = 0;
 		if(v == D_STATIC)
 			r = version;
-		s = lookup(name, r);
+		s = lookup((char*)bloc, r);
+		c -= &stop[1] - bloc;
+		bloc = stop + 1;
+
 		if(debug['W'])
 			print("	ANAME	%s\n", s->name);
 		h[o] = s;
-		if(v == D_EXTERN && s->type == 0)
+		if((v == D_EXTERN || v == D_STATIC) && s->type == 0)
 			s->type = SXREF;
 		if(v == D_FILE) {
 			if(s->type != SFILE) {
@@ -590,10 +648,11 @@ loop:
 				s->type = SFILE;
 				s->value = histgen;
 			}
-			if(histfrogp < nelem(histfrog)) {
+			if(histfrogp < MAXHIST) {
 				histfrog[histfrogp] = s;
 				histfrogp++;
-			}
+			} else
+				collapsefrog(s);
 		}
 		goto loop;
 	}
@@ -605,7 +664,9 @@ loop:
 	hunk += sizeof(Prog);
 
 	p->as = o;
-	p->reg = bloc[1];
+	p->reg = bloc[1] & 0x7f;
+	if(bloc[1] & 0x80)
+		p->mark = NOSCHED;
 	p->line = bloc[2] | (bloc[3]<<8) | (bloc[4]<<16) | (bloc[5]<<24);
 	r = zaddr(bloc+6, &p->from, h) + 6;
 	r += zaddr(bloc+r, &p->to, h);
@@ -628,9 +689,9 @@ loop:
 			histfrogp = 0;
 			goto loop;
 		}
+		addhist(p->line, D_FILE);		/* 'z' */
 		if(p->to.offset)
-			addhist(p->to.offset, D_WIM);
-		addhist(p->line, D_FILE);
+			addhist(p->to.offset, D_FILE1);	/* 'Z' */
 		histfrogp = 0;
 		goto loop;
 
@@ -663,6 +724,50 @@ loop:
 			s->value = p->to.offset;
 		break;
 
+	case ADYNT:
+		if(p->to.sym == S) {
+			diag("DYNT without a sym\n%P\n", p);
+			break;
+		}
+		di = p->to.sym;
+		p->reg = 4;
+		if(di->type == SXREF) {
+			if(debug['z'])
+				Bprint(&bso, "%P set to %d\n", p, dtype);
+			di->type = SCONST;
+			di->value = dtype;
+			dtype += 4;
+		}
+		if(p->from.sym == S)
+			break;
+
+		p->from.offset = di->value;
+		p->from.sym->type = SDATA;
+		if(curtext == P) {
+			diag("DYNT not in text: %P\n", p);
+			break;
+		}
+		p->to.sym = curtext->from.sym;
+		p->to.type = D_CONST;
+		p->link = datap;
+		datap = p;
+		break;
+
+	case AINIT:
+		if(p->from.sym == S) {
+			diag("INIT without a sym\n%P\n", p);
+			break;
+		}
+		if(di == S) {
+			diag("INIT without previous DYNT\n%P\n", p);
+			break;
+		}
+		p->from.offset = di->value;
+		p->from.sym->type = SDATA;
+		p->link = datap;
+		datap = p;
+		break;
+
 	case ADATA:
 		p->link = datap;
 		datap = p;
@@ -689,8 +794,13 @@ loop:
 			diag("TEXT must have a name\n%P\n", p);
 			errorexit();
 		}
-		if(s->type != 0 && s->type != SXREF)
+		if(s->type != 0 && s->type != SXREF) {
+			if(p->reg & DUPOK) {
+				skip = 1;
+				goto casedef;
+			}
 			diag("redefinition: %s\n%P\n", s->name, p);
+		}
 		s->type = STEXT;
 		s->value = pc;
 		if(textp != P) {
@@ -706,6 +816,9 @@ loop:
 		break;
 
 	case AFMOVF:
+		if(skip)
+			goto casedef;
+
 		if(p->from.type == D_FCONST) {
 			/* size sb 9 max */
 			sprint(literal, "$%lux", ieeedtof(&p->from.ieee));
@@ -732,6 +845,8 @@ loop:
 		goto casedef;
 
 	case AFMOVD:
+		if(skip)
+			goto casedef;
 		if(p->from.type == D_FCONST) {
 			/* size sb 18 max */
 			sprint(literal, "$%lux.%lux",
@@ -760,6 +875,9 @@ loop:
 
 	default:
 	casedef:
+		if(skip)
+			nopout(p);
+
 		if(p->to.type == D_BRANCH)
 			p->to.offset += ipc;
 		lastp->link = p;
@@ -780,25 +898,29 @@ lookup(char *symb, int v)
 	Sym *s;
 	char *p;
 	long h;
+	int c, l;
 
 	h = v;
-	for(p=symb; *p;) {
-		h *= 3L;
-		h += *p++;
-	}
+	for(p=symb; c = *p; p++)
+		h = h+h+h + c;
+	l = (p - symb) + 1;
 	if(h < 0)
 		h = ~h;
 	h %= NHASH;
 	for(s = hash[h]; s != S; s = s->link)
 		if(s->version == v)
-		if(strcmp(s->name, symb) == 0)
+		if(memcmp(s->name, symb, l) == 0)
 			return s;
 
-	s = malloc(sizeof(Sym));
+	while(nhunk < sizeof(Sym))
+		gethunk();
+	s = (Sym*)hunk;
+	nhunk -= sizeof(Sym);
+	hunk += sizeof(Sym);
 
-	if(strlen(symb) >= sizeof(s->name))
-		diag("long name in lookup %s\n", symb);
-	strncpy(s->name, symb, sizeof(s->name));
+	s->name = malloc(l + 1);
+	memmove(s->name, symb, l);
+
 	s->link = hash[h];
 	s->type = 0;
 	s->version = v;
@@ -960,7 +1082,7 @@ doprof2(void)
 		if(p->as == ATEXT) {
 			curtext = p;
 
-			if(p->reg != NREG) {	/* dont profile */
+			if(p->reg & NOPROF) {	/* dont profile */
 				for(;;) {
 					q = p->link;
 					if(q == P)
@@ -991,7 +1113,17 @@ doprof2(void)
 		if(p->as == ARETURN) {
 
 			/*
-			 * JMPL	profout
+			 * RETURN
+			 */
+			q = prg();
+			q->as = ARETURN;
+			q->from = p->from;
+			q->to = p->to;
+			q->link = p->link;
+			p->link = q;
+
+			/*
+			 * JMPL profout
 			 */
 			p->as = AJMPL;
 			p->from = zprg.from;
@@ -999,17 +1131,8 @@ doprof2(void)
 			p->to.type = D_BRANCH;
 			p->cond = ps4;
 			p->to.sym = s4;
-			
-			/*
-			 * RETURN
-			 */
-			q = prg();
-			q->line = p->line;
-			q->pc = p->pc;
-			q->link = p->link;
-			p->link = q;
+
 			p = q;
-			p->as = ARETURN;
 
 			continue;
 		}
@@ -1122,7 +1245,7 @@ malloc(long n)
 {
 	void *v;
 
-	n = (n + 3) & ~3;
+	n = (n + 7) & ~7;
 	while(nhunk < n)
 		gethunk();
 

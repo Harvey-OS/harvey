@@ -1,5 +1,6 @@
 #include "lib.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -8,12 +9,17 @@ system(const char *s)
 {
 	int w, status;
 	pid_t pid;
+	char cmd[30], *oty;
 
+	oty = getenv("objtype");
+	if(!oty)
+		return -1;
 	if(!s)
 		return 1; /* a command interpreter is available */
 	pid = fork();
+	sprintf(cmd, "/%s/bin/ape/sh", oty);
 	if(pid == 0) {
-		execl("/bin/rc", "rc", "-c", s, 0);
+		execl(cmd, "sh", "-c", s, 0);
 		_exit(1);
 	}
 	if(pid < 0){

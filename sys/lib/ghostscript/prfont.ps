@@ -1,0 +1,139 @@
+%!
+%%Creator: Eric Gisin <egisin@waterloo.csnet>
+%%Title: Print font catalog
+% Copyright (c) 1986 Eric Gisin
+% Copyright (C) 1992 Aladdin Enterprises, Menlo Park, CA (ghost@aladdin.com)
+%   Modified to print all 256 encoded characters.
+% Copyright (C) 1993 Aladdin Enterprises, Menlo Park, CA (ghost@aladdin.com)
+%   Modified to print unencoded characters.
+% Copyright (C) 1994 Aladdin Enterprises, Menlo Park, CA (ghost@aladdin.com)
+%   Modified to always create 256-element Encoding vectors.
+
+% Example usages at bottom of file
+
+/#copies 1 def
+/min { 2 copy gt { exch } if pop } bind def
+
+/T6 /Times-Roman findfont 6 scalefont def
+/Temp 64 string def
+/Inch {72 mul} def
+/Base 16 def	% char code output base
+/TempEncoding [ 256 { /.notdef } repeat ] def
+
+% do single character of page
+% output to rectangle ll=(0,-24) ur=(36,24)
+/DoChar {
+  /C exch def
+  /S (_) dup 0 C put def
+  /N F /Encoding get C get def
+
+  % print code name, width and char name
+  /W F setfont S stringwidth pop def
+  T6 setfont
+  N /.notdef ne {0 -20 moveto N Temp cvs show} if
+  0 -12 moveto C Base Temp cvrs show (  ) show
+  W 0.0005 add Temp cvs 0 5 getinterval show
+
+  % print char with reference lines
+  N /.notdef ne {
+    3 0 translate
+    0 0 moveto F24 setfont S show
+    /W S stringwidth pop def
+    0 -6 moveto 0 24 lineto
+    W -6 moveto W 24 lineto
+    -3 0 moveto W 3 add 0 lineto
+    0 setlinewidth stroke
+  } if
+} def
+
+% print page title
+/DoTitle {
+  /Times-Roman findfont 18 scalefont setfont
+  18 10.5 Inch moveto FName Temp cvs show ( ) show ((24 point)) show
+} def
+
+% print one block of characters
+/DoBlock {	% firstcode lastcode
+  /FirstCode 2 index def
+  1 exch {
+    /I exch def
+    /Xn I FirstCode sub 16 mod def /Yn I FirstCode sub 16 idiv def
+    gsave
+    Xn 36 mul 9 add Yn -56 mul 9.5 Inch add translate
+    I DoChar
+    grestore
+  } for
+} def
+
+% print a line of character
+/DoLine {	% firstcode lastcode
+  1 exch { (_) dup 0 3 index put show pop } for
+} def
+
+% print font sample page
+/DoFont {
+  /FName exch def	% font name
+  /F FName findfont def
+  /F24 F 24 scalefont def
+  /Line0 96 string def
+  /Line1 96 string def
+
+	% Display the first 128 encoded characters.
+
+  DoTitle (, characters 0-127) show
+  0 127 DoBlock
+  F 10 scalefont setfont
+  18 2.0 Inch moveto 0 63 DoLine
+  18 1.5 Inch moveto 64 127 DoLine
+  showpage
+
+	% Display the second 128 encoded characters.
+
+  DoTitle (, characters 128-255) show
+  128 255 DoBlock
+  F 10 scalefont setfont
+  18 2.0 Inch moveto 128 191 DoLine
+  18 1.5 Inch moveto 192 255 DoLine
+  showpage
+
+  F /FontType get 1 eq
+   {
+		% Find and display the unencoded characters.
+		% Currently we can't handle more than 128.
+
+	/Encoded F /Encoding get length dict def
+	F /Encoding get { true Encoded 3 1 roll put } forall
+	/Unencoded [ F /CharStrings get
+	 { pop dup Encoded exch known { pop } if }
+	forall
+	counttomark 128 gt { counttomark 128 sub { pop } repeat } if
+	] def
+	/Count Unencoded length def
+	Unencoded TempEncoding copy pop
+	F length dict F
+	 { 1 index /FID eq { pop pop } { 2 index 3 1 roll put } ifelse }
+	forall dup /Encoding TempEncoding put
+	/* exch definefont
+	/F exch def
+	/F24 F 24 scalefont def
+
+	DoTitle (, unencoded characters) show
+	0 Count 1 sub 127 min DoBlock
+	F 10 scalefont setfont
+	18 2.0 Inch moveto 0 Count 64 min 1 sub DoLine
+	Count 64 gt
+	 { 18 1.5 Inch moveto 64 Count 128 min 1 sub DoLine
+	 }
+	if
+	showpage
+   }
+  if
+
+} def
+
+% Do font samples
+% /Times-Roman DoFont			% Test (less than a minute)
+% /Hershey-Gothic-English DoFont	% Test (8 minutes)
+
+% Do a complete catalog
+% FontDirectory {pop DoFont} forall	% All fonts (quite a long time)

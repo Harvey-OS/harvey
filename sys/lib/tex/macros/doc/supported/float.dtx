@@ -1,0 +1,762 @@
+% \iffalse
+%% Package `float' to use with LaTeX 2e
+%% Copyright (C) 1991-1994 Anselm Lingnau, all rights reserved
+%%
+%% You may use and distribute this file freely, provided that
+%% you don't make any money off it or pretend that you wrote it.
+%
+%<package>\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+%<package>\ProvidesPackage{float}
+%<package>         [1994/06/20 v1.2 Float enhancements (AL)]
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{float}
+\GetFileInfo{float.sty}
+\EnableCrossrefs         
+%\DisableCrossrefs   % Say \DisableCrossrefs if index is ready
+%\RecordChanges                  % Gather update information
+\CodelineIndex                  % Index code by line number
+\title{An Improved Environment for Floats\thanks{This file
+       has version number \fileversion.
+       Part of this style option is based on the \textsf{here} option
+       by David P. Carlisle (\texttt{carlisle@cs.man.ac.uk}),
+       who also provided helpful criticism.}}
+\author{Anselm Lingnau\\\texttt{lingnau@math.uni-frankfurt.de}}%
+\date{\filedate}
+\floatstyle{ruled}
+\newfloat{Program}{tbp}{lop}[section]
+\floatstyle{plain}
+\newfloat{Example}{t}{lox}[section]
+\floatstyle{boxed}
+\restylefloat{table}
+\begin{document}
+\maketitle
+\DocInput{float.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% \CheckSum{447}
+%
+% \changes{v1.2}{20 Jun 94}{Adapted for LaTeX2e}
+% \changes{v1.1d}{17 Dec 92}{Fixed documentation}
+% \changes{v1.1c}{17 Dec 92}{Removed spurious whitespace}
+% \changes{v1.1b}{17 Dec 92}{Used `@Esphack in place of `@esphack}
+%
+% \DoNotIndex{\@Mii,\@Miv,\@cons,\@currlist,\@dblarg,\@dbldeferlist}
+% \DoNotIndex{\@dblfloat,\@dottedtocline,\@eha,\@Esphack,\@float}
+% \DoNotIndex{\@floatpenalty,\@ifnextchar,\@ifundefined,\@latexerr}
+% \DoNotIndex{\@mkboth,\@namedef,\@nameuse,\@parboxrestore,\@spaces}
+% \DoNotIndex{\@starttoc,\@tempa,\@tempboxa,\@tempdima,\@warning}
+% \DoNotIndex{\addcontentsline,\addtocounter,\advance,\arabic,\bfseries}
+% \DoNotIndex{\bgroup,\box,\chapter,\columnwidth,\csname,\def,\dimen,\docdate}
+% \DoNotIndex{\edef,\egroup,\else,\endcsname,\endinput,\expandafter,\fi}
+% \DoNotIndex{\filedate,\fileversion,\global,\hbadness,\hbox,\hfil,\hrule}
+% \DoNotIndex{\hsize,\ht,\if@twocolumn,\ifdim,\iffalse,\ifnum,\iftrue,\ifvbox}
+% \DoNotIndex{\ifx,\ignorespaces,\intextsep,\kern,\let,\long,\moveleft,\newbox}
+% \DoNotIndex{\newcommand,\newcounter,\newif,\newsavebox,\noexpand,\normalsize}
+% \DoNotIndex{\numberline,\PackageError,\PackageWarning,\par,\parindent}
+% \DoNotIndex{\penalty,\prevdepth,\protect,\refstepcounter,\relax}
+% \DoNotIndex{\renewcommand,\rmfamily,\section,\setbox,\setcounter,\space}
+% \DoNotIndex{\textheight,\the,\typeout,\unvbox,\uppercase,\vadjust,\value}
+% \DoNotIndex{\vbox,\vrule,\vskip,\vspace,\wd,\z@}
+%
+% \begin{abstract}
+%   This style option improves the interface for defining floating
+%   objects such as figures and tables in \LaTeX{}.
+%   It adds the notion of a `float style' that governs appearance
+%   of floats.
+%   New kinds of floats may be defined using a |\newfloat| command
+%   analogous to |\newtheorem|.
+%   This style option also incorporates the functionality
+%   of David Carlisle's style option \textsf{here},
+%   giving floating environments a \texttt{[H]} option
+%   which means `PUT IT HERE'
+%   (as opposed to the standard \texttt{[h]} option which means
+%   `You may put it here if you like').
+% \end{abstract}
+%
+% \section{Introduction}
+%
+% Among the features of \LaTeX\ are `floating' figures and tables
+% that drift from where they appear in the input text to, say, the top
+% of a page. The contents and formatting of floats is pretty much up
+% to the user, except that there is a |\caption| command that
+% governs formatting of the caption --- it is centered if it is short,
+% and formatted as a paragraph if it is longer than a single line of text.
+% Sometimes other types of floating objects, e.g., algorithms or programs,
+% are desirable, but they must be defined by analogy to the existing
+% floats since there is no simple command for doing this. This goes
+% beyond the knowledge or inclination of the average \LaTeX\ user.
+%
+% In this style option, I present an interface to floating objects
+% that attempts to fix some of these shortcomings.
+% First of all, I introduce the notion of a `float style'.
+% A float style governs the appearance of a class of floats like a page style
+% governs the appearance of a page (\LaTeX\ has page styles \texttt{plain},
+% \texttt{empty} and \texttt{headings}, among others). This style option
+% provides some exemplary float styles:
+% \begin{description}
+% \item[plain] This is the float style that \LaTeX\ normally applies to
+%   its floats, i.e., nothing in particular. The only difference is
+%   that the caption comes out \emph{below} the body of the float,
+%   regardless of where it is given in the text.
+% \item[boxed] The body of the float is printed inside a box. The caption
+%   goes below that box.
+% \item[ruled] This float style is patterned on the table style of
+%   {\sl Concrete Mathematics}. The caption is printed at the top of the
+%   float, surrounded by rules; another rule finishes off the float.
+% \end{description}
+%
+% \begin{Program}
+% \begin{verbatim}
+% #include <stdio.h>
+%
+% int main(int argc, char **argv)
+% {
+%        int i;
+%        for (i = 0; i < argc; ++i)
+%                printf("argv[%d] = %s\n", i, argv[i]);
+%        return 0;
+% }
+% \end{verbatim}
+% \caption{The first program. This hasn't got anything to do with the style
+%    but is included as an example. Note the \texttt{ruled} float style.%
+%    \label{prog1.1}}
+% \end{Program}
+% To facilitate the definition of new floating objects, \textsf{float}
+% supports the |\newfloat| command. This command is comparable to
+% |\newtheorem| in that it allows the user to add a new class of floats
+% at the document level. No style option hacking is necessary.
+% There's also a |\listof| command that prints a listing of all the
+% floats of a given type, like |\listoffigures| and |\listoftables|
+% in vanilla \LaTeX.
+%
+% \section{The User Interface --- New Floats}
+%
+% \DescribeMacro{\newfloat}
+% The most important command in \textsf{float} is the |\newfloat|
+% command. As mentioned above, it is patterned on |\newtheorem|.
+% The |\newfloat| command takes three required and one optional
+% argument; it is of the form\\[2pt]
+% \hspace*{\MacroIndent}|\newfloat{|\meta{type}|}{|^^A
+%   \meta{placement}|}{|\meta{ext}|}[|\meta{within}{\tt]}\\[2pt]
+% \meta{type} is the `type' of the new class of floats, like \texttt{program}
+% or \texttt{algorithm}. After the appropriate |\newfloat|, commands
+% like |\begin{program}| or |\end{algorithm*}| will be available.
+% \meta{placement} gives the default placement parameters for this class
+% of floats. The placement parameters are the same as in standard \LaTeX,
+% i.e., \texttt{t}, \texttt{b}, \texttt{p} and \texttt{h} for `top', `bottom',
+% `page' and `here', respectively.
+% When \LaTeX\ writes the captions to an auxiliary file for the list
+% of figures (or whatever), it'll use the job name followed by \meta{ext}
+% as a file name.
+% Finally, the optional argument \meta{within} determines whether floats
+% of this class will be numbered within some sectional unit of the document.
+% For example, if \meta{within}$=$\texttt{chapter}, the floats will be numbered
+% within chapters. (In standard \LaTeX, this happens with figures and tables
+% in the \textsf{report} and \textsf{book} document styles.)
+% As an example, Program~\ref{prog1.1} above was created by a command
+% sequence similar to that shown in the following Example.
+% \begin{Example}[H]
+% \begin{verse}
+% |\floatstyle{ruled}|\\
+% |\newfloat{Program}{tbp}{lop}[section]|\\
+% \dots\ loads o' stuff \dots\\
+% |\begin{Program}|\\
+% |\begin{verbatim}|\\
+% \dots\ program text \dots\\
+% |\end{verbatim}|\\
+% |\caption{|\dots\ caption \dots|}|\\
+% |\end{Program}|
+% \end{verse}
+% \caption{This is another silly floating Example. Except that this one
+%   doesn't actually float because it uses the {\tt[H]} optional parameter
+%   to appear \textbf{Here}. (Gotcha.)}
+% \end{Example}
+%
+% \DescribeMacro{\floatstyle}
+% The |\floatstyle| command sets a default float style. This float style
+% will be used for all the floats that are subsequently defined using
+% |\newfloat|, until another |\floatstyle| command appears.
+% The |\floatstyle| command takes one argument, the name of a float
+% style. For instance, |\floatstyle{ruled}|. Specifying a string that
+% does not name a valid float style is an error.
+%
+% \DescribeMacro{\floatname}
+% The |\floatname| command lets you define the \emph{float name} that
+% \LaTeX\ uses in the caption of a float, i.e., `Figure' for a figure
+% and so on. For example, |\floatname{program}{Program}|.
+% The |\newfloat| command sets the float name to its argument
+% \meta{type} if no other name has been specified before.
+%
+% \DescribeMacro{\floatplacement}
+% The |\floatplacement| command resets the default placement specifier
+% of a class of floats. E.g., |\floatplacement{figure}{tp}|.
+%
+% \DescribeMacro{\restylefloat}
+% The |\restylefloat| command is necessary to change styles for the
+% standard float types \texttt{figure} and \texttt{table}. Since these aren't
+% usually defined via |\newfloat|, they don't have a style associated
+% with them. Thus you have to say, for example,\\[2pt]
+% \hspace*{\MacroIndent}|\floatstyle{ruled}|\\
+% \hspace*{\MacroIndent}|\restylefloat{table}|\\[2pt]
+% to have tables come out \texttt{ruled}. The command also lets you change
+% style for floats that you define via |\newfloat|, although this
+% is, typographically speaking, not a good idea.
+% See table~\ref{table1} for an example.
+% \DeleteShortVerb{\|}
+% \begin{table} \def\B#1{$\displaystyle{n\choose#1}$}
+% \begin{center} \begin{tabular}{c|cccccccc}
+% $n$&\B0&\B1&\B2&\B3&\B4&\B5&\B6&\B7\\ \hline
+%  0 & 1\\
+%  1 & 1&1\\
+%  2 & 1&2&1\\
+%  3 & 1&3&3&1\\
+%  4 & 1&4&6&4&1\\
+%  5 & 1&5&10&10&5&1\\
+%  6 & 1&6&15&20&15&6&1\\
+%  7 & 1&7&21&35&35&21&7&1
+% \end{tabular} \end{center}
+% \caption{Pascal's triangle. This is a re-styled \LaTeX\ \texttt{table}.%
+%   \label{table1}}
+% \end{table}
+% \MakeShortVerb{\|}
+%
+% \DescribeMacro{\listof}
+% The |\listof| command produces a list of all the floats of a given
+% class. Its syntax is\\[2pt]
+% \hspace*{\MacroIndent}|\listof{|\meta{type}|}{|\meta{title}^^A
+%   |}|\\[2pt]
+% \meta{type} is the float type given in the |\newfloat| command.
+% \meta{title} is used for the title of the list as well as the headings
+% if the current page style includes them. Otherwise, the |\listof|
+% command is analogous to the built-in \LaTeX\ commands
+% |\listoffigures| and |\listoftables|.
+%
+% \section{The User Interface --- \texttt{[H]} Placement Specifier}
+%
+% Many people find \LaTeX's float placement specifiers too restrictive.
+% A Commonly Uttered Complaint (CUC) calls for a way to place a float
+% exactly at the spot where it occurs in the input file, i.e., to \emph{not}
+% have it float at all.
+% It seems that the \texttt{[h]} specifier should do that, but in fact it
+% only suggests to \LaTeX\ something along the lines of ``put the float
+% here if it's OK with you''. As it turns out, \LaTeX\ hardly ever feels
+% inclined to actually do that. This situation can be improved by
+% judicious manipulation of float style parameters.
+%
+% The same effect can be achieved by changing the actual method of
+% placing floats. David Carlisle's \textsf{here} option introduces a new float
+% placement specifier, namely \texttt{[H]}, which, when added to a float,
+% tells \LaTeX\ to ``put it HERE, period''. If there isn't enough space
+% left on the page, the float is carried over to the next page together
+% with whatever follows, even though there might still be room left for
+% some of that.
+% This style option provides the \texttt{[H]} specifier for newly defined
+% classes of floats as well as the predefined \texttt{figure}s and
+% \texttt{table}s, thereby superseding \textsf{here}. David suggests
+% that the \textsf{here} option be withdrawn from the archives in due course.
+%
+% The {\tt[H]} specifier may simply be added to the float as an optional
+% argument, like all the other specifiers.
+% It may \emph{not} be used in conjunction with any other placement
+% specifiers, so {\tt[Hhtbp]} is illegal.
+% Neither may it be used as the default placement specifier for a whole
+% class of floats.
+% The following table is
+% defined like this:
+% \begin{verse}
+% |\begin{table}[H]|\\
+% |\begin{tabular}{cl}|\\
+% |\tt t & Top of the page\\|\\
+% \dots\ more stuff \dots\\
+% \end{verse}
+% (It seems that I have to add some extraneous chatter here just so that
+% the float actually comes out right in the middle of a printed page.
+% When I \LaTeX ed the documentation just now it turned out that there
+% was a page break that fell exactly between the ``So now'' line and the
+% float. This wouldn't Prove Anything. Bother.)
+% So now we have the following float placement specifiers:
+% \begin{table}[H]
+% \begin{tabular}{cl}
+% \tt t & Top of the page\\
+% \tt b & Bottom of the page\\
+% \tt p & Page of floats\\
+% \tt h & Here, if possible\\
+% \tt H & Here, definitely
+% \end{tabular}
+% ^^A\caption{Could it be that this just needs a caption?}
+% \end{table}
+%
+% \StopEventually{\PrintIndex}
+%
+% \section{Implementation}
+%
+% \subsection{Basics}
+%
+%    \begin{macrocode}
+%<*package>
+%    \end{macrocode}
+%
+% In \LaTeX, floats are assigned `type numbers' that are powers of~$2$.
+% Since there are only two classes of floats, their type numbers are
+% hardwired into the document styles. We need to be somewhat more flexible,
+% and thus we initialize a counter to hold the next type number to be
+% assigned. This counter will be incremented appropriately later.
+%    \begin{macrocode}
+\newcounter{float@type}
+\@ifundefined{c@figure}%
+  {\setcounter{float@type}{1}}%
+  {\setcounter{float@type}{4}}
+%    \end{macrocode}
+% To warm up, we'll look at some of the simpler commands first.
+% \begin{macro}{\floatstyle}
+% The |\floatstyle| command puts its argument into the
+% |\float@style| macro as the name of the new float style.
+% But if the argument doesn't denote a float style, an error message
+% is output instead: Each float style \meta{style} has a corresponding command
+% |\fs@|\meta{style} that contains the appropriate declarations.
+% If the control sequence |\fs@|\meta{arg} (which goes with the
+% argument \meta{arg} to |\floatstyle|) is undefined, i.e.,
+% equals |\relax| under |\ifx|, then the float style \meta{arg}
+% is unknown, and we call |\float@error{|\meta{arg}|}| for the
+% error message.
+%    \begin{macrocode}
+%\def\floatstyle#1{\expandafter\ifx\csname fs@#1\endcsname\relax
+%  \float@error{#1}\else\def\float@style{#1}\fi}
+\newcommand\floatstyle[1]{\@ifundefined{fs@#1}%
+  {\float@error{#1}}%
+  {\def\float@style{#1}}}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\float@error}
+% Here's the error message. |\@eha| is the help message that says
+% `Your command was ignored.'
+%    \begin{macrocode}
+\newcommand\float@error[1]{\PackageError{float}{%
+  Unknown float style `#1'
+}{\@eha}}
+%    \end{macrocode}
+% \end{macro}
+%
+% The next two commands are even simpler. \LaTeX\ says that
+% |\fps@|\meta{float} contains the default placement specifier for
+% the class of floats \meta{float}. |\fname@|\meta{float} expands
+% to the name that appears in \meta{float} captions, e.g., `Figure'.
+% (This is our own definition.)
+%    \begin{macrocode}
+\newcommand\floatname[2]{\@namedef{fname@#1}{#2}}
+\newcommand\floatplacement[2]{\@namedef{fps@#1}{#2}}
+%    \end{macrocode}
+%
+% \begin{macro}{\restylefloat}
+% The |\restylefloat| command sets up everything so that subsequent
+% commands like |\begin{|\meta{float}|}| use the appropriate
+% float style. It defines |\fst@|\meta{float} to expand to a command
+% that sets up the currently selected float style (|\fs@|\meta{style}).
+% Then it defines the commands |\begin{|\meta{float}|}|,
+% |\end{|\meta{float}|}|, |\begin{|\meta{float}|*}| and
+% |\end{|\meta{float}|*}|.
+%    \begin{macrocode}
+\newcommand\restylefloat[1]{\expandafter\edef\csname
+  fst@#1\endcsname{\expandafter\noexpand\csname
+    fs@\float@style\endcsname}%
+   \@namedef{#1}{\bgroup\@nameuse{fst@#1}\@float{#1}}%
+   \@namedef{#1*}{\bgroup\@nameuse{fst@#1}\@dblfloat{#1}}%
+   \expandafter\let\csname end#1\endcsname\float@end
+   \expandafter\let\csname end#1*\endcsname\float@dblend}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\newfloat}
+% Now we can explain how to define a new class of floats. Recall that
+% the three required arguments to |\newfloat| are \meta{type},
+% \meta{placement} and \meta{ext}, respectively. First we save the
+% latter two.
+%    \begin{macrocode}
+\newcommand\newfloat[3]{\@namedef{ext@#1}{#3}
+  \floatplacement{#1}{#2}%
+%    \end{macrocode}
+% Then we figure out a default value for the `caption name' of this
+% class of floats. If the |\fname@|\meta{type} isn't already defined,
+% we tentatively use \meta{type} as the name. This is convenient if
+% \meta{type} is, say, \texttt{Program}, since no |\floatname| command
+% is necessary at all.
+%    \begin{macrocode}
+  \@ifundefined{fname@#1}{\floatname{#1}{#1}}{}
+%    \end{macrocode}
+% Then we set up the type number for \LaTeX\ in |\ftype@|\meta{type}.
+% Afterwards we have to set the |float@type| to the next greater power
+% of two, so that it is ready for the next |\newfloat|. Fortunately,
+% we just have to double it by adding. We don't bother checking for overflow
+% since it is pretty unlikely that somebody will define 25 different classes
+% of floats. Finally, we call |\restylefloat| to define the style and
+% commands for this class of floats.
+%    \begin{macrocode}
+  \expandafter\edef\csname ftype@#1\endcsname{\value{float@type}}%
+  \addtocounter{float@type}{\value{float@type}}
+  \restylefloat{#1}%
+%    \end{macrocode}
+% Now all that's left is to assemble the |\fnum@|\meta{type} macro
+% that \LaTeX\ wants to use in its captions. Basically it is just
+% `caption name'${}+{}$`counter value', disguised so that the command
+% \emph{names} appear in the definition instead of their expansions.
+%    \begin{macrocode}
+  \expandafter\edef\csname fnum@#1\endcsname%
+    {\expandafter\noexpand\csname fname@#1\endcsname{}
+       \expandafter\noexpand\csname the#1\endcsname}
+%    \end{macrocode}
+% Finally, we have to take care of the optional argument, \meta{within}.
+% If the optional argument is present, we pass control to |\@xnewfloat|.
+% Otherwise, we just define the counter for this class of floats.
+% By default, the numbers come out |\arabic|.
+%    \begin{macrocode}
+  \@ifnextchar[{\@xnewfloat{#1}}%
+    {\@ifundefined{c@#1}{\newcounter{#1}\@namedef{the#1}{\arabic{#1}}}%
+      {}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@xnewfloat}
+% Here we deal with the optional argument to |\newfloat|. We have
+% to create a new counter as per |\newcounter{|\meta{type}|}|
+% and add that counter to the list of counters to be reset whenever
+% counter \meta{within} is stepped. The standard command
+% |\newcounter{|\meta{type}|}[|\meta{within}{\tt]} takes care of that.
+% However, we can't define the \meta{type} counter if it's already defined.
+% While this case is simply ignored when \meta{within} is not present,
+% we issue a warning here since what comes out is probably not what the user
+% expects.
+%    \begin{macrocode}
+\def\@xnewfloat#1[#2]{\@ifundefined{c@#1}{\newcounter{#1}[#2]%
+    \expandafter\edef\csname the#1\endcsname{%
+      \expandafter\noexpand\csname
+        the#2\endcsname.\noexpand\arabic{#1}}}%
+    {\PackageWarning{float}{Can't redefine counter variable for #1.}}}
+%    \end{macrocode}
+% \end{macro}
+% 
+% \subsection{Adapting \LaTeX\ internals}
+%
+% We have to adapt some of \LaTeX's internal macros to our needs.
+% There are several things that have to be changed around
+% in order to provide the functionality of David Carlisle's \textsf{here}.
+% The following is thus lifted from \textsf{here}, with changes and with
+% David's permission:
+%
+% \begin{macro}{\@Hxfloat}
+% We save the original version of |\@xfloat|. (This macro is called from
+% |\@float|, which we used above to define the environment commands for a
+% new class of floats.)
+%    \begin{macrocode}
+\let\@Hxfloat\@xfloat
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\@xfloat}
+% The new version of |\@xfloat| looks for a |[H]| argument.
+% If it is present |\@HHfloat| is called, otherwise the original macro
+% (renamed to |\@Hxfloat|) is called.
+%    \begin{macrocode}
+\def\@xfloat#1[{\@ifnextchar{H}{\@HHfloat{#1}[}{\@Hxfloat{#1}[}}
+%    \end{macrocode}
+% \end{macro}
+% Later on we'll need a box to save a |[H]| float.
+%    \begin{macrocode}
+\newsavebox\float@box
+\newif\if@flstyle
+%    \end{macrocode}
+% \begin{macro}{\@HHfloat}
+% First gobble the |[H]|. Note that \texttt{H} should not be used in
+% conjunction with the other placement options, nor as the value of the
+% default placement, as set in |\fps@|{\it type}.
+%    \begin{macrocode}
+\def\@HHfloat#1[H]{%
+%    \end{macrocode}
+% Locally redefine the end of the environment.
+%    \begin{macrocode}
+  \expandafter\let\csname end#1\endcsname\float@endH
+%    \end{macrocode}
+% We don't get a |\@currbox| if we don't actually use the float mechanism.
+% Therefore we fake one using the |\float@box| defined above.
+%    \begin{macrocode}
+  \let\@currbox\float@box
+%    \end{macrocode}
+% Now we save the current float class name for use in constructing the
+% |\caption|. The caption box (defined below) is initialised to an empty
+% box to avoid trouble with floats not having a caption. Then we start the
+% box that'll hold the float itself.
+% |\parindent| is set to zero for compatibility with the standard \texttt{[h]}
+% option.
+%    \begin{macrocode}
+  \def\@captype{#1}\setbox\@floatcapt=\vbox{}%
+  \expandafter\ifx\csname fst@#1\endcsname\relax
+    \@flstylefalse\else\@flstyletrue\fi
+  \setbox\@currbox=\vbox\bgroup\parindent\z@
+%    \end{macrocode}
+% The final |\ignorespaces| is needed to gobble any spaces or newlines
+% after the {\tt[H]} tokens.
+%    \begin{macrocode}
+  \ignorespaces}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\float@makebox}
+% Basically, we must arrange for `style commands' to be executed
+% at certain points during the generation of the float.
+% \LaTeX\ puts a float into a vertical box |\@currbox| which it takes
+% off a list of empty boxes for insertions. When the |\float@makebox| macro
+% is called, |\@currbox| contains the complete float, minus the caption
+% --- we'll see later that we use our own |\caption| command to
+% put the caption into a |\vbox| of its own. This is the only way
+% we can control the position of the caption by the float style,
+% regardless of where the caption appears in the float's input text itself.
+% So the `style commands' are |\@fs@pre|, which is inserted at the
+% very beginning of the float, |\@fs@mid|, which comes between the
+% float and the caption (or the caption and the float, if captions are put
+% at the top), and |\@fs@post|, which finishes off the float.
+% The caption may appear at the top or at the bottom of the float,
+% as defined by |\@fs@iftopcapt|. Therefore, before we hand the
+% float to \LaTeX\ for positioning, it is taken apart and reassembled
+% using the style commands.
+%    \begin{macrocode}
+\newcommand\float@makebox{%
+  \vbox{\hsize\columnwidth \@parboxrestore
+    \@fs@pre\@fs@iftopcapt
+      \ifvbox\@floatcapt\unvbox\@floatcapt\par\@fs@mid\fi
+      \unvbox\@currbox
+    \else\unvbox\@currbox
+      \ifvbox\@floatcapt\par\@fs@mid\unvbox\@floatcapt\fi
+    \fi\par\@fs@post\vskip\z@}}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\float@end}
+% The internal macro |\end@float| appears here under the name of |\float@end|.
+% The main thing which is changed is that we call |\float@makebox| to
+% reconstruct the float according to the float style.
+%    \begin{macrocode}
+\newcommand\float@end{\egroup
+  \global\setbox\@currbox\float@makebox
+%    \end{macrocode}
+% Now \LaTeX\ takes over again.
+%    \begin{macrocode}
+   \ifnum\@floatpenalty <\z@ \@cons\@currlist\@currbox
+     \ifdim \ht\@currbox >\textheight 
+        \ht\@currbox\textheight \fi
+     \ifnum\@floatpenalty < -\@Mii 
+        \penalty -\@Miv \@tempdima\prevdepth
+        \vbox{}\prevdepth \@tempdima \penalty\@floatpenalty
+      \else \vadjust{\penalty -\@Miv
+        \vbox{}\penalty\@floatpenalty}\@Esphack
+     \fi\fi\egroup}
+%    \end{macrocode}
+% (The final |\egroup| is not present in the original definition;
+% we need it to finish off the |\bgroup| that precedes the
+% |\@nameuse| in the |\begin{|\meta{float}|}| commands.
+% This is to keep the style commands local.)
+% \end{macro}
+%
+% \begin{macro}{\float@endH}
+% The |\float@endH| command is, again, derived from \textsf{here}. It'll
+% deal correctly with a non-floating float, inserting the proper amounts
+% of white space above and below.
+%    \begin{macrocode}
+\newcommand\float@endH{\egroup \vskip\intextsep
+  \if@flstyle\float@makebox\egroup\else\box\@currbox\fi
+  \vskip\intextsep\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\float@dblend}
+% The |\float@dblend| macro is an almost-verbatim copy of
+% |\end@dblfloat| but for the last part, from |\fi\egroup| on.
+% The |\egroup| is, of course, necessary because of the |\bgroup|
+% at the very beginning of the float. And we have to call |\float@end|
+% instead of |\end@float|, naturally.
+%    \begin{macrocode}
+\newcommand\float@dblend{\if@twocolumn
+  \par\vskip\z@\egroup
+  \ifnum\@floatpenalty <\z@ \@cons\@dbldeferlist\@currbox\fi
+    \ifnum \@floatpenalty =-\@Mii \@Esphack\fi\egroup\else\float@end\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Captions and lists of floats}
+%
+% Now for the caption routines.
+% We use a box, |\@floatcapt|, to hold the caption while the float
+% is assembled.
+%    \begin{macrocode}
+\newsavebox\@floatcapt
+%    \end{macrocode}
+%
+% \begin{macro}{\caption}
+% This is the only \LaTeX\ macro that this document style supersedes.
+% Our |\caption| command checks whether there is a custom style
+% defined for the current float (whose type can be found in |\@captype|).
+% If so, the caption routines from \textsf{float} are used, otherwise
+% we call the vanilla \LaTeX\ routines.
+% The |\@flcapt| conditional is used to tell the float-assembly routines
+% that there actually \emph{is} a caption. We need this to properly handle
+% \texttt{figure}s and \texttt{table}s that have been restyled.
+%    \begin{macrocode}
+\renewcommand\caption{\refstepcounter\@captype
+  \expandafter\ifx\csname fst@\@captype\endcsname\relax
+      \let\@tempf\@caption
+    \else\let\@tempf\float@caption\fi \@dblarg{\@tempf\@captype}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\float@caption}
+% The |\float@caption| macro takes care of entering the caption into
+% the appropriate listing. It also controls the typesetting of the caption
+% itself, although a style-dependent macro |\@fs@capt| is called
+% to handle the specifics. Note that because the caption is saved in a box
+% instead of being output to the float right away, you cannot simply put
+% a legend after the caption proper; it has to follow the |\caption|
+% command in an optional argument.
+%
+% First of all, we call |\addcontentsline| to update the list of
+% floats of this class. Note that |\float@caption| is |\long|
+% to allow for paragraph breaks in its arguments.
+%    \begin{macrocode}
+\long\def\float@caption#1[#2]#3{\addcontentsline{\@nameuse{ext@#1}}{#1}%
+   {\protect\numberline{\@nameuse{the#1}}{\ignorespaces #2}}
+%    \end{macrocode}
+% Now we collect the caption proper. The caption name and number are
+% taken from |\fnum@|\meta{float}, where \meta{float} is the class
+% of float we're currently handling.
+%    \begin{macrocode}
+  \global\setbox\@floatcapt\vbox\bgroup\@parboxrestore
+    \normalsize\@fs@capt{\@nameuse{fnum@#1}}{\ignorespaces #3}%
+%    \end{macrocode}
+% Finally we check for the presence of the optional argument. If there is
+% one, we call |\float@ccon| to pick it up; otherwise, the |\egroup|
+% finishes off the box.
+%    \begin{macrocode}
+    \@ifnextchar[{\float@ccon}{\egroup}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\float@ccon}
+% The |\float@ccon| macro expands to the optional argument of a
+% |\caption| command, followed by |\par\egroup|. Note that this
+% precludes using |\verb| \& Co.\ in the optional argument; the
+% interested reader is urged to fix this problem as an exercise.
+%    \begin{macrocode}
+\long\def\float@ccon[#1]{#1\par\egroup}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\listof}
+% The |\listof| command reads the desired list of floats from the
+% appropriate auxiliary file. The file is then restarted.
+% Currently the list appears at the chapter or the section level, depending
+% on whether chapters are supported in the document style at all.
+% First of all, we check whether the float style that's supposed to be
+% listed is actually defined. If not, we output a |\float@error|.
+%    \begin{macrocode}
+\newcommand\listof[2]{%
+  \@ifundefined{ext@#1}{\float@error{#1}}{%
+%    \end{macrocode}
+% All's well until now. We determine whether the list is going to be a
+% chapter or a section, and we define the |\l@|\meta{float} command
+% that \LaTeX\ needs for formatting the list.
+% After that, we call |\@starttoc| with the correct file extension
+% to do the actual work.
+%    \begin{macrocode}
+    \@ifundefined{chapter}{\def\@tempa{\section*}}%
+      {\def\@tempa{\chapter*}}%
+    \@tempa{#2\@mkboth{\uppercase{#2}}{\uppercase{#2}}}%
+    \@namedef{l@#1}{\@dottedtocline{1}{1.5em}{2.3em}}%
+    \@starttoc{\@nameuse{ext@#1}}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \section{The Float Styles}
+%
+% Finally, we define the three standard float styles that were outlined
+% in the Introduction. Every float style \meta{style} corresponds to a
+% command |\fs@|\meta{style} which contains the definitions of the
+% style commands, namely
+% \begin{center}\begin{tabular}{rl}
+% |\@fs@pre|&top of the float\\
+% |\@fs@mid|&between float and caption\\
+% |\@fs@post|&bottom of the float\\
+% |\@fs@capt|&formatting routine for caption\\
+% |\@fs@cfont|&font for caption name \& number
+% \end{tabular}\end{center}
+%
+% \begin{macro}{\floatc@plain}
+% The |\floatc@plain| macro formats a caption the way \LaTeX\ does
+% it: if the caption is fairly short, it is centered, otherwise it is
+% formatted as a paragraph. The only difference is that the portion
+% containing the caption name and number uses the |\@fs@captfont|.
+%    \begin{macrocode}
+\newcommand\floatc@plain[2]{\setbox\@tempboxa\hbox{{\@fs@cfont #1:} #2}%
+  \ifdim\wd\@tempboxa>\hsize {\@fs@cfont #1:} #2\par
+    \else\hbox to\hsize{\hfil\box\@tempboxa\hfil}\fi}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\fs@plain}
+% The \texttt{plain} float style is similar to what \LaTeX\ does of its
+% own accord; the only difference is that the caption is guaranteed
+% to come out at the bottom of the float.
+%    \begin{macrocode}
+\newcommand\fs@plain{\def\@fs@cfont{\rmfamily}\let\@fs@capt\floatc@plain
+  \def\@fs@pre{}\def\@fs@post{}\def\@fs@mid{\vspace{10pt}\relax}%
+  \let\@fs@iftopcapt\iffalse}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\floatc@ruled}
+% The |\floatc@ruled| command is even simpler than the
+% |\floatc@plain| macro. The caption is simply printed `as is'.
+%    \begin{macrocode}
+\newcommand\floatc@ruled[2]{{\@fs@cfont #1} #2\par}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\fs@ruled}
+% In the \texttt{ruled} float style, the caption appears at the top of the
+% float, preceded and followed by horizontal rules.
+% Another rule followes the whole of the float.
+%    \begin{macrocode}
+\newcommand\fs@ruled{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@ruled
+  \def\@fs@pre{\hrule height.8pt depth0pt \kern2pt}%
+  \def\@fs@post{\kern2pt\hrule\relax}%
+  \def\@fs@mid{\kern2pt\hrule\kern2pt}%
+  \let\@fs@iftopcapt\iftrue}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\fs@boxed}
+% The \texttt{boxed} float style puts the float into a box (which is slightly
+% larger than the usual |\textwidth|). The caption appears below
+% the box.
+%    \begin{macrocode}
+\newcommand\fs@boxed{\def\@fs@cfont{\bfseries}\let\@fs@capt\floatc@plain
+  \def\@fs@pre{\dimen0=\hsize \advance\dimen0 by6.8pt \hbadness10000
+    \moveleft3.4pt\vbox\bgroup\hsize=\dimen0\hrule
+      \hbox to\dimen0\bgroup\vrule\kern3pt\vbox\bgroup\kern3pt}%
+  \def\@fs@mid{\kern3pt\egroup\kern3pt\vrule\egroup
+    \hrule\egroup\kern2pt}%
+  \def\@fs@post{}\let\@fs@iftopcapt\iffalse}
+%    \end{macrocode}
+% \end{macro}
+%
+% Before we finish, we set the float style to \texttt{plain}.
+%    \begin{macrocode}
+\floatstyle{plain}
+%    \end{macrocode}
+% Other float styles can be added without much ado.
+% If there are many more float styles, it should be worthwhile
+% to invent a scheme similar to that used in Frank Mittelbach's
+% \textsf{theorem} option in order to conserve space, i.e., put the
+% float styles into individual files that can be loaded on demand.
+% I would like to hear from people who define interesting
+% float styles.
+% \Finale
+% \end{document}
+\endinput

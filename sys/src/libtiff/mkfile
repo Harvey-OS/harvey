@@ -1,0 +1,88 @@
+</$objtype/mkfile
+
+# Library-wide configuration defines:
+#    MMAP_SUPPORT	add support for memory mapping read-only files
+#    COLORIMETRY_SUPPORT add support for 6.0 colorimetry tags
+#    JPEG_SUPPORT	add support for 6.0 JPEG tags & JPEG algorithms
+#    YCBCR_SUPPORT	add support for 6.0 YCbCr tags
+#    CMYK_SUPPORT	add support for 6.0 CMYK tags
+#
+# Compression configuration defines:
+#    CCITT_SUPPORT	add support for CCITT Group 3 & 4 algorithms
+#    PACKBITS_SUPPORT	add support for Macintosh PackBits algorithm
+#    LZW_SUPPORT	add support for LZW algorithm
+#    THUNDER_SUPPORT	add support for ThunderScan 4-bit RLE algorithm
+#    NEXT_SUPPORT	add support for NeXT 2-bit RLE algorithm
+#    JPEG_SUPPORT	add support for JPEG DCT algorithm
+
+CONF_COMPRESSION=\
+	-DPACKBITS_SUPPORT \
+	-DLZW_SUPPORT \
+	-DCCITT_SUPPORT \
+	-DTHUNDER_SUPPORT  \
+	-DNEXT_SUPPORT
+CONF_LIBRARY=\
+	-D'USE_VARARGS=0' \
+	-D'USE_PROTOTYPES=1' \
+	-D'HAVE_IEEEFP=1' \
+	-DBSDTYPES \
+	-DCOLORIMETRY_SUPPORT \
+	-DJPEG_SUPPORT \
+	-DYCBCR_SUPPORT \
+	-DCMYK_SUPPORT \
+	-Dplan9
+OFILES=tif_fax3.$O \
+	tif_fax4.$O \
+	tif_aux.$O \
+	tif_ccittrle.$O \
+	tif_close.$O \
+	tif_compat.$O \
+	tif_compress.$O \
+	tif_dir.$O \
+	tif_dirinfo.$O \
+	tif_dirread.$O \
+	tif_dirwrite.$O \
+	tif_dumpmode.$O \
+	tif_error.$O \
+	tif_getimage.$O \
+	tif_jpeg.$O \
+	tif_flush.$O \
+	tif_lzw.$O \
+	tif_next.$O \
+	tif_open.$O \
+	tif_packbits.$O \
+	tif_print.$O \
+	tif_read.$O \
+	tif_swab.$O \
+	tif_strip.$O \
+	tif_thunder.$O \
+	tif_tile.$O \
+	tif_version.$O \
+	tif_warning.$O \
+	tif_write.$O \
+
+HFILES=tiff.h tiffio.h tiffcompat.h tiffioP.h g3states.h t4.h tif_fax3.h
+
+LIB=/$objtype/lib/libtiff.a
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+</sys/src/cmd/mksyslib
+
+CC=pcc
+CFLAGS= -c -B -D_POSIX_SOURCE -D_POSIX_SOURCE $CONF_LIBRARY $CONF_COMPRESSION
+
+g3states.h: $cpuobjtype.mkg3states t4.h
+	./$cpuobjtype.mkg3states -c > g3states.h
+
+$cpuobjtype.mkg3states:	mkg3states.c
+	objtype=$cputype
+	mk mkg3states.$cputype
+
+mkg3states.$cputype:V:
+	$CC $CFLAGS mkg3states.c
+	$LD -o $O.mkg3states mkg3states.$O
+
+listing:V:
+	pr mkfile ${OFILES:%.c=%.$O}|lp -du
+clean nuke:
+	rm -f *.[$OS] [$OS].out [$OS].mkg3states g3states.h

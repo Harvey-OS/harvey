@@ -1,0 +1,1721 @@
+% \iffalse      THIS IS A META-COMMENT
+%<*dtx>
+\ProvidesFile
+%========================================================================
+                       {NATBIB.DTX}
+%========================================================================
+%</dtx>
+% This is a LaTeX package to modify \cite and \thebibliography for author-year 
+%    systems of bibliographic citation; will also work with 
+%    numerical systems, allowing simplified style changes for them too.
+%     Docstrip options available:
+%        package - to produce a .sty file with the uncommented coding
+%        driver  - to produce a driver file to print the documentation
+%        209     - (with package) for package that runs under LaTeX 2.09 
+%        subpack - (with package) for coding included in other packages
+%        all     - (with package) to include all author-year systems
+%                   else individually with:
+%        apalike, newapa, harvard, authordate, astron
+%        agu     - (with package,subpack) for inclusion in aguplus package
+%        nlinproc- (with package,subpack) for inclusion in nlinproc package
+%     LaTeX the unstripped version to obtain the documentation
+%     (Documentation can be produced with LaTeX2e only)
+%--------------------------------------------------------------------------
+%<*!subpack>
+%<package&209>\def\ProvidesPackage#1#2]
+%<package&209>  {\typeout{Style option `#1'#2]}}
+%
+%  *** Identify the package file:-
+%<package&!209>\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+%<package>\ProvidesPackage{natbib}
+%</!subpack>
+%
+%  *** Provide command to dislay module version
+%<package&subpack>\def\ModuleVersion#1[#2]{}
+%<package&subpack>    \ModuleVersion{natbib}
+%
+%  *** Identify the driver file:-
+%<driver>\NeedsTeXFormat{LaTeX2e}
+%<driver>\ProvidesFile{natbib.drv}
+%
+%  *** The DATE, VERSION, and other INFO
+%\fi
+%\ProvidesFile{natbib}
+        [1995/02/08 5.4 (PWD)]
+%\iffalse
+%<*package>
+%<*!subpack>
+ %-------------------------------------------------------------------
+ % NOTICE:
+ % This file may be used for non-profit purposes.
+ % It may not be distributed in exchange for money, 
+ %   other than distribution costs.
+ %   
+ % The author provides it `as is' and does not guarantee it in any way.
+ % 
+%% Copyright (C) 1994, 1995 Patrick W. Daly
+ % Max-Planck-Institut f\"ur Aeronomie
+ % Postfach 20
+ % D-37189 Katlenburg-Lindau
+ % Germany
+ % 
+ % E-mail:
+ % SPAN--     nsp::linmpi::daly    (note nsp also known as ecd1)
+ % Internet-- daly@linax1.dnet.gwdg.de   
+ %-----------------------------------------------------------
+%</!subpack>
+%</package>
+%                    END META-COMMENT \fi
+% \changes{4.0}{1993 Aug 19}{First documented release}
+% \changes{4.1}{1993 Oct 4}{Simplification of \cs{@citeapalk}}
+% \changes{4.1a}{1993 Oct 14}{Add \texttt{rev} option for reversed comments 
+%                             in \cs{cite}}
+% \changes{4.1b}{1993 Oct 18}{Add \cs{bibfont} to list definition =\cs{relax}}
+% \changes{4.2}{1993 Oct 22}{Add coding for AGU, NLINPROC}
+% \changes{4.2}{1993 Nov 20}{Add more coding for AGU}
+% \changes{4.3a}{1994 Feb 24}{First additions for \LaTeXe}
+% \changes{5.0}{1994 May 18}{Revised for \LaTeXe{} and 2.09}
+% \changes{5.0}{1994 May 18}{Remove obsolete JGR, GRL coding}
+% \changes{5.0}{1994 May 18}{Add \cs{citeauthor}, \cs{citeyear}}
+% \changes{5.0}{1994 May 18}{Two optional texts for \cs{cite} so \texttt{rev}
+%                            option obsolete}
+% \changes{5.0}{1994 May 18}{\LaTeXe\ options to select punctuation}
+% \changes{5.1}{1994 Jun 22}{Conform to first official release of \LaTeXe}
+% \changes{5.1}{1994 Jun 22}{Separate \LaTeX\ and 2.09 files}
+% \changes{5.1}{1994 Jun 22}{Put doc driver first}
+% \changes{5.2}{1994 Aug 25}{Fix up 2.09 style to run in compatibility mode}
+% \changes{5.2}{1994 Aug 25}{\cs{citeauthor}, \cs{citeyear} make BibTeX 
+%                             entry in aux file}
+% \changes{5.2}{1994 Aug 25}{\cs{@citex} defined as in \LaTeXe}
+% \changes{5.2}{1994 Aug 25}{Local config file \texttt{natbib.cfg} read in}
+% \changes{5.3}{1994 Sep 13}{Add \cs{citefullauthor}, options \texttt{angle}, 
+%                             \texttt{curly}}
+% \changes{5.3}{1994 Sep 19}{Add star version of \cs{cite} for full authors}
+% \changes{5.3}{1994 Sep 26}{Fix accents in citations with proper definition
+%                             of \cs{protect}}
+%^^A (The 5.3n versions will all go into next 5.4 version)
+% \changes{5.4}{1994 Nov 24}{Add space in \cs{@citex} for text cites}
+% \changes{5.4}{1994 Nov 24}{Replace \cs{if@tempswa} by \cs{ifNAT@swa}}
+% \changes{5.4}{1994 Nov 24}{Add superscript citation type to \cs{bibpunct}}
+% \changes{5.4}{1994 Nov 24}{Add \cs{@citesuper}, fix up bugs in superscripts}
+% \changes{5.4}{1994 Nov 24}{Define \cs{@citexnum} as in \LaTeXe}
+% \changes{5.4}{1995 Feb 03}{Add \cs{citestyle} same as \cs{bibstyle}}
+% \changes{5.4}{1995 Feb 08}{For repeated years and authors, print just
+%                            letter}
+%^^A (The 5.4n versions will all go into next 5.5 version)
+%
+% \CheckSum{857}
+% \CharacterTable
+%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%   Digits        \0\1\2\3\4\5\6\7\8\9
+%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%   Dollar        \$     Percent       \%     Ampersand     \&
+%   Acute accent  \'     Left paren    \(     Right paren   \)
+%   Asterisk      \*     Plus          \+     Comma         \,
+%   Minus         \-     Point         \.     Solidus       \/
+%   Colon         \:     Semicolon     \;     Less than     \<
+%   Equals        \=     Greater than  \>     Question mark \?
+%   Commercial at \@     Left bracket  \[     Backslash     \\
+%   Right bracket \]     Circumflex    \^     Underscore    \_
+%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%   Right brace   \}     Tilde         \~}
+%
+% \iffalse
+%<*driver>
+\documentclass{ltxdoc}
+ %\EnableCrossrefs %Comment out when .ind file ready
+  \DisableCrossrefs %May stay; zapped by \EnableCrossrefs
+ %\RecordChanges %Comment out when .gls file ready
+ %\CodelineIndex %Comment out when .ind file ready
+  \CodelineNumbered %May stay
+ %\OnlyDescription
+\begin{document}
+   \DocInput{natbib.dtx}
+\end{document}
+%</driver>
+%\fi
+%
+% \DoNotIndex{\begin,\CodelineIndex,\CodelineNumbered,\def,\DisableCrossrefs}
+% \DoNotIndex{\DocInput,\documentclass,\EnableCrossrefs,\end,\GetFileInfo}
+% \DoNotIndex{\NeedsTeXFormat,\OnlyDescription,\RecordChanges,\usepackage}
+% \DoNotIndex{\ProvidesClass,\ProvidesPackage,\ProvidesFile,\RequirePackage}
+% \DoNotIndex{\LoadClass,\PassOptionsToClass,\PassOptionsToPackage}
+% \DoNotIndex{\DeclareOption,\CurrentOption,\ProcessOptions,\ExecuteOptions}
+% \DoNotIndex{\AtEndOfClass,\AtEndOfPackage,\AtBeginDocument,\AtEndDocument}
+% \DoNotIndex{\InputIfFileExists,\IfFileExists,\ClassError,\PackageError}
+% \DoNotIndex{\ClassWarning,\PackageWarning,\ClassWarningNoLine}
+% \DoNotIndex{\PackageWarningNoLine,\ClassInfo,\PackageInfo,\MessageBreak}
+% \DoNotIndex{\space,\protect,\DeclareRobustCommand,\CheckCommand}
+% \DoNotIndex{\newcommand,\renewcommand,\providecommand,\newenvironment}
+% \DoNotIndex{\renewenvironment,\newif,\newlength,\newcounter,\setlength}
+% \DoNotIndex{\setcounter,\if,\ifx,\ifcase,\ifnum,\ifdim,\else,\fi}
+% \DoNotIndex{\texttt,\textbf,\textrm,\textsl,\textsc}
+% \DoNotIndex{\textup,\textit,\textmd,\textsf,\emph}
+% \DoNotIndex{\ttfamily,\rmfamily,\sffamily,\mdseries,\bfseries,\upshape}
+% \DoNotIndex{\slshape,\scshape,\itshape,\em,\LaTeX,\LaTeXe}
+% \DoNotIndex{\filename,\fileversion,\filedate,\let}
+% \DoNotIndex{\@auxout,\@for,\@gobble,\@ifnextchar,\@m,\@mkboth,\@nil}
+% \DoNotIndex{\@noitemerr,\@tempa,\@tempswafalse,\@tempswatrue,\@warning}
+% \DoNotIndex{\advance,\arabic,\AtBeginDocument,\bf,\bibname,\chapter}
+% \DoNotIndex{\citation,\clubpenalty,\CodelineNumbered,\csname}
+% \DoNotIndex{\DisableCrossrefs,\do,\edef,\else,\endcsname,\endlist}
+% \DoNotIndex{\expandafter,\fi,\gdef,\global,\hbox,\hfill,\hskip,\hspace}
+% \DoNotIndex{\if,\if@filesw,\if@tempswa,\ifx,\immediate,\itemindent,\labelsep}
+% \DoNotIndex{\labelwidth,\lastskip,\leftmargin,\list,\mbox,\newblock}
+% \DoNotIndex{\newpage,\p@enumiv,\parindent,\penalty,\refname}
+% \DoNotIndex{\relax,\section,\settowidth,\sfcode,\sloppy,\small,\string}
+% \DoNotIndex{\theenumiv,\thepage,\unskip,\uppercase,\usecounter,\vskip}
+% \DoNotIndex{\widowpenalty,\write,\xdef,\z@,\catcode,\ifnum,\the}
+% \DoNotIndex{\.,\@empty,\@ifundefined,\@latex@warning,\@minus,\@plus,\ }
+% \DoNotIndex{\document,\G@refundefinedtrue,\if@openbib}
+% \DoNotIndex{\listparindent,\noexpand,\par,\parsep,\pb,\pbf,\pbfseries}
+% \DoNotIndex{\pc,\pd,\pem,\pit,\pitshape,\pmdseries,\prm,\prmfamily,\psc}
+% \DoNotIndex{\pscshape,\psf,\psffamily,\psl,\pslshape,\ptt,\pttfamily}
+% \DoNotIndex{\pupshape,\@iden,\@unexpandable@protect}
+% \DoNotIndex{\&,\{,\},\bibitem,\bibindent,\if@draft,\typeout}
+%
+% \setcounter{IndexColumns}{2}
+% \setlength{\IndexMin}{10cm}
+% \setcounter{StandardModuleDepth}{1}
+%
+% \hyphenation{par-en-the-ti-cal}
+%
+% \GetFileInfo{natbib}
+%
+% \title{{\bfseries Natural Sciences Citations and References}\\
+%         (Author-Year and Numerical Schemes)}
+%    
+% \author{Patrick W. Daly}
+%         
+% \date{This paper describes package \texttt{\filename}\\
+%       version \fileversion{} from \filedate\\[1ex]
+%^^A     \textsl{It is part of the \texttt{preprint} collection of packages}\\
+%     \textbf{It is intended for \LaTeXe}
+%     \\ (but does include a variant for \LaTeX~2.09)
+%  }
+% 
+% \maketitle
+%
+% \pagestyle{myheadings}
+% \markboth{P. W. Daly}{NATURAL SCIENCES CITATIONS AND REFERENCES}
+%
+% \newcommand{\btx}{\textsc{Bib}\TeX}
+% \newcommand{\thestyle}{\texttt{\filename}}
+%
+%^^A In order to keep all marginal notes on the one (left) side:
+%^^A (otherwise they switch sides disasterously with twoside option)
+% \makeatletter \@mparswitchfalse \makeatother 
+%
+% \begin{abstract}
+% Journals in the natural sciences tend to use the author-year style of
+% literature citations, in contrast to the numerical style supported by
+% \LaTeX{} and \btx. A number of style options exist to accommodate this
+% scheme, but with various new sets of |\cite| commands and a variety of
+% ways of entering the information in the |\bibitem| entry. Instead, 
+% \thestyle\texttt{.sty}
+% uses the |\cite| command almost exactly as provided in
+% original \LaTeX, and yet can read in the |\bibitem| information in all
+% the formats available.
+% 
+% Even those journals that do use numbered citations exhibit a
+% variety of styles that are not so easy to reprogram into \LaTeX.
+% This style option offers an interface for both author-year and numerical
+% styles, with a means to redefine the citation format automatically based
+% on the name of the style in the |\bibliographystyle| command. For
+% example, by selecting the style \texttt{nature}, then the style of references 
+% is that of the journal \textsl{Nature}, i.e., as superscript numbers. It is
+% easy to add new definitions to \thestyle\texttt{.sty} for other bibliographic
+% styles. Alternatively, these local definitions may be stored in a 
+% configuration file \thestyle\texttt{.cfg}.
+% 
+% Thus \thestyle\texttt{.sty} can act as a single package for all
+% bibliographic styles available.
+% \end{abstract}  
+% 
+%\iffalse
+% The stripped version of this file contains the following brief description:
+%<*package&!subpack>
+ % Intended mainly for author-year style citations, but will work with
+ % numericals as well.
+ % 
+ % If author-year style selected, then \bibitem must have one of the
+ %   following forms:
+ %   \bibitem[Jones et al.(1990)]{key}...
+ %   \bibitem[Jones et al.(1990)Jones, Baker, and Williams]{key}...
+%<*apalike|authordate|all>
+ %   \bibitem[Jones et al., 1990]{key}...
+%</apalike|authordate|all>
+%<*newapa|all>
+ %   \bibitem[\protect\citeauthoryear{Jones, Baker, and Williams}{Jones
+ %       et al.}{1990}]{key}...
+ %   \bibitem[\protect\citeauthoryear{Jones et al.}{1990}]{key}...
+%</newapa|all>
+%<*astron|all>
+ %   \bibitem[\protect\astroncite{Jones et al.}{1990}]{key}...
+%</astron|all>
+%<*authordate|all>
+ %   \bibitem[\protect\citename{Jones et al., }1990]{key}...
+%</authordate|all>
+%<*harvard|all>
+ %   \harvarditem[Jones et al.]{Jones, Baker, and Williams}{1990}{key}...
+%</harvard|all>
+ %   
+ % This is either to be made up manually, or to be generated by an 
+ % appropriate .bst file with BibTeX.
+ % 
+ % Then, \cite{key}  ==>>  Jones et al. (1990)
+ %       \cite[]{key} ==>> (Jones et al., 1990)
+ % Multiple citations as normal:
+ %       \cite[]{key1,key2} ==>> (Jones et al., 1990; Smith, 1989)
+ %                           or  (Jones et al., 1990, 1991)
+ %                           or  (Jones et al., 1990a,b)
+ % Full author lists may be forced with \cite*, e.g.
+ %       \cite*[]{key}      ==>> (Jones, Baker, and Williams, 1990)
+ % Optional notes as:
+ %   \cite[chap. 2]{key}    ==>> (Jones et al., 1990, chap. 2)
+ %   \cite[e.g.,][]{key}    ==>> (e.g., Jones et al., 1990)
+ %   \cite[see][pg. 34]{key}==>> (see Jones et al., 1990, pg. 34)
+ %  (Note: in standard LaTeX, only one note is allowed, after the ref.
+ %   Here, one note is like the standard, two make pre- and post-notes.)
+ %
+ % Additional citation possibilities (author-year only)
+ %   \citeauthor{key}     ==>> Jones et al.
+ %   \citeyear{key}       ==>> 1990
+ %   \citefullauthor{key} ==>> Jones, Baker, and Williams
+ % (Multiple keys NOT allowed!)
+ % Note: full author lists depends on whether the bib style supports them;
+ %       if not, the abbreviated list is printed even when full requested.
+ %
+ % Defining the citation style of a given bib style:
+ % Use \bibpunct with 6 arguments:
+ %    1. opening bracket for citation
+ %    2. closing bracket
+ %    3. citation separator (for multiple citations in one \cite)
+ %    4. the letter n for numerical styles, s for superscripts
+ %        else anything for author-year
+ %    5. punctuation between authors and date
+ %    6. punctuation between years when common authors missing
+ % Example (and default) \bibpunct{(}{)}{;}{a}{,}{,}
+ % 
+ % To make this automatic for a given bib style, named newbib, say, add
+ % to this style file
+ %   \bibstyle@newbib{\bibpunct... + any other redefinitions (see examples)}
+ % Then the \bibliographystyle{newbib} will cause \bibstyle@newbib to 
+ % be called on THE NEXT LATEX RUN (via the aux file).
+ %
+ % Such preprogrammed definitions may be invoked in the text (after preamble)
+ %  by calling \citestyle{newbib}. This is only useful if the style specified
+ %  differs from that in \bibliographystyle.
+ %
+ % LaTeX2e Options: (for selecting punctuation)
+ %   round  -  round parentheses are used (default)
+ %   square -  square brackets are used   [option]
+ %   curly  -  curly braces are used      {option}
+ %   angle  -  angle brackets are used    <option>
+ %   colon  -  multiple citations separated by colon (default)
+ %   comma  -  separated by comma
+ %   authoryear - selects author-year citations (default)
+ %   numbers-  selects numerical citations
+ %   nobibstyle - deactivates punctuation selection via \bibliographystyle
+ % Note: normally the punctuation style defined by \bibstyle@xxx and invoked
+ %       with \bibliographystyle{xxx} dominates; with option nobibstyle
+ %       this is no longer the case.
+ % LaTeX2e options are called as, e.g.
+ %        \usepackage[square,comma]{natbib}
+ %-----------------------------------------------------------
+%</package&!subpack>
+%\fi
+%
+% \section{Introduction}
+% The first problem of using author-year literature citations with standard
+% \LaTeX{} is that the two forms of citations are not supported. These are:
+% \begin{quote}
+% textual: \dots\ as shown by Jones et al. (1990) \dots\\
+% parenthetical: It has been shown (Jones et al., 1990) that \dots
+% \end{quote}
+% There is only one |\cite| command to do both jobs.
+% 
+% A second problem is that the \texttt{thebibliography} environment for
+% listing the references insists on including the {\em labels\/} in the
+% list. These labels are normally the numbers, needed for referencing. In
+% the author-year system, they are superfluous and should be left off.
+% Thus, if one were to make up a bibliography with the author-year as
+% label, as
+% \begin{quote}
+% \begin{verbatim}
+% \begin{thebibliography}{...}
+% \bibitem[Jones et al., 1990]{jon90}
+% Jones, P. K., . . .
+% \end{thebibliography}
+% \end{verbatim}
+% \end{quote}
+% then |\cite{jon90}| produces the parenthetical citation [Jones et al.,
+% 1990], but there is no way to get the textual citation. Furthermore,
+% the citation text will also be included in the list of references. 
+% 
+% The final problem is to find a \btx{} bibliography style that will be
+% suitable.
+% 
+% \section{Previous Solutions}
+% Although the author-year citation style is not supported by {\em
+% standard\/} \LaTeX, there are a number of private styles around that have
+% worked on this problem. The various bibliographic styles (\texttt{.bst}
+% files) that exist are usually tailored to be used with a particular
+% \LaTeX{} style option.
+% 
+% I have found a large number of \texttt{.bst} files on file servers that may
+% act as indicators of the various systems available.
+% 
+% \subsection{The \texttt{natsci.bst} Style}
+% What gave me my first inspiration was Stephen Gildea's \texttt{natsci.bst}
+% for use with his \texttt{agujgr.sty} file. This showed me that the problem
+% was solvable. However, Gildea's style formats |\bibitem| just as I
+% illustrated above: with an optional label consisting of abbreviated
+% authors and year. Thus only parenthetical citations can be accommodated.
+% The list of references, however, is fixed up in his style files.
+% 
+% One serious drawback of \texttt{natsci.bst} is that it has been written for
+% \btx{} version~0.98, which is no longer current. It could be converted to
+% version~0.99 by replacing every occurrence of |:=| by |swap$ :=|.
+% 
+% \subsection{The \texttt{apalike.bst} Style}
+% Oren Patashnik, the originator of \btx{} and the standard \texttt{.bst}
+% files, has also worked on an author-year style, called \texttt{apalike.bst}
+% with a corresponding \texttt{apalike.sty} to support it. Again, only the
+% parenthetical citation is provided. Except for the fact that his style
+% works with version~0.99 of \btx, its functionality is identical to that
+% of the \texttt{natsci} files.
+% 
+% Patashnik does not like author-year citations. He makes this very clear
+% in his \btx{} manuals and in the header to \texttt{apalike.bst}.
+% Nevertheless, one should respect his work in this area, simply because he
+% should be the best expert on matters of \btx. Thus \texttt{apalike.bst}
+% could be the basis for other styles.
+% 
+% The form of the \texttt{thebibliography} entries in this system is
+% \begin{quote}
+% |\bibitem[Jones et al., 1990]{jon90}...|
+% \end{quote}
+% the same as I illustrated above. This is the most minimal form that can
+% be given. I name it the \texttt{apalike} variant, after Patashnik's 
+% \texttt{apalike.bst} and \texttt{apalike.sty}. However, there could be many
+% independent \texttt{.bst} files that follow this line.
+% 
+% The bibliography style files belonging to this group include:
+% \begin{quote}
+% \texttt{apalike}, \texttt{apalike2}, \texttt{cea}, \texttt{cell}, 
+% \texttt{jmb}, \texttt{phapalik}, \texttt{phppcf}, \texttt{phrmp}
+% \end{quote}
+% 
+% \subsection{The \texttt{newapa} Style}
+% A major improvement has been achieved with \texttt{newapa.bst} and the
+% accompanying \texttt{newapa.sty} files by Stephen N. Spencer and Young U.
+% Ryu. Under their system, three separate items of information are included
+% in the |\bibitem| label, to be used as required. These are: the full
+% author list, the abbreviated list, and the year. This is accomplished by
+% means of a |\citeauthoryear| command included in the label, as
+% \begin{quote}
+% |\bibitem[\protect\citeauthoryear{Jones, Barker,|\\
+% |  and Williams}{Jones et al.}{1990}]{jon90}...|
+% \end{quote}
+% Actually, this only illustrates the basic structure of |\citeauthoryear|;
+% the \texttt{newapa} files go even further to replace some words and 
+% punctuation
+% with commands. For example, the word `and' above is really
+% |\betweenauthors|, something that must be defined in the \texttt{.sty} file.
+% Of course, |\citeauthoryear| is also defined in that file. A
+% number of different |\cite| commands are available to print out the
+% citation with complete author list, with the short list, with or without
+% the date, the textual or parenthetical form. 
+% 
+% Thus the |\citeauthoryear| entry in |\bibitem| is very flexible,
+% permitting the style file to generate every citation form that one might
+% want. It is used by a number of other styles, with corresponding
+% \texttt{.sty} files. They all appear to have been inspired by 
+% \texttt{newapa.bst}, although they lack the extra punctuation commands. 
+% 
+% Bibliographic style files belonging to the \texttt{newapa} group include
+% \begin{quote}
+% \texttt{newapa}, \texttt{chicago}, \texttt{chicagoa}, \texttt{jas99}, 
+% \texttt{named}
+% \end{quote}
+% Note: the last of these, \texttt{named.bst}, uses |\citeauthoryear| in a
+% slightly different manner, with only two arguments: the short list and
+% year.
+% 
+% \subsection{The Harvard Family}
+% The same effect is achieved by a different approach in the Harvard family
+% of bibliographic styles. Here a new substitute for |\bibitem| is used, as
+% \begin{quote}
+% |\harvarditem[Jones et al.]{Jones, Baker, and|\\
+% |   Williams}{1990}{jon90}...|
+% \end{quote}
+% The accompanying interfacing style file is called \texttt{harvard.sty}
+% and is written by Peter Williams and Thorsten Schnier. It
+% defines |\harvarditem| as well as the citation commands |\cite|, for
+% parenthentical, and |\citeasnoun|, for textual citations. The first
+% citation uses the long author list, following ones the shorter list, if
+% it has been given in the optional argument to |\harvarditem|.
+% 
+% Bibliography styles belonging to the Harvard family are
+% \begin{quote}
+% \texttt{agms}, \texttt{dcu}, \texttt{kluwer}
+% \end{quote}
+% 
+% This package has been updated for \LaTeXe, with many additions to
+% add flexibility. The result is a powerful interface that should meet most
+% citation needs. (It does not suppress repeated authors, though,
+% as \thestyle{} does.)
+%
+% \subsection{The Astronomy Style}
+% Apparently realizing the limitations of his \texttt{apalike} system, Oren
+% Patashnik went on to develop a `true' \texttt{apa} bibliographic style,
+% making use of the method already employed by an astronomy journal. This
+% is actually very similar to the \texttt{newapa} label but with only the
+% short list of authors:
+% \begin{quote}
+% |\bibitem[\protect\astroncite{Jones et al.}{1990}]{jon90}|\\
+% |   ...|
+% \end{quote}
+% It requires the style file \texttt{astron.sty} (which I have not yet been
+% able to obtain), or any other style that defines |\astroncite|
+% appropriately.
+% 
+% Bibliographic styles belonging to the astronomy group are
+% \begin{quote}
+% \texttt{apa}, \texttt{astron}, \texttt{bbs}, \texttt{cbe}, 
+% \texttt{humanbio}, \texttt{humannat}, \texttt{jtb}
+% \end{quote}
+% 
+% This is as good as the |\citeauthoryear| command, although not as
+% flexible since the full list of authors is missing.
+% 
+% \subsection{The \texttt{authordate} Style}
+% Finally, I have also found some styles making use of a label command
+% called |\citename| in the form
+% \begin{quote}
+% |\bibitem[\protect\citename{Jones et al., }1990]{jon90}|\\
+% |    ...|
+% \end{quote}
+% 
+% This is not a good system since the author list and date are not cleanly
+% separated as individual arguments, and since the punctuation is included
+% in the label text. It is better to keep the punctuation fully removed, as
+% part of the definitions in the \texttt{.sty} file, for complete flexibility.
+% 
+% Bibliographic styles belonging to this group are
+% \begin{quote}
+% \texttt{authordate1}, \texttt{authordate2}, \texttt{authordate3}, 
+% \texttt{authordate4}, \texttt{aaai-named}
+% \end{quote}
+% with accompanying style file \texttt{authordate1-4.sty}.
+% 
+% \section{The \thestyle{} System}
+% The form of the |\bibitem| entry that I have used for all by
+% bibliographic styles is only slightly more complicated than the minimal
+% one, but allows a clean separation between authors and date:
+% \begin{quote}
+% |\bibitem[Jones et al.(1990)]{jon90}...|\qquad or alternatively\\
+% |\bibitem[Jones et al.(1990)Jones, Baker, |\\
+% \hspace*{2em}|and Williams]{jon90}...|
+% \end{quote}
+% (The second form is new to version~5.3.)
+%
+% The separation can be done be using the parentheses as delimiters to an
+% appropriate command. Parentheses are used no matter what characters are
+% actually to surround the citation.  The minimal (\texttt{apalike}) system
+% can also have the authors and year separated, but only by assuming that
+% the authors are divided from the year by comma and blank. If the author
+% list itself contains a comma and blank, the separation will be incorrect.
+% 
+% My system, called \thestyle{} for `natural sciences bibliography',
+% admittedly does not contain the full author list in the citation label,
+% something that I have never needed. However, its advantage over the 
+% \texttt{newapa} style is that for someone typing his \texttt{thebibliography}
+% environment by hand, without \btx, there is less work to be done. This is
+% of no importance if one uses \btx{} as one should!
+% 
+% My package,\footnote{Formerly called a \emph{style file} in the older
+% \LaTeX~2.09 terminology.}
+% \thestyle\texttt{.sty}, supports my own |\bibitem| format, as
+% well as all the others described here, plus numerical citation styles.
+% The additional questions of punctuation (type of brackets, commas or
+% semi-colons between citations) can be defined once and for all for each
+% \texttt{.bst} file and need never be specified explicitly in the source text.
+% The use of |\cite| is the same for all citation styles, meaning that the
+% additional features that might be available in the `proper' \texttt{.sty}
+% file will be missing. (This could be changed later.) The result is a
+% single \LaTeX{} style file to handle {\em all\/} the bibliographic
+% citation styles in a uniform manner.
+% 
+% As of version 5.1 (1994 June 22), the source file contains coding for a
+% \LaTeXe{} package file (the new standard) as well as that for an older
+% \LaTeX~2.09 style option file. The latter is extracted with the
+% \texttt{docstrip} option \texttt{209}. (Version~5.0, issued before the
+% official release of \LaTeXe, could run under both 2.09 and the
+% preliminary test release, but has some problems with the first official
+% version of \LaTeXe.) 
+% 
+% \subsection{Usage of this Package}
+% \DescribeMacro{\cite}
+% The \thestyle{} package makes use of the |\cite| command in precisely
+% the same manner as in standard \LaTeX, unlike all the other author-year
+% interface style options. The distinction between parenthetical and
+% textual citations is made by means of the optional argument to |\cite|,
+% which only has meaning in the parenthetical case. Thus a null optional
+% argument indicates a citation in parentheses.
+% \begin{quote}
+% \begin{tabular}{l@{\quad$\Rightarrow$\quad}l}
+%   |\cite{jon90}| & Jones et al. (1990)\\
+%   |\cite[]{jon90}| & (Jones et al., 1990)\\
+%   |\cite[chap.~2]{jon90}| & (Jones et al., 1990, chap.~2)
+% \end{tabular}
+% \end{quote}
+% 
+% A new feature not in standard \LaTeX{} is the possibility of adding a
+% second optional text, for notes before and after the citation. (In
+% earlier versions, I provided a single note either before or after,
+% selectable with a \texttt{docstrip} option; this option is no longer
+% needed.)
+% \begin{quote}
+% \begin{tabular}{l@{\quad$\Rightarrow$\quad}l}
+%   |\cite[e.g.,][]{jon90}| & (e.g., Jones et al., 1990)\\
+%   |\cite[see][pg.~34]{jon90}| & (see Jones et al., 1990, pg.~34)
+% \end{tabular}
+% \end{quote}
+% Beware: a single optional note goes \emph{after} the citation, as in
+% normal \LaTeX; with two notes, the first goes \emph{before}, the second
+% \emph{after}.
+% 
+% Multiple citations may be made as usual, by including more than one
+% citation key in the |\cite| command argument. \textsl{If adjacent citations
+% have the same author designation but different years, then the author
+% names are not reprinted.}
+% \begin{quote}
+% \begin{tabular}{l@{\quad$\Rightarrow$\quad}l}
+%   |\cite{jon90,jam91}| & Jones et al. (1990); James et al. (1991)\\
+%   |\cite[]{jon90,jam91}| & (Jones et al., 1990; James et al. 1991)\\
+%   |\cite[]{jon90,jon91}| & (Jones et al., 1990, 1991)\\
+%   |\cite[]{jon90a,jon90b}| & (Jones et al., 1990a,b)
+% \end{tabular}
+% \end{quote}
+% (The last possibility exists only in versions 5.4 or later.)
+%
+% It is also possible to print the citation with the full author list,
+% if that is supported by the bibliography style, by adding an asterisk,
+% as |\cite*|.
+% \begin{quote}
+%   |\cite*[]{jon90,jam91}|\quad$\Rightarrow$\quad
+%       \mbox{(Jones, Baker, and Williams, 1990)}
+% \end{quote}
+% The asterisk can be added to any of the above variations of |\cite|.
+% 
+% \DescribeMacro{\citeauthor}
+% \DescribeMacro{\citeyear}
+% \DescribeMacro{\citefullauthor}
+% In author-year schemes, it is sometimes desirable to be able to refer to
+% the authors without the year, or vice versa. This is provided with three
+% extra commands
+% \begin{quote}
+% \begin{tabular}{l@{\quad$\Rightarrow$\quad}l}
+%   |\citeauthor{jon90}| & Jones et al.\\
+%   |\citefullauthor{jon90}| & Jones, Baker, and Williams\\
+%   |\citeyear{jon90}|   & 1990
+% \end{tabular}
+% \end{quote}
+% If the full author information is missing, then |\citefullauthor| is
+% the same as |\citeauthor|, printing only the abbreviated list.
+% This also applies to the starred versions of |\cite|.
+% 
+% The native \thestyle{} form of the |\bibitem| entry now (version~5.3)
+% also supports the full author list.
+%
+% Multiple citations are \emph{not} allowed with these commands. Also, if they
+% are used with a numerical citation scheme, they produce warning messages.
+% 
+% \DescribeMacro{\bibpunct}
+% The above examples have been printed with the default set of punctuation.
+% It is possible to change this, as well as to select numerical or
+% author-year style, by means of the |\bibpunct| command, which takes 6
+% arguments:
+% \begin{enumerate}
+% \item the opening bracket symbol, default = `(';
+% \item the closing bracket symbol, default = `)';
+% \item the punctuation between multiple citations, default = `;';
+% \item the letter `n' for numerical style, or `s' for numerical superscript
+%       style, any other letter for
+%       author-year, default = author-year; note, it is not necessary to
+%       specify which author-year interface is being used, for all will be
+%       recognized;
+% \item the punctuation that comes between the author names and the year
+%       (parenthetical case only), default = `,';
+% \item the punctuation that comes between years when common author lists
+%       are suppressed, default = `,'; if both authors and years are common,
+%       the citation is printed as `1994a,b', but if a space is wanted between
+%       the extra letters, then include the space in the argument, as |{,~}|.
+% \end{enumerate}
+% 
+% The |\bibpunct| command must be issued before the first |\cite| command,
+% and after |\begin{document}|.
+% 
+% Example, |\bibpunct{[}{]}{,}{a}{}{;}| would change the output from
+% |\cite[]{jon90,jon91,jam92}| to [Jones et al. 1990; 1991, James et al.
+% 1992].
+% 
+% \DescribeMacro{\bibstyle@xxx}
+% Usually the punctuation style is determined by the journal for which one
+% is writing, and is as much a part of the bibliography style as everything
+% else. It would therefore make more sense if it could be included in the
+% \texttt{.bst} file. This is conceivable, and may be considered as a future
+% extension.
+% 
+% For now, however, in order to avoid having to specify the punctuation
+% style explicitly in every document (and possibly having to change it if
+% the article is submitted to another journal), \thestyle{} allows
+% punctuation definitions to be directly coupled to the
+% |\bibliographystyle| command that must always be present when \btx{} is
+% used. It is this command that selects the \texttt{.bst} file; by adding such
+% a coupling to \thestyle{} for every \texttt{.bst} file that one might
+% want to use, it is not necessary to add |\bibpunct| explicitly in the
+% document itself, unless of course one wishes to override the preset
+% values.
+% 
+% Such a coupling is achieved by defining a command |\bibstyle@|{\em bst},
+% where {\em bst\/} stands for the name of the \texttt{.bst} file. For example,
+% the American Geophysical Union (AGU) demands in its publications that
+% citations be made with square brackets and separated by semi-colons. I
+% have an \texttt{agu.bst} file to accomplish most of the formatting, but such
+% punctuations are not included in it. Instead, \thestyle{} has the
+% definition
+% \begin{quote}
+% |\def\bibstyle@agu{\bibpunct{[}{]}{;}{a}{,}{,}}|
+% \end{quote}
+% 
+% These style defining commands may contain more than just |\bibpunct|.
+% Some numerical citation scheme require even more changes. For example,
+% the journal \textsl{Nature} uses superscripted numbers for citations. To
+% accommodate this, \thestyle{} contains the style definition
+% \begin{quote}\begin{verbatim}
+% \def\bibstyle@nature{\bibpunct{}{}{,}{s}{}{}%
+%      \gdef\@biblabel##1{##1.}}
+% \end{verbatim}
+% \end{quote}
+% The redefined |\@biblabel| command specifies how the reference numbers
+% are to be formatted in the list of references itself.
+% The redefinition must be made with |\gdef|, not |\def|.
+% 
+% The selected punctuation style and other redefinitions will not be in
+% effect on the first \LaTeX{} run, for they are stored to the auxiliary
+% file for the subsequent run.
+% 
+% The user may add more such definitions of his own, to accommodate those
+% journals and \texttt{.bst} files that he has. He may either add them to
+% his local copy of \thestyle\texttt{.sty}, or better put them into a file
+% named \thestyle\texttt{.cfg}. This file will be read in if it exists,
+% adding any local configurations. Thus such configurations can survive
+% future updates of the package. (This is for \LaTeXe{} only.)
+% 
+% \DescribeMacro{\citestyle}
+% A preprogrammed punctuation style is normally invoked by the
+% |\bibliographystyle| command, as described above. However, it may be that
+% one wants to apply a certain punctuation style to another bibliography
+% style. This may be done with |\citestyle|, given after |\begin{document}|
+% but before the first |\cite| command. For example, to use the
+% \texttt{plain} bibliography style (for the list of references) with the
+% \textsl{Nature} style of citations (superscripts),
+% \begin{quote}
+% |\documentclass{article}|\\
+% |\usepackage{|\thestyle|}|\\
+% |. . . . .|\\
+% |\begin{document}|\\
+% |\citestyle{nature}|\\
+% |\bibliographystyle{plain}|\\
+% |. . . . .|
+% \end{quote}
+% 
+% \DescribeMacro{\bibfont}
+% The list of references is normally printed in the same font size and
+% style as the main body. However, it is possible to define |\bibfont|
+% to be font commands that are in effect within the \texttt{thebibliography}
+% environment.
+%
+% \subsection{Options with \LaTeXe}
+% The new (mid-1994) \LaTeX{} standard replaces \emph{style options} by
+% \emph{packages}, although both bear the extension \texttt{.sty}. Most
+% style options written for the older \LaTeX~2.09 will run as packages
+% under \LaTeXe. Version 5.0 of \thestyle{} is intended to run under the
+% newer standard, but will also run under the older one, at least if the
+% \texttt{docstrip} option \texttt{209} has been used during the
+% extraction.
+% 
+% One of the new features of \LaTeXe{} is \emph{options} for the packages,
+% in the same way as main styles (now called \emph{classes}) can take
+% options. This package is now installed with
+% \begin{quote}
+% |\documentclass[..]{...}|\\
+% |\usepackage[|\emph{options}|]{|\thestyle|}|
+% \end{quote}
+% The options available provide another means of specifying the
+% punctuation for citations:
+% \begin{description}
+% \item[\ttfamily round] (default) for round parentheses;
+% \item[\ttfamily square] for square brackets;
+% \item[\ttfamily curly] for curly braces;
+% \item[\ttfamily angle] for angle brackets;
+% \item[\ttfamily colon] (default) to separate multiple citations with
+%      colons;
+% \item[\ttfamily comma] to use commas as separaters;
+% \item[\ttfamily authoryear] (default) for author-year citations;
+% \item[\ttfamily numbers] for numerical citations;
+% \item[\ttfamily super] for superscripted numerical citations, as in
+%      \textsl{Nature};
+% \item[\ttfamily nobibstyle] to ignore punctuation style specified by
+%      |\bibliographystyle|.
+% \end{description}
+% 
+% The last option, \texttt{nobibstyle}, is necessary if the punctuation
+% specified by the options is to dominate over any pre-programmed ones
+% given by a |\bibstyle@xxx|. For example, to use the \texttt{plain.bst}
+% format for the bibliography with superscripted citations, one gives
+% \begin{quote}
+% |\documentclass{article}|\\
+% |\usepackage[super,nobibstyle]{|\thestyle|}|\\
+% |. . . . .|\\
+% |\bibliographystyle{plain}|
+% \end{quote}
+% 
+% {\slshape Any punctuation style set with |\bibpunct| always has topmost 
+% priority!}
+% 
+% \subsection{As Module to Journal-Specific Styles}
+% Although \thestyle{} is meant to be an all-purpose bibliographic style
+% \emph{package}, it may also be incorporated as a module to other 
+% packages for specific journals. In this case, many of the general features may
+% be left off. This is allowed for with \texttt{docstrip} options that not
+% only leave off certain codelines, but also include extra ones. So far,
+% options exist for 
+% \begin{description}
+% \item[\ttfamily nlinproc] for \textsl{Nonlinear Processes in Geophysics},
+% \item[\ttfamily agu] for \textsl{American Geophysical Union} journals.
+% \end{description}
+% 
+% Previous options \texttt{jgr} and \texttt{grl} have become obsolete due
+% to revisions in these journals; they have been replaced by the more
+% general \texttt{agu} option.
+%
+% \section{Summary}
+% The \thestyle{} package offers a powerful interface for almost all
+% existing \btx{} style files. It handles both numerical and author-year
+% citations with a uniform usage of the {\ttfamily\bslash cite} command. 
+% Additional modifications that depend on the \texttt{.bst} file selected,
+% and which are normally included in separate style option files designed
+% just for that bibliographic style, may easily be added to \thestyle{} for
+% automatic implementation in the source text. Thus \thestyle{} represents
+% a universal interface for all citation schemes.
+% 
+% \StopEventually{\PrintIndex\PrintChanges}
+% 
+% \section{Options with \texttt{docstrip}}
+% The source \texttt{.dtx} file is meant to be processed with
+% \texttt{docstrip}, for which a number of options are available:
+% \begin{description}
+% \item[\ttfamily all] includes all of the other interfaces;
+%
+% \item[\ttfamily apalike] allows interpretation of minimal \texttt{apalike} 
+%    form of |\bibitem|;
+%
+% \item[\ttfamily newapa] allows |\citeauthoryear| to be in the optional argument to
+%    |\bibitem| along with the punctuation commands of \texttt{newapa.sty};
+%
+% \item[\ttfamily harvard] includes interpretation of |\harvarditem|;
+%
+% \item[\ttfamily astron] allows |\astroncite| to appear in the optional argument
+%    of |\bibitem|;
+%
+% \item[\ttfamily authordate] adds the syntax of the |\citename| command.
+%
+% \end{description}
+%
+% This package file is intended to act as a module for other class files
+% written for specific journals, in which case the flexible
+% |\bibstyle@|{\em bst\/} commands are not wanted. Punctuation and
+% other style features are to be rigidly fixed. These journal options are
+% \begin{description}
+% \item[\ttfamily agu] for journals of the \textsl{American Geophysical
+%   Union};
+%
+% \item[\ttfamily nlinproc] for \textsl{Nonlinear Processes in Geophysics}.
+%
+% \end{description}
+%
+% The remaining options are:
+% \begin{description}
+% \item[\ttfamily package] to produce a \texttt{.sty} package file with most
+%     comments removed;
+% 
+% \item[\ttfamily 209] (together with \texttt{package}) for a style option 
+%     file that will run under the older \LaTeX~2.09;
+% 
+% \item[\ttfamily subpack] (together with \texttt{package}) for coding that 
+%     is to be included inside a larger package; even more comments are 
+%     removed, as well as \LaTeXe{} option handling and identification;
+%
+% \item[\ttfamily driver] to produce a driver \texttt{.drv} file that will
+%     print out the documentation under \LaTeXe. The documentation cannot
+%     be printed under \LaTeX~2.09.
+% 
+% \end{description}
+% The source file \texttt{\filename.dtx} is itself a driver file and can
+% be processed directly by \LaTeXe.
+% 
+% \section{The Coding}
+% This section presents and explains the actual coding of the macros.
+% It is nested between |%<*package>| and |%</package>|, which
+% are indicators to \texttt{docstrip} that this coding belongs to the package 
+% file.
+%
+% The \texttt{docstrip} option |<subpack>| should only be called if the
+% coding is to be included as part of another package, in which case the 
+% announcement text and \LaTeXe{} options are suppressed.
+%
+% An inferior version of this coding is provided for running as a 
+% style file under \LaTeX~2.09. Code lines belonging to this are
+% indicated with guard |<209>|; those for LaTeXe{} only with |<!209>|.
+%
+% \subsection{Selection Citation Punctuation and Other Modifications}
+% \begin{macro}{\bibstyle@xxx}
+% \changes{5.3}{1994 Sep 13}{Add \texttt{agsm} and \texttt{dcu} punctuation 
+%    styles from \texttt{harvard} series}
+% We begin by defining a number of punctuation styles for specific
+% author-year \texttt{.bst} files that I use. 
+% They are placed here, near the beginning, so that another
+% user can easily find them to add his own. Some comments remain in the
+% stripped version too.
+%    \begin{macrocode}
+%<*package>
+%<*!agu&!nlinproc>
+ % Define citation punctuation for some author-year styles
+ % One may add and delete at this point
+%<!209> % Or put additions into local configuration file natbib.cfg
+\def\bibstyle@aa{\bibpunct{(}{)}{;}{a}{}{,}}
+\def\bibstyle@pass{\bibpunct{(}{)}{;}{a}{,}{,}}
+\def\bibstyle@anngeo{\bibpunct{(}{)}{;}{a}{,}{,}}
+%<*all|harvard>
+\def\bibstyle@agsm{\bibpunct{(}{)}{,}{a}{}{,}\gdef\harvardand{\&}}
+\def\bibstyle@kluwer{\bibpunct{(}{)}{,}{a}{}{,}\gdef\harvardand{\&}}
+\def\bibstyle@dcu{\bibpunct{(}{)}{;}{a}{;}{,}\gdef\harvardand{and}}
+%</all|harvard>
+%</!agu&!nlinproc>
+%<agu|!subpack>\def\bibstyle@agu{\bibpunct{[}{]}{;}{a}{,}{,~}}
+%<nlinproc|!subpack>\def\bibstyle@nlinproc{\bibpunct{(}{)}{;}{a}{,}{,}}
+%    \end{macrocode}
+% Next, the same thing is done for some numerical styles. A major
+% difference here is that the |\@biblabel| and |\@cite| commands must also
+% be redefined in many cases. These redefinitions must be made with the
+% |\gdef| (global definition) command.
+%    \begin{macrocode}
+%<*!agu&!nlinproc>
+ % Define citation punctuation for some numerical styles
+ % One may add and delete at this point
+\def\bibstyle@cospar{\bibpunct{/}{/}{,}{n}{}{}%
+     \gdef\@biblabel##1{##1.}}
+\def\bibstyle@esa{\bibpunct{(}{)}{,}{n}{}{}%
+     \gdef\@biblabel##1{##1.\hspace{1em}}%
+     \gdef\@cite##1##2##3{\@citebegin Ref.~##1\ifNAT@swa,
+          ##3\fi\@citeend}}
+\def\bibstyle@nature{\bibpunct{}{}{,}{s}{}{}%
+     \gdef\@biblabel##1{##1.}}
+%    \end{macrocode}
+% 
+% Finally, the standard \LaTeX{} (numerical) citation styles are included.
+%    \begin{macrocode}
+ % The standard LaTeX styles
+\def\bibstyle@plain{\bibpunct{[}{]}{,}{n}{}{}}
+\let\bibstyle@alpha=\bibstyle@plain
+\let\bibstyle@abbrv=\bibstyle@plain
+\let\bibstyle@unsrt=\bibstyle@plain
+%    \end{macrocode}
+% 
+% \changes{5.2}{1994 Aug 25}{Add reading in of \texttt{natbib.cfg}}
+% To accommodate local additional |\bibstyle@| definitions, read in
+% configuration file \texttt{natbib.cfg} if it exists. 
+%    \begin{macrocode}
+%<*!subpack&!209>
+\InputIfFileExists{natbib.cfg}
+       {\typeout{Local config file natbib.cfg used}}{}
+%</!subpack&!209>
+%</!agu&!nlinproc>
+%    \end{macrocode}
+% \end{macro}
+% 
+% \subsection{\LaTeXe{} Options}
+% \begin{macro}{\DeclareOption}
+% \changes{5.0}{1994 May 18}{Add \LaTeXe{} options.}
+% \changes{5.3}{1994 Sep 13}{Add options \texttt{angle} and \texttt{curly}}
+% For \LaTeXe, we can define some options to be used with the |\usepackage|
+% command that loads the \thestyle{} package. These are an additional means
+% of specifying the citation punctuation and scheme.
+%    \begin{macrocode}
+%<*!subpack&!209>
+\DeclareOption{round}{\def\@citebegin{(} \def\@citeend{)}}
+\DeclareOption{square}{\def\@citebegin{[} \def\@citeend{]}}
+\DeclareOption{angle}{\def\@citebegin{$<$} \def\@citeend{$>$}}
+\DeclareOption{curly}{\def\@citebegin{\{} \def\@citeend{\}}}
+\DeclareOption{comma}{\def\@citesep{,}}
+\DeclareOption{colon}{\def\@citesep{;}}
+\DeclareOption{numbers}{\let\@bibsetup=\@bibsetnum
+   \let\@citex=\@citexnum
+   \let\@biblabel=\@biblabelnum
+   \let\@cite=\@citenum
+   \ExecuteOptions{square,comma}}
+\DeclareOption{super}{\let\@bibsetup=\@bibsetnum
+   \let\@citex=\@citexnum
+   \let\@biblabel=\@biblabelnum
+   \let\@cite=\@citesuper}
+\DeclareOption{authoryear}{}
+\DeclareOption{nobibstyle}{\let\bibstyle=\@gobble}
+%</!subpack&!209>
+%    \end{macrocode}
+% Note that any punctuation specified with these options will have the
+% lowest priority: they can be overwritten by |\bibpunct| (highest
+% priority) and by |\bibstyle| in the auxiliary file. The option
+% \texttt{nobibstyle} turns off this last feature so that any pre-defined
+% punctuation associated with the argument of |\bibliographystyle| will
+% have no effect.
+% \end{macro}
+%
+% \subsection{Internal Citing Macros}
+% A number of internal macros (|\@citex|, |\@cite|, |\@biblabel|, and
+% |\@bibsetup|) need to have different definitions for author-year and
+% numerical schemes. For this reason, they are defined here, before the
+% \LaTeXe{} options are executed. They are defined by default to be the
+% author-year versions, and then |\let|ted to the numerical equivalent if
+% necessary.
+% 
+% \begin{macro}{\@cite}
+% \changes{4.2}{1993 Dec 2}{Reversed optional text no longer needs to include
+%       a trailing blank}
+% \changes{5.0}{1994 May 18}{Add optional notes after as well as before
+%      citation.}
+% \begin{macro}{\@citenum}
+% \changes{5.0}{1994 May 18}{Add optional notes after as well as before
+%      citation.}
+% \begin{macro}{\@citesuper}
+% \changes{5.4}{1994 Nov 24}{Add macro for superscripts}
+% Define the internal |\@cite| command that prints the assembled string
+% of citation label texts, plus possible optional notes, before and after.
+% The numerical version is almost the same, except that the brackets
+% |\@citebegin| and |\@citeend| are always present. The switch
+% |\ifNAT@swa| is \meta{true} if optional arguments were present in the
+% calling |\cite| command. For author-year, this distinguishes between
+% parenthetical and textual citations.
+%    \begin{macrocode}
+\def\@cite#1#2#3{\ifNAT@swa\@citebegin\if#2\@empty\else#2 \fi
+        #1\if#3\@empty\else, #3\fi\@citeend\else#1\fi}
+%<*!agu&!nlinproc>
+\def\@citenum#1#2#3{\@citebegin\ifNAT@swa\if#2\@empty\else#2 \fi\fi
+   #1\if#3\@empty\else, #3\fi\@citeend}
+\def\@citesuper#1#2#3{\unskip\mbox{$^{\mbox{#1}}$%
+   \ifNAT@swa(#3)\fi}}
+%</!agu&!nlinproc>
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}
+% 
+% \begin{macro}{\@citexnum}
+% \changes{5.4}{1994 Nov 24}{Make like \LaTeXe{} definition instead of 2.09}
+% The original definition of |\@citex| is now used to define |\@citexnum|,
+% the version for numerical citations. What it does is to write a
+% |\citation| command to the auxiliary file (for \btx), and then parses the
+% second argument, the list of citation keys. These keys have to be decoded
+% into the actual label text contained in |\b@|{\em key\/} (a number or
+% author-year), and put together as the argument of |\@cite|. 
+% 
+% The temporary command |\@citeb| takes on the value of each of the keys in
+% turn; |\@citea| is the separator between multiple citations, initially
+% set to nothing, becoming |\@citesep| plus line-break suppression
+% afterwards. The |\@tempa| construction removes any leading blanks in
+% |\@citeb|, making |\cite{key1, key2}| possible. If |\b@|{\em key\/} is
+% not defined (as on the first run, for example), a warning is printed, and
+% a question mark inserted. Finally, the decoded label text is placed into
+% an |\hbox| to prevent it from being split.
+% \begin{macrocode} 
+%<*!agu&!nlinproc>
+\def\@citexnum[#1][#2]#3{\let\@citea\@empty
+  \@cite{\@for\@citeb:=#3\do
+    {\@citea\def\@citea{\@citesep\penalty\@m\ }%
+     \edef\@citeb{\expandafter\@iden\@citeb}%
+     \if@filesw\immediate\write\@auxout{\string\citation{\@citeb}}\fi
+     \@ifundefined{b@\@citeb}{%
+%<209>       {\reset@font\bf ?}\@warning
+%<!209>       {\reset@font\bfseries ?}\G@refundefinedtrue\@latex@warning
+       {Citation `\@citeb' on page \thepage \space undefined}}%
+     \hbox{\csname b@\@citeb\endcsname}}}{#1}{#2}}
+%</!agu&!nlinproc>
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@citex}
+% \changes{5.2}{1994 Aug 25}{Make like \LaTeXe{} definition instead of 2.09}
+% \changes{5.4}{1994 Nov 24}{Change space to command space for text cites}
+% \changes{5.4}{1995 Feb 6}{Add test for adjacent citations having equal
+%   authors and years}
+% The author-year version of |\@citex| is now defined as the default.
+% It starts off much the same as the numerical version. However, it wants
+% the authors and year for each decoded label text to be separated into
+% |\@citenm| and |\@citedt|. This is done by the routine |\@cite@parse|.
+% The names of the authors in the previous key are stored in |\@citemm|,
+% and if that is the same as the current names, it is not printed again.
+% The output citation text is not put into an |\hbox| since line division
+% may occur within the author-year citation. The output is formatted
+% differently for parenthetical (|\NAT@swa| \meta{true}) and textual
+% (|\NAT@swa| \meta{false}) cases.
+%    \begin{macrocode}
+\def\@citex[#1][#2]#3{\let\@citea\@empty
+  \@cite{\let\@citenm\@empty\let\NAT@year\@empty
+    \@for\@citeb:=#3\do
+    {\edef\@citeb{\expandafter\@iden\@citeb}%
+     \if@filesw\immediate\write\@auxout{\string\citation{\@citeb}}\fi
+     \@ifundefined{b@\@citeb}{\@citea%
+%<209>       {\reset@font\bf ?}\@warning
+%<!209>       {\reset@font\bfseries ?}\G@refundefinedtrue\@latex@warning
+       {Citation `\@citeb' on page \thepage \space undefined}}%
+     {\let\@citemm=\@citenm\let\@citeyra=\NAT@year
+     \@cite@parse{\@citeb}%
+%    \end{macrocode}
+% Begin parenthetical citation. Check if author names the same as in the
+% previous citation, and if so, also check if the years are the same.
+% \changes{5.4}{1995 Feb 8}{Add \cs{unskip} to avoid double spacing
+%     between years}
+% If so, citations are printed `1994a,b'; if a space is wanted between
+%  the letters, as `1994a,~b', then give |\@yrsep| as |{,~}|. For this
+%  reason, the |\unskip| is needed when the space between years is printed
+%  to avoid two spaces.
+%    \begin{macrocode}
+     \ifNAT@swa
+       \ifx\@citemm\@citenm\@yrsep
+          \ifx\@citeyra\NAT@year \NAT@exlab\else\unskip\ \@citedt\fi
+       \else\@citea{\@citenm}\@auyrsep
+       \ \@citedt \fi \def\@citea{\@citesep\ }%
+%    \end{macrocode}
+% Begin textual citation. Do same checks for repeated names and years.
+%    \begin{macrocode}
+     \else
+       \ifx\@citemm\@citenm\@yrsep\ifx\@citeyra\NAT@year \NAT@exlab\else
+          \unskip\ \@citedt\fi
+       \else\@citea{\@citenm}\ \@citebegin\@citedt\fi
+       \def\@citea{\@citeend\@citesep\ }%
+     \fi}}\ifNAT@swa\else\@citeend\fi}{#1}{#2}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@biblabel}
+% \begin{macro}{\@biblabelnum}
+% Similarly for the |\@biblabel| command, that is used to format the
+% citation label in the list of references, define the author-year version
+% as default and then the numerical version. For the former, no labels are
+% printed in the list of references.
+%    \begin{macrocode}
+\def\@biblabel#1{\hfill}
+%<*!agu&!nlinproc>
+\def\@biblabelnum#1{[#1]}
+%</!agu&!nlinproc>
+%    \end{macrocode}
+% \end{macro}\end{macro}
+% 
+% \begin{macro}{\@bibsetup}
+% \begin{macro}{\@bibsetnum}
+% \changes{5.1}{1994 Jun 22}{Add \cmd{\if@openbib} as in \LaTeXe}
+% This macro is called by |\thebibliography| and contains any coding for
+% formatting the list of references that may be different for numerical and
+% author-year schemes. 
+% For numerical citations, the |\labelwidth| must be set to the size of the
+% longest label (the argument of |\thebibliography|), and the |\leftmargin|
+% adjusted accordingly. For author-year, there are no labels, so
+% |\labelwidth| is zero, all lines after the first are indented by 1~em.
+% 
+% Since |\thebibliography| is not included in the \textsl{AGU} package,
+% this macro is left off here too.
+%    \begin{macrocode}
+%<*!agu>
+%<*!nlinproc>
+\def\@bibsetnum#1{\settowidth\labelwidth{\@biblabel{#1}}%
+   \leftmargin\labelwidth \advance\leftmargin\labelsep
+%<*!209>
+   \if@openbib
+     \advance\leftmargin\bibindent
+     \itemindent -\bibindent
+     \listparindent \itemindent
+     \parsep \z@
+   \fi
+%</!209>
+}
+%</!nlinproc>
+\def\@bibsetup#1{\leftmargin=1em\itemindent=-\leftmargin}
+%</!agu>
+%    \end{macrocode}
+% \end{macro}\end{macro}
+% 
+% \subsection{Selecting Citation Punctuation and Other Modifications}
+% \begin{macro}{\bibstyle}
+% \changes{5.4}{1994 Nov 24}{Move \cs{ProcessOptions} to after definition
+%    of \cs{bibstyle}}
+% The pre-defined punctuation styles are associated with particular
+% \texttt{.bst} files. This is implemented by means of the standard
+% |\bibliographystyle| command that specifies the name of the \texttt{.bst}
+% file that is to be used by \btx. Some \LaTeX{} manuals erroneously state
+% that this command must be issued prior to any |\cite| commands. If that
+% were the case, the task of invoking the style definitions would be much
+% easier, for they certainly must be issued before the first |\cite|.
+% However, I have always called |\bibliographystyle| together with
+% |\bibliography|, well after all |\cite| commands. 
+% 
+% In fact, all that |\bibliographystyle|\marg{bst} does is to write
+% |\bibstyle|\marg{bst} to the auxiliary file. This file, and all its
+% contents, will be read in at the beginning of the next \LaTeX{} run; to
+% be precise, it is read in by |\begin{document}|. The command |\bibstyle| is
+% then executed at that point on the next run. However, it is 
+% defined to do nothing more than to swallow up its argument! In other
+% words, the combination |\bibliographystyle| and |\bibstyle| do absolutely
+% nothing to the \LaTeX{} runs. In fact, |\bibstyle| is a command for
+% \btx{} alone.
+% 
+% I have taken advantage of this to redefine |\bibstyle| to execute the
+% \texttt{bst}-specific definitions.
+%    \begin{macrocode}
+%<*!agu&!nlinproc>
+\def\bibstyle#1{\@ifundefined{bibstyle@#1}{\relax}
+     {\csname bibstyle@#1\endcsname}}
+%    \end{macrocode}
+% This is executed only when the auxiliary file is read in, and that is
+% when |\begin{document}| is issued. Thus this is well before any |\cite|
+% commands. It is for this reason that any definitions in the
+% |\bibstyle@xxx| commands be global.
+% 
+% A minor problem arises in that the auxiliary file is read in a second
+% time, at the end of the run, to check whether any labels have changed. 
+% Sometimes, re-executing the |\bibstyle@xxx| command at this point
+% produces error messages. To avoid this, |\bibstyle| is reset to its
+% normal, do-nothing, definition after |\begin{document}|.
+% 
+% \LaTeXe{} provides a better way of adding commands to |\document|,
+% which is then exploited here. Paradoxically, the problem with re-reading
+% the auxiliary file does not seem to arise for this version.
+%    \begin{macrocode}
+%<*209>
+\let\ori@document=\document
+\def\document{\ori@document\global\let\bibstyle=\@gobble}
+%</209>
+%<!209>\AtBeginDocument{\global\let\bibstyle=\@gobble}
+%    \end{macrocode}
+% \end{macro}
+% 
+% \begin{macro}{\citestyle}
+% \changes{5.4}{1995 Feb 03}{Add macro}
+% To allow one to invoke preprogrammed punctuation styles that are
+% different from the name of the bibliography style specified by
+% |\bibliographystyle|, call |\citestyle| after the preamble but before
+% the first |\cite|. If |\bibstyle| had not been deactivated, it would be
+% sufficient to use it; so let |\citestyle| be the original definition of
+% |\bibstyle| that is not reset by |\begin{document}|.
+%    \begin{macrocode}
+\let\citestyle=\bibstyle
+%</!agu&!nlinproc>
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\bibpunct}
+% \changes{5.4}{1994 Nov 24}{Add superscript style of citations}
+% Now |\bibpunct| is defined. It sets various punctuation commands equal to
+% its arguments. It also switches to numerical style if that is specified
+% by the fourth argument. This is done by letting |\@bibsetup|,
+% |\@citex|, |\@biblabel|, |\@cite| be equal to their numerical 
+% counterparts. They are otherwise defined for author-year scheme.
+% 
+% The fourth argument can also be \texttt{s} for superscript, which
+% sets the numerical macros as above, except |\@cite| becomes the superscript
+% version.
+%    \begin{macrocode}
+\def\bibpunct#1#2#3#4#5#6{\gdef\@citebegin{#1}\gdef\@citeend{#2}\gdef
+   \@citesep{#3}\ifx #4n\global\let\@bibsetup=\@bibsetnum 
+   \global\let\@citex=\@citexnum
+   \global\let\@biblabel=\@biblabelnum
+   \global\let\@cite=\@citenum\else
+   \ifx #4s\global\let\@bibsetup=\@bibsetnum 
+   \global\let\@citex=\@citexnum
+   \global\let\@biblabel=\@biblabelnum
+   \global\let\@cite=\@citesuper\fi\fi
+   \gdef\@auyrsep{#5}\gdef\@yrsep{#6}}
+%    \end{macrocode}
+% \end{macro}
+% 
+% At this point the default punctuation for specific journals may be given,
+% now that |\bibpunct| is defined. These will not depend on the
+% |\bibliographystyle|, since they should be fixed, even without \btx.
+% (The |\bibstyle@xxx| commands are used so that the punctuation is defined
+% once and only once in the master file.)
+%    \begin{macrocode}
+%<agu>\bibstyle@agu
+%<nlinproc>\bibstyle@nlinproc
+%    \end{macrocode}
+% 
+% \subsection{Setting the Defaults}
+% For \LaTeXe, the defaults (punctuation and scheme type) are set with the
+% |\ExecuteOptions| command. For \LaTeX~2.09, the default scheme is
+% author-year, and punctuation is set explicitly.
+%
+% \begin{macro}{\@citebegin}
+% \begin{macro}{\@citeend}
+% \begin{macro}{\@citesep}
+% \begin{macro}{\@auyrsep}
+% \begin{macro}{\@yrsep}
+% The five punctuation characters for citations are the start and stop
+% brackets, the character between multiple citations, the character between
+% the authors and year (parenthetical only), and the character between
+% adjacent years when the common author list is omitted. Define their
+% default values. 
+%    \begin{macrocode}
+%<*subpack|209>
+%<!agu&!nlinproc>\def\@citebegin{(} \def\@citeend{)} \def\@citesep{;} 
+%</subpack|209>
+%<*!subpack&!209>
+\ExecuteOptions{authoryear,round,colon}
+\ProcessOptions
+%</!subpack&!209>
+%<!agu&!nlinproc>\def\@auyrsep{,} \def\@yrsep{,}
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}\end{macro}\end{macro}
+%
+% \subsection{The Citations}
+% \begin{macro}{\cite}
+% \changes{5.0}{1994 May 18}{Add a second optional argument.}
+% \begin{macro}{\@citex@}
+% \changes{5.0}{1994 May 18}{Add to handle second optional argument.}
+% \changes{5.3}{1994 Sep 19}{Add starred version to print full author list.}
+% \changes{5.4}{1994 Nov 24}{Replace \cmd{\if@tempswa} with \cmd{\ifNAT@swa}.}
+% The |\cite| command simply checks if there is an optional argument, and
+% then calls |\@citex@|, which in turns checks for a second optional
+% then calls the full internal version |\@citex|. The flag |\NAT@swa| is
+% set \meta{true} if an optional argument is present. I use this to distinguish
+% between parenthetical and textual citations.
+% (In standard \LaTeX, and earlier versions of \texttt{natbib}, the switch
+% |\if@tempswa| is used here; however, this can conflict with some font
+% commands which also use that switch.)
+%
+% The full author list, if present, is printed with the starred version of
+% |\cite|. This is done by setting the flag |\NAT@full|, which is then
+% used by |\@cite@parse|.
+%    \begin{macrocode}
+\newif\ifNAT@full\NAT@fullfalse
+\newif\ifNAT@swa
+\def\cite{\@ifstar{\NAT@fulltrue\@citee}{\NAT@fullfalse\@citee}}
+\def\@citee{\@ifnextchar [{\NAT@swatrue\@citex@}{\NAT@swafalse
+    \@citex@[]}}
+\def\@citex@[#1]{\@ifnextchar [{\@citex[#1]}{\@citex[][#1]}}
+%    \end{macrocode}
+% \end{macro}\end{macro}
+% 
+% \begin{macro}{\citeauthor}
+% \changes{5.0}{1994 May 18}{Add means to cite authors only.}
+% \changes{5.2}{1994 Aug 25}{Enclose \cs{@citenm} in braces.}
+% \changes{5.2}{1994 Aug 25}{Add auxiliary file entry.}
+% \begin{macro}{\citeyear}
+% \changes{5.0}{1994 May 18}{Add means to cite year only.}
+% \changes{5.2}{1994 Aug 25}{Add auxiliary file entry.}
+% In an author-year scheme, it is sometimes necessary to refer to the
+% authors of a work without the year. It might even be necessary to refer
+% to the year alone, but I can hardly imagine that. Both possibilities are
+% allowed for here.
+%    \begin{macrocode}
+\newcommand{\citeauthor}[1]{\if@filesw\immediate\write
+     \@auxout{\string\citation{#1}}\fi
+\ifx\@citex\@citexnum
+%<209>       {\reset@font\bf(author?)}\@warning
+%<!209>       {\reset@font\bfseries(author?)}\PackageWarning{natbib}
+       {Cannot use \protect\citeauthor
+%<209>         ^^J
+%<!209>         \MessageBreak
+        with numerical citations}\else
+     \@ifundefined{b@#1}{%
+%<209>       {\reset@font\bf ?}\@warning
+%<!209>       {\reset@font\bfseries ?}\G@refundefinedtrue\@latex@warning
+       {Citation `#1' on page \thepage \space undefined}}%
+       {\@cite@parse{#1}{\@citenm}}\fi}
+\newcommand{\citeyear}[1]{\if@filesw\immediate\write
+   \@auxout{\string\citation{#1}}\fi
+\ifx\@citex\@citexnum
+%<209>       {\reset@font\bf(year?)}\@warning
+%<!209>       {\reset@font\bfseries(year?)}\PackageWarning{natbib}
+       {Cannot use \protect\citeyear
+%<209>         ^^J
+%<!209>         \MessageBreak
+        with numerical citations}\else
+     \@ifundefined{b@#1}{%
+%<209>       {\reset@font\bf ?}\@warning
+%<!209>       {\reset@font\bfseries ?}\G@refundefinedtrue\@latex@warning
+       {Citation `#1' on page \thepage \space undefined}}%
+       {\@cite@parse{#1}\@citedt}\fi}
+%    \end{macrocode}
+% \end{macro}\end{macro}
+% 
+% \begin{macro}{\citefullauthor}
+% \changes{5.3}{1994 Sep 13}{Add macro for those bib styles with full author
+%     list available}
+% Some of the author-year bibliography styles supported here (\texttt{harvard}
+%   and \texttt{newapa}) allow a citation with the full author list, because
+%   they have the necessary information in the |\bibitem| entry. With 
+%   version~5.3, I change the native form of this entry to allow
+%   full authors too.
+%
+% Since I now have a starred form of |\cite| for the full author list, it
+%  might be reasonable to use a starred |\citeauthor| instead of
+% |\citefullauthor|. However, that will conflict with the provisions for
+% \thestyle{} to be found in Carlisle's \texttt{showkeys} package. That's life.
+%    \begin{macrocode}
+\newcommand{\citefullauthor}[1]{\if@filesw\immediate\write
+     \@auxout{\string\citation{#1}}\fi
+\ifx\@citex\@citexnum
+%<209>       {\reset@font\bf(author?)}\@warning
+%<!209>       {\reset@font\bfseries(author?)}\PackageWarning{natbib}
+       {Cannot use \protect\citeauthor
+%<209>         ^^J
+%<!209>         \MessageBreak
+        with numerical citations}\else
+     \@ifundefined{b@#1}{%
+%<209>       {\reset@font\bf ?}\@warning
+%<!209>       {\reset@font\bfseries ?}\G@refundefinedtrue\@latex@warning
+       {Citation `#1' on page \thepage \space undefined}}%
+       {\@cite@parse{#1}{\@citefull}}\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Parsing the Author-Year Entries}
+% \begin{macro}{\@cite@parse}
+% \changes{5.0}{1994 May 18}{Add parsing command, with additional 
+%    font and sub-accent commands relaxed}
+% \changes{5.1}{1994 Jun 22}{For \LaTeXe{} of \texttt{1994/06/01}, 
+%    can protect font and sub-accents much better}
+% \changes{5.2}{1994 Aug 24}{2.09 version to run in compatibility mode}
+% \changes{5.3}{1994 Sep 13}{Add full author list}
+% \changes{5.3}{1994 Sep 19}{Support starred version of \cs{cite} for full
+%    author list}
+% \changes{5.3}{1994 Sep 26}{Use \cs{@unexpandable@protect} in place of
+%    \cs{noexpand}}
+% \changes{5.4}{1995 Feb 6}{Call \cs{@parse@date} to split date into year and
+%     extra label}
+% The |\@citex| command takes each entry in its list and parses them
+% individually by calling |\@cite@parse|. This is done this by placing the
+% decoded text into |\@tempa|, which is used as the argument of |\@citez|,
+% which in turn extracts the author and year parts to |\@citenm| and 
+% |\@citedt| respectively. With version~5.3, |\@citefull| contains
+% the full author list, if present, otherwise it is the same as |\@citenm|.
+% The format of the native |\bibitem| label entry is now
+% \begin{quote}
+% \texttt{[}\emph{short list}\texttt{(}\emph{year}\texttt{)}\relax
+%    \emph{full list}\texttt{]}
+%  \end{quote}
+%    \begin{macrocode}
+\def\@cite@parse#1{{%
+%<*209>
+      \@ifundefined{documentclass}
+       {\let\prm=\relax\let\psf=\relax\let\ptt=\relax\let\pbf=\relax
+        \let\psl=\relax\let\psc=\relax\let\pit=\relax\let\pem=\relax
+        \let\prmfamily=\relax\let\psffamily=\relax\let\pttfamily=\relax
+        \let\pbfseries=\relax\let\pslshape=\relax\let\pscshape=\relax
+        \let\pitshape=\relax\let\pmdseries=\relax\let\pupshape=\relax
+        \let\pc=\relax \let\pd=\relax \let\pb=\relax}
+       {\let\protect=\@unexpandable@protect}%
+%</209>
+%<!209>     \let\protect=\@unexpandable@protect
+     \xdef\@tempa{\csname b@#1\endcsname\relax}}%
+     \expandafter\@citez\@tempa()()\@nil
+     \expandafter\@parse@date\@citedt??????@@%
+     \ifNAT@full\let\@citenm\@citefull\fi}
+%    \end{macrocode}
+% Some further notes on the above: for 2.09 it is necessary to turn off all the
+% protected font commands |\prm| etc.\ when the label text is expanded into
+% |\@tempa|, for otherwise there will be problems with the New Font
+% Selection Scheme (NFSS); the protected sub-accent commands (protected
+% versions of |\c|, |\d|, and |\b|) also cause troubles on expansion.
+% Admittedly, this is not a good solution, for the list of problem commands
+% might be much longer, but for the meantime, this will have to do.
+% 
+% For \LaTeXe, at least after the official release of
+% \texttt{1994/06/01}, commands are made robust in a totally different
+% manner, no longer by adding a \texttt{p} in front, but by adding a space
+% afterwards. This means the commands in the auxiliary files look like the
+% protected version once again, and not raw commands. They are infinitely
+% protected. The above problem is easily overcome by making |\protect|
+% equal to |\@unexpandable@protect|. A definitive list of commands to 
+% protect is no longer necessary. (Initially I used |\noexpand|, but
+% that only worked for font commands, not accents. Reading the documentation
+% in \texttt{ltdefns.dtx} indicated that this is the better redefinition
+% of |\protect|.)
+%
+% This trick is also applied to the 2.09 version for when it is running
+% in the compatibility mode of \LaTeXe. This is needed for the 
+% journal-specific coding, more than for the normal package.
+% 
+% The |\relax| added at the end of the |\@tempa|
+% expansion is necessary to serve as a pseudo third argument to
+% |\citeauthoryear| for the situation where only two arguments are given
+% (see below); the additional |()()\@nil| added to the input of |\@citez|
+% serves to detect the minimal labelling case of the \texttt{apalike} family.
+%
+% The |\ifNAT@full| flag is tested to see if |\cite| was called with the
+% starred version; if so, let |\@citenm|, the short name list, be equal
+% to the full name list.
+%
+% \end{macro}
+% 
+% \begin{macro}{\@parse@date}
+% \changes{5.4}{1995 Feb 6}{Add macro to split date into year and extra label}
+% With version 5.4, add the macro |\@parse@date| that splits the date up
+% into year and extra label, putting them into |\NAT@year| and |\NAT@exlab|.
+% This is used to test if authors and years are equal for two adjacent
+% citations, in which case, only the extra label is printed. The 
+% macro searches the first 4 characters of the date for a letter 
+% (|\catcode|=11) which then becomes the extra label. If there are only
+% numerals in the first 4 positions (more precisely, non-letters), the 5th
+% character is taken as extra label. If there is none, this will be a 
+% question mark.
+%    \begin{macrocode}
+\def\@parse@date#1#2#3#4#5#6@@{%
+  \ifnum\the\catcode`#1=11\def\NAT@year{}\def\NAT@exlab{#1}\else
+  \ifnum\the\catcode`#2=11\def\NAT@year{#1}\def\NAT@exlab{#2}\else
+  \ifnum\the\catcode`#3=11\def\NAT@year{#1#2}\def\NAT@exlab{#3}\else
+  \ifnum\the\catcode`#4=11\def\NAT@year{#1#2#3}\def\NAT@exlab{#4}\else
+    \def\NAT@year{#1#2#3#4}\def\NAT@exlab{#5}\fi\fi\fi\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@citez}
+% \changes{5.3}{1994 Sep 13}{Changed to support full author list}
+% The author-year information is contained in the \emph{label}, the optional
+% argument to |\bibitem|.  To split this label text up into the authors and
+% year, the command |\@citez| is used. It expects an argument of the form
+% \emph{authors}|(|\emph{year}|)|\emph{long authors}, so that \emph{authors} is
+% argument |#1|, \emph{year} is |#2|, and \emph{long authors} is |#3|. However,
+% if there are no parentheses present in the label, they are provided by the
+% calling statement (|\@citez\@tempa()()\@nil| above) in which case |#2| is
+% blank, and the command |\@citeapalk| is invoked instead.
+% 
+% With version~5.3, the \emph{long authors} has been added, along with a fourth
+% agument. The third one is now used, so the fourth one becomes the dummy to
+% collect the added symbols in the template.
+%    \begin{macrocode}
+\def\@citez#1(#2)#3()#4\@nil{\gdef\@citenm{#1}\gdef\@citedt{#2}%
+  \ifx#3\relax\gdef\@citefull{#1}\else\gdef\@citefull{#3}\fi
+%<!all&!apalike&!authordate>}
+%<*all|apalike|authordate>
+  \if!#2!\expandafter\@citeapalk#1\@nil\fi}
+%</all|apalike|authordate>
+%    \end{macrocode}
+% Note that \texttt{apalike} is only optionally included, with the
+% \texttt{docstrip} options \texttt{all} or \texttt{apalike}. It is also 
+% included for the \texttt{authordate} system which reduces to \texttt{apalike}.
+% \end{macro}
+% 
+% \subsection{Other Author-Year Schemes}
+% \begin{macro}{\@citeapalk}
+% \changes{4.1}{1993 Oct 4}{Simplify by using comma-space as separator}
+% \changes{5.3}{1994 Sep 13}{Full author list equals short list}
+% To parse the label text in an \texttt{apalike} style, we assume that the
+% year is separated from the abbreviated author list by means of a comma
+% and space. If any other punctuation is used, or if the space if left off,
+% or if the comma-space appears anywhere within the author list itself,
+% then this will not work correctly.  As I mentioned earlier, the minimal
+% \texttt{apalike} citation labelling permits separation of authors and year,
+% but in a risky manner.
+%    \begin{macrocode}
+%<*all|apalike|authordate>
+\def\@citeapalk#1, #2\@nil{\gdef\@citenm{#1}\gdef\@citedt{#2}%
+   \gdef\@citefull{#1}}
+%</all|apalike|authordate>
+%    \end{macrocode}
+% \end{macro}
+% 
+% The other schemes of citation labelling may also be accommodated, more
+% easily than \texttt{apalike}. It is just necessary to define the particular
+% commands, like |\citeauthoryear| to format the arguments in the \thestyle{}
+% manner, as {\em author\/}|(|{\em year\/}|)|. These commands
+% are executed when |\b@|{\em key\/} is expanded into |\@tempa|, so that
+% |\@citez| only sees the expansion and never the commands themselves.
+% 
+% The only complication is that |\citeauthoryear| may be given with two or
+% three arguments. This is accommodated by adding |\relax| to the |\@tempa|
+% expansion, which becomes the dummy third argument in the two-argument
+% case, and otherwise does nothing.
+% 
+% The Harvard family is allowed for simply by defining |\harvarditem| in
+% terms of |\bibitem| with the \thestyle{} labelling form.
+% 
+% \begin{macro}{\citeauthoryear}
+% \changes{5.3}{1994 Sep 13}{Allow full authors in citation}
+% For \texttt{newapa.bst} itself, the commands |\citestarts|, |\citeends|,
+% as well as 
+% |\betweenauthors| must be defined; for others in this group, these
+% commands are not needed.
+%    \begin{macrocode}
+%<*newapa|all>
+\newcommand{\citeauthoryear}[3]{\ifx#3\relax #1(#2)#1\else #2(#3)#1\fi}
+\newcommand{\citestarts}{\@citebegin}
+\newcommand{\citeends}{\@citeend}
+\newcommand{\betweenauthors}{and}
+%</newapa|all>
+%    \end{macrocode}
+% \end{macro}
+% 
+% \begin{macro}{\astroncite}
+% The |\astroncite| command is simply defined to produce \thestyle{} 
+% format.
+%    \begin{macrocode}
+%<*astron|all>
+\def\astroncite#1#2{#1(#2)}
+%</astron|all>
+%    \end{macrocode}
+% \end{macro}
+% 
+% \begin{macro}{\citename}
+% The |\citename| command just reproduces its argument. Since this is
+% in the form |{|{\em authors\/}|, }|{\em year\/}, it has the effect 
+% of emulating the \texttt{apalike} style. This is because the |{ }| vanish
+% during the expansion.
+%    \begin{macrocode}
+%<*authordate|all>
+\def\citename#1{#1}
+%</authordate|all>
+%    \end{macrocode}
+% \end{macro}
+% 
+% \begin{macro}{\harvarditem}
+% \changes{5.3}{1994 Sep 13}{Allow full authors in citation}
+% The |\harvarditem| must allow for the optional argument, which is 
+% the short author list. Use the short list in |\bibitem| if it is there,
+% otherwise the long list must be taken.
+% 
+%    \begin{macrocode}
+%<*harvard|all>
+\def\harvarditem{\@ifnextchar[{\@harvarditem}{\@harvarditem[\@empty]}}
+\def\@harvarditem[#1]#2#3#4{\if!#1!\bibitem[#2(#3)]{#4}\else
+  \bibitem[#1(#3)#2]{#4}\fi }
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\harvardleft}
+% \changes{5.3}{1994 Sep 13}{Add macro}
+% \begin{macro}{\harvardright}
+% \changes{5.3}{1994 Sep 13}{Add macro}
+% \begin{macro}{\harvardyearleft}
+% \changes{5.3}{1994 Sep 13}{Add macro}
+% \begin{macro}{\harvardyearright}
+% \changes{5.3}{1994 Sep 13}{Add macro}
+% \begin{macro}{\harvardand}
+% \changes{5.3}{1994 Sep 13}{Add macro}
+% \begin{macro}{\harvardurl}
+% \changes{5.3}{1994 Sep 13}{Add macro}
+% The \texttt{harvard} package has been updated for \LaTeXe, and includes
+% some new punctuation commands in the accompanying \texttt{bst} files.
+% (Maybe they were always there and I overlooked them.) In order that
+% \thestyle{} work with these, it needs to define them.) The |left| and 
+% |right| commands have equivalents already; |\harvardurl| is defined
+% as in \texttt{harvard.sty}. It is necessary to define |\harvardand|
+% conditionally, and only later, in case it has already been set to
+% something else by a |\bibstyle@xxx| (e.g., \texttt{agsm} sets it
+% to |\&|.)
+%    \begin{macrocode}
+\newcommand{\harvardleft}{\@citebegin}
+\newcommand{\harvardright}{\@citeend}
+\newcommand{\harvardyearleft}{\@citebegin}
+\newcommand{\harvardyearright}{\@citeend}
+%<!209>\AtBeginDocument{\providecommand{\harvardand}{and}}
+%<209>\def\harvardand{and}
+\newcommand{\harvardurl}[1]{\textbf{URL:} \textit{##1}}
+%</harvard|all>
+%    \end{macrocode}
+% \end{macro}\end{macro}\end{macro}\end{macro}\end{macro}\end{macro}
+%
+% \subsection{The Bibliography Listing}
+% Changes must be made to the \texttt{thebibliography} environment for
+% author-year citations. This is done be defining the environment with the
+% features common to both schemes, and then by invoking |\@bibsetup|, which
+% is either the author-year or numerical version.
+% 
+% \begin{macro}{\bibsection}
+% \changes{4.2}{1993 Oct 22}{Make specific for JGR, GRL, NLINPROC}
+% First, |\bibsection| is defined according to the main style: if chapters
+% exist, then the bibliography is a numberless chapter, otherwise a
+% numberless section. For the specific journals, |\bibsection| takes on
+% special definitions.
+%    \begin{macrocode}
+%<*!agu&!nlinproc>
+\@ifundefined{chapter}{\def\bibsection{\section*{\refname
+   \@mkboth{\uppercase{\refname}}{\uppercase{\refname}}}}}{\def
+   \bibsection{\chapter*{\bibname
+   \@mkboth{\uppercase{\bibname}}{\uppercase{\bibname}}}}}
+%</!agu&!nlinproc>
+%<nlinproc>\def\bibsection{\if@draft\newpage\fi
+%<nlinproc>    \noappendix\section*{\refname}}
+%    \end{macrocode}
+% \end{macro}
+% 
+% \begin{environment}{thebibliography}
+% \changes{4.1b}{1993 Oct 18}{Add \cmd{\bibfont}, defaulted
+%                to \cmd{\relax}}
+% \changes{4.2}{1993 Oct 22}{Add coding for JGR, GRL, NLINPROC}
+% \changes{4.2}{1993 Nov 20}{Remove coding for AGU, since AGU-supplied
+%         coding is adequate but different}
+% \changes{5.1}{1994 Jun 22}{Put \cmd{\bibfont} at start so \cmd{\list}
+%     uses list parameters appropriate for the font size}
+% \changes{5.1}{1994 Jun 22}{Add \cmd{\if@openbib} as in \LaTeXe}
+% The \texttt{thebibliography} environment is defined much as normal, except
+% that |\bibsetup| contains the special features for numerical or
+% author-year styles. The command |\bibfont| permits permits different
+% font sizes or styles to be used in the list. For example, for 
+% \textsl{Nonlinear Processes} it is |\small|. This means |\bibfont| must
+% be issued before the |\list| command, since the list parameters depend
+% on the current font size. For \textsl{AGU}, the whole
+% |\thebibliography| is left off, since the AGU-supplied coding will
+% do. It is only necessary to add |\noappendix| to the AGU coding.
+%    \begin{macrocode}
+%<*!agu>
+\renewenvironment{thebibliography}[1]
+ {\bibfont\bibsection\parindent \z@\list
+   {\@biblabel{\arabic{enumiv}}}{\@bibsetup{#1}%
+    \usecounter{enumiv}\let\p@enumiv\@empty
+    \renewcommand{\theenumiv}{\arabic{enumiv}}}%
+%<*!209>
+    \if@openbib
+      \renewcommand\newblock{\par}
+    \else
+      \renewcommand\newblock{\hskip .11em \@plus.33em \@minus.07em}%
+    \fi
+%</!209>
+%<209>      \def\newblock{\hskip .11em plus.33em minus.07em}%
+    \sloppy\clubpenalty4000\widowpenalty4000
+    \sfcode`\.=1000\relax}
+  {\def\@noitemerr{%
+%<209>  \@warning
+%<!209>  \@latex@warning
+     {Empty `thebibliography' environment}}%
+  \endlist\vskip-\lastskip}
+\let\bibfont=\relax
+%<nlinproc>\let\bibfont=\small
+%</!agu>
+%<agu>\let\aguthebib=\thebibliography
+%<agu>\def\thebibliography#1{\noappendix\aguthebib{#1}}
+%    \end{macrocode}
+% \end{environment}
+% 
+% \subsection{Compatibility Commands}
+% \begin{macro}{\reset@font}
+% For older implementations of \LaTeX~2.09 (before December, 1991) the
+% |\reset@font| command does not exist. It is defined to be |\relax| under
+% normal \LaTeX{}, but does more under NFSS. In case it is not defined, add
+% it here.
+%    \begin{macrocode}
+%<209>\@ifundefined{reset@font}{\let\reset@font=\relax}{}
+%    \end{macrocode}
+% \end{macro}
+%
+% \Finale

@@ -1,0 +1,52 @@
+Thu May 14 19:22:33 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Sat Apr 25 09:38:16 1992  Karl Berry  (karl@hayley)
+
+        * Makefile (distclean): new target.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Fri Apr  3 09:56:04 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Sat Mar 21 11:40:36 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (patgen): use patgen2.
+        * patgen2.{web,ch}: new files.
+
+Fri Mar 20 16:29:58 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the program.
+
+Wed Mar 18 09:09:54 1992  Karl Berry  (karl at hayley)
+
+        * dvitype.ch (max_widths): increase to 25000.
+
+Sun Feb  2 07:54:09 1992  Karl Berry  (karl at hayley)
+
+        * tftopl.ch (argument_is): change `option_table' to
+          `long_options', for the new getopt.
+
+Fri Jan 24 09:20:36 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+Sun Jan 12 07:49:54 1992  Karl Berry  (karl at hayley)
+
+        * tftopl.ch: `cwd_test_read_access' is gone.
+
+        * Makefile (vftovp.o, vptovf.o): remove the -Dlink, as it is now
+          in common.h.
+
+Wed Jan  8 07:43:23 1992  Karl Berry  (karl at hayley)
+
+        * tftopl.ch (cast_to_pointer_to_byte): the name seems to be
+          `cast_to_byte_pointer'.

@@ -2,9 +2,13 @@
 .SH NAME
 isalpha, isupper, islower, isdigit, isxdigit, isalnum, isspace, ispunct, isprint, isgraph, iscntrl, isascii, toascii, _toupper, _tolower, toupper, tolower \- ASCII character classification
 .SH SYNOPSIS
-.2C
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
 .B #include <ctype.h>
 .PP
+.2C
 .B isalpha(c)
 .PP
 .B isupper(c)
@@ -54,6 +58,7 @@ is true and on the single non-\c
 .SM ASCII
 value
 .BR EOF ;
+see
 .IR fopen (2).
 .TP "\w'isalnum  'u"
 .I isalpha
@@ -139,6 +144,16 @@ and
 .I _toupper
 are corresponding macros which should only be used when it
 is known that the argument is upper case or lower case, respectively.
+.SS Alef
+These routines are not provided in Alef.
+.SH SOURCE
+.TF /sys/src/libc/port/ctype.c
+.TP
+.B /sys/include/ctype.h
+for the macros.
+.TP
+.B /sys/src/libc/port/ctype.c
+for the tables.
 .SH BUGS
 These macros are
-\s-2ASCII\s0-centric.
+\s-1ASCII\s0-centric.

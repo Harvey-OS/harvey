@@ -10,7 +10,7 @@ cgen(Node *n, int result, Node *nn)
 
 	if(n == Z || n->type == T)
 		return;
-	if(typesu[n->type->etype]) {
+	if(typesu[n->type->etype] || typev[n->type->etype]) {
 		sugen(n, result, nn, n->type->width);
 		return;
 	}
@@ -26,6 +26,7 @@ cgen(Node *n, int result, Node *nn)
 			gmove(n->type, nn->type, D_TREE, n, result, nn);
 		return;
 	}
+
 	v = 0; /* set */
 	l = n->left;
 	r = n->right;
@@ -149,7 +150,7 @@ cgen(Node *n, int result, Node *nn)
 				diag(n, "DOT and no offset");
 				break;
 			}
-			nod.offset += r->offset;
+			nod.xoffset += r->vconst;
 			nod.type = n->type;
 			cgen(&nod, result, nn);
 		}
@@ -159,11 +160,9 @@ cgen(Node *n, int result, Node *nn)
 	case OASLMOD:
 	case OASDIV:
 	case OASMOD:
-		while(l->op == OCAST)
-			l = l->left;
 		if(l->op == OBIT)
 			goto asbitop;
-		if(typefdv[n->type->etype])
+		if(typefd[n->type->etype])
 			goto asbinop;
 		rg = D_TREE;
 		if(l->complex >= FNX || r->complex >= FNX) {
@@ -204,14 +203,12 @@ cgen(Node *n, int result, Node *nn)
 	case OASXOR:
 	case OASAND:
 	case OASOR:
-		while(l->op == OCAST)
-			l = l->left;
 		if(l->op == OBIT)
 			goto asbitop;
 		if(l->complex >= FNX ||
 		   l->addable < INDEXED ||
 		   result != D_NONE ||
-		   typefdv[n->type->etype])
+		   typefd[n->type->etype])
 			goto asbinop;
 		rg = D_TREE;
 		if(r->op != OCONST) {
@@ -224,12 +221,11 @@ cgen(Node *n, int result, Node *nn)
 
 	case OASADD:
 	case OASSUB:
-		if(l->op == OCAST ||
-		   l->op == OBIT ||
+		if(l->op == OBIT ||
 		   l->complex >= FNX ||
 		   l->addable < INDEXED ||
 		   result != D_NONE ||
-		   typefdv[n->type->etype])
+		   typefd[n->type->etype])
 			goto asbinop;
 		v = vconst(r);
 		if(v > 0 && v <= 8) {
@@ -245,12 +241,11 @@ cgen(Node *n, int result, Node *nn)
 	case OASLSHR:
 	case OASASHR:
 	case OASASHL:
-		if(l->op == OCAST ||
-		   l->op == OBIT ||
+		if(l->op == OBIT ||
 		   l->complex >= FNX ||
 		   l->addable < INDEXED ||
 		   result != D_NONE ||
-		   typefdv[n->type->etype])
+		   typefd[n->type->etype])
 			goto asbinop;
 		rg = D_TREE;
 		v = vconst(r);
@@ -269,8 +264,6 @@ cgen(Node *n, int result, Node *nn)
 	case OASLMUL:
 	case OASMUL:
 	asbinop:
-		while(l->op == OCAST)
-			l = l->left;
 		if(l->op == OBIT)
 			goto asbitop;
 		rg = D_TREE;
@@ -282,6 +275,14 @@ cgen(Node *n, int result, Node *nn)
 		if(r->addable < INDEXED) {
 			rg = regalloc(n->type, D_NONE);
 			cgen(r, rg, r);
+		} else {
+			if(o == OASLSHR || o == OASASHR || o == OASASHL) {
+				v = vconst(r);
+				if(v <= 0 || v > 8) {
+					rg = regalloc(n->type, D_NONE);
+					cgen(r, rg, r);
+				}
+			}
 		}
 		lg = D_TREE;
 		if(!simplv(l)) {
@@ -325,7 +326,7 @@ cgen(Node *n, int result, Node *nn)
 			g = bitload(l, lg, rg, result, nn);
 		}
 
-		if(!typefdv[n->type->etype]) {
+		if(!typefd[n->type->etype]) {
 			if(o == OASLDIV || o == OASDIV) {
 				yg = regpair(result);
 				gmove(types[TFIELD], n->type, g, l, yg, n);
@@ -417,11 +418,11 @@ cgen(Node *n, int result, Node *nn)
 		nod.lineno = n->lineno;
 		if(l->op == OADD) {
 			if(l->left->op == OCONST) {
-				nod.offset += l->left->offset;
+				nod.xoffset += l->left->vconst;
 				l = l->right;
 			} else
 			if(l->right->op == OCONST) {
-				nod.offset += l->right->offset;
+				nod.xoffset += l->right->vconst;
 				l = l->left;
 			}
 		}
@@ -461,7 +462,7 @@ cgen(Node *n, int result, Node *nn)
 			nullwarn(l, r);
 			break;
 		}
-		if(typefdv[n->type->etype])
+		if(typefd[n->type->etype])
 			goto binop;
 		if(r->addable >= INDEXED && r->complex < FNX) {
 			lg = regpair(result);
@@ -501,12 +502,12 @@ cgen(Node *n, int result, Node *nn)
 		if(typel[n->type->etype])
 		if(l->op == OCAST) {
 			if(typec[l->left->type->etype])
-			if(!(r->offset & ~0xff)) {
+			if(!(r->vconst & ~0xff)) {
 				l = l->left;
 				goto binop;
 			}
 			if(typeh[l->left->type->etype])
-			if(!(r->offset & ~0xffff)) {
+			if(!(r->vconst & ~0xffff)) {
 				l = l->left;
 				goto binop;
 			}
@@ -517,8 +518,8 @@ cgen(Node *n, int result, Node *nn)
 		if(result == D_TOS)
 		if(r->addable >= INDEXED)
 		if(l->op == OCONST)
-		if(typelp[l->type->etype]) {
-			v = l->offset;
+		if(typel[l->type->etype]) {
+			v = l->vconst;
 			if(v > -32768 && v < 32768) {
 				rg = regaddr(D_NONE);
 				gmove(r->type, r->type, D_TREE, r, rg, r);
@@ -534,8 +535,8 @@ cgen(Node *n, int result, Node *nn)
 		if(result == D_TOS)
 		if(l->addable >= INDEXED)
 		if(r->op == OCONST)
-		if(typelp[r->type->etype]) {
-			v = r->offset;
+		if(typel[r->type->etype]) {
+			v = r->vconst;
 			if(v > -32768 && v < 32768) {
 				if(n->op == OSUB)
 					v = -v;
@@ -570,10 +571,6 @@ cgen(Node *n, int result, Node *nn)
 				regfree(rg);
 			} else
 				gopcode(o, n->type, D_TOS, r, lg, l);
-			if(n->type == types[TVLONG] && o == ODIV) {
-				gopcode(o, n->type, lg, l, lg, l);
-				p->as = AFINTRZD;
-			}
 			gmove(n->type, nn->type, lg, l, result, nn);
 			regfree(lg);
 			break;
@@ -602,10 +599,6 @@ cgen(Node *n, int result, Node *nn)
 			}
 		}
 		gopcode(o, n->type, rg, r, lg, l);
-		if(n->type == types[TVLONG] && o == ODIV) {
-			gopcode(o, n->type, lg, l, lg, l);
-			p->as = AFINTRZD;
-		}
 		gmove(n->type, nn->type, lg, l, result, nn);
 		regfree(lg);
 		regfree(rg);
@@ -745,7 +738,7 @@ cgen(Node *n, int result, Node *nn)
 		}
 		if(result != D_NONE)
 			gmove(l->type, nn->type, lg, l, result, nn);
-		if(typefdv[n->type->etype]) {
+		if(typefd[n->type->etype]) {
 			rg = regalloc(n->type, D_NONE);
 			gmove(l->type, l->type, lg, l, rg, l);
 			gopcode(o, n->type, D_CONST, nodconst(1), rg, l);
@@ -777,7 +770,7 @@ cgen(Node *n, int result, Node *nn)
 			lcgen(l, lg, Z);
 			lg |= I_INDIR;
 		}
-		if(typefdv[n->type->etype]) {
+		if(typefd[n->type->etype]) {
 			rg = regalloc(n->type, D_NONE);
 			gmove(l->type, l->type, lg, l, rg, l);
 			gopcode(o, n->type, D_CONST, nodconst(1), rg, l);
@@ -939,7 +932,7 @@ boolgen(Node *n, int true, int result, Node *nn, Node *post)
 			gopcode(OTST, n->type, D_NONE, Z, lg, n);
 		regfree(lg);
 		o = ONE;
-		fp = typefdv[n->type->etype];
+		fp = typefd[n->type->etype];
 		goto genbool;
 
 	case OCONST:
@@ -1056,7 +1049,7 @@ boolgen(Node *n, int true, int result, Node *nn, Node *post)
 	case OHS:
 	case OLO:
 	case OLS:
-		fp = typefdv[r->type->etype];
+		fp = typefd[r->type->etype];
 		if(l->op == OCONST) {
 			v = vconst(l);
 			if(v == 0) {	/* tst instruction */
@@ -1153,12 +1146,39 @@ sugen(Node *n, int result, Node *nn, long w)
 			if(w > nrathole)
 				nrathole = w;
 	}
-	if(n->addable >= INDEXED)
+
+	if(n->addable >= INDEXED && n->op != OCONST)
 		goto copy;
 	switch(n->op) {
 	default:
 		diag(n, "unknown op in sugen: %O", n->op);
 		break;
+
+	case OCONST:
+		if(n->type && typev[n->type->etype]) {
+			if(result == D_NONE) {
+				nullwarn(n->left, Z);
+				break;
+			}
+
+			lg = regaddr(D_NONE);
+			if(result == D_TOS) {
+				adjsp(s - argoff + w);
+				gopcode(OADDR, types[TIND], result, nn, lg, n);
+			} else
+			if(result == D_TREE) {
+				lcgen(nn, lg, Z);
+			} else
+				diag(n, "unknown su result: %R", result);
+
+			gopcode(OAS, types[TLONG], D_CONST, nodconst((long)(n->vconst>>32)),
+				lg|I_INDINC, n);
+			gopcode(OAS, types[TLONG], D_CONST, nodconst((long)(n->vconst)),
+				lg|I_INDINC, n);
+			regfree(lg);
+			break;
+		}
+		goto copy;
 
 	case ODOT:
 		l = n->left;
@@ -1171,7 +1191,7 @@ sugen(Node *n, int result, Node *nn, long w)
 				diag(n, "DOT and no offset");
 				break;
 			}
-			nod.offset += r->offset;
+			nod.xoffset += r->vconst;
 			nod.type = n->type;
 			sugen(&nod, result, nn, w);
 		}
@@ -1205,7 +1225,7 @@ sugen(Node *n, int result, Node *nn, long w)
 			}
 			nod.type = t;
 			if(l->complex < FNX) {
-				nod.offset = 0;
+				nod.xoffset = 0;
 				if(o != t->offset) {
 					gopcode(OADD, types[TIND], D_CONST,
 						nodconst(t->offset-o), lg, Z);
@@ -1214,10 +1234,10 @@ sugen(Node *n, int result, Node *nn, long w)
 				cgen(l, D_TREE, &nod);
 				continue;
 			}
-			nod.offset = t->offset - o;
+			nod.xoffset = t->offset - o;
 			gopcode(OAS, types[TIND], lg, Z, D_TOS, Z);
 			s = argoff;
-			if(typesu[t->etype]) {
+			if(typesu[t->etype] || typev[t->etype]) {
 				sugen(l, D_TREE, nodrat, t->width);
 				adjsp(s - argoff);
 				gopcode(OAS, types[TIND], D_TOS, Z, lg, Z);

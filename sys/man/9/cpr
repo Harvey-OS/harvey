@@ -1,0 +1,240 @@
+.TH CPR 9.1
+.SH NAME
+cpr, cprview \- cheesy polygon renderer and viewer
+.SH SYNOPSIS
+.B fb/cpr
+[
+.B -a
+.I aspect
+]
+[
+.B -c
+.I rgbaz
+]
+[
+.B -w
+.I nx ny
+]
+.I file ...
+.PP
+.B fb/cprview
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Cpr
+creates an image from a list of polygons in three dimensions.
+Its output is a picture file, written to standard output.
+The
+.B -w
+flag sets the width and height of the output file.  The default
+size is 640×480.
+The
+.B -a
+flag indicates the aspect ratio of the image.  The default aspect ratio is
+the ratio of the output file's width and height, in pixels.
+It may be set independently to handle displays with non-square pixels.
+The
+.B -c
+flag indicates which channels the output image should have.  Possible values are
+.B -crgb
+(the default),
+.BR -crgba ,
+and
+.BR -crgbaz .
+.PP
+.I Cpr's
+input is a simple textual command language, read from the input files
+named on the command line (default standard input).  Each command
+is a single character followed by arguments, separated by spaces.
+The commands are:
+.TP
+.BI v "  fov near far ex ey ez lx ly lz ux uy uz
+Set viewing parameters.
+.I Fov
+is the horizontal field-of-view angle.
+.RI ( ex ,
+.IR ey ,
+.IR ez )
+is the eye location from which the scene is viewed.
+These and all other coordinates are floating point values.
+.RI ( lx ,
+.IR ly ,
+.IR lz )
+is the location the eye is looking at \(em a point that
+the viewing transformation will map to the center of the screen.
+.RI ( ux ,
+.IR uy ,
+.IR uz )
+indicates the up direction.  It is the coordinate of a point
+that the viewing transformation will map somewhere on the ray
+ascending from
+.RI ( lx ,
+.IR ly ,
+.IR lz )
+through the top of the screen.  Exactly where on that ray the image of
+.RI ( ux ,
+.IR uy ,
+.IR uz )
+is depends on the field of view angle.
+.I Near
+and
+.I far
+are the distances from the eyepoint to the near and far clipping planes.
+Objects closer than
+.I near
+or farther than
+.I far
+will not be displayed.  Both
+.I near
+and
+.I far
+must be positive, with
+.IR far > near .
+.TP
+.BI t "  x0 y0 z0 x1 y1 z1 x2 y2 z2 c0 c1
+draw a triangle.
+.RI ( x0 ,
+.IR y0 ,
+.IR z0 ),
+.RI ( x1 ,
+.IR y1 ,
+.IR z1 ),
+and
+.RI ( x2 ,
+.IR y2 ,
+.IR z2 )
+are the corners of the triangle.
+.I C0
+and
+.I c1
+are the colors of the two sides of the triangle, with
+.I c0
+being the color of the side from which the
+vertices are viewed clockwise.  Color values are integers
+with absolute values no larger than 255.  Their absolute values
+index a table of colors whose entries are set using the
+.B c
+command (vide infra).  A positive color indicates that
+the object should be drawn in exactly that color;
+a negative value means that the polygon should be a shade
+of that color computed according to the light source position.
+.TP
+.BI p "  c0 c1 \fR[\fI x y z \fR]*\fI ;
+draw a polygon.
+.I C0
+and
+.I c1
+are the colors of its two sides.  The
+.RI ( x ,
+.IR y ,
+.IR z )
+values are its vertices.
+.TP
+.BI h "  c0 c1 nx ny x0 y0 x1 y1 file
+draw a height field from a file of
+.I z
+values.
+.I C0
+and
+.I c1
+are its colors.
+.IR X0 ,
+.IR y0 ,
+.IR x1 ,
+and
+.I y1
+give the range of
+.I x
+and
+.I y
+values.
+The
+.I file
+contains an array of
+.I nx
+by
+.I ny
+floating point numbers, in row major order, in the native
+floating-point representation of the machine running
+.IR cpr .
+This is not portable.
+.TP
+.BI s "  c0 c1 x y z r
+draw a sphere of the given color, with center at
+.RI ( x ,
+.IR y ,
+.IR z )
+and radius
+.IR r .
+.TP
+.B {
+push the transformation stack.
+.I Cpr
+maintains a stack of transformation matrices.
+The following transformation commands operate on the top of the
+stack.  All objects to be drawn are operated on by this transformation.
+.TP
+.B }
+pop the transformation stack
+.TP
+.BI R "  angle axis
+Rotate by the given
+.I angle
+(in degrees) about the specified
+.IR axis ,
+which must be 0 for
+.BR x ,
+1 for
+.BR y ,
+or 2 for
+.BR z .
+.TP
+.BI T "  dx dy dz
+Translate by the given offset
+.TP
+.BI S "  sx sy sz
+Scale by the given factors in the
+.IR x ,
+.IR y ,
+and
+.I z
+directions.
+.TP
+.BI M "  m00 m01 m02 m03 m10 m11 ... m33
+Multiply the top of the transformation stack by the given matrix.
+.TP
+.BI c "  num r g b a
+Set the red, green, blue and α components of the numbered color table entry.
+Color components must be integers between 0 (black) and 255 (full on).
+.TP
+.BI l "  x y z
+Set the direction that the light source shines from.
+.TP
+.BI b "  r g b a
+Clear the background to the given color.
+.PP
+.I Cprview
+displays a wire frame version of a
+.I cpr
+image in a window.
+Dragging with button 1 rotates the image.
+Button 2 pops up a
+.B reread
+menu item that causes the input files to be reread.
+Button 3 pops up a menu
+containing
+.B output
+and
+.B exit
+items.
+.B Output
+writes a
+.IR pic (1)
+representation of the display on standard output.
+.B Exit
+exits.
+.SH SOURCE
+.B /sys/src/fb/cpr.c
+.br
+.B /sys/src/fb/cprview.c

@@ -74,7 +74,7 @@ have a simple and regular structure: zero, one, or
 two
 .I addresses
 followed by a single character
-.I command,
+.IR command ,
 possibly
 followed by parameters to the command.
 These addresses specify one or more lines in the buffer.
@@ -108,7 +108,8 @@ below)
 to specify a portion of a line which is to be replaced.
 If it is desired to use one of
 the regular expression metacharacters as an ordinary
-character, that character may be preceded by `\e'.
+character, that character may be preceded by
+.RB ` \e '.
 This also applies to the character bounding the regular
 expression (often 
 .LR / )
@@ -365,7 +366,7 @@ If
 .I filename
 is given,
 the currently remembered file name is first changed to
-.I filename.
+.IR filename .
 .TP
 .RB \*(1$ \|g/\fIregular\ expression\fP/\fIcommand\ list\fP
 .PD 0
@@ -377,7 +378,7 @@ the currently remembered file name is first changed to
 Global.
 First mark every line which matches
 the given
-.I regular expression.
+.I regular expression\f1.
 Then for every such line, execute the
 .I command list
 with dot initially set to that line.
@@ -403,7 +404,7 @@ be used instead of
 .L /
 to delimit the regular expression.
 The second and third forms mean
-.BI g/ regular\ expression /p .
+.BI g/ regular\ expression /p \f1.
 .TP
 .RB (\| .\| ) \|i
 .PD 0
@@ -427,7 +428,7 @@ Dot is left at the resulting line.
 .TP
 .RB \*. \|k\fIx\fP
 Mark the addressed line with name
-.I x,
+.IR x ,
 which must be a lower-case letter.
 The address form
 .BI \' x
@@ -446,7 +447,7 @@ backslashes as
 and non-printing characters as
 a backslash, an
 .LR x ,
-and two hexadecimal digits.
+and four hexadecimal digits.
 Long lines are folded,
 with the second and subsequent sub-lines indented one tab stop.
 If the last character in the line is a blank,
@@ -548,7 +549,7 @@ to delimit the regular expression
 and the replacement.
 Dot is left at the last line substituted.
 The third form means
-.BI s n / regular\ expression / replacement\fP/p\fR.
+.BI s n / regular\ expression / replacement\fP/p\f1.
 The second
 .L /
 may be omitted if the replacement is
@@ -559,7 +560,7 @@ An ampersand
 appearing in the replacement
 is replaced by the string matching the regular expression.
 The characters
-.BI \e n,
+.BI \e n\f1,
 where
 .I n
 is a digit,
@@ -571,7 +572,7 @@ enclosed between
 and
 .LR ) .
 When
-nested, parenthesized subexpressions
+nested parenthesized subexpressions
 are present,
 .I n
 is determined by counting occurrences of
@@ -590,22 +591,16 @@ by prefixing it with
 Transfer.
 Copy the addressed lines 
 after the line addressed by
-.I a.
+.IR a .
 Dot is left at the last line of the copy.
 .TP
 .RB \*(.. \|u
 Undo.
 Restore the preceding contents
-of the current line, which must be the last line
-in which a substitution was made.
+of the first addressed line (sic), which must be the last line
+in which a substitution was made (double sic).
 .TP
 .RB \*(1$ \|v/\fIregular\ expression\fP/\fIcommand\ list\fP
-.PD 0
-.TP
-.RB \*(1$ \|v/\fIregular\ expression\fP/
-.TP
-.RB \*(1$ \|v/\fIregular\ expression\fP
-.PD
 This command is the same as the global command
 .L g
 except that the command list is executed with
@@ -676,6 +671,8 @@ and all characters after the last newline.
 .br
 .B ed.hup
 \ \ work is saved here if terminal hangs up
+.SH SOURCE
+.B /sys/src/cmd/ed.c
 .SH "SEE ALSO"
 .IR sam (1), 
 .IR sed (1),
@@ -687,3 +684,5 @@ for inaccessible file;
 for temporary file overflow;
 .L ?
 for errors in commands or other overflows.
+.rm .
+.rm ..

@@ -104,7 +104,7 @@ subpcs(int modif)
 			loopcnt--;
 		}
 		keepnote=defval(1);
-		line = pc2line(rget(mach->pc));
+		line = pc2line(rget(cormap, mach->pc));
 		n = loopcnt;
 		dprint("%s: running\n", symfil);
 		flush();

@@ -1,0 +1,23 @@
+# bootes' root
+mount -a #s/boot /
+
+# visible things go here
+bind /sys/doc /usr/none/plan9/doc
+bind /sys/lib/pcdist /usr/none/plan9/pcdist
+bind -a /usr/ehg/netlib/pub /usr/none/netlib
+bind -a /usr/ehg/netlib/att /usr/none/netlib
+bind -c /usr/bart/public_html /usr/none/incoming/bart
+bind -c /usr/andrew/incoming /usr/none/incoming/andrew
+mount -a #s/netlib.depend.pub /usr/none/netlib.depend
+mount -a #s/netlib.depend.att /usr/none/netlib.depend
+bind /usr/ehg/netlib/800 /usr/none/800
+bind /usr/ehg/netlib/800 /usr/none/dir800
+bind -c /usr/ehg/netlib/incoming /usr/none/incoming/800
+bind /usr/ehg/netlib/pub/att/cs/home /usr/none/csrc
+
+# need some commands, such as file
+bind /$cputype/bin /usr/none/bin
+bind -a /rc/bin /usr/none/bin
+
+# this cuts off everything not mounted below /usr/none
+bind /usr/none /

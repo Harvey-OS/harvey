@@ -1,0 +1,212 @@
+%% 
+%% This is file `euler.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% euler.dtx  (with options: `package')
+%% 
+%% Copyright (C) 1993 Frank Jensen, 
+%% Frank Mittelbach and Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% This file is part of the NFSS2 package. 
+%% --------------------------------------- 
+%% 
+%% This is a contributed file. 
+%% 
+
+\def\filename{euler}
+\def\fileversion{v2.2 (TEST)}
+\def\filedate{94/02/23}
+
+%% File `euler.dtx'.
+%% Copyright (C) 1992 Frank Jensen, all rights reserved.
+%% Copyright (C) 1993, 1994 Frank Jensen and Mittelbach,
+%%                                  all rights reserved.
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{\filename}[\filedate\space\fileversion]
+\typeout{Package: `\filename' \fileversion\space <\filedate>
+                  (FJ and FMi)}
+\DeclareSymbolFont{letters}{U}{eur}{m}{n}
+\SetSymbolFont{letters}{bold}{U}{eur}{b}{n}
+\DeclareMathSymbol{0}\mathalpha{letters}{"30}
+\DeclareMathSymbol{1}\mathalpha{letters}{"31}
+\DeclareMathSymbol{2}\mathalpha{letters}{"32}
+\DeclareMathSymbol{3}\mathalpha{letters}{"33}
+\DeclareMathSymbol{4}\mathalpha{letters}{"34}
+\DeclareMathSymbol{5}\mathalpha{letters}{"35}
+\DeclareMathSymbol{6}\mathalpha{letters}{"36}
+\DeclareMathSymbol{7}\mathalpha{letters}{"37}
+\DeclareMathSymbol{8}\mathalpha{letters}{"38}
+\DeclareMathSymbol{9}\mathalpha{letters}{"39}
+\DeclareMathSymbol\Gamma  \mathord{letters}{"00}
+\DeclareMathSymbol\Delta  \mathord{letters}{"01}
+\DeclareMathSymbol\Theta  \mathord{letters}{"02}
+\DeclareMathSymbol\Lambda \mathord{letters}{"03}
+\DeclareMathSymbol\Xi     \mathord{letters}{"04}
+\DeclareMathSymbol\Pi     \mathord{letters}{"05}
+\DeclareMathSymbol\Sigma  \mathord{letters}{"06}
+\DeclareMathSymbol\Upsilon\mathord{letters}{"07}
+\DeclareMathSymbol\Phi    \mathord{letters}{"08}
+\DeclareMathSymbol\Psi    \mathord{letters}{"09}
+\DeclareMathSymbol\Omega  \mathord{letters}{"0A}
+\let\varsigma=\sigma
+\let\varrho=\rho
+\DeclareSymbolFont{eulerfraktur}{U}{euf}{m}{n}
+\SetSymbolFont{eulerfraktur}{bold}{U}{euf}{b}{n}
+\DeclareSymbolFontAlphabet\frak{eulerfraktur}
+\let\oldstyle=\frak
+\DeclareMathSymbol{!}\mathord  {eulerfraktur}{"21}
+\DeclareMathSymbol{(}\mathopen {eulerfraktur}{"28} 
+\DeclareMathSymbol{)}\mathclose{eulerfraktur}{"29} 
+\DeclareMathSymbol{+}\mathbin  {eulerfraktur}{"2B}
+\DeclareMathSymbol{-}\mathbin  {eulerfraktur}{"2D}
+\DeclareMathSymbol{=}\mathrel  {eulerfraktur}{"3D}
+\DeclareMathSymbol{[}\mathopen {eulerfraktur}{"5B}
+\DeclareMathSymbol{]}\mathclose{eulerfraktur}{"5D}
+\DeclareMathSymbol{"}\mathord  {eulerfraktur}{"7D}
+\DeclareMathSymbol{&}\mathord  {eulerfraktur}{"26}
+\DeclareMathSymbol{:}\mathrel  {eulerfraktur}{"3A}
+\DeclareMathSymbol{;}\mathpunct{eulerfraktur}{"3B}
+\DeclareMathSymbol{?}\mathord  {eulerfraktur}{"3F}
+\DeclareMathSymbol{^}\mathord  {eulerfraktur}{"5E}
+\DeclareMathSymbol{`}\mathord  {eulerfraktur}{"22}
+\DeclareMathDelimiter{(}{eulerfraktur}{"28}{largesymbols}{"00}
+\DeclareMathDelimiter{)}{eulerfraktur}{"29}{largesymbols}{"01}
+\DeclareMathDelimiter{[}{eulerfraktur}{"5B}{largesymbols}{"02}
+\DeclareMathDelimiter{]}{eulerfraktur}{"5D}{largesymbols}{"03}
+\DeclareSymbolFont{eulerscript}{U}{eus}{m}{n}
+\SetSymbolFont{eulerscript}{bold}{U}{eus}{b}{n}
+\DeclareSymbolFontAlphabet\scr{eulerscript}
+\DeclareMathSymbol\aleph\mathord{eulerscript}{"40}
+\DeclareMathSymbol\Re   \mathord{eulerscript}{"3C}
+\DeclareMathSymbol\Im   \mathord{eulerscript}{"3D}
+\DeclareMathDelimiter\vert
+                 \mathord{eulerscript}{"6A}{largesymbols}{"0C}
+\DeclareMathDelimiter\backslash
+                 \mathord{eulerscript}{"6E}{largesymbols}{"0F}
+\DeclareMathSymbol{|}\mathord{eulerscript}{"6A}
+\DeclareMathDelimiter{|}{eulerscript}{"6A}{largesymbols}{"0C}
+\DeclareMathSymbol\neg     \mathord{eulerscript}{"3A}
+\let\lnot=\neg
+\DeclareMathSymbol\wedge   \mathbin{eulerscript}{"5E}
+\let\land=\wedge
+\DeclareMathSymbol\vee     \mathbin{eulerscript}{"5F}
+\let\lor=\vee
+\DeclareMathSymbol\setminus\mathbin{eulerscript}{"6E}
+\DeclareMathSymbol\sim     \mathrel{eulerscript}{"18}
+\DeclareMathSymbol\mid     \mathrel{eulerscript}{"6A}
+\DeclareMathDelimiter\arrowvert
+        \mathord{eulerscript}{"6A}{largesymbols}{"3C} % ???
+\DeclareSymbolFont{eulerextension}{U}{euex}{m}{n}
+\DeclareMathSymbol\coprod@\mathop {eulerextension}{"60}
+\let\coprod=\coprod@
+\DeclareMathSymbol\prod@  \mathop {eulerextension}{"51}
+\let\prod=\prod@
+\DeclareMathSymbol\sum@   \mathop {eulerextension}{"50}
+\let\sum=\sum@
+\DeclareMathSymbol\intop  \mathop {eulerextension}{"52}
+\DeclareMathSymbol\ointop \mathop {eulerextension}{"48}
+\DeclareMathSymbol\braceld\mathord{eulerextension}{"7A} 
+\DeclareMathSymbol\bracerd\mathord{eulerextension}{"7B}
+\DeclareMathSymbol\bracelu\mathord{eulerextension}{"7C} 
+\DeclareMathSymbol\braceru\mathord{eulerextension}{"7D}
+\DeclareMathSymbol\infty  \mathord{eulerextension}{"31}
+\DeclareMathSymbol\nearrow\mathrel{eulerextension}{"25}
+\DeclareMathSymbol\searrow\mathrel{eulerextension}{"26}
+\DeclareMathSymbol\nwarrow\mathrel{eulerextension}{"2D}
+\DeclareMathSymbol\swarrow\mathrel{eulerextension}{"2E}
+\DeclareMathSymbol\Leftrightarrow\mathrel{eulerextension}{"2C}
+\DeclareMathSymbol\Leftarrow     \mathrel{eulerextension}{"28}
+\DeclareMathSymbol\Rightarrow    \mathrel{eulerextension}{"29}
+\DeclareMathSymbol\leftrightarrow\mathrel{eulerextension}{"24}
+\DeclareMathSymbol\leftarrow     \mathrel{eulerextension}{"20} 
+\let\gets=\leftarrow
+\DeclareMathSymbol\rightarrow    \mathrel{eulerextension}{"21} 
+\let\to=\rightarrow
+\DeclareMathDelimiter\uparrow
+              \mathrel{eulerextension}{"22}{largesymbols}{"78}
+\DeclareMathDelimiter\downarrow
+              \mathrel{eulerextension}{"23}{largesymbols}{"79}
+\DeclareMathDelimiter\updownarrow
+              \mathrel{eulerextension}{"6C}{largesymbols}{"3F}
+\DeclareMathDelimiter\Uparrow
+              \mathrel{eulerextension}{"2A}{largesymbols}{"7E}
+\DeclareMathDelimiter\Downarrow
+              \mathrel{eulerextension}{"2B}{largesymbols}{"7F}
+\DeclareMathDelimiter\Updownarrow
+              \mathrel{eulerextension}{"6D}{largesymbols}{"77}
+\DeclareMathSymbol\leftharpoonup   \mathrel{eulerextension}{"18}
+\DeclareMathSymbol\leftharpoondown \mathrel{eulerextension}{"19}
+\DeclareMathSymbol\rightharpoonup  \mathrel{eulerextension}{"1A}
+\DeclareMathSymbol\rightharpoondown\mathrel{eulerextension}{"1B}
+\DeclareMathDelimiter\lbrace
+              \mathopen{eulerscript}{"66}{eulerextension}{"08}
+\let\{=\lbrace
+\DeclareMathDelimiter\rbrace
+             \mathclose{eulerscript}{"67}{eulerextension}{"09}
+\let\}=\rbrace
+\DeclareSymbolFont{cmrgroup}{OT1}{cmr}{m}{n}
+\let\Relbar=\undefined   % Why is \Relbar defined in plain as a macro?
+\DeclareMathSymbol\Relbar\mathrel{cmrgroup}{"3D}
+\DeclareMathAlphabet\cm@minus@alphabet{OMS}{cmsy}{m}{n}
+\def\cm@minus{{\cm@minus@alphabet{\mathchar"7000}}}
+\def\relbar{\mathrel{\smash\cm@minus}}
+          % \smash, because - has the same height as +
+\def\leftarrowfill
+   {$\m@th\mathord\leftarrow\mkern-6mu%
+     \cleaders\hbox{$\mkern-2mu\cm@minus\mkern-2mu$}\hfill
+     \mkern-6mu\cm@minus$}
+\def\rightarrowfill
+   {$\m@th\cm@minus\mkern-6mu%
+     \cleaders\hbox{$\mkern-2mu\cm@minus\mkern-2mu$}\hfill
+     \mkern-6mu\mathord\rightarrow$}
+\DeclareSymbolFont{cmmigroup}{OML}{cmm}{m}{it}
+\SetSymbolFont{cmmigroup}{bold}{OML}{cmm}{b}{it}
+\DeclareMathAccent\vec          \mathord{cmmigroup}{"7E}
+\DeclareMathSymbol\triangleleft \mathbin{cmmigroup}{"2F}
+\DeclareMathSymbol\triangleright\mathbin{cmmigroup}{"2E}
+\DeclareMathSymbol\star         \mathbin{cmmigroup}{"3F}
+\DeclareMathSymbol\lhook        \mathrel{cmmigroup}{"2C}
+\DeclareMathSymbol\rhook        \mathrel{cmmigroup}{"2D}
+\DeclareMathSymbol\flat         \mathord{cmmigroup}{"5B}
+\DeclareMathSymbol\natural      \mathord{cmmigroup}{"5C}
+\DeclareMathSymbol\sharp        \mathord{cmmigroup}{"5D}
+\DeclareMathSymbol\smile        \mathrel{cmmigroup}{"5E}
+\DeclareMathSymbol\frown        \mathrel{cmmigroup}{"5F}
+\begingroup
+   \catcode`\'=\active
+   \gdef'{^\bgroup\mskip2mu\prim@s} % more space before '
+\endgroup
+\AtBeginDocument
+   {\DeclareSymbolFont{operators}\encodingdefault
+            \rmdefault\mddefault\updefault
+    \SetSymbolFont{operators}{bold}\encodingdefault
+            \rmdefault\bfdefault\updefault}
+\DeclareMathAccent\hat\mathord{eulerfraktur}{"5E}
+\DeclareMathSymbol\euler@hbar\mathord{cmrgroup}{"16}
+\def\hbar{{\euler@hbar\mkern-8muh}}
+\def\@makefnmark{\hbox{$\operator@font^{\@thefnmark}\m@th$}}
+\long\def\@makefntext#1{\parindent 1em\noindent
+      \hbox to1.8em{\hss$\operator@font^{\@thefnmark}\m@th$}#1}
+
+\endinput
+%% 
+%% End of file `euler.sty'.

@@ -1,0 +1,8 @@
+Aladdin Ghostscript has been licensed to be included with the
+release of Plan 9.  Minor changes were made to the sources to
+accommodate a couple of restrictions in the APE library and to
+produce Plan 9 output formats.  These changes are all conditioned
+by
+	#ifdef	Plan9
+and were made in December, 1994.  As well, the build was rearranged
+to be driven by a Plan 9 mkfile.

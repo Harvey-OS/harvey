@@ -1,6 +1,6 @@
 .TH SUM 1
 .SH NAME
-sum \- sum and count blocks in a file
+sum, md5sum \- sum and count blocks in a file
 .SH SYNOPSIS
 .B sum
 [
@@ -9,11 +9,16 @@ sum \- sum and count blocks in a file
 [
 .I file ...
 ]
+.PP
+.B md5sum
+[
+.I file ...
+]
 .SH DESCRIPTION
 By default,
 .I sum
 calculates and prints a 32-bit hexadecimal checksum,
-a byte count
+a byte count,
 and the name of
 each
 .IR file .
@@ -38,6 +43,19 @@ is typically used to look for bad spots,
 to validate a file communicated over
 some transmission line or
 as a quick way to determine if two files on different machines might be the same.
+.PP
+.B Md5sum
+computes the 32 hex digit RSA Data Security, Inc. MD5 Message-Digest Algorithm
+described in RFC1321.
+If no
+.I files
+are given,
+the standard input is
+summed.
+.SH SOURCE
+.B /sys/src/cmd/sum.c
+.br
+.B /sys/src/cmd/md5sum.l
 .SH "SEE ALSO"
 .IR cmp (1),
 .IR wc (1)

@@ -8,7 +8,7 @@ cron \- clock daemon
 .I Cron
 executes commands at specified dates and times according
 to instructions in the files
-.BI /cron/ user /cron.
+.BI /cron/ user /cron\f1.
 It runs only on an authentication server.
 Option
 .B -c
@@ -70,6 +70,21 @@ Each number must be in the appropriate range.
 Hyphens specify inclusive ranges of valid times;
 commas specify lists of valid time ranges.
 .PP
+To run the job,
+.I cron
+calls
+.I host
+and authenticates remote execution, equivalent to running
+.B rx
+.I host
+.I command
+(see
+.IR con (1)).
+The user's profile is run with
+.B $service
+set to
+.BR rx .
+.PP
 .I Cron
 is not a reliable service.
 It skips commands if it cannot reach
@@ -87,6 +102,8 @@ Here is the job that mails system news.
 15 8-17, 21 ***	helix	/mail/lib/mailnews
 %
 .EE
+.SH SOURCE
+.B /sys/src/cmd/auth/cron.c
 .SH "SEE ALSO"
 .IR con (1),
 .IR rc (1)

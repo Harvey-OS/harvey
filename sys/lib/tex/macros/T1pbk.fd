@@ -1,0 +1,59 @@
+%Filename: T1pbk.fd
+%Created by: tex 15920bookman
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{pbk}{}
+
+\DeclareFontShape{T1}{pbk}{db}{n}{
+   <-> pbkdq
+}{}
+
+\DeclareFontShape{T1}{pbk}{db}{sc}{
+   <-> pbkdcq
+}{}
+
+\DeclareFontShape{T1}{pbk}{db}{it}{
+   <-> pbkdiq
+}{}
+
+\DeclareFontShape{T1}{pbk}{db}{sl}{
+   <-> pbkdoq
+}{}
+
+\DeclareFontShape{T1}{pbk}{l}{n}{
+   <-> pbklq
+}{}
+
+\DeclareFontShape{T1}{pbk}{l}{sc}{
+   <-> pbklcq
+}{}
+
+\DeclareFontShape{T1}{pbk}{l}{it}{
+   <-> pbkliq
+}{}
+
+\DeclareFontShape{T1}{pbk}{l}{sl}{
+   <-> pbkloq
+}{}
+
+\DeclareFontShape{T1}{pbk}{b}{n}{<->ssub * pbk/db/n}{}
+\DeclareFontShape{T1}{pbk}{bx}{n}{<->ssub * pbk/b/n}{}
+\DeclareFontShape{T1}{pbk}{b}{sc}{<->ssub * pbk/db/sc}{}
+\DeclareFontShape{T1}{pbk}{bx}{sc}{<->ssub * pbk/b/sc}{}
+\DeclareFontShape{T1}{pbk}{b}{it}{<->ssub * pbk/db/it}{}
+\DeclareFontShape{T1}{pbk}{bx}{it}{<->ssub * pbk/b/it}{}
+\DeclareFontShape{T1}{pbk}{db}{ui}{<->sub * pbk/db/it}{}
+\DeclareFontShape{T1}{pbk}{b}{ui}{<->ssub * pbk/db/ui}{}
+\DeclareFontShape{T1}{pbk}{bx}{ui}{<->ssub * pbk/b/ui}{}
+\DeclareFontShape{T1}{pbk}{b}{sl}{<->ssub * pbk/db/sl}{}
+\DeclareFontShape{T1}{pbk}{bx}{sl}{<->ssub * pbk/b/sl}{}
+\DeclareFontShape{T1}{pbk}{m}{n}{<->ssub * pbk/l/n}{}
+\DeclareFontShape{T1}{pbk}{m}{sc}{<->ssub * pbk/l/sc}{}
+\DeclareFontShape{T1}{pbk}{m}{it}{<->ssub * pbk/l/it}{}
+\DeclareFontShape{T1}{pbk}{l}{ui}{<->sub * pbk/l/it}{}
+\DeclareFontShape{T1}{pbk}{m}{ui}{<->ssub * pbk/l/ui}{}
+\DeclareFontShape{T1}{pbk}{m}{sl}{<->ssub * pbk/l/sl}{}
+
+\endinput

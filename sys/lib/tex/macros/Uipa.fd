@@ -1,0 +1,48 @@
+%% 
+%% This is file `Uipa.fd' by D. Roegel (roegel@loria.fr)
+%% and Andrej Brodnik (abrodnik@watdragon.uwaterloo.ca) 
+%% July 16, 1994
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\ProvidesFile{Uipa.fd}[1994/07/16]
+\DeclareFontFamily{U}{ipa}{}
+\DeclareFontShape{U}{ipa}{m}{n}
+   {
+      <5> <6> <7> wsuipa8
+      <8> <9> <10><10.95> gen * wsuipa
+      <12><14.4> wsuipa12
+      <17.28><20.74><24.88> wsuipa17
+      }{}
+\DeclareFontShape{U}{ipa}{bx}{n}
+   {
+      <5> <6> <7> wbxipa8
+      <8> <9> <10><10.95> gen * wbxipa
+      <12><14.4> wbxipa12
+      <17.28><20.74><24.88> wbxipa17
+      }{}
+\DeclareFontShape{U}{ipa}{m}{sl}
+   {
+      <5> <6> <7> wslipa8
+      <8> <9> <10><10.95> gen * wslipa
+      <12><14.4> wslipa12
+      <17.28><20.74><24.88> wslipa17
+      }{}
+\DeclareFontShape{U}{ipa}{m}{it}
+      {<->ssub * ipa/m/sl}{}
+\endinput
+%% 
+%% End of file `Uipa.fd'.

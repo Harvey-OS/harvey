@@ -3,6 +3,7 @@
 #include <libg.h>
 #include <frame.h>
 #include <layer.h>
+#include <auth.h>
 #include <fcall.h>
 #include "dat.h"
 #include "fns.h"
@@ -11,9 +12,11 @@
 #define	LOWAT	20000
 #define	WATBUF	5000
 #define	ZIP	(-100000)
+#define	CLICKTIME	500	/* milliseconds for double click */
 
 Window	window[NSLOT];
 Window	*snarf = &window[SNARF];
+long		clicktime;
 
 int	slot;
 
@@ -59,7 +62,6 @@ newterm(Rectangle r, int dospawn, int pid)
 	w->p = newproc(termctl, w);
 	w->rfid = -1;
 	w->mfid = -1;
-	w->kbdc = -1;
 	w->scroll = defscroll;
 	w->reshape.min.x = ZIP;
 	sprint(w->wqid, "%d", ++wqid);
@@ -136,9 +138,11 @@ backnl(Window *w, long p, long n)
 {
 	int i, j;
 
-	i=n;
+	i = n;
 	while(i-->0 && p>0){
 		--p;	/* it's at a newline now; back over it */
+		if(p == 0)
+			break;
 		/* at 128 chars, call it a line anyway */
 		for(j=128; --j>0 && --p>0;)
 			if(w->text.s[p]=='\n'){
@@ -149,9 +153,6 @@ backnl(Window *w, long p, long n)
 	return p;
 }
 
-/*
- * Convert runes to bytes and call frinsert
- */
 void
 setorigin(Window *w, long n)
 {
@@ -251,7 +252,7 @@ termwrite(Window *w, int tag, int fid, char *buf, int cnt)
 	w->wcnt = cnt;
 	w->woff = 0;
 	w->wbuf[cnt] = 0;	/* there's room */
-	if(cnt==0 || w==&window[SNARF])
+	if(w==&window[SNARF])
 		return;
 	run(w->p);
 }
@@ -279,7 +280,7 @@ termmouseread(Window *w, int tag, int fid, int block)
 void
 textinsert(Window *w, Text *t, Rune *buf, int n, ulong posn, int trunc)
 {
-	ulong a;
+	long a;
 
 	if(t->n+n >= t->nalloc){	/* need room for null */
 		a = t->n+n + WATBUF;
@@ -292,7 +293,6 @@ textinsert(Window *w, Text *t, Rune *buf, int n, ulong posn, int trunc)
 			a = w->org;
 		if(a > posn)
 			a = posn;
-		a &= ~3;	/* alignment for speed */
 		if(a > 0){
 			memmove(t->s, t->s+a, (t->n+1-a)*sizeof(Rune));
 			t->n -= a;
@@ -320,10 +320,10 @@ textdelete(Text *t, long n0, long n1)
 }
 
 void
-termhighlight(Window *w, ulong q0, ulong q1)
+termhighlight(Window *w, long q0, long q1)
 {
 	if(q0<0 || q1<0 || q0>w->text.n || q1>w->text.n)
-		berror("termselect");
+		berror("termhighlight");
 	if(w->org+w->f.p0!=q0 || w->org+w->f.p1!=q1){
 		frselectp(&w->f, F&~D);
 		w->f.p0 = max(0, q0-w->org);
@@ -335,9 +335,82 @@ termhighlight(Window *w, ulong q0, ulong q1)
 }
 
 void
+termselect(Window *w, Mouse *m)
+{
+	long cc;
+	long q0, q1, selectq;
+	int b, x, y;
+
+	b = m->buttons;
+	cc = m->msec;
+	/* button1 is down */
+	q0 = w->q0;
+	q1 = w->q1;
+	selectq = w->org+frcharofpt(&w->f, m->xy);
+	if(cc-clicktime < 500)
+	if(q0==q1 && selectq==q0){
+		doubleclick(w, &q0, &q1);
+		w->q0 = q0;
+		w->q1 = q1;
+		termhighlight(w, w->q0, w->q1);
+		bflush();
+		x = m->xy.x;
+		y = m->xy.y;
+		/* stay here until something interesting happens */
+		do
+			frgetmouse();
+		while(m->buttons==b && abs(m->xy.x-x)<3 && abs(m->xy.y-y)<3);
+		m->xy.x = x;	/* in case we're calling frselect */
+		m->xy.y = y;
+		q0 = w->q0;	/* may have changed */
+		q1 = w->q1;
+		selectq = q0;
+	}
+	if(m->buttons == b){
+		frselect(&w->f, m);
+		/* horrible botch: while asleep, may have lost selection altogether */
+		if(selectq > w->text.n)
+			selectq = w->org + w->f.p0;
+		if(selectq < w->org)
+			q0 = selectq;
+		else
+			q0 = w->org + w->f.p0;
+		if(selectq > w->org+w->f.nchars)
+			q1 = selectq;
+		else
+			q1 = w->org+w->f.p1;
+	}
+	if(q0 == q1){
+		if(q0==w->q0 && m->msec-clicktime<500){
+			doubleclick(w, &q0, &q1);
+			clicktime = 0;
+		}else
+			clicktime = m->msec;
+	}else
+		clicktime = 0;
+	w->q0 = q0;
+	w->q1 = q1;
+	termhighlight(w, w->q0, w->q1);
+	bflush();
+	while(m->buttons){
+		m->msec = 0;
+		b = m->buttons;
+		if(b & 6){
+			if(b & 2)
+				termcut(w, 1);
+			else
+				termpaste(w);
+		}
+		while(m->buttons == b)
+			frgetmouse();
+		clicktime = 0;
+	}
+}
+
+void
 termfill(Window *w)
 {
-	ulong p;
+	long p;
 
 	if(w->text.s == 0)
 		return;
@@ -352,7 +425,7 @@ termfill(Window *w)
 void
 termcut(Window *w, int save)
 {
-	ulong q0, q1;
+	long q0, q1;
 
 	q0 = w->q0;
 	q1 = w->q1;
@@ -378,7 +451,7 @@ termcut(Window *w, int save)
 void
 termsnarf(Window *w)
 {
-	ulong q0, q1;
+	long q0, q1;
 
 	q0 = w->q0;
 	q1 = w->q1;
@@ -418,7 +491,7 @@ termsend(Window *w)
 void
 termjump(Window *w, int nl)
 {
-	ulong n;
+	long n;
 
 	n = w->org+frcharofpt(&w->f, Pt(w->f.r.min.x, w->f.r.min.y+nl*w->f.font->height));
 	setorigin(w, n);
@@ -439,7 +512,7 @@ termunblock(Window *w)
 void
 termshow(Window *w, ulong n, int scroll, int unblock)
 {
-	ulong p;
+	long p;
 
 	if(scroll && (n<w->org || w->org+w->f.nchars<n)){
 		p = backnl(w, n, max(0, w->f.maxlines-3));
@@ -603,90 +676,87 @@ termnote(Window *w, char *s)
 void
 termkbd(Window *w)
 {
-	Rune k[2];
 	int c;
-	ulong q0;
+	Rune ich[2];
+	long q0;
 
-	if(!w->mouseopen && w->kbdc==0x80){	/* VIEW */
-		termjump(w, w->f.maxlines/2);
-		goto nokbd;
-	}
-	if(w->raw && (w->q0>=w->qh || w->mouseopen)){
+	while(w->rawbuf.n>0){
+		ich[1] = 0;
+		ich[0] = w->rawbuf.s[0];
+		if(!w->mouseopen && ich[0]==0x80){	/* VIEW */
+			termjump(w, w->f.maxlines/2);
+			textdelete(&w->rawbuf, 0, 1);
+			continue;
+		}
+		if(w->raw && (w->q0>=w->qh || w->mouseopen))
+			break;
+		textdelete(&w->rawbuf, 0, 1);
+		if(ich[0] == 0x1b){	/* ESC */
+			termhold(w, w->hold ^ 1);
+			continue;
+		}
+		if(ich[0] == 0x7F){
+			termnote(w, "interrupt");
+			w->qh = w->text.n;
+			continue;
+		}
 		termcut(w, 1);
-		k[0] = w->kbdc;
-		k[1] = 0;
-		textinsert(w, &w->rawbuf, k, 1, w->rawbuf.n, 0);
-		goto nokbd;
-	}
-	if(w->kbdc == 0x1b){	/* ESC */
-		termhold(w, w->hold ^ 1);
-		goto nokbd;
-	}
-	if(w->kbdc == 0x7F){
-		termnote(w, "interrupt");
-		w->qh = w->text.n;
-		goto nokbd;
-	}
-	termcut(w, 1);
-	q0 = w->q0;
-	if(w->kbdc == '\b'){
-		if(q0>w->org && q0!=w->qh){
-			w->q0--;
-			termcut(w, 0);
-			q0--;
-		}
-	}else if(w->kbdc == 0x15){		/* ^U */
-		if(q0>w->org && q0!=w->qh){
-			while(q0>0 && q0!=w->qh){
-				if(w->text.s[q0-1]==0x04 || w->text.s[q0-1]=='\n')
-					break;
+		q0 = w->q0;
+		if(ich[0] == '\b'){
+			if(q0>w->org && q0!=w->qh){
+				w->q0--;
+				termcut(w, 0);
 				q0--;
 			}
-			w->q0 = q0;
-			termcut(w, 0);
-		}
-	}else if(w->kbdc == 0x17){		/* ^W */
-		if(q0>w->org && q0!=w->qh){
-			c = w->text.s[--q0];
-			if(c=='\n')
-				goto wcut;
-			while(q0>0 && q0!=w->qh){
-				if(alnum(c))
-					break;
-				if(c=='\n'){
-					q0++;
-					goto wcut;
+		}else if(ich[0] == 0x15){		/* ^U */
+			if(q0>w->org && q0!=w->qh){
+				while(q0>0 && q0!=w->qh){
+					if(w->text.s[q0-1]==0x04 || w->text.s[q0-1]=='\n')
+						break;
+					q0--;
 				}
+				w->q0 = q0;
+				termcut(w, 0);
+			}
+		}else if(ich[0] == 0x17){		/* ^W */
+			if(q0>w->org && q0!=w->qh){
 				c = w->text.s[--q0];
+				if(c=='\n')
+					goto wcut;
+				while(q0>0 && q0!=w->qh){
+					if(alnum(c))
+						break;
+					if(c=='\n'){
+						q0++;
+						goto wcut;
+					}
+					c = w->text.s[--q0];
+				}
+				while(q0>0 && q0!=w->qh){
+					if(!alnum(w->text.s[q0-1]))
+						break;
+					q0--;
+				}
+		wcut:
+				w->q0 = q0;
+				termcut(w, 0);
 			}
-			while(q0>0 && q0!=w->qh){
-				if(!alnum(w->text.s[q0-1]))
-					break;
-				q0--;
-			}
-	wcut:
-			w->q0 = q0;
-			termcut(w, 0);
+		}else{		/* BUG: old also checked kbdc<font->n */
+			textinsert(w, &w->text, ich, 1, q0, 0);
+			q0 = w->q0;	/* may have changed */
+			if(q0 >= w->org)
+				frinsert(&w->f, ich, ich+1, q0-w->org);
+			else
+				w->org++;
+			if(w->qh > q0)
+				w->qh++;
+			q0++;
 		}
-	}else if(w->kbdc != 0){		/* BUG: old also checked kbdc<font->n */
-		k[0] = w->kbdc;
-		k[1] = 0;
-		textinsert(w, &w->text, k, 1, q0, 0);
-		q0 = w->q0;	/* may have changed */
-		if(q0 >= w->org)
-			frinsert(&w->f, k, k+1, q0-w->org);
-		else
-			w->org++;
-		if(w->qh > q0)
-			w->qh++;
-		q0++;
+		termhighlight(w, q0, q0);
+		termshow(w, q0, 1, 0);
 	}
-	termhighlight(w, q0, q0);
-	termshow(w, q0, 1, 0);
-    nokbd:
 	if(kbdcnt)
 		run(pkbd);
-	w->kbdc = -1;
 }
 
 void
@@ -701,18 +771,6 @@ void
 termunraw(Window *w)
 {
 	w->raw = 0;
-	if(w->rawbuf.s == 0)
-		return;
-	while(w->rawbuf.n){
-		w->kbdc = w->rawbuf.s[0];
-		textdelete(&w->rawbuf, 0, 1);
-		if(w->busy)
-			termkbd(w);
-	}
-	free(w->rawbuf.s);
-	w->rawbuf.s = 0;
-	w->rawbuf.n = 0;
-	w->rawbuf.nalloc = 0;
 }
 
 void
@@ -837,7 +895,8 @@ termctl(void)
 	Window *w;
 	uchar k[14], *up;
 	Rune *p, *p1, *p2, *pe;
-	ulong q0, q1, n, nr, eot, nmax;
+	long q0, q1;
+	ulong n, nr, eot, nmax;
 	int c, doscr, cnt;
 	IOQ *rq, *nrq, *wq;
 	static Rune *nl = L"\n";
@@ -972,7 +1031,7 @@ termctl(void)
 			if(w->bitopen)
 				w->l->clipr = clipr;
 		}
-		if(w->kbdc >= 0){
+		if(w->rawbuf.n >= 0){
 			if(w->bitopen){
 				clipr = w->l->clipr;
 				w->l->clipr = w->l->r;
@@ -1056,6 +1115,23 @@ termctl(void)
 				w->rq = rq->next;
 				free(rq);
 			}
+		}
+		while(w->kbdbuf.n && w->kq){		/* send stuff to kbd reader */
+			int c=0, wid;
+			up = (uchar *)emalloc(w->kq->cnt+UTFmax);
+			wq = w->kq;
+			while(c<wq->cnt && w->kbdbuf.n){
+				wid = runetochar((char *)up+c, w->kbdbuf.s);
+				c += wid;
+				if (c<=w->kq->cnt)
+					textdelete(&w->kbdbuf, 0, 1);
+			}
+			if(w->deleted)
+				c = 0;
+			sendread(0, w->kq->tag, w->kq->fid, (char *)up, c<wq->cnt? c:wq->cnt);
+			w->kq = wq->next;
+			free(wq);
+			free(up);
 		}
 		if(doscr){
 			scrdraw(w);

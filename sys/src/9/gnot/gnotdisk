@@ -29,6 +29,7 @@ port
 	void consdebug(void){}
 	void kproftimer(ulong pc){ USED(pc); }
 	void confinit1(int mul){ USED(mul); }
+	void dspclock(void) {}
 
 boot
 	9600

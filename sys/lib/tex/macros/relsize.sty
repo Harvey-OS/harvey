@@ -1,0 +1,136 @@
+% \iffalse
+% $Id: relsize.sty,v 1.4 1995/01/28 07:40:13 swift Exp $
+
+% relsize.sty  -- relative sizing commands for LaTeX2e
+
+%   Copyright (C) 1994 Matt Swift <swift@bu.edu>
+
+% In the near future this code will become part of a larger package called
+% "scholar" that I will release also under the GPL.  I want to make certain
+% useful parts of the package available before the whole package is released
+% because I don't see any reason to withhold them.  This is in lieu of a beta
+% release that would only be frustrating because I will not have time to
+% maintain it until May 1995.  If you find this code useful, look for the whole
+% package about that time.  I welcome comments, suggestions, etc.
+
+%   This program is free software; you can redistribute it and/or modify
+%   it under the terms of the GNU General Public License as published by
+%   the Free Software Foundation; either version 2 of the License, or
+%   (at your option) any later version.
+
+%   This program is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%   GNU General Public License for more details.
+
+%   You should have received a copy of the GNU General Public License
+%   along with this program; if not, write to the Free Software
+%   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+% \fi
+
+% \date{95/01/26}
+% \author{Matt Swift \texttt{<swift@bu.edu>}}
+% \title{The \texttt{relsize} package}
+% \maketitle
+
+% \section{Introduction}
+% \DescribeMacro{\relsize}
+% \DescribeMacro{\smaller}
+% \DescribeMacro{\larger}
+% There are three user comands for relative sizing: |\relsize|\marg{number},
+% |\smaller|\oarg{number}, and |\larger|\oarg{number}. \meta{number} represents
+% the number of sizes larger (positive number) or smaller (negative number) on
+% the scale of |\tiny| to |\Huge|.  |\larger| is an abbreviation for
+% |\relsize{+1}|; |\smaller| is an abbreviation for |\relsize{-1}|.
+% |\larger|\oarg{arg} is equivalent to saying |\relsize|\marg{arg};
+% |\smaller|\oarg{arg} is equivalent to saying |\relsize|\marg{-arg}; they both
+% accept negative arguments.
+
+% If the size requested is too small or too large, a warning is given, and size
+% will change to or remain at |\tiny| or |\Huge|, as appropriate.  These
+% commands are fragile; this should change.
+
+% \section{Implementation}
+% \StopEventually{}
+
+%    \begin{macrocode}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{relsize}[1994/12/02 v1.1 relative sizing commands]
+%    \end{macrocode}
+
+% \begin{macro}{\relsize}
+% \begin{macro}{\smaller}
+% \begin{macro}{\larger}
+% \begin{macro}{\rs@size}
+% \begin{macro}{rs@count}
+% Whenever a standard sizing command is called, the value of |\rs@size| is
+% \emph{locally} set to $n\in\{0,\ldots9\}$, with |\tiny| $\cong 0$, |\Huge|
+% $\cong 9$ and the rest corresponding in order of size.
+
+% Might want to put something which parses |f@size| into the token
+% |every@size|.
+%    \begin{macrocode}
+\newcounter{rs@count}
+\newcommand\rs@size{}  % check if defined
+\newcount\rs@size      % must be local not global
+\rs@size 4             % 4 = \normalsize
+
+\newcommand\relsize[1]
+  {\setcounter{rs@count}{\rs@size}%
+  \addtocounter{rs@count}{#1}%
+  \ifcase\value{rs@count}%
+    \tiny\or\scriptsize\or\footnotesize\or\small
+    \or\normalsize\or\large\or\Large\or\LARGE
+    \or\huge\or\Huge
+    \else\rs@error\fi}
+\newcommand\smaller[1][\@ne]
+  {\relsize{-#1}}
+\newcommand\larger[1][\@ne]
+  {\relsize{#1}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+
+% \begin{macro}{\rs@error}
+% \begin{macro}{\rs@tempa}
+% \begin{macro}{\rs@tempb}
+%    \begin{macrocode}
+\newcommand\rs@error
+  {\PackageWarning{relsize}
+    {Requested size \ifnum \c@rs@count > 0%
+                        larger than \protect\Huge
+                      \else smaller than \protect\tiny
+                    \fi}%
+  \ifnum \c@rs@count > 0%
+      \ifnum \rs@size = 9 \else \Huge\fi
+    \else \ifnum \rs@size = 0 \else \tiny\fi
+  \fi}
+
+\newcommand\rs@tempa{} % check if defined
+\newcommand\rs@tempb{} % check if defined
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \begin{macro}{\tiny--\Huge}
+% Notice |rs@count| is at~0 now. 
+%    \begin{macrocode}
+\@tfor\rs@tempa:=\tiny\scriptsize\footnotesize\small%
+               \normalsize\large\Large\LARGE%
+               \huge\Huge%
+  \do {\edef\rs@tempb{\noexpand\rs@size\number\c@rs@count\noexpand\relax}
+      \expandafter\expandafter\expandafter  \g@addto@macro
+      \expandafter\expandafter              \rs@tempa
+      \expandafter                          {\rs@tempb}%
+      \stepcounter{rs@count}}
+%    \end{macrocode}
+% \end{macro}
+
+% \Finale
+
+\endinput
+

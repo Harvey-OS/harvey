@@ -1,14 +1,14 @@
-TEXT	_main(SB), 1, $0
+TEXT	_main(SB), 1, $8
 	MOVL	AX, _clock(SB)
-	LEAL	inargv+0(FP), AX
-	PUSHL	AX
 	MOVL	inargc-4(FP), AX
-	PUSHL	AX
+	MOVL	AX, 0(SP)
+	LEAL	inargv+0(FP), AX
+	MOVL	AX, 4(SP)
 	CALL	main(SB)
 
 loop:
 	MOVL	$_exits<>(SB), AX
-	PUSHL	AX
+	MOVL	AX, 0(SP)
 	CALL	exits(SB)
 	JMP	loop
 

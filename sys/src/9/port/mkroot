@@ -5,10 +5,4 @@ if(! ~ $#* 2){
 	exit 1
 }
 strip $1.out
-{
-	echo 'unsigned char '$2'code[]={'
-	xd -1x $1.out |
-		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
-	echo '};'
-	echo 'long '$2'len = sizeof '$2'code;'
-} > $1.root.c
+aux/data2s $2 <$1.out > $1.root.s

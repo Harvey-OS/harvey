@@ -1,0 +1,40 @@
+Making TeX for BL 1127 etc.
+
+plan9
+-----
+
+change */convert and configure for sed change:
+	in patterns, ( -> \(
+		     ) -> \(
+		     \( -> (
+		     \) -> )
+		     [-...] -> [\-...]
+
+remove -f from mv in bibtex/convert
+remove syncs from converts
+add $cpuobjtype. in front of program names
+in converts and mkfiles
+
+to see what config does:
+
+run /rc/bin/ape/psh
+
+CC=pcc
+MAKE=make
+RANLIB=rl
+LEX=lex
+YACC=yacc
+
+sh configure
+
+afterwards
+
+in lib/c-auto.h, #undef RETSIGTYPE
+
+add this to lib/texmf.c
+#ifndef isascii
+#define isascii(c) (!(c)&0xFFFFFF00)
+#endif
+
+change assignment of sed in mf/convert and bibtex/convert to
+sed=sed

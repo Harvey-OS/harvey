@@ -1,0 +1,1321 @@
+%!PS-Adobe-2.0
+%%Version: 0.1
+%%DocumentFonts: (atend)
+%%Pages: (atend)
+%%EndComments
+%
+% Version 3.3.2 prologue for troff files.
+%
+
+/#copies 1 store
+/aspectratio 1 def
+/formsperpage 1 def
+/landscape false def
+/linewidth .3 def
+/magnification 1 def
+/margin 0 def
+/orientation 0 def
+/resolution 720 def
+/rotation 1 def
+/xoffset 0 def
+/yoffset 0 def
+
+/roundpage true def
+/useclippath true def
+/pagebbox [0 0 612 792] def
+
+/R  /Times-Roman def
+/I  /Times-Italic def
+/B  /Times-Bold def
+/BI /Times-BoldItalic def
+/H  /Helvetica def
+/HI /Helvetica-Oblique def
+/HB /Helvetica-Bold def
+/HX /Helvetica-BoldOblique def
+/CW /Courier def
+/CO /Courier def
+/CI /Courier-Oblique def
+/CB /Courier-Bold def
+/CX /Courier-BoldOblique def
+/PA /Palatino-Roman def
+/PI /Palatino-Italic def
+/PB /Palatino-Bold def
+/PX /Palatino-BoldItalic def
+/Hr /Helvetica-Narrow def
+/Hi /Helvetica-Narrow-Oblique def
+/Hb /Helvetica-Narrow-Bold def
+/Hx /Helvetica-Narrow-BoldOblique def
+/KR /Bookman-Light def
+/KI /Bookman-LightItalic def
+/KB /Bookman-Demi def
+/KX /Bookman-DemiItalic def
+/AR /AvantGarde-Book def
+/AI /AvantGarde-BookOblique def
+/AB /AvantGarde-Demi def
+/AX /AvantGarde-DemiOblique def
+/NR /NewCenturySchlbk-Roman def
+/NI /NewCenturySchlbk-Italic def
+/NB /NewCenturySchlbk-Bold def
+/NX /NewCenturySchlbk-BoldItalic def
+/ZD /ZapfDingbats def
+/ZI /ZapfChancery-MediumItalic def
+/S  /S def
+/S1 /S1 def
+/GR /Symbol def
+
+/inch {72 mul} bind def
+/min {2 copy gt {exch} if pop} bind def
+
+/show {{//show} 0 get exec} bind def	% so later references don't bind
+/widthshow {{//widthshow} 0 get exec} bind def
+/stringwidth {{//stringwidth} 0 get exec} bind def
+
+/setup {
+	counttomark 2 idiv {def} repeat pop
+
+	landscape {/orientation 90 orientation add def} if
+	/scaling 72 resolution div def
+	linewidth setlinewidth
+	1 setlinecap
+
+	pagedimensions
+	xcenter ycenter translate
+	orientation rotation mul rotate
+	width 2 div neg height 2 div translate
+	xoffset inch yoffset inch neg translate
+	margin 2 div dup neg translate
+	magnification dup aspectratio mul scale
+	scaling scaling scale
+
+	addmetrics
+	0 0 moveto
+} def
+
+/pagedimensions {
+	useclippath userdict /gotpagebbox known not and {
+		/pagebbox [clippath pathbbox newpath] def
+		roundpage currentdict /roundpagebbox known and {roundpagebbox} if
+	} if
+	pagebbox aload pop
+	4 -1 roll exch 4 1 roll 4 copy
+	landscape {4 2 roll} if
+	sub /width exch def
+	sub /height exch def
+	add 2 div /xcenter exch def
+	add 2 div /ycenter exch def
+	userdict /gotpagebbox true put
+} def
+
+/addmetrics {
+	/Symbol /S null Sdefs cf
+	/Times-Roman /S1 StandardEncoding dup length array copy S1defs cf
+} def
+
+/pagesetup {
+	/page exch def
+	currentdict /pagedict known currentdict page known and {
+		page load pagedict exch get cvx exec
+	} if
+} def
+
+/decodingdefs [
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg /y exch def counttomark 2 idiv {y moveto show} repeat}
+	{neg moveto {2 index stringwidth pop sub exch div 0 32 4 -1 roll widthshow} repeat}
+	{neg moveto {spacewidth sub 0.0 32 4 -1 roll widthshow} repeat}
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg setfunnytext}
+] def
+
+/setdecoding {/t decodingdefs 3 -1 roll get bind def} bind def
+
+/w {neg moveto show} bind def
+/m {neg dup /y exch def moveto} bind def
+/done {/lastpage where {pop lastpage} if} def
+
+/f {
+	dup /font exch def findfont exch
+	dup /ptsize exch def scaling div dup /size exch def scalefont setfont
+	linewidth ptsize mul scaling 10 mul div setlinewidth
+	/spacewidth ( ) stringwidth pop def
+} bind def
+
+/changefont {
+	/fontheight exch def
+	/fontslant exch def
+	currentfont [
+		1 0
+		fontheight ptsize div fontslant sin mul fontslant cos div
+		fontheight ptsize div
+		0 0
+	] makefont setfont
+} bind def
+
+/sf {f} bind def
+
+/cf {
+	dup length 2 idiv
+	/entries exch def
+	/chtab exch def
+	/newencoding exch def
+	/newfont exch def
+
+	findfont dup length 1 add dict
+	/newdict exch def
+	{1 index /FID ne {newdict 3 1 roll put}{pop pop} ifelse} forall
+
+	newencoding type /arraytype eq {newdict /Encoding newencoding put} if
+
+	newdict /Metrics entries dict put
+	newdict /Metrics get
+	begin
+		chtab aload pop
+		1 1 entries {pop def} for
+		newfont newdict definefont pop
+	end
+} bind def
+
+%
+% A few arrays used to adjust reference points and character widths in some
+% of the printer resident fonts. If square roots are too high try changing
+% the lines describing /radical and /radicalex to,
+%
+%	/radical	[0 -75 550 0]
+%	/radicalex	[-50 -75 500 0]
+%
+% Move braceleftbt a bit - default PostScript character is off a bit.
+%
+
+/Sdefs [
+	/bracketlefttp		[201 500]
+	/bracketleftbt		[201 500]
+	/bracketrighttp		[-81 380]
+	/bracketrightbt		[-83 380]
+	/braceleftbt		[203 490]
+	/bracketrightex		[220 -125 500 0]
+	/radical		[0 0 550 0]
+	/radicalex		[-50 0 500 0]
+	/parenleftex		[-20 -170 0 0]
+	/integral		[100 -50 500 0]
+	/infinity		[10 -75 730 0]
+] def
+
+/S1defs [
+	/underscore		[0 80 500 0]
+	/endash			[7 90 650 0]
+] def
+%
+% Tries to round clipping path dimensions, as stored in array pagebbox, so they
+% match one of the known sizes in the papersizes array. Lower left coordinates
+% are always set to 0.
+%
+
+/roundpagebbox {
+    7 dict begin
+	/papersizes [8.5 inch 11 inch 14 inch 17 inch] def
+
+	/mappapersize {
+		/val exch def
+		/slop .5 inch def
+		/diff slop def
+		/j 0 def
+		0 1 papersizes length 1 sub {
+			/i exch def
+			papersizes i get val sub abs
+			dup diff le {/diff exch def /j i def} {pop} ifelse
+		} for
+		diff slop lt {papersizes j get} {val} ifelse
+	} def
+
+	pagebbox 0 0 put
+	pagebbox 1 0 put
+	pagebbox dup 2 get mappapersize 2 exch put
+	pagebbox dup 3 get mappapersize 3 exch put
+    end
+} bind def
+
+%%EndProlog
+%%BeginSetup
+mark
+%
+% Encoding vector and redefinition of findfont for the ISO Latin1 standard.
+% The 18 characters missing from ROM based fonts on older printers are noted
+% below.
+%
+
+/ISOLatin1Encoding [
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/space
+	/exclam
+	/quotedbl
+	/numbersign
+	/dollar
+	/percent
+	/ampersand
+	/quoteright
+	/parenleft
+	/parenright
+	/asterisk
+	/plus
+	/comma
+	/minus
+	/period
+	/slash
+	/zero
+	/one
+	/two
+	/three
+	/four
+	/five
+	/six
+	/seven
+	/eight
+	/nine
+	/colon
+	/semicolon
+	/less
+	/equal
+	/greater
+	/question
+	/at
+	/A
+	/B
+	/C
+	/D
+	/E
+	/F
+	/G
+	/H
+	/I
+	/J
+	/K
+	/L
+	/M
+	/N
+	/O
+	/P
+	/Q
+	/R
+	/S
+	/T
+	/U
+	/V
+	/W
+	/X
+	/Y
+	/Z
+	/bracketleft
+	/backslash
+	/bracketright
+	/asciicircum
+	/underscore
+	/quoteleft
+	/a
+	/b
+	/c
+	/d
+	/e
+	/f
+	/g
+	/h
+	/i
+	/j
+	/k
+	/l
+	/m
+	/n
+	/o
+	/p
+	/q
+	/r
+	/s
+	/t
+	/u
+	/v
+	/w
+	/x
+	/y
+	/z
+	/braceleft
+	/bar
+	/braceright
+	/asciitilde
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/dotlessi
+	/grave
+	/acute
+	/circumflex
+	/tilde
+	/macron
+	/breve
+	/dotaccent
+	/dieresis
+	/.notdef
+	/ring
+	/cedilla
+	/.notdef
+	/hungarumlaut
+	/ogonek
+	/caron
+	/space
+	/exclamdown
+	/cent
+	/sterling
+	/currency
+	/yen
+	/brokenbar		% missing
+	/section
+	/dieresis
+	/copyright
+	/ordfeminine
+	/guillemotleft
+	/logicalnot
+	/hyphen
+	/registered
+	/macron
+	/degree			% missing
+	/plusminus		% missing
+	/twosuperior		% missing
+	/threesuperior		% missing
+	/acute
+	/mu			% missing
+	/paragraph
+	/periodcentered
+	/cedilla
+	/onesuperior		% missing
+	/ordmasculine
+	/guillemotright
+	/onequarter		% missing
+	/onehalf		% missing
+	/threequarters		% missing
+	/questiondown
+	/Agrave
+	/Aacute
+	/Acircumflex
+	/Atilde
+	/Adieresis
+	/Aring
+	/AE
+	/Ccedilla
+	/Egrave
+	/Eacute
+	/Ecircumflex
+	/Edieresis
+	/Igrave
+	/Iacute
+	/Icircumflex
+	/Idieresis
+	/Eth			% missing
+	/Ntilde
+	/Ograve
+	/Oacute
+	/Ocircumflex
+	/Otilde
+	/Odieresis
+	/multiply		% missing
+	/Oslash
+	/Ugrave
+	/Uacute
+	/Ucircumflex
+	/Udieresis
+	/Yacute			% missing
+	/Thorn			% missing
+	/germandbls
+	/agrave
+	/aacute
+	/acircumflex
+	/atilde
+	/adieresis
+	/aring
+	/ae
+	/ccedilla
+	/egrave
+	/eacute
+	/ecircumflex
+	/edieresis
+	/igrave
+	/iacute
+	/icircumflex
+	/idieresis
+	/eth			% missing
+	/ntilde
+	/ograve
+	/oacute
+	/ocircumflex
+	/otilde
+	/odieresis
+	/divide			% missing
+	/oslash
+	/ugrave
+	/uacute
+	/ucircumflex
+	/udieresis
+	/yacute			% missing
+	/thorn			% missing
+	/ydieresis
+] def
+
+/NewFontDirectory FontDirectory maxlength dict def
+
+%
+% Apparently no guarantee findfont is defined in systemdict so the obvious
+%
+%	systemdict /findfont get exec
+%
+% can generate an error. So far the only exception is a VT600 (version 48.0).
+%
+
+userdict /@RealFindfont known not {
+	userdict begin
+		/@RealFindfont systemdict begin /findfont load end def
+	end
+} if
+
+/findfont {
+	dup NewFontDirectory exch known not {
+		dup
+		%dup systemdict /findfont get exec	% not always in systemdict
+		dup userdict /@RealFindfont get exec
+		dup /Encoding get StandardEncoding eq {
+			dup length dict begin
+				{1 index /FID ne {def}{pop pop} ifelse} forall
+				/Encoding ISOLatin1Encoding def
+				currentdict
+			end
+			/DummyFontName exch definefont
+		} if
+		NewFontDirectory 3 1 roll put
+	} if
+	NewFontDirectory exch get
+} bind def
+
+%%Patch from lp
+%%EndPatch from lp
+
+setup
+%%EndSetup
+%%Page: 1 1
+/saveobj save def
+mark
+1 pagesetup
+12 /LucidaSans-Demi f
+(Table) 2328 830 w
+(of Contents) 2710 830 w
+9 /LucidaSans-Demi f
+(Introduction) 720 1410 w
+9 /LucidaSansUnicode00 f
+(Plan) 720 1575 w
+(9) 931 1575 w
+(From) 1017 1575 w
+(Bell) 1271 1575 w
+(Labs) 1454 1575 w
+(................................................................................................................) 1705 1575 w
+(7) 4983 1575 w
+9 /LucidaSans-Italic f
+(Rob) 1440 1685 w
+(Pike,) 1632 1685 w
+(Dave) 1868 1685 w
+(Presotto,) 2116 1685 w
+(Sean) 2531 1685 w
+(Dorward,) 2769 1685 w
+(Bob) 3211 1685 w
+(Flandrena,) 3399 1685 w
+(Ken) 3900 1685 w
+(Thompson,) 4091 1685 w
+(Howard) 1440 1795 w
+(Trickey,) 1810 1795 w
+(and) 2188 1795 w
+(Phil) 2383 1795 w
+(Winterbottom) 2572 1795 w
+9 /LucidaSansUnicode00 f
+(An) 1080 1905 w
+(overview) 1227 1905 w
+(of) 1637 1905 w
+(the) 1754 1905 w
+(system;) 1922 1905 w
+(read) 2286 1905 w
+(at) 2509 1905 w
+(least) 2621 1905 w
+(this) 2855 1905 w
+(paper) 3045 1905 w
+(before) 3325 1905 w
+(you) 3636 1905 w
+(install.) 3823 1905 w
+(README) 720 2070 w
+(..................................................................................................................................) 1126 2070 w
+(17) 4926 2070 w
+9 /LucidaSans-Italic f
+(Brian) 1440 2180 w
+(W.) 1702 2180 w
+(Kernighan) 1840 2180 w
+9 /LucidaSansUnicode00 f
+(A) 1080 2290 w
+(view) 1171 2290 w
+(of) 1392 2290 w
+(the) 1509 2290 w
+(system) 1677 2290 w
+(for) 2012 2290 w
+(those) 2166 2290 w
+(familiar) 2435 2290 w
+(with) 2796 2290 w
+(UNIX.) 3009 2290 w
+(The) 720 2455 w
+(Use) 912 2455 w
+(of) 1099 2455 w
+(Name) 1216 2455 w
+(Spaces) 1496 2455 w
+(in) 1823 2455 w
+(Plan) 1934 2455 w
+(9) 2145 2455 w
+(...........................................................................................) 2257 2455 w
+(27) 4926 2455 w
+9 /LucidaSans-Italic f
+(Rob) 1440 2565 w
+(Pike,) 1632 2565 w
+(Dave) 1868 2565 w
+(Presotto,) 2116 2565 w
+(Ken) 2531 2565 w
+(Thompson,) 2722 2565 w
+(Howard) 3233 2565 w
+(Trickey,) 3603 2565 w
+(and) 3981 2565 w
+(Phil) 4176 2565 w
+(Winterbottom) 1440 2675 w
+9 /LucidaSansUnicode00 f
+(What) 1080 2785 w
+9 /LucidaSansUnicode20 f
+(\031) 1296 2785 w
+9 /LucidaSansUnicode00 f
+(s) 1325 2785 w
+(in) 1400 2785 w
+(a) 1511 2785 w
+(name?) 1590 2785 w
+(The) 720 2950 w
+(Organization) 912 2950 w
+(of) 1507 2950 w
+(Networks) 1624 2950 w
+(in) 2062 2950 w
+(Plan) 2173 2950 w
+(9) 2384 2950 w
+(...................................................................................) 2489 2950 w
+(37) 4926 2950 w
+9 /LucidaSans-Italic f
+(Dave) 1440 3060 w
+(Presotto) 1688 3060 w
+(and) 2074 3060 w
+(Phil) 2269 3060 w
+(Winterbottom) 2458 3060 w
+9 /LucidaSansUnicode00 f
+(Connecting) 1080 3170 w
+(the) 1605 3170 w
+(pieces.) 1773 3170 w
+9 /LucidaSans-Demi f
+(Programming) 720 3445 w
+9 /LucidaSansUnicode00 f
+(How) 720 3610 w
+(to) 940 3610 w
+(Use) 1057 3610 w
+(the) 1244 3610 w
+(Plan) 1412 3610 w
+(9) 1623 3610 w
+(C) 1709 3610 w
+(Compiler) 1800 3610 w
+(............................................................................................) 2228 3610 w
+(47) 4926 3610 w
+9 /LucidaSans-Italic f
+(Rob) 1440 3720 w
+(Pike) 1632 3720 w
+9 /LucidaSansUnicode00 f
+(The) 1080 3830 w
+(starting) 1272 3830 w
+(point) 1638 3830 w
+(for) 1894 3830 w
+(C) 2048 3830 w
+(programming) 2139 3830 w
+(under) 2766 3830 w
+(Plan) 3051 3830 w
+(9.) 3262 3830 w
+(APE) 720 3995 w
+9 /LucidaSansUnicode20 f
+(\024) 910 3995 w
+9 /LucidaSansUnicode00 f
+(The) 1029 3995 w
+(ANSI/POSIX) 1221 3995 w
+(Environment) 1754 3995 w
+(........................................................................................) 2344 3995 w
+(57) 4926 3995 w
+9 /LucidaSans-Italic f
+(Howard) 1440 4105 w
+(Trickey) 1810 4105 w
+9 /LucidaSansUnicode00 f
+(Moving) 1080 4215 w
+(C) 1426 4215 w
+(code) 1517 4215 w
+(between) 1754 4215 w
+(UNIX) 2148 4215 w
+(and) 2389 4215 w
+(Plan) 2581 4215 w
+(9.) 2792 4215 w
+(Alef) 720 4380 w
+(User) 920 4380 w
+9 /LucidaSansUnicode20 f
+(\031) 1115 4380 w
+9 /LucidaSansUnicode00 f
+(s) 1144 4380 w
+(Guide) 1219 4380 w
+(.....................................................................................................................) 1503 4380 w
+(67) 4926 4380 w
+9 /LucidaSans-Italic f
+(Bob) 1440 4490 w
+(Flandrena) 1628 4490 w
+9 /LucidaSansUnicode00 f
+(A) 1080 4600 w
+(tutorial) 1171 4600 w
+(introduction) 1516 4600 w
+(to) 2081 4600 w
+(the) 2198 4600 w
+(concurrent) 2366 4600 w
+(programming) 2867 4600 w
+(language) 3494 4600 w
+(Alef.) 3923 4600 w
+(Alef) 720 4765 w
+(Language) 920 4765 w
+(Reference) 1371 4765 w
+(Manual) 1829 4765 w
+(.............................................................................................) 2199 4765 w
+(77) 4926 4765 w
+9 /LucidaSans-Italic f
+(Phil) 1440 4875 w
+(Winterbottom) 1629 4875 w
+9 /LucidaSansUnicode00 f
+(The) 1080 4985 w
+(definitive) 1272 4985 w
+(Alef) 1705 4985 w
+(document.) 1905 4985 w
+(Acid:) 720 5150 w
+(A) 969 5150 w
+(Debugger) 1060 5150 w
+(Built) 1519 5150 w
+(From) 1741 5150 w
+(A) 1995 5150 w
+(Language) 2086 5150 w
+(.................................................................................) 2547 5150 w
+(87) 4926 5150 w
+9 /LucidaSans-Italic f
+(Phil) 1440 5260 w
+(Winterbottom) 1629 5260 w
+9 /LucidaSansUnicode00 f
+(An) 1080 5370 w
+(overview) 1227 5370 w
+(paper) 1637 5370 w
+(about) 1917 5370 w
+(the) 2197 5370 w
+(Acid) 2365 5370 w
+(debugger.) 2585 5370 w
+(Acid) 720 5535 w
+(Manual) 940 5535 w
+(............................................................................................................................) 1300 5535 w
+(97) 4926 5535 w
+9 /LucidaSans-Italic f
+(Phil) 1440 5645 w
+(Winterbottom) 1629 5645 w
+9 /LucidaSansUnicode00 f
+(The) 1080 5755 w
+(reference) 1272 5755 w
+(manual) 1710 5755 w
+(for) 2061 5755 w
+(the) 2215 5755 w
+(language) 2383 5755 w
+(and) 2812 5755 w
+(its) 3004 5755 w
+(libraries.) 3138 5755 w
+(Maintaining) 720 5920 w
+(Files) 1261 5920 w
+(on) 1487 5920 w
+(Plan) 1627 5920 w
+(9) 1838 5920 w
+(with) 1924 5920 w
+(Mk) 2137 5920 w
+(.......................................................................................) 2316 5920 w
+(107) 4869 5920 w
+9 /LucidaSans-Italic f
+(Andrew) 1440 6030 w
+(G.) 1803 6030 w
+(Hume) 1924 6030 w
+(and) 2208 6030 w
+(Bob) 2403 6030 w
+(Flandrena) 2591 6030 w
+9 /LucidaSansUnicode00 f
+(An) 1080 6140 w
+(introduction) 1227 6140 w
+(to) 1792 6140 w
+(Plan) 1909 6140 w
+(9) 2120 6140 w
+9 /LucidaSansUnicode20 f
+(\031) 2177 6140 w
+9 /LucidaSansUnicode00 f
+(s) 2206 6140 w
+(replacement) 2281 6140 w
+(for) 2849 6140 w
+9 /LucidaTypewriter f
+(make) 3003 6140 w
+9 /LucidaSansUnicode00 f
+(.) 3263 6140 w
+(Plan) 720 6305 w
+(9) 931 6305 w
+(Mkfiles) 1017 6305 w
+(........................................................................................................................) 1359 6305 w
+(117) 4869 6305 w
+9 /LucidaSans-Italic f
+(Bob) 1440 6415 w
+(Flandrena) 1628 6415 w
+9 /LucidaSansUnicode00 f
+(The) 1080 6525 w
+(conventions) 1272 6525 w
+(for) 1827 6525 w
+(using) 1981 6525 w
+9 /LucidaTypewriter f
+(mk) 2250 6525 w
+9 /LucidaSansUnicode00 f
+(in) 2409 6525 w
+(Plan) 2520 6525 w
+(9.) 2731 6525 w
+(A) 720 6690 w
+(Manual) 811 6690 w
+(for) 1155 6690 w
+(the) 1309 6690 w
+(Plan) 1477 6690 w
+(9) 1688 6690 w
+(assembler.) 1774 6690 w
+(........................................................................................) 2287 6690 w
+(127) 4869 6690 w
+9 /LucidaSans-Italic f
+(Rob) 1440 6800 w
+(Pike) 1632 6800 w
+9 /LucidaSansUnicode00 f
+(Things) 1080 6910 w
+(you) 1406 6910 w
+9 /LucidaSansUnicode20 f
+(\031) 1564 6910 w
+9 /LucidaSansUnicode00 f
+(d) 1593 6910 w
+(rather) 1679 6910 w
+(not) 1971 6910 w
+(know.) 2144 6910 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 1 1
+%%Page: 2 2
+/saveobj save def
+mark
+2 pagesetup
+9 /LucidaSans-Demi f
+(User) 720 830 w
+(Interfaces) 961 830 w
+9 /LucidaSansUnicode00 f
+(8\275,) 720 995 w
+(the) 907 995 w
+(Plan) 1075 995 w
+(9) 1286 995 w
+(Window) 1372 995 w
+(System) 1741 995 w
+(...............................................................................................) 2084 995 w
+(137) 4869 995 w
+9 /LucidaSans-Italic f
+(Rob) 1440 1105 w
+(Pike) 1632 1105 w
+9 /LucidaSansUnicode00 f
+(An) 1080 1215 w
+(introduction) 1227 1215 w
+(to) 1792 1215 w
+(the) 1909 1215 w
+(window) 2077 1215 w
+(system) 2438 1215 w
+(and) 2773 1215 w
+(its) 2965 1215 w
+(unusual) 3099 1215 w
+(implementation.) 3474 1215 w
+(Rc) 720 1380 w
+9 /LucidaSansUnicode20 f
+(\024) 852 1380 w
+9 /LucidaSansUnicode00 f
+(The) 971 1380 w
+(Plan) 1163 1380 w
+(9) 1374 1380 w
+(Shell) 1460 1380 w
+(............................................................................................................) 1707 1380 w
+(147) 4869 1380 w
+9 /LucidaSans-Italic f
+(Tom) 1440 1490 w
+(Duff) 1660 1490 w
+9 /LucidaSansUnicode00 f
+(An) 1080 1600 w
+(introduction) 1227 1600 w
+(to) 1792 1600 w
+(the) 1909 1600 w
+(new) 2077 1600 w
+(shell,) 2281 1600 w
+(complete) 2543 1600 w
+(with) 2973 1600 w
+(examples.) 3186 1600 w
+(The) 720 1765 w
+(Text) 912 1765 w
+(Editor) 1136 1765 w
+9 /LucidaTypewriter f
+(sam) 1422 1765 w
+9 /LucidaSansUnicode00 f
+(..............................................................................................................) 1649 1765 w
+(157) 4869 1765 w
+9 /LucidaSans-Italic f
+(Rob) 1440 1875 w
+(Pike) 1632 1875 w
+9 /LucidaTypewriter f
+(Sam) 1080 1985 w
+9 /LucidaSansUnicode00 f
+(is) 1304 1985 w
+(the) 1405 1985 w
+(standard) 1573 1985 w
+(editor) 1988 1985 w
+(on) 2275 1985 w
+(Plan) 2415 1985 w
+(9.) 2626 1985 w
+(Acme:) 720 2150 w
+(A) 1020 2150 w
+(User) 1111 2150 w
+(Interface) 1335 2150 w
+(for) 1745 2150 w
+(Programmers) 1899 2150 w
+(................................................................................) 2519 2150 w
+(167) 4869 2150 w
+9 /LucidaSans-Italic f
+(Rob) 1440 2260 w
+(Pike) 1632 2260 w
+9 /LucidaSansUnicode00 f
+(A) 1080 2370 w
+(system) 1171 2370 w
+(with) 1506 2370 w
+(a) 1719 2370 w
+(more) 1798 2370 w
+(radical) 2053 2370 w
+(approach) 2374 2370 w
+(to) 2811 2370 w
+(programming) 2928 2370 w
+(and) 3555 2370 w
+(editing.) 3747 2370 w
+9 /LucidaSans-Demi f
+(Implementation) 720 2645 w
+9 /LucidaSansUnicode00 f
+(Hello) 720 2810 w
+(World,) 973 2810 w
+(or) 1283 2810 w
+9 /LucidaSansUnicode03 f
+(\232\261\273\267\274\255\301\261) 1404 2810 w
+(\272\314\303\274\265) 1892 2810 w
+9 /LucidaSansUnicode00 f
+(,) 2162 2810 w
+(or) 2220 2810 w
+ save 2341 2810 m
+ currentpoint translate 10 10 scale ptsize dup scale
+ 24 24 true [24 0 0 -24 0 22]
+ {<00000000000002000001f000007fc00007c0001c000060000000000000000000000000000000000000000800001000001000001000001000000c000007fff001fff0000000000000>}
+ imagemask restore
+ save 2436 2810 m
+ currentpoint translate 10 10 scale ptsize dup scale
+ 24 24 true [24 0 0 -24 0 22]
+ {<000000001800000c00001c0000180000380000300000600000600000c0000080000180000300000270000798000e18000c1802181806180c0c300c18700c70600fe0600780000000>}
+ imagemask restore
+ save 2531 2810 m
+ currentpoint translate 10 10 scale ptsize dup scale
+ 24 24 true [24 0 0 -24 0 22]
+ {<0000000800000c00000c00000c01e00c0ff818303c1800601800801800001000003000003000003100003100003210003220003220001430001c1ffe1c07fc0c0000080000000000>}
+ imagemask restore
+ save 2626 2810 m
+ currentpoint translate 10 10 scale ptsize dup scale
+ 24 24 true [24 0 0 -24 0 22]
+ {<01800000c00000c00000800001860021bf003fe0001980000100000100000300000303c0021c3002701802c00c07000c07000c0600180000380000700000e0000380001c00000000>}
+ imagemask restore
+ save 2721 2810 m
+ currentpoint translate 10 10 scale ptsize dup scale
+ 24 24 true [24 0 0 -24 0 22]
+ {<0000003001801800601c006018006018004018004030204e301ffc300c403000402000406000406400406400606400606c0060680fe028307038407c3840ee183fc6100f00000000>}
+ imagemask restore
+ save 2817 2810 m
+ currentpoint translate 10 10 scale ptsize dup scale
+ 24 24 true [24 0 0 -24 0 22]
+ {<071c70061860061860061860061860061860061860061866ffffff061860061860061860061860061860061860061fe006186006186006000006000006000006000c07fffe060000>}
+ imagemask restore
+ save 2912 2810 m
+ currentpoint translate 10 10 scale ptsize dup scale
+ 24 24 true [24 0 0 -24 0 22]
+ {<0800300ffff80c18300c18300c18300ffff00c18300c18300c18300ffff00c743000e20001c1800300e00ee1ff38c19ec0c18600c18000c18000c1800181800181800301800c0180>}
+ imagemask restore
+(..............................................................) 3041 2810 w
+(177) 4869 2810 w
+9 /LucidaSans-Italic f
+(Rob) 1440 2920 w
+(Pike) 1632 2920 w
+(and) 1839 2920 w
+(Ken) 2034 2920 w
+(Thompson) 2225 2920 w
+9 /LucidaSansUnicode00 f
+(The) 1080 3030 w
+(details) 1272 3030 w
+(about) 1589 3030 w
+(Plan) 1869 3030 w
+(9) 2080 3030 w
+9 /LucidaSansUnicode20 f
+(\031) 2137 3030 w
+9 /LucidaSansUnicode00 f
+(s) 2166 3030 w
+(character) 2241 3030 w
+(set:) 2675 3030 w
+(the) 2862 3030 w
+(Unicode) 3030 3030 w
+(Standard) 3411 3030 w
+(plus) 3829 3030 w
+(an) 4043 3030 w
+(ASCII-) 4178 3030 w
+(compatible) 1080 3140 w
+(encoding.) 1593 3140 w
+(Plan) 720 3305 w
+(9) 931 3305 w
+(C) 1017 3305 w
+(Compilers) 1108 3305 w
+(................................................................................................................) 1591 3305 w
+(187) 4869 3305 w
+9 /LucidaSans-Italic f
+(Ken) 1440 3415 w
+(Thompson) 1631 3415 w
+9 /LucidaSansUnicode00 f
+(The) 1080 3525 w
+(design) 1272 3525 w
+(and) 1592 3525 w
+(some) 1784 3525 w
+(internals) 2048 3525 w
+(of) 2457 3525 w
+(the) 2574 3525 w
+(compiler) 2742 3525 w
+(suite.) 3152 3525 w
+(Adding) 720 3690 w
+(Application) 1063 3690 w
+(Support) 1586 3690 w
+(for) 1959 3690 w
+(a) 2113 3690 w
+(New) 2192 3690 w
+(Architecture) 2407 3690 w
+(in) 2968 3690 w
+(Plan) 3079 3690 w
+(9) 3290 3690 w
+(..................................................) 3389 3690 w
+(197) 4869 3690 w
+9 /LucidaSans-Italic f
+(Bob) 1440 3800 w
+(Flandrena) 1628 3800 w
+9 /LucidaSansUnicode00 f
+(The) 1080 3910 w
+(procedures) 1272 3910 w
+(necessary) 1792 3910 w
+(to) 2249 3910 w
+(add) 2366 3910 w
+(a) 2559 3910 w
+(new) 2638 3910 w
+(instruction) 2842 3910 w
+(set) 3341 3910 w
+(to) 3499 3910 w
+(Plan) 3616 3910 w
+(9) 3827 3910 w
+9 /LucidaSansUnicode20 f
+(\031) 3884 3910 w
+9 /LucidaSansUnicode00 f
+(s) 3913 3910 w
+(programming) 3988 3910 w
+(environment.) 1080 4020 w
+(The) 720 4185 w
+(Plan) 912 4185 w
+(9) 1123 4185 w
+(File) 1209 4185 w
+(Server) 1389 4185 w
+(............................................................................................................) 1707 4185 w
+(207) 4869 4185 w
+9 /LucidaSans-Italic f
+(Ken) 1440 4295 w
+(Thompson) 1631 4295 w
+9 /LucidaSansUnicode00 f
+(The) 1080 4405 w
+(design) 1272 4405 w
+(of) 1592 4405 w
+(the) 1709 4405 w
+(central) 1877 4405 w
+(file) 2204 4405 w
+(server) 2368 4405 w
+(and) 2664 4405 w
+(its) 2856 4405 w
+(novel) 2990 4405 w
+(backup) 3253 4405 w
+(system.) 3600 4405 w
+(The) 720 4570 w
+(IL) 912 4570 w
+(protocol) 1015 4570 w
+(......................................................................................................................) 1417 4570 w
+(217) 4869 4570 w
+9 /LucidaSans-Italic f
+(Dave) 1440 4680 w
+(Presotto) 1688 4680 w
+(and) 2074 4680 w
+(Phil) 2269 4680 w
+(Winterbottom) 2458 4680 w
+9 /LucidaSansUnicode00 f
+(A) 1080 4790 w
+(description) 1171 4790 w
+(of) 1689 4790 w
+(the) 1806 4790 w
+(IP) 1974 4790 w
+(protocol) 2079 4790 w
+(Plan) 2472 4790 w
+(9) 2683 4790 w
+(uses) 2769 4790 w
+(for) 2996 4790 w
+(internal) 3150 4790 w
+(communication.) 3513 4790 w
+(Process) 720 4955 w
+(Sleep) 1079 4955 w
+(and) 1340 4955 w
+(Wakeup) 1532 4955 w
+(on) 1903 4955 w
+(a) 2043 4955 w
+(Shared-memory) 2122 4955 w
+(Multiprocessor) 2859 4955 w
+(............................................) 3563 4955 w
+(227) 4869 4955 w
+9 /LucidaSans-Italic f
+(Rob) 1440 5065 w
+(Pike,) 1632 5065 w
+(Dave) 1868 5065 w
+(Presotto,) 2116 5065 w
+(Ken) 2531 5065 w
+(Thompson,) 2722 5065 w
+(and) 3233 5065 w
+(Gerard) 3428 5065 w
+(Holzmann) 3764 5065 w
+9 /LucidaSansUnicode00 f
+(A) 1080 5175 w
+(detailed) 1171 5175 w
+(study) 1549 5175 w
+(of) 1817 5175 w
+(a) 1934 5175 w
+(central) 2013 5175 w
+(issue) 2340 5175 w
+(in) 2593 5175 w
+(the) 2704 5175 w
+(Plan) 2872 5175 w
+(9) 3083 5175 w
+(kernel.) 3169 5175 w
+9 /LucidaSans-Demi f
+(Miscellany) 720 5450 w
+9 /LucidaSansUnicode00 f
+(Raster) 720 5615 w
+(Graphics) 1022 5615 w
+(in) 1434 5615 w
+(Plan) 1545 5615 w
+(9) 1756 5615 w
+(.......................................................................................................) 1852 5615 w
+(237) 4869 5615 w
+9 /LucidaSans-Italic f
+(Tom) 1440 5725 w
+(Duff) 1660 5725 w
+9 /LucidaSansUnicode00 f
+(The) 1080 5835 w
+(tools) 1272 5835 w
+(for) 1516 5835 w
+(playing) 1670 5835 w
+(with) 2017 5835 w
+(color) 2230 5835 w
+(images.) 2478 5835 w
+(A) 720 6000 w
+(Quick) 811 6000 w
+(Introduction) 1090 6000 w
+(to) 1655 6000 w
+(the) 1772 6000 w
+(Panel) 1940 6000 w
+(Library) 2201 6000 w
+(...............................................................................) 2548 6000 w
+(247) 4869 6000 w
+9 /LucidaSans-Italic f
+(Tom) 1440 6110 w
+(Duff) 1660 6110 w
+9 /LucidaSansUnicode00 f
+(A) 1080 6220 w
+(tour) 1171 6220 w
+(of) 1381 6220 w
+(a) 1498 6220 w
+(new) 1577 6220 w
+(toolkit) 1781 6220 w
+(for) 2090 6220 w
+(building) 2244 6220 w
+(graphical) 2633 6220 w
+(applications.) 3066 6220 w
+(A) 720 6385 w
+(Guide) 811 6385 w
+(to) 1094 6385 w
+(the) 1211 6385 w
+(Lp) 1379 6385 w
+(Printer) 1513 6385 w
+(Spooler) 1831 6385 w
+(...........................................................................................) 2200 6385 w
+(257) 4869 6385 w
+9 /LucidaSans-Italic f
+(Paul) 1440 6495 w
+(Glick) 1658 6495 w
+9 /LucidaSansUnicode00 f
+(Adminstering) 1080 6605 w
+(the) 1698 6605 w
+(suite) 1866 6605 w
+(of) 2106 6605 w
+(tools) 2223 6605 w
+(to) 2467 6605 w
+(drive) 2584 6605 w
+(PostScript) 2830 6605 w
+(printers.) 3291 6605 w
+(Troff) 720 6770 w
+(User) 964 6770 w
+9 /LucidaSansUnicode20 f
+(\031) 1159 6770 w
+9 /LucidaSansUnicode00 f
+(s) 1188 6770 w
+(Manual) 1263 6770 w
+(...............................................................................................................) 1620 6770 w
+(267) 4869 6770 w
+9 /LucidaSans-Italic f
+(Joseph) 1440 6880 w
+(F.) 1760 6880 w
+(Ossanna) 1867 6880 w
+(and) 2276 6880 w
+(Brian) 2471 6880 w
+(W.) 2733 6880 w
+(Kernighan) 2871 6880 w
+9 /LucidaSansUnicode00 f
+(The) 1080 6990 w
+(old) 1272 6990 w
+(warhorse,) 1439 6990 w
+(updated) 1897 6990 w
+(for) 2286 6990 w
+(Unicode) 2440 6990 w
+(characters.) 2821 6990 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 2 2
+%%Page: 3 3
+/saveobj save def
+mark
+3 pagesetup
+9 /LucidaSansUnicode00 f
+(Using) 720 830 w
+(SPIN) 995 830 w
+(............................................................................................................................) 1243 830 w
+(277) 4869 830 w
+9 /LucidaSans-Italic f
+(Gerard) 1440 940 w
+(Holzmann) 1776 940 w
+9 /LucidaSansUnicode00 f
+(An) 1080 1050 w
+(introduction) 1227 1050 w
+(to) 1792 1050 w
+(a) 1909 1050 w
+(tool) 1988 1050 w
+(for) 2186 1050 w
+(analyzing) 2340 1050 w
+(parallel) 2787 1050 w
+(and) 3138 1050 w
+(distributed) 3330 1050 w
+(programs.) 3837 1050 w
+9 /LucidaSans-Demi f
+(Installation) 720 1325 w
+9 /LucidaSansUnicode00 f
+(The) 720 1490 w
+(Various) 912 1490 w
+(Ports) 1270 1490 w
+(..................................................................................................................) 1533 1490 w
+(287) 4869 1490 w
+(The) 1080 1600 w
+(hardware) 1272 1600 w
+(requirements) 1707 1600 w
+(for) 2318 1600 w
+(the) 2472 1600 w
+(Plan) 2640 1600 w
+(9) 2851 1600 w
+(compilers) 2937 1600 w
+(and) 3393 1600 w
+(kernels.) 3585 1600 w
+(Installing) 720 1765 w
+(the) 1150 1765 w
+(Plan) 1318 1765 w
+(9) 1529 1765 w
+(Distribution) 1615 1765 w
+(............................................................................................) 2171 1765 w
+(307) 4869 1765 w
+(Getting) 1080 1875 w
+(the) 1428 1875 w
+(system) 1596 1875 w
+(up) 1931 1875 w
+(and) 2073 1875 w
+(running,) 2265 1875 w
+(using) 2666 1875 w
+(a) 2935 1875 w
+(PC.) 3014 1875 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 3 3
+%%Trailer
+done
+%%DocumentFonts: LucidaSansUnicode03 LucidaSansUnicode20 LucidaSansUnicode00 LucidaSans-Demi LucidaSans-Italic LucidaTypewriter
+%%Pages: 3

@@ -1,0 +1,237 @@
+%% 
+%% This is file `endfloat.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% endfloat.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE: 
+%% This is part of a set of tools (or better yet, experiments) 
+%% written by Jeff Goldberg (goldberg@nytud.hu), who doesn't 
+%% know LaTeX very well (yet). The usual disclaimers apply: 
+%% If it doesn't work right that's your problem. 
+%% And the usual conditions apply: If you change it, you take the blame; 
+%% if you pass it on, pass on all present condiditions; you 
+%% are not allowed to sell it. 
+\def\filename{endfloat}
+\def\fileversion{v2.2c}
+\def\filedate{1994/10/15}
+\def\docdate {1994/10/15}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%% Description: LaTeX style to put figures and tables at end of article
+%% Keywords: LaTeX, style-option, float, figure, table
+%% Author: James Darrell McCauley <jdm5548@diamond.tamu.edu>
+%% Maintainer: Jeff Goldberg <goldberg@nytud.hu>
+%% Latest Version: Version 2.2 <08 October 1994>
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{endfloat}[\filedate\space\fileversion\space
+               LaTeX2e package puts figures and tables at end (jdm)]
+\newcommand{\EF@OldCmd}[2]{\PackageWarning{endfloat}
+  {The command \protect#1 is obsolete and will be\MessageBreak
+   omitted from future releases of the endfloat package.\MessageBreak
+   Use the package option `#2' instead.}}
+\newif\if@domarkers
+\newif\if@tablist                % bj
+\newif\if@figlist                % bj
+\newif\if@tabhead
+\newif\if@fighead
+\newif\if@tablesfirst
+\@domarkerstrue
+\@tablisttrue
+\@figlisttrue
+\@tabheadfalse
+\@figheadfalse
+\@tablesfirstfalse
+\DeclareOption{nomarkers}{\@domarkersfalse }
+\DeclareOption{markers}{\@domarkerstrue }
+\def\markersintext{\@domarkerstrue
+   \EF@OldCmd{\markersintext}{markers}}
+\def\nomarkersintext{\@domarkersfalse
+  \EF@OldCmd{\nomarkersintext}{nomarkers}}
+\def\dotablist{\@tablisttrue \EF@OldCmd{\dotablist}{tablist}}
+\def\notablist{\@tablistfalse \@tabheadtrue
+   \EF@OldCmd{\notablist}{notablist}}
+\def\dofiglist{\@figlisttrue \EF@OldCmd{\dogfiglist}{figlist}}
+\def\nofiglist{\@figlistfalse \@figheadtrue
+  \EF@OldCmd{\nofiglist}{nofiglist}}
+\DeclareOption{nolists}{\@tablistfalse \@figlistfalse }
+\DeclareOption{lists}{\@tablisttrue \@figlisttrue }
+\DeclareOption{notablist}{\@tablistfalse }
+\DeclareOption{nofiglist}{\@figlistfalse }
+\DeclareOption{tablist}{\@tablisttrue }
+\DeclareOption{figlist}{\@figlisttrue }
+\DeclareOption{heads}{\@figheadtrue \@tabheadtrue }
+\DeclareOption{noheads}{\@figheadfalse \@tabheadfalse }
+\DeclareOption{fighead}{\@figheadtrue }
+\DeclareOption{tabhead}{\@tabheadtrue }
+\DeclareOption{nofighead}{\@figheadfalse }
+\DeclareOption{notabhead}{\@tabheadfalse }
+\DeclareOption{tablesfirst}{\@tablesfirsttrue }
+\DeclareOption{figuresfirst}{\@tablesfirstfalse }
+\DeclareOption*{%
+   \PackageWarning{endfloat}{Unknown option `\CurrentOption'}}
+\ProcessOptions
+\newcounter{postfig}
+\newwrite\@postfigs
+\newif\if@postfigsopen \global\@postfigsopenfalse
+ \def\@openpostfigs{\immediate\openout\@postfigs=\jobname.fff\relax
+      \message{(\jobname.fff)}%
+      \global\@postfigsopentrue}
+\newcounter{posttbl}
+\newwrite\@posttbls
+\newif\if@posttblsopen \global\@posttblsopenfalse
+\def\@openposttbls{\immediate\openout\@posttbls=\jobname.ttt\relax
+      \message{(\jobname.ttt)}%                                      % bj
+      \global\@posttblsopentrue}
+\def\makeinnocent#1{\catcode`#1=12 }
+\providecommand{\figurename}{Figure}
+\providecommand{\tablename}{Table}
+\newcommand{\figureplace}{%
+   \begin{center} 
+     [\figurename~\thepostfig\ about here.]
+   \end{center}}
+\newcommand{\tableplace}{%
+   \begin{center}
+      [\tablename~\theposttbl\ about here.]
+   \end{center}}
+\def\@gobbleuntilnext[#1]{}  % Not used (jpg)
+\let\@bfig\figure             % bj
+\let\@efig\endfigure          % bj
+\let\@btab\table              % bj
+\let\@etab\endtable           % bj
+\let\endfigure\relax          % bj
+\let\endtable\relax           % bj
+\def\figure{%
+    \if@postfigsopen \else \@openpostfigs \fi%
+    \immediate\write\@postfigs{\string
+         \begin{figure}}%
+    \if@domarkers%
+       \addtocounter{postfig}{1}% % bj
+       \figureplace%              % bj
+    \fi%
+    \begingroup%
+    \let\do\makeinnocent \dospecials%
+    \makeinnocent\^^L% and whatever other special cases
+    \endlinechar`\^^M \catcode`\^^M=12 \xfigure}%
+\def\efloat@foundendfig{\def\next{\endgroup\end{figure}%
+          \immediate\write\@postfigs{\string\end{figure}}%
+          \immediate\write\@postfigs{\string\clearpage}%
+          \immediate\write\@postfigs{ }}}%
+\def\efloat@foundendtab{\def\next{\endgroup\end{table}
+          \immediate\write\@posttbls{\string\end{table}}
+          \immediate\write\@posttbls{\string\clearpage}
+          \immediate\write\@posttbls{ }}}
+{\catcode`\^^M=12 \endlinechar=-1 %
+ \gdef\xfigure#1^^M{\def\test{#1}%
+      \ifx\test\endfiguretest
+           \efloat@foundendfig
+      \else\ifx\test\enddblfiguretest
+           \efloat@foundendfig
+      \else%
+          \immediate\write\@postfigs{#1}%
+          \let\next\xfigure%
+      \fi \fi \next}%
+}%
+{\escapechar=-1%
+ \xdef\endfiguretest{\string\\end\string\{figure\string\}}%
+ \xdef\enddblfiguretest{\string\\end\string\{figure*\string\}}%
+}%
+\def\table{\if@posttblsopen \else \@openposttbls \fi
+    \immediate\write\@posttbls{\string\begin{table}}%
+    \if@domarkers
+       \addtocounter{posttbl}{1} % bj
+       \tableplace               % bj
+    \fi
+    \def\@currenvir{table}%
+    \begingroup
+    \let\do\makeinnocent \dospecials
+    \makeinnocent\^^L% and whatever other special cases
+    \endlinechar`\^^M \catcode`\^^M=12 \xtable}
+{\catcode`\^^M=12 \endlinechar=-1 %
+ \gdef\xtable#1^^M{\def\test{#1}
+      \ifx\test\enddbltabletest
+          \efloat@foundendtab
+      \else\ifx\test\endtabletest
+          \efloat@foundendtab
+      \else
+          \immediate\write\@posttbls{#1}%
+          \let\next\xtable
+      \fi \fi \next}
+}
+{\escapechar=-1
+ \xdef\enddbltabletest{\string\\end\string\{table*\string\}}
+ \xdef\endtabletest{\string\\end\string\{table\string\}}
+}
+\@namedef{figure*}{\figure}
+\@namedef{table*}{\table}
+\def\endfloat{\endfigure}
+\providecommand{\figuresection}{Figures}
+\providecommand{\tablesection}{Tables}
+\def\processfigures{
+  \if@postfigsopen
+  \immediate\closeout\@postfigs \global\@postfigsopenfalse
+  \let\figure\@bfig              % bj
+  \let\endfigure\@efig           % bj
+  \clearpage                                                        % bj
+  \if@figlist                                                       % bj
+    {\normalsize\listoffigures}                                     % bj
+    \clearpage                                                      % bj
+  \fi
+  \if@fighead
+     \section*{\figuresection}                                   % bj
+     \suppressfloats[t]                                          % jpg
+  \fi
+  \markboth{\uppercase{\figuresection}}{\uppercase{\figuresection}}% bj
+  {\def\baselinestretch{1}\normalsize                                % bj
+  \@input{\jobname.fff}}                                             % bj
+ \fi}
+\def\processtables{
+\if@posttblsopen
+  \immediate\closeout\@posttbls \global\@posttblsopenfalse
+  \let\table\@btab               % bj
+  \let\endtable\@etab            % bj
+  \clearpage                                                      % bj
+  \if@tablist                                                     % bj
+    {\normalsize\listoftables}                                    % bj
+    \clearpage                                                    % bj
+  \fi
+  \if@tabhead
+      \section*{\tablesection}                                  % bj
+      \suppressfloats[t]                                        % jpg
+  \fi
+  \markboth{\uppercase{\tablesection}}{\uppercase{\tablesection}}% bj
+  {\def\baselinestretch{1}\normalsize                              % bj
+  \@input{\jobname.ttt}}                                           % bj
+ \fi}
+\def\efloat@setfparams{%
+    \renewcommand{\bottomfraction}{1.0}%
+    \renewcommand{\topfraction}{1.0}%
+    \renewcommand{\textfraction}{0.0}}
+\AtEndDocument{%                                      % jpg
+   \message{AED endfloat: Processing end Figures and Tables}% % jpg
+   \onecolumn
+   \efloat@setfparams
+   \if@tablesfirst
+      \processtables\clearpage\processfigures
+   \else
+      \processfigures\clearpage\processtables
+   \fi} % jpg
+\endinput
+%% 
+%% End of file `endfloat.sty'.

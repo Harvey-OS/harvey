@@ -42,11 +42,15 @@ and owned by the current user to go away.
 When a process dies because of an error caught by
 the system, it may linger in the
 .I Broken
-state allowing examination with a debugger.
+state to allow examination with a debugger.
 Executing the commands printed by
 .I broke
 lets the system reclaim the resources used by
 the broken processes.
+.SH SOURCE
+.B /rc/bin/kill
+.br
+.B /rc/bin/broke
 .SH "SEE ALSO"
 .IR ps (1),
 .IR stop (1),

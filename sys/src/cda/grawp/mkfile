@@ -1,7 +1,0 @@
-</$objtype/mkfile
-
-BIN=/$objtype/bin/cda
-TARG=grawp
-OFILES=grawp.$O
-
-</sys/src/cmd/mkone

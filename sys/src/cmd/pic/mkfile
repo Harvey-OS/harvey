@@ -23,8 +23,6 @@ HFILES=pic.h\
 
 YFILES=picy.y\
 
-LFILES=picl.l\
-
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
 CC=pcc
@@ -35,7 +33,7 @@ YFLAGS=-S -d
 picy.c:	y.tab.c
 	mv $prereq $target
 
-picl.c:	$LFILES
+picl.c:	picl.lx
 	$LEX -t $prereq > $target
 
 clean:V:

@@ -1,0 +1,11 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libgeometry.a
+OFILES=arith3.$O matrix.$O qball.$O quaternion.$O transform.$O tstack.$O
+HFILES=/sys/include/geometry.h
+
+</sys/src/cmd/mksyslib
+
+CFILES=${OFILES:%.c=%.$O}
+listing:V:
+	pr mkfile $HFILES $CFILES|lp -du

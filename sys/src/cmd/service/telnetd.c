@@ -22,6 +22,7 @@ int nonone;		/* don't allow none logins */
 /* input and output buffers for network connection */
 Biobuf	netib;
 Biobuf	childib;
+char	remotesys[2*NAMELEN];	/* name of remote system */
 
 int	alnum(int);
 int	conssim(void);
@@ -34,6 +35,36 @@ int	xlocsub(Biobuf*, uchar*, int);
 int	challuser(char*);
 void*	share(int);
 
+#define TELNETLOG "telnet"
+
+void
+logit(char *fmt, ...)
+{
+	char buf[8192], *s;
+
+	s = buf;
+	s = doprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, &fmt + 1);
+	*s = 0;
+	syslog(0, TELNETLOG, "(%s) %s", remotesys, buf);
+}
+
+void
+getremote(char *dir)
+{
+	int fd, n;
+	char remfile[2*NAMELEN];
+
+	sprint(remfile, "%s/remote", dir);
+	fd = open(remfile, OREAD);
+	if(fd < 0)
+		strcpy(remotesys, "unknown2");
+	n = read(fd, remotesys, sizeof(remotesys)-1);
+	if(n>0)
+		remotesys[n-1] = 0;
+	else
+		strcpy(remotesys, remfile);
+	close(fd);
+}
 
 void
 main(int argc, char *argv[])
@@ -65,7 +96,11 @@ main(int argc, char *argv[])
 		debug = 1;
 		break;
 	} ARGEND
-	USED(argc, argv);
+
+	if(argc)
+		getremote(argv[argc-1]);
+	else
+		strcpy(remotesys, "unknown");
 
 	/* options we need routines for */
 	opt[Term].change = termchange;
@@ -74,9 +109,9 @@ main(int argc, char *argv[])
 
 	/* setup default telnet options */
 	if(!noproto){
-		send3(1, Iac, Will, Echo);
-		send3(1, Iac, Do, Term);
-		send3(1, Iac, Do, Xloc);
+		send3(1, Iac, Will, opt[Echo].code);
+		send3(1, Iac, Do, opt[Term].code);
+		send3(1, Iac, Do, opt[Xloc].code);
 	}
 
 	/* shared data for console state */
@@ -88,9 +123,13 @@ main(int argc, char *argv[])
 	Binit(&netib, 0, OREAD);
 	if (!trusted){
 		while(challuser(user) < 0)
-			if(++tries == 5)
+			if(++tries == 5){
+				logit("failed as %s", user);
+				print("authentication failure\r\n");
 				exits("authentication");
+			}
 	}
+	logit("logged in as %s", user);
 	newns(user, 0);
 	putenv("service", "con");
 
@@ -171,21 +210,22 @@ prompt(char *p, char *b, int n)
 int
 challuser(char *user)
 {
-	char chall[NETCHLEN];
 	char nchall[NETCHLEN+32];
 	char response[NAMELEN];
-	int fd;
+	Chalstate ch;
 
 	if(*user == 0)
 		prompt("user", user, NAMELEN);
-	if(nonone == 0 && strcmp(user, "none") == 0)
+	if(strcmp(user, "none") == 0){
+		if(nonone)
+			return -1;
 		return 0;
-	fd = getchall(user, chall);
-	if(fd < 0)
+	}
+	if(getchal(&ch, user) < 0)
 		return -1;
-	sprint(nchall, "challenge: %s\r\nresponse", chall);
+	sprint(nchall, "challenge: %s\r\nresponse", ch.chal);
 	prompt(nchall, response, sizeof response);
-	if(challreply(fd, user, response) < 0)
+	if(chalreply(&ch, response) < 0)
 		return -1;
 	return 0;
 }

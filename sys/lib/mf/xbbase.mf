@@ -1,11 +1,43 @@
-%% XBBASE.MF                     June 1990
-%% This Metafont file is part of AMSFonts 2.0.
-%% Blackboard Bold Characters Copyright (c) 1989 N. N. Billawala
-%% All rights reserved.  Copying of this file is authorized only if either:
-%%   (1) you make absolutely no changes to your copy including filename; OR
-%%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="xbbase.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: base",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "63222 232 806 8822"
+%%     keywords="amsfonts, tex, metafont , AMSSymbols ",
+%%     abstract="This is the base file for use with 
+%%            the Blackboard Bold characters in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Changes made for version 2.1:
+% Fixed Problems with smode in draw_outlines and showpoints
+%   Stefan Lindner, 21-March-1991
+% Fixed Problems with serifs at small point sizes
+%   Stefan Lindner and Lutz Birkhahn, 14-April-91
 
 vardef curve@#(expr a,one,b,two)=
   save x,y;
@@ -40,7 +72,7 @@ boolean its_a_leftserif;
 
 vardef full_serif_points@#
 (expr A,B,Bl,Br,leftlength,rightlength,midbracket_pull)=
-  min_limit(join_radius)(.5serif_thickness);
+%%%% min_limit(join_radius)(.5serif_thickness);   % -sl 14.04.91
   (z1-B)=whatever*(A@#-B@#);            
   (z1l-Bl)=whatever*(A@#-B@#);          
   (z1r-Br)=whatever*(A@#-B@#);          
@@ -58,6 +90,7 @@ enddef;
 vardef leftserif@#(expr A,B,Bl,Br,alength,midbracket_pull)=
   its_a_leftserif:=true;  
   save x,y,p; path p[]; 
+  min_limit(join_radius)(.5serif_thickness);   % -sl 14.04.91
   full_serif_points@#(A,B,Bl,Br,alength,0,midbracket_pull);                
   p0:=Bl{z1l-Bl}...{z3-z1l}z3;                     
   if midbracket_pull<>0: 
@@ -72,6 +105,7 @@ enddef;
 vardef rightserif@#(expr A,B,Bl,Br,alength,midbracket_pull)=
   its_a_leftserif:=false;
   save x,y,p; path p[]; 
+  min_limit(join_radius)(.5serif_thickness);   % -sl 14.04.91
   full_serif_points@#(A,B,Bl,Br,0,alength,midbracket_pull);
   p4:=z4{z1r-z4}...{Br-z1r}Br;                     
   if midbracket_pull<>0:
@@ -121,7 +155,9 @@ def draw_outlines=  pickup pencircle scaled linethickness;
   for n=1 upto 3:if known p[n]:draw p[n];fi 
                  if known p[n]':draw p[n]';fi
                  if known p[n]'':draw p[n]'';fi endfor
+  if numeric mode:      % -sl    21.03.1991
   if mode=proof: drawgrid; fi
+  fi                    % -sl    21.03.1991
   enddef;
 
 def drawgrid=
@@ -138,9 +174,11 @@ vardef onaline(suffix a,b)(text t)=forsuffixes $=t:z$=whatever[z.a,z.b]; endfor
  
 
 def showpoints(text t)= 
+ if numeric mode:      % -sl    21.03.1991
  if mode=proof:pickup pencircle scaled 3;
  forsuffixes $:=t:forsuffixes s:=l,,r:if known z$.s:draw z$s;fi endfor endfor
  pickup pencircle scaled 1; penlabels(t); fi
+ fi                    % -sl    21.03.1991
 enddef;
 
 
@@ -191,3 +229,4 @@ def minadjpix(text ttt)(text tt)(text t)=      % adjusted pixels with a minimum
 
 
 def highres_lowres(text t)(expr a,b)=t:=if lowres:b else:a fi enddef;
+

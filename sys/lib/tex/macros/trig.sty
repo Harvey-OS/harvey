@@ -1,0 +1,98 @@
+%% 
+%% This is file `trig.sty', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% trig.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file trig.dtx .
+%% 
+%% File: trig.dtx Copyright (C) 1993-1994 David Carlisle
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{trig}
+                 [1994/10/16 v1.08 sin cos tan (DPC)]
+\chardef\nin@ty=90
+\chardef\@clxx=180
+\chardef\@lxxi=71
+\mathchardef\@mmmmlxviii=4068
+\chardef\@coeffz=72
+\chardef\@coefb=42
+\mathchardef\@coefc=840
+\mathchardef\@coefd=5040
+{\catcode`t=12\catcode`p=12\gdef\noPT#1pt{#1}}
+\def\TG@rem@pt#1{\expandafter\noPT\the#1\space}
+\def\TG@term#1{%
+ \dimen@\@tempb\dimen@
+ \advance\dimen@ #1\p@}
+\def\TG@series{%
+ \dimen@\@lxxi\dimen@
+ \divide \dimen@ \@mmmmlxviii
+ \edef\@tempa{\TG@rem@pt\dimen@}%
+ \dimen@\@tempa\dimen@
+ \edef\@tempb{\TG@rem@pt\dimen@}%
+ \divide\dimen@\@coeffz
+ \advance\dimen@\m@ne\p@
+ \TG@term\@coefb
+ \TG@term{-\@coefc}%
+ \TG@term\@coefd
+ \dimen@\@tempa\dimen@
+ \divide\dimen@ \@coefd}
+\def\CalculateSin#1{{%
+  \expandafter\ifx\csname sin(\number#1)\endcsname\relax
+    \dimen@=#1\p@\TG@@sin
+    \expandafter\xdef\csname sin(\number#1)\endcsname
+                                    {\TG@rem@pt\dimen@}%
+  \fi}}
+\def\CalculateCos#1{{%
+  \expandafter\ifx\csname cos(\number#1)\endcsname\relax
+    \dimen@=\nin@ty\p@
+    \advance\dimen@-#1\p@
+    \TG@@sin
+    \expandafter\xdef\csname cos(\number#1)\endcsname
+                                     {\TG@rem@pt\dimen@}%
+  \fi}}
+\def\TG@reduce#1#2{%
+\dimen@#1#2\nin@ty\p@
+  \advance\dimen@#2-\@clxx\p@
+  \dimen@-\dimen@
+  \TG@@sin}
+\def\TG@@sin{%
+  \ifdim\TG@reduce>+%
+  \else\ifdim\TG@reduce<-%
+  \else\TG@series\fi\fi}%
+\def\UseSin#1{\csname sin(\number#1)\endcsname}
+\def\UseCos#1{\csname cos(\number#1)\endcsname}
+\chardef\z@num\z@
+\expandafter\let\csname sin(0)\endcsname\z@num
+\expandafter\let\csname cos(0)\endcsname\@ne
+\expandafter\let\csname sin(90)\endcsname\@ne
+\expandafter\let\csname cos(90)\endcsname\z@num
+\expandafter\let\csname sin(-90)\endcsname\m@ne
+\expandafter\let\csname cos(-90)\endcsname\z@num
+\expandafter\let\csname sin(180)\endcsname\z@num
+\expandafter\let\csname cos(180)\endcsname\m@ne
+\def\CalculateTan#1{{%
+  \expandafter\ifx\csname tan(\number#1)\endcsname\relax
+    \CalculateSin{#1}%
+    \CalculateCos{#1}%
+    \@tempdima\UseCos{#1}\p@
+    \divide\@tempdima\@iv
+    \@tempdimb\UseSin{#1}\p@
+    \@tempdimb\two@fourteen\@tempdimb
+    \divide\@tempdimb\@tempdima
+    \expandafter\xdef\csname tan(\number#1)\endcsname
+                                        {\TG@rem@pt\@tempdimb}%
+  \fi}}
+\def\UseTan#1{\csname tan(\number#1)\endcsname}
+\mathchardef\two@fourteen=16384
+\chardef\@iv=4
+\expandafter\def\csname tan(90)\endcsname{\errmessage{Infinite tan !}}
+\expandafter\let\csname tan(-90)\expandafter\endcsname
+                                       \csname tan(90)\endcsname
+\endinput
+%% 
+%% End of file `trig.sty'.

@@ -18,7 +18,7 @@ void
 main(int argc, char *argv[])
 {
 	Filsys *fs;
-	int i, ream;
+	int i, ream, fsok;
 	int newbufsize, nocheck;
 	char buf[NAMELEN];
 
@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 	ream = 0;
 	newbufsize = 0;
 	nocheck = 0;
-	wrenfile = "/dev/hd0fs";
+	wrenfile = "/dev/sd0fs";
 	buf[0] = '\0';
 	ARGBEGIN{
 	case 'b':
@@ -57,6 +57,9 @@ main(int argc, char *argv[])
 	case 's':
 		sfd = 0;
 		rfd = 1;
+		break;
+	case 'B':
+		conf.niobuf = strtoul(ARGF(), 0, 0);
 		break;
 	case 'C':
 		chat = 1;
@@ -111,7 +114,8 @@ main(int argc, char *argv[])
 	boottime = time();
 
 	consserve();
-	if(!nocheck && !ream)
+	fsok = superok(filsys[0].dev, superaddr(filsys[0].dev), 0);
+	if(!nocheck && !ream && !fsok)
 		cmd_exec("check fq");
 
 	/*
@@ -133,6 +137,8 @@ getmsg(char *buf, Fcall *f, int *n)
 	fd = chan->chan;
 	for(;;){
 		*n = read(fd, buf, MAXMSG + MAXDAT);
+		if(chat)
+			print("read msg %d\n", *n);
 		if(*n == 0){
 			continue;
 		}
@@ -140,7 +146,10 @@ getmsg(char *buf, Fcall *f, int *n)
 			return 0;
 		if(convM2S(buf, f, *n))
 			return chan;
+		if(chat)
+			print("bad convM2S\n");
 	}
+	return 0;
 }
 
 void
@@ -356,7 +365,7 @@ confinit(void)
 {
 	int mul;
 
-	conf.niobuf = 30;
+	conf.niobuf = 0;
 	conf.nuid = 300;
 	conf.nserve = 2;
 	conf.uidspace = conf.nuid*6;
@@ -415,6 +424,7 @@ srvfd(char *s, int sfd)
 	sprint(buf, "%d", sfd);
 	if(write(fd, buf, strlen(buf)) != strlen(buf))
 		panic("srv write");
+	close(fd);
 	return sfd;
 }
 
@@ -459,6 +469,33 @@ askream(Filsys *fs)
 	return c == 'y';
 }
 
+ulong
+memsize(void)
+{
+	char *p, buf[128];
+	int fd, n, by2pg, secs;
+
+	by2pg = 4*1024;
+	p = getenv("cputype");
+	if(p && strcmp(p, "68020") == 0)
+		by2pg = 8*1024;
+
+	secs = 4*1024*1024;
+	
+	fd = open("/dev/swap", OREAD);
+	if(fd < 0)
+		return secs;
+	n = read(fd, buf, sizeof(buf)-1);
+	close(fd);
+	if(n <= 0)
+		return secs;
+	buf[n] = 0;
+	p = strchr(buf, '/');
+	if(p)
+		secs = strtoul(p+1, 0, 0)*by2pg;
+	return secs;
+}
+
 /*
  * init the devices
  * wipe some of the file systems, or all if ream is set
@@ -474,6 +511,16 @@ fsinit(int ream, int newbufsize)
 		(*devcall[fs->dev.type].init)(fs->dev);
 	if(newbufsize == 0)
 		newbufsize = RBUFSIZE;
+
+	if(conf.niobuf == 0) {
+		conf.niobuf = memsize()/10;
+		if(conf.niobuf > 2*1024*1024)
+			conf.niobuf = 2*1024*1024;
+		conf.niobuf /= newbufsize;
+		if(conf.niobuf < 30)
+			conf.niobuf = 30;
+	}
+
 	BUFSIZE = RBUFSIZE - sizeof(Tag);
 
 	for(fs=filsys; fs->name; fs++)
@@ -549,7 +596,9 @@ iobufinit(void)
 	}
 }
 
-void usage(void){
+void
+usage(void)
+{
 	fprint(2, "usage: kfs [-cCr] [-b bufsize] [-s infd outfd] [-f fsfile]\n");
 	exits(0);
 }

@@ -1,0 +1,160 @@
+%% BEGIN semlcmss.sty
+\def\fileversion{1.0 (2e)}
+\def\filedate{94/02/01}
+%%
+%% LaTeX style option `semlcmss.sty' for the `seminar' document style.
+%% For use with LaTeX v2.09 and the New Font Selection Scheme (1 or 2)
+%% or (some day) with LaTeX2e.
+%%
+%% COPYRIGHT 1994, by Timothy Van Zandt, tvz@Princeton.EDU
+%% See seminar.sty or seminar.doc for copying restrictions.
+%%
+%% This file contains the external font information needed to load
+%% the SliTeX sans serif fonts for use by seminar.sty.
+%%
+\csname semlcmss@loaded\endcsname
+\let\semlcmss@loaded\endinput
+\typeout{Style Option: `semlcmss' \fileversion\space <\filedate> (tvz)}
+\@ifundefined{selectfont}
+  {\@seminarerr{`semlcmss' style option can only be used
+    with the New Font Selection Scheme}\@eha\endinput}{}
+%
+\expandafter\ifx\csname DeclareSizeFunction\endcsname\relax
+
+% First, the font definitions:
+\new@fontshape{lcmss}{m}{n}{%
+  <5>lcmss8 scaled 695%
+  <6>lcmss8 scaled 833%
+  <7>lcmss8 scaled 913%
+  <8>lcmss8 %
+  <9>lcmss8 scaled 1095%
+  <10>lcmss8 scaled 1200%
+  <11>lcmss8 scaled 1314%
+  <12>lcmss8 scaled 1440%
+  <14>lcmss8 scaled 1727%
+  <17>lcmss8 scaled 2074%
+  <20>lcmss8 scaled 2488%
+  <25>lcmss8 scaled 2986%
+  }{}
+\extra@def{lcmss}{}{}
+%
+\new@fontshape{lcmss}{m}{it}{%
+  <5>lcmssi8 scaled 695%
+  <6>lcmssi8 scaled 833%
+  <7>lcmssi8 scaled 913%
+  <8>lcmssi8 %
+  <9>lcmssi8 scaled 1095%
+  <10>lcmssi8 scaled 1200%
+  <11>lcmssi8 scaled 1314%
+  <12>lcmssi8 scaled 1440%
+  <14>lcmssi8 scaled 1727%
+  <17>lcmssi8 scaled 2074%
+  <20>lcmssi8 scaled 2488%
+  <25>lcmssi8 scaled 2986%
+  }{}
+\extra@def{lcmss}{}{}
+\subst@fontshape{lcmss}{m}{sl}{lcmss}{m}{it}
+%
+\new@fontshape{lcmss}{bx}{n}{%
+  <5>lcmssb8 scaled 695%
+  <6>lcmssb8 scaled 833%
+  <7>lcmssb8 scaled 913%
+  <8>lcmssb8 %
+  <9>lcmssb8 scaled 1095%
+  <10>lcmssb8 scaled 1200%
+  <11>lcmssb8 scaled 1314%
+  <12>lcmssb8 scaled 1440%
+  <14>lcmssb8 scaled 1727%
+  <17>lcmssb8 scaled 2074%
+  <20>lcmssb8 scaled 2488%
+  <25>lcmssb8 scaled 2986%
+  }{}
+\extra@def{cmssb}{}{}
+\subst@fontshape{lcmss}{bx}{it}{lcmss}{bx}{n}
+\subst@fontshape{lcmss}{bx}{sl}{lcmss}{bx}{n}
+
+%
+% Now define \slidefonts:
+\ifarticle
+  \def\slidefonts{%
+    \def\default@family{lcmss}%
+    \def\rmdefault{lcmss}%
+    \def\sfdefault{lcmss}%
+    \family\default@family\selectfont}
+\else
+    \def\default@family{lcmss}%
+    \def\rmdefault{lcmss}%
+    \def\sfdefault{lcmss}%
+    \family\default@family\selectfont
+\fi
+
+\else
+
+\DeclareFontFamily{OT1}{lcmss}{}{}
+\DeclareFontShape{OT1}{lcmss}{m}{n}{
+  <5>s*[1.1120]lcmss8
+  <6>s*[1.1107]lcmss8
+  <7>s*[1.0434]lcmss8
+  <8>lcmss8
+  <9>s*[0.9733]lcmss8
+  <10><10.95><12><14.4><17.28><20.74><24.88>s*[0.96]lcmss8}{}
+
+\DeclareFontShape{OT1}{lcmss}{m}{sl}{
+  <5>s*[1.1120]lcmssi8
+  <6>s*[1.1107]lcmssi8
+  <7>s*[1.0434]lcmssi8
+  <8>lcmssi8
+  <9>s*[0.9733]lcmssi8
+  <10><10.95><12><14.4><17.28><20.74><24.88>s*[0.96]lcmssi8}{}
+
+\DeclareFontShape{OT1}{lcmss}{bx}{n}{
+  <5>s*[1.1120]lcmssb8
+  <6>s*[1.1107]lcmssb8
+  <7>s*[1.0434]lcmssb8
+  <8>lcmssb8
+  <9>s*[0.9733]lcmssb8
+  <10><10.95><12><14.4><17.28><20.74><24.88>s*[0.96]lcmssb8}{}
+
+\DeclareFontShape{OT1}{lcmss}{m}{it}{<-> ssub * lcmss/m/sl }{}
+\DeclareFontShape{OT1}{lcmss}{bx}{it}{<-> sub * lcmss/bx/n }{}
+\DeclareFontShape{OT1}{lcmss}{bx}{sl}{<-> sub * lcmss/bx/n }{}
+
+% Now define \slidefonts:
+\ifarticle
+  \def\slidefonts{%
+    \def\default@family{lcmss}%
+    \def\rmdefault{lcmss}%
+    \def\sfdefault{lcmss}%
+    \fontfamily\default@family\selectfont}
+\else
+    \def\default@family{lcmss}%
+    \def\rmdefault{lcmss}%
+    \def\sfdefault{lcmss}%
+    \fontfamily\default@family\selectfont
+\fi
+
+\fi
+
+% Now set up a few things for seminar.sty:
+% These fonts are intended to be used with the 10pt font size
+% declarations (and \magstep4), slightly modified:
+\ptsize{10}\slidesmag{4}\articlemag{0}
+\@namedef{10@semptsize}{%
+  \def\@normalsize{\slide@@setsize\normalsize{12pt}\xpt\@xpt}%
+  \def\small{\footnotesize}%
+  \def\footnotesize{\slide@@setsize\footnotesize{9.5pt}\viiipt\@viiipt}%
+  \def\scriptsize{\footnotesize}%
+  \def\tiny{\slide@setsize\tiny{6pt}\vpt\@vpt}%
+  \def\large{\slide@setsize\large{14pt}\xiipt\@xiipt}%
+  \def\Large{\slide@setsize\Large{18pt}\xivpt\@xivpt}%
+  \def\LARGE{\slide@setsize\LARGE{22pt}\xviipt\@xviipt}%
+  \def\huge{\slide@setsize\huge{25pt}\xxpt\@xxpt}%
+  \def\Huge{\huge}}
+\def\semlcmss@warning#1{%
+  \@warning{Can't use `\string#1' with the semlcmss option!}}
+\def\ptsize#1{\semlcmss@warning\ptsize}
+\def\slidesmag#1{\semlcmss@warning\slidesmag}
+\def\articlemag#1{\semlcmss@warning\articlemag}
+
+\endinput
+%% END semlcmss.sty

@@ -72,7 +72,7 @@ dodefine(Tokenrow *trp)
 		if (comparetokens(def, np->vp)
 		 || (np->ap==NULL) != (args==NULL)
 		 || np->ap && comparetokens(args, np->ap))
-			error(ERROR, "Macro redefinition of %t", tp);
+			error(ERROR, "Macro redefinition of %t", trp->bp+2);
 	}
 	if (args) {
 		Tokenrow *tap;

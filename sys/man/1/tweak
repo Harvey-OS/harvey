@@ -11,7 +11,8 @@ tweak \- edit bitmap files, subfont files, face files, etc.
 .I Tweak
 edits existing files holding various forms of bitmap images.
 To create original images, use
-.IR art (1).
+.IR art (1)
+or start from an existing bitmap, subfont, etc.
 .PP
 .I Tweak
 reads its argument
@@ -32,7 +33,7 @@ the rectangle covered by the image;
 and the name of the
 .B file
 from which it was read.
-If the file is a subfont, a second line presents a hexadecimal Unicode
+If the file is a subfont, a second line presents a hexadecimal 16-bit
 .B offset
 to be applied to character values from the subfont
 (typically as stored in a font file; see
@@ -84,8 +85,11 @@ The cursor will switch to a cross.
 Still with button 1, sweep a rectangle, as in
 .BR 8½ ,
 that encloses the portion of the image to be magnified.
+(If the file is 16×16 or smaller,
+.I tweak
+will just magnify the entire file; no sweeping is necessary.)
 .PP
-Depressing buttons 1 and 2 change within magnified images changes pixel values.
+Depressing buttons 1 and 2 within magnified images changes pixel values.
 By default, button 1 sets the pixel to all ones and button 2 sets the pixel
 to all zeros.
 .PP
@@ -158,13 +162,17 @@ If the image is the unmagnified file, also close any magnified views of that fil
 .TP
 .B exit
 Quit
-.I tweak.
+.IR tweak .
 The program will complain once about modified but unwritten files.
 .PP
 To clear blocks of pixels, use
 .B copy
 with function
 .BR 0 .
+.SH SOURCE
+.B /sys/src/cmd/tweak.c
 .SH "SEE ALSO"
 .IR art (1),
-.IR bitmap (6)
+.IR cachechars (2),
+.IR bitmap (6),
+.IR font (6)

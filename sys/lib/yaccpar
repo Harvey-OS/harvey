@@ -51,11 +51,11 @@ yylex1(void)
 	int c;
 
 	yychar = yylex();
+	if(yychar <= 0) {
+		c = yytok1[0];
+		goto out;
+	}
 	if(yychar < sizeof(yytok1)/sizeof(yytok1[0])) {
-		if(yychar <= 0) {
-			c = yytok1[0];
-			goto out;
-		}
 		c = yytok1[yychar];
 		goto out;
 	}
@@ -94,12 +94,35 @@ yyparse(void)
 	short *yyxi;
 	int yyj, yym, yystate, yyn, yyg;
 	long yychar;
+	YYSTYPE save1, save2;
+	int save3, save4;
+
+	save1 = yylval;
+	save2 = yyval;
+	save3 = yynerrs;
+	save4 = yyerrflag;
 
 	yystate = 0;
 	yychar = -1;
 	yynerrs = 0;
 	yyerrflag = 0;
 	yyp = &yys[-1];
+	goto yystack;
+
+ret0:
+	yyn = 0;
+	goto ret;
+
+ret1:
+	yyn = 1;
+	goto ret;
+
+ret:
+	yylval = save1;
+	yyval = save2;
+	yynerrs = save3;
+	yyerrflag = save4;
+	return yyn;
 
 yystack:
 	/* put a state and value onto the stack */
@@ -107,9 +130,9 @@ yystack:
 		fprint(2, "char %s in %s", yytokname(yychar), yystatname(yystate));
 
 	yyp++;
-	if(yyp >= &yys[YYMAXDEPTH]) { 
-		yyerror("yacc stack overflow"); 
-		return 1; 
+	if(yyp >= &yys[YYMAXDEPTH]) {
+		yyerror("yacc stack overflow");
+		goto ret1;
 	}
 	yyp->yys = yystate;
 	yyp->yyv = yyval;
@@ -151,7 +174,7 @@ yydefault:
 		}
 		yyn = yyxi[1];
 		if(yyn < 0)
-			return 0;
+			goto ret0;
 	}
 	if(yyn == 0) {
 		/* error ... attempt to resume parsing */
@@ -184,13 +207,13 @@ yydefault:
 				yyp--;
 			}
 			/* there is no state on the stack with an error shift ... abort */
-			return 1;
+			goto ret1;
 
 		case 3:  /* no shift yet; clobber input char */
 			if(yydebug >= 2)
 				fprint(2, "error recovery discards %s\n", yytokname(yychar));
 			if(yychar == YYEOFCODE)
-				return 1;
+				goto ret1;
 			yychar = -1;
 			goto yynewstate;   /* try again in the same state */
 		}

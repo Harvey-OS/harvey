@@ -8,7 +8,7 @@ String	plan9cmd;	/* null terminated */
 Buffer	*plan9buf;
 void	checkerrs(void);
 
-void
+int
 plan9(File *f, int type, String *s, int nest)
 {
 	long l;
@@ -99,7 +99,7 @@ plan9(File *f, int type, String *s, int nest)
 		error(Efork);
 	if(type=='<' || type=='|'){
 		int nulls;
-		if(downloaded)
+		if(downloaded && addr.r.p1 != addr.r.p2)
 			outTl(Hsnarflen, addr.r.p2-addr.r.p1);
 		snarf(f, addr.r.p1, addr.r.p2, snarfbuf, 0);
 		Fdelete(f, addr.r.p1, addr.r.p2);
@@ -125,6 +125,7 @@ plan9(File *f, int type, String *s, int nest)
 		checkerrs();
 	if(!nest)
 		dprint("!\n");
+	return retcode;
 }
 
 void
@@ -135,7 +136,7 @@ checkerrs(void)
 	char *p;
 	long l;
 
-	if(statfile(errfile, 0, 0, 0, &l) > 0 && l != 0){
+	if(statfile(errfile, 0, 0, 0, &l, 0) > 0 && l != 0){
 		if((f=open((char *)errfile, 0)) != -1){
 			if((n=read(f, buf, sizeof buf-1)) > 0){
 				for(nl=0,p=buf; nl<3 && p<&buf[n]; p++)

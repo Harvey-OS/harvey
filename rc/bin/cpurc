@@ -3,48 +3,41 @@ echo -n cpu > /env/service
 date > /env/boottime
 echo -n plan9 > /env/site
 
-# cs sets /dev/sysname, bind the ether to give cs
-# an address to look up
+# cs sets /dev/sysname
 ndb/cs
+
+# parallelism for mk
+NPROC=`{wc -l /dev/sysstat | sed 's/^ *//;s/ .*//'}
 # configure the swap channel
-mount -ct /srv/boot /n/bootesother other
-swap /n/bootesother/swap
+# mount -c /srv/boot /n/bootesother other; swap /n/bootesother/swap
 
 sysname=`{cat /dev/sysname}
 prompt=($sysname^'% ' '	')
 switch($sysname){
-case kremvax	# big multiprocessor
-	NPROC=4
-	ip/ipconfig
-	ip/rarpd & 	# only needed if you have suns to boot
-	ip/tftpd -d & ip/bootp
-	/mail/lib/mailcron &
-	aux/listen il
-	aux/listen tcp
-case musca 135.104.9.6	# mips magnum as cpu server and auth server
-	sysname=musca
+case p9auth	# PC as cpu server and auth server
 	auth/keyfs -m/mnt/keys /adm/keys
-	auth/keyfs -m/mnt/netkeys /adm/netkeys
-	ip/ipconfig
+	ip/ipconfig -b
 	ip/rarpd & 	# only needed if you have suns to boot
-	ip/tftpd -d & ip/bootp
-	ndb/dns -s
-	aux/listen -t /bin/service.auth -d /bin/service dk
-	aux/listen -t /bin/service.auth -d /bin/service il
-	aux/listen tcp
+	ip/tftpd & ip/bootp
+	ndb/dns
+	aux/listen -q -t /bin/service.auth -d /bin/service il
+	aux/listen -q -t /bin/service.auth -d /bin/service tcp
+case kremvax	# cpu server; modify to suit
+	echo warning: using default cpurc configuration for $sysname
+	ip/ipconfig -b
+	ip/rarpd & 	# only needed if you have suns to boot
+	ip/tftpd & ip/bootp
 	aux/listen il
+	aux/listen tcp
+case *	# unrecognized name
+	echo warning: using default cpurc configuration for $sysname
+	ip/ipconfig -b
+	ip/rarpd & 	# only needed if you have suns to boot
+	ip/tftpd & ip/bootp
+	aux/listen il
+	aux/listen tcp
 }
 date >> /$cputype/log/$sysname
 echo -n 'add tcp il udp' > /net/cs
 
-# configure the swap channel and start the pager
-# it should be put on a file system that doesn't get backed up to optical disk.
-# we do this:
-# mount -c /srv/boot /n/nobackup other
-# swap /n/nobackup/swap
-#
-# in the interim, you could try going to unix (see u9fs(4)):
-# srv tcp!kremunix!9fs
-# mount /srv/tcp!kremunix!9fs /n/kremunix
-# swap /n/kremunix/tmp
 echo swap not enabled, look at /rc/bin/cpurc

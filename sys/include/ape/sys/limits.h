@@ -7,7 +7,7 @@
 #undef	CHILD_MAX
 #define	CHILD_MAX	75
 #undef	OPEN_MAX
-#define	OPEN_MAX	100
+#define	OPEN_MAX	96
 #undef	LINK_MAX
 #define	LINK_MAX	1
 #undef	NAME_MAX

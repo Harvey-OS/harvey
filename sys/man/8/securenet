@@ -1,6 +1,6 @@
 .TH SECURENET 8
 .SH NAME
-Digital Pathways SecureNet Key \- remote authentication box
+securenet \- Digital Pathways SecureNet Key remote authentication box
 .SH DESCRIPTION
 The
 .I SecureNet
@@ -62,7 +62,7 @@ At the
 .B E2
 prompt, enter a PIN for the box.
 .PP
-After you confirm the PIN at the
+After you confirm by retyping the PIN at the
 .B E3
 prompt, you can use the box as normal.
 .PP
@@ -71,7 +71,7 @@ First, turn on the box and enter your current PIN at the
 .B EP
 prompt.
 Press
-.B END
+.B ENT
 three times;
 this will return you to the
 .B EP
@@ -118,7 +118,6 @@ too easily confused with digits on the
 .I SecureNet
 display.
 .SH "SEE ALSO"
-.IR login (8),
 .IR encrypt (2),
 .IR auth (2)
 .br
@@ -126,4 +125,4 @@ Digital Pathways, Mountain View, California
 .SH BUGS
 The box is too clumsy.
 If carried in a pocket,
-it can to turn itself on and wear out the batteries.
+it can turn itself on and wear out the batteries.

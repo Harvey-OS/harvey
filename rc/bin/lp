@@ -2,20 +2,34 @@
 # This program enqueues the file to be printed and starts the daemon, when necessary.
 # Make changes to /sys/src/cmd/lp/lp.rc.  Changes made directly to /rc/bin/lp will be lost.
 
-rfork ens	# so that environment and name space are not polluted
-# can remove -s from above if add this line:
-# fn sigint { rm /tmp/lpcrap; exit interrupted }
+rfork en	# so that environment and name space are not polluted
+# 
+# put 'fn sigexit { rm /tmp/lpcrap; exit interrupted }' into processes that create /tmp/lpcrap.
 
 ifs=' 	
 '		# set ifs in case it is munged in user's environment
-LPSPOOL=/sys/lib/lp/queue
-LPLIB=/sys/lib/lp
+
+LPLIB=/sys/lib/lp			# lp scripts directories and configuration file are here
+LPBIN=/$cputype/bin/aux		# lp specific binaries are here
+LPSPOOL=$LPLIB/queue		# lp queues, prob, log
+LPLOGDIR=/sys/lib/lp/log	# lp logs
+
+if (! test -r /srv/bootes) srv -m bootes
+if (! mount -c /srv/bootes /n/bootesother other || ! bind -a /n/bootesother/lp /sys/lib/lp) {
+	echo 'could not properly setup LPSPOOL' >[1=2]
+	exit 'LPSPOOL setup'
+}
+
 # develop /bin from scratch
-bind /$cputype/bin /bin
-bind -b /rc/bin /bin
-bind -b $LPLIB/bin/$cputype /bin
-bind -b $LPLIB/bin/rc /bin
+bind /$cputype/bin /bin			# general compiled binaries
+bind -a /rc/bin /bin			# general rc scripts
+# This needs to be fixed for the real thing
+bind -a $LPLIB/bin /bin			# lp specific rc scripts
+bind -a $LPBIN /bin				# lp specific compiled binaries
 path=(/bin)
+
+if (! test -w /tmp) bind -bc $LPLIB/tmp /tmp
+
 USAGE='usage:	lp [-d printer] [-p process] [options] [files]
 		lp [-d printer] -q
 		lp [-d printer] -k jobnos
@@ -66,7 +80,7 @@ FLAGD=();FLAGH=();FLAGL=();FLAGM=();FLAGQ=();FLAGc=();FLAGd=();FLAGf=()
 FLAGi=();FLAGk=();FLAGl=();FLAGm=();FLAGn=();FLAGo=();FLAGp=();FLAGq=()
 FLAGr=();FLAGt=();FLAGu=();FLAGx=();FLAGy=()
 # Process options
-eval `{getflags DHLM:1Qc:1d:1f:1i:1kl:1m:1n:1o:1p:1qrt:1u:1x:1y:1 $*}
+eval `{aux/getflags DHLM:1Qc:1d:1f:1i:1kl:1m:1n:1o:1p:1qrt:1u:1x:1y:1 $*}
 if (! ~ $status '') exit $status
 if (! ~ $#FLAGD 0) { DEBUG=1; flag x + }; if not { DEBUG=''; flag x - }
 if (! ~ $#FLAGH 0) NOHEAD=1; if not NOHEAD=''
@@ -88,7 +102,7 @@ if (! ~ $#FLAGk 0) KILLFLAG=1; if not KILLFLAG=0
 if (! ~ $#FLAGl 0) LINES=$FLAGl
 if (! ~ $#FLAGm 0) MAG=$FLAGm
 if (! ~ $#FLAGn 0) NPAG=$FLAGn
-if (! ~ $#FLAGo 0) NPAG=-o$FLAGo
+if (! ~ $#FLAGo 0) OLIST=-o$FLAGo
 if (! ~ $#FLAGp 0) {
 	switch (FLAGp) {
 	case '?';exec ls $LPLIB/process
@@ -139,7 +153,7 @@ if (~ $KILLFLAG 1)
 		exit 'kill n/a'
 	case *;	bind -b $LPLIB/kill /bin
 		exec $KILL $*
-		exit 'kill command not found'
+		exit 'kill command '"$KILL"' not found'
 	}
 if (~ $LPQ 1)
 	switch ($STAT) {
@@ -147,13 +161,21 @@ if (~ $LPQ 1)
 		exit 'stat option not available'
 	case *;	bind -b $LPLIB/stat /bin
 		exec $STAT $* < /dev/null
-		exit 'stat command not found'
+		exit 'stat command '"$STAT"' not found'
 	}
 DATE=`{date}
-LPLOG=$LPLIB/log/$LPDEST.$DATE(1)
-if (! test -w $LPLOG) {
+LPLOG=$LPLOGDIR/$LPDEST.$DATE(1)
+if (test -w $LPLOG) {
+	LSLINE=`{ls -l $LPLOG};
+	if (! ~ $LSLINE(7) $DATE(2) || ! ~ $LSLINE(8) $DATE(3))	{
+		rm $LPLOG
+		>$LPLOG
+		chmod ugo+rwa $LPLOG
+	}
+}
+if not {
 	>$LPLOG
-	chmod 666 $LPLOG
+	chmod ugo+rwa $LPLOG
 }
 switch ($SPOOLER) {
 case -;	echo spooler does not exist for $LPDEST >[1=2]
@@ -162,14 +184,12 @@ case *;	bind -b $LPLIB/spooler /bin
 	if (~ $#* 0) $SPOOLER
 	if not $SPOOLER $*
 }
-LSLINE=`{ls -l $LPLOG};
-if (! ~ $LSLINE(7) $DATE(2) || ! ~ $LSLINE(8) $DATE(3))	cp /dev/null $LPLOG
 
 # run daemon
 if (~ $QONLY '') {
 	if (! ~ $DAEMON -) {
 		bind -b $LPLIB/daemon /bin
-		$DAEMON $* >>$LPLOG >[1=2] &
+		$DAEMON $* >>$LPLOG >[2=1] &
 	}
 }
-exit
+exit ''

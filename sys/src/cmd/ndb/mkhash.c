@@ -61,7 +61,7 @@ enter(char *val, ulong dboff)
 	nextchain += 2*NDBPLEN;
 }
 
-uchar nbuf[8*1024];
+uchar nbuf[16*1024];
 
 void
 main(int argc, char **argv)
@@ -84,14 +84,13 @@ main(int argc, char **argv)
 		fprint(2, "mkhash: can't open %s\n", argv[1]);
 		exits(syserr());
 	}
-	Binits(db, Bfildes(db), OREAD, nbuf, sizeof(nbuf));
-	if(dirstat(argv[1], &d) < 0){
-		fprint(2, "mkhash: can't stat %s\n", argv[1]);
-		exits(syserr());
-	}
+
+	/* try a bigger than normal buffer */
+	Binits(&db->b, Bfildes(&db->b), OREAD, nbuf, sizeof(nbuf));
 
 	/* count entries to calculate hash size */
 	n = 0;
+
 	while(nt = ndbparse(db)){
 		for(t = nt; t; t = t->entry){
 			if(strcmp(t->attr, argv[2]) == 0){
@@ -115,15 +114,15 @@ main(int argc, char **argv)
 	nextchain = hlen*NDBPLEN;
 
 	/* create the in core hash table */
-	ndbseek(db, 0, 0);
-	off = db->offset;
+	Bseek(&db->b, 0, 0);
+	off = 0;
 	while(nt = ndbparse(db)){
 		for(t = nt; t; t = t->entry){
 			if(strcmp(t->attr, argv[2]) == 0)
 				enter(t->val, off);
 		}
 		ndbfree(nt);
-		off = db->offset;
+		off = Boffset(&db->b);
 	}
 
 	/* create the hash file */
@@ -133,7 +132,7 @@ main(int argc, char **argv)
 		fprint(2, "mkhash: can't create %s\n", file);
 		exits(syserr());
 	}
-	NDBPUTUL(d.mtime, buf);
+	NDBPUTUL(db->mtime, buf);
 	NDBPUTUL(hlen, buf+NDBULLEN);
 	if(write(fd, buf, NDBHLEN) != NDBHLEN){
 		fprint(2, "mkhash: writing %s\n", file);
@@ -144,6 +143,14 @@ main(int argc, char **argv)
 		exits(syserr());
 	}
 	close(fd);
+
+	/* make sure file didn't change while we were making the hash */
+	if(dirstat(argv[1], &d) < 0 || d.qid.path != db->qid.path
+	   || d.qid.vers != db->qid.vers){
+		fprint(2, "mkhash: %s changed underfoot\n", argv[1]);
+		remove(file);
+		exits("changed");
+	}
 
 	exits(0);
 }

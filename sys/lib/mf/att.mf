@@ -16,6 +16,16 @@ mode_def canon =  % canon mode: for the Canon engine in a laserwriter
  o_correction:=.6;    %
  enddef;
 
+mode_def ljfour =  % 600dpi HP LaserJet 4
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;    % no, don't show titles in the log
+ pixels_per_inch:=600;
+ blacker:=0;      % engine is black enough
+ fillin:=.2;      % and it tends to fill in diagonals
+ o_correction:=.6;    %
+ enddef;
+
 mode_def qms =    % qms mode: for the QMS (Xerox engine)
  proofing:=0;      % no, we're not making proofs
  fontmaking:=1;      % yes, we are making a font
@@ -74,6 +84,16 @@ mode_def gnot =    % gnot mode: for 100dpi gnot fonts
  fontmaking:=1;    % yes, we are making a font
  tracingtitles:=0; % no, don't show titles in the log
  pixels_per_inch:=100; % really lowres
+ blacker:=0;       % don't make pens any blacker
+ fillin:=0;        % and don't compensate for fillin
+ o_correction:=.2; % supress most overshoots
+ enddef;
+
+mode_def fax =     % fax mode: for 200dpi fax fonts
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;    % yes, we are making a font
+ tracingtitles:=0; % no, don't show titles in the log
+ pixels_per_inch:=200; % lowres
  blacker:=0;       % don't make pens any blacker
  fillin:=0;        % and don't compensate for fillin
  o_correction:=.2; % supress most overshoots

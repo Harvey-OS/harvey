@@ -1,4 +1,31 @@
-% AMSMODES.MF
+%% @mffile{
+%%     filename="amsmodes.mf",
+%%     version="2.1a",
+%%     date="1-OCT-1991",
+%%     filetype="Metafont: ",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support Group,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.com",
+%%     codetable="ISO/ASCII",
+%%     checksumtype="line count",
+%%     checksum="189",
+%%     keywords="amsfonts, tex, metafont  ",
+%%     abstract=""
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This file is based on Stanford's WAITS.mf.  A few extra modes
 % are added and the file CURMODE.mf is input at the end if
 % the variable "mode" is unknown.
@@ -62,7 +89,7 @@ mode_def pcscreen =  % pcscreen mode: for screen fonts (118dpi)
  pixels_per_inch:=118;
  blacker:=0;      % Canon engine is black enough
  fillin:=0;      % and it tends to fill in diagonals
- o_correction:=1;    % don't overshoot
+ o_correction:=0;    % don't overshoot
  enddef;          
 
 mode_def epsonlq =  % epsonlq mode: for the Epson LQ and Toshiba
@@ -114,7 +141,7 @@ mode_def macintosh =
  pixels_per_inch:=72;
  blacker:=0;      % Don't blacken
  fillin:=0;      % 
- o_correction:=1;    %
+ o_correction:=0;    %
  enddef;          
 
 mode_def notimagewriter =  % notimagewriter mode: to get 129pk for screen
@@ -126,8 +153,29 @@ mode_def notimagewriter =  % notimagewriter mode: to get 129pk for screen
  pixels_per_inch:=129;
  blacker:=0;      % Don't blacken
  fillin:=0;      % 
- o_correction:=1;    %
+ o_correction:=0;    %
  enddef;          
+
+localfont:=laser;
+
+% Finally, here are macros for Xerox-world font info:
+
+def font_family expr s =  % string s names the font family, e.g., "CMR"
+ headerbyte 49: BCPL_string(s,20);
+ special "identifier "&s enddef;
+def coding_scheme expr s = % string s names the scheme, e.g. "TEX TEXT"
+ headerbyte 9: BCPL_string(s,40);
+ special "codingscheme "&s enddef;
+def font_face_byte expr x = % integer x gives the family member number,
+ headerbyte 72: x;          % which should be between 0 and 255
+ special "fontfacebyte"; numspecial x enddef;
+
+def BCPL_string(expr s,n)= % string s becomes an n-byte BCPL string
+ for l:=if length(s)>=n: n-1 else: length(s) fi: l
+  for k:=1 upto l: , substring (k-1,k) of s endfor
+  for k:=l+2 upto n: , 0 endfor endfor enddef;
+
+Xerox_world:=1;    % users can say `if known Xerox_world:...fi'
 
 inner end;
 def bye=

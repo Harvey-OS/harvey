@@ -26,3 +26,9 @@ Messages coming from Datakit are read from the data file in the same
 format.
 A read terminates at the end of a message.
 The largest possible received message is 1024 + 3 bytes.
+.SH "SEE ALSO
+.IR dk (3)
+.SH SOURCE
+.B /sys/src/9/*/devhs.c
+.br
+.B /sys/src/9/*/devincon.c

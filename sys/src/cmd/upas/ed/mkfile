@@ -4,6 +4,7 @@ TARG=edmail
 OFILES=message.$O\
 	edmail.$O\
 	cmds.$O\
+	../smtp/rfc822.tab.$O\
 
 LIB=../common/libcommon.a$O\
 	../libString/libString.a$O\
@@ -13,3 +14,8 @@ BIN=/$objtype/bin/upas
 CFLAGS=-w -I../common
 
 %.$O:	../common/common.h ../common/sys.h
+
+../smtp/rfc822.tab.$O:
+	cd ../smtp
+	mk rfc822.tab.$O
+	cd ../ed

@@ -33,5 +33,8 @@ If any options are given, the
 .B -c
 flags specify a subset of value formats: decimal, hex, octal, and
 character, respectively.
+.SH SOURCE
+.B /sys/src/cmd/freq.c
 .SH SEE ALSO
-.IR utf (6)
+.IR utf (6),
+.IR wc (1)

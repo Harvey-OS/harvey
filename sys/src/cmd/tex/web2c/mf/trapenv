@@ -1,0 +1,16 @@
+#!/bin/rc
+# Make sure that files will be found in the current directory, so the
+# trap test will run properly.
+# 
+
+# trap.mf.
+MFINPUTS=.
+
+# trap.base.
+MFBASES=.
+
+# mf.pool.
+MFPOOL=.
+
+# trap.72270gf
+GFFONTS=.

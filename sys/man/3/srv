@@ -72,3 +72,5 @@ read(p[1], buf, sizeof buf);
 .EE
 .PP
 in the above process.
+.SH SOURCE
+.B /sys/src/9/port/devsrv.c

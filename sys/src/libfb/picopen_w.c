@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <libg.h>
 #include <fb.h>
-#define	NPROP	1024
+#define	NPROP	8192	/* bug!! this is unchecked!!! */
 _PRDerror(PICFILE *f, char *buf){
 	USED(f, buf);
 	return 0;
@@ -18,7 +18,7 @@ PICFILE *picopen_w(char *file, char *type, int x, int y, int w, int h,
 	p->argc=-1;
 	p->cmap=0;
 	if(strcmp(file, "OUT")==0)
-		p->fd=1;
+		p->fd=dup(1, -1);
 	else{
 		p->fd=create(file, OWRITE, 0666);
 		if(p->fd<0){
@@ -40,7 +40,7 @@ PICFILE *picopen_w(char *file, char *type, int x, int y, int w, int h,
 	for(i=0;_PICconf[i].type;i++)
 		if(strcmp(type, _PICconf[i].type)==0) break;
 	if(!_PICconf[i].type){
-		_PICerror="Illegal TYPE";
+		werrstr("Illegal TYPE");
 		goto Error;
 	}
 	p->rd=_PRDerror;
@@ -58,7 +58,7 @@ PICFILE *picopen_w(char *file, char *type, int x, int y, int w, int h,
 	p->height=h;
 	p->nchan=strlen(chan);
 	if(_PICconf[i].nchan!=0 && _PICconf[i].nchan!=p->nchan){
-		_PICerror="wrong NCHAN for this TYPE";
+		werrstr("wrong NCHAN for this TYPE");
 		goto Error;
 	}
 	sprint(prop, "%d", p->nchan);
@@ -81,7 +81,7 @@ PICFILE *picopen_w(char *file, char *type, int x, int y, int w, int h,
 	if(cmap){
 		p->cmap=malloc(3*256);
 		if(p->cmap==0){
-			_PICerror="No memory for colormap";
+			werrstr("No memory for colormap");
 			goto Error;
 		}
 		memcpy(p->cmap, cmap, 3*256);
@@ -95,7 +95,9 @@ void _PWRheader(PICFILE *p){
 	register char **ap, *vp, *ep;
 	int nlen;
 	for(ap=p->argv;*ap;ap++){
-		vp=strchr(*ap, '=')+1;
+		vp=strchr(*ap, '=');
+		if(vp==0) continue;	/* error! */
+		vp++;
 		nlen=vp-*ap;
 		for(;;){
 			write(p->fd, *ap, nlen);

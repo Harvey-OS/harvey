@@ -1,0 +1,26 @@
+%!PS-Adobe-3.0
+%% This file changes the IP Address 
+
+%%Setting the IP Address will restart the printer!!
+
+%%Set The IP Address
+%%(%IP%) <</IPAddress (135.104.117.252)
+%%/BroadcastAddress (135.104.117.255)
+%%/NetworkMask (255.255.255.0)>> setdevparams
+%%serverdict begin 0 exitserver
+%%systemdict /quit get exec
+
+
+%% Print out the IP address
+%%To print out the current IP Address, comment out the 
+%%above commands under Set The IP Address with a percent 
+%%sign.  Uncomment the lines below by removing  the leading % sign.
+
+/Courier findfont 10 scalefont setfont 36 72 moveto
+(IPAddress  ) show
+(%IP%) currentdevparams /IPAddress get show
+( BroadcastAddress  ) show
+(%IP%) currentdevparams /BroadcastAddress get show
+( NetworkMask  ) show
+(%IP%) currentdevparams /NetworkMask get show
+showpage

@@ -7,12 +7,12 @@ int	nbit;
 char	msg[128];
 RGB	map[256];
 
-void mapcolor(void), mapgrey(int), mapfile(char *), dumpmap(void);
+void extmapcolor(void), mapcolor(void), mapgrey(int), mapfile(char *), dumpmap(void);
 
 void
 main(int argc, char **argv)
 {
-	int f;
+	int f, cons;
 	char c;
 	Bitmap *b;
 
@@ -22,6 +22,7 @@ main(int argc, char **argv)
 
 	ARGBEGIN{
 	case 'c':	mapcolor();		break;
+	case 'e':	extmapcolor();		break;
 	case 'g':	mapgrey(0);		break;
 	case 'r':	mapgrey(1);		break;
 	case 'm':	mapfile(ARGF());	break;
@@ -31,6 +32,9 @@ main(int argc, char **argv)
 		exits("usage");
 	}ARGEND
 
+	cons = open("/dev/cons", OREAD);
+	if(cons < 0)
+		cons = 0;
 	for( ;argc > 0; argc--, argv++) {
 		f = open(argv[0], OREAD);
 		if(f < 0) {
@@ -45,8 +49,9 @@ main(int argc, char **argv)
 			continue;
 		}
 		bitblt(&screen, screen.r.min, b, b->r, S);
+		bfree(b);
 		bflush();
-		read(0, &c, 1);
+		read(cons, &c, 1);
 		if(c == 'q')
 			break;
 	}
@@ -63,6 +68,8 @@ rep(ulong v, int n)
 	rv = 0;
 	for(o = 32 - n; o >= 0; o -= n)
 		rv |= (v << o);
+	if(o != -n)
+		rv |= v >> (-o);
 	return rv;
 }
 
@@ -101,15 +108,42 @@ mapcolor(void)
 {
 	int i;
 
-	if(npix != 256)
-		return;
-	for(i = 0; i < npix; i++){
-		map[i].red = ~rep((i>>5) & 7, 3);
-		map[i].green = ~rep((i>>2) & 7, 3);
-		map[i].blue = ~rep(i & 3, 2);
+	if(npix == 256){
+		for(i = 0; i < npix; i++){
+			map[i].red = ~rep((i>>5) & 7, 3);
+			map[i].green = ~rep((i>>2) & 7, 3);
+			map[i].blue = ~rep(i & 3, 2);
+		}
+		map[85].red = map[85].green = map[85].blue = 0xB5B5B5B5;	/* was 0xAAAAAAAA */
+		map[170].red = map[170].green = map[170].blue = 0x80808080;	/* was 0x55555555 */
+		wrcolmap(&screen, map);
+	} else if(npix == 16){
+		for(i = 0; i < npix; i++){
+			map[i].red = ~rep((i>>2) & 3, 2);
+			map[i].green = ~rep(i & 1, 1);
+			map[i].blue = ~rep(i & 3, 2);
+		}
+		map[5].red = map[5].green = map[5].blue = 0xB5B5B5B5;	/* was 0xAAAAAAAA */
+		map[10].red = map[10].green = map[10].blue = 0x80808080;	/* was 0x55555555 */
+		wrcolmap(&screen, map);
 	}
-	map[85].red = map[85].green = map[85].blue = 0xB5B5B5B5;	/* was 0xAAAAAAAA */
-	map[170].red = map[170].green = map[170].blue = 0x80808080;	/* was 0x55555555 */
+}
+
+/*
+ * Read Color map
+ */
+void
+extmapcolor(void)
+{
+	int i;
+	uchar buf[3];
+
+	for(i = 0; i < npix; i++){
+		read(0, buf, 3);
+		map[i].red = ~rep(buf[0], 8);
+		map[i].green = ~rep(buf[1], 8);
+		map[i].blue = ~rep(buf[2], 8);
+	}
 	wrcolmap(&screen, map);
 }
 

@@ -1,0 +1,105 @@
+#suffix		generic type	specific type	encoding
+.C		text		plain		-		# C++ program
+.Z		-		-		x-compress
+.a		application	octet-stream	-		# [Mosaic]
+.ada		text		plain		-		# ada program
+.ai		application	postscript	-		# [Mosaic]
+.aif		audio		x-aiff		-
+.aifc		audio		x-aiff		-
+.aiff		audio		x-aiff		-
+.au		audio		basic		-		# sun audio
+.avi		video		x-msvideo	-		# [Mosaic]
+.awk		text		plain		-		# awk program
+.bas		text		plain		-		# basic program
+.bbl		text		plain		-		# BibTex output
+.bcpio		application	x-bcpio		-		# [Mosaic]
+.bib		text		plain		-		# BibTex input
+.c		text		plain		-		# C program
+.c++		text		plain		-		# C++ program
+.cc		text		plain		-		# [Mosaic]
+.cdf		application	x-netcdf	-
+.cpio		application	x-cpio		-
+.cpp		text		plain		-		# DOS C++ program
+.dvi		application	x-dvi		-		# TeX output
+.enc		application	octet-stream	-		# encrypted file
+.eps		application	postscript	-
+.etx		text		x-setext	-		# [Mosaic]
+.exe		application	octet-stream	-		# DOS executable
+.executable	application	octet-stream	-		# DOS executable
+.exz		application	octet-stream	x-gzip		# gziped DOS executable
+.f		text		plain		-		# fortran-77 program
+.flc		video		x-flc		-
+.fli		video		x-fli		-
+.gif		image		gif		-
+.gtar		application	x-gtar		-		# [Mosaic]
+.gz		-		-		x-gzip		# gziped file
+.h		text		plain		-		# C header file
+.hdf		application	x-hdf		-
+.hqx		application	octet-stream	-		# Mac BinHex
+.htm		text		html		-
+.html		text		html		-
+.ief		image		ief		-		# [Mosaic]
+.jfif		image		jpeg		-		# [Mosaic]
+.jfif-tbnl	image		jpeg		-		# [Mosaic]
+.jpe		image		jpeg		-		# [Mosaic]
+.jpeg		image		jpeg		-
+.jpg		image		jpeg		-
+.latex		application	x-latex		-		# [Mosaic]
+.ltx		application	x-latex		-
+.man		application	x-troff-man	-		# [Mosaic]
+.me		application	x-troff-me	-		# [Mosaic]
+.mime		message		rfc822		-		# [Mosaic]
+.mov		video		quicktime	-		# [Mosaic]
+.movie		video		x-sgi-movie	-		# [Mosaic]
+.mpe		video		mpeg		-		# [Mosaic]
+.mpeg		video		mpeg		-
+.mpg		video		mpeg		-
+.ms		application	x-troff-ms	-		# [Mosaic]
+.mv		video		x-sgi-movie	-		# [Mosaic]
+.nc		application	x-netcdf	-		# [Mosaic]
+.o		application	octet-stream	-		# [Mosaic]
+.oda		application	oda		-		# [Mosaic]
+.pbm		image		x-portable-bitmap	-	# [Mosaic]
+.pdf		application	pdf		-		# Adobe Portable Document Format
+.pgm		image		x-portable-graymap	-	# [Mosaic]
+.pl		text		plain		-		# [Mosaic]
+.pnm		image		x-portable-anymap	-	# [Mosaic]
+.ppm		image		x-portable-pixmap	-	# [Mosaic]
+.ps		application	postscript	-
+.qt		video		quicktime	-		# [Mosaic]
+.r		text		plain		-		# ratfor program
+.ras		image		x-cmu-rast	-		# [Mosaic]
+.rfr		text		x-troff		-		# refer
+.rgb		image		x-rgb		-		# [Mosaic]
+.roff		application	x-troff		-		# [Mosaic]
+.rtf		application	rtf		-		# [Mosaic]
+.rtx		text		richtext 	-	# MIME richtext	  [Mosaic]
+.sh		application	x-shar		-
+.shar		application	x-shar		-
+.snd		audio		basic		-
+.sv4cpio	application	x-sv4cpio	-		# [Mosaic]
+.sv4crc		application	x-sv4crc	-		# [Mosaic]
+.t		application	x-troff		-		# [Mosaic]
+.tar		application	x-tar		-		# [Mosaic]
+.taz		application	x-tar		x-compress
+.tcl		application	x-tcl		-
+.tex		application	x-tex		-		# Tex input
+.texi		application	x-texinfo	-		# [Mosaic]
+.texinfo	application	x-texinfo	-		# [Mosaic]
+.text		text		plain		-		# [Mosaic]
+.tgz		application	x-tar		x-gzip
+.tif		image		tiff		-
+.tiff		image		tiff		-
+.toc		text		plain		-		# table of contents
+.tr		application	x-troff		-		# [Mosaic]
+.trz		application	x-tar		x-compress
+.tsv		text		tab-separated-values	-	# [Mosaic]
+.txt		text		plain		-
+.ustar		application	x-ustar		-		# [Mosaic]
+.wav		audio		x-wav		-
+.wsrc		application	x-wais-source	-		# [Mosaic]
+.xbm		image		x-xbitmap	-		# X bitmap
+.xpm		image		x-xpixmap	-		# [Mosaic]
+.xwd		image		x-xwindowdump	-		# [Mosaic]
+.z		-		-		x-compress
+.zip		application	zip		-

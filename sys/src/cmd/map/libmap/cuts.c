@@ -13,7 +13,7 @@ and the library duplicates should never get loaded, however they
 are included to make the libary self-standing.*/
 
 int
-picut(struct place *g, struct place *og, float *cutlon)
+picut(struct place *g, struct place *og, double *cutlon)
 {
 	g; og; cutlon;
 	abort();
@@ -21,15 +21,15 @@ picut(struct place *g, struct place *og, float *cutlon)
 }
 
 int
-ckcut(struct place *g1, struct place *g2, float lon)
+ckcut(struct place *g1, struct place *g2, double lon)
 {
 	g1; g2; lon;
 	abort();
 	return 0;
 }
 
-float
-reduce(float x)
+double
+reduce(double x)
 {
 	x;
 	abort();

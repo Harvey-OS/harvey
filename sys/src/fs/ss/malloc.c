@@ -34,11 +34,14 @@ xialloc(ulong n, int align, ulong pte)
 
 	if(mconf.vfract > mconf.vbase){
 		pte |= PTEVALID|PTEWRITE|PTEKERNEL;
-		pte += PPN(mconf.vbase);
 		while(mconf.vbase < mconf.vfract){
-			putpte(mconf.vbase, pte, 1);
+			ulong frame = PPN(mconf.vbase);
+			if (frame < mconf.npage0)
+				frame += PPN(mconf.base0);
+			else
+				frame += PPN(mconf.base1) - mconf.npage0;
+			putpte(mconf.vbase, pte + frame, 1);
 			mconf.vbase += BY2PG;
-			pte++;
 		}
 	}
 
@@ -296,7 +299,14 @@ iobufmap(Iobuf *p)
 	 */
 	v->ref++;
 	v->iobuf = p;
-	putpte(v->va, PPN((ulong)p->xiobuf)|PTEVALID|PTEKERNEL|PTEWRITE|PTEMAINMEM, 1);
+	{
+		ulong frame = PPN((ulong)p->xiobuf);
+		if (frame < mconf.npage0)
+			frame += PPN(mconf.base0);
+		else
+			frame += PPN(mconf.base1) - mconf.npage0;
+		putpte(v->va, frame|PTEVALID|PTEKERNEL|PTEWRITE|PTEMAINMEM, 1);
+	}
 
 	l = &vpalloc.hash[HASH(p->xiobuf)];
 	v->hash = *l;
@@ -341,3 +351,4 @@ iobufunmap(Iobuf *p)
 
 	p->iobuf = (char*)-1;
 }
+

@@ -1,0 +1,29 @@
+Mail is the single program in this directory.  Its argument specifies
+the mail box to read, default /mail/box/$user/mbox.
+For example, running
+	Mail /mail/box/$user/stored
+(a line in the guide file) looks at saved mail.
+
+Mail maintains a window containing headers for all the
+messages in the mailbox and monitors the mailbox for new messages.
+Using button 3 to indicate a message number opens
+a window on that message.   commands in the mailbox window are
+	Put		Write the mailbox back to the file (never done automatically)
+	Mail		Make a new message window ready to mail someone.
+			Takes argument names analogously to acme's New.
+	Del		Exit Mail, after checking that mailbox isn't modified.
+New messages appear at the top of the window and are highlighted upon arrival.
+(The messages are numbered oldest to newest, the opposite of regular mail.)
+
+Message windows have a simple format: the first line, up to the first tab or newline,
+holds the sender or, when sending, the addressee.  Edit the line to change who the
+message goes to.  Message windows contain the commands
+	Reply	Make a new window to compose a reply to this message
+	Delmesg	Delete the message from the screen and from the mailbox
+	Del		Delete the window, leaving the message in the mailbox
+	Post		Send the message to the addressee
+	Save		Save to the named mailbox, default/mail/box/$user/stored
+Save takes a full file name; if that name has no slashes, the file is taken
+to be in /mail/box/$user and must already exist. Use mkbox in the guide to
+create target mailboxes in /mail/box/$user.
+Reply and mail windows contain an obvious subset of the commands.

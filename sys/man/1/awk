@@ -11,6 +11,15 @@ awk \- pattern-directed scanning and processing language
 .I var=value
 ]
 [
+.BI -mr n
+]
+[
+.BI -mf n
+]
+[
+.B -f
+.I prog
+[
 .I prog
 ]
 [
@@ -54,15 +63,23 @@ any number of
 .B -v
 options may be present.
 .PP
-An input line is made up of fields separated by white space,
+An input line is normally made up of fields separated by white space,
 or by regular expression
-.BR FS .
+.IR fs .
 The fields are denoted
 .BR $1 ,
 .BR $2 ,
 \&..., while
 .B $0
 refers to the entire line.
+.PP
+To compensate for inadequate implementation of storage management,
+the 
+.B -mr
+option can be used to set the maximum size of the input record,
+and the
+.B -mf
+option to set the maximum number of fields.
 .PP
 A pattern-action statement has the form
 .IP
@@ -111,7 +128,7 @@ and are built using the operators
 (exponentiation), and concatenation (indicated by white space).
 The operators
 .B
-! ++ -- += -= *= /= %= ^= > >= < <= == != && || ?:
+! ++ -- += -= *= /= %= ^= > >= < <= == != ?:
 are also available in expressions.
 Variables may be scalars, array elements
 (denoted
@@ -184,7 +201,12 @@ and returns the previous seed.
 .B int
 truncates to an integer value
 .TP
-.BI substr( s , " m" , " n )
+.B utf
+converts its numerical argument, a character number, to a
+.SM UTF
+string
+.TP
+.BI substr( s , " m" , " n\fL)
 the
 .IR n -character
 substring of
@@ -212,14 +234,14 @@ and
 .B RLENGTH
 are set to the position and length of the matched string.
 .TP
-.BI split( s , " a" , " fs )
+.BI split( s , " a" , " fs\fL)
 splits the string
 .I s
 into array elements
-.IB a [1] ,
-.IB a [2] ,
+.IB a [1]\f1,
+.IB a [2]\f1,
 \&...,
-.IB a [ n ] ,
+.IB a [ n ]\f1,
 and returns
 .IR n .
 The separation is done with the regular expression
@@ -230,7 +252,7 @@ if
 .I fs
 is not given.
 .TP
-.BI sub( r , " t" , " s )
+.BI sub( r , " t" , " s\fL)
 substitutes
 .I t
 for the first occurrence of the regular expression
@@ -253,7 +275,7 @@ and
 .B gsub
 return the number of replacements.
 .TP
-.BI sprintf( fmt , " expr" , " ...)
+.BI sprintf( fmt , " expr" , " ...\fL)
 the string resulting from formatting
 .I expr ...
 according to the
@@ -334,8 +356,12 @@ A relational expression is one of the following:
 .br
 .BI ( expr , expr,... ") in " array-name
 .PP
-where a relop is any of the six relational operators in C,
-and a matchop is either
+where a
+.I relop
+is any of the six relational operators in C,
+and a
+.I matchop
+is either
 .B ~
 (matches)
 or
@@ -363,7 +389,7 @@ Variable names with special meanings:
 .B FS
 regular expression used to separate fields; also settable
 by option
-.BI -F fs.
+.BI -F fs\f1.
 .TP
 .BR NF
 number of fields in the current record
@@ -450,6 +476,8 @@ BEGIN	{	# Simulate echo(1)
 	printf "\en"
 	exit }
 .EE
+.SH SOURCE
+.B /sys/src/cmd/awk
 .SH SEE ALSO
 .IR sed (1),
 .IR regexp (6),

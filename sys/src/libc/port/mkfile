@@ -16,13 +16,11 @@ ALLOFILES=\
 	ctype.$O\
 	dial.$O\
 	doprint.$O\
-	erf.$O\
 	execl.$O\
 	exp.$O\
 	fabs.$O\
 	floor.$O\
 	fmod.$O\
-	gamma.$O\
 	getfields.$O\
 	getuser.$O\
 	hangup.$O\
@@ -44,6 +42,7 @@ ALLOFILES=\
 	profile.$O\
 	qsort.$O\
 	rand.$O\
+	readn.$O\
 	rune.$O\
 	sin.$O\
 	sinh.$O\
@@ -68,6 +67,7 @@ ALLOFILES=\
 	strtoul.$O\
 	tan.$O\
 	tanh.$O\
+	tokenize.$O\
 	toupper.$O\
 	utflen.$O\
 	utfrune.$O\
@@ -80,3 +80,6 @@ OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
 HFILES=/sys/include/libc.h
 
 </sys/src/cmd/mksyslib
+
+crypt.$O:	crypt.$O.save
+	cp crypt.$O.save crypt.$O

@@ -1,3 +1,3 @@
 #include "common.h"
 char *MAILROOT = "/mail";
-int MBOXMODE = 0622;
+int MBOXMODE = 0662;

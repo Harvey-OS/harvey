@@ -24,6 +24,39 @@ getsym(void)
 	return lookup();
 }
 
+int
+getcom(void)
+{
+	int c;
+
+	for(;;) {
+		c = getnsc();
+		if(c != '/')
+			break;
+		c = getc();
+		if(c != '*')
+			break;
+		c = getc();
+		for(;;) {
+			if(c == '*') {
+				c = getc();
+				if(c != '/')
+					continue;
+				c = getc();
+				break;
+			}
+			if(c == '\n') {
+				yyerror("comment across newline");
+				break;
+			}
+			c = getc();
+		}
+		if(c == '\n')
+			break;
+	}
+	return c;
+}
+
 void
 dodefine(char *cp)
 {
@@ -50,8 +83,8 @@ dodefine(char *cp)
 		s = lookup();
 		s->macro = "\0001";	/* \000 is nargs */
 	}
-	if(s->ref)
-		s->ref->class = CMACRO+CLAST;
+	if(debug['m'])
+		print("#define (-D) %s %s\n", s->name, s->macro+1);
 }
 
 struct
@@ -85,8 +118,6 @@ domacro(void)
 		s = slookup("endif");
 	for(i=0; mactab[i].macname; i++)
 		if(strcmp(s->name, mactab[i].macname) == 0) {
-			if(s->ref)
-				s->ref->class = CPREPROC;
 			if(mactab[i].macf)
 				(*mactab[i].macf)();
 			else
@@ -109,8 +140,6 @@ macund(void)
 		return;
 	}
 	s->macro = 0;
-	if(s->ref)
-		s->ref->class = CMACRO;
 }
 
 #define	NARG	25
@@ -126,8 +155,6 @@ macdef(void)
 		goto bad;
 	if(s->macro)
 		yyerror("macro redefined: %s", s->name);
-	if(s->ref)
-		s->ref->class = CMACRO+CLAST;
 	c = getc();
 	n = -1;
 	if(c == '(') {
@@ -143,8 +170,6 @@ macdef(void)
 					yyerror("too many arguments in #define: %s", s->name);
 					goto bad;
 				}
-				if(a->ref)
-					a->ref->class = CMACARG+CLAST;
 				args[n++] = a->name;
 				c = getnsc();
 				if(c == ')')
@@ -386,7 +411,6 @@ macinc(void)
 	int c0, c, i, f;
 	char str[STRINGSZ], *hp;
 
-
 	c0 = getnsc();
 	if(c0 != '"') {
 		c = c0;
@@ -403,9 +427,11 @@ macinc(void)
 		*hp++ = c;
 	}
 	*hp = 0;
-	c = getnsc();
+
+	c = getcom();
 	if(c != '\n')
 		goto bad;
+
 	f = -1;
 	for(i=0; i<ninclude; i++) {
 		if(i == 0 && c0 == '>')
@@ -477,7 +503,7 @@ maclin(void)
 		*cp++ = c;
 	}
 	*cp = 0;
-	c = getnsc();
+	c = getcom();
 	if(c != '\n')
 		goto bad;
 
@@ -510,12 +536,12 @@ macif(int f)
 	if(f == 2)
 		goto skip;
 	s = getsym();
-	if(s == S || getnsc() != '\n')
+	if(s == S)
+		goto bad;
+	if(getcom() != '\n')
 		goto bad;
 	if((s->macro != 0) ^ f)
 		return;
-	if(s->ref)
-		s->ref->class = CMACRO;
 
 skip:
 	bol = 1;
@@ -534,8 +560,6 @@ skip:
 		s = getsym();
 		if(s == S)
 			continue;
-		if(s->ref)
-			s->ref->class = CPREPROC;
 		if(strcmp(s->name, "endif") == 0) {
 			if(l) {
 				l--;
@@ -590,7 +614,7 @@ macprag(void)
 		*hp++ = c;
 	}
 	*hp = 0;
-	c = getnsc();
+	c = getcom();
 	if(c != '\n')
 		goto bad;
 
@@ -644,15 +668,6 @@ linehist(char *f, int offset)
 {
 	Hist *h;
 
-	if(debug['f'])
-		if(f) {
-			if(offset)
-				print("%4d: %s (#line %d)\n", lineno, f, offset);
-			else
-				print("%4d: %s\n", lineno, f);
-		} else
-			print("%4d: <pop>\n", lineno);
-
 	/*
 	 * overwrite the last #line directive if
 	 * no alloc has happened since the last one
@@ -663,6 +678,15 @@ linehist(char *f, int offset)
 			ehist->offset = offset;
 			return;
 		}
+
+	if(debug['f'])
+		if(f) {
+			if(offset)
+				print("%4d: %s (#line %d)\n", lineno, f, offset);
+			else
+				print("%4d: %s\n", lineno, f);
+		} else
+			print("%4d: <pop>\n", lineno);
 	newflag = 0;
 
 	ALLOC(h, Hist);

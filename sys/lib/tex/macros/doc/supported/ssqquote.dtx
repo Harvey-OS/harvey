@@ -1,0 +1,515 @@
+% \CheckSum{169}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%
+%
+% \changes{1.0} {1994/05/02}{initial version}
+% \changes{1.1} {1994/05/06}{corrected wording of example quotations}
+% \changes{1.1a}{1994/05/10}{revised documentation}
+% \changes{1.1b}{1994/05/12}{revised documentation}
+% \changes{1.1c}{1994/05/16}{fixed typo in example quotations}
+% \changes{1.1d}{1994/05/18}{revised documentation}
+% \changes{1.2} {1994/05/21}{clean-up for public release}
+%
+%
+% \title{The \texttt{ssqquote} Package for \LaTeXe}
+%
+% \author{Copyright (C) 1994 by Ulrik Vieth}
+%
+% \maketitle
+% ^^A\tableofcontents
+%
+% \def\file#1{\texttt{#1}}
+% \def\book#1{\textit{#1}}
+% \def\Lcs#1{\texttt{\bslash{}#1}}
+%
+% \def\NFSS{\textsf{NFSS}\@}
+% \def\DOCSTRIP{\textsc{Docstrip}\@}
+%
+%
+% \section{Introduction}
+%
+%    This contributed package for \LaTeXe{} provides the necessary
+%    font declarations needed to access the \file{cmssq} font family,
+%    i.e.~Computer Modern Sans Serif Quotation Style,
+%    in terms of \NFSS.^^A
+%    \footnote{Throughout this document, the term \NFSS{} should be
+%       understood to refer to release~2 of \NFSS, i.e.~the release
+%       that's part of \LaTeXe{} and that's intended to become part
+%       of \LaTeX3 in the future.}
+%    It also provides a little example package file that shows how
+%    to define some appropriate font changing commands.
+%
+%    \DescribeMacro{\ssqfamily}
+%    \DescribeMacro{\textssq}
+%    Once you have installed the font definition files
+%    \file{OT1cmssq.fd} and \file{T1cmssq.fd} provided here, you
+%    can use low-level \NFSS{} commands to access the \file{cmssq}
+%    font family in your documents, even if you do not plan to use
+%    the example package \file{ssqquote.sty}. Apart from defining
+%    the font changing commands |\ssqfamily| and |\textssq|, that
+%    package file also provides an example application that uses 
+%    the \file{cmssq} font family.
+%
+%    \DescribeEnv{chapterquotes}
+%    The |chapterquotes| environment provided as an example is based
+%    on ideas used in the |\endchapter| macro of the \file{manmac}
+%    format that was used by DEK in the \TeX{} and \MF{} manuals.
+%    Its purpose is to typeset a few nice quotations at the end
+%    of chapters using the \file{cmssq} font family in a smaller
+%    typesize than the regular text. While keeping the distinctive
+%    ragged-left formatting from the |\endchapter| macro, we have 
+%    tried to make the |chapterquotes| environment more flexible, 
+%    optionally allowing quotations to be placed at the top of the 
+%    next page if there isn't enough room left at the bottom of the 
+%    current page.
+%
+% \StopEventually{}
+%
+%
+% \section{The \DOCSTRIP{} modules}
+%
+%    The following \DOCSTRIP{} modules are used in this package:
+%    \begin{quote}
+%    \begin{tabular}{ll}
+%    |driver|      & produces the documentation driver\\
+%    |package|     & produces the example package file\\
+%    |OT1cmssq|    & produces the font definition file for the OT1 encoding\\
+%    |T1cmssq|     & produces the font definition file for the T1 encoding
+%    \end{tabular}
+%    \end{quote}
+%
+%    \noindent
+%    Except for the documentation driver every module intended
+%    for \TeX{} should contain the following information for
+%    identification purposes.
+%    \begin{macrocode}
+%<*package|OT1cmssq|T1cmssq>
+\def\filename{ssqquote.dtx}
+\def\filedate{1994/05/21}
+\def\fileversion{1.2}
+%</package|OT1cmssq|T1cmssq>
+%    \end{macrocode}
+%
+%
+% \section[The font defintion files:
+%          \file{OT1cmssq.fd} and \file{T1cmssq.fd}]
+%         {The font defintion files:\\
+%          \file{OT1cmssq.fd} and \file{T1cmssq.fd}}
+%
+%    Following the tradition of the standard \LaTeXe{} distribution,
+%    we begin by identifying the latest version of these files in
+%    the \file{log} file.
+%    \begin{macrocode}
+%<*OT1cmssq|T1cmssq>
+\wlog{Fontdef\space file\space produced\space from\string:\space
+  \string`ssqquote.dtx\string'\space \fileversion\space
+  \string<\filedate\string>\space \string(Ulrik Vieth\string)}
+%</OT1cmssq|T1cmssq>
+%    \end{macrocode}
+%
+% \subsection{The font definition file for the OT1 encoding}
+%
+%    First, we will consider the font definition file for the old
+%    encoding scheme~OT1 of the original Computer Modern Fonts
+%    by DEK. We start by declaring the font family \file{cmssq}.
+%    \begin{macrocode}
+%<*OT1cmssq>
+\DeclareFontFamily{OT1}{cmssq}{}
+%    \end{macrocode}
+%
+%    The fonts \file{cmssq} and \file{cmssqi} are only available
+%    in 8-point design size. Therefore, we will make them available
+%    only in rather unusual sizes based on magsteps of~8\,pt. However,
+%    in the typical application of typesetting quotations in this
+%    font family, you wouldn't want to use large magsteps anyway,
+%    thus you needn't really worry about that. If you simply select
+%    |\footnotesize|, an appropriate size for quotations will be
+%    substituted automatically within the margin of |\fontsubfuzz|
+%    allowed by~\NFSS.
+%
+%    Since the `i' in \file{cmssqi} stands for `inclined' rather
+%    than `italics', we allocate it to |\slshape| and add a silent
+%    font substitution for |\itshape|. There are no other font
+%    shapes currently available in the \file{cmssq} family, and
+%    it is very unlikely that there will be any in the future.
+%    \begin{macrocode}
+\DeclareFontShape{OT1}{cmssq}{m}{n}{
+  <8> <8.76> <9.6> <11.52> <13.82> <16.59> <19.91> cmssq8
+}{}
+\DeclareFontShape{OT1}{cmssq}{m}{sl}{
+  <8> <8.76> <9.6> <11.52> <13.82> <16.59> <19.91> cmssqi8
+}{}
+\DeclareFontShape{OT1}{cmssq}{m}{it}{
+  <-> ssub * cmssq/m/sl
+}{}
+%</OT1cmssq>
+%    \end{macrocode}
+%
+% \subsection{The font definition file for the T1 encoding}
+%
+%    Next, here are the corresponding font shape declarations for
+%    the new encoding scheme~T1 used in the DC~fonts. For some
+%    unknown reason, Sans Serif Quotation Style was not supported
+%    in the original version~1.0 of the DC~fonts. Support for this
+%    style was added only in version~1.1, which was completed in 
+%    March~1992 but not released on CTAN before February~1994.
+%    However, the fonts \file{dcssq} and \file{dcssqi} are still
+%    commented out in the configuration file \file{dcstdedt.tex},
+%    thus you will not have them if you simply installed the
+%    DC~fonts using the standard setup, but you can create them
+%    if you like. In any case we will provide the font defintion
+%    file here.
+%    \begin{macrocode}
+%<*T1cmssq>
+\DeclareFontFamily{T1}{cmssq}{}
+%    \end{macrocode}
+%
+%    In the T1 encoding, we will use the same magsteps as in the OT1
+%    encoding. Using the scaling mechanism built into the DC fonts,
+%    it would be possible to create different design sizes as well,
+%    but providing a different choice of sizes in the OT1 and T1
+%    encodings would only cause confusion. Therefore, we prefer to 
+%    live with an unusual range of sizes in both cases.
+%    \begin{macrocode}
+\DeclareFontShape{T1}{cmssq}{m}{n}{
+  <8> <8.76> <9.6> <11.52> <13.82> <16.59> <19.91> dcssq8
+}{}
+\DeclareFontShape{T1}{cmssq}{m}{sl}{
+  <8> <8.76> <9.6> <11.52> <13.82> <16.59> <19.91> dcssqi8
+}{}
+\DeclareFontShape{T1}{cmssq}{m}{it}{
+  <-> ssub * cmssq/m/sl
+}{}
+%</T1cmssq>
+%    \end{macrocode}
+%
+%
+% \section{The package file: \file{ssqquote.sty}}
+%
+%    After having discussed the font definition files, we now turn
+%    to the example package that shows how to access the \file{cmssq}
+%    font family using low-level \NFSS{} commands.
+%
+%    As usual, we begin by identifying the package and its current
+%    version.
+%    \begin{macrocode}
+%<*package>
+\ProvidesPackage{ssqquote}[\filedate\space\fileversion\space
+                           Contributed LaTeX2e package]
+\typeout{Package: `ssqquote'
+  \fileversion\space <\filedate> (Ulrik Vieth)}
+%    \end{macrocode}
+%
+% \subsection{Accessing the \file{cmssq} font family in \NFSS}
+%
+% \begin{macro}{\ssqfamily}
+%    First, we define the declarative font changing command |\ssqfamily|.
+%    This is accomplished using the low-level \NFSS{} commands
+%    |\fontencoding| and |\fontfamily| followed by |\selectfont|.
+%    We assume that |\encodingdefault| is set to either OT1 or~T1.
+%    Otherwise, you'll probably get an \NFSS{} error message.
+%    \begin{macrocode}
+\def\ssqfamily{%
+  \fontencoding{\encodingdefault}\fontfamily{cmssq}\selectfont}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\textssq}
+%    Next, we define a font changing command with one argument. Since
+%    it is very unlikely that the \file{cmssq} font will be used in
+%    math mode, we do not attempt to make a robust version, instead
+%    the |\textssq| macro defined here simply selects |\ssqfamily| 
+%    within a group. However, we will protect it, so that it can be
+%    used within moving arguments without problems.
+%    \begin{macrocode}
+\def\textssq{\protect\ptextssq}
+\def\ptextssq#1{{\ssqfamily #1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{An example application:
+%             The \texttt{chapterquotes} environment}
+%
+%    As an example application, we will define a |chapterquotes|
+%    environment that is based on ideas used in the |\endchapter|
+%    macro of the \file{manmac} format that was used in the \TeX{}
+%    and \MF{} manuals. We have tried to make it more \LaTeX-like
+%    and we have added some switches and parameters to customize its
+%    behaviour. The purpose of this environment is to typeset a few
+%    nice quotations at the end of chapters using the \file{cmssq}
+%    font family.
+%
+% \begin{macro}{\ifbottomquotes}
+%    We begin by defining a |\newif| that controls whether quotations
+%    should always be placed at the bottom or if they are allowed to
+%    appear at the top of the next page in case there isn't enough room
+%    at the bottom of the current page. By default, |\ifbottomquotes|
+%    is set to false.
+%    \begin{macrocode}
+\newif\ifbottomquotes \bottomquotesfalse
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\prechapterquotes}
+%    Next, we allocate a |\newskip| that controls the minimum amount
+%    of space that should be left over on the current page when
+%    the |chapterquotes| environment is called. More precisely,
+%    |\prechapterquotes| is the amount of stretchable glue inserted
+%    in an attempt to eject the current page before starting to
+%    typeset the quotations. The default value of |\prechapterquotes|
+%    is |10\baselineskip| in |\footnotesize|. If you have longer
+%    quotations, you may wish to enlarge this parameter.^^A
+%    \footnote{By the way, the name of the \Lcs{prechapterquotes}
+%       parameter was inspired by the \Lcs{premulticols} parameter
+%       in Frank Mittelbach's \file{multicol} package.}
+%    \begin{macrocode}
+\newskip\prechapterquotes
+{\footnotesize \global\prechapterquotes=10\baselineskip\relax}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{environment}{chapterquotes}
+%    Now, we are ready to discuss the |chapterquotes| environment
+%    itself. We begin by leaving horizontal mode if we are not
+%    already in vertical mode at the time when |chapterquotes|
+%    is called.
+%    \begin{macrocode}
+\newenvironment{chapterquotes}{%
+  \ifvmode \else \unskip\par \fi
+%    \end{macrocode}
+%
+%    Next, we try to eject the current page by inserting an amount
+%    of stretchable glue controlled by |\prechapterquotes|, followed
+%    by the negative penalty |\@secpenalty|, followed by negative
+%    stretchable glue to compensate the positive stretchable glue
+%    in case the negative penalty fails to eject the page. If a
+%    page break occurs, the last glue will disappear at the top
+%    of the page.
+%    \begin{macrocode}
+  \vskip\z@\@plus+\prechapterquotes
+  \penalty\@secpenalty
+  \vskip\z@\@plus-\prechapterquotes
+%    \end{macrocode}
+%
+%    After these preliminaries we come to the central part of the
+%    |chapterquotes| environment. If quotations are allowed only
+%    at the bottom of the page, we insert an empty hbox to prevent
+%    glue from disappearing at the top, followed by |\vfill|.
+%
+%    We disallow floats at the bottom by setting |\@botnum| to zero.
+%    In case quotations are allowed at the top as well, we also set
+%    |\@topnum| to zero because we do not know where the quotations
+%    will end up. If this causes problems with floats that are left
+%    over at the end of the chapter, inserting a |\clearpage| before 
+%    the |chapterquotes| environment might help. 
+%    \begin{macrocode}
+  \ifbottomquotes \null \fi \vfill
+  \global\@botnum\z@
+  \ifbottomquotes \else \global\@topnum\z@ \fi
+%    \end{macrocode}
+%
+%    Now, we start a group to keep changes local. We switch to
+%    |\footnotesize| and select the \file{cmssq} font family
+%    using the declarative font changing command |\ssqfamily|.
+%    \begin{macrocode}
+  \begingroup
+    \footnotesize \ssqfamily
+%    \end{macrocode}
+%
+%    We redefine |\bigskipskipamount|, |\medskipamount| and
+%    |\smallskipamount| using multiples of |\baselineskip|
+%    in |\footnotesize|. We will use these paramters for the
+%    spacing in between multiple quotations.
+%    \begin{macrocode}
+    \bigskipamount=1.0\baselineskip
+    \medskipamount=0.5\baselineskip
+    \smallskipamount=0.25\baselineskip
+%    \end{macrocode}
+%
+%    Within the group started above, we set |\interlinepenalty|
+%    to~10000 to disallow page breaks between quotations. Next,
+%    we set up various parameters for ragged-left typesetting.
+%    \begin{macrocode}
+    \interlinepenalty\@M
+    \parindent\z@ \parskip\z@ \parfillskip\z@
+    \leftskip\z@\@plus\linewidth \rightskip\z@
+%    \end{macrocode}
+%
+%    We redefine |\par| in order to insert the italics correction
+%    automatically at the end of lines and activate |\obeylines|,
+%    which means that |\par| is added automatically at the end of
+%    every input line. In \LaTeX, we can use |\@@par| to refer to
+%    the original meaning of |\par|. Alternatively, we could use
+%    |\endgraf| here instead.
+%    \begin{macrocode}
+    \def\par{\ifhmode\/\@@par\fi} \obeylines
+%    \end{macrocode}
+% \end{environment} 
+%
+% \begin{macro}{\nextquote}
+%    Individual quotations should start with |\nextquote|. This will
+%    insert a |\bigskip| and switch to |\slshape| using the \file{cmssq}
+%    family selected earlier at the beginning of the environment.
+%    Users might regard |\nextquote| as a special case of |\item|
+%    that is only available within the |chapterquotes| environment.
+%    However, technically speaking, |\item| is quite different from
+%    |\nextquote| and much more complicated.
+%    \begin{macrocode}
+    \def\nextquote{\bigskip\slshape}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\author}
+% \begin{macro}{\title}
+%    The source of a quotation can be formatted using the macros
+%    |\author| and |\title|. The |\author| macro expects two
+%    arguments which will be typeset in upright shape. The first
+%    one is meant to be the name of the author or the work that
+%    is quoted, while the second one (enclosed in parantheses) is
+%    meant to be the date of the quotation. Within the arguments
+%    of the |\author| macro, the |\title| macro can be used to
+%    typeset the title of the quoted work in slanted shape. We use
+%    |\textsl| here, i.e.~the font switching macro with one argument,
+%    because this will automatically insert the italics correction
+%    if necessary.
+%    \begin{macrocode}
+    \def\author##1(##2){\medskip\upshape\noindent
+      --- \ignorespaces ##1 \unskip\thinspace (##2)\par}
+    \def\title##1{\textsl{##1}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%    At the end of the |chapterquotes| environment, there is not much
+%    left to do. We simply close the group started at the beginning
+%    of the environment to restore the paragraphing parameters.
+%    In case quotations are placed at the top of the page, we insert
+%    |\vfil| to avoid an underfull page. If quotations are placed at
+%    the bottom, the |\vfill| at the top is infinitely larger than
+%    the |\vfil| at the bottom, thus the last |\vfil| won't have any
+%    effect. The very last thing to do is to call a |\pagebreak|.
+%    \begin{macrocode}
+  }{%
+  \endgroup
+  \vfil \pagebreak}
+%</package>
+%    \end{macrocode}
+%
+%
+% \section{The documentation driver file}
+%
+%    We have our own document class to format the \LaTeXe{}
+%    documentation. We also use the \file{mflogo} package
+%    that defines the \MF{} logo in terms of a \NFSS{} font
+%    family and the \file{ssqquote} package to typeset some
+%    example quotations at the end of this file.
+%    \begin{macrocode}
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{mflogo}
+\usepackage{ssqquote}
+%    \end{macrocode}
+%    We do not need an index.
+%    \begin{macrocode}
+\DisableCrossrefs
+%    \end{macrocode}
+%    We do want the full details.
+%    \begin{macrocode}
+\begin{document}
+\DocInput{ssqquote.dtx}
+% \PrintIndex
+% \PrintChanges
+\end{document}
+%</driver>
+%    \end{macrocode}
+%
+%
+% \section{An example of the \texttt{chapterquotes} environment}
+%
+%    Finally, here's an example of the |chapterquotes| environment
+%    and how it was specified. Note that line breaks in the input
+%    file are obeyed, thus when long input lines have to be broken
+%    across lines, the end of the line has to be commented out.
+%    If a quotation consists of multiple paragraphs, |\smallskip|
+%    can be used to insert space in between them. As explained
+%    earlier, |\medskip| is inserted by the |\author| macro and 
+%    |\bigskip| is inserted by |\nextquote|.
+%    \begin{macrocode}
+%<*example>
+\begin{chapterquotes}
+   \nextquote
+   I've finally learned what `backwards compatibility' means:
+   It means we've got to keep all our old mistakes.
+
+   \author RAINER SCH\"OPF, \title{\LaTeXe{} Announcement} (TUG `1993)
+
+   \nextquote
+   \emph{Compatibility:} \LaTeXe{} will, as far as possible,
+   adhere to the following principles:
+   \smallskip
+   1. Unmodified version 2.09 document files will produce
+      the same output with \LaTeXe{} as with version 2.09.
+   \smallskip
+   2. All new features will conform to the conventions
+      of version 2.09 \dots
+
+   \author \LaTeX3 PROJECT, %
+      \title{\LaTeXe{} -- A new version of \LaTeX{}} (TTN~2;4, 1993)
+\end{chapterquotes}
+%</example>
+%    \end{macrocode}
+%
+% \begin{chapterquotes}
+%    \nextquote
+%    I've finally learned what `backwards compatibility' means:
+%    It means we've got to keep all our old mistakes.
+%
+%    \author RAINER SCH\"OPF, \title{\LaTeXe{} Announcement} (TUG `1993)
+%
+%    \nextquote
+%    \emph{Compatibility:} \LaTeXe{} will, as far as possible,
+%    adhere to the following principles:
+%    \smallskip
+%    1. Unmodified version 2.09 document files will produce
+%       the same output with \LaTeXe{} as with version 2.09.
+%    \smallskip
+%    2. All new features will conform to the conventions 
+%       of version 2.09 \dots
+%
+%    \author \LaTeX3 PROJECT, ^^A
+%       \title{\LaTeXe{} -- A new version of \LaTeX{}} (TTN~2;4, 1993)
+%
+%    \nextquote
+%    \emph{I didn't change anything!} An aggrieved cry often heard
+%    as bugs manifest during a regression test \dots
+%    \smallskip
+%    This is also heard from applications programmers
+%    trying to blame an obvious applications problem
+%    on an unrelated systems software change \dots
+%    \smallskip
+%    Usually, their statement is found to be false.
+%    Upon close questioning, they will admit
+%    some major restructuring of the program
+%    that shouldn't have broken anything, in their opinion,
+%    but which hosed the code completely.
+%
+%    \author THE NEW HACKER'S DICTIONARY (1993)
+% \end{chapterquotes}
+%
+% \Finale
+%
+\endinput

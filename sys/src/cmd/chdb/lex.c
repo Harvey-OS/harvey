@@ -4,7 +4,7 @@
 int
 yylex(void)
 {
-	int c;
+	int c, e;
 	Rune r;
 	long n;
 
@@ -13,13 +13,23 @@ yylex(void)
 
 	if(yystring) {
 		yylval.str.beg = cmdi;
+		n = 0;	/* inside [] */
+		e = 0;	/* escape */
 		for(;;) {
 			c = chartorune(&r, &cmd[cmdi]);
-			if(r == yystring) {
+			if(e == 0 && n == 0 && r == '[')
+				n = 1;
+			if(e == 0 && n == 1 && r == ']')
+				n = 0;
+			if(e == 0 && n == 0 && r == yystring) {
 				yylval.str.end = cmdi;
 				cmdi += c;
 				break;
 			}
+			if(e == 0 && r == '\\')
+				e = 1;
+			else
+				e = 0;
 			if(r == 0) {
 				yylval.str.end = cmdi;
 				break;

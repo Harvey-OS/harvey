@@ -2,6 +2,10 @@
 .SH NAME
 dup \- duplicate an open file descriptor
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
 int dup(int oldfd, int newfd)
 .SH DESCRIPTION
@@ -20,9 +24,11 @@ will use that for the new file descriptor
 if
 .I newfd
 is \-1 the system chooses the lowest available file descriptor.
+.SH SOURCE
+.B /sys/src/libc/9syscall
 .SH SEE ALSO
 .IR intro (2),
 .IR dup (3)
 .SH DIAGNOSTICS
 Sets
-.I errstr.
+.IR errstr .

@@ -14,6 +14,9 @@
 % Version 2.9 allows nonnumeric macros before their def (December, 1988).
 % Version 3, for Sewell's book, fixed long-line bug in input_ln (March, 1989).
 % Version 4 was major change to allow 8-bit input (September, 1989).
+% Version 4.1 conforms to ANSI standard for-loop rules (September, 1990).
+% Version 4.2 fixes stat report if phase one dies (March, 1991).
+% Version 4.3 fixes @@ bug in verbatim, catches extra } (September, 1991).
 
 % Here is TeX material that gets inserted after \input webmac
 \def\hang{\hangindent 3em\indent\ignorespaces}
@@ -32,7 +35,7 @@
   \def\rheader{\mainfont Appendix E\hfil \contentspagenumber}
   \centerline{\titlefont The {\ttitlefont TANGLE} processor}
   \vskip 15pt
-  \centerline{(Version 4)}
+  \centerline{(Version 4.3)}
   \vfill}
 \pageno=\contentspagenumber \advance\pageno by 1
 
@@ -61,7 +64,7 @@ dependencies' in the index below.
 The ``banner line'' defined here should be changed whenever \.{TANGLE}
 is modified.
 
-@d banner=='This is TANGLE, Version 4'
+@d banner=='This is TANGLE, Version 4.3'
 
 @ The program begins with a fairly normal header, made up of pieces that
 @^system dependencies@>
@@ -1405,7 +1408,7 @@ on a particular level will be read;
 \hang |name_field| points to the name corresponding to a particular level;
 
 \hang |repl_field| points to the replacement text currently being read
-at a particular level.
+at a particular level;
 
 \hang |mod_field| is the module number, or zero if this is a macro.
 
@@ -1434,7 +1437,8 @@ empty, i.e., when |stack_ptr=0|.
 @d cur_mod==cur_state.mod_field {current module number being expanded}
 
 @<Globals...@>=
-@!cur_state : output_state; {|cur_end|, |cur_byte|, |cur_name|, |cur_repl|}
+@!cur_state : output_state; {|cur_end|, |cur_byte|, |cur_name|,
+  |cur_repl|, |cur_mod|}
 @!stack : array [1..stack_size] of output_state; {info for non-current levels}
 @!stack_ptr: 0..stack_size; {first unused location in the output state stack}
 
@@ -2291,6 +2295,7 @@ that takes care of merging |change_file| into |web_file|. The |get_line|
 procedure also updates the line numbers for error messages.
 
 @<Globals...@>=
+@!ii:integer; {general purpose |for| loop variable in the outer block}
 @!line:integer; {the number of the current line in the current file}
 @!other_line:integer; {the number of the current line in the input file that
   is not currently being read}
@@ -2490,7 +2495,7 @@ had a line that didn't match any relevant line in |web_file|.
 
 @<Check that all changes have been read@>=
 if change_limit<>0 then {|changing| is false}
-  begin for loc:=0 to change_limit do buffer[loc]:=change_buffer[loc];
+  begin for ii:=0 to change_limit do buffer[ii]:=change_buffer[ii];
   limit:=change_limit; changing:=true; line:=other_line; loc:=change_limit;
   err_print('! Change file entry did not match');
 @.Change file entry did not match@>
@@ -2656,6 +2661,9 @@ case c of
 @t\4@>@<Compress two-symbol combinations like `\.{:=}'@>@;
 " ",tab_mark: goto restart; {ignore spaces and tabs}
 "{": begin skip_comment; goto restart;
+  end;
+"}": begin err_print('! Extra }'); goto restart;
+@.Extra \}@>
   end;
 othercases if c>=128 then goto restart {ignore nonstandard characters}
   else do_nothing
@@ -2937,7 +2945,7 @@ acted, |cur_repl_text| will point to the replacement text just generated, and
 @!cur_repl_text:text_pointer; {replacement text formed by |scan_repl|}
 
 @ @p procedure scan_repl(@!t:eight_bits); {creates a replacement text}
-label continue, done, found;
+label continue, done, found, reswitch;
 var a:sixteen_bits; {the current token}
 @!b:ASCII_code; {a character from the buffer}
 @!bal:eight_bits; {left parentheses minus right parentheses}
@@ -3018,14 +3026,16 @@ found: end {now |a| holds the final |"'"| that will be stored}
 @ @<Copy verbatim string...@>=
 begin app_repl(verbatim);
 buffer[limit+1]:="@@";
-while buffer[loc]<>"@@" do
-  begin app_repl(buffer[loc]);
+reswitch: if buffer[loc]="@@" then
+  begin if loc<limit then if buffer[loc+1]="@@" then
+    begin app_repl("@@");
+    loc:=loc+2;
+    goto reswitch;
+    end;
+  end
+else begin app_repl(buffer[loc]);
   incr(loc);
-  if loc<limit then
-    if (buffer[loc]="@@") and (buffer[loc+1]="@@") then
-      begin app_repl("@@");
-      loc:=loc+2;
-      end;
+  goto reswitch;
   end;
 if loc>=limit then err_print('! Verbatim string didn''t end')
 @.Verbatim string didn't end@>
@@ -3228,7 +3238,7 @@ it ends.
 @<Initialize the input system@>;
 print_ln(banner); {print a ``banner line''}
 @<Phase I: Read all the user's text and compress it into |tok_mem|@>;
-stat for zo:=0 to zz-1 do max_tok_ptr[zo]:=tok_ptr[zo];@+tats@;@/
+stat for ii:=0 to zz-1 do max_tok_ptr[ii]:=tok_ptr[ii];@+tats@;@/
 @<Phase II:...@>;
 end_of_TANGLE:
 if string_ptr>256 then @<Finish off the string pool file@>;
@@ -3249,11 +3259,11 @@ phase_one:=false;
 @ @<Finish off the string pool file@>=
 begin print_nl(string_ptr-256:1, ' strings written to string pool file.');
 write(pool,'*');
-for string_ptr:=1 to 9 do
-  begin out_buf[string_ptr]:=pool_check_sum mod 10;
+for ii:=1 to 9 do
+  begin out_buf[ii]:=pool_check_sum mod 10;
   pool_check_sum:=pool_check_sum div 10;
   end;
-for string_ptr:=9 downto 1 do write(pool,xchr["0"+out_buf[string_ptr]]);
+for ii:=9 downto 1 do write(pool,xchr["0"+out_buf[ii]]);
 write_ln(pool);
 end
 
@@ -3266,8 +3276,10 @@ print_nl('Memory usage statistics:');
 print_nl(name_ptr:1, ' names, ', text_ptr:1, ' replacement texts;');
 print_nl(byte_ptr[0]:1);
 for wo:=1 to ww-1 do print('+',byte_ptr[wo]:1);
+if phase_one then
+  for ii:=0 to zz-1 do max_tok_ptr[ii]:=tok_ptr[ii];
 print(' bytes, ', max_tok_ptr[0]:1);
-for zo:=1 to zz-1 do print('+',max_tok_ptr[zo]:1);
+for ii:=1 to zz-1 do print('+',max_tok_ptr[ii]:1);
 print(' tokens.');
 
 @ Some implementations may wish to pass the |history| value to the

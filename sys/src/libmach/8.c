@@ -12,7 +12,7 @@
 #define USIZE		0x1000
 #define USER_REG(x)	(USIZE-((19)*4)+(ulong)(x))
 #define FP_CTL(x)	(0x0000+4+4*(x))
-#define FP_REG(x,y)	(0x0000+4+7*4+10*(x)+4*(y))
+#define FP_REG(x)	(0x0000+4+7*4+10*(x))
 #define	SCALLOFF	(0x0000+4+108)
 
 #define	REGOFF(x)	(USER_REG(&((struct Ureg *) 0)->x))
@@ -22,75 +22,59 @@
 #define	AX		REGOFF(ax)
 
 Reglist i386reglist[] = {
-	{"DI",		REGOFF(di),	0, 'X'},
-	{"SI",		REGOFF(si),	0, 'X'},
-	{"BP",		REGOFF(bp),	0, 'X'},
-	{"BX",		REGOFF(bx),	0, 'X'},
-	{"DX",		REGOFF(dx),	0, 'X'},
-	{"CX",		REGOFF(cx),	0, 'X'},
-	{"AX",		REGOFF(ax),	0, 'X'},
-	{"GS",		REGOFF(gs),	0, 'X'},
-	{"FS",		REGOFF(fs),	0, 'X'},
-	{"ES",		REGOFF(es),	0, 'X'},
-	{"DS",		REGOFF(ds),	0, 'X'},
-	{"TRAP",	REGOFF(trap), 	0, 'X'},
-	{"ECODE",	REGOFF(ecode),	0, 'X'},
-	{"PC",		PC,		0, 'X'},
-	{"CS",		REGOFF(cs),	0, 'X'},
-	{"EFLAGS",	REGOFF(flags),	0, 'X'},
-	{"SP",		SP,		0, 'X'},
-	{"SS",		REGOFF(ss),	0, 'X'},
+	{"DI",		REGOFF(di),	RINT, 'X'},
+	{"SI",		REGOFF(si),	RINT, 'X'},
+	{"BP",		REGOFF(bp),	RINT, 'X'},
+	{"BX",		REGOFF(bx),	RINT, 'X'},
+	{"DX",		REGOFF(dx),	RINT, 'X'},
+	{"CX",		REGOFF(cx),	RINT, 'X'},
+	{"AX",		REGOFF(ax),	RINT, 'X'},
+	{"GS",		REGOFF(gs),	RINT, 'X'},
+	{"FS",		REGOFF(fs),	RINT, 'X'},
+	{"ES",		REGOFF(es),	RINT, 'X'},
+	{"DS",		REGOFF(ds),	RINT, 'X'},
+	{"TRAP",	REGOFF(trap), 	RINT, 'X'},
+	{"ECODE",	REGOFF(ecode),	RINT, 'X'},
+	{"PC",		PC,		RINT, 'X'},
+	{"CS",		REGOFF(cs),	RINT, 'X'},
+	{"EFLAGS",	REGOFF(flags),	RINT, 'X'},
+	{"SP",		SP,		RINT, 'X'},
+	{"SS",		REGOFF(ss),	RINT, 'X'},
 
-	{"E0",		FP_CTL(0),	1, 'f'},
-	{"E1",		FP_CTL(1),	1, 'f'},
-	{"E2",		FP_CTL(2),	1, 'f'},
-	{"E3",		FP_CTL(3),	1, 'f'},
-	{"E4",		FP_CTL(4),	1, 'f'},
-	{"E5",		FP_CTL(5),	1, 'f'},
-	{"E6",		FP_CTL(6),	1, 'f'},
-	{"F0L",		FP_REG(7, 0),	1, 'f'},
-	{"F0M",		FP_REG(7, 1),	1, 'f'},
-	{"F0H",		FP_REG(7, 2),	1, 'f'},
-	{"F1L",		FP_REG(6, 0),	1, 'f'},
-	{"F1M",		FP_REG(6, 1),	1, 'f'},
-	{"F1H",		FP_REG(6, 2),	1, 'f'},
-	{"F2L",		FP_REG(5, 0),	1, 'f'},
-	{"F2M",		FP_REG(5, 1),	1, 'f'},
-	{"F2H",		FP_REG(5, 2),	1, 'f'},
-	{"F3L",		FP_REG(4, 0),	1, 'f'},
-	{"F3M",		FP_REG(4, 1),	1, 'f'},
-	{"F3H",		FP_REG(4, 2),	1, 'f'},
-	{"F4L",		FP_REG(3, 0),	1, 'f'},
-	{"F4M",		FP_REG(3, 1),	1, 'f'},
-	{"F4H",		FP_REG(3, 2),	1, 'f'},
-	{"F5L",		FP_REG(2, 0),	1, 'f'},
-	{"F5M",		FP_REG(2, 1),	1, 'f'},
-	{"F5H",		FP_REG(2, 2),	1, 'f'},
-	{"F6L",		FP_REG(1, 0),	1, 'f'},
-	{"F6M",		FP_REG(1, 1),	1, 'f'},
-	{"F6H",		FP_REG(1, 2),	1, 'f'},
-	{"F7L",		FP_REG(0, 0),	1, 'f'},
-	{"F7M",		FP_REG(0, 1),	1, 'f'},
-	{"F7H",		FP_REG(0, 2),	1, 'f'},
+	{"E0",		FP_CTL(0),	RFLT, 'X'},
+	{"E1",		FP_CTL(1),	RFLT, 'X'},
+	{"E2",		FP_CTL(2),	RFLT, 'X'},
+	{"E3",		FP_CTL(3),	RFLT, 'X'},
+	{"E4",		FP_CTL(4),	RFLT, 'X'},
+	{"E5",		FP_CTL(5),	RFLT, 'X'},
+	{"E6",		FP_CTL(6),	RFLT, 'X'},
+	{"F0",		FP_REG(7),	RFLT, '3'},
+	{"F1",		FP_REG(6),	RFLT, '3'},
+	{"F2",		FP_REG(5),	RFLT, '3'},
+	{"F3",		FP_REG(4),	RFLT, '3'},
+	{"F4",		FP_REG(3),	RFLT, '3'},
+	{"F5",		FP_REG(2),	RFLT, '3'},
+	{"F6",		FP_REG(1),	RFLT, '3'},
+	{"F7",		FP_REG(0),	RFLT, '3'},
 	{  0 }
 };
 
 Mach mi386 =
 {
 	"386",
+	MI386,		/* machine type */
 	i386reglist,	/* register list */
 	MINREG,		/* minimum register */
 	MAXREG,		/* maximum register */
-	PC,
-	SP,
-	0,
+	"PC",
+	"SP",
+	0,		/* link register */
 	AX,		/* return reg */
-	0,		/* first writable register */
 	0x1000,		/* page size */
-	0x80000000,	/* kernel base */
+	0x80100000,	/* kernel base */
 	0,		/* kernel text mask */
 	0,		/* offset of ksp in /proc/proc */
-	0,		/* correction to ksp value */
+	4,		/* correction to ksp value */
 	4,		/* offset of kpc in /proc/proc */
 	0,		/* correction to kpc value */
 	SCALLOFF,	/* offset in ublk to sys call # */

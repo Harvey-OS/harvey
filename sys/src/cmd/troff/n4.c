@@ -16,11 +16,16 @@ int	falsef	= 0;	/* on if inside false branch of if */
 #define	NHASH(i)	((i>>6)^i) & (NHASHSIZE-1)
 Numtab	*nhash[NHASHSIZE];
 
+Numtab *numtabp = NULL;
+#define NDELTA 400
+int ncnt = 0;
+
 void setn(void)
 {
 	int i, j, f;
 	Tchar ii;
-	char *p;
+	Uchar *p;
+	char buf[NTM];		/* for \n(.S */
 
 	f = nform = 0;
 	if ((i = cbits(ii = getach())) == '+')
@@ -67,7 +72,7 @@ void setn(void)
 			i = ascii;
 			break;
 		case 'c':
-			i = numtab[CD].val;
+			i = numtabp[CD].val;
 			break;
 		case 'n':
 			i = lastl;
@@ -82,7 +87,7 @@ void setn(void)
 			if (dip != d)
 				i = dip->dnl;
 			else
-				i = numtab[NL].val;
+				i = numtabp[NL].val;
 			break;
 		case 'u':
 			i = fi;
@@ -117,8 +122,8 @@ void setn(void)
 		case 'L':
 			i = ls;
 			break;
-		case 'R':
-			i = NN - regcnt;
+		case 'R':	/* maximal # of regs that can be addressed */
+			i = 255*256 - regcnt; 
 			break;
 		case 'z':
 			p = unpair(dip->curd);
@@ -131,7 +136,23 @@ void setn(void)
 		case 'F':
 			cpushback(cfname[ifi]);
 			return;
-
+ 		case 'S':
+ 			buf[0] = j = 0;	
+ 			for( i = 0; tabtab[i] != 0 && i < NTAB; i++) {
+ 				if (i > 0)
+ 					buf[j++] = ' ';
+ 				sprintf(&buf[j], "%d", tabtab[i] & TABMASK);
+ 				j = strlen(buf);
+ 				if ( tabtab[i] & RTAB)
+ 					sprintf(&buf[j], "uR");
+ 				else if (tabtab[i] & CTAB)
+ 					sprintf(&buf[j], "uC");
+ 				else
+ 					sprintf(&buf[j], "uL");
+ 				j += 2;
+ 			}
+ 			cpushback(buf);
+ 			return;
 		default:
 			goto s0;
 		}
@@ -140,8 +161,8 @@ s0:
 		if ((j = findr(i)) == -1)
 			i = 0;
 		else {
-			i = numtab[j].val = numtab[j].val + numtab[j].inc * f;
-			nform = numtab[j].fmt;
+			i = numtabp[j].val = numtabp[j].val + numtabp[j].inc * f;
+			nform = numtabp[j].fmt;
 		}
 	}
 	setn1(i, nform, (Tchar) 0);
@@ -171,6 +192,48 @@ void setn1(int i, int form, Tchar bits)
 	pushback(numbuf);
 }
 
+void prnumtab(Numtab *p)
+{
+	int i;
+	for (i = 0; i < ncnt; i++)
+		if (p)
+			if (p[i].r != 0)
+				fprintf(stderr, "slot %d, %s, val %d\n", i, unpair(p[i].r), p[i].val);
+			else
+				fprintf(stderr, "slot %d empty\n", i);
+		else
+			fprintf(stderr, "slot %d empty\n", i);
+}
+
+void nnspace(void)
+{
+	ncnt = sizeof(numtab)/sizeof(Numtab) + NDELTA;
+	numtabp = (Numtab *) grow((char *)numtabp, ncnt, sizeof(Numtab));
+	if (numtabp == NULL) {
+		ERROR "not enough memory for registers", ncnt WARN;
+		exit(1);
+	}
+	numtabp = (Numtab *) memcpy((char *)numtabp, (char *)numtab,
+							sizeof(numtab));
+	if (numtabp == NULL) {
+		ERROR "Cannot initialize registers" WARN;
+		exit(1);
+	}
+}
+
+void grownumtab(void)
+{
+	ncnt += NDELTA;
+	numtabp = (Numtab *) grow((char *) numtabp, ncnt, sizeof(Numtab));
+	if (numtabp == NULL) {
+		ERROR "Too many number registers (%d)", ncnt WARN;
+		done2(04);
+	} else {
+		memset((char *)(numtabp) + (ncnt - NDELTA) * sizeof(Numtab),
+						0, NDELTA * sizeof(Numtab));
+		nrehash();
+	}
+}
 
 void nrehash(void)
 {
@@ -179,9 +242,9 @@ void nrehash(void)
 
 	for (i=0; i<NHASHSIZE; i++)
 		nhash[i] = 0;
-	for (p=numtab; p < &numtab[NN]; p++)
+	for (p=numtabp; p < &numtabp[ncnt]; p++)
 		p->link = 0;
-	for (p=numtab; p < &numtab[NN]; p++) {
+	for (p=numtabp; p < &numtabp[ncnt]; p++) {
 		if (p->r == 0)
 			continue;
 		i = NHASH(p->r);
@@ -217,22 +280,21 @@ int findr(int i)
 
 	if (i == 0)
 		return(-1);
+a0:
 	for (p = nhash[h]; p; p = p->link)
 		if (i == p->r)
-			return(p - numtab);
-	for (p = numtab; p < &numtab[NN]; p++) {
+			return(p - numtabp);
+	for (p = numtabp; p < &numtabp[ncnt]; p++) {
 		if (p->r == 0) {
 			p->r = i;
 			p->link = nhash[h];
 			nhash[h] = p;
 			regcnt++;
-			return(p - numtab);
+			return(p - numtabp);
 		}
 	}
-	ERROR "too many number registers (%d).", NN WARN;
-	done2(04);
-	/* NOTREACHED */
-	return -1;
+	grownumtab();
+	goto a0;
 }
 
 int usedr(int i)	/* returns -1 if nr i has never been used */
@@ -243,7 +305,7 @@ int usedr(int i)	/* returns -1 if nr i has never been used */
 		return(-1);
 	for (p = nhash[NHASH(i)]; p; p = p->link)
 		if (i == p->r)
-			return(p - numtab);
+			return(p - numtabp);
 	return -1;
 }
 
@@ -480,13 +542,37 @@ long ckph(void)
 }
 
 
+/*
+ * print error about illegal numeric argument;
+ */
+void prnumerr(void)
+{
+	char err_buf[40];
+	static char warn[] = "Numeric argument expected";
+	int savcd = numtabp[CD].val;
+
+	if (numerr.type == RQERR)
+		sprintf(err_buf, "%c%s: %s", nb ? cbits(c2) : cbits(cc),
+						unpair(numerr.req), warn);
+	else
+		sprintf(err_buf, "\\%c'%s': %s", numerr.esc, &numerr.escarg,
+									warn);
+	if (frame != stk)	/* uncertainty correction */
+		numtabp[CD].val--;
+	ERROR err_buf WARN;
+	numtabp[CD].val = savcd;
+}
+
+
 long atoi1(Tchar ii)
 {
 	int i, j, digits;
 	double acc;	/* this is the only double in troff! */
-	int neg, abs, field;
+	int neg, abs, field, decpnt;
+	extern int ifnum;
 
-	neg = abs = field = digits = 0;
+
+	neg = abs = field = decpnt = digits = 0;
 	acc = 0;
 	for (;;) {
 		i = cbits(ii);
@@ -516,7 +602,7 @@ a1:
 		ii = getch();
 		i = cbits(ii);
 	}
-	if (i == '.') {
+	if (i == '.' && !decpnt++) {
 		field++;
 		digits = 0;
 		ii = getch();
@@ -580,16 +666,20 @@ a1:
 		if (dip != d)
 			j = dip->dnl;
 		else
-			j = numtab[NL].val;
+			j = numtabp[NL].val;
 		if (!vflag) {
-			j = numtab[HP].val;
+			j = numtabp[HP].val;
 		}
 		if (abs == 2)
 			j = -j;
 		acc -= j;
 	}
 a2:
-	nonumb = !field;
+	nonumb = (!field || field == decpnt);
+	if (nonumb && (trace & TRNARGS) && !ismot(ii) && !nlflg && !ifnum) {
+		if (cbits(ii) != RIGHT ) /* Too painful to do right */
+			prnumerr();
+	}
 	return(acc);
 }
 
@@ -604,32 +694,38 @@ void caserr(void)
 		j = usedr(i);
 		if (j < 0)
 			continue;
-		p = &numtab[j];
+		p = &numtabp[j];
 		nunhash(p);
 		p->r = p->val = p->inc = p->fmt = 0;
 		regcnt--;
 	}
 }
 
-
+/*
+ * .nr request; if tracing, don't check optional
+ * 2nd argument because tbl generates .in 1.5n
+ */
 void casenr(void)
 {
 	int i, j;
+	int savtr = trace;
 
 	lgf++;
 	skip();
 	if ((i = findr(getrq())) == -1)
 		goto rtn;
 	skip();
-	j = inumb(&numtab[i].val);
+	j = inumb(&numtabp[i].val);
 	if (nonumb)
 		goto rtn;
-	numtab[i].val = j;
+	numtabp[i].val = j;
 	skip();
+	trace = 0;
 	j = atoi0();		/* BUG??? */
+	trace = savtr;
 	if (nonumb)
 		goto rtn;
-	numtab[i].inc = j;
+	numtabp[i].inc = j;
 rtn:
 	return;
 }
@@ -651,7 +747,7 @@ void caseaf(void)
 	}
 	if (!k)
 		k = j;
-	numtab[findr(i)].fmt = k;	/* was k & BYTEMASK */
+	numtabp[findr(i)].fmt = k;	/* was k & BYTEMASK */
 }
 
 void setaf(void)	/* return format of number register */
@@ -661,10 +757,10 @@ void setaf(void)	/* return format of number register */
 	i = usedr(getsn());
 	if (i == -1)
 		return;
-	if (numtab[i].fmt > 20)	/* it was probably a, A, i or I */
-		*pbp++ = numtab[i].fmt;
+	if (numtabp[i].fmt > 20)	/* it was probably a, A, i or I */
+		*pbp++ = numtabp[i].fmt;
 	else
-		for (j = (numtab[i].fmt ? numtab[i].fmt : 1); j; j--)
+		for (j = (numtabp[i].fmt ? numtabp[i].fmt : 1); j; j--)
 			*pbp++ = '0';
 }
 

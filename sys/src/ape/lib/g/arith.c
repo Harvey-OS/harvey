@@ -107,23 +107,33 @@ rshift(Rectangle r, int a)
 	return r;
 }
 
+int
 eqpt(Point p, Point q)
 {
 	return p.x==q.x && p.y==q.y;
 }
 
+int
 eqrect(Rectangle r, Rectangle s)
 {
 	return r.min.x==s.min.x && r.max.x==s.max.x &&
 	       r.min.y==s.min.y && r.max.y==s.max.y;
 }
 
+int
 rectXrect(Rectangle r, Rectangle s)
 {
 	return r.min.x<s.max.x && s.min.x<r.max.x &&
 	       r.min.y<s.max.y && s.min.y<r.max.y;
 }
 
+int
+rectinrect(Rectangle r, Rectangle s)
+{
+	return s.min.x<=r.min.x && r.max.x<=s.max.x && s.min.y<=r.min.y && r.max.y<=s.max.y;
+}
+
+int
 ptinrect(Point p, Rectangle r)
 {
 	return p.x>=r.min.x && p.x<r.max.x &&

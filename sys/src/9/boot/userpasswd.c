@@ -4,9 +4,8 @@
 #include <../boot/boot.h>
 
 char	password[NAMELEN];
-#ifdef asdf
-extern	char *sauth;
-#endif asdf
+
+char *homsg = "can't set user name or key; please reboot";
 
 /*
  *  get/set user name and password.  verify password with auth server.
@@ -14,59 +13,36 @@ extern	char *sauth;
 void
 userpasswd(int islocal, Method *mp)
 {
-	char key[7];
-	char buf[8 + NAMELEN];
-	int fd, crfd;
+	int fd;
+	char *msg;
+	char hostkey[DESKEYLEN];
 
 	if(*username == 0 || strcmp(username, "none") == 0){
 		strcpy(username, "none");
-		outin("user", username, sizeof(username));
+		outin(cpuflag, "user", username, sizeof(username));
 	}
-	crfd = fd = -1;
+	fd = -1;
 	while(strcmp(username, "none") != 0){
 		getpasswd(password, sizeof password);
-		passtokey(key, password);
-		fd = open("#c/key", OWRITE);
-		if(fd < 0)
-			fatal("can't open #c/key; please reboot");
-		if(write(fd, key, 7) != 7)
-			fatal("can't write #c/key; please reboot");
-		close(fd);
-		crfd = open("#c/crypt", ORDWR);
-		if(crfd < 0)
-			fatal("can't open crypt file");
-		write(crfd, "E", 1);
+		passtokey(hostkey, password);
 		fd = -1;
 		if(islocal)
 			break;
-		if(mp->auth)
-			fd = (*mp->auth)();
-		if(fd < 0){
-			warning("password not checked!");
+		msg = checkkey(mp, username, hostkey);
+		if(msg == 0)
 			break;
-		}
-		strncpy(buf+8, username, NAMELEN);
-		if(read(fd, buf, 8) != 8
-		|| write(crfd, buf, 8) != 8
-		|| read(crfd, buf, 8) != 8
-		|| write(fd, buf, 8 + NAMELEN) != 8 + NAMELEN){
-			warning("password not checked!");
-			break;
-		}
-		if(read(fd, buf, 2) == 2 && buf[0]=='O' && buf[1]=='K')
-			break;
-		close(fd);
-		outin("user", username, sizeof(username));
+		fprint(2, "?%s\n", msg);
+		outin(cpuflag, "user", username, sizeof(username));
 	}
-	close(fd);
-	close(crfd);
-
-	/* set user now that we're sure */
-	fd = open("#c/user", OWRITE|OTRUNC);
-	if(fd >= 0){
-		if(write(fd, username, strlen(username)) < 0)
-			warning("write user name");
+	if(fd > 0)
 		close(fd);
-	}else
-		warning("open #c/user");
+
+	/* set host's key */
+	if(writefile("#c/key", hostkey, DESKEYLEN) < 0)
+		fatal(homsg);
+
+	/* set host's owner (and uid of current process) */
+	if(writefile("#c/hostowner", username, strlen(username)) < 0)
+		fatal(homsg);
+	close(fd);
 }

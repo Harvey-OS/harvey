@@ -15,7 +15,7 @@ command on the console of the file server
 and
 .IR fs (8)).
 Next, give the user a password using the
-.B adduser
+.B changeuser
 command on the console of the authentication server
 (see
 .IR auth (8)).

@@ -1,12 +1,53 @@
 </$objtype/mkfile
 
-TARG=listen\
+TARG=consolefs\
+	data2s\
+	listen\
 	ms2\
-	netkey\
 	typepasswd\
+	mouse\
+	pcmcia\
+	depend\
 
 BIN=/$objtype/bin/aux
 </sys/src/cmd/mkmany
 
-clean:
-	rm -f [$OS].* *.[$OS]
+DIRS=icmp\
+	mnihongo\
+
+all:V:		dirs-all
+install:V:	dirs-install
+clean:V:	dirs-clean
+nuke:V:		dirs-nuke
+
+dirs-&:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk $stem
+	}
+	if (~ $objtype 386 || ~ $stem clean || ~ $stem nuke) @{
+		echo mk vga
+		cd vga
+		mk $stem
+	}
+	if not echo $status > /dev/null		#needed to reset status
+
+2.searchfs:Q:	$OFILES $LIB
+	echo 'no alef compiler for 68020'
+
+/68020/bin/aux/searchfs:Q:
+	;
+
+2.consolefs:Q:	$OFILES $LIB
+	echo 'no alef compiler for 68020'
+
+/68020/bin/aux/consolefs:Q:
+	;
+
+
+2.depend:Q:	$OFILES $LIB
+	echo 'no alef compiler for 68020'
+
+/68020/bin/aux/depend:Q:	2.depend
+	;

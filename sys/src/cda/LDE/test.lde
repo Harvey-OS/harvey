@@ -1,7 +1,0 @@
-.i
-inc i[20] load
-.io
- a[20]
-.e
- a = load ? i : inc ? (a + 1) : a
-

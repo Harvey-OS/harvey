@@ -1,3 +1,4 @@
+#pragma	src	"/sys/src/libfb"
 #pragma	lib	"libfb.a"
 
 /*
@@ -43,15 +44,14 @@ char *picgetprop(PICFILE *, char *);
 void picclose(PICFILE *);
 void picpack(PICFILE *, char *, char *, ...);
 void picunpack(PICFILE *, char *, char *, ...);	/* wrong? */
-void picerror(char *);
 int getcmap(char *, unsigned char *);
 /*
  * Private data
  */
 char *_PICcommand;
-char *_PICerror;
 void _PWRheader(PICFILE *);
 int _PICplan9header(PICFILE *, char *);
+int _PICgifheader(PICFILE *, char *);
 int _PICread(int, void *, int);
 #define	PIC_NOCLOSE	1	/* don't close p->fd on picclose */
 #define	PIC_INPUT	2	/* open for input */

@@ -4,7 +4,7 @@
 void*
 Biobufhdr.rdline(Biobufhdr *bp, int delim)
 {
-	char *ip, *ep;
+	byte *ip, *ep;
 	int i, j;
 
 	bp->lock();
@@ -23,7 +23,7 @@ Biobufhdr.rdline(Biobufhdr *bp, int delim)
 	/*
 	 * first try in remainder of buffer
 	 */
-	ip = (char*)bp->ebuf - i;
+	ip = (byte*)bp->ebuf - i;
 	ep = memchr(ip, delim, i);
 	if(ep) {
 		j = (ep - ip) + 1;
@@ -42,7 +42,7 @@ Biobufhdr.rdline(Biobufhdr *bp, int delim)
 	/*
 	 * append to buffer looking for the delim
 	 */
-	ip = (char*)bp->bbuf + i;
+	ip = (byte*)bp->bbuf + i;
 	while(i < bp->bsize) {
 		j = read(bp->fid, ip, bp->bsize-i);
 		if(j <= 0) {
@@ -63,10 +63,10 @@ Biobufhdr.rdline(Biobufhdr *bp, int delim)
 			 * found in new piece
 			 * copy back up and reset everything
 			 */
-			ip = (char*)bp->ebuf - i;
+			ip = (byte*)bp->ebuf - i;
 			if(i < bp->bsize)
 				memmove(ip, bp->bbuf, i);
-			j = (ep - (char*)bp->bbuf) + 1;
+			j = (ep - (byte*)bp->bbuf) + 1;
 			bp->nrdline = j;
 			bp->icount = j - i;
 			bp->unlock();

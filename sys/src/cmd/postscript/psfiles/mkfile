@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+SYSTEM=plan9
+VERSION=3.3.1
+
+POSTLIB=/sys/lib/postscript/prologues
+
+all:VQ:
+	;
+
+install installall:V:
+	cp *.ps ps.* $POSTLIB
+
+clean nuke:VQ:
+	;

@@ -5,12 +5,12 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-Page *lkpage(ulong addr);
-Page *snewpage(ulong addr);
+Page *lkpage(Segment*, ulong);
 void lkpgfree(Page*);
 void imagereclaim(void);
 
 /* System specific segattach devices */
+#include "io.h"
 #include "segment.h"
 
 #define IHASHSIZE	64
@@ -62,27 +62,33 @@ putseg(Segment *s)
 		return;
 
 	i = s->image;
-	if(i && i->s == s && s->ref == 1) {
+	if(i != 0) {
 		lock(i);
-		if(s->ref == 1)
+		lock(s);
+		if(i->s == s && s->ref == 1)
 			i->s = 0;
 		unlock(i);
 	}
+	else
+		lock(s);
 
-	if(decref(s) == 0) {
-		qlock(&s->lk);
-		if(i)
-			putimage(i);
-
-		emap = &s->map[SEGMAPSIZE];
-		for(pp = s->map; pp < emap; pp++)
-			if(*pp)
-				freepte(s, *pp);
-
-		qunlock(&s->lk);
-
-		free(s);
+	s->ref--;
+	if(s->ref != 0) {
+		unlock(s);
+		return;
 	}
+
+	qlock(&s->lk);
+	if(i)
+		putimage(i);
+
+	emap = &s->map[SEGMAPSIZE];
+	for(pp = s->map; pp < emap; pp++)
+		if(*pp)
+			freepte(s, *pp);
+
+	qunlock(&s->lk);
+	free(s);
 }
 
 void
@@ -240,8 +246,14 @@ found:
 	unlock(&imagealloc);
 
 	if(i->s == 0) {
+		/* Disaster after commit in exec */
+		if(waserror()) {
+			unlock(i);
+			pexit(Enovmem, 1);
+		}
 		i->s = newseg(type, base, len);
 		i->s->image = i;
+		poperror();
 	}
 	else
 		incref(i->s);
@@ -392,16 +404,34 @@ mfreeseg(Segment *s, ulong start, int pages)
 	}
 }
 
+int
+isoverlap(ulong va, int len)
+{
+	int i;
+	Segment *ns;
+	ulong newtop;
+
+	newtop = va+len;
+	for(i = 0; i < NSEG; i++) {
+		ns = u->p->seg[i];
+		if(ns == 0)
+			continue;	
+		if((newtop > ns->base && newtop <= ns->top) ||
+		   (va >= ns->base && va < ns->top))
+			return 1;
+	}
+	return 0;
+}
+
 ulong
 segattach(Proc *p, ulong attr, char *name, ulong va, ulong len)
 {
-	Segment *s, *ns;
-	Physseg *ps;
-	ulong newtop;
 	int i, sno;
+	Segment *s;
+	Physseg *ps;
 
 	USED(p);
-	if((va&KZERO) == KZERO)				/* BUG: Only ok for now */
+	if(va != 0 && (va&KZERO) == KZERO)	/* BUG: Only ok for now */
 		error(Ebadarg);
 
 	validaddr((ulong)name, 1, 0);
@@ -414,17 +444,21 @@ segattach(Proc *p, ulong attr, char *name, ulong va, ulong len)
 	if(sno == NSEG)
 		error(Enovmem);
 
-	va = va&~(BY2PG-1);
 	len = PGROUND(len);
-	newtop = va+len;
-	for(i = 0; i < NSEG; i++) {
-		ns = u->p->seg[i];
-		if(ns == 0)
-			continue;	
-		if((newtop > ns->base && newtop <= ns->top) ||
-		   (va >= ns->base && va < ns->top))
-			error(Esoverlap);
+
+	/* Find a hole in the address space */
+	if(va == 0) {
+		va = p->seg[SSEG]->base - len;
+		for(i = 0; i < 20; i++) {
+			if(isoverlap(va, len) == 0)
+				break;
+			va -= len;
+		}
 	}
+
+	va = va&~(BY2PG-1);
+	if(isoverlap(va, len))
+		error(Esoverlap);
 
 	for(ps = physseg; ps->name; ps++)
 		if(strcmp(name, ps->name) == 0)
@@ -435,61 +469,76 @@ found:
 	if(len > ps->size)
 		error(Enovmem);
 
-	attr &= ~SG_TYPE;			/* Turn off what we are not allowed */
-	attr |= ps->attr;			/* Copy in defaults */
+	attr &= ~SG_TYPE;		/* Turn off what we are not allowed */
+	attr |= ps->attr;		/* Copy in defaults */
 
 	s = newseg(attr, va, len/BY2PG);
-	s->pgalloc = ps->pgalloc;
-	s->pgfree = ps->pgfree;
+	s->pseg = ps;
 	u->p->seg[sno] = s;
 
-	/* Need some code build mapped devices here */
-
-	return 0;
+	return va;
 }
+
+void
+pteflush(Pte *pte, int s, int e)
+{
+	int i;
+	Page *p;
+
+	for(i = s; i < e; i++) {
+		p = pte->pages[i];
+		if(pagedout(p) == 0)
+			memset(p->cachectl, PG_TXTFLUSH, sizeof(p->cachectl));
+	}
+}
+
 
 long
 syssegflush(ulong *arg)
-{
-	Segment *s;
-	int i, j, pages;
-	ulong soff;
-	Page *pg;
+{	Segment *s;
+	ulong addr, l;
+	Pte *pte;
+	int chunk, ps, pe, len;
 
-	s = seg(u->p, arg[0], 1);
-	if(s == 0)
-		error(Ebadarg);
+	addr = arg[0];
+	len = arg[1];
 
-	s->flushme = 1;
+	while(len > 0) {
+		s = seg(u->p, addr, 1);
+		if(s == 0)
+			error(Ebadarg);
 
-	soff = arg[0]-s->base;
-	j = (soff&(PTEMAPMEM-1))/BY2PG;
-	pages = ((arg[0]+arg[1]+(BY2PG-1))&~(BY2PG-1))-(arg[0]&~(BY2PG-1));
+		s->flushme = 1;
+	more:
+		l = len;
+		if(addr+l > s->top)
+			l = s->top - addr;
 
-	for(i = soff/PTEMAPMEM; i < SEGMAPSIZE; i++) {
-		if(pages <= 0) 
-			goto done;
-		if(s->map[i]) {
-			while(j < PTEPERTAB) {
-				if(pg = s->map[i]->pages[j]) 
-					memset(pg->cachectl, PG_TXTFLUSH, sizeof pg->cachectl);
-				if(--pages == 0)
-					goto done;
-				j++;
-			}
-			j = 0;
+		ps = addr-s->base;
+		pte = s->map[ps/PTEMAPMEM];
+		ps &= PTEMAPMEM-1;
+		pe = PTEMAPMEM;
+		if(pe-ps > l){
+			pe = ps + l;
+			pe = (pe+BY2PG-1)&~(BY2PG-1);
 		}
-		else
-			pages -= PTEMAPMEM/BY2PG;
+		if(pe == ps) {
+			qunlock(&s->lk);
+			error(Ebadarg);
+		}
+
+		if(pte)
+			pteflush(pte, ps/BY2PG, pe/BY2PG);
+
+		chunk = pe-ps;
+		len -= chunk;
+		addr += chunk;
+
+		if(len > 0 && addr < s->top)
+			goto more;
+
+		qunlock(&s->lk);
 	}
-done:
-	qunlock(&s->lk);
 	flushmmu();
 	return 0;
-}
-
-Page*
-snewpage(ulong addr)
-{
-	return newpage(1, 0, addr);
 }

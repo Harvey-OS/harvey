@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #include "../boot/boot.h"
 
@@ -30,7 +31,7 @@ settime(int islocal)
 			close(f);
 		}else do{
 			strcpy(dirbuf, "yymmddhhmm[ss]");
-			outin("\ndate/time ", dirbuf, sizeof(dirbuf));
+			outin(cpuflag, "\ndate/time ", dirbuf, sizeof(dirbuf));
 		}while((timeset=lusertime(dirbuf)) <= 0);
 	}
 	if(timeset == 0){
@@ -40,11 +41,11 @@ settime(int islocal)
 		f = open(timeserver, ORDWR);
 		if(f < 0)
 			return;
-		if(mount(f, "/n/boot", MREPL, "", sauth) < 0)
-			if(mount(f, "/n/boot", MREPL, "", "any") < 0){
-				close(f);
-				return;
-			}
+		if(mount(f, "/n/boot", MREPL, "") < 0){
+warning("settime mount");
+			close(f);
+			return;
+		}
 		close(f);
 		if(stat("/n/boot", dirbuf) < 0)
 			fatal("stat");

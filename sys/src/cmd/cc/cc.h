@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 #include <ctype.h>
 
 #pragma	lib	"../cc/cc.a$O"
@@ -10,20 +11,22 @@ typedef	struct	Type	Type;
 typedef	struct	Decl	Decl;
 typedef	struct	Io	Io;
 typedef	struct	Hist	Hist;
-typedef	struct	Ref	Ref;
+typedef	struct	Term	Term;
 
-#define	CNNAME		20
-#define	FPCHIP		1
 #define	NHUNK		50000L
 #define	BUFSIZ		8192
 #define	NSYMB		500
-#define	NTYPE		11
+#define	NTYPE		12
 #define	XTYPE		(NTYPE+6)
 #define	NHASH		1024
 #define	STRINGSZ	200
 #define	HISTSZ		20
 #define	NINCLUDE	10
 #define YYMAXDEPTH	500
+#define	NTERM		10
+
+#define	SIGN(n)		(1LL<<(n-1))
+#define	MASK(n)		(SIGN(n)|(SIGN(n)-1))
 
 #define	ALLOC(lhs, type)\
 	while(nhunk < sizeof(type))\
@@ -34,7 +37,7 @@ typedef	struct	Ref	Ref;
 
 #define	ALLOCN(lhs, len, n)\
 	if(lhs+len != hunk || nhunk < n) {\
-		while(nhunk <= len)\
+		while(nhunk < len+n)\
 			gethunk();\
 		memmove(hunk, lhs, len);\
 		lhs = hunk;\
@@ -50,25 +53,26 @@ struct	Node
 	{
 		struct
 		{
-			union
-			{
-				Node*	left;
-				void*	label;
-				int	reg;
-			};
-			union
-			{
-				Node*	right;
-				long	offset;
-			};
+			Node*	left;
+			Node*	right;
 		};
-		double	ud;	/* fp constant */
-		char*	us;	/* character string */
-		ushort*	rs;	/* rune string */
+		struct
+		{
+			void*	label;
+			long	pc;
+		};
+		struct
+		{
+			int	reg;
+			long	xoffset;
+		};
+		double	fconst;		/* fp constant */
+		vlong	vconst;		/* non fp const */
+		char*	cstring;	/* character string */
+		ushort*	rstring;	/* rune string */
 	};
 	Sym*	sym;
 	Type*	type;
-	Ref*	ref;		/* try to put in l/r su */
 	long	lineno;
 	char	op;
 	char	class;
@@ -79,30 +83,23 @@ struct	Node
 };
 #define	Z	((Node*)0)
 
-struct	Ref
-{
-	Ref*	link;
-	long	lineno;			/* usage lineno */
-	union
-	{
-		long	dlineno;	/* def lineno if this is usage */
-		Sym*	sym;		/* file name for CHELP */
-	};
-	char	class;			/* class of this ref */
-};
-
 struct	Sym
 {
 	Sym*	link;
 	Type*	type;
 	Type*	suetag;
+	Type*	tenum;
 	char*	macro;
-	Ref*	ref;
 	long	varlineno;
 	long	offset;
+	union
+	{
+		vlong	vconst;
+		double	fconst;
+	};
 	Node*	label;
 	ushort	lexical;
-	char	name[CNNAME];
+	char	*name;
 	char	block;
 	char	sueblock;
 	char	class;
@@ -167,6 +164,12 @@ struct	Hist
 #define	H	((Hist*)0)
 Hist*	hist;
 
+struct	Term
+{
+	vlong	mult;
+	Node	*node;
+};
+
 enum
 {
 	DMARK,
@@ -187,25 +190,22 @@ enum
 	OLT,	OMOD,	OMUL,	ONAME,	ONE,	ONOT,	OOR,	OOROR,
 	OPOSTDEC,OPOSTINC,OPREDEC,OPREINC,OPROTO,OREGISTER,ORETURN,OSET,
 	OSIZE,	OSTRING,OLSTRING,OSTRUCT,OSUB,	OSWITCH,OUNION,	OUSED,
-	OWHILE,	OXOR,	OEND
+	OWHILE,	OXOR,	ONEG,	OCOM,	OELEM,	OEND
 };
 enum
 {
 	TXXX,
-	TCHAR,	TUCHAR,	TSHORT,	TUSHORT,TLONG,	TULONG,	TVLONG,	TFLOAT,	TDOUBLE,
-	TIND,	TFUNC,	TARRAY,	TVOID,
-	TSTRUCT,TUNION,	TENUM,	TFILE,  TOLD,   TDOT,
+	TCHAR,	TUCHAR,	TSHORT,	TUSHORT,TLONG,	TULONG,
+	TVLONG,	TUVLONG,TFLOAT,	TDOUBLE,TIND,	/* NTYPE* */
+	TFUNC,	TARRAY,	TVOID,
+	TSTRUCT,TUNION,	TENUM,			/* XTYPE */
+	TFILE,  TOLD,   TDOT,
 };
 enum
 {
 	CXXX,
 	CAUTO,	CEXTERN,CGLOBL,CSTATIC,CLOCAL,CTYPEDEF,CPARAM,
 	CSELEM,	CLABEL, CEXREG,
-	/*
-	 * used in ref structure
-	 */
-	CHELP, CMACRO, CMACARG, CLEXICAL, CPREPROC, CSUETAG,
-	CENUM, CLAST,
 };
 enum
 {
@@ -217,6 +217,7 @@ enum
 	BLONG		= 1L<<TLONG,
 	BULONG		= 1L<<TULONG,
 	BVLONG		= 1L<<TVLONG,
+	BUVLONG		= 1L<<TUVLONG,
 	BFLOAT		= 1L<<TFLOAT,
 	BDOUBLE		= 1L<<TDOUBLE,
 	BIND		= 1L<<TIND,
@@ -225,7 +226,7 @@ enum
 	BUNION		= 1L<<TUNION,
 	BFUNC		= 1L<<TFUNC,
 
-	BINTEGER	= BCHAR|BUCHAR|BSHORT|BUSHORT|BLONG|BULONG|BVLONG,
+	BINTEGER	= BCHAR|BUCHAR|BSHORT|BUSHORT|BLONG|BULONG|BVLONG|BUVLONG,
 	BNUMBER		= BINTEGER|BFLOAT|BDOUBLE,
 
 /* these can be overloaded with complex types */
@@ -241,6 +242,13 @@ enum
 	BCLASS		= BAUTO|BEXTERN|BSTATIC|BTYPEDEF|BREGISTER,
 };
 
+struct
+{
+	Type*	tenum;		/* type of entire enum */
+	Type*	cenum;		/* type of current enum run */
+	vlong	lastenum;	/* value of current enum */
+	double	floatenum;	/* value of current enum */
+} en;
 int	autobn;
 long	autoffset;
 int	blockno;
@@ -261,19 +269,19 @@ Io*	iostack;
 long	lastbit;
 char	lastclass;
 Type*	lastdcl;
-long	lastenum;
 long	lastfield;
 Type*	lasttype;
 long	lineno;
 int	lnstring;
-long	maxenum;
 long	nearln;
 int	nerrors;
 int	newflag;
 long	nhunk;
 int	ninclude;
 Node*	nodproto;
+Biobuf	outbuf;
 char*	outfile;
+char*	pathname;
 int	peekc;
 long	stkoff;
 Type*	strf;
@@ -282,6 +290,7 @@ int	suround;
 int	supad;
 char	symb[NSYMB];
 Sym*	symstring;
+int	taggen;
 Type*	tfield;
 int	thechar;
 char*	thestring;
@@ -290,18 +299,33 @@ long	thunk;
 Type*	tint;
 Type*	tuint;
 Type*	types[XTYPE];
-char*	suedebug;
+Type*	fntypes[XTYPE];
 Node*	initlist;
+Term	term[NTERM];
+int	nterm;
 
 extern	char	*onames[], *tnames[], *cnames[], *qnames[];
-extern	char	typechl[], typechlp[], typelp[], typesu[], typefdv[];
-extern	char	typeu[], typeaf[], typel[], typscalar[];
-extern	char	comrel[], invrel[], logrel[], typec[], typeh[];
 extern	char	tab[NTYPE][NTYPE];
+extern	char	comrel[], invrel[], logrel[];
 extern	long	lcast[], ncast[], tadd[], tand[];
 extern	long	targ[], tasadd[], tasign[], tcast[];
 extern	long	tdot[], tfunct[], tindir[], tmul[];
 extern	long	tnot[], trel[], tsub[];
+
+extern	char	typeaf[];
+extern	char	typefd[];
+extern	char	typei[];
+extern	char	typesu[];
+extern	char	typesuv[];
+extern	char	typeu[];
+extern	char	typev[];
+extern	char	typec[];
+extern	char	typeh[];
+extern	char	typel[];
+extern	char	typelp[];
+extern	char	typechl[];
+extern	char	typechlp[];
+extern	char	typechlpfd[];
 
 /*
  *	compat
@@ -316,7 +340,7 @@ int	unix(void);
  */
 int	yyparse(void);
 int	mpatof(char*, double*);
-int	mpatol(char*, long*);
+int	mpatov(char*, vlong*);
 
 /*
  *	lex.c
@@ -376,12 +400,11 @@ Node*	dcllabel(Sym*, int);
 Node*	dodecl(void(*)(int, Type*, Sym*), int, Type*, Node*);
 Sym*	mkstatic(Sym*);
 void	doenum(Sym*, Node*);
-void	dotag(Sym*, int, int);
+Type*	dotag(Sym*, int, int);
 void	edecl(int, Type*, Sym*);
 Type*	fnproto(Node*);
 Type*	fnproto1(Node*);
 void	markdcl(void);
-Type*	maxtype(long);
 Type*	paramconv(Type*, int);
 void	pdecl(int, Type*, Sym*);
 Decl*	push(void);
@@ -394,7 +417,6 @@ void	suallign(Type*);
 void	tmerge(Type*, Sym*);
 void	walkparam(Node*, int);
 void	xdecl(int, Type*, Sym*);
-void	dbgprint(Sym*, Type*);
 Node*	contig(Sym*, Node*, long);
 
 /*
@@ -413,13 +435,12 @@ int	tlvalue(Node*);
  * con.c
  */
 void	acom(Node*);
-void	acom1(long, Node*);
+void	acom1(vlong, Node*);
 void	acom2(Node*, Type*);
 int	acomcmp1(void*, void*);
 int	acomcmp2(void*, void*);
 int	addo(Node*);
 void	evconst(Node*);
-void	reftrace(void);
 
 /*
  * sub.c
@@ -445,12 +466,18 @@ int	stcompat(Node*, Type*, Type*, long[]);
 int	tcompat(Node*, Type*, Type*, long[]);
 Type*	typ(int, Type*);
 void	typeext(Type*, Node*);
-int	ovflo(long, int);
+void	typeext1(Type*, Node*);
 int	side(Node*);
 int	vconst(Node*);
 void	diag(Node*, char*, ...);
 void	warn(Node*, char*, ...);
 void	yyerror(char*, ...);
+
+/*
+ * acid.c
+ */
+void	acidtype(Type*);
+void	acidvar(Sym*);
 
 /*
  * calls to machine depend part
@@ -464,8 +491,18 @@ long	outlstring(ushort*, long);
 void	sextern(Sym*, Node*, long, long);
 void	xcom(Node*);
 long	exreg(Type*);
-char*	xOconv(int);
-long	castto(long, int);
 int	endian(int);
+int	passbypointer(int);
 
 extern	schar	ewidth[];
+
+/*
+ * com64
+ */
+int	com64(Node*);
+void	com64init(void);
+void	bool64(Node*);
+double	convvtof(vlong);
+vlong	convftov(double);
+double	convftox(double, int);
+vlong	convvtox(vlong, int);

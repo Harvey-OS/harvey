@@ -6,7 +6,12 @@ art, art2pic \- edit line-art
 .SH SYNOPSIS
 .B art
 [
+.B -f
 .I font
+]
+[
+.B -b
+.I picture
 ]
 .PP
 .B art2pic
@@ -16,16 +21,23 @@ art, art2pic \- edit line-art
 is an interactive program to create precise line-art in the style of
 .IR pic (1).
 It is mostly mouse-operated, with a few commands entered from the keyboard.
-It divides its layer into four areas:
+It divides its window into four areas:
 a menu bar at the top,
 a one-line rectangle immediately below for echoing typed-in characters,
 another one-line rectangle below that for printing messages,
 and a large area at the bottom for displaying the drawing.
+The
+.B -b
+option displays the specified
+.I picture
+(in the format of
+.IR picfile (9.6))
+as a background for the drawing.
 .PP
-A small caret whose apex is the
+A small caret, whose apex is the
 .IR "current point" ,
 appears on the screen.
-The lines, arcs and other elements of a drawing are
+The lines, arcs, and other elements of a drawing are
 constructed by placing the caret at each of a sequence of points that define the
 item.  When the caret moves, two other markers (a square and a cross) trail it,
 showing its previous positions.  Items on the screen
@@ -191,7 +203,7 @@ Quit.
 .I Art
 exits, without asking for confirmation.
 .TP
-.BI "w " [file]
+.BR "w " [ \f2file\f1 ]
 Write the drawing into a file in
 .I art
 format.
@@ -204,7 +216,7 @@ format by the
 .I art2pic
 command.
 .TP
-.BI "r " [file]
+.BR "r " [ \f2file\f1 ]
 Read a drawing from a file.
 .I File
 defaults to the last file mentioned in a read or write command.
@@ -282,11 +294,13 @@ the mouse cursor to snap to an item on the screen.
 The
 .B "heat new
 button toggles whether objects are automatically heated when created or modified.
-The item is marked with a `*' if set, as it is initially.
+The item is marked with a star if set, as it is initially.
+.SH SOURCE
+.B /sys/src/cmd/art
 .SH "SEE ALSO"
 .IR tweak (1)
 .SH BUGS
-Only works on 2-bit displays (gnot, nextstation.)
+Needs two or more bits per pixel.
 Doesn't compute intersections of splines with circles or arcs.
 No filled regions, line styles or arrowheads.
 Doesn't save construction lines in files.

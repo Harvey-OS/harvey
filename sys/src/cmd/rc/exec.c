@@ -116,6 +116,7 @@ main(int argc, char *argv[])
 	setvar("pid", newword(num, (word *)0));
 	setvar("cflag", flag['c']?newword(flag['c'][0], (word *)0)
 				:(word *)0);
+	setvar("rcname", newword(argv[0], (word *)0));
 	i=0;
 	bootstrap[i++].i=1;
 	bootstrap[i++].f=Xmark;
@@ -200,8 +201,7 @@ void Xappend(void){
 	}
 	file=runq->argv->words->word;
 	if((f=open(file, 1))<0 && (f=Creat(file))<0){
-		pfmt(err, "%s: ", file);
-		Xerror("can't open");
+		Xperror(file);
 		return;
 	}
 	Seek(f, 0L, 2);
@@ -214,13 +214,13 @@ void Xasync(void){
 	int pid;
 	char npid[10];
 	if(null<0){
-		Xerror("Can't open /dev/null\n");
+		Xperror("/dev/null");
 		return;
 	}
-	switch(pid=fork()){
+	switch(pid=rfork(RFFDG|RFPROC|RFNOTEG)){
 	case -1:
 		close(null);
-		Xerror("try again");
+		Xperror("rfork");
 		break;
 	case 0:
 		pushredir(ROPEN, null, 0);
@@ -235,6 +235,9 @@ void Xasync(void){
 		break;
 	}
 }
+void Xsettrue(void){
+	setstatus("");
+}
 void Xbang(void){
 	setstatus(truestatus()?"false":"");
 }
@@ -246,6 +249,9 @@ void Xdup(void){
 	pushredir(RDUP, runq->code[runq->pc].i, runq->code[runq->pc+1].i);
 	runq->pc+=2;
 }
+void Xeflag(void){
+	if(eflagok && !truestatus()) Xexit();
+}
 void Xexit(void){
 	struct var *trapreq;
 	struct word *starval;
@@ -255,7 +261,7 @@ void Xexit(void){
 		if(trapreq->fn){
 			beenhere=1;
 			--runq->pc;
-			starval==vlook("*")->val;
+			starval=vlook("*")->val;
 			start(trapreq->fn, trapreq->pc, (struct var *)0);
 			runq->local=newvar(strdup("*"), runq->local);
 			runq->local->val=copywords(starval, (struct word *)0);
@@ -296,8 +302,7 @@ void Xread(void){
 	}
 	file=runq->argv->words->word;
 	if((f=open(file, 0))<0){
-		pfmt(err, "%s: ", file);
-		Xerror("can't open");
+		Xperror(file);
 		return;
 	}
 	pushredir(ROPEN, f, runq->code[runq->pc].i);
@@ -349,8 +354,7 @@ void Xwrite(void){
 	}
 	file=runq->argv->words->word;
 	if((f=Creat(file))<0){
-		pfmt(err, "%s: ", file);
-		Xerror("can't open");
+		Xperror(file);
 		return;
 	}
 	pushredir(ROPEN, f, runq->code[runq->pc].i);
@@ -641,12 +645,12 @@ void Xpipe(void){
 	int rfd=p->code[pc++].i;
 	int pfd[2];
 	if(pipe(pfd)<0){
-		Xerror("can't get pipe");
+		Xperror("can't get pipe");
 		return;
 	}
 	switch(forkid=fork()){
 	case -1:
-		Xerror("try again");
+		Xperror("can't fork");
 		break;
 	case 0:
 		start(p->code, pc+2, runq->local);
@@ -725,6 +729,12 @@ void Xrdcmds(void){
 void Xerror(char *s)
 {
 	pfmt(err, "rc: %s\n", s);
+	flush(err);
+	while(!runq->iflag) Xreturn();
+}
+void Xperror(char *s)
+{
+	pfmt(err, "rc: %s: %s\n", s, Geterrstr());
 	flush(err);
 	while(!runq->iflag) Xreturn();
 }

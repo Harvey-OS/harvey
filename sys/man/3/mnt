@@ -25,11 +25,11 @@ be converted by the mount driver into the appropriate
 .PP
 The
 .I mount
-system call issues an
-.IR auth (5)
-message to the server to validate the user and an
+system call issues
+.I session
+and
 .IR attach (5)
-message to identify the user of the connection.
+messages to the server to identify and validate the user of the connection.
 Each distinct user of a connection must mount it separately;
 the mount driver multiplexes the access of the various users and their
 processes to the service.
@@ -48,7 +48,7 @@ A
 .IR read (2)
 or
 .IR write
-system call on a file implemented by the mount driver
+system call on a file served by the mount driver
 may be translated
 into more than one
 message,
@@ -61,12 +61,12 @@ The string
 .L #M
 is an illegal file name,
 so this device can only be accessed directly by the kernel.
-.SH BUGS
-It is not possible to mount a service through the mount driver across a network.
-As a result the
-.IR window
-command will not work from the CPU server since
-it cannot mount the srv entry for
-.IR 8½ .
 .SH "SEE ALSO"
 .IR bind (2)
+.SH SOURCE
+.B /sys/src/9/port/devmnt.c
+.SH BUGS
+When mounting a service through the mount driver,
+that is, when the channel being multiplexed is itself
+a file being served by the mount driver,
+large messages may be broken in two.

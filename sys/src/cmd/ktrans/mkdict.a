@@ -1,0 +1,24 @@
+BEGIN	{
+		print "#include <u.h>"
+		print "#include <libc.h>"
+		print "Rune dict[] =\nL\"\\"
+		kana = ""
+		kanji = ""
+
+	}
+	{
+		if (match($2, /xx/)) next
+		if ($2 != kana) {
+			if (kana != "")
+				print kana "\t" kanji "\\n\\"
+			kanji = $1
+			kana = $2
+		} else {
+			kanji = kanji " " $1
+		}
+	}
+END	{
+		print kana "\t" kanji "\\n\\"
+		print "\";\n"
+		print "int	ndict = sizeof(dict)/sizeof(Rune);"
+	}

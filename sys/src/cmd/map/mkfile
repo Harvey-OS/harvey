@@ -23,7 +23,6 @@ installall:V:
 	cp map.rc /rc/bin/map
 	cp mapdemo.rc /rc/bin/mapdemo
 
-nuke:V:
-	mk clean
-	cd libmap
-	mk nuke
+clean nuke:V:
+	@{ cd libmap; mk clean }
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG

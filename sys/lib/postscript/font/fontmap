@@ -31,6 +31,21 @@
 	LetterGothic-Bold		LettGothB
 	LetterGothic-BoldSl		LettGothBSl
 	LetterGothic-Slanted		LettGothSl
+	LucidaSans				LucidaSans
+	LucidaSans-Italic			LucidaSansI
+	LucidaSans-Demi			LucidaSansB
+	LucidaTypewriter			LucidaCW
+	LucidaSansUnicode00		lsunr00.pfa
+	LucidaSansUnicode01		lsunr01.pfa
+	LucidaSansUnicode02		lsunr02.pfa
+	LucidaSansUnicode03		lsunr03.pfa
+	LucidaSansUnicode04		lsunr04.pfa
+	LucidaSansUnicode05		lsunr05.pfa
+	LucidaSansUnicode20		lsunr20.pfa
+	LucidaSansUnicode21		lsunr21.pfa
+	LucidaSansUnicode22		lsunr22.pfa
+	LucidaSansUnicode24		lsunr24.pfa
+	LucidaSansUnicode25		lsunr25.pfa
 	NewCenturySchlbk-Roman		NR
 	NewCenturySchlbk-Italic		NI
 	NewCenturySchlbk-Bold		NB

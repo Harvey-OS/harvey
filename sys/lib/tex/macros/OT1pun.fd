@@ -1,0 +1,54 @@
+%Filename: OT1pun.fd
+%Created by: tex 7991univers
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{OT1}{pun}{}
+
+\DeclareFontShape{OT1}{pun}{b}{n}{
+   <-> punb7t
+}{}
+
+\DeclareFontShape{OT1}{pun}{b}{sc}{
+   <-> punbc7t
+}{}
+
+\DeclareFontShape{OT1}{pun}{b}{sl}{
+   <-> punbo7t
+}{}
+
+\DeclareFontShape{OT1}{pun}{l}{n}{
+   <-> punl7t
+}{}
+
+\DeclareFontShape{OT1}{pun}{l}{sc}{
+   <-> punlc7t
+}{}
+
+\DeclareFontShape{OT1}{pun}{l}{sl}{
+   <-> punlo7t
+}{}
+
+\DeclareFontShape{OT1}{pun}{m}{n}{
+   <-> punr7t
+}{}
+
+\DeclareFontShape{OT1}{pun}{m}{sc}{
+   <-> punrc7t
+}{}
+
+\DeclareFontShape{OT1}{pun}{m}{sl}{
+   <-> punro7t
+}{}
+
+\DeclareFontShape{OT1}{pun}{bx}{n}{<->ssub * pun/b/n}{}
+\DeclareFontShape{OT1}{pun}{bx}{sc}{<->ssub * pun/b/sc}{}
+\DeclareFontShape{OT1}{pun}{b}{it}{<->ssub * pun/b/sl}{}
+\DeclareFontShape{OT1}{pun}{bx}{it}{<->ssub * pun/b/it}{}
+\DeclareFontShape{OT1}{pun}{bx}{sl}{<->ssub * pun/b/sl}{}
+\DeclareFontShape{OT1}{pun}{l}{it}{<->ssub * pun/l/sl}{}
+\DeclareFontShape{OT1}{pun}{m}{it}{<->ssub * pun/l/it}{}
+\DeclareFontShape{OT1}{pun}{m}{it}{<->ssub * pun/m/sl}{}
+
+\endinput

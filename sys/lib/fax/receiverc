@@ -1,0 +1,19 @@
+#!/bin/rc
+spool=/mail/faxqueue
+recipients=/mail/faxqueue/faxrecipients
+faxowner=tor	#list of people to notify when unrecognizable fax comes in
+
+#
+# Arguments should be
+#	time Y|N pages [ftsi]
+#
+switch($#*){
+
+case 4
+case 3
+	{echo $*; echo FAX: page $spool/$1.'*'} | mail `{cat $recipients}
+case 0
+	{echo $*; echo FAX: no pages} | mail $faxowner
+case *
+	{echo $*; echo FAX: page $spool/$1.'*'} | mail $faxowner
+}

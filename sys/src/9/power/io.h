@@ -10,17 +10,15 @@
 enum
 {
 	LEDtrapmask=	0xf<<0,
+	LED2=		1<<2,
+	LED3=		1<<3,
 	LEDkfault=	1<<4,
-	LEDclock=	1<<5,
+	LED5=		1<<5,
 	LEDfault=	1<<6,
 	LEDpulse=	1<<7,
 };
-/*
 #define LEDON(x) 	(m->ledval &= ~(x), *LED = m->ledval)
 #define LEDOFF(x) 	(m->ledval |= (x), *LED = m->ledval)
-*/
-#define LEDON(x)
-#define LEDOFF(x)
 
 typedef struct SBCC	SBCC;
 typedef struct Timer	Timer;

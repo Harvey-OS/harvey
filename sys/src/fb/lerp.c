@@ -37,7 +37,7 @@ main(int argc, char *argv[]){
 	total=0;
 	for(i=0;i!=nin;i++){
 		if((in[i]=picopen_r(argv[2*i+1]))==0){
-			picerror(argv[i+1]);
+			perror(argv[i+1]);
 			err++;
 		}
 		if(strcmp(in[i]->chan, in[0]->chan)!=0){
@@ -72,7 +72,7 @@ main(int argc, char *argv[]){
 	if((out=picopen_w("OUT", in[0]->type,
 		owin.min.x, owin.min.y, owin.max.x-owin.min.x, owin.max.y-owin.min.y,
 		in[0]->chan, argv, (char *)0))==0){
-		picerror(argv[0]);
+		perror(argv[0]);
 		exits("create output");
 	}
 	for(i=owin.min.y;i!=owin.max.y;i++){

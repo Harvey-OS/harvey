@@ -3,8 +3,8 @@
 intern int f = -1;
 
 intern
-char*
-skip(char *p)
+byte*
+skip(byte *p)
 {
 	while(*p == ' ')
 		p++;
@@ -16,15 +16,17 @@ skip(char *p)
 int
 times(int *t)
 {
-	char b[200], *p;
+	byte b[200], *p;
 	uint r;
 
 	memset(b, 0, sizeof(b));
-	if(f < 0)
-		f = open("/dev/cputime", OREAD|OCEXEC);
-	if(f >= 0) {
-		seek(f, 0, 0);
-		read(f, b, sizeof(b));
+	!{
+		if(f < 0)
+			f = open("/dev/cputime", OREAD|OCEXEC);
+		if(f >= 0) !{
+			seek(f, 0, 0);
+			read(f, b, sizeof(b));
+		}
 	}
 	p = b;
 	if(t)

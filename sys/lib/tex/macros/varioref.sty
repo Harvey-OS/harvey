@@ -1,0 +1,488 @@
+%% 
+%% This is file `varioref.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% varioref.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is part of the `tools' bundle 
+%% in the LaTeX2e distribution. 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file, and 
+%% in the file readme.txt distributed with the 
+%% tools bundle. 
+%% 
+%% Package varioref to use with LaTeX2e
+%% Copyright (C) 1992-1994  Frank Mittelbach, all rights reserved.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{varioref}
+    [1994/09/27 v1.0o package for extended references (FMi)]
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\def\vref@addto#1#2{%
+  #2%
+  \@temptokena{#2}%
+  \ifx#1\undefined
+     \edef#1{\the\@temptokena}%
+  \else
+     \toks@\expandafter{#1}%
+     \edef#1{\the\toks@\the\@temptokena}%
+  \fi
+  \@temptokena{}\toks@\@temptokena
+}
+\@onlypreamble\vref@addto
+\def\vref@excuse#1{\typeout{\filename: Sorry, language `#1' 
+            not supported in this version.%
+            ^^J\filename: English strings used.%
+            ^^J^^J*** If you can suggest translations for 
+            this language,^^J*** please mail your suggestions
+            to the author of this package.^^J}}
+\@onlypreamble\vref@excuse
+\DeclareOption{american}
+  {\vref@addto\extrasamerican{%%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{austrian}
+  {\vref@excuse{austrian}%
+   \vref@addto\extrasaustrian{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{brazil}
+  {\vref@addto\extrabrazil{%
+    \def\reftextfaceafter {na \reftextvario{p\'agina oposta}{pr\'oxima 
+                           p\'agina}}%
+    \def\reftextfacebefore{na p\'agina \reftextvario{oposta}{anterior}}%
+    \def\reftextafter     {na \reftextvario{p\'agina seguinte}{pr\'oxima
+                           p\'agina}}%
+    \def\reftextbefore{na p\'agina \reftextvario{anterior}{precedente}}%
+    \def\reftextcurrent   {\reftextvario{nesta p\'agina}{na p\'agina 
+                           corrente}}%
+    \def\reftextfaraway##1{na p\'agina~\pageref{##1}}%
+  }}
+\DeclareOption{breton}
+  {\vref@excuse{breton}%
+   \vref@addto\extrasbreton{%
+    \def\reftextfaceafter {war ar bajenn \reftextvario{a-dal}{da heul}}%
+    \def\reftextfacebefore{war ar bajenn \reftextvario{a-dal}{a-raok}}%
+    \def\reftextafter     {war ar bajenn da heul}%
+    \def\reftextbefore    {war ar bajenn a-raok}%
+    \def\reftextcurrent   {war ar \reftextvario{bajenn-ma\~n}%
+                                               {bajenn war-wel}}%
+    \def\reftextfaraway##1{war ar bajenn~\pageref{##1}}%
+  }}
+\DeclareOption{catalan}
+  {\vref@excuse{catalan}%
+   \vref@addto\extrascatalan{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{croatian}
+  {\vref@excuse{croatian}%
+   \vref@addto\extrascroatian{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{czech}
+  {\vref@excuse{czech}%
+   \vref@addto\extrasczech{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{danish}
+  {\vref@addto\extrasdanish{%
+    \def\reftextfaceafter {p\aa{} \reftextvario{modst\aa ende}%
+                                               {n\ae ste} side}%
+    \def\reftextfacebefore{p\aa{} \reftextvario{modst\aa ende}%
+                                               {forrige} side}%
+    \def\reftextafter     {p\aa{} \reftextvario{den f\o lgende}%
+                                               {n\ae ste} side}%
+    \def\reftextbefore    {p\aa{} \reftextvario{forrige side}
+                                               {foreg\aa ende side}}%
+    \def\reftextcurrent   {p\aa{} denne side}%
+    \def\reftextfaraway##1{p\aa{} side~\pageref{##1}}%
+  }}
+\DeclareOption{dutch}
+  {\vref@addto\extrasdutch{%
+    \def\refpagename{pagina}%
+    \def\reftextfaceafter {op de \reftextvario{rechter \refpagename}%
+                                          {\refpagename\ hiernaast}}%
+    \def\reftextfacebefore{op de \reftextvario{linker \refpagename}%
+                                         {\refpagename\ hiernaast}}%
+    \def\reftextafter     {op de \reftextvario{volgende \refpagename}%
+                                              {\refpagename\ hierna}}%
+    \def\reftextbefore    {op de \reftextvario{vorige \refpagename}%
+                                          {\refpagename\ hiervoor}}%
+    \def\reftextcurrent   {op deze \refpagename}%
+    \def\reftextfaraway##1{op \refpagename~\pageref{##1}}%
+  }}
+\DeclareOption{english}
+  {\vref@addto\extrasenglish{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{esperanto}
+  {\vref@excuse{esperanto}%
+   \vref@addto\extrasesperanto{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{finnish}
+  {\vref@addto\extrasfinnish{%
+    \def\reftextfaceafter {\reftextvario{viereisell\"a}%
+                                        {seuraavalla} sivulla}%
+    \def\reftextfacebefore{\reftextvario{viereisell\"a}%
+                                        {edellisell\"a} sivulla}%
+    \def\reftextafter     {seuraavalla sivulla}%
+    \def\reftextbefore    {edellisell\"a sivulla}%
+    \def\reftextcurrent   {t\"all\"a sivulla}%
+    \def\reftextfaraway##1{sivulla~\pageref{##1}}%
+  }}
+\DeclareOption{french}
+  {\vref@addto\extrasfrench{%
+    \def\reftextfaceafter {page \reftextvario{ci-contre}{suivante}}%
+    \def\reftextfacebefore{page \reftextvario{ci-contre}%
+                          {pr\'ec\'edente}}%
+    \def\reftextafter     {page suivante}%
+    \def\reftextbefore    {page pr\'ec\'edente}%
+    \def\reftextcurrent   {de la pr\'esente page}%
+    \def\reftextfaraway##1{page~\pageref{##1}}%
+  }}
+\DeclareOption{galician}
+  {\vref@excuse{galician}%
+   \vref@addto\extrasgalician{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{german}
+  {\vref@addto\extrasgerman{%
+    \def\reftextfaceafter {auf der n\"achsten Seite}%
+    \def\reftextfacebefore{auf der vorherigen Seite}%
+    \let\reftextafter     \reftextfaceafter
+    \let\reftextbefore    \reftextfacebefore
+    \def\reftextcurrent   {auf dieser Seite}%
+    \def\reftextfaraway##1{auf Seite~\pageref{##1}}%
+  }}
+\DeclareOption{italian}
+  {\vref@excuse{italian}%
+   \vref@addto\extrasitalian{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{magyar}
+  {\vref@excuse{magyar}%
+   \vref@addto\extrasmagyar{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{norsk}
+  {\vref@excuse{norsk}%
+   \vref@addto\extrasnorsk{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{nynorsk}
+  {\vref@excuse{nynorsk}%
+   \vref@addto\extrasnynorsk{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{polish}
+  {\vref@excuse{polish}%
+   \vref@addto\extraspolish{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{portuges}
+  {\vref@excuse{portuges}%
+   \vref@addto\extrasportuges{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{romanian}
+  {\vref@excuse{romanian}%
+   \vref@addto\extrasromanian{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{russian}
+  {\vref@excuse{russian}%
+   \vref@addto\extrasrussian{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{slovak}
+  {\vref@excuse{slovak}%
+   \vref@addto\extrasslovak{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{slovene}
+  {\vref@excuse{slovene}%
+   \vref@addto\extrasslovene{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{spanish}
+  {\vref@addto\extrasspanish{%
+    \def\reftextfaceafter {en la p\'agina siguiente}%
+    \def\reftextfacebefore{en la p\'agina anterior}%
+    \let\reftextafter     \reftextfaceafter
+    \let\reftextbefore    \reftextfacebefore
+    \def\reftextcurrent   {en esta p\'agina}%
+    \def\reftextfaraway##1{en la p\'agina~\pageref{##1}}%
+  }}
+\DeclareOption{swedish}
+  {\vref@excuse{swedish}%
+   \vref@addto\extrasswedish{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{turkish}
+  {\vref@excuse{turkish}%
+   \vref@addto\extrasturkish{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{francais}{%
+   \typeout{Please use `french' instead of `francais'}%
+   \ExecuteOptions{french}}
+\DeclareOption{germanb}{%
+   \typeout{Please use `german' instead of `germanb'}%
+   \ExecuteOptions{german}}
+\ExecuteOptions{english}
+\ProcessOptions*
+\newcounter{vrcnt}
+\DeclareRobustCommand\vpageref{\@ifnextchar[%
+  \@vpageref{\@vpageref[\reftextcurrent]}%
+}
+\def\@vpageref[#1]{\@ifnextchar[%
+  {\@@vpageref{#1}}{\@@vpageref{#1}[\unskip\space]}}
+\def\@@vpageref#1[#2]#3{%
+  \leavevmode\unskip
+  \global\advance\c@vrcnt\@ne
+  \@ifundefined{r@\the\c@vrcnt @vr}%
+         {\@namedef{r@\the\c@vrcnt @vr}{{??}{??}}}{}%
+  \edef\@tempa{\expandafter\expandafter\expandafter
+                \@cdr\csname r@\the\c@vrcnt @vr\endcsname
+                \@nil}%
+  \@ifundefined{r@\the\c@vrcnt @xvr}%
+         {\@namedef{r@\the\c@vrcnt @xvr}{{??}{??}}}{}%
+  \edef\@tempb{\expandafter\expandafter\expandafter
+                \@cdr\csname r@\the\c@vrcnt @xvr\endcsname
+                \@nil}%
+  {\let\@currentlabel\@empty
+   \expandafter\label\expandafter{\the\c@vrcnt @xvr}}%
+  \ifx\@tempa\@tempb\else
+  \vref@err{\noexpand\vref at page boundary
+            \@tempb-\@tempa\space (may loop)%
+            }%
+  \fi
+  \@ifundefined{r@#3}{\@namedef{r@#3}{{??}{??}}}{}%
+  \edef\@tempb{\expandafter\expandafter\expandafter
+                \@cdr\csname r@#3\endcsname
+                \@nil}%
+  \space
+  \ifx\@tempa\@tempb
+    #1%
+  \else
+    #2%
+    \is@pos@number\@tempb
+       {%
+        \is@pos@number\@tempa
+         {\@tempcnta\@tempa
+          \advance\@tempcnta\@ne
+         }%
+         {\@tempcnta\maxdimen}%
+        \ifnum \@tempb =\@tempcnta
+         \ifodd\@tempcnta
+           \if@twoside
+             \reftextfaceafter
+           \else
+             \reftextafter
+           \fi
+         \else
+           \reftextafter
+         \fi
+        \else
+          \advance\@tempcnta-2
+          \ifnum \@tempb =\@tempcnta
+            \ifodd\@tempcnta
+              \reftextbefore
+            \else
+              \if@twoside
+                \reftextfacebefore
+              \else
+                \reftextbefore
+              \fi
+            \fi
+          \else
+            \reftextfaraway{#3}%
+          \fi
+        \fi
+       }%
+       {\reftextfaraway{#3}}%
+  \fi
+  {\let\@currentlabel\@empty
+   \expandafter\label\expandafter{\the\c@vrcnt @vr}}%
+}
+\def\vrefwarning{\def\vref@err{\PackageWarning{varioref}}}
+\def\vref@err#1{\PackageError{varioref}{#1}%
+    {Please check the pages in question. You might need to replace
+     the \string\vref\MessageBreak 
+     or \noexpand\vpageref by a normal \noexpand\(page)ref to
+     stop LaTeX running forever.}}
+\DeclareRobustCommand\vref[1]{%
+  \unskip~\ref{#1}%
+  \@vpageref[\unskip]{#1}%
+}
+\def\is@pos@number#1{\is@pos@num0#1\space\@nil}
+\def\is@pos@num{\afterassignment\is@pos@num@ \count@}
+\def\is@pos@num@#1\@nil{%
+  \if0#10%
+    \expandafter\@firstoftwo \else
+    \expandafter\@secondoftwo  \fi}
+\def\reftextvario#1#2{\ifodd\c@vrcnt #1\else#2\fi}
+\def\fullref#1{\ref{#1} \reftextfaraway{#1}}
+\endinput
+%% 
+%% End of file `varioref.sty'.

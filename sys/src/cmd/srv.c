@@ -1,20 +1,17 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <ndb.h>
-
+#include <auth.h>
 #include <fcall.h>
 
 Fcall	hdr;
 char	dest[2*NAMELEN];
 
 void	error(char *);
-int	authenticate(int);
 int	cyclone(void);
 void	rpc(int, int);
 void	post(char*, int);
 void	mountfs(char*, int);
-char	*needauth(char*);
 
 void
 usage(void)
@@ -28,23 +25,20 @@ main(int argc, char *argv[])
 {
 	int fd, cfd;
 	char srv[64], mtpt[64];
-	char err[ERRLEN];
 	char dir[NAMELEN*4];
-	char *p, *p2, *auth;
+	char err[ERRLEN];
+	char tickets[2*TICKETLEN];
+	char *p, *p2;
 	int domount, record, try;
 
 	domount = 0;
 	record = 0;
-	auth = 0;
 	ARGBEGIN{
 	case 'm':
 		domount = 1;
 		break;
 	case 'r':
 		record = 1;
-		break;
-	case 't':
-		auth = "any";
 		break;
 	default:
 		usage();
@@ -112,19 +106,16 @@ Again:
 		}
 	}
 
-	fprint(2, "nop");
-	rpc(fd, Tnop);
-	fprint(2, "session");
-	rpc(fd, Tsession);
+	fprint(2, "session...");
+	fsession(fd, tickets);
 	post(srv, fd);
 
 Mount:
 	if(domount == 0)
 		exits(0);
 
-	if(!auth)
-		auth = needauth(mtpt);
-	if(mount(fd, mtpt, MREPL, "", auth) < 0){
+	if(amount(fd, mtpt, MREPL, "") < 0){
+		err[0] = 0;
 		errstr(err);
 		if(strstr(err, "hungup") || strstr(err, "timed out")){
 			remove(srv);
@@ -135,79 +126,6 @@ Mount:
 		exits("mount");
 	}
 	exits(0);
-}
-
-char*
-needauth(char *server)
-{
-	Ndb *ndb;
-	Ndbs ndbs;
-	Ndbtuple *t;
-	char *p;
-	char *s;
-	char v[Ndbvlen];
-
-	s = "";
-	p = utfrrune(server, '/');
-	if(p)
-		p++;
-	else
-		p = server;
-
-	ndb = ndbopen(0);
-	if(ndb == 0)
-		return s;
-
-	t = ndbgetval(ndb, &ndbs, "sys", p, "9P", v);
-	if(t){
-		if(strcmp(v, "auth") == 0)
-			s = p;
-		ndbfree(t);
-	}
-
-	ndbclose(ndb);
-	return s;
-}
-
-void
-rpc(int fd, int type)
-{
-	int n, l;
-	char buf[128], *p;
-
-	hdr.type = type;
-	hdr.tag = NOTAG;
-	n = convS2M(&hdr, buf);
-	if(write(fd, buf, n) != n)
-		error("write rpc");
-
-	fprint(2, "...");
-	p = buf;
-	l = 0;
-	while(l < 3) {
-		n = read(fd, p, 3);
-		if(n <= 0)
-			error("read rpc");
-		/*
-		 *  This stupidity is a special hack for old gnot
-		 *  ROM's.  It should go away once authentication
-		 *  is omnipresent. -- presotto
-		 */
-		if(n == 2 && l == 0 && buf[0] == 'O' && buf[1] == 'K')
-			continue;
-		p += n;
-		l += n;
-	}
-	if(convM2S(buf, &hdr, n) == 0)
-		error("rpc format");
-	if(hdr.tag != NOTAG)
-		error("rpc tag not NOTAG");
-	if(hdr.type == Rerror){
-		fprint(2, "error %s;", hdr.ename);
-		error("remote error");
-	}
-	if(hdr.type != type+1)
-		error("not reply");
 }
 
 void

@@ -48,7 +48,7 @@ main(int argc, char *argv[]){
 	}
 	in=picopen_r(argc==2?argv[1]:"IN");
 	if(in==0){
-		picerror(argc==2?argv[1]:"IN");
+		perror(argc==2?argv[1]:"IN");
 		exits("open input");
 	}
 	iwid=PIC_WIDTH(in);
@@ -125,7 +125,7 @@ main(int argc, char *argv[]){
 	out=picopen_w("OUT", in->type, PIC_XOFFS(in)+dx, PIC_YOFFS(in)+dy, owid, ohgt,
 		in->chan, argv, in->cmap);
 	if(out==0){
-		picerror("OUT");
+		perror("OUT");
 		exits("create output");
 	}
 	for(y=0;y!=ihgt;y++){

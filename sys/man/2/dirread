@@ -2,6 +2,10 @@
 .SH NAME
 dirread \- read directory
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
 int dirread(int fd, Dir *buf, long nbytes)
 .SH DESCRIPTION
@@ -48,10 +52,12 @@ returns the number of bytes filled in
 the number returned may be
 less than the number requested.
 The file offset is advanced by the number of bytes actually read.
+.SH SOURCE
+.B /sys/src/libc/9sys/dirread.c
 .SH SEE ALSO
 .IR intro (2),
 .IR open (2),
 .IR read (2)
 .SH DIAGNOSTICS
 Sets
-.I errstr.
+.IR errstr .

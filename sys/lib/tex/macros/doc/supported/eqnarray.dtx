@@ -1,0 +1,283 @@
+\def\fileversion{1.1}
+\def\filedate{jan 1993}
+\def\docdate{9 jan 1995}
+%
+% \MakeShortVerb{\|}
+%
+% \title{The |equationarray| environment}
+% \author{Roland Winkler\\roland.winkler@physik.uni-regensburg.de}
+% \maketitle
+% \begin{abstract}\noindent
+% The |equationarray| combines the |eqnarray| and the |array| environment.
+% \end{abstract}
+%
+% \section{Introduction}
+%
+% Problem: The |eqnarray| environment is too restrictive because it is
+% only prepared to accept three part equations.  Some applications
+% require more sophisticated mathematics, so three parts aren't
+% enough.  Simultaneously, we would like to have our equations
+% numbered.  If the equations aren't to be numbered, then the |array|
+% environment suffices (nevertheless it is often easier to use the
+% |equationarray*| environment than both an |equation| plus an |array| 
+% environment).  If the equations aren't to be aligned with
+% each other, then the |equation| environment is preferred.
+%
+% The following is a new version of Tony Li's |equationarray|
+% environment modified such that it is compatible with Frank Mittelbach's
+% |array| environment, i.e. it should be possible to use all options
+% of the |array| environment. If you find a bug (see below!) or
+% if you make any improvements, I'd like to hear about them.
+%
+% When writing the |equationarray| environment I used the
+% version v2.1b of the |array| environment. The original version of
+% |equationarray| was written by Tony Li, University of Southern
+% California, tli@sargas.usc.edu starting 6/15/88.
+%
+% I know that my documentation of the |equationarray| environment is
+% rather short -- but maybe nobody else might like to use it and
+% even this work was superfluous. So if you think that it would be
+% useful to have a better documentation please let me know.
+%
+% \section{Example}
+%
+% We give a short example for the use of |equationarray|. The
+% text is
+% %
+% \begin{verbatim}
+% \newcolumntype{e}{@{}}
+% \begin{equationarray}{rclel}
+% \phi & = & \sum \bigg( & \frac{xxxxxxxxxx}{\phi} 
+% \nonumber\\*[3ex]
+% & & & + \frac{yyyyyyyyyy}{\phi} \bigg) \\[4ex]
+% & = & \multicolumn{2}{l}{ \frac{zzzzzzzzzz}{\phi} }
+% \end{equationarray}
+% \end{verbatim}
+% %
+% and we obtain (usually my formulas are much longer $\ldots$)
+% %
+% \newcolumntype{e}{@{}}
+% \begin{equationarray}{rclel}
+% \phi & = & \sum \bigg( & \frac{xxxxxxxxxx}{\phi} 
+% \nonumber\\*[3ex]
+% & & & + \frac{yyyyyyyyyy}{\phi} \bigg) \\[4ex]
+% & = & \multicolumn{2}{l}{ \frac{zzzzzzzzzz}{\phi} }
+% \end{equationarray}
+% %
+% One can avoid pagebreaks between two lines by using the
+% star-version |\\*|. There is also the star-version |equationarray*|
+% which has usually no linenumbers. But if for a particular line you
+% still want a linenumber, you can use |\yesnumber|, (I find this
+% easier than many lines with |\nonumber|). With the options |[l]|
+% or |[r]| the |equationarray| will appear flushleft or flushright,
+% e.g. |\begin{equationarray}[l]{rclll}|.
+%
+% \section{Bugs}
+%
+% The equationarray has a slightly modified version of
+% |\multicolumn| because we must count the |\span|ed columns. Thus
+% if you have |\multicolumn| within an |array| within the
+% |equationarray| environment, then you might run into difficulties
+% if you have a line with less |&|'s than tokens in the preamble.
+%
+% Thus you can either fill up the end of a half empty line with
+% extra |&|'s or you can put the original definition of
+% |\multicolumn| within the definition of the |array| command.
+% 
+%  \section{The code}
+%
+%    \begin{macrocode}
+\typeout{equationarray \fileversion\space<\filedate>}
+\typeout{English documentation\space\space<\docdate>}
+%    \end{macrocode}
+%
+% \begin{macro}{\equationarray}
+%    \begin{macrocode}
+\def\equationarray{%
+ \col@sep\arraycolsep
+ \def\d@llarbegin{$\displaystyle}%
+ \def\d@llarend{$}%
+ \stepcounter{equation}%
+ \let\@currentlabel=\theequation
+ \set@eqnsw \global\@eqcnt\z@ \global\@eqargcnt\z@
+ \let\@classz\@eqnclassz
+ \def\multicolumn##1##2##3{\@eqnmulticolumn{##1}{##2}{##3}%
+                           \global\advance\@eqcnt##1
+                           \global\advance\@eqcnt\m@ne}%
+ \def\@halignto{to\displaywidth}%
+ \@ifnextchar[{\@equationarray}{\@equationarray[c]}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@eqnmulticolumn}
+% |\@eqnmulticolumn| equals the original version of |\multicolumn|.
+%    \begin{macrocode}
+\let\@eqnmulticolumn=\multicolumn
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\nonumber,\yesnumber}
+% Note, that |\nonumber| is already defined in standard latex.tex
+%    \begin{macrocode}
+% \def\nonumber{\global\@eqnswfalse}
+\def\yesnumber{\global\@eqnswtrue}
+\let\set@eqnsw=\yesnumber
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@amper}
+% We need a macro for |&| that expands at the right time.
+%    \begin{macrocode}
+\def\@amper{&}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@eqargcnt}
+% We must count the number of arguments (tokens) in the preamble so
+% that we can fill every line with exactly |\@eqargcnt| copies of
+% |&| before we insert the equation number.
+%    \begin{macrocode}
+\newcount\@eqargcnt  % counts number of columns
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@equationarray}
+% The definition of |\@equationarray| follows the \TeX book,
+% Exercise 22.9
+%    \begin{macrocode}
+\def\@equationarray[#1]#2{%
+     \@tempdima \ht \strutbox
+     \advance \@tempdima by\extrarowheight
+     \setbox\@arstrutbox=\hbox{\vrule
+               \@height\arraystretch \@tempdima
+               \@depth\arraystretch \dp \strutbox
+               \@width\z@}%
+     \gdef\advance@eqargcnt{\global\advance\@eqargcnt\@ne}%
+     \begingroup
+     \@mkpream{#2}%
+     \xdef\@preamble{%
+      \if #1l\tabskip\z@ \else\if #1r\tabskip\@centering
+                         \else\tabskip\@centering \fi\fi
+      \halign \@halignto
+      \bgroup \tabskip\z@ \@arstrut \@preamble
+      \if #1l\tabskip\@centering \else\if #1r\tabskip\z@
+                                 \else\tabskip\@centering \fi\fi
+%    \end{macrocode}
+%
+% Here we need an extra column for the equation-number
+%
+%    \begin{macrocode}
+      \@amper\llap{\@sharp}\tabskip\z@\cr}%
+     \endgroup
+     \gdef\advance@eqargcnt{}%
+     \bgroup
+     \let\@sharp## \let\protect\relax
+     \m@th   \let\\=\@equationcr
+     \let\par\@empty
+     $$                            % $$ BRACE MATCHING HACK
+     \lineskip \z@
+     \baselineskip \z@
+     \@preamble}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@eqnclassz}
+% |\@eqnclassz| does the same thing as |\@classz| except that we add\\
+% |\advance@eqargcnt|
+%    \begin{macrocode}
+\def\@eqnclassz{\@classx
+   \@tempcnta \count@
+   \advance@eqargcnt
+   \prepnext@tok
+   \@addtopreamble{%
+      \global\advance\@eqcnt\@ne
+      \ifcase \@chnum
+      \hfil \d@llarbegin \insert@column \d@llarend\hfil \or
+      \d@llarbegin \insert@column \d@llarend \hfil \or
+      \hfil\kern\z@ \d@llarbegin \insert@column \d@llarend \or
+      $\vcenter
+      \@startpbox{\@nextchar}\insert@column \@endpbox $\or
+      \vtop \@startpbox{\@nextchar}\insert@column \@endpbox \or
+      \vbox \@startpbox{\@nextchar}\insert@column \@endpbox
+      \fi}\prepnext@tok}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\endequationarray}
+%    \begin{macrocode}
+\def\endequationarray{\@zequationcr
+   \egroup
+   \global\advance\c@equation\m@ne $$  % $$ BRACE MATCHING HACK
+   \egroup\global\@ignoretrue
+   \gdef\@preamble{}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@equationcr}
+% If we have |\\*| the command |\@equationcr| avoids pagebreaks
+%    \begin{macrocode}
+\def\@equationcr{${\ifnum0=`}\fi\@ifstar{\global\@eqpen\@M
+    \@xequationcr}{\global\@eqpen\interdisplaylinepenalty
+                   \@xequationcr}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@xequationcr}
+%    \begin{macrocode}
+\def\@xequationcr{%
+    \@ifnextchar[{\@argequationcr}{\ifnum0=`{\fi}${}%
+    \@zequationcr}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@argequationcr}
+%    \begin{macrocode}
+\def\@argequationcr[#1]{\ifnum0=`{\fi}${}\ifdim #1>\z@
+   \@xargequationcr{#1}\else
+   \@yargequationcr{#1}\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@xargequationcr}
+%    \begin{macrocode}
+\def\@xargequationcr#1{\unskip
+   \@tempdima #1\advance\@tempdima \dp \@arstrutbox
+   \vrule \@depth\@tempdima \@width\z@
+   \@zequationcr\noalign{\penalty\@eqpen}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@yargequationcr}
+%    \begin{macrocode}
+\def\@yargequationcr#1{%
+   \@zequationcr\noalign{\penalty\@eqpen\vskip #1}}
+%    \end{macrocode}
+%
+% We add |&\omit| for those columns that will remain empty.
+% Note that without |\omit| we already have |\advance\@eqcnt\@ne| in
+% the preamble.
+%
+%    \begin{macrocode}
+\def\@zequationcr{\@whilenum\@eqcnt <\@eqargcnt
+   \do{\@amper\omit\global\advance\@eqcnt\@ne}%
+%    \end{macrocode}
+% We add an extra alignment tab for the equationnumber
+%    \begin{macrocode}
+   \@amper
+   \if@eqnsw\@eqnnum\stepcounter{equation}\fi
+   \set@eqnsw\global\@eqcnt\z@\cr}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\equationarray*}
+% Finally we define the |equationarray*| environment. It does exactly
+% the same thing as |\equationarray| except that we |\let| the command
+% |\set@eqnsw| equal |\nonumber|
+%    \begin{macrocode}
+\@namedef{equationarray*}{%
+   \let\set@eqnsw=\nonumber \equationarray}
+\@namedef{endequationarray*}{\endequationarray}
+%    \end{macrocode}
+% \end{macro}
+%
+\endinput

@@ -2,6 +2,10 @@
 .SH NAME
 strcat, strncat, strcmp, strncmp, strcpy, strncpy, strlen, strchr, strrchr, strpbrk, strspn, strcspn, strtok, strdup, strstr \- string operations
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .ta \w'\fLchar* \fP'u
 .B
 char*	strcat(char *s1, char *s2)
@@ -205,6 +209,19 @@ is the null string,
 .I strstr
 returns
 .IR s1 .
+.SS Alef
+The routines
+.IR strcspn ,
+.IR strpbrk ,
+and
+.I strspn
+are not provided in Alef.
+.SH SOURCE
+All these routines have portable C implementations in
+.BR /sys/src/libc/port .
+Many also have machine-dependent assembly language
+implementations in
+.BR /sys/src/libc/$objtype .
 .SH SEE ALSO
 .IR memory (2),
 .IR rune (2)
@@ -214,5 +231,8 @@ These routines know nothing about
 Use the routines in
 .IR rune (2)
 as appropriate.
+Note, however, that the definition of UTF guarantees that
+.I strcmp
+compares UTF strings correctly.
 .PP
 The outcome of overlapping moves varies among implementations.

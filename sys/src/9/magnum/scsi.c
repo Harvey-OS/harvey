@@ -76,9 +76,10 @@ resetscsi(void)
 	WB(dev->timeout, 146);
 	WB(dev->syncperiod, 0);
 	WB(dev->syncoffset, 0);
-	WB(dev->config, 0x10|(scsiownid&7));
-	WB(dev->config2, 0);
+	WB(dev->config, 0x00|(scsiownid&7));	/* 0x10 for parity check */
+	WB(dev->config2, 0x00);
 	WB(dev->config3, 0);
+	WB(dev->clock, 5);
 	WB(dev->cmd, Dma|Nop);
 	WB(dma->block, 0);
 	WB(dma->mode, (1<<31)|Clearerror);
@@ -110,11 +111,6 @@ scsiexec(Scsi *p, int rflag)
 	qlock(&scsilock);
 	if(rflag && debug)
 		memset(p->data.ptr, 0x5a, p->data.lim - p->data.ptr);
-	if(waserror()){
-		DPRINT("scsi %d.%d: error return\n", p->target, p->lun);
-		qunlock(&scsilock);
-		nexterror();
-	}
 	p->rflag = rflag;
 	p->status = 0;
 	WB(dma->block, 0);		/* disable dma */
@@ -138,6 +134,8 @@ scsiexec(Scsi *p, int rflag)
 	}
 	curcmd = p;
 	WB(dev->cmd, Select);
+	while(waserror())
+		;
 	DPRINT("S<");
 	sleep(&scsirendez, scsidone, 0);
 	if(rflag && p->data.ptr>p->data.base)
@@ -239,8 +237,9 @@ scsiintr(void)
 					status, intr, dmastat);
 				goto Done;
 			}
-			/* else fall through */
+			break;
 		}
+		/* fall through */
 
 	case 0x41:	/* data transfer, if any, is finished */
 		p->status = 0x4600;

@@ -8,7 +8,7 @@ static struct place ipole;	/* inverse transfrom */
 static struct coord itwist;
 
 void
-orient(float lat, float lon, float theta)
+orient(double lat, double lon, double theta)
 {
 	lat = cirmod(lat);
 	if(lat>90.) {
@@ -27,7 +27,7 @@ orient(float lat, float lon, float theta)
 }
 
 void
-latlon(float lat, float lon, struct place *p)
+latlon(double lat, double lon, struct place *p)
 {
 	lat = cirmod(lat);
 	if(lat>90.) {
@@ -42,7 +42,7 @@ latlon(float lat, float lon, struct place *p)
 }
 
 void
-deg2rad(float theta, struct coord *coord)
+deg2rad(double theta, struct coord *coord)
 {
 	theta = cirmod(theta);
 	coord->l = theta*RAD;

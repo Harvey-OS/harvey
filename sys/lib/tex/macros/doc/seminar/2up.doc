@@ -1,0 +1,539 @@
+%% BEGIN 2up.doc
+%%
+%% Documentation for 2up.tex/2up.sty.
+%% Run through LaTeX, with or without the NFSS.
+%%
+%% See below if you want to try out two-up printing.
+%%
+%% LaTeX version of this documentation courtesy of
+%%    H. David Todd <hdtodd@mockingbird.wesleyan.edu>
+%%
+%%
+\documentstyle[12pt,twoside]{article}
+
+\def\FileDate{January 28, 1993}
+\def\FileVersion{1.2}
+
+%% INSTRUCTIONS FOR TWO-UP PRINTING.
+%% 1. Change \iffalse below to \iftrue.
+%% 2. Uncomment \special{landscape} if using Rokicki's dvips, or otherwise
+%%      remember to print the document out in landscape mode.
+%% 3. Uncomment one of the booklet options, if desired.
+%%
+\iffalse
+  \input 2up.tex
+  \targetlayout{twosided}
+  \TwoupWrites
+  % \special{landscape}     %% This works with Rokicki's dvips
+  % \targetlayout{Booklet}  %% Booklet printing with 2-sided printer/copier.
+  % \targetlayout{booklet}  %% Booklet printing with 1-sided printer/copier.
+\fi
+
+\makeatletter
+
+%% PAGE NUMBERING:
+%% Adjust page numbering if using booklet layout option.
+\setcounter{page}{0}
+\def\next{\if@leftpage\else\stepcounter{page}\fi}
+\@ifundefined{target@stop}{}{\next}
+
+%% CONTENTS:
+\def\tableofcontents{%
+  \par\begin{center}
+  \large\bf Contents
+  \end{center}
+  \begin{quote}\@starttoc{toc}\end{quote}}
+
+%% PAGE PARAMETERS:
+\setlength{\parindent}{0pt}          % paragraph indent
+\setlength{\parskip}{4pt plus 1pt minus 1pt}
+\setlength{\topmargin}{0pt}
+\setlength{\headheight}{12pt}        % height of running head
+\setlength{\headsep}{30pt}           % distance between header and text
+\setlength{\textheight}{8.2in}        % height of text on page
+
+%% DATES, VERSIONS AND TITLES:
+\def\@maketitle{%
+ \begin{center}
+   {\Large\bf \@title \par}
+   \vskip 1.2em {\lineskip .5em
+   \begin{tabular}[t]{c}\@author\end{tabular}\par}
+   \vskip .8em {\@date}%
+  \end{center}
+  \par
+  \vskip .5em}
+
+%% Page Style:
+\pagestyle{myheadings}
+\markboth{Two-Up Style Guide}{Version \FileVersion, \FileDate}
+
+%% Special list:
+\newcommand{\namelistlabel}[1]{\mbox{\bf #1}\hfil}
+\newenvironment{namelist}[1]%
+  {\begin{list}{}%
+    {\let\makelabel\namelistlabel
+    \settowidth{\labelwidth}{#1}
+    \setlength{\leftmargin}{1.1\labelwidth}}}%
+ {\end{list}}
+
+%% VERBATIM:
+%%
+\begingroup
+  \catcode`\{=12 \catcode`\}=12
+  \catcode`\(=1 \catcode`\)=2
+  \catcode`\+=0 \catcode`\\=12
+  +gdef+|(\)          % \| = character \
+  +gdef+{({)          % \{ = character {
+  +gdef+}(})          % \} = character }
++endgroup
+\def\Backslash{\protect\|}
+%%
+%% Define some functional font commands:
+%%
+\def\MainFont{\tt}      % For macro definitions.
+\def\UsageFont{\tt}           % For in-line macro names.
+\def\InlineFont{\tt}          % For other in-line snipets of code.
+\def\MetaFont{\rm\it}            % For meta arguments.
+%%
+%% Short-cuts for font commands:
+%%
+\def\s#1{\string#1}
+\def\t#1{{\InlineFont\string#1}}   % For other in-line code.
+\def\m#1{{\MetaFont #1\/}}         % For just putting things in italics
+\def\M#1{{\InlineFont\{\m{#1}\}}}  % Arg is in italic, enclosed in tt braces.
+\let\N\t                           % For in-line macro names.
+\catcode`\<=13 \def<#1>{\m{#1}}    % <meta>
+\catcode`\"=13\def"{\verb"}        % Short verb
+%%
+%% This is for listing macro definitions in a quote-like environment.
+%%
+\begingroup
+  \catcode`\[=1 \catcode`\]=2
+  \catcode`\{=13 \catcode`\}=12
+  \gdef\@MD[%
+    \catcode`\{=13 \catcode`\}=12
+    \def{##1}[\{[\MetaFont ##1]\}]]
+\endgroup
+\def\MD{%
+  \quote
+  \begingroup
+    \@MD
+    \def\end{\endgroup\end}%
+    \def\\{\@centercr\s}%
+    \MainFont
+    \s}
+\def\endMD{\endquote}
+%%
+
+%% End preamble.
+\catcode`\@=12
+
+\begin{document}
+
+\title{Documentation for 2up.tex:\\
+  Two-up printing for Generic TeX}
+\author{Timothy Van Zandt\thanks{The documentation was put into
+  \LaTeX\ format by David Todd.}\\ tvz@Princeton.EDU}
+\date{Version \FileVersion\\[3pt] \FileDate}
+
+\maketitle
+\thispagestyle{empty}
+
+  "2up.tex"/"2up.sty" allows one to print a document two-up, with
+considerable flexibility as to paper size and layout. It produces a standard
+dvi file, and does not involve an additional dvi or PostScript filter. It
+should work with most \TeX\ macro packages.
+
+  {\bf Usage:} Input "2up.tex", or include "2up" as a LaTeX style option.
+There is a good chance you will get the desired layout. (But you will probably
+need to generate new font bitmaps to get high quality output.) See the rest of
+this documentation for detailed information on controlling 2up.tex.
+
+\begingroup
+\def\baselinestretch{.8}\large\normalsize
+\tableofcontents
+\endgroup
+\clearpage
+
+\section{Comparison with other methods}
+
+There are other tools for two-up printing:
+\begin{description}
+\item[PostScript filters]
+These work well as long as you only use PostScript fonts (as opposed to the
+usual Metafont fonts). Otherwise, the PostScript filter scales bitmapped
+fonts, and the quality is lower than with "2up.tex".
+
+\item[Rokicki's dvidvi]
+"dvidvi" is a versatil tool that does much more than
+2up printing. However, if only rearranges the pages, and does not adjust the
+magnification to ensure that the pages fit properly in a two-up format. It
+also adds one more step to the \TeX-dvi-printer cycle. "2up.tex", on the other
+hand, combines the changes to \TeX's magnification and page layout with the
+rearranging of the pages, all with an easy-to-use interface and from within
+your \TeX\ document. (See Section \ref{dvidvi} on using both "2up.tex" and
+"dvidvi" together.)
+\end{description}
+
+\section{A warning about fonts}
+
+Two-up printing generally involves reducing a document, and thus using fonts
+sizes that are not typically found on your system. If you are using bitmapped
+fonts (standard for \TeX\ users), and you do not have and cannot generate the
+extra fonts bitmaps, you will find 2up.sty (and any other method of two-up
+printing) to give very poor quality output.
+
+If you are using a program like Rokicki's "dvips" that can generate extra font
+bitmaps as needed, you will find that it takes a long time to print your 2up
+document the first few times, as "dvips" is busy making the extra fonts. This
+problem will go away. Be thankful you have such an easy way to get extra font
+bitmaps.
+
+\section{Usage}
+
+Input "2up.tex". \LaTeX\ users can include "2up" as a style option.
+
+Then set the target and source layout:
+\begin{MD}
+  \source{mag}{width}{height}\\
+  \target{mag}{width}{height}
+\end{MD}
+
+\begin{itemize}
+\item The ``source'' layout is the layout of your document
+the way it is usually printed.  The ``target'' layout is the layout when it
+is printed two-up.
+
+\item <width> and <height> are the true width and height of the paper,
+when looking at the output right-side-up.
+
+\item <mag> refers to the source and target magnification. It should be an
+integer, equal to 1000 times the magnification factor. There are also some
+magic magnification numbers:
+\begin{description}
+\item[$\setminus$magstep<n>] for a magnification of 1.2$^n$ (n=0,...,5), or
+
+\item[$\setminus$magstepminus<n>] for a magnification of 1.2$^{-n}$
+(n=0,...,5).
+\end{description}
+Using these magnification values will make best use of the available fonts on
+your system.
+\end{itemize}
+
+"2up.tex" takes each source page, and centers in half a target page. To get
+the pages to fit, the magnification of the document typically has to be
+reduced. If you find that the pages are too crowded, try reducing the target
+magnification. If they are too lonely, try increasing the target
+magnification.
+
+If you want to adjust the positioning of the scaled pages, try changing the
+values of "\hoffset" or "\voffset" with "\advance" or \LaTeX's "\addtolength".
+
+Don't change the magnification of your document after using the "\target"
+command, as you will override the settings made by 2up.tex.
+
+You can also specify some options:
+\begin{MD}
+  \targetlayout{options}
+\end{MD}
+where <options> is a comma separated list with no spaces. Valid
+options are:
+\begin{namelist}{topbottomxxx}
+
+\item [topbottom] The two source pages are printed one on top of the other.
+\item [twosided]  Odd pages are always printed on the right or the bottom.
+\item [booklet]   Pages are printed like a booklet. See Section \ref{booklet}.
+\item [Booklet]   Like "booklet", but for two-sided printers/copiers.
+\item [dvidvi]    For arranging in two-up layout with "dvidvi". See Section
+\ref{dvidvi}.
+
+\end{namelist}
+
+The only other changes you might want to make to your document are the
+following:
+\begin{itemize}
+\item You have to see to it that the target output is printed with the
+correct orientation (landscape or portrait). See the documentation for your
+dvi driver for details.
+
+\item "2up.tex" will inserts a line between pages if you change the following
+dimensions:
+\begin{namelist}{pagesepwidthxxx}
+\item [$\setminus$pagesepwidth]   Thickness of line. (Default 0pt)
+\item [$\setminus$pageseplength]  Length of line. (Default 6.5in)
+\item [$\setminus$pagesepoffset]  Distance from bottom of page to bottom of
+line, or (with "topbottom" layout) from side of page to beginning of line.
+(Default 1in)
+\end{namelist}
+
+\item You can, but do not need to, use the following commands:
+\begin{namelist}{twoupemptypagexxx}
+
+\item [$\setminus$twoupemptypage] inserts a completely blank half page
+in the target.
+
+\item [$\setminus$twoupclearpage] \LaTeX\ users: ejects a complete target
+page.
+
+\item [$\setminus$twoupeject] Plain \TeX users: ejects a complete target
+page.
+
+\end{namelist}
+\end{itemize}
+
+\section{Defaults}
+
+  The following commands set the parameters for some common sources and
+targets. The definitions of these commands are also useful examples.
+
+  For A4 paper, just replace "8.5in" and "11in" in the definitions below by
+the width and height of A4 paper.
+
+\begin{description}
+
+\item [$\setminus$twouparticle]
+
+This is the default for \LaTeX.
+\begin{namelist}{Sourcexx}
+
+\item [Source:] A portrait document on 8.5x11 inch paper with wide margins as
+used in \LaTeX's article style, and without marginal notes.
+
+\item [Target:] A landscape document on the same size paper, with the source
+pages printed side by side.
+
+\item [Definition:]\hspace{1pt}
+\begin{verbatim}
+\target{\magstepminus1}{11in}{8.5in}
+\source{\magstep0}{8.5in}{11in}}
+\end{verbatim}
+\end{namelist}
+
+If you use narrower side margins, or if you use marginal notes, then you
+will need to use "\twoupplain" or \\ "\twouplegaltarget", defined below.
+
+\item [$\setminus$twoupplain]
+
+This is the default for non-\LaTeX.
+
+It is the same as "\twouparticle", but for source documents with narrower
+margins.
+\begin{namelist}{Sourcexxx}
+
+\item [Definition:]\hspace{1pt}
+\begin{verbatim}
+\target{\magstepminus2}{11in}{8.5in}
+\source{\magstep0}{8.5in}{11in}
+\end{verbatim}
+\end{namelist}
+
+\item [$\setminus$twouplegaltarget]
+
+\begin{namelist}{Sourcexxx}
+\item [Source:] A portrait document on 8.5x11 inch paper with just about any
+margins and perhaps with marginal notes.
+
+\item [Target:] A landscape document on legal size paper (8.5x14 inches),
+with the source pages printed side by side.
+
+\item [Definition:]\hspace{1pt}
+\begin{verbatim}
+\target{\magstepminus1}{14in}{8.5in}
+\source{\magstep0}{8.5in}{11in}
+\end{verbatim}
+\end{namelist}
+
+\item [$\setminus$twouplandscape]\hspace{1pt}
+\begin{namelist}{Sourcexxx}
+
+\item [Source:] A landscape document on 8.5x11 inch paper with just about any
+margins.
+
+\item [Target:] A portrait document on the same size paper, with the
+source pages stacked vertically.
+
+\item [Definition:]\hspace{1pt}
+\begin{verbatim}
+\target{\magstepminus2}{8.5in}{11in}
+\source{\magstep0}{11in}{8.5in}
+\targetlayout{topbottom}
+\end{verbatim}
+\end{namelist}
+
+\end{description}
+
+
+\section{True Dimensions}
+
+\TeX\ lets you use `true' dimensions, as in
+\begin{verbatim}
+    \topmargin 1truein
+    \setlength{\topmargin}{1truein}
+\end{verbatim}
+This sets the length to 1 inch
+as it appears on the page, no matter what the magnification.
+
+Once you use `true' dimensions, it is impossible to change the
+magnification of your document, and hence it is almost impossible
+to use 2up.tex. You will get an error like:
+\begin{verbatim}
+    ! Incompatible magnification (833);
+      the previous value will be retained (2000).
+\end{verbatim}%
+
+The use of `true' dimensions might be hiding in macros or style files
+you are using. For example, Plain \TeX's "\magnification" command uses
+true dimensions; use "\mag" instead, and then set "\hsize" and
+"\vsize" appropriately scaled. If you can't find the culprit `true'
+dimension in your document or input files, try putting this on the
+(very) first line of your document:
+\begin{verbatim}
+    \mag 143 \voffset 1truein \mag 1000
+\end{verbatim}
+
+You will get the error listed above wherever true dimensions are used
+(and in some other places as well).
+
+
+\section{Page Cross-References}
+
+  Page cross-references (e.g., in an index or table of contents) will not be
+accurate with "2up.tex", because finished pages are not immediately shipped
+out. This can also cause problems with some special \LaTeX\ styles that have
+multiple ".aux" files (e.g., for each chapter).
+
+  To get better, but not perfect, page cross-references, try putting the
+command
+\begin{verbatim}
+    \TwoupWrites
+\end{verbatim}
+at the beginning of your document, after inputting "2up.tex". This is good for
+drafts, and may fix problems with \LaTeX\ styles that have multiple ".aux"
+files. "\TwoupWrites" makes "\write" and "\read" "\immediate", if you know
+what that means. It might cause problems of its own, but try it and see.
+
+  To get accurate page cross-references:
+\begin{enumerate}
+\item Run the job without "2up.tex", until all cross-references
+are properly resolved. Run any index utility at this point.
+
+\item Run the job ONE MORE TIME with "2up.tex"; it will use the
+correct cross-references from the previous runs. (In \LaTeX\ documents,
+it is useful at this point to include the "\nofiles" command, so that
+the correct cross-references are preserved.)
+\end{enumerate}
+
+\section{Booklets\label{booklet}}
+
+Here are some special considerations for making booklets:
+
+\begin{itemize}
+
+\item  Use the "booklet" target layout if your printer or copier cannot print
+two
+sides directly. "2up.tex" prints out the ``tops'' of the pages, and then the
+``bottoms'', so that you can copy or print on both sides by doing one side,
+flipping the output over, and doing the other side.
+
+\item Use "Booklet" if your printer or copier can print directly on two sides.
+
+\item You must have enough memory and box registers to hold all the pages in
+the document. A Big\TeX\ should be able to handle at least a 32-page booklet.
+
+\item Sometimes booklet printing is part of the design of a document, rather
+than an afterthought. In this case, you should set up the margins for the
+target half-page rather than using "2up.tex" to scale the document. For
+example, if using \LaTeX, 8.5x11 inch paper, \LaTeX's twoside style option,
+and headings, try the following page parameter changes:
+\begin{verbatim}
+    \setlength{\oddsidemargin}{-0.2in}
+    \setlength{\evensidemargin}{-0.5in}
+    \setlength{\textwidth}{4.2in}
+    \setlength{\textheight}{6.5in}
+    \setlength{\topmargin}{-.4in}
+\end{verbatim}
+If you do this, "2up.tex" isn't adjusting margins or scaling the
+document. You coould therefore get by without "2up.tex" by using "dvidvi".
+\end{itemize}
+
+\section{Using dvidvi\label{dvidvi}}
+
+  With the "dvidvi" layout option, "2up.tex" takes care of adjusting the
+margins, and you then use "dvidvi" to arrange the pages in a two-up
+format. The advantage is that cross referencing comes out right.
+The disadvantage is that it involves one more step.
+
+Start by \TeX ing your document with "2up.tex" and the "dvidvi" layout option.
+Then run the dvi file through "dvidvi". Specify the offsets for "dvidvi" at
+the middle of the page. E.g., for
+a side-by-side layout on 8.5x11in paper, use
+\begin{verbatim}
+    dvidvi '2:0,1(5.5in,0in)' foo bar
+\end{verbatim}
+For other paper sizes, replace "5.5in" by half the target paper width. For the
+"topbottom" layout, reverse the dimensions, e.g.,
+(0in,5.5in). For booklet printing, see the
+the documentation for "dvidvi".
+
+
+\section{Compatibility\label{compatibility}}
+
+  These macros should work with most \TeX\ macro packages, except for
+the following possible but unlikely compatibility problems:
+
+\begin{itemize}
+
+\item If you use a macro package other than \LaTeX\ that does unusual things
+to end a document and/or that modifies the definition of "\end", you may
+find that the last page is nor printed or that an extra page with headings
+is inserted at the end of the document. This is fixable on a case-by-case
+basis. See the redefinition of "\end" in "2up.tex".
+
+\item "2up.tex" might not work if you meddle with \TeX's "\shipout" primitive
+after loading "2up.tex".
+
+\item If the first page of the source document is not on the first two-up
+target
+page (possible, for example, with two-sided printing and the "booklet"
+option, but generally unlikely), "\special"'s that come at the beginning
+of the document also do not get onto the first page of output. This can mess
+up "\special"'s for landscape printing or
+including a PostScript header file. In this case, you have to specify
+these things as command line options when using your dvi driver.
+
+\end{itemize}
+
+
+\section{Changes}
+\begin{namelist}{V0.9xxx}
+\raggedright
+
+\item [V0.9a] Everything redone. Too many differences to point out.
+
+\item [V0.9b] Interface redone again. "booklet" option added.
+
+\item [V0.9c] Pages ship out a little earlier. A few bugs fixed.
+
+  Parameters "\pageseplength" and "\pagesepthickness" added.
+
+\item [V0.9d] Fixed bug with "\twoupclearpage" and "\twoupeject".
+
+\item [V0.9e] Made pages be counted (from dvi driver's viewpoint) by the
+physical page number.
+
+\item [V0.9f] Parameter "\pagesepoffset" added, and "\pagesepthickness"
+changed to "\pagesepwidth".
+
+\item [V1.0]  None. Just seemed seemed like it was time to call it 1.0
+
+\item [V1.1] Added "Booklet" and "dvidvi" target layouts.
+
+  "\hoffset" and "\voffset" in source document now have expected effect.
+
+\item[V1.2] Fixed incompatibility problem with AmS-\TeX/AmS-\LaTeX.
+
+  Added "\TwoupWrites" command.
+
+\end{namelist}
+\end{document}
+%% END 2up.doc

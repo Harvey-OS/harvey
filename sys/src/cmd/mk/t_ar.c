@@ -17,7 +17,7 @@ atimeof(int force, char *name, char *ar)
 		}
 	} else {
 		atimes(ar);
-			/* the following statement is totally stupid */
+		/* mark the aggegate as having been done */
 		symlook(strdup(ar), S_AGG, "")->value = (char *)t;
 	}
 	sym = symlook(name, S_TIME, 0);
@@ -36,7 +36,7 @@ atouch(char *name, char *ar, char *mem)
 	long t;
 
 	if((fd = open(ar, 2)) < 0){
-		if((fd = CREAT(ar, 0666)) < 0){
+		if((fd = create(ar, OWRITE, 0666)) < 0){
 			perror(ar);
 			Exit();
 		}
@@ -96,6 +96,8 @@ atimes(char *ar)
 			s--;
 #endif
 		t = atol(hdr.date);
+		if(t == 0)	/* as it sometimes happens; thanks ken */
+			t = 1;
 		/* Blows away the date field */
 		s[1] = 0;
 		sprint(buf, "%s(%s)", ar, hdr.name);

@@ -1,4 +1,4 @@
-.TH SUBFALLOC 2G
+.TH SUBFALLOC 2
 .SH NAME
 subfalloc, subffree, rdsubfontfile, wrsubfontfile, mkfont \- subfont manipulation
 .SH SYNOPSIS
@@ -25,10 +25,10 @@ Subfont*	rdsubfontfile(int fd, Bitmap *b)
 void	wrsubfontfile(int fd, Subfont *f)
 .PP
 .B
-Font*	mkfont(Subfont *f);
+Font*	mkfont(Subfont *f, Rune min);
 .SH DESCRIPTION
 Subfonts are the components of fonts that hold the character images.
-A font is composed from an array of subfonts; see
+A font comprises an array of subfonts; see
 .IR cachechars (2).
 A new
 .B Subfont
@@ -83,7 +83,7 @@ if
 was not allocated by
 .IR malloc (2)
 it should be zeroed before calling
-.I subffree.
+.IR subffree .
 .PP
 A number of subfonts are kept in external files.
 The convention for naming subfont files is:
@@ -111,7 +111,7 @@ Briefly, it contains a bitmap with all the characters in it,
 followed by a subfont header, followed by character information.
 .I Rdsubfontfile
 reads a subfont from the file descriptor
-.I fd.
+.IR fd .
 If
 .I b
 is zero,
@@ -133,9 +133,9 @@ and
 .B q1
 of a cache entry, the subfont is read from the server instead
 of from
-.I fd.
+.IR fd .
 This is the normal use of
-.I rdsubfontfile.
+.IR rdsubfontfile .
 .PP
 Unusual applications such as font editors may choose to have
 uncached (hence unshared)
@@ -182,10 +182,14 @@ into the
 .B Runes
 .I min
 to
-.IB min + s ->n-1 .
+.IB min + s ->n-1\f1.
 .SH FILES
+.TF /lib/font/bit
+.TP
 .B /lib/font/bit
 bitmap font file tree
+.SH SOURCE
+.B /sys/src/libg
 .SH SEE ALSO
 .IR graphics (2),
 .IR balloc (2),

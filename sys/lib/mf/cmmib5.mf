@@ -1,14 +1,41 @@
-% CMMIB5.MF                     June 1990
-% This Metafont file is part of AMSFonts 2.0.
-% Copyright (C) 1990, American Mathematical Society.
-% All rights reserved.  Copying of this file is authorized only if either:
-%   (1) you make absolutely no changes to your copy including filename; OR
-%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="cmmib5.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: parameter",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support Department,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "35884 109 623 5643"
+%%     keywords="amsfonts, tex, metafont  ",
+%%     abstract="This is the parameter file for use with 
+%%            cmmib5, in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Computer Modern Bold Math Italic 5 point
 if unknown cmbase: input cmbase fi
 
-font_identifier:="CMMIB"; font_size 5pt#;
+font_identifier:="CMMIB V2.2"; font_size 5pt#;
 
 u#:=14.5/36pt#;               % unit width
 width_adj#:=7/36pt#;          % width adjustment for certain characters
@@ -26,7 +53,7 @@ bar_height#:=40/36pt#;          % height of crossbar in lowercase e
 comma_depth#:=35/36pt#;          % depth of comma below baseline
 desc_depth#:=35/36pt#;          % depth of lowercase descenders
 
-crisp#:=9pt#;               % diameter of serif corners
+crisp#:=9/36pt#;               % diameter of serif corners
 tiny#:=9/36pt#;               % diameter of rounded corners
 fine#:=8/36pt#;               % diameter of sharply rounded corners
 thin_join#:=8/36pt#;          % width of extrafine details

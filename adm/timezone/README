@@ -1,0 +1,6 @@
+To change the default time zone you see on your local system,
+copy the appropriate file to /adm/timezone/local, which is copied
+to /env/timezone by init(8).
+
+Most of these files were provided by David Hogan.
+The Israel file was provided by Amos Shapir.

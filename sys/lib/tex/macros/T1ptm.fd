@@ -1,0 +1,49 @@
+%Filename: T1ptm.fd
+%Created by: tex 16594times
+%Created using fontinst v1.328
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\DeclareFontFamily{T1}{ptm}{}
+
+\DeclareFontShape{T1}{ptm}{b}{n}{
+   <-> ptmbq
+}{}
+
+\DeclareFontShape{T1}{ptm}{b}{sc}{
+   <-> ptmbcq
+}{}
+
+\DeclareFontShape{T1}{ptm}{b}{it}{
+   <-> ptmbiq
+}{}
+
+\DeclareFontShape{T1}{ptm}{b}{sl}{
+   <-> ptmboq
+}{}
+
+\DeclareFontShape{T1}{ptm}{m}{n}{
+   <-> ptmrq
+}{}
+
+\DeclareFontShape{T1}{ptm}{m}{sc}{
+   <-> ptmrcq
+}{}
+
+\DeclareFontShape{T1}{ptm}{m}{it}{
+   <-> ptmriq
+}{}
+
+\DeclareFontShape{T1}{ptm}{m}{sl}{
+   <-> ptmroq
+}{}
+
+\DeclareFontShape{T1}{ptm}{bx}{n}{<->ssub * ptm/b/n}{}
+\DeclareFontShape{T1}{ptm}{bx}{sc}{<->ssub * ptm/b/sc}{}
+\DeclareFontShape{T1}{ptm}{bx}{it}{<->ssub * ptm/b/it}{}
+\DeclareFontShape{T1}{ptm}{b}{ui}{<->sub * ptm/b/it}{}
+\DeclareFontShape{T1}{ptm}{bx}{ui}{<->ssub * ptm/b/ui}{}
+\DeclareFontShape{T1}{ptm}{bx}{sl}{<->ssub * ptm/b/sl}{}
+\DeclareFontShape{T1}{ptm}{m}{ui}{<->sub * ptm/m/it}{}
+
+\endinput

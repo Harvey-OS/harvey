@@ -1,0 +1,60 @@
+%% 
+%% This is file `hyphen.ltx', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% lthyphen.dtx  (with options: `default')
+%% 
+%% Copyright 1994 the LaTeX3 project and the individual authors. 
+%% All rights reserved. For further copyright information see the file 
+%% legal.txt, and any other copyright indicated in this file. 
+%% 
+%% 
+%% This file is part of the LaTeX2e system. 
+%% ---------------------------------------- 
+%% 
+%% This system is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% This is a generated file. 
+%% 
+%% No permission is granted to modify this file. 
+%% 
+%% To customize the hyphenation tables used in LaTeX2e, install a file with 
+%% the name hyphen.cfg. If the .cfg file can be found it will be 
+%% automatically used and this file will be ignored. See documentation 
+%% for details. 
+%% 
+\ProvidesFile{hyphen.ltx}
+          [1994/12/01 v1.0g LaTeX Kernel (hyphenation interface)]
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\InputIfFileExists{hyphen.tex}%
+   {\message{Loading hyphenation patterns for US english.}%
+    \language=0
+    \lefthyphenmin=2 \righthyphenmin=3 }%
+   {\errhelp{The configuration for hyphenation is incorrectly
+             installed.^^J%
+             If you don't understand this error message you need
+             to seek^^Jexpert advice.}%
+    \errmessage{OOPS! I can't find any hyphenation patterns for
+                US english.^^J \space Think of getting some or the
+                latex2e setup will never succeed}\@@end}
+\endinput
+%% 
+%% End of file `hyphen.ltx'.

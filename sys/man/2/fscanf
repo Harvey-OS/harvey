@@ -1,20 +1,20 @@
-.TH FSCANF 2S
+.TH FSCANF 2
 .SH NAME
 fscanf, scanf, sscanf, vfscanf \- scan formatted input
 .SH SYNOPSIS
 .B "#include <stdio.h>"
 .PP
 .B
-int fscanf (FILE *f, char *format, ...);
+int fscanf(FILE *f, char *format, ...);
 .PP
 .B
 int scanf(char *format, ... );
 .PP
 .B
-int sscanf (char *s, char *format, ...);
+int sscanf(char *s, char *format, ...);
 .PP
 .B
-int vfscanf (FILE *stream, char *format, char *args);
+int vfscanf(FILE *stream, char *format, char *args);
 .SH DESCRIPTION
 .I Fscanf
 reads from the named input stream
@@ -147,7 +147,7 @@ If if differs from the one comprising the directive,
 the directive fails, and the differing and subsequent characters
 remain unread.
 .PP
-A directive that is a conversion specification defines a set
+A directive that is a conversion specification defines a set of
 matching input sequences, as described below for each specifier.
 A conversion specification is executed in the following steps:
 .PP
@@ -265,7 +265,7 @@ the same as expected for the subject string of the
 .IR atof (2))
 function.
 The corresponding argument shall be a pointer to
-.B float .
+.BR float .
 .TP
 .B s
 Matches a sequence of non-white-space characters.
@@ -306,6 +306,7 @@ where the first character is a
 nor the last character, the behavior is implementation-defined
 (in Plan 9: the scanlist includes all characters in the
 .SM ASCII
+(sic)
 range between the two characters on either side of the
 .BR - ).
 .TP
@@ -323,7 +324,8 @@ produced by the
 .B %P
 conversion of the
 .IR fprintf (2)
-function.
+function
+(in Plan 9, a hexadecimal number).
 The corresponding argument shall be a pointer to a pointer to
 .BR void .
 The interpretation of the input item is implementation defined;
@@ -390,6 +392,8 @@ provided for, or even zero, in the event of an early matching failure.
 However, if an input failure occurs before any conversion,
 .B EOF
 is returned.
+.SH SOURCE
+.B /sys/src/libstdio
 .SH "SEE ALSO"
 .IR fopen (2),
 .IR fgetc (2)

@@ -46,7 +46,7 @@ main(int argc, char *argv[]){
 	}
 	in=picopen_r(inname);
 	if(in==0){
-		picerror(inname);
+		perror(inname);
 		exits("open input");
 	}
 	line=malloc(PIC_WIDTH(in)*PIC_NCHAN(in));
@@ -63,9 +63,9 @@ main(int argc, char *argv[]){
 	}
 	out=picopen_w("OUT", in->type,
 		PIC_XOFFS(in), PIC_YOFFS(in), PIC_WIDTH(in), PIC_HEIGHT(in),
-		chan, argv, (char *)cmap);
+		"m", argv, (char *)cmap);
 	if(out==0){
-		picerror(argv[0]);
+		perror(argv[0]);
 		exits("create output");
 	}
 	if(in->cmap==0){

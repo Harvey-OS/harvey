@@ -1,0 +1,101 @@
+%!
+%    Copyright (C) 1994 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of Aladdin Ghostscript.
+% 
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
+% 
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
+
+% zeroline.ps
+% Test file to determine how other PostScript implementations handle
+% filling zero-width lines under a variety of conditions.
+
+% Add a small "fan" of zero-width lines at different angles to the path.
+/fan
+ { currentpoint 100 0 rlineto
+   2 copy moveto 100 20 rlineto
+   2 copy moveto 100 100 rlineto
+   2 copy moveto 20 100 rlineto
+   moveto 0 100 rlineto
+ } def
+
+% Append a rectangle to the current path.
+/rectappend
+ { 4 -2 roll moveto 1 index 0 rlineto 0 exch rlineto
+   neg 0 rlineto closepath
+ } def
+% Fill a rectangle.
+/rectfill
+ { gsave newpath rectappend fill grestore
+ } def
+% Stroke a rectangle.
+/rectstroke
+ { gsave newpath rectappend stroke grestore
+ } def
+% Clip to a rectangle.  Unlike the real rectclip,
+% this clear the current path.
+/rectclip
+ { newpath rectappend clip newpath
+ } def
+
+40 40 translate
+
+% Display fans of different colors on different backgrounds.
+gsave
+0 setgray
+0 0 120 120 rectstroke
+10 10 moveto fan fill
+140 0 translate
+0 setgray
+0 0 120 120 rectstroke
+0.8 setgray
+10 10 moveto fan fill
+140 0 translate
+0 setgray
+0 0 120 120 rectfill
+1 setgray
+10 10 moveto fan fill
+grestore
+0 140 translate
+
+% Display rectangles with two edges coincident.
+gsave
+newpath
+0 setgray
+0 0 40 40 rectappend
+0 0 20 20 rectappend
+eofill
+60 0 translate
+0 0 40 40 rectappend
+40 0 -20 20 rectappend
+fill
+grestore
+0 60 translate
+
+% Display superimposed lines.
+gsave
+/super
+ { currentpoint fan
+   2 copy moveto 20 0 rmoveto 50 0 rlineto
+   2 copy moveto 20 4 rmoveto 50 10 rlineto
+   2 copy moveto 20 20 rmoveto 50 50 rlineto
+   2 copy moveto 4 20 rmoveto 10 50 rlineto
+   moveto 0 20 rmoveto 0 50 rlineto
+ } def
+0 setgray
+0 0 moveto super fill
+140 0 translate 0 0 moveto super eofill
+grestore
+0 140 translate
+
+showpage

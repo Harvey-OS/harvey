@@ -16,9 +16,13 @@ Vmedevice vmedevtab[] =
 		0, 0, 0xA8, 1, (void*)0x009000,
 		"jaguar0", jaginit, jagintr, 0,
 	}, /**/
-/*	{
-		1, 1, 0xA8, 1, (void*)0x009000,
+	{
+		0, 1, 0xA9, 4, (void*)0x009800,
 		"jaguar1", jaginit, jagintr, 0,
+	}, /**/
+	{
+		0, 0, 0x20, 2, (void*)0x004000,
+		"eagle", eagleinit, eagleintr, 0,
 	}, /**/
 	{
 		0, 0, 0xD0, 5, (void*)0xF90000,
@@ -27,10 +31,6 @@ Vmedevice vmedevtab[] =
 /*	{
 		1, 0, 0xD2, 5, (void*)0x010000,
 		"cyclone", cyclinit, cyclintr, 0,
-	}, /**/
-	{
-		0, 0, 0x20, 2, (void*)0x004000,
-		"eagle", eagleinit, eagleintr, 0,
 	}, /**/
 	0
 };

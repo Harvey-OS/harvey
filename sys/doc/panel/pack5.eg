@@ -1,0 +1,5 @@
+root=plframe(0, EXPAND);
+pllabel(root, PACKN|FILLX, "edit text");
+plscrollbar(root, PACKW|FILLY);
+pledit(root, PACKN|EXPAND, Pt(0,0),
+	L"How now, brown cow?", 19, 0);

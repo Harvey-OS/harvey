@@ -1,0 +1,10 @@
+web2c is primarily the product of Tim Morgan <morgan@ics.uci.edu>.
+Tomas Rokicki wrote the original TeX to C program.
+Pierre Mackay <mackay@cs.washington.edu> wrote the original change files
+  for most of the Metafontware programs.
+Karl Berry <karl@cs.umb.edu> made everything
+  work with the 8-bit release of TeX and Metafont, and is probably to
+  blame for things that don't work now, but used to.  (Karl is the
+  current maintainer, and is the `I' in most of the code and
+  documentation.)  And dozens of other people have also contributed.
+

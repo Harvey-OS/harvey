@@ -1,4 +1,4 @@
-% weave.ch, for C compilation using web2c.
+% weave.ch for C compilation using web2c.
 %
 % The original version of this file, for Pascal compilation using pc,
 % was created by Howard Trickey and Pavel Curtis.
@@ -53,6 +53,7 @@
 %  12/15/85 ETM Brought up to version 2.8
 %  03/15/88 ETM Converted for use with WEB to C, and for version 2.9 of Weave.
 %  11/30/89 KB  Version 4.
+% (more recent changes in ../ChangeLog.W2C and ChangeLog)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -70,9 +71,9 @@
 % [1] Change banner message
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@d banner=='This is WEAVE, Version 4.1'
+@d banner=='This is WEAVE, Version 4.4'
 @y
-@d banner=='This is WEAVE, C Version 4.1'
+@d banner=='This is WEAVE, C Version 4.4'
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -138,7 +139,7 @@ for i:=@'200 to @'377 do xchr[i]:=chr(i);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [20] terminal output: use standard i/o
+% [20] Terminal I/O.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d print(#)==write(term_out,#) {`|print|' means write on the terminal}
@@ -154,7 +155,7 @@ for i:=@'200 to @'377 do xchr[i]:=chr(i);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [21] init terminal
+% [21] Don't initialize the terminal.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ Different systems have different ways of specifying that the output on a
@@ -174,7 +175,7 @@ certain file will appear on the user's terminal.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [22] flush terminal buffer
+% [22] `break' is `flush'.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d update_terminal == break(term_out) {empty the terminal output buffer}
@@ -183,7 +184,7 @@ certain file will appear on the user's terminal.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [24] open input files
+% [24] Open input files.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ The following code opens the input files.  Since these files were listed
@@ -231,52 +232,20 @@ rewrite(tex_file,tex_file_name);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [28] faster input_ln
+% [28] web2c doesn't understand f^.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@p function input_ln(var f:text_file):boolean;
-  {inputs a line or returns |false|}
-var final_limit:0..buf_size; {|limit| without trailing blanks}
-begin limit:=0; final_limit:=0;
-if eof(f) then input_ln:=false
-else  begin while not eoln(f) do
     begin buffer[limit]:=xord[f^]; get(f);
     incr(limit);
     if buffer[limit-1]<>" " then final_limit:=limit;
     if limit=buf_size then
       begin while not eoln(f) do get(f);
-      decr(limit); {keep |buffer[buf_size]| empty}
-      if final_limit>limit then final_limit:=limit;
-      print_nl('! Input line too long'); loc:=0; error;
-@.Input line too long@>
-      end;
-    end;
-  read_ln(f); limit:=final_limit; input_ln:=true;
-  end;
-end;
 @y
-With C, we call an external C procedure, |line_read|.  That routine
-fills |buffer| from 0 onwards with the |xord|'ed values of the next
-line, setting |limit| appropriately (ignoring trailing blanks).  It will
-stop if |limit=buf_size|, and the following will cause an error message.
-For bootstrapping purposes it is all right to use the original
-form of |input_ln|; it will just run slower.
-
-@p function input_ln(var f:text_file):boolean;
-  {inputs a line or returns |false|}
-begin limit:=0;
-if test_eof(f) then input_ln:=false
-else  begin line_read(f);
+    begin buffer[limit]:=xord[getc(f)];
+    incr(limit);
+    if buffer[limit-1]<>" " then final_limit:=limit;
     if limit=buf_size then
-      begin
-      decr(limit); {keep |buffer[buf_size]| empty}
-      {if final_limit>limit then final_limit:=limit;}
-      print_nl('! Input line too long'); loc:=0; error;
-@.Input line too long@>
-      end;
-   input_ln:=true;
-  end;
-end;
+      begin while not eoln(f) do vgetc(f);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -351,15 +320,6 @@ var q:xref_number; {pointer to previous cross-reference}
 @!m,@!n: sixteen_bits; {new and previous cross-reference value}
 begin if no_xref then return;
 if (reserved(p)or(byte_start[p]+1=byte_start[p+ww]))and
-@z
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [122] faster flush_buffer, a la input_ln.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-@x
-done: for k:=1 to j do write(tex_file,xchr[out_buf[k]]);
-@y
-done: linewrite(tex_file,j);
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -464,26 +424,25 @@ The only flag that affects weave is |'-x'| whose status is kept in |no_xref|.
 @!no_xref:boolean;
 
 @ The |scan_args| procedure looks at the command line arguments and sets
-the |file_name| variables accordingly.
-At least one file name must be present: the \.{WEB} file.  It may have
-an extension, or it may omit it to get |'.web'| added.
-The \TeX\ output file name is formed by replacing the \.{WEB} file
-name extension by |'.tex'|.
+the |file_name| variables accordingly.  At least one file name must be
+present: the \.{WEB} file.  It may have an extension, or it may omit it
+to get |'.web'| added.  The \TeX\ output file name is formed by
+replacing the \.{WEB} file name extension by |'.tex'|.
 
 If there is another file name present among the arguments, it is the
-change file, again either with an extension or without one to get |'.ch'|
-An omitted change file argument means that |'/dev/null'| should be used,
-when no changes are desired.
+change file, again either with an extension or without one to get
+|'.ch'| An omitted change file argument means that |'/dev/null'| should
+be used, when no changes are desired.
 
-An argument beginning with a minus sign is a flag.
-Any letters following the minus sign may cause global flag variables to be
-set.
-Currently, an |x| means that the cross referencing information---the index,
-the module name list, and the table of contents---is to be suppressed.
+An argument beginning with a minus sign is a flag.  Any letters
+following the minus sign may cause global flag variables to be set.
+Currently, an |x| means that the cross referencing information---the
+index, the module name list, and the table of contents---is to be
+suppressed.
 
 @<|scan_args|...@>=
 procedure scan_args;
-var dot_pos,i,a: integer; {indices}
+var slash_pos, dot_pos,i,a: integer; {indices}
 @!fname: array[1..max_file_name_length-5] of char; {temporary argument holder}
 @!found_web,@!found_change: boolean; {|true| when those file names have
                                         been seen}
@@ -508,83 +467,90 @@ if not found_change then @<Set up null change file@>;
 end;
 
 @ Use all of |fname| for the |web_file_name| if there is a |'.'| in it,
-otherwise add |'.web'|.
-The other file names come from adding things after the dot.
-The |argv| procedure will not put more than |max_file_name_length-5|
-characters into |fname|, and this leaves enough room in the |file_name|
-variables to add the extensions.
+otherwise add |'.web'|.  The other file names come from adding things
+after the dot.  The |argv| procedure will not put more than
+|max_file_name_length-5| characters into |fname|, and this leaves enough
+room in the |file_name| variables to add the extensions.
 
 The end of a file name is marked with a |' '|, the convention assumed by 
 the |reset| and |rewrite| procedures.
 
 @<Get |web_file_name|...@>=
 begin
-dot_pos:=-1;
-i:=1;
-while (fname[i]<>' ') and (i<=max_file_name_length-5) do begin
-        web_file_name[i]:=fname[i];
-        if fname[i]='.' then dot_pos:=i;
-        incr(i);
-        end;
-if dot_pos=-1 then begin
-        dot_pos:=i;
-        web_file_name[dot_pos]:='.';
-        web_file_name[dot_pos+1]:='w';
-        web_file_name[dot_pos+2]:='e';
-        web_file_name[dot_pos+3]:='b';
-        web_file_name[dot_pos+4]:=' ';
-        end;
-for i:=1 to dot_pos do begin
-        tex_file_name[i]:=web_file_name[i];
-        end;
-tex_file_name[dot_pos+1]:='t';
-tex_file_name[dot_pos+2]:='e';
-tex_file_name[dot_pos+3]:='x';
-tex_file_name[dot_pos+4]:=' ';
-found_web:=true;
+  dot_pos := -1;
+  slash_pos := -1;
+  i := 1;
+  while (fname[i] <> ' ') and (i <= max_file_name_length - 5)
+  do begin
+    web_file_name[i] := fname[i];
+    if fname[i] = '.' then dot_pos := i;
+    if fname[i] = '/' then slash_pos := i;
+    incr (i);
+  end;
+  web_file_name[i] := ' ';
+  
+  if (dot_pos = -1) or (dot_pos < slash_pos)
+  then begin
+    dot_pos := i;
+    web_file_name[dot_pos]   := '.';
+    web_file_name[dot_pos+1] := 'w';
+    web_file_name[dot_pos+2] := 'e';
+    web_file_name[dot_pos+3] := 'b';
+    web_file_name[dot_pos+4] := ' ';
+  end;
+
+  for i := 1 to dot_pos do
+    tex_file_name[i] := web_file_name[i];
+
+  tex_file_name[dot_pos+1] := 't';
+  tex_file_name[dot_pos+2] := 'e';
+  tex_file_name[dot_pos+3] := 'x';
+  tex_file_name[dot_pos+4] := ' ';
+
+  found_web := true;
 end
 
-@
-
-@<Get |change_file_name|...@>=
+@ @<Get |change_file_name|...@>=
 begin
-dot_pos:=-1;
-i:=1;
-while (fname[i]<>' ') and (i<=max_file_name_length-5)
-do begin
-        change_file_name[i]:=fname[i];
-        if fname[i]='.' then dot_pos:=i;
-        incr(i);
-        end;
-if dot_pos=-1 then begin
-        dot_pos:=i;
-        change_file_name[dot_pos]:='.';
-        change_file_name[dot_pos+1]:='c';
-        change_file_name[dot_pos+2]:='h';
-        change_file_name[dot_pos+3]:=' ';
-        end;
-found_change:=true;
+  dot_pos := -1;
+  slash_pos := -1;
+  i := 1;
+  while (fname[i] <> ' ') and (i <= max_file_name_length - 5)
+  do begin
+    change_file_name[i] := fname[i];
+    if fname[i] = '.' then dot_pos := i;
+    if fname[i] = '/' then slash_pos := i;
+    incr (i);
+  end;
+  change_file_name[i] := ' ';
+
+  if (dot_pos = -1) or (dot_pos < slash_pos)
+  then begin
+    dot_pos := i;
+    change_file_name[dot_pos]   := '.';
+    change_file_name[dot_pos+1] := 'c';
+    change_file_name[dot_pos+2] := 'h';
+    change_file_name[dot_pos+3] := ' ';
+  end;
+
+  found_change := true;
 end
 
-@
-
-@<Set up null...@>=
+@ @<Set up null...@>=
 begin
-        change_file_name[1]:='/';
-        change_file_name[2]:='d';
-        change_file_name[3]:='e';
-        change_file_name[4]:='v';
-        change_file_name[5]:='/';
-        change_file_name[6]:='n';
-        change_file_name[7]:='u';
-        change_file_name[8]:='l';
-        change_file_name[9]:='l';
-        change_file_name[10]:=' ';
+  change_file_name[1]:='/';
+  change_file_name[2]:='d';
+  change_file_name[3]:='e';
+  change_file_name[4]:='v';
+  change_file_name[5]:='/';
+  change_file_name[6]:='n';
+  change_file_name[7]:='u';
+  change_file_name[8]:='l';
+  change_file_name[9]:='l';
+  change_file_name[10]:=' ';
 end
 
-@
-
-@<Handle flag...@>=
+@ @<Handle flag...@>=
 begin
 i:=2;
 while (fname[i]<>' ') and (i<=max_file_name_length-5) do begin
@@ -593,11 +559,9 @@ while (fname[i]<>' ') and (i<=max_file_name_length-5) do begin
         end;
 end
 
-@
-
-@<Print usage error message and quit@>=
+@ @<Print usage error message and quit@>=
 begin
-print_ln('Usage: weave webfile[.web] [changefile[.ch]] [-x].');
-uexit(1);
+  print_ln ('Usage: weave webfile[.web] [changefile[.ch]] [-x].');
+  uexit (1);
 end
 @z

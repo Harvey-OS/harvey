@@ -3,7 +3,7 @@
 .
 .		\" IZ - initialization
 .de IZ
-.fp 1 R			\" force a font out into prefix
+.fp 10 S			\" force a font out into prefix
 .nr PS 10		\" point size
 .nr VS 12		\" line spacing
 .ps \\n(PS
@@ -141,6 +141,11 @@
 .	fp 2 PI
 .	fp 3 PB
 .	fp 4 PX\}
+.if '\\$1'lucidasans'\{\
+.	fp 1 R LucidaSans
+.	fp 2 I LucidaSansI
+.	fp 3 B LucidaSansB
+.	fp 5 CW LucidaCW\}
 .if '\\$1'century'\{\
 .	ie '\\*(.T'202'\{\
 .		fp 1 NR Centsb

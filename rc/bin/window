@@ -5,10 +5,17 @@ case 0 1
 	exit usage
 }
 
-rfork nes
-if(mount $8½srv /mnt/8½ N$pid' '$1){
-	shift
-	bind -b /mnt/8½ /dev
-	echo -n `{basename $1} > /dev/label >[2] /dev/null
-	$* < /dev/cons > /dev/cons >[2] /dev/cons &
+if(~ $#8½srv 0) 8½srv=/mnt/term^`{cat /mnt/term/env/8½srv}
+if(~ $#8½srv 0){
+	echo 'window: $8½srv not set' >/fd/2
+	exit 'no 8½srv'
 }
+{
+	rfork ne
+	if(mount $8½srv /mnt/8½ N`{cat /dev/ppid}^' '$1){
+		shift
+		bind -b /mnt/8½ /dev
+		echo -n `{basename $1} > /dev/label >[2] /dev/null
+		exec $* < /dev/cons > /dev/cons >[2] /dev/cons
+	}
+}&

@@ -15,6 +15,7 @@ Inst	*progp;		/* next free spot for code generation */
 Inst	*pc;		/* program counter during execution */
 Inst	*progbase = prog; /* start of current subprogram */
 int	returning;	/* 1 if return stmt seen */
+int	indef;	/* 1 if parsing a func or proc */
 
 typedef struct Frame {	/* proc/func call stack frame */
 	Symbol	*sp;	/* symbol table entry */
@@ -33,6 +34,7 @@ initcode(void)
 	stackp = stack;
 	fp = frame;
 	returning = 0;
+	indef = 0;
 }
 
 void

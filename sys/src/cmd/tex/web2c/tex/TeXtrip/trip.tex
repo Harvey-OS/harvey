@@ -28,7 +28,7 @@
   \skewchar\rip=`B \countdef\countz % \countz will be \count0
   \def\on{1} \toksdef\tokens=256 \show\errorstopmode
   \showthe\font \showthe\pageshrink \showthe\pagegoal
-  \font\bigtrip=trip at 20pt \textfont3=\bigtrip % this will be extension font
+  \font\bigtr^^@p=trip at20pt\textfont3=\bigtr^^@p % this will be extension font
   \skip200 = 10pt plUs5fil\ifdim\hsize<\hsize\fi lllminus 0 fill
   \setbox200=\vbox{\hrule\vskip\skip200} \wd200-2pt \setbox100=\hbox{A}
   \skipdef\shkip100\shkip -18pt plus\catcode`\}fil minus 10fil
@@ -90,11 +90,11 @@
   \let\next=\dump \everyjob{\message{#}}
 \else\let\next=\relax\fi
 \next % if no format was preloaded, this will dump the trip.fmt file and halt
-\tracingcommands2\tracingrestores+2\write-1{log file only}
+\tracingcommands2\tracingrestores+2\write-1{log file only\the\prevgraf}
 \openout-'78terminal \openout10=tr\romannumeral1 \gobble\newcs pos
 \write10{} % writing three lines on tripos.tex (the first line is empty)
 \write10{\uppercase{\number{\outputpenalty}}} % 0{\outputpenalty} + error
-\write10{[\uppercase{\romannumeral-\the\outputpenalty}} % "mmmmmmmmmm" (-10000)
+\write10{[\uppercase{\romannumeral-\the\outputpenalty}[} % "mmmmmmmmmm" (-10000)
 \vsize 2000pt
 \vbadness=1
 \topskip 20pt plus 1fil
@@ -142,7 +142,7 @@
   % but \count200=500 so the inserts are rated 200pt each
   % so the third insertion will be split
   \kern-50pt
-  A\hfill\vadjust{\special{\the\prevdepth}\penalty-5000}%
+  A\hfill\vadjust{\newlinechar128\special{^^80\the\prevdepth}\penalty-5000}%
   \penalty-1000000000 % forces line break in paragraph
   % this is not the end of paragraph
   A\par\insert200{\vskip10000pt\floatingpenalty3}% this insert will be held over
@@ -217,7 +217,7 @@ $$\eqno^{}$\scriptfont3=\rip\fontdimen2\smalltrip=0pt
 \showthe\font
 \message{\fontname\ip}
 \rip
-\textfont1=\font \scriptfont1=\smalltrip \scriptscriptfont1=\bigtrip % [sick]
+\textfont1=\font \scriptfont1=\smalltrip \scriptscriptfont1=\bigtr^^@p % [sick]
 \def\symbolpar #1*#2*#3*{\global\fontdimen#1\smalltrip = #3 pt}
 {\tracingmacros-1
   \symbolpar8 num1 9.1
@@ -250,7 +250,7 @@ $$\number\the\delcode`\relax\over{{{}}}}\pagestretch=-1\pagetotal\showlists
 \begingroup\halign to\the\displaywidth{#&#\crcr\crcr\cr} % makes lines 4--6
 \global\count6=\displayindent
 \predisplaypenalty=101
-\global\postdisplaypenalty-\predisplaysize*
+\global\postdisplaypenalty-\predisplaysize* \global\setbox=
 \eqno % another error (actually causes two error messages and inserts $$)
 \looseness-2
 $\right\relax\mathchardef\minus="322D % locally \minus is the same as =
@@ -298,7 +298,7 @@ $$\global\count7=\predisplaysize
 \leqno\mathchardef A\/\left(\over\left(\global\errorcontextlines5$$
 
 \hangindent1pt\par\showthe\hangindent\hangindent 254cm
-\parfillskip 0pt plus 100pt
+\parfillskip 0pt plus 100pt \fontdimen6\the\scriptfont2=-19sp
 \the\fam % begins a paragraph, but there's no 0 in the font
 A \char'202$$\global\count8=\predisplaysize\leqno\kern1009pt$\par
 \showlists {\catcode`!13\global\everyhbox{\def!{}}}
@@ -317,9 +317,9 @@ A \char'202$$\global\count8=\predisplaysize\leqno\kern1009pt$\par
   \unskip\setbox22=\lastbox\showthe\lastskip % \lastskip=-1pt (\baselineskip)
   \unskip\vskip-\lastskip\kern\lastkern\penalty\lastkern\showbox22}
 \showbox22\kern3pt\message{\the\lastkern}\unkern
-\show\botmark
+\show\botmark \catcode`;13\def;{\setbox`; }
 \lineskiplimit-0.9999 \space\df\space\count9 0
-\vbox\space to 11pt{\accent\x\space\accent\space"42 \def\^^M{\  } \char'101
+\vbox\space to 11pt{\accent\x\space\accent\space"42 \def\^^M{\  } ; \char'101
   A\     \fontdimen   4 \trip    =    88    pt\     \spaceskip    2    pt      \
   \vskip 10pt minus 10pt}
 \penalty-2147483647 % that's the largest value TeX will scan
@@ -342,8 +342,8 @@ A \char'202$$\global\count8=\predisplaysize\leqno\kern1009pt$\par
   \omit\mark{a}&\omit\mark{b}\cr} % \count2 was set to -6mm=-1118806sp
 \errmessage{\prevdepth=\the\prevdepth}
 \penalty-88888 % end alignment test, now miscellaneous error messages
-\newlinechar`'\global\unskip\newlinechar\lastpenalty\unpenalty\unkern\lastbox
-\penalty5\message{\the\lastpenalty\the\newlinechar}\textfont16=\relax
+\newlinechar`Y\global\unskip\show^^Y\newlinechar\lastpenalty\unpenalty\unkern
+\lastbox\penalty5\message{\the\lastpenalty\the\newlinechar}\textfont16=\relax
 \outer\def{}?
 \dimen5=-'7777777777sp\showthe\dimen5 % this should be OK
 \dimen6=-'40000pt\showthe\dimen6 % this should overflow

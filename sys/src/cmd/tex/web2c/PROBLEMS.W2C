@@ -1,0 +1,549 @@
+Some problems you might encounter:
+
+* GNU sed 1.06 cannot handle the sed script in mf/convert; neither can
+  1.07.  An untested fix for 1.08 is below.  The default is to use /bin/sed.
+
+* GNU Make 3.57 does not pass arguments to shell scripts (like convert),
+under system V.  3.56 does not have this problem, and neither do later
+versions.
+
+* On an i386 machine, GNU C 1.36 does not compile tex5.c correctly when
+making a 32-bit TeX.  1.37 fixes this bug.
+
+* On the AT&T 3b2, under System V release 3.2, cc thinks that
+eject_penalty (which is -1000, defined at line 3216), is a very large
+positive number.  oc@vmp.com is developing a port for the 3b2; he has
+contributed some (incomplete) patches; they are below.
+
+* On a Sun 3 running 3.x, cc cannot compile mf2.c or mf4.c, because the
+preprocessor puts a # directive at the end of line 1811 (or
+thereabouts), instead of at the beginning.  You have to manually move
+it.
+
+* On a Sun 386i running 4.0.1, cc cannot compile Metafont with -O, because it
+can't compile x = x + y correctly.  Don't use -O, or don't use cc. 
+(From morgan@ics.uci.edu.)
+
+* Some parts of this work on an Amiga, other parts don't.
+bsuggs@hac2arpa.hac.com is working on this, but would be happy
+to have help.
+
+* Ditto for a Stardent.  beebe@science.utah.edu is working on this one.
+
+* gcc cannot compile mf/MFwindow/sun.c without -traditional, because Sun
+uses non-ANSI token pasting in <pixrect/memvar.h> in the definition of
+mpr_static.  The fixincludes script distributed with gcc fixes this;
+alternatively, you can install an ANSI version of <pixrect/memvar.h> in
+the directory where gcc looks, e.g.,
+/usr/local/gnu/lib/gcc-include/pixrect/memvar.h.  The line that defines
+CAT should be:
+#define CAT a##b
+
+* Make loses heavily if you are using a networked filesystem, and the
+  server and the local machine have different times.  You might have
+  this problem if `initex' gets made twice, for instance.
+
+
+
+* On a 386 machine running 386/ix, cc cannot compile itex.c, according
+to Reiner Petersen <reiner@db0tui62.bitnet>.  Here is an ed script to
+get around the problem (alternatively, you can get gcc, and compile with
+that):
+
+:
+#       Reiner Petersen (reiner@coma.uucp)
+#       Technical University of Berlin
+#
+ed - $1 << end-of-edscript
+!echo change:
+/  register integer for_end; i = 1 ; for_end = 31 ; if ( i <= for_end) do
++1,.+2p
+-2,.c
+  register integer for_end;
+   register char j;             /* 386/ix cc bug workaround  rp */
+   i = 1 ;
+   for_end = 31 ;
+   if ( i <= for_end) do 
+        j = i;
+        xchr [ j ] = chr ( i ) ;
+    
+    while ( i++ < for_end ) ; 
+.
+!echo to:
+-8,.p
+w $1
+end-of-edscript
+
+If you want, you can put this into the pipeline in ./tex/convert.
+
+* undump doesn't work under 386/ix.  Here is a diff to undump.SYS_V.c to
+fix this, again contributed by reiner:
+*** undump.SYS_V.c      Mon Apr 20 00:57:23 1987
+--- undump.c    Fri Aug 19 17:55:27 1988
+***************
+*** 1,7 ****
+  /*
+   * undump - resurrect a core file into a running program.
+   *
+!  *    for UNIX System V on a 3Bx
+   *    that uses the Common Object File Format
+   *
+   * Author:
+--- 1,7 ----
+  /*
+   * undump - resurrect a core file into a running program.
+   *
+!  *    for UNIX System V on a 3Bx or Interactive 386/ix
+   *    that uses the Common Object File Format
+   *
+   * Author:
+***************
+*** 9,14 ****
+--- 9,19 ----
+   *    New York University
+   *    Tue Mar  3 13:18:25 EST 1987
+   *
++  * Additions for 386/ix:
++  *    Reiner Petersen (reiner@coma.uucp)
++  *    Technical University of Berlin
++  *    Thu Aug 18 13:40:20 MET DST 1988
++  *
+   * Adapted from:
+   *     Spencer Thomas's undump and the file unexec.c in GNU emacs
+   */
+***************
+*** 15,22 ****
+--- 20,33 ----
+
+  #include <sys/param.h>
+  #include <sys/types.h>
++
++ #ifndef       ISC_386ix       /* not availible in ISC 386/ix */
++
+  #include <sys/psw.h>
+  #include <sys/pcb.h>
++
++ #endif        /* ISC_386ix */
++
+  #include <sys/signal.h>
+  #include <sys/fs/s5dir.h>
+  #include <sys/user.h>
+***************
+*** 37,46 ****
+--- 48,66 ----
+  struct scnhdr dsc;
+  struct scnhdr bsc;
+
++ #ifdef        ISC_386ix
++ struct scnhdr csc;            /* Comment section used by ISC 386/ix */
++ #endif        /* ISC_386ix */
++
+  long bias;
+  long lnnoptr;
+  long text_scnptr;
+  long data_scnptr;
++
++ #ifdef        ISC_386ix
++ long comment_scnptr;
++ #endif        /* ISC_386ix */
++
+  long symlocptr;
+
+  main(argc, argv)
+***************
+*** 89,94 ****
+--- 109,118 ----
+                        dsc = sc;
+                 else if (strcmp(sc.s_name, ".bss") == 0) 
+                        bsc = sc;
++ #ifdef        ISC_386ix
++                else if (strcmp(sc.s_name, ".comment") == 0) 
++                       csc = sc;
++ #endif        /* ISC_386ix */
+                
+        
+
+***************
+*** 97,103 ****
+        if (u.u_exdata.ux_tsize != aout.tsize ||
+            u.u_exdata.ux_dsize != aout.dsize ||
+            u.u_exdata.ux_bsize != aout.bsize) 
+!               fprintf("mismatch between %s and %s sizes\n", a_out_name,
+ core_name);
+                exit(1);
+        
+
+--- 121,128 ----
+        if (u.u_exdata.ux_tsize != aout.tsize ||
+            u.u_exdata.ux_dsize != aout.dsize ||
+            u.u_exdata.ux_bsize != aout.bsize) 
+!               fprintf( stderr, "mismatch between %s and %s sizes\n",
+!                                                       a_out_name, core_name);
+                exit(1);
+        
+
+***************
+*** 122,128 ****
+--- 147,159 ----
+        bsc.s_paddr = bsc.s_vaddr = aout.data_start + aout.dsize;
+        bsc.s_size = aout.bsize;
+        bsc.s_scnptr = 0L;
++ #ifndef       ISC_386ix
+        bias = dsc.s_scnptr + dsc.s_size - lnnoptr;
++ #else
++       comment_scnptr = csc.s_scnptr;
++       csc.s_scnptr = dsc.s_scnptr + dsc.s_size;
++       bias = csc.s_scnptr + csc.s_size - lnnoptr;
++ #endif        /* ISC_386ix */
+
+        if (fh.f_symptr > 0L)
+                fh.f_symptr += bias;
+***************
+*** 139,149 ****
+--- 170,186 ----
+                Perror("ds write");
+        if (fwrite(&bsc, sizeof(bsc), 1, nfp) != 1)
+                Perror("bs write");
++       if (fwrite(&csc, sizeof(csc), 1, nfp) != 1)
++               Perror("cs write");
+        fseek(nfp, (long)text_scnptr, 0);
+        copy(afp, nfp, aout.tsize);
+        fseek(cfp, off, 0);
+        fseek(nfp, (long)data_scnptr, 0);
+        copy(cfp, nfp, size);
++ #ifdef        ISC_386ix
++       fseek(afp, (long)comment_scnptr, 0);
++       copy(afp, nfp, csc.s_size);
++ #endif        /* ISC_386ix */
+        copy_syms(afp, nfp);
+        fclose(nfp);
+        fclose(afp);
+
+
+
+These patches for the 3b2 machine are meant to serve as a starting point
+only, as they are for pre-2.992 TeX.  If you work on this, contact oc@vmp.com.
+
+#
+# 3b2patch.sh, to fix web2c for 3B2s
+#      for TeX 2.9*
+#
+# First, make sure we have EXTRA.c and ITEX.c that are the
+# same as the distribution versions of extra.c and itex.c
+# since we're going to modify those files.
+#
+if [ -f EXTRA.c ]
+then
+	cp EXTRA.c extra.c
+else
+	cp extra.c EXTRA.c
+fi
+if [ -f ITEX.c ]
+then
+	cp ITEX.c itex.c
+else
+	cp itex.c ITEX.c
+fi
+#
+# Then use a "sed" script to fix the "too may case statements"
+# in tex8.c
+#
+sed '/maincontrol/a\
+  int fallthrough;
+	/switch/i\
+  fallthrough = 0;
+	/case 71/i\
+  default : fallthgrough = 1 ; break ;\
+  }\
+  if ( fallthrough )\
+  switch ( abs ( curlist .modefield ) + curcmd ) {' <tex8.c >$$t8 &&
+mv $$t8 tex8.c
+#
+# Then find those screwy negative array pointers in texd.h
+# and fix them throughout all the files
+#
+# first find the base numbers we're looking for
+#
+XEQL=`sed -n 's/^#define xeqlevel (.*-\([0-9][0-9]*\).*/\1/p' <texd.h`
+HASH=`sed -n 's/^#define hash (.*-\([0-9][0-9]*\).*/\1/p' <texd.h`
+#
+# then get rid of the negatives in texd.h
+#
+sed 's/\(#define xeqlevel (.*\)-[0-9][0-9]*/\1/
+	s/\(#define hash (.*\)-[0-9][0-9]*/\1/' <texd.h >$$td &&
+mv $$td texd.h
+#
+# finally fix all the *.c files to do the subtraction
+# at array addressing time
+#
+for i in tex[0-8].c extra.c itex.c
+do
+	sed 's/\([^a-z]xeqlevel \[\)/\1 -'${XEQL}' +/g
+	     s/\([^a-z]hash \[\)/\1 -'${HASH}' +/g' < $i > tkshl$$ &&
+		mv tkshl$$ $i
+done
+
+
+
+When compiling for an Atari ST, some of Metafont's constants have to be
+decreased (even beyond small.diff), according to
+ridderbusch.pad@nixdorf.com.
+
+*** /tmp/,RCSt1a00228	Tue Nov 20 09:44:11 1990
+--- cmf.ch	Mon Nov 19 10:11:30 1990
+***************
+*** 143,149 ****
+  @d file_name_size == FILENAMESIZE {Get value from \.{site.h}.}
+  
+  @<Constants...@>=
+! @!mem_max=60000; {greatest index in \MF's internal |mem| array;
+    must be strictly less than |max_halfword|;
+    must be equal to |mem_top| in \.{INIMF}, otherwise |>=mem_top|}
+  @!max_internal=100; {maximum number of internal quantities}
+--- 143,149 ----
+  @d file_name_size == FILENAMESIZE {Get value from \.{site.h}.}
+  
+  @<Constants...@>=
+! @!mem_max=30000; {greatest index in \MF's internal |mem| array;
+    must be strictly less than |max_halfword|;
+    must be equal to |mem_top| in \.{INIMF}, otherwise |>=mem_top|}
+  @!max_internal=100; {maximum number of internal quantities}
+***************
+*** 166,172 ****
+    length of \MF's own strings, which is currently about 22000}
+  @!move_size=5000; {space for storing moves in a single octant}
+  @!max_wiggle=300; {number of autorounded points per cycle}
+! @!gf_buf_size=16384; {size of the output buffer, must be a multiple of 8}
+  @!pool_name='mf.pool';
+    {string of length |file_name_size|; tells where the string pool appears}
+  @!path_size=300; {maximum number of knots between breakpoints of a path}
+--- 166,172 ----
+    length of \MF's own strings, which is currently about 22000}
+  @!move_size=5000; {space for storing moves in a single octant}
+  @!max_wiggle=300; {number of autorounded points per cycle}
+! @!gf_buf_size=4096; {size of the output buffer, must be a multiple of 8}
+  @!pool_name='mf.pool';
+    {string of length |file_name_size|; tells where the string pool appears}
+  @!path_size=300; {maximum number of knots between breakpoints of a path}
+***************
+*** 177,183 ****
+    at least 255 and at most 32510}
+  @!max_kerns=500; {maximum number of distinct kern amounts}
+  @!max_font_dimen=50; {maximum number of \&{fontdimen} parameters}
+! @!mem_top=60000; {largest index in the |mem| array dumped by \.{INIMF};
+    must be substantially larger than |mem_min|
+    and not greater than |mem_max|}
+  @z
+--- 177,183 ----
+    at least 255 and at most 32510}
+  @!max_kerns=500; {maximum number of distinct kern amounts}
+  @!max_font_dimen=50; {maximum number of \&{fontdimen} parameters}
+! @!mem_top=30000; {largest index in the |mem| array dumped by \.{INIMF};
+    must be substantially larger than |mem_min|
+    and not greater than |mem_max|}
+  @z
+
+Date: Tue, 12 May 92 12:18:15 -0400
+From: Larry Jones <scjones@thor.sdrc.com>
+To: bug-gnu-utils@prep.ai.mit.edu
+Subject: sed-1.08 problem with subprograms
+
+sed-1.08 doesn't handle branching out of (or into) a subprogram correctly. 
+The problem is that it treats subprograms like subroutines complete with
+an execution stack, but it doesn't adjust the stack when branching into
+or out of a subprogram.  For branching out, this means that the commands
+following the subprogram are executed an additional time for each branch
+out of the subprogram.  I didn't try branching in, but my guess is that
+it would result in the following commands not being executed at all. 
+
+For example, consider the following script from the TeX distribution:
+
+	: again
+	/\.$/{
+		N
+		s/\.\n/\
+	./
+		t again
+	}
+	s/\.hh/.hhfield/g
+	s/\.lh/.lhfield/g
+
+When this script is given the input:
+
+	abc.
+	hh def.
+	hh ghi.
+	hh
+
+sed 1.08 gives:
+
+	abc
+	.hhfieldfieldfield def
+	.hhfieldfieldfield ghi
+	.hhfieldfieldfield
+
+rather than the correct:
+
+	abc
+	.hhfield def
+	.hhfield ghi
+	.hhfield
+
+The following diffs correct the problem by making subprograms a type of
+branch rather than a nested subroutine.  This means that there's now
+only a single vector which would allow a bunch of other stuff to be
+simplified if anyone's got the inclination to do so.
+
+diff -cr sed-1.08/ChangeLog sed-1.08.1/ChangeLog
+*** sed-1.08/ChangeLog	Thu Aug  8 14:22:24 1991
+--- sed-1.08.1/ChangeLog	Tue May 12 10:16:30 1992
+***************
+*** 1,3 ****
+--- 1,14 ----
++ Tue May 12 10:14:10 1992  Lawrence J. Jones (scjones@sdrc.com)
++ 
++ 	* Version 1.08.1 (unofficial).
++ 
++ 	* sed.c: Fix subprogram handling so branches into or
++ 	out of subprograms don't cause terminal confusion.  Basically,
++ 	treat { like !b and } like the corresponding label.  This
++ 	gets rid of nested vectors and will allow a bunch of other
++ 	stuff to be simplified (sequential vectors were already not
++ 	used).
++ 
+  Thu Aug  8 00:15:33 1991  David J. MacKenzie  (djm at bleen)
+  
+  	* Version 1.08.
+diff -cr sed-1.08/sed.c sed-1.08.1/sed.c
+*** sed-1.08/sed.c	Thu Aug  8 14:17:47 1991
+--- sed-1.08.1/sed.c	Tue May 12 10:16:31 1992
+***************
+*** 41,56 ****
+  VOID *memchr();
+  #endif
+  
+! char *version_string = "GNU sed version 1.08";
+  
+  /* Struct vector is used to describe a chunk of a sed program.  There is one
+!    vector for the main program, and one for each { } pair. */
+  struct vector {
+  	struct sed_cmd *v;
+  	int v_length;
+  	int v_allocated;
+! 	struct vector *up_one;
+! 	struct vector *next_one;
+  };
+  
+  
+--- 41,56 ----
+  VOID *memchr();
+  #endif
+  
+! char *version_string = "GNU sed version 1.08.1";
+  
+  /* Struct vector is used to describe a chunk of a sed program.  There is one
+!    vector for the main program (used to be more). */
+  struct vector {
+  	struct sed_cmd *v;
+  	int v_length;
+  	int v_allocated;
+! 	struct vector *up_one;		/* not used */
+! 	struct vector *next_one;	/* not used */
+  };
+  
+  
+***************
+*** 145,151 ****
+  		unsigned char *translate;
+  
+  		/* For { and } */
+! 		struct vector *sub;
+  		struct sed_label *jump;
+  	} x;
+  };
+--- 145,152 ----
+  		unsigned char *translate;
+  
+  		/* For { and } */
+! 		int end_index;
+! 
+  		struct sed_label *jump;
+  	} x;
+  };
+***************
+*** 543,561 ****
+  			break;
+  		case '{':
+  			cur_cmd->cmd=ch;
+  			program_depth++;
+! #if 0
+! 			while((ch=inchar())!=EOF && ch!='\n')
+! 				if(!isblank(ch))
+! 					bad_prog(LINE_JUNK);
+! #endif
+! 			cur_cmd->x.sub=compile_program((struct vector *)0);
+! 			/* FOO JF is this the right thing to do? */
+  			break;
+  		case '}':
+  			if(!program_depth)
+  				bad_prog("Unexpected '}'");
+- 			--(vector->v_length);
+  			while((ch=inchar())!=EOF && ch!='\n' && ch!=';')
+  				if(!isblank(ch))
+  					bad_prog(LINE_JUNK);
+--- 544,564 ----
+  			break;
+  		case '{':
+  			cur_cmd->cmd=ch;
++ 			/* we want to branch if the condition is FALSE,
++ 			   so we xor ADDR_BANG_BIT to change the sense
++ 			   of the test */
++ 			cur_cmd->aflags^= ADDR_BANG_BIT;
+  			program_depth++;
+! 			num=vector->v_length-1;
+! 			vector=compile_program(vector);
+! 			vector->v[num].x.end_index=vector->v_length-1;
+  			break;
+  		case '}':
++ 			cur_cmd->cmd=ch;
++ 			if(cur_cmd->a1.addr_type!=0)
++ 				bad_prog("} doesn't want any addresses");
+  			if(!program_depth)
+  				bad_prog("Unexpected '}'");
+  			while((ch=inchar())!=EOF && ch!='\n' && ch!=';')
+  				if(!isblank(ch))
+  					bad_prog(LINE_JUNK);
+***************
+*** 1045,1055 ****
+  		if(!addr_matched)
+  			continue;
+  		switch(cur_cmd->cmd) {
+! 		case '{':	/* Execute sub-program */
+! 			execute_program(cur_cmd->x.sub);
+! 			break;
+  
+  		case ':':	/* Executing labels is easy. */
+  			break;
+  
+  		case '=':
+--- 1048,1060 ----
+  		if(!addr_matched)
+  			continue;
+  		switch(cur_cmd->cmd) {
+! 		case '{':	/* Goto end of sub-program */
+! 			n=vec->v_length-cur_cmd->x.end_index;
+! 			cur_cmd=vec->v+cur_cmd->x.end_index;
+! 			goto exe_loop;
+  
+  		case ':':	/* Executing labels is easy. */
++ 		case '}':	/* So are subprogram ends */
+  			break;
+  
+  		case '=':
+
+----
+Larry Jones, SDRC, 2000 Eastman Dr., Milford, OH  45150-2789  513-576-2070
+Domain: scjones@sdrc.com  Path: uunet!sdrc!scjones  IBM: USSDR7DR at IBMMAIL
+I always have to help Dad establish the proper context. -- Calvin
+
+

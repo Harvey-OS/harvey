@@ -2,6 +2,10 @@
 .SH NAME
 setjmp, longjmp, notejmp \- non-local goto
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .ta \w'\fLvoid 'u
 .B
 int	setjmp(jmp_buf env)
@@ -20,7 +24,7 @@ a low-level subroutine of a program.
 saves its stack environment in
 .I env
 for later use by
-.I longjmp.
+.IR longjmp .
 It returns value 0.
 .PP
 .I Longjmp
@@ -52,7 +56,7 @@ and
 .I longjmp
 can also be used to switch stacks.
 Defined in
-.B <u.h>
+.B </$objtype/u.h>
 are several macros that can be used to build
 .B jmp_bufs
 by hand.  The following code establishes a
@@ -77,13 +81,18 @@ setlabel(void)
 {
 	label[JMPBUFPC] = ((ulong)f+JMPBUFDPC);
 	/* -2 leaves room for old pc and new pc in frame */
-	label[JMPBUFSP] = (ulong)(&stack[NSTACK-2*sizeof(ulong*)]);
+	label[JMPBUFSP =
+	        (ulong)(&stack[NSTACK-2*sizeof(ulong*)]);
 }
 .EE
+.SH SOURCE
+.B /sys/src/libc/$objtype/setjmp.s
+.br
+.B /sys/src/libc/$objtype/notejmp.c
+.SH SEE ALSO
+.IR notify (2)
 .SH BUGS
 .PP
 .I Notejmp
 cannot recover from an address trap or bus error (page fault) on the 680x0
 architectures.
-.SH SEE ALSO
-.IR notify (2)

@@ -1,0 +1,13 @@
+#!/bin/sh -f
+# Extract ASCII text from a PostScript file.  Usage:
+#	ps2ascii [infile.ps [outfile.txt]]
+# If outfile is omitted, output goes to stdout.
+# If both infile and outfile are omitted, ps2ascii acts as a filter,
+# reading from stdin and writing on stdout.
+if ( test $# -eq 0 ) then
+	gs -q -dNODISPLAY -dNOBIND -dWRITESYSTEMDICT -dSIMPLE ps2ascii.ps - -c quit
+elif ( test $# -eq 1 ) then
+	gs -q -dNODISPLAY -dNOBIND -dWRITESYSTEMDICT -dSIMPLE ps2ascii.ps $1 -c quit
+else
+	gs -q -dNODISPLAY -dNOBIND -dWRITESYSTEMDICT -dSIMPLE ps2ascii.ps $1 -c quit >$2
+fi

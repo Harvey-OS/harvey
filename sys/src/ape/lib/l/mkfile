@@ -1,34 +1,13 @@
 APE=/sys/src/ape
-< $APE/config
-L=/$objtype/lib/ape/libl.a
-CFLAGS=$CFLAGS -D_RESEARCH_SOURCE
-BUILTINS=
+<$APE/config
 
-NAMES=U=allprint main reject yyless yywrap
+LIB=/$objtype/lib/ape/libl.a
+OFILES=allprint.$O\
+	main.$O\
+	reject.$O\
+	yyless.$O\
+	yywrap.$O\
 
-OBJ=U=${NAMES:%=$L(%.$O)}
+</sys/src/cmd/mksyslib
 
-install:VQ:	$L
-	echo done $L
-
-compile:V:	$L
-test:VQ:
-	echo libl has no test
-clean:V:
-	rm -f *.[$OS]
-
-nuke:V:		clean
-	rm -f $L
-
-$L:	$OBJ
-	names=`{membername $newprereq}
-	$AR rv $L $names && rm -f $names
-	$RANLIB $L
-
-$L(%.$O):N:	%.$O
-
-%.$O:	%.c
-	$CC $CFLAGS -c $stem.c
-
-%.$O:	$FAMILY/%.c
-	$CC $CFLAGS -c $prereq
+CFLAGS=-c -D_RESEARCH_SOURCE

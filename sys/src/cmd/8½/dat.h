@@ -48,11 +48,15 @@ struct Window{
 	long	qh;		/* host point */
 	Text	text;		/* contents of window */
 	Text	rawbuf;		/* unread raw characters */
+	Text	kbdbuf;		/* characters for Qkbd */
 	char	*wbuf;		/* data written to /dev/cons */
 	int	wcnt;		/* #bytes in buf (not incl null) */
 	int	woff;		/* offset into wbuf for termwrune */
 	char	wpart[4];	/* incomplete rune pending from last write, with NUL */
 	int	nwpart;		/* number of bytes in wpart */
+	char	ipart[3];	/* incomplete rune from Qkbd */
+	uchar	nipart;		/* number of bytes in ipart */
+	int	kbdopen;	/* someone has Qkbd open for reading */
 	int	wtag;		/* tag of write mesg */
 	int	wfid;		/* fid doing the write */
 	int	rtag;		/* tag of read msg */
@@ -65,7 +69,7 @@ struct Window{
 int MFID;
 	IOQ	*rq;		/* queue of pending read requests */
 	IOQ	*wq;		/* queue of pending write requests */
-	int	kbdc;		/* character typed on keyboard */
+	IOQ	*kq;		/* queue of pending read requests from raw kbd */
 	int	send;		/* send the contents of the snarf buffer */
 	char	wqid[8];	/* unique window serial number */
 	Rectangle reshape;	/* reshape to this size */
@@ -167,6 +171,7 @@ extern	int	boxup;
 extern	Rectangle box;
 extern	ulong	wqid;
 extern	Subfont	*subfont;
+extern	long		clicktime;	/* ms since last click */
 
 #define	SNARF	0
 #define	BOXWID	2

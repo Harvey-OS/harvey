@@ -46,4 +46,8 @@ extern unsigned char _ctype[];
 #define	isupper(c)	((_ctype+1)[c]&__U)
 #define	isxdigit(c)	((_ctype+1)[c]&__X)
 
+#ifdef _BSD_EXTENSION
+#define	isascii(c) (((unsigned int)(c))<0x80)
+#endif
+
 #endif /* __CTYPE */

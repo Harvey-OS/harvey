@@ -29,6 +29,3 @@ BIN=/$objtype/bin
 </sys/src/cmd/mkone
 
 address.$O cmd.$O parse.$O xec.$O unix.$O:	parse.h
-
-%.db:		sam.h
-	$CC -s$stem sam.c | dbfmt > $stem.db

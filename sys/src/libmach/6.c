@@ -21,52 +21,52 @@
 #define	R4	UR(4)
 
 Reglist i960reglist[] = {
-	{ "R0",		UR(0), 0, 'X'},
-	{ "R1",		UR(1), 0, 'X'},
-	{ "R2",		UR(2), 0, 'X'},
-	{ "R3",		UR(3), 0, 'X'},
-	{ "R4",		UR(4), 0, 'X'},
-	{ "R5",		UR(5), 0, 'X'},
-	{ "R6",		UR(6), 0, 'X'},
-	{ "R7",		UR(7), 0, 'X'},
-	{ "R8",		UR(8), 0, 'X'},
-	{ "R9",		UR(9), 0, 'X'},
-	{ "R10",	UR(10), 0, 'X'},
-	{ "R11",	UR(11), 0, 'X'},
-	{ "R12",	UR(12), 0, 'X'},
-	{ "R13",	UR(13), 0, 'X'},
-	{ "R14",	UR(14), 0, 'X'},
-	{ "R15",	UR(15), 0, 'X'},
-	{ "R16",	UR(16), 0, 'X'},
-	{ "R17",	UR(17), 0, 'X'},
-	{ "R18",	UR(18), 0, 'X'},
-	{ "R19",	UR(19), 0, 'X'},
-	{ "R20",	UR(20), 0, 'X'},
-	{ "R21",	UR(21), 0, 'X'},
-	{ "R22",	UR(22), 0, 'X'},
-	{ "R23",	UR(23), 0, 'X'},
-	{ "R24",	UR(24), 0, 'X'},
-	{ "R25",	UR(25), 0, 'X'},
-	{ "R26",	UR(26), 0, 'X'},
-	{ "TMP",	UR(27), 0, 'X'},
-	{ "SB",		UR(28), 0, 'X'},
-	{ "SP",		SP, 0, 'X'},
-	{ "PC",		PC, 0, 'X'},
-	{ "R31",	UR(31), 0, 'X' },
+	{ "R0",		UR(0), RINT, 'X'},
+	{ "R1",		UR(1), RINT, 'X'},
+	{ "R2",		UR(2), RINT, 'X'},
+	{ "R3",		UR(3), RINT, 'X'},
+	{ "R4",		UR(4), RINT, 'X'},
+	{ "R5",		UR(5), RINT, 'X'},
+	{ "R6",		UR(6), RINT, 'X'},
+	{ "R7",		UR(7), RINT, 'X'},
+	{ "R8",		UR(8), RINT, 'X'},
+	{ "R9",		UR(9), RINT, 'X'},
+	{ "R10",	UR(10), RINT, 'X'},
+	{ "R11",	UR(11), RINT, 'X'},
+	{ "R12",	UR(12), RINT, 'X'},
+	{ "R13",	UR(13), RINT, 'X'},
+	{ "R14",	UR(14), RINT, 'X'},
+	{ "R15",	UR(15), RINT, 'X'},
+	{ "R16",	UR(16), RINT, 'X'},
+	{ "R17",	UR(17), RINT, 'X'},
+	{ "R18",	UR(18), RINT, 'X'},
+	{ "R19",	UR(19), RINT, 'X'},
+	{ "R20",	UR(20), RINT, 'X'},
+	{ "R21",	UR(21), RINT, 'X'},
+	{ "R22",	UR(22), RINT, 'X'},
+	{ "R23",	UR(23), RINT, 'X'},
+	{ "R24",	UR(24), RINT, 'X'},
+	{ "R25",	UR(25), RINT, 'X'},
+	{ "R26",	UR(26), RINT, 'X'},
+	{ "TMP",	UR(27), RINT, 'X'},
+	{ "SB",		UR(28), RINT, 'X'},
+	{ "SP",		SP, RINT, 'X'},
+	{ "PC",		PC, RINT, 'X'},
+	{ "R31",	UR(31), RINT, 'X' },
 	{  0 }
 };
 
 Mach mi960 =
 {
 	"960",
+	MI960,		/* machine type */
 	i960reglist,		/* register list */
 	MINREG,		/* minimum register */
 	MAXREG,		/* maximum register */
-	PC,
-	SP,
-	0,
+	"PC",
+	"SP",
+	0,		/* link register */
 	R4,		/* return register */
-	0,		/* first writable register */
 	0x1000,		/* page size */
 	0x80000000,	/* kernel base */
 	0,		/* kernel text mask */

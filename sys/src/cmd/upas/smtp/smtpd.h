@@ -2,6 +2,7 @@ extern char *me;
 
 void sayhi(void);
 void hello(String*);
+void syntaxerr(void);
 void sender(String*);
 void receiver(String*);
 void receiver(String*);

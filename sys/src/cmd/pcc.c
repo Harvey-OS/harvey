@@ -15,7 +15,6 @@ Objtype objtype[] = {
 	{"68020",	"2c", "2l", "2", "2.out"},
 	{"sparc",	"kc", "kl", "k", "k.out"},
 	{"386",		"8c", "8l", "8", "8.out"},
-	{"hobbit",	"zc", "zl", "z", "z.out"},
 };
 
 enum {
@@ -71,26 +70,18 @@ main(int argc, char *argv[])
 			break;
 		case 'w':
 		case 'B':
-		case 'J':
 		case 'N':
 		case 'S':
 			append(&cc, str("-%c", ARGC()));
 			break;
-		case 's':
-			append(&cc, str("-s%s", ARGF()));
-			break;
 		case 'D':
 		case 'I':
 		case 'U':
-		case 'C':
 			append(&cpp, str("-%c%s", ARGC(), ARGF()));
 			break;
 		case 'v':
 			vflag = 1;
 			append(&ldargs, "-v");
-			break;
-		case 'a':
-			append(&ldargs, "-a");
 			break;
 		case 'P':
 			Pflag = 1;
@@ -102,6 +93,15 @@ main(int argc, char *argv[])
 			break;
 		case 'p':
 			append(&ldargs, "-p");
+			break;
+		case 'a':
+			/* hacky look inside ARGBEGIN insides, to see if we have -aa */
+			if(*_args == 'a') {
+				append(&cc, "-aa");
+				_args++;
+			} else
+				append(&cc, "-a");
+			cflag = 1;
 			break;
 		default:
 			fprint(2, "pcc: flag -%c ignored\n", ARGC());

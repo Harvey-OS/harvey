@@ -1,0 +1,54 @@
+for f in bed checksum ctf od
+do
+	if ( test -f ${f}.c ) then
+		cc -o ${f} -O ${f}.c
+		mv ${f}.c ${f} ../bin
+	fi
+done
+# Since unpacking the tar files will clobber this file (tar_x),
+# copy it to a temporary file for safety now.
+cat <<"EOF" >_temp_
+for f in 0 1 2 3 4 5 6 7 8 9
+do
+	if ( test -f tar${f}.z ) then
+		mv tar${f}.z ${f}.taz
+	fi
+	if ( test -f ${f}.taz ) then
+		echo Extracting ${f}.taz ...
+		gzip -d -c ${f}.taz | tar -xvf -
+		rm ${f}.taz
+	fi
+done
+for f in dll gnu
+do
+	if ( test -f ${f}.taz ) then
+		echo Extracting ${f}.taz ...
+		mkdir -p ${f}
+		cd ${f}
+		gzip -d -c ../${f}.taz | tar -xvf -
+		cd ..
+		rm ${f}.taz
+	fi
+done
+chmod +x tar_*
+cp tar_gs ..
+chmod +x ccgs gsaddmod gssetdev gssetmod
+chmod +x bdftops font2c gsbj gsdj gslj gslp gsnd ps2ascii ps2epsi
+chmod +x gs*.exe *.sh
+./tar_mv copying COPYING
+./tar_mv news NEWS
+./tar_mv public PUBLIC
+./tar_mv readme README
+./tar_mv fontmap Fontmap
+./tar_mv fontmap.atb Fontmap.ATB
+./tar_mv fontmap.atm Fontmap.ATM
+./tar_mv fontmap.os2 Fontmap.OS2
+./tar_mv fontmap.osf Fontmap.OSF1
+./tar_mv fontmap.ult Fontmap.Ultrix
+./tar_mv fontmap.vms Fontmap.VMS
+./tar_mv gnu/copyleft gnu/COPYLEFT
+# Remove other fontmaps that shouldn't be distributed.
+rm -f fontmap.*
+rm _temp_
+EOF
+/bin/sh <_temp_

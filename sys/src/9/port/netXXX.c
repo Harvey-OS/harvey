@@ -5,6 +5,10 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
+/*
+ *  This is a prototype file for writing a new network protocol
+ */
+
 static void nulloput(Queue*, Block*);
 static void protooput(Queue*, Block*);
 static void protoiput(Queue*, Block*);

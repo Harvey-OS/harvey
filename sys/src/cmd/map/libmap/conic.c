@@ -3,9 +3,9 @@
 static struct coord stdpar;
 
 static int
-Xconic(struct place *place, float *x, float *y)
+Xconic(struct place *place, double *x, double *y)
 {
-	float r;
+	double r;
 	if(fabs(place->nlat.l-stdpar.l) > 80.*RAD)
 		return(-1);
 	r = stdpar.c/stdpar.s - tan(place->nlat.l - stdpar.l);
@@ -16,7 +16,7 @@ Xconic(struct place *place, float *x, float *y)
 }
 
 proj
-conic(float par)
+conic(double par)
 {
 	if(fabs(par) <.1)
 		return(Xcylindrical);

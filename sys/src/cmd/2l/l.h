@@ -10,7 +10,6 @@
 	{ *cbp++ = c;\
 	if(--cbc <= 0)\
 		cflush(); }
-#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 
 typedef	struct	Adr	Adr;
 typedef	struct	Prog	Prog;
@@ -58,10 +57,6 @@ struct	Prog
 	short	as;
 	uchar	mark;	/* work on these */
 	uchar	back;
-
-	short	type;		/* fake for ANAME */
-	short	sym;		/* fake for ANAME */
-	char	name[NNAME];	/* fake for ANAME */
 };
 struct	Auto
 {
@@ -72,9 +67,11 @@ struct	Auto
 };
 struct	Sym
 {
-	char	name[NNAME];
+	char	*name;
 	short	type;
 	short	version;
+	short	become;
+	short	frame;
 	long	value;
 	Sym*	link;
 };
@@ -90,16 +87,6 @@ struct	Optab
 	ushort	opcode2;
 	ushort	opcode3;
 };
-union
-{
-	struct
-	{
-		char	cbuf[8192];			/* output buffer */
-		uchar	xbuf[8192];			/* input buffer */
-		Rlent	rlent[8192/sizeof(Rlent)];	/* ranlib buf */
-	};
-	char	dbuf[1];
-} buf;
 
 enum
 {
@@ -115,8 +102,20 @@ enum
 	NHUNK		= 100000,
 	MINSIZ		= 4,
 	STRINGSZ	= 200,
+	MAXIO		= 8192,
+	MAXHIST		= 20,				/* limit of path elements for history symbols */
 	A6OFFSET 	= 32766,
 };
+
+union
+{
+	struct
+	{
+		char	cbuf[MAXIO];			/* output buffer */
+		uchar	xbuf[MAXIO];			/* input buffer */
+	};
+	char	dbuf[1];
+} buf;
 
 long	HEADR;
 long	HEADTYPE;
@@ -142,7 +141,7 @@ Prog*	firstp;
 char	fnuxi8[8];
 char	gnuxi8[8];
 Sym*	hash[NHASH];
-Sym*	histfrog[NNAME/2-1];
+Sym*	histfrog[MAXHIST];
 int	histfrogp;
 int	histgen;
 char*	library[50];

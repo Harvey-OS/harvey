@@ -13,6 +13,8 @@ dodata(void)
 	Bflush(&bso);
 	for(p = datap; p != P; p = p->link) {
 		s = p->from.sym;
+		if(p->as == ADYNT || p->as == AINIT)
+			s->value = dtype;
 		if(s->type == SBSS)
 			s->type = SDATA;
 		if(s->type != SDATA)
@@ -158,6 +160,7 @@ dodata(void)
 		p->from.sym = s;
 		p->from.name = D_EXTERN;
 		p->from.offset = 0;
+		nocache(p);
 		continue;
 	}
 	while(orig & 7)
@@ -202,8 +205,6 @@ undef(void)
 void
 follow(void)
 {
-	Prog *p;
-
 	if(debug['v'])
 		Bprint(&bso, "%5.2f follow\n", cputime());
 	Bflush(&bso);
@@ -214,8 +215,6 @@ follow(void)
 
 	firstp = firstp->link;
 	lastp->link = P;
-	for(p = firstp; p != P; p = p->link)
-		p->mark = 0;
 }
 
 void
@@ -232,8 +231,19 @@ loop:
 		curtext = p;
 	if(a == AJMP) {
 		q = p->cond;
+		if((p->mark&NOSCHED) || q && (q->mark&NOSCHED)){
+			p->mark |= FOLL;
+			lastp->link = p;
+			lastp = p;
+			p = p->link;
+			xfol(p);
+			p = q;
+			if(p && !(p->mark & FOLL))
+				goto loop;
+			return;
+		}
 		if(q != P) {
-			p->mark = FOLL;
+			p->mark |= FOLL;
 			p = q;
 			if(!(p->mark & FOLL))
 				goto loop;
@@ -241,7 +251,7 @@ loop:
 	}
 	if(p->mark & FOLL) {
 		for(i=0,q=p; i<4; i++,q=q->link) {
-			if(q == lastp)
+			if(q == lastp || (q->mark&NOSCHED))
 				break;
 			a = q->as;
 			if(a == ANOP) {
@@ -260,7 +270,7 @@ loop:
 				*r = *p;
 				if(!(r->mark&FOLL))
 					print("cant happen 1\n");
-				r->mark = FOLL;
+				r->mark |= FOLL;
 				if(p != q) {
 					p = p->link;
 					lastp->link = r;
@@ -292,11 +302,16 @@ loop:
 		q->cond = p;
 		p = q;
 	}
-	p->mark = FOLL;
+	p->mark |= FOLL;
 	lastp->link = p;
 	lastp = p;
-	if(a == AJMP || a == ARET || a == ARFE)
+	if(a == AJMP || a == ARET || a == ARFE){
+		if(p->mark & NOSCHED){
+			p = p->link;
+			goto loop;
+		}
 		return;
+	}
 	if(p->cond != P)
 	if(a != AJAL && p->link != P) {
 		xfol(p->link);
@@ -327,7 +342,8 @@ patch(void)
 		a = p->as;
 		if(a == ATEXT)
 			curtext = p;
-		if(a == AJAL && p->to.sym != S) {
+		if((a == AJAL || a == AJMP || a == ARET) &&
+		   p->to.type != D_BRANCH && p->to.sym != S) {
 			s = p->to.sym;
 			if(s->type != STEXT) {
 				diag("undefined: %s\n%P\n", s->name, p);
@@ -409,7 +425,7 @@ brloop(Prog *p)
 	int c;
 
 	for(c=0; p!=P;) {
-		if(p->as != AJMP)
+		if(p->as != AJMP || (p->mark&NOSCHED))
 			return p;
 		q = p->cond;
 		if(q <= p) {

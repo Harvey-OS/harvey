@@ -22,13 +22,15 @@ void	message(char *, char *);
 void	munge(void);
 void	nomessage(void);
 void	overwrite(Bitmap *);
-void	puticon(char *, char *, char *);
+void	newicon(char *, char *);
+void	puticon(char *, char *);
 void	restart(char *, int, int);
 void	showimage(SRC *, int);
 void	start_trail(char *);
 void	twirl(SRC *, SRC *);
 void	wipe(SRC *, SRC *);
-void	sayit(char *);
+void	sayit(char *, char *);
+void	remind(char *);
 
 char	user[NAMELEN];
 int	First;
@@ -41,3 +43,13 @@ char	*label;
 int	aflag;
 int	sflag;
 char	realmachine[200];
+char	*rfile;
+
+#define	INSET	5		/* inset from screen.r to written area */
+#define	DATEX	(INSET+5)	/* coordinates of date string */
+#define	DATEY	(INSET+1)
+#define	XOFF	(INSET+5)	/* offset from corner to picture */
+#define	BOTOFF	(INSET+5)
+#define	FCWID	(MAXX+5)	/* width of face, incl. strings */
+int	FCHT;			/* height of face, incl. strings */
+int	TOPOFF;			/* DATEY+5+2*medifont->height */

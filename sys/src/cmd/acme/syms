@@ -1,0 +1,1293 @@
+// decl /sys/include/alef/alef.h:35:
+sizeofArg = 16;
+aggr Arg {
+	'X'    0 arg0;
+	'D'    4 ac;
+	'X'    8 av;
+	'X'   12 p;
+};
+
+defn
+Arg(addr) {
+	complex Arg addr;
+	print("	arg0	", addr.arg0\X, "\n");
+	print("	ac	", addr.ac, "\n");
+	print("	av	", addr.av\X, "\n");
+	print("	p	", addr.p\X, "\n");
+};
+
+// decl /sys/include/alef/alef.h:92:
+sizeofPrintspec = 28;
+aggr Printspec {
+	'X'    0 o;
+	'D'    4 f1;
+	'D'    8 f2;
+	'D'   12 f3;
+	'D'   16 chr;
+	'X'   20 out;
+	'X'   24 eout;
+};
+
+defn
+Printspec(addr) {
+	complex Printspec addr;
+	print("	o	", addr.o\X, "\n");
+	print("	f1	", addr.f1, "\n");
+	print("	f2	", addr.f2, "\n");
+	print("	f3	", addr.f3, "\n");
+	print("	chr	", addr.chr, "\n");
+	print("	out	", addr.out\X, "\n");
+	print("	eout	", addr.eout\X, "\n");
+};
+
+// decl /sys/include/alef/alef.h:213:
+sizeofLock = 4;
+adt Lock {
+	'D'    0 val;
+};
+
+defn
+Lock(addr) {
+	complex Lock addr;
+	print("	val	", addr.val, "\n");
+};
+
+// decl /sys/include/alef/alef.h:224:
+sizeofQLock = 12;
+adt QLock {
+	Lock    0 use;
+	'D'    4 used;
+	'X'    8 queue;
+};
+
+defn
+QLock(addr) {
+	complex QLock addr;
+	print("Lock use {\n");
+	Lock(addr.use);
+	print("}\n");
+	print("	used	", addr.used, "\n");
+	print("	queue	", addr.queue\X, "\n");
+};
+
+// decl /sys/include/alef/alef.h:238:
+sizeofRWlock = 32;
+adt RWlock {
+	{
+	'D'    0 val;
+	};
+	QLock    4 x;
+	QLock   16 k;
+	'D'   28 readers;
+};
+
+defn
+RWlock(addr) {
+	complex RWlock addr;
+	print("Lock {\n");
+		Lock(addr+0);
+	print("}\n");
+	print("QLock x {\n");
+	QLock(addr.x);
+	print("}\n");
+	print("QLock k {\n");
+	QLock(addr.k);
+	print("}\n");
+	print("	readers	", addr.readers, "\n");
+};
+
+// decl /sys/include/alef/alef.h:248:
+sizeofRef = 8;
+adt Ref {
+	Lock    0 l;
+	'D'    4 cnt;
+};
+
+defn
+Ref(addr) {
+	complex Ref addr;
+	print("Lock l {\n");
+	Lock(addr.l);
+	print("}\n");
+	print("	cnt	", addr.cnt, "\n");
+};
+
+// decl /sys/include/alef/alef.h:298:
+sizeofNotemsg = 64;
+aggr Notemsg {
+	'a'    0 note;
+};
+
+defn
+Notemsg(addr) {
+	complex Notemsg addr;
+	print("	note	", addr.note, "\n");
+};
+
+// decl /sys/include/alef/alef.h:308:
+sizeofLength = 8;
+union Length {
+	'a'    0 clength;
+	{
+	'D'    0 hlength;
+	'D'    4 length;
+	};
+};
+
+defn
+Length(addr) {
+	complex Length addr;
+	print("	clength	", addr.clength, "\n");
+};
+
+// decl /sys/include/alef/alef.h:314:
+sizeofQid = 8;
+aggr Qid {
+	'U'    0 path;
+	'U'    4 vers;
+};
+
+defn
+Qid(addr) {
+	complex Qid addr;
+	print("	path	", addr.path, "\n");
+	print("	vers	", addr.vers, "\n");
+};
+
+// decl /sys/include/alef/alef.h:328:
+sizeofDir = 116;
+aggr Dir {
+	'a'    0 name;
+	'a'   28 uid;
+	'a'   56 gid;
+	Qid   84 qid;
+	'U'   92 mode;
+	'D'   96 atime;
+	'D'  100 mtime;
+	{
+	'a'  104 clength;
+	{
+	'D'  104 hlength;
+	'D'  108 length;
+	};
+	};
+	'u'  112 type;
+	'u'  114 dev;
+};
+
+defn
+Dir(addr) {
+	complex Dir addr;
+	print("	name	", addr.name, "\n");
+	print("	uid	", addr.uid, "\n");
+	print("	gid	", addr.gid, "\n");
+	print("Qid qid {\n");
+	Qid(addr.qid);
+	print("}\n");
+	print("	mode	", addr.mode, "\n");
+	print("	atime	", addr.atime, "\n");
+	print("	mtime	", addr.mtime, "\n");
+	print("Length {\n");
+		Length(addr+104);
+	print("}\n");
+	print("	type	", addr.type, "\n");
+	print("	dev	", addr.dev, "\n");
+};
+
+// decl /sys/include/alef/alef.h:335:
+sizeofWaitmsg = 112;
+aggr Waitmsg {
+	'a'    0 pid;
+	'a'   12 time;
+	'a'   48 msg;
+};
+
+defn
+Waitmsg(addr) {
+	complex Waitmsg addr;
+	print("	pid	", addr.pid, "\n");
+	print("	time	", addr.time, "\n");
+	print("	msg	", addr.msg, "\n");
+};
+
+// decl /sys/include/alef/alef.h:348:
+sizeofTm = 36;
+aggr Tm {
+	'D'    0 sec;
+	'D'    4 min;
+	'D'    8 hour;
+	'D'   12 mday;
+	'D'   16 mon;
+	'D'   20 year;
+	'D'   24 wday;
+	'D'   28 yday;
+	'a'   32 zone;
+};
+
+defn
+Tm(addr) {
+	complex Tm addr;
+	print("	sec	", addr.sec, "\n");
+	print("	min	", addr.min, "\n");
+	print("	hour	", addr.hour, "\n");
+	print("	mday	", addr.mday, "\n");
+	print("	mon	", addr.mon, "\n");
+	print("	year	", addr.year, "\n");
+	print("	wday	", addr.wday, "\n");
+	print("	yday	", addr.yday, "\n");
+	print("	zone	", addr.zone, "\n");
+};
+
+// decl /sys/include/alef/libg.h:12:
+sizeofPoint = 8;
+aggr Point {
+	'D'    0 x;
+	'D'    4 y;
+};
+
+defn
+Point(addr) {
+	complex Point addr;
+	print("	x	", addr.x, "\n");
+	print("	y	", addr.y, "\n");
+};
+
+// decl /sys/include/alef/libg.h:18:
+sizeofRectangle = 16;
+aggr Rectangle {
+	Point    0 min;
+	Point    8 max;
+};
+
+defn
+Rectangle(addr) {
+	complex Rectangle addr;
+	print("Point min {\n");
+	Point(addr.min);
+	print("}\n");
+	print("Point max {\n");
+	Point(addr.max);
+	print("}\n");
+};
+
+// decl /sys/include/alef/libg.h:27:
+sizeofBitmap = 44;
+aggr Bitmap {
+	Rectangle    0 r;
+	Rectangle   16 clipr;
+	'D'   32 ldepth;
+	'D'   36 id;
+	'A' Bitmap   40 cache;
+};
+
+defn
+Bitmap(addr) {
+	complex Bitmap addr;
+	print("Rectangle r {\n");
+	Rectangle(addr.r);
+	print("}\n");
+	print("Rectangle clipr {\n");
+	Rectangle(addr.clipr);
+	print("}\n");
+	print("	ldepth	", addr.ldepth, "\n");
+	print("	id	", addr.id, "\n");
+	print("	cache	", addr.cache\X, "\n");
+};
+
+// decl /sys/include/alef/libg.h:34:
+sizeofMouse = 16;
+aggr Mouse {
+	'D'    0 buttons;
+	Point    4 xy;
+	'U'   12 msec;
+};
+
+defn
+Mouse(addr) {
+	complex Mouse addr;
+	print("	buttons	", addr.buttons, "\n");
+	print("Point xy {\n");
+	Point(addr.xy);
+	print("}\n");
+	print("	msec	", addr.msec, "\n");
+};
+
+// decl /sys/include/alef/libg.h:41:
+sizeofCursor = 72;
+aggr Cursor {
+	Point    0 offset;
+	'a'    8 clr;
+	'a'   40 set;
+};
+
+defn
+Cursor(addr) {
+	complex Cursor addr;
+	print("Point offset {\n");
+	Point(addr.offset);
+	print("}\n");
+	print("	clr	", addr.clr, "\n");
+	print("	set	", addr.set, "\n");
+};
+
+// decl /sys/include/alef/libg.h:51:
+sizeofLinedesc = 20;
+aggr Linedesc {
+	'D'    0 x0;
+	'D'    4 y0;
+	'C'    8 xmajor;
+	'C'    9 slopeneg;
+	'D'   12 dminor;
+	'D'   16 dmajor;
+};
+
+defn
+Linedesc(addr) {
+	complex Linedesc addr;
+	print("	x0	", addr.x0, "\n");
+	print("	y0	", addr.y0, "\n");
+	print("	xmajor	", addr.xmajor, "\n");
+	print("	slopeneg	", addr.slopeneg, "\n");
+	print("	dminor	", addr.dminor, "\n");
+	print("	dmajor	", addr.dmajor, "\n");
+};
+
+// decl /sys/include/alef/libg.h:60:
+sizeofMenu = 12;
+adt Menu {
+	'X'    0 item;
+	'X'    4 gen;
+	'D'    8 lasthit;
+};
+
+defn
+Menu(addr) {
+	complex Menu addr;
+	print("	item	", addr.item\X, "\n");
+	print("	gen	", addr.gen\X, "\n");
+	print("	lasthit	", addr.lasthit, "\n");
+};
+
+// decl /sys/include/alef/libg.h:83:
+sizeofFontchar = 8;
+aggr Fontchar {
+	'u'    0 x;
+	'C'    2 top;
+	'C'    3 bottom;
+	'C'    4 left;
+	'C'    5 width;
+};
+
+defn
+Fontchar(addr) {
+	complex Fontchar addr;
+	print("	x	", addr.x, "\n");
+	print("	top	", addr.top, "\n");
+	print("	bottom	", addr.bottom, "\n");
+	print("	left	", addr.left, "\n");
+	print("	width	", addr.width, "\n");
+};
+
+// decl /sys/include/alef/libg.h:92:
+sizeofSubfont = 12;
+aggr Subfont {
+	'd'    0 n;
+	'C'    2 height;
+	'C'    3 ascent;
+	'A' Fontchar    4 info;
+	'D'    8 id;
+};
+
+defn
+Subfont(addr) {
+	complex Subfont addr;
+	print("	n	", addr.n, "\n");
+	print("	height	", addr.height, "\n");
+	print("	ascent	", addr.ascent, "\n");
+	print("	info	", addr.info\X, "\n");
+	print("	id	", addr.id, "\n");
+};
+
+// decl /sys/include/alef/libg.h:118:
+sizeofCachefont = 16;
+aggr Cachefont {
+	'u'    0 min;
+	'u'    2 max;
+	'D'    4 offset;
+	'D'    8 abs;
+	'X'   12 name;
+};
+
+defn
+Cachefont(addr) {
+	complex Cachefont addr;
+	print("	min	", addr.min, "\n");
+	print("	max	", addr.max, "\n");
+	print("	offset	", addr.offset, "\n");
+	print("	abs	", addr.abs, "\n");
+	print("	name	", addr.name\X, "\n");
+};
+
+// decl /sys/include/alef/libg.h:126:
+sizeofCacheinfo = 16;
+aggr Cacheinfo {
+	'u'    0 value;
+	'u'    2 age;
+	'U'    4 xright;
+	{
+	'u'    8 x;
+	'C'   10 top;
+	'C'   11 bottom;
+	'C'   12 left;
+	'C'   13 width;
+	};
+};
+
+defn
+Cacheinfo(addr) {
+	complex Cacheinfo addr;
+	print("	value	", addr.value, "\n");
+	print("	age	", addr.age, "\n");
+	print("	xright	", addr.xright, "\n");
+	print("Fontchar {\n");
+		Fontchar(addr+8);
+	print("}\n");
+};
+
+// decl /sys/include/alef/libg.h:133:
+sizeofCachesubf = 12;
+aggr Cachesubf {
+	'U'    0 age;
+	'A' Cachefont    4 cf;
+	'A' Subfont    8 f;
+};
+
+defn
+Cachesubf(addr) {
+	complex Cachesubf addr;
+	print("	age	", addr.age, "\n");
+	print("	cf	", addr.cf\X, "\n");
+	print("	f	", addr.f\X, "\n");
+};
+
+// decl /sys/include/alef/libg.h:150:
+sizeofFont = 36;
+aggr Font {
+	'X'    0 name;
+	'C'    4 height;
+	'C'    5 ascent;
+	'C'    6 width;
+	'C'    7 ldepth;
+	'd'    8 id;
+	'd'   10 nsub;
+	'U'   12 age;
+	'D'   16 ncache;
+	'D'   20 nsubf;
+	'A' Cacheinfo   24 cache;
+	'A' Cachesubf   28 subf;
+	'A' Cachefont   32 sub;
+};
+
+defn
+Font(addr) {
+	complex Font addr;
+	print("	name	", addr.name\X, "\n");
+	print("	height	", addr.height, "\n");
+	print("	ascent	", addr.ascent, "\n");
+	print("	width	", addr.width, "\n");
+	print("	ldepth	", addr.ldepth, "\n");
+	print("	id	", addr.id, "\n");
+	print("	nsub	", addr.nsub, "\n");
+	print("	age	", addr.age, "\n");
+	print("	ncache	", addr.ncache, "\n");
+	print("	nsubf	", addr.nsubf, "\n");
+	print("	cache	", addr.cache\X, "\n");
+	print("	subf	", addr.subf\X, "\n");
+	print("	sub	", addr.sub\X, "\n");
+};
+
+// decl /sys/include/alef/libg.h:157:
+sizeofRGB = 12;
+aggr RGB {
+	'U'    0 red;
+	'U'    4 green;
+	'U'    8 blue;
+};
+
+defn
+RGB(addr) {
+	complex RGB addr;
+	print("	red	", addr.red, "\n");
+	print("	green	", addr.green, "\n");
+	print("	blue	", addr.blue, "\n");
+};
+
+complex Bitmap screen;
+complex Font font;
+// decl /sys/include/alef/frame.h:15:
+sizeofFrbox = 12;
+aggr Frbox {
+	'D'    0 wid;
+	'D'    4 nrune;
+	{
+	'X'    8 ptr;
+	{
+	'd'    8 bc;
+	'd'   10 minwid;
+	};
+	};
+};
+
+defn
+Frbox(addr) {
+	complex Frbox addr;
+	print("	wid	", addr.wid, "\n");
+	print("	nrune	", addr.nrune, "\n");
+};
+
+// decl /sys/include/alef/frame.h:35:
+sizeofFrame = 76;
+aggr Frame {
+	'A' Font    0 font;
+	'A' Bitmap    4 b;
+	Rectangle    8 r;
+	Rectangle   24 entire;
+	'A' Frbox   40 box;
+	'X'   44 scroll;
+	'U'   48 p0;
+	'U'   52 p1;
+	'd'   56 left;
+	'u'   58 nbox;
+	'u'   60 nalloc;
+	'u'   62 maxtab;
+	'u'   64 nchars;
+	'u'   66 nlines;
+	'u'   68 maxlines;
+	'u'   70 lastlinefull;
+	'u'   72 modified;
+};
+
+defn
+Frame(addr) {
+	complex Frame addr;
+	print("	font	", addr.font\X, "\n");
+	print("	b	", addr.b\X, "\n");
+	print("Rectangle r {\n");
+	Rectangle(addr.r);
+	print("}\n");
+	print("Rectangle entire {\n");
+	Rectangle(addr.entire);
+	print("}\n");
+	print("	box	", addr.box\X, "\n");
+	print("	scroll	", addr.scroll\X, "\n");
+	print("	p0	", addr.p0, "\n");
+	print("	p1	", addr.p1, "\n");
+	print("	left	", addr.left, "\n");
+	print("	nbox	", addr.nbox, "\n");
+	print("	nalloc	", addr.nalloc, "\n");
+	print("	maxtab	", addr.maxtab, "\n");
+	print("	nchars	", addr.nchars, "\n");
+	print("	nlines	", addr.nlines, "\n");
+	print("	maxlines	", addr.maxlines, "\n");
+	print("	lastlinefull	", addr.lastlinefull, "\n");
+	print("	modified	", addr.modified, "\n");
+};
+
+complex Bitmap frones;
+// decl /sys/include/alef/fcall.h:57:
+sizeofFcall = 156;
+aggr Fcall {
+	'C'    0 type;
+	'd'    2 fid;
+	'u'    4 tag;
+	{
+	{
+	'u'    8 oldtag;
+	Qid   12 qid;
+	'a'   20 rauth;
+	};
+	{
+	'a'    8 uname;
+	'a'   36 aname;
+	'a'   64 ticket;
+	'a'  136 auth;
+	};
+	{
+	'a'    8 ename;
+	'a'   72 authid;
+	'a'  100 authdom;
+	'a'  148 chal;
+	};
+	{
+	'U'    8 perm;
+	'd'   12 newfid;
+	'a'   14 name;
+	'C'   42 mode;
+	};
+	{
+	'D'    8 offset;
+	'D'   12 count;
+	'X'   16 data;
+	};
+	{
+	'a'    8 stat;
+	};
+	};
+};
+
+defn
+Fcall(addr) {
+	complex Fcall addr;
+	print("	type	", addr.type, "\n");
+	print("	fid	", addr.fid, "\n");
+	print("	tag	", addr.tag, "\n");
+};
+
+// decl dat.h:42:
+sizeofRange = 8;
+aggr Range {
+	'D'    0 q0;
+	'D'    4 q1;
+};
+
+defn
+Range(addr) {
+	complex Range addr;
+	print("	q0	", addr.q0, "\n");
+	print("	q1	", addr.q1, "\n");
+};
+
+// decl dat.h:52:
+sizeofBlock = 8;
+aggr Block {
+	'U'    0 addr;
+	{
+	'U'    4 n;
+	'A' Block    4 next;
+	};
+};
+
+defn
+Block(addr) {
+	complex Block addr;
+	print("	addr	", addr.addr, "\n");
+};
+
+// decl dat.h:65:
+sizeofDisk = 140;
+adt Disk {
+	'D'    0 fd;
+	'U'    4 addr;
+	'a'    8 free;
+};
+
+defn
+Disk(addr) {
+	complex Disk addr;
+	print("	fd	", addr.fd, "\n");
+	print("	addr	", addr.addr, "\n");
+	print("	free	", addr.free, "\n");
+};
+
+// decl dat.h:90:
+sizeofBuffer = 36;
+adt Buffer {
+	'U'    0 nc;
+	'X'    4 c;
+	'U'    8 cnc;
+	'U'   12 cmax;
+	'U'   16 cq;
+	'D'   20 cdirty;
+	'U'   24 cbi;
+	'A' Block   28 bl;
+	'U'   32 nbl;
+};
+
+defn
+Buffer(addr) {
+	complex Buffer addr;
+	print("	nc	", addr.nc, "\n");
+	print("	c	", addr.c\X, "\n");
+	print("	cnc	", addr.cnc, "\n");
+	print("	cmax	", addr.cmax, "\n");
+	print("	cq	", addr.cq, "\n");
+	print("	cdirty	", addr.cdirty, "\n");
+	print("	cbi	", addr.cbi, "\n");
+	print("	bl	", addr.bl\X, "\n");
+	print("	nbl	", addr.nbl, "\n");
+};
+
+// decl dat.h:120:
+sizeofFile = 140;
+adt File {
+	{
+	'U'    0 nc;
+	'X'    4 c;
+	'U'    8 cnc;
+	'U'   12 cmax;
+	'U'   16 cq;
+	'D'   20 cdirty;
+	'U'   24 cbi;
+	'A' Block   28 bl;
+	'U'   32 nbl;
+	};
+	Buffer   36 delta;
+	Buffer   72 epsilon;
+	'X'  108 name;
+	'D'  112 nname;
+	'D'  116 seq;
+	'D'  120 mod;
+	'A' Text  124 curtext;
+	'A' Text  128 text;
+	'D'  132 ntext;
+	'D'  136 dumpid;
+};
+
+defn
+File(addr) {
+	complex File addr;
+	print("Buffer {\n");
+		Buffer(addr+0);
+	print("}\n");
+	print("Buffer delta {\n");
+	Buffer(addr.delta);
+	print("}\n");
+	print("Buffer epsilon {\n");
+	Buffer(addr.epsilon);
+	print("}\n");
+	print("	name	", addr.name\X, "\n");
+	print("	nname	", addr.nname, "\n");
+	print("	seq	", addr.seq, "\n");
+	print("	mod	", addr.mod, "\n");
+	print("	curtext	", addr.curtext\X, "\n");
+	print("	text	", addr.text\X, "\n");
+	print("	ntext	", addr.ntext, "\n");
+	print("	dumpid	", addr.dumpid, "\n");
+};
+
+// decl dat.h:181:
+sizeofText = 184;
+adt Text {
+	'A' File    0 file;
+	{
+	'A' Font    4 font;
+	'A' Bitmap    8 b;
+	Rectangle   12 r;
+	Rectangle   28 entire;
+	'A' Frbox   44 box;
+	'X'   48 scroll;
+	'U'   52 p0;
+	'U'   56 p1;
+	'd'   60 left;
+	'u'   62 nbox;
+	'u'   64 nalloc;
+	'u'   66 maxtab;
+	'u'   68 nchars;
+	'u'   70 nlines;
+	'u'   72 maxlines;
+	'u'   74 lastlinefull;
+	'u'   76 modified;
+	};
+	'A' Reffont   80 reffont;
+	'U'   84 org;
+	'U'   88 q0;
+	'U'   92 q1;
+	'D'   96 what;
+	'A' Window  100 w;
+	Rectangle  104 scrollr;
+	Rectangle  120 lastsr;
+	Rectangle  136 all;
+	'A' Row  152 row;
+	'A' Column  156 col;
+	'U'  160 eq0;
+	'U'  164 cq0;
+	'D'  168 ncache;
+	'D'  172 ncachealloc;
+	'X'  176 cache;
+	'D'  180 nofill;
+};
+
+defn
+Text(addr) {
+	complex Text addr;
+	print("	file	", addr.file\X, "\n");
+	print("Frame {\n");
+		Frame(addr+4);
+	print("}\n");
+	print("	reffont	", addr.reffont\X, "\n");
+	print("	org	", addr.org, "\n");
+	print("	q0	", addr.q0, "\n");
+	print("	q1	", addr.q1, "\n");
+	print("	what	", addr.what, "\n");
+	print("	w	", addr.w\X, "\n");
+	print("Rectangle scrollr {\n");
+	Rectangle(addr.scrollr);
+	print("}\n");
+	print("Rectangle lastsr {\n");
+	Rectangle(addr.lastsr);
+	print("}\n");
+	print("Rectangle all {\n");
+	Rectangle(addr.all);
+	print("}\n");
+	print("	row	", addr.row\X, "\n");
+	print("	col	", addr.col\X, "\n");
+	print("	eq0	", addr.eq0, "\n");
+	print("	cq0	", addr.cq0, "\n");
+	print("	ncache	", addr.ncache, "\n");
+	print("	ncachealloc	", addr.ncachealloc, "\n");
+	print("	cache	", addr.cache\X, "\n");
+	print("	nofill	", addr.nofill, "\n");
+};
+
+// decl dat.h:238:
+sizeofWindow = 520;
+adt Window {
+	{
+	Lock    0 use;
+	'D'    4 used;
+	'X'    8 queue;
+	};
+	{
+	Lock   12 l;
+	'D'   16 cnt;
+	};
+	Text   20 tag;
+	Text  204 body;
+	Rectangle  388 r;
+	'C'  404 isdir;
+	'C'  405 isscratch;
+	'C'  406 filemenu;
+	'C'  407 dirty;
+	'D'  408 id;
+	Range  412 addr;
+	Range  420 limit;
+	'a'  428 nopen;
+	'C'  441 nomark;
+	'C'  442 noscroll;
+	'A' Column  444 col;
+	'A' Xfid  448 eventx;
+	'X'  452 events;
+	'D'  456 nevents;
+	'D'  460 owner;
+	'D'  464 maxlines;
+	'A' Dirlist  468 dlp;
+	'D'  472 ndl;
+	'D'  476 putseq;
+	'D'  480 nincl;
+	'X'  484 incl;
+	'A' Reffont  488 reffont;
+	QLock  492 ctllock;
+	'U'  504 ctlfid;
+	'X'  508 dumpstr;
+	'X'  512 dumpdir;
+	'D'  516 dumpid;
+};
+
+defn
+Window(addr) {
+	complex Window addr;
+	print("QLock {\n");
+		QLock(addr+0);
+	print("}\n");
+	print("Ref {\n");
+		Ref(addr+12);
+	print("}\n");
+	print("Text tag {\n");
+	Text(addr.tag);
+	print("}\n");
+	print("Text body {\n");
+	Text(addr.body);
+	print("}\n");
+	print("Rectangle r {\n");
+	Rectangle(addr.r);
+	print("}\n");
+	print("	isdir	", addr.isdir, "\n");
+	print("	isscratch	", addr.isscratch, "\n");
+	print("	filemenu	", addr.filemenu, "\n");
+	print("	dirty	", addr.dirty, "\n");
+	print("	id	", addr.id, "\n");
+	print("Range addr {\n");
+	Range(addr.addr);
+	print("}\n");
+	print("Range limit {\n");
+	Range(addr.limit);
+	print("}\n");
+	print("	nopen	", addr.nopen, "\n");
+	print("	nomark	", addr.nomark, "\n");
+	print("	noscroll	", addr.noscroll, "\n");
+	print("	col	", addr.col\X, "\n");
+	print("	eventx	", addr.eventx\X, "\n");
+	print("	events	", addr.events\X, "\n");
+	print("	nevents	", addr.nevents, "\n");
+	print("	owner	", addr.owner, "\n");
+	print("	maxlines	", addr.maxlines, "\n");
+	print("	dlp	", addr.dlp\X, "\n");
+	print("	ndl	", addr.ndl, "\n");
+	print("	putseq	", addr.putseq, "\n");
+	print("	nincl	", addr.nincl, "\n");
+	print("	incl	", addr.incl\X, "\n");
+	print("	reffont	", addr.reffont\X, "\n");
+	print("QLock ctllock {\n");
+	QLock(addr.ctllock);
+	print("}\n");
+	print("	ctlfid	", addr.ctlfid, "\n");
+	print("	dumpstr	", addr.dumpstr\X, "\n");
+	print("	dumpdir	", addr.dumpdir\X, "\n");
+	print("	dumpid	", addr.dumpid, "\n");
+};
+
+// decl dat.h:260:
+sizeofColumn = 216;
+adt Column {
+	Rectangle    0 r;
+	Text   16 tag;
+	'A' Row  200 row;
+	'A' Window  204 w;
+	'D'  208 nw;
+	'D'  212 safe;
+};
+
+defn
+Column(addr) {
+	complex Column addr;
+	print("Rectangle r {\n");
+	Rectangle(addr.r);
+	print("}\n");
+	print("Text tag {\n");
+	Text(addr.tag);
+	print("}\n");
+	print("	row	", addr.row\X, "\n");
+	print("	w	", addr.w\X, "\n");
+	print("	nw	", addr.nw, "\n");
+	print("	safe	", addr.safe, "\n");
+};
+
+// decl dat.h:281:
+sizeofRow = 220;
+adt Row {
+	{
+	Lock    0 use;
+	'D'    4 used;
+	'X'    8 queue;
+	};
+	Rectangle   12 r;
+	Text   28 tag;
+	'A' Column  212 col;
+	'D'  216 ncol;
+};
+
+defn
+Row(addr) {
+	complex Row addr;
+	print("QLock {\n");
+		QLock(addr+0);
+	print("}\n");
+	print("Rectangle r {\n");
+	Rectangle(addr.r);
+	print("}\n");
+	print("Text tag {\n");
+	Text(addr.tag);
+	print("}\n");
+	print("	col	", addr.col\X, "\n");
+	print("	ncol	", addr.ncol, "\n");
+};
+
+// decl dat.h:288:
+sizeofTimer = 12;
+aggr Timer {
+	'D'    0 dt;
+	'X'    4 c;
+	'A' Timer    8 next;
+};
+
+defn
+Timer(addr) {
+	complex Timer addr;
+	print("	dt	", addr.dt, "\n");
+	print("	c	", addr.c, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+// decl dat.h:299:
+sizeofCommand = 28;
+aggr Command {
+	'D'    0 pid;
+	'X'    4 name;
+	'D'    8 nname;
+	'X'   12 text;
+	'X'   16 av;
+	'A' Mntdir   20 md;
+	'A' Command   24 next;
+};
+
+defn
+Command(addr) {
+	complex Command addr;
+	print("	pid	", addr.pid, "\n");
+	print("	name	", addr.name\X, "\n");
+	print("	nname	", addr.nname, "\n");
+	print("	text	", addr.text\X, "\n");
+	print("	av	", addr.av\X, "\n");
+	print("	md	", addr.md\X, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+// decl dat.h:306:
+sizeofDirtab = 12;
+aggr Dirtab {
+	'X'    0 name;
+	'U'    4 qid;
+	'U'    8 perm;
+};
+
+defn
+Dirtab(addr) {
+	complex Dirtab addr;
+	print("	name	", addr.name\X, "\n");
+	print("	qid	", addr.qid, "\n");
+	print("	perm	", addr.perm, "\n");
+};
+
+// decl dat.h:317:
+sizeofMntdir = 28;
+aggr Mntdir {
+	'D'    0 id;
+	'D'    4 ref;
+	'X'    8 dir;
+	'D'   12 ndir;
+	'A' Mntdir   16 next;
+	'D'   20 nincl;
+	'X'   24 incl;
+};
+
+defn
+Mntdir(addr) {
+	complex Mntdir addr;
+	print("	id	", addr.id, "\n");
+	print("	ref	", addr.ref, "\n");
+	print("	dir	", addr.dir\X, "\n");
+	print("	ndir	", addr.ndir, "\n");
+	print("	next	", addr.next\X, "\n");
+	print("	nincl	", addr.nincl, "\n");
+	print("	incl	", addr.incl\X, "\n");
+};
+
+// decl dat.h:331:
+sizeofFid = 44;
+aggr Fid {
+	'U'    0 fid;
+	'D'    4 busy;
+	'D'    8 open;
+	Qid   12 qid;
+	'A' Window   20 w;
+	'A' Dirtab   24 dir;
+	'A' Fid   28 next;
+	'A' Mntdir   32 mntdir;
+	'D'   36 nrpart;
+	'a'   40 rpart;
+};
+
+defn
+Fid(addr) {
+	complex Fid addr;
+	print("	fid	", addr.fid, "\n");
+	print("	busy	", addr.busy, "\n");
+	print("	open	", addr.open, "\n");
+	print("Qid qid {\n");
+	Qid(addr.qid);
+	print("}\n");
+	print("	w	", addr.w\X, "\n");
+	print("	dir	", addr.dir\X, "\n");
+	print("	next	", addr.next\X, "\n");
+	print("	mntdir	", addr.mntdir\X, "\n");
+	print("	nrpart	", addr.nrpart, "\n");
+	print("	rpart	", addr.rpart, "\n");
+};
+
+// decl dat.h:357:
+sizeofXfid = 180;
+adt Xfid {
+	'U'    0 tid;
+	{
+	'C'    4 type;
+	'd'    6 fid;
+	'u'    8 tag;
+	{
+	{
+	'u'   12 oldtag;
+	Qid   16 qid;
+	'a'   24 rauth;
+	};
+	{
+	'a'   12 uname;
+	'a'   40 aname;
+	'a'   68 ticket;
+	'a'  140 auth;
+	};
+	{
+	'a'   12 ename;
+	'a'   76 authid;
+	'a'  104 authdom;
+	'a'  152 chal;
+	};
+	{
+	'U'   12 perm;
+	'd'   16 newfid;
+	'a'   18 name;
+	'C'   46 mode;
+	};
+	{
+	'D'   12 offset;
+	'D'   16 count;
+	'X'   20 data;
+	};
+	{
+	'a'   12 stat;
+	};
+	};
+	};
+	'A' Xfid  160 next;
+	'X'  164 c;
+	'A' Fid  168 f;
+	'X'  172 buf;
+	'D'  176 flushed;
+};
+
+defn
+Xfid(addr) {
+	complex Xfid addr;
+	print("	tid	", addr.tid, "\n");
+	print("Fcall {\n");
+		Fcall(addr+4);
+	print("}\n");
+	print("	next	", addr.next\X, "\n");
+	print("	c	", addr.c, "\n");
+	print("	f	", addr.f\X, "\n");
+	print("	buf	", addr.buf\X, "\n");
+	print("	flushed	", addr.flushed, "\n");
+};
+
+// decl dat.h:367:
+sizeofReffont = 12;
+adt Reffont {
+	{
+	Lock    0 l;
+	'D'    4 cnt;
+	};
+	'A' Font    8 f;
+};
+
+defn
+Reffont(addr) {
+	complex Reffont addr;
+	print("Ref {\n");
+		Ref(addr+0);
+	print("}\n");
+	print("	f	", addr.f\X, "\n");
+};
+
+// decl dat.h:372:
+sizeofRangeset = 80;
+aggr Rangeset {
+	'a'    0 r;
+};
+
+defn
+Rangeset(addr) {
+	complex Rangeset addr;
+	print("	r	", addr.r, "\n");
+};
+
+// decl dat.h:379:
+sizeofDirlist = 12;
+aggr Dirlist {
+	'X'    0 r;
+	'D'    4 nr;
+	'D'    8 wid;
+};
+
+defn
+Dirlist(addr) {
+	complex Dirlist addr;
+	print("	r	", addr.r\X, "\n");
+	print("	nr	", addr.nr, "\n");
+	print("	wid	", addr.wid, "\n");
+};
+
+// decl dat.h:392:
+sizeofExpand = 36;
+aggr Expand {
+	'U'    0 q0;
+	'U'    4 q1;
+	'X'    8 name;
+	'D'   12 nname;
+	'X'   16 bname;
+	'D'   20 jump;
+	'A' Text   24 at;
+	'D'   28 a0;
+	'D'   32 a1;
+};
+
+defn
+Expand(addr) {
+	complex Expand addr;
+	print("	q0	", addr.q0, "\n");
+	print("	q1	", addr.q1, "\n");
+	print("	name	", addr.name\X, "\n");
+	print("	nname	", addr.nname, "\n");
+	print("	bname	", addr.bname\X, "\n");
+	print("	jump	", addr.jump, "\n");
+	print("	at	", addr.at\X, "\n");
+	print("	a0	", addr.a0, "\n");
+	print("	a1	", addr.a1, "\n");
+};
+
+complex Mouse mouse;
+complex Bitmap darkgrey;
+complex Bitmap lightgrey;
+complex Reffont reffont;
+complex Bitmap modbutton;
+complex Bitmap colbutton;
+complex Bitmap button;
+complex Cursor boxcursor;
+complex Row row;
+complex Disk disk;
+complex Text seltext;
+complex Text argtext;
+complex Text mousetext;
+complex Text typetext;
+complex Text barttext;
+complex Column activecol;
+complex Rectangle nullrect;
+complex Mouse cmouse;
+complex Waitmsg cwait;
+complex Command ccommand;
+complex Xfid cxfidalloc;
+complex Xfid cxfidfree;
+complex Reffont fontcache;
+complex Reffont reffonts;
+complex Command command;
+complex Column main:c;
+complex Arg main:arg;
+complex Column readfile:c;
+complex Window readfile:w;
+complex Command killprocs:c;
+complex Timer keyboardtask:timer;
+complex Timer keyboardtask:null;
+complex Text keyboardtask:t;
+complex Text mousetask:t;
+complex Text mousetask:argt;
+complex Window mousetask:w;
+complex Waitmsg waittask:w;
+complex Command waittask:c;
+complex Command waittask:lc;
+complex Text waittask:t;
+complex Xfid xfidalloctask:xfree;
+complex Xfid xfidalloctask:x;
+complex Mouse mouseproc:m;
+complex Waitmsg waitproc:w;
+complex Reffont Reffont_get:r;
+complex Font Reffont_get:f;
+complex Reffont Reffont_close:r;
+complex Cursor boxcursor;
+complex Rectangle iconinit:r;

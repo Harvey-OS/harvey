@@ -13,6 +13,7 @@ typedef struct {
 	union{
 		Exec;			/* in a.out.h */
 		struct mipsexec;	/* Hobbit uses this header too */
+		struct mips4kexec;
 		struct sparcexec;
 		struct nextexec;
 		struct i960exec;
@@ -24,13 +25,14 @@ static	void	i960boot(Fhdr *, ExecHdr *);
 static	void	nextboot(Fhdr *, ExecHdr *);
 static	void	sparcboot(Fhdr *, ExecHdr *);
 static	void	mipsboot(Fhdr *, ExecHdr *);
-static	void	hobbitboot(Fhdr *, ExecHdr *);
+static	void	mips4kboot(Fhdr *, ExecHdr *);
 static	void	common(Fhdr *, ExecHdr *);
 static	void	adotout(Fhdr *, ExecHdr *);
 static	void	setsym(Fhdr *, long, long, long, long);
 static	void	setdata(Fhdr *, long, long, long, long);
 static	void	settext(Fhdr *, long, long, long, long);
 static	void	hswal(long *, int, long (*) (long));
+static	long	_round(long, long);
 
 /*
  *	definition of per-executable file type structures
@@ -51,7 +53,7 @@ extern	Mach	msparc;
 extern	Mach	m68020;
 extern	Mach	mi386;
 extern	Mach	mi960;
-extern	Mach	mhobbit;
+extern	Mach	m3210;
 
 ExecTable exectab[] =
 {
@@ -69,13 +71,13 @@ ExecTable exectab[] =
 		sizeof(struct mipsexec),
 		beswal,
 		mipsboot },
-	{ 0x161<<16,			/* hobbit boot image */
-		"hobbit plan 9 boot image",
-		FHOBBITB,
-		&mhobbit,
-		sizeof(struct mipsexec),
+	{ (0x160<<16)|3,		/* Mips boot image */
+		"mips 4k plan 9 boot image",
+		FMIPSB,
+		&mmips,
+		sizeof(struct mips4kexec),
 		beswal,
-		hobbitboot },
+		mips4kboot },
 	{ K_MAGIC,			/* Sparc k.out */
 		"sparc plan 9 executable",
 		FSPARC,
@@ -125,10 +127,10 @@ ExecTable exectab[] =
 		sizeof(struct i960exec),
 		leswal,
 		i960boot },
-	{ Z_MAGIC,			/* Hobbit z.out */
-		"hobbit plan 9 executable",
-		FHOBBIT,
-		&mhobbit,
+	{ X_MAGIC,			/* 3210 x.out */
+		"3210 plan 9 executable",
+		F3210,
+		&m3210,
 		sizeof(Exec),
 		beswal,
 		adotout },
@@ -153,7 +155,7 @@ crackhdr(int fd, Fhdr *fp)
 			hswal((long *) &d, sizeof(d.e)/sizeof(long), mp->swal);
 			fp->type = mp->type;
 			fp->name = mp->name;
-			fp->hdrsz = mp->hsize;
+			fp->hdrsz = mp->hsize;		/* zero on bootables */
 			mach = mp->mach;
 			mp->hparse(fp, &d);
 			seek(fd, mp->hsize, 0);		/* seek to end of header */
@@ -181,9 +183,10 @@ adotout(Fhdr *fp, ExecHdr *hp)
 {
 	long pgsize = mach->pgsize;
 
-	settext(fp, hp->e.entry, pgsize, hp->e.text+sizeof(Exec), 0);
-	setdata(fp, _round(pgsize+fp->txtsz, pgsize), hp->e.data, fp->txtsz,
-							hp->e.bss);
+	settext(fp, hp->e.entry, pgsize+sizeof(Exec),
+			hp->e.text, sizeof(Exec));
+	setdata(fp, _round(pgsize+fp->txtsz+sizeof(Exec), pgsize),
+		hp->e.data, fp->txtsz+sizeof(Exec), hp->e.bss);
 	setsym(fp, hp->e.syms, hp->e.spsz, hp->e.pcsz, fp->datoff+fp->datsz);
 }
 
@@ -203,10 +206,14 @@ common(Fhdr *fp, ExecHdr *hp)
 		case F68020:
 			fp->type = F68020B;
 			fp->name = "68020 plan 9 boot image";
+			fp->hdrsz = 0;		/* header stripped */
 			break;
 		case FI386:
 			fp->type = FI386B;
+			fp->txtaddr = sizeof(Exec);
 			fp->name = "386 plan 9 boot image";
+			fp->hdrsz = 0;		/* header stripped */
+			fp->dataddr = fp->txtaddr+fp->txtsz;
 			break;
 		default:
 			break;
@@ -240,19 +247,35 @@ mipsboot(Fhdr *fp, ExecHdr *hp)
 		break;
 	}
 	setsym(fp, hp->e.nsyms, 0, hp->e.pcsize, hp->e.symptr);
+	fp->hdrsz = 0;		/* header stripped */
 }
+
 /*
- *	hobbit bootable image.
+ *	mips4k bootable image.
  */
 static void
-hobbitboot(Fhdr *fp, ExecHdr *hp)
+mips4kboot(Fhdr *fp, ExecHdr *hp)
 {
-	settext(fp, hp->e.mentry, hp->e.text_start, hp->e.tsize,
-				sizeof(struct mipsexec)+4);
-	setdata(fp, hp->e.data_start, hp->e.dsize,
-			fp->txtoff+hp->e.tsize, hp->e.bsize);
-	setsym(fp, hp->e.nsyms, 0, hp->e.pcsize, hp->e.symptr);
+	switch(hp->e.h.amagic) {
+	default:
+	case 0407:	/* some kind of mips */
+		fp->type = FMIPSB;
+		settext(fp, hp->e.h.mentry, hp->e.h.text_start, hp->e.h.tsize,
+					sizeof(struct mips4kexec));
+		setdata(fp, hp->e.h.data_start, hp->e.h.dsize,
+				fp->txtoff+hp->e.h.tsize, hp->e.h.bsize);
+		break;
+	case 0413:	/* some kind of mips */
+		fp->type = FMIPSB;
+		settext(fp, hp->e.h.mentry, hp->e.h.text_start, hp->e.h.tsize, 0);
+		setdata(fp, hp->e.h.data_start, hp->e.h.dsize, hp->e.h.tsize,
+					hp->e.h.bsize);
+		break;
+	}
+	setsym(fp, hp->e.h.nsyms, 0, hp->e.h.pcsize, hp->e.h.symptr);
+	fp->hdrsz = 0;		/* header stripped */
 }
+
 /*
  *	sparc bootable image
  */
@@ -265,6 +288,7 @@ sparcboot(Fhdr *fp, ExecHdr *hp)
 	setdata(fp, hp->e.sentry+hp->e.stext, hp->e.sdata,
 					fp->txtoff+hp->e.stext, hp->e.sbss);
 	setsym(fp, hp->e.ssyms, 0, hp->e.sdrsize, fp->datoff+hp->e.sdata);
+	fp->hdrsz = 0;		/* header stripped */
 }
 
 /*
@@ -280,6 +304,7 @@ nextboot(Fhdr *fp, ExecHdr *hp)
 				hp->e.datas.offset, hp->e.bsss.size);
 	setsym(fp, hp->e.symc.nsyms, hp->e.symc.spoff, hp->e.symc.pcoff,
 					hp->e.symc.symoff);
+	fp->hdrsz = 0;		/* header stripped */
 }
 
 /*
@@ -296,6 +321,7 @@ i960boot(Fhdr *fp, ExecHdr *hp)
 				hp->e.i6datas.fptr, hp->e.i6bsssize);
 	setsym(fp, 0, 0, 0, 0);
 	/*setsym(fp, n, 0, hp->e.i6comments.size-n, hp->e.i6comments.fptr); */
+	fp->hdrsz = 0;		/* header stripped */
 }
 
 
@@ -326,3 +352,14 @@ setsym(Fhdr *fp, long sy, long sppc, long lnpc, long symoff)
 	fp->lnpcoff = fp->sppcoff+fp->sppcsz;
 }
 
+
+static long
+_round(long a, long b)
+{
+	long w;
+
+	w = (a/b)*b;
+	if (a!=w)
+		w += b;
+	return(w);
+}

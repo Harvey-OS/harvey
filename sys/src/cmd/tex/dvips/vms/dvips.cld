@@ -1,0 +1,41 @@
+define verb dvips
+	image tex$postscript:dvips
+	parameter p1,		label=dvifile, prompt="DVI File",
+				value(required,type=$infile)
+	qualifier copies,	default, value(default=1)
+	qualifier debug		default, value(required)
+	qualifier maxdrift	default, value(required)
+	qualifier filter	negatable
+	qualifier last,		default, value(required)
+	qualifier manual,	negatable
+	qualifier number,	default, value(required)
+	qualifier output,	placement=positional,nonnegatable,
+				value(type=$file,required)
+	qualifier start,	default, value(required)
+	qualifier quiet,	negatable
+	qualifier reverse,	negatable
+	qualifier sav_res,	negatable
+	qualifier mode,		value(list,default="a4")
+	qualifier magnification,default, value(required)
+	qualifier collate,	default, value(default=1)
+	qualifier dpi,		default, value(default=300)
+	qualifier ctrld,	negatable
+	qualifier inc_com,	negatable
+	qualifier comment,	negatable
+	qualifier vm_save,	negatable
+	qualifier h_dpi,	default, value(required)
+	qualifier v_dpi,	default, value(required)
+	qualifier compress,	negatable
+	qualifier printer,	default, value(required)
+	qualifier header,	negatable, value(list,required)
+	qualifier absolute
+	qualifier epsf,		negatable
+	qualifier prescan,	negatable
+	qualifier pagecopies,	default, value(default=1)
+	qualifier separate,	negatable
+	qualifier cropmarks,	negatable
+	qualifier sec_size,	default, value(required)
+	qualifier help
+	qualifier makefont,	default, negatable
+	qualifier psize,	value(required)
+	qualifier poffset,	value(required)

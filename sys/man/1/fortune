@@ -19,3 +19,5 @@ otherwise it is selected from
 .br
 .B /sys/games/lib/fortunes.index
 \ \ fast lookup table, maintained automatically
+.SH SOURCE
+.B /sys/src/cmd/fortune.c

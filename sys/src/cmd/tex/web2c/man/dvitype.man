@@ -1,0 +1,48 @@
+.TH DVITYPE 1 "7 Jan 92"
+.SH NAME
+dvitype - translate a dvi file for humans
+.SH SYNOPSIS
+.B dvitype
+dvi_file_name
+.SH DESCRIPTION
+The
+.I dvitype
+program translates a DVI (DeVice Independent) file output by, for example,
+.BR tex (1)
+or
+.BR gftodvi (1),
+to a file that humans can read. It also serves as a DVI file-validating
+program (i.e., if
+.I dvitype
+can read it, it's correct) and as an example of a DVI-reading
+program for future device drivers.
+.PP
+The output file can include all commands, just the important
+ones, or none at all (in which case only errors are reported).
+A subinterval of pages may be selected for transliteration; the
+magnification and resolution of the ``output device'' may be
+changed; and so on. All options are specified with an on-line dialog.
+.PP
+The
+.I dvi_file_name
+on the command line must be complete. The
+.I .dvi
+extension is not supplied if omitted. The output goes to
+.IR stdout .
+.SH ENVIRONMENT
+The environment variable TEXFONTS is used to search for the TFM files
+used in the DVI file.  See
+.BR tex (1)
+for the details of the searching.
+If TEXFONTS is not set, it uses the system default: 
+.BR @TEXFONTS@ .
+.SH "SEE ALSO"
+gftype(1), pktype(1)
+.br
+Donald Knuth,
+.I TeXware
+.SH AUTHORS
+Donald Knuth wrote the program.  It was published as part of the
+.I TeXware
+technical report, available from the TeX Users Group.
+Howard Trickey and Pavel Curtis originally ported it to Unix.

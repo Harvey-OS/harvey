@@ -94,8 +94,6 @@ bboot(int argc, char *argv[])
 	if(fd < 0)
 		fatal("can't connect to file server");
 	if(!islocal){
-		nop(fd);
-		session(fd);
 		if(cfs)
 			fd = (*cfs)(fd);
 	}
@@ -105,7 +103,7 @@ bboot(int argc, char *argv[])
 	 */
 	if(bind("/", "/", MREPL) < 0)
 		fatal("bind");
-	if(mount(fd, "/", MAFTER|MCREATE, "", "") < 0)
+	if(mount(fd, "/", MAFTER|MCREATE, "") < 0)
 		fatal("mount");
 	close(fd);
 
@@ -127,7 +125,7 @@ bboot(int argc, char *argv[])
 	 */
 	print("%s...", bootfile);
 	while((fd = open(bootfile, OREAD)) < 0)
-		outin("bootfile", bootfile, sizeof(bootfile));
+		outin(cpuflag, "bootfile", bootfile, sizeof(bootfile));
 	readkernel(fd);
 	fatal("couldn't read kernel");
 }
@@ -156,7 +154,7 @@ rootserver(char *arg)
 		strcpy(reply, method->name);
 	for(;;){
 		if(mflag)
-			outin(prompt, reply, sizeof(reply));
+			outin(cpuflag, prompt, reply, sizeof(reply));
 		for(mp = method; mp->name; mp++)
 			if(*reply == *mp->name){
 				cp = strchr(reply, '!');
@@ -218,7 +216,7 @@ readkernel(int fd)
 	int bfd;
 	Fhdr f;
 
-	bfd = open("#B/mem", OWRITE);
+	bfd = open("#B/mem", ORDWR);
 	if(bfd < 0)
 		fatal("can't open #B/mem");
 

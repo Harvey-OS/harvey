@@ -4,6 +4,8 @@
 #include <errno.h>
 #include <string.h>
 
+extern sigset_t	_psigblocked;
+
 static struct {
 	char	*msg;	/* just check prefix */
 	int	num;
@@ -15,6 +17,7 @@ static struct {
 	{"sys: trap: illegal instruction",	SIGILL},
 	{"sys: trap: reserved instruction",	SIGILL},
 	{"sys: trap: reserved",			SIGILL},
+	{"sys: trap: arithmetic overflow",	SIGFPE},
 	{"abort",				SIGABRT},
 	{"sys: fp:",				SIGFPE},
 	{"exit",				SIGKILL},
@@ -31,14 +34,12 @@ static struct {
 };
 #define NSIGTAB ((sizeof sigtab)/(sizeof (sigtab[0])))
 
-#define MAXSIG SIGUSR2
-
-void	(*_sighdlr[MAXSIG+1])(int); /* 0 initialized: SIG_DFL */
+void	(*_sighdlr[MAXSIG+1])(int, char*, Ureg*); /* 0 initialized: SIG_DFL */
 
 void
-(*signal(int sig, void (*func)(int)))(int)
+(*signal(int sig, void (*func)(int, char*, Ureg*)))(int, char*, Ureg*)
 {
-	void(*oldf)(int);
+	void(*oldf)(int, char*, Ureg*);
 
 	if(sig <= 0 || sig > MAXSIG){
 		errno = EINVAL;
@@ -51,13 +52,34 @@ void
 	return oldf;
 }
 
-/* this is registered in _envsetup */
-
+/*
+ * BUG: improper handling of process signal mask
+ */
 int
-_notehandler(void *u, char *msg)
+sigaction(int sig, struct sigaction *act, struct sigaction *oact)
+{
+	if(sig <= 0 || sig > MAXSIG || sig == SIGKILL){
+		errno = EINVAL;
+		return -1;
+	}
+	if(oact){
+		oact->sa_handler = _sighdlr[sig];
+		oact->sa_mask = _psigblocked;
+		oact->sa_flags = 0;
+	}
+	if(act){
+		_sighdlr[sig] = act->sa_handler;
+	}
+	return 0;
+}
+
+/* this is registered in _envsetup */
+int
+_notehandler(Ureg *u, char *msg)
 {
 	int i;
-	void(*f)(int);
+	void(*f)(int, char*, Ureg*);
+	extern void _doatexits(void);	/* in stdio/exit.c */
 
 	if(_finishing)
 		_finish(0, 0);
@@ -66,12 +88,15 @@ _notehandler(void *u, char *msg)
 			f = _sighdlr[sigtab[i].num];
 			if(f == SIG_DFL || f == SIG_ERR)
 				break;
-			if(f != SIG_IGN)
-				(*f)(sigtab[i].num);
+			if(f != SIG_IGN) {
+				_notetramp(sigtab[i].num, f, u);
+				/* notetramp is machine-dependent; doesn't return to here */
+			}
 			_NOTED(0); /* NCONT */
 			return;
 		}
 	}
+	_doatexits();
 	_NOTED(1); /* NDFLT */
 }
 
@@ -95,10 +120,4 @@ _sigstring(int sig)
 		if(sigtab[i].num == sig)
 			return sigtab[i].msg;
 	return "unknown signal";
-}
-
-void
-_sigclear(void)
-{
-	memset(_sighdlr, 0, sizeof(_sighdlr)); /* all are SIG_DFL again */
 }

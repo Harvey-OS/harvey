@@ -1,0 +1,52 @@
+</$objtype/mkfile
+#
+#		programs
+#
+TARG=\
+	keyfs\
+	auth.srv\
+	guard.srv\
+	netkey\
+	passwd\
+	cron\
+	changeuser\
+	printnetkey\
+	wrkey\
+	convkeys\
+	warning\
+
+
+HFILES=authsrv.h
+
+LIB=lib.$O.a
+BIN=/$objtype/bin/auth
+CLIB=`{ls lib/*.c}
+
+</sys/src/cmd/mkmany
+
+install:V:	$BIN/status
+
+$LIB: $CLIB
+	cd lib
+	mk install
+
+$BIN/netkey:V:	$O.netkey
+	cp $O.netkey /$objtype/bin/netkey
+
+$BIN/passwd:V:	$O.passwd
+	cp $O.passwd /$objtype/bin/passwd
+
+$BIN/status:V:
+	cp status $target
+
+clean:V:
+	cd lib
+	mk clean
+	cd ..
+	rm -f *.[$OS] *.[$OS].a y.tab.? y.debug y.output [$OS].$TARG $TARG
+
+nuke:V:
+	cd lib
+	mk nuke
+	cd ..
+	rm -f *.[$OS] *.[$OS].a y.tab.? y.debug y.output [$OS].$TARG $TARG

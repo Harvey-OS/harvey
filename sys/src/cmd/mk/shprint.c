@@ -1,7 +1,7 @@
 #include	"mk.h"
 
 static char *vexpand(char*, Envy*, Bufblock*);
-static char *shquote(char*, Bufblock*);
+static char *shquote(char*, Rune, Bufblock*);
 static char *shbquote(char*, Bufblock*);
 
 void
@@ -17,8 +17,8 @@ shprint(char *s, Envy *env, Bufblock *buf)
 		else {
 			rinsert(buf, r);
 			s += n;	
-			if (r == '\'')		/* copy quoted string */
-				s = shquote(s, buf);
+			if (QUOTE(r))		/* copy quoted string */
+				s = shquote(s, r, buf);
 			else if (r == '`')	/* copy backquoted string */
 				s = shbquote(s, buf);
 		}
@@ -29,14 +29,14 @@ shprint(char *s, Envy *env, Bufblock *buf)
  *	skip quoted string; s points to char after opening quote
  */
 static char *
-shquote(char *s, Bufblock *buf)
+shquote(char *s, Rune q, Bufblock *buf)
 {
 	Rune r;
 
 	while (*s) {
 		s += chartorune(&r, s);
 		rinsert(buf, r);
-		if (r == '\'')
+		if (r == q)
 			break;
 	}
 	return s;
@@ -52,8 +52,8 @@ shbquote(char *s, Bufblock *buf)
 	while (*s) {
 		s += chartorune(&r, s);
 		rinsert(buf, r);
-		if (r == '\'')
-			s = shquote(s, buf);	/* skip quoted string */
+		if (QUOTE(r))
+			s = shquote(s, r, buf);	/* skip quoted string */
 		else if (r == '}')
 			break;
 	}

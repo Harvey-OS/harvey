@@ -1,7 +1,7 @@
 #include <alef.h>
 
 int
-utflen(char *s)
+utflen(byte *s)
 {
 	Rune rune;
 	int n, c;

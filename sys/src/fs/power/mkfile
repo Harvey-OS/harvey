@@ -1,9 +1,7 @@
 objtype=mips
 </$objtype/mkfile
 
-BUILTINS=
-I=-I. -I../port
-CFLAGS=-w $I
+TARG=9powerfs
 
 OBJ=\
 	l.$O\
@@ -32,6 +30,7 @@ OBJ=\
 	il.$O\
 	iobuf.$O\
 	ip.$O\
+	iproute.$O\
 	lance.$O\
 	lock.$O\
 	main.$O\
@@ -40,66 +39,46 @@ OBJ=\
 	power.$O\
 	print.$O\
 	proc.$O\
+	scsi.$O\
 	sub.$O\
 	time.$O\
 	toy.$O\
 	trap.$O\
+	uidgid.$O\
 	vme.$O\
 	worm.$O\
 	wren.$O\
-	uidgid.$O\
-	scsi.$O\
 
 HFILES=\
+	../cyc/comm.h\
 	../port/all.h\
+	../port/lib.h\
 	../port/portdat.h\
-	./dat.h\
 	../port/portfns.h\
+	./dat.h\
 	./fns.h\
 	./io.h\
-	../port/lib.h\
 	./mem.h\
 	/$objtype/include/u.h\
 	/$objtype/include/ureg.h\
-	../cyc/comm.h\
 
-9powerfs: $OBJ 9powerfs.$O
-	$LD -o $target -l -R4 -H1 -T0x80020000 $prereq -lauth -lc
+CFLAGS=-w -I. -I../port
 
-9fsb:	$OBJ bootes.$O
-	$LD -o $target -l -R4 -H1 -T0x80020000 $prereq -lauth -lc
-
-9k:	$OBJ bootes.$O
-	$LD -o $target -l -R4 -H1 -T0x80020000 $prereq -lauth -lc
+all:V:	$TARG
 
 <../port/mkfile
 
+$TARG: $OBJ $TARG.$O
+	$LD -o $target -l -R4 -H1 -T0x80020000 $prereq -lauth -lc
+
+installall:V:	install
+install:V: $TARG
+	cp $TARG /mips/$TARG
+
 # Install binaries on BOOTP system
-install: 9powerfs
-	cp 9powerfs /mips/9powerfs
+push:V:	$TARG
+	9fs cetus
+	cp $TARG /n/cetus/usr/local/boot
 
-push:	9powerfs
-	push tempel 9powerfs /usr/local/boot
-
-push1:	9fsb
-	push tempel 9fsb /usr/local/boot
-
-push2:	9k
-	push tempel 9k /usr/local/boot
-
-bootes.$O: /dev/cons
-	$CC $CFLAGS -DDATE'='`{date -n} bootes.c
-
-9powerfs.$O: /dev/cons
-	$CC $CFLAGS -DDATE'='`{date -n} 9powerfs.c
-
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
-
-%.$O:	%.s
-	$AS $stem.s
-
-%.$O:	$HFILES
-
-clean:
-	rm -f *.[2kovz] [2akvz].out 9powerfs 9fsb 9k
+$TARG.$O:	/dev/cons
+	$CC $CFLAGS -DDATE'='`{date -n} $TARG.c

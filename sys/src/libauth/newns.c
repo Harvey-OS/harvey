@@ -12,23 +12,32 @@ enum
 static int	setenv(char*, char*);
 static char	*expandarg(char*, char*);
 static int	splitargs(char*, char*[], char*, int);
-static void	nsop(int, char*[]);
+static void	nsop(int, char*[], int);
 static int	callexport(char*, char*);
 static int	catch(void*, char*);
 
-char *
+int
 newns(char *user, char *file)
 {
 	Biobuf *spec;
 	char home[2*NAMELEN], *cmd;
 	char *argv[NARG], argbuf[MAXARG*NARG];
 	int argc;
+	int afd;
 
+	/* try for authentication server now because later is impossible */
+	if(strcmp(user, "none") == 0)
+		afd = -1;
+	else
+		afd = authdial();
 	if(!file)
 		file = "/lib/namespace";
 	spec = Bopen(file, OREAD);
-	if(spec == 0)
-		return "can't open namespace file";
+	if(spec == 0){
+		werrstr("can't open %s: %r", file);
+		close(afd);
+		return -1;
+	}
 	rfork(RFENVG|RFCNAMEG);
 	setenv("user", user);
 	sprint(home, "/usr/%s", user);
@@ -39,25 +48,26 @@ newns(char *user, char *file)
 		cmd[Blinelen(spec)-1] = '\0';
 		while(*cmd==' ' || *cmd=='\t')
 			cmd++;
-		if(*cmd == '#')
+		if(*cmd == 0 || *cmd == '#')
 			continue;
 		argc = splitargs(cmd, argv, argbuf, NARG);
-		nsop(argc, argv);
+		if(argc)
+			nsop(argc, argv, afd);
 	}
 	atnotify(catch, 0);
-	Bclose(spec);
+	Bterm(spec);
+	close(afd);
 	return 0;
 }
 
 static void
-nsop(int argc, char *argv[])
+nsop(int argc, char *argv[], int afd)
 {
-	char *argv0, srv[NAMELEN];
+	char *argv0;
 	ulong flags;
 	int fd;
 
 	flags = 0;
-	srv[0] = '\0';
 	argv0 = 0;
 	ARGBEGIN{
 	case 'a':
@@ -69,12 +79,6 @@ nsop(int argc, char *argv[])
 	case 'c':
 		flags |= MCREATE;
 		break;
-	case 's':
-		strcpy(srv, ARGF());
-		break;
-	case 't':
-		strcpy(srv, "any");
-		break;
 	}ARGEND
 
 	if(!(flags & (MAFTER|MBEFORE)))
@@ -84,18 +88,21 @@ nsop(int argc, char *argv[])
 		bind(argv[0], argv[1], flags);
 	if(strcmp(argv0, "mount") == 0){
 		fd = open(argv[0], ORDWR);
-		if(argc == 2)
-			mount(fd, argv[1], flags, "", srv);
-		else if(argc == 3)
-			mount(fd, argv[1], flags, argv[2], srv);
+		authenticate(fd, afd);
+		if(argc == 2){
+			mount(fd, argv[1], flags, "");
+		}else if(argc == 3){
+			mount(fd, argv[1], flags, argv[2]);
+		}
 		close(fd);
 	}
 	if(strcmp(argv0, "import") == 0){
 		fd = callexport(argv[0], argv[1]);
+		authenticate(fd, afd);
 		if(argc == 2)
-			mount(fd, argv[1], flags, "", srv);
+			mount(fd, argv[1], flags, "");
 		else if(argc == 3)
-			mount(fd, argv[2], flags, "", srv);
+			mount(fd, argv[2], flags, "");
 		close(fd);
 	}
 	if(strcmp(argv0, "cd") == 0 && argc == 1)
@@ -120,7 +127,7 @@ callexport(char *sys, char *tree)
 	na = netmkaddr(sys, 0, "exportfs");
 	if((fd = dial(na, 0, 0, 0)) < 0)
 		return -1;
-	if(auth(fd, na) || write(fd, tree, strlen(tree)) < 0
+	if(auth(fd) < 0 || write(fd, tree, strlen(tree)) < 0
 	|| read(fd, buf, 3) != 2 || buf[0]!='O' || buf[1]!= 'K'){
 		close(fd);
 		return -1;

@@ -12,10 +12,14 @@ attach, session, nop \- messages to initiate activity
 .B
 Tsession	
 .IR tag [2]
+.IR chal [8]
 .br
 .B
 Rsession	
 .IR tag [2]
+.IR chal [8]
+.IR authid [28]
+.IR authdom [48]
 .PP
 .B
 Tattach	
@@ -23,13 +27,15 @@ Tattach
 .IR fid [2]
 .IR uid [28]
 .IR aname [28]
-.IR auth [28]
+.IR ticket [72]
+.IR auth [13]
 .br
 .B
 Rattach	
 .IR tag [2]
 .IR fid [2]
 .IR qid [8]
+.IR rauth [13]
 .SH DESCRIPTION
 The
 .B nop
@@ -44,7 +50,17 @@ The set of messages between
 .B session
 requests is called a
 .IR session .
-Tags and fids must be unique per session.
+The host's user name
+.RI ( authid )
+and its authentication domain 
+.RI ( authdom )
+identify the key to be used when authenticating to this host.
+The exchanged challenges
+.RI ( chal )
+are used in the authentication algorithm.
+If
+.I authid
+is a null string no authentication is performed in this session.
 .PP
 The
 .I tag
@@ -68,15 +84,14 @@ and may select
 the file tree to access
 .RI ( aname ).
 The
-.I auth
-argument contains authorization data
-derived from the
-.I chal
-field of an
-.B auth
-message; see
-.IR auth (5)
+.I ticket
 and
+.I auth
+arguments contains authorization data
+derived from the exchanged challenges
+of the
+.B session
+message; see
 .IR auth (6).
 .PP
 As a result of the
@@ -102,12 +117,12 @@ beginning with
 .IR Pipe (2)
 generates an attach on the kernel device
 .IR pipe (3).
-.B Mount
+The
+.I mount
+system call
 (see
 .IR bind (2))
-generates
-.B auth
-and
+generates an
 .B attach
 messages to the remote file server.
 When the kernel boots, an
@@ -115,10 +130,7 @@ When the kernel boots, an
 is made to the root device,
 .IR root (3),
 and then an
-.B auth
-and an
 .B attach
-are made to the requested file server machine.
+is made to the requested file server machine.
 .SH SEE ALSO
-.IR auth (5),
 .IR auth (6)

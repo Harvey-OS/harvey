@@ -1,8 +1,0 @@
-</$objtype/mkfile
-
-BIN=/$objtype/bin/cda
-TARG=swrap
-OFILES=swrap.$O machine.$O lib.$O
-HFILES=dat.h fns.h machine.h
-
-</sys/src/cmd/mkone

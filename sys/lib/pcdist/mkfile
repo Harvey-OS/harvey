@@ -1,0 +1,52 @@
+USER=`{cat /dev/user}
+NPROC=1
+
+all:V: disk1 disk2.vd disk3.vd disk4.vd
+	ls -l *.vd
+
+install:V: disk1 disk2.vd disk3.vd disk4.vd
+	cp $prereq /sys/lib/pcdist
+
+disk1:	disk1proto
+	cp  /386/b.com b.com
+	disk/format -fd -l plan9 -b /sys/src/boot/pc/bb disk1 b.com
+	rm -fr pc
+	mkdir pc
+	disk/mkfs -a disk1proto | disk/mkext -d pc
+	strip pc/9*
+	strip pc/386/init
+	strip pc/386/bin/*/*
+	rc -c 'strip pc/386/bin/* > /dev/null >[2=1] || echo -n'
+	rm -f /srv/dos$USER; dossrv dos$USER
+	mount -c /srv/dos$USER /n/a: /sys/lib/pcdist/disk1
+	@{cd pc; tar c .}|@{cd /n/a:; tar x}
+	unmount /n/a:
+	rm /srv/dos$USER
+
+disk2.vd:	disk2
+	vdsqueeze -b 500000 <disk2 >disk2.vd
+	vdexpand <disk2.vd > /tmp/disk2
+	cmp disk2 /tmp/disk2
+
+disk2:	disk2proto /386 /386/bin
+	disk/mkfs -u files/adm.users -a disk2proto > disk2
+
+disk3.vd:	disk3
+	vdsqueeze -b 500000 <disk3 >disk3.vd
+	vdexpand <disk3.vd > /tmp/disk3
+	cmp disk3 /tmp/disk3
+
+disk3:	disk3proto /386/bin /386/lib
+	disk/mkfs -a disk3proto > disk3
+
+disk4.vd:	disk4
+	vdsqueeze -b 500000 <disk4 >disk4.vd
+	vdexpand <disk4.vd > /tmp/disk4
+	cmp disk4 /tmp/disk4
+
+disk4:	disk4proto /386/bin /386/lib
+	disk/mkfs -a disk4proto > disk4
+
+clean:V:
+	rm -f disk1 disk2 disk3 disk4 *.vd
+	rm -fr pc

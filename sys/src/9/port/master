@@ -1,22 +1,32 @@
 	root	/
+	audio	A
+	boot	B
 	ctech	C
 	cyc	C
 	dr	D
+	hard	H
+	hifi	H
 	ip	I
+	isdn	J
 	conc	K
 	lpt	L
 	mnt	M
 	iproute	P
+	icmp	Q
 	cdrom	R
 	scsi	S
 	kprof	T
+	pri	T
+	voice	V
+	alacron	X
 	arp	a
+	bit	b
 	cons	c
 	dup	d
 	env	e
 	floppy	f
-	hsvme	h
 	hs386	h
+	hsvme	h
 	incon	i
 	dk	k
 	ether	l
@@ -25,15 +35,15 @@
 	nonet	n
 	proc	p
 	rtc	r
+	mux	s
 	srv	s
 	duart	t
 	scc	t
 	uart	t
-	vid	v
-	voice	V
-	hard	w
 	wren	w
 	port	x
 	pcmcia	y
 	zduart	z
 	pipe	|
+	reboot	↑
+	mpx	μ

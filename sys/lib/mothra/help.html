@@ -1,0 +1,48 @@
+<html><head><title>Mothra help</title>
+</head>
+<body>
+<H1>Mothra Help</H1>
+<p>
+Mothra is a World-wide Web browser. Its display looks like this:
+<p><img src="file:display.pic" alt="[mothra display]">
+<p>The display's regions, from top to bottom, are:
+<ul>
+<li>A display of error messages and other information.
+<li>A text input window in which <a href="#commands">commands</a> can be typed.
+<li>A scrollable list of titles of previously visited documents, with the most recent first.
+Selecting one of these lines with mouse button 1 revisits the document.
+<li>The title of the currently-displayed document.
+<li>The URL of the currently-displayed document.
+<li>The scrollable document display.  Underlined text and
+images surrounded by boxes may be selected by button 1 to
+visit the files that they refer to.  Files that are not
+HTML documents (for example images or mailto: urls) cause
+<i>9v</i> or <i>mail</i> to pop up in a new 8½ window.
+</ul>
+<h4>Mouse Action</H4>
+<p>Button 3 pops up a command menu.  Pointing with button
+2 instead of button 1 selects a url without following
+it (for commands that refer to a url.)
+Currently, the button 3 menu just contains
+<ul>
+<li>fix cmap<br>reload the default plan 9 colormap
+<li>exit
+</ul>
+<a name="#commands"><h4>Commands</h4></a>
+<p>The commands you can type are:
+<ul>
+<li>g url<br>get the page with the given url
+<li>s file<br>save the current page in the given file
+<li>q<br>exit
+<li>?<br>get help
+<li>h<br>get help
+</ul>
+<p>
+Mothra creates 2 files in $home/lib/mothra.
+<ul>
+<li>mothra.log<br>a list of all the url's visited
+<li>mothra.err<br>a log of error messages,
+mostly uninteresting
+</ul>
+</body>
+</html>

@@ -14,16 +14,27 @@ struct group *getgrent(void);
 struct passwd *getpwent(void);
 
 #ifdef SYSV
-#include <dirent.h>
-#define	DTYPE	struct dirent
+#	include <dirent.h>
+#	define	DTYPE	struct dirent
+#	define SOCKETS
 #endif
 #ifdef V10
-#include <ndir.h>
-#define	DTYPE	struct direct
+#	include <ndir.h>
+#	define	DTYPE	struct direct
 #endif
 #ifdef BSD
-#include <sys/dir.h>
-#define	DTYPE	struct direct
+#	include <sys/dir.h>
+#	define	DTYPE	struct direct
+#	define	SOCKETS
+#endif
+#ifdef SOCKETS
+#	define sendmsg	__sendmsg
+#	include <sys/socket.h>
+#	include <netinet/in.h>
+#	include <netdb.h>
+#	undef sendmsg
+	char	bsdhost[256];
+	void	remotehostname(void);
 #endif
 
 typedef struct File	File;
@@ -42,6 +53,7 @@ struct Rfile{
 	int		busy;
 	int		uid;
 	int		gid;
+	int		rclose;
 	File		*file;
 	Fd		*fd;
 };
@@ -87,6 +99,7 @@ char*	estrdup(char*);
 char*	dostat(File*, char*);
 char*	bldpath(char*, char*, char*);
 Ulong	qid(struct stat*);
+Ulong	vers(struct stat*);
 void	errjmp(char*);
 int	omode(int);
 char*	id2name(Pass**, int);
@@ -96,7 +109,7 @@ void	getgrpf(void);
 void	perm(Rfile*, int, struct stat*);
 void	parentwrperm(Rfile*);
 
-void	rauth(void);
+void	rsession(void);
 void	rattach(void);
 void	rflush(void);
 void	rclone(void);
@@ -109,7 +122,6 @@ void	rclunk(int);
 void	rstat(void);
 void	rwstat(void);
 void	rclwalk(void);
-void	rauth(void);
 
 char	Eauth[] =	"authentication failed";
 char	Eperm[] =	"permission denied";
@@ -137,6 +149,11 @@ main(int argc, char *argv[])
 	if(argc > 1)
 		if(chroot(argv[1]) == -1)
 			error("chroot failed");
+
+#	ifdef SOCKETS
+	remotehostname();
+#	endif
+
 	io();
 	return 0;
 }
@@ -182,11 +199,10 @@ io(void)
 	DBG(fprintf(stderr, ">> %s\n", mfmt(&rhdr)));
 	switch(rhdr.type){
 	case Tnop:
-	case Tsession:
 	case Tflush:	/* this is a synchronous fs; easy */
 		break;
-	case Tauth:
-		rauth();
+	case Tsession:
+		rsession();
 		break;
 	case Tattach:
 		rattach();
@@ -230,9 +246,11 @@ io(void)
 }
 
 void
-rauth(void)
+rsession(void)
 {
-	sendmsg(Eauth);
+	memset(thdr.authid, 0, sizeof(thdr.authid));
+	memset(thdr.authdom, 0, sizeof(thdr.authdom));
+	memset(thdr.chal, 0, sizeof(thdr.chal));
 }
 
 void
@@ -265,12 +283,20 @@ rattach(void)
 	rf = &rfile[rhdr.fid];
 	if(rf->busy)
 		errjmp(Efidactive);
-	rf->busy = 1;
-	rf->file = file0;
-	file0->ref++;
 	p = name2pass(uid, rhdr.uname);
 	if(p == 0)
 		errjmp(Eunknown);
+	if(p->id == 0)
+		errjmp(Eperm);
+#	ifdef SOCKETS
+	if(ruserok(bsdhost, 0, rhdr.uname, rhdr.uname) < 0)
+		errjmp(Eperm);
+#	endif
+	/* mark busy & inc ref cnt only after committed to succeed */
+	rf->busy = 1;
+	rf->file = file0;
+	file0->ref++;
+	rf->rclose = 0;
 	rf->uid = p->id;
 	rf->gid = p->gid;
 	thdr.qid = file0->qid;
@@ -297,6 +323,7 @@ rclone(void)
 	nrf->fd = rf->fd;
 	nrf->uid = rf->uid;
 	nrf->gid = rf->gid;
+	nrf->rclose = rf->rclose;
 	if(nrf->fd){
 		if(nrf->fd->ref == 0)
 			error("clone fd count");
@@ -396,6 +423,7 @@ ropen(void)
 			errjmp(sys_errlist[errno]);
 		dir = 0;
 	}
+	rf->rclose = rhdr.mode & 64;	/* ORCLOSE */
 	rf->fd = erealloc(0, sizeof(Fd));
 	rf->fd->ref = 1;
 	rf->fd->fd = fd;
@@ -473,6 +501,7 @@ rcreate(void)
 		free(of);
 	}
 	rf->file = f;
+	rf->rclose = rhdr.mode & 64;	/* ORCLOSE */
 	rf->fd = erealloc(0, sizeof(Fd));
 	rf->fd->ref = 1;
 	rf->fd->fd = fd;
@@ -500,7 +529,9 @@ rread(void)
 	f = rf->file;
 	if(rf->fd->dir){
 		errno = 0;
+		rhdr.count = (rhdr.count/DIRLEN)*DIRLEN;
 		if(rf->fd->offset != rhdr.offset){
+			rf->fd->offset = rhdr.offset;  /* sync offset */
 			seekdir(rf->fd->dir, 0);
 			for(n=0; n<rhdr.offset; ){
 				de = readdir(rf->fd->dir);
@@ -534,7 +565,7 @@ rread(void)
 			strncpy(d.uid, id2name(uid, stbuf.st_uid), NAMELEN);
 			strncpy(d.gid, id2name(gid, stbuf.st_gid), NAMELEN);
 			d.qid.path = qid(&stbuf);
-			d.qid.vers = 0;
+			d.qid.vers = vers(&stbuf);
 			d.mode = (d.qid.path&CHDIR)|(stbuf.st_mode&0777);
 			d.atime = stbuf.st_atime;
 			d.mtime = stbuf.st_mtime;
@@ -545,9 +576,11 @@ rread(void)
 		}
 	}else{
 		errno = 0;
-		if(rf->fd->offset != rhdr.offset)
+		if(rf->fd->offset != rhdr.offset){
+			rf->fd->offset = rhdr.offset;
 			if(lseek(rf->fd->fd, rhdr.offset, 0) < 0)
 				errjmp(sys_errlist[errno]);
+		}
 		n = read(rf->fd->fd, rdata, rhdr.count);
 		if(n < 0)
 			errjmp(sys_errlist[errno]);
@@ -569,9 +602,11 @@ rwrite(void)
 	if(rhdr.count > sizeof rdata)
 		errjmp(Etoolarge);
 	errno = 0;
-	if(rf->fd->offset != rhdr.offset)
+	if(rf->fd->offset != rhdr.offset){
+		rf->fd->offset = rhdr.offset;
 		if(lseek(rf->fd->fd, rhdr.offset, 0) < 0)
 			errjmp(sys_errlist[errno]);
+	}
 	n = write(rf->fd->fd, rhdr.data, rhdr.count);
 	if(n < 0)
 		errjmp(sys_errlist[errno]);
@@ -671,7 +706,13 @@ rclunk(int rm)
 			ret = unlink(f->path);
 		if(ret)
 			err = sys_errlist[errno];
+	}else if(rf->rclose){	/* ignore errors */
+		if(f->qid.path & CHDIR)
+			rmdir(f->path);
+		else
+			unlink(f->path);
 	}
+		
 	rf->busy = 0;
 	if(--f->ref == 0){
 		free(f->path);
@@ -759,7 +800,7 @@ dostat(File *f, char *elem)
 		f->name = estrdup(name);
 	}
 	f->qid.path = qid(&stbuf);
-	f->qid.vers = 0;
+	f->qid.vers = vers(&stbuf);
 	f->stbuf = stbuf;
 	return 0;
 }
@@ -883,6 +924,12 @@ newfile(void)
  * qids: directory bit, seven bits of device, 24 bits of inode
  */
 Ulong
+vers(struct stat *st)
+{
+	return st->st_mtime;
+}
+
+Ulong
 qid(struct stat *st)
 {
 	static int nqdev;
@@ -890,10 +937,12 @@ qid(struct stat *st)
 	Ulong q;
 	int dev;
 
-	if(qdev == 0)
+	if(qdev == 0){
 		qdev = erealloc(0, 65536U);
+		memset(qdev, 0, 65536U);
+	}
 	q = 0;
-	if(st->st_mode & S_IFDIR)
+	if((st->st_mode&S_IFMT) ==  S_IFDIR)
 		q = CHDIR;
 	dev = st->st_dev & 0xFFFFUL;
 	if(qdev[dev] == 0){
@@ -1047,3 +1096,26 @@ estrdup(char *p)
 		error("strdup fail");
 	return p;
 }
+
+#ifdef SOCKETS
+void
+remotehostname(void)
+{
+	struct sockaddr_in sock;
+	struct hostent *hp;
+	int len;
+	int on = 1;
+
+	len = sizeof sock;
+	if(getpeername(0, &sock, &len) < 0)
+		error("getpeername");
+	hp = gethostbyaddr((char *)&sock.sin_addr, sizeof (struct in_addr),
+		sock.sin_family);
+	if(hp == 0)
+		error("gethostbyaddr");
+	strcpy(bsdhost, hp->h_name);
+	fprintf(stderr, "bsdhost %s on %d\n", bsdhost, getpid());
+
+	setsockopt(0, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
+}
+#endif

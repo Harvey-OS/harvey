@@ -1,13 +1,13 @@
 #include <alef.h>
 #include <fcall.h>
-#include <graphics.h>
+#include <libg.h>
 #include <frame.h>
 #include "y.h"
 
-char *ebadb	= "bad bitblt request";
-char *epcol	= "bad bitblt protocol";
-char *emap 	= "operation on invalid bitmap";
-char *eballoc	= "out of bitmap memory";
+byte *ebadb	= "bad bitblt request";
+byte *epcol	= "bad bitblt protocol";
+byte *emap 	= "operation on invalid bitmap";
+byte *eballoc	= "out of bitmap memory";
 
 aggr Fonttab
 {
@@ -79,7 +79,7 @@ newbit(Window *w)
 }
 
 Bitmap**
-getbit(Window *w, char *p)
+getbit(Window *w, byte *p)
 {
 	int i;
 	Bitmap **b;
@@ -96,7 +96,7 @@ getbit(Window *w, char *p)
 }
 
 Rectangle
-getr(char *p)
+getr(byte *p)
 {
 	Rectangle r;
 
@@ -116,12 +116,12 @@ bitwrite(Window *w, Ioreq *i)
 {
 	Fcall thdr;
 	Rectangle src;
-	char tpa[32];
+	byte tpa[32];
 	Sfonttab *sf;
 	Fonttab *f;
 	uint q0, q1;
 	Bitmap **s, **d, *b;
-	char *e, *p, *end, *xp;
+	byte *e, *p, *end, *xp;
 	int v, nc, idx, l, t, miny, maxy, words;
 
 	p = i->fcall.data;
@@ -481,8 +481,8 @@ bitwrite(Window *w, Ioreq *i)
 			break;
 
 		case 'x':
-			w->mse.m = (Point){ BGLONG(p+1), BGLONG(p+5) };
-			cursorset(w->mse.m);
+			w->mse.xy = (Point)(BGLONG(p+1), BGLONG(p+5));
+			cursorset(w->mse.xy);
 			p += 9;
 			break;
 
@@ -524,7 +524,7 @@ bitwrite(Window *w, Ioreq *i)
 void
 bitread(Window *w, Ioreq *i)
 {
-	char *p;
+	byte *p;
 	Fcall thdr;
 	Subfont *sf;
 	Fontchar *info;
@@ -616,7 +616,7 @@ bitread(Window *w, Ioreq *i)
 }
 
 int
-winbits(Window *w, char *buf, uint offset, int cnt)
+winbits(Window *w, byte *buf, uint offset, int cnt)
 {
 	Bitmap *b;
 	int t, l, px;

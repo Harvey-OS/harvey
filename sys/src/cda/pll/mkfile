@@ -1,8 +1,0 @@
-</$objtype/mkfile
-
-BIN=/$objtype/bin/cda
-TARG=pll
-OFILES=pll.$O
-
-</sys/src/cmd/mkone
-CFLAGS=-DPLAN9 -w

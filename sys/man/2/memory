@@ -2,6 +2,10 @@
 .SH NAME
 memccpy, memchr, memcmp, memcpy, memmove, memset \- memory operations
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .ta \w'\fLvoid* 'u
 .B
 void*	memccpy(void *s1, void *s2, int c, long n)
@@ -77,9 +81,9 @@ copies
 bytes from memory area 
 .I s2
 to
-.I s1.
+.IR s1 .
 It returns
-.I s1.
+.IR s1 .
 .PP
 .I Memmove
 works like
@@ -99,12 +103,17 @@ to the value of byte
 .IR c .
 It returns
 .IR s .
+.SH SOURCE
+All these routines have portable C implementations in
+.BR /sys/src/libc/port .
+Most also have machine-dependent assembly language implementations in
+.BR /sys/src/libc/$objtype .
 .SH SEE ALSO
 .IR strcat (2)
 .SH BUGS
 ANSI C does not require
 .I memcpy
-to handle overlapping source and data; on Plan 9, it does, so
+to handle overlapping source and destination; on Plan 9, it does, so
 .I memmove
 and
 .I memcpy

@@ -56,6 +56,7 @@ clock(Ureg *ur)
 	checkalarms();
 	kbdclock();
 	sccclock();
+	mouseclock();
 	if((ur->sr&SPL(7))==0 && p && p->state==Running){
 		if(anyready()){
 			if(p->hasspin)

@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include	<bio.h>
 #include "sky.h"
 
 /*
@@ -32,18 +33,6 @@ radec(int p, int *rah, int *ram, int *deg)
 	*ram = (p%15)*4;
 	if(*deg<0)
 		(*deg)++;
-}
-
-int
-btag(Mag m)
-{
-	if(m>130)
-		return 3;
-	if(m>100)
-		return 2;
-	if(m>70)
-		return 1;
-	return 0;
 }
 
 long

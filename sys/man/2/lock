@@ -1,0 +1,163 @@
+.TH LOCK 2
+.SH NAME
+lockinit, lock, canlock, unlock \- shared memory spin lock
+.SH SYNOPSIS
+.B #include <lock.h>
+.PP
+.B
+void	lockinit(void);
+.PP
+.B
+void	lock(Lock *lk);
+.PP
+.B
+int	canlock(Lock *lk);
+.PP
+.B
+void	unlock(Lock *lk);
+.PP
+.B
+/* Alef only */
+.PP
+.B
+adt Lock
+.br
+.B
+{
+.br
+.B
+	void	lock(*Lock);
+.br
+.B
+	void	unlock(*Lock);
+.br
+.B
+	int	canlock(*Lock);
+.br
+.B
+};
+.PP
+.B
+adt QLock
+.br
+.B
+{
+.br
+.B
+	void	lock(*Lock);
+.br
+.B
+	void	unlock(*Lock);
+.br
+.B
+	int	canlock(*Lock);
+.br
+.B
+};
+.PP
+.B
+adt RWlock
+.br
+.B
+{
+.br
+.B
+	void	Rlock(*RWlock);
+.br
+.B
+	void	Runlock(*RWlock);
+.br
+.B
+	void	Wlock(*RWlock);
+.br
+.B
+	void	Wunlock(*RWlock);
+.br
+.B
+};
+.PP
+.B
+adt Ref
+.br
+.B
+{
+.br
+.B
+	int	inc(*Ref);
+.br
+.B
+	int	dec(*Ref);
+.br
+.B
+	int	ref(*Ref);
+.br
+.B
+};
+.SH DESCRIPTION
+These routines are used by processes sharing memory to synchronize
+using spin locks.
+.I Lockinit
+must be called before the first use of the other routines.
+.I Lock
+blocks until the lock has been obtained.
+.I Canlock
+is non-blocking.
+It tries to obtain a lock and returns a non-zero value if it
+was successful, 0 otherwise.
+.I Unlock
+releases a lock.
+.SS Alef
+Alef locks have similar functionality, but no special initialization is required.  The ADT
+.B Lock
+has functions
+.IR lock ,
+.IR unlock ,
+and
+.IR canlock ,
+just like locks in C.
+.B QLocks
+have the same interface but are not spin locks; instead if the lock is taken
+.I QLock.lock
+will suspend execution of the calling task until it is released.
+.PP
+Although
+.B Locks
+are the more primitive lock, their use is discouraged and even erroneous
+for most purposes.
+For example,
+.B Locks
+cannot synchronize between tasks in the same
+.BR proc .
+Use
+.B QLocks
+instead.
+.PP
+.B RWlocks
+manage access to a data structure that has distinct readers and writers.
+.I RWlock.Rlock
+grants read access;
+.I RWlock.Runlock
+releases it.
+.I RWlock.Wlock
+grants write access;
+.I RWlock.Wunlock
+releases it.
+There may be any number of simultaneous readers,
+but only one writer.  Moreover,
+if write access is granted no one may have
+read access until write access is released.
+.PP
+.B Refs
+manage reference counters.
+.I Ref.inc
+increments the counter and returns the old value;
+.I Ref.dec
+decrements the counter and returns the new value.
+.I Ref.ref
+returns the current value.
+.SH SOURCE
+.B /sys/src/liblock
+.SH SEE ALSO
+.I rfork
+in
+.IR fork (2)

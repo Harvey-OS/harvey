@@ -1,0 +1,94 @@
+%% 
+%% This is file `graphpap.sty', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% graphpap.dtx  (with options: `package')
+%% 
+%% Copyright 1994 the LaTeX3 project and the individual authors. 
+%% All rights reserved. For further copyright information see the file 
+%% legal.txt, and any other copyright indicated in this file. 
+%% 
+%% This file is part of the LaTeX2e system. 
+%% ---------------------------------------- 
+%% 
+%% This system is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see bugs.txt. 
+%% 
+%% Please do not request updates from us directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%
+%% File `graphpap.dtx'.
+%% Copyright (C) 1994 by Leslie Lamport
+%%                       all rights reserved.
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{graphpap}
+      [1994/08/09 v1.0c Standard LaTeX graphpap package (LL)]
+\let\c@@grid\count@
+\def\@vgrid(#1,#2)#3#4#5{%
+  \setcounter{@grid}{#1}%
+  \multiput(#1,#2)(#3,0){#4}{\line(0,1){#5}}%
+  \multiput(#1,#2)(#3,0){#4}{\@vgridnumber{#3}}}
+\def\@vgridnumber#1{%
+  \makebox(0,0)[t]{%
+    \shortstack{\rule{0pt}{10pt}\\\arabic{@grid}}}%
+  \addtocounter{@grid}{#1}}
+\def\@nonumvgrid(#1,#2)#3#4#5{%
+  \multiput(#1,#2)(#3,0){#4}{\line(0,1){#5}}}
+\def\@hgrid(#1,#2)#3#4#5{%
+  \setcounter{@grid}{#2}%
+  \multiput(#1,#2)(0,#3){#4}{\line(1,0){#5}}%
+  \multiput(#1,#2)(0,#3){#4}{\@hgridnumber{#3}}}
+\def\@hgridnumber#1{%
+  \makebox(0,0)[r]{\arabic{@grid}\hspace{10pt}}%
+  \addtocounter{@grid}{#1}}
+\def\@nonumhgrid(#1,#2)#3#4#5{%
+  \multiput(#1,#2)(0,#3){#4}{\line(1,0){#5}}}
+\newcommand\graphpaper[1][10]{\leavevmode\@grid{#1}}
+\def\@grid#1(#2,#3)#4{\@grid@i{#1}{#2}{#3}(}
+\def\@grid@i#1#2#3(#4,#5){%
+  \@tempcnta=#4\relax
+  \divide\@tempcnta#1\relax
+  \advance\@tempcnta1\relax
+   {\thinlines\@nonumvgrid(#2,#3){#1}{\@tempcnta}{#5}
+    \@tempcnta#4\relax
+    \divide\@tempcnta5\relax
+    \divide\@tempcnta#1\relax
+    \advance\@tempcnta1\relax
+    \@tempcntb5\relax
+    \multiply\@tempcntb#1\relax
+    \thicklines\@vgrid(#2,#3){\@tempcntb}{\@tempcnta}{#5}
+    \@tempcnta#5\relax
+    \divide\@tempcnta #1\relax
+    \advance\@tempcnta1\relax
+    \thinlines\@nonumhgrid(#2,#3){#1}{\@tempcnta}{#4}
+    \@tempcnta#5\relax
+    \divide\@tempcnta5\relax
+    \divide\@tempcnta#1\relax
+    \advance\@tempcnta1\relax
+    \thicklines\@hgrid(#2,#3){\@tempcntb}{\@tempcnta}{#4}}%
+  \ignorespaces}
+
+\endinput
+%% 
+%% End of file `graphpap.sty'.

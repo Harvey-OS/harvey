@@ -32,10 +32,17 @@ if (~ $NOHEAD '') {
 00000000000000000000000000000000
 00000000000000000000000000000000
 00000000000000000000000000000000'
-	faceinfo = `{/$cputype/bin/aux/geticon $LPMACHID $LPUSERID 1}
-	facefile = $faceinfo(4)
-	facedepth = `{echo 2 '^' $faceinfo(3)|hoc}
-	if (! test -r $facefile ) facefile = /lib/face/face48/unknown
+	facedom=`{awk '/^'$LPMACHID'	/{print $2}' /lib/face/.machinelist}
+	if (~ $#facedom 0) facedom=astro
+	facefile=`{awk '/^'$facedom'\/'$LPUSERID' /{print $2}' /lib/face/48x48x2/.dict}
+	facedepth=2
+	if (~ $#facefile 0) {
+		facefile=`{awk '/^'$facedom'\/'$LPUSERID' /{print $2}' /lib/face/48x48x1/.dict}
+		facedepth=1
+	}
+	if (~ $#facefile 0) facefile=u/unknown.1
+	facefile=/lib/face/48x48x$facedepth/$facefile
+	if (~ $#facefile 0 || ! test -f $facefile ) facefile = /lib/face/48x48x2/u/unknown.1
 	if (test -r $facefile ) face=`{cat $facefile | \
 		sed -e 's/0x//g' -e 's/, *//g' | \
 		tr 0123456789abcdef fedcba9876543210 };

@@ -117,10 +117,41 @@ skipline:
 }
 #endif
 
+/*
+	-1:adm:adm:
+	0:none:adm:
+	1:tor:tor:
+	10000:sys::
+	10001:map:map:
+	10002:doc::
+	10003:upas:upas:
+	10004:font::
+	10005:bootes:bootes:
+*/
+
+struct {
+	int	uid;
+	char	*name;
+	int	leader;
+}
+admusers[] = {
+	-1,	"adm",	-1,
+	 0,	"none",	-1,
+	 1,	"tor",	1,
+	10000,	"sys",	0,
+	10001,	"map",	10001,
+	10002,	"doc",	0,
+	10003,	"upas",	10003,
+	10004,	"font",	0,
+	10005,	"bootes",	10005,
+	0,	0,	0,
+};
+
+
 void
 cmd_user(void)
 {
-	int c, n, o, u, g;
+	int c, n, o, u, g, i;
 	char name[NAMELEN];
 
 	wlock(&uidgc.uidlock);
@@ -276,25 +307,20 @@ gskip:
 
 initu:
 	cprint("initializing minimal user table\n");
+	memset(uid, 0, conf.nuid * sizeof(*uid));
+	memset(uidspace, 0, conf.uidspace * sizeof(*uidspace));
+	memset(gidspace, 0, conf.gidspace * sizeof(*gidspace));
 	o = conf.uidspace;
 	u = 0;
 
-	o -= strlen("adm")+1;
-	strcpy(uidspace+o, "adm");
-	uid[u].uid = -1;
-	uid[u].offset = o;
-	u++;
-
-	o -= strlen("none")+1;
-	strcpy(uidspace+o, "none");
-	uid[u].uid = 0;
-	uid[u].offset = o;
-	u++;
-
-	o -= strlen("sys")+1;
-	strcpy(uidspace+o, "sys");
-	uid[u].uid = 10000;
-	uid[u].offset = o;
+	for(i=0; admusers[i].name; i++){
+		o -= strlen(admusers[i].name)+1;
+		strcpy(uidspace+o, admusers[i].name);
+		uid[u].uid = admusers[i].uid;
+		uid[u].lead = admusers[i].leader;
+		uid[u].offset = o;
+		u++;
+	}
 
 out:
 	putbuf(uidgc.uidbuf);
@@ -316,9 +342,11 @@ uidtostr1(char *name, int id)
 	Uid *u;
 	int i;
 
+	if(id == 0){
+		strncpy(name, "none", NAMELEN);
+		return;
+	}
 	for(i=0, u=uid; i<conf.nuid; i++,u++) {
-		if(u->uid == 0)
-			break;
 		if(u->uid == id) {
 			strncpy(name, uidspace+u->offset, NAMELEN);
 			return;
@@ -344,12 +372,9 @@ strtouid1(char *s)
 	Uid *u;
 	int i;
 
-	for(i=0, u=uid; i<conf.nuid; i++,u++) {
-		if(u->uid == 0)
-			break;
+	for(i=0, u=uid; i<conf.nuid; i++,u++)
 		if(!strcmp(s, uidspace+u->offset))
 			return u->uid;
-	}
 	return 0;
 }
 
@@ -385,8 +410,6 @@ leadgroup(int ui, int gi)
 
 	rlock(&uidgc.uidlock);
 	for(i=0, u=uid; i<conf.nuid; i++,u++) {
-		if(u->uid == 0)
-			break;
 		if(u->uid == gi) {
 			i = u->lead;
 			runlock(&uidgc.uidlock);

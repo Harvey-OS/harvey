@@ -1,0 +1,200 @@
+%% BEGIN slidesec.sty
+\def\fileversion{v0.9}
+\def\filedate{92/05/07}
+%%
+%% Style option slidesec.sty, for use with LaTeX 2.09 or SliTeX.
+%%
+%% COPYRIGHT 1992, by Timothy Van Zandt, tvz@Princeton.EDU
+%%
+%% Copying of part or all of this file is allowed under the following
+%% conditions only:
+%% (1) You may freely distribute unchanged copies of the file. Please
+%%     include the documentation when you do so.
+%% (2) You may modify a renamed copy of the file, but only for personal
+%%     use or use within an organization.
+%% (3) You may copy fragments from the file, for personal use or for use
+%%     in a macro package for distribution, as long as credit is given
+%%     where credit is due.
+%%
+%% You are NOT ALLOWED to take money for the distribution or use of
+%% this file or modified versions or fragments thereof, except for
+%% a nominal charge for copying etc.
+%%
+% DISCLAIMER:
+%
+% Someone who actually uses something like this should rewrite it.
+%
+% DESCRIPTION:
+%
+% This file contains macros for sections, headings, tables of contents,
+% and lists of slides, for slides. It can probably be used with your
+% favorite LaTeX slide package (e.g., seminar.sty).
+% However:
+%%   If the counter used to keep track of slides is not  slide  ,
+%%   then change the following line:
+\def\@SCTR{\theslide}
+%%
+% ACKNOWLEDGEMENTS:
+%
+% The idea comes from Young U. Ryu's lslides.sty.
+%
+% USAGE:
+%
+% \slideheading[#1]{#2}
+%  * Analogous to \section.
+%  * [#1] is optional; \slideheading{#1} is same as \slideheading[#1]{#2}.
+%  * Advances slidesection counter.
+%  * Sets \theslideheading to #1; can be used, e.g., in headers and footers.
+%  * Adds #1 to slide contents file.
+%  * If #2 is non-empty, invokes \makeslideheading{#2} to make a heading.
+%    Default definition of \makeslideheading is
+%       \begin{center}\large\bf #2 \end{center}
+%    but you can redefine this to suit your tastes.
+%
+% \slidesubheading[#1]{#2}
+%  * Analogous to \subsection.
+%  * Like \slideheading, but add "sub" to all the names.
+%
+% \slideheading and \slidesubheading are meant to be used at most once in
+% a slide, but this is not a binding restriction.
+%
+% You may want to define abbreviated forms. E.g.,
+%   \newcommand{heading}{\slideheading}
+%   \newcommand{subheading}{\slidesubheading}
+%
+% \listofslides
+%  * Analogous to \listoftables.
+%
+% \slidecontents
+%  * Analogous to \tableofcontents
+%
+% \Slidecontents
+%  * List \slidecontents, but puts some check marks and stuff to
+%    indicate what you have covered so far and what is coming up.
+%    Meant to be used in the middle of a presentation.
+%
+% To change fonts and otherwise customize what you get from \listofslides,
+% \slidecontents, and \Slidecontents, you have to hack at the definitions
+% of these macros.
+%
+% BUGS:
+%
+% These macros have not been tested very much.
+%
+% IMPLEMENTATION:
+%
+\@ifundefined{@startlos}{}{\endinput}
+\typeout{File `slidesec.sty' \fileversion\space\space
+  \filedate\space\space <tvz>}
+%
+% If we use \@starttoc{los} to read in \jobname.los, then its contents
+% are destroyed and we can't read it again. \@startlos is like \@starttoc,
+% but it sets the flae \los@flag to 1, and then we add a few commands
+% to \enddocument that open \filename.los if \los@flag=1.
+%
+\def\los@flag{0}%
+\def\@startlos{%
+  \begingroup\makeatletter\@input{\jobname.los}\endgroup
+  \gdef\los@flag{1}\global\@nobreakfalse}
+\newtoks\@temptokenb
+\@temptokena{%
+  \ifnum\los@flag=1\if@filesw
+    \newwrite\tf@los\immediate\openout\tf@los\jobname.los\relax
+  \fi\fi}
+\expandafter\@temptokenb\expandafter{\enddocument}
+\edef\enddocument{\the\@temptokena\the\@temptokenb}
+%
+\newcounter{slidesection}
+\newcounter{slidesubsection}
+\def\theslidesection{\arabic{slidesection}}
+\def\thesubslidesection{\theslidesection.\arabic{subslidesection}}
+%
+\def\slideheading{\@dblarg\slide@heading}%
+\def\slide@heading[#1]#2{%
+  \stepcounter{slidesection}%
+  \addtocontents{los}{\protect\l@slide
+    {\the\c@slidesection}{\ignorespaces#1}{\@SCTR}}%
+  \gdef\theslideheading{#1}%
+  \def\@tempa{#2}%
+  \ifx\@tempa\@empty\else
+    {\edef\@currentlabel{\csname p@slidesection\endcsname\theslidesection}%
+      \makeslideheading{#2}}%
+  \fi}
+\def\slidesubheading{\@dblarg\slide@subheading}
+\def\slide@subheading[#1]#2{%
+  \stepcounter{slidesection}%
+  \addtocontents{los}{\protect\l@subslide
+    {\the\c@slidesubsection}{\ignorespaces#1}{\@SCTR}}%
+  \gdef\theslidesubheading{#1}%
+  \def\@tempa{#2}%
+  \ifx\@tempa\@empty\else
+    {\edef\@currentlabel{\csname p@slidesubsection\endcsname
+      \theslidesubsection}\makeslideheading{#2}}%
+  \fi}
+\def\theslideheading{}\def\theslidesubheading{}
+%
+\def\makeslideheading#1{%
+  \begin{center}\large\bf #1\end{center}}
+\def\makeslidesubheading{\makeslideheading}
+%
+\def\@undottedtocline#1#2#3#4#5{\vskip \z@ plus .2pt
+  \bgroup
+    \leftskip #2\relax \parindent #2\relax\@afterindenttrue
+    \interlinepenalty\@M
+    \leavevmode
+    \@tempdima #3\relax \advance\leftskip \@tempdima
+    \hbox{}\hskip -\leftskip
+    #4\par
+  \egroup}
+\def\slide@dottedcline{\@dottedtocline{1}{1.5em}{2.3em}}
+\def\slide@undottedcline{\@undottedtocline{1}{1.5em}{2.3em}}
+\def\slide@cline{\slide@dottedcline}
+%
+\def\slidenumberline#1{\hbox to\@tempdima{\hss#1\hskip 1em}}
+%
+\def\listofslides{\section*{List of Slides%
+  \@mkboth{LIST OF SLIDES}{LIST OF SLIDES}}%
+  \def\l@slide##1##2##3{%
+    \slide@undottedcline{\slidenumberline{##3}{##2}}{}}%
+  \let\l@subslide\l@slide
+  \@startlos}
+%
+\def\slidecontents{\@ifstar%
+  {\def\slide@cline{\slide@undottedcline}\slide@contents}%
+  {\def\slide@cline{\slide@dottedcline}\slide@contents}}
+\def\slide@contents{%
+  \def\l@slide##1##2##3{%
+    \slide@cline{\slidenumberline{$\bullet$}{##2}}{##3}}%
+  \let\l@subslide\@gobbletwo
+  \@startlos}
+%
+\def\Slidecontents{\@ifstar%
+  {\def\slide@cline{\slide@undottedcline}\Slide@contents}%
+  {\def\slide@cline{\slide@dottedcline}\Slide@contents}}
+\def\Slide@contents{%
+  \def\l@slide##1##2##3{%
+    \ifcase\lslide@flag
+      \message{##1 ** \the\c@slidesection}
+      \ifnum##1>\c@slidesection
+        \def\lslide@flag{1}{\large\slide@cline{%
+          \slidenumberline{$\Rightarrow\bullet$}{##2}}{##3}}%
+      \else
+        {\large\slide@cline{%
+          \slidenumberline{$\surd\;\bullet$}{##2}}{##3}}%
+      \fi
+    \or
+      \def\lslide@flag{2}{\large\slide@cline{%
+        \slidenumberline{$\bullet$}{##2}}{##3}}%
+    \or
+      {\large\slide@cline{%
+        \slidenumberline{$\bullet$}{##2}}{##3}}%
+    \fi}%
+  \def\l@subslide##1##2##3{%
+    \ifnum\lslide@flag=1
+      \@undottedtocline{2}{3.8em}{3.2em}{##2}{}%
+    \fi}%
+  \def\lslide@flag{0}%
+  \@startlos}
+%
+\endinput
+%% END slidesec.sty

@@ -21,8 +21,8 @@ prof, kprof \- display profiling data
 interprets files produced automatically by programs loaded using the
 .B -p
 option of
-.I 2l
-or appropriate loader.
+.IR 2l (1)
+or other loader.
 The symbol table in the
 named program file
 .RL ( v.out
@@ -74,12 +74,12 @@ data, by default 2000 entries,
 may be controlled by setting the environment variable
 .B profsize
 before running
-.I program.
+.IR program .
 If the buffer fills, subsequent function calls may not be recorded.
 .PP
 .I Kprof
 is similar to
-.I prof,
+.IR prof ,
 but presents the data accumulated by the kernel
 profiling device,
 .IR kprof (3) .
@@ -89,6 +89,10 @@ and the data file, typically
 must be provided.
 .I Kprof
 has no options and cannot present dynamic data.
+.SH SOURCE
+.B /sys/src/cmd/prof.c
+.br
+.B /sys/src/cmd/kprof.c
 .SH SEE ALSO
 .IR 2l (1),
 .IR kprof (3)

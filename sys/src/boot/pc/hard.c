@@ -5,10 +5,11 @@
 #include	"fns.h"
 #include	"io.h"
 
+#define DPRINT if(0)print
+
 typedef	struct Drive		Drive;
 typedef	struct Ident		Ident;
 typedef	struct Controller	Controller;
-typedef struct Partition	Partition;
 
 enum
 {
@@ -43,57 +44,50 @@ enum
 	/* magic bit in drive head register */
 	Dmagic=		(1<<5),
 
-	Maxxfer=	16*1024,	/* maximum transfer size/cmd */
-	Npart=		8+2,		/* 8 sub partitions, disk, and partition */
-	Timeout=	10,		/* seconds to wait for things to complete */
+	Timeout=	4,		/* seconds to wait for things to complete */
 };
-#define PART(x)		((x)&0xF)
-#define DRIVE(x)	(((x)>>4)&0x7)
-#define MKQID(d,p)	(((d)<<4) | (p))
 
 /*
- *  ident sector from drive
+ *  ident sector from drive.  this is from ANSI X3.221-1994
  */
 struct Ident
 {
-	ushort	magic;		/* must be 0x0A5A */
-	ushort	lcyls;		/* logical number of cylinders */
-	ushort	rcyl;		/* number of removable cylinders */
-	ushort	lheads;		/* logical number of heads */
+	ushort	config;		/* general configuration info */
+	ushort	cyls;		/* # of cylinders (default) */
+	ushort	reserved0;
+	ushort	heads;		/* # of heads (default) */
 	ushort	b2t;		/* unformatted bytes/track */
 	ushort	b2s;		/* unformated bytes/sector */
-	ushort	ls2t;		/* logical sectors/track */
-	ushort	gap;		/* bytes in inter-sector gaps */
-	ushort	sync;		/* bytes in sync fields */
-	ushort	magic2;		/* must be 0x0000 */
+	ushort	s2t;		/* sectors/track (default) */
+	ushort	reserved1[3];
+/* 10 */
 	ushort	serial[10];	/* serial number */
-	ushort	type;		/* controller type (0x0003) */
+	ushort	type;		/* buffer type */
 	ushort	bsize;		/* buffer size/512 */
 	ushort	ecc;		/* ecc bytes returned by read long */
 	ushort	firm[4];	/* firmware revision */
 	ushort	model[20];	/* model number */
+/* 47 */
 	ushort	s2i;		/* number of sectors/interrupt */
 	ushort	dwtf;		/* double word transfer flag */
-	ushort	alernate;
+	ushort	capabilities;
+	ushort	reserved2;
 	ushort	piomode;
 	ushort	dmamode;
-	ushort	reserved[76];
-	ushort	ncyls;		/* native number of cylinders */
-	ushort	nheads;		/* native number of heads, sectors */
-	ushort	dlcyls;		/* default logical number of cyinders */
-	ushort	dlheads;	/* default logical number of heads, sectors */
-	ushort	interface;
-	ushort	power;		/* 0xFFFF if power commands supported */
-	ushort	flags;
-	ushort	ageprog;	/* MSB = age, LSB = program */
-	ushort	reserved2[120];
-};
-
-struct Partition
-{
-	ulong	start;
-	ulong	end;
-	char	name[NAMELEN+1];
+	ushort	cvalid;		/* (cvald&1) if next 4 words are valid */
+	ushort	ccyls;		/* current # cylinders */
+	ushort	cheads;		/* current # heads */
+	ushort	cs2t;		/* current sectors/track */
+	ushort	ccap[2];	/* current capacity in sectors */
+	ushort	cs2i;		/* current number of sectors/interrupt */
+/* 60 */
+	ushort	lbasecs[2];	/* # LBA user addressable sectors */
+	ushort	dmasingle;
+	ushort	dmadouble;
+/* 64 */
+	ushort	reserved3[64];
+	ushort	vendor[32];	/* vendor specific */
+	ushort	reserved4[96];
 };
 
 /*
@@ -104,17 +98,8 @@ struct Drive
 	Controller *cp;
 	int	drive;
 	int	confused;	/* needs to be recalibrated (or worse) */
-	int	online;
-	int	npart;		/* number of real partitions */
-	Partition p[Npart];
-	ulong	offset;
-	Partition *current;	/* current partition */
 
-	ulong	cap;		/* total bytes */
-	int	bytes;		/* bytes/sector */
-	int	sectors;	/* sectors/track */
-	int	heads;		/* heads/cyl */
-	long	cyl;		/* cylinders/drive */
+	Disc;
 };
 
 /*
@@ -122,8 +107,6 @@ struct Drive
  */
 struct Controller
 {
-	QLock;			/* exclusive access to the drive */
-
 	int	confused;	/* needs to be recalibrated (or worse) */
 	int	pbase;		/* base port */
 
@@ -146,7 +129,7 @@ struct Controller
 Controller	*hardc;
 Drive		*hard;
 
-static void	hardintr(Ureg*);
+static void	hardintr(Ureg*, void*);
 static long	hardxfer(Drive*, Partition*, int, long, long);
 static int	hardident(Drive*);
 static void	hardsetbuf(Drive*, int);
@@ -165,46 +148,54 @@ hardinit(void)
 {
 	Drive *dp;
 	Controller *cp;
-	int drive;
-	int disks;
+	uchar equip;
+	int mask, nhard;
 
-	if(conf.nhard == 0)
-		return 0;
+	equip = nvramread(0x12);
+	if(equip == 0)
+		equip = 0x10;		/* the Globalyst 250 lies */
 
-	disks = 0;
+	hard = ialloc(2 * sizeof(Drive), 0);
+	hardc = ialloc(sizeof(Controller), 0);
 
-	hard = ialloc(conf.nhard * sizeof(Drive), 0);
-	hardc = ialloc(((conf.nhard+1)/2) * sizeof(Controller), 0);
+	cp = hardc;
+	cp->buf = ialloc(Maxxfer, 0);
+	cp->cmd = 0;
+	cp->pbase = Pbase;
+	/*
+	 *  clear any pending intr from drive
+	 */
+	inb(cp->pbase+Pstatus);
+	setvec(Hardvec, hardintr, cp);
 	
-	for(drive = 0; drive < conf.nhard; drive++){
-		dp = &hard[drive];
-		cp = &hardc[drive/2];
-		dp->drive = drive&1;
+	dp = hard;
+	if(equip & 0xf0){
+		dp->drive = 0;
 		dp->online = 0;
 		dp->cp = cp;
-		if((drive&1) == 0){
-			cp->buf = ialloc(Maxxfer, 0);
-			cp->cmd = 0;
-			cp->pbase = Pbase + (cp-hardc)*8;
-			/*
-			 *  clear any pending intr from drive
-			 */
-			inb(cp->pbase+Pstatus);
-			setvec(Hardvec + (cp-hardc)*8, hardintr);
-		}
+		dp++;
 	}
+	if(equip & 0x0f){
+		dp->drive = 1;
+		dp->online = 0;
+		dp->cp = cp;
+		dp++;
+	}
+	nhard = dp-hard;
 
-	for(dp = hard; dp < &hard[conf.nhard]; dp++){
-		hardsetbuf(dp, 0);
+	mask = 0;
+	for(dp = hard; dp < &hard[nhard]; dp++){
 		if(hardparams(dp) == 0){
+			print("hd%d: %d cylinders %d heads %d sectors/track %d bytes\n",
+				dp->drive, dp->cyl, dp->heads, dp->sectors, dp->cap);
 			dp->online = 1;
 			hardpart(dp);
 			hardsetbuf(dp, 1);
-			disks++;
+			mask |= 1<<dp->drive;
 		} else
 			dp->online = 0;
 	}
-	return disks;
+	return mask;
 }
 
 long
@@ -228,13 +219,13 @@ hardwait(Controller *cp)
 		if(cp->cmd == Cident2 && TK2SEC(m->ticks - start) >= 1)
 			break;
 	if(TK2SEC(m->ticks - start) >= Timeout){
-		print("hardwait timed out %ux\n", inb(cp->pbase+Pstatus));
-		hardintr(0);
+		DPRINT("hardwait timed out %ux\n", inb(cp->pbase+Pstatus));
+		hardintr(0, cp);
 	}
 	splx(x);
 }
 
-int
+Partition*
 sethardpart(int dev, char *p)
 {
 	Partition *pp;
@@ -244,9 +235,9 @@ sethardpart(int dev, char *p)
 	for(pp = dp->p; pp < &dp->p[dp->npart]; pp++)
 		if(strcmp(pp->name, p) == 0){
 			dp->current = pp;
-			return 0;
+			return pp;
 		}
-	return -1;
+	return 0;
 }
 
 long
@@ -283,73 +274,6 @@ hardread(int dev, void *a, long n)
 	return rv;
 }
 
-long
-hardwrite(int dev, void *a, long n)
-{
-	Drive *dp;
-	long rv, i, partial;
-	uchar *aa = a;
-	Partition *pp;
-	Controller *cp;
-
-	dp = &hard[dev];
-	pp = dp->current;
-	if(pp == 0)
-		return -1;
-	cp = dp->cp;
-
-	/*
-	 *  if not starting on a sector boundary,
-	 *  read in the first sector before writing
-	 *  it out.
-	 */
-	partial = dp->offset % dp->bytes;
-	if(partial){
-		hardxfer(dp, pp, Cread, dp->offset-partial, dp->bytes);
-		if(partial+n > dp->bytes)
-			rv = dp->bytes - partial;
-		else
-			rv = n;
-		memmove(cp->buf+partial, aa, rv);
-		if(hardxfer(dp, pp, Cwrite, dp->offset-partial, dp->bytes) < 0)
-			return -1;
-	} else
-		rv = 0;
-
-	/*
-	 *  write out the full sectors
-	 */
-	partial = (n - rv) % dp->bytes;
-	n -= partial;
-	for(; rv < n; rv += i){
-		i = n - rv;
-		if(i > Maxxfer)
-			i = Maxxfer;
-		memmove(cp->buf, aa+rv, i);
-		i = hardxfer(dp, pp, Cwrite, dp->offset+rv, i);
-		if(i == 0)
-			break;
-		if(i < 0)
-			return -1;
-	}
-
-	/*
-	 *  if not ending on a sector boundary,
-	 *  read in the last sector before writing
-	 *  it out.
-	 */
-	if(partial){
-		if(hardxfer(dp, pp, Cread, dp->offset+rv, dp->bytes) < 0)
-			return -1;
-		memmove(cp->buf, aa+rv, partial);
-		if(hardxfer(dp, pp, Cwrite, dp->offset+rv, dp->bytes) < 0)
-			return -1;
-		rv += partial;
-	}
-	dp->offset += rv;
-	return rv;
-}
-
 /*
  *  wait for the controller to be ready to accept a command
  */
@@ -361,7 +285,7 @@ cmdreadywait(Controller *cp)
 	start = m->ticks;
 	while((inb(cp->pbase+Pstatus) & (Sready|Sbusy)) != Sready)
 		if(TK2MS(m->ticks - start) > Timeout){
-			print("cmdreadywait failed 0x%lux\n", inb(cp->pbase+Pstatus));
+			DPRINT("cmdreadywait failed 0x%lux\n", inb(cp->pbase+Pstatus));
 			return -1;
 		}
 	return 0;
@@ -379,7 +303,7 @@ hardxfer(Drive *dp, Partition *pp, int cmd, long start, long len)
 	int loop;
 
 	if(dp->online == 0){
-		print("disk not on line\n");
+		DPRINT("disk not on line\n");
 		return -1;
 	}
 
@@ -397,12 +321,18 @@ hardxfer(Drive *dp, Partition *pp, int cmd, long start, long len)
 	cp = dp->cp;
 	lsec = start + pp->start;
 	if(lsec >= pp->end){
-		print("read past end of partition\n");
+		DPRINT("read past end of partition\n");
 		return 0;
 	}
-	cp->tcyl = lsec/(dp->sectors*dp->heads);
-	cp->tsec = (lsec % dp->sectors) + 1;
-	cp->thead = (lsec/dp->sectors) % dp->heads;
+	if(dp->lba){
+		cp->tsec = lsec & 0xff;
+		cp->tcyl = (lsec>>8) & 0xffff;
+		cp->thead = (lsec>>24) & 0xf;
+	} else {
+		cp->tcyl = lsec/(dp->sectors*dp->heads);
+		cp->tsec = (lsec % dp->sectors) + 1;
+		cp->thead = (lsec/dp->sectors) % dp->heads;
+	}
 
 	/*
 	 *  can't xfer past end of disk
@@ -421,11 +351,11 @@ hardxfer(Drive *dp, Partition *pp, int cmd, long start, long len)
 	cp->dp = dp;
 	cp->sofar = 0;
 	cp->status = 0;
-/*print("xfer:\ttcyl %d, tsec %d, thead %d\n", cp->tcyl, cp->tsec, cp->thead);
-print("\tnsecs %d, sofar %d\n", cp->nsecs, cp->sofar);/**/
+	DPRINT("xfer:\ttcyl %d, tsec %d, thead %d\n", cp->tcyl, cp->tsec, cp->thead);
+	DPRINT("\tnsecs %d, sofar %d\n", cp->nsecs, cp->sofar);
 	outb(cp->pbase+Pcount, cp->nsecs);
 	outb(cp->pbase+Psector, cp->tsec);
-	outb(cp->pbase+Pdh, Dmagic | (dp->drive<<4) | cp->thead);
+	outb(cp->pbase+Pdh, Dmagic | (dp->drive<<4) | (dp->lba<<6) | cp->thead);
 	outb(cp->pbase+Pcyllsb, cp->tcyl);
 	outb(cp->pbase+Pcylmsb, cp->tcyl>>8);
 	outb(cp->pbase+Pcmd, cmd);
@@ -441,9 +371,11 @@ print("\tnsecs %d, sofar %d\n", cp->nsecs, cp->sofar);/**/
 	hardwait(cp);
 
 	if(cp->status & Serr){
-print("hd%d err: status %lux, err %lux\n", dp-hard, cp->status, cp->error);
-print("\ttcyl %d, tsec %d, thead %d\n", cp->tcyl, cp->tsec, cp->thead);
-print("\tnsecs %d, sofar %d\n", cp->nsecs, cp->sofar);
+		DPRINT("hd%d err: status %lux, err %lux\n",
+			dp-hard, cp->status, cp->error);
+		DPRINT("\ttcyl %d, tsec %d, thead %d\n",
+			cp->tcyl, cp->tsec, cp->thead);
+		DPRINT("\tnsecs %d, sofar %d\n", cp->nsecs, cp->sofar);
 		return -1;
 	}
 
@@ -500,10 +432,30 @@ hardident(Drive *dp)
 	hardwait(cp);
 
 	ip = (Ident*)cp->buf;
-	dp->cyl = ip->lcyls;
-	dp->heads = ip->lheads;
-	dp->sectors = ip->ls2t;
-	dp->cap = dp->bytes * dp->cyl * dp->heads * dp->sectors;
+	if(ip->capabilities & (1<<9)){
+		dp->lba = 1;
+		dp->sectors = (ip->lbasecs[0]) | (ip->lbasecs[1]<<16);
+		dp->cap = dp->bytes * dp->sectors;
+/*print("\nata%d model %s with %d lba sectors\n", dp->drive, id, dp->sectors);/**/
+	} else {
+		dp->lba = 0;
+
+		/* use default (unformatted) settings */
+		dp->cyl = ip->cyls;
+		dp->heads = ip->heads;
+		dp->sectors = ip->s2t;
+/*print("\nata%d model %s with default %d cyl %d head %d sec\n", dp->drive,
+			id, dp->cyl, dp->heads, dp->sectors);/**/
+
+		if(ip->cvalid&(1<<0)){
+			/* use current settings */
+			dp->cyl = ip->ccyls;
+			dp->heads = ip->cheads;
+			dp->sectors = ip->cs2t;
+/*print("\tchanged to %d cyl %d head %d sec\n", dp->cyl, dp->heads, dp->sectors);/**/
+		}
+		dp->cap = dp->bytes * dp->cyl * dp->heads * dp->sectors;
+	}
 
 	return 0;
 }
@@ -530,7 +482,7 @@ hardprobe(Drive *dp, int cyl, int sec, int head)
 	cp->status = 0;
 	outb(cp->pbase+Pcount, 1);
 	outb(cp->pbase+Psector, sec+1);
-	outb(cp->pbase+Pdh, Dmagic | (dp->drive<<4) | head);
+	outb(cp->pbase+Pdh, Dmagic | head | (dp->lba<<6) | (dp->drive<<4));
 	outb(cp->pbase+Pcyllsb, cyl);
 	outb(cp->pbase+Pcylmsb, cyl>>8);
 	outb(cp->pbase+Pcmd, Cread);
@@ -558,9 +510,16 @@ hardparams(Drive *dp)
 	dp->bytes = 512;
 	if(hardident(dp) < 0)
 		return -1;
-	if(hardprobe(dp, dp->cyl-1, dp->sectors-1, dp->heads-1) == 0)
-		return 0;
+	if(dp->lba){
+		i = dp->sectors - 1;
+		if(hardprobe(dp, (i>>8)&0xffff, (i&0xff)-1, (i>>24)&0xf) == 0)
+			return 0;
+	} else {
+		if(hardprobe(dp, dp->cyl-1, dp->sectors-1, dp->heads-1) == 0)
+			return 0;
+	}
 
+	DPRINT("hardparam: cyl %d sectors %d heads %d\n", dp->cyl, dp->sectors, dp->heads);
 	/*
 	 *  the drive lied, determine parameters by seeing which ones
 	 *  work to read sectors.
@@ -587,6 +546,10 @@ hardparams(Drive *dp)
 	}
 	dp->cyl = lo + 1;
 	dp->cap = dp->bytes * dp->cyl * dp->heads * dp->sectors;
+
+	if(dp->cyl == 0 || dp->heads == 0 || dp->sectors == 0 || dp->cap == 0)
+		return -1;
+
 	return 0;
 }
 
@@ -621,35 +584,42 @@ hardpart(Drive *dp)
 	dp->npart = 2;
 
 	/*
-	 *  read partition table from disk, null terminate
+	 *  read last sector from disk, null terminate.  This used
+	 *  to be the sector we used for the partition tables.
+	 *  However, this sector is special on some PC's so we've
+	 *  started to use the second last sector as the partition
+	 *  table instead.  To avoid reconfiguring all our old systems
+	 *  we first look to see if there is a valid partition
+	 *  table in the last sector.  If so, we use it.  Otherwise
+	 *  we switch to the second last.
 	 */
-	if(hardxfer(dp, pp, Cread, 0, dp->bytes) < 0){
-		print("can't read partition block\n");
-		return;
-	}
+	hardxfer(dp, pp, Cread, 0, dp->bytes);
 	cp->buf[dp->bytes-1] = 0;
+	n = getfields(cp->buf, line, Npart+1, '\n');
+	if(n == 0 || strncmp(line[0], MAGIC, sizeof(MAGIC)-1)){
+		dp->p[0].end--;
+		dp->p[1].start--;
+		dp->p[1].end--;
+		hardxfer(dp, pp, Cread, 0, dp->bytes);
+		cp->buf[dp->bytes-1] = 0;
+		n = getfields(cp->buf, line, Npart+1, '\n');
+	}
 
 	/*
 	 *  parse partition table.
 	 */
-	n = getfields(cp->buf, line, Npart+1, '\n');
-	if(strncmp(line[0], MAGIC, sizeof(MAGIC)-1) != 0){
-		print("no partition info\n");
-		return;
-	}
-	for(i = 1; i < n; i++){
-		have9part = 1;
-		pp++;
-		if(getfields(line[i], field, 3, ' ') != 3){
-			break;
+	if(n && strncmp(line[0], MAGIC, sizeof(MAGIC)-1) == 0){
+		for(i = 1; i < n; i++){
+			pp++;
+			if(getfields(line[i], field, 3, ' ') != 3)
+				break;
+			strncpy(pp->name, field[0], NAMELEN);
+			pp->start = strtoul(field[1], 0, 0);
+			pp->end = strtoul(field[2], 0, 0);
+			if(pp->start > pp->end || pp->start >= dp->p[0].end)
+				break;
+			dp->npart++;
 		}
-		strncpy(pp->name, field[0], NAMELEN);
-		pp->start = strtoul(field[1], 0, 0);
-		pp->end = strtoul(field[2], 0, 0);
-		if(pp->start > pp->end || pp->start >= dp->p[0].end)
-			break;
-/*print("\t%s 0x%lux 0x%lux\n", pp->name, pp->start, pp->end);/**/
-		dp->npart++;
 	}
 	return;
 }
@@ -658,24 +628,19 @@ hardpart(Drive *dp)
  *  we get an interrupt for every sector transferred
  */
 static void
-hardintr(Ureg *ur)
+hardintr(Ureg*, void *arg)
 {
 	Controller *cp;
 	Drive *dp;
 	long loop;
 
-	USED(ur);
-	/*
- 	 *  BUG!! if there is ever more than one controller, we need a way to
-	 *	  distinguish which interrupted
-	 */
-	cp = &hardc[0];
+	cp = arg;
 	dp = cp->dp;
 
 	loop = 0;
 	while((cp->status = inb(cp->pbase+Pstatus)) & Sbusy)
 		if(++loop > 100000){
-			print("hardintr %lux\n", cp->status);
+			print("hardintr 0x%lux\n", cp->status);
 			break;
 		}
 	switch(cp->cmd){
@@ -689,8 +654,11 @@ hardintr(Ureg *ur)
 		if(cp->sofar < cp->nsecs){
 			loop = 0;
 			while((inb(cp->pbase+Pstatus) & Sdrq) == 0)
-				if(++loop > 10000)
-					panic("hardintr 1");
+				if(++loop > 10000){
+					print("hardintr 1");
+					cp->cmd = 0;
+					return;
+				}
 			outss(cp->pbase+Pdata, &cp->buf[cp->sofar*dp->bytes],
 				dp->bytes/2);
 		} else{
@@ -706,8 +674,12 @@ hardintr(Ureg *ur)
 		}
 		loop = 0;
 		while((inb(cp->pbase+Pstatus) & Sdrq) == 0)
-			if(++loop > 100000)
-				panic("hardintr 2");
+			if(++loop > 100000){
+				print("hardintr 2 cmd %ux status %ux",
+					cp->cmd, inb(cp->pbase+Pstatus));
+				cp->cmd = 0;
+				return;
+			}
 		inss(cp->pbase+Pdata, &cp->buf[cp->sofar*dp->bytes],
 			dp->bytes/2);
 		cp->sofar++;

@@ -75,15 +75,6 @@ wreninit(Device dev)
 			fprint(2, "kfs: bad buffersize(%d): assuming 1k blocks\n", RBUFSIZE);
 			RBUFSIZE = 1024;
 		}
-	}else if(strncmp(buf, WMAGIC, strlen(WMAGIC)) == 0){
-		RBUFSIZE = atol(buf + strlen(WMAGIC));
-		if(RBUFSIZE % 512){
-			fprint(2, "kfs: bad buffersize(%d): assuming 1k blocks\n", RBUFSIZE);
-			RBUFSIZE = 1024;
-		}
-		memmove(buf+256, buf, strlen(WMAGIC)+32);
-		seek(fd, 0, 0);
-		write(fd, buf, 512);
 	}else
 		badmagic = 1;
 	w->dev = dev;
@@ -104,7 +95,7 @@ wrenream(Device dev)
 	print("kfs: reaming the file system using %d byte blocks\n", RBUFSIZE);
 	w = wren(dev);
 	fd = w->fd;
-	memset(buf, '\0', sizeof buf);
+	memset(buf, 0, sizeof buf);
 	sprint(buf+256, "%s%d\n", WMAGIC, RBUFSIZE);
 	qlock(w);
 	i = seek(fd, 0, 0) < 0 || write(fd, buf, RBUFSIZE) != RBUFSIZE;

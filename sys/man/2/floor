@@ -2,6 +2,10 @@
 .SH NAME
 fabs, fmod, floor, ceil \- absolute value, remainder, floor, ceiling functions
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
 double floor(double x)
 .PP
@@ -40,13 +44,15 @@ is zero, otherwise the number
 with the same sign as
 .IR x ,
 such that
-.I "x = iy + f"
+.I "x = iy + f\|"
 for some integer
 .IR i ,
 and
 .RI | \|f\| |
 <
-.RI | \|x\| |.
+.RI | \|y\| |.
+.SH SOURCE
+.B /sys/src/libc/port
 .SH SEE ALSO
 .IR abs (2),
 .IR frexp (2)

@@ -1,5 +1,8 @@
 #include <alef.h>
 
+/*
+ *	this test is non-deterministic.  it often loops forever.
+ */
 void
 main(void)
 {

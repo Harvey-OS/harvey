@@ -33,9 +33,10 @@
 ]
 .SH DESCRIPTION
 .I 3to1
-approximates the full color (3 bytes per pixel) input picture file in
+approximates the full color (3 bytes per pixel) or mapped (1 byte per pixel,
+possibly with a colormap) input picture file in
 one byte per pixel using the given
-.I colormap.
+.IR colormap .
 If no
 .I input
 file is named, the
@@ -71,5 +72,17 @@ likewise compresses full-color images to one byte per pixel.
 It uses a fixed color map that allows a speedy algorithm;
 .I quantize
 instead runs slower but gives better results.
+.SH SOURCE
+.B /sys/src/fb/3to1.c
+.br
+.B /sys/src/fb/mcut.c
+.br
+.B /sys/src/fb/improve.c
+.br
+.B /sys/src/fb/quantize.r
+.br
+.B /sys/src/fb/dither.c
 .SH "SEE ALSO
-.IR picfile (9.6)
+.IR picfile (9.6),
+.IR cmap (9.6)
+

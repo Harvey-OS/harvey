@@ -7,21 +7,37 @@ dev
 	uart	t
 	pipe	|
 	floppy	f
-	hard	w
+	ata	H
 	srv	s
 	dup	d
 	proc	p
 	rtc	r
-	ether	l	ether509 ether8003 ether2000 ether503 ether8390
+	ether	l
 	ip	I	tcpinput tcpoutput tcptimer tcpif stil
 	arp	a
 	iproute	P
 	vga	v
+	scsi	S	scsi adaptec ultrastor
+	wren	w
+	cdrom	R
+	audio	A
+	sbcd	m
+	i82365	y
+	reboot	↑
 
-stream
-	fcall
-	ip
-	async
+link
+	stfcall
+	stip
+	ether509
+	ether8003	ether8390
+	ether4100	ether8390
+	ether2000	ether8390
+	vgaclgd542x
+	vgaet4000
+	vgamach32
+	vgas3
+	vgabt485
+	vgatvp3020
 
 misc
 	dossrv.root
@@ -31,7 +47,5 @@ port
 	void consdebug(void){}
 	long cfslen = 0; ulong cfscode[1];
 
-boot
+boot dosboot #H/hd0
 	local
-	il
-	tcp

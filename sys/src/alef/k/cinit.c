@@ -14,7 +14,7 @@ cominit(Node *v, Type *t, Node *i, int off)
 	Node n, **ilist, *in, *treg, *tdat;
 
 	if(opt('i')) {
-		print("COMINIT %N T %T\n", v, t);
+		print("COMINIT %N T %T off %d\n", v, t, off);
 		ptree(i, 0);
 	}
 
@@ -26,12 +26,19 @@ cominit(Node *v, Type *t, Node *i, int off)
 	case TCHAR:
 	case TFLOAT:
 	case TIND:
+	case TCHANNEL:
 		if(i->sun >= Sucall) {
 			treg = stknode(builtype[TIND]);
 			v->type = OREGISTER;
+			v->t = builtype[TIND];
 			assign(v, treg);
 			tdat = stknode(i->t);
-			genexp(i, tdat);
+			n.t = i->t;
+			n.type = OASGN;
+			n.left = tdat;
+			n.right = i;
+			n.islval = 0;
+			genexp(&n, ZeroN);
 			assign(treg, v);
 			v->type = OINDREG;
 			v->ival = off;
@@ -78,6 +85,44 @@ cominit(Node *v, Type *t, Node *i, int off)
 	case TADT:
 	case TUNION:
 	case TAGGREGATE:
+		if(i->type != OILIST) {
+			if(i->sun >= Sucall) {
+				v->ival = 0;
+				v->type = OREGISTER;
+				v->t = at(TIND, t);
+				treg = stknode(v->t);
+				assign(v, treg);
+				in = an(OADD, treg, con(off));
+				in->t = v->t;
+				in = an(OIND, in, ZeroN);
+				in->t = t;
+				n.type = OASGN;
+				n.t = t;
+				n.left = in;
+				n.right = i;
+				n.islval = 0;
+				genexp(&n, ZeroN);
+				assign(treg, v);
+				v->type = OINDREG;
+				break;
+			}
+			v->ival = 0;
+			v->t = at(TIND, t);
+			v->type = OREGISTER;
+			in = an(OADD, v, con(off));
+			in->t = v->t;
+			in = an(OIND, in, ZeroN);
+			in->t = t;
+			n.type = OASGN;
+			n.t = t;
+			n.left = in;
+			n.right = i;
+			n.islval = 0;
+			genexp(&n, ZeroN);
+			v->type = OINDREG;
+			break;
+		}
+
 		veccnt = 0;
 		listcount(i->left, 0);
 		ilist = malloc(sizeof(Node*)*veccnt);
@@ -101,7 +146,6 @@ cominit(Node *v, Type *t, Node *i, int off)
 
 	case TFUNC:
 	case TVOID:
-	case TCHANNEL:
 		fatal("cominit");
 	}
 }

@@ -1,6 +1,5 @@
 #include 	<u.h>
 #include 	<libc.h>
-#include	<bio.h>
 
 typedef struct PCB	/* Control block controlling specification parse */
 {
@@ -20,9 +19,8 @@ uchar	bits[] = { 1, 2, 4, 8, 16, 32, 64, 128 };
 
 uchar	f[(MAXRUNE+1)/8];
 uchar	t[(MAXRUNE+1)/8];
-
-Biobuf	fin;
-Biobuf	fout;
+char 	wbuf[4096];
+char	*wptr;
 
 Pcb pfrom, pto;
 
@@ -39,6 +37,9 @@ long	canon(Pcb*);
 char	*getrune(char*, Rune*);
 void	Pinit(Pcb*, char*);
 void	Prewind(Pcb *p);
+int	readrune(int, long*);
+void	wflush(int);
+void	writerune(int, Rune);
 
 void
 main(int argc, char **argv)
@@ -49,8 +50,6 @@ main(int argc, char **argv)
 	case 'c':	cflag++; break;
 	default:	error("bad option");
 	}ARGEND
-	Binit(&fin, 0, OREAD);
-	Binit(&fout, 1, OWRITE);
 	if(argc>0)
 		Pinit(&pfrom, argv[0]);
 	if(argc>1)
@@ -58,7 +57,7 @@ main(int argc, char **argv)
 	if(argc>2)
 		error("arg count");
 	if(dflag) {
-		if (sflag && argc != 2)
+		if ((sflag && argc != 2) || (!sflag && argc != 1))
 			error("arg count");
 		delete();
 	} else {
@@ -90,13 +89,13 @@ delete(void)
 	}
 
 	last = 0x10000;
-	while ((c = Bgetrune(&fin)) >= 0) {
+	while (readrune(0, &c) > 0) {
 		if(!BITSET(f, c) && (c != last || !BITSET(t,c))) {
 			last = c;
-			if (Bputrune(&fout, c) < 0)
-				error("write error");
+			writerune(1, (Rune) c);
 		}
 	}
+	wflush(1);
 }
 
 void
@@ -130,24 +129,27 @@ complement(void)
 	}
 	if (sflag){
 		lastc = 0x10000;
-		while ((from = Bgetrune(&fin)) >= 0) {
-			if (from > high) from = to;
-			else from = p[from];
+		while (readrune(0, &from) > 0) {
+			if (from > high)
+				from = to;
+			else
+				from = p[from];
 			if (from != lastc || !BITSET(t,from)) {
 				lastc = from;
-				if (Bputrune(&fout, from) < 0)
-					error("write error");
+				writerune(1, (Rune) from);
 			}
 		}
 				
 	} else {
-		while ((from = Bgetrune(&fin)) >= 0){
-			if (from > high) from = to;
-			else from = p[from];
-			if (Bputrune(&fout, from) < 0)
-				error("write error");
+		while (readrune(0, &from) > 0){
+			if (from > high)
+				from = to;
+			else
+				from = p[from];
+			writerune(1, (Rune) from);
 		}
 	}
+	wflush(1);
 }
 
 void
@@ -181,22 +183,79 @@ translit(void)
 	}
 	if (sflag){
 		lastc = 0x10000;
-		while ((from = Bgetrune(&fin)) >= 0) {
-			if (from <= high) from = p[from];
+		while (readrune(0, &from) > 0) {
+			if (from <= high)
+				from = p[from];
 			if (from != lastc || !BITSET(t,from)) {
 				lastc = from;
-				if (Bputrune(&fout, from) < 0)
-					error("write error");
+				writerune(1, (Rune) from);
 			}
 		}
 				
 	} else {
-		while ((from = Bgetrune(&fin)) >= 0){
-			if (from <= high) from = p[from];
-			if (Bputrune(&fout, from) < 0)
-				error("write error");
+		while (readrune(0, &from) > 0) {
+			if (from <= high)
+				from = p[from];
+			writerune(1, (Rune) from);
 		}
 	}
+	wflush(1);
+}
+
+int
+readrune(int fd, long *rp)
+{
+	Rune r;
+	int j;
+	static int i, n;
+	static char buf[4096];
+
+	j = i;
+	for (;;) {
+		if (i >= n) {
+			wflush(1);
+			if (j != i)
+				memcpy(buf, buf+j, n-j);
+			i = n-j;
+			n = read(fd, &buf[i], sizeof(buf)-i);
+			if (n < 0)
+				error("read error");
+			if (n == 0)
+				return 0;
+			j = 0;
+			n += i;
+		}
+		i++;
+		if (fullrune(&buf[j], i-j))
+			break;
+	}
+	chartorune(&r, &buf[j]);
+	*rp = r;
+	return 1;
+}
+
+void
+writerune(int fd, Rune r)
+{
+	char buf[UTFmax];
+	int n;
+
+	if (!wptr)
+		wptr = wbuf;
+	n = runetochar(buf, (Rune*)&r);
+	if (wptr+n >= wbuf+sizeof(wbuf))
+		wflush(fd);
+	memcpy(wptr, buf, n);
+	wptr += n;
+}
+
+void
+wflush(int fd)
+{
+	if (wptr && wptr > wbuf)
+		if (write(fd, wbuf, wptr-wbuf) != wptr-wbuf)
+			error("write error");
+	wptr = wbuf;
 }
 
 char *

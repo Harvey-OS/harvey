@@ -1,0 +1,526 @@
+% siam.sty 11 Feb 88, based on article.sty 5 Feb 88
+% Changed to hardwire the right headings for publications
+% Christian Bischof, 22 January 1990
+% last modified by P. Duggan 12/11/92
+\typeout{Document Style "siamltex". v2.1 Released 1 January 1993}
+\def\myoddhead{ }
+\def\myevenhead{ }
+
+\def\@ptsize{0} \@namedef{ds@11pt}{\def\@ptsize{1}}
+\@namedef{ds@12pt}{\def\@ptsize{2}} 
+\def\ds@twoside{\@twosidetrue \@mparswitchtrue} \def\ds@draft{\overfullrule
+5pt} 
+\@options
+\input siam1\@ptsize.sty\relax
+
+
+\def\labelenumi{\arabic{enumi}.} 
+\def\theenumi{\arabic{enumi}} 
+\def\labelenumii{(\alph{enumii})}
+\def\theenumii{(\alph{enumii})}
+\def\p@enumii{\theenumi}
+\def\labelenumiii{\roman{enumiii}.}
+\def\theenumiii{\roman{enumiii}}
+\def\p@enumiii{\theenumi\theenumii}
+\def\labelenumiv{\Alph{enumiv}.}
+\def\theenumiv{\Alph{enumiv}} 
+\def\p@enumiv{\p@enumiii\theenumiii}
+
+\def\labelitemi{$\bullet$}
+\def\labelitemii{\bf --}
+\def\labelitemiii{$\ast$}
+\def\labelitemiv{$\cdot$}
+
+\def\verse{\let\\=\@centercr 
+ \list{}{\itemsep\z@ \itemindent -1.5em\listparindent \itemindent 
+ \rightmargin\leftmargin\advance\leftmargin 1.5em}\item[]}
+\let\endverse\endlist
+\def\quotation{\list{}{\listparindent 1.5em
+ \itemindent\listparindent
+ \rightmargin\leftmargin \parsep 0pt plus 1pt}\item[]}
+\let\endquotation=\endlist
+\def\quote{\list{}{\rightmargin\leftmargin}\item[]}
+\let\endquote=\endlist
+
+%\def\descriptionlabel#1{\hspace\labelsep \bf #1}
+%\def\description{\list{}{\labelwidth\z@ \itemindent-\leftmargin
+% \let\makelabel\descriptionlabel}}
+%\let\enddescription\endlist
+
+\def\descriptionlabel#1{\bf #1}
+\def\description{\list{}{\labelwidth10pt
+ \let\makelabel\descriptionlabel}}
+\let\enddescription\endlist
+
+\newcounter{rmnum}
+
+\newenvironment{romannum}{\begin{list}{{\rm (\roman{rmnum})}}{\usecounter{rmnum}
+\setlength{\leftmargin}{0pt}\setlength{\itemindent}{42pt}}}{\end{list}}
+
+\newcounter{muni}
+
+\newenvironment{remunerate}{\begin{list}{{\rm \arabic{muni}.}}{\usecounter{muni}
+\setlength{\leftmargin}{0pt}\setlength{\itemindent}{38pt}}}{\end{list}}
+
+
+\newcounter{part}
+\newcounter {section}
+\newcounter {subsection}[section]
+\newcounter {subsubsection}[subsection]
+\newcounter {paragraph}[subsubsection]
+\newcounter {subparagraph}[paragraph]
+
+\def\@begintheorem#1#2{\par\bgroup{\sc #1\ #2. }\it\ignorespaces}
+\def\@opargbegintheorem#1#2#3{\par\bgroup{\sc #1\ #2\ (#3). }\it\ignorespaces}
+\def\@endtheorem{\egroup}
+\def\proof{\par{\it Proof}. \ignorespaces}
+\def\endproof{{\ \vbox{\hrule\hbox{%
+   \vrule height1.3ex\hskip0.8ex\vrule}\hrule
+  }}\par}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\def\theequation{\arabic{equation}}
+\def\@eqnnum{\hbox to .01pt{}\rlap{\rm \hskip -\displaywidth(\theequation)}}
+
+
+\def\titlepage{\@restonecolfalse\if@twocolumn\@restonecoltrue\onecolumn
+ \else \newpage \fi \thispagestyle{empty}\c@page\z@}
+\def\endtitlepage{\if@restonecol\twocolumn \else \newpage \fi}
+
+\arraycolsep 5pt \tabcolsep 6pt \arrayrulewidth .4pt \doublerulesep 2pt 
+\tabbingsep \labelsep 
+
+\skip\@mpfootins = \skip\footins
+\fboxsep = 3pt \fboxrule = .4pt 
+
+\def\thepart{\Roman{part}} \def\thesection {\arabic{section}}
+\def\thesubsection {\thesection.\arabic{subsection}}
+\def\thesubsubsection {\thesubsection .\arabic{subsubsection}}
+\def\theparagraph {\thesubsubsection.\arabic{paragraph}}
+\def\thesubparagraph {\theparagraph.\arabic{subparagraph}}
+\def\@sect#1#2#3#4#5#6[#7]#8{\ifnum #2>\c@secnumdepth
+     \def\@svsec{}\else 
+     \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname.\hskip .5em }\fi
+     \@tempskipa #5\relax
+      \ifdim \@tempskipa>\z@ 
+        \begingroup #6\relax
+          \@hangfrom{\hskip #3\relax\@svsec}{\interlinepenalty \@M #8\par}
+        \endgroup
+       \csname #1mark\endcsname{#7}\addcontentsline
+         {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                      \protect\numberline{\csname the#1\endcsname}\fi
+                    #7}\else
+        \def\@svsechd{#6\hskip #3\@svsec #8.\csname #1mark\endcsname
+                      {#7}\addcontentsline
+                           {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                             \protect\numberline{\csname the#1\endcsname}\fi
+                       #7}}\fi
+     \@xsect{#5}}
+\def\@ssect#1#2#3#4#5{\@tempskipa #3\relax
+   \ifdim \@tempskipa>\z@
+     \begingroup #4\@hangfrom{\hskip #1}{\interlinepenalty \@M
+#5.\par}\endgroup
+   \else \def\@svsechd{#4\hskip #1\relax #5.}\fi
+    \@xsect{#3}}
+
+
+\def\@pnumwidth{1.55em}
+\def\@tocrmarg {2.55em}
+\def\@dotsep{4.5}
+\setcounter{tocdepth}{3}
+
+\def\tableofcontents{\section*{Contents\@mkboth{CONTENTS}{CONTENTS}}
+ \@starttoc{toc}}
+\def\l@part#1#2{\addpenalty{\@secpenalty}
+ \addvspace{2.25em plus 1pt} \begingroup
+ \@tempdima 3em \parindent \z@ \rightskip \@pnumwidth \parfillskip
+-\@pnumwidth 
+ {\bf \leavevmode #1\hfil \hbox to\@pnumwidth{\hss #2}}\par
+ \nobreak \endgroup}
+\def\l@section#1#2{\addpenalty{\@secpenalty} \addvspace{1.0em plus 1pt}
+\@tempdima 1.5em \begingroup
+ \parindent \z@ \rightskip \@pnumwidth 
+ \parfillskip -\@pnumwidth 
+ \bf \leavevmode \advance\leftskip\@tempdima \hskip -\leftskip #1\nobreak\hfil
+\nobreak\hbox to\@pnumwidth{\hss #2}\par
+ \endgroup}
+\def\l@subsection{\@dottedtocline{2}{1.5em}{2.3em}}
+\def\l@subsubsection{\@dottedtocline{3}{3.8em}{3.2em}}
+\def\l@paragraph{\@dottedtocline{4}{7.0em}{4.1em}}
+\def\l@subparagraph{\@dottedtocline{5}{10em}{5em}}
+\def\listoffigures{\section*{List of Figures\@mkboth
+ {LIST OF FIGURES}{LIST OF FIGURES}}\@starttoc{lof}}
+\def\l@figure{\@dottedtocline{1}{1.5em}{2.3em}}
+\def\listoftables{\section*{List of Tables\@mkboth
+ {LIST OF TABLES}{LIST OF TABLES}}\@starttoc{lot}}
+\let\l@table\l@figure
+
+
+\def\thebibliography#1{\par\addvspace{.25in}%
+\begin{center}\footnotesize REFERENCES\end{center}\@mkboth
+ {REFERENCES}{REFERENCES}\addvspace{.15in}\nopagebreak\list
+ {[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}\leftmargin\labelwidth
+ \advance\leftmargin\labelsep \advance\leftmargin 16pt \itemindent -16pt
+ \usecounter{enumi}}
+ \def\newblock{\hskip .11em plus .33em minus .07em}
+ \sloppy\clubpenalty4000\widowpenalty4000
+ \sfcode`\.=1000\relax\footnotesize}
+\let\endthebibliography=\endlist
+ 
+
+\newif\if@restonecol
+\def\theindex{\@restonecoltrue\if@twocolumn\@restonecolfalse\fi
+\columnseprule \z@
+\columnsep 35pt\twocolumn[\section*{Index}]
+ \@mkboth{INDEX}{INDEX}\thispagestyle{plain}\parindent\z@
+ \parskip\z@ plus .3pt\relax\let\item\@idxitem}
+\def\@idxitem{\par\hangindent 40pt}
+\def\subitem{\par\hangindent 40pt \hspace*{20pt}}
+\def\subsubitem{\par\hangindent 40pt \hspace*{30pt}}
+\def\endtheindex{\if@restonecol\onecolumn\else\clearpage\fi}
+\def\indexspace{\par \vskip 10pt plus 5pt minus 3pt\relax}
+
+\def\footnoterule{\kern-3\p@ 
+ \hrule width .5in 
+ \kern 2.6\p@} 
+
+\long\def\@makefntext#1{\parindent .25in\noindent 
+ \hbox to .25in{\hss$^{\@thefnmark}$\kern 3pt}#1}
+
+
+\setcounter{topnumber}{2}
+\def\topfraction{.9}
+\setcounter{bottomnumber}{1}
+\def\bottomfraction{.1}
+\setcounter{totalnumber}{3}
+\def\textfraction{.1}
+\def\floatpagefraction{.91}
+\setcounter{dbltopnumber}{2}
+\def\dbltopfraction{.7}
+\def\dblfloatpagefraction{.5}
+
+
+\def\@tabtxt{table}
+\long\def\@makecaption#1#2{\footnotesize
+        \setlength{\parindent}{1.5pc}
+ \ifx\@captype\@tabtxt
+\hbox to\hsize{\hfil{\sc #1}\hfil}%
+ \setbox\@tempboxa\hbox{{\it #2}}%
+ \ifdim \wd\@tempboxa >\hsize {\it #2}\par \else
+ \hbox to \hsize{\hfil\box\@tempboxa\hfil}\fi
+ \vskip 10pt
+\else \vskip 10pt 
+ \setbox\@tempboxa\hbox{{\sc #1}. {\it #2}}
+ \ifdim \wd\@tempboxa >\hsize {\sc #1}. {\it #2}\par \else \hbox
+to\hsize{\hfil\box\@tempboxa\hfil}%
+ \fi
+ \fi}
+
+
+\newcounter{figure}
+\def\thefigure{\@arabic\c@figure}
+\def\fps@figure{tp}
+\def\ftype@figure{1}
+\def\ext@figure{lof}
+\def\fnum@figure{Fig.\ \thefigure}
+\def\figure{\@float{figure}}
+\let\endfigure\end@float
+\@namedef{figure*}{\@dblfloat{figure}}
+\@namedef{endfigure*}{\end@dblfloat}
+\newcounter{table}
+\def\thetable{\@arabic\c@table}
+\def\fps@table{tp}
+\def\ftype@table{2}
+\def\ext@table{lot}
+\def\fnum@table{Table \thetable}
+\def\table{\@float{table}}
+\let\endtable\end@float
+\@namedef{table*}{\@dblfloat{table}}
+\@namedef{endtable*}{\end@dblfloat}
+
+
+\def\maketitle{\par
+ \begingroup
+ \def\thefootnote{\fnsymbol{footnote}}
+ \def\@makefnmark{\hbox 
+ to 0pt{$^{\@thefnmark}$\hss}} 
+ \if@twocolumn 
+ \twocolumn[\@maketitle] 
+ \else %%%% commented out for \newpage
+ \global\@topnum\z@ \@maketitle \fi\thispagestyle{plain}\@thanks
+ \endgroup
+ \setcounter{footnote}{0}
+ \let\maketitle\relax
+ \let\@maketitle\relax
+ \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+\def\@maketitle{%%% commented out\newpage
+ \null
+ \begin{center}
+  {\bf\@ucnothanks\@title\par}\vskip .075in
+  {\footnotesize\spaceskip=1.5\fontdimen2\the\font
+  \def\and{\ \scriptsize AND }\@tempswafalse\expandafter\@doauth\@author\and\relax}
+ \end{center}
+ \par \vskip .11in}
+\def\@ucnothanks#1{\expandafter\@ucnt#1\thanks\relax}
+\def\@ucnt#1\thanks{\uppercase{#1}\futurelet\@tempa\@ucnta}
+\def\@ucnta{\ifx\@tempa\relax\else\@ucntb\fi}
+\def\@ucntb#1\thanks\relax{\thanks{#1}}
+\def\@doauth#1\and{\let\@nextdoa=\@doauth
+ \def\@tempc{\@ucnothanks{#1}}
+ \futurelet\@tempa\@doautha}
+\def\@doautha{\ifx\@tempa\relax
+  \if@tempswa {\and}\fi
+  \let\@nextdoa=\relax
+ \else
+  \if@tempswa \gdef\and{,\ \scriptsize AND }, \fi
+ \fi
+ \@tempc\unskip\@tempswatrue\@nextdoa}
+\let\and=\relax
+\def\@abssec#1{\vspace{.05in}\footnotesize \parindent .2in
+{\bf #1. }\ignorespaces}
+\def\abstract{\@abssec{Abstract}}
+\def\keywords{\@abssec{Key words}}
+\def\AMS{\@abssec{AMS subject classifications}}
+\def\AM{\@abssec{AMS subject classification}}
+
+\def\endabstract{\par\vspace{.1in}}
+\let\endkeywords\endabstract
+\let\endAMS\endabstract
+\let\endAM\endabstract
+
+\mark{{}{}} 
+
+\def\ps@plain{\let\@mkboth\@gobbletwo
+     \def\@oddhead{}\def\@oddfoot{\footnotesize\rm\hfil\thepage
+     \hfil}\def\@evenhead{}\let\@evenfoot\@oddfoot}
+\if@twoside \def\ps@headings{\let\@mkboth\markboth
+\def\@oddfoot{}\def\@evenfoot{}\def\@evenhead{
+\rm\rlap{\thepage}\footnotesize\rm
+\hfil \leftmark\hfil}\def\@oddhead{\hbox{}\hfil
+{\footnotesize\rm\rightmark \hfil}\llap{\rm\thepage}}
+\def\sectionmark##1{\markboth {\uppercase{\ifnum \c@secnumdepth
+>\z@
+ \thesection.\hskip 1em\relax \fi ##1}}{}}\def\subsectionmark##1{\markright
+{\ifnum \c@secnumdepth >\@ne
+ \thesubsection.\hskip 1em\relax \fi ##1}}}
+\else \def\ps@headings{\let\@mkboth\markboth\def\@oddfoot{}\def\@evenfoot{}%
+\def\@oddhead{\hbox{}\hfil{\footnotesize\rm \rightmark}\hfil
+\llap{\rm\thepage}}\def\sectionmark##1{\markright
+{\uppercase{\ifnum \c@secnumdepth >\z@
+ \thesection.\hskip 1em\relax \fi ##1}}}}
+\fi
+\def\ps@myheadings{\let\@mkboth\@gobbletwo
+\def\@oddhead{\hbox{}\hfil{\footnotesize\rm {\scriptsize \myoddhead}
+\rightmark}\hfil
+\llap{\rm\thepage}}\def\@oddfoot{}%
+\def\@evenhead{\rm\rlap{\thepage}\footnotesize\rm
+\hfil \leftmark {\scriptsize \myevenhead}
+\hfil\hbox{}}\def\@evenfoot{}\def\sectionmark##1{}%
+\def\subsectionmark##1{}}
+
+\def\sameauthor{\leavevmode\vrule height 2pt depth -1.6pt width 23pt}
+
+\def\endproof{\vbox{\hrule\hbox{%
+   \vrule height1.3ex\hskip0.8ex\vrule}\hrule
+  }}
+
+\def\today{\ifcase\month\or
+ January\or February\or March\or April\or May\or June\or
+ July\or August\or September\or October\or November\or December\fi
+ \space\number\day, \number\year}
+
+
+\ps@plain \pagenumbering{arabic} \onecolumn \if@twoside\else\raggedbottom\fi
+
+
+%\font\sevbf=cmbx7
+%\@addfontinfo\@xpt{\def\pbf{\fam\bffam\tenbf}\scriptfont\bffam\sevbf}
+
+%\font\eightbf=cmbx8
+%\@addfontinfo\@viiipt{\def\pbf{\fam\bffam\tenbf}\textfont\bffam\eightbf}
+
+%\font\sevsyb=cmbsy7
+%\@addfontinfo\@xpt{\def\pbf{\fam\bffam\tensyb}\scriptfont\bffam\sevsyb}
+
+%\font\sevsf=cmss8
+%\@addfontinfo\@xpt{\def\psf{\fam\sffam\tensf}\scriptfont\sffam\sevsf}
+
+%\@getfont\psc\scfam\@viiipt{cmcsc8} % this font is installation dependant
+
+%\font\sevmib=cmmib7
+%\@addfontinfo\@xpt{\def\boldmath{\@prtct\@nomathbold
+%\scriptfont\@ne\sevmib \@prtct\@boldtrue}}
+
+% FIXUP DOCUMENT STYLE OPTION
+%    for LaTeX Version 2.09 <25 Jan 1988>
+%        by John Hobby
+%
+% If the fleqn style option is also used, it should precede this one.
+ 
+ 
+\hyphenation{bi-dif-fer-en-tial buzz-word data-path equi-vari-ant gauss-ian
+    hexa-dec-i-mal le-gendre mass-a-chu-setts non-smooth
+    qua-si-smooth stand-alone time-stamp wave-guide white-space}
+ 
+ 
+ 
+ 
+% Fix Plain's \bigl, \Bigl, etc. macros so that they try to scale with
+% LaTeX size changes.  This uses the fact that \@setsize sets \ht\strutbox
+% to be 70% of the normal unstretched baselineskip.
+ 
+\def\big#1{{\hbox{$\left#1\vcenter to1.428\ht\strutbox{}\right.\n@space$}}}
+\def\Big#1{{\hbox{$\left#1\vcenter to2.142\ht\strutbox{}\right.\n@space$}}}
+\def\bigg#1{{\hbox{$\left#1\vcenter to2.857\ht\strutbox{}\right.\n@space$}}}
+\def\Bigg#1{{\hbox{$\left#1\vcenter to3.571\ht\strutbox{}\right.\n@space$}}}
+\def\biggg#1{{\hbox{$\left#1\vcenter to4.286\ht\strutbox{}\right.\n@space$}}}
+\def\Biggg#1{{\hbox{$\left#1\vcenter to5.000\ht\strutbox{}\right.\n@space$}}}
+ 
+ 
+ 
+ 
+ 
+% Fix \sbox and \mbox so that they do not take the box contents as a
+%parameter.
+% This makes environments that  depend on catcode changes work inside
+ 
+\def\sbox#1{\setbox#1\hbox}
+\def\mbox{\leavevmode\hbox}
+ 
+ 
+ 
+ 
+ 
+ 
+% Apply \addpenalty's trick for not confusing \addvspace so that the \write
+% from \addtocontents or \addcontentsline will not mess up vertical spacing
+ 
+\def\addvstuff#1{%
+    \ifvmode\ifdim\lastskip=\z@ #1%
+        \else \@tempskipb\lastskip
+          \vskip -\lastskip #1\vskip\@tempskipb
+        \fi
+    \else #1\fi}
+ 
+\def\addpenalty#1{\ifvmode
+   \if@minipage\else\if@nobreak\else
+      \addvstuff{\penalty#1}%
+      \fi\fi
+   \else\@noitemerr\fi}
+ 
+\long\def\addtocontents#1#2{%
+    \if@filesw \begingroup
+    \let\label\@gobble \let\index\@gobble
+    \def\protect##1{\string\string\string##1\string\space\space}%
+    \edef\@tempa{\write \@auxout {\string\@writefile{#1}{#2}}}%
+    \addvstuff{\@tempa \if@nobreak \ifvmode\nobreak\fi\fi}%
+    \endgroup\fi}
+ 
+\def\addcontentsline#1#2#3{%
+    \if@filesw \begingroup
+    \let\label\@gobble \let\index\@gobble
+    \def\protect##1{\string\string\string##1\string\space\space}%
+    \@temptokena{\thepage}%
+    \edef\@tempa{\write \@auxout{\string\@writefile{#1}%
+            {\protect\contentsline{#2}{#3}{\the\@temptokena}}}}%
+    \addvstuff{\@tempa \if@nobreak \ifvmode\nobreak\fi\fi}%
+    \endgroup\fi}
+ 
+ 
+ 
+ 
+% Make floats use the trick from the minipage environment to avoid extraneous
+% space at the top.  e.g., "\begin{figure} \begin{center}..."
+ 
+\def\@xfloat#1[#2]{\ifhmode \@bsphack\@floatpenalty -\@Mii\else
+   \@floatpenalty-\@Miii\fi\def\@captype{#1}\ifinner
+      \@parmoderr\@floatpenalty\z@
+    \else\@next\@currbox\@freelist{\@tempcnta\csname ftype@#1\endcsname
+       \multiply\@tempcnta\@xxxii\advance\@tempcnta\sixt@@n
+       \@tfor \@tempa :=#2\do
+                        {\if\@tempa h\advance\@tempcnta \@ne\fi
+                         \if\@tempa t\advance\@tempcnta \tw@\fi
+                         \if\@tempa b\advance\@tempcnta 4\relax\fi
+                         \if\@tempa p\advance\@tempcnta 8\relax\fi
+         }\global\count\@currbox\@tempcnta}\@fltovf\fi
+    \global\setbox\@currbox\vbox\bgroup
+    \hsize\columnwidth \@parboxrestore
+    \@minipagetrue
+    \everypar{\global\@minipagefalse\everypar{}}}
+ 
+ 
+ 
+ 
+% We now redefine the eqnarray environment to correct the space around
+% the operator.  Since the fleqn document style option also redefines
+% this environment, we carefully check the previous definition before
+% making any changes.  Any changes to the definition in LaTeX itself
+% or in the fleqn document style option will cause the `Warning: unable...'
+% message to appear.  If this happens it will be necessary to update the
+% definitions of \@tempa and \@tempb below and incorperate the changes into
+% the new definitions of \eqnarray.
+ 
+ 
+% This is the current definition of \eqnarray for the fleqn document style
+% option:
+ 
+\def\@tempa{\stepcounter{equation}\let\@currentlabel=\theequation
+\global\@eqnswtrue
+\global\@eqcnt\z@\tabskip\mathindent\let\\=\@eqncr
+\abovedisplayskip\topsep\ifvmode\advance\abovedisplayskip\partopsep\fi
+\belowdisplayskip\abovedisplayskip
+\belowdisplayshortskip\abovedisplayskip
+\abovedisplayshortskip\abovedisplayskip
+$$\halign to
+\linewidth\bgroup\@eqnsel\hskip\@centering$\displaystyle\tabskip\z@
+{##}$&\global\@eqcnt\@ne \hskip 2\arraycolsep \hfil${##}$\hfil
+&\global\@eqcnt\tw@ \hskip 2\arraycolsep $\displaystyle{##}$\hfil
+\tabskip\@centering&\llap{##}\tabskip\z@\cr}
+ 
+ 
+% Here is the corresponding defintion from latex.tex:
+ 
+\def\@tempb{\stepcounter{equation}\let\@currentlabel=\theequation
+\global\@eqnswtrue
+\global\@eqcnt\z@\tabskip\@centering\let\\=\@eqncr
+$$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
+ $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne
+  \hskip 2\arraycolsep \hfil${##}$\hfil
+  &\global\@eqcnt\tw@ \hskip 2\arraycolsep $\displaystyle\tabskip\z@{##}$\hfil
+   \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+ 
+ 
+\ifx\eqnarray\@tempa        % If the fleqn document style option is in effect
+ 
+    \def\eqnarray{\stepcounter{equation}\let\@currentlabel=\theequation
+    \global\@eqnswtrue
+    \global\@eqcnt\z@\tabskip\mathindent\let\\=\@eqncr
+    \abovedisplayskip\topsep\ifvmode\advance\abovedisplayskip\partopsep\fi
+    \belowdisplayskip\abovedisplayskip
+    \belowdisplayshortskip\abovedisplayskip
+    \abovedisplayshortskip\abovedisplayskip
+    $$\halign to \linewidth\bgroup\hfil
+      $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne
+      \hfil$\displaystyle{{}##{}}$\hfil
+      &\global\@eqcnt\tw@ $\displaystyle{##}$\hfil
+       \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+ 
+\else\ifx\eqnarray\@tempb    % Else try the default eqnarray environment
+ 
+    \def\eqnarray{\stepcounter{equation}\let\@currentlabel=\theequation
+    \global\@eqnswtrue
+    \global\@eqcnt\z@\tabskip\@centering\let\\=\@eqncr
+    $$\halign to \displaywidth\bgroup\hfil
+      $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne
+      \hfil$\displaystyle{{}##{}}$\hfil
+      &\global\@eqcnt\tw@ $\displaystyle{##}$\hfil
+       \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+ 
+\else    \typeout{Warning: Unable to fix unknown version of \string\enarray.}
+\fi\fi
+ 
+\def\@tempa{}            % Free up TeX's memory
+\def\@tempb{}

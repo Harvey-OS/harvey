@@ -8,6 +8,7 @@ void	define(char*);
 void	call(char*);
 void	include(char*);
 int	process(Biobuf*);
+int	server(void);
 
 enum{
 	ARC,
@@ -125,67 +126,60 @@ double *pts[NPTS];		/* control-polygon vertex pointers */
 void
 main(int arc, char *arv[]){
 	char *ap;
-	Biobuf *fd;
-	fd = 0;
-	openpl("");
+	Biobuf *bp;
+	int fd;
+	int i;
+	int dflag;
+	char *oflag;
+	bp = 0;
+	fd = dup(0, -1);		/* because openpl will close 0! */
+	dflag=0;
+	oflag="";
+	for(i=1;i!=arc;i++) if(arv[i][0]=='-') switch(arv[i][1]){
+	case 'd': dflag=1; break;
+	case 'o': oflag=arv[i]+2; break;
+	case 's': fd=server(); break;
+	case 'W': setwindow(arv[i]+2); break;
+	}
+	openpl(oflag);
+	if(dflag) doublebuffer();
 	for (; arc > 1; arc--, arv++) {
 		if (arv[1][0] == '-') {
 			ap = arv[1];
 			ap++;
-			if (*ap == 'T')
-				continue;
-			if (*ap == 'D')
-				continue;
 			switch (*ap) {
-			case 'd':
-				doublebuffer();
-				break;
-			case 'e':
-				erase();
-				continue;
-			case 'C':
-				closepl();
-				continue;
-			case 'w':
-				ppause();
-				continue;
-			case 'c':
-				color(ap+1);
-				continue;
-			case 'f':
-				cfill(ap+1);
-				continue;
-			case 'p':
-				pen(ap+1);
-				continue;
-			case 'o':
-				openpl(ap+1);
-				continue;
-			case 'g':
-				grade(atof(ap+1));
-				continue;
 			default:
-				fprint(2, "%s not allowed as argument\n",
-				    ap);
+				fprint(2, "%s not allowed as argument\n", ap);
 				exits("usage");
+			case 'T': break;
+			case 'D': break;
+			case 'd': break;
+			case 'o': break;
+			case 'W': break;
+			case 's': break;
+			case 'e': erase(); break;
+			case 'C': closepl(); break;
+			case 'w': ppause(); break;
+			case 'c': color(ap+1); break;
+			case 'f': cfill(ap+1); break;
+			case 'p': pen(ap+1); break;
+			case 'g': grade(atof(ap+1)); break;
 			}
-			continue;
 		}
-		if ((fd = Bopen(arv[1], OREAD)) == 0) {
+		else if ((bp = Bopen(arv[1], OREAD)) == 0) {
 			perror(arv[1]);
 			fprint(2, "Cannot find file %s\n", arv[1]);
-			continue;
 		}
-		if(!process(fd))
-			break;
-		Bclose(fsp->fd);
+		else if(process(bp)) Bterm(fsp->fd);
+		else break;
 	}
-	if (fd == 0){
-		fd = malloc(sizeof *fd);
-		Binit(fd, 0, OREAD);
-		process(fd);
+	if (bp == 0){
+		bp = malloc(sizeof *bp);
+		Binit(bp, fd, OREAD);
+		process(bp);
 	}
 	closepl();
+	read(0, "x", 1);
 	exits(0);
 }
 int isalpha(int c)
@@ -225,7 +219,7 @@ int nextc(void){
 		}else
 			c=Beof;
 		if(c!=Beof || fsp==fstack) break;
-		if(fsp->fd) Bclose(fsp->fd);
+		if(fsp->fd) Bterm(fsp->fd);
 		--fsp;
 	}
 	if(c=='\n') fsp->lineno++;
@@ -598,4 +592,18 @@ void include(char *a){
 	fsp->lineno=1;
 	fsp->corebuf=0;
 	fsp->fd=fd;
+}
+/*
+ * Doesn't work.  Why?
+ */
+int server(void){
+	int fd, p[2];
+	char buf[32];
+	pipe(p);
+	fd = create("/srv/plot", 1, 0666);
+	sprint(buf, "%d", p[1]);
+	write(fd, buf, strlen(buf));
+	close(fd);
+	close(p[1]);
+	return p[0];
 }

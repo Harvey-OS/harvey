@@ -91,14 +91,14 @@ Make the command line arguments sequentially rather than in parallel.
 Touch (update the modified date of) file targets, without
 executing any recipes.
 .TP
-.BI -w target1,target2,...
+.BI -w target1 , target2,...
 Pretend the modify time for each
 .I target
 is the current time; useful in conjunction with
 .B -n
 to learn what updates would be triggered by
 modifying the
-.I targets.
+.IR targets .
 .PD
 .PP
 The
@@ -108,7 +108,7 @@ script
 extracts member names
 (see `Aggregates' below)
 from its arguments.
-.SS The \f(CWmkfile\fP
+.SS The \fLmkfile\fP
 A
 .I mkfile
 consists of
@@ -118,13 +118,13 @@ consists of
 A rule contains
 .I targets
 and a
-.I tail.
+.IR tail .
 A target is a literal string
 and is normally a file name.
 The tail contains zero or more 
 .I prerequisites
 and an optional
-.I recipe,
+.IR recipe ,
 which is an
 .B rc
 script.
@@ -208,7 +208,7 @@ Non-recipe lines are processed by substituting for
 the output of the
 .I command
 when run by
-.I rc.
+.IR rc .
 References to variables are replaced by the variables' values.
 Special characters may be quoted using single quotes
 .BR \&''
@@ -226,21 +226,21 @@ or
 A later rule may modify or override an existing rule under the
 following conditions:
 .TP
--
+\-
 If the targets of the rules exactly match and one rule
 contains only a prerequisite clause and no recipe, the
 clause is added to the prerequisites of the other rule.
 If either or both targets are virtual, the recipe is
 always executed.
 .TP
--
+\-
 If the targets of the rules match exactly and the
 prerequisites do not match and both rules
 contain recipes,
 .I mk
 reports an ``ambiguous recipe'' error.
 .TP
--
+\-
 If the target and prerequisites of both rules match exactly,
 the second rule overrides the first.
 .SS Environment
@@ -254,7 +254,7 @@ or
 is expanded as in
 .IR rc (1).
 A reference of the form
-.BI ${name: A % B = C\f(CW%\fID\f(CW}\fR,
+.BI ${name: A % B = C\fL%\fID\fL}\fR,
 where
 .I A, B, C, D
 are (possibly empty) strings,
@@ -271,12 +271,12 @@ for
 in each word in
 .B $name
 that matches pattern
-.IB A % B .
+.IB A % B\f1.
 .PP
 Variables can be set by
 assignments of the form
 .I
-        var\f(CW=\fR[\fIattr\f(CW=\fR]\fIvalue\fR
+        var\fL=\fR[\fIattr\fL=\fR]\fIvalue\fR
 .br
 Blanks in the
 .I value
@@ -297,7 +297,7 @@ the default values below,
 environment, the
 .IR mkfiles ,
 and any command line assignment as an argument to
-.I mk.
+.IR mk .
 A variable assignment argument overrides the first (but not any subsequent)
 assignment to that variable.
 The variable
@@ -320,10 +320,9 @@ It is recommended that mkfiles start with
 to set
 .BR CC ,
 .BR LD ,
-.BR RL ,
 .BR AS ,
 .BR O ,
-.BR LEX ,
+.BR ALEF ,
 .BR YACC ,
 and
 .B MK
@@ -404,7 +403,7 @@ the prerequisites that caused this rule to execute.
 .B $nproc
 the process slot for this recipe.
 It satisfies
-.RB 0\(<= $nproc < $NPROC .
+.RB 0≤ $nproc < $NPROC .
 .TP
 .B $pid
 the process id for the
@@ -432,7 +431,7 @@ the targets for this rule that need to be remade.
 .PP
 These variables are available only during the execution of a recipe,
 not while evaluating the
-.I mkfile.
+.IR mkfile .
 .PP
 Unless the rule has the
 .B Q
@@ -452,7 +451,7 @@ execute in a copy of
 .I mk's
 environment; changes they make to
 environment variables are not visible from
-.I mk.
+.IR mk .
 .PP
 Variable substitution in a rule is done when
 the rule is read; variable substitution in the recipe is done
@@ -495,7 +494,7 @@ The attributes are:
 The standard output of the recipe is read by
 .I mk
 as an additional
-.I mkfile.
+.IR mkfile .
 .PD 0
 .TP
 .B D
@@ -535,13 +534,9 @@ The target is interpreted as a regular expression as defined in
 .IR regexp (6).
 The prerequisites may contain references
 to subexpressions in form
-.BI \e n,
-as in the
-.I source
-argument to
-.I regsub
-(see
-.IR regexp (2)).
+.BI \e n\f1,
+as in the substitute command of
+.IR sam (1).
 .TP
 .B U
 The targets are considered to have been updated
@@ -568,7 +563,7 @@ prog:	a.$O b.$O c.$O
 Override flag settings in the mkfile:
 .IP
 .EX
-% mk target 'CFLAGS=-O -s'
+% mk target 'CFLAGS=-S -w'
 .EE
 .PP
 To get the prerequisites for an aggregate:
@@ -584,7 +579,7 @@ Maintain a library:
 libc.a(%.$O):N:	%.$O
 libc.a:	libc.a(abs.$O) libc.a(access.$O) libc.a(alarm.$O) ...
 	names=`{membername $newprereq}
-	ar r libc.a $names && $RL libc.a && rm $names
+	ar r libc.a $names && rm $names
 .EE
 .PP
 String expression variables to derive names from a master list:
@@ -630,15 +625,17 @@ rule:
 x.tab.h:Pcmp -s:	y.tab.h
 	cp y.tab.h x.tab.h
 .EE
+.SH SOURCE
+.B /sys/src/cmd/mk
 .SH SEE ALSO
 .IR rc (1),
-.IR regexp (2)
+.IR regexp (6)
 .br
 A. Hume,
-.RI ` Mk :
-a Successor to
-.IR Make ',
-Unix Research System Programmer's Manual, Volume 2
+``Mk: a Successor to Make''.
+.br
+Bob Flandrena,
+``Plan 9 Mkfiles''.
 .SH BUGS
 Identical recipes for regular expression meta-rules only have one target.
 .br

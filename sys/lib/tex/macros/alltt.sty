@@ -1,32 +1,81 @@
-% ALLTT DOCUMENT-STYLE OPTION - released 17 December 1987
-%    for LaTeX version 2.09
-% Copyright (C) 1987 by Leslie Lamport
-
-% Defines the `alltt' environment, which is like the `verbatim'
-% environment except that `\', `\{', and `\}' have their usual meanings.
-% Thus, other commands and environemnts can appear within an `alltt'
-% environment.  Here are some things you may want to do in an `alltt'
-% environment:
-% 
-% * Change fonts--e.g., by typing `{\em empasized text\/}'.
-% 
-% * Insert text from a file foo.tex by typing `input{foo}'.  Beware that
-%   each <return> stars a new line, so if foo.tex ends with a <return>
-%   you can wind up with an extra blank line if you're not careful.
-% 
-% * Insert a math formula.  Note that `$' just produces a dollar sign,
-%   so you'll have to type `\(...\)' or `\[...\]'.  Also, `^' and `_'
-%   just produce their characters; use `\sp' or `\sb' for super- and
-%   subscripts, as in `\(x\sp{2}\)'.
-
-\def\docspecials{\do\ \do\$\do\&%
-  \do\#\do\^\do\^^K\do\_\do\^^A\do\%\do\~}
-
-\def\alltt{\trivlist \item[]\if@minipage\else\vskip\parskip\fi
-\leftskip\@totalleftmargin\rightskip\z@
-\parindent\z@\parfillskip\@flushglue\parskip\z@
-\@tempswafalse \def\par{\if@tempswa\hbox{}\fi\@tempswatrue\@@par}
-\obeylines \tt \catcode``=13 \@noligs \let\do\@makeother \docspecials
- \frenchspacing\@vobeyspaces}
-
-\let\endalltt=\endtrivlist
+%% 
+%% This is file `alltt.sty', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% alltt.dtx  (with options: `package')
+%% 
+%% Copyright 1994 the LaTeX3 project and the individual authors. 
+%% All rights reserved. For further copyright information see the file 
+%% legal.txt, and any other copyright indicated in this file. 
+%% 
+%% This file is part of the LaTeX2e system. 
+%% ---------------------------------------- 
+%% 
+%% This system is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see bugs.txt. 
+%% 
+%% Please do not request updates from us directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%
+%% File `alltt.dtx'.
+%% Copyright (C) 1987 by Leslie Lamport
+%% Copyright (C) 1994, 1994 LaTeX3 project, Johannes Braams
+%%                       all rights reserved.
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{alltt}
+              [1994/10/29 v2.0b defines alltt environment]
+\newenvironment{alltt}{%
+  \trivlist
+  \item[]%
+    \if@minipage
+    \else
+      \vskip\parskip
+    \fi
+    \leftskip\@totalleftmargin
+    \rightskip\z@
+    \parindent\z@\parfillskip
+    \@flushglue\parskip\z@
+    \@tempswafalse
+    \def\par{\if@tempswa\hbox{}\fi\@tempswatrue\@@par}
+    \obeylines
+    \ttfamily
+    \catcode``=13 \@noligs
+    \g@remfrom@specials{\\}
+    \g@remfrom@specials{\{}
+    \g@remfrom@specials{\}}
+    \let\do\@makeother
+    \dospecials
+    \frenchspacing\@vobeyspaces}
+{\endtrivlist}
+\def\g@remfrom@specials#1{%
+  \def\@new@specials{}
+  \def\@remove##1{%
+    \ifx##1#1\else
+    \g@addto@macro\@new@specials{\do ##1}\fi}
+  \let\do\@remove\dospecials
+  \let\dospecials\@new@specials
+  }
+\endinput
+%% 
+%% End of file `alltt.sty'.

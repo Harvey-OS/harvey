@@ -47,12 +47,18 @@ static void
 configasync(char *baud, char *dev)
 {
 	int cfd, dfd;
+	char devname[NAMELEN];
 	char eianame[NAMELEN];
+	char port[5];
 
 	if(*sys == '/' || *sys == '#')
 		dev = sys;
 	else if(dev == 0)
 		dev = "#t/eia0";
+	if(readfile("#e/modemport", port, sizeof(port)) == 0){
+		sprint(devname, "#t/eia%d", atoi(port));
+		dev = devname;
+	}
 	sprint(eianame, "%sctl", dev);
 	cfd = open(eianame, ORDWR);
 	if(cfd < 0)

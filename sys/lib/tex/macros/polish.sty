@@ -1,0 +1,311 @@
+%% 
+%% This is file `polish.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% polish.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ===========================================================
+%%%  @LaTeX-style-file{
+%%%     author_1        = "Elmar Schalueck",
+%%%     author_2        = "Michael Janich",
+%%%     author_3        = "Johannes L. Braams",
+%%%     version         = "1.1c",
+%%%     date            = "26 June 1994",
+%%%     time            = "01:59:23 MET",
+%%%     filename        = "polish.doc",
+%%%     address_1/2     = "Universitaet-Gesamthochschule Paderborn
+%%%                        Warburger Strasse 100
+%%%                        4790 Paderborn
+%%%                        Germany",
+%%%     address_3       = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "63394 715 2911 25329",
+%%%     email_1         = "elmar@uni-paderborn.de",
+%%%     email_2         = "massa@uni-paderborn.de",
+%%%     email_3         = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the polish language specific
+%%%                        definitions for the babel system.
+%%%
+%%%                        The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionspolish
+\else
+  \selectlanguage{polish}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{polish.sty}[1994/06/26 v1.1c
+         Polish support from the babel system]
+\ifx\undefined\originalTeX
+  \let\originalTeX\empty
+\fi
+\originalTeX
+\ifx\undefined\l@polish
+  \@nopatterns{Polish}
+  \adddialect\l@polish0\fi
+\addto\captionspolish{%
+  \def\prefacename{Przedmowa}%
+  \def\refname{Bibliografia}%
+  \def\abstractname{Streszczenie}%
+  \def\bibname{Literatura}%
+  \def\chaptername{Rozdzia\l}%
+  \def\appendixname{Dodatek}%
+  \def\contentsname{Spis rzeczy}%
+  \def\listfigurename{Spis rysunk\'ow}%
+  \def\listtablename{Spis tablic}%
+  \def\indexname{Indeks}%
+  \def\figurename{Rysunek}%
+  \def\tablename{Tablica}%
+  \def\partname{Cz\eob{}\'s\'c}%
+  \def\enclname{Za\l\aob{}cznik}%
+  \def\ccname{Kopie:}%
+  \def\headtoname{Do}%
+  \def\pagename{Strona}%
+  \def\seename{Por\'ownaj}%
+  \def\alsoname{Por\'ownaj tak\.ze}%
+}
+\def\datepolish{%
+  \def\today{\number\day~\ifcase\month\or
+  stycznia\or lutego\or marca\or kwietnia\or maja\or czerwca\or lipca\or
+  sierpnia\or wrze\'snia\or pa\'zdziernika\or listopada\or grudnia\fi
+  \space\number\year}
+}
+\addto\extraspolish{\babel@add@special\"}
+\addto\noextraspolish{\babel@remove@special\"}
+\addto\extraspolish{\babel@savevariable{\catcode`\"}\babel@save\active@dq
+  \catcode`\"\active \let\active@dq\polish@active@dq}
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \addto\extraspolish{\babel@save"\let"\polish@@active@dq}}
+\x
+\def\glqq{\protect\@glqq}
+\def\@glqq{\save@sf@q{\set@low@box{''}\box\z@\kern-.04em\allowhyphens}}
+\def\grqq{\protect\@grqq}
+\def\@grqq{\save@sf@q{\kern-.07em``\kern.07em}}
+\def\glq{\protect\@glq}
+\def\@glq{\save@sf@q{\set@low@box{'}\box\z@\kern-.04em\allowhyphens}}
+\def\grq{\protect\@grq}
+\def\@grq{\save@sf@q{\kern-.07em`\kern.07em}}
+\def\flqq{\protect\@flqq}
+\def\@flqq{\relax \ifmmode \ll \else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle \ll $}}\fi}
+\def\frqq{\protect\@frqq}
+\def\@frqq{\relax \ifmmode \gg \else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle \gg $}}\fi}
+\def\flq{\protect\@flq}
+\def\@flq{\relax \ifmmode <\else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle <$}}\fi}
+\def\frq{\protect\@frq}
+\def\@frq{\relax \ifmmode >\else
+  \save@sf@q{\raise .2ex\hbox{$\scriptscriptstyle >$}}\fi}
+\newdimen\pl@left
+\newdimen\pl@down
+\newdimen\pl@right
+\newdimen\pl@temp
+\def\sob#1#2#3#4#5{%parameters: letter and fractions hl,ho,vl,vo
+  \setbox0\hbox{#1}\setbox1\hbox{$_\mathchar'454$}\setbox2\hbox{p}%
+  \pl@right=#2\wd0 \advance\pl@right by-#3\wd1
+  \pl@down=#5\ht1 \advance\pl@down by-#4\ht0
+  \pl@left=\pl@right \advance\pl@left by\wd1
+  \pl@temp=-\pl@down \advance\pl@temp by\dp2 \dp1=\pl@temp
+  \kern\pl@right\lower\pl@down\box1\kern-\pl@left #1}
+\def\aob{\sob a{.66}{.20}{0}{.90}}
+\def\Aob{\sob A{.80}{.50}{0}{.90}}
+\def\eob{\sob e{.50}{.35}{0}{.93}}
+\def\Eob{\sob E{.60}{.35}{0}{.90}}
+\def\spb#1#2#3#4#5{%
+  \setbox0\hbox{#1}\setbox1\hbox{\char'023}%
+  \pl@right=#2\wd0 \advance\pl@right by-#3\wd1
+  \pl@down=#5\ht1 \advance\pl@down by-#4\ht0
+  \pl@left=\pl@right \advance\pl@left by\wd1
+  \ht1=\pl@down \dp1=-\pl@down
+  \kern\pl@right\lower\pl@down\box1\kern-\pl@left #1}
+\def\skb#1#2#3#4#5{%
+  \setbox0\hbox{#1}\setbox1\hbox{\char'056}%
+  \pl@right=#2\wd0 \advance\pl@right by-#3\wd1
+  \pl@down=#5\ht1 \advance\pl@down by-#4\ht0
+  \pl@left=\pl@right \advance\pl@left by\wd1
+  \kern\pl@right\lower\pl@down\box1\kern-\pl@left #1}
+\def\textpl{%
+  \def\lpb{\plll}%
+  \def\Lpb{\pLLL}%
+  \def\zkb{\.z}%
+  \def\Zkb{\.Z}}
+\textpl
+\let\lll=\l \let\LLL=\L
+\def\plll{\lll}
+\def\pLLL{\LLL}
+\def\telepl{%
+  \def\lpb{\spb l{.45}{.5}{.4}{.8}}%
+  \def\Lpb{\spb L{.23}{.5}{.4}{.8}}%
+  \def\zkb{\skb z{.5}{.5}{1.2}{0}}%
+  \def\Zkb{\skb Z{.5}{.5}{1.1}{0}}}
+\ifx\prm\undefined
+  \let\@rm=\rm \def\rm{\@rm\textpl}
+\else
+  \def\rm{\protect\pprm}\def\pprm{\prm\textpl}
+\fi
+\ifx\pit\undefined
+  \let\@it\it \def\it{\@it\textpl}
+\else
+  \def\it{\protect\ppit}\def\ppit{\pit\textpl}
+\fi
+\ifx\pbf\undefined
+  \let\@bf\bf \def\bf{\@bf\textpl}
+\else
+  \def\bf{\protect\ppbf}\def\ppbf{\pbf\textpl}
+\fi
+\ifx\psl\undefined
+  \let\@sl\sl \def\sl{\@sl\textpl}
+\else
+  \def\sl{\protect\ppsl}\gdef\ppsl{\psl\textpl}
+\fi
+\ifx\psf\undefined
+\else
+  \def\sf{\protect\ppsf}\def\ppsf{\psf\textpl}
+\fi
+\ifx\psc\undefined
+\else
+  \def\sc{\protect\ppsc}\gdef\ppsc{\psc\textpl}
+\fi
+\ifx\ptt\undefined
+  \let\@tt\tt \def\tt{\@tt\telepl}
+\else
+  \def\tt{\protect\pptt}\def\pptt{\ptt\telepl}
+\fi
+\begingroup \catcode`\"12
+\def\x{\endgroup
+  \def\@UMLAUT{\"}
+  \def\@MATHUMLAUT{\mathaccent"707F }
+  \def\dq{"}}
+\x
+\begingroup \catcode`\"=\active
+\def\x{\endgroup
+  \ifx"\undefined \let"\dq \fi
+  \let\active@dq\dq}
+\x
+\let\dieresis=\"
+\def\polish@dqmacro#1{\csname p@dq@\string #1@dq@\endcsname}
+\def\polish@@active@dq#1{\expandafter\expandafter\expandafter
+  \ifx\polish@dqmacro{#1}\relax \expandafter\normal@dq
+  \else \expandafter\polish@@@active@dq \fi {#1}}
+\def\normal@dq#1{\dq #1}
+\def\polish@@@active@dq#1{%
+  \ifx\protect\relax \else \expandafter\protect \fi
+  \active@dq{#1\empty}}
+\def\polish@active@dq#1{%
+  \csname polish@dq@\ifmmode second\else first\fi
+    \expandafter\expandafter\expandafter\expandafter
+    \expandafter\expandafter\expandafter
+  \endcsname
+  \polish@dqmacro{#1}}
+\def\polish@dq@first#1#2{#1}
+\def\polish@dq@second#1#2{#2}
+\def\def@polish@dqmacro#1#2#3{\expandafter\expandafter\expandafter
+  \def\polish@dqmacro{#1}{{#2}{#3}}}
+\def\let@polish@dqmacro#1#2{\begingroup
+  \edef\x{\endgroup \let
+    \expandafter\expandafter\expandafter\noexpand\polish@dqmacro{#1}%
+    \expandafter\expandafter\expandafter\noexpand\polish@dqmacro{#2}}%
+  \x}
+\def@polish@dqmacro{a}{\aob}{\@MATHUMLAUT a}
+\def@polish@dqmacro{A}{\Aob}{\@MATHUMLAUT A}
+\def@polish@dqmacro{c}{\'c}{\@MATHUMLAUT c}
+\def@polish@dqmacro{C}{\'c}{\@MATHUMLAUT C}
+\def@polish@dqmacro{e}{\eob}{\@MATHUMLAUT e}
+\def@polish@dqmacro{E}{\Eob}{\@MATHUMLAUT E}
+\def@polish@dqmacro{l}{\lpb}{\@MATHUMLAUT l}
+\def@polish@dqmacro{L}{\Lpb}{\@MATHUMLAUT L}
+\def@polish@dqmacro{n}{\'n}{\@MATHUMLAUT n}
+\def@polish@dqmacro{N}{\'N}{\@MATHUMLAUT N}
+\def@polish@dqmacro{o}{\'o}{\@MATHUMLAUT o}
+\def@polish@dqmacro{O}{\'O}{\@MATHUMLAUT O}
+\def@polish@dqmacro{r}{\zkb}{\@MATHUMLAUT r}
+\def@polish@dqmacro{R}{\Zkb}{\@MATHUMLAUT R}
+\def@polish@dqmacro{s}{\'s}{\@MATHUMLAUT s}
+\def@polish@dqmacro{S}{\'S}{\@MATHUMLAUT S}
+\def@polish@dqmacro{z}{\'z}{\@MATHUMLAUT z}
+\def@polish@dqmacro{Z}{\'Z}{\@MATHUMLAUT Z}
+\def@polish@dqmacro{`}{\glqq{}}{\glqq{}}
+\def@polish@dqmacro{'}{\grqq{}}{\grqq{}}
+\def@polish@dqmacro{<}{\flqq{}}{\flqq{}}
+\def@polish@dqmacro{>}{\frqq{}}{\frqq{}}
+\def@polish@dqmacro{-}{\allowhyphens\-\allowhyphens}%
+               {\allowhyphens\-\allowhyphens}
+\def@polish@dqmacro{|}{\discretionary{-}{}{\kern.03em}}{}
+\def@polish@dqmacro{"}{\hskip\z@skip}{\hskip\z@skip}
+\def@polish@dqmacro{\empty}{{}}{{}}
+\let@polish@dqmacro{\active@dq{}}{"}
+\def\mdqon{\catcode`\"\active}
+\def\mdqoff{\catcode`\"12 }
+\selectlanguage{polish}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `polish.sty'.

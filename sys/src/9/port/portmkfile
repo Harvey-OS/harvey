@@ -1,4 +1,4 @@
-PFILES=`{cd ../port;echo *.c | sed 's/fcall.c //; s/ /|/g; s/\.c//g'}`
+PFILES=`{builtin cd ../port;echo *.c | sed 's/ /|/g; s/\.c//g'}
 
 ^($PFILES)\.$O:R:	'../port/\1.c'
 	$CC $CFLAGS -I. ../port/$stem1.c
@@ -9,6 +9,8 @@ PFILES=`{cd ../port;echo *.c | sed 's/fcall.c //; s/ /|/g; s/\.c//g'}`
 %.$O:	%.c
 	$CC $CFLAGS $stem.c
 
+install:V:	9$CONF
+	cp 9$CONF /$objtype/9$CONF
 
 installall:V:
 	for(i in $CONFLIST)
@@ -19,14 +21,11 @@ all:V:
 		mk 'CONF='$i
 
 clean:V:
-	rm -f *.[$OS] *.root.c devtab.h cfs.h fs.h init.h conf.h *.out
+	rm -f *.[$OS] *.root.s devtab.h cfs.h fs.h init.h conf.h *.out
 	for(i in $CONFLIST)
-		rm -f $i.c 9$i boot$i.*
+		rm -f $i.c 9$i boot$i.* boot9$i.*
 
 %.$O:	u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h devtab.h
-
-fcall.$O: ../port/fcall.c
-	$CC $CFLAGS ../port/fcall.c
 
 ../port/systab.h:	/sys/src/libc/9syscall/sys.h
 	rc ../port/mksystab > ../port/systab.h
@@ -44,7 +43,7 @@ errstr.h:	../port/mkerrstr ../port/error.h
 	$CC -s$stem main.c | dbfmt > $stem.db
 
 ../boot/libboot.a$O: /dev/cons
-	cd ../boot
+	builtin cd ../boot
 	mk
 
 dev.$O:		devtab.h
@@ -64,16 +63,23 @@ segment.$O:	segment.h
 trap.$O:	../port/systab.h
 devbit.$O:	screen.h
 
-kfs.root.c:	/$objtype/bin/disk/kfs
+kfs.root.s:	/$objtype/bin/disk/kfs
 	cp $prereq kfs.out
+	strip kfs.out
 	../port/mkroot kfs fs
 
-cfs.root.c:	/$objtype/bin/cfs
-	cp /$objtype/bin/cfs cfs.out
+cfs.root.s:	/$objtype/bin/cfs
+	cp $prereq cfs.out
+	strip cfs.out
 	../port/mkroot cfs cfs
 
-boot$CONF.root.c: $CONF print.$O ../boot/boot.c ../boot/libboot.a$O
+k9660srv.root.s:	/$objtype/bin/9660srv
+	cp $prereq k9660srv.out
+	strip k9660srv.out
+	../port/mkroot k9660srv fs
+
+boot$CONF.root.s: $CONF print.$O ../boot/boot.c ../boot/libboot.a$O
 	../boot/mkboot $CONF > boot$CONF.c
 	$CC $CFLAGS boot$CONF.c
-	$LD -o boot$CONF.out boot$CONF.$O ../boot/libboot.a$O print.$O -lauth
+	$LD -o boot$CONF.out -s boot$CONF.$O ../boot/libboot.a$O print.$O
 	../port/mkroot boot$CONF boot

@@ -35,11 +35,11 @@ tryfile(char *machine, char *user, int ld)
 			strncpy(machineused, machine, sizeof(machineused));
 			strncpy(userused, user, sizeof(userused));
 			depthused = ld;
-			Bclose(mf);
+			Bterm(mf);
 			return file;
 		}
 	}
-	Bclose(mf);
+	Bterm(mf);
 	return 0;
 }
 
@@ -123,7 +123,7 @@ getfile(char *machine, char *user, int ld)
 		}
 		free(exp);
 	}
-	Bclose(mf);
+	Bterm(mf);
 	return 0;
 }
 

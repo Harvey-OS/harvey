@@ -1,0 +1,167 @@
+.TH ROAD 7
+.SH NAME
+road, gps \- road map of the United States
+.SH SYNOPSIS
+.B games/road
+[
+.B -g
+]
+[
+.B -s
+.I scale
+]
+.br
+.B games/gps
+.SH DESCRIPTION
+.I Road
+displays
+a road map centered around some specified
+place in the United States.
+The data comes from the Census Bureau Tiger
+Database.
+The map is drawn in three shades of grey.
+Light grey is used for water features such
+as rivers,
+streams and lakes.
+Dark grey is used for railroads and airports.
+Black is used for roads.
+On terminals with ldepth zero,
+all shades appear black.
+.PP
+Without options,
+the center of the map is the latitude
+and longitude specified in the file
+.BR /lib/sky/here .
+If the
+.B -g
+option is given,
+the center of the map will be the latitude
+and longitude specified by continually monitoring the
+end of the file
+.BR /tmp/gpslog .
+This file is written by the GPS satellite receiver
+program
+.IR gps .
+With this option, and with
+.I gps
+running,
+.I road
+becomes a moving map display suitable for
+cars or planes.
+.SS Keyboard commands
+.TP
+.B s number
+sets the scale of the map to
+.IR number .
+The
+.I number
+can be prefixed with
+.B +
+or
+.B -
+to increase/decrease the current scale.
+Scale 6
+is about one mile across the screen and
+scale 10 is about ten miles across.
+Scales 1 through 10 are drawn with maximum detail
+showing all roads, trails, rivers, streams and airports.
+Scales 11 through 14 show highways, rivers, airports and county boundaries.
+Scales 15 through 20 show interstate highways and state boundaries.
+.TP
+.BI / regexp
+All features labeled by text matching the regular expression
+are highlighted.
+.TP
+.B p place
+centers the map at the specified
+place.
+Usually the place must have the associated
+state code,
+(eg murrayhill,nj)
+but places like
+.B lax
+and
+.B ewr
+are also known.
+.TP
+.B l latitude longitude
+centers the map at the specified coordinate.
+.TP
+.BI g
+toggles the
+.B -g
+option described above.
+.TP
+.B q
+Exit.
+.SS Mouse button commands
+.TP
+Button 1
+displays the text of the
+.I line
+nearest the cursor.
+Normally this is the name of a street or river.
+.TP
+Button 2
+displays the text of the
+.I place
+nearest the cursor.
+Normally this is a town.
+.TP
+Button 3
+centers the display on the cursor position.
+.PP
+.I Gps
+reads
+.B /dev/eia0
+assumed connected to a Garmin GPS-55
+satellite receiver
+and writes the current location on the
+end of the file
+.BR /tmp/gpslog .
+It is intended to be used with mobile PC's.
+.SH FILES
+.TP
+.B /lib/roads/LLLL/LLLLGGGG.h
+scale 1-10 database files
+where
+.I LLLL
+is the latitude multiplied by 5
+and
+.I GGGG
+is the longitude multiplied by 5.
+.TP
+.B /lib/roads/LLL/LLLGGG.h
+scale 11-14 database files
+where
+.I LLL
+is the latitude multiplied by 1
+and
+.I GGG
+is the longitude multiplied by 1.
+.TP
+.B /lib/roads/LL/LLGG.h
+scale 15-20 database files
+where
+.I LL
+is the latitude multiplied by 0.2
+and
+.I GG
+is the longitude multiplied by 0.2.
+.TP
+.B /lib/roads/place
+.br
+.B /lib/roads/place.local
+are the translations
+between place names and locations.
+These files must be sorted. 
+.TP
+.B /lib/sky/here
+default starting map center.
+.TP
+.B /tmp/gpslog
+moving map location.
+.SH SOURCE
+.B /sys/src/games/road
+.br
+.B /sys/src/games/gps

@@ -6,7 +6,6 @@
 #include	"io.h"
 
 #include	<libg.h>
-#include	<gnot.h>
 
 enum {
 	Data=		0x60,	/* data port */
@@ -225,7 +224,18 @@ struct latin
 	0,	0,
 };
 
-KIOQ	kbdq;
+enum
+{
+	/* controller command byte */
+	Cscs1=		(1<<6),		/* scan code set 1 */
+	Cmousedis=	(1<<5),		/* mouse disable */
+	Ckbddis=	(1<<4),		/* kbd disable */
+	Csf=		(1<<2),		/* system flag */
+	Cmouseint=	(1<<1),		/* mouse interrupt enable */
+	Ckbdint=	(1<<0),		/* kbd interrupt enable */
+};
+
+static uchar ccc;
 
 int
 latin1(int k1, int k2)
@@ -246,9 +256,11 @@ outready(void)
 {
 	int tries;
 
-	for(tries = 0; (inb(Status) & Outbusy); tries++)
-		if(tries > 1000)
+	for(tries = 0; (inb(Status) & Outbusy); tries++){
+		if(tries > 500)
 			return -1;
+		delay(2);
+	}
 	return 0;
 }
 
@@ -260,9 +272,11 @@ inready(void)
 {
 	int tries;
 
-	for(tries = 0; !(inb(Status) & Inready); tries++)
-		if(tries > 1000)
+	for(tries = 0; !(inb(Status) & Inready); tries++){
+		if(tries > 500)
 			return -1;
+		delay(2);
+	}
 	return 0;
 }
 
@@ -279,26 +293,33 @@ i8042a20(void)
 	outready();
 }
 
+/*
+ *  ask 8042 to reset the machine
+ */
 void
-kbdinit(void)
+i8042reset(void)
 {
-	int c;
+	ushort *s = (ushort*)(KZERO|0x472);
+	int i, x;
 
-	initq(&kbdq);
-	setvec(Kbdvec, kbdintr);
+	*s = 0x1234;		/* BIOS warm-boot flag */
 
-	/* wait for a quiescent controller */
-	while((c = inb(Status)) & (Outbusy | Inready))
-		if(c & Inready)
-			inb(Data);
+	outready();
+	outb(Cmd, 0xFE);	/* pulse reset line (means resend on AT&T machines) */
+	outready();
 
- 	/* enable kbd xfers and interrupts */
-	outb(Cmd, 0x60);
-	if(outready() < 0)
-		print("kbd init failed\n");
-	outb(Data, 0x65);
-	if(outready() < 0)
-		print("kbd init failed\n");
+	/*
+	 *  Pulse it by hand (old somewhat reliable)
+	 */
+	x = 0xDF;
+	for(i = 0; i < 5; i++){
+		x ^= 1;
+		outready();
+		outb(Cmd, 0xD1);
+		outready();
+		outb(Data, x);	/* toggle reset */
+		delay(100);
+	}
 }
 
 /*
@@ -343,14 +364,14 @@ kbdintr0(void)
 	c &= 0x7f;
 	if(c > sizeof kbtab){
 		print("unknown key %ux\n", c|keyup);
-		kbdputc(&kbdq, k1);
+		kbdchar(k1);
 		return 0;
 	}
 
 	if(esc1){
 		c = kbtabesc1[c];
 		esc1 = 0;
-		kbdputc(&kbdq, c);
+		kbdchar(c);
 		return 0;
 	} else if(esc2){
 		esc2--;
@@ -394,7 +415,7 @@ kbdintr0(void)
 			lstate = 0;
 			c = latin1(k1, k2);
 			if(c == 0){
-				kbdputc(&kbdq, k1);
+				kbdchar(k1);
 				c = k2;
 			}
 			/* fall through */
@@ -420,15 +441,46 @@ kbdintr0(void)
 			return 0;
 		}
 	}
-	kbdputc(&kbdq, c);
+	kbdchar(c);
 	return 0;
 }
 
-void
-kbdintr(Ureg *ur)
+static void
+kbdintr(Ureg*, void*)
 {
-	USED(ur);
-
 	while(kbdintr0() == 0)
 		;
+}
+
+void
+kbdinit(void)
+{
+	int c;
+
+	/* wait for a quiescent controller */
+	while((c = inb(Status)) & (Outbusy | Inready))
+		if(c & Inready)
+			inb(Data);
+
+	/* get current controller command byte */
+	outb(Cmd, 0x20);
+	if(inready() < 0){
+		print("kbdinit: can't read ccc\n");
+		ccc = 0;
+	} else
+		ccc = inb(Data);
+
+	/* enable kbd xfers and interrupts */
+	ccc &= ~Ckbddis;
+	ccc |= Csf | Ckbdint | Cscs1;
+	if(outready() < 0)
+		print("kbd init failed\n");
+	outb(Cmd, 0x60);
+	if(outready() < 0)
+		print("kbd init failed\n");
+	outb(Data, ccc);
+	if(outready() < 0)
+		print("kbd init failed\n");
+
+	setvec(Kbdvec, kbdintr, 0);
 }

@@ -40,10 +40,10 @@ cfoll(int v)
 				name[v] = RCCL;	/* RNCCL eliminated */
 # ifdef DEBUG
 				if(debug && *p){
-					printf("ccl %d: %d",v,*p++);
+					print("ccl %d: %d",v,*p++);
 					while(*p)
-						printf(", %d",*p++);
-					putchar('\n');
+						print(", %d",*p++);
+					print("\n");
 				}
 # endif
 			}
@@ -76,15 +76,15 @@ pfoll(void)
 	int i,k,*p;
 	int j;
 	/* print sets of chars which may follow positions */
-	printf("pos\tchars\n");
+	print("pos\tchars\n");
 	for(i=0;i<tptr;i++)
 		if(p=foll[i]){
 			j = *p++;
 			if(j >= 1){
-				printf("%d:\t%d",i,*p++);
+				print("%d:\t%d",i,*p++);
 				for(k=2;k<=j;k++)
-					printf(", %d",*p++);
-				putchar('\n');
+					print(", %d",*p++);
+				print("\n");
 			}
 		}
 }
@@ -206,7 +206,7 @@ cgoto(void)
 	uchar *q;
 
 	/* generate initial state, for each start condition */
-	fprintf(fout,"int yyvstop[] = {\n0,\n");
+	Bprint(&fout,"int yyvstop[] = {\n0,\n");
 	while(stnum < 2 || stnum/2 < sptr){
 		for(i = 0; i<tptr; i++) tmpstat[i] = 0;
 		count = 0;
@@ -215,7 +215,7 @@ cgoto(void)
 # ifdef DEBUG
 		if(debug){
 			if(stnum > 1)
-				printf("%s:\n",sname[stnum/2]);
+				print("%s:\n",sname[stnum/2]);
 			pstate(stnum);
 		}
 # endif
@@ -263,16 +263,16 @@ cgoto(void)
 		}
 # ifdef DEBUG
 		if(debug){
-			printf("State %d transitions on:\n\t",s);
+			print("State %d transitions on:\n\t",s);
 			charc = 0;
 			for(i = 1; i<NCH; i++){
 				if(symbol[i]) allprint(i);
 				if(charc > LINESIZE){
 					charc = 0;
-					printf("\n\t");
+					print("\n\t");
 				}
 			}
-			putchar('\n');
+			print("\n");
 		}
 # endif
 		/* for each char, calculate next state */
@@ -303,7 +303,7 @@ cgoto(void)
 		if(n > 0) packtrans(s,tch,tst,n,tryit);
 		else gotof[s] = -1;
 	}
-	fprintf(fout,"0};\n");
+	Bprint(&fout,"0};\n");
 }
 
 /*	Beware -- 70% of total CPU time is spent in this subroutine -
@@ -412,7 +412,7 @@ packtrans(int st, uchar *tch, int *tst, int cnt, int tryit)
 			if(temp[i] != -1)k++;
 		if(k <cnt){	/* compress by char */
 # ifdef DEBUG
-			if(debug) printf("use compression  %d,  %d vs %d\n",st,k,cnt);
+			if(debug) print("use compression  %d,  %d vs %d\n",st,k,cnt);
 # endif
 			k = 0;
 			for(i=1;i<NCH;i++)
@@ -439,7 +439,6 @@ packtrans(int st, uchar *tch, int *tst, int cnt, int tryit)
 		tcnt = nexts[p];
 		if(tcnt > cnt) continue;
 		diff = 0;
-		k = 0;
 		j = 0;
 		upper = p + tcnt;
 		while(ach[j] && p < upper){
@@ -463,7 +462,7 @@ packtrans(int st, uchar *tch, int *tst, int cnt, int tryit)
 	}
 	/* cmin = state "most like" state st */
 # ifdef DEBUG
-	if(debug)printf("select st %d for st %d diff %d\n",cmin,st,cval);
+	if(debug)print("select st %d for st %d diff %d\n",cmin,st,cval);
 # endif
 # ifdef PS
 	if(cmin != -1){ /* if we can use st cmin */
@@ -529,16 +528,16 @@ void
 pstate(int s)
 {
 	int *p,i,j;
-	printf("State %d:\n",s);
+	print("State %d:\n",s);
 	p = state[s];
 	i = *p++;
 	if(i == 0) return;
-	printf("%4d",*p++);
+	print("%4d",*p++);
 	for(j = 1; j<i; j++){
-		printf(", %4d",*p++);
-		if(j%30 == 0)putchar('\n');
+		print(", %4d",*p++);
+		if(j%30 == 0)print("\n");
 	}
-	putchar('\n');
+	print("\n");
 	return;
 }
 # endif
@@ -563,32 +562,32 @@ stprt(int i)
 {
 	int p, t;
 
-	printf("State %d:",i);
+	print("State %d:",i);
 	/* print actions, if any */
 	t = atable[i];
-	if(t != -1)printf(" final");
-	putchar('\n');
-	if(cpackflg[i] == TRUE)printf("backup char in use\n");
-	if(sfall[i] != -1)printf("fall back state %d\n",sfall[i]);
+	if(t != -1)print(" final");
+	print("\n");
+	if(cpackflg[i] == TRUE)print("backup char in use\n");
+	if(sfall[i] != -1)print("fall back state %d\n",sfall[i]);
 	p = gotof[i];
 	if(p == -1) return;
-	printf("(%d transitions)\n",nexts[p]);
+	print("(%d transitions)\n",nexts[p]);
 	while(nchar[p]){
 		charc = 0;
 		if(nexts[p+1] >= 0)
-			printf("%d\t",nexts[p+1]);
-		else printf("err\t");
+			print("%d\t",nexts[p+1]);
+		else print("err\t");
 		allprint(nchar[p++]);
 		while(nexts[p] == nexts[p+1] && nchar[p]){
 			if(charc > LINESIZE){
 				charc = 0;
-				printf("\n\t");
+				print("\n\t");
 			}
 			allprint(nchar[p++]);
 		}
-		putchar('\n');
+		print("\n");
 	}
-	putchar('\n');
+	print("\n");
 }
 # endif
 
@@ -616,7 +615,7 @@ acompute(int s)	/* compute action list = set of poss. actions */
 	atable[s] = -1;
 	if(k < 1 && n < 1) return;
 # ifdef DEBUG
-	if(debug) printf("final %d actions:",s);
+	if(debug) print("final %d actions:",s);
 # endif
 	/* sort action list */
 	for(i=0; i<k; i++)
@@ -632,29 +631,29 @@ acompute(int s)	/* compute action list = set of poss. actions */
 	/* copy to permanent quarters */
 	atable[s] = aptr;
 # ifdef DEBUG
-	fprintf(fout,"/* actions for state %d */",s);
+	Bprint(&fout,"/* actions for state %d */",s);
 # endif
-	putc('\n',fout);
+	Bputc(&fout, '\n');
 	for(i=0;i<k;i++)
 		if(temp[i] != 0){
-			fprintf(fout,"%d,\n",temp[i]);
+			Bprint(&fout,"%d,\n",temp[i]);
 # ifdef DEBUG
 			if(debug)
-				printf("%d ",temp[i]);
+				print("%d ",temp[i]);
 # endif
 			aptr++;
 		}
 	for(i=0;i<n;i++){		/* copy fall back actions - all neg */
-		fprintf(fout,"%d,\n",neg[i]);
+		Bprint(&fout,"%d,\n",neg[i]);
 		aptr++;
 # ifdef DEBUG
-		if(debug)printf("%d ",neg[i]);
+		if(debug)print("%d ",neg[i]);
 # endif
 	}
 # ifdef DEBUG
-	if(debug)putchar('\n');
+	if(debug)print("\n");
 # endif
-	fprintf(fout,"0,\n");
+	Bprint(&fout,"0,\n");
 	aptr++;
 	return;
 }
@@ -665,30 +664,30 @@ pccl(void) {
 	/* print character class sets */
 	int i, j;
 
-	printf("char class intersection\n");
+	print("char class intersection\n");
 	for(i=0; i< ccount; i++){
 		charc = 0;
-		printf("class %d:\n\t",i);
+		print("class %d:\n\t",i);
 		for(j=1;j<NCH;j++)
 			if(cindex[j] == i){
 				allprint(j);
 				if(charc > LINESIZE){
-					printf("\n\t");
+					print("\n\t");
 					charc = 0;
 				}
 			}
-		putchar('\n');
+		print("\n");
 	}
 	charc = 0;
-	printf("match:\n");
+	print("match:\n");
 	for(i=0;i<NCH;i++){
 		allprint(match[i]);
 		if(charc > LINESIZE){
-			putchar('\n');
+			print("\n");
 			charc = 0;
 		}
 	}
-	putchar('\n');
+	print("\n");
 	return;
 }
 # endif
@@ -717,7 +716,6 @@ layout(void)
 	int i, j, k;
 	int  top, bot, startup, omin;
 
-	startup = 0;
 	for(i=0; i<outsize;i++)
 		verify[i] = advance[i] = 0;
 	omin = 0;
@@ -733,18 +731,18 @@ layout(void)
 		top = j - 1;
 # ifdef DEBUG
 		if (debug) {
-			printf("State %d: (layout)\n", i);
+			print("State %d: (layout)\n", i);
 			for(j=bot; j<=top;j++) {
-				printf("  %o", nchar[j]);
-				if (j%10==0) putchar('\n');
+				print("  %o", nchar[j]);
+				if (j%10==0) print("\n");
 			}
-			putchar('\n');
+			print("\n");
 		}
 # endif
 		while(verify[omin+NCH]) omin++;
 		startup = omin;
 # ifdef DEBUG
-		if (debug) printf("bot,top %d, %d startup begins %d\n",bot,top,startup);
+		if (debug) print("bot,top %d, %d startup begins %d\n",bot,top,startup);
 # endif
 		do {
 			startup += 1;
@@ -757,7 +755,7 @@ layout(void)
 		} while (j <= top);
 		/* have found place */
 # ifdef DEBUG
-		if (debug) printf(" startup going to be %d\n", startup);
+		if (debug) print(" startup going to be %d\n", startup);
 # endif
 		for(j = bot; j<= top; j++){
 			k = startup + nchar[j];
@@ -770,65 +768,65 @@ layout(void)
 
 	/* stoff[i] = offset into verify, advance for trans for state i */
 	/* put out yywork */
-	fprintf(fout,"# define YYTYPE %s\n",stnum+1 > NCH ? "int" : "Uchar");
-	fprintf(fout,"struct yywork { YYTYPE verify, advance; } yycrank[] = {\n");
+	Bprint(&fout,"# define YYTYPE %s\n",stnum+1 >= NCH ? "int" : "Uchar");
+	Bprint(&fout,"struct yywork { YYTYPE verify, advance; } yycrank[] = {\n");
 	for(i=0;i<=yytop;i+=4){
 		for(j=0;j<4;j++){
 			k = i+j;
 			if(verify[k])
-				fprintf(fout,"%d,%d,\t",verify[k],advance[k]);
+				Bprint(&fout,"%d,%d,\t",verify[k],advance[k]);
 			else
-				fprintf(fout,"0,0,\t");
+				Bprint(&fout,"0,0,\t");
 		}
-		putc('\n',fout);
+		Bputc(&fout, '\n');
 	}
-	fprintf(fout,"0,0};\n");
+	Bprint(&fout,"0,0};\n");
 
 	/* put out yysvec */
 
-	fprintf(fout,"struct yysvf yysvec[] = {\n");
-	fprintf(fout,"0,\t0,\t0,\n");
+	Bprint(&fout,"struct yysvf yysvec[] = {\n");
+	Bprint(&fout,"0,\t0,\t0,\n");
 	for(i=0;i<=stnum;i++){	/* for each state */
 		if(cpackflg[i])stoff[i] = -stoff[i];
-		fprintf(fout,"yycrank+%d,\t",stoff[i]);
+		Bprint(&fout,"yycrank+%d,\t",stoff[i]);
 		if(sfall[i] != -1)
-			fprintf(fout,"yysvec+%d,\t", sfall[i]+1);	/* state + 1 */
-		else fprintf(fout,"0,\t\t");
+			Bprint(&fout,"yysvec+%d,\t", sfall[i]+1);	/* state + 1 */
+		else Bprint(&fout,"0,\t\t");
 		if(atable[i] != -1)
-			fprintf(fout,"yyvstop+%d,",atable[i]);
-		else fprintf(fout,"0,\t");
+			Bprint(&fout,"yyvstop+%d,",atable[i]);
+		else Bprint(&fout,"0,\t");
 # ifdef DEBUG
-		fprintf(fout,"\t\t/* state %d */",i);
+		Bprint(&fout,"\t\t/* state %d */",i);
 # endif
-		putc('\n',fout);
+		Bputc(&fout, '\n');
 	}
-	fprintf(fout,"0,\t0,\t0};\n");
+	Bprint(&fout,"0,\t0,\t0};\n");
 
 	/* put out yymatch */
 	
-	fprintf(fout,"struct yywork *yytop = yycrank+%d;\n",yytop);
-	fprintf(fout,"struct yysvf *yybgin = yysvec+1;\n");
-	fprintf(fout,"Uchar yymatch[] = {\n");
+	Bprint(&fout,"struct yywork *yytop = yycrank+%d;\n",yytop);
+	Bprint(&fout,"struct yysvf *yybgin = yysvec+1;\n");
+	Bprint(&fout,"Uchar yymatch[] = {\n");
 	for(i=0; i<NCH; i+=8){
 		for(j=0; j<8; j++){
 			int fbch;
 			fbch = match[i+j];
 			if(isprint(fbch) && fbch != '\'' && fbch != '\\')
-				fprintf(fout,"'%c' ,",fbch);
-			else fprintf(fout,"0%-3o,",fbch);
+				Bprint(&fout,"'%c' ,",fbch);
+			else Bprint(&fout,"0%-3o,",fbch);
 		}
-		putc('\n',fout);
+		Bputc(&fout, '\n');
 	}
-	fprintf(fout,"0};\n");
+	Bprint(&fout,"0};\n");
 	/* put out yyextra */
-	fprintf(fout,"Uchar yyextra[] = {\n");
+	Bprint(&fout,"Uchar yyextra[] = {\n");
 	for(i=0;i<casecount;i+=8){
 		for(j=0;j<8;j++)
-			fprintf(fout, "%d,", i+j<NACTIONS ?
+			Bprint(&fout, "%d,", i+j<NACTIONS ?
 				extra[i+j] : 0);
-		putc('\n',fout);
+		Bputc(&fout, '\n');
 	}
-	fprintf(fout,"0};\n");
+	Bprint(&fout,"0};\n");
 }
 
 # ifdef PP

@@ -8,6 +8,7 @@ typedef struct Mconf	Mconf;
 struct Mconf
 {
 	ulong	monitor;	/* graphics monitor id; 0 for none */
+	int	usec_delay;	/* count for delay loop */
 	char	ss2;		/* is a sparcstation 2 */
 	char	ss2cachebug;	/* has sparcstation2 cache bug */
 	int	ncontext;	/* in mmu */
@@ -71,3 +72,4 @@ struct	Lance
 	Enpkt*	lrp;		/* receive buffers (lance address) */
 	Enpkt*	ltp;		/* transmit buffers (lance address) */
 };
+

@@ -15,3 +15,11 @@ TEXT	longjmp(SB), 1, $0
 ok:	MOVW	(R8), R1
 	MOVW	4(R8), R15
 	RETURN
+
+/*
+ * trampoline functions because the kernel smashes r7
+ * in the uregs given to notejmp
+ */
+TEXT	__noterestore(SB), 1, $-4
+	MOVW	R8, R7
+	JMP	(R9)

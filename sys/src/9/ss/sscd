@@ -25,7 +25,7 @@ stream
 	async
 
 misc
-	9660srv.root
+	k9660srv.root
 
 port
 	int cpuserver = 0;

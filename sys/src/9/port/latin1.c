@@ -1,228 +1,129 @@
-#include "u.h"
+#include <u.h>
 
-struct latin
+/*
+ * The code makes two assumptions: strlen(ld) is 1 or 2; latintab[i].ld can be a
+ * prefix of latintab[j].ld only when j<i.
+ */
+struct cvlist
 {
-	Rune	l;
-	uchar	c1;
-	uchar	c2;
-}latintab[] = {
-	L'¡',	'!','!',	/* spanish initial ! */
-	L'¢',	'c','$',	/* cent */
-	L'£',	'l','$',	/* pound sterling */
-	L'¤',	'g','$',	/* general currency */
-	L'¥',	'y','$',	/* yen */
-	L'¦',	'|','|',	/* broken vertical bar */
-	L'§',	'S','S',	/* section symbol */
-	L'¨',	'\"','\"',	/* dieresis */
-	L'©',	'c','O',	/* copyright */
-	L'ª',	's','a',	/* super a, feminine ordinal */
-	L'«',	'<','<',	/* left angle quotation */
-	L'¬',	'n','o',	/* not sign, hooked overbar */
-	L'­',	'-','-',	/* soft hyphen */
-	L'®',	'r','O',	/* registered trademark */
-	L'¯',	'_','_',	/* macron */
-	L'°',	'd','e',	/* degree */
-	L'±',	'+','-',	/* plus-minus */
-	L'²',	's','2',	/* sup 2 */
-	L'³',	's','3',	/* sup 3 */
-	L'´',	''',''',	/* acute accent */
-	L'µ',	'm','i',	/* micron */
-	L'¶',	'p','g',	/* paragraph (pilcrow) */
-	L'·',	'.','.',	/* centered . */
-	L'¸',	',',',',	/* cedilla */
-	L'¹',	's','1',	/* sup 1 */
-	L'º',	's','o',	/* super o, masculine ordinal */
-	L'»',	'>','>',	/* right angle quotation */
-	L'¼',	'1','4',	/* 1/4 */
-	L'½',	'1','2',	/* 1/2 */
-	L'¾',	'3','4',	/* 3/4 */
-	L'¿',	'?','?',	/* spanish initial ? */
-	L'À',	'`','A',	/* A grave */
-	L'Á',	''','A',	/* A acute */
-	L'Â',	'^','A',	/* A circumflex */
-	L'Ã',	'~','A',	/* A tilde */
-	L'Ä',	'\"','A',	/* A dieresis */
-	L'Å',	'o','A',	/* A circle */
-	L'Æ',	'A','E',	/* AE ligature */
-	L'Ç',	',','C',	/* C cedilla */
-	L'È',	'`','E',	/* E grave */
-	L'É',	''','E',	/* E acute */
-	L'Ê',	'^','E',	/* E circumflex */
-	L'Ë',	'\"','E',	/* E dieresis */
-	L'Ì',	'`','I',	/* I grave */
-	L'Í',	''','I',	/* I acute */
-	L'Î',	'^','I',	/* I circumflex */
-	L'Ï',	'\"','I',	/* I dieresis */
-	L'Ð',	'D','-',	/* Eth */
-	L'Ñ',	'~','N',	/* N tilde */
-	L'Ò',	'`','O',	/* O grave */
-	L'Ó',	''','O',	/* O acute */
-	L'Ô',	'^','O',	/* O circumflex */
-	L'Õ',	'~','O',	/* O tilde */
-	L'Ö',	'\"','O',	/* O dieresis */
-	L'×',	'm','u',	/* times sign */
-	L'Ø',	'/','O',	/* O slash */
-	L'Ù',	'`','U',	/* U grave */
-	L'Ú',	''','U',	/* U acute */
-	L'Û',	'^','U',	/* U circumflex */
-	L'Ü',	'\"','U',	/* U dieresis */
-	L'Ý',	''','Y',	/* Y acute */
-	L'Þ',	'|','P',	/* Thorn */
-	L'ß',	's','s',	/* sharp s */
-	L'à',	'`','a',	/* a grave */
-	L'á',	''','a',	/* a acute */
-	L'â',	'^','a',	/* a circumflex */
-	L'ã',	'~','a',	/* a tilde */
-	L'ä',	'\"','a',	/* a dieresis */
-	L'å',	'o','a',	/* a circle */
-	L'æ',	'a','e',	/* ae ligature */
-	L'ç',	',','c',	/* c cedilla */
-	L'è',	'`','e',	/* e grave */
-	L'é',	''','e',	/* e acute */
-	L'ê',	'^','e',	/* e circumflex */
-	L'ë',	'\"','e',	/* e dieresis */
-	L'ì',	'`','i',	/* i grave */
-	L'í',	''','i',	/* i acute */
-	L'î',	'^','i',	/* i circumflex */
-	L'ï',	'\"','i',	/* i dieresis */
-	L'ð',	'd','-',	/* eth */
-	L'ñ',	'~','n',	/* n tilde */
-	L'ò',	'`','o',	/* o grave */
-	L'ó',	''','o',	/* o acute */
-	L'ô',	'^','o',	/* o circumflex */
-	L'õ',	'~','o',	/* o tilde */
-	L'ö',	'\"','o',	/* o dieresis */
-	L'÷',	'-',':',	/* divide sign */
-	L'ø',	'/','o',	/* o slash */
-	L'ù',	'`','u',	/* u grave */
-	L'ú',	''','u',	/* u acute */
-	L'û',	'^','u',	/* u circumflex */
-	L'ü',	'\"','u',	/* u dieresis */
-	L'ý',	''','y',	/* y acute */
-	L'þ',	'|','p',	/* thorn */
-	L'ÿ',	'\"','y',	/* y dieresis */
-	L'♔',	'w','k',	/* chess white king */
-	L'♕',	'w','q',	/* chess white queen */
-	L'♖',	'w','r',	/* chess white rook */
-	L'♗',	'w','b',	/* chess white bishop */
-	L'♘',	'w','n',	/* chess white knight */
-	L'♙',	'w','p',	/* chess white pawn */
-	L'♚',	'b','k',	/* chess black king */
-	L'♛',	'b','q',	/* chess black queen */
-	L'♜',	'b','r',	/* chess black rook */
-	L'♝',	'b','b',	/* chess black bishop */
-	L'♞',	'b','n',	/* chess black knight */
-	L'♟',	'b','p',	/* chess black pawn */
-	L'α',	'*','a',	/* alpha */
-	L'β',	'*','b',	/* beta */
-	L'γ',	'*','g',	/* gamma */
-	L'δ',	'*','d',	/* delta */
-	L'ε',	'*','e',	/* epsilon */
-	L'ζ',	'*','z',	/* zeta */
-	L'η',	'*','y',	/* eta */
-	L'θ',	'*','h',	/* theta */
-	L'ι',	'*','i',	/* iota */
-	L'κ',	'*','k',	/* kappa */
-	L'λ',	'*','l',	/* lambda */
-	L'μ',	'*','m',	/* mu */
-	L'ν',	'*','n',	/* nu */
-	L'ξ',	'*','c',	/* xsi */
-	L'ο',	'*','o',	/* omicron */
-	L'π',	'*','p',	/* pi */
-	L'ρ',	'*','r',	/* rho */
-	L'ς',	't','s',	/* terminal sigma */
-	L'σ',	'*','s',	/* sigma */
-	L'τ',	'*','t',	/* tau */
-	L'υ',	'*','u',	/* upsilon */
-	L'φ',	'*','f',	/* phi */
-	L'χ',	'*','x',	/* chi */
-	L'ψ',	'*','q',	/* psi */
-	L'ω',	'*','w',	/* omega */	
-	L'Α',	'*','A',	/* Alpha */
-	L'Β',	'*','B',	/* Beta */
-	L'Γ',	'*','G',	/* Gamma */
-	L'Δ',	'*','D',	/* Delta */
-	L'Ε',	'*','E',	/* Epsilon */
-	L'Ζ',	'*','Z',	/* Zeta */
-	L'Η',	'*','Y',	/* Eta */
-	L'Θ',	'*','H',	/* Theta */
-	L'Ι',	'*','I',	/* Iota */
-	L'Κ',	'*','K',	/* Kappa */
-	L'Λ',	'*','L',	/* Lambda */
-	L'Μ',	'*','M',	/* Mu */
-	L'Ν',	'*','N',	/* Nu */
-	L'Ξ',	'*','C',	/* Xsi */
-	L'Ο',	'*','O',	/* Omicron */
-	L'Π',	'*','P',	/* Pi */
-	L'Ρ',	'*','R',	/* Rho */
-	L'Σ',	'*','S',	/* Sigma */
-	L'Τ',	'*','T',	/* Tau */
-	L'Υ',	'*','U',	/* Upsilon */
-	L'Φ',	'*','F',	/* Phi */
-	L'Χ',	'*','X',	/* Chi */
-	L'Ψ',	'*','Q',	/* Psi */
-	L'Ω',	'*','W',	/* Omega */
-	L'←',	'<','-',	/* left arrow */
-	L'↑',	'u','a',	/* up arrow */
-	L'→',	'-','>',	/* right arrow */
-	L'↓',	'd','a',	/* down arrow */
-	L'↔',	'a','b',	/* arrow both */
-	L'⇐',	'V','=',	/* left double-line arrow */
-	L'⇒',	'=','V',	/* right double-line arrow */
-	L'∀',	'f','a',	/* forall */
-	L'∃',	't','e',	/* there exists */
-	L'∂',	'p','d',	/* partial differential */
-	L'∅',	'e','s',	/* empty set */
-	L'∆',	'D','e',	/* delta */
-	L'∇',	'g','r',	/* gradient */
-	L'∈',	'm','o',	/* element of */
-	L'∉',	'!','m',	/* not element of */
-	L'∍',	's','t',	/* such that */
-	L'∗',	'*','*',	/* math asterisk */
-	L'∙',	'b','u',	/* bullet */
-	L'√',	's','r',	/* radical */
-	L'∝',	'p','t',	/* proportional */
-	L'∞',	'i','f',	/* infinity */
-	L'∠',	'a','n',	/* angle */
-	L'∧',	'l','&',	/* logical and */
-	L'∨',	'l','|',	/* logical or */
-	L'∩',	'c','a',	/* intersection */
-	L'∪',	'c','u',	/* union */
-	L'∫',	'i','s',	/* integral */
-	L'∴',	't','f',	/* therefore */
-	L'≃',	'~','=',	/* asymptotically equal */
-	L'≅',	'c','g',	/* congruent */
-	L'≈',	'~','~',	/* almost equal */
-	L'≠',	'!','=',	/* not equal */
-	L'≡',	'=','=',	/* equivalent */
-	L'≦',	'<','=',	/* less than or equal */
-	L'≧',	'>','=',	/* greater than or equal */
-	L'⊂',	's','b',	/* proper subset */
-	L'⊃',	's','p',	/* proper superset */
-	L'⊄',	'!','b',	/* not subset */
-	L'⊆',	'i','b',	/* reflexive subset */
-	L'⊇',	'i','p',	/* reflexive superset */
-	L'⊕',	'O','+',	/* circle plus */
-	L'⊖',	'O','-',	/* circle minus */
-	L'⊗',	'O','x',	/* circle multiply */
-	L'⊢',	't','u',	/* turnstile */
-	L'⊨',	'T','u',	/* valid */
-	L'⋄',	'l','z',	/* lozenge */
-	L'⋯',	'e','l',	/* ellipses */
-	0,	0,
+	char	*ld;		/* must be seen before using this conversion */
+	char	*si;		/* options for last input characters */
+	Rune	*so;		/* the corresponding Rune for each si entry */
+} latintab[] = {
+	" ",  " i",		L"␣ı",
+	"!~", "-=~",		L"≄≇≉",
+	"!",  "!<=>?bmp",	L"¡≮≠≯‽⊄∉⊅",
+	"\"*","IUiu",		L"ΪΫϊϋ",
+	"\"", "AEIOUY\"aeiouy",	L"ÄËÏÖÜŸ¨äëïöüÿ",
+	"$*", "fhk",		L"ϕϑϰ",
+	"$",  "BEFHILMoRVaefglpv",	L"ℬℰℱℋℐℒℳℴℛƲɑℯƒℊℓ℘ʋ",
+	"'\"","Uu",		L"Ǘǘ",
+	"'",  "'ACEILNORSUYZacegilnorsuyz",
+				L"´ÁĆÉÍĹŃÓŔŚÚÝŹáćéģíĺńóŕśúýź",
+	"*",  "*ABCDEFGHIKLMNOPQRSTUWXYZabcdefghiklmnopqrstuwxyz",
+		L"∗ΑΒΞΔΕΦΓΘΙΚΛΜΝΟΠΨΡΣΤΥΩΧΗΖαβξδεφγθικλμνοπψρστυωχηζ",
+	"+",  "-O",		L"±⊕",
+	",",  ",ACEGIKLNORSTUacegiklnorstu",
+				L"¸ĄÇĘĢĮĶĻŅǪŖŞŢŲąçęģįķļņǫŗşţų",
+	"-*", "l",		L"ƛ",
+	"-",  "+-2:>DGHILOTZbdghiltuz~",
+				L"∓­ƻ÷→ÐǤĦƗŁ⊖ŦƵƀðǥℏɨłŧʉƶ≂",
+	".",  ".CEGILOZceglz",	L"·ĊĖĠİĿ⊙Żċėġŀż",
+	"/",  "Oo",		L"Øø",
+	"1",  "234568",		L"½⅓¼⅕⅙⅛",
+	"2",  "-35",		L"ƻ⅔⅖",
+	"3",  "458",		L"¾⅗⅜",
+	"4",  "5",		L"⅘",
+	"5",  "68",		L"⅚⅝",
+	"7",  "8",		L"⅞",
+	":",  "-=",		L"÷≔",
+	"<!", "=~",		L"≨⋦",
+	"<",  "-<=>~",		L"←«≤≶≲",
+	"=",  ":<=>OV",		L"≕⋜≡⋝⊜⇒",
+	">!", "=~",		L"≩⋧",
+	">",  "<=>~",		L"≷≥»≳",
+	"?",  "!?",		L"‽¿",
+	"@@",  "'EKSTYZekstyz",	L"ьЕКСТЫЗекстыз",
+	"@'",  "'",	L"ъ",
+	"@C",  "Hh",	L"ЧЧ",
+	"@E",  "Hh",	L"ЭЭ",
+	"@K",  "Hh",	L"ХХ",
+	"@S",  "CHch",	L"ЩШЩШ",
+	"@T",  "Ss",	L"ЦЦ",
+	"@Y",  "AEOUaeou",	L"ЯЕЁЮЯЕЁЮ",
+	"@Z",  "Hh",	L"ЖЖ",
+	"@c",  "h",	L"ч",
+	"@e",  "h",	L"э",
+	"@k",  "h",	L"х",
+	"@s",  "ch",	L"щш",
+	"@t",  "s",	L"ц",
+	"@y",  "aeou",	L"яеёю",
+	"@z",  "h",	L"ж",
+	"@",  "ABDFGIJLMNOPRUVXabdfgijlmnopruvx",
+				L"АБДФГИЙЛМНОПРУВХабдфгийлмнопрувх",
+	"A",  "E",		L"Æ",
+	"C",  "ACU",		L"⋂ℂ⋃",
+	"Dv", "Zz",		L"Ǆǅ",
+	"D",  "-e",		L"Ð∆",
+	"G",  "-",		L"Ǥ",
+	"H",  "-H",		L"Ħℍ",
+	"I",  "-J",		L"ƗĲ",
+	"L",  "&-Jj|",		L"⋀ŁǇǈ⋁",
+	"N",  "JNj",		L"Ǌℕǋ",
+	"O",  "*+-./=EIcoprx",	L"⊛⊕⊖⊙⊘⊜ŒƢ©⊚℗®⊗",
+	"P",  "P",		L"ℙ",
+	"Q",  "Q",		L"ℚ",
+	"R",  "R",		L"ℝ",
+	"S",  "S",		L"§",
+	"T",  "-u",		L"Ŧ⊨",
+	"V",  "=",		L"⇐",
+	"Y",  "R",		L"Ʀ",
+	"Z",  "-Z",		L"Ƶℤ",
+	"^",  "ACEGHIJOSUWYaceghijosuwy",
+				L"ÂĈÊĜĤÎĴÔŜÛŴŶâĉêĝĥîĵôŝûŵŷ",
+	"_\"","AUau",		L"ǞǕǟǖ",
+	"_.", "Aa",		L"Ǡǡ",
+	"_,", "Oo",		L"Ǭǭ",
+	"_",  "_AEIOUaeiou",	L"¯ĀĒĪŌŪāēīōū",
+	"`\"","Uu",		L"Ǜǜ",
+	"`",  "AEIOUaeiou",	L"ÀÈÌÒÙàèìòù",
+	"a",  "ben",		L"↔æ∠",
+	"b",  "()+-0123456789=bknpqru",
+				L"₍₎₊₋₀₁₂₃₄₅₆₇₈₉₌♝♚♞♟♛♜•",
+	"c",  "$Oagu",		L"¢©∩≅∪",
+	"dv", "z",		L"ǆ",
+	"d",  "-adegz",		L"ð↓‡°†ʣ",
+	"e",  "ls",		L"⋯∅",
+	"f",  "a",		L"∀",
+	"g",  "$-r",		L"¤ǥ∇",
+	"h",  "-v",		L"ℏƕ",
+	"i",  "-bfjps",		L"ɨ⊆∞ĳ⊇∫",
+	"l",  "\"$&'-jz|",	L"“£∧‘łǉ⋄∨",
+	"m",  "iou",		L"µ∈×",
+	"n",  "jo",		L"ǌ¬",
+	"o",  "AOUaeiu",	L"Å⊚Ůåœƣů",
+	"p",  "Odgrt",		L"℗∂¶∏∝",
+	"r",  "\"'O",		L"”’®",
+	"s",  "()+-0123456789=abnoprstu",
+				L"⁽⁾⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹⁼ª⊂ⁿº⊃√ß∍∑",
+	"t",  "-efmsu",		L"ŧ∃∴™ς⊢",
+	"u",  "-AEGIOUaegiou",	L"ʉĂĔĞĬŎŬ↑ĕğĭŏŭ",
+	"v\"","Uu",		L"Ǚǚ",
+	"v",  "ACDEGIKLNORSTUZacdegijklnorstuz",
+				L"ǍČĎĚǦǏǨĽŇǑŘŠŤǓŽǎčďěǧǐǰǩľňǒřšťǔž",
+	"w",  "bknpqr",		L"♗♔♘♙♕♖",
+	"x",  "O",		L"⊗",
+	"y",  "$",		L"¥",
+	"z",  "-",		L"ƶ",
+	"|",  "Pp|",		L"Þþ¦",
+	"~!", "=",		L"≆",
+	"~",  "-=AINOUainou~",	L"≃≅ÃĨÑÕŨãĩñõũ≈",
+	0,	0,		0
 };
 
-long
-latin1(uchar *k)
-{
-	struct latin *l;
-
-	for(l=latintab; l->l; l++)
-		if(k[0]==l->c1 && k[1]==l->c2)
-			return l->l;
-	return -1;
-}
-
+/*
+ * Given 5 characters k[0]..k[4], find the rune or return -1 for failure.
+ */
 long
 unicode(uchar *k)
 {
@@ -242,4 +143,41 @@ unicode(uchar *k)
 			return -1;
 	}
 	return c;
+}
+
+/*
+ * Given n characters k[0]..k[n-1], find the corresponding rune or return -1 for
+ * failure, or something < -1 if n is too small.  In the latter case, the result
+ * is minus the required n.
+ */
+long
+latin1(uchar *k, int n)
+{
+	struct cvlist *l;
+	int c;
+	char* p;
+
+	if(k[0] == 'X')
+		if(n>=5)
+			return unicode(k);
+		else
+			return -5;
+	for(l=latintab; l->ld!=0; l++)
+		if(k[0] == l->ld[0]){
+			if(n == 1)
+				return -2;
+			if(l->ld[1] == 0)
+				c = k[1];
+			else if(l->ld[1] != k[1])
+				continue;
+			else if(n == 2)
+				return -3;
+			else
+				c = k[2];
+			for(p=l->si; *p!=0; p++)
+				if(*p == c)
+					return l->so[p - l->si];
+			return -1;
+		}
+	return -1;
 }

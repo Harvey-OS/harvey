@@ -1,0 +1,1456 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%Creator: (Interleaf, Inc.)
+%%Copyright: (Copyright(c) 1991 Interleaf, Inc.)
+%%Version: 5.3 0
+%%BoundingBox: (atend)
+%%For: (ctg)
+%%CreationDate: (Fri, Mar 26, 1993 13:47:34)
+%%Title: (Document:)
+%%Pages: (atend)
+%%DocumentFonts: (atend)
+%%EndComments
+%%BeginProlog
+userdict /Ileaf_5.3.0 200 dict dup begin put
+/MAJOR 5 def/MINOR 3 def/SUB 0 def
+/bdf{bind def}bind def
+/xdf{exch def}bdf
+/msg{ print(\n)print flush}bdf
+/imatrix[1 0 0 -1 0 0]def
+/MAXCHARS 128 def
+/VMHEAD 1000 def
+/BOGUSWIDTH -1 def
+/mesg 64 string def
+/charstr 12 string def
+/istr 3 string def
+/ILEncoding 256 array def
+/ILSymBEnc 256 array def
+/ILDingbats 256 array def
+/trashheap 1024 string def
+/emsg1 256 string def
+/emsg2 256 string def
+/inch{72 mul}bdf
+/pgstate 0 def/DPIx 0 def/DPIy 0 def
+/PSfontobj 1024 dict def
+/BinaryMode false def
+%/mark 0 def
+/rl {rlineto} bdf
+/rm {rmoveto} bdf
+/rc {rcurveto} bdf
+/L {lineto} bdf
+/M {moveto} bdf
+/sw {setlinewidth} bdf
+% User definable macros for custom prologues
+/BOJ {} bdf
+/EOJ {} bdf
+/BOS {} bdf
+/EOS {} bdf
+%
+/initialize {Ileaf_5.3.0 begin userdict begin} bdf
+/terminate {end end} bdf
+/hline 0 def
+/headerpage{
+ 	0 begin
+	/nl {} def
+	/y 11 def/nl{/y y .33 sub def 1 inch y inch M}bdf
+	/#copies 1 def
+	/Helvetica-Bold/ILhelvb ILEncoding ReEncode
+	/ILhelvb findfont 18 scalefont setfont
+	nl nl nl
+
+        hline length dup dup
+	25 gt{26 sub dup hline exch((  ...))put} {pop 0}ifelse
+	exch 1 sub -1 3 -1 roll{hline exch get show nl}for
+
+	/Helvetica findfont 8 scalefont setfont
+	1 inch 1 inch M
+	emsg1 0 get 0 ne{1 inch .75 inch M emsg1 show}if
+	emsg2 0 get 0 ne{1 inch .5 inch M emsg2 show}if
+	end
+}bdf
+/headerpage load 0 6 dict put
+%
+/vp{
+	10 mesg cvrs print(.)print
+	10 mesg cvrs print(.)print
+	10 mesg cvrs print(\n)print
+}bdf
+/vs{
+	10 mesg cvrs show(.)show
+	10 mesg cvrs show(.)show
+	10 mesg cvrs show
+} bdf
+/lline 0 def
+/logme{}bdf
+%
+/vck{	% stack => major minor sub
+	3 copy
+	MAJOR ne exch MINOR ne or exch SUB ne or
+	{
+	 (\tInterleaf:: FATAL ERROR: pspro.ps and pl2ps versions do not agree.)msg
+	 (\tInterleaf:: pspro.ps version: \t)print
+	 SUB MINOR MAJOR vp
+	 (\tInterleaf:: pl2ps version: \t)print
+	 3 copy vp flush
+	 userdict /lline known
+	  {headerpage} {/Helvetica findfont 8 scalefont setfont} ifelse
+	 (FATAL ERROR: pspro version )show
+	 SUB MINOR MAJOR vs
+	 ( does not agree with pl2ps version)show
+	 vs showpage
+	 quit 
+	} {3 {pop} repeat} ifelse
+}bdf
+%
+/vpos 0 def/hpos 0 def
+/m{/vpos xdf/hpos xdf}bdf
+/v{/vpos xdf}bdf
+/h{/hpos xdf}bdf
+/el{
+ matrix currentmatrix 8 1 roll
+ translate rotate scale 0 0 1 5 -2 roll arc setmatrix
+}bdf
+/addconic{
+ matrix currentmatrix 9 1 roll
+ translate rotate scale
+ 0 0 1 6 -3 roll 1 eq{arc}{arcn}ifelse
+ setmatrix
+}bdf
+/dp{1 setlinejoin 1 setlinecap stroke}bdf
+/ALIGN_NONE 0 def/ALIGN_OPEN 1 def/ALIGN_CLOSE 2 def
+/PPWADJ [0 0 4 8 12 16 20]def
+/MINSCALE .1 def
+%
+/plen{
+	0 begin
+	flattenpath
+	/dist 0 def/yfirst 0 def/xfirst 0 def/ymoveto 0 def
+	/xmoveto 0 def/ynext 0 def/xnext 0 def
+	{/yfirst xdf/xfirst xdf
+	/ymoveto yfirst def/xmoveto xfirst def}
+	{/ynext xdf/xnext xdf
+	/dist dist ynext yfirst sub dup mul
+	xnext xfirst sub dup mul add sqrt add def
+	/yfirst ynext def/xfirst xnext def}
+	{}
+	{/ynext ymoveto def/xnext xmoveto def
+	/dist dist ynext yfirst sub dup mul
+	xnext xfirst sub dup mul add sqrt add def
+	/yfirst ynext def/xfirst xnext def}
+	pathforall dist
+	end
+}bdf
+/plen load 0 7 dict put
+%
+/setpenpat {0 begin
+ /style 0 def/width 0 def/pattern 0 def
+ /style xdf/width xdf/pattern xdf/scaleup 0 def
+ /indx 0 def/adj 0 def/val 0 def/iszero 0 def
+ /scaleup DPIx 300 div def
+ /indx width 1 add scaleup div 4 div cvi def
+ indx 1 gt indx 7 lt and{
+ /adj PPWADJ indx get scaleup mul def
+ /indx 0 def
+ pattern{/iszero indx 2 mod def iszero
+  0 ne{adj add/val xdf}{/val xdf}ifelse
+  pattern indx val put /indx indx 1 add def
+  }forall
+ }if
+ %
+ /offset 0 def/patternlen 0 def/pathlen plen def
+ pattern{patternlen add/patternlen xdf}forall
+ style ALIGN_NONE eq{}if
+ %
+ /n 0 def/extralen 0 def/halfpatlen 0 def
+ /scale1 0 def/offset 0 def
+ style ALIGN_CLOSE eq{
+  /n pathlen patternlen div cvi def
+  /extralen pathlen cvi patternlen cvi mod def
+  /halfpatlen patternlen 2 div def
+  extralen halfpatlen gt{/n n 1 add def}if
+  n 0 eq{/n 1 def}if
+  /scale1 pathlen n patternlen mul div def
+  scale1 MINSCALE gt{
+   /indx 0 def
+   pattern{
+    scale1 mul/val xdf
+    val 0 eq{/val 1 def}if
+    pattern indx val cvi put
+    /indx indx 1 add def
+   }forall
+  }if
+  /offset pattern 0 get 2 div round def
+ }if
+ %
+ /firstdash 0 def/dashpct 0 def/scale2 0 def/x 0 def/y 0 def
+ style ALIGN_OPEN eq{
+  /firstdash pattern 0 get def
+  /dashpct firstdash patternlen div def
+  /n pathlen patternlen div dashpct sub cvi def
+  /scale1 pathlen n dashpct add patternlen mul div def
+  /scale2 pathlen n dashpct add 1 add patternlen mul div def
+  /x scale2 1 sub abs def
+  /y scale1 1 sub abs def
+  x y lt{/scale1 scale2 def}if
+  scale1 MINSCALE gt{
+   /indx 0 def
+   pattern{
+    scale1 mul/val xdf
+    val 0 eq{/val 1 def}if
+    pattern indx val cvi put
+    /indx indx 1 add def
+   }forall
+   /offset 0 def
+  }if
+ }if
+ pattern offset setdash
+ end
+}bdf
+/setpenpat load 0 50 dict put
+%
+/msp 0 def/stEnd 0 def/nsp 0 def/fstr 0 def
+/s{
+	/msp xdf/stEnd xdf/nsp xdf/fstr xdf
+	hpos vpos M
+	msp -1 ne
+	{stEnd hpos sub fstr stringwidth pop sub nsp div 0 msp fstr widthshow}
+	{fstr show}
+	ifelse
+	/hpos stEnd def
+}bdf
+%
+%%%%%%%%% Hack for error character %%%%%%%%%%%%%%%%%%%%%%%%
+/eu 1000 def
+/ew 632 def
+/ptsz 0 def
+/ec{
+ /ptsz xdf
+ gsave
+ newpath hpos vpos M
+ ptsz DPIx 72 div mul eu div dup neg scale
+ 30 -110 rm 573 0 rl 0 873 rl -573 0 rl 0 -873 rl
+ 40 833 rm 493 0 rl 0 -793 rl -493 0 rl 0 793 rl
+ 194 -137 rm 94 0 rl 0 94 rl -94 0 rl 0 -94 rl
+ 10 -176 rm 0 -83 -162 -95 -162 -257 rc
+ 0 -119 109 -174 208 -174 rc 116 0 201 69 201 172 rc
+ 0 34 rl -83 0 rl 4 -63 -6 -148 -119 -148 rc
+ -74 0 -128 48 -128 121 rc 0 133 158 136 158 252 rc
+ 0 45 0 95 0 95 rc -75 0 rl 0 0 0 -52 0 -95 rc
+ closepath fill
+ grestore
+ /hpos hpos ptsz DPIx 72 div mul eu div ew mul add def
+ hpos vpos M
+}bdf
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/ilr{BinaryMode{readstring}{readhexstring}ifelse}bdf
+/s1 1 string def
+/ccd[
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0{1}{2}{3}{4}{5}{6}{7}{8}{9}{10}{11}{12}{13}{14}{15}
+ {16}{17}{18}{19}{20}{21}{22}{23}{24}{25}{26}{27}{28}{29}{30}{31}
+ {32}{33}{34}{35}{36}{37}{38}{39}{40}{41}{42}{43}{44}{45}{46}{47}
+ {48}{49}{50}{51}{52}{53}{54}{55}{56}{57}{58}{59}{60}{61}{62}{63}
+ {t1_1}{t1_2}{3 t1}{4 t1}{5 t1}{6 t1}{7 t1}{8 t1}
+ {9 t1}{10 t1}{11 t1}{12 t1}{13 t1}{14 t1}{15 t1}{16 t1}
+ {t2_1}{t2_2}{3 t2}{4 t2}{5 t2}{6 t2}{7 t2}{8 t2}
+ {9 t2}{10 t2}{11 t2}{12 t2}{ditto}{rn}{raw}
+]def
+/t1tab[
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 16#00 16#01 16#02 16#04 16#08 16#10 16#20 16#40
+ 16#80 16#03 16#06 16#0c 16#18 16#30 16#60 16#c0
+ 16#07 16#0e 16#1c 16#38 16#70 16#e0 16#0f 16#1e
+ 16#3c 16#78 16#f0 16#1f 16#3e 16#7c 16#f8 16#3f
+ 16#7e 16#fc 16#7f 16#fe 16#ff 16#a0 16#90 16#88
+ 16#84 16#82 16#81 16#50 16#48 16#44 16#42 16#41
+ 16#28 16#24 16#22 16#21 16#14 16#12 16#11 16#0a
+ 16#09 16#05 16#00 16#00 16#00 16#00 16#00 16#00 
+]def
+/str 0 def/sl 0 def/val 0 def
+/cls{
+ 	/sl xdf/val xdf
+ 	/str sl string def
+ 	0 1 sl 1 sub {str exch val put}for
+ 	str def
+}bdf
+/rn{
+ cf read pop 32 sub 6 bitshift cf read pop 32 sub or
+}bdf
+/t1_1{
+ 2 copy 2 copy
+  get cf read pop t1tab exch get xor put 1
+}bdf
+/t1_2{
+ 2 copy 2 copy
+ get cf read pop t1tab exch get xor put 1 add
+ 2 copy 2 copy
+ get cf read pop t1tab exch get xor put 1
+}bdf
+/t1{
+ {2 copy 2 copy get cf read pop t1tab exch get xor put 1 add}repeat
+ 0
+}bdf
+/t2_1{
+ 2 copy 2 copy
+ get cf s1 readhexstring pop 0 get xor put 1
+}bdf
+/t2_2{
+ 2 copy 2 copy
+ get cf s1 readhexstring pop 0 get xor put 1 add
+ 2 copy 2 copy
+ get cf s1 readhexstring pop 0 get xor put 1
+}bdf
+/t2{
+ {2 copy 2 copy get cf s1 readhexstring pop 0 get xor put 1 add}repeat
+ 0
+}bdf
+/ditto{
+ dbsize
+}bdf
+/raw{
+ 2 copy pop
+ cf exch readhexstring pop pop
+ dbsize
+}bdf
+/dl{
+ dline
+ 0 
+ cf es readline pop
+ {ccd exch get exec add}forall pop
+ 0 dbsizetrue getinterval
+}bdf
+/shiftline{
+ 0 1 cws 2 sub{
+  2 copy 2 copy
+  get
+  lsh bitshift 16#ff and
+  3 1 roll
+  1 add get
+  rsh bitshift 16#ff and
+  or
+  crpstr 3 1 roll
+  put
+ }for
+ pop crpstr
+}bdf
+%
+/PL_image{0 begin
+ gsave
+ % init
+ /cw 0 def/ct 0 def/cb 0 def/cl 0 def/cpr 0 def
+ /ho 0 def/vo 0 def/hh 0 def/vh 0 def/hv 0 def
+ /vv 0 def/nbits 0 def/vpix 0 def/hpix 0 def
+ /scfrq 0 def/scang 0 def/ms 0 def/map 0 def
+ /ms 0 def/dbsize 0 def
+ %
+ /cw xdf/ct xdf/cb xdf/cl xdf
+ /cpr xdf
+ /ho xdf/vo xdf/hh xdf/vh xdf/hv xdf/vv xdf/nbits xdf/vpix xdf/hpix xdf
+ /scfrq xdf/scang xdf/ms xdf/map xdf
+ /transp true def
+ ms 0 ne{
+  /ms ms 1 sub def
+  {map exch ms mul round cvi get}settransfer
+  map ms get 1.0 ne{/transp false def}if
+ }if
+ scfrq 0 ne{
+  scang 0 eq{/scang 45 def}if
+  scfrq scang currentscreen 3 1 roll pop pop setscreen
+ }if
+ %
+ /dbsize 0 def/dbsizetrue 0 def/cf 0 def/cli 0 def/cwb 0 def
+ /ch 0 def/crpstr 0 def/lsh 0 def/rsh 0 def/cws 0 def/dline 0 def/es 0 def
+
+ /dbsize hpix nbits mul 7 add 8 idiv def
+
+ /dbsizetrue hpix nbits mul 7 add 8 idiv def
+ /dline 255 dbsize cls
+ /es 0 dbsize cls
+ /cf currentfile def
+ /cli cl 8 idiv def
+ /cwb cw 7 add 8 idiv def
+ /ch vpix ct cb add sub def
+
+ ho vo translate
+ [hh vh hv vv 0 0]concat
+ nbits 1 eq transp and
+  {cpr 1 eq	
+   {cw ct add cb add cl add 0 ne
+    {/crpstr cwb string def
+     /lsh cl 8 mod def
+     /rsh lsh 8 sub def
+     /cws cw lsh add 7 add 8 idiv def
+     ct{dl pop}repeat
+     cw ch false[cw 0 0 ch 0 0]
+     {dl cli cws getinterval lsh 0 ne{shiftline}if}imagemask
+     cb{dl pop}repeat
+    }
+    {hpix vpix false[hpix 0 0 vpix 0 0]{dl}imagemask}
+    ifelse
+   }
+   {hpix vpix false[hpix 0 0 vpix 0 0]{cf dline ilr pop}imagemask}
+   ifelse
+  }
+  {cpr 1 eq
+   {cw ct add cb add cl add 0 ne
+    {/crpstr cwb string def
+     /lsh cl 8 mod def
+     /rsh lsh 8 sub def
+     /cws cw lsh add 7 add 8 idiv def
+     ct{dl pop}repeat
+     cw ch nbits[cw 0 0 ch 0 0]
+     {dl cli cws getinterval lsh 0 ne{shiftline}if}image
+     cb{dl pop}repeat
+    }
+    {hpix vpix nbits[hpix 0 0 vpix 0 0]{dl}image}
+    ifelse
+   }
+   {hpix vpix nbits[hpix 0 0 vpix 0 0]{cf dline ilr pop}image}
+   ifelse
+ }  
+ ifelse
+ grestore
+ end
+}bdf
+/PL_image load 0 35 dict put
+/blank_PL_image{
+	0 begin gsave
+	/ho 0 def/vo 0 def/hh 0 def/vh 0 def/hv 0 def
+	/vv 0 def/nbits 0 def/vpix 0 def/hpix 0 def
+	/scanlinesize 0 def/scanline 0 def
+
+	pop pop pop pop pop	% => /cw xdf/ct xdf/cb xdf/cl xdf/cpr xdf
+	/ho xdf/vo xdf/hh xdf/vh xdf/hv xdf/vv xdf/nbits xdf/vpix xdf/hpix xdf
+	pop pop pop pop		% => /scfrq xdf/scang xdf/ms xdf/map xdf
+
+	/scanlinesize hpix nbits mul 15 add 16 idiv 2 mul def
+	/scanline 255 scanlinesize cls
+
+	ho vo translate
+	[hh vh hv vv 0 0]concat
+	hpix vpix nbits[hpix 0 0 vpix 0 0]{scanline}image
+	grestore end
+}bdf
+/blank_PL_image load 0 14 dict put
+/reencodesubdict 12 dict def
+/ReEncode{
+	reencodesubdict begin
+	/newencoding 0 def/newfontname 0 def/basefontname 0 def
+	/basefontdict 0 def/newfont 0 def
+	%
+	/newencoding xdf/newfontname xdf/basefontname xdf
+	/basefontdict basefontname findfont def
+	/newfont basefontdict maxlength 2 add dict def
+	basefontdict{exch dup/FID ne{exch newfont 3 1 roll put}{pop pop}ifelse}forall
+	newfont/FontName newfontname put
+	newencoding -1 ne{newfont/Encoding newencoding put}if
+	newfontname newfont definefont pop
+	end
+}bdf
+/insertcharnum{
+	0 begin
+	/encoding 0 def/i 0 def
+	%
+	/encoding xdf/i xdf
+	(char)charstr copy pop
+	i istr cvs pop
+	charstr 4 istr putinterval
+	encoding i charstr cvn put
+	end
+}bdf
+/insertcharnum load 0 2 dict put
+ILEncoding 0[
+/Aacute/Acircumflex/Adieresis/Agrave/Aring/Atilde/Ccedilla/Eacute
+/Ecircumflex/Edieresis/Egrave/Iacute/Icircumflex/Idieresis/Igrave/Ntilde
+/Oacute/Ocircumflex/Odieresis/Ograve/Otilde/Scaron/Uacute/Ucircumflex
+/Udieresis/Ugrave/Ydieresis/Zcaron/char28/char29/char30/char31
+/space/exclam/quotedbl/numbersign/dollar/percent/ampersand/quoteright
+/parenleft/parenright/asterisk/plus/comma/hyphen/period/slash
+/zero/one/two/three/four/five/six/seven
+/eight/nine/colon/semicolon/less/equal/greater/question
+/at/A/B/C/D/E/F/G
+/H/I/J/K/L/M/N/O
+/P/Q/R/S/T/U/V/W
+/X/Y/Z/bracketleft/backslash/bracketright/asciicircum/underscore
+/quoteleft/a/b/c/d/e/f/g
+/h/i/j/k/l/m/n/o
+/p/q/r/s/t/u/v/w
+/x/y/z/braceleft/bar/braceright/asciitilde/quotedblleft
+/aacute/acircumflex/adieresis/agrave/aring/atilde/ccedilla/eacute
+/ecircumflex/edieresis/egrave/iacute/icircumflex/idieresis/igrave/ntilde
+/oacute/ocircumflex/odieresis/ograve/otilde/scaron/uacute/ucircumflex
+/udieresis/ugrave/ydieresis/zcaron/char156/char157/char158/char159
+/char160/exclamdown/cent/sterling/fraction/yen/florin/section
+/currency/quotesingle/quotedblleft/guillemotleft/guilsinglleft/guilsinglright/fi/fl
+/char176/endash/dagger/daggerdbl/periodcentered/char181/paragraph/bullet
+/quotesinglbase/quotedblbase/quotedblright/guillemotright/ellipsis/perthousand/char190/questiondown
+/char192/grave/acute/circumflex/tilde/macron/breve/dotaccent
+/dieresis/char201/ring/cedilla/char204/hungarumlaut/ogonek/caron
+/emdash/char209/char210/char211/char212/char213/char214/char215
+/char216/char217/char218/char219/char220/char221/char222/char223
+/char224/AE/char226/ordfeminine/char228/char229/char230/char231
+/Lslash/Oslash/OE/ordmasculine/char236/char237/char238/char239
+/char240/ae/char242/char243/char244/dotlessi/char246/char247
+/lslash/oslash/oe/germandbls/char252/char253/char254/char255
+]putinterval
+ILSymBEnc 32[
+/space/logicalor/arrowright/arrowdblleft/arrowdblup
+/arrowdblright/lozenge/arrowhorizex/angleleft/registersans
+/Upsilon1/plusminus/second/angle/greaterequal
+/radical/ellipsis/Ifraktur/spade/lessequal
+/minute/degree/fraction/florin/infinity
+/approxequal/integral/propersuperset/parenrightbt/arrowup
+/bracketrighttp/aleph/arrowdblboth/bracerightbt/integralbt
+/notsubset/bracketleftbt/trademarksans/bracelefttp/braceleftmid
+/braceleftbt/bracketlefttp/braceex/apple/angleright
+/parenrightex/parenrighttp/arrowdown/divide/element
+/summation/bracketleftex/parenlefttp/parenleftbt/dotmath
+/copyrightsans/integralex/parenleftex/integraltp/registerserif
+/intersection/trademarkserif/arrowdbldown/gradient/logicalnot
+/reflexsubset/equivalence/propersubset/partialdiff/arrowboth
+/circlemultiply/heart/bracketrightex/bracerightmid/emptyset
+/bracketrightbt/Rfraktur/proportional/reflexsuperset/carriagereturn
+/notequal/notelement/diamond/club/bracerighttp
+/arrowleft/weierstrass/bullet/circleplus/multiply
+/arrowvertex/copyrightserif/union/product/logicaland
+]putinterval
+0 1 32{ILSymBEnc insertcharnum}for
+127 1 255{ILSymBEnc insertcharnum}for
+ILDingbats 0[
+/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef
+/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef
+/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef
+/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef
+/space/a1/a2/a202/a3/a4/a5/a119
+/a118/a117/a11/a12/a13/a14/a15/a16
+/a105/a17/a18/a19/a20/a21/a22/a23
+/a24/a25/a26/a27/a28/a6/a7/a8
+/a9/a10/a29/a30/a31/a32/a33/a34
+/a35/a36/a37/a38/a39/a40/a41/a42
+/a43/a44/a45/a46/a47/a48/a49/a50
+/a51/a52/a53/a54/a55/a56/a57/a58
+/a59/a60/a61/a62/a63/a64/a65/a66
+/a67/a68/a69/a70/a71/a72/a73/a74
+/a203/a75/a204/a76/a77/a78/a79/a81
+/a82/a83/a84/a97/a98/a99/a100/.notdef
+/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef
+/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef
+/.notdef/.notdef/.notdef/a205/a206/a85/a86/a87
+/a88/a89/a90/a91/a92/a93/a94/a95
+/a96/a101/a102/a103/a104/a106/a107/a108
+/a112/a111/a110/a109/a120/a121/a122/a123
+/a124/a125/a126/a127/a128/a129/a130/a131
+/a132/a133/a134/a135/a136/a137/a138/a139
+/a140/a141/a142/a143/a144/a145/a146/a147
+/a148/a149/a150/a151/a152/a153/a154/a155
+/a156/a157/a158/a159/a160/a161/a163/a164
+/a196/a165/a192/a166/a167/a168/a169/a170
+/a171/a172/a173/a162/a174/a175/a176/a177
+/a178/a179/a193/a180/a199/a181/a200/a182
+/.notdef/a201/a183/a184/a197/a185/a194/a198
+/a186/a195/a187/a188/a189/a190/a191/.notdef]putinterval
+%
+/encoding 0 def/ILfont 0 def/PSfont 0 def/ptsize 0 def
+/newFont
+{
+	findfont imatrix makefont
+	exch DPIx 72 div mul scalefont
+} bdf
+/declareNFont{
+	/encoding xdf/ILfont xdf/PSfont xdf/ptsize xdf
+	FontDirectory ILfont known false eq{PSfont ILfont encoding ReEncode}if
+	ptsize ILfont newFont
+}bdf
+/declareRFont{0 begin
+ /PLname xdf
+ PSfontobj PLname
+ 10 dict dup begin
+ /FontType 3 def
+ /FontMatrix[DPIx 300 div 0 0 DPIy 300 div 0 0]def
+ /FontBBox[0 0 0 0]def
+ /Encoding ILEncoding def
+ /BuildChar{0 begin
+  /char xdf
+  /fontdict xdf
+  /charname fontdict/Encoding get char get def
+  /charinfo fontdict/CharData get charname get def
+  /wx charinfo 0 get def
+  charinfo 0 get BOGUSWIDTH eq
+   {puterrchar}
+   {/charbbox charinfo 1 4 getinterval def
+    wx 0 charbbox aload pop setcachedevice	
+    charinfo 5 get charinfo 6 get true
+    fontdict/imagemaskmatrix get
+    dup 5 charinfo 8 get put
+    dup 4 charinfo 7 get put
+    charinfo 9 get
+    imagemask}
+  ifelse
+  end
+ }def
+ /BuildChar load 0 7 dict put
+ /imagemaskmatrix[1 0 0 1 0 0]def
+ /CharData MAXCHARS dict def
+ end
+ PLname exch definefont put
+ PSfontobj PLname get/CharData get/space[16 0 0 1 1 16 1 0 0[<00>]cvx]put
+ end
+}def
+/declareRFont load 0 3 dict put
+/numLoadEmptyGlyph{
+	0 begin
+	/chnum 0 def/font 0 def/w 0 def
+	/chnum xdf/font xdf/w xdf
+	w font PSfontobj font get/Encoding get chnum get
+	LoadEmptyGlyph
+	end
+}bdf
+/numLoadEmptyGlyph load 0 3 dict put
+/puterrchar{
+ PSfontobj errfontname get dup
+ /BuildChar get errcharno exch exec
+ (\tInterleaf::out of VM loading bitmap(?). Try breaking up document\n)
+ dup print flush
+ emsg1 copy pop
+}def
+/QUIT{
+ (\tInterleaf::completely out of memory. \n\tTry breaking up the document \n)
+ dup print flush
+ emsg2 copy pop stop
+}def
+/LoadGlyph{
+	0 begin
+	/charno 0 def/fontname 0 def/height 0 def/width 0 def
+	/hsize 0 def/nbytes 0 def/glyph 0 def/tx 0 def/ty 0 def/lly 0 def
+	/llx 0 def/urx 0 def/lsb 0 def/glyph 0 def/NoVMHead 0 def
+	%
+	/charno xdf/fontname xdf/height xdf/vadj xdf/width xdf/hsize xdf/lsb xdf
+	/NoVMHead vmstatus exch sub exch pop dup
+	 VMHEAD 2 idiv lt{QUIT}if
+	 VMHEAD lt{true}{false}ifelse def
+	/nbytes hsize 15 add 16 idiv 2 mul height mul def	
+	NoVMHead not{/glyph nbytes string def}if
+	currentfile NoVMHead {trashheap 0 nbytes getinterval}{glyph}ifelse
+	readhexstring pop pop
+	/hsize hsize 15 add 16 idiv 16 mul def
+	/lly height vadj add def
+	/urx hsize lsb add def
+	/tx lsb neg def
+	/ty vadj neg def
+	PSfontobj fontname get dup /Encoding get charno get
+	exch /CharData get exch
+	NoVMHead {[BOGUSWIDTH]}
+	{[width lsb lly urx vadj hsize height tx ty[glyph]cvx]}ifelse
+	put end
+}bdf
+/LoadGlyph load 0 15 dict put
+%
+/scfrq 0 def/scang 0 def
+/solidfill{
+ /scfrq xdf/scang xdf
+ gsave
+ scfrq 0 ne{
+  scang 0 eq{/scang 45 def}if
+  scfrq scang currentscreen 3 1 roll pop pop setscreen
+ }if
+ eofill
+ grestore
+}bdf
+/patstr 1 string def/patchar 0 def/pffontname 0 def
+/fillpatset{/patchar xdf/pffontname xdf}bdf
+/fp{
+ /scfrq xdf/scang xdf
+ gsave 
+ scfrq 0 ne{
+  scang 0 eq{/scang 45 def}if
+  scfrq scang currentscreen 3 1 roll pop pop setscreen
+ }if
+ currentfont PSfontobj pffontname get setfont pfill
+ dup null ne{setfont}{pop}ifelse grestore
+}bdf
+/pfill{
+ gsave 1 1 1 setrgbcolor eofill grestore
+ setupfactors setupregion blastchars
+ newpath
+}bdf
+%
+/paty 0 def/patx 0 def
+/setupfactors{
+ patstr 0 patchar put
+ patstr stringwidth pop/paty exch def/patx paty def
+}bdf
+/ry 0 def/rx 0 def/ly 0 def/lx 0 def
+/setupregion{
+ eoclip	
+ pathbbox
+ /ry exch floor def
+ /rx exch floor def
+ /ly exch ceiling cvi
+ dup 0 lt{paty sub}if cvi
+ dup paty ceiling cvi mod sub def
+ /lx exch ceiling cvi
+ dup 0 lt{patx sub}if cvi
+ dup patx ceiling cvi mod sub def
+ /ry ry paty add def
+ /ly ly paty sub def
+ newpath
+}bdf
+/blastchars{
+ /#chars rx lx sub patx div ceiling cvi def
+ ly paty ry{lx exch M #chars{patstr show}repeat}for
+}bdf
+%
+/clp{initclip newpath M L L L closepath clip}bdf
+%
+/cm 0 def/pgw 0 def/pgl 0 def/cn 0 def/pw 0 def/pw2 0 def/lnx 0 def/lny 0 def
+/cropdefs[
+{} % 0
+{ % 1
+ 0 0 M lnx neg 0 L
+ 0 0 M 0 lny neg L
+}
+{ % 2
+ 0 0 M lnx 0 L
+ 0 0 M 0 lny L
+}
+{ % 3
+ lnx .25 mul neg 0 M lnx neg 0 L
+ 0 lny .25 mul neg M 0 lny neg L
+}
+{ % 4
+ lnx .25 mul 0 M lnx 0 L
+ 0 lny .25 mul M 0 lny L
+}
+{ % 5
+ lnx neg 0 M lnx 0 L
+ 0 lny neg M 0 lny L
+}
+{  % 6
+ [lnx .75 mul lnx .50 mul]0 setdash
+ lnx neg 0 M lnx 0 L 0 lny neg M 0 lny L
+}
+{ % 7
+ cn 1 eq cn 3 eq or {90 rotate}if
+ 0 0 M lnx neg 0 L
+ 0 lny M 0 lny neg L
+ cn 1 eq cn 3 eq or {90 neg rotate}if
+ /cn cn 1 add def
+}
+]def
+/cutmarks{	%stack: pglen pgwid cmtype => ---  
+	gsave 0 setgray [] 0 setdash
+	/cm xdf/pgwid xdf/pglen xdf
+	/pw DPIx 80 div def/pw2 pw 2 div def
+	/lnx DPIx 4 div def/lny DPIy 4 div def
+	initclip pw sw
+	/cn 0 def newpath
+	% upper left corner
+	pw2 neg pw2 neg translate
+	cropdefs cm get exec
+	% upper right corner
+	pgwid pw add 0 translate
+	90 rotate cropdefs cm get exec 90 neg rotate
+	% lower right corner
+	0 pglen pw add translate
+	180 rotate cropdefs cm get exec 180 neg rotate
+	% lower left corner
+	pgwid pw add neg 0 translate
+	270 rotate cropdefs cm get exec 270 neg rotate
+	dp grestore
+}bdf
+/bop {/pgstate save def} bdf
+/eop {showpage pgstate restore} bdf
+end 
+%%EndProlog
+%%BeginSetup
+Ileaf_5.3.0 /initialize get exec
+%%EndSetup
+bop
+/DPIx 1270 def /DPIy 1270 def
+72 DPIx div 72 DPIy div neg scale
+0 13977 neg translate
+/wst:timsps12 12.00 /Times-Roman /wst:timsps ILEncoding declareNFont def
+wst:timsps12 setfont
+0.0 563.0 m
+4130.0 h
+8260.0 h
+/wst:timsps10 10.00 /Times-Roman /wst:timsps ILEncoding declareNFont def
+wst:timsps10 setfont
+10039.0 13385.0 m
+9599.0 13385.0 m
+0.0000 setgray
+<33b1313533>
+ 0 10039 -1 s
+4599.0 13366.0 m
+/wst:timsps10i 10.00 /Times-Italic /wst:timspsi ILEncoding declareNFont def
+wst:timsps10i setfont
+<56>
+ 0 4707 -1 s
+4687.0 13366.0 m
+<6f6c756d652049202020205072>
+ 5 5572 32 s
+5565.0 13366.0 m
+<6f6365647572>
+ 0 6053 -1 s
+6046.0 13366.0 m
+<6573>
+ 0 6192 -1 s
+1017.0 1587.0 m
+/wst:helvps24bi 24.00 /Helvetica-BoldOblique /wst:helvpsbi ILEncoding declareNFont def
+wst:helvps24bi setfont
+<332e39>
+ 0 1605 -1 s
+2288.0 h
+<4672616374757265>
+ 0 3980 -1 s
+<204d656368616e696373>
+ 1 6259 32 s
+1017.0 2725.0 m
+/wst:helvps6 6.00 /Helvetica /wst:helvps ILEncoding declareNFont def
+wst:helvps6 setfont
+0.0 0.0 m
+25.0 sw
+[] 0 setdash
+newpath
+2288 2734 M
+9743 2734 L
+dp
+2288.0 3114.0 m
+wst:timsps12 setfont
+<437261636b73>
+ 0 2876 -1 s
+<20616e6420666c617773206f6363757220696e206d616e79207374727563747572657320616e6420636f6d706f6e656e74732c20736f6d6574696d6573206c656164696e6720746f>
+ 11 9233 32 s
+2288.0 3357.0 m
+<646973617374726f757320726573756c74732e20205365766572616c2079656172732061676f2c206120636f6d6d65726369616c206169726c696e657220666c79696e67206e6561722074686520486177616969616e>
+ 12 9470 32 s
+2288.0 3599.0 m
+<69736c616e64732073756464656e6c79206c6f73742074686520746f702070617274206f662069747320667573656c6167652e20204170706172656e746c79>
+ 10 7427 32 s
+7413.0 3599.0 m
+<2c206d6963726f73636f7069632064656665637473>
+ 2 9208 32 s
+2288.0 3842.0 m
+<696e74726f647563656420696e20746865206f726967696e616c206661627269636174696f6e2068616420656e6c6172>
+ 6 6246 32 s
+6242.0 3842.0 m
+<67656420627920637261636b2070726f7061676174696f6e206f76657220746865207965617273>
+ 6 9633 32 s
+2288.0 4084.0 m
+<756e74696c2074686520616c756d696e756d20736b696e2073696d706c7920746f72652061706172742e20205468697320697320616e206578616d706c65206f66206c6f7373206f66207374727563747572616c>
+ 15 9248 32 s
+2288.0 4327.0 m
+<696e746567726974792062792066726163747572652e202054686520656e67696e656572696e67206669656c64206f66206672616374757265206d656368616e696373207761732065737461626c697368656420746f>
+ 12 9454 32 s
+2288.0 4570.0 m
+<646576656c6f70206120626173696320756e6465727374616e64696e67206f66207375636820637261636b2070726f7061676174696f6e2070726f626c656d732e>
+ 8 7992 32 s
+1017.0 4859.0 m
+wst:helvps6 setfont
+0.0 0.0 m
+newpath
+2288 4868 M
+9743 4868 L
+dp
+1017.0 5501.0 m
+/wst:helvps16b 16.00 /Helvetica-Bold /wst:helvpsb ILEncoding declareNFont def
+wst:helvps16b setfont
+<332e392e31>
+ 0 1644 -1 s
+2034.0 h
+<57686174>
+ 0 2723 -1 s
+<206973204672616374757265204d656368616e6963733f>
+ 3 5935 32 s
+2288.0 5999.0 m
+wst:timsps12 setfont
+<4672616374757265>
+ 0 2995 -1 s
+<206d656368616e696373206465616c73207769746820746865207374756479206f6620686f77206120637261636b206f7220666c617720696e206120737472756374757265>
+ 14 8811 32 s
+2288.0 6241.0 m
+<70726f7061676174657320756e646572206170706c696564206c6f6164732e2020497420696e766f6c76657320636f7272656c6174696e6720616e616c79746963616c2070726564696374696f6e73206f6620637261636b>
+ 11 9565 32 s
+2288.0 6484.0 m
+<70726f7061676174696f6e20616e64206661696c7572652077697468206578706572696d656e74616c20726573756c74732e202054686520616e616c79746963616c2070726564696374696f6e7320617265206d616465>
+ 11 9648 32 s
+2288.0 6726.0 m
+<62792063616c63756c6174696e6720667261637475726520706172616d657465727320737563682061732073747265737320696e74656e7369747920666163746f727320696e2074686520637261636b20726567696f6e2c>
+ 12 9475 32 s
+2288.0 6969.0 m
+<776869636820796f752063616e2075736520746f20657374696d61746520637261636b2067726f77746820726174652e202054>
+ 10 6662 32 s
+6647.0 6969.0 m
+<79706963616c6c79>
+ 0 7330 -1 s
+7316.0 6969.0 m
+<2c2074686520637261636b206c656e67746820696e63726561736573>
+ 4 9605 32 s
+2288.0 7212.0 m
+<776974682065616368206170706c69636174696f6e206f6620736f6d65206379636c6963206c6f61642c207375636820617320636162696e2070726573737572697a6174696f6eb1646570726573737572697a6174696f6e>
+ 10 9780 32 s
+2288.0 7454.0 m
+<696e20616e20616972706c616e652e202046757274686572>
+ 4 4226 32 s
+4218.0 7454.0 m
+<2c20656e7669726f6e6d656e74616c20636f6e646974696f6e7320737563682061732074656d7065726174757265206f7220657874656e73697665>
+ 7 9304 32 s
+2288.0 7697.0 m
+<6578706f7375726520746f206972726164696174696f6e2063616e206166>
+ 4 4773 32 s
+4769.0 7697.0 m
+<66656374207468652066726163747572652070726f70656e73697479206f66206120676976656e206d6174657269616c2e>
+ 7 8762 32 s
+2288.0 8118.0 m
+<536f6d65207479706963616c20667261637475726520706172616d6574657273206f6620696e746572657374206172653a>
+ 6 6375 32 s
+2288.0 8487.0 m
+/spsb:symbb12 12.00 /Symbol /spsb:symbb ILSymBEnc declareNFont def
+spsb:symbb12 setfont
+<77>
+ 0 2386 -1 s
+wst:timsps12 setfont
+2478.0 h
+/wst:timsps12i 12.00 /Times-Italic /wst:timspsi ILEncoding declareNFont def
+wst:timsps12i setfont
+<737472>
+ 0 2701 -1 s
+2693.0 8487.0 m
+<65737320696e74656e7369747920666163746f7273>
+ 2 4363 32 s
+wst:timsps12 setfont
+<20284b>
+ 1 4640 32 s
+/wst:timsps9.5 9.50 /Times-Roman /wst:timsps ILEncoding declareNFont def
+wst:timsps9.5 setfont
+4640.0 8524.0 m
+<49>
+ 0 4696 -1 s
+4696.0 8487.0 m
+wst:timsps12 setfont
+<2c204b>
+ 1 4955 32 s
+wst:timsps9.5 setfont
+4955.0 8524.0 m
+<49>
+ 0 5011 -1 s
+5011.0 8487.0 m
+5011.0 8524.0 m
+<49>
+ 0 5067 -1 s
+5067.0 8487.0 m
+wst:timsps12 setfont
+<2c204b>
+ 1 5326 32 s
+wst:timsps9.5 setfont
+5326.0 8524.0 m
+<49>
+ 0 5382 -1 s
+5382.0 8487.0 m
+5382.0 8524.0 m
+<49>
+ 0 5438 -1 s
+5438.0 8487.0 m
+5438.0 8524.0 m
+<49>
+ 0 5494 -1 s
+5494.0 8487.0 m
+wst:timsps12 setfont
+<29206173736f636961746564207769746820746865207468726565206261736963206d6f646573206f66206672616374757265>
+ 8 9744 32 s
+2478.0 8730.0 m
+<287365652046696775726520332e39b13129>
+ 2 4027 32 s
+2288.0 9100.0 m
+spsb:symbb12 setfont
+<77>
+ 0 2386 -1 s
+wst:timsps12 setfont
+2478.0 h
+wst:timsps12i setfont
+<4ab1696e74656772616c>
+ 0 3349 -1 s
+wst:timsps12 setfont
+<2c207768696368206d617920626520646566696e656420617320612070617468b1696e646570656e64656e74206c696e6520696e74656772616c2074686174206d65617375726573>
+ 11 9553 32 s
+2478.0 9342.0 m
+<74686520737472656e677468206f66207468652073696e67756c617220737472657373657320616e642073747261696e73206e656172206120637261636b20746970>
+ 11 7769 32 s
+2288.0 9712.0 m
+spsb:symbb12 setfont
+<77>
+ 0 2386 -1 s
+wst:timsps12 setfont
+2478.0 h
+wst:timsps12i setfont
+<656e6572>
+ 0 2854 -1 s
+2846.0 9712.0 m
+<67792072>
+ 1 3181 32 s
+3173.0 9712.0 m
+<656c656173652072617465>
+ 1 4096 32 s
+wst:timsps12 setfont
+<202847292c20776869636820726570726573656e74732074686520616d6f756e74206f6620776f726b206173736f6369617465642077697468206120637261636b>
+ 11 9712 32 s
+2478.0 9955.0 m
+<6f70656e696e67206f7220636c6f73757265>
+ 2 4056 32 s
+2288.0 12087.0 m
+0.0 0.0 m
+17.0 sw
+newpath
+3173 10295 M
+3997 10295 L
+3997 10295 L
+3997 11075 L
+dp
+newpath
+1.0000 setgray
+2869 11032 M
+2869 11336 L
+2869 11336 L
+3693 11336 L
+3693 10555 L
+2869 10555 L
+2869 10859 L
+0 0 solidfill
+0.0000 setgray
+newpath
+2869 11032 M
+2869 11336 L
+2869 11336 L
+3693 11336 L
+3693 10555 L
+2869 10555 L
+2869 10859 L
+dp
+newpath
+3693 11336 M
+3997 11075 L
+dp
+newpath
+3693 10555 M
+3997 10295 L
+dp
+newpath
+2869 10555 M
+3173 10295 L
+dp
+newpath
+2869 10859 M
+3129 10945 L
+dp
+newpath
+0.5000 setgray
+2869 11032 M
+2999 10902 L
+2999 10902 L
+3129 10945 L
+closepath
+0 0 solidfill
+0.0000 setgray
+newpath
+2869 11032 M
+2999 10902 L
+2999 10902 L
+3129 10945 L
+closepath
+dp
+newpath
+5725 10305 M
+6549 10305 L
+6549 10305 L
+6549 11086 L
+dp
+newpath
+1.0000 setgray
+5682 10956 M
+5248 10956 L
+5248 10956 L
+5248 11346 L
+6246 11346 L
+6246 10566 L
+5422 10566 L
+5422 10956 L
+0 0 solidfill
+0.0000 setgray
+newpath
+5682 10956 M
+5248 10956 L
+5248 10956 L
+5248 11346 L
+6246 11346 L
+6246 10566 L
+5422 10566 L
+5422 10956 L
+dp
+newpath
+6246 11346 M
+6549 11086 L
+dp
+newpath
+6246 10566 M
+6549 10305 L
+dp
+newpath
+5422 10566 M
+5725 10305 L
+dp
+newpath
+0.5000 setgray
+5422 10956 M
+5422 10783 L
+5422 10783 L
+5248 10956 L
+closepath
+0 0 solidfill
+0.0000 setgray
+newpath
+5422 10956 M
+5422 10783 L
+5422 10783 L
+5248 10956 L
+closepath
+dp
+newpath
+5248 10956 M
+closepath
+dp
+newpath
+8182 10284 M
+9006 10284 L
+9006 10284 L
+9006 11065 L
+dp
+newpath
+1.0000 setgray
+7878 10848 M
+7878 10544 L
+7878 10544 L
+8702 10544 L
+8702 11325 L
+7792 11325 L
+7792 10934 L
+8139 10934 L
+0 0 solidfill
+0.0000 setgray
+newpath
+7878 10848 M
+7878 10544 L
+7878 10544 L
+8702 10544 L
+8702 11325 L
+7792 11325 L
+7792 10934 L
+8139 10934 L
+dp
+newpath
+8702 11325 M
+9006 11065 L
+dp
+newpath
+8702 10544 M
+9006 10284 L
+dp
+newpath
+7878 10544 M
+8182 10284 L
+dp
+newpath
+7705 10934 M
+closepath
+dp
+newpath
+2661 11336 M
+2661 11053 L
+dp
+newpath
+0.0 sw
+2661 11170 M
+2661 11170 L
+2713 11139 L
+2661 11336 L
+2608 11139 L
+closepath
+0 0 solidfill
+0.5000 setgray
+newpath
+2661 11170 M
+newpath
+17.0 sw
+0.0000 setgray
+2661 11170 M
+2713 11139 L
+2661 11336 L
+2608 11139 L
+closepath
+dp
+0.0 sw
+newpath
+2661 11336 M
+closepath
+17.0 sw
+newpath
+2652 10573 M
+2652 10884 L
+dp
+newpath
+0.0 sw
+2652 10739 M
+2652 10739 L
+2599 10769 L
+2652 10573 L
+2705 10769 L
+closepath
+0 0 solidfill
+0.5000 setgray
+newpath
+2652 10739 M
+newpath
+17.0 sw
+0.0000 setgray
+2652 10739 M
+2599 10769 L
+2652 10573 L
+2705 10769 L
+closepath
+dp
+0.0 sw
+newpath
+2652 10573 M
+closepath
+17.0 sw
+newpath
+4832 11112 M
+5118 11112 L
+dp
+newpath
+0.0 sw
+4998 11112 M
+4998 11112 L
+5029 11165 L
+4832 11112 L
+5029 11060 L
+closepath
+0 0 solidfill
+0.5000 setgray
+newpath
+4998 11112 M
+newpath
+17.0 sw
+0.0000 setgray
+4998 11112 M
+5029 11165 L
+4832 11112 L
+5029 11060 L
+closepath
+dp
+0.0 sw
+newpath
+4832 11112 M
+closepath
+17.0 sw
+newpath
+5109 10652 M
+4829 10652 L
+dp
+newpath
+0.0 sw
+4943 10652 M
+4943 10652 L
+4913 10600 L
+5109 10652 L
+4913 10705 L
+closepath
+0 0 solidfill
+0.5000 setgray
+newpath
+4943 10652 M
+newpath
+17.0 sw
+0.0000 setgray
+4943 10652 M
+4913 10600 L
+5109 10652 L
+4913 10705 L
+closepath
+dp
+0.0 sw
+newpath
+5109 10652 M
+closepath
+17.0 sw
+newpath
+7748 10578 M
+7540 10771 L
+dp
+newpath
+0.0 sw
+7626 10691 M
+7626 10691 L
+7568 10673 L
+7748 10578 L
+7640 10751 L
+closepath
+0 0 solidfill
+0.5000 setgray
+newpath
+7626 10691 M
+newpath
+17.0 sw
+0.0000 setgray
+7626 10691 M
+7568 10673 L
+7748 10578 L
+7640 10751 L
+closepath
+dp
+0.0 sw
+newpath
+7748 10578 M
+closepath
+newpath
+17.0 sw
+0.5000 setgray
+7883 10848 M
+8139 10930 L
+8139 10930 L
+7796 10934 L
+0 0 solidfill
+0.0000 setgray
+newpath
+7883 10848 M
+8139 10930 L
+8139 10930 L
+7796 10934 L
+dp
+newpath
+7792 10930 M
+7878 10843 L
+dp
+2653.0 11764.0 m
+wst:timsps10 setfont
+<4f70656e696e67>
+ 0 3259 -1 s
+<206d6f6465>
+ 1 3694 32 s
+5143.0 h
+<5368656172696e67206d6f6465>
+ 1 6204 32 s
+7803.0 h
+<54>
+ 0 7911 -1 s
+7899.0 11764.0 m
+<656172696e67206d6f6465>
+ 1 8774 32 s
+0.0 0.0 m
+newpath
+7528 11558 M
+7744 11358 L
+dp
+newpath
+0.0 sw
+7650 11445 M
+7650 11445 L
+7708 11463 L
+7528 11558 L
+7636 11386 L
+closepath
+0 0 solidfill
+0.5000 setgray
+newpath
+7650 11445 M
+newpath
+17.0 sw
+0.0000 setgray
+7650 11445 M
+7708 11463 L
+7528 11558 L
+7636 11386 L
+closepath
+dp
+0.0 sw
+newpath
+7528 11558 M
+closepath
+8159.0 12027.0 m
+<284b>
+ 0 8345 -1 s
+/wst:timsps8 8.00 /Times-Roman /wst:timsps ILEncoding declareNFont def
+wst:timsps8 setfont
+8345.0 12058.0 m
+<49>
+ 0 8392 -1 s
+8392.0 12027.0 m
+8392.0 12058.0 m
+<49>
+ 0 8439 -1 s
+8439.0 12027.0 m
+8439.0 12058.0 m
+<49>
+ 0 8486 -1 s
+8486.0 12027.0 m
+wst:timsps10 setfont
+<29>
+ 0 8545 -1 s
+5601.0 h
+<284b>
+ 0 5787 -1 s
+wst:timsps8 setfont
+5787.0 12058.0 m
+<49>
+ 0 5834 -1 s
+5834.0 12027.0 m
+5834.0 12058.0 m
+<49>
+ 0 5881 -1 s
+5881.0 12027.0 m
+wst:timsps10 setfont
+<29>
+ 0 5940 -1 s
+3059.0 h
+<284b>
+ 0 3245 -1 s
+wst:timsps8 setfont
+3245.0 12058.0 m
+<49>
+ 0 3292 -1 s
+3292.0 12027.0 m
+wst:timsps10 setfont
+<29>
+ 0 3351 -1 s
+wst:timsps12 setfont
+2288.0 12508.0 m
+/wst:timsps12b 12.00 /Times-Bold /wst:timspsb ILEncoding declareNFont def
+wst:timsps12b setfont
+<4669677572>
+ 0 2795 -1 s
+2791.0 12508.0 m
+<65>
+ 0 2885 -1 s
+<20332e39b131>
+ 1 3415 32 s
+3813.0 h
+<54686520746872>
+ 1 4502 32 s
+4498.0 12508.0 m
+<6565206261736963206d6f646573206f662066726163747572>
+ 4 6759 32 s
+6755.0 12508.0 m
+<65>
+ 0 6849 -1 s
+eop
+%%Trailer
+Ileaf_5.3.0 /terminate get exec
+%%BoundingBox: 0 0 612 792
+%%DocumentFonts: Symbol
+%%+ Helvetica
+%%+ Helvetica-Bold
+%%+ Helvetica-BoldOblique
+%%+ Times-Roman
+%%+ Times-Bold
+%%+ Times-Italic
+%%EOF

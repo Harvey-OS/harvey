@@ -462,7 +462,7 @@ to see if they check out.
 @.One of the subfile sizes...@>
   #:=tfm[tfm_ptr]*@'400+tfm[tfm_ptr+1];
   tfm_ptr:=tfm_ptr+2;
-  end;
+  end
 
 @<Set subfile sizes |lh|, |bc|, \dots, |np|@>=
 begin tfm_ptr:=2;@/
@@ -1411,7 +1411,6 @@ $(x,y)$ in a hash table from which the values $z$ and $class$ can be read.
 @!hash_ptr:0..hash_size; {the number of nonzero entries in |hash|}
 @!hash_list:array[0..hash_size] of 0..hash_size; {list of those nonzero entries}
 @!h,@!hh:0..hash_size; {indices into the hash table}
-@!garbage:integer; {value that is computed but not examined}
 @!x_lig_cycle,@!y_lig_cycle:0..256; {problematic ligature pair}
 
 @ @<Check for ligature cycles@>=
@@ -1473,7 +1472,8 @@ while hash[h]>0 do
     end;
   if h>0 then decr(h)@+else h:=hash_size;
   end;
-hash[h]:=key; class[h]:=cc; lig_z[h]:=zz; incr(hash_ptr); hash_list[hash_ptr]:=h;
+hash[h]:=key; class[h]:=cc; lig_z[h]:=zz;
+incr(hash_ptr); hash_list[hash_ptr]:=h;
 30:end;
 
 @ We must store kern commands as well as ligature commands, because the former

@@ -18,7 +18,7 @@ deverror(char *name, Xfs *xf, long addr, long n, long nret)
 			return -1;
 	}
 	fprint(2, "dev %d sector %d, %s: %d, should be %d\n",
-		xf->dev, addr, name, n, nret);
+		xf->dev, addr, name, nret, n);
 	panic(name);
 	return -1;
 }
@@ -53,4 +53,20 @@ devwrite(Xfs *xf, long addr, void *buf, long n)
 	if (nwrite == n)
 		return 0;
 	return deverror("write", xf, addr, n, nwrite);
+}
+
+int
+devcheck(Xfs *xf)
+{
+	char buf[Sectorsize];
+
+	if(xf->dev < 0)
+		return -1;
+	seek(xf->dev, 0, 0);
+	if(read(xf->dev, buf, Sectorsize) != Sectorsize){
+		close(xf->dev);
+		xf->dev = -1;
+		return -1;
+	}
+	return 0;
 }

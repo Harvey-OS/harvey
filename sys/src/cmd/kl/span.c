@@ -96,6 +96,8 @@ aclass(Adr *a)
 		switch(a->name) {
 		case D_EXTERN:
 		case D_STATIC:
+			if(a->sym == S)
+				break;
 			t = a->sym->type;
 			if(t == 0 || t == SXREF) {
 				diag("undefined external: %s in %s\n",
@@ -146,6 +148,7 @@ aclass(Adr *a)
 
 		case D_NONE:
 			offset = a->offset;
+		consize:
 			if(offset == 0)
 				return C_ZCON;
 			if(offset >= -0x1000 && offset <= 0xfff)
@@ -157,6 +160,8 @@ aclass(Adr *a)
 		case D_EXTERN:
 		case D_STATIC:
 			s = a->sym;
+			if(s == S)
+				break;
 			t = s->type;
 			if(t == 0 || t == SXREF) {
 				diag("undefined external: %s in %s\n",
@@ -166,6 +171,10 @@ aclass(Adr *a)
 			if(s->type == STEXT || s->type == SLEAF) {
 				offset = s->value + a->offset;
 				return C_LCON;
+			}
+			if(s->type == SCONST) {
+				offset = s->value + a->offset;
+				goto consize;
 			}
 			offset = s->value + a->offset - BIG;
 			if(offset >= -BIG && offset < BIG && offset != 0)
@@ -371,7 +380,9 @@ buildop(void)
 			diag("unknown op in build: %A\n", r);
 			errorexit();
 		case AADD:
+			oprange[AADDX] = oprange[r];
 			oprange[ASUB] = oprange[r];
+			oprange[ASUBX] = oprange[r];
 			oprange[AMUL] = oprange[r];
 			oprange[AXOR] = oprange[r];
 			oprange[AXNOR] = oprange[r];
@@ -382,7 +393,14 @@ buildop(void)
 			oprange[ASLL] = oprange[r];
 			oprange[ASRL] = oprange[r];
 			oprange[ASRA] = oprange[r];
+			oprange[AADDCC] = oprange[r];
+			oprange[AADDXCC] = oprange[r];
+			oprange[ATADDCC] = oprange[r];
+			oprange[ATADDCCTV] = oprange[r];
 			oprange[ASUBCC] = oprange[r];
+			oprange[ASUBXCC] = oprange[r];
+			oprange[ATSUBCC] = oprange[r];
+			oprange[ATSUBCCTV] = oprange[r];
 			oprange[AXORCC] = oprange[r];
 			oprange[AXNORCC] = oprange[r];
 			oprange[AANDCC] = oprange[r];

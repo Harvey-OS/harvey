@@ -20,17 +20,17 @@ alarmkproc(void *arg)
 	for(;;){
 		now = MACHP(0)->ticks;
 		qlock(&alarms);
-		while((rp = alarms.head) && rp->alarm <= now){
-			if(rp->alarm != 0L){
-				if(canqlock(&rp->debug)){
-					if(!waserror()){
-						postnote(rp, 0, "alarm", NUser);
-						poperror();
-					}
-					qunlock(&rp->debug);
-					rp->alarm = 0L;
-				}else
+		while((rp = alarms.head) && rp->alarm <= now) {
+			if(rp->alarm != 0L) {
+				if(!canqlock(&rp->debug))
 					break;
+
+				if(!waserror()) {
+					postnote(rp, 0, "alarm", NUser);
+					poperror();
+				}
+				qunlock(&rp->debug);
+				rp->alarm = 0L;
 			}
 			alarms.head = rp->palarm;
 		}
@@ -85,7 +85,10 @@ procalarm(ulong time)
 	ulong when, old;
 
 	p = u->p;
-	old = TK2MS(p->alarm - MACHP(0)->ticks);
+	if(p->alarm)
+		old = TK2MS(p->alarm - MACHP(0)->ticks);
+	else
+		old = 0;
 	if(time == 0) {
 		p->alarm = 0;
 		return old;

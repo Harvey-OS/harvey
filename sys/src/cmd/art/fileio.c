@@ -40,10 +40,10 @@ Dpoint getpt(Biobuf *f){
 }
 void input(char *name){
 	Biobuf *f=Bopen(name, OREAD);
-	int c, i, n;
+	int c, i, n, style;
 	Dpoint p0, p1, p2, p[200];
 	Flt r;
-	Item *inp;
+	Item *inp, *last;
 	Typeface *svface;
 	if(f==0){
 		msg("Can't open %s", name);
@@ -68,29 +68,29 @@ void input(char *name){
 	case 'l':
 		p0=getpt(f); if(readerr) goto Out;
 		p1=getpt(f); if(readerr) goto Out;
-		addline(inp, p0, p1);
+		last=addline(inp, p0, p1);
 		break;
 	case 'b':
 		p0=getpt(f); if(readerr) goto Out;
 		p1=getpt(f); if(readerr) goto Out;
-		addbox(inp, p0, p1);
+		last=addbox(inp, p0, p1);
 		break;
 	case 'c':
 		p0=getpt(f); if(readerr) goto Out;
 		r=getnum(f); if(readerr) goto Out;
-		addcircle(inp, p0, r);
+		last=addcircle(inp, p0, r);
 		break;
 	case 'a':
 		p0=getpt(f); if(readerr) goto Out;
 		p1=getpt(f); if(readerr) goto Out;
 		p2=getpt(f); if(readerr) goto Out;
-		addarc(inp, p0, p1, p2);
+		last=addarc(inp, p0, p1, p2);
 		break;
 	case 'g':
 		i=getnum(f); if(readerr) goto Out;
 		if(i<0 || ngrp<=i) goto Out;
 		p0=getpt(f); if(readerr) goto Out;
-		addgroup(inp, grpmap[i], p0);
+		last=addgroup(inp, grpmap[i], p0);
 		break;
 	case 's':
 		n=getnum(f); if(readerr) goto Out;
@@ -99,28 +99,41 @@ void input(char *name){
 			p[i]=getpt(f);
 			if(readerr) goto Out;
 		}
-		additemv(inp, SPLINE, 0., 0, 0, 0, &splinefns, n, p, Dpt(0,0));
+		last=additemv(inp, SPLINE, 0., 0, 0, 0, &splinefns, n, p, Dpt(0,0));
 		break;
 	case 't':
 		p0=getpt(f); if(readerr) goto Out;
 		svface=curface;
 		setface(getstring(f, ' '));
-		addtext(inp, p0, curface, getstring(f, '\n'));
+		last=addtext(inp, p0, curface, getstring(f, '\n'));
 		curface=svface;
 		break;
 	case 'G':
 		i=getnum(f); if(readerr) goto Out;
 		if(i<0 || ngrp<=i) goto Out;
 		if(group[grpmap[i]]) goto Out;
-		inp=group[grpmap[i]]=addhead();
+		last=inp=group[grpmap[i]]=addhead();
 		break;
 	case ';':
-		inp=scene;
+		last=inp=scene;
 		break;
+	case 'S':
+		style=0;
+		do c=Bgetc(f); while(c>=0 && c==' ' || c=='\t');
+		while(c>=0 && strchr("<>.-", c)){
+			switch(c){
+			case '<': style|=ARROW0; break;
+			case '>': style|=ARROW1; break;
+			case '-': style|=DASH; break;
+			case '.': style|=DOT; break;
+			}
+			c=Bgetc(f);
+		}
+		last->style=style;
 	}
 Out:
 	redraw();
-	Bclose(f);
+	Bterm(f);
 }
 int grpmap[NGROUP];
 int ngrp;

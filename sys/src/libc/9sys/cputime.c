@@ -7,7 +7,6 @@ double
 cputime(void)
 {
 	long t[4];
-	long times(long*);
 	int i;
 
 	times(t);

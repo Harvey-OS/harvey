@@ -9,6 +9,39 @@
 
 static int syren;
 
+Lsym*
+unique(char *buf, Sym *s)
+{
+	Lsym *l;
+	int i, renamed;
+
+	renamed = 0;
+	strcpy(buf, s->name);
+	for(;;) {
+		l = look(buf);
+		if(l == 0 || (l->lexval == Tid && l->v->set == 0))
+			break;
+
+		if(syren == 0 && !quiet) {
+			print("Symbol renames:\n");
+			syren = 1;
+		}
+		i = strlen(buf)+1;
+		memmove(buf+1, buf, i);
+		buf[0] = '$';
+		renamed++;
+		if(renamed > 5 && !quiet) {
+			print("Too many renames; must be X source!\n");
+			break;
+		}
+	}
+	if(renamed && !quiet)
+		print("\t%s=%s %c/%lux\n", s->name, buf, s->type, s->value);
+	if(l == 0)
+		l = enter(buf, Tid);
+	return l;	
+}
+
 void
 varsym(void)
 {
@@ -17,10 +50,11 @@ varsym(void)
 	long n;
 	Lsym *l;
 	ulong v;
-	char buf[NNAME+1];
+	char buf[1024];
 	List *list, **tail, *l2, *tl;
 
 	tail = &l2;
+	l2 = 0;
 
 	symbase(&n);
 	for(i = 0; i < n; i++) {
@@ -42,26 +76,13 @@ varsym(void)
 			*tail = tl;
 			tail = &tl->next;
 
-			l = look(s->name);
-			if(l != 0 && (l->v->set || l->lexval != Tid)) {
-				if(syren == 0) {
-					print("Symbol renames:\n");
-					syren = 1;
-				}
-				buf[0] = '$';
-				strcpy(buf+1, s->name);
-				print("\t%s=%s %c/0x%lux\n",
-						s->name, buf, s->type);	
-			}
-			else
-				strcpy(buf, s->name);
+			l = unique(buf, s);
 
-			if(l == 0)
-				l = enter(buf, Tid);
 			l->v->set = 1;
 			l->v->type = TINT;
 			l->v->ival = v;
-			l->v->fmt = 'X';
+			if(l->v->comt == 0)
+				l->v->fmt = 'X';
 
 			/* Enter as list of { name, type, value } */
 			list = al(TSTRING);
@@ -82,7 +103,9 @@ varsym(void)
 	l = mkvar("symbols");
 	l->v->set = 1;
 	l->v->type = TLIST;
-	l->v->l = l2;	
+	l->v->l = l2;
+	if(l2 == 0)
+		print("no symbol information\n");
 }
 
 void
@@ -115,17 +138,6 @@ varreg(void)
 		tail = &li->next;
 	}
 
-	l = mkvar("pid");		/* Current process */
-	v = l->v;
-	v->type = TINT;
-	v->fmt = 'D';
-	v->set = 1;
-	v->ival = 0;
-
-	mkvar("notes");		/* Pending notes */
-	l = mkvar("proclist");	/* Attached processes */
-	l->v->type = TLIST;
-
 	if(machdata == 0)
 		return;
 
@@ -140,17 +152,88 @@ varreg(void)
 	memmove(v->string->string, machdata->bpinst, machdata->bpsize);
 }
 
-String*
-strnode(char *name)
+void
+loadvars(void)
 {
-	int len;
+	Lsym *l;
+	Value *v;
+
+	l =  mkvar("proc");
+	v = l->v;
+	v->type = TINT;
+	v->fmt = 'X';
+	v->set = 1;
+	v->ival = 0;
+
+	l = mkvar("pid");		/* Current process */
+	v = l->v;
+	v->type = TINT;
+	v->fmt = 'D';
+	v->set = 1;
+	v->ival = 0;
+
+	mkvar("notes");			/* Pending notes */
+
+	l = mkvar("proclist");		/* Attached processes */
+	l->v->type = TLIST;
+}
+
+ulong
+rget(Map *map, char *reg)
+{
+	Lsym *s;
+	long x;
+
+	s = look(reg);
+	if(s == 0)
+		fatal("rget: %s\n", reg);
+
+	if (get4(map, s->v->ival, &x) < 0)
+		error("can't get register %s: %r\n", reg);
+	return x;
+}
+
+String*
+strnodlen(char *name, int len)
+{
 	String *s;
 
-	len = strlen(name);
 	s = gmalloc(sizeof(String)+len+1);
 	s->string = (char*)s+sizeof(String);
 	s->len = len;
-	strcpy(s->string, name);
+	if(name != 0)
+		memmove(s->string, name, len);
+	s->string[len] = '\0';
+
+	s->gclink = gcl;
+	gcl = s;
+
+	return s;
+}
+
+String*
+strnode(char *name)
+{
+	return strnodlen(name, strlen(name));
+}
+
+String*
+runenode(Rune *name)
+{
+	int len;
+	Rune *p;
+	String *s;
+
+	p = name;
+	for(len = 0; *p; p++)
+		len++;
+
+	len++;
+	len *= sizeof(Rune);
+	s = gmalloc(sizeof(String)+len);
+	s->string = (char*)s+sizeof(String);
+	s->len = len;
+	memmove(s->string, name, len);
 
 	s->gclink = gcl;
 	gcl = s;

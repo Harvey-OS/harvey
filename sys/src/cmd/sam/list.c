@@ -12,7 +12,7 @@ growlist(List *l)
 		l->nused = 0;
 	}else if(l->nused == l->nalloc){
 		l->listptr = erealloc(l->listptr, (l->nalloc+INCR)*sizeof(long));
-		memset(l->longptr+l->nalloc, 0, INCR*sizeof(long));
+		memset((void*)(l->longptr+l->nalloc), 0, INCR*sizeof(long));
 		l->nalloc += INCR;
 	}
 }

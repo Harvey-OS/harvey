@@ -1,21 +1,38 @@
 .TH ERRSTR 2
 .SH NAME
-errstr \- description of last system call error
+errstr, werrstr \- description of last system call error
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
-int errstr(char *ans)
+int errstr(char *err)
+.PP
+.B
+void werrstr(char *fmt, ...)
 .SH DESCRIPTION
 When a system call fails it returns \-1 and
 records a string describing the error in a per-process buffer.
 .I Errstr
-copies the contents of that buffer into the array
-.I ans
-and clears the buffer.
-.I Ans
+swaps the contents of that buffer with the contents of the array
+.IR err .
+.I Err
 should contain at least
 .B ERRLEN
 characters (defined in
 .BR <libc.h> ).
+Usually
+.I errstr
+will be called with an empty string,
+but the exchange property provides a mechanism for
+libraries to set the return value for the next call to
+.IR errstr .
+.PP
+If no system call has generated an error since the last call to
+.I errstr
+with an empty string,
+the result is an empty string.
 .PP
 The verb
 .B r
@@ -24,6 +41,23 @@ in
 calls
 .I errstr
 and outputs the error string.
+.PP
+.I Werrstr
+takes a
+.I print
+style format as its argument and uses it to format
+a string to pass to
+.IR errstr .
+The string returned from
+.I errstr
+is discarded.
+.SH SOURCE
+.B /sys/src/libc/9syscall
+.br
+.B /sys/src/libc/9sys/werrstr.c
+.SH DIAGNOSTICS
+.I Errstr
+always returns 0.
 .SH SEE ALSO
 .IR intro (2),
 .IR perror (2)

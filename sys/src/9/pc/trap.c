@@ -21,19 +21,6 @@ void	intr36(void), intr37(void), intr38(void), intr39(void);
 void	intr64(void);
 void	intrbad(void);
 
-/*
- *  8259 interrupt controllers
- */
-enum
-{
-	Int0ctl=	0x20,		/* control port (ICW1, OCW2, OCW3) */
-	Int0aux=	0x21,		/* everything else (ICW2, ICW3, ICW4, OCW1) */
-	Int1ctl=	0xA0,		/* control port */
-	Int1aux=	0xA1,		/* everything else (ICW2, ICW3, ICW4, OCW1) */
-
-	EOI=		0x20,		/* non-specific end of interrupt */
-};
-
 int	int0mask = 0xff;	/* interrupts enabled for first 8259 */
 int	int1mask = 0xff;	/* interrupts enabled for second 8259 */
 
@@ -41,7 +28,28 @@ int	int1mask = 0xff;	/* interrupts enabled for second 8259 */
  *  trap/interrupt gates
  */
 Segdesc ilt[256];
-void	(*ivec[256])(void*);
+int badintr[16];
+
+enum 
+{
+	Maxhandler=	128,		/* max number of interrupt handlers */
+};
+
+typedef struct Handler	Handler;
+struct Handler
+{
+	void	(*r)(void*, void*);
+	void	*arg;
+	Handler	*next;
+};
+
+struct
+{
+	Lock;
+	Handler	*ivec[256];
+	Handler	h[Maxhandler];
+	int	free;
+} halloc;
 
 void
 sethvec(int v, void (*r)(void), int type, int pri)
@@ -51,9 +59,19 @@ sethvec(int v, void (*r)(void), int type, int pri)
 }
 
 void
-setvec(int v, void (*r)(Ureg*))
+setvec(int v, void (*r)(Ureg*, void*), void *arg)
 {
-	ivec[v] = r;
+	Handler *h;
+
+	lock(&halloc);
+	if(halloc.free >= Maxhandler)
+		panic("out of interrupt handlers");
+	h = &halloc.h[halloc.free++];
+	h->next = halloc.ivec[v];
+	h->r = r;
+	h->arg = arg;
+	halloc.ivec[v] = h;
+	unlock(&halloc);
 
 	/*
 	 *  enable corresponding interrupt in 8259
@@ -68,9 +86,11 @@ setvec(int v, void (*r)(Ureg*))
 }
 
 void
-debugbpt(Ureg *ur)
+debugbpt(Ureg *ur, void *a)
 {
 	char buf[ERRLEN];
+
+	USED(a);
 
 	if(u == 0)
 		panic("kernel bpt");
@@ -138,9 +158,9 @@ trapinit(void)
 	 *  system calls and break points
 	 */
 	sethvec(Syscallvec, intr64, SEGTG, 3);
-	setvec(Syscallvec, (void (*)(Ureg*))syscall);
+	setvec(Syscallvec, (void (*)(Ureg*, void*))syscall, 0);
 	sethvec(Bptvec, intr3, SEGTG, 3);
-	setvec(Bptvec, debugbpt);
+	setvec(Bptvec, debugbpt, 0);
 
 	/*
 	 *  tell the hardware where the table is (and how long)
@@ -153,7 +173,7 @@ trapinit(void)
 	 *  Set the 8259 as master with edge triggered
 	 *  input with fully nested interrupts.
 	 */
-	outb(Int0ctl, 0x11);		/* ICW1 - edge triggered, master,
+	outb(Int0ctl, (1<<4)|(0<<3)|(1<<0));	/* ICW1 - edge triggered, master,
 					   ICW4 will be sent */
 	outb(Int0aux, Int0vec);		/* ICW2 - interrupt vector offset */
 	outb(Int0aux, 0x04);		/* ICW3 - have slave on level 2 */
@@ -165,7 +185,7 @@ trapinit(void)
 	 *  Set the 8259 as master with edge triggered
 	 *  input with fully nested interrupts.
 	 */
-	outb(Int1ctl, 0x11);		/* ICW1 - edge triggered, master,
+	outb(Int1ctl, (1<<4)|(0<<3)|(1<<0));	/* ICW1 - edge triggered, master,
 					   ICW4 will be sent */
 	outb(Int1aux, Int1vec);		/* ICW2 - interrupt vector offset */
 	outb(Int1aux, 0x02);		/* ICW3 - I am a slave on level 2 */
@@ -176,21 +196,34 @@ trapinit(void)
 	 */
 	int0mask &= ~0x04;
 	outb(Int0aux, int0mask);
+
+	/*
+	 * Set Ocw3 to return the ISR when ctl read.
+	 */
+	outb(Int0ctl, Ocw3|0x03);
+	outb(Int1ctl, Ocw3|0x03);
 }
 
-char *excname[] =
-{
-[0]	"divide error",
-[1]	"debug exception",
-[4]	"overflow",
-[5]	"bounds check",
-[6]	"invalid opcode",
-[8]	"double fault",
-[10]	"invalid TSS",
-[11]	"segment not present",
-[12]	"stack exception",
-[13]	"general protection violation",
+char *excname[] = {
+	[0]	"divide error",
+	[1]	"debug exception",
+	[2]	" nonmaskable interrupt",
+	[3]	"breakpoint",
+	[4]	"overflow",
+	[5]	"bounds check",
+	[6]	"invalid opcode",
+	[7]	"coprocessor not available",
+	[8]	"double fault",
+	[9]	"9 (reserved)",
+	[10]	"invalid TSS",
+	[11]	"segment not present",
+	[12]	"stack exception",
+	[13]	"general protection violation",
+	[14]	"page fault",
+	[15]	"15 (reserved)",
+	[16]	"coprocessor error",
 };
+
 
 /*
  *  All traps
@@ -201,12 +234,23 @@ trap(Ureg *ur)
 	int v, user;
 	int c;
 	char buf[ERRLEN];
+	Handler *h;
+	static ulong intrtime;
+	static int snoozing;
+	static int iret_traps;
+	ushort isr;
 
 	v = ur->trap;
 
 	user = ((ur->cs)&0xffff)!=KESEL && v!=Syscallvec;
 	if(user)
 		u->dbgreg = ur;
+	else if(ur->pc >= KTZERO && ur->pc < (ulong)end && *(uchar*)ur->pc == 0xCF) {
+		if(iret_traps++ > 10)
+			panic("iret trap");
+		return;
+	}
+	iret_traps = 0;
 
 	/*
 	 *  tell the 8259 that we're done with the
@@ -214,17 +258,22 @@ trap(Ureg *ur)
 	 *  off at this point)
 	 */
 	c = v&~0x7;
+	isr = 0;
 	if(c==Int0vec || c==Int1vec){
-		if(c == Int1vec)
-			outb(Int1ctl, EOI);
+		isr = inb(Int0ctl);
 		outb(Int0ctl, EOI);
-		if(v != Uart0vec)
-			uartintr0(ur);
+		if(c == Int1vec){
+			isr |= inb(Int1ctl)<<8;
+			outb(Int1ctl, EOI);
+		}
 	}
 
-	if(v>=256 || ivec[v] == 0){
+	if(v>=256 || (h = halloc.ivec[v]) == 0){
+		/* an old 386 generates these fairly often, no idea why */
 		if(v == 13)
 			return;
+
+		/* a processor or coprocessor error */
 		if(v <= 16){
 			if(user){
 				sprint(buf, "sys: trap: %s", excname[v]);
@@ -235,15 +284,51 @@ trap(Ureg *ur)
 				panic("%s pc=0x%lux", excname[v], ur->pc);
 			}
 		}
-		print("bad trap type %d pc=0x%lux\n", v, ur->pc);
+
+		if(v >= Int0vec && v < Int0vec+16){
+			/* an unknown interrupt */
+			v -= Int0vec;
+			/*
+			 * Check for a default IRQ7. This can happen when
+			 * the IRQ input goes away before the acknowledge.
+			 * In this case, a 'default IRQ7' is generated, but
+			 * the corresponding bit in the ISR isn't set.
+			 * In fact, just ignore all such interrupts.
+			 */
+			if((isr & (1<<v)) == 0)
+				return;
+			if(badintr[v]++ == 0 || (badintr[v]%100000) == 0){
+				print("unknown interrupt %d pc=0x%lux: total %d\n", v,
+					ur->pc, badintr[v]);
+				print("isr = 0x%4.4ux\n", isr);
+			}
+		} else {
+			/* unimplemented traps */
+			print("illegal trap %d pc=0x%lux\n", v, ur->pc);
+		}
 		return;
 	}
 
-	(*ivec[v])(ur);
+	/* there may be multiple handlers on one interrupt level */
+	do {
+		(*h->r)(ur, h->arg);
+		h = h->next;
+	} while(h);
+	splhi();
 
-	/*
-	 *  check user since syscall does its own notifying
-	 */
+	/* power management */
+	if(v == Clockvec){
+		/* allow power sheding on clock ticks */
+		if(arch->snooze)
+			snoozing = (*arch->snooze)(intrtime, 0);
+	} else {
+		/* turn power back on when anything else happens */
+		if(snoozing && arch->snooze)
+			snoozing = (*arch->snooze)(intrtime, 1);
+		intrtime = m->ticks;
+	}
+
+	/* check user since syscall does its own notifying */
 	if(user && (u->p->procctl || u->nnote))
 		notify(ur);
 }
@@ -252,13 +337,13 @@ trap(Ureg *ur)
  *  dump registers
  */
 void
-dumpregs(Ureg *ur)
+dumpregs2(Ureg *ur)
 {
 	if(u)
 		print("registers for %s %d\n", u->p->text, u->p->pid);
 	else
 		print("registers for kernel\n");
-	print("FLAGS=%lux ECODE=%lux CS=%lux PC=%lux", ur->flags,
+	print("FLAGS=%lux TRAP=%lux ECODE=%lux CS=%lux PC=%lux", ur->flags, ur->trap,
 		ur->ecode, ur->cs&0xff, ur->pc);
 	if(ur == (Ureg*)UREGADDR)
 		print(" SS=%lux USP=%lux\n", ur->ss&0xff, ur->usp);
@@ -270,6 +355,14 @@ dumpregs(Ureg *ur)
 		ur->si, ur->di, ur->bp);
 	print("  DS %4.4ux  ES %4.4ux  FS %4.4ux  GS %4.4ux\n",
 		ur->ds&0xffff, ur->es&0xffff, ur->fs&0xffff, ur->gs&0xffff);
+
+}
+
+void
+dumpregs(Ureg *ur)
+{
+	dumpregs2(ur);
+	print("  ur %lux\n", ur);
 }
 
 void
@@ -323,11 +416,13 @@ userpc(void)
  *  syscall is called spllo()
  */
 long
-syscall(Ureg *ur)
+syscall(Ureg *ur, void *a)
 {
 	ulong	sp;
 	long	ret;
 	int	i;
+
+	USED(a);
 
 	u->p->insyscall = 1;
 	u->p->pc = ur->pc;
@@ -401,7 +496,7 @@ syscall(Ureg *ur)
 int
 notify(Ureg *ur)
 {
-	int l, sent;
+	int l;
 	ulong s, sp;
 	Note *n;
 
@@ -420,48 +515,56 @@ notify(Ureg *ur)
 			l = ERRLEN-15;
 		sprint(n->msg+l, " pc=0x%.8lux", ur->pc);
 	}
+
 	if(n->flag!=NUser && (u->notified || u->notify==0)){
-		if(n->flag == NDebug)
+		if(n->flag == NDebug){
+			qunlock(&u->p->debug);
 			pprint("suicide: %s\n", n->msg);
+		}else
+			qunlock(&u->p->debug);
+		pexit(n->msg, n->flag!=NDebug);
+	}
+
+	if(u->notified) {
+		qunlock(&u->p->debug);
+		splhi();
+		return 0;
+	}
+		
+	if(!u->notify){
 		qunlock(&u->p->debug);
 		pexit(n->msg, n->flag!=NDebug);
 	}
-	sent = 0;
-	if(!u->notified){
-		if(!u->notify){
-			qunlock(&u->p->debug);
-			pexit(n->msg, n->flag!=NDebug);
-		}
-		sent = 1;
-		u->svcs = ur->cs;
-		u->svss = ur->ss;
-		u->svflags = ur->flags;
-		sp = ur->usp;
-		sp -= sizeof(Ureg);
-		if(!okaddr((ulong)u->notify, 1, 0)
-		|| !okaddr(sp-ERRLEN-3*BY2WD, sizeof(Ureg)+ERRLEN-3*BY2WD, 0)){
-			pprint("suicide: bad address in notify\n");
-			qunlock(&u->p->debug);
-			pexit("Suicide", 0);
-		}
-		u->ureg = (void*)sp;
-		memmove((Ureg*)sp, ur, sizeof(Ureg));
-		sp -= ERRLEN;
-		memmove((char*)sp, u->note[0].msg, ERRLEN);
-		sp -= 3*BY2WD;
-		*(ulong*)(sp+2*BY2WD) = sp+3*BY2WD;	/* arg 2 is string */
-		*(ulong*)(sp+1*BY2WD) = (ulong)u->ureg;	/* arg 1 is ureg* */
-		*(ulong*)(sp+0*BY2WD) = 0;		/* arg 0 is pc */
-		ur->usp = sp;
-		ur->pc = (ulong)u->notify;
-		u->notified = 1;
-		u->nnote--;
-		memmove(&u->lastnote, &u->note[0], sizeof(Note));
-		memmove(&u->note[0], &u->note[1], u->nnote*sizeof(Note));
+	sp = ur->usp;
+	sp -= sizeof(Ureg);
+
+	if(!okaddr((ulong)u->notify, 1, 0)
+	|| !okaddr(sp-ERRLEN-4*BY2WD, sizeof(Ureg)+ERRLEN+4*BY2WD, 1)){
+		qunlock(&u->p->debug);
+		pprint("suicide: bad address in notify\n");
+		pexit("Suicide", 0);
 	}
+
+	u->ureg = (void*)sp;
+	memmove((Ureg*)sp, ur, sizeof(Ureg));
+	*(Ureg**)(sp-BY2WD) = u->ureg;	/* word under Ureg is old u->ureg */
+	u->ureg = (void*)sp;
+	sp -= BY2WD+ERRLEN;
+	memmove((char*)sp, u->note[0].msg, ERRLEN);
+	sp -= 3*BY2WD;
+	*(ulong*)(sp+2*BY2WD) = sp+3*BY2WD;	/* arg 2 is string */
+	*(ulong*)(sp+1*BY2WD) = (ulong)u->ureg;	/* arg 1 is ureg* */
+	*(ulong*)(sp+0*BY2WD) = 0;		/* arg 0 is pc */
+	ur->usp = sp;
+	ur->pc = (ulong)u->notify;
+	u->notified = 1;
+	u->nnote--;
+	memmove(&u->lastnote, &u->note[0], sizeof(Note));
+	memmove(&u->note[0], &u->note[1], u->nnote*sizeof(Note));
+
 	qunlock(&u->p->debug);
 	splx(s);
-	return sent;
+	return 1;
 }
 
 /*
@@ -471,43 +574,75 @@ void
 noted(Ureg *ur, ulong arg0)
 {
 	Ureg *nur;
+	ulong oureg, sp;
 
-	nur = u->ureg;		/* pointer to user returned Ureg struct */
-	if(nur->cs!=u->svcs || nur->ss!=u->svss
-	|| (nur->flags&0xff00)!=(u->svflags&0xff00)){
-		pprint("bad noted ureg cs %ux ss %ux flags %ux\n", nur->cs, nur->ss,
-			nur->flags);
-    Die:
+	qlock(&u->p->debug);
+	if(arg0!=NRSTR && !u->notified) {
+		qunlock(&u->p->debug);
+		pprint("call to noted() when not notified\n");
 		pexit("Suicide", 0);
 	}
-	qlock(&u->p->debug);
-	if(!u->notified){
-		pprint("call to noted() when not notified\n");
-		qunlock(&u->p->debug);
-		return;
-	}
 	u->notified = 0;
-	nur->flags = (u->svflags&0xffffff00) | (nur->flags&0xff);
+
+	nur = u->ureg;		/* pointer to user returned Ureg struct */
+
+	/* sanity clause */
+	oureg = (ulong)nur;
+	if(!okaddr((ulong)oureg-BY2WD, BY2WD+sizeof(Ureg), 0)){
+		qunlock(&u->p->debug);
+		pprint("bad u->ureg in noted or call to noted() when not notified\n");
+		pexit("Suicide", 0);
+	}
+
+	/* don't let user change text or stack segments */
+	nur->cs = ur->cs;
+	nur->ss = ur->ss;
+
+	/* don't let user change system flags */
+	nur->flags = (ur->flags & ~0xCD5) | (nur->flags & 0xCD5);
+
 	memmove(ur, nur, sizeof(Ureg));
+
 	switch(arg0){
 	case NCONT:
+	case NRSTR:
 		if(!okaddr(nur->pc, 1, 0) || !okaddr(nur->usp, BY2WD, 0)){
-			pprint("suicide: trap in noted\n");
 			qunlock(&u->p->debug);
-			goto Die;
+			pprint("suicide: trap in noted\n");
+			pexit("Suicide", 0);
+		}
+		u->ureg = (Ureg*)(*(ulong*)(oureg-BY2WD));
+		qunlock(&u->p->debug);
+		break;
+
+	case NSAVE:
+		if(!okaddr(nur->pc, BY2WD, 0) || !okaddr(nur->usp, BY2WD, 0)){
+			qunlock(&u->p->debug);
+			pprint("suicide: trap in noted\n");
+			pexit("Suicide", 0);
 		}
 		qunlock(&u->p->debug);
-		return;
+		sp = oureg-4*BY2WD-ERRLEN;
+		splhi();
+		ur->sp = sp;
+		((ulong*)sp)[1] = oureg;	/* arg 1 0(FP) is ureg* */
+		((ulong*)sp)[0] = 0;		/* arg 0 is pc */
+		break;
 
 	default:
-		pprint("unknown noted arg 0x%lux\n", arg0);
 		u->lastnote.flag = NDebug;
-		/* fall through */
+		qunlock(&u->p->debug);
+		pprint("unknown noted arg 0x%lux\n", arg0);
+		pprint("suicide: %s\n", u->lastnote.msg);
+		pexit(u->lastnote.msg, 0);
+		break;
 		
 	case NDFLT:
-		if(u->lastnote.flag == NDebug)
+		if(u->lastnote.flag == NDebug){
+			qunlock(&u->p->debug);
 			pprint("suicide: %s\n", u->lastnote.msg);
-		qunlock(&u->p->debug);
+		}else
+			qunlock(&u->p->debug);
 		pexit(u->lastnote.msg, u->lastnote.flag!=NDebug);
 	}
 }

@@ -2,6 +2,7 @@
 How to Use the Plan 9 C Compiler
 .AU
 Rob Pike
+rob@plan9.att.com
 .SH
 Introduction
 .PP
@@ -17,7 +18,7 @@ architecture \(em MIPS, SPARC, Motorola 68020, Intel 386, etc. \(em
 that accept a dialect of ANSI C and efficiently produce
 fairly good code for the target machine.
 There is a packaging of the compiler that accepts strict ANSI C for
-a POSIX environment, but this document instead focuses on the
+a POSIX environment, but this document focuses on the
 native Plan 9 environment, that in which all the system source and
 almost all the utilities are written.
 .SH
@@ -67,7 +68,7 @@ The
 directive was omitted because it greatly complicates the
 preprocessor, is never necessary, and is usually abused.
 Conditional compilation in general makes code hard to understand;
-the Plan 9 source uses it very sparingly.
+the Plan 9 source uses it sparingly.
 Also, because the compilers remove dead code, regular
 .CW if
 statements with constant conditions are more readable equivalents to many
@@ -86,7 +87,7 @@ the others are placed in a directory appropriate to the machine, such as
 The compiler searches for include files
 first in the machine-dependent directory and then
 in the machine-independent directory.
-At the time of writing there are eighteen machine-independent include
+At the time of writing there are twenty-two machine-independent include
 files and three (per machine) machine-dependent ones:
 .CW <ureg.h> ,
 .CW <stdarg.h> ,
@@ -151,7 +152,7 @@ one for I/O, and none for system calls.
 Each include file is protected by an
 .CW #ifdef
 to guarantee its contents are seen by the compiler only once.
-Plan 9 takes a completely different approach.  Other than a few include
+Plan 9 takes a different approach.  Other than a few include
 files that define external formats such as archives, the files in
 .CW /sys/include
 correspond to
@@ -191,8 +192,8 @@ In Plan 9
 .CW main
 is not integer-valued; it should call
 .CW exits ,
-which takes a string (or null; here ANSI C promotes the 0 to a
-.CW char*) argument.
+which takes a string argument (or null; here ANSI C promotes the 0 to a
+.CW char* ).
 All these functions are, of course, documented in the Programmer's Manual.
 .PP
 To use
@@ -208,11 +209,11 @@ must be included to define the function prototype for
 void
 main(int argc, char *argv[])
 {
-	printf("%s: hello world with %d arguments\en", argv[0], argc-1);
+	printf("%s: hello world; argc = %d\en", argv[0], argc);
 	exits(0);
 }
 .P2
-In fact Standard I/O is not used much in Plan 9.  I/O libraries are
+In practice, Standard I/O is not used much in Plan 9.  I/O libraries are
 discussed in a later section of this document.
 .PP
 There are libraries for handling regular expressions, bitmap graphics,
@@ -254,7 +255,7 @@ designed by committee.
 .CW Pcc
 is described in more detail in
 .I
-``APE\(emThe ANSI/POSIX Environment'',
+APE\(emThe ANSI/POSIX Environment,
 .R
 by Howard Trickey.
 .SH
@@ -266,15 +267,14 @@ arbitrary, alphanumeric character:
 for MIPS,
 .CW k
 for SPARC,
-.CW z
-for Hobbit,
+.CW x
+for AT&T DSP3210,
 .CW 2
 for Motorola 68020 and 68040,
 .CW 8
 for Intel 386, and
 .CW 6
 for Intel 960.
-(This list is sure to grow.)
 The character labels the support tools and files for that architecture.
 For instance, for the 68020 the compiler is
 .CW 2c ,
@@ -331,10 +331,9 @@ instruction scheduling,
 and writes the final executable.
 There is no separate C preprocessor and no assembler in the usual pipeline.
 Instead the intermediate object file
-(here
+(here a
 .CW \&.2
-file) is a type of binary assembly language, similar to very regular
-assembly language but in binary form for quick I/O.
+file) is a type of binary assembly language.
 The instructions in the intermediate format are not exactly those in
 the machine.  For example, on the 68020 the object file may specify
 a MOVE instruction but the loader will decide just which variant of
@@ -351,11 +350,11 @@ clumsy syntax, and minimal error checking.  For instance, the assembler
 will accept an instruction (such as memory-to-memory MOVE on the MIPS) that the
 machine does not actually support; only when the output of the assembler
 is passed to the loader will the error be discovered.
-The assembler is intended only for writing things,
+The assembler is intended only for writing things that need access to instructions
+invisible from C,
 such as the machine-dependent
-part of an operating system,
-that need access to instructions
-invisible from C; very little code in Plan 9 is in assembly language.
+part of an operating system;
+very little code in Plan 9 is in assembly language.
 .PP
 The compilers take an option
 .CW -S
@@ -364,11 +363,12 @@ in a format acceptable as input to the assemblers.
 This is of course merely a formatting of the
 data in the object file; therefore the assembler is just
 an
-\s-2ASCII\s0-to-binary converter for this format.
-Near the end of this document is a brief introduction to the format
-of the assembly language.
+ASCII-to-binary converter for this format.
 Other than the specific instructions, the input to the assemblers
-is largely architecture-independent.
+is largely architecture-independent; see
+``A Manual for the Plan 9 Assembler'',
+by Rob Pike,
+for more information.
 .PP
 The loader is an integral part of the compilation process.
 Each library header file contains a
@@ -407,8 +407,9 @@ with value such as
 .CW mips ,
 .CW 68020 ,
 or
-.CW sparc.
-For each architecture there is a directory in root, with the appropriate name,
+.CW sparc .
+For each architecture there is a directory in the root,
+with the appropriate name,
 that holds the binary and library files for that architecture.
 Thus
 .CW /mips/lib
@@ -449,17 +450,12 @@ if one is running on machine
 .CW /$cputype/bin/vc
 will compile programs for the MIPS.
 .PP
-In Plan 9 the directory
-.CW /$cputype/bin
-is bound to
-.CW /bin
-so that the appropriate version of commands such as
-.CW date
-are found by the shell:
-the shell looks for
-.CW date
+Because of the bindings that assemble
+.CW /bin ,
+the shell always looks for a command, say
+.CW date ,
 in
-.CW /bin/date
+.CW /bin
 and automatically finds the file
 .CW /$cputype/bin/date .
 Therefore the MIPS compiler is known as just
@@ -478,8 +474,7 @@ Also, the output of
 .CW vc
 and
 .CW vl
-is completely independent of
-.CW $cputype :
+is completely independent of the machine type on which they are executed:
 .CW \&.v
 files compiled (with
 .CW vc )
@@ -495,8 +490,6 @@ are suitable for loading with
 .CW vl
 on any machine; there is only one set of MIPS libraries, not one
 set for each architecture that supports the MIPS compiler.
-(In other systems it is common for the intermediate format to
-be compiling-machine-dependent.)
 .SH
 Heterogeneity and \f(CWmk\fP
 .PP
@@ -525,18 +518,21 @@ to configure the compilation environment.
 .PP
 In each machine's root directory there is a short
 .CW mkfile
-that just defines a set of macros for the compiler, loader, etc.
+that defines a set of macros for the compiler, loader, etc.
 Here is
 .CW /mips/mkfile :
 .P1
 CC=vc
+ALEF=val
 LD=vl
 O=v
-RL=rl
 AS=va
-OS=2kovz86
-CPUS=mips 68020 sparc 386 hobbit
+OS=2kv86x
+CPUS=mips 68020 sparc 386
 CFLAGS=
+LEX=lex
+YACC=yacc
+MK=/bin/mk
 .P2
 .CW CC
 is obviously the compiler,
@@ -544,13 +540,10 @@ is obviously the compiler,
 the assembler, and
 .CW LD
 the loader.
+.CW ALEF
+identifies the Alef compiler, described below.
 .CW O
 is the suffix for the object files and
-.CW RL
-is the program that inserts a table of contents into a library file
-(a dreg, really; the program
-.CW rl
-works for all supported architectures).
 .CW CPUS
 and
 .CW OS
@@ -562,9 +555,9 @@ to build the installed source for
 .CW sam :
 .P1
 </$objtype/mkfile
-OBJ=sam.$O address.$O buffer.$O cmd.$O disc.$O error.$O file.$O \e
-	io.$O list.$O mesg.$O moveto.$O multi.$O plan9.$O rasp.$O regexp.$O \e
-	string.$O sys.$O xec.$O
+OBJ=sam.$O address.$O buffer.$O cmd.$O disc.$O error.$O \e
+	file.$O io.$O list.$O mesg.$O moveto.$O multi.$O \e
+	plan9.$O rasp.$O regexp.$O string.$O sys.$O xec.$O
 
 $O.out:	$OBJ
 	$LD $OBJ
@@ -578,7 +571,7 @@ installall:
 %.$O:	%.c
 	$CC $CFLAGS $stem.c
 
-$OBJ:						sam.h errors.h mesg.h
+$OBJ:	sam.h errors.h mesg.h
 address.$O cmd.$O parse.$O xec.$O unix.$O:	parse.h
 
 clean:V:
@@ -598,18 +591,18 @@ If
 .CW $objtype
 is
 .CW mips ,
-this inserts the macro definitions above into the
+this inserts the MIPS macro definitions into the
 .CW mkfile .
 In this case the rule for
 .CW $O.out
-will therefore use the MIPS tools to build
+uses the MIPS tools to build
 .CW v.out .
 The
 .CW %.$O
 rule in the file uses
 .CW mk 's
-pattern matching facilities to connect the source files to the object
-files through a run of the compiler.
+pattern matching facilities to convert the source files to the object
+files through the compiler.
 (The text of the rules is passed directly to the shell,
 .CW rc ,
 without further translation.
@@ -624,7 +617,7 @@ it is possible to maintain binaries for multiple machines in the
 same source directory without conflict.
 This is also, of course, why the output files from the various
 compilers and loaders
-has distinct names.
+have distinct names.
 .PP
 The rest of the
 .CW mkfile
@@ -656,7 +649,7 @@ is easy to use.  To build a MIPS binary,
 % objtype=mips
 % mk
 .P2
-To build and install a MIPS binary :
+To build and install a MIPS binary:
 .P1
 % objtype=mips
 % mk install
@@ -668,7 +661,9 @@ To build and install all versions:
 These conventions make cross-compilation as easy to manage
 as traditional native compilation.
 Plan 9 programs compile and run without change on machines from
-large mulitprocessors to laptops.
+large multiprocessors to laptops.  For more information about this process, see
+``Plan 9 Mkfiles'',
+by Bob Flandrena.
 .SH
 Portability
 .PP
@@ -687,16 +682,16 @@ object files written by other machines.
 The traditional approach to this problem is to pepper the source with
 .CW #ifdefs
 to turn byte-swapping on and off.
-Plan 9 takes a different approach; there are no machine-dependent
+Plan 9 takes a different approach: of the handful of machine-dependent
 .CW #ifdefs
-in any of the source.
-Instead the programs read and write files in a defined format,
+in all the source, almost all are deep in the libraries.
+Instead programs read and write files in a defined format,
 either (for low volume applications) as formatted text, or
 (for high volume applications) as binary in a known byte order.
-If the external data was written with the most significant
-byte first, the following code will read a 4-byte integer correctly
+If the external data were written with the most significant
+byte first, the following code reads a 4-byte integer correctly
 regardless of the architecture of the executing machine (assuming
-an unsigned long will hold 4 bytes):
+an unsigned long holds 4 bytes):
 .P1
 ulong
 getlong(void)
@@ -744,26 +739,23 @@ outputs text to the standard output,
 outputs text to a specified integer file descriptor, and
 .CW sprint
 places text in a character array.
-But to access library routines for buffered I/O, a program must
-explicitly mention an appropriate library.
+To access library routines for buffered I/O, a program must
+explicitly include the header file associated with an appropriate library.
 .PP
 The recommended I/O library, used by most Plan 9 utilities, is
 .CW bio
 (buffered I/O), defined by
-.CW <bio.h>
-and accessed by appending
-.CW -lbio
-to the command line for the loader.
+.CW <bio.h> .
 There also exists an implementation of ANSI Standard I/O,
 .CW stdio .
 .PP
 .CW Bio
-is small and very efficient, particularly for buffer-at-a-time or
+is small and efficient, particularly for buffer-at-a-time or
 line-at-a-time I/O.
 Even for character-at-a-time I/O, however, it is significantly faster than
 the Standard I/O library,
 .CW stdio .
-Its interface is compact and regular, although it lacks a couple of conveniences.
+Its interface is compact and regular, although it lacks a few conveniences.
 The most noticeable is that one must explicitly define buffers for standard
 input and output;
 .CW bio
@@ -805,30 +797,32 @@ For more information on
 see the Programmer's Manual.
 .PP
 Perhaps the most dramatic difference in the I/O interface of Plan 9 from other
-systems' is that text is not
-.SM ASCII.
+systems' is that text is not ASCII.
 The format for
 text in Plan 9 is a byte-stream encoding of 16-bit characters.
-The character set is based on Unicode and is backward compatible with
-.SM ASCII:
+The character set is based on the Unicode Standard and is backward compatible with
+ASCII:
 characters with value 0 through 127 are the same in both sets.
 The 16-bit characters, called
 .I runes
 in Plan 9, are encoded using a representation called
-.SM UTF,
-a encoding we proposed and expect to be accepted by X-Open.
-.SM UTF
+UTF,
+an encoding that is becoming accepted as a standard.
+(ISO calls it UTF-8;
+throughout Plan 9 it's just called
+UTF.)
+UTF
 defines multibyte sequences to
 represent character values from 0 to 65535.
 In
-.SM UTF,
+UTF,
 character values up to 127 decimal, 7F hexadecimal, represent themselves,
 so straight
-.SM ASCII
+ASCII
 files are also valid
-.SM UTF.
+UTF.
 Also,
-.SM UTF
+UTF
 guarantees that bytes with values 0 to 127 (NUL to DEL, inclusive)
 will appear only when they represent themselves, so programs that read bytes
 looking for plain ASCII characters will continue to work.
@@ -836,12 +830,14 @@ Any program that expects a one-to-one correspondence between bytes and
 characters will, however, need to be modified.
 An example is parsing file names.
 File names, like all text, are in
-.SM UTF,
+UTF,
 so it is incorrect to search for a character in a string by
-.CW "strchr(filename, c)
+.CW strchr(filename,
+.CW c)
 because the character might have a multi-byte encoding.
 The correct method is to call
-.CW "utfrune(filename, c)" ,
+.CW utfrune(filename,
+.CW c) ,
 defined in
 .I rune (2),
 which interprets the file name as a sequence of encoded characters
@@ -852,7 +848,6 @@ it is safer to use
 .CW utfrune
 because that assumes nothing about the character set
 and its representation.
-The representation may change\(emPlan 9 has already changed it several times.
 .PP
 The library defines several symbols relevant to the representation of characters.
 Any byte with unsigned value less than
@@ -866,8 +861,8 @@ to see if it is sufficient to call
 or if the byte stream must be interpreted.
 Any byte with unsigned value less than
 .CW Runeself
-is represnted by a single byte with the same value.
-Finally, when errors are encoutered converting
+is represented by a single byte with the same value.
+Finally, when errors are encountered converting
 to runes from a byte stream, the library returns the rune value
 .CW Runeerror
 and advances a single byte.  This permits programs to find runes
@@ -879,7 +874,7 @@ includes routines
 and
 .CW Bputrune
 to transform the external byte stream
-.SM UTF
+UTF
 format to and from
 internal 16-bit runes.
 Also, the
@@ -887,7 +882,7 @@ Also, the
 format to
 .CW print
 accepts
-.SM UTF;
+UTF;
 .CW %c
 prints a character after narrowing it to 8 bits.
 The
@@ -898,17 +893,23 @@ prints a character after narrowing it to 16 bits.
 For more information, see the Programmer's Manual, in particular
 .I utf (6)
 and
-.I rune (2);
+.I rune (2),
+and the paper,
+``Hello world, or
+Καλημέρα κόσμε, or\ 
+\f(Jpこんにちは 世界\f1'',
+by Rob Pike and
+Ken Thompson;
 there is not room for the full story here.
 .PP
 These issues affect the compiler in several ways.
 First, the C source is in
-.SM UTF.
-Although C variables are formed from
-.SM ASCII
-alphanumerics, comments and literal strings may contain any characters
-encoded in
-.SM UTF.
+UTF.
+ANSI says C variables are formed from
+ASCII
+alphanumerics, but comments and literal strings may contain any characters
+encoded in the native encoding, here
+UTF.
 The declaration
 .P1
 char *cp = "abcÿ";
@@ -916,7 +917,7 @@ char *cp = "abcÿ";
 initializes the variable
 .CW cp
 to point to an array of bytes holding the
-.SM UTF
+UTF
 representation of the characters
 .CW abcÿ.
 The type
@@ -946,13 +947,14 @@ print("%s\en", "abcÿ");
 print("%S\en", L"abcÿ");
 .P2
 produce the same
-.SM UTF
+UTF
 string on their output, the first by copying the bytes, the second
 by converting from runes to bytes.
 .PP
 In C, character constants are integers but narrowed through the
 .CW char
-type.  The Unicode character
+type.
+The Unicode character
 .CW ÿ
 has value 255, so if the
 .CW char
@@ -965,12 +967,19 @@ On the other hand,
 narrows through the wide character type,
 .CW ushort ,
 and therefore has value 255.
+.PP
+Finally, although it's not ANSI C, the Plan 9 C compilers
+assume any character with value above
+.CW Runeself
+is an alphanumeric,
+so α is a legal, if non-portable, variable name.
 .SH
 Arguments
 .PP
-Defined in
+Some macros are defined
+in
 .CW <libc.h>
-are some macros for parsing the arguments to
+for parsing the arguments to
 .CW main() .
 They are described in
 .I ARG (2)
@@ -988,48 +997,39 @@ returns the current option character (rune) being processed and
 returns the argument to the option, as in the loader option
 .CW -o
 .CW file .
-Here, for example, is the beginning of
+Here, for example, is the code at the beginning of
 .CW main()
 in
-.CW mount.c
+.CW ramfs.c
 (see
-.I bind (1))
+.I ramfs (1))
 that cracks its arguments:
 .P1
 void
 main(int argc, char *argv[])
 {
-	char *spec, *srv;
-	ulong flag = 0;
+	char *defmnt;
+	int p[2];
+	int mfd[2];
+	int stdio = 0;
 
-	srv = "";
+	defmnt = "/tmp";
 	ARGBEGIN{
-	case 'a':
-		flag |= MAFTER;
-		break;
-	case 'b':
-		flag |= MBEFORE;
-		break;
-	case 'c':
-		flag |= MCREATE;
-		break;
-	case 't':
-		srv = "any";
+	case 'i':
+		defmnt = 0;
+		stdio = 1;
+		mfd[0] = 0;
+		mfd[1] = 1;
 		break;
 	case 's':
-		srv = ARGF();
-		if(srv == 0)
-			usage();
+		defmnt = 0;
+		break;
+	case 'm':
+		defmnt = ARGF();
 		break;
 	default:
 		usage();
 	}ARGEND
-	if(argc == 2)
-		spec = "";
-	else if(argc == 3)
-		spec = argv[2];
-	else
-		usage();
 .P2
 .SH
 Extensions
@@ -1091,7 +1091,7 @@ struct Node
 		double  dval;
 		double  fval;
 		long    lval;
-	};
+	};		/* anonymous union */
 	struct Lock;	/* anonymous structure */
 } *node;
 
@@ -1111,7 +1111,7 @@ may be used without a cast anywhere that the address of a
 .CW struct
 .CW Lock
 is used, such as in argument lists.
-The compiler will automatically promote the type and adjust the address.
+The compiler automatically promotes the type and adjusts the address.
 Thus one may invoke
 .CW lock(node) .
 .PP
@@ -1127,7 +1127,7 @@ struct
 {
 	int	type;
 	Point;
-}p;
+} p;
 .P2
 and refer to
 .CW p.Point .
@@ -1136,7 +1136,7 @@ In the initialization of arrays, a number in square brackets before an
 element sets the index for the initialization.  For example, to initialize
 some elements in
 a table of function pointers indexed by
-.SM ASCII
+ASCII
 character,
 .P1
 void	percent(void), slash(void);
@@ -1212,126 +1212,256 @@ USED(v2);
 .P2
 decorate the flow graph to silence the compiler.
 Either statement accepts a comma-separated list of variables.
-Use them carefully; they may silence real errors.
+Use them carefully: they may silence real errors.
+For the common case of unused parameters to a function,
+leaving the name off the declaration silences the warnings.
+That is, listing the type of a parameter but giving it no
+associated variable name does the trick.
 .SH
 Debugging
 .PP
-The debugger on Plan 9 is
+There are two debuggers available on Plan 9.
+The first, and older, is
 .CW db ,
 a revision of Unix
-.CW adb
-that supports multiple architectures in a single program.
-There is room for a good source-level debugger but until the
-compiler emits a symbol table with types
-.CW db
-will have to serve.
-.PP
-.CW Db
-has several improvements over
 .CW adb .
-Most important is that it reports C source line numbers
-with the
-.CW z
-command.
-Breakpointing, and in particular conditional breakpointing, work well.
-Finally, it supports cross-architecture debugging comfortably.
+The other,
+.CW acid ,
+is a source-level debugger whose commands are statements in
+a true programming language.
+.CW Acid
+is the preferred debugger, but since it
+borrows some elements of
+.CW db ,
+notably the formats for displaying values, it is worth knowing a little bit about
+.CW db .
 .PP
-For simple debugging, however,
+Both debuggers support multiple architectures in a single program; that is,
+the programs are
 .CW db
-is fine.
+and
+.CW acid ,
+not for example
+.CW vdb
+and
+.CW vacid .
+They also support cross-architecture debugging comfortably:
+one may debug a 68020 binary on a MIPS.
+.PP
 Imagine a program has crashed mysteriously:
 .P1
 % X11/X
 Fatal server bug!
 failed to create default stipple
-X 106: suicide: sys: trap: fault read addr=0x0 pc=0x00060a82
+X 106: suicide: sys: trap: fault read addr=0x0 pc=0x00105fb8
 % 
 .P2
 When a process dies on Plan 9 it hangs in the `broken' state
 for debugging.
-.CW Db
-takes the process id of the broken process and reports the type of the
-binary, the last trap it executed, and the failing instruction:
+Attach a debugger to the process by naming its process id:
 .P1
-% db 106
-68020 binary
-bus error
-abort.c:8 abort+#2?			TSTL	#0($0)
+% acid 106
+/proc/106/text:mips plan 9 executable
+
+/sys/lib/acid/port
+/sys/lib/acid/mips
+acid: 
 .P2
 The
-.CW $C
-(capital
-.CW C )
-command to
-.CW db
+.CW acid
+function
+.CW stk()
 reports the stack traceback:
 .P1
-$C
-abort() abort.c:4 called from FatalError+#4e misc.c:421
+acid: stk()
+At pc:0x105fb8:abort+0x24 /sys/src/ape/lib/ap/stdio/abort.c:6
+abort() /sys/src/ape/lib/ap/stdio/abort.c:4
+	called from FatalError+#4e
+		/sys/src/X/mit/server/dix/misc.c:421
 FatalError(s9=#e02, s8=#4901d200, s7=#2, s6=#72701, s5=#1,
     s4=#7270d, s3=#6, s2=#12, s1=#ff37f1c, s0=#6, f=#7270f)
-    misc.c:416 called from gnotscreeninit+#4ce gnot.c:792
-	gnotscreeninit.buf/   #4901b300
-gnotscreeninit(snum=#0, sc=#80db0) gnot.c:766 called from
-    AddScreen+#16e main.c:610
-AddScreen(argv=#ff37fec, argc=#1, pfnInit=#23bc) main.c:531
-    called from InitOutput+#16 gnot.c:924
-	AddScreen.i/	      #0
-	AddScreen.pScreen/    #80db0
-InitOutput(argv=#ff37fec, argc=#1, si=#72cd4) gnot.c:920
-    called from main+#1e2 main.c:227
-main(argc=#1, argv=#ff37fec) main.c:137 called from _main+#1e
-    plan968020/MAIN.s:8
-	main.alwaysCheckForInput/       #0
-	main.i/	    #80
-_main(inargv=#ff37ff6, inargc=#1) plan968020/MAIN.s:1 called from #1 
+    /sys/src/X/mit/server/dix/misc.c:416
+	called from gnotscreeninit+#4ce
+		/sys/src/X/mit/server/ddx/gnot/gnot.c:792
+gnotscreeninit(snum=#0, sc=#80db0)
+    /sys/src/X/mit/server/ddx/gnot/gnot.c:766
+	called from AddScreen+#16e
+		/n/bootes/sys/src/X/mit/server/dix/main.c:610
+AddScreen(pfnInit=0x0000129c,argc=0x00000001,argv=0x7fffffe4)
+    /sys/src/X/mit/server/dix/main.c:530
+	called from InitOutput+0x80
+		/sys/src/X/mit/server/ddx/brazil/brddx.c:522
+InitOutput(argc=0x00000001,argv=0x7fffffe4)
+    /sys/src/X/mit/server/ddx/brazil/brddx.c:511
+	called from main+0x294
+		/sys/src/X/mit/server/dix/main.c:225
+main(argc=0x00000001,argv=0x7fffffe4)
+    /sys/src/X/mit/server/dix/main.c:136
+	called from _main+0x24
+		/sys/src/ape/lib/ap/mips/main9.s:8
 .P2
-The command
-.CW $c
-(lower case
-.CW c )
-omits the local variables.
+The function
+.CW lstk()
+is similar but
+also reports the values of local variables.
+Note that the traceback includes full file names; this is a boon to debugging,
+although it makes the output much noisier.
 .PP
-The compiler does not place in the executable
-information describing the types of variables,
+To use
+.CW acid
+well you will need to learn its input language; see the
+``Acid Manual'',
+by Phil Winterbottom,
+for details.  For simple debugging, however, the information in the manual page is
+sufficient.  In particular, it describes the most useful functions
+for examining a process.
+.PP
+The compiler does not place
+information describing the types of variables in the executable,
 but a compile-time flag provides crude support for symbolic debugging.
 The
-.CW -s
+.CW -a
 flag to the compiler suppresses code generation
-and identifies a structure or union in the program
-whose layout is to be printed on standard output.
-The command
-.CW dbfmt
-translates this output into
-.CW db
-commands to display the data structure.
-The easiest way to use this feature is to put a rule in the mkfile:
+and instead emits source text in the
+.CW acid
+language to format and display data structure types defined in the program.
+The easiest way to use this feature is to put a rule in the
+.CW mkfile :
 .P1
-%.db:   main.$O
-        $CC -s$stem main.c | dbfmt > $stem.db
+syms:   main.$O
+        $CC -a main.c > syms
 .P2
-Making
-.CW Dir.db
-for example will produce a file by that name containing commands to
-print the contents of a
-.CW struct
-.CW Dir
-(a type in
-.CW <libc.h> ).
+Then from within
+.CW acid ,
+.P1
+acid: include("sourcedirectory/syms")
+.P2
+to read in the relevant definitions.
+(For multi-file source, you need to be a little fancier;
+see
+.I 2c (1)).
+This text includes, for each defined compound
+type, a function with that name that may be called with the address of a structure
+of that type to display its contents.
+For example, if
+.CW rect
+is a global variable of type
+.CW Rectangle ,
+one may execute
+.P1
+Rectangle(*rect)
+.P2
+to display it.
 The
-.CW $<
-command of
-.CW db
-will read the file as commands.  For example,
-.P1
-main.dirbuf$<Dir.db
-.P2
-will format the contents of
-.CW main 's
-local variable
-.CW dirbuf .
-These format files can of course be edited to improve the output.
+.CW *
+(indirection) operator is necessary because
+of the way
+.CW acid
+works: each global symbol in the program is defined as a variable by
+.CW acid ,
+with value equal to the
+.I address
+of the symbol.
 .PP
-For more information, see the
-.CW db
-manual page.
+Another common technique is to write by hand special
+.CW acid
+code to define functions to aid debugging, initialize the debugger, and so on.
+Conventionally, this is placed in a file called
+.CW acid
+in the source directory; it has a line
+.P1
+include("sourcedirectory/syms");
+.P2
+to load the compiler-produced symbols.  One may edit the compiler output directly but
+it is wiser to keep the hand-generated
+.CW acid
+separate from the machine-generated.
+.PP
+There is much more to say here.  See
+.CW acid
+manual page, the reference manual, or the paper
+``Acid: A Debugger Built From A Language'',
+also by Phil Winterbottom.
+.SH
+Alef
+.PP
+With minor substitutions, most of this document applies to Alef.
+The compilers are
+.CW val ,
+.CW kal ,
+and
+.CW 8al ;
+they work with the usual assemblers and loaders.
+There is no Alef compiler for the 68020.
+The directory of machine-independent include files is
+.CW /sys/include/alef ;
+there are no machine-dependent Alef include files.
+The libraries are in
+.CW /$objtype/lib/alef .
+Alef uses
+.CW /bin/cpp ,
+which is a full ANSI C preprocessor.
+Our style of use, however, is the same as in Plan 9 C.
+.PP
+The Alef compilers don't have the
+.CW USED(v)
+and
+.CW SET(v)
+operators; instead say something like
+.P1
+if(v);
+.P2
+for
+.CW USED
+and just set the variable to something benign to silence `used and not set' warnings.
+The compilers also permit leaving unused parameters unnamed.
+.PP
+The compilers support UTF,
+although variable names must be plain alphanumeric.
+UTF
+strings have syntax
+.CW $"string"
+rather than 
+.CW L"string" .
+.PP
+Finally, when debugging, some helpful
+.CW acid
+may be loaded by supplying the flag
+.CW -lalef
+when starting
+.CW acid .
+This code defines
+functions to help analyze the state of the run-time system.
+For example,
+.CW pchan(c)
+reports the state of a channel.
+Because Alef programs are multi-threaded, they have multiple stacks.
+To print the stack trace for a
+.CW proc ,
+do
+.P1
+setproc(pid);
+stk();
+.P2
+where
+.CW pid
+is the Plan 9 process id of the
+.CW proc .
+To print the stack trace for a task is clumsier.
+In the program, get the `task id'
+by calling the run-time function
+.CW ALEF_tid
+in each task and recording it in a global:
+.P1
+taskid = ALEF_tid();
+.P2
+When the program is debugged, the task id
+may be passed to an
+.CW acid
+function to print the stack:
+.P1
+labstk(*taskid);
+.P2
+This is of course best done in the private, program-specific
+.CW acid
+code.

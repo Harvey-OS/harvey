@@ -5,7 +5,7 @@
  *	(tba)
  */
 
-MOVW	R7, 0(FP)
+	MOVW	R7, 0(FP)
 	MOVW	n+8(FP), R9		/* R9 is count */
 	MOVW	s1+0(FP), R10		/* R10 is pointer1 */
 	MOVW	s2+4(FP), R11		/* R11 is pointer2 */

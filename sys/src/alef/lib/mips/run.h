@@ -2,8 +2,26 @@
 
 enum
 {
-	Ptab		= 0x7ffff000	/* Private stack */
+	Ptab		= 0x7fffe000,	/* Private stack */
+	Execstk		= 0x7fc01000,	/* Exec stack linkage area */
 };
+
+/*
+ * Passed from the loader to extend stack root by max become
+ * frame size
+ */
+extern byte ALEFbecome[];
+#define	MAXBECOME	(uint)ALEFbecome
+
+/*
+ * Stack alignment is unnecessary on this architecture
+ */
+#define ALIGN(s, n)	(s)
+#define ALIGN_UP(s, n)	(s)
+
+#define	SP_DELTA	0		/* fixup to SP in task startup */
+#define	PC_DELTA	0		/* fixup to PC in task startup */
+#define	ARGV_DELTA	0		/* fixup of SP in init */
 
 typedef aggr Tdb;
 typedef aggr Task;
@@ -11,9 +29,13 @@ typedef aggr Task;
 void	*ALEF_getrp(void);
 void	ALEF_linktask(void);
 void	*ALEF_switch(Task*, Task*, void*);
-void	ALEF_linksp(int*, char *sp, void(*)(void));
+void	ALEF_linksp(int*, byte*, void(*)(void));
 void	ALEF_sched(Task*);
+void*	ALEFalloc(uint, int);
 
+/*
+ * sizeof(Rendez) is known to the compiler
+ */
 adt Rendez
 {
 	Lock;
@@ -26,8 +48,9 @@ extern	Task	*t;
 aggr Msgbuf
 {
 	Msgbuf	*next;
+	uint	signature;
 	union {
-		char	data[1];
+		byte	data[1];
 		int	i;
 		sint	s;
 		float	f;
@@ -39,6 +62,7 @@ aggr Chan
 	Lock;
 
 	int	async;
+	uint	signature;
 
 	Msgbuf	*free;
 	Msgbuf	*qh;
@@ -48,6 +72,7 @@ aggr Chan
 	Chan	*sellink;
 	Task	*selt;
 	int	selp;
+	int	seltst;
 
 	Rendez	sndr;
 	void	*sva;
@@ -60,30 +85,25 @@ aggr Chan
 
 aggr Task
 {
-	uint	sp;		/* pc, sp - Known by alefasm.s: ALEF_switch() */
+	uint	sp;	/* pc, sp - Known by alefasm.s: ALEF_switch() */
 	uint	pc;
-
 	Tdb	*tdb;
 	Task	*link;
-
 	Task	*qlink;
-
 	Chan	*slist;
 	Chan	*stail;
-
 	Rendez;
-
-	char	*stack;
+	byte	*stack;
 };
 
 aggr Tdb
 {
 	Lock;
-
 	int	ntask;		/* Number of task in this proc */
 	Task	*ctask;		/* Current task */
 	Task	*runhd;		/* Head of tasks ready to run */
 	Task	*runtl;		/* Tail of tasks ready */
+	int	sleeper;	/* true if sched() needs to rendezvous with a sleeper */
 };
 
 aggr Proc

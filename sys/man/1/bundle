@@ -40,6 +40,8 @@ then do
 .TP
 .L
 cd gift; rc horse; mk
+.SH SOURCE
+.B /rc/bin/bundle
 .SH SEE ALSO
 .IR ar (1), 
 .IR tar (1), 

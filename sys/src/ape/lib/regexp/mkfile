@@ -1,11 +1,8 @@
-BUILTINS=
 APE=/sys/src/ape
-< $APE/config
-LIBRARY=/$objtype/lib/ape/libregexp.a
-CFLAGS=-c -DUTF -D_REGEXP_EXTENSION
+<$APE/config
 
-OFILES=\
-	regcomp.$O\
+LIB=/$objtype/lib/ape/libregexp.a
+OFILES=regcomp.$O\
 	regerror.$O\
 	regexec.$O\
 	regsub.$O\
@@ -13,27 +10,6 @@ OFILES=\
 	rregexec.$O\
 	rregsub.$O\
 
-all:V:	install
+</sys/src/cmd/mksyslib
 
-%.$O:	%.c regcomp.h
-	$CC $CFLAGS $stem.c
-
-install:V:	$OFILES
-	ar vu $LIBRARY $OFILES
-	$RL $LIBRARY
-	rm -f $OFILES
-
-test: test.$O $OFILES
-	$LD -o test $prereq
-
-test2: test2.$O $OFILES
-	$LD -o test2 $prereq
-
-installall:V:
-	for(objtype in $CPUS) mk install
-
-clean:V:
-	rm -f *.[$OS] [$OS].out
-
-nuke:V:
-	mk clean
+CFLAGS=-c -DUTF -D_REGEXP_EXTENSION

@@ -1,10 +1,10 @@
 #include "map.h"
 
 static int
-Xmollweide(struct place *place, float *x, float *y)
+Xmollweide(struct place *place, double *x, double *y)
 {
-	float z;
-	float w;
+	double z;
+	double w;
 	z = place->nlat.l;
 	if(fabs(z)<89.9*RAD)
 		do {	/*newton for 2z+sin2z=pi*sin(lat)*/

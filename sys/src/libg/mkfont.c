@@ -64,6 +64,7 @@ Err2:
 	font->sub[0] = c;
 	c->min = min;
 	c->max = min+subfont->n-1;
+	c->offset = 0;
 	c->name = 0;	/* noticed by freeup() and agefont() */
 	c->abs = 1;
 	font->subf[0].age = 0;

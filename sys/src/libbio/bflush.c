@@ -27,6 +27,7 @@ Bflush(Biobufhdr *bp)
 
 	case Bractive:
 		bp->icount = 0;
+		bp->gbuf = bp->ebuf;
 		return 0;
 	}
 	return Beof;

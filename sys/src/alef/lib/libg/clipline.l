@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 
 #define	XYswap(p)	t=(p)->x; (p)->x=(p)->y; (p)->y=t
 #define	Swap(x, y)	t=x; x=y; y=t

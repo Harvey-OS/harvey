@@ -1,0 +1,103 @@
+.TH PLINITBUTTON 2
+.SH NAME
+plinitbutton, plinitcanvas, plinitcheckbutton, plinitedit, plinitentry, plinitframe, plinitgroup, plinitidollist, plinitlabel, plinitlist, plinitmenu, plinitmessage, plinitpopup, plinitpulldown, plinitradiobutton, plinitscrollbar, plinitslider, plinittextview \- panel reinitialization functions
+.SH SYNOPSIS
+.nf
+.B #include <u.h>
+.br
+.B #include <libg.h>
+.br
+.B #include <panel.h>
+.PP
+.B
+void plinitbutton(Panel*, int, Icon*, void (*)(Panel*, int))
+.PP
+.B
+void plinitcanvas(Panel*, int, void (*)(Panel*, Mouse*))
+.PP
+.B
+void plinitcheckbutton(Panel*, int, Icon*,
+.B
+	                  void (*)(Panel*, int, int))
+.PP
+.B
+void plinitedit(Panel*, int, Point, Rune*, int,
+.B
+	           void (*)(Panel *))
+.PP
+.B
+void plinitentry(Panel*, int, int, char*,
+.B
+	            void (*)(Panel*, char*))
+.PP
+.B
+void plinitframe(Panel*, int)
+.PP
+.B
+void plinitgroup(Panel*, int)
+.PP
+.B
+void plinitlabel(Panel*, int, Icon*)
+.PP
+.B
+void plinitlist(Panel*, int, char *(*)(int), int,
+.B
+	           void(*)(Panel*, int, int))
+.PP
+.B
+void plinitmenu(Panel*, int, Icon**, int,
+.B
+	           void (*)(int, int))
+.PP
+.B
+void plinitmessage(Panel*, int, int, char*)
+.PP
+.B
+void plinitpopup(Panel*, int, Panel*, Panel*, Panel*)
+.PP
+.B
+void plinitpulldown(Panel*, int, Icon*, Panel*, int)
+.PP
+.B
+void plinitradiobutton(Panel*, int, Icon*,
+.B
+	                  void (*)(Panel*, int, int))
+.PP
+.B
+void plinitscrollbar(Panel*, int)
+.PP
+.B
+void plinitslider(Panel*, int, Point,
+.B
+	             void(*)(Panel*, int, int, int))
+.PP
+.B
+void plinittextview(Panel*, int, Point, Rtext*,
+.B
+	               void (*)(Panel*, int, Rtext*))
+.SH DESCRIPTION
+Corresponding to each
+.BR Panel -creation
+function (see
+.IR plbutton (2))
+is a function that reinitializes the parameters of that kind of panel.
+The reinitialization functions are all named by inserting the string
+.B init
+after the creation function's initial
+.BR pl .
+For example,
+.B plinitbutton
+will reinitialize a panel created by
+.BR plbutton .
+Their argument lists are identical to the corresponding creation function,
+except that the first argument is a pointer to the panel to be reinitialized,
+rather than its parent.
+.SH SOURCE
+.B /sys/src/libpanel
+.SH SEE ALSO
+.IR plinit (2),
+.IR plbutton (2),
+.IR graphics (2)
+.br
+Tom Duff,
+``A quick introduction to the panel library''.

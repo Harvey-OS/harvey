@@ -1,0 +1,257 @@
+/*
+ * These routines provide runtime support
+ * for the 64 bit lint and ulint types
+ */
+TEXT	ALEF_ladd(SB), $-4
+	MOVW	4(FP), R2
+	MOVW	12(FP), R3
+	ADDU	R2, R3, R4
+	SGTU	R3, R4, R5
+	MOVW	0(FP), R6
+	MOVW	8(FP), R7
+	ADDU	R5, R6
+	ADDU	R7, R6
+	MOVW	R6, 0(R1)
+	MOVW	R4, 4(R1)
+	RET
+
+TEXT	ALEF_laddeq(SB), $-4
+	MOVW	0(FP), R9
+	MOVW	4(R9), R2
+	MOVW	8(FP), R3
+	ADDU	R2, R3, R4
+	SGTU	R3, R4, R5
+	MOVW	0(R9), R6
+	MOVW	4(FP), R7
+	ADDU	R5, R6
+	ADDU	R7, R6
+	MOVW	R6, 0(R9)
+	MOVW	R4, 4(R9)
+	MOVW	R6, 0(R1)
+	MOVW	R4, 4(R1)
+	RET
+
+TEXT	ALEF_lsub(SB), $-4
+	MOVW	4(FP), R2
+	MOVW	0(FP), R3
+	MOVW	12(FP), R4
+	MOVW	8(FP), R5
+	SGTU	R4, R2, R8
+	SUBU	R4, R2, R6
+	SUBU	R5, R3, R7
+	SUBU	R8, R7
+	MOVW	R6, 4(R1)
+	MOVW	R7, 0(R1)
+	RET
+
+TEXT	ALEF_lsubeq(SB), $-4
+	MOVW	0(FP), R9
+	MOVW	4(R9), R2
+	MOVW	0(R9), R3
+	MOVW	8(FP), R4
+	MOVW	4(FP), R5
+	SGTU	R4, R2, R8
+	SUBU	R4, R2, R6
+	SUBU	R5, R3, R7
+	SUBU	R8, R7
+	MOVW	R6, 4(R9)
+	MOVW	R7, 0(R9)
+	MOVW	R6, 4(R1)
+	MOVW	R7, 0(R1)
+	RET
+
+TEXT	ALEF_lmul(SB), $-4
+	MOVW	4(FP), R2
+	MOVW	0(FP), R3
+	MOVW	12(FP), R4
+	MOVW	8(FP), R5
+	MULU	R4, R2
+	MOVW	LO, R6
+	MOVW	HI, R7
+	MULU	R3, R4
+	MOVW	LO, R8
+	ADDU	R8, R7
+	MULU	R2, R5
+	MOVW	LO, R8
+	ADDU	R8, R7
+	MOVW	R6, 4(R1)
+	MOVW	R7, 0(R1)
+	RET
+
+TEXT	ALEF_lmuleq(SB), $-4
+	MOVW	0(FP), R9
+	MOVW	4(R9), R2
+	MOVW	0(R9), R3
+	MOVW	8(FP), R4
+	MOVW	4(FP), R5
+	MULU	R4, R2
+	MOVW	LO, R6
+	MOVW	HI, R7
+	MULU	R3, R4
+	MOVW	LO, R8
+	ADDU	R8, R7
+	MULU	R2, R5
+	MOVW	LO, R8
+	ADDU	R8, R7
+	MOVW	R6, 4(R9)
+	MOVW	R7, 0(R9)
+	MOVW	R6, 4(R1)
+	MOVW	R7, 0(R1)
+	RET
+
+TEXT	ALEF_llsh(SB), $-4
+	MOVW	8(FP), R2
+	MOVW	4(FP), R4
+	SLL	$(32-6), R2, R3
+	BGEZ	R3, lf1
+	SLL	R2, R4, R6
+	MOVW	$0, R7
+	JMP	lout
+lf1:	MOVW	0(FP), R5
+	SLL	R2, R5, R6
+	BEQ	R3, lf2
+	SUBU	R2, R0, R3
+	SRL	R3, R4, R8
+	OR	R8, R6
+lf2:	SLL	R2, R4, R7
+lout:	MOVW	R6, 0(R1)
+	MOVW	R7, 4(R1)
+	RET
+
+TEXT	ALEF_llsheq(SB), $-4
+	MOVW	0(FP), R9
+	MOVW	4(FP), R2
+	MOVW	4(R9), R4
+	SLL	$(32-6), R2, R3
+	BGEZ	R3, lf1e
+	SLL	R2, R4, R6
+	MOVW	$0, R7
+	JMP	loute
+lf1e:	MOVW	0(R9), R5
+	SLL	R2, R5, R6
+	BEQ	R3, lf2e
+	SUBU	R2, R0, R3
+	SRL	R3, R4, R8
+	OR	R8, R6
+lf2e:	SLL	R2, R4, R7
+loute:	MOVW	R6, 0(R1)
+	MOVW	R7, 4(R1)
+	MOVW	R6, 0(R9)
+	MOVW	R7, 4(R9)
+	RET
+
+TEXT	ALEF_lrsh(SB), $-4
+	MOVW	8(FP), R2
+	MOVW	0(FP), R5
+	SLL	$(32-6), R2, R3
+	BGEZ	R3, rf1
+	SRL	R2, R5, R7
+	MOVW	$0, R6
+	JMP	rout
+rf1:	MOVW	4(FP), R4
+	SRL	R2, R4, R7
+	BEQ	R3, rf2
+	SUBU	R2, R0, R3
+	SLL	R3, R5, R8
+	OR	R8, R7
+rf2:	SRL	R2, R5, R6
+rout:	MOVW	R6, 0(R1)
+	MOVW	R7, 4(R1)
+	RET
+
+TEXT	ALEF_lrsheq(SB), $-4
+	MOVW	0(FP), R9
+	MOVW	4(FP), R2
+	MOVW	0(R9), R5
+	SLL	$(32-6), R2, R3
+	BGEZ	R3, rf1e
+	SRL	R2, R5, R7
+	MOVW	$0, R6
+	JMP	route
+rf1e:	MOVW	4(R9), R4
+	SRL	R2, R4, R7
+	BEQ	R3, rf2e
+	SUBU	R2, R0, R3
+	SLL	R3, R5, R8
+	OR	R8, R7
+rf2e:	SRL	R2, R5, R6
+route:	MOVW	R6, 0(R1)
+	MOVW	R7, 4(R1)
+	MOVW	R6, 0(R9)
+	MOVW	R7, 4(R9)
+	RET
+
+TEXT	ALEF_land(SB), $-4
+	MOVW	0(FP), R2
+	MOVW	8(FP), R3
+	AND	R2, R3
+	MOVW	4(FP), R4
+	MOVW	12(FP), R5
+	AND	R4, R5
+	MOVW	R3, 0(R1)
+	MOVW	R5, 4(R1)
+	RET
+
+TEXT	ALEF_landeq(SB), $-4
+	MOVW	0(FP), R9
+	MOVW	0(R9), R2
+	MOVW	4(FP), R3
+	AND	R2, R3
+	MOVW	4(R9), R4
+	MOVW	8(FP), R5
+	AND	R4, R5
+	MOVW	R3, 0(R1)
+	MOVW	R5, 4(R1)
+	MOVW	R3, 0(R9)
+	MOVW	R5, 4(R9)
+	RET
+
+TEXT	ALEF_lor(SB), $-4
+	MOVW	0(FP), R2
+	MOVW	8(FP), R3
+	OR	R2, R3
+	MOVW	4(FP), R4
+	MOVW	12(FP), R5
+	OR	R4, R5
+	MOVW	R3, 0(R1)
+	MOVW	R5, 4(R1)
+	RET
+
+TEXT	ALEF_loreq(SB), $-4
+	MOVW	0(FP), R9
+	MOVW	0(R9), R2
+	MOVW	4(FP), R3
+	OR	R2, R3
+	MOVW	4(R9), R4
+	MOVW	8(FP), R5
+	OR	R4, R5
+	MOVW	R3, 0(R1)
+	MOVW	R5, 4(R1)
+	MOVW	R3, 0(R9)
+	MOVW	R5, 4(R9)
+	RET
+
+TEXT	ALEF_lxor(SB), $-4
+	MOVW	0(FP), R2
+	MOVW	8(FP), R3
+	XOR	R2, R3
+	MOVW	4(FP), R4
+	MOVW	12(FP), R5
+	XOR	R4, R5
+	MOVW	R3, 0(R1)
+	MOVW	R5, 4(R1)
+	RET
+
+TEXT	ALEF_lxoreq(SB), $-4
+	MOVW	0(FP), R9
+	MOVW	0(R9), R2
+	MOVW	4(FP), R3
+	XOR	R2, R3
+	MOVW	4(R9), R4
+	MOVW	8(FP), R5
+	XOR	R4, R5
+	MOVW	R3, 0(R1)
+	MOVW	R5, 4(R1)
+	MOVW	R3, 0(R9)
+	MOVW	R5, 4(R9)
+	RET

@@ -10,7 +10,6 @@ int
 getstr(char *prompt, char *buf, int size, char *def, int delay)
 {
 	int len;
-	char *cp;
 
 	for(;;){
 		if(def)
@@ -87,4 +86,5 @@ getline(int delay)
 			linebuf[i] = 0;
 		}
 	}
+	return 0;
 }

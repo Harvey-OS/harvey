@@ -8,52 +8,6 @@
 static Ref pgrpid;
 static Ref mountid;
 
-struct
-{
-	Lock;
-	Crypt	*free;
-} cryptalloc;
-
-/*
- * crypt entries are allocated from a pool rather than allocated using malloc so
- * the memory can be protected from reading by devproc. The base and top of the
- * crypt arena is stored in palloc for devproc.
- */
-Crypt*
-newcrypt(void)
-{
-	Crypt *c;
-
-	lock(&cryptalloc);
-	if(cryptalloc.free) {
-		c = cryptalloc.free;
-		cryptalloc.free = c->next;
-		unlock(&cryptalloc);
-		return c;
-	}
-
-	cryptalloc.free = xalloc(sizeof(Crypt)*conf.nproc);
-	if(cryptalloc.free == 0)
-		panic("newcrypt");
-
-	for(c = cryptalloc.free; c < cryptalloc.free+conf.nproc-1; c++)
-		c->next = c+1;
-
-	palloc.cmembase = (ulong)cryptalloc.free;
-	palloc.cmemtop = palloc.cmembase+(sizeof(Crypt)*conf.nproc);
-	unlock(&cryptalloc);
-	return newcrypt();
-}
-
-void
-freecrypt(Crypt *c)
-{
-	lock(&cryptalloc);
-	c->next = cryptalloc.free;
-	cryptalloc.free = c;
-	unlock(&cryptalloc);
-}
-
 void
 pgrpnote(ulong noteid, char *a, long n, int flag)
 {
@@ -70,7 +24,7 @@ pgrpnote(ulong noteid, char *a, long n, int flag)
 	for(; p < ep; p++) {
 		if(p->state == Dead)
 			continue;
-		if(p->noteid == noteid && p->kp == 0) {
+		if(p != u->p && p->noteid == noteid && p->kp == 0) {
 			qlock(&p->debug);
 			if(p->pid == 0 || p->noteid != noteid){
 				qunlock(&p->debug);
@@ -92,7 +46,6 @@ newpgrp(void)
 
 	p = smalloc(sizeof(Pgrp));
 	p->ref = 1;
-	p->crypt = newcrypt();
 	p->pgrpid = incref(&pgrpid);
 	return p;
 }
@@ -116,7 +69,6 @@ closepgrp(Pgrp *p)
 			}
 		}
 		qunlock(&p->debug);
-		freecrypt(p->crypt);
 		free(p);
 	}
 }
@@ -129,7 +81,6 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 
 	rlock(&from->ns);
 
-	*to->crypt = *from->crypt;
 	e = &from->mnthash[MNTHASH];
 	tom = to->mnthash;
 	for(h = from->mnthash; h < e; h++) {

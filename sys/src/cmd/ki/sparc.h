@@ -168,18 +168,16 @@ void		delbpt(char*);
 void		breakpoint(char*, char*);
 char*		nextc(char*);
 ulong		expr(char*);
-void		init(int, char**);
+void		initstk(int, char**);
+void		initmap(void);
+void		inithdr(int);
 void		reset(void);
 void		dobplist(void);
-void		sparcprintins(char, int);
 void		procinit(int);
 void		printsource(long);
 void		printparams(Symbol *, ulong);
-void		psymoff(ulong, int, char *);
 void		printlocals(Symbol *, ulong);
-ulong		findframe(ulong);
 void		stktrace(int);
-int		Sconv(void*, Fconv*);
 void		delay(ulong);
 void		iprofile(void);
 
@@ -208,13 +206,16 @@ Extern		ulong loadlock;
 Extern		ulong anulled;
 extern		int datasize;		
 extern		int printcol;
+Extern		Map *symmap;
 
 /* Plan9 Kernel constants */
 #define	BY2PG		4096
 #define BY2WD		4
 #define UTZERO		0x1000
-#define STACKTOP	0x10000000
-#define STACKSIZE	0x10000
+#define TSTKSIZ		32
+#define TSTACKTOP	0x10000000
+#define STACKTOP	(TSTACKTOP-TSTKSIZ*BY2PG)
+#define STACKSIZE	(4*1024*1024)
 
 #define ANUL		(1<<29)
 #define PROFGRAN	4

@@ -1,4 +1,7 @@
 #!/bin/rc
+rfork s
+
+if (! ~ $DEBUG '') flag x +
 
 LPDELAY=60
 
@@ -10,82 +13,105 @@ LOCAL_CMD=$1
 REMOTE_CMD=$2
 SUCCESS_CMD=$3
 
-if (! LOCK $LPSPOOL/$LPDEST $pid) exit 0
+# we don't want to make a LOCK file unless we are at the destination
+# let the spooler take care of moving it there
+# this is necessary for clients and servers that share the
+# same name space
+if (! ~ $THIS_HOST $DEST_HOST || ! LOCK $LPSPOOL/$LPDEST/LOCK $sysname $pid) exit ''
 
 cd $LPSPOOL
 
 MAXTRY=2
-PRINTLOG=$LPLIB/log/$LPDEST^.st
+PRINTLOG=$LPLOGDIR/$LPDEST^.st
 
-while (FILE=`{bind -b $LPLIB/sched /bin;$SCHED $LPDEST}; ! ~ $#FILE 0 && test -s $LPDEST/$FILE(1)) {
+fn schedule{
+	FILE=`{
+		@{
+			rfork n
+			bind -b $LPLIB/sched /bin
+			$SCHED $LPDEST
+		}
+	}
+}
+
+while (schedule; ! ~ $#FILE 0) {
 	SCHEDLINE=`{cat $LPDEST/$FILE(1)^id}
 	LSLINE=`{ls -l $LPDEST/$FILE(1)}
-	if (~ $THIS_HOST $DEST_HOST) {
-		if (test -f $LPLIB/perm/$LPDEST && grep -s $SCHEDLINE(2) $LPLIB/perm/$LPDEST) {
-			echo you are not allowed to use printer $LPDEST | mail $SCHEDLINE(2)
-			rm -f $LPDEST/$FILE(1) $LPDEST/$FILE(1)^id
+	STARTIME=`{date}
+	if (! test -s $LPDEST/$FILE(1)) {
+		echo $SCHEDLINE(2)$SCHEDLINE(4)'	'$SCHEDLINE(3)	$SCHEDLINE(5)' ! '$LSLINE(6) $STARTIME(4) >> $LPLOG
+		rm -f $LPDEST/$FILE $LPDEST/$FILE^id
+	}
+	if not {
+		if (~ $THIS_HOST $DEST_HOST) {
+			if (test -f $LPLIB/perm/$LPDEST && grep -s $SCHEDLINE(2) $LPLIB/perm/$LPDEST) {
+				echo you are not allowed to use printer $LPDEST | mail $SCHEDLINE(2)
+				rm -f $LPDEST/$FILE(1) $LPDEST/$FILE(1)^id
+			}
+			if not {
+				> $PRINTLOG
+				STARTIME=`{date}
+				eval $LOCAL_CMD
+				rv=$status
+				ENDTIME=`{date}
+				status=$rv
+				if () {
+					echo $SCHEDLINE(1)^$SCHEDLINE(3)'	'$SCHEDLINE(2)'	'$SCHEDLINE(4)' + '$LSLINE(6)' '$STARTIME(4)' '$ENDTIME(4)
+					eval $SUCCESS_CMD
+					rm -f $LPDEST/$FILE(1) $LPDEST/$FILE(1)^id
+				}
+				if not {
+					echo $SCHEDLINE(1)^$SCHEDLINE(3)'	'$SCHEDLINE(2)'	'$SCHEDLINE(4)' - '$LSLINE(6)' '$STARTIME(4)' '$ENDTIME(4)' status='$rv
+					THISTRY=`{echo $SCHEDLINE(4) + 1|hoc}
+					echo $SCHEDLINE(1) $SCHEDLINE(2) $SCHEDLINE(3) $THISTRY >$LPDEST/$FILE(1)^id
+					if (test $THISTRY -ge $MAXTRY) {
+						if (test -d $LPLIB/prob/$LPDEST) {
+							cp $LPDEST/$FILE(1) $LPLIB/prob/$LPDEST
+							cp $LPDEST/$FILE(1)^id $LPLIB/prob/$LPDEST
+							cp $PRINTLOG $LPLIB/prob/$LPDEST/$FILE(1)^log
+						}
+						upasname=daemon
+						mail $SCHEDLINE(2) <<endmail1
+						rm -f $LPDEST/$FILE(1) $LPDEST/$FILE(1)^id
+					}
+					if not {
+						touch $LPDEST/$FILE(1)
+						sleep $LPDELAY
+					}
+				}
+			}
 		}
 		if not {
-			> $PRINTLOG
+# we don't want to be here
+#			trap '' 13	# temp hack: ignore SIGPIPE
 			STARTIME=`{date}
-			eval $LOCAL_CMD
+			eval $REMOTE_CMD 
 			rv=$status
 			ENDTIME=`{date}
-			if (status=$rv) {
+			if (~ $rv '') {
 				echo $SCHEDLINE(1)^$SCHEDLINE(3)'	'$SCHEDLINE(2)'	'$SCHEDLINE(4)' + '$LSLINE(6)' '$STARTIME(4)' '$ENDTIME(4)
-				eval $SUCCESS_CMD
 				rm -f $LPDEST/$FILE(1) $LPDEST/$FILE(1)^id
 			}
 			if not {
 				echo $SCHEDLINE(1)^$SCHEDLINE(3)'	'$SCHEDLINE(2)'	'$SCHEDLINE(4)' - '$LSLINE(6)' '$STARTIME(4)' '$ENDTIME(4)
-				$THISTRY=`{echo $SCHEDLINE(4) + 1|hoc}
+				echo status $rv from '$REMOTE_CMD'
+				THISTRY=`{echo $SCHEDLINE(4) + 1|hoc}
 				echo $SCHEDLINE(1) $SCHEDLINE(2) $SCHEDLINE(3) $THISTRY >$LPDEST/$FILE(1)^id
-				if (test $THISTRY -ge $MAXTRY) {
-					if (test -d $LPLIB/prob/$LPDEST) {
-						cp $LPDEST/$FILE(1) $LPLIB/prob/$LPDEST
-						cp $LPDEST/$FILE(1)^id $LPLIB/prob/$LPDEST
-						cp $PRINTLOG $LPLIB/prob/$LPDEST/$FILE(1)^log
-					}
+				if (~ $THISTRY $MAXTRY) {
 					upasname=daemon
-					mail $SCHEDLINE(2) <<endmail1
-					rm -f $LPDEST/$FILE(1) $LPDEST/$FILE(1)^id
+					mail $SCHEDLINE(2) <<endmail2
 				}
 				if not {
 					touch $LPDEST/$FILE(1)
 					sleep $LPDELAY
-				}
-			}
-		}
-	}
-	if not {
-#		trap '' 13	# temp hack: ignore SIGPIPE
-		STARTIME=`{date}
-		eval $REMOTE_CMD 
-		rv=$status
-		ENDTIME=`{date}
-		if (status=$rv) {
-			echo $SCHEDLINE(1)^$SCHEDLINE(3)'	'$SCHEDLINE(2)'	'$SCHEDLINE(4)' + '$LSLINE(6)' '$STARTIME(4)' '$ENDTIME(4)
-			rm -f $LPDEST/$FILE(1) $LPDEST/$FILE(1)^id
-		}
-		if not {
-			echo $SCHEDLINE(1)^$SCHEDLINE(3)'	'$SCHEDLINE(2)'	'$SCHEDLINE(4)' - '$LSLINE(6)' '$STARTIME(4)' '$ENDTIME(4)
-			echo status $rv from '$REMOTE_CMD'
-			THISTRY=`{echo $SCHEDLINE(4) + 1|hoc}
-			echo $SCHEDLINE(1) $SCHEDLINE(2) $SCHEDLINE(3) $THISTRY >$LPDEST/$FILE(1)^id
-			if (~ $THISTRY $MAXTRY) {
-				upasname=daemon
-				mail $SCHEDLINE(2) <<endmail2
-			}
-			if not {
-				touch $LPDEST/$FILE(1)
-				sleep $LPDELAY
 
 				# this is here to deal with running out of
 				# Datakit channels or other stupid problems
 				# backoff connection attempts but not too long
-				LPDELAY=`{echo $LPDELAY '*' 2|hoc}
-				if (test $LPDELAY -gt 960)
-					LPDELAY=60
+					LPDELAY=`{echo $LPDELAY '*' 2|hoc}
+					if (test $LPDELAY -gt 960)
+						LPDELAY=60
+				}
 			}
 		}
 	}

@@ -1,0 +1,2733 @@
+%!PS-Adobe-2.0
+%%Version: 0.1
+%%DocumentFonts: (atend)
+%%Pages: (atend)
+%%EndComments
+%
+% Version 3.3.2 prologue for troff files.
+%
+
+/#copies 1 store
+/aspectratio 1 def
+/formsperpage 1 def
+/landscape false def
+/linewidth .3 def
+/magnification 1 def
+/margin 0 def
+/orientation 0 def
+/resolution 720 def
+/rotation 1 def
+/xoffset 0 def
+/yoffset 0 def
+
+/roundpage true def
+/useclippath true def
+/pagebbox [0 0 612 792] def
+
+/R  /Times-Roman def
+/I  /Times-Italic def
+/B  /Times-Bold def
+/BI /Times-BoldItalic def
+/H  /Helvetica def
+/HI /Helvetica-Oblique def
+/HB /Helvetica-Bold def
+/HX /Helvetica-BoldOblique def
+/CW /Courier def
+/CO /Courier def
+/CI /Courier-Oblique def
+/CB /Courier-Bold def
+/CX /Courier-BoldOblique def
+/PA /Palatino-Roman def
+/PI /Palatino-Italic def
+/PB /Palatino-Bold def
+/PX /Palatino-BoldItalic def
+/Hr /Helvetica-Narrow def
+/Hi /Helvetica-Narrow-Oblique def
+/Hb /Helvetica-Narrow-Bold def
+/Hx /Helvetica-Narrow-BoldOblique def
+/KR /Bookman-Light def
+/KI /Bookman-LightItalic def
+/KB /Bookman-Demi def
+/KX /Bookman-DemiItalic def
+/AR /AvantGarde-Book def
+/AI /AvantGarde-BookOblique def
+/AB /AvantGarde-Demi def
+/AX /AvantGarde-DemiOblique def
+/NR /NewCenturySchlbk-Roman def
+/NI /NewCenturySchlbk-Italic def
+/NB /NewCenturySchlbk-Bold def
+/NX /NewCenturySchlbk-BoldItalic def
+/ZD /ZapfDingbats def
+/ZI /ZapfChancery-MediumItalic def
+/S  /S def
+/S1 /S1 def
+/GR /Symbol def
+
+/inch {72 mul} bind def
+/min {2 copy gt {exch} if pop} bind def
+
+/show {{//show} 0 get exec} bind def	% so later references don't bind
+/widthshow {{//widthshow} 0 get exec} bind def
+/stringwidth {{//stringwidth} 0 get exec} bind def
+
+/setup {
+	counttomark 2 idiv {def} repeat pop
+
+	landscape {/orientation 90 orientation add def} if
+	/scaling 72 resolution div def
+	linewidth setlinewidth
+	1 setlinecap
+
+	pagedimensions
+	xcenter ycenter translate
+	orientation rotation mul rotate
+	width 2 div neg height 2 div translate
+	xoffset inch yoffset inch neg translate
+	margin 2 div dup neg translate
+	magnification dup aspectratio mul scale
+	scaling scaling scale
+
+	addmetrics
+	0 0 moveto
+} def
+
+/pagedimensions {
+	useclippath userdict /gotpagebbox known not and {
+		/pagebbox [clippath pathbbox newpath] def
+		roundpage currentdict /roundpagebbox known and {roundpagebbox} if
+	} if
+	pagebbox aload pop
+	4 -1 roll exch 4 1 roll 4 copy
+	landscape {4 2 roll} if
+	sub /width exch def
+	sub /height exch def
+	add 2 div /xcenter exch def
+	add 2 div /ycenter exch def
+	userdict /gotpagebbox true put
+} def
+
+/addmetrics {
+	/Symbol /S null Sdefs cf
+	/Times-Roman /S1 StandardEncoding dup length array copy S1defs cf
+} def
+
+/pagesetup {
+	/page exch def
+	currentdict /pagedict known currentdict page known and {
+		page load pagedict exch get cvx exec
+	} if
+} def
+
+/decodingdefs [
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg /y exch def counttomark 2 idiv {y moveto show} repeat}
+	{neg moveto {2 index stringwidth pop sub exch div 0 32 4 -1 roll widthshow} repeat}
+	{neg moveto {spacewidth sub 0.0 32 4 -1 roll widthshow} repeat}
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg setfunnytext}
+] def
+
+/setdecoding {/t decodingdefs 3 -1 roll get bind def} bind def
+
+/w {neg moveto show} bind def
+/m {neg dup /y exch def moveto} bind def
+/done {/lastpage where {pop lastpage} if} def
+
+/f {
+	dup /font exch def findfont exch
+	dup /ptsize exch def scaling div dup /size exch def scalefont setfont
+	linewidth ptsize mul scaling 10 mul div setlinewidth
+	/spacewidth ( ) stringwidth pop def
+} bind def
+
+/changefont {
+	/fontheight exch def
+	/fontslant exch def
+	currentfont [
+		1 0
+		fontheight ptsize div fontslant sin mul fontslant cos div
+		fontheight ptsize div
+		0 0
+	] makefont setfont
+} bind def
+
+/sf {f} bind def
+
+/cf {
+	dup length 2 idiv
+	/entries exch def
+	/chtab exch def
+	/newencoding exch def
+	/newfont exch def
+
+	findfont dup length 1 add dict
+	/newdict exch def
+	{1 index /FID ne {newdict 3 1 roll put}{pop pop} ifelse} forall
+
+	newencoding type /arraytype eq {newdict /Encoding newencoding put} if
+
+	newdict /Metrics entries dict put
+	newdict /Metrics get
+	begin
+		chtab aload pop
+		1 1 entries {pop def} for
+		newfont newdict definefont pop
+	end
+} bind def
+
+%
+% A few arrays used to adjust reference points and character widths in some
+% of the printer resident fonts. If square roots are too high try changing
+% the lines describing /radical and /radicalex to,
+%
+%	/radical	[0 -75 550 0]
+%	/radicalex	[-50 -75 500 0]
+%
+% Move braceleftbt a bit - default PostScript character is off a bit.
+%
+
+/Sdefs [
+	/bracketlefttp		[201 500]
+	/bracketleftbt		[201 500]
+	/bracketrighttp		[-81 380]
+	/bracketrightbt		[-83 380]
+	/braceleftbt		[203 490]
+	/bracketrightex		[220 -125 500 0]
+	/radical		[0 0 550 0]
+	/radicalex		[-50 0 500 0]
+	/parenleftex		[-20 -170 0 0]
+	/integral		[100 -50 500 0]
+	/infinity		[10 -75 730 0]
+] def
+
+/S1defs [
+	/underscore		[0 80 500 0]
+	/endash			[7 90 650 0]
+] def
+%
+% Tries to round clipping path dimensions, as stored in array pagebbox, so they
+% match one of the known sizes in the papersizes array. Lower left coordinates
+% are always set to 0.
+%
+
+/roundpagebbox {
+    7 dict begin
+	/papersizes [8.5 inch 11 inch 14 inch 17 inch] def
+
+	/mappapersize {
+		/val exch def
+		/slop .5 inch def
+		/diff slop def
+		/j 0 def
+		0 1 papersizes length 1 sub {
+			/i exch def
+			papersizes i get val sub abs
+			dup diff le {/diff exch def /j i def} {pop} ifelse
+		} for
+		diff slop lt {papersizes j get} {val} ifelse
+	} def
+
+	pagebbox 0 0 put
+	pagebbox 1 0 put
+	pagebbox dup 2 get mappapersize 2 exch put
+	pagebbox dup 3 get mappapersize 3 exch put
+    end
+} bind def
+
+%%EndProlog
+%%BeginSetup
+mark
+%
+% Encoding vector and redefinition of findfont for the ISO Latin1 standard.
+% The 18 characters missing from ROM based fonts on older printers are noted
+% below.
+%
+
+/ISOLatin1Encoding [
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/space
+	/exclam
+	/quotedbl
+	/numbersign
+	/dollar
+	/percent
+	/ampersand
+	/quoteright
+	/parenleft
+	/parenright
+	/asterisk
+	/plus
+	/comma
+	/minus
+	/period
+	/slash
+	/zero
+	/one
+	/two
+	/three
+	/four
+	/five
+	/six
+	/seven
+	/eight
+	/nine
+	/colon
+	/semicolon
+	/less
+	/equal
+	/greater
+	/question
+	/at
+	/A
+	/B
+	/C
+	/D
+	/E
+	/F
+	/G
+	/H
+	/I
+	/J
+	/K
+	/L
+	/M
+	/N
+	/O
+	/P
+	/Q
+	/R
+	/S
+	/T
+	/U
+	/V
+	/W
+	/X
+	/Y
+	/Z
+	/bracketleft
+	/backslash
+	/bracketright
+	/asciicircum
+	/underscore
+	/quoteleft
+	/a
+	/b
+	/c
+	/d
+	/e
+	/f
+	/g
+	/h
+	/i
+	/j
+	/k
+	/l
+	/m
+	/n
+	/o
+	/p
+	/q
+	/r
+	/s
+	/t
+	/u
+	/v
+	/w
+	/x
+	/y
+	/z
+	/braceleft
+	/bar
+	/braceright
+	/asciitilde
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/dotlessi
+	/grave
+	/acute
+	/circumflex
+	/tilde
+	/macron
+	/breve
+	/dotaccent
+	/dieresis
+	/.notdef
+	/ring
+	/cedilla
+	/.notdef
+	/hungarumlaut
+	/ogonek
+	/caron
+	/space
+	/exclamdown
+	/cent
+	/sterling
+	/currency
+	/yen
+	/brokenbar		% missing
+	/section
+	/dieresis
+	/copyright
+	/ordfeminine
+	/guillemotleft
+	/logicalnot
+	/hyphen
+	/registered
+	/macron
+	/degree			% missing
+	/plusminus		% missing
+	/twosuperior		% missing
+	/threesuperior		% missing
+	/acute
+	/mu			% missing
+	/paragraph
+	/periodcentered
+	/cedilla
+	/onesuperior		% missing
+	/ordmasculine
+	/guillemotright
+	/onequarter		% missing
+	/onehalf		% missing
+	/threequarters		% missing
+	/questiondown
+	/Agrave
+	/Aacute
+	/Acircumflex
+	/Atilde
+	/Adieresis
+	/Aring
+	/AE
+	/Ccedilla
+	/Egrave
+	/Eacute
+	/Ecircumflex
+	/Edieresis
+	/Igrave
+	/Iacute
+	/Icircumflex
+	/Idieresis
+	/Eth			% missing
+	/Ntilde
+	/Ograve
+	/Oacute
+	/Ocircumflex
+	/Otilde
+	/Odieresis
+	/multiply		% missing
+	/Oslash
+	/Ugrave
+	/Uacute
+	/Ucircumflex
+	/Udieresis
+	/Yacute			% missing
+	/Thorn			% missing
+	/germandbls
+	/agrave
+	/aacute
+	/acircumflex
+	/atilde
+	/adieresis
+	/aring
+	/ae
+	/ccedilla
+	/egrave
+	/eacute
+	/ecircumflex
+	/edieresis
+	/igrave
+	/iacute
+	/icircumflex
+	/idieresis
+	/eth			% missing
+	/ntilde
+	/ograve
+	/oacute
+	/ocircumflex
+	/otilde
+	/odieresis
+	/divide			% missing
+	/oslash
+	/ugrave
+	/uacute
+	/ucircumflex
+	/udieresis
+	/yacute			% missing
+	/thorn			% missing
+	/ydieresis
+] def
+
+/NewFontDirectory FontDirectory maxlength dict def
+
+%
+% Apparently no guarantee findfont is defined in systemdict so the obvious
+%
+%	systemdict /findfont get exec
+%
+% can generate an error. So far the only exception is a VT600 (version 48.0).
+%
+
+userdict /@RealFindfont known not {
+	userdict begin
+		/@RealFindfont systemdict begin /findfont load end def
+	end
+} if
+
+/findfont {
+	dup NewFontDirectory exch known not {
+		dup
+		%dup systemdict /findfont get exec	% not always in systemdict
+		dup userdict /@RealFindfont get exec
+		dup /Encoding get StandardEncoding eq {
+			dup length dict begin
+				{1 index /FID ne {def}{pop pop} ifelse} forall
+				/Encoding ISOLatin1Encoding def
+				currentdict
+			end
+			/DummyFontName exch definefont
+		} if
+		NewFontDirectory 3 1 roll put
+	} if
+	NewFontDirectory exch get
+} bind def
+
+%%Patch from lp
+%%EndPatch from lp
+
+setup
+%%EndSetup
+%%Page: 1 1
+/saveobj save def
+mark
+1 pagesetup
+12 /LucidaSans-Demi f
+(APE ) 1760 1220 w
+12 /LucidaSansUnicode20 f
+(\024) 2032 1220 w
+12 /LucidaSans-Demi f
+(The) 2190 1220 w
+(ANSI/POSIX Environment) 2461 1220 w
+10 /LucidaSans-Italic f
+(Howard Trickey) 2497 1480 w
+(howard@plan9.att.com) 2315 1620 w
+10 /LucidaSans-Demi f
+(Introduction) 720 2280 w
+10 /LucidaSansUnicode00 f
+(When) 970 2436 w
+(a) 1269 2436 w
+(large) 1357 2436 w
+(or) 1633 2436 w
+(frequently-updated) 1768 2436 w
+(program) 2753 2436 w
+(must) 3202 2436 w
+(be) 3479 2436 w
+(ported) 3632 2436 w
+(to) 3987 2436 w
+(or) 4119 2436 w
+(from) 4255 2436 w
+(Plan) 4521 2436 w
+(9,) 4756 2436 w
+(the) 4885 2436 w
+(ANSI/POSIX) 720 2556 w
+(environment) 1315 2556 w
+(known) 1963 2556 w
+(as) 2320 2556 w
+(APE) 2463 2556 w
+(can) 2678 2556 w
+(be) 2883 2556 w
+(useful.) 3038 2556 w
+(APE) 3435 2556 w
+(combines) 3649 2556 w
+(the) 4151 2556 w
+(set) 4342 2556 w
+(of) 4522 2556 w
+(headers) 4656 2556 w
+(and) 720 2676 w
+(object) 937 2676 w
+(code) 1272 2676 w
+(libraries) 1540 2676 w
+(specified) 1971 2676 w
+(by) 2443 2676 w
+(the) 2595 2676 w
+(ANSI) 2787 2676 w
+(C) 3050 2676 w
+(standard) 3156 2676 w
+(\(ANSI) 3620 2676 w
+(X3.159-1989\)) 3916 2676 w
+(with) 4643 2676 w
+(the) 4885 2676 w
+(POSIX) 720 2796 w
+(operating) 1038 2796 w
+(system) 1543 2796 w
+(interface) 1922 2796 w
+(standard) 2385 2796 w
+(\(IEEE) 2851 2796 w
+(1003.1-1990,) 3113 2796 w
+(ISO) 3840 2796 w
+(9945-1\),) 4039 2796 w
+(the) 4515 2796 w
+(part) 4708 2796 w
+(of) 4942 2796 w
+(POSIX) 720 2916 w
+(defining) 1038 2916 w
+(the) 1477 2916 w
+(basic) 1671 2916 w
+(operating) 1959 2916 w
+(system) 2464 2916 w
+(functions.) 2843 2916 w
+(Using) 3398 2916 w
+(APE) 3710 2916 w
+(will) 3928 2916 w
+(cause) 4132 2916 w
+(slower) 4447 2916 w
+(com\255) 4802 2916 w
+(pilation) 720 3036 w
+(and) 1128 3036 w
+(marginally) 1351 3036 w
+(slower) 1901 3036 w
+(execution) 2259 3036 w
+(speeds,) 2777 3036 w
+(so) 3191 3036 w
+(if) 3345 3036 w
+(the) 3453 3036 w
+(importing) 3650 3036 w
+(or) 4169 3036 w
+(exporting) 4313 3036 w
+(hap\255) 4827 3036 w
+(pens) 720 3156 w
+(only) 1004 3156 w
+(infrequently,) 1260 3156 w
+(due) 1930 3156 w
+(consideration) 2163 3156 w
+(should) 2873 3156 w
+(be) 3253 3156 w
+(given) 3424 3156 w
+(to) 3737 3156 w
+(using) 3887 3156 w
+(the) 4205 3156 w
+(usual) 4412 3156 w
+(Plan) 4723 3156 w
+(9) 4977 3156 w
+(compilation) 720 3276 w
+(environment) 1334 3276 w
+(instead.) 1988 3276 w
+(Another) 2448 3276 w
+(factor) 2879 3276 w
+(to) 3204 3276 w
+(consider) 3345 3276 w
+(is) 3802 3276 w
+(that) 3925 3276 w
+(the) 4159 3276 w
+(Plan) 4357 3276 w
+(9) 4601 3276 w
+(header) 4707 3276 w
+(organization is much simpler to remember and use.) 720 3396 w
+(There are some aspects of required POSIX behavior that are impossible or very hard) 970 3552 w
+(to) 720 3672 w
+(simulate) 858 3672 w
+(in) 1310 3672 w
+(Plan) 1441 3672 w
+(9.) 1682 3672 w
+(They) 1849 3672 w
+(are) 2122 3672 w
+(described) 2313 3672 w
+(below.) 2825 3672 w
+(Experience) 3214 3672 w
+(has) 3782 3672 w
+(shown,) 3989 3672 w
+(however,) 4373 3672 w
+(that) 4849 3672 w
+(the) 720 3792 w
+(simulation) 921 3792 w
+(is) 1475 3792 w
+(adequate) 1601 3792 w
+(for) 2094 3792 w
+(the) 2279 3792 w
+(vast) 2480 3792 w
+(majority) 2722 3792 w
+(of) 3167 3792 w
+(programs.) 3312 3792 w
+(A) 3890 3792 w
+(much) 4006 3792 w
+(more) 4321 3792 w
+(common) 4619 3792 w
+(problem) 720 3912 w
+(is) 1161 3912 w
+(that) 1275 3912 w
+(many) 1500 3912 w
+(programs) 1796 3912 w
+(use) 2297 3912 w
+(functions) 2500 3912 w
+(or) 2986 3912 w
+(headers) 3122 3912 w
+(not) 3540 3912 w
+(defined) 3734 3912 w
+(by) 4134 3912 w
+(POSIX.) 4283 3912 w
+(APE) 4660 3912 w
+(has) 4872 3912 w
+(some) 720 4032 w
+(extensions) 1018 4032 w
+(to) 1581 4032 w
+(POSIX) 1716 4032 w
+(to) 2032 4032 w
+(help) 2168 4032 w
+(in) 2416 4032 w
+(this) 2545 4032 w
+(regard.) 2762 4032 w
+(Extensions) 3182 4032 w
+(must) 3744 4032 w
+(be) 4025 4032 w
+(explicitly) 4182 4032 w
+(enabled) 4656 4032 w
+(with) 720 4152 w
+(an) 958 4152 w
+(appropriate) 1108 4152 w
+10 /LucidaTypewriter f
+(#define) 1705 4152 w
+10 /LucidaSansUnicode00 f
+(,) 2209 4152 w
+(in) 2274 4152 w
+(order) 2398 4152 w
+(that) 2693 4152 w
+(the) 2917 4152 w
+(APE) 3105 4152 w
+(environment be a good aid for test\255) 3316 4152 w
+(ing ANSI/POSIX compliance of programs.) 720 4272 w
+10 /LucidaSans-Demi f
+(Pcc) 720 4512 w
+10 /LucidaSansUnicode00 f
+(The) 970 4668 w
+10 /LucidaTypewriter f
+(pcc) 1194 4668 w
+10 /LucidaSansUnicode00 f
+(command) 1453 4668 w
+(acts) 1974 4668 w
+(as) 2211 4668 w
+(a) 2360 4668 w
+(front) 2458 4668 w
+(end) 2739 4668 w
+(to) 2963 4668 w
+(the) 3104 4668 w
+(Plan) 3303 4668 w
+(9) 3548 4668 w
+(C) 3655 4668 w
+(compilers) 3768 4668 w
+(and) 4286 4668 w
+(loaders.) 4510 4668 w
+(It) 4974 4668 w
+(runs) 720 4788 w
+(an) 1005 4788 w
+(ANSI) 1191 4788 w
+(C) 1486 4788 w
+(preprocessor) 1624 4788 w
+(over) 2329 4788 w
+(source) 2608 4788 w
+(files,) 2999 4788 w
+(using) 3302 4788 w
+(the) 3637 4788 w
+(APE) 3861 4788 w
+(headers) 4108 4788 w
+(to) 4561 4788 w
+(satisfy) 4728 4788 w
+10 /LucidaTypewriter f
+(#include) 720 4908 w
+(<) 1373 4908 w
+10 /LucidaSans-Italic f
+(file) 1445 4908 w
+10 /LucidaTypewriter f
+(>) 1594 4908 w
+10 /LucidaSansUnicode00 f
+(directives;) 1703 4908 w
+(then) 2238 4908 w
+(it) 2493 4908 w
+(runs) 2597 4908 w
+(a) 2851 4908 w
+(Plan) 2944 4908 w
+(9) 3183 4908 w
+(C) 3284 4908 w
+(compiler;) 3391 4908 w
+(finally,) 3884 4908 w
+(it) 4247 4908 w
+(may) 4351 4908 w
+(load) 4589 4908 w
+(with) 4835 4908 w
+(APE) 720 5028 w
+(libraries) 931 5028 w
+(to) 1358 5028 w
+(produce) 1489 5028 w
+(an) 1919 5028 w
+(executable) 2069 5028 w
+(program.) 2628 5028 w
+(The) 3141 5028 w
+(document) 3355 5028 w
+10 /LucidaSans-Italic f
+(How) 3873 5028 w
+(to) 4115 5028 w
+(Use) 4243 5028 w
+(the) 4447 5028 w
+(Plan) 4633 5028 w
+(9) 4876 5028 w
+(C) 4972 5028 w
+(Compiler) 720 5148 w
+10 /LucidaSansUnicode00 f
+(explains) 1191 5148 w
+(how) 1630 5148 w
+(environment) 1863 5148 w
+(variables) 2507 5148 w
+(are) 2971 5148 w
+(used) 3156 5148 w
+(by) 3421 5148 w
+(convention) 3569 5148 w
+(to) 4135 5148 w
+(handle) 4266 5148 w
+(compila\255) 4626 5148 w
+(tion) 720 5268 w
+(for) 961 5268 w
+(differing) 1152 5268 w
+(architectures.) 1619 5268 w
+(The) 2363 5268 w
+(environment) 2595 5268 w
+(variable) 3257 5268 w
+10 /LucidaTypewriter f
+($objtype) 3688 5268 w
+10 /LucidaSansUnicode00 f
+(controls) 4315 5268 w
+(which) 4759 5268 w
+(Plan) 720 5388 w
+(9) 973 5388 w
+(compiler) 1089 5388 w
+(and) 1565 5388 w
+(loader) 1798 5388 w
+(are) 2156 5388 w
+(used) 2361 5388 w
+(by) 2646 5388 w
+10 /LucidaTypewriter f
+(pcc) 2814 5388 w
+10 /LucidaSansUnicode00 f
+(,) 3030 5388 w
+(as) 3115 5388 w
+(well) 3274 5388 w
+(as) 3518 5388 w
+(the) 3677 5388 w
+(location) 3885 5388 w
+(of) 4323 5388 w
+(header) 4474 5388 w
+(and) 4860 5388 w
+(library) 720 5508 w
+(files.) 1070 5508 w
+(For) 1376 5508 w
+(example,) 1572 5508 w
+(if) 2057 5508 w
+10 /LucidaTypewriter f
+($objtype) 2163 5508 w
+10 /LucidaSansUnicode00 f
+(is) 2779 5508 w
+10 /LucidaTypewriter f
+(mips) 2898 5508 w
+10 /LucidaSansUnicode00 f
+(,) 3186 5508 w
+(then) 3257 5508 w
+10 /LucidaTypewriter f
+(pcc) 3513 5508 w
+10 /LucidaSansUnicode00 f
+(has) 3768 5508 w
+10 /LucidaTypewriter f
+(cpp) 3975 5508 w
+10 /LucidaSansUnicode00 f
+(look) 4230 5508 w
+(for) 4478 5508 w
+(headers) 4656 5508 w
+(in) 720 5628 w
+10 /LucidaTypewriter f
+(/mips/include/ape) 855 5628 w
+10 /LucidaSansUnicode00 f
+(followed) 2123 5628 w
+(by) 2580 5628 w
+10 /LucidaTypewriter f
+(/sys/include/ape) 2739 5628 w
+10 /LucidaSansUnicode00 f
+(;) 3891 5628 w
+(then) 3967 5628 w
+10 /LucidaTypewriter f
+(pcc) 4228 5628 w
+10 /LucidaSansUnicode00 f
+(uses) 4488 5628 w
+10 /LucidaTypewriter f
+(vc) 4753 5628 w
+10 /LucidaSansUnicode00 f
+(to) 4942 5628 w
+(create) 720 5748 w
+10 /LucidaTypewriter f
+(.v) 1072 5748 w
+10 /LucidaSansUnicode00 f
+(object) 1272 5748 w
+(files;) 1626 5748 w
+(finally,) 1916 5748 w
+10 /LucidaTypewriter f
+(vl) 2297 5748 w
+10 /LucidaSansUnicode00 f
+(is) 2497 5748 w
+(used) 2633 5748 w
+(to) 2921 5748 w
+(create) 3075 5748 w
+(an) 3426 5748 w
+(executable) 3598 5748 w
+(using) 4179 5748 w
+(libraries) 4500 5748 w
+(in) 4949 5748 w
+10 /LucidaTypewriter f
+(/mips/lib/ape) 720 5868 w
+10 /LucidaSansUnicode00 f
+(.) 1656 5868 w
+10 /LucidaSans-Demi f
+(Psh and Cc) 720 6108 w
+10 /LucidaSansUnicode00 f
+(The) 970 6264 w
+10 /LucidaTypewriter f
+(pcc) 1189 6264 w
+10 /LucidaSansUnicode00 f
+(command) 1443 6264 w
+(is) 1959 6264 w
+(intended) 2077 6264 w
+(for) 2543 6264 w
+(uses) 2720 6264 w
+(where) 2978 6264 w
+(the) 3308 6264 w
+(source) 3501 6264 w
+(code) 3861 6264 w
+(is) 4130 6264 w
+(ANSI/POSIX,) 4249 6264 w
+(but) 4878 6264 w
+(the) 720 6384 w
+(programs) 911 6384 w
+(are) 1414 6384 w
+(built) 1602 6384 w
+(in) 1858 6384 w
+(the) 1985 6384 w
+(usual) 2175 6384 w
+(Plan) 2469 6384 w
+(9) 2705 6384 w
+(manner) 2803 6384 w
+10 /LucidaSansUnicode20 f
+(\024) 3207 6384 w
+10 /LucidaSansUnicode00 f
+(with) 3342 6384 w
+10 /LucidaTypewriter f
+(mk) 3582 6384 w
+10 /LucidaSansUnicode00 f
+(and) 3761 6384 w
+(producing) 3976 6384 w
+(object) 4505 6384 w
+(files) 4838 6384 w
+(with) 720 6504 w
+(names) 971 6504 w
+(ending) 1334 6504 w
+(in) 1714 6504 w
+10 /LucidaTypewriter f
+(.v) 1851 6504 w
+10 /LucidaSansUnicode00 f
+(,) 1995 6504 w
+(etc.) 2073 6504 w
+(Sometimes) 2327 6504 w
+(it) 2903 6504 w
+(is) 3015 6504 w
+(best) 3141 6504 w
+(to) 3394 6504 w
+(use) 3538 6504 w
+(the) 3753 6504 w
+(standard) 3954 6504 w
+(POSIX) 4427 6504 w
+10 /LucidaTypewriter f
+(make) 4752 6504 w
+10 /LucidaSansUnicode00 f
+(and) 720 6624 w
+10 /LucidaTypewriter f
+(cc) 944 6624 w
+10 /LucidaSansUnicode00 f
+(\(which) 1132 6624 w
+(produces) 1490 6624 w
+(object) 1982 6624 w
+(files) 2324 6624 w
+(with) 2570 6624 w
+(names) 2819 6624 w
+(ending) 3180 6624 w
+(in) 3558 6624 w
+10 /LucidaTypewriter f
+(.o) 3693 6624 w
+10 /LucidaSansUnicode00 f
+(,) 3837 6624 w
+(and) 3913 6624 w
+(automatically) 4137 6624 w
+(calls) 4825 6624 w
+(the loader unless) 720 6744 w
+10 /LucidaTypewriter f
+(-c) 1587 6744 w
+10 /LucidaSansUnicode00 f
+(is specified\).) 1763 6744 w
+(Under these circumstances, execute the command:) 2439 6744 w
+10 /LucidaTypewriter f
+(ape/psh) 1080 6924 w
+10 /LucidaSansUnicode00 f
+(This) 720 7104 w
+(starts) 958 7104 w
+(a) 1263 7104 w
+(POSIX) 1352 7104 w
+(shell,) 1665 7104 w
+(with) 1958 7104 w
+(an) 2197 7104 w
+(environment) 2348 7104 w
+(that) 2993 7104 w
+(includes) 3218 7104 w
+(the) 3655 7104 w
+(POSIX) 3844 7104 w
+(commands) 4157 7104 w
+10 /LucidaTypewriter f
+(ar89) 4720 7104 w
+10 /LucidaSansUnicode00 f
+(,) 5008 7104 w
+10 /LucidaTypewriter f
+(c89) 720 7224 w
+10 /LucidaSansUnicode00 f
+(,) 936 7224 w
+10 /LucidaTypewriter f
+(cc) 1012 7224 w
+10 /LucidaSansUnicode00 f
+(,) 1156 7224 w
+10 /LucidaTypewriter f
+(basename) 1232 7224 w
+10 /LucidaSansUnicode00 f
+(,) 1808 7224 w
+10 /LucidaTypewriter f
+(dirname) 1884 7224 w
+10 /LucidaSansUnicode00 f
+(,) 2388 7224 w
+10 /LucidaTypewriter f
+(expr) 2464 7224 w
+10 /LucidaSansUnicode00 f
+(,) 2752 7224 w
+10 /LucidaTypewriter f
+(false) 2828 7224 w
+10 /LucidaSansUnicode00 f
+(,) 3188 7224 w
+10 /LucidaTypewriter f
+(grep) 3264 7224 w
+10 /LucidaSansUnicode00 f
+(,) 3552 7224 w
+10 /LucidaTypewriter f
+(kill) 3628 7224 w
+10 /LucidaSansUnicode00 f
+(,) 3916 7224 w
+10 /LucidaTypewriter f
+(make) 3992 7224 w
+10 /LucidaSansUnicode00 f
+(,) 4280 7224 w
+10 /LucidaTypewriter f
+(rmdir) 4356 7224 w
+10 /LucidaSansUnicode00 f
+(,) 4716 7224 w
+10 /LucidaTypewriter f
+(sed) 4792 7224 w
+10 /LucidaSansUnicode00 f
+(,) 5008 7224 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 1 1
+%%Page: 2 2
+/saveobj save def
+mark
+2 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 2 \255) 2783 480 w
+10 /LucidaTypewriter f
+(sh) 720 840 w
+10 /LucidaSansUnicode00 f
+(,) 864 840 w
+10 /LucidaTypewriter f
+(stty) 930 840 w
+10 /LucidaSansUnicode00 f
+(,) 1218 840 w
+10 /LucidaTypewriter f
+(true) 1284 840 w
+10 /LucidaSansUnicode00 f
+(,) 1572 840 w
+10 /LucidaTypewriter f
+(uname) 1638 840 w
+10 /LucidaSansUnicode00 f
+(,) 1998 840 w
+(and) 2064 840 w
+10 /LucidaTypewriter f
+(yacc) 2278 840 w
+10 /LucidaSansUnicode00 f
+(.) 2566 840 w
+(There) 2664 840 w
+(are) 2976 840 w
+(also) 3162 840 w
+(a) 3392 840 w
+(few) 3481 840 w
+(placeholders) 3685 840 w
+(for) 4337 840 w
+(commands) 4511 840 w
+(that cannot be implemented in Plan 9:) 720 960 w
+10 /LucidaTypewriter f
+(chown) 2606 960 w
+10 /LucidaSansUnicode00 f
+(,) 2966 960 w
+10 /LucidaTypewriter f
+(ln) 3030 960 w
+10 /LucidaSansUnicode00 f
+(, and) 3174 960 w
+10 /LucidaTypewriter f
+(umask) 3450 960 w
+10 /LucidaSansUnicode00 f
+(.) 3810 960 w
+(The) 970 1116 w
+10 /LucidaTypewriter f
+(cc) 1192 1116 w
+10 /LucidaSansUnicode00 f
+(command) 1377 1116 w
+(accepts) 1896 1116 w
+(the) 2301 1116 w
+(options) 2497 1116 w
+(mandated) 2902 1116 w
+(for) 3427 1116 w
+(the) 3607 1116 w
+(POSIX) 3803 1116 w
+(command) 4124 1116 w
+10 /LucidaTypewriter f
+(c89) 4644 1116 w
+10 /LucidaSansUnicode00 f
+(,) 4860 1116 w
+(as) 4934 1116 w
+(specified) 720 1236 w
+(in) 1195 1236 w
+(the) 1326 1236 w
+(C-Language) 1521 1236 w
+(Development) 2154 1236 w
+(Utilities) 2833 1236 w
+(Option) 3238 1236 w
+(annex) 3607 1236 w
+(of) 3942 1236 w
+(the) 4079 1236 w
+(POSIX) 4273 1236 w
+(Shell) 4591 1236 w
+(and) 4860 1236 w
+(Utilities) 720 1356 w
+(standard.) 1119 1356 w
+(It) 1643 1356 w
+(also) 1743 1356 w
+(accepts) 1973 1356 w
+(the) 2371 1356 w
+(following) 2560 1356 w
+(nonstandard) 3041 1356 w
+(options:) 3687 1356 w
+10 /LucidaTypewriter f
+(-v) 4117 1356 w
+10 /LucidaSansUnicode00 f
+(for) 4295 1356 w
+(echoing) 4468 1356 w
+(the) 4885 1356 w
+(commands) 720 1476 w
+(for) 1286 1476 w
+(each) 1462 1476 w
+(pass) 1722 1476 w
+(to) 1978 1476 w
+(stdout;) 2112 1476 w
+10 /LucidaTypewriter f
+(-A) 2491 1476 w
+10 /LucidaSansUnicode00 f
+(to) 2671 1476 w
+(turn) 2805 1476 w
+(on) 3043 1476 w
+(ANSI) 3202 1476 w
+(prototype) 3464 1476 w
+(warnings;) 3971 1476 w
+10 /LucidaTypewriter f
+(-S) 4478 1476 w
+10 /LucidaSansUnicode00 f
+(to) 4658 1476 w
+(leave) 4792 1476 w
+(assembly) 720 1596 w
+(language) 1204 1596 w
+(in) 1681 1596 w
+10 /LucidaSans-Italic f
+(file) 1806 1596 w
+10 /LucidaSansUnicode00 f
+(.s;) 1955 1596 w
+10 /LucidaTypewriter f
+(-Wp,) 2104 1596 w
+10 /LucidaSans-Italic f
+(args) 2392 1596 w
+10 /LucidaSansUnicode00 f
+(to) 2645 1596 w
+(pass) 2777 1596 w
+10 /LucidaSans-Italic f
+(args) 3031 1596 w
+10 /LucidaSansUnicode00 f
+(to) 3285 1596 w
+(the) 3418 1596 w
+10 /LucidaTypewriter f
+(cpp) 3608 1596 w
+10 /LucidaSansUnicode00 f
+(;) 3824 1596 w
+10 /LucidaTypewriter f
+(-W0,) 3891 1596 w
+10 /LucidaSans-Italic f
+(args) 4179 1596 w
+10 /LucidaSansUnicode00 f
+(to) 4433 1596 w
+(pass) 4566 1596 w
+10 /LucidaSans-Italic f
+(args) 4821 1596 w
+10 /LucidaSansUnicode00 f
+(to 2c, etc.; and) 720 1716 w
+10 /LucidaTypewriter f
+(-Wl,) 1480 1716 w
+10 /LucidaSans-Italic f
+(args) 1768 1716 w
+10 /LucidaSansUnicode00 f
+(to pass) 2019 1716 w
+10 /LucidaSans-Italic f
+(args) 2401 1716 w
+10 /LucidaSansUnicode00 f
+(to 2l, etc.) 2652 1716 w
+(The) 970 1872 w
+10 /LucidaTypewriter f
+(sh) 1185 1872 w
+10 /LucidaSansUnicode00 f
+(command) 1363 1872 w
+(is) 1875 1872 w
+(ksh93,) 1989 1872 w
+(a) 2352 1872 w
+(POSIX-compliant) 2441 1872 w
+(Korn) 3292 1872 w
+(Shell.) 3555 1872 w
+(The) 3884 1872 w
+(Plan) 4100 1872 w
+(9) 4336 1872 w
+(implementa\255) 4434 1872 w
+(tion) 720 1992 w
+(does) 947 1992 w
+(not) 1216 1992 w
+(include) 1414 1992 w
+(the) 1804 1992 w
+(emacs) 1997 1992 w
+(and) 2341 1992 w
+(vi) 2559 1992 w
+(editing) 2678 1992 w
+(modes.) 3054 1992 w
+(Ksh93) 3480 1992 w
+(is) 3821 1992 w
+(a) 3938 1992 w
+(separate) 4030 1992 w
+(product,) 4481 1992 w
+(so) 4928 1992 w
+(its source code is not included in the Plan 9 distribution.) 720 2112 w
+(The) 970 2268 w
+10 /LucidaTypewriter f
+(stty) 1183 2268 w
+10 /LucidaSansUnicode00 f
+(command only has effect if the) 1503 2268 w
+10 /LucidaTypewriter f
+(ape/ptyfs) 3040 2268 w
+10 /LucidaSansUnicode00 f
+(command has been) 3720 2268 w
+(started) 4700 2268 w
+(to) 720 2388 w
+(interpose) 865 2388 w
+(a) 1368 2388 w
+(pseudo-tty) 1470 2388 w
+(interface) 2057 2388 w
+(between) 2528 2388 w
+10 /LucidaTypewriter f
+(/dev/cons) 2982 2388 w
+10 /LucidaSansUnicode00 f
+(and) 3677 2388 w
+(the) 3903 2388 w
+(running) 4104 2388 w
+(command.) 4530 2388 w
+(None of the distributed commands do this automatically.) 720 2508 w
+10 /LucidaSans-Demi f
+(Symbols) 720 2748 w
+10 /LucidaSansUnicode00 f
+(The) 970 2904 w
+(C) 1202 2904 w
+(and) 1322 2904 w
+(POSIX) 1553 2904 w
+(standards) 1884 2904 w
+(require) 2414 2904 w
+(that) 2814 2904 w
+(certain) 3057 2904 w
+(symbols) 3440 2904 w
+(be) 3892 2904 w
+(defined) 4063 2904 w
+(in) 4481 2904 w
+(headers.) 4624 2904 w
+(They) 720 3024 w
+(also) 997 3024 w
+(require) 1237 3024 w
+(that) 1629 3024 w
+(certain) 1864 3024 w
+(other) 2239 3024 w
+(classes) 2540 3024 w
+(of) 2928 3024 w
+(symbols) 3070 3024 w
+(not) 3514 3024 w
+(be) 3718 3024 w
+(defined) 3881 3024 w
+(in) 4291 3024 w
+(the) 4426 3024 w
+(headers,) 4624 3024 w
+(and specify certain other symbols that may be defined in headers at the discretion) 720 3144 w
+(of) 4754 3144 w
+(the) 4885 3144 w
+(implementation.) 720 3264 w
+(POSIX) 1599 3264 w
+(defines) 1931 3264 w
+10 /LucidaSans-Italic f
+(feature) 2338 3264 w
+(test) 2743 3264 w
+(macros) 2973 3264 w
+10 /LucidaSansUnicode00 f
+(,) 3331 3264 w
+(which) 3415 3264 w
+(are) 3748 3264 w
+(preprocessor) 3952 3264 w
+(symbols) 4640 3264 w
+(beginning) 720 3384 w
+(with) 1253 3384 w
+(an) 1504 3384 w
+(underscore) 1667 3384 w
+(and) 2258 3384 w
+(then) 2485 3384 w
+(a) 2749 3384 w
+(capital) 2851 3384 w
+(letter;) 3217 3384 w
+(if) 3584 3384 w
+(the) 3697 3384 w
+(program) 3899 3384 w
+10 /LucidaTypewriter f
+(#defines) 4362 3384 w
+10 /LucidaSansUnicode00 f
+(a) 4985 3384 w
+(feature) 720 3504 w
+(test) 1100 3504 w
+(macro) 1317 3504 w
+(before) 1654 3504 w
+(the) 2004 3504 w
+(inclusion) 2195 3504 w
+(of) 2667 3504 w
+(any) 2801 3504 w
+(headers,) 3006 3504 w
+(then) 3458 3504 w
+(it) 3711 3504 w
+(is) 3813 3504 w
+(requesting) 3929 3504 w
+(that) 4483 3504 w
+(certain) 4709 3504 w
+(symbols) 720 3624 w
+(be) 1202 3624 w
+(visible) 1403 3624 w
+(in) 1794 3624 w
+(the) 1967 3624 w
+(headers.) 2204 3624 w
+(The) 2735 3624 w
+(most) 2999 3624 w
+(important) 3324 3624 w
+(feature) 3885 3624 w
+(test) 4312 3624 w
+(macro) 4576 3624 w
+(is) 4960 3624 w
+10 /LucidaTypewriter f
+(_POSIX_SOURCE) 720 3744 w
+10 /LucidaSansUnicode00 f
+(:) 1656 3744 w
+(when) 1721 3744 w
+(it) 2011 3744 w
+(is) 2110 3744 w
+(defined,) 2223 3744 w
+(exactly the symbols required by POSIX are visible) 2654 3744 w
+(in) 720 3864 w
+(the) 859 3864 w
+(appropriate) 1062 3864 w
+(headers.) 1674 3864 w
+(Consider) 2170 3864 w
+10 /LucidaTypewriter f
+(<signal.h>) 2650 3864 w
+10 /LucidaSansUnicode00 f
+(for) 3419 3864 w
+(example:) 3607 3864 w
+(ANSI) 4101 3864 w
+(defines) 4376 3864 w
+(some) 4779 3864 w
+(names) 720 3984 w
+(that) 1102 3984 w
+(must) 1358 3984 w
+(be) 1666 3984 w
+(defined) 1850 3984 w
+(in) 2281 3984 w
+10 /LucidaTypewriter f
+(<signal.h>) 2437 3984 w
+10 /LucidaSansUnicode00 f
+(,) 3157 3984 w
+(but) 3253 3984 w
+(POSIX) 3479 3984 w
+(defines) 3822 3984 w
+(others,) 4240 3984 w
+(such) 4644 3984 w
+(as) 4934 3984 w
+10 /LucidaTypewriter f
+(sigset_t) 720 4104 w
+10 /LucidaSansUnicode00 f
+(,) 1296 4104 w
+(which) 1361 4104 w
+(are) 1676 4104 w
+(not) 1862 4104 w
+(allowed) 2056 4104 w
+(according) 2460 4104 w
+(to) 2969 4104 w
+(ANSI.) 3101 4104 w
+(The) 3425 4104 w
+(solution) 3640 4104 w
+(is) 4066 4104 w
+(to) 4180 4104 w
+(make) 4312 4104 w
+(the) 4608 4104 w
+(addi\255) 4797 4104 w
+(tional symbols visible only when) 720 4224 w
+10 /LucidaTypewriter f
+(_POSIX_SOURCE) 2323 4224 w
+10 /LucidaSansUnicode00 f
+(is defined.) 3291 4224 w
+(To) 970 4380 w
+(export) 1133 4380 w
+(a) 1491 4380 w
+(program,) 1585 4380 w
+(it) 2072 4380 w
+(helps) 2177 4380 w
+(to) 2477 4380 w
+(know) 2614 4380 w
+(whether) 2911 4380 w
+(it) 3341 4380 w
+(fits) 3446 4380 w
+(in) 3639 4380 w
+(one) 3769 4380 w
+(of) 3988 4380 w
+(the) 4126 4380 w
+(following) 4321 4380 w
+(cate\255) 4808 4380 w
+(gories:) 720 4500 w
+(1.) 720 4656 w
+(Strictly) 970 4656 w
+(conforming) 1333 4656 w
+(ANSI) 1925 4656 w
+(C) 2184 4656 w
+(program.) 2286 4656 w
+(It) 2767 4656 w
+(only) 2866 4656 w
+(uses) 3103 4656 w
+(features) 3356 4656 w
+(of) 3784 4656 w
+(the) 3916 4656 w
+(language,) 4105 4656 w
+(libraries,) 4614 4656 w
+(and) 970 4776 w
+(headers) 1187 4776 w
+(explicitly) 1608 4776 w
+(required) 2081 4776 w
+(by) 2529 4776 w
+(the) 2681 4776 w
+(C) 2873 4776 w
+(standard.) 2979 4776 w
+(It) 3507 4776 w
+(does) 3610 4776 w
+(not) 3878 4776 w
+(depend) 4075 4776 w
+(on) 4474 4776 w
+(unspeci\255) 4633 4776 w
+(fied,) 970 4896 w
+(undefined,) 1226 4896 w
+(or) 1787 4896 w
+(implementation-dependent) 1928 4896 w
+(behavior,) 3306 4896 w
+(and) 3797 4896 w
+(does) 4017 4896 w
+(not) 4288 4896 w
+(exceed) 4488 4896 w
+(any) 4871 4896 w
+(minimum implementation limit.) 970 5016 w
+(2.) 720 5172 w
+(Strictly conforming POSIX program. Similar, but for the POSIX standard as well.) 970 5172 w
+(3.) 720 5328 w
+(Some) 970 5328 w
+(superset) 1275 5328 w
+(of) 1733 5328 w
+(POSIX,) 1872 5328 w
+(with) 2224 5328 w
+(extensions.) 2470 5328 w
+(Each) 3101 5328 w
+(extension) 3364 5328 w
+(is) 3880 5328 w
+(selected) 4001 5328 w
+(by) 4442 5328 w
+(a) 4599 5328 w
+(feature) 4696 5328 w
+(test macro, so it is clear which extensions are being used.) 970 5448 w
+(With) 970 5604 w
+(APE,) 1218 5604 w
+(if) 1462 5604 w
+(headers) 1562 5604 w
+(are) 1980 5604 w
+(always) 2166 5604 w
+(included) 2519 5604 w
+(to) 2969 5604 w
+(declare) 3102 5604 w
+(any) 3488 5604 w
+(library) 3692 5604 w
+(functions) 4037 5604 w
+(used,) 4524 5604 w
+(then) 4823 5604 w
+(the) 720 5724 w
+(set) 915 5724 w
+(of) 1099 5724 w
+(feature) 1236 5724 w
+(test) 1619 5724 w
+(macros) 1839 5724 w
+(defined) 2230 5724 w
+(by) 2635 5724 w
+(a) 2789 5724 w
+(program) 2883 5724 w
+(will) 3338 5724 w
+(show) 3541 5724 w
+(which) 3831 5724 w
+(of) 4151 5724 w
+(the) 4288 5724 w
+(above) 4482 5724 w
+(cate\255) 4808 5724 w
+(gories) 720 5844 w
+(the) 1062 5844 w
+(program) 1259 5844 w
+(is) 1717 5844 w
+(in.) 1839 5844 w
+(To) 2036 5844 w
+(accomplish) 2202 5844 w
+(this,) 2790 5844 w
+(no) 3044 5844 w
+(symbol) 3210 5844 w
+(is) 3602 5844 w
+(defined) 3725 5844 w
+(in) 4134 5844 w
+(a) 4268 5844 w
+(header) 4366 5844 w
+(if) 4742 5844 w
+(it) 4851 5844 w
+(is) 4960 5844 w
+(not) 720 5964 w
+(required) 919 5964 w
+(by) 1369 5964 w
+(the) 1523 5964 w
+(C) 1717 5964 w
+(or) 1825 5964 w
+(POSIX) 1966 5964 w
+(standard,) 2284 5964 w
+(and) 2782 5964 w
+(those) 3001 5964 w
+(required) 3307 5964 w
+(by) 3757 5964 w
+(the) 3911 5964 w
+(POSIX) 4105 5964 w
+(standard) 4423 5964 w
+(are) 4888 5964 w
+(protected) 720 6084 w
+(by) 1228 6084 w
+10 /LucidaTypewriter f
+(#ifdef) 1386 6084 w
+(_POSIX_SOURCE) 1901 6084 w
+10 /LucidaSansUnicode00 f
+(.) 2837 6084 w
+(For) 2944 6084 w
+(example,) 3143 6084 w
+10 /LucidaTypewriter f
+(<errno.h>) 3631 6084 w
+10 /LucidaSansUnicode00 f
+(defines) 4322 6084 w
+10 /LucidaTypewriter f
+(EDOM) 4720 6084 w
+10 /LucidaSansUnicode00 f
+(,) 5008 6084 w
+10 /LucidaTypewriter f
+(ERANGE) 720 6204 w
+10 /LucidaSansUnicode00 f
+(,) 1152 6204 w
+(and) 1239 6204 w
+10 /LucidaTypewriter f
+(errno) 1474 6204 w
+10 /LucidaSansUnicode00 f
+(,) 1834 6204 w
+(as) 1921 6204 w
+(required) 2082 6204 w
+(by) 2548 6204 w
+(the) 2717 6204 w
+(C) 2926 6204 w
+(standard.) 3049 6204 w
+(The) 3594 6204 w
+(C) 3829 6204 w
+(standard) 3952 6204 w
+(allows) 4433 6204 w
+(more) 4789 6204 w
+(names) 720 6324 w
+(beginning) 1070 6324 w
+(with) 1590 6324 w
+10 /LucidaTypewriter f
+(E) 1828 6324 w
+10 /LucidaSansUnicode00 f
+(,) 1900 6324 w
+(but) 1965 6324 w
+(our) 2160 6324 w
+(header) 2357 6324 w
+(defines) 2723 6324 w
+(only) 3110 6324 w
+(those) 3347 6324 w
+(unless) 3647 6324 w
+10 /LucidaTypewriter f
+(_POSIX_SOURCE) 3991 6324 w
+10 /LucidaSansUnicode00 f
+(is) 4960 6324 w
+(defined,) 720 6444 w
+(in) 1153 6444 w
+(which) 1279 6444 w
+(case) 1595 6444 w
+(the) 1843 6444 w
+(symbols) 2033 6444 w
+(required) 2468 6444 w
+(by) 2914 6444 w
+(POSIX) 3064 6444 w
+(are) 3378 6444 w
+(also) 3565 6444 w
+(defined.) 3795 6444 w
+(This) 4259 6444 w
+(means) 4498 6444 w
+(that) 4849 6444 w
+(a) 720 6564 w
+(program) 809 6564 w
+(that) 1259 6564 w
+(uses) 1484 6564 w
+10 /LucidaTypewriter f
+(ENAMETOOLONG) 1738 6564 w
+10 /LucidaSansUnicode00 f
+(cannot) 2636 6564 w
+(masquerade) 2998 6564 w
+(as) 3627 6564 w
+(a) 3768 6564 w
+(strictly) 3858 6564 w
+(conforming) 4220 6564 w
+(ANSI) 4814 6564 w
+(C program.) 720 6684 w
+10 /LucidaTypewriter f
+(Pcc) 970 6840 w
+10 /LucidaSansUnicode00 f
+(and) 1224 6840 w
+10 /LucidaTypewriter f
+(cc) 1442 6840 w
+10 /LucidaSansUnicode00 f
+(do) 1624 6840 w
+(not) 1786 6840 w
+(predefine) 1984 6840 w
+(any) 2485 6840 w
+(preprocessor) 2692 6840 w
+(symbols) 3367 6840 w
+(except) 3806 6840 w
+(those) 4169 6840 w
+(required) 4475 6840 w
+(by) 4925 6840 w
+(the) 720 6960 w
+(ANSI) 975 6960 w
+(C) 1301 6960 w
+(standard:) 1470 6960 w
+10 /LucidaTypewriter f
+(__STDC__) 2029 6960 w
+10 /LucidaSansUnicode00 f
+(,) 2605 6960 w
+10 /LucidaTypewriter f
+(__LINE__) 2737 6960 w
+10 /LucidaSansUnicode00 f
+(,) 3313 6960 w
+10 /LucidaTypewriter f
+(__FILE__) 3445 6960 w
+10 /LucidaSansUnicode00 f
+(,) 4021 6960 w
+10 /LucidaTypewriter f
+(__DATE__) 4153 6960 w
+10 /LucidaSansUnicode00 f
+(,) 4729 6960 w
+(and) 4860 6960 w
+10 /LucidaTypewriter f
+(__TIME__) 720 7080 w
+10 /LucidaSansUnicode00 f
+(.) 1296 7080 w
+(Any) 1403 7080 w
+(others) 1629 7080 w
+(must) 1980 7080 w
+(be) 2266 7080 w
+(defined) 2428 7080 w
+(in) 2838 7080 w
+(the) 2973 7080 w
+(program) 3172 7080 w
+(itself) 3632 7080 w
+(or) 3915 7080 w
+(by) 4061 7080 w
+(using) 4220 7080 w
+10 /LucidaTypewriter f
+(-D) 4530 7080 w
+10 /LucidaSansUnicode00 f
+(on) 4718 7080 w
+(the) 4885 7080 w
+(command line.) 720 7200 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 2 2
+%%Page: 3 3
+/saveobj save def
+mark
+3 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 3 \255) 2783 480 w
+10 /LucidaSans-Demi f
+(Extensions) 720 840 w
+10 /LucidaSansUnicode00 f
+(The) 970 996 w
+(discipline) 1186 996 w
+(enforced) 1683 996 w
+(by) 2145 996 w
+(putting) 2295 996 w
+(only) 2682 996 w
+(required) 2921 996 w
+(names) 3367 996 w
+(in) 3719 996 w
+(the) 3845 996 w
+(headers) 4035 996 w
+(is) 4454 996 w
+(useful) 4569 996 w
+(for) 4901 996 w
+(exporting) 720 1116 w
+(programs,) 1229 1116 w
+(but) 1765 1116 w
+(it) 1964 1116 w
+(gets) 2067 1116 w
+(in) 2310 1116 w
+(the) 2438 1116 w
+(way) 2630 1116 w
+(when) 2851 1116 w
+(importing) 3144 1116 w
+(programs.) 3657 1116 w
+(The) 4224 1116 w
+(compromise) 4441 1116 w
+(is to allow additional symbols in headers, additional headers, and additional library func\255) 720 1236 w
+(tions,) 720 1356 w
+(but) 1025 1356 w
+(only) 1220 1356 w
+(under) 1457 1356 w
+(control of extension feature test macros.) 1774 1356 w
+(The following extensions) 3822 1356 w
+(are) 720 1476 w
+(provided;) 932 1476 w
+(unless) 1452 1476 w
+(otherwise) 1823 1476 w
+(specified,) 2353 1476 w
+(the) 2880 1476 w
+(additional) 3095 1476 w
+(library) 3638 1476 w
+(functions) 4008 1476 w
+(are) 4520 1476 w
+(in) 4733 1476 w
+(the) 4885 1476 w
+(default APE library.) 720 1596 w
+10 /LucidaSansUnicode20 f
+(\023) 816 1752 w
+10 /LucidaTypewriter f
+(_LIBG_EXTENSION) 970 1752 w
+10 /LucidaSansUnicode00 f
+(.) 2050 1752 w
+(This) 2169 1752 w
+(allows) 2429 1752 w
+(the) 2786 1752 w
+(use) 2996 1752 w
+(of) 3220 1752 w
+(the) 3373 1752 w
+(Plan) 3583 1752 w
+(9) 3840 1752 w
+(graphics) 3959 1752 w
+(library.) 4429 1752 w
+(The) 4859 1752 w
+(functions) 970 1872 w
+(are) 1462 1872 w
+(as) 1654 1872 w
+(described) 1800 1872 w
+(in) 2313 1872 w
+(the) 2443 1872 w
+(Plan) 2637 1872 w
+(9) 2877 1872 w
+(manual) 2979 1872 w
+(\(see) 3374 1872 w
+10 /LucidaSans-Italic f
+(graphics) 3609 1872 w
+10 /LucidaSansUnicode00 f
+(\(2\)\)) 4030 1872 w
+(except) 4231 1872 w
+(that) 4594 1872 w
+10 /LucidaTypewriter f
+(div) 4824 1872 w
+10 /LucidaSansUnicode00 f
+(had) 970 1992 w
+(to) 1187 1992 w
+(be) 1322 1992 w
+(renamed) 1478 1992 w
+10 /LucidaTypewriter f
+(ptdiv) 1941 1992 w
+10 /LucidaSansUnicode00 f
+(.) 2301 1992 w
+(Include) 2402 1992 w
+(the) 2791 1992 w
+10 /LucidaTypewriter f
+(<libg.h>) 2983 1992 w
+10 /LucidaSansUnicode00 f
+(header) 3596 1992 w
+(to) 3966 1992 w
+(declare) 4102 1992 w
+(the) 4491 1992 w
+(needed) 4684 1992 w
+(types and functions.) 970 2112 w
+10 /LucidaSansUnicode20 f
+(\023) 816 2268 w
+10 /LucidaTypewriter f
+(_LIMITS_EXTENSION) 970 2268 w
+10 /LucidaSansUnicode00 f
+(.) 2194 2268 w
+(POSIX) 2296 2268 w
+(does) 2613 2268 w
+(not) 2882 2268 w
+(require) 3081 2268 w
+(that) 3468 2268 w
+(names) 3698 2268 w
+(such) 4054 2268 w
+(as) 4319 2268 w
+10 /LucidaTypewriter f
+(PATH_MAX) 4464 2268 w
+10 /LucidaSansUnicode00 f
+(and) 970 2388 w
+10 /LucidaTypewriter f
+(OPEN_MAX) 1184 2388 w
+10 /LucidaSansUnicode00 f
+(be) 1794 2388 w
+(defined) 1947 2388 w
+(in) 2347 2388 w
+10 /LucidaTypewriter f
+(<limits.h>) 2472 2388 w
+10 /LucidaSansUnicode00 f
+(,) 3192 2388 w
+(but) 3257 2388 w
+(many) 3452 2388 w
+(programs) 3747 2388 w
+(assume) 4247 2388 w
+(they) 4648 2388 w
+(are) 4888 2388 w
+(defined) 970 2508 w
+(there.) 1400 2508 w
+(If) 1780 2508 w
+10 /LucidaTypewriter f
+(_LIMITS_EXTENSION) 1910 2508 w
+10 /LucidaSansUnicode00 f
+(is) 3198 2508 w
+(defined,) 3342 2508 w
+(those) 3804 2508 w
+(names) 4135 2508 w
+(will) 4516 2508 w
+(all) 4744 2508 w
+(be) 4921 2508 w
+(defined when) 970 2628 w
+10 /LucidaTypewriter f
+(<limits.h>) 1657 2628 w
+10 /LucidaSansUnicode00 f
+(is included.) 2409 2628 w
+10 /LucidaSansUnicode20 f
+(\023) 816 2784 w
+10 /LucidaTypewriter f
+(_BSD_EXTENSION) 970 2784 w
+10 /LucidaSansUnicode00 f
+(.) 1978 2784 w
+(This) 2078 2784 w
+(extension) 2319 2784 w
+(includes) 2831 2784 w
+(not) 3271 2784 w
+(only) 3468 2784 w
+(Berkeley) 3709 2784 w
+(Unix) 4152 2784 w
+(routines,) 4410 2784 w
+(but) 4878 2784 w
+(also) 970 2904 w
+(a) 1210 2904 w
+(grab) 1309 2904 w
+(bag) 1574 2904 w
+(of) 1798 2904 w
+(other) 1940 2904 w
+(miscellaneous) 2241 2904 w
+(routines) 2970 2904 w
+(often) 3412 2904 w
+(found) 3708 2904 w
+(in) 4036 2904 w
+(Unix) 4170 2904 w
+(implementa\255) 4434 2904 w
+(tions.) 970 3024 w
+(The) 1332 3024 w
+(extension) 1571 3024 w
+(allows) 2104 3024 w
+(the) 2464 3024 w
+(inclusion) 2677 3024 w
+(of) 3171 3024 w
+(any) 3327 3024 w
+(of:) 3554 3024 w
+10 /LucidaTypewriter f
+(<bsd.h>) 3743 3024 w
+10 /LucidaSansUnicode00 f
+(for) 4306 3024 w
+10 /LucidaTypewriter f
+(bcopy\(\)) 4504 3024 w
+10 /LucidaSansUnicode00 f
+(,) 5008 3024 w
+10 /LucidaTypewriter f
+(bcmp\(\)) 970 3144 w
+10 /LucidaSansUnicode00 f
+(,) 1402 3144 w
+(and) 1479 3144 w
+(similar) 1704 3144 w
+(Berkeley) 2075 3144 w
+(functions;) 2525 3144 w
+10 /LucidaTypewriter f
+(<netdb.h>) 3053 3144 w
+10 /LucidaSansUnicode00 f
+(for) 3745 3144 w
+10 /LucidaTypewriter f
+(gethostbyname\(\)) 3928 3144 w
+10 /LucidaSansUnicode00 f
+(,) 5008 3144 w
+(etc.,) 970 3264 w
+(and) 1222 3264 w
+(associated) 1446 3264 w
+(structures;) 1999 3264 w
+10 /LucidaTypewriter f
+(<select.h>) 2564 3264 w
+10 /LucidaSansUnicode00 f
+(for) 3328 3264 w
+(the) 3511 3264 w
+(Berkeley) 3711 3264 w
+10 /LucidaTypewriter f
+(select) 4162 3264 w
+10 /LucidaSansUnicode00 f
+(function) 4639 3264 w
+(and) 970 3384 w
+(associated) 1234 3384 w
+(types) 1827 3384 w
+(and) 2170 3384 w
+(macros) 2434 3384 w
+(for) 2869 3384 w
+(dealing) 3091 3384 w
+(with) 3530 3384 w
+(multiple) 3818 3384 w
+(input) 4299 3384 w
+(sources;) 4635 3384 w
+10 /LucidaTypewriter f
+(<sys/ioctl.h>) 970 3504 w
+10 /LucidaSansUnicode00 f
+(for) 2051 3504 w
+(the) 2335 3504 w
+10 /LucidaTypewriter f
+(ioctl) 2635 3504 w
+10 /LucidaSansUnicode00 f
+(function) 3141 3504 w
+(\(minimally) 3688 3504 w
+(implemented\);) 4338 3504 w
+10 /LucidaTypewriter f
+(<sys/param.h>) 970 3624 w
+10 /LucidaSansUnicode00 f
+(for) 1960 3624 w
+10 /LucidaTypewriter f
+(NOFILES_MAX) 2153 3624 w
+10 /LucidaSansUnicode00 f
+(;) 2945 3624 w
+10 /LucidaTypewriter f
+(<sys/pty.h>) 3031 3624 w
+10 /LucidaSansUnicode00 f
+(for) 3877 3624 w
+(pseudo-tty) 4069 3624 w
+(support) 4662 3624 w
+(via) 970 3744 w
+(the) 1139 3744 w
+10 /LucidaTypewriter f
+(ptsname\(int\)) 1328 3744 w
+10 /LucidaSansUnicode00 f
+(and) 2226 3744 w
+10 /LucidaTypewriter f
+(ptmname\(int\)) 2440 3744 w
+10 /LucidaSansUnicode00 f
+(functions;) 3338 3744 w
+10 /LucidaTypewriter f
+(<sys/resource.h>) 3856 3744 w
+10 /LucidaSansUnicode00 f
+(;) 5008 3744 w
+10 /LucidaTypewriter f
+(<sys/socket.h>) 970 3864 w
+10 /LucidaSansUnicode00 f
+(for) 2133 3864 w
+(socket) 2426 3864 w
+(structures,) 2894 3864 w
+(constants,) 3569 3864 w
+(and) 4222 3864 w
+(functions;) 4556 3864 w
+10 /LucidaTypewriter f
+(<sys/time.h>) 970 3984 w
+10 /LucidaSansUnicode00 f
+(for) 1871 3984 w
+(definitions) 2047 3984 w
+(of) 2600 3984 w
+(the) 2735 3984 w
+10 /LucidaTypewriter f
+(timeval) 2927 3984 w
+10 /LucidaSansUnicode00 f
+(and) 3469 3984 w
+10 /LucidaTypewriter f
+(timezone) 3687 3984 w
+10 /LucidaSansUnicode00 f
+(structures;) 4301 3984 w
+(and) 4860 3984 w
+10 /LucidaTypewriter f
+(<sys/uio.h>) 970 4104 w
+10 /LucidaSansUnicode00 f
+(for) 1805 4104 w
+(the) 1987 4104 w
+10 /LucidaTypewriter f
+(iovec) 2185 4104 w
+10 /LucidaSansUnicode00 f
+(structure) 2588 4104 w
+(and) 3069 4104 w
+(the) 3292 4104 w
+10 /LucidaTypewriter f
+(writev) 3490 4104 w
+10 /LucidaSansUnicode00 f
+(and) 3964 4104 w
+10 /LucidaTypewriter f
+(readv) 4186 4104 w
+10 /LucidaSansUnicode00 f
+(functions) 4588 4104 w
+(used) 970 4224 w
+(for) 1257 4224 w
+(scatter/gather) 1451 4224 w
+(I/O.) 2200 4224 w
+(Defining) 2479 4224 w
+10 /LucidaTypewriter f
+(_BSD_EXTENSION) 2946 4224 w
+10 /LucidaSansUnicode00 f
+(also) 4009 4224 w
+(enables) 4261 4224 w
+(various) 4689 4224 w
+(extra) 970 4344 w
+(definitions) 1279 4344 w
+(in) 1853 4344 w
+10 /LucidaTypewriter f
+(<ctype.h>) 2002 4344 w
+10 /LucidaSansUnicode00 f
+(,) 2650 4344 w
+10 /LucidaTypewriter f
+(<signal.h>) 2740 4344 w
+10 /LucidaSansUnicode00 f
+(,) 3460 4344 w
+10 /LucidaTypewriter f
+(<stdio.h>) 3550 4344 w
+10 /LucidaSansUnicode00 f
+(,) 4198 4344 w
+10 /LucidaTypewriter f
+(<unistd.h>) 4288 4344 w
+10 /LucidaSansUnicode00 f
+(,) 5008 4344 w
+10 /LucidaTypewriter f
+(<sys/stat.h>) 970 4464 w
+10 /LucidaSansUnicode00 f
+(, and) 1834 4464 w
+10 /LucidaTypewriter f
+(<sys/times.h>) 2110 4464 w
+10 /LucidaSansUnicode00 f
+(.) 3046 4464 w
+10 /LucidaSansUnicode20 f
+(\023) 816 4620 w
+10 /LucidaTypewriter f
+(_NET_EXTENSION) 970 4620 w
+10 /LucidaSansUnicode00 f
+(.) 1978 4620 w
+(This) 2106 4620 w
+(extension) 2375 4620 w
+(allows) 2914 4620 w
+(inclusion) 3280 4620 w
+(of) 3780 4620 w
+10 /LucidaTypewriter f
+(<libnet.h>) 3942 4620 w
+10 /LucidaSansUnicode00 f
+(,) 4662 4620 w
+(which) 4759 4620 w
+(defines the networking functions described in the Plan 9 manual page) 970 4740 w
+10 /LucidaSans-Italic f
+(dial) 4403 4740 w
+10 /LucidaSansUnicode00 f
+(\(2\).) 4583 4740 w
+10 /LucidaSansUnicode20 f
+(\023) 816 4896 w
+10 /LucidaTypewriter f
+(_REGEXP_EXTENSION) 970 4896 w
+10 /LucidaSansUnicode00 f
+(.) 2194 4896 w
+(This) 2291 4896 w
+(extension) 2529 4896 w
+(allows) 3037 4896 w
+(inclusion) 3372 4896 w
+(of) 3841 4896 w
+10 /LucidaTypewriter f
+(<regexp.h>) 3973 4896 w
+10 /LucidaSansUnicode00 f
+(,) 4693 4896 w
+(which) 4759 4896 w
+(defines) 970 5016 w
+(the) 1365 5016 w
+(regular) 1561 5016 w
+(expression) 1947 5016 w
+(matching) 2518 5016 w
+(functions) 3009 5016 w
+(described) 3501 5016 w
+(in) 4014 5016 w
+(the) 4145 5016 w
+(Plan) 4340 5016 w
+(9) 4581 5016 w
+(manual) 4684 5016 w
+(page) 970 5136 w
+10 /LucidaSans-Italic f
+(regexp) 1238 5136 w
+10 /LucidaSansUnicode00 f
+(\(2\).) 1568 5136 w
+10 /LucidaSansUnicode20 f
+(\023) 816 5292 w
+10 /LucidaTypewriter f
+(_RESEARCH_SOURCE) 970 5292 w
+10 /LucidaSansUnicode00 f
+(.) 2122 5292 w
+(This) 2230 5292 w
+(extension) 2479 5292 w
+(enables) 2998 5292 w
+(a) 3414 5292 w
+(small) 3513 5292 w
+(library) 3814 5292 w
+(of) 4168 5292 w
+(functions) 4311 5292 w
+(from) 4808 5292 w
+(the) 970 5412 w
+(Tenth) 1184 5412 w
+(Edition) 1523 5412 w
+(Unix) 1917 5412 w
+(Research) 2197 5412 w
+(System) 2691 5412 w
+(\(V10\).) 3093 5412 w
+(These) 3473 5412 w
+(functions) 3820 5412 w
+(and) 4330 5412 w
+(the) 4568 5412 w
+(types) 4781 5412 w
+(needed) 970 5532 w
+(to) 1364 5532 w
+(use) 1500 5532 w
+(them) 1707 5532 w
+(are) 1993 5532 w
+(all) 2183 5532 w
+(defined) 2334 5532 w
+(in) 2738 5532 w
+(the) 2867 5532 w
+10 /LucidaTypewriter f
+(<libv.h>) 3060 5532 w
+10 /LucidaSansUnicode00 f
+(header.) 3674 5532 w
+(The) 4109 5532 w
+(provided) 4328 5532 w
+(func\255) 4795 5532 w
+(tions) 970 5652 w
+(are:) 1264 5652 w
+10 /LucidaTypewriter f
+(srand) 1502 5652 w
+10 /LucidaSansUnicode00 f
+(,) 1862 5652 w
+10 /LucidaTypewriter f
+(rand) 1948 5652 w
+10 /LucidaSansUnicode00 f
+(,) 2236 5652 w
+10 /LucidaTypewriter f
+(nrand) 2322 5652 w
+10 /LucidaSansUnicode00 f
+(,) 2682 5652 w
+10 /LucidaTypewriter f
+(lrand) 2768 5652 w
+10 /LucidaSansUnicode00 f
+(,) 3128 5652 w
+(and) 3213 5652 w
+10 /LucidaTypewriter f
+(frand) 3446 5652 w
+10 /LucidaSansUnicode00 f
+(\(better) 3859 5652 w
+(random) 4235 5652 w
+(number) 4663 5652 w
+(generators\);) 970 5772 w
+10 /LucidaTypewriter f
+(getpass) 1591 5772 w
+10 /LucidaSansUnicode00 f
+(,) 2095 5772 w
+10 /LucidaTypewriter f
+(tty_echoon) 2161 5772 w
+10 /LucidaSansUnicode00 f
+(,) 2881 5772 w
+10 /LucidaTypewriter f
+(tty_echooff) 2947 5772 w
+10 /LucidaSansUnicode00 f
+(\(for) 3774 5772 w
+(dealing) 3981 5772 w
+(with) 4372 5772 w
+(the) 4612 5772 w
+(com\255) 4802 5772 w
+(mon) 970 5892 w
+(needs) 1238 5892 w
+(for) 1578 5892 w
+(mucking) 1769 5892 w
+(with) 2238 5892 w
+(terminal) 2495 5892 w
+(characteristics\);) 2949 5892 w
+10 /LucidaTypewriter f
+(min) 3763 5892 w
+10 /LucidaSansUnicode00 f
+(and) 4031 5892 w
+10 /LucidaTypewriter f
+(max) 4262 5892 w
+10 /LucidaSansUnicode00 f
+(;) 4478 5892 w
+10 /LucidaTypewriter f
+(nap) 4561 5892 w
+10 /LucidaSansUnicode00 f
+(;) 4777 5892 w
+(and) 4860 5892 w
+10 /LucidaTypewriter f
+(setfields) 970 6012 w
+10 /LucidaSansUnicode00 f
+(,) 1618 6012 w
+10 /LucidaTypewriter f
+(getfields) 1682 6012 w
+10 /LucidaSansUnicode00 f
+(, and) 2330 6012 w
+10 /LucidaTypewriter f
+(getmfields) 2606 6012 w
+10 /LucidaSansUnicode00 f
+(\(for) 3359 6012 w
+(parsing) 3564 6012 w
+(a) 3960 6012 w
+(line) 4048 6012 w
+(into) 4257 6012 w
+(fields\).) 4479 6012 w
+(See) 4874 6012 w
+(the) 970 6132 w
+(Research) 1159 6132 w
+(Unix) 1628 6132 w
+(System) 1883 6132 w
+(Programmer) 2260 6132 w
+10 /LucidaSansUnicode20 f
+(\031) 2858 6132 w
+10 /LucidaSansUnicode00 f
+(s) 2890 6132 w
+(Manual,) 2975 6132 w
+(Tenth) 3390 6132 w
+(Edition,) 3704 6132 w
+(for) 4105 6132 w
+(a) 4278 6132 w
+(description) 4366 6132 w
+(of) 4942 6132 w
+(these functions.) 970 6252 w
+10 /LucidaSans-Demi f
+(Common Problems) 720 6492 w
+10 /LucidaSansUnicode00 f
+(Some) 970 6648 w
+(large) 1273 6648 w
+(systems,) 1555 6648 w
+(including) 2017 6648 w
+(X11,) 2506 6648 w
+(have) 2767 6648 w
+(been) 3032 6648 w
+(ported) 3309 6648 w
+(successfully) 3670 6648 w
+(to) 4292 6648 w
+(Plan) 4430 6648 w
+(9) 4671 6648 w
+(using) 4774 6648 w
+(APE) 720 6768 w
+(\(the) 948 6768 w
+(X11) 1185 6768 w
+(port) 1423 6768 w
+(is) 1674 6768 w
+(not) 1803 6768 w
+(included) 2012 6768 w
+(in) 2476 6768 w
+(the) 2616 6768 w
+(distribution,) 2820 6768 w
+(however,) 3465 6768 w
+(because) 3951 6768 w
+(supporting) 4394 6768 w
+(it) 4974 6768 w
+(properly) 720 6888 w
+(is) 1181 6888 w
+(too) 1316 6888 w
+(big) 1530 6888 w
+(a) 1739 6888 w
+(job\).) 1849 6888 w
+(The) 2155 6888 w
+(problems) 2391 6888 w
+(encountered) 2903 6888 w
+(fall) 3565 6888 w
+(into) 3771 6888 w
+(three) 4016 6888 w
+(categories:) 4324 6888 w
+(\(1\)) 4911 6888 w
+(non-ANSI) 720 7008 w
+(C/POSIX) 1230 7008 w
+(features) 1672 7008 w
+(used;) 2108 7008 w
+(\(2\)) 2413 7008 w
+(inadequate) 2583 7008 w
+(simulation) 3162 7008 w
+(of) 3710 7008 w
+(POSIX) 3848 7008 w
+(functions;) 4167 7008 w
+(and) 4691 7008 w
+(\(3\)) 4911 7008 w
+(compiler/loader bugs.) 720 7128 w
+(By far the majority of problems are in the first category.) 1867 7128 w
+(POSIX) 970 7284 w
+(is) 1282 7284 w
+(just) 1395 7284 w
+(starting) 1608 7284 w
+(to) 2015 7284 w
+(be) 2146 7284 w
+(a) 2298 7284 w
+(target) 2386 7284 w
+(for) 2707 7284 w
+(programmers.) 2879 7284 w
+(Most) 3633 7284 w
+(existing) 3901 7284 w
+(code) 4322 7284 w
+(is) 4587 7284 w
+(written) 4701 7284 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 3 3
+%%Page: 4 4
+/saveobj save def
+mark
+4 pagesetup
+10 /LucidaSansUnicode00 f
+(\255 4 \255) 2783 480 w
+(to) 720 840 w
+(work) 853 840 w
+(with) 1125 840 w
+(one) 1365 840 w
+(or) 1579 840 w
+(both) 1716 840 w
+(of) 1974 840 w
+(a) 2107 840 w
+(BSD) 2197 840 w
+(or) 2419 840 w
+(a) 2556 840 w
+(System) 2646 840 w
+(V) 3024 840 w
+(Unix.) 3124 840 w
+(System) 3444 840 w
+(V) 3822 840 w
+(is) 3922 840 w
+(fairly) 4037 840 w
+(close) 4315 840 w
+(to) 4597 840 w
+(POSIX,) 4729 840 w
+(but) 720 960 w
+(there) 918 960 w
+(are) 1206 960 w
+(some) 1394 960 w
+(differences.) 1691 960 w
+(Also,) 2330 960 w
+(many) 2608 960 w
+(System) 2906 960 w
+(V) 3285 960 w
+(systems) 3386 960 w
+(have) 3813 960 w
+(imported) 4075 960 w
+(some) 4555 960 w
+(BSD) 4853 960 w
+(features) 720 1080 w
+(that) 1152 1080 w
+(are) 1380 1080 w
+(not) 1568 1080 w
+(part) 1764 1080 w
+(of) 1996 1080 w
+(POSIX.) 2130 1080 w
+(A) 2509 1080 w
+(good) 2614 1080 w
+(strategy) 2897 1080 w
+(for) 3324 1080 w
+(porting) 3499 1080 w
+(external) 3890 1080 w
+(programs) 4323 1080 w
+(is) 4826 1080 w
+(to) 4942 1080 w
+(first) 720 1200 w
+(try) 999 1200 w
+(using) 1213 1200 w
+10 /LucidaTypewriter f
+(CFLAGS=-D_POSIX_SOURCE) 1563 1200 w
+10 /LucidaSansUnicode00 f
+(;) 3147 1200 w
+(if) 3263 1200 w
+(that) 3414 1200 w
+(doesn) 3690 1200 w
+10 /LucidaSansUnicode20 f
+(\031) 3983 1200 w
+10 /LucidaSansUnicode00 f
+(t) 4015 1200 w
+(work,) 4137 1200 w
+(try) 4491 1200 w
+(adding) 4706 1200 w
+10 /LucidaTypewriter f
+(_D_BSD_EXTENSION) 720 1320 w
+10 /LucidaSansUnicode00 f
+(and) 1915 1320 w
+(perhaps) 2138 1320 w
+(include) 2571 1320 w
+10 /LucidaTypewriter f
+(<bsd.h>) 2965 1320 w
+10 /LucidaSansUnicode00 f
+(in) 3511 1320 w
+(source) 3644 1320 w
+(files.) 4008 1320 w
+(Here) 4316 1320 w
+(are) 4585 1320 w
+(some) 4779 1320 w
+(solutions to problems that might remain:) 720 1440 w
+10 /LucidaSansUnicode20 f
+(\023) 816 1596 w
+10 /LucidaSansUnicode00 f
+(Third \(environment\) argument to) 970 1596 w
+10 /LucidaTypewriter f
+(main) 2599 1596 w
+10 /LucidaSansUnicode00 f
+(.) 2887 1596 w
+(Use the) 2983 1596 w
+10 /LucidaTypewriter f
+(environ) 3378 1596 w
+10 /LucidaSansUnicode00 f
+(global instead.) 3914 1596 w
+10 /LucidaSansUnicode20 f
+(\023) 816 1752 w
+10 /LucidaTypewriter f
+(OPEN_MAX) 970 1752 w
+10 /LucidaSansUnicode00 f
+(,) 1546 1752 w
+10 /LucidaTypewriter f
+(PATH_MAX) 1667 1752 w
+10 /LucidaSansUnicode00 f
+(,) 2243 1752 w
+(etc.,) 2365 1752 w
+(assumed) 2663 1752 w
+(in) 3184 1752 w
+10 /LucidaTypewriter f
+(<limits.h>) 3365 1752 w
+10 /LucidaSansUnicode00 f
+(.) 4085 1752 w
+(Rewrite) 4239 1752 w
+(to) 4688 1752 w
+(call) 4876 1752 w
+10 /LucidaTypewriter f
+(sysconf) 970 1872 w
+10 /LucidaSansUnicode00 f
+(or define) 1506 1872 w
+10 /LucidaTypewriter f
+(_LIMITS_EXTENSION) 1975 1872 w
+10 /LucidaSansUnicode00 f
+(.) 3199 1872 w
+10 /LucidaSansUnicode20 f
+(\023) 816 2028 w
+10 /LucidaTypewriter f
+(<varargs.h>) 970 2028 w
+10 /LucidaSansUnicode00 f
+(.) 1762 2028 w
+(Rewrite to use) 1858 2028 w
+10 /LucidaTypewriter f
+(<stdarg.h>) 2580 2028 w
+10 /LucidaSansUnicode00 f
+(.) 3300 2028 w
+(The) 970 2184 w
+(second) 1187 2184 w
+(class) 1567 2184 w
+(of) 1840 2184 w
+(problems) 1974 2184 w
+(has) 2467 2184 w
+(to) 2671 2184 w
+(do) 2805 2184 w
+(with) 2965 2184 w
+(inadequacies) 3206 2184 w
+(in) 3874 2184 w
+(the) 4002 2184 w
+(Plan) 4194 2184 w
+(9) 4432 2184 w
+(simulation) 4532 2184 w
+(of) 720 2304 w
+(POSIX) 854 2304 w
+(functions.) 1169 2304 w
+(These) 1720 2304 w
+(shortcomings) 2043 2304 w
+(have) 2739 2304 w
+(rarely) 2999 2304 w
+(gotten) 3308 2304 w
+(in) 3658 2304 w
+(the) 3784 2304 w
+(way) 3974 2304 w
+(\(except,) 4193 2304 w
+(perhaps,) 4617 2304 w
+(for the) 720 2424 w
+10 /LucidaTypewriter f
+(link) 1078 2424 w
+10 /LucidaSansUnicode00 f
+(problem\).) 1398 2424 w
+10 /LucidaSansUnicode20 f
+(\023) 816 2580 w
+10 /LucidaSansUnicode00 f
+(Functions) 970 2580 w
+(for) 1476 2580 w
+(setting) 1653 2580 w
+(the) 2025 2580 w
+(userid,) 2218 2580 w
+(groupid,) 2590 2580 w
+(effective) 3041 2580 w
+(userid) 3490 2580 w
+(and) 3830 2580 w
+(effective) 4048 2580 w
+(groupid) 4497 2580 w
+(do) 4916 2580 w
+(not) 970 2700 w
+(do) 1173 2700 w
+(anything) 1340 2700 w
+(useful.) 1803 2700 w
+(The) 2206 2700 w
+(concept) 2429 2700 w
+(is) 2852 2700 w
+(impossible) 2974 2700 w
+(to) 3541 2700 w
+(simulate) 3681 2700 w
+(in) 4135 2700 w
+(Plan) 4268 2700 w
+(9.) 4511 2700 w
+10 /LucidaTypewriter f
+(Chown) 4680 2700 w
+10 /LucidaSansUnicode00 f
+(also does nothing.) 970 2820 w
+10 /LucidaSansUnicode20 f
+(\023) 816 2976 w
+10 /LucidaTypewriter f
+(execlp) 970 2976 w
+10 /LucidaSansUnicode00 f
+(and) 1440 2976 w
+(the) 1658 2976 w
+(related) 1851 2976 w
+(functions) 2226 2976 w
+(do) 2716 2976 w
+(not) 2879 2976 w
+(look) 3078 2976 w
+(at) 3326 2976 w
+(the) 3457 2976 w
+10 /LucidaTypewriter f
+(PATH) 3651 2976 w
+10 /LucidaSansUnicode00 f
+(environment) 3978 2976 w
+(variable.) 4628 2976 w
+(They just try the current directory and) 970 3096 w
+10 /LucidaTypewriter f
+(/bin) 2853 3096 w
+10 /LucidaSansUnicode00 f
+(if the pathname is not absolute.) 3173 3096 w
+10 /LucidaSansUnicode20 f
+(\023) 816 3252 w
+10 /LucidaSansUnicode00 f
+(Advisory locking via) 970 3252 w
+10 /LucidaTypewriter f
+(fcntl) 1972 3252 w
+10 /LucidaSansUnicode00 f
+(is not implemented.) 2364 3252 w
+10 /LucidaSansUnicode20 f
+(\023) 816 3408 w
+10 /LucidaTypewriter f
+(isatty) 970 3408 w
+10 /LucidaSansUnicode00 f
+(is) 1444 3408 w
+(hard) 1566 3408 w
+(to) 1829 3408 w
+(do) 1969 3408 w
+(correctly.) 2136 3408 w
+(The) 2662 3408 w
+(approximation) 2886 3408 w
+(used) 3639 3408 w
+(is) 3914 3408 w
+(only) 4037 3408 w
+(sometimes) 4284 3408 w
+(cor\255) 4854 3408 w
+(rect.) 970 3528 w
+10 /LucidaSansUnicode20 f
+(\023) 816 3684 w
+10 /LucidaTypewriter f
+(link) 970 3684 w
+10 /LucidaSansUnicode00 f
+(always fails.) 1290 3684 w
+10 /LucidaSansUnicode20 f
+(\023) 816 3840 w
+10 /LucidaSansUnicode00 f
+(With) 970 3840 w
+10 /LucidaTypewriter f
+(open) 1222 3840 w
+10 /LucidaSansUnicode00 f
+(,) 1510 3840 w
+(the) 1580 3840 w
+10 /LucidaTypewriter f
+(O_NOCTTY) 1773 3840 w
+10 /LucidaSansUnicode00 f
+(option) 2387 3840 w
+(has) 2738 3840 w
+(no) 2944 3840 w
+(effect.) 3105 3840 w
+(The) 3481 3840 w
+(concept) 3700 3840 w
+(of) 4120 3840 w
+(a) 4257 3840 w
+(controlling) 4351 3840 w
+(tty) 4914 3840 w
+(is foreign to Plan 9.) 970 3960 w
+10 /LucidaSansUnicode20 f
+(\023) 816 4116 w
+10 /LucidaTypewriter f
+(setsid) 970 4116 w
+10 /LucidaSansUnicode00 f
+(forks) 1448 4116 w
+(the) 1742 4116 w
+(name) 1943 4116 w
+(space) 2256 4116 w
+(and) 2579 4116 w
+(note) 2806 4116 w
+(group,) 3069 4116 w
+(which) 3437 4116 w
+(is) 3765 4116 w
+(only) 3892 4116 w
+(approximately) 4143 4116 w
+(the) 4885 4116 w
+(right behavior.) 970 4236 w
+10 /LucidaSansUnicode20 f
+(\023) 816 4392 w
+10 /LucidaSansUnicode00 f
+(The) 970 4392 w
+(functions) 1198 4392 w
+(dealing) 1697 4392 w
+(with) 2100 4392 w
+(stacking) 2352 4392 w
+(signals,) 2804 4392 w
+10 /LucidaTypewriter f
+(sigpending) 3222 4392 w
+10 /LucidaSansUnicode00 f
+(,) 3942 4392 w
+10 /LucidaTypewriter f
+(sigprocmask) 4021 4392 w
+10 /LucidaSansUnicode00 f
+(and) 4860 4392 w
+10 /LucidaTypewriter f
+(sigsuspend) 970 4512 w
+10 /LucidaSansUnicode00 f
+(, do not work.) 1690 4512 w
+10 /LucidaSansUnicode20 f
+(\023) 816 4668 w
+10 /LucidaTypewriter f
+(umask) 970 4668 w
+10 /LucidaSansUnicode00 f
+(has no effect, as there is no such concept in Plan 9.) 1362 4668 w
+10 /LucidaSansUnicode20 f
+(\023) 816 4824 w
+10 /LucidaSansUnicode00 f
+(code) 970 4824 w
+(that) 1236 4824 w
+(does) 1462 4824 w
+10 /LucidaTypewriter f
+(getenv\("HOME"\)) 1729 4824 w
+10 /LucidaSansUnicode00 f
+(should) 2773 4824 w
+(be) 3137 4824 w
+(changed) 3292 4824 w
+(to) 3739 4824 w
+10 /LucidaTypewriter f
+(getenv\("home"\)) 3873 4824 w
+10 /LucidaSansUnicode00 f
+(on) 4917 4824 w
+(Plan 9.) 970 4944 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 4 4
+%%Trailer
+done
+%%DocumentFonts: LucidaSansUnicode20 LucidaSansUnicode00 LucidaSans-Demi LucidaTypewriter LucidaSans-Italic
+%%Pages: 4

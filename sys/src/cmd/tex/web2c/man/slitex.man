@@ -1,0 +1,20 @@
+.TH SLITEX 1 "7 Jan 92"
+.SH NAME
+slitex \- make LaTeX slides
+.SH SYNOPSIS
+.B slitex
+[ first line ]
+.SH DESCRIPTION
+The 
+.I slitex
+program is a variant of 
+.BR latex (1),
+designed for generating slides.
+It is described in Appendix A of
+.I LaTeX \- A Document Preparation System
+by Leslie Lamport, published by Addison-Wesley.
+All the capabilities described in
+.BR tex (1)
+are present.
+.SH "SEE ALSO"
+tex(1), latex(1)

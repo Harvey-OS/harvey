@@ -1,0 +1,280 @@
+% \iffalse
+%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\ProvidesPackage{vector}[1994/09/16 v1.0 vector macros for LaTeX2e (nde)]
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{array, vector}
+\GetFileInfo{vector.sty}
+\begin{document}
+  \title{The \textsf{vector} package\thanks{This file is
+         \fileversion, last revised \filedate.}}
+  \author{Nick Efford\thanks{Address: School of Computer Studies,
+          University of Leeds, Leeds LS2 9JT, United Kingdom}\\
+          \texttt{\small nde@dcre.leeds.ac.uk}}
+  \date{\filedate}
+  \maketitle
+  \DocInput{vector.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \CheckSum{107}
+%
+% \changes{v1.0}{1994/09/16}{First version}
+%
+% \begin{abstract}
+% This package provides a set of new commands for representing vectors in
+% various ways. The commonly-used bold and underlined notations are
+% supported, as is the `hat' notation for representing unit vectors. Macros
+% are also provided to represent a row or column vector as a set of
+% elements.
+% \end{abstract}
+%
+% \section{Introduction}
+% \LaTeXe{} provides the |\vec| command to represent vectors in math mode;
+% |$\vec{a}$|, for example, produces $\vec{a}$. In the author's experience,
+% vectors are more commonly represented either in bold face roman
+% type or else by means of underlining. Another convenient notation is the
+% use of the `hat' to indicate a unit-length vector. This
+% package defines more suitable representations for vectors and unit
+% vectors, using different fonts (boldface roman and sans serif) and two
+% kinds of underlining (straight and wavy). It also defines macros which
+% represent row or column vectors as implicit or explicit sequences of
+% elements.
+%
+% \section{Examples}
+% Six new commands are defined for representing vectors with a single
+% (possibly composite) symbol. They are shown, with sample output, in
+% table~\ref{t.commands}. Unlike |\vec|, the new commands can be used in
+% text mode as well as math mode.
+% \DeleteShortVerb{\|}
+% \MakeShortVerb{\+}
+% \renewcommand{\arraystretch}{1.5}
+% \newcommand{\undertilde}[1]{\ensuremath{\mathord{\vtop{\ialign{##\crcr
+%   $\hfil\displaystyle{#1}\hfil$\crcr\noalign{\kern1.5pt\nointerlineskip}
+%   $\hfil\tilde{}\hfil$\crcr\noalign{\kern1.5pt}}}}}}
+% \begin{table}[p]
+% \begin{center}
+% \begin{tabular}{|c|c|}
+% \hline
+% +\bvec{a}+, +\buvec{a}+ & \bvec{a}, \buvec{a} \\
+% +\svec{a}+, +\suvec{a}+ & \svec{a}, \suvec{a} \\
+% +\uvec{a}+, +\uuvec{a}+ & \uvec{a}, \uuvec{a} $/$
+%   \undertilde{a}, \undertilde{\hat{a}} \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \caption{new commands for symbolic vectors.}
+% \label{t.commands}
+% \end{table}
+% % \DeleteShortVerb{\+}
+% \MakeShortVerb{\|}
+%
+% \DescribeMacro{\uvec}\DescribeMacro{\uuvec}
+% By default, |\uvec| and |\uuvec| underline a symbol using a
+% straight line. If a wavy line is prefered, then the |wavy| package option
+% should be specified.
+%
+% \DescribeMacro{\irvec}\DescribeMacro{\icvec}
+% Another set of commands are defined which can represent a vector as a row
+% or column of elements. |\irvec| and |\icvec| generate `implicit' row and
+% column vectors, respectively. Here, only the first and last elements
+% actually appear; |\ldots| is used to imply the existance of the rest.
+% Both macros take one mandatory argument, a character which names the
+% vector. By default, the first and last elements are constructed from this
+% character and the subscripts `1' and $n$, respectively. An optional
+% argument allows final subscripts other than $n$ to be specified. The
+% subscript for the first element cannot be altered in this way, but then
+% it is not likely that you will want to change this often.
+% \DescribeMacro{\firstelement}
+% If you do need to change it, the command |\firstelement| can be used.
+% Table~\ref{t.irvec} shows some sample output for |\irvec|.
+% \DeleteShortVerb{\|}
+% \MakeShortVerb{\+}
+% \begin{table}[p]
+% \begin{center}
+% \begin{tabular}{|b{30mm}|c|}
+% \hline
+% +\irvec{a}+ & \irvec{a} \\
+% +\irvec[4]{a}+ & \irvec[4]{a} \\
+% +\firstelement{0}+ +\irvec[9]{a}+ & \firstelement{0}\irvec[9]{a} \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \caption{row vectors with implicit elements.}
+% \label{t.irvec}
+% \end{table}
+% \DeleteShortVerb{\+}
+% \MakeShortVerb{\|}
+%
+% The syntax for |\icvec| is the same as that for |\irvec|. One important
+% difference is that |\icvec| can only be used in math mode, whereas
+% |\irvec| can be used in both math and text modes. For example,
+% |\buvec{q} = \left(\icvec{q}\right)| produces
+% $$\buvec{q} = \left(\icvec{q}\right)$$
+%
+% \DescribeMacro{\rvec}\DescribeMacro{\cvec}
+% The final pair of macros, |\rvec| and |\cvec|, provide \emph{explicit}
+% representations of a vector as a row or column of elements, i.e., all
+% elements of the vector are shown\footnote{Clearly, these macros are
+% suitable only for vectors with comparatively small numbers of elements!}.
+% Three mandatory arguments are used to specify the name of the vector,
+% an integer subscript for the first element and an integer subscript for
+% the final element. For instance, |\bvec{x} = \{\rvec{x}{1}{6}\}| produces
+% $$\uvec{x} = \{\rvec{x}{1}{6}\} \qquad$$
+% and |\bvec{y} = \left[\cvec{y}{0}{3}\right]| gives
+% $$\bvec{y} = \left[\cvec{y}{0}{3}\right]$$
+% As with the implicit macros, |\rvec| may be used in both math and text
+% modes, whereas |\cvec| may only be used in math mode.
+%
+% \StopEventually{}
+%
+% \section{The Macros}
+% \setlength{\parindent}{0pt}
+%
+%    \begin{macrocode}
+%<*package>
+%    \end{macrocode}
+%
+% We require that the \textsf{ifthen} and \textsf{calc} packages are loaded:
+%    \begin{macrocode}
+\RequirePackage{ifthen}
+\RequirePackage{calc}
+%    \end{macrocode}
+%
+% A boolean variable is defined and set to \emph{true} if the |wavy|
+% package option has been specified:
+%    \begin{macrocode}
+\newboolean{@wavy}
+\DeclareOption{wavy}{\setboolean{@wavy}{true}}
+\ProcessOptions
+%    \end{macrocode}
+%
+% \begin{macro}{\bvec}
+% |\bvec| represents a vector using a bold series roman character.
+%    \begin{macrocode}
+\newcommand{\bvec}[1]{\ensuremath{\mathbf{#1}}}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\buvec}
+% |\buvec| represents a unit vector as a bold roman character with a hat.
+%    \begin{macrocode}
+\newcommand{\buvec}[1]{\ensuremath{\mathbf{\hat{#1}}}}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\svec}
+% |\svec| represents a vector as a sans serif character.
+% family.
+%    \begin{macrocode}
+\newcommand{\svec}[1]{\ensuremath{\mathsf{#1}}}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\suvec}
+% |\suvec| represents a unit vector as a sans serif character with a hat.
+%    \begin{macrocode}
+\newcommand{\suvec}[1]{\ensuremath{\mathsf{\hat{#1}}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% How we define underlined vectors depends on the value of boolean variable
+% |@wavy|:
+%    \begin{macrocode}
+\ifthenelse{\boolean{@wavy}}{%
+  \PackageInfo{vector}{wavy underlining selected}
+%    \end{macrocode}
+% If |@wavy| is set then we define a macro |\undertilde|\footnote{Note
+% that I didn't write this macro. Unfortunately, I cannot give proper
+% credit as I do not recall how I came by it!}, which places a
+% tilde symbol underneath its argument:
+%    \begin{macrocode}
+  \newcommand{\undertilde}[1]{\mathord{\vtop{\ialign{##\crcr
+    $\hfil\displaystyle{#1}\hfil$\crcr\noalign{\kern1.5pt\nointerlineskip}
+    $\hfil\tilde{}\hfil$\crcr\noalign{\kern1.5pt}}}}}
+%    \end{macrocode}
+% \begin{macro}{\uvec}
+% We then define |\uvec| in terms of |\undertilde|:
+%    \begin{macrocode}
+  \newcommand{\uvec}[1]{\ensuremath{\undertilde{#1}}}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\uuvec}
+% And similarly define |\uuvec|:
+%    \begin{macrocode}
+  \newcommand{\uuvec}[1]{\ensuremath{\hat{\undertilde{#1}}}}}{%
+%    \end{macrocode}
+% \end{macro}
+% If |@wavy| is not set, then we define |\uvec| and |\uuvec| in terms of
+% |\underline|:
+%    \begin{macrocode}
+  \newcommand{\uvec}[1]{\ensuremath{\underline{#1}}}
+  \newcommand{\uuvec}[1]{\ensuremath{\hat{\underline{#1}}}}}
+%    \end{macrocode}
+%
+% \begin{macro}{\firstelement}
+% Now we define a variable to store the subscript used for the first element
+% of a row or column vector, along with a command which can be used to
+% alter that variable:
+%    \begin{macrocode}
+\def\first@element{1}
+\newcommand{\firstelement}[1]{\def\first@element{#1}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\irvec}
+% The |\irvec| command is very simple:
+%    \begin{macrocode}
+\newcommand{\irvec}[2][n]{\ensuremath{{#2}_{\first@element},\ldots,{#2}_{#1}}}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\icvec}
+% The |\icvec| command uses an |array| environment, and so can only be used
+% in a math environment:
+%    \begin{macrocode}
+\newcommand{\icvec}[2][n]{%
+  \begin{array}{c}
+    {#2}_{\first@element}\\ \vdots\\ {#2}_{#1}
+  \end{array}}
+%    \end{macrocode}
+% \end{macro}
+%
+% For |\rvec| and |\cvec|, we must define a loop counter which stores the
+% current subscript of a vector element:
+%    \begin{macrocode}
+\newcounter{vec@elem}
+%    \end{macrocode}
+% \begin{macro}{\rvec}
+% Now we define |\rvec|. We must check that the last subscript for the
+% vector elements (|#3|) is greater than the first subscript (|#2|). If this
+% is so, then we use |\whiledo| to loop over specified range of values,
+% generating a vector element with subscript |vec@elem| followed by a comma
+% on each iteration. Otherwise, we simply generate a single vector element.
+%    \begin{macrocode}
+\newcommand{\rvec}[3]{%
+  \ensuremath{%
+    \ifthenelse{#3 > #2}{%
+      \setcounter{vec@elem}{#2}
+      \whiledo{\value{vec@elem} < #3}%
+        {{#1}_{\thevec@elem}, \stepcounter{vec@elem}}%
+      {#1}_{#3}}{{#1}_{#2}}}}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\cvec}
+% We define |\cvec| in a similar way to |\rvec|, only here we iterate within
+% an |array| environment and generate a vector element and a linebreak on
+% each iteration.
+%    \begin{macrocode}
+\newcommand{\cvec}[3]{%
+  \ifthenelse{#3 > #2}{%
+    \setcounter{vec@elem}{#2}
+    \begin{array}{c}
+      \whiledo{\value{vec@elem} < #3}%
+        {{#1}_{\thevec@elem} \\ \stepcounter{vec@elem}}%
+      {#1}_{#3}
+    \end{array}}{{#1}_{#2}}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \Finale
+%

@@ -31,17 +31,19 @@ Option
 invokes
 .I nroff
 instead of
-.I troff.
+.IR troff .
 Other options are passed to
-.I troff.
+.IR troff .
 .SH EXAMPLES
 .TP
 .L
-eval `{doctype chapter.?} | lp -du
+eval `{doctype chapter.?} | lp 
 Typeset files named
 .BR chapter.0 ,
 .BR chapter.1 ,
 \&...
+.SH SOURCE
+.B /rc/bin/doctype
 .SH SEE ALSO
 .IR troff (1), 
 .IR eqn (1), 

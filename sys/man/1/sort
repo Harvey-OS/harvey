@@ -4,7 +4,7 @@ sort \- sort and/or merge files
 .SH SYNOPSIS
 .B sort
 [
-.BI -cmuMbdf\&inrt x
+.BI -cmuMbdf\&inrwt x
 ]
 [
 .BI + pos1
@@ -24,10 +24,17 @@ sort \- sort and/or merge files
 .I output
 ]
 [
-.I option ...
+.B -T
+.I dir
+\&...
 ]
 [
-.I file ...
+.I option
+\&...
+]
+[
+.I file
+\&...
 ]
 .SH DESCRIPTION
 .I Sort\^
@@ -83,6 +90,11 @@ Ignore characters outside the
 range 040-0176
 in non-numeric comparisons.
 .TP
+.B -w
+Like
+.BR -i ,
+but ignore only tabs and spaces.
+.TP
 .B -n
 An initial numeric string,
 consisting of optional white space,
@@ -114,7 +126,7 @@ and ending just before
 and
 .I pos2\^
 each have the form
-.IB m . n ,
+.IB m . n\f1,
 optionally followed by one or more of the flags
 .BR Mbdfginr ,
 where
@@ -127,7 +139,7 @@ ordering options for this key.
 A missing
 .BI \&. n\^
 means
-.B \&.0;
+.BR \&.0 ;
 a missing
 .BI - pos2\^
 means the end of the line.
@@ -149,16 +161,17 @@ and
 .PP
 The notation
 .B -k
-.I pos1 [, pos2]
-is the Posix version of fields.
-Of course,
+.IR pos1 [, pos2 ]
+is how POSIX
+.I sort
+defines fields:
 .I pos1
 and
 .I pos2
 have the same format but different meanings.
 The value of
-.BI \&. m\^
-is base 1 instead of base 0
+.I  m\^
+is origin 1 instead of origin 0
 and a missing
 .BI \&. n\^
 in
@@ -178,12 +191,7 @@ Check that the single input file is sorted according to the ordering rules;
 give no output unless the file is out of sort.
 .TP
 .B -m
-Merge; the input files are already sorted.
-.B -r
-option.
-This option does not work with the
-.B -u
-option.
+Merge; assume the input files are already sorted.
 .TP
 .B -u
 Suppress all but one in each
@@ -229,6 +237,8 @@ A stable sort: input lines that compare equal will
 come out in their original order.
 .SH FILES
 .BI /tmp/sort. <pid>.<ordinal>
+.SH SOURCE
+.B /sys/src/cmd/sort.c
 .SH SEE ALSO
 .IR uniq (1),
 .IR look (1)

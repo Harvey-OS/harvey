@@ -1,0 +1,901 @@
+% program.sty, Version 3.3
+% A LaTeX2e style file for typesetting algorithms.
+% Copyright 1991 Martin Ward
+% Email: Martin.Ward@durham.ac.uk
+%    or: Martin.Ward%DURHAM.AC.UK@CUNYVM.CUNY.EDU
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%
+%
+% This is the "program" style option which sets up the
+% program and programbox environments,
+% keywords for programs and a few goodies.
+% NOTE: Within the program environment:
+% (1) Newlines are significant.
+% (2) Each line is in math mode, so for example spaces in the input
+%     file are not significant.
+% (3) \\ within a line causes a linebreak in the output.
+%
+% We also define a "programbox" environment which typesets a program in a box.
+% Useful for keeping a pice of code on one page or for typesetting small 
+% programs in running text.
+% We also redefine \( and \) as \begin{programbox} and \end{programbox}.
+% The \tab and \untab commands are defined to have no effect while outside 
+% a program environment, hence a single-line program can be typeset in 
+% maths mode without the overhead associated with programbox.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Section (1). The Keywords.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Set up ";" to add a thick maths space after it when active in math mode:
+\let\@semicolon=;
+\catcode`\;=12\relax
+\mathcode`\;="8000 % Makes ; active in math mode
+{\catcode`\;=\active \gdef;{\ifmmode\semicolon\;\else\@semicolon\fi}}
+\mathchardef\semicolon="603B
+
+% Set up ` so that ``...'' typesets the string in tt (in math mode):
+\mathcode`\`="8000 % Makes ` active in math mode only.
+{%\catcode`\'=\active 
+ \catcode`\`=\active
+ \gdef`{\startstring@}
+}
+\newif\ifMathsModeStrings \MathsModeStringsfalse
+\def\startstring@`#1''{\ifMathsModeStrings
+			 \mbox{``}#1\mbox{''}\else
+			 \mbox{``{\tt #1}''}\fi}
+
+% Set up a larger array of tabs since programs set lots of tabs.
+% This section can be extended if more tabs are needed:
+\newdimen\@gtempa 
+\chardef\@firsttab=\the\allocationnumber
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa\newdimen\@gtempa
+\newdimen\@gtempa 
+\chardef\@maxtab=\the\allocationnumber
+
+% NB: can't use \pushtabns and \poptabs to reduce the need for tabs
+% since \@curtab, \@curtabmar and \@nxttabmar are global variables
+% which would also need to be saved and restored.
+
+% The program environment.
+% This is based on the tabbing environment with each line put in math mode,
+% \obeylines in force and ";" as an active character.
+\def\@programcr{$\@stopline\@startline\ignorespaces$}
+\def\programnewpage{$\@stopline\newpage\@startline\ignorespaces$}
+
+% Line numbers on programs:
+\newcounter{programline}
+\newif\ifNumberPrograms
+% Default is no line numbers:
+\NumberProgramsfalse
+
+% Program text size hook:
+\let\programsize=\relax
+
+\def\program{%
+  \if@minipage\else\leavevmode\fi
+  \ifNumberPrograms\setcounter{programline}{0}\fi
+  \normalshape
+  \obeycr %% added line
+  % activate tabbing commands:
+  \@tabcommandson %% added line
+  \global\let\DO=\@oldDO %% added line
+  \lineskip \z@\let\>\@rtab\let\<\@ltab\let\=\@settab
+  \let\+\@tabplus\let\-\@tabminus\let\`\@tabrj\let\'\@tablab
+  \let\\=\@programcr %% changed from \let\\=\tabcr
+  \global\@hightab\@firsttab
+  \global\@nxttabmar\@firsttab
+  \dimen\@firsttab\@totalleftmargin
+  \global\@tabpush0 \global\@rjfieldfalse
+  \trivlist \item[]%\if@minipage\else\vskip\parskip\fi
+  \programsize
+  \setbox\@tabfbox\hbox{\rlap{\indent\hskip\@totalleftmargin
+    \the\everypar}}\def\@itemfudge{\box\@tabfbox}\@startline\ignorespaces
+  $\@gobblecr %% added line
+}
+
+\def\endprogram{$\@stopline\ifnum\@tabpush > 0 \@badpoptabs \fi\endtrivlist%
+  \restorecr \@tabcommandsoff %% added line
+\@gobblecr
+}
+
+\def\smallprogram{%
+  \let\programsize=\small\program
+}
+
+\def\endsmallprogram{%
+  \let\programsize=\relax\endprogram
+}
+
+% - version which puts the whole program in a box.
+\newif\if@programbox \@programboxfalse
+\newenvironment{programbox}%
+    {\begin{minipage}[t]{\textwidth}%
+     \@programboxtrue
+     \begin{program}}%
+    {\end{program}%
+     \@programboxfalse
+     \end{minipage}%
+}
+
+\def\({\begin{programbox}}
+\def\){\end{programbox}}
+
+% A new version of @stopline which ignores blank lines (lines with 
+% width 0pt). To print a blank line, put "\ " on it!
+%
+\def\@stopline{%
+  \unskip\@stopfield
+  \if@rjfield
+    \global\@rjfieldfalse
+    \@tempdima\@totalleftmargin \advance\@tempdima\linewidth
+    \hbox to\@tempdima{\@itemfudge\@printlineno\hskip\dimen\@curtabmar
+		       \box\@curline\hfil\box\@curfield}%
+  \else
+    \@addfield
+    \ifdim\wd\@curline=0pt\else
+      \hbox{\@itemfudge\@printlineno\hskip\dimen\@curtabmar\box\@curline}%
+  \fi
+\fi
+}
+
+\def\@printlineno{\ifNumberPrograms
+		     \global\def\@currentlabel{\theprogramline}%
+		     \hskip\leftmargini
+		     \llap{{\prognumstyle\theprogramline}\hskip\labelsep}\fi}
+
+\def\prognumstyle{\scriptsize\em}
+
+\def\@startline{\global\@curtabmar\@nxttabmar
+   \grefstepcounter{programline}% Added by M.Ward
+   \global\@curtab\@curtabmar\global\setbox\@curline\hbox % missing \global
+    {}\@startfield\strut}                                 % added 17 Jun 86
+
+\def\grefstepcounter#1{\stepcounter{#1}\let\@tempa\protect
+  \def\protect{\noexpand\protect\noexpand}%
+  \global\edef\@currentlabel{\csname p@#1\endcsname\csname the#1\endcsname}%
+  \let\protect\@tempa}
+ 
+
+
+% A switch to allow \BAR...\BAR without untabbing twice:
+\newif\ifBarDone \BarDonefalse
+
+% a switch to allow \IF or \ELSIF with no \THEN (Grrr...):
+\newif\ifTHEN
+
+% For saving and restoring tab numbers (if a structure may contain
+% "unbalanced" \tab ... \untab pairs:
+\newcount\old@nxttabmar
+
+% These are the commands used to set the tabs.
+% They have different definitione inside and outside tebbing environments:
+
+\def\@tabcommandson{% activate tabbing commands:
+  % \tab sets a tab stop and adds one to the margin tab:
+  \def\tab{$\=\+$}%
+  % \qtab sets a tab stop at one quad of indentation:
+  \def\qtab{\quad$\=\+$\kern-1em}%
+  % \untab removes one tab stop and moves left if at the beginning of a line:
+  \def\untab{$\@finishfield\@ifatmargin\@ltab\else\relax\fi\-$}%
+  % Must finish current field before testing if at margin:
+  \def\@finishfield{\@stopfield\@addfield\@startfield}%
+  % \@marginspace adds an extra space unless there is no text on the line:
+  \def\@marginspace{$\@finishfield$\@ifatmargin\relax\else\ \fi}%
+  % \rcomment{...} provides a comment flush to the right margin:
+  \def\rcomment##1{$\`##1$}%
+  % \llapm{...} is like \llap{...} but also leaves and re-enters math
+  % mode so that "\llapm{stuff}(" does not put any space between the stuff
+  % and the "(". This means it will line up with "\llapm{stuff}X"
+  % Note this is only used when \@tabcommandson is in force so we are in
+  % normal math mode, not display math mode.
+  % The 1sp space is so that a line with just an \llapm item on it is not 
+  % considered to be empty!
+  \def\llapm##1{\@ifatmargin
+		  \llap{$##1$}$\hskip 1sp$%
+		\else ##1 \fi}%
+  \def\savetab{\global\old@nxttabmar\@nxttabmar}
+  \def\restoretab{\global\@nxttabmar\old@nxttabmar}
+  % Use this to typeset "..." at a higher tab position:
+  \def\utdots{$\@finishfield\@ifatmargin\@ltab\@ltab\else\relax\fi$\dots}
+  % For typesetting a relation:
+  \def\llapr##1{\@ifatmargin
+		  \llap{$\ ##1\ $}${}$%
+		\else\ ##1\ \fi}%
+}
+
+\def\@tabcommandsoff{% deactivate tabbing commands:
+  \let\tab=\relax%
+  \let\qtab=\relax%
+  \let\@finishfield=\relax%
+  \let\untab=\relax%
+  \let\@marginspace=\ % never at margin thus always a space
+  \def\rcomment##1{\qquad\mbox{##1}}%
+  \let\savetab=\relax%
+  \let\restoretab=\relax%
+  \let\utdots=\dots%
+  \def\llapm##1{##1}%
+  \def\llapr##1{##1}%
+}
+
+
+%% Now for the keywords:
+
+\def\IF{\keyword{if}\global\THENfalse\ \tab}
+\def\THEN{\@marginspace\keyword{then}\global\THENtrue\ \tab}
+% else has the same width as then and lines up with it on right:
+\def\ELSE{\@marginspace\llapm{\keyword{else}\ }}%
+% elsf lines up with the if:
+\def\ELSF{\@marginspace\untab\ifTHEN\untab\fi%
+	  \global\THENfalse\keyword{elsf}\ \tab}
+\def\ELSIF{\@marginspace\untab\ifTHEN\untab\fi%
+	   \global\THENfalse\keyword{elsif}\ \tab}
+% \AR is the arrow for Dijkstra if and do:
+% \AR* starts a newline with one quad indentation:
+\def\AR{\@marginspace\rightarrow\global\THENtrue\@ifstar%
+	{\\\quad\tab\global\BarDonefalse\@gobblecr}%
+	{\ \tab\global\BarDonefalse}}%
+% bar lines up on right with if or do keyword:
+\def\BAR{\@marginspace\ifBarDone\else\untab\fi\global\BarDonetrue
+	 \llapm{\barsymbol\ }}%
+\def\FI{\@marginspace\untab\ifTHEN\untab\fi\keyword{fi}}
+\def\AWAIT{\keyword{await}\ }% \THEN provides the \tab
+\def\DO{\keyword{do}\ \tab}
+\let\@oldDO=\DO
+\def\OD{\@marginspace\untab\keyword{od}}
+% \WHILE, \FOR, \FOREACH and \ATEACH temporarily change \DO to not set a tab:
+\def\WHILE{\keyword{while}\ \tab
+	   \gdef\DO{\@marginspace\keyword{do}\ \global\let\DO=\@oldDO}}
+\def\FOR{\keyword{for}\ \tab
+	 \gdef\DO{\@marginspace\keyword{do}\ \global\let\DO=\@oldDO}}
+\def\FOREACH{\qtab\keyword{foreach}\ %
+	     \gdef\DO{\@marginspace\keyword{do}\ \global\let\DO=\@oldDO}}
+\def\ATEACH{\qtab\keyword{ateach}\ %
+	    \gdef\DO{\@marginspace\keyword{do}\ \global\let\DO=\@oldDO}}
+\def\STEP{\@marginspace\keyword{step}\ }
+\def\TO{\@marginspace\keyword{to}\ }
+% \BEGIN, \REP, \ACTIONEQ and \WHERE
+% make sure next statement starts on a new line
+% with one quad of indentation:
+\def\BEGIN{\qtab\hbox{\keyword{begin}}\ }%
+\def\REP{\qtab\hbox{\keyword{rep}}\ }%
+\def\ACTIONEQ{\ \equiv\\\quad\tab}%
+\def\WHERE{\@marginspace\untab\qtab\hbox{\keyword{where}}\ }%
+\def\IFMATCH#1#2{\qtab\keyword{ifmatch}\ #1{#2}\ }
+\def\FILL#1#2{\keyword{fill}\ \tab#1{#2}\ \savetab}
+\def\ENDFILL{\@marginspace\restoretab\untab\keyword{endfill}}
+\def\EDIT{\keyword{edit}\ \tab}
+\def\EDITPARENT{\qtab\keyword{editparent}\ }
+\def\ENDEDIT{\@marginspace\untab\keyword{endedit}}
+\def\ENDMATCH{\@marginspace\untab\untab\keyword{endmatch}}
+\def\EXIT{\keyword{exit}}
+% Generalised expression brackets:
+\def\EXP{\openexp\tab}
+\def\ENDEXP{\untab\closexp}
+\def\VAR{\keyword{var}\ \tab}
+\def\var{\ \keyword{var}\ }
+\def\END{\@marginspace\untab\keyword{end}}
+\def\ENDVAR{\@marginspace\untab\keyword{end}}
+\def\ENDREP{\@marginspace\untab\keyword{endrep}}
+\def\WHERE{\@marginspace\untab\tab\keyword{where}\ }
+\def\WITHIN{\@marginspace\untab\keyword{within}\ }
+\def\PROC{\keyword{proc}\ \tab
+	  \gdef\EQ{\EQsymbol\global\let\EQ=\@oldEQ}}
+\def\ENDPROC{\fullstop}
+\def\FUNCT{\keyword{funct}\ \tab
+	   \gdef\EQ{\EQsymbol\global\let\EQ=\@oldEQ}}
+\def\ENDFUNCT{\fullstop\global\let\EQ=\@oldEQ}
+\def\JOIN{\keyword{join}\ \tab}
+\def\NIOJ{\@marginspace\untab\keyword{nioj}}
+\let\ENDJOIN=\NIOJ
+\def\ONEOF{\keyword{oneof}\ \tab}
+\def\FOENO{\@marginspace\untab\keyword{foeno}}
+
+\def\ACTIONS{\tab\keyword{actions}\ \global\let\EQ=\@oldEQ}
+\def\ENDACTIONS{\@marginspace\untab\keyword{endactions}}
+\def\ENDACTION{\fullstop}
+\def\CALL{\keyword{call}\ }
+\def\LLAC{}
+\let\ENDCALL=\LLAC
+\def\COMMENT#1{\keyword{comment}:\ \mbox{#1}}
+\def\C#1{\keyword{C}:\ \mbox{#1}}
+\def\ARRAY{\keyword{array}\ }
+
+% The symbols used in programs:
+\def\BODY{\EQsymbol}
+\def\QE{\fullstop} % end of == definition.
+
+% Expression brackets:
+\def\openexp{\mathopen {\mbox{\rule[-0.5ex]{0.04em}{2.3ex}%
+			      \rule[1.7ex]{0.4em}{0.1ex}}}}
+\def\closexp{\mathclose{\mbox{\rule[-0.5ex]{0.4em}{0.1ex}%
+			      \rule[-0.5ex]{0.04em}{2.3ex}}}}
+
+% \fullstop ends an action, proc or funct definition:
+\def\fullstop{\untab{\mbox{\bf .}}}
+\def\barsymbol{{\rlap{$\sqcap$}\sqcup}}
+
+% \join and \choice symbols:
+\def\join{\@marginspace\llapm{\sqcup\ }}%
+\def\choice{\@marginspace\llapm{\sqcap\ }}%
+% \EQ puts more space around symbol in program environment:
+% (this gets redefined by \PROC and \FUNCT):
+\def\EQ{\EQsymbol\tab}%
+\def\@oldEQ{\EQsymbol\tab}%
+\def\EQsymbol{\EQspace\equiv\EQspace}
+\let\EQspace=\  % default space around \EQ
+
+% default is tab commands deactivated:
+\@tabcommandsoff
+
+% define \normalshape if not present:
+\@ifundefined{normalshape}
+  {\def\normalshape{\rm}}
+  {\relax}
+
+% Underline through descenders:
+\let\undertext=\underbar
+\def\lowundertext#1{\ifmmode\underline{\vphantom{y}\mbox{#1}}\else
+			    $\underline{\vphantom{y}\mbox{#1}}$\fi}
+
+% The Boolean values:
+\def\true{\boldvar{true}}
+\def\false{\boldvar{false}}
+
+% The simple programs:
+\def\ABORT{\boldvar{abort}}
+\def\SKIP{\boldvar{skip}}
+\def\NULL{\boldvar{null}}
+
+% An abbreviation:
+\def\aeq{\ACTIONEQ}
+
+%% Draw a box round something in a program:
+\def\progbox#1{%
+  % Set #1 in a box, with no tab settings, and restore horizontal position:
+  \rlap{\kern-\fboxsep\kern-0.4pt%
+	\fbox{$\@tabcommandsoff\phantom{#1}$}}%
+  % Then set it again as normal:
+  #1\ }
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Section (2). |Variable_Names|
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%% We use an idea from Rainer Schopf's verbatim style
+%%% This allows !@#$%^&*() in variable names as well as _
+%%% This version should cope better with missing | delimiters:
+
+% First we define the default \variablefont, \variablefontend and \keyword:
+
+% Default variable font is slanted, so \variablefontend adds italic correction:
+\newif\if@corr
+\let\variablefont=\sl%
+\def\variablefontend#1{\begingroup\futurelet\temp\@corr}% gobble the \egroup
+\def\no@corr{\do{.}\do{,}}
+\def\@corr{\def\do##1{\ifx\temp##1\@corrfalse\fi}\@corrtrue\no@corr
+	    \if@corr\/\else\fi\endgroup\egroup} % put back the \egroup
+
+% Default keyword style is bold underlined:
+\def\keyword#1{\mbox{\underbar{\normalshape\bf #1}}}
+
+% For sans-serif variables and keywords:
+\def\sfvariables{%
+  \let\variablefont=\sf%
+  \def\variablefontend{}%
+  \def\keyword##1{\mbox{\underbar{\normalshape\bf\sf ##1}}}}
+
+% Use \scriptvar|foo| for sub/super-script variables:
+\def\scriptvariablefont{\scriptsize\@variablefont}%
+\def\scriptvar{\let\@variablefont=\variablefont%
+	       \let\variablefont=\scriptvariablefont%
+	       \let\@variablefontend=\variablefontend%
+	       \def\variablefontend{\let\variablefont=\@variablefont%
+				    \let\variablefontend=\@variablefontend%
+				    \@variablefontend}}
+
+% This section is modified from verbatim.sty:
+\newif\ifwasinmmode \wasinmmodefalse
+\begingroup
+  \lccode`\~=`\^^M
+  \lccode`\V=`\V
+  \lowercase{%
+    \gdef\variable{% first save mmode status:
+      \ifmmode\wasinmmodetrue\else\wasinmmodefalse\fi
+      \mbox\bgroup\begingroup
+      \variablefont
+      \catcode`\^^M\active
+      \safeat
+      \def~{\endgroup\egroup\\
+	    \@latexerr{Variable name ended by end of line.}\@ehc}%
+      \catcode`\_\active
+      \let\do\@makeother
+      \do\{\do\}\do\$\do\&%
+      \do\#\do\^\do\^^K\do\^^A\do\%\do\~\do\@\@svariable}}
+\endgroup
+\def\@svariable{%
+  \catcode`\|\active
+  \lccode`\~`\|%
+  \lowercase{\def~{\endgroup% if we were not in mmode, do italic corr:
+		   \ifwasinmmode\let\next=\/% was \relax
+		     \else\let\next=\variablefontend\fi
+		   \next
+		   \egroup}%
+	     \let\@dovar~}%
+  \leavevmode\null}
+
+\catcode`\|=12\relax
+\let\origbar=|
+\catcode`\|\active
+
+% Make @ active and equal to \char 64:
+\begingroup
+  \catcode`\@=\active
+  \gdef\safeat{\catcode`\@=\active\def@{\char64\relax}}%
+\endgroup
+
+\def|{\ifx\@sharp\relax\origbar\else\relax\p@dovar\fi}
+\def\p@dovar#1{#1\protect\@dovar\null}
+\def\@dovar{\variable} % #1 = \fi from defn of |
+
+%% Set up _ as \_ outside math mode and \sb in math mode:
+%% (in case you use _ outside math mode)
+\catcode`\_=\active \def_{\ifmmode\sb\else\p@sb\fi}
+\def\p@sb{\protect\@sb}
+\def\@sb{\_}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Section (3). Program Schemas.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Definitions for bold subscripted symbols, eg:
+%  \B1  or \B{}  or  \B{12} ... etc.
+% We check for ' so \B', \S''' etc will work as expected.
+\def\A{\boldsub{A}}
+\def\B{\boldsub{B}}
+\def\P{\boldsub{P}}
+\def\Q{\boldsub{Q}}
+\def\R{\boldsub{R}}
+\def\S{\boldsub{S}}
+\def\T{\boldsub{T}}
+\def\Z{\boldsub{Z}}
+
+% some bold letters:
+\def\d{\boldsub{d}}
+\def\t{\boldsub{t}}
+\def\w{\boldsub{w}}
+\def\x{\boldsub{x}}
+\def\y{\boldsub{y}}
+\def\z{\boldsub{z}}
+
+\newif\ifMmode \Mmodefalse
+
+\def\boldvar#1{{\mbox{\normalshape\bf #1}}}
+
+\def\boldsub#1{%
+  \relax% to fool array and other alignments
+  \ifmmode
+    \Mmodetrue
+  \else
+    $\Mmodefalse
+  \fi
+ \mbox{\normalshape\bf #1}%
+ \@boldsub
+}
+
+   % Use \mathchoice (typesets all 4) if this is needed for
+   % subscripts or superscripts (costs ~0.5 seconds per symbol!):
+   % NB use of \text should fix this with AMSLaTeX.
+   %\mathchoice{\mbox{\series{bx}\shape{n}\selectfont #1}}%
+   %           {\mbox{\series{bx}\shape{n}\selectfont #1}}%
+   %           {\mbox{\normalshape\bf\scriptsize #1}}%
+   %           {\mbox{\normalshape\bf\tiny #1}}%
+
+\def\@nothing{} \def\@prime{'}
+\def\@boldsub#1{%
+   \def\@boldsubthing{#1}% subscript
+   \ifx\@boldsubthing\@nothing% empty
+      \let\@boldsubnext\@boldsubfinish
+   \else
+      \ifx\@boldsubthing\@prime%
+	 \def\@boldsubnext{^\bgroup\prime\@absorbprimes}%
+      \else
+	 \def\@boldsubnext{_{#1}\@boldsubfinish}\fi
+   \fi
+   \@boldsubnext
+}
+
+\def\@absorbprimes{\futurelet\@boldsubnext\@seeifprime}
+\def\@seeifprime{%
+   \ifx\@boldsubnext'%
+      \def\@boldsubnext{\@getprime}%
+   \else
+      \def\@boldsubnext{\egroup\@boldsubfinish}%
+   \fi
+   \@boldsubnext
+}
+\def\@getprime'{\prime\@absorbprimes}
+\def\@boldsubfinish{\ifMmode\else$\fi}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Section (4). Maths notation used in programs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Notation for sets of the form {...|...} :
+% Eg: \set{x \in N | x>0}  becomes:
+% \left\{\left.\,  x \in N \:\right\origbar\: x>0 \,\right\}
+% set brackets and | grow to fit the size if their contents.
+% Also: \bigset{...|...} becomes: 
+%                        \bigl\{\, ... \mathrel{\bigm\origbar} ... \, \bigr\}
+% \bigset is in an aligned environment, so it can include \\
+% (AMSLaTeX only)
+%
+\def\set#1{\@@set#1\@end} % strip of the {} and pass to \@@set
+\def\@@set#1|#2\@end{\left\{\left.\, #1 \:\right\origbar\:
+		     #2 \,\right\} }
+\def\bigset#1{\@bigset#1\@end} % strip of the {} and pass to \@bigset
+\@ifundefined{aligned}
+{% Not AMSLaTeX:
+  \def\@bigset#1|#2\@end{\bigl\{\, #1 {\:\bigm\origbar\:}
+			 #2 \,\bigr\} }
+}{% With AMSLaTeX:
+  \def\@bigset#1|#2\@end{\begin{aligned}[t]\bigl\{\, #1 {\:\bigm\origbar\:}&
+			 \let\@oldcr=\\\def\\{\@oldcr&{}}
+			 #2 \,\bigr\} \end{aligned} }
+}
+
+% Notation for substitution in programs:
+\def\sub[#1/#2|#3]{\left[\left.#1\,/\,#2\,\right\origbar\,#3\,\right]}
+\def\bigsub[#1/#2|#3]{\bigl[#1\,\bigm/\,#2\,\bigm\origbar\,#3\,\bigr]}
+% Use \modbar{x} for |x|:
+\def\modbar#1{\origbar #1\origbar}
+
+% Notation for a sequence in angle brackets:
+% \bigseq uses big size of brackets:
+% \def\seq#1{\left< #1 \right>}
+\def\seq#1{\langle #1 \rangle}
+\def\bigseq#1{\bigl< #1 \bigr>}
+
+% Notation for subsequences analogous to set notation:
+\def\subseq#1{\@@subseq#1\@end} % strip of the {} and pass to \@@subseq
+\def\@@subseq#1|#2\@end{\left<\left.\, #1 \:\right\origbar\:
+			#2 \,\right>}
+\def\bigsubseq#1{\@bigsubseq#1\@end} % strip of the {} and pass to \@bigsubseq
+\@ifundefined{aligned}
+{% Not AMSLaTeX:
+  \def\@bigsubseq#1|#2\@end{\bigl<\, #1 {\:\bigm\origbar\:}
+			    #2 \,\bigr> }
+}{% With AMSLaTeX:
+  \def\@bigsubseq#1|#2\@end{\begin{aligned}[t]\bigl<\, #1 {\:\bigm\origbar\:}&
+			    \let\@oldcr=\\\def\\{\@oldcr&{}}
+			    #2 \,\bigr> \end{aligned} }
+}
+
+% range dots, like \ldots but with two dots only (for 1..n etc.):
+\def\rdots{\mathinner{\ldotp\ldotp}}
+
+% Atomic Specification statement: for eg <x>/<y>.Q use: \atspec x/y. Q
+% This uses "/" and "." as argument delimiters:
+% \def\atspec #1/#2.{\seq{#1}\!/\!\seq{#2}\!.}
+\def\atspec #1/#2.{\seq{#1}/\seq{#2}.}
+
+% \Forall vars.formula and \Exists vars.formula:
+\def\Forall#1.{\forall #1.\,}
+\def\Exists#1.{\exists #1.\,}
+
+\def\EQT{\ \approx\ } % program equivalence.
+\def\LE{\ \le\ }      % program refinement.
+\def\NOT{\neg}
+% \AND and \OR relations have an extra thin space around them:
+\def\AND{\mathrel{\,\wedge\,}}
+\def\OR{\mathrel{\,\vee\,}}
+\def\EOR{\mathrel{\,\oplus\,}}
+\def\sbs{\subseteq}
+\def\im{\Rightarrow}
+% (use \iff and \implies for the "long" arrows)
+\def\union{\cup}
+\def\intersect{\cap}
+\def\lar{\leftarrow}
+\def\rar{\rightarrow}
+\def\wflt{\prec}
+\def\wfle{\preccurlyeq}
+\def\succstar{\mathrel{\succ\!\!^*}}
+\def\succeqstar{\mathrel{\succeq\!^*}}
+\def\gt{\ifmmode>\else{$>$}\fi}
+\def\lt{\ifmmode>\else{$<$}\fi}
+\def\tw{\ifmmode{}^\sim\else{${}^\sim$}\fi}
+
+
+% map and reduce operators:
+\def\bstar{\mathrel{\boldsymbol{*}}} % for *
+\def\bdiv{\boldsymbol{/}} % for /
+
+
+% Various arrows (taken from oz.sty):
+\let \rel       \leftrightarrow
+\let \tfun      \rightarrow
+\let \tinj      \rightarrowtail
+\def \tsur      {\mathrel{\ooalign{$\tfun$\hfil\cr$\mkern4mu\tfun$}}}
+\def \pfun      {\p\tfun}
+\def \pinj      {\p\tinj}
+\def \psur      {\p\tsur}
+\def \ffun      {\f\tfun}
+\def \finj      {\f\tinj}
+\def \bij       {\mathrel{\ooalign{$\tinj$\hfil\cr$\mkern5mu\tfun$}}}
+\def\p#1{\mathrel{\ooalign{\hfil$\mapstochar\mkern 5mu$\hfil\cr$#1$}}}
+\def\f#1{\mathrel{\ooalign{\hfil
+	$\mapstochar\mkern 3mu\mapstochar\mkern 5mu$\hfil\cr$#1$}}}
+
+%% Logical exclusive or:
+\def\exor{\oplus}
+
+%% Sequence concatenation:
+\def\concat{\mathrel{+\!\!\!+}}
+
+\def\rmtiny{\rm\tiny}
+
+%% Stack operations:
+\def\push{\mathrel{\overset{\mbox{\rmtiny push}}{\longleftarrow}}}
+\def\pop {\mathrel{\overset{\mbox{\rmtiny  pop}}{\longleftarrow}}}
+\def\pick{\mathrel{\overset{\mbox{\rmtiny pick}}{\longleftarrow}}}
+\def\last{\mathrel{\overset{\mbox{\rmtiny last}}{\longleftarrow}}}
+
+%% bitwise operators
+\def\bitand {\mathrel{\overset{\mbox{\tiny bit}}{\wedge}}}
+\def\bitor  {\mathrel{\overset{\mbox{\tiny bit}}{\vee}}} 
+\def\bitexor{\mathrel{\overset{\mbox{\tiny bit}}{\vphantom\vee\smash\oplus}}}
+\def\bitnot{{\overset{\mbox{\tiny bit}}{\vphantom\vee\neg}}}
+
+%% Logical, decimal and floating point operators:
+\def\lplus {\mathrel{\overset{\mbox{\tiny log}}{+}}}
+\def\lminus{\mathrel{\overset{\mbox{\tiny log}}{-}}}
+\def\lmult {\mathrel{\overset{\mbox{\tiny log}}{\times}}}
+\def\ldiv  {\mathrel{\overset{\mbox{\tiny log}}{\div}}}
+\def\lequ  {\mathrel{\overset{\mbox{\tiny log}}{=}}}
+\def\lneq  {\mathrel{\overset{\mbox{\tiny log}}{\neq}}}
+\def\lless {\mathrel{\overset{\mbox{\tiny log}}{<}}}
+\def\lgreat{\mathrel{\overset{\mbox{\tiny log}}{>}}}
+\def\lleq  {\mathrel{\overset{\mbox{\tiny log}}{\leq}}}
+\def\lgreq {\mathrel{\overset{\mbox{\tiny log}}{\geq}}}
+\def\dplus {\mathrel{\overset{\mbox{\tiny dec}}{+}}}
+\def\dminus{\mathrel{\overset{\mbox{\tiny dec}}{-}}}
+\def\dmult {\mathrel{\overset{\mbox{\tiny dec}}{\times}}}
+\def\ddiv  {\mathrel{\overset{\mbox{\tiny dec}}{\div}}}
+\def\deq   {\mathrel{\overset{\mbox{\tiny dec}}{=}}}
+\def\dneq  {\mathrel{\overset{\mbox{\tiny dec}}{\neq}}}
+\def\dless {\mathrel{\overset{\mbox{\tiny dec}}{<}}}
+\def\dgreat{\mathrel{\overset{\mbox{\tiny dec}}{>}}}
+\def\dleq  {\mathrel{\overset{\mbox{\tiny dec}}{\leq}}}
+\def\dgreq {\mathrel{\overset{\mbox{\tiny dec}}{\geq}}}
+\def\fplus {\mathrel{\overset{\mbox{\tiny fpt}}{+}}}
+\def\fminus{\mathrel{\overset{\mbox{\tiny fpt}}{-}}}
+\def\fmult {\mathrel{\overset{\mbox{\tiny fpt}}{\times}}}
+\def\fdiv  {\mathrel{\overset{\mbox{\tiny fpt}}{\div}}}
+\def\feq   {\mathrel{\overset{\mbox{\tiny fpt}}{=}}}
+\def\fneq  {\mathrel{\overset{\mbox{\tiny fpt}}{\neq}}}
+\def\fless {\mathrel{\overset{\mbox{\tiny fpt}}{<}}}
+\def\fgreat{\mathrel{\overset{\mbox{\tiny fpt}}{>}}}
+\def\fleq  {\mathrel{\overset{\mbox{\tiny fpt}}{\leq}}}
+\def\fgreq {\mathrel{\overset{\mbox{\tiny fpt}}{\geq}}}
+
+%% mod and div:
+\def\MOD{\mathrel{\text{mod}}}
+\def\DIV{\mathrel{\text{div}}}
+
+%% add the definition of overset if not present:
+\@ifundefined{overset}%
+  {\def\overset#1#2{\binrel@{#2}%
+     \binrel@@{\mathop{\kern\z@#2}\limits^{#1}}}
+   \def\binrel@#1{\setboxz@h{\thinmuskip0mu
+      \medmuskip\m@ne mu\thickmuskip\@ne mu$#1\m@th$}%
+     \setbox@ne\hbox{\thinmuskip0mu\medmuskip\m@ne mu\thickmuskip
+      \@ne mu${}#1{}\m@th$}%
+     \setbox\tw@\hbox{\hskip\wd@ne\hskip-\wdz@}}
+   \def\binrel@@#1{\ifdim\wd2<\z@\mathbin{#1}\else\ifdim\wd\tw@>\z@
+     \mathrel{#1}\else{#1}\fi\fi}%
+   \def\setboxz@h{\setbox\z@\hbox}%
+   \def\setbox@ne{\setbox\@ne}%
+   \def\wd@ne{\wd\@ne}%
+   \def\wdz@{\wd\z@}%
+  }{}
+
+%% =df symbol (with thick space around it):
+\def\edf{\mathrel{\;=_{{}_{\mbox{\rmtiny DF}}}\;}}
+
+%% empty set symbol: (use \varnothing if available)
+\@ifundefined{varnothing}%
+	     {\let\nullset=\emptyset}%
+	     {\let\nullset=\varnothing}%
+
+%% Powerset symbol:
+\@ifundefined{DeclareMathSymbol}{%
+%% check if \teurm defined - if not then use \oldwp (Large and raised):
+\@ifundefined{teurm}%
+  {\def\powerset{\raisebox{0.5ex}{\Large$\oldwp$}}}% no \eurm
+  {\def\powerset{\raisebox{0.5ex}{\Large\teurm\char"7D}}}% Use Euler roman p
+}{%
+\DeclareSymbolFont{eulerletters}{U}{eur}{m}{n}%
+\DeclareMathSymbol{\powersetsymbol}{\mathord}{eulerletters}{"7D}%
+\def\powerset{\raisebox{0.5ex}{\Large$\powersetsymbol$}}
+}%
+
+
+%% The stmaryrd style and fonts include \bigsqcap, but if you don't have
+%% it, here is an alternative using rules (only works at standard size):
+\@ifundefined{bigsqcap}
+  {\def\bigsqcap{\mathop{%
+		\rule[-0.2ex]{.07em}{2.17ex}%
+		\rule[1.8ex]{0.5em}{.17ex}%
+		\rule[-0.2ex]{.07em}{2.17ex}}}}
+  {\relax}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Section (5). Miscellaneous bits and pieces
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% Substitute for some AMSLaTeX things if they are missing:
+\@ifundefined{text}{\let\text=\mbox}{}
+\@ifundefined{boldsymbol}{\def\boldsymbol#1{\mbox{\bf #1}}}{}
+\@ifundefined{implies}{\def\implies{\;\Longrightarrow\;}}{}
+\@ifundefined{operatorname}{\def\operatorname#1{\mathop{#1}}}{}
+
+
+% \snugbox is by Victor Eijhout, eijkhout@cs.utk.edu, TUGboat 13, 1, 1992.
+% It sets a box containing paragraphs as wide ``as it really is''
+\def\snugbox{\mbox\bgroup
+%            ^^^^^ changed from \hbox by M.Ward
+  \setbox\z@\vbox\bgroup
+    \leftskip\z@
+    \bgroup\aftergroup\make@snug
+    \let\next=}
+\def\make@snug{\par\sn@gify\egroup
+  \box\z@\egroup}
+\def\sn@gify
+  {\skip\z@=\lastskip \unskip
+   \advance\skip\z@\lastskip \unskip
+   \unpenalty
+   \setbox\z@\lastbox
+   \ifvoid\z@ \nointerlineskip
+     \else {\sn@gify} \fi
+   \hbox{\unhbox\z@}\nointerlineskip
+   \vskip\skip\z@
+   }
+% To vertically centre the box:
+\def\textvcenter{\hbox\bgroup$
+  \everyvbox{\everyvbox{}%
+    \aftergroup$%
+    \aftergroup\egroup}
+  \vcenter}
+
+
+%% Cases environment:
+%% based on description environment with numbering:
+\def\Cases{
+  \ifnum \@enumdepth >3 \@toodeep\else
+    \advance\@enumdepth \@ne
+    \edef\@enumctr{enum\romannumeral\the\@enumdepth}%
+     \@ifundefined{mathindent}
+     {\list{\kern-1em\hbox{\normalshape\bf Case \arabic{\@enumctr}:}}%
+	   {\usecounter{\@enumctr}%
+	     \def\makelabel##1{##1}}}%
+     {\list{\kern-1em\hbox{\normalshape\bf Case \arabic{\@enumctr}:}}% 
+	   {\mathindent 0pt \usecounter{\@enumctr}%
+	     \def\makelabel##1{##1}}}%
+  \fi}
+
+\let\endCases=\endlist
+
+%% \CASES is redundant with amstex.sty
+\def\CASES#1{\left\{\,\vcenter{{\let\\=\cr\normalbaselines\m@th
+    \ialign{$##\hfil$&\quad##\hfil\crcr#1\crcr}}}\right.}
+
+%% Environment romanenumerate for lists numbered by roman numerals:
+\def\romanenumerate{\begingroup
+  \def\theenumi{\normalshape(\myroman{enumi})}%
+  \def\p@enumi{}%
+  \def\labelenumi{\theenumi}%
+  \enumerate}
+\def\endromanenumerate{\endenumerate\endgroup}
+
+%% A fix to get lower case Roman numerals for use as labels:
+\def\myroman#1{\@myroman{\@nameuse{c@#1}}}
+\def\@myroman#1{\expandafter{\romannumeral #1}}
+
+%% \proof macro for theorems and lemmas:
+\def\proof{\normalshape{\setlength{\parskip}{0pt}\par\addvspace\medskipamount
+			\noindent{\bf Proof: }}\ignorespaces}
+
+%% require the {...} for \wp and \WP
+\let\oldwp=\wp % save old \wp (curly p character)
+%\def\wp#{\@wp}
+%\def\@wp#1{\mbox{\normalshape wp}(#1)}
+%\def\WP#{\@WP}
+%\def\@WP#1{\mbox{\normalshape WP}(#1)}
+%% Don't require {...}, ie use normal parentheses where required:
+\def\wp{\mbox{\normalshape wp}}
+\def\WP{\mbox{\normalshape WP}}
+
+
+%% Two line displayed equation, eg:
+%% \[  \twoline{ a_very_long_left_hand_side \\
+%%                   {} = a_fairly_long_right_hand_side } \]
+%% Use in displayed maths mode.
+%% NB this is superseded by AMSLaTeX's multline environment.
+\def\twoline#1{\def\\{\hfill\cr\hfill}% \def only lasts to end of display
+	       \displaylines{\quad #1 \quad\cr}}
+
+%% Add a definition of \Bbb if not present:
+% We use poor man's bold to give an ``extra bold'' letter:
+\@ifundefined{Bbb}
+  {\def\Bbb{\protect\pBbb}
+   \def\pBbb#1{\setbox0=\hbox{\bf #1}
+	       \kern-.025em\copy0\kern-\wd0
+	       \kern.05em\copy0\kern-\wd0
+	       \kern-.025em\raise.0433em\box0 }}
+  {\relax}
+
+%% Add a definition of cases environment if not present:
+\@ifundefined{endcases}
+  {\def\cases{\left\{\def\arraystretch{1.2}\hskip-\arraycolsep
+     \array{l@{\quad}l}}
+   \def\endcases{\endarray\hskip-\arraycolsep\right.}}
+  {\relax}
+
+%% draw a line accross the page:
+\def\dashes{$\makebox[6in]{\hrulefill}$}
+
+%% A \qed command for the end of a proof:
+\@ifundefined{blacksquare}
+  {\def\qedsymbol{\vrule width.6em height.5em depth.1em\relax}}
+  {\let\qedsymbol=\blacksquare}
+\def\qed{\ifx\\\@eqncr\let\next\eqnarrayqed\else
+  \ifmmode\let\next\eqnqed\else
+    \let\next\textqed\fi\fi\next}
+%\def\eqnqed#1\]{\belowdisplayskip\z@\belowdisplayshortskip\z@
+%  \postdisplaypenalty\@M\relax#1
+%  \]\par{\lineskip\z@\baselineskip\z@\vbox to\z@{\vss\noindent\textqed}}} 
+%% simpler version from ROGERS@se.physto.vana using the primitive \eqno:
+\def\eqnqed#1\]{\relax#1\eqno\qedsymbol$$\ignorespaces}
+\def\textqed{{\unskip\nobreak\hfil\penalty50\hskip2em\null\nobreak\hfil
+	      $\qedsymbol$\parfillskip\z@\finalhyphendemerits0\par}}
+\def\eqnarrayqed{\\\noalign{\vspace{-\jot}%
+  {\lineskip\z@\baselineskip\z@%
+    \vbox to\z@{\vss\noindent\textqed}}%
+  \vspace{-\baselineskip}}}
+

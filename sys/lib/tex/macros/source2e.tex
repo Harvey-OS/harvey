@@ -1,0 +1,366 @@
+% \iffalse meta-comment
+%
+% Copyright 1994 the LaTeX3 project and the individual authors.
+% All rights reserved. For further copyright information see the file
+% legal.txt, and any other copyright indicated in this file.
+% 
+% This file is part of the LaTeX2e system.
+% ----------------------------------------
+% 
+%  This system is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see bugs.txt.
+% 
+% Please do not request updates from us directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+
+% This document will typeset the LaTeX sources as a single document.
+% This will produce quite a large file (roughly 455 pages) and may
+% take a long time.
+%
+% Some notes on processing this document are contained at the end
+% of this document, after \end{document}
+% 
+
+%
+% First a special index style for makeindex
+%
+\begin{filecontents}{source2e.ist}
+actual '='
+quote '!'
+level '>'
+preamble
+"\n \\begin{theindex} \n \\makeatletter\\scan@allowedfalse\n"
+postamble
+"\n\n \\end{theindex}\n"
+item_x1   "\\efill \n \\subitem "
+item_x2   "\\efill \n \\subsubitem "
+delim_0   "\\pfill "
+delim_1   "\\pfill "
+delim_2   "\\pfill "
+% The next lines will produce some warnings when
+% running Makeindex as they try to cover two different
+% versions of the program:
+lethead_prefix   "{\\bfseries\\hfil "
+lethead_suffix   "\\hfil}\\nopagebreak\n"
+lethead_flag       1
+heading_prefix   "{\\bfseries\\hfil "
+heading_suffix   "\\hfil}\\nopagebreak\n"
+headings_flag       1
+
+% and just for source2e:
+% Remove R so I is treated in sequence I J K not I II III
+page_precedence "rnaA"
+\end{filecontents}
+
+
+
+\documentclass{ltxdoc}
+
+\listfiles
+
+% Do not index some TeX primitives, and some common plain TeX commands.
+
+\DoNotIndex{\def,\long,\edef,\xdef,\gdef,\let,\global}
+\DoNotIndex{\if,\ifnum,\ifdim,\ifcat,\ifmmode,\ifvmode,\ifhmode,%
+            \iftrue,\iffalse,\ifvoid,\ifx,\ifeof,\ifcase,\else,\or,\fi}
+\DoNotIndex{\box,\copy,\setbox,\unvbox,\unhbox,\hbox,%
+            \vbox,\vtop,\vcenter}
+\DoNotIndex{\@empty,\immediate,\write}
+\DoNotIndex{\egroup,\bgroup,\expandafter,\begingroup,\endgroup}
+\DoNotIndex{\divide,\advance,\multiply,\count,\dimen}
+\DoNotIndex{\relax,\space,\string}
+\DoNotIndex{\csname,\endcsname,\@spaces,\openin,\openout,%
+            \closein,\closeout}
+\DoNotIndex{\catcode,\endinput}
+\DoNotIndex{\jobname,\message,\read,\the,\m@ne,\noexpand}
+\DoNotIndex{\hsize,\vsize,\hskip,\vskip,\kern,\hfil,\hfill,\hss}
+\DoNotIndex{\m@ne,\z@,\z@skip,\@ne,\tw@,\p@}
+\DoNotIndex{\dp,\wd,\ht,\vss,\unskip}
+
+% Set up the Index and Change History to use \part
+\IndexPrologue{\part*{Index}%
+                 \markboth{Index}{Index}%
+                 \addcontentsline{toc}{part}{Index}%
+                 The italic numbers denote the pages where the
+                 corresponding entry is described,
+                 numbers underlined point to the definition,
+                 all others indicate the places where it is used.}
+
+\GlossaryPrologue{\part*{Change History}%
+                 \markboth{Change History}{Change History}%
+                 \addcontentsline{toc}{part}{Change History}}
+
+% The standard \changes command modified slightly to better cope with
+% this multiple file document.
+\makeatletter
+\def\changes@#1#2#3{%
+  \let\protect\@unexpandable@protect
+  \edef\@tempa{\noexpand\glossary{#2\space\currentfile\space#1\levelchar
+                                 \expandafter\@gobble
+                                 \saved@macroname\actualchar
+                                 \string\verb\quotechar*%
+                                 \verbatimchar\saved@macroname
+                                 \verbatimchar:\levelchar #3}}%
+  \@tempa\endgroup\@esphack}
+\makeatother
+\RecordChanges
+\CodelineIndex
+\EnableCrossrefs
+
+\begin{document}
+ \title{The \LaTeXe\ Sources}
+ \author{%
+  Johannes Braams\\
+  David Carlisle\\
+  Alan Jeffrey\\
+  Leslie Lamport\\
+  Frank Mittelbach\\
+  Chris Rowley\\
+  Rainer Sch\"opf}
+
+% This command will be used to input the patch file
+% if that file exists.
+\newcommand{\includeltpatch}{%
+  \def\currentfile{ltpatch.ltx}
+  \part{ltpatch}
+  {\let\ttfamily\relax
+    \xdef\filekey{\filekey, \thepart={\ttfamily\currentfile}}}%
+  Things we did wrong\ldots
+  \IndexInput{ltpatch.ltx}}
+
+
+
+% Get the date from ltvers.dtx
+\makeatletter
+\let\patchdate=\@empty
+\begingroup
+   \def\ProvidesFile#1\fmtversion#2{\date{#2}\endinput}
+   \input{ltvers.dtx}
+\global\let\X@date=\@date
+
+% Add the patch version if available.
+   \long\def\Xdef#1#2#3\def#4#5{%
+    \xdef\X@date{#2}%
+    \xdef\patchdate{#5}%
+    \endinput}%
+   \InputIfFileExists{ltpatch.ltx}
+    {\let\def\Xdef}{\global\let\includeltpatch\relax}
+\endgroup
+
+\ifx\@date\X@date
+   \edef\@date{\@date\space\patchdate}
+\else
+   \@warning{ltpatch.ltx does not match ltvers.dtx!}
+   \let\includeltpatch\relax
+\fi
+\makeatother
+
+ \pagenumbering{roman}
+ \maketitle
+ \renewcommand\maketitle{}
+
+ \tableofcontents
+
+ \clearpage
+
+ \pagenumbering{arabic}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Each of the following \DocInclude lines includes a file with extension
+% .dtx. Each of these files may be typeset separately. For instance
+% latex ltboxes.dtx
+% will typeset the source of the LaTeX box commands.
+%
+% If this file is processed, each of these separate dtx files will be
+% contained as a part of a single document. Using ltxdoc.cfg you can
+% then optionally produce a combined index and/or change history for
+% the entire source of the format file. Note that such a document will
+% be quite large (about 455 pages).
+%
+
+ \DocInclude{ltdirchk} % System dependant initialisation
+
+ \DocInclude{ltplain}  % LaTeX version of Knuth's plain.tex
+
+ \DocInclude{ltvers}   % Current version date
+
+ \DocInclude{ltalloc}  % Allocation of counters and others.
+
+ \DocInclude{ltdefns}  % Initial definitions.
+
+ \DocInclude{ltcntrl}  % Program control macros.
+
+ \DocInclude{lterror}  % Error handling.
+
+ \DocInclude{ltpar}    % Paragraphs.
+
+ \DocInclude{ltspace}  % Spacing, line and page breaking.
+
+ \DocInclude{ltlogos}  % Logos.
+
+ \DocInclude{ltfiles}  % \input files and related commands
+
+ \DocInclude{ltoutenc} % Output encoding interface
+
+ \DocInclude{ltfss}    % NFSS2
+
+ \DocInclude{fontdef}  % fonttext.ltx/fontmath.ltx
+
+ \DocInclude{preload}  % preload.ltx
+
+ \DocInclude{ltfntcmd} % \textrm etc
+ 
+ \DocInclude{ltcounts} % Counters
+
+ \DocInclude{ltpageno} % Page numbering
+
+ \DocInclude{ltxref}   % Cross referencing
+
+ \DocInclude{ltlength} % Lengths
+
+ \DocInclude{ltmiscen} % Miscellaneous environment definitions.
+
+ \DocInclude{ltmath}   % Mathematics set up.
+
+ \DocInclude{ltlists}  % List and related environments
+
+ \DocInclude{ltboxes}  % Parbox and friends
+
+ \DocInclude{lttab}    % Tabbing tabular and array
+
+ \DocInclude{ltpictur} % Picture mode
+
+ \DocInclude{ltthm}    % Theorem environments
+
+ \DocInclude{ltsect}   % Sectioning
+
+ \DocInclude{ltfloat}  % Floats
+
+ \DocInclude{ltidxglo} % Index and Glossary
+
+ \DocInclude{ltbibl}   % Bibliography
+
+ \DocInclude{ltpage}   % \pagestyle \raggedbottom \sloppy
+
+ \DocInclude{ltoutput} % Output routine
+
+ \DocInclude{ltclass}  % Package & Class interface
+
+ \DocInclude{lthyphen} % Hyphenation (lthyphen.ltx).
+
+ \DocInclude{ltfinal}  % Last minute initialisations and dump
+
+ \includeltpatch       % Corrections distributed after the full release
+
+% Stop here if ltxdoc.cfg says \AtEndOfClass{\OnlyDescription}
+\StopEventually{\end{document}}
+
+\clearpage
+\pagestyle{headings}
+
+% Make TeX shut up.
+\hbadness=10000
+\newcount\hbadness
+\hfuzz=\maxdimen
+
+\typeout{%
+  Produce change log with^^J%
+  makeindex -s gglo.ist -o source2e.gls source2e.glo}
+
+\PrintChanges
+
+\clearpage
+
+% makeindex needs a symbol between the parts of composite page numbers
+% but we dont want one, so:
+\typeout{%
+  Produce index with^^J%
+  makeindex -s source2e.ist source2e.idx}
+
+\begingroup
+\def\endash{--}
+\catcode`\-\active
+\def-{\futurelet\temp\indexdash}
+\def\indexdash{\ifx\temp-\endash\fi}
+
+\PrintIndex
+\endgroup
+
+% Make sure that the index is not printed twice
+% (ltxdoc.cfg might have a second \PrintIndex command)
+\let\PrintChanges\relax
+\let\PrintIndex\relax
+
+\end{document}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+To use this file to produced a fully indexed source code
+you need to execute the following (or equivalent) commands:
+
+   latex source2e.tex
+
+   makeindex -s source2e.ist source2e.idx
+   makeindex -s gglo.ist -o source2e.gls source2e.glo
+
+   latex source2e.tex
+   latex source2e.tex
+
+
+The makeindex style source2e.ist is used in place of the usual
+doc gind.ist to ensure that I is used in the sequence I J K
+not I II II, which would be the default makeindex behaviour.
+
+The third run with latex is only required to get the table of
+contents entries for the change log and index. You may speed things up
+by using the \includeonly mechanism so as not to typeset the source
+files on the second run. This involves changing the file
+ltxdoc.cfg
+between the latex runs.
+
+The following unix batch file automates this.
+  (It could easily be ported to scripts for DOS or VMS,
+   rm is ReMove a file, and echo "..." > file writes ... to "file".)
+
+On a sparc10 sun unix machine, this script takes
+about 17 minutes to run.
+
+
+==============
+#!/bin/sh
+
+rm  source2e.gls source2e.ind source2e.toc
+
+echo "" > ltxdoc.cfg
+latex source2e.tex
+
+makeindex -s source2e.ist source2e.idx
+makeindex -s gglo.ist -o source2e.gls source2e.glo
+
+echo "\includeonly{}" > ltxdoc.cfg
+latex source2e.tex
+
+echo "" > ltxdoc.cfg
+latex source2e.tex
+

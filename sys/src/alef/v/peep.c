@@ -40,6 +40,8 @@ peep(void)
 		case ADATA:
 		case AGLOBL:
 		case ANAME:
+		case ADYNT:
+		case AINIT:
 			p = p->next;
 		}
 	}
@@ -80,6 +82,7 @@ loop1:
 		goto loop1;
 	/*
 	 * look for MOVB x,R; MOVB R,R
+	 *	    MOVW Ra, Rb; MOVW Rb, Ra
 	 */
 	for(r=firstr; r!=R; r=r->next) {
 		p = r->prog;
@@ -546,17 +549,15 @@ copyu(Inst *p, Adres *v, Adres *s)
 		if(v->type == A_FREG && v->reg == Retfregno)
 			return 2;
 
+		/* Fall through */
 	case AJAL:	/* funny */
 		if(v->type == A_REG) {
+			if(v->reg >= Pregs)
+				return 2;
 			if(v->reg == Regspass || v->reg == RegSP)
 				return 2;
 
 		}
-/*
-		if(v->type == A_FREG)
-			if(v->reg <= FREGEXT && v->reg > exfregival)
-				return 2;
-*/
 		if(s != A) {
 			if(copysub(&p->dst, v, s, 1))
 				return 1;

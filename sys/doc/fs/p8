@@ -1,0 +1,76 @@
+.SH
+9P Protocol Drivers
+.PP
+The file server described so far
+waits for 9P protocol messages to
+appear in its input queue.
+It processes each message and
+sends the reply back to the originator.
+There are groups of processes that
+perform protocol I/O on some network or
+device and the resulting messages
+are sent to the file system queue.
+The simplest of these is the driver
+for the Cyclone I/O board.
+The Cyclone is a fiber machine-to-machine
+interface on a VME bus.
+Each Cyclone board has an i960 computer on it.
+The i960 can do DMA transfers on the VME bus
+and can transmit and receive bytes over its
+fiber interface.
+The microcode on the i960 manages a set of
+buffers in the host memory.
+When a 9P message arrives on the fiber interface,
+the message is transferred into the host memory
+and placed in circular queue of buffers.
+The cyclone also has a circular queue of
+messages to transmit.
+The transfer rate averages about a megabyte per second and
+the latency is a few microseconds for a small
+message.
+Almost no protocol is involved.
+It is possible to checksum the messages,
+but there is such a low error rate that it
+has been disabled.
+.PP
+There are two Cyclones on Bootes.
+One interface goes to our main CPU server
+while the other is not used.
+.PP
+There is a set of two processes
+.CW lai
+and
+.CW lao
+that perform Ethernet input and output.
+These processes send Ethernet messages
+to/from two more processes
+.CW ilo
+and
+.CW ilt
+that do the IL reliable datagram protocol
+on top of IP packets.
+.PP
+There is another suite of five processes
+.CW dki ,
+.CW dko ,
+.CW dkp ,
+.CW dkt ,
+and
+.CW dkl
+that do the Datakit URP protocol on top of a
+Datakit device driver.
+The structure is such that more protocol
+stacks can be added to feed the file system.
+.PP
+The last process in Bootes,
+.CW con ,
+reads the console
+and calls internal subroutines to
+executes commands typed.
+Since there is only one process,
+only one command can be executing at a
+time.
+See
+.I fs (8)
+for a description of the
+commands available at the console.

@@ -15,13 +15,13 @@ char *scalltab[] = {
 	[CLOSE]		"close(%lud)",
 	[DUP]		"dup(%lud, %lud)",
 	[ALARM]		"alarm(%lud)",
-	[EXEC]		"exec(%lud, %lud)",
+	[EXEC]		"exec(%lux, %lux)",
 	[EXITS]		"exits(%lux)",
-	[_X1]		"deprecated()",
-	[_X2]		"deprecated()",
+	[FSESSION]	"session(%lud)",
+	[FAUTH]		"sysfauth(%lud, %lux)",
 	[FSTAT]		"fstat(%lud, %lux)",
 	[SEGBRK]	"segbrk(%lux, %lux)",
-	[MOUNT]		"mount(%lud, %lux, %lud, %lux, %lux)",
+	[MOUNT]		"mount(%lud, %lux, %lud, %lux)",
 	[OPEN]		"open(%lux, %luo)",
 	[READ]		"read(%lud, %lux, %lud)",
 	[SEEK]		"seek(%lud, %lud, %lud)",
@@ -56,12 +56,13 @@ printsyscall(void)
 	ulong args;
 	int i;
 
-	if (get4(cormap, mach->scalloff, SEGREGS, &callnr) == 0)
+	args = mach->scalloff+mach->kbase;
+	if (get4(cormap, args, &callnr) < 0)
 		return;
 	if (callnr >= sizeof(scalltab)/sizeof(scalltab[0]))
 			return;
-	for (args = mach->scalloff+4, i = 0; i < 5; i++, args += sizeof(ulong))
-		if (get4(cormap, args, SEGREGS, &sargs[i]) == 0)
+	for (args += 4, i = 0; i < 5; i++, args += sizeof(ulong))
+		if (get4(cormap, args, &sargs[i]) == 0)
 			return;
 	dprint(scalltab[callnr], sargs[0], sargs[1], sargs[2], sargs[3], sargs[4]);
 	dprint("\n");

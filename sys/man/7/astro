@@ -20,7 +20,7 @@ A prompt gives the input
 format.
 .TP
 .B l
-Read the north latitude, west longitude, and elevation of the observation point
+Read the north latitude, west longitude, and elevation of the observation point.
 A prompt gives the input format.
 If
 .B l
@@ -89,6 +89,8 @@ ecliptic star data
 .TP
 .B /lib/sky/here
 default latitude (N), longitude (W), and elevation (meters)
+.SH SOURCE
+.B /sys/src/cmd/astro
 .SH SEE ALSO
 .IR scat (7)
 .SH BUGS

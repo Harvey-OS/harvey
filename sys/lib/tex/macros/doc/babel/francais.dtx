@@ -1,0 +1,518 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 1989-1994 by Johannes Braams
+% All rights reserved.
+% For additional copyright information see further down in this file.
+% 
+% This file is part of the Babel system, release 3.4 patchlevel 2.
+% ----------------------------------------------------------------
+% 
+% This file is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+% 
+% 
+% IMPORTANT NOTICE:
+% 
+% For error reports in case of UNCHANGED versions see readme file.
+% 
+% Please do not request updates from me directly.  Distribution is
+% done through Mail-Servers and TeX organizations.
+% 
+% You are not allowed to change this file.
+% 
+% You are allowed to distribute this file under the condition that
+% it is distributed together with all files mentioned in manifest.txt.
+% 
+% If you receive only some of these files from someone, complain!
+% 
+% You are NOT ALLOWED to distribute this file alone.  You are NOT
+% ALLOWED to take money for the distribution or use of either this
+% file or a changed version, except for a nominal charge for copying
+% etc.
+% \fi
+% \CheckSum{407}
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "4.5c",
+%%%     date            = "27 June 1994",
+%%%     time            = "23:49:20 MET",
+%%%     filename        = "francais.dtx",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "16184 485 2054 18844",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, french",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the french language
+%%%                        specific definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+% \def\filename{francais.dtx}
+% \def\fileversion{v4.5c}
+% \def\filedate{1994/05/27}
+%
+% \iffalse
+% Babel DOCUMENT-STYLE option for LaTeX version 2e
+% Copyright (C) 1989 - 1994
+%           by Johannes Braams, PTT Research Neher Laboratories
+%              Bernard Gaulle, GUTenberg
+%
+% Please report errors to: J.L. Braams
+%                          J.L.Braams@research.ptt.nl
+%
+%    This file is part of the babel system, it provides the source
+%    code for the French language-specific file.
+%<*filedriver>
+\documentclass{ltxdoc}
+\newcommand\TeXhax{\TeX hax}
+\newcommand\babel{{\sf babel}}
+\newcommand\ttbs{\char'134}
+\newcommand\langvar{$\langle \it lang \rangle$}
+\newcommand\note[1]{}
+\newcommand\bsl{\protect\bslash}
+\newcommand\Lopt[1]{{\sf #1}}
+\newcommand\file[1]{{\tt #1}}
+\begin{document}
+ \DocInput{francais.dtx}
+\end{document}
+%</filedriver>
+%\fi
+%
+% \changes{french-2.0a}{2 apr 90}{Added checking of format}
+% \changes{french-2.1}{24 apr 90}{Reflect changes in babel 2.1}
+% \changes{french-2.1a}{14 may 90}{Incorporated Nico's comments}
+% \changes{french-2.1b}{16 july 90}{Fixed some typos}
+% \changes{french-2.2c}{27 august 90}{Modified the documentation
+%    somewhat}
+% \changes{french-3.0}{23 april 91}{Modified for babel 3.0}
+% \changes{french-3.0a}{23 may 91}{removed use of {\tt\bsl
+%    setlanguage}}
+% \changes{french-3.0b}{28 may 91}{renamed from {\tt french},
+%    including all control sequences}
+% \changes{french-4.0}{29 may 91}{included code from GUTenberg {\tt
+%    french.sty}}
+% \changes{french-4.1}{29 may 91}{Removed bug found by van der Meer}
+% \changes{french-4.2a}{15 july 91}{Renamed babel.sty in babel.com}
+% \changes{french-4.2f}{15 february 92}{Brought up-to-date with babel
+%    3.2a}
+% \changes{french-4.2f}{15 february 92}{Removed crossreferencing
+%    macros as they are dealt with in {\tt babel.com}}
+% \changes{french-4.5}{1994/02/27}{Update for LaTeX2e}
+% \changes{french-4.5c}{1994/06/26}{Removed the use of \cs{filedate}
+%    and moved the identification after the loading of babel.def}
+%
+%  \section{The French language}
+%
+%    The file \file{\filename}\footnote{The file described in this
+%    section has version number \fileversion\ and was last revised on
+%    \filedate. This file was initially derived from the original
+%    version of \file{german.sty}, which has some definitions for
+%    French. Later the definitions from \file{french.sty} version 2
+%    were added.} defines all the language-specific macros for the
+%    French language.
+%
+%    French typographic rules specify that a little white space should
+%    be added before `double puctuation' characters. These characters
+%    are {\tt :}, {\tt ;}, {\tt !} and {\tt ?}. In order to get this
+%    whitespace automatigically the category code of these characters
+%    is made |\active|.
+%
+% \StopEventually{}
+%
+%    As this file needs to be read only once, we check whether it was
+%    read before. If it was, the |\captionsfrancais| is already
+%    defined, so we can stop processing. If this command is undefined
+%    we proceed with the various definitions and first show the
+%    current version of this file.
+%
+% \changes{french-4.2a}{15 july 91}{Added reset of catcode of @ before
+%                                  {\tt\bsl endinput}.}
+% \changes{french-4.2e}{29 okt 91}{Removed use of {\tt\bsl
+%                                  @ifundefined}}
+%    \begin{macrocode}
+\ifx\undefined\captionsfrancais
+\else
+  \selectlanguage{francais}
+  \expandafter\endinput
+\fi
+%    \end{macrocode}
+%
+% \changes{french-4.2e}{29 okt 91}{Removed code to load {\tt latexhax.com}}
+%
+% \begin{macro}{\atcatcode}
+%    This file, \file{francais.sty}, may have been read while \TeX\ is
+%    in the middle of processing a document, so we have to make sure
+%    the category code of {\tt @} is `letter' while this file is being
+%    read. We save the category code of the @-sign in
+%    |\atcatcode| and make it `letter'. Later the category code
+%    can be restored to whatever it was before.
+% \changes{french-4.1a}{6 june 91}{Made test of catcode of @ more
+%                                  robust}
+% \changes{french-4.2a}{15 july 91}{Modified handling of catcode of @
+%                                   again.}
+% \changes{french-4.2e}{29 okt 91}{Removed use of {\tt\bsl makeatletter}
+%                                  and hence the need to load {\tt
+%                                  latexhax.com}}
+%    \begin{macrocode}
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+%    \end{macrocode}
+% \end{macro}
+%
+%    Now we determine whether the the common macros from the file
+%    \file{babel.def} need to be read. We can be in one of two
+%    situations: either another language option has been read earlier
+%    on, in which case that other option has already read
+%    \file{babel.def}, or {\tt francais} is the first language option
+%    to be processed. In that case we need to read \file{babel.def}
+%    right here before we continue.
+% \changes{french-3.0}{23 april 1991}{New check before loading
+%                                     babel.com}
+% \changes{french-4.2f}{16 feb 92}{Added {\tt\bsl relax} after the
+%                                  argument of {\tt\bsl input}}
+%    \begin{macrocode}
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+%    \end{macrocode}
+%
+%    Tell the \LaTeX\ system who we are and write an entry on the
+%    transcript.
+%    \begin{macrocode}
+\ProvidesFile{francais.sty}[1994/06/26 v4.5c
+         French support from the babel system]
+%    \end{macrocode}
+%
+% \changes{french-4.1}{29 may 91}{Add a check for existence
+%                                {\tt\bsl originalTeX}}
+%    Another check that has to be made, is if another language specific
+%    file has been read already. In that case its definitions have
+%    been activated. This might interfere with definitions this file
+%    tries to make. Therefore we make sure that we cancel any
+%    special definitions. This can be done by checking the existence
+%    of the macro |\originalTeX|. If it exists we simply execute it,
+%    otherwise it is |\let| to |\empty|.
+% \changes{french-4.2a}{15 july 91}{Added {\tt\bsl let\bsl
+%                                   orinalTeX\bsl relax} to test for
+%                                   existence}
+% \changes{french-4.2f}{16 feb 92}%
+%        {{\tt\bsl originalTeX} should be expandable, {\tt\bsl let} it
+%         to {\tt\bsl empty}}
+%    \begin{macrocode}
+\ifx\undefined\originalTeX \let\originalTeX\empty \fi
+\originalTeX
+%    \end{macrocode}
+%
+%    When this file is read as an option, i.e. by the |\usepackage|
+%    command, {\tt francais} will be an `unknown' language in which
+%    case we have to make it known.  So we check for the existence of
+%    |\l@francais| to see whether we have to do something here.
+%
+% \changes{french-3.0}{23 april 91}{Now use {\tt\bsl adddialect} if
+%    language undefined}
+% \changes{french-4.2e}{29 okt 91}{Removed use of {\tt\bsl
+%    @ifundefined}}
+% \changes{french-4.2f}{16 feb 92}{Added a warning when no hyphenation
+%    patterns were loaded.}
+% \changes{french-4.5c}{1994/06/26}{Now use \cs{@nopatterns} to
+%    produce the warning}
+%    \begin{macrocode}
+\ifx\undefined\l@francais
+    \@nopatterns{Francais}
+    \adddialect\l@francais0\fi
+%    \end{macrocode}
+%    The next step consists of defining commands to switch to the
+%    English language. The reason for this is that a user might want
+%    to switch back and forth between languages.
+%
+% \begin{macro}{\captionsfrancais}
+%    The macro |\captionsfrancais| defines all strings used in the
+%    four standard document classes provided with \LaTeX.
+% \changes{french-4.1a}{6 june 91}{Removed {\tt\bsl global}
+%    definitions}
+% \changes{french-4.2f}{16 feb 92}{Added {\tt\bsl seename}, {\tt\bsl
+%    alsoname} and {\tt\bsl prefacename}}
+% \changes{francais-4.4}{11 jul 93}{`headpagename should be `pagename}
+%    \begin{macrocode}
+\addto\captionsfrancais{%
+  \def\prefacename{Pr\'eface}%
+  \def\refname{R\'ef\'erences}%
+  \def\abstractname{R\'esum\'e}%
+  \def\bibname{Bibliographie}%
+  \def\chaptername{Chapitre}%
+  \def\appendixname{Annexe}%
+  \def\contentsname{Table des mati\`eres}%
+  \def\listfigurename{Liste des figures}%
+  \def\listtablename{Liste des tableaux}%
+  \def\indexname{Index}%
+  \def\figurename{Figure}%
+  \def\tablename{Tableau}%
+  \def\partname{Partie}%
+  \def\enclname{P.~J.}%
+  \def\ccname{Copie \`a}%
+  \def\headtoname{A}
+  \def\pagename{Page}%
+  \def\seename{voir}%
+  \def\alsoname{voir aussi}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\datefrancais}
+%    The macro |\datefrancais| redefines the command
+%    |\today| to produce French dates.
+% \changes{french-4.1a}{6 june 91}{Removed {\tt\bsl global}
+%                                  definitions}
+%    \begin{macrocode}
+\def\datefrancais{%
+\def\today{\ifnum\day=1\relax 1\/$^{\rm er}$\else
+  \number\day\fi \space\ifcase\month\or
+  janvier\or f\'evrier\or mars\or avril\or mai\or juin\or
+  juillet\or ao\^ut\or septembre\or octobre\or novembre\or
+  d\'ecembre\fi
+  \space\number\year}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\extrasfrancais}
+% \changes{french-4.3}{20 feb 92}{Completely rewrote macro}
+% \begin{macro}{\noextrasfrancais}
+%    The macro |\extrasfrancais| will perform all the extra
+%    definitions needed for the French language. The macro
+%    |\noextrasfrancais| is used to cancel the actions of
+%    |\extrasfrancais|.
+%
+%    The category code of the characters {\tt :}, {\tt ;}, {\tt !} and
+%    {\tt ?} is made |\active| to insert a little white space.
+%    Therefore they have to be treated as `special' characters.
+%    \begin{macrocode}
+\addto\extrasfrancais{%
+  \babel@add@special\;\babel@add@special\:
+  \babel@add@special\!\babel@add@special\?}
+%    \end{macrocode}
+%
+%    When |\noextrasfrancais| is executed they are no longer `special'.
+%    \begin{macrocode}
+\addto\noextrasfrancais{\babel@remove@special\;\babel@remove@special\:%
+                        \babel@remove@special\!\babel@remove@special\?}
+%    \end{macrocode}
+%
+%    Before the category codes of these characters can be changed their
+%    current category codes need to be stored in order to restore them
+%    later.
+% \changes{french-4.3a}{02/07/92}{`add should be `addto}
+%    \begin{macrocode}
+\addto\extrasfrancais{%
+  \babel@savevariable{\catcode`\;}\babel@save\active@sc
+  \babel@savevariable{\catcode`\:}\babel@save\active@co
+  \babel@savevariable{\catcode`\!}\babel@save\active@em
+  \babel@savevariable{\catcode`\?}\babel@save\active@qm}
+%    \end{macrocode}
+%
+%    Now that the category codes are stored we can assign new category
+%    codes to these four characters.
+%    \begin{macrocode}
+\addto\extrasfrancais{%
+  \catcode`\;\active\catcode`\:\active
+  \catcode`\!\active\catcode`\?\active}
+%    \end{macrocode}
+%    And we can define them.
+% \changes{french-4.3b}{06/04/93}{When active characters are defined
+%                                 they should be active. Redid the
+%                                 coding to match that in dutch. Also
+%                                 : and ; got mixed up}
+%    \begin{macrocode}
+\begingroup
+\catcode`\;\active\catcode`\:\active
+\catcode`\!\active\catcode`\?\active
+\def\x{\endgroup
+  \addto\extrasfrancais{%
+    \babel@save;\def;{\protect\active@sc}\let\active@sc\french@active@sc
+    \babel@save:\def:{\protect\active@co}\let\active@co\french@active@co
+    \babel@save!\def!{\protect\active@em}\let\active@em\french@active@em
+    \babel@save?\def?{\protect\active@qm}\let\active@qm\french@active@qm}}
+\x
+%    \end{macrocode}
+%
+%    Apart from those four active characters two of \TeX's accenting
+%    macros, |\"| and |\^| will be redefined, so we need to store
+%    their original meaning as well.
+%    \begin{macrocode}
+\addto\extrasfrancais{%
+  \babel@save\"
+  \def\"{\protect\french@dieresis}%
+  \babel@save\^
+  \def\^{\protect\french@circumflex}}
+%    \end{macrocode}
+%
+%    The last thing |\extrasfrancais| needs to do is to make
+%    sure that |\frenchspacing| is in effect.
+%    If this is not the case the execution of |\noextrasfrancais|
+%    will switch it of again.
+% \changes{french-4.3a}{02/07/92}{Removed spurious `endgroup and
+%                                 {\tt\}}}
+%    \begin{macrocode}
+\addto\extrasfrancais{%
+    \ifnum\the\sfcode`\.=\@m
+      \frenchspacing
+      \addto\noextrasfrancais{\nonfrenchspacing}%
+    \fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\french@active@sc}
+%  \changes{french-4.3b}{04/04/93}{Replaced `, with `thinspace to make
+%                                  it work with plain TeX.}
+%    The definitions for four new active characters are made using the
+%    four macros |\french@active@sc|, |\french@active@co|,
+%    |\french@active@em| and |\french@active@qm|. The first macros
+%    have to insert a little white space before {\tt;}, {\tt:} and
+%    {\tt!}. This should only happen outsite mathmode, hence the test
+%    with |\ifmmode|.
+%    \begin{macrocode}
+\def\french@active@sc{%
+    \ifmmode
+      \string;%
+    \else\relax
+      \ifhmode
+        \ifdim\lastskip>\z@
+          \unskip\penalty\@M\thinspace
+        \fi
+      \fi
+      \string;%
+    \fi}%
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\french@active@co}
+%  \changes{french-4.3b}{04/04/93}{Replaced `, with `thinspace to make
+%                                  it work with plain TeX.}
+% \begin{macro}{\french@active@em}
+%  \changes{french-4.3b}{04/04/93}{Replaced `, with `thinspace to make
+%                                  it work with plain TeX.}
+%    Because these definitions are very similar only one is displayed
+%    in a way that the definition can be easily checked.
+%    \begin{macrocode}
+\def\french@active@co{\ifmmode\string:\else\relax
+    \ifhmode\ifdim\lastskip>\z@
+    \unskip\penalty\@M\thinspace\fi\fi\string:\fi}
+\def\french@active@em{\ifmmode\string!\else\relax
+    \ifhmode\ifdim\lastskip>\z@
+    \unskip\penalty\@M\thinspace\fi\fi\string!\fi}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\french@active@qm}
+%  \changes{french-4.3b}{04/04/93}{Replaced `, with `thinspace to
+%                                  make it work with plain TeX.}
+%    For the question mark something different has to be done. In this
+%    case some whitespace has to be removed.
+%    \begin{macrocode}
+\def\french@active@qm{%
+    \ifmmode\string?
+    \else\relax%
+      \ifhmode\ifdim\lastskip>\z@
+        \unskip\kern\fontdimen2\font
+        \kern-1.4\fontdimen3\font
+    \fi\fi
+    \string?\fi}
+%    \end{macrocode}
+% \end{macro}
+%
+%    All that is left to do now is provide the french user with some
+%    extra utilities.
+%
+%    Some definitions for special characters.
+%    \begin{macrocode}
+\def\at{{\char '100}}
+\def\boi{{\tt\char '134}}
+\def\circonflexe{{\char '136}}
+\def\tild{{\char '176}}
+\def\degre{{\char '27}}
+%    \end{macrocode}
+%
+%    The following macros are used in the redefinition
+%    of |\^| and |\"| to handle the letter i.
+%    \begin{macrocode}
+\def\french@circumflex#1{{\accent"5E \if#1i\i\else#1\fi}}
+\def\french@dieresis#1{{\accent"7F \if#1i\i\else#1\fi}}
+%    \end{macrocode}
+%
+%    A macro for typesetting things like 1\raise1ex\hbox{\small er} as
+%    proposed by Raymon Seroul.
+%    \begin{macrocode}
+\def\up#1{\raise 1ex\hbox{\small#1}}
+%    \end{macrocode}
+%
+%    Definitions as provided by Nicolas Brouard for typing |\No3| to
+%    get 3\kern-.25em\lower.2ex\hbox{\char'27} and for typing
+%    |4\ieme| to get 4$^{\rm e }$\kern+.17em.
+%    \begin{macrocode}
+\def\No{\kern-.25em\lower.2ex\hbox{\degre}}
+\def\ieme{$^{\rm e }$\kern+.17em}
+%    \end{macrocode}
+%
+%    And some more macros for numbering.
+%    First two support macros.
+%    \begin{macrocode}
+\def\FrenchEnumerate#1{$#1^{\rm o}$\kern+.29em}
+\def\FrenchPopularEnumerate#1{#1\No\kern-.25em)\kern+.3em}
+%    \end{macrocode}
+%
+%    Typing |\primo| should result in `$1^{\rm o}$\kern+.29em',
+%    \begin{macrocode}
+\def\primo{\FrenchEnumerate1}
+\def\secundo{\FrenchEnumerate2}
+\def\tertio{\FrenchEnumerate3}
+\def\quatro{\FrenchEnumerate4}
+%    \end{macrocode}
+%    while typing |\fprimo)| gives
+%    `1\kern-.25em\lower.2ex\hbox{\char'27}\kern-.25em)\kern+.3em'.
+%    \begin{macrocode}
+\def\fprimo){\FrenchPopularEnumerate1}
+\def\fsecundo){\FrenchPopularEnumerate2}
+\def\ftertio){\FrenchPopularEnumerate3}
+\def\fquatro){\FrenchPopularEnumerate4}
+%    \end{macrocode}
+%
+% Our last action is to activate the commands we have just defined,
+% by calling the macro |\selectlanguage|.
+%    \begin{macrocode}
+\selectlanguage{francais}
+%    \end{macrocode}
+%    Finally, the category code of {\tt @} is reset to its original
+%    value. The macrospace used by |\atcatcode| is freed.
+% \changes{french-4.2a}{15 july 91}{Modified handling of catcode of
+%                       @-sign.}
+%    \begin{macrocode}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%    \end{macrocode}
+%
+% \Finale
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput

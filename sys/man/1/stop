@@ -26,6 +26,10 @@ command of
 or pipe into
 .IR rc (1)
 to execute the commands.
+.SH SOURCE
+.B /rc/bin/stop
+.br
+.B /rc/bin/start
 .SH "SEE ALSO"
 .IR ps (1),
 .IR kill (1),

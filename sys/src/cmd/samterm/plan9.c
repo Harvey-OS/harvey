@@ -17,6 +17,33 @@ getscreen(int argc, char **argv)
 }
 
 int
+screensize(int *w, int *h)
+{
+	int fd, n;
+	char buf[5*12+1];
+
+	fd = open("/dev/screen", OREAD);
+	if(fd < 0)
+		return 0;
+	n = read(fd, buf, sizeof(buf)-1);
+	close(fd);
+	if(n != sizeof(buf)-1)
+		return 0;
+	buf[n] = 0;
+	if(h){
+		*h = atoi(buf+4*12)-atoi(buf+2*12);
+		if (*h < 0)
+			return 0;
+	}
+	if(w){
+		*w = atoi(buf+3*12)-atoi(buf+1*12);
+		if (*w < 0)
+			return 0;
+	}
+	return 1;
+}
+
+int
 snarfswap(char *fromsam, int nc, char **tosam)
 {
 	char *s1;
@@ -30,10 +57,10 @@ snarfswap(char *fromsam, int nc, char **tosam)
 	close(f);
 	if(n < 0)
 		n = 0;
-	if (n == 0) {
+	if(n == 0){
 		*tosam = 0;
 		free(s1);
-	} else
+	}else
 		s1[n] = 0;
 	f = create("/dev/snarf", 1, 0666);
 	if(f >= 0){
@@ -66,15 +93,11 @@ extstart(void)
 		return;
 	sprint(exname, "/srv/sam.%s", getuser());
 	fd = create(exname, 1, 0600);
-	if(fd < 0){
-		remove(exname);
-		fd = create(exname, 1, 0600);
-		if(fd < 0){
-	Err:
-			close(p[0]);
-			close(p[1]);
-			return;
-		}
+	if(fd < 0){	/* assume existing guy is more important */
+    Err:
+		close(p[0]);
+		close(p[1]);
+		return;
 	}
 	sprint(buf, "%d", p[0]);
 	if(write(fd, buf, strlen(buf)) <= 0)

@@ -70,6 +70,10 @@ static int checkfont(char *name)
 		if (fgets(buf, sizeof buf, fp) == NULL)
 			break;
 		sscanf(buf, "%s", buf2);
+		if (buf2[0] == '#') {
+			i--;
+			continue;
+		}
 		if (eq(buf2, "name") || eq(buf2, "fontname") ||
 		    eq(buf2, "special") || eq(buf2, "charset")) {
 			status = 1;
@@ -120,10 +124,13 @@ getfont(char *name, int pos)	/* create width tab for font */
 					sscanf(s1, "%d", &wid);
 					sscanf(s2, "%d", &kern);
 					code = strtol(s3, 0, 0);	/* dec/oct/hex */
-				} /* else it's a synonym for prev character, */
-					/* so leave previous values intact */
+				}
+				/* otherwise it's a synonym for prev character, */
+				/* so leave previous values intact */
 
-				/* decide what kind of alphabet it might come from */
+
+				/* decide what kind of alphabet it might come from here */
+
 
 				if (strlen(ch) == 1) {	/* it's ascii */
 					n = ch[0];	/* origin includes non-graphics */
@@ -131,10 +138,12 @@ getfont(char *name, int pos)	/* create width tab for font */
 				} else if (ch[0] == '\\' && ch[1] == '0') {
 					n = strtol(ch+1, 0, 0);	/* \0octal or \0xhex */
 					chtemp[n].num = n;
+#ifdef UNICODE
 				} else if (mbtowc(&wc, ch, strlen(ch)) > 1) {
 					chtemp[nw].num = chadd(ch,  MBchar, Install);
 					n = nw;
 					nw++;
+#endif	/*UNICODE*/
 				} else {
 					if (strcmp(ch, "---") == 0) { /* no name */
 						sprintf(ch, "%d", code);
@@ -148,7 +157,7 @@ getfont(char *name, int pos)	/* create width tab for font */
 				chtemp[n].wid = wid;
 				chtemp[n].kern = kern;
 				chtemp[n].code = code;
-				/* fprintf(stderr, "font %2.2s char %4.4s num %3d wid %2d code %3d\n",
+				/*fprintf(stderr, "font %2.2s char %4.4s num %3d wid %2d code %3d\n",
 					ftemp->longname, ch, n, wid, code);
 				*/
 			}
@@ -168,8 +177,8 @@ getfont(char *name, int pos)	/* create width tab for font */
 		ftemp->wp[i] = chtemp[i];
 /*
  *	printf("%d chars: ", nw);
- *	for (i = 0; i < nw; i++) {
- *		if (ftemp->wp[i].num > 0 && ftemp->wp[i].num < ALPHABET)
+ *	for (i = 0; i < nw; i++)
+ *		if (ftemp->wp[i].num > 0 && ftemp->wp[i].num < ALPHABET) {
  *			printf("%c %d ", ftemp->wp[i].num, ftemp->wp[i].wid);
  *		else if (i >= ALPHABET)
  *			printf("%d (%s) %d ", ftemp->wp[i].num,
@@ -179,7 +188,6 @@ getfont(char *name, int pos)	/* create width tab for font */
  */
 	return 1;
 }
-
 
 chadd(char *s, int type, int install)	/* add s to global character name table; */
 {					/* or just look it up */
@@ -202,17 +210,17 @@ chadd(char *s, int type, int install)	/* add s to global character name table; *
 
 	chnames[nchnames] = p = (char *) malloc(strlen(s)+1+1);	/* type + \0 */
 	if (p == NULL) {
-		ERROR "out of space adding character %s\n", s WARN;
+		ERROR "out of space adding character %s", s WARN;
 		return LEFTHAND;
 	}
-	if (nchnames >= NCHARS) {
-		ERROR "out of table space adding character %s\n", s WARN;
+	if (nchnames >= NCHARS - ALPHABET) {
+		ERROR "out of table space adding character %s", s WARN;
 		return LEFTHAND;
 	}
 	strcpy(chnames[nchnames]+1, s);
 	chnames[nchnames][0] = type;
 /* fprintf(stderr, "installed %c%s at %d\n", type, s, nchnames); /* */
-	return ALPHABET + nchnames++;
+	return nchnames++ + ALPHABET;
 }
 
 char *chname(int n)	/* return string for char with index n */
@@ -222,7 +230,6 @@ char *chname(int n)	/* return string for char with index n */
 	else
 		return "";
 }
-
 
 getlig(FILE *fin)	/* pick up ligature list */
 {

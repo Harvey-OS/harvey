@@ -1,0 +1,3 @@
+#!/bin/rc
+unmount /n/b: >[2] /dev/null
+mount -c /srv/dos /n/b: /dev/fd1disk

@@ -3,7 +3,7 @@
 void
 span(void)
 {
-	Prog *p;
+	Prog *p, *q;
 	Sym *setext;
 	Optab *o;
 	int m;
@@ -14,6 +14,32 @@ span(void)
 	Bflush(&bso);
 	c = INITTEXT;
 	for(p = firstp; p != P; p = p->link) {
+		/* bug in early 4000 chips delayslot on page boundary */
+		if((c&(0x1000-1)) == 0xffc) {
+			switch(p->as) {
+			case ABGEZAL:
+			case ABLTZAL:
+			case AJAL:
+			case ABEQ:
+			case ABGEZ:
+			case ABGTZ:
+			case ABLEZ:
+			case ABLTZ:
+			case ABNE:
+			case ABFPT:
+			case ABFPF:
+			case AJMP:
+				q = prg();
+				*q = *p;
+				p->link = q;
+				p->as = ANOR;
+				p->optab = 0;
+				p->from = zprg.from;
+				p->from.type = D_REG;
+				p->from.reg = REGZERO;
+				p->to = p->from;
+			}
+		}
 		p->pc = c;
 		o = oplook(p);
 		m = o->size;
@@ -90,7 +116,7 @@ aclass(Adr *a)
 		switch(a->name) {
 		case D_EXTERN:
 		case D_STATIC:
-			if(a->sym == 0) {
+			if(a->sym == 0 || a->sym->name == 0) {
 				print("null sym external\n");
 				print("%D\n", a);
 				return C_GOK;
@@ -131,11 +157,30 @@ aclass(Adr *a)
 	case D_LO:
 		return C_HI;
 
+	case D_OCONST:
+		switch(a->name) {
+		case D_EXTERN:
+		case D_STATIC:
+			s = a->sym;
+			t = s->type;
+			if(t == 0 || t == SXREF) {
+				diag("undefined external: %s in %s\n",
+					s->name, TNAME);
+				s->type = SDATA;
+			}
+			offset = s->value + a->offset + INITDAT;
+			if(s->type == STEXT || s->type == SLEAF)
+				offset = s->value + a->offset;
+			return C_LCON;
+		}
+		return C_GOK;
+
 	case D_CONST:
 		switch(a->name) {
 
 		case D_NONE:
 			offset = a->offset;
+		consize:
 			if(offset > 0) {
 				if(offset <= 0x7fff)
 					return C_SCON;
@@ -156,13 +201,21 @@ aclass(Adr *a)
 		case D_EXTERN:
 		case D_STATIC:
 			s = a->sym;
+			if(s == S)
+				break;
 			t = s->type;
-			if(t == 0 || t == SXREF) {
+			switch(t) {
+			case 0:
+			case SXREF:
 				diag("undefined external: %s in %s\n",
 					s->name, TNAME);
 				s->type = SDATA;
-			}
-			if(s->type == STEXT || s->type == SLEAF) {
+				break;
+			case SCONST:
+				offset = s->value + a->offset;
+				goto consize;
+			case STEXT:
+			case SLEAF:
 				offset = s->value + a->offset;
 				return C_LCON;
 			}
@@ -423,6 +476,9 @@ buildop(void)
 		case ASLL:
 			oprange[ASRL] = oprange[r];
 			oprange[ASRA] = oprange[r];
+			oprange[ASLLV] = oprange[r];
+			oprange[ASRAV] = oprange[r];
+			oprange[ASRLV] = oprange[r];
 			break;
 		case ASUB:
 			oprange[ASUBU] = oprange[r];
@@ -446,6 +502,8 @@ buildop(void)
 			break;
 		case AMOVWL:
 			oprange[AMOVWR] = oprange[r];
+			oprange[AMOVVR] = oprange[r];
+			oprange[AMOVVL] = oprange[r];
 			break;
 		case AMOVW:
 			buildrep(0, AMOVW);
@@ -455,6 +513,9 @@ buildop(void)
 			break;
 		case AMOVF:
 			buildrep(6, AMOVF);
+			break;
+		case AMOVV:
+			buildrep(7, AMOVV);
 			break;
 		case ABREAK:
 		case AWORD:
@@ -474,7 +535,7 @@ buildrep(int x, int as)
 	Optab *e, *s, *o;
 	int a1, a2, a3, n;
 
-	if(C_NONE != 0 || C_REG != 1 || C_GOK >= 32) {
+	if(C_NONE != 0 || C_REG != 1 || C_GOK >= 32 || x >= nelem(opcross)) {
 		diag("assumptions fail in buildrep");
 		errorexit();
 	}

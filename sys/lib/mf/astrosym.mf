@@ -1,0 +1,78 @@
+% ASTROSYM.MF  : AstroSym (Version 1.00, May 1, 1992) - file 2 of 7
+% Peter Schmitt                     eMail: a8131dal@awiuni11.bitnet
+% Institute of Mathematics, University of Vienna    Vienna, Austria
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+mode_setup;
+font_size = .4cm;                  % scaling factor U = diameter of sun symbol
+font_identifier = "AstroSym";
+font_coding_scheme = "special purpose: astronomical symbols";
+
+%%%%%%%%%%% 
+% font size ( U = diameter of sun symbol )
+%%%%%%%%%%%
+
+U# := .4cm#;
+u# := (1/64)*U#; 
+
+define_pixels(U,u);
+
+input astrosym.mac;                         % macro file
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% version 1: calligraphic
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+O := 0;                      % offset value for character position
+
+P# := 4u#;                   % width of thick strokes
+p# := .5u#;                  % width of thin strokes
+
+define_pixels(P,p);
+corrections;
+
+input astrosym.com;          % symbols with common code definition
+input astrosym.cal;          % symbols with special code
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% version 2: uniform: thick
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+O:=100;                      % offset value for character position
+
+P# := 4u#;                   % widths of thick and thin strokes set equal 
+p# := 4u#;
+define_pixels (P,p);
+corrections;
+let arrow = Arrow;           % different arrow shape
+let Pen = PEN;                % all pens are equal
+let SPEN = PEN;
+let RPEN = PEN;
+
+input astrosym.com;          % symbols with common code definition
+input astrosym.uni;          % symbols with special code
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% version 2: uniform: thin
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+O:=200;                      % offset value value for character position
+
+P# := 2u#;                   % widths of thick and thin strokes set equal 
+p# := 2u#;
+define_pixels (P,p);
+corrections;
+                             % repeated for the sake of completeness
+let arrow = Arrow;           % different arrow shape
+let Pen = PEN;               % all pens are equal
+let SPEN = PEN;
+let RPEN = PEN;
+
+input astrosym.com;          % symbols with common code definition
+input astrosym.uni;          % symbols with special code
+
+%%%%%%%%
+bye
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% end of ASTROSYM.MF %%%

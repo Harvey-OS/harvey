@@ -1,0 +1,2 @@
+#!/bin/rc
+exec runq /mail/faxoutqueue /sys/lib/fax/faxrunq < /dev/null > /dev/null >[2=1] &

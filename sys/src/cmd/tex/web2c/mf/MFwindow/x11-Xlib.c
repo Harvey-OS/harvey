@@ -1,5 +1,5 @@
 /*
-X Window System version 11 (release 3) interface for Metafont.
+X Window System version 11 (release 3 et al.) interface for Metafont.
  
 Modified from Tim Morgan's X Version 11 routines by Richard Johnson.
 Modified from that by Karl Berry <karl@umb.edu>.  8/3/89
@@ -13,7 +13,7 @@ Metafont*geometry: 500x600+200+200
 You cannot give the geometry on the command line (who would want to)?
 
 The width and height specified in the resource must not be larger than
-the screenwidth and screendepth defined in ../../mfdir/ctex.ch.
+the screenwidth and screendepth defined in ../mf/cmf.ch.
 If they are, then I reset them to the maximum.
 
 We don't handle Expose events in general. This means that the window
@@ -25,7 +25,7 @@ how to know what to redraw. The right way to do this is probably to fork
 a process, and keep a Pixmap around of the contents of the window.
 
 I could never have done this without David Rosenthal's Hello World
-program for X. See $X/core/doc/HelloWorld.
+program for X. See $X/mit/doc/HelloWorld.
 
 All section numbers refer to Xlib -- C Language X Interface.  */
 
@@ -36,7 +36,6 @@ All section numbers refer to Xlib -- C Language X Interface.  */
 
 #ifdef	X11WIN
 
-#undef __STDC__
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>

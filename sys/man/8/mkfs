@@ -1,6 +1,6 @@
 .TH MKFS 8
 .SH NAME
-mkfs, mkext, flio \- archive or update a file system
+mkfs, mkext \- archive or update a file system
 .SH SYNOPSIS
 .B disk/mkfs
 .RB [ -aprv ]
@@ -19,13 +19,8 @@ mkfs, mkext, flio \- archive or update a file system
 .IR name ]
 .RB [ -u ]
 .RB [ -h ]
+.RB [ -v ]
 .I file ...
-.PP
-.B disk/flio
-.RB [ -io ]
-.RB [ -b
-.IR bsize ]
-.I diskfile ...
 .SH DESCRIPTION
 .I Mkfs
 copies files from the file tree
@@ -89,14 +84,15 @@ are not updated and not removed.
 The options to
 .I mkfs
 are:
+.TF "s source"
 .TP
 .B a
 Instead of writing to a
 .B kfs
 file system, write an archive file to standard output, suitable for
-.I mkext.
+.IR mkext .
 All files in
-.I proto,
+.IR proto ,
 not just those out of date, are archived.
 .TP
 .BI "n " name
@@ -119,7 +115,8 @@ Copy from files rooted at the tree
 Copy file
 .I users
 into
-.BR /adm/users .
+.B /adm/users
+in the new system.
 .TP
 .B v
 Print the names of all of the files as they are copied.
@@ -129,22 +126,25 @@ Copy files assuming kfs block
 .I n
 (default 1024)
 bytes long.
-If a block contains only 0 bytes, it is not copied.
+If a block contains only 0-valued bytes, it is not copied.
+.PD
 .PP
 .I Mkext
 unpacks archive files made by the
 .B -a
 option of
-.I mkfs.
+.IR mkfs .
 The
 .B -d
-option specifies a directory to serve as the root of the unpacked file system.
+option specifies a directory (default
+.BR /n/kfs )
+to serve as the root of the unpacked file system.
 The
 .B -u
 option, to be used only when initializing a new
 .IR fs (4)
 file system, sets the owners of the files created to correspond to
-those in the archive.
+those in the archive and restores the modification times of the files.
 (This is only permitted at the initial load of the files into a file
 system.)
 Each file on the command line is unpacked in one pass through the archive.
@@ -155,33 +155,11 @@ does not exist.
 If no files are specified, the entire archive is unpacked;
 in this case, missing intermediate directories are not created.
 The
+.B -v
+option prints the names and sizes of files as they are extracted;
 .B -h
-option prints headers for the files on standard output
+prints headers for the files on standard output
 instead of unpacking the files.
-.PP
-.I Flio
-allows multiple floppy disks to be treated as a single volume.
-With the
-.B -i
-option
-.I flio
-reads consecutive floppies from the device file,
-.IR diskfile ,
-and writes the contents to standard output.
-With the
-.B -o
-option
-.I flio
-reads from standard input and writes to
-.IR diskfile .
-The user is prompted whenever a new disk needs to be inserted.
-The
-.B -b
-option specifies a blocking factor to be used on the floppy.
-.I Bsize
-is a number of bytes (default 1024) or, with a trailing
-.BR k ,
-a multiple of 1024 bytes.
 .SH EXAMPLES
 .PP
 Make an archive to establish a new file system:
@@ -197,22 +175,19 @@ srv il!newfs
 mount -c /srv/il!newfs /n/newfs
 disk/mkext -u -d /n/newfs < arch
 .EE
-.PP
-Unpack an archive from a set of floppy disks:
-.IP
-.EX
-srv il!newfs
-mount -c /srv/il!newfs /n/newfs
-disk/flio -b 32k -i /dev/fd0disk | disk/mkext -u -d /n/newfs
-.EE
 .SH FILES
+.TP
+.B /lib/proto
+directory of prototype files.
 .TP
 .B /lib/proto/portproto
 generic prototype file.
-.TP
-.B /lib/proto/cdaproto
-prototype file for cda programs and libraries.
+.SH SOURCE
+.B /sys/src/cmd/disk/mkfs.c
+.br
+.B /sys/src/cmd/disk/mkext.c
 .SH "SEE ALSO"
 .IR prep (8),
 .IR kfscmd (8),
-.IR hard (3)
+.IR wren (3) ,
+.IR pip (8)

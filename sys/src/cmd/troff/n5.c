@@ -10,6 +10,7 @@
 
 int	iflist[NIF];
 int	ifx;
+int	ifnum = 0;	/* trying numeric expression for .if or .ie condition */
 
 void casead(void)
 {
@@ -54,9 +55,8 @@ void casena(void)
 void casefi(void)
 {
 	tbreak();
-	fi++;
+	fi = 1;
 	pendnf = 0;
-	lnsize = LNSIZE;
 }
 
 
@@ -173,8 +173,11 @@ void casein(void)
 
 	if (skip())
 		i = in1;
-	else 
+	else {
 		i = max(hnumb(&in), 0);
+		if (nonumb)
+			i = in1;
+	}
 	tbreak();
 	in1 = in;
 	in = i;
@@ -191,8 +194,11 @@ void casell(void)
 
 	if (skip())
 		i = ll1;
-	else 
+	else {
 		i = max(hnumb(&ll), INCH / 10);
+		if (nonumb)
+			i = ll1;
+	}
 	ll1 = ll;
 	ll = i;
 	setnel();
@@ -205,8 +211,11 @@ void caselt(void)
 
 	if (skip())
 		i = lt1;
-	else 
+	else {
 		i = max(hnumb(&lt), 0);
+		if (nonumb)
+			i = lt1;
+	}
 	lt1 = lt;
 	lt = i;
 }
@@ -232,8 +241,11 @@ void casels(void)
 	noscale++;
 	if (skip())
 		i = ls1;
-	else 
+	else {
 		i = max(inumb(&ls), 1);
+		if (nonumb)
+			i = ls1;
+	}
 	ls1 = ls;
 	ls = i;
 	noscale = 0;
@@ -267,8 +279,8 @@ void casepl(void)
 		pl = 11 * INCH; /*11in*/
 	else 
 		pl = i;
-	if (numtab[NL].val > pl)
-		numtab[NL].val = pl;
+	if (numtabp[NL].val > pl)
+		numtabp[NL].val = pl;
 }
 
 
@@ -339,7 +351,7 @@ void casepn(void)
 
 	skip();
 	noscale++;
-	i = max(inumb(&numtab[PN].val), 0);
+	i = max(inumb(&numtabp[PN].val), 0);
 	noscale = 0;
 	if (!nonumb) {
 		npn = i;
@@ -357,7 +369,7 @@ void casebp(void)
 		return;
 	savframe = frame;
 	skip();
-	if ((i = inumb(&numtab[PN].val)) < 0)
+	if ((i = inumb(&numtabp[PN].val)) < 0)
 		i = 0;
 	tbreak();
 	if (!nonumb) {
@@ -370,10 +382,42 @@ void casebp(void)
 
 void casetm(void)
 {
-	casetm1(0);
+	casetm1(0, stderr);
 }
 
-void casetm1(int ab) 
+
+void casefm(void)
+{
+	static struct fcache {
+		char *name;
+		FILE *fp;
+	} fcache[15];
+	int i;
+
+	if ( skip() || !getname()) {
+		ERROR "fm: missing filename" WARN;
+		return;
+	}
+		
+	for (i = 0; i < 15 && fcache[i].fp != NULL; i++) {
+		if (strcmp(nextf, fcache[i].name) == 0)
+			break;
+	}
+	if (i >= 15) {
+		ERROR "fm: too many streams" WARN;
+		return;
+	}
+	if (fcache[i].fp == NULL) {
+		if( (fcache[i].fp = fopen(nextf, "w")) == NULL) {
+			ERROR "fm: cannot open %s", nextf WARN;
+			return;
+		}
+		fcache[i].name = strdupl(nextf);
+	}
+	casetm1(0, fcache[i].fp);
+}
+
+void casetm1(int ab, FILE *out) 
 {
 	int i, j, c;
 	char *p;
@@ -381,8 +425,25 @@ void casetm1(int ab)
 
 	lgf++;
 	copyf++;
-	if (skip() && ab)
-		ERROR "User Abort" WARN;
+	if (ab) {
+		if (skip())
+			ERROR "User Abort" WARN;
+		else {
+			extern int error;
+			int savtrac = trace;
+			i = trace = 0;
+			noscale++;
+			i = inumb(&trace);
+			noscale--;
+			if (i) {
+				error = i;
+				if (nlflg || skip())
+					ERROR "User Abort, exit code %d", i WARN;
+			}
+			trace = savtrac;
+		}
+	} else
+		skip();	
 	for (i = 0; i < NTM - 2; ) {
 		if ((c = cbits(getch())) == '\n' || c == RIGHT)
 			break;
@@ -401,15 +462,27 @@ void casetm1(int ab)
 		} else if (c == OHC) {
 			tmbuf[i++] = '\\';
 			tmbuf[i++] = '%';
-		} else if (c >= ALPHABET && c < nchnames + ALPHABET) {	/* \N DOESN'T WORK YET */
+		} else if (c >= ALPHABET) {
 			p = chname(c);
-			if ((j = strlen(p)) == 2)
-				sprintf(&tmbuf[i], "\\(%s", p);
-			else {
-				sprintf(&tmbuf[i], "\\C'%s'", p);
-				j += 2;
+			switch (*p) {
+			case MBchar:
+				sprintf(&tmbuf[i], p+1);
+				break;
+			case Number:
+				sprintf(&tmbuf[i], "\\N'%s'", p+1);
+				break;
+			case Troffchar:
+				if ((j = strlen(p+1)) == 2)
+					sprintf(&tmbuf[i], "\\(%s", p+1);
+				else
+					sprintf(&tmbuf[i], "\\C'%s'", p+1);
+				break;
+			default:
+				sprintf(&tmbuf[i]," %s? ", p);
+				break;
 			}
-			i += j + 2;
+			j = strlen(&tmbuf[i]);
+			i += j;
 		} else
 			tmbuf[i++] = c;
 	}
@@ -417,7 +490,9 @@ void casetm1(int ab)
 	if (ab)	/* truncate output */
 		obufp = obuf;	/* should be a function in n2.c */
 	flusho();
-	fprintf(stderr, "%s\n", tmbuf);
+	if (i)
+		fprintf(out, "%s\n", tmbuf);
+	fflush(out);
 	copyf--;
 	lgf--;
 }
@@ -451,7 +526,7 @@ void casesp1(int a)
 	if (dip != d)
 		i = dip->dnl; 
 	else 
-		i = numtab[NL].val;
+		i = numtabp[NL].val;
 	if ((i + j) < 0)
 		j = -i;
 	lss = j;
@@ -468,7 +543,7 @@ void casert(void)
 	if (dip != d)
 		p = &dip->dnl; 
 	else 
-		p = &numtab[NL].val;
+		p = &numtabp[NL].val;
 	a = vnumb(p);
 	if (nonumb)
 		a = dip->mkline;
@@ -582,7 +657,9 @@ void caseif1(int x)
 		notflag = 0;
 		ch = i;
 	}
+	ifnum++;
 	i = atoi0();
+	ifnum = 0;
 	if (!nonumb) {
 		if (i > 0)
 			true++;
@@ -591,11 +668,11 @@ void caseif1(int x)
 	i = getch();
 	switch (cbits(i)) {
 	case 'e':
-		if (!(numtab[PN].val & 01))
+		if (!(numtabp[PN].val & 01))
 			true++;
 		break;
 	case 'o':
-		if (numtab[PN].val & 01)
+		if (numtabp[PN].val & 01)
 			true++;
 		break;
 	case 'n':
@@ -624,11 +701,13 @@ i2:
 		ch = i;
 		nflush++;
 	} else {
-		copyf++;
-		falsef++;
-		eatblk(0);
-		copyf--;
-		falsef--;
+		if (!nlflg) {
+			copyf++;
+			falsef++;
+			eatblk(0);
+			copyf--;
+			falsef--;
+		}
 	}
 }
 
@@ -656,8 +735,11 @@ void eatblk(int inblk)
 		}
 		if (i == LEFT) eatblk(1);
 	} while ((!inblk && (i != '\n')) || (inblk && (i != RIGHT)));
-	if (i == '\n')
+	if (i == '\n') {
 		nlflg++;
+		if (ip == 0)
+			numtabp[CD].val++;
+	}
 }
 
 
@@ -762,7 +844,6 @@ rdtty(void)
 		if (tty != 3)
 			return(onechar);
 	}
-	popi();
 	tty = 0;
 	if (NROFF && quiet)
 		echo_on();
@@ -784,13 +865,18 @@ void caseeo(void)
 
 void caseta(void)
 {
-	int i;
+	int i, j, k;
 
 	tabtab[0] = nonumb = 0;
 	for (i = 0; ((i < (NTAB - 1)) && !nonumb); i++) {
 		if (skip())
 			break;
-		tabtab[i] = max(hnumb(&tabtab[max(i-1,0)]), 0) & TABMASK;
+		k = tabtab[max(i-1, 0)] & TABMASK;
+		if ((j = max(hnumb(&k), 0)) > TABMASK) {
+			ERROR "Tab too far away" WARN;
+			j = TABMASK;
+		}
+		tabtab[i] = j & TABMASK;
 		if (!nonumb) 
 			switch (cbits(ch)) {
 			case 'C':
@@ -804,6 +890,8 @@ void caseta(void)
 			}
 		nonumb = ch = 0;
 	}
+	if (!skip())
+		ERROR "Too many tab stops" WARN;
 	tabtab[i] = 0;
 }
 
@@ -816,6 +904,10 @@ void casene(void)
 	i = vnumb((int *)0);
 	if (nonumb)
 		i = lss;
+	if (dip == d && numtabp[NL].val == -1) {
+		newline(1);
+		return;
+	}
 	if (i > (j = findt1())) {
 		i = lss;
 		lss = j;
@@ -857,10 +949,10 @@ void caseul(void)
 	int i;
 
 	noscale++;
-	if (skip())
+	skip();
+	i = max(atoi0(), 0);
+	if (nonumb)
 		i = 1;
-	else 
-		i = atoi0();
 	if (ul && (i == 0)) {
 		font = sfont;
 		ul = cu = 0;
@@ -931,14 +1023,14 @@ void casemk(void)
 	if (dip != d)
 		j = dip->dnl; 
 	else 
-		j = numtab[NL].val;
+		j = numtabp[NL].val;
 	if (skip()) {
 		dip->mkline = j;
 		return;
 	}
 	if ((i = getrq()) == 0)
 		return;
-	numtab[findr(i)].val = j;
+	numtabp[findr(i)].val = j;
 }
 
 
@@ -979,28 +1071,35 @@ void casenm(void)
 		return;
 	lnmod++;
 	noscale++;
-	i = inumb(&numtab[LN].val);
+	i = inumb(&numtabp[LN].val);
 	if (!nonumb)
-		numtab[LN].val = max(i, 0);
+		numtabp[LN].val = max(i, 0);
 	getnm(&ndf, 1);
 	getnm(&nms, 0);
 	getnm(&ni, 0);
+	getnm(&nmwid, 3);	/* really kludgy! */
 	noscale = 0;
 	nmbits = chbits;
 }
 
-
+/*
+ * .nm relies on the fact that illegal args are skipped; don't warn
+ * for illegality of these
+ */
 void getnm(int *p, int min)
 {
 	int i;
+	int savtr = trace;
 
 	eat(' ');
 	if (skip())
 		return;
+	trace = 0;
 	i = atoi0();
 	if (nonumb)
 		return;
 	*p = max(i, min);
+	trace = savtr;
 }
 
 
@@ -1015,7 +1114,7 @@ void casenn(void)
 
 void caseab(void)
 {
-	casetm1(1);
+	casetm1(1, stderr);
 	done3(0);
 }
 

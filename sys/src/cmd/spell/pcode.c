@@ -107,7 +107,7 @@ readinput(int f)
 			exits("space");
 		}
 	}
-	Bclose(&buf);
+	Bterm(&buf);
 }
 
 

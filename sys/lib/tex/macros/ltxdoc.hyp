@@ -1,0 +1,126 @@
+%% 
+%% This is file `ltxdoc.hyp', generated on <1995/2/23> 
+%% with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% hyper.dtx  (with options: `ltxdoc')
+%% 
+%% IMPORTANT NOTICE:
+%% You are not allowed to distribute this file.
+%% For distribution of the original source see
+%% the copyright notice in the file hyper.dtx .
+%% 
+%% File: hyper.dtx Copyright (C) 1995 Michael Mehlich
+\def\fileversion{V2.3}
+\def\filedate{1995/02/12}
+\def\docdate{1995/02/12}
+%%
+%% \CharacterTable 
+%% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z 
+%%  Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z 
+%%  Digits        \0\1\2\3\4\5\6\7\8\9 
+%%  Exclamation   \!     Double quote  \"     Hash (number) \# 
+%%  Dollar        \$     Percent       \%     Ampersand     \& 
+%%  Acute accent  \'     Left paren    \(     Right paren   \) 
+%%  Asterisk      \*     Plus          \+     Comma         \, 
+%%  Minus         \-     Point         \.     Solidus       \/ 
+%%  Colon         \:     Semicolon     \;     Less than     \< 
+%%  Equals        \=     Greater than  \>     Question mark \? 
+%%  Commercial at \@     Left bracket  \[     Backslash     \\ 
+%%  Right bracket \]     Circumflex    \^     Underscore    \_ 
+%%  Grave accent  \`     Left brace    \{     Vertical bar  \| 
+%%  Right brace   \}     Tilde         \~} 
+%% 
+\let\hyper@part\@part
+\def\@part[#1]#2{%
+  \ifnum\c@secnumdepth>%
+-1\relax%
+      \refstepcounter{part}%
+      \ignore@next@refstepcounter%
+  \else%
+    \hyper@setcurrent%
+  \fi%
+  \global\let\@currenthyper\@currenthyper%
+  \callwithexpandedhyperref%
+    {\hyper@part}%
+    {#1}%
+    {\hyperanchor{\@currenthyper}{#2}}%
+}
+\let\hyper@spart\@spart
+\def\@spart#1{%
+  \hyper@setcurrent%
+  \global\let\@currenthyper\@currenthyper%
+  \hyper@spart{\hyperanchor{\@currenthyper}{#1}}%
+}
+\def\hyper@mkboth@do[#1][#2]{%
+  \markboth{#1}{#2}%
+}
+\def\hyper@mkboth#1#2{%
+  \callwithexpandedhyperref%
+    {\callwithexpandedhyperref{\hyper@mkboth@do}{#1}}%
+    {#2}%
+}
+\let\hyper@ps@headings\ps@headings
+\def\ps@headings{%
+  \hyper@ps@headings%
+  \let\@mkboth\hyper@mkboth%
+}
+\let\hyper@makecaption\@makecaption
+\long\def\@makecaption#1#2{%
+  \hyper@makecaption{\hyperanchor{\@currenthyper}{#1}}{#2}%
+}
+\if@titlepage\else
+\renewcommand\maketitle{\par
+  \begingroup
+    \renewcommand\thefootnote{\fnsymbol{footnote}}%
+    \def\@makefnmark{%
+      \hbox to\z@{%
+        $\m@th^{%
+           \hyperreference{%
+              fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage%
+           }%
+           {\@thefnmark}%
+         }$\hss}%
+    }%
+    \long\def\@makefntext##1{%
+      \bgroup%
+        \edef\@currenthyper{%
+           fn.\hyper@minipage@label.\@thefnmark.\hyper@thepage%
+        }%
+        \parindent 1em%
+        \noindent%
+        \hbox to1.8em%
+          {\hss$\m@th^{\hyperanchor{\@currenthyper}{\@thefnmark}}$}##1%
+       \egroup%
+    }%
+    \if@twocolumn
+      \ifnum \col@number=\@ne
+        \@maketitle
+      \else
+        \twocolumn[\@maketitle]%
+      \fi
+    \else
+      \newpage
+      \global\@topnum\z@
+      \@maketitle
+    \fi
+    \thispagestyle{plain}\@thanks
+  \endgroup
+  \setcounter{footnote}{0}%
+  \let\thanks\relax
+  \let\maketitle\relax\let\@maketitle\relax
+  \gdef\@thanks{}\gdef\@author{}\gdef\@title{}}
+\fi
+\let\hyper@titlepage\titlepage
+\def\titlepage{%
+  \hyper@titlepage%
+  \if@compatibility%
+     \global\setcounter{page}{0}%
+  \else%
+     \global\setcounter{page}{-1}%
+  \fi%
+}
+\endinput
+%% 
+%% End of file `ltxdoc.hyp'.

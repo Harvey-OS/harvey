@@ -1,7 +1,7 @@
 NPROC=1
 </$objtype/mkfile
 
-all install:V:
+install:V:
 	SYS=`{sed '/^#define._X[123]/d; s/#define.([A-Z0-9_]*).*/\1/' sys.h}
 	for(I in $SYS) {
 		i=`{echo $I|tr A-Z a-z}
@@ -30,15 +30,16 @@ all install:V:
 			echo MOVW '$'$n, R7
 			echo TA R0
 			echo RETURN
-		case hobbit
+		case 3210
 			echo TEXT $i'(SB)', 1, '$0'
-			echo KCALL '$'$n
+			echo MOVW R3, '0(FP)'
+			echo MOVW '$'$n, R3
+			echo WORD '$0x06000000'
 			echo RETURN
 		}} > $i.s
 		$AS $i.s
 	}
 	ar vu /$objtype/lib/libc.a *.$O
-	$RL /$objtype/lib/libc.a
 	rm -f *.$O *.s
 
 nuke clean:V:

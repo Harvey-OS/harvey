@@ -1,0 +1,189 @@
+%    Copyright (C) 1992 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of Aladdin Ghostscript.
+% 
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
+% 
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
+
+% type1ops.ps
+% Define the Type 1 font opcodes for use by Ghostscript utilities.
+
+% Define lenIV (the number of initial random bytes in the encoded outlines).
+% This should be zero, but we set it to 4 for compatibility with PostScript.
+
+/lenIV 4 def
+
+% Define the Type 1 opcodes we care about.
+
+/Type1encode 25 dict
+/c_hstem 1 def   dup /hstem <01> put
+/c_vstem 3 def   dup /vstem <03> put
+/c_vmoveto 4 def   dup /vmoveto <04> put
+/c_rlineto 5 def   dup /rlineto <05> put
+/c_hlineto 6 def   dup /hlineto <06> put
+/c_vlineto 7 def   dup /vlineto <07> put
+/c_rrcurveto 8 def   dup /rrcurveto <08> put
+/c_closepath 9 def   dup /closepath <09> put
+/c_callsubr 10 def   /s_callsubr <0a> def   dup /callsubr s_callsubr put
+/c_return 11 def   dup /return <0b> put
+/c_escape 12 def
+  /ce_dotsection 0 def   /s_dotsection <0c06> def   dup /dotsection s_dotsection put
+  /ce_vstem3 1 def   /s_vstem3 <0c01> def   dup /vstem3 s_vstem3 put
+  /ce_hstem3 2 def   /s_hstem3 <0c02> def   dup /hstem3 s_hstem3 put
+  /ce_seac 6 def   /s_seac <0c06> def	dup /seac s_seac put
+  /ce_sbw 7 def   /s_sbw <0c07> def   dup /sbw s_sbw put
+  /ce_div 12 def   /s_div <0c0c> def   dup /div s_div put
+  /ce_callothersubr 16 def   /s_callothersubr <0c10> def   dup /callothersubr s_callothersubr put
+  /ce_pop 17 def   /s_pop <0c11> def   dup /pop s_pop put
+  /ce_setcurrentpoint 33 def   /s_setcurrentpoint <0c21> def   dup /setcurrentpoint s_setcurrentpoint put
+/c_hsbw 13 def   /s_hsbw <0d> def   dup /hsbw s_hsbw put
+/c_endchar 14 def   /s_endchar <0e> def   dup /endchar s_endchar put
+/c_rmoveto 21 def   dup /rmoveto <15> put
+/c_hmoveto 22 def   dup /hmoveto <16> put
+  /s_setcurrentpoint_hmoveto s_setcurrentpoint <8b16> concatstrings def
+/c_vhcurveto 30 def   dup /vhcurveto <1e> put
+/c_hvcurveto 31 def   dup /hvcurveto <1f> put
+def
+
+% Define the encoding of numbers.
+/c_num1 32 def
+/c_num2 247 def
+/c_num3 251 def
+/c_num4 255 def
+/min_enc_num1 c_num1 c_num2 sub 1 add 2 idiv def
+/max_enc_num1 c_num2 c_num1 sub 1 sub 2 idiv def
+/min_enc_num2 max_enc_num1 1 add def
+/max_enc_num2 min_enc_num2 c_num3 c_num2 sub 256 mul add 1 sub def
+/min_enc_num3 max_enc_num2 neg def
+/max_enc_num3 min_enc_num2 neg def
+
+% ------ CharString encoding ------ %
+
+% For these utilities, a CharString is represented by a sequence of
+% integers or names, either in an array or on the stack.
+% Integers represent themselves; names are CharString operator names.
+% A CharString in an array is called a "charproc"; a CharString on
+% the stack is called a "charstack", and is delimited by a mark.
+% Individual elements are called "chartokens".
+
+% Compute the length of a CharString.
+/chartoken_length	% chartoken -> length
+ { dup type /nametype eq
+    { Type1encode exch get length
+    }
+    { dup dup -107 ge exch 107 le and
+       { pop 1
+       }
+       { dup -1131 ge exch 1131 le and { 2 } { 5 } ifelse
+       }
+      ifelse
+    }
+   ifelse
+ } bind def
+/charproc_length	% charproc -> length
+ { 0 exch { chartoken_length add } forall
+ } bind def
+/charstack_length	% charstack -> charstack length
+ { counttomark 0 exch -1 1 { index chartoken_length add } for
+ } bind def
+
+% Write a CharString to a file.  Normally this will be a NullEncode filter
+% writing on a string of the correct length.
+/chartoken_write	% file chartoken ->
+ { dup type /nametype eq
+    { Type1encode exch get writestring
+    }
+    { dup dup -107 ge exch 107 le and
+       { 139 add
+       }
+       { dup dup -1131 lt exch 1131 gt or
+	  { 1 index 255 write
+	    2 copy -24 bitshift 255 and write
+	    2 copy -16 bitshift 255 and write
+	    2 copy -8 bitshift 255 and write
+	    255 and
+	  }
+	  { dup 0 ge { 16#f694 } { neg 16#fa94 } ifelse add
+	    2 copy -8 bitshift write 255 and
+	  }
+	 ifelse
+       }
+      ifelse write
+    }
+   ifelse
+ } bind def
+/charproc_write		% file charproc ->
+ { { 1 index exch chartoken_write } forall pop
+ } bind def
+/charstack_write	% charstack file ->
+ { counttomark 1 sub -1 1 { index 1 index exch chartoken_write } for
+   cleartomark
+ } bind def
+
+% Convert a charproc or charstack to a proper encrypted CharString.
+/charproc_string	% charproc -> string
+ { mark exch aload pop charstack_string
+ } bind def
+/charstack_string	% charstack -> string
+ { charstack_length lenIV add string
+   dup dup length lenIV sub lenIV exch getinterval	% skip lenIV
+   /NullEncode filter
+   exch 1 index counttomark 1 add 2 roll
+   charstack_write closefile
+%   4330 exch dup .type1encrypt exch pop readonly
+ } bind def
+
+% ------ CharString decoding ------ %
+
+/Type1decode 256 array
+dup 0 32 getinterval
+  /-0- /hstem /-2- /vstem /vmoveto /rlineto /hlineto /vlineto
+  /rrcurveto /closepath /callsubr /return null /hsbw /endchar /-15-
+  /-16- /-17- /-18- /-19- /-20- /rmoveto /hmoveto /-23-
+  /-24- /-25- /-26- /-27- /-28- /-29- /vhcurveto /hvcurveto
+33 -1 roll astore pop
+dup 12
+ { dup read pop dup Type1escape exch known
+    { Type1escape exch get }
+    { =string cvs dup string length copy }
+   ifelse
+ } put
+32 1 246 { 2 copy dup 139 sub put pop } for
+dup 247 { dup read pop 108 add } put
+dup 248 { dup read pop 364 add } put
+dup 249 { dup read pop 620 add } put
+dup 250 { dup read pop 876 add } put
+dup 251 { dup read pop 108 add neg } put
+dup 252 { dup read pop 364 add neg } put
+dup 253 { dup read pop 620 add neg } put
+dup 254 { dup read pop 876 add neg } put
+dup 255 { 0 4 { 8 bitshift 1 index read pop add } repeat } put
+def
+/Type1escape 9 dict
+  dup ce_dotsection /dotsection put
+  dup ce_vstem3 /vstem3 put
+  dup ce_hstem3 /hstem3 put
+  dup ce_seac /seac put
+  dup ce_sbw /sbw put
+  dup ce_div /div put
+  dup ce_callothersubr /callothersubr put
+  dup ce_pop /pop put
+  dup ce_setcurrentpoint /setcurrentpoint put
+def
+
+% Decode a CharString (unencrypted).
+/charstack_read		% file -> (NO MARK) charstack
+ { { dup read not { pop exit } if
+     Type1decode exch get exec exch
+   } loop
+ } bind def

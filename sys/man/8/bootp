@@ -12,30 +12,31 @@ bootp, rarpd, tftpd \- Internet booting
 .IR etherdev ]
 .PP
 .B ip/tftpd
-.RB [ -d ]
+.RB [ -dr ]
 .RB [ -h
 .IR homedir ]
 .SH DESCRIPTION
 These programs support booting over the Internet.
 They should all be run on the same server to
 allow other systems to be booted.
-.I Rarpd
-and
-.I tftpd
-are used to boot Suns.
 .I Bootp
 and
 .I tftpd
-are used to boot everything else.
+are used to boot everything;
+.I rarpd
+is an extra piece just for Suns.
 .PP
 .I Bootp
 passes to Plan 9 systems their IP address, IP mask, default boot file, default
 file server, default authentication server, and default gateway.
 These come from the network database file attributes
-.IR ip ", " ipmask ", " bootf ", "
-.IR fs ", " auth ", "
+.BR ip ,
+.BR ipmask ,
+.BR bootf ,
+.BR fs ,
+.BR auth ,
 and
-.I ipgw
+.B ipgw
 attributes respectively
 (see
 .IR ndb (6)
@@ -43,13 +44,17 @@ and
 .IR ndb (8)).
 The attributes come from the entry for the system, its subnet, and its network
 with the system entry having precedence, subnet next, and network last.
+.I Bootp
+will answer requests only if it has been specifically targeted or if it
+has read access to
+the boot file for the requester.
 The
 .B -d
-option causes debugging to be printed to standard out.
+option causes debugging to be printed to standard output.
 .PP
 .I Rarpd
-performs the Internet reverse address resolution protocol, translating
-Ethernet addresses into Internet addresses.
+performs the Reverse Address Resolution Protocol, translating
+Ethernet addresses into IP addresses.
 The options are:
 .TP
 .B d
@@ -57,13 +62,13 @@ print debugging to standard output
 .TP
 .B e
 use the Ethernet mounted at
-.RI /net/ etherdev
+.BI /net/ etherdev
 .PP
 .I Tftpd
 transfers files to systems that are booting.
 It runs as user
-.I none
-and can only access files with world read permission.
+.B none
+and can only access files with global read permission.
 The options are:
 .TP
 .B d
@@ -73,19 +78,30 @@ print debugging to standard output
 change directory to
 .IR homedir .
 The default is
-.B /lib/tftpd.
+.BR /lib/tftpd .
 All requests for files with non-rooted file names are served starting at this
 directory with the exception of files of the form
-.B xxxxxxxx.SUN4C.
+.BR xxxxxxxx.SUNyy .
 These are Sparc kernel boot files where
 .B xxxxxxxx
-is the hex IP address of the machine requesting the kernel.
+is the hex IP address of the machine requesting the kernel and
+.B yy
+is an architecture identifier.
 .I Tftpd
 looks up the file in the network database using
-and responds with the bootfile specified for that particular
+.I ipinfo
+(see
+.IR ndb (2))
+and responds with the boot file specified for that particular
 machine.
-If no booftile is specified, the transfer fails.
+If no boot file is specified, the transfer fails.
 .I Tftpd
 supports only octet mode.
+.TP
+.B r
+restricts access to only files rooted in the
+.IR homedir .
+.SH SOURCE
+.B /sys/src/cmd/ip
 .SH "SEE ALSO"
 .IR ndb (6)

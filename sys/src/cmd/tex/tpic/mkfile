@@ -1,45 +1,33 @@
-APE=/usr/ape
-< $APE/src/config
-CFLAGS=
-#DEF=-DNOEXPANDDASH
-DEF=
+APE=/sys/src/ape
+< $APE/config
 
-all:V: tpic
+TARG=tpic
+LIB=libtex/lib.a$O
+YFILES=picy.y
 
-compile:V: tpic
+BIN=/$objtype/bin
 
-test:VQ:
-	echo there is no test for tpic
+OFILES=main.$O print.$O misc.$O symtab.$O blockgen.$O boxgen.$O \
+	 circgen.$O arcgen.$O linegen.$O movegen.$O textgen.$O input.$O for.$O \
+	picy.$O picl.$O pltex.$O
+HFILES=pic.h y.tab.h
+
+</sys/src/cmd/mkone
+CFLAGS=-c -B
+YFLAGS=-d -S
+
+picy.c: y.tab.c
+	mv y.tab.c picy.c
+
+picl.$O: picl.l
+	lex  picl.l
+	$CC $CFLAGS lex.yy.c
+	rm lex.yy.c
+	mv lex.yy.$O picl.$O
+
+libtex/lib.a$O:V:
+	cd libtex; mk; cd ..
 
 clean nuke:V:
-	rm -f tpic *.o libtex/lib.a
-
-install:V: tpic
-	$INSTALL tpic $APEBIN/tpic "$INSOWNER" "$INSGROUP" $INSMODE
-
-
-Q=main.o print.o misc.o symtab.o blockgen.o boxgen.o \
-	 circgen.o arcgen.o linegen.o movegen.o textgen.o input.o for.o
-O=$Q picy.o picl.o
-
-tpic: pltex.o $O libtex/lib.a
-	$CC -o $target pltex.o $O libtex/lib.a -lm
-
-%.o: %.c
-	$CC -c $DEF $stem.c
-
-$Q:N:	pic.h y.tab.h
-
-picy.o: picy.y
-	yacc -d picy.y
-	$CC -c y.tab.c
-	rm y.tab.c
-	mv y.tab.o picy.o
-picl.o: picl.l
-	lex  picl.l
-	$CC -c lex.yy.c
-	rm lex.yy.c
-	mv lex.yy.o picl.o
-
-libtex/lib.a:
-	cd libtex; mk; cd ..
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG
+	cd libtex; mk nuke; cd ..

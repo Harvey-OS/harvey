@@ -1,46 +1,89 @@
-#  9b is the boot program
-#  9 is the kernel
-
-BUILTINS=
-
 objtype=386
 </$objtype/mkfile
 
-BUILTINS=
-
-BOBJ=\
+TARGET=b.com
+OBJ=\
 	l.$O\
+	8250.$O\
 	alarm.$O\
+	bootp.$O\
+	cga.$O\
 	clock.$O\
+	console.$O\
+	conf.$O\
 	dosboot.$O\
+	donprint.$O\
+	ether.$O\
+	ether2000.$O\
+	ether3210.$O\
+	ether509.$O\
+	ether8003.$O\
+	ether8390.$O\
+	floppy.$O\
 	hard.$O\
-	headland.$O\
+	kbd.$O\
+	main.$O\
+	plan9boot.$O\
+	queue.$O\
+	scsi.$O\
+	scsi14f.$O\
+	scsi1542.$O\
+	trap.$O\
+
+IOBJ=\
+	l.$O\
+	8250.$O\
+	alarm.$O\
+	cga.$O\
+	clock.$O\
+	console.$O\
+	dosboot.$O\
+	donprint.$O\
 	floppy.$O\
 	kbd.$O\
-	lock.$O\
-	p9boot.$O\
-	bmain.$O\
-	qlock.$O\
+	install.$O\
 	queue.$O\
 	trap.$O\
-	screen.$O\
 
+HFILES=\
+	lib.h\
+	mem.h\
+	dat.h\
+	fns.h\
+	io.h\
 
-install:V: b.com
-	cp b.com /386
+CFLAGS=-w -I.
 
-b.com:	$BOBJ
-	$LD -o $target -H3 -T0x80080100 -l $prereq -lgnot -lc
+all:V:	bb $TARGET
+
+bb:	bb.$O
+	$LD -o $target -H3 -T0x7C00 -l $prereq
+
+$TARGET:	$OBJ
+	$LD -o $target -H3 -T0x80080100 -l $prereq -lc
+	ls -l $target
+
+install.com:	$IOBJ
+	$LD -o $target -H3 -T0x80080100 -l $prereq -lc
+	ls -l $target
+
+installall:V:	install
+install:V:	bb $TARGET
+	cp $TARGET /386
 
 %.$O:	%.s
 	$AS $stem.s
 
 %.$O:	%.c
-	$CC $CFLAGS -I. -w $stem.c
+	$CC $CFLAGS $stem.c
 
-%.$O:	mem.h dat.h fns.h io.h
+%.$O:	$HFILES
 
-trap.$O:	ureg.h
+clock.$O floppy.$O trap.$O:	ureg.h
+conf.$O dosboot.$O main.$O:	dosfs.h
+ether.$O ether2000.$O ether509.$O ether8003.$O ether8390.$O:	ether.h
+bootp.$O:	ip.h
 
 clean:
-	rm *.$O b.com
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARGET
+

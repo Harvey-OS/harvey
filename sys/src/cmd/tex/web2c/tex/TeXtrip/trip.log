@@ -1,4 +1,4 @@
-This is TeX, Version 3.0 (preloaded format=trip 90.3.24)  24 MAR 1990 16:10
+This is TeX, Version 3.141 (preloaded format=trip 92.1.25)  25 JAN 1992 22:09
 ** &trip  trip
 (trip.tex ##
 {vertical mode: \tracingrestores}
@@ -41,12 +41,12 @@ I changed this one to zero.
 
 Completed box being shipped out [0.0.0.0.11]
 \vbox(2000.0+2.0)x21.0, glue set 1952.0fil
-.\write-{log file only}
+.\write-{log file only\the \prevgraf }
 .\openout0=8terminal
 .\openout10=tripos
 .\write10{}
 .\write10{\uppercase {\number {\outputpenalty }}}
-.\write10{[\uppercase {\romannumeral -\the \outputpenalty }}
+.\write10{[\uppercase {\romannumeral -\the \outputpenalty }[}
 .\glue(\topskip) 9.6 plus 1.0fil
 .\vbox(10.4+0.0)x-2.0, shifted -20.0
 ..\rule(0.4+0.0)x*
@@ -55,7 +55,7 @@ Completed box being shipped out [0.0.0.0.11]
 .\hbox(0.0+20.0)x1.0, shifted 20.0
 ..\rule(-19.0+20.0)x1.0
 
-log file only
+log file only0
 {no mode: \number}
 
 ! Missing number, treated as zero.
@@ -70,7 +70,7 @@ look up `weird error' in the index to The TeXbook.)
 
 {\romannumeral}
 {\the}
-Memory usage before: 159&310; after: 102&278; still untouched: 1613
+Memory usage before: 159&313; after: 102&278; still untouched: 1613
 {vertical mode: \batchmode}
 
 {\output}
@@ -321,9 +321,11 @@ Overfull \hbox (2.0pt too wide) in paragraph at lines 140--140
 {horizontal mode: the letter A}
 {\hfill}
 {\vadjust}
-{internal vertical mode: \special}
+{internal vertical mode: \newlinechar}
+{\special}
 {\penalty}
 {end-group character }}
+{restoring \newlinechar=0}
 {horizontal mode: \penalty}
 {the letter A}
 {\par}
@@ -469,7 +471,7 @@ t 100
 \hbox(0.0+0.0)x0.0
 .\penalty -1000000000
 .\glue(\rightskip) 0.0
-\special{-1000.0pt}
+\special{^^80-1000.0pt}
 \penalty -5000
 \glue(\baselineskip) 3.0 plus 41.0
 \hbox(7.0+1.0)x0.0
@@ -637,7 +639,7 @@ Completed box being shipped out [-5000.0.0.0.11.53110374]
 ....\glue 4.0 plus 2.0 minus 1.0
 ..\mark{alpha}
 
-Memory usage before: 747&483; after: 581&480; still untouched: 1493
+Memory usage before: 747&484; after: 581&481; still untouched: 1492
 {internal vertical mode: blank space  }
 {\unvcopy}
 {\showlists}
@@ -684,7 +686,7 @@ Memory usage before: 747&483; after: 581&480; still untouched: 1493
 \hbox(0.0+0.0)x0.0
 .\penalty -1000000000
 .\glue(\rightskip) 0.0
-\special{-1000.0pt}
+\special{^^80-1000.0pt}
 prevdepth ignored
 ### vertical mode entered at line 0
 ### current page: (held over for next output)
@@ -810,7 +812,7 @@ Completed box being shipped out [10000.0.0.0.11.131072]
 .\vbox(2.0+0.0)x0.0 []
 .etc.
 
-Memory usage before: 475&469; after: 290&465; still untouched: 1474
+Memory usage before: 475&470; after: 290&466; still untouched: 1473
 {internal vertical mode: blank space  }
 {\unvcopy}
 {\showlists}
@@ -910,7 +912,7 @@ Completed box being shipped out [-333.0.0.0.11.655360000]
 .\vbox(10000.0+0.0)x0.0 []
 .\vbox(55.0+-1.0)x0.0 []
 
-Memory usage before: 218&458; after: 149&457; still untouched: 1474
+Memory usage before: 218&459; after: 149&458; still untouched: 1473
 {internal vertical mode: blank space  }
 {\unvcopy}
 {\showlists}
@@ -1065,7 +1067,7 @@ Completed box being shipped out [-2.0.0.0.11]
 .\glue(\topskip) 1.0 plus 44.0
 .\hbox(0.0+0.0)x23.0
 
-Memory usage before: 118&328; after: 102&328; still untouched: 1474
+Memory usage before: 118&328; after: 102&328; still untouched: 1473
 {restoring \box254=void}
 {restoring \hoffset=0.0pt}
 {restoring \showboxdepth=1}
@@ -1506,7 +1508,7 @@ Completed box being shipped out [-2.0.0.0.11]
 ..\glue(\parfillskip) 0.0
 ..\glue(\rightskip) 0.0
 
-Memory usage before: 990&376; after: 584&370; still untouched: 736
+Memory usage before: 990&376; after: 584&370; still untouched: 735
 {restoring \box254=void}
 {restoring \hoffset=0.0pt}
 {restoring \showboxdepth=1}
@@ -1974,6 +1976,7 @@ look up `weird error' in the index to The TeXbook.)
 Missing character: There is no [ in font trip!
 {\uppercase}
 {the letter A}
+Missing character: There is no [ in font trip!
 {blank space  }
 )
 {\par}
@@ -2480,6 +2483,23 @@ Loose \hbox (badness 1) in alignment at lines 250--250
 .\glue(\tabskip) 0.0 plus 40.0
 .\unsetbox(0.0+0.0)x0.0
 .etc.
+
+! Missing number, treated as zero.
+<to be read again> 
+                   =
+l.253 ...aysize* \global\setbox=
+                                
+A number should have been here; I inserted `0'.
+(If you can't figure out why I needed to see a number,
+look up `weird error' in the index to The TeXbook.)
+
+! Improper \setbox.
+<recently read> =
+                 
+l.253 ...aysize* \global\setbox=
+                                
+Sorry, \setbox is not allowed after \halign in a display,
+or between \accent and an accented character.
 
 ! Missing $$ inserted.
 <to be read again> 
@@ -3353,7 +3373,8 @@ Completed box being shipped out [-2.0.0.0.11.0.327680]
 ..\vbox(17.1+4.2)x5.99
 ...\kern17.1
 ...\hbox(0.0+0.0)x0.0, shifted 8.5
-....\bigtrip -
+....\bigtr
+p -
 ...\kern-17.1
 ...\hbox(17.1+4.2)x5.99
 ....\ip A
@@ -3384,17 +3405,21 @@ Completed box being shipped out [-2.0.0.0.11.0.327680]
 .....\vbox(16.00002+2.0)x12.2678, shifted 14.20003
 ......\kern8.99998
 ......\hbox(0.0+0.0)x0.0, shifted 2.1389
-.......\bigtrip ^^82
+.......\bigtr
+p ^^82
 ......\kern-8.99998
 ......\hbox(16.00002+2.0)x12.2778
 .......\hbox(14.00002+2.0)x6.00002, shifted -0.99998
-........\bigtrip A
+........\bigtr
+p A
 .......\glue(\thinmuskip) 0.27777 plus 2.0fill minus 0.83331
-.......\bigtrip A
+.......\bigtr
+p A
 .......\kern2.0
 .......\vbox(16.00002+0.0)x0.0
 ........\hbox(14.00002+2.0)x0.0, shifted -3.0
-.........\bigtrip a
+.........\bigtr
+p a
 ........\kern0.0
 ........\hbox(0.0+0.0)x0.0
 ..\glue(\thinmuskip) 0.27777 plus 2.0fill minus 0.83331
@@ -3460,7 +3485,8 @@ Completed box being shipped out [-2.0.0.0.11.0.327680]
 ............\vbox(35.75003+49.05003)x8.19003
 .............\hbox(14.00002+2.0)x8.19003, glue set 1.09502fil
 ..............\glue 0.0 plus 1.0fil minus 1.0fil
-..............\bigtrip A
+..............\bigtr
+p A
 ..............\kern2.0
 ..............\glue 0.0 plus 1.0fil minus 1.0fil
 .............\kern27.30002
@@ -3474,7 +3500,8 @@ Completed box being shipped out [-2.0.0.0.11.0.327680]
 ................\hbox(0.0+0.0)x0.1, shifted -7.0
 ................\vbox(23.75002+13.75002)x6.00002
 .................\hbox(14.00002+2.0)x6.00002
-..................\bigtrip A
+..................\bigtr
+p A
 ..................\kern2.0
 ..................\glue 0.0 plus 1.0fil
 .................\kern0.5
@@ -3482,7 +3509,8 @@ Completed box being shipped out [-2.0.0.0.11.0.327680]
 .................\kern0.5
 .................\hbox(16.0+4.00002)x6.00002, glue set 0.00002fil
 ..................\glue 0.0 plus 1.0fil minus 1.0fil
-..................\bigtrip B
+..................\bigtr
+p B
 ..................\glue(\nonscript)
 ..................\glue 0.0 plus 1.0fil minus 1.0fil
 ................\hbox(0.0+0.0)x0.1, shifted -7.0
@@ -3491,11 +3519,13 @@ Completed box being shipped out [-2.0.0.0.11.0.327680]
 ...........\rule(9.1+0.0)x*
 .........\vbox(146.40009+3.2)x11.86772, shifted 94.95006
 ..........\hbox(16.0+4.00002)x5.99
-...........\bigtrip b
+...........\bigtr
+p b
 ..........\kern106.40007
 ..........\hbox(20.0+3.2)x11.86772
 ...........\hbox(16.0+4.00002)x6.0, shifted -1.0
-............\bigtrip b
+............\bigtr
+p b
 ...........\vbox(20.0+3.2)x5.77771
 ............\hbox(8.0+2.0)x5.77771
 .............\hbox(0.0+0.0)x0.0, shifted -7.0
@@ -3514,7 +3544,8 @@ Completed box being shipped out [-2.0.0.0.11.0.327680]
 ..........\ip -
 .........|\smalltrip A
 .........\hbox(14.00002+2.0)x6.00002, shifted -0.99998
-..........\bigtrip a
+..........\bigtr
+p a
 ........\glue(\thinmuskip) 0.27777 plus 2.0fill minus 0.83331
 ........\ip A
 ........\kern1.0
@@ -3532,7 +3563,8 @@ Completed box being shipped out [-2.0.0.0.11.0.327680]
 ....\ip A
 ...\kern2.0
 ...\hbox(16.0+4.00002)x0.99
-....\bigtrip B
+....\bigtr
+p B
 ....\ip -
 ..\hbox(20.5+50.80002)x8.28894
 ...\hbox(20.5+50.80002)x8.28894
@@ -3933,6 +3965,8 @@ l.300 ...\par\showthe\hangindent
 
 {\hangindent}
 {\parfillskip}
+{\fontdimen}
+{\the}
 {\the}
 {the character 0}
 {horizontal mode: the character 0}
@@ -4283,8 +4317,11 @@ l.319 \showbox22\kern
 > \botmark=\botmark:
 0.
 l.320 \show\botmark
-                   
+                    \catcode`;13\def;{\setbox`; }
 
+{\catcode}
+{\def}
+{blank space  }
 {\lineskiplimit}
 
 \space -> 
@@ -4304,6 +4341,16 @@ Missing character: There is no ^^c8 in font trip!
 {\accent}
 
 \space -> 
+
+;->\setbox `; 
+! Improper \setbox.
+<to be read again> 
+                   \char 
+l.322 ...2 \def\^^M{\  } ; \char
+                                '101
+Sorry, \setbox is not allowed after \halign in a display,
+or between \accent and an accented character.
+
 {the letter A}
 {\ }
 {\fontdimen}
@@ -4454,7 +4501,7 @@ Completed box being shipped out [-2.0.0.0.11.196608.327680.1572864.10737
 ...\glue(\rightskip) 0.0
 ..\glue 10.0 minus 10.0
 
-Memory usage before: 651&426; after: 417&412; still untouched: 175
+Memory usage before: 651&432; after: 417&418; still untouched: 175
 {restoring \box254=void}
 {restoring \hoffset=0.0pt}
 {restoring \showboxdepth=1}
@@ -4776,7 +4823,7 @@ Completed box being shipped out [-2.2.-1118806.0.11.196608.327680.157286
 .\mark{a}
 .\mark{b}
 
-Memory usage before: 776&452; after: 464&446; still untouched: 175
+Memory usage before: 776&458; after: 464&452; still untouched: 175
 {restoring \box254=void}
 {restoring \hoffset=0.0pt}
 {restoring \showboxdepth=1}
@@ -4785,38 +4832,43 @@ Memory usage before: 776&452; after: 464&446; still untouched: 175
 {restoring \looseness=-1}
 {vertical mode: \newlinechar}
 {\global}
-! You can
-t use a prefix with `\unskip
-.
+! 
+ou can't use a prefix with `\unskip'.
 <to be read again> 
                    \unskip 
 l.345 ...inechar`
 \global\unskip
-                                \newlinechar\lastpenalty\unpe...
-I
-ll pretend you didn
-t say \long or \outer or \global.
+                                \show^^
+\newlinechar\lastpena...
+I'll pretend you didn't say \long or \outer or \global.
 
 {\unskip}
+{\show}
+> the character ^^Y.
+l.345 ...
+\global\unskip\show^^
+
+                                \newlinechar\lastpenalty\unpe...
+
 {\newlinechar}
 {\unpenalty}
 ! You can't use `\unpenalty' in vertical mode.
 l.345 ...r\lastpenalty\unpenalty
-                                \unkern\lastbox
+                                \unkern
 Sorry...I usually can't take things from the current page.
 Perhaps you can make the output routine do it.
 
 {\unkern}
 ! You can't use `\unkern' in vertical mode.
 l.345 ...enalty\unpenalty\unkern
-                                \lastbox
+                                
 Sorry...I usually can't take things from the current page.
 Try `I\kern-\lastkern' instead.
 
 {\lastbox}
 ! You can't use `\lastbox' in vertical mode.
-l.345 ...npenalty\unkern\lastbox
-                                
+l.346 \lastbox
+              \penalty5\message{\the\lastpenalty\the\newlinec...
 Sorry...I usually can't take things from the current page.
 This \lastbox will therefore be void.
 
@@ -5969,7 +6021,7 @@ return to the right one by typing `I}' or `I$' or `I\par'.
 {end-group character }}
 {restoring \everymath=}
 {restoring \xspaceskip=-1.0pt}
-{restoring \textfont3=\bigtrip}
+{restoring \textfont3=\bigtr^^@p}
 % t=70.0 plus 168.0 plus 2.0fil plus 2.0fill minus 33.0 g=16383.99998 b=
 0 p=0 c=0#
 {vertical mode: blank space  }
@@ -6042,13 +6094,30 @@ l.415 ...er\def\uppercase{}\loop
 A funny symbol that I can't read has just been input.
 Continue, and I'll forget that it ever happened.
 
+{end-group character }}
+{\show}
+> \a=macro:
+-> .
+\loop ...\read 0to \a }\show \a 
+                                \fi \loop 
+l.415 ...er\def\uppercase{}\loop
+                                }\else\fi
+
+{\fi}
+
+\loop ->\ifeof 0\let \loop =\relax \else {\global \read 0to \a }\show \a
+ \fi \loop 
+{\ifeof}
+{false}
+{begin-group character {}
+{\global}
 Runaway definition?
--> }{{\outputpenalty }} [
+->[
 ! Forbidden control sequence found while scanning definition of \a.
 <inserted text> 
                 }
 <read 0> [\uppercase
-                     {mmmmmmmmmm}
+                     {mmmmmmmmmm}[
 \loop ... {\global \read 0to \a 
                                 }\show \a \fi \loop 
 l.415 ...er\def\uppercase{}\loop
@@ -6059,7 +6128,7 @@ I'll try to recover; but if the error is serious,
 you'd better type `E' or `X' now and fix your file.
 
 Runaway definition?
--> }{{\outputpenalty }} [ }{mmmmmmmmmm} 
+->[ }{mmmmmmmmmm}[ 
 ! File ended within \read.
 <read 0> 
          
@@ -6072,7 +6141,7 @@ This \read has unbalanced braces.
 {end-group character }}
 {\show}
 > \a=macro:
--> }{{\outputpenalty }} [ }{mmmmmmmmmm} \par .
+->[ }{mmmmmmmmmm}[ \par .
 \loop ...\read 0to \a }\show \a 
                                 \fi \loop 
 l.415 ...er\def\uppercase{}\loop
@@ -6520,7 +6589,7 @@ The following box has been deleted:
 .etc.
 
 ]
-Memory usage before: 819&419; after: 720&417; still untouched: 175
+Memory usage before: 819&425; after: 720&423; still untouched: 175
 
 ^^M->|relax 
 {vertical mode: |relax}
@@ -6915,7 +6984,7 @@ spacefactor 1000
 ..|glue 4.0 plus 2.0 minus 88.0
 .|glue(|tabskip) 0.0154 minus 3.21002
 |glue(|lineskip) 0.0 plus 40.0
-|hbox(3545.60136+140.80052)x2070.27946
+|hbox(3545.60136+140.80052)x2070.00168
 .|glue 6.0 plus 4.0 minus 44.0
 .|mathon
 .|hbox(3545.60136+140.80052)x614.40031
@@ -6926,7 +6995,7 @@ spacefactor 1000
 ...|rule(1638.40019+0.0)x*
 ...|kern268.80098
 ...|hbox(0.0+0.0)x0.0
-.|glue(|thinmuskip) 0.27777 plus 2.0fill minus 0.83331
+.|glue(|thinmuskip) -0.00002 plus 2.0fill minus -0.00005
 .|hbox(109.40036+95.40038)x1446.60138
 ..|vbox(-1.00002+26.9999)x7.0, shifted -20.99995
 ...|hbox(-1.00002+2.0)x7.0
@@ -7022,7 +7091,7 @@ l.439 ...\endgroup\showlonglists
 {|relax}
 {|showbox}
 > \box9=
-|hbox(19.6+1.0)x101.26778
+|hbox(19.6+1.0)x100.98999
 .|vbox(17.0+1.0)x100.0
 ..|hbox(7.0+1.0)x100.0, glue set 0.85294
 ...|glue(|leftskip) 3.0
@@ -7064,7 +7133,7 @@ l.439 ...\endgroup\showlonglists
 ...|vbox(0.0+0.0)x0.0
 ....|glue 0.0 plus 1.0fil minus 1.0fil
 ...|glue 0.0 plus 1.0fil minus 1.0fil
-.|glue(|thinmuskip) 0.27777 plus 2.0fill minus 0.83331
+.|glue(|thinmuskip) -0.00002 plus 2.0fill minus -0.00005
 .|hbox(0.0+0.0)x0.0
 .|mathoff
 
@@ -7081,7 +7150,7 @@ l.440 \showbox9\PAR
 % t=3796.80188 plus 332.0 plus 2.0fil plus -803.0fill minus 49.0 g=10000
 .0 b=0 p=-10001 c=-10001#
 [-2.2.-1118806.0.11.196608.327680.1572864.1073741823]
-Memory usage before: 895&430; after: 290&411; still untouched: 175
+Memory usage before: 895&436; after: 290&417; still untouched: 175
 {|deadcycles}
 {end-group character }}
 {restoring |output={|showthe |deadcycles |global |advance |ETC.}
@@ -7214,7 +7283,7 @@ On this page there's a \write with fewer real {'s than }'s.
 I can't handle that very well; good luck.
 
 unbal
-Memory usage before: 334&422; after: 292&409; still untouched: 175
+Memory usage before: 334&428; after: 292&415; still untouched: 175
 {vertical mode: end}
  )
 (end occurred inside a group at level 1)
@@ -7222,8 +7291,8 @@ Memory usage before: 334&422; after: 292&409; still untouched: 175
 (end occurred when ifcase on line 419 was incomplete)
 (end occurred when iftrue on line 413 was incomplete) 
 Here is how much of TeX's memory you used:
- 49 strings out of 1681
- 275 string characters out of 8567
+ 47 strings out of 1682
+ 267 string characters out of 8480
  2825 words of memory out of 3000
  370 multiletter control sequences out of 2100
  3041 words of font info for 4 fonts, out of 20000 for 75

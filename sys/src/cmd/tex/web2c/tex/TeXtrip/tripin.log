@@ -1,4 +1,4 @@
-This is TeX, Version 3.0 (INITEX)  24 MAR 1990 16:10
+This is TeX, Version 3.141 (INITEX)  25 JAN 1992 22:08
 **\input trip
 (trip.tex
 ! Bad character code (256).
@@ -9,12 +9,12 @@ l.26   \nonstopmode\lccode256-
 A character number must be between 0 and 255.
 I changed this one to zero.
 
-! Bad math code (32768).
+! Bad mathchar (32768).
 <to be read again> 
                    \def 
 l.26 ...\mathchardef\a="8000\def
                                 \a{ SCALED 3~2769}
-A numeric math code must be between 0 and 32767.
+A mathchar number must be between 0 and 32767.
 I changed this one to zero.
 
 ! Illegal magnification has been changed to 1000 (32769).
@@ -448,14 +448,15 @@ l.79 ...terns{toolate}\showbox0}
 
  )
 Beginning to dump on file trip.fmt
- (preloaded format=trip 90.3.24)
-1319 strings of total length 23433
+ (preloaded format=trip 92.1.25)
+1318 strings of total length 23520
 471 memory locations dumped; current usage is 96&278
 341 multiletter control sequences
 \font\nullfont=nullfont
 \font\rip=trip
 \font\smalltrip=trip at 5.0pt
-\font\bigtrip=trip at 20.0pt
+\font\bigtr
+p=trip at 20.0pt
 2279 words of font info for 3 preloaded fonts
 1 hyphenation exception
 Hyphenation trie of length 273 has 9 ops out of 500

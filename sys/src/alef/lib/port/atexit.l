@@ -27,15 +27,16 @@ atexitdont(void (*f)(void))
 }
 
 void
-_exits(char *s)
+exits(byte *s)
 {
 	int i;
 	void (*f)(void);
 
-	for(i = NEXIT-1; i >= 0; i--)
+	for(i = NEXIT-1; i >= 0; i--) {
 		if(f = onex[i]) {
 			onex[i] = nil;
 			(*f)();
 		}
-	__exits(s);
+	}
+	_exits(s);
 }

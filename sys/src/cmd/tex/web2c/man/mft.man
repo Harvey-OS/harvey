@@ -1,0 +1,84 @@
+.TH MFT 1 "7 Jan 92"
+.SH NAME
+mft \- translate Metafont code to TeX code for prettyprinting
+.SH SYNOPSIS
+.B mft
+mf_file_name[.mf] [-cs] [change_file_name[.ch]] [style_file_name[.mft]]
+.SH DESCRIPTION
+The
+.I mft
+program creates a TeX file from a Metafont program.
+It takes appropriate care of typographic details like page
+layout and the use of indentation, italics, boldface, etc., as illustrated
+in the book
+.IR Computer Modern Typefaces ,
+by Donald Knuth.
+Special conventions in Metafont comments allow you to control things that
+would not otherwise come out right; section 1 of the MFT source program
+in the
+.I M\s-2ETAFONT\s0ware
+report explains these rules.
+.PP
+The command line has one required file name and two optional file names.
+The required
+one is a Metafont source file; there is also an optional change file
+(which works just as the change files to
+.BR tangle (1)
+and
+.BR weave (1)
+do)
+and an optional style file (which is prepended to everything).
+.PP
+A file name that doesn't contain a dot is always given an extension,
+either
+.I .mf
+(Metafont) or 
+.I .ch
+(change) or
+.I .mft
+(style). If no style file is specified, the style file
+.I plain.mft
+is automatically used. The 
+.I change_file_name
+is not searched for using any paths. The 
+.I .mf
+file is searched for
+using the MFINPUTS environment variable if you have set it, or else the
+system default:
+.BR @MFINPUTS@ .
+The style file
+is searched for using the TEXINPUTS environment variable; the default
+there is:
+.BR @TEXINPUTS@ .
+See
+.BR tex (1)
+for the details of the searching.
+.PP
+The output TeX file name is formed by using 
+.I .tex
+in place of the extension of
+.IR mf_file_name .
+.SH FILES
+.TP 2.5i
+@TEXINPUTDIR@/mftmac.tex
+TeX macros used by\fB mft\fR output.
+.TP
+@TEXINPUTDIR@/plain.mft
+Default style file.
+.TP
+@TEXINPUTDIR@/cmbase.mft
+Style file for Computer Modern.
+.SH "SEE ALSO"
+.BR mf (1),
+.BR weave (1)
+.br
+Donald Knuth et al.,
+.I METAFONTware
+.SH AUTHORS
+Donald Knuth wrote the program, and he ported it to Unix with the help of
+Pierre MacKay and the Unix port of 
+.I weave
+by Howard Trickey and Pavel Curtis.
+The program is published in the
+.I M\s-2ETAFONT\s0ware
+technical report, available from the TeX Users Group.

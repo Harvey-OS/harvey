@@ -52,7 +52,7 @@ main(int argc, char *argv[])
 
 	iscpu = strcmp(service, "cpu")==0;
 
-	if(iscpu)
+	if(iscpu && manual == 0)
 		fexec(cpustart);
 
 	for(;;){
@@ -155,7 +155,7 @@ rcexec(void)
 	else if(manual || iscpu)
 		execl("/bin/rc", "rc", 0);
 	else if(strcmp(service, "terminal") == 0)
-		execl("/bin/rc", "rc", "-c", "/rc/bin/termrc; home=/usr/$user; cd; . lib/profile", 0);
+		execl("/bin/rc", "rc", "-c", ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", 0);
 	else
 		execl("/bin/rc", "rc", 0);
 }

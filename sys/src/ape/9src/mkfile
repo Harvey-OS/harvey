@@ -1,0 +1,7 @@
+</$objtype/mkfile
+
+TARG = ptyfs\
+	stty\
+
+BIN=/$objtype/bin/ape
+</sys/src/cmd/mkmany

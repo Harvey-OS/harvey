@@ -19,7 +19,8 @@ and
 .IR troff (1)
 requests and non-text arguments, backslash constructions,
 and constructs of preprocessors such as
-.I eqn, pic,
+.IR eqn (1),
+.IR pic (1),
 and
 .IR tbl (1).
 Remaining text is written on the standard output.
@@ -80,10 +81,12 @@ and
 (see
 .IR tex (1))
 files what
-.B deroff -w
+.B deroff -wi
 does for
 .I troff
 files.
+.SH SOURCE
+.B /sys/src/cmd/deroff.c
 .SH "SEE ALSO"
 .IR troff (1), 
 .IR tex (1),
@@ -92,7 +95,7 @@ files.
 These filters are not complete interpreters of
 .I troff
 or
-.I tex.
+.IR tex .
 For example, macro definitions containing
 .L \e$
 cause chaos in

@@ -1,0 +1,51 @@
+dev
+	root	/
+	cons	c
+	env	e
+	mnt	M
+	bit	b
+	uart	t
+	pipe	|
+	floppy	f
+	ata	H
+	srv	s
+	dup	d
+	proc	p
+	rtc	r
+	lpt	L
+	ether	l
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	arp	a
+	iproute	P
+	vga	v
+	audio	A
+	scsi	S	scsi adaptec ultrastor
+	wren	w
+	cdrom	R
+	i82365	y
+
+link
+	stfcall
+	stip
+	ether509
+	ether8003	ether8390
+	ether4100	ether8390
+	ether2000	ether8390
+	vgaclgd542x
+	vgaet4000
+	vgamach32
+	vgas3
+	vgabt485
+	vgatvp3020
+
+misc
+	kfs.root
+
+port
+	int cpuserver = 1;
+	void consdebug(void){}
+	int incondev = 0;
+
+boot cpu #H/hd0
+	local
+	il

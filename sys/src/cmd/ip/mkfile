@@ -6,6 +6,8 @@ TARG = telnet\
 	ipconfig\
 	arpd\
 	rarpd\
+	snoopy\
+	rip\
 
 BIN=/$objtype/bin/ip
 </sys/src/cmd/mkmany
@@ -15,3 +17,6 @@ $O.fakearp:	fakearp.$O getether.$O
 
 $BIN/telnet:V:	$O.telnet
 	cp $prereq /$objtype/bin/telnet
+
+$BIN/snoopy:V:	$O.snoopy
+	cp $prereq /$objtype/bin/snoopy

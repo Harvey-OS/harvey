@@ -1,11 +1,15 @@
 #define DIR	"/lib/sky"
 /*
+ *	This code reflects many years of changes.  There remain residues
+ *		of prior implementations.
+ *
  *	Keys:
- *		32 bits long. High 26 bits are encoded as implied below.
+ *		32 bits long. High 26 bits are encoded as described below.
  *		Low 6 bits are types:
  *
  *		Patch is ~ one square degree of sky.  It points to an otherwise
- *			anonymous List of Catalog keys.
+ *			anonymous list of Catalog keys.  The 0th key is special:
+ *			it contains up to 4 constellation identifiers.
  *		Catalogs (SAO,NGC,M,...) are:
  *			31.........8|76|543210
  *			  catalog # |BB|catalog name
@@ -14,54 +18,118 @@
  *				01	   7 <  m <= 10
  *				10	  10 <  m <= 13
  *				11	  13 <  m <  inf
- *			May point directly to object, or a list of Catalog keys.
- *			Note that if all you have is the number, you must
- *			do up to 4 accesses to find the object, but almost
- *			all accesses are from records that already exist.
- *		Constel yields two lists: a list of constellation boundaries
- *			and a list of patches.
- *		Nonstar yields four lists, one per BB, from bright to dim.
- *			The rest of the key is one of the NGC types, but
- *			if an object is contained in something
- *			(e.g. 65 is nebular cluster in external galaxy, 28 is
- *			globular cluster in LMC), it will be filed twice, once
- *			under its simple type (NebularCl) and once under the
- *			contained type (Galaxy<<8|NebularCl).
+ *			The BB field is a dreg, and correct only for SAO and NGC.
+ *			IC(n) is just NGC(n+7840)
+ *		Others should be self-explanatory.
  *	
  *	Records:
  *
- *	List is a list of up to NLIST-1 keys; the NLIST-1 key is a continuation.
- *		The continuation is keyed as List|(unique id)
- *		Fetch key = List|0 to get next unique id.
  *	Star is an SAOrec
- *	Galaxy, PlanetaryN, OpenCl, GlobularCl, DiffuseN, NebularCl,
- *		Nonexistent and Unknown are NGCrecs.
+ *	Galaxy, PlanetaryN, OpenCl, GlobularCl, DiffuseN, etc., are NGCrecs.
+ *	Abell is an Abellrec
+ *	The Namedxxx records hold a name and a catalog entry; they result from
+ *		name lookups.
  */
 
 typedef enum
 {
-	List,		/* Key==0 ==> empty list */
+	List_deprecated,
 	Patch,
 	SAO,
 	NGC,
 	M,
-	Constel,
-	Nonstar,
-	Star,
+	Constel_deprecated,
+	Nonstar_deprecated,
+	NamedSAO,
+	NamedNGC,
+	NamedAbell,
+	Abell,
+	/* NGC types */
 	Galaxy,
 	PlanetaryN,
 	OpenCl,
 	GlobularCl,
 	DiffuseN,
 	NebularCl,
+	Asterism,
+	Knot,
+	Triple,
+	Double,
+	Single,
+	Uncertain,
 	Nonexistent,
 	Unknown,
-	LMC,
-	SMC,
+	PlateDefect,
 	/* internal */
 	NGCN,
 	PatchC,
 }Type;
+
+enum
+{
+	/*
+	 * parameters for plate
+	 */
+	Pppo1	= 0,
+	Pppo2,
+	Pppo3,
+	Pppo4,
+	Pppo5,
+	Pppo6,
+	Pamdx1,
+	Pamdx2,
+	Pamdx3,
+	Pamdx4,
+	Pamdx5,
+	Pamdx6,
+	Pamdx7,
+	Pamdx8,
+	Pamdx9,
+	Pamdx10,
+	Pamdx11,
+	Pamdx12,
+	Pamdx13,
+	Pamdx14,
+	Pamdx15,
+	Pamdx16,
+	Pamdx17,
+	Pamdx18,
+	Pamdx19,
+	Pamdx20,
+	Pamdy1,
+	Pamdy2,
+	Pamdy3,
+	Pamdy4,
+	Pamdy5,
+	Pamdy6,
+	Pamdy7,
+	Pamdy8,
+	Pamdy9,
+	Pamdy10,
+	Pamdy11,
+	Pamdy12,
+	Pamdy13,
+	Pamdy14,
+	Pamdy15,
+	Pamdy16,
+	Pamdy17,
+	Pamdy18,
+	Pamdy19,
+	Pamdy20,
+	Ppltscale,
+	Pxpixelsz,
+	Pypixelsz,
+	Ppltra,
+	Ppltrah,
+	Ppltram,
+	Ppltras,
+	Ppltdec,
+	Ppltdecd,
+	Ppltdecm,
+	Ppltdecs,
+	Pnparam,
+};
+
 #define	UNKNOWNMAG	32767
 
 typedef float	Angle;	/* in radians */
@@ -76,18 +144,32 @@ typedef struct NGCrec NGCrec;
 struct NGCrec{
 	DAngle	ra;
 	DAngle	dec;
+	DAngle	dummy1;	/* compatibility with old RNGC version */
+	DAngle	diam;
+	Mag	mag;
+	short	ngc;	/* if >NNGC, IC number is ngc-NNGC */
+	char	diamlim;
+	char	type;
+	char	magtype;
+	char	dummy2;
+	char	desc[52];	/* 0-terminated Dreyer description */
+};
+
+typedef struct Abellrec Abellrec;
+struct Abellrec{
+	DAngle	ra;
+	DAngle	dec;
 	DAngle	glat;
 	DAngle	glong;
-	Mag	mag;
-	short	ngc;
-	char	tag;
-	char	type;
-	char	code;
-	char	desc[81];	/* three 0-terminated strings:
-				 *  - Dreyer description
-				 *  - Palomar description
-				 *  - other catalogs
-				 */
+	Mag	mag10;	/* mag of 10th brightest cluster member; in same place as ngc.mag*/
+	short	abell;
+	DAngle	rad;
+	short	pop;
+	short	dist;
+	char	distgrp;
+	char	richgrp;
+	char	flag;
+	char	pad;
 };
 
 /*
@@ -114,12 +196,13 @@ struct SAOrec{
 	/* 36 bytes to here */
 };
 
-typedef struct NGCindexrec NGCindexrec;
-struct NGCindexrec{	/* code knows the bit patterns in here; this is a long */
-	char	m;		/* for m list, is M number; for NGC is type, b */
-	char	tag;
+typedef struct Mindexrec Mindexrec;
+struct Mindexrec{	/* code knows the bit patterns in here; this is a long */
+	char	m;		/* M number */
+	char	dummy;
 	short	ngc;
 };
+
 typedef struct Bayerec Bayerec;
 struct Bayerec{
 	long	sao;
@@ -131,15 +214,17 @@ struct Bayerec{
  * Internal form
  */
 
-typedef struct Starrec Starrec;
-struct Starrec{
-	char	name[21];	/* longest is "ras elased australis" */
+typedef struct Namedrec Namedrec;
+struct Namedrec{
+	char	name[36];
 };
 
 typedef struct Namerec Namerec;
 struct Namerec{
 	long	sao;
-	char	name[24];	/* null terminated */
+	long	ngc;
+	long	abell;
+	char	name[36];	/* null terminated */
 };
 
 typedef struct Patchrec Patchrec;
@@ -155,8 +240,8 @@ struct Record{
 	union{
 		SAOrec	sao;
 		NGCrec	ngc;
-		int	tag;	/* NGCNrec */
-		Starrec	star;
+		Abellrec	abell;
+		Namedrec	named;
 		Patchrec	patch;
 		/* PatchCrec is empty */
 	};
@@ -168,14 +253,74 @@ struct Name{
 	int	type;
 };
 
+typedef	struct	Plate	Plate;
+struct	Plate
+{
+	char	rgn[7];
+	char	disk;
+	Angle	ra;
+	Angle	dec;
+};
+
+typedef	struct	Header	Header;
+struct	Header
+{
+	float	param[Pnparam];
+	int	amdflag;
+
+	float	x;
+	float	y;
+	float	xi;
+	float	eta;
+};
+typedef	long	Pix;
+
+typedef struct	Image	Image;
+struct	Image
+{
+	int	nx;
+	int	ny;	/* ny is the fast-varying dimension */
+	Pix	a[1];
+};
+
 #define	RAD(x)	((x)*PI_180)
 #define	DEG(x)	((x)/PI_180)
+#define	ARCSECONDS_PER_RADIAN	(DEG(1)*3600)
+#define	NULL	0
+
+int	nplate;
+Plate	plate[2000];		/* needs to go to 2000 when the north comes */
+double	PI_180;
+double	TWOPI;
+double	LN2;
+int	debug;
+struct
+{
+	float	min;
+	float	max;
+	float	gamma;
+	float	absgamma;
+	float	mult1;
+	float	mult2;
+	int	neg;
+} gam;
+
+typedef struct Picture Picture;
+struct Picture
+{
+	int	minx;
+	int	miny;
+	int	maxx;
+	int	maxy;
+	char	name[16];
+	uchar	*data;
+};
+
 
 extern	double	PI_180;
 extern	double	TWOPI;
 extern	char	*progname;
-extern	char	*odesctab[][2];
-extern	char	*ndesctab[][2];
+extern	char	*desctab[][2];
 extern	Name	names[];
 
 extern void saoopen(void);
@@ -197,10 +342,33 @@ extern long patcha(Angle, Angle);
 extern long patch(int, int, int);
 extern char*hms(Angle);
 extern char*dms(Angle);
+extern char*ms(Angle);
 extern char*hm(Angle);
 extern char*dm(Angle);
 extern long dangle(Angle);
 extern float angle(int);
 extern void prdesc(char*, char*(*)[2], short*);
+extern double	xsqrt(double);
+extern Angle	dist(Angle, Angle, Angle, Angle);
+extern Header*	getheader(char*);
+extern char*	getword(char*, char*);
+extern void	amdinv(Header*, Angle, Angle, float, float);
+extern void	ppoinv(Header*, Angle, Angle);
+extern void	xypos(Header*, Angle, Angle, float, float);
+extern void	traneqstd(Header*, Angle, Angle);
+extern Angle	getra(char*);
+extern Angle	getdec(char*);
+extern void	getplates(void);
+extern Image*	dssread(char*);
+extern void	hinv(Pix*, int, int);
+extern int	input_bit(Biobuf*);
+extern int	input_nbits(Biobuf*, int);
+extern int	input_huffman(Biobuf*);
+extern	int	input_nybble(Biobuf*);
+extern void	qtree_decode(Biobuf*, Pix*, int, int, int, int);
+extern void	start_inputing_bits(void);
+extern Picture*	image(Angle, Angle, Angle, Angle);
+extern int	dogamma(Pix);
+extern void display(Picture*);
 
-#define	NINDEX	300
+#define	NINDEX	400

@@ -7,8 +7,6 @@ bugs:
 	00/ff for end of file can conflict with 00/ff characters
 */
 
-#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
-
 enum
 {
 	Nline	= 100000,		/* max number of lines saved in memory */
@@ -78,7 +76,7 @@ struct	Field
 	void	(*dokey)(Key*, uchar*, uchar*, Field*);
 };
 
-struct
+struct args
 {
 	char*	ofile;
 	char*	tname;
@@ -125,6 +123,7 @@ uchar*	skip(uchar*, int, int, int, int);
 void	sort4(void*, ulong);
 char*	tempfile(int);
 void	tempout(void);
+void	lineout(Biobuf*, Line*);
 
 void
 main(int argc, char *argv[])
@@ -145,7 +144,7 @@ main(int argc, char *argv[])
 		if(strcmp(s, "-") == 0) {
 			Binit(&bbuf, 0, OREAD);
 			dofile(&bbuf);
-			Bclose(&bbuf);
+			Bterm(&bbuf);
 			continue;
 		}
 		f = open(s, OREAD);
@@ -155,13 +154,13 @@ main(int argc, char *argv[])
 		}
 		Binit(&bbuf, f, OREAD);
 		dofile(&bbuf);
-		Bclose(&bbuf);
+		Bterm(&bbuf);
 		close(f);
 	}
 	if(args.nfile == 0) {
 		Binit(&bbuf, 0, OREAD);
 		dofile(&bbuf);
-		Bclose(&bbuf);
+		Bterm(&bbuf);
 	}
 	if(args.cflag)
 		done(0);
@@ -184,7 +183,7 @@ main(int argc, char *argv[])
 	} else {
 		printout(&bbuf);
 	}
-	Bclose(&bbuf);
+	Bterm(&bbuf);
 	done(0);
 }
 
@@ -241,6 +240,10 @@ notifyf(void *a, char *s)
 		done(0);
 	if(strcmp(s, "hangup") == 0)
 		done(0);
+	if(strcmp(s, "kill") == 0)
+		done(0);
+	if(strcmp(s, "sys: write on closed pipe") == 0)
+		done(0);
 	fprint(2, "sort: note: %s\n", s);
 	abort();
 }
@@ -289,12 +292,23 @@ newline(Biobuf *b)
 }
 
 void
+lineout(Biobuf *b, Line *l)
+{
+	int n, m;
+
+	n = l->llen;
+	m = Bwrite(b, l->line, n);
+	if(n != m)
+		exits("write");
+}
+
+void
 tempout(void)
 {
 	long n;
 	Line **lp, *l;
 	char *tf;
-	int j, f;
+	int f;
 	Biobuf tb;
 
 	sort4(args.linep, args.nline);
@@ -310,13 +324,12 @@ tempout(void)
 	lp = args.linep;
 	for(n=args.nline; n>0; n--) {
 		l = *lp++;
-		j = l->llen;
-		Bwrite(&tb, l->line, j);
+		lineout(&tb, l);
 		free(l->key);
 		free(l);
 	}
 	args.nline = 0;
-	Bclose(&tb);
+	Bterm(&tb);
 	close(f);
 }
 
@@ -377,7 +390,7 @@ mergeout(Biobuf *b)
 			n = Nmerge;
 			mergefiles(i, n, &tb);
 
-			Bclose(&tb);
+			Bterm(&tb);
 			close(f);
 		} else
 			mergefiles(i, n, b);
@@ -430,7 +443,7 @@ mergefiles(int t, int n, Biobuf *b)
 			if(args.uflag && ok && kcmp(ok, l->key) == 0) {
 				free(l->key);
 			} else {
-				Bwrite(b, l->line, l->llen);
+				lineout(b, l);
 				if(ok)
 					free(ok);
 				ok = l->key;
@@ -454,7 +467,7 @@ mergefiles(int t, int n, Biobuf *b)
 
 	m = mp;
 	for(i=0; i<n; i++,m++) {
-		Bclose(&m->b);
+		Bterm(&m->b);
 		close(m->fd);
 	}
 
@@ -483,7 +496,6 @@ printout(Biobuf *b)
 	long n;
 	Line **lp, *l;
 	Key *ok;
-	int j;
 
 	sort4(args.linep, args.nline);
 	lp = args.linep;
@@ -492,8 +504,7 @@ printout(Biobuf *b)
 		l = *lp++;
 		if(args.uflag && ok && kcmp(ok, l->key) == 0)
 			continue;
-		j = l->llen;
-		Bwrite(b, l->line, j);
+		lineout(b, l);
 		ok = l->key;
 	}
 }
@@ -784,11 +795,8 @@ doargs(int argc, char *argv[])
 					fprint(2, "sort: global field set after -k\n");
 				setfield(0, c);
 				break;
-			case 'y':
-			case 'z':
-				s = strchr(s, 0);
 			case 'm':
-				/* options m,y,z are silently ignored */
+				/* option m silently ignored but required by posix */
 				break;
 			default:
 				fprint(2, "sort: unknown option: -%C\n", c);

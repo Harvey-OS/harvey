@@ -7,7 +7,6 @@
  * input is a mkfs file.
  */
 
-#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 
 typedef	struct	Direc	Direc;
 
@@ -32,6 +31,7 @@ struct	Direc
 	long	mode;		/* has CHDIR bit */
 	long	length;		/* length in bytes */
 	long	offset;		/* if file, pointer into input file */
+	long	date;
 
 	char	dup;		/* flag that this name has been seen before */
 	char	level;		/* hier level */
@@ -204,8 +204,9 @@ main(int argc, char *argv[])
 	brepeat(0, RUNOUT*RSIZE);
 	padtoblock();
 
-	Bclose(ibuf);
-	Bclose(obuf);
+	Bterm(ibuf);
+	Bterm(obuf);
+	exits(0);
 }
 
 int
@@ -396,10 +397,21 @@ gethdr(void)
 	m = 0;
 	for(i=0;; i++) {
 		c = *p++;
+		if(c == ' ')
+			break;
+		if(c < '0' || c > '9')
+			goto bad;
+		m = (m*10) + (c-'0');
+	}
+	d->date = m;	/* not used */
+
+	m = 0;
+	for(i=0;; i++) {
+		c = *p++;
 		if(c == 0)
 			break;
 		if(c < '0' || c > '9')
-			return 1;
+			goto bad;
 		m = (m*10) + (c-'0');
 	}
 	d->length = m;
@@ -409,7 +421,7 @@ gethdr(void)
 	return 0;
 
 bad:
-	fprint(2, "bad archive\n");
+	fprint(2, "cant parse archive header\n");
 	return 1;
 }
 

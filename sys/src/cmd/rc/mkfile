@@ -35,7 +35,6 @@ BIN=/$objtype/bin
 CFLAGS=
 
 x.tab.h: y.tab.h
-	flag e -
 	cmp -s x.tab.h y.tab.h || cp y.tab.h x.tab.h
 
 clean:V:

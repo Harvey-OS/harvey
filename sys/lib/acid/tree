@@ -1,0 +1,127 @@
+//
+// run calltree to generate an indented list of function calls
+// plus arguments
+//
+// run syscall to generate an indented list of function calls
+// plus arguments
+//
+defn new()
+{
+	bplist = {};
+	newproc(progargs);
+}
+
+defn indent(lst)
+{
+	while lst do {
+		lst = tail lst;
+		print("    ");
+	}
+}
+
+defn exec()
+{
+	local addr;
+
+	addr = fmt(*PC, bpfmt);
+	startstop(pid);
+	*addr = @addr;
+	startstop(pid);
+	*addr = bpinst;
+}
+
+defn calltree()
+{
+	local syms, frame;
+
+	new();
+	bpset(main);
+	cont();
+
+	syms = symbols;
+	while syms do {
+		symbol = head syms;
+		if (symbol[1] == 'T' || symbol[1] == 't') && symbol[2] < etext then
+			*(symbol[2])\i = bpinst;
+		syms = tail syms;
+	}
+
+	while 1 do {
+		stk = strace(*PC, *SP, *linkreg);
+		indent(stk);
+		frame = head stk;
+		print((frame[0])\a, "(");
+		params(frame[2]);
+		print(")\n");
+		exec();
+	}
+}
+
+defn syscall()
+{
+	local systab;
+
+	new();
+	bpset(main);
+	cont();
+
+	systab = {
+		"errstr",
+		"bind",
+		"chdir",
+		"close",
+		"dup",
+		"alarm",
+		"exec",
+		"exits",
+		"fsession",
+		"fauth",
+		"fstat",
+		"segbrk",
+		"mount",
+		"open",
+		"read",
+		"seek",
+		"sleep",
+		"stat",
+		"rfork",
+		"write",
+		"pipe",
+		"create",
+		"brk_",
+		"remove",
+		"wstat",
+		"fwstat",
+		"notify",
+		"noted",
+		"segattach",
+		"segdetach",
+		"segfree",
+		"segflush",
+		"rendezvous",
+		"unmount",
+		"wait"
+	};
+	syms = symbols;
+	while syms do {
+		symbol = head syms;
+		if match(symbol[0], systab) >= 0 && symbol[2] < etext then
+			*(symbol[2])\i = bpinst;
+		syms = tail syms;
+	}
+
+	while 1 do {
+		stk = strace(*PC, *SP, *R31);
+		indent(stk);
+		frame = head stk;
+		print((frame[0])\a, "(");
+		params(frame[2]);
+		print(")\n");
+		exec();
+	}
+}
+
+defn stopped(pid)
+{
+	return {};
+}

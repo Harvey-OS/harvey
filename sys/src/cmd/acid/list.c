@@ -22,6 +22,19 @@ construct(Node *l)
 	return lh;
 }
 
+int
+listlen(List *l)
+{
+	int len;
+
+	len = 0;
+	while(l) {
+		len++;
+		l = l->next;
+	}
+	return len;
+}
+
 void
 build(Node *n)
 {
@@ -49,6 +62,9 @@ List*
 addlist(List *l, List *r)
 {
 	List *f;
+
+	if(l == 0)
+		return r;
 
 	for(f = l; f->next; f = f->next)
 		;
@@ -175,8 +191,8 @@ listvar(char *s, long v)
 	return tl;
 }
 
-List*
-listlocals(Symbol *fn, ulong fp)
+static List*
+listlocals(Map *map, Symbol *fn, ulong fp)
 {
 	int i;
 	long val;
@@ -186,12 +202,14 @@ listlocals(Symbol *fn, ulong fp)
 	l2 = 0;
 	tail = &l2;
 	s = *fn;
-	for (i = 0; localsym(&s, i); i++) {
+
+	for(i = 0; localsym(&s, i); i++) {
 		if(s.class != CAUTO)
 			continue;
 		if(s.name[0] == '.')
 			continue;
-		if(get4(cormap, fp-s.value, SEGDATA, &val)) {
+
+		if(get4(map, fp-s.value, &val) > 0) {
 			*tail = listvar(s.name, val);
 			tail = &(*tail)->next;
 		}
@@ -199,8 +217,8 @@ listlocals(Symbol *fn, ulong fp)
 	return l2;
 }
 
-List*
-listparams(Symbol *fn, ulong fp)
+static List*
+listparams(Map *map, Symbol *fn, ulong fp)
 {
 	int i;
 	Symbol s;
@@ -209,15 +227,51 @@ listparams(Symbol *fn, ulong fp)
 
 	l2 = 0;
 	tail = &l2;
-	fp += mach->szreg;			/* skip saved pc */
+	fp += mach->szaddr;			/* skip saved pc */
 	s = *fn;
-	for (i = 0; localsym(&s, i); i++) {
+	for(i = 0; localsym(&s, i); i++) {
 		if (s.class != CPARAM)
 			continue;
-		if (get4(cormap, fp+s.value, SEGDATA, &v)) {
+
+		if(get4(map, fp+s.value, &v) > 0) {
 			*tail = listvar(s.name, v);
 			tail = &(*tail)->next;
 		}
 	}
 	return l2;
+}
+
+void
+trlist(Map *map, ulong pc, ulong sp, Symbol *sym)
+{
+	List *q, *l;
+
+	static List **tail;
+
+	if (tracelist == 0) {		/* first time */
+		tracelist = al(TLIST);
+		tail = &tracelist;
+	}
+
+	q = al(TLIST);
+	*tail = q;
+	tail = &q->next;
+
+	l = al(TINT);			/* Function address */
+	q->l = l;
+	l->ival = sym->value;
+	l->fmt = 'X';
+
+	l->next = al(TINT);		/* called from address */
+	l = l->next;
+	l->ival = pc;
+	l->fmt = 'X';
+
+	l->next = al(TLIST);		/* make list of params */
+	l = l->next;
+	l->l = listparams(map, sym, sp);
+
+	l->next = al(TLIST);		/* make list of locals */
+	l = l->next;
+	l->l = listlocals(map, sym, sp);
 }

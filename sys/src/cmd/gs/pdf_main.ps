@@ -1,0 +1,245 @@
+%    Copyright (C) 1994 Aladdin Enterprises.  All rights reserved.
+
+% pdf_main.ps
+% PDF file- and page-level operations.
+
+% We don't handle the following PDF elements yet (identified by
+% page number in the reference manual):
+%	Rotate (53)
+
+/.setlanguagelevel where { pop 2 .setlanguagelevel } if
+.currentglobal true .setglobal
+/pdfdict where { pop } { /pdfdict 100 dict def } ifelse
+pdfdict begin
+
+% For simplicity, we use a single interpretation dictionary for all
+% PDF graphics execution, even though this is too liberal.
+/pdfopdict mark
+  objopdict { } forall
+  drawopdict { } forall
+  /endstream { exit } bind
+  (%%EOF) cvn { exit } bind		% for filters
+.dicttomark readonly def
+
+% ======================== File parsing ======================== %
+
+% Read the cross-reference and trailer sections.
+
+/traileropdict mark
+  (<<) cvn { mark } bind
+  (>>) cvn /.dicttomark load
+  /[ { mark } bind		% ditto
+  /] /] load
+  /true true
+  /false false
+  /null null
+  /R { /resolveR cvx 3 packedarray cvx } bind	% see Objects below
+  /startxref /exit load
+.dicttomark readonly def
+
+% Because of EOL conversion, lines with fixed contents might be followed
+% by one or more blanks.
+/lineeq			% <filestr> <conststr> lineeq <bool>
+ { anchorsearch
+    { pop { ( ) anchorsearch not { () eq exit } if pop } loop }
+    { pop false }
+   ifelse
+ } bind def
+/linene { lineeq not } bind def
+
+% Read (mostly scan) the cross-reference table.
+/readxref		% <pos> readxref <trailerdict>
+ { PDFfile exch setfileposition
+   PDFfile pdfstring readline pop
+   (xref) linene { /readxref cvx /syntaxerror signalerror } if
+		% Store the xref table entry position for each object.
+		% We only need to read the run headers, not every entry.
+    { PDFfile pdfstring readline pop
+      dup (trailer) lineeq { pop exit } if
+      token pop			% first object #
+      exch token pop		% entry count
+      exch pop exch
+			% Stack: count obj#
+      PDFfile fileposition 3 -1 roll
+       { Objects 2 index get null eq	% later update might have set it
+	  { Objects 2 index 2 index cvx put }
+         if exch 1 add exch 20 add
+       }
+      repeat PDFfile exch setfileposition pop
+    } loop
+   PDFfile traileropdict pdfrun
+ } bind def
+
+% Open a PDF file and read the trailer and cross-reference.
+/pdfopen		% <file> pdfopen <dict>
+ { 4 dict begin
+   /PDFfile exch def
+   PDFfile dup dup 0 setfileposition bytesavailable setfileposition
+   prevline (%%EOF) linene { /pdfopen cvx /syntaxerror signalerror } if
+   PDFfile exch setfileposition
+   prevline cvi		% xref start position
+   exch PDFfile exch setfileposition
+   prevline (startxref) linene { /pdfopen cvx /syntaxerror signalerror } if
+	% Scan backwards for the start of the trailer,
+	% since we have to read the trailer before the first xref section.
+    { PDFfile exch setfileposition
+      prevline (trailer) lineeq { exit } if
+    }
+   loop pop PDFfile traileropdict pdfrun
+		% Stack: xrefpos trailerdict
+   /Trailer exch def
+   Trailer /Size get
+   /Objects 1 index array def
+   /Generations exch string def
+	% Read the last cross-reference table.
+   readxref pop
+	% Read any previous cross-reference tables.
+   Trailer { /Prev .knownget not { exit } if readxref } loop
+	% Write the DSC header if appropriate.
+   [ (%!PS-Adobe-1.0) #dsc
+   [ (%%Pages: ) pdfpagecount #dsc
+   [ (%%EndComments) #dsc
+   [ (%%BeginProlog) #dsc
+   [ (\(gs_pdf.ps\) /runlibfile where { pop runlibfile } { run } ifelse) #dsc
+   [ (GS_PDF_ProcSet begin) #dsc
+   [ (%%EndProlog) #dsc
+	% Copy bookmarks (outline) to the output.
+   Trailer /Root oget /Outlines knownoget
+    { /First knownoget
+       { { dup writeoutline /Next knownoget not { exit } if } loop }
+      if
+    }
+   if   
+   currentdict readonly end
+ } bind def
+
+% Write the outline structure for a file.  Uses linkdest (below).
+/writeoutline		% <outlinedict> writeoutline -
+ { mark
+   0 2 index /First knownoget
+    { { exch 1 add exch /Next knownoget not { exit } if } loop }
+   if
+		% stack: dict mark count
+   dup 0 eq
+    { pop 1 index
+    }
+    { 2 index /Count knownoget { 0 lt { neg } if } if /Count exch 4 index
+    }
+   ifelse linkdest /Title oget /Title exch /OUT pdfmark
+   /First knownoget
+    { { dup writeoutline /Next knownoget not { exit } if } loop }
+   if
+ } bind def
+
+% ======================== Page accessing ======================== %
+
+% Get a (possibly inherited) attribute of a page.
+/pget			% <pagedict> <key> pget <value> -true-
+			% <pagedict> <key> pget -false-
+ { 2 copy knownoget
+    { exch pop exch pop true
+    }
+    { exch /Parent knownoget
+       { exch pget }
+       { pop false }
+      ifelse
+    }
+   ifelse
+ } bind def
+
+% Get the total number of pages in the document.
+/pdfpagecount		% - pdfpagecount <int>
+ { Trailer /Root oget /Pages oget /Count oget
+ } bind def
+
+% Get the N'th page of the document.
+% The first page is numbered 0.
+/pdfgetpage		% <int> pdfgetpage <pagedict>
+ { dup Trailer /Root oget /Pages oget
+    { dup /Type oget /Pages ne { exit } if
+      /Kids oget null exch
+       { exec dup /Type oget /Pages eq { dup /Count oget } { 1 } ifelse
+		% Stack: index null node count
+	 dup 4 index gt { pop exch pop exit } if
+	 4 -1 roll exch sub 3 1 roll pop
+       }
+      forall
+      dup null eq { pop pop 1 null exit } if
+    }
+   loop
+   1 index 0 ne { pop pop /pdfgetpage load /rangecheck signalerror } if
+   exch pop exch pop
+ } bind def
+
+% Find the page number of a page object (inverse of pdfgetpage).
+/pdfpagenumber		% <pagedict> pdfpagenumber <int>
+ {	% We use the simplest and stupidest of all possible algorithms....
+   0 1 pdfpagecount	% will give a rangecheck if not found
+    { dup pdfgetpage oforce 2 index eq { exch pop exit } if pop
+    }
+   for
+ } bind def
+
+% Display a given page.
+/boxrect		% [<llx> <lly> <urx> <ury>] boxrect <x> <y> <w> <h>
+ { aload pop exch 3 index sub exch 2 index sub
+ } bind def
+/linkdest		% <link|outline> linkdest
+			%   (/Page <n> /View <view> | ) <link|outline>
+ { dup /Dest knownoget
+    { dup 0 oget pdfpagenumber 1 add /Page exch 3 -1 roll
+      dup length 1 sub 1 exch getinterval /View exch 5 -1 roll
+    }
+   if
+ } bind def
+/annottypes 5 dict dup begin
+  /Text
+    { mark exch
+       { /Rect /Open /Contents }
+       { 2 copy knownoget { 3 -1 roll } { pop } ifelse }
+      forall pop /ANN pdfmark
+    } bind def
+  /Link
+    { mark exch
+       { /Rect /Border }
+       { 2 copy knownoget { 3 -1 roll } { pop } ifelse }
+      forall linkdest pop /LNK pdfmark
+    } bind def
+end def
+/pdfshowpage		% <pagedict> pdfshowpage -
+ { dup /Contents oget
+   dup type /arraytype ne { 1 array astore } if
+   gsave
+   1 index /MediaBox pget
+    {		% We should really use setpagedevice to set the page size,
+		% but it doesn't work reliably yet.
+      boxrect statusdict /.setpagesize get exec
+      exch neg exch neg translate
+    }
+    { initmatrix initclip
+    }
+   ifelse
+   1 index /CropBox pget
+    { boxrect rectclip
+      1 index /CropBox knownoget { mark /CropBox 3 -1 roll /PAGE pdfmark } if
+    }
+   if
+	% Copy annotations and links.
+   1 index /Annots knownoget
+    { 0 1 2 index length 1 sub
+       { 1 index exch oget
+         dup /Subtype oget annottypes exch .knownget { exec } { pop } ifelse
+       }
+      for pop
+    }
+   if
+   exch pop
+   beginpage
+    { oforce false resolvestream pdfopdict pdfrun } forall
+   endpage
+   grestore
+   /showpage 0 #
+ } bind def
+
+end			% pdfdict
+.setglobal

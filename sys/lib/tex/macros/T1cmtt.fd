@@ -1,0 +1,51 @@
+%% 
+%% This is file `T1cmtt.fd', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% cmfonts.fdd  (with options: `fd,T1cmtt')
+%% 
+%% Copyright (C) 1994 LaTeX3 project, Frank Mittelbach and Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% This is a generated file. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+%% 
+%% If you want to customize this file, it is best to make a copy of the 
+%% source file cmfonts.fdd under a different name and modify this copy. 
+%% Otherwise your changes might get lost when you install a new release 
+%% of LaTeX2e. 
+%% 
+\ProvidesFile{T1cmtt.fd}
+        [1994/12/02 v2.3e Standard LaTeX font definitions]
+\DeclareFontFamily{T1}{cmtt}{\hyphenchar \font\m@ne}
+\DeclareFontShape{T1}{cmtt}{m}{n}{
+      <8> <9> gen * dctt
+      <10> <10.95>dctt10
+      <12> <14.4> <17.28> <20.74> <24.88>dctt12
+      }{}
+\DeclareFontShape{T1}{cmtt}{m}{it}{
+      <8> <9> gen  * dcitt
+      <10> <10.95>dcitt10
+      <12> <14.4>dcitt12
+      <17.28> <20.74> <24.88>dcitt17
+      }{}
+\DeclareFontShape{T1}{cmtt}{m}{sl}{
+      <8> <9> gen * dcsltt
+      <10> <10.95>dcsltt10
+      <12> <14.4> <17.28> <20.74> <24.88>dcsltt12
+      }{}
+\DeclareFontShape{T1}{cmtt}{m}{sc}{
+      <10> <10.95>dctcsc10
+      <12> <14.4>dctcsc12
+      <17.28> <20.74> <24.88>dctcsc17
+      }{}
+\endinput
+%% 
+%% End of file `T1cmtt.fd'.

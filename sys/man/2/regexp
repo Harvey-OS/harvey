@@ -1,7 +1,11 @@
-.TH REGEXP 2X
+.TH REGEXP 2
 .SH NAME
 regcomp, regcomplit, regcompnl, regexec, regsub, rregexec, rregsub, regerror \- regular expression
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
 .B #include <regexp.h>
 .PP
 .ta \w'\fLRegprog 'u
@@ -14,21 +18,24 @@ Reprog	*regcomplit(char *exp)
 .B
 Reprog	*regcompnl(char *exp)
 .PP
+.nf
+.B
+int  regexec(Reprog *prog, char *string, Resub *match, int msize)
+.PP
+.nf
+.B
+void regsub(char *source, char *dest, Resub *match, int msize)
+.PP
+.nf
+.B
+int  rregexec(Reprog *prog, Rune *string, Resub *match, int msize)
+.PP
+.nf
+.B
+void rregsub(Rune *source, Rune *dest, Resub *match, int msize)
 .PP
 .B
-int	regexec(Reprog *prog, char *string, Resub *match, int msize)
-.PP
-.B
-void	regsub(char *source, char *dest, Resub *match, int msize)
-.PP
-.B
-int	rregexec(Reprog *prog, Rune *string, Resub *match, int msize)
-.PP
-.B
-void	rregsub(Rune *source, Rune *dest, Resub *match, int msize)
-.PP
-.B
-void	regerror(char *msg)
+void regerror(char *msg)
 .SH DESCRIPTION
 .I Regcomp
 compiles a
@@ -37,7 +44,7 @@ a pointer to the generated description.
 The space is allocated by
 .IR malloc (2)
 and may be released by
-.I free.
+.IR free .
 Regular expressions are exactly as in
 .IR regexp (6).
 .PP
@@ -56,7 +63,7 @@ metacharacter matches all characters, including newlines.
 matches a null-terminated
 .I string
 against the compiled regular expression in
-.I prog.
+.IR prog .
 If it matches,
 .I regexec
 returns
@@ -96,7 +103,7 @@ are extended as far as possible.
 The number of array elements in 
 .I match
 is given by
-.I msize.
+.IR msize .
 The structure of elements of
 .I match 
 is:
@@ -134,16 +141,16 @@ a substitution instance of
 in the context of the last
 .I regexec
 performed using
-.I match.
+.IR match .
 Each instance of
-.BI \e n ,
+.BI \e n\f1,
 where
 .I n
 is a digit, is replaced by the
 string delimited by
 .BI match[ n ].sp
 and
-.BI match[ n ].ep .
+.BI match[ n ].ep\f1.
 Each instance of 
 .L &
 is replaced by the string delimited by
@@ -151,12 +158,12 @@ is replaced by the string delimited by
 and
 .BR match[0].ep .
 .LP
-.I Regerror,
+.IR Regerror ,
 called whenever an error is detected in
-.I regcomp,
-.I regexec,
+.IR regcomp ,
+.IR regexec ,
 or
-.I regsub,
+.IR regsub ,
 writes the string
 .I msg
 on the standard error file and exits.
@@ -164,7 +171,7 @@ on the standard error file and exits.
 can be replaced to perform
 special error processing.
 .PP
-.I Rregexp
+.I Rregexec
 and
 .I rregsub
 are variants of 
@@ -182,6 +189,8 @@ and
 fields of the
 .I match
 array elements should be used.
+.SH SOURCE
+.B /sys/src/libregexp
 .SH "SEE ALSO"
 .IR grep (1)
 .SH DIAGNOSTICS
@@ -195,3 +204,5 @@ returns 0
 if
 .I string
 is not matched.
+.SH BUGS
+There is no way to specify or match a NUL character; NULs terminate patterns and strings.

@@ -1,0 +1,25 @@
+This directory and its subdirectory $cputype are always mounted at
+the end of /bin for programs run from acme.  They hold a collection
+of small acme-specific applications:
+
+win [command]
+	Create an acme window to serve as a terminal, analogous
+	to xterm.  By default, it runs the shell, rc, but it works with
+	any interactive program, e.g. hoc.  Within the window,
+	commands executed with button 2 are 'executed' by sending
+	their text to the standard input of the command, appending
+	a newline if necessary.
+new command
+	Run the non-interactive command, placing its standard and
+	diagnostic output in a new window.
+aspell file
+	Run spell on the file, labeling the output with addresses so
+	misspelled words can be found in context using button 3.
+adiff file1 file2
+	Run diff on the files, labeling the output with addresses so
+	changes can be found in context using button 3.
+adict
+	Interactive version of dict(1).  Button 3 looks up words and
+	may be applied to any word in any adict window.
+	When a word has multiple definitions, indicate the number
+	(as in acme Mail) to disambiguate.

@@ -34,8 +34,8 @@ size(char *file)
 		return 1;
 	}
 	if (crackhdr(fd, &f)) {
-		print("%ldt + %ldd + %ldb = %ld\t%s\n",f.txtsz-f.hdrsz,f.datsz,
-			f.bsssz, f.txtsz+f.datsz+f.bsssz-f.hdrsz, file);
+		print("%ldt + %ldd + %ldb = %ld\t%s\n",f.txtsz,f.datsz,
+			f.bsssz, f.txtsz+f.datsz+f.bsssz, file);
 		close(fd);
 		return 0;
 	}

@@ -20,7 +20,7 @@
 #define CC 1.e-6
 
 int
-elco2(double x, double y, double kc, double a, double b, float *u, float *v)
+elco2(double x, double y, double kc, double a, double b, double *u, double *v)
 {
 	double c,d,dn1,dn2,e,e1,e2,f,f1,f2,h,k,m,m1,m2,sy;
 	double d1[13],d2[13];

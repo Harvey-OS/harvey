@@ -46,6 +46,8 @@
 #define IEC		0x00000001
 #define KUC		0x00000002
 #define IEP		0x00000004
+#define IEO		0x00000010
+#define KUO		0x00000020
 #define KUP		0x00000008
 #define INTMASK		0x0000ff00
 #define SW0		0x00000100
@@ -58,6 +60,8 @@
 #define INTR5		0x00008000
 #define ISC		0x00010000
 #define SWC		0x00020000
+#define CM		0x00080000
+#define PE		0x00100000
 #define CU1		0x20000000
 
 /*

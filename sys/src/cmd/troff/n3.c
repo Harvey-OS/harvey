@@ -4,7 +4,6 @@
  * macro and string routines, storage allocation
  */
 
-
 #include "tdef.h"
 #include "fns.h"
 #include "ext.h"
@@ -20,6 +19,29 @@ Contab	*mhash[MHASHSIZE];
 
 Blockp	*blist;		/* allocated blocks for macros and strings */
 int	nblist;		/* how many there are */
+int	bfree = -1;	/* first (possible) free block in the list */
+
+Contab *contabp = NULL;
+#define MDELTA 500
+int	nm = 0;
+
+int savname;		/* name of macro/string being defined */
+int savslot;		/* place in Contab of savname */
+int freeslot = -1;	/* first (possible) free slot in contab */
+
+void prcontab(Contab *p)
+{
+	int i;
+	for (i = 0; i < nm; i++)
+		if (p)
+			if (p[i].rq != 0)
+				fprintf(stderr, "slot %d, %-2.2s\n", i, unpair(p[i].rq));
+			else
+				fprintf(stderr, "slot %d empty\n", i);
+		else
+			fprintf(stderr, "slot %d empty\n", i);
+}
+
 
 void blockinit(void)
 {
@@ -36,8 +58,38 @@ void blockinit(void)
 		/* for a design botch: offset==0 is overloaded. */
 		/* blist[1] reserved for .rd indicator -- also unused. */
 		/* but someone unwittingly looks at these, so allocate something */
+	bfree = 2;
 }
 
+
+char *grow(char *ptr, int num, int size)	/* make array bigger */
+{
+	char *p, new;
+
+	if (ptr == NULL)
+		p = (char *) calloc(num, size);
+	else
+		p = (char *) realloc(ptr, num * size);
+	return p;
+}
+
+void mnspace(void)
+{
+	nm = sizeof(contab)/sizeof(Contab) + MDELTA;
+	freeslot = sizeof(contab)/sizeof(Contab) + 1;
+	contabp = (Contab *) grow((char *) contabp, nm, sizeof(Contab));
+	if (contabp == NULL) {
+		ERROR "not enough memory for namespace of %d marcos", nm WARN;
+		exit(1);
+	}
+	contabp = (Contab *) memcpy((char *) contabp, (char *)contab,
+							sizeof(contab));
+	if (contabp == NULL) {
+		ERROR "Cannot reinitialize macro/request name list" WARN;
+		exit(1);
+	}
+
+}
 
 void caseig(void)
 {
@@ -54,7 +106,7 @@ void caseig(void)
 
 void casern(void)
 {
-	int i, j;
+	int i, j, k;
 
 	lgf++;
 	skip();
@@ -63,9 +115,13 @@ void casern(void)
 	skip();
 	clrmn(findmn(j = getrq()));
 	if (j) {
-		munhash(&contab[oldmn]);
-		contab[oldmn].rq = j;
-		maddhash(&contab[oldmn]);
+		munhash(&contabp[oldmn]);
+		contabp[oldmn].rq = j;
+		maddhash(&contabp[oldmn]);
+		if (dip != d )
+			for (k = dilev; k; k--)
+				if (d[k].curd == i)
+					d[k].curd = j;
 	}
 }
 
@@ -107,9 +163,9 @@ void mrehash(void)
 
 	for (i=0; i < MHASHSIZE; i++)
 		mhash[i] = 0;
-	for (p=contab; p < &contab[NM]; p++)
+	for (p=contabp; p < &contabp[nm]; p++)
 		p->link = 0;
-	for (p=contab; p < &contab[NM]; p++) {
+	for (p=contabp; p < &contabp[nm]; p++) {
 		if (p->rq == 0)
 			continue;
 		i = MHASH(p->rq);
@@ -121,10 +177,20 @@ void mrehash(void)
 void caserm(void)
 {
 	int j;
+	int k = 0;
 
 	lgf++;
-	while (!skip() && (j = getrq()) != 0)
+g0:
+	while (!skip() && (j = getrq()) != 0) {
+		if (dip != d)
+			for (k = dilev; k; k--)
+				if (d[k].curd == j) {
+					ERROR "cannot remove diversion %s during definition",
+								unpair(j) WARN;
+					goto g0;
+				}
 		clrmn(findmn(j));
+	}
 	lgf--;
 }
 
@@ -162,16 +228,22 @@ void casede(void)
 		goto de1;
 	if ((offset = finds(i)) == 0)
 		goto de1;
+	if (newmn)
+		savslot = newmn;
+	else
+		savslot = findmn(i);
+	savname = i;
 	if (ds)
 		copys();
-	else 
+	else
 		req = copyb();
 	clrmn(oldmn);
 	if (newmn) {
-		if (contab[newmn].rq)
-			munhash(&contab[newmn]);
-		contab[newmn].rq = i;
-		maddhash(&contab[newmn]);
+		if (contabp[newmn].rq)
+			munhash(&contabp[newmn]);
+		contabp[newmn].rq = i;
+		maddhash(&contabp[newmn]);
+
 	}
 	if (apptr) {
 		savoff = offset;
@@ -193,7 +265,7 @@ int findmn(int i)
 
 	for (p = mhash[MHASH(i)]; p; p = p->link)
 		if (i == p->rq)
-			return(p - contab);
+			return(p - contabp);
 	return(-1);
 }
 
@@ -201,12 +273,33 @@ int findmn(int i)
 void clrmn(int i)
 {
 	if (i >= 0) {
-		if (contab[i].mx)
-			ffree(contab[i].mx);
-		munhash(&contab[i]);
-		contab[i].rq = 0;
-		contab[i].mx = 0;
-		contab[i].f = 0;
+		if (contabp[i].mx)
+			ffree(contabp[i].mx);
+		munhash(&contabp[i]);
+		contabp[i].rq = 0;
+		contabp[i].mx = 0;
+		contabp[i].emx = 0;
+		contabp[i].f = 0;
+		if (contabp[i].divsiz != NULL) {
+			free(contabp[i].divsiz);
+			contabp[i].divsiz = NULL;
+		}
+		if (freeslot > i)
+			freeslot = i;
+	}
+}
+
+void growcontab(void)
+{
+	nm += MDELTA;
+	contabp = (Contab *) grow((char *) contabp , nm, sizeof(Contab));
+	if (contabp == NULL) {
+		ERROR "Too many (%d) string/macro names", nm WARN;
+		done2(02);
+	} else {
+		memset((char *)(contabp) + (nm - MDELTA) * sizeof(Contab),
+						0, MDELTA * sizeof(Contab));
+		mrehash();
 	}
 }
 
@@ -214,58 +307,57 @@ void clrmn(int i)
 Offset finds(int mn)
 {
 	int i;
+	Tchar j = IMP;
 	Offset savip;
 
 	oldmn = findmn(mn);
 	newmn = 0;
 	apptr = 0;
-	if (app && oldmn >= 0 && contab[oldmn].mx) {
+	if (app && oldmn >= 0 && contabp[oldmn].mx) {
 		savip = ip;
-		ip = contab[oldmn].mx;
+		ip = contabp[oldmn].emx;
 		oldmn = -1;
-		while (rbf() != 0)
-			;
 		apptr = ip;
 		if (!diflg)
 			ip = incoff(ip);
 		nextb = ip;
 		ip = savip;
 	} else {
-		for (i = 0; i < NM; i++) {
-			if (contab[i].rq == 0)
+		for (i = freeslot; i < nm; i++) {
+			if (contabp[i].rq == 0)
 				break;
 		}
-		if (i == NM || (nextb = alloc()) == -1) {
+		if (i == nm) 
+			growcontab();
+		freeslot = i + 1;
+		if ((nextb = alloc()) == -1) {
 			app = 0;
 			if (macerr++ > 1)
 				done2(02);
-			if (i == NM)
-				ERROR "Too many (%d) string/macro names", NM WARN;
 			if (nextb == 0)
-				ERROR "Too much space for string/macro names" WARN, abort();
+				ERROR "Not enough space for string/macro names" WARN;
 			edone(04);
 			return(offset = 0);
 		}
-		contab[i].mx = nextb;
+		contabp[i].mx = nextb;
 		if (!diflg) {
 			newmn = i;
 			if (oldmn == -1)
-				contab[i].rq = -1;
+				contabp[i].rq = -1;
 		} else {
-			contab[i].rq = mn;
-			maddhash(&contab[i]);
+			contabp[i].rq = mn;
+			maddhash(&contabp[i]);
 		}
 	}
 	app = 0;
 	return(offset = nextb);
 }
 
-
 int skip(void)
 {
 	Tchar i;
 
-	while (cbits(i = getch()) == ' ')
+	while (cbits(i = getch()) == ' ' || ismot(i))
 		;
 	ch = i;
 	return(nlflg);
@@ -278,7 +370,7 @@ int copyb(void)
 	Tchar ii;
 	int req, k;
 	Offset savoff;
-	char *p;
+	Uchar *p;
 
 	if (skip() || !(j = getrq()))
 		j = '.';
@@ -362,7 +454,7 @@ Offset alloc(void)	/* return free Offset in nextb */
 {
 	int i, j;
 
-	for (i = 0; i < nblist; i++)
+	for (i = bfree; i < nblist; i++)
 		if (blist[i].nextoff == 0)
 			break;
 	if (i == nblist) {
@@ -378,8 +470,13 @@ Offset alloc(void)	/* return free Offset in nextb */
 		}
 	}
 	blist[i].nextoff = -1;	/* this block is the end */
+	bfree = i + 1;
 	if (blist[i].bp == 0)
 		blist[i].bp = (Tchar *) calloc(BLK, sizeof(Tchar));
+	if (blist[i].bp == NULL) {
+		ERROR "can't allocate memory for string/macro definitions" WARN;
+		done2(2);
+	}
 	nextb = (Offset) i * BLK;
 	return nextb;
 }
@@ -390,6 +487,8 @@ void ffree(Offset i)	/* free list of blocks starting at blist(o) */
 	int j;
 
 	for ( ; blist[j = bindex(i)].nextoff != -1; ) {
+		if (bfree > j)
+			bfree = j;
 		i = blist[j].nextoff;
 		blist[j].nextoff = 0;
 	}
@@ -404,6 +503,8 @@ void wbf(Tchar i)	/* store i into offset, get ready for next one */
 	if (!offset)
 		return;
 	j = bindex(offset);
+	if (i == 0)
+		contabp[savslot].emx = offset;
 	off = boffset(offset);
 	blist[j].bp[off++] = i;
 	offset++;
@@ -533,7 +634,7 @@ Offset setstr(void)
 	int i, j;
 
 	lgf++;
-	if ((i = getsn()) == 0 || (j = findmn(i)) == -1 || !contab[j].mx) {
+	if ((i = getsn()) == 0 || (j = findmn(i)) == -1 || !contabp[j].mx) {
 		lgf--;
 		return(0);
 	} else {
@@ -541,7 +642,7 @@ Offset setstr(void)
 		nxf->nargs = 0;
 		strflg++;
 		lgf--;
-		return pushi(contab[j].mx, i);
+		return pushi(contabp[j].mx, i);
 	}
 }
 
@@ -645,6 +746,23 @@ void caseda(void)
 	casedi();
 }
 
+void casegd(void)
+{
+	int i, j;
+
+	skip();
+	if ((i = getrq()) == 0)
+		return;
+	if ((j = findmn(i)) >= 0) {
+		if (contabp[j].divsiz != NULL) {
+			numtabp[DN].val = contabp[j].divsiz->dix;
+			numtabp[DL].val = contabp[j].divsiz->diy;
+		}
+	}
+}
+
+#define FINDDIV(o) if ((o =  findmn(dip->curd)) < 0) \
+			ERROR "lost diversion %s", unpair(dip->curd) WARN
 
 void casedi(void)
 {
@@ -652,11 +770,21 @@ void casedi(void)
 
 	lgf++;
 	if (skip() || (i = getrq()) == 0) {
-		if (dip != d)
+		if (dip != d) {
+			FINDDIV(savslot);
 			wbf((Tchar)0);
+		}
 		if (dilev > 0) {
-			numtab[DN].val = dip->dnl;
-			numtab[DL].val = dip->maxl;
+			numtabp[DN].val = dip->dnl;
+			numtabp[DL].val = dip->maxl;
+			FINDDIV(j);
+			if ((contabp[j].divsiz = (Divsiz *) malloc(sizeof(Divsiz))) == NULL) {
+				ERROR "Cannot alloc diversion (%s) size" WARN;
+				done2(1);
+			} else {
+				contabp[j].divsiz->dix = numtabp[DN].val;
+				contabp[j].divsiz->diy = numtabp[DL].val;
+			}
 			dip = &d[--dilev];
 			offset = dip->op;
 		}
@@ -667,8 +795,11 @@ void casedi(void)
 		ERROR "Diversions nested too deep" WARN;
 		edone(02);
 	}
-	if (dip != d)
+	if (dip != d) {
+		FINDDIV(j);
+		savslot = j;
 		wbf((Tchar)0);
+	}
 	diflg++;
 	dip = &d[dilev];
 	dip->op = finds(i);
@@ -695,7 +826,7 @@ void casedt(void)
 	dip->dimac = getrq();
 }
 
-
+#define LNSIZE 4000
 void casetl(void)
 {
 	int j;
@@ -712,7 +843,7 @@ void casetl(void)
  	 *
  	 * tends too confuse the device filter (and the user as well)
  	 */
- 	if (dip == d && numtab[NL].val == -1)
+ 	if (dip == d && numtabp[NL].val == -1)
  		newline(1);
 	dip->nls = 0;
 	skip();
@@ -722,29 +853,36 @@ void casetl(void)
 	} else 
 		delim = cbits(delim);
 	tp = buf;
-	numtab[HP].val = 0;
+	numtabp[HP].val = 0;
 	w[0] = w[1] = w[2] = 0;
 	j = 0;
 	while (cbits(i = getch()) != '\n') {
 		if (cbits(i) == cbits(delim)) {
 			if (j < 3)
-				w[j] = numtab[HP].val;
-			numtab[HP].val = 0;
+				w[j] = numtabp[HP].val;
+			numtabp[HP].val = 0;
+			if (w[j] != 0)
+				*tp++ = WORDSP;
 			j++;
 			*tp++ = 0;
 		} else {
 			if (cbits(i) == pagech) {
-				setn1(numtab[PN].val, numtab[findr('%')].fmt,
+				setn1(numtabp[PN].val, numtabp[findr('%')].fmt,
 				      i&SFMASK);
 				continue;
 			}
-			numtab[HP].val += width(i);
-			if (tp < &buf[LNSIZE-10])
+			numtabp[HP].val += width(i);
+			if (tp < &buf[LNSIZE-10]) {
+				if (cbits(i) == ' ' && *tp != WORDSP)
+					*tp++ = WORDSP;
 				*tp++ = i;
+			} else {
+				ERROR "Overflow in casetl" WARN;
+			}
 		}
 	}
 	if (j<3)
-		w[j] = numtab[HP].val;
+		w[j] = numtabp[HP].val;
 	*tp++ = 0;
 	*tp++ = 0;
 	*tp = 0;
@@ -767,8 +905,8 @@ void casetl(void)
 		if (dip->dnl > dip->hnl)
 			dip->hnl = dip->dnl;
 	} else {
-		if (numtab[NL].val > dip->hnl)
-			dip->hnl = numtab[NL].val;
+		if (numtabp[NL].val > dip->hnl)
+			dip->hnl = numtabp[NL].val;
 	}
 }
 
@@ -788,11 +926,11 @@ void casepm(void)
 	kk = cnt = tcnt = 0;
 	tot = !skip();
 	stackdump();
-	for (i = 0; i < NM; i++) {
-		if ((xx = contab[i].rq) == 0 || contab[i].mx == 0)
+	for (i = 0; i < nm; i++) {
+		if ((xx = contabp[i].rq) == 0 || contabp[i].mx == 0)
 			continue;
 		tcnt++;
-		j = contab[i].mx;
+		j = contabp[i].mx;
 		for (k = 1; (j = blist[bindex(j)].nextoff) != -1; )
 			k++; 
 		cnt++;

@@ -1,0 +1,661 @@
+%% BEGIN changes.tex
+%%
+%% Changes listing for PSTricks.
+%% Run with LaTeX, with or without the NFSS.
+%%
+%% Change these for a4 paper:
+\def\paperwidth{8.5in}
+\def\paperheight{11in}
+
+\def\FileVersion{0.93a}
+\def\FileDate{March 12, 1993}
+
+\documentstyle[12pt,fancybox]{article}
+
+%% PAGE PARAMETERS
+
+% Paragraphs are marked by large space rather than indentation:
+\parindent 0pt
+\parskip 6pt plus 1pt minus 1pt
+
+% No headers, 1in top margin
+\topmargin 0pt
+\headheight 0pt
+\headsep 0pt
+
+% Total bottom margin 1in, text height 9in
+\textheight 9in
+\footskip .625in
+
+% Now adjust for different paper size:
+\newdimen\mydim
+\mydim=\paperwidth
+\advance\mydim-8.5in
+\divide\mydim 2
+\advance\oddsidemargin \mydim
+\advance\evensidemargin \mydim
+\mydim=\paperheight
+\advance\mydim-11in
+\divide\mydim 2
+\advance\topmargin \mydim
+
+%% OTHER
+
+\renewcommand{\EveryVerbatimLine}[2]{}
+
+% Short meta (works in verbatim. Can't use < for other purposes.
+\catcode`\<=13 \def<#1>{{\rm\it #1\/}}    % <meta> (works in verbatim)
+
+% Short verbatim.
+\catcode`\"=13
+\def"{\verb"}
+
+\catcode`\@=12  % In case I'm using AmS-LaTeX
+
+\begin{document}
+
+\begin{center}
+{\large\bf Changes listing for PSTricks}\\[6pt]
+  Version \FileVersion\\
+  \FileDate\\[6pt]
+  Timothy Van Zandt\\
+  tvz@Princeton.EDU
+\end{center}
+
+  The PSTricks package is still preliminary. The features list
+  and user interface are unlikely to change much in the short term, but
+  the internal code is not stable.
+
+\section{VERSION 0.93 and 0.93a}
+
+  There have been substantial changes (hopefully for the last time).
+
+  This section describes the changes from 0.92 to 0.93a. The only differencea
+between 0.93 and 0.93a are that a bug in "\nccircle" was fixed, and the
+features in "\pst-old.tex" where either incorporated into the main files
+("\Rput", "\Lput", "\Mput", "\Polar" and "\Cartesian") or eliminated entirely
+("\NewPsput", "\OldPsput" and the old "\pscustom" commands). What is described
+\subsection{Incompatible changes}
+
+  {\bf
+  These changes may require modification to files prepared with version 0.92.
+Sorry about the inconvenience. To avoid letting new changes catch you by
+surprise, get on the PSTricks mailing list.}
+\begin{enumerate}
+
+\item
+  "\SpecialCoor" has changed completely. See User's Guide for details. Most of
+these changes were announced shortly after the release of v0.92, but
+"pst-beta.tex" users should note that raw PostScript coordinates are now
+delimited by "!" rather than by ":".
+
+  {\bf How to fix files:} Search for "\SpecialCoor" in your file. Change the
+old syntax to the new syntax according to this table:
+   \begin{center}
+     \begin{tabular}{ccl}
+     {\em Old} & {\em New} & {\em Type}\\[2pt]
+     "(c<x>,<y>)" & "(<x>,<y>)" & Cartesian.\\
+     "(p<r>,<a>)" & "(<r>;<a>)" & Polar.\\
+     "(n{<node>})" & "(<node>)" & Center of <node>.\\
+     "(N[<par>]{<node>})"  & "([<par>]<node>)" & Relative to <node>.\\
+     "(m{<coor1>}{<coor2>})" & "(<coor1>|<coor2>)" & Mixed.
+     \end{tabular}
+   \end{center}
+In addition, if you used the syntax "(:<ps>)" from "pst-beta.tex" for raw
+postscript code, search for "(:" and replace by "(!".
+
+\item
+  Angles can no longer be specified by "{<x>,<y>}". "\SpecialCoor" lets you
+use coordinates as angles, but they must be enclosed in "()". E.g.,
+"{(<x>,<y>)}". See User's Guide for details.
+
+  {\bf How to fix files:} Add the parentheses "()" to angles given by
+"{<x>,<y>}" and and precede this usage by "\SpecialCoor". However, there is no
+easy way to search for "{<x>,<y>}" (unless you are good at using Unix's
+regular expressions). On the other hand, you probably didn't use this features
+much, and it will be easier to just wait for the old usage to cause errors.
+
+\item
+  The
+\begin{LVerbatim}
+  arrowsize=<dim num1 num2 num3>
+\end{LVerbatim}
+parameter has been replaced by
+\begin{LVerbatim}
+  arrowsize=<dim num1>
+  arrowlength=<num2>
+  arrowinset=<num3>
+\end{LVerbatim}
+
+  {\bf How to fix files:}
+  Search for "arrowsize", and break up your parameter change. You can also
+just do nothing, because if you use the old syntax for "arrowsize", <num2> and
+<num3> will simply be ignored.
+
+\item
+  The
+\begin{LVerbatim}
+  tbarsize=<dim num1 num2>
+\end{LVerbatim}
+parameter has been replaced by
+\begin{LVerbatim}
+  tbarsize=<dim num1>
+  bracketlength=<num2>      % For square brackets.
+  rbracketlength=<num2>     % For round brackets.
+\end{LVerbatim}
+
+  {\bf How to fix files:}
+  Search for "tbarsize", and break up your parameter change. You can also just
+do nothing, because if you use the old syntax for "tbarsize", <num2> will
+simply be ignored.
+
+\item
+  "\pscustom" has changed substantially. E.g., (i) there is no  "(x,y)"
+argument, (ii) plots ("\psplot", etc.) no longer run backwards, and (iii) the
+treatment of the currentpoint is much different. Also, most of the special
+commands for use only within "\pscustom" have changed. See the User's Guide
+for details.
+
+  {\bf How to fix files:}
+  You must search for each use of "\pscustom", and make the following changes:
+  \begin{itemize}
+  \item Replace "\pscustom"'s old "(<x>,<y>)" argument by "\moveto(<x>,<y>)"
+at the beginning of "\pscustom"'s main argument.
+
+  \item Make the following substitutions inside "\pscustom"'s main argument:
+    \begin{center}
+    \begin{tabular}{ll}
+    {\em Old} & {\em New}\\[2pt]
+    "\pscode" & "\code"\\
+    "\pscoor" & "\coor"\\
+    "\psdim" & "\dim"\\
+    "\psmove" & "\moveto"\\
+    "\psclosepath" & "\closepath"\\
+    "\psgroup{<stuff>}" & "\gsave" <stuff> "\grestore"\\
+    "\psstroke" & "\stroke"\\
+    "\psfill" & "\fill"
+    \end{tabular}
+    \end{center}
+    You can instead define, e.g.,
+    \begin{quote}
+      "\def\pscode{\code}"  , or\\
+      "\newcommand{\pscode}{\code}"
+    \end{quote}
+    and
+    \begin{quote}
+      "\def\psgroup#1{\gsave #1 \grestore}" , or\\
+      "\newcommand{\psgroup}{\gsave #1 \grestore}"
+    \end{quote}
+
+  \item Check the output from your "\pscustom" command. If, after making the
+above changes, things come out differently than inspected, it is probably
+because the plot commands run ``forwards'' rather than ``backwards'', or
+because of the new way that "\pscustom" treats the current point. Fix these on
+a case-by-case basis.
+  \end{itemize}
+
+\item
+  "\listplot", "\psplot" and "\parametricplot" no longer have an "(<x>,<y>)"
+argument. Use the "origin" parameter instead.
+
+  {\bf How to fix files:}
+  Search for "\listplot", "\psplot" and "\parametricplot". Replace any
+"(<x>,<y>)" argument by the parameter change "[origin={<x>,<y>}]".
+
+\item
+  To suppress labels with "\psaxes", use "labels=none/x/y", rather than
+setting "Dx" and "Dy" to empty values.
+
+ {\bf How to fix files:}
+ Search for "=}", "=," and "=]". Remove the "Dx=," and other such parameter
+settings you find, and replace instead by "labels=none/x/y", depending on
+whether you want no labels, labels on the x-axes only, or labels on the y-axis
+only.
+
+\item
+  The "\scalebox" macro should use a space rather than a comma to separate the
+x and y scaling factors, when two scaling factors are given.
+
+  {\bf How to fix files:}
+  Wait to get error about bad numbers, or search for "\scalebox" and replace
+"\scalebox{<num1>,<num2>}" by "\scalebox{<num1> <num2>}".
+
+\item
+  The "dblframewidth" parameter is gone, because "\psdblframebox" is now just
+a variant of "\psframebox" with "doubleline=true". The width of each frame is
+now just "linewidth"
+
+  {\bf How to fix files:}
+  Search for "dblframewidth" and replace the parameter setting be a
+"linewidth" parameter setting.
+
+\item
+  The "\OldPsput" and "\Newpsput" commands are gone. These were originally
+devised to retain compatibility with an older version of PSTricks that had a
+"\psput" command instead of "\rput".
+
+  {\bf How to fix files:}
+  If you used "\psput" with the new syntax, then search for "\psput" and
+replace by "\rput".
+
+  If you used "\psput" with the old syntax, then either search for "\psput"
+commands and replace with "\rput" commands with the new syntax, or put the
+following in a file so that the "\OldPsput" command defines "\psput" with the
+old syntax:
+\begingroup\catcode`\<=12
+\begin{LVerbatim}
+  \def\old@psput{\begingroup\old@psput@}
+  \def\old@psput@{%
+    \def\refpoint@x{.5}\def\refpoint@y{.5}%
+    \pst@ifstar{\@ifnextchar[%
+      {\old@psput@i}{\def\pst@rot{}\old@psput@ii}}}
+  \def\old@psput@i[#1]{\pst@getangle{#1}\pst@rot\old@psput@ii}
+  \def\old@psput@ii{\@ifnextchar<{\old@psput@iii}{\old@psput@iv}}
+  \def\old@psput@iii<#1>{\pst@@getref\old@psput@iv[#1]}
+  \def\old@psput@iv{%
+    \@ifnextchar({\end@psput\rput@i}{\end@psput\rput@i(0,0)}}
+  \def\OldPsput{\let\psput\old@psput}
+  \def\NewPsput{\let\psput\rput}
+\end{LVerbatim}
+\endgroup
+
+\end{enumerate}
+
+
+\subsection{New files with old stuff}
+
+Remember to input these files when needed.  To have these files loaded
+automatically, put an "\input" command after "\customization" in the
+configuration file ("pstricks.con").
+
+\begin{description}
+
+\item[pst-node]
+ All the node stuff has been put in "pst-node.tex" / "pst-node.sty".
+
+\item[pst-plot]
+  The plot commands ("\psplot", etc.) and the "\psaxes" command have been put
+in "pst-plot.tex" / "pst-plot.sty". ("pst-plot.tex" automatically loads
+"multido.tex", which is required by the axes macros.) There are also some
+variants of "\listplot", "\fileplot" and "\dataplot", that are less likely to
+exceed PostScript operand stack limits.
+
+\item[colortab]
+  The table coloring commands have been put in "colortab.tex" /
+"colortab.sty". This is no longer PSTricks specific, but most of the old stuff
+works the same as before. The only exception is that "\omit{}" is not needed
+when a column is not to be colored. The documentation for "colortab.tex" is in
+"colortab.doc". There are also some new features:
+\begin{itemize}
+\item
+  "\SP" and "\RP":  These let "\LCC" ... "\ECC" work with nested arrays or
+"\multicolumns" when using Mittelbach's array.sty. See "colortab.doc" for
+details.
+
+\item
+  "LColors", "\LC", "\LCi", "\LCii", "\LCiii", "\LCz", for shading the cells
+in the "longtable" environment. See "colortab.doc" for details.
+
+umns when using Mittelbach's array.sty. See "colortab.doc" for details.
+
+\item
+  "LColors", "\LC", "\LCi", "\LCii", "\LCiii", "\LCz", for shading the cells
+in the "longtable" environment. See "colortab.doc" for details.
+\end{itemize}
+
+\end{description}
+
+\subsection{Obsolete but retained features}
+
+ The features listed below are obsolete and are documented in footnotes.
+
+\begin{itemize}
+\item
+  "\Polar":  Use "\SpecialCoor" and "(r;a)" instead.
+
+\item
+  "\Cartesian(x,y)"  Use "\psset{xunit=x,yunit=y}" instead.
+
+\item
+  "\Rput":  Use "\uput" instead.
+
+\item
+  "\Lput" and "\Mput":  Use "\aput", "\bput", "\Aput" and "\Bput" instead.
+
+\end{itemize}
+
+\subsection{New features}
+
+This is a partial listing. See also the next section on new files.
+
+\begin{itemize}
+
+\item
+  "\uput":  Replaces "\Rput".
+
+\item
+  "\aput", "\bput", "\Aput", "\Bput":  Replace "\Lput" and "\Mput".
+
+\item
+  "\clipbox" has optional argument "[<dim>]" that sets the clippath distance
+<dim> from box. E.g., "\clipbox[1pt]{foo}".
+
+\item
+  "\newpsstyle": E.g.,
+\begin{LVerbatim}
+  \newpsstyle{foo}{linewidth=5pt,linestyle=dashed}
+  \psline[style=foo](4,5)
+\end{LVerbatim}
+
+\item
+  "\PSTricksOff" suppresses the PostScript. Useful for printing or previewing
+drafts of your document with a non-PostScript driver.
+
+\item
+  New arrow styles:  {\catcode`\<=12 \tt
+    >-<, <<->>, >>-<<. |*-|* }.
+
+\item
+  Many new features for the "\pscustom" command.
+
+\item
+  "dimen" parameter (for controlling whether dimensions for "\psframe",
+"\pscircle", "\pswedge" and "\psellipse" refer to the inside, outside or
+middle of the boundary.
+
+\item
+  "bordercolor" parameter.
+
+\item
+  "doubleline", "doublesep" and "doublecolor" parameters.
+
+\item
+  "ticks" and "labels" parameters, for suppressing ticks and labels with
+"\psaxes".
+
+\item
+  "shadow" and "shadowangle" parameters.
+
+\item
+  Shadow parameters now apply to all graphics objects.
+
+\item
+  "\psmathboxtrue", "\psmathboxfalse", for controling whether box
+    macros preserve math mode.
+
+\item
+  "\pslongbox": For making box environment out of box commands.
+
+\item
+  "\psverbboxtrue", "\psverbboxfalse": For controlling whether verbatim
+    text is allowed in box commands.
+
+\end{itemize}
+
+\subsection{New files with new stuff}
+
+\begin{description}
+
+\item[pst-coil]
+  Contains "\pscoil", "\psCoil", "\pszigzag", "\nccoil" and "\nczigzag". Uses
+"pst-coil.pro" (optionally).
+
+\item[pst2eps]
+  Contains "\TeXtoEPS", to make it easier to convert \TeX\ boxes to EPS files
+with dvips, and "\PSTtoEPS", for creating EPS files directly from PSTricks
+graphics.
+
+\item[textpath]
+  Contains "\pstextpath" command, for typesetting text along a path. Use
+"textpath.pro".
+
+\item[gradient]
+  "gradient" fillstyle. Uses "gradient.pro".
+
+\item[charpath]
+  Contains "\pscharpath" command, for stroking and filling character paths.
+Also, "\pscharclip" ... "\endpscharclip" sets clipping path as well.
+
+\item[piecharts.sh]
+  A sh/awk script by Denis Girou for converting data to PSTricks piecharts.
+
+\end{description}
+
+\subsection{Bug fixes}
+
+This list is incomplete.
+
+\begin{itemize}
+
+\item
+  "\scalebox" and "\scaleboxto" now work when the vertical scaling factor
+    is less than 1.
+
+\item
+  "\lput" and company now work with dvips 4.90 and later.
+
+\item
+  "\multips" can now be nested.
+
+\item
+  "\psclip" fixed.
+
+\item
+  "\clipbox" and clip option for "\pspicture" fixed.
+
+\end{itemize}
+
+\subsection{Other changes}
+
+In some cases, there is a small chance these will require that you modify old
+files.
+
+\begin{itemize}
+
+\item
+  Specifying "\rput"'s <refpoint> argument as, e.g., "[.3,1]" rather than
+"[br]" is now an undocumented feature.
+
+\item
+  All arguments to "\psplot", "\listplot" and "\parametric" plot are  passed
+on directly as PostScript.
+
+\item
+  Dictionaries when including raw PostScript have changed. See appendix of
+User's Guide for details.
+
+\item
+  "\psset{unit=dim}" always changes "\psunit", "\psxunit" and "\psyunit". To
+change only "\psunit", use "runit=dim".
+
+\item
+  "border" parameter affects closed curves.
+
+\item The "hatchsep" parameter now refers to the width of the space between
+the lines, rather than the distance between the middle of the lines.
+\end{itemize}
+
+\renewcommand{\EveryVerbatimLine}{}
+\renewcommand{\VerbatimFont}{\small\tt}
+\renewcommand{\VerbatimFuzz}{2cm}
+
+\section{VERSION 0.92}
+
+\subsection{Incompatible changes}
+
+\begin{Verbatim}
+ ! V0.91 had two curve interpolation algorithsm: \pscurve and \psdoodle
+   (and variants). These have been merged into a single algorithm retaining
+   the names \pscurve, etc. Now the three curvature parameter has three
+   numbers:
+           num1 num2 num3
+   When num3 is 0 (the default), you get the old \psdoodle algorithm, and
+   and num1 and num2 act just like the old doodature parameter. When
+   num3=-1, you get the old \pscurve algorithm, but positive values are
+   usually nicer.
+
+   If you have used \pscurve or its variants, the shape of the curves
+   will change under 0.92. If you have also used the curvature
+   parameter, you will get errors because the old curvature parameter is
+   a single number and the new curvature parameter consists of 3 numbers.
+
+   If you have used \psdoodle or its variants, then you can either search
+   and replace doodle->curve and your use of doodature (which had 2 numbers)
+   to curvature (which has 3 number), or you can put the following in the
+   customization section of pstricks.con:
+     \let\psdoodle\pscurve
+     \let\psedoodle\psecurve
+     \let\pscdoodle\psccurve
+     \def\psset@doodature#1{\psset@curvature{#1 0}}
+
+ ! In \psdblframebox: The inner frame now has \pslinewidth, and the outer
+   frame now has width (dblframewidth x \pslinewidth), where dblframewidth is
+   a new graphics parameter whose default value is 2.
+
+ ! The angle, angleA and angleB parameters no longer apply to
+   \ncarc, and the default values have been changed to 0. For
+   \ncarc, the angle is now controlled by the arcangle, arcangleA
+   and arcangleB parameters. The default is still 8.
+
+ ! \multido has been off-loaded to the file multido.tex. The syntax has
+   been changed to make it consistent with \psmultiput and LaTeX's
+   \multiput: The variable declarations are now the first argument
+   and the number of repetitions are now the second argument. Also,
+   for number variables, the initial value and increment must now
+   have the same number of digits to the right of the decimal,
+   unless the initial value is an integer. There is no * version.
+   Instead, the contents is never grouped, and there is even a variant
+   that doesn't group the whole macro. See multido.ps, which is distributed
+   with PSTricks, for details.
+
+ ! 'diamond', 'diamond*', and 'x' dotstyles are gone. Use dotangle
+   parameter instead.
+\end{Verbatim}
+
+\subsection{New features}
+
+\begin{Verbatim}
+ + New dot style: |.
+
+ + New graphics objects: \pscustom.
+
+ + New box framing macros: \psovalbox, \pscirclebox.
+
+ + New box scaling macro: \scaleboxto.
+
+ + New nodes: \ovalnode, \circlenode.
+
+ + New node connection: \ncdiagg.
+
+ + New loop macro: \multips.
+
+ + New graphics parameters: dotscale, dotangle, dblframewidth.
+
+ + New arrow styles: c and C.
+
+ + \SpecialCoor allows using nodes as coordinates and mixing
+   coordinates.
+\end{Verbatim}
+
+\subsection{Other changes}
+
+\begin{Verbatim}
+ * arrowscale parameter allows non-square scaling.
+
+ * Documentation has been greatly improved.
+
+ * A bug that caused problems with Arbortext's dvips (previously
+   listed in pstricks.bug) was fixed.
+
+ * Memory stats with LaTeX's article style:
+     43290 words of memory
+      2895 multiletter control sequences
+\end{Verbatim}
+
+\section{VERSION 0.91}
+
+\subsection{Incompatible changes}
+
+\begin{Verbatim}
+ ! \dbox and \rotate eliminated.
+
+ ! \psput replaced by \rput, with new syntax:
+      OLD:  \psput[angle]<ref point>(x,y){stuff}
+      NEW:  \rput[ref point]{angle}(x,y){stuff}
+   \OldPsput sets up \psput with the old syntax (this may disappear some
+   day; keep it in a safe place if you expect to need it for a long time).
+
+ ! System for specifying angles for nested rotations with \psput has changed.
+      OLD:  p0{angle}, p1{angle}, p2{angle}, etc.
+      NEW:  *angle  works like p0{angle}; p1{angle} capability eliminated.
+   N, S, E and W have same meaning as before.
+
+ ! enddotsize parameter changed to dotsize.
+
+ ! For specifying the origin as the baseline for the \pspicture
+   environment, leave the optional argument [] empty (rather than
+   [o]).
+
+ ! B is not allowed as the y-coordinate when setting the reference point
+   in \rput using coordinates. E.g., [Bl] and [B] are OK, but [.3,B] is
+   not.
+
+\end{Verbatim}
+
+\subsection{New features}
+
+\begin{Verbatim}
+ + cornersize parameter added, for specifying whether radius of corners
+   in \psframe and related box macros is given in relative terms (using
+   framearc) or absolute terms (using linearc).
+
+ + \psclip and \clipbox macros added.
+
+ + \Cartesian and \Polar commands added, for switching coordinate
+   systems.
+
+ + border=dim parameter added, for giving appearance of one line
+   crossing over another.
+
+ + showpoints=bool parameter added. If true, a dot is placed at appropriate
+   coordinates.
+
+ + \psdots graphics object added.
+
+ + \psarc graphics object added.
+
+ + \parabola graphics object added.
+
+ + \pscurve, \psccurve, \psecurve, \psdoodle, \psedoodle, and \pscdoodle
+   graphics objects added.
+
+ + \qline and \qdisk graphics objects added.
+
+ + \psplot, \parametericplot and \listplot graphics objects added.
+
+ + node connection (e.g., tree) macros added!!
+\end{Verbatim}
+
+\subsection{Other changes}
+
+\begin{Verbatim}
+ * \sunpatch not needed anymore.
+
+ * PostScript header file (if being used) is included at the beginning,
+   rather than on demand.
+
+ * In spite of the many new features, the input file is smaller in bytes,
+   and runs significantly faster (at least if used with a header file).
+   The macros use up slightly more words of memory, and significantly
+   more command sequences. Here are the stats with LaTeX's article
+   style:
+     41586 words of memory
+      2966 multiletter control sequences
+\end{Verbatim}
+
+\section{VERSION 0.9}
+
+Much internal code was changed, and additional features were added.
+
+\end{document}
+%% END changes.tex

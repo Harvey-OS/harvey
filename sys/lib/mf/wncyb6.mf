@@ -1,11 +1,38 @@
-%% WNCYB6.MF                     June 1990
-%% This Metafont file is part of AMSFonts 2.0.
-%% Cyrillic fonts developed at the Humanities and Arts Computing Center
-%% at the University of Washington.
-%% All rights reserved.  Copying of this file is authorized only if either:
-%%   (1) you make absolutely no changes to your copy including filename; OR
-%%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="wncyb6.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: parameter",
+%%     copyright="Copyright (C) Humanities and Arts Computing Center,
+%%            University of Washington;
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "44186 146 856 7638"
+%%     keywords="amsfonts, tex, metafont , cyrillic ",
+%%     abstract="This is the parameter file for use with 
+%%            wncyb6, the bold cyrillic font in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This is WNCYB6.MF, Washington Computer Modern Cyrillic Bold 6 point; 
 % which is based on WNCYR7.MF developed at the University of Washington
 % (based on CMCSC10.MF (Computer Modern Roman Caps and Small Caps 10 point))
@@ -14,7 +41,7 @@
 
 if unknown cmbase: input cmbase fi
 
-font_identifier:="WNCYRB"; font_size 6pt#;
+font_identifier:="WNCYB V2.2"; font_size 6pt#;
 
 u#:=16.2/36pt#;               % unit width
 width_adj#:=7.8/36pt#;          % width adjustment for certain characters
@@ -117,4 +144,3 @@ lower.apex_o#:=2/36pt#;    % amount of overshoot for diagonal junctions
 lower.fudge:=1;      % factor applied to weights of heavy characters
 
 generate cyrfont      % switch to the driver file
-

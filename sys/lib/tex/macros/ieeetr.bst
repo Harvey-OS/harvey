@@ -1,4 +1,4 @@
-% IEEE Transactions bibliography style (24-Jan-88 version)
+% IEEE Transactions bibliography style (29-Jan-88 version)
 %    numeric labels, order-of-reference, IEEE abbreviations,
 %    quotes around article titles, commas separate all fields
 %    except after book titles and before "notes".  Otherwise,
@@ -6,7 +6,7 @@
 %
 %   History
 %    9/30/85	(HWT)	Original version, by Howard Trickey.
-%    1/24/88	(OP&HWT) Updated for BibTeX version 0.99a, Oren Patashnik;
+%    1/29/88	(OP&HWT) Updated for BibTeX version 0.99a, Oren Patashnik;
 %			THIS `ieeetr' VERSION DOES NOT WORK WITH BIBTEX 0.98i.
 
 ENTRY
@@ -764,7 +764,7 @@ FUNCTION {mastersthesis}
   format.authors "author" output.check
   format.title "title" output.check
   blank.sep
-  "master's thesis" format.thesis.type output.nonnull
+  "Master's thesis" format.thesis.type output.nonnull
   school "school" output.check
   address output
   format.date "year" output.check

@@ -2,7 +2,6 @@ typedef struct Alarms	Alarms;
 typedef struct Block	Block;
 typedef struct Blist	Blist;
 typedef struct Chan	Chan;
-typedef struct Crypt	Crypt;
 typedef struct Dev	Dev;
 typedef struct Dirtab	Dirtab;
 typedef struct Egrp	Egrp;
@@ -22,8 +21,10 @@ typedef struct Network	Network;
 typedef struct Note	Note;
 typedef struct Page	Page;
 typedef struct Palloc	Palloc;
+typedef struct Parallax	Parallax;
 typedef struct Pgrps	Pgrps;
 typedef struct Pgrp	Pgrp;
+typedef struct Physseg	Physseg;
 typedef struct Proc	Proc;
 typedef struct Pte	Pte;
 typedef struct Qinfo	Qinfo;
@@ -33,6 +34,7 @@ typedef struct Ref	Ref;
 typedef struct Rendez	Rendez;
 typedef struct RWlock	RWlock;
 typedef struct Sargs	Sargs;
+typedef struct Session	Session;
 typedef struct Scsi	Scsi;
 typedef struct Scsibuf	Scsibuf;
 typedef struct Scsidata	Scsidata;
@@ -46,7 +48,8 @@ typedef	void   Streamopen(Queue*, Stream*);
 typedef	void   Streamclose(Queue*);
 typedef	void   Streamreset(void);
 
-#include "fcall.h"
+#include <auth.h>
+#include <fcall.h>
 
 struct Ref
 {
@@ -155,7 +158,7 @@ struct Chan
 		ulong	offset;		/* in file */
 	};
 	ushort	type;
-	ushort	dev;
+	ulong	dev;
 	ushort	mode;			/* read/write */
 	ushort	flag;
 	Qid	qid;
@@ -170,13 +173,7 @@ struct Chan
 	};
 	Chan	*mchan;			/* channel to mounted server */
 	Qid	mqid;			/* qid of root of mount point */
-};
-
-struct Crypt
-{
-	char	key[DESKEYLEN];		/* des encryption key */
-	char	chal[8];		/* challenge for setting user name */
-	Crypt	*next;
+	Session	*session;
 };
 
 struct Dev
@@ -218,7 +215,7 @@ struct Etherpkt
 
 enum
 {
-	ETHERMINTU =	60,		/* minimum transmit size */
+	ETHERMINTU =	64,		/* minimum transmit size */
 	ETHERMAXTU =	1514,		/* maximum transmit size */
 	ETHERHDRSIZE =	14,		/* size of an ethernet header */
 };
@@ -235,6 +232,8 @@ enum
 	ScsiGetcap	= 0x25,
 	ScsiRead	= 0x08,
 	ScsiWrite	= 0x0a,
+	ScsiExtread	= 0x28,
+	ScsiExtwrite	= 0x2a,
 
 	/* data direction */
 	ScsiIn		= 1,
@@ -258,6 +257,7 @@ struct Scsidata
 struct Scsi
 {
 	QLock;
+	int		bus;
 	ulong		pid;
 	ushort		target;
 	ushort		lun;
@@ -344,7 +344,6 @@ struct Page
 	ulong	va;			/* Virtual address for user */
 	ulong	daddr;			/* Disc address on swap */
 	ushort	ref;			/* Reference count */
-	char	lock;			/* Software lock */
 	char	modref;			/* Simulated modify/reference bits */
 	char	cachectl[MAXMACH];	/* Cache flushing control for putmmu */
 	Image	*image;			/* Associated text or swap image */
@@ -400,6 +399,7 @@ enum
 	SG_SHDATA	= 06,
 
 	SG_RONLY	= 040,		/* Segment is read only */
+	SG_CEXEC	= 0100,		/* Detach at exec */
 };
 
 #define PG_ONSWAP	1
@@ -409,22 +409,31 @@ enum
 
 #define SEGMAXSIZE	(SEGMAPSIZE*PTEMAPMEM)
 
+struct Physseg
+{
+	ulong	attr;			/* Segment attributes */
+	char	*name;			/* Attach name */
+	ulong	pa;			/* Physical address */
+	ulong	size;			/* Maximum segment size in pages */
+	Page	*(*pgalloc)(Segment*, ulong);	/* Allocation if we need it */
+	void	(*pgfree)(Page*);
+};
+
 struct Segment
 {
 	Ref;
 	QLock	lk;
-	ushort	steal;			/* Page stealer lock */
-	Segment	*next;			/* free list pointers */
-	ushort	type;			/* segment type */
-	ulong	base;			/* virtual base */
-	ulong	top;			/* virtual top */
-	ulong	size;			/* size in pages */
-	ulong	fstart;			/* start address in file for demand load */
-	ulong	flen;			/* length of segment in file */
-	int	flushme;		/* maintain consistent icache for this segment */
-	Image	*image;			/* text in file attached to this segment */
-	Page	*(*pgalloc)(ulong addr);/* SG_PHYSICAL page allocator */
-	void	(*pgfree)(Page *);	/* SG_PHYSICAL page free */
+	ushort	steal;		/* Page stealer lock */
+	Segment	*next;		/* free list pointers */
+	ushort	type;		/* segment type */
+	ulong	base;		/* virtual base */
+	ulong	top;		/* virtual top */
+	ulong	size;		/* size in pages */
+	ulong	fstart;		/* start address in file for demand load */
+	ulong	flen;		/* length of segment in file */
+	int	flushme;	/* maintain consistent icache for this segment */
+	Image	*image;		/* text in file attached to this segment */
+	Physseg *pseg;
 	Pte	*map[SEGMAPSIZE];	/* segment pte map */
 };
 
@@ -444,7 +453,6 @@ struct Pgrp
 	Ref;				/* also used as a lock when mounting */
 	Pgrp	*next;			/* free list */
 	ulong	pgrpid;
-	Crypt	*crypt;			/* encryption key and challenge */
 	QLock	debug;			/* single access via devproc.c */
 	RWlock	ns;			/* Namespace many read/one write lock */
 	Mhead	*mnthash[MNTHASH];
@@ -544,6 +552,11 @@ enum
 	TCUser,
 	TCSys,
 	TCReal,
+
+	Nrq		= 20,	/* number of scheduler priority levels */
+	PriNormal	= 10,	/* base priority for normal processes */
+	PriKproc	= 13,	/* base priority for kernel processes */
+	PriRoot		= 13,	/* base priority for root processes */
 };
 
 struct Proc
@@ -567,6 +580,7 @@ struct Proc
 	Waitq	*waitq;			/* Exited processes wait children */
 	int	nchild;			/* Number of living children */
 	int	nwait;			/* Number of uncollected wait records */
+	QLock	qwaitr;
 	Rendez	waitr;			/* Place to hang out in wait */
 	Proc	*parent;
 
@@ -603,6 +617,14 @@ struct Proc
 	Rendez	*trend;
 	Proc	*tlink;
 	int	(*tfn)(void*);
+
+	Mach	*mp;		/* machine this process last ran on */
+	ulong	priority;	/* priority level */
+	ulong	basepri;	/* base priority level */
+	ulong	rt;		/* # ticks used since last blocked */
+	ulong	art;		/* avg # ticks used since last blocked */
+	ulong	movetime;	/* last time process switched processors */
+	ulong	readytime;	/* time process went ready */
 
 	/*
 	 *  machine specific MMU
@@ -657,7 +679,7 @@ struct Stream
 	ushort	hread;			/* number of reads after hangup */
 	ushort	type;			/* correlation with Chan */
 	ushort	dev;			/* ... */
-	ushort	id;			/* ... */
+	ulong	id;			/* ... */
 	QLock	rdlock;			/* read lock */
 	Queue	*procq;			/* write queue at process end */
 	Queue	*devq;			/* read queue at device end */
@@ -673,6 +695,7 @@ struct Stream
 #define STREAMTYPE(x)	((x)&0x1f)
 #define STREAMID(x)	(((x)&~CHDIR)>>5)
 #define STREAMQID(i,t)	(((i)<<5)|(t))
+#define PUTTHIS(q,b)	(*(q)->put)((q), b)
 #define PUTNEXT(q,b)	(*(q)->next->put)((q)->next, b)
 #define BLEN(b)		((b)->wptr - (b)->rptr)
 #define QFULL(q)	((q)->flag & QHIWAT)
@@ -722,6 +745,20 @@ struct Network
 	Netprot	*prot;			/* linked list of protections */
 };
 
+/*
+ *  Parallax for pen pointers
+ */
+struct Parallax
+{
+	int	xoff;
+	int	xnum;
+	int	xdenom;
+
+	int	yoff;
+	int	ynum;
+	int	ydenom;
+};
+
 enum
 {
 	PRINTSIZE =	256,
@@ -736,6 +773,8 @@ extern	int	cpuserver;
 extern	Rune*	devchar;
 extern	Dev	devtab[];
 extern  char	eve[];
+extern	char	hostdomain[];
+extern	int	hwcurs;
 extern	uchar	initcode[];
 extern	FPsave	initfp;
 extern  KIOQ	kbdq;
@@ -750,12 +789,14 @@ extern	char	sysname[NAMELEN];
 extern	Talarm	talarm;
 extern	Palloc 	palloc;
 extern	int	cpuserver;
+extern	Physseg physseg[];
 
 enum
 {
 	CHDIR =		0x80000000L,
 	CHAPPEND = 	0x40000000L,
 	CHEXCL =	0x20000000L,
+	CHMOUNT	=	0x10000000L,
 };
 
 /*
@@ -772,8 +813,6 @@ enum
 
 	RXschal	= 0,
 	RXstick	= 1,
-
-	AUTHLEN	= 8,
 };
 
 /*
@@ -784,6 +823,8 @@ enum
 	Mouseother=	0,
 	Mouseserial=	1,
 	MousePS2=	2,
+	Mousekurta=	3,
 };
 extern int mouseshifted;
 extern int mousetype;
+extern int mouseswap;

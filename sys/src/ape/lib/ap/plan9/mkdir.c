@@ -10,7 +10,12 @@ int
 mkdir(const char *name, mode_t mode)
 {
 	int n;
+	struct stat st;
 
+	if(stat(name, &st)==0) {
+		errno = EEXIST;
+		return -1;
+	}
 	n = _CREATE(name, 0, 0x80000000|(mode&0777));
 	if(n < 0)
 		_syserrno();

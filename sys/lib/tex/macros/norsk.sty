@@ -1,0 +1,153 @@
+%% 
+%% This is file `norsk.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% norsk.dtx 
+%% 
+%% Copyright (C) 1989-1994 by Johannes Braams 
+%% All rights reserved. 
+%% For additional copyright information see further down in this file. 
+%% 
+%% This file is part of the Babel system, release 3.4 patchlevel 2. 
+%% ---------------------------------------------------------------- 
+%% 
+%% This file is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see readme file. 
+%% 
+%% Please do not request updates from me directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%%% \iffalse ============================================================
+%%%  @LaTeX-style-file{
+%%%     author          = "Braams J.L.",
+%%%     version         = "1.2d",
+%%%     date            = "26 June 1994",
+%%%     time            = "01:27:55 MET",
+%%%     filename        = "norsk.doc",
+%%%     address         = "PTT Research
+%%%                        St. Paulusstraat 4
+%%%                        2264 XZ Leidschendam
+%%%                        The Netherlands",
+%%%     telephone       = "(70) 3325051",
+%%%     FAX             = "(70) 3326477",
+%%%     checksum        = "24272 330 1485 12555",
+%%%     email           = "J.L.Braams@research.ptt.nl (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "babel, norwegian",
+%%%     supported       = "yes",
+%%%     abstract        = "",
+%%%     docstring       = "This file contains the norwegian language specific
+%%%                        definitions for the babel system.",
+%%%  }
+%%%
+%%%  ====================================================================
+%%% \fi
+\ifx\undefined\captionsnorsk
+\else
+  \selectlanguage{norsk}
+  \expandafter\endinput
+\fi
+\chardef\atcatcode=\catcode`\@
+\catcode`\@=11\relax
+\ifx\undefined\babel@core@loaded\input babel.def\relax\fi
+\ProvidesFile{norsk.sty}[1994/06/26 v1.2d
+         Norsk support from the babel system]
+\ifx\undefined\originalTeX \let\originalTeX\empty \else\originalTeX\fi
+\ifx\undefined\l@norsk
+    \@nopatterns{Norsk}
+    \adddialect\l@norsk0\fi
+\adddialect\l@nynorsk\l@norsk
+\addto\captionsnorsk{%
+  \def\prefacename{Forord}%
+  \def\refname{Referanser}%
+  \def\abstractname{Sammendrag}%
+  \def\bibname{Litteratur}%      or Litteraturoversikt
+  \def\chaptername{Kapittel}%
+  \def\appendixname{Tillegg}%    or Appendiks
+  \def\contentsname{Innhold}%
+  \def\listfigurename{Figurer}%  or Figurliste
+  \def\listtablename{Tabeller}%  or Tabelliste
+  \def\indexname{Register}%
+  \def\figurename{Figur}%
+  \def\tablename{Tabell}%
+  \def\partname{Del}%
+  \def\enclname{Vedlegg}%
+  \def\ccname{Kopi sendt}%
+  \def\headtoname{Til}% in letter
+  \def\pagename{Side}%
+  \def\seename{Se}%
+  \def\alsoname{Se ogs\aa{}}%
+  }
+\addto\captionsnynorsk{%
+  \def\prefacename{Forord}%
+  \def\refname{Referansar}%
+  \def\abstractname{Samandrag}%
+  \def\bibname{Litteratur}%     or Litteraturoversyn
+                         %    or Referansar
+  \def\chaptername{Kapittel}%
+  \def\appendixname{Tillegg}%   or Appendiks
+  \def\contentsname{Innhald}%
+  \def\listfigurename{Figurar}% or Figurliste
+  \def\listtablename{Tabellar}% or Tabelliste
+  \def\indexname{Register}%
+  \def\figurename{Figur}%
+  \def\tablename{Tabell}%
+  \def\partname{Del}%
+  \def\enclname{Vedlegg}%
+  \def\ccname{Kopi sendt}%
+  \def\headtoname{Til}% in letter
+  \def\pagename{Side}%
+  \def\seename{Sj\aa{}}%
+  \def\alsoname{Sj\aa{} ogs\aa{}}%
+  }
+\def\datenorsk{%
+\def\today{\number\day.~\ifcase\month\or
+  januar\or februar\or mars\or april\or mai\or juni\or
+  juli\or august\or september\or oktober\or november\or desember\fi
+  \space\number\year}}
+\let\datenynorsk\datenorsk
+\addto\extrasnorsk{}
+\addto\noextrasnorsk{}
+\let\extrasnynorsk\extrasnorsk
+\let\noextrasnynorsk\noextrasnorsk
+\selectlanguage{norsk}
+\catcode`\@=\atcatcode \let\atcatcode\relax
+%%
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\endinput
+%% 
+%% End of file `norsk.sty'.

@@ -13,7 +13,7 @@ YFILES=parser.y\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-CFLAGS=
+CFLAGS=-w
 
 installall:V:
 	for(objtype in $CPUS)

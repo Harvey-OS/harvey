@@ -1,3 +1,0 @@
-TEXT _EXEC(SB), $0
-KCALL $7
-RETURN

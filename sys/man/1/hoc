@@ -76,10 +76,7 @@ Built in functions are
 (one argument),
 .BR cos ,
 .BR cosh ,
-.BR erf ,
-.BR erfc ,
 .BR exp ,
-.BR gamma ,
 .BR int ,
 .BR log ,
 .BR log10 ,
@@ -98,7 +95,7 @@ the statement
 .B print
 prints a list of expressions that may include
 string constants such as
-.B \&\&\&"hello\en".
+.BR \&\&\&"hello\en" .
 .PP
 Control flow statements are
 .BR if - else ,
@@ -129,6 +126,8 @@ func gcd() {
 }
 for(i=1; i<12; i++) print gcd(i,12)
 .EE
+.SH SOURCE
+.B /sys/src/cmd/hoc
 .SH "SEE ALSO"
 .IR bc (1),
 .IR dc (1)

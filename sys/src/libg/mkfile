@@ -17,6 +17,8 @@ OFILES=\
 	cursorswitch.$O\
 	disc.$O\
 	ellipse.$O\
+	ekbd.$O\
+	emouse.$O\
 	event.$O\
 	font.$O\
 	getrect.$O\

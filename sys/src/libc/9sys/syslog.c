@@ -1,11 +1,21 @@
 #include <u.h>
 #include <libc.h>
 
+static int
+_syslogopen(char *logname, int logfd)
+{
+	char buf[1024];
+
+	if(logfd >= 0)
+		close(logfd);
+	snprint(buf, sizeof(buf), "/sys/log/%s", logname);
+	return open(buf, OWRITE);
+}
+
 /*
  * Print
- *  sysname: time: user: [prog: ]msg[: errmsg]
- * on /sys/log/logname, creating it (append only) if it doesn't exist.
- * Print the prog if argv0 is not 0.
+ *  sysname: time: mesg
+ * on /sys/log/logname.
  * If cons or log file can't be opened, print on the system console, too.
  */
 void
@@ -14,7 +24,6 @@ syslog(int cons, char *logname, char *fmt, ...)
 	char buf[1024];
 	char *ctim, *p, *ebuf, *t;
 	int f, n;
-	static char user[NAMELEN];
 	static char name[NAMELEN];
 	static char sysname[NAMELEN];
 	static int logfd = -1;
@@ -22,10 +31,7 @@ syslog(int cons, char *logname, char *fmt, ...)
 
 	if(logfd<0 || strcmp(name, logname)!=0){
 		strncpy(name, logname, NAMELEN-1);
-		if(logfd >= 0)
-			close(logfd);
-		doprint(buf, buf+sizeof(buf), "/sys/log/%s", &logname);
-		logfd = open(buf, OWRITE);
+		logfd = _syslogopen(logname, logfd);
 		if(logfd < 0)
 			cons = 1;
 	}
@@ -39,31 +45,24 @@ syslog(int cons, char *logname, char *fmt, ...)
 			close(f);
 		}
 	}
-	if(user[0] == 0){
-		f = open("/dev/user", OREAD);
-		if(f >= 0){
-			if(read(f, user, NAMELEN-1) <= 0)
-				strcpy(user, "ditzel");
-			close(f);
-		}
-	}
 	ctim = ctime(time(0));
 	ebuf = buf+sizeof(buf)-1; /* leave room for newline */
 	t = sysname;
-	p = doprint(buf, ebuf, "%s: ", &t);
-	strncpy(p, ctim+4, 15);
-	p += 15;
-	t = user;
-	if(user[0])
-		p = doprint(p, ebuf, ": %s: ", &t);
-	if(argv0)
-		p = doprint(p, ebuf, "%s: ", &argv0);
+	p = doprint(buf, ebuf, "%s ", &t);
+	strncpy(p, ctim+4, 12);
+	p += 12;
+	*p++ = ' ';
 	p = doprint(p, ebuf, fmt, (&fmt+1));
 	*p++ = '\n';
 	n = p - buf;
 	if(logfd >= 0){
-		seek(logfd, 0, 2);	/* in case it's not append-only */
-		write(logfd, buf, n);
+		if(seek(logfd, 0, 2) < 0 || write(logfd, buf, n) < 0){
+			logfd = _syslogopen(logname, logfd);
+			if(logfd >= 0){
+				seek(logfd, 0, 2);
+				write(logfd, buf, n);
+			}
+		}
 	}
 	if(cons && consfd >=0)
 		write(consfd, buf, n);

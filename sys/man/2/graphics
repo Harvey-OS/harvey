@@ -1,6 +1,6 @@
-.TH GRAPHICS 2G
+.TH GRAPHICS 2
 .SH NAME
-Point, Rectangle, Bitmap, Cursor, binit, bclose, berror, bscreenrect, bneed, bflush, bwrite, bexit, clipr, cursorswitch, cursorset, rdfontfile, ffree, charwidth, Pconv, Rconv \- graphics
+Point, Rectangle, Bitmap, Cursor, binit, bclose, berror, bscreenrect, bneed, bflush, bwrite, bexit, clipr, cursorswitch, cursorset, rdfontfile, ffree, charwidth, Pconv, Rconv \- bitmap graphics
 .SH SYNOPSIS
 .nf
 .PP
@@ -54,10 +54,10 @@ void	ffree(Font *f)
 int	charwidth(Font *f, Rune r)
 .PP
 .B
-int	Pconv(void *arg, int f1, int f2, int f3, int chr)
+int	Pconv(void *arg, Fconv*)
 .PP
 .B
-int	Rconv(void *arg, int f1, int f2, int f3, int chr)
+int	Rconv(void *arg, Fconv*)
 .PP
 .B
 extern Bitmap    screen
@@ -101,9 +101,9 @@ struct Rectangle {
 .EE
 .PP
 By definition,
-.B min.x <= max.x
+.BR min.x ≤ max.x
 and
-.BR "min.y <= max.y" .
+.BR min.y ≤ max.y .
 By convention, the right (maximum
 .IR x )
 and bottom (maximum
@@ -123,11 +123,11 @@ holds a rectangular image.
 .ta 6n +\w'Rectangle 'u +\w'ldepth;  'u
 typedef
 struct Bitmap {
-	Rectangle	r;	/* rectangle in data area, local coords */
+	Rectangle	r;	/* rect. in data area, local coords */
 	Rectangle	clipr;	/* clipping region */
-	int	ldepth;	/* log base 2 of number of bits per pixel */
+	int	ldepth;	/* log base 2 of #bits per pixel */
 	int	id;	/* id as known in /dev/bitblt */
-	Bitmap*	cache;	/* zero; distinguishes bitmap from layer */
+	Bitmap*	cache;	/* zero; tells bitmap from layer */
 } Bitmap;
 .EE
 .PP
@@ -148,7 +148,7 @@ Graphical operations on the
 .B Bitmap
 will be confined to the clipping rectangle.
 The subroutine
-.I Clipr
+.I clipr
 sets the clipping rectangle of
 .B b
 to the intersection of
@@ -169,12 +169,16 @@ A
 is a set of character images, indexed by runes (see
 .IR utf (6)).
 The images are organized into
-.BR Subfont s,
+.BR Subfonts ,
 each containing the images for a small, contiguous set of runes.
+The detailed format of these data structures,
+which are described in detail in
+.IR cachechars (2),
+is immaterial for most applications.
 .B Font
 and
 .B Subfont
-structures contain two related fields:
+structures contain two interrelated fields:
 .LR ascent ,
 the distance from the top of the highest character
 (actually the top of the bitmap holding all the characters)
@@ -197,10 +201,10 @@ is zero (NUL) because
 (see
 .IR bitblt (2))
 cannot draw a NUL.
-The other fields are used internally by the text-drawing functions.
-See
+The other fields are used internally by the text-drawing functions;
+see
 .IR cachechars (2)
-for a detailed description.
+for the details.
 .PP
 .I Rdfontfile
 reads the font description in file
@@ -351,7 +355,7 @@ to discover the current size
 (see
 .IR event (2));
 a non-null
-.B cr
+.B clipr
 will be filled in with the screen's clip rectangle.
 .PP
 The mouse cursor is always displayed.
@@ -361,7 +365,7 @@ causes the argument cursor to be displayed instead.
 A zero argument causes a switch back to the arrow cursor.
 .I Cursorset
 moves the mouse cursor to position
-.I p,
+.IR p ,
 provided (if in a window) that the requesting program is
 executing in the current window and the mouse is within
 the window boundaries; otherwise
@@ -386,29 +390,29 @@ arranges that
 .I bflush
 will be called on exit,
 and the following functions all cause a flush:
-.I balloc,
-.I bfree,
-.I bscreenrect,
-.I cursorset,
-.I cursorswitch,
-.I ecankbd,
-.I ecanmouse,
-.I ekbd,
-.I emouse,
-.I event,
-.I rdfontfile,
-.I subfalloc,
-.I ffree,
-.I rdbitmap,
+.IR balloc ,
+.IR bfree ,
+.IR bscreenrect ,
+.IR cursorset ,
+.IR cursorswitch ,
+.IR ecankbd ,
+.IR ecanmouse ,
+.IR ekbd ,
+.IR emouse ,
+.IR event ,
+.IR rdfontfile ,
+.IR subfalloc ,
+.IR ffree ,
+.IR rdbitmap ,
 and
-.I wrbitmap.
+.IR wrbitmap .
 .PP
 The rare program that needs to implement the
 .B /dev/bitblt
 protocol directly can use
 .I bneed
 and
-.I bwrite.
+.IR bwrite .
 .I Bneed
 returns a pointer to a place in the write buffer, allocating
 space for
@@ -422,13 +426,15 @@ After filling in bytes allocated with
 .I bwrite
 can be used to write everything in the buffer and reset the buffer pointer.
 Unlike
-.I bflush,
+.IR bflush ,
 .I bwrite
 does not call the registered error function and so can be used
 when an error is possible and the
 error function is inappropriate.
 .SH FILES
 .BR /lib/font/bit "    directory of bitmap fonts
+.SH SOURCE
+.B /sys/src/libg
 .SH "SEE ALSO"
 .IR add (2),
 .IR balloc (2),

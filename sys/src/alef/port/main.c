@@ -11,7 +11,7 @@ char	*av[256];
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-SNwc] [-Idir] [-Dname[=def]] [-o file] [-D#] files ...\n", argv0);
+	fprint(2, "usage: %s [-SNwca] [-Idir] [-Dname[=def]] [-o file] [-d#] files ...\n", argv0);
 	exits("usage");
 }
 
@@ -38,8 +38,10 @@ main(int argc, char *argv[])
 	flag['N'] = 1;		/* optimizer on by default */
 
 	av[ac++] = CPP;
-	
+
+	chks = 1;
 	of = 0;
+	av[ac++] = "-N";
 	ARGBEGIN{
 	case 'I':
 	case 'D':
@@ -67,7 +69,7 @@ main(int argc, char *argv[])
 		break;
 
 	case 'c':
-		chks++;
+		chks = 0;
 		break;
 
 	case 'd':
@@ -80,16 +82,43 @@ main(int argc, char *argv[])
 			t++;
 		}
 		break;
+	case 'a':
+		acid++;
+		flag['q']++;	/* No code generation */
+		Binit(&ao, 1, OWRITE);
+		break;
 	default:
 		usage();
 	}ARGEND
 
+	av[ac++] = "-I.";
 	av[ac++] = IALEF;
+	switch(AOUTL[1]) {
+	default:
+		fatal("arch type");
+	case 'v':
+		p = "mips";
+		break;
+	case 'k':
+		p = "sparc";
+		break;
+	case '8':
+		p = "386";
+		break;
+	}
+	av[ac] = malloc(strlen(p)+32);
+	sprint(av[ac], "-I/%s/include/alef", p);
+	ac++;
 
 	fmtinstall('T', typeconv);
+	fmtinstall('V', typeconv);
+	fmtinstall('t', tconv);
 	fmtinstall('N', nodeconv);
 	fmtinstall('P', protoconv);
 	fmtinstall('|', VBconv);
+
+	getwd(wd, sizeof(wd));
+	strcat(wd, "/");
 
 	kinit();
 	typeinit();
@@ -111,6 +140,8 @@ main(int argc, char *argv[])
 	p = getenv("NPROC");
 	if(p)
 		nproc = atoi(p);
+	if(acid)
+		nproc = 1;
 
 	launched = 0;
 	while(argc) {
@@ -146,20 +177,12 @@ main(int argc, char *argv[])
 }
 
 void
-umap(char *s)
-{
-	s = strchr(s, '_');
-	if(s)
-		*s = '.';
-}
-
-void
 fatal(char *fmt, ...)
 {
 	char buf[512];
 
 	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
-	fprint(2, "%s : %L (fatal compiler problem) %s\n", argv0, line, buf);
+	fprint(2, "%s: %L (fatal compiler problem) %s\n", argv0, line, buf);
 	if(opt('A'))
 		abort();
 	exits(buf);
@@ -224,15 +247,21 @@ compile(char *s, char *of)
 {
 	int fd[2];
 	long ti[4];
-	char *p, buf[128], asmfile[128], ofile[128];
+	char *p, sbuf[128], buf[128];
+	char asmfile[128], ofile[128];
 
+	if(*s != '/') {
+		strcpy(sbuf, wd);
+		strcat(sbuf, s);
+		s = sbuf;
+	}
 	if(access(s, OREAD) < 0) {
 		nerr++;
 		fprint(2, "%s: no source file %s\n", argv0, s);
 		exits("errors");
 	}
 
-	if(opt('f'))
+	if(opt('f') && acid == 0)
 		fprint(2, "%s:\n", s);
 
 	if(pipe(fd) < 0)
@@ -265,9 +294,9 @@ compile(char *s, char *of)
 
 	switch(fork()) {
 	default:
-		close(fd[0]);
+		close(fd[1]);
 		bin = malloc(sizeof(Biobuf));
-		Binit(bin, fd[1], OREAD);
+		Binit(bin, fd[0], OREAD);
 		break;
 
 	case -1:
@@ -275,7 +304,7 @@ compile(char *s, char *of)
 
 	case 0:
 		close(0);
-		dup(fd[0], 1);
+		dup(fd[1], 1);
 		close(fd[0]);
 		close(fd[1]);
 		exec(CPP, av);
@@ -286,9 +315,9 @@ compile(char *s, char *of)
 	line = 1;
 	linehist(s, 0);		/* Push start */
 	yyparse();
-	Bclose(bin);
+	Bterm(bin);
 
-	if(nerr == 0) {
+	if(opt('q') == 0 && nerr == 0) {
 		if(asm)
 			sfile(asmfile);
 		else
@@ -314,11 +343,11 @@ free(void *a)			/* Prevent redifinition of malloc */
 void *
 malloc(long a)
 {
-	static char *arena;
-	static long mem;
 	char *p;
+	static long mem;
+	static char *arena;
 
-	a = a+sizeof(long);
+	a += sizeof(long);
 	a &= ~(sizeof(long)-1);
 
 	stats.mem += a;

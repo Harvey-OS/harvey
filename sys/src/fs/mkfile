@@ -1,0 +1,25 @@
+ARCH=\
+	6280\
+	cyc\
+	magnum\
+	pc\
+	power\
+	ss\
+
+all:V:
+	for(i in $ARCH)@{
+		cd $i
+		mk
+	}
+
+installall:V:
+	for(i in $ARCH) @{
+		cd $i
+		mk installall
+	}
+
+clean:V:
+	for(i in $ARCH) @{
+		cd $i
+		mk clean
+	}

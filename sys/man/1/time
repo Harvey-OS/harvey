@@ -15,5 +15,7 @@ is executed with the given arguments; after it is complete,
 reports on standard error the program's elapsed user time,
 system time, and real time, in seconds,
 followed by the command line.
+.SH SOURCE
+.B /sys/src/cmd/time.c
 .SH "SEE ALSO"
 .IR prof (1)

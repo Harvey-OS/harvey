@@ -2,26 +2,31 @@
 .ta 8n +8n +8n +8n +8n +8n +8n
 .ft
 .TL
-A manual for the Plan 9 assembler
+A Manual for the Plan 9 assembler
 .AU
 Rob Pike
-.SH
-Disclaimer
-.PP
-I wrote this manual to document some of the assembler's strange properties
-but I am not responsible for any of them.
+rob@plan9.att.com
 .SH
 Machines
 .PP
-There is an assembler for each of the MIPS 3000, SPARC, Intel 386,
-Intel 960, AT&T Hobbit, and Motorola 68020.
+There is an assembler for each of the MIPS, SPARC, Intel 386,
+Intel 960, AT&T DSP3210, and Motorola 68020.
 The 68020 assembler,
 .CW 2a ,
 is the oldest and in many ways the prototype.
+The assemblers are really just variations of a single program:
+they share many properties such as left-to-right assignment order for
+instruction operands and the synthesis of macro instructions
+such as
+.CW MOVE
+to hide the peculiarities of the load and store structure of the machines.
 To keep things concrete, the first part of this manual is
 specifically about the 68020.
-At the end is a brief description of the differences among
+At the end is a description of the differences among
 the other assemblers.
+.PP
+The document, ``How to Use the Plan 9 C Compiler'', by Rob Pike,
+is a prerequisite for this manual.
 .SH
 Registers
 .PP
@@ -59,7 +64,7 @@ meaning should be obvious given a 68020 manual:
 .CW MSP ,
 .CW SFC ,
 .CW SR ,
-.CW USP
+.CW USP ,
 and
 .CW VBR .
 .PP
@@ -76,7 +81,8 @@ is the first argument,
 .CW 4(FP)
 is the second, and so on.
 .CW SP
-is the local stack pointer, where automatic variables are held;
+is the local stack pointer, where automatic variables are held
+(SP is a pseudo-register only on the 68020);
 .CW 0(SP)
 is the first automatic, and so on as with
 .CW FP .
@@ -103,7 +109,7 @@ The assembler accepts a label-like name to be attached to
 and
 .CW SP
 uses, such as
-.CW p+0(FP)
+.CW p+0(FP) ,
 to help document that
 .CW p
 is the first argument to a routine.
@@ -190,6 +196,74 @@ and
 .CW #include
 work.
 .SH
+Addressing modes
+.PP
+The simple addressing modes are shared by all the assemblers.
+Here, for completeness, follows a table of all the 68020 addressing modes,
+since that machine has the richest set.
+In the table,
+.CW o
+is an offset, which if zero may be elided.
+Many of the modes listed have the same name;
+scrutiny of the format will show what default is being applied.
+For instance, indexed mode with no address register supplied operates
+as though a zero-valued register were used.
+For "offset" read "displacement."
+For "\f(CW.s\fP" read one of
+.CW .L ,
+or
+.CW .W
+followed by
+.CW *1 ,
+.CW *2 ,
+.CW *4 ,
+or
+.CW *8
+to indicate the size and scaling of the data.
+.IP
+.TS
+l lfCW.
+data register	R0
+address register	A0
+floating-point register	F0
+special names	CAAR, CACR, etc.
+constant	$con
+floating point constant	$fcon
+external symbol	name+o(SB)
+local symbol	name<>+o(SB)
+automatic symbol	name+o(SP)
+argument	name+o(FP)
+address of external	$name+o(SB)
+address of local	$name<>+o(SB)
+indirect post-increment	(A0)+
+indirect pre-decrement	-(A0)
+indirect with offset	o(A0)
+indexed with offset	o()(R0.s)
+indexed with offset	o(A0)(R0.s)
+external indexed	name+o(SB)(R0.s)
+local indexed	name<>+o(SB)(R0.s)
+automatic indexed	name+o(SP)(R0.s)
+parameter indexed	name+o(FP)(R0.s)
+offset indirect post-indexed	d(o())(R0.s)
+offset indirect post-indexed	d(o(A0))(R0.s)
+external indirect post-indexed	d(name+o(SB))(R0.s)
+local indirect post-indexed	d(name<>+o(SB))(R0.s)
+automatic indirect post-indexed	d(name+o(SP))(R0.s)
+parameter indirect post-indexed	d(name+o(FP))(R0.s)
+offset indirect pre-indexed	d(o()(R0.s))
+offset indirect pre-indexed	d(o(A0))
+offset indirect pre-indexed	d(o(A0)(R0.s))
+external indirect pre-indexed	d(name+o(SB))
+external indirect pre-indexed	d(name+o(SB)(R0.s))
+local indirect pre-indexed	d(name<>+o(SB))
+local indirect pre-indexed	d(name<>+o(SB)(R0.s))
+automatic indirect pre-indexed	d(name+o(SP))
+automatic indirect pre-indexed	d(name+o(SP)(R0.s))
+parameter indirect pre-indexed	d(name+o(FP))
+parameter indirect pre-indexed	d(name+o(FP)(R0.s))
+.TE
+.in
+.SH
 Laying down data
 .PP
 Placing data in the instruction stream, say for interrupt vectors, is easy:
@@ -226,7 +300,12 @@ and a terminating null:
 	DATA    array+2(SB)/1, $'c'
 	GLOBL   array(SB), $4
 .P2
-Here, the
+or
+.P1
+	DATA    array+0(SB)/4, $"abc\ez"
+	GLOBL   array(SB), $4
+.P2
+The
 .CW /1
 defines the number of bytes to define,
 .CW GLOBL
@@ -234,6 +313,52 @@ makes the symbol global, and the
 .CW $4
 says how many bytes the symbol occupies.
 Uninitialized data is zeroed automatically.
+The character
+.CW \ez
+is equivalent to the C
+.CW \e0.
+The string in a
+.CW DATA
+statement may contain a maximum of eight bytes;
+build larger strings piecewise.
+Two pseudo-instructions,
+.CW DYNT
+and
+.CW INIT ,
+allow the Alef compilers to build dynamic type information during the load
+phase.
+The
+.CW DYNT
+pseudo-instruction has two forms:
+.P1
+	DYNT	, ALEF_SI_5+0(SB)
+	DYNT	ALEF_AS+0(SB), ALEF_SI_5+0(SB)
+.P2
+In the first form,
+.CW DYNT
+defines the symbol to be a small unique integer constant, chosen by the loader,
+which is some multiple of the word size.  In the second form,
+.CW DYNT
+defines the second symbol in the same way,
+places the address of the most recently
+defined text symbol in the array specified by the first symbol at the
+index defined by the value of the second symbol,
+and then adjusts the size of the array accordingly.
+.PP
+The
+.CW INIT
+pseudo-instruction takes the same parameters as a
+.CW DATA
+statement.  Its symbol is used as the base of an array and the
+data item is installed in the array at the offset specified by the most recent
+.CW DYNT
+pseudo-instruction.
+The size of the array is adjusted accordingly.
+The
+.CW DYNT
+and
+.CW INIT
+pseudo-instructions are not implemented on the 68020.
 .SH
 Defining a procedure
 .PP
@@ -243,6 +368,8 @@ which takes as arguments the name of the procedure (including the ubiquitous
 .CW (SB) )
 and the number of bytes of automatic storage to pre-allocate on the stack,
 which will usually be zero when writing assembly language programs.
+On the MIPS and SPARC, the special value -4 instructs the loader to generate no PC save
+and restore instructions, even if the function is not a leaf.
 Here is a complete procedure that returns the sum
 of its two arguments:
 .P1
@@ -254,10 +381,9 @@ TEXT	sum(SB), $0
 An optional middle argument
 to the
 .CW TEXT
-pseudo-op causes the loader
-.I not
-to insert profiling code into the subroutine, if it has the value
-.CW 1 .
+pseudo-op is a bit field of options to the loader.
+Setting the 1 bit suspends profiling the function when profiling is enabled for the rest of
+the program.
 For example,
 .P1
 TEXT	sum(SB), 1, $0
@@ -268,6 +394,11 @@ TEXT	sum(SB), 1, $0
 will not be profiled; the first version above would be.
 Subroutines with peculiar state, such as system call routines,
 should not be profiled.
+.PP
+Setting the 2 bit allows multiple definitions of the same
+.CW TEXT
+symbol in a program; the loader will place only one such function in the image.
+It is emitted only by the Alef compilers.
 .PP
 Subroutines to be called from C should place their result in
 .CW R0 ,
@@ -330,68 +461,27 @@ Despite its name, this file contains an enumeration of the
 instructions that appear in the intermediate files generated
 by the compiler, which correspond exactly to lines of assembly language.
 .SH
-Addressing modes
+Laying down instructions
 .PP
-In this table,
-.CW o
-is an offset, which if zero may be elided.
-Many of the modes listed have the same name;
-scrutiny of the format will show what default is being applied.
-For instance, indexed mode with no address register supplied operates
-as though a zero-valued register were used.
-For "offset" read "displacement."
-For "\f(CW.s\fP" read one of
-.CW .L ,
-or
-.CW .W
-followed by
-.CW *1 ,
-.CW *2 ,
-.CW *4 ,
-or
-.CW *8
-to indicate the size and scaling of the data.
-.TS
-l lfCW.
-data register	R0
-address register	A0
-floating-point register	F0
-special names	CAAR, CACR, etc.
-constant	$con
-floating point constant	$fcon
-external symbol	name+o(SB)
-local symbol	name<>+o(SB)
-automatic symbol	name+o(SP)
-argument	name+o(FP)
-address of external	$name+o(SB)
-address of local	$name<>+o(SB)
-indirect post-increment	(A0)+
-indirect pre-decrement	-(A0)
-indirect with offset	o(A0)
-indexed with offset	o()(R0.s)
-indexed with offset	o(A0)(R0.s)
-external indexed	name+o(SB)(R0.s)
-local indexed	name<>+o(SB)(R0.s)
-automatic indexed	name+o(SP)(R0.s)
-parameter indexed	name+o(FP)(R0.s)
-offset indirect post-indexed	d(o())(R0.s)
-offset indirect post-indexed	d(o(A0))(R0.s)
-external indirect post-indexed	d(name+o(SB))(R0.s)
-local indirect post-indexed	d(name<>+o(SB))(R0.s)
-automatic indirect post-indexed	d(name+o(SP))(R0.s)
-parameter indirect post-indexed	d(name+o(FP))(R0.s)
-offset indirect pre-indexed	d(o()(R0.s))
-offset indirect pre-indexed	d(o(A0))
-offset indirect pre-indexed	d(o(A0)(R0.s))
-external indirect pre-indexed	d(name+o(SB))
-external indirect pre-indexed	d(name+o(SB)(R0.s))
-local indirect pre-indexed	d(name<>+o(SB))
-local indirect pre-indexed	d(name<>+o(SB)(R0.s))
-automatic indirect pre-indexed	d(name+o(SP))
-automatic indirect pre-indexed	d(name+o(SP)(R0.s))
-parameter indirect pre-indexed	d(name+o(FP))
-parameter indirect pre-indexed	d(name+o(FP)(R0.s))
-.TE
+The loader modifies the code produced by the assembler and compiler.
+It folds branches,
+copies short sequences of code to eliminate branches,
+and discards unreachable code.
+The first instruction of every function is assumed to be reachable.
+The pseudo-instruction
+.CW NOP ,
+which you may see in compiler output,
+means no instruction at all, rather than an instruction that does nothing.
+The loader discards all
+.CW NOP 's.
+.PP
+To generate a true
+.CW NOP
+instruction, or any other instruction not known to the assembler, use a
+.CW WORD
+pseudo-instruction.
+Such instructions on RISCs are not scheduled by the loader and must have
+their delay slots filled manually.
 .SH
 MIPS
 .PP
@@ -412,8 +502,9 @@ The register holding returned values from subroutines is
 When a function is called, space for the first argument
 is reserved at
 .CW 0(FP)
-but the value is actually passed in
-.CW R1.
+but in C (not Alef) the value is passed in
+.CW R1
+instead.
 .PP
 The loader uses
 .CW R28
@@ -421,8 +512,8 @@ as a temporary.  The system uses
 .CW R26
 and
 .CW R27
-as interrupt-time temporaries.  None of these registers should
-therefore be used in user code.
+as interrupt-time temporaries.  Therefore none of these registers
+should be used in user code.
 .PP
 The control registers are not known to the assembler.
 Instead they are numbered registers
@@ -430,10 +521,10 @@ Instead they are numbered registers
 .CW M1 ,
 etc.
 Use this trick to access, say,
-.CW TLBVIRT :
+.CW STATUS :
 .P1
-#define	TLBVIRT	10
-	MOVW	M(TLBVIRT), R1
+#define	STATUS	12
+	MOVW	M(STATUS), R1
 .P2
 .PP
 Floating point registers are called
@@ -448,9 +539,11 @@ to 0.5,
 .CW F28
 to 1.0, and
 .CW F30
-to 2.0.
+to 2.0;
+this is done by the operating system.
 .PP
-The instructions are quite different from the book.
+The instructions and their syntax are different from those of the manufacturer's
+manual.
 There are no
 .CW lui
 and kin; instead there are
@@ -466,7 +559,8 @@ are
 and
 .CW MOVBU .
 The order of operands is from left to right in dataflow order, just as
-on the 68020 but not as in the book.  This means that the
+on the 68020 but not as in MIPS documentation.
+This means that the
 .CW Bcond
 instructions are reversed with respect to the book; for example, a
 .CW va
@@ -475,16 +569,56 @@ generates a MIPS
 .CW bltz
 instruction.
 .PP
-Instruction scheduling is handled by the loader.  Place the instructions
-down as you would if there were no such things
-as delay slots, except that, because the information to solve
-the problem is not published,
-you must insert your own NOOPS after instructions that modify
-control registers.  Use exactly
+The assembler is for the R2000, R3000, and most of the R4000 and R6000 architectures.
+It understands the 64-bit instructions
+.CW MOVV ,
+.CW MOVVL ,
+.CW ADDV ,
+.CW ADDVU ,
+.CW SUBV ,
+.CW SUBVU ,
+.CW MULV ,
+.CW MULVU ,
+.CW DIVV ,
+.CW DIVVU ,
+.CW SLLV ,
+.CW SRLV ,
+and
+.CW SRAV .
+The assembler does not have any cache, load-linked, or store-conditional instructions.
+.PP
+Some assembler instructions are expanded into multiple instructions by the loader.
+For example the loader may convert the load of a 32 bit constant into an
+.CW lui
+followed by an
+.CW ori .
+.PP
+Assembler instructions should be laid out as if there
+were no load, branch, or floating point compare delay slots;
+the loader will rearrange\(em\f2schedule\f1\(emthe instructions
+to guarantee correctness and improve performance.
+The only exception is that the correct scheduling of instructions
+that use control registers varies from model to model of machine
+(and is often undocumented) so you should schedule such instructions
+by hand to guarantee correct behavior.
+The loader generates
 .P1
 	NOR	R0, R0, R0
 .P2
-as a no-op.
+when it needs a true no-op instruction.
+Use exactly this instruction when scheduling code manually;
+the loader recognizes it and schedules the code before it and after it independently.  Also,
+.CW WORD
+pseudo-ops are scheduled like no-ops.
+.PP
+The
+.CW NOSCHED
+pseudo-op disables instruction scheduling
+(scheduling is enabled by default);
+.CW SCHED
+re-enables it.
+Branch folding, code copying, and dead code elimination are
+disabled for instructions that are not scheduled.
 .SH
 SPARC
 .PP
@@ -493,16 +627,16 @@ Registers have numerical names only:
 .CW R0
 through
 .CW R31 .
-Forget about register windows.  Plan 9 doesn't use them at all.
+Forget about register windows: Plan 9 doesn't use them at all.
 The machine has 32 global registers, period.
 .CW R1
-(sic) is the stack pointer.
+[sic] is the stack pointer.
 .CW R2
 is the static base register, with value the address of
 .CW setSB(SB) .
 .CW R7
 is the return register and also the register holding the first
-argument to a function, again with space reserved at
+argument to a C (not Alef) function, again with space reserved at
 .CW 0(FP) .
 .CW R14
 is the loader temporary.
@@ -517,7 +651,7 @@ instructions, for example
 .P1
 	MOVW	Y, R8
 .P2
-for the Sparc instruction
+for the SPARC instruction
 .P1
 	rdy	%r8
 .P2
@@ -540,8 +674,11 @@ The syntax for double indexing is
 	MOVW	(R7+R8), R9
 .P2
 .PP
-Again, ignore scheduling and delay slots when laying down instructions; the loader
-will do the scheduling.
+The SPARC's instruction scheduling is similar to the MIPS's.
+The official no-op instruction is:
+.P1
+	ORN	R0, R0, R0
+.P2
 .SH
 i960
 .PP
@@ -597,14 +734,14 @@ The register names are
 .CW DI ,
 and
 .CW SI .
-The stack pointer is
+The stack pointer (not a pseudo-register) is
 .CW SP
 and the return register is
 .CW AX .
-There is no physical frame pointer but, as for the 68020,
+There is no physical frame pointer but, as for the MIPS,
 .CW FP
 is a pseudo-register that acts as
-a floating frame pointer.
+a frame pointer.
 .PP
 Opcode names are mostly the same as those listed in the Intel manual
 with an
@@ -651,11 +788,11 @@ you must mention it explicitly in a
 .P1
 	MOVB	AH, BX
 .P2
-There are many examples of illegal moves, for example
+There are many examples of illegal moves, for example,
 .P1
 	MOVB	BP, DI
 .P2
-that the loader actually implements as psuedo-operations.
+that the loader actually implements as pseudo-operations.
 .PP
 The names of conditions in all conditional instructions
 .CW J , (
@@ -731,24 +868,87 @@ are legal loop instructions.  Only
 and
 .CW REPN
 are recognized repeaters.  These are not prefixes, but rather
-standalone opcodes that precede the strings, for example
+stand-alone opcodes that precede the strings, for example
 .P1
 	CLD; REP; MOVSL
 .P2
+Segment override prefixes in
+.CW MOD/RM
+fields are not supported.
 .SH
-Hobbit
+3210
 .PP
-The Hobbit book and data sheet are actually based on this assembler,
-so the correspondence between the hardware and the assembler is
-much closer than with the other machines.  There is no static
-base register.
+Opcode names for integer instructions follow the conventions used for the MIPS,
+with an appended
+.CW H
+indicating a 16-bit operation.
+The unusual instructions are
+.CW ADDCR ,
+.CW ADDN ,
+.CW BIT ,
+.CW CALL ,
+.CW DBRA ,
+.CW IRET ,
+.CW ROL ,
+.CW ROR ,
+.CW SUBR ,
+.CW SFTRST ,
+and
+.CW WAITI .
+The condition to test is specified as the first parameter to conditional opcodes.
 .PP
-The one syntactic difference is that data operand suffices
-use a colon
-in the book, but a period in the assembler:
-.P1
-	MOV	$0, R4.UB
-.P2
-Unlike the other assemblers, these suffices are applied to
-the operands rather than the instructions.
-
+The basic floating arithmetic opcodes are
+.CW FMUL ,
+.CW FADD ,
+.CW FSUB ,
+.CW FMADD ,
+and
+.CW FMSUB .
+A
+.CW T
+suffix specifies the tap versions of the instructions,
+while a
+.CW N
+suffix negates the accumulator argument.
+The parameters are in the reverse order from the 3210 manual.
+An
+.CW FDIV
+pseudo-op is provided.
+Conversions are specified as moves; the remaining floating instructions are
+.CW FIEEE ,
+.CW FDSP ,
+.CW FROUND ,
+.CW FSEED ,
+.CW FIFEQ ,
+.CW FIFEQ ,
+.CW FIFGT ,
+and
+.CW FIFLT .
+.PP
+.CW DO
+instructions take as a second parameter the number of instructions in the loop
+or a label that points to a
+.CW DOEND
+instruction.
+.CW DOEND
+instructions have one parameter, a label pointing to the corresponding
+.CW DO
+instruction.
+All instructions between the
+.CW DO
+and
+.CW DOEND
+instructions are in the loop.
+.CW DOLOCK
+instructions have the same syntax as
+.CW DO
+instructions.
+.CW BMOVW
+is a block move instruction macro.
+.PP
+Instructions are scheduled like MIPS instructions.
+Floating point instructions are scheduled.
+.PP
+The condition codes are capitalized versions of the standard 3210 names,
+with the exception that an F is prefixed for floating point and an O is used
+for overflows.

@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #include <bio.h>
 
@@ -27,11 +28,10 @@ union	hblock
 Dir stbuf;
 Biobuf bout;
 
-int	rflag, xflag, vflag, tflag, mt, cflag, fflag, mflag;
+int	rflag, xflag, vflag, tflag, mt, cflag, fflag, Tflag;
+int	uflag, gflag;
 int	chksum, recno, first;
 int	nblock = DBLOCK;
-
-char	*ejectfile;
 
 void	usage(void);
 void	dorep(char **);
@@ -55,13 +55,12 @@ void	flushtar(void);
 void	affix(int, char *);
 char	*findname(char *);
 void	fixname(char *);
-void	eject(void);
 int	volprompt(void);
 void
 main(int argc, char **argv)
 {
 	char *usefile;
-	char *cp;
+	char *cp, *ap;
 
 	if (argc < 2)
 		usage();
@@ -78,11 +77,17 @@ main(int argc, char **argv)
 				usage();
 			fflag++;
 			break;
-		case 'e':
-			mflag++;
-			ejectfile = *argv++;
-			if(!ejectfile)
+		case 'u':
+			ap = *argv++;
+			if(!ap)
 				usage();
+			uflag = strtoul(ap, 0, 0);
+			break;
+		case 'g':
+			ap = *argv++;
+			if(!ap)
+				usage();
+			gflag = strtoul(ap, 0, 0);
 			break;
 		case 'c':
 			cflag++;
@@ -97,11 +102,11 @@ main(int argc, char **argv)
 		case 'x':
 			xflag++;
 			break;
+		case 'T':
+			Tflag++;
+			break;
 		case 't':
 			tflag++;
-			break;
-		case 'm':
-			mflag++;
 			break;
 		case '-':
 			break;
@@ -121,8 +126,8 @@ main(int argc, char **argv)
 			mt = dup(1, -1);
 			nblock = 1;
 		}
-		else if ((mt = open(usefile, 2)) < 0) {
-			if (cflag == 0 || (mt =  create(usefile, 1, 0666)) < 0) {
+		else if ((mt = open(usefile, ORDWR)) < 0) {
+			if (cflag == 0 || (mt = create(usefile, OWRITE, 0666)) < 0) {
 				fprint(2, "tar: cannot open %s\n", usefile);
 				exits("open");
 			}
@@ -134,7 +139,7 @@ main(int argc, char **argv)
 			mt = dup(0, -1);
 			nblock = 1;
 		}
-		else if ((mt = open(usefile, 0)) < 0) {
+		else if ((mt = open(usefile, OREAD)) < 0) {
 			fprint(2, "tar: cannot open %s\n", usefile);
 			exits("open");
 		}
@@ -145,7 +150,7 @@ main(int argc, char **argv)
 			mt = dup(0, -1);
 			nblock = 1;
 		}
-		else if ((mt = open(usefile, 0)) < 0) {
+		else if ((mt = open(usefile, OREAD)) < 0) {
 			fprint(2, "tar: cannot open %s\n", usefile);
 			exits("open");
 		}
@@ -153,14 +158,13 @@ main(int argc, char **argv)
 	}
 	else
 		usage();
-	eject();
 	exits(0);
 }
 
 void
 usage(void)
 {
-	fprint(2, "tar: usage  tar {txruc}[vf] [tarfile] file1 file2...\n");
+	fprint(2, "tar: usage  tar {txrc}[vf] [tarfile] file1 file2...\n");
 	exits("usage");
 }
 
@@ -255,15 +259,16 @@ passtar(void)
 }
 
 void
-putfile(char *longname, char *shortname)
+putfile(char *longname, char *sname)
 {
 	int infile;
 	long blocks;
-	char buf[TBLOCK];
+	char buf[TBLOCK], shortname[NAMELEN+4];
 	char *cp, *cp2;
 	Dir db[50];
 	int i, n;
 
+	sprint(shortname, "./%s", sname);
 	infile = open(shortname, OREAD);
 	if (infile < 0) {
 		fprint(2, "tar: %s: cannot open file\n", longname);
@@ -275,7 +280,7 @@ putfile(char *longname, char *shortname)
 	if (stbuf.qid.path & CHDIR) {
 		for (i = 0, cp = buf; *cp++ = longname[i++];);
 		*--cp = '/';
-		*++cp = 0  ;
+		*++cp = 0;
 		if( (cp - buf) >= NAMSIZ) {
 			fprint(2, "%s: file name too long\n", longname);
 			close(infile);
@@ -338,8 +343,9 @@ putfile(char *longname, char *shortname)
 void
 doxtract(char **argv)
 {
+	Dir mydir;
 	long blocks, bytes;
-	char buf[TBLOCK];
+	char buf[TBLOCK], outname[NAMSIZ+4];
 	char **cp;
 	int ofile;
 
@@ -371,7 +377,11 @@ gotit:
 			fprint(2, "%s: cannot symlink\n", dblock.dbuf.name);
 			continue;
 		}
-		if ((ofile = create(dblock.dbuf.name, 1, stbuf.mode & 0777)) < 0) {
+		if(dblock.dbuf.name[0] != '/')
+			sprint(outname, "./%s", dblock.dbuf.name);
+		else
+			strcpy(outname, dblock.dbuf.name);
+		if ((ofile = create(outname, OWRITE, stbuf.mode & 0777)) < 0) {
 			fprint(2, "tar: %s - cannot create\n", dblock.dbuf.name);
 			passtar();
 			continue;
@@ -394,6 +404,11 @@ gotit:
 					exits("extract write");
 				}
 			bytes -= TBLOCK;
+		}
+		if(Tflag){
+			dirfstat(ofile, &mydir);
+			mydir.mtime = stbuf.mtime;
+			dirfwstat(ofile, &mydir);
 		}
 		close(ofile);
 	}
@@ -442,7 +457,7 @@ int
 checkdir(char *name)
 {
 	char *cp;
-	Waitmsg w;
+	int f;
 
 	cp = name;
 	if(*cp == '/')
@@ -451,17 +466,9 @@ checkdir(char *name)
 		if (*cp == '/') {
 			*cp = '\0';
 			if (access(name, 0) < 0) {
-				switch(fork()){
-				case -1:
-					perror("tar: can't fork\n");
-					exits("fork");
-				case 0:
-					execl("/bin/mkdir", "mkdir", name, 0);
-					perror("tar: can't exec mkdir");
-					_exits("exec");
-				}
-				if(wait(&w) < 0 ||
-				  (w.msg[0] && strcmp(w.msg, "exists") != 0))
+				f = create(name, OREAD, CHDIR + 0777L);
+				close(f);
+				if(f < 0)
 					fprint(2, "tar: mkdir %s failed\n", name);
 			}
 			*cp = '/';
@@ -478,8 +485,8 @@ tomodes(Dir *sp)
 	for (cp = dblock.dummy; cp < &dblock.dummy[TBLOCK]; cp++)
 		*cp = '\0';
 	sprint(dblock.dbuf.mode, "%6o ", sp->mode & 0777);
-	sprint(dblock.dbuf.uid, "%6o ", 0);
-	sprint(dblock.dbuf.gid, "%6o ", 0);
+	sprint(dblock.dbuf.uid, "%6o ", uflag);
+	sprint(dblock.dbuf.gid, "%6o ", gflag);
 	sprint(dblock.dbuf.size, "%11lo ", sp->length);
 	sprint(dblock.dbuf.mtime, "%11lo ", sp->mtime);
 }
@@ -517,10 +524,6 @@ readtar(char *buffer)
 	if (recno >= nblock || first == 0) {
 redo:
 		if ((i = read(mt, tbuf, TBLOCK*nblock)) <= 0) {
-			if(mflag){
-				if(volprompt() == 0);
-					goto redo;
-			}
 			fprint(2, "Tar: archive read error\n");
 			exits("archive read");
 		}
@@ -547,12 +550,7 @@ writetar(char *buffer)
 {
 	first = 1;
 	if (recno >= nblock) {
-redo:
 		if (write(mt, tbuf, TBLOCK*nblock) != TBLOCK*nblock) {
-			if(mflag){
-				if(volprompt() == 0)
-					goto redo;
-			}
 			fprint(2, "Tar: archive write error\n");
 			exits("write");
 		}
@@ -560,12 +558,7 @@ redo:
 	}
 	memmove(&tbuf[recno++], buffer, TBLOCK);
 	if (recno >= nblock) {
-redo2:
 		if (write(mt, tbuf, TBLOCK*nblock) != TBLOCK*nblock) {
-			if(mflag){
-				if(volprompt() == 0)
-					goto redo;
-			}
 			fprint(2, "Tar: archive write error\n");
 			exits("write");
 		}
@@ -688,42 +681,4 @@ fixname(char *original)
 	strcpy(original,newname);
 	ntoolong++;
   }
-}
-
-void
-eject(void)
-{
-	int f;
-
-	/*
-	 *  a bit of a hack
-	 */
-	if(ejectfile){
-		f = open(ejectfile, ORDWR);
-		if(f >= 0){
-			write(f, "eject", 5);
-			close(f);
-		}
-	}
-}
-
-int
-volprompt(void)
-{
-	char reply;
-	static int vol;
-	static int errs;
-
-	if(errs++ < 2)
-		return -1;
-	errs = 0;
-
-	eject();
-	fprint(2, "Tar: end of volume %d\n", vol++);
-	fprint(2, "Tar: enter next volume and type return, or type 'q' to quit:");
-	read(0, &reply, 1);
-	if(reply == 'q')
-		return -1;
-	seek(mt, 0, 0);
-	return 0;
 }

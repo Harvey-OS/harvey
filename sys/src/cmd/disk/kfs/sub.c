@@ -508,6 +508,21 @@ rootream(Device dev, long addr)
 	putbuf(p);
 }
 
+int
+superok(Device dev, long addr, int set)
+{
+	Iobuf *p;
+	Superb *s;
+	int ok;
+
+	p = getbuf(dev, addr, Bread|Bmod|Bimm);
+	s = (Superb*)p->iobuf;
+	ok = s->fsok;
+	s->fsok = set;
+	putbuf(p);
+	return ok;
+}
+
 void
 superream(Device dev, long addr)
 {

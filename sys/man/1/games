@@ -1,6 +1,6 @@
 .TH GAMES 1
 .SH NAME
-4s, 5s, ana, gnuchess, juggle, mandel, plumb, quiz, smiley, life, fsim, clock, catclock, fireworks, swar, zork \- time wasters
+4s, 5s, ana, mandel, plumb, smiley, life, fsim, clock, catclock, fireworks, swar, festoon \- time wasters
 .SH SYNOPSIS
 .B games/4s
 .br
@@ -11,30 +11,11 @@
 .I fixwords
 ]
 .br
-.B games/fireworks
-.br
-.B games/gnuchess
-.br
-.B games/juggle
-[
-.B -h
-.I nhand
-]
-[
-.I start
-]
-.I pattern
-.br
 .B games/mandel
 .br
 .B games/plumb
 [
 .I level
-]
-.br
-.B games/quiz
-[
-.I category1 category2
 ]
 .br
 .B games/smiley
@@ -51,7 +32,29 @@
 .B -c
 ]
 .br
+.B games/fireworks
+.br
 .B games/swar
+.br
+.B games/festoon
+[
+.B -p
+]
+[
+.B -e
+]
+[
+.B -t
+]
+[
+.B -sseed
+]
+[
+.I len
+]
+[
+.I pfn
+]
 .SH DESCRIPTION
 There are a few games in
 .BR /bin/games :
@@ -70,27 +73,6 @@ The
 argument or numbers typed on standard input fix the number of
 words in the output anagrams.
 .TP
-.B gnuchess
-Play chess. Type
-.L help
-to list commands.
-.TP
-.B juggle
-Simulate a juggler.  The
-.I pattern
-lists the heights of a repeating sequence of throws.
-At time t, hand (t mod nhand) throws.
-At that time, it must
-hold exactly one ball, unless it executes a 0 throw,
-in which case it must hold no ball.
-A throw of height h
-at time t lands at time t+h in hand ((t+h) mod nhand).
-Some
-.IR pattern s
-require a
-.I start
-sequence of throws to get the balls into position.
-.TP
 .B mandel
 Compute and display Mandelbrot sets.
 Menus on the mouse buttons control various things.
@@ -100,10 +82,6 @@ Build a plumbing system. Keep ahead of the advancing oil
 and don't waste pipe. The
 .I level
 argument lets you start at a harder level.
-.TP
-.B quiz
-gives associative
-knowledge tests on various subjects.
 .TP
 .B smiley
 A game of historical importance.
@@ -119,9 +97,7 @@ cannot be found.
 .B fsim
 Pretend you're flying a Cessna.
 .TP
-.B clock
-.TP
-.B catclock
+.BR clock , " catclock
 Display analog clocks.  Option
 .B -c
 makes
@@ -141,23 +117,33 @@ to turn left or right,
 .B s
 to shoot,
 .B x
-to disappear briefly (``enter hyperspace'')
+to enter hyperspace,
 and
 .B w
 to accelerate.
 The other player uses
-.BR k ,
+.LR k ,
 .BR ; ,
 .BR l ,
 .BR .
-(the period)
 and
 .BR o .
 AT&T scores whenever either ship shoots itself or otherwise
 causes mayhem.  Hyperspace is occasionally fatal.
 .TP
-.B zork
-The venerable adventure game.
+.B festoon
+Traditional radical monoarchate qualitativeness. Now produces
+pictures
+.RB ( -p ),
+tables
+.RB ( -t ),
+and equations
+.RB ( -e ).
+The seed can be set to recreate a specific document.
+.B Len
+is sentence length, and 
+.B pfn
+is percent faked nouns (default 0).
 .SH FILES
 .TF /sys/games/lib/plumb/scores
 .TP
@@ -184,9 +170,7 @@ used by
 miscellaneous files used by
 .I plumb
 .TP
-.B /sys/games/lib/quiz/*
-miscellaneous files used by
-.I quiz
-.TP
 .B /sys/games/lib/life/*
 interesting starting positions
+.SH SOURCE
+.B /sys/src/games

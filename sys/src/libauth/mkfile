@@ -1,15 +1,32 @@
 </$objtype/mkfile
 
+
 LIB=/$objtype/lib/libauth.a
 OFILES=\
+	amount.$O\
 	auth.$O\
-	srvauth.$O\
-	chall.$O\
-	newns.$O\
 	authdial.$O\
+	authenticate.$O\
+	convT2M.$O\
+	convA2M.$O\
+	convTR2M.$O\
+	convPR2M.$O\
+	convM2A.$O\
+	convM2T.$O\
+	convM2TR.$O\
+	convM2PR.$O\
+	getchal.$O\
 	passtokey.$O\
 	nvcsum.$O\
+	newns.$O\
+	srvauth.$O\
+	_asreadn.$O\
+	_asgetticket.$O\
+	_asrdfile.$O\
+	_asrdresp.$O\
+
 
 HFILES=/sys/include/auth.h
 
 </sys/src/cmd/mksyslib
+CFLAGS=-w

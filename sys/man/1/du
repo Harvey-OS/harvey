@@ -18,7 +18,7 @@ gives the number of Kbytes allocated to data blocks
 of named
 .I files
 and, recursively, of files in named directories.
-By default, the disk block size is assumed to be 1024 bytes.
+It assumes storage is quantized in units of 1024 bytes (Kbytes) by default.
 Other values can be set by the
 .B -b
 option;
@@ -37,3 +37,5 @@ The
 option prints the number of blocks
 for every file in a directory.
 Normally counts are printed only for contained directories.
+.SH SOURCE
+.B /sys/src/cmd/du.c

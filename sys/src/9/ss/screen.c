@@ -14,7 +14,6 @@
 
 extern	GSubfont	defont0;
 GSubfont		*defont;
-int	islcd;
 
 struct{
 	Point	pos;
@@ -69,7 +68,7 @@ struct screens
 }screens[] = {
 	{ "bwtwo", 1152, 900, 0, 0x400000 },
 	{ "cgsix", 1152, 900, 3, 0x200000 },
-	{ "cgthree", 1152, 900, 3, 0x200000 },	/* PURE GUESS! */
+	{ "cgthree", 1152, 900, 3, 0x400000 },	/* data from rwolff */
 	0
 };
 
@@ -369,10 +368,10 @@ kbdstate(IOQ *q, int c)
 	static caps = 0;
 	static long startclick;
 	static int repeatc;
-	static int lstate;
+	static int collecting, nk;
 	static uchar kc[4];
 	uchar ch;
-	int i, nk;
+	int i;
 
 	USED(q);
 	ch = kbdmap[shift][c&0x7F];
@@ -413,42 +412,25 @@ kbdstate(IOQ *q, int c)
 		ch |= ' ';
 	repeatc = ch;
 	kbdrepeat(1);
-	if(ch == 0xB6)	/* Compose */
-		lstate = 1;
-	else{
-		switch(lstate){
-		case 1:
-			kc[0] = ch;
-			lstate = 2;
-			if(ch == 'X')
-				lstate = 3;
-			break;
-		case 2:
-			kc[1] = ch;
-			c = latin1(kc);
-			nk = 2;
-		putit:
-			lstate = 0;
-			if(c != -1)
-				kbdputc(&kbdq, c);
-			else for(i=0; i<nk; i++)
-				kbdputc(&kbdq, kc[i]);
-			break;
-		case 3:
-		case 4:
-		case 5:
-			kc[lstate-2] = ch;
-			lstate++;
-			break;
-		case 6:
-			kc[4] = ch;
-			c = unicode(kc);
-			nk = 5;
-			goto putit;
-		default:
+	if(ch == 0xB6){	/* Compose */
+		collecting = 1;
+		nk = 0;
+	}else{
+		if(!collecting){
 			kbdputc(&kbdq, ch);
-			break;
+			return 0;
 		}
+		kc[nk++] = ch;
+		c = latin1(kc, nk);
+		if(c < -1)	/* need more keystrokes */
+			return 0;
+		if(c != -1)	/* valid sequence */
+			kbdputc(&kbdq, c);
+		else	/* dump characters */
+			for(i=0; i<nk; i++)
+				kbdputc(&kbdq, kc[i]);
+		nk = 0;
+		collecting = 0;
 	}
 	return 0;
 }
@@ -513,23 +495,27 @@ setcolor(ulong p, ulong r, ulong g, ulong b)
 }
 
 int
-hwcursset(uchar *s, uchar *c, int ox, int oy)
+hwgcmove(Point p)
 {
-	USED(s, c, ox, oy);
-	return 0;
-}
-
-int
-hwcursmove(int x, int y)
-{
-	USED(x, y);
+	USED(p);
 	return 0;
 }
 
 void
-mouseclock(void)	/* called splhi */
+setcursor(Cursor *curs)
 {
-	mouseupdate(1);
+	uchar *p;
+	int i;
+	extern GBitmap set, clr;
+
+	for(i = 0; i < 16; i++){
+		p = (uchar*)&set.base[i];
+		*p = curs->set[2*i];
+		*(p+1) = curs->set[2*i+1];
+		p = (uchar*)&clr.base[i];
+		*p = curs->clr[2*i];
+		*(p+1) = curs->clr[2*i+1];
+	}
 }
 
 /* replicate (from top) value in v (n bits) until it fills a ulong */

@@ -1,0 +1,126 @@
+%% 
+%% This is file `syntonly.sty', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% syntonly.dtx  (with options: `package')
+%% 
+%% Copyright 1994 the LaTeX3 project and the individual authors. 
+%% All rights reserved. For further copyright information see the file 
+%% legal.txt, and any other copyright indicated in this file. 
+%% 
+%% This file is part of the LaTeX2e system. 
+%% ---------------------------------------- 
+%% 
+%% This system is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see bugs.txt. 
+%% 
+%% Please do not request updates from us directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+%% \CheckSum{189}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\ProvidesPackage{syntonly}[94/03/10 v2.1a Standard LaTeX2e package]
+\typeout{Package: `syntonly'
+  \fileversion\space <\filedate> (FMi and RmS)}
+\typeout{English Documentation
+  \space\space\space <\docdate> (FMi)}
+\font\dummyft@=dummy
+\fontdimen1 \dummyft@=\z@
+\fontdimen2 \dummyft@=\z@
+\fontdimen3 \dummyft@=\z@
+\fontdimen4 \dummyft@=\z@
+\fontdimen5 \dummyft@=\z@
+\fontdimen6 \dummyft@=\z@
+\fontdimen7 \dummyft@=\z@
+\fontdimen8 \dummyft@=\z@
+\fontdimen9 \dummyft@=\z@
+\fontdimen10 \dummyft@=\z@
+\fontdimen11 \dummyft@=\z@
+\fontdimen12 \dummyft@=\z@
+\fontdimen13 \dummyft@=\z@
+\fontdimen14 \dummyft@=\z@
+\fontdimen15 \dummyft@=\z@
+\fontdimen16 \dummyft@=\z@
+\fontdimen17 \dummyft@=\z@
+\fontdimen18 \dummyft@=\z@
+\fontdimen19 \dummyft@=\z@
+\fontdimen20 \dummyft@=\z@
+\fontdimen21 \dummyft@=\z@
+\fontdimen22 \dummyft@=\z@
+\newif\ifsyntax@
+\syntax@false
+\def\syntaxonly{
+   \syntax@true
+   \global\dummyft@
+   \count@\sixt@@n
+   \loop
+    \ifnum\count@ >\z@
+     \advance\count@\m@ne
+     \global\textfont\count@\dummyft@
+     \global\scriptfont\count@\dummyft@
+     \global\scriptscriptfont\count@\dummyft@
+    \repeat
+   \global\let\selectfont\relax
+   \global\let\mathversion\@gobble
+   \global\let\getanddefine@fonts\@gobbletwo
+   \tracinglostchars\z@
+   \nopages@
+   \frenchspacing
+   \hbadness\@M}
+\def\newtoks@{\alloc@5\toks\toksdef\@cclvi}
+\def\nopages@{%
+  \output {\setbox\z@\box\@cclv
+           \setbox\z@\box\footins
+           \deadcycles\z@}%
+  \newtoks@\output
+  \def\@xfloat##1[##2]{%
+    \def\@captype{##1}%
+    \ifinner\@parmoderr\fi
+    \setbox\@tempboxa\vbox\bgroup\@parboxrestore}%
+  \let\end@float\egroup
+  \def\marginpar{\ifinner\@parmoderr\fi
+    \begingroup \@ifnextchar [\@xmpar\@ympar}
+  \long\def\@xmpar[##1]{%
+    \setbox\@tempboxa\vbox{\@parboxrestore ##1}\@ympar}%
+  \long\def\@ympar##1{%
+    \setbox\@tempboxa\vbox{\@parboxrestore ##1}\endgroup}%
+}
+\@onlypreamble\syntaxonly
+
+\endinput
+%% 
+%% End of file `syntonly.sty'.

@@ -43,7 +43,7 @@ argument (default 1).
 A second optional argument is the starting point for
 automatic abscissas (default 0, or 1
 with a log scale in
-.I x,
+.IR x ,
 or the lower limit given by
 .BR -x ).
 .TP
@@ -134,14 +134,14 @@ now applies to the vertical axis.)
 If a specified lower limit exceeds the upper limit,
 the axis
 is reversed.
+.SH SOURCE
+.B /sys/src/cmd/graph
 .SH "SEE ALSO"
 .IR plot (1), 
 .IR grap (1)
 .SH BUGS
 Segments that run out of bounds are dropped, not windowed.
-.br
 Logarithmic axes may not be reversed.
-.br
 Option
 .B -e
 actually makes automatic limits, rather than automatic scaling,

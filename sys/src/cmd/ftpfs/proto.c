@@ -2,7 +2,9 @@
 #include <libc.h>
 #include <bio.h>
 #include <ip.h>
+#include <auth.h>
 #include <fcall.h>
+#include <ctype.h>
 #include "ftpfs.h"
 
 enum
@@ -26,7 +28,7 @@ char	msg[512];		/* buffer for replies */
 char	net[NAMELEN];		/* network for connections */
 int	listenfd;		/* fd to listen on for connections */
 char	netdir[NETPATHLEN];
-int	os;
+int	os, defos;
 char	topsdir[64];		/* name of listed directory for TOPS */
 char	remrootpath[256];	/* path on remote side to remote root */
 char	user[NAMELEN];
@@ -35,6 +37,12 @@ static void	sendrequest(char*, ...);
 static int	getreply(Biobuf*, char*, int, int);
 static int	data(int, Biobuf**);
 static int	port(void);
+static void	ascii(void);
+static void	image(void);
+static char*	unixpath(Node*, char*);
+static char*	vmspath(Node*, char*);
+static char*	mvspath(Node*, char*);
+static Node*	vmsdir(char*);
 
 /*
  *  connect to remote server, default network is "tcp/ip"
@@ -115,8 +123,11 @@ login(void)
 		print("\n");
 		line[Blinelen(&stdin)-1] = 0;
 		sendrequest("PASS %s", line);
-		if(getreply(&ctlin, msg, sizeof(msg), 1) == Success)
+		if(getreply(&ctlin, msg, sizeof(msg), 1) == Success){
+			if(strstr(msg, "Sess#"))
+				defos = MVS;
 			return;
+		}
 	}
 }
 
@@ -146,18 +157,21 @@ clogin(char *cuser, char *cpassword)
 	sendrequest("PASS %s", cpassword);
 	if(getreply(&ctlin, msg, sizeof(msg), 1) != Success)
 		fatal("password failed");
+	if(strstr(msg, "Sess#"))
+		defos = MVS;
 	return;
 }
 
 /*
  *  find out about the other side.  go to it's root if requested.  set
- *  image mode if not a TOPS system.
+ *  image mode if a Plan9 system.
  */
 void
-preamble(int mountroot)
+preamble(char *mountroot)
 {
 	char *p, *ep;
 	int rv;
+	OS *o;
 
 	/*
 	 *  create a root directory mirror
@@ -173,31 +187,25 @@ preamble(int mountroot)
 	sendrequest("SYST");
 	switch(getreply(&ctlin, msg, sizeof(msg), 1)){
 	case Success:
-		if(strncmp(msg+4, "SUN", 3) == 0
-		|| strncmp(msg+4, "UNIX", 4) == 0)
-			os = Unix;
-		else if(strncmp(msg+4, "VM", 2) == 0)
-			os = VM;
-		else if(strncmp(msg+4, "Plan 9", 6) == 0)
-			os = Plan9;
-		else if(strncmp(msg+4, "TOPS", 4) == 0)
-			os = Tops;
-		else
-			os = Unknown;
+		for(o = oslist; o->os != Unknown; o++)
+			if(strncmp(msg+4, o->name, strlen(o->name)) == 0)
+				break;
+		os = o->os;
 		break;
 	default:
-		os = Unix;
+		os = defos;
 		break;
 	}
 
 	switch(os){
 	case Unix:
 	case Plan9:
+	case NetWare:
 		/*
 		 *  go to the remote root, if asked
 		 */
 		if(mountroot){
-			sendrequest("CWD /");
+			sendrequest("CWD %s", mountroot);
 			getreply(&ctlin, msg, sizeof(msg), 0);
 			*remrootpath = 0;
 		} else
@@ -248,19 +256,67 @@ preamble(int mountroot)
 			VALID(remdir);
 		}
 		break;
+	case VMS:
+		/*
+		 *  top directory is a figment of our imagination.
+		 *  make it permanently cached & valid.
+		 */
+		CACHED(remroot);
+		VALID(remroot);
+		remroot->d.atime = time(0) + 100000;
+
+		/*
+		 *  get current directory
+		 */
+		sendrequest("PWD");
+		rv = getreply(&ctlin, msg, sizeof(msg), 1);
+		if(rv == PermFail){
+			sendrequest("XPWD");
+			rv = getreply(&ctlin, msg, sizeof(msg), 1);
+		}
+		if(rv == Success){
+			p = strchr(msg, '"');
+			if(p){
+				p++;
+				ep = strchr(p, '"');
+				if(ep){
+					*ep = 0;
+					remdir = vmsdir(p);
+				}
+			}
+		}
+		break;
+	case MVS:
+		usenlst = 1;
+		*remrootpath = 0;
+		break;
 	}
 
-	if(os != Tops){
-		/*
-		 *  go to binary mode for tranfers
-		 */
-		sendrequest("TYPE I");
-		switch(getreply(&ctlin, msg, sizeof(msg), 1)){
-		case Success:
-			break;
-		default:
-			fatal("can't set type to image/binary");
-		}
+	if(os == Plan9)
+		image();
+}
+
+void
+ascii(void)
+{
+	sendrequest("TYPE A");
+	switch(getreply(&ctlin, msg, sizeof(msg), 0)){
+	case Success:
+		break;
+	default:
+		fatal("can't set type to ascii");
+	}
+}
+
+void
+image(void)
+{
+	sendrequest("TYPE I");
+	switch(getreply(&ctlin, msg, sizeof(msg), 0)){
+	case Success:
+		break;
+	default:
+		fatal("can't set type to image/binary");
 	}
 }
 
@@ -286,14 +342,14 @@ cracktime(char *month, char *day, char *yr, char *hms)
 	/* convert ascii month to a number twixt 1 and 12 */
 	if(*month >= '0' && *month <= '9'){
 		tm.mon = atoi(month);
-		if(tm.mon < 1 || tm.mon > 12)
-			tm.mon = 6;
+		if(tm.mon < 0 || tm.mon > 11)
+			tm.mon = 5;
 	} else {
 		for(p = month; *p; p++)
 			*p = tolower(*p);
 		for(i = 0; i < 12; i++)
 			if(strncmp(&monthchars[i*3], month, 3) == 0){
-				tm.mon = i+1;
+				tm.mon = i;
 				break;
 			}
 	}
@@ -314,6 +370,9 @@ cracktime(char *month, char *day, char *yr, char *hms)
 		tm.year = atoi(yr);
 		if(tm.year >= 1900)
 			tm.year -= 1900;
+	} else {
+		if(tm.mon > now.mon || (tm.mon == now.mon && tm.mday > now.mday+1))
+			tm.year--;
 	}
 
 	/* convert to epoch seconds */
@@ -332,13 +391,20 @@ crackmode(char *p)
 
 	flags = 0;
 	switch(strlen(p)){
-	case 10:
-		if(*p == 'l')
+	case 10:	/* unix and new style plan 9 */
+		switch(*p){
+		case 'l':
 			return CHSYML|0777;
-		else if(*p++ == 'd')
+		case 'd':
 			flags |= CHDIR;
+		case 'a':
+			flags |= CHAPPEND;
+		}
+		p++;
+		if(p[2] == 'l')
+			flags |= CHEXCL;
 		break;
-	case 11:
+	case 11:	/* old style plan 9 */
 		switch(*p++){
 		case 'd':
 			flags |= CHDIR;
@@ -368,13 +434,97 @@ crackmode(char *p)
 }
 
 /*
- *  decode a Unix or Plan 9 directory listing
+ *  find first punctuation
+ */
+char*
+strpunct(char *p)
+{
+	int c;
+
+	for(;c = *p; p++){
+		if(ispunct(c))
+			return p;
+	}
+	return 0;
+}
+
+/*
+ *  shorten a symbol to NAMELEN bytes
+ */
+static void
+shorten(char *from, char *to, int offset)
+{
+	int n, s;
+	char *p;
+
+	memset(to, 0, NAMELEN);
+
+	/*
+	 *  if it fits, keep it
+	 */
+	n = strlen(from);
+	if(n < NAMELEN){
+		strcpy(to, from);
+		return;
+	}
+
+	/*
+	 *  try to keep extensions
+	 */
+	p = strpunct(from);
+	while(p){
+		if(strlen(p) < NAMELEN/3)
+			break;
+		p = strpunct(p+1);
+	}
+	if(p == 0)
+		p = from + n;
+
+	p -= offset;
+	if(p < from)
+		p = from;
+	s = strlen(p);
+	if(s >= NAMELEN - 1)
+		s = NAMELEN - 2;
+	n = NAMELEN - 2 - s;
+	if(n > 0)
+		memmove(to, from, n);
+	to[n] = '*';
+	if(s > 0)
+		memmove(to + n + 1, p, s);
+}
+
+/*
+ *  make shortened names unique
  */
 static int
+mkunique(Node *parent, int off)
+{
+	Node *np, *nnp;
+	int change;
+
+	change = 0;
+	for(np = parent->children; np; np = np->sibs){
+		for(nnp = np->sibs; nnp; nnp = nnp->sibs){
+			if(strcmp(np->d.name, nnp->d.name))
+				continue;
+			shorten(nnp->longname, nnp->d.name, off);
+			change = 1;
+		}
+	}
+	return change;
+}
+
+/*
+ *  decode a Unix or Plan 9 directory listing
+ */
+static char*
 crackdir(char *p, Dir *dp)
 {
 	char *field[15];
 	char *dfield[4];
+	char *cp;
+	static char longname[128];
 	int dn, n;
 
 	setfields(" \t");
@@ -382,16 +532,48 @@ crackdir(char *p, Dir *dp)
 	if(n > 2 && strcmp(field[n-2], "->") == 0)
 		n -= 2;
 	switch(os){
+	case TSO:
+		cp = strchr(field[0], '.');
+		if(cp){
+			*cp++ = 0;
+			safecpy(longname, cp, sizeof(longname));
+			safecpy(dp->uid, field[0], NAMELEN);
+		} else {
+			safecpy(longname, field[0], sizeof(longname));
+			safecpy(dp->uid, "TSO", NAMELEN);
+		}
+		safecpy(dp->gid, "TSO", NAMELEN);
+		dp->mode = 0666;
+		dp->length = 0;
+		dp->atime = 0;
+		break;
+	case OS½:
+		safecpy(longname, field[n-1], sizeof(longname));
+		safecpy(dp->uid, "OS½", NAMELEN);
+		safecpy(dp->gid, "OS½", NAMELEN);
+		dp->mode = 0666;
+		switch(n){
+		case 5:
+			if(strcmp(field[1], "DIR") == 0)
+				dp->mode |= CHDIR;
+			dp->length = atoi(field[0]);
+			setfields("-");
+			dn = getmfields(field[2], dfield, 4);
+			if(dn == 3)
+				dp->atime = cracktime(dfield[0], dfield[1], dfield[2], field[3]);
+			break;
+		}
+		break;
 	case Tops:
 		if(n != 4){ /* tops directory name */
 			safecpy(topsdir, field[0], sizeof(topsdir));
-			return -1;
+			return 0;
 		}
-		strncpy(dp->name, field[3], NAMELEN);
+		safecpy(longname, field[3], sizeof(longname));
 		dp->length = atoi(field[0]);
 		dp->mode = 0666;
-		strcpy(dp->uid, "who");
-		strcpy(dp->gid, "cares");
+		strcpy(dp->uid, "Tops");
+		strcpy(dp->gid, "Tops");
 		setfields("-");
 		dn = getmfields(field[1], dfield, 4);
 		if(dn == 3)
@@ -400,34 +582,95 @@ crackdir(char *p, Dir *dp)
 			dp->atime = time(0);
 		break;
 	case VM:
-		if(n < 9)
-			return -1;
-		sprint(dp->name, "%s.%s", field[0], field[1]);
-		dp->length = atoi(field[3])*atoi(field[4]);
-		if(*field[2] == 'F')
-			dp->mode = 0666;
-		else
+		switch(n){
+		case 9:
+			sprint(longname, "%s.%s", field[0], field[1]);
+			dp->length = atoi(field[3])*atoi(field[4]);
+			if(*field[2] == 'F')
+				dp->mode = 0666;
+			else
+				dp->mode = 0777;
+			strcpy(dp->uid, "VM");
+			strcpy(dp->gid, "VM");
+			setfields("/-");
+			dn = getmfields(field[6], dfield, 4);
+			if(dn == 3)
+				dp->atime = cracktime(dfield[0], dfield[1], dfield[2], field[7]);
+			else
+				dp->atime = time(0);
+			break;
+		case 1:
+			safecpy(longname, field[0], sizeof(longname));
+			strcpy(dp->uid, "VM");
+			strcpy(dp->gid, "VM");
 			dp->mode = 0777;
-		strcpy(dp->uid, "who");
-		strcpy(dp->gid, "cares");
-		setfields("/");
-		dn = getmfields(field[6], dfield, 4);
-		if(dn == 3)
-			dp->atime = cracktime(dfield[0], dfield[1], dfield[2], field[7]);
-		else
-			dp->atime = time(0);
+			dp->atime = 0;
+			break;
+		default:
+			return 0;
+		}
+		break;
+	case VMS:
+		switch(n){
+		case 6:
+			for(cp = field[0]; *cp; cp++)
+				*cp = tolower(*cp);
+			cp = strchr(field[0], ';');
+			if(cp)
+				*cp = 0;
+			dp->mode = 0666;
+			cp = field[0] + strlen(field[0]) - 4;
+			if(strcmp(cp, ".dir") == 0){
+				dp->mode |= CHDIR;
+				*cp = 0;
+			}
+			safecpy(longname, field[0], sizeof(longname));
+			dp->length = atoi(field[1])*512;
+			field[4][strlen(field[4])-1] = 0;
+			safecpy(dp->uid, field[4]+1, sizeof(dp->uid));
+			safecpy(dp->gid, field[4]+1, sizeof(dp->gid));
+			setfields("/-");
+			dn = getmfields(field[2], dfield, 4);
+			if(dn == 3)
+				dp->atime = cracktime(dfield[1], dfield[0], dfield[2], field[3]);
+			else
+				dp->atime = time(0);
+			break;
+		default:
+			return 0;
+		}
+		break;
+	case NetWare:
+		switch(n){
+		case 9:
+			safecpy(longname, field[8], sizeof(longname));
+			safecpy(dp->uid, field[2], NAMELEN);
+			safecpy(dp->gid, field[2], NAMELEN);
+			dp->mode = 0666;
+			if(*field[0] == 'd')
+				dp->mode |= CHDIR;
+			dp->length = atoi(field[3]);
+			dp->atime = cracktime(field[4], field[5], field[6], field[7]);
+			break;
+		case 1:
+			safecpy(longname, field[0], sizeof(longname));
+			strcpy(dp->uid, "none");
+			strcpy(dp->gid, "none");
+			dp->mode = 0777;
+			dp->atime = 0;
+			break;
+		default:
+			return 0;
+		}
 		break;
 	case Unix:
 	case Plan9:
 	default:
 		switch(n){
 		case 8:		/* ls -l */
-			strncpy(dp->name, field[7], NAMELEN);
-			dp->name[NAMELEN-1] = 0;
-			strncpy(dp->uid, field[2], NAMELEN);
-			dp->uid[NAMELEN-1] = 0;
-			strncpy(dp->gid, field[2], NAMELEN);
-			dp->gid[NAMELEN-1] = 0;
+			safecpy(longname, field[7], sizeof(longname));
+			safecpy(dp->uid, field[2], NAMELEN);
+			safecpy(dp->gid, field[2], NAMELEN);
 			dp->mode = crackmode(field[0]);
 			dp->length = atoi(field[3]);
 			if(strchr(field[6], ':'))
@@ -436,12 +679,9 @@ crackdir(char *p, Dir *dp)
 				dp->atime = cracktime(field[4], field[5], field[6], 0);
 			break;
 		case 9:		/* ls -lg */
-			strncpy(dp->name, field[8], NAMELEN);
-			dp->name[NAMELEN-1] = 0;
-			strncpy(dp->uid, field[2], NAMELEN);
-			dp->uid[NAMELEN-1] = 0;
-			strncpy(dp->gid, field[3], NAMELEN);
-			dp->gid[NAMELEN-1] = 0;
+			safecpy(longname, field[8], sizeof(longname));
+			safecpy(dp->uid, field[2], NAMELEN);
+			safecpy(dp->gid, field[3], NAMELEN);
 			dp->mode = crackmode(field[0]);
 			dp->length = atoi(field[4]);
 			if(strchr(field[7], ':'))
@@ -449,20 +689,36 @@ crackdir(char *p, Dir *dp)
 			else
 				dp->atime = cracktime(field[5], field[6], field[7], 0);
 			break;
+		case 10:	/* plan 9 */
+			safecpy(longname, field[9], sizeof(longname));
+			safecpy(dp->uid, field[3], NAMELEN);
+			safecpy(dp->gid, field[4], NAMELEN);
+			dp->mode = crackmode(field[0]);
+			dp->length = atoi(field[5]);
+			if(strchr(field[8], ':'))
+				dp->atime = cracktime(field[6], field[7], 0, field[8]);
+			else
+				dp->atime = cracktime(field[6], field[7], field[8], 0);
+			break;
 		case 1:
-			strncpy(dp->name, field[0], NAMELEN);
+			safecpy(longname, field[0], sizeof(longname));
 			strcpy(dp->uid, "none");
 			strcpy(dp->gid, "none");
 			dp->mode = 0777;
 			dp->atime = 0;
 			break;
 		default:
-			return -1;
+			return 0;
 		}
 	}
 	dp->qid.path = dp->mode & CHDIR;
 	dp->mtime = dp->atime;
-	return 0;
+	if(ext && (dp->mode & CHDIR) == 0){
+		if(sizeof(longname) - strlen(longname) > strlen(ext))
+			strcat(longname, ext);
+	}
+	shorten(longname, dp->name, 0);
+	return longname;
 }
 
 /*
@@ -472,11 +728,12 @@ int
 readdir(Node *node)
 {
 	Biobuf *bp;
-	char *line;
+	char *line, *longname;
 	Node *np;
 	Dir d;
 	long n;
-	int tries;
+	int i, tries;
+	static int uselist;
 
 	if(changedir(node) < 0)
 		return -1;
@@ -487,7 +744,9 @@ readdir(Node *node)
 
 		if(usenlst)
 			sendrequest("NLST");
-		else
+		else if(os == Unix && !uselist) {
+			sendrequest("LIST -l");
+		} else
 			sendrequest("LIST");
 		switch(data(OREAD, &bp)){
 		case Extra:
@@ -495,24 +754,37 @@ readdir(Node *node)
 		case TempFail:
 			continue;
 		default:
+			if(os == Unix && uselist == 0){
+				uselist = 1;
+				continue;
+			}
 			return seterr(nosuchfile);
 		}
 		while(line = Brdline(bp, '\n')){
 			n = Blinelen(bp);
+			if(debug)
+				write(2, line, n);
 			if(n > 1 && line[n-2] == '\r')
 				n--;
 			line[n - 1] = 0;
 	
-			if(crackdir(line, &d) < 0)
+			if((longname = crackdir(line, &d)) == 0)
 				continue;
-			np = extendpath(node, d.name);
+			np = extendpath(node, longname);
 			d.qid = np->d.qid;
 			d.qid.path |= d.mode & CHDIR;
 			d.type = np->d.type;
 			d.dev = 1;			/* mark node as valid */
+			if(os == MVS && node == remroot){
+				d.qid.path |= CHDIR;
+				d.mode |= CHDIR;
+			}
 			np->d = d;
 		}
 		close(Bfildes(bp));
+		for(i = 0; i < NAMELEN-5; i++)
+			if(mkunique(node, i) == 0)
+				break;
 	
 		switch(getreply(&ctlin, msg, sizeof(msg), 0)){
 		case Success:
@@ -542,24 +814,6 @@ createdir(Node *node)
 }
 
 /*
- *  walk up the tree building a Unix style path
- */
-char*
-unixpath(Node *node, char *path)
-{
-	char *p;
-
-	if(node == node->parent){
-		strcpy(path, remrootpath);
-		return path + strlen(remrootpath);
-	}
-	p = unixpath(node->parent, path);
-	*p++ = '/';
-	strcpy(p, node->d.name);
-	return p + strlen(node->d.name);
-}
-
-/*
  *  change to a remote directory.
  */
 int
@@ -581,12 +835,26 @@ changedir(Node *node)
 			remdir = node;
 			return 0;
 		case 1:
-			strcpy(cdpath, node->d.name);
+			strcpy(cdpath, node->longname);
 			break;
 		default:
 			return seterr(nosuchfile);
 		}
 		break;
+	case VMS:
+		switch(node->depth){
+		case 0:
+			remdir = node;
+			return 0;
+		default:
+			vmspath(node, cdpath);
+		}
+		break;
+	case MVS:
+		if(node->depth == 0)
+			strcpy(cdpath, remrootpath);
+		else
+			mvspath(node, cdpath);
 	default:
 		if(node->depth == 0)
 			strcpy(cdpath, remrootpath);
@@ -594,6 +862,8 @@ changedir(Node *node)
 			unixpath(node, cdpath);
 		break;
 	}
+
+	uncachedir(remdir, 0);
 
 	/*
 	 *  connect, if we need a password (Incomplete)
@@ -614,7 +884,7 @@ changedir(Node *node)
  *  read a remote file
  */
 int
-readfile(Node *node)
+readfile1(Node *node)
 {
 	Biobuf *bp;
 	char buf[4*1024];
@@ -628,8 +898,8 @@ readfile(Node *node)
 	for(tries = 0; tries < 4; tries++){
 		if(port() < 0)
 			return -1;
-	
-		sendrequest("RETR %s", node->d.name);
+
+		sendrequest("RETR %s", node->longname);
 		switch(data(OREAD, &bp)){
 		case Extra:
 			break;
@@ -660,11 +930,36 @@ readfile(Node *node)
 	return seterr(nosuchfile);
 }
 
+int
+readfile(Node *node)
+{
+	int rv, inimage;
+
+	switch(os){
+	case MVS:
+	case Plan9:
+	case Tops:
+	case TSO:
+		inimage = 0;
+		break;
+	default:
+		inimage = 1;
+		image();
+		break;
+	}
+
+	rv = readfile1(node);
+
+	if(inimage)
+		ascii();
+	return rv;
+}
+
 /*
  *  write back a file
  */
 int
-createfile(Node *node)
+createfile1(Node *node)
 {
 	Biobuf *bp;
 	char buf[4*1024];
@@ -677,7 +972,7 @@ createfile(Node *node)
 	if(port() < 0)
 		return -1;
 
-	sendrequest("STOR %s", node->d.name);
+	sendrequest("STOR %s", node->longname);
 	if(data(OWRITE, &bp) != Extra)
 		return -1;
 	for(off = 0; ; off += n){
@@ -689,6 +984,31 @@ createfile(Node *node)
 	close(Bfildes(bp));
 	getreply(&ctlin, msg, sizeof(msg), 0);
 	return off;
+}
+
+int
+createfile(Node *node)
+{
+	int rv;
+
+	switch(os){
+	case Plan9:
+	case Tops:
+		break;
+	default:
+		image();
+		break;
+	}
+	rv = createfile1(node);
+	switch(os){
+	case Plan9:
+	case Tops:
+		break;
+	default:
+		ascii();
+		break;
+	}
+	return rv;
 }
 
 /*
@@ -767,8 +1087,10 @@ getreply(Biobuf *bp, char *msg, int len, int printreply)
 			n--;
 			line[n-1] = '\n';
 		}
-		if(debug || printreply)
+		if(printreply && !quiet)
 			write(1, line, n);
+		else if(debug)
+			write(2, line, n);
 		if(n > len - 1)
 			i = len - 1;
 		else
@@ -812,11 +1134,11 @@ port(void)
 	sprint(buf, "%s/local", netdir);
 	fd = open(buf, OREAD);
 	if(fd < 0)
-		return seterr("can't read port number");
+		return seterr("opening %s: %r", buf);
 	n = read(fd, buf, sizeof(buf)-1);
 	close(fd);
 	if(n <= 0)
-		return seterr("can't read port number");
+		return seterr("opening %s/local: %r", netdir);
 	buf[n] = 0;
 	ptr = strchr(buf, ' ');
 	if(ptr)
@@ -874,4 +1196,121 @@ nop(void)
 {
 	sendrequest("NOOP");
 	getreply(&ctlin, msg, sizeof(msg), 0);
+}
+
+/*
+ *  turn a vms spec into a path
+ */
+static Node*
+vmsdir(char *name)
+{
+	char *cp;
+	Node *np;
+
+	np = remroot;
+	cp = strchr(name, '[');
+	if(cp)
+		strcpy(cp, cp+1);
+	cp = strchr(name, ']');
+	if(cp)
+		*cp = 0;
+	while(cp = strchr(name, '.')){
+		*cp = 0;
+		np = extendpath(np, name);
+		if(!ISVALID(np)){
+			np->d.qid.path |= CHDIR;
+			np->d.atime = time(0);
+			np->d.mtime = np->d.atime;
+			strcpy(np->d.uid, "who");
+			strcpy(np->d.gid, "cares");
+			np->d.mode = CHDIR|0777;
+			np->d.length = 0;
+			if(changedir(np) >= 0)
+				VALID(np);
+		}
+		name = cp+1;
+	}
+
+	np = extendpath(np, name);
+	if(!ISVALID(np)){
+		np->d.qid.path |= CHDIR;
+		np->d.atime = time(0);
+		np->d.mtime = np->d.atime;
+		strcpy(np->d.uid, "who");
+		strcpy(np->d.gid, "cares");
+		np->d.mode = CHDIR|0777;
+		np->d.length = 0;
+		if(changedir(np) >= 0)
+			VALID(np);
+	}
+
+	return np;
+}
+
+/*
+ *  walk up the tree building a VMS style path
+ */
+static char*
+vmspath(Node *node, char *path)
+{
+	char *p;
+	int n;
+
+	if(node->depth == 1){
+		p = strchr(node->longname, ':');
+		if(p){
+			n = p - node->longname + 1;
+			strncpy(path, node->longname, n);
+			path[n] = '[';
+			path[n+1] = 0;
+			strcat(path, p+1);
+		} else {
+			strcpy(path, "[");
+			strcat(path, node->longname);
+		}
+		strcat(path, "]");
+		return path + strlen(path) - 1;
+	}
+	p = vmspath(node->parent, path);
+	*p++ = '.';
+	strcpy(p, node->longname);
+	strcat(path, "]");
+	return p + strlen(node->longname);
+}
+
+/*
+ *  walk up the tree building a Unix style path
+ */
+static char*
+unixpath(Node *node, char *path)
+{
+	char *p;
+
+	if(node == node->parent){
+		strcpy(path, remrootpath);
+		return path + strlen(remrootpath);
+	}
+	p = unixpath(node->parent, path);
+	if(p > path && *(p-1) != '/')
+		*p++ = '/';
+	strcpy(p, node->longname);
+	return p + strlen(node->longname);
+}
+
+/*
+ *  walk up the tree building a MVS style path
+ */
+static char*
+mvspath(Node *node, char *path)
+{
+	char *p;
+
+	if(node == node->parent){
+		strcpy(path, remrootpath);
+		return path + strlen(remrootpath);
+	}
+	p = mvspath(node->parent, path);
+	*p++ = '.';
+	strcpy(p, node->longname);
+	return p + strlen(node->longname);
 }

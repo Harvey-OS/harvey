@@ -2,8 +2,9 @@
 #include <libc.h>
 #include <auth.h>
 
+
 int
-authdial(char *service)
+authdial(void)
 {
-	return dial(netmkaddr("$auth", 0, service), 0, 0, 0);
+	return dial("net!$auth!ticket", 0, 0, 0);
 }

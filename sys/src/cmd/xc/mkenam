@@ -1,0 +1,35 @@
+ed - ../xc/x.out.h <<'!'
+v/^	A/d
+g/^	AEND/s//&,/
+g/[ 	]*=.*,/s//,/
+v/,/p
+,s/^	A/	"/
+,s/,.*$/",/
+1i
+char	*anames[] =
+{
+.
+,a
+};
+.
+w enam.c
+Q
+!
+ed - ../xc/x.out.h <<'!'
+v/^	CC/d
+g/^	CCEND/s//&,/
+g/[ 	]*=.*,/s//,/
+v/,/p
+,s/^	CC/	"/
+,s/,.*$/",/
+1i
+char	*ccnames[] =
+{
+.
+,a
+};
+.
+0 r enam.c
+w enam.c
+Q
+!

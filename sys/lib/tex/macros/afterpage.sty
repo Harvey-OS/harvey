@@ -1,0 +1,110 @@
+%% 
+%% This is file `afterpage.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% afterpage.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is part of the `tools' bundle 
+%% in the LaTeX2e distribution. 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file, and 
+%% in the file readme.txt distributed with the 
+%% tools bundle. 
+%% 
+%% File: afterpage.dtx Copyright (C) 1993-1994 David Carlisle
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{afterpage}
+         [1994/05/23 v1.07 After-Page Package (DPC)]
+\newtoks\AP@output
+\global\AP@output\expandafter{\the\output}
+\newbox\AP@partial
+\def\AP@savetop{%
+  \ifvmode
+    \let\AP@noindent\empty
+  \else\ifhmode
+    \setbox\z@\lastbox
+    \edef\AP@noindent
+      {{\everypar{}\ifvoid\z@\noindent\else\indent\fi}}%
+    \endgraf
+  \else
+    \abovedisplayshortskip\z@\abovedisplayskip\z@
+    \belowdisplayshortskip\z@\belowdisplayskip\z@
+    \xdef\AP@disp{%
+      \predisplaysize\the\predisplaysize
+      \prevgraf\the\prevgraf\relax}%
+    $$\vskip-\baselineskip\vskip-\parskip
+    \edef\AP@noindent{%
+      \toks@{\the\everydisplay}\everydisplay{}%
+      {\everypar{}\noindent}$$\AP@disp\aftergroup\noexpand\AP@ed}%
+  \fi\fi
+  \begingroup
+  \nointerlineskip\null
+    \output{%
+      \global\setbox\AP@partial\vbox{%
+        \unvbox\@cclv
+         \global\setbox\@ne\lastbox}}%
+  \eject
+  \endgroup}
+\let\AP@\relax
+\def\AP@ed{\everydisplay\expandafter{\the\toks@}\ignorespaces}
+\def\AP@@{%
+  \AP@savetop
+  \global\expandafter\let\expandafter\AP@\expandafter\relax\AP@
+  \endgraf
+   \addboxcontents\AP@partial
+  \AP@noindent}
+\long\def\afterpage#1{%
+  \ifx\AP@\relax
+    \gdef\AP@{{#1\endgraf}}%
+    \global\output{%
+      \the\AP@output
+      \ifnum\outputpenalty>-\@Mi
+        \global\output\expandafter{\the\AP@output}%
+        \aftergroup\AP@@
+      \fi}%
+  \else
+    \expandafter\gdef\expandafter\AP@\expandafter{\AP@{#1\endgraf}}%
+  \fi}
+\let\AP@clearpage\clearpage
+\def\clearpage{%
+  \ifx\AP@\relax
+    \AP@clearpage
+  \else
+    \global\output\expandafter{\the\AP@output}%
+    \AP@clearpage
+    \expandafter\AP@\fi\global\let\AP@\relax}
+\let\AP@enddocument\enddocument
+\def\enddocument{%
+  \ifx\AP@\relax\else
+    \global\output\expandafter{\the\AP@output}%
+    \AP@clearpage
+    \expandafter\AP@\fi\global\let\AP@\relax
+    \AP@enddocument}
+
+\def\addboxcontents#1{{%
+  \splittopskip\z@
+  \splitmaxdepth\maxdimen
+  \setbox#1\vbox{\break\unvbox#1}%
+  \setbox\z@\vsplit#1to\z@
+  \setbox#1\vbox{\break\unvbox#1}%
+  \skip@\ht#1%
+  \splittopskip\vsize
+  \setbox\z@\vsplit#1to\z@
+  \advance\skip@-\ht#1%
+  \skip\tw@\skip@
+  \advance\skip@\splittopskip
+  \advance\skip@\prevdepth
+  \advance\skip@-\baselineskip
+  \advance\skip\tw@\ifdim-\skip@<\lineskiplimit\lineskip\else-\skip@\fi
+  \vskip\skip\tw@
+  \global\dimen@i\dp#1%
+  \unvbox#1}%
+  \prevdepth\dimen@i}
+\endinput
+%% 
+%% End of file `afterpage.sty'.

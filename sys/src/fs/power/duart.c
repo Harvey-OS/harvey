@@ -88,8 +88,36 @@ enum
 	IM_XRDYA	=0x01,
 };
 
+static int
+duartrecv(void)
+{
+	Duart *duart;
+
+	duart = DUARTREG;
+	duart->cmnd = ENB_TX|ENB_RX;
+	if(duart->sr_csr & RCV_RDY)
+		return duart->data & 0xff;
+	return 0;
+}
+
+static void
+duartxmit(int c)
+{
+	Duart *duart;
+	int i;
+
+	duart = DUARTREG;
+	duart->cmnd = ENB_TX|ENB_RX;
+	for(i=0; i<100; i++) {
+		if(duart->sr_csr & XMT_RDY)
+			break;
+		delay(1);
+	}
+	duart->data = c;
+}
+
 void
-duartinit(void)
+consinit(void (*puts)(char*, int))
 {
 	Duart *duart;
 
@@ -107,10 +135,14 @@ duartinit(void)
 	duart->sr_csr = (DBD9600<<4)|DBD9600;
 	duart->is_imr = IM_RRDYA|IM_XRDYA;
 	duart->cmnd = ENB_TX|ENB_RX;
+
+	consgetc = duartrecv;
+	consputc = duartxmit;
+	consputs = puts;
 }
 
 void
-duartreset(void)
+consreset(void)
 {
 	DUARTREG->cmnd = ENB_TX|ENB_RX;
 }
@@ -145,32 +177,4 @@ duartintr(void)
 		else
 			duartxmit(c);
 	}
-}
-
-void
-duartxmit(int c)
-{
-	Duart *duart;
-	int i;
-
-	duart = DUARTREG;
-	duart->cmnd = ENB_TX|ENB_RX;
-	for(i=0; i<100; i++) {
-		if(duart->sr_csr & XMT_RDY)
-			break;
-		delay(1);
-	}
-	duart->data = c;
-}
-
-int
-duartrecv(void)
-{
-	Duart *duart;
-
-	duart = DUARTREG;
-	duart->cmnd = ENB_TX|ENB_RX;
-	if(duart->sr_csr & RCV_RDY)
-		return duart->data & 0xff;
-	return 0;
 }

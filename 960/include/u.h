@@ -1,11 +1,12 @@
 typedef	unsigned short	ushort;
 typedef	unsigned char	uchar;
-typedef unsigned long	ulong;
-typedef unsigned int	uint;
-typedef   signed char	schar;
+typedef	unsigned long	ulong;
+typedef	unsigned int	uint;
+typedef	signed char	schar;
 typedef	long		vlong;
+typedef	unsigned long	uvlong;
 typedef	ushort		Rune;
-typedef union
+typedef	union
 {
 	char	clength[8];
 	vlong	vlength;

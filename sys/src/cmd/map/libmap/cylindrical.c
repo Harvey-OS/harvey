@@ -1,7 +1,7 @@
 #include "map.h"
 
 int
-Xcylindrical(struct place *place, float *x, float *y)
+Xcylindrical(struct place *place, double *x, double *y)
 {
 	if(fabs(place->nlat.l) > 80.*RAD)
 		return(-1);

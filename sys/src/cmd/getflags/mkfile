@@ -1,6 +1,6 @@
 </$objtype/mkfile
 
-TARG=getflags
+TARG=aux/getflags
 OFILES=\
 	getflags.$O\
 	funcgetflags.$O\

@@ -38,6 +38,8 @@ peep(void)
 			t++;
 
 		case ADATA:
+		case ADYNT:
+		case AINIT:
 		case AGLOBL:
 		case ANAME:
 			p = p->next;
@@ -533,8 +535,12 @@ copyu(Inst *p, Adres *v, Adres *s)
 			return 2;
 
 	case AJMPL:	/* funny */
-		if(v->type == A_REG && v->reg == RegSP)
-			return 1;
+		if(v->type == A_REG) {
+			if(v->reg == Regspass)
+				return 2;
+			if(v->reg == RegSP)
+				return 2;
+		}
 		if(s != A) {
 			if(copysub(&p->dst, v, s, 1))
 				return 1;

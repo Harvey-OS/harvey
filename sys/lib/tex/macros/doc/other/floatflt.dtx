@@ -1,0 +1,1387 @@
+%  
+%  \iffalse  
+% 
+%    The first part is a comment to the reader(s) of `floatflt.dtx'.
+%
+%  floatflt.dtx    Version 1.2.1, Feb. 14, 1995 
+%  (c) 1994-1995 by Mats Dahlgren  (matsd@physchem.kth.se)
+%
+%  Please see the information in file `floatflt.ins' on how you 
+%  may use and (re-)distribute this file.  Run LaTeX on the file 
+%  `floatflt.ins' to get a .sty-file, instructions, and an example.
+%
+%  This file may NOT be distributed if not accompanied by 'floatflt.ins'.
+%
+%  \fi
+%
+%  \MakeShortVerb{\|}
+%  \def\filename{floatflt.dtx}
+%  \def\fileversion{1.2.1}
+%  \def\filedate{1995/02/14}
+%  \def\docdate{1995/02/09}
+%  \date{\docdate}
+% \title{Welcome to the \texttt{floatflt} package!}
+% \author{Mats Dahlgren\\ (\texttt{matsd@physchem.kth.se})}
+% \maketitle
+% 
+% \begin{abstract}
+% The \texttt{floatflt} package is an extension
+% of Thomas Kneser's style option \texttt{floatfig.sty}
+% for \LaTeX\ 2.09.  The extension was done by Mats
+% Dahlgren (\texttt{matsd@physchem.kth.se}). This document
+% describes the use of \texttt{floatflt} version \fileversion{}
+% (\filedate ). \\ This file and the package:
+% Copyright \copyright{} 1994-1995 by Mats Dahlgren.  
+% All rights reserved.
+% \end{abstract}
+% 
+% \section{Introduction}
+% The file \texttt{floatflt.sty} defines two environments:
+% \texttt{floatingfigure} and \texttt{floatingtable}.  In
+% principle the two environments work the same way and do
+% the same job, but there are some important differences,
+% which are explained below.  The general idea is that a
+% figure or table which is not very wide should be allowed
+% to have regular text typsetted beside itself.  In Thomas
+% Kneser's file \texttt{floatfig.sty} and in the
+% documentation thereof, such figures are called
+% \textit{floating figures}.  In the \texttt{floatflt}
+% package, the term \textit{floating} is generally used
+% for such figures and tables, despite the slight
+% different use of the term \textit{float} in \LaTeX{}. 
+% Hence the term \textit{floating floats} for such figures
+% and tables. 
+% 
+% \subsection{For \texttt{floatfig.sty} users}
+% 
+% There are five major differences in the use of
+% \texttt{floatflt} as compared to \texttt{floatfig}: 
+% \begin{itemize}
+% \item The extension to the \texttt{floattable} environment.
+% \item There is no longer any need for initialization,
+%   thanks to the \verb+\AtBeginDocument+ command. 
+% \item Optional arguments for the  environments wihch 
+%   allows the user to place the floating floats left,
+%   right or according to   the page number (as with
+%   \texttt{floatfig.sty}); this is mainly due to the  
+%   possibility to have optional arguments in newly defined
+%   environments. 
+% \item Optional argument for the package as a whole if
+%   the user wants to   force all floating floats to be to
+%   the right or left.  The placement   option at
+%   \verb+\begin{floatingfigure}+ (and  
+%   \verb+\begin{floatingtable}+) overrides this (and there
+%   is also the   optional placement option to re-introduce
+%   the page-number dependent   placement for one figure or
+%   table). 
+% \item Compatibility with the \texttt{multicol} tool
+%   package is now obtained. 
+% \end{itemize}
+%
+% \section{``Userguide''}
+% In the following, the usage of the package is explained
+% in some detail.  Users who are unfamiliar with the 
+% |floatfig.sty| package by Thomas Kneser may also find it
+% useful to run \LaTeX{} on the file |floatfge.tex|.
+% 
+% \subsection{How to call the package}
+% 
+% The \texttt{floatflt} package is activated by the
+% following line in your \LaTeX\ input file following your
+% \verb+\documentclass+ command:\\ \hspace*{5mm}
+% \verb+\usepackage[+\textit{option}\verb+]{floatflt}+\\
+% The \textit{option} may be either one of the following:
+% \texttt{rflt}, \texttt{lflt}, or \texttt{vflt}. 
+% 
+% \subsubsection{The package options}
+% 
+% The three package options have the following functions:
+% \begin{itemize}
+% \item[\texttt{rflt}]  Forces the default for the
+%   floating figures and tables to be typset to the right in
+%   a paragraph. 
+% \item[\texttt{lflt}]  Forces the default for the
+%   floating figures and tables to be typset to the left in
+%   a paragraph. 
+% \item[\texttt{vflt}]  Forces the  floating figures and
+%   tables to be typset to the right in a paragraph on
+%   odd-nubered pages, and to the left on even-numbered
+%   pages; this  is also the default. 
+% \end{itemize}
+% The option \texttt{vflt} is actually not needed and does
+% nothing but tells \LaTeX\ to use the default, it is also
+% the internal default. It is supported for symmetry
+% reasons with the optional arguments for the environments
+% temselves. 
+%  
+% \subsection{How to use the \texttt{floatingfigure} environment}
+%  
+% In your \LaTeX\ document you invoke the
+% \texttt{floatingfigure} environment by typing:\\ 
+% \hspace*{5mm} 
+% \verb+\begin{floatingfigure}[+\textit{option}\verb+]{+\textit{width}\verb+}+\\
+% \hspace*{5mm} \textit{figure commands with or without} \verb+\caption+\\
+% \hspace*{5mm} \verb+\end{floatingfigure}+\\
+% The \textit{option} may be either one of the following:
+% \texttt{r}, \texttt{l}, \texttt{p}, or \texttt{v}.  The
+% quantity \textit{width} is the width you want your
+% floating figure to have (such as ``\texttt{75mm}''). 
+%   
+% \subsubsection{The \texttt{floatingfigure} options}
+%   
+% The options to the \texttt{floatingfigure} environment
+% all overrule any present package option which may be in
+% effect.  The options have the following functions: 
+% \begin{itemize}
+% \item[\texttt{r}]  Forces the current floating figure to
+%   be typset to the right in a paragraph. 
+% \item[\texttt{l}]  Forces the current floating figure to
+%   be typset to the left in a paragraph. 
+% \item[\texttt{p}]  Forces the current floating figure to
+%   be typset to the right in a paragraph if the pagenumber 
+%   is odd, and to the left if even.
+% \item[\texttt{v}]  Applies the package option to the
+%   current figure, and if no package option is specified,
+%   it forces the current floating figure to 
+%   be typset to the right in a paragraph if the pagenumber 
+%   is odd, and to the left if even.
+% \end{itemize}
+% The \texttt{p} option is used when the default
+% alternating right/left typesetting of floating figures
+% is desired despite the use of the \texttt{rflt} or
+% \texttt{lflt} package option.  The \texttt{v} option is
+% the internal default, and does not have any effect other
+% than applying either the default or the option specified
+% for the whole package. 
+% 
+% \subsection{How to use the \texttt{floatingtable} environment}
+% 
+% In your \LaTeX\ document you invoke the \texttt{floatingtable}
+% environment by typing:\\
+% \hspace*{5mm} \verb+\begin{floatingtable}[+\textit{option}\verb+]{+\\
+% \hspace*{5mm} \verb+\begin{tabular}{+\textit{tabular 
+%  specifiers}\verb+}+\\
+% \hspace*{5mm}  \textit{here you put your table entries}\\
+% \hspace*{5mm} \verb+\end{tabular}}+\\
+% \hspace*{5mm} \verb+\caption+ \textit{if desired}\\
+% \hspace*{5mm} \verb+\end{floatingtable}+\\
+% The \textit{option} may be either one of the following:
+% \texttt{r}, \texttt{l}, \texttt{p}, or \texttt{v}.  No
+% specification of the width is explicitly made, instead
+% \textit{the whole} \texttt{tabular} \textit{environment
+% is a mandatory argument}.  Thus, it is important to
+% always have the ``\verb+{+'' before
+% \verb+\begin{tabular}...+ and the ``extra'' ``\verb+}+''
+% after \verb+\end{tabular}+.  At the present,
+% \texttt{tabbing} environment can not be used in the
+% \texttt{floatingtable} environment.  (Other commands and
+% environments such as the \verb+\parbox+ command may be
+% used instead of the \texttt{tabular} environment within
+% a \texttt{floatingtable} environment.) 
+%   
+% \subsubsection{The \texttt{floatingtable} options}
+%   
+% The options for the \texttt{floatingtable} environment
+% are exactly the same as for the \texttt{floatingfigure}
+% environment, and they also have the same effects. 
+%   
+% \subsection{Compatibility}
+%     
+% The present version of \texttt{floatflt} has been tested
+% with \LaTeXe\ and \TeX\ 3.1415 under Open VMS, using the
+% \texttt{article} document class. As seen above, the
+% regular \verb+\caption+ command of both the
+% \verb+figure+ and \verb+tabular+ environments work fine.
+%  The \verb+\hangcaption+ command of David M.~Jones
+% (\texttt{dmjones@theory.lcs.mit.edu}) does not work with
+% \texttt{floatflt}.  The use of \verb+\hangcaption+ gives
+% the same result as \verb+\caption+.  The listing
+% commands \verb+\listoffigures+ and \verb+\listoftables+
+% also work properly.  However, since floating figures and
+% tables normally are typsetted in a paragraph, the order
+% in the lists may be strange if also regular
+% \texttt{figure} and \texttt{table} environments are used
+% close to the floating ones. 
+%   
+% Unlike \texttt{floatfig.sty}, \texttt{floatflt} works
+% with the \texttt{multicol} tool package, provided the
+% floating floats are still less wide than the columns. 
+% If not, or if the floating floats and the columns have
+% almost the same width, text may dift away and overlap
+% text in adjacent column(s).  However, this combination 
+% has several restrictions, and the placement of the
+% floating floats may not always be the correct according
+% to the page numbering.  Normally it also leads to many
+% \verb+Underfull \hbox+ varnings.  The use of this 
+% combination is discouraged.
+%   
+% \subsection{Warnings and messages}
+%   
+% In Thomas Kneser's original work \texttt{floatfig.sty},
+% there are several warnings issued when problems occur. 
+% These are kept in \texttt{floatflt}.  Warnings will be 
+% issued if if two floating figures, two floating tables, 
+% or if one floating table is colliding with one floating 
+% figure.  Also, message(s)
+% will be displayed if a floating float is moved from its
+% original paragraph.  Finally, each processed floating
+% float will produce a message telling which page it has
+% been typsetted on. 
+%   
+% \section{Known problems and limitations}
+%   
+% The following problems and limitations are known:
+% \begin{itemize}
+% \item If a floating figure or table is called close to a
+%   sectioning command, the floating float may be lost or
+%   truncated.  This may lead to a ``collision warning'',
+%   which normally has to be analyzed ``by hand''. 
+% \item If two consecutive paragraphs both contain a
+%   floating float, a ``collision warning'' is issued.  This
+%   warning may be ignored. \item A \texttt{floatingtable}
+%   environment  sometimes leads to a warning like:\\
+%   \hspace*{5mm} 
+% \verb+Overfull \hbox (10.78334pt too wide) in paragraph at lines 287--289+\\
+%   where the line numbers refered to are those of the
+%   \verb+\end{tabular}+ statement.  This could not be
+%   avoided in all cases.   
+% \item If you use floating floats of different kinds
+%   close to each other in your input, you are likely to
+%   have problems.  You may either lose one of the floating
+%   floats entirely, have it overwritten by the other, or
+%   have it truncated.  
+% \item \LaTeX\ has problem in linebreaking short lines. 
+%   This may give you bad linebreaks in the captions of
+%   floating floats. 
+% \item There are some problems when a floating float and a 
+%   footnote appear on the same page, especially when the floating
+%   float is moved to another page.  Unfortunately, this may
+%   need some adjustments by hand.  (Reported by Jakob 
+%   Schiotz (\texttt{schiotz@fysik.dtu.dk}).)
+% \item If a floating float is placed close to a list environment 
+%   (such as \texttt{enumerate} or \texttt{itemize}), the text of the 
+%   list environment is likely to overwrite the floating float.  See 
+%   section~\ref{LPSoln} below for a semi-automatic solution of this 
+%   problem.  (The bug was reported by Rafael Gallego 
+%   (\texttt{gallego@esi.us.es}).)
+% \end{itemize}
+% The first two of these were pointed out by Thomas Kneser
+% in the original documentation of \texttt{floatfig.sty}. 
+%   
+% \subsection{How to Avoid the List Problem}\label{LPSoln} 
+%    
+% There is a semi-automatic way to avoid the ``List Problem'' 
+% mentioned above.  The solution was introduced in version 1.2.  For 
+% items in a list which are colliding with a floating float, there is 
+% a special command \verb+\fltitem+ avaliable, which takes one mandatory
+% argument. This command is to be used in place of the ordinary 
+% \verb+\item+, and should have the text of the item as the argument. 
+% \textit{E.~g.}\ you would write\\ \hspace*{10mm} 
+% \verb+\fltitem{+\textit{text}\verb+}+ \\  instead of \\ 
+% \hspace*{10mm} \verb+\item +\textit{text} \\ to avoid the text of 
+% the \verb+\item+ command to be written in the floating float.  
+% \verb+\fltitem+ also takes a second, optional, argument, which is an 
+% extra vertical space put in after the text of the |\fltitem| 
+% command.  This is meant to be used specially when there are two 
+% paragraphs in the same item text, and the latter is to use the full 
+% line width (\textit{i.~e.}\ when the item text ends below the 
+% floating float).  So, the full syntax of the |\fltitem| command is:\\ 
+% \hspace*{10mm}|\fltitem[|\textit{len}|]{|\textit{text}|}|\\ 
+% which inserts the extra vertical space \textit{len} after the item  
+% text.  If there is a second text which is to span the full 
+% linewidth in the same item, one would write:\\
+% \hspace*{10mm}|\fltitem[|\textit{len}|]{|\textit{text1}|} |\textit{text2}\\ 
+% which first typesets \textit{text1} narrowed according to the 
+% floating float, followed by \textit{text2} with full linewidth, and 
+% an extra vertical space \textit{len} between these two texts.
+% 
+% There is also a second, analogous command 
+% |\fltditem| which takes two mandatory and one optional argument.  
+% The optional argument is the same as the optional argument of 
+% |\fltitem|, the first mandatory argument is the item label, 
+% \textit{e.~g.}\ the item to be described in a |description| 
+% environment.  The second mandatory argument of |\fltditem| is the 
+% item text.  The syntax of the |\fltditem| command is:\\ 
+% \hspace*{10mm}|\fltditem[|\textit{len}|]{|\textit{label}|}{|\textit{text}|}|\\
+% which produces an item with label \textit{label} and text  
+% \textit{text} and extra vertical space \textit{len} after the item  
+% text.  Additional text spanning the full linewidth may follow, 
+% just like with |\fltitem|, but the indentation may turn out to be 
+% strange.
+% 
+% Both |\fltitem| and |\fltditem| can be used in an ordinary 
+% |itemize|, |enumerate|, or |description| environment (however, the 
+% use of |\fltditem| in |enumerate| may produce strange results).  For 
+% |\fltitem| and |\fltditem| to work properly, the (otherwise) 
+% colliding floating float must be set flush right, that is have the 
+% option |r| specified.  The use of |\fltitem| or |\fltditem| is not 
+% demonstrated in the |floatexm.tex| file.  
+%   
+% \subsection{Sending a bug report}
+%   
+% Reports of new bugs in the package are most welcome. 
+% However, I do not consider this to be a ``supported''
+% package.  This means that there is no guarantee I (or
+% anyone else) will put any effort into fixing the bug.  
+% But, on the other hand, someone may, so filing a bug
+% report is always a good thing to do! (If nothing else,
+% your discoveries may end up in future releases of this
+% document.)  Before filing a bug report,  please take the
+% following actions: 
+% \begin{enumerate}
+% \item Ensure your problem is not due to your inputfile;
+% \item Ensure your problem is not due to your own 
+%   package(s) or class(es);
+% \item Ensure your problem is not covered in the section ``Known
+%   problems and limitations'' above;
+% \item  Try to locate the problem by writing a minimal \LaTeXe\ 
+%   input file which reproduces the problem.  Include the command\\ 
+%   \verb+   \setcounter{errorcontextlines}{999}+\\ in your input;
+% \item Run your file through \LaTeXe;
+% \item Send a description of your problem, the input file and the 
+%    log file via e-mail to:\\  \texttt{matsd@physchem.kth.se}.
+% \end{enumerate}
+%  
+% \section{Conclusion}
+%  
+% Without Thomas Kneser's \texttt{floatfig.sty} as a base,
+% I could never have written the \texttt{floatflt}
+% package.  I hope that some users will find the package
+% useful and not too bugful. :--) Comments and suggestions
+% for improvements are always most welcome!\\[3mm]
+% {\itshape Enjoy your \LaTeX!\raisebox{-\baselineskip}{mats d.}} 
+%
+% \end{document}
+% %%%%%%%%%%%%%%    For some reason, the `\iffalse' below isn't enough :-(
+% \iffalse
+%
+%<*paketkod>
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{floatflt}[1995/02/14 v. 1.2.1]
+\newcounter{OptionTest}
+\setcounter{OptionTest}{0}
+\DeclareOption{rflt}{\setcounter{OptionTest}{1}}
+\DeclareOption{lflt}{\setcounter{OptionTest}{2}}
+\DeclareOption{vflt}{\setcounter{OptionTest}{0}}
+\DeclareOption*{\typeout{The option \CurrentOption\space
+  has no effect on the `floatflt' package.}\OptionNotUsed}
+\ProcessOptions
+\newenvironment{floatingfigure}[2][v]%
+{\@tfor \@tempa :=#1\do
+         {\if\@tempa r\global\oddpagestrue\fi
+          \if\@tempa l\global\oddpagesfalse\fi
+          \if\@tempa p%
+              \ifodd\thepage\global\oddpagestrue
+                \else\global\oddpagesfalse\fi
+          \fi
+          \if\@tempa v%
+             \ifnum\theOptionTest=0
+                 \ifodd\thepage\global\oddpagestrue
+                   \else\global\oddpagesfalse\fi
+             \else
+                  \ifodd\theOptionTest\global\oddpagestrue
+                    \else\global\oddpagesfalse\fi
+             \fi
+          \fi
+         }
+ \expandafter\ifx\csname oldoutput\endcsname\relax% ref. TeXbook Ex.7.7
+    \PackageError{floatflt}{The `floatflt' package is not initialized}
+     {Try to reinstall the `floatflt' package.\MessageBreak
+      Type `x' to quit or <Return> to try to go on.}\@@end\fi
+ \global\everypar={\tryfig\oldeverypar}% must be set globally!
+ \global\advance\ffigcount by 1
+ \iffigprocessing
+    {\count0=\ffigcount\advance\count0 by -1 
+     \PackageWarningNoLine{floatflt}{Floating figures \the\count0\space%
+       \space and \the\ffigcount\space colliding}%
+    }%
+ \fi 
+ \iftabprocessing \PackageWarningNoLine{floatflt}{Floating figure %
+   \the\ffigcount\space and floating table \the\ftabcount\space colliding}
+ \fi
+ \def\@captype{figure}
+ \global\setlength{\floatfltwidth}{#2}
+ \global\figprocessingtrue
+ \global\setbox\figbox=\vbox\bgroup% begin of figbox
+                               \hrule height 0pt width #2 depth 0pt%
+                               \hsize=#2%
+}
+{
+\egroup
+\figinsert\par%
+}
+\newenvironment{floatingtable}[2][v]%
+{\@tfor \@tempa :=#1\do
+         {\if\@tempa r\global\oddpagestrue\fi
+          \if\@tempa l\global\oddpagesfalse\fi
+          \if\@tempa p%
+              \ifodd\thepage\global\oddpagestrue
+                \else\global\oddpagesfalse\fi
+          \fi
+          \if\@tempa v%
+             \ifnum \theOptionTest=0
+                 \ifodd\thepage\global\oddpagestrue
+                   \else\global\oddpagesfalse\fi
+             \else
+                  \ifodd\theOptionTest\global\oddpagestrue
+                    \else\global\oddpagesfalse\fi
+             \fi
+          \fi
+         }
+\expandafter\ifx\csname oldoutput\endcsname\relax% ref. TeXbook Ex.7.7
+     \PackageError{floatflt}{The `floatflt' package is not initialized}
+     {Try to reinstall the `floatflt' package.\MessageBreak
+      Type `x' to quit or <Return> to try to go on.}\@@end\fi
+\global\setbox\tabbox=\vbox\bgroup\hrule height 0pt width 0pt depth 0pt%
+   \hsize=0pt\egroup  
+ \global\everypar={\trytab\oldeverypar}
+ \global\advance\ftabcount by 1
+ \iftabprocessing
+    {\count0=\ftabcount\advance\count0 by -1 
+     \PackageWarningNoLine{floatflt}{Floating tables \the\count0\space%
+            \space and \the\ftabcount \space colliding}%
+    }
+ \fi 
+ \iftabprocessing \PackageWarningNoLine{floatflt}{Floating table %
+   \the\ffigcount\space and floating figure \the\ftabcount\space colliding}
+ \fi
+ \settowidth{\tabbredd}{#2}
+ \global\setlength{\floatfltwidth}{\tabbredd}
+ \def\@captype{table}
+ \global\tabprocessingtrue
+ \global\setbox\tabbox=\vbox\bgroup% begin of tabbox
+                              \hrule height 0pt width\tabbredd depth 0pt%
+                               \hsize=\tabbredd
+\noindent\ifnum\ftabcount >1\ifoddpages\else\hspace*{-12pt}\fi\fi%
+#2\vspace{0.2\baselineskip}%
+}
+{
+\egroup% end of \tabbox
+\tabinsert\par%
+}
+
+\newbox\figbox
+\newbox\tabbox
+\newbox\pagebox
+
+\newcount\ffigcount
+\newcount\ftabcount
+\newcount\fftest
+\newcount\hangcount
+\newcount\nosuccesstryfig
+\newcount\nosuccesstrytab
+\newdimen\figgutter   \figgutter=1truepc
+\newdimen\tabgutter   \tabgutter=1truepc
+\newdimen\htdone      \htdone=0pt
+\newdimen\pageht
+\newdimen\startpageht
+\newdimen\tabbredd
+\newdimen\floatfltwidth
+\newdimen\fltitemwidth
+\newif\iftryingfig     \tryingfigfalse
+\newif\iftryingtab     \tryingtabfalse
+\newif\ifdoingfig      \doingfigfalse
+\newif\ifdoingtab      \doingtabfalse
+\newif\iffigprocessing \figprocessingfalse
+\newif\iftabprocessing \tabprocessingfalse
+\newif\ifpageafterfig  \pageafterfigfalse
+\newif\ifpageaftertab  \pageaftertabfalse
+\newif\ifoddpages
+\newif\ifoutput
+\newtoks\outputpretest
+%
+\AtBeginDocument{%
+\edef\oldoutput{\the\output}%
+\output={\the\outputpretest%
+           \ifoutput\oldoutput\fi}
+\outputpretest={\outputtrue}
+\edef\oldeverypar{\the\everypar}
+}
+\def\dofigtest{%
+   \ifnum\outputpenalty=-10005
+     \setbox\pagebox=\vbox{\unvbox255}%
+     \global\pageht=\ht\pagebox
+     \global\outputfalse
+     \unvbox\pagebox
+   \else
+     \global\outputtrue
+     \ifdoingfig
+         \global\pageafterfigtrue
+     \fi
+   \fi}% 
+
+\def\dotabtest{%
+   \ifnum\outputpenalty=-10005
+     \setbox\pagebox=\vbox{\unvbox255}%
+     \global\pageht=\ht\pagebox
+     \global\outputfalse
+     \unvbox\pagebox
+   \else
+     \global\outputtrue
+     \ifdoingtab
+         \global\pageaftertabtrue
+     \fi
+   \fi}% 
+
+\def\tryfig{%
+      \iftryingfig
+       {\everypar={\relax}\setbox0=\lastbox%
+       \parindent=\wd0 \parskip=0pt \par% 
+       \penalty-10005 \leavevmode}%
+       \dimen0=\vsize%
+       \advance\dimen0 by -\pageht%
+       \advance\dimen0 by -2\baselineskip%
+       \ifdim\dimen0>\ht\figbox%
+         \dimen0=0.3\baselineskip
+         \vrule depth \dimen0 width 0pt
+         \vadjust{\kern -\dimen0%
+         \vtop to \dimen0{%
+             \baselineskip=\dimen0%
+             \vss \vbox to 1ex{%
+             \ifoddpages%
+               \hbox to \hsize{\hss\copy\figbox}% 
+             \else% leftsetting
+               \hbox to \hsize{\copy\figbox\hss}%
+             \fi% \ifodd\count0
+             \vss}\null}}%
+       \global\tryingfigfalse% 
+       \global\doingfigtrue
+       \global\startpageht=\pageht
+       \global\htdone=0pt
+       \dohangf
+       \ifnum\nosuccesstryfig>0%
+         \typeout{floatflt Message: Flt. fig. \the\ffigcount\space set on page 
+             \the\count0, shifted \the\nosuccesstryfig\space par(s) forward.}%
+       \else
+         \typeout{Package floatflt Message: Floating figure \the\ffigcount
+              \space set on page \the\count0}%
+       \fi 
+     \else
+       \global\advance\nosuccesstryfig by 1
+     \fi
+     \else% 
+     \ifdoingfig
+       {\everypar={\relax}\setbox0=\lastbox
+       \parindent=\wd0 \parskip=0pt \par
+         \penalty-10005 \leavevmode}%
+    \global\htdone=\pageht
+    \global\advance\htdone by -\startpageht
+    \ifpageafterfig
+      \global\doingfigfalse
+    \else
+      \dimen0=\ht\figbox%
+      \advance\dimen0 by 0.5\baselineskip%
+      \ifdim\htdone<\dimen0%
+         \dohangf
+      \else
+         \global\doingfigfalse
+      \fi
+    \fi
+    \ifdoingfig\relax\else\global\figprocessingfalse\fi
+  \else
+    \global\outputpretest={\outputtrue}%
+  \fi
+\fi
+}
+
+\def\trytab{%
+      \iftryingtab% 
+       {\everypar={\relax}\setbox0=\lastbox%
+       \parindent=\wd0 \parskip=0pt \par% 
+       \penalty-10005 \leavevmode}%
+       \dimen0=\vsize%
+       \advance\dimen0 by -\pageht%
+       \advance\dimen0 by -2\baselineskip%
+       \ifdim\dimen0>\ht\tabbox%
+         \dimen0=0.3\baselineskip
+         \vrule depth \dimen0 width 0pt
+         \vadjust{\kern -\dimen0%
+         \vtop to \dimen0{%
+             \baselineskip=\dimen0%
+             \vss \vbox to 1ex{%
+              \ifoddpages%
+               \hbox to \hsize{\hss\copy\tabbox}% 
+             \else% leftsetting
+               \hbox to \hsize{\copy\tabbox\hss}%
+             \fi% \ifodd\count0
+             \vss}\null}}%
+       \global\tryingtabfalse% 
+       \global\doingtabtrue
+       \global\startpageht=\pageht
+       \global\htdone=0pt
+       \dohangt
+       \ifnum\nosuccesstrytab>0%
+         \typeout{floatflt Message: Flt. tab. \the\ftabcount\space set on page 
+             \the\count0, shifted \the\nosuccesstrytab\space par(s) forward.}%
+       \else
+         \typeout{Package floatflt Message: Floating table \the\ftabcount\space
+                  set on page \the\count0}%
+       \fi 
+     \else
+       \global\advance\nosuccesstrytab by 1
+     \fi
+     \else
+     \ifdoingtab
+       {\everypar={\relax}\setbox0=\lastbox
+       \parindent=\wd0 \parskip=0pt \par
+         \penalty-10005 \leavevmode}%
+    \global\htdone=\pageht
+    \global\advance\htdone by -\startpageht
+    \ifpageaftertab
+      \global\doingtabfalse
+    \else
+      \dimen0=\ht\tabbox%
+      \advance\dimen0 by 0.5\baselineskip%
+      \ifdim\htdone<\dimen0%
+         \dohangt
+      \else
+         \global\doingtabfalse
+      \fi
+    \fi
+    \ifdoingtab\relax\else\global\tabprocessingfalse\fi
+  \else
+    \global\outputpretest={\outputtrue}%
+  \fi
+\fi
+}
+
+\def\figinsert{%
+   \global\nosuccesstryfig=0%
+   \global\outputpretest={\dofigtest}%
+   \global\tryingfigtrue \global\doingfigfalse%
+   \global\pageafterfigfalse}%
+
+\def\tabinsert{%
+   \global\nosuccesstrytab=0%
+   \global\outputpretest={\dotabtest}%
+   \global\tryingtabtrue \global\doingtabfalse%
+   \global\pageaftertabfalse}%
+
+\def\dohangf{%
+   \dimen0=\ht\figbox%
+   \advance\dimen0 by -\htdone%
+   \advance\dimen0 by 1.49\baselineskip%
+   \hangcount=\dimen0%
+   \divide\hangcount by \baselineskip%
+   \dimen0=\wd\figbox%
+   \advance\dimen0 by \figgutter%
+   \ifoddpages%
+     \global\hangafter=-\hangcount% placing right
+     \global\hangindent=-\dimen0%
+   \else% \ifleftsetting
+     \global\hangafter=-\hangcount% placing left
+     \global\hangindent=\dimen0%
+   \fi
+}
+\def\dohangt{%
+   \dimen0=\ht\tabbox%
+   \advance\dimen0 by -\htdone%
+   \advance\dimen0 by 1.49\baselineskip%
+   \hangcount=\dimen0%
+   \divide\hangcount by \baselineskip%
+   \dimen0=\wd\tabbox%
+   \advance\dimen0 by \tabgutter%
+   \ifoddpages%
+     \global\hangafter=-\hangcount% placing right
+     \global\hangindent=-\dimen0%
+   \else% \ifleftsetting
+     \global\hangafter=-\hangcount% placing left
+     \global\hangindent=\dimen0%
+   \fi
+}
+\newcommand{\fltitem}[2][0pt]{\setlength{\fltitemwidth}{\linewidth}%
+  \addtolength{\fltitemwidth}{-\floatfltwidth}%
+  \addtolength{\fltitemwidth}{-0.5em}%
+  \item \parbox[t]{\fltitemwidth}{#2}\\[#1]}
+\newcommand{\fltditem}[3][0pt]{\setlength{\fltitemwidth}{\linewidth}%
+  \addtolength{\fltitemwidth}{-\floatfltwidth}%
+  \addtolength{\fltitemwidth}{-0.5em}%
+  \item[#2] \parbox[t]{\fltitemwidth}{#3}\\[#1]}
+%</paketkod>
+% \fi
+% \iffalse
+%<*exempelkod>
+\documentclass[11pt]{article}
+\usepackage{floatflt}
+\begin{document}
+\centerline{\bfseries\Huge The Tale of 
+\texttt{floatflt}}\bigskip
+ 
+\noindent This is a demonstration document for the use
+of the \texttt{floatflt} package.  It contains several
+floating figures and tables with captions explaining how
+they were called.  At the end, both a
+\verb+\listoffigures+ and a \verb+\listoftables+ command
+are used, resulting in the desired lists.  For more
+details on how to use the \texttt{floatflt} package,
+please run \LaTeX{} on the file \texttt{floatflt.drv},
+which also should be created from the file
+\texttt{floatflt.dtx}. 
+ 
+The following work by Edgar Alan Poe was retrieved by
+anonymous ftp from \texttt{ftp.funet.fi} in the
+directory \texttt{/pub/doc/literary/etext} where it is
+found in the file \texttt{telltale.poe}.  Only minor
+\LaTeX\ adaptions have been done, besides the inclusion
+of floating floats. 
+ 
+\begin{center}
+Internet Wiretap Edition of\\[2mm]
+{\large THE TELL-TALE HEART}\\ 
+by\\ {\large EDGAR ALLAN POE}\\[2mm]
+From \textit{The Works of Edgar Allan Poe: Tales Vol I}\\
+J. B. Lippincott Co, Copyright 1895.\\[2mm]
+This text is placed into the Public Domain (May 1993).\\
+\end{center}
+ 
+\noindent\textit{\Large The Tell-Tale Heart}
+ 
+\noindent TRUE! nervous, very, very dreadfully nervous
+I had been and am; but why WILL you say
+that I am mad? The disease had sharpened
+my senses, not destroyed, not dulled them. Above
+all was the sense of hearing acute. I heard all things
+in the heaven and in the earth. I heard many things
+in hell. How then am I mad? Hearken! and observe how healthily, how
+calmly, I can tell you the
+whole story.
+ 
+\begin{floatingfigure}{60mm}
+\begin{center}
+The first figure to\\ use the environment\\ \texttt{floatingfigure}
+\end{center}
+\caption{The \texttt{floatingfigure} environment with \texttt{60mm}
+for \textit{width} and no \textit{option}.}
+\end{floatingfigure}
+It is impossible to say how first the idea entered
+my brain, but, once conceived, it haunted me day
+and\linebreak night. Object there was none. Passion there
+was none. I loved the old man. He had never
+wronged me. He had never given me insult. For
+his gold I had no desire. I think it was his eye!
+Yes, it was this! One of his eyes resembled that
+of a vulture -- a pale blue eye with a film over it.
+Whenever it fell upon me my blood ran cold, and
+so by degrees, very gradually, I made up my mind
+to take the life of the old man, and thus rid myself
+of the eye for ever.
+ 
+\begin{floatingfigure}[r]{40mm}
+\begin{center}
+Another figure to\\ use the environment\\ \texttt{floatingfigure}
+\end{center}
+\caption{The \texttt{floatingfigure} environment with \texttt{40mm}
+for \textit{width} and the \texttt{r} \textit{option}.}
+\end{floatingfigure}
+Now this is the point. You fancy me mad. Madmen 
+know nothing. But you should have seen me.
+You should have seen how wisely I proceeded --
+with what caution -- with what foresight, with what
+dissimulation, I went to work! I was never kinder
+to the old man than during the whole week before
+I killed him. And every night about midnight I
+turned the latch of his door and opened it oh, so
+gently! And then, when I had made an opening
+sufficient for my head, I put in a dark lantern all
+closed, closed so that no light shone out, and then
+I thrust in my head. Oh, you would have laughed
+to see how cunningly I thrust it in! I moved it
+slowly, very, very slowly, so that I might not 
+disturb the old man's sleep. It took me an hour to
+place my whole head within the opening so far that
+I could see him as he lay upon his bed. Ha! would
+a madman have been so wise as this? And then
+when my head was well in the room I undid the
+lantern cautiously -- oh, so cautiously -- cautiously
+(for the hinges creaked), I undid it just so much
+that a single thin ray fell upon the vulture eye.
+And this I did for seven long nights, every night
+just at midnight, but I found the eye always closed,
+and so it was impossible to do the work, for it was
+not the old man who vexed me but his Evil Eye.
+And every morning, when the day broke, I went
+boldly into the chamber and spoke courageously to
+him, calling him by name in a hearty tone, and 
+inquiring how he had passed the night. So you see
+he would have been a very profound old man, indeed, 
+to suspect that every night, just at twelve, I
+looked in upon him while he slept.
+ 
+\begin{floatingtable}{
+\begin{tabular}{cccc}
+$x$ & $x^2$ & $x^3$ & $x^4$ \\ \hline
+1 & 1 & 1 & 1 \\
+2 & 4 & 8 & 16 \\
+3 & 9 & 27 & 81 \\
+\end{tabular}}
+\caption{The \texttt{floatingtable} environment with no \textit{option}.}
+\end{floatingtable}
+Upon the eighth night I was more than usually
+cautious in opening the door. A watch's minute
+hand moves more quickly than did mine. Never
+before that night had I felt the extent of my own
+powers, of my sagacity. I could scarcely contain
+my feelings of triumph. To think that there I was
+opening the door little by little, and he not even to
+dream of my secret deeds or thoughts. I fairly
+chuckled at the idea, and perhaps he heard me, for
+he moved on the bed suddenly as if startled. Now
+you may think that I drew back -- but no. His room
+was as black as pitch with the thick darkness (for
+the shutters were close fastened through fear of
+robbers), and so I knew that he could not see the
+opening of the door, and I kept pushing it on
+steadily, steadily.
+ 
+\begin{floatingtable}[l]{
+\begin{tabular}{ccc}
+$\alpha$ & $\sin\alpha$ & $\cos\alpha$ \\ \hline
+0 & 0 & 1 \\
+$\pi$ & 0 & $-1$ \\
+$2\pi$ & 0 & 1 \\
+\end{tabular}}
+\caption{The \texttt{floatingtable} environment with the \texttt{l} 
+\textit{option}.}
+\end{floatingtable}
+I had my head in, and was about to open the
+lantern, when my thumb slipped upon the tin fasten\-ing, 
+and the old man sprang up in the bed, crying
+out, ''Who's there?''
+ 
+I kept quite still and said nothing. For a whole
+hour I did not move a muscle, and in the meantime
+I did not hear him lie down. He was still sitting
+up in the bed, listening; just as I have done night
+after night hearkening to the death watches in the
+wall.
+ 
+\begin{floatingfigure}[l]{50mm}
+\begin{center}
+\Large A Figure!
+\end{center}
+\caption{The \texttt{floatingfigure} environment 
+with \textit{width} set to \texttt{50mm}  and the 
+\texttt{l} \textit{option}.}
+\end{floatingfigure}
+Presently, I heard a slight groan, and I knew it
+was the groan of mortal terror. It was not a groan of
+pain or of grief -- oh, no! It was the low stifled sound
+that arises from the bottom of the soul when 
+overcharged with awe. I knew the sound well. Many
+a night, just at midnight, when all the world slept,
+it has welled up from my own bosom, deepening,
+with its dreadful echo, the terrors that distracted
+me. I say I knew it well. I knew what the old
+man felt, and pitied him although I chuckled at
+heart. I knew that he had been lying awake ever
+since the first slight noise when he had turned in
+the bed. His fears had been ever since growing
+upon him. He had been trying to fancy them
+causeless, but could not. He had been saying to
+himself, ''It is nothing but the wind in the chimney,
+it is only a mouse crossing the floor,'' or, ''It is merely
+a cricket which has made a single chirp.'' Yes he
+has been trying to comfort himself with these 
+suppositions; but he had found all in vain. ALL IN VAIN,
+because Death in approaching him had stalked with
+his black shadow before him and enveloped the
+victim. And it was the mournful influence of the
+unperceived shadow that caused him to feel, although 
+he neither saw nor heard, to feel the presence
+of my head within the room.
+ 
+When I had waited a long time very patiently
+without hearing him lie down, I resolved to open
+a little -- a very, very little crevice in the lantern.
+So I opened it -- you cannot imagine how stealthily,
+stealthily -- until at length a single dim ray like the
+thread of the spider shot out from the crevice and
+fell upon the vulture eye.
+ 
+It was open, wide, wide open, and I grew furious
+as I gazed upon it. I saw it with perfect distinctness 
+-- all a dull blue with a hideous veil over it that
+chilled the very marrow in my bones, but I could
+see nothing else of the old man's face or person, for
+I had directed the ray as if by instinct precisely upon
+the damned spot.
+ 
+And now have I not told you that what you mis-
+take for madness is but over-acuteness of the senses?
+now, I say, there came to my ears a low, dull, quick
+sound, such as a watch makes when enveloped in
+cotton. I knew that sound well too. It was the
+beating of the old man's heart. It increased my fury
+as the beating of a drum stimulates the soldier into
+courage.
+ 
+\begin{floatingfigure}[p]{90mm}
+\begin{center}
+A rather wide figure which still uses the \\ 
+\texttt{floatingfigure} environment.
+\end{center}
+\caption{A \texttt{floatingfigure} environment 
+which uses \texttt{90mm} for \textit{width} and 
+the \texttt{p} \textit{option}.}
+\end{floatingfigure}
+But even yet I refrained and kept still. I scarcely\linebreak 
+brea\-thed. I held\linebreak the lantern motionless. I tried
+how\linebreak stead\-ily I could\linebreak 
+maintain the ray upon the eye.
+Meantime the hellish tattoo of the heart increased.
+It grew quicker and quicker, and louder and louder,
+every instant. The old man's terror must have
+been extreme! It grew louder, I say, louder every
+moment! -- do you mark me well? I have told you
+that I am nervous: so I am. And now at the dead
+hour of the night, amid the dreadful silence of that
+old house, so strange a noise as this excited me to
+uncontrollable terror. Yet, for some minutes longer
+I refrained and stood still. But the beating grew
+louder, louder! I thought the heart must burst.
+And now a new anxiety seized me -- the sound would
+be heard by a neighbour! The old man's hour had
+come! With a loud yell, I threw open the lantern
+and leaped into the room. He shrieked once -- once
+only. In an instant I dragged him to the floor, and
+pulled the heavy bed over him. I then smiled
+gaily, to find the deed so far done. But for many
+minutes the heart beat on with a muffled sound.
+This, however, did not vex me; it would not be
+heard through the wall. At length it ceased. The
+old man was dead. I removed the bed and examined
+the corpse. Yes, he was stone, stone dead. I placed
+my hand upon the heart and held it there many
+minutes. There was no pulsation. He was stone
+dead. His eye would trouble me no more.
+ 
+\begin{floatingtable}[r]{
+\begin{tabular}{l}
+Two lines in one table with one single \\
+column is enough!
+\end{tabular}}
+\caption{This \texttt{floatingtable}  uses the \texttt{r} 
+\textit{option}.}
+\end{floatingtable}
+If still you think me mad, you will think so no
+longer when I describe the wise precautions I took
+for the concealment of the body. The night waned,
+and I worked hastily, but in silence.
+ 
+I took up three planks from the flooring of the
+chamber, and deposited all between the scantlings.
+I then replaced the boards so cleverly so cunningly,
+that no human eye -- not even his -- could have 
+detected anything wrong. There was nothing to wash
+out -- no stain of any kind -- no blood-spot whatever.
+I had been too wary for that.
+ 
+When I had made an end of these labours, it was
+four o'clock -- still dark as midnight. As the bell
+sounded the hour, there came a knocking at the
+street door. I went down to open it with a light
+heart, -- for what had I now to fear? There entered
+three men, who introduced themselves, with perfect
+suavity, as officers of the police. A shriek had been
+heard by a neighbour during the night; suspicion
+of foul play had been aroused; information had been
+lodged at the police office, and they (the officers)
+had been deputed to search the premises.
+ 
+\begin{floatingtable}[p]{
+\begin{tabular}{|l|l|l|} \hline
+English Word & Swedish Word & Dutch Word \\ \hline
+read & l\"asa & lesen \\
+speak & tala & spreken\\
+write & skriva & schrijven \\ \hline
+\end{tabular}}
+\caption{A \texttt{floatingtable}  with the \texttt{p} 
+\textit{option}.}
+\end{floatingtable}
+I smiled, -- for what had I to fear? I bade the
+gentlemen welcome. The shriek, I said, was my
+own in a dream. The old man, I mentioned,\linebreak was
+absent in the country. I took my visitors all over
+the house. I bade them search -- search well. I led
+them, at length, to his chamber. I showed them his
+treasures, secure, undisturbed. In the enthusiasm
+of my confidence, I brought chairs into the room,
+and desired them here to rest from their fatigues,
+while I myself, in the wild audacity of my perfect
+triumph, placed my own seat upon the very spot
+beneath which reposed the corpse of the victim.
+ 
+The officers were satisfied. My MANNER had 
+convinced them. I was singularly at ease. They sat
+and while I answered cheerily, they chatted of
+familiar things. But, ere long, I felt myself getting
+pale and wished them gone. My head ached, and
+I fancied a ringing in my ears; but still they sat,
+and still chatted. The ringing became more distinct: 
+I talked more freely to get rid of the feeling:
+but it continued and gained definitiveness -- until,
+at length, I found that the noise was NOT within my
+ears.
+ 
+No doubt I now grew VERY pale; but I talked
+more fluently, and with a heightened voice. Yet
+the sound increased -- and what could I do? It was
+A LOW, DULL, QUICK SOUND -- MUCH SUCH A SOUND AS A
+WATCH MAKES WHEN ENVELOPED IN COTTON. I gasped for
+breath, and yet the officers heard it not. I talked
+more quickly, more vehemently but the noise
+steadily increased. I arose and argued about trifles,
+in a high key and with violent gesticulations; but
+the noise steadily increased. Why WOULD  they not
+be gone? I paced the floor to and fro with heavy
+strides, as if excited to fury by the observations of
+the men, but the noise steadily increased. O God!
+what COULD I do? I foamed -- I raved -- I swore! I
+swung the chair upon which I had been sitting, and
+grated it upon the boards, but the noise arose over
+all and continually increased. It grew louder --
+louder -- louder! And still the men chatted 
+pleasantly, and smiled. Was it possible they heard
+not? Almighty God! -- no, no? They heard! --
+they suspected! -- they KNEW! -- they were making
+a mockery of my horror! -- this I thought, and this
+I think. But anything was better than this agony!
+Anything was more tolerable than this derision! I
+could bear those hypocritical smiles no longer! I 
+felt that I must scream or die! -- and now -- again
+-- hark! louder! louder! louder! LOUDER! --
+ 
+''Villains!'' I shrieked, ''dissemble no more! I
+admit the deed! -- tear up the planks! -- here, here!
+-- it is the beating of his hideous heart!''
+ 
+\rightline{\ensuremath{\mathcal{END}}.}
+ 
+\listoffigures
+\listoftables
+ 
+\end{document}
+%</exempelkod>
+%<*gammalkod>
+ \documentclass[11pt]{article}
+ %
+ \textheight=1.1\textheight
+ \textwidth=1.15\textwidth
+ \oddsidemargin=0pt
+ \evensidemargin=0pt
+ %
+ \begin{document}
+ %
+ \title{\LaTeX-Paragraphs Floating around Figures}
+ \author{{\it Thomas Kneser}\\{\footnotesize
+ Gesellschaft f\"ur wissenschaftliche Datenverarbeitung 
+  mbH G\"ottingen, FRG}}
+ \date{August 20, 1990}
+ \maketitle
+ %
+ \begin{abstract}
+ %
+ \noindent Frequently figures do not fill the full pagewidth. 
+ If the width of such figures is only half of the 
+ pagewidth or even less,
+ textlines should be set beside the figures,
+ or -- from another point of view -- figures should `float'
+ in paragraphs.
+ This article presents the \LaTeX{} style option {\tt FLOATFIG} 
+ which can be used to set such Floating Figures as easily 
+ as \LaTeX's standard figures.
+ \end{abstract}
+ % 
+ \section{The name of the game}
+ The macros which make up the {\tt FLOATFIG} style option
+ are based on PLAIN-\TeX\ macros developed by Thomas Reid
+ (TUGBoat Vol. 8 \# 3 page 315), who pointed out
+ how to set figures
+ {\bf right justified} with paragraphs floating around them.
+ For such objects
+ Th. Reid has chosen the term `Floating Figures'.
+  
+ This choice might cause some confusion,
+ when we adapt these macros for \LaTeX, 
+ since Leslie Lamport uses the term `float' for objects
+ which are realized as \TeX-\verb+\inserts+.
+ While L. Lamports floats are floating in `main vertical list',
+ floats introduced by Th. Reid
+ are floating in paragraphs.
+ For the following we adopt the latter meaning.  
+ \section{How to use it}
+ The Floating Figures style option is fully compatible with 
+ \LaTeX's standard figure facility:
+ \begin{enumerate}
+ \item Floating Figures and standard figures may be requested
+       in any sequence,
+ \item Floating Figures can be captioned like standard figures,
+ \item captioned Floating Figures are inserted in the list of figures 
+       which may be printed by the standard 
+       \verb+\listoffigures+ command.
+ \end{enumerate}
+ A Floating Figure may be requested as follows:
+ \begin{verbatim}
+   \documentstyle[floatfig]{article}
+   \begin{document}
+   \initfloatingfigs
+           .
+           . 
+   \begin{floatingfigure}{5.6cm}
+   \vspace{6.cm}
+   \caption{Intermolecular potential K-Xe}% optional !
+   \end{floatingfigure}
+           .
+           .
+   \end{document}
+ \end{verbatim}
+ where {\tt 5.6cm} specifies the width of the figure space. 
+ A Floating Figure may only be requested in vertical mode, that is
+ between paragraphs.
+  
+ A Floating Figure will be set as soon as possible after its request
+ has be encountered by \TeX. 
+ That means,
+ it will be tested if there is enough vertical space 
+ on the current page;
+ otherwise the figure moves to the next page. 
+  
+ Floating Figures are set {\bf alternating}, 
+ that is on the right hand side on odd and
+ on the left hand side on even numbered pages.
+ %
+ \subsection{Restrictions}
+ \begin{enumerate}
+ \item The {\tt FLOATFIG} style option may not be combined with the
+ {\tt TWOCOLUMN} style option,
+ \item a Floating Figure will never appear in a paragraph 
+ which begins on top of a page.
+ \end{enumerate}
+ %
+ \section{About the internals}
+ %
+ We have extended the macros designed by Th.~Reid with regard to:
+ \begin{enumerate}
+ \item implantation into the \LaTeX{} context,
+ \item alternating setting of Floating Figures as explained above,
+ \item generation of warning messages for `collisions' of 
+       two Floating Figures. 
+ \end{enumerate}
+ %
+ \subsection{Implantation into the \LaTeX{} context}
+ The PLAIN-\TeX{} implementation by Th.~Reid
+ is based on a redefined \verb+\output+ routine:
+ %
+ \begin{verbatim}
+   \edef\oldoutput{\the\output}%
+   \output={\the\outputpretest\ifoutput\oldoutput\fi}
+   \outputpretest={\outputtrue}
+ \end{verbatim}
+ %
+ If a Floating Figure is requested, 
+ the content of the
+ \verb+\outputpretest+ token register is prepared to decide:
+ \begin{enumerate}
+ \item if there is enough vertical space to set the Floating Figure,
+ \item if setting of a Floating Figure is in progress or
+ \item if indeed the current page has to be sent to the DVI file.
+ \end{enumerate}
+ %
+ In general, \TeX{} has to deal with more than one paragraph until
+ a Floating Figure will be completely processed.
+ During this process
+ the redefined \verb+\output+ routine is
+ called at the begin of {\bf every} paragraph; 
+ this is done indirectly
+ by expanding the control sequence \verb+\tryfig+.
+ Therefore, the \verb+\everypar+ token
+ list is prepared by the following command sequence:
+ \begin{verbatim}
+   \edef\oldeverypar{\the\everypar}
+   \everypar={\tryfig\oldeverypar}
+ \end{verbatim}
+ Now \verb+\tryfig+ triggers the (modified)
+ \verb+\output+ routine, which then does the decisions
+ and actions mentioned above.
+  
+ Adopting this concept when using the macros in the \LaTeX{} context,
+ we are faced with the following problems:
+ \begin{enumerate}
+ \item At the time \hbox{\tt FLOATFIG.STY} is read in, 
+       the \verb+\output+ routine is still undefined;
+       its definition is retarded until
+       \verb+\begin{document}+ will be expanded;
+       so the redefinition of the \verb+\output+ routine has to be
+       done after \verb+\begin{document}+
+       by the command \verb+\initfloatingfigs+
+       (see section `Known Problems' below).
+ \item There are situations where
+       \LaTeX{} decides to redefine the \verb+\everypar+ token list
+       without saving of the former content;
+       this occurs for instance when expanding 
+       a \verb+\section+ control sequence.
+       We overcome this by redefining \verb+\everypar+ whenever
+       the \verb+\floatingfigure+ environment is entered.
+ %
+       Hence to avoid problems, a Floating Figure should be requested
+       early enough before any sectioning control sequence
+       (see also subsection `Misleading collision warnings').\hfil\break
+ %
+       Furthermore, the concurrent definitions of
+       \verb+\everypar+ are the reason why
+       Floating Figures cannot move across section boundaries.
+ \end{enumerate}
+ %
+ \subsection{Alternating figure setting}
+ The problem to be solved
+ is to decide if a certain figure has to be set 
+ left- or rightjustified. 
+ This decision has to made according to
+ the value of the pagecount (left if even, right if odd).
+ That is we are dealing with the wellknown problem 
+ to associate a certain part of input text with the number
+ of the page on which it will be set finally.
+  
+ As pointed out by D.E. Knuth in `The {\TeX}book' this association
+ is done not before \verb+\output+ routine time.
+ But the problem is not so hard to solve, 
+ since in Th.~Reid's version there is already a modified 
+ \verb+\output+ routine which decides if a certain figure will
+ fit on the current page.
+ As a by-product of this decision one easily gains
+ the information `odd' or `even' for the pagecount
+ of the current page.
+ So our problem reduces to the following simple decision:
+ \begin{verbatim}
+   \ifodd\count0 %
+      \hbox to \hsize{\hss\copy\figbox}% 
+      \global\oddpagestrue
+    \else% leftsetting
+      \hbox to \hsize{\copy\figbox\hss}%
+      \global\oddpagesfalse
+    \fi% \ifodd\count0
+ \end{verbatim}
+ %
+ \subsection{Collisions of Floating Figures}
+ We define a collision as a situation where:
+ \begin{enumerate}
+ \item a Floating Figure is requested before the predecessor
+       has been finished,
+ \item some sectioning is requested before a Floating Figure has been
+       finished.
+ \end{enumerate}
+  
+ While the {\tt FLOATFIG} style option cannot avoid such collisions,
+ it will recognize them.
+ For diagnostic purposes we have therefore defined 
+ the switch \verb+\iffigprocessing+ and another count register called
+ \verb+\ffigcount+.
+ This count register is used to attach 
+ a sequence number to each Floating Figure,
+ so they can be identified uniquely within collision warning messages. 
+ These sequence numbers are not to be confused 
+ with the figure count maintained by standard \LaTeX.
+ %
+ \section{Known Problems}
+ \subsection{Need of Initialization}
+ The present version of the style option needs to be initialized
+ by control sequence 
+ {\tt\verb+\initfloatingfigs+} as mentioned above.\footnote{%
+ This is not needed with \LaTeXe{}. /MD}
+  
+ We hope a later version will initialize itself, 
+ when the first request to a Floating Figure is encountered. 
+ One problem with such an automatic initialization seems 
+ to be, 
+ that we are grouped down
+ since we are inside a \LaTeX{} environment.
+ Our first attempt failed 
+ to make the respective settings \verb+\global+.
+ %
+ \subsection{Misleading collision warnings}
+ As mentioned above, Floating Figures do not move 
+ across section boundaries.
+ If a Floating Figure is requested near a section end, 
+ the figure will be truncated, 
+ if it does not fit in the current section.
+  
+ If this occurs for instance with floating figure number~4,  
+ a collision will be reported when the request for
+ floating figure number~5 is encountered;
+ so the respective warning message may be substantially retarded.
+ In fact, the message will tell us that there is a problem with figure~4, 
+ but there will be no further hint.
+ So one has to analyze `by hand' that the problem is {\bf not} caused
+ by collision with figure~5 but with a section heading;
+ even worse: if there is no floating figure~5, one gets no warning message
+ at all. 
+  
+ Furthermore, warning messages will be generated if a Floating Figure
+ ends in paragraph $n$ and the next one begins with paragraph $n+1$. 
+ These warning messages are to be ignored; they are due to some retardation
+ caused by the \verb+\everypar+ mechanism.
+ %
+ \section{Conclusions}
+ Working on \texttt{FLOATFIG.STY} we had some unexpected problems 
+ which were caused
+ by \LaTeX's somewhat unsafe assignments to the \verb+\everypar+ token list.
+ This is due to the fact that the use
+ of this token list is fundamental
+ to the algorithm designed by Th.~Reid.
+ On the other hand we did expect problems to couple
+ the Floating Figures with \LaTeX's figure caption adminstration, 
+ that is to achieve a single figure caption numbering for
+ the standard figures and the Floating Figures and to get both types
+ listed by the \verb+\listoffigures+ control sequence.
+ %
+ But these problems could easily be solved
+ by the following local definiton within the {\tt FLOATFIG} environment:
+ \begin{verbatim}
+   \def\@captype{figure}
+ \end{verbatim}
+ Obviously this is due to the fact 
+ that \LaTeX's caption apparatus is thoroughly parameterized.
+  
+ The \verb+FLOATFIG.STY+ file is stored in the 
+ {\tt EARN/BITNET} listserver
+ in Heidelberg; \hfil\break
+ {\tt VM/CMS} users should enter the commands:
+ \begin{verbatim}
+   TELL LISTSERV AT DHDURZ1 GET LATEXSTY INDEX
+   TELL LISTSERV AT DHDURZ1 GET LATEXSTY README
+   TELL LISTSERV AT DHDURZ1 GET LATEXSTY FILELIST
+   TELL LISTSERV AT DHDURZ1 GET FLOATFIG ZOOUUE LATEXSTY
+ \end{verbatim}
+ to obtain information about how to obtain the style option file.
+\subsection{Note by Mats Dahlgren}
+%
+Several features described in this document still apply to the
+\LaTeXe\ \texttt{floatflt} package, whereas others do not.  Please
+run \LaTeX{} on \texttt{floatflt.drv} and read the resulting 
+documentation before you use the package.
+(This note was added on October 20, 1994; changed on December 27, 
+1994.)
+
+  
+ %\tableofcontents
+ \end{document}
+%</gammalkod>
+%<*driver>
+\documentclass[a4paper]{article}
+\usepackage{doc}
+\textwidth=150mm
+\textheight=210mm
+\topmargin=0mm
+\oddsidemargin=5mm
+\evensidemargin=5mm
+\begin{document}
+  \DocInput{floatflt.dtx}
+  \PrintChanges
+\end{document}
+%</driver>
+% \fi
+%
+%  \Finale
+%
+\endinput 
+

@@ -8,6 +8,7 @@ void	fatal(int syserr, char *fmt, ...);
 void	openlisten(void);
 
 int 	dbg;
+int	restricted;
 int	tftpreq;
 int	tftpaddr;
 int	tftpctl;
@@ -24,6 +25,8 @@ char	mbuf[32768];
 char	raddr[32];
 
 char	*dir = "/lib/tftpd";
+char	*dirsl;
+int	dirsllen;
 char	flog[] = "ipboot";
 
 enum
@@ -52,11 +55,18 @@ main(int argc, char **argv)
 	case 'h':
 		dir = ARGF();
 		break;
+	case 'r':
+		restricted = 1;
+		break;
 	default:
-		fprint(2, "usage: tftpd [-d] [-h homedir]\n");
+		fprint(2, "usage: tftpd [-dr] [-h homedir]\n");
 		exits("usage");
 	}ARGEND
 	USED(argc); USED(argv);
+
+	snprint(buf, sizeof buf, "%s/", dir);
+	dirsl = strdup(buf);
+	dirsllen = strlen(dirsl);
 
 	fmtinstall('E', eipconv);
 	fmtinstall('I', eipconv);
@@ -130,6 +140,15 @@ main(int argc, char **argv)
 			syslog(dbg, flog, "bad request %d %s", op, raddr);
 			continue;
 		}
+		if(restricted){
+			if(strncmp(mbuf+2, "../", 3) || strstr(mbuf+2, "/../") ||
+			  (mbuf[2] == '/' && strncmp(mbuf+2, dirsl, dirsllen)!=0)){
+				nak(data, 4, "Permission denied");
+				close(data);
+				syslog(dbg, flog, "bad request %d %s", op, raddr);
+				continue;
+			}
+		}
 		switch(fork()) {
 		case -1:
 			fatal(1, "fork");
@@ -184,7 +203,7 @@ sendfile(int fd, char *name, char *mode)
 	block = 0;
 	rexmit = 0;
 	n = 0;
-	for(txtry = 0; txtry < 20;) {
+	for(txtry = 0; txtry < 5;) {
 		if(rexmit == 0) {
 			block++;
 			buf[0] = 0;
@@ -197,6 +216,7 @@ sendfile(int fd, char *name, char *mode)
 				nak(fd, 0, errbuf);
 				return;
 			}
+			txtry = 0;
 		}
 		else
 			txtry++;
@@ -206,7 +226,7 @@ sendfile(int fd, char *name, char *mode)
 
 		for(rxl = 0; rxl < 10; rxl++) {
 			rexmit = 0;
-			alarm(3000);
+			alarm(500);
 			al = read(fd, ack, sizeof(ack));
 			alarm(0);
 			if(al < 0) {
@@ -399,7 +419,7 @@ sunkernel(char *name)
 	static Ipinfo info;
 	static Ndb *db;
 
-	if(strlen(name) != 14 || strcmp(name + 8, ".SUN4C") != 0)
+	if(strlen(name) != 14 || strncmp(name + 8, ".SUN", 4) != 0)
 		return name;
 
 	addr = strtoul(name, 0, 16);

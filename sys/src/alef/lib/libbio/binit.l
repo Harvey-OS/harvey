@@ -59,7 +59,7 @@ install(Biobufhdr *bp)
 }
 
 int
-Biobufhdr.inits(Biobufhdr *bp, int f, int mode, char *p, int size)
+Biobufhdr.inits(Biobufhdr *bp, int f, int mode, byte *p, int size)
 {
 
 	bp->lock();
@@ -68,7 +68,8 @@ Biobufhdr.inits(Biobufhdr *bp, int f, int mode, char *p, int size)
 
 	switch(mode) {
 	default:
-		fprint(2, "Bopen: unknown mode %d\n", mode);
+		bp->unlock();
+		fprint(2, "Binit: unknown mode %d\n", mode);
 		return Beof;
 
 	case OREAD:
@@ -104,37 +105,37 @@ Biobuf.init(Biobuf *bp, int f, int mode)
 }
 
 Biobuf*
-Bopen(char *name, int mode)
+Bopen(byte *name, int mode)
 {
 	Biobuf *bp;
 	int f;
 
-	switch(mode) {
+	switch(mode&~(OCEXEC|ORCLOSE|OTRUNC)) {
 	default:
 		fprint(2, "Bopen: unknown mode %d\n", mode);
 		return nil;
 
 	case OREAD:
-		f = open(name, OREAD);
+		f = open(name, mode);
 		if(f < 0)
 			return nil;
 		break;
 
 	case OWRITE:
-		f = create(name, OWRITE, 0666);
+		f = create(name, mode, 0666);
 		if(f < 0)
 			return nil;
 	}
 	bp = malloc(sizeof(Biobuf));
 	if(bp == nil)
 		return nil;
-	bp->inits(f, mode, bp->b, sizeof(bp->b));
+	bp->inits(f, mode&~(OCEXEC|ORCLOSE|OTRUNC), bp->b, sizeof(bp->b));
 	bp->flag = Bmagic;
 	return bp;
 }
 
 int
-Biobufhdr.close(Biobufhdr *bp)
+Biobufhdr.term(Biobufhdr *bp)
 {
 	bp->lock();
 	deinstall(bp);
@@ -143,6 +144,8 @@ Biobufhdr.close(Biobufhdr *bp)
 		bp->flag = 0;
 		close(bp->fid);
 		free(bp);
+		return 0;
 	}
+	bp->unlock();
 	return 0;
 }

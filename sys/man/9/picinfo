@@ -9,10 +9,12 @@ picinfo \- print information about picture files
 prints the header information as described in
 .IR picfile (9.6)
 from the named
-.I files.
+.IR files .
 If the file has no
 .B picfile
 header, it tries to guess from its size what sort of
 image it might be.
+.SH SOURCE
+.B /sys/src/fb/picinfo.c
 .SH "SEE ALSO
 .IR picfile (9.6)

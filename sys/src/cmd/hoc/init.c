@@ -48,11 +48,8 @@ static struct {		/* Built-ins */
 	"log10", Log10,	/* checks range */
 	"exp",	Exp,	/* checks range */
 	"sqrt",	Sqrt,	/* checks range */
-	"gamma", Gamma,	/* checks range */
 	"int",	integer,
 	"abs",	fabs,
-	"erf",	erf,
-	"erfc",	erfc,
 	0,	0
 };
 

@@ -114,6 +114,9 @@ asmb(void)
 		Bflush(&bso);
 		if(!debug['s'])
 			asmlc();
+		if(HEADTYPE == 0)	/* round up file length for boot image */
+			if((symsize+lcsize) & 1)
+				CPUT(0);
 		cflush();
 	}
 
@@ -171,7 +174,6 @@ asmsym(void)
 	Auto *a;
 	Sym *s;
 	int h;
-	char name[NNAME];
 
 	s = lookup("etext", 0);
 	if(s->type == STEXT)
@@ -180,6 +182,10 @@ asmsym(void)
 	for(h=0; h<NHASH; h++)
 		for(s=hash[h]; s!=S; s=s->link)
 			switch(s->type) {
+			case SCONST:
+				putsymb(s->name, 'D', s->value, s->version);
+				continue;
+
 			case SDATA:
 				putsymb(s->name, 'D', s->value+INITDAT, s->version);
 				continue;
@@ -203,7 +209,7 @@ asmsym(void)
 			if(a->type == D_FILE)
 				putsymb(a->sym->name, 'z', a->offset, 0);
 			else
-			if(a->type == D_WIM)
+			if(a->type == D_FILE1)
 				putsymb(a->sym->name, 'Z', a->offset, 0);
 
 		if(s->type == STEXT)
@@ -212,8 +218,7 @@ asmsym(void)
 			putsymb(s->name, 'L', s->value, s->version);
 
 		/* frame, auto and param after */
-		strncpy(name, ".frame", NNAME);
-		putsymb(name, 'm', p->to.offset+4, 0);
+		putsymb(".frame", 'm', p->to.offset+4, 0);
 		for(a=p->to.autom; a; a=a->link)
 			if(a->type == D_AUTO)
 				putsymb(a->sym->name, 'a', -a->offset, 0);
@@ -230,30 +235,39 @@ void
 putsymb(char *s, int t, long v, int ver)
 {
 	int i, f;
-	char str[STRINGSZ];
 
 	if(t == 'f')
 		s++;
 	LPUT(v);
 	if(ver)
 		t += 'a' - 'A';
-	CPUT(t);
-	for(i=0; i<NNAME; i++)
-		CPUT(s[i]);
-	CPUT(0);
-	CPUT(0);
-	CPUT(0);
-	symsize += 4 + 1 + NNAME + 3;
+	CPUT(t+0x80);			/* 0x80 is variable length */
+
+	if(t == 'Z' || t == 'z') {
+		CPUT(s[0]);
+		for(i=1; s[i] != 0 || s[i+1] != 0; i += 2) {
+			CPUT(s[i]);
+			CPUT(s[i+1]);
+		}
+		CPUT(0);
+		CPUT(0);
+		i++;
+	}
+	else {
+		for(i=0; s[i]; i++)
+			CPUT(s[i]);
+		CPUT(0);
+	}
+	symsize += 4 + 1 + i + 1;
+
 	if(debug['n']) {
 		if(t == 'z' || t == 'Z') {
-			str[0] = 0;
-			for(i=1; i<NNAME; i+=2) {
+			Bprint(&bso, "%c %.8lux ", t, v);
+			for(i=1; s[i] != 0 || s[i+1] != 0; i+=2) {
 				f = ((s[i]&0xff) << 8) | (s[i+1]&0xff);
-				if(f == 0)
-					break;
-				sprint(strchr(str, 0), "/%x", f);
+				Bprint(&bso, "/%x", f);
 			}
-			Bprint(&bso, "%c %.8lux %s\n", t, v, str);
+			Bprint(&bso, "\n");
 			return;
 		}
 		if(ver)
@@ -368,12 +382,14 @@ datblk(long s, long n)
 		}
 		if(l >= n)
 			continue;
-		for(j=l+(c-i)-1; j>=l; j--)
-			if(buf.dbuf[j]) {
-				print("%P\n", p);
-				diag("multiple initialization\n");
-				break;
-			}
+		if(p->as != AINIT && p->as != ADYNT) {
+			for(j=l+(c-i)-1; j>=l; j--)
+				if(buf.dbuf[j]) {
+					print("%P\n", p);
+					diag("multiple initialization\n");
+					break;
+				}
+		}
 		switch(p->to.type) {
 		default:
 			diag("unknown mode in initialization\n%P\n", p);
@@ -722,7 +738,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		if(p->cond)
 			v = p->cond->pc - p->pc;
 		o1 = OP_BRA(opcode(r), v/4);
-		if(r == ABA && p->link && p->cond && p->link->as == AORN) {
+		if(r == ABA && p->link && p->cond && isnop(p->link)) {
 			o2 = asmout(p->cond, oplook(p->cond), 1);
 			if(o2) {
 				o1 += 1;
@@ -746,7 +762,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		if(r != NREG && r != 15)
 			diag("cant jmpl other than R15\n");
 		o1 = 0x40000000 | ((v/4) & 0x3fffffffL);	/* call */
-		if(p->link && p->cond && p->link->as == AORN) {
+		if(p->link && p->cond && isnop(p->link)) {
 			o2 = asmout(p->cond, oplook(p->cond), 1);
 			if(o2) {
 				o1 += 1;
@@ -957,7 +973,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		if(p->cond)
 			v = p->cond->pc - p->pc;
 		o1 = OP_BRA(opcode(r), v/4);
-		if(p->link && p->cond && p->link->as == AORN)
+		if(p->link && p->cond && isnop(p->link))
 		if(!debug['A']) {
 			o2 = asmout(p->cond, oplook(p->cond), 2);
 			if(o2) {
@@ -1019,6 +1035,20 @@ asmout(Prog *p, Optab *o, int aflag)
 		break;
 	}
 	return 0;
+}
+
+int
+isnop(Prog *p)
+{
+	if(p->as != AORN)
+		return 0;
+	if(p->reg != REGZERO && p->reg != NREG)
+		return 0;
+	if(p->from.type != D_REG || p->from.reg != REGZERO)
+		return 0;
+	if(p->to.type != D_REG || p->to.reg != REGZERO)
+		return 0;
+	return 1;
 }
 
 long
@@ -1161,6 +1191,10 @@ opcode(int a)
 	case AFMOVF:	return OPF1(1);
 	case AFNEGF:	return OPF1(5);
 	case AFABSF:	return OPF1(9);
+
+	case AFSQRTF:	return OPF1(41);
+	case AFSQRTD:	return OPF1(42);
+	case AFSQRTX:	return OPF1(43);
 
 	case AFMOVWF:	return OPF1(196);
 	case AFMOVWD:	return OPF1(200);

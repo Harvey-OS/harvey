@@ -2,6 +2,10 @@
 .SH NAME
 rand, lrand, frand, nrand, lnrand, srand \- random number generator
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .ta \w'\fLdouble 'u
 .B
 int	rand(void)
@@ -24,32 +28,28 @@ void	srand(long seed)
 .I Rand
 returns a uniform pseudo-random
 number
-.I x,
-.if t .RI 0\(<= x <2\u\s715\s10\d.
-.if n 0<=x<2^15.
+.IR x ,
+.RI 0≤ x <2\u\s715\s10\d.
 .PP
 .I Lrand
 returns a uniform
 .B long
-.I x,
-.if t .RI 0\(<= x <2\u\s731\s10\d.
-.if n 0<=x<2^31.
+.IR x ,
+.RI 0≤ x <2\u\s731\s10\d.
 .PP
 .I Frand
 returns a uniform
 .B double
-.I x,
-.if t .RI 0.0\(<= x <1.0,
-.if n 0.0<=x<1.0.
+.IR x ,
+.RI 0.0≤ x <1.0,
 This function calls
 .I lrand
 twice to generate a number with as many as 62 significant bits of mantissa.
 .PP
 .I Nrand
 returns a uniform integer
-.I x,
-.if t .RI 0\(<= x < val.
-.if n 0<=x<val.
+.IR x ,
+.RI 0≤ x < val.
 .I Lnrand
 is the same, but returns a
 .BR long .
@@ -57,12 +57,12 @@ is the same, but returns a
 The algorithm is additive feedback with:
 .IP
 x[n] = (x[n\(mi273] + x[n\(mi607]) mod
-.if t 2\u\s731\s0\d.
-.if n 2^31.
+.if t 2\u\s731\s0\d
+.if n 2^31
 .LP
 giving a period of
-.if t 2\u\s730\s10\d \(mu (2\u\s7607\s10\d \(mi 1).
-.if n 2^30 * (2^607 - 1).
+.if t 2\u\s730\s10\d \(mu (2\u\s7607\s10\d \- 1).
+.if n 2^30 × (2^607 - 1).
 .PP
 The generators are initialized by calling
 .I srand
@@ -81,3 +81,9 @@ srand(1)
 .LP
 will initialize the generators to their
 starting state.
+.SS Alef
+There is no
+.I rand
+in Alef.
+.SH SOURCE
+.B /sys/src/libc/port/rand.c

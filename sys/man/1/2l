@@ -1,13 +1,13 @@
 .TH 2L 1 
 .SH NAME
-2l, 6l, 8l, kl, vl, zl \- loaders
+2l, 6l, 8l, kl, vl, xl \- loaders
 .SH SYNOPSIS
 .B 2l
 [
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
 .br
 .B 6l
@@ -15,7 +15,7 @@
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
 .br
 .B 8l
@@ -23,7 +23,7 @@
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
 .br
 .B kl
@@ -31,7 +31,7 @@
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
 .br
 .B vl
@@ -39,17 +39,16 @@
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
 .br
-.B zl
+.B xl
 [
 .I option ...
 ]
 [
-.I name ...
+.I file ...
 ]
-.br
 .SH DESCRIPTION
 .IR 2l ,
 .IR 6l ,
@@ -57,8 +56,11 @@
 .IR kl ,
 .IR vl ,
 and
-.I zl
-load the named files into MC68020, i960, i386, SPARC, MIPS, and Hobbit executable files.
+.IR xl
+load the named
+.I files
+into MC68020, i960, i386, SPARC, MIPS,
+and ATT3210 executable files.
 The files should be object files or libraries (archives of object files)
 for the appropriate architecture.
 Also, a name like
@@ -76,18 +78,21 @@ is one of
 .BR sparc ,
 .BR mips ,
 or
-.B hobbit .
-In practice, such options are rarely necessary as the header files for
+.BR 3210 .
+The libraries must have tables of contents
+(see
+.IR ar (1)).
+.PP
+In practice, 
+.B -l
+options are rarely necessary as the header files for
 the libraries cause their archives to be included automatically in the load
 (see
 .IR 2c (1)).
-The libraries must have tables of contents
-(see
-.IR rl (1)).
-.PP
-Normally there is an implicit
-.B -lc
-after the named files to search the C library
+For example, any program that includes header file
+.B libc.h
+causes the loader
+to search the C library
 .BR /$objtype/lib/libc.a .
 Also, the loader creates an undefined symbol
 .B _main
@@ -96,23 +101,40 @@ Also, the loader creates an undefined symbol
 if profiling is enabled) to force loading of the
 startup linkage from the C library.
 .PP
+The order of search to resolve undefined symbols is to load all files and libraries
+mentioned explicitly on the command line, and then to resolve remaining symbols
+by searching in topological order
+libraries mentioned in header files included by files already loaded.
+When scanning such libraries, the algorithm is to scan each library repeatedly until
+no new undefined symbols are picked up, then to start on the next library.  Thus if library
+.I A
+needs
+.I B
+which needs
+.I A
+again, it may be necessary to mention
+.I A
+explicitly so it will be read a second time.
+.PP
 The loader options are:
 .TP 1i
 .B -l
 (As a bare option.)
-Suppress the default loading of the C library and startup linkage.
+Suppress the default loading of the startup linkage and libraries
+specified by header files.
 .TP
 .BI -o " out"
 Place output in file
-.I out.
+.IR out .
 Default is
-.IB O .out,
+.IB O .out\f1,
 where
 .I O
 is the first letter of the loader name.
 .TP
 .B -p
-Insert profiling code into the executable output.
+Insert profiling code into the executable output; no special action is needed
+during compilation or assembly.
 .TP
 .B -s
 Strip the symbol tables from the output file.
@@ -123,17 +145,46 @@ Print the object code in assembly language, with addresses.
 .B -v
 Print debugging output that annotates the activities of the load.
 .TP
+.BI -c function
+.RI ( Xl
+only) Place the
+.I function
+in the internal RAM of the DSP3210.
+.TP
+.BI -M
+.RI ( Kl
+only) Generate instructions rather than calls to emulation routines
+for multiply and divide.
+.TP
+.BI -m size
+.RI ( Xl
+only) Use
+.I size
+(default 0, maximum 8192)
+bytes of internal RAM of the DSP3210 for functions and small data items.
+.TP
+.BI -E symbol
+The entry point for the binary is
+.I symbol
+(default
+.BR _main ;
+.B _mainp
+under
+.BR -p ).
+.TP
 .BI -H n
 Executable header is type
 .IR n .
 The meaning of the types is architecture-dependent; typically
 type 1 is Plan 9 boot format and type 2 is the
 regular Plan 9 format, the default.  These are reversed on the MIPS.
-The Next boot format is 3.
+The Next boot format is 3.  Type 4 in
+.I vl
+creates a MIPS executable for an SGI Unix system.
 .TP
 .BI -T t
 The text segment starts at address
-.I t.
+.IR t .
 .TP
 .BI -D d
 The data segment starts at address
@@ -153,6 +204,17 @@ or
 to change the default base from decimal to hexadecimal or octal.
 The defaults for the values depend on the compiler and the
 header type.
+.PP
+The loaded image has several symbols inserted by the loader:
+.B etext
+is the address of the end of the text segment;
+.B bdata
+is the address of the beginning of the data segment;
+.B edata
+is the address of the end of the data segment;
+and
+.B end
+is the address of the end of the bss segment, and of the program.
 .SH FILES
 .TF /$objtype/lib
 .TP
@@ -160,11 +222,14 @@ header type.
 for
 .BI -l lib
 arguments.
+.SH SOURCE
+.B /sys/src/cmd/2l
+etc.
 .SH "SEE ALSO"
 .IR 2c (1),
 .IR 2a (1),
+.IR alef (1),
 .IR ar (1),
-.IR rl (1),
 .IR nm (1),
 .IR db (1),
 .IR prof (1)

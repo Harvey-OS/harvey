@@ -8,10 +8,10 @@
 extern "C" {
 #endif
 
-extern int _assert(char *f, unsigned l);
+extern void _assert(char *f, unsigned l);
 
 #ifdef __cplusplus
 }
 #endif
-#define assert(e) ((void)((e)||_assert(__FILE__, __LINE__)))
+#define assert(e) {if(!(e))_assert(__FILE__, __LINE__);}
 #endif /* NDEBUG */

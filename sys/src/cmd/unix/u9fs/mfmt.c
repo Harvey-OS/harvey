@@ -44,8 +44,6 @@ struct{
 	Rwstat,		"Rwstat",
 	Tclwalk,	"Tclwalk",
 	Rclwalk,	"Rclwalk",
-	Tauth,		"Tauth",
-	Rauth,		"Rauth",
 	0,		0
 };
 
@@ -133,9 +131,6 @@ mfmt(Fcall *f)
 			case Tclwalk:
 				sprintf(n, " tag %d fid %d newfid %d name %s",
 					f->tag, f->fid, f->newfid, f->name);
-				break;
-			case Tauth:
-			case Rauth:	/* no idea */
 				break;
 			default:
 				error("mfmt");

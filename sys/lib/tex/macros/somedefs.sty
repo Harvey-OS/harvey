@@ -1,0 +1,55 @@
+%% 
+%% This is file `somedefs.sty', generated 
+%% on <1995/2/23> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% somedefs.dtx  (with options: `package')
+%% 
+%% IMPORTANT NOTICE: 
+%% This file is part of the `tools' bundle 
+%% in the LaTeX2e distribution. 
+%% 
+%% You are not allowed to distribute this file. 
+%% For distribution of the original source see 
+%% the copyright notice in the source file, and 
+%% in the file readme.txt distributed with the 
+%% tools bundle. 
+%% 
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{somedefs}[1994/06/01 Toolkit for optional definitions]
+\def\UseSomeDefinitions{%
+   \let\ProvidesDefinition\@providesdefinition
+}
+\def\UseAllDefinitions{%
+   \let\ProvidesDefinition\@firstofone
+}
+\def\UseDefinition#1{%
+   \expandafter\let\csname#1\endcsname\@unprovided@definition
+}
+\def\ProvidesDefinition#1{%
+   \PackageError{somedefs}%
+     {No \noexpand\UseSomeDefinitions or \string\UseAllDefinitions}%
+     {The package which used the `somedefs' package has an error.}%
+}
+\def\@providesdefinition#1{\@provides@definition#1\relax
+   \@provides@definition}
+\def\@provides@definition#1#2#3\@provides@definition{%
+   \ifx#2\@unprovided@definition
+      #1#2#3%
+   \fi
+}
+\def\@unprovided@definition{%
+   \PackageError{somedefs}%
+     {Package `somedefs' error: this command was never defined}%
+     {You have requested a command which does not exist.}%
+}
+\@onlypreamble\UseSomeDefinitions
+\@onlypreamble\UseAllDefinitions
+\@onlypreamble\UseDefinition
+\@onlypreamble\ProvidesDefinition
+\@onlypreamble\@providesdefinition
+\@onlypreamble\@provides@definition
+\endinput
+%% 
+%% End of file `somedefs.sty'.

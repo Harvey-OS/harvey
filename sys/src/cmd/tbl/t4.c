@@ -28,10 +28,10 @@ getspec(void)
 	oncol = 0;
 	left1flg = rightl = 0;
 	readspec();
-	fprintf(tabout, ".rm");
+	Bprint(&tabout, ".rm");
 	for (i = 0; i < ncol; i++)
-		fprintf(tabout, " %2s", reg(i, CRIGHT));
-	fprintf(tabout, "\n");
+		Bprint(&tabout, " %2s", reg(i, CRIGHT));
+	Bprint(&tabout, "\n");
 }
 
 
@@ -105,11 +105,11 @@ readspec(void)
 			if (c == 's' && icol <= 0)
 				error("first column can not be S-type");
 			if (c == 's' && style[icol-1][nclin] == 'a') {
-				fprintf(tabout, ".tm warning: can't span a-type cols, changed to l\n");
+				Bprint(&tabout, ".tm warning: can't span a-type cols, changed to l\n");
 				style[icol-1][nclin] = 'l';
 			}
 			if (c == 's' && style[icol-1][nclin] == 'n') {
-				fprintf(tabout, ".tm warning: can't span n-type cols, changed to c\n");
+				Bprint(&tabout, ".tm warning: can't span n-type cols, changed to c\n");
 				style[icol-1][nclin] = 'c';
 			}
 			icol++;
@@ -228,7 +228,7 @@ readspec(void)
 		   of different widths now ....
 			if (*snp)
 				{
-				fprintf(tabout, "Ignored second width specification");
+				Bprint(&tabout, "Ignored second width specification");
 				continue;
 				}
 		/* end commented out code ... */
@@ -305,7 +305,7 @@ findcol(void)
 	char	*s, line[FLNLIM+2], *p;
 	int	c, n = 0, inpar = 0;
 
-	while ((c = get1char()) != EOF && c == ' ')
+	while ((c = get1char()) != 0 && c == ' ')
 		;
 	if (c != '\n')
 		un1getc(c);
@@ -314,7 +314,7 @@ findcol(void)
 			inpar = 0;
 		if (inpar) 
 			continue;
-		if (c == '\n' || c == EOF || c == '.' || c == ',')
+		if (c == '\n' || c == 0 || c == '.' || c == ',')
 			break;
 		else if (c == '(')
 			inpar = 1;

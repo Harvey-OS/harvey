@@ -32,16 +32,20 @@ struct Unit
 	Rendez;
 	uchar	unaligned;
 	uchar	rw;
-	uchar	*cmd;
+	uchar*	cmd;
 	ulong	cbytes;
-	uchar	*data;
+	uchar*	data;
 	ulong	dbytes;
 	ulong	dio;
-	void	*buf;
+	void*	buf;
 	int	phase;
 	int	done;
 	uchar	sel;
 	Drive;
+	/*
+	 * fix MAXTOR and EMULEX compatibility problems
+	 */
+	int	noattn;
 };
 
 struct Ctrl
@@ -295,6 +299,30 @@ issue(Ctrl *c, Unit *u)
 	u->sel = 0;
 }
 
+void
+reissue(Ctrl *c, Unit *u)
+{
+	int i;
+	SCSIdev *dev;
+	DMAdev *dma;
+
+	dev = c->dev;
+	dma = c->dma;
+
+	c->run = u;				/* This unit is running */
+	dev->cmd = Flush;
+	dev->cmd = Dma|Nop;
+	dma->csr = Dma_Flush|Int_en;
+	initdp(dev);
+
+	for(i = 0; i < u->cbytes; i++)
+		dev->fifo = u->cmd[i];
+
+	dev->destid = u-c->drive;
+	dev->cmd = u->sel;
+	u->sel = 0;
+}
+
 int
 scsiio(Device d, int rw, uchar *cmd, int cbytes, void *data, int dbytes)
 {
@@ -320,18 +348,17 @@ retry:
 	u->dio = 0;
 	u->phase = 0;
 	u->done = 0;
-	
+
 	switch(cmd[0]) {
-/* This will be fixed sometime, various people report the intr state
-   machine has problems dealing with some drives.
 	case ScsiRead:
 	case ScsiWrite:
 		u->sel = SelectATN;
 		break;
-*/
 	default:
 		u->sel = Select;
 	}
+	if(u->noattn)
+		u->sel = Select;
 
 	if(ALIGNED((ulong)data, dbytes) == 0){
 		if(u->rw == ScsiOut)
@@ -353,7 +380,7 @@ retry:
 	u->work.count++;
 	u->rate.count += dbytes;
 
-	sleep(u, done, u);
+	tsleep(u, done, u, 60*1000);
 
 	status = u->phase;
 	if(status == 0x6000)
@@ -400,11 +427,16 @@ setdma(Ctrl *c, Unit *u)
 }
 
 static void
-scsimoan(char *msg, int status, int intr, int dmacsr)
+scsimoan(Unit *u, char *msg, int status, int intr, int dmacsr)
 {
 	print("scsiintr: %s:", msg);
 	print(" status=%2.2ux step/intr=%3.3ux", status, intr);
 	print(" dma=%8.8ux\n", dmacsr);
+	if(u->noattn)
+		return;
+
+	print("%D: reverting to non-disconnecting mode\n", u->dev);
+	u->noattn = 1;
 }
 
 static uchar
@@ -474,12 +506,12 @@ uchar msg;
 
 	if(intr & 0x80){			/* bus reset */
 		dev->cmd = Nop;
-		goto buggery;
+		goto baderror;
 	}
 
 	if(dbg) {	
 		print("cmd = #%2.2ux phase=#%2.2ux ", dev->cmd, u->phase>>8);
-		scsimoan("debug", status, intr, csr);
+		scsimoan(u, "debug", status, intr, csr);
 	}
 
 	phase = status & 0x07;
@@ -488,23 +520,28 @@ uchar msg;
 	case 0x00:				/* select issued */
 		switch(intr){
 		default:
-			scsimoan("bad case", status, intr, csr);
+			scsimoan(u, "bad case", status, intr, csr);
 			print("cmd = #%2.2ux\n", dev->cmd);
 			reset(c, 0);
 			busreset(c);
-			goto buggery;
+			goto baderror;
 
 		case 0x020:			/* timed out */
 			dev->cmd = Flush;
 			u->phase = 0x0100;
-			goto buggery;
+			goto baderror;
+
+		case 0x320:			/* Not understood Emulex problem */
+			u->noattn = 0;
+			reissue(c, u);
+			return;
 
 		case 0x218:			/* complete, no cmd phase */
 		case 0x318:			/* short cmd phase */
-			scsimoan("cmd phase", status, intr, csr);
+			scsimoan(u, "cmd phase", status, intr, csr);
 			reset(c, 0);
 			u->phase = 0x6002;
-			goto buggery;
+			goto baderror;
 
 		case 0x418:			/* select complete */
 			u->phase = 0x4100;
@@ -520,11 +557,11 @@ uchar msg;
 				msg = getmsg(dev);
 				if(msg != Msgdisco) {
 					print("message #%2.2ux\n", msg);
-					scsimoan("not disconnect", status, intr, csr);
+					scsimoan(u, "not disconnect", status, intr, csr);
 					delay(20000);
 					reset(c, 0);
 					busreset(c);
-					goto buggery;
+					goto baderror;
 				}
 				dev->cmd = Msgaccept;
 				return;
@@ -535,8 +572,8 @@ uchar msg;
 				return;
 			}
 		}
-		scsimoan("weird phase after cmd", status, intr, csr);
-		goto buggery;
+		scsimoan(u, "weird phase after cmd", status, intr, csr);
+		goto baderror;
 
 	case 0x41:		/* data transfer, done or diconnect */
 		switch(intr) {
@@ -563,7 +600,7 @@ uchar msg;
 		case 0x410:			/* Bus service required */
 			switch(phase) {
 			default:
-				scsimoan("bad service phase", status, intr, csr);
+				scsimoan(u, "bad service phase", status, intr, csr);
 				break;
 			case SP_status:
 				break;
@@ -591,7 +628,7 @@ uchar msg;
 					return;
 				}
 				print("msg #%2.2ux", id);
-				scsimoan("bad msg", status, intr, csr);
+				scsimoan(u, "bad msg", status, intr, csr);
 				return;
 			}
 			/* FALLTHROUGH */
@@ -606,8 +643,8 @@ uchar msg;
 			drain(u, dma, csr);
 		}
 		if(phase != SP_status){
-			scsimoan("weird phase after xfr", status, intr, csr);
-			goto buggery;
+			scsimoan(u, "weird phase after xfr", status, intr, csr);
+			goto baderror;
 		}
 		dev->cmd = Cmdcomplete;
 		return;
@@ -615,14 +652,14 @@ uchar msg;
 	case 0x46:				/* Cmdcomplete issued */
 		switch(phase) {
 		default:
-			scsimoan("bad status phase", status, intr, csr);
+			scsimoan(u, "bad status phase", status, intr, csr);
 			break;
 		case SP_msgin:
 			if((dev->fflags&0x1f) != 2)
-				scsimoan("werird fifo", status, intr, csr);
+				scsimoan(u, "werird fifo", status, intr, csr);
 			u->phase = 0x6000|getmsg(dev);
 			if(getmsg(dev) != 0x00)
-				scsimoan("expected command complete", status, intr, csr);
+				scsimoan(u, "expected command complete", status, intr, csr);
 			dev->cmd = Msgaccept;
 			break;
 		}
@@ -630,12 +667,12 @@ uchar msg;
 
 	case 0x60:				/* Msgaccept was issued */
 		if(intr != 0x420)
-			scsimoan("bad termination state", status, intr, csr);
+			scsimoan(u, "bad termination state", status, intr, csr);
 		u->done = 1;
 		wakeup(u);
 		return;
 	}
-buggery:
+baderror:
 	u->done = 1;
 	wakeup(u);
 }

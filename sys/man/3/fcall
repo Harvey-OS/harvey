@@ -33,3 +33,5 @@ by a file server.
 .IR ip (3),
 .IR exportfs (4),
 .IR srv (4)
+.SH SOURCE
+.B /sys/src/9/port/stfcall.c

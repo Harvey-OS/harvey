@@ -13,6 +13,8 @@ dodata(void)
 	Bflush(&bso);
 	for(p = datap; p != P; p = p->link) {
 		s = p->from.sym;
+		if(p->as == ADYNT || p->as == AINIT)
+			s->value = dtype;
 		if(s->type == SBSS)
 			s->type = SDATA;
 		if(s->type != SDATA)
@@ -109,8 +111,6 @@ brchain(Prog *p)
 void
 follow(void)
 {
-	Prog *p;
-	long o;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f follow\n", cputime());
@@ -120,22 +120,6 @@ follow(void)
 	xfol(textp);
 	lastp->link = P;
 	firstp = firstp->link;
-	o = 0; /* set */
-	for(p = firstp; p != P; p = p->link) {
-		if(p->as == ATEXT)
-			curtext = p;
-
-		p->stkoff = -1;	/* initialization for stkoff */
-		if(p->as == ATEXT) {
-			p->stkoff = 0;
-			o = p->to.offset;
-			continue;
-		}
-		if(p->as == AADJSP && p->from.offset == 0) {
-			p->stkoff = o;
-			continue;
-		}
-	}
 }
 
 void
@@ -169,8 +153,21 @@ loop:
 				i--;
 				continue;
 			}
-			if(a == AJMP || a == ARET || a == AIRETL)
-				break;
+			switch(a) {
+			case AJMP:
+			case ARET:
+			case AIRETL:
+
+			case APUSHL:
+			case APUSHFL:
+			case APUSHW:
+			case APUSHFW:
+			case APOPL:
+			case APOPFL:
+			case APOPW:
+			case APOPFW:
+				goto brk;
+			}
 			if(q->cond == P || q->cond->mark)
 				continue;
 			if(a == ACALL || a == ALOOP)
@@ -187,6 +184,7 @@ loop:
 				lastp = q;
 				if(q->as != a || q->cond == P || q->cond->mark)
 					continue;
+
 				q->as = relinv(q->as);
 				p = q->cond;
 				q->cond = q->link;
@@ -198,6 +196,7 @@ loop:
 				goto loop;
 			}
 		} /* */
+	brk:;
 		q = prg();
 		q->as = AJMP;
 		q->line = p->line;
@@ -302,7 +301,7 @@ patch(void)
 	for(p = firstp; p != P; p = p->link) {
 		if(p->as == ATEXT)
 			curtext = p;
-		if(p->as == ACALL) {
+		if(p->as == ACALL || p->as == ARET) {
 			s = p->to.sym;
 			if(s) {
 				if(s->type != STEXT) {
@@ -402,108 +401,157 @@ void
 dostkoff(void)
 {
 	Prog *p, *q;
-	long s, t;
-	int a;
+	long autoffset, deltasp;
+	int a, f, curframe, curbecome, maxbecome;
 
-	if(debug['v'])
-		Bprint(&bso, "%5.2f stkoff\n", cputime());
-	Bflush(&bso);
-	s = 0;
+	curframe = 0;
+	curbecome = 0;
+	maxbecome = 0;
+	curtext = 0;
+	for(p = firstp; p != P; p = p->link) {
+
+		/* find out how much arg space is used in this TEXT */
+		if(p->to.type == (D_INDIR+D_SP))
+			if(p->to.offset > curframe)
+				curframe = p->to.offset;
+
+		switch(p->as) {
+		case ATEXT:
+			if(curtext && curtext->from.sym) {
+				curtext->from.sym->frame = curframe;
+				curtext->from.sym->become = curbecome;
+				if(curbecome > maxbecome)
+					maxbecome = curbecome;
+			}
+			curframe = 0;
+			curbecome = 0;
+
+			curtext = p;
+			break;
+
+		case ARET:
+			/* special form of RET is BECOME */
+			if(p->from.type == D_CONST)
+				if(p->from.offset > curbecome)
+					curbecome = p->from.offset;
+			break;
+		}
+	}
+	if(curtext && curtext->from.sym) {
+		curtext->from.sym->frame = curframe;
+		curtext->from.sym->become = curbecome;
+		if(curbecome > maxbecome)
+			maxbecome = curbecome;
+	}
+
+	if(debug['b'])
+		print("max become = %d\n", maxbecome);
+	xdefine("ALEFbecome", STEXT, maxbecome);
+
+	curtext = 0;
+	for(p = firstp; p != P; p = p->link) {
+		switch(p->as) {
+		case ATEXT:
+			curtext = p;
+			break;
+		case ACALL:
+			if(curtext != P && curtext->from.sym != S && curtext->to.offset >= 0) {
+				f = maxbecome - curtext->from.sym->frame;
+				if(f <= 0)
+					break;
+				/* calling a become or calling a variable */
+				if(p->to.sym == S || p->to.sym->become) {
+					curtext->to.offset += f;
+					if(debug['b']) {
+						curp = p;
+						print("%D calling %D increase %d\n",
+							&curtext->from, &p->to, f);
+					}
+				}
+			}
+			break;
+		}
+	}
+
+	autoffset = 0;
+	deltasp = 0;
 	for(p = firstp; p != P; p = p->link) {
 		if(p->as == ATEXT) {
 			curtext = p;
-			s = p->to.offset;
-			if(s == 0)
-				continue;
-			p = appendp(p);
-			p->as = AADJSP;
-			p->from.type = D_CONST;
-			p->from.offset = s;
-			p->stkoff = 0;
-			continue;
-		}
-		t = 0;
-		for(q = p; q != P; q = q->cond) {
-			if(q->as == ATEXT)
-				break;
-			if(q->stkoff >= 0)
-				if(q->stkoff != s)
-					diag("stack offset %ld is %ld sb %ld in %s\n%P\n",
-						q->pc, q->stkoff, s, q, TNAME, p);
-			q->stkoff = s;
-			t++;
-			if(t > 10)
-				break;
-		}
-		switch(p->as) {
-		case AADJSP:
-			s += p->from.offset;
-			break;
-		case APUSHL:
-		case APUSHFL:
-			s += 4;
-			break;
-		case APUSHW:
-		case APUSHFW:
-			s += 2;
-			break;
-		case APOPL:
-		case APOPFL:
-			s -= 4;
-			break;
-		case APOPW:
-		case APOPFW:
-			s -= 2;
-			break;
-		}
-		for(q = p->link; q != P; q = q->cond) {
-			if(q->as == ATEXT) {
-				q = P;
-				break;
+			autoffset = p->to.offset;
+			if(autoffset < 0)
+				autoffset = 0;
+			if(autoffset) {
+				p = appendp(p);
+				p->as = AADJSP;
+				p->from.type = D_CONST;
+				p->from.offset = autoffset;
 			}
-			if(q->stkoff >= 0)
-				break;
+			deltasp = autoffset;
 		}
-		if(q == P || q->stkoff == s)
-			continue;
-		if(p->as == AJMP || p->as == ARET || p->as == AIRETL) {
-			s = q->stkoff;
-			continue;
-		}
-		t = q->stkoff - s;
-		s = q->stkoff;
-		p = appendp(p);
-		p->as = AADJSP;
-		p->stkoff = s - t;
-		p->from.type = D_CONST;
-		p->from.offset = t;
-	}
-
-	for(p = firstp; p != P; p = p->link) {
-		if(p->as == ATEXT)
-			curtext = p;
 		a = p->from.type;
 		if(a == D_AUTO)
-			p->from.offset += p->stkoff;
+			p->from.offset += deltasp;
 		if(a == D_PARAM)
-			p->from.offset += p->stkoff + 4;
+			p->from.offset += deltasp + 4;
 		a = p->to.type;
 		if(a == D_AUTO)
-			p->to.offset += p->stkoff;
+			p->to.offset += deltasp;
 		if(a == D_PARAM)
-			p->to.offset += p->stkoff + 4;
-		if(p->as != ARET)
+			p->to.offset += deltasp + 4;
+
+		switch(p->as) {
+		default:
 			continue;
-		if(p->stkoff == 0)
+		case APUSHL:
+		case APUSHFL:
+			deltasp += 4;
 			continue;
+		case APUSHW:
+		case APUSHFW:
+			deltasp += 2;
+			continue;
+		case APOPL:
+		case APOPFL:
+			deltasp -= 4;
+			continue;
+		case APOPW:
+		case APOPFW:
+			deltasp -= 2;
+			continue;
+		case ARET:
+			break;
+		}
+
+		if(autoffset != deltasp)
+			diag("unbalanced PUSH/POP");
+		if(p->from.type == D_CONST)
+			goto become;
+
+		if(autoffset) {
+			q = p;
+			p = appendp(p);
+			p->as = ARET;
+
+			q->as = AADJSP;
+			q->from.type = D_CONST;
+			q->from.offset = -autoffset;
+		}
+		continue;
+
+	become:
 		q = p;
 		p = appendp(p);
-		p->as = ARET;
-		p->stkoff = 0;
+		p->as = AJMP;
+		p->to = q->to;
+		p->cond = q->cond;
 
 		q->as = AADJSP;
+		q->from = zprg.from;
 		q->from.type = D_CONST;
-		q->from.offset = -q->stkoff;
+		q->from.offset = -autoffset;
+		q->to = zprg.to;
+		continue;
 	}
 }
 

@@ -1,10 +1,16 @@
 #include "common.h"
 
+/*
+ *  WARNING!  This turns all upper case names into lower case
+ *  local ones.
+ */
+
 /* predeclared */
 static String	*getdbfiles(void);
 static int	translate(char*, char*, String*, String*);
 static int	lookup(char*, String*, 	String*, String*);
 static int	compare(String*, char*);
+static char*	mklower(char*);
 
 static int debug;
 #define DEBUG if(debug)
@@ -39,6 +45,7 @@ main(int argc, char *argv[])
 
 	/* loop through the names to be translated (from standard input) */
 	for(i=0; i<argc; i++) {
+		mklower(argv[i]);
 		rv = translate(argv[i], thissys, files, alias);
 		if (rv < 0 || *s_to_c(alias) == '\0')
 			print("local!%s\n", argv[i]);
@@ -162,8 +169,9 @@ lookup(	char *name,
 	return rv;
 }
 
-/* compare two Strings (case insensitive) */
 #define lower(c) ((c)>='A' && (c)<='Z' ? (c)-('A'-'a'):(c))
+
+/* compare two Strings (case insensitive) */
 static int
 compare(String *s1,
 	char *p2)
@@ -179,4 +187,17 @@ compare(String *s1,
 		p2++;
 	}
 	return rv;
+}
+
+char*
+mklower(char *name)
+{
+	char *p;
+	char c;
+
+	for(p = name; *p; p++){
+		c = *p;
+		*p = lower(c);
+	}
+	return name;
 }

@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <libg.h>
+#include <auth.h>
 #include <fcall.h>
 #include <bio.h>
 
@@ -112,7 +113,7 @@ main(int argc, char **argv)
 		close(bitfd);
 	}
 
-	if(mount(p[0], "/dev", MBEFORE, "", "") < 0) {
+	if(mount(p[0], "/dev", MBEFORE, "") < 0) {
 		fprint(2, "%s: error mounting on /dev: %r\n", argv0);
 		exits("can't mount\n");
 	}
@@ -126,9 +127,9 @@ main(int argc, char **argv)
 	wpid = wait(&w);
 	if(wpid > 0) {
 		if(wpid == rcpid)
-			postnote(srvpid, "kill");
+			postnote(PNPROC, srvpid, "kill");
 		else
-			postnote(rcpid, "kill");
+			postnote(PNPROC, rcpid, "kill");
 	}
 	exits(0);
 }
@@ -150,16 +151,17 @@ srv(void)
 		nf = 0;
 		switch(rhdr.type) {
 		case Tflush:
-		case Tsession:
 		case Tnop:
+			break;
+		case Tsession:
+			memset(thdr.authid, 0, sizeof(thdr.authid));
+			memset(thdr.authdom, 0, sizeof(thdr.authdom));
+			memset(thdr.chal, 0, sizeof(thdr.chal));
 			break;
 		case Tcreate:
 		case Tremove:
 		case Twstat:
 			err = "permission denied";
-			break;
-		case Tauth:
-			err = "no authentication";
 			break;
 		case Tattach:
 			f->qidpath = Qroot;
@@ -654,7 +656,7 @@ dumpbmrows(uchar *p, int bytes2row, int ldepth, Rectangle r)
 	Bprint(f, "%11d %11d %11d %11d %11d ",
 		ldepth, r.min.x, r.min.y, r.max.x, r.max.y);
 	Bwrite(f, p, Dy(r)*bytes2row);
-	Bclose(f);
+	Bterm(f);
 }
 
 void
@@ -763,6 +765,6 @@ catcher(void *a, char *text)
 	USED(a);
 	if(strcmp(text, "interrupted") != 0)
 		if(srvpid)
-			postnote(srvpid, text);
+			postnote(PNPROC, srvpid, text);
 	noted(NDFLT);
 }

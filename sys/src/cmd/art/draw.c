@@ -25,7 +25,7 @@ void marks(void){
 	int i;
 	if(sqmark==0){
 		sqmark=balloc(Rect(0, 0, 3, 3), 0);
-		clrb(sqmark, sqmark->r, FAINT);
+		clrb(sqmark, sqmark->r, faint);
 	}
 	if(narg>1){
 		p0=D2P(dadd(arg[0], scoffs));
@@ -33,9 +33,9 @@ void marks(void){
 		if(!eqpt(p0, p1))
 			bitblt(&screen, Pt(p1.x-1, p1.y-1), sqmark, sqmark->r, S^D);
 		if(narg>2 && !eqpt(p0, p2=D2P(dadd(arg[2], scoffs))) && !eqpt(p1, p2)){
-			segment(&screen, sub(p2, Pt(2, 2)), add(p2, Pt(3, 3)), FAINT, S^D);
-			segment(&screen, sub(p2, Pt(2, -2)), p2, FAINT, S^D);
-			segment(&screen, sub(p2, Pt(-2, 2)), p2, FAINT, S^D);
+			segment(&screen, sub(p2, Pt(2, 2)), add(p2, Pt(3, 3)), faint, S^D);
+			segment(&screen, sub(p2, Pt(2, -2)), p2, faint, S^D);
+			segment(&screen, sub(p2, Pt(-2, 2)), p2, faint, S^D);
 		}
 	}
 	p0=D2P(dadd(anchor, scoffs));
@@ -57,12 +57,12 @@ void redraw(void){
 	bitblt(&screen, screen.r.min, sel, sel->r, S);
 	drawmenubar();
 	echo(cmd);
-	msg(cmdname);
+	lastmsg();
 	if(scsp!=scstack)
-		draw(scstack[0].scene, scstack[0].scoffs, DARK, S|D);
+		draw(scstack[0].scene, scstack[0].scoffs, dark, S|D);
 	else
-		draw(scene, scoffs, DARK, S|D);
-	draw(active, Dpt(0., 0.), FAINT, S|D);
+		draw(scene, scoffs, dark, S|D);
+	draw(active, Dpt(0., 0.), faint, S|D);
 	drawcurpt();
 	marks();
 	drawsel();
@@ -73,7 +73,7 @@ void setbg(char *file){
 	PICFILE *f=picopen_r(file);
 	if(f==0){
 	NoGood:
-		picerror(file);
+		perror(file);
 		exits("can't get background");
 	}
 	bg=rdpicfile(f, screen.ldepth);

@@ -9,6 +9,7 @@
 void
 gendata(Node *n)
 {
+	Type *t;
 	Inst *i;
 	ulong s;
 
@@ -31,12 +32,13 @@ gendata(Node *n)
 	case ONAME:
 		switch(n->t->class) {
 		case Internal:
-		case External:
+		case Global:
 			iline = n->srcline;
+			t = n->t;
 			if(n->init)
-				doinit(n, n->t, n->init, 0);
+				doinit(n, t, n->init, 0);
 
-			s = n->t->size;
+			s = t->size;
 			if(s == 0)
 				break;
 			if(s & (Align_data-1))
@@ -294,12 +296,16 @@ genaddr(Node *expr, Node *dst)
 		genexp(expr->left, dst);
 		return;
 	}
+
+	n.srcline = expr->srcline;
+
 	if(isaddr(expr) == 0) {
 		tmp = stknode(expr->t);
 		n.type = OASGN;
 		n.t = tmp->t;
 		n.left = tmp;
 		n.right = expr;
+		n.islval = 0;
 		genexp(&n, ZeroN);
 		expr = tmp;
 	}
@@ -454,6 +460,79 @@ docall(Node *n)
 	regfree(&ratv);
 }
 
+void
+become(Node *rval)
+{
+	Node nl;
+	Node *l, *r, *ns, *tmp;
+
+	tmp = rval->left;
+	r = tmp->right;
+	l = tmp->left;
+
+	if(opt('b')) {
+		print("BECOME:\n");
+		ptree(rval, 0);
+	}
+
+	tmp = ZeroN;
+	if(!isaddr(l)) {
+		tmp = stknode(builtype[TIND]);
+		genaddr(l, tmp);
+	}
+
+	/* Generate the alias saves */
+	genelist(rval->right);
+
+	evalarg(r, 0);
+
+	/*
+	 * Write out tail recursion
+	 */
+	if(l->type == ONAME && curfunc->sym == l->sym) {
+		tip = block[Scope];
+		evalarg(r, 4);
+		instruction(AJMP, ZeroN, ZeroN, ZeroN);
+		label(ipc, becomentry->pc+1);
+		return;
+	}
+
+	ns = an(ONAME, ZeroN, ZeroN);
+	ns->sym = malloc(sizeof(Sym));
+	ns->sym->name = ".xframe";
+	ns->ti = ati(builtype[TADT], Parameter);
+	ns->ti->offset = 0;
+	ns->t = builtype[TINT];
+	ns = an(OADDR, ns, nil);
+	sucalc(ns);
+
+	reg(&ratv, builtype[TIND], ZeroN);
+	ratv.ival = Parambase;
+	genexp(ns, &ratv);
+	evalarg(r, 3);
+	regfree(&ratv);
+
+	/* Restore the complex pointer */
+	switch(curfunc->t->next->type) {
+	case TADT:
+	case TUNION:
+	case TAGGREGATE:
+		assign(rnode, regn(Regspass));
+		break;
+	}
+
+	if(tmp) {
+		reg(&nl, builtype[TIND], ZeroN);
+		assign(tmp, &nl);
+		nl.type = OINDREG;
+		nl.ival = 0;
+		instruction(ARET, con(ratv.ival), ZeroN, &nl);
+		regfree(&nl);
+	}
+	else
+		instruction(ARET, con(ratv.ival), ZeroN, l);
+}
+
 /*
  * Compile code expressions
  */
@@ -489,7 +568,7 @@ genexp(Node *rval, Node *lval)
 	if(l->sun >= Sucall)
 	if(r && r->sun >= Sucall)
 	switch(rval->type) {
-	case OFUNC:
+	case OCALL:
 	case OLAND:
 	case OLOR:
 		break;
@@ -497,10 +576,8 @@ genexp(Node *rval, Node *lval)
 	default:
 		regret(&nspare, r->t);
 		genexp(r, &nspare);
-
 		nstack = stknode(r->t);
 		assign(&nspare, nstack);
-
 		regfree(&nspare);
 		nspare = *rval;
 		nspare.right = nstack;
@@ -511,6 +588,15 @@ genexp(Node *rval, Node *lval)
 	switch(rval->type) {
 	default:
 		fatal("genexp: %N", rval);
+		break;
+
+	case OBLOCK:
+		bstmnt(l);
+		genexp(r, lval);
+		break;
+
+	case OBECOME:
+		become(rval);
 		break;
 
 	case ODOT:
@@ -695,6 +781,10 @@ genexp(Node *rval, Node *lval)
 			warn(rval, "result ignored");
 			break;
 		}
+
+		if(rval->type == OMUL && mulcon(rval, lval))
+			break;
+
 		if(l->sun >= r->sun) {
 			reg(&nl, l->t, lval);
 			genexp(l, &nl);
@@ -724,8 +814,33 @@ genexp(Node *rval, Node *lval)
 		preop(rval, lval);
 		break;
 
+	case OSEND:
+		genexp(l, lval);
+		break;
+
 	case ORECV:
 	case OCALL:
+		if(l->sun >= Sucall) {
+			reg(&nr, builtype[TIND], ZeroN);
+			genaddr(l, &nr);
+			if(nr.type != OREGISTER)
+				fatal("genexp: call %N", &nr);
+
+			nstack = stknode(builtype[TIND]);
+			assign(&nr, nstack);
+			regfree(&nr);
+
+			genarg(r);
+
+			reg(&nr, builtype[TIND], ZeroN);
+			assign(nstack, &nr);
+			nr.type = OINDREG;
+			nr.ival = 0;
+			docall(&nr);
+			regfree(&nr);
+			break;
+		}
+
 		genarg(r);
 
 		if(!isaddr(l)) {
@@ -795,7 +910,8 @@ oasgn(Node *rval, Node *lval)
 		}
 		reg(&n1, r->t, lval);
 		genexp(r, &n1);
-	} else {
+	}
+	else {
 		reg(&n1, r->t, lval);
 		genexp(r, &n1);
 		rgenaddr(&n2, l, ZeroN);
@@ -813,6 +929,8 @@ evalarg(Node *n, int pass)
 	if(n == ZeroN)
 		return;
 
+	n1.srcline = n->srcline;
+
 	switch(n->type) {
 	case OLIST:
 		evalarg(n->left, pass);
@@ -820,50 +938,78 @@ evalarg(Node *n, int pass)
 		break;
 
 	default:
-		/*
-		 * Pass 0 computes functions as parameter expressions into
-		 * stack temps
-		 */
-		if(pass == 0) {
-			if(n->sun >= Sucall) {
-				tmp = stknode(n->t);
+		switch(pass) {
+		case 0:
+			if(n->type == OBLOCK) {
+				stmnt(n->left);
+				*n = *n->right;
+				break;
+			}
+			if(n->sun < Sucall)
+				break;
+
+			tmp = stknode(n->t);
+			n1.type = OASGN;
+			n1.left = tmp;
+			n1.right = n;
+			n1.t = n->t;
+			sucalc(&n1);
+			genexp(&n1, ZeroN);
+			*n = *tmp;
+			break;
+
+		case 1:
+			if(atv)
+				tmp = atvnode(n->t);
+			else
+				tmp = argnode(n->t);
+		compute:
+			switch(n->t->type) {
+			default:
+				fatal("evalarg %T",  n->t);
+			case TADT:
+			case TUNION:
+			case TAGGREGATE:
+				gencomplex(n, tmp);
+				break;
+
+			case TSINT:
+			case TSUINT:
+			case TCHAR:
+			case TINT:
+			case TUINT:
+			case TIND:
+			case TFLOAT:
+			case TCHANNEL:
 				n1.type = OASGN;
 				n1.left = tmp;
 				n1.right = n;
 				n1.t = n->t;
-				n1.islval = 0;
+				sucalc(&n1);
 				genexp(&n1, ZeroN);
-				*n = *tmp;
+				break;
 			}
 			break;
-		}
-		/*
-		 * Pass 1 pushes computable and temporaries into the arg area
-		 */
-		switch(n->t->type) {
-		default:
-			fatal("evalarg %T",  n->t);
-		case TADT:
-		case TUNION:
-		case TAGGREGATE:
-			tmp = argnode(n->t);
-			gencomplex(n, tmp);
-			break;
-
-		case TSINT:
-		case TSUINT:
-		case TCHAR:
-		case TINT:
-		case TUINT:
-		case TIND:
-		case TFLOAT:
-		case TCHANNEL:
-			tmp = argnode(n->t);
-			reg(&n1, n->t, ZeroN);
-			genexp(n, &n1);
-			assign(&n1, tmp);
-			regfree(&n1);
-			break;
+		case 3:
+			/*
+			 * Second pass becoming somebody else
+			 */
+			tmp = atvnode(n->t);
+			if(n->type == ONAME)
+			if(n->ti->class == Parameter)
+			if(n->ti->offset == tmp->left->right->ival)
+				break;
+			goto compute;
+		case 4:
+			/*
+			 * Second pass becoming myself
+			 */
+			tmp = paramnode(n->t);
+			if(tmp->type == ONAME)
+			if(tmp->sym == n->sym)
+			if(tmp->ti->class == n->ti->class)
+				break;
+			goto compute;
 		}
 	}	
 }
@@ -986,7 +1132,7 @@ gencond(Node *rval, Node *lval, int bool)
 {
 	int op;
 	Node n1, n2;
-	Node *l, *r;
+	Node *l, *r, *nstack;
 
 	l = rval->left;
 	r = rval->right;
@@ -1033,6 +1179,14 @@ gencond(Node *rval, Node *lval, int bool)
 	case OLT:
 	case OGEQ:
 	case OGT:
+		if(r->sun >= Sucall && l->sun >= Sucall) {
+			nstack = stknode(l->t);
+			genexp(l, nstack);
+			rval->left = nstack;
+			gencond(rval, lval, bool);
+			return;				
+		}
+
 		if(bool)
 			op = not[op];
 
@@ -1091,6 +1245,87 @@ gencond(Node *rval, Node *lval, int bool)
 	setcond(lval);
 }
 
+void
+genelist(Node *n)
+{
+	if(n == ZeroN)
+		return;
+
+	switch(n->type) {
+	case OLIST:
+		genelist(n->left);
+		genelist(n->right);
+		break;
+	default:
+		genexp(n, ZeroN);
+		break;
+	}
+}
+
+void
+gensubreg(Node *n, Node *reg)
+{
+	if(n == ZeroN)
+		return;
+
+	switch(n->type) {
+	default:
+		gensubreg(n->left, reg);
+		gensubreg(n->right, reg);
+		break;
+	case OREGISTER:
+		*n = *reg;
+		break;
+	}
+}
+
+void
+genmove(Node *rval, Type *rt, Node *lval, int o)
+{
+	Type *t;
+	Node *l, *r;
+
+	for(t = rt->next; t; t = t->member) {
+		switch(t->type) {
+		case TFUNC:
+			break;
+		case TADT:
+		case TAGGREGATE:
+			genmove(rval, t, lval, t->offset);
+			break;
+		default:
+			r = an(OADDR, rval, ZeroN);
+			r->t = at(TIND, t);
+			r = an(OADD, r, con(o+t->offset));
+			r->t = r->left->t;
+			r = an(OIND, r, ZeroN);
+			r->t = t;
+			l = an(OADDR, lval, ZeroN);
+			l->t = at(TIND, t);
+			l = an(OADD, l, con(o+t->offset));
+			l->t = l->left->t;
+			l = an(OIND, l, ZeroN);
+			l->t = t;
+			sucalc(r);
+			sucalc(l);
+			genexp(r, l);
+		}
+	}
+}
+
+int
+bitmove(Node *rval, Node *lval)
+{
+	if(!isaddr(rval))
+		return 0;
+
+	if(!isaddr(lval))
+		return 0;
+
+	genmove(rval, rval->t, lval, 0);
+	return 1;
+}
+
 /*
  * generate moves for complex types
  */
@@ -1099,7 +1334,7 @@ gencomplex(Node *rval, Node *lval)
 {
 	Type *t;
 	Inst *back;
-	Node *l, *r, *tmp;
+	Node *l, *r, *tmp, *ptr;
 	Node n1, n2, treg, loop;
 	int size, w, i, o;
 
@@ -1114,6 +1349,11 @@ gencomplex(Node *rval, Node *lval)
 	l = rval->left;
 
 	switch(rval->type) {
+	case OBLOCK:
+		bstmnt(l);
+		gencomplex(r, lval);
+		break;
+
 	case ODOT:
 		tmp = stknode(l->t);
 		genexp(l, tmp);
@@ -1126,6 +1366,26 @@ gencomplex(Node *rval, Node *lval)
 		break;
 
 	case OASGN:
+		if(l->type == OILIST) {
+			if(!isaddr(r) || lval != 0) {
+				tmp = stknode(r->t);
+				gencomplex(r, tmp);
+			}
+			else
+				tmp = r;
+
+			reg(&treg, builtype[TIND], ZeroN);
+			genaddr(tmp, &treg);
+			ptr = stknode(builtype[TIND]);
+			assign(&treg, ptr);
+			regfree(&treg);
+
+			gensubreg(l->left, ptr);
+			genelist(l->left);
+			if(lval)
+				gencomplex(tmp, lval);
+			break;
+		}
 		if(lval == ZeroN) {
 			if(rval->islval < Sucompute)
 				gencomplex(r, l);
@@ -1144,7 +1404,18 @@ gencomplex(Node *rval, Node *lval)
 			gencomplex(rval, tmp);
 			break;
 		}
+		if(l->sun >= Sucall) {
+			reg(&treg, builtype[TIND], ZeroN);
+			genaddr(l, &treg);
+			if(treg.type != OREGISTER)
+				fatal("gencomplex: call %N", &treg);
 
+			l = stknode(builtype[TIND]);
+			l = an(OIND, l, ZeroN);
+			l->t = builtype[TIND];
+			assign(&treg, l);
+			regfree(&treg);
+		}
 		genarg(r);
 
 		t = at(TIND, lval->t);
@@ -1157,6 +1428,7 @@ gencomplex(Node *rval, Node *lval)
 		}
 		else {
 			tmp = stknode(lval->t);
+			n2.srcline = lval->srcline;
 			n2.type = OADDR;
 			n2.ival = 0;
 			n2.t = t;
@@ -1187,13 +1459,18 @@ gencomplex(Node *rval, Node *lval)
 		break;
 
 	case OILIST:
-		if(lval == ZeroN)
+		if(lval == ZeroN) {
+			warn(rval, "result ignored");
 			break;
+		}
 
 		t = lval->t;
 		lval->t = builtype[TINT];
 		rgenaddr(&n2, lval, ZeroN);
-		lval->t = t;
+		if(t->type == TPOLY)
+			lval->t = polyshape;
+		else
+			lval->t = t;
 		o = n2.ival;
 		n2.ival = 0;
 		cominit(&n2, lval->t, rval, o);
@@ -1201,11 +1478,17 @@ gencomplex(Node *rval, Node *lval)
 		break;
 
 	default:
-		if(lval == ZeroN)
+		if(lval == ZeroN) {
+			warn(rval, "result ignored");
 			break;
+		}
 	
 		size = rval->t->size;
-	
+		w = builtype[TINT]->size;
+		size /= w;
+		if(size < 6 && notunion(rval->t) && bitmove(rval, lval))
+			break;
+
 		if(rval->sun > lval->sun) {
 			t = rval->t;
 			rval->t = builtype[TINT];
@@ -1228,9 +1511,7 @@ gencomplex(Node *rval, Node *lval)
 			rgenaddr(&n1, rval, ZeroN);
 			rval->t = t;
 		}
-	
-		w = builtype[TINT]->size;
-		size /= w;
+
 		reg(&treg, builtype[TINT], ZeroN);
 		if(size < 6) {
 			for(i = 0; i < size; i++) {
@@ -1242,7 +1523,6 @@ gencomplex(Node *rval, Node *lval)
 		}
 		else {
 			reg(&loop, builtype[TINT], ZeroN);
-
 			instruction(AMOVW, con(size), ZeroN, &loop);
 			instruction(AMOVW, &n1, ZeroN, &treg);
 			back = ipc;

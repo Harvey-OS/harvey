@@ -4,27 +4,29 @@
 /*
  * known debug flags
  *	-o file		output file
- *	-s tag		debug structure output
  *	-D name		define
  *	-I path		include
- *	-H sym		help symbol output
- *	-B
- *	-L
- *	-a
- *	-d
- *	-i
- *	-r
- *	-t
- *	-v
- *	-w
+ *	-a		acid declaration output
+ *	-M		constant multiplication
+ *	-B		non ANSI
+ *	-A		!B
+ *	-d		print declarations
+ *	-t		print type trees
+ *	-L		print every NAME symbol
+ *	-i		print initialization
+ *	-r		print registerization
+ *	-v		verbose printing
+ *	-X		abort on error
+ *	-w		print warnings
+ *	-m		print add/sub/mul trees
+ *	-s		print structure offsets (with -a or -aa)
  */
 
 void
 main(int argc, char *argv[])
 {
-	char ofile[100], incfile[20], *p, *q, *r;
+	char ofile[100], incfile[20], *p;
 	int nproc, nout, status, i, c;
-	Sym *s, *t;
 
 	memset(debug, 0, sizeof(debug));
 	cinit();
@@ -43,11 +45,6 @@ main(int argc, char *argv[])
 		outfile = ARGF();
 		break;
 
-	case 's':
-		debug['H']++;
-		suedebug = ARGF();
-		break;
-
 	case 'D':
 		p = ARGF();
 		if(p)
@@ -58,36 +55,6 @@ main(int argc, char *argv[])
 		p = ARGF();
 		if(p)
 			include[ninclude++] = p;
-		break;
-
-	case 'H':
-		debug['H']++;
-		p = ARGF();
-		if(p) {
-			i = 0;
-			t = 0;
-			q = utfrune(p, ':');
-			if(q) {
-				*q++ = 0;
-				r = utfrune(q, ':');
-				if(r) {
-					*r++ = 0;
-					i = atol(r);
-					r = utfrrune(q, '/');
-					if(r)
-						q = r+1;
-					t = slookup(q);
-				} else
-					i = atol(q);
-			}
-			s = slookup(p);
-			if(!s->ref) {
-				ALLOC(s->ref, Ref);
-				s->ref->class = CHELP;
-				s->ref->lineno = i;
-				s->ref->sym = t;
-			}
-		}
 		break;
 	} ARGEND
 	if(argc < 1 && outfile == 0) {
@@ -114,8 +81,10 @@ main(int argc, char *argv[])
 					nout--;
 					continue;
 				}
-				if(i == 0)
+				if(i == 0) {
+					print("%s:\n", *argv);
 					goto child;
+				}
 				nout++;
 				argc--;
 				argv++;
@@ -168,19 +137,27 @@ child:
 		include[ninclude++] = incfile;
 		include[ninclude++] = "/sys/include";
 	}
-	if(debug['H'])
+	if(debug['a']) {
 		outfile = 0;
-	else
-		close(mycreat(outfile, 0664));
+		Binit(&outbuf, 1, OWRITE);
+	} else {
+		c = mycreat(outfile, 0664);
+		if(c < 0) {
+			diag(Z, "cannot open %s", outfile);
+			outfile = 0;
+			errorexit();
+		}
+		Binit(&outbuf, c, OWRITE);
+	}
 	newio();
 	if(argc < 1)
 		newfile("stdin", 0);
 	else
 		newfile(*argv, -1);
 	yyparse();
-	if(!debug['H'])
+	if(!debug['a'])
 		gclean();
-	reftrace();
+	Bterm(&outbuf);
 	if(nerrors)
 		errorexit();
 	exits(0);
@@ -260,56 +237,37 @@ Sym*
 lookup(void)
 {
 	Sym *s;
-	Ref *r;
 	ulong h;
-	long g;
-	char *p, c0;
-	int i;
+	char *p;
+	int c, n;
 
-	g = 0;
+	h = 0;
 	for(p=symb; *p;) {
-		g = g * 3;
-		g += *p++;
+		h = h * 3;
+		h += *p++;
 	}
-	if(g < 0)
-		g = ~g;
-	h = g;
-	if(p >= symb+CNNAME) {
-		/*
-		 * long names are first CNNAME/2-2 chars
-		 * last CNNAME/2-2 chars and three pieces of hash
-		 */
-		memmove(symb+(CNNAME/2-2), p-(CNNAME/2-2), CNNAME/2-2);
-		for(i=0; i<3; i++) {
-			c0 = g % 62;
-			g = g / 62;
-			if(c0 < 26)
-				c0 += 'a';
-			else
-			if(c0 < 52)
-				c0 += 'A'-26;
-			else
-				c0 += '0'-52;
-			symb[CNNAME-4+i] = c0;
-		}
-		symb[CNNAME-1] = 0;
-	}
+	n = (p - symb) + 1;
+	if((long)h < 0)
+		h = ~h;
 	h %= NHASH;
-	c0 = symb[0];
+	c = symb[0];
 	for(s = hash[h]; s != S; s = s->link) {
-		if(s->name[0] != c0)
+		if(s->name[0] != c)
 			continue;
-		if(strcmp(s->name, symb) == 0) {
-			if(s->ref) {
-				ALLOC(r, Ref);
-				r->link = s->ref;
-				s->ref = r;
-				r->lineno = lineno;
-			}
+		if(strcmp(s->name, symb) == 0)
 			return s;
-		}
 	}
 	ALLOC(s, Sym);
+
+	while(n & 3)
+		n++;
+	while(nhunk < n)
+		gethunk();
+	s->name = hunk;
+	hunk += n;
+	nhunk -= n;
+	memmove(s->name, symb, n);
+
 	strcpy(s->name, symb);
 	s->link = hash[h];
 	hash[h] = s;
@@ -328,7 +286,6 @@ syminit(Sym *s)
 	s->type = T;
 	s->suetag = T;
 	s->class = CXXX;
-	s->ref = 0;
 	s->aused = 0;
 }
 
@@ -349,6 +306,7 @@ enum
 long
 yylex(void)
 {
+	vlong vv;
 	long c, c1;
 	char *cp;
 	Rune rune;
@@ -392,7 +350,7 @@ l1:
 				yyerror("missing '");
 				peekc = c1;
 			}
-			yylval.lval = castto(c, TUSHORT);
+			yylval.vval = convvtox(c, TUSHORT);
 			return LUCONST;
 		}
 		if(c == '"') {
@@ -511,10 +469,11 @@ l1:
 			yyerror("missing '");
 			peekc = c1;
 		}
-		if(ovflo(c, TUCHAR))
+		vv = c;
+		yylval.vval = convvtox(vv, TUCHAR);
+		if(yylval.vval != vv)
 			yyerror("overflow in character constant: 0x%x", c);
-		c = castto(c, TCHAR);
-		yylval.lval = c;
+		yylval.vval = convvtox(vv, TCHAR);
 		return LCONST;
 
 	case '/':
@@ -527,6 +486,17 @@ l1:
 					if(c == '/')
 						goto l0;
 				}
+				if(c == EOF) {
+					yyerror("eof in comment");
+					errorexit();
+				}
+			}
+		}
+		if(c1 == '/') {
+			for(;;) {
+				c = getr();
+				if(c == '\n')
+					goto l0;
 				if(c == EOF) {
 					yyerror("eof in comment");
 					errorexit();
@@ -657,12 +627,10 @@ talph:
 	}
 	*cp = 0;
 	if(debug['L'])
-		print("%L %s\n", lineno, symb);
+		print("%L: %s\n", lineno, symb);
 	peekc = c;
 	s = lookup();
 	if(s->macro) {
-		if(s->ref)
-			s->ref->class = CMACRO;
 		newio();
 		cp = ionext->b;
 		macexpand(s, cp);
@@ -679,12 +647,13 @@ talph:
 		goto l0;
 	}
 	yylval.sym = s;
-	if(s->class == CTYPEDEF)
-		return LTYPE;
+	if(s->class == CTYPEDEF) {
+		if(s->type && typesu[s->type->etype])
+			return LCTYPE;
+		return LSTYPE;
+	}
 	if(s->lexical == LNAME)
 		return LNAME;
-	if(s->ref)
-		s->ref->class = CLEXICAL;
 	return s->lexical;
 
 tnum:
@@ -756,67 +725,50 @@ ncu:
 		}
 	}
 	peekc = c;
+	if(mpatov(symb, &yylval.vval))
+		yyerror("overflow in constant");
+
+	vv = yylval.vval;
 	if(c1 & Numvlong) {
-		if(FPCHIP) {
-			if(mpatof(symb, &yylval.dval)) {
-				yyerror("overflow in vl constant");
-				yylval.dval = 0;
-			}
-			return LVLCONST;
-		}
-		if(!fperror) {
-			yyerror("compiler cannot interpret vl constants");
-			fperror = 1;
-		}
-		yylval.lval = 1;
-		return LCONST;
-	}
-	if(mpatol(symb, &yylval.lval))
-		yyerror("overflow in integer constant");
-	if(tint == types[TSHORT]) {
-		/* does it fit in a short */
-		if(!ovflo(yylval.lval, TSHORT))
-			goto nret;
-		/* does it fit in a ushort */
-		if(!ovflo(yylval.lval, TUSHORT)) {
-			if(c1 & (Numuns|Numlong))
-				goto nret;
-			if(c1 & Numdec) {
-				c1 |= Numlong;
-				goto ndiag;
-			}
-			c1 |= Numuns;
+		if(c1 & Numuns) {
+			c = LUVLCONST;
 			goto nret;
 		}
-		/* does it fit in a long */
-		if(!ovflo(yylval.lval, TLONG)) {
-			if(c1 & Numlong)
-				goto nret;
-			c1 |= Numlong;
-			goto ndiag;
-		}
-		/* then a ulong */
-		if(c1 & Numlong) {
-			if(c1 & Numuns)
-				goto nret;
-			c1 |= Numuns;
-			if(c1 & Numdec)
-				goto ndiag;
+		yylval.vval = convvtox(yylval.vval, TVLONG);
+		if(yylval.vval < 0) {
+			c = LUVLCONST;
 			goto nret;
 		}
-		c1 |= Numuns|Numlong;
-		goto ndiag;
-	}
-	/* does it fit in a long */
-	if(!ovflo(yylval.lval, TLONG))
+		c = LVLCONST;
 		goto nret;
-	/* then a ulong */
-	if(c1 & Numuns)
+	}
+	if(c1 & Numlong) {
+		if(c1 & Numuns) {
+			c = LULCONST;
+			goto nret;
+		}
+		yylval.vval = convvtox(yylval.vval, TLONG);
+		if(yylval.vval < 0) {
+			c = LULCONST;
+			goto nret;
+		}
+		c = LLCONST;
 		goto nret;
-	c1 |= Numuns;
-	if(c1 & Numdec)
-		goto ndiag;
+	}
+	if(c1 & Numuns) {
+		c = LUCONST;
+		goto nret;
+	}
+	yylval.vval = convvtox(yylval.vval, tint->etype);
+	if(yylval.vval < 0) {
+		c = LUCONST;
+		goto nret;
+	}
+	c = LCONST;
 	goto nret;
+
+nret:
+	return c;
 
 casedot:
 	for(;;) {
@@ -853,35 +805,13 @@ caseout:
 	}
 	*cp = 0;
 	peekc = c;
-	if(FPCHIP) {
-		if(mpatof(symb, &yylval.dval)) {
-			yyerror("overflow in float constant");
-			yylval.dval = 0;
-		}
-		if(c1 & Numflt)
-			return LFCONST;
-		return LDCONST;
+	if(mpatof(symb, &yylval.dval)) {
+		yyerror("overflow in float constant");
+		yylval.dval = 0;
 	}
-	if(!fperror) {
-		yyerror("compiler cannot interpret fp constants");
-		fperror = 1;
-	}
-	yylval.lval = 1;
-	return LCONST;
-
-ndiag:
-	nearln = lineno;
-	warn(Z, "constant promotion");
-
-nret:
-	if(c1 & Numlong) {
-		if(c1 & Numuns)
-			return LULCONST;
-		return LLCONST;
-	}
-	if(c1 & Numuns)
-		return LUCONST;
-	return LCONST;
+	if(c1 & Numflt)
+		return LFCONST;
+	return LDCONST;
 }
 
 int
@@ -993,7 +923,7 @@ loop:
 		l = 0;
 		for(; i>0; i--) {
 			c = getc();
-			if(c >= '0' && c <= '7') {
+			if(c >= '0' && c <= '9') {
 				l = l*16 + c-'0';
 				continue;
 			}
@@ -1122,6 +1052,7 @@ cinit(void)
 	types[TLONG] = typ(TLONG, T);
 	types[TULONG] = typ(TULONG, T);
 	types[TVLONG] = typ(TVLONG, T);
+	types[TUVLONG] = typ(TUVLONG, T);
 	types[TFLOAT] = typ(TFLOAT, T);
 	types[TDOUBLE] = typ(TDOUBLE, T);
 	types[TVOID] = typ(TVOID, T);
@@ -1143,6 +1074,13 @@ cinit(void)
 
 	nodproto = new(OPROTO, Z, Z);
 	dclstack = D;
+
+	ALLOCN(pathname, 0, 100);
+	if(getwd(pathname, 99) == 0) {
+		ALLOCN(pathname, 100, 900);
+		if(getwd(pathname, 999) == 0)
+			strcpy(pathname, "/???");
+	}
 
 	fmtinstall('O', Oconv);
 	fmtinstall('T', Tconv);
@@ -1197,7 +1135,7 @@ Oconv(void *o, Fconv *fp)
 
 	a = *(int*)o;
 	if(a < OXXX || a > OEND)
-		strconv(xOconv(a), fp);
+		strconv("***badO***", fp);
 	else
 		strconv(onames[a], fp);
 	return sizeof(a);
@@ -1256,11 +1194,11 @@ Lconv(void *o, Fconv *fp)
 			strcat(str, " ");
 		}
 		if(a[i].line)
-			sprint(s, "%s:%ld[%s:%ld]",
+			snprint(s, STRINGSZ, "%s:%ld[%s:%ld]",
 				a[i].line->name, l-a[i].ldel+1,
 				a[i].incl->name, l-a[i].idel+1);
 		else
-			sprint(s, "%s:%ld",
+			snprint(s, STRINGSZ, "%s:%ld",
 				a[i].incl->name, l-a[i].idel+1);
 		if(strlen(s)+strlen(str) >= STRINGSZ-10)
 			break;
@@ -1276,7 +1214,7 @@ Lconv(void *o, Fconv *fp)
 int
 Tconv(void *o, Fconv *fp)
 {
-	char str[STRINGSZ], s[STRINGSZ];
+	char str[STRINGSZ+20], s[STRINGSZ+20];
 	Type *t, *t1;
 	int et;
 
@@ -1290,16 +1228,20 @@ Tconv(void *o, Fconv *fp)
 			strcat(str, s);
 		if(et == TFUNC && (t1 = t->down)) {
 			sprint(s, "(%T", t1);
-			strcat(str, s);
+			if(strlen(str) + strlen(s) < STRINGSZ)
+				strcat(str, s);
 			while(t1 = t1->down) {
 				sprint(s, ", %T", t1);
-				strcat(str, s);
+				if(strlen(str) + strlen(s) < STRINGSZ)
+					strcat(str, s);
 			}
-			strcat(str, ")");
+			if(strlen(str) + strlen(s) < STRINGSZ)
+				strcat(str, ")");
 		}
 		if(et == TARRAY) {
 			sprint(s, "[%ld]", t->width);
-			strcat(str, s);
+			if(strlen(str) + strlen(s) < STRINGSZ)
+				strcat(str, s);
 		}
 		if(t->nbits) {
 			sprint(s, " %d:%d", t->shift, t->nbits);
@@ -1309,7 +1251,8 @@ Tconv(void *o, Fconv *fp)
 		if(typesu[et]) {
 			if(t->tag) {
 				strcat(str, " ");
-				strcat(str, t->tag->name);
+				if(strlen(str) + strlen(t->tag->name) < STRINGSZ)
+					strcat(str, t->tag->name);
 			} else
 				strcat(str, " {}");
 			break;
@@ -1322,13 +1265,13 @@ Tconv(void *o, Fconv *fp)
 int
 FNconv(void *o, Fconv *fp)
 {
-	char str[STRINGSZ];
+	char *str;
 	Node *n;
 
 	n = *(Node**)o;
-	strcpy(str, "<indirect>");
-	if(n != Z && (n->op == ONAME || n->op == ODOT))
-		strcpy(str, n->sym->name);
+	str = "<indirect>";
+	if(n != Z && (n->op == ONAME || n->op == ODOT || n->op == OELEM))
+		str = n->sym->name;
 	strconv(str, fp);
 	return sizeof(n);
 }
@@ -1336,7 +1279,7 @@ FNconv(void *o, Fconv *fp)
 int
 Qconv(void *o, Fconv *fp)
 {
-	char str[STRINGSZ], *s;
+	char str[STRINGSZ+20], *s;
 	long b;
 	int i;
 
@@ -1346,7 +1289,7 @@ Qconv(void *o, Fconv *fp)
 		if(str[0])
 			strcat(str, " ");
 		s = qnames[i];
-		if(strlen(str) + strlen(s) + 1 >= STRINGSZ)
+		if(strlen(str) + strlen(s) >= STRINGSZ)
 			break;
 		strcat(str, s);
 		b &= ~(1L << i);

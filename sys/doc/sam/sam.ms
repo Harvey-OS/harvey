@@ -22,9 +22,8 @@
 .TL
 The Text Editor \&\f(CWsam\fP
 .AU
-ROB PIKE
-.AI
-.MH
+Rob Pike
+rob@plan9.att.com
 .AB
 .LP
 .CW Sam
@@ -52,24 +51,19 @@ By suppressing the display process,
 it can even run without a bitmap terminal.
 .PP
 This paper is reprinted from Software\(emPractice and Experience,
-Vol 17, number 11, pp. 813-845.
-.sp 1
-\f1\s6KEY WORDS\s8   Text editors    Caches    Regular expressions    Undo\fP
-.ps \n(PS
-.sp -2
-..
+Vol 17, number 11, pp. 813-845, November 1987.
+The paper has not been updated for the Plan 9 manuals.  Although
+.CW Sam
+has not changed much since the paper was written, the system around it certainly has.
+Nonetheless, the description here still stands as the best introduction to the editor.
 .AE
-.OK 
 .SH
 Introduction
 .LP
 .CW Sam
 is an interactive text editor that combines cut-and-paste interactive editing with
 an unusual command language based on the composition of regular expressions.
-It is written as two programs: one, the `host part,' runs on a Unix* system
-.FS
-* Unix is a registered trademark of AT&T.
-.FE
+It is written as two programs: one, the `host part,' runs on a UNIX system
 and implements the command language and provides file access; the other, the
 `terminal part,' runs asynchronously
 on a machine with a mouse and bitmap display
@@ -82,7 +76,7 @@ Most often,
 the terminal part runs on a Blit\u\s-4\&1\s+4\d terminal
 (actually on a Teletype DMD 5620, the production version of the Blit), whose
 host connection is an ordinary 9600 bps RS232 link;
-on the Sun computer the host and display processes run on a single machine,
+on the SUN computer the host and display processes run on a single machine,
 connected by a pipe.
 .PP
 .CW Sam
@@ -102,7 +96,7 @@ textual commands; commands activated from the mouse form the
 .I language. )
 .CW Sam
 developed as an editor for use by programmers, and tries to join
-the styles of the Unix text editor
+the styles of the UNIX text editor
 .CW ed \u\s-4\&6,7\s+4\d
 with that of interactive cut-and-paste editors by
 providing a comfortable mouse-driven interface
@@ -179,7 +173,7 @@ to add new files and discard unneeded ones.
 Files are not read until necessary
 to complete some command.
 Editing operations apply to an internal copy
-made when the file is read; the Unix file associated with the copy
+made when the file is read; the UNIX file associated with the copy
 is changed only by an explicit command.
 To simplify the discussion, the internal copy is here called a
 .I file ,
@@ -246,7 +240,7 @@ of dot are the characters it contains.
 .CW Sam
 imparts to the text no two-dimensional interpretation such as columns
 or fields; text is always one-dimensional.
-Even the idea of a `line' of text as understood by most Unix programs
+Even the idea of a `line' of text as understood by most UNIX programs
 \(em a sequence of characters terminated by a newline character \(em
 is only weakly supported.
 .PP
@@ -365,9 +359,9 @@ s/Peter/Oh, &, &, &, &!/
 There are also three commands that apply programs
 to text:
 .P1
-< \f2Unix program\fP
+< \f2UNIX program\fP
 .P2
-replaces dot by the output of the Unix program.
+replaces dot by the output of the UNIX program.
 Similarly, the
 .CW >
 command
@@ -382,7 +376,7 @@ Again, newlines have no special significance for these
 .CW sam
 commands.
 The text acted upon and resulting from these commands is not necessarily
-bounded by newlines, although for connection with Unix programs,
+bounded by newlines, although for connection with UNIX programs,
 newlines may be necessary to obey conventions.
 .PP
 One more command:
@@ -444,10 +438,10 @@ e \f2filename\fP	Replace file with named disc file
 r \f2filename\fP	Replace dot by contents of named disc file
 w \f2filename\fP	Write file to named disc file
 f \f2filename\fP	Set file name and print new menu line
-< \f2Unix-command\fP	Replace dot by standard output of command
-> \f2Unix-command\fP	Send dot to standard input of command
-| \f2Unix-command\fP	Replace dot by result of command applied to dot
-! \f2Unix-command\fP	Run the command
+< \f2UNIX-command\fP	Replace dot by standard output of command
+> \f2UNIX-command\fP	Send dot to standard input of command
+| \f2UNIX-command\fP	Replace dot by result of command applied to dot
+! \f2UNIX-command\fP	Run the command
 .sp .4
 _
 .sp .4
@@ -583,7 +577,7 @@ text matched by the expression.  The expression is enclosed in slashes, as in
 .P1
 /\f2expression\fP/
 .P2
-The expressions are the same as those in the Unix program
+The expressions are the same as those in the UNIX program
 .CW egrep ,\u\s-4\&6,7\s+4\d
 and include closures, alternations, and so on.
 They find the
@@ -593,7 +587,7 @@ leftmost longest
 string that matches the expression, that is,
 the first match after the point where the search is started,
 and if more than one match begins at the same spot, the longest such match.
-(I assume familiarity with the syntax for regular expressions in Unix programs.\u\s-4\&9\s+4\d)
+(I assume familiarity with the syntax for regular expressions in UNIX programs.\u\s-4\&9\s+4\d)
 For example,
 .P1
 /x/
@@ -614,7 +608,7 @@ matches the next
 .CW x
 or
 .CW Peter .
-For compatibility with other Unix programs, the `any character' operator,
+For compatibility with other UNIX programs, the `any character' operator,
 a period,
 does not match a newline, so
 .P1
@@ -722,7 +716,7 @@ _
 .KE
 .PP
 The language discussed so far will not seem novel
-to people who use Unix text editors
+to people who use UNIX text editors
 such as
 .CW ed
 or
@@ -911,7 +905,7 @@ those containing
 .SH 2
 Structural Regular Expressions
 .LP
-Unlike other Unix text editors,
+Unlike other UNIX text editors,
 including the non-interactive ones such as
 .CW sed
 and
@@ -1001,8 +995,8 @@ command:
 .CW \e
 is necessary because of lexical conventions in regular expressions),
 or we could even reject character constants and strings outright:
-.P1
-, y/'[^']*'/ y/"[^"]*"/ x/[A-Za-z_][A-Za-z_0-9]*/ g/n/ v/../ c/num/
+.P1 0
+,y/'[^']*'/ y/"[^"]*"/ x/[A-Za-z_][A-Za-z_0-9]*/ g/n/ v/../ c/num/
 .P2
 The
 .CW y
@@ -1031,7 +1025,7 @@ The text at each step of the command is the same, but which pieces
 are selected is refined step by step until the correct piece is
 available to the final step of the command line, which ultimately makes the change.
 .PP
-In other Unix programs, regular expressions are used only for selection,
+In other UNIX programs, regular expressions are used only for selection,
 as in the
 .CW sam
 .CW g
@@ -1122,7 +1116,7 @@ removes them from
 .CW sam 's
 memory (without effect on associated disc files).
 Both these commands have a syntax for using the shell\u\s-4\&7\s+4\d
-(the Unix command interpreter) to generate the lists:
+(the UNIX command interpreter) to generate the lists:
 .P1
 B <echo *.c
 .P2
@@ -1131,7 +1125,7 @@ will add all C source files, and
 B <grep -l variable *.c
 .P2
 will add all C source files referencing a particular variable
-(the Unix command
+(the UNIX command
 .CW grep\ -l
 lists all files in its arguments that contain matches of
 the specified regular expression).
@@ -1340,7 +1334,7 @@ the Blit's window system.
 .CW New
 makes a new file, and gives it one empty window, whose size is determined
 by a rectangle swept by the mouse.
-.CW Xerox
+.CW Zerox
 prompts for a window to be selected, and
 makes a clone of that window; this is how multiple windows are created on one file.
 .CW Reshape
@@ -1381,7 +1375,7 @@ When
 .CW sam
 requests that a window be swept, in response to
 .CW new ,
-.CW xerox
+.CW zerox
 or
 .CW reshape ,
 it changes the mouse cursor from the usual arrow to a box with
@@ -1517,7 +1511,7 @@ one line about Peter
 another line about Peter
 \&.
 .P2
-Other Unix editors would require a backslash after all but the last line.
+Other UNIX editors would require a backslash after all but the last line.
 .PP
 The other advantage is specific to the two-process structure of
 .CW sam .
@@ -1584,13 +1578,13 @@ Addresses, like many of the data structures in
 .CW sam ,
 are held in a C structure and passed around by value:
 .P1
-typedef long		Posn;	/* Position in a file */
+typedef long Posn;    /* Position in a file */
 typedef struct Range{
-	Posn		p1, p2;
+        Posn    p1, p2;
 }Range;
 typedef struct Address{
-	Range	r;
-	File		*f;
+        Range   r;
+        File    *f;
 }Address;
 .P2
 An address is encoded as a substring (character positions
@@ -1694,11 +1688,11 @@ g_cmd(a, cp)
 	Cmdtree *cp;
 {
 	compile(cp->regexp);
-	if(execute(a.f, a.r.p1, a.r.p2) != (cp->cmdchar=='v')){
+	if(execute(a.f, a.r.p1, a.r.p2)!=(cp->cmdchar=='v')){
 		a.f->dot=a;
 		return cmdexec(a, cp->subcmd);
 	}
-	return TRUE;	/* indicate that execution is to continue */
+	return TRUE;	/* cause execution to continue */
 }
 .P2
 .CW Compile "" (
@@ -1716,7 +1710,7 @@ The regular expression code in
 .CW sam
 is an interpreted, rather than compiled on-the-fly, implementation of Thompson's
 non-deterministic finite automaton algorithm.\u\s-4\&12\s+4\d
-The syntax and semantics of the expressions are as in the Unix program
+The syntax and semantics of the expressions are as in the UNIX program
 .CW egrep ,
 including alternation, closures, character classes, and so on.
 The only changes in the notation are two additions:
@@ -1739,8 +1733,8 @@ sequences, so that most of the punctuation characters wouldn't have
 peculiar meanings \(em but for an interesting command language, full
 regular expressions are necessary, and
 .CW egrep
-defines the full regular expression syntax for Unix programs.
-Also, it seemed superfluous to define a new syntax, since various Unix programs
+defines the full regular expression syntax for UNIX programs.
+Also, it seemed superfluous to define a new syntax, since various UNIX programs
 .CW ed , (
 .CW egrep
 and
@@ -1870,8 +1864,8 @@ For example, the implementation of type
 is:
 .P1
 typedef struct List{
-	int		nused;
-	long		*ptr;
+        int     nused;
+        long    *ptr;
 }List;
 .P2
 The
@@ -1957,7 +1951,7 @@ has no storage in main memory other than bookkeeping information;
 the actual data being held is all on the disc.
 To reduce the number of open files needed,
 .CW sam
-opens a dozen temporary Unix files and multiplexes the
+opens a dozen temporary UNIX files and multiplexes the
 .CW Discs
 upon them.
 This permits many files to
@@ -1970,14 +1964,14 @@ Allocating one temporary file per
 .CW Disc
 would strain the operating system's limit on the number of open files.
 Also, spreading the traffic among temporary files keeps the files shorter,
-and shorter files are more efficiently implemented by the Unix
+and shorter files are more efficiently implemented by the UNIX
 I/O subsystem.
 .PP
 A
 .CW Disc
 is an array of fixed-length blocks, each of which contains
 between 1 and 4096 characters of active data.
-(The block size of our Unix file system is 4096 bytes.)
+(The block size of our UNIX file system is 4096 bytes.)
 The block addresses within the temporary file and the length of each
 block are stored in a
 .CW List .
@@ -2041,7 +2035,7 @@ The overall structure is shown in Figure 5.
 Although it may seem that the data is touched many times on its
 way from the
 .CW Disc ,
-it is read (by one Unix system call) directly into the cache of the
+it is read (by one UNIX system call) directly into the cache of the
 associated
 .CW Buffer ;
 no extra copy is done.
@@ -2120,7 +2114,7 @@ This is particularly important when evaluating an
 command because it prevents regular expression matches
 from stumbling over changes made earlier in the execution.
 Also, the two-pass
-algorithm is cleaner than the way other Unix editors allow changes to
+algorithm is cleaner than the way other UNIX editors allow changes to
 affect each other;
 for example,
 .CW ed 's
@@ -2231,7 +2225,7 @@ done at the University of California at Berkeley,
 which allows one level of undoing, again takes 3 seconds.
 In summary,
 .CW sam 's
-performance is comparable to that of other Unix editors, although it solves
+performance is comparable to that of other UNIX editors, although it solves
 a harder problem.
 .SH 2
 Communications
@@ -2264,13 +2258,13 @@ Typically, the connection is an RS-232 link between a Blit
 (the prototypical display for
 .CW sam )
 and a host running
-the Ninth Edition of the Unix operating system.\u\s-4\&8\s+4\d
+the Ninth Edition of the UNIX operating system.\u\s-4\&8\s+4\d
 (This is the version of the system used in the Computing Sciences Research
 Center at AT&T Bell Laboratories, where I work.  Its relevant
 aspects are discussed in the Blit paper.\u\s-4\&1\s+4\d)
 The implementation of
 .CW sam
-for the Sun computer runs both processes on the same machine and
+for the SUN computer runs both processes on the same machine and
 connects them by a pipe.
 .PP
 The low bandwidth of an RS-232 link
@@ -2690,7 +2684,7 @@ but to be comfortable this technique requires that lines not be
 long;
 .CW sam
 has no such restriction.
-Also, and perhaps more importantly, Unix programs and terminals traditionally fold
+Also, and perhaps more importantly, UNIX programs and terminals traditionally fold
 long lines to make their contents fully visible.
 .PP
 Two special kinds of
@@ -2959,11 +2953,10 @@ the lack of a command language kept some people from adopting it.
 The union of a user interface as comfortable as
 .CW jim 's
 with a command language as powerful as
-.CW ed 's\(dg
+.CW ed 's†
 .FS
 .vs 9
-\(dg
-The people who criticize
+†The people who criticize
 .CW ed
 as an interactive program often forget that it and its close relative
 .CW sed \u\s-4\&7\s+4\d

@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #define Extern	extern
 #include "exportfs.h"
@@ -12,6 +13,8 @@ char *e[] =
 	[Eopen]		"Fid already opened",
 	[Exmnt]		"Cannot .. past mount point",
 	[Enoauth]	"Authentication failed",
+	[Emip]		"Mount in progress",
+	[Enopsmt]	"Out of pseudo mount points",
 };
 
 void
@@ -28,6 +31,9 @@ Xsession(Fsrpc *r)
 {
 	Fcall thdr;
 
+	memset(thdr.authid, 0, sizeof(thdr.authid));
+	memset(thdr.authdom, 0, sizeof(thdr.authdom));
+	memset(thdr.chal, 0, sizeof(thdr.chal));
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
 }
@@ -47,7 +53,7 @@ Xflush(Fsrpc *r)
 				t->flushtag = r->work.tag;
 				DEBUG(2, "\tset flushtag %d\n", r->work.tag);
 				if(t->canint)
-					postnote(t->pid, "flush");
+					postnote(PNPROC, t->pid, "flush");
 				r->busy = 0;
 				return;
 			}
@@ -79,15 +85,6 @@ Xattach(Fsrpc *r)
 }
 
 void
-Xauth(Fsrpc *r)
-{
-	Fcall thdr;
-
-	reply(&r->work, &thdr, e[Enoauth]);
-	r->busy = 0;
-}
-
-void
 Xclone(Fsrpc *r)
 {
 	Fcall thdr;
@@ -101,9 +98,15 @@ Xclone(Fsrpc *r)
 	}
 	n = newfid(r->work.newfid);
 	if(n == 0) {
-		reply(&r->work, &thdr, e[Edupfid]);
-		r->busy = 0;
-		return;
+		n = getfid(r->work.newfid);
+		if(n == 0)
+			fatal("inconsistent fids");
+		if(n->fid >= 0)
+			close(n->fid);
+		freefid(r->work.newfid);
+		n = newfid(r->work.newfid);
+		if(n == 0)
+			fatal("inconsistent fids2");
 	}
 	n->f = f->f;
 	reply(&r->work, &thdr, 0);
@@ -301,8 +304,11 @@ Xwstat(Fsrpc *r)
 		errstr(err);
 		reply(&r->work, &thdr, err);
 	}
-	else
+	else {
+		/* wstat may really be rename */
+		strncpy(f->f->name, r->work.stat, NAMELEN);
 		reply(&r->work, &thdr, 0);
+	}
 
 	r->busy = 0;
 }
@@ -311,17 +317,75 @@ void
 Xclwalk(Fsrpc *r)
 {
 	Fcall thdr;
+	Fid *f, *n;
 
-	reply(&r->work, &thdr, "exportfs: no Tclwalk");
-	r->busy = 0;
+	f = getfid(r->work.fid);
+	if(f == 0) {
+		reply(&r->work, &thdr, e[Ebadfid]);
+		r->busy = 0;
+		return;
+	}
+	n = newfid(r->work.newfid);
+	if(n == 0) {
+		reply(&r->work, &thdr, e[Edupfid]);
+		r->busy = 0;
+		return;
+	}
+	n->f = f->f;
+	r->work.fid = r->work.newfid;
+	Xwalk(r);
+}
+
+int
+wrmount(Fsrpc *p)
+{
+	Dir d;
+	Fid *f;
+	Fcall thdr, *work;
+
+	work = &p->work;
+
+	f = getfid(work->fid);
+	if(f == 0)
+		return 0;
+	if(f->fid < 0)
+		return 0;
+	if(dirfstat(f->fid, &d) < 0)
+		return 0;
+	if((d.mode&CHMOUNT) == 0)
+		return 0;
+
+	/* This may need to be a list matched by tag */
+	if(f->mpend) {
+		reply(work, &thdr, e[Emip]);
+		p->busy = 0;
+		return 1;
+	}
+
+	f->mpend = p;
+
+	thdr.count = work->count;
+	reply(work, &thdr, 0);
+	return 1;
 }
 
 void
 slave(Fsrpc *f)
 {
 	Proc *p;
-	int pid;
+	int pid, n;
+	Fcall mcall;
 	static int nproc;
+
+	/*
+	 * Look for a write to a message channel from the mount
+	 * driver and attempt to multiplex to a local mount
+	 */
+	if(f->work.type == Twrite && f->work.data[0] == Tattach) {
+		n = convM2S(f->work.data, &mcall, f->work.count);
+		if(n != 0 && wrmount(f))
+			return;
+	}
 
 	for(;;) {
 		for(p = Proclist; p; p = p->next) {
@@ -412,6 +476,89 @@ flushme:
 	}
 }
 
+File*
+mkmpt(char *buf, Fid *f)
+{
+	int i;
+	File *fl;
+	char nr[10];
+
+	if(psmpt == 0)
+		return 0;
+
+	for(i = 1; i < Npsmpt; i++)
+		if(psmap[i] == 0)
+			break;
+
+	if(i >= Npsmpt-1)
+		return 0;
+
+	sprint(nr, "%d", i);
+	fl = file(psmpt, nr);
+	if(fl == 0)
+		return 0;
+
+	sprint(buf, "/mnt/exportfs/%d", i);
+	psmap[i] = 1;
+	f->mid = i;
+
+	return fl;
+}
+
+void
+rdmount(Fid *f, Fsrpc *p)
+{
+	File *nf;
+	int n, fd;
+	Fid *mfid;
+	Fsrpc *mp;
+	char mpath[256];
+	Fcall thdr, *work, mcall;
+
+	work = &p->work;
+
+	mp = f->mpend;
+	convM2S(mp->work.data, &mcall, mp->work.count);
+
+	mfid = newfid(mcall.fid);
+	if(mfid == 0) {
+		mcall.type = Rerror;
+		strcpy(mcall.ename, e[Ebadfid]);
+		goto repl;
+	}
+	
+	nf = mkmpt(mpath, mfid);
+	if(nf == 0) {
+		mcall.type = Rerror;
+		strcpy(mcall.ename, e[Enopsmt]);
+		goto repl;
+	}
+
+	fd = dup(f->fid, -1);
+	p->canint = 1;
+	n = amount(fd, mpath, MREPL, mcall.aname);
+	p->canint = 0;
+	if(n < 0) {
+		close(fd);
+		freefid(mcall.fid);
+		mcall.type = Rerror;
+		mcall.ename[0] = 0;
+		errstr(mcall.ename);
+	}
+	else {
+		mfid->f = nf;
+		mcall.type = Rattach;
+		mcall.qid = nf->qid;
+		mcall.qid.path &= ~CHDIR;
+	}
+repl:
+	thdr.count = convS2M(&mcall, mp->buf);
+	thdr.data = mp->buf;
+	reply(work, &thdr, 0);
+	mp->busy = 0;
+	f->mpend = 0;
+}
+
 void
 slaveopen(Fsrpc *p)
 {
@@ -456,16 +603,22 @@ slaveopen(Fsrpc *p)
 void
 slaveread(Fsrpc *p)
 {
-	char data[MAXFDATA], err[ERRLEN];
-	Fcall *work, thdr;
 	Fid *f;
 	int n, r;
+	Fcall *work, thdr;
+	char data[MAXFDATA], err[ERRLEN];
 
 	work = &p->work;
 
 	f = getfid(work->fid);
 	if(f == 0) {
 		reply(work, &thdr, e[Ebadfid]);
+		return;
+	}
+
+	/* Do the work half of a split transaction mount */
+	if(f->mpend) {
+		rdmount(f, p);
 		return;
 	}
 

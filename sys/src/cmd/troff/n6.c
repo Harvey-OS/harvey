@@ -49,7 +49,7 @@ Tchar n_setch(int c)
 	return t_setch(c);
 }
 
-Tchar n_setabs(void)	/* set absolute char from \C'...' */
+Tchar n_setabs(void)	/* set absolute char from \N'...' */
 {			/* for now, a no-op */
 	return t_setabs();
 }
@@ -85,7 +85,7 @@ void n_setps(void )
 		i -= '0';
 		if (i == 0)		/* \s0 */
 			;
-		else if (i <= 3 && isdigit(cbits(ch=getch()))) {	/* \sdd */
+		else if (i <= 3 && (ch=getch()) && isdigit(cbits(ch))) {	/* \sdd */
 			ch = 0;
 		}
 	} else if (i == '(') {		/* \s(dd */
@@ -162,12 +162,12 @@ void n_setwd(void)
 	int	delim, emsz, k;
 	int	savhp, savapts, savapts1, savfont, savfont1, savpts, savpts1;
 
-	base = numtab[ST].val = numtab[ST].val = wid = numtab[CT].val = 0;
+	base = numtabp[ST].val = numtabp[ST].val = wid = numtabp[CT].val = 0;
 	if (ismot(i = getch()))
 		return;
 	delim = cbits(i);
-	savhp = numtab[HP].val;
-	numtab[HP].val = 0;
+	savhp = numtabp[HP].val;
+	numtabp[HP].val = 0;
 	savapts = apts;
 	savapts1 = apts1;
 	savfont = font;
@@ -178,7 +178,7 @@ void n_setwd(void)
 	while (cbits(i = getch()) != delim && !nlflg) {
 		k = width(i);
 		wid += k;
-		numtab[HP].val += k;
+		numtabp[HP].val += k;
 		if (!ismot(i)) {
 			emsz = (INCH * pts + 36) / 72;
 		} else if (isvmot(i)) {
@@ -189,13 +189,13 @@ void n_setwd(void)
 			emsz = 0;
 		} else 
 			continue;
-		if (base < numtab[SB].val)
-			numtab[SB].val = base;
-		if ((k = base + emsz) > numtab[ST].val)
-			numtab[ST].val = k;
+		if (base < numtabp[SB].val)
+			numtabp[SB].val = base;
+		if ((k = base + emsz) > numtabp[ST].val)
+			numtabp[ST].val = k;
 	}
 	setn1(wid, 0, (Tchar) 0);
-	numtab[HP].val = savhp;
+	numtabp[HP].val = savhp;
 	apts = savapts;
 	apts1 = savapts1;
 	font = savfont;

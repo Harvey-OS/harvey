@@ -18,6 +18,3 @@ BIN=/$objtype/bin/aux
 </sys/src/cmd/mkone
 
 mesg.$O:	../sam/mesg.h
-
-%.db:
-	$CC -s$stem main.c | dbfmt > $stem.db

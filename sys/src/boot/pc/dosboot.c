@@ -9,7 +9,6 @@
  *  predeclared
  */
 static void	bootdump(Dosboot*);
-extern char*	nextelem(char*, char*);
 static void	setname(Dosfile*, char*);
 long		dosreadseg(Dosfile*, long, long);
 
@@ -211,7 +210,7 @@ dosread(Dosfile *fp, void *a, long n)
 	Clustbuf *p;
 	uchar *from, *to;
 
-	if((fp->attr) & DDIR == 0){
+	if((fp->attr & DDIR) == 0){
 		if(fp->offset >= fp->length)
 			return 0;
 		if(fp->offset+n > fp->length)
@@ -272,6 +271,10 @@ doswalk(Dosfile *file, char *name)
 			continue;
 		if(memcmp(file->ext, d.ext, sizeof(d.ext)) != 0)
 			continue;
+		if(d.attr & DVLABEL){
+			chat("%8.8s.%3.3s is a LABEL\n", d.name, d.ext);
+			continue;
+		}
 		file->attr = d.attr;
 		file->pstart = GSHORT(d.start);
 		file->length = GLONG(d.length);
@@ -282,6 +285,7 @@ doswalk(Dosfile *file, char *name)
 	}
 	return n >= 0 ? 0 : -1;
 }
+
 
 /*
  *  instructions that boot blocks can start with
@@ -317,11 +321,8 @@ dosinit(Dos *dos)
 	/* if a hard disk format, look for an active partition */
 	b = (Dosboot *)p->iobuf;
 	if(b->magic[0] != JMPNEAR && (b->magic[0] != JMPSHORT || b->magic[2] != 0x90)){
-print("%lux %lux\n", p->iobuf, &(p->iobuf[0x1fe]));
-print("m[0] %2.2ux m[1] %2.2ux m[2] %2.2ux p[1fe] %2.2ux p[1ff] %2.2ux\n",
-b->magic[0], b->magic[1], b->magic[2], p->iobuf[0x1fe], p->iobuf[0x1ff]);
 		if(p->iobuf[0x1fe] != 0x55 || p->iobuf[0x1ff] != 0xaa){
-			print("no dos file system or partition table\n");
+			/*print("no dos file system or partition table\n");*/
 			return -1;
 		}
 		dp = (Dospart*)&p->iobuf[0x1be];
@@ -367,7 +368,7 @@ b->magic[0], b->magic[1], b->magic[2], p->iobuf[0x1fe], p->iobuf[0x1ff]);
 	i = dos->rootsize*sizeof(Dosdir) + dos->sectsize - 1;
 	i = i/dos->sectsize;
 	dos->dataaddr = dos->rootaddr + i;
-	dos->fatclusters = (dos->volsize - dos->dataaddr)/dos->clustsize;
+	dos->fatclusters = 2+(dos->volsize - dos->dataaddr)/dos->clustsize;
 	if(dos->fatclusters < 4087)
 		dos->fatbits = 12;
 	else
@@ -412,20 +413,46 @@ bootdump(Dosboot *b)
 	print("label: \"%11.11s\"\n", b->label);
 }
 
-typedef struct Exec Exec;
-struct	Exec
+/*
+ *  grab next element from a path, return the pointer to unprocessed portion of
+ *  path.
+ */
+static char *
+nextelem(char *path, char *elem)
 {
-	uchar	magic[4];		/* magic number */
-	uchar	text[4];	 	/* size of text segment */
-	uchar	data[4];	 	/* size of initialized data */
-	uchar	bss[4];	  		/* size of uninitialized data */
-	uchar	syms[4];	 	/* size of symbol table */
-	uchar	entry[4];	 	/* entry point */
-	uchar	spsz[4];		/* size of sp/pc offset table */
-	uchar	pcsz[4];		/* size of pc/line number table */
-};
+	int i;
 
-#define I_MAGIC		((((4*11)+0)*11)+7)
+	while(*path == '/')
+		path++;
+	if(*path==0 || *path==' ')
+		return 0;
+	for(i=0; *path!='\0' && *path!='/' && *path!=' '; i++){
+		if(i==28){
+			print("name component too long\n");
+			return 0;
+		}
+		*elem++ = *path++;
+	}
+	*elem = '\0';
+	return path;
+}
+
+int
+dosstat(Dos *dos, char *path, Dosfile *f)
+{
+	char element[NAMELEN];
+
+	*f = dos->root;
+	while(path = nextelem(path, element)){
+		switch(doswalk(f, element)){
+		case -1:
+			return -1;
+		case 0:
+			return 0;
+		}
+	}
+	return 1;
+}
 
 /*
  *  boot
@@ -437,51 +464,42 @@ dosboot(Dos *dos, char *path)
 	long n;
 	long addr;
 	Exec *ep;
-	char element[NAMELEN];
 	void (*b)(void);
-	extern int getline(void);
 
-	if(dosinit(dos) < 0)
+	switch(dosstat(dos, path, &file)){
+
+	case -1:
+		print("error walking to %s\n", path);
 		return -1;
-
-	file = dos->root;
-
-	while(path = nextelem(path, element))
-		switch(doswalk(&file, element)){
-		case -1:
-			print("error walking to %8.8s.%3.3s\n", file.name, file.ext);
-			return -1;
-		case 0:
-			print("%8.8s.%3.3s %d %d not found\n", file.name, file.ext,
-				file.pstart, file.length);
-			return -1;
-		case 1:
-			print("found %8.8s.%3.3s attr 0x%ux start 0x%lux len %d\n", file.name,
-				file.ext, file.attr, file.pstart, file.length);
-			break;
-		}
+	case 0:
+		print("%s not found\n", path);
+		return -1;
+	case 1:
+		print("found %8.8s.%3.3s attr 0x%ux start 0x%lux len %d\n", file.name,
+			file.ext, file.attr, file.pstart, file.length);
+		break;
+	}
 
 	/*
 	 *  read header
 	 */
-	addr = BY2PG;
+	ep = (Exec*)ialloc(sizeof(Exec), 0);
 	n = sizeof(Exec);
-	if(dosreadseg(&file, n, addr) != n){
+	if(dosreadseg(&file, n, (ulong) ep) != n){
 		print("premature EOF\n");
 		return -1;
 	}
-	ep = (Exec *)BY2PG;
 	if(GLLONG(ep->magic) != I_MAGIC){
 		print("bad magic 0x%lux not a plan 9 executable!\n", GLLONG(ep->magic));
 		return -1;
 	}
 
 	/*
-	 *  read text (starts at second page)
+	 *  read text
 	 */
-	addr += sizeof(Exec);
+	addr = PADDR(GLLONG(ep->entry));
 	n = GLLONG(ep->text);
-	print("%d", n);
+	print("+%d", n);
 	if(dosreadseg(&file, n, addr) != n){
 		print("premature EOF\n");
 		return -1;
@@ -501,15 +519,13 @@ dosboot(Dos *dos, char *path)
 	/*
 	 *  bss and entry point
 	 */
-	print("+%d start at 0x%lux\n", GLLONG(ep->bss), GLLONG(ep->entry));
+	print("+%d\nstart at 0x%lux\n", GLLONG(ep->bss), GLLONG(ep->entry));
 
 	/*
-	 *  Go to new code.  To avoid assumptions about where the program
-	 *  thinks it is mapped, mask off the high part of the entry
-	 *  address.  It's up to the program to get it's PC relocated to
+	 *  Go to new code. It's up to the program to get its PC relocated to
 	 *  the right place.
 	 */
-	b = (void (*)(void))(GLLONG(ep->entry) & 0xffff);
+	b = (void (*)(void))(PADDR(GLLONG(ep->entry)));
 	(*b)();
 	return 0;
 }
@@ -529,7 +545,7 @@ dosreadseg(Dosfile *fp, long len, long addr)
 		if(len - sofar < n)
 			n = len - sofar;
 		n = dosread(fp, a + sofar, n);
-		if(n < 0)
+		if(n <= 0)
 			break;
 		print(".");
 	}

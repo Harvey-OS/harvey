@@ -63,17 +63,20 @@ or makes the
 output more verbose.
 .PP
 .I Tcs
-recognizes the following character sets:
-.TF Unicode
+recognizes an ever changing list of character sets.
+In particular, it supports a variety of Russian and Japanese encodings.
+Some of the supported encodings are
+.TF jis-kanji
 .TP
 .B utf
-(our)
+The Plan 9
 .SM UTF
-encoding from X/Open
+encoding, known by ISO as UTF-8
 .TP
 .B utf1
+The deprecated original
 .SM UTF
-encoding from 10646
+encoding from ISO 10646
 .TP
 .B ascii
 7-bit ASCII
@@ -105,14 +108,20 @@ Part 8 (Hebrew)
 .B 8859-9
 Latin-5 (Finnish .. Portuguese)
 .TP
-.B kio8
-KIO-8 (recommended)
+.B koi8
+KOI-8 (GOST 19769-74)
 .TP
-.B kio8x
-KIO-8 (alternate)
+.B jis-kanji
+ISO 2022-JP
+.TP
+.B ujis
+EUC-JX: JIS 0208
+.TP
+.B ms-kanji
+Microsoft, or Shift-JIS
 .TP
 .B jis
-XJIS
+(from only) guesses between ISO 2022-JP, EUC or Shift-Jis
 .TP
 .B gb
 Chinese national standard (GB2312-80)
@@ -121,7 +130,16 @@ Chinese national standard (GB2312-80)
 Big 5 (HKU version)
 .TP
 .B unicode
-Unicode 1.0
+Unicode Standard 1.0
+.TP
+.B tis
+Thai character set plus ASCII (TIS 620-1986)
+.TP
+.B msdos
+IBM PC: CP 437
+.TP
+.B atari
+Atari-ST character set
 .SH EXAMPLES
 .TP
 .B tcs -f 8859-1
@@ -139,6 +157,8 @@ characters.
 .TP
 .B tcs -lv
 Print an up to date list of the supported character sets.
+.SH SOURCE
+.B /sys/src/cmd/tcs
 .SH SEE ALSO
 .IR ascii (1), 
 .IR rune (2), 

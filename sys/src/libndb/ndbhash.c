@@ -60,11 +60,12 @@ hfopen(Ndb *db, char *attr)
 		return 0;
 
 	/* if the database has changed, throw out hash files and reopen db */
-	if(dirfstat(Bfildes(db), &d) < 0 || db->qid.path != d.qid.path
+	if(dirfstat(Bfildes(&db->b), &d) < 0 || db->qid.path != d.qid.path
 	|| db->qid.vers != d.qid.vers){
 		if(ndbreopen(db) < 0)
 			return 0;
 	};
+	db->length = d.length;
 
 	/* see if a hash file exists for this attribute */
 	for(hf = db->hf; hf; hf= hf->next){
@@ -96,6 +97,7 @@ hfopen(Ndb *db, char *attr)
 		}
 		close(hf->fd);
 	}
+
 	free(hf);
 	return 0;
 }
@@ -108,6 +110,7 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 {
 	uchar *p;
 
+	memset(s, 0, sizeof(*s));
 	s->hf = hfopen(db, attr);
 	if(s->hf){
 		s->ptr = ndbhash(val, s->hf->hlen)*NDBPLEN;
@@ -116,6 +119,15 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 			return 0;
 		s->ptr = NDBGETP(p);
 		s->type = Cptr1;
+	} else if(db->length > 128*1024){
+		print("Missing or out of date hash file %s.%s.\n", db->file, attr);
+		syslog(0, "ndb", "Missing or out of date hash file %s.%s.", db->file, attr);
+
+		/* advance search to next db file */
+		s->ptr = NDBNAP;
+		if(db->next == 0)
+			return 0;
+		return ndbsearch(db->next, s, attr, val);
 	} else {
 		s->ptr = 0;
 		s->type = Dptr;
@@ -146,25 +158,23 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 	Ndb *db;
 	uchar *p;
 
-/* fprint(2, "%s %s %d %lux\n", s->db->file, attr, s->type, s->ptr);/**/
-
 	db = s->db;
 	if(s->ptr == NDBNAP)
 		goto nextfile;
 
 	for(;;){
 		if(s->type == Dptr){
-			if(ndbseek(db, s->ptr, 0) < 0)
-				break; 
+			if(Bseek(&db->b, s->ptr, 0) < 0)
+				break;
 			t = ndbparse(db);
-			s->ptr = db->offset;
+			s->ptr = Boffset(&db->b);
 			if(t == 0)
 				break;
 			if(s->t = match(t, attr, val))
 				return t;
 			ndbfree(t);
 		} else if(s->type == Cptr){
-			if(ndbseek(db, s->ptr, 0) < 0)
+			if(Bseek(&db->b, s->ptr, 0) < 0)
 				break; 
 			s->ptr = s->ptr1;
 			s->type = Cptr1;
@@ -184,7 +194,7 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 				s->ptr1 = NDBGETP(p+NDBPLEN);
 				s->type = Cptr;
 			} else {		/* end of hash chain */
-				if(ndbseek(db, s->ptr, 0) < 0)
+				if(Bseek(&db->b, s->ptr, 0) < 0)
 					break; 
 				s->ptr = NDBNAP;
 				t = ndbparse(db);

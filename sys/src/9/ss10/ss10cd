@@ -1,0 +1,40 @@
+dev
+	root	/
+	cons	c
+	env	e
+	pipe	|
+	proc	p
+	srv	s
+	mnt	M
+	dup	d
+	lance	l
+	scc	t
+	rtc	r
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	arp	a
+	bit	b
+	iproute	P
+	scsi	S	scsi scsibuf
+	wren	w
+	kprof	T
+	cdrom	R
+	floppy	f
+
+stream
+	fcall
+	ip
+	async
+
+misc
+	k9660srv.root
+
+port
+	int cpuserver = 0;
+	ulong cfslen = 0; uchar cfscode[1];
+	ulong fslen = 0; uchar fscode[];
+	void consdebug(void) {}
+
+boot terminal #R6/cd6
+	local
+	il
+	tcp

@@ -60,7 +60,7 @@ fault68040(Ureg *ur, FFrame *f)
 	ulong addr, badvaddr;
 	int user, read, insyscall;
 	char buf[ERRLEN];
-
+flushatc();
 	if(u == 0){
 		dumpregs(ur);
 		print("ssw=%ux ea=%lux fa=%lux\n", f->ssw, f->ea, f->fa);

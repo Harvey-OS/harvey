@@ -38,8 +38,8 @@ lockinit(void)
 void
 lock(Lock *l)
 {
-	int i;
-	ulong *sbsem, pcp;
+	int i, j, k;
+	ulong *sbsem, pcp, s;
 
 	sbsem = l->sbsem;
 	if(sbsem == 0) {
@@ -65,21 +65,45 @@ lock(Lock *l)
 		l->pc = pcp;
 		return;
 	}
-	for(i=0; i<10000000; i++)
-    		if((*sbsem&1) == 0) {
-			l->pc = pcp;
-			return;
-		}
-	dumpstack(u);
+
 loop:
+	for(i=0; i<100000; i++) {
+		for(j=0; j<100; j++) {
+			for(k=0; k<50; k++)
+				;
+    			if((*sbsem&1) == 0) {
+				l->pc = pcp;
+				return;
+			}
+		}
+
+		s = getstatus();
+		if(s & IEC)	/* were we spllo */
+			sched();
+	}
+
+	dumpstack(u);
 	print("lock loop %lux pc %lux held by pc %lux\n",
 		l, pcp, l->pc);
-	for(i=0; i<10000000; i++)
-    		if((*sbsem&1) == 0) {
-			l->pc = pcp;
-			return;
-		}
 	goto loop;
+}
+
+void
+ilock(Lock *l)
+{
+	l->sr = splhi();
+	lock(l);
+}
+
+void
+iunlock(Lock *l)
+{
+	ulong sr;
+
+	sr = l->sr;
+	l->pc = 0;
+	*l->sbsem = 0;
+	splx(sr);
 }
 
 int

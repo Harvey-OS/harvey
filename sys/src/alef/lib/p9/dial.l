@@ -1,13 +1,13 @@
 #include <alef.h>
 
 intern int
-call(char *clone, char *dest, int *cfdp, char *dir, char *local)
+call(byte *clone, byte *dest, int *cfdp, byte *dir, byte *local)
 {
 	int fd, cfd;
 	int n;
-	char name[3*NAMELEN+5];
-	char data[3*NAMELEN+10];
-	char *p;
+	byte name[3*NAMELEN+5];
+	byte data[3*NAMELEN+10];
+	byte *p;
 
 	cfd = open(clone, ORDWR);
 	if(cfd < 0)
@@ -20,23 +20,20 @@ call(char *clone, char *dest, int *cfdp, char *dir, char *local)
 		return -1;
 	}
 	name[n] = 0;
+	sprint(name, "%d", strtoui(name, nil, 0));
 	p = strrchr(clone, '/');
 	*p = 0;
 	if(dir)
 		sprint(dir, "%.*s/%.*s", 2*NAMELEN+1, clone, NAMELEN, name);
+
 	sprint(data, "%.*s/%.*s/data", 2*NAMELEN+1, clone, NAMELEN, name);
 
 	/* set local side (port number, for example) if we need to */
-	if(local){
-		sprint(name, "announce %s", 2*NAMELEN, local);
-		if(write(cfd, name, strlen(name)) < 0){
-			close(cfd);
-			return -1;
-		}
-	}
+	if(local)
+		sprint(name, "connect %.*s %.*s", 2*NAMELEN, dest, 2*NAMELEN, local);
+	else
+		sprint(name, "connect %.*s", 2*NAMELEN, dest);	/* connect */
 
-	/* connect */
-	sprint(name, "connect %.*s", 2*NAMELEN, dest);
 	if(write(cfd, name, strlen(name)) < 0){
 		close(cfd);
 		return -1;
@@ -56,14 +53,12 @@ call(char *clone, char *dest, int *cfdp, char *dir, char *local)
 }
 
 int
-dial(char *dest, char *local, char *dir, int *cfdp)
+dial(byte *dest, byte *local, byte *dir, int *cfdp)
 {
-	char net[128];
-	char clone[NAMELEN+12];
-	char *p;
-	int n;
-	int fd;
-	int rv;
+	byte net[128];
+	byte clone[NAMELEN+12];
+	byte *p;
+	int n, fd, rv;
 
 	/* go for a standard form net!... */
 	p = strchr(dest, '!');

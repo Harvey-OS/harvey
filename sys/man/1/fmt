@@ -1,6 +1,6 @@
 .TH FMT 1
 .SH NAME
-fmt \(mi ultra-simple text formatter
+fmt \- ultra-simple text formatter
 .SH SYNOPSIS
 .B fmt
 [
@@ -19,8 +19,8 @@ The options are
 .TP
 .BI -l " n
 Output line length is
-.I n,
-including indent, (default 70).
+.IR n ,
+including indent (default 70).
 .TP
 .BI -i " n
 Indent
@@ -35,5 +35,7 @@ Empty lines are inserted between input files.
 .PP
 .I Fmt
 is idempotent: it leaves already formatted text unchanged.
+.SH SOURCE
+.B /sys/src/cmd/fmt.c
 .SH BUGS
 Words longer than 256 characters are split.

@@ -5,8 +5,11 @@ OFILES=\
 	ndbhash.$O\
 	ndbparse.$O\
 	ndbgetval.$O\
+	ndbaux.$O\
+	ndbfree.$O\
 	ipattr.$O\
 	ipinfo.$O\
+	csgetval.$O\
 
 HFILES=/sys/include/ndb.h
 

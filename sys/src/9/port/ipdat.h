@@ -6,6 +6,7 @@ typedef ulong		Ipaddr;
 typedef struct Ipconv	Ipconv;
 typedef struct Ipfrag	Ipfrag;
 typedef struct Ipifc	Ipifc;
+typedef struct Ipdevice	Ipdevice;
 typedef ushort		Port;
 typedef struct Reseq	Reseq;
 typedef struct Tcp	Tcp;
@@ -106,7 +107,6 @@ struct Ilcb			/* Control block */
 	QLock	outo;		/* Out of order packet queue */
 	Block	*outoforder;
 
-	Lock	nxl;
 	ulong	next;		/* Id of next to send */
 	ulong	recvd;		/* Last packet received */
 	ulong	start;		/* Local start id */
@@ -208,20 +208,20 @@ struct Tctl
 	uchar	type;			/* Listening or active connection */
 	uchar	code;			/* Icmp code */		
 	struct {
-		int	una;		/* Unacked data pointer */
-		int	nxt;		/* Next sequence expected */
-		int	ptr;		/* Data pointer */
+		ulong	una;		/* Unacked data pointer */
+		ulong	nxt;		/* Next sequence expected */
+		ulong	ptr;		/* Data pointer */
 		ushort	wnd;		/* Tcp send window */
-		int	up;		/* Urgent data pointer */
-		int	wl1;
-		int	wl2;
+		ulong	up;		/* Urgent data pointer */
+		ulong	wl1;
+		ulong	wl2;
 	} snd;
 	struct {
-		int	nxt;		/* Receive pointer to next byte slot */
+		ulong	nxt;		/* Receive pointer to next byte slot */
 		ushort	wnd;		/* Receive window incoming */
-		int	up;		/* Urgent pointer */
+		ulong	up;		/* Urgent pointer */
 	} rcv;
-	int	iss;			/* Initial sequence number */
+	ulong	iss;			/* Initial sequence number */
 	ushort	cwind;			/* Congestion window */
 	ushort	ssthresh;		/* Slow start threshold */
 	int	resent;			/* Bytes just resent */
@@ -230,7 +230,7 @@ struct Tctl
 	int	rerecv;			/* Overlap of data rerecevived */
 	ushort	window;			/* Recevive window */
 	int	max_snd;		/* Max send */
-	int	last_ack;		/* Last acknowledege received */
+	ulong	last_ack;		/* Last acknowledege received */
 	char	backoff;		/* Exponential backoff counter */
 	char	flags;			/* State flags */
 	char	tos;			/* Type of service */
@@ -248,9 +248,10 @@ struct Tctl
 	Timer	timer;			/* Activity timer */
 	Timer	acktimer;		/* Acknoledge timer */
 	Timer	rtt_timer;		/* Round trip timer */
-	int	rttseq;			/* Round trip sequence */
+	ulong	rttseq;			/* Round trip sequence */
 	int	srtt;			/* Shortened round trip */
 	int	mdev;			/* Mean deviation of round trip */
+	int	kacounter;		/* when counter goes to zero, hangup */
 };
 
 struct Tcpctl
@@ -264,8 +265,8 @@ struct	Tcp
 {
 	Port	source;
 	Port	dest;
-	int	seq;
-	int	ack;
+	ulong	seq;
+	ulong	ack;
 	char	flags;
 	ushort	wnd;
 	ushort	up;
@@ -288,6 +289,7 @@ struct Ipconv
 	Netprot;			/* stat info */
 	int 	ref;
 	Ipaddr	dst;			/* Destination from connect */
+	Ipaddr	src;			/* local address */
 	Port	psrc;			/* Source port */
 	Port	pdst;			/* Destination port */
 
@@ -301,6 +303,7 @@ struct Ipconv
 	int	headers;		/* include header in packet */
 	int	curlog;			/* Number of waiting connections */
 	Ipconv 	*newcon;		/* This is the start of a connection */
+	char	text[NAMELEN];		/* program announcing/connecting port */
 
 	union {
 		Tcpctl	tcpctl;		/* Tcp control block */
@@ -308,10 +311,11 @@ struct Ipconv
 	};
 };
 
+
 enum
 {
 	MAX_TIME 	= (1<<20),	/* Forever */
-	TCP_ACK		= 200,		/* Timed ack sequence every 200ms */
+	TCP_ACK		= 50,		/* Timed ack sequence in ms */
 
 	URG		= 0x20,		/* Data marked urgent */
 	ACK		= 0x10,		/* Aknowledge is valid */
@@ -326,8 +330,8 @@ enum
 
 	MSS_LENGTH	= 4,		/* Mean segment size */
 	MSL2		= 10,
-	MSPTICK		= 100,		/* Milliseconds per timer tick */
-	DEF_MSS		= 1024,		/* Default mean segment */
+	MSPTICK		= 50,		/* Milliseconds per timer tick */
+	DEF_MSS		= 512,		/* Default mean segment */
 	DEF_RTT		= 1000,		/* Default round trip */
 
 	TCP_PASSIVE	= 0,		/* Listen connection */
@@ -335,7 +339,7 @@ enum
 	IL_PASSIVE	= 0,
 	IL_ACTIVE	= 1,
 
-	MAXBACKOFF	= 5,
+	MAXBACKOFF	= 12,
 	FORCE		= 1,
 	CLONE		= 2,
 	RETRAN		= 4,
@@ -367,6 +371,7 @@ enum
 {
 	Nipconv=	512,		/* max conversations per interface */
 	Udphdrsize=	6,		/* size if a to/from user Udp header */
+	Nipd=		34,		/* ip hardware interfaces */
 };
 
 /*
@@ -380,13 +385,31 @@ struct Ipifc
 	int 		inited;
 	uchar		protocol;		/* Ip header protocol number */
 	void (*iprcv)	(Ipifc*, Block*);	/* Receive demultiplexor */
-	int		maxmtu;			/* Maximum transfer unit */
-	int		minmtu;			/* Minumum tranfer unit */
-	int		hsize;			/* Media header size */	
 	ulong		chkerrs;		/* checksum errors */
 	Ipconv		**conv;			/* conversations */
 };
 
+/*
+ * Ip hardare interface structure. We have one for each physical interface
+ */
+struct Ipdevice
+{
+	Queue	*q;
+
+	Ipaddr		Myip[7];
+	Ipaddr		Mymask;
+	Ipaddr		Mynetmask;
+	Ipaddr		Remip;		/* address of remote side */
+	uchar		Netmyip[4];	/* In Network byte order */
+	int		maxmtu;		/* Maximum transfer unit */
+	int		minmtu;		/* Minumum tranfer unit */
+	int		hsize;		/* Media header size */
+
+	int		type;		/* channel identifier */
+	int		dev;
+
+	QLock		outl;
+};
 
 struct Fragq
 {
@@ -418,9 +441,13 @@ enum {
 	IL_DATMAX	= (IP_MAX-IL_HDRSIZE),	/* Maximum IL data in one ip packet */
 
 	/* Protocol numbers */
+	IP_ICMPPROTO	= 1,
 	IP_UDPPROTO	= 17,
 	IP_TCPPROTO	= 6,
 	IP_ILPROTO	= 40,
+
+	/* Psuedo protocol - not on the wire */
+	IP_ROUTER	= 128,
 
 	/* Protocol port numbers */
 	PORTALLOC	= 5000,			/* First automatic allocated port */
@@ -437,6 +464,7 @@ void	localclose(Ipconv *, char []);
 int	dupb(Block **, Block *, int, int);
 void	extract_oob(Block **, Block **, Tcp *);
 void	get_reseq(Tcpctl *, char *, Tcp *, Block **, ushort *);
+Ipaddr	ipgetsrc(uchar*);
 void	hnputl(uchar*, ulong);
 void	hnputs(uchar*, ushort);
 Block*	htontcp(Tcp *, Block *, Tcphdr *);
@@ -446,7 +474,7 @@ void	ilstart(Ipconv *, int, int);
 int	inb_window(Tcpctl *, int);
 void	init_tcpctl(Ipconv *);
 void	initfrag(int);
-void	initipifc(Ipifc*, uchar, void (*)(Ipifc*, Block*), int, int, int);
+void	initipifc(Ipifc*, uchar, void (*)(Ipifc*, Block*));
 Ipconv*	ip_conn(Ipifc*, Port, Port, Ipaddr dest);
 ushort	ip_csum(uchar*);
 Block*	ip_reassemble(int, Block*, Etherhdr*);
@@ -462,8 +490,8 @@ void	iplocalfill(Chan*, char*, int);
 void	ipmkdir(Qinfo *, Dirtab *, Ipconv *);
 Ipaddr	ipparse(char*);
 void	ipremotefill(Chan*, char*, int);
-void	iproute(uchar*, uchar*);
-void	ipsetaddrs(void);
+Ipdevice*	iproute(uchar*, uchar*);
+void	ipsetaddrs(Ipdevice*);
 void	ipstatusfill(Chan*, char*, int);
 Port	nextport(Ipifc*, int);
 ushort	nhgets(uchar*);
@@ -477,13 +505,13 @@ ushort	ptcl_csum(Block*bp, int, int);
 int	pullb(Block **, int);
 void	reset(Ipaddr, Ipaddr, char, ushort, Tcp*);
 void	tcpsndsyn(Tcpctl*);
-int	seq_ge(int, int);
-int	seq_gt(int, int);
-int	seq_gt(int, int);
-int	seq_le(int, int);
-int	seq_lt(int, int);
-int	seq_within(int, int, int);
-int	seq_within(int, int, int);
+int	seq_ge(ulong, ulong);
+int	seq_gt(ulong, ulong);
+int	seq_gt(ulong, ulong);
+int	seq_le(ulong, ulong);
+int	seq_lt(ulong, ulong);
+int	seq_within(ulong, ulong, ulong);
+int	seq_within(ulong, ulong, ulong);
 void	tcpsetstate(Ipconv *, char);
 void	tcpgo(Timer *);
 void	tcphalt(Timer *);
@@ -513,11 +541,13 @@ extern Ipaddr Mymask;
 extern Ipaddr Mynetmask;
 extern Ipaddr classmask[4];
 extern Ipifc *ipifc[];
+extern Ipdevice ipd[Nipd];
 extern char *tcpstate[];
 extern char *ilstate[];
 extern Rendez tcpflowr;
 extern Qinfo tcpinfo;
 extern Qinfo ipinfo;
+extern Qinfo ipconvinfo;
 extern Qinfo udpinfo;
 extern Qinfo ilinfo;
 extern Qinfo arpinfo;

@@ -1,7 +1,9 @@
 .TH FONE 1
 .CT 1 networking
 .SH NAME
-fone \- control ISDN telephone
+fone \- control
+.SM ISDN
+telephone
 .SH SYNOPSIS
 .B fone
 .RI [ options... ]
@@ -13,7 +15,7 @@ manages an
 7506
 .SM ISDN
 telephone set.  Program control is supplementary: normal functioning of
-the phone is not affected.  The set must be equipped with the ProPhone1.5\(tm
+the phone is not affected.  The set must be equipped with the ProPhone1.5
 .SM ROM
 or equivalent.  To initialize after the
 .SM ROM
@@ -52,19 +54,30 @@ are:
 The telephone is controlled through
 .I file
 instead of
-.BI /dev/eia0 .
+.BR /dev/eia0 .
 .TP
 .BI -l " file"
 Calls are logged in
 .I file
 instead of
-.BI call.log .
+.BR call.log .
+.TP
+.B -m
+The mike is not muted when a call is dialed with
+the handset down (see below).
+.TP
+.BI -t " cmd"
+The
+.B t
+command (see below) runs
+.I cmd
+instead of
+.BR /bin/tel .
 .PP
 Commands to
 .I fone
 are read, one per line, from the standard input.
-...nr zz \w'\fLc\fP \fIstring\fP'u/1n+2
-.TP \n(zz
+.TP
 .BI c " string"
 Call telephone number
 .IR string .
@@ -150,7 +163,7 @@ will drop the second call
 and reconnect the first.
 .TP
 .BI . " string"
-Transmits the converted touchtone
+Transmits the converted Touch-Tone
 .I string
 to the called party; a
 .I string
@@ -168,9 +181,11 @@ Print a summary of commands.
 .PP
 The
 .L c
-command may be given before or after lifting the handset; if the handset
-is down, the call is placed with the speaker on and mike muted, so you
-can hear what's happening.
+command may be given before or after lifting the handset; if the
+handset is down, the call is placed with the speaker on so you can
+hear what's happening.  The mike is normally muted, but the
+.B -m
+flag (see above) overrides this.
 .SH FILES
 .TF debug.log
 .TP
@@ -179,8 +194,10 @@ log of calls
 .TP
 .B /dev/eia0
 RS232 line to phone
+.SH SOURCE
+.B /sys/src/cmd/fone
 .SH BUGS
 .PP
-The speakerphone is not really supported.
+The speaker phone is not really supported.
 .br
 There's still no way to set the clock.

@@ -17,15 +17,19 @@ void Mgrid(void){
 	delta=dsub(arg[0], arg[1]);
 	if(delta.x<0) delta.x=-delta.x;
 	if(delta.y<0) delta.y=-delta.y;
-	msg("grid %.2f,%.2f+%.2f,%.2f", arg[0].x, arg[0].y, delta.x, delta.y);
-	if(ngrid!=NGRID){
-		grid[ngrid].origin=arg[0];
-		grid[ngrid].delta=delta;
-		sprint(grid[ngrid].button, " %.2f,%.2f+%.2f,%.2f",
-			arg[0].x, arg[0].y, delta.x, delta.y);
-		mgrid[ngrid+3]=grid[ngrid].button;
-		ngrid++;
-		newgrid(ngrid-1);
+	if(delta.x==0 || delta.y==0)
+		msg("select the diagonal of the grid cell");
+	else{
+		msg("grid %.2f,%.2f+%.2f,%.2f", arg[0].x, arg[0].y, delta.x, delta.y);
+		if(ngrid!=NGRID){
+			grid[ngrid].origin=arg[0];
+			grid[ngrid].delta=delta;
+			sprint(grid[ngrid].button, " %.2f,%.2f+%.2f,%.2f",
+				arg[0].x, arg[0].y, delta.x, delta.y);
+			mgrid[ngrid+3]=grid[ngrid].button;
+			ngrid++;
+			newgrid(ngrid-1);
+		}
 	}
 }
 void Ogrid(int n){
@@ -61,5 +65,5 @@ void drawgrid(void){
 	d=grid[gridsel].delta;
 	for(p.y=lo.y;p.y<=hi.y;p.y+=d.y)
 		for(p.x=lo.x;p.x<=hi.x;p.x+=d.x)
-			point(&screen, D2P(p), FAINT, S|D);
+			point(&screen, D2P(p), faint, S|D);
 }

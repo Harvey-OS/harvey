@@ -6,35 +6,54 @@
 #include "acid.h"
 #include "y.tab.h"
 
-static Biobuf	bioin;
 static Biobuf	bioout;
 static char	prog[128];
-static char	*lm[16];
+static char*	lm[16];
 static int	nlm;
+static char*	mtype;
 
-extern	int Sconv(void*, Fconv*);
-	int isnumeric(char*);
+static	int attachfiles(char*, int);
+int	xconv(void*, Fconv*);
+int	isnumeric(char*);
+void	die(void);
+
+void
+usage(void)
+{
+	fprint(2, "usage: acid [-l module] [-m machine] [-wq] [pid] [file]\n");
+	exits("usage");
+}
 
 void
 main(int argc, char *argv[])
 {
-	Lsym *procs;
-	int twice, pid, ipid, i;
+	Dir db;
+	char buf[128], *s;
+	int pid, i;
 
-	pid = 0;
 	argv0 = argv[0];
+	pid = 0;
+	mtype = 0;
 	aout = "v.out";
 
 	ARGBEGIN{
 	case 'w':
 		wtflag = 1;
 		break;
+	case 'q':
+		quiet++;
+		break;
+	case 'm':
+		mtype = ARGF();
+		break;
 	case 'l':
-		lm[nlm++] = ARGF();
+		s = ARGF();
+		if(s == 0)
+			usage();
+		lm[nlm++] = s;
 		break;
 	default:
-		fprint(2, "usage: acid [-l module] [-w] [pid] [file]\n");
-		break;
+		usage();
 	}ARGEND
 
 	if(argc > 0) {
@@ -42,83 +61,125 @@ main(int argc, char *argv[])
 			pid = atoi(argv[0]);
 			sprint(prog, "/proc/%d/text", pid);
 			aout = prog;
+			if(argc > 1)
+				aout = argv[1];
 		}
 		else
 			aout = argv[0];
 	}
 
-	fmtinstall('S', Sconv);
+	fmtinstall('x', xconv);
+	fmtinstall('L', Lconv);
 	Binit(&bioout, 1, OWRITE);
 	bout = &bioout;
 
 	kinit();
-	readtext(aout);
-	varreg();
+	initialising = 1;
+	pushfile(0);
+	loadvars();
 	installbuiltin();
-	loadmodule("/lib/acid/port");
-	machinit();
-	for(i = 0; i < nlm; i++)
-		if(loadmodule(lm[i]) == 0)
-			print("%s: %r - not loaded\n", lm[i]);
 
+	if(mtype && machbyname(mtype) == 0)
+		print("unknown machine %s", mtype);
+
+	if (attachfiles(aout, pid) < 0)
+		varreg();		/* use default register set on error */
+
+	loadmodule("/sys/lib/acid/port");
+	for(i = 0; i < nlm; i++) {
+		if(dirstat(lm[i], &db) >= 0)
+			loadmodule(lm[i]);
+		else {
+			sprint(buf, "/sys/lib/acid/%s", lm[i]);
+			loadmodule(buf);
+		}
+	}
+	userinit();
 	varsym();
 
-	Binit(&bioin, 0, OREAD);
-	bin = &bioin;
 	interactive = 1;
+	initialising = 0;
 	line = 1;
 
-	procs = mkvar("proclist");
 	notify(catcher);
 
-	twice = 0;
-	ipid = pid;
 	for(;;) {
-		if(setjmp(err))
+		if(setjmp(err)) {
+			Binit(&bioout, 1, OWRITE);
 			unwind();
-
-		stacked = 0;
-		if(pid != 0) {
-			pid = 0;
-			sproc(ipid);
 		}
+		stacked = 0;
 
 		Bprint(bout, "acid: ");
 
-		if(yyparse() != 1) {
-			if(procs->v->l == 0 || twice)
-				break;
-			print("\nActive processes\n");
-			twice = 1;
-		}
+		if(yyparse() != 1)
+			die();
+		restartio();
 
 		unwind();
 	}
+	Bputc(bout, '\n');
+	exits(0);
+}
+
+static int
+attachfiles(char *aout, int pid)
+{
+	interactive = 0;
+	if(setjmp(err))
+		return -1;
+
+	if(aout) {				/* executable given */
+		if(wtflag)
+			text = open(aout, ORDWR);
+		else
+			text = open(aout, OREAD);
+		if(text < 0)
+			error("%s: can't open %s: %r\n", argv0, aout);
+		readtext(aout);
+	}
+	if(pid)					/* pid given */
+		sproc(pid);
+	return 0;
 }
 
 void
-machinit(void)
+die(void)
+{
+	Lsym *s;
+	List *f;
+
+	Bprint(bout, "\n");
+
+	s = look("proclist");
+	if(s && s->v->type == TLIST) {
+		for(f = s->v->l; f; f = f->next)
+			Bprint(bout, "echo kill > /proc/%d/ctl\n", f->ival);
+	}
+	exits(0);
+}
+
+void
+userinit(void)
 {
 	Lsym *l;
 	Node *n;
-	Value *v;
 	char buf[128], *p;
 
-	l = mkvar("objtype");
-	v = l->v;
-	v->fmt = 's';
-	v->set = 1;
-	v->string = strnode(mach->name);
-	v->type = TSTRING;
-
-	sprint(buf, "/lib/acid/%s", mach->name);
+	sprint(buf, "/sys/lib/acid/%s", mach->name);
 	loadmodule(buf);
 	p = getenv("home");
 	if(p != 0) {
 		sprint(buf, "%s/lib/acid", p);
+		silent = 1;
 		loadmodule(buf);
 	}
 
+	interactive = 0;
+	if(setjmp(err)) {
+		unwind();
+		return;
+	}
 	l = look("acidinit");
 	if(l && l->proc) {
 		n = an(ONAME, ZN, ZN);
@@ -128,61 +189,56 @@ machinit(void)
 	}
 }
 
-int
+void
 loadmodule(char *s)
 {
-	bin = Bopen(s, OREAD);
-	if(bin == 0)
-		return 0;
-
+	interactive = 0;
 	if(setjmp(err)) {
 		unwind();
-		return 1;
+		return;
 	}
-	filename = s;
-	line = 0;
+	pushfile(s);
+	silent = 0;
 	yyparse();
-	filename = 0;
-	Bclose(bin);
-	return 1;
+	popio();
+	return;
 }
 
 void
 readtext(char *s)
 {
+	Dir d;
 	Lsym *l;
+	Value *v;
 	Symbol sym;
-	extern Machdata mipsmach, m68020mach, sparcmach, i386mach, hobbitmach;
-	
-	if(text != 0) {
-		close(text);
-		text = 0;
-	}
-	text = open(s, OREAD);
-	if(text < 0) {
-		print("open %s: %r\n", s);
+	extern Machdata mipsmach;
+
+	if(mtype != 0){
+		symmap = newmap(0, text, 1);
+		if(symmap == 0)
+			print("%s: (error) loadmap: cannot make symbol map\n", argv0);
+		if(dirfstat(text, &d) < 0)
+			d.length = 1<<24;
+		setmap(symmap, 0, d.length, 0, "binary");
 		return;
 	}
+	
+	machdata = &mipsmach;
+
 	if(!crackhdr(text, &fhdr)) {
-		print("decode header: %s\n", symerror);
+		print("can't decode file header\n");
 		return;
 	}
 
 	symmap = loadmap(0, text, &fhdr);
 	if(symmap == 0)
-		print("loadmap: cannot make symbol map");
+		print("%s: (error) loadmap: cannot make symbol map\n", argv0);
 
 	if(syminit(text, &fhdr) < 0) {
-		if (symerror)
-			print("syminit: %s\n", symerror);
-		else
-			print("syminit: cannot load symbols\n");
+		print("%s: (error) syminit: %r\n", argv0);
 		return;
 	}
-	print("%s: %s\n", s, fhdr.name);
-
-	/* Dummy lookup to get local byte order */
-	lookup(0, "main", &sym);
+	print("%s:%s\n\n", s, fhdr.name);
 
 	if(mach->sbreg && lookup(0, mach->sbreg, &sym)) {
 		mach->sb = sym.value;
@@ -193,28 +249,22 @@ readtext(char *s)
 		l->v->set = 1;
 	}
 
-	switch(fhdr.type) {
-	default:
-		machdata = &mipsmach;
-		break;
-	case F68020:			/* 2.out */
-	case FNEXTB:			/* Next bootable */
-	case F68020B:			/* 68020 bootable */
-		machdata = &m68020mach;
-		break;
-	case FSPARC:			/* k.out */
-	case FSPARCB:			/* Sparc bootable */
-		machdata = &sparcmach;
-		break;
-	case FI386:			/* 8.out */
-	case FI386B:			/* I386 bootable */
-		machdata = &i386mach;
-		break;
-	case FHOBBIT:			/* z.out */
-	case FHOBBITB:			/* Hobbit bootable */
-		machdata = &hobbitmach;
-		break;
-	}
+	l = mkvar("objtype");
+	v = l->v;
+	v->fmt = 's';
+	v->set = 1;
+	v->string = strnode(mach->name);
+	v->type = TSTRING;
+
+	l = mkvar("textfile");
+	v = l->v;
+	v->fmt = 's';
+	v->set = 1;
+	v->string = strnode(s);
+	v->type = TSTRING;
+
+	machbytype(fhdr.type);
+	varreg();
 }
 
 Node*
@@ -263,7 +313,7 @@ fatal(char *fmt, ...)
 	char buf[128];
 
 	doprint(buf, buf+sizeof(buf), fmt, (&fmt+1));
-	fprint(2, "%s: %d (fatal problem) %s\n", argv0, line, buf);
+	fprint(2, "%s: %L (fatal problem) %s\n", argv0, buf);
 	exits(buf);
 }
 
@@ -272,34 +322,12 @@ yyerror(char *a, ...)
 {
 	char buf[128];
 
-	Bflush(bin);
-
 	if(strcmp(a, "syntax error") == 0) {
 		yyerror("syntax error, near symbol '%s'", symbol);
 		return;
 	}
 	doprint(buf, buf+sizeof(buf), a, &(&a)[1]);
-	if(filename)
-		print("%d (%s) %s\n", line, filename, buf);
-	else
-		print("%d %s\n", line, buf);
-}
-
-void
-marklist(List *l)
-{
-	while(l) {
-		l->gcmark = 1;
-		switch(l->type) {
-		case TSTRING:
-			l->string->gcmark = 1;
-			break;
-		case TLIST:
-			marklist(l->l);
-			break;
-		}
-		l = l->next;
-	}
+	print("%L: %s\n", buf);
 }
 
 void
@@ -315,6 +343,7 @@ marktree(Node *n)
 	n->gcmark = 1;
 	if(n->op != OCONST)
 		return;
+
 	switch(n->type) {
 	case TSTRING:
 		n->string->gcmark = 1;
@@ -322,6 +351,29 @@ marktree(Node *n)
 	case TLIST:
 		marklist(n->l);
 		break;
+	case TCODE:
+		marktree(n->cc);
+		break;
+	}
+}
+
+void
+marklist(List *l)
+{
+	while(l) {
+		l->gcmark = 1;
+		switch(l->type) {
+		case TSTRING:
+			l->string->gcmark = 1;
+			break;
+		case TLIST:
+			marklist(l->l);
+			break;
+		case TCODE:
+			marktree(l->cc);
+			break;
+		}
+		l = l->next;
 	}
 }
 
@@ -333,8 +385,9 @@ gc(void)
 	Value *v;
 	Gc *m, **p, *next;
 
-	if(dogc < 128*1024)
+	if(dogc < Mempergc)
 		return;
+	dogc = 0;
 
 	/* Mark */
 	for(m = gcl; m; m = m->gclink)
@@ -343,10 +396,10 @@ gc(void)
 	/* Scan */
 	for(i = 0; i < Hashsize; i++) {
 		for(f = hash[i]; f; f = f->hash) {
-			if(f->lexval == Tid) {
-				v = f->v;
-				if(v->pop)
-					fatal("gc");
+			marktree(f->proc);
+			if(f->lexval != Tid)
+				continue;
+			for(v = f->v; v; v = v->pop) {
 				switch(v->type) {
 				case TSTRING:
 					v->string->gcmark = 1;
@@ -354,9 +407,11 @@ gc(void)
 				case TLIST:
 					marklist(v->l);
 					break;
+				case TCODE:
+					marktree(v->cc);
+					break;
 				}
 			}
-			marktree(f->proc);
 		}
 	}
 
@@ -364,14 +419,13 @@ gc(void)
 	p = &gcl;
 	for(m = gcl; m; m = next) {
 		next = m->gclink;
-		if(!m->gcmark) {
-			*p = m->gclink;
+		if(m->gcmark == 0) {
+			*p = next;
 			free(m);	/* Sleazy reliance on my malloc */
 		}
 		else
 			p = &m->gclink;
 	}
-	dogc = 0;
 }
 
 void*
@@ -402,6 +456,8 @@ checkqid(int f1, int pid)
 		fatal("checkqid: dirstat %s: %r", buf);
 
 	close(fd);
+
+
 	if(memcmp(&d1.qid, &d2.qid, sizeof(d2.qid)))
 		print("warning: image does not match text\n");
 }
@@ -427,4 +483,22 @@ isnumeric(char *s)
 		s++;
 	}
 	return 1;
+}
+
+int
+xconv(void *oa, Fconv *f)
+{
+
+	/* if !unsigned and negative, emit '-' */
+	if(!(f->f3&32) && *(long*)oa < 0){
+		if(f->out < f->eout)
+			*f->out++ = '-';
+		*(long*)oa = -*(long*)oa;
+	}
+	if(f->out < f->eout-1) {
+		*f->out++ = '0';
+		*f->out++ = 'x';
+	}
+	numbconv(oa, f);
+	return sizeof(long);
 }

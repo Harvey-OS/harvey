@@ -8,7 +8,7 @@ HFILES=fns.h
 
 </sys/src/cmd/mkone
 BIN=/$objtype/bin/games
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 
 install:V:	/lib/font/bit/smiley/0
 

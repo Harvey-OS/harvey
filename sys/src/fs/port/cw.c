@@ -82,16 +82,6 @@ struct
 	long	ncopy;
 	int	nodump;
 /*
- * following are wormcp variables
- */
-	int	wcpflg;
-	long	wcpmaddr;
-	int	wcpcaddr;
-	int	wcpplatter;
-	long	wcpcount;
-	Device	wcpcdev;
-	Device	wcpwdev;
-/*
  * following are cached variables for dumps
  */
 	Device	dev;
@@ -161,12 +151,14 @@ void
 cmd_statw(int argc, char *argv[])
 {
 	Filsys *fs;
-	Iobuf *p, *cb;
+	Iobuf *p;
 	Superb *sb;
 	Cache *h;
 	Bucket *b;
 	Centry *c, *ce;
 	long m, nw, bw, state[Onone];
+	long sbfsize, sbcwraddr, sbroraddr, sblast, sbnext;
+	long hmsize, hmaddr;
 	Device dev, cdev;
 	int s;
 
@@ -184,50 +176,63 @@ cmd_statw(int argc, char *argv[])
 		print("	cache %s\n", fs->name);
 
 		cdev = CDEV(dev);
+
 		p = getbuf(dev, cwsaddr(dev), Bread);
 		if(!p || checktag(p, Tsuper, QPSUPER)) {
 			print("cwstats: checktag super\n");
 			if(p)
 				putbuf(p);
-			continue;
-		}
-		sb = (Superb*)p->iobuf;
-		cb = getbuf(cdev, CACHE_ADDR, Bread|Bres);
-		if(!cb || checktag(cb, Tcache, QPSUPER)) {
-			print("cwstats: checktag c bucket\n");
+			sbfsize = 0;
+			sbcwraddr = 0;
+			sbroraddr = 0;
+			sblast = 0;
+			sbnext = 0;
+		} else {
+			sb = (Superb*)p->iobuf;
+			sbfsize = sb->fsize;
+			sbcwraddr = sb->cwraddr;
+			sbroraddr = sb->roraddr;
+			sblast = sb->last;
+			sbnext = sb->next;
 			putbuf(p);
-			if(cb)
-				putbuf(cb);
+		}
+
+		p = getbuf(cdev, CACHE_ADDR, Bread|Bres);
+		if(!p || checktag(p, Tcache, QPSUPER)) {
+			print("cwstats: checktag c bucket\n");
+			if(p)
+				putbuf(p);
 			continue;
 		}
-		h = (Cache*)cb->iobuf;
+		h = (Cache*)p->iobuf;
+		hmaddr = h->maddr;
+		hmsize = h->msize;
 
-		print("		maddr  = %8ld\n", h->maddr);
-		print("		msize  = %8ld\n", h->msize);
+		print("		maddr  = %8ld\n", hmaddr);
+		print("		msize  = %8ld\n", hmsize);
 		print("		caddr  = %8ld\n", h->caddr);
 		print("		csize  = %8ld\n", h->csize);
 		print("		sbaddr = %8ld\n", h->sbaddr);
-		print("		craddr = %8ld %8ld\n", h->cwraddr, sb->cwraddr);
-		print("		roaddr = %8ld %8ld\n", h->roraddr, sb->roraddr);
-		print("		fsize  = %8ld %8ld %2ld+%2ld%%\n", h->fsize, sb->fsize,
+		print("		craddr = %8ld %8ld\n", h->cwraddr, sbcwraddr);
+		print("		roaddr = %8ld %8ld\n", h->roraddr, sbroraddr);
+		print("		fsize  = %8ld %8ld %2ld+%2ld%%\n", h->fsize, sbfsize,
 					h->fsize/DSIZE,
 					(h->fsize%DSIZE)/(DSIZE/100));
-		print("		slast  =          %8ld\n", sb->last);
-		print("		snext  =          %8ld\n", sb->next);
+		print("		slast  =          %8ld\n", sblast);
+		print("		snext  =          %8ld\n", sbnext);
 		print("		wmax   = %8ld          %2ld+%2ld%%\n", h->wmax,
 					h->wmax/DSIZE,
 					(h->wmax%DSIZE)/(DSIZE/100));
 		print("		wsize  = %8ld          %2ld+%2ld%%\n", h->wsize,
 					h->wsize/DSIZE,
 					(h->wsize%DSIZE)/(DSIZE/100));
-
 		putbuf(p);
 
 		bw = 0;	/* max filled bucket */
 		memset(state, 0, sizeof(state));
-		for(m=0; m<h->msize; m++) {
-			p = getbuf(cdev, h->maddr + m/BKPERBLK, Bread|Bres);
-			if(!p || checktag(p, Tbuck, h->maddr + m/BKPERBLK))
+		for(m=0; m<hmsize; m++) {
+			p = getbuf(cdev, hmaddr + m/BKPERBLK, Bread);
+			if(!p || checktag(p, Tbuck, hmaddr + m/BKPERBLK))
 				panic("cwstats: checktag c bucket");
 			b = (Bucket*)p->iobuf + m%BKPERBLK;
 			ce = b->entry + CEPERBK;
@@ -242,7 +247,6 @@ cmd_statw(int argc, char *argv[])
 			if(nw > bw)
 				bw = nw;
 		}
-		putbuf(cb);
 		for(s=Cnone; s<Cerror; s++)
 			print("		%6ld %s\n", state[s], cwnames[s]);
 		print("		cache %2ld%% full\n", (bw*100)/CEPERBK);
@@ -258,7 +262,7 @@ dumpblock(Device dev)
 	Centry *c, *ce, *bc;
 	Bucket *b;
 	long m, a, msize, maddr, wmax, caddr;
-	int s1, s2;
+	int s1, s2, count;
 
 	if(cw.nodump)
 		return 0;
@@ -271,12 +275,13 @@ dumpblock(Device dev)
 	wmax = h->wmax;
 	caddr = h->caddr;
 	putbuf(cb);
+
 	for(m=msize; m>=0; m--) {
 		a = cw.dbucket + 1;
 		if(a < 0 || a >= msize)
 			a = 0;
 		cw.dbucket = a;
-		p = getbuf(cdev, maddr + a/BKPERBLK, Bread|Bres);
+		p = getbuf(cdev, maddr + a/BKPERBLK, Bread);
 		b = (Bucket*)p->iobuf + a%BKPERBLK;
 		ce = b->entry + CEPERBK;
 		bc = 0;
@@ -310,8 +315,12 @@ dumpblock(Device dev)
 found:
 	a = a*CEPERBK + (c - b->entry) + caddr;
 	p1 = getbuf(devnone, Cwdump1, 0);
+	count = 0;
 
 retry:
+	count++;
+	if(count > 10)
+		goto stop;
 	if(devread(cdev, a, p1->iobuf))
 		goto stop;
 	m = c->waddr;
@@ -411,7 +420,7 @@ cwinit(Device dev)
 	}
 
 	for(m=0; m<h->msize; m++) {
-		p = getbuf(cdev, h->maddr + m/BKPERBLK, Bread|Bres);
+		p = getbuf(cdev, h->maddr + m/BKPERBLK, Bread);
 		if(!p || checktag(p, Tbuck, h->maddr + m/BKPERBLK))
 			panic("cwinit: checktag c bucket");
 		putbuf(p);
@@ -506,7 +515,7 @@ cwio(Device dev, long addr, void *buf, int opcode)
 	Centry *c;
 	Device cdev, wdev;
 	long bn, a1, a2, max, newmax;
-	int state, s1, s2;
+	int state;
 
 	cw.ncwio.count++;
 	cdev = CDEV(dev);
@@ -522,7 +531,7 @@ cwio(Device dev, long addr, void *buf, int opcode)
 
 	if(addr < 0) {
 		putbuf(cb);
-		panic("cwio neg address %ld", addr);
+		return Cerror;
 	}
 /*
 	if(addr >= h->fsize)
@@ -536,7 +545,7 @@ cwio(Device dev, long addr, void *buf, int opcode)
 	putbuf(cb);
 	newmax = 0;
 
-	p = getbuf(cdev, a1, Bread|Bmod|Bres);
+	p = getbuf(cdev, a1, Bread|Bmod);
 	if(!p || checktag(p, Tbuck, a1))
 		panic("cwio: checktag c bucket");
 	b = (Bucket*)p->iobuf + bn%BKPERBLK;
@@ -566,6 +575,7 @@ cwio(Device dev, long addr, void *buf, int opcode)
 		case Cread:
 			if(!devread(cdev, a2, buf))
 				break;
+			c->state = Cnone;
 
 		case Cnone:
 			if(devread(wdev, addr, buf)) {
@@ -577,7 +587,6 @@ cwio(Device dev, long addr, void *buf, int opcode)
 			if(!devwrite(cdev, a2, buf))
 				c->state = Cread;
 			break;
-
 
 		case Cdirty:
 		case Cdump:
@@ -595,32 +604,41 @@ cwio(Device dev, long addr, void *buf, int opcode)
 			goto bad;
 
 		case Cdump:
+		case Cdump1:
+			/*
+			 * this is hard part -- a dump block must be
+			 * sent to the worm if it is rewritten.
+			 * if this causes an error, there is no
+			 * place to save the dump1 data. the block
+			 * is just reclassified as 'dump1' (botch)
+			 */
 			p1 = getbuf(devnone, Cwio1, 0);
-
-		retry:
-			p2 = 0;
 			if(devread(cdev, a2, p1->iobuf)) {
-			err:
 				putbuf(p1);
-				if(p2)
-					putbuf(p2);
-				print("cwio: write induced dump error\n");
-				state = Cerror;
+				print("cwio: write induced dump error - r cache\n");
+
+			casenone:
+				if(devwrite(cdev, a2, buf)) {
+					state = Cerror;
+					break;
+				}
+				c->state = Cdump1;
 				break;
 			}
-			s1 = devwrite(wdev, addr, p1->iobuf);
-			if(s1) {
+			if(devwrite(wdev, addr, p1->iobuf)) {
 				p2 = getbuf(devnone, Cwio2, 0);
-				s2 = devread(wdev, addr, p2->iobuf);
-				if(s2) {
-					if(s1 == 0x61 && s2 == 0x60) {
-						putbuf(p2);
-						goto retry;
-					}
-					goto err;
+				if(devread(wdev, addr, p2->iobuf)) {
+					putbuf(p1);
+					putbuf(p2);
+					print("cwio: write induced dump error - r+w worm\n");
+					goto casenone;
 				}
-				if(memcmp(p1->iobuf, p2->iobuf, RBUFSIZE))
-					goto err;
+				if(memcmp(p1->iobuf, p2->iobuf, RBUFSIZE)) {
+					putbuf(p1);
+					putbuf(p2);
+					print("cwio: write induced dump error - w worm\n");
+					goto casenone;
+				}
 				putbuf(p2);
 			}
 			putbuf(p1);
@@ -638,7 +656,6 @@ cwio(Device dev, long addr, void *buf, int opcode)
 			c->state = Cwrite;
 			break;
 
-		case Cdump1:
 		case Cdirty:
 		case Cwrite:
 			if(devwrite(cdev, a2, buf))
@@ -703,7 +720,7 @@ bad:
 }
 
 int
-cwgrow(Device dev, Superb *sb)
+cwgrow(Device dev, Superb *sb, int uid)
 {
 	Iobuf *cb;
 	Cache *h;
@@ -723,7 +740,7 @@ cwgrow(Device dev, Superb *sb)
 	putbuf(cb);
 
 	sb->fsize = nfs;
-	print("%D grow from %ld to %ld limit %ld\n", dev, fs, nfs, ws);
+	print("%D grow from %ld to %ld limit %ld uid=%d\n", dev, fs, nfs, ws, uid);
 	for(nfs--; nfs>=fs; nfs--) {
 		state = cwio(dev, nfs, 0, Ogrow);
 		if(state == Cnone)
@@ -889,7 +906,7 @@ cacheinit(Device dev)
 	Iobuf *cb, *p;
 	Cache *h;
 	Device cdev;
-	long m;
+	long long m;
 
 	print("cache init %D\n", dev);
 	cdev = CDEV(dev);
@@ -924,7 +941,7 @@ cacheinit(Device dev)
 	 * setup cache map
 	 */
 	for(m=h->maddr; m<h->caddr; m++) {
-		p = getbuf(cdev, m, Bmod|Bres);
+		p = getbuf(cdev, m, Bmod);
 		memset(p->iobuf, 0, RBUFSIZE);
 		settag(p, Tbuck, m);
 		putbuf(p);
@@ -1079,7 +1096,7 @@ rewalk1(long addr, int slot, Wpath *up)
 			putbuf(p);
 		return addr;
 	}
-	p1 = dnodebuf(p, d, slot/DIRPERBUF, 0);
+	p1 = dnodebuf(p, d, slot/DIRPERBUF, 0, 0);
 	if(!p1) {
 		print("rewalk1 2\n");
 		if(p)
@@ -1113,7 +1130,7 @@ rewalk2(long addr, int slot, Wpath *up)
 			putbuf(p);
 		return addr;
 	}
-	p1 = dnodebuf(p, d, slot/DIRPERBUF, 0);
+	p1 = dnodebuf(p, d, slot/DIRPERBUF, 0, 0);
 	if(!p1) {
 		print("rewalk2 2\n");
 		if(p)
@@ -1166,6 +1183,7 @@ split(Iobuf *p, long addr)
 	default:
 		panic("split: unknown state %s", cwnames[state]);
 
+	case Cerror:
 	case Cnone:
 	case Cdump:
 	case Cread:
@@ -1201,7 +1219,7 @@ split(Iobuf *p, long addr)
 }
 
 int
-isdirty(Iobuf *p, long addr)
+isdirty(Iobuf *p, long addr, int tag)
 {
 	int s;
 
@@ -1210,6 +1228,9 @@ isdirty(Iobuf *p, long addr)
 	s = cwio(cw.dev, addr, 0, Onone);
 	if(s == Cdirty || s == Cwrite)
 		return 1;
+	if(tag == Tind1 || tag == Tind2)	/* botch, get these modified */
+		if(s != Cnone)
+			return 1;
 	return 0;
 }
 
@@ -1225,8 +1246,7 @@ cwrecur(long addr, int tag, int tag1, long qp)
 
 	shouldstop = 0;
 	p = getbuf(cw.dev, addr, Bprobe);
-	if(tag != Tind1 && tag != Tind2)	/* botch, get these modified */
-	if(!isdirty(p, addr)) {
+	if(!isdirty(p, addr, tag)) {
 		if(!cw.all) {
 			if(DEBUG)
 				print("cwrecur: %s %ld t=%s not dirty\n",
@@ -1358,7 +1378,7 @@ cfsdump(Filsys *fs)
 	Dentry *dr, *d1, *d;
 	Cache *h;
 	Superb *s;
-	long orba, rba, oroa, roa, sba, a, m, n, i;
+	long orba, rba, oroa, roa, sba, a, m, n, i, tim;
 	char tstr[20];
 
 	if(fs->dev.type != Devcw) {
@@ -1366,6 +1386,7 @@ cfsdump(Filsys *fs)
 		return;
 	}
 
+	tim = toytime();
 	wlock(&mainlock);		/* dump */
 
 	/*
@@ -1377,7 +1398,6 @@ cfsdump(Filsys *fs)
 	cw.rodev.type = Devro;
 	cw.wdev = WDEV(cw.dev);
 	cw.cdev = CDEV(cw.dev);
-
 
 	cw.ndump = 0;
 	cw.name[0] = 0;
@@ -1426,7 +1446,7 @@ cfsdump(Filsys *fs)
 	datestr(tstr, time());	/* tstr = "yyyymmdd" */
 	n = 0;
 	for(a=0;; a++) {
-		p1 = dnodebuf(pr, dr, a, Tdir);
+		p1 = dnodebuf(pr, dr, a, Tdir, 0);
 		if(!p1)
 			goto bad;
 		n++;
@@ -1455,13 +1475,13 @@ found1:
 	d1->uid = d->uid;
 	d1->gid = d->gid;
 	putbuf(p);
-	accessdir(p1, d1, FWRITE);
+	accessdir(p1, d1, FWRITE, 0);
 
 	/*
 	 * put mmdd[count] in year directory
 	 */
 found2:
-	accessdir(p1, d1, FREAD);
+	accessdir(p1, d1, FREAD, 0);
 	putbuf(pr);
 	pr = p1;
 	dr = d1;
@@ -1469,7 +1489,7 @@ found2:
 	n = 0;
 	m = 0;
 	for(a=0;; a++) {
-		p1 = dnodebuf(pr, dr, a, Tdir);
+		p1 = dnodebuf(pr, dr, a, Tdir, 0);
 		if(!p1)
 			goto bad;
 		n++;
@@ -1498,7 +1518,7 @@ found:
 	putbuf(p);
 	strcpy(d1->name, tstr+4);
 	d1->qid.version += n;
-	accessdir(p1, d1, FWRITE);
+	accessdir(p1, d1, FWRITE, 0);
 	putbuf(p1);
 	putbuf(pr);
 
@@ -1554,6 +1574,14 @@ found:
 	print("%ld falsehits\n", cw.falsehits);
 	cw.nodump = 0;
 
+	/*
+	 * extend all of the locks
+	 */
+	tim = toytime() - tim;
+	for(i=0; i<NTLOCK; i++)
+		if(tlocks[i].time > 0)
+			tlocks[i].time += tim;
+
 	wunlock(&mainlock);
 	return;
 
@@ -1562,32 +1590,41 @@ bad:
 }
 
 void
-mvstates(Device dev, int s1, int s2)
+mvstates(Device dev, int s1, int s2, int drive)
 {
 	Iobuf *p, *cb;
 	Cache *h;
 	Bucket *b;
 	Centry *c, *ce;
-	long m;
+	long m, lo, hi, msize, maddr;
 	Device cdev;
 
+	lo = 0;
+	hi = lo + 101*DSIZE;
+	if(drive >= 0) {
+		lo = drive * DSIZE;
+		hi = lo + DSIZE;
+	}
 	cdev = CDEV(dev);
 	cb = getbuf(cdev, CACHE_ADDR, Bread|Bres);
 	if(!cb || checktag(cb, Tcache, QPSUPER))
 		panic("cwstats: checktag c bucket");
 	h = (Cache*)cb->iobuf;
-	for(m=0; m<h->msize; m++) {
-		p = getbuf(cdev, h->maddr + m/BKPERBLK, Bread|Bmod|Bres);
-		if(!p || checktag(p, Tbuck, h->maddr + m/BKPERBLK))
+	msize = h->msize;
+	maddr = h->maddr;
+	putbuf(cb);
+
+	for(m=0; m<msize; m++) {
+		p = getbuf(cdev, maddr + m/BKPERBLK, Bread|Bmod);
+		if(!p || checktag(p, Tbuck, maddr + m/BKPERBLK))
 			panic("cwtest: checktag c bucket");
 		b = (Bucket*)p->iobuf + m%BKPERBLK;
 		ce = b->entry + CEPERBK;
 		for(c=b->entry; c<ce; c++)
-			if(c->state == s1)
+			if(c->state == s1 && c->waddr >= lo && c->waddr < hi)
 				c->state = s2;
 		putbuf(p);
 	}
-	putbuf(cb);
 }
 
 void
@@ -1641,53 +1678,20 @@ touchsb(Device dev)
 	memset(p->iobuf, 0, RBUFSIZE);
 	if(devread(WDEV(dev), m, p->iobuf) ||
 	   checktag(p, Tsuper, QPSUPER))
-		goto out;
-	print("touch superblock %ld\n", m);
-out:
+		print("WORM SUPER BLOCK READ FAILED\n");
+	else
+		print("touch superblock %ld\n", m);
 	putbuf(p);
 }
 
 void
-cwreseq(Device dev, int which)
-{
-	Iobuf *p, *cb;
-	Cache *h;
-	Bucket *b;
-	long m;
-	Device cdev;
-	int e;
-
-	e = 0;
-	cdev = CDEV(dev);
-	cb = getbuf(cdev, CACHE_ADDR, Bread|Bres);
-	if(!cb || checktag(cb, Tcache, QPSUPER))
-		panic("cwreseq: checktag c bucket");
-	h = (Cache*)cb->iobuf;
-	for(m=0; m<h->msize; m++) {
-		p = getbuf(cdev, h->maddr + m/BKPERBLK, Bread|Bmod|Bres);
-		if(!p || checktag(p, Tbuck, h->maddr + m/BKPERBLK))
-			panic("cwreseq: checktag c bucket");
-		b = (Bucket*)p->iobuf + m%BKPERBLK;
-		if(which) {
-			if(bktcheck(b))
-				e++;
-		} else
-			resequence(b);
-		putbuf(p);
-		if(e > 10)
-			break;
-	}
-	putbuf(cb);
-}
-
-void
-savecache(Device dev)
+savecache(Device dev, int pcnt)
 {
 	Iobuf *p, *cb;
 	Cache *h;
 	Bucket *b;
 	Centry *c, *ce;
-	long m, maddr, msize, left, *longp, nbyte;
+	long m, n, maddr, msize, left, *longp, nbyte;
 	int age;
 	Device cdev;
 
@@ -1700,31 +1704,35 @@ savecache(Device dev)
 	cdev = CDEV(dev);
 	cb = getbuf(cdev, CACHE_ADDR, Bread|Bres);
 	if(!cb || checktag(cb, Tcache, QPSUPER))
-		panic("cwstats: checktag c bucket");
+		panic("savecache: checktag c bucket");
 	h = (Cache*)cb->iobuf;
 	msize = h->msize;
 	maddr = h->maddr;
 	putbuf(cb);
 
+	n = BUFSIZE;			/* calculate write size */
+	if(n > MAXDAT)
+		n = MAXDAT;
+
 	cb = getbuf(devnone, Cwxx4, 0);
 	longp = (long*)cb->iobuf;
-	left = BUFSIZE/sizeof(long);
+	left = n/sizeof(long);
 	cons.offset = 0;
 
 	for(m=0; m<msize; m++) {
 		if(left < BKPERBLK) {
-			nbyte = (BUFSIZE/sizeof(long) - left) * sizeof(long);
+			nbyte = (n/sizeof(long) - left) * sizeof(long);
 			con_write(FID2, cb->iobuf, cons.offset, nbyte);
 			cons.offset += nbyte;
 			longp = (long*)cb->iobuf;
-			left = BUFSIZE/sizeof(long);
+			left = n/sizeof(long);
 		}
-		p = getbuf(cdev, maddr + m/BKPERBLK, Bread|Bres);
+		p = getbuf(cdev, maddr + m/BKPERBLK, Bread);
 		if(!p || checktag(p, Tbuck, maddr + m/BKPERBLK))
 			panic("cwtest: checktag c bucket");
 		b = (Bucket*)p->iobuf + m%BKPERBLK;
 		resequence(b);
-		age = b->agegen - CEPERBK/3;
+		age = b->agegen - CEPERBK*(100-pcnt)/100;
 		if(age < 0)
 			age = 0;
 		ce = b->entry + CEPERBK;
@@ -1735,7 +1743,7 @@ savecache(Device dev)
 			}
 		putbuf(p);
 	}
-	nbyte = (BUFSIZE/sizeof(long) - left) * sizeof(long);
+	nbyte = (n/sizeof(long) - left) * sizeof(long);
 	con_write(FID2, cb->iobuf, cons.offset, nbyte);
 	putbuf(cb);
 	return;
@@ -1761,7 +1769,7 @@ loadcache(Device dev, int dskno)
 
 	for(;;) {
 		memset(cb->iobuf, 0, BUFSIZE);
-		nbyte = con_read(FID2, cb->iobuf, cons.offset, BUFSIZE) / sizeof(long);
+		nbyte = con_read(FID2, cb->iobuf, cons.offset, 100) / sizeof(long);
 		if(nbyte <= 0)
 			break;
 		cons.offset += nbyte * sizeof(long);
@@ -1786,91 +1794,6 @@ loadcache(Device dev, int dskno)
 
 bad:
 	print("cant open /adm/cache\n");
-}
-
-int
-dowcmp(void)
-{
-	Iobuf *p, *p1, *p2;
-	Cache *h;
-	Centry *c;
-	Bucket *b;
-	long maddr, msize, caddr, a;
-
-	if(cw.wcpflg == 0)
-		return 0;
-	
-	p = getbuf(cw.wcpcdev, CACHE_ADDR, Bread|Bres);
-	if(!p || checktag(p, Tcache, QPSUPER)) {
-		print("dowcmp: checktag c bucket\n");
-		if(p)
-			putbuf(p);
-		cw.wcpflg = 0;
-		return 0;
-	}
-	h = (Cache*)p->iobuf;
-	maddr = h->maddr;
-	msize = h->msize;
-	caddr = h->caddr;
-	putbuf(p);
-
-	cw.wcpcaddr++;
-	if(cw.wcpcaddr < 0 || cw.wcpcaddr >= CEPERBK) {
-		cw.wcpcaddr = 0;
-		cw.wcpmaddr++;
-	}
-	if(cw.wcpmaddr < 0 || cw.wcpmaddr >= msize)
-		cw.wcpmaddr = 0;
-
-	p = getbuf(cw.wcpcdev, maddr + cw.wcpmaddr/BKPERBLK, Bread|Bres);
-	if(!p || checktag(p, Tbuck, maddr + cw.wcpmaddr/BKPERBLK)) {
-		print("dowcmp: checktag c bucket\n");
-		if(p)
-			putbuf(p);
-		cw.wcpflg = 0;
-		return 0;
-	}
-
-	b = (Bucket*)p->iobuf + cw.wcpmaddr%BKPERBLK;
-	c = b->entry + cw.wcpcaddr;
-	while(c->state == Cread) {
-		a = c->waddr;
-		if(a < cw.wcpplatter*DSIZE || a >= (cw.wcpplatter+1)*DSIZE)
-			break;
-
-		cw.wcpcount++;
-
-		p1 = getbuf(cw.wcpwdev, a, Bread);
-		if(!p1) {
-			print("dowcmp: wdev error\n");
-			break;
-		}
-
-		a = cw.wcpmaddr*CEPERBK + cw.wcpcaddr + caddr;
-		p2 = getbuf(cw.wcpcdev, a, Bread);
-		if(!p2) {
-			print("dowcmp: cdev error\n");
-			putbuf(p1);
-			break;
-		}
-
-		if(memcmp(p1->iobuf, p2->iobuf, RBUFSIZE)) {
-			print("dowcmp: dont compare w=%ld c=%ld\n", c->waddr, a);
-			c->state = Cdump1;
-			p->flags |= Bmod;
-		}
-		putbuf(p1);
-		putbuf(p2);
-		break;
-	}
-
-	putbuf(p);
-	if(cw.wcpmaddr == 0 && cw.wcpcaddr == 0) {
-		print("dowcmp: wrap %ld\n", cw.wcpcount);
-		cw.wcpflg = 0;
-		cw.wcpcount = 0;
-	}
-	return 1;
 }
 
 void
@@ -1910,6 +1833,29 @@ blockcmp(Device dev, long wa, long ca)
 	putbuf(p2);
 }
 
+void
+wblock(Device dev, long addr)
+{
+	Iobuf *p1;
+	int i;
+
+	p1 = getbuf(dev, addr, Bread);
+	if(p1) {
+		i = devwrite(WDEV(dev), addr, p1->iobuf);
+		print("i = %d\n", i);
+		putbuf(p1);
+	}
+}
+
+void
+cwtest(Device dev)
+{
+	wblock(dev, 20590365);
+	wblock(dev, 20606793);
+	wblock(dev, 20606794);
+	wblock(dev, 20606797);
+}
+
 #ifdef	XXX
 /* garbage to change sb size
  * probably will need it someday
@@ -1925,7 +1871,7 @@ blockcmp(Device dev, long wa, long ca)
 		panic("cwstats: checktag c bucket");
 	h = (Cache*)cb->iobuf;
 	for(m=0; m<h->msize; m++) {
-		p = getbuf(cdev, h->maddr + m/BKPERBLK, Bread|Bmod|Bres);
+		p = getbuf(cdev, h->maddr + m/BKPERBLK, Bread|Bmod);
 		if(!p || checktag(p, Tbuck, h->maddr + m/BKPERBLK))
 			panic("cwtest: checktag c bucket");
 		b = (Bucket*)p->iobuf + m%BKPERBLK;
@@ -1996,20 +1942,19 @@ cmd_cwcmd(int argc, char *argv[])
 	Device dev;
 	char *arg;
 	long s1, s2, a, b;
+	char str[28];
 
 	if(argc <= 1) {
-		print("	cwcmd mvstate state1 state2\n");
+		print("	cwcmd mvstate state1 state2 [platter]\n");
 		print("	cwcmd prchain [start] [bakflg]\n");
 		print("	cwcmd touchsb\n");
-		print("	cwcmd savecache\n");
+		print("	cwcmd savecache [percent]\n");
 		print("	cwcmd loadcache [dskno]\n");
 		print("	cwcmd wormcmp [dskno]\n");
 		print("	cwcmd blockcmp wbno cbno\n");
 		print("	cwcmd startdump [01]\n");
-		print("	cwcmd resequence\n");
-		print("	cwcmd bktcheck\n");
-		print("	cwcmd allflag\n");
-		print("	cwcmd tag [tagid] [start]\n");
+		print("	cwcmd acct\n");
+		print("	cwcmd clearacct\n");
 		return;
 	}
 	arg = argv[1];
@@ -2024,7 +1969,7 @@ cmd_cwcmd(int argc, char *argv[])
 				a = number(argv[2], 0, 10);
 			b = 0;
 			if(argc > 3)
-				b = number(argv[2], 0, 10);
+				b = number(argv[3], 0, 10);
 			searchtag(WDEV(dev), a, b);
 			continue;
 		}
@@ -2035,7 +1980,10 @@ cmd_cwcmd(int argc, char *argv[])
 			s2 = convstate(argv[3]);
 			if(s1 < 0 || s2 < 0)
 				goto bad;
-			mvstates(dev, s1, s2);
+			a = -1;
+			if(argc > 4)
+				a = number(argv[4], 0, 10);
+			mvstates(dev, s1, s2, a);
 			continue;
 		bad:
 			print("cwcmd mvstate: bad args\n");
@@ -2056,7 +2004,10 @@ cmd_cwcmd(int argc, char *argv[])
 			continue;
 		}
 		if(strcmp(arg, "savecache") == 0) {
-			savecache(dev);
+			a = 70;
+			if(argc > 2)
+				a = number(argv[2], 70, 10);
+			savecache(dev, a);
 			continue;
 		}
 		if(strcmp(arg, "loadcache") == 0) {
@@ -2064,22 +2015,6 @@ cmd_cwcmd(int argc, char *argv[])
 			if(argc > 2)
 				s1 = number(argv[2], 0, 10);
 			loadcache(dev, s1);
-			continue;
-		}
-		if(strcmp(arg, "wormcmp") == 0) {
-			s1 = 0;
-			if(argc > 2)
-				s1 = number(argv[2], 0, 10);
-			if(cw.wcpflg == 0) {
-				cw.wcpcdev = CDEV(dev);
-				cw.wcpwdev = WDEV(dev);
-				cw.wcpplatter = s1;
-				cw.wcpflg = 1;
-				print("wormcmp dskno %d\n", cw.wcpplatter);
-			} else {
-				cw.wcpflg = 0;
-				print("wormcmp off\n");
-			}
 			continue;
 		}
 		if(strcmp(arg, "blockcmp") == 0) {
@@ -2102,14 +2037,6 @@ cmd_cwcmd(int argc, char *argv[])
 				print("dump allowed\n");
 			continue;
 		}
-		if(strcmp(arg, "resequence") == 0) {
-			cwreseq(dev, 0);
-			continue;
-		}
-		if(strcmp(arg, "bktcheck") == 0) {
-			cwreseq(dev, 1);
-			continue;
-		}
 		if(strcmp(arg, "allflag") == 0) {
 			if(argc > 2)
 				cw.allflag = number(argv[2], 0, 10);
@@ -2117,6 +2044,31 @@ cmd_cwcmd(int argc, char *argv[])
 				cw.allflag = !cw.allflag;
 			print("allflag = %d; falsehits = %d\n",
 				cw.allflag, cw.falsehits);
+			continue;
+		}
+		if(strcmp(arg, "writeblock") == 0) {
+			if(argc > 2) {
+				a = number(argv[2], 0, 10);
+				wblock(dev, a);
+			}
+			continue;
+		}
+		if(strcmp(arg, "acct") == 0) {
+			for(a=0; a<nelem(growacct); a++) {
+				b = growacct[a];
+				if(b) {
+					uidtostr(str, a, 1);
+					print("%10d %s\n", (b*ADDFREE*RBUFSIZE+500000)/1000000, str);
+				}
+			}
+			continue;
+		}
+		if(strcmp(arg, "clearacct") == 0) {
+			memset(growacct, 0, sizeof(growacct));
+			continue;
+		}
+		if(strcmp(arg, "test") == 0) {
+			cwtest(dev);
 			continue;
 		}
 		print("unknown cwcmd %s\n", arg);

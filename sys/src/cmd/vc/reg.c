@@ -2,6 +2,8 @@
 
 #define	COL1	32
 
+void	addsplits(void);
+
 Reg*
 rega(void)
 {
@@ -36,6 +38,7 @@ void
 regopt(Prog *p)
 {
 	Reg *r, *r1, *r2;
+	Prog *p1;
 	int i, z;
 	long initpc, val;
 	ulong vreg;
@@ -212,25 +215,6 @@ regopt(Prog *p)
 		r->active = 0;
 	change = 0;
 	loopit(firstr);
-	if(debug['R'] && debug['v']) {
-		print("\nlooping structure:\n");
-		for(r = firstr; r != R; r = r->link) {
-			print("%d:%P", r->loop, r->prog);
-			for(z=0; z<BITS; z++)
-				bit.b[z] = r->use1.b[z] |
-					r->use2.b[z] | r->set.b[z];
-			if(bany(&bit)) {
-				print("%|", COL1);
-				if(bany(&r->use1))
-					print(" u1=%B", r->use1);
-				if(bany(&r->use2))
-					print(" u2=%B", r->use2);
-				if(bany(&r->set))
-					print(" st=%B", r->set);
-			}
-			print("\n");
-		}
-	}
 
 	/*
 	 * pass 3
@@ -273,6 +257,37 @@ loop2:
 	if(change)
 		goto loop2;
 
+	addsplits();
+
+	if(debug['R'] && debug['v']) {
+		print("\nprop structure:\n");
+		for(r = firstr; r != R; r = r->link) {
+			print("%d:%P", r->loop, r->prog);
+			for(z=0; z<BITS; z++)
+				bit.b[z] = r->set.b[z] |
+					r->refahead.b[z] | r->calahead.b[z] |
+					r->refbehind.b[z] | r->calbehind.b[z] |
+					r->use1.b[z] | r->use2.b[z];
+			if(bany(&bit)) {
+				print("%|", COL1);
+				if(bany(&r->use1))
+					print(" u1=%B", r->use1);
+				if(bany(&r->use2))
+					print(" u2=%B", r->use2);
+				if(bany(&r->set))
+					print(" st=%B", r->set);
+				if(bany(&r->refahead))
+					print(" ra=%B", r->refahead);
+				if(bany(&r->calahead))
+					print(" ca=%B", r->calahead);
+				if(bany(&r->refbehind))
+					print(" rb=%B", r->refbehind);
+				if(bany(&r->calbehind))
+					print(" cb=%B", r->calbehind);
+			}
+			print("\n");
+		}
+	}
 
 	/*
 	 * pass 5
@@ -291,16 +306,12 @@ loop2:
 				print("used and not set: %B\n", bit);
 		}
 	}
-	if(debug['R'] && debug['v'])
-		print("\nprop structure:\n");
+
 	for(r = firstr; r != R; r = r->link)
 		r->act = zbits;
 	rgp = region;
 	nregion = 0;
 	for(r = firstr; r != R; r = r->link) {
-		if(debug['R'] && debug['v'])
-			print("%P\n	set = %B; rah = %B; cal = %B\n",
-				r->prog, r->set, r->refahead, r->calahead);
 		for(z=0; z<BITS; z++)
 			bit.b[z] = r->set.b[z] &
 			  ~(r->refahead.b[z] | r->calahead.b[z] | addrs.b[z]);
@@ -308,7 +319,7 @@ loop2:
 			nearln = r->prog->lineno;
 			warn(Z, "set and not used: %B", bit);
 			if(debug['R'])
-				print("set an not used: %B\n", bit);
+				print("set and not used: %B\n", bit);
 			excise(r);
 		}
 		for(z=0; z<BITS; z++)
@@ -383,27 +394,28 @@ brk:
 	for(r = firstr; r != R; r = r1) {
 		r->pc = val;
 		p = r->prog;
+		p1 = P;
 		r1 = r->link;
-		if(r1 == R)
-			break;
-		while(p != r1->prog)
-		switch(p->as) {
+		if(r1 != R)
+			p1 = r1->prog;
+		for(; p != p1; p = p->link) {
+			switch(p->as) {
+			default:
+				val++;
+				break;
 
-		default:
-			val++;
-
-		case ADATA:
-		case AGLOBL:
-		case ANAME:
-			p = p->link;
+			case ANOP:
+			case ADATA:
+			case AGLOBL:
+			case ANAME:
+				break;
+			}
 		}
 	}
-	pc = val + 1;
+	pc = val;
 
 	/*
-	 * last pass
 	 * fix up branches
-	 * free aux structures
 	 */
 	if(debug['R'])
 		if(bany(&addrs))
@@ -416,9 +428,46 @@ brk:
 			p->to.offset = r->s2->pc;
 		r1 = r;
 	}
+
+	/*
+	 * last pass
+	 * eliminate nops
+	 * free aux structures
+	 */
+	for(p = firstr->prog; p != P; p = p->link){
+		while(p->link && p->link->as == ANOP)
+			p->link = p->link->link;
+	}
 	if(r1 != R) {
 		r1->link = freer;
 		freer = firstr;
+	}
+}
+
+void
+addsplits(void)
+{
+	Reg *r, *r1;
+	int z, i;
+	Bits bit;
+
+	for(r = firstr; r != R; r = r->link) {
+		if(r->loop > 1)
+			continue;
+		if(r->prog->as == AJAL)
+			continue;
+		for(r1 = r->p2; r1 != R; r1 = r1->p2link) {
+			if(r1->loop <= 1)
+				continue;
+			for(z=0; z<BITS; z++)
+				bit.b[z] = r1->calbehind.b[z] &
+					(r->refahead.b[z] | r->use1.b[z] | r->use2.b[z]) &
+					~(r->calahead.b[z] & addrs.b[z]);
+			while(bany(&bit)) {
+				i = bnum(bit);
+				bit.b[i/32] &= ~(1L << (i%32));
+			}
+		}
 	}
 }
 
@@ -547,7 +596,7 @@ out:
 	if(n == D_PARAM)
 		for(z=0; z<BITS; z++)
 			params.b[z] |= bit.b[z];
-	if(v->etype != et || !typscalar[et])	/* funny punning */
+	if(v->etype != et || !typechlpfd[et])	/* funny punning */
 		for(z=0; z<BITS; z++)
 			addrs.b[z] |= bit.b[z];
 	if(t == D_CONST) {
@@ -708,7 +757,7 @@ allreg(ulong b, Rgn *r)
 	case TIND:
 	case TARRAY:
 		i = BtoR(~b);
-		if(i && r->cost > 0) {
+		if(i && r->cost >= 0) {
 			r->regno = i;
 			return RtoB(i);
 		}
@@ -718,7 +767,7 @@ allreg(ulong b, Rgn *r)
 	case TDOUBLE:
 	case TFLOAT:
 		i = BtoF(~b);
-		if(i && r->cost > 0) {
+		if(i && r->cost >= 0) {
 			r->regno = i+NREG;
 			return FtoB(i);
 		}
@@ -752,7 +801,7 @@ paint1(Reg *r, int bn)
 		r = r1;
 	}
 
-	if(LOAD(r) & ~(r->set.b[z]&~(r->use1.b[z]|r->use2.b[z])) & bb) {
+	if(LOAD(r) & ~(r->set.b[z] & ~(r->use1.b[z]|r->use2.b[z])) & bb) {
 		change -= CLOAD * r->loop;
 		if(debug['R'] && debug['v'])
 			print("%d%P%|ld %B $%d\n", r->loop,
@@ -982,6 +1031,7 @@ FtoB(int f)
 	return 1L << (f/2 + 20);
 }
 
+int
 BtoF(long b)
 {
 

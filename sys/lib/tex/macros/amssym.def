@@ -1,28 +1,50 @@
-%  AMSSYM.DEF                                           September 1990
-\def\fileversion{v1.0b}
-
-%  This file contains definitions that perform the same functions as similar
-%  ones in AMS-TeX, so that the file AMSSYM.TEX can be used outside of AMS-TeX.
+%%% ====================================================================
+%%%  @TeX-file{
+%%%     filename        = "amssym.def",
+%%%     version         = "2.2",
+%%%     date            = "22-Dec-1994",
+%%%     time            = "10:14:01 EST",
+%%%     checksum        = "28096 117 438 4924",
+%%%     author          = "American Mathematical Society",
+%%%     copyright       = "Copyright (C) 1994 American Mathematical Society,
+%%%                        all rights reserved.  Copying of this file is
+%%%                        authorized only if either:
+%%%                        (1) you make absolutely no changes to your copy,
+%%%                        including name; OR
+%%%                        (2) if you do make changes, you first rename it
+%%%                        to some other name.",
+%%%     address         = "American Mathematical Society,
+%%%                        Technical Support,
+%%%                        Electronic Products and Services,
+%%%                        P. O. Box 6248,
+%%%                        Providence, RI 02940,
+%%%                        USA",
+%%%     telephone       = "401-455-4080 or (in the USA and Canada)
+%%%                        800-321-4AMS (321-4267)",
+%%%     FAX             = "401-331-3842",
+%%%     email           = "tech-support@math.ams.org (Internet)",
+%%%     codetable       = "ISO/ASCII",
+%%%     keywords        = "amsfonts, msam, msbm, math symbols",
+%%%     supported       = "yes",
+%%%     abstract        = "This is part of the AMSFonts distribution,
+%%%                        It is the plain TeX source file for the
+%%%                        AMSFonts user's guide.",
+%%%     docstring       = "The checksum field above contains a CRC-16
+%%%                        checksum as the first value, followed by the
+%%%                        equivalent of the standard UNIX wc (word
+%%%                        count) utility output of lines, words, and
+%%%                        characters.  This is produced by Robert
+%%%                        Solovay's checksum utility.",
+%%%  }
+%%% ====================================================================
+\expandafter\ifx\csname amssym.def\endcsname\relax \else\endinput\fi
 %
-%  American Mathematical Society, Technical Support Group, P. O. Box 6248,
-%        Providence, RI 02940
-%  800-321-4AMS or 401-455-4080;  Internet: Tech-Support@Math.AMS.com
-%
-%  Copyright (C) 1990, American Mathematical Society.
-%  All rights reserved.  Copying of this file is authorized only if either:
-%       (1) you make absolutely no changes to your copy including name; OR
-%       (2) if you do make changes, you first rename it to some other name.
-%
-%  Instructions for using this file and the AMS symbol fonts are included in
-%  the AMSFonts 2.0 User's Guide.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %  Store the catcode of the @ in the csname so that it can be restored later.
-\expandafter\chardef\csname pre amssym.def at\endcsname=\the\catcode`\@
+\expandafter\edef\csname amssym.def\endcsname{%
+       \catcode`\noexpand\@=\the\catcode`\@\space}
 %  Set the catcode to 11 for use in private control sequence names.
 \catcode`\@=11
-
+%
 %  Include all definitions related to the fonts msam, msbm and eufm, so that
 %  when this file is used by itself, the results with respect to those fonts
 %  are equivalent to what they would have been using AMS-TeX.
@@ -57,10 +79,12 @@
 \def\urcorner{\delimiter"5\msafam@71\msafam@71 }
 \def\llcorner{\delimiter"4\msafam@78\msafam@78 }
 \def\lrcorner{\delimiter"5\msafam@79\msafam@79 }
-\def\yen{{\mathhexbox@\msafam@55 }}
-\def\checkmark{{\mathhexbox@\msafam@58 }}
-\def\circledR{{\mathhexbox@\msafam@72 }}
-\def\maltese{{\mathhexbox@\msafam@7A }}
+%    Note that there should not be a final space after the digits for a
+%    \mathhexbox@.
+\def\yen{{\mathhexbox@\msafam@55}}
+\def\checkmark{{\mathhexbox@\msafam@58}}
+\def\circledR{{\mathhexbox@\msafam@72}}
+\def\maltese{{\mathhexbox@\msafam@7A}}
 
 \font\tenmsb=msbm10
 \font\sevenmsb=msbm7
@@ -70,7 +94,7 @@
 \scriptfont\msbfam=\sevenmsb
 \scriptscriptfont\msbfam=\fivemsb
 \edef\msbfam@{\hexnumber@\msbfam}
-\def\Bbb#1{\fam\msbfam\relax#1}
+\def\Bbb#1{{\fam\msbfam\relax#1}}
 \def\widehat#1{\setbox\z@\hbox{$\m@th#1$}%
  \ifdim\wd\z@>\tw@ em\mathaccent"0\msbfam@5B{#1}%
  \else\mathaccent"0362{#1}\fi}
@@ -88,6 +112,6 @@
 \let\goth\frak
 
 %  Restore the catcode value for @ that was previously saved.
-\catcode`\@=\csname pre amssym.def at\endcsname
+\csname amssym.def\endcsname
 
 \endinput

@@ -5,6 +5,7 @@ void	split(char *, char **, char **);
 int	samefile(char *, char *);
 int	mv(char *from, char *todir, char *toelem);
 int	copy1(int fdf, int fdt, char *from, char *to);
+void	hardremove(char *);
 
 void
 main(int argc, char *argv[])
@@ -79,13 +80,8 @@ mv(char *from, char *todir, char *toelem)
 			fprint(2, "mv: %s and %s are the same\n", fromname, toname);
 			return -1;
 		}
-		if(dirstat(toname, &dirt) == 0){
-			if(remove(toname) == -1){
-				fprint(2, "mv: can't remove %s\n", toname);
-				exits("mv");
-			}
-			do; while(remove(toname) != -1);
-		}
+		if(dirstat(toname, &dirt) == 0)
+			hardremove(toname);
 		strcpy(dirb.name, toelem);
 		if(dirwstat(fromname, &dirb) >= 0)
 			return 0;
@@ -108,6 +104,8 @@ mv(char *from, char *todir, char *toelem)
 		perror("");
 		return -1;
 	}
+	if(dirstat(toname, &dirt)==0 && (dirt.mode&CHAPPEND))
+		hardremove(toname);	/* because create() won't truncate file */
 	fdt = create(toname, OWRITE, dirb.mode);
 	if(fdt < 0){
 		fprint(2, "mv: can't create %s:", toname);
@@ -163,6 +161,9 @@ split(char *name, char **pdir, char **pelem)
 		*s = 0;
 		*pelem = s+1;
 		*pdir = name;
+	}else if(strcmp(name, "..") == 0){
+		*pdir = "..";
+		*pelem = ".";
 	}else{
 		*pdir = ".";
 		*pelem = name;
@@ -182,3 +183,12 @@ samefile(char *a, char *b)
 		da.dev==db.dev && da.type==db.type);
 }
 
+void
+hardremove(char *a)
+{
+	if(remove(a) == -1){
+		fprint(2, "mv: can't remove %s\n", a);
+		exits("mv");
+	}
+	do; while(remove(a) != -1);
+}

@@ -63,7 +63,7 @@ cat <<'---'
 ---
 
 awk '
-	BEGIN	{ cpuflag = 0; bootprog = "boot"; bootdisk = "#w/hd0" }
+	BEGIN	{ cpuflag = 0; bootprog = "boot"; bootdisk = "#w/sd0" }
 	$0 ~ "^boot" && $2=="cpu"\
 		{ cpuflag = 1 }
 	$0 ~ "^boot" && ($2=="bboot" || $2=="romboot" || $2=="dosboot")\

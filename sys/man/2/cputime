@@ -2,6 +2,10 @@
 .SH NAME
 cputime, times \- cpu time in this process and children
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .ta \w'\fLdouble 'u
 .B
 int	times(long t[4])
@@ -9,9 +13,11 @@ int	times(long t[4])
 .B
 double	cputime(void)
 .SH DESCRIPTION
-.I Times
-fills in the array
+If
 .I t
+is non-null,
+times
+fills it in
 with the number of milliseconds spent in user code, system calls,
 child processes in user code, and child processes in system calls.
 .I Cputime
@@ -24,5 +30,7 @@ These functions read
 opening that file when
 .I time
 is first called.
+.SH SOURCE
+.B /sys/src/libc/9sys
 .SH SEE ALSO
 .IR cons (3)

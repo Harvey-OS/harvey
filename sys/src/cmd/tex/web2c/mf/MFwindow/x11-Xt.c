@@ -7,7 +7,6 @@
 #include "../mfd.h"
 
 #ifdef	X11WIN
-#undef __STDC__
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Intrinsic.h>
@@ -55,12 +54,16 @@ static XrmOptionDescRec mf_optiondesclist[] = {
 {"-bg",		"background",	XrmoptionSepArg,	(caddr_t) NULL},
 };
 
+static void mf_events();
+static void mf_newpixmap ();
+static void mf_repaint();
+static void mf_mapstatus();
+static void mf_redraw();
+
+
 /* return 1 if display opened successfully, else 0 */
 int
 mf_x11_initscreen() {
-	extern void		mf_repaint();
-	extern void		mf_mapstatus();
-	extern void		mf_newpixmap();
 	XSetWindowAttributes	xwa;
 	Widget			mf_toplevel;
 	Widget			mf_canvas;
@@ -146,18 +149,16 @@ mf_x11_initscreen() {
 /* make sure the screen is up to date */
 void
 mf_x11_updatescreen() {
-	extern void	mf_redraw();
-	extern void	mf_events();
 	XEvent		event;
 
 	mf_events();
 	mf_redraw();
 
-# ifdef notdef
+#ifdef notdef
 	printf("max_x=%d, min_x=%d, max_y=%d, min_y=%d\n",
 	       mf_max_x, mf_min_x,
 	       mf_max_y, mf_min_y);
-# endif notdef
+#endif
 }
 
 void
@@ -180,7 +181,6 @@ mf_x11_paintrow(row, init_color, tvect, vector_size)
 	transspec		tvect;
 	register screencol	vector_size;
 {
-	extern void		mf_events();
 	extern void		mf_checkextent();
 	Pixel			color;
 	GC			gc;

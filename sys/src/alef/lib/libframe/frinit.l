@@ -1,11 +1,19 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 #include <frame.h>
+
+Bitmap	*frones;
+intern byte fronebits[] = {
+	0xFF, 0xFF, 0xFF, 0xFF,
+};
 
 void
 frinit(Frame *f, Rectangle r, Font *ft, Bitmap *b)
 {
+	int w;
+
 	f->font = ft;
+	f->scroll = nil;
 	f->maxtab = 8*charwidth(ft, '0');
 	f->nbox = 0;
 	f->nalloc = 0;
@@ -16,6 +24,15 @@ frinit(Frame *f, Rectangle r, Font *ft, Bitmap *b)
 	f->box = nil;
 	f->lastlinefull = 0;
 	frsetrects(f, r, b);
+	if(frones == nil){
+		w = (sizeof(uint)*8)>>screen.ldepth;
+		frones = balloc(Rect(0, 0, w, 1), screen.ldepth);
+		if(frones == nil){
+			fprint(2, "frame: can't initialize textures\n");
+			exits("frame textures");
+		}
+		wrbitmap(frones, 0, 1, fronebits);
+	}
 }
 
 void

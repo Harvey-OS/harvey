@@ -56,6 +56,7 @@ void alline(Dpoint p, Flt t);	/* align.c */
 Flt angle(Dpoint p, Dpoint q);	/* geometry.c */
 int arcinterarc(Dpoint a0, Dpoint a1, Dpoint a2, Dpoint b0, Dpoint b1, Dpoint b2, Dpoint *i);	/* geometry.c */
 void argument(void);	/* command.c */
+void arrowhead(Dpoint p, Dpoint q, int bits, Bitmap *b, Fcode c);	/* arrowhead.c */
 Drectangle bboxarc(Item *ip);	/* arc.c */
 Drectangle bboxbezier(Bezier b);	/* bezier.c */
 Drectangle bboxbox(Item *ip);	/* box.c */
@@ -163,6 +164,7 @@ int inboxspline(Item *ip, Drectangle r);	/* spline.c */
 int inboxtext(Item *ip, Drectangle r);	/* text.c */
 void input(char *name);	/* fileio.c */
 int itemxitem(Item *p, Item *q, Dpoint *i);	/* align.c */
+void lastmsg(void);	/* msg.c */
 void main(int argc, char *argv[]);	/* main.c */
 void mapgrps(Item *ip);	/* fileio.c */
 void marks(void);	/* draw.c */
@@ -245,4 +247,5 @@ void writegroup(Item *ip, int f);	/* group.c */
 void writehead(Item *ip, int f);	/* head.c */
 void writeline(Item *ip, int f);	/* line.c */
 void writespline(Item *ip, int f);	/* spline.c */
+void writestyle(int f, int style);	/* arrowhead.c */
 void writetext(Item *ip, int f);	/* text.c */

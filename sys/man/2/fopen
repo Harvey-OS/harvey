@@ -1,4 +1,4 @@
-.TH FOPEN 2S
+.TH FOPEN 2
 .SH NAME
 fopen, freopen, fdopen, fileno, fclose, sopenr, sopenw, sclose, fflush, setvbuf, setbuf, fgetpos, ftell, fsetpos, fseek, rewind, feof, ferror, clearerr \- standard buffered input/output package
 .SH SYNOPSIS
@@ -62,8 +62,14 @@ int	ferror(FILE *f)
 .B
 void	clearerr(FILE *f)
 .SH DESCRIPTION
-The functions described in Section 2S constitute the
-ANSI standard buffered I/O package with extensions.
+The functions described in this and related pages
+.RI ( fgetc (2),
+.IR fprintf (2),
+.IR fscanf (2),
+and
+.IR tmpfile (2))
+implement the
+ANSI C buffered I/O package with extensions.
 .PP
 A file with associated buffering is called a
 .I stream
@@ -91,8 +97,7 @@ standard output file
 standard error file
 .PP
 A constant pointer
-.B
-NULL
+.B NULL
 designates no stream at all.
 .PP
 .I Fopen
@@ -286,7 +291,8 @@ if a system call failed on the associated file
 or a memory allocation failed.
 .I Clearerr
 takes a stream out of the error state.
-.PP
+.SH SOURCE
+.B /sys/src/libstdio
 .SH "SEE ALSO"
 .IR fprintf (2),
 .IR fscanf (2),
@@ -300,13 +306,16 @@ The value
 is returned uniformly to indicate that a
 .B FILE
 pointer has not been initialized with
-.I fopen,
+.IR fopen ,
 input (output) has been attempted on an output (input) stream,
 or a
 .B FILE
 pointer designates corrupt or otherwise unintelligible
 .B FILE
 data.
+.br
+Some of these functions set
+.IR errstr .
 .SH BUGS
 Buffering of output can prevent output data
 from being seen until long after it is computed \- perhaps
@@ -331,7 +340,7 @@ In Plan 9 all are fully buffered except standard error.
 .IR sopenw ,
 and
 .I sclose
-are not ANSI stdio functions.
+are not ANSI Stdio functions.
 .PP
 Stdio offers no support for runes or
 .SM UTF
@@ -340,4 +349,4 @@ Unless external compatibility is necessary, use
 .IR bio (2),
 which supports
 .SM UTF
-and is smaller, faster, and simpler than stdio.
+and is smaller, faster, and simpler than Stdio.

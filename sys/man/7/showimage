@@ -5,8 +5,9 @@ showimage \- bitmap displayer, colormap changer
 .B showimage
 [
 .I option
-]
+] [
 .I file ...
+]
 .SH DESCRIPTION
 .I Showimage
 displays the bitmap contained in
@@ -14,7 +15,9 @@ displays the bitmap contained in
 in the top left corner of the current window.
 It goes to the next file when any character is typed,
 exiting when there are no more files.
-The options are:
+The options, all of which require no
+.IR file ,
+are:
 .TP
 .B -c
 Load the standard Plan 9 colormap, if this is an 8-bit display.
@@ -34,7 +37,7 @@ max (white).
 .TP
 .BI -m mapfile
 Load the colormap from the file
-.I mapfile.
+.IR mapfile .
 See
 .IR rgbpix (2)
 for the format.
@@ -47,6 +50,10 @@ Dump the current colormap to standard output in the format of
 .TP
 .B /lib/image
 Some sample pictures.
+.SH SOURCE
+.BR /sys/src/cmd/showimage.c
 .SH SEE ALSO
 .IR graphics (2),
-.IR rgbpix (2)
+.IR rgbpix (2) ,
+.IR intro (9) ,
+.IR getmap (9.1)

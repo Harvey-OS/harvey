@@ -13,14 +13,14 @@ HFILES=awk.h\
 	y.tab.h\
 	proto.h\
 
-LFILES=awk.lx.l
+LFILES=awk.lx
 
 YFILES=awk.g.y
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
-CFLAGS=-c -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE -DUTF
-YFLAGS=-S -d
+CFLAGS=-c -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE -D_BSD_EXTENSION -DUTF
+YFLAGS=-S -d -v
 CC=pcc
 LD=pcc
 cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}

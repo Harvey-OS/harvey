@@ -1,0 +1,492 @@
+.TH MF 1 "24 Apr 92"
+.SH NAME
+mf, inimf  \- Metafont, a language for alphabet design
+.SH SYNOPSIS
+.B mf
+[ first line ]
+.PP
+.B inimf
+[ first line ]
+.PP
+.B virmf
+[ first line ]
+.ie t .ds TX \fRT\v'+0.3m'E\v'-0.3m'X\fP \" for troff
+.el .ds TX TeX \" for nroff
+.\" to use, type \*(TX
+.ie t .ds OX \fIT\v'+0.3m'E\v'-0.3m'X\fP \" for troff
+.el .ds OX TeX \" for nroff
+.\" the same but obliqued
+.SH DESCRIPTION
+M\s-2ETAFONT\s0 reads the program in the specified files
+and outputs font rasters (in
+.I gf
+format) and font metrics (in
+.I tfm 
+format).  The M\s-2ETAFONT\s0
+language is described in
+.I The M\s-2ETAFONT\s0\^book
+by Donald E. Knuth, published by Addison-Wesley.
+.PP
+Like
+\*(TX, M\s-2ETAFONT\s0
+is normally used with a large body of precompiled macros, and font generation
+in particular requires the support of several macro files.  The basic
+program as compiled is called
+.IR inimf ;
+it can be used to precompile macros into a 
+.I .base
+file.  The 
+.I virmf
+variant is used to reload the
+.I .base
+files quickly.  Typically,
+.I virmf
+has links to it by the names of the various base files.
+For example, if you link
+.I foo
+to
+.I virmf
+and then execute the program 
+.IR foo ,
+you get the base file
+.IR foo.base .
+You can load a different base by saying, e.g.,
+.IR "virmf \\\\\|&mybase" .
+.PP
+As described in 
+.I The M\s-2ETAFONT\s0\^book,
+the command line (or first input line) should otherwise begin with a file name
+or a \\\|controlsequence.
+The normal usage is to say
+.IP
+\fBmf\ \fR '\\\|mode=<printengine>\^;\^ [\^mag=magstep(\fI\^n\fR\^)\^;\^]' input\ \^\fI font \fR
+.PP
+to start processing 
+.IR font.mf .
+The single quotes are the best way of keeping your
+shell from misinterpreting the semicolons and 
+from removing the \\ character, which is needed here to
+keep M\s-2ETAFONT\s0 from thinking that you want to produce a font called
+``mode''. (Or you can just say
+.B mf
+and give the other stuff on the next line, without quotes.) Other
+control sequences, such as 
+.B batchmode
+(for silent operation) can also appear. 
+The name ``font'' will be the ``jobname'', and is used in forming
+output file names.
+If M\s-2ETAFONT\s0 doesn't get a file name in the first line, 
+the jobname is ``mfput''.
+The default extension,
+.IR .mf ,
+can be overridden by specifying an extension explicitly.
+.PP
+A log of error messages goes into the file \fIjobname\fB\^.\^\fIlog\fR.
+The output files are \fIjobname\fB\^.\^\fItfm\fR and
+\fIjobname\fB\^.\^\fI<\fR\^number\^\fI>gf\fR, where <number> depends on
+the resolution and magnification of the font.  The ``mode'' in this
+example is shown generically as <printengine>, a symbolic term for which
+the name of an actual device or, most commonly, the name ``localfont''
+(see below) must
+be substituted. If the mode is not specified or is not valid for your
+site, M\s-2ETAFONT\s0 will default to ``proof'' mode which produces
+large character images for use in font design and refinement.  Proof
+mode can be recognized by the suffix
+.I .2602gf
+after the jobname.  Examples of proof mode output can be found
+in 
+.IR "Computer Modern Typefaces" ,
+(Volume E of
+.IR "Computers and Typesetting" ),
+by Donald Knuth.
+The system of 
+.I magsteps 
+is identical to the system used by
+\*(TX,
+with values generally in the range 0.5, 1.0, 2.0, 3.0, 4.0 and 5.0.
+A listing of gf numbers for 118-dpi, 240-dpi and 300-dpi fonts
+is shown below.
+.ds f. mf.tbl \" tbl output inserted here
+.TS 
+.if \n+(b.=1 .nr d. \n(.c-\n(c.-1
+.de 35
+.ps \n(.s
+.vs \n(.vu
+.in \n(.iu
+.if \n(.u .fi
+.if \n(.j .ad
+.if \n(.j=0 .na
+..
+.nf
+.nr #~ 0
+.if n .nr #~ 0.6n
+.ds #d .d
+.if \(ts\n(.z\(ts\(ts .ds #d nl
+.fc
+.nr 33 \n(.s
+.rm 80 81 82 83
+.nr 80 0
+.nr 38 \w\s-2MAGSTEP\s0
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(0)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(0.5)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(1)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(2)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(3)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(4)
+.if \n(80<\n(38 .nr 80 \n(38
+.nr 38 \wmag=magstep(5)
+.if \n(80<\n(38 .nr 80 \n(38
+.80
+.rm 80
+.nr 81 0
+.nr 38 \w118 dpi
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w118
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w129
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w142
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w170
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w204
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w245
+.if \n(81<\n(38 .nr 81 \n(38
+.nr 38 \w294
+.if \n(81<\n(38 .nr 81 \n(38
+.81
+.rm 81
+.nr 82 0
+.nr 38 \w240 dpi
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w240
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w263
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w288
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w346
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w415
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w498
+.if \n(82<\n(38 .nr 82 \n(38
+.nr 38 \w597
+.if \n(82<\n(38 .nr 82 \n(38
+.82
+.rm 82
+.nr 83 0
+.nr 38 \w300 dpi
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w300
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w329
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w360
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w432
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w518
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w622
+.if \n(83<\n(38 .nr 83 \n(38
+.nr 38 \w746
+.if \n(83<\n(38 .nr 83 \n(38
+.83
+.rm 83
+.nr 38 1n
+.nr 79 0
+.nr 40 \n(79+(0*\n(38)
+.nr 80 +\n(40
+.nr 41 \n(80+(3*\n(38)
+.nr 81 +\n(41
+.nr 42 \n(81+(3*\n(38)
+.nr 82 +\n(42
+.nr 43 \n(82+(3*\n(38)
+.nr 83 +\n(43
+.nr TW \n(83
+.if t .if \n(TW>\n(.li .tm Table at line 13 file mf.tbl is too wide - \n(TW units
+.nr #I \n(.i
+.in +(\n(.lu-\n(TWu-\n(.iu)/2u
+.fc  
+.nr #T 0-1
+.nr #a 0-1
+.eo
+.de T#
+.ds #d .d
+.if \(ts\n(.z\(ts\(ts .ds #d nl
+.mk ##
+.nr ## -1v
+.ls 1
+.ls
+..
+.ec
+.ta \n(80u \n(81u \n(82u \n(83u 
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'\s-2MAGSTEP\s0\h'|\n(41u'118 dpi\h'|\n(42u'240 dpi\h'|\n(43u'300 dpi
+.ta \n(80u \n(81u \n(82u \n(83u 
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(0)\h'|\n(41u'118\h'|\n(42u'240\h'|\n(43u'300
+.ta \n(80u \n(81u \n(82u \n(83u 
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(0.5)\h'|\n(41u'129\h'|\n(42u'263\h'|\n(43u'329
+.ta \n(80u \n(81u \n(82u \n(83u 
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(1)\h'|\n(41u'142\h'|\n(42u'288\h'|\n(43u'360
+.ta \n(80u \n(81u \n(82u \n(83u 
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(2)\h'|\n(41u'170\h'|\n(42u'346\h'|\n(43u'432
+.ta \n(80u \n(81u \n(82u \n(83u 
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(3)\h'|\n(41u'204\h'|\n(42u'415\h'|\n(43u'518
+.ta \n(80u \n(81u \n(82u \n(83u 
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(4)\h'|\n(41u'245\h'|\n(42u'498\h'|\n(43u'622
+.ta \n(80u \n(81u \n(82u \n(83u 
+.nr 31 \n(.f
+.nr 35 1m
+\&\h'|\n(40u'mag=magstep(5)\h'|\n(41u'294\h'|\n(42u'597\h'|\n(43u'746
+.fc
+.nr T. 1
+.T# 1
+.in \n(#Iu
+.35
+.TE
+.if \n-(b.=0 .nr c. \n(.c-\n(d.-12
+
+.br
+Magnification can also be specified not as a magstep but as an
+arbitrary value, such as 1.315, to create special character sizes.
+.PP
+Before font production can begin, it is necessary to set up the
+appropriate base files.  The minimum set of components for font
+production for a given print-engine is the 
+.I plain.mf
+macro file
+and the local `mode_def' file.  The macros in 
+.I plain.mf
+can be
+studied in an appendix to the
+.I M\s-2ETAFONT\s0\^book;
+they were developed by Donald Knuth, and this file should never be
+altered except when it is officially upgraded.  
+Each mode_def specification helps adapt fonts to a particular print-engine.
+There is a regular discussion of mode_defs in the journal of the 
+\*(TX
+Users Group,
+.I TUGboat;
+the local ones in use on this computer should be in
+.BR @MFINPUTDIR@/@LOCALMODES@.mf .
+With only 
+.I plain.mf 
+and the ``modes'' file
+loaded it is possible to
+create fonts of simple characters, such as those used for the
+M\s-2ETAFONT\s0
+logo, and those used for the La\*(TX line and circle fonts,
+but the production of Computer Modern fonts would be facilitated by
+making a 
+.I cmmf.base
+file (which includes the macros in 
+.I cmbase.mf
+as
+well as those in 
+.IR plain.mf ).
+.PP
+Several environment variables can be used to set up directory
+paths to search when M\s-2ETAFONT\s0 opens a file for input.
+For example, the
+.I csh
+command
+.br
+.in +4
+setenv \s-2MFINPUTS\s0\ .\^:\^/usr/me/mylib\^:@MFINPUTDIR@
+.in -4
+or the
+.I sh
+command sequence
+.br
+.in +4
+\s-2MFINPUTS\s0\|=\|.\^:\^/usr/me/mylib\^:@MFINPUTDIR@
+.br
+export \s-2MFINPUTS\s0
+.in -4
+.br
+would cause all invocations of M\s-2ETAFONT\s0 and its derivatives to look for
+\\\|input files first in the current directory, then in a hypothetical
+user's ``mylib'', and finally in the system library.
+Normally, the user will place the command sequence which sets up the
+\s-2MFINPUTS\s0 environment variable in his or her
+.I .\|login
+or
+.I .\|profile
+file.
+.PP
+The
+.I e
+response to M\s-2ETAFONT\s0\|'s error-recovery mode invokes the
+system default
+editor at the erroneous line of the source file.
+There is an environment variable, \s-2MFEDIT\s0, 
+that overrides the default editor.  
+It should contain a string with "%s" indicating where the
+filename goes and "%d" indicating where the decimal linenumber (if any) goes.
+For example, an \s-2MFEDIT\s0 string for the 
+.I vi
+editor can be set with the
+.I csh
+command
+.br
+.ti +3
+     setenv \s-2MFEDIT\s0 "/usr/ucb/vi +%d %s"
+.br
+.sp .7
+The environment variables section below lists
+the relevant environment variables,
+and their defaults.
+.PP
+A convenient file in the library is 
+.IR null.mf ,
+containing nothing.
+When 
+.I mf
+can't find the file it thinks you want to input, it keeps
+asking you for another file name;  responding `null' gets you out
+of the loop if you don't want to input anything.
+.SH "ONLINE GRAPHICS OUTPUT"
+M\s-2ETAFONT\s0 can use most modern displays, so you can see its output
+without printing.  Chapter 23 of
+.I The M\s-2ETAFONT\s0\^book
+describes what you can do.  This implementation of M\s-2ETAFONT\s0 uses
+environment variables to determine which display device you want to use.
+First it looks for a variable \s-2MFTERM\s0, and then for \s-2TERM\s0.
+If it can't find either, you get no online output.  Otherwise, the value
+of the variable determines the device to use:
+.BR hp2627 ,
+.B sun
+(for SunView),
+.BR tek ,
+.B uniterm 
+(for an Atari ST Tek 4014 emulator),
+.B xterm 
+(for either X10 or X11).
+Some of these devices may not be supported in all M\s-2ETAFONT\s0
+executables; the choice is made at compilation time.
+.SH ENVIRONMENT
+The default values for all environment variables are set at the
+time of compilation in a file 
+.IR site.h .
+See
+.BR tex (1)
+for the details of the searching.  If the environment variable
+\s-2TEXMFOUTPUT\s0 is set, M\s-2ETAFONT\s0 attempts to put its output
+files in it, if they cannot be put in the current directory.  Again, see
+.BR tex (1).
+.PP
+.IP \s-2MFINPUTS\s0
+Search path for 
+.B input
+and
+.B openin
+files.  It should be colon-separated, and start with ``.''.  Default:
+.BR @MFINPUTS@ .
+.IP \s-2MFBASES\s0
+Search path for base files.  Default:
+.BR @MFBASES@ .
+.IP \s-2MFPOOL\s0
+Search path for M\s-2ETAFONT\s0 internal
+strings.  Default: 
+.BR @MFPOOL@ .
+.IP \s-2MFEDIT\s0
+Command template for switching to editor.  Default:
+.BR "@EDITOR@" .
+.IP \s-2MFTERM, TERM\s0
+Determines the online graphics display.
+.SH "FONT UTILITIES"
+A number of utility programs are available. 
+The following is a partial list of available utilities and their purpose. 
+Consult your local M\s-2ETAFONT\s0 guru for details.
+.br
+.TP 1i
+.B gftopk
+Takes a GF file and produces a more tightly packed PK font file.
+.TP
+.B gftodvi
+Produces proof sheets for fonts.
+.TP
+.B gftype
+Displays the contents of a GF file in mnemonics and/or images.
+.TP
+.B pktype
+Mnemonically displays the contents of a PK file.
+.TP
+.B mft
+Formats a source file as shown in
+.I Computer Modern Typefaces.
+.SH "FILES"
+.TP 2i
+@MFLIBDIR@
+M\s-2ETAFONT\s0's library areas
+.TP
+@MFPOOLDIR@/mf.pool
+Encoded text of M\s-2ETAFONT\s0's messages
+.TP
+@BASEDIR@/*.base
+M\s-2ETAFONT\s0 base files
+.TP
+@MFINPUTDIR@/plain.mf
+The ``standard'' macro package
+.TP
+@MFINPUTDIR@/@LOCALMODES@.mf
+The file of ``mode_def''s for your site's various printers
+.TP
+@CMSOURCES@/cm*.mf
+M\s-2ETAFONT\s0 sources for Computer Modern
+.SH "SUGGESTED READING"
+Donald E. Knuth,
+.I The M\s-2ETAFONT\s0\^book
+(Volume C of \fI Computers and Typesetting\fR\|)
+.br
+Donald E. Knuth,
+.I M\s-2ETAFONT:\s0\^ The Program
+(Volume D of \fI Computers and Typesetting\fR\|)
+.br
+Donald E. Knuth,
+.I Computer Modern Typefaces 
+(Volume E of \fI Computers and Typesetting\fR\|)
+.br
+.I TUGboat
+(the publication of the \*(TX Users Group)
+.SH COMMENTS
+Warning: ``Type design can be hazardous to your other interests. 
+Once you get hooked, you will develop intense feelings about letterforms;
+the medium will intrude on the messages that you read.
+And you will perpetually be thinking of improvements to the fonts that
+you see everywhere, especially those of your own design.''
+.SH "SEE ALSO"
+gftopk(1), gftodvi(1), gftype(1), mft(1),
+pltotf(1), tftopl(1)
+.SH BUGS
+On January 4, 1986 the ``final'' bug in M\s-2ETAFONT\s0 was discovered
+and removed. If an error still lurks in the code, D.E. Knuth promises to
+pay a finders fee which doubles every year to the first person who finds
+it. Happy hunting.
+.SH AUTHORS
+M\s-2ETAFONT\s0 was designed by Donald E. Knuth, who implemented it
+using his W\s-2EB\s0 system for Pascal programs.  It was originally
+ported to Unix by Paul Richards at the University of Illinois at
+Urbana-Champaign.  This page was mostly written by Pierre MacKay.

@@ -38,15 +38,15 @@ is
 line printer port on a 386 machine.
 .TP
 .BI -p " proc"
-The given preprocessor is invoked.
-The default preprocessor is
+The given processor is invoked.
+The default processor is
 .LR generic ,
 which tries to do the right thing for regular text, 
 .IR troff (1)
 output, or 
 .IR tex (1)
 output.
-If no preprocessing is desired
+If no processing is desired
 .L noproc
 may be specified.
 .TP
@@ -76,8 +76,17 @@ Set the font (default
 Suppress printing of header page.
 .TP
 .BI -i " n"
-Select paper input tray
-.I n.
+Select paper input tray.
+.I n
+may be a number 0-9, the word
+.I man
+for the manual feed slot, and/or
+.I simplex
+or
+.I duplex
+to get single or double sided output.
+Multiple input tray options may be specified if they are
+separated by commas.
 .TP
 .BI -l " n"
 Set the number of lines per page to
@@ -117,7 +126,7 @@ means from page
 to the end. 
 .TP
 .B -r
-Reverse the order of page printing (currently not functional).
+Reverse the order of page printing.
 .TP
 .BI -x " v"
 Set the horizontal
@@ -142,12 +151,8 @@ Convert a bitmap to a postscript file.
 .SH SEE ALSO
 .IR lp (8)
 .br
-.I
-A Guide to the Lp Printer Spooler,
 P. Glick,
-.I
-Unix Programmer's Manual,
-Tenth Edition, Volume 2.
+``A Guide to the Lp Printer Spooler''.
 .SH BUGS
 Not all options work with all output devices.
 Any user can kill any job.

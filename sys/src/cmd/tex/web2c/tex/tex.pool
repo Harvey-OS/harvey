@@ -432,8 +432,8 @@
 45A character number must be between 0 and 255.
 10Bad number
 51Since I expected to read a number between 0 and 15,
-13Bad math code
-48A numeric math code must be between 0 and 32767.
+12Bad mathchar
+46A mathchar number must be between 0 and 32767.
 18Bad delimiter code
 56A numeric delimiter code must be between 0 and 2^{27}-1.
 28Improper alphabetic constant
@@ -946,6 +946,8 @@
 50I can't carry out that multiplication or division,
 33since the result is out of range.
 55I'm forgetting what you said and not changing anything.
+57Sorry, \setbox is not allowed after \halign in a display,
+45or between \accent and an accented character.
 16Bad space factor
 47I allow only values in the range 1..32767 here.
 37I allow only nonnegative values here.
@@ -1033,4 +1035,4 @@
 59On this page there's a \write with fewer real {'s than }'s.
 04ext4
 16output file name
-*127541235
+*353758006

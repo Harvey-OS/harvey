@@ -8,6 +8,12 @@ The copyright notice above does not evidence any
 actual or intended publication of such source code.
 */
 
+/*
+ * this program makes the table to link function names
+ * and type indices that is used by execute() in run.c.
+ * it finds the indices in y.tab.h, produced by yacc.
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -57,7 +63,7 @@ struct xx
 	{ PRINTF, "aprintf", "printf" },
 	{ PRINT, "printstat", "print" },
 	{ CLOSE, "closefile", "closefile" },
-	{ DELETE, "delete", "delete" },
+	{ DELETE, "adelete", "adelete" },
 	{ SPLIT, "split", "split" },
 	{ ASSIGN, "assign", " = " },
 	{ ADDEQ, "assign", " += " },
@@ -85,17 +91,17 @@ struct xx
 	{ 0, "", "" },
 };
 
-#define SIZE	LASTTOKEN - FIRSTTOKEN + 1
+#define SIZE	(LASTTOKEN - FIRSTTOKEN + 1)
 char *table[SIZE];
 char *names[SIZE];
 
-main(int cargc, char *argv[])
+main(int argc, char *argv[])
 {
 	struct xx *p;
 	int i, n, tok;
 	char c;
 	FILE *fp;
-	char buf[100], name[100], def[100];
+	char buf[200], name[200], def[200];
 
 	printf("#include <stdio.h>\n");
 	printf("#include \"awk.h\"\n");
@@ -117,7 +123,7 @@ main(int cargc, char *argv[])
 			fprintf(stderr, "maketab funny token %d %s\n", tok, buf);
 			exit(1);
 		}
-		names[tok-FIRSTTOKEN] = malloc(strlen(name)+1);
+		names[tok-FIRSTTOKEN] = (char *) malloc(strlen(name)+1);
 		strcpy(names[tok-FIRSTTOKEN], name);
 		printf("\t(uchar *) \"%s\",\t/* %d */\n", name, tok);
 		i++;

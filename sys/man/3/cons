@@ -1,21 +1,23 @@
 .TH CONS 3 
 .SH NAME
-cons \- console, clocks, process/process group ids, user, null, klog, stats, lights, noise, sysstat, hz, swap, crypt, chal, key
+cons \- console, clocks, process/process group ids, user, null, klog, stats, lights, noise, sysstat, hz, swap, key, hostowner, hostdomain, authenticate, authcheck, authenticator
 .SH SYNOPSIS
 .nf
 .B bind #c /dev
 
-.B /dev/chal
+.B /dev/authcheck
+.B /dev/authenticate
+.B /dev/authenticator
 .B /dev/clock
 .B /dev/cons
 .B /dev/consctl
 .B /dev/cputime
-.B /dev/crypt
+.B /dev/hostdomain
+.B /dev/hostowner
 .B /dev/hz
 .B /dev/key
 .B /dev/klog
 .B /dev/lights
-.B /dev/mousectl
 .B /dev/msec
 .B /dev/noise
 .B /dev/null
@@ -71,7 +73,7 @@ A terminating
 is not put into the buffer.
 If part of the line remains, the next
 .B read
-will return characters from that remainder and not part of any new line
+will return bytes from that remainder and not part of any new line
 that has been typed since.
 .PP
 If
@@ -118,49 +120,149 @@ Writing a number (as plain text) to the
 device directs any lights that are available to turn on and off.
 The bits of the number are mapped to the lights in a processor-dependent way.
 .PP
-Writing a serial port number (or the string
-.BR ps2
-for the ps2 port on a pc )
-configures that port for mouse input.
-.PP
-Writing two blank- or tab- separated numbers to the
+Writing two blank- or tab-separated numbers to the
 .B noise
 device causes the machine to make a tone, if possible.
 The first number is the frequency, in Hertz, and the second is
 the duration, in milliseconds.
 .PP
 The
-.B crypt
-file performs DES encryption. 
-To encrypt data, first a character
-.L E
-.RB ( 0x45 )
-is written to the file, and then the data, which must be at least 8 bytes long.
-Data longer that 127 bytes is truncated.
-Data is encrypted with the same algorithm used in
-.IR encrypt (2).
-The encrypted data can then be read from the file.
-A similar procedure is used to decrypt data, except an
-.SM ASCII
-.L D
-.RB ( 0x44 )
-is written to the file before the data.
+.B hostdomain
+file contains the name of the authentication domain that
+this host belongs to; see
+.IR auth (6).
+Only the user named in
+.B /dev/hostowner
+may write this.
+.PP
+The
+.B hostowner
+file contains the name of the user that owns the console device files.
+The hostowner also has group permissions for any local devices.
 .PP
 The
 .B key
-file is used to set the DES key used for encryption;
-the key is shared within a process group (see
-.IR auth (6)).
+file is used to set the DES key used for encryption.
+Each machine has one key.
+Only the user named in
+.B /dev/hostowner
+may write this.
 .PP
 The
-.B chal
-file is used for authenticated setting of the user name.
-When read, it returns an encrypted challenge string
-to be used for authenticating the user's identity.
-When written with the appropriate string,
-the user name and encryption key are set.
-The format of the strings is documented in
+.B authenticate
+file is used to authenticate new users to the kernel; see
 .IR auth (6).
+After an open, the first read returns a ticket request message
+of the following form:
+.EX
+	char num;
+	char authid[28];
+	char authdom[48];
+	char chal[8];
+	char hostid[28];
+	char uid[28];
+.EE
+Here
+.I num
+is 1,
+.I authid
+and
+.I hostid
+are the contents of
+.BR hostowner ,
+and
+.I authdom
+is the contents of
+.BR hostdomain .
+.I Chal
+is an 8 byte random challenge created by the kernel.
+A subsequent write of a valid ticket encrypted with the key contained in
+.B key
+changes the user name of the writing process to the value of
+.I suid
+in the ticket.
+The ticket is of the form:
+.EX
+	char num;
+	char chal[8];
+	char cuid[28];
+	char suid[28];
+	char noncekey[7];
+.EE
+The ticket is valid if
+.I num
+is 64 and
+.I chal
+matches the challenge in the ticket request.
+Writing an invalid ticket generates an error.
+A read following a successful write yields an authenticator
+message of the form:
+.EX
+	char num;
+	char chal[8];
+	char id[4];
+.EE
+The authenticator is encrypted in
+.I noncekey
+from the ticket.
+.I Num
+is 66,
+.IR id [0-4]
+are 0,
+and
+.I chal
+matches the challenge in the original ticket request.
+.PP
+The
+.B authenticator
+file is used to generate an authenticator from a ticket.
+One writes a ticket encrypted with the key contained in
+.BR key ,
+followed, optionally, by a 4-byte
+.IR id ;
+a missing
+.I id
+defaults to zero.
+If the client uid matches the current user, a subsequent read yields
+an authenticator for that ticket with the given
+.IR id .
+.PP
+The
+.B authcheck
+file is used to match authenticators to tickets.
+A write of an authenticator appended to the end of a ticket
+succeeds if the ticket is encrypted with
+the key contained in
+.BR key ,
+the ticket's
+.I num
+is 65,
+the authenticator is encrypted with the ticket's
+.BR noncekey ,
+the authenticator's and ticket's
+.IR chal 's
+match, the authenticator's
+.I num
+is 66, and the authenticator's
+.I id
+is 0.  Alternatively, the write may consist of ticket, authenticator,
+.IR chal ,
+and
+.IR id ,
+in which case the given
+.I chal
+and
+.I id
+must match those of the authenticator.
+.PP
+The
+.B user
+file contains the name of the user associated with the current process.
+Any process can change to user
+.B none
+by writing
+.B none
+to this file.
 .PP
 The rest of the files contain (mostly) read-only strings.
 Each string has a fixed length: a
@@ -177,10 +279,6 @@ must be used to reset the offset.
 When the file contains numeric data, each number is formatted
 in decimal as an 11-digit number with leading blanks and
 one trailing blank: twelve bytes total.
-.PP
-The
-.B user
-file contains the name of the user associated with the current process.
 .PP
 The
 .B cputime
@@ -206,6 +304,8 @@ The
 file holds 8 numbers:
 processor number, context switches, interrupts, system calls, page faults,
 tlb faults, tlb purges, and load average.
+The load average is in units of milli-CPUs and is decayed over time;
+the others are total counts from boot time.
 If the machine is a multiprocessor,
 .B sysstat
 holds one line per processor.
@@ -217,9 +317,9 @@ The
 .B swap
 device holds a string of the form
 .IP
-.IR m1 / m2
+.IB m1 / m2
 .B memory
-.IR s1 / s2
+.IB s1 / s2
 .B swap
 .PP
 These give, for each of
@@ -258,7 +358,10 @@ number of seconds since the epoch 00:00:00 GMT, Jan. 1, 1970.
 .IR bit (3),
 .IR keyboard (6),
 .IR auth (6),
-.IR utf (6)
+.IR utf (6),
+.IR swap (8)
+.SH SOURCE
+.B /sys/src/9/port/devcons.c
 .SH BUGS
 For debugging, two control-T's followed by a letter
 generate console output:
@@ -271,7 +374,7 @@ prints data about the mount device,
 .L ^T^Tb
 prints data about the bitblt device, and
 .L ^T^Tx
-prints date about kernel memory allocation.
+prints data about kernel memory allocation.
 .PP
 The system can be rebooted by typing
-.L ^T^Tr.
+.LR ^T^Tr .

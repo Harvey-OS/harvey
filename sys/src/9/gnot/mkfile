@@ -1,13 +1,13 @@
 CONF=gnot
-CONFLIST=gnot gnotdisk phoneca gnotbri lbp gnotlbpdisk belle
+CONFLIST=gnot gnotdisk
 
 objtype=68020
 </$objtype/mkfile
 CFLAGS=-w
 
-DEV=`{rc ../port/mkdevlist $CONF}`
-STREAM=`{rc ../port/mkstreamlist $CONF}`
-MISC=`{rc ../port/mkmisclist $CONF}`
+DEV=`{rc ../port/mkdevlist $CONF}
+STREAM=`{rc ../port/mkstreamlist $CONF}
+MISC=`{rc ../port/mkmisclist $CONF}
 
 OBJ=\
 	vec.$O\
@@ -40,33 +40,29 @@ OBJ=\
 	stream.$O\
 	boot$CONF.root.$O\
 	$MISC $STREAM\
-	fcall.$O\
+	auth.$O\
 	bbmalloc.$O
 
-a:V:	9$CONF
+default:V:	9$CONF
 
-<../port/portmkfile
-
-9$CONF:	$OBJ $CONF.c /68020/lib/libgnot.a /$objtype/lib/libg.a
+9$CONF:	$OBJ $CONF.c /$objtype/lib/libgnot.a /$objtype/lib/libg.a
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
-	2l -o $target -l -T0x80002020 -R0x2000 $OBJ $CONF.$O -lgnot -lg -lc
+	$LD -o $target -l -T0x80002020 -R0x2000 $OBJ $CONF.$O -lgnot -lg -lauth -lc
 	size $target
-
-install:V: 9$CONF
-	cp 9$CONF /68020/9$CONF
 
 screen.$O devbit.$O:	/sys/include/gnot.h
 
 init.h:	initcode /sys/src/libc/9syscall/sys.h
-	2a initcode
-	2l -l -s -o init.out -R4 initcode.$O
+	$AS initcode
+	$LD -l -s -o init.out -R4 initcode.$O
 	{echo 'uchar initcode[]={'
 	 xd -r -1x init.out |
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h
 
-clock.$O screen.$O fault68020.$O devduart.$O devincon.$O:	/$objtype/include/ureg.h
+clock.$O screen.$O fault68020.$O devduart.$O devincon.$O main.$O:	/$objtype/include/ureg.h
+
+<../port/portmkfile
 
 nm:	$OBJ
-	2l -a -o 9 -l -b 0x80002020 $prereq -lgnot -lc > nm
-
+	$LD -a -o 9 -l -b 0x80002020 $prereq -lgnot -lc > nm

@@ -1,0 +1,114 @@
+% ASTROSYM.MAC : AstroSym (Version 1.00, May 1, 1992) - file 3 of 7
+% Peter Schmitt                     eMail: a8131dal@awiuni11.bitnet
+% Institute of Mathematics, University of Vienna    Vienna, Austria
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%% variables
+
+numeric r,R,D, a,b, s,t; %H,V,
+
+pair 
+ TL,Tl,TC,Tr,TR,
+ tL,tl,tC,tr,tR,
+ CL,Cl,CC,Cr,CR,
+ bL,bl,bC,br,bR,
+ BL,Bl,BC,Br,BR;
+
+pair BB,MM,TT, mm, LL,RR, ll,rr, HH,VV, vv,nn;
+
+pair vP,hP, vp,hp, vd,hd; 
+
+%%%%%%%% macros
+
+def  PEN = pickup pencircle scaled 2P  enddef;
+def SPEN = pickup pensquare scaled 2P  enddef;
+def RPEN = pickup penrazor  scaled 2P  enddef;
+def  Pen = pickup pencircle scaled 2p; enddef;
+
+def corrections =
+    vP:=(0,P); hP:=(P,0);
+    vp:=(0,p); hp:=(p,0);
+    vd:=vP-vp; hd:=hP-hp;
+    enddef;
+
+def Corners (expr lft_corr, rt_corr, bot_corr, top_corr) =
+    BL := (0+lft_corr,-d+bot_corr); BR := (w-rt_corr,-d+bot_corr);
+    TL := (0+lft_corr, h-top_corr); TR := (w-rt_corr, h-top_corr);
+    enddef;
+def corners = Corners (P,P,P,P); enddef;
+
+def Centers (expr x_ratio,y_ratio) =
+    BC:=bot x_ratio[BL,BR]; TC:=top x_ratio[TL,TR];
+    CL:=lft y_ratio[BL,TL]; CR:= rt y_ratio[BR,TR]; 
+    CC:=y_ratio[BC,TC];
+    enddef;
+def Centers (expr x_ratio,y_ratio) =
+    BC:=x_ratio[BL,BR]; TC:=x_ratio[TL,TR];
+    CL:=y_ratio[BL,TL]; CR:=y_ratio[BR,TR]; 
+    CC:=y_ratio[BC,TC];
+    enddef;
+def centers = Centers (1/2,1/2); enddef;
+
+def TOP (expr lft_ratio,rt_ratio) =
+    Tl:=lft_ratio[TL,TR]; Tr:=rt_ratio[TL,TR];
+    enddef;
+def BOT (expr lft_ratio,rt_ratio) =
+    Bl:=lft_ratio[BL,BR]; Br:=rt_ratio[BL,BR];
+    enddef;
+def HOR (expr lft_ratio,rt_ratio) =
+    BOT(lft_ratio,rt_ratio); TOP(lft_ratio,rt_ratio);
+    enddef;
+
+def Bot (expr ratio) =
+    bl:=ratio[Bl,Tl]; bC:=ratio[BC,TC]; br:=ratio[Br,Tr];
+    enddef;
+def Top (expr ratio) =
+    tl:=ratio[Bl,Tl]; tC:=ratio[BC,TC]; tr:=ratio[Br,Tr]; 
+    enddef;
+
+def LFT (expr bot_ratio,top_ratio) =
+    bL:=bot_ratio[BL,TL]; tL:=top_ratio[BL,TL]; 
+    enddef;
+def RT (expr bot_ratio,top_ratio) =
+    bR:=bot_ratio[BR,TR]; tR:=top_ratio[BR,TR]; 
+    enddef;
+
+def Fill (expr boundary) =
+    fill boundary; draw boundary;
+    enddef;
+
+def ARROW (expr base,top, breadth, lcorr,bcorr) =
+    vv := top-base;
+    nn := breadth*(vv rotated 90)/2;
+    BB := base; TT := top; 
+    LL := base+nn-lcorr*vv; RR := base-nn-lcorr*vv;
+    ll := .5[base,top]+(1-bcorr)*nn/2;
+    rr := .5[base,top]-(1-bcorr)*nn/2;
+    enddef;
+
+def arrow (expr base,top, breadth, lcorr,bcorr) =
+    ARROW (base,top, breadth, lcorr,bcorr);
+    Fill ( LL{dir angle(ll-LL)}..{dir angle(TT-ll)}TT
+         & TT{dir angle(rr-TT)}..{dir angle(RR-rr)}RR
+         & RR{dir angle(BB+lcorr*vv-RR)}..BB..{dir angle(LL-BB-lcorr*vv)}LL
+         ..cycle );
+    enddef;
+
+def Arrow (expr base,top, breadth, lcorr,bcorr) =
+    ARROW (base,top, breadth, lcorr,bcorr);
+    draw LL{dir angle(ll-LL)}..{dir angle(TT-ll)}TT
+       & TT{dir angle(rr-TT)}..{dir angle(RR-rr)}RR;
+    draw BB--TT;
+    enddef;
+
+def cross (expr base,top, breadth, base_corr) =
+    vv := (top-base-(0,base_corr));
+    nn := breadth*(vv rotated 90)/2;
+    BB := base; TT := top;
+    MM := .5[base+(0,base_corr),top];
+    LL := MM-nn; RR := MM+nn;
+    draw LL--RR; draw BB--TT;
+    enddef;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% end of ASTROSYM.MAC %%%

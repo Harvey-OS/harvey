@@ -1,0 +1,2891 @@
+%
+%   This document describes how to use dvips.  Macros at top cut and
+%   slashed from another document.
+%
+\newif\ifgeneric\genericfalse
+\ifx\ntmanloaded Y\else\input dvipsmac \fi % uh oh, no macros, give our own.
+%
+%   Finally, the document itself.
+%
+The \.{dvips} program converts a \TeX\ \.{dvi} file into a PostScript file
+for printing or distribution.  Seldom has such a seemingly easy programming
+task required so much effort.
+
+% Why use dvips?
+
+\sec{Why Use dvips?}
+
+The \.{dvips} program has a number of features that set it apart from other
+PostScript drivers for \TeX.  This rather long section describes the advantages
+\^{{\tt dvips}}
+\^{PostScript}
+of using \.{dvips}, and may be skipped if you are just interested in learning
+how to use the program.  Installation is covered in section 14 near the
+end of this document.
+
+The \.{dvips} driver generates excellent, standard PostScript, that can be
+included in other documents as figures or printed through a variety of
+spoolers.  The generated PostScript requires very little printer memory,
+so very complex documents with a lot of fonts can easily be printed even
+on PostScript printers without much memory, such as the original Apple
+LaserWriter.  The PostScript output is also compact, requiring less disk
+space to store and making it feasible as a transfer format.
+
+Even those documents that are too complex to print in their entirety
+on a particular printer
+can be printed, since \.{dvips} will automatically split such documents
+\^{memory}
+into pieces, reclaiming the printer memory between each piece.
+
+The \.{dvips} program supports graphics in a natural way, allowing PostScript
+graphics to be included and automatically scaled and positioned in a variety
+of ways.
+
+Printers with resolutions other than 300 dpi are also supported, even if they
+have a different resolution in the horizontal and vertical directions.
+High resolution output is supported for typesetters, including an option
+that compresses the bitmapped fonts so that typesetter virtual memory is
+\^{resolution}
+not exhausted.  This option also significantly reduces the size of the
+PostScript file and decoding in the printer is very fast.
+
+Missing fonts can be automatically generated if \MF\ exists on the system,
+or fonts can be converted from \.{gf} to \.{pk} format on demand.
+\^{automatic font generation}
+If a font cannot be generated, a scaled version of the same font at a
+different size can be used instead, although \.{dvips} will complain
+loudly about the poor \ae sthetics of the resulting output.
+
+Users will appreciate features such as collated copies and support
+for \.{tpic}, \.{psfig}, \.{emtex}, and \.{METAPOST};
+\^{{\tt tpic}}
+\^{{\tt psfig}}
+\^{{\tt emtex}}
+\^{{\tt METAPOST}}
+system administrators will love the support for multiple printers, each
+with their own configuration file, and the ability to pipe the output
+directly to a program such as \.{lpr}.
+Support for MS-DOS, OS/2, and VMS in addition to UNIX is provided in the
+\^{MS-DOS}
+\^{UNIX}
+\^{VMS}
+standard distribution, and porting to other systems is easy.
+
+One of the most important features is the support of virtual fonts, which
+add an entirely new level of flexibility to \TeX.  Virtual fonts are used to
+give \.{dvips} its excellent PostScript font support, handling all the font
+remapping in a natural, portable, elegant, and extensible way.  The \.{dvips}
+\^{{\tt afm2tfm}}
+driver even comes with its own \.{afm2tfm} program that creates the necessary
+virtual fonts and \TeX\ font metric files automatically from the Adobe
+font metric files.
+
+Source is provided and freely distributable, so adding a site-specific feature
+is possible.  Adding such features is made easier by the highly modular
+structure of the program.
+
+There is really no reason to use another driver, and the more people use
+\.{dvips}, the less time will be spent fighting with PostScript and the
+more time will be available to create beautiful documents.
+So if you don't use \.{dvips} on your system, get it today.
+
+\sec{Using dvips}
+
+To use \.{dvips}, simply type
+\cmd{localhost> dvips foo}
+\noindent
+where \.{foo.dvi} is the output of \TeX\ that you want to print.  If \.{dvips}
+has been installed correctly, the document should come out of your default
+printer.
+
+If you use fonts that have not been used on your system before, they
+may be automatically generated; this process can take a few minutes.
+The next time that document is printed, these fonts will already exist, so
+printing will go much faster.
+
+Many options are available; they are described in a later section.
+For a brief summary of available options, just type
+\cmd{localhost> dvips}
+
+\sec{Paper Size and Landscape Mode}
+
+Most \TeX\ documents at a particular site are designed to use the
+standard paper size (for example, letter size in the United States
+or A4 in Europe.)  The \.{dvips} program defaults to these paper
+sizes and can be customized for the defaults at each site or on
+each printer.
+
+But many documents are designed for other paper sizes.  For instance,
+you may want to design a document that has the long edge of the
+\^{landscape}
+paper horizontal.  This can be useful when typesetting booklets,
+brochures, complex tables, or many other documents.  This type of
+paper orientation is called landscape orientation (the `normal'
+orientation is portrait).
+\^{portrait}
+Alternatively, a document might be designed for ledger or A3 paper.
+
+Since the intended paper size is a document design decision, and
+not a decision that is made at printing time, such information
+should be given in the \TeX\ file and not on the \.{dvips}
+command line.  For this reason, \.{dvips} supports a \.{papersize}
+special.  It is hoped that this special will become standard over
+time for \TeX\ previewers and other printer drivers.
+
+The format of the \.{papersize} special is
+\cmd{\ttbackslash special\char123papersize=8.5in,11in\char125}
+\noindent
+where the dimensions given above are for a standard letter sheet.
+The first dimension given is the horizontal size of the page, and
+the second is the vertical size.  The dimensions supported are
+the same as for \TeX; namely, in (inches), cm (centimeters), mm
+(millimeters), pt (points), sp (scaled points), bp (big points, the
+same as the default PostScript unit), pc (picas), dd (didot points),
+and cc (ciceros).
+
+For a landscape document, the \.{papersize} comment would be given as
+\cmd{\ttbackslash special\char123papersize=11in,8.5in\char125}
+\noindent
+An alternate specification of \.{landscape} is to have a special
+of the form
+\cmd{\ttbackslash special\char123landscape\char125}
+\noindent
+This is supported for backward compatibility, but it is hoped that
+eventually the \.{papersize} comment will dominate.
+
+Of course, using such a command only informs \.{dvips} of the desired
+paper size; you must still adjust the \.{hsize} and \.{vsize} in your
+\TeX\ document to actually use the full page.
+
+The {\tt papersize} special must occur somewhere on the first page of the
+document.
+
+The {\tt dvips} default landscape configuration is presently as though
+the paper were rotated ninety degrees counterclockwise; this seems
+to be the convention adopted by previewers that the author is
+familiar with.  If for some reason you need your landscape orientation
+to be rotated clockwise, simply include at the top of your \TeX\ file
+or in some included macro file
+\cmd{\ttbackslash special\char123! /landplus90 true store\char125}
+\noindent
+to set this orientation.  Alternatively, you can change the default
+value of {\tt landplus90} in the {\tt tex.lpro} file before
+compilation, or include a header file that just includes the
+definition {\tt /landplus90 true store}.
+
+\sec{Including PostScript Graphics}
+
+Scaling and including PostScript graphics is a breeze---if the PostScript
+\^{graphics}
+\^{PostScript graphics}
+file is correctly formed.  Even if it is not, however, the file can usually
+be accommodated with just a little more work.  The most important feature of
+a good PostScript file---from the standpoint of including it in another
+document---is an accurate bounding box comment.
+
+\sub{The Bounding Box Comment}
+
+Every well-formed PostScript file has a comment describing where on the
+\^{bounding box}
+page the graphic is located, and how big that graphic is.  This information
+is given in terms of the lower left and upper right corners of a box just
+enclosing the graphic, and is thus referred to as a bounding box.
+These coordinates are given
+in PostScript units (there are precisely 72 PostScript units to
+the inch) with respect to the lower left corner of the sheet of paper.
+
+To see if a PostScript file has a bounding box comment, just
+look at the first few lines of the file.
+(PostScript is standard ASCII, so you can use any text editor to do this.)
+If within the first few dozen lines there is a line of the form
+\cmd{\%\%BoundingBox:\ 0 1 2 3}
+\noindent
+(with any numbers), chances are very good that the file is Encapsulated
+PostScript and will work easily with \.{dvips}.  If the file contains
+instead a line like
+\cmd{\%\%BoundingBox:\ (atend)}
+\noindent
+the file is still probably Encapsulated PostScript, but the bounding
+box (that \.{dvips} needs to position the graphic) is at the end of the
+file and should be moved to the position of the line above.  This can be
+done with that same text editor, or with a simple Perl script.
+
+If the document lacks a bounding box altogether, one can easily be added.
+Simply print the file.  Now, take a ruler, and make the following measurements.
+All measurements should be in PostScript units, so measure it in inches and
+multiply by 72.  Alternatively, the {\tt bbfig} program distributed with
+{\tt dvips} in the {\tt contrib} directory can be used to automate
+this process.
+
+From the left edge of the paper to the leftmost mark on the paper is
+{\it llx}, the first number.  From the bottom edge of the paper to the
+bottommost mark on the paper is {\it lly}, the second number.  From
+the left edge of the paper to the rightmost mark on the paper is
+{\it urx}, the third number.  The fourth and final number, {\it ury}, is
+the distance from the bottom of the page to the uppermost mark on the
+paper.
+
+Now, add a comment of the following form as the second line of the document.
+(The first line should already be a line starting with the two
+characters `{\tt \%!}'; if it is not, the file probably isn't PostScript.)
+\cmd{\%\%BoundingBox:\ {\it llx lly urx ury}}
+\noindent
+Or, if you don't want to modify the file, you can simply write these
+numbers down in a convenient place and use them when you import the
+graphic.
+
+If the document does not have such a bounding box, or if the bounding box
+is given at the end of the document, please complain to the authors of the
+software package that generated the file; without such a line, including
+PostScript graphics can be tedious.
+
+\sub{Using the EPSF Macros}
+
+Now you are ready to include the graphic into a \TeX\ file.  Simply add to
+\^{{\tt epsf} macros}
+the top of your \TeX\ file a line like
+\cmd{\ttbackslash input epsf}
+\noindent
+(or, if your document is in La\TeX\ or Sli\TeX, add the \.{epsf} style
+option, as was done to the following line).
+\cmd{\ttbackslash documentstyle[12pt,epsf]\char123article\char125}
+\noindent
+This only needs to be done once, no matter how many figures you plan to
+include.  Now, at the point you want to include the file, enter a line
+such as
+\cmd{\ttbackslash epsffile\char123foo.ps\char125}
+\noindent
+If you are using La\TeX\ or Sli\TeX, you may need to add a
+\.{\ttbackslash leavevmode} command immediately before the
+\^{{\tt leavevmode}}
+\.{\ttbackslash epsffile} command to get certain environments to work
+correctly.  If your file did not (or does not currently) have a bounding
+box comment, you should supply those numbers you wrote down as in the
+following example:
+\cmd{\ttbackslash epsffile[100 100 500 500]\char123foo.ps\char125}
+\noindent
+(in the same order they would have been in a normal bounding box comment).
+Now, save your changes and run \TeX\ and \.{dvips}; the output should
+have your graphic positioned at precisely the point you indicated, with the
+proper amount of space reserved.
+
+The effect of the \.{\ttbackslash epsffile} macro is to typeset the figure
+as a \TeX\ \.{\ttbackslash vbox} at the point of the page that the command
+is executed.  By default, the graphic will have its
+`natural' width (namely, the width of its bounding box).
+The \TeX\ box will have depth zero and a `natural' height.
+The graphic will be scaled by any \.{dvi} magnification in effect at the
+\^{magnification}
+time.
+
+Any PostScript graphics included by any method in this document (except
+\^{{\tt bop-hook}}
+\.{bop-hook} and its ilk) are scaled by the current \.{dvi} magnification.
+For graphics included with \.{\ttbackslash epsffile} where the size is given
+in \TeX\
+dimensions, this scaling will produce the correct, or expected, results.
+For compatibility with old PostScript drivers, it is possible to turn
+\^{{\tt magscale}}
+this scaling off with the following \TeX\ command:
+\cmd{\ttbackslash special\char123! /magscale false def\char125}
+\noindent
+Use of this command is not recommended because it will make the
+\.{\ttbackslash epsffile} graphics the wrong size if global
+magnification is used
+in a \.{dvi} document, and it will cause any PostScript graphics to
+appear improperly scaled and out of position if a \.{dvi} to \.{dvi}
+program is used to scale or otherwise modify the document.
+
+You can enlarge or reduce the figure by putting
+\cmd{\ttbackslash epsfxsize=<dimen>}
+\noindent
+right before the call to \.{\ttbackslash epsffile}.
+Then the width of the \TeX\ box will be \.{<dimen>} and its
+height will be scaled proportionately.  Alternatively you can force the
+\^{{\tt epsfxsize}}
+vertical size to a particular size with
+\cmd{\ttbackslash epsfysize=<dimen>}
+\noindent
+in which case the height will be set and the width will be scaled
+proportionally.  If you set both, the aspect ratio of the included
+graphic will be distorted but both size specifications will be
+honored.
+
+By default, clipping is disabled for included EPSF images.  This is
+because clipping to the bounding box dimensions often cuts off a
+small portion of the figure, due to slightly inaccurate bounding
+box arguments.  The problem might be subtle; lines around the boundary
+of the image might be half their intended width, or the tops or
+bottoms of some text annotations might be sliced off.  If you want to
+turn clipping on, just use the command
+\cmd{\ttbackslash epsfclipon}
+\noindent
+and to turn clipping back off, use
+\cmd{\ttbackslash epsfclipoff}
+
+A more general facility for sizing is available by defining the
+\.{\ttbackslash epsfsize} macro.   You can redefine this macro
+\^{{\tt epsfsize}}
+to do almost anything.  This \TeX\ macro is passed two parameters
+by \.{\ttbackslash epsffile}.  The first parameter is the natural
+horizontal size of
+the PostScript graphic, and the second parameter is the natural vertical
+size.  This macro is responsible for returning the desired horizontal size of
+the graph (the same as assigning \.{\ttbackslash epsfxsize} above).
+
+In the definitions given below, only the body is given; it should be inserted
+in
+\cmd{\ttbackslash def\ttbackslash epsfsize\#1\#2\char123{\it body}\/\char125}
+\noindent
+Some common definitions are:
+
+{\options
+\.{\ttbackslash epsfxsize}
+This definition (the default) enables the default features listed above,
+by setting \.{\ttbackslash epsfxsize} to the same value it had before
+the macro was called.
+
+\.{0pt}
+This definition forces natural sizes for all graphics by setting the width to
+zero, which turns on horizontal scaling.
+
+\.{\#1}
+This forces natural sizes too, by returning the first parameter only
+(the natural width) and setting the width to it.
+
+\.{\ttbackslash hsize}
+This forces all graphics to be scaled so they are as wide as the current
+horizontal size.  (In La\TeX, use \.{\ttbackslash textwidth} instead
+of \.{\ttbackslash hsize}.)
+
+\.{0.5\#1}
+This scales all figures to half of their natural size.
+
+\.{\ttbackslash ifdim\#1>\ttbackslash hsize\ttbackslash hsize\ttbackslash
+else\#1\ttbackslash fi}
+This keeps graphics at their natural size, unless the width would be wider
+than the current \.{\ttbackslash hsize}, in which case the graphic is
+scaled down to \.{\ttbackslash hsize}.\par}
+
+If you want \TeX\ to report the size of the figure as a message
+on your terminal when it processes each figure, give the command
+\cmd{\ttbackslash epsfverbosetrue}
+
+\sub{Header Files}
+
+Often in order to get a particular graphic file to work, a certain header
+\^{header}
+file might need to be sent first.  Sometimes this is even desirable, since
+the size of the header macros can dominate the size of certain PostScript
+graphics files.  The \.{dvips} program provides support for this with the
+\.{header=} special command.  For instance, to ensure that \.{foo.ps}
+gets downloaded as part of the header material, the following command
+should be added to the \TeX\ file:
+\cmd{\ttbackslash special\char123header=foo.ps\char125}
+\noindent
+The dictionary stack will be at the \.{userdict} level when these header
+files are included.
+
+For these and all other header files (including the headers required
+by \.{dvips} itself and any downloaded fonts), the printer VM budget is
+debited by some value.  If the header file has, in its first 1024 bytes,
+a line of the form
+\cmd{\%\%VMusage: {\it min} {\it max}}
+\noindent
+then the maximum value is used.  If it doesn't, then the total size of
+the header file in bytes is used as an approximation of the memory
+requirements.
+
+\sub{Literal PostScript}
+
+For simple graphics, or just for experimentation, literal PostScript
+\^{literal PostScript}
+graphics can be included.  Simply use a special command that starts with
+a double quote ({\tt"}).
+For instance, the following (simple) graphic:
+\vskip\baselineskip
+\vbox to 100bp{\vss % a bp is the same as a PostScript unit
+\special{" newpath 0 0 moveto 100 100 lineto 394 0 lineto
+closepath gsave 0.8 setgray fill grestore stroke}}
+
+\noindent
+was created by typing:
+\cmd{\ttbackslash vbox to 100bp\char123\ttbackslash vss
+ \% a bp is the same as a PostScript unit\\
+\ttbackslash special\char123" newpath 0 0 moveto 100 100 lineto 394 0 lineto\\
+closepath gsave 0.8 setgray fill grestore stroke\char125\char125}
+\noindent
+(Note that you are responsible for leaving space for such literal graphics.)
+Literal graphics are discouraged because of their nonportability.
+
+\sub{Literal Headers}
+
+Similarly, you can define your own macros for use in such literal graphics
+through the use of literal macros.  Literal macros are defined just like
+literal graphics, only you begin the special with an exclamation point
+instead of a double quote.  These literal macros are included as part of the
+header material in a special dictionary called \.{SDict}.  This dictionary
+\^{{\tt SDict}}
+is the first one on the PostScript dictionary stack when any PostScript
+graphic is included, whether by literal inclusion or through the
+\.{\ttbackslash epsffile} macros.
+
+\sub{Other Graphics Support}
+
+There are other ways to include graphics with \.{dvips}.  One is to use an
+\^{obsolete}
+existing package, such as \.{emtex}, \.{psfig}, \.{tpic}, or \.{METAPOST},
+all supported by \.{dvips}.
+
+Other facilities are available for historical reasons, but their use is
+discouraged, in hope that some `sane' form of PostScript inclusion shall
+become standard.  Note that the main advantage of the
+\.{\ttbackslash epsffile} macros
+is that they can be adapted for whatever form of special eventually becomes
+standard, and thus only minor modifications to that one file need to be
+made, rather than revising an entire library of \TeX\ documents.
+
+Most of these specials use a flexible key and value scheme:
+\cmd{\ttbackslash special\char123psfile=filename.ps[key=value]*\char125}
+\noindent
+This will download the PostScript file called \.{filename.ps}
+such that the current point will be the origin of the PostScript
+\^{{\tt psfile}}
+coordinate system.  The optional key/value assignments allow you
+to specify transformations on the PostScript.
+
+The possible keys are:\vskip\baselineskip
+
+\centerline{\vbox{\halign{\tt#\hfil\quad&#\hfil\cr
+hoffset	&The horizontal offset (default 0)\cr
+voffset	&The vertical offset (default 0)\cr
+hsize	&The horizontal clipping size (default 612)\cr
+vsize	&The vertical clipping size (default 792)\cr
+hscale	&The horizontal scaling factor (default 100)\cr
+vscale	&The vertical scaling factor (default 100)\cr
+angle	&The rotation (default 0)\cr
+clip    &Enable clipping to the bounding box\cr}}}
+
+The dimension parameters are all given in PostScript units.
+The \.{hscale} and \.{vscale} are given in non-dimensioned percentage
+units, and the rotation value is specified in degrees.
+Thus
+\cmd{\ttbackslash special\char123psfile=foo.ps hoffset=72 hscale=90
+vscale=90\char125}
+\noindent
+will shift the graphics produced by file \.{foo.ps} right by one inch
+and will draw it at 0.9 times normal size.
+Offsets are given relative to the point of the special command, and are
+unaffected by scaling or rotation.  Rotation is counterclockwise about the
+origin.  The order of operations is to rotate the figure,
+scale it, then offset it.
+
+For compatibility with older PostScript drivers, it is possible to change
+the units that \.{hscale} and \.{vscale} are given in.  This can be
+done by redefining \.{@scaleunit}
+\^{{\tt scaleunit}}
+in \.{SDict}
+\^{{\tt SDict}}
+by a \TeX\ command such as
+\cmd{\ttbackslash special\char123! /@scaleunit 1 def\char125}
+\noindent
+The \.{@scaleunit} variable, which is by default 100, is what \.{hscale}
+and \.{vscale} are divided by to yield an absolute scale factor.
+
+All of the methods for including graphics we have described
+so far enclose the graphic in
+a PostScript save/restore pair, guaranteeing that the figure will have
+no effect on the rest of the document.
+Another type of special command allows literal PostScript instructions to be
+inserted without
+enclosing them in this protective shield; users of this feature
+are supposed to understand what they are doing (and they shouldn't change
+the PostScript graphics state unless they are willing to take the
+consequences).  This command can take many forms, because it has had a
+tortuous history; any of the following will work:
+\cmd{\ttbackslash special\char123ps:{\it text}\char125\\
+\ttbackslash special\char123ps::{\it text}\char125\\
+\ttbackslash special\char123ps::[begin]{\it text}\char125\\
+\ttbackslash special\char123ps::[end]{\it text}\char125}
+\noindent
+(with longer forms taking precedence over shorter forms, when they are used).
+Note that {\tt ps::} and {\tt ps::[end]} do not do any positioning, so
+they can be used to continue PostScript literals started with {\tt ps:}
+or {\tt ps::[begin]}.  There is also the command
+\cmd{\ttbackslash special\char123ps:\ plotfile filename\char125}
+\noindent
+which will copy the commands from \.{filename}
+verbatim into the output (but omitting lines that begin with \%).
+An example of the proper use of literal specials can be found in the file
+\.{rotate.tex} which makes it easy to typeset text turned 90 degrees.
+
+To finish off this section, the following examples are presented without
+explanation:
+{\vskip0pt\parskip=0pt\begverb{`\$}
+\def\rotninety{\special{ps:currentpoint currentpoint translate 90
+rotate neg exch neg exch translate}}\font\huge=cmbx10 at 14.4truept
+\setbox0=\hbox to0pt{\huge A\hss}\vskip16truept\centerline{\copy0
+\special{ps:gsave}\rotninety\copy0\rotninety\copy0\rotninety
+\box0\special{ps:grestore}}\vskip16truept$endverb}
+\smallskip
+{\def\rotninety{\special{ps:currentpoint currentpoint translate 90
+rotate neg exch neg exch translate}}\font\huge=cmbx10 at 14.4truept
+\setbox0=\hbox to0pt{\huge A\hss}\vskip16truept\centerline{\copy0
+\special{ps:gsave}\rotninety\copy0\rotninety\copy0\rotninety
+\box0\special{ps:grestore}}\vskip16truept}
+\smallskip
+{\vskip0pt\parskip=0pt\begverb{`\$}
+\vbox to 2truein{\special{ps:gsave 0.3 setgray}\hrule height 2in
+width\hsize\vskip-2in\special{ps:grestore}\font\big=cminch\big
+\vss\special{ps:gsave 1 setgray}\vbox to 0pt{\vskip2pt
+\line{\hss\hskip4pt NEAT\hss}\vss}\special{ps:0 setgray}%
+\hbox{\raise2pt\line{\hss NEAT\hss}\special{ps:grestore}}\vss}$endverb}
+\smallskip
+\vbox to 2truein{\special{ps:gsave 0.3 setgray}\hrule height 2in
+width\hsize\vskip-2in\special{ps:grestore}\font\big=cminch\big
+\vss\special{ps:gsave 1 setgray}\vbox to 0pt{\vskip2pt
+\line{\hss\hskip4pt NEAT\hss}\vss}\special{ps:0 setgray}%
+\hbox{\raise2pt\line{\hss NEAT\hss}\special{ps:grestore}}\vss}
+
+Some caveats are in order when using the above forms.  Make sure that
+each \.{gsave} on a page is matched with a \.{grestore} on the same
+page.  Do not use \.{save} or \.{restore}.  Use of these macros can
+interact with the PostScript generated by \.{dvips} if care is not
+taken; try to understand what the above macros are doing before
+writing your own.  The \.{\ttbackslash rotninety} macro especially has
+a useful trick that appears again and again.
+
+\sub{Dynamic Creation of PostScript Graphics Files}
+
+PostScript is an excellent page description language---but it does
+tend to be rather verbose.  Compressing PostScript graphics files can
+often reduce them by more than a factor of five.  For this reason,
+if the filename parameter to one of the graphics inclusion techniques
+starts with a backtick ({\tt`}), the filename is instead interpreted
+as a command to execute that will send the actual file to standard
+output.  Thus,
+\cmd{\ttbackslash special\char123psfile="`zcat foo.ps.Z"\char125}
+\noindent
+will include the uncompressed version of \.{foo.ps}.  Since such a
+command is not accessible to \TeX, if you use this facility with
+the \.{EPSF} macros, you need to supply the bounding box parameter
+yourself, as in
+\cmd{\ttbackslash epsffile[72 72 540 720]\char123
+   "`zcat screendump.ps.Z"\char125}
+\noindent
+to include \.{screendump.ps}.  Of course, the commands to be executed can
+be anything, including using a file conversion utility such as \.{tek2ps}
+or whatever is appropriate.
+
+This extension is not portable to other \.{dvi2ps} programs.  Yet.
+
+\sec{Using PostScript Fonts}
+
+Thanks to Donald~E.~Knuth,
+\^{Knuth, Donald E.}
+the \.{dvips} driver now supports PostScript fonts
+\^{PostScript fonts}
+through the virtual font capability.
+PostScript fonts are (or should be) accompanied by a font metric file
+such as \.{Times-Roman.afm},
+which describes characteristics of a font called Times-Roman.
+\^{{\tt afm}}
+To use such fonts with \TeX, we need \.{tfm} files that contain similar
+\^{{\tt tfm}}
+information. These can be generated from \.{afm} files
+by running the program \.{afm2tfm}, supplied with \.{dvips}.
+\^{{\tt afm2tfm}}
+This program also creates virtual fonts with which you can use normal
+plain \TeX\ conventions.
+
+Note that non-resident downloaded PostScript fonts tend to use a
+great deal of printer virtual memory.  PostScript printers typically
+have between 130,000 and 400,000 bytes of available virtual memory;
+each downloaded font will require approximately 30,000 bytes of
+that.  For many applications, bitmapped fonts work much better,
+even at typesetter resolutions (with the \.{-Z} option.)
+
+Even resident PostScript fonts can take a fair amount of memory,
+but less with this release of \.{dvips} than previously.  Also,
+bitmapped fonts tend to image faster than PostScript fonts.
+
+A few Type 1 fonts (such as Utopia, Charter, and Courier) have been
+contributed by vendors to the X distribution, and are freely
+available. You can get \TeX{} distributions for them from
+{\tt ftp.cs.umb.edu} in {\tt pub/tex}, and from the CTAN hosts in
+{\tt tex-archive/fonts}.
+
+Your Unix system may have come with additional PostScript fonts.  If so,
+you can make them available to Dvips by copying the files or making
+symbolic links with the appropriate filenames, and running
+{\tt afm2tfm} to make TFM and VF files so the fonts
+will be available in the same encoding as the fonts distributed with
+dvips. Also check {\tt psfonts.map} to be sure the fonts are listed
+there.
+
+Here are the typical locations for vendor-supplied fonts:
+$$\vtop{\halign{#\hfil\quad&\tt #\hfil\cr
+DEC Ultrix& /usr/lib/DPS/outline/decwin\cr
+DEC OSF/1& /usr/lib/X11/fonts/Type1Adobe\cr
+NeXT& /NextLibrary/Fonts/outline\cr
+SGI IRIX& /usr/lib/DPS/outline/base\cr
+Sun Solaris 2.3& /usr/openwin/lib/X11/fonts/Type1/outline\cr}}$$
+
+\sub{The afm2tfm Program}
+
+The \.{afm2tfm} program can convert an Adobe \.{afm} file into a `raw'
+\TeX\ \.{tfm} file with the command
+\cmd{localhost> afm2tfm Times-Roman rptmr}
+\noindent
+(You should run this from in a directory where \.{Times-Roman.afm} resides.)
+The output file \.{rptmr.tfm} is `raw' because it does no character remapping;
+it simply converts the character information on a one-to-one basis to \TeX\
+characters {\it with the same code}. The name \.{rptmr} stands for
+Resident PostScript Times Roman; section~6 below explains more about
+a proposed scheme for font names.
+
+In the following examples, we will use the font Times-Roman to
+illustrate the conversion process.  For the standard 35 LaserWriter
+fonts, however, it is highly recommended that you use the supplied
+\.{tfm} and \.{vf} files that come with \.{dvips} (usually in a
+file called \.{dvipslib.tar.Z}), as these files contain some additional
+changes that make them work better with \TeX\ than they otherwise
+would.
+
+PostScript fonts have a different encoding scheme from that of plain
+\TeX. Although both schemes are based on ASCII, special characters such as
+ligatures and accents are handled quite differently. Therefore we obtain
+\^{ligature}
+\^{accents}
+\^{virtual fonts}
+best results by using a `virtual font' interface, which makes \TeX\ act
+as if the PostScript font had a standard \TeX\ encoding. Such a virtual
+font can be obtained, for example, by the command
+\cmd{localhost> afm2tfm Times-Roman -v ptmr rptmr}
+\noindent
+This produces two outputs, namely the `virtual property list' file
+\.{ptmr.vpl}, and the \TeX\ font metric file \.{rptmr.tfm}.
+The latter file describes an `actual font' on which the virtual font is based.
+
+To use the font in \TeX, you should first run
+\cmd{localhost> vptovf ptmr.vpl ptmr.vf ptmr.tfm}
+\noindent
+and then install the virtual font file \.{ptmr.vf} in the virtual font
+directory (by default, \.{/usr/lib/tex/fonts/vf}) and install \.{ptmr.tfm}
+and \.{rptmr.tfm} in the directory for \TeX\ font metrics (by default,
+\.{/usr/lib/tex/fonts/tfm}).  (This probably has already been done for you for
+the most common PostScript fonts.)
+You can also make more complex virtual fonts by editing
+\.{ptmr.vpl} before running \.{vptovf}; such editing might add the uppercase
+Greek characters in the standard \TeX\ positions, for instance.
+Once this has been done, you're all set. You can use
+code like this in \TeX\ henceforth:
+\cmd{\ttbackslash font\ttbackslash myfont=ptmr at 10pt\\
+\ttbackslash myfont Hello, I am being typeset in Times-Roman.}
+
+Note that there are two fonts, one actual (`rptmr',
+which is analogous to a raw piece of hardware) and one virtual
+(`ptmr', which has typesetting know-how added). You could also say
+\cmd{\ttbackslash font\ttbackslash TR=rptmr at 10pt}
+\noindent
+and typeset directly with that, but then you would have no ligatures
+\^{ligature}
+or kerning, and you would have to use Adobe
+\^{kerning}
+character positions for special letters like \AE. The virtual font
+called \.{ptmr} not only has ligatures and kerning, and most of the
+standard accent conventions of \TeX, it also has a few additional
+features not present in the Computer Modern fonts. For example, it
+includes all the Adobe characters (such as the Polish ogonek and the
+French guillemots).  The only things you lose from ordinary \TeX\ text
+fonts are the dotless j (which can be hacked into the VPL file with
+literal PostScript specials if you have the patience) and uppercase
+Greek letters (which just don't exist unless you buy them separately).
+Experts may refer to Donald E.~Knuth article in {\it TUGboat} v. 11,
+no. 1, Apr. 1990, pp. 13--23.  ``Virtual Fonts: More Fun for Grand
+Wizards.''
+
+When \.{dvips} goes to use a font, it first checks to see if it is one of
+the fonts listed in a file called \.{psfonts.map}.  If it is mentioned in
+\^{{\tt psfonts.map}}
+that file, then it is assumed that the font is a resident PostScript font
+and can be found with the PostScript \.{findfont} operator.  This file
+resides by default in {\tt /usr/lib/tex/ps}, and consists of a single font
+per line.  Note that only the raw PostScript font names should be listed
+in this file; the \.{vf} fonts should not be, since they are automatically
+mapped to the raw PostScript fonts by the virtual font machinery.
+The supplied \.{psfonts.map} file defines the most common PostScript fonts.
+
+As much as possible, the PostScript fonts follow plain \TeX\ conventions
+for accents.  The two exceptions to this are the Hungarian umlaut (which
+is at position {\tt 0x7D} in {\tt cmr10}, but position {\tt 0xCD} in
+{\tt ptmr}) and the dot accent (at positions {\tt 0x5F} and {\tt 0xC7},
+respectively).  In order to use these accents with PostScript fonts or in
+math mode when {\tt \char92 textfont0} is a PostScript font, you will need
+to use the following definitions.  Note that these definitions will not work
+with normal \TeX\ fonts for the relevant accents; note also that these
+definitions are already part of the distributed \.{psfonts.sty}.
+In addition, the \.{\char92 AA} that is used to typeset the \AA\ character
+must be modified as shown.
+
+{\vskip0pt\parskip=0pt\leftskip=20pt\begverb{`\$}
+\def\H#1{{\accent"CD #1}}\def\.#1{{\accent"C7 #1}}
+\def\dot{\mathaccent"70C7 }
+\newdimen\aadimen
+\def\AA{\leavevmode\setbox0\hbox{h}\aadimen\ht0
+  \advance\aadimen-1ex\setbox0\hbox{A}\rlap{\raise.67\aadimen
+  \hbox to \wd0{\hss\char'27\hss}}A}$endverb}
+
+These PostScript fonts can be scaled to any size.  Go wild!
+Note, however, that using PostScript fonts does
+use up a great deal of the printer's virtual memory and it does take time.
+\^{memory}
+You may find downloading the Computer Modern bitmapped fonts to be
+faster than using the built-in PostScript fonts.
+
+\sub{Changing a Font's Encoding}
+
+The \.{afm2tfm} program also allows you to specify a different encoding
+for a PostScript font.  This should only be done by wizards.
+This can be done at two levels.
+
+You can specify a different output encoding with \.{-o}. This only
+applies when you are building a virtual font, and it tells \.{afm2tfm}
+to attempt to remap the font to match the output encoding as closely
+as possible.  In such an output encoding, you can also specify
+ligature pairs and kerning information that will be used in addition
+to the information in the \.{afm} file.  This will be the most common
+re-encoding required, since the only thing that changes is the \.{vf}
+file (and its associated \.{tfm} file) and since most everything you
+would want to do can be done with this method.
+
+You can also specify a different PostScript encoding with \.{-p}.  This
+option affects the generation of both the raw \.{tfm} file and the
+virtual \.{vf} and \.{tfm} files, and it also requires that the
+encoding file be available to be downloaded as part of every
+PostScript document produced that uses this font.  But this is the
+only way to access characters in a PostScript font that are neither
+encoded in the \.{afm} file nor built from other characters
+(constructed characters.)  For instance, \.{Times-Roman} contains the
+extra characters \.{registered} and \.{thorn} (among others) that
+can only be accessed through such a PostScript reencoding.  Any ligature
+or kern information specified in the PostScript encoding is ignored by
+\.{afm2tfm}.
+
+The format of the encoding files is simple---it is precisely the same
+format that is used to define an encoding vector in PostScript!  For
+this reason, the same file can be used as a PostScript or \TeX\
+encoding file for \.{afm2tfm} as well as downloaded to the printer as
+part of a document that uses a reencoded font.
+
+The specific format that \.{afm2tfm} accepts is one of the following
+form:
+{\vskip0pt\parskip=0pt\begverb{`\\}
+% comments are mostly ignored; more on this later
+/MyEncoding [ /Alpha /Beta /Gamma /Delta ...
+     /A /B ... /Z % exactly 256 entries, each with a / at the front
+     /wfooaccent /xfooaccent /yfooaccent /zfooaccent ] def
+\endverb}
+
+Comments, which start with a percent sign and continue until the
+end of the current line, are mostly ignored.  The first `word' of
+the file must start with a forward slash (a PostScript literal
+name) and is used as the name of the encoding.  The next word must
+be an open bracket.  Following that must be precisely 256 character
+names; use {\tt /.notdef} for any that you do not want to define.
+Finally, there must be a close bracket.  The final token is usually
+{\tt def}, but this is not enforced.  Note that all names are
+case sensitive.
+
+Any ligature or kern information is given in the comments.  As each
+comment is encountered, it is examined.  If the first word after the
+percent sign is {\tt LIGKERN}, exactly, then the entire rest of the
+line is parsed for ligature and kern information.  This ligature and
+kern information is given in groups of words, each group of which must
+be terminated by a semicolon (with a space before and after it, unless
+it occurs on the end of a line.)
+
+In these {\tt LIGKERN} statements, three types of information may be
+specified.  These three types are ligature pairs, kerns to remove or
+ignore, and the character value of this font's boundary character.
+Which of the types the particular set of words corresponds to is
+automatically determined by the allowable syntax.
+
+Throughout the {\tt LIGKERN} section, the boundary character is
+specified as {\tt ||}.
+To set the boundary character value, a command such as
+{\tt || = 39 ;} must be used.
+
+To indicate a kern to remove, give the names of the two characters
+(without the leading slash) separated by {\tt \char123\char125}, as in
+{\tt one \char123\char125\ one ;}.  This is similar to the way you
+might use {\tt \char123\char125} in a \TeX\ file to turn off ligatures
+or kerns at a particular location.  Either or both of the character
+names can be given as {\tt *}, which is a wild card matching any
+character; thus, all kerns can be removed with {\tt *
+\char123\char125\ * ;}.
+
+To specify a ligature, specify the names of the pair of characters,
+followed by the ligature `operation' (as in \MF), followed by the
+replacing character name.  Either (but not both) of the first two
+characters can be {\tt ||} to indicate a word boundary.
+Normally the `operation' is {\tt =:}
+meaning that both characters are removed and replaced by the
+third character, but by adding {\tt |} characters on either side of
+the {\tt =:}, you can specify which of the two leading characters to
+retain.  In addition, by suffixing the ligature operation with one
+or two {\tt >} signs, you can indicate that the ligature scanning
+operation should skip that many characters before proceeding.  This
+works just like in \MF.  A typical ligature might be specified with
+{\tt ff i =:{} ffi ;}.  A more convoluted ligature is
+{\tt one one |=:|>> exclam ;} which indicates that every pair of
+adjacent {\tt 1}'s should be separated by an exclamation point,
+and then two of the resulting characters should be skipped over
+before continuing searching for ligatures and kerns.  You cannot
+give more {\tt >}'s in an ligature operation as you did {\tt |},
+so there are a total of eight possible ligature operations:
+\cmd{=: |=: |=:> =:| =:|> |=:| |=:|> |=:|>>}
+\noindent
+The default set of ligatures and kerns built in to \.{afm2tfm} can
+be specified with:
+{\vskip0pt\parskip=0pt\begverb{`\\}
+% LIGKERN space l =: lslash ; space L =: Lslash ;
+% LIGKERN question quoteleft =: questiondown ;
+% LIGKERN exclam quoteleft =: exclamdown ;
+% LIGKERN hyphen hyphen =: endash ; endash hyphen =: emdash ;
+% LIGKERN quoteleft quoteleft =: quotedblleft ;
+% LIGKERN quoteright quoteright =: quotedblright ;
+% LIGKERN space {} * ; * {} space ; zero {} * ; * {} zero ;
+% LIGKERN one {} * ; * {} one ; two {} * ; * {} two ;
+% LIGKERN three {} * ; * {} three ; four {} * ; * {} four ;
+% LIGKERN five {} * ; * {} five ; six {} * ; * {} six ;
+% LIGKERN seven {} * ; * {} seven ; eight {} * ; * {} eight ;
+% LIGKERN nine {} * ; * {} nine ;
+\endverb}
+
+\sub{Special Effects}
+
+Special effects are also obtainable, with commands such as
+\cmd{localhost> afm2tfm Times-Roman -s .167 -v ptmro rptmro}
+\noindent
+which create \.{ptmro.vpl} and \.{rptmro.tfm}.
+To use this, proceed as above but put the line
+\cmd{rptmro Times-Roman ".167 SlantFont"}
+\noindent
+into \.{psfonts.map}.  Then \.{rptmro} (our name for an obliqued Times)
+will act as if it were a
+\^{{\tt psfonts.map}}
+resident font, although it is actually constructed from Times-Roman
+by PostScript hackery.   (This oblique version of Times-Roman is obtained
+by slanting everything 1/6 to the right.)
+Similarly, you can get an expanded font by
+\cmd{localhost> afm2tfm Times-Roman -e 1.2 -v ptmrre rptmrre}
+\noindent
+and by recording the pseudo-resident font
+\cmd{rptmrre Times-Roman "1.2 ExtendFont"}
+\noindent
+in \.{psfonts.map}.
+
+You can also create a small caps font with a command such as
+\cmd{localhost> afm2tfm Times-Roman -V ptmrc rptmr}
+\noindent
+This is done strictly with a virtual font, however.  In addition,
+the font on which the small caps font is based (in this case
+{\tt rptmr} may already be created and installed, in which case no
+additional {\tt psfonts.map} entry is needed.
+In any case, you must give the appropriate name of the font that
+is not small caps as the base name (last parameter) to {\tt afm2tfm}.
+For instance, if you create a slanted small caps font, you must
+give the base name of the raw slanted font as that last parameter,
+not the base name of the unslanted font.
+
+By default, the {\tt -V} option uses a font scaled to 80\% for
+lower case.  If you specify the {\tt -c} option, you can change
+this scaling.
+
+If you change the PostScript encoding of a font, you must specify the
+input file as a header file, as well as give a reencoding
+command.  For instance, let us say we are using Times-Roman
+reencoded according to the encoding {\tt MyEncoding} (stored
+in the file {\tt myenc.enc}) as {\tt rptmrx}.  In this case,
+our {\tt psfonts.map} entry would look like
+\cmd{rptmrx Times-Roman "MyEncoding ReEncodeFont" <myenc.enc}
+
+The \.{afm2tfm} program prints out the precise line you need to
+add to \.{psfonts.map} to use that font, assuming the font is
+resident in the printer; if the font is not resident, you must
+add the header command to download the font yourself.  Note that
+each identical line only needs to be specified once in the
+{\tt psfonts.map} file, even though many different fonts (small
+caps variants, or ones with different output encodings) may be
+based on it.
+
+The command line switches to \.{afm2tfm} are:
+
+{\options
+\.{-e {\it ratio}}
+All characters are stretched horizontally by the stated ratio;
+\^{expanded fonts}
+if it is less than 1.0, you get a condensed font.
+
+\.{-c {\it scale}}
+If this option is given when creating a small caps font
+(with {\tt -V}), then the scaling for the `lower'
+case will be changed from the default 0.8 to the fraction
+given here.
+
+\.{-O}
+This option forces all character designations in the resultant
+{\tt vpl} file be given as octal values; this is useful for
+symbol or other special-purpose fonts where character names such
+as `A' have no meaning.
+
+\.{-p {\it file}}
+This specifies a file to use for the PostScript encoding of the
+font.  Note that this file must also be mentioned as a header
+file for the font in {\tt psfonts.map}, and that ligature
+and kern information in this file is ignored.
+
+\.{-s {\it slant}}
+All characters are slanted to the right by the stated slant;
+\^{slanted fonts}
+if it is negative, the letters slope to the left (or they might be
+upright if you start with an italic font).
+
+\.{-t {\it file}}
+This specifies a file to use for the target \TeX\ encoding of the
+font.  Ligature and kern information may also be specified in this
+file; the file is not needed once the \.{vf} file has been created.
+
+\.{-T {\it file}}
+This option specifies that {\it file} is to be used for both
+the PostScript and target \TeX\ encodings of the font.
+
+\.{-u}
+This option indicates that \.{afm2tfm} should use only those
+characters that are required by the output encoding, and no
+others.  Normally, \.{afm2tfm}
+tries to include both characters that fit the output encoding
+and any additional characters that might exist in the font.
+This option forbids those additional characters from being
+added.
+
+\.{-v {\it file}}
+Generate a virtual property list \.{vpl} file as well as a \.{tfm} file.
+
+\.{-V {\it file}}
+Same as \.{-v}, but the virtual font generated is a small caps font obtained
+by scaling uppercase letters by 0.8 to typeset lowercase. This font
+handles accented letters and retains proper kerning.\par}
+
+\sub{Non-Resident PostScript Fonts}
+
+If you want to use a non-printer-resident PostScript font for which you have
+a \.{pfb} or \.{pfa} file (an Adobe Type 1 font program),
+you can make it act like
+\^{{\tt pfb}}
+a resident font by putting a `{\tt <}' sign
+and the name of the \.{pfb} or \.{pfa} file just after the font name in the
+\.{psfonts.map}
+\^{{\tt psfonts.map}}
+file entry. For example,
+\cmd{rpstrn StoneInformal <StoneInformal.pfb}
+\noindent
+will cause \.{dvips} to include \.{StoneInformal.pfb} in your document as if
+it were a header file, whenever the pseudo-resident font StoneInformal is
+used in a document.   Similarly, you can generate transformed fonts and
+include lines like
+\cmd{rpstrc StoneInformal <StoneInformal.pfb ".8 ExtendFont"}
+\noindent
+in \.{psfonts.map}, in which case \.{StoneInformal.pfb} will be loaded
+whenever StoneInformal-Condensed is used. (Each header file is loaded
+at most once per PostScript file. The \.{pfb} files should be
+installed in the \.{dvips} header directory [usually {\tt
+/usr/lib/tex/ps}] with the other header files.)
+
+If you are using a {\tt pfb} file that has different PostScript
+encodings, you would need to
+multiple header files for that font in {\tt psfonts.map}.  If, for instance,
+{\tt StoneInformal} was both non-resident and you wanted to reencode
+it in PostScript with {\tt MyEncoding} stored in {\tt myenc.enc}, a line
+such as
+\vskip\baselineskip
+\centerline{\tt rpstrnx StoneInformal "MyEncoding ReEncodeFont" <myenc.enc
+<StoneInformal.pfb}
+
+When using such files, \.{dvips} is smart enough to unpack the standard
+binary \.{pfb} format into ASCII so there is no need to perform this
+conversion yourself.  In addition, it will scan the font to determine
+its memory usage, as it would for any header file.
+
+\sub{Font Aliases}
+Some systems don't handle files with long names well---MS-DOS is
+\^{MS-DOS}
+a notable example.  For this reason, \.{dvips} will accept an alias for such
+fonts.  Such an alias should be the first word in the \.{psfonts.map}
+line.  For instance, if we wanted the name \.{rptmr} to be used for the
+raw \.{Times-Roman} since our computer can't handle long names or,
+alternatively, we want to follow the standard naming conventions, we would use
+the following line in our
+\.{psfonts.map} file:
+\cmd{rptmr Times-Roman}
+\noindent
+The \.{tfm} file must have the name \.{rptmr.tfm}.
+\^{{\tt tfm}}
+
+The distribution file \.{adobe} contains a list of the short names that
+should be used for most Adobe fonts currently available.  Please reference
+this file when installing a new font and use the standard name.
+
+The parsing of the \.{psfonts.map}
+\^{{\tt psfonts.map}}
+file should be explained to eliminate all confusion.  If a line is
+empty or begins with a space, asterisk, semicolon, or hash mark, it is
+ignored.  Each remaining line is separated into words, where words are
+separated by spaces or tabs.  If a word begins with a double quote, it
+extends until the next double quote or the end of the line.  If a word
+starts with a less than character, it is treated as a font header file
+(or a downloaded PostScript font).  There can be more than one such
+header for a given font.  If a word starts with a double quote, it is
+a special instruction for generating that font.  Otherwise it is a
+name.  The first such name is always the name \TeX\ uses for the font
+and is also the name of the raw \.{tfm} file.  If there is another
+name word, that name is used as the PostScript name; if there is only
+one name word, it is used for both the \TeX\ name and the PostScript
+name.
+
+Note that \.{dvips} no longer registers the full PostScript name if an
+alias is given, so the single line
+\cmd{rptmr Times-Roman}
+\noindent
+would only allow \.{dvips} to find the \.{rptmr} font and not the
+\.{Times-Roman} font.
+
+\sec{Font Naming Conventions}
+
+{\def\journal#1{{\sl #1}}
+\def\table{\vbox\bgroup
+\vskip\parskip\halign\bgroup\strut\indent\tt ##\hfil\quad
+    &\vtop{%
+       \advance\hsize by -\parindent % The \indent in the first column.
+       \advance\hsize by -1em        % The \quad.
+       % One table has two-letter abbreviations.
+       \advance\hsize by -2\fontdimen7\tentt
+       \rm\noindent ##}\hfil
+    \cr}
+\def\setuphsize{%
+       \advance\hsize by -\parindent % The \indent in the first column.
+       \divide\hsize by 2            % double column
+       \advance\hsize by -1.5em      % The 3 \quads divided by 2.
+       % One table has two-letter abbreviations.
+       \advance\hsize by -2\fontdimen7\tentt}
+\def\dtable{\vbox\bgroup\vskip\parskip\halign\bgroup\strut
+    \indent##&\tt ##\hfil\quad
+    &\vtop{\setuphsize\rm\noindent ##}\hfil&\quad\tt ##\hfil\quad
+    &\vtop{\setuphsize\rm\noindent ##}\hfil\cr}
+\def\endtable{%
+  \egroup\egroup % End the \halign.
+  \smallskip % I don't know what kind of space you want, but it needs
+             %  something here.
+}
+\def\entry#1#2{#1&#2\cr}
+\def\mitem{\item{$\bullet$}}
+\def\\{\hfil\break}
+
+This section of the manual has been written by Karl Berry and
+specifies a standard for naming fonts for \TeX.  This standard has
+been adopted in \.{dvips}, and it is recommended that it be followed
+where possible.
+
+As more typeface families become available for use with \TeX, the need
+for a consistent, rational naming scheme for the font filenames
+concomitantly grows. Some (electronic) discussion has gone into the
+following proposal; I felt it was appropriate now to bring it before a
+wider community.  In some respects, it follows and simplifies
+Mittelbach and Sch\"opf's article in \journal{TUGboat}, volume~11,
+number~2 (June 1990).
+
+Here are some facts about fonts that went into the hopper when creating
+this proposal:
+
+\mitem \TeX\ runs on virtually all computers, under almost as many operating
+systems, all with their own idea of how files should be named.  Any
+proposal regarding filenames, therefore, must cater to the lowest common
+denominator.  That seems to be eight characters in length, not counting any
+extension, and with case being insignificant.  Characters other
+than letters and numerals are probably unusable.
+
+\mitem Most typefaces are offered by several vendors.  The version
+offered by vendor~A is not compatible with that of vendor~B.
+
+\mitem Typefaces typically come in different weights (hairline to extra
+heavy), different expansions (ultra condensed to wide), and an
+open-ended range of variants (italic, sans serif, typewriter,
+shadow,~$\ldots$).  No accepted standards exist for any of these
+qualities, nor are any standards ever likely to gain acceptance.
+
+\mitem The Computer Modern typeface family preserves traditional typesetting
+practice in at least one important respect: different sizes of the same
+font are not scaled linearly.  This is in contrast to most commercial fonts
+available.
+
+Here is how I propose to divide up the eight characters:
+\cmd{FTTWVEDD}
+\noindent
+where
+
+\mitem \.{F} represents the foundry that produced the font, and is omitted
+if there isn't one.
+
+\mitem \.{TT} represents the typeface name.
+
+\mitem \.W represents the weight.
+
+\mitem \.V represents the variant, and is omitted if both it and the
+expansion are ``normal''.
+
+\mitem \.E represents the expansion, and is omitted if it is ``normal''.
+
+\mitem \.{DD} represents the design size, and is omitted if the font is
+linearly scaled from a single {\tt tfm} file.
+
+See the section on virtual fonts (towards the end) for an exception to
+the above.
+
+The weight, variant, and expansion are probably all best taken from the
+original source of the typeface, instead of trying to relate them to
+some external standard.
+
+Before giving the lists of abbreviations, let me point out two problems,
+to neither of which I have a good solution.  1)~Assuming that only the
+English letters are used, two letters is enough for only 676 typeface
+families (even assuming we want to use all possible combinations, which
+is doubtful).  There are many more than 676 typeface families in the
+world.  2)~Fonts with design sizes over 100$\,$pt are not common, but
+neither are they unheard of.
+
+On to the specifics of the lists.  If you adopt this proposal at your
+own installation, and find that you have fonts with some property I
+missed, please write to me (see the end of the article for various
+addresses), so I can update the lists.  You can get the
+most up-to-date version of these lists electronically, by anonymous ftp
+from the host \.{ftp.cs.umb.edu}.  I will also send them to you by
+electronic mail, if necessary.
+
+I give the letters in lowercase, which is preferred on systems where
+case is significant.  Most lists are in alphabetical order by the
+abbreviations.
+
+\sub{Foundry}
+
+This is the current list of foundries.
+
+\table
+a&Autologic\cr
+b&Bitstream\cr
+c&Agfa-Compugraphic\cr
+g&Free Software Foundation ({\tt g} for GNU)\cr
+h&Bigelow \& Holmes (with apologies to Chuck)\cr
+i&International Typeface Corporation\cr
+p&Adobe ({\tt p} for PostScript)\cr
+r&reserved for use with virtual fonts; see below\cr
+s&Sun\cr
+\endtable
+
+\sub{Typeface Families}
+
+The list of typefaces is:
+
+\dtable
+&ad&Adobe Garamond&go&Goudy Oldstyle\cr
+&ag&Avant Garde&gs&Gill Sans\cr
+&ao&Antique Olive&jo&Joanna\cr
+&at&American Typewriter&lc&Lucida\cr
+&bb&Bembo&lt&Lutetia\cr
+&bd&Bodoni&nc&New Century Schoolbook\cr
+&bg&Benguiat&op&Optima\cr
+&bk&Bookman&pl&Palatino\cr
+&bl&Balloon&pp&Perpetua\cr
+&bv&Baskerville&rw&Rockwell\cr
+&bw&Broadway&st&Stone\cr
+&cb&Cooper Black&sy&Symbol\cr
+&cl&Cloister&tm&Times\cr
+&cr&Courier&un&Univers\cr
+&cn&Century&uy&University\cr
+&cs&Century Schoolbook&zc&Zapf Chancery\cr
+&hv&Helvetica&zd&Zapf Dingbats\cr
+&gm&Garamond&&\cr
+\endtable
+
+\sub{Weight}
+
+This is a list of the possible weights,
+roughly in order from lightest to heaviest.
+
+\dtable
+&a&hairline&d&demi\cr
+&t&thin&s&semi\cr
+&i&extra light&b&bold\cr
+&l&light&x&extra bold\cr
+&k&book&h&heavy\cr
+&r&regular&c&black\cr
+&m&medium&u&ultra\cr
+\endtable
+
+\sub{Variants}
+
+The variants are:
+
+\dtable
+&a&alternate&n&informal\cr
+&b&bright&o&oblique (i.e., slanted)\cr
+&c&small caps&r&normal (roman or sans)\cr
+&e&engraved&s&sans serif\cr
+&g&grooved (as in the IBM logo)&t&typewriter\cr
+&h&shadow&u&unslanted italic\cr
+&i&(text) italic&x&expert\cr
+&l&outline&&\cr
+\endtable
+
+If the variant is {\tt r}, and the expansion is also normal, both the
+variant and the expansion are omitted.  When the normal version of the
+typeface is sans serif (e.g., Helvetica), \.{r} should be used,
+not \.{s}.  Use \.{s} only when the typeface family
+has both serif and sans serif variants.  The ``alternate'' variant
+(\.{a}) is used by some Adobe fonts that have spiffy swashes and
+additional ligatures.
+The ``expert'' variant (\.{x}) is also used by some Adobe
+fonts with oldstyle figures and small caps.
+
+Some fonts have multiple variants; Stone Informal Italic, for example.
+The only reasonable approach to these is to list all the letters for all
+the variants, choosing one to end with that is not also an expansion
+letter.  Of course, it is possible that the name will become too
+long if you do this, but $\ldots$ well, I'm open to suggestions.  It's
+also possible the name will be ambiguous, if some new letter is used for
+expansions in the future.  You can avoid this problem by adding the
+expansion \.{r} (if it doesn't make the name too long), and
+never using \.{r} for the last variant.
+
+\sub{Expansion}
+
+This is a list of the possible expansions, in order from narrowest to
+widest.
+
+\dtable
+&o&extra condensed&x&extended (by hand)\cr
+&c&condensed (by hand)&e&expanded (automatic)\cr
+&n&narrow (automatic)&w&wide\cr
+&r&\multispan3{regular, normal, medium (usually omitted)\hfil}\cr
+\endtable
+
+Expansion of fonts is sometimes done automatically (as in PostScript
+{\bf scale}), and sometimes done by humans.  I chose `narrow' and
+`expanded' to imply the former, and `condensed' and `extended' to imply
+the latter, as I believe this reflects common usage.
+
+\sub{Naming Virtual Fonts}
+
+In concert with releasing \TeX~3.0 and \MF~2.0, Don Knuth wrote two new
+utility programs: \.{VFtoVP} and \.{VPtoVF}, which convert
+to and from ``virtual'' fonts.  Virtual fonts provide a general
+interface between the writers of \TeX\ macros and font suppliers.
+In general, therefore, it is impossible to come up with a general scheme
+for naming virtual fonts, since each virtual font is an individual
+creation, possibly bringing together many unrelated fonts.
+
+Nevertheless, one common case is to use virtual fonts to map \TeX's
+default accent and other character code conventions onto a
+vendor-supplied font.  For example, \.{dvips}
+does this for fonts given in the PostScript ``standard encoding''.
+In this case, each font consists of a ``virtual'' \.{tfm} file, which is
+what \TeX\ uses, a ``raw'' \.{tfm} file, which corresponds to the actual
+device font, and a \.{vf} file, which describes the relationship between the
+two.
+
+This adds another dimension to the space of font names, namely,
+``virtualness'' (or rather, ``rawness'', since it is the virtual \.{tfm}
+files that the users want to see).  But we have already used up all
+eight characters in the font names.
+
+The best solution I have been able to think of is this: prepend
+\.{r} to the raw \.{tfm} files; the virtual \.{tfm} files should be
+named with the usual foundry prefix.  For example, the virtual
+Times-Roman tfm file is named \.{ptmr}, as usual; the raw Times-Roman
+\.{tfm} file is named \.{rptmr}.  To prevent intolerable confusion, I
+promise never to give a foundry the letter \.{r}.
+
+This scheme will work only as long as the virtualized fonts do not have
+design sizes; if they do, another foundry letter will have to be
+allocated, it seems to me.
+
+A pox upon the houses of those who decided on fixed-length filenames!
+
+\sub{Examples}
+
+In closing, I will give two examples.  First, the fonts in the Univers
+typeface family were assigned numbers by its designer, Adrien Frutiger. 
+(You can see the scheme on, for example, page~29 of {\sl The Art of
+Typo.icon.ography}, by Martin Solomon.)  Naturally, we want to give
+them names.
+
+\vskip\baselineskip\vbox{%
+\halign to\hsize{\hskip20pt\tt #\hfil\space&#\hfil\quad\tabskip=0pt plus 1in
+&\tt #\hfil\space\tabskip=0pt&#\hfil\cr
+unl&45 (light)&unmro&59 (medium extra condensed)\cr
+unli&46 (light italic)&undrx&63 (demibold extended)\cr
+unlrc&47 (light condensed)&und&65 (demibold)\cr
+unlic&48 (light condensed italic)&undi&66 (demibold italic)\cr
+unlro&49 (light extra condensed)&undrc&67 (demibold condensed)\cr
+unmrx&53 (medium extended)&undic&68 (demibold condensed italic)\cr
+unm&55 (medium)&unbrx&73 (bold extended)\cr
+unmi&56 (medium italic)&unb&75 (bold)\cr
+unmrc&57 (medium condensed)&unbi&76 (bold italic)\cr
+unmic&58 (medium condensed italic)&unxrx&83 (extra bold extended)\cr}}
+
+Second, here are names for the standard PostScript fonts and their variants:
+Fonts marked by an asterisk do not require using virtual fonts; the raw
+fonts can be used directly because no remapping is necessary; every
+character is encoded.
+\vskip\baselineskip\vbox
+{\font\small=cmr8\def\mark{${}^*$}\def\smallcaps{{\small(Small Caps)}}
+\hyphenation{Post-Script}
+\halign to\hsize{\hskip20pt\tt #\hfil\space&#\hfil\quad\tabskip=0pt plus 1in
+&\tt #\hfil\space\tabskip=0pt&#\hfil\cr
+pagk  &AvantGarde-Book&pncri &NewCenturySchlbk-Italic\cr
+pagkc &AvantGarde-Book {\smallcaps}&pncr  &NewCenturySchlbk\cr
+pagko &AvantGarde-BookOblique&pncrc &NewCenturySchlbk {\smallcaps}\cr
+pagd  &AvantGarde-Demi&pplb  &Palatino-Bold\cr
+pagdo &AvantGarde-DemiOblique&pplbi &Palatino-BoldItalic\cr
+pbkd  &Bookman-Demi&pplbu &Palatino-BoldUnslanted\cr
+pbkdi &Bookman-DemiItalic&pplrrn&Palatino-Narrow\cr
+pbkl  &Bookman-Light&pplrre&Palatino-Expanded\cr
+pbkli &Bookman-LightItalic&pplri &Palatino-Italic\cr
+pbklc &Bookman-Light {\smallcaps}&pplr  &Palatino\cr
+pcrb  &Courier-Bold&pplro &Palatino-Oblique\cr
+pcrbo &Courier-BoldOblique&pplru &Palatino-Unslanted\cr
+pcrro &Courier-Oblique&pplrc &Palatino {\smallcaps}\cr
+pcrr  &Courier&psyr  &Symbol\mark\cr
+phvb  &Helvetica-Bold&psyro &Symbol-Oblique\mark\cr
+phvbo &Helvetica-BoldOblique&ptmb  &Times-Bold\cr
+phvro &Helvetica-Oblique&ptmbi &Times-BoldItalic\cr
+phvr  &Helvetica&ptmrrn&Times-Narrow\cr
+phvrc &Helvetica {\smallcaps}&ptmrre&Times-Expanded\cr
+phvbrn&Helvetica-Narrow-Bold&ptmri &Times-Italic\cr
+phvbon&Helvetica-Narrow-BoldOblique&ptmro &Times-Oblique\cr
+phvron&Helvetica-Narrow-Oblique&ptmr  &Times-Roman\cr
+phvrrn&Helvetica-Narrow&ptmrc &Times-Roman {\smallcaps}\cr
+pncb  &NewCenturySchlbk-Bold&pzcmi &ZapfChancery-MediumItalic\cr
+pncbi &NewCenturySchlbk-BoldItalic&pzdr  &ZapfDingbats\mark\cr}}
+
+Please contact Karl Berry if you have any comments or additions.  Karl
+can be reached at \.{karl@cs.umb.edu}, or at 135 Center Hill Road,
+Plymouth, MA~~02360.\par}
+
+\sec{Command Line Options}
+
+The \.{dvips} driver has a plethora of command line options.  Reading
+through this section will give a good idea of the capabilities of the
+driver.
+
+Many of the parameterless options listed here can be turned off by
+immediately suffixing
+the option with a zero (0); for instance, to turn off page reversal if it is
+turned on by default, use \.{-r0}.  The options that can be turned off in
+this way are \.a, \.f, \.k, \.i, \.m, \.q, \.r, \.s, \.E, \.F, \.K, \.M, \.N,
+\.U, and \.Z.
+
+This is a handy summary of the options; it is printed out when you run
+\.{dvips} with no arguments.
+{\vskip0pt\parskip=0pt\begverb{`\\}
+     Usage: dvips [options] filename[.dvi]
+ a*  Conserve memory, not time      y # Multiply by dvi magnification
+ b # Page copies, for posters e.g.  A   Print only odd (TeX) pages
+ c # Uncollated copies              B   Print only even (TeX) pages
+ d # Debugging                      C # Collated copies
+ e # Maxdrift value                 D # Resolution
+ f*  Run as filter                  E*  Try to create EPSF
+ h f Add header file                F*  Send control-D at end
+ i*  Separate file per section      K*  Pull comments from inclusions
+ k*  Print crop marks               M*  Don't make fonts
+ l # Last page                      N*  No structured comments
+ m*  Manual feed                    O c Set/change paper offset
+ n # Maximum number of pages        P s Load config.$s
+ o f Output file                    R   Run securely
+ p # First page                     S # Max section size in pages
+ q*  Run quietly                    T c Specify desired page size
+ r*  Reverse order of pages         U*  Disable string param trick
+ s*  Enclose output in save/restore V*  Send downloadable PS fonts as PK
+ t s Paper format                   X # Horizontal resolution
+ x # Override dvi magnification     Y # Vertical resolution
+                                    Z*  Compress bitmap fonts
+     # = number   f = file   s = string  * = suffix, `0' to turn off
+     c = comma-separated dimension pair (e.g., 3.2in,-32.1cm)
+\endverb}
+
+{\options
+\def\o#1 #2:{{\tt #1} {\it #2}:}
+\def\O#1:{{\tt #1}:}
+\O-a:  Conserve memory by making three passes over the \.{dvi} file
+instead of two and only loading those characters actually used.
+Generally only useful on machines with a very limited amount of
+memory, like some PCs.
+
+\o-b num: Generate {\it num} copies of each page, but duplicating the
+page body rather than using the {\tt\#numcopies} option.  This can be
+useful in conjunction with a header file setting {\tt\char92bop-hook}
+to do color separations or other neat tricks.
+
+\o-c num: Generate {\it num} copies of every page, by using
+PostScript's \.{\#copies} feature.
+\^{copies}
+Default is 1. (For collated copies, see the \.{-C} option below.)
+
+\o-d num:  Set the debug flags.  This is intended only for emergencies
+or for unusual fact-finding expeditions; it will work only if
+\^{debug}
+\.{dvips} has been compiled with the \.{DEBUG} option.
+The source file \.{debug.h} indicates what the values of
+{\it num} can be, or see section 15 of this manual.
+Use a value of $-1$ for maximum output.
+
+\o-e num:
+Make sure that each character is placed at most this many pixels from its
+`true' resolution-independent
+position on the page. The default value of this parameter
+is resolution dependent (it is the number
+of entries in the list [100, 200, 300, 400, 500, 600, 800, 1000, 1200, 1600,
+2000, 2400, 2800, 3200, $\ldots\,$] that are less than or equal to the
+\^{maxdrift}
+resolution in dots per inch). Allowing individual
+characters to `drift' from their correctly rounded positions
+by a few pixels, while regaining the true position at the beginning of
+each new word, improves the spacing of letters in words.
+
+\O-f: Run as a filter.
+\^{filter}
+Read the \.{dvi} file from standard input and write the PostScript to
+standard output.  The standard input must be seekable, so it cannot
+be a pipe.  If you must use a pipe, write a shell script that copies
+the pipe output to a temporary file and then points \.{dvips} at this file.
+This option also disables the automatic reading of the \.{PRINTER}
+environment variable, and turns off the automatic sending of control D
+if it was turned on with the \.{-F} option or in the configuration file;
+use \.{-F} after this option if you want both.
+
+\o-h name:
+Prepend file {\it name}
+\^{header}
+as an additional header file. (However, if the name is simply `\.-',
+suppress all header files from the output.)  This header file
+gets added to the PostScript \.{userdict}.
+
+\O-i: Make each section be a separate file.  Under certain circumstances,
+\.{dvips} will split the document up into `sections' to be processed
+independently; this is most often done for memory reasons.  Using this
+option tells \.{dvips} to place each section into a separate file; the
+new file names are created replacing the suffix of the supplied output
+file name by a three-digit sequence number.
+This option is most often used in
+conjunction with the \.{-S} option which sets the maximum section length
+in pages.  For instance, some phototypesetters cannot print more than
+ten or so consecutive pages before running out of steam; these options
+can be used to automatically split a book into ten-page sections, each
+to its own file.
+
+\O-k:  Print crop marks.  This option increases the paper size
+(which should be specified, either with a paper size special or
+with the {\tt -T} option) by a half inch in each dimension.  It
+translates each page by a quarter inch and draws cross-style
+crop marks.  It is mostly useful with typesetters that can set
+the page size automatically.
+
+\o-l num:
+\^{pages}
+The last page printed will be the first one numbered {\it num.}
+Default is the last page in the document.  If the {\it num} is
+prefixed by an equals sign, then it (and any argument to the
+{\tt -p} option) is treated as a sequence number, rather than
+a value to compare with {\tt \char92 count0} values.  Thus,
+using {\tt -l =9} will end with the ninth page of the document,
+no matter what the pages are actually numbered.
+
+\O-m:  Specify manual feed for printer.
+\^{manual feed}
+
+\o-n num:
+At most {\it num} pages will be printed. Default is 100000.
+\^{pages}
+
+\o-o name:  The output will be sent to file {\it name.}
+\^{output}
+If no file name is given, the default name is \.{{\it file}.ps} where
+the \.{dvi} file was called \.{{\it file}.dvi};
+if this option isn't given, any default in the configuration file is used.
+If the first character of the supplied output file name is an
+exclamation mark, then
+the remainder will be used as an argument to \.{popen}; thus, specifying
+\.{!lpr} as the output file will automatically queue the file for printing.
+This option also disables the automatic reading of the \.{PRINTER}
+environment variable, and turns off the automatic sending of control D
+if it was turned on with the \.{-F} option or in the configuration file;
+use \.{-F} after this option if you want both.
+
+\o-p num:
+\^{pages}
+The first page printed will be the first one numbered {\it num.}
+Default is the first page in the document.  If the {\it num} is
+prefixed by an equals sign, then it (and any argument to the {\tt -l}
+option) is treated as a sequence number, rather than a value to
+compare with {\tt \char92 count0} values.  Thus, using {\tt -p =3}
+will start with the third page of the document, no matter what the
+pages are actually numbered.  Another form of page selection is
+available by using {\tt -pp} followed by a comma-separated list of
+pages or page-ranges, where the page ranges are colon-separated pairs
+of numbers.  Thus, you can print pages 3--10, 21, and 73--92 with the
+option {\tt -pp 3:10,21,73:92}.
+
+\O-q: Run in quiet mode.
+Don't chatter about pages converted, etc.; report nothing but errors to
+\^{quiet}
+standard error.
+
+\O-r:
+Stack pages in reverse order.  Normally, page 1 will be printed first.
+\^{reverse}
+
+\O-s:
+Causes the entire global output to be enclosed in a save/restore pair.
+This causes the file to not be truly conformant, and is thus not recommended,
+but is useful if you are driving the printer directly and don't care too
+much about the portability of the output.
+
+\o-t papertype:
+\^{paper type}
+\^{mode}
+\^{letter}
+\^{legal}
+\^{ledger}
+\^{a4}
+\^{a3}
+\^{landscape}
+This sets the paper type to {\it papertype}.  The {\it papertype} should
+be defined in one of the configuration files, along with the appropriate
+code to select it.  See the documentation for \.@ in the configuration
+file option descriptions.  You can also specify
+\.{-t landscape}, which rotates a document by 90 degrees.
+To rotate a document whose size is not letter, you can use the 
+\.{-t} option twice, once for the page size, and once for \.{landscape}.
+The upper left corner of each page in
+the \.{dvi} file is placed one inch from the left and one inch from the top.
+Use of this option is highly dependent on the configuration file.
+Note that executing the {\tt letter} or {\tt a4} or other PostScript
+operators cause the document to be nonconforming and can cause it not
+to print on certain printers, so the default paper size should not
+execute such an operator if at all possible.
+
+\o-x num:
+Set the magnification ratio to {\it num}/1000. Overrides the magnification
+\^{magnification}
+specified in the \.{dvi} file.  Must be between 10 and 100000.  It is
+recommended that you use standard magstep values (1095, 1200, 1440, 1728,
+2074, 2488, 2986, and so on) to help reduce the total number of \.{PK}
+files generated.
+
+\O-A:
+This option prints only the odd pages.  This option uses the \TeX\
+page numbering rather than the sequence page numbers.
+
+\O-B:
+This option prints only the even pages.  This option uses the \TeX\
+page numbering rather than the sequence page numbers.
+
+\o-C num:
+Create {\it num}
+\^{copies}
+copies, but collated (by replicating the data in the PostScript file).
+Slower than the \.{-c} option, but easier on the hands, and faster than
+resubmitting the same PostScript file multiple times.
+
+\o-D num:
+Set the resolution in dpi (dots per inch) to {\it num.}
+\^{resolution}
+This affects the choice of bitmap fonts that are loaded and also the positioning
+of letters in resident PostScript fonts. Must be between 10 and 10000.
+This affects both the horizontal and vertical resolution.  If a high resolution
+(something greater than 400 dpi, say) is selected, the \.{-Z} flag should
+probably also be used.
+
+\O-E:
+Makes \.{dvips} attempt to generate an EPSF file with a tight bounding
+box.  This only works on one-page files, and it only looks at marks made
+by characters and rules, not by any included graphics.  In addition, it
+gets the glyph metrics from the {\tt tfm} file, so characters that
+lie outside their enclosing {\tt tfm} box may confuse it.  In addition,
+the bounding box might be a bit too loose if the character glyph has
+significant left or right side bearings.  Nonetheless, this option works
+well for creating small EPSF files for equations or tables or the like.
+(Note, of course, that {\tt dvips} output is resolution dependent and
+thus does not make very good EPSF files, especially if the images are
+to be scaled; use these EPSF files with a great deal of care.)
+
+\O-F:
+Causes Control-D (ASCII code 4) to be appended as the very last character
+of the PostScript file.  This is useful when \.{dvips}
+\^{EOF}
+\^{control-D}
+is driving the printer directly instead of working through a spooler,
+as is common on extremely small systems.  Otherwise, it is not recommended.
+
+\O-K:
+This option causes comments in included PostScript graphics, font files,
+and headers to be removed.  This is sometimes necessary to get around bugs
+in spoolers or PostScript post-processing programs.  Specifically, the
+\.{\%\%Page} comments, when left in, often cause difficulties.
+Use of this flag can cause some included graphics to fail, since the
+PostScript header macros from some software packages read portions of
+the input stream line by line, searching for a particular comment.
+This option has been turned on by default because PostScript previewers
+and spoolers still have problems with the structuring conventions.
+
+\O-M:
+Turns off the automatic font generation facility.  If any fonts are
+missing, commands to generate the fonts are appended to the file
+{\tt missfont.log} in the current directory; this file can then be
+executed and deleted to create the missing fonts.
+
+\O-N:
+Turns off structured comments; this might be necessary on some systems
+\^{structured comments}
+that try to interpret PostScript comments in weird ways, or on some
+PostScript printers.  Old versions of TranScript in particular cannot
+handle modern Encapsulated PostScript.
+
+\o-O offset:
+Move the origin by a certain amount.  The {\it offset} is a comma-separated
+pair of dimensions, such as \.{.1in,-.3cm} (in the same syntax used in
+the \.{papersize} special).   The origin of the page is shifted from the
+default position (of one inch down, one inch to the right from the upper
+left corner of the paper) by this amount.
+
+\o-P printername:
+Sets up the output for the appropriate printer.  This is implemented
+by reading in \.{config.{\it printername}}, which can then set the output pipe
+(as in, \.{o !lpr -Pprintername}) as well as the font paths and any other
+\^{{\tt config.ps}}
+defaults for that printer only.  It is recommended that all standard
+defaults go in the one master {\tt config.ps}
+file and only things that vary
+printer to printer go in the \.{config.{\it printername}}
+files.  Note that {\tt config.ps}
+is read before \.{config.{\it printername}}.
+In addition, another file called \.{\tilde/.dvipsrc}
+is searched for immediately after \.{config.ps};
+this file is intended for user defaults.  If no \.{-P} command is
+given, the environment variable \.{PRINTER} is checked.  If that
+variable exists, and a corresponding configuration
+file exists, that configuration file is read in.
+
+\o-S num:
+Set the maximum number of pages in each `section'.  This option is most
+commonly used with the \.{-i} option; see that documentation above for more
+information.
+
+\O-T offset:
+Set the paper size to the given pair of dimensions.  This option takes
+its arguments in the same style as {\tt -O}.  It overrides any paper
+size special in the {\tt dvi} file.
+
+\O-U:
+Disable a PostScript virtual memory saving optimization that stores the
+character metric information in the same string that is used to store
+the bitmap information.  This is only necessary when driving the Xerox
+4045 PostScript interpreter.  It is caused by a bug in that interpreter
+that results in `garbage' on the bottom of each character.  Not
+recommended unless you must drive this printer.
+
+\O-V:
+Download non-resident PostScript fonts as bitmaps.  This requires use
+of {\tt mtpk} or {\tt pstopk} or some combination of the two in order
+to generate the required bitmap fonts; neither of these programs are
+supplied with {\tt dvips}.
+
+\o-X num:
+Set the horizontal resolution in dots per inch to {\it num.}
+\^{resolution}
+
+\o-Y num:
+Set the vertical resolution in dots per inch to {\it num.}
+\^{resolution}
+
+\O-Z:
+Causes bitmapped fonts to be compressed before they are downloaded,
+\^{compression}
+thereby reducing the size of the PostScript font-downloading information.
+Especially useful at high resolutions or when very large fonts are
+used.  Will slow down printing somewhat, especially on early 68000-based
+PostScript printers.\par}
+
+\sec{Configuration File Searching}
+
+The \.{dvips} program has a system of loading configuration files such that
+\^{{\tt config.ps}}
+certain parameters can be set globally across the system, others can be set
+on a
+per-printer basis, and yet others can be set by the user.  When \.{dvips}
+starts up, first the global \.{config.ps} file is searched for and loaded.
+This file is looked for along the path for configuration files, which is by
+default \.{.:/usr/lib/tex/ps}.
+After this master configuration file is loaded, a file by the name of
+\.{.dvipsrc} is loaded from the current user's home directory, if such
+a file exists.  This file is loaded in exactly the same way as the global
+configuration file, and it can override any options set in the global
+file.
+
+Then the command line is read and parsed.  If the \.{-P} option is
+encountered, at that point in the command line a configuration file
+for that printer is read in.  Thus, the printer configuration file can
+override anything in the global or user configuration file, and it can
+also override anything seen in the command line up to the point that the
+\.{-P} option was encountered.
+
+After the command line has been completely scanned, if there was no
+\.{-P} option selected, and also the \.{-o} and \.{-f} command line
+options were not used, a \.{PRINTER} environment variable is
+searched for.  If this variable exists, and a configuration file for
+the printer mentioned in it exists, this configuration file is
+loaded last of all.
+
+Note that because the printer-specific configuration files are read
+after the user's configuration file, the user's \.{.dvipsrc}
+cannot override things in
+the printer configuration files.  On the other hand, the configuration path
+usually includes the current directory, and can be set to include the
+user's home directory (or any other directory of the user), so the user can
+always provide personalized printer-specific configuration files that will
+be found before the system global ones.
+
+If your printer uses a different resolution than 300 dpi,
+make sure that you
+have given a \MF\ mode as well as a resolution in the printer
+configuration file.  Also make sure that \MF\ knows about the mode,
+by entering it into your local \.{mode\_def} file (typically
+\.{waits.mf}; \.{amiga.mf} on the Amiga, \.{next.mf} on the NeXT)
+and recreating the \.{plain.base} file for \MF, including the
+\.{mode\_def} file.  (Another good mode definition file is
+{\tt modes.mf} by Karl Berry, which is available from
+{\tt ftp.cs.umb.edu} in {\tt pub/tex/modes.mf}.)
+The most common problem in generating fonts
+with \MF\ is that
+\^{{\tt mode\_def}}
+\^{{\tt plain.base}}
+\^{\MF}
+this file with the mode definitions is not included when creating
+the \.{plain.base} file.
+
+\sec{Configuration File Options}
+
+Most of the configuration file options are similar to the command line
+options, but there are a few new ones.
+
+Again, many may be turned off by suffixing the letter with a zero (0).
+These options are \.a, \.f, \.q, \.r, \.I, \.K, \.N, \.U, and \.Z.
+
+Within a configuration file, any empty line or line starting with a space,
+asterisk, equal sign, or a pound sign is ignored.
+
+{\options
+\def\o#1 #2:{{\tt #1} {\it #2\/}:}
+\def\O#1:{{\tt #1}:}
+\o @ name hsize vsize: This option is used to set the paper size defaults
+and options for the particular printer this configuration file
+describes.  There are three formats for this option.  If the option is
+specified on a line by itself, with no parameters, it instructs
+\.{dvips} to discard all other paper size information (possibly from
+another configuration file) and start fresh.  If three parameters
+are given, as above, with the first parameter being a name and the second
+and third being a dimension (as in 8.5in or 3.2cc, just like in the
+\.{papersize} special), then the option is interpreted as starting a new
+paper size description, where {\it name} is the name and {\it hsize} and
+{\it vsize} describe the horizontal and vertical size of the sheet of
+paper, respectively.  If both {\it hsize} and {\it vsize} are equal to
+zero (although you must still specify units!\null) then any page size will
+match it.  If the \.@ character is immediately followed by a
+\.+ sign, then the remainder of the line (after skipping any leading
+blanks) is treated as PostScript code to send to the printer to select
+that particular paper size.  After all that, if the first character of
+the line is an exclamation point, then the line is put in the initial
+comments section of the final output file; else, it is put in the setup
+section of the output file.  For instance, a subset of the paper size
+information supplied in the default \.{config.ps} looks like
+{\parindent=40pt\cmd{@ letterSize 8.5in 11in\\
+@ letter 8.5in 11in\\
+@+ \%\%BeginPaperSize: Letter\\
+@+ letter\\
+@+ \%\%EndPaperSize\\
+@ legal 8.5in 14in\\
+@+ ! \%\%DocumentPaperSizes: Legal\\
+@+ \%\%BeginPaperSize: Legal\\
+@+ legal\\
+@+ \%\%EndPaperSize}}
+\noindent
+Note that you can even include structured comments in the configuration
+file!  When \.{dvips} has a paper format name given on the command line,
+it looks for a match by the {\it name}; when it has a \.{papersize}
+special, it looks for a match by dimensions.  The first match found (in
+the order the paper size information is found in the configuration file)
+is used.  If nothing matches, a warning is printed and the first paper
+size given is used, so the first paper size should always be the default.
+The dimensions must match
+within a quarter of an inch.  Landscape mode for all of the paper sizes
+are automatically supported.  If your printer has a command to set a
+special paper size, then give dimensions of \.{0in 0in}; the PostScript
+code that sets the paper size can refer to the dimensions the user
+requested as \.{\ttbackslash hsize} and \.{\ttbackslash vsize};
+these will be macros defined in
+the PostScript that return the requested size in default PostScript
+units.  Note that virtually all of the PostScript commands you use
+here are device dependent and degrade the portability of the file; that
+is why the default first paper size entry should not send any PostScript
+commands down (although a structured comment or two would be okay).
+Also, some printers want {\tt BeginPaperSize} comments and paper size
+setting commands; others (such as the NeXT) want {\tt PaperSize} comments
+and they will handle setting the paper size.  There is no solution I
+could find that works for both (except maybe specifying both).
+See the supplied {\tt config.ps} file for a more realistic
+example.
+
+\O a:  Conserve memory by making three passes over the \.{dvi} file
+instead of two and only loading those characters actually used.
+Generally only useful on machines with a very limited amount of
+memory, like some PCs.
+
+\o b num: Generate {\it num} copies of each page, but duplicating the
+page body rather than using PostScript's {\tt\#copies}.  This can be
+useful in conjunction with a header file setting {\tt\char92bop-hook}
+to do color separations or other neat tricks.
+
+\o e num:
+Set the maximum drift parameter to {\it num} dots (pixels) as explained above.
+\^{maxdrift}
+
+\O f:  Run as a filter by default.
+\^{filter}
+
+\o h name:
+Add {\it name} as a PostScript header file to be downloaded at the beginning.
+\^{header}
+
+\o i num:
+Make each section be a separate file, and set the maximum number of pages
+in a given file to {\it num}.  Under certain circumstances,
+\.{dvips} will split the document into `sections' to be processed
+independently; this is most often done for memory reasons.  Using this
+option tells \.{dvips} to place each section into a separate file; the
+new file names are created by replacing the suffix of the supplied output
+file name with a three-digit sequence number.
+This is essentially a combination of the
+command line options \.{-i} and \.{-S}; see the documentation for these
+options for more information.
+
+\o m num:  The value {\it num} is the virtual memory available for fonts
+and strings in the printer.
+\^{memory}
+Default is 180000.  This value must be accurate if memory conservation and
+document splitting is to work correctly.  To determine this value, send the
+following file to the printer:
+{\parindent=40pt\cmd{\%! Hey, we're PostScript\\
+/Times-Roman findfont 30 scalefont setfont 144 432 moveto\\
+vmstatus exch sub 40 string cvs show pop showpage}}
+\noindent
+Note that the number returned by this file is the total memory free;
+it is often a good idea to tell \.{dvips} that the printer has somewhat
+less memory.  This is because many programs download permanent macros
+that can reduce the memory in the printer.  In general, a memory size
+of about \.{300000} is plenty, since \.{dvips} can automatically split
+a document if required.  It is unfortunate that PostScript printers with
+much less virtual memory still exist.
+Some systems or printers can dynamically increase the memory available
+to a PostScript interpreter, in which case this file might return a
+ridiculously low number; the NeXT computer is such a machine.  For these
+systems, a value of one million works well.
+
+\o o name:
+\^{output}
+The default output file is set to {\it name}.  As above, it can be a pipe.
+Useful in printer-specific configuration files to redirect the output to
+a particular printer queue.
+
+\o p name:
+The file to examine for PostScript font aliases is {\it name}.  It
+defaults to {\tt psfonts.map}.  This option allows different printers
+to use different resident fonts.  If the name starts with a `{\tt +}'
+character, then the rest of the name (after any leading spaces) is used
+as an additional map file; thus, it is possible to have local map files
+pointed to by local configuration files that append to the global
+map file.
+
+\O q:  Run in quiet mode by default.
+\^{quiet}
+
+\O r:  Reverse the order of pages by default.
+\^{reverse}
+
+\O s:
+Enclose the entire document in a global save/restore pair by default.
+Not recommended, but useful in some environments; this breaks the
+conformance of the document to the Adobe PostScript structuring
+conventions.
+
+\o D num:
+Set the vertical and horizontal resolution to {\it num}
+\^{resolution}
+dots per inch.  Useful in printer-specific configuration files.
+
+\o E command:
+Execute the system command listed, for example as a UNIX shell command.
+Execution takes place immediately, while the configuration file is
+being read. This option can be used to insert the current date into a
+header file, for instance, as explained at the end
+of section~13.  Possibly dangerous; in many
+installations it may be disabled, in which case a warning message will
+be printed if the option is used.
+
+\o H path:
+The (colon-separated) path to search for PostScript header 
+\^{header}
+files is {\it path}.
+
+\O I:
+Ignore the {\tt PRINTER} environment variable.
+
+\O K:
+Filter comments out of included PostScript files; see the description
+above for more information.
+
+\o M mode: Set {\it mode}
+as the \MF\ mode to be used when generating fonts.  This is
+\^{{\tt MakeTeXPK}}
+\^{{\MF}}
+passed along to \.{MakeTeXPK} and overrides mode derivation from the
+base resolution.
+
+\O N:  Disable PostScript comments by default.
+
+\o O offset:
+Move the origin by a certain amount.  The {\it offset} is a comma-separated
+pair of dimensions, such as \.{.1in,-.3cm} (in the same syntax as used in
+the \.{papersize} special).   The origin of the page is shifted from the
+default position (of one inch down, one inch to the right from the upper
+left corner of the paper) by this amount.
+This is useful for a printer that consistently offsets output pages by a
+certain amount. You can use the file {\tt testpage.tex} to determine
+the correct value for your printer. Be sure to do several runs with the
+same {\tt O} value---some printers vary widely from run to run.
+
+\o P path:  The (colon-separated) path to search for bitmap \.{pk}
+font files is
+{\it path}.  The \.{TEXPKS} environment variable will override this.
+\^{{\tt TEXPKS}}
+\^{{\tt pk}}
+If a \.{\%} character is found in {\it path},
+the following substitutions will be made, and then a search will
+be made for the resulting filenames.
+A \.{\%f} is replaced by the font name.
+A \.{\%b} is replaced by the output device horizontal resolution dots per inch.
+A \.{\%d} is replaced by the font size in dots per inch.
+A \.{\%p} is replaced by the font family; this is always \.{pk}.
+A \.{\%m} is replaced by the font mode; this is the mode given
+in the \.{M} option.
+Note that, for each path element, if it contains a percent sign, you
+must give the full file name, including path, rather than just the
+directory name; a path element such as {\tt /fonts/\%b} will try to
+open {\tt /fonts/300} when looking for {\tt cmr10.329pk}, for
+instance, and this may not be what is intended; {\tt /fonts/\%b/\%f.\%dpk}
+is needed.  If a path element does not contain a percent sign, there
+is no need to specify the entire file name (because you can't, unless
+you list all possible specific font names!).
+  
+\o R num num $\ldots\,$:
+Sets up a list of default resolutions to search for \.{pk} fonts, if the
+\^{{\tt pk}}
+requested size is not available.  The output will then scale the font
+found using PostScript scaling to the requested size.  Note that the
+resultant output will be ugly, and thus a warning is issued.  To turn
+this off, use a line with just the \.{R} and no numbers.
+
+\o S path:  The path to search for special illustrations
+(Encapsulated PostScript files or psfiles) is {\it path}.
+\^{{\tt TEXINPUTS}}
+The \.{TEXINPUTS} environment variable will override this.
+
+\o T path: The path to search for the \.{tfm} files is
+{\it path}.  The \.{TEXFONTS} environment variable will override this.
+\^{{\tt TEXFONTS}}
+This path is used for resident fonts and fonts that can't otherwise be found.
+It's usually best to make it identical to the path used by \TeX.
+
+\O U:  Turns off a memory-saving optimization; this is necessary for the
+Xerox 4045 printer, but not recommended otherwise.  See the description
+above for more information.
+
+\o V path:  The path to search for virtual font \.{vf} files is
+\^{{\tt vf}}
+\^{virtual fonts}
+{\it path}.
+This may be device-dependent if you use virtual fonts to simulate
+actual fonts on different devices.
+
+\o W string:
+Sends {\it string} to stderr, if a parameter is given; otherwise it cancels
+another previous  message.
+This is useful in the default configuration file if you want to require
+the user to specify a printer, for instance, or if you want to notify
+the user that the resultant output has special characteristics.
+
+\o X num:
+\^{resolution}
+Set the horizontal resolution to {\it num} dots per inch.
+
+\o Y num:
+\^{resolution}
+Set the vertical resolution to {\it num} dots per inch.
+
+\O Z:  Compress all downloaded fonts by default, as above.\par}
+
+\sec{Automatic Font Generation}
+
+One major problem with \TeX\ and the Computer Modern fonts is the huge
+amount of disk space a full set of high resolution fonts can take.  The
+\.{dvips} program solves this problem by creating fonts on demand, so only
+those fonts that are actually used are stored on disk.  At a typical site,
+less than one-fifth of the full set of Computer Modern fonts are used over
+a long period, so this saves a great deal of disk space.
+
+Furthermore, the addition of dynamic font generation allows fonts to be
+used at any size, including typesetter resolutions and extremely huge
+banner sizes.  Nothing special needs to be done; the fonts will be
+automatically created and installed as needed.
+
+The downside is that it does take a certain amount of time to create a new
+font if it has never been used before.  But once a font is created, it
+will exist on disk, and the next time that document is printed it will print
+very quickly.
+
+It is the \.{MakeTeXPK} shell script that is responsible for making these
+\^{{\tt MakeTeXPK}}
+fonts.  The \.{MakeTeXPK} script supplied invokes \MF\ to create the font and
+then copies the resultant \.{pk} file to a world-writable font cache area.
+
+\.{MakeTeXPK} can be customized to do other things to get the font.  For
+instance, if you are installing \.{dvips} to replace (or run alongside)
+an existing PostScript driver, and that driver demands \.{gf} fonts, you
+can easily modify \.{MakeTeXPK} to invoke \.{gftopk} to convert the
+\.{gf} files to \.{pk} files for \.{dvips}.  This provides the same space
+savings listed above.
+
+Because \.{dvips} (and thus \.{MakeTeXPK}) is run by a wide variety of users,
+there must be a system-wide place to put the cached font files.  In order
+for everyone to be able to supply fonts, the directory must be world
+writable.  If your system administrator considers this a security hole,
+\.{MakeTeXPK} can write to \.{/tmp/pk} or some such directory, and
+periodically the cached fonts can be moved to a more general system area.
+Note that the cache directory must exist on the \.{pk} file search path
+in order for \.{MakeTeXPK} to work.
+
+\sec{Path Interpretation}
+
+The \.{dvips} program needs to read a wide variety of files from a large
+set of directories.  It uses a set of paths to do this.  The actual
+paths are listed in the next section; this section describes how the
+paths are interpreted.
+
+All path variables are names of directories (path elements),
+separated by colons.
+Each path element can be either the literal name of a directory or one
+of the \.{\tilde} forms common under UNIX.  If a path element is a single tilde,
+\^{UNIX}
+it is replaced by the contents of the environment variable \.{HOME}, which
+\^{{\tt HOME}}
+is normally set to the user's home directory.  If the path element is
+a tilde followed by anything, the part after the tilde is interpreted as
+a user name, and his home directory is fetched from the system password
+file and used as the real path element.
+
+Where environment variables can override paths, an additional path
+element form is allowed.  If a path element is the empty string, it
+is replaced with the system defaults.  Thus, to
+search the user's home directory, followed by the system
+default paths, assuming the current shell is \.{csh},
+the following command would be used:
+\cmd{setenv TEXINPUTS \tilde:}
+\noindent
+This is a path of two elements.  The first is the user's home directory.
+The second path element is the empty string, indicating that
+the system defaults should be searched.
+
+The `system defaults' as defined here means the strings set in the
+\.{Makefile} before compilation, rather than any defaults set in
+\.{config.ps} or printer-specific configuration files.  This is to
+prevent path blowup, where more and more directories are added to the
+path by each level of configuration file.
+
+\sec{Environment Variables}
+
+The \.{dvips} program reads a certain set of environment variables to
+configure its operation.  The path variables are read after all
+configuration files are read, so they override values in the configuration
+files.  (The \.{TEXCONFIG} variable, of course, is read before the
+configuration files.)  The rest are read as needed.
+
+Note that all defaults supplied here are just as supplied in the
+provided {\tt Makefile}; they will almost certainly have been changed
+during installation at your particular site.
+
+\descenv HOME,{\rm no default}
+  This environment variable is automatically set by the shell and is
+used to replace any occurrences of \.{\tilde} in a path.
+
+\descenv MAKETEXPK,{MakeTeXPK \%n \%d \%b \%m}
+This environment variable sets the command to be executed to create
+a missing font.  A \%n is replaced by the base name of the font to
+be created (such as \.{cmr10}); a \%d is replaced by the resultant
+horizontal resolution of the font; a \%b is replaced by the
+horizontal resolution at which \.{dvips} is currently generating
+output, a \%o is replaced with the current \MF\ mode, if any,
+or {\tt default} if none is known,
+and any \%m is replaced by a string that \MF\ can use as
+the right hand side of an assignment to \.{mag} to create the
+desired font at the proper resolution.  If a mode for \MF\ is set in
+a configuration file and no \%o is specified in the command,
+the mode is automatically appended to the command
+before execution.  Note that these substitutions are different than
+the ones performed on PK paths.
+
+\descenv DVIPSHEADERS,{.:/usr/lib/tex/ps}
+  This environment variable determines where to search for header
+files such as {\tt tex.pro}, font files, arguments to the
+{\tt -h} option, and such files.
+
+\descenv PRINTER,{\rm no default}
+  This environment variable is read to determine which default printer
+configuration file to read in.  Note that it is the responsibility of
+the configuration file to send output to the proper print queue, if such
+functionality is desired.
+
+\descenv TEXFONTS,{/LocalLibrary/Fonts/TeXFonts/tfm:/usr/lib/tex/fonts/tfm}
+  This is where \.{tfm} files are searched for.  A \.{tfm} file only
+\^{{\tt tfm}}
+needs to be loaded if the font is a resident (PostScript) font or if
+for some reason no \.{pk} file could be found.
+
+\descenv TEXPKS,{/LocalLibrary/Fonts/TeXFonts/pk:/usr/lib/tex/fonts/pk}
+This environment variable is a path on which to search for \.{pk} fonts.
+Certain substitutions are performed if a percent sign is found anywhere
+\^{{\tt pk}}
+in the path.  See the description of the {\tt P} configuration file
+option for more information.
+
+\descenv TEXINPUTS,{.:..:/usr/lib/tex/inputs}
+  This environment variable is used to find PostScript figures when they
+are included.
+
+\descenv TEXCONFIG,{.:/usr/lib/tex/ps}
+  This environment variable sets the directories to search for configuration
+files, including the system-wide one.  Using this single environment variable
+and the appropriate configuration files, it is possible to set up the program
+for any environment.  (The other path environment variables can thus be
+redundant.)
+
+\descenv VFFONTS,{.:/usr/lib/tex/fonts/vf}
+  This environment variable sets where \.{dvips} looks for virtual fonts.
+A correct virtual font path is essential if PostScript fonts are to be
+used.
+
+\sec{Other Bells And Whistles}
+
+For special effects, if any of the macros
+\.{bop-hook}, \.{eop-hook}, \.{start-hook}, or \.{end-hook}
+\^{{\tt bop-hook}}
+\^{{\tt eop-hook}}
+\^{{\tt start-hook}}
+\^{{\tt end-hook}}
+are defined in the PostScript \.{userdict}, they will be executed at the
+beginning of a page, end of a page, start of the document, and end of
+a document, respectively.
+When these macros are executed, the default PostScript coordinate system
+and origin
+is in effect.  Such macros can be defined in headers added by the
+\.{-h} option or the \.{header=}
+special, and might be useful for writing, for instance, DRAFT across the
+entire page, or, with the aid of a shell script, dating the document.
+These macros are executed outside of the save/restore context of the
+individual pages, so it is possible for them to accumulate information,
+but if a document must be divided into sections because of memory
+constraints, such added information will be lost across section breaks.
+
+The two arguments to {\tt bop-hook} are the \TeX\ page number and
+the sequence number of the page
+in the file; the first page gets zero, the second one, etc.
+The arguments to {\tt start-hook} are hsize, vsize, mag, hdpi, vdpi,
+and the name of the \.{dvi} input file. The procedures
+must leave these parameters on the stack.
+The other hooks are not (currently)
+given parameters, although this may change in the future.
+
+As an example of what can be done, the following special will write
+a light DRAFT across each page in the document:
+{\vskip0pt\parskip=0pt\leftskip=20pt\begverb{`\$}
+\special{!userdict begin /bop-hook{gsave 200 30 translate
+65 rotate /Times-Roman findfont 216 scalefont setfont
+0 0 moveto 0.7 setgray (DRAFT) show grestore}def end}$endverb}
+
+Note that using \.{bop-hook} or \.{eop-hook} in any way that preserves
+information across pages will break compliance with the Adobe document
+structuring conventions, so if you use any such tricks, it is recommended
+that you also use the \.{-N} option to turn off structured comments.
+
+Several of the above tricks can be used nicely together, and it is not
+necessary that a `printer configuration file' be used only to set
+printer defaults.  For instance, you might have a file \.{config.dated}
+that contains just the two lines
+{\vskip0pt\parskip=0pt\leftskip=20pt\begverb{`\$}
+E echo /bop-hook \{save /Times-Roman findfont 7 scalefont setfont \
+                  72 756 moveto \(`date`\) show restore\} def >.date
+h .date$endverb}
+\noindent(with no newline following \.{setfont}); then the command-line option
+\.{-Pdated} to \.{dvips} will print current date and time on the top
+of each page of output.
+Note that multiple \.{-P} options can be used.
+
+\ifgeneric\else
+\sec{MS-DOS and OS/2}
+The MS-DOS and OS/2 versions of \.{dvips} differs from UNIX in the 
+following ways.
+\^{MS-DOS}
+\^{OS/2}
+\item{$\bullet$} Path separators are \.{;} not \.{:}.
+\item{$\bullet$} Directory separators are \.{\ttbackslash} not \.{/}.
+\item{$\bullet$} The user's initialization file is \.{dvips.ini}
+  not \.{.dvipsrc}.
+\item{$\bullet$} Printer configuration files are called 
+  \.{{\it printername}.cfg}, not \.{config.{\it printername}}.
+\item{$\bullet$} Pipes to printers are not supported by MS-DOS.  
+  Output must go to a file.  OS/2 supports pipes.
+\item{$\bullet$} \.{MakeTeXPk} is a batch or command file.  
+  Since MS-DOS has insufficient memory to run both \.{dvips} and \MF\ 
+  at the same time, this batch or command file will typically write out 
+  a set of commands for running \MF\ later.  
+  The \.{maketexp.bat} supplied writes out an \.{mfjob} file for em\TeX.
+  OS/2 has more memory so the \.{maketexp.cmd} supplied writes out an 
+  \.{mfjob} file for em\TeX\ and calls \.{mfjob}.
+\item{$\bullet$} \.{dvidrv} from em\TeX\ can be used
+  to automatically make fonts under MS-DOS as follows:
+{\vskip0pt\parskip=0pt\leftskip=20pt\begverb{`\$}
+    dvidrv dvips file.dvi $endverb}
+  \.{dvidrv} sets an option \.{-pj=mfjobfile} for \.{dvips}, where 
+  \.{mfjobfile} is the name of a temporary \.{mfjob} file.
+  If there are missing fonts, \.{dvips} will write this \.{mfjob} file
+  and then ask:
+{\vskip0pt\parskip=0pt\leftskip=20pt\begverb{`\$}
+    Exit to make missing fonts now (y/n)? $endverb}
+  If you answer yes, \.{dvips} exits with errorlevel 8 which tells 
+  \.{dvidrv} to call \.{mfjob} to make the fonts, and then to call 
+  \.{dvips} again.
+  For this to work, \.{dvidrv}, \.{dvips}, \.{mfjob} and \.{mf} 
+  must be located in the \.{PATH}, and the environment variables for 
+  \.{mfjob} and \.{mf} set correctly.  
+  A font mode must be set with the '\.{M}' option in \.{config.ps}.
+  If the \.{-pj} option is set, dvips will not call \.{MakeTeXPk.bat}.
+\item{$\bullet$} Limited em\TeX\ specials.  The following ones are supported:
+{\vskip0pt\parskip=0pt\leftskip=20pt\begverb{`\$}
+\special{em:message xxx}
+\special{em:point n}
+\special{em:line a[h|v|p],b[h|v|p] [,width]}
+\special{em:linewidth width}
+\special{em:moveto}
+\special{em:lineto}
+\special{em:graph xxx[,width[,height]]} $endverb}
+\item{}
+  The line cut parameters \.{[h|v|p]} of the
+  \.{\ttbackslash special{\char123}em:line ...{\char125}} command are ignored.
+  Lines are ended with a rounded cap.
+  A maximum of 1613 different point numbers are permitted on each page.
+  The \.{\ttbackslash special{\char123}em:graph xxx{\char125}} 
+  supports \.{PCX}, \.{MSP1}, \.{MSP2} and \.{BMP} files.
+  The graph file may be scaled by giving an optional 
+  width and height (expressed in the same way as \TeX\ dimensions).
+  An example:
+{\vskip0pt\parskip=0pt\leftskip=20pt\begverb{`\$}
+  \special{em:graph scrdump.pcx,100mm,75mm} $endverb}
+
+The program \.{dvips} can use em\TeX\ font libraries created with the 
+em\TeX\ \.{fontlib /2} option.
+If a \.{pxl} font is found within a font library, \.{dvips} will complain,
+and then ignore the \.{pxl} font.
+
+The font library names and directory names can be specified with 
+this configuration file option.
+
+{\options
+\def\o#1 #2:{{\tt #1} {\it #2}:}
+\def\O#1:{{\tt #1}:}
+\o L path:  The list of \.{fli} font libraries to search for bitmap \.{pk}
+  font files is {\it path}.  
+\^{{\tt fli}}
+  Fonts are sought first in these libraries and then as single files.
+  Font libraries can be created with em\TeX 's \.{fontlib}; the usual
+  extension is \.{fli}.  Directories as well as file names can be 
+  entered here, the files will be searched for in all these directories.
+  A directory name must have trailing directory separator
+  (\.{/} for UNIX, \.{\ttbackslash} for MS-DOS and OS/2). \par }
+\fi
+
+\sec{Installation}
+
+If \.{dvips} has not already been installed on your system, the
+\^{installation}
+following steps are all that are needed.
+
+First update the \.{Makefile}---in particular, the paths.  Everything
+concerning \.{dvips} can be adjusted in the \.{Makefile}.  Make sure
+you set key parameters such as the default resolution, and make sure
+that the path given for packed pixel files is correct.
+
+Next, check the file name definitions in \.{MakeTeXPK}.  If you don't
+\^{{\tt MakeTeXPK}}
+have \MF\ installed, you cannot use \.{MakeTeXPK} to automatically
+generate the fonts; you can, however, modify it to generate \.{pk}
+fonts from \.{gf} fonts if you don't have a full set of \.{pk} fonts
+but do have a set of \.{gf} fonts.  If you don't have that, you should
+probably not install \.{MakeTeXPK} at all; this will disable automatic
+font generation.
+
+Now, check the configuration parameters in \.{config.ps}.  You should
+also update the default resolution here.  This file is the
+system-wide configuration file that will be automatically installed.
+If you are unsure how much memory your PostScript printer has, print the
+following file:
+\cmd{\%! Hey, we're PostScript\\
+/Times-Roman findfont 30 scalefont setfont 144 432 moveto\\
+vmstatus exch sub 40 string cvs show pop showpage}
+\noindent
+Note that the number returned by this file is the total memory free;
+it is often a good idea to tell \.{dvips} that the printer has somewhat
+less memory.  This is because many programs download permanent macros
+that can reduce the memory in the printer.  In general, a memory size
+of about \.{300000} is plenty, since \.{dvips} can automatically split
+a document if required.  It is unfortunate that PostScript printers with
+much less virtual memory still exist.
+Some systems or printers can dynamically increase the memory available
+to a PostScript interpreter; for these systems, a value of one million
+works well.
+
+Next, run \.{make}.  Everything should compile smoothly.  You may need
+to adjust the compiler options in the \.{Makefile} if something goes
+amiss.
+
+Once everything is compiled, run \.{make} \.{install}.  After this is done,
+you may want to create a configuration file for each PostScript printer
+at your site.
+
+If the font caching is considered a security hole, make the `cache'
+directory be something like \.{/tmp/pks}, and \.{cron} a job to move the
+good \.{pk} files into the real directory.  Or simply disable this
+feature by not installing \.{MakeTeXPK}.
+
+Don't forget to install the new \.{vf} files and \.{tfm} files.  Note
+that the \.{tfm} files distributed with earlier (pre-5.471) versions
+of \.{dvips}, and all versions of other PostScript drivers, are different.
+
+A test program called \.{test.tex} is provided, so you can easily check
+that the most important parts of \.{dvips} have been installed properly.
+
+\sec{Diagnosing Problems}
+
+You've gone through all the trouble of installing \.{dvips}, carefully
+read all the instructions in this manual, and still can't get something
+to work.  This is all too common, and is usually caused by some broken
+PostScript application out there.  The following sections provide some
+helpful hints if you find yourself in such a situation.
+
+In all cases, you should attempt to find the smallest file that causes
+the problem.  This will not only make debugging easier, it will also
+reduce the number of possible interactions among different parts of the
+system.
+
+\sub{Debug Options}
+
+The \.{-d} flag to \.{dvips} is very useful for helping to track down
+certain errors.  The parameter to this flag is an integer that tells
+what errors are currently being tracked.  To track a certain class of
+debug messages, simply provide the appropriate number given below;
+if you wish to track multiple classes, sum the numbers of the classes
+you wish to track.  The classes are:
+
+$$\vbox{\halign{\hfil #\quad&#\hfil\cr
+1&specials\cr2&paths\cr4&fonts\cr8&pages\cr16&headers\cr
+32&font compression\cr64&files\cr
+128&memory\cr}}$$
+
+\sub{No Output At All}
+
+If you are not getting any output at all, even from the simplest
+one-character file (for instance, \.{\char92~\char92 bye}),
+then something is very wrong.  Practically any file sent to a
+PostScript laser printer should generate some output, at the very
+least a page detailing what error occurred, if any.  Talk to your
+system administrator about downloading a PostScript error handler.
+(Adobe distributes a good one called \.{ehandler.ps}.)
+
+It is possible, especially if you are using non-Adobe PostScript,
+that your PostScript interpreter is broken.  Even then it should
+generate an error message.  I've tried to work around as many bugs
+as possible in common non-Adobe PostScript interpreters, but I'm
+sure I've missed a few.
+
+If \.{dvips} gives any strange error messages, or compilation on your
+machine generated a lot of warnings, perhaps the \.{dvips} program
+itself is broken.  Carefully check the types in \.{dvips.h} and
+the declarations in the \.{Makefile}, and try using the debug options
+to determine where the error occurred.
+
+It is possible your spooler is broken and is misinterpreting the
+structured comments.  Try the \.{-N} flag to turn off
+structured comments and see what happens.
+
+\sub{Output Too Small or Inverted}
+
+If some documents come out inverted or too small, your spooler is not
+supplying an end of job indicator at the end of each file.  (This happens
+a lot on small machines that don't have spoolers.)  You can
+force \.{dvips} to do this with the \.{-F} flag, but note that this
+generates files with a binary character (control-D) in them.  You can
+also try using the \.{-s} flag to enclose the entire job in a save/restore
+pair.
+
+\sub{Error Messages From Printer}
+
+If your printer returns error messages, the error message gives very
+good information on what might be going wrong.  One of the most common
+error messages is \.{bop undefined}.  This is caused by old versions
+of Transcript and other spoolers that do not properly parse the setup
+section of the PostScript.  To fix this, turn off structured comments
+with the \.{-N} option, but make sure you get your spooling software
+updated.  You might also try turning off comments on included files
+with the \.{-K} option; many spoolers cannot deal with nested
+documents.
+
+Another error message is \.{VM exhausted}.  (Some printers indicate
+this error by locking up; others quietly reset.)  This is caused by telling
+\.{dvips} that the printer has more memory than it actually does, and
+then printing a complicated document.  To fix this, try lowering the
+parameter to \.{m} in the configuration file; use the debug option
+to make sure you adjust the correct file.
+
+Other errors may indicate that the graphics you are trying to include
+don't nest properly in other PostScript documents, or any of a number of
+other possibilities.  Try the output on a QMS PS-810 or other Adobe
+PostScript printer; it might be a problem with the printer itself.
+
+\sub{400 DPI Is Used Instead Of 300 DPI}
+
+This common error is caused by not editing the \.{config.ps} file to
+reflect the correct resolution for your site.  You can use the debug flags
+(\.{-d64}) to see what files are actually being read.
+
+\sub{Long Documents Fail To Print}
+
+This is usually caused by incorrectly specifying the amount of memory
+the printer has in \.{config.ps}; see the description above.
+
+\sub{Including Graphics Fails}
+
+The reasons why graphics inclusions fail are too numerous to mention.
+The most common problem is an incorrect bounding box; read the section
+on bounding boxes and check your PostScript file.  Complain very loudly
+to whoever wrote the software that generated the file if the bounding
+box is indeed incorrect.
+
+Another possible problem is that the figure you are trying to include
+does not nest properly; there are certain rules PostScript applications
+should follow when generating files to be included.  The \.{dvips}
+program includes work-arounds for such errors in Adobe Illustrator and
+other programs, but there are certainly applications that haven't
+been tested.
+
+One possible thing to try is the \.{-K} flag, to strip the comments from
+an included figure.  This might be necessary if the PostScript spooling
+software does not read the structuring comments correctly.  Use of this
+flag will break graphics from some applications, though, since some
+applications read the PostScript file from the input stream looking for
+a particular comment.
+
+Any application which generates graphics output containing raw binary
+(not hex) will probably fail with \.{dvips}.
+
+\sub{Can't Find Font Files}
+
+If \.{dvips} complains that it cannot find certain font files, it is
+possible that the paths haven't been set up correctly for your system.
+Use the debug flags to determine precisely what fonts are being looked
+for and make sure these match where the fonts are located on your system.
+
+\sub{Can't Generate Fonts}
+
+This happens a lot if either \.{MakeTeXPK} hasn't been properly edited
+and installed, or if the local installation of \MF\ isn't correct.
+If \.{MakeTeXPK} isn't properly edited or isn't installed, an error
+such as \.{MakeTeXPK not found} will be printed on the console.  The
+fix is to talk to the person who installed \.{dvips} and have them fix
+this.
+
+If \MF\ isn't found when \.{MakeTeXPK} is running, make sure it is installed
+on your system.  The person who installed \TeX\ should be able to install
+\MF\ easily.
+
+If \MF\ runs but generates fonts that are too large (and prints out the
+name of each character as well as just a character number), then your
+\MF\ base file probably hasn't been made properly.  To make a proper
+\.{plain.base}, assuming the local mode definitions are contained in
+\.{local.mf} (on the NeXT, \.{next.mf}; on the Amiga, \.{amiga.mf}),
+type the following command (assuming \.{csh} under UNIX):
+\cmd{localhost> inimf "plain; input local; dump"}
+\noindent
+Now, copy the \.{plain.base} file from the current directory to where
+the base files are stored on your system.
+
+Note that a preloaded \.{cmbase.base} should never be used when creating
+fonts, and a program such as \.{cmmf} should never exist on the system.
+The macros defined in \.{cmbase} will break fonts that do not use
+\.{cmbase}; such fonts include the La\TeX\ fonts.  Loading the \.{cmbase}
+macros when they are needed is done automatically and takes less than a
+second---an insignificant fraction of the total run time of \MF\ for a
+font, especially when the possibility of generating incorrect fonts is
+taken into account.  If you create the La\TeX\ font {\tt circle10},
+for instance, with the \.{cmbase} macros loaded, the characters will
+have incorrect widths.
+
+\sec{Using Color with dvips}
+
+This new feature of \.{dvips} is somewhat experimental so your
+experiences and comments are welcome.  Initially added by Jim Hafner,
+IBM Research, {\tt hafner@almaden.ibm.com}, the color support has
+gone through many changes by Tomas Rokicki.  Besides the changes to the
+source code itself, there are additional
+\TeX\ macro files: \.{colordvi.tex} and \.{blackdvi.tex}.  There are also
+\.{.sty} versions of these files that can be used with La\TeX\ and
+other similar macro packages.  This feature adds one-pass multi-color
+printing of \TeX\ documents on any color PostScript device.
+
+In this section we describe the use of color from the document
+preparer's point of view and then add some simple instructions on
+installation for the system administrator.
+
+\sub{The Macro Files}
+
+All the color macro commands are defined in \.{colordvi.tex} (or
+\.{colordvi.sty}).  To access these macros simply add to the top of your
+\TeX\ file the command
+\cmd{\ttbackslash input colordvi}
+\noindent
+or, if your document uses style files like La\TeX, add the \.{colordvi}
+style option as in 
+\cmd{\ttbackslash documentstyle[12pt,colordvi]\char123article\char125}
+
+There are basically two kinds of color macros, ones for local color
+changes to, say, a few words or even one symbol and one for global
+color changes.  Note that all the color names use a mixed case scheme.
+There are 68 predefined colors, with names taken primarily from the
+Crayola crayon box of 64 colors, and one pair of macros for the user
+to set his own color pattern.  More on this extra feature later. You
+can browse the file \.{colordvi.tex} for a list of the predefined colors.
+The comments in this file also show a rough correspondence between the
+crayon names and PANTONEs.
+
+A local color command is in the form
+\cmd{\ttbackslash ColorName\char123this will print in color\char125}
+\noindent
+Here \.{ColorName} is the name of a predefined color. As this example
+shows, this type of command takes one argument which is the text that
+is to print in the selected color.  This can be used for nested color
+changes since it restores the original color state when it completes.
+For example, suppose you were writing in green and want to switch
+temporarily to red, then blue, back to red and restore green.  Here is
+one way that you can do this:
+\cmd{This text is green but here we are \ttbackslash Red\char123switching 
+to red, \\
+\ttbackslash Blue\char123nesting blue\char125, recovering the 
+red\char125\ and back to \\
+original green.}
+\noindent
+In principle there is no limit to the nesting level, but it is not
+advisable to nest too deep lest you lose track of the color history.
+ 
+The global color command has the form
+\cmd{\ttbackslash textColorName}
+\noindent 
+This macro takes no arguments and immediately changes the default
+color from that point on to the specified color. This of course can be
+overriden globally by another such command or locally by local color
+commands. For example, expanding on the example above, we might have
+\cmd{\ttbackslash textGreen \\
+This text is green but here we are \ttbackslash Red\char123switching 
+to red, \\
+\ttbackslash Blue\char123nesting blue\char125, recovering the 
+red\char125\ and back to \\
+original green.\\
+\ttbackslash textCyan \\
+The text from here on will be cyan unless \\
+\ttbackslash Yellow\char123locally changed to yellow\char125. Now we
+are back to cyan.} 
+ 
+The color commands will even work in math mode and across math mode
+boundaries.  This means that if you have a color before going into
+math mode, the mathematics will be set in that color as well.  More
+importantly however, in alignment environments like \.{\ttbackslash
+halign}, \.{tabular} or \.{eqnarray}, local color commands cannot
+extend beyond the alignment characters.
+ 
+Because local color commands respect only some environment and
+delimiter changes besides their own, care must be taken in setting
+their scope.  It is best not to have then stretch too far.
+ 
+At the present time there are no macros for color environments in
+La\TeX\ which might have a larger range.  This is primarily to keep
+the \TeX\ and La\TeX\ use compatible. 
+
+\sub{User Definable Colors}
+ 
+There are two ways for the user to specify colors not already defined.
+For local changes, there is the command \.{\ttbackslash Color} which
+takes two arguments.  The first argument is a quadruple of numbers
+between zero and one and specifies the intensity of cyan, magenta,
+yellow and black (CMYK) in that order.  The second argument is the
+text that should appear in the given color.  For example, suppose you
+want the words ``this color is pretty'' to appear in a color which is
+50\% cyan, 85\% magenta, 40\% yellow and 20\% black.  You would use
+the command
+\cmd{\ttbackslash Color\char123{.5 .85 .4 .2}\char125\char123 this
+color is pretty\char125}
+
+For global color changes, there is a command \.{\ttbackslash
+textColor} which takes one argument, the CMYK quadruple of relative
+color intensities.  For example, if you want the default color to be
+as above, then the command
+\cmd{\ttbackslash textColor\char123{.5 .85 .4 .2}\char125 \\
+The text from now on will be this pretty color} 
+\noindent
+will do the trick.
+ 
+Making a global color change in the midst of nested local colors is
+highly discouraged.  Consequently, \.{dvips} will give you warning
+message and do its best to recover by discarding the current color
+history.
+
+\sub{Subtleties in Using Color}
+
+These color macros are defined by use of specialized \.{\ttbackslash
+special} keywords.  As such, they are put in the \.{.dvi} file only as
+explicit message strings to the driver.  The (unpleasant)
+result is that certain unprotected regions of the text can have
+unwanted color side effects.  For example, if a color region is split
+by \TeX\ across a page boundary, then the footers of the current page
+(e.g., the page number) and the headers of the next page can inherit
+that color.  To avoid this effect globally, users should make sure
+that these special regions of the text are defined with their own
+local color commands.  For example in \TeX, to protect the header and
+footer, use 
+\cmd{\ttbackslash headline\char123\ttbackslash Black\char123 My
+Header\char125\char125 \\
+\ttbackslash footline\char123\ttbackslash Black\char123 \ttbackslash
+hss\ttbackslash tenrm\ttbackslash folio\ttbackslash hss\char125\char125} 
+
+This warning also applies to figures and other insertions, so be
+careful!
+
+Of course, in La\TeX, this is much more difficult to do because of the
+complexity of the macros that control these regions.  This is
+unfortunate, but is somehow inevitable because \TeX\ and La\TeX\ were
+not written with color in mind.
+
+Even when writing your own macros, much care must be taken.  The
+color macros that `colorize' a portion of the text work by prefixing
+the text with a special command to turn the color on and postfixing it
+with a different special command to restore the original color.
+It is often useful to insure that \TeX\ is in horizontal mode before
+the first special command is issued; this can be done by prefixing the
+color command with {\tt\char92 leavevmode}.
+
+\sub{Printing in Black/White, after Colorizing}
+
+If you have a \TeX\ or La\TeX\ document written with color macros and
+you want to print it in black and white there are two options.  On all
+(good) PostScript devices, printing a color file will print in
+corresponding grey-levels.  This is useful since in this way you can
+get a rough idea of where the colors are changing without using
+expensive color printing devices.  The second option is to replace the
+call to input \.{colordvi.tex} with \.{blackdvi.tex} (and similarly for the
+\.{.sty} files).  So in the above example, replacing the word
+\.{colordvi} with \.{blackdvi} suffices.  This file defines the color macros
+as no-ops, and so will produce normal black/white printing.  By this
+simple mechanism, the user can switch to all black/white printing
+without having to ferret out the color commands.  Also, some device
+drivers, particularly non-PostScript ones like screen previewers, will
+simply ignore the color commands and so print in normal black/white.
+Hopefully, in the future screen previewers for color displays will be
+compatible with some form of color support.
+
+\sub{Configuring dvips for Color Devices}
+
+To configure dvips for a particular color device you need to fine tune
+the color parameters to match your device's color rendition.  To do
+this, you will need a PANTONE chart for your device.  The header file
+\.{color.lpro} shows a (rough) correspondence between the Crayola
+crayon names and the PANTONE numbers and also defines default CMYK
+values for each of the colors.  Note that these colors must be defined
+in CMYK terms and not RGB as \.{dvips} outputs PostScript color
+commands in CMYK.  This header file also defines (if they are not
+known to the interpreter) the PostScript commands \.{setcmykcolor} and
+\.{currentcmykcolor} in terms of a RGB equivalent so if your device
+only understands RGB, there should be no problem.
+
+The parameters set in this file were determined by comparing the
+PANTONE chart of a Tektronics PHASER printer with the actual Crayola
+Crayons.  Because these were defined for a particular device, the
+actual color rendition on your device may be very different.  There
+are two ways to adjust this.  One is to use the PANTONE chart for your
+device to rewrite \.{color.lpro} prior to compilation and
+installation.  A better alternative, which supports multiple devices,
+is to add a header file option in the configuration file for each
+device that defines, in \.{userdict}, the color parameters for those
+colors that need redefining.
+
+For example, if you need to change the parameters defining
+\.{Goldenrod} (approximately PANTONE 109) for your device
+\.{mycolordev}, do the following.  In the PANTONE chart for your
+device, find the CMYK values for PANTONE 109.  Let's say they are
+\.{\char123\ 0 0.10 0.75 0.03 \char125}. Then create a header file
+named \.{mycolordev.pro} with the commands
+\cmd{userdict begin \\
+/Goldenrod \char123\ 0 0.10 0.75 0.03 setcmykcolor\char125\ bind def}
+\noindent
+Finally, in \.{config.mycolordev} add the line 
+\cmd{h mycolordev.pro}
+\noindent
+This will then define \.{Goldenrod} in your device's CMYK values in
+\.{userdict} which is checked before defining it in \.{TeXdict} by
+\.{color.pro}.
+
+This mechanism, together with additions to \.{colordvi.tex} and
+\.{blackdvi.tex} (and the \.{.sty} files), can also be used to predefine
+other colors for your users.
+
+\sub{Protecting Regions From Spurious Colors}
+
+Because color is defined via \TeX's {\tt\ttbackslash special} command,
+it cannot be sensitive to the output routine or certain regions of the
+page like the header and footer.  Consequently, these regions need to
+be protected from spurious color changes (particularly when local
+colors spread across page breaks).
+
+Users need to be aware of the possibility of certain regions getting
+unwanted or unpredicted colors.  Headers and footers are most
+worrisome so style designers who want to use color should keep this in
+mind.
+
+One particular region of text that gets spurious color effects is
+labels in list environments.  For instance, because of the way list
+items are defined in standard La\TeX, the bullet for items that
+start with a different color also gets drawn in that color.
+
+To give the user a simple mechanism to solve this problem (and other
+unforeseen effects of this type) one other special macro is
+automatically defined.  This macro is called {\tt\ttbackslash
+globalColor}.  It is actually a {\it local\/} color macro and so takes
+a single argument.  But the color effect it produces is always the
+same as that set by the {\it last\/} {\tt\ttbackslash textColor} or
+{\tt\ttbackslash textColorName} command.  In effect, when a
+{\tt\ttbackslash textColorName} command is called, {\tt\ttbackslash
+globalColor} gets a new definition equivalent to the local
+{\tt\ttbackslash ColorName} macro.  For example, when the default is
+black, {\tt\ttbackslash globalColor=\ttbackslash Black} and when
+{\tt\ttbackslash textGreen} appears, {\tt\ttbackslash
+globalColor=\ttbackslash Green}.  This special macro can then be used
+to protect sensitive regions of the text.
+
+For example, in La\TeX\ files, one might make sure that the header and
+footers have {\tt\ttbackslash globalColor} wrapping their contents.
+In this way, they will inherit the current active root (unnested)
+color state.
+
+\sub{Color Support Details}
+
+To support color, \.{dvips} recognizes a certain set of specials.
+These specials all start with the keyword \.{color} or the keyword
+\.{background}.
+
+We will describe \.{background} first, since it is the simplest.
+The \.{background} keyword must be followed by a color specification.
+That color specification is used as a fill color for the background.
+The last \.{background} special on a page is the one that gets issued,
+and it gets issued at the very beginning of the page, before any
+text or specials are sent.  (This is possible because the prescan
+phase of \.{dvips} notices all of the color specials so that the
+appropriate information can be written out during the second phase.)
+
+Ahh, but what is a color specification?  It is one of three things.
+First, it might be a PostScript procedure as defined in a PostScript header
+file.  The \.{color.pro} file defines 64 of these, including
+\.{Maroon}.  This PostScript procedure must set the current color to be
+some value; in this case, \.{Maroon} is defined as
+\.{0 0.87 0.68 0.32 setcmykcolor}.
+
+The second possibility is the name of a color model (initially, one of
+\.{rgb}, \.{hsb}, \.{cmyk}, or \.{gray}) followed by the appropriate
+number of parameters.  When \.{dvips} encounters such a macro, it sends
+out the parameters first, followed by the string created by prefixing
+\.{TeXcolor} to the color model.  Thus, the color specification
+\.{rgb 0.3 0.4 0.5} would generate the PostScript code \.{0.3 0.4 0.5
+TeXrgbcolor}.  Note that the case of zero arguments is disallowed, as
+that is handled by the single keyword case above (where no changes to
+the name are made before it is sent to the PostScript file.)
+
+The third and final type of color specification is a double quote followed
+by any sequence of PostScript.  The double quote is stripped from the
+output.  For instance, the color specification \.{"AggiePattern setpattern}
+will set the `color' to the Aggie logo pattern (assuming such exists.)
+
+So those are the three types of color specifications.  The same type of
+specifications are used by both the {\tt background} special and the
+{\tt color} special.  The {\tt color} special itself has three forms.
+The first is just {\tt color} followed by a color specification.  In
+this case, the current global color is set to that color; the color stack
+must be empty when such a command is executed.
+
+The second form is {\tt color push} followed by a color specification.
+This saves the current color on the color stack and sets the color
+to be that given by the color specification.  This is the most common
+way to set a color.
+
+The final version of the {\tt color} special is just {\tt color pop},
+with no color specification; this says to pop the color last pushed
+on the color stack from the color stack and set the current color to
+be that color.
+
+The {\tt dvips} program correctly handles these color specials
+across pages, even when the pages are repeated or reversed.
+
+These color specials can be used for things such as patterns or
+screens as well as simple colors.  However, note that in the
+PostScript, only one `color specification' can be active at a
+time.  For instance, at the beginning of a page, only the
+bottommost entry on the color stack is sent; also, when a color
+is `popped', all that is done is that the color specification
+from the previous stack entry is sent.  No \.{gsave} or \.{grestore}
+is used.  This means that you cannot easily mix usage of the 
+{\tt color} specials for screens and colors, just one or the other.
+This may be addressed in the future by adding support for
+different `categories' of color-like state.
+
+\bye

@@ -291,6 +291,7 @@ static
 int
 sconv(void *o, int f1, int f2, int f3, int chr)
 {
+	USED(chr);
 	strconv(*(char**)o, f1, f2, f3);
 	return PTR;
 }
@@ -301,6 +302,7 @@ cconv(void *o, int f1, int f2, int f3, int chr)
 {
 	char s[2];
 
+	USED(chr);
 	s[0] = *(int*)o;
 	s[1] = 0;
 	strconv(s, f1, f2, f3);
@@ -313,7 +315,7 @@ percent(void *o, int f1, int f2, int f3, int chr)
 {
 	char s[2];
 
-	USED(o);
+	USED(o, chr);
 
 	s[0] = '%';
 	s[1] = 0;
@@ -326,7 +328,7 @@ int
 flags(void *o, int f1, int f2, int f3, int chr)
 {
 
-	USED(o);
+	USED(o, f1, f2, f3);
 
 	switch(chr) {
 	case '+':

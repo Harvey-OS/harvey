@@ -42,7 +42,7 @@ chandevreset(void)
 {
 	int i;
 
-	for(i=0; i<devchar[i]; i++)
+	for(i=0; devchar[i]; i++)
 		(*devtab[i].reset)();
 }
 
@@ -51,7 +51,7 @@ chandevinit(void)
 {
 	int i;
 
-	for(i=0; i<devchar[i]; i++)
+	for(i=0; devchar[i]; i++)
 		(*devtab[i].init)();
 }
 
@@ -67,8 +67,11 @@ newchan(void)
 	c = chanalloc.free;
 	if(c)
 		chanalloc.free = c->next;
-	else
+	else{
 		nfid = ++chanalloc.fid;
+		if(nfid > 50000)
+			panic("too many channels");
+	}
 	unlock(&chanalloc);
 
 	if(c == 0) {
@@ -95,6 +98,10 @@ void
 chanfree(Chan *c)
 {
 	c->flag = CFREE;
+	if(c->session){
+		freesession(c->session);
+		c->session = 0;
+	}
 	lock(&chanalloc);
 	c->next = chanalloc.free;
 	chanalloc.free = c;
@@ -206,6 +213,7 @@ unmount(Chan *mnt, Chan *mounted)
 	Pgrp *pg;
 	Mhead *m, **l;
 	Mount *f, **p;
+	Chan *mc;
 
 	pg = u->p->pgrp;
 	wlock(&pg->ns);
@@ -233,7 +241,8 @@ unmount(Chan *mnt, Chan *mounted)
 
 	p = &m->mount;
 	for(f = *p; f; f = f->next) {
-		if(eqchan(f->to, mounted, 1)) {
+		mc = f->to->mchan;
+		if(eqchan(f->to, mounted, 1) || (mc && eqchan(mc, mounted, 1))) {
 			*p = f->next;
 			f->next = 0;
 			mountfree(f);
@@ -671,20 +680,20 @@ char*
 nextelem(char *name, char *elem)
 {
 	int w;
-	char *end;
+	char *nend;
 	Rune r;
 
 	if(*name == '/')
 		error(Efilename);
-	end = utfrune(name, '/');
-	if(end == 0)
-		end = strchr(name, 0);
-	w = end-name;
+	nend = utfrune(name, '/');
+	if(nend == 0)
+		nend = strchr(name, 0);
+	w = nend-name;
 	if(w >= NAMELEN)
 		error(Efilename);
 	memmove(elem, name, w);
 	elem[w] = 0;
-	while(name < end){
+	while(name < nend){
 		name += chartorune(&r, name);
 		if(r<sizeof(isfrog) && isfrog[r])
 			error(Ebadchar);

@@ -1,9 +1,9 @@
 #include <alef.h>
 
-char*
-strrchr(char *s, char c)
+byte*
+strrchr(byte *s, byte c)
 {
-	char *r;
+	byte *r;
 
 	if(c == 0)
 		return strchr(s, 0);

@@ -1,0 +1,93 @@
+%% 
+%% This is file `Ucmr.fd', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% cmfonts.fdd  (with options: `fd,Ucmr')
+%% 
+%% Copyright (C) 1994 LaTeX3 project, Frank Mittelbach and Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% This is a generated file. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+%% 
+%% If you want to customize this file, it is best to make a copy of the 
+%% source file cmfonts.fdd under a different name and modify this copy. 
+%% Otherwise your changes might get lost when you install a new release 
+%% of LaTeX2e. 
+%% 
+\ProvidesFile{Ucmr.fd}
+        [1994/12/02 v2.3e Standard LaTeX font definitions]
+\DeclareFontFamily{U}{cmr}{}
+\DeclareFontShape{U}{cmr}{m}{n}
+   {  <5> <6> <7> <8> <9> <10> <12> gen * cmr
+      <10.95> cmr10
+      <14.4>  cmr12
+      <17.28><20.74><24.88>cmr17}{}
+\DeclareFontShape{U}{cmr}{m}{sl}
+    {
+      <5><6><7>cmsl8%
+      <8> <9> gen * cmsl
+      <10><10.95>cmsl10%
+      <12><14.4><17.28><20.74><24.88>cmsl12%
+      }{}
+\DeclareFontShape{U}{cmr}{m}{it}
+    {
+      <5><6><7>cmti7%
+      <8>cmti8%
+      <9>cmti9%
+      <10><10.95>cmti10%
+      <12><14.4><17.28><20.74><24.88>cmti12%
+      }{}
+\DeclareFontShape{U}{cmr}{m}{sc}
+    {
+      <5><6><7><8><9><10><10.95><12>
+      <14.4><17.28><20.74><24.88> cmcsc10
+      }{}
+% Warning: please note that the upright shape below is
+%          used for the \pounds symbol of LaTeX. So this
+%          font definition shouldn't be removed.
+%
+\DeclareFontShape{U}{cmr}{m}{ui}
+   {
+      <5><6><7><8><9><10><10.95><12>%
+      <14.4><17.28><20.74><24.88>cmu10%
+      }{}
+%%%%%%% bold series
+\DeclareFontShape{U}{cmr}{b}{n}
+     {
+      <5><6><7><8><9><10><10.95><12>
+      <14.4><17.28><20.74><24.88> cmb10
+      }{}
+%%%%%%%% bold extended series
+\DeclareFontShape{U}{cmr}{bx}{n}
+   {
+      <5> <6> <7> <8> <9> gen * cmbx
+      <10><10.95> cmbx10
+      <12><14.4><17.28><20.74><24.88>cmbx12
+      }{}
+\DeclareFontShape{U}{cmr}{bx}{sl}
+      {
+      <5> <6> <7> <8> <9>
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmbxsl10
+      }{}
+\DeclareFontShape{U}{cmr}{bx}{it}
+      {
+      <5> <6>  <7>  <8> <9>
+      <10> <10.95> <12> <14.4> <17.28> <20.74> <24.88> cmbxti10
+      }{}
+% Again this is necessary for a correct \pounds symbol in
+% the cmr fonts Hopefully the dc/ec font layout will take
+% over soon.
+%
+\DeclareFontShape{U}{cmr}{bx}{ui}
+      {<->ssub * cmr/m/ui}{}
+\endinput
+%% 
+%% End of file `Ucmr.fd'.

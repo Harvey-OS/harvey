@@ -12,18 +12,18 @@ int _PRDbit(PICFILE *f, void *vbuf){
 	if(f->line==0){
 		f->buf=malloc(bwid);
 		if(f->buf==0){
-			_PICerror="Can't allocate buffer";
+			werrstr("Can't allocate buffer");
 			return 0;
 		}
 	}
 	if(f->line==f->height){
-		_PICerror="Read past end of picture";
+		werrstr("Read past end of picture");
 		return 0;
 	}
 	bitp=f->buf;
 	n=_PICread(f->fd, bitp, bwid);
 	if(n<=0){
-		if(n==0) _PICerror="End of file reading picture";
+		if(n==0) werrstr("End of file reading picture");
 		return 0;
 	}
 	ebuf=buf+f->width;
@@ -47,13 +47,13 @@ int _PWRbit(PICFILE *f, void *vbuf){
 		f->buf=malloc(bwid);
 		f->buf[bwid-1]=0;	/* might be a slack byte */
 		if(f->buf==0){
-			_PICerror="Can't allocate buffer";
+			werrstr("Can't allocate buffer");
 			return 0;
 		}
 		_PWRheader(f);
 	}
 	if(f->line==f->height){
-		_PICerror="Write past end of picture";
+		werrstr("Write past end of picture");
 		return 0;
 	}
 	bitp=f->buf;

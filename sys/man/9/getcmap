@@ -13,7 +13,7 @@ int getcmap(char *name, uchar *map)
 .SH DESCRIPTION
 .I Getcmap
 retrieves the named colormap and stores it in
-.I map.
+.IR map .
 Usually
 .I name
 is the name of a colormap file (see
@@ -26,7 +26,7 @@ attribute.  If the file is not found, it is sought in
 If the
 .I file
 cannot be found, and its name has the form
-.BI gamma number,
+.BI gamma number\f1,
 a colormap is fabricated with all three channels of its
 .IR n th
 entry set to
@@ -43,6 +43,8 @@ because
 (in
 .IR read (2))
 can do the job.
+.SH SOURCE
+/sys/src/libfb/getcmap.c
 .SH "SEE ALSO
 .IR cmap (9.6),
 .IR picfile (9.6)

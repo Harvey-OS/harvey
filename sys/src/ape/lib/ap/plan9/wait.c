@@ -1,7 +1,10 @@
 #include "lib.h"
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <errno.h>
+#include <stdio.h>
 #include "sys9.h"
 
 pid_t
@@ -14,9 +17,16 @@ pid_t
 waitpid(int pid, int *stat_loc, int options)
 {
 	int n, i, wfd, r, t, wpid;
-	char *ep;
+	char *bp, *ep, pname[50];
+	struct stat buf;
 	Waitmsg w;
 
+	if(options&WNOHANG){
+		sprintf(pname, "/proc/%d/wait", getpid());
+		i = stat(pname, &buf);
+		if(i >=0 && buf.st_size==0)
+			return 0;
+	}
 	n = 0;
 	while(n==0){
 		n = _WAIT(&w);
@@ -24,7 +34,6 @@ waitpid(int pid, int *stat_loc, int options)
 			_syserrno();
 		}else{
 			wpid = strtol(w.pid, 0, 0);
-			_delcpid(wpid);
 			if(pid>0 && wpid!=pid)
 				continue;
 			n = wpid;
@@ -32,12 +41,20 @@ waitpid(int pid, int *stat_loc, int options)
 				r = 0;
 				t = 0;
 				if(w.msg[0]){
-					r = strtol(w.msg, &ep, 10);
+					/* message is 'prog pid:string' */
+					bp = w.msg;
+					while(*bp){
+						if(*bp++ == ':')
+							break;
+					}
+					if(*bp == 0)
+						bp = w.msg;
+					r = strtol(bp, &ep, 10);
 					if(*ep == 0){
 						if(r < 0 || r >= 256)
 							r = 1;
 					}else{
-						t = _stringsig(w.msg);
+						t = _stringsig(bp);
 						if(t == 0)
 							r = 1;
 					}

@@ -1,0 +1,57 @@
+%Filename: OT1hlcb.fd
+%Created by: tex 2390lucbrigh
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{OT1hlcb.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for OT1/hlcb.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{OT1}{hlcb}{}
+
+\DeclareFontShape{OT1}{hlcb}{db}{n}{
+ <->s * [\LucidaScale]hlcdb7t
+}{}
+
+\DeclareFontShape{OT1}{hlcb}{db}{sc}{
+ <->s * [\LucidaScale]hlcdbc7t
+}{}
+
+\DeclareFontShape{OT1}{hlcb}{db}{it}{
+ <->s * [\LucidaScale]hlcdib7t
+}{}
+
+\DeclareFontShape{OT1}{hlcb}{db}{sl}{
+ <->s * [\LucidaScale]hlcdob7t
+}{}
+
+\DeclareFontShape{OT1}{hlcb}{m}{n}{
+ <->s * [\LucidaScale]hlcrb7t
+}{}
+
+\DeclareFontShape{OT1}{hlcb}{m}{sc}{
+ <->s * [\LucidaScale]hlcrbc7t
+}{}
+
+\DeclareFontShape{OT1}{hlcb}{m}{it}{
+ <->s * [\LucidaScale]hlcrib7t
+}{}
+
+\DeclareFontShape{OT1}{hlcb}{m}{sl}{
+ <->s * [\LucidaScale]hlcrob7t
+}{}
+
+\DeclareFontShape{OT1}{hlcb}{b}{n}{<->ssub * hlcb/db/n}{}
+\DeclareFontShape{OT1}{hlcb}{bx}{n}{<->ssub * hlcb/b/n}{}
+\DeclareFontShape{OT1}{hlcb}{b}{sc}{<->ssub * hlcb/db/sc}{}
+\DeclareFontShape{OT1}{hlcb}{bx}{sc}{<->ssub * hlcb/b/sc}{}
+\DeclareFontShape{OT1}{hlcb}{b}{it}{<->ssub * hlcb/db/it}{}
+\DeclareFontShape{OT1}{hlcb}{bx}{it}{<->ssub * hlcb/b/it}{}
+\DeclareFontShape{OT1}{hlcb}{db}{ui}{<->sub * hlcb/db/it}{}
+\DeclareFontShape{OT1}{hlcb}{b}{ui}{<->ssub * hlcb/db/ui}{}
+\DeclareFontShape{OT1}{hlcb}{bx}{ui}{<->ssub * hlcb/b/ui}{}
+\DeclareFontShape{OT1}{hlcb}{b}{sl}{<->ssub * hlcb/db/sl}{}
+\DeclareFontShape{OT1}{hlcb}{bx}{sl}{<->ssub * hlcb/b/sl}{}
+\DeclareFontShape{OT1}{hlcb}{m}{ui}{<->sub * hlcb/m/it}{}
+
+\endinput

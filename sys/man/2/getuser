@@ -2,16 +2,24 @@
 .SH NAME
 getuser \- get user name
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
 char*	getuser(void)
 .SH DESCRIPTION
 .I Getuser
-returns a pointer to static data which contains the name of the user who
+returns a pointer to static data which contains the
+null-terminated
+name of the user who
 owns the current process.
 .I Getuser
 reads
 .B /dev/user
 to find the name.
+.SH SOURCE
+.B /sys/src/libc/port/getuser.c
 .SH SEE ALSO
 .IR intro (2),
 .IR cons (3)

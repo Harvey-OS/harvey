@@ -1,0 +1,120 @@
+.TH INITEX 1 "31 Jan 1992"
+.ie t .ds TX \fRT\v'+0.25m'E\v'-0.25m'X\fP\" for troff
+.el .ds TX TeX\" for nroff
+.\" to use, type \*(TX
+.SH NAME
+initex \- initial \*(TX
+.SH DESCRIPTION
+.I initex
+is a special version of the \*(TX program that has
+no preloaded macro packages, but is capable of
+converting a macro package into a special
+preformatted binary file, called a
+.I format
+.RI ( .fmt )
+file.  That format file can subsequently be read
+at high speed by
+.IR virtex .
+.PP
+Major macro packages may require \*(TX to process
+many thousands of lines of macros, and open and
+read scores of font files, all of which would
+contribute to a sizable startup overhead if the
+job had to be done every time \*(TX was run.
+.I initex
+allows \*(TX to do the job once, and then save the
+results in a binary format file that can be later
+loaded more rapidly by
+.IR virtex .
+.PP
+.I initex
+is normally required only at the time \*(TX is
+installed, or whenever major macro packages are
+updated.  Thus, it will be rare for anyone but
+system installers to invoke it.  Nevertheless, it
+is just a normal program without special
+privileges, so ordinary users can use it to
+prepare a private format file.
+.PP
+Here is how you can ask
+.I initex
+to prepare format files for several major
+packages:
+.PP
+For plain
+.IR tex :
+.nf
+
+.I initex plain '\\\\dump'
+.I ln plain.fmt tex.fmt
+
+.fi
+The single quotes are necessary to protect
+the backslash from interpretation as a shell
+escape character.
+.PP
+For
+.IR lamstex :
+.nf
+
+.I initex '&tex amstexl \\\\input lamstex \\\\dump'
+.I mv amstexl.fmt lamstex.fmt
+.I rm lamstex.tmp
+
+.fi
+.PP
+For
+.IR latex :
+.nf
+
+.I initex lplain '\\\\dump'
+.I mv lplain.fmt latex.fmt
+
+.fi
+.PP
+For
+.IR slitex :
+.nf
+
+.I initex splain '\\\\dump'
+.I mv splain.fmt slitex.fmt
+
+.fi
+.PP
+For
+.IR amstex :
+.nf
+
+.I initex '&tex' amstex '\\\\dump'
+
+.fi
+The single quotes around the first argument
+protect the ampersand from interpretation as a
+shell background request.
+.PP
+Note that this requires that the format file
+for plain \*(TX be available, since the first
+argument asks for the loading of the file
+.IR tex.fmt .
+.PP
+For
+.IR texinfo :
+.nf
+
+.I initex '&tex' texinfo @dump
+
+.fi
+The last argument is different from the previous
+examples because
+.I texinfo
+redefines the \*(TX escape character from
+backslash to at-sign.  As for
+.IR amstex ,
+the file
+.I tex.fmt
+must already be available.
+.SH "SEE ALSO"
+.nf
+tex (1)
+virtex (1)
+.fi

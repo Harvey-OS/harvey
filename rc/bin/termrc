@@ -1,12 +1,13 @@
 #!/bin/rc
 
-site=plan9
-# default cpu server; edit this to suit
+# default cpu server and site name for mail; edit this to suit
 cpu=kremvax
+site=kremlin
+NPROC=1
 
 # cs sets sysname
 /bin/ndb/cs
-sysname = `{cat /dev/sysname}
+sysname=`{cat /dev/sysname}
 
 switch($terminal){
 case next*
@@ -17,7 +18,7 @@ case next*
 	}
 	/bin/bind -a '#t' /dev >/dev/null >[2=1]
 	/bin/bind -a '#f' /dev >/dev/null >[2=1]
-	aux/mouse -dC 1
+	aux/mouse 1
 	if(test -e /net/tcp/clone) ip/ipconfig
 case *' ss'*
 	/bin/bind -a '#w' /dev >/dev/null >[2=1]
@@ -27,50 +28,57 @@ case *' ss'*
 case *' magnum'*
 	/bin/bind -a '#w' /dev >/dev/null >[2=1]
 	/bin/bind -a '#t' /dev >/dev/null >[2=1]
-	aux/mouse -dC 0
+	aux/mouse 0
+	ip/ipconfig
+	/bin/echo 'add il tcp udp' > /net/cs
+case *' chm'*
+	/bin/bind -a '#t' /dev >/dev/null >[2=1]
 	ip/ipconfig
 	/bin/echo 'add il tcp udp' > /net/cs
 case *' indigo'*
 	/bin/bind -a '#L' /dev >/dev/null >[2=1]
 	/bin/bind -a '#w1' /dev >/dev/null >[2=1]
 	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+	/bin/bind -a '#A' /dev >/dev/null >[2=1]
 	ip/ipconfig
 	/bin/echo 'add il tcp udp' > /net/cs
 case NCR* 'AT&TNSX'* generic*
-	/bin/bind -a '#w' /dev >/dev/null
-	/bin/bind -a '#f' /dev >/dev/null
-	/bin/bind -a '#t' /dev >/dev/null
-	swap /dev/hd0swap > /dev/null >[2=1]
-	vgafile=`{ndb/query sys $sysname vgafile}
-	switch($vgafile){
-	case ''
-		switch($terminal){
-		case *nomad*
-			aux/vga nomad/lcd/640x480x1
-		case NCR* 'AT&TNSX'*
-		 	aux/vga generic/640x480x1
-		}
+	/bin/bind -a '#H' /dev >/dev/null >[2=1]
+	/bin/bind -a '#w' /dev >/dev/null >[2=1]
+	/bin/bind -a '#f' /dev >/dev/null >[2=1]
+	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+	switch($mouseport){
+	case ps2 0 1
+		if(! ~ $monitor '') aux/vga -l $vgasize
+		aux/mouse $mouseport
 	case *
-		aux/vga $vgafile
+		echo -n 'Mouse port is (ps2, 0 (DOS''s COM1), 1 (DOS''s COM2)):'
+		mouseport=`{read}
+		switch($mouseport){
+		case ps2 0 1
+			if(~ $monitor '') monitor=vga
+			aux/vga -l $vgasize
+			aux/mouse $mouseport
+		case *
+			echo Cannot recognize mouse type "$"mouseport"
+		}
 	}
 	/bin/dossrv
-	if(test -e /net/tcp/clone) ip/ipconfig
-	switch($terminal){
-	case *nomad*
-		aux/mouse 0
-	case generic*
-		aux/mouse 1
-	case *
-		aux/mouse ps2
+	if(test -e /net/ether/clone) ip/ipconfig
+	if(test -e /dev/hd0disk){
+		swap /dev/hd0swap  > /dev/null >[2=1]
+		/bin/mount -c /srv/dos /n/c: /dev/hd0disk > /dev/null >[2=1]
 	}
-	/bin/mount -c /srv/dos /n/c: /dev/hd0disk > /dev/null >[2=1]
+	if not if(test -e /dev/sd0disk){
+		swap /dev/sd0swap > /dev/null >[2=1]
+		/bin/mount -c /srv/dos /n/c: /dev/sd0disk > /dev/null >[2=1]
+	}
 case *' gnot'*
 	switch($terminal){
 	case *disk*
 		# non-disk gnot's hang on this
 		/bin/bind -a '#w' /dev >/dev/null >[2=1]
+		swap /dev/sd0swap  > /dev/null >[2=1]
 	}
-	/bin/bind -a '#t' /dev >/dev/null >[2=1]
-case *hobbit*
 	/bin/bind -a '#t' /dev >/dev/null >[2=1]
 }

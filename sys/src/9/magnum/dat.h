@@ -25,6 +25,7 @@ struct Lock
 	ulong	key;			/* semaphore (non-zero = locked) */
 	ulong	pc;
 	void	*upa;
+	ulong	sr;
 };
 
 struct Label
@@ -63,10 +64,6 @@ struct Conf
 	ulong	nimage;		/* number of page cache image headers */
 	ulong	nswap;		/* number of swap pages */
 	ulong	copymode;	/* 0 is copy on write, 1 is copy on reference */
-	ulong	ipif;		/* Ip protocol interfaces */
-	ulong	ip;		/* Ip conversations per interface */
-	ulong	arp;		/* Arp table size */
-	ulong	frag;		/* Ip fragment assemble queue size */
 };
 
 /*
@@ -99,9 +96,14 @@ struct Softtlb
 
 struct Mach
 {
-	int	machno;			/* physical id of processor MUST BE FIRST */
-	Softtlb *stb;			/* Software tlb simulation MUST BE SECOND */
+	/* OFFSETS OF THE FOLLOWING KNOWN BY l.s */
+	int	machno;			/* physical id of processor */
+	Softtlb *stb;			/* Software tlb simulation */
 	ulong	splpc;			/* pc that called splhi() */
+	int	tlbfault;
+	int	tlbpurge;
+
+	/* ordering from here on irrelevant */
 	ulong	ticks;			/* of the clock since boot time */
 	Proc	*proc;			/* current process on this processor */
 	Label	sched;			/* scheduler wakeup */
@@ -112,8 +114,6 @@ struct Mach
 	Proc	*pidproc[NTLBPID];	/* process that owns this tlbpid on this mach */
 	Page	*ufreeme;		/* address of upage of exited process */
 
-	int	tlbfault;		/* this offset known in l.s/utlbmiss() */
-	int	tlbpurge;
 	int	pfault;
 	int	cs;
 	int	syscall;
@@ -121,6 +121,7 @@ struct Mach
 	int	intr;
 	int	nettime;
 
+	/* MUST BE LAST */
 	int	stack[1];
 };
 
@@ -149,8 +150,6 @@ struct User
 	int	(*notify)(void*, char*);
 	void	*ureg;
 	void	*dbgreg;		/* User registers for debugging in proc */
-	ulong	svstatus;
-	ulong	svr1;
 };
 
 /*

@@ -1,0 +1,84 @@
+%% 
+%% This is file `T1cmr.fd', generated 
+%% on <1994/12/18> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% cmfonts.fdd  (with options: `fd,T1cmr')
+%% 
+%% Copyright (C) 1994 LaTeX3 project, Frank Mittelbach and Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% This file is part of LaTeX2e. 
+%% ----------------------------- 
+%% 
+%% This is a generated file. Permission is granted to to customize the 
+%% declarations in this file to serve the needs of your installation. 
+%% However, no permission is granted to distribute a modified version of 
+%% this file under its original name. 
+%% 
+%% If you want to customize this file, it is best to make a copy of the 
+%% source file cmfonts.fdd under a different name and modify this copy. 
+%% Otherwise your changes might get lost when you install a new release 
+%% of LaTeX2e. 
+%% 
+\ProvidesFile{T1cmr.fd}
+        [1994/12/02 v2.3e Standard LaTeX font definitions]
+\DeclareFontFamily{T1}{cmr}{}
+\DeclareFontShape{T1}{cmr}{m}{n}{%
+      <5> <6> <7> <8> <9> gen * dcr
+      <10> <10.95>dcr10
+      <12> <14.4>dcr12
+      <17.28> <20.74> <24.88>dcr17}{}
+\DeclareFontShape{T1}{cmr}{m}{sl}{
+      <5> <6> <7> <8>dcsl8
+      <9>dcsl9
+      <10> <10.95>dcsl10
+      <12> <14.4>dcsl12
+      <17.28> <20.74> <24.88>dcsl17
+      }{}
+\DeclareFontShape{T1}{cmr}{m}{it}{
+      <5> <6> dcti7
+      <7> <8> <9> gen * dcti
+      <10> <10.95>dcti10
+      <12> <14.4>dcti12
+      <17.28> <20.74> <24.88>dcti17
+      }{}
+\DeclareFontShape{T1}{cmr}{m}{sc}{
+      <5> <6> <7> <8> <9> <10> <10.95>dccsc10
+      <12> <14.4>dccsc12
+      <17.28> <20.74> <24.88>dccsc17
+      }{}
+\DeclareFontShape{T1}{cmr}{m}{ui}{
+      <5> <6> dcu7
+      <7> <8> <9> gen * dcu
+      <10> <10.95>dcu10
+      <12> <14.4>dcu12
+      <17.28> <20.74> <24.88>dcu17
+      }{}
+%%%%%%% bold series
+\DeclareFontShape{T1}{cmr}{b}{n}{
+      <5> <6> <7> <8> <9> gen * dcb
+      <10> <10.95>dcb10
+      <12> <14.4>dcb12
+      <17.28> <20.74> <24.88>dcb17
+      }{}
+%%%%%%%% bold extended series
+\DeclareFontShape{T1}{cmr}{bx}{n}{
+      <5> <6> <7> <8> <9> gen * dcbx
+      <10> <10.95>dcbx10
+      <12> <14.4> <17.28> <20.74> <24.88>dcbx12
+      }{}
+\DeclareFontShape{T1}{cmr}{bx}{sl}{
+      <5> <6> <7> <8> <9> gen * dcbxsl
+      <10> <10.95>dcbxsl10
+      <12> <14.4> <17.28> <20.74> <24.88>dcbxsl12
+      }{}
+\DeclareFontShape{T1}{cmr}{bx}{it}{
+      <5> <6> <7> <8> <9> <10> <10.95> dcbxti10
+      <12> <14.4> dcbxti12
+      <17.28> <20.74> <24.88> dcbxti17
+      }{}
+\endinput
+%% 
+%% End of file `T1cmr.fd'.

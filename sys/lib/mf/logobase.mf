@@ -1,0 +1,34 @@
+% Base file  for the METAFONT logo
+logobase:=1;  % when logobase is known, this file has been input
+
+def font_setup =
+ if unknown slant: slant:=0 else: currenttransform:=
+  identity slanted slant yscaled aspect_ratio fi;
+
+ ygap#:=(ht#/13.5u#)*xgap#;              % vertical adjustment
+ ho#:=o#;                                % horizontal overshoot
+ leftstemloc#:=2.5u#+s#;                 % position of left stem
+ barheight#:=.45ht#;                     % height of bar lines
+ py#:=.9px#;                             % vertical pen thickness
+
+ define_pixels(s,u);
+ define_whole_pixels(xgap);
+ define_whole_vertical_pixels(ygap);
+ define_blacker_pixels(px,py);
+ pickup pencircle xscaled px yscaled py;
+ logo_pen:=savepen;
+ define_good_x_pixels(leftstemloc);
+ define_good_y_pixels(barheight);
+ define_corrected_pixels(o);
+ define_horizontal_corrected_pixels(ho); enddef;
+
+def beginlogochar(expr code, unit_width) =
+ beginchar(code,unit_width*u#+2s#,ht#,0);
+ pickup logo_pen enddef;
+
+def super_half(suffix i,j,k) =
+ draw z.i{0,y.j-y.i}
+ ... (.8[x.j,x.i],.8[y.i,y.j]){z.j-z.i}
+ ... z.j{x.k-x.i,0}
+ ... (.8[x.j,x.k],.8[y.k,y.j]){z.k-z.j}
+ ... z.k{0,y.k-y.j} enddef;

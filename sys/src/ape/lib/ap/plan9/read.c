@@ -16,7 +16,7 @@ read(int d, void *buf, size_t nbytes)
 		errno = EBADF;
 		return -1;
 	}
-	if(nbytes == 0)
+	if(nbytes <= 0)
 		return 0;
 	if(buf == 0){
 		errno = EFAULT;
@@ -24,29 +24,19 @@ read(int d, void *buf, size_t nbytes)
 	}
 	f = &_fdinfo[d];
 	noblock = f->oflags&O_NONBLOCK;
-	isbuf = f->flags&FD_BUFFERED;
+	isbuf = f->flags&(FD_BUFFERED|FD_BUFFEREDX);
 	if(noblock || isbuf){
-		if(!isbuf)
+		if(f->flags&FD_BUFFEREDX) {
+			errno = EIO;
+			return -1;
+		}
+		if(!isbuf) {
 			if(_startbuf(d) != 0) {
 				errno = EIO;
 				return -1;
 			}
-		while(f->n == 0 && !f->eof){
-			if(_servebuf(noblock) <= 0 && noblock){
-				errno = EAGAIN;
-				return -1;
-			}
 		}
-		if(f->n == 0 && f->eof){
-			errno = EPIPE;  /* EOF, really */
-			return -1;
-		}
-		n = (f->n > nbytes)? nbytes : f->n;
-		memcpy(buf, f->next, n);
-		if((f->n -= n) <= 0)
-			f->next = f->buf;
-		else
-			f->next += n;
+		n = _readbuf(d, buf, nbytes, noblock);
 	}else{
 		n = _READ(d,  buf, nbytes);
 		if(n < 0)

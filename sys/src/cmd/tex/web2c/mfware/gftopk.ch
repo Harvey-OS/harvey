@@ -3,18 +3,17 @@
 % 09/19/88 Pierre A. MacKay	Version 1.4.
 % 12/02/89 Karl Berry		2.1.
 % 01/20/90 Karl			2.2.
+% (more recent changes in ./ChangeLog)
 % 
-% One major change in output format is incorporated by this change
-% file.  The local gftopk preamble comment is ignored and the 
-% dated METAFONT comment is passed through unaltered.  This
-% provides a continuous check on the origin of fonts in both
-% gf and pk formats.  The program runs silently unless it is given the
-% -v switch in the command line.
-%
+% One major change in output format is made by this change file.  The
+% local gftopk preamble comment is ignored and the dated METAFONT
+% comment is passed through unaltered.  This provides a continuous check
+% on the origin of fonts in both gf and pk formats.  The program runs
+% silently unless it is given the -v switch in the command line.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [0] WEAVE: print changes only
+% [0] WEAVE: print changes only.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 \pageno=\contentspagenumber \advance\pageno by 1
@@ -25,13 +24,12 @@
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [1] Change banner string
+% [1] Change banner string.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@d banner=='This is GFtoPK, Version 2.2' {printed when the program starts}
+@d banner=='This is GFtoPK, Version 2.3' {printed when the program starts}
 @y
-@d banner=='This is GFtoPK, C Version 2.2'
-                                         {printed when the program starts}
+@d banner=='This is GFtoPK, C Version 2.3' {printed when the program starts}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -75,13 +73,13 @@ var @<Globals in the outer block@>@/
 procedure initialize; {this procedure gets things started properly}
   var i:integer; {loop index for initializations}
   begin 
-  setpaths;@/
+  set_paths (GF_FILE_PATH_BIT);@/
   @<Set initial values@>;@/
   end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [5] Eliminate the |final_end| label
+% [5] Eliminate the |final_end| label.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ If the program has to stop prematurely, it goes to the
@@ -92,23 +90,11 @@ procedure initialize; {this procedure gets things started properly}
 @<Labels...@>=final_end;
 @y
 @ This module is deleted, because it is only useful for
-a non-local goto, which we don't use in C.
+a non-local goto, which we can't use in C.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [6]  remove terminal_line_length since there is no dialog
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-@x
-@!line_length=79; {bracketed lines of output will be at most this long}
-@!terminal_line_length=150; {maximum number of characters input in a single
-  line of input from the terminal}
-@y
-@!line_length=79; {bracketed lines of output will be at most this long}
-@z
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [8] have abort() add <nl> to end of msg and eliminate non-local goto
+% [8] Make `abort' end with a newline, and remove the nonlocal goto.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d abort(#)==begin print(' ',#); jump_out;
@@ -120,7 +106,7 @@ a non-local goto, which we don't use in C.
 begin goto final_end;
 end;
 @y
-@d abort(#)==begin verbose := true; print_ln(' ',#); uexit(1);
+@d abort(#)==begin verbose := true; print_ln(#); uexit (1);
     end
 @d bad_gf(#)==abort('Bad GF file: ',#,'!')
 @.Bad GF file@>
@@ -135,12 +121,11 @@ end;
 @y
 @!eight_bits=0..255; {unsigned one-byte quantity}
 @!byte_file=packed file of eight_bits; {files that contain binary data}
-@!UNIX_file_name=packed array [1..FILENAMESIZE] of text_char;
+@!UNIX_file_name=packed array [1..PATH_MAX] of char;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [39] add gf_name, pk_name, cur_name and real_name_of_file
-% 	global vars; also a boolean, gf_file_exists
+% [39] Add globals.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @!gf_file:byte_file; {the stuff we are \.{GFtoPK}ing}
@@ -148,16 +133,13 @@ end;
 @y
 @!gf_file:byte_file; {the stuff we are \.{GFtoPK}ing}
 @!pk_file:byte_file; {the stuff we have \.{GFtoPK}ed}
-@!gf_name,@!pk_name,@!cur_name: UNIX_file_name;
-	{names of input and output files; pascal-style origin from one}
-@!real_name_of_file:packed array[0..FILENAMESIZE] of text_char;
-	{C style origin from zero}
-gf_file_exists, verbose:boolean;
-pk_arg:integer; {where we may be looking for the name of the |pk_file|}
+@!verbose:boolean; {chatter about the conversion?}
+@!pk_arg:integer; {where we may be looking for the name of the |pk_file|}
+@!gf_name: UNIX_file_name;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [40] redo open_gf_file
+% [40] Use paths in open_gf_file.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ To prepare the |gf_file| for input, we |reset| it.
@@ -167,44 +149,50 @@ begin reset(gf_file);
 gf_loc := 0 ;
 end;
 @y
-@ In C, we use the external |test_access| procedure, which also does path
-searching based on the user's environment or the default path.  In the course
-of this routine we also check the command line for the \.{-v} flag, and make
-other checks to see that it is worth running this program at all.
+@ In C, we use the external |test_read_access| procedure, which also
+does path searching based on the user's environment or the default path.
+In the course of this routine we also check the command line for the
+\.{-v} flag, and make other checks to see that it is worth running this
+program at all.
 
-@d read_access_mode=4  {``read'' mode for |test_access|}
-@d write_access_mode=2 {``write'' mode for |test_access|}
-
-@d no_file_path=0    {no path searching should be done}
-@d tex_font_file_path=3  {path specifier for \.{TFM} files}
-@d generic_font_file_path=4  {path specifier for \.{GF} files}
-@d packed_font_file_path=5  {path specifier for \.{PK} files}
+@d usage==abort ('Usage: gftopk [-v] <gf file> [pk file].')
 
 @p procedure open_gf_file; {prepares to read packed bytes in |gf_file|}
-var j:integer;
+var j: integer;
 begin
-    verbose := false; pk_arg :=3;
-    if argc < 2 then abort('Usage: gftopk [-v] <gf file> [pk_file].');
-    argv(1, cur_name);
-    if cur_name[1]=xchr["-"] then begin
-        if argc > 4 then abort('Usage: gftopk [-v] <gf file> [pk_file].');
-        if cur_name[2]=xchr["v"] then begin
-            verbose := true; argv(2, cur_name); incr(pk_arg)
-            end else abort('Usage: gftopk [-v] <gf file> [pk_file].');
-        end;
-    print_ln(banner);@/
-    gf_file_exists := test_access(read_access_mode,generic_font_file_path);
-    if gf_file_exists then begin
-        for j:=1 to FILENAMESIZE do gf_name[j]:=real_name_of_file[j-1];
-        reset(gf_file, gf_name)
-        end
-    else abort('GF file not found.');
-    gf_loc:=0;
+  verbose := false;
+  pk_arg := 3;
+  if (argc < 2) or (argc > 4)
+  then usage;
+
+  argv (1, gf_name);
+  if gf_name[1] = xchr["-"]
+  then begin
+    if gf_name[2]=xchr["v"]
+    then begin
+      verbose := true;
+      argv (2, gf_name);
+      incr (pk_arg)
+    end else
+      usage;
+  end;
+
+  print_ln(banner);@/
+  if test_read_access (gf_name, GFFILEPATH)
+  then begin
+    reset (gf_file, gf_name)
+  end else begin
+    print_pascal_string (gf_name);
+    abort(': GF file not found.');
+  end;
+
+  gf_loc:=0;
 end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [41] and open_pk_file...
+% [41] If the PK filename isn't given on the command line, we construct
+% it from the GF filename.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ To prepare the |pk_file| for output, we |rewrite| it.
@@ -215,45 +203,87 @@ pk_loc := 0 ; pk_open := true ;
 end;
 @y
 procedure open_pk_file; {prepares to write packed bytes in |pk_file|}
-var j,k:integer;
+var dot_pos, slash_pos, last, gf_index, pk_index:integer;
+  @!pk_name: UNIX_file_name;
 begin
-    if argc = pk_arg then argv(argc-1, pk_name)
-    else
-    begin
-	j := FILENAMESIZE; k := 1;@/
-	while (j > 1) and (gf_name[j] <> xchr["/"]) do@/
-	    decr(j);
-	if (gf_name[j]=xchr["/"]) then incr(j); { to avoid picking up the / }
-        print(xchr["["]); print(xchr[" "]);
-	while (j < FILENAMESIZE)
-	    and (not (gf_name[j] = xchr["."]) or 
-                     (gf_name[j] = xchr[" "])) do begin @/
-	    pk_name[k] := gf_name[j];
-            print(xchr[xord[gf_name[j]]]);
-	    incr(j); incr(k)
-	end;
-	while (j < FILENAMESIZE)
-	and not (gf_name[j] = xchr["g"]) do begin @/
- 	    if gf_name[j] = xchr[" "] then abort(' No gf in suffix!');
-	    pk_name[k] := gf_name[j];
-            print(xchr[xord[gf_name[j]]]);
-	    incr(k); incr(j)
-	end;
-        print(xchr[xord[gf_name[j]]]); incr(j); print(xchr[xord[gf_name[j]]]);
-        print(xchr[" "]);print(xchr["-"]);print(xchr[">"]); print(xchr[" "]);
-	pk_name[k] := xchr["p"]; incr(k);
-	pk_name[k] := xchr["k"]; incr(k);
-	pk_name[k] := xchr[" "];
-        for j:=1 to k do print(xchr[xord[pk_name[j]]]);
-        print_ln(xchr["]"])
+  if argc = pk_arg
+  then argv (argc - 1, pk_name)
+  else begin
+    dot_pos := -1;
+    slash_pos := -1;
+    last := 1;
+    
+    {Find the end of |gf_name|.}
+    while (gf_name[last] <> ' ') and (last <= PATH_MAX - 5)
+    do begin
+      if gf_name[last] = '.' then dot_pos := last;
+      if gf_name[last] = '/' then slash_pos := last;
+      incr (last);
     end;
-    rewrite(pk_file,pk_name);
-    pk_loc:=0; pk_open:=true
+    
+    {If no \./ in |gf_name|, use it from the beginning.}
+    if slash_pos = -1 then slash_pos := 0;
+    
+    {Filenames like \.{./foo} will have |dot_pos<slash_pos|.  In that
+     case, we want to move |dot_pos| to the end of |gf_name|.  Similarly
+     if |dot_pos| is still |-1|.}
+    if dot_pos < slash_pos then dot_pos := last - 1;
+    
+    {Copy |gf_name| from |slash_pos+1| to |dot_pos| into |pk_name|.}
+    pk_index := 1;
+    for gf_index := slash_pos + 1 to dot_pos
+    do begin
+      pk_name[pk_index] := gf_name[gf_index];
+      incr (pk_index);
+    end;
+    
+    {Now we are ready to deal with the extension.  Copy everything to
+     the first \.g.  Then add \.{pk}.  This loses on filenames like
+     \.{foo.g300gf}, but no one uses such filenames, anyway.}
+    gf_index := dot_pos + 1;
+    while (gf_index < last) and (gf_name[gf_index] <> 'g')
+    do begin
+      pk_name[pk_index] := gf_name[gf_index];
+      incr (gf_index);
+      incr (pk_index);
+    end;
+    
+    pk_name[pk_index] := 'p';
+    pk_name[pk_index + 1] := 'k';
+    pk_name[pk_index + 2] := ' ';
+  end;
+
+  {Report the filename mapping.}
+  print (xchr[xord['[']]);
+
+  gf_index := 1;
+  while gf_name[gf_index] <> ' ' 
+  do begin
+    print (xchr[xord[gf_name[gf_index]]]);
+    incr (gf_index);
+  end;
+  
+  print (xchr[xord['-']]);
+  print (xchr[xord['>']]);
+
+  pk_index := 1;
+  while pk_name[pk_index] <> ' ' 
+  do begin
+    print (xchr[xord[pk_name[pk_index]]]);
+    incr (pk_index);
+  end;
+  
+  print (xchr[xord[']']]);
+  print_ln (xchr[xord[' ']]);
+  
+  rewrite (pk_file, pk_name);
+  pk_loc := 0;
+  pk_open := true
 end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [46] redefine pk_byte, pk_halfword, pk_three_bytes, and pk_word
+% [46] Redefine pk_byte, pk_halfword, pk_three_bytes, and pk_word.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p procedure pk_byte(a:integer) ;
@@ -335,7 +365,7 @@ end ;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [48] redefine find_gf_length and move_to_byte
+% [48] Redefine find_gf_length and move_to_byte.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p procedure find_gf_length ;
@@ -351,18 +381,19 @@ end ;
 @d find_gf_length==gf_len:=gf_length
 
 @p function gf_length:integer;
-begin zfseek(gf_file, 0, 2); gf_length:=ftell(gf_file);
+begin
+  checked_fseek (gf_file, 0, 2);
+  gf_length := ftell (gf_file);
 end;
 @#
-procedure move_to_byte(n:integer);
-begin zfseek(gf_file, n, 0);
+procedure move_to_byte (n:integer);
+begin checked_fseek (gf_file, n, 0);
 end;
 @z
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [53] make sure that |gf_byte| gets past the comment when not |verbose| 
-% and add do_the_rows to break up huge run of cases
+% [53] Make sure that |gf_byte| gets past the comment when not
+% |verbose|; add do_the_rows to break up huge run of cases.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
    repeat
@@ -374,8 +405,9 @@ end;
      do_the_rows:=false;
      case gf_com of
 @z
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [54] declare |thirty_seven_cases| to avoid breaking yacc
+% [54] Declare |thirty_seven_cases| to help avoid breaking yacc.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d one_sixty_five_cases(#)==sixty_four_cases(#),sixty_four_cases(#+64),
@@ -388,19 +420,7 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [56] break up the first oversized sequence of cases (or yacc breaks)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-@x
-sixty_four_cases(paint_0), eoc, skip0, one_sixty_five_cases(new_row_0) : ;
-@y
-sixty_four_cases(paint_0), eoc, skip0 : ; 
-sixty_four_cases(new_row_0) : ;
-sixty_four_cases(new_row_64) : ;
-thirty_seven_cases(new_row_128) : ;
-@z
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [59] Break up an oversized sequence of cases (or yacc breaks)
+% [59] Break up an oversized sequence of cases for yacc.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 one_sixty_five_cases(new_row_0) : begin
@@ -454,7 +474,7 @@ end ;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [60] add do_the_rows to break up huge run of cases
+% [60] Add do_the_rows to break up huge run of cases.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ A few more locals used above and below:
@@ -468,18 +488,27 @@ end ;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [84] Don't need comment
+% [81] Don't add `GFtoPK 2.3 output from ' to the font comment.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@x
+@d comm_length = 23 {length of |preamble_comment|}
+@d from_length = 6 {length of its |' from '| part}
+@y
+@d comm_length = 0 {length of |preamble_comment|}
+@d from_length = 0 {length of its |' from '| part}
+@z
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [83] Don't do any assignments to |preamble_comment|.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ @<Set init...@>=
 comment := preamble_comment ;
 @y
-@ @<Set init...@>=
-vstrcpy(comment + 1, preamble_comment) ;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [87] Remove the final_end label
+% [86] Remove the final_end label
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 final_end : end .

@@ -1,5 +1,6 @@
 typedef struct File	File;
 typedef struct Node	Node;
+typedef struct OS	OS;
 
 /* a tree for file path's - this mirrors the directory structure */
 struct Node
@@ -10,6 +11,7 @@ struct Node
 	Node	*children;
 	File	*fp;
 	short	depth;
+	char	*longname;
 };
 
 /* OS types */
@@ -19,8 +21,21 @@ enum
 	Tops=		2,
 	Plan9=		3,
 	VM=		4,
-	Unknown=	10,
+	VMS=		5,
+	MVS=		6,
+	NetWare=	7,
+	OS½=		8,
+	TSO=		9,
+	NT=		10,
+	Unknown=	11,
 };
+
+struct OS
+{
+	int	os;
+	char	*name;
+};
+extern OS oslist[];
 
 /* temporary files */
 void	filefree(Node*);
@@ -36,7 +51,7 @@ ulong	tm2sec(Tm);
 /* ftp protocol */
 void	hello(char*);
 void	quit(void);
-void	preamble(int);
+void	preamble(char*);
 void	login(void);
 void	clogin(char *, char *);
 void	nop(void);
@@ -51,11 +66,12 @@ int	removedir(Node*);
 /* misc */
 void*	safecpy(void*, void*, int);
 void	fatal(char*, ...);
-int	seterr(char*);
+int	seterr(char*, ...);
 Node*	extendpath(Node*, char*);
 Node*	newnode(Node*, char*);
 void	uncache(Node*);
 void	invalidate(Node*);
+void	uncachedir(Node*, Node*);
 Node*	newtopsdir(char*);
 void	fixsymbolic(Node*);
 
@@ -65,6 +81,9 @@ extern int os;		/* remote os */
 extern int debug;	/* non-zero triggers debugging output */
 extern int usenlst;
 extern char *nosuchfile;
+extern char *ext;	/* add to names of non-dir files */
+extern int defos;
+extern int quiet;
 
 #define ISCACHED(x) ((x)->d.type)
 #define UNCACHED(x) (x)->d.type = 0

@@ -12,9 +12,9 @@ syscall  \- test a system call
 ]
 .SH DESCRIPTION
 .I Syscall
-makes the
+invokes the system call
 .I entry
-system call with the given arguments.
+with the given arguments.
 It prints the return value and the error string, if there was an error.
 An argument is either an integer constant as in C (its value is passed),
 a string (its address is passed),
@@ -23,7 +23,7 @@ or the literal
 (a pointer to a 1 Kbyte buffer is passed).
 If
 .B -o
-is given, the contents of the 1 Kbyte buffer are printed as a string
+is given, the contents of the 1 Kbyte buffer are printed as a zero-terminated string
 after the system call is done.
 .SH EXAMPLES
 Write a string to standard output
@@ -32,11 +32,13 @@ Write a string to standard output
 syscall write 1 hello 5
 .EE
 .PP
-Print the last system call error string
+Print the name of the file connected to standard input
 .IP
 .EX
-syscall -o errstr buf
+syscall -o fstat 0 buf
 .EE
+.SH SOURCE
+.B /sys/src/cmd/syscall
 .SH "SEE ALSO"
 Section 2 of this manual.
 .SH DIAGNOSTICS

@@ -9,6 +9,8 @@ Bitmap *rdpicfile(PICFILE *f, int ldepth){
 	int nchan=PIC_NCHAN(f);
 	int w=1<<ldepth;
 	int nval=1<<w;
+	int i;
+	uchar lummap[1<<NBIT];
 	Bitmap *b=balloc(Rect(0, 0, wid, hgt), ldepth);
 	char *buf=malloc(wid*nchan);
 	uchar *data=malloc((wid*w+NBIT-1)/NBIT);
@@ -34,6 +36,13 @@ Bitmap *rdpicfile(PICFILE *f, int ldepth){
 	default:
 		lum=0;
 	}
+	if(f->cmap){
+		for(i=0,p=f->cmap;i!=1<<NBIT;i++,p+=3)
+			lummap[i]=((p[0]&255)*299+(p[1]&255)*587+(p[2]&255)*114)/1000;
+	}
+	else{
+		for(i=0;i!=1<<NBIT;i++) lummap[i]=i;
+	}
 	for(ep=error;ep<=eerror;ep++) *ep=0;
 	for(y=0;y!=hgt;y++){
 		cerror=0;
@@ -50,7 +59,7 @@ Bitmap *rdpicfile(PICFILE *f, int ldepth){
 			if(lum)
 				value=((p[0]&255)*299+(p[1]&255)*587+(p[2]&255)*114)/1000;
 			else
-				value=p[0]&255;
+				value=lummap[p[0]&255];
 			value+=ep[0]/16;
 			pv=value<=0?0:value<255?value*nval/256:nval-1;
 			p+=nchan;

@@ -10,7 +10,7 @@ main(int argc, char *argv[]){
 		screen.r.max.x-screen.r.min.x, screen.r.max.y-screen.r.min.y,
 		"m", argv, 0);
 	if(f==0){
-		picerror(argv[0]);
+		perror(argv[0]);
 		exits("can't open picfile");
 	}
 	if(wrpicfile(f, &screen)<0){

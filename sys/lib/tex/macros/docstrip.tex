@@ -1,0 +1,702 @@
+%% 
+%% This is file `docstrip.tex', generated 
+%% on <1994/12/17> with the docstrip utility (2.2i).
+%% 
+%% The original source files were:
+%% 
+%% docstrip.dtx  (with options: `program,stats')
+%% 
+%% Copyright 1994 the LaTeX3 project and the individual authors. 
+%% All rights reserved. For further copyright information see the file 
+%% legal.txt, and any other copyright indicated in this file. 
+%% 
+%% This file is part of the LaTeX2e system. 
+%% ---------------------------------------- 
+%% 
+%% This system is distributed in the hope that it will be useful, 
+%% but WITHOUT ANY WARRANTY; without even the implied warranty of 
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+%% 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% For error reports in case of UNCHANGED versions see bugs.txt. 
+%% 
+%% Please do not request updates from us directly. Distribution is 
+%% done through Mail-Servers and TeX organizations. 
+%% 
+%% You are not allowed to change this file. 
+%% 
+%% You are allowed to distribute this file under the condition that 
+%% it is distributed together with all files mentioned in manifest.txt. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT 
+%% ALLOWED to take money for the distribution or use of either this 
+%% file or a changed version, except for a nominal charge for copying 
+%% etc. 
+
+\def\filename{docstrip.dtx}
+\def\fileversion{2.2i}
+\def\filedate{1994/12/15}
+\def\docdate {1994/06/09}
+
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%% The docstrip program for use with TeX.
+%% Copyright (C) 1989-1991 Frank Mittelbach
+%% Copyright (C) 1992-1994 Johannes Braams, Denys Duchier,
+%%                         Frank Mittelbach
+%% All rights are reserved.
+%%
+\catcode`\@=11
+\newlinechar=`\^^J
+\newtoks\TerminalString
+\newif\ifOff
+\newif\ifGenerate
+\newif\ifContinue
+\newif\ifTerminal
+\newif\ifForlist
+\newif\ifDefault
+\newif\ifMoreFiles \MoreFilestrue
+\newcount\blockLevel \blockLevel\z@
+\newcount\offLevel \offLevel \z@
+\newcount\emptyLines \emptyLines \z@
+\newcount\processedLines   \processedLines  \z@
+\newcount\commentsRemoved  \commentsRemoved \z@
+\newcount\commentsPassed   \commentsPassed  \z@
+\newcount\codeLinesPassed  \codeLinesPassed \z@
+\newcount\NumberOfFiles \NumberOfFiles\z@
+\newcount\TotalprocessedLines   \TotalprocessedLines  \z@
+\newcount\TotalcommentsRemoved  \TotalcommentsRemoved \z@
+\newcount\TotalcommentsPassed   \TotalcommentsPassed  \z@
+\newcount\TotalcodeLinesPassed  \TotalcodeLinesPassed \z@
+\newread\inFile
+\newwrite\outFile
+\newread\ttyin
+\newwrite\ttyout
+\newread\@tempa
+\let\lowestbatchFile\@tempa
+\newread\@tempa \newread\@tempa \newread\@tempa \newread\@tempa
+\newread\@tempa \newread\@tempa \newread\@tempa \newread\@tempa
+\newread\@tempa
+\let\highestbatchFile\@tempa
+\newcount\currbatchFile
+\currbatchFile=\highestbatchFile
+\advance\currbatchFile by -9
+\def\ifToplevel{\relax\ifnum\currbatchFile=\lowestbatchFile
+   \expandafter\iden \else \expandafter\gobble\fi}
+\ifx\undefined\@@input \let\@@input\input\fi
+\def\batchinput#1{%
+   \begingroup
+     \def\batchfile{#1}%
+     \advance\currbatchFile\@ne
+     \ifnum\currbatchFile>\highestbatchFile
+        \errhelp{Only up to ten levels of nesting for
+                 \noexpand\batchinput commands are supported}%
+        \errmessage{Batchfiles too deeply nested}%
+     \fi
+     \processbatchFile
+   \endgroup
+}
+\def\skip@input#1 {}
+\let\input\skip@input
+\def\guardStack{}
+\def\blockHead{}
+\def\Options{}
+\def\lastOption{}
+\def\TrueExpression{TT}
+\def\FalseExpression{TF}
+\def\yes{yes}
+\def\y{y}
+\def\n{n}
+\def\DefaultbatchFile{docstrip.cmd}
+{\catcode`\%=12
+ \gdef\perCent{%}
+ \gdef\DoubleperCent{%% }
+}
+\def^^L{ }
+\def\eltStart{}
+\def\eltEnd{}
+\def\qStop{\qStop}
+\def\pop#1#2{%
+  \ifx#1\empty
+    \Msg{Warning: Found end guard without matching begin}%
+    \let#2\empty
+  \else
+    \def\tmp{\expandafter\popX #1\qStop #1#2}%
+    \expandafter\tmp\fi}
+\def\popX\eltStart #1\eltEnd #2\qStop #3#4{\def#3{#2}\def#4{#1}}
+\def\push#1#2{\expandafter\pushX #1\qStop #1{\eltStart #2\eltEnd}}
+\def\pushX #1\qStop #2#3{\def #2{#3#1}}
+\def\forlist#1:=#2\do#3\od{%
+    \edef\ListCondition{#2}%
+    \Forlisttrue
+    \loop
+      \edef#1{\expandafter\FirstElt\ListCondition,\empty.}%
+      \edef\ListCondition{\expandafter\OtherElts\ListCondition,\empty.}%
+      \ifx#1\empty \Forlistfalse \else#3\fi
+      \ifForlist
+    \repeat}
+\def\FirstElt#1,#2.{#1}
+\def\OtherElts#1,#2.{#2}
+\def\whileswitch#1\fi#2{#1\loop#2#1\repeat\fi}
+\def\showprogress{\let\maybeMsg\message}
+\def\keepsilent{\let\maybeMsg\gobble}
+\showprogress
+\def\Msg{\immediate\write\ttyout}
+\def\iden#1{#1}
+\def\strip#1#2 \gobble{\def #1{#2}}
+\def\@defpar{\par}
+\def\Ask#1#2{%
+    \message{#2}\read\ttyin to #1\ifx#1\@defpar\def#1{}\else
+    \iden{\expandafter\strip\expandafter#1#1\gobble\gobble} \gobble\fi}
+\def\WriteOut#1{\maybeMsg{.}\immediate\write\outFile{#1}}
+\def\OffStart{\Offtrue\advance\offLevel\@ne}
+\def\OffEnd{%
+    \advance\offLevel\m@ne
+    \ifnum\offLevel=\z@
+      \Offfalse
+    \fi}
+\def\gobble#1{}
+\edef\Endinput{\expandafter\gobble\string\\endinput}
+\def\makeOther#1{\catcode`#1=12\relax}
+\ifx\undefined\@@end\else\let\end\@@end\fi
+\def\PropagateValue#1\qStop{%
+  \edef\ExpressionValue{#1}}
+\def\ContinueExpression#1{%
+  \if\ExpressionValue
+  \else
+    \def\ExpressionValue{#1}%
+  \fi
+  \futurelet\nextToken\ContinueExpressionX}
+\def\ContinueExpressionX{%
+  \ifx|\nextToken
+    \def\doNext|{\Primary}%
+  \else
+    \ifx,\nextToken
+      \def\doNext,{\Primary}%
+    \else
+      \edef\doNext){\endgroup\noexpand\PropagateValue{\ExpressionValue}}
+    \fi
+  \fi
+  \doNext}
+\def\ContinuePrimary#1{%
+  \if\ExpressionValue
+    \def\ExpressionValue{#1}%
+  \fi
+  \futurelet\nextToken\ContinuePrimaryX}
+{\catcode`\&=12
+\gdef\ContinuePrimaryX{%
+  \ifx&\nextToken
+    \def\doNext&{\Secondary}%
+  \else
+    \edef\doNext{\endgroup\noexpand\PropagateValue{\ExpressionValue}}%
+  \fi
+  \doNext}}
+\def\PropagateNegatedValue#1{%
+  \edef\doNext{\endgroup
+    \noexpand\PropagateValue
+    {\if#1%
+       \noexpand\FalseExpression
+     \else
+       \noexpand\TrueExpression
+     \fi}}%
+  \doNext}
+\def\Evaluate#1{%
+  \Expression(#1)\qStop}
+\def\Expression({%
+  \begingroup
+    \let\ExpressionValue\FalseExpression
+    \let\PropagateValue\ContinueExpression
+    \Primary}
+\def\Primary{%
+  \begingroup
+    \let\ExpressionValue\TrueExpression
+    \let\PropagateValue\ContinuePrimary
+    \Secondary}
+\def\Secondary{%
+  \futurelet\nextToken\SecondaryX}
+\def\SecondaryX{%
+  \ifx\nextToken(\let\doNext\Expression\else
+  \ifx\nextToken!\let\doNext\Negate\else
+                 \let\doNext\Terminal\fi\fi
+  \doNext}
+\def\Negate!{%
+  \begingroup
+    \let\PropagateValue\PropagateNegatedValue
+    \Secondary}
+\def\Terminal{%
+  \global\TerminalString{}\TerminalX}
+\def\TerminalX#1{%
+  \global\TerminalString\expandafter{\the\TerminalString#1}%
+  \futurelet\nextToken\TerminalXX}
+{\catcode`\&=12
+\gdef\TerminalXX{%
+  \Terminalfalse
+  \ifx &\nextToken \else
+  \ifx |\nextToken \else
+  \ifx ,\nextToken \else
+  \ifx !\nextToken \else
+  \ifx (\nextToken \else
+  \ifx )\nextToken \else
+    \Terminaltrue
+  \fi\fi\fi\fi\fi\fi
+  \ifTerminal
+    \let\doNext\TerminalX
+  \else
+    \edef\doNext{\noexpand\SetValue{\the\TerminalString}}%
+    \global\TerminalString{}%
+  \fi
+  \doNext}
+}
+\def\SetValue#1{%
+  \def\tmp##1,#1,##2\qStop{%
+    \def\tmp{##2}%
+    \edef\doNext{\noexpand\PropagateValue
+      {\ifx\tmp\empty\FalseExpression\else\TrueExpression\fi}}%
+    \doNext}%
+  \expandafter\tmp\expandafter,\Options,#1,\qStop}
+\def\copyLine#1\endLine{%
+  \advance\codeLinesPassed\@ne
+  \WriteOut{#1}}
+\def\removeLine#1\endLine{%
+    \maybeMsg{\perCent}}
+\def\removeComment#1\endLine{%
+    \advance\commentsRemoved\@ne
+    \maybeMsg{\perCent}}
+\def\putMetaComment#1\endLine{%
+  \closeOption%
+  \advance\commentsPassed\@ne
+  \WriteOut{\inLine}}
+\def\processLine{%
+  \advance\processedLines\@ne
+  \futurelet\nextToken\processLineX}
+\begingroup
+\catcode`\%=12 \catcode`\#=14
+\gdef\processLineX{#
+  \ifx%\nextToken
+    \let\doNext\processLineXX
+  \else
+    \closeOption
+    \ifOff
+      \let\doNext\removeLine
+    \else
+      \let\doNext\copyLine
+    \fi
+  \fi
+  \doNext}
+\endgroup
+\def\processLineXX#1{%
+  \futurelet\nextToken\processLineXXX}
+\begingroup
+\catcode`\%=12 \catcode`\#=14
+\gdef\processLineXXX{#
+  \ifx%\nextToken \let\doNext\putMetaComment \else
+  \ifx<\nextToken \let\doNext\checkOption    \else
+             \closeOption
+             \let\doNext\removeComment  \fi\fi
+  \doNext}
+\endgroup
+\def\checkOption<{%
+  \futurelet\nextToken\checkOptionsX}
+\def\checkOptionsX{%
+  \ifx*\nextToken \let\doNext\starOption  \else
+  \ifx/\nextToken \let\doNext\slashOption \else
+  \ifOff          \let\doNext\removeLine  \else
+  \ifx+\nextToken \let\doNext\plusOption  \else
+  \ifx-\nextToken \let\doNext\minusOption \else
+                  \let\doNext\doOption    \fi\fi\fi\fi\fi
+  \doNext}
+\def\closeOption{%
+  \ifx\lastOption\empty\else
+    \maybeMsg{>}\let\lastOption\empty\fi}
+\def\doOption#1>{%
+  \testOption{}{#1}%
+  \if\ExpressionValue \expandafter\copyLine
+  \else         \expandafter\removeLine \fi}
+\def\plusOption+#1>{%
+  \testOption+{#1}%
+  \if\ExpressionValue \expandafter\copyLine
+  \else         \expandafter\removeLine \fi}
+\def\minusOption-#1>{%
+  \testOption-{#1}%
+  \if\ExpressionValue \expandafter\removeLine
+  \else         \expandafter\copyLine \fi}
+\def\starOption*#1>{%
+  \closeOption
+  \maybeMsg{<*#1}%
+  \expandafter\push\expandafter\guardStack\expandafter{\blockHead}%
+  \advance\blockLevel\@ne
+  \def\blockHead{#1}%
+  \ifOff
+    \advance\offLevel\@ne
+  \else
+    \Evaluate{#1}%
+    \if\ExpressionValue\else\OffStart\fi
+  \fi
+  \removeLine}
+\def\slashOption/#1>{%
+  \def\tmp{#1}%
+  \ifnum\blockLevel<\@ne
+    \errmessage{Spurious end block </\tmp> ignored}%
+  \else
+    \ifx\tmp\blockHead
+      \pop\guardStack\blockHead
+    \else
+      \errmessage{Found </\tmp> instead of <*\blockHead>}%
+    \fi
+    \maybeMsg{>}%
+    \advance\blockLevel\m@ne
+    \ifOff\OffEnd\fi
+  \fi
+  \removeLine}
+\def\testOption#1#2{%
+  \def\tmp{#2}%
+  \ifx\tmp\empty
+    \errmessage{Missing option expression!}%
+    \def\tmp{MISSING OPTION}%
+  \else
+    \def\tmp{<#1#2}%
+  \fi
+  \ifx\tmp\lastOption
+  \else
+    \closeOption
+    \let\lastOption\tmp
+    \maybeMsg{\lastOption}%
+    \Evaluate{#2}%
+  \fi}
+\def\generateFile#1#2#3{{%
+  \Msg{^^JGenerating file \WriteToDir#1^^J}%
+  \Generatetrue
+  \def\tmp{#2}\def\t{t}%
+  \ifx\tmp\t
+    \immediate\openin\inFile\WriteToDir#1\relax
+    \ifeof\inFile\else
+      \Ask\answer{File \WriteToDir#1 already exists
+                  \ifx\@empty\WriteToDir somewhere \fi
+                  on the system.^^J%
+                  Overwrite it%
+                  \ifx\@empty\WriteToDir\space if necessary\fi
+                  ? [y/n]}%
+      \ifx\y  \answer \Generatetrue \else
+      \ifx\yes\answer \Generatetrue \else
+                      \Generatefalse\fi\fi\fi
+    \immediate\closein\inFile
+  \fi
+  \ifGenerate
+    \def\outFileName{#1}%
+    \def\from##1##2{\WriteOut{\DoubleperCent ##1 \if>##2>\else
+                              \space (with options: `##2')\fi}}%
+    \edef\ReferenceLines{%
+        \WriteOut{\DoubleperCent ^^J%
+                  \DoubleperCent The original source files were:^^J%
+                  \DoubleperCent }%
+        #3}%
+    \def\from##1##2{\edef\inFileName{\inFileName##1\space}}
+    \def\inFileName{}#3
+    \def\from##1##2{\def\inFileName{##1}%
+                    \edef\Options{##2}%
+                    \generateFileX}%
+    \immediate\openout\outFile\WriteToDir#1\relax
+    \WritePreamble
+    #3%
+    \WritePostamble
+    \immediate\closeout\outFile
+    \let\ReferenceLines\OriginalRefs
+  \else
+    \Msg{Not generating file #1^^J}%
+  \fi}}
+\ifx\@currdir\@undefined
+  \def\WriteToDir{}
+\else
+  \let\WriteToDir\@currdir
+\fi
+\def\include#1{\def\Options{#1}}
+\def\processFile#1#2#3#4{%
+  \generateFile{#1.#3}{#4}{\from{#1.#2}{\Options}}}
+\def\processfile{\Msg{%
+    ^^Jplease use \string\processFile\space instead of
+       \string\processfile!^^J}%
+    \processFile}
+\def\generatefile{\Msg{%
+    ^^Jplease use \string\generateFile\space instead of
+      \string\generatefile!^^J}%
+    \generateFile}
+\def\generateFileX{{%
+  \Msg{Processing File \inFileName
+       \ifx\Options\empty\else\space(\Options)\fi
+       \space -> \outFileName^^J}%
+  \immediate\openin\inFile\inFileName\relax
+  \ifeof\inFile
+    \errmessage{Cannot find file \inFileName}%
+  \else
+    \makeOther\ \makeOther\\\makeOther\$%
+    \makeOther\#\makeOther\^\makeOther\^^K%
+    \makeOther\_\makeOther\^^A\makeOther\%%
+    \makeOther\~\makeOther\{\makeOther\}\makeOther\&%
+    \endlinechar-1\relax
+    \loop
+      \read\inFile to\inLine
+      \ifx\inLine\Endinput
+        \Msg{File \inFileName\space ended by \string\endinput.}%
+        \Continuefalse
+      \else
+       \ifeof\inFile
+         \Continuefalse
+       \else
+         \Continuetrue
+         \ifx\inLine\empty
+            \advance\emptyLines\@ne
+          \else
+            \emptyLines\z@
+          \fi
+          \ifnum \emptyLines<2
+            \expandafter\processLine\inLine\endLine
+          \else
+            \maybeMsg{/}%
+          \fi
+       \fi
+      \fi
+    \ifContinue
+    \repeat
+    \closeOption
+    \immediate\closein\inFile
+    \Msg{Lines \space processed: \the\processedLines^^J%
+         Comments removed: \the\commentsRemoved^^J%
+         Comments \space passed: \the\commentsPassed^^J%
+         Codelines passed: \the\codeLinesPassed^^J}%
+      \global\advance\TotalprocessedLines  by \processedLines
+      \global\advance\TotalcommentsRemoved by \commentsRemoved
+      \global\advance\TotalcommentsPassed  by \commentsPassed
+      \global\advance\TotalcodeLinesPassed by \codeLinesPassed
+      \global\advance\NumberOfFiles by \@ne
+    \fi}}
+\def\WritePreamble{%
+    \WriteOut{%
+        \DoubleperCent ^^J%
+        \DoubleperCent This is file `\outFileName', generated %
+                        on <\the\year/\the\month/\the\day> ^^J%
+        \DoubleperCent with the docstrip utility (\fileversion).%
+             }%
+    \ReferenceLines
+    \WriteOut{%
+        \DoubleperCent ^^J%
+        \DoubleperCent IMPORTANT NOTICE:^^J%
+        \DoubleperCent You are not allowed to distribute this file.^^J%
+        \DoubleperCent For distribution of the original source see^^J%
+        \DoubleperCent the copyright notice in the file \inFileName.^^J%
+        \DoubleperCent }}
+\def\OriginalRefs{%
+    \WriteOut{\DoubleperCent }%
+    \WriteOut{\DoubleperCent The original source file was
+              `\inFileName'.}%
+    \ifx\Options\empty\else
+        \WriteOut{\DoubleperCent Included options: `\Options'.}\fi
+    \WriteOut{\DoubleperCent }}
+\let\ReferenceLines\OriginalRefs
+\def\WritePostamble{%
+    \WriteOut{\string\endinput}%
+    \WriteOut{\DoubleperCent ^^J%
+              \DoubleperCent End of file `\outFileName'.}}
+\def\preamble{\begingroup
+    \def\tmp{\par}%
+    \def\Endpreamble{\endpreamble}%
+    \Continuetrue
+    \let\inFileName\relax
+    \let\outFileName\relax
+    \let\ReferenceLines\relax
+    \gdef\WritePreamble{%
+        \WriteOut{\DoubleperCent ^^J%
+                  \DoubleperCent This is file `\outFileName',
+                                 generated ^^J%
+                  \DoubleperCent on <\the\year/\the\month/\the\day> with
+                                 the docstrip utility (\fileversion).}%
+        \ReferenceLines}%
+    \loop
+        \read\currbatchFile to \batchLine
+        \ifx\batchLine\Endpreamble \Continuefalse
+        \else
+            \xdef\WritePreamble{%
+                \WritePreamble
+                \WriteOut{\DoubleperCent
+                          \ifx\batchLine\tmp\else\batchLine\fi}}%
+        \fi
+    \ifContinue\repeat
+    \endgroup}
+\def\postamble{\begingroup
+    \Continuetrue
+    \def\Endpostamble{\endpostamble}%
+    \def\tmp{\par}%
+    \gdef\WritePostamble{}%
+    \loop
+        \read\currbatchFile to \batchLine
+        \ifx\batchLine\Endpostamble \Continuefalse
+        \else
+            \xdef\WritePostamble{%
+               \WritePostamble
+               \WriteOut{\DoubleperCent
+                         \ifx\batchLine\tmp\else\batchLine\fi}}%
+        \fi
+    \ifContinue\repeat
+    \endgroup}
+\def\processbatchFile{%
+    \ifx\undefined\batchfile
+      \let\batchfile\DefaultbatchFile
+      \Defaulttrue
+    \else
+      \Defaultfalse
+    \fi
+    \openin\currbatchFile \batchfile\relax
+    \ifeof\currbatchFile
+      \ifDefault
+      \else
+        \Msg{**************************************************^^J%
+             * Could not find your \string\batchfile=\batchfile^^J%
+             * Try to continue without it^^J%
+             **************************************************}%
+      \fi
+    \else
+      \ifDefault
+        \Msg{**************************************************^^J%
+             * Batchfile \DefaultbatchFile\space found Use it? (y/n)?}%
+        \Ask\answer{%
+             **************************************************}%
+      \else
+        \let\answer\y
+      \fi
+      \ifx\answer\y
+        \Continuetrue
+        \let\endinput\Continuefalse
+        \loop
+          \ifeof\currbatchFile
+            \Continuefalse
+          \else
+            \read\currbatchFile to \batchLine
+            \batchLine
+          \fi
+        \ifContinue \repeat
+      \fi
+    \fi}
+\def\ReportTotals{%
+  \ifnum\NumberOfFiles>\@ne
+    \Msg{Overall statistics:^^J%
+         Files \space processed: \the\NumberOfFiles^^J%
+         Lines \space processed: \the\TotalprocessedLines^^J%
+         Comments removed: \the\TotalcommentsRemoved^^J%
+         Comments \space passed: \the\TotalcommentsPassed^^J%
+         Codelines passed: \the\TotalcodeLinesPassed}%
+  \fi}
+\def\SetFileNames{%
+    \edef\inFileName{\MainFileName.\infileext}%
+    \edef\outFileName{\MainFileName.\outfileext}}
+\def\CheckFileNames{%
+    \ifx\inFileName\outFileName
+      \Msg{^^J%
+     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!^^J%
+     ! It is not possible to read from and write to the same file !^^J%
+     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!^^J}%
+      \Continuefalse
+    \else
+      \Continuetrue
+      \immediate\openin\inFile \inFileName\relax
+      \ifeof\inFile
+        \Msg{^^J%
+              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!^^J%
+              ! Your input file `\inFileName' was not found !^^J%
+              !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!^^J}%
+        \Continuefalse
+      \else
+        \immediate\closein\inFile
+        \immediate\openin\inFile\WriteToDir \outFileName\relax
+        \ifeof\inFile
+          \Continuetrue
+        \else
+          \Continuefalse
+          \Ask\answer{File \WriteToDir\outFileName\space already
+                      exists
+                      \ifx\@empty\WriteToDir somewhere \fi
+                      on the system.^^J%
+                      Overwrite it%
+                      \ifx\@empty\WriteToDir\space if necessary\fi
+                      ? [y/n]}%
+          \ifx\y  \answer \Continuetrue \else
+          \ifx\yes\answer \Continuetrue \else
+          \fi\fi
+        \fi
+      \fi
+    \fi
+    \immediate\closein\inFile}
+\def\interactive{%
+  \whileswitch\ifMoreFiles\fi%
+   {\begingroup
+      \AskQuestions
+      \forlist\MainFileName:=\filelist
+      \do
+        \SetFileNames
+        \CheckFileNames
+        \ifContinue
+          \immediate\openout\outFile\WriteToDir\outFileName\relax
+          \WritePreamble
+          \generateFileX
+          \WritePostamble
+          \immediate\closeout\outFile
+        \fi%
+      \od
+    \endgroup
+    \Ask\answer{More files to process (y/n)?}%
+    \ifx\y  \answer\MoreFilestrue \else
+    \ifx\yes\answer\MoreFilestrue \else
+                   \MoreFilesfalse\fi\fi
+   }}
+\def\AskQuestions{%
+    \Msg{^^J%
+         ****************************************************}%
+    \Ask\infileext{%
+         * First type the extension of your input file(s): \space  *}%
+    \Msg{****************************************************^^J^^J%
+         ****************************************************}%
+    \Ask\outfileext{%
+         * Now type the extension of your output file(s) \space: *}%
+    \Msg{****************************************************^^J^^J%
+         ****************************************************}%
+    \Ask\Options{%
+       * Now type the name(s) of option(s) to include \space\space: *}%
+    \Msg{****************************************************^^J^^J%
+         ****************************************************^^J%
+       * Finally give the list of input file(s) without \space\space*}%
+    \Ask\filelist{%
+         * extension seperated by commas if necessary %
+                                  \space\space\space\space: *}%
+    \Msg{****************************************************^^J}}%
+\Msg{Utility: `docstrip' \fileversion\space <\filedate>^^J%
+     English documentation \space\space\space <\docdate>}%
+\Msg{^^J%
+     **********************************************************^^J%
+     * This program converts documented macro-files into fast *^^J%
+     * loadable files by stripping off (nearly) all comments! *^^J%
+     **********************************************************^^J}%
+\processbatchFile
+  \ifnum\NumberOfFiles=\z@
+    \interactive
+  \fi
+\ReportTotals
+\end
+\endinput
+%% 
+%% End of file `docstrip.tex'.

@@ -1,0 +1,204 @@
+%% BEGIN tvz-user.sty
+%% 93/04/01
+
+\input tvz-hax.sty
+
+\def\papersizeadjust{%
+  \@tempdima=\paperwidth\relax
+  \advance\@tempdima-8.5in
+  \divide\@tempdima 2
+  \advance\oddsidemargin\@tempdima
+  \advance\evensidemargin\@tempdima
+  \@tempdima=\paperheight
+  \advance\@tempdima-11in
+  \divide\@tempdima 2
+  \advance\topmargin\@tempdima}
+
+\begingroup
+  \catcode`\"=\active
+  \gdef\ShortVerb{%
+    \catcode`\"=\active
+    \def"{\Verb"}}%
+  \gdef\DeleteShortVerb{\catcode`\"=12\relax}
+\endgroup
+
+% Paragraphs are marked by large space rather than indentation:
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{7pt plus 1pt minus 1pt}
+
+% Reduce \topsep:
+\def\@listI{%
+  \leftmargin\leftmargini
+  \parsep 5\p@ plus2.5\p@ minus\p@
+  %\topsep 10\p@ plus4\p@ minus6\p@
+  \topsep 5\p@ plus2\p@ minus2\p@
+  \itemsep 5\p@ plus2.5\p@ minus\p@}
+\let\@listi\@listI
+\@listi
+\def\@listii{%
+  \leftmargin\leftmarginii
+  \labelwidth\leftmarginii
+  \advance\labelwidth-\labelsep
+  %\topsep 5\p@ plus2.5\p@ minus\p@
+  \topsep 2\p@ plus.5\p@ minus\p@
+  \parsep 2.5\p@ plus\p@ minus\p@
+  \itemsep \parsep}
+\def\@listiii{%
+  \leftmargin\leftmarginiii
+  \labelwidth\leftmarginiii
+  \advance\labelwidth-\labelsep
+  %\topsep 2.5\p@ plus\p@ minus\p@
+  \topsep 1\p@ plus.2\p@ minus.2\p@
+  \parsep \z@
+  \partopsep \p@ plus\z@ minus\p@
+  \itemsep \topsep}
+
+\skip\footins 20pt plus 4pt minus 2pt
+
+%%%%%%%%%%%%%%%%%%%%%%% Special hacks for User's Guides %%%%%%%%%%%%%%%%%%%%%
+%%
+%% Listing questions
+\newcounter{faq}[section]
+\def\thefaq{\arabic{faq}}
+\let\l@faq\@gobbletwo
+\def\faq{\@startsection{faq}{2}{\z@}%
+  {3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}{\faqfont}}
+\def\faqfont{\normalsize\sf}
+\def\faqmark#1{}
+%%
+%% Listing errors
+\def\error{\vskip 2ex\noindent}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\@ifundefined{AmSTeX}
+   {\def\AmSTeX{\leavevmode\hbox{$\cal A\kern-.2em\lower.376ex%
+        \hbox{$\cal M$}\kern-.2em\cal S$-\TeX}}}{}
+\@ifundefined{BibTeX}
+   {\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em%
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}}{}
+\@ifundefined{SliTeX}
+   {\def\SliTeX{{\rm S\kern-.06emL\kern-.18em\raise.32ex\hbox
+                {\sc i}\kern -.03em\TeX}}}{}
+\@ifundefined{PlainTeX}{\def\PlainTeX{{\sc Plain}\kern2pt\TeX}}{}
+
+%%%%%%%%%%%%%%% Special indexing for User's Guides %%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%
+\@ifundefined{actualchar}{\def\actualchar{@}}{}
+\@ifundefined{quotechar}{\def\quotechar{"}}{}
+\@ifundefined{levelchar}{\def\levelchar{!}}{}
+\@ifundefined{encapchar}{\def\encapchar{|}}{}
+\@ifundefined{verbatimchar}{\def\verbatimchar{+}}{}
+%%
+%% These are the indexing commands:
+%%
+%% Commands:       \MainIndex        \UsageIndex
+%% Environments:   \MainEnvIndex     \UsageEnvIndex
+%% Style options:  \MainOptionIndex  \UsageOptionIndex
+%% Counters:       \MainCntIndex     \UsageCntIndex
+\def\@Index#1{\@bsphack\index{#1}\@esphack}
+\def\Index#1#2{%
+  \@bsphack
+  \index{\expandafter\@gobble\string#2\actualchar\string
+  \verb\quotechar*\verbatimchar\string#2\verbatimchar
+  \encapchar #1}}
+{\catcode`\!=0 !catcode`!\=12!gdef!special@gobble#1{!if\#1!else#1!fi}}
+\def\MainIndex{\Index{main}}
+\def\UsageIndex{\Index{usage}}
+\def\SpecialIndex#1#2#3{%
+  \@Index{#3\actualchar{\tt #3} (#1)\encapchar #2}%
+  \@Index{#1s:\levelchar{\tt #3}\encapchar #2}}
+\def\MainEnvIndex{\SpecialIndex{environment}{main}}
+\def\UsageEnvIndex{\SpecialIndex{environment}{usage}}
+\def\MainOptionIndex{\SpecialIndex{option}{main}}
+\def\UsageOptionIndex{\SpecialIndex{option}{usage}}
+\def\MainCntIndex{\SpecialIndex{counter}{main}}
+\def\UsageCntIndex{\SpecialIndex{counter}{usage}}
+%%
+%% Font for index page numbers:
+\def\main#1{{\bf #1}}
+\def\usage#1{{#1}}
+%%
+%% These combine various functions:
+%%
+%% Commands:       \Main        \Usage
+%% Environments:   \MainEnv     \UsageEnv
+%% Style options:  \MainOption  \UsageOption
+%% Counters:       \MainCnt     \UsageCnt
+%%
+%% The "Main" ones
+%%   * Index argument.
+%%   * Print argument with \MainFont
+%%   * Create label +foo, e+foo or o+foo.
+%%
+%% The "Usage" ones
+%%   * Index argument.
+%%   * Print argument with \UsageFont.
+%%
+\def\SpecialLabel#1#2+{\label{+#2}}
+\def\LabelIndex#1{\MainIndex{#1}\expandafter\SpecialLabel\string#1+}
+\def\Main#1{%
+  \MainIndex{#1}%
+  \expandafter\SpecialLabel\string#1+%
+  {\MainFont\string#1}}
+\def\Usage#1{\UsageIndex{#1}{\UsageFont\string#1}}
+\def\MainEnv#1{%
+  \MainEnvIndex{#1}%
+  \label{e+#1}%
+  {\MainFont #1}}
+\def\UsageEnv#1{\UsageEnvIndex{#1}{\UsageFont #1}}
+\def\MainOption#1{%
+  \MainOptionIndex{#1}%
+  \label{o+#1}%
+  {\MainFont #1}}
+\def\UsageOption#1{\UsageOptionIndex{#1}{\UsageFont #1}}
+\def\MainCnt#1{%
+  \MainCntIndex{#1}%
+  \label{c+#1}%
+  {\MainFont #1}}
+\def\UsageCnt#1{\UsageCntIndex{#1}{\UsageFont #1}}
+%%
+%% These are abbreviations.
+%%
+\def\N{\Main}
+\def\n{\Usage}
+\def\E{\MainEnv}
+\def\e{\UsageEnv}
+\def\O{\MainOption}
+\def\o{\UsageOption}
+\def\C{\MainCnt}
+\def\c{\UsageCnt}
+%%
+%% This is for listing commands in a description environment.
+\def\xitem#1{\item[\Main{#1}]}
+%%
+%%
+\renewcommand{\EveryVerbatimLine}[2]{}
+\VerbatimFootnotes
+
+%% User's guide and documented code have different index prologue.
+\def\PrintUserIndex{{\let\ps@plain\@empty\@input{\jobname.ind}}}
+
+\begingroup
+  \catcode`\<=1 \catcode`\>=2
+  \catcode`\{=13 \catcode`\}=12
+  \catcode`\[=13
+  \gdef\@MD<%
+    \catcode`\{=13 \catcode`\}=12 \catcode`\[=13
+    \def{##1}<\{<\MetaFont ##1\/>\}>%
+    \def[##1]<\string[<\MetaFont ##1\/>]>>
+\endgroup
+\def\MD{%
+  \NotNested
+  \Ex
+    \begingroup
+      \@MD
+      \def\end{\par\endgroup\end}%
+      \def\\{\@centercr\Main}%
+      \MainFont
+      \Main}
+\def\endMD{\endEx}
+
+\endinput
+%% END tvz-user.sty

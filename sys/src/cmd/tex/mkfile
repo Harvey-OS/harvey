@@ -1,9 +1,8 @@
 APE=/sys/src/ape
 < $APE/config
 CFLAGS=
-# for now, no tpic or mp
-ALL=bibtex delatex detex dvips dviselect latex mf slitex tex
-SRCDIRS=web2c dvips misc
+ALL=bibtex delatex detex dvips dviselect latex mf tex tpic
+SRCDIRS=web2c dvips misc tpic
 
 none:QV:
 	echo usage: mk all, install, installall, compile, or program-name
@@ -38,7 +37,7 @@ nuke:V:
 		cd $i; mk $MKFLAGS nuke
 	}
 
-bibtex latex mf slitex tex:V:
+bibtex latex mf tex:V:
 	cd web2c; mk $MKFLAGS $target
 
 delatex detex dviselect:V:
@@ -49,6 +48,3 @@ dvips:V:
 
 tpic:V:
 	cd tpic; mk $MKFLAGS $target
-
-mp:V:
-	cd mp; mk $MKFLAGS $target

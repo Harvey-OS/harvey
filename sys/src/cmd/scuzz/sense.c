@@ -9,6 +9,7 @@ static char *key[16] = {
 	"recovered error",
 	"not ready",
 	"medium error",
+	"hardware error",
 	"illegal request",
 	"unit attention",
 	"data protect",

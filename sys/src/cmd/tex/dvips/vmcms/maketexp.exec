@@ -1,0 +1,167 @@
+/* MAKETEXP exec: based on the MakeTeXPK script for Unix. */
+/* This is version 1.0 as of 9 Nov. 1992.                 */
+/* Written by Jim Hafner (hafner@almaden.ibm.com).        */
+/*                                                        */
+/* Command is:                                            */
+/*    MakeTeXP fontname dpi basedpi magnification [mode]  */
+/* This is usually called by the DVIPS program or EXEC.   */
+/*                                                        */
+
+/* END OF HEADER (this line must be preceded by a blank line) */
+
+/* This is part of the VM/CMS distribution of Rokicki's DVIPS program.
+ * Installers may need to customize this exec extensively, though we
+ * have tried to make it as generic as possible.
+ *
+ * You are welcome to modify this exec in any way you choose.
+ *
+ * NOTE TO INSTALLERS:
+ *   1) For locations of some possible site dependencies, search for
+ *      'SITE DEPENDENCIES'.
+ *   2) This exec assumes that your Metafont MODULE is called MF MODULE.
+ *   3) It tries to bypass any front ends to this module by not invoking
+ *      EXEC MF but by calling MF directly.  This was intended to reduce
+ *      some site dependencies.
+ *   4) It assumes that you have a local modes definition file which
+ *      is the first thing MF will load.  The name of this file can
+ *      be changed by changing the 'localModeFile' variable.  If you
+ *      have no need for this then there are other changes that will
+ *      be required.   In particular, using this local mode def file
+ *      means that all output files will have their filenames based on
+ *      this name.  So, below we rename the output files so they match
+ *      the font name.   If you don't have a localModeFile then you
+ *      will need to modify this section of the code.
+ *
+ * NOTE:
+ *   This exec can be called either by DVIPS directly (when a font is
+ *   found missing and the automatic font generation is allowed in the
+ *   code itself) or by the DVIPS EXEC (if a MISSFONT LOG file is
+ *   created).  Consequently, any changes to either this exec or the
+ *   DVIPS EXEC may require changes to the other.
+ *
+ * THANKS:
+ *   This EXEC is based in large part on the Unix script version and on
+ *   some additional features in the version created by Alessio Guglielmi
+ *   (ALESSIO@IPISNSIB.BITNET) as modified by Ronald Kappert (R.Kappert@
+ *   uci.kun.nl).   We acknowledge their contributions and their
+ *   assistence.
+ */
+
+address 'COMMAND'
+basedpi = 300  /* pick your favorite default */
+
+/************ SITE DEPENDENCIES **************************************/
+/* Use this variable for the filename of your local mode defs file. */
+/* This might be MODES (for modes.mf) or LOCAL (for local.mf).      */
+/* DO NOT ATTACH the '.MF' since this is used later as filename.    */
+LocalModeFile='MODES'
+/************ END OF SITE DEPENDENCIES */
+parse arg fn dpi bdpi mag mode .
+upper fn mag
+if fn='' | fn='?' then signal show_header
+if bdpi = '' then bdpi = basedpi ;
+
+if mode ='' then /* we use bdpi to select mode; this is site dependent */
+   select;
+     when bdpi = 300 then mode = "CanonCX" ;   /* same as imagen */
+     when bdpi = 400 then mode = "nexthi" ;
+     when bdpi = 100 then mode = "nextscreen" ;
+     when bdpi = 600 then mode = "varitype" ;
+     when bdpi = 635 then mode = "linolo" ;
+     when bdpi = 1270 then mode = "linohi" ;
+     when bdpi = 2540 then mode = "linosuper" ;
+     otherwise do
+       say "I don't know the mode for base resolution "bdpi
+       say "Have your system administrator update MakeTeXPK EXEC"
+       end
+     end
+gftype=dpi'GF'   /* File types are always <size>GF'  */
+pktype=dpi'PK'   /* File types are always <size>PK'  */
+
+/* =0 if not there, =1 if on A-disk, =2 if on another disk */
+
+gfthere=Whereis(fn gftype) ;
+mfthere=Whereis(fn 'MF') ;
+tfmthere=Whereis(fn 'TFM') ;
+
+if (gfthere = 0 & mfthere = 0 ) then call failure
+
+parse var mag "MAGSTEP\("magstep"\)"
+
+if magstep="" then mag=dpi/bdpi
+else mag="magstep "magstep
+
+
+/* now run Metafont is there is no GF file */
+
+if gfthere = 0 then do
+   /* build up Metafont arguments */
+   mfargs=''                           /* initialize */
+/********* SITE DEPENDENCIES, probably ***********/
+   mfargs='&plain 'mfargs              /* note, &plain is first */
+   mfargs=mfargs localModeFile         /* WE ASSUME THIS IS REQUIRED */
+/********* END OF SITE DEPENDENCIES **************/
+   mfargs=mfargs'; \mode='mode'; mag='mag'; scrollmode; input' fn
+
+/*** NOTE: we call the module directly so that we can use this generic
+     syntax for the command line options.  Should be less SITE DEPENDENT
+     this way. ***/
+   push mfargs
+  'MF'
+/*** output filenames are all determined by 'localModeFile' so we
+     a) clean up the log, b) check to see that MF worked, and
+     c) rename things to 'fn'. ***/
+  'ERASE' localModeFile' MFLOG A'
+  'STATE' localModeFile gftype 'A'
+  if rc ^=0 then call mffailure   /* no gf file was created */
+    else do
+        'RENAME' localModeFile gftype 'A' fn '= ='
+        'RENAME' localModeFile' TFM A' fn '= ='
+    end
+end
+
+
+/* now we can call GFtoPK since everything is OK */
+'EXEC GFTOPK 'fn gftype' * 'fn pktype' A'
+if rc ^= 0 then call gffailure
+
+/* we erase junk on the A-disk if there wasn't anything there before */
+if gfthere^=1 then 'ERASE 'fn gftype' A'
+if tfmthere^=1 then 'ERASE 'fn 'TFM A'
+exit 0
+
+failure:
+  say "Can't find either the MF or GF file for this font so will exit." ;
+  exit 100 ;
+
+mffailure:
+  say "Metafont failed for some reason.  I'll have to exit." ;
+  exit 200 ;
+
+mffailure:
+  say "GFtoPK failed for some reason.  I'll have to exit." ;
+  exit 300 ;
+
+show_header:
+   index=1
+   line=Sourceline(index)
+   Do While Substr(line,1,2)="/*"
+      parse var line '/*' middle '*/'
+      say middle
+      index=index+1
+      line=Sourceline(index)
+      End
+   Exit
+
+Whereis:
+   arg fn ft
+   there = 0
+   'MAKEBUF'
+   'LISTFILE' fn ft '* (STACK'
+   if rc = 0 then do    /* found some version of file */
+        pull . . fm .
+        if 'ABBREV'(fm,"A",1) then there = 1; else there = 2 ;
+        end
+   'DROPBUF'
+   return there ;
+

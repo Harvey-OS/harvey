@@ -24,13 +24,15 @@ The following constructions are recognized:
 number
 The value of the number is pushed on the stack.
 A number is an unbroken string of the digits 
-.BR 0 - 9A - F 
+.B 0-9A-F 
 or
-.BR 0 - 9a - f.
+.BR 0-9a-f .
 A hexadecimal number beginning with a lower case
 letter must be preceded by a zero to distinguish it
 from the command associated with the letter.
-It may be preceded by an underscore _ to input a
+It may be preceded by an underscore
+.B _
+to input a
 negative number.
 Numbers may contain decimal points.
 .TP
@@ -60,7 +62,7 @@ Any fractional part of an exponent is ignored.
 .BI S x
 Pop the top of the stack and store into
 a register named
-.I x,
+.IR x ,
 where
 .I x
 may be any character.
@@ -97,7 +99,7 @@ Print the top value on the stack.
 The top value remains unchanged.
 .B P
 interprets the top of the stack as an
-.SM ASCII
+text
 string,
 removes it, and prints it.
 .TP
@@ -128,10 +130,16 @@ Replace the number on the top of the stack with its scale factor.
 .TP
 .B "[ ... ]"
 Put the bracketed
-.SM ASCII
+text
 string on the top of the stack.
 .TP
-.BI < "x " > "x " = x
+.PD0
+.BI < x
+.TP
+.BI > x
+.TP
+.BI = x
+.PD
 Pop and compare the
 top two elements of the stack.
 Register
@@ -211,7 +219,7 @@ results are truncated to the following scales.
 \fL*\fR	min(\fIsa\fR+\fIsb \fR, max\fR(\fIs,sa,sb\fR))
 \fL/\fI	s
 \fL%\fR	so that dividend = divisor*quotient + remainder; remainder has sign of dividend
-\fL^\fR	min(\fIsa\(mu|\fIb\fR|, max(\fIs,sa\fR))
+\fL^\fR	min(\fIsa\fR\(mu|\fIb\fR|, max(\fIs,sa\fR))
 \fLv\fR	max(\fIs,sa\fR)
 .fi
 .SH EXAMPLES
@@ -224,6 +232,8 @@ lyx
 .IP
 Print the first ten values of
 .IR n !
+.SH SOURCE
+.B /sys/src/cmd/dc.c
 .SH "SEE ALSO"
 .IR bc (1),
 .IR hoc (1)
@@ -243,3 +253,5 @@ for too many levels of nested execution.
 When the input base exceeds 16,
 there is no notation for digits greater than
 .BR F .
+.PP
+Past its time.

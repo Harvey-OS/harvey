@@ -9,22 +9,23 @@
 main(int argc, char *argv[]){
 	int y;
 	char *buf;
-	int nin, i, wid, hgt;
+	int nin, i, wid, hgt, bg;
 	PICFILE *in[NIN];
 	PICFILE *out;
-	argc=getflags(argc, argv, "");
+	argc=getflags(argc, argv, "b:1[background]");
 	nin=argc-1;
 	if(nin<1) usage("picture ...");
 	if(nin>NIN){
 		fprint(2, "%s: too many inputs\n", argv[0]);
 		exits("too many files");
 	}
+	bg=flag['b']?atoi(flag['b'][0]):0;
 	wid=0;
 	hgt=0;
 	for(i=0;i!=nin;i++){
 		in[i]=picopen_r(argv[i+1]);
 		if(in[i]==0){
-			picerror(argv[i+1]);
+			perror(argv[i+1]);
 			exits("open input");
 		}
 		if(PIC_WIDTH(in[i])>wid) wid=PIC_WIDTH(in[i]);
@@ -42,11 +43,11 @@ main(int argc, char *argv[]){
 	out=picopen_w("OUT", in[0]->type, PIC_XOFFS(in[0]), PIC_YOFFS(in[0]), wid, hgt,
 		in[0]->chan, argv, in[0]->cmap);
 	if(out==0){
-		picerror(argv[0]);
+		perror(argv[0]);
 		exits("open output");
 	}
 	for(i=0;i!=nin;i++){
-		memset(buf, 0, wid*PIC_NCHAN(in[0]));
+		memset(buf, bg, wid*PIC_NCHAN(in[0]));
 		for(y=0;y!=PIC_HEIGHT(in[i]);y++){
 			picread(in[i], buf);
 			picwrite(out, buf);

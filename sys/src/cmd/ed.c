@@ -4,14 +4,14 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include "regexp.h"
+#include <regexp.h>
 
 enum
 {
 	FNSIZE	= 128,		/* file name */
 	LBSIZE	= 4096,		/* max line size */
 	BLKSIZE	= 4096,		/* block size in temp file */
-	NBLK	= 2047,		/* max size of temp file */
+	NBLK	= 4095,		/* max size of temp file */
 	ESIZE	= 256,		/* max size of reg exp */
 	GBSIZE	= 256,		/* max size of global command */
 	MAXSUB	= 9,		/* max number of sub reg exp */
@@ -165,6 +165,7 @@ commands(void)
 {
 	int *a1, c, temp;
 	char lastsep;
+	Dir d;
 
 	for(;;) {
 		if(pflag) {
@@ -311,6 +312,10 @@ commands(void)
 			if((io=open(file, OREAD)) < 0) {
 				lastc = '\n';
 				error(file);
+			}
+			if(dirfstat(io, &d) >= 0){
+				if(d.mode & CHAPPEND)
+					print("warning: %s is append only\n", file);
 			}
 			Binit(&iobuf, io, OREAD);
 			setwide();

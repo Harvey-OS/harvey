@@ -2,6 +2,8 @@
 LIB=../common/libcommon.a$O ../libString/libString.a$O
 TARG = smtpd\
 	smtp\
+	to\
+
 
 BIN=/$objtype/bin/upas
 </sys/src/cmd/mkmany
@@ -15,11 +17,15 @@ $O.smtp:	rfc822.tab.$O mxdial.$O
 
 $O.to:	rfc822.tab.$O
 
+$O.reply:	rfc822.tab.$O
+
 smtpd.$O: smtpd.h
 
 smtp.$O: smtp.h
 
 to.$O: smtp.h
+
+reply.$O: smtp.h
 
 smtpd.tab.c: smtpd.y smtpd.h
 	yacc -o $target $prereq

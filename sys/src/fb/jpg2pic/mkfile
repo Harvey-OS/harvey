@@ -1,0 +1,19 @@
+</$objtype/mkfile
+TARG=jpg2pic
+OFILES=	jdmain.$O jdmaster.$O jddeflts.$O jbsmooth.$O jdarith.$O jdcolor.$O jdhuff.$O \
+        jdmcu.$O jdpipe.$O jdsample.$O jquant1.$O jquant2.$O jrevdct.$O jrdjfif.$O \
+        jwrppm.$O jutils.$O jerror.$O jmemmgr.$O jmemsys.$O
+HFILES=jconfig.h jinclude.h jmemsys.h jpegdata.h jversion.h
+
+</sys/src/cmd/mkone
+
+BIN=/$objtype/bin/fb
+CFLAGS=-B -c
+CC=pcc
+LD=pcc
+clean:
+	rm -fr *.[$OS] [$OS].out djpeg
+
+$OFILES:		jinclude.h jconfig.h jpegdata.h
+jdmain.$O:		jversion.h
+jmemmgr.$O jmemsys.$O:	jmemsys.h

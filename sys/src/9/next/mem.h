@@ -106,7 +106,7 @@
 #define	KTZERO	KZERO			/* first address in kernel text */
 #define	USTKSIZE	(4*1024*1024)	/* size of user stack */
 #define	KIO	0x08000000		/* 128MB virtual is I/O space */
-#define	KIOTOP	(KIO+512*1024)		/* 512K is enough for I/O */
+#define	KIOTOP	(KIO+1024*1024)		/* 1MB is enough for I/O */
 #define	KIOB	0x0A000000		/* another 128MB for byte space */
 #define	KIOBTOP	(KIOB+256*1024)		/* 256K is enough for I/O */
 

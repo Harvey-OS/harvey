@@ -1,0 +1,111 @@
+
+\documentclass{article}
+
+\newcommand{\reportedby}[2]{{\small [First reported by #1 on \mbox{#2}.]}}
+\newcommand{\erratum}[1]{\subsubsection*{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                 MODIFICATION DATE                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                 %
+% Defines \moddate to expand to modification date such as         %
+%                                                                 %
+%    5 Aug 1991                                                   %
+%                                                                 %
+% and \prdate to print it in a large box.  Assumes editor         %
+% updates modification date in standard SRC Gnu Emacs style.      %
+% (should work for any user name).                                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\ypmd{%                                                       %
+%                                                                 %
+%                                                                 %
+  Last modified on Fri Oct 21 08:59:45 PDT 1994 by lamport        %
+  endypmd}                                                        %
+%                                                                 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\moddate}{\expandafter\xpmd\ypmd}                     %
+\def\xpmd Last modified                                           %
+on #1 #2 #3 #4:#5:#6 #7 #8 by #9 endypmd{#3 #2 #8}                %
+\newcommand{\prdate}{\noindent\fbox{\Large\moddate}}              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{Errata to the Second Edition of the \LaTeX\ Manual}
+\author{Leslie Lamport}
+\date{\moddate}
+
+\begin{document}
+\maketitle
+
+\noindent These are all the errors and omissions to the manual,
+\LaTeX: {\em A Document Preparation System}, second edition, published
+by Addison-Wesley, reported as of \moddate.  Positions in the book are
+indicated by page and line number, where the top line of a page is
+number 1 and the bottom line is number $-1$.  A running head and a
+page number are not considered to be lines, but all other lines are.
+Please report any additional errors to {\tt lamport@src.dec.com}.
+
+
+\subsection*{Errors Corrected in the First Printing}
+
+\erratum{page 25, example of \texttt{verse} environment}
+Replace \verb|{\em all\/}| by \verb|\emph{all}|.
+ \reportedby{Rosemary Bailey}{29 Aug 94}
+
+\erratum{page 28, first paragraph} 
+Not an error, but it would be
+helpful to add the following sentence to the end of that paragraph:
+ ``(If a declaration has arguments, they become additional
+arguments of the corresponding environment's \verb|\begin| command.)''
+
+
+\erratum{page 33, line 10}
+Add \verb|\]| to the list of fragile commands.
+ \reportedby{Rosemary Bailey}{29 Aug 94}
+
+\erratum{page 43, table 3.5}
+Add an entry for \verb|\notin| ($\notin$).
+ \reportedby{Rosemary Bailey}{29 Aug 94}
+
+\erratum{page 72, two examples}
+Change \verb|{\em ...}| to \verb|\emph{...}|
+ \reportedby{Rosemary Bailey}{29 Aug 94}
+
+\erratum{page 101}
+This is not an error, but some readers will find it helpful if, in the
+descriptions of \verb|\setlength| and \verb|\addtolength|,
+\verb|\gnat| were replaced by \verb|\parskip|.  
+ \reportedby{Ellen Gilkerson}{9 Aug 94}
+
+\erratum{page 108, lines 7 and 10}
+This is not an error, but it might be easier to understand
+the example if \verb|\len| were replaced by something like \verb|\saved|.
+ \reportedby{Rosemary Bailey}{29 Aug 94}
+
+\erratum{page 139, lines $-8$ and $-9$}
+
+The funny break between these two lines should be eliminated.
+\reportedby{Malcolm Clark}{9 Aug 94}
+
+\erratum{page 177, line $-12$}
+
+The \verb|twocolumn| option cannot be used with the \verb|letters|
+class.
+
+\erratum{page 197, lines 7 and 9}
+
+The \verb|figure*| environment is ended by \verb|\end{figure*}|, and
+the \verb|table*| environment is ended by \verb|\end{table*}|.
+\reportedby{Malcolm Clark}{9 Aug 94}
+
+\erratum{page 228}
+
+Add a note that, before running a LaTeX2.09 file in compatibility mode
+in LaTeX2e, you should delete the old versions of the auxiliary files.
+
+\subsection*{Errors in the First Two Printings}
+
+\erratum{page53, line 24}
+Change ``are needed in the'' to ``are used in the''
+\reportedby{Mike Piff}{21 Oct 94}
+
+\end{document}

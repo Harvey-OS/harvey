@@ -5,11 +5,11 @@
 /*
  * mem routines
  */
-extern	void	*memccpy(void*, void*, int, long);
-extern	void	*memset(void*, int, long);
+extern	void*	memccpy(void*, void*, int, long);
+extern	void*	memset(void*, int, long);
 extern	int	memcmp(void*, void*, long);
-extern	void	*memmove(void*, void*, long);
-extern	void	*memchr(void*, int, long);
+extern	void*	memmove(void*, void*, long);
+extern	void*	memchr(void*, int, long);
 
 /*
  * string routines
@@ -123,6 +123,7 @@ extern	int	noted(int);
 
 extern	int	getpid(void);
 extern	int	fstat(int, char*);
+extern	char*	getenv(char*);
 
 /*
  * argument processing

@@ -34,6 +34,7 @@ struct Lock
 {
 	ulong	key;
 	ulong	pc;
+	ulong	sr;
 };
 
 struct Label
@@ -85,10 +86,6 @@ struct Conf
 	ulong	nswap;		/* number of swap blocks */
 	ulong	upages;		/* number of user pages */
 	int	copymode;	/* 0 is copy on write, 1 is copy on reference */
-	ulong	ipif;		/* Ip protocol interfaces */
-	ulong	ip;		/* Ip conversations per interface */
-	ulong	arp;		/* Arp table size */
-	ulong	frag;		/* Ip fragment assemble queue size */
 };
 
 
@@ -115,8 +112,11 @@ struct KMap
 
 struct Mach
 {
+	/* OFFSETS OF THE FOLLOWING KNOWN BY l.s */
 	int	machno;			/* physical id of processor */
 	ulong	splpc;			/* pc of last caller to splhi */
+
+	/* ordering from here on irrelevant */
 	int	mmask;			/* 1<<m->machno */
 	ulong	ticks;			/* of the clock since boot time */
 	Proc	*proc;			/* current process on this processor */
@@ -143,6 +143,7 @@ struct Mach
 	int	fptrap;			/* FP trap occurred while unsafe */
 	int	intr;
 
+	/* MUST BE LAST */
 	int	stack[1];
 };
 
@@ -165,7 +166,6 @@ struct User
 	 * Rest of structure controlled by devproc.c and friends.
 	 * lock(&p->debug) to modify.
 	 */
-	ulong	svpsr;
 	Note	note[NNOTE];
 	short	nnote;
 	short	notified;		/* sysnoted is due */
@@ -173,7 +173,6 @@ struct User
 	int	(*notify)(void*, char*);
 	void	*ureg;
 	void	*dbgreg;		/* User registers for debugging in proc */
-	ulong	svr7;
 };
 
 /*

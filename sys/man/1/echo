@@ -16,3 +16,5 @@ a newline on the standard output.
 Option
 .B -n
 suppresses the newline.
+.SH SOURCE
+.B /sys/src/cmd/echo.c

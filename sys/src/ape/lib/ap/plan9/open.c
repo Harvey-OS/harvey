@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "lib.h"
+#include <sys/stat.h>
 #include "sys9.h"
 
 /*
@@ -17,6 +18,7 @@ open(const char *path, int flags, ...)
 	int mode;
 	Fdinfo *fi;
 	va_list va;
+	struct stat sbuf;
 
 	f = flags&O_ACCMODE;
 	if(flags&O_CREAT){
@@ -48,6 +50,10 @@ open(const char *path, int flags, ...)
 		fi = &_fdinfo[n];
 		fi->flags = FD_ISOPEN;
 		fi->oflags = flags&(O_ACCMODE|O_NONBLOCK|O_APPEND);
+		if(stat(path, &sbuf) >= 0) {
+			fi->uid = sbuf.st_uid;
+			fi->gid = sbuf.st_gid;
+		}
 		fi->name = malloc(strlen(path)+1);
 		if(fi->name)
 			strcpy(fi->name, path);

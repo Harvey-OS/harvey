@@ -1,13 +1,40 @@
-% MSAM8.MF                     June 1990
-% This Metafont file is part of AMSFonts 2.0.
-% Copyright (C) 1990, American Mathematical Society.
-% All rights reserved.  Copying of this file is authorized only if either:
-%   (1) you make absolutely no changes to your copy including filename; OR
-%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="msam8.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: parameter",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "61655 162 896 8580"
+%%     keywords="amsfonts, tex, metafont , AMSSymbols ",
+%%     abstract="This is the parameter file for use with 
+%%            msam8, the first extra symbol font in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if unknown cmbase: input cmbase fi
 
-font_identifier:="MSAM"; font_size 8pt#;
+font_identifier:="MSAM V2.2"; font_size 8pt#;
 
 u#:=17/36pt#;               % unit width
 width_adj#:=0pt#;          % width adjustment for certain characters
@@ -62,7 +89,7 @@ apex_corr#:=0pt#;          % extra width at diagonal junctions
 o#:=6/36pt#;               % amount of overshoot for curves
 apex_o#:=6/36pt#;          % amount of overshoot for diagonal junctions
 
-slant:=.25;               % tilt ratio $(\Delta x/\Delta y)$
+slant:=0;               % tilt ratio $(\Delta x/\Delta y)$
 fudge:=1;               % factor applied to weights of heavy characters
 math_spread:=.4;          % extra openness of math symbols
 superness:=1/sqrt2;          % parameter for superellipses

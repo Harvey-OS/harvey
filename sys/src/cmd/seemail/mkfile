@@ -4,6 +4,7 @@ TARG=seemail
 OFILES=main.$O\
 	io.$O\
 	lib.$O\
+	remind.$O\
 	trail.$O\
 
 HFILES=dat.h\

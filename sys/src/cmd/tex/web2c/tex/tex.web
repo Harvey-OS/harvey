@@ -38,6 +38,9 @@
 % Version 2.992 introduced major changes for 8-bit extensions (September 1989).
 % Version 2.993 fixed a save_stack synchronization bug et alia (December 1989).
 % Version 3.0 fixed unusual displays; was more \output robust (March 1990).
+% Version 3.1 fixed nullfont, disabled \write{\the\prevgraf} (September 1990).
+% Version 3.14 fixed unprintable font names and corrected typos (March 1991).
+% Version 3.141 more of same; reconstituted ligatures better (September 1991).
 
 % A reward of $327.68 will be paid to the first finder of any remaining bug,
 % not counting changes introduced after August 1989.
@@ -64,10 +67,6 @@
 
 \def\(#1){} % this is used to make section names sort themselves better
 \def\9#1{} % this is used for sort keys in the index via @@:sort key}{entry@@>
-
-\def\drop{\kern-.1667em\lower.5ex\hbox{E}\kern-.125em} % middle of TeX
-\catcode`E=13 \uppercase{\def E{e}}
-\def\\#1{\hbox{\let E=\drop\it#1\/\kern.05em}} % italic type for identifiers
 
 \outer\def\N#1. \[#2]#3.{\MN#1.\vfil\eject % begin starred section
   \def\rhead{PART #2:\uppercase{#3}} % define running headline
@@ -183,7 +182,7 @@ helping to determine whether a particular implementation deserves to be
 known as `\TeX' [cf.~Stanford Computer Science report CS1027,
 November 1984].
 
-@d banner=='This is TeX, Version 3.0' {printed when \TeX\ starts}
+@d banner=='This is TeX, Version 3.141' {printed when \TeX\ starts}
 
 @ Different \PASCAL s have slightly different conventions, and the present
 @!@:PASCAL H}{\ph@>
@@ -1008,7 +1007,7 @@ consist of the remainder of the command line, after the part that invoked
 The first line is special also because it may be read before \TeX\ has
 input a format file. In such cases, normal error messages cannot yet
 be given. The following code uses concepts that will be explained later.
-(If the \PASCAL\ compiler does not support non-local |@!goto|, the
+(If the \PASCAL\ compiler does not support non-local |@!goto|\unskip, the
 @^system dependencies@>
 statement `|goto final_end|' should be replaced by something that
 quietly terminates the program.)
@@ -1109,10 +1108,10 @@ representation, and \TeX\ sometimes needs to be able to print an arbitrary
 ASCII character, so the first 256 strings are used to specify exactly what
 should be printed for each of the 256 possibilities.
 
-Elements of the |str_pool| array must be ASCII codes that can actually be
-printed; i.e., they must have an |xchr| equivalent in the local
-character set. (However, the names of control sequences need not meet
-this restriction, when they appear in |str_pool|.)
+Elements of the |str_pool| array must be ASCII codes that can actually
+be printed; i.e., they must have an |xchr| equivalent in the local
+character set. (This restriction applies only to preloaded strings,
+not to those generated dynamically by the user.)
 
 Some \PASCAL\ compilers won't pack integers into a single byte unless the
 integers lie in the range |-128..127|. To accommodate such systems
@@ -1504,40 +1503,46 @@ assumes that it is always safe to print a visible ASCII character.)
 procedure print(@!s:integer); {prints string |s|}
 label exit;
 var j:pool_pointer; {current character code position}
+@!nl:integer; {new-line character to restore}
 begin if s>=str_ptr then s:="???" {this can't happen}
 @.???@>
 else if s<256 then
   if s<0 then s:="???" {can't happen}
-  else if (@<Character |s| is the current new-line character@>) then
-    if selector<pseudo then
-      begin print_ln; return;
+  else begin if selector>pseudo then
+      begin print_char(s); return; {internal strings are not expanded}
       end;
+    if (@<Character |s| is the current new-line character@>) then
+      if selector<pseudo then
+        begin print_ln; return;
+        end;
+    nl:=new_line_char; new_line_char:=-1;
+      {temporarily disable new-line character}
+    j:=str_start[s];
+    while j<str_start[s+1] do
+      begin print_char(so(str_pool[j])); incr(j);
+      end;
+    new_line_char:=nl; return;
+    end;
 j:=str_start[s];
 while j<str_start[s+1] do
   begin print_char(so(str_pool[j])); incr(j);
   end;
 exit:end;
 
-@ Control sequence names might contain |ASCII_code| values that can't
+@ Control sequence names, file names, and strings constructed with
+\.{\\string} might contain |ASCII_code| values that can't
 be printed using |print_char|. Therefore we use |slow_print| for them:
 
 @<Basic print...@>=
 procedure slow_print(@!s:integer); {prints string |s|}
-label exit;
 var j:pool_pointer; {current character code position}
-begin if s>=str_ptr then s:="???" {this can't happen}
-@.???@>
-else if s<256 then
-  if s<0 then s:="???" {can't happen}
-  else if (@<Character |s| is the current new-line character@>) then
-    if selector<pseudo then
-      begin print_ln; return;
-      end;
-j:=str_start[s];
-while j<str_start[s+1] do
-  begin print(so(str_pool[j])); incr(j);
+begin if (s>=str_ptr) or (s<256) then print(s)
+else begin j:=str_start[s];
+  while j<str_start[s+1] do
+    begin print(so(str_pool[j])); incr(j);
+    end;
   end;
-exit:end;
+end;
 
 @ Here is the very first thing that \TeX\ prints: a headline that identifies
 the version number and format package. The |term_offset| variable is temporarily
@@ -1548,7 +1553,7 @@ character positions.
 @<Initialize the output...@>=
 wterm(banner);
 if format_ident=0 then wterm_ln(' (no format preloaded)')
-else  begin print(format_ident); print_ln;
+else  begin slow_print(format_ident); print_ln;
   end;
 update_terminal;
 
@@ -1570,7 +1575,7 @@ procedure print_esc(@!s:str_number); {prints escape character, then |s|}
 var c:integer; {the escape character code}
 begin  @<Set variable |c| to the current escape character@>;
 if c>=0 then if c<256 then print(c);
-print(s);
+slow_print(s);
 end;
 
 @ An array of digits in the range |0..15| is printed by |print_the_digs|.
@@ -1751,6 +1756,7 @@ if interaction=batch_mode then selector:=no_print@+else selector:=term_only
 @ A global variable |deletions_allowed| is set |false| if the |get_next|
 routine is active when |error| is called; this ensures that |get_next|
 and related routines like |get_token| will never be called recursively.
+A similar interlock is provided by |set_box_allowed|.
 @^recursion@>
 
 The global variable |history| records the worst level of error that
@@ -1769,6 +1775,7 @@ that there is no point in continuing further.
 
 @<Glob...@>=
 @!deletions_allowed:boolean; {is it safe for |error| to call |get_token|?}
+@!set_box_allowed:boolean; {is it safe to do a \.{\\setbox} assignment?}
 @!history:spotless..fatal_error_stop; {has the source input been clean so far?}
 @!error_count:-1..100; {the number of scrolled errors since the
   last paragraph ended}
@@ -1777,7 +1784,8 @@ that there is no point in continuing further.
 be changed to |spotless| if \TeX\ survives the initialization process.
 
 @<Set init...@>=
-deletions_allowed:=true; error_count:=0; {|history| is initialized elsewhere}
+deletions_allowed:=true; set_box_allowed:=true;
+error_count:=0; {|history| is initialized elsewhere}
 
 @ Since errors can be detected almost anywhere in \TeX, we want to declare the
 error procedures near the beginning of the program. But the error procedures
@@ -1893,7 +1901,7 @@ case c of
 "E": if base_ptr>0 then
   begin print_nl("You want to edit file ");
 @.You want to edit file x@>
-  print(input_stack[base_ptr].name_field);
+  slow_print(input_stack[base_ptr].name_field);
   print(" at line "); print_int(line);
   interaction:=scroll_mode; jump_out;
   end;
@@ -2328,7 +2336,7 @@ A glue ratio should take the same amount of memory as an
 other data structures. Thus |glue_ratio| should be equivalent to
 |short_real| in some implementations of \PASCAL. Alternatively,
 it is possible to deal with glue ratios using nothing but fixed-point
-arithmetic; see {\sl TUGboat \bf3},1 (February 1982), 10--27. (But the
+arithmetic; see {\sl TUGboat \bf3},1 (March 1982), 10--27. (But the
 routines cited there must be modified to allow negative glue ratios.)
 @^system dependencies@>
 
@@ -2344,7 +2352,7 @@ routines cited there must be modified to allow negative glue ratios.)
 @* \[8] Packed data.
 In order to make efficient use of storage space, \TeX\ bases its major data
 structures on a |memory_word|, which contains either a (signed) integer,
-possibly scaled, or an (unsigned) |glue_ratio|, or a small number of
+possibly scaled, or a (signed) |glue_ratio|, or a small number of
 fields that are one half or one quarter of the size used for storing
 integers.
 
@@ -4856,7 +4864,7 @@ else  begin print_esc("scriptscriptfont"); print_int(n-math_font_base-32);
   end;
 print_char("=");@/
 print_esc(hash[font_id_base+equiv(n)].rh);
-  {that's |text(font_id_base+equiv(n))|}
+  {that's |font_id_text(equiv(n))|}
 end
 
 @ @<Show the halfword code in |eqtb[n]|@>=
@@ -5575,7 +5583,7 @@ begin if p<hash_base then {single character}
 else if p>=undefined_control_sequence then print_esc("IMPOSSIBLE.")
 else if (text(p)<0)or(text(p)>=str_ptr) then print_esc("NONEXISTENT.")
 @.NONEXISTENT@>
-else  begin print_esc(""); slow_print(text(p));
+else  begin print_esc(text(p));
   print_char(" ");
   end;
 end;
@@ -5590,8 +5598,7 @@ begin if p<hash_base then
   else  if p<null_cs then print_esc(p-single_base)
     else  begin print_esc("csname"); print_esc("endcsname");
       end
-else  begin print_esc(""); slow_print(text(p));
-  end;
+else print_esc(text(p));
 end;
 
 @ We need to put \TeX's ``primitive'' control sequences into the hash
@@ -8209,6 +8216,7 @@ var p:pointer; {tail of the backup list}
 begin p:=backup_head; link(p):=null; k:=str_start[s];
 while k<str_start[s+1] do
   begin get_x_token; {recursion is possible here}
+@^recursion@>
   if (cur_cs=0)and@|
    ((cur_chr=so(str_pool[k]))or(cur_chr=so(str_pool[k])-"a"+"A")) then
     begin store_new_token(cur_tok); incr(k);
@@ -8469,10 +8477,11 @@ cur_val_level:=dimen_val;
 end
 
 @ @<Fetch the |prev_graf|@>=
-begin nest[nest_ptr]:=cur_list; p:=nest_ptr;
-while abs(nest[p].mode_field)<>vmode do decr(p);
-scanned_result(nest[p].pg_field)(int_val);
-end
+if mode=0 then scanned_result(0)(int_val) {|prev_graf=0| within \.{\\write}}
+else begin nest[nest_ptr]:=cur_list; p:=nest_ptr;
+  while abs(nest[p].mode_field)<>vmode do decr(p);
+  scanned_result(nest[p].pg_field)(int_val);
+  end
 
 @ @<Fetch the |par_shape| size@>=
 begin if par_shape_ptr=null then cur_val:=0
@@ -8620,9 +8629,9 @@ end;
 procedure scan_fifteen_bit_int;
 begin scan_int;
 if (cur_val<0)or(cur_val>@'77777) then
-  begin print_err("Bad math code");
-@.Bad math code@>
-  help2("A numeric math code must be between 0 and 32767.")@/
+  begin print_err("Bad mathchar");
+@.Bad mathchar@>
+  help2("A mathchar number must be between 0 and 32767.")@/
     ("I changed this one to zero."); int_error(cur_val); cur_val:=0;
   end;
 end;
@@ -9439,6 +9448,10 @@ first:=limit+1; loc:=start; state:=new_line;@/
 loop@+  begin get_token;
   if cur_tok=0 then goto done;
     {|cur_cmd=cur_chr=0| will occur at the end of the line}
+  if align_state<1000000 then {unmatched `\.\}' aborts the line}
+    begin repeat get_token; until cur_tok=0;
+    align_state:=1000000; goto done;
+    end;
   store_new_token(cur_tok);
   end;
 done: end_file_reading
@@ -9672,6 +9685,7 @@ exit:end;
 @ A condition is started when the |expand| procedure encounters
 an |if_test| command; in that case |expand| reduces to |conditional|,
 which is a recursive procedure.
+@^recursion@>
 
 @p procedure conditional;
 label exit,common_ending;
@@ -10012,7 +10026,7 @@ some operating systems put the file area last instead of first.)
 
 @<Basic printing...@>=
 procedure print_file_name(@!n,@!a,@!e:integer);
-begin print(a); print(n); print(e);
+begin slow_print(a); slow_print(n); slow_print(e);
 end;
 
 @ Another system-dependent routine is needed to convert three internal
@@ -10308,7 +10322,7 @@ end
 
 @ @<Print the banner...@>=
 begin wlog(banner);
-print(format_ident); print("  ");
+slow_print(format_ident); print("  ");
 print_int(day); print_char(" ");
 months:='JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC';
 for k:=3*month-2 to 3*month do wlog(months[k]);
@@ -10340,7 +10354,7 @@ if job_name=0 then
     and |loc| needn't be set to meaningful values yet}
 if term_offset+length(name)>max_print_line-2 then print_ln
 else if (term_offset>0)or(file_offset>0) then print_char(" ");
-print_char("("); incr(open_parens); print(name); update_terminal;
+print_char("("); incr(open_parens); slow_print(name); update_terminal;
 state:=new_line;
 if name=str_ptr-1 then {we can conserve string pool space now}
   begin flush_string; name:=cur_name;
@@ -10355,11 +10369,12 @@ contain a single blank line.
 @^empty line at end of file@>
 
 @<Read the first line...@>=
-begin if input_ln(cur_file,false) then do_nothing;
+begin line:=1;
+if input_ln(cur_file,false) then do_nothing;
 firm_up_the_line;
 if end_line_char_inactive then decr(limit)
 else  buffer[limit]:=end_line_char;
-first:=limit+1; loc:=start; line:=1;
+first:=limit+1; loc:=start;
 end
 
 @* \[30] Font metric data.
@@ -10734,6 +10749,8 @@ characters, and its seven parameters are all equal to zero.
 font_ptr:=null_font; fmem_ptr:=7;
 font_name[null_font]:="nullfont"; font_area[null_font]:="";
 hyphen_char[null_font]:="-"; skew_char[null_font]:=-1;
+bchar_label[null_font]:=non_address;
+font_bchar[null_font]:=non_char; font_false_bchar[null_font]:=non_char;
 font_bc[null_font]:=1; font_ec[null_font]:=0;
 font_size[null_font]:=0; font_dsize[null_font]:=0;
 char_base[null_font]:=0; width_base[null_font]:=0;
@@ -11248,7 +11265,7 @@ begin if tracing_lost_chars>0 then
   print_nl("Missing character: There is no ");
 @.Missing character@>
   print_ASCII(c); print(" in font ");
-  print(font_name[f]); print_char("!"); end_diagnostic(false);
+  slow_print(font_name[f]); print_char("!"); end_diagnostic(false);
   end;
 end;
 
@@ -11670,7 +11687,7 @@ Font definitions must appear before the first use of a particular font number.
 Once font |k| is defined, it must not be defined again; however, we
 shall see below that font definitions appear in the postamble as well as
 in the pages, so in this sense each font number is defined exactly twice,
-if at all. Like |nop| commands and \\{xxx} commands, font definitions can
+if at all. Like |nop| commands, font definitions can
 appear before the first |bop|, or between an |eop| and a |bop|.
 
 @ Sometimes it is desirable to make horizontal or vertical rules line up
@@ -12686,6 +12703,7 @@ if width(p)+h_offset>max_h then max_h:=width(p)+h_offset
 
 @ At the end of the program, we must finish things off by writing the
 post\-amble. If |total_pages=0|, the \.{DVI} file was never opened.
+If |total_pages>=65536|, the \.{DVI} file will lie.
 
 An integer variable |k| will be declared for use by this routine.
 
@@ -12704,7 +12722,7 @@ else  begin dvi_out(post); {beginning of the postamble}
   prepare_mag; dvi_four(mag); {magnification factor}
   dvi_four(max_v); dvi_four(max_h);@/
   dvi_out(max_push div 256); dvi_out(max_push mod 256);@/
-  dvi_out(total_pages div 256); dvi_out(total_pages mod 256);@/
+  dvi_out((total_pages div 256) mod 256); dvi_out(total_pages mod 256);@/
   @<Output the font definitions for all fonts that were used@>;
   dvi_out(post_post); dvi_four(last_bop); dvi_out(id_byte);@/
   k:=4+((dvi_buf_size-dvi_ptr) mod 4); {the number of 223's}
@@ -12712,7 +12730,7 @@ else  begin dvi_out(post); {beginning of the postamble}
     begin dvi_out(223); decr(k);
     end;
   @<Empty the last bytes out of |dvi_buf|@>;
-  print_nl("Output written on "); print(output_file_name);
+  print_nl("Output written on "); slow_print(output_file_name);
 @.Output written on x@>
   print(" ("); print_int(total_pages); print(" page");
   if total_pages<>1 then print_char("s");
@@ -14017,6 +14035,9 @@ var p:pointer; {the new glue specification}
 @!n:integer; {integer part of |m|}
 @!f:scaled; {fraction part of |m|}
 begin n:=x_over_n(m,@'200000); f:=remainder;@/
+if f<0 then
+  begin decr(n); f:=f+@'200000;
+  end;
 p:=get_node(glue_spec_size);
 width(p):=mu_mult(width(g)); {convert \.{mu} to \.{pt}}
 stretch_order(p):=stretch_order(g);
@@ -14036,6 +14057,9 @@ var @!n:integer; {integer part of |m|}
 @!f:scaled; {fraction part of |m|}
 begin if subtype(p)=mu_glue then
   begin n:=x_over_n(m,@'200000); f:=remainder;@/
+  if f<0 then
+    begin decr(n); f:=f+@'200000;
+    end;
   width(p):=mu_mult(width(p)); subtype(p):=normal;
   end;
 end;
@@ -14075,6 +14099,7 @@ that stresses compactness over efficiency.
 called |clean_box| that puts a given noad field into a box using a given
 math style; |mlist_to_hlist| can call |clean_box|, which can call
 |mlist_to_hlist|.
+@^recursion@>
 
 The box returned by |clean_box| is ``clean'' in the
 sense that its |shift_amount| is zero.
@@ -14170,6 +14195,7 @@ it computes the overall height and depth of the top-level mlist so that
 the size of delimiters for a |left_noad| and a |right_noad| will be known.
 The hlist resulting from each noad is recorded in that noad's |new_hlist|
 field, an integer field that replaces the |nucleus| or |thickness|.
+@^recursion@>
 
 The second pass eliminates all noads and inserts the correct glue and
 penalties between nodes.
@@ -14756,6 +14782,7 @@ empty: p:=null;
 sub_box: p:=info(nucleus(q));
 sub_mlist: begin cur_mlist:=info(nucleus(q)); save_style:=cur_style;
   mlist_penalties:=false; mlist_to_hlist; {recursive call}
+@^recursion@>
   cur_style:=save_style; @<Set up the values...@>;
   p:=hpack(link(temp_head),natural);
   end;
@@ -15434,7 +15461,7 @@ end;
 we enter a new semantic level, copy the first tabskip glue, and change
 from internal vertical mode to restricted horizontal mode or vice versa.
 The |space_factor| and |prev_depth| are not used on this semantic level,
-but we clear |aux| to zero just to be tidy.
+but we clear them to zero just to be tidy.
 
 @p @t\4@>@<Declare the procedure called |init_span|@>@t@>@/
 procedure init_row;
@@ -15608,6 +15635,7 @@ begin q:=cur_span;
 repeat incr(n); q:=link(link(q));
 until q=cur_align;
 if n>max_quarterword then confusion("256 spans"); {this can happen, but won't}
+@^system dependencies@>
 @:this can't happen 256 spans}{\quad 256 spans@>
 q:=cur_span; while link(info(q))<n do q:=info(q);
 if link(info(q))>n then
@@ -16227,7 +16255,7 @@ no break is allowed when the penalty is 10000 or more.) If |threshold|
 is 10000 or more, all legal breaks are considered feasible, since the
 |badness| function specified above never returns a value greater than~10000.
 
-Two passes might be made through the paragraph in an attempt to find at
+Up to three passes might be made through the paragraph in an attempt to find at
 least one set of feasible breakpoints. On the first pass, we have
 |threshold=pretolerance| and |second_pass=final_pass=false|.
 If this pass fails to find a
@@ -16881,7 +16909,7 @@ used in special calculations.
 @!f:internal_font_number; {used when calculating character widths}
 
 @ The `\ignorespaces|loop|\unskip' in the following code is performed at most
-twice per call of |line_break|, since it is actually a pass over the
+thrice per call of |line_break|, since it is actually a pass over the
 entire paragraph.
 
 @<Find optimal breakpoints@>=
@@ -17259,8 +17287,8 @@ done:
 
 @ @<Change discretionary to compulsory...@>=
 begin t:=replace_count(q);
-@<Destroy the |t| nodes following |q|, but save the last one if it is
-  a necessary kern; make |r| point to the following node@>;
+@<Destroy the |t| nodes following |q|, and
+   make |r| point to the following node@>;
 if post_break(q)<>null then @<Transplant the post-break list@>;
 if pre_break(q)<>null then @<Transplant the pre-break list@>;
 link(q):=r; disc_break:=true;
@@ -17273,8 +17301,6 @@ else  begin r:=q;
     begin r:=link(r); decr(t);
     end;
   s:=link(r);
-  if not is_char_node(s) then if next_break(cur_p)<>null then
-    if cur_break(next_break(cur_p))=s then s:=r;
   r:=link(s); link(s):=null;
   flush_node_list(link(q)); replace_count(q):=0;
   end
@@ -17429,6 +17455,7 @@ nodes $p_{a-1}$ and~$p_b$ in the description above are placed into variables
 @!hyf_char:integer; {hyphen character of the relevant font}
 @!cur_lang:ASCII_code; {current hyphenation table of interest}
 @!l_hyf,@!r_hyf:integer; {limits on fragment sizes}
+@!hyf_bchar:halfword; {boundary character after $c_n$}
 
 @ Hyphenation routines need a few more local variables.
 
@@ -17496,15 +17523,16 @@ ha:=prev_s
 hn:=0;
 loop@+  begin if is_char_node(s) then
     begin if font(s)<>hf then goto done3;
-    c:=qo(character(s));
+    hyf_bchar:=character(s); c:=qo(hyf_bchar);
     if lc_code(c)=0 then goto done3;
     if hn=63 then goto done3;
-    hb:=s; incr(hn); hu[hn]:=c; hc[hn]:=lc_code(c);
+    hb:=s; incr(hn); hu[hn]:=c; hc[hn]:=lc_code(c); hyf_bchar:=non_char;
     end
   else if type(s)=ligature_node then
     @<Move the characters of a ligature node to |hu| and |hc|;
       but |goto done3| if they are not all letters@>
-  else if (type(s)<>kern_node)or(subtype(s)<>normal) then goto done3;
+  else if (type(s)=kern_node)and(subtype(s)=normal) then hb:=s
+  else goto done3;
   s:=link(s);
   end;
 done3:
@@ -17516,7 +17544,7 @@ to get to |done3| with |hn=0| and |hb| not set to any value.
 
 @<Move the characters of a ligature node to |hu| and |hc|...@>=
 begin if font(lig_char(s))<>hf then goto done3;
-j:=hn; q:=lig_ptr(s);
+j:=hn; q:=lig_ptr(s);@+if q>null then hyf_bchar:=character(q);
 while q>null do
   begin c:=qo(character(q));
   if lc_code(c)=0 then goto done3;
@@ -17525,10 +17553,11 @@ while q>null do
   q:=link(q);
   end;
 hb:=s; hn:=j;
+if odd(subtype(s)) then hyf_bchar:=font_bchar[hf]@+else hyf_bchar:=non_char;
 end
 
 @ @<Check that the nodes following |hb| permit hyphenation...@>=
-if hn<l_hyf+r_hyf then goto done1;
+if hn<l_hyf+r_hyf then goto done1; {|l_hyf| and |r_hyf| are |>=1|}
 loop@+  begin if not(is_char_node(s)) then
     case type(s) of
     ligature_node: do_nothing;
@@ -17584,10 +17613,7 @@ The variable |s| will point to the tail of the current hlist, and
 things can be hooked up after we reconstitute the hyphenated word.
 
 @<Replace nodes |ha..hb| by a sequence of nodes...@>=
-q:=link(hb); link(hb):=null; r:=link(ha); link(ha):=null; bchar:=non_char;
-if not is_char_node(hb) then
- if type(hb)=ligature_node then if odd(subtype(hb)) then
-  bchar:=font_bchar[hf];
+q:=link(hb); link(hb):=null; r:=link(ha); link(ha):=null; bchar:=hyf_bchar;
 if is_char_node(ha) then
   if font(ha)<>hf then goto found2
   else begin init_list:=ha; init_lig:=false; hu[0]:=qo(character(ha));
@@ -17620,9 +17646,9 @@ hyphens have been found: The process of reconstituting a word can be nontrivial
 because ligatures might change when a hyphen is present. {\sl The \TeX book\/}
 discusses the difficulties of the word ``difficult'', and
 the discretionary material surrounding a
-hyphen can be considerably more complex than that. For example, suppose that
+hyphen can be considerably more complex than that. Suppose
 \.{abcdef} is a word in a font for which the only ligatures are \.{b\!c},
-\.{c\!d}, \.{d\!e}, and \.{e\!f}. If this word is to permit hyphenation
+\.{c\!d}, \.{d\!e}, and \.{e\!f}. If this word permits hyphenation
 between \.b and \.c, the two patterns with and without hyphenation are
 $\.a\,\.b\,\.-\,\.{c\!d}\,\.{e\!f}$ and $\.a\,\.{b\!c}\,\.{d\!e}\,\.f$.
 Thus the insertion of a hyphen might cause effects to ripple arbitrarily
@@ -18292,9 +18318,7 @@ parameters in a special hash table, assigning a new value only if these
 three have not appeared before for the current language.
 
 The hash table is called |trie_op_hash|, and the number of entries it contains
-is |trie_op_ptr|. If the table overflows, the excess ops are ignored.
-Statistics printed during a dump make it possible for users to tell
-if this has happened.
+is |trie_op_ptr|.
 
 @<Glob...@>=
 @!init@! trie_op_hash:array[-trie_op_size..trie_op_size] of 0..trie_op_size;
@@ -19975,13 +19999,14 @@ no redundancy.
 
 The original unoptimized form of this algorithm resembles the
 |reconstitute| procedure, which was described earlier in connection with
-hyphenation. Again we have an implied ``cursor`` between characters
+hyphenation. Again we have an implied ``cursor'' between characters
 |cur_l| and |cur_r|. The main difference is that the |lig_stack| can now
 contain a charnode as well as pseudo-ligatures; that stack is now
 usually nonempty, because the next character of input (if any) has been
 appended to it. In |main_control| we have
 $$|cur_r|=\cases{|character(lig_stack)|,&if |lig_stack>null|;\cr
-  |font_bchar[cur_font]|,&otherwise.\cr}$$
+  |font_bchar[cur_font]|,&otherwise;\cr}$$
+except when |character(lig_stack)=font_false_bchar[cur_font]|.
 Several additional global variables are needed.
 
 @<Glob...@>=
@@ -20085,7 +20110,7 @@ wrapup(rt_hit)
 
 @ @<If the cursor is immediately followed by the right boundary...@>=
 if lig_stack=null then goto reswitch;
-cur_q:=tail; cur_l:=cur_r; {or |character(lig_stack)|}
+cur_q:=tail; cur_l:=character(lig_stack);
 main_loop_move+1:if not is_char_node(lig_stack) then goto main_loop_move_lig;
 main_loop_move+2:if(cur_chr<font_bc[main_f])or(cur_chr>font_ec[main_f]) then
   begin char_warning(main_f,cur_chr); free_avail(lig_stack); goto big_switch;
@@ -21588,7 +21613,7 @@ var w:scaled; {new or partial |pre_display_size|}
 @!n:integer; {scope of paragraph shape specification}
 @!v:scaled; {|w| plus possible glue amount}
 @!d:scaled; {increment to |v|}
-begin get_token; {|get_x_token| would fail on \.{\\ifmmode}!}
+begin get_token; {|get_x_token| would fail on \.{\\ifmmode}\thinspace!}
 if (cur_cmd=math_shift)and(mode>0) then @<Go into display math mode@>
 else  begin back_input; @<Go into ordinary math mode@>;
   end;
@@ -22411,7 +22436,7 @@ if nest_ptr=1 then build_page;
 end;
 
 @ The user can force the equation number to go on a separate line
-by making its width zero.
+by causing its width to be zero.
 
 @<Squeeze the equation as much as possible...@>=
 begin if (e<>0)and((w-total_shrink[normal]+q<=z)or@|
@@ -23048,14 +23073,20 @@ else  begin s:=equiv(l); r:=new_spec(s);
   end;
 end
 
-@ The processing of boxes is somewhat different, because it may be necessary
+@ The processing of boxes is somewhat different, because we may need
 to scan and create an entire box before we actually change the value of the old
 one.
 
 @<Assignments@>=
 set_box: begin scan_eight_bit_int;
   if global then n:=256+cur_val@+else n:=cur_val;
-  scan_optional_equals; scan_box(box_flag+n);
+  scan_optional_equals;
+  if set_box_allowed then scan_box(box_flag+n)
+  else begin print_err("Improper "); print_esc("setbox");
+@.Improper \\setbox@>
+    help2("Sorry, \setbox is not allowed after \halign in a display,")@/
+    ("or between \accent and an accented character."); error;
+    end;
   end;
 
 @ The |space_factor| or |prev_depth| settings are changed when a |set_aux|
@@ -23150,7 +23181,7 @@ set_shape: begin scan_optional_equals; scan_int; n:=cur_val;
   end;
 
 @ Here's something that isn't quite so obvious. It guarantees that
-|info(par_shape_ptr)| can hold any positive~|n| such |get_node(2*n+1)|
+|info(par_shape_ptr)| can hold any positive~|n| for which |get_node(2*n+1)|
 doesn't overflow the memory capacity.
 
 @<Check the ``constant''...@>=
@@ -23215,6 +23246,7 @@ var u:pointer; {user's font identifier}
 @!f:internal_font_number; {runs through existing fonts}
 @!t:str_number; {name for the frozen font identifier}
 @!old_setting:0..max_selector; {holds |selector| setting}
+@!flushable_string:str_number; {string not yet referenced}
 begin if job_name=0 then open_log_file;
   {avoid confusing \.{texput} with the font name}
 @.texput@>
@@ -23237,7 +23269,7 @@ end;
 
 @ @<Scan the font size specification@>=
 name_in_progress:=true; {this keeps |cur_name| from being changed}
-if scan_keyword("at") then @<Put the (positive) `at' size into |s|@>
+if scan_keyword("at") then @<Put the \(p)(positive) `at' size into |s|@>
 @.at@>
 else if scan_keyword("scaled") then
 @.scaled@>
@@ -23252,7 +23284,7 @@ else if scan_keyword("scaled") then
 else s:=-1000;
 name_in_progress:=false
 
-@ @<Put the (positive) `at' size into |s|@>=
+@ @<Put the \(p)(positive) `at' size into |s|@>=
 begin scan_normal_dimen; s:=cur_val;
 if (s<=0)or(s>=@'1000000000) then
   begin print_err("Improper `at' size (");
@@ -23269,9 +23301,13 @@ the new name becomes the font identifier of record. Font names `\.{xyz}' and
 `\.{XYZ}' are considered to be different.
 
 @<If this font has already been loaded...@>=
+flushable_string:=str_ptr-1;
 for f:=font_base+1 to font_ptr do
   if str_eq_str(font_name[f],cur_name)and str_eq_str(font_area[f],cur_area) then
-    begin if s>0 then
+    begin if cur_name=flushable_string then
+      begin flush_string; cur_name:=font_name[f];
+      end;
+    if s>0 then
       begin if s=font_size[f] then goto common_ending;
       end
     else if font_size[f]=xn_over_d(font_dsize[f],-s,1000) then
@@ -23279,7 +23315,7 @@ for f:=font_base+1 to font_ptr do
     end
 
 @ @<Cases of |print_cmd_chr|...@>=
-set_font:begin print("select font "); print(font_name[chr_code]);
+set_font:begin print("select font "); slow_print(font_name[chr_code]);
   if font_size[chr_code]<>font_dsize[chr_code] then
     begin print(" at "); print_scaled(font_size[chr_code]);
     print("pt");
@@ -23342,7 +23378,7 @@ procedure do_assignments;
 label exit;
 begin loop begin @<Get the next non-blank non-relax...@>;
   if cur_cmd<=max_non_prefixed_command then return;
-  prefixed_command;
+  set_box_allowed:=false; prefixed_command; set_box_allowed:=true;
   end;
 exit:end;
 
@@ -23415,7 +23451,7 @@ end;
 @ @<Print string |s| on the terminal@>=
 begin if term_offset+length(s)>max_print_line-2 then print_ln
 else if (term_offset>0)or(file_offset>0) then print_char(" ");
-print(s); update_terminal;
+slow_print(s); update_terminal;
 end
 
 @ If \.{\\errmessage} occurs often in |scroll_mode|, without user-defined
@@ -23428,7 +23464,7 @@ give a verbose explanation only once.
 @ @<Set init...@>=long_help_seen:=false;
 
 @ @<Print string |s| as an error message@>=
-begin print_err(s);
+begin print_err(""); slow_print(s);
 if err_help<>null then use_err_help:=true
 else if long_help_seen then help1("(That was another \errmessage.)")
 else  begin if interaction<error_stop_mode then long_help_seen:=true;
@@ -23481,6 +23517,7 @@ end;
 @ When the case of a |chr_code| changes, we don't change the |cmd|.
 We also change active characters, using the fact that
 |cs_token_flag+active_base| is a multiple of~256.
+@^data structure assumptions@>
 
 @<Change the case of the token in |p|, if a change is appropriate@>=
 t:=info(p);
@@ -24034,10 +24071,10 @@ for k:=1 to j do
   undump(0)(63)(hyf_num[k]);
   undump(min_quarterword)(max_quarterword)(hyf_next[k]);
   end;
-init for k:=0 to 255 do trie_used[k]:=min_quarterword;@+tini
+init for k:=0 to 255 do trie_used[k]:=min_quarterword;@+tini@;@/
 k:=256;
 while j>0 do
-  begin undump(0)(k-1)(k); undump(1)(j)(x);@+init trie_used[k]:=qi(x);@+tini
+  begin undump(0)(k-1)(k); undump(1)(j)(x);@+init trie_used[k]:=qi(x);@+tini@;@/
   j:=j-x; op_start[k]:=qo(j);
   end;
 @!init trie_not_ready:=false @+tini
@@ -24069,8 +24106,8 @@ while not w_open_out(fmt_file) do
   prompt_file_name("format file name",format_extension);
 print_nl("Beginning to dump on file ");
 @.Beginning to dump...@>
-print(w_make_name_string(fmt_file)); flush_string;
-print_nl(format_ident)
+slow_print(w_make_name_string(fmt_file)); flush_string;
+print_nl(""); slow_print(format_ident)
 
 @ @<Close the format file@>=
 w_close(fmt_file)
@@ -24172,6 +24209,7 @@ might lead to an infinite loop.
 
 Actually there's one way to get error messages, via |prepare_mag|;
 but that can't cause infinite recursion.
+@^recursion@>
 
 This program doesn't bother to close the input files that may still be open.
 
@@ -24186,7 +24224,7 @@ if log_opened then
   if selector=term_only then
     begin print_nl("Transcript written on ");
 @.Transcript written...@>
-    print(log_name); print_char(".");
+    slow_print(log_name); print_char(".");
     end;
   end;
 end;
@@ -24364,7 +24402,7 @@ gubed
   show_node_list(n); {show a box in its entirety}
   end;
 9: show_token_list(n,null,1000);
-10: print(n);
+10: slow_print(n);
 11: check_mem(n>0); {check wellformedness; print new busy locations if |n>0|}
 12: search_mem(n); {look for pointers to |n|}
 13: begin read(term_in,l); print_cmd_chr(n,l);
@@ -24727,7 +24765,7 @@ q:=get_avail; info(q):=left_brace_token+"{"; ins_list(q);
 {now we're ready to scan
   `\.\{$\langle\,$token list$\,\rangle$\.{\} \\endwrite}'}
 old_mode:=mode; mode:=0;
-  {disable \.{\\prevdepth}, \.{\\spacefactor}, \.{\\lastskip}}
+  {disable \.{\\prevdepth}, \.{\\spacefactor}, \.{\\lastskip}, \.{\\prevgraf}}
 cur_cs:=write_loc; q:=scan_toks(false,true); {expand macros, etc.}
 get_token;@+if cur_tok<>end_write_token then
   @<Recover from an unbalanced write command@>;

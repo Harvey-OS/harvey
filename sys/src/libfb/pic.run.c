@@ -12,13 +12,13 @@ int _PRDrun(PICFILE *f, void *vbuf){
 	if(f->line==0){
 		f->buf=malloc(NBUF);
 		if(f->buf==0){
-			_PICerror="Can't allocate buffer";
+			werrstr("Can't allocate buffer");
 			return 0;
 		}
 		f->ebuf=f->bufp=f->buf;
 	}
 	if(f->line==f->height){
-		_PICerror="Read past end of picture";
+		werrstr("Read past end of picture");
 		return 0;
 	}
 	bufp=buf;
@@ -30,7 +30,7 @@ int _PRDrun(PICFILE *f, void *vbuf){
 				*runp++ = *f->bufp++;
 			n=read(f->fd, runp, NBUF-slack);
 			if(n<=0){
-				if(n==0) _PICerror="EOF reading picture";
+				if(n==0) werrstr("EOF reading picture");
 				return 0;
 			}
 			f->ebuf=runp+n;
@@ -39,7 +39,7 @@ int _PRDrun(PICFILE *f, void *vbuf){
 		n=*f->bufp++;
 		i+=n+1;
 		if(i>f->width){
-			_PICerror="run spans scan lines";
+			werrstr("run spans scan lines");
 			return 0;
 		}
 		runp=bufp;
@@ -58,13 +58,13 @@ int _PWRrun(PICFILE *f, void *vbuf){
 	if(f->line==0){
 		f->buf=malloc(f->width*(f->nchan+1));	/* big enough for any scan line */
 		if(f->buf==0){
-			_PICerror="Can't allocate buffer";
+			werrstr("Can't allocate buffer");
 			return 0;
 		}
 		_PWRheader(f);
 	}
 	if(f->line>=f->height){
-		_PICerror="Write past end of picture";
+		werrstr("Write past end of picture");
 		return 0;
 	}
 	f->line++;

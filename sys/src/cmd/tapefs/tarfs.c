@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #include "tapefs.h"
 
@@ -68,7 +69,10 @@ populate(char *name)
 			continue;
 		}
 		f.name = dblock.dbuf.name+isabs;
-		poppath(f, 1);
+		if (f.name[0]=='\0')
+			fprint(1, "null name skipped\n");
+		else
+			poppath(f, 1);
 		blkno += 1 + (f.size+TBLOCK-1)/TBLOCK;
 	}
 }

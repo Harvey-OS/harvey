@@ -51,7 +51,7 @@ struct SCCdev
 #define NVREAD	(2048-8)	/* minus RTC */
 #define NVWRITE	(2048-8-32)	/* minus RTC, minus ID prom */
 
-#define NVRAUTHADDR	(1024+900)
+#define NVRAUTHADDR	(1024+850)
 
 /*
  * real-time clock (every 4th location)

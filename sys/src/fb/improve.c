@@ -33,7 +33,7 @@ main(int argc, char *argv[]){
 	}
 	in=picopen_r(argc==3?argv[2]:"IN");
 	if(in==0){
-		picerror(argc==3?argv[2]:"IN");
+		perror(argc==3?argv[2]:"IN");
 		exits("open input");
 	}
 	inline=malloc(PIC_WIDTH(in)*PIC_NCHAN(in));

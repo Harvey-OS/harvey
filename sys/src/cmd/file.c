@@ -23,6 +23,7 @@ enum
 	Cword,
 	Fword,
 	Aword,
+	Alword,
 	I1,
 	I2,
 	I3,
@@ -36,39 +37,51 @@ struct
 {
 	char*	word;
 	int	class;
-	int	length;			/* sizeof of 'word' field */
 } dict[] =
 {
-	"TEXT",		Aword,	4,
-	"block",	Fword,	5,
-	"char",		Cword,	4,
-	"common",	Fword,	6,
-	"data",		Fword,	4,
-	"dimension",	Fword,	9,	
-	"double",	Cword,	6,
-	"extern",	Cword,	6,
-	"bio",		I2,	3,
-	"float",	Cword,	5,
-	"function",	Fword,	8,
-	"h",		I3,	1,
-	"include",	I1,	7,
-	"int",		Cword,	3,
-	"integer",	Fword,	7,
-	"libc",		I2,	4,
-	"long",		Cword,	4,
-	"real",		Fword,	4,
-	"register",	Cword,	8,
-	"short",	Cword,	5,
-	"static",	Cword,	6,
-	"stdio",	I2,	5,
-	"struct",	Cword,	6,
-	"subroutine",	Fword,	10,
-	"u",		I2,	1,
-	"void",		Cword,	4,
+	"TEXT",		Aword,
+	"adt",		Alword,
+	"aggr",		Alword,
+	"alef",		Alword,
+	"block",	Fword,
+	"chan",		Alword,
+	"char",		Cword,
+	"common",	Fword,
+	"data",		Fword,
+	"dimension",	Fword,	
+	"double",	Cword,
+	"extern",	Cword,
+	"bio",		I2,
+	"float",	Cword,
+	"function",	Fword,
+	"h",		I3,
+	"include",	I1,
+	"int",		Cword,
+	"integer",	Fword,
+	"libc",		I2,
+	"long",		Cword,
+	"real",		Fword,
+	"register",	Cword,
+	"short",	Cword,
+	"static",	Cword,
+	"stdio",	I2,
+	"struct",	Cword,
+	"subroutine",	Fword,
+	"u",		I2,
+	"void",		Cword,
 };
+
+	/* codes for 'mode' field in language structure */
+enum	{
+		Normal	= 0,
+		First,		/* first entry for language spanning several ranges */
+		Multi,		/* later entries "   "       "  ... */ 
+		Shared,		/* codes used in several languages */
+	};
 
 struct
 {
+	int	mode;		/* see enum above */
 	int 	count;
 	int	low;
 	int	high;
@@ -76,30 +89,32 @@ struct
 	
 } language[] =
 {
-	0,	0x0100,	0x01FF,	"Extended Latin",
-	0,	0x0370,	0x03FF,	"Greek",
-	0,	0x0400,	0x04FF,	"Cyrillic",
-	0,	0x0530,	0x058F,	"Armenian",
-	0,	0x0590,	0x05FF,	"Hebrew",
-	0,	0x0600,	0x06FF,	"Arabic",
-	0,	0x0900,	0x097F,	"Devanagari",
-	0,	0x0980,	0x09FF,	"Bengali",
-	0,	0x0A00,	0x0A7F,	"Gurmukhi",
-	0,	0x0A80,	0x0AFF,	"Gujarati",
-	0,	0x0B00,	0x0B7F,	"Oriya",
-	0,	0x0B80,	0x0BFF,	"Tamil",
-	0,	0x0C00,	0x0C7F,	"Telugu",
-	0,	0x0C80,	0x0CFF,	"Kannada",
-	0,	0x0D00,	0x0D7F,	"Malayalam",
-	0,	0x0E00,	0x0E7F,	"Thai",
-	0,	0x0E80,	0x0EFF,	"Lao",
-	0,	0x1000,	0x105F,	"Tibetan",
-	0,	0x10A0,	0x10FF,	"Georgian",
-	0,	0x3040,	0x30FF,	"Japanese",
-	0,	0x3100,	0x312F,	"Chinese",
-	0,	0x3130,	0x318F,	"Korean",
-	0,	0x3400,	0x3D2F,	"Korean",
-	0,	0,	0,	0,		/* terminal entry */
+	Normal, 0,	0x0080, 0x0080,	"Extended Latin",
+	Normal,	0,	0x0100,	0x01FF,	"Extended Latin",
+	Normal,	0,	0x0370,	0x03FF,	"Greek",
+	Normal,	0,	0x0400,	0x04FF,	"Cyrillic",
+	Normal,	0,	0x0530,	0x058F,	"Armenian",
+	Normal,	0,	0x0590,	0x05FF,	"Hebrew",
+	Normal,	0,	0x0600,	0x06FF,	"Arabic",
+	Normal,	0,	0x0900,	0x097F,	"Devanagari",
+	Normal,	0,	0x0980,	0x09FF,	"Bengali",
+	Normal,	0,	0x0A00,	0x0A7F,	"Gurmukhi",
+	Normal,	0,	0x0A80,	0x0AFF,	"Gujarati",
+	Normal,	0,	0x0B00,	0x0B7F,	"Oriya",
+	Normal,	0,	0x0B80,	0x0BFF,	"Tamil",
+	Normal,	0,	0x0C00,	0x0C7F,	"Telugu",
+	Normal,	0,	0x0C80,	0x0CFF,	"Kannada",
+	Normal,	0,	0x0D00,	0x0D7F,	"Malayalam",
+	Normal,	0,	0x0E00,	0x0E7F,	"Thai",
+	Normal,	0,	0x0E80,	0x0EFF,	"Lao",
+	Normal,	0,	0x1000,	0x105F,	"Tibetan",
+	Normal,	0,	0x10A0,	0x10FF,	"Georgian",
+	Normal,	0,	0x3040,	0x30FF,	"Japanese",
+	Normal,	0,	0x3100,	0x312F,	"Chinese",
+	First,	0,	0x3130,	0x318F,	"Korean",
+	Multi,	0,	0x3400,	0x3D2F,	"Korean",
+	Shared,	0,	0x4e00,	0x9fff,	"CJK",
+	Normal,	0,	0,	0,	0,		/* terminal entry */
 };
 	
 	
@@ -138,8 +153,8 @@ int	(*call[])(void) =
 	long0,		/* recognizable by first 4 bytes */
 	short0,		/* recognizable by first 2 bytes */
 	istring,	/* recognizable by first string */
-	iscint,		/* c intermediate */
-	isc,		/* c compiler key words */
+	iscint,		/* compiler/assembler intermediate */
+	isc,		/* c & alef compiler key words */
 	isas,		/* assembler key words */
 	ismung,		/* entropy compressed/encrypted */
 	isenglish,	/* char frequency English */
@@ -200,8 +215,8 @@ void
 filetype(int fd)
 {
 	Rune r;
-	int i, f;
-	char *p;
+	int i, f, n;
+	char *p, *eob;
 
 	if(dirfstat(fd, &mbuf) < 0) {
 		print("cannot stat\n");
@@ -232,7 +247,10 @@ filetype(int fd)
 	memset(cfreq, 0, sizeof(cfreq));
 	for (i = 0; language[i].name; i++)
 		language[i].count = 0;
-	for(p = (char *)buf; p < (char *)buf+nbuf;) {
+	eob = (char *)buf+nbuf;
+	for(n = 0, p = (char *)buf; p < eob; n++) {
+		if (!fullrune(p, eob-p) && eob-p < UTFmax)
+			break;
 		p += chartorune(&r, p);
 		if (r == 0)
 			f = Cnull;
@@ -240,17 +258,19 @@ filetype(int fd)
 			if (!isprint(r) && !isspace(r))
 				f = Ceascii;	/* ASCII control char */
 			else f = r;
+		} else if (r == 0x080) {
+			bump_utf_count(r);
+			f = Cutf;
 		} else if (r < 0xA0)
 				f = Cbinary;	/* Invalid Runes */
 		else if (r <= 0xff)
 				f = Clatin;	/* Latin 1 */
 		else {
-			bump_utf_count(r);	
+			bump_utf_count(r);
 			f = Cutf;		/* UTF extension */
 		}
 		cfreq[f]++;			/* ASCII chars peg directly */
 	}
-
 	/*
 	 * gross classify
 	 */
@@ -262,15 +282,16 @@ filetype(int fd)
 		guess = Flatin;
 	else if (cfreq[Ceascii])
 		guess = Feascii;
-	else if (cfreq[Cnull]) {
-		print("Free Software Foundation Copyleft\n");
+	else if (cfreq[Cnull] == n) {
+		print("all null bytes\n");
 		return;
 	}
 	else guess = Fascii;
 	/*
 	 * lookup dictionary words
 	 */
-	if(guess == Fascii) 
+	memset(wfreq, 0, sizeof(wfreq));
+	if(guess == Fascii || guess == Flatin) 
 		wordfreq();
 	/*
 	 * call individual classify routines
@@ -286,7 +307,7 @@ filetype(int fd)
 	if (nbuf < 100)
 		print("short ");
 	if (guess == Fascii)
-		print("ascii\n");
+		print("Ascii\n");
 	else if (guess == Feascii)
 		print("extended ascii\n");
 	else if (guess == Flatin)
@@ -318,23 +339,77 @@ utf_count(void)
 {
 	int i, count;
 
-	for (count = i = 0; language[i].name; i++)
+	count = 0;
+	for (i = 0; language[i].name; i++)
 		if (language[i].count > 0)
-			count++;
+			switch (language[i].mode) {
+			case Normal:
+			case First:
+				count++;
+				break;
+			default:
+				break;
+			}
 	return count;
+}
+
+int
+chkascii(void)
+{
+	int i;
+
+	for (i = 'a'; i < 'z'; i++)
+		if (cfreq[i])
+			return 1;
+	for (i = 'A'; i < 'Z'; i++)
+		if (cfreq[i])
+			return 1;
+	return 0;
+}
+
+int
+find_first(char *name)
+{
+	int i;
+
+	for (i = 0; language[i].name != 0; i++)
+		if (language[i].mode == First
+			&& strcmp(language[i].name, name) == 0)
+			return i;
+	return -1;
 }
 
 void
 print_utf(void)
 {
-	int i, printed;
+	int i, printed, j;
 
-	for (i = printed = 0; language[i].name; i++)
+	if (chkascii()) {
+		printed = 1;
+		print("Ascii");
+	} else
+		printed = 0;
+	for (i = 0; language[i].name; i++)
 		if (language[i].count) {
-			if (printed)
-				print(" & ");
-			else printed = 1;
-			print("%s", language[i].name);
+			switch(language[i].mode) {
+			case Multi:
+				j = find_first(language[i].name);
+				if (j < 0)
+					break;
+				if (language[j].count > 0)
+					break;
+				/* Fall through */
+			case Normal:
+			case First:
+				if (printed)
+					print(" & ");
+				else printed = 1;
+				print("%s", language[i].name);
+				break;
+			case Shared:
+			default:
+				break;
+			}
 		}
 	if(!printed)
 		print("UTF");
@@ -344,28 +419,34 @@ print_utf(void)
 void
 wordfreq(void)
 {
-	int low, high, mid, c;
-	uchar *p;
+	int low, high, mid, r;
+	uchar *p, *p2, c;
 
-	memset(wfreq, 0, sizeof(wfreq));
-	for(p = buf; p < buf+nbuf; p++) {
-		if(isalpha(*p)) {
-			high = sizeof(dict)/sizeof(dict[0]);
-			for(low = 0;low < high;) {
-				mid = (low+high)/2;
-				c = strncmp(dict[mid].word, (char *)p, dict[mid].length);
-				if(c == 0) {
-					wfreq[dict[mid].class]++;
-					break;
-				}
-				if(c < 0)
-					low = mid+1;
-				else
-					high = mid;
+	p = buf;
+	for(;;) {
+		while (p < buf+nbuf && !isalpha(*p))
+			p++;
+		if (p >= buf+nbuf)
+			return;
+		p2 = p;
+		while(p < buf+nbuf && isalpha(*p))
+			p++;
+		c = *p;
+		*p = 0;
+		high = sizeof(dict)/sizeof(dict[0]);
+		for(low = 0;low < high;) {
+			mid = (low+high)/2;
+			r = strcmp(dict[mid].word, (char*)p2);
+			if(r == 0) {
+				wfreq[dict[mid].class]++;
+				break;
 			}
-			while (++p < buf+nbuf && isalnum(*p))
-				;
+			if(r < 0)
+				low = mid+1;
+			else
+				high = mid;
 		}
+		*p++ = c;
 	}
 }
 
@@ -380,27 +461,18 @@ long0(void)
 		return 1;
 	}
 	switch(LENDIAN(buf)) {
-	case 0413:
-		print("demand paged pure ");
-		break;
-	case 0410:
-		print("pure ");
-		break;
-	case 0406:
-		print("mpx 68000 ");
-		break;
-	case 0407:
-		break;
-	case 0135246:		/* ehg */
-		print("view2d input file\n");
+	case 0xf16df16d:
+		print("pac1 audio file\n");
+		return 1;
+	case 0x31636170:
+		print("pac3 audio file\n");
+		return 1;
+	case 0x32636170:
+		print("pac4 audio file\n");
 		return 1;
 	default:
 		return 0;
 	}
-	print("unix vax executable");
-	if(buf[4] || buf[5] || buf[6] || buf[7])
-		print(" not stripped");
-	print("\n");
 	return 1;
 }
 
@@ -425,7 +497,8 @@ short0(void)
 /*
  * initial words to classify file
  */
-struct	FILE_STRING{
+struct	FILE_STRING
+{
 	char 	*key;
 	char	*filetype;
 	int	length;
@@ -434,16 +507,16 @@ struct	FILE_STRING{
 	"!<arch>\n__.SYMDEF",	"archive random library",	16,
 	"!<arch>\n",		"archive",			8,
 	"070707",		"cpio archive - ascii header",	6,
-	"#!/bin/echo",		"cyntax object file",		11,
 	"#!/bin/rc",		"rc executable file",		9,
 	"#!/bin/sh",		"sh executable file",		9,
 	"%!",			"postscript",			2,
-	"@document(",		"imagen",			10,
 	"x T post",		"troff output for post",	8,
 	"x T Latin1",		"troff output for Latin1",	10,
 	"x T utf",		"troff output for UTF",		7,
 	"x T 202",		"troff output for 202",		7,
 	"x T aps",		"troff output for aps",		7,
+	"GIF",			"GIF image", 			3,
+	"\0PC Research, Inc", "ghostscript fax file",	23,	
 	0,0,0
 };
 
@@ -454,7 +527,7 @@ istring(void)
 	struct FILE_STRING *p;
 
 	for(p = file_string; p->key; p++) {
-		if(nbuf >= p->length && !strncmp((char*)buf, p->key, p->length)) {
+		if(nbuf >= p->length && !memcmp(buf, p->key, p->length)) {
 			print("%s\n", p->filetype);
 			return 1;
 		}
@@ -472,51 +545,18 @@ istring(void)
 int
 iscint(void)
 {
+	int type;
+	char *name;
+	Biobuf b;
 
-	if(buf[0] == 0x3a)			/* as = ANAME */
-	if(buf[1] == 0x11)			/* type = D_FILE */
-	if(buf[2] == 1)				/* sym */
-	if(buf[3] == '<') {			/* name of file */
-		print("mips .v intermediate\n");
-		return 1;
-	}
-
-	if(buf[0] == 0x4d)			/* aslo = ANAME */
-	if(buf[1] == 0x01)			/* ashi = ANAME */
-	if(buf[2] == 0x32)			/* type = D_FILE */
-	if(buf[3] == 1)				/* sym */
-	if(buf[4] == '<') {			/* name of file */
-		print("68020 .2 intermediate\n");
-		return 1;
-	}
-
-	if(buf[0] == 0x43)			/* as = ANAME */
-	if(buf[1] == 0x0d)			/* type */
-	if(buf[2] == 1)				/* sym */
-	if(buf[3] == '<') {			/* name of file */
-		print("hobbit .z intermediate\n");
-		return 1;
-	}
-
-	if(buf[0] == 0x74)			/* as = ANAME */
-	if(buf[1] == 0x10)			/* type */
-	if(buf[2] == 1)				/* sym */
-	if(buf[3] == '<') {			/* name of file */
-		print("sparc .k intermediate\n");
-		return 1;
-	}
-
-
-	if(buf[0] == 0x7e)			/* aslo = ANAME */
-	if(buf[1] == 0x00)			/* ashi = ANAME */
-	if(buf[2] == 0x45)			/* type = D_FILE */
-	if(buf[3] == 1)				/* sym */
-	if(buf[4] == '<') {			/* name of file */
-		print("386 .8 intermediate\n");
-		return 1;
-	}
-
-	return 0;
+	if(Binit(&b, fd, OREAD) == Beof)
+		return 0;
+	seek(fd, 0, 0);
+	type = objtype(&b, &name);
+	if(type < 0)
+		return 0;
+	print("%s intermediate\n", name);
+	return 1;
 }
 
 int
@@ -529,6 +569,8 @@ isc(void)
 	 * includes
 	 */
 	if(n >= 2 && wfreq[I2] >= n && wfreq[I3] >= n && cfreq['.'] >= n)
+		goto yes;
+	if(n >= 1 && wfreq[Alword] >= n && wfreq[I3] >= n && cfreq['.'] >= n)
 		goto yes;
 	/*
 	 * declarations
@@ -543,7 +585,10 @@ isc(void)
 	return 0;
 
 yes:
-	print("c program\n");
+	if(wfreq[Alword] > 0)
+		print("alef program\n");
+	else 
+		print("c program\n");
 	return 1;
 }
 
@@ -677,7 +722,8 @@ p9bitnum(uchar *bp)
 int
 isp9bit(void)
 {
-	int ldep, lox, loy, hix, hiy;
+	int ldep, lox, loy, hix, hiy, px;
+	ulong t;
 	long len;
 
 	ldep = p9bitnum(buf + 0*P9BITLEN);
@@ -689,8 +735,15 @@ isp9bit(void)
 	if(ldep < 0 || lox < 0 || loy < 0 || hix < 0 || hiy < 0)
 		return 0;
 
-	len = (hix-lox) * (1<<ldep);	/* row length */
-	len = (len + 7) / 8;		/* rounded to bytes */
+	px = 1<<(3-ldep);	/* pixels per byte */
+	/* set l to number of bytes of data per scan line */
+	if(lox >= 0)
+		len = (hix+px-1)/px - lox/px;
+	else{	/* make positive before divide */
+		t = (-lox)+px-1;
+		t = (t/px)*px;
+		len = (t+hix+px-1)/px;
+	}
 	len *= (hiy-loy);		/* col length */
 	len += 5*P9BITLEN;		/* size of initial ascii */
 

@@ -1,0 +1,193 @@
+%% BEGIN npsfont.sty
+%%
+\def\fileversion{v1.0}
+\def\filedate{91/11/20}
+%%
+%% Style option npsfont.sty, for use with LaTeX 2.09
+%%   and the New Font Selection Scheme.
+%%
+%% COPYRIGHT 1992, by Timothy Van Zandt, tvz@Princeton.EDU
+%%
+%% Copying of part or all of this file is allowed under the following
+%% conditions only:
+%% (1) You may freely distribute unchanged copies of the file. Please
+%%     include the documentation when you do so.
+%% (2) You may modify a renamed copy of the file, but only for personal
+%%     use or use within an organization.
+%% (3) You may copy fragments from the file, for personal use or for use
+%%     in a macro package for distribution, as long as credit is given
+%%     where credit is due.
+%%
+%% You are NOT ALLOWED to take money for the distribution or use of
+%% this file or modified versions or fragments thereof, except for
+%% a nominal charge for copying etc.
+%%
+% DESCRIPTION:
+%
+% Defining new PostScript fonts with the New Font Selection Scheme is easy,
+% but these macros make it easier. They save on keystrokes, and most
+% importantly, they make it easy to change the file names used for fonts
+% because you only have to type the file name once instead of 12 times (for
+% the 12 standard LaTeX sizes). An optional argument lets you scale the fonts.
+%
+% These macros are substitutes for the NFSS's \new@fontshape command. For
+% information on the purpose of this command, and on how to select fonts that
+% are defined with it, see the documentation of the NFSS. If you don't have
+% the NFSS, it is available from
+%   rusmv1.rus.uni-stuttgart.de
+% in
+%   soft/tex/latex-style-supported/New-Font-Selection
+% and from
+%   ymir.claremont.edu
+% in
+%   [.anonymous.tex.inputs.latex-mainz]
+% The NFSS is undoubtably the best way to use PostScript fonts (or any non-
+% standard fonts) with LaTeX, and is well worth upgrading to.
+%
+% USAGE:
+%
+%   \newpsfont[<scaling>]{<family>}{<series>}{<shape>}{<filename>}
+%
+%   \newpsfamily[<scaling>]{<family>}{
+%     {<series 1>}{<shape 1>}{<filename 1>},
+%     {<series 2>}{<shape 2>}{<filename 2>},
+%                 . . .
+%     {<series n>}{<shape n>}{<filename n>}}
+%
+% The scaling argument is optional. Like the \new@fontshape command, these
+% commands can only be used in the preamble.
+%
+% EXAMPLE:
+%
+% Suppose the Helvetica-Oblique virtual font on your system has the name
+% phvro.vf. The following defines the <helvetica> family, <m>edium series, and
+% <it>alic shape to be the Helvetica-Oblique font, at the standard LaTeX
+% font sizes, scaled by .82:
+%
+%   \newpsfont[.82]{helvetica}{m}{it}{phvro}
+%
+% This is equivalent to:
+%
+%   \new@fontshape{helvetica}{m}{it}{%
+%     <5>phvro at 4.1pt%
+%     <6>phvro at 4.92pt%
+%     <7>phvro at 5.74pt%
+%     <8>phvro at 6.56pt%
+%     <9>phvro at 7.38pt%
+%     <10>phvro at 8.2pt%
+%     <11>phvro at 8.979pt%
+%     <12>phvro at 9.84pt%
+%     <14>phvro at 11.808pt%
+%     <17>phvro at 14.1696pt%
+%     <20>phvro at 17.0068pt%
+%     <25>phvro at 20.4016pt}{}
+%
+% The following command sets up the standard Helvetica family:
+%
+%   \newpsfamily[.82]{helvetica}{%
+%     {m}{n}{phvr},                          %Helvetica
+%     {m}{it}{phvro},                        %Helvetica-Oblique
+%     {m}{sl}{phvro},                        %Helvetica-Oblique
+%     {bx}{n}{phvb},                         %Helvetica-Bold
+%     {bx}{it}{phvbo},                       %Helvetica-BoldOblique
+%     {bx}{sl}{phvbo}}                       %Helvetica-BoldOblique
+%
+% (Don't forget the commas.) It is equivalent to:
+%
+%   \newpsfont[.82]{helvetica}{m}{n}{phvr}     %Helvetica
+%   \newpsfont[.82]{helvetica}{m}{it}{phvro}   %Helvetica-Oblique
+%   \newpsfont[.82]{helvetica}{m}{sl}{phvro}   %Helvetica-Oblique
+%   \newpsfont[.82]{helvetica}{bx}{n}{phvb}    %Helvetica-Bold
+%   \newpsfont[.82]{helvetica}{bx}{it}{phvbo}  %Helvetica-BoldOblique
+%   \newpsfont[.82]{helvetica}{bx}{sl}{phvbo}  %Helvetica-BoldOblique
+%   \extra@def{helvetica}{}{}
+%
+% WHY SCALE FONTS?:
+%
+% Disclaimer: The suggestions that follow come from someone who doesn't know
+% anything about fonts.
+%
+% Mixing fonts that are not designed to be used together is not for purists,
+% but many of us do it anyway. Scaling the fonts can at least correct for
+% differences in the x-heights. This is important if you use Computer
+% Modern fonts for in-line math and some other fonts for text.
+%
+% To find out the x-height of the 10pt size of a font, load this style and
+% use the command
+%
+%   \showxheight{<filename>}
+%
+% E.g., \showxheight{phvr} and \showxheight{cmr10} displays
+%
+%   x-height of cmr10 at 10pt is 4.30554pt
+%   x-height of phvr at 10pt is 5.24998pt
+%
+% on the terminal. Scaling the Helvetica fonts by 4.30554/5.24990 = .82
+% gets the x-heights of these fonts in line. It is best to set the x-heights
+% the same for the medium weight, normal shaped fonts, and then scale the
+% rest of the fonts in the same family by the same amount.
+%
+% David Jones has a psfonts.sty that sets up the standard PostScript fonts,
+% all scaled so that the x-heights match that of the Computer Modern medium
+% roman font. It is available via anonymous ftp from theory.lcs.mit.edu in
+% /pub/dmjones.
+%
+% IMPLEMENTATION:
+%
+% \scale@stdsizes has at its argument a scaling factor. It uses \font@scale
+% to define \scaled@sizes to be the macro whose argument is the name of a
+% font, and which expands to the definitions of the standard \LaTeX{} sizes
+% for New Font Selection Schemes \new@fontshape command.
+%
+\message{\space\space\fileversion\space\space\filedate
+  \space\space<tvz>}
+\@ifundefined{new@psfontshape}{}{\endinput}
+\def\font@scale#1#2#3{\dimen@=#2\dimen@=#3\dimen@
+  \edef\scaled@sizes##1{\scaled@sizes{##1}<#1>##1 at\number\dimen@ sp}}
+\def\scale@stdsizes#1{%
+  \edef\scaled@sizes##1{}%
+  \font@scale{5}{5pt}{#1}%
+  \font@scale{6}{6pt}{#1}%
+  \font@scale{7}{7pt}{#1}%
+  \font@scale{8}{8pt}{#1}%
+  \font@scale{9}{9pt}{#1}%
+  \font@scale{10}{10pt}{#1}%
+  \font@scale{11}{10.95pt}{#1}%
+  \font@scale{12}{12pt}{#1}%
+  \font@scale{14}{14.4pt}{#1}%
+  \font@scale{17}{17.28pt}{#1}%
+  \font@scale{20}{20.74pt}{#1}%
+  \font@scale{25}{24.88pt}{#1}}
+\def\new@psfontshape#1#2#3#4{%
+  \new@fontshape{#1}{#2}{#3}{\scaled@sizes{#4}}{}}
+\def\new@psfont[#1]#2#3#4#5{%
+  \scale@stdsizes{#1}%
+  \new@psfontshape{#2}{#3}{#4}{#5}}
+\def\newpsfont{%
+  \@ifnextchar [{\new@psfont}{\new@psfont[1]}}
+\def\newpsfamily{%
+  \@ifnextchar [{\new@psfamily}{\new@psfamily[1]}}
+\def\new@psfamily[#1]#2#3{%
+  \scale@stdsizes{#1}%
+  \@for\@tempa:=#3\do{%
+    \edef\@tempb{\noexpand\new@psfontshape{#2}\@tempa}
+    \@tempb}%
+  \extra@def{#2}{}{}}
+\def\showxheight#1{%
+  \font\@tempfont=#1 at 10pt%
+  \typeout{^^J x-height of #1 at 10pt is \the\fontdimen5\@tempfont}}
+% The commands are added to \@preamblecmds to save memory.
+\begingroup
+  \def\do{\noexpand\do\noexpand}
+  \xdef\@preamblecmds{\@preamblecmds
+    \do\font@scale
+    \do\scale@stdsizes
+    \do\scaled@sizes
+    \do\new@psfontshape
+    \do\new@psfont
+    \do\newpsfont
+    \do\newpsfamily
+    \do\new@psfamily}
+\endgroup
+\endinput
+%% END npsfont.sty

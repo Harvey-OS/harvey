@@ -1,0 +1,37 @@
+</$objtype/mkfile
+
+TARG=xl
+OFILES=\
+	asm.$O\
+	asmout.$O\
+	list.$O\
+	noop.$O\
+	sched.$O\
+	obj.$O\
+	optab.$O\
+	pass.$O\
+	span.$O\
+	enam.$O\
+	cnam.$O\
+
+HFILES=\
+	l.h\
+	../xc/x.out.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+cnam.c:	l.h
+	rc ./mkcnam
+
+enam.$O:	../xc/enam.c
+	$CC $CFLAGS ../xc/enam.c
+
+x:V:	$O.out
+	$O.out -la -o/dev/null x.x
+
+test:V:	$O.out
+	rm -f xxx
+	mv $O.out xxx
+	./xxx $OFILES
+	cmp $O.out xxx

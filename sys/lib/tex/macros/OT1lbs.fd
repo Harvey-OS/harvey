@@ -1,0 +1,34 @@
+%% 
+%% This is file `OT1lbs.fd', generated 
+%% on <1995/2/23> with the docstrip utility (1.1).
+%% 
+%% The original source files were:
+%% 
+%% lucida.dtx  (with options: `lucidascale,OT1lbs')
+%% Copyright (C) 1993 Sebastian Rahtz. All rights reserved. 
+%% This is a generated file for *PSNFSS2e*. Permission is granted to to 
+%% customize the declarations in this file to serve the needs of your 
+%% installation. However, no permission is granted to distribute a 
+%% modified version of this file under its original name. 
+%% 
+\def\fileversion{3.2}
+\def\filedate{1995/01/27}
+\def\docdate {1995/01/27}
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}
+\typeout{File\space OT1lbs.fd\space loading \space (Y\&Y names)\space Lucida Sans}%
+\DeclareFontFamily{OT1}{lbs}{}%
+\DeclareFontShape{OT1}{lbs}{m}{n}{<->s * [\LucidaScale]lsr}{}%
+\DeclareFontShape{OT1}{lbs}{m}{it}{<->s * [\LucidaScale]lsi}{}%
+\DeclareFontShape{OT1}{lbs}{b}{n}{<->s * [\LucidaScale]lsd}{}%
+\DeclareFontShape{OT1}{lbs}{b}{it}{<->s * [\LucidaScale]lsdi}{}%
+\DeclareFontShape{OT1}{lbs}{m}{sl}{<->ssub * lbs/m/it}{}%
+\DeclareFontShape{OT1}{lbs}{m}{sc}{<->ssub * lbs/m/n}{}%
+\DeclareFontShape{OT1}{lbs}{b}{sc}{<->ssub * lbs/m/sc}{}%
+\DeclareFontShape{OT1}{lbs}{bx}{sc}{<->ssub * lbs/b/sc}{}%
+\DeclareFontShape{OT1}{lbs}{b}{sl}{<->ssub * lbs/b/it}{}%
+\DeclareFontShape{OT1}{lbs}{bx}{n}{<->ssub * lbs/b/n}{}%
+\DeclareFontShape{OT1}{lbs}{bx}{it}{<->ssub * lbs/b/it}{}%
+\DeclareFontShape{OT1}{lbs}{bx}{sl}{<->ssub * lbs/m/sl}{}%
+\endinput
+%% 
+%% End of file `OT1lbs.fd'.

@@ -29,6 +29,7 @@ main(int argc, char *argv[])
 	int iflag = 0;
 	Biobuf bin;
 	Biobuf *b = &bin;
+	char buf[256];
 
 	ARGBEGIN{
 	case 'n':
@@ -85,9 +86,16 @@ main(int argc, char *argv[])
 			}
 			Bwrite(output, line, BLINELEN(b));
 		}
+
+		/*
+		 * in case we didn't end with a newline, tack whatever's 
+		 * left onto the last file
+		 */
+		while((n = Bread(b, buf, sizeof(buf))) > 0)
+			Bwrite(output, buf, n);
 	}
 	if(b != 0)
-		Bclose(b);
+		Bterm(b);
 	exits(0);
 }
 
@@ -127,7 +135,7 @@ openf(void)
 {
 	int fd;
 	Bflush(output);
-	Bclose(output);
+	Bterm(output);
 	if((fd=create(name,OWRITE,0666)) == -1) {
 		fprint(2, "grep: can't open %s: %r\n", name);
 		exits("open failed");

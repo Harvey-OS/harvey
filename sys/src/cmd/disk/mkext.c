@@ -4,13 +4,13 @@
 
 enum{
 	LEN	= 8*1024,
-	NFLDS	= 5,		/* filename, modes, uid, gid, bytes */
+	NFLDS	= 6,		/* filename, modes, uid, gid, mtime, bytes */
 };
 
 int	selected(char*, int, char*[]);
 void	mkdirs(char*, char*);
-void	mkdir(char*, ulong, char*, char*);
-void	extract(char*, ulong, char*, char*, ulong);
+void	mkdir(char*, ulong, ulong, char*, char*);
+void	extract(char*, ulong, ulong, char*, char*, ulong);
 void	seekpast(ulong);
 void	error(char*, ...);
 void	warn(char*, ...);
@@ -20,6 +20,7 @@ Biobufhdr bin;
 uchar	binbuf[2*LEN];
 int	uflag;
 int	hflag;
+int	vflag;
 
 void
 main(int argc, char **argv)
@@ -27,7 +28,7 @@ main(int argc, char **argv)
 	Biobuf bout;
 	char *fields[NFLDS], name[2*LEN], *p, *namep;
 	char uid[NAMELEN], gid[NAMELEN];
-	ulong mode, bytes;
+	ulong mode, bytes, mtime;
 
 	namep = name;
 	ARGBEGIN{
@@ -44,6 +45,9 @@ main(int argc, char **argv)
 		break;
 	case 'u':
 		uflag = 1;
+		break;
+	case 'v':
+		vflag = 1;
 		break;
 	default:
 		usage();
@@ -62,11 +66,10 @@ main(int argc, char **argv)
 		}
 		strcpy(namep, fields[0]);
 		mode = strtoul(fields[1], 0, 8);
-		bytes = strtoul(fields[4], 0, 10);
+		mtime = strtoul(fields[4], 0, 10);
+		bytes = strtoul(fields[5], 0, 10);
 		strncpy(uid, fields[2], NAMELEN);
 		strncpy(gid, fields[3], NAMELEN);
-if(strcmp(uid, "ucds")==0) strcpy(uid, "cda");
-if(strcmp(gid, "ucds")==0) strcpy(gid, "cda");
 		if(argc){
 			if(!selected(namep, argc, argv)){
 				if(bytes)
@@ -76,16 +79,16 @@ if(strcmp(gid, "ucds")==0) strcpy(gid, "cda");
 			mkdirs(name, namep);
 		}
 		if(hflag){
-			Bprint(&bout, "%s %luo %s %s %d\n",
-				name, mode, uid, gid, bytes);
+			Bprint(&bout, "%s %luo %s %s %lud %d\n",
+				name, mode, uid, gid, mtime, bytes);
 			if(bytes)
 				seekpast(bytes);
 			continue;
 		}
 		if(mode & CHDIR)
-			mkdir(name, mode, uid, gid);
+			mkdir(name, mode, mtime, uid, gid);
 		else
-			extract(name, mode, uid, gid, bytes);
+			extract(name, mode, mtime, uid, gid, bytes);
 	}
 	fprint(2, "premature end of archive\n");
 	exits("premature end of archive");
@@ -131,7 +134,7 @@ mkdirs(char *name, char *namep)
 }
 
 void
-mkdir(char *name, ulong mode, char *uid, char *gid)
+mkdir(char *name, ulong mode, ulong mtime, char *uid, char *gid)
 {
 	Dir d;
 	int fd;
@@ -144,7 +147,7 @@ mkdir(char *name, ulong mode, char *uid, char *gid)
 			return;
 		}
 	}else if(dirfstat(fd, &d) < 0)
-		warn("can' stat %s: %r", name);
+		warn("can't stat %s: %r", name);
 	close(fd);
 
 	p = utfrrune(name, L'/');
@@ -156,6 +159,7 @@ mkdir(char *name, ulong mode, char *uid, char *gid)
 	if(uflag){
 		strncpy(d.uid, uid, NAMELEN);
 		strncpy(d.gid, gid, NAMELEN);
+		d.mtime = mtime;
 	}
 	d.mode = mode;
 	if(dirwstat(name, &d) < 0)
@@ -163,6 +167,8 @@ mkdir(char *name, ulong mode, char *uid, char *gid)
 	if(uflag){
 		if(dirstat(name, &d) < 0)
 			warn("can't reread modes for %s: %r", name);
+		if(d.mtime != mtime)
+			warn("%s: time mismatch %lud %lud\n", name, mtime, d.mtime);
 		if(strcmp(uid, d.uid))
 			warn("%s: uid mismatch %s %s", name, uid, d.uid);
 		if(strcmp(gid, d.gid))
@@ -172,13 +178,16 @@ mkdir(char *name, ulong mode, char *uid, char *gid)
 }
 
 void
-extract(char *name, ulong mode, char *uid, char *gid, ulong bytes)
+extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, ulong bytes)
 {
 	Dir d;
 	Biobuf *b;
 	char buf[LEN];
 	char *p;
 	ulong n, tot;
+
+	if(vflag)
+		print("x %s %d bytes\n", name, bytes);
 
 	b = Bopen(name, OWRITE);
 	if(!b){
@@ -191,14 +200,14 @@ extract(char *name, ulong mode, char *uid, char *gid, ulong bytes)
 		if(tot + n > bytes)
 			n = bytes - tot;
 		n = Bread(&bin, buf, n);
-		if(n < 0)
+		if(n <= 0)
 			error("premature eof reading %s", name);
 		if(Bwrite(b, buf, n) != n)
 			warn("error writing %s: %r", name);
 	}
 
 	if(dirfstat(Bfildes(b), &d) < 0)
-		warn("can' stat %s: %r", name);
+		warn("can't stat %s: %r", name);
 	p = utfrrune(name, '/');
 	if(p)
 		p++;
@@ -208,19 +217,23 @@ extract(char *name, ulong mode, char *uid, char *gid, ulong bytes)
 	if(uflag){
 		strncpy(d.uid, uid, NAMELEN);
 		strncpy(d.gid, gid, NAMELEN);
+		d.mtime = mtime;
 	}
 	d.mode = mode;
+	Bflush(b);
 	if(dirfwstat(Bfildes(b), &d) < 0)
 		warn("can't set modes for %s: %r", name);
 	if(uflag){
 		if(dirfstat(Bfildes(b), &d) < 0)
 			warn("can't reread modes for %s: %r", name);
+		if(d.mtime != mtime)
+			warn("%s: time mismatch %lud %lud\n", name, mtime, d.mtime);
 		if(strcmp(uid, d.uid))
 			warn("%s: uid mismatch %s %s", name, uid, d.uid);
 		if(strcmp(gid, d.gid))
 			warn("%s: gid mismatch %s %s", name, gid, d.gid);
 	}
-	Bclose(b);
+	Bterm(b);
 }
 
 void
@@ -263,5 +276,5 @@ warn(char *fmt, ...)
 void
 usage(void)
 {
-	fprint(2, "usage: mkext [-h] [-u] [-d dest-fs] [file ...]\n");
+	fprint(2, "usage: mkext [-h] [-u] [-v] [-d dest-fs] [file ...]\n");
 }

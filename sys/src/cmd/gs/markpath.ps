@@ -1,0 +1,60 @@
+%    Copyright (C) 1993 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of Aladdin Ghostscript.
+% 
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
+% 
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
+
+% markpath.ps
+% Mark the corners of a path, drawing it slowly if desired.
+
+/Delay where { pop } { /Delay 0 def } ifelse
+/setxy0
+ { currentpoint /y0 exch def /x0 exch def
+ } def
+/bip
+ { epsx epsy idtransform /ey exch def /ex exch def
+   currentpoint ex 2 div ey 2 div rlineto currentpoint 0 ey neg rlineto
+   ex neg 0 rlineto 0 ey rlineto lineto lineto
+   stroke
+ } def
+/dally
+ { Delay { } repeat
+   Delay 0 ne { flushpage } if
+ } def
+/movebip
+ { /xs 2 index def /ys 1 index def
+   gsave newpath mpmx transform moveto setxy0 bip grestore
+ } def
+/linebip
+ { gsave newpath x0 y0 moveto mpmx transform lineto setxy0 bip dally grestore
+ } def
+/curvebip
+ { gsave newpath x0 y0 moveto 5 index 5 index mpmx transform lineto bip
+   2 copy mpmx transform moveto 3 index 3 index mpmx transform lineto bip
+   x0 y0 moveto
+   3 { mpmx transform 6 2 roll } repeat
+   curveto setxy0 bip dally grestore
+ } def
+/closebip
+ { xs ys linebip
+ } def
+
+/markpath		% <matrix> markpath -
+ { /mpmx exch def 
+   gsave initgraphics 9 dup dtransform grestore
+     /epsy exch def   /epsx exch def
+   gsave 0 setlinewidth
+    { movebip } { linebip } { curvebip } { closebip } pathforall
+   grestore
+ } def

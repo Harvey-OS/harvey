@@ -11,7 +11,7 @@ This software contains proprietary information of
 AT&T and is not to be disclosed or used except in
 accordance with applicable agreements.
 
-Copyright \(co 1993 AT&T
+Copyright © 1993 AT&T
 
 Unpublished and not for publication
 All Rights Reserved

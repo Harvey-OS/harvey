@@ -39,9 +39,9 @@ main(int argc, char *argv[]){
 		r0=atoi(argv[1]);
 		g0=atoi(argv[2]);
 		b0=atoi(argv[3]);
-		r0=atoi(argv[4]);
-		g0=atoi(argv[5]);
-		b0=atoi(argv[6]);
+		r1=atoi(argv[4]);
+		g1=atoi(argv[5]);
+		b1=atoi(argv[6]);
 		chan="rgb";
 		break;
 	}
@@ -105,4 +105,5 @@ main(int argc, char *argv[]){
 		}
 		break;
 	}
+	exits(0);
 }

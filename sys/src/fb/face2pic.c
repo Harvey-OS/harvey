@@ -26,15 +26,15 @@ int gethex(void){
 	c1-='0'<=c1 && c1<='9'?'0':'A'-10;
 	return (c0<<4)|c1;
 }
-main(int argc, char *argv[]){
+void main(int argc, char *argv[]){
 	char line[1000];
 	char *image;
 	int gotdim=0, wid, hgt, depth, x, y;
 	PICFILE *out;
+	argc=getflags(argc, argv, "n:1[name]");
 	switch(argc){
 	default:
-		fprintf(stderr, "Usage: %s [face-saver-file]\n", argv[0]);
-		exits("usage");
+		usage("[file]");
 	case 2:
 		if(freopen(argv[1], "r", stdin)==0){
 			perror(argv[1]);
@@ -65,10 +65,12 @@ main(int argc, char *argv[]){
 	}
 	out=picopen_w("OUT", "dump", 0, 0, 48, 48, "m", argv, 0);
 	if(out==0){
-		picerror(argv[0]);
+		perror(argv[0]);
 		exits("can't create");
 	}
+	if(flag['n']) picputprop(out, "NAME", flag['n'][0]);
+	else if(argc>1) picputprop(out, "NAME", argv[1]);
 	for(y=0;y!=hgt;y++) for(x=0;x!=wid;x++) image[y*wid+x]=gethex();
 	for(y=hgt-1;y>=0;--y) picwrite(out, image+y*wid);
-	exits("");
+	exits(0);
 }

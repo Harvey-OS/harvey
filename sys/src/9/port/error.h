@@ -34,9 +34,6 @@ extern char Ehungup[];		/* write to hungup stream */
 extern char Ebadctl[];		/* bad process or stream control request */
 extern char Enodev[];		/* no free devices */
 extern char Enoenv[];		/* no free environment resources */
-extern char Emuxshutdown[];	/* mux server shut down */
-extern char Emuxbusy[];		/* all mux channels busy */
-extern char Emuxmsg[];		/* bad mux message format or mismatch */
 extern char Eprocdied[];	/* process exited */
 extern char Enochild[];		/* no living children */
 extern char Eioload[];		/* i/o error in demand load */
@@ -55,3 +52,4 @@ extern char Esfnotcached[];	/* subfont not cached */
 extern char Egreg[];		/* it's a thermal problem */
 extern char Esoverlap[];	/* segments overlap */
 extern char Emouseset[];	/* mouse type already set */
+extern char Esession[];		/* i/o error during authentication */

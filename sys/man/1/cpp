@@ -24,19 +24,20 @@ default to standard input and standard output respectively.
 .PP
 The options are:
 .TP
-.BI -U name\^
-.PD 0
-.TP
 .BI -D name\^
+.PD 0
 .TP
 .BI -D name=def\^
 .TP
 .BI -I dir\^
 Same as in
 .IR 2c (1).
+.PD
 .TP
 .B -M
-Generate no output except a list of include files.
+Generate no output except a list of include files
+in a form suitable for specifying dependencies to
+.IR mk (1).
 Use twice to list files in angle brackets.
 .TP
 .B -N
@@ -69,7 +70,7 @@ with lines that show the original input line numbering:
 .PP
 The input language is as described in the ANSI C standard.
 The C compilers do not use
-.I cpp;
+.IR cpp ;
 they contain their own simple but adequate preprocessor, so
 .I cpp
 is usually superfluous.
@@ -81,5 +82,7 @@ directory for machine-independent include files
 .TP
 .B /$objtype/include
 directory for machine-dependent include files
+.SH SOURCE
+.B /sys/src/cmd/cpp
 .SH SEE ALSO
 .IR 2c (1)

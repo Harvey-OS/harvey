@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 #include "iotrack.h"
 #include "dat.h"
@@ -17,14 +18,11 @@ rnop(void)
 	chat("nop...");
 }
 void
-rauth(void)
-{
-	chat("auth...");
-	errno = Eauth;
-}
-void
 rsession(void)
 {
+	memset(thdr.authid, 0, sizeof(thdr.authid));
+	memset(thdr.authdom, 0, sizeof(thdr.authdom));
+	memset(thdr.chal, 0, sizeof(thdr.chal));
 	chat("session...");
 }
 void
@@ -35,7 +33,8 @@ rflush(void)
 void
 rattach(void)
 {
-	Xfs *xf; Xfile *root;
+	Xfs *xf;
+	Xfile *root;
 	Dosptr *dp;
 
 	chat("attach(fid=%d,uname=\"%s\",aname=\"%s\",auth=\"%s\")...",
@@ -112,7 +111,8 @@ rwalk(void)
 	}else if(strcmp(thdr.name, "..")==0){
 		if(f->qid.path==f->xf->rootqid.path){
 			chat("walkup from root...");
-			goto error;
+			rhdr.qid = f->qid;
+			return;
 		}
 		r = walkup(f, dp);
 		if(r < 0)
@@ -291,7 +291,7 @@ badperm:
 	 * now we're committed
 	 */
 	if(pd){
-		puttime(pd);
+		puttime(pd, 0);
 		pdp->p->flags |= BMOD;
 	}
 	f->ptr = ndp;
@@ -305,7 +305,7 @@ badperm:
 	putname(thdr.name, nd);
 	if((thdr.perm & 0222) == 0)
 		nd->attr |= DRONLY;
-	puttime(nd);
+	puttime(nd, 0);
 	nd->start[0] = start;
 	nd->start[1] = start>>8;
 	if(thdr.perm & CHDIR){
@@ -323,7 +323,7 @@ badperm:
 			memmove(xd, pd, sizeof(Dosdir));
 		else{
 			memset(xd, 0, sizeof(Dosdir));
-			puttime(xd);
+			puttime(xd, 0);
 			xd->attr = DDIR;
 		}
 		memset(xd->name, ' ', sizeof xd->name+sizeof xd->ext);
@@ -357,10 +357,10 @@ rread(void)
 	if (!(f=xfile(thdr.fid, Asis)) || !(f->flags&Oread))
 		goto error;
 	if(f->qid.path & CHDIR){
-		if(thdr.count%DIRLEN || thdr.offset%DIRLEN){
-			chat("count%%%d=%d,offset%%%d=%d...",
-				DIRLEN, thdr.count%DIRLEN,
-				DIRLEN, thdr.offset%DIRLEN);
+		thdr.count = (thdr.count/DIRLEN)*DIRLEN;
+		if(thdr.count<DIRLEN || thdr.offset%DIRLEN){
+			chat("count=%d,offset=%d,DIRLEN=%d...",
+				thdr.count, thdr.offset, DIRLEN);
 			goto error;
 		}
 		if(getfile(f) < 0)
@@ -437,7 +437,8 @@ rremove(void)
 	}
 	pard = (Dosdir *)&parp->iobuf[dp->poffset];
 	if(dp->paddr && (pard->attr & DRONLY)){
-		chat("read-only...");
+		chat("parent read-only...");
+		putsect(parp);
 		errno = Eperm;
 		goto out;
 	}
@@ -454,8 +455,15 @@ rremove(void)
 		errno = Eperm;
 		goto out;
 	}
+	if(dp->paddr == 0 && (dp->d->attr&DRONLY)){
+		chat("read-only file in root directory...");
+		putfile(f);
+		putsect(parp);
+		errno = Eperm;
+		goto out;
+	}
 	if(dp->paddr){
-		puttime(pard);
+		puttime(pard, 0);
 		parp->flags |= BMOD;
 	}
 	putsect(parp);
@@ -484,10 +492,35 @@ rstat(void)
 		putfile(f);
 	}
 }
+
+static char isfrog[256]={
+	/*NUL*/	1, 1, 1, 1, 1, 1, 1, 1,
+	/*BKS*/	1, 1, 1, 1, 1, 1, 1, 1,
+	/*DLE*/	1, 1, 1, 1, 1, 1, 1, 1,
+	/*CAN*/	1, 1, 1, 1, 1, 1, 1, 1,
+	[' ']	1,
+	['/']	1,
+	[0x7f]	1,
+};
+
+static int
+nameok(char *elem)
+{
+	char *eelem;
+
+	eelem = elem+NAMELEN;
+	while(*elem){
+		if(isfrog[*(uchar*)elem])
+			return -1;
+		elem++;
+		if(elem >= eelem)
+			return -1;
+	}
+	return 0;
+}
+
 void
 rwstat(void)
 {
-	chat("wstat(fid=%d,name=\"%s\",mode=%o)...",
-		thdr.fid, thdr.name, thdr.mode);
 	errno = Eperm;
 }

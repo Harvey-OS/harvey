@@ -21,7 +21,28 @@ enum
 	 Ethervec=	Int0vec+10,	/*  ethernet interrupt */
 	 Mousevec=	Int0vec+12,	/*  mouse interrupt */
 	 Matherr2vec=	Int0vec+13,	/*  math coprocessor */
-	 Hardvec=	Int0vec+14,	/*  hard disk */
+	 ATAvec0=	Int0vec+14,	/*  ATA controller #1 */
+	 ATAvec1=	Int0vec+15,	/*  ATA controller #2 */
 
 	Syscallvec=	64,
 };
+
+/*
+ *  8259 interrupt controllers
+ */
+enum
+{
+	Int0ctl=	0x20,		/* control port (ICW1, OCW2, OCW3) */
+	Int0aux=	0x21,		/* everything else (ICW2, ICW3, ICW4, OCW1) */
+	Int1ctl=	0xA0,		/* control port */
+	Int1aux=	0xA1,		/* everything else (ICW2, ICW3, ICW4, OCW1) */
+
+	Icw1=		0x10,		/* select bit in ctl register */
+	Ocw2=		0x00,
+	Ocw3=		0x08,
+
+	EOI=		0x20,		/* non-specific end of interrupt */
+};
+
+extern int	int0mask;	/* interrupts enabled for first 8259 */
+extern int	int1mask;	/* interrupts enabled for second 8259 */

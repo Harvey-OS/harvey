@@ -5,6 +5,7 @@
 %          Corrected floating-point printout, and restored options
 %          info printout to make trap look better.
 % 12/02/89 Karl Berry		version 3.
+% (more recent changes in ../ChangeLog.W2C)
 % 
 % The C version of GFtype uses command line switches to 
 % request mnemonic ouput or pixel image output.
@@ -13,11 +14,10 @@
 % and escapement.  The -m switch turns on mnemonics, the -i switch
 % turns on images.  There is no terminal input to this program.  
 % Output is to stdout, and may, of course, be redirected.
-% 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [0] WEAVE: print changes only
+% [0] WEAVE: print changes only.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 \pageno=\contentspagenumber \advance\pageno by 1
@@ -28,17 +28,17 @@
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [1] Change banner string
+% [1] Change banner string.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
-@d banner=='This is GFtype, Version 3' {printed when the program starts}
+@d banner=='This is GFtype, Version 3.1' {printed when the program starts}
 @y
-@d banner=='This is GFtype, C Version 3'
+@d banner=='This is GFtype, C Version 3.1'
                                          {printed when the program starts}
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [3] Redirect GFtype output to term_out
+% [3] Redirect GFtype output to stdout.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d print(#)==write(#)
@@ -53,7 +53,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % [3] Remove IO from program header, eliminate labels, and
-%	and add setpaths.
+% add invocation of setpaths.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p program GF_type(@!gf_file,@!output);
@@ -74,14 +74,14 @@ var @<Globals in the outer block@>@/
 procedure initialize; {this procedure gets things started properly}
   var i:integer; {loop index for initializations}
   begin
-  setpaths;@/
+  set_paths (GF_FILE_PATH_BIT);@/
   print_ln(banner);@/
   @<Set initial values@>@/
   end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [4] Eliminate the |final_end| label
+% [4] Eliminate the |final_end| label.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ If the program has to stop prematurely, it goes to the
@@ -91,12 +91,13 @@ procedure initialize; {this procedure gets things started properly}
 
 @<Labels...@>=final_end;
 @y
-@ this module is deleted, because it is only useful for
-a non-local goto, which we don't use in C.
+@ This module is deleted, because it is only useful for
+a non-local goto, which we can't use in C.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [5] remove |terminal_line_length|, and define |max_int| as a large number.
+% [5] Remove |terminal_line_length|, and define |max_int| as a large
+% number.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @<Constants...@>=
@@ -115,7 +116,7 @@ a non-local goto, which we don't use in C.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [7] Have abort append <nl> to end of msg
+% [7] Have abort append a newline to its message.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d abort(#)==begin print(' ',#); jump_out;
@@ -127,8 +128,7 @@ a non-local goto, which we don't use in C.
 begin goto final_end;
 end;
 @y
-@d abort(#)==begin print_ln(' ',#); uexit(1);
-    end
+@d abort(#)==begin print_ln(#); uexit(1);    end
 @d bad_gf(#)==abort('Bad GF file: ',#,'!')
 @.Bad GF file@>
 @z
@@ -142,37 +142,11 @@ end;
 @y
 @!eight_bits=0..255; {unsigned one-byte quantity}
 @!byte_file=packed file of eight_bits; {files that contain binary data}
-@!UNIX_file_name=packed array[1..FILENAMESIZE] of char;
+@!UNIX_file_name=packed array[1..PATH_MAX] of char;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [21] Add gf_name, cur_name, and real_name_of_file 
-%      to global vars; also, a boolean, gf_file_exists.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-@x
-@ The program deals with one binary file variable: |gf_file| is the main
-input file that we are translating into symbolic form.
-
-@<Glob...@>=
-@!gf_file:byte_file; {the stuff we are \.{GF}typing}
-@y
-@ The program deals with one binary file variable: |gf_file| is the main
-input file that we are translating into symbolic form.
-We also declare array |gf_name|, used to hold the name of |gf_file|
-and |cur_name| and |real_name_of_file|, to interact with |test_access|.
-The boolean |gf_file_exists| tells us just what you think it would.
-
-@<Glob...@>=
-@!gf_file:byte_file; {the stuff we are \.{GF}typing}
-@!gf_name,@!cur_name: UNIX_file_name;
-	{name of input file; pascal-style origin from one}
-@!real_name_of_file:packed array[0..FILENAMESIZE] of text_char;
-	{C style origin from zero}
-gf_file_exists:boolean;
-@z
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [22] redo open_gf_file
+% [22] Redo open_gf_file to do path searching.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ To prepare this file for input, we |reset| it.
@@ -182,49 +156,52 @@ begin reset(gf_file);
 cur_loc:=0;
 end;
 @y
-@ In C, we use the external |test_access| procedure, which also does path
-searching based on the user's environment or the default path.  In the course
-of this routine we also check the command line for the \.{-m} 
-(|wants_mnemonics|) flag and the [-i] wants_pixels flag. and make
-other checks to see that it is worth running this program at all.
 
-@d read_access_mode=4  {``read'' mode for |test_access|}
-@d write_access_mode=2 {``write'' mode for |test_access|}
+@ In C, we use the external |test_read_access| procedure, which also
+does path searching based on the user's environment or the default path.
+In the course of this routine we also check the command line for the
+\.{-m} (|wants_mnemonics|) flag and the \.{-i} (|wants_pixels|) flags,
+and make other checks to see that it is worth running this program at
+all.
 
-@d no_file_path=0    {no path searching should be done}
-@d tex_font_file_path=3  {path specifier for \.{TFM} files}
-@d generic_font_file_path=4  {path specifier for \.{GF} files}
-@d packed_font_file_path=5  {path specifier for \.{PK} files}
+@d usage==abort ('Usage: gftype [-m] [-i] <gf file>.')
 
 @p procedure open_gf_file; {prepares to read packed bytes in |gf_file|}
 var j,k:integer;
+  @!gf_name: UNIX_file_name; {name of input file}
 begin
-    k:=1;
-    if argc < 2 then abort('Usage: gftype [-m] [-i] <gf file>.');
-    argv(k, cur_name);
-    while cur_name[1]=xchr["-"] do begin
-	incr(k);
-        wants_mnemonics:=
-         wants_mnemonics or (cur_name[2]=xchr["m"]) or (cur_name[3]=xchr["m"]);
-        wants_pixels:=
-         wants_pixels or (cur_name[2]=xchr["i"]) or (cur_name[3]=xchr["i"]);
-	if wants_pixels or wants_mnemonics then argv(k, cur_name)
-            else abort('Usage: gftype [-m] [-i] <gf file>.');
-        end;
-    if argc > 4 then abort('Usage: gftype [-m] [-i] <gf file>.');
-    gf_file_exists := test_access(read_access_mode,generic_font_file_path);
-    if gf_file_exists then begin
-        for j:=1 to FILENAMESIZE do gf_name[j]:=real_name_of_file[j-1];
-        reset(gf_file, gf_name);
-        cur_loc:=0;
-        end
-    else abort('GF file not found');
-@<Print all the selected options@>;
+  k:=1;
+  if (argc < 2) or (argc > 4)
+  then usage;
+
+  argv (1, gf_name);
+  while gf_name[1] = xchr["-"]
+  do begin
+    incr(k);
+    wants_mnemonics := wants_mnemonics or (gf_name[2] = xchr["m"])
+                       or (gf_name[3] = xchr["m"]);
+    wants_pixels := wants_pixels or (gf_name[2] = xchr["i"])
+                    or (gf_name[3] = xchr["i"]);
+    if wants_pixels or wants_mnemonics
+    then argv (k, gf_name)
+    else usage;
+  end;
+
+  if test_read_access (gf_name, GF_FILE_PATH)
+  then begin
+    reset (gf_file, gf_name);
+    cur_loc := 0;
+  end else begin
+    print_pascal_string (gf_name);
+    abort (': GF file not found');
+  end;
+  
+  @<Print all the selected options@>;
 end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [26] Initialize wants_pixels and wants_mnemonics to false
+% [26] Initialize wants_pixels and wants_mnemonics to false.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 wants_mnemonics:=true; wants_pixels:=true;
@@ -247,12 +224,12 @@ and |term_out| for terminal output.
 @!term_in:text_file; {the terminal, considered as an input file}
 @!term_out:text_file; {the terminal, considered as an output file}
 @y
-@ There is no terminal input.  The basic choices for running this
+@ There is no terminal input.  The options for running this
 program are offered through switches on the command line.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [28] update_terminal is not needed
+% [28] `update_terminal' is not needed.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @d update_terminal == break(term_out) {empty the terminal output buffer}
@@ -260,7 +237,7 @@ program are offered through switches on the command line.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [29] eliminate input_ln
+% [29] Neither is `input_ln'.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p procedure input_ln; {inputs a line from the terminal}
@@ -277,7 +254,7 @@ end;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [30--34] eliminate dialog and its friends.
+% [30--34] Eliminate `dialog' and its friends.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @ This is humdrum.
@@ -344,7 +321,7 @@ can see what \.{GFtype} thought was specified.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [45] change chr to xchr (ought really to be changed in the web)
+% [45] Change chr to xchr (should be changed in the web source).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
   print(chr(ord('0')+(s div unity))); s:=10*(s mod unity); delta:=delta*10;
@@ -353,7 +330,7 @@ can see what \.{GFtype} thought was specified.
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [48] break up the first oversized case statement (or yacc breaks)
+% [48] Break up the first oversized case statement (or yacc breaks).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 sixty_four_cases(new_row_0), sixty_four_cases(new_row_0+64),
@@ -365,7 +342,7 @@ thirty_seven_cases(new_row_0+128): first_par:=o-new_row_0;
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [64] break up the second oversized case statement
+% [64] Break up the second oversized case statement.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 sixty_four_cases(new_row_0), sixty_four_cases(new_row_0+64),
@@ -392,7 +369,7 @@ endcases
 @z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% [65] no label and no dialog; finish last line written. 
+% [65] No label and no dialog; finish last line written. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 @x
 @p begin initialize; {get all variables initialized}

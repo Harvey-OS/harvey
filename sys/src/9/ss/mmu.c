@@ -312,7 +312,7 @@ cacheinit(void)
 }
 
 /*
- *  set up initial mappings and a the LRU lists for contexts and pmegs
+ *  set up initial mappings and the LRU lists for contexts and pmegs
  */
 void
 mmuinit(void)
@@ -324,9 +324,9 @@ mmuinit(void)
 	Ctx *ctx;
 
 	/*
-	 *  mmuinit is entered with PMEG's 0 & 1 providing mappng
-	 *  for virtual addresses KZERO<->KZERO+2*BY2SEGM to physical
-	 *  0<->2*BY2SEGM
+	 *  mmuinit is entered with PMEG's 0-3 providing mapping
+	 *  for virtual addresses KZERO<->KZERO+4*BY2SEGM to physical
+	 *  0<->4*BY2SEGM
 	 */
 	compile();
 
@@ -390,7 +390,7 @@ mmuinit(void)
 		i = PPN(kbot1 & ~KZERO);
 		for(va = kbot1; va < ktop1; va += BY2PG, i++)
 			putpme(va, pme+i, 1);
-		ktop = ktop1;
+		ktop = (ktop1+BY2SEGM - 1) & ~(BY2SEGM - 1);
 	}
 
 	if(conf.base1 < conf.npage1){
@@ -418,7 +418,7 @@ mmuinit(void)
 		i = PPN(kbot1 & ~KZERO);
 		for(va = kbot1; va < ktop1; va += BY2PG, i++)
 			putpme(va, pme+i, 1);
-		ktop = ktop1;
+		ktop = (ktop1+BY2SEGM - 1) & ~(BY2SEGM - 1);
 	}
 
 	/*
@@ -439,6 +439,7 @@ mmuinit(void)
 		putcontext(c);
 		for(va = UZERO; va < (KZERO & VAMASK); va += BY2SEGM)
 			putsegspace(va, INVALIDPMEG);
+
 		for(va = ktop; va < IOSEGM; va += BY2SEGM)
 			putsegspace(va, INVALIDPMEG);
 	}

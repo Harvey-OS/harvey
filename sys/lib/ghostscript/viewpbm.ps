@@ -1,0 +1,113 @@
+%    Copyright (C) 1992, 1994 Aladdin Enterprises.  All rights reserved.
+%
+% This file is part of Ghostscript.
+%
+% Ghostscript is distributed in the hope that it will be useful, but
+% WITHOUT ANY WARRANTY.  No author or distributor accepts responsibility
+% to anyone for the consequences of using it or for whether it serves any
+% particular purpose or works at all, unless he says so in writing.  Refer
+% to the Ghostscript General Public License for full details.
+%
+% Everyone is granted permission to copy, modify and redistribute
+% Ghostscript, but only under the conditions described in the Ghostscript
+% General Public License.  A copy of this license is supposed to have been
+% given to you along with Ghostscript so you can know your rights and
+% responsibilities.  It should be in a file named COPYING.  Among other
+% things, the copyright notice and this notice must be preserved on all
+% copies.
+
+% viewpbm.ps
+% Display a PBM/PGM/PPM file.  Currently only handles "raw" formats (P4-P6).
+% Requires the Level 2 `image' operator (to handle variable pixel widths).
+
+/s 100 string def
+/readmaxv
+ { f s readline pop cvx exec /maxv exch def
+ } bind def
+/readrow
+ { 0 1 row length 1 sub { row exch f token pop put } for
+ } bind def
+/read01			% <count> read01 <byte>
+ { 0 exch { f read pop 48 xor dup 1 le { exch dup add add } { pop } ifelse } repeat
+ } bind def
+/pdict 6 dict def
+pdict begin
+  /P1 [ { /maxv 1 def /rsize w 7 add 8 idiv def
+	  /wrem w 8 mod def
+          /ncomp 1 def /invert true def
+	}
+	{ 0 1 w 8 idiv { row exch 8 read01 put } for
+	  wrem 0 ne
+	   { row rsize 1 sub wrem read01 8 wrem sub bitshift put
+	   } if
+	  row
+	}
+      ] def
+  /P2 [ { readmaxv /rsize w def
+	  /ncomp 1 def /invert false def
+	}
+	{ readrow row }
+      ] def
+  /P3 [ { readmaxv /rsize w 3 mul def
+          /ncomp 3 def /invert false def /DeviceRGB setcolorspace
+	}
+	{ readrow row }
+      ] def
+  /P4 [ { /maxv 1 def /rsize w 7 add 8 idiv def
+	  /ncomp 1 def /invert true def
+	}
+	{ f row readstring pop }
+      ] def
+  /P5 [ { readmaxv /rsize w def
+	  /ncomp 1 def /invert false def
+	}
+	{ f row readstring pop }
+      ] def
+  /P6 [ { readmaxv /rsize w 3 mul def
+	  /ncomp 3 def /invert false def /DeviceRGB setcolorspace
+	}
+	{ f row readstring pop }
+      ] def
+end
+/viewpbm		% filename ->
+ { (r) file /f exch def
+   f s readline pop cvn /pn exch def		% Pn
+   f s readline pop		% check for comment
+   (#) anchorsearch
+    { pop pop f s readline pop }
+   if
+   cvx exec /h exch def /w exch def
+   erasepage
+   /DeviceGray setcolorspace
+   pdict pn get dup /rprocs exch def
+     0 get exec			% sets maxv, rsize, ncomp, invert
+   /row rsize string def
+   % Scale the image (uniformly) to fit the page.
+   clippath pathbbox
+     dtransform exch abs exch abs min dup scale pop pop
+   20 dict begin		% image dictionary
+     /ImageType 1 def
+     /Width w def
+     /Height h def
+     /ImageMatrix [w 0 0 h neg 0 h] def
+     /BitsPerComponent maxv 1 add ln 2 ln div 0.0001 sub ceiling cvi def
+     /Decode [ 0 255 maxv div invert { exch } if ncomp 1 sub { 2 copy } repeat ] def
+     /DataSource rprocs 1 get def
+   currentdict end
+   image
+   showpage
+ } def
+
+% If the program was invoked from the command line, run it now.
+[ shellarguments
+ { counttomark 1 eq
+    { viewpbm
+    }
+    { cleartomark
+      (Usage: gs -- viewpbm.ps filename.p*m\n) print
+      ( e.g.: gs -- viewpbm.ps my.ppm\n) print flush
+      mark
+    }
+   ifelse
+ }
+if pop

@@ -1,0 +1,102 @@
+#!/bin/rc
+view=no
+stdin=no
+
+switch($1){
+case -v
+	view=yes
+	shift
+}
+
+switch($#*){
+case 0 1
+	echo usage: $0 telephone-number recipient [files]
+	exit 0
+case 2
+	stdin=yes
+}
+
+telno=$1
+shift
+
+recip=$1
+shift
+
+script=/tmp/fax.$pid
+header=/tmp/faxh.$pid
+user=`{cat /dev/user}
+tmp=/tmp/fax.g3.$pid
+tmpin=/tmp/fax.in.$pid
+tmpps=/tmp/fax.ps.$pid
+tel=`{grep '\) '$user /lib/tel}
+myname=`{echo $tel | sed 's/ \(.*//'}
+ext=`{echo $tel | sed 's/.*\) [^ ]* [^ ]* ([^ ]*).*/\1/'}
+
+fn sigint{
+	rm -f $tmp.* $header $script $header.* $tmpin $tmpps
+	exit interrupt
+}
+
+# gather input into a file
+switch($stdin){
+case yes
+	cat > $tmpin
+	infiles=$tmpin
+case *
+	infiles=($*)
+}
+
+# convert to g3
+switch(`{file $infiles(1)}){
+case *g3*
+	g3files=$infiles
+case postscript
+	gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.%.3d' -dNOPAUSE -dQUIET $infiles quit.ps
+	g3files=($tmp.*)
+case *
+	cat $infiles | lp -dstdout > $tmpps
+	gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.%.3d' -dNOPAUSE -dQUIET $tmpps quit.ps
+	g3files=($tmp.*)
+}
+
+pages=`{echo $g3files|wc -w}
+
+echo -n 's/ddd/' > $script
+echo -n `{date}>> $script
+echo />> $script
+echo -n s/FFF/>> $script
+echo -n $myname >>  $script
+echo />> $script
+echo -n s/EEE/>> $script
+echo -n $user >>  $script
+echo />> $script
+echo -n s/VVV/>> $script
+echo -n $ext >>  $script
+echo />> $script
+echo -n s/TTT/>> $script
+echo -n $recip >>  $script
+echo />> $script
+echo -n s/fff/>> $script
+echo -n $telno >>  $script
+echo />> $script
+echo -n s/ppp/>> $script
+echo -n $pages >>  $script
+echo />> $script
+sed -f $script /sys/lib/fax/h.ps > $header
+
+gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$header'.%.3d' -dNOPAUSE -dQUIET $header quit.ps
+
+files=()
+for(i in $header.* $g3files){
+	files=($files -f $i)
+}
+
+switch($view){
+case no
+	qer $files /mail/faxoutqueue fax $user $telno < /dev/null
+	rx dinar /sys/lib/fax/faxgoose
+case yes
+	page $header.* $g3files
+}
+
+rm -f $tmp.* $header $script $header.* $tmpin $tmpps

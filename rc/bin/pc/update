@@ -1,0 +1,6 @@
+#!/bin/rc
+echo updating files
+9fs bootes
+disk/kfscmd allow
+cputype=386 disk/mkfs -s /n/bootes /n/bootes/lib/proto/386proto
+disk/ksync

@@ -15,9 +15,9 @@
  * laptop. The manual says NE2000 compatible.
  * The interface appears to be pretty well described in the National
  * Semiconductor Local Area Network Databook (1992) as one of the
- * AT evaluation boards.
+ * AT evaluation cards.
  *
- * The NE2000 is really just a DP8390 plus a data port
+ * The NE2000 is really just a DP8390[12] plus a data port
  * and a reset port.
  */
 enum {
@@ -25,42 +25,66 @@ enum {
 	Reset		= 0x18,		/* offset from I/O base of reset port */
 };
 
-static int
-reset(Ctlr *ctlr)
+int
+ne2000reset(Ctlr *ctlr)
 {
-	Board *board = ctlr->board;
 	ushort buf[16];
 	int i;
 
 	/*
-	 * We look for boards.
-	 * We look for boards to make us barf.
+	 * Set up the software configuration.
+	 * Use defaults for port, irq, mem and size
+	 * if not specified.
 	 */
-	for(board->io = 0x300; board->io < 0x380; board->io += 0x20){
-		/*
-		 * Reset the board. This is done by doing a read
-		 * followed by a write to the Reset address.
-		 */
-		outb(board->io+Reset, inb(board->io+Reset));
+	if(ctlr->card.port == 0)
+		ctlr->card.port = 0x300;
+	if(ctlr->card.irq == 0)
+		ctlr->card.irq = 2;
+	if(ctlr->card.mem == 0)
+		ctlr->card.mem = 0x4000;
+	if(ctlr->card.size == 0)
+		ctlr->card.size = 16*1024;
 
-		/*
-		 * Init the (possible) chip, then use the (possible)
-		 * chip to read the (possible) PROM for ethernet address
-		 * and a marker byte.
-		 * We could just look at the DP8390 command register after
-		 * initialisation has been tried, but that wouldn't be
-		 * enough, there are other ethernet boards which could
-		 * match.
-		 */
-		board->dp8390 = board->io;
-		board->data = board->io+Data;
-		dp8390reset(ctlr);
-		memset(buf, 0, sizeof(buf));
-		dp8390read(ctlr, buf, 0, sizeof(buf));
-		if(buf[0x0E] == 0x57 && buf[0x0F] == 0x57)
-			break;
-	}
-	if(board->io >= 0x380)
+	ctlr->card.reset = ne2000reset;
+	ctlr->card.attach = dp8390attach;
+	ctlr->card.mode = dp8390mode;
+	ctlr->card.read = dp8390read;
+	ctlr->card.write = dp8390write;
+	ctlr->card.receive = dp8390receive;
+	ctlr->card.transmit = dp8390transmit;
+	ctlr->card.intr = dp8390intr;
+	ctlr->card.watch = dp8390watch;
+	ctlr->card.overflow = dp8390overflow;
+
+	ctlr->card.bit16 = 1;
+	ctlr->card.dp8390 = ctlr->card.port;
+	ctlr->card.data = ctlr->card.port+Data;
+
+	ctlr->card.tstart = HOWMANY(ctlr->card.mem, Dp8390BufSz);
+	ctlr->card.pstart = ctlr->card.tstart + HOWMANY(sizeof(Etherpkt), Dp8390BufSz);
+	ctlr->card.pstop = ctlr->card.tstart + HOWMANY(ctlr->card.size, Dp8390BufSz);
+
+	/*
+	 * Reset the board. This is done by doing a read
+	 * followed by a write to the Reset address.
+	 */
+	buf[0] = inb(ctlr->card.port+Reset);
+	delay(2);
+	outb(ctlr->card.port+Reset, buf[0]);
+	
+	/*
+	 * Init the (possible) chip, then use the (possible)
+	 * chip to read the (possible) PROM for ethernet address
+	 * and a marker byte.
+	 * We could just look at the DP8390 command register after
+	 * initialisation has been tried, but that wouldn't be
+	 * enough, there are other ethernet boards which could
+	 * match.
+	 */
+	dp8390reset(ctlr);
+	memset(buf, 0, sizeof(buf));
+	dp8390read(ctlr, buf, 0, sizeof(buf));
+	if((buf[0x0E] & 0xFF) != 0x57 || (buf[0x0F] & 0xFF) != 0x57)
 		return -1;
 
 	/*
@@ -68,41 +92,17 @@ reset(Ctlr *ctlr)
 	 * although the PROM is a byte array.
 	 * Now we can set the ethernet address.
 	 */
-	for(i = 0; i < sizeof(ctlr->ea); i++)
-		ctlr->ea[i] = buf[i];
+	if((ctlr->ea[0]|ctlr->ea[1]|ctlr->ea[2]|ctlr->ea[3]|ctlr->ea[4]|ctlr->ea[5]) == 0){
+		for(i = 0; i < sizeof(ctlr->ea); i++)
+			ctlr->ea[i] = buf[i];
+	}
 	dp8390setea(ctlr);
-
-	print("NE2000 I/O addr %lux width %d addr %lux size %d irq %d:",
-		board->io, board->bit16 ? 16: 8, board->ramstart,
-		board->ramstop-board->ramstart, board->irq);
-	for(i = 0; i < sizeof(ctlr->ea); i++)
-		print(" %2.2ux", ctlr->ea[i]);
-	print("\n");
 
 	return 0;
 }
 
-Board ether2000 = {
-	reset,
-	0,			/* init */
-	dp8390attach,
-	dp8390mode,
-	dp8390receive,
-	dp8390transmit,
-	dp8390intr,
-	0,			/* watch */
-
-	0x300,			/* addr */
-	2,			/* irq */
-	1,			/* bit16 */
-
-	0,			/* ram */
-	0x4000,			/* ramstart */
-	0x4000+16*1024,		/* ramstop */
-
-	0x300,			/* dp8390 */
-	0x300+Data,		/* data */
-	0x4000/Dp8390BufSz,	/* tstart */
-	0x4600/Dp8390BufSz,	/* pstart */
-	0x8000/Dp8390BufSz,	/* pstop */
-};
+void
+ether2000link(void)
+{
+	addethercard("NE2000", ne2000reset);
+}

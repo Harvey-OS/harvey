@@ -1,0 +1,107 @@
+%    Copyright (C) 1993 Aladdin Enterprises.  All rights reserved.
+% 
+% This file is part of Aladdin Ghostscript.
+% 
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
+% 
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
+
+% winmaps.ps - make maps between PostScript encodings and Windows
+% character sets.
+
+% Define the two Windows encodings.
+
+/ANSIEncoding
+  ISOLatin1Encoding 256 array copy
+  dup 16#90 /.notdef put
+  16#93 1 16#9f { 2 copy /.notdef put pop } for
+def
+
+/OEMEncoding [
+  /.notdef /.notdef /.notdef /heart /diamond /club /spade /bullet
+    8 { /.notdef } repeat
+  /.notdef /.notdef /.notdef /.notdef /paragraph /section /.notdef /.notdef
+    /arrowup /arrowdown /arrowright /arrowleft /.notdef /arrowboth /.notdef /.notdef
+  StandardEncoding 32 96 getinterval aload pop
+  /Ccedilla /udieresis /eacute /acircumflex /adieresis /agrave /aring /ccedilla
+    /ecircumflex /edieresis /egrave /idieresis /igrave /Adieresis /Aring
+  /Eacute /ae /AE /ocircumflex /odieresis /ograve /ucircumflex /ugrave
+    /ydieresis /Odieresis /Udieresis /cent /sterling /yen /.notdef /florin
+  /aacute /iacute /oacute /uacute /ntilde /Ntilde /ordfeminine /ordmasculine
+    /questiondown /.notdef /logicalnot /onehalf /onequarter /exclamdown /guillemotleft /guillemotright
+  48 { /.notdef } repeat
+  /alpha /beta /Gamma /Pi /Sigma /sigma /mu /tau
+    /Phi /Theta /Omega /delta /infinity /phi /element /intersection
+  /equivalence /plusminus /greaterequal /lessequal /integraltp /integralbt /divide /.notdef
+    /degree /dotmath /periodcentered /radical /.notdef /twosuperior /.notdef /.notdef
+] def
+
+% Utility procedures
+
+/invertencoding		% <array> invertencoding <dict>
+ { 256 dict exch dup length 1 sub -1 0
+    {	% stack: dict array index
+      2 copy get /.notdef ne
+       { 2 copy get exch 3 index 3 1 roll put }
+       { pop }
+      ifelse
+    } for
+   pop
+ } def
+
+/pmarray 256 array def
+/printmap		% <chars> <decode> printmap -
+ { mark 3 1 roll exch
+    { 2 copy known { 1 index exch get } { pop 0 } ifelse exch
+    }
+   forall pop
+   pmarray 0 counttomark 2 sub getinterval astore
+   ([) print dup length =only 0 exch (] = {\n  ) exch
+    { exch print =only
+      1 add 15 and dup 0 eq { (,\n  ) } { (, ) } ifelse
+    }
+   forall pop pop (\n};\n) print pop
+ } def
+
+/decodeStd StandardEncoding invertencoding def
+/decodeISO ISOLatin1Encoding
+	% Remove the redundant characters
+  dup length array copy
+  [8#222 8#225 8#230 8#233 8#240] { 2 copy /.notdef put pop } forall
+invertencoding def
+/decodeSym SymbolEncoding invertencoding def
+
+/decodeANSI ANSIEncoding invertencoding def
+/decodeOEM OEMEncoding invertencoding def
+
+% Construct the map from Symbol to OEM.
+
+(\nprivate const byte far_data gs_map_symbol_to_oem) print
+SymbolEncoding decodeOEM printmap
+
+% Construct the map from ISOLatin1 to OEM.
+
+(\nprivate const byte far_data gs_map_iso_to_oem) print
+ISOLatin1Encoding decodeOEM printmap
+
+% Construct the map from Standard to ISOLatin1.
+
+(\nprivate const byte far_data gs_map_std_to_iso) print
+StandardEncoding decodeISO printmap
+
+% Construct the map from ISOLatin1 to Standard.
+% The Windows driver doesn't need this, but the X11 driver does.
+
+(\nprivate const byte far_data gs_map_iso_to_std) print
+ISOLatin1Encoding decodeStd printmap
+
+quit

@@ -1,5 +1,4 @@
 typedef	long	Type;
-#define LENDIAN
 
 /*
  * Little-endian byte and bit order of bbc.h.

@@ -69,7 +69,7 @@ void alline(Dpoint p, Flt t){
 	p1=dadd(p, d);
 	if(dclipline(dwgdrect, &p0, &p1) && !findline(active, p0, p1)){
 		ip=addline(active, p0, p1);
-		draw(ip, Dpt(0., 0.), FAINT, S|D);
+		draw(ip, Dpt(0., 0.), faint, S|D);
 	}
 }
 /*
@@ -79,7 +79,7 @@ void alcirc(Dpoint p, Flt r){
 	Item *ip;
 	if(!findcircle(active, p, r)){
 		ip=addcircle(active, p, r);
-		draw(ip, Dpt(0., 0.), FAINT, S|D);
+		draw(ip, Dpt(0., 0.), faint, S|D);
 	}
 }
 int findline(Item *ip, Dpoint p, Dpoint q){

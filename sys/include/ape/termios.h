@@ -12,9 +12,37 @@
 #define IXON	0x200
 #define PARMRK	0x400
 
-/* output modes: ONLCR is an extension to POSIX! */
-#define OPOST	0x001
-#define ONLCR	0x002
+/* output modes: ONLCR, TAB3 are an extension to POSIX! */
+#define	OPOST	0000001
+#define	OLCUC	0000002
+#define	ONLCR	0000004
+#define	OCRNL	0000010
+#define	ONOCR	0000020
+#define	ONLRET	0000040
+#define	OFILL	0000100
+#define	OFDEL	0000200
+#define	NLDLY	0000400
+#define	NL0	0
+#define	NL1	0000400
+#define	CRDLY	0003000
+#define	CR0	0
+#define	CR1	0001000
+#define	CR2	0002000
+#define	CR3	0003000
+#define	TABDLY	0014000
+#define	TAB0	0
+#define	TAB1	0004000
+#define	TAB2	0010000
+#define	TAB3	0014000
+#define	BSDLY	0020000
+#define	BS0	0
+#define	BS1	0020000
+#define	VTDLY	0040000
+#define	VT0	0
+#define	VT1	0040000
+#define	FFDLY	0100000
+#define	FF0	0
+#define	FF1	0100000
 
 /* control modes */
 #define CLOCAL	0x001
@@ -95,7 +123,10 @@ extern speed_t cfgetispeed(const struct termios *);
 extern int cfsetispeed(struct termios *, speed_t);
 extern int tcgetattr(int, struct termios *);
 extern int tcsetattr(int, int, const struct termios *);
-extern int tcsendbreak(int, int);
+#ifdef __TYPES_H
+extern pid_t tcgetpgrp(int);
+extern int tcsetpgrp(int, pid_t);
+#endif
 extern int tcdrain(int);
 extern int tcflush(int, int);
 extern int tcflow(int, int);

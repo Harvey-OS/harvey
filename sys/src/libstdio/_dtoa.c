@@ -206,7 +206,7 @@ _dtoa(double darg, int mode, int ndigits, int *decpt, int *sign, char **rve)
 				i = 1;
 	}
 	j = sizeof(unsigned long);
-	for(result_k = 0; sizeof(Bigint) - sizeof(unsigned long) + j < i; j <<= 1)
+	for(result_k = 0; sizeof(Bigint) - sizeof(unsigned long) + j <= i; j <<= 1)
 		result_k++;
 	result = Balloc(result_k);
 	s = s0 = (char *)result;

@@ -2,8 +2,11 @@
 #include <libc.h>
 #include "tapefs.h"
 
-unsigned char tape[300000];
-int	tapefile;
+/*
+ * File system for tp tapes.  dectape versions have 192
+ * entries, magtape have 496.  This treats the same
+ * by ignoring entries with bad header checksums
+ */
 
 struct tp {
 	unsigned char	name[32];
@@ -16,7 +19,10 @@ struct tp {
 	unsigned char	taddress[2];
 	unsigned char	unused[16];
 	unsigned char	checksum[2];
-} dir[192];
+} dir[496+8];
+
+char	buffer[8192];
+int	tapefile;
 
 void
 populate(char *name)
@@ -29,12 +35,20 @@ populate(char *name)
 	tapefile = open(name, OREAD);
 	if (tapefile<0)
 		error("Can't open argument file");
-	read(tapefile, tape, sizeof tape);
-	tpp = (struct tp *)(tape+512);
-	for (i=0;  i<192; i++, tpp++) {
+	read(tapefile, dir, sizeof dir);
+	for (i=0, tpp=&dir[8]; i<496; i++, tpp++) {
+		unsigned char *sp = (unsigned char *)tpp;
+		int j, cksum = 0;
+		for (j=0; j<32; j++, sp+=2)
+			cksum += sp[0] + (sp[1]<<8);
+		cksum &= 0xFFFF;
+		if (cksum!=0)
+			continue;
 		if (tpp->name[0]=='\0')
 			continue;
 		f.addr = (void *)(tpp->taddress[0] + (tpp->taddress[1]<<8));
+		if (f.addr==0)
+			continue;
 		f.size = (tpp->size[0]<<16) + (tpp->size[1]<<0) + (tpp->size[2]<<8);
 		f.mdate = (tpp->tmod[2]<<0) + (tpp->tmod[3]<<8)
 		     +(tpp->tmod[0]<<16) + (tpp->tmod[1]<<24);
@@ -66,8 +80,11 @@ docreate(Ram *r)
 char *
 doread(Ram *r, long off, long cnt)
 {
-	USED(cnt);
-	return (char *)r->data+off;
+	if (cnt>sizeof(buffer))
+		print("count too big\n");
+	seek(tapefile, 512*(int)r->data+off, 0);
+	read(tapefile, buffer, cnt);
+	return buffer;
 }
 
 void

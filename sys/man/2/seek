@@ -2,6 +2,10 @@
 .SH NAME
 seek \- change file offset
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
 long seek(int fd, long n, int type)
 .SH DESCRIPTION
@@ -30,14 +34,13 @@ file plus
 .PP
 The new file offset value is returned.
 .PP
-Seeking far beyond the end of a file, then writing,
-creates a gap, or `hole,' that occupies no
-physical space and reads as zeros.
-.PP
 Seeking in a directory is not allowed.
+Seeking in a pipe is a no-op.
+.SH SOURCE
+.B /sys/src/libc/9syscall
 .SH SEE ALSO
 .IR intro (2),
 .IR open (2)
 .SH DIAGNOSTICS
 Sets
-.I errstr.
+.IR errstr .

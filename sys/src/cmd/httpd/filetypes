@@ -1,0 +1,58 @@
+.C	C++
+.Z				Unix compress
+.ada				Ada
+.au				sound file
+.awk				awk
+.bas				Basic
+.bbl				BibTeX output
+.bib				BibTex input
+.c				C
+.dvi	application/x-dvi		TeX output
+.enc				encrypted
+.executable			uncompressed binary executable
+				(used only for distributing gzip)
+.exz				gzip'd DOS executable.
+				Uncompress by:  gzip -dN xxxx.exz
+.f				Fortran-77
+.gif	image/gif			GIF image file
+.gz				gzip   (available in /netlib/gnu/gzip/)
+.html	text/html			HTML (hypertext)
+.jpg	image/jpeg		JPEG image file
+.ps	application/postscript	PostScript
+.r				Ratfor
+.taz				compressed tar archive
+.tex	application/x-tex
+	applicatoin/x-latex		TeX (commonly LaTeX)
+.tgz				gzip'd tar archive
+.trz				compressed tar archive
+.z				compressed by an obsolete program?
+
+gnoring header accept: text / plain 
+ignoring header accept: image / * 
+ignoring header accept: video / mpeg 
+ignoring header accept: audio / basic 
+ignoring header accept: audio / x-aiff 
+ignoring header accept: image / tiff 
+ignoring header accept: image / x-portable-anymap 
+ignoring header accept: image / x-portable-bitmap 
+ignoring header accept: image / x-portable-graymap 
+ignoring header accept: image / x-portable-pixmap 
+ignoring header accept: image / x-rgb 
+ignoring header accept: image / rgb 
+ignoring header accept: image / x-xbitmap 
+ignoring header accept: image / x-xpixmap 
+ignoring header accept: image / xwd 
+ignoring header accept: image / x-xwd 
+ignoring header accept: image / x-xwindowdump 
+ignoring header accept: video / mpeg 
+ignoring header accept: video / quicktime 
+ignoring header accept: video / x-sgi-movie 
+ignoring header accept: message/rfc822 
+ignoring header accept: application / x-latex 
+ignoring header accept: application / x-tex 
+ignoring header accept: application / x-texinfo 
+ignoring header accept: application/x-troff 
+ignoring header accept: application/x-troff-man 
+ignoring header accept: application/x-troff-me 
+ignoring header accept: application/x-troff-ms 
+ignoring header accept: text / richtext 

@@ -34,29 +34,29 @@ touch(int force, char *name)
 	stbuff.length = 0;
 	stbuff.mode = 0666;
 	if (dirstat(name, &stbuff) < 0 && force == 0) {
-		fprint(2, "touch: %s: cannot stat\n", name);
+		fprint(2, "touch: %s: cannot stat: %r\n", name);
 		return 1;
 	}
 	if (stbuff.length == 0) {
 		if ((fd = create(name, 0, stbuff.mode)) < 0) {
-			fprint(2, "touch: %s: cannot create\n", name);
+			fprint(2, "touch: %s: cannot create: %r\n", name);
 			return 1;
 		}
 		close(fd);
 		return 0;
 	}
 	if ((fd = open(name, ORDWR)) < 0) {
-		fprint(2, "touch: %s: cannot open\n", name);
+		fprint(2, "touch: %s: cannot open: %r\n", name);
 		return 1;
 	}
 	if(read(fd, junk, 1) < 1) {
-		fprint(2, "touch: %s: read error\n", name);
+		fprint(2, "touch: %s: read error: %r\n", name);
 		close(fd);
 		return 1;
 	}
 	seek(fd, 0L, 0);
 	if(write(fd, junk, 1) < 1 ) {
-		fprint(2, "touch: %s: write error\n", name);
+		fprint(2, "touch: %s: write error: %r\n", name);
 		close(fd);
 		return 1;
 	}

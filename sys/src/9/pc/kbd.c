@@ -10,8 +10,6 @@
 #include	<gnot.h>
 #include	"screen.h"
 
-extern Mouseinfo mouse;
-
 enum {
 	Data=		0x60,	/* data port */
 
@@ -26,6 +24,17 @@ enum {
 	 Parity=	0x80,
 
 	Cmd=		0x64,	/* command port (write only) */
+
+	CTdata=		0x0,	/* chips & Technologies ps2 data port */
+	CTstatus=	0x1,	/* chips & Technologies ps2 status port */
+	 Enable=	1<<7,
+	 Clear=		1<<6,
+	 Error=		1<<5,
+	 Intenable=	1<<4,
+	 Reset=		1<<3,
+	 Tready=	1<<2,
+	 Rready=	1<<1,
+	 Idle=		1<<0,
 
 	Spec=	0x80,
 
@@ -70,7 +79,7 @@ uchar kbtab[] =
 [0x38]	Latin,	' ',	Ctrl,	KF|1,	KF|2,	KF|3,	KF|4,	KF|5,
 [0x40]	KF|6,	KF|7,	KF|8,	KF|9,	KF|10,	Num,	KF|12,	'7',
 [0x48]	'8',	'9',	'-',	'4',	'5',	'6',	'+',	'1',
-[0x50]	'2',	'3',	'0',	'.',	No,	No,	No,	KF|11,
+[0x50]	'2',	'3',	'0',	'.',	Del,	No,	No,	KF|11,
 [0x58]	KF|12,	No,	No,	No,	No,	No,	No,	No,
 };
 
@@ -114,6 +123,7 @@ KIOQ	kbdq;
 static int keybuttons;
 static uchar ccc;
 static int shift;
+ulong ctport;
 
 enum
 {
@@ -126,7 +136,8 @@ enum
 	Ckbdint=	(1<<0),		/* kbd interrupt enable */
 };
 
-static void	kbdintr(Ureg*);
+static void	kbdintr(Ureg*, void*);
+static void	ctps2intr(Ureg*, void*);
 static int	ps2mouseputc(IOQ*, int);
 
 /*
@@ -173,7 +184,7 @@ mousecmd(int cmd)
 	c = 0;
 	tries = 0;
 	do{
-		if(tries++ > 5)
+		if(tries++ > 2)
 			break;
 		if(outready() < 0)
 			break;
@@ -213,29 +224,39 @@ i8042a20(void)
 void
 i8042reset(void)
 {
+	ushort *s = (ushort*)(KZERO|0x472);
+	int i, x;
+
+	*s = 0x1234;		/* BIOS warm-boot flag */
+
 	/*
 	 *  this works for dhog
 	 */
 	outready();
-	outb(Cmd, 0xFE);	/* pulse reset line */
+	outb(Cmd, 0xFE);	/* pulse reset line (means resend on AT&T machines) */
 	outready();
+
 	/*
-	 *  this is the old IBM way
+	 *  Pulse it by hand (old somewhat reliable)
 	 */
-	outready();
-	outb(Cmd, 0xD1);
-	outready();
-	outb(Data, 0xDE);	/* set reset line high */
-	outready();
+	x = 0xDF;
+	for(i = 0; i < 5; i++){
+		x ^= 1;
+		outready();
+		outb(Cmd, 0xD1);
+		outready();
+		outb(Data, x);	/* toggle reset */
+		delay(100);
+	}
 }
+
 
 void
 kbdinit(void)
 {
 	int c;
 
-	setvec(Kbdvec, kbdintr);
-	bigcursor();
+	setvec(Kbdvec, kbdintr, 0);
 
 	/* wait for a quiescent controller */
 	while((c = inb(Status)) & (Outbusy | Inready))
@@ -281,6 +302,54 @@ serialmouse(int port, char *type, int setspeed)
 	mousetype = Mouseserial;
 }
 
+static void nop(void){};
+
+/*
+ *  look for a chips & technologies 82c710 ps2 mouse on a TI travelmate
+ */
+static int
+ct82c710(void)
+{
+	int c;
+
+	/* on non-C&T 2fa and 3fa are input only ports */
+	/* get chips attention */
+	outb(0x2fa, 0x55); nop(); nop();
+	outb(0x3fa, ~0x55); nop(); nop();
+	outb(0x3fa, 0x36); nop(); nop();
+
+	/* tell it where its config register should be */
+	outb(0x3fa, 0x390>>2); nop(); nop();
+	outb(0x2fa, ~(0x390>>2)); nop(); nop();
+
+	/* see if this is really a 710 */
+	outb(0x390, 0xf); nop(); nop();
+	if(inb(0x391) != (0x390>>2))
+		return -1;
+
+	/* get data port address */
+	outb(0x390, 0xd); nop(); nop();
+	c = inb(0x391);
+	if(c == 0 || c == 0xff)
+		return -1;
+	ctport = c<<2;
+
+	/* turn off config mode */
+	outb(0x390, 0xf); nop(); nop();
+	outb(0x391, 0xf);
+
+	setvec(Mousevec, ctps2intr, 0);
+
+	/* enable for interrupts */
+	c = inb(ctport + CTstatus);
+	c &= ~(Clear|Reset);
+	c |= Enable|Intenable;
+	outb(ctport + CTstatus, c);
+
+	mousetype = MousePS2;
+	return 0;
+}
+
 /*
  *  set up a ps2 mouse
  */
@@ -292,8 +361,11 @@ ps2mouse(void)
 	if(mousetype)
 		error(Emouseset);
 
+	if(ct82c710() == 0)
+		return;
+
 	/* enable kbd/mouse xfers and interrupts */
-	setvec(Mousevec, kbdintr);
+	setvec(Mousevec, kbdintr, 0);
 	x = splhi();
 	ccc &= ~Cmousedis;
 	ccc |= Cmouseint;
@@ -312,6 +384,16 @@ ps2mouse(void)
 	/* make mouse streaming, enabled */
 	mousecmd(0xEA);
 	mousecmd(0xF4);
+
+	/* set high resolution */
+	mousecmd(0xE8);
+	mousecmd(0x03);
+
+	/* set  high resolution finger point mouse */
+	mousecmd(0x5A);
+	mousecmd(0x37);
+	mousecmd(0x5A);
+	mousecmd(0x24);
 	splx(x);
 
 	mousetype = MousePS2;
@@ -332,6 +414,7 @@ ps2mouseputc(IOQ *q, int c)
 	static short msg[3];
 	static int nb;
 	static uchar b[] = {0, 1, 4, 5, 2, 3, 6, 7, 0, 1, 2, 5, 2, 3, 6, 7 };
+	int buttons, dx, dy;
 
 	USED(q);		/* not */
 	/* 
@@ -348,11 +431,10 @@ ps2mouseputc(IOQ *q, int c)
 		if(msg[0] & 0x20)
 			msg[2] |= 0xFF00;
 
-		mouse.newbuttons = b[(msg[0]&7) | (shift ? 8 : 0)] | keybuttons;
-		mouse.dx = msg[1];
-		mouse.dy = -msg[2];
-		mouse.track = 1;
-		mouseclock();
+		buttons = b[(msg[0]&7) | (shift ? 8 : 0)] | keybuttons;
+		dx = msg[1];
+		dy = -msg[2];
+		mousetrack(buttons, dx, dy);
 	}
 	return 0;
 }
@@ -363,10 +445,10 @@ ps2mouseputc(IOQ *q, int c)
 void
 mousectl(char *arg)
 {
-	int n, x;
-	char *field[3];
+	int m, n, x;
+	char *field[10];
 
-	n = getfields(arg, field, 3, ' ');
+	n = getfields(arg, field, 10, " \t\n");
 	if(strncmp(field[0], "serial", 6) == 0){
 		switch(n){
 		case 1:
@@ -399,58 +481,61 @@ mousectl(char *arg)
 			break;
 		}
 	} else if(strcmp(field[0], "res") == 0){
-		if(n < 2)
-			n = 1;
-		else
-			n = atoi(field[1]);
+		switch(n){
+		default:
+			n = 0x02;
+			m = 0x23;
+			break;
+		case 2:
+			n = atoi(field[1])&0x3;
+			m = 0x7;
+			break;
+		case 3:
+			n = atoi(field[1])&0x3;
+			m = atoi(field[2])&0x7;
+			break;
+		}
+			
 		switch(mousetype){
 		case MousePS2:
 			x = splhi();
 			mousecmd(0xE8);
 			mousecmd(n);
+			mousecmd(0x5A);
+			mousecmd(0x30|m);
+			mousecmd(0x5A);
+			mousecmd(0x20|(m>>1));
 			splx(x);
 			break;
 		}
-	}
-}
-
-/*
- *  Ctrl key used as middle button pressed
- */
-static void
-mbon(int val)
-{
-	keybuttons |= val;
-	mousebuttons(keybuttons);
-}
-static void
-mboff(int val)
-{
-	keybuttons &= ~val;
-	mousebuttons(keybuttons);
+	} else if(strcmp(field[0], "swap") == 0)
+		mouseswap ^= 1;
 }
 
 /*
  *  keyboard interrupt
  */
-int
-kbdintr0(void)
+void
+kbdintr(Ureg *ur, void *a)
 {
-	int s, c, i, nk;
+	int s, c, i;
 	static int esc1, esc2;
 	static int caps;
 	static int ctl;
 	static int num;
-	static int lstate;
+	static int collecting, nk;
+	static int alt;
 	static uchar kc[5];
 	int keyup;
+
+	USED(ur, a);
 
 	/*
 	 *  get status
 	 */
 	s = inb(Status);
 	if(!(s&Inready))
-		return -1;
+		return;
 
 	/*
 	 *  get the character
@@ -462,7 +547,7 @@ kbdintr0(void)
 	 */
 	if(s & Minready){
 		ps2mouseputc(&mouseq, c);
-		return 0;
+		return;
 	}
 
 	/*
@@ -470,17 +555,17 @@ kbdintr0(void)
 	 */
 	if(c == 0xe0){
 		esc1 = 1;
-		return 0;
+		return;
 	} else if(c == 0xe1){
 		esc2 = 2;
-		return 0;
+		return;
 	}
 
 	keyup = c&0x80;
 	c &= 0x7f;
 	if(c > sizeof kbtab){
 		print("unknown key %ux\n", c|keyup);
-		return 0;
+		return;
 	}
 
 	if(esc1){
@@ -488,7 +573,7 @@ kbdintr0(void)
 		esc1 = 0;
 	} else if(esc2){
 		esc2--;
-		return 0;
+		return;
 	} else if(shift)
 		c = kbtabshift[c];
 	else
@@ -502,100 +587,79 @@ kbdintr0(void)
 	 */
 	if(keyup){
 		switch(c){
+		case Latin:
+			alt = 0;
+			break;
 		case Shift:
 			mouseshifted = shift = 0;
 			break;
 		case Ctrl:
 			ctl = 0;
 			break;
-		case KF|1:
-			mboff(Rbutton);
-			break;
-		case KF|2:
-			mboff(Mbutton);
-			break;
-		case KF|3:
-			mboff(Lbutton);
-			break;
 		}
-		return 0;
+		return;
 	}
 
 	/*
  	 *  normal character
 	 */
 	if(!(c & Spec)){
-		if(ctl)
+		if(ctl){
+			if(alt && c == Del)
+				exit(0);
 			c &= 0x1f;
-		switch(lstate){
-		case 1:
-			kc[0] = c;
-			lstate = 2;
-			if(c == 'X')
-				lstate = 3;
-			break;
-		case 2:
-			kc[1] = c;
-			c = latin1(kc);
-			nk = 2;
-		putit:
-			lstate = 0;
-			if(c != -1)
-				kbdputc(&kbdq, c);
-			else for(i=0; i<nk; i++)
-				kbdputc(&kbdq, kc[i]);
-			break;
-		case 3:
-		case 4:
-		case 5:
-			kc[lstate-2] = c;
-			lstate++;
-			break;
-		case 6:
-			kc[4] = c;
-			c = unicode(kc);
-			nk = 5;
-			goto putit;
-		default:
-			kbdputc(&kbdq, c);
-			break;
 		}
-		return 0;
+		if(!collecting){
+			kbdputc(&kbdq, c);
+			return;
+		}
+		kc[nk++] = c;
+		c = latin1(kc, nk);
+		if(c < -1)	/* need more keystrokes */
+			return;
+		if(c != -1)	/* valid sequence */
+			kbdputc(&kbdq, c);
+		else	/* dump characters */
+			for(i=0; i<nk; i++)
+				kbdputc(&kbdq, kc[i]);
+		nk = 0;
+		collecting = 0;
+		return;
 	} else {
 		switch(c){
 		case Caps:
 			caps ^= 1;
-			return 0;
+			return;
 		case Num:
 			num ^= 1;
-			return 0;
+			return;
 		case Shift:
 			mouseshifted = shift = 1;
-			return 0;
+			return;
 		case Latin:
-			lstate = 1;
-			return 0;
+			alt = 1;
+			collecting = 1;
+			nk = 0;
+			return;
 		case Ctrl:
 			ctl = 1;
-			return 0;
-		case KF|1:
-			mbon(Rbutton);
-			return 0;
-		case KF|2:
-			mbon(Mbutton);
-			return 0;
-		case KF|3:
-			mbon(Lbutton);
-			return 0;
+			return;
 		}
 	}
 	kbdputc(&kbdq, c);
-	return 0;
 }
 
 void
-kbdintr(Ureg *ur)
+ctps2intr(Ureg *ur, void *a)
 {
-	USED(ur);
-	kbdintr0();
+	uchar c;
+
+	USED(ur, a);
+	c = inb(ctport + CTstatus);
+	if(c & Error)
+		return;
+	if((c & Rready) == 0)
+		return;
+	c = inb(ctport + CTdata);
+	ps2mouseputc(&mouseq, c);
 }

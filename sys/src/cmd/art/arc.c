@@ -16,14 +16,32 @@ Dpoint neararc(Item *ip, Dpoint testp){
 	return ip->p[2];
 }
 void drawarc(Item *ip, int bits, Bitmap *b, Fcode c){
-	if(pldist(ip->p[1], ip->p[0], ip->p[2])<CLOSE)	/* not quite right, but ok */
+	Dpoint cen;
+	if(pldist(ip->p[1], ip->p[0], ip->p[2])<CLOSE){	/* not quite right, but ok */
 		segment(b, D2P(ip->p[0]), D2P(ip->p[2]), bits, c);
-	else if(triarea(ip->p[0], ip->p[1], ip->p[2])>0.)
-		arc(b, D2P(circumcenter(ip->p[0], ip->p[1], ip->p[2])),
-			D2P(ip->p[0]), D2P(ip->p[2]), bits, c);
-	else
-		arc(b, D2P(circumcenter(ip->p[0], ip->p[1], ip->p[2])),
-			D2P(ip->p[2]), D2P(ip->p[0]), bits, c);
+		if(ip->style&ARROW0) arrowhead(ip->p[0], ip->p[2], bits, b, c);
+		if(ip->style&ARROW1) arrowhead(ip->p[2], ip->p[0], bits, b, c);
+		return;
+	}
+	cen=circumcenter(ip->p[0], ip->p[1], ip->p[2]);
+	if(triarea(ip->p[0], ip->p[1], ip->p[2])>0.){
+		arc(b, D2P(cen), D2P(ip->p[0]), D2P(ip->p[2]), bits, c);
+		if(ip->style&ARROW0)
+			arrowhead(ip->p[0], Dpt(ip->p[0].x-cen.y+ip->p[0].y,
+						ip->p[0].y+cen.x-ip->p[0].x), bits, b, c);
+		if(ip->style&ARROW1)
+			arrowhead(ip->p[2], Dpt(ip->p[2].x+cen.y-ip->p[2].y,
+						ip->p[2].y-cen.x+ip->p[2].x), bits, b, c);
+	}
+	else{
+		arc(b, D2P(cen), D2P(ip->p[2]), D2P(ip->p[0]), bits, c);
+		if(ip->style&ARROW0)
+			arrowhead(ip->p[0], Dpt(ip->p[0].x+cen.y-ip->p[0].y,
+						ip->p[0].y-cen.x+ip->p[0].x), bits, b, c);
+		if(ip->style&ARROW1)
+			arrowhead(ip->p[2], Dpt(ip->p[2].x-cen.y+ip->p[2].y,
+						ip->p[2].y+cen.x-ip->p[2].x), bits, b, c);
+	}
 }
 void editarc(void){
 	Flt l0=dist(arg[0], selection->p[0]);
@@ -53,8 +71,10 @@ void translatearc(Item *ip, Dpoint delta){
 void deletearc(Item *ip){
 }
 void writearc(Item *ip, int f){
-	fprint(f, "a %.3f %.3f %.3f %.3f %.3f %.3f\n",
+	fprint(f, "a %.3f %.3f %.3f %.3f %.3f %.3f",
 		ip->p[0].x, ip->p[0].y, ip->p[1].x, ip->p[1].y, ip->p[2].x, ip->p[2].y);
+	writestyle(f, ip->style);
+	fprint(f, "\n");
 }
 void activatearc(Item *ip){
 	hotarc(ip->p[0], ip->p[1], ip->p[2]);

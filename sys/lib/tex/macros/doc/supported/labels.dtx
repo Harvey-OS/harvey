@@ -1,0 +1,407 @@
+\def\fileversion{8}
+\def\filedate{1994/04/15}
+\def\docdate {1994/01/15}
+%
+% \iffalse
+%% File: labels.dtx Copyright (C) 1994 Sebastian Rahtz
+% 
+%  This package is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+%
+%<*driver>
+\documentclass{ltxdoc}
+\begin{document}
+ \title{A package for making sticky labels\LaTeX\thanks{This file
+        has version number \fileversion, last
+        revised \filedate.}}
+ \author{Sebastian Rahtz \and Leonor Barroca}
+ \date{\filedate}
+ \maketitle
+ \tableofcontents
+ \DocInput{labels.dtx}
+ \end{document}
+%</driver>
+% \fi
+% \CheckSum{284}
+% \begin{abstract}
+% A \LaTeX\ style to print
+% a regular grid of  labels on a page, suitable for sheets of labels
+% which can be fed through a laser printer. Macros are provided to
+% allow easy input of names and addresses in a form free of \TeX\ markup.
+% \end{abstract}
+%
+% \section{Usage}
+% This style file was written to print labels from the shop around the
+% corner from me. These have 8 rows and 3 columns on a sheet of A4
+% paper. Your labels will very likely be different.
+% So first you have to tailor this file to your particular type of label.
+% Edit the lines below  which look like this:
+%  \begin{verbatim}
+%   \LabelCols=3
+%   \LabelRows=8
+%  \end{verbatim}
+% to reflect {\em your}
+% grid (maybe you have only two columns of ten labels each, for
+% instance). 
+% Now make sure that your printer driver prints the page
+% {\em exactly} as it should in vanilla \TeX, ie with the origin of
+% the page down 1in and right 1in from the top left hand corner of the
+% paper. If it doesn't, adjust your driver parameters, or edit the
+% settings below where I take 1in off the margins. The most likely
+% problem with these macros is that you will have contents which are
+% quite wide, and which therefore need to use the very edges of the
+% paper, on which your printer may not write correctly. Little one can
+% do about this --- use a small point size.
+%
+% The simplest form of input is very
+% easy, as in the following example:
+% \begin{verbatim}
+%   \documentstyle{labels}
+%   \begin{document}
+%   \begin{labels}
+%   \input names.dat
+%   \end{labels}
+%   \end{document}
+% \end{verbatim}
+% where {\ttfamily names.dat} contains names and address in plain format 
+% with simply a blank line between entries.  You can, of course, just
+% have  the names and addresses in the main file, rather than using
+% \verb|\input| to include them. If the file ends in blank lines, 
+% expect problems --- sorry! Use your editor\ldots
+% 
+% But there are also other ways off accessing the same system:
+% \begin{enumerate}
+% \item by having entries like this:
+%   \begin{verbatim}
+%      \addresslabel{me\\
+%      here and there\\
+%      england\\
+%      }
+%   \end{verbatim}
+% {\em without} the {\ttfamily labels} environment.
+% \item if you have labels in the simple format in a file,
+%    just write  a {\ttfamily .tex} file like this:
+%  \begin{verbatim}
+%    \documentstyle{labels}
+%    \begin{document}
+%    \labelfile{filename}
+%    \end{document}
+%  \end{verbatim}
+% and all will be done for you.
+% \item if you want to {\em duplicate} the label, there is a counter called
+% \verb|\numberoflabels| which you can set, so
+% \begin{verbatim}
+%   \numberoflabels=4
+%   \addresslabel{Me \\my street \\ mytown \\ England}
+% \end{verbatim}
+% will print the address 4 times in a row
+% \item For more sophisticated users, there is a macro
+% \verb|\genericlabel| which you can call,
+% with an argument of whatever you want to appear on the label (eg for
+% disk labels etc). Thus you could have
+%   \begin{verbatim}
+%   \genericlabel{%
+%   \begin{tabular}{c}
+%   \hline
+%   My Amazing Program\\
+%   \hline
+%   Disk 1 of 1
+%   \hline
+%   \em We aim to serve\\
+%   \end{tabular}
+%   }
+%   \end{verbatim}
+%to produce a label like this:
+%\begin{verbatim}
+%|------------------|
+%|My Amazing Program|
+%|------------------|
+%|Disk 1 of 1       |
+%|------------------|
+%|We aim to serve   |
+%\end{verbatim}
+% \end{enumerate}
+% In all modes, you can opt for a frame around each label by setting a
+% Boolean variable called `framedlabels' eg
+%\begin{verbatim}
+% \framedlabelstrue
+%\end{verbatim}
+%By default you get no frames ---  I am not sure when you {\em would}
+%want frames, but who knows. 
+% \StopEventually
+% \section{The utility macros}
+% First of all, identify what is happening.
+%<*class>
+%    \begin{macrocode}
+\ProvidesClass{labels}[\filedate\space\fileversion]
+%    \end{macrocode}
+% Now take a copy all of `article' style to start with, just in  case
+% any of it is needed (probably not, but you never know).
+%    \begin{macrocode}
+\LoadClass{article}
+%    \end{macrocode}
+% We will be recording the size of a label, and the dimensions of the
+% grid, so set up variables accordingly.
+%    \begin{macrocode}
+\newdimen\label@width
+\newdimen\label@height
+\newcount\LabelCols
+\newcount\LabelRows
+\newdimen\left@border
+\newdimen\top@border
+\newdimen\half@label
+\newdimen\area@width
+\newsavebox{\this@label}
+\newcount\label@number
+\newcount\numberoflabels
+\newcount\skip@labels
+\newcount\l@so@far
+\newif\ifframedlabels
+\newif\iffirst@label
+\first@labeltrue
+\framedlabelsfalse
+%    \end{macrocode}
+% The user will probably need to change the following values to
+% reflect the style of labels in use.
+%    \begin{macrocode}
+\LabelCols=3
+\LabelRows=8
+%    \end{macrocode}
+% Variables are provided to allow you to force a border on the left edge
+% of labels, in case you do not want to print right to the edge, and
+% at the top; these values will affect every label, of course, so you
+% may need to experiment to get pleasing results.
+% 8mm is the amount my LaserJetIII seems to ignore on the left.
+%    \begin{macrocode}
+\left@border=8mm
+\top@border=4mm
+%    \end{macrocode}
+% We need to reset all the dimensions appropriately for an A4 page of labels,
+% and the printer will need to know about A4 as well. Obviously if you
+% use a different page size, you will need to alter things here.
+% Some of these changes may be printer dependent.
+% This should all mean we are actually dealing with the whole bit of paper.
+%
+%    \begin{macrocode}
+\textwidth=210mm
+\textheight=297mm
+\topmargin=-1in
+\headheight=0em
+\headsep=0em
+\topskip=0em
+\footskip=0em
+\oddsidemargin=-1in
+\evensidemargin=-1in
+\pagestyle{empty}
+\parindent=0em
+\parskip=0pt
+%    \end{macrocode}
+% Now calculate the size of labels simply as a proportion of the page
+% size (if you haven't got that right, this won't work, will it?).
+%    \begin{macrocode}
+\def\LabelSetup{
+\label@width\textwidth\divide\label@width by\LabelCols
+\label@height\textheight\divide\label@height by\LabelRows
+\typeout{Creating labels sized \the\label@width\space by \the\label@height}%
+\label@number=1
+%    \end{macrocode}
+% It is not usually advisable to make the label printing go right to
+% the edge of the available area, so `area@width' gives
+% the area that will actually be used for printing; the width is
+% cut down by whatever we gave as `left@border'. It can always be set to 0
+% if you have a design that uses the whole label.
+%    \begin{macrocode}
+\area@width=\label@width%
+\advance\area@width by -\left@border%
+\half@label=\label@height\divide\half@label by 2
+\advance\half@label by -\top@border
+}
+\LabelSetup
+%    \end{macrocode}
+%
+% We might want to print the same label  several times,
+% so \verb|\sticky@label| will repeat \verb|\make@label| a 
+% specified number of times (\verb|\numberoflabels|)
+%    \begin{macrocode}
+\numberoflabels=1%
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+\def\sticky@label{\l@so@far=0%
+\loop\ifnum\l@so@far<\numberoflabels\advance\l@so@far by 1\make@label%
+\repeat}
+%    \end{macrocode}
+%
+% The real label-making macro, 
+% which assumes the actual text is in a box called \verb|\this@label|.
+% It is vital to make sure spaces are not included at the end of lines in
+% these macros, or all hell breaks loose. 
+%
+%    \begin{macrocode}
+\def\make@label{%
+\ifframedlabels%
+\let\boxing@type\framebox%
+\else%
+\let\boxing@type\makebox%
+\fi%
+\boxing@type[\label@width][c]{%
+\rule{0pt}{\label@height}% 
+%    \end{macrocode}
+% We set a position to half-way up a strut of the height of the label, so
+% forcing text to be the right height and vertically centred. 
+%    \begin{macrocode}
+\raisebox{\half@label}[0pt][0pt]{%
+\rule{\left@border}{0pt}\usebox{\this@label}}}%
+%    \end{macrocode}
+% We only start a new line if we have printed a row of
+% \verb|\LabelCols| labels
+%    \begin{macrocode}
+\ifnum\label@number=\LabelCols%
+\message{|}%
+\endgraf\nointerlineskip%
+\global\label@number=1\else\global\advance\label@number by 1\fi%
+}%
+%    \end{macrocode}
+% Now some macros to allow `verbatim' names and addresses separated by blank
+% lines. First we need some hackery from Phil Taylor to redefine end of line;
+% define carriage-return to check what the next token is;
+% if its another \verb|^M| then we have a blank line.
+%    \begin{macrocode}
+\catcode `\^^M = \active
+\def ^^M{\futurelet\nexttoken\isitapar}%
+\def\isitapar{\ifx^^M\nexttoken\let\action=\new@label%
+\else\let\action\start@newline\fi\action}%
+%    \end{macrocode}
+% If we have met a blank line, finish current label and
+% start a new one. swallow pending \verb|^M|, or we will have
+% a blank line at the start of each label
+%    \begin{macrocode}
+\def\new@label{\message{+}\end@@label\start@@label\@gobble}%
+%    \end{macrocode}
+% Otherwise just start a new line
+%    \begin{macrocode}
+\def\start@newline{\expandafter\newline}%
+\def\startingtoken{\ifx^^M\firsttoken\let\action=\@gobble\else%
+\let\action=\relax\fi\action}%
+%    \end{macrocode}
+%
+% Re-instate the original catcode for carriage-return
+%    \begin{macrocode}
+\catcode `\^^M = 5\relax%
+%    \end{macrocode}
+% Define macros to call at beginning and end of labels, to set
+% things up properly.
+%    \begin{macrocode}
+\def\start@@label{%
+\savebox{\this@label}\bgroup\raggedright%
+\begin{minipage}{\area@width}%
+\catcode `\^^M =\active}%
+\def\end@@label{%
+\end{minipage}\egroup\sticky@label}%
+%    \end{macrocode}
+%
+% \section{User macros}
+% The basic case is a generic macro which takes its argument and puts 
+% it out on a label. 
+%    \begin{macrocode}
+\def\genericlabel#1{%
+\iffirst@label\ifframedlabels%
+\advance\label@height by-2\fboxsep%
+\advance\label@height by-2\fboxrule%
+\half@label\label@height\divide\half@label by 2
+\advance\half@label by -\top@border%
+\first@labelfalse%
+\fi\fi%
+\savebox{\this@label}{#1}\sticky@label\@gobblecr}
+%    \end{macrocode}
+% For compatibility with an old label style, lines ending in \verb|//|
+% and marked with \verb|\addresslabel{....}|
+%    \begin{macrocode}
+\def\addresslabel#1{\genericlabel{%
+\begin{tabular}{l}#1\end{tabular}}}
+%    \end{macrocode}
+%
+% Now easier environments for verbatim labels.
+% If we want framed labels, we need to adjust the width available
+% to use to allow for the rule width and the gap between box and rule, 
+% in both axes.
+% This is doubled up, as it happens on both sides / bottoms.
+% We have to check in case the first \verb|\begin{labels}| has a
+% \verb|^^M| after it or (preferably) is terminated by a \verb|%|
+%    \begin{macrocode}
+\newenvironment{labels}%
+{%
+\iffirst@label\ifframedlabels%
+\advance\area@width by-2\fboxsep%
+\advance\area@width by-2\fboxrule%
+\advance\label@height by-2\fboxsep%
+\advance\label@height by-2\fboxrule%
+\half@label\label@height\divide\half@label by 2
+\advance\half@label by -\top@border%
+\first@labelfalse%
+\fi\fi%
+\start@@label\futurelet\firsttoken\startingtoken}%
+{\end@@label}
+%    \end{macrocode}
+%
+% Even more foolproof: simply take a parameter of file name
+%    \begin{macrocode}
+\def\labelfile#1{\begin{labels}\input#1\end{labels}}
+%    \end{macrocode}
+% or prompt for it:
+%    \begin{macrocode}
+\def\promptlabels{\typein[\labelfilename]{What is the name of the
+label file?}
+\labelfile{\labelfilename}}
+\newcount\sk@pped
+\def\skiplabels#1{\sk@pped=#1%
+\savebox{\this@label}{\rule{0pt}{.5in}}%
+\skip@labels=0
+\loop\ifnum\skip@labels<\sk@pped\advance\skip@labels by 1
+\message{x}\make@label
+\repeat}
+%</class>
+%    \end{macrocode}
+%    \begin{macrocode}
+%<*style>
+\NeedsTeXFormat{LaTeX2e}
+\@obsoletefile{labels.cls}{labels.sty}
+\LoadClass{labels}
+%</style>
+%    \end{macrocode}
+% \section{History and acknowledgements}
+% \begin{itemize}
+% \item v.1 May 9th 1989 simply allowed 
+% for |\addresslabel{... \\ ...\\...}|
+% \item v.2 July 15th permitted verbatim style with no explicit end of lines
+% \item v.3 March 1991 made more generic
+% \item v.4 January 1992 checked and made to work with emtex  drivers
+% to my satisfaction, and documented to bare-bones level with `doc' system.
+% \item v.5 March 1993 allowed for |\skiplabels|
+% \item v.6 January 1994 for \LaTeXe
+% \item v.7 January 1994 fixes
+% \item v.8 April 1994 revised .dtx file
+% \end{itemize}
+% The crucial macros which make the system bearable for mailing lists
+% by redefining end of line came from Phil Taylor; apologies 
+% to him for using them in a \LaTeX\ style file!
+%
+% \Finale
+\endinput
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+

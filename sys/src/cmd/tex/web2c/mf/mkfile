@@ -3,17 +3,20 @@
 
 APE=/sys/src/ape
 < $APE/config
-SITEDIR=..
-OPT=-B
-CFLAGS=$OPT -I$SITEDIR -c
+CFLAGS=-B -D_POSIX_SOURCE -I../lib -c
 LDFLAGS=
 SHELL=/bin/rc
 
-wlibs=-lXt -lX11
-#windowlib=MFwindow/window.a
-windowlib=
-#libs=$windowlib $wlibs
-libs=
+COMMONDEFINES=../lib/common.defines ../lib/texmf.defines
+
+# Routines used in both TeX and Metafont.
+EXTRAC=../lib/texmf.c
+EXTRAH=../lib/texmf.h
+EXTRAO=texmf.$O
+
+# Routines used in TeX, Metafont, and BibTeX.
+FILEIOC=../lib/openinout.c
+FILEIOO=openinout.$O
 
 OFILES=mf0.$O\
 	mf1.$O\
@@ -24,33 +27,40 @@ OFILES=mf0.$O\
 	mf6.$O\
 	mf7.$O\
 	mf8.$O\
-	mf9.$O\
-	ini.$O\
+	mf9.$O
 
 CFILES=${OFILES:%.$O=%.c}
 
+LIB=../lib/lib.a$O
+
+OBJS=$FILEIOO\
+	$OFILES
+
 IOBJS=iextra.$O\
 	inimf.$O\
+	$OBJS
 
-VOBJS=extra.$O\
+VOBJS=mf-extra.$O\
 	imf.$O\
+	$OBJS
 
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 
 all:V:		$O.inimf $O.virmf
 
 triptrap:V:	$O.trapmf
 
-$O.inimf:	$IOBJS $OFILES $windowlib
-		$LD $LDFLAGS -o $target $IOBJS $OFILES $libs
+$O.inimf:	$IOBJS $LIB
+		$LD $LDFLAGS -o $target $prereq
 
-$O.virmf:	$VOBJS $OFILES $windowlib
-		$LD $LDFLAGS -o $target $VOBJS $OFILES $libs
+$O.virmf:	$VOBJS $LIB
+		$LD $LDFLAGS -o $target $prereq
 
-run-triptrap:VE:
-		objtype=$cputype mk triptrap
+run-trap:VE:
+		rm -f trap.mf
 		cp MFtrap/trap.mf .
-		$cpuobjtype.trapmf < MFtrap/trap1.in
+		. ./trapenv
+		$cpuobjtype.trapmf < MFtrap/trap1.in > /dev/null
 		diff MFtrap/trapin.log trap.log
 		$cpuobjtype.trapmf < MFtrap/trap2.in > trap.fot
 		diff MFtrap/trap.log trap.log
@@ -60,12 +70,12 @@ run-triptrap:VE:
 		../mfware/$cpuobjtype.gftype -m -i trap.72270gf > trap.typ
 		diff MFtrap/trap.typ trap.typ
 
-# The `ini_to_trap' script changes mfd.h, instead of cmf.ch, so
+# The `ini_to_trap' script changes mfd.h, instead of the change file, so
 # retangling is not necessary.  After changing constants, making a
-# trapmf means making an inimf.  We don't actually have to make the
-# window library when making a trapmf, but it shouldn't hurt.
+# trapmf means making an inimf.
 # 
-$O.trapmf:	stamp-trap $O.inimf
+$O.trapmf:	stamp-trap
+		mk $O.inimf
 		mv $O.inimf $target
 
 stamp-trap:	stamp-convert
@@ -79,31 +89,31 @@ mf.p:		mf.web cmf.ch ../stamp-tangle.$cputype
 		# redirected to stop chatter - remove redirection for debugging
 		../web/$cpuobjtype.tangle mf.web cmf.ch > /dev/null
 
-# The convert script produces mf[0-9].c, imf.c, coerce.h, and mfd.h.
-# The (hand-coded) memory.h is included in the mf?.c files; it isn't
-# really necessary to `convert' again if it changes, only to recompile
-# that file, but describing that relationship is ugly to do.
-# (Furthermore, memory.h is stable.)
-# 
-$CFILES imf.c mfd.h:	stamp-convert
+$CFILES imf.c coerce.h mfd.h:	stamp-convert
 		touch stamp-convert
- 
-stamp-convert:	mf.p memory.h fixcoerce.h mf.defines
+
+stamp-convert:	mf.p fixcoerce.h $COMMONDEFINES
 		$SHELL ./convert
 
-# The (hand-coded) file extra.c and the (generated) file imf.c have
-# #ifdefs on INIMF, so we have to compile them with -DINIMF for inimf and
-# trapmf.
+# The (hand-coded) file $EXTRAC and the (generated) file imf.c have
+# #ifdefs for INIMF, so we have to compile them differently.
 # 
-iextra.$O:	extra.c mfd.h
-		$CC $CFLAGS -DINIMF extra.c && mv extra.$O $target
+iextra.$O:	$EXTRAC mfd.h $EXTRAH
+		$CC $CFLAGS -I. -DINIMF -DINI $EXTRAC
+		mv $EXTRAO $target
 
-inimf.$O:	imf.c
-		$CC $CFLAGS -DINIMF imf.c && mv imf.$O $target
+inimf.$O:	imf.c mfd.h $EXTRAH
+		cp imf.c inimf.c
+		$CC $CFLAGS -DINIMF inimf.c
 
-extra.$O:	mfd.h
+mf-extra.$O:	$EXTRAC mfd.h
+		cp $EXTRAC mf-extra.c
+		$CC $CFLAGS -I. mf-extra.c
 
-%.$O:		%.c mf.h
+$FILEIOO: $FILEIOC mfd.h
+		$CC $CFLAGS -I. $FILEIOC
+
+%.$O:		%.c mfd.h
 		$CC $CFLAGS $stem.c
 
 ../stamp-tangle.$cputype:
@@ -116,14 +126,12 @@ installall:VQ:
 		echo do mk installall in ..
 
 clean:V:
-		rm -f stamp-* *.[$OS] [$OS].virmf [$OS].inimf
-		rm -f mfd.h coerce.h *.log
-		rm -f trap.*
-		cd MFwindow; mk clean
+		rm -f stamp-* *.[$OS] [$OS].virmf [$OS].inimf [$OS].trapmf
+		rm -f mfd.h coerce.h *.log *.base
+		rm -f trap.* mf-extra.c
 
 nuke:V:
 		mk clean
-		rm -f mf?.c imf.c mf.p mf.pool *.base mfput.*
+		rm -f mf?.c imf.c mf.p mf.pool *gf *.tfm mfput.*
 		rm -f '#'*'#' *~ *.bak
-		cd MFwindow; mk nuke
 

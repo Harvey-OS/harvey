@@ -1,6 +1,6 @@
 .TH MAIL 1
 .SH NAME
-mail, edmail, sendmail, seemail, aliasmail, smtp, smtpd, uk2uk, vwhois, vismon \-  mail commands
+mail, edmail, sendmail, seemail, aliasmail, smtp, smtpd, to, vwhois, vismon \-  mail commands
 .SH SYNOPSIS
 .B mail
 [
@@ -18,16 +18,27 @@ mail, edmail, sendmail, seemail, aliasmail, smtp, smtpd, uk2uk, vwhois, vismon \
 .PP
 .B upas/sendmail
 [
-.B -x#
+.B -xr#
 ]
 .I person ...
+.PP
+.B upas/to
+[
+.B -x#
+]
 .PP
 .B seemail
 [
 .B -as
 ] [
+.B -u
+.I user
+] [
 .B -f
 .I file
+] [
+.B -r
+.I reminders
 ]
 .PP
 .B upas/aliasmail
@@ -41,6 +52,9 @@ mail, edmail, sendmail, seemail, aliasmail, smtp, smtpd, uk2uk, vwhois, vismon \
 .BI -h host
 ]
 [
+.BI -g gateway
+]
+[
 .I .domain
 ]
 .I "address sender rcpt-list"
@@ -49,9 +63,6 @@ mail, edmail, sendmail, seemail, aliasmail, smtp, smtpd, uk2uk, vwhois, vismon \
 [
 .B -d
 ]
-.PP
-.B uk2uk
-.I "system user"
 .PP
 .B vwhois
 .I people ...
@@ -73,7 +84,7 @@ otherwise.
 .I Edmail
 edits a mailbox.
 The default mailbox is
-.BI /mail/box/ username /mbox.
+.BI /mail/box/ username /mbox\f1.
 The
 .B -f
 and
@@ -96,7 +107,7 @@ and
 If the
 .I mfile
 argument is omitted, the name defaults to
-.B stored.
+.BR stored .
 .PP
 The options for
 .I edmail
@@ -159,7 +170,7 @@ to indicate a range of contiguous message headers
 .TP
 .BI g/ expression /
 to indicate all message headers matching the regular
-.I expression.
+.IR expression .
 .PD
 .PP
 The commands are:
@@ -170,14 +181,14 @@ Print the headers for the next ten messages.
 .TP
 .B d
 Mark message to be deleted upon exiting
-.I edmail.
+.IR edmail .
 .TP
 .B h
 Print the disposition, size in characters, and header line of the message.
 .TP
 .BI m " person ...
 Mail the message to the named
-.I persons.
+.IR persons .
 .TP
 .BI M " person ...
 Same as
@@ -240,7 +251,7 @@ with the message as standard input.
 .TP
 .BI ! command
 Escape to the shell to do
-.I command.
+.IR command .
 .TP
 .B \&=
 Print the number of the current message.
@@ -259,7 +270,7 @@ window,
 .I sendmail
 automatically puts the window into Hold mode (see
 .IR 8½ (1));
-this means that previous lines of the message can be edited freely,
+this means that the message can be edited freely,
 because nothing will be sent to
 .I sendmail
 until the ESC key is hit to exit Hold mode.
@@ -273,6 +284,13 @@ With option
 .I sendmail
 does not send mail, but instead reports
 the full mail address of the recipient.
+Option
+.B -r
+tells sendmail that its input is via a pipe from
+another program.
+It won't turn on Hold mode and will expect a From
+line at the start of the message to provide the
+name of the sender and timestamp.
 .PP
 The message is automatically postmarked with the
 sender's name and date.
@@ -281,14 +299,32 @@ prefixed with
 .LR > .
 .PP
 .I Person
-is a login name on the local system,
+is a user name on the local system,
 a name for which there is an
 .IR alias ,
 or a network mail address.
+.PP
+.I To
+is a preprocessor for
+.IR sendmail .
+It takes a mail message as standard input,
+looks through it for
+.BR To: ,
+.BR Cc: ,
+and
+.B Bcc:
+header lines, and calls sendmail with the addresses
+in those header lines as destinations.
+The
+.B Bcc:
+header lines are removed before passing the message to
+.IR sendmail .
 .SS "Addressing Conventions"
 The local convention for converting addresses
 is given by rewrite rules in
-.BR /mail/lib/rewrite .
+.BR /mail/lib/rewrite ;
+see
+.IR rewrite (6).
 The conventions generally used are:
 .IP \-
 A
@@ -305,7 +341,7 @@ which returns either the expanded alias or
 if there is no alias of that name.
 .IP \-
 A canonical network mail address has the form
-.IB machine ! ... ! name,
+.IB machine ! ... ! name\f1,
 with one or more machines mentioned.
 .SS "Aliasmail"
 .I Aliasmail 
@@ -325,7 +361,7 @@ Then the system alias files, listed one per line in
 .BR /mail/lib/namefiles  ,
 are checked in order.
 If the name is not found, the expansion is taken to be
-.BI local! name.
+.BI local! name\f1.
 .SS Mailboxes
 Incoming mail for a user
 .I username
@@ -379,12 +415,36 @@ flag causes it to initialize by displaying all the faces in the log;
 .B -s
 causes it to overwrite multiple appearances of the same face rather
 than repeatedly displaying it.
+The
+.B -u
+option displays incoming mail for the specified user instead of yourself.
+.PP
+.IR Seemail 's
+.B -r
+option causes it to announce appointments described in the file
+.IR reminders .
+Each line of the appointment file contains the
+month, day, hour, minute and room (any string of non-spaces)
+of an appointment, in a format compatible with
+.IR calendar (1).
+The hour is 24-hour time.  The fields
+may be separated by white space, commas, slashes or colons,
+and the room may be followed by arbitrary text.
+On the day of each appointment,
+.I seemail
+displays a clock-face icon with the appointment's room and time,
+once at midnight (or when the program starts), then an hour before,
+then 15 minutes before, then 1 minute
+before, then at the appointment time.  At the same time, it displays
+the room and any following text on a line below the
+clock time at the top of its window.
+.PP
 .I Vwhois
 just displays in the
 .I seemail
 window
 the icons of
-.I people.
+.IR people .
 .I Vismon
 is a version of
 .I seemail
@@ -415,6 +475,10 @@ The
 flag just prints out the converted message rather than
 sending it to the destination.
 The
+.B -g
+option specifies a gateway system to pass the message to if smtp can't
+find an address or MX entry for the destination system.
+The
 .B -d
 option turns on debugging output to standard error.
 .PP
@@ -427,14 +491,6 @@ option turns on debugging output to standard error.
 .I Smtpd
 is normally run by a network listener such as
 .IR listen (8).
-.PP
-.B uk2uk
-is used by the mail rewrite rules to turn a JANET style name into
-a domain style name, by flipping all the components of
-.I system,
-appending
-.RI ! user
-to it, and writing the result to standard output.
 .SH FILES
 .TF /mail/box/*/dead.letter
 .TP
@@ -474,6 +530,23 @@ lists files to search for aliases in
 .B /lib/face/48x48x?
 directories of icons for
 .I seemail
+.SH SOURCE
+.TF /sys/src/cmd/upas
+.TP
+.B /rc/bin/mail
+.TP
+.B /sys/src/cmd/upas
+source for commands in
+.B /bin/upas
+.TP
+.B /sys/src/cmd/seemail
+.TP
+.B /rc/bin/vismon
+.TP
+.B /rc/bin/vwhois
+.SH "SEE ALSO"
+.IR face (6),
+.IR rewrite (6)
 .SH BUGS
 .I Edmail
 truncates

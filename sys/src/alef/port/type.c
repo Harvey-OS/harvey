@@ -3,276 +3,9 @@
 #include <bio.h>
 #include "parl.h"
 #include "y.tab.h"
-#define Extern
+#define Extern extern
 #include "globl.h"
 #include "tcom.h"
-
-static Type **agtail;
-
-void
-applyarray(Node *n, Type *newt)
-{
-	int sz;
-	char *s;
-	Node *f;
-
-	s = n->sym->name;
-
-	for(f = n->left; f; f = f->right) {		/* OARRAY */
-		sz = 0;
-		if(f->left) {
-			if(f->left->type != OCONST) {
-				diag(n, "%s[] must have constant size", s);
-				break;
-			}
-
-			sz = f->left->ival;
-		}
-
-		if(sz < 0 ||(sz == 0 && n->init == ZeroN && newt->class != External)) {
-			diag(n, "%s[%d] dimension must be positive constant", s, sz);
-			break;
-		}
-		newt = at(TARRAY, newt);
-		newt->size = newt->next->size*sz;
-	}
-	n->t = newt;
-}
-
-/* 
- * recurse through the declaration list attaching types to symbols and tags
- */
-void
-applytype(Type *tbasic, Node *n)
-{
-	char class;
-	Node *f, *proto, *p;
-
-	if(n == ZeroN)
-		return;
-
-	proto = ZeroN;
-
-	switch(n->type) {
-	default:
-		applytype(tbasic, n->left);
-		applytype(tbasic, n->right);
-		break;
-
-	case OPROTO:
-		diag(n, "illegal argument list");
-		break;
-
-	case OFUNC:
-		n->type = ONAME;
-		proto = n->left;
-		n->left = ZeroN;
-
-		/* Fall through */
-	case ONAME:
-		class = tbasic->class;
-
-		for(f = n->right; f; f = f->left)		/* OIND */
-			tbasic = at(TIND, tbasic);
-
-		applyarray(n, tbasic);
-
-		/* Rearrange for pointer to function declaration */
-		if(proto) {
-			n->t = at(TFUNC, n->t);
-			p = an(ONAME, n->proto, ZeroN);
-			p->sym = n->sym;
-			p->t = n->t;
-			n->proto = p;
-			n->t->proto = p;
-			for(f = proto->right; f; f = f->left)
-				n->t = at(TIND, n->t);
-
-			if(proto->left) {
-				n->left = proto->left;
-				applyarray(n, n->t);
-			}
-		}
-		n->t->class = class;
-		if(class == Private) {
-			switch(n->t->type) {
-			default:
-				diag(n, "illegal storage class for type %T", n->t);
-				break;
-			case TINT:
-			case TUINT:
-			case TSINT:
-			case TSUINT:
-			case TCHAR:
-			case TIND:
-				break;
-			}
-		}
-		break;
-	}
-}
-
-Type*
-tmcpy(Type *t)
-{
-	Type *new;
-
-	new = abt(t->type);
-	new->next = t->next;
-	new->size = t->size;
-	new->align = t->align;
-	new->member = 0;
-	new->class = t->class;
-	new->sym = t->sym;
-	new->tag = t->tag;
-	new->nbuf = t->nbuf;
-
-	return new;
-}
-
-void
-agunshape(Node *n)
-{
-	Type *t;
-
-	if(n == ZeroN)
-		return;
-
-	switch(n->type) {
-	default:
-		agunshape(n->left);
-		agunshape(n->right);
-		return;
-
-	case OTYPE:
-		t = tmcpy(n->t);
-		t->tag = 0;			/* Unnamed so kill tag */
-		break;
-
-	case OAGDECL:
-	case OUNDECL:
-	case OADTDECL:
-		t = tmcpy(n->t);
-		if(t->tag == 0)
-			t->tag = n->sym;
-		break;
-
-	case ONAME:
-		t = tmcpy(n->t);
-		t->tag = n->sym;
-		break;
-	}	
-	*agtail = t;
-	agtail = &t->member;
-}
-
-/*
- * Build a type structure for a complex
- */
-void
-buildtype(Node *n)
-{
-	Sym *sym, *tag;
-	ulong offset;
-	char *sn, *tn;
-	Type *t, *m;
-	Node *f;
-
-	if(n->type ==  OSETDECL)
-		return;
-
-	f = n->left;
-	sym = ZeroS;
-	if(f->left)
-		sym = f->left->sym;
-
-	tag = ZeroS;
-	if(f->right)
-		tag = f->right->sym;
-
-	switch(n->type) {
-	default:
-		fatal("buildtype %N", n);
-
-	case OAGDECL:
-		t = at(TAGGREGATE, 0);
-		break;
-
-	case OADTDECL:
-		t = at(TADT, 0);
-		break;
-
-	case OUNDECL:
-		t = at(TUNION, 0);
-		break;
-	}		
-
-	/* Recurse through */
-	agtail = &t->next;
-	agunshape(n->right);
-	n->t = t;
-
-
-	/* Tag the parse tree with the name */
-	if(sym) {
-		if(sym->ltype)
-		if(sym->ltype->type != TXXX)
-			diag(n, "%s redclared type specifier", sym->name);
-
-		sym->ltype = t;
-	}
-
-	/* pick up the tag if this is a sub of a complex type */
-	if(tag)
-		t->tag = tag;
-	else
-		t->tag = sym;
-
-	/* propagate sizes and align structure members */
-	offset = 0;
-	for(m = t->next; m; m = m->member) {
-		switch(t->type) {
-		case TAGGREGATE:
-			m->class = External;
-			/* Fall through */
-
-		case TADT:
-			if(m->class == Adtdeflt) {
-				m->class = Internal;
-				if(m->type == TFUNC)
-					m->class = External;
-			}
-			if(m->type == TFUNC)
-				break;
-
-			offset = align(offset, m);
-			m->offset = offset;
-			offset += m->size;
-			break;
-
-		case TUNION:
-			m->class = External;
-			if(m->size > offset)
-				offset = m->size;
-			m->offset = 0;
-			break;
-		}
-	}
-	/* Align the tail to integral machine type */
-	t->size = align(offset, builtype[TINT]);
-
-	if(opt('C')) {
-		sn = "unnamed";
-		tn = sn;
-		if(sym)
-			sn = sym->name;
-		if(tag)
-			tn = tag->name;
-		print("COMPLEX %s.%s\n", sn, tn);
-		prnagun(t, 0);
-		print("*\n");
-	}
-}
 
 /*
  * detect casts which generate no code
@@ -296,6 +29,24 @@ convisnop(Type *t1, Type *t2)
 	return 0;
 }
 
+int
+isnil(Node *n)
+{
+	Type *t;
+
+	if(n->type != OCONST)
+		return 0;
+
+	t = n->t;
+	if(t->type != TIND || t->next->type != TVOID)
+		return 0;
+
+	if(n->ival != 0)
+		return 0;
+
+	return 1;
+}
+
 /*
  * type arithmetic operators and do pointer arith scaling
  */
@@ -303,7 +54,11 @@ int
 tmathop(Node *n, int logical, char tab[Ntype][Ntype])
 {
 	int v;
-	Node *newn, *l, *r;
+	char *op;
+	Type *bt;
+	Node *newn, *l, *r, *siz;
+
+	line = n->srcline;
 
 	l = n->left;
 	r = n->right;
@@ -312,7 +67,10 @@ tmathop(Node *n, int logical, char tab[Ntype][Ntype])
 
 	if(l->t->type == TIND && n->type == OSUB && r->t->type == TIND) {
 		n->t = builtype[TINT];
-		v = l->t->next->size;
+		bt = l->t->next;
+		if(bt->type == TXXX)
+			typesut(bt);
+		v = bt->size;
 		/* Make ODIV (OSUB ptr ptr) size */
 		if(v <= 0) {
 			diag(n, "pointer SUB '%T' illegal", l->t);
@@ -322,17 +80,13 @@ tmathop(Node *n, int logical, char tab[Ntype][Ntype])
 			return 0;
 
 		newn = con(v);
-		newn = an(ODIV, ZeroN, newn);
+		newn = an(ODIV, nil, newn);
 		newn->t = newn->right->t;
-		newn->left = an(0, ZeroN, ZeroN);
-		*newn->left = *n;
+		newn->left = dupn(n);
 		*n = *newn;
 		return 0;
 	}
 	v = tab[l->t->type][r->t->type];
-
-	if(opt('m'))
-		print("tmathop: %T %T %d\n", l->t, r->t, v);
 
 	switch(v) {
 	case TFLOAT:
@@ -356,64 +110,73 @@ tmathop(Node *n, int logical, char tab[Ntype][Ntype])
 		case OSUBEQ:
 			break;
 		}
+		op = treeop[n->type]+1;
 		/* Insert OADD (OMUL size int) ptr */
 		if(l->t->type == TIND) {
 			n->t = l->t;
-			v = l->t->next->size;
-			if(v <= 0) {
-				diag(n, "pointer ADD '%T' illegal", l->t);
-				return 1;
-			}
+			bt = l->t->next;
+			if(bt->type == TXXX)
+				typesut(bt);
+
+			v = bt->size;
+			if(v <= 0)
+				goto perr;
 			if(v == 1)
 				return 0;
-
-			newn = an(OMUL, r, con(v));
+			siz = con(v);
+			newn = an(OMUL, r, siz);
 			newn->t = builtype[TINT];
 			n->right = newn;
 			return 0;
 		}
 
 		n->t = r->t;
-		v = r->t->next->size;
+		bt = r->t->next;
+		if(bt->type == TXXX)
+			typesut(bt);
+		v = bt->size;
 		if(v <= 0) {
-			diag(n, "pointer ADD '%T' illegal", l->t);
+			perr:
+			diag(n, "pointer %s '%T' illegal", op, l->t);
 			return 1;
 		}
 		if(v == 1)
 			return 0;
-
-		newn = an(OMUL, l, con(v));
+		siz = con(v);
+		newn = an(OMUL, l, siz);
 		newn->t = builtype[TINT];
 		n->left = newn;
 		return 0;
 	}
 
-	/* Propogate results and insert converts to fix types */	
-	if(r->t->type == v) {
-		n->t = r->t;
+	/* Propogate results and insert converts to fix types */
+	n->t = builtype[v];	
+	if(l->t->type != v) {
 		if(typecmp(n->t, l->t, 5) == 0) {
-			newn = an(0, ZeroN, ZeroN);
-			*newn = *l;
+			newn = dupn(l);
 			l->type = OCONV;
-			l->right = ZeroN;
+			l->right = nil;
 			l->t = n->t;
 			l->left = newn;
 		}
 	}
-	else {
+	if(r->t->type != v) {
 		n->t = l->t;
 		if(typecmp(n->t, r->t, 5) == 0) {
-			newn = an(0, ZeroN, ZeroN);
-			*newn = *r;
+			newn = dupn(r);
 			r->type = OCONV;
-			r->right = ZeroN;
+			r->right = nil;
 			r->t = n->t;
 			r->left = newn;
 		}
 	}
+	if(opt('m')) {
+		print("tmathop: %T %T result %s\n", l->t, r->t, typestr[v]);
+		ptree(n, 0);
+	}
 	return 0;
 bad:
-	diag(n, "bad pointer math '%T' %s '%T'", l->t, treeop[n->type]+1, r->t);
+	diag(n, "bad pointer math %T %s %T", l->t, treeop[n->type]+1, r->t);
 	return 1;
 }
 
@@ -425,62 +188,215 @@ tyadt(Node *n)
 {
 	Sym *s;
 	Type *t;
-	int junk;
+	int offset;
+	Node *l, *adt, *al;
 	char buf[Strsize];
-	Node *l, *adt, *nf;
 
 	l = n->left;
-
-	if(typechk(l->left, 0))
+	adt = l->left;
+	if(typechk(adt, 0))
 		return 1;
 
-	adt = an(OTCHKED, l->left, ZeroN);
-	adt->t = l->left->t;
-	l->left = adt;
+	switch(adt->t->type) {
+	default:
+		diag(n, "incompatible type: %T.%s()", adt->t, l->sym->name);
+		return 1;
+	case TCHANNEL:
+		t = at(TFUNC, at(TIND, builtype[TCHAR]));
+		t->proto = an(ONAME, an(OVARARG, nil, nil), nil);
+		if(chkchan(n, l->sym->name))
+			return 1;
+		sprint(buf, "ALEF_%s", l->sym->name);
+		n->left = rtnode(buf, nil, t);
+		n->right = an(OLIST, an(OTCHKED, l->left, nil), n->right);
+		t = adt->t->next;
+		n->right = an(OLIST, n->right, con(typesig(t)));
+		while(t) {
+			packmk(typesig(t), t, Needed);
+			t = t->variant;
+		}
+		return typechk(n, 0);
+	case TADT:
+	case TUNION:
+	case TAGGREGATE:
+		break;
+	}
 
-	t = walktype(adt->t, l, &junk);
-	if(t == ZeroT) {
+	n->poly = adt;		/* tag the node with its deriving type */
+
+	offset = 0;
+	t = walktype(adt->t, l, &offset);
+	if(t == nil) {
 		diag(n, "%s not a member of %T", l->sym->name, adt->t);
 		return 1;
 	}
 	if(t->type != TFUNC) {
-		diag(n, "adt call must be to function");
+		diag(n, "adt call must be to function: %T", t);
 		return 1;
 	}
 
-	adt = an(OADDR, l, ZeroN);
+	adt = l;
+	adt->type = OTCHKED;
 
-	/* make call to function */
-	nf = an(ONAME, ZeroN, ZeroN);
 	s = ltytosym(parent);
 	if(s == ZeroS)
-		fatal("tyadt");
-
+		fatal("tyadt: %T", parent);
 	sprint(buf, "%s_%s", s->name, t->tag->name);
-	s = lookup(buf);
-	if(s == ZeroS)
-		s = enter(buf, Tid);
-
-	nf->t = t;
-	nf->sym = s;
-	nf->ti = malloc(sizeof(Tinfo));
-	nf->ti->class = External;
-	nf->ti->offset = 0;
-	n->left = nf;
+	n->left = rtnode(buf, nil, t);
 
 	l = t->proto;
 	while(l->left)
 		l = l->left;
 
-	/* has *ADT as first arg */
-	if(l->type == OADTARG) {
-		if(n->right == ZeroN)
-			n->right = adt;
-		else
-			addarg(n, adt);
+	if(l->type != OADTARG)
+		return typechk(n, 0);
+	/*
+	 * has *ADT or .ADT as first arg
+	 */
+	al = adt->left;
+	al->islval = 1;
+	adt = an(OADDR, adt, nil);
+	adt = an(OCONV, adt, nil);
+	adt->t = at(TIND, builtype[TCHAR]);
+	adt = an(OADD, adt, con(offset));
+	adt = an(OCONV, adt, nil);
+	adt->t = at(TIND, parent);
+	if(l->t->type != TIND) {
+		if(al->left && al->left->type == OCONST) {
+			diag(n, "cannot pass *nil as implicit parameter");
+			return 1;
+		}
+		adt = an(OIND, adt, nil);
 	}
+	if(n->right == nil)
+		n->right = adt;
+	else
+		addarg(n, adt);
 
 	return typechk(n, 0);
+}
+
+int
+tvariant(Node *n)
+{
+	Tyrec *tr;
+	Type *lt, *rt;
+
+	if(n->t->variant == nil)
+		return 0;
+
+	if(altrec == 0) {
+		diag(n, "variant receive not in alt");
+		return 1;
+	}
+	if(n->vlval == nil) {
+		diag(n, "variant receive requires a simple assignment");
+		return 1;
+	}
+
+	lt = n->vlval->t;
+	rt = n->left->t;
+
+	tr = malloc(sizeof(Tyrec));
+	tr->vch = n->t;
+
+	/* Search in variant channel */
+	while(n->t) {
+		if(typecmp(n->t, lt, 5))
+			break;
+
+		n->t = n->t->variant;
+	}
+
+	if(n->t == nil) {
+		diag(n, "no match in variant %T = <-%T", lt, rt->next);
+		return 1;
+	}
+	tr->rcv = n->t;
+
+	tr->next = altrec->r;
+	altrec->r = tr;
+
+	return 0;
+}
+
+void
+tptlist(Node *n, int t)
+{
+	Node *x;
+
+	if(n == 0)
+		return;
+	switch(n->type) {
+	case OLIST:
+		tptlist(n->left, t);
+		tptlist(n->right, t);
+		break;
+	default:
+		x = dupn(n);
+		n->type = t;
+		n->left = x;
+		n->right = nil;
+	}
+}
+
+void
+typepoly(Node *n, int eval)
+{
+	Type *ot;
+	int dealloc;
+	Node *x, *tmp, *ptr;
+
+	line = n->srcline;
+
+	if(opt('b')) {
+		print("typepoly: bind %T -> %T\n", n->t, n->t->subst);
+		ptree(n, 0);
+	}
+
+	if(eval & NOUNBOX)
+		return;
+
+	ot = n->t;
+	dealloc = 1;
+	if(n->t->subst->sym == nil)
+		dealloc = 0;
+	n->t->subst = nil;
+	n->t = polyshape;
+
+	x = an(OTCHKED, dupn(n), nil);
+	if(dealloc) {
+		tmp = stknode(ot);
+		ptr = stknode(at(TIND, ot));
+
+		x = an(ODOT, x, nil);
+		x->sym = polyptr;
+		x = an(OASGN, dupn(ptr), x);
+		n->left = x;
+
+		x = an(OIND, dupn(ptr), nil);
+		x = an(OASGN, dupn(tmp), x);
+		n->left = an(OLIST, n->left, x);
+
+		x = an(OCALL, dupn(unallocnode), ptr);
+		n->left = an(OLIST, n->left, x);
+		n->right = tmp;
+		n->type = OBLOCK;
+		n->t = ot;
+	}
+	else {
+		x = an(ODOT, x, nil);
+		x->sym = polyptr;
+		x = an(OCONV, x, nil);
+		x->t = at(TIND, ot);
+		x = an(OIND, x, nil);
+		*n = *x;
+	}
+	if(typechk(n, 0))
+		fatal("typepoly");
+
+	if(opt('b'))
+		ptree(n, 0);
 }
 
 /*
@@ -489,11 +405,11 @@ tyadt(Node *n)
 int
 typechk(Node *n, int evalfor)
 {
-	Node *l, *r;
 	Type *t;
 	int v, size;
+	Node *l, *r;
 
-	if(n == ZeroN)
+	if(n == nil)
 		return 0;
 
 	l = n->left;
@@ -503,11 +419,88 @@ typechk(Node *n, int evalfor)
 	default:
 		return typechk(l, 0) | typechk(r, 0);
 
+	case OSWITCH:
+		if(typechk(l, 0) || typechk(r, 0))
+			return 1;
+
+		switch(l->t->type) {
+		default:
+			diag(n, "switch %T must be integral or poly", l->t);
+			return 1;
+		case TINT:
+		case TUINT:
+			break;
+		case TCHAR:
+		case TSINT:
+		case TSUINT:
+			l = an(OCONV, l, nil);
+			l->t = builtype[TINT];
+			n->left = l;
+			break;
+		case TPOLY:
+			polyswitch(n);
+			break;
+		}
+		return 0;
+		
+	case OITER:
+		return 0;
+
+	case OXEROX:
+		if(typechk(l, 0))
+			return 1;
+		if(l->t->type != TPOLY) {
+			diag(l, "cannot xerox type %T", l->t);
+			return 1;
+		}
+		polyxerox(n);
+		break;
+
+	case OIF:
+		if(typechk(l, 0) || typechk(r, 0))
+			return 1;
+
+		v = l->t->type;
+		if(((1<<v) & MBOOL) == 0) {
+			diag(n, "if has non boolean type %T", l->t);
+			return 1;
+		}
+		return 0;
+
+	case OWHILE:
+	case ODWHILE:
+		if(typechk(l, 0) || typechk(r, 0))
+			return 1;
+
+		v = l->t->type;
+		if(((1<<v) & MBOOL) == 0) {
+			diag(n, "while has non boolean type %T", l->t);
+			return 1;
+		}
+		return 0;
+
+	case OFOR:
+		if(typechk(l, 0) || typechk(r, 0))
+			return 1;
+
+		l = l->right;
+		if(l->left) {
+			t = l->left->t;
+			v = t->type;
+			if(((1<<v) & MBOOL) == 0) {
+				diag(n, "for has non boolean type %T", t);
+				return 1;
+			}
+		}
+		return 0;
+
 	case OTCHKED:
 		*n = *l;
 		return 0;
 
 	case OALLOC:
+		if(n->t)
+			return polybox(n);
 		*n = *l;
 		return tyalloc(n);
 
@@ -522,9 +515,8 @@ typechk(Node *n, int evalfor)
 		if(typechk(l, 0) || typechk(r, 0))
 			return 1;
 
-		if(l->t->type == TIND)
-		if(l->t->next->type == TFUNC) {
-			l = an(OIND, l, ZeroN);
+		if(l->t->type == TIND && l->t->next->type == TFUNC) {
+			l = an(OIND, l, nil);
 			l->t = l->left->t->next;
 			n->left = l;
 		}
@@ -537,6 +529,11 @@ typechk(Node *n, int evalfor)
 		break;
 
 	case OPROCESS:
+		if(l->type == OLIST) {
+			tptlist(l, OPROCESS);
+			*n = *l;
+			return typechk(n, 0);
+		}
 		if(typechk(l, 0))
 			return 1;
 
@@ -550,6 +547,11 @@ typechk(Node *n, int evalfor)
 		return 0;
 
 	case OTASK:
+		if(l->type == OLIST) {
+			tptlist(l, OTASK);
+			*n = *l;
+			return typechk(n, 0);
+		}
 		if(typechk(l, 0))
 			return 1;
 
@@ -562,16 +564,45 @@ typechk(Node *n, int evalfor)
 		*n = *l;
 		return 0;
 
+	case OBECOME:
+		if(l->type != OCALL) {
+			n->type = ORET;
+			return typechk(n, 0);
+		}
+
+		if(typechk(l, 0))
+			return 1;
+
+		t = curfunc->t->next;	/* return type */
+		if(typecmp(t, l->t, 5) == 0) {
+			diag(n, "incompatible types: %T become %T", t, l->t);
+			return 1;
+		}
+		return 0;
+
 	case OCHECK:
 		return tyassert(n);
 
 	case OILIST:
-		if(n->t == ZeroT)
-			return 0;
-		if(((1<<n->t->type) & MCOMPLEX) == 0) {
-			diag(n, "compound initialiser type must be complex '%T'", n->t);
+		if(n->t == nil)
+			return typechk(l, 0);
+
+		if(((1<<n->t->type)&MCOMPLEX) == 0) {
+			diag(n, "initialiser type must be complex %T", n->t);
 			return 1;
 		}
+
+		n->islval = 1;
+
+		/* If we have no members build a tuple */
+		if(n->t->next == 0) {
+			if(typechk(l, 0))
+				return 1;
+
+			tupleof(n);
+			return 0;
+		}
+
 		return tasgninit(n->t, n, 0);
 
 	case ONAME:
@@ -580,9 +611,23 @@ typechk(Node *n, int evalfor)
 			return 1;
 		}
 		if(n->ti->class == Private) {
+			switch(n->t->type) {
+			default:
+				diag(n, "private must be integral: %T", n->t);
+				break;
+			case TINT:
+			case TUINT:
+			case TSINT:
+			case TSUINT:
+			case TCHAR:
+			case TIND:
+				break;
+			}
 			n->type = OREGISTER;
 			n->reg = n->ti->offset;
 		}
+		if(n->ti->t == 0)
+			fatal("no t in tinfo %s", n->sym->name);
 		n->islval = 1;
 		break;
 
@@ -608,22 +653,63 @@ typechk(Node *n, int evalfor)
 			return 1;
 		}
 		n->t = l->t;
-		if(n->t->type == TIND)
-		if(n->t->next->size < 1)
+		if(n->t->type == TIND && n->t->next->size < 1)
 			diag(n, "illegal ++ or -- pointer math");
 		break;
 
 	case ONOT:
 		if(typechk(l, 0))
 			return 1;
-
+		if(((1<<l->t->type)&MBOOL) == 0) {
+			diag(n, "! has non boolean type %T", l->t);
+			return 1;
+		}
 		n->t = builtype[TINT];
 		break;
 
-	case OCAND:
 	case OEQ:
-	case OLEQ:
 	case ONEQ:
+		if(typechk(l, 0) || typechk(r, 0))
+			return 1;
+
+		n->t = builtype[TINT];
+		if(l->t->type == TCHANNEL && r->t->type == TCHANNEL)
+			break;
+
+		if(isnil(l)) {
+			if(r->t->type == TCHANNEL)
+				break;
+			if(r->t->type == TPOLY) {
+				r->t = polyshape;
+				r = an(OTCHKED, r, nil);
+				r = an(ODOT, r, nil);
+				r->sym = polyptr;
+				n->right = r;
+				if(typechk(r, 0))
+					return 1;
+				n->t = l->t;
+				break;
+			}
+		}
+		if(isnil(r)) {
+			if(l->t->type == TCHANNEL)
+				break;
+			if(l->t->type == TPOLY) {
+				l->t = polyshape;
+				l = an(OTCHKED, l, nil);
+				l = an(ODOT, l, nil);
+				l->sym = polyptr;
+				n->left = l;
+				if(typechk(l, 0))
+					return 1;
+				n->t = r->t;
+				break;
+			}
+		}
+		goto condchk;
+
+	case OCAND:
+	case OLEQ:
 	case OLT:
 	case OGEQ:
 	case OGT:
@@ -631,23 +717,21 @@ typechk(Node *n, int evalfor)
 		if(typechk(l, 0) || typechk(r, 0))
 			return 1;
 
+	condchk:
 		if(tmathop(n, 0, logtype))
 			return 1;
 
-		if(((1<<l->t->type)&MUNSIGNED) || ((1<<r->t->type)&MUNSIGNED)) {
+		if(((1<<l->t->type)&MUNSIGNED)||((1<<r->t->type)&MUNSIGNED)) {
 			switch(n->type) {
 			case OLT:
 				n->type = OLO;
 				break;
-
 			case OGT:
 				n->type = OHI;
 				break;
-
 			case OGEQ:
 				n->type = OHIS;
 				break;
-
 			case OLEQ:
 				n->type = OLOS;
 				break;
@@ -664,11 +748,16 @@ typechk(Node *n, int evalfor)
 			if(typechk(l, NADDR))
 				return 1;
 
-			if(l->t)
+			if(l->t) {
+				if(l->t->type == TPOLY) {
+					polysize(n);
+					break;
+				}
 				size = l->t->size;
+			}
 		}
 		if(size == 0)
-			diag(n, "sizeof unsized type");
+			diag(n, "sizeof unsized/unresovled type");
 
 		n->type = OCONST;
 		n->ival = size;
@@ -707,7 +796,7 @@ typechk(Node *n, int evalfor)
 			return 1;
 
 		if(typeval(typeaddasgn, l->t, r->t)) {
-			diag(n, "incompatible types: '%T' %s '%T'",
+			diag(n, "incompatible types: %T %s %T",
 						l->t, treeop[n->type]+1, r->t);
 			return 1;
 		}
@@ -724,7 +813,7 @@ typechk(Node *n, int evalfor)
 			return 1;
 
 		if(typeval(typeasgn, l->t, r->t)) {
-			diag(n, "incompatible types: '%T' %s '%T'",
+			diag(n, "incompatible types: %T %s %T",
 						l->t, treeop[n->type]+1, r->t);
 			return 1;
 		}
@@ -734,6 +823,26 @@ typechk(Node *n, int evalfor)
 
 	case ORSHEQ:
 	case OLSHEQ:
+		if(typechk(l, 0) || typechk(r, 0))
+			return 1;
+
+		if(chklval(l))
+			return 1;
+
+		v = 1<<l->t->type;
+		v &= MINTEGRAL;
+		if(v == 0) {
+			diag(n, "bitwise shift of non-integral type");
+			return 1;
+		}
+		v = 1<<r->t->type;
+		v &= MINTEGRAL;
+		if(v == 0) {
+			diag(n, "shift count of non-integral type");
+			return 1;
+		}
+		n->t = l->t;
+		break;
 	case OOREQ:
 	case OANDEQ:
 	case OXOREQ:
@@ -745,7 +854,7 @@ typechk(Node *n, int evalfor)
 			return 1;
 
 		if(typeval(typeasand, l->t, r->t)) {
-			diag(n, "incompatible types: '%T' %s '%T'",
+			diag(n, "incompatible types: %T %s %T",
 						l->t, treeop[n->type]+1, r->t);
 			return 1;
 		}
@@ -757,12 +866,19 @@ typechk(Node *n, int evalfor)
 		if(typechk(l, 0))
 			return 1;
 
-		if(l->t->type != TCHANNEL) {
-			diag(n, "must receive on a channel: '%T'", l->t);
+		t = l->t;
+		if(t->type != TCHANNEL) {
+			diag(n, "must receive on a channel: %T", t);
 			return 1;
 		}
 
-		n->t = l->t->next;
+		n->t = t->next;
+		if(n->t->type == TXXX)
+			typesut(n->t);
+
+		if(tvariant(n))
+			return 1;
+
 		switch(n->t->type) {
 		case TADT:
 		case TUNION:
@@ -780,7 +896,7 @@ typechk(Node *n, int evalfor)
 			return 1;
 
 		if(l->t->type != TCHANNEL) {
-			diag(n, "must ? a channel: '%T'", l->t);
+			diag(n, "must ? a channel: %T", l->t);
 			return 1;
 		}
 		n->t = builtype[TINT];
@@ -792,30 +908,90 @@ typechk(Node *n, int evalfor)
 		n->right = l;
 		break;
 
-	case OASGN:
-		if(l->type == OSEND) 
-			return tysend(n);
+	case OVASGN:
+		return tyvasgn(n);
 
-		if(typechk(l, 0) || chklval(l))
+	case OASGN:
+		switch(l->type) {
+		case OSEND:
+			if(tysend(n))
+				return 1;
+			*n = *(n->left);
+			return 0;
+		case OILIST:
+			return tupleasgn(n);	/* lhs is complex shape */
+		}
+
+		if(typechk(l, NOUNBOX) || chklval(l))
 			return 1;
 
+		r->vlval = l;
 		if(typechk(r, 0))
 			return 1;
 
-		/* Check legality */
-		if(typeval(typeasgn, l->t, r->t)) {
-			if(promote(r, l)) {
-				diag(n, "incompatible types: '%T' = '%T'", l->t, r->t);
+		if(l->t->subst != nil) { /* deal with binding (no promotion??) */
+			if(typeval(typeasgn, l->t, r->t)) {
+				diag(n, "incompatible types: %T = %T", l->t, r->t);
 				return 1;
+			}
+			r = an(OTCHKED, r, nil);
+			if(typecmp(l->t, n->right->t, 5) == 0) {
+				r = an(OCONV, r, nil);
+				r->t = l->t;
+			}
+			r = an(OALLOC, r, nil);
+			r->t = l->t->subst;
+			n->right = r;
+			l->t = polyshape;
+			n->t = polyshape;
+			return typechk(r, 0);
+		}
+
+		/*
+		 * Special for nil
+		 */
+		if(isnil(r)) {
+			if(l->t->type == TCHANNEL) {
+				n->t = l->t;
+				break;
+			}
+			if(l->t->type == TPOLY) {
+				l->t = polyshape;
+				l = an(OTCHKED, l, nil);
+				l = an(ODOT, l, nil);
+				l->sym = polyptr;
+				n->left = l;
+				if(typechk(l, 0))
+					return 1;
+				n->t = r->t;
+				break;		
 			}
 		}
 
-		/* Insert the cast */
-		if(typecmp(l->t, r->t, 5) == 0) {
-			n->right = an(OCONV, r, ZeroN);
-			n->right->t = l->t;
+		/* Check legality */
+		if(typeval(typeasgn, l->t, r->t) && promote(r, l)) {
+			diag(n, "incompatible types: %T = %T", l->t, r->t);
+			return 1;
 		}
 
+		switch(l->t->type) {
+		case TPOLY:
+			l->t = polyshape;
+			r->t = polyshape;
+			break;
+		case TADT:
+		case TAGGREGATE:
+			if(vcmp(l->t->param, r->t->param))
+				break;
+			diag(n, "incompatible binding: %T = %T", l->t, r->t);
+			return 1;
+		default:
+			/* Insert the cast */
+			if(typecmp(l->t, r->t, 5) == 0) {
+				n->right = an(OCONV, r, nil);
+				n->right->t = l->t;
+			}
+		}
 		n->t = l->t;
 		break;
 
@@ -828,7 +1004,7 @@ typechk(Node *n, int evalfor)
 			return 1;
 
 		if(l->t->type != TIND) {
-			diag(n, "illegal indirection");
+			diag(n, "illegal indirection through type %T", l->t);
 			return 1;
 		}
 		n->t = l->t->next;
@@ -836,8 +1012,15 @@ typechk(Node *n, int evalfor)
 		break;
 
 	case OADDR:
-		if(typechk(l, 0))
+		if(typechk(l, NADDR))
 			return 1;
+
+		if(l->t->type == TARRAY || l->t->type == TFUNC) {
+			warn(n, "& of array/function ignored");
+			tyaddr(l);
+			*n = *l;
+			return 0;
+		}
 
 		if(chklval(l))
 			return 1;
@@ -849,9 +1032,6 @@ typechk(Node *n, int evalfor)
 		break;
 
 	case ODOT:
-		if(typechk(l, 0))
-			return 1;
-
 		if(tydot(n))
 			return 1;
 		break;
@@ -864,10 +1044,15 @@ typechk(Node *n, int evalfor)
 			diag(n, "cast must be same size: [%T]%T", n->t, l->t);
 			return 1;
 		}
-
 		break;
 
 	case OCONV:
+		if(l->type == OILIST) {
+			t = n->t;
+			*n = *l;
+			n->t = t;
+			return typechk(n, 0);
+		}
 		if(typechk(l, 0))
 			return 1;
 
@@ -884,7 +1069,8 @@ typechk(Node *n, int evalfor)
 
 	case ORET:
 		t = curfunc->t->next;	/* return type */
-		if(l == ZeroN) {
+
+		if(l == nil) {
 			if(t->type != TVOID) {
 				diag(n, "return should be %P", curfunc);
 				return 1; 
@@ -898,65 +1084,75 @@ typechk(Node *n, int evalfor)
 			return 1;
 		}
 
+		if(l->type == OILIST)
+			l->t = t;
+
 		if(typechk(l, 0))
 			return 1;
 
 		n->t = t;
 
-		/* Check legality */
-		if(typeval(typeasgn, n->t, l->t)) {
-			diag(n, "incompatible types: %P returns '%T'", curfunc, l->t);
+		if(typeval(typeasgn, n->t, l->t) && promote(l, n)) {
+			diag(n, "incompatible types: %P returns %T", curfunc, l->t);
 			return 1;
+		}
+
+		if(n->t->type == TPOLY) {
+			n->t = polyshape;
+			n->left->t = polyshape;
+			break;
 		}
 
 		/* Insert the cast */
 		if(typecmp(n->t, l->t, 5) == 0) {
-			n->left = an(OCONV, l, ZeroN);
+			n->left = an(OCONV, l, nil);
 			n->left->t = n->t;
 		}
 		break;
-	}
-	typesu(n);
 
-	if(evalfor == NADDR)
+	case OSELECT:
+		newalt();
+		if(typechk(l, 0)) {
+			altrec = altrec->prev;
+			return 1;
+		}
+		tyalt(n);
 		return 0;
-	else
-		return tyaddr(n);
+	}
+
+	if(n->t->type == TXXX)
+		typesut(n->t);
+	if(n->t->subst != nil)
+		typepoly(n, evalfor);
+
+	if(evalfor & NADDR)
+		return 0;
+	return tyaddr(n);
 }
 
 int
 tyassert(Node *n)
 {
-	String *s;
-	char mesg[128];
-	Node *n1, *sn;
+	Node *s1, *s2;
+	static Node *c;
 
 	if(chks == 0) {
 		n->type = OLIST;
-		n->left = ZeroN;
-		n->right = ZeroN;
+		n->left = nil;
+		n->right = nil;
 		return 0;
 	}
 
-	n->type = ONOT;
-	n1 = an(0, ZeroN, ZeroN);
-	*n1 = *n;
-	
-	if(typechk(n, 0))
-		return 1;
-
-	sprint(mesg, "%L runtime check fail\n", n->srcline);
-	s = malloc(sizeof(String));
-	s->string = strdup(mesg);
-	s->len = strlen(mesg)+1;
-
+	n->left = an(ONOT, n->left, nil);
 	n->type = OIF;
-	n->left = n1;
-	sn = strnode(s);
-	if(typechk(sn, 0))
-		fatal("tyassert");
-	n->right = an(OCALL, asfailnode, sn);
-	n->right->t = builtype[TVOID];
+	s1 = strnode(mkstring("%L%s()", n->srcline, curfunc->sym->name), 0);
+	s2 = n->right;
+	if(s2 == nil) {
+		if(c == nil)
+			c = strnode(mkstring("check"), 0);
+		s2 = dupn(c);
+	}
+	n->right = an(OCALL, checknode, an(OLIST, s1, s2));
 
-	return 0;
+	return typechk(n, 0);
 }

@@ -2,6 +2,10 @@
 .SH NAME
 encrypt, decrypt, netcrypt \- DES encryption
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
 int	encrypt(void *key, void *data, int len)
 .PP
@@ -19,7 +23,7 @@ perform DES encryption and decryption.
 is an array of
 .B DESKEYLEN
 (defined as 7 in
-.BR <libc.h> )
+.BR <auth.h> )
 bytes containing the encryption key.
 .I Data
 is an array of
@@ -42,17 +46,20 @@ encrypted bytes to make a full 8 byte block.
 uses the inverse algorithm.
 .PP
 .I Netcrypt
-performs the same encryption as a Securenet Box.
+performs the same encryption as a SecureNet Key.
 .I Data
 points to an
 .SM ASCII
 string of decimal digits with numeric value between 0 and 10000.
 These digits are copied into an 8 byte buffer with trailing binary zero fill
 and encrypted as one DES block.
-The first four bytes are each printed as two digit
+The first four bytes are each formatted as two digit
 .SM ASCII
 hexadecimal numbers,
-and the string is copied into data.
+and the string is copied into
+.IR data .
+.SH SOURCE
+.B /sys/src/libc/port
 .SH DIAGNOSTICS
 These routines return 1 if the data was encrypted,
 and 0 if the encryption fails.
@@ -64,3 +71,7 @@ fail if the data passed is less than 8 bytes long.
 can fail if it is passed invalid data.
 .SH SEE ALSO
 .IR securenet (8)
+.SH BUGS
+The source is not included in public distributions.
+The implementation is broken in a way that makes
+it unsuitable for anything but authentication.

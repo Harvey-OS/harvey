@@ -1,0 +1,17 @@
+</$objtype/mkfile
+
+TARG=road
+OFILES=\
+	data.$O\
+	draw.$O\
+	main.$O\
+	place.$O\
+	subr.$O\
+	gps.$O\
+	tiger.$O\
+
+HFILES=\
+	all.h\
+
+BIN=/$objtype/bin/games
+</sys/src/cmd/mkone

@@ -1,0 +1,25 @@
+objtype=68020
+</68020/mkfile
+
+LIB=/$objtype/lib/lib68881.a
+OFILES=\
+	acos.$O\
+	asin.$O\
+	atan.$O\
+	cos.$O\
+	cosh.$O\
+	exp.$O\
+	fabs.$O\
+	log.$O\
+	log10.$O\
+	pow10.$O\
+	sin.$O\
+	sinh.$O\
+	sqrt.$O\
+	tan.$O\
+	tanh.$O\
+
+</sys/src/cmd/mksyslib
+
+installall:V:
+	mk install

@@ -1,0 +1,222 @@
+% \def\fileversion{v1.0} \def\filedate{1994/10/07}
+% \CheckSum{68}
+% \iffalse    This is a METACOMMENT
+% Doc-Source file to use with LaTeX2e
+% Copyright 1994 by Tobias Oetiker (oetiker@dmu.ac.uk),
+% all rights reserved.
+% 
+% This file is provided under the GNU copyleft.
+%<*acrodoc>
+\documentclass{ltxdoc}
+\begin{document}  \DocInput{acronym.dtx}  \end{document}
+%</acrodoc>
+% \fi
+% \title{An Acronym Environment for \LaTeXe\thanks{This file has version
+% \fileversion\ last revised \filedate}}
+% \author{Tobias Oetiker}
+% \maketitle
+% \MakeShortVerb{\|}
+%
+% \section{Introduction}
+%    When writing a paper on cellular mobile radio I started to used a 
+%    lot of acronyms. This can be very disturbing for the reader,
+%    as he might not know all the used acronyms. To help the reader 
+%    I kept a list of all the acronyms at the end of my paper. 
+%
+%    This package makes sure, that all acronyms used in the text are
+%    spelled out in full at least once. 
+%
+% \section{The user interface}
+%    The package provides several commands and one environment for dealing
+%    with acronyms.
+%
+% \subsection{Acronyms in the Text}
+%    
+%    \DescribeMacro{\ac}
+%    To enter an acronym inside the text, use the 
+%    \begin{quote}
+%     |\ac{|\emph{acronym}|}|
+%    \end{quote}
+%    command. The first time you use an acronym, the full name of the acronym along
+%    with the acronym in brackets will be printed. If you specify the |footnote| 
+%    option while loading the package, the full name of the acronym is printed as
+%    a footnote.
+%    The next time you access the
+%    the acronym only the acronym will be printed. 
+%    
+%    \DescribeMacro{\acf}
+%    If later in the text again the Full Name of the acronym should be printed,
+%    use the command 
+%    \begin{quote}
+%     |\acf{|\emph{acronym}|}|
+%    \end{quote}
+%    to access the acronym. It stands for ``acronym full'' and it 
+%    always prints the full name  
+%    and the acronym in brackets.
+%
+%    \DescribeMacro{\acs}
+%    To get the short version of the acronym, use the command
+%    \begin{quote}
+%     |\acs{|\emph{acronym}|}|
+%    \end{quote}
+%
+%    \subsection{Defining Acronyms}
+%    \DescribeEnv{acronym}
+%    With the |acronym| environment you define all the acronyms used 
+%    throughout your document. It is possible to add a longer 
+%    description to each acronym definition. 
+%
+%    In the |acronym| environment, acronyms are defined with the 
+%    \DescribeMacro{\acro} 
+%    \begin{quote}
+%    |\acro{|\emph{acronym}|}{|\emph{Full Name}|}| \emph{Explanation}
+%    \end{quote}
+%    command. As a whole it accts like 
+%    |\item[|\emph{acronym}|]|\emph{Full Name} \emph{Explanation} in the
+%    |description| environment. All acronym definitions are added to the 
+%    |.aux| file. Therefore they
+%    are available from start-up in the next run. And the acronym definitions
+%    can be anywhere in the text.
+%
+%    \DescribeMacro{\acrodef}
+%    If you want to define acronyms which do not appear in the |acronym|
+%    environment, you can use the 
+%    \begin{quote}
+%	|\acrodef{|\emph{acronym}|}{|\emph{Full Name}|}|
+%    \end{quote}
+%    command. Acronyms defined with |\acrodef| are also saved
+%    in the |.aux| file.
+%
+% \section{An example file}
+%
+%    \begin{macrocode}
+%<*acrotest>
+\documentclass{article}
+\usepackage{acronym}
+\begin{document}
+\section{Intro}
+In the early nineties, \acs{GSM} was deployed in many European 
+countries. \ac{GSM} offered for the first time international 
+roaming for mobile subscribers. The \acs{GSM}'s use of \ac{TDMA} as 
+its communication standard was debated at length. And every now 
+and then there are big discussion whether \ac{CDMA} should have 
+been chosen over \ac{TDMA}.
+
+If you want to know more about \acf{GSM}, \acf{TDMA}, \acf{CDMA} 
+and \ac{oa}, just read a book about mobile communication.
+\section{Acronyms}
+\begin{acronym}
+ \acro{GSM}{Global System for Mobile communication}.
+      \acs{GSM} is the new standard for digital cellular
+      communication in Europe.
+ \acro{TDMA}{Time Division Multiple Access}. 
+      Some would say, that this is not as good as \ac{CDMA}.
+ \acro{CDMA}{Code Division Multiple Access}. The spread spectrum
+      modulation used in the Qualcomm system.
+ \acrodef{oa}{other acronyms}
+\end{acronym}
+\end{document}
+%</acrotest>
+%    \end{macrocode}
+%
+% \StopEventually{}
+% \clearpage
+% \section{The implementation}
+%    First we test that we got the right format and name the package.
+%    \begin{macrocode}
+%<*acronym>
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{acronym}
+%    \end{macrocode}
+% 
+% Define you acronyms with 
+% |\acrodef{|\emph{acronym}|}{|\emph{Full Name}|}|
+%
+%    \begin{macrocode}
+\newcommand{\newacro}[2]{\expandafter\gdef\csname fn@#1\endcsname{#2}}
+\newcommand{\acrodef}[2]{
+%    \end{macrocode}
+%
+% |\exandafter| first expands the commands \emph{after}
+% the |\def| and then executes |\def|
+% 
+% The acronym definition is also written to |.aux|.
+%
+%    \begin{macrocode}
+\newacro{#1}{#2}%
+\write\@auxout{\string\newacro{#1}{#2}}%
+}
+%    \end{macrocode}
+%
+% I like to have a list off all acronyms I used in my document. Therefore
+% you can define you acronyms inside the |acronym| environment.
+% Not only stating the name of the acronym, but optionally
+% also giving an explanation on it.
+% \begin{verbatim}
+% \begin{acronym}
+% \acro{CDMA}{Code Division Multiple Access}. The Qualcomm thing
+% \end{acronym}
+% \end{verbatim}
+%
+%    \begin{macrocode}
+\newenvironment{acronym}%
+{\begin{description}
+    \providecommand{\acro}[2]{%
+        \acrodef{##1}{##2}%
+        \item[##1] ##2}}
+{\end{description}}
+%    \end{macrocode}
+%
+% This is to get just the acronym. If it is not defined, tha acronym is
+%  printed fat with an exclamation mark at the end.
+% 
+%    \begin{macrocode}
+\newcommand{\acs}[1]{%
+\expandafter\ifx\csname fn@#1\endcsname\relax%
+ \textbf{#1!}%
+ \PackageWarning{acronym}{Acronym `#1' is not defined}%
+ \expandafter\gdef\csname fn@#1\endcsname{\textbf{#1!}}
+\else%
+ #1%
+\fi}
+%    \end{macrocode}
+% The first time an acronym is accessed its Full Name (FN) is printed.
+% The next time just (FN). 
+% This is done by |\gdef|ineing the |\ac@FN| to |x| after its
+% first use. |\acf| always prints the Full Name (FN).
+%
+%    \begin{macrocode}
+\newcommand{\acf}[1]%
+  {\csname fn@#1\endcsname{}\nolinebreak[3] (\acs{#1})}%
+\DeclareOption{footnote}{%
+  \renewcommand{\acf}[1]%
+  {\acs{##1}\footnote{\csname fn@##1\endcsname}}%
+}
+\ProcessOptions
+\newcommand{\ac}[1]{%
+\expandafter\ifx\csname ac@#1\endcsname\relax%
+ \acf{#1}%
+ \expandafter\gdef\csname ac@#1\endcsname{x}%
+\else%
+ \acs{#1}%
+\fi}
+\endinput
+%</acronym>
+%    \end{macrocode}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+% \Finale

@@ -3,6 +3,7 @@
 #include <libg.h>
 #include <frame.h>
 #include <layer.h>
+#include <auth.h>
 #include <fcall.h>
 #include "dat.h"
 #include "fns.h"
@@ -1175,7 +1176,7 @@ bitwinread(Window *w, ulong offset, int cnt)
 			sprint((char*)w->rdwindow, "%11d %11d %11d %11d %11d ",
 				b->ldepth, b->r.min.x, b->r.min.y, b->r.max.x, b->r.max.y);
 			if(w->l->vis == Visible)
-				bitblt(b, b->r.min, w->l, b->r, S);
+				bitblt(b, b->r.min, w->l->cover->layer, b->r, S);
 			rdbitmap(b, b->r.min.y, b->r.max.y, w->rdwindow+5*12);
 		}
 	}

@@ -1,10 +1,37 @@
-% BSYMBOLS.MF                     June 1990
-% This Metafont file is part of AMSFonts 2.0.
-% Copyright (C) 1990, American Mathematical Society.
-% All rights reserved.  Copying of this file is authorized only if either:
-%   (1) you make absolutely no changes to your copy including filename; OR
-%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="bsymbols.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: driver",
+%%     copyright="Copyright (C) American Mathematical Society,
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "24957 1645 5619 66280"
+%%     keywords="amsfonts, tex, metafont , AMSSymbols ",
+%%     abstract="This is the driver file for use with 
+%%            MSBM, the second extra symbol font in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This file defines the symbols of AMS special MSB font. 
 
 def char_negate(suffix c,t,b) = %c is center point; t is top point; b is bottom
@@ -1196,7 +1223,7 @@ arm(8,9,b,.5beak_darkness,1.2beak_jut);  % right arm and beak
 picture v; v:=currentpicture; 
 numeric t; t=h-d;
 v:=v reflectedabout((0,0),(w,0));
-currentpicture:=v shifted(0,cap_height);
+currentpicture:=v shifted(0,aspect_ratio*cap_height);
 penlabels(1,2,3,4,5,6,7,8,9); endchar;
 
 cmchar "The letter Edh (Old English rune, like thorn)";
@@ -1531,7 +1558,7 @@ draw z1--z2--z3; draw z4--z5;
 penlabels(1,2,3,4,5); endchar;
 
 transform tt; tt:=currenttransform;
-currenttransform:=identity slanted 1/4;
+currenttransform:=tt slanted 1/4;
 cmchar "Lowercase variation of Greek kappa";
 % will use same dimensions as standard Greek lowercase kappa
 % see vol E, p 155.
@@ -1609,7 +1636,7 @@ filldraw circ_stroke z6e--z7e;  % bar
 math_fit(-.3x_height#*slant+.5curve#-u#,ic#);
 picture v;
 v:=currentpicture; 
-v:=v reflectedabout((0,h/2),(w,h/2)); 
+v:=v reflectedabout((0,h*aspect_ratio/2),(w,h*aspect_ratio/2)); 
 v:=v reflectedabout((w/2,-d),(w/2,h)); 
 currentpicture:=v shifted (2u,0);
 penlabels(0,1,2,3,4,5,6,7); endchar;

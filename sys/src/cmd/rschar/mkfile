@@ -1,0 +1,45 @@
+</$objtype/mkfile
+
+TARG=rschar
+
+OFILES=rschar.$O rstable.$O rsclass.$O
+
+HFILES=rsclass.h
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+U=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+rstable.c: $U.rsgram rs
+	$U.rsgram rs >$target
+
+$U.rsgram: rsgram.$U
+	$U^l -o $target $prereq
+
+rsgram.$U: rsgram.c
+	$U^c -w rsgram.c
+
+rsclass.c: $U.rsbits
+	$U.rsbits >$target
+
+$U.rsbits: rsbits.$U jis208.$U gb2312.$U big5.$U
+	$U^l -o $target $prereq
+
+rsbits.$U: rsbits.c
+	$U^c -w rsbits.c
+
+big5.$U: big5.c
+	$U^c -w big5.c
+
+gb2312.$U: ../dict/gb2312.c
+	$U^c -w ../dict/gb2312.c
+
+jis208.$U: ../dict/jis208.c
+	$U^c -w ../dict/jis208.c
+
+%.c: %.y
+	yacc -D1 -v -d -o $stem.c $stem.y
+
+clean nuke:V:
+	rm -f *.[$OS] [$OS].* y.tab.h y.debug y.output rsgram.c

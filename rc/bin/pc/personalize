@@ -1,0 +1,6 @@
+#!/bin/rc
+
+9fs bootes
+disk/kfscmd allow
+disk/mkfs -s /n/bootes /n/bootes/lib/proto/usrproto
+disk/kfscmd sync

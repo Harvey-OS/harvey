@@ -2,10 +2,11 @@
 #define	SARMAG	8
 
 #define	ARFMAG	"`\n"
+#define SARNAME	16
 
 struct	ar_hdr
 {
-	char	name[16];
+	char	name[SARNAME];
 	char	date[12];
 	char	uid[6];
 	char	gid[6];

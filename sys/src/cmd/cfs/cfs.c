@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <fcall.h>
 
 #include "cformat.h"
@@ -14,7 +15,6 @@ enum
 	Nfid=		1024,
 };
 
-ulong	path;		/* incremented for each new file */
 
 typedef struct Mfile Mfile;
 typedef struct Ram Ram;
@@ -48,9 +48,9 @@ P9fs	s;	/* server conversation */
 char	datasnd[MAXFDATA + MAXMSG];
 char	datarcv[MAXFDATA + MAXMSG];
 
+void	rsession(void);
 void	rflush(void);
 void	rattach(Mfile*);
-void	rauth(void);
 void	rclone(Mfile*);
 void	rwalk(Mfile*);
 void	rclwalk(Mfile*);
@@ -93,7 +93,6 @@ char *mname[]={
 	[Tstat]		"Tstat",
 	[Twstat]	"Twstat",
 	[Tclwalk]	"Tclwalk",
-	[Tauth]		"Tauth",
 	[Rnop]		"Rnop",
 	[Rsession]	"Rsession",
 	[Rerror]	"Rerror",
@@ -224,7 +223,9 @@ mountinit(char *server, char *mountpoint)
 		error("pipe failed");
 	switch(fork()){
 	case 0:
-		if(mount(p[1], mountpoint, MREPL|MCREATE, "", "") < 0)
+		break;
+	default:
+		if(amount(p[1], mountpoint, MREPL|MCREATE, "") < 0)
 			error("mount failed");
 		exits(0);
 	case -1:
@@ -245,11 +246,8 @@ io(void)
 	default:
 		error("type");
 		break;
-	case Tauth:
-		rauth();
-		break;
 	case Tsession:
-		rflush();
+		rsession();
 		break;
 	case Tnop:
 		rflush();
@@ -292,6 +290,12 @@ io(void)
 		break;
 	}
 	goto loop;
+}
+
+void
+rsession(void)
+{
+	delegate();
 }
 
 void
@@ -428,12 +432,6 @@ rcreate(Mfile *mf)
 		mf->qid = s.rhdr.qid;
 		mf->qid.vers++;
 	}
-}
-
-void
-rauth(void)
-{
-	delegate();
 }
 
 void
@@ -623,7 +621,7 @@ sendmsg(P9fs *p, Fcall *f)
 		f->fid);
 
 	p->len = convS2M(f, datasnd);
-	if(write(p->fd[1], datasnd, p->len)!=p->len)
+	if(write9p(p->fd[1], datasnd, p->len)!=p->len)
 		error("smdmsg");
 }
 
@@ -645,7 +643,7 @@ rcvmsg(P9fs *p, Fcall *f)
 
 	olen = p->len;
 retry:
-	p->len = read(p->fd[0], datarcv, sizeof(datarcv));
+	p->len = read9p(p->fd[0], datarcv, sizeof(datarcv));
 	if(p->len <= 0)
 		error("rcvmsg");
 	if(p->len==2 && datarcv[0]=='O' && datarcv[1]=='K')

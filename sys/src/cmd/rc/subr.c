@@ -14,6 +14,7 @@ void efree(char *p)
 	if(p) free(p);
 	else pfmt(err, "free 0\n");
 }
+extern int lastword, lastdol;
 void yyerror(char *m)
 {
 	pfmt(err, "rc: ");
@@ -22,6 +23,8 @@ void yyerror(char *m)
 	if(tok[0] && tok[0]!='\n') pfmt(err, "token %q: ", tok);
 	pfmt(err, "%s\n", m);
 	flush(err);
+	lastword=0;
+	lastdol=0;
 	while(lastc!='\n' && lastc!=EOF) advance();
 	nerror++;
 }

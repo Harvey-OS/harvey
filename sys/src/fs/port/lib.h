@@ -15,6 +15,7 @@ extern	void*	memchr(void*, int, long);
  */
 extern	char*	strcat(char*, char*);
 extern	char*	strchr(char*, char);
+extern	char*	strrchr(char*, char);
 extern	int	strcmp(char*, char*);
 extern	char*	strcpy(char*, char*);
 extern	char*	strncat(char*, char*, long);
@@ -59,7 +60,7 @@ extern	int	print(char*, ...);
 extern	void	qsort(void*, long, long, int (*)(void*, void*));
 extern	char	end[];
 
-#define DESKEYLEN	7		/* length of a des key for encrypt/decrypt */
 extern	int	decrypt(void*, void*, int);
 extern	int	encrypt(void*, void*, int);
 extern	int	nrand(int);
+extern	void	srand(int);

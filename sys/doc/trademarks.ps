@@ -1,0 +1,789 @@
+%!PS-Adobe-2.0
+%%Version: 0.1
+%%DocumentFonts: (atend)
+%%Pages: (atend)
+%%EndComments
+%
+% Version 3.3.2 prologue for troff files.
+%
+
+/#copies 1 store
+/aspectratio 1 def
+/formsperpage 1 def
+/landscape false def
+/linewidth .3 def
+/magnification 1 def
+/margin 0 def
+/orientation 0 def
+/resolution 720 def
+/rotation 1 def
+/xoffset 0 def
+/yoffset 0 def
+
+/roundpage true def
+/useclippath true def
+/pagebbox [0 0 612 792] def
+
+/R  /Times-Roman def
+/I  /Times-Italic def
+/B  /Times-Bold def
+/BI /Times-BoldItalic def
+/H  /Helvetica def
+/HI /Helvetica-Oblique def
+/HB /Helvetica-Bold def
+/HX /Helvetica-BoldOblique def
+/CW /Courier def
+/CO /Courier def
+/CI /Courier-Oblique def
+/CB /Courier-Bold def
+/CX /Courier-BoldOblique def
+/PA /Palatino-Roman def
+/PI /Palatino-Italic def
+/PB /Palatino-Bold def
+/PX /Palatino-BoldItalic def
+/Hr /Helvetica-Narrow def
+/Hi /Helvetica-Narrow-Oblique def
+/Hb /Helvetica-Narrow-Bold def
+/Hx /Helvetica-Narrow-BoldOblique def
+/KR /Bookman-Light def
+/KI /Bookman-LightItalic def
+/KB /Bookman-Demi def
+/KX /Bookman-DemiItalic def
+/AR /AvantGarde-Book def
+/AI /AvantGarde-BookOblique def
+/AB /AvantGarde-Demi def
+/AX /AvantGarde-DemiOblique def
+/NR /NewCenturySchlbk-Roman def
+/NI /NewCenturySchlbk-Italic def
+/NB /NewCenturySchlbk-Bold def
+/NX /NewCenturySchlbk-BoldItalic def
+/ZD /ZapfDingbats def
+/ZI /ZapfChancery-MediumItalic def
+/S  /S def
+/S1 /S1 def
+/GR /Symbol def
+
+/inch {72 mul} bind def
+/min {2 copy gt {exch} if pop} bind def
+
+/show {{//show} 0 get exec} bind def	% so later references don't bind
+/widthshow {{//widthshow} 0 get exec} bind def
+/stringwidth {{//stringwidth} 0 get exec} bind def
+
+/setup {
+	counttomark 2 idiv {def} repeat pop
+
+	landscape {/orientation 90 orientation add def} if
+	/scaling 72 resolution div def
+	linewidth setlinewidth
+	1 setlinecap
+
+	pagedimensions
+	xcenter ycenter translate
+	orientation rotation mul rotate
+	width 2 div neg height 2 div translate
+	xoffset inch yoffset inch neg translate
+	margin 2 div dup neg translate
+	magnification dup aspectratio mul scale
+	scaling scaling scale
+
+	addmetrics
+	0 0 moveto
+} def
+
+/pagedimensions {
+	useclippath userdict /gotpagebbox known not and {
+		/pagebbox [clippath pathbbox newpath] def
+		roundpage currentdict /roundpagebbox known and {roundpagebbox} if
+	} if
+	pagebbox aload pop
+	4 -1 roll exch 4 1 roll 4 copy
+	landscape {4 2 roll} if
+	sub /width exch def
+	sub /height exch def
+	add 2 div /xcenter exch def
+	add 2 div /ycenter exch def
+	userdict /gotpagebbox true put
+} def
+
+/addmetrics {
+	/Symbol /S null Sdefs cf
+	/Times-Roman /S1 StandardEncoding dup length array copy S1defs cf
+} def
+
+/pagesetup {
+	/page exch def
+	currentdict /pagedict known currentdict page known and {
+		page load pagedict exch get cvx exec
+	} if
+} def
+
+/decodingdefs [
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg /y exch def counttomark 2 idiv {y moveto show} repeat}
+	{neg moveto {2 index stringwidth pop sub exch div 0 32 4 -1 roll widthshow} repeat}
+	{neg moveto {spacewidth sub 0.0 32 4 -1 roll widthshow} repeat}
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg setfunnytext}
+] def
+
+/setdecoding {/t decodingdefs 3 -1 roll get bind def} bind def
+
+/w {neg moveto show} bind def
+/m {neg dup /y exch def moveto} bind def
+/done {/lastpage where {pop lastpage} if} def
+
+/f {
+	dup /font exch def findfont exch
+	dup /ptsize exch def scaling div dup /size exch def scalefont setfont
+	linewidth ptsize mul scaling 10 mul div setlinewidth
+	/spacewidth ( ) stringwidth pop def
+} bind def
+
+/changefont {
+	/fontheight exch def
+	/fontslant exch def
+	currentfont [
+		1 0
+		fontheight ptsize div fontslant sin mul fontslant cos div
+		fontheight ptsize div
+		0 0
+	] makefont setfont
+} bind def
+
+/sf {f} bind def
+
+/cf {
+	dup length 2 idiv
+	/entries exch def
+	/chtab exch def
+	/newencoding exch def
+	/newfont exch def
+
+	findfont dup length 1 add dict
+	/newdict exch def
+	{1 index /FID ne {newdict 3 1 roll put}{pop pop} ifelse} forall
+
+	newencoding type /arraytype eq {newdict /Encoding newencoding put} if
+
+	newdict /Metrics entries dict put
+	newdict /Metrics get
+	begin
+		chtab aload pop
+		1 1 entries {pop def} for
+		newfont newdict definefont pop
+	end
+} bind def
+
+%
+% A few arrays used to adjust reference points and character widths in some
+% of the printer resident fonts. If square roots are too high try changing
+% the lines describing /radical and /radicalex to,
+%
+%	/radical	[0 -75 550 0]
+%	/radicalex	[-50 -75 500 0]
+%
+% Move braceleftbt a bit - default PostScript character is off a bit.
+%
+
+/Sdefs [
+	/bracketlefttp		[201 500]
+	/bracketleftbt		[201 500]
+	/bracketrighttp		[-81 380]
+	/bracketrightbt		[-83 380]
+	/braceleftbt		[203 490]
+	/bracketrightex		[220 -125 500 0]
+	/radical		[0 0 550 0]
+	/radicalex		[-50 0 500 0]
+	/parenleftex		[-20 -170 0 0]
+	/integral		[100 -50 500 0]
+	/infinity		[10 -75 730 0]
+] def
+
+/S1defs [
+	/underscore		[0 80 500 0]
+	/endash			[7 90 650 0]
+] def
+%
+% Tries to round clipping path dimensions, as stored in array pagebbox, so they
+% match one of the known sizes in the papersizes array. Lower left coordinates
+% are always set to 0.
+%
+
+/roundpagebbox {
+    7 dict begin
+	/papersizes [8.5 inch 11 inch 14 inch 17 inch] def
+
+	/mappapersize {
+		/val exch def
+		/slop .5 inch def
+		/diff slop def
+		/j 0 def
+		0 1 papersizes length 1 sub {
+			/i exch def
+			papersizes i get val sub abs
+			dup diff le {/diff exch def /j i def} {pop} ifelse
+		} for
+		diff slop lt {papersizes j get} {val} ifelse
+	} def
+
+	pagebbox 0 0 put
+	pagebbox 1 0 put
+	pagebbox dup 2 get mappapersize 2 exch put
+	pagebbox dup 3 get mappapersize 3 exch put
+    end
+} bind def
+
+%%EndProlog
+%%BeginSetup
+mark
+%
+% Encoding vector and redefinition of findfont for the ISO Latin1 standard.
+% The 18 characters missing from ROM based fonts on older printers are noted
+% below.
+%
+
+/ISOLatin1Encoding [
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/space
+	/exclam
+	/quotedbl
+	/numbersign
+	/dollar
+	/percent
+	/ampersand
+	/quoteright
+	/parenleft
+	/parenright
+	/asterisk
+	/plus
+	/comma
+	/minus
+	/period
+	/slash
+	/zero
+	/one
+	/two
+	/three
+	/four
+	/five
+	/six
+	/seven
+	/eight
+	/nine
+	/colon
+	/semicolon
+	/less
+	/equal
+	/greater
+	/question
+	/at
+	/A
+	/B
+	/C
+	/D
+	/E
+	/F
+	/G
+	/H
+	/I
+	/J
+	/K
+	/L
+	/M
+	/N
+	/O
+	/P
+	/Q
+	/R
+	/S
+	/T
+	/U
+	/V
+	/W
+	/X
+	/Y
+	/Z
+	/bracketleft
+	/backslash
+	/bracketright
+	/asciicircum
+	/underscore
+	/quoteleft
+	/a
+	/b
+	/c
+	/d
+	/e
+	/f
+	/g
+	/h
+	/i
+	/j
+	/k
+	/l
+	/m
+	/n
+	/o
+	/p
+	/q
+	/r
+	/s
+	/t
+	/u
+	/v
+	/w
+	/x
+	/y
+	/z
+	/braceleft
+	/bar
+	/braceright
+	/asciitilde
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/.notdef
+	/dotlessi
+	/grave
+	/acute
+	/circumflex
+	/tilde
+	/macron
+	/breve
+	/dotaccent
+	/dieresis
+	/.notdef
+	/ring
+	/cedilla
+	/.notdef
+	/hungarumlaut
+	/ogonek
+	/caron
+	/space
+	/exclamdown
+	/cent
+	/sterling
+	/currency
+	/yen
+	/brokenbar		% missing
+	/section
+	/dieresis
+	/copyright
+	/ordfeminine
+	/guillemotleft
+	/logicalnot
+	/hyphen
+	/registered
+	/macron
+	/degree			% missing
+	/plusminus		% missing
+	/twosuperior		% missing
+	/threesuperior		% missing
+	/acute
+	/mu			% missing
+	/paragraph
+	/periodcentered
+	/cedilla
+	/onesuperior		% missing
+	/ordmasculine
+	/guillemotright
+	/onequarter		% missing
+	/onehalf		% missing
+	/threequarters		% missing
+	/questiondown
+	/Agrave
+	/Aacute
+	/Acircumflex
+	/Atilde
+	/Adieresis
+	/Aring
+	/AE
+	/Ccedilla
+	/Egrave
+	/Eacute
+	/Ecircumflex
+	/Edieresis
+	/Igrave
+	/Iacute
+	/Icircumflex
+	/Idieresis
+	/Eth			% missing
+	/Ntilde
+	/Ograve
+	/Oacute
+	/Ocircumflex
+	/Otilde
+	/Odieresis
+	/multiply		% missing
+	/Oslash
+	/Ugrave
+	/Uacute
+	/Ucircumflex
+	/Udieresis
+	/Yacute			% missing
+	/Thorn			% missing
+	/germandbls
+	/agrave
+	/aacute
+	/acircumflex
+	/atilde
+	/adieresis
+	/aring
+	/ae
+	/ccedilla
+	/egrave
+	/eacute
+	/ecircumflex
+	/edieresis
+	/igrave
+	/iacute
+	/icircumflex
+	/idieresis
+	/eth			% missing
+	/ntilde
+	/ograve
+	/oacute
+	/ocircumflex
+	/otilde
+	/odieresis
+	/divide			% missing
+	/oslash
+	/ugrave
+	/uacute
+	/ucircumflex
+	/udieresis
+	/yacute			% missing
+	/thorn			% missing
+	/ydieresis
+] def
+
+/NewFontDirectory FontDirectory maxlength dict def
+
+%
+% Apparently no guarantee findfont is defined in systemdict so the obvious
+%
+%	systemdict /findfont get exec
+%
+% can generate an error. So far the only exception is a VT600 (version 48.0).
+%
+
+userdict /@RealFindfont known not {
+	userdict begin
+		/@RealFindfont systemdict begin /findfont load end def
+	end
+} if
+
+/findfont {
+	dup NewFontDirectory exch known not {
+		dup
+		%dup systemdict /findfont get exec	% not always in systemdict
+		dup userdict /@RealFindfont get exec
+		dup /Encoding get StandardEncoding eq {
+			dup length dict begin
+				{1 index /FID ne {def}{pop pop} ifelse} forall
+				/Encoding ISOLatin1Encoding def
+				currentdict
+			end
+			/DummyFontName exch definefont
+		} if
+		NewFontDirectory 3 1 roll put
+	} if
+	NewFontDirectory exch get
+} bind def
+
+%%Patch from lp
+%%EndPatch from lp
+
+setup
+%%EndSetup
+%%Page: 1 1
+/saveobj save def
+mark
+1 pagesetup
+10 /LucidaSansUnicode00 f
+(Trademarks referenced in this document:) 720 1560 w
+9 /LucidaSansUnicode00 f
+(Plan) 720 1910 w
+(9) 931 1910 w
+(is) 1017 1910 w
+(a) 1118 1910 w
+(trademark) 1197 1910 w
+(of) 1676 1910 w
+(AT&T) 1793 1910 w
+(Corp.) 2061 1910 w
+(Aladdin) 720 2020 w
+(Ghostscript) 1083 2020 w
+(is) 1612 2020 w
+(a) 1713 2020 w
+(trademark) 1792 2020 w
+(of) 2271 2020 w
+(Aladdin) 2388 2020 w
+(Enterprises.) 2751 2020 w
+(CGA) 720 2130 w
+(is) 938 2130 w
+(a) 1039 2130 w
+(trademark) 1118 2130 w
+(of) 1597 2130 w
+(International) 1714 2130 w
+(Business) 2297 2130 w
+(Machines) 2704 2130 w
+(Corporation.) 3140 2130 w
+(Challenge,) 720 2240 w
+(Indigo) 1210 2240 w
+7 /LucidaSansUnicode00 f
+(2) 1486 2205 w
+9 /LucidaSansUnicode00 f
+(,) 1530 2240 w
+(Indy,) 1588 2240 w
+(and) 1832 2240 w
+(POWER) 2024 2240 w
+(Series) 2356 2240 w
+(are) 2643 2240 w
+(trademarks) 2809 2240 w
+(of) 3334 2240 w
+(Silicon) 3451 2240 w
+(Graphics,) 3764 2240 w
+(Inc.) 4205 2240 w
+(Datakit) 720 2350 w
+(is) 1061 2350 w
+(a) 1162 2350 w
+(registered) 1241 2350 w
+(trademark) 1712 2350 w
+(of) 2191 2350 w
+(AT&T) 2308 2350 w
+(Corp.) 2576 2350 w
+(Ethernet) 720 2460 w
+(is) 1113 2460 w
+(a) 1214 2460 w
+(trademark) 1293 2460 w
+(of) 1772 2460 w
+(Xerox) 1889 2460 w
+(Corporation.) 2172 2460 w
+(IBM,) 720 2570 w
+(PS/2,) 933 2570 w
+(and) 1195 2570 w
+(VGA) 1387 2570 w
+(are) 1602 2570 w
+(registered) 1768 2570 w
+(trademarks) 2239 2570 w
+(of) 2764 2570 w
+(International) 2881 2570 w
+(Business) 3464 2570 w
+(Machines) 3871 2570 w
+(Corporation.) 4307 2570 w
+(Intel,) 720 2680 w
+(8088,) 969 2680 w
+(80286,) 1255 2680 w
+(80386,) 1598 2680 w
+(80486,) 1941 2680 w
+(and) 2284 2680 w
+(Pentium) 2476 2680 w
+(are) 2860 2680 w
+(trademarks) 3026 2680 w
+(of) 3551 2680 w
+(Intel) 3668 2680 w
+(Corporation.) 3888 2680 w
+(Lucida) 720 2790 w
+(and) 1032 2790 w
+(Pellucida) 1224 2790 w
+(are) 1640 2790 w
+(registered) 1806 2790 w
+(trademarks) 2277 2790 w
+(of) 2802 2790 w
+(Bigelow) 2919 2790 w
+(&) 3282 2790 w
+(Holmes.) 3374 2790 w
+(MIPS) 720 2900 w
+(and) 951 2900 w
+(R3000) 1143 2900 w
+(are) 1457 2900 w
+(registered) 1623 2900 w
+(trademarks) 2094 2900 w
+(of) 2619 2900 w
+(MIPS) 2736 2900 w
+(Technologies,) 2967 2900 w
+(Inc.) 3604 2900 w
+(MS-DOS) 720 3010 w
+(is) 1114 3010 w
+(a) 1215 3010 w
+(registered) 1294 3010 w
+(trademark) 1765 3010 w
+(of) 2244 3010 w
+(Microsoft) 2361 3010 w
+(Corporation.) 2798 3010 w
+(NFS) 720 3120 w
+(is) 914 3120 w
+(a) 1015 3120 w
+(registered) 1094 3120 w
+(trademark) 1565 3120 w
+(of) 2044 3120 w
+(Sun) 2161 3120 w
+(Microsystems,) 2351 3120 w
+(Inc.) 3002 3120 w
+(PDP) 720 3230 w
+(and) 917 3230 w
+(VAX) 1109 3230 w
+(are) 1316 3230 w
+(registered) 1482 3230 w
+(trademarks) 1953 3230 w
+(of) 2478 3230 w
+(Digital) 2595 3230 w
+(Equipment) 2909 3230 w
+(Corp.) 3406 3230 w
+(PostScript) 720 3340 w
+(is) 1181 3340 w
+(a) 1282 3340 w
+(registered) 1361 3340 w
+(trademark) 1832 3340 w
+(of) 2311 3340 w
+(Adobe) 2428 3340 w
+(Systems) 2738 3340 w
+(Incorporated.) 3122 3340 w
+(ProPhone) 720 3450 w
+(is) 1158 3450 w
+(a) 1259 3450 w
+(registered) 1338 3450 w
+(trademark) 1809 3450 w
+(of) 2288 3450 w
+(Prolink) 2405 3450 w
+(Corporation.) 2736 3450 w
+(R2000,) 720 3560 w
+(R6000,) 1063 3560 w
+(R4000,) 1406 3560 w
+(and) 1749 3560 w
+(R4400) 1941 3560 w
+(are) 2255 3560 w
+(trademarks) 2421 3560 w
+(of) 2946 3560 w
+(MIPS) 3063 3560 w
+(Technologies,) 3294 3560 w
+(Inc.) 3931 3560 w
+(SecureNet) 720 3670 w
+(is) 1187 3670 w
+(a) 1288 3670 w
+(registered) 1367 3670 w
+(trademark) 1838 3670 w
+(of) 2317 3670 w
+(Digital) 2434 3670 w
+(Pathways,) 2748 3670 w
+(Inc.) 3207 3670 w
+(Silicon) 720 3780 w
+(Graphics,) 1033 3780 w
+(IRIS) 1474 3780 w
+(Indigo,) 1661 3780 w
+(IRIS,) 1995 3780 w
+(and) 2211 3780 w
+(IRIX) 2403 3780 w
+(are) 2598 3780 w
+(registered) 2764 3780 w
+(trademarks) 3235 3780 w
+(of) 3760 3780 w
+(Silicon) 3877 3780 w
+(Graphics,) 4190 3780 w
+(Inc.) 4631 3780 w
+(Sound) 720 3890 w
+(Blaster) 1022 3890 w
+(is) 1345 3890 w
+(a) 1446 3890 w
+(registered) 1525 3890 w
+(trademark) 1996 3890 w
+(of) 2475 3890 w
+(Creative) 2592 3890 w
+(Labs,) 2976 3890 w
+(Inc.) 3235 3890 w
+(SPARC) 720 4000 w
+(is) 1029 4000 w
+(a) 1130 4000 w
+(registered) 1209 4000 w
+(trademark) 1680 4000 w
+(of) 2159 4000 w
+(SPARC) 2276 4000 w
+(International,) 2585 4000 w
+(Inc.) 3197 4000 w
+(ThinkJet) 720 4110 w
+(is) 1136 4110 w
+(a) 1237 4110 w
+(registered) 1316 4110 w
+(trademark) 1787 4110 w
+(of) 2266 4110 w
+(the) 2383 4110 w
+(Hewlett-Packard) 2551 4110 w
+(Company.) 3302 4110 w
+(Unicode) 720 4220 w
+(is) 1101 4220 w
+(a) 1202 4220 w
+(registered) 1281 4220 w
+(trademark) 1752 4220 w
+(of) 2231 4220 w
+(Unicode,) 2348 4220 w
+(Inc.) 2758 4220 w
+(UNIX) 720 4330 w
+(is) 961 4330 w
+(a) 1062 4330 w
+(registered) 1141 4330 w
+(trademark) 1612 4330 w
+(in) 2091 4330 w
+(the) 2202 4330 w
+(USA) 2370 4330 w
+(and) 2572 4330 w
+(other) 2764 4330 w
+(countries) 3024 4330 w
+(licensed) 3458 4330 w
+(exclusively) 836 4440 w
+(through) 1340 4440 w
+(X/Open) 1718 4440 w
+(Company) 2085 4440 w
+(Limited.) 2525 4440 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 1 1
+%%Trailer
+done
+%%DocumentFonts: LucidaSansUnicode00
+%%Pages: 1

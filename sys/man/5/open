@@ -54,7 +54,11 @@ has the
 .B OTRUNC
 .RB ( 0x10 )
 bit set,
-the file is to be truncated, which requires write permission;
+the file is to be truncated, which requires write permission
+(if
+the file is append-only, and permission is granted, the
+.B open
+succeeds but the file will not be truncated);
 if the
 .I mode
 has the
@@ -99,7 +103,7 @@ if a regular file is being created and
 .B "(perm&~0777) | (dir.perm&perm&0777)"
 if a directory is being created.
 This means, for example, that if the
-.I create
+.B create
 allows read permission to others, but the containing directory
 does not, then the created file will not allow others to read the file.
 .PP
@@ -110,19 +114,19 @@ and
 will represent the newly opened file.
 .I Mode
 is not checked against the permissions in
-.I perm.
+.IR perm .
 The
 .I qid
 for the new file is returned with the
 .B create
-response.
+reply message.
 .PP
 Directories are created by setting the
 .B CHDIR
 bit
 .RB ( 0x80000000 )
 in the
-.IR mode .
+.IR perm .
 .PP
 The names
 .B .
@@ -142,8 +146,9 @@ An attempt to
 a file in a directory where the given
 .I name
 already exists will be rejected;
-in this case,
+in this case, the
 .I create
+system call
 (see
 .IR open (2))
 uses

@@ -66,7 +66,7 @@ doinclude(Tokenrow *trp)
 		write(1,"\n",1);
 	}
 	if (fd >= 0) {
-		if (++incdepth > 10)
+		if (++incdepth > 20)
 			error(FATAL, "#include too deeply nested");
 		setsource((char*)newstring((uchar*)iname, strlen(iname), 0), fd, NULL);
 		genline();
@@ -95,6 +95,11 @@ genline(void)
 	p += sizeof("#line ")-1;
 	p = (uchar*)outnum((char*)p, cursource->line);
 	*p++ = ' '; *p++ = '"';
+	if (cursource->filename[0]!='/' && wd[0]) {
+		strcpy((char*)p, wd);
+		p += strlen(wd);
+		*p++ = '/';
+	}
 	strcpy((char*)p, cursource->filename);
 	p += strlen((char*)p);
 	*p++ = '"'; *p++ = '\n';

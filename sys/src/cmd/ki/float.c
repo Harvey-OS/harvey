@@ -335,6 +335,7 @@ void
 farith(ulong ir)
 {
 	char *op;
+	long v;
 	int rd, rs1, rs2, fmt;
 
 	fmt = 0;
@@ -383,22 +384,24 @@ farith(ulong ir)
 		op = "fmuld";
 		break;
 	case 0xc4:
-		reg.fl[rd] = reg.di[rs2];
+		reg.fl[rd] = (long)reg.di[rs2];
 		fmt = 1;
 		op = "fitos";
 		break;
 	case 0xc8:
-		reg.fd[rd>>1] = reg.di[rs2];
+		reg.fd[rd>>1] = (long)reg.di[rs2];
 		fmt = 1;
 		op = "fitod";
 		break;
 	case 0xd1:
-		reg.di[rd] = reg.fl[rs2];
+		v = reg.fl[rs2];
+		reg.di[rd] = v;
 		fmt = 1;
 		op = "fstoi";
 		break;
 	case 0xd2:
-		reg.di[rd] = reg.fd[rs2>>1];
+		v = reg.fd[rs2>>1];
+		reg.di[rd] = v;
 		fmt = 1;
 		op = "fdtoi";
 		break;

@@ -73,34 +73,7 @@ cmd_cpu(int argc, char *argv[])
 		if(argc > 1)
 			continue;
 	found:
-		print("	pid=%2d.%.3s t=%F\n",
-			p->pid, text,
-			(Filta){&p->time, 1});
-		prflush();
-	}
-}
-
-static
-void
-cmd_statp(int argc, char *argv[])
-{
-	int i, j;
-	User *p;
-	char *text;
-
-	print("process stats\n");
-	p = procalloc.arena;
-	for(i=0; i<conf.nproc; i++,p++) {
-		text = p->text;
-		if(!text)
-			continue;
-		for(j=1; j<argc; j++)
-			if(strcmp(argv[j], text) == 0)
-				goto found;
-		if(argc > 1)
-			continue;
-	found:
-		print("	pid=%2d.%.3s state=%9s %F\n",
+		print("	%2d %.3s %9s %F\n",
 			p->pid, text,
 			statename[p->state],
 			(Filta){&p->time, 1});
@@ -240,13 +213,15 @@ procinit(void)
 	procalloc.arena = procalloc.free;
 
 	p = procalloc.free;
-	for(i=0; i<conf.nproc-1; i++,p++)
+	for(i=0; i<conf.nproc-1; i++,p++) {
 		p->qnext = p+1;
+		wakeup(&p->tsleep);
+	}
 	p->qnext = 0;
+	wakeup(&p->tsleep);
 
 	cmd_install("cpu", "[proc] -- process cpu time", cmd_cpu); /**/
 	cmd_install("trace", "[number] -- stack trace/qlocks", cmd_trace); /**/
-	cmd_install("statp", "[proc] -- process stats", cmd_statp); /**/
 }
 
 void
@@ -287,6 +262,50 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	 */
 	unlock(r);
 	sched();
+}
+
+int
+tfn(void *arg)
+{
+	return MACHP(0)->ticks >= u->twhen || (*u->tfn)(arg);
+}
+
+void
+tsleep(Rendez *r, int (*fn)(void*), void *arg, int ms)
+{
+	ulong when;
+	User *f, **l;
+
+	when = MS2TK(ms)+MACHP(0)->ticks;
+
+	lock(&talarm);
+	/* take out of list if checkalarm didn't */
+	if(u->trend) {
+		l = &talarm.list;
+		for(f = *l; f; f = f->tlink) {
+			if(f == u) {
+				*l = u->tlink;
+				break;
+			}
+			l = &f->tlink;
+		}
+	}
+	/* insert in increasing time order */
+	l = &talarm.list;
+	for(f = *l; f; f = f->tlink) {
+		if(f->twhen >= when)
+			break;
+		l = &f->tlink;
+	}
+	u->trend = r;
+	u->twhen = when;
+	u->tfn = fn;
+	u->tlink = *l;
+	*l = u;
+	unlock(&talarm);
+
+	sleep(r, tfn, arg);
+	u->twhen = 0;
 }
 
 void

@@ -37,7 +37,7 @@ void	*mem;
 static void
 gbitexplode(ulong sw, ulong *buf, int sdep, int x)
 {
-	int i, j, o, q, n, nw, inc, qinc;
+	int j, o, q, n, nw, inc, qinc;
 	ulong s, dw, pix;
 
 	inc = 1 << sdep;
@@ -98,7 +98,6 @@ gbitblt(GBitmap *dm, Point pt, GBitmap *sm, Rectangle r, Fcode fcode)
 	ulong	rmask;		/* affected pixels in rightmost dst word */
 	int	i;
 	int	j;
-	int	x;
 	ulong	buf[32];	/* for expanding a source */
 	ulong	*p;		/* pointer into buf */
 	int	spare;		/* number of words already converted */

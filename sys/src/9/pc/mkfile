@@ -1,18 +1,19 @@
 CONF=pc
-CONFLIST=pc pcdisk pcpcm dos nomad bwk
+CONFLIST=pc pcdisk dos pccpu pccpudisk
 
 objtype=386
 </$objtype/mkfile
 CFLAGS=-w
 
-DEV=`{rc ../port/mkdevlist $CONF}`
-STREAM=`{rc ../port/mkstreamlist $CONF}`
-MISC=`{rc ../port/mkmisclist $CONF}`
+DEV=`{rc ../port/mkdevlist $CONF}
+LINK=`{rc ../port/mklinklist $CONF}
+MISC=`{rc ../port/mkmisclist $CONF}
 
 OBJ=\
 	l.$O\
 	alarm.$O\
 	alloc.$O\
+	auth.$O\
 	bbmalloc.$O\
 	chan.$O\
 	clock.$O\
@@ -40,23 +41,19 @@ OBJ=\
 	$DEV\
 	stream.$O\
 	boot$CONF.root.$O\
-	$MISC $STREAM\
-	fcall.$O\
+	$MISC $LINK\
 	archgeneric.$O archnsx20.$O archncr3170.$O\
 
+default:V: 9$CONF
 
 9$CONF:	$OBJ $CONF.c /386/lib/libgnot.a
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
-	$LD -o $target -T0x80001020 -l $OBJ $CONF.$O -lgnot -lg -lc
+	$LD -o $target -T0x80100020 -l $OBJ $CONF.$O -lgnot -lg -lauth -lc
 	size 9$CONF
-
-install:V: 9$CONF
-	cp 9$CONF /386/9$CONF
-
-<../port/portmkfile
 
 vga.$O:		screen.h vga.h
 devvga.$O:	vga.h
+clock.$O fault386.$O main.$O:	/$objtype/include/ureg.h
 
 init.h:	initcode /sys/src/libc/9syscall/sys.h
 	$AS initcode
@@ -66,18 +63,8 @@ init.h:	initcode /sys/src/libc/9syscall/sys.h
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h
 
-clock.$O fault386.$O main.$O:	/$objtype/include/ureg.h
+<../port/portmkfile
 
-bug: bug.$O memcpy.$O
-	$LD -o bug $prereq
-
-bug.$O: bug.c
-	$CC -N bug.c
-
-push: 9$CONF
-	push coma 9$CONF .
-
-dossrv.root.c:	/$objtype/bin/dossrv
+dossrv.root.s:	/$objtype/bin/dossrv
 	cp $prereq dossrv.out
 	../port/mkroot dossrv fs
-

@@ -1,0 +1,390 @@
+%% BEGIN: pst-node.tex
+%% Generated on <1993/3/12> from `pst-node.doc'.
+%% For use with the PostScript header file `pst-node.pro'.
+%%
+\def\fileversion{0.93a}
+\def\filedate{93/03/12}
+%%
+%% pst-node.tex: Node macros for PSTricks.
+%% See the PSTricks read-me file and the User's Guide for documentation.
+%%
+%% COPYRIGHT 1993, by Timothy Van Zandt, tvz@Princeton.EDU
+%%
+%% Copying of part or all of any file in the pstricks.tex package
+%% is allowed under the following conditions only:
+%% (1) You may freely distribute unchanged copies of the files. Please
+%% include the documentation when you do so.
+%% (2) You may modify a renamed copy of any file, but only for personal
+%% use or use within an organization.
+%% (3) You may copy fragments from the files, for personal use or for use
+%% in a macro package for distribution, as long as credit is given
+%% where credit is due.
+%%
+%% You are NOT ALLOWED to take money for the distribution or use of
+%% these files or modified versions or fragments thereof, except for
+%% a nominal charge for copying etc.
+%%
+\csname PSTnodesLoaded\endcsname
+\let\PSTnodesLoaded\endinput
+\ifx\PSTricksLoaded\endinput\else
+\def\next{\input pstricks.tex}\expandafter\next
+\fi
+\edef\TheAtCode{\the\catcode`\@}
+\catcode`\@=11
+\pstheader{pst-node.pro}
+\def\pst@nodedict{tx@NodeDict begin }
+\def\pst@getnode#1#2{%
+\pst@expandafter\pst@@getnode{#1} * \@nil{#1}#2}
+\def\pst@@getnode#1#2 #3\@nil#4#5{%
+\ifcat#1a\relax
+\def#5{/TheNode#1#2 }%
+\else
+\def#5{/BadNode }%
+\@pstrickserr{Bad node name: `#4'}\@ehpa
+\fi}
+\def\tx@NewNode{NewNode }
+\def\pst@newnode#1#2#3#4{%
+\leavevmode
+\pst@getnode{#1}\pst@thenode
+\pst@Verb{%
+\pst@nodedict
+{ #3 } \pst@thenode #2 { #4 } \tx@NewNode
+end}}
+\def\tx@InitPnode{InitPnode }
+\def\pnode{\@ifnextchar({\pnode@}{\pnode@(0,0)}}
+\def\pnode@(#1)#2{%
+\pst@@getcoor{#1}%
+\pst@newnode{#2}{10}{\pst@coor}{\tx@InitPnode}%
+\ignorespaces}
+\def\tx@InitCnode{InitCnode }
+\def\cnode{\def\pst@par{}\pst@object{cnode}}
+\def\cnode@i{\@ifnextchar({\cnode@ii}{\cnode@ii(0,0)}}
+\def\cnode@ii(#1)#2#3{%
+\begingroup
+\use@par
+\pscircle@do(#1){#2}%
+\pst@@getcoor{#1}%
+\pssetlength\pst@dimc{#2}%
+\pst@newnode{#3}{11}{%
+\pst@coor
+\pst@number\pst@dimc
+\pst@number\pslinewidth
+\psk@dimen .5 sub mul sub}%
+{\tx@InitCnode}%
+\endgroup
+\ignorespaces}
+\def\cnodeput{\def\pst@par{}\pst@object{cnodeput}}
+\def\cnodeput@i{%
+\begingroup
+\pst@killglue
+\leavevmode
+\pst@getrputrot
+\cnodeput@ii}
+\def\cnodeput@ii(#1)#2{%
+\pst@makebox{\cput@iii{\cnodeput@iii{#2}}(#1)}}
+\def\cnodeput@iii#1{%
+\pst@newnode{#1}{11}{\pscirclebox@iv \pst@number\pslinewidth add}%
+{\tx@InitCnode}}
+\def\circlenode{\def\pst@par{}\pst@object{circlenode}}
+\def\circlenode@i#1{\pst@makebox{\pscirclebox@ii{\cnodeput@iii{#1}}}}
+\def\tx@GetRnodePos{GetRnodePos }
+\def\tx@InitRnode{InitRnode }
+\def\rnode{\begingroup\pst@getref\rnode@}
+\def\rnode@#1{\pst@makebox{\rnode@@{#1}}}
+\def\rnode@@#1{%
+\ifx\refpoint@x\relax
+\def\refpoint@y{.5}%
+\def\refpoint@x{.5}%
+\fi
+\pst@newnode{#1}{16}{}{%
+\ifx\refpoint@x\relax .5 \else \refpoint@y\space \fi
+\pst@number{\ht\pst@hbox}%
+\pst@number{\dp\pst@hbox}%
+\ifx\refpoint@y\@empty true \else false \fi
+\refpoint@x\space
+\pst@number{\wd\pst@hbox}%
+\tx@InitRnode}%
+\box\pst@hbox
+\endgroup}
+\def\tx@InitRNode{InitRNode }
+\def\Rnode{\@ifnextchar({\Rnode@}{\Rnode@(\RnodeRef)}}
+\def\Rnode@(#1)#2{\pst@makebox{\Rnode@@(#1){#2}}}
+\def\Rnode@@(#1)#2{%
+\begingroup
+\pst@@getcoor{#1}%
+\pst@newnode{#2}{16}{%
+\pst@number{\ht\pst@hbox}\pst@number{\dp\pst@hbox}%
+\pst@number{\wd\pst@hbox}\pst@coor}{\tx@InitRNode}%
+\box\pst@hbox
+\endgroup}
+\def\RnodeRef{0,.7ex}
+\def\tx@GetOnodePos{GetOnodePos }
+\def\ovalnode{\def\pst@par{}\pst@object{ovalnode}}
+\def\ovalnode@i#1{\pst@makebox{\psovalbox@ii{\ovalnode@ii{#1}}}}
+\def\ovalnode@ii#1{%
+\pst@newnode{#1}{14}{}{%
+/X \pst@number{\wd\pst@hbox}2 div def
+/Y \pst@number\pst@dimg 2 div \pst@number{\dp\pst@hbox}sub def
+/w \pst@number\pst@dima def
+/h \pst@number\pst@dimb def
+/NodePos { \tx@GetOnodePos } def}}
+\def\tx@GetCenter{GetCenter }
+\def\tx@GetAngle{GetAngle }
+\def\tx@GetEdge{GetEdge }
+\def\tx@GetPos{GetPos }
+\def\check@arrow#1#2{%
+\check@@arrow#2-\@nil
+\if@pst
+\addto@par{arrows=#2}%
+\def\next{#1}%
+\else
+\def\next{#1{#2}}%
+\fi
+\next}
+\def\check@@arrow#1-#2\@nil{%
+\ifx\@nil#2\@nil\@pstfalse\else\@psttrue\fi}
+\def\tx@InitNC{InitNC }
+\def\nc@object#1#2#3#4{%
+\begin@OpenObj
+\showpointsfalse
+\pst@getnode{#1}\pst@tempa
+\pst@getnode{#2}\pst@tempb
+\gdef\lputpos@default{#3}%
+\addto@pscode{%
+\pst@nodedict
+\psk@offsetA
+\psk@offsetB neg
+\psk@nodesepA
+\psk@nodesepB
+\pst@tempa
+\pst@tempb
+\tx@InitNC { #4 } if
+end}%
+\def\use@pscode{%
+\pst@Verb{gsave \tx@STV newpath \pst@code\space grestore}%
+\gdef\pst@code{}}%
+\end@OpenObj}
+\def\lputpos@default{.5}
+\def\pc@object#1{%
+\@ifnextchar({\pc@@object#1}{\pst@getarrows{\pc@@object#1}}}
+\def\pc@@object#1(#2)(#3){%
+\pnode(#2){@@A}\pnode(#3){@@B}%
+#1{@@A}{@@B}}
+\def\psset@nodesepA#1{\pst@getlength{#1}\psk@nodesepA}
+\def\psset@nodesepB#1{\pst@getlength{#1}\psk@nodesepB}
+\def\psset@nodesep#1{%
+\psset@nodesepA{#1}\let\psk@nodesepB\psk@nodesepA}
+\psset@nodesep{0}
+\def\psset@offsetA#1{\pst@getlength{#1}\psk@offsetA}
+\def\psset@offsetB#1{\pst@getlength{#1}\psk@offsetA}
+\def\psset@offset#1{%
+\psset@offsetA{#1}\let\psk@offsetB\psk@offsetA}
+\psset@offset{0}
+\def\psset@armA#1{\pst@getlength{#1}\psk@armA}
+\def\psset@armB#1{\pst@getlength{#1}\psk@armB}
+\def\psset@arm#1{\psset@armA{#1}\let\psk@armB\psk@armA}
+\psset@arm{10pt}
+\def\psset@angleA#1{\pst@getangle{#1}\psk@angleA}
+\def\psset@angleB#1{\pst@getangle{#1}\psk@angleB}%
+\def\psset@angle#1{\pst@getangle{#1}\psk@angleA
+\let\psk@angleB\psk@angleA}
+\psset@angle{0}
+\def\psset@arcangleA#1{\pst@getangle{#1}\psk@arcangleA}
+\def\psset@arcangleB#1{\pst@getangle{#1}\psk@arcangleB}%
+\def\psset@arcangle#1{\pst@getangle{#1}\psk@arcangleA
+\let\psk@arcangleB\psk@arcangleA}
+\psset@arcangle{8}
+\def\psset@ncurvA#1{\pst@checknum{#1}\psk@ncurvA}
+\def\psset@ncurvB#1{\pst@checknum{#1}\psk@ncurvB}%
+\def\psset@ncurv#1{\psset@ncurvA{#1}\let\psk@ncurvB\psk@ncurvA}
+\psset@ncurv{.67}
+\def\tx@LineMP{LineMP }
+\def\tx@NCCoor{NCCoor }
+\def\tx@NCLine{NCLine }
+\def\ncline{\def\pst@par{}\pst@object{ncline}}
+\def\ncline@i{\check@arrow{\ncline@ii}}
+\def\ncline@ii#1#2{\nc@object{#1}{#2}{.5}{\tx@NCLine}}
+\def\pcline{\def\pst@par{}\pst@object{pcline}}
+\def\pcline@i{\pc@object\ncline@ii}
+\def\ncLine{\def\pst@par{}\pst@object{ncLine}}
+\def\ncLine@i{\check@arrow{\ncLine@ii}}
+\def\ncLine@ii#1#2{\nc@object{#1}{#2}{.5}%
+{\tx@NCLine
+/LPutVar [
+nodeA \tx@GetCenter
+nodeB \tx@GetCenter
+3 1 roll 4 1 roll
+] cvx def }}
+\def\tx@BezierMidpoint{BezierMidpoint }
+\def\tx@GetArms{GetArms }
+\def\tx@NCCurve{NCCurve }
+\def\nccurve{\def\pst@par{}\pst@object{nccurve}}
+\def\nccurve@i{\check@arrow{\nccurve@ii}}
+\def\nccurve@ii#1#2{\nc@object{#1}{#2}{.5}{%
+/AngleA \psk@angleA\space def /AngleB \psk@angleB\space def
+\psk@ncurvB\space \psk@ncurvA\space
+\tx@NCCurve}}
+\def\pccurve{\def\pst@par{}\pst@object{pccurve}}
+\def\pccurve@i{\pc@object\nccurve@ii}
+\def\ncarc{\def\pst@par{}\pst@object{ncarc}}
+\def\ncarc@i{\check@arrow{\ncarc@ii}}
+\def\ncarc@ii#1#2{\nc@object{#1}{#2}{.5}{%
+\tx@GetAngle dup
+\psk@arcangleA\space add /AngleA ED
+\psk@arcangleB\space sub 180 add /AngleB ED
+\psk@ncurvB\space \psk@ncurvA\space
+\tx@NCCurve}}
+\def\pcarc{\def\pst@par{}\pst@object{pcarc}}
+\def\pcarc@i{\pc@object\ncarc@ii}
+\def\tx@AnglesMP{AnglesMP }
+\def\tx@NCAngles{NCAngles }
+\def\ncangles{\def\pst@par{}\pst@object{ncangles}}
+\def\ncangles@i{\check@arrow{\ncangles@ii}}
+\def\ncangles@ii#1#2{%
+\nc@object{#1}{#2}{1.5}{\ncangles@iii \tx@NCAngles}}
+\def\ncangles@iii{%
+tx@Dict begin
+\ifdim\pslinearc>\z@
+/r \pst@number\pslinearc def
+/Lineto { \tx@Arcto } def
+\else
+/Lineto { L } def
+\fi
+end
+/AngleA \psk@angleA\space def /AngleB \psk@angleB\space def
+/armA \psk@armA\space def /armB \psk@armB\space def }
+\def\pcangles{\def\pst@par{}\pst@object{pcangles}}
+\def\pcangles@i{\pc@object\ncangles@ii}
+\def\tx@NCAngle{NCAngle }
+\def\ncangle{\def\pst@par{}\pst@object{ncangle}}
+\def\ncangle@i{\check@arrow{\ncangle@ii}}
+\def\ncangle@ii#1#2{%
+\nc@object{#1}{#2}{1.5}{\ncangles@iii \tx@NCAngle}}
+\def\pcangle{\def\pst@par{}\pst@object{pcangle}}
+\def\pcangle@i{\pc@object\ncangle@ii}
+\def\tx@NCBar{NCBar }
+\def\ncbar{\def\pst@par{}\pst@object{ncbar}}
+\def\ncbar@i{\check@arrow{\ncbar@ii}}
+\def\ncbar@ii#1#2{\nc@object{#1}{#2}{1.5}{%
+\ncangles@iii /AngleB \psk@angleA def \tx@NCBar}}
+\def\pcbar{\def\pst@par{}\pst@object{pcbar}}
+\def\pcbar@i{\pc@object\ncbar@ii}
+\def\tx@NCDiag{NCDiag }
+\def\ncdiag{\def\pst@par{}\pst@object{ncdiag}}
+\def\ncdiag@i{\check@arrow{\ncdiag@ii}}
+\def\ncdiag@ii#1#2{%
+\nc@object{#1}{#2}{1.5}{\ncangles@iii \tx@NCDiag}}
+\def\pcdiag{\def\pst@par{}\pst@object{pcdiag}}
+\def\pcdiag@i{\pc@object\ncdiag@ii}
+\def\tx@NCDiagg{NCDiagg }
+\def\ncdiagg{\def\pst@par{}\pst@object{ncdiagg}}
+\def\ncdiagg@i{\check@arrow{\ncdiagg@ii}}
+\def\ncdiagg@ii#1#2{%
+\nc@object{#1}{#2}{.5}{\ncangles@iii \tx@NCDiagg}}
+\def\pcdiagg{\def\pst@par{}\pst@object{pcdiagg}}
+\def\pcdiagg@i{\pc@object\ncdiagg@ii}
+\def\tx@LoopMP{LoopMP }
+\def\tx@NCLoop{NCLoop }
+\def\psset@loopsize#1{\pst@getlength{#1}\psk@loopsize}
+\psset@loopsize{1cm}
+\def\ncloop{\def\pst@par{}\pst@object{ncloop}}
+\def\ncloop@i{\check@arrow{\ncloop@ii}}
+\def\ncloop@ii#1#2{%
+\nc@object{#1}{#2}{2.5}%
+{\ncangles@iii /loopsize \psk@loopsize\space def \tx@NCLoop}}
+\def\pcloop{\def\pst@par{}\pst@object{pcloop}}
+\def\pcloop@i{\pc@object\ncloop@ii}
+\def\tx@NCCircle{NCCircle }
+\def\nccircle{\def\pst@par{}\pst@object{nccircle}}
+\def\nccircle@i{\check@arrow{\nccircle@ii}}
+\def\nccircle@ii#1#2{%
+\pssetlength\pst@dima{#2}%
+\nc@object{#1}{#1}{.5}{%
+/AngleA \psk@angleA def
+/r \pst@number\pst@dima def
+\tx@NCCircle \psarc@v end}}
+\def\pst@getlputrot#1{%
+\@ifnextchar(%
+{\def\pst@rot{}#1}%
+{\pst@@getlputrot{\@ifnextchar({#1}{#1(\lputpos@default)}}}}
+\def\pst@@getlputrot#1#2{%
+\pst@expandafter{\@ifnextchar:{\pst@@@getlputrot}%
+{\@ifstar{\pst@@@getrot}{\pst@@getrot}}}{#2}\@nil
+\ifx\pst@rotlist\@empty\else
+\edef\pst@rotlist{\pst@rotlist \pst@rot add }%
+\fi
+#1}
+\def\pst@@@getlputrot#1#2\@nil{%
+\pst@@getrot#2\@nil
+\edef\pst@rot{langle \ifx\pst@rot\@empty\else\pst@rot add \fi}}%
+\def\tx@LPutCoor{LPutCoor }
+\def\psput@lput#1#2{%
+\pst@checknum{#1}\pst@tempa
+\hbox{%
+\pst@Verb{%
+\pst@nodedict
+/t \pst@tempa\space def
+\tx@LPutCoor
+end
+\tx@PutBegin}%
+\box#2%
+\pst@Verb{\tx@PutEnd}}}
+\def\lput{\begin@psput{\pst@getref{\pst@getlputrot{\end@psput\lput@i}}}}
+\def\lput@i(#1){%
+\pst@makesmall\pst@hbox
+\ifx\pst@rot\@empty\else\pst@rotate\pst@hbox\fi
+\psput@lput{#1}\pst@hbox}
+\def\mput{%
+\begin@psput{\def\pst@rot{}\pst@getref{\end@psput\lput@i(\lputpos@default)}}}
+\def\aput@#1{\begin@psput{%
+\def\pst@refangle{#1 }%
+\@ifnextchar[{\aput@i}{\pst@getlputrot{\end@psput\aput@ii}}}}
+\def\aput@i[#1]{%
+\pssetlength\pslabelsep{#1}\pst@getlputrot{\end@psput\aput@ii}}
+\def\aput@ii(#1){%
+\uput@iv\aput@iii
+\psput@lput{#1}\pst@hbox}
+\def\aput@iii{exch pop add a \tx@PtoC h1 add exch w1 add exch }
+\def\aput{\aput@{langle 90 add}}
+\def\bput{\aput@{langle 90 sub}}
+\def\Aput@#1{\begin@psput{%
+\def\pst@refangle{#1 }%
+\def\pst@rot{}%
+\@ifnextchar[{\Aput@i}{\end@psput\aput@ii(\lputpos@default)}}}
+\def\Aput@i[#1]{%
+\pssetlength\pslabelsep{#1}%
+\end@psput\aput@ii(\lputpos@default)}
+\def\Aput{\Aput@{langle 90 add}}
+\def\Bput{\Aput@{langle 90 sub}}
+\def\Lput{%
+\begin@psput{\pst@getlabelsep{\pst@getlputrot{\end@psput{\Rput@i\lput@i}}}}}
+\def\Mput{%
+\begin@psput{%
+\def\pst@rot{}%
+\pst@getlabelsep{\end@psput{\Rput@i\lput@i}(\lputpos@default)}}}
+\def\node@coor#1;#2\@nil{%
+\pst@getnode{#1}\pst@tempg
+\edef\pst@coor{%
+\pst@nodedict
+tx@NodeDict \pst@tempg known
+{ \pst@tempg load \tx@GetCenter }
+{ 0 0 }
+ifelse
+end }}
+\def\Node@coor[#1]#2;#3\@nil{%
+\begingroup
+\psset{#1}%
+\pst@getnode{#2}\pst@tempg
+\xdef\pst@tempg{%
+\pst@nodedict
+tx@NodeDict \pst@tempg known
+{ \psk@offsetA \psk@angleA \psk@nodesepA \pst@tempg load \tx@GetEdge }
+{ 0 0 }
+ifelse
+end }%
+\endgroup
+\let\pst@coor\pst@tempg}
+\catcode`\@=\TheAtCode\relax
+\endinput
+%%
+%% END: pst-node.tex

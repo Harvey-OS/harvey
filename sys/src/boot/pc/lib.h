@@ -5,49 +5,38 @@
 /*
  * mem routines
  */
-extern	void	*memccpy(void*, void*, int, long);
-extern	void	*memset(void*, int, long);
+extern	void*	memccpy(void*, void*, int, long);
+extern	void*	memset(void*, int, long);
 extern	int	memcmp(void*, void*, long);
-extern	void	*memmove(void*, void*, long);
-extern	void	*memchr(void*, int, long);
+extern	void*	memmove(void*, void*, long);
+extern	void*	memchr(void*, int, long);
 
 /*
  * string routines
  */
-extern	char	*strcat(char*, char*);
-extern	char	*strchr(char*, char);
+extern	char*	strcat(char*, char*);
+extern	char*	strchr(char*, char);
 extern	int	strcmp(char*, char*);
-extern	char	*strcpy(char*, char*);
-extern	char	*strncat(char*, char*, long);
-extern	char	*strncpy(char*, char*, long);
+extern	char*	strcpy(char*, char*);
+extern	char*	strncat(char*, char*, long);
+extern	char*	strncpy(char*, char*, long);
 extern	int	strncmp(char*, char*, long);
 extern	long	strlen(char*);
+extern	char*	strrchr(char*, char);
 
 /*
  * print routines
+ * 	Fconv isn't used but is defined to satisfy prototypes in libg.h
+ *	that are never called.
  */
+typedef	struct Fconv Fconv;
 
-#define	FUNSIGN	4
-#define	FSHORT	2
-#define	FLONG	1
-
-typedef struct Op	Op;
-struct Op
-{
-	char	*p;
-	char	*ep;
-	void	*argp;
-	int	f1;
-	int	f2;
-	int	f3;
-};
-extern	void	strconv(char*, Op*, int, int);
-extern	int	numbconv(Op*, int);
-extern	char	*doprint(char*, char*, char*, void*);
-extern	int	fmtinstall(char, int (*)(Op*));
+extern	char*	donprint(char*, char*, char*, void*);
 extern	int	sprint(char*, char*, ...);
 extern	int	print(char*, ...);
-extern  int	atoi(char *);
+
+#define	PRINTSIZE	256
+
 /*
  * one-of-a-kind
  */

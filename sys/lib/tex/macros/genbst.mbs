@@ -1,0 +1,3221 @@
+%\iffalse
+%/////////////////////////////////////////
+%   Generic bibliography style           /
+%   for both author-year and numerical   /
+%   for natbib, harvard, astron styles   /
+%   authordate, and apalike              /
+%/////////////////////////////////////////
+% This file is self-documenting: simply LaTeX it!
+%% (Here are the specifications of the source file)
+%\fi
+%<*selfdoc>
+\ifx\undefined\endoptions\def\next{%
+   \NeedsTeXFormat{LaTeX2e}%
+   \documentclass[a4paper,11pt,twoside]{article}%
+   \usepackage{doc}%
+   \raggedbottom
+   \def\skipguard##1>{}\MakePercentIgnore\skipguard}\else\let\next\relax\fi
+\next
+%</selfdoc>
+%% \ProvidesFile{genbst.mbs}[1995/02/02 1.6 (PWD)]
+%\iffalse
+%   For use with docstrip to select various style parameters
+%   Default is an author-year bib style designed for my natbib.sty,
+%     which can also handle numerical citations.
+%%   For use with BibTeX version 0.99a or later
+%<nfss>%%     and with LaTeX2e
+%<!nfss>%%     and with LaTeX 2.09 or 2e
+%%-------------------------------------------------------------------
+%% NOTICE:
+%% This file may be used for non-profit purposes.
+%% It may not be distributed in exchange for money, 
+%%   other than distribution costs.
+%%   
+%% The author provides it `as is' and does not guarantee it in any way.
+%% 
+%% Copyright (C) 1994, 1995 Patrick W. Daly
+%% Max-Planck-Institut f\"ur Aeronomie
+%% Postfach 20
+%% D-37189 Katlenburg-Lindau
+%% Germany
+%% 
+%% E-mail:
+%% SPAN--     nsp::linmpi::daly    (note nsp also known as ecd1)
+%% Internet-- daly@linmpi.dnet.gwdg.de   
+%%-----------------------------------------------------------
+%\fi
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%
+% \CodelineNumbered
+% \RecordChanges
+% ^^A Comment out next line with %^^A  to print coding
+% \OnlyDescription
+% \setcounter{StandardModuleDepth}{1}
+% \begin{document}
+% 
+% \setcounter{IndexColumns}{2}
+% \setlength{\IndexMin}{10cm}
+%
+% \changes{1.0}{1993 Aug 16}{Initial version}
+% \changes{1.1}{1993 Nov 12}{Fix wrong order of {\tt'author} and {\tt'editor}}
+% \changes{1.2}{1994 Feb 7}{Add \texttt{thtit-a} to format thesis titles 
+%         as articles, not books}
+% \changes{1.3}{1994 Jul 1}{Change documentation to \LaTeXe}
+% \changes{1.3a}{1994 Sep 1}{Alter wording of article title capitalization
+%          choice}
+% \changes{1.4}{1994 Sep 5}{Add full author name possibilities}
+% \changes{1.4}{1994 Sep 5}{Fix up some punctuations}
+% \changes{1.4a}{1994 Sep 7}{Add possibility to put titles in quotes}
+% \changes{1.5}{1994 Sep 15}{Accommodate new \texttt{harvard.sty}}
+% \changes{1.5}{1994 Sep 15}{Add full names for \texttt{natbib} v5.3}
+% \changes{1.5a}{1994 Oct 11}{Add option so year can contain any text}
+% \changes{1.5b}{1995 Jan 18}{Allow edited by to be in parentheses}
+% \changes{1.5b}{1995 Jan 18}{Allow (year) to have no punctuation following}
+% \changes{1.5c}{1995 Jan 20}{Journal volume numbers with more choice}
+% \changes{1.6}{1995 Feb 2}{Date with no punctuation preceding it}
+% \changes{1.6}{1995 Feb 2}{Editor names can be reversed like authors'}
+% \changes{1.6}{1995 Feb 2}{Can abbreviate `edited by' to `ed(s).'}
+% \changes{1.6}{1995 Feb 2}{Released version}
+%
+% ^^A Change margins to center text
+% \setlength{\oddsidemargin}{0.5\paperwidth}
+% \addtolength{\oddsidemargin}{-0.5\textwidth}
+% \addtolength{\oddsidemargin}{-1in}
+% \setlength{\evensidemargin}{\oddsidemargin}
+% 
+% \pagestyle{myheadings}
+% \markboth{P. W. Daly}{Generic Bibliography Style}
+%
+% \title{\bfseries A Generic Bibliographic Style File}
+%    
+% \author{Patrick W. Daly}
+%         
+% \GetFileInfo{genbst.mbs}
+% \date{This paper describes file \texttt{\filename},\\
+%  version \fileversion{} from \filedate}
+% 
+% \maketitle
+%
+% \MakeShortVerb{\|}
+% 
+% \parskip=1ex \parindent=0pt
+%
+% \newcommand{\btx}{\textsc{Bib}\TeX}
+% \newcommand{\dtx}{\textsf{docstrip}}
+% 
+% \section{Introduction}
+% This generic, or master, \btx{} style file is intended to be used with
+% \dtx{} in order to produce actual \texttt{.bst} files. By selecting
+% desired options, the output is customized to the particular requirements
+% needed.
+% 
+% The file has been assembled from Oren Patashnik's standard files
+% \texttt{plain.bst} and \texttt{unsrt.bst}, plus his non-standard file
+% \texttt{apalike.bst}. This last is an author-year citation style, although
+% somewhat imperfect. I have added a number of other options and codings to
+% produce the features that I deem necessary.
+% 
+% \section{About Master Bibliographic Style Files}
+% \subsection{The \dtx{} Options}
+% This master file is a \btx{} bibliographic style file containing
+% alternative coding depending on \dtx{} options. The options are
+% selected when \dtx{} is run, either interactively or through a
+% batch job. 
+% 
+% Suppose that one of the options is called \texttt{xyz}. Then the following
+% alternatives are possible:
+% \begin{quote}
+% |%<xyz> | \em one line of coding
+% \end{quote}
+% \emph{includes} the single line of coding;
+% \begin{quote}
+% |%<!xyz> | \em one line of coding 
+% \end{quote}
+% \emph{excludes} the single line;
+% \begin{quote}
+% |%<*xyz> | \\
+% \emph{several lines of coding}\\
+% |%</xyz> | 
+% \end{quote}
+% \emph{includes} all the bracketted lines;
+% \begin{quote}
+% |%<*!xyz> | \\
+% \emph{several lines of coding}\\
+% |%</!xyz> | 
+% \end{quote}
+% \emph{excludes} all the bracketted lines.
+% 
+% Options may be logically combined: the symbol \verb!|! is a logical
+% \textsf{or}, |&| a logical \textsf{and}, |!| a logical \textsf{not};
+% parentheses \texttt{(} and \texttt{)} may be used to group options.
+% 
+% \subsection{The \dtx{} Batch Job}
+% In order to generate a true \btx{} style file with selected options from
+% this master file, it is necessary to run a \dtx{} batch job.
+% Suppose that the master file is named \texttt{master.mbs}, and the
+% resulting \btx{} style file is to be \texttt{silly.bst}, and the batch job
+% file itself is called \texttt{silly.dbj}. To produce this with options, say,
+% \texttt{xyz} and \texttt{abc}, the batch job would look something like:
+% \begin{quote}\begin{verbatim}
+% \def\batchfile{silly.dbj}
+% \input docstrip
+% 
+% \preamble
+% This is for Journal of Silly Results
+% \endpreamble
+% 
+% \postamble
+% End of customized bst file
+% \endpostamble
+% 
+% \keepsilent
+% 
+% \generateFile{silly.bst}{f}{\from{master.mbs}{xyz,abc}}
+% \end{verbatim}
+% \end{quote}
+% A preamble is not necessary, although it is advisable to include some
+% statement about the application of the bibliographic style. A postamble
+% \emph{is} vital, otherwise the default will add |\endinput| at the end
+% of the file, something that \btx{} will not understand. The |\keepsilent|
+% is optional and just suppresses \dtx{} output during processing.
+% 
+% \subsection{The \texttt{makebst} Program}
+% The program \texttt{makebst} simplifies the creation of the batch job file. To
+% do that, it needs information on the available options. This information
+% must be stored in a special format, either in the master file itself, or
+% in a file with the same root name but extension \texttt{.opt}. The form of
+% this format is described in the documentation on \texttt{makebst}.
+% 
+% In the master file, this information must be enclosed within \dtx{}
+% options |%<*options>| \dots |%</options>| and \emph{must} include an
+% |\endoptions| command. It may also include any number of comments. 
+% 
+% A sample menu in the master file to select one or none of options 
+% \texttt{xyz} \emph{or} \texttt{zyx} would look thus:
+% \begin{quote}\begin{verbatim}
+% %<*options>
+% \mes{Select one of these}
+% \optdef{f}{xyz}{Option forword}{to do forward stuff}
+% \optdef{r}{zyx}{Option reverse}{to do reverse stuff}
+% \optdef{*}{}{None of the above}{}
+% \getans
+% \endoptions
+% %</options>
+% %<*!options>
+% . . . . . . 
+% %</!options>
+% \end{verbatim}
+% \end{quote}
+% An explanation of these commands is to be found in the documentation on 
+% \texttt{makebst}.
+% 
+% The menu information may be extracted from the master file by means of
+% \dtx{} and stored in a file with extension \texttt{.opt}. If this
+% file is missing, the program tries to read it from the master file.
+% 
+% \section{The Options}
+% Here I present a list of all the \dtx{} options that are
+% available (except for \texttt{options} itself). I have tried to avoid
+% conflicts with mutually exclusive options by always letting one dominate.
+% For example, if \texttt{a} and \texttt{b} are to be mutually exclusive, then
+% the three possibilities are:
+% \begin{quote}\begin{tabular}{rl}
+% neither &  \tt\%<!a\&!b> \\
+% \texttt{a} only & \tt\%<a> \\
+% \texttt{b} only & \tt\%<!a\&b>
+% \end{tabular}\end{quote}
+% so that if both \texttt{a} and \texttt{b} have been selected, the result is as
+% if only \texttt{a} had been given. (If one uses \texttt{makebst} to produce
+% the \dtx{} batch job, then it is impossible to give mutually exclusive
+% options.)
+% 
+% Most mutually exclusive options have the same prefix before the hyphen.
+% 
+% \newenvironment{opt}{%
+% \begin{list}{}{\labelwidth2cm \leftmargin2.5cm \labelsep1em \rightmargin0pt
+%  \def\makelabel##1{\ttfamily ##1 \hfill}}}{\end{list}}
+% \textbf{Citation style:} whether or not a numerical or author-year system 
+% is to be used.
+% \begin{opt}
+% \item[--] default is numerical, standard \LaTeX, as for {\tt
+%           plain.bst}.\\
+%           |\bibitem{key}...|
+% \item[cite] special for listing entire databases; the cite key is used 
+%             as the label so it may be listed.\\
+%             |\bibitem[key]{key}...|
+% \item[ay] for author-year style of citations. Various forms of |\bibitem|
+%           are provided under this option, to support different types
+%           of \LaTeX{} styles for interfacing with the author-year system.
+% \end{opt}
+% 
+% If \texttt{ay} has been selected, then the type of author-year interface
+% is selectable. Some of these, like \texttt{natbib} and \texttt{harvard}
+% exist in two versions because of updates in these systems. 
+% \begin{opt}
+% \item[--] default is the system I invented for my \texttt{natbib.sty}\\
+%            |\bibitem[author(year)]{key}...|   
+% \item[nat] for extended format of \texttt{natbib.sty} version 5.3\\
+%            |\bibitem[author(year)full author]{key}...|   
+% \item[alk] for the \texttt{apalike.sty} of Oren Patashnik and related
+%            systems\\
+%            |\bibitem[author, year]{key}...|
+% \item[har] for the Harvard family of styles (with \texttt{harvard.sty})\\
+%            |\harvarditem[short]{long}{year}{key}...|
+% \item[harnm] for the extended Harvard family, containing some extra commands
+%            used by \LaTeXe\ version 2.0.3 of \texttt{harvard.sty} 
+% \item[ast] for astronomy family of styles (with \texttt{astron.sty})\\
+%            |\bibitem[\protect\astroncite{author}{year}]{key}...|
+% \item[cay] for the Chicago family of styles (with \texttt{chicago.sty})\\
+%            |\bibitem[\protect\citeauthoryear{long}{short}{year}]{key}...|
+% \item[cn] for the ``author-date'' group of styles (with {\tt
+%            authordate1-4.sty})\\
+%            |\bibitem[\protect\citename{author, }year]{key}...|
+% \end{opt}
+% 
+% \textbf{Sequence:} the order in which the references are listed.
+% \begin{opt}
+% \item[--]      default is alphabetical by all authors, date, title
+% \item[seq-no]  (numerical only) sequence by citation order
+% \item[seq-lab] (author-year) by label, date, title (means that Daly 
+%                precedes Daly and Williams, precedes Daly et al.)
+% \end{opt}
+% 
+% \textbf{Names formatting:} how initials and surnames are to be combined.
+% \begin{opt}
+% \item[--]       default is full names, given names first
+% \item[nm-init]  initials plus surname
+% \item[nm-rev]   surname plus initials
+% \item[nm-rev1]  surname plus initials (1st name only) then initials 
+%                 plus surname
+% \item[nm-rv]    as \texttt{nm-rev}, but initials without dots
+% \item[ed-rev]  editors' names are reversed the same as authors'
+% \end{opt}
+% 
+% \textbf{Number of names:} normally all names listed (in reference list)
+% \begin{opt}
+% \item[nmlm]     limit number of names
+% \item[x1...x9]  (with \texttt{nmlm}) maximum number of names to appear
+% \item[m1...m5]  (with \texttt{nmlm}) minimum number before `et al' written;
+%                 no check for consistency is taken; one \texttt{x} and 
+%                 one \texttt{m} number must be given, and {\tt x}$\le${\tt m}
+% \end{opt}
+% 
+% \textbf{Names font:} in the reference list
+% \begin{opt}
+% \item[--]       default is names in normal type face
+% \item[nmft-sc]  names in small caps
+% \item[nmft-it]  names in italics   
+% \item[nmft-bf]  names in bold      
+% \end{opt}
+% 
+% \textbf{Block punctuation:} between logical sections (not mutually
+% exclusive)
+% \begin{opt}
+% \item[--]       default is period after each logical section, including end
+% \item[blk-com]  use commas, except at very end (changes `In' to `in')
+% \item[blk-tit]  use commas, except after a title and very end
+% \item[in-blk]   when commas used between blocks, starts sentence after
+%                 article title when followed by ``In: \dots''
+% \item[in-col]   puts a colon after `In' or `in' for edited works
+% \item[fin-bare] no punctuation at the very end
+% \end{opt}
+% 
+% \textbf{Date:} position and enclosure
+% \begin{opt}
+% \item[--]       default is date at end, before notes; for author-year,
+%                   date consists only of year, no month
+% \item[dt-beg]   date goes after authors' names 
+% \item[dt-end]   date goes after any notes
+% \item[yr-par]   no month, year in parentheses ()
+% \item[yr-brk]   no month, year in brackets []
+% \item[yr-col]   no month, year preceded by colon and space
+% \item[yr-per]   year preceded by period and space
+% \item[yr-blk]   year preceded by space
+% \item[note-yr]  permits text (like ``in press'') in the \texttt{year} field
+% \item[yrp-x]    suppresses punctuation following month, year when date
+%                 is just after authors
+% \end{opt}
+% 
+% \textbf{Article in journal:} style of title, volume, pages
+% \begin{opt}
+% \item[--]       default is: Title. \textit{Journal}, vol(num):p1--p2
+% \item[volp-sp]  as above, but with a space, vol(num):~p1--p2
+% \item[vol-bf]   volume in bold
+% \item[vol-it]   volume in italics
+% \item[vol-2bf]  volume and number bold
+% \item[volp-com] comma and space instead of colon:   vol(num), p1--p2
+% \item[vnum-x]   no number for journals, only volume
+% \item[vnum-s]   replace vol(num) with vol, num
+% \item[vnum-nr]  replace vol(num) with vol, no. num
+% \item[vnum-h]   replace vol(num) with vol, \#num
+% \item[jpg-1]    only starting page given
+% \item[jnm-x]    no punctuation after journal name
+% \item[tit-it]   article title in italics
+% \item[tit-q]    article title in single quotes
+% \item[tit-qq]   article title in double quotes
+% \item[jtit-x]   no article title (applies only to journals and 
+%                 collections)
+% \item[atit-u]   article title capitalized as in entry, default is
+%                 sentence capitalization (first word and words following
+%                 colons)
+% \end{opt}
+% 
+% \textbf{Thesis title:} formatted like a book or article
+% \begin{opt}
+% \item[--]       default is like a book title
+% \item[thtit-a]  titles of PhD and Master theses formatted like articles
+% \end{opt}
+%
+% \textbf{Book title:} font style
+% \begin{opt}
+% \item[--]       default is italicized
+% \item[btit-rm]  book title plain
+% \end{opt}
+% 
+% \textbf{Abbreviations:} of various words, default is no abbreviations
+% \begin{opt}
+% \item[pp]       abbreviate `page(s)' as `p.' and `pp.'
+% \item[ed]       abbreviate `editor(s)' as `ed.' and `eds.'
+% \item[abr]      abbreviate `volume', `edition', `technical report', etc.
+% \end{opt}
+% 
+% \textbf{Editor:} alternative for \emph{in edited} work
+% \begin{opt}
+% \item[--]       in \emph{names}, editors, \emph{title}
+% \item[edby]     in \emph{title}, edited by \emph{names}
+% \item[edby-par] in \emph{title} (Edited by \emph{names})
+% \end{opt}
+%
+% \textbf{Citation label:} what is written by the |\cite| command
+% \begin{opt}
+% \item[--]       default is no special font
+% \item[lab-it]   label (names printed by |\cite|) in italics
+% \item[xlab-it]  extra label (letter after year) in italics
+% \end{opt}
+% 
+% \textbf{Emphasis:} defines what `italicized' really means
+% \begin{opt}
+% \item[--]       default is |\em| (can switch between |\it| 
+%                 and |\rm|
+% \item[em-it]    use |\it| instead (always italic)
+% \item[em-x]     no emphasis
+% \end{opt}
+% 
+% \textbf{Special punctuation:} 
+% \begin{opt}
+% \item[amper]    use \& in place of `and'
+% \item[and-xcom] no comma before last `and' of an author list (citations and
+%                  references)
+% \item[and-com]  add comma before `and' even for two authors (in list of
+%                  references)
+% \item[xand]    no `and' in an author list (references)
+% \item[etal-it]  `et al.' in italics
+% \end{opt}
+% 
+% \textbf{Font commands:}
+% \begin{opt}
+% \item[--]     use \LaTeX~2.09 font commands
+% \item[nfss]   use |\textbf|, |\textit|, |\emph| in place of |\bf|, |\it|,
+%                and |\em|; only works then with \LaTeXe
+% \end{opt}
+%
+% \section{The Menu Information}
+% Here I describe the options and menu information for this particular
+% master file \texttt{\filename}. To construct a \dtx{} driver file
+% to generate a desired \texttt{.bst} file, simply process \texttt{makebst.tex}
+% with \TeX\ or \LaTeX, and give 
+% \begin{quote}\tt\filename\end{quote}
+% when prompted for the name of the master file. Then answer the questions
+% in the menus that follow. The menu information is extracted from here.
+% 
+% All this menu information is nested between \dtx{} guard options
+% |%<*options>| \dots\ |%</options>|, and the last command is
+% |\endoptions|. The rest of the file is nested between |%<*!options>|
+% \dots\ |%</!options>| in order to exclude it if \dtx{} is used to
+% extract only the menu information.
+% 
+% \subsection*{Author-year or numerical}
+% The first question is whether a numerical or author-year citation style
+% is to be used. If the latter, the supporting system is my {\tt
+% natbib.sty}, which expects |\bibitem| to have an optional argument
+% containing the short form of the authors, plus year in parentheses.
+% E.g.,
+% \begin{quote}
+% |\bibitem[Daly et al.(1990)]{key}...|
+% \end{quote}
+% There is now a newer version of \texttt{natbib.sty} (v5.3) that
+% supports an optional full author list too, as
+% \begin{quote}
+% |\bibitem[Daly et al.(1990)Daly, Keppler, and Williams]{key}...|
+% \end{quote}
+% Other systems are also supported, such as the Harvard family of
+% bibliography styles (with \texttt{harvard.sty}), which have entries in the
+% form
+% \begin{quote}
+% |\harvarditem[Daly et al.]{Daly, Keppler,|\\
+% |       and Williams}{1990}{key}...|
+% \end{quote}
+% or the astronomy family (with \texttt{astron.sty}) with entries like
+% \begin{quote}
+% |\bibitem[\protect\astroncite{Daly et al.}{1990}]{key}...|
+% \end{quote}
+% or the Chicago family (with \texttt{chicago.sty}) with entries like
+% \begin{quote}
+% |\bibitem[\protect\citeautheryear{Daly, Keppler, and|\\
+% |      Williams}{Daly et al.}{1990}]{key}...|
+% \end{quote}
+% or the so-called ``author-date'' group (with \texttt{authordate1-4.sty})
+% with entries of the form
+% \begin{quote}
+% |\bibitem[\protect\citename{Daly et al.}1990]{key}...|
+% \end{quote}
+% Finally, there is the \texttt{apalike} format of Oren Patashnik, for use
+% with \texttt{apalike.sty} that has entries of the form
+% \begin{quote}
+% |\bibitem[Daly et al., 1990]{key}...|
+% \end{quote}
+% 
+% In addition to numerical or author-year citation styles, there is also a
+% \texttt{cite} style available in which the label is the same as the cite
+% key. This is for listing entire contents of databases with the cite key
+% visible. 
+% 
+% A flag |\ifnumerical| is established because some of the following menu
+% features depend on which system is to be used.
+%    \begin{macrocode}
+%<*options>
+\newif\ifnumerical \numericalfalse
+\newif\ifmytemp\mytempfalse
+\mes{^^JSTYLE OF CITATIONS:}
+\optdef{*}{}{Numerical}{as in standard LaTeX}
+\optdef{a}{ay}{Author-year}{with some non-standard interface}
+\optdef{c}{cite}{Cite key}{(special for listing contents of bib file)}
+\getans
+\numericaltrue
+\if\ans a\numericalfalse\fi
+
+\ifnumerical\else
+\mes{^^JAUTHOR-YEAR SUPPORT SYSTEM:}
+\optdef{*}{nat}{Natbib}{for use with natbib.sty v5.3}
+\optdef{n}{}{Older Natbib}{without full authors citations}
+\optdef{l}{alk}{Apalike}{for use with apalike.sty}
+\optdef{h}{har}{Harvard}{system with harvard.sty}
+\optdef{a}{ast}{Astronomy}{system with astron.sty}
+\optdef{c}{cay}{Chicago}{system with chicago.sty}
+\optdef{d}{cn}{Author-date}{system with authordate1-4.sty}
+\getans
+
+%    \end{macrocode}
+% The \texttt{harvard} family has been extended for \LaTeXe, and the new
+% \texttt{.bst} files allow the word `and' and the brackets around years
+% to be variable with commands. A URL entry is added, for the on-line
+% network reference. These features may be added too.
+%    \begin{macrocode}
+\if\ans h%
+\mes{^^JHARVARD EXTENSIONS INCLUDED:}
+\optdef{*}{harnm}{With Harvard extensions}{for LaTeX2e version of harvard.sty}
+\optdef{n}{}{Older Harvard}{style, for LaTeX 2.09}
+\getans\fi
+\fi
+
+%    \end{macrocode}
+% 
+% \subsection*{Ordering of the listed references}
+%   Choices here depend on citation style. The default in both cases is
+% alphabetical order of all authors. For numerical style, one may also
+% choose an unsorted order, which means the order the same as the original
+% citations. This corresponds to \texttt{unsrt.bst}.
+% 
+% For author-year, the second choice is by label. (The label is the
+% optional |\bibitem| argument, and is what is printed in place of the
+% |\cite| command.) With this option, all the papers with the same first
+% author are ordered so that the one-author papers come first, followed by
+% the two-author papers, followed by the multiple-author papers. This is a
+% more sensible system for author-year citations, and is demanded by some
+% journals (like JGR).
+%    \begin{macrocode}
+\ifnumerical
+\mes{^^JORDERING OF REFERENCES:}
+\optdef{*}{}{Alphabetical}{by all authors}
+\optdef{c}{seq-no}{Citation order}{(unsorted, like unsrt.bst)}
+\getans
+\else
+\mes{^^JORDERING OF REFERENCES:}
+\optdef{*}{}{Alphabetical}{by all authors}
+\optdef{l}{seq-lab}{By label}%
+   {(Jones before Jones and James before Jones et al)}
+\getans
+\fi
+
+%    \end{macrocode}
+%
+% \subsection*{Formatting author names}
+% The default is that the full names of the authors are listed, given names
+% first, unabbreviated. Of course, if only the initials have been given in
+% the \texttt{.bib} file, then that is all that can appear in the list. Other
+% possibilities are to use initials (even if full names in the \texttt{.bib}
+% file) either before or after the surnames. A specialty of the journals of
+% the American Geophysical Union is to have only the first name with
+% reversed initials.
+%
+% If the reference is part of a larger work with editors, then the editor
+% names appear later in the reference text, usually as ``edited by \dots''
+% or as ``\emph{names} (editors)''. In these cases, the editor names are 
+% not usually reversed (surname first) even if the authors' names are.
+% An option is provided to format such editor names exactly as the authors'.
+%    \begin{macrocode}
+\mes{^^JAUTHOR NAMES:}
+\optdef{*}{}{Full, surname last}{(John Frederick Smith)}
+\optdef{i}{nm-init}{Initials + surname}{(J. J. Smith)}
+\optdef{r}{nm-rev}{Surname + initials}{(Smith, J. J.)}
+\optdef{s}{nm-rv}{Surname + dotless initials}{(Smith J J)}
+\optdef{a}{nm-rev1}{Only first name reversed}%
+   {(AGU style: Smith, J. J., H. K. Jones)}
+\getans
+
+\mytempfalse
+\if\ans r\mytemptrue\fi
+\if\ans s\mytemptrue\fi
+\if\ans a\mytemptrue\fi
+\ifmytemp
+\mes{^^JEDITOR NAMES IN COLLECTIONS:}
+\if\ans r
+\optdef{*}{}{Editor names NOT reversed}{as edited by J. J. Smith}
+\fi
+\if\ans s
+\optdef{*}{}{Editor names NOT reversed}{as edited by J J Smith}
+\fi
+\if\ans a
+\optdef{*}{}{Editor names NOT reversed}{as edited by J. J. Smith}
+\fi
+\optdef{r}{ed-rev}{Editor names reversed}{just like authors'}
+\getans
+\fi
+%    \end{macrocode}
+%
+% \subsection*{Number of authors}
+% Normally the complete list of authors as given in the \texttt{.bib} file are
+% presented in the reference list. However, some journals prefer to limit
+% them to a maximum. If there are more than this maximum number of author
+% names, then a minimum number plus `et al.' are listed.
+% 
+% Because no test for consistency of the numbers is carried out in the
+% \texttt{.bst} file itself (it might be possible, but I found it too complex),
+% this is done here.
+%    \begin{macrocode}
+\mes{^^JNUMBER OF AUTHORS:}
+\optdef{*}{}{All authors}{included in listing}
+\optdef{l}{nmlm}{Limited authors}{(et al replaces missing names)}
+\getans
+\if\ans l
+\loop
+  \ask{\num}{Maximum number of authors (1-9)}
+  \ifnum\num>9
+  \mes{*** Must be between 1 and 9}
+\repeat
+\wr{\spsp\spsp\sep x\num\pc: Maximum of \num\space authors}
+\mes{\spsp You have selected maximum \num\space authors}
+\ifnum\num>5\def\numx{5}\else\edef\numx{\num}\fi
+\loop
+  \ask{\num}{Minimum number (before et al given) (1-\numx)}
+  \ifnum\num>\numx
+  \mes{*** Must be between 1 and \numx}
+\repeat
+\wr{\spsp\spsp\sep m\num\pc: Minimum of \num\space authors}
+\mes{\spsp You have selected minimum \num\space authors}
+\fi
+
+%    \end{macrocode}
+% 
+% \subsection*{Type face of names}
+% The author names in the list of references normally appear in the current
+% type face. This may be changed to small caps, bold, or italics.
+%    \begin{macrocode}
+\mes{^^JTYPEFACE FOR AUTHORS:}
+\optdef{*}{}{Normal font for authors}{}
+\optdef{s}{nmft-sc}{Small caps authors}{(\string\sc)}
+\optdef{i}{nmft-it}{Italic authors}{(\string\it\space or \string\em)}
+\optdef{b}{nmft-bf}{Bold authors}{(\string\bf)}
+\getans
+
+%    \end{macrocode}
+%
+% \subsection*{Position of date}
+% This applies to author-year style only. It makes sense to put the date
+% immediately after the author list, since the two items (author and year)
+% are the identifiers of the reference. Default position is at the
+% end of the references, before any notes. It is also possible to place
+% it even after the notes.
+%    \begin{macrocode}
+\mes{^^JDATE POSITION:}
+\optdef{*}{}{Date at end}{}
+\optdef{b}{dt-beg}{Date after authors}{}
+\optdef{e}{dt-end}{Date at very end}{after any notes}
+\getans
+
+\if\ans b\mytemptrue\else\mytempfalse\fi
+%    \end{macrocode}
+%
+% \subsection*{Format of date}
+% The year may be enclosed in parentheses, brackets, or preceded by a
+% colon. If none of these are selected, the date (month plus year) appears. 
+% For author-year, the date always consists only of the year, no month.
+%
+% If the date is to go inside parentheses or brackets, and it is just after
+% the authors, then one might want to suppress the following punctuation.
+%    \begin{macrocode}
+\ifnumerical
+\mes{^^JDATE FORMAT:}
+\optdef{*}{}{Month and year}{without any brackets}
+\optdef{p}{yr-par}{Date in parentheses}{as (May 1993)}
+\optdef{b}{yr-brk}{Date in brackets}{as [May 1993]}
+\optdef{c}{yr-col}{Date preceded by colon}{as `: May 1993'}
+\optdef{d}{yr-per}{Date preceded by period}{as `. May 1993'}
+\optdef{s}{yr-blk}{Date preceded by space}{only, as ` May 1993'}
+\else
+\mes{^^JDATE FORMAT:^^J(no months for author-year)}
+\optdef{*}{}{Year plain}{without any brackets}
+\optdef{p}{yr-par}{Year in parentheses}{as (1993)}
+\optdef{b}{yr-brk}{Year in brackets}{as [1993]}
+\optdef{c}{yr-col}{Year preceded by colon}{as `: 1993'}
+\optdef{d}{yr-per}{Year preceded by period}{as `. 1993'}
+\optdef{s}{yr-blk}{Year preceded by space}{only, as ` 1993'}
+\fi
+\getans
+
+\if\ans p\else\if\ans b\else\mytempfalse\fi\fi
+\ifmytemp
+\mes{^^JDATE PUNCTUATION:}
+\optdef{*}{}{Date with punctuation}{(comma or period)}
+\optdef{x}{yrp-x}{No punct. after date}{}
+\getans
+\fi
+%    \end{macrocode}
+% 
+% Normally in author-year citations, the \texttt{year} entry is truncated
+% to the last 4 characters, which should be the 4 digits of the year. Some
+% users have requested the possibility of suppressing this truncation so
+% that they may put text in the \texttt{year} field, such as ``in press.''
+%    \begin{macrocode}
+\ifnumerical\else
+\mes{^^JTRUNCATE YEAR:}
+\optdef{*}{}{Year truncated}{to last 4 digits}
+\optdef{t}{note-yr}{Year text full}{to allow text in place of digits}
+\getans
+\fi
+
+%    \end{macrocode}
+%
+% \subsection*{Article title in journal}
+% The title of an article in a journal or in a collection (a book, or
+% conference proceedings) may appear plain, in italics, within single
+% or double quotes. 
+% 
+% Furthermore, it may have sentence capitalization (first
+% word and word following colon) or be capitalized as in the \texttt{.bib} file
+% entry. That is why it is recommended to capitalize the entry text as it
+% should appear when fully capitalized, putting words that are always
+% capitalized in braces. Example:
+% \begin{quote}
+% |TITLE="The Results of the {Giotto} Mission"|
+% \end{quote}
+% which produces either ``The results of the Giotto mission'' or ``The
+% Results of the Giotto Mission'', depending on option.
+% 
+% Additionally, the article titles may be fully suppressed.
+%    \begin{macrocode}
+\mes{^^JTITLE OF ARTICLE:}
+\optdef{*}{}{Title plain}{with no special font}
+\optdef{i}{tit-it}{Title italic}{(\string\em)}
+\optdef{q}{tit-q}{Title in single quotes}{(`Title')}
+\optdef{d}{tit-qq}{Title in double quotes}{(``Title'')}
+\getans
+
+\mes{^^JCAPITALIZATION OF ARTICLE TITLE:}
+\optdef{*}{}{Sentence style}{(first word and those in braces)}
+\optdef{t}{atit-u}{Title style}{(just as in bib entry)}
+\getans
+
+\mes{^^JARTICLE TITLE PRESENT:}
+\optdef{*}{}{Article title present}{in journals and proceedings}
+\optdef{x}{jtit-x}{No article title}{}
+\getans
+
+%    \end{macrocode}
+%
+% \subsection*{Title of Theses}
+% The title of a these (PhD or Master's) is normally treated the same
+% as that of a book. Optionally, it may be formatted like that of 
+% an article.
+%
+%    \begin{macrocode}
+\mes{^^JTHESIS TITLE:}
+\optdef{*}{}{Thesis titles like books}{}
+\optdef{a}{thtit-a}{Thesis title like article}{}
+\getans
+
+%    \end{macrocode}
+%
+% \subsection*{Journal reference}
+% Great diversity of opinion exists as to how a journal reference is to be
+% formatted. It consists of a volume, possibly a number, and page limits.
+% The number is really only necessary if the page numbers within one volume
+% start at 1 for each physical `number'. Since journals are often bound
+% together in one volume later, it makes more sense to number the pages
+% continuously through the whole volume. However, this is not always so,
+% and then the `number' is necessary for the full specification.
+% 
+% A number of styles for journal specifications are
+% \begin{quote}
+% 21(2):33--55\\
+% \textbf{21}(2):33--55\\
+% \textit{21}(2), 33--55
+% \end{quote}
+% 
+% Here both start and stop page numbers have been given; often only the
+% start page is wanted.
+% 
+%    \begin{macrocode}
+\mes{^^JJOURNAL VOLUME NUMBER:}
+\optdef{*}{}{Volume plain}{as vol(num)}
+\optdef{i}{vol-it}{Volume italic}{as {\string\em\space vol}(num)}
+\optdef{b}{vol-bf}{Volume bold}{as {\string\bf\space vol}(num)}
+\optdef{d}{vol-2bf}{Volume and number bold}{as {\string\bf\space vol(num)}}
+\getans
+
+%    \end{macrocode}
+%
+% The form of the `number' is also given: in parentheses, with `no.', 
+% with \#, or omitted.
+%    \begin{macrocode}
+\mes{^^JJOURNAL VOL AND NUMBER:}
+\optdef{*}{}{Journal vol(num)}{as 34(2)}
+\optdef{n}{vnum-nr}{Journal vol, no. num}{as 34, no. 2}
+\optdef{h}{vnum-h}{Journal vol, \string\# number}{as 34, \string\#2}
+\optdef{s}{vnum-s}{Journal vol, num}{as 34, 2}
+\optdef{x}{vnum-x}{Journal vol, no number}{as 34}
+\getans
+
+%    \end{macrocode}
+%
+% It is possible to decide whether the journal name should be
+% separated from the following specifications with a blank or comma.
+%    \begin{macrocode}
+\mes{^^JVOLUME PUNCTUATION:}
+\optdef{*}{}{Volume with colon}{as vol(num):ppp}
+\optdef{s}{volp-sp}{Volume with colon and space}{as vol(num): ppp}
+\optdef{c}{volp-com}{Volume with comma}{as vol(num), ppp}
+\getans
+
+\mes{^^JPAGE NUMBERS:}
+\optdef{*}{}{Start and stop page numbers}{given}
+\optdef{f}{jpg-1}{Only start page number}{}
+\getans
+
+\mes{^^JJOURNAL NAME PUNCTUATION:}
+\optdef{*}{}{Comma after journal}{name}
+\optdef{x}{jnm-x}{Space after journal}{name}
+\getans
+
+%    \end{macrocode}
+%
+% \subsection*{Book title}
+% The title of a book (as opposed to an article in a book or journal) is
+% normally italicized. This may be set to the regular font.
+%    \begin{macrocode}
+\mes{^^JBOOK TITLE:}
+\optdef{*}{}{Book title italic}{(\string\em)}
+\optdef{p}{btit-rm}{Book title plain}{(no font command)}
+\getans
+
+%    \end{macrocode}
+%
+% \subsection*{Edited by}
+% For an article within an edited collection, the normal form is 
+% \begin{quote}
+% In J. K. James, editor, \emph{Title of Collection} \dots
+% \end{quote}
+% An alternative is the form
+% \begin{quote}
+% In \emph{Title of Collection}, edited by J. K. James \dots
+% \end{quote}
+%    \begin{macrocode}
+\mes{^^JEDITOR STYLE:}
+\optdef{*}{}{Word `editor'}{after name of editor}
+\optdef{b}{edby}{`Edited by'}{before name of editor}
+\optdef{p}{edby-par}{`(Edited by..)'}{editor(s) in parentheses}
+\getans
+
+%    \end{macrocode}
+%
+% \subsection*{Block punctuation}
+% Blocks are logical sections of the reference specification, such as the
+% author block, the journal block, editor block, etc. These are normally
+% separated by periods, but alternatively a comma may be used. Another
+% choice is to use commas except after titles where a period is given.
+% In this case, one might also want the title of a work in a collection
+% to be followed by a period.
+%    \begin{macrocode}
+\mes{^^JPUNCTUATION BETWEEN SECTIONS (BLOCKS):}
+\optdef{*}{}{Period after blocks}{of authors, title, etc}
+\optdef{c}{blk-com}{Comma after blocks}{}
+\optdef{t}{blk-tit}{Only titles with period}{but other blocks commas}
+\getans
+
+\mytempfalse
+\if\ans c\mytemptrue\fi
+\if\ans t\mytemptrue\fi
+\ifmytemp
+\mes{^^JPUNCTUATION AFTER TITLE OF INCOLLECTION:}
+\optdef{*}{}{Comma after title in collection}{as Title, in:...}
+\optdef{p}{in-blk}{Period after title in collection}{as Title. In:...}
+\getans
+\fi
+%    \end{macrocode}
+%
+% \subsection*{`In' with colon}
+% When referring to works in a collection, one begins the block describing
+% that collection with `In'. Optionally, one may add a colon.
+%    \begin{macrocode}
+\mes{^^JPUNCTUATION AFTER `IN':}
+\optdef{*}{}{Space after `in'}{for editted works or proceedings}
+\optdef{c}{in-col}{Colon after `in'}{(as `In: ...')}
+\getans
+
+%    \end{macrocode}
+% 
+% \subsection*{Final punctuation}
+% The punctuation at the end of the reference is normally a period. This
+% may be suppressed.
+%    \begin{macrocode}
+\mes{^^JFINAL PUNCTUATION:}
+\optdef{*}{}{Period at very end}{of the listed reference}
+\optdef{x}{fin-bare}{No period at end}{}
+\getans
+
+%    \end{macrocode}
+%
+% \subsection*{Abbreviations}
+% A number of words may be abbreviated: pages, editors, volume, chapter,
+% and so on. The first two may be independently set to abbreviation, the
+% rest with a single option.
+%    \begin{macrocode}
+\mes{^^JABBREVIATE WORD `PAGES':}
+\optdef{*}{}{`Page(s)'}{(no abbreviation)}
+\optdef{a}{pp}{`Page' abbreviated}{as p. or pp.}
+\getans
+
+\mes{^^JABBREVIATE WORD `EDITORS':}
+\optdef{*}{}{`Editor(s)'}{(no abbreviation)}
+\optdef{a}{ed}{`Editor' abbreviated}{as ed. or eds.}
+\getans
+
+\mes{^^JOTHER ABBREVIATIONS:}
+\optdef{*}{}{No abbreviations}{of volume, edition, chapter, etc}
+\optdef{a}{abr}{Abbreviations}{of such words}
+\getans
+
+%    \end{macrocode}
+% \subsection*{Citation label}
+% This applies to author-year style only. The label is the text written
+% by the |\cite| command, and for author-year style, this is something like
+% `Daly et al.\ (1990b)'. One may select italics for the authors and for the
+% extra label attached to the year. The year always remains plain.
+% 
+% It is not possible to select the type of brackets for the year, since
+% this is determined by the \LaTeX{} style option that manages the
+% author-year citations. This is not standard \LaTeX, so that there are a
+% number of private style files for achieving this.
+%    \begin{macrocode}
+\ifnumerical\else
+\mes{^^JFONT OF CITATION LABEL:}
+\optdef{*}{}{Cited authors plain}{as result of \string\cite\space command}
+\optdef{i}{lab-it}{Cited authors italic}{}
+\getans
+
+\mes{^^JFONT OF EXTRA LABEL:^^J(The extra letter on the year)}
+\optdef{*}{}{Extra label plain}{}
+\optdef{i}{xlab-it}{Extra label italic}{}
+\getans
+\fi
+
+%    \end{macrocode}
+%
+% \subsection*{Variations on `and'}
+% It is possible to replace the word `and' with an ampersand \&, and to
+% specify whether a comma is to precede `and' in a list of more than two
+% names.
+%    \begin{macrocode}
+\mes{^^JAMPERSAND:}
+\optdef{*}{}{Use word `and'}{in author lists}
+\optdef{a}{amper}{Use ampersand}{in place of `and'}
+\getans
+
+\mes{^^JCOMMA BEFORE `AND':}
+\optdef{*}{}{Comma before `and'}{as `Tom, Dick, and Harry'}
+\optdef{n}{and-xcom}{No comma before `and'}{as `Tom, Dick and Harry'}
+\optdef{c}{and-com}{Comma with 2 authors}{as `Tom, and Harry'}
+\getans
+
+\mes{^^JNO `AND' IN REFERENCE LIST:}
+\optdef{*}{}{With `and'}{before last author in reference list}
+\optdef{x}{xand}{No `and'}{as `Tom, Dick, Harry'}
+\getans
+
+%    \end{macrocode}
+%
+% \subsection*{Font of `et al'}
+% One can chose that `et al.'\ be put into italics.
+%    \begin{macrocode}
+\mes{^^JFONT OF `ET AL':}
+\optdef{*}{}{Plain et al}{}
+\optdef{i}{etal-it}{Italic et al}{}
+\getans
+
+%    \end{macrocode}
+%
+% \subsection*{Define emphasis}
+% In everything that been mentioned so far, italicization should be
+% understood to mean `emphasize' in the \LaTeX{} sense. This means that the
+% command |\em| is used. This is not the same as |\it|, which is always
+% italics. Rather, with |\em|, the font style switches between |\rm| and
+% |\it| depending on the context. Here one may choose to true italics, or
+% to switch off italics altogether.
+%    \begin{macrocode}
+\mes{^^JEMPHASIS:^^J(affects all so-called italics)}
+\optdef{*}{}{Use emphasis}{ie, \string\em, allows font switching}
+\optdef{i}{em-it}{Use true italics}{ie, \string\it, absolute italics}
+\optdef{x}{em-x}{No italics}{at all}
+\getans
+
+%    \end{macrocode}
+% \subsection*{New Font Selection Scheme}
+% Bold face, italics, and emphasis are made with the \LaTeX~2.09 commands.
+% This makes them compatible with \LaTeXe{} as well, but it is possible that
+% in future they might die out. Also, they might not be provided with
+% future classes. Allow an option to use the New Font Selection Scheme (NFSS)
+% font commands in \LaTeXe. If this option is taken, then the \texttt{.bst}
+% file may only be used with \LaTeXe.
+%    \begin{macrocode}
+\mes{^^JNEW FONT SELECTION SCHEME:}
+\optdef{*}{}{No NFSS}{use 2.09 font commands}
+\optdef{n}{nfss}{NFSS}{use \string\textbf, \string\emph, not \string\bf,
+                       \string\em}
+\getans
+\endoptions
+%</options>
+%    \end{macrocode}
+% \StopEventually{\PrintChanges
+%    \end{document}}
+% 
+% \section{The Bibliographic Coding}
+% 
+%    \begin{macrocode}
+%<*!options>
+%%---------------------------------------------------------------------
+%<*ay>
+ % This is an author-year citation style bibliography. As such, it is 
+ % non-standard LaTeX, and requires a special package file to function properly.
+ % Such a package is    natbib.sty   by Patrick W. Daly
+%<*alk>
+ % or:                  apalike.sty  by Oren Patashnik
+ % The form of the \bibitem entries is
+ %   \bibitem[Jones et al., 1990]{key}...
+%</alk>
+%<*!(har|ast|alk|cay|cn)>
+ % The form of the \bibitem entries is
+ %   \bibitem[Jones et al.(1990)]{key}...
+%<nat> %   \bibitem[Jones et al.(1990)Jones, Baker, and Smith]{key}...
+ % The essential feature is that the label (the part in brackets) consists
+ % of the author names, as they should appear in the citation, with the year
+ % in parentheses following. There must be no space before the opening
+ % parenthesis!
+%<nat> % With natbib v5.3, a full list of authors may also follow the year.
+ % In natbib.sty, it is possible to define the type of enclosures that is
+ % really wanted (brackets or parentheses), but in either case, there must
+ % be parentheses in the label.
+ % The \cite command functions as follows:
+ %   \cite{key} ==>>                Jones et al. (1990)
+ %   \cite[]{key} ==>>              (Jones et al., 1990)
+ %   \cite[chap. 2]{key} ==>>       (Jones et al., 1990, chap. 2)
+ %   \cite[e.g.][]{key} ==>>        (e.g. Jones et al., 1990)
+ %   \cite[e.g.][p. 32]{key} ==>>   (e.g. Jones et al., p. 32)
+ %   \citeauthor{key}               Jones et al.
+%<nat> %   \citefullauthor{key}           Jones, Baker, and Smith
+ %   \citeyear{key}                 1990
+%</!(har|ast|alk|cay|cn)>
+%<*har>
+ % or:                  harvard.sty  by Peter Williams and Thorsten Schnier
+%<harnm> % (needs natbib v5.3  or  harvard v2.0.3)
+ % The form of the bibitem entries is
+ %   \harvarditem[Jones et al.]{Jones, Baker, and Smith}{1990}{key}...
+%</har>
+%<*cay>
+ % or:                  chicago.sty 
+ % The form of the bibitem entries is
+ %   \bibitem[\protect\citeauthoryear{Jones, Baker, and Smith}
+ %        {Jones et al.}{1990}{key}...
+%</cay>
+%<*ast>
+ % or:                  astron.sty 
+ % The form of the bibitem entries is
+ %   \bibitem[\protect\astroncite{Jones et al.}{1990}]{key}...
+%</ast>
+%<*cn>
+ % or:                  authordate1-4.sty
+ % The form of the bibitem entries is
+ %   \bibitem[\protect\citename{Jones et al.}1990]{key}...
+%</cn>
+%</ay>
+%<*!ay>
+ % This is a numerical citation style, and as such is standard LaTeX.
+ % It requires no extra package to interface to the main text.
+ % The form of the \bibitem entries is 
+ %   \bibitem{key}...
+ % Usage of \cite is as follows:
+ %   \cite{key} ==>>          [#]
+ %   \cite[chap. 2]{key} ==>> [#, chap. 2]
+ % where # is a number determined by the ordering in the reference list.
+%<*seq-no> 
+ % This is the order in which the works were originally cited in the text.
+%</seq-no> 
+%<*!seq-no> 
+ % This is alphabetical by authors.
+%</!seq-no> 
+%</!ay>
+%<*!ay&cite>
+ % This is a special pseudo-numerical bibliography style. The form of 
+ % the \bibitem entries is
+ %   \bibitem[key]{key}...
+ % It is intended to be used to list all the entries in a bib database
+%</!ay&cite>
+%%---------------------------------------------------------------------
+
+%    \end{macrocode}
+% \changes{1.5}{1994 Sep 16}{Add URL entry type for \texttt{harnm} option}
+%  The new \texttt{harvard.sty} of \LaTeXe{} includes an entry URL, or
+%  rather it is included in the new \texttt{.bst} files for it. Add it 
+%  here too, but only for option \texttt{harnm}.
+%    \begin{macrocode}
+ENTRY
+  { address
+    author
+    booktitle
+    chapter
+    edition
+    editor
+    howpublished
+    institution
+    journal
+    key
+    month
+    note
+    number
+    organization
+    pages
+    publisher
+    school
+    series
+    title
+    type
+%<harnm>    URL
+    volume
+    year
+  }
+  {}
+%<!ay>  { label }
+%<ay>  { label extra.label sort.label }
+
+INTEGERS { output.state before.all mid.sentence after.sentence after.block }
+
+FUNCTION {init.state.consts}
+{ #0 'before.all :=
+  #1 'mid.sentence :=
+  #2 'after.sentence :=
+  #3 'after.block :=
+}
+
+STRINGS { s t }
+
+FUNCTION {output.nonnull}
+{ 's :=
+  output.state mid.sentence =
+    { ", " * write$ }
+    { output.state after.block =
+        { add.period$ write$
+          newline$
+          "\newblock " write$
+        }
+        { output.state before.all =
+            'write$
+            { add.period$ " " * write$ }
+          if$
+        }
+      if$
+      mid.sentence 'output.state :=
+    }
+  if$
+  s
+}
+
+FUNCTION {output}
+{ duplicate$ empty$
+    'pop$
+    'output.nonnull
+  if$
+}
+
+FUNCTION {output.check}
+{ 't :=
+  duplicate$ empty$
+    { pop$ "empty " t * " in " * cite$ * warning$ }
+    'output.nonnull
+  if$
+}
+
+FUNCTION {fin.entry}
+%<*!fin-bare>
+{ add.period$
+  write$
+%</!fin-bare>
+%<*fin-bare>
+{ duplicate$ empty$   
+    'pop$
+    'write$
+  if$
+%</fin-bare>
+  newline$
+}
+
+FUNCTION {new.block}
+{ output.state before.all =
+    'skip$
+    { after.block 'output.state := }
+  if$
+}
+
+FUNCTION {new.sentence}
+{ output.state after.block =
+    'skip$
+    { output.state before.all =
+        'skip$
+        { after.sentence 'output.state := }
+      if$
+    }
+  if$
+}
+
+FUNCTION {add.blank}
+{ " " * before.all 'output.state :=
+}
+
+FUNCTION {not}
+{   { #0 }
+    { #1 }
+  if$
+}
+
+FUNCTION {and}
+{   'skip$
+    { pop$ #0 }
+  if$
+}
+
+FUNCTION {or}
+{   { pop$ #1 }
+    'skip$
+  if$
+}
+
+%    \end{macrocode}
+% \changes{1.4a}{1994 Sep 8}{Add \texttt{non.stop} to test if last character
+%   is punctuation: . ! ?}
+%    \begin{macrocode}
+FUNCTION {non.stop}
+{ duplicate$ 
+   "}" * add.period$ 
+   #-1 #1 substring$ "." =
+} 
+
+%<*!ay>
+FUNCTION {new.block.checka}
+{ empty$
+    'skip$
+    'new.block
+  if$
+}
+
+%</!ay>
+FUNCTION {new.block.checkb}
+{ empty$
+  swap$ empty$
+  and
+    'skip$
+    'new.block
+  if$
+}
+
+%<*!ay>
+FUNCTION {new.sentence.checka}
+{ empty$
+    'skip$
+    'new.sentence
+  if$
+}
+
+FUNCTION {new.sentence.checkb}
+{ empty$
+  swap$ empty$
+  and
+    'skip$
+    'new.sentence
+  if$
+}
+
+%</!ay>
+FUNCTION {field.or.null}
+{ duplicate$ empty$
+    { pop$ "" }
+    'skip$
+  if$
+}
+
+%    \end{macrocode}
+%\changes{1.3}{1994 Jul 1}{Add \texttt{nfss} option}
+% \changes{1.4a}{1994 Sep 8}{Add italic correction to \texttt{emphasize}
+%   using new \texttt{non.stop} test}
+%    \begin{macrocode}
+FUNCTION {emphasize}
+%<*!em-x>
+{ duplicate$ empty$
+    { pop$ "" }
+%<*!nfss>
+%<!em-it>    { "{\em " swap$ * non.stop
+%<em-it>    { "{\it " swap$ * non.stop
+        { "\/}" * } 
+        { "}" * }
+      if$
+    }
+%</!nfss>
+%<*nfss>
+%<!em-it>    { "\emph{" swap$ * "}" * }
+%<em-it>    { "\textit{" swap$ * "}" * }
+%</nfss>
+  if$
+}
+%</!em-x>
+%<em-x>{ skip$ }
+
+%<*nmft-bf|vol-bf|vol-2bf>
+FUNCTION {bolden}
+{ duplicate$ empty$
+    { pop$ "" }
+%<!nfss>    { "{\bf " swap$ * "}" * }
+%<nfss>    { "\textbf{" swap$ * "}" * }
+  if$
+}
+
+%</nmft-bf|vol-bf|vol-2bf>
+%    \end{macrocode}
+%
+% \changes{1.5}{1994 Sep 16}{Add \texttt{write.url} for option \texttt{harnm}}
+% This function taken over from \texttt{agsm.sty}, the main \texttt{harvard}
+% bib style.
+%    \begin{macrocode}
+%<*harnm>
+FUNCTION {write.url}
+{ URL empty$
+    { skip$ }
+    { "\newline\harvardurl{" URL * "}" * write$ newline$ }
+  if$
+}
+
+%</harnm>
+INTEGERS { nameptr namesleft numnames }
+
+%    \end{macrocode}
+% \changes{1.5}{1994 Sep 16}{Add \texttt{harvard} command for `and' with
+%    new option \texttt{harnm}}
+% The \texttt{harvard} package now (version 2.0.3, for \LaTeXe) uses 
+% |\harvardand| in place of the word `and' so that it can be changed
+% at run time. This is allowed for with the option \texttt{harnm}, which
+% need not be used only with the \texttt{har} option.
+%    \begin{macrocode}
+FUNCTION {format.names}
+{ 's :=
+  #1 'nameptr :=
+  s num.names$ 'numnames :=
+  numnames 'namesleft :=
+    { namesleft #0 > }
+%<*!nm-rev1>
+    { s nameptr 
+%<!nm-init&!nm-rev&!nm-rv>      "{ff~}{vv~}{ll}{, jj}" format.name$ 't :=
+%<nm-init>      "{f.~}{vv~}{ll}{, jj}" format.name$ 't :=
+%<!nm-init&nm-rev>      "{vv~}{ll}{, jj}{, f.}" format.name$ 't := 
+%<!nm-init&!nm-rev&nm-rv>      "{vv~}{ll}{ jj}{ f{~}}" format.name$ 't := 
+%</!nm-rev1>
+%<*nm-rev1>
+    { nameptr #1 >
+        { s nameptr "{f.~}{vv~}{ll}{, jj}" format.name$ 't := }
+        { s nameptr "{vv~}{ll}{, jj}{, f.}" format.name$ 't := }
+      if$
+%</nm-rev1>
+      nameptr #1 >
+        { 
+%<*nmlm>
+%<m1>          nameptr #2 =
+%<m2>          nameptr #3 =
+%<m3>          nameptr #4 =
+%<m4>          nameptr #5 =
+%<m5>          nameptr #6 =
+%<x1>          numnames #1 > and
+%<x2>          numnames #2 > and
+%<x3>          numnames #3 > and
+%<x4>          numnames #4 > and
+%<x5>          numnames #5 > and
+%<x6>          numnames #6 > and
+%<x7>          numnames #7 > and
+%<x8>          numnames #8 > and
+%<x9>          numnames #9 > and
+            { "others" 't :=
+              #1 'namesleft := }
+            'skip$
+          if$
+%</nmlm>
+          namesleft #1 >
+            { ", " * t * }
+            {
+%<and-com|xand>              "," *
+%<*!and-xcom&!and-com&!xand>
+              numnames #2 >
+                { "," * }
+                'skip$
+              if$
+%</!and-xcom&!and-com&!xand>
+              t "others" =
+%<!etal-it>                { " et~al." * }
+%<etal-it>                { " " * "et~al." emphasize * }
+%<*!harnm>
+%<!amper&!xand>                { " and " * t * }
+%<amper&!xand>                { " \& " * t * }
+%</!harnm>
+%<harnm&!xand>                { " \harvardand\ " * t * }
+%<xand>                { " " * t * }
+              if$
+            }
+          if$
+        }
+        't
+      if$
+      nameptr #1 + 'nameptr :=
+      namesleft #1 - 'namesleft :=
+    }
+  while$
+}
+
+%    \end{macrocode}
+% \changes{1.6}{1995 Feb 2}{Add option \texttt{ed-rev} to allow editor
+%    to be formatted just like authors'}
+%    \begin{macrocode}
+FUNCTION {format.names.ed}
+%<ed-rev>{ format.names }
+%<*!ed-rev>
+{ 's :=
+  #1 'nameptr :=
+  s num.names$ 'numnames :=
+  numnames 'namesleft :=
+    { namesleft #0 > }
+    { s nameptr 
+%<!nm-init&!nm-rev&!nm-rev1&!nm-rv>      "{ff~}{vv~}{ll}{, jj}" 
+%<nm-init|nm-rev|nm-rev1>      "{f.~}{vv~}{ll}{, jj}" 
+%<!nm-init&!nm-rev&!nm-rev1&nm-rv>      "{f{~}~}{vv~}{ll}{ jj}" 
+      format.name$ 't := 
+      nameptr #1 >
+        { 
+          namesleft #1 >
+            { ", " * t * }
+            {
+%<and-com|xand>              "," *
+%<*!and-xcom&!and-com&!xand>
+              numnames #2 >
+                { "," * }
+                'skip$
+              if$
+%</!and-xcom&!and-com&!xand>
+              t "others" =
+%<!etal-it>                { " et~al." * }
+%<etal-it>                { " " * "et~al." emphasize * }
+%<*!harnm>
+%<!amper&!xand>                { " and " * t * }
+%<amper&!xand>                { " \& " * t * }
+%</!harnm>
+%<harnm&!xand>                { " \harvardand\ " * t * }
+%<xand>                { " " * t * }
+              if$
+            }
+          if$
+        }
+        't
+      if$
+      nameptr #1 + 'nameptr :=
+      namesleft #1 - 'namesleft :=
+    }
+  while$
+}
+
+%</!ed-rev>
+%<*ay>
+FUNCTION {format.key}                   
+{ empty$
+    { key field.or.null }
+    { "" }
+  if$
+}
+
+%</ay>
+FUNCTION {format.authors}
+{ author empty$
+    { "" }
+%<!nmft-sc&!nmft-bf&!nmft-it>    { author format.names }
+%<nmft-sc>    { "{\sc " author format.names * "}" * }
+%<!nmft-sc&nmft-bf>    { author format.names bolden }
+%<!nmft-sc&!nmft-bf&nmft-it>    { author format.names emphasize }
+  if$
+}
+
+FUNCTION {format.editors}
+{ editor empty$
+    { "" }
+%<!nmft-sc&!nmft-bf&!nmft-it>    { editor format.names 
+%<nmft-sc>    { "{\sc " editor format.names * "}" * 
+%<!nmft-sc&nmft-bf>    { editor format.names bolden 
+%<!nmft-sc&!nmft-bf&nmft-it>    { editor format.names emphasize 
+      editor num.names$ #1 >
+%<!ed>        { ", editors" * }
+%<!ed>        { ", editor" * }
+%<ed>        { " (eds.)" * }
+%<ed>        { " (ed.)" * }
+      if$
+    }
+  if$
+}
+
+FUNCTION {format.in.editors}
+{ editor empty$
+    { "" }
+    { editor format.names.ed
+%<*!edby&!edby-par>
+      editor num.names$ #1 >
+%<!ed>        { ", editors" * }
+%<!ed>        { ", editor" * }
+%<ed>        { " (eds.)" * }
+%<ed>        { " (ed.)" * }
+      if$
+%</!edby&!edby-par>
+    }
+  if$
+}
+
+%    \end{macrocode}
+% \changes{1.4a}{1994 Sep 7}{Add enquote function to put titles in quotes,
+%    such that punctuation is inside quotes.}
+%    \begin{macrocode}
+FUNCTION {format.title}
+{ title empty$
+    { "" }
+%<!atit-u>    { title "t" change.case$ 
+%<atit-u>    { title 
+%<tit-it>      emphasize
+%<*!tit-it&(tit-q|tit-qq)>
+      "\enquote{" swap$ * 
+%<*blk-com>
+      non.stop
+        { ",} " * }
+        { "} " * }
+      if$
+%</blk-com>
+%<!blk-com>      add.period$ "}" *
+%</!tit-it&(tit-q|tit-qq)>
+    }
+  if$
+}
+
+%    \end{macrocode}
+% \changes{1.1}{1993 Nov 12}{Add key labels to \texttt{calc.long.label} and
+%     get {\tt'author} and {\tt'editor} in right order when author missing}
+% \changes{1.4}{1994 Sep 5}{Remove \texttt{calc.long.label} and
+%     \texttt{format.long.lab.names}, replacing them with 
+%     \texttt{format.full.names}, \texttt{make.full.names}, and adding
+%     \texttt{author.editor.key}, \texttt{author.key}, and \texttt{editor.key}}
+% \changes{1.4a}{1994 Sep 7}{Remove option \texttt{and-com} from 
+%     \texttt{make.full.names}}
+% \changes{1.5}{1994 Sep 15}{Add full names for \texttt{natbib} v5.3}
+% In versions before 1.4, there were two functions \texttt{calc.long.label}
+% and \texttt{format.long.lab.names} that made up the string
+% \texttt{long.label} for each entry. This contains the full author list.
+% However, there was a bug in the one routine, entered by mistake when an
+% earlier bug was removed, and more seriously, the string
+% \texttt{long.label} was limited to \texttt{entry.max\$} characters, 100 on
+% my system. Author lists were truncated.  Thus, \texttt{make.full.names}
+% is used instead to enter the full list of names directly in the
+% \texttt{output.bibitem} function, without an intermediate string. This
+% involves changing the order of some function definitions, especially
+% \texttt{output.bibitem} must come later.
+%    \begin{macrocode}
+%<*har|cay|nat>
+FUNCTION {format.full.names}
+{'s :=
+  #1 'nameptr :=
+  s num.names$ 'numnames :=
+  numnames 'namesleft :=
+    { namesleft #0 > }
+    { s nameptr 
+      "{vv~}{ll}" format.name$ 't :=
+      nameptr #1 >
+        { 
+%<*nmlm>
+%<m1>          nameptr #2 =
+%<m2>          nameptr #3 =
+%<m3>          nameptr #4 =
+%<m4>          nameptr #5 =
+%<m5>          nameptr #6 =
+%<x1>          numnames #1 > and
+%<x2>          numnames #2 > and
+%<x3>          numnames #3 > and
+%<x4>          numnames #4 > and
+%<x5>          numnames #5 > and
+%<x6>          numnames #6 > and
+%<x7>          numnames #7 > and
+%<x8>          numnames #8 > and
+%<x9>          numnames #9 > and
+            { "others" 't :=
+              #1 'namesleft := }
+            'skip$
+          if$
+%</nmlm>
+          namesleft #1 >
+            { ", " * t * }
+            {
+%<*!and-xcom>
+              numnames #2 >
+                { "," * }
+                'skip$
+              if$
+%</!and-xcom>
+              t "others" =
+%<!etal-it>                { " et~al." * }
+%<etal-it>                { " " * "et~al." emphasize * }
+%<*!harnm>
+%<!amper>                { " and " * t * }
+%<amper>                { " \& " * t * }
+%</!harnm>
+%<harnm>                { " \harvardand\ " * t * }
+              if$
+            }
+          if$
+        }
+        't
+      if$
+      nameptr #1 + 'nameptr :=
+      namesleft #1 - 'namesleft :=
+    }
+  while$
+}
+
+FUNCTION {author.editor.key.full}
+{ author empty$
+    { editor empty$
+        { key empty$
+            { cite$ #1 #3 substring$ }
+            'key
+          if$
+        }
+        { editor format.full.names }
+      if$
+    }  
+    { author format.full.names }
+  if$
+}
+
+FUNCTION {author.key.full}
+{ author empty$
+    { key empty$
+         { cite$ #1 #3 substring$ }
+          'key
+      if$
+    }  
+    { author format.full.names }
+  if$
+}
+
+FUNCTION {editor.key.full}
+{ editor empty$
+    { key empty$
+         { cite$ #1 #3 substring$ }
+          'key
+      if$
+    }  
+    { editor format.full.names }
+  if$
+}
+
+FUNCTION {make.full.names}
+{ type$ "book" =
+  type$ "inbook" =
+  or
+    'author.editor.key.full
+    { type$ "proceedings" =
+        'editor.key.full
+        'author.key.full
+      if$
+    }
+  if$
+%<lab-it>  emphasize
+}
+
+%</har|cay|nat>
+%    \end{macrocode}
+%\changes{1.1}{1993 Nov 12}{Test for missing year, set to ????}
+%\changes{1.4}{1994 Sep 5}{Change position of \texttt{output.bibitem},
+%  use \texttt{make.full.names} instead of inserting string \texttt{long.label}}
+%\changes{1.5}{1994 Sep 16}{Add option \texttt{nat} for full author list
+%  for \texttt{natbib.sty} version~5.3}
+%    \begin{macrocode}
+FUNCTION {output.bibitem}
+{ newline$
+%<*ay>
+%<!har>  "\bibitem[" write$
+%<har>  "\harvarditem[" write$
+%<ast>  "\protect\astroncite{" write$
+%<cay>  "\protect\citeauthoryear{" make.full.names * "}{" * write$
+%<cn>  "\protect\citename{" write$
+  label write$
+%<har>  "]{" make.full.names * "}{" * write$
+%<har>  year duplicate$ empty$
+%<cn>  ", }" year duplicate$ empty$
+%<cay|ast>  "}{" year duplicate$ empty$
+%<har|cn|cay|ast>    { pop$ "????" }
+%<har|cn|cay|ast>    'skip$
+%<har|cn|cay|ast>  if$
+%<har>  extra.label * "}{" * write$
+%<cn>  * extra.label * "]{" * write$
+%<cay|ast>  * extra.label * "}]{" * write$
+%<alk>  "]{" write$
+%<!(har|cay|ast|alk|cn|nat)>  ")]{" write$
+%<nat>  ")" make.full.names * "]{" * write$
+%</ay>
+%<!ay&!cite>  "\bibitem{" write$
+%<!ay&cite>  "\bibitem[" label * "]{" * write$
+  cite$ write$
+  "}" write$
+  newline$
+  ""
+  before.all 'output.state :=
+}
+
+FUNCTION {n.dashify}
+{ 't :=
+  ""
+    { t empty$ not }
+    { t #1 #1 substring$ "-" =
+        { t #1 #2 substring$ "--" = not
+            { "--" *
+              t #2 global.max$ substring$ 't :=
+            }
+            {   { t #1 #1 substring$ "-" = }
+                { "-" *
+                  t #2 global.max$ substring$ 't :=
+                }
+              while$
+            }
+          if$
+        }
+        { t #1 #1 substring$ *
+          t #2 global.max$ substring$ 't :=
+        }
+      if$
+    }
+  while$
+}
+
+FUNCTION {word.in}
+%<blk-com&!in-blk&in-col>{ "in: " }
+%<blk-com&!in-blk&!in-col>{ "in " }
+%<(!blk-com|in-blk)&in-col>{ "In: " }
+%<(!blk-com|in-blk)&!in-col>{ "In " }
+
+%    \end{macrocode}
+% \changes{1.4}{1994 Sep 6}{Add option \texttt{yr-per} to put period 
+%    before date}
+% \changes{1.5}{1994 Sep 16}{Add \texttt{harvard} bracket names to year
+%    with new option \texttt{harnm}}
+% \changes{1.6}{1995 Feb 2}{Add \texttt{yr-blk} for no punctuation before
+%    the date}
+% The new \texttt{harvard.sty} allows variable brackets around the date
+% in the reference list. It uses |\harvardyearleft| and |\harvardyearright|
+% in the \texttt{.bst} files. Allow this with the option \texttt{harnm},
+% which could actually be used without the \texttt{har} option. Note that
+% this overrides the other year formatting options.
+%    \begin{macrocode}
+%<*ay>
+FUNCTION {format.date}
+{ year duplicate$ empty$
+    { "empty year in " cite$ * "; set to ????" * warning$ 
+       pop$ "????" }
+    'skip$
+  if$
+%<*!harnm>
+%<yr-par|yr-brk|yr-col|yr-blk>  before.all 'output.state :=
+%<yr-par>  " (" swap$ * extra.label * ")" *
+%<!yr-par&yr-brk>  " [" swap$ * extra.label * "]" *
+%<!yr-par&!yr-brk&yr-col>  ": " swap$ * extra.label *
+%<!yr-par&!yr-brk&!yr-col&yr-per>  after.sentence 'output.state :=
+%<!yr-par&!yr-brk&!yr-col&!yr-per&yr-blk>  " " swap$ *
+%<!yr-par&!yr-brk&!yr-col>  extra.label *
+%</!harnm>
+%<harnm>  " \harvardyearleft " swap$ * extra.label * " \harvardyearright " *
+}
+
+%</ay>
+%<*!ay>
+FUNCTION {format.date}
+{ year empty$
+    { month empty$
+        { "" }
+        { "there's a month but no year in " cite$ * warning$
+          month
+        }
+      if$
+    }
+    { month empty$
+        'year
+        { month " " * year * }
+      if$
+    }
+  if$
+%<yr-par|yr-brk|yr-col|yr-blk>  before.all 'output.state :=
+%<yr-par>  " (" swap$ * ")" *
+%<!yr-par&yr-brk>  " [" swap$ * "]" *
+%<!yr-par&!yr-brk&yr-col>  ": " swap$ *
+%<!yr-par&!yr-brk&!yr-col&yr-per>  after.sentence 'output.state :=
+%<!yr-par&!yr-brk&!yr-col&!yr-per&yr-blk>  " " swap$ *
+}
+
+%</!ay>
+FUNCTION {format.btitle}
+%<!btit-rm>{ title emphasize
+%<btit-rm>{ title 
+}
+
+FUNCTION {tie.or.space.connect}
+{ duplicate$ text.length$ #3 <
+    { "~" }
+    { " " }
+  if$
+  swap$ * *
+}
+
+FUNCTION {either.or.check}
+{ empty$
+    'pop$
+    { "can't use both " swap$ * " fields in " * cite$ * warning$ }
+  if$
+}
+
+FUNCTION {format.bvolume}
+{ volume empty$
+    { "" }
+%<!abr>    { "volume" volume tie.or.space.connect
+%<abr>    { "vol." volume tie.or.space.connect
+      series empty$
+        'skip$
+        { " of " * series emphasize * }
+      if$
+      "volume and number" number either.or.check
+    }
+  if$
+}
+
+FUNCTION {format.number.series}
+{ volume empty$
+    { number empty$
+        { series field.or.null }
+        { output.state mid.sentence =
+%<!abr>            { "number" }
+%<!abr>            { "Number" }
+%<abr>            { "no." }
+%<abr>            { "No." }
+          if$
+          number tie.or.space.connect
+          series empty$
+            { "there's a number but no series in " cite$ * warning$ }
+            { " in " * series * }
+          if$
+        }
+      if$
+    }
+    { "" }
+  if$
+}
+
+FUNCTION {format.edition}
+{ edition empty$
+    { "" }
+    { output.state mid.sentence =
+%<!abr>        { edition "l" change.case$ " edition" * }
+%<!abr>        { edition "t" change.case$ " edition" * }
+%<abr>        { edition "l" change.case$ " edn." * }
+%<abr>        { edition "t" change.case$ " edn." * }
+      if$
+    }
+  if$
+}
+
+INTEGERS { multiresult }
+
+FUNCTION {multi.page.check}
+{ 't :=
+  #0 'multiresult :=
+    { multiresult not
+      t empty$ not
+      and
+    }
+    { t #1 #1 substring$
+      duplicate$ "-" =
+      swap$ duplicate$ "," =
+      swap$ "+" =
+      or or
+        { #1 'multiresult := }
+        { t #2 global.max$ substring$ 't := }
+      if$
+    }
+  while$
+  multiresult
+}
+
+FUNCTION {format.pages}
+{ pages empty$
+    { "" }
+    { pages multi.page.check
+%<!pp>        { "pages" pages n.dashify tie.or.space.connect }
+%<!pp>        { "page" pages tie.or.space.connect }
+%<pp>        { "pp." pages n.dashify tie.or.space.connect }
+%<pp>        { "p." pages tie.or.space.connect }
+      if$
+    }
+  if$
+}
+
+%<*jpg-1|pg-1>
+FUNCTION {first.page}
+{ 't :=
+  ""
+    {  t empty$ not t #1 #1 substring$ "-" = not and }
+    { t #1 #1 substring$ *
+      t #2 global.max$ substring$ 't :=
+    }
+  while$
+}
+
+%</jpg-1|pg-1>
+%    \end{macrocode}
+% \changes{1.4}{1994 Sep 6}{Add option \texttt{volp-sp} to put space
+%    after colon in vol:~page.}
+% \changes{1.5c}{1995 Jan 20}{Add options \texttt{vnum-h}, \texttt{vnum-nr} 
+%    and \texttt{vnum-x} for various formats of journal vol number}
+% \changes{1.6}{1995 Feb 2}{Add option \texttt{vnum-s}}
+%    \begin{macrocode}
+FUNCTION {format.vol.num.pages}
+{ volume field.or.null
+%<vol-bf&!vol-2bf>  bolden
+%<!vol-bf&!vol-2bf&vol-it>  emphasize
+%<*!vnum-x>
+  number empty$
+    'skip$
+    { 
+%<!vnum-nr&!vnum-h&!vnum-s>      "(" number * ")" * *
+%<vnum-nr>      ", no." number tie.or.space.connect *
+%<!vnum-nr&vnum-h>      ", \#" number * *
+%<!vnum-nr&!vnum-h&vnum-s>      ", " number * *
+%<!vol-bf&vol-2bf>      bolden
+      volume empty$
+        { "there's a number but no volume in " cite$ * warning$ }
+        'skip$
+      if$
+    }
+  if$
+%</!vnum-x>
+  pages empty$
+    'skip$
+    { duplicate$ empty$
+        { pop$ format.pages }
+%<!volp-com&!volp-sp&!jpg-1>        { ":" * pages n.dashify * }
+%<volp-sp&!jpg-1>        { ": " * pages n.dashify * }
+%<volp-com&!volp-sp&!jpg-1>        { ", " * pages n.dashify * }
+%<!volp-com&!volp-sp&jpg-1>        { ":" * pages first.page * }
+%<volp-sp&jpg-1>        { ": " * pages first.page * }
+%<volp-com&!volp-sp&jpg-1>        { ", " * pages first.page * }
+      if$
+    }
+  if$
+}
+
+FUNCTION {format.chapter.pages}
+{ chapter empty$
+    'format.pages
+    { type empty$
+%<!abr>        { "chapter" }
+%<abr>        { "chap." }
+        { type "l" change.case$ }
+      if$
+      chapter tie.or.space.connect
+      pages empty$
+        'skip$
+        { ", " * format.pages * }
+      if$
+    }
+  if$
+}
+
+%    \end{macrocode}
+% \changes{1.5b}{1995 Jan 18}{Add option \texttt{edby-par} to put editors
+%   in parentheses}
+% \changes{1.6}{1995 Feb 2}{If \texttt{ed} and \texttt{edby} given together,
+%   abbreviate `edited by' to `ed(s).'}
+%    \begin{macrocode}
+FUNCTION {format.in.ed.booktitle}
+{ booktitle empty$
+    { "" }
+    { editor empty$
+        { word.in booktitle emphasize * }
+%<!edby&!edby-par>        { word.in format.in.editors * ", " * 
+%<!edby&!edby-par>          booktitle emphasize * }
+%<*edby|edby-par>
+        { word.in booktitle emphasize * 
+%<*!ed>
+%<edby>          ", edited by " * 
+%<edby-par>          " (Edited by " * 
+%</!ed>
+%<*ed>
+%<edby>          ", " *
+%<edby-par>          " (" *
+          editor num.names$ #1 >
+            { "eds." }
+            { "ed." } 
+          if$
+%<edby-par>          "u" change.case$ "t" change.case$ 
+          * " " *
+%</ed>
+          format.in.editors * 
+%<edby-par>          ")" *
+        }
+%</edby|edby-par>
+      if$
+    }
+  if$
+}
+
+%<*!ay>
+FUNCTION {empty.misc.check}
+{ author empty$ title empty$ howpublished empty$
+  month empty$ year empty$ note empty$
+  and and and and and
+  key empty$ not and
+    { "all relevant fields are empty in " cite$ * warning$ }
+    'skip$
+  if$
+}
+
+%</!ay>
+FUNCTION {format.thesis.type}
+{ type empty$
+    'skip$
+    { pop$
+      type "t" change.case$
+    }
+  if$
+}
+
+FUNCTION {format.tr.number}
+{ type empty$
+%<!abr>    { "Technical Report" }
+%<abr>    { "Tech. Rep." }
+    'type
+  if$
+  number empty$
+    { "t" change.case$ }
+    { number tie.or.space.connect }
+  if$
+}
+
+%    \end{macrocode}
+%\changes{1.3}{1994 Jul 1}{Emphasize \texttt{journal} with \texttt{emphasize}, 
+%          not explicitly}
+%    \begin{macrocode}
+FUNCTION {format.article.crossref}
+{ 
+%<*!ay>
+  key empty$
+    { journal empty$
+        { "need key or journal for " cite$ * " to crossref " * crossref *
+          warning$
+          ""
+        }
+        { word.in journal emphasize * } 
+      if$
+    }
+    { word.in key * " " *}
+  if$
+%</!ay>
+%<ay>  word.in
+  " \cite{" * crossref * "}" *
+}
+
+%<*!ay>
+FUNCTION {format.crossref.editor}
+{ editor #1 "{vv~}{ll}" format.name$
+  editor num.names$ duplicate$
+  #2 >
+%<!etal-it>    { pop$ " et~al." * }
+%<etal-it>    { pop$ " " * "et~al." emphasize * }
+    { #2 <
+        'skip$
+        { editor #2 "{ff }{vv }{ll}{ jj}" format.name$ "others" =
+%<!etal-it>            { " et~al." * }
+%<etal-it>            { " " * "et~al." emphasize * }
+%<*!harnm>
+%<!amper>            { " and " * editor #2 "{vv~}{ll}" format.name$ * }
+%<amper>            { " \& " * editor #2 "{vv~}{ll}" format.name$ * }
+%</!harnm>
+%<harnm>            { " \harvardand\ " * editor #2 "{vv~}{ll}" format.name$ * }
+          if$
+        }
+      if$
+    }
+  if$
+}
+
+%</!ay>
+%    \end{macrocode}
+%\changes{1.3}{1994 Jul 1}{Emphasize \texttt{series} with \texttt{emphasize}, 
+%       not explicitly}
+%    \begin{macrocode}
+FUNCTION {format.book.crossref}
+{ volume empty$
+    { "empty volume in " cite$ * "'s crossref of " * crossref * warning$
+      word.in
+    }
+%<!abr&!(blk-com|blk-tit)>    { "Volume" volume tie.or.space.connect
+%<abr&!(blk-com|blk-tit)>    { "Vol." volume tie.or.space.connect
+%<!abr&(blk-com|blk-tit)>    { "volume" volume tie.or.space.connect
+%<abr&(blk-com|blk-tit)>    { "vol." volume tie.or.space.connect
+      " of " *
+    }
+  if$
+%<*!ay>
+  editor empty$
+  editor field.or.null author field.or.null =
+  or
+    { key empty$
+        { series empty$
+            { "need editor, key, or series for " cite$ * " to crossref " *
+              crossref * warning$
+              "" *
+            }
+            { series emphasize * }
+          if$
+        }
+        { key * }
+      if$
+    }
+    { format.crossref.editor * }
+  if$
+%</!ay>
+  " \cite{" * crossref * "}" *
+}
+
+%    \end{macrocode}
+%\changes{1.3}{1994 Jul 1}{Emphasize \texttt{booktitle} with 
+%      \texttt{emphasize}, not explicitly}
+%    \begin{macrocode}
+FUNCTION {format.incoll.inproc.crossref}
+{ 
+%<*!ay>
+  editor empty$
+  editor field.or.null author field.or.null =
+  or
+    { key empty$
+        { booktitle empty$
+            { "need editor, key, or booktitle for " cite$ * " to crossref " *
+              crossref * warning$
+              ""
+            }
+            { word.in booktitle emphasize * }
+          if$
+        }
+        { word.in key * " " *}
+      if$
+    }
+    { word.in format.crossref.editor * " " *}
+  if$
+%</!ay>
+%<ay>  word.in
+  " \cite{" * crossref * "}" *
+}
+
+%    \end{macrocode}
+% \changes{1.5b}{1995 Jan 18}{Add option \texttt{yrp-x} to suppress 
+%    punctuation following date at beginning}
+%    \begin{macrocode}
+FUNCTION {article}
+{ output.bibitem
+  format.authors "author" output.check
+%<ay>  author format.key output
+%<dt-beg>  format.date "year" output.check
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+%<*!jtit-x>
+  format.title "title" output.check
+%<blk-com&(tit-q|tit-qq)>  before.all 'output.state :=
+%<!blk-com&!blk-tit>  new.block
+%<blk-tit>  new.sentence
+%</!jtit-x>
+  crossref missing$
+    { journal emphasize "journal" output.check
+%<jnm-x>      add.blank
+      format.vol.num.pages output
+%<!dt-beg&!dt-end>      format.date "year" output.check
+    }
+    { format.article.crossref output.nonnull
+      format.pages output
+    }
+  if$
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+%    \end{macrocode}
+%\changes{1.3a}{1994 Aug 30}{Fix up \texttt{new.sentence} so not added with
+%        \texttt{blk-com}}
+%    \begin{macrocode}
+FUNCTION {book}
+{ output.bibitem
+  author empty$
+    { format.editors "author and editor" output.check
+%<ay>      editor format.key output
+    }
+    { format.authors output.nonnull
+      crossref missing$
+        { "author and editor" editor either.or.check }
+        'skip$
+      if$
+    }
+  if$
+%<dt-beg>  format.date "year" output.check
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+  format.btitle "title" output.check
+  crossref missing$
+    { format.bvolume output
+%<!blk-com&!blk-tit>      new.block
+%<blk-tit>  new.sentence
+      format.number.series output
+%<!blk-com&!blk-tit>      new.sentence
+      publisher "publisher" output.check
+      address output
+    }
+    {
+%<!blk-com&!blk-tit>      new.block
+%<blk-tit>  new.sentence
+      format.book.crossref output.nonnull
+    }
+  if$
+  format.edition output
+%<!dt-beg&!dt-end>  format.date "year" output.check
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+FUNCTION {booklet}
+{ output.bibitem
+  format.authors output
+%<ay>  author format.key output
+%<ay&dt-beg>  format.date "year" output.check
+%<!ay&dt-beg>  format.date output
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+  format.title "title" output.check
+%<blk-com&(tit-q|tit-qq)>  before.all 'output.state :=
+%<!blk-com&!blk-tit>  new.block
+%<blk-tit>  new.sentence
+  howpublished output
+  address output
+%<ay&!dt-beg&!dt-end>  format.date "year" output.check
+%<!ay&!dt-beg&!dt-end>  format.date output
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*ay&!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</ay&!dt-beg&dt-end>
+%<*!ay&!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date output
+%</!ay&!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+FUNCTION {inbook}
+{ output.bibitem
+  author empty$
+    { format.editors "author and editor" output.check
+%<ay>      editor format.key output
+    }
+    { format.authors output.nonnull
+      crossref missing$
+        { "author and editor" editor either.or.check }
+        'skip$
+      if$
+    }
+  if$
+%<dt-beg>  format.date "year" output.check
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+  format.btitle "title" output.check
+  crossref missing$
+    { format.bvolume output
+      format.chapter.pages "chapter and pages" output.check
+%<!blk-com&!blk-tit>      new.block
+%<blk-tit>  new.sentence
+      format.number.series output
+%<!blk-com&!blk-tit>      new.sentence
+      publisher "publisher" output.check
+      address output
+    }
+    { format.chapter.pages "chapter and pages" output.check
+%<!blk-com&!blk-tit>      new.block
+%<blk-tit>  new.sentence
+      format.book.crossref output.nonnull
+    }
+  if$
+  format.edition output
+%<!dt-beg&!dt-end>  format.date "year" output.check
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+FUNCTION {incollection}
+{ output.bibitem
+  format.authors "author" output.check
+%<ay>  author format.key output
+%<dt-beg>  format.date "year" output.check
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+%<*!jtit-x>
+  format.title "title" output.check
+%<blk-com&(tit-q|tit-qq)>  before.all 'output.state :=
+%<!blk-com&!blk-tit>  new.block
+%<blk-tit|(blk-com&in-blk)>  new.sentence
+%</!jtit-x>
+  crossref missing$
+    { format.in.ed.booktitle "booktitle" output.check
+      format.bvolume output
+      format.number.series output
+      format.chapter.pages output
+%<!blk-com&!blk-tit>      new.sentence
+      publisher "publisher" output.check
+      address output
+      format.edition output
+%<!dt-beg&!dt-end>      format.date "year" output.check
+    }
+    { format.incoll.inproc.crossref output.nonnull
+      format.chapter.pages output
+    }
+  if$
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+FUNCTION {inproceedings}
+{ output.bibitem
+  format.authors "author" output.check
+%<ay>  author format.key output
+%<dt-beg>  format.date "year" output.check
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+%<*!jtit-x>
+  format.title "title" output.check
+%<blk-com&(tit-q|tit-qq)>  before.all 'output.state :=
+%<!blk-com&!blk-tit>  new.block
+%<blk-tit|(blk-com&in-blk)>  new.sentence
+%</!jtit-x>
+  crossref missing$
+    { format.in.ed.booktitle "booktitle" output.check
+      format.bvolume output
+      format.number.series output
+      format.pages output
+%<*!ay>
+      address empty$
+        { organization publisher new.sentence.checkb
+          organization output
+          publisher output
+          format.date "year" output.check
+        }
+        { address output.nonnull
+%<!dt-beg&!dt-end>          format.date "year" output.check
+%<!blk-com&!blk-tit>          new.sentence
+          organization output
+          publisher output
+        }
+      if$
+%</!ay>
+%<*ay>
+      address output
+%<!blk-com&!blk-tit>      new.sentence
+      organization output
+      publisher output
+%<!dt-beg&!dt-end>  format.date "year" output.check
+%</ay>
+    }
+    { format.incoll.inproc.crossref output.nonnull
+      format.pages output
+    }
+  if$
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+FUNCTION {conference} { inproceedings }
+
+%<*ay>
+FUNCTION {manual}
+{ output.bibitem
+  format.authors output
+  author format.key output
+%<dt-beg>  format.date "year" output.check
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+  format.btitle "title" output.check
+%<blk-tit>  new.sentence
+%<!blk-com&!blk-tit>  organization address new.block.checkb
+  organization output
+  address output
+  format.edition output
+%<!dt-beg&!dt-end>  format.date "year" output.check
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+%</ay>
+%<*!ay>
+FUNCTION {manual}
+{ output.bibitem
+  author empty$
+    { organization empty$
+        'skip$
+        { organization output.nonnull
+          address output
+        }
+      if$
+    }
+    { format.authors output.nonnull }
+  if$
+%<ay&dt-beg>  format.date "year" output.check
+%<!ay&dt-beg>  format.date output
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+  format.btitle "title" output.check
+%<blk-tit>  new.sentence
+  author empty$
+    { organization empty$
+    {
+%<!blk-com&!blk-tit>          address new.block.checka
+          address output
+        }
+        'skip$
+      if$
+    }
+    {
+%<!blk-com&!blk-tit>      organization address new.block.checkb
+      organization output
+      address output
+    }
+  if$
+  format.edition output
+%<ay&!dt-beg&!dt-end>  format.date "year" output.check
+%<!ay&!dt-beg&!dt-end>  format.date output
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*ay&!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</ay&!dt-beg&dt-end>
+%<*!ay&!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date output
+%</!ay&!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+%</!ay>
+FUNCTION {mastersthesis}
+{ output.bibitem
+  format.authors "author" output.check
+%<ay>  author format.key output
+%<dt-beg>  format.date "year" output.check
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+%<!thtit-a>  format.btitle "title" output.check
+%<thtit-a>  format.title "title" output.check
+%<thtit-a&blk-com&(tit-q|tit-qq)>  before.all 'output.state :=
+%<!blk-com&!blk-tit>  new.block
+%<blk-tit>  new.sentence
+  "Master's thesis" format.thesis.type output.nonnull
+  school "school" output.check
+  address output
+%<!dt-beg&!dt-end>  format.date "year" output.check
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+FUNCTION {misc}
+{ output.bibitem
+  format.authors output
+%<ay>  author format.key output
+%<ay&dt-beg>  format.date "year" output.check
+%<!ay&dt-beg>  format.date output
+%<*ay>
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+  format.title output
+%<blk-com&(tit-q|tit-qq)>  before.all 'output.state :=
+%<!blk-com&!blk-tit>  new.block
+%<blk-tit>  new.sentence
+%</ay>
+%<*!ay>
+%<!blk-com&!blk-tit>  title howpublished new.block.checkb
+  format.title output
+%<blk-com&(tit-q|tit-qq)>  before.all 'output.state :=
+%<blk-tit>  new.sentence
+%<!blk-com&!blk-tit>  howpublished new.block.checka
+%</!ay>
+  howpublished output
+%<ay&!dt-beg&!dt-end>  format.date "year" output.check
+%<!ay&!dt-beg&!dt-end>  format.date output
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*ay&!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</ay&!dt-beg&dt-end>
+%<*!ay&!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date output
+%</!ay&!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+FUNCTION {phdthesis}
+{ output.bibitem
+  format.authors "author" output.check
+%<ay>  author format.key output
+%<dt-beg>  format.date "year" output.check
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+%<!thtit-a>  format.btitle "title" output.check
+%<thtit-a>  format.title "title" output.check
+%<thtit-a&blk-com&(tit-q|tit-qq)>  before.all 'output.state :=
+%<!blk-com&!blk-tit>  new.block
+%<blk-tit>  new.sentence
+  "Ph.D. thesis" format.thesis.type output.nonnull
+  school "school" output.check
+  address output
+%<!dt-beg&!dt-end>  format.date "year" output.check
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+%<*ay>
+FUNCTION {proceedings}
+{ output.bibitem
+  format.editors output
+  editor format.key output
+%<dt-beg>  format.date "year" output.check
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+  format.btitle "title" output.check
+  format.bvolume output
+  format.number.series output
+  address output
+%<!blk-com&!blk-tit>  new.sentence
+  organization output
+  publisher output
+%<!dt-beg&!dt-end>  format.date "year" output.check
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+%</ay>
+%<*!ay>
+FUNCTION {proceedings}
+{ output.bibitem
+  editor empty$
+    { organization output }
+    { format.editors output.nonnull }
+  if$
+%<dt-beg>  format.date "year" output.check
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+  format.btitle "title" output.check
+  format.bvolume output
+  format.number.series output
+  address empty$
+    { editor empty$
+        { publisher new.sentence.checka }
+        { organization publisher new.sentence.checkb
+          organization output
+        }
+      if$
+      publisher output
+%<!dt-beg&!dt-end>      format.date "year" output.check
+    }
+    { address output.nonnull
+%<!dt-beg&!dt-end>      format.date "year" output.check
+%<!blk-com&!blk-tit>      new.sentence
+      editor empty$
+        'skip$
+        { organization output }
+      if$
+      publisher output
+    }
+  if$
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+%</!ay>
+FUNCTION {techreport}
+{ output.bibitem
+  format.authors "author" output.check
+%<ay>  author format.key output
+%<dt-beg>  format.date "year" output.check
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+  format.title "title" output.check
+%<blk-com&(tit-q|tit-qq)>  before.all 'output.state :=
+%<!blk-com&!blk-tit>  new.block
+%<blk-tit>  new.sentence
+  format.tr.number output.nonnull
+  institution "institution" output.check
+  address output
+%<!dt-beg&!dt-end>  format.date "year" output.check
+%<!blk-com&!blk-tit>  new.block
+  note output
+%<*!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+FUNCTION {unpublished}
+{ output.bibitem
+  format.authors "author" output.check
+%<ay>  author format.key output
+%<ay&dt-beg>  format.date "year" output.check
+%<!ay&dt-beg>  format.date output
+%<dt-beg&yrp-x>  add.blank
+%<!blk-com&!blk-tit&!yrp-x>  new.block
+  format.title "title" output.check
+%<blk-com&(tit-q|tit-qq)>  before.all 'output.state :=
+%<!blk-com&!blk-tit>  new.block
+%<blk-tit>  new.sentence
+  note "note" output.check
+%<*ay&!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date "year" output.check
+%</ay&!dt-beg&dt-end>
+%<*!ay&!dt-beg&dt-end>
+%<!blk-com&!blk-tit>  new.block 
+  format.date output
+%</!ay&!dt-beg&dt-end>
+  fin.entry
+%<harnm>  write.url
+}
+
+FUNCTION {default.type} { misc }
+
+MACRO {jan} {"January"}
+
+MACRO {feb} {"February"}
+
+MACRO {mar} {"March"}
+
+MACRO {apr} {"April"}
+
+MACRO {may} {"May"}
+
+MACRO {jun} {"June"}
+
+MACRO {jul} {"July"}
+
+MACRO {aug} {"August"}
+
+MACRO {sep} {"September"}
+
+MACRO {oct} {"October"}
+
+MACRO {nov} {"November"}
+
+MACRO {dec} {"December"}
+
+MACRO {acmcs} {"ACM Computing Surveys"}
+
+MACRO {acta} {"Acta Informatica"}
+
+MACRO {cacm} {"Communications of the ACM"}
+
+MACRO {ibmjrd} {"IBM Journal of Research and Development"}
+
+MACRO {ibmsj} {"IBM Systems Journal"}
+
+MACRO {ieeese} {"IEEE Transactions on Software Engineering"}
+
+MACRO {ieeetc} {"IEEE Transactions on Computers"}
+
+MACRO {ieeetcad}
+ {"IEEE Transactions on Computer-Aided Design of Integrated Circuits"}
+
+MACRO {ipl} {"Information Processing Letters"}
+
+MACRO {jacm} {"Journal of the ACM"}
+
+MACRO {jcss} {"Journal of Computer and System Sciences"}
+
+MACRO {scp} {"Science of Computer Programming"}
+
+MACRO {sicomp} {"SIAM Journal on Computing"}
+
+MACRO {tocs} {"ACM Transactions on Computer Systems"}
+
+MACRO {tods} {"ACM Transactions on Database Systems"}
+
+MACRO {tog} {"ACM Transactions on Graphics"}
+
+MACRO {toms} {"ACM Transactions on Mathematical Software"}
+
+MACRO {toois} {"ACM Transactions on Office Information Systems"}
+
+MACRO {toplas} {"ACM Transactions on Programming Languages and Systems"}
+
+MACRO {tcs} {"Theoretical Computer Science"}
+
+READ
+
+%<*ay|!seq-no>
+FUNCTION {sortify}
+{ purify$
+  "l" change.case$
+}
+
+INTEGERS { len }
+
+FUNCTION {chop.word}
+{ 's :=
+  'len :=
+  s #1 len substring$ =
+    { s len #1 + global.max$ substring$ }
+    's
+  if$
+}
+
+%<*ay>
+FUNCTION {format.lab.names}
+{ 's :=
+  s #1 "{vv~}{ll}" format.name$
+  s num.names$ duplicate$
+  #2 >
+%<!etal-it>    { pop$ " et~al." * }
+%<etal-it>    { pop$ " " * "et~al." emphasize * }
+    { #2 <
+        'skip$
+        { s #2 "{ff }{vv }{ll}{ jj}" format.name$ "others" =
+%<!etal-it>            { " et~al." * }
+%<etal-it>            { " " * "et~al." emphasize * }
+%<*!harnm>
+%<!amper>            { " and " * s #2 "{vv~}{ll}" format.name$ * }
+%<amper>            { " \& " * s #2 "{vv~}{ll}" format.name$ * }
+%</!harnm>
+%<harnm>            { " \harvardand\ " * s #2 "{vv~}{ll}" format.name$ * }
+          if$
+        }
+      if$
+    }
+  if$
+}
+
+FUNCTION {author.key.label}
+{ author empty$
+    { key empty$
+        { cite$ #1 #3 substring$ }
+        'key 
+      if$
+    }
+    { author format.lab.names }
+  if$
+}
+
+FUNCTION {author.editor.key.label}
+{ author empty$
+    { editor empty$
+        { key empty$
+            { cite$ #1 #3 substring$ }
+            'key  
+          if$
+        }
+        { editor format.lab.names }
+      if$
+    }
+    { author format.lab.names }
+  if$
+}
+
+FUNCTION {editor.key.label}
+{ editor empty$
+    { key empty$
+        { cite$ #1 #3 substring$ }
+        'key 
+      if$
+    }
+    { editor format.lab.names }
+  if$
+}
+
+%    \end{macrocode}
+% \changes{1.5a}{1994 Oct 11}{Add option \texttt{note-yr}}
+%    \begin{macrocode}
+FUNCTION {calc.label}
+{ type$ "book" =
+  type$ "inbook" =
+  or
+    'author.editor.key.label
+    { type$ "proceedings" =
+        'editor.key.label
+        'author.key.label
+      if$
+    }
+  if$
+%<lab-it>  emphasize
+%<!(har|ast|cay|alk|cn)>  "("
+%<har|ast|cay|alk|cn>  ", "
+  *
+  year duplicate$ empty$
+     { pop$ "????" }
+%<!note-yr>     { purify$ #-1 #4 substring$ }
+%<note-yr>     'skip$
+  if$
+  *
+  'label :=
+}
+
+%<*har|cay|ast|cn>
+FUNCTION {calc.short.label}
+{ type$ "book" =
+  type$ "inbook" =
+  or
+    'author.editor.key.label
+    { type$ "proceedings" =
+        'editor.key.label
+        'author.key.label
+      if$
+    }
+  if$
+%<lab-it>  emphasize
+  'label :=
+}
+
+%</har|cay|ast|cn>
+%</ay>
+FUNCTION {sort.format.names}
+{ 's :=
+  #1 'nameptr :=
+  ""
+  s num.names$ 'numnames :=
+  numnames 'namesleft :=
+    { namesleft #0 > }
+    { nameptr #1 >
+        { "   " * }
+        'skip$
+      if$ 
+      s nameptr 
+%<!nm-init&!nm-rev&!nm-rev1&!nm-rv>      "{vv{ } }{ll{ }}{  ff{ }}{  jj{ }}" 
+%<nm-init|nm-rev|nm-rev1|nm-rv>      "{vv{ } }{ll{ }}{  f{ }}{  jj{ }}" 
+      format.name$ 't := 
+      nameptr numnames = t "others" = and
+        { "et al" * }
+%<*seq-lab>
+        { numnames #2 > nameptr #2 = and
+          { "zzzzzz" * #1 'namesleft := }
+          { t sortify * }
+        if$
+        }
+%</seq-lab>
+%<!seq-lab>        { t sortify * }
+      if$
+      nameptr #1 + 'nameptr :=
+      namesleft #1 - 'namesleft :=
+    }
+  while$
+}
+
+FUNCTION {sort.format.title}
+{ 't :=
+  "A " #2
+    "An " #3
+      "The " #4 t chop.word
+    chop.word
+  chop.word
+  sortify
+  #1 global.max$ substring$
+}
+
+FUNCTION {author.sort}
+{ author empty$
+    { key empty$
+        { "to sort, need author or key in " cite$ * warning$
+          ""
+        }
+        { key sortify }
+      if$
+    }
+    { author sort.format.names }
+  if$
+}
+
+FUNCTION {author.editor.sort}
+{ author empty$
+    { editor empty$
+        { key empty$
+            { "to sort, need author, editor, or key in " cite$ * warning$
+              ""
+            }
+            { key sortify }
+          if$
+        }
+        { editor sort.format.names }
+      if$
+    }
+    { author sort.format.names }
+  if$
+}
+
+%<*ay>
+FUNCTION {editor.sort}
+{ editor empty$
+    { key empty$
+        { "to sort, need editor or key in " cite$ * warning$
+          ""
+        }
+        { key sortify }
+      if$
+    }
+    { editor sort.format.names }
+  if$
+}
+
+FUNCTION {presort}
+{ calc.label
+  label sortify
+  "    "
+  *
+  type$ "book" =
+  type$ "inbook" =
+  or
+    'author.editor.sort
+    { type$ "proceedings" =
+        'editor.sort
+        'author.sort
+      if$
+    }
+  if$
+  #1 entry.max$ substring$      
+  'sort.label :=                
+  sort.label                    
+  *
+  "    "
+  *
+  title field.or.null
+  sort.format.title
+  *
+  #1 entry.max$ substring$
+  'sort.key$ :=
+}
+
+%</ay>
+%</ay|!seq-no>
+%<*!ay&!seq-no>
+FUNCTION {author.organization.sort}
+{ author empty$
+    { organization empty$
+        { key empty$
+            { "to sort, need author, organization, or key in " cite$ * warning$
+              ""
+            }
+            { key sortify }
+          if$
+        }
+        { "The " #4 organization chop.word sortify }
+      if$
+    }
+    { author sort.format.names }
+  if$
+}
+
+FUNCTION {editor.organization.sort}
+{ editor empty$
+    { organization empty$
+        { key empty$
+            { "to sort, need editor, organization, or key in " cite$ * warning$
+              ""
+            }
+            { key sortify }
+          if$
+        }
+        { "The " #4 organization chop.word sortify }
+      if$
+    }
+    { editor sort.format.names }
+  if$
+}
+
+FUNCTION {presort}
+{ type$ "book" =
+  type$ "inbook" =
+  or
+    'author.editor.sort
+    { type$ "proceedings" =
+        'editor.organization.sort
+        { type$ "manual" =
+            'author.organization.sort
+            'author.sort
+          if$
+        }
+      if$
+    }
+  if$
+  "    "
+  *
+  year field.or.null sortify
+  *
+  "    "
+  *
+  title field.or.null
+  sort.format.title
+  *
+  #1 entry.max$ substring$
+  'sort.key$ :=
+}
+
+%</!ay&!seq-no>
+%<*(ay)|!seq-no>
+ITERATE {presort}
+
+SORT            
+
+%</(ay)|!seq-no>
+%<*ay>
+STRINGS { last.label next.extra }       
+
+INTEGERS { last.extra.num }             
+
+FUNCTION {initialize.extra.label.stuff} 
+{ #0 int.to.chr$ 'last.label :=
+  "" 'next.extra :=
+  #0 'last.extra.num :=
+}
+
+FUNCTION {forward.pass}
+{ last.label label =
+    { last.extra.num #1 + 'last.extra.num :=
+      last.extra.num int.to.chr$ 'extra.label :=
+    }
+    { "a" chr.to.int$ 'last.extra.num :=
+      "" 'extra.label :=
+      label 'last.label :=
+    }
+  if$
+}
+
+FUNCTION {reverse.pass}
+{ next.extra "b" =
+    { "a" 'extra.label := }
+    'skip$
+  if$
+  extra.label 'next.extra :=
+%<xlab-it>  extra.label emphasize 'extra.label :=
+%<!(har|ast|cay|cn)>  label extra.label * 'label :=
+}
+
+EXECUTE {initialize.extra.label.stuff}
+
+ITERATE {forward.pass}
+
+REVERSE {reverse.pass}
+
+FUNCTION {bib.sort.order}
+{ sort.label
+  "    "
+  *
+  year field.or.null sortify
+  *
+  "    "
+  *
+  title field.or.null
+  sort.format.title
+  *
+  #1 entry.max$ substring$
+  'sort.key$ :=
+%<har|cay|cn|ast>  calc.short.label
+}
+
+ITERATE {bib.sort.order}
+
+SORT            
+
+%</ay>
+%<*!ay>
+STRINGS { longest.label }
+
+INTEGERS { number.label longest.label.width }
+
+FUNCTION {initialize.longest.label}
+{ "" 'longest.label :=
+  #1 'number.label :=
+  #0 'longest.label.width :=
+}
+
+FUNCTION {longest.label.pass}
+%<*!ay&!cite>
+{ number.label int.to.str$ 'label :=
+  number.label #1 + 'number.label :=
+%</!ay&!cite>
+%<!ay&cite>{ cite$ 'label := 
+  label width$ longest.label.width >
+    { label 'longest.label :=
+      label width$ 'longest.label.width :=
+    }
+    'skip$
+  if$
+}
+
+EXECUTE {initialize.longest.label}
+
+ITERATE {longest.label.pass}
+
+%</!ay>
+FUNCTION {begin.bib}
+{ preamble$ empty$                              
+    'skip$
+    { preamble$ write$ newline$ }
+  if$
+%<ay>  "\begin{thebibliography}{}" write$ newline$           
+%<!ay>  "\begin{thebibliography}{"  longest.label  * "}" * write$ newline$
+%<!tit-it&tit-q>  "\newcommand{\enquote}[1]{`#1'}"
+%<!tit-it&!tit-q&tit-qq>  "\newcommand{\enquote}[1]{``#1''}"
+%<!tit-it&(tit-q|tit-qq)>  write$ newline$
+}
+
+EXECUTE {begin.bib}
+
+EXECUTE {init.state.consts}
+
+ITERATE {call.type$}
+
+FUNCTION {end.bib}
+{ newline$
+  "\end{thebibliography}" write$ newline$
+}
+
+EXECUTE {end.bib}
+%</!options>
+%    \end{macrocode}
+%
+% \Finale

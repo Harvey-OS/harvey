@@ -22,26 +22,26 @@ enum	/* op */
 };
 
 static int	fpunimp(ulong);
-static ulong	branch(Ureg*, ulong);
+static ulong	branch(Ureg*, ulong, ulong);
 
 void
 fptrap(Ureg *ur)
 {
-	ulong iw, npc;
+	ulong iw, iw_4, npc;
 
 	if((u->fpsave.fpstatus&(1<<17)) == 0)
 		return;
 
+	iw = *(ulong*)ur->pc;
+	iw_4 = iw;
 	if(ur->cause & (1<<31))
 		iw = *(ulong*)(ur->pc+4);
-	else
-		iw = *(ulong*)ur->pc;
 
 	if(fpunimp(iw) == 0)
 		return;
 
 	if(ur->cause & (1<<31)){
-		npc = branch(ur, u->fpsave.fpstatus);
+		npc = branch(ur, iw_4, u->fpsave.fpstatus);
 		if(npc == 0)
 			return;
 		ur->pc = npc;
@@ -49,7 +49,7 @@ fptrap(Ureg *ur)
 	else
 		ur->pc += 4;
 
-	u->fpsave.fpstatus = u->fpsave.fpstatus & ~(1<<17);
+	u->fpsave.fpstatus &= ~(1<<17);
 }
 
 static void
@@ -163,7 +163,7 @@ fpunimp(ulong iw)
 	default:	/* probably a compare */
 		return 0;
 	}
-	if(ed <= -(maxe-4)){	/* guess: underflow */
+	if(ed <= -(maxe-5)){	/* guess: underflow */
 		zeroreg(&u->fpsave, fmt, fd, sd);
 		/* Set underflow exception and sticky */
 		u->fpsave.fpstatus |= (1<<3)|(1<<13);
@@ -186,11 +186,10 @@ reg(Ureg *ur, int regno)
 }
 
 static ulong
-branch(Ureg *ur, ulong fcr31)
+branch(Ureg *ur, ulong iw, ulong fcr31)
 {
-	ulong iw, npc, rs, rt, rd, offset;
+	ulong npc, rs, rt, rd, offset;
 
-	iw = *(ulong*)ur->pc;
 	rs = (iw>>21) & 0x1F;
 	if(rs)
 		rs = *reg(ur, rs);

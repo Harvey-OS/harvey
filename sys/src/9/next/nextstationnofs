@@ -11,13 +11,13 @@ dev
 	ether	l
 	scc	t
 	scsi	S	scsi scsibuf
-	floppy	f
+	nextfloppy	f
 	iproute	P
 	ip	I	tcpinput tcpoutput tcptimer tcpif stil
 	arp	a
 	rtc	r
 	dk	k
-	vid	v
+	audio	A
 	kprof	T
 	wren	w
 stream
@@ -38,7 +38,6 @@ port
 		extern void trap(void*);
 		trap(ur);
 	}
-	void audiodmaintr(void){}
-boot terminal #w1/hd1
+boot terminal #w1/sd1
 	il
 	tcp

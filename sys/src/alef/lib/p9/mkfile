@@ -1,56 +1,47 @@
 </$objtype/mkfile
+CPUS=mips sparc 386
 
 LIB=/$objtype/lib/alef/libA.a
-
 OFILES=\
 	access.$O\
+	announce.$O\
 	brk.$O\
 	convD2M.$O\
 	convM2D.$O\
 	convM2S.$O\
 	convS2M.$O\
+	cputime.$O\
+	ctime.$O\
+	dial.$O\
 	dirfstat.$O\
+	dirfwstat.$O\
+	dirmodeconv.$O\
+	dirread.$O\
+	dirstat.$O\
 	execl.$O\
 	fcallconv.$O\
+	getenv.$O\
 	getpid.$O\
+	getppid.$O\
 	getuser.$O\
-	time.$O\
-	dial.$O\
-	announce.$O\
+	getwd.$O\
+	mstime.$O\
 	netmkaddr.$O\
+	postnote.$O\
+	putenv.$O\
+	syslog.$O\
+	time.$O\
 	times.$O\
+	werrstr.$O\
 
-none:Q:
-	echo usage: mk entry/install/installall/entry.all
+AFILES=${OFILES:%.$O=%.l}
+</sys/src/cmd/mksyslib
 
-%:	%.l
-	$ALEF -w $stem.l
-	ar vu $LIB $stem.$O
-	$RL $LIB
-	rm -f $stem.$O
+access.v access.k access.8: access.l
+	$ALEF -w -DMAGIC'='`{echo $O | tr vk8 VKI}^'_MAGIC' access.l
 
-%:	%.s
-	$AS $stem.s
-	ar vu $LIB $stem.$O
-	$RL $LIB
-	rm -f $stem.$O
+/68020/lib/alef/libA.a:Q:	$OFILES
+	echo 'no alef compiler for 68020'
 
-install:V:	$OFILES
-	ar vu $LIB $OFILES
-	$RL $LIB
-	rm -f $OFILES
-
-installall:V:
-	for(objtype in $CPUS) mk install
-
-%.all:V:
-	for(objtype in $CPUS) mk $stem
-
-clean:V:
-	rm -f *.[$OS]
-
-%.$O:	%.l
-	$ALEF -w $stem.l
-
-%.$O:	%.s
-	$AS $stem.s
+acid:V:
+	val -aa -DMAGIC'='1 $AFILES > acid.$objtype

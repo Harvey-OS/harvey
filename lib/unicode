@@ -597,8 +597,8 @@
 02b9	modifier letter prime; primary stress, emphasis; transliteration of mjagkij znak; (cyrillic soft sign: palatalization); x (apostrophe-quote - 0027); x (spacing acute - 00b4); x (modifier letter acute - 02ca); x (non-spacing acute - 0301); x (greek upper numeral sign - 03d8); x (prime - 2032)
 02ba	modifier letter double prime; exaggerated stress, contrastive stress; transliteration of tverdyj znak; (cyrillic hard sign: no palatalization); x (quotation mark - 0022); x (non-spacing double acute - 030b); x (double prime - 2033)
 02bb	modifier letter turned comma; typographical alternate for 02bd or 02bf; x (non-spacing turned comma above - 0312); x (single turned comma quotation mark - 2018)
-02bc	modifier letter apostrophe; = apostrophe; glottal stop, glottalization, ejective; elision; spacing clone of greek smooth breathing mark; this is the preferred character for apostrophe; x (apostrophe-quote - 0027); x (non-spacing comma above - 0313); x (non-spacing comma above right - 0315); x (greek non-spacing psili pneumata - 0372); x (armenian modifier letter right half ring - 055a); x (single comma quotation mark - 2019)
-02bd	modifier letter reversed comma; weak aspiration; spacing clone of greek rough breathing mark; x (non-spacing reversed comma above - 0314); x (greek non-spacing dasia pneumata - 0371); x (armenian modifier letter left half ring - 0559); x (single reversed comma quotation mark - 201b)
+02bc	modifier letter apostrophe; = apostrophe; glottal stop, glottalization, ejective; elision; spacing clone of greek smooth breathing mark; this is the preferred character for apostrophe; x (apostrophe-quote - 0027); x (non-spacing comma above - 0313); x (non-spacing comma above right - 0315); x (armenian modifier letter right half ring - 055a); x (single comma quotation mark - 2019)
+02bd	modifier letter reversed comma; weak aspiration; spacing clone of greek rough breathing mark; x (non-spacing reversed comma above - 0314); x (armenian modifier letter left half ring - 0559); x (single reversed comma quotation mark - 201b)
 02be	modifier letter right half ring; transliteration of arabic hamzah (glottal stop); x (armenian modifier letter right half ring - 055a); x (arabic letter hamzah - 0621)
 02bf	modifier letter left half ring; transliteration of arabic ain (voiced pharyngeal fricative); x (armenian modifier letter left half ring - 0559); x (arabic letter ain - 0639)
 02c0	modifier letter glottal stop; ejective or glottalized; typographical alternate for 02bc or 02be; x (latin letter glottal stop - 0294); x (non-spacing hook above - 0309)
@@ -656,14 +656,14 @@
 030a	non-spacing ring above; x (degree sign - 00b0); x (spacing ring above - 02da)
 030b	non-spacing double acute; hungarian, chuvash; x (quotation mark - 0022); x (modifier letter double prime - 02ba); x (spacing double acute - 02dd)
 030c	non-spacing hacek; = caron; = v above; x (modifier letter hacek - 02c7)
-030d	non-spacing vertical line above; marshallese; x (modifier letter vertical line - 02c8); x (greek capital letter alpha tonos - 0386)
+030d	non-spacing vertical line above; marshallese; = greek capital letter alpha tonos; x (modifier letter vertical line - 02c8); 
 030e	non-spacing double vertical line above; marshallese; x (quotation mark - 0022)
 030f	non-spacing double grave; serbocroatian
 0310	non-spacing candrabindu; x (devanagari sign candrabindu - 0901)
 0311	non-spacing inverted breve
 0312	non-spacing turned comma above; = cedilla above; latvian; x (modifier letter turned comma - 02bb)
-0313	non-spacing comma above; x (modifier letter apostrophe - 02bc)
-0314	non-spacing reversed comma above; x (modifier letter reversed comma - 02bd)
+0313	non-spacing comma above; x (modifier letter apostrophe - 02bc); = greek non-spacing psili pneumata; = smooth breathing; x (modifier letter apostrophe - 02bc); x (cyrillic non-spacing psili pneumata - 0486); x (armenian modifier letter right half ring - 055a)
+0314	non-spacing reversed comma above; x (modifier letter reversed comma - 02bd); = greek non-spacing dasia pneumata; = rough breathing; x (modifier letter reversed comma - 02bd); x (cyrillic non-spacing dasia pneumata - 0485); x (armenian modifier letter left half ring - 0559)
 0315	non-spacing comma above right; x (modifier letter apostrophe - 02bc)
 0316	non-spacing grave below
 0317	non-spacing acute below
@@ -711,33 +711,30 @@
 0341	non-spacing acute tone mark; kerns right of circumflex over vowels
 0342
 0343
-0344
-0345
+0344	greek non-spacing diaeresis tonos; = iso acute accent and diaeresis; x (greek spacing diaeresis tonos - 03f4)
+0345	greek non-spacing iota below; = iota subscript; x (greek spacing iota below - 03f3)
 0346
 0347
 0348
-0370	greek non-spacing iota below; = iota subscript; x (greek spacing iota below - 03f3)
-0371	greek non-spacing dasia pneumata; = rough breathing; x (modifier letter reversed comma - 02bd); x (cyrillic non-spacing dasia pneumata - 0485); x (armenian modifier letter left half ring - 0559)
-0372	greek non-spacing psili pneumata; = smooth breathing; x (modifier letter apostrophe - 02bc); x (cyrillic non-spacing psili pneumata - 0486); x (armenian modifier letter right half ring - 055a)
 0373		x (pound sign - 00a3)
-0374
-0375
+0374	greek upper numeral sign; for numeric use of letters; x (modifier letter prime - 02b9); x (modifier letter acute - 02ca)
+0375	greek lower numeral sign; for numeric use of letters; x (modifier letter low acute - 02cf)
 0376		x (broken vertical bar - 00a6)
 0377		x (paragraph sign - 00b6)
 0378		x (non-spacing diaeresis - 0308)
 0379		x (copyright sign - 00a9)
-037a
+037a	greek spacing iota below
 037b		x (left pointing guillemet - 00ab)
 037c		x (not sign - 00ac)
 037d		x (soft hyphen - 00ad)
-037e
+037e	greek question mark; sentence-final punctuation; x (semicolon - 003b); x (question mark - 003f)
 037f		x (quotation dash - 2015)
 0380		x (degree sign - 00b0)
 0381		x (plus-or-minus sign - 00b1)
 0382		x (superscript digit two - 00b2)
 0383		x (superscript digit three - 00b3)
-0384	greek non-spacing tonos
-0385	greek non-spacing diaeresis tonos; = iso acute accent and diaeresis; x (greek spacing diaeresis tonos - 03f4)
+0384	greek spacing tonos; x (greek non-spacing iota below - 0370)
+0385	greek spacing diaeresis tonos; x (greek non-spacing diaeresis tonos - 0385)
 0386	greek capital letter alpha tonos; x (non-spacing vertical line above - 030d)
 0387		x (middle dot - 00b7)
 0388	greek capital letter epsilon tonos
@@ -819,17 +816,10 @@
 03d4	greek capital letter upsilon hook diaeresis
 03d5	greek small letter script phi; used as technical symbol
 03d6	greek small letter omega pi; used as technical symbol; a variant of pi, looking like omega
-03d7	greek question mark; sentence-final punctuation; x (semicolon - 003b); x (question mark - 003f)
-03d8	greek upper numeral sign; for numeric use of letters; x (modifier letter prime - 02b9); x (modifier letter acute - 02ca)
-03d9	greek lower numeral sign; for numeric use of letters; x (modifier letter low acute - 02cf)
 03da	greek capital letter stigma
-03db	greek small letter stigma
 03dc	greek capital letter digamma
-03dd	greek small letter digamma
 03de	greek capital letter koppa
-03df	greek small letter koppa
 03e0	greek capital letter sampi
-03e1	greek small letter sampi
 03e2	greek capital letter shei
 03e3	greek small letter shei
 03e4	greek capital letter fei
@@ -847,8 +837,6 @@
 03f0	greek small letter script kappa; used as technical symbol
 03f1	greek small letter tailed rho; used as technical symbol
 03f2	greek small letter lunate sigma
-03f3	greek spacing iota below; x (greek non-spacing iota below - 0370)
-03f4	greek spacing diaeresis tonos; x (greek non-spacing diaeresis tonos - 0385)
 0400		x (non-breaking space - 00a0)
 0401	cyrillic capital letter io
 0402	cyrillic capital letter dje
@@ -982,8 +970,8 @@
 0482	cyrillic thousands sign
 0483	cyrillic non-spacing titlo
 0484	cyrillic non-spacing palatalization; x (non-spacing vertical tilde - 033e)
-0485	cyrillic non-spacing dasia pneumata; x (greek non-spacing dasia pneumata - 0371)
-0486	cyrillic non-spacing psili pneumata; x (greek non-spacing psili pneumata - 0372)
+0485	cyrillic non-spacing dasia pneumata; x (greek non-spacing dasia pneumata - 0314)
+0486	cyrillic non-spacing psili pneumata; x (greek non-spacing psili pneumata - 0313)
 0487
 0488
 0489
@@ -1003,8 +991,8 @@
 0497	cyrillic small letter zhe with right descender; tatar, ...
 0498	cyrillic capital letter ze cedilla
 0499	cyrillic small letter ze cedilla; bashkir; cedilla form preferred
-049a	cyrillic capital letter ka with right descender
-049b	cyrillic small letter ka with right descender; abkhasian, tajik, ...
+049a	cyrillic capital letter ka with right descender; = cyrillic capital letter ka ogonek
+049b	cyrillic small letter ka with right descender; abkhasian, tajik, ...; = cyrillic small letter ka ogonek; uzbek
 049c	cyrillic capital letter ka vertical bar
 049d	cyrillic small letter ka vertical bar; azerbaijan
 049e	cyrillic capital letter ka bar
@@ -1027,8 +1015,8 @@
 04af	cyrillic small letter straight u; stem is straight, unlike letter u; azerbaijan, bashkir, ...; x (cyrillic capital letter u - 0423)
 04b0	cyrillic capital letter straight u bar
 04b1	cyrillic small letter straight u bar; kazakh
-04b2	cyrillic capital letter kha with right descender
-04b3	cyrillic small letter kha with right descender; abkhasian, tajik, ...
+04b2	cyrillic capital letter kha with right descender; = cyrillic capital letter kha ogonek
+04b3	cyrillic small letter kha with right descender; abkhasian, tajik, ...; = cyrillic small letter kha ogonek; uzbek
 04b4	cyrillic capital letter te tse
 04b5	cyrillic small letter te tse; abkhasian
 04b6	cyrillic capital letter che with right descender
@@ -1046,12 +1034,8 @@
 04c2	cyrillic small letter short zhe; moldavian
 04c3	cyrillic capital letter ka hook
 04c4	cyrillic small letter ka hook; khanty, chukchi
-04c5	cyrillic capital letter ka ogonek
-04c6	cyrillic small letter ka ogonek; uzbek
 04c7	cyrillic capital letter en hook
 04c8	cyrillic small letter en hook; khanty, chukchi
-04c9	cyrillic capital letter kha ogonek
-04ca	cyrillic small letter kha ogonek; uzbek
 04cb	cyrillic capital letter che with left descender
 04cc	cyrillic small letter che with left descender; khakassian
 0500
@@ -1096,8 +1080,8 @@
 0556	armenian capital letter feh
 0557
 0558
-0559	armenian modifier letter left half ring; x (modifier letter reversed comma - 02bd); x (modifier letter left half ring - 02bf); x (greek non-spacing dasia pneumata - 0371)
-055a	armenian modifier letter right half ring; = iso armenian apostrophe; x (modifier letter apostrophe - 02bc); x (modifier letter right half ring - 02be); x (greek non-spacing psili pneumata - 0372)
+0559	armenian modifier letter left half ring; x (modifier letter reversed comma - 02bd); x (modifier letter left half ring - 02bf); x (greek non-spacing dasia pneumata - 0314)
+055a	armenian modifier letter right half ring; = iso armenian apostrophe; x (modifier letter apostrophe - 02bc); x (modifier letter right half ring - 02be); x (greek non-spacing psili pneumata - 0313)
 055b	armenian emphasis mark; = shesht; x (modifier letter acute - 02ca)
 055c	armenian exclamation mark; = batsaganchakan nshan
 055d	armenian comma; = boot; x (modifier letter grave - 02cb)
@@ -1246,7 +1230,6 @@
 05f2	hebrew letter double yod; = tsvey yudn
 05f3	hebrew punctuation geresh
 05f4	hebrew punctuation gershayim
-05f5	hebrew point varika; ladino/judezmo
 05f6
 05f7
 05f8
@@ -1778,7 +1761,6 @@
 0a3a
 0a3b
 0a3c	gurmukhi sign nukta; for extending the alphabet to new letters
-0a3d	gurmukhi sign avagraha
 0a3e	gurmukhi vowel sign aa
 0a3f	gurmukhi vowel sign i; stands to the left of the consonant
 0a40	gurmukhi vowel sign ii
@@ -1794,7 +1776,7 @@
 0a4a
 0a4b	gurmukhi vowel sign oo
 0a4c	gurmukhi vowel sign au
-0a4d
+0a4d gurmukhi sign virama
 0a4e
 0a4f
 0a50
@@ -1848,11 +1830,11 @@
 0a8a	gujarati letter uu
 0a8b	gujarati letter vocalic r
 0a8c
-0a8d
+0a8d	gujarati vowel candra e
 0a8e
 0a8f	gujarati letter e
 0a90	gujarati letter ai
-0a91
+0a91	gujarati vowel sign candra o
 0a92
 0a93	gujarati letter o
 0a94	gujarati letter au
@@ -2033,7 +2015,7 @@
 0b53
 0b54
 0b55
-0b56
+0b56	oriya ai length mark
 0b57	oriya au length mark
 0b58
 0b59
@@ -2605,11 +2587,6 @@
 0e59	thai digit nine
 0e5a	thai angkhankhu
 0e5b	thai khomut
-0e70	thai phonetic order vowel sign sara e
-0e71	thai phonetic order vowel sign sara ae
-0e72	thai phonetic order vowel sign sara o
-0e73	thai phonetic order vowel sign sara mai muan
-0e74	thai phonetic order vowel sign sara mai malai
 0e80
 0e81	lao letter ko
 0e82	lao letter kho sung
@@ -2722,91 +2699,6 @@
 0eed
 0eee
 0eef
-0ef0	lao phonetic order vowel sign e
-0ef1	lao phonetic order vowel sign ei
-0ef2	lao phonetic order vowel sign o
-0ef3	lao phonetic order vowel sign ay
-0ef4	lao phonetic order vowel sign ai
-1000	tibetan letter ka
-1001	tibetan letter kha
-1002	tibetan letter ga
-1003	tibetan letter nga
-1004	tibetan letter ca
-1005	tibetan letter cha
-1006	tibetan letter ja
-1007	tibetan letter nya
-1008	tibetan letter reversed ta; = sanskrit retroflex ta
-1009	tibetan letter reversed tha; = sanskrit retroflex tha
-100a	tibetan letter reversed da; = sanskrit retroflex da
-100b	tibetan letter reversed na; = sanskrit retroflex na
-100c	tibetan letter ta
-100d	tibetan letter tha
-100e	tibetan letter da
-100f	tibetan letter na
-1010	tibetan letter pa
-1011	tibetan letter pha
-1012	tibetan letter ba
-1013	tibetan letter ma
-1014	tibetan letter tsa
-1015	tibetan letter tsha
-1016	tibetan letter dza
-1017	tibetan letter wa
-1018	tibetan letter zha
-1019	tibetan letter za
-101a	tibetan letter aa
-101b	tibetan letter ya
-101c	tibetan letter ra
-101d	tibetan letter la
-101e	tibetan letter sha
-101f	tibetan letter reversed sha; = sanskrit retroflex sha
-1020	tibetan letter sa
-1021	tibetan letter ha
-1022	tibetan letter a; base for dependent vowels
-1023
-1024
-1025
-1026	tibetan vowel sign i; = gigu
-1027	tibetan vowel sign short i; = reversed gigu
-1028	tibetan vowel sign u; = zhabskyu (shapkyu)
-1029	tibetan vowel sign e; = hgrengbu (drengpo)
-102a	tibetan vowel sign o; = snaro (naro)
-102b	tibetan chuchenyige
-102c	tibetan visarga; = mambcad (namchey)
-102d
-102e	tibetan anusvara; = ngaro
-102f	tibetan right brace; x (tibetan left brace - 103c)
-1030	tibetan under ring; = rtags (tak); emphasis
-1031	tibetan ditto; = duyik
-1032
-1033	tibetan single ornament; = nyizla; honorific; marks beginning of texts
-1034	tibetan shad; = shey; phrase delimiter; x (devanagari danda - 0964)
-1035	tibetan tseg; = tsek; syllable delimiter
-1036	tibetan candrabindu; = kladkor (lehkor)
-1037	tibetan candrabindu with ornament; = datsekthikley
-1038	tibetan comma; = tertsek; also used as tibetan visarga
-1039	tibetan rinchanphungshad; = rinchenpungshey
-103a	tibetan rgyanshad; = druishey
-103b	tibetan honorific under ring
-103c	tibetan left brace; x (tibetan right brace - 102f)
-103d	tibetan vowel sign ai
-103e	tibetan vowel sign au
-103f
-1040	tibetan digit zero
-1041	tibetan digit one
-1042	tibetan digit two
-1043	tibetan digit three
-1044	tibetan digit four
-1045	tibetan digit five
-1046	tibetan digit six
-1047	tibetan digit seven
-1048	tibetan digit eight
-1049	tibetan digit nine
-104a	tibetan double shad; x (devanagari double danda - 0965)
-104b	tibetan virama; = srog med
-104c	tibetan lenition mark
-104d
-104e
-104f
 10a0	georgian capital letter an
 10a1	georgian capital letter ban
 10a2	georgian capital letter gan
@@ -3027,14 +2919,14 @@
 20da	non-spacing anticlockwise ring overlay
 20db	non-spacing three dots above
 20dc	non-spacing four dots above
-20dd	enclosing circle; = jis composition circle; x (white circle - 25cb); x (ideographic number zero - 3007)
+20dd	enclosing circle; x (white circle - 25cb); x (ideographic number zero - 3007)
 20de	enclosing square
 20df	enclosing diamond
 20e0	enclosing circle slash; prohibition
 20e1	non-spacing left right arrow above; tensor
 2100	account of
 2101	addressed to the subject
-2102	double-struck c; = the set of complex numbers; x (latin capital letter c - 0043)
+2102	double-struck capital c; = the set of complex numbers; x (latin capital letter c - 0043)
 2103	degrees centigrade
 2104	c l symbol; = centerline; = clone
 2105	care of
@@ -3043,32 +2935,32 @@
 2108	scruple
 2109	degrees fahrenheit
 210a	script small g; = real number symbol; x (latin small letter g - 0067)
-210b	script h; = hamiltonian function; x (latin capital letter h - 0048)
+210b	script capital h; = hamiltonian function; x (latin capital letter h - 0048)
 210c	black-letter h; x (latin capital letter h - 0048)
-210d	double-struck h; x (latin capital letter h - 0048)
+210d	double-struck capital h; x (latin capital letter h - 0048)
 210e	planck constant; x (latin small letter h - 0068)
 210f	planck constant over 2 pi; x (latin small letter h bar - 0127); x (cyrillic small letter tshe - 045b)
-2110	script i; x (latin capital letter i - 0049)
+2110	script capital i; x (latin capital letter i - 0049)
 2111	black-letter i; = iso imaginary part symbol; x (latin capital letter i - 0049)
-2112	script l; = laplace symbol; x (latin capital letter l - 004c)
+2112	script capital l; = laplace symbol; x (latin capital letter l - 004c)
 2113	script small l; = liter; x (latin small letter l - 006c)
 2114	l b bar symbol; = pounds
-2115	double-struck n; = natural number; x (latin capital letter n - 004e)
+2115	double-struck capital n; = natural number; x (latin capital letter n - 004e)
 2116	numero
 2117	sound recording copyright; = published; x (copyright sign - 00a9)
 2118	script p; = per; = power set; = weierstrass elliptic function; x (latin capital letter p - 0050)
-2119	double-struck p; x (latin capital letter p - 0050)
-211a	double-struck q; = the set of rational numbers; x (latin capital letter q - 0051)
-211b	script r; = riemann integral; x (latin capital letter r - 0052)
+2119	double-struck capital p; x (latin capital letter p - 0050)
+211a	double-struck capital q; = the set of rational numbers; x (latin capital letter q - 0051)
+211b	script capital r; = riemann integral; x (latin capital letter r - 0052)
 211c	black-letter r; = iso real part symbol; x (latin capital letter r - 0052)
-211d	double-struck r; = the set of real numbers; x (latin capital letter r - 0052)
+211d	double-struck capital r; = the set of real numbers; x (latin capital letter r - 0052)
 211e	prescription take; = recipe; = cross ratio
 211f	response
 2120	service mark
 2121	t e l symbol
 2122	trademark
 2123	versicle
-2124	double-struck z; = the set of integers; x (latin capital letter z - 005a)
+2124	double-struck capital z; = the set of integers; x (latin capital letter z - 005a)
 2125	ounce; x (latin small letter yogh - 0292)
 2126	ohm; = resistance; x (greek capital letter omega - 03a9)
 2127	mho; = conductance; typographically a turned greek capital letter omega; x (latin capital letter upsilon - 01b1); x (greek capital letter omega - 03a9)
@@ -3076,14 +2968,14 @@
 2129	turned greek small letter iota; unique element fulfilling a description (logic); x (greek small letter iota - 03b9)
 212a	degrees kelvin; x (latin capital letter k - 004b)
 212b	angstrom unit; x (latin capital letter a ring - 00c5)
-212c	script b; = bernoulli function; x (latin capital letter b - 0042)
+212c	script capital b; = bernoulli function; x (latin capital letter b - 0042)
 212d	black-letter c; x (latin capital letter c - 0043)
 212e	estimated symbol; used in european packaging; x (latin small letter e - 0065)
 212f	script small e; = error; x (latin small letter e - 0065)
-2130	script e; = emf (electro-magnetic force); x (latin capital letter e - 0045)
-2131	script f; = fourier transform; x (latin capital letter f - 0046)
+2130	script capital e; = emf (electro-magnetic force); x (latin capital letter e - 0045)
+2131	script capital f; = fourier transform; x (latin capital letter f - 0046)
 2132	turned f; x (latin capital letter f - 0046)
-2133	script m; = m-matrix (physics); x (latin capital letter m - 004d)
+2133	script capital m; = m-matrix (physics); x (latin capital letter m - 004d)
 2134	script small o; = order; of inferior order to; x (latin small letter o - 006f)
 2135	first transfinite cardinal; = cardinal of the set of integers; x (hebrew letter alef - 05d0)
 2136	second transfinite cardinal; = cardinal of the continuum; x (hebrew letter bet - 05d1)
@@ -3473,8 +3365,6 @@
 22ef	midline horizontal ellipsis
 22f0	up right diagonal ellipsis
 22f1	down right diagonal ellipsis
-2300	apl compose operator
-2301	apl out
 2302	house
 2303	up arrowhead; x (spacing circumflex - 005e); x (modifier letter up arrowhead - 02c4)
 2304	down arrowhead
@@ -3934,6 +3824,7 @@
 25ec	white up pointing triangle with dot
 25ed	up pointing triangle with left half black
 25ee	up pointing triangle with right half black
+25ef	large circle
 2600	black sun with rays; = clear weather; x (sun - 2609)
 2601	cloud; = cloudy weather
 2602	umbrella; = rainy weather
@@ -4242,8 +4133,8 @@
 3001	ideographic comma; x (comma - 002c)
 3002	ideographic period; = iso ideographic full stop; x (period - 002e)
 3003	ditto mark; x (double prime - 2033)
-3004	ideographic ditto mark
 3005	ideographic iteration mark
+3004	japanese industrial standard symbol
 3006	ideographic closing mark
 3007	ideographic number zero; x (enclosing circle - 20dd); x (white circle - 25cb)
 3008	opening angle bracket; = iso left-pointing angle bracket; x (less-than sign - 003c); x (left pointing single guillemet - 2039); x (bra - 2329)
@@ -4803,54 +4694,53 @@
 32ae	circled ideograph resource
 32af	circled ideograph alliance
 32b0	circled ideograph night
-32d0	circled katakana i
-32d1	circled katakana ro
-32d2	circled katakana ha
-32d3	circled katakana ni
-32d4	circled katakana ho
-32d5	circled katakana he
-32d6	circled katakana to
-32d7	circled katakana ti
-32d8	circled katakana ri
-32d9	circled katakana nu
-32da	circled katakana ru
-32db	circled katakana wo
-32dc	circled katakana wa
-32dd	circled katakana ka
-32de	circled katakana yo
+32d0	circled katakana a
+32d1	circled katakana i
+32d2	circled katakana u
+32d3	circled katakana e
+32d4	circled katakana o
+32d5	circled katakana ka
+32d6	circled katakana ki
+32d7	circled katakana ku
+32d8	circled katakana ke
+32d9	circled katakana ko
+32da	circled katakana sa
+32db	circled katakana si
+32dc	circled katakana su
+32dd	circled katakana se
+32de	circled katakana so
 32df	circled katakana ta
-32e0	circled katakana re
-32e1	circled katakana so
-32e2	circled katakana tu
-32e3	circled katakana ne
+32e0	circled katakana ti
+32e1	circled katakana tu
+32e2	circled katakana te
+32e3	circled katakana to
 32e4	circled katakana na
-32e5	circled katakana ra
-32e6	circled katakana mu
-32e7	circled katakana u
-32e8	circled katakana wi
-32e9	circled katakana no
-32ea	circled katakana o
-32eb	circled katakana ku
-32ec	circled katakana ya
-32ed	circled katakana ma
-32ee	circled katakana ke
-32ef	circled katakana hu
-32f0	circled katakana ko
-32f1	circled katakana we
-32f2	circled katakana te
-32f3	circled katakana a
-32f4	circled katakana sa
-32f5	circled katakana ki
-32f6	circled katakana yu
-32f7	circled katakana me
-32f8	circled katakana mi
-32f9	circled katakana si
-32fa	circled katakana e
-32fb	circled katakana hi
-32fc	circled katakana mo
-32fd	circled katakana se
-32fe	circled katakana su
-32ff	japanese industrial standard symbol
+32e5	circled katakana ni
+32e6	circled katakana nu
+32e7	circled katakana ne
+32e8	circled katakana no
+32e9	circled katakana ha
+32ea	circled katakana hi
+32eb	circled katakana hu
+32ec	circled katakana he
+32ed	circled katakana ho
+32ee	circled katakana ma
+32ef	circled katakana mi
+32f0	circled katakana mu
+32f1	circled katakana me
+32f2	circled katakana mo
+32f3	circled katakana ya
+32f4	circled katakana yu
+32f5	circled katakana yo
+32f6	circled katakana ra
+32f7	circled katakana ri
+32f8	circled katakana ru
+32f9	circled katakana re
+32fa	circled katakana ro
+32fb	circled katakana wa
+32fc	circled katakana wi
+32fd	circled katakana we
+32fe	circled katakana wo
 3300	squared apaato; apartment
 3301	squared aruhua; alpha
 3302	squared anpea; ampere
@@ -5048,6 +4938,8 @@
 33dd	squared wb
 33de
 33df
+4edd	ideographic ditto mark
+fb1e	hebrew point varika; ladino/judezmo
 fe30	glyph for vertical two dot leader
 fe31	glyph for vertical em dash
 fe32	glyph for vertical en dash
@@ -5138,37 +5030,37 @@ fe86	glyph for final arabic hamzah on waw
 fe87	glyph for isolate arabic hamzah under alef
 fe88	glyph for final arabic hamzah under alef
 fe89	glyph for isolate arabic hamzah on ya
-fe8a	glyph for initial arabic hamzah on ya
-fe8b	glyph for medial arabic hamzah on ya
-fe8c	glyph for final arabic hamzah on ya
+fe8a	glyph for final arabic hamzah on ya
+fe8b	glyph for initial arabic hamzah on ya
+fe8c	glyph for medial arabic hamzah on ya
 fe8d	glyph for isolate arabic alef
 fe8e	glyph for final arabic alef
 fe8f	glyph for isolate arabic baa
-fe90	glyph for initial arabic baa
-fe91	glyph for medial arabic baa
-fe92	glyph for final arabic baa
+fe90	glyph for final arabic baa
+fe91	glyph for initial arabic baa
+fe92	glyph for medial arabic baa
 fe93	glyph for isolate arabic taa marbutah
 fe94	glyph for final arabic taa marbutah
 fe95	glyph for isolate arabic taa
-fe96	glyph for initial arabic taa
-fe97	glyph for medial arabic taa
-fe98	glyph for final arabic taa
+fe96	glyph for final arabic taa
+fe97	glyph for initial arabic taa
+fe98	glyph for medial arabic taa
 fe99	glyph for isolate arabic thaa
-fe9a	glyph for initial arabic thaa
-fe9b	glyph for medial arabic thaa
-fe9c	glyph for final arabic thaa
+fe9a	glyph for final arabic thaa
+fe9b	glyph for initial arabic thaa
+fe9c	glyph for medial arabic thaa
 fe9d	glyph for isolate arabic jeem
-fe9e	glyph for initial arabic jeem
-fe9f	glyph for medial arabic jeem
-fea0	glyph for final arabic jeem
+fe9e	glyph for final arabic jeem
+fe9f	glyph for initial arabic jeem
+fea0	glyph for medial arabic jeem
 fea1	glyph for isolate arabic haa
-fea2	glyph for initial arabic haa
-fea3	glyph for medial arabic haa
-fea4	glyph for final arabic haa
+fea2	glyph for final arabic haa
+fea3	glyph for initial arabic haa
+fea4	glyph for medial arabic haa
 fea5	glyph for isolate arabic khaa
-fea6	glyph for initial arabic khaa
-fea7	glyph for medial arabic khaa
-fea8	glyph for final arabic khaa
+fea6	glyph for final arabic khaa
+fea7	glyph for initial arabic khaa
+fea8	glyph for medial arabic khaa
 fea9	glyph for isolate arabic dal
 feaa	glyph for final arabic dal
 feab	glyph for isolate arabic thal
@@ -5178,73 +5070,73 @@ feae	glyph for final arabic ra
 feaf	glyph for isolate arabic zain
 feb0	glyph for final arabic zain
 feb1	glyph for isolate arabic seen
-feb2	glyph for initial arabic seen
-feb3	glyph for medial arabic seen
-feb4	glyph for final arabic seen
+feb2	glyph for final arabic seen
+feb3	glyph for initial arabic seen
+feb4	glyph for medial arabic seen
 feb5	glyph for isolate arabic sheen
-feb6	glyph for initial arabic sheen
-feb7	glyph for medial arabic sheen
-feb8	glyph for final arabic sheen
+feb6	glyph for final arabic sheen
+feb7	glyph for initial arabic sheen
+feb8	glyph for medial arabic sheen
 feb9	glyph for isolate arabic sad
-feba	glyph for initial arabic sad
-febb	glyph for medial arabic sad
-febc	glyph for final arabic sad
+feba	glyph for final arabic sad
+febb	glyph for initial arabic sad
+febc	glyph for medial arabic sad
 febd	glyph for isolate arabic dad
-febe	glyph for initial arabic dad
-febf	glyph for medial arabic dad
-fec0	glyph for final arabic dad
+febe	glyph for final arabic dad
+febf	glyph for initial arabic dad
+fec0	glyph for medial arabic dad
 fec1	glyph for isolate arabic tah
-fec2	glyph for initial arabic tah
-fec3	glyph for medial arabic tah
-fec4	glyph for final arabic tah
+fec2	glyph for final arabic tah
+fec3	glyph for initial arabic tah
+fec4	glyph for medial arabic tah
 fec5	glyph for isolate arabic dhah
-fec6	glyph for initial arabic dhah
-fec7	glyph for medial arabic dhah
-fec8	glyph for final arabic dhah
+fec6	glyph for final arabic dhah
+fec7	glyph for initial arabic dhah
+fec8	glyph for medial arabic dhah
 fec9	glyph for isolate arabic ain
-feca	glyph for initial arabic ain
-fecb	glyph for medial arabic ain
-fecc	glyph for final arabic ain
+feca	glyph for final arabic ain
+fecb	glyph for initial arabic ain
+fecc	glyph for medial arabic ain
 fecd	glyph for isolate arabic ghain
-fece	glyph for initial arabic ghain
-fecf	glyph for medial arabic ghain
-fed0	glyph for final arabic ghain
+fece	glyph for final arabic ghain
+fecf	glyph for initial arabic ghain
+fed0	glyph for medial arabic ghain
 fed1	glyph for isolate arabic fa
-fed2	glyph for initial arabic fa
-fed3	glyph for medial arabic fa
-fed4	glyph for final arabic fa
+fed2	glyph for final arabic fa
+fed3	glyph for initial arabic fa
+fed4	glyph for medial arabic fa
 fed5	glyph for isolate arabic qaf
-fed6	glyph for initial arabic qaf
-fed7	glyph for medial arabic qaf
-fed8	glyph for final arabic qaf
+fed6	glyph for final arabic qaf
+fed7	glyph for initial arabic qaf
+fed8	glyph for medial arabic qaf
 fed9	glyph for isolate arabic caf
-feda	glyph for initial arabic caf
-fedb	glyph for medial arabic caf
-fedc	glyph for final arabic caf
+feda	glyph for final arabic caf
+fedb	glyph for initial arabic caf
+fedc	glyph for medial arabic caf
 fedd	glyph for isolate arabic lam
-fede	glyph for initial arabic lam
-fedf	glyph for medial arabic lam
-fee0	glyph for final arabic lam
+fede	glyph for final arabic lam
+fedf	glyph for initial arabic lam
+fee0	glyph for medial arabic lam
 fee1	glyph for isolate arabic meem
-fee2	glyph for initial arabic meem
-fee3	glyph for medial arabic meem
-fee4	glyph for final arabic meem
+fee2	glyph for final arabic meem
+fee3	glyph for initial arabic meem
+fee4	glyph for medial arabic meem
 fee5	glyph for isolate arabic noon
-fee6	glyph for initial arabic noon
-fee7	glyph for medial arabic noon
-fee8	glyph for final arabic noon
+fee6	glyph for final arabic noon
+fee7	glyph for initial arabic noon
+fee8	glyph for medial arabic noon
 fee9	glyph for isolate arabic ha
-feea	glyph for initial arabic ha
-feeb	glyph for medial arabic ha
-feec	glyph for final arabic ha
+feea	glyph for final arabic ha
+feeb	glyph for initial arabic ha
+feec	glyph for medial arabic ha
 feed	glyph for isolate arabic waw
 feee	glyph for final arabic waw
 feef	glyph for isolate arabic alef maqsurah
 fef0	glyph for final arabic alef maqsurah
 fef1	glyph for isolate arabic ya
-fef2	glyph for initial arabic ya
-fef3	glyph for medial arabic ya
-fef4	glyph for final arabic ya
+fef2	glyph for final arabic ya
+fef3	glyph for initial arabic ya
+fef4	glyph for medial arabic ya
 fef5	glyph for isolate arabic maddah on ligature lam alef
 fef6	glyph for final arabic maddah on ligature lam alef
 fef7	glyph for isolate arabic hamzah on ligature lam alef
@@ -5487,6 +5379,13 @@ ffe3	fullwidth spacing macron
 ffe4	fullwidth broken vertical bar
 ffe5	fullwidth yen sign
 ffe6	fullwidth won sign
+ffe8	halfwidth forms light vertical
+ffe9	halfwidth leftwards arrow
+ffea	halfwidth upwards arrow
+ffeb	halfwidth rightwards arrow
+ffec	halfwidth downwards arrow
+ffed	halfwidth black square
+ffee	halfwidth white circle
 fff0
 fff1
 fff2

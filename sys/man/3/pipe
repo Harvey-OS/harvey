@@ -2,13 +2,14 @@
 .SH NAME
 pipe \- two-way interprocess communication
 .SH SYNOPSIS
+.B bind #|
+.I dir
 .nf
-.B bind #| x
 
-.B x/data
-.B x/ctl
-.B x/data1
-.B x/ctl1
+.IB dir /data
+.IB dir /ctl
+.IB dir /data1
+.IB dir /ctl1
 .fi
 .SH DESCRIPTION
 .PP
@@ -54,6 +55,8 @@ and
 .B data1
 files.
 The files are open with mode
-.B ORDWR.
+.BR ORDWR .
 .SH "SEE ALSO"
 .IR pipe (2)
+.SH SOURCE
+.B /sys/src/9/port/devpipe.c

@@ -52,6 +52,10 @@ void printdump(long size){
 		print("null file\n");
 		return;
 	}
+	if(size<0){
+		print("negative size!\n");
+		return;
+	}
 	/* canned sizes */
 	for(s=0;siz[s][0];s++) for(d=0;dep[d].nchan;d++)
 		if(siz[s][0]*siz[s][1]*dep[d].nchan==size){

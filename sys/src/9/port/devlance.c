@@ -352,6 +352,7 @@ lanceoput(Queue *q, Block *bp)
 	 *  only one transmitter at a time
 	 */
 	qlock(&l.tlock);
+
 	if(l.wedged) {
 		qunlock(&l.tlock);
 		freeb(bp);
@@ -456,6 +457,7 @@ lancereset(void)
 	 */
 	*l.rap = 0;
 	*l.rdp = STOP;
+	l.wedged = 1;
 }
 
 /*
@@ -558,6 +560,21 @@ lancestart(int mode)
 	wbflush();
 	*l.rap = 0;
 	*l.rdp = INEA|INIT|STRT; /**/
+
+	/*
+	 *  spin for up to a second waiting for the IDON interrupt
+	 */
+	for(i = 0; i < 1000; i++){
+		if(l.wedged == 0)
+			break;
+		delay(1);
+	}
+
+	/*
+	 *  let in everything else
+	 */
+	qunlock(&l.rlock);
+	qunlock(&l.tlock);
 }
 
 void
@@ -654,7 +671,7 @@ lancestatsfill(Chan *c, char* p, int n)
 	char buf[512];
 
 	USED(c);
-	sprint(buf, "in: %d\nout: %d\ncrc errs %d\noverflows: %d\nframe errs %d\nbuff errs: %d\noerrs %d\naddr: %.02x:%.02x:%.02x:%.02x:%.02x:%.02x\n",
+	sprint(buf, "in: %d\nout: %d\ncrc errs: %d\noverflows: %d\nframe errs: %d\nbuff errs: %d\noerrs: %d\naddr: %.02x:%.02x:%.02x:%.02x:%.02x:%.02x\n",
 		l.inpackets, l.outpackets, l.crcs,
 		l.overflows, l.frames, l.buffs, l.oerrs,
 		l.ea[0], l.ea[1], l.ea[2], l.ea[3], l.ea[4], l.ea[5]);
@@ -714,9 +731,9 @@ lanceintr(void)
 	 *  see if an error occurred
 	 */
 	if(csr & (BABL|MISS|MERR)){
-		if(l.misses++ < 4)
+		if(l.misses++ < 4) {
 			print("lance err #%ux\n", csr);
-		else {
+		} else {
 			print("lance stopped\n");
 			l.wedged = 1;
 			l.misses = 0;
@@ -727,11 +744,11 @@ lanceintr(void)
 		}
 	}
 
-	if(csr & IDON){
+	/*
+	 *  initialization done
+	 */
+	if(csr & IDON)
 		l.wedged = 0;
-		qunlock(&l.rlock);
-		qunlock(&l.tlock);
-	}
 
 	/*
 	 *  the lance turns off if it gets strange output errors
@@ -867,7 +884,6 @@ lancekproc(void *arg)
 		if(l.wedged){
 			print("lance wedged, restarting\n");
 			lancestart(0);
-			l.wedged = 0;
 		}
 
 		/*

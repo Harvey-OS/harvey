@@ -13,8 +13,6 @@ extern	void	unputstr(char *);
 extern	int	yylook(void);
 extern	int	yyback(int *, int);
 extern	int	yyinput(void);
-extern	int	yyoutput(int);
-extern	int	yyunput(int);
 
 extern	void	*compre(uchar *);
 extern	int	hexstr(char **);
@@ -70,6 +68,7 @@ extern	uchar	*r_getsval(Cell *);
 extern	uchar	*tostring(uchar *);
 extern	uchar	*qstring(uchar *, int);
 
+extern	void	recinit(unsigned int);
 extern	void	initgetrec(void);
 extern	int	getrec(uchar *);
 extern	int	readrec(uchar *buf, int bufsize, FILE *inf);
@@ -102,7 +101,7 @@ extern	Cell	*jump(Node **, int);
 extern	Cell	*getline(Node **, int);
 extern	Cell	*getnf(Node **, int);
 extern	Cell	*array(Node **, int);
-extern	Cell	*delete(Node **, int);
+extern	Cell	*adelete(Node **, int);
 extern	Cell	*intest(Node **, int);
 extern	Cell	*matchop(Node **, int);
 extern	Cell	*boolop(Node **, int);

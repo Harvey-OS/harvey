@@ -1,11 +1,11 @@
 #include "map.h"
 
 static struct coord stdpar0, stdpar1;
-static float k;
-static float yeq;
+static double k;
+static double yeq;
 
 static int
-Xtrapezoidal(struct place *place, float *x, float *y)
+Xtrapezoidal(struct place *place, double *x, double *y)
 {
 	*y = yeq + place->nlat.l;
 	*x = *y*k*place->wlon.l;
@@ -13,7 +13,7 @@ Xtrapezoidal(struct place *place, float *x, float *y)
 }
 
 proj
-trapezoidal(float par0, float par1)
+trapezoidal(double par0, double par1)
 {
 	if(fabs(fabs(par0)-fabs(par1))<.1)
 		return rectangular(par0);

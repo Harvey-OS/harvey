@@ -3,7 +3,7 @@
 #include <bio.h>
 #include <ip.h>
 #include <ndb.h>
-#include "/sys/src/9/port/arp.h"
+#include "arp.h"
 
 typedef struct Rarp	Rarp;
 
@@ -76,10 +76,9 @@ main(int argc, char *argv[])
 	if(myetheraddr(myether, ebuf) < 0)
 		error("can't get my ether address");
 
-	if(bind("#a", "/net", MBEFORE) < 0)
-		error("binding /net/arp");
 	if((arp = open("/net/arp/data", ORDWR)) < 0)
-		error("open /net/arp/data");
+		if((arp = open("#a/arp/data", ORDWR)) < 0)
+			fprint(2, "rarpd: can't open /net/arp/data\n");
 
 	switch(rfork(RFNOTEG|RFPROC|RFFDG)) {
 	case -1:
@@ -130,6 +129,8 @@ main(int argc, char *argv[])
 		if(write(edata, buf, 42) != 42)
 			error("write failed");
 
+		if(arp < 0)
+			continue;
 		memmove(entry.etaddr, rp->esrc, sizeof(entry.etaddr));
 		memmove(entry.ipaddr, rp->tpa, sizeof(entry.ipaddr));
 		if(write(arp, &entry, sizeof(entry)) < 0)

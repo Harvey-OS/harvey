@@ -2,28 +2,25 @@
 #
 APE=/sys/src/ape
 < $APE/config
-SITEDIR=..
-OPT=-B
 SHELL=/bin/rc
 
 TARG=fixwrites splitup regfix web2c
 
 OFILES=
 
-HFILES=symtab.h\
-	$SITEDIR/site.h\
+HFILES=../lib/config.h
 
 YFILES=web2c.yacc
 
 LFILES=web2c.lex
 
+LIB=../lib/lib.a$O /$objtype/lib/ape/libl.a
+
 </sys/src/cmd/mkmany
 
-CFLAGS=$OPT -I$SITEDIR -c
-LD=pcc
+CFLAGS=-B -D_POSIX_SOURCE -I../lib -c
 # -S is for stdio printf
 YFLAGS=-S -d
-# Note: If you're going to use flex, compile web2cl.c with "-DFLEX".
 LEX=lex
 
 $O.web2c:	web2cy.$O web2cl.$O

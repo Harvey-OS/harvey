@@ -1,62 +1,54 @@
-#device_name    loc     dest_host               phys_dev_name   speed   class                   def_proc        spooler         stat           kill            daemon          sched
-2c254		2C-254	gauss			nj/phone/2c254	19200	post300			generic		generic		generic	generic		post.warn	SMALLF
-2d527		2D-527	icarus			/dev/ttyh3	19200	post300+reverse		generic		generic		tcplpr		tcplpr		tcplprdp	FIFO
-2t4		2T-402	hydra			/dev/ttyd2	19200	post300			generic		generic		generic	generic		post		FIFO
-2t5		2T-502	bowell			nj/astro/2t5	19200	post300			generic		generic		generic	generic		post		FIFO
-4NE10A		4N-E10	nj/garage/mozart	-       	-       imagen/3.2+reverse	generic		generic		dkccgeneric	dkccgeneric	dkccimagen	MYFIFO
-4NE10B		4N-E10	nj/garage/mozart	-       	-       imagen/3.2+reverse 	generic		generic		dkccgeneric	dkccgeneric	dkccimagen	MYFIFO
-4NE10C		LC4N-E10 nj/garage/europa 	nj/3n0/4NE10C	1200	dumb			cat		generic		generic	generic		dkdumb		FIFO
-4NE15		4N-E15	nj/garage/mozart	-       	-       imagen/3.2+reverse 	generic		generic		dkccgeneric	dkccgeneric	dkccimagen	MYFIFO
-chroma		2F-100	mhserva			-       	-       post300+nohead		generic		mhcc    	mhcc    	-       	-       	FIFO
-clc500		2F-100	mhserva			-       	-       post300+nohead		generic		mhcc    	mhcc    	-       	-       	FIFO
-color1		2F-100	mhserva			-       	-       post300+nohead		generic		mhcc    	-       	-       	-       	FIFO
-crete		2D-503	icarus			/dev/ttyh2	19200	post300+reverse		generic		generic		tcplpr		tcplpr		tcplprdp	FIFO
-ih11265a	IHC1Q334	king		-       	-       post300			generic		uuxprt		-       	-       	-       	FIFO
-ihp2e546	IHP2E-546	iedit1		-       	-       post300+reverse		generic		generic		-       	-       	uuxlpr		FIFO
-imagen5		2C-548	dopey			/dev/tty00	19200	imagen/3.2+reverse	generic		generic		generic	generic		imagen		FIFO
-imagenj		st7_fl4	icarus			/dev/tty2	9600	imagen/3.2+reverse	generic		generic		generic	generic		imagen		FIFO
-imagenm		-       most			/dev/tty00	9600	imagen/2.2+reverse	generic		generic		generic	generic		imagen		FIFO
-jsh		2D-545	icarus			/dev/ttyh5	19200	post300+reverse		generic		generic		tcplpr		tcplpr		tcplprdp	FIFO
-kodak		2F-100	mhserva			-       	-       post300+nohead+duplex	generic		mhcc    	mhcc    	-       	-       	FIFO
-kroon		2D-557	icarus			/dev/ttyh4	19200	post300+reverse		generic		generic		tcplpr		tcplpr		tcplprdp	FIFO
-leonardo	MH6D-416 bartok	 		nj/mhc/mhprt213	9600	post300			generic		generic		generic	generic		post		FIFO
-lino		2F-100	mhserva			-       	-       post+lino+nohead	generic		mhcc    	-       	-       	-       	FIFO
-lj		2D-455	icarus			/dev/ttyh0	19200	post300+reverse		generic		generic		tcplpr		tcplpr		tcplprdp	FIFO
-mini112		2C-468	slepian			tcp!fourier!4006 -	post300 		generic		generic		generic	generic		tcppost		FIFO
-null		nowhere	hydra			/dev/null	-       post300			generic		generic		generic	generic		dumb		FIFO
-peacock		st9_fl3	cetus			peacock		-       post300+reverse+nohead+color generic	generic		generic	generic		appletalk	FIFO
-po		2C-579	alice			nj/astro/popr	1200	dumb			cat		generic		generic	generic		dkdumb		FIFO
-ps1a326		1A-326	alice			nj/mhc/mhprt60	9600	post300+reverse		generic		generic		generic	generic		post		FIFO
-ps2c177		2C-117	sid			nj/phone/ps2c177 19200	post300			generic		generic		generic	generic		post		FIFO
-ps2c364		2C-364	sid			nj/phone/ps2c364 19200	post300+reverse		generic		generic		generic	generic		post		FIFO
-ps2c468		2C-468	slepian			tcp!fourier!4007 -	post300			generic		generic		generic	generic		tcppost		FIFO
-ps2c548		2C-548	dopey			/dev/tty03	19200	post300			generic		generic		generic	generic		post		FIFO
-ps2c557		2C-557	cetus			ps2c557		-	post300			generic		generic		generic	generic		appletalk	FIFO
-ps2d115		2D-115	rice			tcp!fourier!4005 -	post300			generic		generic		generic	generic		tcppost		FIFO
-ps630	printer-on-630	-       		-       	-       post300+nohead		generic		ps630		-       	-       	-       	-
-ps6d429		6D-429	shannon		 	nj/c/mhprt218	9600	post300			generic		generic		generic	generic		post		FIFO
-ps71		2D-154	gauss			nj/phone/ps71	19200	post300+reverse		generic		generic		generic	generic		post		FIFO
-ps81		st8_fl1	gauss			nj/phone/ps81	19200	post300			generic		generic		generic	generic		post		FIFO
-ps83		st8_fl3	gauss			nj/phone/ps83	19200	post300			generic		generic		generic	generic		post		FIFO
-ps84		st8_fl4	bowell			nj/astro/ps84	19200	post300+reverse		generic		generic		generic	generic		post		FIFO
-ps85		st8_fl5	bowell			nj/astro/ps85	19200	post300			generic		generic		generic	generic		post		FIFO
-ps91		2C-123	gauss			nj/phone/ps91	19200	post300			generic		generic		generic	generic		post		FIFO
-ps93		st9_fl3	cetus			ps93		-       post300+reverse		generic		generic		generic	generic		appletalk	FIFO
-ps94		st9_fl4	coma			nj/astro/ps94	19200	post300+reverse		generic		generic		generic	generic		post		FIFO
-ps95		2C-518	coma			nj/astro/ps95	19200	post300+reverse		generic		generic		generic	generic		post		FIFO
-shamrock		st7_fl2	alice			nj/astro/shamrock	19200	post300+reverse		generic		generic		generic	generic		post		FIFO
-psu		2C-501	cetus			psu		-       post300			generic		generic		generic	generic		appletalk	FIFO
-qmsm		-       most			/dev/laser	9600	post300+reverse		generic		generic		generic	generic		post		FIFO
-redfern		2C-444	coma			nj/astro/redfern 19200	post300+reverse		generic		generic		generic	generic		post		FIFO
-ruby		2F-100	nj/mhe/mhuxo		-       	-       post600+nohead		generic		mhcc    	mhcc    	-       	-       	FIFO
-safari		-       -       		/dev/lpt1data	-       post+nohead		generic		nospool		-       	-       	-       	-
-secy		2C-579	bowell	 		nj/astro/secy	19200	post300+reverse		generic		generic		generic	generic		post		FIFO
-statlab		2C-272	gauss			nj/phone/statlab 19200	post300			generic		generic		generic	generic		post.warn	SMALLF
-stdout		-       -       		-       	-       post+nohead		generic		nospool		-       	-       	-       	-
-styx		2D-342	icarus			/dev/ttyho	19200	post300+reverse		generic		generic		tcplpr		tcplpr		tcplprdp	FIFO
-thor		2D-503	icarus			/dev/ttyho	19200	post300+reverse		generic		generic		tcplpr		tcplpr		tcplprdp	FIFO
-troy		2D-503	icarus			/dev/ttyh1	19200	post300+reverse		generic		generic		tcplpr		tcplpr		tcplprdp	FIFO
-typo		2D-455	icarus			/dev/ttyh3	19200	post300+reverse		generic		generic		tcplpr		tcplpr		tcplprdp	FIFO
-typo1		2D-455	icarus			/dev/ttyh3	19200	post300+reverse		generic		generic		tcplpr		tcplpr		tcplprdp	FIFO
-dp		2C-504	coma			nj/astro/dp	19200	post300+reverse		generic		generic		generic	generic		post		FIFO
-u		2C-501	cetus			u		-       post300+duplex		generic		generic		generic	generic		lps		FIFO
+# Here is a sample printer devices file where all the printers have
+# been commented out.
+#
+# device_name	loc		dest_host		phys_dev_name		speed	class				def_proc	spooler		stat		kill		daemon		sched
+#
+# HP LaserJet 4M connected to serial port on an Annex terminal server.
+# 2c254			2C-254	rice			tcp!annex!7035		19200	post+600dpi			generic		generic		generic		generic		tcppost		FIFO
+#
+# HP LaserJet 4M connected to Ethernet via a JetDirect card.
+# The speed field is used to set the bufffer size in the tcpostio program run from tcppost.
+# 2c307			2C-307	alice			tcp!mh2c307!9100	81920	post+600dpi			generic		generic		generic		generic		tcppost		FIFO
+#
+# HP LaserJet 4M connected to serial port on a Cisco terminal server.
+# 2t4			2T-402	pyxis			tcp!ts!4010			19200	post+600dpi			generic		generic		generic		generic		tcppost		FIFO
+#
+# HP LaserJet 4Si/MX connected to Ethernet via a JetDirect card.
+# This printer has a duplexing option.
+# See /sys/lib/postscript/prologues/hpsimx.ps for a fix to make it default
+# to the large paper tray at postion 1.
+# fn			2C-501	helix			tcp!fn!9100			81920	post2+600dpi+duplex	generic		generic		generic		generic		tcppost		FIFO
+#
+# Tektronix Phaser 200i connected to Ethernet.
+# Using Xinet K-Talk software from a UNIX host.  This software is not recommended.
+# We do not want to waste stock on the color printer so we do not print header pages.
+# peacock		2C-501	cetus			peacock				-		post2+300dpi+nohead+color	generic		generic		generic		generic		appletalk	FIFO
+#
+# Any PostScript printer connected to the LPT1 port on my 486 pc running Plan 9 as a terminal.
+# pcclone		-			-			/dev/lpt1data		-		post+nohead			generic		pcclone		-			-			-			-
+#
+# QMS-410 connected to the serial port of an NCD terminal.
+# math34		2T-102	rice			tcp!math34!87		9600	post+600dpi			generic		generic		generic		generic		tcppost		FIFO
+#
+# QMS-410 connected to the serial port of an AT&T 630/730 terminal
+# ps630		printer-on-630	-			-					-		post+300dpi+nohead	generic		ps630		-			-			-			-
+#
+# Xante Accel-a-Writer-8200.  1200dpi printer that uses a BSD lpr print daemon protocol
+# psu		2C-501		cetus			psu					-		post+1200dpi		generic		generic		xante		generic		lpddaemon	FIFO
+#
+# sends the output to the standard output of the lp command.
+# stdout	-			-				-					-		post+nohead			generic		nospool		-			-			-			-
+#
+# sends the output to the standard output of the lp command.
+# used for generating output suitable for 100 dpi.
+# 100dpi	-			-				-					-		post+100dpi+nohead	generic		nospool		-			-			-			-
+#
+# same as above for generating output suitable for 300 dpi.
+# 300dpi	-			-				-					-		post+300dpi+nohead	generic		nospool		-			-			-			-
+#
+# same as above for generating output suitable for 600 dpi.
+#
+# 600dpi	-			-				-					-		post+600dpi+nohead	generic		nospool		-			-			-			-
+#
+# same as above for generating output suitable for Linotronics phototypesetter.
+# 1270dpi	-			-				-					-		post+lino+nohead	generic		nospool		-			-			-			-

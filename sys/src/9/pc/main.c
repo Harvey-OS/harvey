@@ -21,6 +21,20 @@ PCArch *knownarch[] =
 	&generic,
 };
 
+/* where b.com leaves configuration info */
+#define BOOTARGS	((char*)(KZERO|1024))
+#define	BOOTARGSLEN	1024
+#define	MAXCONF		32
+
+char bootdisk[NAMELEN];
+char *confname[MAXCONF];
+char *confval[MAXCONF];
+int nconf;
+
+/* memory map */
+#define MAXMEG 64
+char mmap[MAXMEG+2];
+
 void
 main(void)
 {
@@ -31,6 +45,7 @@ main(void)
 	active.machs = 1;
 	confinit();
 	xinit();
+	dmainit();
 	screeninit();
 	printinit();
 	mmuinit();
@@ -38,12 +53,13 @@ main(void)
 	trapinit();
 	mathinit();
 	clockinit();
+	printcpufreq();
 	faultinit();
 	kbdinit();
 	procinit0();
 	initseg();
-	chandevreset();
 	streaminit();
+	chandevreset();
 	swapinit();
 	userinit();
 	schedinit();
@@ -82,6 +98,7 @@ ulong garbage;
 void
 init0(void)
 {
+	int i;
 	char tstr[32];
 
 	u->nerrlab = 0;
@@ -106,6 +123,9 @@ init0(void)
 		strcat(tstr, " %s");
 		ksetterm(tstr);
 		ksetenv("cputype", "386");
+		for(i = 0; i < nconf; i++)
+			if(confname[i])
+				ksetenv(confname[i], confval[i]);
 		poperror();
 	}
 	touser(sp);
@@ -198,15 +218,44 @@ bootargs(ulong base)
 	sp = (uchar*)base + BY2PG - MAXSYSARG*BY2WD;
 
 	ac = 0;
-	av[ac++] = pusharg("/386/9safari");
-	av[ac++] = pusharg("-p");
+	av[ac++] = pusharg("/386/9pc");
 	cp[64] = 0;
+	buf[0] = 0;
+
+	/*
+	 *  decode the b.com bootline and convert to
+	 *  a disk device name to pass to the boot
+	 */
 	if(strncmp(cp, "fd!", 3) == 0){
 		sprint(buf, "local!#f/fd%ddisk", atoi(cp+3));
 		av[ac++] = pusharg(buf);
-	} else if(strncmp(cp, "hd!", 3) == 0){
-		sprint(buf, "local!#w/hd%ddisk", atoi(cp+3));
+	} else if(strncmp(cp, "h!", 2) == 0){
+		sprint(buf, "local!#H/hd%dfs", atoi(cp+2));
 		av[ac++] = pusharg(buf);
+	} else if(strncmp(cp, "hd!", 3) == 0){
+		sprint(buf, "local!#H/hd%ddisk", atoi(cp+3));
+		av[ac++] = pusharg(buf);
+	} else if(strncmp(cp, "s!", 2) == 0){
+		sprint(buf, "local!#w%d/sd%dfs", atoi(cp+2), atoi(cp+2));
+		av[ac++] = pusharg(buf);
+	} else if(strncmp(cp, "sd!", 3) == 0){
+		sprint(buf, "local!#w%d/sd%ddisk", atoi(cp+3), atoi(cp+3));
+		av[ac++] = pusharg(buf);
+	} else if(getconf("bootdisk") == 0){
+		if(conf.nhard){
+			sprint(buf, "local!#H/hd0disk");
+			av[ac++] = pusharg(buf);
+		} else{
+			sprint(buf, "local!#w/sd0disk");
+			av[ac++] = pusharg(buf);
+		}
+	}
+	if(buf[0]){
+		cp = strchr(buf, '!');
+		if(cp){
+			strcpy(bootdisk, cp+1);
+			addconf("bootdisk", bootdisk);
+		}
 	}
 
 	/* 4 byte word align stack */
@@ -224,75 +273,185 @@ bootargs(ulong base)
 Conf	conf;
 
 void
+addconf(char *name, char *val)
+{
+	if(nconf >= MAXCONF)
+		return;
+	confname[nconf] = name;
+	confval[nconf] = val;
+	nconf++;
+}
+
+char*
+getconf(char *name)
+{
+	int i;
+
+	for(i = 0; i < nconf; i++)
+		if(strcmp(confname[i], name) == 0)
+			return confval[i];
+	return 0;
+}
+
+/*
+ *  look for unused address space in 0xC8000 to 1 meg
+ */
+void
+romscan(void)
+{
+	uchar *p;
+
+	p = (uchar*)(KZERO+0xC8000);
+	while(p < (uchar*)(KZERO+0xE0000)){
+		p[0] = 0x55;
+		p[1] = 0xAA;
+		p[2] = 4;
+		if(p[0] != 0x55 || p[1] != 0xAA){
+			putisa(PADDR(p), 2048);
+			p += 2048;
+			continue;
+		}
+		p += p[2]*512;
+	}
+
+	p = (uchar*)(KZERO+0xE0000);
+	if(p[0] != 0x55 || p[1] != 0xAA)
+		putisa(PADDR(p), 64*1024);
+}
+
+
+void
 confinit(void)
 {
-	long x, i, j, *l;
+	long x, i, j, n;
 	int pcnt;
 	ulong ktop;
+	char *cp;
+	char *line[MAXCONF];
+
+	pcnt = 0;
 
 	/*
-	 *  the first 640k is the standard useful memory
-	 *  the next 128K is the display, I/O mem, and BIOS
-	 *  the last 256k belongs to the roms and other devices
+	 *  parse configuration args from dos file p9rc
 	 */
-	conf.npage0 = 640/4;
-	conf.base0 = 0;
-
+	cp = BOOTARGS;	/* where b.com leaves plan9.ini */
+	cp[BOOTARGSLEN-1] = 0;
+	n = getfields(cp, line, MAXCONF, "\n");
+	for(j = 0; j < n; j++){
+		cp = strchr(line[j], '\r');
+		if(cp)
+			*cp = 0;
+		cp = strchr(line[j], '=');
+		if(cp == 0)
+			continue;
+		*cp++ = 0;
+		if(cp - line[j] >= NAMELEN+1)
+			*(line[j]+NAMELEN-1) = 0;
+		confname[nconf] = line[j];
+		confval[nconf] = cp;
+		if(strcmp(confname[nconf], "kernelpercent") == 0)
+			pcnt = 100 - atoi(confval[nconf]);
+		nconf++;
+	}
 	/*
-	 *  size the non-standard memory
+	 *  size memory above 1 meg. Kernel sits at 1 meg.  We
+	 *  only recognize MB size chunks.
 	 */
+	memset(mmap, ' ', sizeof(mmap));
 	x = 0x12345678;
-	for(i=2; i<17; i++){
+	for(i = 1; i <= MAXMEG; i++){
 		/*
-		 *  write the word
+		 *  write the first & last word in a megabyte of memory
 		 */
-		l = (long*)(KZERO|(i*MB));
-		l--;
-		*l = x;
+		*mapaddr(KZERO|(i*MB)) = x;
+		*mapaddr(KZERO|((i+1)*MB-BY2WD)) = x;
+
 		/*
-		 *  take care of wraps
+		 *  write the first and last word in all previous megs to
+		 *  handle address wrap around
 		 */
 		for(j = 1; j < i; j++){
-			l = (long*)(KZERO|(j*MB));
-			l--;
-			*l = ~x;
+			*mapaddr(KZERO|(j*MB)) = ~x;
+			*mapaddr(KZERO|((j+1)*MB-BY2WD)) = ~x;
 		}
+
 		/*
-		 *  check
+		 *  check for correct value
 		 */
-		l = (long*)(KZERO|(i*MB));
-		l--;
-		if(*l != x)
-			break;
+		if(*mapaddr(KZERO|(i*MB)) == x && *mapaddr(KZERO|((i+1)*MB-BY2WD)) == x){
+			mmap[i] = 'x';
+			/*
+			 *  zero memory to set ECC but skip over the kernel
+			 */
+			if(i != 1)
+				for(j = 0; j < MB/BY2PG; j += BY2PG)
+					memset(mapaddr(KZERO|(i*MB+j)), 0, BY2PG);
+		}
 		x += 0x3141526;
 	}
-	i--;
-	conf.base1 = 1*MB;
-	conf.npage1 = (i*MB - conf.base1)/BY2PG;
-	conf.npage = conf.npage0 + conf.npage1;
-
-	conf.ldepth = 0;
-	pcnt = (1<<conf.ldepth)-1;		/* Calculate % of memory for page pool */
-	pcnt = 70 - (pcnt*10);
-	conf.upages = (conf.npage*pcnt)/100;
-	if(conf.npage - conf.upages < (2*MB)/BY2PG)
-		conf.upages = conf.npage - (2*MB)/BY2PG;
-
+	/*
+	 *  bank0 usually goes from the end of kernel bss to the end of memory
+	 */
 	ktop = PGROUND((ulong)end);
 	ktop = PADDR(ktop);
-	conf.npage0 -= ktop/BY2PG;
-	conf.base0 += ktop;
-
+	conf.base0 = ktop;
+	for(i = 1; mmap[i] == 'x'; i++)
+		;
+	conf.npage0 = (i*MB - ktop)/BY2PG;
 	conf.topofmem = i*MB;
 
+	/*
+	 *  bank1 usually goes from the end of BOOTARGS to 640k
+	 */
+	conf.base1 = (ulong)(BOOTARGS+BOOTARGSLEN);
+	conf.base1 = PGROUND(conf.base1);
+	conf.base1 = PADDR(conf.base1);
+	conf.npage1 = (640*1024-conf.base1)/BY2PG;
+
+	/*
+	 *  if there is a hole in memory (due to a shadow BIOS) make the
+	 *  memory after the hole be bank 1. The memory from 0 to 640k
+	 *  is lost.
+	 */
+	for(; i <= MAXMEG; i++)
+		if(mmap[i] == 'x'){
+			conf.base1 = i*MB;
+			for(j = i+1; mmap[j] == 'x'; j++)
+				;
+			conf.npage1 = (j - i)*MB/BY2PG;
+			conf.topofmem = j*MB;
+			break;
+		}
+
+	/*
+ 	 *  add address space holes holes under 16 meg to available
+	 *  isa space.
+	 */
+	romscan();
+	if(conf.topofmem < 16*MB)
+		putisa(conf.topofmem, 16*MB - conf.topofmem);
+
+	conf.npage = conf.npage0 + conf.npage1;
+	conf.ldepth = 0;
+	if(pcnt < 10)
+		pcnt = 70;
+	conf.upages = (conf.npage*pcnt)/100;
+
+	conf.nproc = 30 + ((conf.npage*BY2PG)/MB)*8;
 	conf.monitor = 1;
-	conf.nproc = 30 + i*5;
 	conf.nswap = conf.nproc*80;
 	conf.nimage = 50;
-	conf.copymode = 0;			/* copy on write */
-	conf.arp = 32;
+	switch(x86()){
+	case 3:
+		conf.copymode = 1;	/* copy on reference */
+		break;
+	default:
+		conf.copymode = 0;	/* copy on write */
+		break;
+	}
 	conf.nfloppy = 2;
 	conf.nhard = 2;
+	conf.nmach = 1;
 }
 
 char *mathmsg[] =
@@ -311,12 +470,14 @@ char *mathmsg[] =
  *  math coprocessor error
  */
 void
-matherror(Ureg *ur)
+matherror(Ureg *ur, void *a)
 {
 	ulong status;
 	int i;
 	char *msg;
 	char note[ERRLEN];
+
+	USED(a);
 
 	/*
 	 *  a write cycle to port 0xF0 clears the interrupt latch attached
@@ -351,9 +512,10 @@ matherror(Ureg *ur)
  *  math coprocessor emulation fault
  */
 void
-mathemu(Ureg *ur)
+mathemu(Ureg *ur, void *a)
 {
-	USED(ur);
+	USED(ur, a);
+
 	switch(u->p->fpstate){
 	case FPinit:
 		fpinit();
@@ -373,9 +535,10 @@ mathemu(Ureg *ur)
  *  math coprocessor segment overrun
  */
 void
-mathover(Ureg *ur)
+mathover(Ureg *ur, void *a)
 {
-	USED(ur);
+	USED(ur, a);
+
 print("sys: fp: math overrun pc 0x%lux pid %d\n", ur->pc, u->p->pid);
 	pexit("math overrun", 0);
 }
@@ -383,10 +546,10 @@ print("sys: fp: math overrun pc 0x%lux pid %d\n", ur->pc, u->p->pid);
 void
 mathinit(void)
 {
-	setvec(Matherr1vec, matherror);
-	setvec(Matherr2vec, matherror);
-	setvec(Mathemuvec, mathemu);
-	setvec(Mathovervec, mathover);
+	setvec(Matherr1vec, matherror, 0);
+	setvec(Matherr2vec, matherror, 0);
+	setvec(Mathemuvec, mathemu, 0);
+	setvec(Mathovervec, mathover, 0);
 }
 
 /*
@@ -436,9 +599,14 @@ void
 exit(int ispanic)
 {
 	u = 0;
+	wipekeys();
 	print("exiting\n");
-	if(ispanic)
-		for(;;);
+	if(ispanic){
+		if(cpuserver)
+			delay(10000);
+		else
+			for(;;);
+	}
 
 	(*arch->reset)();
 }
@@ -504,4 +672,151 @@ modem(int onoff)
 		return (*arch->modempower)(onoff);
 	else
 		return 0;
+}
+
+int
+parseether(uchar *to, char *from)
+{
+	char nip[4];
+	char *p;
+	int i;
+
+	p = from;
+	while(*p == ' ')
+		++p;
+	for(i = 0; i < 6; i++){
+		if(*p == 0)
+			return -1;
+		nip[0] = *p++;
+		if(*p == 0)
+			return -1;
+		nip[1] = *p++;
+		nip[2] = 0;
+		to[i] = strtoul(nip, 0, 16);
+		if(*p == ':')
+			p++;
+	}
+	return 0;
+}
+
+int
+isaconfig(char *class, int ctlrno, ISAConf *isa)
+{
+	char cc[NAMELEN], *p, *q;
+	int n;
+
+	sprint(cc, "%s%d", class, ctlrno);
+	for(n = 0; n < nconf; n++){
+		if(strncmp(confname[n], cc, NAMELEN))
+			continue;
+		p = confval[n];
+		while(*p){
+			while(*p == ' ' || *p == '\t')
+				p++;
+			if(*p == '\0')
+				break;
+			if(strncmp(p, "type=", 5) == 0){
+				p += 5;
+				for(q = isa->type; q < &isa->type[NAMELEN-1]; q++){
+					if(*p == '\0' || *p == ' ' || *p == '\t')
+						break;
+					*q = *p++;
+				}
+				*q = '\0';
+			}
+			else if(strncmp(p, "port=", 5) == 0)
+				isa->port = strtoul(p+5, &p, 0);
+			else if(strncmp(p, "irq=", 4) == 0)
+				isa->irq = strtoul(p+4, &p, 0);
+			else if(strncmp(p, "mem=", 4) == 0)
+				isa->mem = strtoul(p+4, &p, 0);
+			else if(strncmp(p, "size=", 5) == 0)
+				isa->size = strtoul(p+5, &p, 0);
+			else if(strncmp(p, "dma=", 4) == 0)
+				isa->dma = strtoul(p+4, &p, 0);
+			else if(strncmp(p, "ea=", 3) == 0){
+				if(parseether(isa->ea, p+3) == -1)
+					memset(isa->ea, 0, 6);
+			}
+			while(*p && *p != ' ' && *p != '\t')
+				p++;
+		}
+		return 1;
+	}
+	return 0;
+}
+
+static void
+pcfloppyintr(Ureg *ur, void *a)
+{
+	USED(a);
+
+	floppyintr(ur);
+}
+
+void
+floppysetup0(FController *fl)
+{
+	USED(fl);
+}
+
+void
+floppysetup1(FController *fl)
+{
+	uchar equip;
+
+	/*
+	 *  read nvram for types of floppies 0 & 1
+	 */
+	equip = nvramread(0x10);
+	if(conf.nfloppy > 0){
+		fl->d[0].dt = (equip >> 4) & 0xf;
+		floppysetdef(&fl->d[0]);
+	}
+	if(conf.nfloppy > 1){
+		fl->d[1].dt = equip & 0xf;
+		floppysetdef(&fl->d[1]);
+	}
+
+	setvec(Floppyvec, pcfloppyintr, 0);
+}
+
+/*
+ *  eject disk ( unknown on safari )
+ */
+void
+floppyeject(FDrive *dp)
+{
+	floppyon(dp);
+	dp->vers++;
+	floppyoff(dp);
+}
+
+int 
+floppyexec(char *a, long b, int c)
+{
+	USED(a, b, c);
+	return b;
+}
+
+int
+cistrcmp(char *a, char *b)
+{
+	int ac, bc;
+
+	for(;;){
+		ac = *a++;
+		bc = *b++;
+	
+		if(ac >= 'A' && ac <= 'Z')
+			ac = 'a' + (ac - 'A');
+		if(bc >= 'A' && bc <= 'Z')
+			bc = 'a' + (bc - 'A');
+		ac -= bc;
+		if(ac)
+			return ac;
+		if(bc == 0)
+			break;
+	}
+	return 0;
 }

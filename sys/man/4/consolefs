@@ -1,0 +1,125 @@
+.TH CONSOLEFS 4
+.SH NAME
+consolefs, C  \- file system for console access
+.SH SYNOPSIS
+.B aux/consolefs
+.I name
+.I dev
+[
+.I name
+.I dev
+\&...
+]
+.PP
+.B C
+.I system
+.SH DESCRIPTION
+To ease administration of multiple machines one might attach
+many serial console lines to a single computer.
+.I Consolefs
+is a file system that lets multiple users simultaneously access
+these console lines.
+Each
+.IR name / dev
+pair represents the name of a console and the serial line device
+associated with it.
+.I Consolefs
+presents a single level directory with two files
+per console:
+.I name
+and
+.IB name ctl\f1.
+Writes of
+.I name
+are equivalent to writes of
+.I dev
+and reads and writes of
+.IB name ctl
+are equivalent to reads and writes of
+.IB dev ctl\f1.
+.I Consolefs
+broadcasts anything it reads from
+.I dev
+to all readers of
+.IR name .
+Therefore, many users can
+.IR con (1)
+to a 
+.IR name ,
+see all console output, and enter commands to the console.
+.PP
+To keep users from inadvertently interfering with one another,
+notification is broadcast to all readers whenever a user
+opens or closes
+.IR name .
+For example, if user
+.B boris
+opens a console that users
+.B vlad
+and
+.B barney
+have already opened, all will read the message:
+.PP
+.EX
+	[+boris, vlad, barney]
+.EE
+.PP
+If
+.B vlad
+then closes,
+.B boris
+and 
+.B barney
+will read:
+.PP
+.EX
+	[-vlad, boris, barney]
+.EE
+.PP
+.I Consolefs
+posts the client end of its 9P channel in
+.BR /srv/consolefs ;
+.B mount
+(see
+.IR bind (1))
+this file to see the consoles.
+An example of 2 consoles complete with console logging is:
+.IP
+.EX
+% aux/consolefs bootes /dev/eia0 fornax /dev/eia1
+% mount /srv/consoles /mnt/consoles
+% ls -p /mnt/consoles
+bootes
+bootesctl
+fornax
+fornaxctl
+% cat /mnt/consoles/fornax >> /sys/log/fornax &
+% cat /mnt/consoles/bootes >> /sys/log/bootes &
+.EE
+.PP
+The
+.IR rc (1)
+script
+.B C
+automates this procedure.
+It uses
+.IR import (4)
+to connect to
+.B /mnt/consoles
+on the machine connected to all the consoles, then uses
+.IR con (1)
+to connect to the console of the machine
+.IR system.
+The script must be edited at installation
+by the local administration to identify the
+system that holds
+.BR /mnt/consoles .
+.SH FILES
+.TF /srv/consoles
+.TP
+.B /srv/consoles
+Client end of pipe to server.
+.SH SOURCE
+.B /sys/src/cmd/aux/consolefs.l
+.br
+.B /rc/bin/C

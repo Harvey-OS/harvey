@@ -1,7 +1,7 @@
 #include "map.h"
 
 static int
-Xmercator(struct place *place, float *x, float *y)
+Xmercator(struct place *place, double *x, double *y)
 {
 	if(fabs(place->nlat.l) > 80.*RAD)
 		return(-1);
@@ -16,10 +16,10 @@ mercator(void)
 	return(Xmercator);
 }
 
-static float ecc = ECC;
+static double ecc = ECC;
 
 static int
-Xspmercator(struct place *place, float *x, float *y)
+Xspmercator(struct place *place, double *x, double *y)
 {
 	if(Xmercator(place,x,y) < 0)
 		return(-1);

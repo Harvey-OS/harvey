@@ -2,6 +2,10 @@
 .SH NAME
 abs, labs \- integer absolute values
 .SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
 .B
 int	abs(int a)
 .PP
@@ -15,6 +19,8 @@ the absolute value of integer
 and
 .I labs
 does the same for a long.
+.SH SOURCE
+.B /sys/src/libc/port/abs.c
 .SH SEE ALSO
 .IR floor (2)
 for

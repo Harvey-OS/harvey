@@ -4,7 +4,7 @@
 int
 Biobufhdr.write(Biobufhdr *bp, void *ap, int count)
 {
-	char *p;
+	byte *p;
 	int c, i, n, oc;
 
 	bp->lock();

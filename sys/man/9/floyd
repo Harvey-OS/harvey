@@ -48,7 +48,7 @@ is mapped to zero.
 Any input value less than
 .I high
 is mapped to zero if any of its eight neighbors is less than
-.I low.
+.IR low .
 If
 .I low
 and
@@ -58,7 +58,13 @@ are equal, this is just an ordinary thresholding operation.
 .I Hysteresis
 makes a useful edge-detection operator if used on a high-pass
 filtered image.
-.SH "SEE ALSO
-.IR picfile (9.6)
 .SH FILES
 .B /lib/fb/screens/*
+.SH SOURCE
+.B /sys/src/fb/floyd.c
+.br
+.B /sys/src/fb/halftone.c
+.br
+.B /sys/src/fb/hysteresis.c
+.SH "SEE ALSO
+.IR picfile (9.6)

@@ -1,0 +1,27 @@
+%Filename: T1hlcf.fd
+%Created by: tex 3092lucblack
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{T1hlcf.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for T1/hlcf.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{T1}{hlcf}{}
+
+\DeclareFontShape{T1}{hlcf}{m}{n}{
+ <->s * [\LucidaScale]hlcrfq
+}{}
+
+\DeclareFontShape{T1}{hlcf}{m}{sc}{
+ <->s * [\LucidaScale]hlcrfcq
+}{}
+
+\DeclareFontShape{T1}{hlcf}{m}{sl}{
+ <->s * [\LucidaScale]hlcrofq
+}{}
+
+\DeclareFontShape{T1}{hlcf}{m}{it}{<->ssub * hlcf/m/sl}{}
+\DeclareFontShape{T1}{hlcf}{m}{ui}{<->sub * hlcf/m/it}{}
+
+\endinput

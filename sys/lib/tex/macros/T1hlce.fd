@@ -1,0 +1,18 @@
+%Filename: T1hlce.fd
+%Created by: tex 3373luccalli
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{T1hlce.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for T1/hlce.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{T1}{hlce}{}
+
+\DeclareFontShape{T1}{hlce}{m}{it}{
+ <->s * [\LucidaScale]hlcrieq
+}{}
+
+\DeclareFontShape{T1}{hlce}{m}{ui}{<->sub * hlce/m/it}{}
+
+\endinput

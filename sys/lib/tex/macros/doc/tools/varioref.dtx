@@ -1,0 +1,1083 @@
+% \iffalse
+%% Package varioref to use with LaTeX2e
+%% Copyright (C) 1992-1994  Frank Mittelbach, all rights reserved.
+%
+%<package>\NeedsTeXFormat{LaTeX2e}
+%<package>\ProvidesPackage{varioref}
+%<package>    [1994/09/27 v1.0o package for extended references (FMi)]
+% \fi
+%
+% \CheckSum{899}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%
+%
+% \changes{v1.0a}{1993/12/06}{Upgrade to LaTeX2e}
+% \changes{v1.0g}{1994/05/27}{Use \cmd\DeclareRobustCommand}
+%
+%
+% \title{The \texttt{\filename} package\thanks{This file
+%        has version number \fileversion, last
+%        revised \filedate.}}
+% \author{Frank Mittelbach}
+% \date{\filedate}
+%
+% \maketitle
+%
+%
+% \begin{abstract}
+%   This package defines the commands |\vref| and |\vpageref| for
+%   \LaTeXe. |\vref| is similar to |\ref| but adds an additional
+%   page reference, like `on the facing page' or `on page 27' whenever
+%   the corresponding |\label| is not on the same page. The command
+%   |\vpageref| is a variation to |\pageref| with a similar
+%   functionality.  Generated strings are customizable so that these
+%   commands are usable with other languages.
+% \end{abstract}
+%
+% \section{Introduction}
+%
+% In many cases it is helpful when refering to a figure or table to
+% put both a |\ref| and a |\pageref| command into the document
+% especially when there are one or more pages between the reference
+% and the object.  Therefore some people use a command like
+% \begin{verbatim}
+%  \newcommand{\fullref}[1]{\ref{#1} on page~\pageref{#1}}
+%\end{verbatim}
+% which reduces the number of key strokes, necessary to make such a
+% complete reference.  But since one never knows where the referenced
+% object finally falls, using such a device may result in a page
+% reference to the current page which is disturbing and therefore
+% should be avoided.
+%
+%
+%
+% \section{The user interface}
+%
+%\DescribeMacro\vref The implementation of |\vref| below produces only
+% a |\ref| when reference and |\label| are on the same page. It will
+% additionally produce one of the strings `on the facing page', `on
+% the preceding page', or `on the following page', if label and
+% reference differ by one and it will produce both |\ref| and
+% |\pageref| when the difference is larger.  The word `facing' is used
+% when label and reference both fall onto a double spread.  However,
+% if a special page numbering scheme is used instead of the usual
+% arabic numbering (e.g., |\pagenumbering{roman}|) then there will be
+% no distinction between one or many pages off.
+%
+%\DescribeMacro\vpageref Sometimes one wants to refer only to page
+% number and again such a reference should normally be suppressed if
+% we are refering to the current page. For this purpose the package
+% defines the |\vpageref| command. It will produce the same strings as
+% |\vref| except that it doesn't start with the |\ref| and except that
+% it will produce the string that is saved in |\reftextcurrent| if
+% label and reference fall onto the same page. By defining
+% |\reftextcurrent| to produce ``on this page'' or something similar,
+% we can avoid that
+% \begin{verbatim}
+%   ... see the example \vpageref{ex:foo} which shows ...
+%\end{verbatim}
+% comes out as ``\ldots~see the example which shows~\ldots'', which
+% could be misleading.
+%
+% You can put a space in front of |\vpageref| it will be ignored if
+% the command doesn't produce any text at all.
+%
+% But in fact |\vpageref| allows even more control. If has two
+% optional arguments. With the first one, one can specify the text
+% that should be used if label and reference fall on the same page.
+% This is very helpful if both are near to each other, so that they
+% may or may not be separated by a page break. In such a case we
+% usually know (!) whether the reference is before or after the label
+% so that we can say something like
+% \begin{verbatim}
+%   ... see the example \vpageref[above]{ex:foo} which shows ...
+%\end{verbatim}
+% which will then come out as ``\ldots~see the example above which
+% shows~\ldots'' if we are still on the same page, but as ``\ldots~see
+% the example on the page before which shows~\ldots'' (or something
+% similar depending on the settings of the |\reftext..before|
+% commands) when there was a page break in the meantime. One warning
+% however, if you use |\vpageref| with the optional argument to refer
+% to a figure or table, keep in mind that depending on the float
+% placement parameters the float may show up on top of the current
+% page and therefore before the reference even if it came after it in
+% the source file.
+%
+% But maybe you prefer to say ``\ldots~see the above example'' if
+% example and reference fall onto the same page, i.e., reverse the
+% word order.  In fact, in some languages the word order automatically
+% changes in that case.  To allow for this variation the second
+% optional argument can be used. It specifies the text preceding the
+% generated reference if object and reference do not fall onto the
+% same page. Thus one would write
+% \begin{verbatim}
+%   ... see the \vpageref[above example][example]{ex:foo}
+%       which shows ...
+%\end{verbatim}
+% to achieve the desired effect.
+%
+%
+%
+% \section{Customization}
+%
+% The package supports all options defined by the babel package to
+% translate the fixed strings into other languages than English.
+% (Some languages need updating, however.)
+% It also supports languages currently not in babel; 
+% check the section on options later on.
+% You can also modify some or all of the strings by redefining the
+% following commands.
+%\DescribeMacro\reftextbefore
+%\DescribeMacro\reftextfacebefore
+%\DescribeMacro\reftextafter
+%\DescribeMacro\reftextfaceafter Backward references use
+% |\reftextbefore| if the label is on the preceding page but invisible
+% and |\reftextfacebefore| if it is one the facing page (i.e., if the
+% current page number is odd).  Similarily |\reftextafter| is used
+% when the label comes on the next page but one has to turn the page
+% and |\reftextfaceafter| if it is on the following but facing page.
+%
+% In fact, |\reftextface...| is used only if the user or the document
+% class specified two-sided printing.
+%
+%\DescribeMacro\reftextfaraway Finally we have |\reftextfaraway| which
+% is used whenever label and reference differ by more than one or when
+% they aren't numeric. This macro is a bit different because it takes
+% one argument, the symbolic reference string so that one cane make
+% use of |\pageref| in its replacement text.
+%
+%
+%\DescribeMacro\vreftextvario To allow a bit random variation in the
+% generated strings one can use the command |\reftextvario| inside the
+% string macros. It takes two arguments and selects one or the other
+% for printing depending on the number of already seens |\vref| or
+% |\vpageref| commands.  As an example see the definitions of
+% |\reftextbefore| etc.\ \vpageref[below]{reftextbefore}.
+%
+%
+%
+% \section{A few warnings}
+%
+%
+% Defining commands like the ones described above poses some
+% interesting problems. Suppose, for example, that a generated text
+% like `on the next page' gets broken across pages. If this happens it
+% is very difficult to find an acceptable solution and in fact can
+% even result in a document that will always change from one state to
+% another (i.e., inserting one string, finding that this is wrong,
+% inserting another string on the next run which makes the first
+% string correct again, inserting \ldots).  The current implementation
+% of \texttt{\filename} therefore issues an error message whenever the
+% generated text is broken across page boundaries, e.g.,
+% \begin{quote}
+%   table 5 on the current \meta{page break} page
+% \end{quote}
+% would would result in an error, which needs to be resolved by the
+% user by replacing the |\vref| command with an ordinary |\ref| just
+% before the final run.  This is not
+% completely satisfactory but in such case no solution really is.
+% \DescribeMacro\vrefwarning
+% During document preparation, while one is still changing the text,
+% such error messages can be turned into warnings by placing a
+% |\vrefwarning| command in the preamble.
+%
+% At the end final a warning: every use of |\vref| will internally
+% generate two macro names to keep track of the string positions
+% within the document. As a result you may run out of name space or
+% main memory if you make havy use of this macro on a small \TeX{}
+% installation.
+%\DescribeMacro\fullref For this reason the primitive command
+% |\fullref| is also provided. This command can be used whenever you
+% know for sure that label and reference can't fall onto nearby pages.
+%
+% \StopEventually{\PrintIndex\PrintChanges}
+%
+%
+% \section{The documentation driver file}
+%
+% The next bit of code contains the documentation driver file for
+% \TeX{}, i.e., the file that will produce the documentation you are
+% currently reading. It will be extracted from this file by the 
+% \texttt{docstrip} program.
+%    \begin{macrocode}
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{varioref}
+\GetFileInfo{varioref.sty}
+\setlength\hfuzz{1pt}    % ignore slight overfulls
+\EnableCrossrefs         
+%\DisableCrossrefs   % Say \DisableCrossrefs if index is ready
+
+\RecordChanges       % Gather update information
+%\OnlyDescription    % comment out for implementation details
+\begin{document}
+   \DocInput{varioref.dtx}
+\end{document}
+%</driver>
+%    \end{macrocode}
+%
+%
+% \section{The implementation}
+%
+% The main implementation idea is to generate an internal label
+% command for every |\vpageref| and compare the page reference of this
+% label with the page reference of the user-requested label.  Since
+% this means one additional macro name for each use of |\vpageref| or
+% |vref| (which is implemented in terms of |\vpageref|) the memory
+% requirements of this package may be high in terms of main and macro
+% name memory.  Since the information held in the internal labels is
+% used only once one could envision a different scheme if suitable
+% primitives for this kind of ``one place information'' would be
+% provided by \LaTeX.  This type of data structure is planned for
+% \LaTeX3 but for the moment we have to live with the memory
+% restrictions.
+%
+% We start by checking if this file was already loaded. If not we
+% identify the current version. This is actually done at the top
+% of the file, so we comment it out here
+% \changes{v0.1h}{1993/08/15}{Small documentation changes}
+%    \begin{macrocode}
+%<*package>
+%\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+%\ProvidesPackage{varioref}[\filedate\space\fileversion\space
+%                     LaTeX2e package for extended references (FMi)]
+%    \end{macrocode}
+%    
+%
+%  \begin{macro}{\vref@addto}
+% \changes{v1.0b}{1994/01/31}{Avoid using babel `addto}
+% \changes{v1.0b}{1994/01/31}{The babel commands are starting
+%                             with extras}
+%    To support the use of babel we want to add the additional strings
+%    to the |\extras|\meta{language} commands. Since |\addto| in the
+%    current implementation of babel has a bug that does not allow to
+%    use arguments containing hashmarks we do this by hand.
+%    \begin{macrocode}
+\def\vref@addto#1#2{%
+  #2%
+  \@temptokena{#2}%
+  \ifx#1\undefined
+     \edef#1{\the\@temptokena}%
+  \else
+     \toks@\expandafter{#1}%
+     \edef#1{\the\toks@\the\@temptokena}%
+  \fi
+  \@temptokena{}\toks@\@temptokena
+}
+\@onlypreamble\vref@addto
+%    \end{macrocode}
+%  \end{macro}
+%
+%
+% \subsection{Options}
+%
+%  \begin{macro}{\vref@excuse}
+%    Excuse that we don't know the strings for a certain language.
+%    \begin{macrocode}
+\def\vref@excuse#1{\typeout{\filename: Sorry, language `#1' 
+            not supported in this version.%
+            ^^J\filename: English strings used.%
+            ^^J^^J*** If you can suggest translations for 
+            this language,^^J*** please mail your suggestions
+            to the author of this package.^^J}}
+\@onlypreamble\vref@excuse
+%    \end{macrocode}
+%  \end{macro}
+%
+%
+%  \begin{macro}{\reftextfaceafter}
+%  \begin{macro}{\reftextfacebefore}
+%  \begin{macro}{\reftextafter}
+%  \begin{macro}{\reftextbefore}
+%  \begin{macro}{\reftextcurrent}
+% \label{reftextbefore} The options do set the the macros that
+%    generate the textual strings. Note, that they do not start with a
+%    space, the space is already added in the main macro below.
+%    \begin{macrocode}
+\DeclareOption{american}
+  {\vref@addto\extrasamerican{%%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{austrian}
+  {\vref@excuse{austrian}%
+   \vref@addto\extrasaustrian{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+%    \end{macrocode}
+%    Text for brazil defaults was contributed by 
+%    Alcino Dall Igna Junior\\
+%    (|adij@di.ufpe.br|).
+% \changes{v1.0g}{1994/05/18}{Brazil defaults added.}
+%    \begin{macrocode}
+\DeclareOption{brazil}
+  {\vref@addto\extrabrazil{%
+    \def\reftextfaceafter {na \reftextvario{p\'agina oposta}{pr\'oxima 
+                           p\'agina}}%
+    \def\reftextfacebefore{na p\'agina \reftextvario{oposta}{anterior}}%
+    \def\reftextafter     {na \reftextvario{p\'agina seguinte}{pr\'oxima
+                           p\'agina}}%
+    \def\reftextbefore{na p\'agina \reftextvario{anterior}{precedente}}%
+    \def\reftextcurrent   {\reftextvario{nesta p\'agina}{na p\'agina 
+                           corrente}}%
+    \def\reftextfaraway##1{na p\'agina~\pageref{##1}}%
+  }}
+%    \end{macrocode}
+%    Text for Breton defaults was contributed by
+%    Christian ROLLAND
+%    (|Christian.Rolland@univ-brest.fr|).
+% \changes{v1.0o}{1994/09/27}{Added defaults for breton}
+%    \begin{macrocode}
+\DeclareOption{breton}
+  {\vref@excuse{breton}%
+   \vref@addto\extrasbreton{%
+    \def\reftextfaceafter {war ar bajenn \reftextvario{a-dal}{da heul}}%
+    \def\reftextfacebefore{war ar bajenn \reftextvario{a-dal}{a-raok}}%
+    \def\reftextafter     {war ar bajenn da heul}%
+    \def\reftextbefore    {war ar bajenn a-raok}%
+    \def\reftextcurrent   {war ar \reftextvario{bajenn-ma\~n}%
+                                               {bajenn war-wel}}%
+    \def\reftextfaraway##1{war ar bajenn~\pageref{##1}}%
+  }}
+\DeclareOption{catalan}
+  {\vref@excuse{catalan}%
+   \vref@addto\extrascatalan{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{croatian}
+  {\vref@excuse{croatian}%
+   \vref@addto\extrascroatian{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{czech}
+  {\vref@excuse{czech}%
+   \vref@addto\extrasczech{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+%    \end{macrocode}
+%    Defaults for Danish provided by Torsten Martinsen
+%    (\verb=tmar91@kom.auc.dk=).
+% \changes{1.0n}{1994/09/25}{Added Danish defaults}
+%    \begin{macrocode}
+\DeclareOption{danish}
+  {\vref@addto\extrasdanish{%
+    \def\reftextfaceafter {p\aa{} \reftextvario{modst\aa ende}%
+                                               {n\ae ste} side}%
+    \def\reftextfacebefore{p\aa{} \reftextvario{modst\aa ende}%
+                                               {forrige} side}%
+    \def\reftextafter     {p\aa{} \reftextvario{den f\o lgende}%
+                                               {n\ae ste} side}%
+    \def\reftextbefore    {p\aa{} \reftextvario{forrige side}
+                                               {foreg\aa ende side}}%
+    \def\reftextcurrent   {p\aa{} denne side}%
+    \def\reftextfaraway##1{p\aa{} side~\pageref{##1}}%
+  }}
+%    \end{macrocode}
+%    Default string for dutch have been contributed by Frank Poppe.
+%    this option currently supports one additional string macro
+%    |\refpagename| so that you can easily change to |bladzijde|
+%    instead of |pagina| if you prefer this word for ``page''.
+%    However, I will not guarantee that this will survive future
+%    versions of this package, so use it on your own risk (you can
+%    always update the full strings to be on the safe side).
+% \changes{1.0l}{1994/07/07}{Added dutch defaults}
+%    \begin{macrocode}
+\DeclareOption{dutch}
+  {\vref@addto\extrasdutch{%
+    \def\refpagename{pagina}%
+    \def\reftextfaceafter {op de \reftextvario{rechter \refpagename}%
+                                          {\refpagename\ hiernaast}}%
+    \def\reftextfacebefore{op de \reftextvario{linker \refpagename}%
+                                         {\refpagename\ hiernaast}}%
+    \def\reftextafter     {op de \reftextvario{volgende \refpagename}%
+                                              {\refpagename\ hierna}}%
+    \def\reftextbefore    {op de \reftextvario{vorige \refpagename}%
+                                          {\refpagename\ hiervoor}}%
+    \def\reftextcurrent   {op deze \refpagename}%
+    \def\reftextfaraway##1{op \refpagename~\pageref{##1}}%
+  }}
+\DeclareOption{english}
+  {\vref@addto\extrasenglish{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{esperanto}
+  {\vref@excuse{esperanto}%
+   \vref@addto\extrasesperanto{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+%    \end{macrocode}
+%    The finnish strings were suggested by Matti Rintala
+%    (\verb=bitti@cs.tut.fi=).
+% \changes{v1.0m}{1994/09/23}{Added finnish strings}
+%    \begin{macrocode}
+\DeclareOption{finnish}
+  {\vref@addto\extrasfinnish{%
+    \def\reftextfaceafter {\reftextvario{viereisell\"a}%
+                                        {seuraavalla} sivulla}%
+    \def\reftextfacebefore{\reftextvario{viereisell\"a}%
+                                        {edellisell\"a} sivulla}%
+    \def\reftextafter     {seuraavalla sivulla}%
+    \def\reftextbefore    {edellisell\"a sivulla}%
+    \def\reftextcurrent   {t\"all\"a sivulla}%
+    \def\reftextfaraway##1{sivulla~\pageref{##1}}%
+  }}
+%    \end{macrocode}
+%    French defaults are provided by Daniel Flippo.
+% \changes{1.0j}{1994/06/21}{Added french defaults}
+%    \begin{macrocode}
+\DeclareOption{french}
+  {\vref@addto\extrasfrench{%
+    \def\reftextfaceafter {page \reftextvario{ci-contre}{suivante}}%
+    \def\reftextfacebefore{page \reftextvario{ci-contre}%
+                          {pr\'ec\'edente}}%
+    \def\reftextafter     {page suivante}%
+    \def\reftextbefore    {page pr\'ec\'edente}%
+    \def\reftextcurrent   {de la pr\'esente page}%
+    \def\reftextfaraway##1{page~\pageref{##1}}%
+  }}
+\DeclareOption{galician}
+  {\vref@excuse{galician}%
+   \vref@addto\extrasgalician{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+%    \end{macrocode}
+%    There are no good variants for German (I think).
+% \changes{v1.0b}{1994/01/31}{Replace in incorrect `def by `let}
+%    \begin{macrocode}
+\DeclareOption{german}
+  {\vref@addto\extrasgerman{%
+    \def\reftextfaceafter {auf der n\"achsten Seite}%
+    \def\reftextfacebefore{auf der vorherigen Seite}%
+    \let\reftextafter     \reftextfaceafter
+    \let\reftextbefore    \reftextfacebefore
+    \def\reftextcurrent   {auf dieser Seite}%
+    \def\reftextfaraway##1{auf Seite~\pageref{##1}}%
+  }}
+\DeclareOption{italian}
+  {\vref@excuse{italian}%
+   \vref@addto\extrasitalian{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{magyar}
+  {\vref@excuse{magyar}%
+   \vref@addto\extrasmagyar{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{norsk}
+  {\vref@excuse{norsk}%
+   \vref@addto\extrasnorsk{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{nynorsk}
+  {\vref@excuse{nynorsk}%
+   \vref@addto\extrasnynorsk{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{polish}
+  {\vref@excuse{polish}%
+   \vref@addto\extraspolish{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{portuges}
+  {\vref@excuse{portuges}%
+   \vref@addto\extrasportuges{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{romanian}
+  {\vref@excuse{romanian}%
+   \vref@addto\extrasromanian{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{russian}
+  {\vref@excuse{russian}%
+   \vref@addto\extrasrussian{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{slovak}
+  {\vref@excuse{slovak}%
+   \vref@addto\extrasslovak{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{slovene}
+  {\vref@excuse{slovene}%
+   \vref@addto\extrasslovene{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+%    \end{macrocode}
+%    Text for spanish defaults was contributed by Julio Sanchez
+%    (\verb=jsanchez@gmv.es=).
+% \changes{1.0f}{1994/03/16}{Inserted missing hash mark}
+% \changes{1.0k}{1994/06/05}{Corrected misspelled cmd `extrasspanish}
+%    \begin{macrocode}
+\DeclareOption{spanish}
+  {\vref@addto\extrasspanish{%
+    \def\reftextfaceafter {en la p\'agina siguiente}%
+    \def\reftextfacebefore{en la p\'agina anterior}%
+    \let\reftextafter     \reftextfaceafter
+    \let\reftextbefore    \reftextfacebefore
+    \def\reftextcurrent   {en esta p\'agina}%
+    \def\reftextfaraway##1{en la p\'agina~\pageref{##1}}%
+  }}
+\DeclareOption{swedish}
+  {\vref@excuse{swedish}%
+   \vref@addto\extrasswedish{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+\DeclareOption{turkish}
+  {\vref@excuse{turkish}%
+   \vref@addto\extrasturkish{%
+    \def\reftextfaceafter {on the \reftextvario{facing}{next} page}%
+    \def\reftextfacebefore{on the \reftextvario{facing}{preceding}
+                           page}%
+    \def\reftextafter     {on the \reftextvario{following}{next} page}%
+    \def\reftextbefore    {on the \reftextvario{preceding page}{page 
+                           before}}%
+    \def\reftextcurrent   {on \reftextvario{this}{the current} page}%
+    \def\reftextfaraway##1{on page~\pageref{##1}}%
+  }}
+%    \end{macrocode}
+%    We support francais as an alternative to french since people
+%    might be used to it, but we discurrage it.
+%    \begin{macrocode}
+\DeclareOption{francais}{%
+   \typeout{Please use `french' instead of `francais'}%
+   \ExecuteOptions{french}}
+\DeclareOption{germanb}{%
+   \typeout{Please use `german' instead of `germanb'}%
+   \ExecuteOptions{german}}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%  \end{macro}
+%  \end{macro}
+%  \end{macro}
+%    
+%    After all options are declared we execute the default option
+%    \texttt{english} to set up the defaults and then call
+%    |\ProcessOptions*| to handle any option passed to the package.
+%    The star form is used since we want to execute the options in the
+%    order they are given (in case this isn't used together with the
+%    \texttt{babel} package).
+%    \begin{macrocode}
+\ExecuteOptions{english}
+\ProcessOptions*
+%    \end{macrocode}
+%
+%
+% \subsection{Defining the main macros}
+%
+% \begin{macro}{\vr@cnt}
+%    To generate new labels we use a counter and construct the
+%    internal label names by prefixing the current counter value with
+%    the string |vr@|. We need a \LaTeX{} counter to get |\include|s
+%    handled correctly.
+% \changes{v0.1e}{1992/11/15}{use LaTeX counter}
+%    \begin{macrocode}
+\newcounter{vrcnt}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\vpageref}
+% \begin{macro}{\@vpageref}
+%    The command |\vpageref| generates the appropriate string by first
+%    parsing the optional arguments (if any) and then compares the
+%    internal and the user label.  This command should be robust since
+%    the user might put it anywhere.
+%    \begin{macrocode}
+\DeclareRobustCommand\vpageref{\@ifnextchar[%
+%    \end{macrocode}
+%    The default for the first optional argument is the string hidden
+%    in the macro |\reftextcurrent|.
+%    \begin{macrocode}
+  \@vpageref{\@vpageref[\reftextcurrent]}%
+}
+\def\@vpageref[#1]{\@ifnextchar[%
+%    \end{macrocode}
+%    The default for the second optional argument is a space which is
+%    prefixed by |\unskip| to get rid of any leading space inserted
+%    already.
+% \changes{v1.0h}{1994/06/11}{Pass first argument in both cases}
+% \changes{v1.0i}{1994/06/20}{Do it correctly}
+%    \begin{macrocode}
+  {\@@vpageref{#1}}{\@@vpageref{#1}[\unskip\space]}}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\@@vpageref}
+%     The |\@@vpageref| macro finally generates the references by
+%    comparing the value of an internal label with the value of the
+%    user label.
+% \changes{v1.0h}{1994/06/11}{Change internal interface}
+%    \begin{macrocode}
+\def\@@vpageref#1[#2]#3{%
+%    \end{macrocode}
+%    First it switches to horizontal mode if necessary and also
+%    removes any leading space.
+%    \begin{macrocode}
+  \leavevmode\unskip
+%    \end{macrocode}
+%    Then it advances the counter |\c@vrcnt| by one which is used to
+%    generate internal label names.
+%    \begin{macrocode}
+  \global\advance\c@vrcnt\@ne
+%    \end{macrocode}
+%    Then it checks if for the current value of |\c@vrcnt| a label
+%    command was issued in the last run. If not it pretends that there
+%    was one with the value |{??}{??}|.  Thereafter it stores the the
+%    pageref value for this label in the macro |\@tempa|.
+%    \begin{macrocode}
+  \@ifundefined{r@\the\c@vrcnt @vr}%
+         {\@namedef{r@\the\c@vrcnt @vr}{{??}{??}}}{}%
+  \edef\@tempa{\expandafter\expandafter\expandafter
+                \@cdr\csname r@\the\c@vrcnt @vr\endcsname
+                \@nil}%
+%    \end{macrocode}
+%    Here we check that the generated text is not going across a page
+%    boundary.
+% \changes{v0.1f}{1993/01/01}{Add another label to catch cross-overs}
+%    \begin{macrocode}
+  \@ifundefined{r@\the\c@vrcnt @xvr}%
+         {\@namedef{r@\the\c@vrcnt @xvr}{{??}{??}}}{}%
+  \edef\@tempb{\expandafter\expandafter\expandafter
+                \@cdr\csname r@\the\c@vrcnt @xvr\endcsname
+                \@nil}%
+  {\let\@currentlabel\@empty
+%    \end{macrocode}
+% \changes{1.0l}{1994/07/07}{Explicitly expand `label argument for
+%                            babel}
+%    In version 1.0l the label string has been turned around so that
+%    the number comes first. This was done to allow easy explicit
+%    expansion of the number before it is passed to the |\label|
+%    command. In the babel system the argument of |label| was not
+%    expanded with the result that wrong label strings have been
+%    generated. This is a general problem that might need a completely
+%    different solution in babel but for now the change below (and in
+%    some other places in the code) should solve the problem for this
+%    special combination of packages.
+%    \begin{macrocode}
+   \expandafter\label\expandafter{\the\c@vrcnt @xvr}}%
+  \ifx\@tempa\@tempb\else
+%    \end{macrocode}
+%    If both points do not fall onto the same page with either issue
+%    an error or a warning message.
+% \changes{v1.0g}{1994/05/27}{Looping pages shown in wrong order}
+%    \begin{macrocode}
+  \vref@err{\noexpand\vref at page boundary
+            \@tempb-\@tempa\space (may loop)%
+            }%
+  \fi
+%    \end{macrocode}
+%    Same game for the user requested label; this time the page
+%    reference is saved in |\@tempb|.
+%    \begin{macrocode}
+  \@ifundefined{r@#3}{\@namedef{r@#3}{{??}{??}}}{}%
+  \edef\@tempb{\expandafter\expandafter\expandafter
+                \@cdr\csname r@#3\endcsname
+                \@nil}%
+%    \end{macrocode}
+%    Now after the internal label has served its purpose if would be
+%    nice to free the memory it occupies by using something like
+%    \begin{verbatim}
+% \global\expandafter\let
+%        \csname r@\the\c@vrcnt @vr\endcsname\@empty
+%\end{verbatim}
+%    But this is not possible because it would result in getting
+%    `Labels may have changed\ldots' warnings for every run.  Now we
+%    are ready to produce the textual strings.  Since we have removed
+%    any leading space we now insert a space and then compare the two
+%    page references.
+%    \begin{macrocode}
+  \space
+  \ifx\@tempa\@tempb
+%    \end{macrocode}
+%    If they are the same we insert the first argument into the input
+%    stream.  Otherwise we insert the second argument.  Recall that
+%    those are the two optional arguments of |...|.
+%    \begin{macrocode}
+    #1%
+  \else
+    #2%
+%    \end{macrocode}
+%    Now we check if the page number of the referenced object (stored
+%    in |\@tempb| is a single positive number.
+%    \begin{macrocode}
+    \is@pos@number\@tempb
+       {%
+%    \end{macrocode}
+%    If so, we check if the current position (stored in |\@tempa|) is
+%    a positive number. If this is the case we assign this number to
+%    the counter register |\@tempcnta| and add one to it.
+%    \begin{macrocode}
+        \is@pos@number\@tempa
+         {\@tempcnta\@tempa
+          \advance\@tempcnta\@ne
+         }%
+%    \end{macrocode}
+%    If it is not a positive number we assign the largest possible
+%    number to |\@tempcnta| and thereby pretending that label and
+%    reference are miles away from each other.
+%    \begin{macrocode}
+         {\@tempcnta\maxdimen}%
+%    \end{macrocode}
+%    Now we are ready to check if reference and object are on nearby
+%    pages. |\@tempb| will expand to the page number of the object
+%    (and we know that this is a number) and |\@tempcnta| is either
+%    one higher than the reference page or completely out of bounds.
+%    So if both represend the same value then the object lies one page
+%    after its reference.
+%    \begin{macrocode}
+        \ifnum \@tempb =\@tempcnta
+%    \end{macrocode}
+%    Thus if the object falls onto an odd page then the reference is
+%    on the facing even page (and so we insert |\reftextfaceafter|),
+%    otherwise the object can not be seen from the reference (and we
+%    in insert |\reftextafter|).  Don't be surprised if we are not
+%    using |\@tempb| in the check. Since |\@tempcnta| has the same
+%    value it is faster to use the register instead of parsing the
+%    macro contents anew.
+%    \begin{macrocode}
+         \ifodd\@tempcnta
+%    \end{macrocode}
+%    In fact we are going to use |\reftextfaceafter| only if we are
+%    doing two-sided printing, otherwise |\reftextafter| is always
+%    used.
+%    Since the value of |\if@twoside| is evaluated before reading in
+%    packages we could do better (saving some tokens) by defining
+%    the current macro in dependence of this boolean.
+%    \begin{macrocode}
+           \if@twoside
+             \reftextfaceafter
+           \else
+             \reftextafter
+           \fi
+         \else
+           \reftextafter
+         \fi
+%    \end{macrocode}
+%    If the object is not on the page following the reference we check
+%    if it is on the page before the reference. In \LaTeX{} this
+%    situation is not too common, for example with floats it normally
+%    does not occur, but of course it isn't impossible if you more
+%    than one reference to the same object, or if you have back
+%    references to sections, theorems, etc.  To test this we now
+%    substract two from the current value of |\@tempcnta| (which was
+%    set to one higher as the reference page number). Note, that
+%    substraction is also possible if the value was |\maxdimen| --- we
+%    still get something that is much larger than any sensible page
+%    number.
+%    \begin{macrocode}
+        \else
+          \advance\@tempcnta-2
+%    \end{macrocode}
+%    If now |\@tempb| and |\@tempcnta| have the same value then the
+%    object lies one page before the reference.
+%    \begin{macrocode}
+          \ifnum \@tempb =\@tempcnta
+%    \end{macrocode}
+%    Again we have to check for odd or even pages to distinguish
+%    between the facing and the non-facing situation.
+%    \begin{macrocode}
+            \ifodd\@tempcnta
+              \reftextbefore
+            \else
+%    \end{macrocode}
+%    Again the |\reftextfacebefore| only if |@twoside| evaluates to
+%    true.
+%    \begin{macrocode}
+              \if@twoside
+                \reftextfacebefore
+              \else
+                \reftextbefore
+              \fi
+            \fi
+%    \end{macrocode}
+%    If the above test also returns false then we have object and
+%    references on pages which are far away or don't contain simple
+%    page numbers. Therefore we generate the |\reftextfaraway| string.
+%    Recall that this is a macro which has the user label as an
+%    argument.
+%    \begin{macrocode}
+          \else
+            \reftextfaraway{#3}%
+          \fi
+        \fi
+       }%
+%    \end{macrocode}
+%    We do the same if our first test (that the page with the object
+%    has a positive page number) turns out to be false.
+%    \begin{macrocode}
+       {\reftextfaraway{#3}}%
+  \fi
+%    \end{macrocode}
+%    Finally we generate the internal label so that it can be check on
+%    the next run. This means that we compare the position after the
+%    string with the position of the referenced object. There is one
+%    thing to note: to conserve space we locally make |\@currentlabel|
+%    empty since we are only interested in the page number value of
+%    this internal label.
+% \changes{1.0l}{1994/07/07}{Explicitly expand `label argument for babel}
+%    \begin{macrocode}
+  {\let\@currentlabel\@empty
+   \expandafter\label\expandafter{\the\c@vrcnt @vr}}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+%  \begin{macro}{\vrefwarning}
+% \changes{v0.1g}{1993/02/14}{Macro added}
+%  \begin{macro}{\vref@err}
+% \changes{v0.1g}{1993/02/14}{Macro added}
+%    When the |\vref| command detects a possible crossing over a page
+%    boundary it will call |\vref@err| to generate an error message.
+%    During document preparation one can turn such errors into
+%    warnings by issuing a |\vrefwarning| declaration.
+% \changes{v1.0g}{1993/02/14}{Macro added}
+%    \begin{macrocode}
+\def\vrefwarning{\def\vref@err{\PackageWarning{varioref}}}
+\def\vref@err#1{\PackageError{varioref}{#1}%
+    {Please check the pages in question. You might need to replace
+     the \string\vref\MessageBreak 
+     or \noexpand\vpageref by a normal \noexpand\(page)ref to
+     stop LaTeX running forever.}}
+%    \end{macrocode}
+%  \end{macro}
+%  \end{macro}
+%
+%
+% \begin{macro}{\vref}
+% Undoc
+%    \begin{macrocode}
+\DeclareRobustCommand\vref[1]{%
+%    \end{macrocode}
+%    \begin{macrocode}
+  \unskip~\ref{#1}%
+  \@vpageref[\unskip]{#1}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+%  \begin{macro}{\is@pos@number}
+%    The utility macro |\is@pos@number| takes three arguments: a
+%    string that is tested for being a valid integer and the actions
+%    to be taken in case the test comes out true or false.
+%
+%    We start by passing the string to the macro |\is@pos@num| after
+%    prefixing it with a \texttt{0} and adding a space after it. To have
+%    a well defined ending point we also add |\@nil| at the end.
+%\label{isposnumber}
+%    \begin{macrocode}
+\def\is@pos@number#1{\is@pos@num0#1\space\@nil}
+%    \end{macrocode}
+%    Now we parse the enlarged string into a counter register.  To get
+%    control back after everything that is regarded by \TeX{} as a
+%    number is put into that register we assign |\is@pos@num@| to the
+%    |\afterassignment| token.  Since the string started with 0, we
+%    can be sure that the register assignment will be carried out
+%    without an error message.  In case of counter assignments leading
+%    zeros are discarded.
+%    \begin{macrocode}
+\def\is@pos@num{\afterassignment\is@pos@num@ \count@}
+%    \end{macrocode}
+%    Now we have to check whether or not the whole string was parsed
+%    into that register or some remainder was left over. Since we have
+%    added a |\@nil| token at the very end we can use that to delimit
+%    the argument of |\is@pos@num@|. Note, that the added space in
+%    |\is@pos@number| \vpageref[above]{isposnumber} gets parsed away
+%    by the counter assignment. If it would be missing, and the full
+%    string would consist of a number, \TeX{}would try to replace
+%    |\@nil| by its definition to see if it would contain additional
+%    digits and thus we would be in trouble at this point.
+%    \begin{macrocode}
+\def\is@pos@num@#1\@nil{%
+%    \end{macrocode}
+%    Now we have to check if the argument is empty. We can do this
+%    with an |\if| test (i.e., in an expandable way) since we know for
+%    sure that it can not start with a digit
+%    \begin{macrocode}
+  \if0#10%
+%    \end{macrocode}
+%    Depending on the result we execute the second or third argument
+%    of the command |\is@pos@number| using a technique that removes
+%    the |\else| or |\fi| from the input stream first, so that in
+%    principle input stream parsing could be done from within the
+%    arguments.
+%    \begin{macrocode}
+    \expandafter\@firstoftwo \else
+    \expandafter\@secondoftwo  \fi}
+%    \end{macrocode}
+%  \end{macro}
+%
+%  \begin{macro}{\reftextvario}
+%    This macro gives a little bit of random variation in the text
+%    because the outcome depends on the number of |\vref| commands
+%    seen before.
+%    \begin{macrocode}
+\def\reftextvario#1#2{\ifodd\c@vrcnt #1\else#2\fi}
+%    \end{macrocode}
+%  \end{macro}
+%
+%
+%  \begin{macro}{\fullref}
+%    And here is the primitive command that always produces a |\ref|
+%    and a |\pageref|.
+%    \begin{macrocode}
+\def\fullref#1{\ref{#1} \reftextfaraway{#1}}
+%</package>
+%    \end{macrocode}
+%  \end{macro}
+%
+%
+% \Finale
+%
+\endinput
+

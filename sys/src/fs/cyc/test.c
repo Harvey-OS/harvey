@@ -19,7 +19,6 @@ void
 main(void)
 {
 	extern char edata[], end[];
-	int i;
 
 	memset(edata, 0, end-edata);
 
@@ -116,8 +115,6 @@ void
 initvme(void)
 {
 	Vic *v;
-	ulong *p;
-	ulong u;
 
 	print("vic init\n");
 
@@ -146,7 +143,7 @@ void
 initsql(void)
 {
 	Taxi *t;
-	ulong i, r;
+	ulong i;
 
 	t = SQL;
 

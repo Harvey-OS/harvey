@@ -5,33 +5,39 @@
 APE \(em The ANSI/POSIX Environment
 .AU
 Howard Trickey
+howard@plan9.att.com
 .SH
 Introduction
 .PP
-When a large or frequently-updated program must be imported or exported
-to and from Plan 9, the ANSI/POSIX environment known as APE can be useful.
+When a large or frequently-updated program must be ported
+to or from Plan 9, the ANSI/POSIX environment known as APE can be useful.
 APE combines the set of headers and object code libraries specified by
 the ANSI C standard (ANSI X3.159-1989) with the POSIX operating system
-interface standard (IEEE 1003.1-1990, ISO 9945-1).
+interface standard (IEEE 1003.1-1990, ISO 9945-1), the part of POSIX
+defining the basic operating system functions.
 Using APE will cause slower compilation and marginally slower execution speeds,
 so if the importing or exporting happens only infrequently, due consideration
 should be given to using the usual Plan 9 compilation environment instead.
 Another factor to consider is that the Plan 9 header organization is
 much simpler to remember and use.
 .PP
-There are some aspectes of required POSIX behavior that are impossible or
+There are some aspects of required POSIX behavior that are impossible or
 very hard to simulate in Plan 9.  They are described below.
 Experience has shown, however, that the simulation is adequate for the
-vast majority of programs.  The much more common problem is that
+vast majority of programs.  A much more common problem is that
 many programs use functions or headers not defined by POSIX.
 APE has some extensions to POSIX to help in this regard.
+Extensions must be explicitly enabled with an appropriate
+.CW #define ,
+in order that the APE environment be a good aid for testing
+ANSI/POSIX compliance of programs.
 .SH
 Pcc
 .PP
 The
 .CW pcc
 command acts as a front end to the Plan 9 C compilers and loaders.
-It runs an ANSI C preprecessor over source files, using the APE
+It runs an ANSI C preprocessor over source files, using the APE
 headers to satisfy
 .CW "#include <\fIfile\fP>"
 directives; then it runs a Plan 9 C compiler; finally, it may load
@@ -69,6 +75,105 @@ finally,
 is used to create an executable using libraries in
 .CW /mips/lib/ape .
 .SH
+Psh and Cc
+.PP
+The
+.CW pcc
+command is intended for uses where the source code is
+ANSI/POSIX, but the programs are built in the usual Plan 9
+manner \(em with
+.CW mk
+and producing object files with names ending in
+.CW .v ,
+etc.
+Sometimes it is best to use the standard POSIX
+.CW make
+and
+.CW cc
+(which produces object files with names ending in
+.CW .o ,
+and automatically calls the loader unless
+.CW -c
+is specified).
+Under these circumstances, execute the command:
+.DS
+.CW "ape/psh"
+.DE
+This starts a POSIX shell, with an environment that
+includes the POSIX commands
+.CW ar89 ,
+.CW c89 ,
+.CW cc ,
+.CW basename ,
+.CW dirname ,
+.CW expr ,
+.CW false ,
+.CW grep ,
+.CW kill ,
+.CW make ,
+.CW rmdir ,
+.CW sed ,
+.CW sh ,
+.CW stty ,
+.CW true ,
+.CW uname ,
+and
+.CW yacc .
+There are also a few placeholders for commands that cannot be
+implemented in Plan 9:
+.CW chown ,
+.CW ln ,
+and
+.CW umask .
+.PP
+The
+.CW cc
+command accepts the options mandated for
+the POSIX command
+.CW c89 ,
+as specified in the C-Language Development Utilities Option
+annex of the POSIX Shell and Utilities standard.
+It also accepts the following nonstandard options:
+.CW -v
+for echoing the commands for each pass to stdout;
+.CW -A
+to turn on ANSI prototype warnings;
+.CW -S
+to leave assembly language in
+.I file .s;
+.CW -Wp,\fIargs\fP
+to pass
+.I args
+to the
+.CW cpp ;
+.CW -W0,\fIargs\fP
+to pass
+.I args
+to 2c, etc.;
+and
+.CW -Wl,\fIargs\fP
+to pass
+.I args
+to 2l, etc.
+.PP
+The
+.CW sh
+command is ksh93, a POSIX-compliant Korn Shell.
+The Plan 9 implementation does not include
+the emacs and vi editing modes.
+Ksh93 is a separate product, so its source code is not included
+in the Plan 9 distribution.
+.PP
+The
+.CW stty
+command only has effect if the
+.CW ape/ptyfs
+command has been started to interpose a pseudo-tty interface
+between
+.CW /dev/cons
+and the running command.
+None of the distributed commands do this automatically.
+.SH
 Symbols
 .PP
 The C and POSIX standards require that certain symbols be
@@ -81,7 +186,7 @@ POSIX defines
 .I "feature test macros" ,
 which are preprocessor symbols beginning with an underscore
 and then a capital letter;  if the program
-.CW #define s
+.CW #defines
 a feature test macro before the inclusion of any headers,
 then it is requesting that certain symbols be visible in the headers.
 The most important feature test macro is
@@ -100,7 +205,7 @@ The solution is to make the additional symbols visible only when
 .CW _POSIX_SOURCE
 is defined.
 .PP
-When you export a program, it helps to know whether the program fits
+To export a program, it helps to know whether it fits
 in one of the following categories:
 .IP 1.
 Strictly conforming ANSI C program. It only uses features of the language,
@@ -108,7 +213,7 @@ libraries, and headers explicitly required by the C standard.  It does not
 depend on unspecified, undefined, or implementation-dependent behavior,
 and does not exceed any minimum implementation limit.
 .IP 2.
-Strictly conforming POSIX program. Similar, but for the POSIX standard.
+Strictly conforming POSIX program. Similar, but for the POSIX standard as well.
 .IP 3.
 Some superset of POSIX, with extensions.  Each extension
 is selected by a feature test macro, so it is clear which extensions
@@ -117,7 +222,7 @@ are being used.
 With APE, if headers are always included to declare any library functions
 used, then the set of feature test macros defined by a program will
 show which of the above categories the program is in.
-To accomplish this, no symbol is defined in a header if it not required
+To accomplish this, no symbol is defined in a header if it is not required
 by the C or POSIX standard, and those required by the POSIX standard
 are protected by
 .CW "#ifdef _POSIX_SOURCE" .
@@ -133,13 +238,15 @@ The C standard allows more names beginning with
 .CW E ,
 but our header defines only those unless
 .CW _POSIX_SOURCE
-is defined, in which case the 35 more symbols required by POSIX are defined.
-This means that a program which uses
+is defined, in which case the symbols required by POSIX are also defined.
+This means that a program that uses
 .CW ENAMETOOLONG
 cannot masquerade as a strictly conforming ANSI C program.
 .PP
 .CW Pcc
-does not predefine any preprocessor symbols except those required by
+and
+.CW cc
+do not predefine any preprocessor symbols except those required by
 the ANSI C standard:
 .CW __STDC__ ,
 .CW __LINE__ ,
@@ -147,13 +254,13 @@ the ANSI C standard:
 .CW __DATE__ ,
 and
 .CW __TIME__ .
-Any others must be defined in the program itself or using
+Any others must be defined in the program itself or by using
 .CW -D
 on the command line.
 .SH
 Extensions
 .PP
-The pedagogy enforced by only putting required
+The discipline enforced by putting only required
 names in the headers is useful for exporting programs,
 but it gets in the way when importing programs.
 The compromise is to allow additional symbols in headers,
@@ -173,12 +280,7 @@ had to be renamed
 .CW ptdiv .
 Include the
 .CW <libg.h>
-header to declare the needed types and functions,
-and use
-.CW -lg
-on the
-.CW pcc
-command line to load the graphics functions.
+header to declare the needed types and functions.
 .XX
 .CW _LIMITS_EXTENSION .
 POSIX does not require that names such as
@@ -194,135 +296,88 @@ is defined, those names will all be defined when
 .CW <limits.h>
 is included.
 .XX
-.CW _BSDTIME_EXTENSION .
-The header
+.CW _BSD_EXTENSION .
+This extension includes not only Berkeley Unix routines,
+but also a grab bag of other miscellaneous routines often
+found in Unix implementations.
+The extension allows the inclusion of any of:
+.CW <bsd.h>
+for
+.CW bcopy() ,
+.CW bcmp() ,
+and similar Berkeley functions;
+.CW <netdb.h>
+for
+.CW gethostbyname() ,
+etc.,
+and associated structures;
+.CW <select.h>
+for the Berkeley
+.CW select
+function and associated types and macros
+for dealing with multiple input sources;
+.CW <sys/ioctl.h>
+for the
+.CW ioctl
+function (minimally implemented);
+.CW <sys/param.h>
+for
+.CW NOFILES_MAX ;
+.CW <sys/pty.h>
+for pseudo-tty support via the
+.CW ptsname(int)
+and
+.CW ptmname(int)
+functions;
+.CW <sys/resource.h> ;
+.CW <sys/socket.h>
+for socket structures, constants, and functions;
 .CW <sys/time.h>
-is not defined by POSIX.
-This extension allows the inclusion of that header,
-with its definitions of the
+for definitions of the
 .CW timeval
 and
 .CW timezone
-structures.
-.XX
-.CW _SELECT_EXTENSION .
-This extension allows the inclusion of the
-.CW <select.h>
-header, which defines the Berkeley
-.CW select
-function and associated types and macros
-for dealing with multiple input sources.
-The
-.CW <sys/time.h>
-header must be included before
-.CW <select.h> ,
-so the
-.CW _BSDTIME_EXTENSION
-is needed too.
-.XX
-.CW _PCONS_EXTENSION .
-This defines a ``pseudo-tty'' capability.
-If
-.CW _PCONS_EXTENSION
-is defined,
-.CW <pcons.h>
-may be included; it defines the functions
-.CW pcons(void)
+structures;
 and
-.CW pushtty(void).
-.CW Pcons
-arranges for a Plan 9 file server to provide the
-.CW /dev/cons
+.CW <sys/uio.h>
+for the
+.CW iovec
+structure and the
+.CW writev
 and
-.CW /dev/consctl
-files.
-It also provides
-.CW /dev/mcons ,
-which is the ``master end'' of the pseudo-tty:
-characters written to
-.CW /dev/mcons
-can be read from
-.CW /dev/cons
-(or
-.CW /dev/tty ,
-a synonym)
-and vice versa.
-POSIX tty line processing is supported:
-the contents of a
-.CW termios
-structure can be written to or read from the
-.CW /dev/pttyctl
-file in the format
-.P1
-"stty %8ux %8ux %8ux %8ux "
-.P2
-(the numbers are the
-.CW c_iflag ,
-.CW c_oflag ,
-.CW c_cflag ,
+.CW readv
+functions used for scatter/gather I/O.
+Defining
+.CW _BSD_EXTENSION
+also enables various extra definitions in
+.CW <ctype.h> ,
+.CW <signal.h> ,
+.CW <stdio.h> ,
+.CW <unistd.h> ,
+.CW <sys/stat.h> ,
 and
-.CW c_lflag ),
-followed by
-.CW NCCS
-bytes of
-.CW c_cc
-data.
-The
-.CW pushtty
-function uses
-.CW pcons
-to arrange that the standard input, output, and error files
-behave as ttys are supposed to according to POSIX.
-(This should not have to be done explicitly, but the cost of supporting
-.CW tcgetattr
-and
-.CW tcputattr
-is sufficiently high that it seemed better to not make it the default.)
+.CW <sys/times.h> .
 .XX
 .CW _NET_EXTENSION .
 This extension allows inclusion of
 .CW <libnet.h> ,
 which defines the networking functions described in the Plan 9 manual page
 .I dial (2).
-Programs using them must be loaded with
-.CW -lnet .
 .XX
 .CW _REGEXP_EXTENSION .
 This extension allows inclusion of
-.CW <libregexp.h> ,
+.CW <regexp.h> ,
 which defines the regular expression matching functions described
 in the Plan 9 manual page
-.I regexp (2X).
-Programs using them must be loaded with
-.CW -lregexp .
+.I regexp (2).
 .XX
 .CW _RESEARCH_SOURCE .
 This extension enables a small library of functions from the Tenth Edition Unix
 Research System (V10).
 These functions and the types needed to use them are all defined in the
 .CW <libv.h>
-header, and programs using them must be loaded with
-.CW -lv .
+header.
 The provided functions are:
-.CW popen
-and
-.CW pclose
-(common extensions to ANSI C stdio; the
-.CW <stdio.h>
-header must have been included);
-.CW telldir
-and
-.CW seekdir
-(common extensions to the ANSI C
-.CW readdir
-suite;
-.CW <dirent.h>
-must have been included);
-.CW lstat ,
-.CW symlink ,
-and
-.CW readlink
-(dummy functions for Plan 9, since there are no symbolic links);
 .CW srand ,
 .CW rand ,
 .CW nrand ,
@@ -330,8 +385,6 @@ and
 and
 .CW frand
 (better random number generators);
-.CW getopt
-(program argument handler);
 .CW getpass ,
 .CW tty_echoon ,
 .CW tty_echooff
@@ -341,23 +394,23 @@ characteristics);
 and
 .CW max ;
 .CW nap ;
+and
 .CW setfields ,
 .CW getfields ,
 and
 .CW getmfields
-(for parsing a line into fields);
-and
-.CW ftw
-(for walking a file tree).
-See the Research Unix Programmer's Manual for a description
+(for parsing a line into fields).
+See the Research Unix System Programmer's Manual, Tenth Edition, for a description
 of these functions.
 .SH
 Common Problems
 .PP
 Some large systems, including X11, have been ported successfully
-to Plan 9 using APE.
+to Plan 9 using APE
+(the X11 port is not included in the distribution, however,
+because supporting it properly is too big a job).
 The problems encountered fall into three categories:
-(1) non- ANSI C/POSIX features used; (2) inadequate simulation of POSIX functions;
+(1) non-ANSI C/POSIX features used; (2) inadequate simulation of POSIX functions;
 and (3) compiler/loader bugs.
 By far the majority of problems are in the first category.
 .PP
@@ -366,15 +419,14 @@ Most existing code is written to work with one or both of a BSD or a System V Un
 System V is fairly close to POSIX, but there are some differences.
 Also, many System V systems have imported some BSD features that are
 not part of POSIX.
-Here are some common non-POSIX things used in current programs, and what to
-do about them.
-.XX
-.CW sys_errlist
-and
-.CW sys_nerr
-globals.  Use
-.CW strerror
-instead.
+A good strategy for porting external programs is to first try using
+.CW CFLAGS=-D_POSIX_SOURCE ;
+if that doesn't work, try adding
+.CW _D_BSD_EXTENSION
+and perhaps include
+.CW <bsd.h>
+in source files.
+Here are some solutions to problems that might remain:
 .XX
 Third (environment) argument to
 .CW main .
@@ -391,79 +443,14 @@ Rewrite to call
 or define
 .CW _LIMITS_EXTENSION .
 .XX
-.CW isascii
-assumed in
-.CW <ctype.h> .
-Let the dead codeset go: leave the test out, or better still,
-convert to use multibyte characters (c.f. runes in Plan 9).
-Or define your own
-.CW isascii
-macro.
-.XX
-.CW <strings.h> ,
-.CW index ,
-and
-.CW rindex .
-Use
-.CW <string.h> ,
-.CW strchr ,
-and
-.CW strrchr
-instead.
-.XX
-.CW mktemp .
-Rewrite to use ANSI C
-.CW tempnam
-or
-.CW tmpfile .
-.XX
 .CW <varargs.h> .
 Rewrite to use
 .CW <stdarg.h> .
-.XX
-.CW popen
-assumed in
-.CW <stdio.h> .
-Use
-.CW _RESEARCH_SOURCE
-extension, include
-.CW <libv.h> ,
-and load with
-.CW -lv .
-Similarly for
-.CW telldir ,
-.CW seekdir ,
-.CW lstat ,
-.CW srand ,
-.CW rand ,
-.CW nrand ,
-.CW lrand ,
-.CW frand ,
-and
-.CW getopt .
-.XX
-.CW select .
-Define
-.CW _BSDTIME_EXTENSION
-and
-.CW _SELECT_EXTENSION
-and include
-.CW <sys/times.h>
-and
-.CW <select.h> .
-.XX
-Socket or stream stuff.
-Rewrite to use the Plan 9 networking functions, define
-.CW _NET_EXTENSION ,
-include
-.CW <libnet.h>
-and load with
-.CW -lnet .
 .PP
 The second class of problems has to do with inadequacies in the Plan 9
 simulation of POSIX functions.
-As long as this list is, these shortcomings have rarely gotten in the way
-(except, perhaps for the
+These shortcomings have rarely gotten in the way
+(except, perhaps, for the
 .CW link
 problem).
 .XX
@@ -485,14 +472,7 @@ is not implemented.
 .XX
 .CW isatty
 is hard to do correctly.
-The approximation used is to see if the file is the same as
-.CW /dev/cons .
-Sometimes this cannot be determined, and sometimes this is not the right test.
-.XX
-With
-.CW kill ,
-the behavior mandated for negative arguments (killing process groups)
-is not implemented.
+The approximation used is only sometimes correct.
 .XX
 .CW link
 always fails.
@@ -502,11 +482,10 @@ With
 the
 .CW O_NOCTTY
 option has no effect.
-The concept of a ``controlling'' tty is foreign to Plan 9.
+The concept of a controlling tty is foreign to Plan 9.
 .XX
 .CW setsid
-does a
-.CW forkpgrp ,
+forks the name space and note group,
 which is only approximately the right behavior.
 .XX
 The functions dealing with stacking signals,
@@ -516,30 +495,11 @@ and
 .CW sigsuspend ,
 do not work.
 .XX
-.CW system
-uses
-.CW rc
-instead of
-.CW sh
-to interpret the argument.
-Use of
-.CW system
-is discouraged for security reasons anyway.
-.XX
-.CW tcgetattr
-and
-.CW tcsetattr
-only work if
-.CW pcons
-or
-.CW pushtty
-has been executed
-(see the discussion about the
-.CW _PCONS_EXTENSION ,
-above ).
-.XX
 .CW umask
 has no effect, as there is no such concept in Plan 9.
 .XX
-.CW utime
-has no effect, because the time can't be changed in Plan 9.
+code that does
+.CW getenv("HOME")
+should be changed to
+.CW getenv("home")
+on Plan 9.

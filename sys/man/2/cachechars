@@ -1,4 +1,4 @@
-.TH CACHECHARS 2G
+.TH CACHECHARS 2
 .SH NAME
 cachechars, agefont, loadchar, Subfont, Fontchar, Font  \- font utilities
 .SH SYNOPSIS
@@ -32,9 +32,9 @@ The details of this cooperation need not be known by most programs:
 and its associated
 .I font
 variable,
-.I rdfontfile,
-.I charwidth,
-.I string,
+.IR rdfontfile ,
+.IR charwidth ,
+.IR string ,
 and
 .I ffree
 are sufficient for most purposes.
@@ -63,11 +63,11 @@ struct Fontchar {
 typedef
 struct Subfont {
 	short	n;	/* number of chars in subfont */
-	char	height;	/* height of bitmap */
+	uchar	height;	/* height of bitmap */
 	char	ascent;	/* top of bitmap to baseline */
 	Fontchar	*info;	/* n+1 Fontchars */
 	int	id;	/* id as known in /dev/bitblt */
-} Font;
+} Subfont;
 .EE
 .PP
 The bitmap fills the rectangle
@@ -107,7 +107,7 @@ elements, one each for characters 0 to
 plus an additional entry so the size of the last character
 can be calculated.
 Thus the width,
-.I w,
+.IR w ,
 of the
 .B Bitmap
 associated with a
@@ -128,15 +128,16 @@ Fonts are described by the following structures.
 .ta 6n +\w'Cacheinfo 'u +\w'height;   'u
 typedef
 struct Cachefont {
-	Rune	min;	/* rune value of 0th char in subfont */
-	Rune	max;	/* rune value+1 of last char in subfont */
+	Rune	min;	/* value of 0th char in subfont */
+	Rune	max;	/* value+1 of last char in subfont */
+	int	offset;	/* posn in subfont of char at min */
 	int	abs;	/* name has been made absolute */
 	char	*name;
 } Cachefont;
 
 typedef
 struct Cacheinfo {
-	Rune	value;	/* value of character at this slot in cache */
+	Rune	value;	/* of char at this slot in cache */
 	ushort	age;
 	ulong	xright;	/* right edge of bits */
 	Fontchar;
@@ -152,13 +153,13 @@ struct Cachesubf {
 typedef
 struct Font {
 	char	*name;
-	uchar	height;	/* max height of bitmap, interline spacing */
+	uchar	height;	/* max ht of bitmap;interline space*/
 	char	ascent;	/* top of bitmap to baseline */
-	char	width;	/* widest so far; used in caching only */	
+	char	width;	/* widest so far; used in caching */	
 	char	ldepth;	/* of images */
 	short	id;	/* of font */
 	short	nsub;	/* number of subfonts */
-	ulong	age;	/* increasing counter; used for LRU */
+	ulong	age;	/* increasing counter; for LRU */
 	int	ncache;	/* size of cache */
 	int	nsubf;	/* size of subfont list */
 	Cacheinfo	*cache;
@@ -168,12 +169,14 @@ struct Font {
 .EE
 .PP
 The
-.LR height ,
-.LR ascent ,
+.LR height
 and
-.L ldepth
+.LR ascent
 fields of Font are described in
 .IR graphics (2).
+.L Ldepth
+is that of the cache, set by the argument to
+.IR rdfontfile .
 .L Sub
 contains
 .L nsub
@@ -190,9 +193,16 @@ with file name
 .LR name ;
 it corresponds to a line of the file describing the font.
 .PP
-The image for rune
+The characters
+are taken from the subfont starting at character number
+.L offset
+(usually zero) in the subfont, permitting selection of parts of subfonts.
+Thus
+the image for rune
 .I r
-is found in position \fIr\fR\(mi\fLmin\fR of the subfont.
+is found in position
+.IB r -min+offset
+of the subfont.
 .PP
 For each font, the library, with support from the
 graphics server,
@@ -215,14 +225,14 @@ cache indices to draw.
 guarantees the images for the characters pointed to by
 .I *s
 are in the cache of
-.I f.
+.IR f .
 It calls
 .I loadchar
 to put missing characters into the cache.
 .I Cachechars
 translates the character string into a set of cache indices
 which it loads into the array
-.I c,
+.IR c ,
 up to a maximum of
 .I n
 indices or the length of the string.
@@ -260,6 +270,7 @@ If the character does not exist in the font at all,
 .I loadfont
 returns 0; if it is unable to load the character
 without destroying cached information, it returns \-1.
+It returns 1 to indicate success.
 .PP
 The
 .L age
@@ -275,6 +286,8 @@ A character or subfont
 is set to the font age.
 Thus, characters or subfonts with small ages are the best candidates
 for replacement when the cache is full.
+.SH SOURCE
+.B /sys/src/libg
 .SH SEE ALSO
 .IR graphics (2),
 .IR balloc (2),

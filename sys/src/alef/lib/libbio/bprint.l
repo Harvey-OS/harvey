@@ -2,13 +2,13 @@
 #include	<bio.h>
 
 int
-Biobufhdr.print(Biobufhdr *bp, char *fmt, ...)
+Biobufhdr.print(Biobufhdr *bp, byte *fmt, ...)
 {
-	char *ip, *ep, *out;
+	byte *ip, *ep, *out;
 	int n;
 
 	bp->lock();
-	ep = (char*)bp->ebuf;
+	ep = (byte*)bp->ebuf;
 	ip = ep + bp->ocount;
 	out = doprint(ip, ep, fmt, ...);
 	if(out >= ep-5) {

@@ -1,0 +1,12 @@
+Capital A Acid is a rudimentary acme interface to the debugger acid.
+It uses a win to provide an interactive window for acid.  In that window,
+a couple of extra acme-specific features are enabled:
+
+w(command)
+	runs the command and places its output in a new window.
+	e.g. w(lstk()) places the stack trace in a distinct window.
+
+Also, in any such window, text executed with button 2 is
+presented as input to acid in the main Acid window.  Thus, for
+example, one may evaluate variables presented in a stack trace
+by `executing' it with button 2.

@@ -1,11 +1,38 @@
-%% CYRMAX.MF                     June 1990
-%% This Metafont file is part of AMSFonts 2.0.
-%% Cyrillic fonts developed at the Humanities and Arts Computing Center
-%% at the University of Washington.
-%% All rights reserved.  Copying of this file is authorized only if either:
-%%   (1) you make absolutely no changes to your copy including filename; OR
-%%   (2) if you do make changes, you first rename it to some other filename.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% @metafontfile{
+%%     filename="cyrmax.mf",
+%%     version="2.2",
+%%     date="04-JAN-1995",
+%%     filetype="Metafont: driver",
+%%     copyright="Copyright (C) Humanities and Arts Computing Center,
+%%            University of Washington;
+%%            all rights reserved.  Copying of this file is
+%%            authorized only if either:
+%%            (1) you make absolutely no changes to your copy
+%%                including name; OR
+%%            (2) if you do make changes, you first rename it to some
+%%                other name.",
+%%     author="American Mathematical Society",
+%%     address="American Mathematical Society,
+%%            Technical Support, Electronic Products and Services,
+%%            P. O. Box 6248,
+%%            Providence, RI 02940,
+%%            USA",
+%%     telephone="401-455-4080 or (in the USA) 800-321-4AMS",
+%%     email="Internet: Tech-Support@Math.AMS.org",
+%%     codetable="ISO/ASCII",
+%%     checksum = "29827 213 804 8379"
+%%     keywords="amsfonts, tex, metafont , cyrillic ",
+%%     abstract="This is the driver file for use with 
+%%            the cyrillic fonts in AMSFonts 2.2."
+%%     docstring       = "The checksum field above contains a CRC-16
+%%                        checksum as the first value, followed by the
+%%                        equivalent of the standard UNIX wc (word
+%%                        count) utility output of lines, words, and
+%%                        characters.  This is produced by Robert
+%%                        Solovay's checksum utility.",
+%%     }
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 def slantswitch =
 slant:=-slant;
 currenttransform:= identity slanted slant yscaled aspect_ratio scaled granularity;
@@ -13,11 +40,13 @@ enddef; %reverse slant so that mirror() will work
 
 def lowerfit = 0 enddef;
 
+transform MIRROR;
+MIRROR=identity reflectedabout(origin,up);
+
+% produce a mirror image of current picture reflected about a vertical axis
 def mirror (expr axis) =
-x._qa=x._qb=axis; y._qa=h; y._qb=0; picture V; transform MIRROR;
-MIRROR=identity reflectedabout(z._qa,z._qb); 
-V=currentpicture transformed MIRROR; currentpicture:=V;
-slantswitch;
+currentpicture:=currentpicture transformed MIRROR shifted (2axis,0);
+slantswitch; % restore normal slant
 enddef;
 
 vardef armup(suffix $,$$,@)(expr darkness,jut) =  % arm from |z$| to |z$$|

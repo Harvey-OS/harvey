@@ -44,14 +44,14 @@ Quit.
 .TP
 .BI p n
 Print page
-.I n.
+.IR n .
 An out-of-bounds page number means the end nearer to that number;
 a missing number means the current page;
 a signed number means an offset to the current page.
 .TP
 .I n
 Same as
-.BI p n .
+.BI p n\f1.
 .TP
 .B c
 Clear the screen, then wait for another command.
@@ -94,8 +94,21 @@ for fonts instead of
 Toggle the debug flag.
 .PD
 .PP
+These commands are also available, under slightly different form,
+from a menu on button 3.  The
+.B pan
+menu item allows arbitrary positioning of the page:
+after selecting
+.BR pan ,
+press the mouse button again and hold it down while moving
+the page to the desired location.  The page will be redisplayed
+in its entirety when the button is released.
+.PP
 The
 .BR m ,
+.BR x ,
+.BR y ,
+.BR F ,
 .BR / ,
 and
 .B d
@@ -109,9 +122,11 @@ fonts
 .B /lib/font/bit/MAP
 how to convert troff output fonts and character names
 into screen fonts and character numbers
+.SH SOURCE
+.B /sys/src/cmd/proof
 .SH SEE ALSO
 .IR lp (1), 
-.IR psi (1)
+.IR gs (1)
 .br
-Brian W. Kernighan,
-.I A Typesetter-independent Troff
+J. F. Ossanna and B. W. Kernighan,
+``Troff User's Manual''

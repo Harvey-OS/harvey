@@ -42,6 +42,10 @@ to standard output.
 It is useful in interactive
 .IR rc (1)
 scripts.
+.SH SOURCE
+.B /sys/src/cmd/cat.c
+.br
+.B /sys/src/cmd/read.c
 .SH SEE ALSO
 .IR cp (1)
 .SH DIAGNOSTICS

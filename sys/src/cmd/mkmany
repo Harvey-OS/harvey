@@ -16,6 +16,12 @@ $O.%:	%.$O $OFILES $LIB
 %.$O:	%.c
 	$CC $CFLAGS $stem.c
 
+(.*)\.[vk8]'$':R:	\1.l
+	$ALEF $CFLAGS $stem1.l
+
+(.*)\.[2z]'$':RQ:	\1.l
+	;
+
 %.$O:	%.s
 	$AS $AFLAGS $stem.s
 

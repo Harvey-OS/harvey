@@ -1,0 +1,180 @@
+%% BEGIN semhelv.sty
+\def\fileversion{1.0 (2e)}
+\def\filedate{94/09/11}
+%%
+%% LaTeX style option `semhelv.sty' for the `seminar' document style.
+%% For use with the LaTeX v2.09 and the New Font Selection Scheme (1 or 2),
+%% or (some day) with LaTeX2e.
+%%
+%% COPYRIGHT 1994, by Timothy Van Zandt, tvz@Princeton.EDU
+%% See seminar.sty or seminar.doc for copying restrictions.
+%%
+%% ************************************************************************
+%% ****                        DESCRIPTION                             ****
+%% ************************************************************************
+%%
+% This file contains the external font information needed to load
+% the PostScript Helvetica fonts for use by seminar.sty.
+%
+% You must have the New Font Selection Scheme (NFSS or NFSS2) or LaTeX2e.
+% The file npsfont.sty, which is distributed with seminar.sty, is also
+% required with NFSS (but not with NFSS2 or LaTeX2e).
+%
+% IMPORTANT:
+%   As distributed, the following font file names are assumed for the
+%   `standard' TeX encoding:
+%
+%     Helvetica              phvr
+%     Helvetica-Oblique      phvro
+%     Helvetica-Bold         phvb
+%     Helvetica-BoldOblique  phvbo
+%     Courier                pcr
+%     Courier-Bold           pcrb
+%     Courier-Oblique        pcro
+%     Courier-BoldOblique    pcrbo
+%
+%   With the NFSS2 and LaTeX2e, you can also use the CORK encoding. The
+%   assumed file names are as above, but with `q' appended to each name.
+%
+%   This means, e.g., that phvr.tfm or phvr.vf must be the name of the
+%   TeX .tfm or .vf (virtual font) file for the PostScript Helvetica font.
+%   See the documentation of your dvi-to-ps driver for information on using
+%   PostScript fonts.
+%
+% Fonts are scaled so that the x-heights match those of the cmr fonts;
+% this makes in-line math look acceptable.
+%
+% Note: The Courier font is not that great.
+%
+% Preliminaries:
+\csname semhelv@loaded\endcsname
+\let\semhelv@loaded\endinput
+\typeout{Style Option: `semhelv' for the `seminar' doc style
+  \fileversion\space <\filedate> (tvz)}
+\@ifundefined{selectfont}
+  {\@seminarerr{`semhelv' style option can only be used
+    with the New Font Selection Scheme}\@eha\endinput}{}
+%
+% Font definitions.
+
+\expandafter\ifx\csname DeclareSizeFunction\endcsname\relax
+
+% FOR NFSS:
+
+\@ifundefined{newpsfamily}{\input{npsfont.sty}}{}%
+
+% See npsfont.sty for the definition of \newpsfamily.
+
+\newpsfamily[.82]{helvetica}{
+  {m}{n}{phvr},          %Helvetica
+  {m}{it}{phvro},        %Helvetica-Oblique
+  {m}{sl}{phvro},        %Helvetica-Oblique
+  {bx}{n}{phvb},         %Helvetica-Bold
+  {bx}{it}{phvbo},       %Helvetica-BoldOblique
+  {bx}{sl}{phvbo}}       %Helvetica-BoldOblique
+\newpsfamily[.985]{courier}{
+  {m}{n}{pcrr},          %Courier
+  {bx}{n}{pcrb},         %Courier-Bold
+  {m}{it}{pcrro},        %Courier-Oblique
+  {bx}{it}{pcrbo}}       %Courier-BoldOblique
+
+% Use fonts or use \slidefonts:
+\ifarticle
+  \renewcommand{\slidefonts}{%
+    \renewcommand{\default@family}{helvetica}%
+    \renewcommand{\rmdefault}{helvetica}%
+    \renewcommand{\ttdefault}{courier}%
+    \renewcommand{\sfdefault}{helvetica}%
+    \family\default@family\selectfont}
+\else
+  \renewcommand{\default@family}{helvetica}%
+  \renewcommand{\rmdefault}{helvetica}%
+  \renewcommand{\ttdefault}{courier}%
+  \renewcommand{\sfdefault}{helvetica}%
+  \family\default@family\selectfont
+\fi
+
+\else
+
+% FOR NFSS2 OR LATEX2E:
+
+\def\helv@scale{.82}
+
+\DeclareFontFamily{T1}{helvetica}{}%
+\DeclareFontShape{T1}{helvetica}{m}{n}{<->s*[\helv@scale]phvrq}{}%
+\DeclareFontShape{T1}{helvetica}{m}{it}{<->s*[\helv@scale]phvroq}{}%
+\DeclareFontShape{T1}{helvetica}{m}{sc}{<->s*[\helv@scale]phvrcq}{}%
+\DeclareFontShape{T1}{helvetica}{b}{n}{<->s*[\helv@scale]phvbq}{}%
+\DeclareFontShape{T1}{helvetica}{b}{it}{<->s*[\helv@scale]phvboq}{}%
+\DeclareFontShape{T1}{helvetica}{m}{sl}{<->ssub * helvetica/m/it}{}%
+\DeclareFontShape{T1}{helvetica}{b}{sc}{<->sub * helvetica/m/sc}{}%
+\DeclareFontShape{T1}{helvetica}{b}{sl}{<->ssub * helvetica/b/it}{}%
+\DeclareFontShape{T1}{helvetica}{bx}{n}{<->ssub * helvetica/b/n}{}%
+\DeclareFontShape{T1}{helvetica}{bx}{it}{<->ssub * helvetica/b/it}{}%
+\DeclareFontShape{T1}{helvetica}{bx}{sc}{<->sub * helvetica/m/sc}{}%
+\DeclareFontShape{T1}{helvetica}{bx}{sl}{<->ssub * helvetica/b/it}{}%
+
+\DeclareFontFamily{OT1}{helvetica}{}%
+\DeclareFontShape{OT1}{helvetica}{m}{n}{<->s*[\helv@scale]phvr}{}%
+\DeclareFontShape{OT1}{helvetica}{m}{it}{<->s*[\helv@scale]phvro}{}%
+\DeclareFontShape{OT1}{helvetica}{m}{sc}{<->s*[\helv@scale]phvrc}{}%
+\DeclareFontShape{OT1}{helvetica}{b}{n}{<->s*[\helv@scale]phvb}{}%
+\DeclareFontShape{OT1}{helvetica}{b}{it}{<->s*[\helv@scale]phvbo}{}%
+\DeclareFontShape{OT1}{helvetica}{m}{sl}{<->ssub * helvetica/m/it}{}%
+\DeclareFontShape{OT1}{helvetica}{b}{sc}{<->sub * helvetica/m/sc}{}%
+\DeclareFontShape{OT1}{helvetica}{b}{sl}{<->ssub * helvetica/b/it}{}%
+\DeclareFontShape{OT1}{helvetica}{bx}{n}{<->ssub * helvetica/b/n}{}%
+\DeclareFontShape{OT1}{helvetica}{bx}{it}{<->ssub * helvetica/b/it}{}%
+\DeclareFontShape{OT1}{helvetica}{bx}{sc}{<->sub * helvetica/m/sc}{}%
+\DeclareFontShape{OT1}{helvetica}{bx}{sl}{<->ssub * helvetica/b/it}{}%
+
+\def\courier@scale{.985}
+
+\DeclareFontFamily{T1}{courier}{\hyphenchar \font\m@ne}%
+\DeclareFontShape{T1}{courier}{m}{n}{<->s*[\courier@scale]pcrrq}{}%
+\DeclareFontShape{T1}{courier}{m}{it}{<->s*[\courier@scale]pcrroq}{}%
+\DeclareFontShape{T1}{courier}{m}{sc}{<->s*[\courier@scale]pcrrcq}{}%
+\DeclareFontShape{T1}{courier}{b}{n}{<->s*[\courier@scale]pcrbq}{}%
+\DeclareFontShape{T1}{courier}{b}{it}{<->s*[\courier@scale]pcrboq}{}%
+\DeclareFontShape{T1}{courier}{m}{sl}{<->ssub * courier/m/it}{}%
+\DeclareFontShape{T1}{courier}{b}{sc}{<->sub * courier/m/sc}{}%
+\DeclareFontShape{T1}{courier}{b}{sl}{<->ssub * courier/b/it}{}%
+\DeclareFontShape{T1}{courier}{bx}{n}{<->ssub * courier/b/n}{}%
+\DeclareFontShape{T1}{courier}{bx}{it}{<->ssub * courier/b/it}{}%
+\DeclareFontShape{T1}{courier}{bx}{sc}{<->sub * courier/m/sc}{}%
+\DeclareFontShape{T1}{courier}{bx}{sl}{<->ssub * courier/b/it}{}%
+
+\DeclareFontFamily{OT1}{courier}{\hyphenchar \font\m@ne}%
+\DeclareFontShape{OT1}{courier}{m}{n}{<->s*[\courier@scale]pcrr}{}%
+\DeclareFontShape{OT1}{courier}{m}{it}{<->s*[\courier@scale]pcrro}{}%
+\DeclareFontShape{OT1}{courier}{m}{sc}{<->s*[\courier@scale]pcrrc}{}%
+\DeclareFontShape{OT1}{courier}{b}{n}{<->s*[\courier@scale]pcrb}{}%
+\DeclareFontShape{OT1}{courier}{b}{it}{<->s*[\courier@scale]pcrbo}{}%
+\DeclareFontShape{OT1}{courier}{m}{sl}{<->ssub * courier/m/it}{}%
+\DeclareFontShape{OT1}{courier}{b}{sc}{<->sub * courier/m/sc}{}%
+\DeclareFontShape{OT1}{courier}{b}{sl}{<->ssub * courier/b/it}{}%
+\DeclareFontShape{OT1}{courier}{bx}{n}{<->ssub * courier/b/n}{}%
+\DeclareFontShape{OT1}{courier}{bx}{it}{<->ssub * courier/b/it}{}%
+\DeclareFontShape{OT1}{courier}{bx}{sc}{<->sub * courier/m/sc}{}%
+\DeclareFontShape{OT1}{courier}{bx}{sl}{<->ssub * courier/b/it}{}%
+
+% Use fonts or use \slidefonts:
+\ifarticle
+  \renewcommand{\slidefonts}{%
+    \renewcommand{\default@family}{helvetica}%
+    \renewcommand{\rmdefault}{helvetica}%
+    \renewcommand{\ttdefault}{courier}%
+    \renewcommand{\sfdefault}{helvetica}%
+    \fontfamily\default@family\selectfont}
+\else
+  \renewcommand{\default@family}{helvetica}%
+  \renewcommand{\rmdefault}{helvetica}%
+  \renewcommand{\ttdefault}{courier}%
+  \renewcommand{\sfdefault}{helvetica}%
+  \fontfamily\default@family\selectfont
+\fi
+
+\fi
+
+\endinput
+%% END semhelv.sty

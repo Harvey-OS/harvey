@@ -7,19 +7,22 @@
 #include	"init.h"
 
 Softtlb stlb[MAXMACH][STLBSIZE];		/* software tlb simulation */
-int	_argc;					/* args passed by boot process */
+
+int	_argc;					/* args passed by bootstrap */
 char 	**_argv;
 char	**_env;
+char 	env2pass[BY2PG];			/* environment passed to next kernel */
+char	arg2pass[128];				/* args passed to next kernel */
+
 char 	argbuf[128];				/* arguments passed to initcode */
 int	argsize;
-char	consname[NAMELEN];			/* environment vars from NVRAM */
-char	diskless[NAMELEN];
-char	confbuf[4*1024];			/* config file read by boot program */
+char	confbuf[BY2PG];				/* config file read by boot program */
 int	ioid;					/* IO board type */
 
 void
 main(void)
 {
+	savefpregs(&initfp);
 	machinit();
 	active.exiting = 0;
 	active.machs = 1;
@@ -48,6 +51,9 @@ void
 machinit(void)
 {
 	int n;
+
+	/* Ensure CU1 is off */
+	clrfpintr();
 
 	icflush(0, 64*1024);
 	n = m->machno;
@@ -198,8 +204,6 @@ init0(void)
 		poperror();
 	}
 
-	if(conf.debugger && conf.nmach > 2)
-		kproc("kdebug", debugger, 0);
 	kproc("alarm", alarmkproc, 0);
 	touser((uchar*)(USTKTOP - sizeof(argbuf)));
 }
@@ -226,7 +230,6 @@ userinit(void)
 
 	strcpy(p->text, "*init*");
 	strcpy(p->user, eve);
-	savefpregs(&initfp);
 	p->fpstate = FPinit;
 
 	/*
@@ -336,6 +339,7 @@ exit(int ispanic)
 
 	USED(ispanic);
 	u = 0;
+	wipekeys();
 	lock(&active);
 	active.machs &= ~(1<<m->machno);
 	active.exiting = 1;
@@ -464,16 +468,16 @@ void
 confread(void)
 {
 	char *line;
-	char *end;
+	char *lend;
 
 	/*
 	 *  process configuration file
 	 */
 	line = confbuf;
-	while(end = strchr(line, '\n')){
-		*end = 0;
+	while(lend = strchr(line, '\n')){
+		*lend = 0;
 		confset(line);
-		line = end+1;
+		line = lend+1;
 	}
 }
 
@@ -488,6 +492,11 @@ confprint(void)
 	for(ct = conftab; ct->sym; ct++)
 		print("%s == %d\n", ct->sym, *ct->x);
 }
+
+enum
+{
+	Maxkernmem = 24*MB,
+};
 
 void
 confinit(void)
@@ -513,11 +522,14 @@ confinit(void)
 			break;
 		x += 0x3141526;
 	}
+
 	conf.npage0 = i*1024/4;
 	conf.base0 = 0;
 	conf.npage = conf.npage0;
 	conf.npage1 = 0;
 	conf.base1 = 0;
+
+	conf.nproc = 128 + 3*i;
 
 	ktop = PGROUND((ulong)end);
 	ktop = PADDR(ktop);
@@ -526,8 +538,8 @@ confinit(void)
 
 	conf.upages = (conf.npage*70)/100;
 	i = conf.npage-conf.upages;
-	if(i > (12*MB)/BY2PG)
-		conf.upages +=  i - ((12*MB)/BY2PG);
+	if(i > Maxkernmem/BY2PG)
+		conf.upages +=  i - (Maxkernmem/BY2PG);
 	/*
  	 *  clear MP bus error caused by sizing memory
 	 */
@@ -537,14 +549,9 @@ confinit(void)
 	/*
 	 *  set minimal default values
 	 */
-	conf.nmach = 1;
-	conf.nproc = 100;
+	conf.nmach = 1;		/* cannot be changed or 9powerboot will break */
 	conf.nswap = 262144;
 	conf.nimage = 200;
-	conf.ipif = 8;
-	conf.ip = 64;
-	conf.arp = 32;
-	conf.frag = 32;
 
 	confread();
 
@@ -567,8 +574,6 @@ struct
 	char	*val;
 }bootenv[] = {
 	{"netaddr=",	sysname},
-	{"console=",	consname},
-	{"diskless=",	diskless},
 };
 char *sp;
 
@@ -590,37 +595,56 @@ arginit(void)
 	char **av;
 
 	/*
-	 *  get boot env variables
-	 */
-	if(*sysname == 0)
-		for(av = _env; *av; av++)
-			for(i=0; i < sizeof bootenv/sizeof bootenv[0]; i++){
-				n = strlen(bootenv[i].name);
-				if(strncmp(*av, bootenv[i].name, n) == 0){
-					strncpy(bootenv[i].val, (*av)+n, NAMELEN);
-					bootenv[i].val[NAMELEN-1] = '\0';
-					break;
-				}
-			}
-
-	/*
-	 *  pack args into buffer
+	 *  pack args into buffer (for initcode)
 	 */
 	av = (char**)argbuf;
 	sp = argbuf + sizeof(argbuf);
 	for(i = 0; i < _argc; i++){
-		if(i && *(_argv[i]) != '-')
-			diskless[0] = 0;
+		if(_argv[i] == 0)
+			break;
 		av[i] = pusharg(_argv[i]);
 	}
+	av[i] = 0;
 
 	/*
-	 *  if no boot method is specified, look for
-	 *  a default in the diskless environment variable
+	 *  get boot env variables
 	 */
-	if(diskless[0] > '1')
-		av[i++] = pusharg(diskless);
+	for(av = _env; *av; av++)
+		for(i=0; i < sizeof bootenv/sizeof bootenv[0]; i++){
+			n = strlen(bootenv[i].name);
+			if(strncmp(*av, bootenv[i].name, n) == 0){
+				strncpy(bootenv[i].val, (*av)+n, NAMELEN);
+				bootenv[i].val[NAMELEN-1] = '\0';
+				break;
+			}
+		}
+
+	/*
+	 *  pack environment variables into buffer (for 2 stage boot)
+	 */
+	av = (char**)env2pass;
+	sp = env2pass + sizeof(env2pass);
+	for(i = 0; i < 64; i++){
+		if(_env[i] == 0)
+			break;
+		av[i] = pusharg(_env[i]);
+	}
 	av[i] = 0;
+	_env = (char**)env2pass;
+
+	/*
+	 *  pack args into buffer (for 2 stage boot)
+	 */
+	av = (char**)arg2pass;
+	sp = arg2pass + sizeof(arg2pass);
+	for(i = 0; i < _argc; i++){
+		if(_argv[i] == 0)
+			break;
+		av[i] = pusharg(_argv[i]);
+	}
+	av[i] = 0;
+	_argv = (char**)arg2pass;
+	_argc = i;
 }
 
 /*

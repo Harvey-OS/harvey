@@ -14,7 +14,7 @@ int
 fcntl(int fd, int cmd, ...)
 {
 	int arg, i, ans, err;
-	Fdinfo *fi;
+	Fdinfo *fi, *fans;
 	va_list va;
 	unsigned long oflags;
 
@@ -28,6 +28,10 @@ fcntl(int fd, int cmd, ...)
 		err = EBADF;
 	else switch(cmd){
 		case F_DUPFD:
+			if(fi->flags&(FD_BUFFERED|FD_BUFFEREDX)){
+				err = EGREG;	/* dup of buffered fd not implemented */
+				break;
+			}
 			oflags = fi->oflags;
 			for(i = (arg>0)? arg : 0; i<OPEN_MAX; i++)
 				if(!(_fdinfo[i].flags&FD_ISOPEN))
@@ -43,8 +47,11 @@ fcntl(int fd, int cmd, ...)
 					}else
 						err = EBADF;
 				}else{
-					_fdinfo[ans].flags = fi->flags&~FD_CLOEXEC;
-					_fdinfo[ans].oflags = oflags;
+					fans = &_fdinfo[ans];
+					fans->flags = fi->flags&~FD_CLOEXEC;
+					fans->oflags = oflags;
+					fans->uid = fi->uid;
+					fans->gid = fi->gid;
 				}
 			}
 			break;

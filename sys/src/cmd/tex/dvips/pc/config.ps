@@ -1,0 +1,65 @@
+* Claim 180kbytes memory
+m 180000
+* Default resolution.
+D 300
+* Default metafont mode (defined in emTeX's local.mf)
+M hplaser
+* Paths (uncomment and edit if you need these)
+*T c:\emtex\tfm
+*V c:\texfonts\vf
+*P c:\texfonts\pixel.lj\%ddpi\%f.%p
+*L c:\texfonts\;lj_0;lj_h;lj_1;lj_2;lj_3;lj_4;lj_5a;lj_5b;lj_sli
+*S .;c:\emtex\texinput
+*H .;c:\emtex\ps
+* Compress fonts
+Z
+*
+*   Paper size information.  First definition is the default.
+*
+*   If your default is a4 uncomment the following definition
+*   and comment out the letterSize definition.
+*@ a4size 210mm 297mm
+*@+ %%PaperSize: a4
+
+@ letterSize 8.5in 11in
+@+ %%PaperSize: Letter
+
+@ letter 8.5in 11in
+@+ %%BeginPaperSize: Letter
+@+ letter
+@+ %%EndPaperSize
+
+@ legal 8.5in 14in
+@+ ! %%DocumentPaperSizes: Legal
+@+ %%BeginPaperSize: Legal
+@+ legal
+@+ %%EndPaperSize
+
+@ ledger 17in 11in
+@+ ! %%DocumentPaperSizes: Ledger
+@+ %%BeginPaperSize: Ledger
+@+ ledger
+@+ %%EndPaperSize
+
+@ tabloid 11in 17in
+@+ ! %%DocumentPaperSizes: Tabloid
+@+ %%BeginPaperSize: Tabloid
+@+ 11x17
+@+ %%EndPaperSize
+
+@ a4 210mm 297mm
+@+ ! %%DocumentPaperSizes: a4
+@+ %%BeginPaperSize: a4
+@+ a4
+@+ %%EndPaperSize
+
+@ a3 297mm 420mm
+@+ ! %%DocumentPaperSizes: a3
+@+ %%BeginPaperSize: a3
+@+ a3
+@+ %%EndPaperSize
+
+@ unknown 0in 0in
+@+ statusdict /setpageparams known { hsize vsize 0 1 statusdict begin {
+@+ setpageparams } stopped end } { true } ifelse { statusdict /setpage known
+@+ { hsize vsize statusdict begin { setpage } stopped pop end } if } if

@@ -86,6 +86,8 @@ ginit(void)
 	nodret = new(OIND, nodret, Z);
 	complex(nodret);
 
+	com64init();
+
 	memset(reg, 0, sizeof(reg));
 	reg[REGZERO] = 1;
 	reg[REGLINK] = 1;
@@ -188,7 +190,7 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 		}
 		return;
 	}
-	if(typesu[n->type->etype]) {
+	if(typesuv[n->type->etype]) {
 		regaalloc(tn2, n);
 		if(n->complex >= FNX) {
 			sugen(*fnxp, tn2, n->type->width);
@@ -223,16 +225,23 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 }
 
 Node*
+nod32const(vlong v)
+{
+	constnode.vconst = v & MASK(32);
+	return &constnode;
+}
+
+Node*
 nodconst(long v)
 {
-	constnode.offset = v;
+	constnode.vconst = v;
 	return &constnode;
 }
 
 Node*
 nodfconst(double d)
 {
-	fconstnode.ud = d;
+	fconstnode.fconst = d;
 	return &fconstnode;
 }
 
@@ -251,7 +260,7 @@ regret(Node *n, Node *nn)
 	int r;
 
 	r = REGRET;
-	if(typefdv[nn->type->etype])
+	if(typefd[nn->type->etype])
 		r = FREGRET+NREG;
 	nodreg(n, nn, r);
 	reg[r]++;
@@ -362,7 +371,7 @@ regsalloc(Node *n, Node *nn)
 	if(cursafe+curarg > maxargsafe)
 		maxargsafe = cursafe+curarg;
 	*n = *nodsafe;
-	n->offset = -(stkoff + cursafe);
+	n->xoffset = -(stkoff + cursafe);
 	n->type = nn->type;
 	n->etype = nn->type->etype;
 	n->lineno = nn->lineno;
@@ -389,7 +398,7 @@ regaalloc(Node *n, Node *nn)
 	*n = *nn;
 	n->op = OINDREG;
 	n->reg = REGSP;
-	n->offset = curarg + 4;
+	n->xoffset = curarg + 4;
 	n->complex = 0;
 	n->addable = 20;
 	o = nn->type->width;
@@ -470,7 +479,7 @@ naddr(Node *n, Adr *a)
 	case OINDREG:
 		a->type = D_OREG;
 		a->sym = S;
-		a->offset = n->offset;
+		a->offset = n->xoffset;
 		a->reg = n->reg;
 		break;
 
@@ -479,7 +488,7 @@ naddr(Node *n, Adr *a)
 		a->type = D_OREG;
 		a->name = D_STATIC;
 		a->sym = n->sym;
-		a->offset = n->offset;
+		a->offset = n->xoffset;
 		if(n->class == CSTATIC)
 			break;
 		if(n->class == CEXTERN || n->class == CGLOBL) {
@@ -499,12 +508,12 @@ naddr(Node *n, Adr *a)
 	case OCONST:
 		a->sym = S;
 		a->reg = NREG;
-		if(typefdv[n->type->etype]) {
+		if(typefd[n->type->etype]) {
 			a->type = D_FCONST;
-			a->dval = n->ud;
+			a->dval = n->fconst;
 		} else {
 			a->type = D_CONST;
-			a->offset = n->offset;
+			a->offset = n->vconst;
 		}
 		break;
 
@@ -557,7 +566,7 @@ gmove(Node *f, Node *t)
 	tt = t->type->etype;
 
 	if(ft == TDOUBLE && f->op == OCONST) {
-		d = f->ud;
+		d = f->fconst;
 		if(d == 0.0) {
 			a = FREGZERO;
 			goto ffreg;
@@ -600,7 +609,7 @@ gmove(Node *f, Node *t)
 		}
 	}
 	if(ft == TFLOAT && f->op == OCONST) {
-		d = f->ud;
+		d = f->fconst;
 		if(d == 0) {
 			a = FREGZERO;
 		ffreg:
@@ -617,7 +626,7 @@ gmove(Node *f, Node *t)
 	if(f->op == ONAME || f->op == OINDREG || f->op == OIND) {
 		switch(ft) {
 		default:
-			if(typefdv[tt]) {
+			if(typefd[tt]) {
 				/* special case can load mem to Freg */
 				regalloc(&nod, t, t);
 				gins(AMOVW, f, &nod);
@@ -665,7 +674,7 @@ gmove(Node *f, Node *t)
 	if(t->op == ONAME || t->op == OINDREG || t->op == OIND) {
 		switch(tt) {
 		default:
-			if(typefdv[ft]) {
+			if(typefd[ft]) {
 				/* special case can store mem from Freg */
 				regalloc(&nod, f, Z);
 				a = AFMOVDW;
@@ -694,7 +703,7 @@ gmove(Node *f, Node *t)
 			a = AFMOVD;
 			break;
 		}
-		if(!typefdv[ft] && vconst(f) == 0) {
+		if(!typefd[ft] && vconst(f) == 0) {
 			gins(a, f, t);
 			return;
 		}
@@ -1012,37 +1021,37 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 
 	case OEQ:
 		a = ABE;
-		if(typefdv[et])
+		if(typefd[et])
 			a = AFBE;
 		goto cmp;
 
 	case ONE:
 		a = ABNE;
-		if(typefdv[et])
+		if(typefd[et])
 			a = AFBLG;
 		goto cmp;
 
 	case OLT:
 		a = ABL;
-		if(typefdv[et])
+		if(typefd[et])
 			a = AFBL;
 		goto cmp;
 
 	case OLE:
 		a = ABLE;
-		if(typefdv[et])
+		if(typefd[et])
 			a = AFBLE;
 		goto cmp;
 
 	case OGE:
 		a = ABGE;
-		if(typefdv[et])
+		if(typefd[et])
 			a = AFBGE;
 		goto cmp;
 
 	case OGT:
 		a = ABG;
-		if(typefdv[et])
+		if(typefd[et])
 			a = AFBG;
 		goto cmp;
 
@@ -1174,12 +1183,14 @@ sval(long v)
 int
 sconst(Node *n)
 {
-	long v;
+	vlong vv;
 
-	if(n->op == OCONST && !typefdv[n->type->etype]) {
-		v = n->offset;
-		if(v >= -(1<<12) && v < (1<<12))
-			return 1;
+	if(n->op == OCONST) {
+		if(!typefd[n->type->etype]) {
+			vv = n->vconst;
+			if(vv >= -(1LL<<12) && vv < (1LL<<12))
+				return 1;
+		}
 	}
 	return 0;
 }
@@ -1196,7 +1207,7 @@ exreg(Type *t)
 		exregoffset--;
 		return o;
 	}
-	if(typefdv[t->etype]) {
+	if(typefd[t->etype]) {
 		if(exfregoffset <= 16)
 			return 0;
 		o = exfregoffset + NREG;
@@ -1212,7 +1223,7 @@ schar	ewidth[XTYPE] =
 	SZ_CHAR,	SZ_CHAR,	/* TCHAR	TUCHAR */
 	SZ_SHORT,	SZ_SHORT,	/* TSHORT	TUSHORT */
 	SZ_LONG,	SZ_LONG,	/* TLONG	TULONG */
-	SZ_VLONG,			/* TVLONG */
+	SZ_VLONG,	SZ_VLONG,	/* TVLONG	TUVLONG */
 	SZ_FLOAT,	SZ_DOUBLE,	/* TFLOAT	TDOUBLE */
 	SZ_IND,		0,		/* TIND		TFUNC */
 	-1,		0,		/* TARRAY	TVOID */
@@ -1228,7 +1239,8 @@ long	ncast[XTYPE] =
 	/* TUSHORT */	BSHORT|BUSHORT,
 	/* TLONG */	BLONG|BULONG|BIND,
 	/* TULONG */	BLONG|BULONG|BIND,
-	/* TVLONG */	BVLONG|BDOUBLE,
+	/* TVLONG */	BVLONG|BUVLONG,
+	/* TUVLONG */	BVLONG|BUVLONG,
 	/* TFLOAT */	BFLOAT,
 	/* TDOUBLE */	BDOUBLE,
 	/* TIND */	BLONG|BULONG|BIND,

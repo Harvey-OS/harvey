@@ -1,0 +1,57 @@
+%Filename: OT1hlc4.fd
+%Created by: tex 2931lucfax
+%Created using fontinst v1.335
+
+%THIS FILE SHOULD BE PUT IN A TEX INPUTS DIRECTORY
+
+\ProvidesFile{OT1hlc4.fd}
+   [1994/11/05 Fontinst v1.335 font definitions for OT1/hlc4.]
+
+\@ifundefined{LucidaScale}{\def\LucidaScale{1}}{}\DeclareFontFamily{OT1}{hlc4}{}
+
+\DeclareFontShape{OT1}{hlc4}{db}{n}{
+ <->s * [\LucidaScale]hlcd47t
+}{}
+
+\DeclareFontShape{OT1}{hlc4}{db}{sc}{
+ <->s * [\LucidaScale]hlcd4c7t
+}{}
+
+\DeclareFontShape{OT1}{hlc4}{db}{it}{
+ <->s * [\LucidaScale]hlcdi47t
+}{}
+
+\DeclareFontShape{OT1}{hlc4}{db}{sl}{
+ <->s * [\LucidaScale]hlcdo47t
+}{}
+
+\DeclareFontShape{OT1}{hlc4}{m}{n}{
+ <->s * [\LucidaScale]hlcr47t
+}{}
+
+\DeclareFontShape{OT1}{hlc4}{m}{sc}{
+ <->s * [\LucidaScale]hlcr4c7t
+}{}
+
+\DeclareFontShape{OT1}{hlc4}{m}{it}{
+ <->s * [\LucidaScale]hlcri47t
+}{}
+
+\DeclareFontShape{OT1}{hlc4}{m}{sl}{
+ <->s * [\LucidaScale]hlcro47t
+}{}
+
+\DeclareFontShape{OT1}{hlc4}{b}{n}{<->ssub * hlc4/db/n}{}
+\DeclareFontShape{OT1}{hlc4}{bx}{n}{<->ssub * hlc4/b/n}{}
+\DeclareFontShape{OT1}{hlc4}{b}{sc}{<->ssub * hlc4/db/sc}{}
+\DeclareFontShape{OT1}{hlc4}{bx}{sc}{<->ssub * hlc4/b/sc}{}
+\DeclareFontShape{OT1}{hlc4}{b}{it}{<->ssub * hlc4/db/it}{}
+\DeclareFontShape{OT1}{hlc4}{bx}{it}{<->ssub * hlc4/b/it}{}
+\DeclareFontShape{OT1}{hlc4}{db}{ui}{<->sub * hlc4/db/it}{}
+\DeclareFontShape{OT1}{hlc4}{b}{ui}{<->ssub * hlc4/db/ui}{}
+\DeclareFontShape{OT1}{hlc4}{bx}{ui}{<->ssub * hlc4/b/ui}{}
+\DeclareFontShape{OT1}{hlc4}{b}{sl}{<->ssub * hlc4/db/sl}{}
+\DeclareFontShape{OT1}{hlc4}{bx}{sl}{<->ssub * hlc4/b/sl}{}
+\DeclareFontShape{OT1}{hlc4}{m}{ui}{<->sub * hlc4/m/it}{}
+
+\endinput

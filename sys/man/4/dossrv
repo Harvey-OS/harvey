@@ -1,6 +1,6 @@
 .TH DOSSRV 4
 .SH NAME
-dossrv, 9660srv, eject \- DOS and ISO9660 file systems
+dossrv, 9660srv, a:, b:, c:, eject \- DOS and ISO9660 file systems
 .SH SYNOPSIS
 .B dossrv
 [
@@ -26,8 +26,16 @@ dossrv, 9660srv, eject \- DOS and ISO9660 file systems
 .I service
 ]
 .PP
+.B a:
+.PP
+.B b:
+.PP
+.B c:
+.PP
 .B eject
-.RB [ n ]
+[
+.I n
+]
 .SH DESCRIPTION
 .I Dossrv
 is a file server that interprets DOS file systems.
@@ -77,14 +85,31 @@ The
 .B -v
 flag causes verbose output for debugging.
 .PP
+The shell script
+.I a:
+contains
+.IP
+.EX
+unmount /n/a: >[2] /dev/null
+mount -c /srv/dos /n/a: /dev/fd0disk
+.EE
+.LP
+and is therefore a shorthand for mounting a floppy disk in drive A.
+The scripts
+.I b:
+and
+.I c:
+are similar.
+.PP
 .I 9660srv
 is identical to
 .I dossrv
 in specification, except that it interprets ISO9660 CD-ROM
 file systems instead of DOS file systems.
 .PP
-.I Eject
-ejects a floppy from drive
+If the floppy drive has an ejection motor,
+.I eject
+will spit out the floppy from drive
 .IR n ,
 default 0.
 .SH EXAMPLE
@@ -92,7 +117,13 @@ Mount a floppy disk with a DOS file system on it.
 .IP
 .EX
 dossrv
-mount -c /srv/dos /n/a: /dev/fd0disk
+a:
 .EE
 .SH "SEE ALSO"
 .IR kfs (4)
+.SH SOURCE
+.B /sys/src/cmd/dossrv
+.br
+.B /sys/src/cmd/9660srv
+.br
+.B /rc/bin/eject

@@ -3,7 +3,7 @@
 arp \- Internet Address Resolution Protocol
 .SH SYNOPSIS
 .nf
-.B bind \-a #a /net/arp
+.B bind -a #a /net/arp
 .sp
 .B /net/arp/ctl
 .B /net/arp/data
@@ -29,35 +29,44 @@ The
 .B delete
 .I ipaddr
 control message invalidates a single cache entry.
-.PP
+All IP addresses passed to the system are in the canonical textual form
+described in
+.IR ip (2).
 The
-.B data
-file provides two interfaces.
-The first open of the
-.B data
-file connects the
+.B perm
+.I ipaddr
+control message makes an existing cache entry permanent.
+.PP
+When the kernel boots,
+.B ipconfig
+sets up the IP stream and
 .B arpd
-server to the kernel ARP cache
+opens
+.B #a/arp/data
 (see
 .IR ipconfig (8)).
-.B Arpd
-writes the results of address resolution requests from the kernel back into the
-.B data
-file to prime the cache.
+This establishes the ARP cache
+and enables
+.B arpd
+to receive all ARP packets from the network, which it uses to maintain the cache
+by writing the results of address resolution requests back into the cache.
+The IP stream module uses the cache to translate IP addresses.
+.PP
 Subsequent opens of the
 .B data
-file allow the contents of the cache to be read.
+file allow the contents of the cache to be examined.
 Each cache entry consists of an
-IP address, an Ethernet address and the status of the entry.
+IP address, an Ethernet address, and the status of the entry.
 Entries may be
-invalid, permanent or temporary.
+invalid, permanent, or temporary.
 Permanent entries will never be aged from the cache.
 Temporary entries may be replaced by new addresses entered by the ARP server.
 .PP
 The file
 .B stats
 reports the cache performance.
-.EE
 .SH SEE ALSO
 .IR ip (3),
 .IR ipconfig (8)
+.SH SOURCE
+.B /sys/src/9/port/devarp.c

@@ -84,11 +84,11 @@ freq(int f, char *s)
 			count[c]++;
 		}
 	}
-	Bclose(&bin);
+	Bterm(&bin);
 	if(c != Beof)
 		fprint(2, "freq: read error on %s\n", s);
 
-	for(i=0; i<sizeof(count)/sizeof(count[0]); i++) {
+	for(i=0; i<nelem(count); i++) {
 		if(count[i] == 0)
 			continue;
 		if(flag & Fdec)

@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+SYSTEM=plan9
+VERSION=3.3.1
+
+POSTBIN=/sys/lib/postscript/bin
+POSTLIB=/sys/lib/postscript/prologues
+
+all:V:	hardcopy
+
+installall install:V:	$POSTBIN/hardcopy $POSTLIB/hardcopy.ps
+
+$POSTBIN/hardcopy:	hardcopy
+	cp $prereq $target
+
+$POSTLIB/hardcopy.ps:	hardcopy.ps
+	cp $prereq $target
+
+hardcopy:	hardcopy.rc
+	sed 's?^POSTLIB=.*?POSTLIB='$POSTLIB'?' hardcopy.rc >hardcopy
+	chmod 775 hardcopy
+
+clean nuke:V:
+	rm -f hardcopy

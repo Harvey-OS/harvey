@@ -69,20 +69,20 @@ aggr Ioreq
 	Fcall	fcall;
 	int	file;
 	Ioreq	*link;
-	char	buf[MAXRPC+UTFmax];
+	byte	buf[MAXRPC+UTFmax];
 };
 
 typedef aggr Window;
 aggr Mesg
 {
-	char	type;
+	byte	type;
 	uint	time;
 	Mesg	*link;
 	Mouse;
 	union {
 		int	sel;
 		aggr{
-			char		**menu;
+			byte		**menu;
 			chan(Mesg)	rchan;
 		};
 		Rune	keyb;
@@ -96,7 +96,7 @@ aggr Buf
 	Rune	*t;
 	int	size;
 	int	nr;
-	char	part[UTFmax];
+	byte	part[UTFmax];
 	int	np;
 };
 
@@ -146,12 +146,12 @@ aggr Window
 	Buf		*keybuf;
 	Ioreq		*rdioqhd;
 	Ioreq		*wrioqhd;
-	char		label[NAMELEN+1];
+	byte		label[NAMELEN+1];
 	int		maxbit;
 	Bitmap		**bits;
 	int		rid;
-	char		mid;
-	char		*window;
+	byte		mid;
+	byte		*window;
 	int		wsize;
 };
 
@@ -165,7 +165,7 @@ aggr Fid
 
 aggr Dirtab
 {
-	char	*name;
+	byte	*name;
 	uint	qid;
 	uint	perm;
 };
@@ -190,7 +190,7 @@ int	mgrstate;
 Subfont	*subfont;
 Bitmap	*bgrnd;
 Bitmap	*ncur;
-char 	srv[128];
+byte 	srv[128];
 Buf	*cut;
 Buf	*cut2;
 int	wtrls;
@@ -216,7 +216,7 @@ int	clntflush(Window*, Ioreq*);
 void	clntkey(Window*, Mesg*);
 void	clntmgr(Window*, Mesg*);
 void	clntmouse(Window*, Mesg*);
-void	clntnote(Window*, char*);
+void	clntnote(Window*, byte*);
 void	clnto(Window*, int);
 void	clntrawoff(Window*);
 void	clntref(Window*, Mesg*);
@@ -229,13 +229,13 @@ int	consread(Window*, Ioreq*);
 int	conswrite(Window*, Ioreq*);
 void	cutbuf(Rune*, int);
 void	cuset(Mesg*);
-int	cvtbufcr(Buf*, Rune**, char*, int);
+int	cvtbufcr(Buf*, Rune**, byte*, int);
 void	delete(Window*);
 void	dispatcher(void);
 void	doio(Window*);
 void	dohides(Mesg*);
-int	domenu(Point, char**);
-void	error(char*, ...);
+int	domenu(Point, byte**);
+void	error(byte*, ...);
 int	event(Window*, int);
 void	execute(int);
 void	files(void);
@@ -258,7 +258,7 @@ void	pushw(Window*);
 void	qio(Window*, Ioreq*);
 void	wraise(Mesg*);
 void	refresh(Rectangle);
-void	reply(Fcall*, Fcall*, char*);
+void	reply(Fcall*, Fcall*, byte*);
 int	scan(Window*, int, int, Rune);
 void	scroll(Window*);
 void	scrollb(Window*, int, int, int);
@@ -277,6 +277,6 @@ void	winmgr(void);
 void	winread(Window*, Ioreq*);
 void	winsert(Window*w, int, Rune*, int);
 Window*	wsearch(void);
-void	wwrite(Window*w, char*, int);
+void	wwrite(Window*w, byte*, int);
 
 void*	ALEF_tid();

@@ -14,7 +14,7 @@ wc \- word count
 counts lines, words, runes, syntactically-invalid
 .SM UTF
 codes and bytes in the named
-.I files,
+.IR files ,
 or in the standard input if no file is named.
 A word is a maximal string of characters
 delimited by spaces, tabs or newlines.
@@ -34,8 +34,10 @@ or
 Otherwise, lines, words and bytes
 .RB ( -lwc )
 are reported.
+.SH SOURCE
+.B /sys/src/cmd/wc.c
 .SH BUGS
-Unicode has many blank characters scattered through it,
+The Unicode Standard has many blank characters scattered through it,
 but
 .I wc
 looks for only
@@ -43,5 +45,9 @@ looks for only
 space, tab and newline.
 .br
 .I Wc
-should have options to count suboptimal utf codes
-and bytes that cannot occur in any utf code.
+should have options to count suboptimal
+.SM UTF
+codes
+and bytes that cannot occur in any
+.SM UTF
+code.

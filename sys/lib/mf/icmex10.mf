@@ -1,7 +1,9 @@
 % Computer Modern Math Extension 10 point invisible
 if unknown cmbase: input cmbase fi
 
-font_identifier:="CMEX"; font_size 10pt#;
+% RmS 91/10/27: corrected font identifier
+
+font_identifier:="ICMEX"; font_size 10pt#;
 
 u#:=20/36pt#;      % unit width
 width_adj#:=0pt#;    % width adjustment for certain characters
@@ -84,3 +86,4 @@ fontdimen 8:  % parameters $\xi_8$ through $\xi_{13}$ will now be listed
 extra_endchar := extra_endchar & "clearit";
 
 generate mathex      % switch to the driver file
+

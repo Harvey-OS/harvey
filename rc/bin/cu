@@ -1,7 +1,11 @@
 #!/bin/rc
 switch($terminal){
 case NCR* 'AT&TNSX'*
-	con -c 'hayes '$1' /dev/eia1' /dev/eia1
+	mount -a /srv/telco /net >/dev/null >[2=1] || {
+		rm -f /srv/telco
+		telco -s 19200 /dev/eia1
+	}
+	con -l telco!$1
 case *
-	con -l dk!dial.$1
+	con -s -l dk!dial!$1
 }

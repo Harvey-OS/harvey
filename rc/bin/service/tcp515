@@ -1,0 +1,5 @@
+#!/bin/rc
+if (! mount -c /srv/bootes /n/bootesother other >/dev/null >[2=1] || ! bind -a /n/bootesother/lp /sys/lib/lp >/dev/null >[2=1]) {
+	exit 'LPSPOOL setup'
+}
+/$cputype/bin/aux/lpdaemon

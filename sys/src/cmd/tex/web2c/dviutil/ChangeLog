@@ -1,0 +1,26 @@
+Thu May 14 19:21:26 1992  Karl Berry  (karl@claude.cs.umb.edu)
+
+        * Version 5.851c.
+
+Thu Apr 16 13:49:36 1992  Karl Berry  (karl@ra.cs.umb.edu)
+
+        * Version 5.851b.
+
+Fri Apr  3 09:54:34 1992  Karl Berry  (karl at hayley)
+
+        * Version 5.851a.
+
+Fri Mar 20 16:21:18 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (mostlyclean): new name for `clean'.
+        (clean): what `realclean' used to be.
+        (realclean): nothing to do anymore.
+        (install): install the program.
+
+Fri Jan 24 09:21:22 1992  Karl Berry  (karl at hayley)
+
+        * Makefile (cflags): don't include -I../config.
+
+Sun Jan 12 08:49:00 1992  Karl Berry  (karl at hayley)
+
+        * dvicopy.ch: `cwd_test_read_access' is gone.

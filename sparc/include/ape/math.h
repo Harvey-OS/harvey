@@ -41,5 +41,7 @@ extern double fmod(double, double);
 #ifdef _RESEARCH_SOURCE
 /* does >> treat left operand as unsigned ? */
 #define Unsigned_Shifts 1
+
+extern double hypot(double, double);
 #endif
 #endif /* __MATH */

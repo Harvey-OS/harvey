@@ -20,6 +20,13 @@ entryvalue(void)
 }
 
 void
+wput(ushort w)
+{
+	CPUT(w);
+	CPUT(w>>8);
+}
+
+void
 asmb(void)
 {
 	Prog *p;
@@ -75,6 +82,7 @@ asmb(void)
 		seek(cout, HEADR+textsize, 0);
 		break;
 	case 3:
+	case 4:
 		seek(cout, HEADR+rnd(textsize, INITRND), 0);
 		break;
 	}
@@ -108,6 +116,7 @@ asmb(void)
 			seek(cout, HEADR+textsize+datsize, 0);
 			break;
 		case 3:
+		case 4:
 			debug['s'] = 1;
 			break;
 		}
@@ -116,8 +125,6 @@ asmb(void)
 		if(debug['v'])
 			Bprint(&bso, "%5.2f sp\n", cputime());
 		Bflush(&bso);
-		if(!debug['s'])
-			asmsp();
 		if(debug['v'])
 			Bprint(&bso, "%5.2f pc\n", cputime());
 		Bflush(&bso);
@@ -232,7 +239,29 @@ asmb(void)
 		lput(lcsize);			/* line offsets */
 		break;
 	case 3:
-		/* msdos boot */
+		/* MS-DOS .COM */
+		break;
+	case 4:
+		/* fake MS-DOS .EXE */
+		v = rnd(HEADR+textsize, INITRND)+datsize;
+		wput(0x5A4D);			/* 'MZ' */
+		wput(v % 512);			/* bytes in last page */
+		wput(rnd(v, 512)/512);		/* total number of pages */
+		wput(0x0000);			/* number of reloc items */
+		v = rnd(HEADR-(INITTEXT & 0xFFFF), 16);
+		wput(v/16);			/* size of header */
+		wput(0x0000);			/* minimum allocation */
+		wput(0xFFFF);			/* maximum allocation */
+		wput(0x0000);			/* initial ss value */
+		wput(0x0100);			/* initial sp value */
+		wput(0x0000);			/* complemented checksum */
+		v = entryvalue();
+		wput(v);			/* initial ip value (!) */
+		wput(0x0000);			/* initial cs value */
+		wput(0x0000);
+		wput(0x0000);
+		wput(0x003E);			/* reloc table offset */
+		wput(0x0000);			/* overlay number */
 		break;
 	}
 	cflush();
@@ -305,12 +334,14 @@ datblk(long s, long n)
 		}
 		if(l >= n)
 			continue;
-		for(j=l+(c-i)-1; j>=l; j--)
-			if(buf.dbuf[j]) {
-				print("%P\n", p);
-				diag("multiple initialization\n");
-				break;
-			}
+		if(p->as != AINIT && p->as != ADYNT) {
+			for(j=l+(c-i)-1; j>=l; j--)
+				if(buf.dbuf[j]) {
+					print("%P\n", p);
+					diag("multiple initialization\n");
+					break;
+				}
+		}
 		switch(p->to.type) {
 		case D_FCONST:
 			switch(c) {

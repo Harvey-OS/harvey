@@ -22,16 +22,25 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 	if(wfds && FD_ANYSET(wfds)){
 		/* count how many are set: they'll all be returned as ready */
 		for(i = 0; i<nfds; i++)
-			if(FD_ISSET(i, wfds))
+			if(FD_ISSET(i, wfds)) {
+				if(_fdinfo[i].eof) {
+					errno = EBADF;
+					return -1;
+				}
 				n++;
+			}
 	}
 	FD_ZERO(&rwant);
 	if(rfds && FD_ANYSET(rfds)){
 		for(i = 0; i< nfds; i++)
 			if(FD_ISSET(i, rfds)){
 				f = &_fdinfo[i];
-				if(!(f->flags&FD_BUFFERED))
-					if(_startbuf(i) != 0) {
+				if(f->eof) {
+					errno = EBADF;
+					return -1;
+				}
+				if(!(f->flags&(FD_BUFFERED|FD_BUFFEREDX)))
+					if((f->flags&FD_BUFFEREDX) || _startbuf(i) != 0) {
 						errno = EIO;
 						return -1;
 					}
@@ -48,6 +57,10 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 		for(i = 0; i< nfds; i++)
 			if(FD_ISSET(i, efds)){
 				f = &_fdinfo[i];
+				if(f->eof) {
+					errno = EBADF;
+					return -1;
+				}
 				if((f->flags&FD_BUFFERED) && f->n == 0 && f->eof)
 					n++;
 				else{
@@ -63,7 +76,7 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 			tmp = _servebuf(timeout!=0); /* no block if timeout */
 			if(tmp < 0){
 				n = -1;
-				errno = EIO;
+				errno = -tmp;
 				break;
 			}else if(tmp > 0){
 				/*

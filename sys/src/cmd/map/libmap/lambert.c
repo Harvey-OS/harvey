@@ -1,12 +1,12 @@
 #include "map.h"
 
 static struct coord stdp0, stdp1;
-static float k;
+static double k;
 
 static int
-Xlambert(struct place *place, float *x, float *y)
+Xlambert(struct place *place, double *x, double *y)
 {
-	float r;
+	double r;
 	if(place->nlat.l < -80.*RAD)
 		return(-1);
 	if(place->nlat.l > 89.*RAD)
@@ -22,9 +22,9 @@ Xlambert(struct place *place, float *x, float *y)
 }
 
 proj
-lambert(float par0, float par1)
+lambert(double par0, double par1)
 {
-	float temp;
+	double temp;
 	if(fabs(par0)>fabs(par1)){
 		temp = par0;
 		par0 = par1;

@@ -1,5 +1,5 @@
 #include <alef.h>
-#include <graphics.h>
+#include <libg.h>
 #include <frame.h>
 
 int
@@ -20,8 +20,8 @@ frdelete(Frame *f, uint p0, uint p1)
 	pt0 = _frptofcharnb(f, p0, n0);
 	pt1 = frptofchar(f, p1);
 	if(f->p0!=p0 || f->p1!=p1)	/* likely they ARE equal */
-		frselectp(f, F&~D);	/* can do better some day */
-	frselectf(f, pt0, pt1, 0);
+		frselectp(f, frones, F&~D);	/* can do better some day */
+	frselectf(f, pt0, pt1, frones, 0);
 	if(n0 == f->nbox)
 		berror("off end in frdelete");
 	nn0 = n0;
@@ -73,12 +73,16 @@ frdelete(Frame *f, uint p0, uint p1)
 
 			q0 = pt0.y+f->font->height;
 			q1 = pt1.y+f->font->height;
-			q2 = pt2.y+f->font->height;
+			/* rob: before was just q2 = pt1.y+f->font->height; */
+			q2 = pt2.y;
+			if(pt2.x != f->r.min.x)
+				q2 += f->font->height;
+			/* end rob */
 			bitblt(f->b, pt0, f->b, Rect(pt1.x, pt1.y, f->r.max.x, q1), S);
 			bitblt(f->b, Pt(f->r.min.x, q0), f->b, Rect(f->r.min.x, q1, f->r.max.x, q2), S);
-			frselectf(f, Pt(pt2.x, pt2.y-(pt1.y-pt0.y)), pt2, 0);
+			frselectf(f, Pt(pt2.x, pt2.y-(pt1.y-pt0.y)), pt2, frones, 0);
 		}else
-			frselectf(f, pt0, pt2, 0);
+			frselectf(f, pt0, pt2, frones, 0);
 	}
 	_frclosebox(f, n0, n1-1);
 	if(nn0>0 && f->box[nn0-1].nrune>=0 && ppt0.x-f->box[nn0-1].wid>=(int)f->left){
@@ -98,7 +102,7 @@ frdelete(Frame *f, uint p0, uint p1)
 		f->p0 -= p1-p0;
 	else if(f->p0 > p0)
 		f->p0 = p0;
-	frselectp(f, F&~D);
+	frselectp(f, frones, F&~D);
 	f->nchars -= p1-p0;
 
 	pt0 = frptofchar(f, f->nchars);

@@ -1,0 +1,6 @@
+#!/bin/rc
+unmount /n/c: >[2] /dev/null
+if(test -e /dev/hd0dos)
+	mount -c /srv/dos /n/c: /dev/hd0dos
+if not
+	mount -c /srv/dos /n/c: /dev/hd0disk

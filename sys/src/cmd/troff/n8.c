@@ -14,8 +14,9 @@
  * hyphenation
  */
 
-char	hbuf[NHEX];
-char	*nexth = hbuf;
+int	hexsize = 0;		/* hyphenation exception list size */
+char	*hbufp = NULL;		/* base of list */
+char	*nexth = NULL;		/* first free slot in list */
 Tchar	*hyend;
 
 #define THRESH 160 		/* digram goodness threshold */
@@ -113,17 +114,43 @@ void caseht(void)	/* set hyphenation threshold;  not in manual! */
 }
 
 
+char *growh(char *where)
+{
+	char *new;
+
+	hexsize += NHEX;
+	if ((new = grow(hbufp, hexsize, sizeof(char))) == NULL)
+		return NULL;
+	if (new == hbufp) {
+		return where;
+	} else {
+		int diff;
+		diff = where - hbufp;
+		hbufp = new;
+		return new + diff;
+	}
+}
+
+
 void casehw(void)
 {
 	int i, k;
 	char *j;
 	Tchar t;
 
+	if (nexth == NULL) {
+		if ((nexth = hbufp = grow(hbufp, NHEX, sizeof(char))) == NULL) {
+			ERROR "No space for exception word list." WARN;
+			return;
+		}
+		hexsize = NHEX;
+	}
 	k = 0;
 	while (!skip()) {
-		if ((j = nexth) >= hbuf + NHEX - 2)
-			goto full;
-		for (; ; ) {
+		if ((j = nexth) >= hbufp + hexsize - 2)
+			if ((j = nexth = growh(j)) == NULL)
+				goto full;
+		for (;;) {
 			if (ismot(t = getch()))
 				continue;
 			i = cbits(t);
@@ -142,13 +169,14 @@ void casehw(void)
 			}
 			*j++ = maplow(i) | k;
 			k = 0;
-			if (j >= hbuf + NHEX - 2)
-				goto full;
+			if (j >= hbufp + hexsize - 2)
+				if ((j = growh(j)) == NULL)
+					goto full;
 		}
 	}
 	return;
 full:
-	ERROR "exception word list full." WARN;
+	ERROR "Cannot grow exception word list." WARN;
 	*nexth = 0;
 }
 
@@ -158,10 +186,10 @@ int exword(void)
 	Tchar *w;
 	char *e, *save;
 
-	e = hbuf;
+	e = hbufp;
 	while (1) {
 		save = e;
-		if (*e == 0)
+		if (e == NULL || *e == 0)
 			return(0);
 		w = wdstart;
 		while (*e && w <= hyend && (*e & 0177) == maplow(cbits(*w))) {
@@ -356,7 +384,7 @@ int texhyphen(void)
 
 static int texit(Tchar *start, Tchar *end)	/* hyphenate as in tex, return # found */
 {
-	int nw, i, k, eq, cnt[500];
+	int nw, i, k, equal, cnt[500];
 	char w[500+1], *np, *pp, *wp, *xpp, *xwp;
 
 	w[0] = '.';
@@ -377,13 +405,13 @@ static int texit(Tchar *start, Tchar *end)	/* hyphenate as in tex, return # foun
 			 || *pp != *wp		/* no match on 1st letter */
 			 || *(pp+1) != *(wp+1))	/* no match on 2nd letter */
 				break;		/*   so move to next letter of word */
-			eq = 1;
+			equal = 1;
 			for (xpp = pp+2, xwp = wp+2; *xpp; )
 				if (*xpp++ != *xwp++) {
-					eq = 0;
+					equal = 0;
 					break;
 				}
-			if (eq) {
+			if (equal) {
 				np = xpp+1;	/* numpat */
 				for (k = wp-w; *np; k++, np++)
 					if (*np > cnt[k])
@@ -439,7 +467,7 @@ static int readpats(void)
 	char buf[200], buf1[200];
 
 	if ((fp = fopen(TEXHYPHENS, "r")) == NULL
-	 && (fp = fopen(ALTHYPHENS, "r")) == NULL) {
+	 && (fp = fopen(DWBalthyphens, "r")) == NULL) {
 		ERROR "warning: can't find hyphen.tex" WARN;
 		return 0;
 	}

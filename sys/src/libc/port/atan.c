@@ -31,7 +31,7 @@
 
 /*
 	xatan evaluates a series valid in the
-	range [-0.414...,+0.414...].
+	range [-0.414...,+0.414...]. (tan(pi/8))
  */
 
 static

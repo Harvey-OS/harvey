@@ -12,7 +12,7 @@ env \- environment variables
 .SH DESCRIPTION
 The
 .I env
-device serves a one-level file directory containing files with arbitrary names
+device serves a one-level directory containing files with arbitrary names
 and contents.
 The intention is that the file name is the name of an
 .I environment variable
@@ -35,9 +35,16 @@ bit set (see
 causes a split: initially both process groups see the
 same environment files, but any changes made in one process group
 cannot be noticed by the other.
+An
+.B rfork
+with
+.B RFCENVG
+splits and then clears the environment.
 .SH SEE ALSO
 .IR rc (1),
 .IR fork (2)
+.SH SOURCE
+.B /sys/src/9/port/devenv.c
 .SH BUGS
 A write starting at an offset after the current extent of a file
 yields an error instead of zero filling.

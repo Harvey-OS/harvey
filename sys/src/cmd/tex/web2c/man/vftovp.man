@@ -1,0 +1,80 @@
+.TH VFTOVP 1 "7 Jan 92"
+.SH NAME
+vftovp - convert virtual font (vf) files to virtual property lists
+.SH SYNOPSIS
+.B vftovp
+[-verbose] [-charcode-format=format] vf_file_name tfm_file_name [vpl_file_name]
+.SH DESCRIPTION
+The 
+.I vftovp
+program translates a (program-oriented) virtual font file and its
+accompanying font metric file to a (human-oriented) property list file.
+Thus, the virtual font can be edited, and its exact contents can be
+displayed mnemonically.  It also serves as a VF-file validating program;
+if no error messages are given, the input files are correct.
+.PP
+The
+.I vpl_file_name,
+must be complete. No adding of default extensions is done.
+.SH ENVIRONMENT
+.I vftovp
+looks for
+.I vf_file_name
+first in the current directory.  If it is not present there, it uses the
+environment variable VFFONTS.  If that is not set, it uses the variable
+TEXFONTS.  If this is not set, it uses the system defaults:
+.br
+VFFONTS:
+.BR @VFFONTS@ ,
+.br 
+TEXFONTS:
+.BR @TEXFONTS@ ,
+.br
+See
+.BR tex (1)
+for the details of the searching.
+.SH OPTIONS
+Without the
+.I -verbose
+option,
+.I vftovp
+operates silently.  With it, a banner and progress report are printed on
+.IR stdout .
+.PP
+The argument
+.I format
+to 
+.I -charcode-format
+specifies how character codes are output in the PL file.  By
+default, only letters and digits are output using the
+.B C
+integer code (i.e., in ASCII); the others are output in octal.  (Unless
+the font's coding scheme starts with
+.B TeX math sy
+or
+.BR TeX math ex ,
+that is, when all are output in octal.)  If
+.I format
+is
+.BR ascii ,
+all character codes that correspond to graphic characters, besides the
+left and right parentheses, are output in ASCII.  On the other hand, if
+.I format
+is
+.BR octal ,
+all character codes are output in octal.
+.PP
+See
+.BR tex (1)
+for the details of specifying options.
+.SH "SEE ALSO"
+vptovf(1)
+.br
+Donald Knuth,
+.I Virtual Fonts: More Fun for Grand Wizards,
+TUGboat 11(1), April 1990.
+.SH AUTHORS
+Donald Knuth wrote the program, based in part on an idea of David Fuchs,
+starting with the code for
+.BR tftopl (1).
+Karl Berry adapted it for compilation with web2c.

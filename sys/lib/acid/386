@@ -1,0 +1,131 @@
+// 386 support
+
+defn acidinit()			// Called after all the init modules are loaded
+{
+	bplist = {};
+	bpfmt = 'b';
+
+	srcpath = {
+		"./",
+		"/sys/src/libc/port/",
+		"/sys/src/libc/9sys/",
+		"/sys/src/libc/386/"
+	};
+
+	srcfiles = {};			// list of loaded files
+	srctext = {};			// the text of the files
+	linkreg = PC;
+}
+
+defn stk()				// trace
+{
+	_stk(*PC, *SP, *linkreg, 0);
+}
+
+defn lstk()				// trace with locals
+{
+	_stk(*PC, *SP, *linkreg, 1);
+}
+
+defn gpr()		// print general(hah hah!) purpose registers
+{
+	print("AX\t", *AX, " BX\t", *BX, " CX\t", *CX, " DX\t", *DX, "\n");
+	print("DI\t", *DI, " SI\t", *SI, " BP\t", *BP, "\n");
+}
+
+defn spr()				// print special processor registers
+{
+	local pc;
+	local cause;
+
+	pc = *PC;
+	print("PC\t", pc, " ", fmt(pc, 'a'), "  ");
+	pfl(pc);
+	print("SP\t", *SP, " ECODE ", *ECODE, " EFLAG ", *EFLAGS, "\n");
+	print("CS\t", *CS, " DS\t ", *DS, " SS\t", *SS, "\n");
+	print("GS\t", *GS, " FS\t ", *FS, " ES\t", *ES, "\n");
+	
+	cause = *TRAP;
+	print("TRAP\t", cause, " ", reason(cause), "\n");
+}
+
+defn regs()				// print all registers
+{
+	spr();
+	gpr();
+}
+
+defn pstop(pid)
+{
+	local l;
+	local pc;
+
+	pc = *PC;
+
+	print(pid,": ", reason(*TRAP), "\t");
+	print(fmt(pc, 'a'), "\t", fmt(pc, 'i'), "\n");
+
+	if notes then {
+		if notes[0] != "sys: breakpoint" then {
+			print("Notes pending:\n");
+			l = notes;
+			while l do {
+				print("\t", head l, "\n");
+				l = tail l;
+			}
+		}
+	}
+}
+
+aggr Ureg
+{
+	'U' 0 di;
+	'U' 4 si;
+	'U' 8 bp;
+	'U' 12 nsp;
+	'U' 16 bx;
+	'U' 20 dx;
+	'U' 24 cx;
+	'U' 28 ax;
+	'U' 32 gs;
+	'U' 36 fs;
+	'U' 40 es;
+	'U' 44 ds;
+	'U' 48 trap;
+	'U' 52 ecode;
+	'U' 56 pc;
+	'U' 60 cs;
+	'U' 64 flags;
+	{
+	'U' 68 usp;
+	'U' 68 sp;
+	};
+	'U' 72 ss;
+};
+
+defn
+Ureg(addr) {
+	complex Ureg addr;
+	print("	di	", addr.di, "\n");
+	print("	si	", addr.si, "\n");
+	print("	bp	", addr.bp, "\n");
+	print("	nsp	", addr.nsp, "\n");
+	print("	bx	", addr.bx, "\n");
+	print("	dx	", addr.dx, "\n");
+	print("	cx	", addr.cx, "\n");
+	print("	ax	", addr.ax, "\n");
+	print("	gs	", addr.gs, "\n");
+	print("	fs	", addr.fs, "\n");
+	print("	es	", addr.es, "\n");
+	print("	ds	", addr.ds, "\n");
+	print("	trap	", addr.trap, "\n");
+	print("	ecode	", addr.ecode, "\n");
+	print("	pc	", addr.pc, "\n");
+	print("	cs	", addr.cs, "\n");
+	print("	flags	", addr.flags, "\n");
+	print("	sp	", addr.sp, "\n");
+	print("}\n");
+	print("	ss	", addr.ss, "\n");
+};
+
+print("/sys/lib/acid/386");

@@ -1,0 +1,64 @@
+NOTICE	444 adm adm files/NOTICE
+adm	d775	sys sys
+	timezone	d775	sys sys
+		local	664	sys sys
+	users		664	adm adm files/users
+9dos	775	sys sys /386/9dos
+plan9.ini 664	sys sys files/plan9.ini
+srv	d775	sys sys
+tmp	d777	sys sys
+386	d775	sys sys
+	init	775	sys sys
+	bin	d775	sys sys
+		install	775	sys sys src/inst
+		build	775	sys sys src/build
+		bind	775	sys sys
+		cat	775	sys sys
+		vdexpand	775	sys sys
+		cp	775	sys sys
+		echo	775	sys sys
+		ls	775	sys sys
+		mkdir	775	sys sys
+		mount	775	sys sys
+		mv	775	sys sys
+		rc	775	sys sys
+		rm	775	sys sys
+		ed	775	sys sys
+		sleep	775	sys sys
+		unmount	775	sys sys
+		9660srv	775	sys sys
+		ip	d775	sys sys
+			arpd 775	sys sys
+			ipconfig 775	sys sys
+		disk	d775	sys sys
+			kfs	775	sys sys
+			kfscmd	775	sys sys
+			prep	775	sys sys
+			mkext	775	sys sys
+			format	775	sys sys
+		ps	775	sys sys
+lib			d775	sys sys
+	namespace	664	sys sys
+	namesdos	664	sys sys	files/namespace.dos
+	vgadb		664	sys sys
+	plan9.nvr	666	sys sys files/plan9.nvr
+	ndb	d775	sys sys
+		local	665	sys sys	files/empty
+mnt			d775	sys sys
+	cons		d775	sys sys
+		consctl	d775	sys sys
+		cons	d775	sys sys
+	reboot		d775	sys sys files/reboot
+n			d775	sys sys
+	c		d555	sys sys	files/c
+	a		d555	sys sys	files/a
+	kfs		d555	sys sys
+	cdrom		d555	sys sys	files/cdrom
+	server		d555	sys sys	files/cdrom
+	dos		d555	sys sys	files/dos
+rc			d775	sys sys
+	bin
+		cpurc	 775	sys sys	files/disk1.cpurc
+		cpurcdos 775	sys sys	files/disk1.doscpurc
+	lib		d775	sys sys
+		rcmain	664	sys sys

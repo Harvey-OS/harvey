@@ -5,8 +5,8 @@
 .nr %# \\$2
 .ds %e .tl |\\$3||\\f(NI\\$1\\fP|
 .ds %o .tl |\\f(NI\\$1\\fP||\\$3|
-.ds %E .tl |\\\\n(PN||Manual|
-.ds %O .tl |Plan 9||\\\\n(PN|
+.ds %E .tl |\\\\n(PN-i|||
+.ds %O .tl |||\\\\n(PN-i|
 ..
 .\" print nothing visible
 .de BB

@@ -1,0 +1,194 @@
+%%
+%% This is file `xcomment.sty', generated
+%% on <1993/2/17> with the docstrip utility (2.0r).
+%%
+%% The original source files were:
+%%
+%% xcomment.doc
+%%
+\def\fileversion{1.2}
+\def\filedate{93/02/12}
+%%
+%% Style option `xcomment' for use with LaTeX v2.09.
+%% This is a style for comment and "inverse" comment environments.
+%%
+%% COPYRIGHT 1992, 1993 by Timothy Van Zandt, tvz@Princeton.EDU
+%%
+%% Input file:                  xcomment.sty.
+%% Documented code:             xcomment.doc.
+%% For printing documentation:  xcomment.tex.
+%%
+%% You may find xcomment.doc and xcomment.tex appended to xcomment.sty.
+%%
+%% Copying of part or all of any file in the xcomment.sty package
+%% is allowed under the following conditions only:
+%% (1) You may freely distribute unchanged copies of the files. Please
+%%     include the documentation when you do so.
+%% (2) You may modify a renamed copy of any file, but only for personal
+%%     use or use within an organization.
+%% (3) You may copy fragments from the files, for personal use or for use
+%%     in a macro package for distribution, as long as credit is given
+%%     where credit is due.
+%%
+%% You are NOT ALLOWED to take money for the distribution or use of
+%% these files or modified versions or fragments thereof, except for
+%% a nominal charge for copying etc.
+%%
+\@ifundefined{xcomment@@@}{}{\endinput}
+\typeout{Style-Option: `xcomment' v\fileversion \space <\filedate> (tvz) }
+\def\newxcomment{\@ifnextchar [{\@newxcommentwitharg}%
+  {\@newxcomment}}
+\def\@newxcomment#1{%
+  \expandafter\def\csname #1\endcsname##1{\@xcomment{#1}{##1}}}%
+\def\@newxcommentwitharg[#1]#2{%
+  \expandafter\def\csname #2\endcsname{\@xcomment{#2}{#1}}}
+\newxcomment{xcomment}
+\def\envirsep{\par}
+\def\rescanfile#1{\def\@rescanfile{#1}}
+\rescanfile{\jobname.tmp}
+\def\norescanfile{\let\@rescanfile\relax}
+\def\@nofloat#1{\hrule height\z@\nobreak\vfill\vbox\bgroup\def\@captype{#1}}
+\def\end@nofloat{\egroup\nobreak\vfill\nobreak\hrule height\z@\medbreak}
+\def\nofloat#1{\@for\@tempa:=#1\do{\@namedef{#1}{\@nofloat{#1}}%
+  \@namedef{end#1}{\end@nofloat}}}
+\def\xc@makeother#1{%
+  \ifnum\the\catcode`#1=0\catcode`#112%
+  \else \ifnum\the\catcode`#1=1\catcode`#112%
+    \else \ifnum\the\catcode`#1=2\catcode`#112%
+      \else \ifnum\the\catcode`#1=6\catcode`#112%
+  \fi\fi\fi\fi\relax}
+\newwrite\tokout
+\newread\tokin
+\def\rescan#1{%
+  \ifx\@rescanfile\relax\else
+    \ifx\@rescanfile\@empty #1{}\else
+      \immediate\openout\tokout=\@rescanfile
+      \immediate\write\tokout{{\the#1}\relax}%
+      \immediate\closeout\tokout
+      \openin\tokin=\@rescanfile
+      \read\tokin to\@tempd
+      \closein\tokin
+      \expandafter#1\@tempd%
+  \fi\fi}
+\def\@xcomment#1#2{%
+  \ifx\@preamblecmds\@notprerr
+    \def\xc@csname{#1}%
+    \edef\xc@envirlist{#2}%
+    \ifx\xc@envirlist\@empty \@bsphack \else
+      \begingroup
+      \def\@envirsep{}%
+      \@ifundefined{normal@begin}{\let\normal@begin\begin}{}%
+      \@ifundefined{normal@end}{\let\normal@end\end}{}%
+      \def\begin##1{\do@begin{##1}\normal@begin{##1}}%
+      \def\end##1{\normal@end{##1}\do@end}%
+      \def\do@begin##1{\@ifundefined{##1}{}{\def\do@end{}}}%
+      \let\do@end\xc@begin
+    \fi
+    \let\next\xc@begin
+  \else
+    \expandafter\@temptokena\expandafter{\document\@xcomment{@@@}{#2}}%
+    \edef\document{\the\@temptokena}%
+    \let\next\relax
+  \fi
+  \next}
+\def\end@xcomment{\ifx\xc@envirlist\@empty \@esphack \else \endgroup \fi}%
+\def\xc@begin{%
+  \begingroup
+    \let\do\xc@makeother
+    \dospecials
+    \ifx\xcommentchar\@empty\else
+      \expandafter\catcode\expandafter`\xcommentchar=14
+    \fi
+    \catcode`\^^M\active
+    \xcomment@}
+\def\xcommentchar{\%}
+\begingroup
+\catcode`\!=12
+\catcode`\[=12
+\catcode`\]=12
+\catcode`\"=12
+\lccode`\!=`\\
+\lccode`\[=`\{
+\lccode`\]=`\}
+\lccode`\"=`\%
+\catcode`\~=\active
+\lccode`\~=`\^^M
+\lowercase{
+  \gdef\xcomment@#1~{\xcomment@@#1\@nnil!\@nil}
+  \gdef\xcomment@@#1!{\xcomment@@@}
+  \gdef\xcomment@@@#1\@nil{%
+    \def\@tempa{#1}%
+    \ifx\@tempa\@empty
+      \let\next\xcomment@
+    \else
+      \def\next{\xcomment@@#1\@nil}%
+      \@testtrue
+      \xc@checkbegin#1\relax begin[]\relax\relax
+      \if@test
+        \xc@checkend#1\relax end[]\relax\relax
+        \if@test
+          \xc@checkinput#1\relax input[]\relax\relax
+          \if@test
+            \xc@checkinclude#1\relax include[]\relax\relax
+            \if@test
+              \xc@checkendinput#1\relax endinputss\relax\relax
+    \fi\fi\fi\fi\fi
+    \next}
+  \gdef\xc@checkbegin#1begin[#2]#3\relax#4\relax{%
+    \def\@tempa{#1}%
+    \ifx\@tempa\@empty
+      \def\@tempa{#2}%
+      \@for\@tempb:=\xc@envirlist\do{%
+        \ifx\@tempa\@tempb\def\next{\xc@end{#2}#3\@nil}\fi}%
+    \fi}
+  \gdef\xc@checkend#1end[#2]#3\relax#4\relax{%
+    \def\@tempa{#1}%
+    \ifx\@tempa\@empty
+      \@testfalse
+      \def\@tempa{#2}\def\@tempb{document}%
+      \ifx\@tempa\@tempb
+        \def\next{\endgroup\end@xcomment\end{document}}%
+      \else
+        \ifx\@tempa\xc@csname
+          \def\next{\end@@xcomment{#2}#3\@nil}%
+    \fi\fi\fi}
+  \gdef\xc@checkinput#1input[#2]#3\relax#4\relax{%
+    \def\@tempa{#1}%
+    \ifx\@tempa\@empty
+      \def\next{\expandafter\xcomment@\@@input #2 \xcomment@@#3\@nil}%
+      \@testfalse
+    \fi}
+  \gdef\xc@checkendinput#1endinput#2#3\relax#4\relax{%
+    \def\@tempa{#1}%
+    \ifx\@tempa\@empty\ifcat\noexpand#2a\relax\else
+      \let\next\endinput
+    \fi\fi}
+  \gdef\xc@checkinclude#1include[#2]#3\relax#4\relax{%
+    \def\@tempa{#1}%
+    \ifx\@tempa\@empty
+      \def\next{%
+        \global\let\xc@savedinput\@@input
+        \def\@@input{%
+          \global\let\@@input\xc@savedinput
+          \expandafter\xcomment@\@@input}%
+        \include{#2}%
+        \global\let\@@input\xc@savedinput
+        \xcomment@@#3\@nil}%
+      \@testfalse
+    \fi}
+  \gdef\end@@xcomment#1#2\@nnil!\@nil{%
+    \endgroup
+    \toks@{#2 }\rescan{\toks@}%
+    \edef\next{\noexpand\end@xcomment\noexpand\end{#1}\the\toks@}%
+    \next}%
+  \gdef\xc@end#1#2\@nnil!\@nil{%
+    \endgroup
+    \@envirsep \let\@envirsep\envirsep
+    \toks@{#2 }\rescan{\toks@}%
+    \edef\next{\noexpand\normal@begin{#1}\the\toks@}%
+    \next}%
+  }%  END OF LOWERCASE
+\endgroup
+\endinput
+%%
+%% End of file `xcomment.sty'.

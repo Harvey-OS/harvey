@@ -141,7 +141,7 @@ retry:
 
 	w = talloc(word);
 	w->length = strlen(s);
-	w->text = strcpy(salloc(w->length), s);
+	w->text = strcpy(salloc(w->length+1), s);
 	w->mask = str_to_mask(s);
 
 	if (!word_ok(w))

@@ -11,5 +11,7 @@ he \- histogram equalization
 reads a picture file (default standard input)
 and maps its pixel values monotonically to make their histogram as even as possible.
 The resulting picture file is written to standard output.
+.SH SOURCE
+.B /sys/src/fb/he.c
 .SH "SEE ALSO
 .IR picfile (9.6)

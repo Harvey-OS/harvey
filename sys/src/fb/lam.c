@@ -14,22 +14,22 @@ Rectangle runion(Rectangle r, Rectangle s){
 	return r;
 }
 main(int argc, char *argv[]){
-#define	NIN	50
-	PICFILE *inf[NIN], **inp, **einf, *otf;
+	PICFILE **inf, **inp, **einf, *otf;
 	Rectangle outr;
 	int y;
 	char win[512];
 	unsigned char *bp, *buf, *ebuf;
 	argc=getflags(argc, argv, "");
 	if(argc<2) usage("input ...");
-	if(argc-1>NIN){
-		fprint(2, "%s: at most %d input files allowed\n", NIN);
+	inf=malloc((argc-1)*sizeof(PICFILE *));
+	if(inf==0){
+		fprint(2, "can't malloc %d file pointers\n", argc-1);
 		exits("too many files");
 	}
 	for(einf=inf;einf-inf!=argc-1;einf++){
 		*einf=picopen_r(argv[einf-inf+1]);
 		if(*einf==0){
-			picerror(argv[einf-inf+1]);
+			perror(argv[einf-inf+1]);
 			exits("open input");
 		}
 		if(einf==inf){
@@ -56,7 +56,7 @@ main(int argc, char *argv[]){
 		outr.max.x-outr.min.x, outr.max.y-outr.min.y, picgetprop(inf[0], "CHAN"),
 		argv, (char *)0);
 	if(otf==0){
-		picerror(argv[0]);
+		perror(argv[0]);
 		exits("create output");
 	}
 	for(y=outr.min.y;y!=outr.max.y;y++){

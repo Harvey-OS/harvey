@@ -4,7 +4,7 @@
 int
 Biobufhdr.read(Biobufhdr *bp, void *ap, int count)
 {
-	char *p;
+	byte *p;
 	int c, i, n, ic;
 
 	bp->lock();

@@ -51,7 +51,7 @@ struct message {
  */
 extern int rmail;
 extern int onatty;
-extern char *thissys;
+extern char *thissys, *altthissys;
 extern int xflg;
 extern int nflg;
 extern int debug;
@@ -82,7 +82,7 @@ extern message	*m_read(Biobuf*, int);
 extern int	m_get(message*, long, char**);
 extern int	m_print(message*, Biobuf*, char*, int);
 extern int	m_bprint(message*, Biobuf*);
-extern String	*rule_parse(String*);
+extern String	*rule_parse(String*, char*, int*);
 extern int	getrules(void);
 extern int	rewrite(dest*, char*);
 extern void	dumprules(void);

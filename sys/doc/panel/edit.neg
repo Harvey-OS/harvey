@@ -1,0 +1,54 @@
+Rune text[];
+char *buttons[]={
+	"cut",
+	"paste",
+	"snarf",
+	"exit",
+	0
+};
+Rune *snarfbuf=0;
+int nsnarfbuf=0;
+Panel *edit;
+void snarf(void){
+	int s0, s1;
+	Rune *text;
+	plegetsel(edit, &s0, &s1);
+	if(s0==s1) return;
+	text=pleget(edit);
+	if(snarfbuf) free(snarfbuf);
+	nsnarfbuf=s1-s0;
+	snarfbuf=malloc(nsnarfbuf*sizeof(Rune));
+	if(snarfbuf==0){
+		fprint(2, "No mem\n");
+		exits("no mem");
+	}
+	memmove(snarfbuf, text+s0, nsnarfbuf*sizeof(Rune));
+}
+void hitmenu(int button, int index){
+	USED(button);
+	switch(index){
+	case 0:	/* cut */
+		snarf();
+		plepaste(edit, 0, 0);
+		break;
+	case 1:	/* paste */
+		plepaste(edit, snarfbuf, nsnarfbuf);
+		break;
+	case 2:	/* snarf */
+		snarf();
+		break;
+	case 3:
+		exits(0);
+	}
+}
+Panel *mkpanels(void){
+	Panel *scrl, *pop, *menu, *root;
+	root=plgroup(0, EXPAND);
+	scrl=plscrollbar(root, PACKW);
+	menu=plmenu(0, 0, buttons, FILLX, hitmenu);
+	pop=plpopup(root, EXPAND, 0, menu, menu);
+	edit=pledit(pop, EXPAND, Pt(0,0), text, sizeof(text)/sizeof(Rune)-1, 0);
+	plscroll(edit, 0, scrl);
+	plgrabkb(edit);
+	return root;
+}

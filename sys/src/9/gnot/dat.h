@@ -29,6 +29,7 @@ struct Lock
 {
 	char	key;
 	ulong	pc;
+	ulong	sr;
 };
 
 enum
@@ -99,8 +100,11 @@ struct KMap
 
 struct Mach
 {
+	/* OFFSETS OF THE FOLLOWING KNOWN BY l.s */
 	int	machno;			/* physical id of processor */
 	ulong	splpc;			/* pc of last caller to splhi */
+
+	/* ordering from here on irrelevant */
 	ulong	ticks;			/* of the clock since boot time */
 	Proc	*proc;			/* current process on this processor */
 	Proc	*lproc;			/* last process on this processor */
@@ -117,6 +121,7 @@ struct Mach
 	int	load;
 	int	intr;
 
+	/* MUST BE LAST */
 	int	stack[1];
 };
 
@@ -162,8 +167,6 @@ struct User
 	int	(*notify)(void*, char*);
 	void	*ureg;
 	void	*dbgreg;
-	ushort	svsr;
-	ushort	svvo;
 };
 
 struct

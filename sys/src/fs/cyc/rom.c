@@ -61,7 +61,6 @@ void
 putc(int c)
 {
 	Duart *duart;
-	int i;
 
 	if(c == '\n')
 		putc('\r');

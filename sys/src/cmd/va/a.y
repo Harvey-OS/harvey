@@ -25,7 +25,7 @@
 %token	<lval>	LTYPEG LTYPEH LTYPEI LTYPEJ LTYPEK
 %token	<lval>	LCONST LSP LSB LFP LPC LHI LLO LMREG 
 %token	<lval>	LTYPEX LREG LFREG LFCREG LR LM LF
-%token	<lval>	LFCR
+%token	<lval>	LFCR LSCHED
 %token	<dval>	LFCONST
 %token	<sval>	LSCONST
 %token	<sym>	LNAME LLAB LVAR
@@ -60,6 +60,10 @@ line:
 		if($1->value != $3)
 			yyerror("redeclaration of %s", $1->name);
 		$1->value = $3;
+	}
+|	LSCHED ';'
+	{
+		nosched = $1;
 	}
 |	';'
 |	inst ';'
@@ -131,7 +135,7 @@ inst:
 	{
 		outcode($1, &nullgen, NREG, &$3);
 	}
-|	LTYPE7 comma ireg
+|	LTYPE7 comma nireg
 	{
 		outcode($1, &nullgen, NREG, &$3);
 	}
@@ -367,6 +371,11 @@ ximm:	'$' con
 	{
 		$$ = $2;
 		$$.type = D_CONST;
+	}
+|	'$' '*' '$' oreg
+	{
+		$$ = $4;
+		$$.type = D_OCONST;
 	}
 |	'$' LSCONST
 	{

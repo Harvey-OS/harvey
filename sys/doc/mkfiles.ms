@@ -1,7 +1,8 @@
 .TL
 Plan 9 Mkfiles
 .AU
-R. Flandrena
+Bob Flandrena
+bobf@plan9.att.com
 .SH
 Introduction
 .LP
@@ -11,11 +12,11 @@ specifying the rules for building the executable or
 library that is the product of the directory.
 .I Mk (1)
 interprets the rules in the file, calculates
-the dependencies and executes an
+the dependencies, and executes an
 .I rc (1)
 script to construct the product.
-If necessary components are supplied by subtending
-or neighboring directories, the mkfiles in those
+If necessary components are supplied by
+neighboring directories or sub-directories, the mkfiles in those
 directories are first executed to build the components
 before the local construction proceeds.
 .LP
@@ -37,7 +38,7 @@ to do the work.
 More complex 
 mkfiles
 may supply additional rules
-to augment, modify or override the generic rules.
+to augment, modify, or override the generic rules.
 .SH
 Using a Mkfile
 .LP
@@ -52,10 +53,10 @@ lw(1i) lw(4.5i).
 Build a local version of the product or products for the
 current architecture.  If the product is a single program,
 the result is stored in file
-.CW $O.out.
+.CW $O.out .
 If the directory produces multiple executables, they are
 stored in the files named
-.CW $O.\fIprogname\fP,
+.CW $O.\fIprogname,\fP
 where
 .I progname
 is the name of each executable.
@@ -92,7 +93,8 @@ usually preserved.
 T}
 \f(CWnuke\fP	T{
 Remove all intermediates from the directory and any subdirectories.
-This target guarantees that a subsequent build is performed
+This target guarantees that a subsequent build for the
+architecture is performed
 from scratch.
 T}
 .TE
@@ -108,6 +110,19 @@ no default target.
 In addition to the five standard targets,
 additional targets may be supplied by each
 generic mkfile or by the directory's mkfile.
+.LP
+The environment variable
+.CW NPROC
+is set by the system to the number of
+available processors.
+Setting
+this variable, either in the environment or in
+a mkfile, controls the amount of parallelism in
+the build.  For example, the command
+.P1
+	NPROC=1 mk
+.P2
+restricts a build to a single thread of execution.
 .SH
 Creating a Mkfile
 .LP
@@ -136,7 +151,7 @@ installing executables in the
 .CW bin
 directory of the appropriate architecture.
 The generic mkfiles are stored in directory
-.CW /sys/src/cmd.
+.CW /sys/src/cmd .
 Mkfile
 .CW mkone
 builds a single executable,
@@ -185,13 +200,15 @@ All
 mkfiles
 share the following common structure:
 .P1
-</$objtype/mkfile	#architecture-dependent definitions
+</$objtype/mkfile	# \f1architecture-dependent definitions\fP
 .sp
-\fIvariable definitions\fP		#TARG, OFILES, HFILES, etc.
+\fIvariable definitions\fP		# TARG\f1, \fPOFILES\f1, \fPHFILES\f1, etc.\fP
 .sp
-</sys/src/cmd/\fIgeneric\fP	#\f(CWmkone\fP, \f(CWmkmany\fP, \f(CWmklib\fP, or \f(CWmksyslib\fP
+</sys/src/cmd/\fIgeneric\fP	# mkone\f1, \fPmkmany\f1, \fPmklib\f1, or \fPmksyslib
 .sp
-\fIextra rules\fP			#overrides, augmented rules, additional targets
+\fIvariable overrides\fP		# CFLAGS\f1, \fPobjtype\f1, etc.\fP
+.sp
+\fIextra rules\fP			# \f1overrides, augmented rules, additional targets\fP
 .P2
 The variables driving the expansion of the generic mkfile
 may be specified in any order as long as they are defined
@@ -201,13 +218,9 @@ following the inclusion of the generic mkfile, but the
 effects are sometimes counter-intuitive.
 Such variable assignments do not apply to the target and
 prerequisite portions of any previously defined rules;
-the new values apply to all recipes and
-to all parts of any rules following the assignment
-in the mkfile.  Thus, assigning a new value
-to a variable following the inclusion
-of the generic mkfile results in the new value applying
-to the recipes in the generic file, but not to the
-dependency specifications.
+the new values only apply to the recipes of rules preceding
+the assignment statement and
+to all parts of any rules following it.
 .LP
 The rules supplied by the generic mkfile may
 be overridden or augmented.  The new rules must
@@ -261,7 +274,7 @@ If no command line target is specified, the
 .CW all
 target is built; it
 produces an executable in
-.CW $O.out.
+.CW $O.out .
 Variable
 .CW HFILES
 identifies the header files that
@@ -284,52 +297,55 @@ trivial: a list of some files followed by the
 inclusion of
 .I mkone.
 For example, 
-.CW /sys/src/cmd/scat/mkfile
+.CW /sys/src/cmd/diff/mkfile
 contains:
 .P1
-</$objtype/mkfile
+< /$objtype/mkfile
 
-TARG=scat
-OFILES=scat.$O\e
-	desc.$O\e
-	patch.$O\e
-	prose.$O\e
-	util.$O\e
+TARG=diff
+OFILES=\e
+	diffdir.$O\e
+	diffio.$O\e
+	diffreg.$O\e
+	main.$O\e
 
-HFILES=sky.h
+HFILES=diff.h
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
 .P2
 The more complex mkfile in
-.CW /sys/src/cmd/samterm
-specifies an additional dependence between
-the specialized header
-.CW ../sam/mesg.h
-and the object file
-.CW mesg.$O
-as well as providing an extra
-target to generate a
-.I db (1)
-script to dump a named structure:
+.CW /sys/src/cmd/page
+limits builds to architectures with Alef compilers,
+specifies a special rule to build an
+.I acid (1)
+script to dump data structures, and overrides the rules for
+the architectures lacking an Alef compiler:
 .P1
 </$objtype/mkfile
 
-TARG=samterm
-OFILES=main.$O icons.$O menu.$O mesg.$O\e
-	rasp.$O scroll.$O flayer.$O io.$O plan9.$O
+CPUS=mips sparc 386
 
-HFILES=samterm.h\e
-	flayer.h\e
+TARG=page
+OFILES=page.$O\e
 
-BIN=/$objtype/bin/aux
+HFILES=\e
+	wtab\e
+	btab\e
+
+BIN=/$objtype/bin
 </sys/src/cmd/mkone
 
-mesg.$O:	../sam/mesg.h
+syms:V:
+	val -a page.l	>syms
 
-%.db:
-	$CC -s$stem main.c | dbfmt > $stem.db
+2.out:Q:	$OFILES $LIB
+	echo 'no alef compiler for 68020'
+
+/68020/bin/$TARG:Q:	2.out
+	;
 .P2
+This style of mkfile is common for Alef programs.
 .SH
 Mkmany
 .LP
@@ -372,9 +388,9 @@ and
 .CW beta
 are in files
 .CW alpha.$O
-and \f(CWbeta.$O\fP,
-respectively and
-that both programs use the subroutines
+and
+.CW beta.$O
+and that both programs use the subroutines
 in file
 .I common.\f(CW$O\fP .
 The
@@ -398,7 +414,7 @@ rules provide additional
 targets for building a single
 executable:
 .TS
-lw(1i) lw(4.5i).
+lw(1i) lw(3.8i).
 \f(CW$O.progname\fP	T{
 Builds executable 
 \f(CW$O.\fP\fIprogname\fP
@@ -447,7 +463,7 @@ does not change.  When possible, only the
 out-of-date members of the library are updated.
 .LP
 The variable
-.CW LIBDIR ,
+.CW LIBDIR
 contains the name of the directory where the
 library is installed; by default it selects
 the current directory.  It can be overridden
@@ -463,7 +479,7 @@ target removes object files and
 intermediate files but does not touch the
 library.  The
 .CW nuke
-target, removes the library as well as the
+target removes the library as well as the
 files removed by the
 .CW clean
 target.  The command
@@ -476,7 +492,7 @@ created if it doesn't already exist.  The command
 .CW "mk -s nuke all"
 .RE
 forces the library to be rebuilt from scratch.
-.bp
+.LP
 The mkfile from
 .CW /sys/src/cmd/upas/libString
 contains the following specifications to
@@ -504,7 +520,7 @@ OFILES=	s_alloc.$O\e
 
 nuke:V:
 	mk clean
-	rm -f libcommon.a[$OS]
+	rm -f libString.a[$OS]
 .P2
 The override of the rule for target
 .CW nuke
@@ -518,7 +534,7 @@ The
 .CW mksyslib
 generic mkfile is similar to the
 .CW mklib
-mkfile but it operates directly on a system library
+mkfile except that it operates on a system library
 instead of a local library.
 The
 .CW install
@@ -569,7 +585,7 @@ values of flags or the names of commands executed
 in recipes.  For example, the default value of
 .CW CFLAGS
 is often overridden or augmented and
-the ANSI/Posix Computing Environment is selected by
+the ANSI/POSIX Computing Environment is selected by
 setting the
 .CW CC
 and
@@ -579,14 +595,14 @@ variables to
 .LP
 Modifying rules is trickier than modifying
 variables.  Additional constraints can be added
-to a rule simply by specifying the target and
+to a rule by specifying the target and
 the new prerequisite.  For example,
 .P1
 %.$O:	header.h
 .P2
 adds file
 .CW header.h
-the the set of prerequisites for all object files.
+the set of prerequisites for all object files.
 There is no mechanism for adding additional
 commands to an existing recipe; if a
 recipe is unsatisfactory, the rule and its recipe
@@ -597,44 +613,46 @@ of the original rule exactly.  The recipe
 associated with the new rule
 then replaces the recipe of the original rule.
 For example,
-.CW /sys/src/cmd/movie/mkfile
-overrides the
-.CW installall
-target
-by performing the usual action
-before copying
-the
-.CW rc
-script entitled
-.CW movie
-to directory
-.CW /rc/bin:
+.CW /sys/src/games/plumb/mkfile
+adds a dependency to the
+.CW install
+target, overrides the
+.CW clean
+target with a custom recipe and
+adds two targets to copy bitmap files to a library directory:
 .P1
-< /$objtype/mkfile
+</$objtype/mkfile
 
-TARG=anim\e
-	fdevelop\e
+TARG=plumb
+OFILES=plumb.$O
+HFILES=
 
-BIN=/sys/lib/movie/$objtype
-</sys/src/cmd/mkmany
-CC=pcc
-LD=pcc
-CFLAGS=-c
+</sys/src/cmd/mkone
+BIN=/$objtype/bin/games
+CFLAGS=
 
-installall:V:
-	for(objtype in $CPUS)
-		mk $MKFLAGS install
-	cp movie /rc/bin/movie
+CFILES=plumb.c
+PLIB=/sys/games/lib/plumb
 
+install:V: pieces
+
+pieces:V:  $PLIB/pieces.1 $PLIB/pieces.2 \e
+	$PLIB/pieces.3 $PLIB/pieces.4
+
+$PLIB/pieces.%:	pieces.%x
+	cp pieces.$stem^x $PLIB/pieces.$stem
+
+clean:V:
+	rm -f plumb.[$OS] [$OS].out y.tab.? y.debug y.output $TARG
 .P2
 .SH
 Special Tricks
 .LP
 Two special cases
-require an extra dollop of deviousness.
+require extra deviousness.
 .LP
 In the first, a file needed to build an
-executable is generated by a program that
+executable is generated by a program that,
 in turn, is built from a source file that
 is not part of the product.  In this case,
 the
@@ -654,7 +672,7 @@ executed to generate the source file to
 complete the build for the target architecture.
 An example of this build procedure can be found
 in the
-.CW /sys/src/cmd/awk/mkfile.
+.CW /sys/src/cmd/awk/mkfile .
 .LP
 Another awkward situation
 occurs when a directory contains
@@ -665,16 +683,15 @@ the
 .CW mkmany
 generic rules are inappropriate, because
 all executables would be built and installed.
-A good way to handle this situation is
-to used the
+Instead, use the
 .CW mkone
 generic file to build the primary executable
 and provide extra targets to
-build the auxiliary executables.  This
+build the auxiliary files.  This
 approach is also useful when the auxiliary
 files are not executables;
 .CW /sys/src/cmd/spell/mkfile
-augments to default rules that build and install the
+augments the default rules to build and install the
 .CW spell
 executable with
 elaborate rules to generate

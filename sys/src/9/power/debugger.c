@@ -201,7 +201,7 @@ debugger(void *arg)
 		dprint("kdb> ");
 		dgetline(buf, sizeof(buf));
 		memset(field, 0, sizeof(field));
-		n = getfields(buf, field, 3, ' ');
+		n = getfields(buf, field, 3, " ");
 		if(n == 0)
 			continue;
 		switch(*field[0]){

@@ -2,9 +2,9 @@
  * Suffix table
  */
 
-typedef unsigned char uchar;
+typedef unsigned char Uchar;
 
-static	uchar sufa[] = {
+static	Uchar sufa[] = {
 	02,0200+'t',	/* -TA */
 	02,0200+'s',	/* -SA */
 	03,0200+'t','r',	/* -TRA */
@@ -25,7 +25,7 @@ static	uchar sufa[] = {
 	00
 };
 
-static	uchar sufc[] = {
+static	Uchar sufc[] = {
 	04,'e','t',0200+'i',	/* ET-IC */
 	07,'a','l',0200+'i','s',0200+'t','i',	/* AL-IS-TIC */
 	04,'s',0200+'t','i',	/* S-TIC */
@@ -53,7 +53,7 @@ static	uchar sufc[] = {
 	00
 };
 
-static	uchar sufd[] = {
+static	Uchar sufd[] = {
 	04,0200+'w','o','r',	/* -WORD */
 	04,0200+'l','o','r',	/* -LORD */
 	04,0200+'f','o','r',	/* -FORD */
@@ -102,7 +102,7 @@ static	uchar sufd[] = {
 	00
 };
 
-static	uchar sufe[] = {
+static	Uchar sufe[] = {
 	05,'a','r',0200+'i','z',	/* AR-IZE */
 	05,'a','n',0200+'i','z',	/* AN-IZE */
 	05,'a','l',0200+'i','z',	/* AL-IZE */
@@ -207,7 +207,7 @@ static	uchar sufe[] = {
 	00
 };
 
-static	uchar suff[] = {
+static	Uchar suff[] = {
 	03,0200+'o','f',	/* -OFF */
 	05,0200+'p','r','o','o',	/* -PROOF */
 	04,0200+'s','e','l',	/* -SELF */
@@ -216,7 +216,7 @@ static	uchar suff[] = {
 	00
 };
 
-static	uchar sufg[] = {
+static	Uchar sufg[] = {
 	03,0200+'l','o',	/* -LOG */
 	04,0200+'l','o','n',	/* -LONG */
 	05,'t',0200+'t','i','n',	/* T-TING */
@@ -248,7 +248,7 @@ static	uchar sufg[] = {
 	00
 };
 
-static	uchar sufh[] = {
+static	Uchar sufh[] = {
 	05,0200+'m','o','u','t',	/* -MOUTH */
 	05,0200+'w','o','r','t',	/* -WORTH */
 	04,0200+'w','i','t',	/* -WITH */
@@ -274,7 +274,7 @@ static	uchar sufh[] = {
 	00
 };
 
-static	uchar sufi[] = {
+static	Uchar sufi[] = {
 	03,0200+'t','r',	/* -TRI */
 	03,0200+'c','h',	/* -CHI */
 	0200+03,'i','f',	/* IF-I */
@@ -284,7 +284,7 @@ static	uchar sufi[] = {
 	00
 };
 
-static	uchar sufk[] = {
+static	Uchar sufk[] = {
 	04,0200+'w','o','r',	/* -WORK */
 	04,0200+'m','a','r',	/* -MARK */
 	04,0200+'b','o','o',	/* -BOOK */
@@ -294,7 +294,7 @@ static	uchar sufk[] = {
 	00
 };
 
-static	uchar sufl[] = {
+static	Uchar sufl[] = {
 	03,0200+'f','u',	/* -FUL */
 	05,'s',0200+'w','e','l',	/* S-WELL */
 	04,0200+'t','e','l',	/* -TELL */
@@ -336,7 +336,7 @@ static	uchar sufl[] = {
 	00
 };
 
-static	uchar sufm[] = {
+static	Uchar sufm[] = {
 	03,0200+'n','u',	/* -NUM */
 	05,'o',0200+'r','i',0200+'u',	/* O-RI-UM */
 	040+03,'i',0200+'u',	/* I-UM */
@@ -355,7 +355,7 @@ static	uchar sufm[] = {
 	00
 };
 
-static	uchar sufn[] = {
+static	Uchar sufn[] = {
 	05,0200+'k','n','o','w', /* -KNOWN */
 	04,0200+'t','o','w',	/* -TOWN */
 	04,0200+'d','o','w',	/* -DOWN */
@@ -406,12 +406,12 @@ static	uchar sufn[] = {
 	00
 };
 
-static	uchar sufo[] = {
+static	Uchar sufo[] = {
 	05,0200+'m','a','c',0200+'r',	/* -MAC-RO */
 	00
 };
 
-static	uchar sufp[] = {
+static	Uchar sufp[] = {
 	05,0200+'g','r','o','u',	/* -GROUP */
 	02,0200+'u',	/* -UP */
 	04,0200+'s','h','i',	/* -SHIP */
@@ -419,7 +419,7 @@ static	uchar sufp[] = {
 	00
 };
 
-static	uchar sufr[] = {
+static	Uchar sufr[] = {
 	04,0200+'z','a','r',	/* -ZARR */
 	0300+02,'r',	/* R/R */
 	03,0200+'t','o',	/* -TOR */
@@ -477,7 +477,7 @@ static	uchar sufr[] = {
 	00
 };
 
-static	uchar sufs[] = {
+static	Uchar sufs[] = {
 	040+04,'u',0200+'o','u',	/* U-OUS */
 	05,0200+'t','i','o','u',	/* -TIOUS */
 	05,0200+'g','i','o','u',	/* -GIOUS */
@@ -500,7 +500,7 @@ static	uchar sufs[] = {
 	00
 };
 
-static	uchar suft[] = {
+static	Uchar suft[] = {
 	05,0200+'l','i','m',0200+'i',	/* -LIM-IT */
 	06,'i','o','n',0200+'i','s',	/* ION-IST */
 	05,'i','n',0200+'i','s',	/* IN-IST */
@@ -536,7 +536,7 @@ static	uchar suft[] = {
 	00
 };
 
-static	uchar sufy[] = {
+static	Uchar sufy[] = {
 	040+04,'e','s',0200+'t',	/* ES-TY */
 	040+05,'q','u','i',0200+'t',	/* QUI-TY */
 	04,0200+'t','i',0200+'t',	/* -TI-TY */
@@ -582,7 +582,7 @@ static	uchar sufy[] = {
 	00
 };
 
-uchar	*suftab[] = {
+Uchar	*suftab[] = {
 	sufa,
 	0,
 	sufc,

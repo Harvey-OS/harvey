@@ -1,0 +1,38 @@
+% script11.sty -- by Frank Neukam  (01 Dec 1993)
+
+\lineskip 1pt
+\normallineskip 1pt
+\def\baselinestretch{1}
+
+\def\@normalsize{\@setsize\normalsize{13.6pt}\xipt\@xipt
+ \let\sfb=\elvsfb
+ \abovedisplayskip 11pt plus3pt minus6pt
+ \belowdisplayskip \abovedisplayskip
+ \abovedisplayshortskip \z@ plus3pt
+ \belowdisplayshortskip 6.5pt plus3.5pt minus3pt
+ \let\@listi\@listI}
+\def\small{\@setsize\small{12pt}\xpt\@xpt
+ \let\sfb=\tensfb
+ \abovedisplayskip 10pt plus2pt minus5pt
+ \belowdisplayskip \abovedisplayskip
+ \abovedisplayshortskip \z@ plus3pt
+ \belowdisplayshortskip 6pt plus3pt minus3pt
+ \def\@listi{\leftmargin\leftmargini \topsep 6pt plus 2pt minus 2pt
+  \parsep 3pt plus 2pt minus 1pt
+  \itemsep \parsep}}
+\def\footnotesize{\@setsize\footnotesize{11pt}\ixpt\@ixpt
+ \let\sfb=\bf
+ \abovedisplayskip 8pt plus 2pt minus 4pt
+ \belowdisplayskip \abovedisplayskip
+ \abovedisplayshortskip \z@ plus 1pt
+ \belowdisplayshortskip 4pt plus 2pt minus 2pt
+ \def\@listi{\leftmargin\leftmargini \topsep 4pt plus 2pt minus 2pt
+  \parsep 2pt plus 1pt minus 1pt
+  \itemsep \parsep}}
+\def\scriptsize{\@setsize\scriptsize{9.5pt}\viiipt\@viiipt \let\sfb=\bf}
+\def\tiny{\@setsize\tiny{7pt}\vipt\@vipt \let\sfb=\bf}
+\def\large{\@setsize\large{14.5pt}\xiipt\@xiipt \let\sfb=\twlsfb}
+\def\Large{\@setsize\Large{18pt}\xivpt\@xivpt \let\sfb=\frtnsfb}
+\def\LARGE{\@setsize\LARGE{22pt}\xviipt\@xviipt \let\sfb=\svtnsfb}
+\def\huge{\@setsize\huge{25pt}\xxpt\@xxpt \let\sfb=\twtysfb}
+\def\Huge{\@setsize\Huge{30pt}\xxvpt\@xxvpt \let\sfb=\twfvsfb}

@@ -1,0 +1,22 @@
+</$objtype/mkfile
+
+CPUS=mips sparc 386
+
+TARG=page
+OFILES=page.$O\
+
+HFILES=\
+	wtab\
+	btab\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+syms:V:
+	val -a page.l	>syms
+
+2.out:Q:	$OFILES $LIB
+	echo 'no alef compiler for 68020'
+
+/68020/bin/$TARG:Q:	2.out
+	;

@@ -1,0 +1,44 @@
+</$objtype/mkfile
+CPUS=mips sparc 386
+BIN=../$objtype
+
+TARG=aa\
+	cc\
+	ee\
+	gg\
+	ii\
+	pp\
+	xx\
+	pipe\
+
+HFILES=input.h\
+	findfile.h\
+
+</sys/src/cmd/mkmany
+
+$BIN/a $BIN/aa:	$O.aa
+	if (! ~ $objtype 68020) cp $prereq $BIN/a
+	if not echo $status > /dev/null		# required to absorb bad status
+$BIN/c $BIN/cc:	$O.cc
+	if (! ~ $objtype 68020) cp $prereq $BIN/c
+	if not echo $status > /dev/null
+$BIN/e $BIN/ee:	$O.ee
+	if (! ~ $objtype 68020) cp $prereq $BIN/e
+	if not echo $status > /dev/null
+$BIN/g $BIN/gg:	$O.gg
+	if (! ~ $objtype 68020) cp $prereq $BIN/g
+	if not echo $status > /dev/null
+$BIN/i $BIN/ii:	$O.ii
+	if (! ~ $objtype 68020) cp $prereq $BIN/i
+	if not echo $status > /dev/null
+$BIN/p $BIN/pp:	$O.pp
+	if (! ~ $objtype 68020) cp $prereq $BIN/p
+	if not echo $status > /dev/null
+$BIN/x $BIN/xx:	$O.xx
+	if (! ~ $objtype 68020) cp $prereq $BIN/x
+	if not echo $status > /dev/null
+
+../68020/pipe:Q:	2.pipe
+	;
+2.aa 2.cc 2.ee 2.gg 2.ii 2.pp 2.xx 2.pipe:Q:
+	echo 'no alef compiler for 68020'

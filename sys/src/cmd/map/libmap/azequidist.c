@@ -1,9 +1,9 @@
 #include "map.h"
 
 int
-Xazequidistant(struct place *place, float *x, float *y)
+Xazequidistant(struct place *place, double *x, double *y)
 {
-	float colat;
+	double colat;
 	colat = PI/2 - place->nlat.l;
 	*x = -colat * place->wlon.s;
 	*y = -colat * place->wlon.c;

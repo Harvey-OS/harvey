@@ -2,4 +2,4 @@
 #dcon service net dir
 echo -n OK
 user=`{cat $3/ruser}
-exec /$objtype/bin/aux/telnetd -n -u $user
+exec /$objtype/bin/aux/telnetd -N -n -u $user $*

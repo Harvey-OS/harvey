@@ -1,0 +1,47 @@
+</$objtype/mkfile
+
+HFILES=\
+	httpd.h\
+
+#if you add an alef target, adjust the entries at the bottom for the 68020
+TARG=\
+	httpd\
+	echo\
+
+LIB=libhttp.a.$O
+LIBOFILES=\
+	init.$O\
+	parse.$O\
+	query.$O\
+	content.$O\
+	tm2sec.$O\
+	date.$O\
+
+BIN=/$objtype/bin/http
+
+</sys/src/cmd/mkmany
+
+trial: v.netlib_find
+	echo "\n" | v.netlib_find GET HTTP/1.0 xxx 'db=1&pat=Hearing' > /tmp/search
+	sed 17q /tmp/search
+
+$LIB(%.$O):N: %.$O
+$LIB:	${LIBOFILES:%=$LIB(%)}
+	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$LIB'\(([^)]+)\)/\1/gp'}
+	ar vu $LIB $names
+	rm $names
+
+2.httpd 2.echo 2.800look 2.netlib_find:Q:
+	echo 'no alef compiler for 68020'
+
+/68020/bin/http/httpd:Q:
+	;
+
+/68020/bin/http/netlib_find:Q:
+	;
+
+/68020/bin/http/800look:Q:
+	;
+
+/68020/bin/http/echo:Q:
+	;

@@ -1,3 +1,4 @@
+#pragma	src	"/sys/src/liblayer"
 #pragma	lib	"liblayer.a"
 
 typedef struct Layer Layer;

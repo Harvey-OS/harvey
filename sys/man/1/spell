@@ -1,16 +1,16 @@
 .TH SPELL 1
 .SH NAME
-spell \- find spelling errors
+spell, sprog \- find spelling errors
 .SH SYNOPSIS
 .B spell
 [
 .I options
 ]
-...
+\&...
 [
 .I file
 ]
-...
+\&...
 .PP
 .B sprog
 [
@@ -25,16 +25,22 @@ spell \- find spelling errors
 looks up words from the named
 .I files
 (standard input default)
-in a public spelling list.
-Possible misspellings\(emwords 
-that occur in neither and are not plausibly derivable
-from the former\(emare placed on the standard output.
+in a spelling list and places
+possible misspellings\(emwords 
+not sanctioned there\(emon the standard output.
 .PP
 .I Spell
 ignores constructs of
 .IR troff (1)
 and its standard preprocessors.
 It understands these options:
+.TP
+.B -a
+Label each line of output with its
+address in the input, in the notation of
+.IR acme (1)
+and
+.IR sam (1).
 .TP
 .B -b
 Check British spelling.
@@ -74,6 +80,15 @@ The actual spelling checker.
 It expects one word per line on standard input,
 and takes the same arguments as
 .IR spell .
+.SH SOURCE
+.TF /sys/src/cmd/spell
+.TP
+.B /rc/bin/spell
+the script
+.TP
+.B /sys/src/cmd/spell
+source for
+.I sprog
 .SH SEE ALSO
 .IR deroff (1)
 .SH BUGS
