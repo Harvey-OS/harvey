@@ -102,6 +102,11 @@ Upper-case options control details of the display.
 All graphs are affected; there is no mechanism to
 affect only one graph.
 .TP
+.BI -T " sleepsecs
+Set the number of seconds between samples to
+.I sleepsecs
+(default one second).
+.TP
 .BI -S " scale
 Sets a scale factor for the displays.  A value of 2, for example,
 means that the highest value plotted will be twice as large as the default.

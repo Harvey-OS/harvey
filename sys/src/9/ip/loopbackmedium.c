@@ -103,8 +103,8 @@ loopbackread(void *a)
 Medium loopbackmedium =
 {
 .hsize=		0,
-.minmtu=	0,
-.maxmtu=	Maxtu,
+.mintu=		0,
+.maxtu=		Maxtu,
 .maclen=	0,
 .name=		"loopback",
 .bind=		loopbackbind,

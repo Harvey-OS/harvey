@@ -24,8 +24,8 @@ Medium netdevmedium =
 {
 .name=		"netdev",
 .hsize=		0,
-.minmtu=	0,
-.maxmtu=	64000,
+.mintu=	0,
+.maxtu=	64000,
 .maclen=	0,
 .bind=		netdevbind,
 .unbind=	netdevunbind,
@@ -88,8 +88,8 @@ netdevbwrite(Ipifc *ifc, Block *bp, int, uchar*)
 
 	if(bp->next)
 		bp = concatblock(bp);
-	if(BLEN(bp) < ifc->minmtu)
-		bp = adjustblock(bp, ifc->minmtu);
+	if(BLEN(bp) < ifc->mintu)
+		bp = adjustblock(bp, ifc->mintu);
 
 	devtab[er->mchan->type]->bwrite(er->mchan, bp, 0);
 	ifc->out++;
@@ -114,7 +114,7 @@ netdevread(void *a)
 		pexit("hangup", 1);
 	}
 	for(;;){
-		bp = devtab[er->mchan->type]->bread(er->mchan, ifc->maxmtu, 0);
+		bp = devtab[er->mchan->type]->bread(er->mchan, ifc->maxtu, 0);
 		if(bp == nil){
 			/*
 			 * get here if mchan is a pipe and other side hangs up

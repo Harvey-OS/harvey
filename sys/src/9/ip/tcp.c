@@ -29,6 +29,7 @@ enum
 	TcptimerDONE	= 2,
 	MAX_TIME 	= (1<<20),	/* Forever */
 	TCP_ACK		= 50,		/* Timed ack sequence in ms */
+	MAXBACKMS	= 30000,	/* longest backoff time (ms) before hangup */
 
 	URG		= 0x20,		/* Data marked urgent */
 	ACK		= 0x10,		/* Acknowledge is valid */
@@ -39,9 +40,10 @@ enum
 
 	EOLOPT		= 0,
 	NOOPOPT		= 1,
-	MAXBACKMS	= 30000,	/* longest backoff time (ms) before hangup */
 	MSSOPT		= 2,
 	MSS_LENGTH	= 4,		/* Mean segment size */
+	WSOPT		= 3,
+	WS_LENGTH	= 3,		/* Bits to scale window size by */
 	MSL2		= 10,
 	MSPTICK		= 50,		/* Milliseconds per timer tick */
 	DEF_MSS		= 1460,		/* Default mean segment */
@@ -77,7 +79,9 @@ enum
 
 	Maxlimbo	= 1000,		/* maximum procs waiting for response to SYN ACK */
 	NLHT		= 256,		/* hash table size, must be a power of 2 */
-	LHTMASK		= NLHT-1
+	LHTMASK		= NLHT-1,
+
+	HaveWS		= 1<<8,
 };
 
 /* Must correspond to the enumeration above */
@@ -127,8 +131,7 @@ struct Tcp4hdr
 	uchar	tcpcksum[2];
 	uchar	tcpurg[2];
 	/* Options segment */
-	uchar	tcpopt[2];
-	uchar	tcpmss[2];
+	uchar	tcpopt[1];
 };
 
 typedef struct Tcp6hdr Tcp6hdr;
@@ -149,8 +152,7 @@ struct Tcp6hdr
 	uchar	tcpcksum[2];
 	uchar	tcpurg[2];
 	/* Options segment */
-	uchar	tcpopt[2];
-	uchar	tcpmss[2];
+	uchar	tcpopt[1];
 };
 
 /*
@@ -167,9 +169,10 @@ struct	Tcp
 	ulong	seq;
 	ulong	ack;
 	uchar	flags;
-	ushort	wnd;
+	ushort	ws;	/* window scale option (if not zero) */
+	ulong	wnd;
 	ushort	urg;
-	ushort	mss;
+	ushort	mss;	/* max segment size option (if not zero) */
 	ushort	len;	/* size of data */
 };
 
@@ -199,9 +202,10 @@ struct Tcpctl
 		ulong	una;		/* Unacked data pointer */
 		ulong	nxt;		/* Next sequence expected */
 		ulong	ptr;		/* Data pointer */
-		ushort	wnd;		/* Tcp send window */
+		ulong	wnd;		/* Tcp send window */
 		ulong	urg;		/* Urgent data pointer */
 		ulong	wl2;
+		int	scale;		/* how much to right shift window in xmitted packets */
 		/* to implement tahoe and reno TCP */
 		ulong	dupacks;	/* number of duplicate acks rcvd */
 		int	recovery;	/* loss recovery flag */
@@ -209,20 +213,22 @@ struct Tcpctl
 	} snd;
 	struct {
 		ulong	nxt;		/* Receive pointer to next uchar slot */
-		ushort	wnd;		/* Receive window incoming */
+		ulong	wnd;		/* Receive window incoming */
 		ulong	urg;		/* Urgent pointer */
-		ulong	lastacked;	/* Last ack sent */
 		int	blocked;
 		int	una;		/* unacked data segs */
+		int	scale;		/* how much to left shift window in rcved packets */
 	} rcv;
 	ulong	iss;			/* Initial sequence number */
-	ushort	cwind;			/* Congestion window */
+	int	sawwsopt;		/* true if we saw a wsopt on the incoming SYN */
+	ulong	cwind;			/* Congestion window */
+	int	scale;			/* desired snd.scale */
 	ushort	ssthresh;		/* Slow start threshold */
 	int	resent;			/* Bytes just resent */
 	int	irs;			/* Initial received squence */
 	ushort	mss;			/* Mean segment size */
 	int	rerecv;			/* Overlap of data rerecevived */
-	ushort	window;			/* Recevive window */
+	ulong	window;			/* Recevive window */
 	uchar	backoff;		/* Exponential backoff counter */
 	int	backedoff;		/* ms we've backed off for rexmits */
 	uchar	flags;			/* State flags */
@@ -271,6 +277,8 @@ struct Limbo
 	ulong	irs;		/* initial received sequence */
 	ulong	iss;		/* initial sent sequence */
 	ushort	mss;		/* mss from the other end */
+	ushort	rcvscale;	/* how much to scale rcvd windows */
+	ushort	sndscale;	/* how much to scale sent windows */
 	ulong	lastsend;	/* last time we sent a synack */
 	uchar	version;	/* v4 or v6 */
 	uchar	rexmits;	/* number of retransmissions */
@@ -362,9 +370,9 @@ void	procsyn(Conv*, Tcp*);
 void	tcpiput(Proto*, Ipifc*, Block*);
 void	tcpoutput(Conv*);
 int	tcptrim(Tcpctl*, Tcp*, Block**, ushort*);
-void	tcpstart(Conv*, int, ushort);
+void	tcpstart(Conv*, int);
 void	tcptimeout(void*);
-void	tcpsndsyn(Tcpctl*);
+void	tcpsndsyn(Conv*, Tcpctl*);
 void	tcprcvwin(Conv*);
 void	tcpacktimer(void*);
 void	tcpkeepalive(void*);
@@ -372,6 +380,7 @@ void	tcpsetkacounter(Tcpctl*);
 void    tcprxmit(Conv*);
 void	tcpsettimer(Tcpctl*);
 void	tcpsynackrtt(Conv*);
+void	tcpsetscale(Conv*, Tcpctl*, ushort, ushort);
 
 static void limborexmit(Proto*);
 static void limbo(Conv*, uchar*, uchar*, Tcp*, int);
@@ -427,7 +436,7 @@ tcpconnect(Conv *c, char **argv, int argc)
 	e = Fsstdconnect(c, argv, argc);
 	if(e != nil)
 		return e;
-	tcpstart(c, TCP_CONNECT, QMAX);
+	tcpstart(c, TCP_CONNECT);
 
 	return nil;
 }
@@ -440,9 +449,9 @@ tcpstate(Conv *c, char *state, int n)
 	s = (Tcpctl*)(c->ptcl);
 
 	return snprint(state, n,
-		"%s srtt %d mdev %d cwin %d swin %d rwin %d timer.start %d timer.count %d rerecv %d\n",
+		"%s srtt %d mdev %d cwin %lud swin %lud>>%d rwin %lud>>%d timer.start %d timer.count %d rerecv %d\n",
 		tcpstates[s->state], s->srtt, s->mdev,
-		s->cwind, s->snd.wnd, s->rcv.wnd,
+		s->cwind, s->snd.wnd, s->rcv.scale, s->rcv.wnd, s->snd.scale,
 		s->timer.start, s->timer.count, s->rerecv);
 }
 
@@ -463,7 +472,7 @@ tcpannounce(Conv *c, char **argv, int argc)
 	e = Fsstdannounce(c, argv, argc);
 	if(e != nil)
 		return e;
-	tcpstart(c, TCP_LISTEN, QMAX);
+	tcpstart(c, TCP_LISTEN);
 	Fsconnected(c, nil);
 
 	return nil;
@@ -554,7 +563,7 @@ tcprcvwin(Conv *s)				/* Call with tcb locked */
 	Tcpctl *tcb;
 
 	tcb = (Tcpctl*)s->ptcl;
-	w = QMAX - qlen(s->rq);
+	w = tcb->window - qlen(s->rq);
 	if(w < 0)
 		w = 0;
 	tcb->rcv.wnd = w;
@@ -740,7 +749,7 @@ localclose(Conv *s, char *reason)	 /*  called with tcb locked */
 
 /* mtu (- TCP + IP hdr len) of 1st hop */
 int
-tcpmtu(Proto *tcp, uchar *addr, int version)
+tcpmtu(Proto *tcp, uchar *addr, int version, int *scale)
 {
 	Ipifc *ifc;
 	int mtu;
@@ -751,14 +760,23 @@ tcpmtu(Proto *tcp, uchar *addr, int version)
 	case V4:
 		mtu = DEF_MSS;
 		if(ifc != nil)
-			mtu = ifc->maxmtu - ifc->m->hsize - (TCP4_PKT + TCP4_HDRSIZE);
+			mtu = ifc->maxtu - ifc->m->hsize - (TCP4_PKT + TCP4_HDRSIZE);
 		break;
 	case V6:
 		mtu = DEF_MSS6;
 		if(ifc != nil)
-			mtu = ifc->maxmtu - ifc->m->hsize - (TCP6_PKT + TCP6_HDRSIZE);
+			mtu = ifc->maxtu - ifc->m->hsize - (TCP6_PKT + TCP6_HDRSIZE);
 		break;
 	}
+	if(ifc != nil){
+		if(ifc->mbps > 100)
+			*scale = HaveWS | 3;
+		else if(ifc->mbps > 10)
+			*scale = HaveWS | 1;
+		else
+			*scale = HaveWS | 0;
+	} else
+		*scale = HaveWS | 0;
 
 	return mtu;
 }
@@ -769,6 +787,7 @@ inittcpctl(Conv *s, int mode)
 	Tcpctl *tcb;
 	Tcp4hdr* h4;
 	Tcp6hdr* h6;
+	int mss;
 
 	tcb = (Tcpctl*)s->ptcl;
 
@@ -789,6 +808,8 @@ inittcpctl(Conv *s, int mode)
 	tcb->katimer.start = DEF_KAT / MSPTICK;
 	tcb->katimer.func = tcpkeepalive;
 	tcb->katimer.arg = s;
+
+	mss = DEF_MSS;
 
 	/* create a prototype(pseudo) header */
 	if(mode != TCP_LISTEN){
@@ -813,20 +834,28 @@ inittcpctl(Conv *s, int mode)
 			hnputs(h6->tcpdport, s->rport);
 			ipmove(h6->tcpsrc, s->laddr);
 			ipmove(h6->tcpdst, s->raddr);
+			mss = DEF_MSS6;
 			break;
 		default:
 			panic("inittcpctl: version %d", s->ipversion);
 		}
 	}
 
-	tcb->mss = tcb->cwind = tcpmtu(s->p, s->laddr, s->ipversion);
+	tcb->mss = tcb->cwind = mss;
+
+	/* default is no window scaling */
+	tcb->window = QMAX;
+	tcb->rcv.wnd = QMAX;
+	tcb->rcv.scale = 0;
+	tcb->snd.scale = 0;
+	qsetlimit(s->rq, QMAX);
 }
 
 /*
  *  called with s qlocked
  */
 void
-tcpstart(Conv *s, int mode, ushort window)
+tcpstart(Conv *s, int mode)
 {
 	Tcpctl *tcb;
 	Tcppriv *tpriv;
@@ -846,10 +875,7 @@ tcpstart(Conv *s, int mode, ushort window)
 
 	tcb = (Tcpctl*)s->ptcl;
 
-	/* Send SYN, go into SYN_SENT state */
 	inittcpctl(s, mode);
-	tcb->window = window;
-	tcb->rcv.wnd = window;
 
 	iphtadd(&tpriv->ht, s);
 	switch(mode) {
@@ -862,7 +888,7 @@ tcpstart(Conv *s, int mode, ushort window)
 	case TCP_CONNECT:
 		tpriv->stats[ActiveOpens]++;
 		tcb->flags |= ACTIVE;
-		tcpsndsyn(tcb);
+		tcpsndsyn(s, tcb);
 		tcpsetstate(s, Syn_sent);
 		tcpoutput(s);
 		break;
@@ -897,11 +923,20 @@ htontcp6(Tcp *tcph, Block *data, Tcp6hdr *ph, Tcpctl *tcb)
 	int dlen;
 	Tcp6hdr *h;
 	ushort csum;
-	ushort hdrlen;
+	ushort hdrlen, optpad = 0;
+	uchar *opt;
 
 	hdrlen = TCP6_HDRSIZE;
-	if(tcph->mss)
-		hdrlen += MSS_LENGTH;
+	if(tcph->flags & SYN){
+		if(tcph->mss)
+			hdrlen += MSS_LENGTH;
+		if(tcph->ws)
+			hdrlen += WS_LENGTH;
+		optpad = hdrlen & 3;
+		if(optpad)
+			optpad = 4 - optpad;
+		hdrlen += optpad;
+	}
 
 	if(data) {
 		dlen = blocklen(data);
@@ -930,14 +965,26 @@ htontcp6(Tcp *tcph, Block *data, Tcp6hdr *ph, Tcpctl *tcb)
 	hnputl(h->tcpseq, tcph->seq);
 	hnputl(h->tcpack, tcph->ack);
 	hnputs(h->tcpflag, (hdrlen<<10) | tcph->flags);
-	hnputs(h->tcpwin, tcph->wnd);
+	hnputs(h->tcpwin, tcph->wnd>>(tcb != nil ? tcb->snd.scale : 0));
 	hnputs(h->tcpurg, tcph->urg);
 
-	if(tcph->mss != 0){
-		h->tcpopt[0] = MSSOPT;
-		h->tcpopt[1] = MSS_LENGTH;
-		hnputs(h->tcpmss, tcph->mss);
+	if(tcph->flags & SYN){
+		opt = h->tcpopt;
+		if(tcph->mss != 0){
+			*opt++ = MSSOPT;
+			*opt++ = MSS_LENGTH;
+			hnputs(opt, tcph->mss);
+			opt += 2;
+		}
+		if(tcph->ws != 0){
+			*opt++ = WSOPT;
+			*opt++ = WS_LENGTH;
+			*opt++ = tcph->ws;
+		}
+		while(optpad-- > 0)
+			*opt++ = NOOPOPT;
 	}
+
 	if(tcb != nil && tcb->nochecksum){
 		h->tcpcksum[0] = h->tcpcksum[1] = 0;
 	} else {
@@ -960,11 +1007,20 @@ htontcp4(Tcp *tcph, Block *data, Tcp4hdr *ph, Tcpctl *tcb)
 	int dlen;
 	Tcp4hdr *h;
 	ushort csum;
-	ushort hdrlen;
+	ushort hdrlen, optpad = 0;
+	uchar *opt;
 
 	hdrlen = TCP4_HDRSIZE;
-	if(tcph->mss)
-		hdrlen += MSS_LENGTH;
+	if(tcph->flags & SYN){
+		if(tcph->mss)
+			hdrlen += MSS_LENGTH;
+		if(tcph->ws)
+			hdrlen += WS_LENGTH;
+		optpad = hdrlen & 3;
+		if(optpad)
+			optpad = 4 - optpad;
+		hdrlen += optpad;
+	}
 
 	if(data) {
 		dlen = blocklen(data);
@@ -989,14 +1045,26 @@ htontcp4(Tcp *tcph, Block *data, Tcp4hdr *ph, Tcpctl *tcb)
 	hnputl(h->tcpseq, tcph->seq);
 	hnputl(h->tcpack, tcph->ack);
 	hnputs(h->tcpflag, (hdrlen<<10) | tcph->flags);
-	hnputs(h->tcpwin, tcph->wnd);
+	hnputs(h->tcpwin, tcph->wnd>>(tcb != nil ? tcb->snd.scale : 0));
 	hnputs(h->tcpurg, tcph->urg);
 
-	if(tcph->mss != 0){
-		h->tcpopt[0] = MSSOPT;
-		h->tcpopt[1] = MSS_LENGTH;
-		hnputs(h->tcpmss, tcph->mss);
+	if(tcph->flags & SYN){
+		opt = h->tcpopt;
+		if(tcph->mss != 0){
+			*opt++ = MSSOPT;
+			*opt++ = MSS_LENGTH;
+			hnputs(opt, tcph->mss);
+			opt += 2;
+		}
+		if(tcph->ws != 0){
+			*opt++ = WSOPT;
+			*opt++ = WS_LENGTH;
+			*opt++ = tcph->ws;
+		}
+		while(optpad-- > 0)
+			*opt++ = NOOPOPT;
 	}
+
 	if(tcb != nil && tcb->nochecksum){
 		h->tcpcksum[0] = h->tcpcksum[1] = 0;
 	} else {
@@ -1025,7 +1093,7 @@ ntohtcp6(Tcp *tcph, Block **bpp)
 	tcph->dest = nhgets(h->tcpdport);
 	tcph->seq = nhgetl(h->tcpseq);
 	tcph->ack = nhgetl(h->tcpack);
-	hdrlen = (h->tcpflag[0] & 0xf0)>>2;
+	hdrlen = (h->tcpflag[0]>>2) & ~3;
 	if(hdrlen < TCP6_HDRSIZE) {
 		freeblist(*bpp);
 		return -1;
@@ -1035,6 +1103,7 @@ ntohtcp6(Tcp *tcph, Block **bpp)
 	tcph->wnd = nhgets(h->tcpwin);
 	tcph->urg = nhgets(h->tcpurg);
 	tcph->mss = 0;
+	tcph->ws = 0;
 	tcph->len = nhgets(h->ploadlen) - hdrlen;
 
 	*bpp = pullupblock(*bpp, hdrlen+TCP6_PKT);
@@ -1056,6 +1125,10 @@ ntohtcp6(Tcp *tcph, Block **bpp)
 		case MSSOPT:
 			if(optlen == MSS_LENGTH)
 				tcph->mss = nhgets(optr+2);
+			break;
+		case WSOPT:
+			if(optlen == WS_LENGTH && *(optr+2) <= 14)
+				tcph->ws = HaveWS | *(optr+2);
 			break;
 		}
 		n -= optlen;
@@ -1083,7 +1156,7 @@ ntohtcp4(Tcp *tcph, Block **bpp)
 	tcph->seq = nhgetl(h->tcpseq);
 	tcph->ack = nhgetl(h->tcpack);
 
-	hdrlen = (h->tcpflag[0] & 0xf0)>>2;
+	hdrlen = (h->tcpflag[0]>>2) & ~3;
 	if(hdrlen < TCP4_HDRSIZE) {
 		freeblist(*bpp);
 		return -1;
@@ -1093,6 +1166,7 @@ ntohtcp4(Tcp *tcph, Block **bpp)
 	tcph->wnd = nhgets(h->tcpwin);
 	tcph->urg = nhgets(h->tcpurg);
 	tcph->mss = 0;
+	tcph->ws = 0;
 	tcph->len = nhgets(h->length) - (hdrlen + TCP4_PKT);
 
 	*bpp = pullupblock(*bpp, hdrlen+TCP4_PKT);
@@ -1115,6 +1189,10 @@ ntohtcp4(Tcp *tcph, Block **bpp)
 			if(optlen == MSS_LENGTH)
 				tcph->mss = nhgets(optr+2);
 			break;
+		case WSOPT:
+			if(optlen == WS_LENGTH && *(optr+2) <= 14)
+				tcph->ws = HaveWS | *(optr+2);
+			break;
 		}
 		n -= optlen;
 		optr += optlen;
@@ -1127,7 +1205,7 @@ ntohtcp4(Tcp *tcph, Block **bpp)
  *  number and put a SYN on the send queue
  */
 void
-tcpsndsyn(Tcpctl *tcb)
+tcpsndsyn(Conv *s, Tcpctl *tcb)
 {
 	tcb->iss = (nrand(1<<16)<<16)|nrand(1<<16);
 	tcb->rttseq = tcb->iss;
@@ -1138,6 +1216,9 @@ tcpsndsyn(Tcpctl *tcb)
 	tcb->flgcnt++;
 	tcb->flags |= FORCE;
 	tcb->sndsyntime = NOW;
+
+	/* set desired mss and scale */
+	tcb->mss = tcpmtu(s->p, s->laddr, s->ipversion, &tcb->scale);
 }
 
 void
@@ -1204,6 +1285,7 @@ sndrst(Proto *tcp, uchar *source, uchar *dest, ushort length, Tcp *seg, uchar ve
 	seg->wnd = 0;
 	seg->urg = 0;
 	seg->mss = 0;
+	seg->ws = 0;
 	switch(version) {
 	case V4:
 		hbp = htontcp4(seg, nil, &ph4, nil);
@@ -1239,11 +1321,12 @@ tcphangup(Conv *s)
 	if(s->raddr != 0) {
 		seg.flags = RST | ACK;
 		seg.ack = tcb->rcv.nxt;
-		tcb->rcv.lastacked = tcb->rcv.nxt;
+		tcb->rcv.una = 0;
 		seg.seq = tcb->snd.ptr;
 		seg.wnd = 0;
 		seg.urg = 0;
 		seg.mss = 0;
+		seg.ws = 0;
 		switch(s->ipversion) {
 		case V4:
 			tcb->protohdr.tcp4hdr.vihl = IP_VER4;
@@ -1274,6 +1357,7 @@ sndsynack(Proto *tcp, Limbo *lp)
 	Tcp4hdr ph4;
 	Tcp6hdr ph6;
 	Tcp seg;
+	int scale;
 
 	/* make pseudo header */
 	switch(lp->version) {
@@ -1305,8 +1389,17 @@ sndsynack(Proto *tcp, Limbo *lp)
 	seg.ack = lp->irs+1;
 	seg.flags = SYN|ACK;
 	seg.urg = 0;
-	seg.mss = tcpmtu(tcp, lp->laddr, lp->version);
+	seg.mss = tcpmtu(tcp, lp->laddr, lp->version, &scale);
 	seg.wnd = QMAX;
+
+	/* if the other side set scale, we should too */
+	if(lp->rcvscale){
+		seg.ws = scale;
+		lp->sndscale = scale;
+	} else {
+		seg.ws = 0;
+		lp->sndscale = 0;
+	}
 
 	switch(lp->version) {
 	case V4:
@@ -1377,6 +1470,7 @@ limbo(Conv *s, uchar *source, uchar *dest, Tcp *seg, int version)
 		lp->lport = seg->dest;
 		lp->rport = seg->source;
 		lp->mss = seg->mss;
+		lp->rcvscale = seg->ws;
 		lp->irs = seg->seq;
 		lp->iss = (nrand(1<<16)<<16)|nrand(1<<16);
 	}
@@ -1474,6 +1568,7 @@ limborst(Conv *s, Tcp *segp, uchar *src, uchar *dst, uchar version)
 }
 
 /*
+ *  come here when we finally get an ACK to our SYN-ACK.
  *  lookup call in limbo.  if found, create a new conversation
  *
  *  called with proto locked
@@ -1557,6 +1652,9 @@ tcpincoming(Conv *s, Tcp *segp, uchar *src, uchar *dst, uchar version)
 	/* our sending max segment size cannot be bigger than what he asked for */
 	if(lp->mss != 0 && lp->mss < tcb->mss)
 		tcb->mss = lp->mss;
+
+	/* window scaling */
+	tcpsetscale(new, tcb, lp->rcvscale, lp->sndscale);
 
 	/* the congestion window always starts out as a single segment */
 	tcb->snd.wnd = segp->wnd;
@@ -1664,7 +1762,8 @@ update(Conv *s, Tcp *seg)
 {
 	int rtt, delta;
 	Tcpctl *tcb;
-	ushort acked, expand;
+	ulong acked;
+	ulong expand;
 	Tcppriv *tpriv;
 
 	tpriv = s->p->priv;
@@ -1752,7 +1851,7 @@ update(Conv *s, Tcp *seg)
 			expand = ((int)tcb->mss * tcb->mss) / tcb->cwind;
 
 		if(tcb->cwind + expand < tcb->cwind)
-			expand = 65535 - tcb->cwind;
+			expand = tcb->snd.wnd - tcb->cwind;
 		if(tcb->cwind + expand > tcb->snd.wnd)
 			expand = tcb->snd.wnd - tcb->cwind;
 		if(expand != 0)
@@ -1962,6 +2061,9 @@ reset:
 	qlock(s);
 	qunlock(tcp);
 
+	/* fix up window */
+	seg.wnd <<= tcb->rcv.scale;
+
 	if(tcb->kacounter > 0)
 		tcb->kacounter = MAXBACKMS / (tcb->katimer.start*MSPTICK);
 	if(tcb->kacounter < 3)
@@ -1991,10 +2093,11 @@ reset:
 				update(s, &seg);
 				tcpsynackrtt(s);
 				tcpsetstate(s, Established);
+				tcpsetscale(s, tcb, seg.ws, tcb->scale);
 			}
 			else {
 				tcb->time = NOW;
-				tcpsetstate(s, Syn_received);
+				tcpsetstate(s, Syn_received);	/* DLP - shouldn't this be a reset? */
 			}
 
 			if(length != 0 || (seg.flags & FIN))
@@ -2172,9 +2275,19 @@ reset:
 					qpassnolim(s->rq, bp);
 					bp = nil;
 
- 					/* force an ack every 2 data messages */
- 					if(++(tcb->rcv.una) >= 2)
- 						tcb->flags |= FORCE;
+					/* 
+					 *  Force an ack every 2 data messages.  This is
+					 *  a hack for rob to make his home system run
+					 *  faster.
+					 *
+					 *  this also keeps the standard TCP congestion
+					 *  control working since it needs an ack every
+					 *  2 max segs worth.  This is not quite that,
+					 *  but under a real stream is equivalent since
+					 *  every packet has a max seg in it.
+					 */
+					if(++(tcb->rcv.una) >= 2)
+						tcb->flags |= FORCE;
 				}
 				tcb->rcv.nxt += length;
 
@@ -2182,13 +2295,6 @@ reset:
 				 *  update our rcv window
 				 */
 				tcprcvwin(s);
-
-				/*
-				 *  force an ack if we've got 2 segs since we
-				 *  last acked.
-				 */
-				if(tcb->rcv.nxt - tcb->rcv.lastacked >= 2*tcb->mss)
-					tcb->flags |= FORCE;
 
 				/*
 				 *  turn on the acktimer if there's something
@@ -2344,7 +2450,7 @@ tcpoutput(Conv *s)
 		}
 		ssize = sndcnt-sent;
 		if(ssize && usable < 2)
-			netlog(s->p->f, Logtcp, "throttled snd.wnd 0x%ux cwind 0x%ux\n",
+			netlog(s->p->f, Logtcp, "throttled snd.wnd %lud cwind %lud\n",
 				tcb->snd.wnd, tcb->cwind);
 		if(usable < ssize)
 			ssize = usable;
@@ -2357,25 +2463,25 @@ tcpoutput(Conv *s)
 		if((tcb->flags&FORCE) == 0)
 			break;
 
-		tcphalt(tpriv, &tcb->acktimer);
-
 		tcb->flags &= ~FORCE;
 		tcprcvwin(s);
 
 		/* By default we will generate an ack */
+		tcphalt(tpriv, &tcb->acktimer);
 		tcb->rcv.una = 0;
 		seg.source = s->lport;
 		seg.dest = s->rport;
 		seg.flags = ACK;
 		seg.mss = 0;
-
+		seg.ws = 0;
 		switch(tcb->state){
 		case Syn_sent:
 			seg.flags = 0;
 			if(tcb->snd.ptr == tcb->iss){
 				seg.flags |= SYN;
 				dsize--;
-				seg.mss = tcpmtu(s->p, s->laddr, s->ipversion);
+				seg.mss = tcb->mss;
+				seg.ws = tcb->scale;
 			}
 			break;
 		case Syn_received:
@@ -2388,13 +2494,13 @@ tcpoutput(Conv *s)
 				seg.flags |= SYN;
 				dsize = 0;
 				ssize = 1;
-				seg.mss = tcpmtu(s->p, s->laddr, s->ipversion);
+				seg.mss = tcb->mss;
+				seg.ws = tcb->scale;
 			}
 			break;
 		}
 		seg.seq = tcb->snd.ptr;
 		seg.ack = tcb->rcv.nxt;
-		tcb->rcv.lastacked = tcb->rcv.nxt;
 		seg.wnd = tcb->rcv.wnd;
 
 		/* Pull out data to send */
@@ -2510,12 +2616,13 @@ tcpsendka(Conv *s)
 	seg.dest = s->rport;
 	seg.flags = ACK|PSH;
 	seg.mss = 0;
+	seg.ws = 0;
 	if(tcpporthogdefense)
 		seg.seq = tcb->snd.una-(1<<30)-nrand(1<<20);
 	else
 		seg.seq = tcb->snd.una-1;
 	seg.ack = tcb->rcv.nxt;
-	tcb->rcv.lastacked = tcb->rcv.nxt;
+	tcb->rcv.una = 0;
 	seg.wnd = tcb->rcv.wnd;
 	if(tcb->state == Finwait2){
 		seg.flags |= FIN;
@@ -2906,6 +3013,18 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 	freeblist(bp);
 }
 
+static char*
+tcpporthogdefensectl(char *val)
+{
+	if(strcmp(val, "on") == 0)
+		tcpporthogdefense = 1;
+	else if(strcmp(val, "off") == 0)
+		tcpporthogdefense = 0;
+	else
+		return "unknown value for tcpporthogdefense";
+	return nil;
+}
+
 /* called with c qlocked */
 char*
 tcpctl(Conv* c, char** f, int n)
@@ -2916,6 +3035,8 @@ tcpctl(Conv* c, char** f, int n)
 		return tcpstartka(c, f, n);
 	if(n >= 1 && strcmp(f[0], "checksum") == 0)
 		return tcpsetchecksum(c, f, n);
+	if(n >= 1 && strcmp(f[0], "tcpporthogdefense") == 0)
+		return tcpporthogdefensectl(f[1]);
 	return "unknown control request";
 }
 
@@ -3022,4 +3143,20 @@ tcpinit(Fs *fs)
 	tpriv->stats[MaxConn] = tcp->nc;
 
 	Fsproto(fs, tcp);
+}
+
+void
+tcpsetscale(Conv *s, Tcpctl *tcb, ushort rcvscale, ushort sndscale)
+{
+	if(rcvscale){
+		tcb->rcv.scale = rcvscale & 0xff;
+		tcb->snd.scale = sndscale & 0xff;
+		tcb->window = QMAX<<tcb->snd.scale;
+		qsetlimit(s->rq, tcb->window);
+	} else {
+		tcb->rcv.scale = 0;
+		tcb->snd.scale = 0;
+		tcb->window = QMAX;
+		qsetlimit(s->rq, tcb->window);
+	}
 }
