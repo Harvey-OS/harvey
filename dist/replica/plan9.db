@@ -2974,7 +2974,7 @@ rc/bin/dosmnt - 775 sys sys 958526437 285
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1015701359 2390
 rc/bin/fedex - 775 sys sys 1060187356 1244
-rc/bin/fshalt - 775 sys sys 1067991211 958
+rc/bin/fshalt - 775 sys sys 1068087338 1092
 rc/bin/homespool - 775 sys sys 945617207 339
 rc/bin/ipconf - 20000000775 sys sys 1058791152 0
 rc/bin/ipconf/inside - 775 sys sys 1058790955 427
@@ -2982,7 +2982,7 @@ rc/bin/ipconf/lra - 775 sys sys 1058791152 1558
 rc/bin/ipconf/outside - 775 sys sys 1058790951 550
 rc/bin/ipconf/theworld - 775 sys sys 1058790940 1212
 rc/bin/ipso - 775 sys sys 1035591514 2304
-rc/bin/iwhois - 775 sys sys 1032057928 435
+rc/bin/iwhois - 775 sys sys 1068053163 584
 rc/bin/kill - 775 sys sys 1018387014 132
 rc/bin/label - 775 sys sys 945617207 34
 rc/bin/lc - 775 sys sys 945617207 24
@@ -3076,6 +3076,7 @@ rc/bin/stock - 775 sys sys 1055701355 288
 rc/bin/stop - 775 sys sys 945617209 110
 rc/bin/tel - 775 sys sys 1019854296 136
 rc/bin/termrc - 775 sys sys 1064585645 2650
+rc/bin/thesaurus - 775 sys sys 1068054167 246
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
 rc/bin/troff2gif - 775 sys sys 1045504085 178
@@ -5151,7 +5152,7 @@ sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
 sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
 sys/src/9/ip/ethermedium.c - 664 sys sys 1066514880 15124
 sys/src/9/ip/gre.c - 664 sys sys 1047260562 4684
-sys/src/9/ip/icmp.c - 664 sys sys 1047260563 9437
+sys/src/9/ip/icmp.c - 664 sys sys 1068049000 9438
 sys/src/9/ip/icmp6.c - 664 sys sys 1047260563 18098
 sys/src/9/ip/igmp.c - 664 sys sys 1055700768 5175
 sys/src/9/ip/il.c - 664 sys sys 1055700772 26893

@@ -1,0 +1,20 @@
+#!/bin/rc
+
+hget 'http://thesaurus.reference.com/search?q='^$1 |
+	htmlfmt -l 1000 |
+	sed -n '
+		1,/^[0-9]+ entries found for/d
+		/ADVERTISEMENT/,$d
+		1,/^$/d
+		s/^Entry://p
+		/^Source:/{
+			N
+			d
+		}
+		/^[A-Z][a-z]*:/{
+			N
+			s/\n/	/gp
+		}
+	'
+
+
