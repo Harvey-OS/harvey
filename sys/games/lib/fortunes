@@ -4060,3 +4060,4 @@ val.h:152: class `FloatVal' is implicitly friends with itself
 The MOV mnemonic, which stands for `move', is a misnomer.  A copy function is actually performed instead of a move. - AMD64 Architecture Programmer's Manual Volume 1
 It's not foolproof, but maybe if we don't act like fools, it will work.
 May God forgive you for what you have done!  - Pope John Paul I, to the Cardinals who elected him
+  hb = 0x80;  hb = hb << 24;   /* hb = 0x80000000UL */
