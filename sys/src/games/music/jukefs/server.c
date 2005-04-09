@@ -131,10 +131,11 @@ threadmain(int argc, char *argv[]) {
 
 	if((f = Bopen(mapname, OREAD)) == nil)
 		sysfatal("%s: %r", mapname);
-	strncpy(file, mapname, 256);
-	if ((q = strrchr(mapname, '/'))) *q = 0;
+	file = strdup(mapname);
+	if ((q = strrchr(file, '/'))) *q = 0;
 	inittokenlist();
-	startdir = q?mapname:"";
+	startdir = strdup(q?file:"");
+	free(file);
 	getobject(Root, nil);
 	Bterm(f);
 	f = nil;
@@ -178,7 +179,7 @@ reread(void)
 	char *q;
 
 	assert(f == nil);
-	if((f = Bopen(file, OREAD)) == nil)
+	if((f = Bopen(mapname, OREAD)) == nil)
 		fprint(2, "reread: %s: %r\n", file);
 	freetree(root);
 	root = nil;
@@ -194,9 +195,10 @@ reread(void)
 	tokenlist = nil;
 	ntoken = Ntoken;
 	inittokenlist();
-	strncpy(mapname, file, 256);
-	if ((q = strrchr(mapname, '/'))) *q = 0;
-	startdir = q?mapname:"";
+	file = strdup(mapname);
+	if ((q = strrchr(file, '/'))) *q = 0;
+	startdir = strdup(q?file:"");
+	free(file);
 	getobject(Root, nil);
 	root->parent = root;
 	Bterm(f);

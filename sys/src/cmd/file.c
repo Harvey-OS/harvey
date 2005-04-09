@@ -661,6 +661,7 @@ struct	FILE_STRING
 	"<MakerFile ",		"FrameMaker file",		11,	"application/framemaker",
 	"\033%-12345X",	"HPJCL file",		9,	"application/hpjcl",
 	"ID3",			"mp3 audio with id3",	3,	"audio/mpeg",
+	"\211PNG",		"PNG image",		4,	"image/png",
 	0,0,0,0
 };
 

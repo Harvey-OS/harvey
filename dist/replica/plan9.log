@@ -14105,3 +14105,10 @@
 1112758317 13 c 386/bin/pcc - 775 sys sys 1112757395 67806
 1112758317 14 c 386/bin/ape/cc - 775 sys sys 1112757395 70297
 1112905887 0 c sys/games/lib/fortunes - 664 sys sys 1112905578 253631
+1112972501 0 c sys/src/cmd/file.c - 664 sys sys 1112972205 23328
+1112974301 0 c sys/man/8/plan9.ini - 664 sys sys 1112972932 21498
+1112974301 1 c sys/src/games/music/jukefs/parse.c - 664 sys sys 1112972626 14090
+1112974301 2 c sys/src/games/music/jukefs/server.c - 664 sys sys 1112972626 3544
+1112974301 3 d sys/src/cmd/upas/send/sender - 664 sys sys 944961323 0
+1112974301 4 d sys/src/cmd/upas/send/date - 664 sys sys 944961326 0
+1113017510 0 c 386/bin/file - 775 sys sys 1113016150 112820
