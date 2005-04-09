@@ -165,7 +165,7 @@ getobject(Type t, Object *parent)
 	o->flags |= Hier;
 	if(parent == nil){
 		root = o;
-		o->path = strdup(startdir);
+		o->path = startdir;
 		setmalloctag(o->path, 0x100001);
 	}
 	if(gettoken(token) != BraceO)
