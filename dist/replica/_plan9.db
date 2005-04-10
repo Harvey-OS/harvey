@@ -224,7 +224,7 @@
 386/bin/faces - 775 sys sys 1106799174 192579
 386/bin/factor - 775 sys sys 1104122008 61475
 386/bin/fcp - 775 sys sys 1110859785 82162
-386/bin/file - 775 sys sys 1112155767 112780
+386/bin/file - 775 sys sys 1113016150 112820
 386/bin/fmt - 775 sys sys 1104122009 65301
 386/bin/fortune - 775 sys sys 1104122009 67136
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -702,7 +702,7 @@ acme/mail/src - 20000000775 sys sys 1015364010 0
 acme/mail/src/dat.h - 664 sys sys 1033936953 3857
 acme/mail/src/html.c - 664 sys sys 1058463659 1348
 acme/mail/src/mail.c - 664 sys sys 1107894665 11277
-acme/mail/src/mesg.c - 664 sys sys 1043463888 26266
+acme/mail/src/mesg.c - 664 sys sys 1113051860 26298
 acme/mail/src/mkfile - 664 sys sys 1037034918 364
 acme/mail/src/reply.c - 664 sys sys 1112270143 11373
 acme/mail/src/util.c - 664 sys sys 1022112164 1391
@@ -12480,4 +12480,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/file - 775 sys sys 1113016150 112820
+acme/mail/386/Mail - 775 sys sys 1113102525 179147

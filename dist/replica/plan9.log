@@ -14112,3 +14112,5 @@
 1112974301 3 d sys/src/cmd/upas/send/sender - 664 sys sys 944961323 0
 1112974301 4 d sys/src/cmd/upas/send/date - 664 sys sys 944961326 0
 1113017510 0 c 386/bin/file - 775 sys sys 1113016150 112820
+1113053517 0 c acme/mail/src/mesg.c - 664 sys sys 1113051860 26298
+1113103866 0 c acme/mail/386/Mail - 775 sys sys 1113102525 179147

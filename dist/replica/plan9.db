@@ -688,7 +688,7 @@ acme/bin/unind - 755 sys sys 1015011256 27
 acme/bin/wnew - 775 sys sys 1046184422 84
 acme/mail - 20000000775 sys sys 1015011265 0
 acme/mail/386 - 20000000775 sys sys 1015011538 0
-acme/mail/386/Mail - 775 sys sys 1112328581 179119
+acme/mail/386/Mail - 775 sys sys 1113102525 179147
 acme/mail/Mail - 775 sys sys 1015011264 202
 acme/mail/alpha - 20000000775 sys sys 1015011521 0
 acme/mail/arm - 20000000775 sys sys 1015011525 0
@@ -702,7 +702,7 @@ acme/mail/src - 20000000775 sys sys 1015364010 0
 acme/mail/src/dat.h - 664 sys sys 1033936953 3857
 acme/mail/src/html.c - 664 sys sys 1058463659 1348
 acme/mail/src/mail.c - 664 sys sys 1107894665 11277
-acme/mail/src/mesg.c - 664 sys sys 1043463888 26266
+acme/mail/src/mesg.c - 664 sys sys 1113051860 26298
 acme/mail/src/mkfile - 664 sys sys 1037034918 364
 acme/mail/src/reply.c - 664 sys sys 1112270143 11373
 acme/mail/src/util.c - 664 sys sys 1022112164 1391
