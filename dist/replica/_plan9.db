@@ -688,7 +688,7 @@ acme/bin/unind - 755 sys sys 1015011256 27
 acme/bin/wnew - 775 sys sys 1046184422 84
 acme/mail - 20000000775 sys sys 1015011265 0
 acme/mail/386 - 20000000775 sys sys 1015011538 0
-acme/mail/386/Mail - 775 sys sys 1112328581 179119
+acme/mail/386/Mail - 775 sys sys 1113102525 179147
 acme/mail/Mail - 775 sys sys 1015011264 202
 acme/mail/alpha - 20000000775 sys sys 1015011521 0
 acme/mail/arm - 20000000775 sys sys 1015011525 0
@@ -12480,4 +12480,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-acme/mail/386/Mail - 775 sys sys 1113102525 179147
