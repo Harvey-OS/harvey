@@ -183,7 +183,7 @@ winread(Window *w, uint q0, uint q1, char *data)
 		if(write(w->addr, buf, n) != n)
 			error("error writing addr: %r");
 		n = read(w->data, buf, sizeof buf);
-		if(n <= 0)
+		if(n < 0)
 			error("reading data: %r");
 		nr = nrunes(buf, n);
 		while(m+nr >q1){

@@ -14114,3 +14114,17 @@
 1113017510 0 c 386/bin/file - 775 sys sys 1113016150 112820
 1113053517 0 c acme/mail/src/mesg.c - 664 sys sys 1113051860 26298
 1113103866 0 c acme/mail/386/Mail - 775 sys sys 1113102525 179147
+1113253296 0 c acme/bin/source/win/win.c - 664 sys sys 1113252156 4239
+1113253296 1 c sys/lib/dist/pc/inst/bootplan9 - 775 sys sys 1113252317 1574
+1113253296 2 c sys/man/1/winwatch - 664 sys sys 1113252108 723
+1113253296 3 a sys/src/cmd/unix/drawterm/bin/README - 664 sys sys 1113252460 106
+1113253296 4 c sys/src/cmd/wikifs/parse.c - 664 sys sys 1113252120 5245
+1113253296 5 c sys/src/cmd/wikifs/tohtml.c - 664 sys sys 1113252121 14301
+1113253296 6 c sys/src/cmd/winwatch.c - 664 sys sys 1113252107 4853
+1113253296 7 d sys/src/cmd/unix/drawterm/bin/drawterm-win.exe - 775 sys sys 1040673060 0
+1113253296 8 d sys/src/cmd/unix/drawterm/bin/drawterm-macosx.gz - 775 sys sys 1022046829 0
+1113253296 9 d sys/src/cmd/unix/drawterm/bin/drawterm-linux - 775 sys sys 1020313487 0
+1113253296 10 d sys/src/cmd/unix/drawterm/bin/drawterm-freebsd.gz - 775 sys sys 1022046828 0
+1113276701 0 c 386/bin/winwatch - 775 sys sys 1113275271 153740
+1113276701 1 c acme/bin/386/win - 775 sys sys 1113275271 178845
+1113276701 2 c sys/src/cmd/wikifs/wiki.h - 664 sys sys 1113275619 1897
