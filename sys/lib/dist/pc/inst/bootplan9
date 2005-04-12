@@ -22,18 +22,19 @@ if(test $p9offset -gt 4128695) {	# 65536 * 63 - 10
 	echo 'You can install the Plan 9 master boot record, which can load'
 	echo 'partitions far into the disk.'
 	echo 
-	echo 'If you use the Windows NT/2000/XP master boot record'
-	echo 'or a master boot record from a Unix clone (e.g., LILO or'
-	echo 'FreeBSD bootmgr, it is probably safe to continue using'
-	echo 'that boot record rather than install the Plan 9 boot record.'
-	echo
-	prompt 'Install the Plan 9 master boot record' y n 
-	switch($rd) {
-	case n
-		;
-	case y
-		disk/mbr -m /386/mbr /dev/$disk/data
-	}
+}
+
+echo 'If you use the Windows NT/2000/XP master boot record'
+echo 'or a master boot record from a Unix clone (e.g., LILO or'
+echo 'FreeBSD bootmgr), it is probably safe to continue using'
+echo 'that boot record rather than install the Plan 9 boot record.'
+echo
+prompt 'Install the Plan 9 master boot record' y n 
+switch($rd) {
+case n
+	;
+case y
+	disk/mbr -m /386/mbr /dev/$disk/data
 }
 
 log Setting Plan 9 partition active.

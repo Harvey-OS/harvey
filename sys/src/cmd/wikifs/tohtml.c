@@ -151,6 +151,8 @@ mkurl(char *s, int ty)
 	char *p, *q;
 
 	if(strncmp(s, "http:", 5)==0
+	|| strncmp(s, "https:", 6)==0
+	|| strncmp(s, "#", 1)==0
 	|| strncmp(s, "ftp:", 4)==0
 	|| strncmp(s, "mailto:", 7)==0
 	|| strncmp(s, "telnet:", 7)==0
@@ -189,11 +191,13 @@ pagehtml(String *s, Wpage *wtxt, int ty)
 	for(w=wtxt; w; w=w->next){
 		switch(w->type){
 		case Wheading:
+			/*
 			if(!inpara){
 				inpara = 1;
 				s = s_append(s, "\n<p>\n");
-			}
-			s = s_appendlist(s, "<b>", w->text, "</b>\n<p>\n", nil);
+			}			
+			*/
+			s = s_appendlist(s, "<br />\n<a name=\"",w->text,"\" /><h3>", w->text, "</h3>\n", nil);
 			break;
 
 		case Wpara:
@@ -264,6 +268,10 @@ pagehtml(String *s, Wpage *wtxt, int ty)
 			}
 			s = s_escappend(s, w->text, 1);
 			s = s_append(s, "\n");
+			break;
+		
+		case Whr:
+			s = s_append(s, "<hr />");
 			break;
 
 		case Wplain:
@@ -684,6 +692,10 @@ pagetext(String *s, Wpage *page, int dosharp)
 				inpara = 0;
 			s_endline(s, dosharp);
 			s = s_appendlist(s, "! ", w->text, "\n", sharp, nil);
+			break;
+		case Whr:
+			s_endline(s, dosharp);
+			s = s_appendlist(s, "------------------------------------------------------ \n", sharp, nil);
 			break;
 
 		case Wplain:

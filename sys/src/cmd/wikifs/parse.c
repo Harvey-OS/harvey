@@ -227,7 +227,7 @@ static int isheading(char *p) {
 Wpage*
 Brdpage(char *(*rdline)(void*,int), void *b)
 {
-	char *p;
+	char *p, *c;
 	int waspara;
 	Wpage *w, **pw;
 
@@ -257,6 +257,20 @@ Brdpage(char *(*rdline)(void*,int), void *b)
 			*pw = mkwtxt(Wpre, estrdup(p[1]==' '?p+2:p+1));
 			pw = &(*pw)->next;
 			break;
+		case '-':
+			for(c = p; *c != '\0'; c++) {
+				if(*c != '-') {
+					c = p;
+					break;
+				}
+			}
+
+			if( (c-p) > 4) {
+				*pw = mkwtxt(Whr, nil);
+				pw = &(*pw)->next;
+				break;
+			}
+			/* else fall thru */
 		default:
 			if(isheading(p)){
 				*pw = mkwtxt(Wheading, estrdup(p));
@@ -301,6 +315,9 @@ printpage(Wpage *w)
 			break;
 		case Wplain:
 			print("plain '%s'\n", w->text);
+			break;
+		case Whr:
+			print("hr\n");
 			break;
 		case Wpre:
 			print("pre '%s'\n", w->text);
