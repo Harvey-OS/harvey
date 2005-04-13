@@ -523,7 +523,7 @@ Filemagic long0tab[] = {
 	0x04034B50,	0xFFFFFFFF,	"zip archive\n", "application/zip",
 	070707,		0xFFFF,		"cpio archive\n", OCTET,
 	0x2F7,		0xFFFF,		"tex dvi\n", "application/dvi",
-	0xfffa0000,	0xfffe0000,	"mp3 audio",	"audio/mpeg",
+	0xfaff,		0xfeff,		"mp3 audio\n",	"audio/mpeg",
 };
 
 int

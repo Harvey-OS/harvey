@@ -150,7 +150,7 @@ geometry(void)
 	z = 0;
 	rows = (Dy(screen->r)-2*MARGIN+PAD)/(font->height+PAD);
 	if(rows*cols < nwin || rows*cols >= nwin*2){
-		ncols = (nwin+rows-1)/rows;
+		ncols = nwin <= 0 ? 1 : (nwin+rows-1)/rows;
 		if(ncols != cols){
 			cols = ncols;
 			z = 1;

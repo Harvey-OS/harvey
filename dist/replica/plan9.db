@@ -224,7 +224,7 @@
 386/bin/faces - 775 sys sys 1106799174 192579
 386/bin/factor - 775 sys sys 1104122008 61475
 386/bin/fcp - 775 sys sys 1110859785 82162
-386/bin/file - 775 sys sys 1113016150 112820
+386/bin/file - 775 sys sys 1113361802 112820
 386/bin/fmt - 775 sys sys 1104122009 65301
 386/bin/fortune - 775 sys sys 1104122009 67136
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -501,8 +501,8 @@
 386/bin/webcookies - 775 sys sys 1108354568 161505
 386/bin/webfs - 775 sys sys 1109132011 349163
 386/bin/webfsget - 775 sys sys 1104122092 39143
-386/bin/wikifs - 775 sys sys 1108354569 201169
-386/bin/winwatch - 775 sys sys 1113275271 153740
+386/bin/wikifs - 775 sys sys 1113361803 201588
+386/bin/winwatch - 775 sys sys 1113361803 153750
 386/bin/xd - 775 sys sys 1104122093 64039
 386/bin/xmr - 775 sys sys 1104122093 40157
 386/bin/xms - 775 sys sys 1104122093 40735
@@ -7558,7 +7558,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 644 sys sys 1110816880 3780
-sys/src/cmd/file.c - 664 sys sys 1112972205 23328
+sys/src/cmd/file.c - 664 sys sys 1113312632 23324
 sys/src/cmd/fmt.c - 664 sys sys 1070032009 4088
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
@@ -11190,7 +11190,7 @@ sys/src/cmd/wikifs/wdir.c - 664 sys sys 1018211094 876
 sys/src/cmd/wikifs/wiki.h - 664 sys sys 1113275619 1897
 sys/src/cmd/wikifs/wiki2html.c - 664 sys sys 1018211094 815
 sys/src/cmd/wikifs/wiki2text.c - 664 sys sys 1018211094 779
-sys/src/cmd/winwatch.c - 664 sys sys 1113252107 4853
+sys/src/cmd/winwatch.c - 664 sys sys 1113312596 4869
 sys/src/cmd/xd.c - 664 sys sys 944961355 5735
 sys/src/cmd/yacc.c - 664 sys sys 984717754 57876
 sys/src/fs - 20000000775 sys sys 1015110109 0
@@ -11336,7 +11336,7 @@ sys/src/games/music/icon/stop.bit - 644 sys sys 1103793917 143
 sys/src/games/music/icon/trash.bit - 644 sys sys 1103793917 143
 sys/src/games/music/juke.rc - 664 sys sys 1103793915 1352
 sys/src/games/music/jukebox - 20000000775 sys sys 1103794221 0
-sys/src/games/music/jukebox/client.c - 664 sys sys 1105531439 2737
+sys/src/games/music/jukebox/client.c - 664 sys sys 1113342090 2713
 sys/src/games/music/jukebox/client.h - 664 sys sys 1103793917 248
 sys/src/games/music/jukebox/colors.c - 664 sys sys 1103793918 3819
 sys/src/games/music/jukebox/colors.h - 664 sys sys 1103793918 692
@@ -11351,14 +11351,14 @@ sys/src/games/music/jukefs/catset.h - 664 sys sys 1103793919 251
 sys/src/games/music/jukefs/fs.c - 664 sys sys 1103793920 12708
 sys/src/games/music/jukefs/mk.dep - 664 sys sys 1103793920 759
 sys/src/games/music/jukefs/mkfile - 664 sys sys 1103793920 225
-sys/src/games/music/jukefs/object.h - 664 sys sys 1103793920 2068
-sys/src/games/music/jukefs/parse.c - 664 sys sys 1112972626 14090
+sys/src/games/music/jukefs/object.h - 664 sys sys 1113342073 2067
+sys/src/games/music/jukefs/parse.c - 664 sys sys 1113342059 14073
 sys/src/games/music/jukefs/parse.h - 664 sys sys 1103793921 418
 sys/src/games/music/jukefs/print.c - 664 sys sys 1103793921 9016
 sys/src/games/music/jukefs/print.h - 664 sys sys 1103793921 174
 sys/src/games/music/jukefs/search.c - 664 sys sys 1103793921 1058
 sys/src/games/music/jukefs/search.h - 664 sys sys 1103793921 101
-sys/src/games/music/jukefs/server.c - 664 sys sys 1112972626 3544
+sys/src/games/music/jukefs/server.c - 664 sys sys 1113342063 3648
 sys/src/games/music/missing - 775 sys sys 1103793915 72
 sys/src/games/music/mkfile - 664 sys sys 1103793915 723
 sys/src/games/music/mkinc - 664 sys sys 1103793915 92

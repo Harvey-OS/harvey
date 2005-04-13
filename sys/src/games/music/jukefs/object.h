@@ -92,7 +92,7 @@ extern	Token	*tokenlist;
 extern	int	ncat;
 extern	Object	**catobjects;
 extern	Biobuf	*f;
-extern	char	file[];
+extern	char	*file;
 extern	Object	*root;
 extern	int	ntoken;
 

@@ -14128,3 +14128,12 @@
 1113276701 0 c 386/bin/winwatch - 775 sys sys 1113275271 153740
 1113276701 1 c acme/bin/386/win - 775 sys sys 1113275271 178845
 1113276701 2 c sys/src/cmd/wikifs/wiki.h - 664 sys sys 1113275619 1897
+1113312707 0 c sys/src/cmd/winwatch.c - 664 sys sys 1113312596 4869
+1113312707 1 c sys/src/cmd/file.c - 664 sys sys 1113312632 23324
+1113343314 0 c sys/src/games/music/jukebox/client.c - 664 sys sys 1113342090 2713
+1113343314 1 c sys/src/games/music/jukefs/object.h - 664 sys sys 1113342073 2067
+1113343314 2 c sys/src/games/music/jukefs/parse.c - 664 sys sys 1113342059 14073
+1113343314 3 c sys/src/games/music/jukefs/server.c - 664 sys sys 1113342063 3648
+1113363117 0 c 386/bin/wikifs - 775 sys sys 1113361803 201588
+1113363117 1 c 386/bin/file - 775 sys sys 1113361802 112820
+1113363117 2 c 386/bin/winwatch - 775 sys sys 1113361803 153750
