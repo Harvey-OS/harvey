@@ -15,7 +15,7 @@
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1108285260 115096
-386/bin/8c - 775 sys sys 1109477746 358000
+386/bin/8c - 775 sys sys 1113620963 358011
 386/bin/8l - 775 sys sys 1107835553 115728
 386/bin/9660srv - 775 sys sys 1108354539 103973
 386/bin/aan - 775 sys sys 1108354539 130710
@@ -7208,7 +7208,7 @@ sys/src/cmd/8c/mkenam - 664 sys sys 944960730 112
 sys/src/cmd/8c/mkfile - 664 sys sys 1089299181 322
 sys/src/cmd/8c/mul.c - 664 sys sys 1089382812 5535
 sys/src/cmd/8c/peep.c - 664 sys sys 1089299181 11182
-sys/src/cmd/8c/reg.c - 664 sys sys 1089299180 20556
+sys/src/cmd/8c/reg.c - 664 sys sys 1113585456 20572
 sys/src/cmd/8c/sgen.c - 664 sys sys 1089299181 12833
 sys/src/cmd/8c/swt.c - 664 sys sys 1098463321 10943
 sys/src/cmd/8c/txt.c - 664 sys sys 1089299180 24215
