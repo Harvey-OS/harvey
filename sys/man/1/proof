@@ -115,7 +115,7 @@ and
 .B d
 commands are also available as command line options.
 .SH FILES
-.TF /lib/font/bit/MAP
+.TF \fL/lib/font/bit/MAP
 .TP
 .B /lib/font/bit/*
 fonts

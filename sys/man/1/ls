@@ -111,14 +111,13 @@ interpreted
 as follows:
 the first character is
 .TP
-.B  d
+.B d
 if the entry is a directory;
-.PD 0
 .TP
-.B  a
+.B a
 if the entry is an append-only file;
 .TP
-.B  -
+.B -
 if the entry is a plain file.
 .PD
 .PP
@@ -157,5 +156,5 @@ if none of the above permissions is granted.
 .br
 .B /rc/bin/lc
 .SH SEE ALSO
-.IR stat (2)
+.IR stat (2),
 .IR mc (1)

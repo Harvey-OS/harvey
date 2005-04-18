@@ -3,7 +3,7 @@ enum {					/* fundamental constants/defaults */
 	CtlrID		= 7,		/* default controller target ID */
 	MaxDirData	= 255,		/* max. direct data returned */
 //	MaxIOsize	= /*32*512*/ 96*1024,	/* max. I/O size */
-	MaxIOsize	= 32*1024,	/* max. I/O size */
+	MaxIOsize	= 126*512,	/* max. I/O size (e.g. exabyte @ tar 126) */
 	LBsize		= 512,		/* default logical-block size */
 };
 

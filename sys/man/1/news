@@ -49,7 +49,7 @@ or
 .B dead.letter
 are ignored.
 .SH FILES
-.TF /sys/lib/subscribers
+.TF \fL/sys/lib/subscribers
 .TP
 .B /lib/news/*
 articles

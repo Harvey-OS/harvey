@@ -561,25 +561,13 @@ Noerror(void)
 int
 Isatty(int fd)
 {
-	Dir *d1, *d2;
-	int ret;
+	char buf[64];
 
-	d1 = dirfstat(fd);
-	if(d1 == nil)
+	if(fd2path(fd, buf, sizeof buf) != 0)
 		return 0;
-	if(strncmp(d1->name, "ptty", 4)==0){	/* fwd complaints to philw */
-		free(d1);
-		return 1;
-	}
-	d2 = dirstat("/dev/cons");
-	if(d2 == nil){
-		free(d1);
-		return 0;
-	}
-	ret = (d1->type==d2->type&&d1->dev==d2->dev&&d1->qid.path==d2->qid.path);
-	free(d1);
-	free(d2);
-	return ret;
+
+	/* might be /mnt/term/dev/cons */
+	return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
 }
 
 void

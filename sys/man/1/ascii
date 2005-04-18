@@ -146,7 +146,7 @@ Print a table of miscellaneous mathematical symbols.
 .B "look 039 /lib/unicode"
 See the start of the Greek alphabet's encoding in the Unicode Standard.
 .SH FILES
-.TF /lib/unicode
+.TF \fL/lib/unicode
 .TP
 .B /lib/unicode
 table of characters and descriptions.
@@ -155,7 +155,7 @@ table of characters and descriptions.
 .br
 .B /sys/src/cmd/unicode.c
 .SH "SEE ALSO"
-.IR look (1)
+.IR look (1),
 .IR tcs (1),
 .IR utf (6),
 .IR font (6)

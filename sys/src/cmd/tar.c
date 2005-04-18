@@ -33,12 +33,13 @@
 #define BYTES2TBLKS(bytes) ROUNDUP(bytes, Tblock)
 
 typedef vlong Off;
-typedef char *(*Refill)(int ar, char *bufs);
+typedef char *(*Refill)(int ar, char *bufs, int justhdr);
 
 enum { Stdin, Stdout, Stderr };
 enum { Rd, Wr };			/* pipe fd-array indices */
 enum { Output, Input };
 enum { None, Toc, Xtract, Replace };
+enum { Alldata, Justnxthdr };
 enum {
 	Tblock = 512,
 	Nblock = 40,		/* maximum blocksize */
@@ -126,6 +127,7 @@ static int settime;
 static int verbose;
 static int docompress;
 static int keepexisting;
+static Off nexthdr;
 
 static int nblock = Dblock;
 static char *usefile;
@@ -229,20 +231,24 @@ initblks(void)
 	endblk = tpblk + nblock;
 }
 
-/* (re)fill block buffers from archive */
+/*
+ * (re)fill block buffers from archive.  `justhdr' means we don't care
+ * about the data before the next header block.
+ */
 static char *
-refill(int ar, char *bufs)
+refill(int ar, char *bufs, int justhdr)
 {
 	int i, n;
 	unsigned bytes = Tblock * nblock;
-	static int done, first = 1;
+	static int done, first = 1, seekable;
 
 	if (done)
 		return nil;
 
+	if (first)
+		seekable = seek(ar, 0, 1) >= 0;
 	/* try to size non-pipe input at first read */
 	if (first && usefile) {
-		first = 0;
 		n = read(ar, bufs, bytes);
 		if (n <= 0)
 			sysfatal("error reading archive: %r");
@@ -259,8 +265,15 @@ refill(int ar, char *bufs)
 			endblk = (Hdr *)bufs + nblock;
 			bytes = n;
 		}
+	} else if (justhdr && seekable && nexthdr - seek(ar, 0, 1) >= bytes) {
+		/* optimisation for huge archive members on seekable media */
+		if (seek(ar, bytes, 1) < 0)
+			sysfatal("can't seek on archive: %r");
+		n = bytes;
 	} else
 		n = readn(ar, bufs, bytes);
+	first = 0;
+
 	if (n == 0)
 		sysfatal("unexpected EOF reading archive");
 	else if (n < 0)
@@ -275,10 +288,10 @@ refill(int ar, char *bufs)
 }
 
 static Hdr *
-getblk(int ar, Refill rfp)
+getblk(int ar, Refill rfp, int justhdr)
 {
 	if (curblk == nil || curblk >= endblk) {  /* input block exhausted? */
-		if (rfp != nil && (*rfp)(ar, (char *)tpblk) == nil)
+		if (rfp != nil && (*rfp)(ar, (char *)tpblk, justhdr) == nil)
 			return nil;
 		curblk = tpblk;
 	}
@@ -286,15 +299,15 @@ getblk(int ar, Refill rfp)
 }
 
 static Hdr *
-getblkrd(int ar)
+getblkrd(int ar, int justhdr)
 {
-	return getblk(ar, refill);
+	return getblk(ar, refill, justhdr);
 }
 
 static Hdr *
 getblke(int ar)
 {
-	return getblk(ar, nil);
+	return getblk(ar, nil, Alldata);
 }
 
 static Hdr *
@@ -438,13 +451,23 @@ eotar(Hdr *hp)
 	return name(hp)[0] == '\0';
 }
 
+Off
+hdrsize(Hdr *hp)
+{
+	Off bytes = strtoull(hp->size, nil, 8);
+
+	if(isdir(hp))
+		bytes = 0;
+	return bytes;
+}
+
 static Hdr *
 readhdr(int ar)
 {
 	long hdrcksum;
 	Hdr *hp;
 
-	hp = getblkrd(ar);
+	hp = getblkrd(ar, Alldata);
 	if (hp == nil)
 		sysfatal("unexpected EOF instead of archive header");
 	if (eotar(hp))			/* end-of-archive block? */
@@ -453,6 +476,7 @@ readhdr(int ar)
 	if (chksum(hp) != hdrcksum)
 		sysfatal("bad archive header checksum: name %.64s...",
 			hp->name);
+	nexthdr += Tblock*(1 + BYTES2TBLKS(hdrsize(hp)));
 	return hp;
 }
 
@@ -669,11 +693,9 @@ replace(char **argv)
 	if (usefile && !docreate) {
 		/* skip quickly to the end */
 		while ((hp = readhdr(ar)) != nil) {
-			bytes = strtoull(hp->size, nil, 8);
-			if(isdir(hp))
-				bytes = 0;
+			bytes = hdrsize(hp);
 			for (blksleft = BYTES2TBLKS(bytes);
-			     blksleft > 0 && getblkrd(ar) != nil;
+			     blksleft > 0 && getblkrd(ar, Justnxthdr) != nil;
 			     blksleft -= blksread) {
 				blksread = gothowmany(blksleft);
 				putreadblks(ar, blksread);
@@ -774,13 +796,12 @@ extract1(int ar, Hdr *hp, char *fname)
 	int wrbytes, fd = -1, dir = 0;
 	long mtime = strtol(hp->mtime, nil, 8);
 	ulong mode = strtoul(hp->mode, nil, 8) & 0777;
-	Off bytes = strtoll(hp->size, nil, 8);
-	ulong blksread, blksleft = BYTES2TBLKS(bytes);
+	Off bytes  = strtoll(hp->size, nil, 8);		/* for printing */
+	ulong blksread, blksleft = BYTES2TBLKS(hdrsize(hp));
 	Hdr *hbp;
 
 	if (isdir(hp)) {
 		mode |= DMDIR|0700;
-		blksleft = 0;
 		dir = 1;
 	}
 	switch (hp->linkflag) {
@@ -838,7 +859,7 @@ extract1(int ar, Hdr *hp, char *fname)
 		print("%s\n", fname);
 
 	for (; blksleft > 0; blksleft -= blksread) {
-		hbp = getblkrd(ar);
+		hbp = getblkrd(ar, (fd >= 0? Alldata: Justnxthdr));
 		if (hbp == nil)
 			sysfatal("unexpected EOF on archive extracting %s",
 				fname);
@@ -872,16 +893,12 @@ extract1(int ar, Hdr *hp, char *fname)
 static void
 skip(int ar, Hdr *hp, char *fname)
 {
-	Off bytes;
 	ulong blksleft, blksread;
 	Hdr *hbp;
 
-	if (isdir(hp))
-		return;
-	bytes = strtoull(hp->size, nil, 8);
-	blksleft = BYTES2TBLKS(bytes);
-	for (; blksleft > 0; blksleft -= blksread) {
-		hbp = getblkrd(ar);
+	for (blksleft = BYTES2TBLKS(hdrsize(hp)); blksleft > 0;
+	     blksleft -= blksread) {
+		hbp = getblkrd(ar, Justnxthdr);
 		if (hbp == nil)
 			sysfatal("unexpected EOF on archive extracting %s",
 				fname);

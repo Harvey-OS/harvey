@@ -57,7 +57,7 @@ x X html manref start cp 1
 x X html manref end cp 1
 .EE
 .PP
-which are used to create HTML anchors of the form
+which are used to create HTML hyperlinks around text of the form
 .IR cp (1)
 pointing to
 .BR /magic/man2html/1/cp .
@@ -82,6 +82,8 @@ constructions.
 .I Troff2html
 has the reverse properties: it does not handle the preprocessors but its output
 is reliable and (modulo helper annotations) is independent of macro package.
+.SH SOURCE
+.B /sys/src/cmd/troff2html
 .SH SEE ALSO
 .IR troff (1),
 .IR ms2html (1),

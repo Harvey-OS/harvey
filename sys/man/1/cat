@@ -57,7 +57,8 @@ causes it to read no more than
 .I nline
 lines.
 .PP
-Read always executes a single
+.I Read
+always executes a single
 .B write
 for each line of input, which can be helpful when
 preparing input to programs that expect line-at-a-time data.

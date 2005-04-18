@@ -109,6 +109,12 @@ to display the icons of the named
 without sending a message.
 .SH FILES
 .BR /mail/fs/mbox   "   mail directory.
+.SH SOURCE
+.B /sys/src/cmd/faces
+.br
+.B /rc/bin/seemail
+.br
+.B /rc/bin/vwhois
 .SH "SEE ALSO"
 .IR mail (1),
 .IR marshal (1),

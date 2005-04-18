@@ -706,15 +706,13 @@ exit(int i)
 static int
 islikeatty(int fd)
 {
-	Dir *d;
-	int rv;
+	char buf[64];
 
-	d = dirfstat(fd);
-	if(d == nil)
+	if(fd2path(fd, buf, sizeof buf) != 0)
 		return 0;
-	rv = strcmp(d->name, "cons") == 0;
-	free(d);
-	return rv;
+
+	/* might be /mnt/term/dev/cons */
+	return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
 }
 
 extern int

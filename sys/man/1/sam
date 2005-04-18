@@ -44,7 +44,7 @@ The options are
 Autoindent.  In this mode, when a newline character is typed
 in the terminal interface,
 .I samterm
-copies leading white space from the current line to the new line.
+copies leading white space on the current line to the new line.
 .TP
 .B -d
 Do not `download' the terminal part of
@@ -101,7 +101,7 @@ starting at the beginning of the file, of the regular expression
 All files always have a current substring, called dot,
 that is the default address.
 .SS Simple Addresses
-.PD0
+.PD 0
 .TP
 .BI # n
 The empty string after character
@@ -116,7 +116,7 @@ Line
 is the beginning of the file.
 .TP
 .BI  / regexp /
-.PD0
+.PD 0
 .TP
 .BI ? regexp ?
 The substring that matches the regular expression,
@@ -154,7 +154,7 @@ The mark in the file (see the
 .B k
 command below).
 .TP
-\fL"\f2regexp\fL"\f1\f1
+\fB"\f2regexp\fB"\f1\f1
 Preceding a simple address (default
 .BR . ),
 refers to the address evaluated in the unique file whose menu line
@@ -249,7 +249,7 @@ is reversed.
 It is an error for a compound address to represent a malformed substring.
 Some useful idioms: 
 .IB a1 +-
-\%(\f2a1\fL-+\f1)
+\%(\f2a1\fB-+\f1)
 selects the line containing
 the end (beginning) of a1.
 .BI 0/ regexp /
@@ -307,7 +307,7 @@ commands).
 .br
 .ne 1.2i
 .SS Text commands
-.PD0
+.PD 0
 .TP
 .BI a/ text /
 .TP
@@ -403,7 +403,7 @@ Print the line address and character address of the range.
 Print just the character address of the range.
 .PD
 .SS File commands
-.PD0
+.PD 0
 .TP
 .BI \*ab " file-list
 Set the current file to the first file named in the list
@@ -453,7 +453,7 @@ a modified file, but a subsequent
 will delete such a file.
 .PD
 .SS I/O Commands
-.PD0
+.PD 0
 .TP
 .BI \*ae " filename
 Replace the file by the contents of the named external file.
@@ -535,7 +535,7 @@ for all) is placed in
 .B /tmp/sam.err
 and the first few lines are printed.
 .SS Loops and Conditionals
-.PD0
+.PD 0
 .TP
 .BI x/ regexp / " command
 For each match of the regular expression in the range, run the command

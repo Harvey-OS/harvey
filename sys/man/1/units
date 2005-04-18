@@ -102,7 +102,6 @@ Since
 does only multiplicative scale changes,
 it can convert Kelvin to Rankine but not Centigrade to
 Fahrenheit.
-.br
+.PP
 Currency conversions are only as accurate as the last time someone
-updated
-.BR /lib/units .
+updated the database.

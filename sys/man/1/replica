@@ -298,5 +298,7 @@ since installation, run
 since 
 .I changes
 is a local-only operation, the network need not be configured.)
+.SH SOURCE
+.B /rc/bin/replica
 .SH SEE ALSO
 .IR replica (8)
