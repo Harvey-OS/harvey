@@ -175,6 +175,8 @@ Print a file in a small font at 100 lines per page.
 .L
 lp -dstdout /dev/windows/3/window > doc.ps
 Convert an image to a postscript file.
+.SH SOURCE
+.B /rc/bin/lp
 .SH SEE ALSO
 .IR lp (8)
 .br

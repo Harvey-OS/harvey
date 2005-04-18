@@ -94,8 +94,6 @@ flag causes
 .I ps
 to print the arguments for the process.  Newlines in arguments will be translated to spaces for display.
 .SH FILES
-.TF /proc/*/status
-.TP
 .B /proc/*/status
 .SH SOURCE
 .B /sys/src/cmd/ps.c

@@ -480,7 +480,12 @@ producing output in a window labeled
 .BR /sys/src/cmd/sam/+Errors .
 The environment of such commands contains the variable
 .B $%
-with value set to the filename of the window in which the command is run.
+with value set to the filename of the window in which the command is run,
+and
+.B $winid
+set to the window's id number
+(see
+.IR acme (4)).
 .SS "Mouse button 3
 Pointing at text with button 3 instructs
 .I acme

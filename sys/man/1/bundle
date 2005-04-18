@@ -49,5 +49,5 @@ cd gift; rc horse; mk
 .SH BUGS
 .I Bundle
 will not create directories and is unsatisfactory for non-text files.
-.br
+.PP
 Beware of gift horses.

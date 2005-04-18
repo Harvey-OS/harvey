@@ -38,8 +38,6 @@ hwdraw \- drawing routines for memory-resident images
 .SH SYNOPSIS
 .nf
 .B #include <u.h>
-.nf
-.B #include <u.h>
 .B #include <libc.h>
 .B #include <draw.h>
 .B #include <memdraw.h>
@@ -154,7 +152,7 @@ void	freememsubfont(Memsubfont *f)
 Point	memsubfontwidth(Memsubfont *f, char *s)
 Memsubfont*	getmemdefont(void)
 Point	memimagestring(Memimage *dst, Point p, Memimage *color,
-	    Point cp, Memsubfont *f, char *cs, Drawop op)
+	    Point cp, Memsubfont *f, char *cs)
 .PP
 .ft L
 .nf

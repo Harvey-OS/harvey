@@ -37,7 +37,7 @@ getxdata(char *name)
 	}
 	if((dir = dirfstat(fd)) == nil)
 		error("I/O error");
-	if(dir->qid.type != QTFILE)
+	if((dir->qid.type & ~QTTMP) != QTFILE)
 		error("attach name not a plain file");
 	for(fxf=0,xf=xhead; xf; xf=xf->next){
 		if(xf->name == 0){

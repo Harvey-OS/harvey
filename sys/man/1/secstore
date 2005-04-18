@@ -1,6 +1,6 @@
 .TH SECSTORE 1
 .SH NAME
-aescbc, secstore, ipso \- secstore commands
+aescbc, ipso, secstore \- secstore commands
 .SH SYNOPSIS
 .B auth/secstore
 [
@@ -50,7 +50,6 @@ aescbc, secstore, ipso \- secstore commands
 .I file
 \&...
 ]
-.PP
 .SH DESCRIPTION
 .PP
 .I Secstore
@@ -103,7 +102,7 @@ instead of from
 .BR /dev/cons .
 .PP
 The server is
-.BR tcp!$auth!5356 ,
+.BR tcp!$auth!secstore  ,
 or the server specified by option
 .BR -s .
 .PP
@@ -157,16 +156,16 @@ By default, ipso will edit the
 files and, if
 one of them is named
 .BR factotum ,
-flush your current keys from factotum and load
+flush current keys from factotum and load
 the new ones from the file.
-If you supply any of the
+If the
 .BR -e ,
 .BR -f ,
 or
 .BR -l
-options,
+options are given,
 .I ipso
-will just perform the operations you requested, i.e.,
+will just perform only the requested operations, i.e.,
 edit, flush, and/or load.
 .PP
 The
@@ -197,6 +196,8 @@ newly created files are ignored.
 encrypts and decrypts using AES (Rijndael) in cipher
 block chaining (CBC) mode.
 .SH SOURCE
+.B /rc/bin/ipso
+.br
 .B /sys/src/cmd/auth/secstore
 .SH SEE ALSO
 .IR factotum (4),

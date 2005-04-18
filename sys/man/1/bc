@@ -281,12 +281,12 @@ No
 or
 .L !
 operators.
-.br
+.PP
 A
 .L for
 statement must have all three
 .LR E s.
-.br
+.PP
 A
 .L quit
 is interpreted when read, not when executed.

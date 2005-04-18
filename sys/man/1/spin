@@ -138,6 +138,8 @@ different views of the error sequence are then be obtained.
 .TP
 .B V
 Print the version number and exit.
+.SH SOURCE
+.B /sys/src/cmd/spin
 .SH SEE ALSO
 G.J. Holzmann,
 .I

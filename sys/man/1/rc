@@ -962,14 +962,14 @@ Tom Duff,
 .SH BUGS
 There should be a way to match patterns against whole lists rather than
 just single strings.
-.br
+.PP
 Using
 .B ~
 to check the value of
 .B $status
 changes
 .BR $status .
-.br
+.PP
 Functions that use here documents don't work.
-.br
+.PP
 Free carets don't get inserted next to keywords.
