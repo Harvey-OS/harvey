@@ -443,12 +443,12 @@ _aamloop:
  * code as necessary.
  */
 #define	FPOFF(l)							;\
-	MOVL	CR0, AX 					 ;\
-	ANDL	$0xC, AX			/* EM, TS */	 ;\
-	CMPL	AX, $0x8					 ;\
-	JEQ 	l						 ;\
-	WAIT							 ;\
-l:								 ;\
+	MOVL	CR0, AX 					 	;\
+	ANDL	$0xC, AX			/* EM, TS */	 	;\
+	CMPL	AX, $0x8					 	;\
+	JEQ 	l						 	;\
+	WAIT							 	;\
+l:								 	;\
 	MOVL	CR0, AX							;\
 	ANDL	$~0x4, AX			/* EM=0 */		;\
 	ORL	$0x28, AX			/* NE=1, TS=1 */	;\
