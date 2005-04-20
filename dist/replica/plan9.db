@@ -5881,7 +5881,7 @@ sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1099761152 8095
 sys/src/9/pc/kbd.c - 664 sys sys 1079617269 11655
-sys/src/9/pc/l.s - 664 sys sys 1113879928 23699
+sys/src/9/pc/l.s - 664 sys sys 1113926772 23705
 sys/src/9/pc/main.c - 664 sys sys 1089046997 14677
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
