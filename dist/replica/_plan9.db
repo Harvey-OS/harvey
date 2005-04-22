@@ -197,7 +197,7 @@
 386/bin/dial/expect - 775 sys sys 1104122000 60081
 386/bin/dial/pass - 775 sys sys 1104122001 38814
 386/bin/dict - 775 sys sys 1104122001 187459
-386/bin/diff - 775 sys sys 1106971478 85101
+386/bin/diff - 775 sys sys 1114053009 85081
 386/bin/disk - 20000000775 sys sys 984788664 0
 386/bin/disk/dump9660 - 775 sys sys 1104122002 152246
 386/bin/disk/exsort - 775 sys sys 1104122002 60210
@@ -12948,4 +12948,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/diff - 775 sys sys 1114053009 85081
