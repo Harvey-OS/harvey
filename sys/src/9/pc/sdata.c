@@ -1869,7 +1869,7 @@ atapnp(void)
 		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
 			pi = 0x85;
 			break;
-		case (0x0004<<16)|0x1103:	/* HighPoint HPT-370 */
+		case (0x0004<<16)|0x1103:	/* HighPoint HPT366 */
 			pi = 0x85;
 			/*
 			 * Turn off fast interrupt prediction.
