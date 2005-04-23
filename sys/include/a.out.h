@@ -25,8 +25,10 @@ struct	Exec
 #define	N_MAGIC		_MAGIC(22)	/* mips 4000 LE */
 #define	L_MAGIC		_MAGIC(23)	/* dec alpha */
 #define	P_MAGIC		_MAGIC(24)	/* mips 3000 LE */
+#define	U_MAGIC		_MAGIC(25)	/* sparc64 */
+#define	S_MAGIC		_MAGIC(26)	/* amd64 */
 #define	MIN_MAGIC	8
-#define	MAX_MAGIC	24
+#define	MAX_MAGIC	26
 
 #define	DYN_MAGIC	0x80000000	/* or'd in for dynamically loaded modules */
 

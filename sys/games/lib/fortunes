@@ -4061,3 +4061,4 @@ The MOV mnemonic, which stands for `move', is a misnomer.  A copy function is ac
 It's not foolproof, but maybe if we don't act like fools, it will work.
 May God forgive you for what you have done!  - Pope John Paul I, to the Cardinals who elected him
   hb = 0x80;  hb = hb << 24;   /* hb = 0x80000000UL */
+setenv I_WANT_A_BROKEN_PS

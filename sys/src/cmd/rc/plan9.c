@@ -566,6 +566,10 @@ Isatty(int fd)
 	if(fd2path(fd, buf, sizeof buf) != 0)
 		return 0;
 
+	/* might be #c/cons during boot - fixed 22 april 2005, remove this later */
+	if(strcmp(buf, "#c/cons") == 0)
+		return 1;
+
 	/* might be /mnt/term/dev/cons */
 	return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
 }

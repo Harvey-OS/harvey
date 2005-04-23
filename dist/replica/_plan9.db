@@ -3833,7 +3833,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1112905578 253631
+sys/games/lib/fortunes - 664 sys sys 1114187716 253657
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -3861,7 +3861,7 @@ sys/games/lib/sokoban/levels/hard.slc - 644 sys sys 1095792098 17051
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1091904420 4392
 sys/include/String.h - 664 sys sys 1091904425 1319
-sys/include/a.out.h - 664 sys sys 1108077276 1209
+sys/include/a.out.h - 664 sys sys 1114218489 1291
 sys/include/ape - 20000000775 sys sys 1014927784 0
 sys/include/ape/Plan9libnet.h - 664 sys sys 944948760 487
 sys/include/ape/ar.h - 664 sys sys 944948759 354
@@ -3948,7 +3948,7 @@ sys/include/ip.h - 664 sys sys 1103554773 2989
 sys/include/keyboard.h - 664 sys sys 1079577798 815
 sys/include/libc.h - 664 sys sys 1108157980 19587
 sys/include/libsec.h - 664 sys sys 1084318867 9264
-sys/include/mach.h - 664 sys sys 1089313992 8164
+sys/include/mach.h - 664 sys sys 1114218490 8336
 sys/include/memdraw.h - 664 sys sys 1091904419 5645
 sys/include/memlayer.h - 664 sys sys 1051031022 1851
 sys/include/mouse.h - 664 sys sys 1035232010 1003
@@ -5743,7 +5743,7 @@ sys/src/9/bitsy/wavelan.c - 664 sys sys 1064584681 27267
 sys/src/9/bitsy/wavelan.h - 664 sys sys 1037029076 27
 sys/src/9/boot - 20000000775 sys sys 1018556557 0
 sys/src/9/boot/aux.c - 664 sys sys 1063857702 2579
-sys/src/9/boot/boot.c - 664 sys sys 1079527281 6005
+sys/src/9/boot/boot.c - 664 sys sys 1114188078 6012
 sys/src/9/boot/boot.h - 664 sys sys 1063857659 1785
 sys/src/9/boot/bootauth.c - 664 sys sys 1039763726 1097
 sys/src/9/boot/bootcache.c - 664 sys sys 1063857645 1579
@@ -5915,7 +5915,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1060267144 3797
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1112461125 52220
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1112727807 51105
+sys/src/9/pc/sdata.c - 664 sys sys 1114197935 51104
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
 sys/src/9/pc/trap.c - 664 sys sys 1105109602 20537
@@ -10703,7 +10703,7 @@ sys/src/cmd/rc/lex.c - 664 sys sys 1100894085 6100
 sys/src/cmd/rc/mkfile - 664 sys sys 1055698774 812
 sys/src/cmd/rc/pcmd.c - 664 sys sys 1100894086 2681
 sys/src/cmd/rc/pfnc.c - 664 sys sys 1100894087 1320
-sys/src/cmd/rc/plan9.c - 664 sys sys 1113742071 9209
+sys/src/cmd/rc/plan9.c - 664 sys sys 1114188140 9332
 sys/src/cmd/rc/rc.h - 664 sys sys 1100894086 3329
 sys/src/cmd/rc/simple.c - 664 sys sys 1055698777 8993
 sys/src/cmd/rc/subr.c - 664 sys sys 1055698779 1206
@@ -12529,7 +12529,7 @@ sys/src/libmach/2.c - 664 sys sys 964540513 2034
 sys/src/libmach/2db.c - 664 sys sys 1014929543 61245
 sys/src/libmach/2obj.c - 664 sys sys 1091732624 2335
 sys/src/libmach/5.c - 664 sys sys 984710422 1513
-sys/src/libmach/5db.c - 664 sys sys 1014929543 21529
+sys/src/libmach/5db.c - 664 sys sys 1114218476 21530
 sys/src/libmach/5obj.c - 664 sys sys 1091732625 2209
 sys/src/libmach/7.c - 664 sys sys 964540515 3267
 sys/src/libmach/7db.c - 664 sys sys 1014929543 17320
@@ -12948,3 +12948,10 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/acid - 775 sys sys 1114225965 357187
+386/bin/db - 775 sys sys 1114225965 303621
+386/bin/snap - 775 sys sys 1114225966 271015
+386/bin/snapfs - 775 sys sys 1114225967 339869
+386/bin/rc - 775 sys sys 1114225966 143210
+386/bin/tprof - 775 sys sys 1114225968 256583
+386/lib/libmach.a - 664 sys sys 1114225969 658810
