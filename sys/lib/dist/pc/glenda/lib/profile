@@ -1,5 +1,7 @@
-echo -n accelerated > '#m/mousectl'
-echo -n 'res 3' > '#m/mousectl'
+if(test -f '#m/mousectl') {
+	echo -n accelerated > '#m/mousectl'
+	echo -n 'res 3' > '#m/mousectl'
+}
 user=`{cat /dev/user}
 home=/usr/$user
 bind -a $home/bin/rc /bin
