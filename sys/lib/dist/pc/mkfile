@@ -67,7 +67,7 @@ cddisk:D: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb /sys/src/9/pc/9
 	ls -l cddisk
 
 clean:V:
-	rm -rf boot boot.bz2 root.bz2 9pcflop ndisk 9load cddisk proto.cp 9loaddebug
+	rm -rf boot boot.bz2 boot.bflz boot.raw root.bz2 9pcflop ndisk 9load cddisk proto.cp 9loaddebug
 
 install:V: ndisk 9loaddebug
 	cp 9loaddebug ../web.protect2
