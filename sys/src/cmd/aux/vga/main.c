@@ -98,6 +98,7 @@ static void
 linear(Vga* vga)
 {
 	char buf[256];
+	char *p;
 
 	/*
 	 * Set up for linear addressing: try to allocate the
@@ -109,11 +110,28 @@ linear(Vga* vga)
 		return;
 	}
 	if(vga->ctlr->flag & Ulinear){
-		sprint(buf, "0x%lux 0x%lux", vga->apz ? vga->apz : vga->vmz, vga->vma);
-		vgactlw("linear", buf);
+		/*
+		 * If there's already an aperture don't bother trying
+		 * to set up a new one.
+		 */
 		vgactlr("addr", buf);
+		if(atoi(buf)==0 && (buf[0]!='p' || buf[1]!=' ' || atoi(buf+2)==0)){
+			sprint(buf, "0x%lux 0x%lux", vga->apz ? vga->apz : vga->vmz, vga->vma);
+			vgactlw("linear", buf);
+			vgactlr("addr", buf);
+		}
 		trace("linear->addr %s\n", buf);
-		vga->vmb = strtoul(buf, 0, 0);
+		/*
+		 * old: addr 0x12345678
+		 * new: addr p 0x12345678 v 0x82345678 size 0x123
+		 */
+		if(buf[0]=='p' && buf[1]==' '){
+			vga->vmb = strtoul(buf+2, 0, 0);
+			p = strstr(buf, "size");
+			if(p)
+				vga->apz = strtoul(p+4, 0, 0);
+		}else
+			vga->vmb = strtoul(buf, 0, 0);
 	}
 	else
 		vgactlw("linear", "0");
@@ -133,7 +151,8 @@ chanstr[32+1] = {
 void
 main(int argc, char** argv)
 {
-	char *bios, buf[256], sizeb[256], *p, *vsize, *psize, *type;
+	char *bios, buf[256], sizeb[256], *p, *vsize, *psize;
+	char *type, *vtype;
 	int virtual, len;
 	Ctlr *ctlr;
 	Vga *vga;
@@ -220,6 +239,12 @@ main(int argc, char** argv)
 		error(usage, argv0);
 	}
 
+	if(lflag && strcmp(vsize, "text") == 0){
+		vesatextmode();
+		vgactlw("textmode", "");
+		exits(0);
+	}
+
 	vga = alloc(sizeof(Vga));
 	if(bios){
 		if((vga->offset = strtol(bios, &p, 0)) == 0 || *p++ != '=')
@@ -234,8 +259,10 @@ main(int argc, char** argv)
 	 * Try to identify the VGA card and grab
 	 * registers. Print them out if requested.
 	 */
-	if(dbctlr(dbname, vga) == 0 || vga->ctlr == 0){
-		Bprint(&stdout, "%s: controller not in %s\n", argv0, dbname);
+	if(strcmp(type, "vesa") == 0
+		|| dbctlr(dbname, vga) == 0 || vga->ctlr == 0)
+	if(dbvesa(vga) == 0 || vga->ctlr == 0){
+		Bprint(&stdout, "%s: controller not in %s, not vesa\n", argv0, dbname);
 		dumpbios(256);
 		type = "vga";
 		vsize = psize = "640x480x1";
@@ -265,8 +292,14 @@ main(int argc, char** argv)
 		else
 			strcpy(monitordb, dbname);
 
-		if((vga->mode = dbmode(monitordb, type, psize)) == 0)
+		if(vga->vesa){
+			strcpy(monitordb, "vesa bios");
+			vga->mode = dbvesamode(psize);
+		}else
+			vga->mode = dbmode(monitordb, type, psize);
+		if(vga->mode == 0)
 			error("main: %s@%s not in %s\n", type, psize, monitordb);
+
 		if(virtual){
 			if((p = strchr(vsize, 'x')) == nil)
 				error("bad virtual size %s\n", vsize);
@@ -324,6 +357,10 @@ main(int argc, char** argv)
 			(*ctlr->options)(vga, ctlr);
 		}
 
+		/*
+		 * skip init for vesa - vesa will do the registers for us
+		 */
+		if(!vga->vesa)
 		for(ctlr = vga->link; ctlr; ctlr = ctlr->link){
 			if(ctlr->init == 0)
 				continue;
@@ -348,20 +385,37 @@ main(int argc, char** argv)
 					vga->ctlr->name, vga->vmz);
 
 			if(vga->ctlr->type)
-				vgactlw("type", vga->ctlr->type);
+				vtype = vga->ctlr->type;
 			else if(p = strchr(vga->ctlr->name, '-')){
 				strncpy(buf, vga->ctlr->name, p - vga->ctlr->name);
 				buf[p - vga->ctlr->name] = 0;
-				vgactlw("type", buf);
+				vtype = buf;
 			}
 			else
-				vgactlw("type", vga->ctlr->name);
-	
+				vtype = vga->ctlr->name;
+			vgactlw("type", vtype);
+
+			/*
+			 * VESA must be set up before linear.
+			 * Set type to vesa for linear.
+			 */
+			if(vga->vesa){
+				vgactlw("type", vesa.name);
+				vesa.load(vga, vga->vesa);
+			}
+
 			/*
 			 * The new draw device needs linear mode set
 			 * before size.
 			 */
 			linear(vga);
+
+			/*
+			 * Linear is over so switch to other driver for
+			 * acceleration.
+			 */
+			if(vga->vesa)
+				vgactlw("type", vtype);
 
 			sprint(buf, "%ludx%ludx%d %s",
 				vga->virtx, vga->virty,
@@ -376,18 +430,24 @@ main(int argc, char** argv)
 				vgactlw("size", buf);
 
 			/*
-			 * Turn off the display during the load.
+			 * No fiddling with registers if VESA set 
+			 * things up already.  Sorry.
 			 */
-			sequencer(vga, 0);
-
-			for(ctlr = vga->link; ctlr; ctlr = ctlr->link){
-				if(ctlr->load == 0)
-					continue;
-				trace("%s->load\n", ctlr->name);
-				(*ctlr->load)(vga, ctlr);
+			if(!vga->vesa){
+				/*
+				 * Turn off the display during the load.
+				 */
+				sequencer(vga, 0);
+	
+				for(ctlr = vga->link; ctlr; ctlr = ctlr->link){
+					if(ctlr->load == 0 || ctlr == &vesa)
+						continue;
+					trace("%s->load\n", ctlr->name);
+					(*ctlr->load)(vga, ctlr);
+				}
+	
+				sequencer(vga, 1);
 			}
-
-			sequencer(vga, 1);
 
 			vgactlw("drawinit", "");
 

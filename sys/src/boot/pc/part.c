@@ -183,7 +183,7 @@ mbrpart(SDunit *unit)
 	for(i=0; i<4; i++, dp++) {
 		if(trace)
 			print("dp %d...", dp->type);
-		start = mbroffset+GLONG(dp->start);
+		start = mbroffset/512+GLONG(dp->start);
 		end = start+GLONG(dp->len);
 
 		if(dp->type == PLAN9) {

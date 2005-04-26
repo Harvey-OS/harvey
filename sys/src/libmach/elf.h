@@ -80,6 +80,8 @@ enum {
 	MIPS = 8,		/* Mips R2000 */
 	S370 = 9,		/* Amdhal	*/
 	POWER = 20,		/* PowerPC */
+	SPARC64 = 18,		/* Sun SPARC v9 */
+	AMD64 = 62,		/* Amd64 */
 
 	NO_VERSION = 0,		/* version, ident[VERSION] */
 	CURRENT = 1,

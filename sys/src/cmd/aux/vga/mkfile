@@ -51,6 +51,7 @@ OFILES=\
 	tvp3025clock.$O\
 	tvp3026.$O\
 	tvp3026clock.$O\
+	vesa.$O\
 	vga.$O\
 	virge.$O\
 	vision864.$O\

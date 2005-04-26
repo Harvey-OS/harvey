@@ -5,7 +5,7 @@
 
 /*
  * PowerPC-specific debugger interface
- *	forsyth@plan9.cs.york.ac.uk
+ *	forsyth@terzarima.net
  */
 
 static	char	*powerexcep(Map*, Rgetter);
@@ -584,7 +584,7 @@ sub(Opcode *o, Instr *i)
 }
 
 static void
-div(Opcode *o, Instr *i)
+qdiv(Opcode *o, Instr *i)
 {
 	format(o->mnemonic, i, 0);
 	if(i->op == 31)
@@ -728,11 +728,13 @@ static Opcode opcodes[] = {
 	{31,	278,	ALL,	"DCBT",		dcb,	0},
 	{31,	246,	ALL,	"DCBTST",	dcb,	0},
 	{31,	1014,	ALL,	"DCBZ",		dcb,	0},
+	{31,	454,	ALL,	"DCCCI",	dcb,	0},
+	{31,	966,	ALL,	"ICCCI",	dcb,	0},
 
-	{31,	331,	OEM,	"DIV%V%C",	div,	ir3},	/* POWER */
-	{31,	363,	OEM,	"DIVS%V%C",	div,	ir3},	/* POWER */
-	{31,	491,	OEM,	"DIVW%V%C",	div,	ir3},
-	{31,	459,	OEM,	"DIVWU%V%C",	div,	ir3},
+	{31,	331,	OEM,	"DIV%V%C",	qdiv,	ir3},	/* POWER */
+	{31,	363,	OEM,	"DIVS%V%C",	qdiv,	ir3},	/* POWER */
+	{31,	491,	OEM,	"DIVW%V%C",	qdiv,	ir3},
+	{31,	459,	OEM,	"DIVWU%V%C",	qdiv,	ir3},
 
 	{31,	264,	OEM,	"DOZ%V%C",	gencc,	ir3r},	/* POWER */
 	{9,	0,	0,	"DOZ",		gen,	ir2i},	/* POWER */
@@ -820,6 +822,8 @@ static Opcode opcodes[] = {
 	{31,	339,	ALL,	"MOVW",		gen,	"%P,R%d"},
 	{31,	595,	ALL,	"MOVW",		gen,	"SEG(%a),R%d"},
 	{31,	659,	ALL,	"MOVW",		gen,	"SEG(R%b),R%d"},
+	{31,	323,	ALL,	"MOVW",		gen, "DCR(%Q),R%d"},
+	{31,	451,	ALL,	"MOVW",		gen,	"R%s,DCR(%Q)"},
 	{31,	144,	ALL,	"MOVFL",	gen,	"R%s,%m,CR"},
 	{63,	70,	ALL,	"MTFSB0%C",	gencc,	"%D"},
 	{63,	38,	ALL,	"MTFSB1%C",	gencc,	"%D"},
@@ -835,7 +839,7 @@ static Opcode opcodes[] = {
 	{31,	11,	ALL,	"MULHWU%C",	gencc,	ir3},	/* POWER */
 
 	{31,	235,	OEM,	"MULLW%V%C",	gencc,	ir3},
-	{7,	0,	0,	"MULLW",	div,	"%i,R%a,R%d"},
+	{7,	0,	0,	"MULLW",	qdiv,	"%i,R%a,R%d"},
 
 	{31,	488,	OEM,	"NABS%V%C",	neg,	ir2},	/* POWER */
 
@@ -848,6 +852,7 @@ static Opcode opcodes[] = {
 	{25,	0,	0,	"OR",		shifted, 0},
 
 	{19,	50,	ALL,	"RFI",		gen,	0},
+	{19,	51,	ALL,	"RFCI",		gen,	0},
 
 	{22,	0,	0,	"RLMI%C",	gencc,	rlim},	/* POWER */
 	{20,	0,	0,	"RLWMI%C",	gencc,	rlimi},
@@ -984,6 +989,7 @@ static	Spr	sprname[] = {
 	{981, "ICMP"},
 	{982, "RPA"},
 	{1010, "IABR"},
+	{1013, "DABR"},
 	{0,0},
 };
 
@@ -1081,6 +1087,11 @@ format(char *mnemonic, Instr *i, char *f)
 					bprint(i, "SPR(%s)", sprname[s].name);
 			} else
 				bprint(i, "SPR(%d)", n);
+			break;
+
+		case 'Q':
+			n = ((i->spr&0x1f)<<5)|((i->spr>>5)&0x1f);
+			bprint(i, "%d", n);
 			break;
 
 		case 'n':

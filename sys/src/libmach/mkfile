@@ -11,25 +11,30 @@ FILES=executable\
 	setmach\
 	v\
 	k\
+	u\
 	q\
 	0\
 	2\
-	8\
 	5\
+	6\
 	7\
+	8\
 	vdb\
 	kdb\
+	udb\
 	qdb\
 	2db\
-	8db\
 	5db\
 	7db\
+	8db\
 	vobj\
 	kobj\
+	uobj\
 	2obj\
-	8obj\
 	5obj\
+	6obj\
 	7obj\
+	8obj\
 	qobj\
 	vcodas\
 

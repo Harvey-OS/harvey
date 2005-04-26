@@ -184,6 +184,7 @@ typedef struct Vga {
 	Ctlr*	ramdac;
 	Ctlr*	clock;
 	Ctlr*	hwgc;
+	Ctlr* vesa;
 	Ctlr*	link;
 	int	linear;
 	Attr*	attr;
@@ -411,6 +412,13 @@ extern uchar vgaxi(long, uchar);
 extern void vgao(long, uchar);
 extern void vgaxo(long, uchar, uchar);
 extern Ctlr generic;
+
+/* vesa.c */
+extern Ctlr vesa;
+extern Ctlr softhwgc;	/* has to go somewhere */
+extern int dbvesa(Vga*);
+extern Mode *dbvesamode(char*);
+extern void vesatextmode(void);
 
 /* virge.c */
 extern Ctlr virge;
