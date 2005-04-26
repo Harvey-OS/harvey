@@ -132,6 +132,31 @@ screen of the given size.
 The physical screen will pan to follow the mouse.
 This is useful on displays with small screens,
 such as laptops, but can be confusing.
+.PP
+Using the monitor name
+.B vesa
+instructs
+.I vga
+to use VESA BIOS calls to configure the display.
+There are no entries for the
+.B vesa
+monitor in 
+.IR vgadb .
+For a list of available VESA modes, use
+.IP
+.EX
+aux/vga -m vesa -p
+.EE
+.PP
+Loading the special mode
+.BR text :
+.IP
+.EX
+aux/vga -l text
+.EE
+.PP
+switches out of graphics mode back into text mode.
+It uses the VESA BIOS.
 .SH EXAMPLES
 Change the display resolution:
 .IP

@@ -5,6 +5,7 @@
 
 /*
  * i386-specific debugger interface
+ * also amd64 extensions
  */
 
 static	char	*i386excep(Map*, Rgetter);
@@ -35,6 +36,9 @@ static char *excname[] =
 [13]	"general protection violation",
 [14]	"page fault",
 [16]	"math coprocessor error",
+[17]	"alignment check",
+[18]	"machine check",
+[19]	"floating-point exception",
 [24]	"clock",
 [25]	"keyboard",
 [27]	"modem status",
@@ -166,17 +170,22 @@ struct	Instr
 	char	*prefix;	/* instr prefix */
 	char	*segment;	/* segment override */
 	uchar	jumptype;	/* set to the operand type for jump/ret/call */
-	char	osize;		/* 'W' or 'L' */
-	char	asize;		/* address size 'W' or 'L' */
+	uchar	amd64;
+	uchar	rex;	/* REX prefix (or zero) */
+	char	osize;		/* 'W' or 'L' (or 'Q' on amd64) */
+	char	asize;		/* address size 'W' or 'L' (or 'Q' or amd64) */
 	uchar	mod;		/* bits 6-7 of mod r/m field */
 	uchar	reg;		/* bits 3-5 of mod r/m field */
 	char	ss;		/* bits 6-7 of SIB */
 	char	index;		/* bits 3-5 of SIB */
 	char	base;		/* bits 0-2 of SIB */
+	char	rip;	/* RIP-relative in amd64 mode */
+	uchar	opre;	/* f2/f3 could introduce media */
 	short	seg;		/* segment of far address */
 	ulong	disp;		/* displacement */
 	ulong 	imm;		/* immediate */
 	ulong 	imm2;		/* second immediate operand */
+	uvlong	imm64;	/* big immediate */
 	char	*curr;		/* fill level in output buffer */
 	char	*end;		/* end of output buffer */
 	char	*err;		/* error message */
@@ -192,7 +201,26 @@ enum{
 	BP,
 	SI,
 	DI,
+
+	/* amd64 */
+	R8,
+	R9,
+	R10,
+	R11,
+	R12,
+	R13,
+	R14,
+	R15
 };
+
+	/* amd64 rex extension byte */
+enum{
+	REXW	= 1<<3,	/* =1, 64-bit operand size */
+	REXR		= 1<<2,	/* extend modrm reg */
+	REXX		= 1<<1,	/* extend sib index */
+	REXB		= 1<<0	/* extend modrm r/m, sib base, or opcode reg */
+};
+	
 	/* Operand Format codes */
 /*
 %A	-	address size register modifier (!asize -> 'E')
@@ -202,7 +230,7 @@ enum{
 %O	-	Operand size register modifier (!osize -> 'E')
 %T	-	Test register TR6/TR7
 %S	-	size code ('W' or 'L')
-%X	-	Weird opcode: OSIZE == 'W' => "CBW"; else => "CWDE"
+%W	-	Weird opcode: OSIZE == 'W' => "CBW"; else => "CWDE"
 %d	-	displacement 16-32 bits
 %e	-	effective address - Mod R/M value
 %f	-	floating point register F0-F7 - from Mod R/M register
@@ -210,7 +238,7 @@ enum{
 %i	-	immediate operand 8-32 bits
 %p	-	PC-relative - signed displacement in immediate field
 %r	-	Reg from Mod R/M
-%x	-	Weird opcode: OSIZE == 'W' => "CWD"; else => "CDQ"
+%w	-	Weird opcode: OSIZE == 'W' => "CWD"; else => "CDQ"
 */
 
 typedef struct Optable Optable;
@@ -227,6 +255,7 @@ enum {
 	Iw,			/* 16-bit immediate -> imm */
 	Iw2,			/* 16-bit immediate -> imm2 */
 	Iwd,			/* Operand-sized immediate (no sign extension)*/
+	Iwdq,		/* Operand-sized immediate, possibly 64 bits */
 	Awd,			/* Address offset */
 	Iwds,			/* Operand-sized immediate (sign extended) */
 	RM,			/* Word or long R/M field with register (/r) */
@@ -244,7 +273,9 @@ enum {
 	OA,			/* literal 0x0a byte */
 	PTR,			/* Seg:Displacement addr (ptr16:16 or ptr16:32) */
 	AUX,			/* Multi-byte op code - Auxiliary table */
+	AUXMM,		/* multi-byte op code - auxiliary table chosen by prefix */
 	PRE,			/* Instr Prefix */
+	OPRE,		/* Instr Prefix or media op extension */
 	SEG,			/* Segment Prefix */
 	OPOVER,			/* Operand size override */
 	ADDOVER,		/* Address size override */
@@ -268,7 +299,26 @@ static Optable optab0F01[8]=
 [0x03]	0,0,		"MOVL	%e,IDTR",
 [0x04]	0,0,		"MOVW	MSW,%e",	/* word */
 [0x06]	0,0,		"MOVW	%e,MSW",	/* word */
+[0x07]	0,0,		"INVLPG	%e",	/* TO DO: distinguish SWAPGS? */
 };
+
+/* 0F71 */
+/* 0F72 */
+/* 0F73 */
+
+static Optable optab0FAE[8]=
+{
+[0x00]	0,0,		"FXSAVE	%e",
+[0x01]	0,0,		"FXRSTOR	%e",
+[0x02]	0,0,		"LDMXCSR	%e",
+[0x03]	0,0,		"STMXCSR	%e",
+[0x05]	0,0,		"LFENCE",
+[0x06]	0,0,		"MFENCE",
+[0x07]	0,0,		"SFENCE",
+};
+
+/* 0F18 */
+/* 0F0D */
 
 static Optable optab0FBA[8]=
 {
@@ -278,6 +328,121 @@ static Optable optab0FBA[8]=
 [0x07]	Ib,0,		"BTC%S	%i,%e",
 };
 
+static Optable optab0F0F[256]=
+{
+[0x0c]	0,0,	"PI2FW	%m,%M",
+[0x0d]	0,0,	"PI2L	%m,%M",
+[0x1c]	0,0,	"PF2IW	%m,%M",
+[0x1d]	0,0,	"PF2IL	%m,%M",
+[0x8a]	0,0,	"PFNACC	%m,%M",
+[0x8e]	0,0,	"PFPNACC	%m,%M",
+[0x90]	0,0,	"PFCMPGE	%m,%M",
+[0x94]	0,0,	"PFMIN	%m,%M",
+[0x96]	0,0,	"PFRCP	%m,%M",
+[0x97]	0,0,	"PFRSQRT	%m,%M",
+[0x9a]	0,0,	"PFSUB	%m,%M",
+[0x9e]	0,0,	"PFADD	%m,%M",
+[0xa0]	0,0,	"PFCMPGT	%m,%M",
+[0xa4]	0,0,	"PFMAX	%m,%M",
+[0xa6]	0,0,	"PFRCPIT1	%m,%M",
+[0xa7]	0,0,	"PFRSQIT1	%m,%M",
+[0xaa]	0,0,	"PFSUBR	%m,%M",
+[0xae]	0,0,	"PFACC	%m,%M",
+[0xb0]	0,0,	"PFCMPEQ	%m,%M",
+[0xb4]	0,0,	"PFMUL	%m,%M",
+[0xb6]	0,0,	"PFRCPI2T	%m,%M",
+[0xb7]	0,0,	"PMULHRW	%m,%M",
+[0xbb]	0,0,	"PSWAPL	%m,%M",
+};
+
+static Optable optab0FC7[8]=
+{
+[0x01]	0,0,		"CMPXCHG8B	%e",
+};
+
+static Optable optab660F71[8]=
+{
+[0x02]	Ib,0,		"PSRLW	%i,%X",
+[0x04]	Ib,0,		"PSRAW	%i,%X",
+[0x06]	Ib,0,		"PSLLW	%i,%X",
+};
+
+static Optable optab660F72[8]=
+{
+[0x02]	Ib,0,		"PSRLL	%i,%X",
+[0x04]	Ib,0,		"PSRAL	%i,%X",
+[0x06]	Ib,0,		"PSLLL	%i,%X",
+};
+
+static Optable optab660F73[8]=
+{
+[0x02]	Ib,0,		"PSRLQ	%i,%X",
+[0x03]	Ib,0,		"PSRLO	%i,%X",
+[0x06]	Ib,0,		"PSLLQ	%i,%X",
+[0x07]	Ib,0,		"PSLLO	%i,%X",
+};
+
+static Optable optab660F[256]=
+{
+[0x2B]	RM,0,		"MOVNTPD	%x,%e",
+[0x2E]	RM,0,	"UCOMISD	%x,%X",
+[0x2F]	RM,0,	"COMISD	%x,%X",
+[0x5A]	RM,0,		"CVTPD2PS	%x,%X",
+[0x5B]	RM,0,		"CVTPS2PL	%x,%X",
+[0x6A]	RM,0,		"PUNPCKHLQ %x,%X",
+[0x6B]	RM,0,		"PACKSSLW %x,%X",
+[0x6C]	RM,0,		"PUNPCKLQDQ %x,%X",
+[0x6D]	RM,0,		"PUNPCKHQDQ %x,%X",
+[0x6E]	RM,0,		"MOV%S	%e,%X",
+[0x6F]	RM,0,		"MOVO	%x,%X",	/* MOVDQA */
+[0x70]	RM,Ib,		"PSHUFL	%i,%x,%X",
+[0x71]	RMOP,0,		optab660F71,
+[0x72]	RMOP,0,		optab660F72,
+[0x73]	RMOP,0,		optab660F73,
+[0x7E]	RM,0,		"MOV%S	%X,%e",
+[0x7F]	RM,0,		"MOVO	%X,%x",
+[0xC4]	RM,Ib,		"PINSRW	%i,%e,%X",
+[0xC5]	RMR,Ib,		"PEXTRW	%i,%X,%e",
+[0xD4]	RM,0,		"PADDQ	%x,%X",
+[0xD5]	RM,0,		"PMULLW	%x,%X",
+[0xD6]	RM,0,		"MOVQ	%X,%x",
+[0xE6]	RM,0,		"CVTTPD2PL	%x,%X",
+[0xE7]	RM,0,		"MOVNTO	%X,%e",
+[0xF7]	RM,0,		"MASKMOVOU	%x,%X",
+};
+
+static Optable optabF20F[256]=
+{
+[0x10]	RM,0,	"MOVSD	%x,%X",
+[0x11]	RM,0,	"MOVSD	%X,%x",
+[0x2A]	RM,0,		"CVTS%S2SD	%e,%X",
+[0x2C]	RM,0,		"CVTTSD2S%S	%x,%r",
+[0x2D]	RM,0,		"CVTSD2S%S	%x,%r",
+[0x5A]	RM,0,		"CVTSD2SS	%x,%X",
+[0x6F]	RM,0,		"MOVOU	%x,%X",
+[0x70]	RM,Ib,		"PSHUFLW	%i,%x,%X",
+[0x7F]	RM,0,		"MOVOU	%X,%x",
+[0xD6]	RM,0,		"MOVQOZX	%M,%X",
+[0xE6]	RM,0,		"CVTPD2PL	%x,%X",
+};
+
+static Optable optabF30F[256]=
+{
+[0x10]	RM,0,	"MOVSS	%x,%X",
+[0x11]	RM,0,	"MOVSS	%X,%x",
+[0x2A]	RM,0,		"CVTS%S2SS	%e,%X",
+[0x2C]	RM,0,		"CVTTSS2S%S	%x,%r",
+[0x2D]	RM,0,		"CVTSS2S%S	%x,%r",
+[0x5A]	RM,0,		"CVTSS2SD	%x,%X",
+[0x5B]	RM,0,		"CVTTPS2PL	%x,%X",
+[0x6F]	RM,0,		"MOVOU	%x,%X",
+[0x70]	RM,Ib,		"PSHUFHW	%i,%x,%X",
+[0x7E]	RM,0,		"MOVQOZX	%x,%X",
+[0x7F]	RM,0,		"MOVOU	%X,%x",
+[0xD6]	RM,0,		"MOVQOZX	%m*,%X",
+[0xE6]	RM,0,		"CVTPL2PD	%x,%X",
+};
+
 static Optable optab0F[256]=
 {
 [0x00]	RMOP,0,		optab0F00,
@@ -285,17 +450,36 @@ static Optable optab0F[256]=
 [0x02]	RM,0,		"LAR	%e,%r",
 [0x03]	RM,0,		"LSL	%e,%r",
 [0x06]	0,0,		"CLTS",
+[0x07]	0,0,		"SYSRET",
 [0x08]	0,0,		"INVD",
 [0x09]	0,0,		"WBINVD",
+[0x0F]	RM,AUX,	optab0F0F,	/* 3DNow! */
+[0x10]	RM,0,	"MOVU%s	%x,%X",
+[0x11]	RM,0,	"MOVU%s	%X,%x",
+[0x12]	RM,0,	"MOV[H]L%s	%x,%X",	/* TO DO: H if source is XMM */
+[0x13]	RM,0,	"MOVL%s	%X,%e",
+[0x14]	RM,0,	"UNPCKL%s	%x,%X",
+[0x15]	RM,0,	"UNPCKH%s	%x,%X",
+[0x16]	RM,0,	"MOV[L]H%s	%x,%X",	/* TO DO: L if source is XMM */
+[0x17]	RM,0,	"MOVH%s	%X,%x",
 [0x20]	RMR,0,		"MOVL	%C,%e",
 [0x21]	RMR,0,		"MOVL	%D,%e",
 [0x22]	RMR,0,		"MOVL	%e,%C",
 [0x23]	RMR,0,		"MOVL	%e,%D",
 [0x24]	RMR,0,		"MOVL	%T,%e",
 [0x26]	RMR,0,		"MOVL	%e,%T",
+[0x28]	RM,0,	"MOVA%s	%x,%X",
+[0x29]	RM,0,	"MOVA%s	%X,%x",
+[0x2A]	RM,0,	"CVTPL2%s	%m*,%X",
+[0x2B]	RM,0,	"MOVNT%s	%X,%e",
+[0x2C]	RM,0,	"CVTT%s2PL	%x,%M",
+[0x2D]	RM,0,	"CVT%s2PL	%x,%M",
+[0x2E]	RM,0,	"UCOMISS	%x,%X",
+[0x2F]	RM,0,	"COMISS	%x,%X",
 [0x30]	0,0,		"WRMSR",
 [0x31]	0,0,		"RDTSC",
 [0x32]	0,0,		"RDMSR",
+[0x33]	0,0,		"RDPMC",
 [0x42]	RM,0,		"CMOVC	%e,%r",		/* CF */
 [0x43]	RM,0,		"CMOVNC	%e,%r",		/* ¬ CF */
 [0x44]	RM,0,		"CMOVZ	%e,%r",		/* ZF */
@@ -310,6 +494,94 @@ static Optable optab0F[256]=
 [0x4D]	RM,0,		"CMOVGE	%e,%r",		/* GE ≡ ZF ∨ SF */
 [0x4E]	RM,0,		"CMOVLE	%e,%r",		/* LE ≡ ZF ∨ LT */
 [0x4F]	RM,0,		"CMOVGT	%e,%r",		/* GT ≡ ¬ZF ∧ GE */
+[0x50]	RM,0,		"MOVMSK%s	%X,%r",	/* TO DO: check */
+[0x51]	RM,0,		"SQRT%s	%x,%X",
+[0x52]	RM,0,		"RSQRT%s	%x,%X",
+[0x53]	RM,0,		"RCP%s	%x,%X",
+[0x54]	RM,0,		"AND%s	%x,%X",
+[0x55]	RM,0,		"ANDN%s	%x,%X",
+[0x56]	RM,0,		"OR%s	%x,%X",	/* TO DO: S/D */
+[0x57]	RM,0,		"XOR%s	%x,%X",	/* S/D */
+[0x58]	RM,0,		"ADD%s	%x,%X",	/* S/P S/D */
+[0x59]	RM,0,		"MUL%s	%x,%X",
+[0x5A]	RM,0,		"CVTPS2PD	%x,%X",
+[0x5B]	RM,0,		"CVTPL2PS	%x,%X",
+[0x5C]	RM,0,		"SUB%s	%x,%X",
+[0x5D]	RM,0,		"MIN%s	%x,%X",
+[0x5E]	RM,0,		"DIV%s	%x,%X",	/* TO DO: S/P S/D */
+[0x5F]	RM,0,		"MAX%s	%x,%X",
+[0x60]	RM,0,		"PUNPCKLBW %m,%M",
+[0x61]	RM,0,		"PUNPCKLWL %m,%M",
+[0x62]	RM,0,		"PUNPCKLLQ %m,%M",
+[0x63]	RM,0,		"PACKSSWB %m,%M",
+[0x64]	RM,0,		"PCMPGTB %m,%M",
+[0x65]	RM,0,		"PCMPGTW %m,%M",
+[0x66]	RM,0,		"PCMPGTL %m,%M",
+[0x67]	RM,0,		"PACKUSWB %m,%M",
+[0x68]	RM,0,		"PUNPCKHBW %m,%M",
+[0x69]	RM,0,		"PUNPCKHWL %m,%M",
+[0x6A]	RM,0,		"PUNPCKHLQ %m,%M",
+[0x6B]	RM,0,		"PACKSSLW %m,%M",
+[0x6E]	RM,0,		"MOV%S %e,%M",
+[0x6F]	RM,0,		"MOVQ %m,%M",
+[0x70]	RM,Ib,		"PSHUFW	%i,%m,%M",
+[0x74]	RM,0,		"PCMPEQB %m,%M",
+[0x75]	RM,0,		"PCMPEQW %m,%M",
+[0x76]	RM,0,		"PCMPEQL %m,%M",
+[0x7E]	RM,0,		"MOV%S %M,%e",
+[0x7F]	RM,0,		"MOVQ %M,%m",
+[0xAE]	RMOP,0,		optab0FAE,
+[0xAA]	0,0,			"RSM",
+[0xB0]	RM,0,		"CMPXCHGB	%r,%e",
+[0xB1]	RM,0,		"CMPXCHG%S	%r,%e",
+[0xC0]	RMB,0,		"XADDB	%r,%e",
+[0xC1]	RM,0,		"XADD%S	%r,%e",
+[0xC2]	RM,Ib,		"CMP%s	%i,%x,%X",
+[0xC3]	RM,0,		"MOVNTI%S	%r,%e",
+[0xC6]	RM,Ib,		"SHUF%s	%i,%x,%X",
+[0xD1]	RM,0,		"PSRLW %m,%M",
+[0xD2]	RM,0,		"PSRLL %m,%M",
+[0xD3]	RM,0,		"PSRLQ %m,%M",
+[0xD5]	RM,0,		"PMULLW %m,%M",
+[0xD6]	RM,0,		"MOVQOZX	%m*,%X",
+[0xD7]	RM,0,		"PMOVMSKB %m,%r",
+[0xD8]	RM,0,		"PSUBUSB %m,%M",
+[0xD9]	RM,0,		"PSUBUSW %m,%M",
+[0xDA]	RM,0,		"PMINUB %m,%M",
+[0xDB]	RM,0,		"PAND %m,%M",
+[0xDC]	RM,0,		"PADDUSB %m,%M",
+[0xDD]	RM,0,		"PADDUSW %m,%M",
+[0xDE]	RM,0,		"PMAXUB %m,%M",
+[0xDF]	RM,0,		"PANDN %m,%M",
+[0xE0]	RM,0,		"PAVGB %m,%M",
+[0xE1]	RM,0,		"PSRAW %m,%M",
+[0xE2]	RM,0,		"PSRAL %m,%M",
+[0xE3]	RM,0,		"PAVGW %m,%M",
+[0xE4]	RM,0,		"PMULHUW %m,%M",
+[0xE5]	RM,0,		"PMULHW %m,%M",
+[0xE7]	RM,0,		"MOVNTQ	%M,%e",
+[0xE8]	RM,0,		"PSUBSB %m,%M",
+[0xE9]	RM,0,		"PSUBSW %m,%M",
+[0xEA]	RM,0,		"PMINSW %m,%M",
+[0xEB]	RM,0,		"POR %m,%M",
+[0xEC]	RM,0,		"PADDSB %m,%M",
+[0xED]	RM,0,		"PADDSW %m,%M",
+[0xEE]	RM,0,		"PMAXSW %m,%M",
+[0xEF]	RM,0,		"PXOR %m,%M",
+[0xF1]	RM,0,		"PSLLW %m,%M",
+[0xF2]	RM,0,		"PSLLL %m,%M",
+[0xF3]	RM,0,		"PSLLQ %m,%M",
+[0xF4]	RM,0,		"PMULULQ	%m,%M",
+[0xF5]	RM,0,		"PMADDWL %m,%M",
+[0xF6]	RM,0,		"PSADBW %m,%M",
+[0xF7]	RMR,0,		"MASKMOVQ	%m,%M",
+[0xF8]	RM,0,		"PSUBB %m,%M",
+[0xF9]	RM,0,		"PSUBW %m,%M",
+[0xFA]	RM,0,		"PSUBL %m,%M",
+[0xFC]	RM,0,		"PADDB %m,%M",
+[0xFD]	RM,0,		"PADDW %m,%M",
+[0xFE]	RM,0,		"PADDL %m,%M",
+
 [0x80]	Iwds,0,		"JOS	%p",
 [0x81]	Iwds,0,		"JOC	%p",
 [0x82]	Iwds,0,		"JCS	%p",
@@ -366,6 +638,7 @@ static Optable optab0F[256]=
 [0xbd]	RM,0,		"BSR%S	%e,%r",
 [0xbe]	RMB,0,		"MOVBSX	%e,%R",
 [0xbf]	RM,0,		"MOVWSX	%e,%R",
+[0xc7]	RMOP,0,		optab0FC7,
 };
 
 static Optable optab80[8]=
@@ -679,7 +952,7 @@ static Optable optabFF[8] =
 [0x06]	0,0,		"PUSHL	%e",
 };
 
-static Optable optable[256] =
+static Optable optable[256+1] =
 {
 [0x00]	RMB,0,		"ADDB	%r,%e",
 [0x01]	RM,0,		"ADD%S	%r,%e",
@@ -696,7 +969,7 @@ static Optable optable[256] =
 [0x0c]	Ib,0,		"ORB	%i,AL",
 [0x0d]	Iwd,0,		"OR%S	%i,%OAX",
 [0x0e]	0,0,		"PUSHL	CS",
-[0x0f]	AUX,0,		optab0F,
+[0x0f]	AUXMM,0,		optab0F,
 [0x10]	RMB,0,		"ADCB	%r,%e",
 [0x11]	RM,0,		"ADC%S	%r,%e",
 [0x12]	RMB,0,		"ADCB	%e,%r",
@@ -832,8 +1105,8 @@ static Optable optable[256] =
 [0x95]	0,0,		"XCHG	%OBP,%OAX",
 [0x96]	0,0,		"XCHG	%OSI,%OAX",
 [0x97]	0,0,		"XCHG	%ODI,%OAX",
-[0x98]	0,0,		"%X",			/* miserable CBW or CWDE */
-[0x99]	0,0,		"%x",			/* idiotic CWD or CDQ */
+[0x98]	0,0,		"%W",			/* miserable CBW or CWDE */
+[0x99]	0,0,		"%w",			/* idiotic CWD or CDQ */
 [0x9a]	PTR,0,		"CALL%S	%d",
 [0x9b]	0,0,		"WAIT",
 [0x9c]	0,0,		"PUSHF",
@@ -864,14 +1137,14 @@ static Optable optable[256] =
 [0xb5]	Ib,0,		"MOVB	%i,CH",
 [0xb6]	Ib,0,		"MOVB	%i,DH",
 [0xb7]	Ib,0,		"MOVB	%i,BH",
-[0xb8]	Iwd,0,		"MOV%S	%i,%OAX",
-[0xb9]	Iwd,0,		"MOV%S	%i,%OCX",
-[0xba]	Iwd,0,		"MOV%S	%i,%ODX",
-[0xbb]	Iwd,0,		"MOV%S	%i,%OBX",
-[0xbc]	Iwd,0,		"MOV%S	%i,%OSP",
-[0xbd]	Iwd,0,		"MOV%S	%i,%OBP",
-[0xbe]	Iwd,0,		"MOV%S	%i,%OSI",
-[0xbf]	Iwd,0,		"MOV%S	%i,%ODI",
+[0xb8]	Iwdq,0,		"MOV%S	%i,%OAX",
+[0xb9]	Iwdq,0,		"MOV%S	%i,%OCX",
+[0xba]	Iwdq,0,		"MOV%S	%i,%ODX",
+[0xbb]	Iwdq,0,		"MOV%S	%i,%OBX",
+[0xbc]	Iwdq,0,		"MOV%S	%i,%OSP",
+[0xbd]	Iwdq,0,		"MOV%S	%i,%OBP",
+[0xbe]	Iwdq,0,		"MOV%S	%i,%OSI",
+[0xbf]	Iwdq,0,		"MOV%S	%i,%ODI",
 [0xc0]	RMOPB,0,	optabC0,
 [0xc1]	RMOP,0,		optabC1,
 [0xc2]	Iw,0,		"RET	%i",
@@ -920,8 +1193,8 @@ static Optable optable[256] =
 [0xee]	0,0,		"OUTB	AL,DX",
 [0xef]	0,0,		"OUT%S	%OAX,DX",
 [0xf0]	PRE,0,		"LOCK",
-[0xf2]	PRE,0,		"REPNE",
-[0xf3]	PRE,0,		"REP",
+[0xf2]	OPRE,0,		"REPNE",
+[0xf3]	OPRE,0,		"REP",
 [0xf4]	0,0,		"HALT",
 [0xf5]	0,0,		"CMC",
 [0xf6]	RMOPB,0,	optabF6,
@@ -934,6 +1207,7 @@ static Optable optable[256] =
 [0xfd]	0,0,		"STD",
 [0xfe]	RMOPB,0,	optabFE,
 [0xff]	RMOP,0,		optabFF,
+[0x100]	RM,0,		"MOVLQSX	%r,%e",
 };
 
 /*
@@ -992,8 +1266,27 @@ igetl(Map *map, Instr *ip, ulong *lp)
 	return 1;
 }
 
+/*
+ *  get 8 bytes of the instruction
+ */
 static int
-getdisp(Map *map, Instr *ip, int mod, int rm, int code)
+igetq(Map *map, Instr *ip, vlong *qp)
+{
+	ulong	l;
+	uvlong q;
+
+	if (igetl(map, ip, &l) < 0)
+		return -1;
+	q = l;
+	if (igetl(map, ip, &l) < 0)
+		return -1;
+	q |= ((uvlong)l<<32);
+	*qp = q;
+	return 1;
+}
+
+static int
+getdisp(Map *map, Instr *ip, int mod, int rm, int code, int pcrel)
 {
 	uchar c;
 	ushort s;
@@ -1011,6 +1304,8 @@ getdisp(Map *map, Instr *ip, int mod, int rm, int code)
 		if (ip->asize == 'E') {
 			if (igetl(map, ip, &ip->disp) < 0)
 				return -1;
+			if (mod == 0)
+				ip->rip = pcrel;
 		} else {
 			if (igets(map, ip, &s) < 0)
 				return -1;
@@ -1035,11 +1330,11 @@ modrm(Map *map, Instr *ip, uchar c)
 	ip->mod = mod;
 	ip->base = rm;
 	ip->reg = (c>>3)&7;
+	ip->rip = 0;
 	if (mod == 3)			/* register */
 		return 1;
 	if (ip->asize == 0) {		/* 16-bit mode */
-		switch(rm)
-		{
+		switch(rm) {
 		case 0:
 			ip->base = BX; ip->index = SI;
 			break;
@@ -1067,7 +1362,7 @@ modrm(Map *map, Instr *ip, uchar c)
 		default:
 			break;
 		}
-		return getdisp(map, ip, mod, rm, 6);
+		return getdisp(map, ip, mod, rm, 6, 0);
 	}
 	if (rm == 4) {	/* scummy sib byte */
 		if (igetc(map, ip, &c) < 0)
@@ -1077,21 +1372,22 @@ modrm(Map *map, Instr *ip, uchar c)
 		if (ip->index == 4)
 			ip->index = -1;
 		ip->base = c&0x07;
-		return getdisp(map, ip, mod, ip->base, 5);
+		return getdisp(map, ip, mod, ip->base, 5, 0);
 	}
-	return getdisp(map, ip, mod, rm, 5);
+	return getdisp(map, ip, mod, rm, 5, ip->amd64);
 }
 
 static Optable *
 mkinstr(Map *map, Instr *ip, ulong pc)
 {
-	int i, n;
+	int i, n, norex;
 	uchar c;
 	ushort s;
 	Optable *op, *obase;
 	char buf[128];
 
 	memset(ip, 0, sizeof(*ip));
+	norex = 1;
 	ip->base = -1;
 	ip->index = -1;
 	if(asstype == AI8086)
@@ -1099,13 +1395,27 @@ mkinstr(Map *map, Instr *ip, ulong pc)
 	else {
 		ip->osize = 'L';
 		ip->asize = 'E';
+		ip->amd64 = asstype != AI386;
+		norex = 0;
 	}
 	ip->addr = pc;
 	if (igetc(map, ip, &c) < 0)
 		return 0;
 	obase = optable;
 newop:
+	if(ip->amd64 && !norex){
+		if(c >= 0x40 && c <= 0x4f) {
+			ip->rex = c;
+			if(igetc(map, ip, &c) < 0)
+				return 0;
+		}
+		if(c == 0x63){
+			op = &obase[0x100];	/* MOVLQSX */
+			goto hack;
+		}
+	}
 	op = &obase[c];
+hack:
 	if (op->proto == 0) {
 badop:
 		n = snprint(buf, sizeof(buf), "opcode: ??");
@@ -1116,8 +1426,7 @@ badop:
 		return 0;
 	}
 	for(i = 0; i < 2 && op->operand[i]; i++) {
-		switch(op->operand[i])
-		{
+		switch(op->operand[i]) {
 		case Ib:	/* 8-bit immediate - (no sign extension)*/
 			if (igetc(map, ip, &c) < 0)
 				return 0;
@@ -1154,10 +1463,31 @@ badop:
 				return 0;
 			ip->imm2 = s&0xffff;
 			break;
-		case Iwd:	/* Operand-sized immediate (no sign extension)*/
+		case Iwd:	/* Operand-sized immediate (no sign extension unless 64 bits)*/
 			if (ip->osize == 'L') {
 				if (igetl(map, ip, &ip->imm) < 0)
 					return 0;
+				ip->imm64 = ip->imm;
+				if(ip->rex&REXW && (ip->imm & (1<<31)) != 0)
+					ip->imm64 |= (vlong)~0 << 32;
+			} else {
+				if (igets(map, ip, &s)< 0)
+					return 0;
+				ip->imm = s&0xffff;
+				ip->imm64 = ip->imm;
+			}
+			break;
+		case Iwdq:	/* Operand-sized immediate, possibly big */
+			if (ip->osize == 'L') {
+				if (igetl(map, ip, &ip->imm) < 0)
+					return 0;
+				ip->imm64 = ip->imm;
+				if (ip->rex & REXW) {
+					ulong l;
+					if (igetl(map, ip, &l) < 0)
+						return 0;
+					ip->imm64 |= (uvlong)l << 32;
+				}
 			} else {
 				if (igets(map, ip, &s)< 0)
 					return 0;
@@ -1168,6 +1498,7 @@ badop:
 			if (ip->asize == 'E') {
 				if (igetl(map, ip, &ip->imm) < 0)
 					return 0;
+				/* TO DO: REX */
 			} else {
 				if (igets(map, ip, &s)< 0)
 					return 0;
@@ -1287,15 +1618,35 @@ badop:
 				return 0;
 			ip->jumptype = PTR;
 			break;
+		case AUXMM:	/* Multi-byte op code; prefix determines table selection */
+			if (igetc(map, ip, &c) < 0)
+				return 0;
+			obase = (Optable*)op->proto;
+			switch (ip->opre) {
+			case 0x66:	op = optab660F; break;
+			case 0xF2:	op = optabF20F; break;
+			case 0xF3:	op = optabF30F; break;
+			default:	op = nil; break;
+			}
+			if(op != nil && op[c].proto != nil)
+				obase = op;
+			norex = 1;	/* no more rex prefixes */
+			/* otherwise the optab entry captures it */
+			goto newop;
 		case AUX:	/* Multi-byte op code - Auxiliary table */
 			obase = (Optable*)op->proto;
 			if (igetc(map, ip, &c) < 0)
 				return 0;
 			goto newop;
+		case OPRE:	/* Instr Prefix or media op */
+			ip->opre = c;
+			/* fall through */
 		case PRE:	/* Instr Prefix */
 			ip->prefix = (char*)op->proto;
 			if (igetc(map, ip, &c) < 0)
 				return 0;
+			if (ip->opre && c == 0x0F)
+				ip->prefix = 0;
 			goto newop;
 		case SEG:	/* Segment Prefix */
 			ip->segment = (char*)op->proto;
@@ -1303,9 +1654,14 @@ badop:
 				return 0;
 			goto newop;
 		case OPOVER:	/* Operand size override */
+			ip->opre = c;
 			ip->osize = 'W';
 			if (igetc(map, ip, &c) < 0)
 				return 0;
+			if (c == 0x0F)
+				ip->osize = 'L';
+			else if (ip->amd64 && (c&0xF0) == 0x40)
+				ip->osize = 'Q';
 			goto newop;
 		case ADDOVER:	/* Address size override */
 			ip->asize = 0;
@@ -1353,9 +1709,21 @@ static char *reg[] =  {
 [BP]	"BP",
 [SI]	"SI",
 [DI]	"DI",
+
+	/* amd64 */
+[R8]	"R8",
+[R9]	"R9",
+[R10]	"R10",
+[R11]	"R11",
+[R12]	"R12",
+[R13]	"R13",
+[R14]	"R14",
+[R15]	"R15",
 };
 
 static char *breg[] = { "AL", "CL", "DL", "BL", "AH", "CH", "DH", "BH" };
+static char *breg64[] = { "AL", "CL", "DL", "BL", "SPB", "BPB", "SIB", "DIB",
+	"R8B", "R9B", "R10B", "R11B", "R12B", "R13B", "R14B", "R15B" };
 static char *sreg[] = { "ES", "CS", "SS", "DS", "FS", "GS" };
 
 static void
@@ -1446,12 +1814,12 @@ issymref(Instr *ip, Symbol *s, long w, long val)
 }
 
 static void
-immediate(Instr *ip, long val)
+immediate(Instr *ip, vlong val)
 {
 	Symbol s;
 	long w;
 
-	if (findsym(val, CANY, &s)) {
+	if (findsym((long)val, CANY, &s)) {	/* TO DO */
 		w = val - s.value;
 		if (w < 0)
 			w = -w;
@@ -1474,7 +1842,10 @@ immediate(Instr *ip, long val)
 		}
 */
 	}
-	bprint(ip, "%lux", val);
+	if((ip->rex & REXW) == 0)
+		bprint(ip, "%lux", (long)val);
+	else
+		bprint(ip, "%llux", val);
 }
 
 static void
@@ -1482,7 +1853,9 @@ pea(Instr *ip)
 {
 	if (ip->mod == 3) {
 		if (ip->osize == 'B')
-			bprint(ip, breg[ip->base]);
+			bprint(ip, (ip->rex & REXB? breg64: breg)[ip->base]);
+		else if(ip->rex & REXB)
+			bprint(ip, "%s%s", ANAME(ip), reg[ip->base+8]);
 		else
 			bprint(ip, "%s%s", ANAME(ip), reg[ip->base]);
 		return;
@@ -1496,23 +1869,26 @@ pea(Instr *ip)
 			immediate(ip, ip->disp);
 		else {
 			bprint(ip, "%lux", ip->disp);
-			bprint(ip,"(%s%s)", ANAME(ip), reg[ip->base]);
+			bprint(ip,"(%s%s)", ANAME(ip), reg[ip->rex&REXB? ip->base+8: ip->base]);
 		}
 	}
 	if (ip->index >= 0)
-		bprint(ip,"(%s%s*%d)", ANAME(ip), reg[ip->index], 1<<ip->ss);
+		bprint(ip,"(%s%s*%d)", ANAME(ip), reg[ip->rex&REXX? ip->index+8: ip->index], 1<<ip->ss);
 }
 
 static void
 prinstr(Instr *ip, char *fmt)
 {
+	vlong v;
+
 	if (ip->prefix)
 		bprint(ip, "%s ", ip->prefix);
 	for (; *fmt && ip->curr < ip->end; fmt++) {
-		if (*fmt != '%')
+		if (*fmt != '%'){
 			*ip->curr++ = *fmt;
-		else switch(*++fmt)
-		{
+			continue;
+		}
+		switch(*++fmt){
 		case '%':
 			*ip->curr++ = '%';
 			break;
@@ -1537,13 +1913,29 @@ prinstr(Instr *ip, char *fmt)
 			break;
 		case 'i':
 			bprint(ip, "$");
-			immediate(ip,ip->imm);
+			v = ip->imm;
+			if(ip->rex & REXW)
+				v = ip->imm64;
+			immediate(ip, v);
 			break;
 		case 'R':
-			bprint(ip, "%s%s", ONAME(ip), reg[ip->reg]);
+			bprint(ip, "%s%s", ONAME(ip), reg[ip->rex&REXR? ip->reg+8: ip->reg]);
 			break;
 		case 'S':
-			bprint(ip, "%c", ip->osize);
+			if(ip->osize == 'Q' || ip->osize == 'L' && ip->rex & REXW)
+				bprint(ip, "Q");
+			else
+				bprint(ip, "%c", ip->osize);
+			break;
+		case 's':
+			if(ip->opre == 0 || ip->opre == 0x66)
+				bprint(ip, "P");
+			else
+				bprint(ip, "S");
+			if(ip->opre == 0xf2 || ip->opre == 0x66)
+				bprint(ip, "D");
+			else
+				bprint(ip, "S");
 			break;
 		case 'T':
 			if (ip->reg == 6 || ip->reg == 7)
@@ -1551,14 +1943,30 @@ prinstr(Instr *ip, char *fmt)
 			else
 				bprint(ip, "???");
 			break;
-		case 'X':
-			if (ip->osize == 'L')
+		case 'W':
+			if (ip->osize == 'Q' || ip->osize == 'L' && ip->rex & REXW)
+				bprint(ip, "CDQE");
+			else if (ip->osize == 'L')
 				bprint(ip,"CWDE");
 			else
 				bprint(ip, "CBW");
 			break;
 		case 'd':
 			bprint(ip,"%lux:%lux",ip->seg,ip->disp);
+			break;
+		case 'm':
+			if (ip->mod == 3 && ip->osize != 'B') {
+				if(fmt[1] != '*'){
+					if(ip->opre != 0) {
+						bprint(ip, "X%d", ip->rex&REXB? ip->base+8: ip->base);
+						break;
+					}
+				} else
+					fmt++;
+				bprint(ip, "M%d", ip->base);
+				break;
+			}
+			pea(ip);
 			break;
 		case 'e':
 			pea(ip);
@@ -1577,15 +1985,33 @@ prinstr(Instr *ip, char *fmt)
 			break;
 		case 'r':
 			if (ip->osize == 'B')
-				bprint(ip,"%s",breg[ip->reg]);
+				bprint(ip,"%s", (ip->rex? breg64: breg)[ip->rex&REXR? ip->reg+8: ip->reg]);
 			else
-				bprint(ip, reg[ip->reg]);
+				bprint(ip, reg[ip->rex&REXR? ip->reg+8: ip->reg]);
 			break;
-		case 'x':
-			if (ip->osize == 'L')
+		case 'w':
+			if (ip->osize == 'Q' || ip->rex & REXW)
+				bprint(ip, "CQO");
+			else if (ip->osize == 'L')
 				bprint(ip,"CDQ");
 			else
 				bprint(ip, "CWD");
+			break;
+		case 'M':
+			if(ip->opre != 0)
+				bprint(ip, "X%d", ip->rex&REXR? ip->reg+8: ip->reg);
+			else
+				bprint(ip, "M%d", ip->reg);
+			break;
+		case 'x':
+			if (ip->mod == 3 && ip->osize != 'B') {
+				bprint(ip, "X%d", ip->rex&REXB? ip->base+8: ip->base);
+				break;
+			}
+			pea(ip);
+			break;
+		case 'X':
+			bprint(ip, "X%d", ip->rex&REXR? ip->reg+8: ip->reg);
 			break;
 		default:
 			bprint(ip, "%%%c", *fmt);
@@ -1678,18 +2104,18 @@ i386foll(Map *map, ulong pc, Rgetter rget, ulong *foll)
 	case JUMP:		/* JUMP or CALL EA */
 
 		if(i.mod == 3) {
-			foll[0] = (*rget)(map, reg[i.base]);
+			foll[0] = (*rget)(map, reg[i.rex&REXB? i.base+8: i.base]);
 			return 1;
 		}
 			/* calculate the effective address */
 		addr = i.disp;
 		if (i.base >= 0) {
-			if (get4(map, (*rget)(map, reg[i.base]), (long*)&l) < 0)
+			if (get4(map, (*rget)(map, reg[i.rex&REXB? i.base+8: i.base]), (long*)&l) < 0)
 				return -1;
 			addr += l;
 		}
 		if (i.index >= 0) {
-			if (get4(map, (*rget)(map, reg[i.index]), (long*)&l) < 0)
+			if (get4(map, (*rget)(map, reg[i.rex&REXX? i.index+8: i.index]), (long*)&l) < 0)
 				return -1;
 			addr += l*(1<<i.ss);
 		}

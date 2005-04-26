@@ -3,7 +3,7 @@
  */
 #include <u.h>
 #include <bio.h>
-#include "xc/mips2ureg.h"
+#include "0c/ureg.h"
 #include <mach.h>
 
 #define	FPREGBYTES	4

@@ -74,7 +74,7 @@ addctlr(Vga* vga, char* val)
 		return *ctlr;	
 	}
 
-	error("dbctlr: unknown controller \"%s\" ctlr\n", val);
+	fprint(2, "dbctlr: unknown controller \"%s\" ctlr\n", val);
 	return 0;
 }
 
@@ -158,20 +158,25 @@ dbpci(Vga *vga, Ndbtuple *tuple)
 static void
 save(Vga *vga, Ndbtuple *tuple)
 {
+	Ctlr *c;
 	Ndbtuple *t;
 
 	for(t = tuple->entry; t; t = t->entry){
-		if(strcmp(t->attr, "ctlr") == 0)
+		if(strcmp(t->attr, "ctlr") == 0){
 			vga->ctlr = addctlr(vga, t->val);
-		else if(strcmp(t->attr, "ramdac") == 0)
+			if(strcmp(t->val, "vesa") == 0)
+				vga->vesa = vga->ctlr;
+		}else if(strcmp(t->attr, "ramdac") == 0)
 			vga->ramdac = addctlr(vga, t->val);
 		else if(strcmp(t->attr, "clock") == 0)
 			vga->clock = addctlr(vga, t->val);
 		else if(strcmp(t->attr, "hwgc") == 0)
 			vga->hwgc = addctlr(vga, t->val);
-		else if(strcmp(t->attr, "link") == 0)
-			addctlr(vga, t->val);
-		else if(strcmp(t->attr, "linear") == 0)
+		else if(strcmp(t->attr, "link") == 0){
+			c = addctlr(vga, t->val);
+			if(strcmp(t->val, "vesa") == 0)
+				vga->vesa = c;
+		}else if(strcmp(t->attr, "linear") == 0)
 			vga->linear = strtol(t->val, 0, 0);
 		else if(strcmp(t->attr, "membw") == 0)
 			vga->membw = strtol(t->val, 0, 0)*1000000;

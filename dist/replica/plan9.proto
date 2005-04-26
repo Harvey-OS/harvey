@@ -34,6 +34,8 @@ usr	- sys sys
 	+	- sys sys
 alpha	- sys sys
 	+	- sys sys
+amd64	- sys sys
+	+	- sys sys
 arm	- sys sys
 	+	- sys sys
 mips	- sys sys
@@ -41,6 +43,8 @@ mips	- sys sys
 power	- sys sys
 	+	- sys sys
 sparc	- sys sys
+	+	- sys sys
+sparc64	- sys sys
 	+	- sys sys
 
 # everything else is owned by sys
