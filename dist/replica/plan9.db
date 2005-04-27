@@ -3998,6 +3998,7 @@ sys/lib/acid/pool - 664 sys sys 1063858105 4898
 sys/lib/acid/port - 664 sys sys 1049580489 8902
 sys/lib/acid/power - 664 sys sys 969499633 3058
 sys/lib/acid/sparc - 664 sys sys 944955986 5339
+sys/lib/acid/sparc64 - 664 sys sys 1114524607 5441
 sys/lib/acid/syscall - 664 sys sys 1016926088 5353
 sys/lib/acid/thread - 664 sys sys 1063858106 5979
 sys/lib/acid/transcript - 775 sys sys 954614670 752

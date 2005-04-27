@@ -19,7 +19,7 @@
 386/bin/8l - 775 sys sys 1107835553 115728
 386/bin/9660srv - 775 sys sys 1113794389 103976
 386/bin/aan - 775 sys sys 1108354539 130710
-386/bin/acid - 775 sys sys 1114225965 357187
+386/bin/acid - 775 sys sys 1114484867 389719
 386/bin/acme - 775 sys sys 1111637282 428512
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
@@ -38,7 +38,7 @@
 386/bin/ape/tar - 775 sys sys 1104121958 61903
 386/bin/ape/uname - 775 sys sys 1087442505 132510
 386/bin/aquarela - 775 sys sys 1064598027 319170
-386/bin/ar - 775 sys sys 1104121958 107438
+386/bin/ar - 775 sys sys 1114484868 110847
 386/bin/archfs - 775 sys sys 1108354542 140779
 386/bin/ascii - 775 sys sys 1104121959 64668
 386/bin/astro - 775 sys sys 1104121959 138803
@@ -117,7 +117,7 @@
 386/bin/aux/mklatinkbd - 775 sys sys 1104121979 64179
 386/bin/aux/mnihongo - 775 sys sys 1106799170 138512
 386/bin/aux/mouse - 775 sys sys 1104121979 44026
-386/bin/aux/ms2 - 775 sys sys 1108008332 81689
+386/bin/aux/ms2 - 775 sys sys 1114484868 84166
 386/bin/aux/msexceltables - 775 sys sys 1106453225 80995
 386/bin/aux/mswordstrings - 775 sys sys 1104121980 65317
 386/bin/aux/na - 775 sys sys 1113794390 154186
@@ -147,7 +147,7 @@
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1104121988 83293
 386/bin/aux/typepasswd - 775 sys sys 1104121988 69503
-386/bin/aux/vga - 775 sys sys 1114453635 309981
+386/bin/aux/vga - 775 sys sys 1114484868 309981
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -187,7 +187,7 @@
 386/bin/cpu - 775 sys sys 1108354550 137694
 386/bin/crop - 775 sys sys 1104121998 115763
 386/bin/date - 775 sys sys 1104121998 43261
-386/bin/db - 775 sys sys 1114225965 303621
+386/bin/db - 775 sys sys 1114484869 336153
 386/bin/dc - 775 sys sys 1104121999 99028
 386/bin/dd - 775 sys sys 1104121999 45347
 386/bin/deroff - 775 sys sys 1104122000 74244
@@ -224,7 +224,7 @@
 386/bin/faces - 775 sys sys 1106799174 192579
 386/bin/factor - 775 sys sys 1104122008 61475
 386/bin/fcp - 775 sys sys 1110859785 82162
-386/bin/file - 775 sys sys 1113361802 112820
+386/bin/file - 775 sys sys 1114484869 118706
 386/bin/fmt - 775 sys sys 1104122009 65301
 386/bin/fortune - 775 sys sys 1104122009 67136
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -308,8 +308,8 @@
 386/bin/join - 775 sys sys 1113794393 114091
 386/bin/jpg - 775 sys sys 1108960009 174528
 386/bin/kbmap - 775 sys sys 1106799176 142498
-386/bin/kprof - 775 sys sys 1108960009 99723
-386/bin/ktrace - 775 sys sys 1108960009 113674
+386/bin/kprof - 775 sys sys 1114484870 102284
+386/bin/ktrace - 775 sys sys 1114484870 116436
 386/bin/lens - 775 sys sys 1104122032 124095
 386/bin/lex - 775 sys sys 1104122033 98664
 386/bin/lnfs - 775 sys sys 1108354557 99449
@@ -342,7 +342,7 @@
 386/bin/netstat - 775 sys sys 1104122040 84385
 386/bin/news - 775 sys sys 1104122041 71653
 386/bin/nfs - 775 sys sys 1108354559 315389
-386/bin/nm - 775 sys sys 1108960010 115737
+386/bin/nm - 775 sys sys 1114484870 121630
 386/bin/nntpfs - 775 sys sys 1108354560 160898
 386/bin/ns - 775 sys sys 1104122042 65260
 386/bin/p - 775 sys sys 1108268390 64990
@@ -360,7 +360,7 @@
 386/bin/ppm - 775 sys sys 1108960012 149347
 386/bin/pr - 775 sys sys 1104122046 77408
 386/bin/primes - 775 sys sys 1104122046 38793
-386/bin/prof - 775 sys sys 1108960012 104466
+386/bin/prof - 775 sys sys 1114484870 106950
 386/bin/proof - 775 sys sys 1106799178 177605
 386/bin/ps - 775 sys sys 1104122047 65805
 386/bin/pwd - 775 sys sys 1104122047 36897
@@ -389,10 +389,10 @@
 386/bin/sed - 775 sys sys 1104122054 89523
 386/bin/seq - 775 sys sys 1104122054 38206
 386/bin/sha1sum - 775 sys sys 1104122054 61133
-386/bin/size - 775 sys sys 1108008334 74340
+386/bin/size - 775 sys sys 1114484871 76817
 386/bin/sleep - 775 sys sys 1085077097 3413
-386/bin/snap - 775 sys sys 1114225966 271015
-386/bin/snapfs - 775 sys sys 1114225967 339869
+386/bin/snap - 775 sys sys 1114484871 303547
+386/bin/snapfs - 775 sys sys 1114484872 372401
 386/bin/sniffer - 775 sys sys 1038443185 99028
 386/bin/snoopy - 775 sys sys 1108354563 157546
 386/bin/sort - 775 sys sys 1104122056 82285
@@ -425,7 +425,7 @@
 386/bin/topng - 775 sys sys 1108872012 138083
 386/bin/toppm - 775 sys sys 1104122065 164905
 386/bin/touch - 775 sys sys 1104122066 63763
-386/bin/tprof - 775 sys sys 1114225968 256583
+386/bin/tprof - 775 sys sys 1114484873 289115
 386/bin/tr - 775 sys sys 1104122066 61851
 386/bin/trace - 775 sys sys 1106799181 180728
 386/bin/troff - 775 sys sys 1094040114 357714
@@ -549,7 +549,7 @@
 386/lib/libhttpd.a - 664 sys sys 1108268398 99488
 386/lib/libip.a - 664 sys sys 1108268398 35602
 386/lib/libl.a - 664 sys sys 1108268398 5384
-386/lib/libmach.a - 664 sys sys 1114459829 834000
+386/lib/libmach.a - 664 sys sys 1114484874 755168
 386/lib/libmemdraw.a - 664 sys sys 1110946101 283198
 386/lib/libmemlayer.a - 664 sys sys 1108699740 47360
 386/lib/libmp.a - 664 sys sys 1108268401 79532
@@ -3998,6 +3998,7 @@ sys/lib/acid/pool - 664 sys sys 1063858105 4898
 sys/lib/acid/port - 664 sys sys 1049580489 8902
 sys/lib/acid/power - 664 sys sys 969499633 3058
 sys/lib/acid/sparc - 664 sys sys 944955986 5339
+sys/lib/acid/sparc64 - 664 sys sys 1114524607 5441
 sys/lib/acid/syscall - 664 sys sys 1016926088 5353
 sys/lib/acid/thread - 664 sys sys 1063858106 5979
 sys/lib/acid/transcript - 775 sys sys 954614670 752
@@ -12973,18 +12974,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/acid - 775 sys sys 1114484867 389719
-386/bin/ar - 775 sys sys 1114484868 110847
-386/bin/db - 775 sys sys 1114484869 336153
-386/bin/snap - 775 sys sys 1114484871 303547
-386/bin/snapfs - 775 sys sys 1114484872 372401
-386/bin/file - 775 sys sys 1114484869 118706
-386/bin/kprof - 775 sys sys 1114484870 102284
-386/bin/ktrace - 775 sys sys 1114484870 116436
-386/bin/nm - 775 sys sys 1114484870 121630
-386/bin/prof - 775 sys sys 1114484870 106950
-386/bin/size - 775 sys sys 1114484871 76817
-386/bin/aux/ms2 - 775 sys sys 1114484868 84166
-386/bin/aux/vga - 775 sys sys 1114484868 309981
-386/bin/tprof - 775 sys sys 1114484873 289115
-386/lib/libmach.a - 664 sys sys 1114484874 755168
