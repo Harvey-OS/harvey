@@ -4,8 +4,9 @@
  *	82543GC	Intel PRO/1000 T
  *	82544EI Intel PRO/1000 XT
  *	82540EM Intel PRO/1000 MT
- *	82541GI (unfinished)
- *
+ *	82541GI
+ *	82547GI
+ *	82546GB
  * To Do:
  *	finish autonegotiation code;
  *	integrate fiber stuff back in (this ONLY handles
@@ -25,6 +26,18 @@
 
 #include "etherif.h"
 #include "ethermii.h"
+
+enum {
+	i82542     = (0x1000<<16)|0x8086,
+	i82543gc   = (0x1004<<16)|0x8086,
+	i82544ei   = (0x1008<<16)|0x8086,
+	i82547ei   = (0x1019<<16)|0x8086,
+	i82540em   = (0x100E<<16)|0x8086,
+	i82540eplp = (0x101E<<16)|0x8086,
+	i82547gi   = (0x1075<<16)|0x8086,
+	i82541gi   = (0x1076<<16)|0x8086,
+	i82546gb   = (0x1079<<16)|0x8086,
+};
 
 enum {
 	Ctrl		= 0x00000000,	/* Device Control */
@@ -361,7 +374,7 @@ enum {					/* Rd errors */
 };
 
 typedef struct Td Td;
-struct Td {			/* Transmit Descriptor */
+struct Td {				/* Transmit Descriptor */
 	union {
 		uint	addr[2];	/* Data */
 		struct {		/* Context */
@@ -613,6 +626,7 @@ igbeifstat(Ether* edev, void* a, long n, ulong offset)
 	l += snprint(p+l, 2*READSTR-l, "ixcs: %ud %ud %ud\n",
 		ctlr->ixsm, ctlr->ipcs, ctlr->tcpcs);
 	l += snprint(p+l, 2*READSTR-l, "rdtr: %ud\n", ctlr->rdtr);
+	l += snprint(p+l, 2*READSTR-l, "Ctrlext: %08x\n", csr32r(ctlr, Ctrlext));
 
 	l += snprint(p+l, 2*READSTR-l, "eeprom:");
 	for(i = 0; i < 0x40; i++){
@@ -788,14 +802,13 @@ igbelproc(void* arg)
 		if(miistatus(ctlr->mii) < 0)
 			//continue;
 			goto enable;
-print("lproc status ok\n");
 
 		phy = ctlr->mii->curphy;
 		ctrl = csr32r(ctlr, Ctrl);
 
 		switch(ctlr->id){
-		case (0x1004<<16)|0x8086:	/* 82543GC */
-		case (0x1008<<16)|0x8086:	/* 82544EI */
+		case i82543gc:
+		case i82544ei:
 		default:
 			if(!(ctrl & Asde)){
 				ctrl &= ~(SspeedMASK|Ilos|Fd);
@@ -808,9 +821,11 @@ print("lproc status ok\n");
 					ctrl |= Fd;
 			}
 			break;
-		case (0x100E<<16)|0x8086:	/* 82540EM */
-		case (0x101E<<16)|0x8086:	/* 82540EPLP */
-//check		case (0x1076<<16)|0x8086:	/* 82541GI */
+
+		case i82540em:
+		case i82540eplp:
+		case i82547gi:
+		case i82541gi:
 			break;
 		}
 
@@ -833,7 +848,6 @@ print("lproc status ok\n");
 		if(phy->tfc)
 			ctrl |= Tfce;
 		csr32w(ctlr, Ctrl, ctrl);
-print("ctrl %8.8uX\n", ctrl);
 
 enable:
 		ctlr->lim = 0;
@@ -855,11 +869,14 @@ igbetxinit(Ctlr* ctlr)
 	default:
 		r = 6;
 		break;
-	case (0x1004<<16)|0x8086:	/* 82543GC */
-	case (0x1008<<16)|0x8086:	/* 82544EI */
-	case (0x100E<<16)|0x8086:	/* 82440EM */
-	case (0x101E<<16)|0x8086:	/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:	/* 82541GI */
+	case i82543gc:
+	case i82544ei:
+	case i82547ei:
+	case i82540em:
+	case i82540eplp:
+	case i82541gi:
+	case i82546gb:
+	case i82547gi:
 		r = 8;
 		break;
 	}
@@ -890,9 +907,11 @@ igbetxinit(Ctlr* ctlr)
 	switch(ctlr->id){
 	default:
 		break;
-	case (0x100E<<16)|0x8086:	/* 82540EM */
-	case (0x101E<<16)|0x8086:	/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:	/* 82541GI */
+	case i82540em:
+	case i82540eplp:
+	case i82547gi:
+	case i82546gb:
+	case i82541gi:
 		r = csr32r(ctlr, Txdctl);
 		r &= ~WthreshMASK;
 		r |= Gran|(4<<WthreshSHIFT);
@@ -1018,9 +1037,11 @@ igberxinit(Ctlr* ctlr)
 	igbereplenish(ctlr);
 
 	switch(ctlr->id){
-	case (0x100E<<16)|0x8086:		/* 82540EM */
-	case (0x101E<<16)|0x8086:		/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:		/* 82541GI */
+	case i82540em:
+	case i82540eplp:
+	case i82541gi:
+	case i82546gb:
+	case i82547gi:
 		csr32w(ctlr, Radv, 64);
 		break;
 	}
@@ -1379,7 +1400,7 @@ igbemii(Ctlr* ctlr)
 	ctrl |= Slu;
 
 	switch(ctlr->id){
-	case (0x1004<<16)|0x8086:		/* 82543GC */
+	case i82543gc:
 		ctrl |= Frcdplx|Frcspd;
 		csr32w(ctlr, Ctrl, ctrl);
 
@@ -1406,10 +1427,13 @@ igbemii(Ctlr* ctlr)
 		ctlr->mii->mir = i82543miimir;
 		ctlr->mii->miw = i82543miimiw;
 		break;
-	case (0x1008<<16)|0x8086:		/* 82544EI*/
-	case (0x100E<<16)|0x8086:		/* 82540EM */
-	case (0x101E<<16)|0x8086:		/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:		/* 82541GI */
+	case i82544ei:
+	case i82547ei:
+	case i82540em:
+	case i82540eplp:
+	case i82547gi:
+	case i82541gi:
+	case i82546gb:
 		ctrl &= ~(Frcdplx|Frcspd);
 		csr32w(ctlr, Ctrl, ctrl);
 		ctlr->mii->mir = igbemiimir;
@@ -1435,27 +1459,28 @@ igbemii(Ctlr* ctlr)
 	 * Set appropriate values then reset the PHY to have
 	 * changes noted.
 	 */
-	r = miimir(ctlr->mii, 0x10);
-	r |= 0x0800;				/* assert CRS on Tx */
-	r |= 0x0060;				/* auto-crossover all speeds */
-	r |= 0x0002;				/* polarity reversal enabled */
-	miimiw(ctlr->mii, 0x10, r);
+	if (ctlr->id != i82547gi && ctlr->id != i82541gi && ctlr->id != i82546gb) {
+		r = miimir(ctlr->mii, 16);
+		r |= 0x0800;			/* assert CRS on Tx */
+		r |= 0x0060;			/* auto-crossover all speeds */
+		r |= 0x0002;			/* polarity reversal enabled */
+		miimiw(ctlr->mii, 16, r);
+	
+		r = miimir(ctlr->mii, 20);
+		r |= 0x0070;			/* +25MHz clock */
+		r &= ~0x0F00;
+		r |= 0x0100;			/* 1x downshift */
+		miimiw(ctlr->mii, 20, r);
+	
+		miireset(ctlr->mii);
+		p = 0;
+		if(ctlr->txcw & TxcwPs)
+			p |= AnaP;
+		if(ctlr->txcw & TxcwAs)
+			p |= AnaAP;
+		miiane(ctlr->mii, ~0, p, ~0);
 
-	r = miimir(ctlr->mii, 0x14);
-	r |= 0x0070;				/* +25MHz clock */
-	r &= ~0x0F00;
-	r |= 0x0100;				/* 1x downshift */
-	miimiw(ctlr->mii, 0x14, r);
-
-	miireset(ctlr->mii);
-
-	p = 0;
-	if(ctlr->txcw & TxcwPs)
-		p |= AnaP;
-	if(ctlr->txcw & TxcwAs)
-		p |= AnaAP;
-	miiane(ctlr->mii, ~0, p, ~0);
-
+	}
 	return 0;
 }
 
@@ -1558,9 +1583,11 @@ at93c46r(Ctlr* ctlr)
 	default:
 		areq = 0;
 		break;
-	case (0x100E<<16)|0x8086:		/* 82540EM */
-	case (0x101E<<16)|0x8086:		/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:		/* 82541GI */
+	case i82540em:
+	case i82540eplp:
+	case i82541gi:
+	case i82547gi:
+	case i82546gb:
 		areq = 1;
 		csr32w(ctlr, Eecd, eecd|Areq);
 		for(i = 0; i < 1000; i++){
@@ -1623,8 +1650,8 @@ igbedetach(Ctlr* ctlr)
 	}
 	if(csr32r(ctlr, Ctrl) & Devrst)
 		return -1;
-
-	csr32w(ctlr, Ctrlext, Eerst);
+	r = csr32r(ctlr, Ctrlext);
+	csr32w(ctlr, Ctrlext, r|Eerst);
 	delay(1);
 	for(timeo = 0; timeo < 1000; timeo++){
 		if(!(csr32r(ctlr, Ctrlext) & Eerst))
@@ -1637,9 +1664,11 @@ igbedetach(Ctlr* ctlr)
 	switch(ctlr->id){
 	default:
 		break;
-	case (0x100E<<16)|0x8086:		/* 82540EM */
-	case (0x101E<<16)|0x8086:		/* 82540EPLP */
-//check	case (0x1076<<16)|0x8086:		/* 82541GI */
+	case i82540em:
+	case i82540eplp:
+	case i82541gi:
+	case i82547gi:
+	case i82546gb:
 		r = csr32r(ctlr, Manc);
 		r &= ~Arpen;
 		csr32w(ctlr, Manc, r);
@@ -1687,6 +1716,8 @@ igbereset(Ctlr* ctlr)
 	 * There are 16 addresses. The first should be the MAC address.
 	 * The others are cleared and not marked valid (MS bit of Rah).
 	 */
+	if (ctlr->id == i82546gb && BUSFNO(ctlr->pcidev->tbdf) == 1)
+		ctlr->eeprom[Ea+2] += 0x100;	// second interface
 	for(i = Ea; i < Eaddrlen/2; i++){
 		ctlr->ra[2*i] = ctlr->eeprom[i];
 		ctlr->ra[2*i+1] = ctlr->eeprom[i]>>8;
@@ -1712,56 +1743,59 @@ igbereset(Ctlr* ctlr)
 	 * Just in case the Eerst didn't load the defaults
 	 * (doesn't appear to fully on the 8243GC), do it manually.
 	 */
-	txcw = csr32r(ctlr, Txcw);
-	txcw &= ~(TxcwAne|TxcwPauseMASK|TxcwFd);
-	ctrl = csr32r(ctlr, Ctrl);
-	ctrl &= ~(SwdpioloMASK|Frcspd|Ilos|Lrst|Fd);
-
-	if(ctlr->eeprom[Icw1] & 0x0400){
-		ctrl |= Fd;
-		txcw |= TxcwFd;
-	}
-	if(ctlr->eeprom[Icw1] & 0x0200)
-		ctrl |= Lrst;
-	if(ctlr->eeprom[Icw1] & 0x0010)
-		ctrl |= Ilos;
-	if(ctlr->eeprom[Icw1] & 0x0800)
-		ctrl |= Frcspd;
-	swdpio = (ctlr->eeprom[Icw1] & 0x01E0)>>5;
-	ctrl |= swdpio<<SwdpioloSHIFT;
-	csr32w(ctlr, Ctrl, ctrl);
+	if (ctlr->id == i82543gc) {	// 82543
+		txcw = csr32r(ctlr, Txcw);
+		txcw &= ~(TxcwAne|TxcwPauseMASK|TxcwFd);
+		ctrl = csr32r(ctlr, Ctrl);
+		ctrl &= ~(SwdpioloMASK|Frcspd|Ilos|Lrst|Fd);
 	
-	ctrl = csr32r(ctlr, Ctrlext);
-	ctrl &= ~(Ips|SwdpiohiMASK);
-	swdpio = (ctlr->eeprom[Icw2] & 0x00F0)>>4;
-	if(ctlr->eeprom[Icw1] & 0x1000)
-		ctrl |= Ips;
-	ctrl |= swdpio<<SwdpiohiSHIFT;
-	csr32w(ctlr, Ctrlext, ctrl);
-
-	if(ctlr->eeprom[Icw2] & 0x0800)
-		txcw |= TxcwAne;
-	pause = (ctlr->eeprom[Icw2] & 0x3000)>>12;
-	txcw |= pause<<TxcwPauseSHIFT;
-	switch(pause){
-	default:
-		ctlr->fcrtl = 0x00002000;
-		ctlr->fcrth = 0x00004000;
-		txcw |= TxcwAs|TxcwPs;
-		break;
-	case 0:
-		ctlr->fcrtl = 0x00002000;
-		ctlr->fcrth = 0x00004000;
-		break;
-	case 2:
-		ctlr->fcrtl = 0;
-		ctlr->fcrth = 0;
-		txcw |= TxcwAs;
-		break;
+		if(ctlr->eeprom[Icw1] & 0x0400){
+			ctrl |= Fd;
+			txcw |= TxcwFd;
+		}
+		if(ctlr->eeprom[Icw1] & 0x0200)
+			ctrl |= Lrst;
+		if(ctlr->eeprom[Icw1] & 0x0010)
+			ctrl |= Ilos;
+		if(ctlr->eeprom[Icw1] & 0x0800)
+			ctrl |= Frcspd;
+		swdpio = (ctlr->eeprom[Icw1] & 0x01E0)>>5;
+		ctrl |= swdpio<<SwdpioloSHIFT;
+		csr32w(ctlr, Ctrl, ctrl);
+		
+		ctrl = csr32r(ctlr, Ctrlext);
+		ctrl &= ~(Ips|SwdpiohiMASK);
+		swdpio = (ctlr->eeprom[Icw2] & 0x00F0)>>4;
+		if(ctlr->eeprom[Icw1] & 0x1000)
+			ctrl |= Ips;
+		ctrl |= swdpio<<SwdpiohiSHIFT;
+		csr32w(ctlr, Ctrlext, ctrl);
+	
+		if(ctlr->eeprom[Icw2] & 0x0800)
+			txcw |= TxcwAne;
+		pause = (ctlr->eeprom[Icw2] & 0x3000)>>12;
+		txcw |= pause<<TxcwPauseSHIFT;
+		switch(pause){
+		default:
+			ctlr->fcrtl = 0x00002000;
+			ctlr->fcrth = 0x00004000;
+			txcw |= TxcwAs|TxcwPs;
+			break;
+		case 0:
+			ctlr->fcrtl = 0x00002000;
+			ctlr->fcrth = 0x00004000;
+			break;
+		case 2:
+			ctlr->fcrtl = 0;
+			ctlr->fcrth = 0;
+			txcw |= TxcwAs;
+			break;
+		}
+		ctlr->txcw = txcw;
+		csr32w(ctlr, Txcw, txcw);
 	}
-	ctlr->txcw = txcw;
-	csr32w(ctlr, Txcw, txcw);
 
+		
 	/*
 	 * Flow control - values from the datasheet.
 	 */
@@ -1794,11 +1828,14 @@ igbepci(void)
 		switch((p->did<<16)|p->vid){
 		default:
 			continue;
-		case (0x1004<<16)|0x8086:	/* 82543GC - copper */
-		case (0x1008<<16)|0x8086:	/* 82544EI - copper */
-		case (0x100E<<16)|0x8086:	/* 82540EM - copper */
-		case (0x101E<<16)|0x8086:	/* 82540EPLP - copper */
-		case (0x1076<<16)|0x8086:	/* 82541GI */
+		case i82543gc:
+		case i82544ei:
+		case i82547ei:
+		case i82540em:
+		case i82540eplp:
+		case i82547gi:
+		case i82541gi:
+		case i82546gb:
 			break;
 		}
 

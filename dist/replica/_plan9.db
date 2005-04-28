@@ -5880,7 +5880,7 @@ sys/src/9/pc/etherelnk3.c - 664 sys sys 1081706477 48724
 sys/src/9/pc/etherga620.c - 664 sys sys 1074785126 28754
 sys/src/9/pc/etherga620fw.h - 644 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
-sys/src/9/pc/etherigbe.c - 664 sys sys 1113426389 43714
+sys/src/9/pc/etherigbe.c - 664 sys sys 1114632111 43779
 sys/src/9/pc/ethermii.c - 664 sys sys 1084331434 4612
 sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
@@ -7023,7 +7023,7 @@ sys/src/boot/pc/etherec2t.c - 664 sys sys 1015007951 3598
 sys/src/boot/pc/etherelnk3.c - 664 sys sys 1034454878 44068
 sys/src/boot/pc/etherelnk3x.c - 664 sys sys 1015007951 24989
 sys/src/boot/pc/etherif.h - 664 sys sys 1107882190 1255
-sys/src/boot/pc/etherigbe.c - 664 sys sys 1096379796 39825
+sys/src/boot/pc/etherigbe.c - 664 sys sys 1114632096 40106
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
 sys/src/boot/pc/etherrhine.c - 664 sys sys 1071175087 12403
@@ -12974,3 +12974,9 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/9loaddebug - 775 sys sys 1114657876 310562
+386/9loadlitedebug - 775 sys sys 1114657877 199052
+386/9pc - 775 sys sys 1114657881 1834137
+386/9pccpu - 775 sys sys 1114657884 1488687
+386/9pcdisk - 775 sys sys 1114657888 2039839
+386/9pcf - 775 sys sys 1114657893 2382671
