@@ -157,6 +157,7 @@ main(int argc, char** argv)
 	Ctlr *ctlr;
 	Vga *vga;
 
+	fmtinstall('H', encodefmt);
 	Binit(&stdout, 1, OWRITE);
 
 	bios = getenv("vgactlr");

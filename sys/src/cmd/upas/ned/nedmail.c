@@ -180,7 +180,8 @@ Message*	flushdeleted(Message*);
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-cr] [-f mboxdir] [-s singleton]\n", argv0);
+	fprint(2, "usage: %s [-nr] [-f mailfile] [-s mailfile]\n", argv0);
+	fprint(2, "       %s -c dir\n", argv0);
 	exits("usage");
 }
 
