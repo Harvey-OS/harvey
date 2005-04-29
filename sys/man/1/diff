@@ -127,6 +127,17 @@ The
 .B -c
 option includes three lines of context around each
 change, merging changes whose contexts overlap.
+In this mode,
+.I diff
+prints
+.L -
+and
+.L +
+instead of
+.L <
+and
+.L >
+because the former are easier to distinguish when mixed.
 The
 .B -a
 flag displays the entire file as context.

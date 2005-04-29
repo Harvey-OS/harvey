@@ -6,4 +6,4 @@ test -r /mail/fs || {
 	if not upas/fs
 }
 
-exec /acme/mail/$objtype/Mail $*
+exec /acme/bin/$objtype/Mail $*
