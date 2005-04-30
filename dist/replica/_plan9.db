@@ -147,7 +147,7 @@
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1104121988 83293
 386/bin/aux/typepasswd - 775 sys sys 1104121988 69503
-386/bin/aux/vga - 775 sys sys 1114703151 314451
+386/bin/aux/vga - 775 sys sys 1114744259 314451
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -452,7 +452,7 @@
 386/bin/upas/mlowner - 775 sys sys 1104122072 92108
 386/bin/upas/msgcat - 775 sys sys 1064598353 38
 386/bin/upas/msgtok - 775 sys sys 1064598354 75149
-386/bin/upas/nedmail - 775 sys sys 1113794399 156296
+386/bin/upas/nedmail - 775 sys sys 1114744259 156346
 386/bin/upas/pop3 - 775 sys sys 1113794399 259820
 386/bin/upas/qer - 775 sys sys 1113794399 99878
 386/bin/upas/ratfs - 775 sys sys 1108354565 111342
@@ -616,7 +616,7 @@ acme/acid/Acid - 775 sys sys 1015011246 86
 acme/acid/guide - 444 sys sys 1015011246 68
 acme/bin - 20000000775 sys sys 1017457907 0
 acme/bin/386 - 20000000775 sys sys 1015011570 0
-acme/bin/386/Mail - 775 sys sys 1114697726 179115
+acme/bin/386/Mail - 775 sys sys 1114744260 179115
 acme/bin/386/News - 775 sys sys 1108960019 128813
 acme/bin/386/Wiki - 775 sys sys 1109909287 126953
 acme/bin/386/acd - 775 sys sys 1032232412 137068
@@ -3836,7 +3836,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1114187716 253657
+sys/games/lib/fortunes - 664 sys sys 1114803424 253725
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -12963,6 +12963,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/aux/vga - 775 sys sys 1114744259 314451
-386/bin/upas/nedmail - 775 sys sys 1114744259 156346
-acme/bin/386/Mail - 775 sys sys 1114744260 179115
