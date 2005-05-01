@@ -12586,7 +12586,7 @@ sys/src/libmemdraw/cload.c - 664 sys sys 944961741 1337
 sys/src/libmemdraw/cmap.c - 664 sys sys 1029430942 25150
 sys/src/libmemdraw/cread.c - 664 sys sys 1014930216 1982
 sys/src/libmemdraw/defont.c - 664 sys sys 944961741 1288
-sys/src/libmemdraw/draw.c - 664 sys sys 1039752933 55250
+sys/src/libmemdraw/draw.c - 664 sys sys 1114867396 55720
 sys/src/libmemdraw/drawtest.c - 664 sys sys 1045502228 23441
 sys/src/libmemdraw/ellipse.c - 664 sys sys 1039752933 4866
 sys/src/libmemdraw/fillpoly.c - 664 sys sys 1039752933 9841
@@ -12963,3 +12963,11 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/crop - 775 sys sys 1114917029 116008
+386/bin/iconv - 775 sys sys 1114917030 113265
+386/bin/resample - 775 sys sys 1114917030 120740
+386/bin/topng - 775 sys sys 1114917031 138328
+386/bin/vncs - 775 sys sys 1114917032 471140
+386/bin/togif - 775 sys sys 1114917030 189766
+386/bin/toppm - 775 sys sys 1114917031 165150
+386/lib/libmemdraw.a - 664 sys sys 1114917033 283978

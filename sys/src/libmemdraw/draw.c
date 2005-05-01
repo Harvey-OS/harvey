@@ -441,7 +441,6 @@ struct Param {
 static uchar *drawbuf;
 static int	ndrawbuf;
 static int	mdrawbuf;
-static Param spar, mpar, dpar;	/* easier on the stacks */
 static Readfn	greymaskread, replread, readptr;
 static Writefn	nullwrite;
 static Calcfn	alphacalc0, alphacalc14, alphacalc2810, alphacalc3679, alphacalc5, alphacalc11, alphacalcS;
@@ -452,7 +451,7 @@ static Readfn*	readalphafn(Memimage*);
 static Writefn*	writefn(Memimage*);
 
 static Calcfn*	boolcopyfn(Memimage*, Memimage*);
-static Readfn*	convfn(Memimage*, Param*, Memimage*, Param*);
+static Readfn*	convfn(Memimage*, Param*, Memimage*, Param*, int*);
 static Readfn*	ptrfn(Memimage*);
 
 static Calcfn *alphacalc[Ncomp] = 
@@ -487,59 +486,66 @@ static Calcfn *boolcalc[Ncomp] =
 	boolcalc1011,		/* SoverD */
 };
 
-static int
-allocdrawbuf(void)
+/*
+ * Avoid standard Lock, QLock so that can be used in kernel.
+ */
+typedef struct Dbuf Dbuf;
+struct Dbuf
 {
 	uchar *p;
+	int n;
+	Param spar, mpar, dpar;
+	int inuse;
+};
+static Dbuf dbuf[10];
 
-	if(ndrawbuf > mdrawbuf){
-		p = realloc(drawbuf, ndrawbuf);
-		if(p == nil){
-			werrstr("memimagedraw out of memory");
-			return -1;
-		}
-		drawbuf = p;
-		mdrawbuf = ndrawbuf;
+static Dbuf*
+allocdbuf(void)
+{
+	int i;
+
+	for(i=0; i<nelem(dbuf); i++){
+		if(dbuf[i].inuse)
+			continue;
+		if(!_tas(&dbuf[i].inuse))
+			return &dbuf[i];
 	}
-	return 0;
+	return nil;
 }
 
-static Param
-getparam(Memimage *img, Rectangle r, int convgrey, int needbuf)
+static void
+getparam(Param *p, Memimage *img, Rectangle r, int convgrey, int needbuf, int *ndrawbuf)
 {
-	Param p;
 	int nbuf;
 
-	memset(&p, 0, sizeof p);
+	memset(p, 0, sizeof *p);
 
-	p.img = img;
-	p.r = r;
-	p.dx = Dx(r);
-	p.needbuf = needbuf;
-	p.convgrey = convgrey;
+	p->img = img;
+	p->r = r;
+	p->dx = Dx(r);
+	p->needbuf = needbuf;
+	p->convgrey = convgrey;
 
 	assert(img->r.min.x <= r.min.x && r.min.x < img->r.max.x);
 
-	p.bytey0s = byteaddr(img, Pt(img->r.min.x, img->r.min.y));
-	p.bytermin = byteaddr(img, Pt(r.min.x, img->r.min.y));
-	p.bytey0e = byteaddr(img, Pt(img->r.max.x, img->r.min.y));
-	p.bwidth = sizeof(ulong)*img->width;
+	p->bytey0s = byteaddr(img, Pt(img->r.min.x, img->r.min.y));
+	p->bytermin = byteaddr(img, Pt(r.min.x, img->r.min.y));
+	p->bytey0e = byteaddr(img, Pt(img->r.max.x, img->r.min.y));
+	p->bwidth = sizeof(ulong)*img->width;
 
-	assert(p.bytey0s <= p.bytermin && p.bytermin <= p.bytey0e);
+	assert(p->bytey0s <= p->bytermin && p->bytermin <= p->bytey0e);
 
-	if(p.r.min.x == p.img->r.min.x)
-		assert(p.bytermin == p.bytey0s);
+	if(p->r.min.x == p->img->r.min.x)
+		assert(p->bytermin == p->bytey0s);
 
 	nbuf = 1;
 	if((img->flags&Frepl) && Dy(img->r) <= MAXBCACHE && Dy(img->r) < Dy(r)){
-		p.replcache = 1;
+		p->replcache = 1;
 		nbuf = Dy(img->r);
 	}
-	p.bufdelta = 4*p.dx;
-	p.bufoff = ndrawbuf;
-	ndrawbuf += p.bufdelta*nbuf;
-
-	return p;
+	p->bufdelta = 4*p->dx;
+	p->bufoff = *ndrawbuf;
+	*ndrawbuf += p->bufdelta*nbuf;
 }
 
 static void
@@ -610,19 +616,23 @@ alphadraw(Memdrawparam *par)
 {
 	int isgrey, starty, endy, op;
 	int needbuf, dsty, srcy, masky;
-	int y, dir, dx, dy;
+	int y, dir, dx, dy, ndrawbuf;
+	uchar *drawbuf;
 	Buffer bsrc, bdst, bmask;
 	Readfn *rdsrc, *rdmask, *rddst;
 	Calcfn *calc;
 	Writefn *wrdst;
 	Memimage *src, *mask, *dst;
 	Rectangle r, sr, mr;
+	Dbuf *z;
 
 	r = par->r;
 	dx = Dx(r);
 	dy = Dy(r);
 
-	ndrawbuf = 0;
+	z = allocdbuf();
+	if(z == nil)
+		return 0;
 
 	src = par->src;
 	mask = par->mask;	
@@ -641,12 +651,13 @@ alphadraw(Memdrawparam *par)
 	 */
 	needbuf = (src->data == dst->data);
 
-	spar = getparam(src, sr, isgrey, needbuf);
-	dpar = getparam(dst, r, isgrey, needbuf);
-	mpar = getparam(mask, mr, 0, needbuf);
+	ndrawbuf = 0;
+	getparam(&z->spar, src, sr, isgrey, needbuf, &ndrawbuf);
+	getparam(&z->dpar, dst, r, isgrey, needbuf, &ndrawbuf);
+	getparam(&z->mpar, mask, mr, 0, needbuf, &ndrawbuf);
 
 	dir = (needbuf && byteaddr(dst, r.min) > byteaddr(src, sr.min)) ? -1 : 1;
-	spar.dir = mpar.dir = dpar.dir = dir;
+	z->spar.dir = z->mpar.dir = z->dpar.dir = dir;
 
 	/*
 	 * If the mask is purely boolean, we can convert from src to dst format
@@ -666,7 +677,7 @@ alphadraw(Memdrawparam *par)
 //if(drawdebug) iprint("flag %lud mchan %lux=?%x dd %d\n", src->flags&Falpha, mask->chan, GREY1, dst->depth);
 	if(!(src->flags&Falpha) && mask->chan == GREY1 && dst->depth >= 8 && op == SoverD){
 //if(drawdebug) iprint("boolcopy...");
-		rdsrc = convfn(dst, &dpar, src, &spar);
+		rdsrc = convfn(dst, &z->dpar, src, &z->spar, &ndrawbuf);
 		rddst = readptr;
 		rdmask = readfn(mask);
 		calc = boolcopyfn(dst, mask);
@@ -684,10 +695,10 @@ alphadraw(Memdrawparam *par)
 		 */
 		if(mask->flags&Falpha){
 			rdmask = readalphafn(mask);
-			mpar.alphaonly = 1;
+			z->mpar.alphaonly = 1;
 		}else{
-			mpar.greymaskcall = readfn(mask);
-			mpar.convgrey = 1;
+			z->mpar.greymaskcall = readfn(mask);
+			z->mpar.convgrey = 1;
 			rdmask = greymaskread;
 
 			/*
@@ -709,27 +720,34 @@ alphadraw(Memdrawparam *par)
 	 * If the image has a small enough repl rectangle,
 	 * we can just read each line once and cache them.
 	 */
-	if(spar.replcache){
-		spar.replcall = rdsrc;
+	if(z->spar.replcache){
+		z->spar.replcall = rdsrc;
 		rdsrc = replread;
 	}
-	if(mpar.replcache){
-		mpar.replcall = rdmask;
+	if(z->mpar.replcache){
+		z->mpar.replcall = rdmask;
 		rdmask = replread;
 	}
 
-	if(allocdrawbuf() < 0)
-		return 0;
+	if(z->n < ndrawbuf){
+		free(z->p);
+		if((z->p = mallocz(ndrawbuf, 0)) == nil){
+			z->inuse = 0;
+			return 0;
+		}
+		z->n = ndrawbuf;
+	}
+	drawbuf = z->p;
 
 	/*
 	 * Before we were saving only offsets from drawbuf in the parameter
 	 * structures; now that drawbuf has been grown to accomodate us,
 	 * we can fill in the pointers.
 	 */
-	spar.bufbase = drawbuf+spar.bufoff;
-	mpar.bufbase = drawbuf+mpar.bufoff;
-	dpar.bufbase = drawbuf+dpar.bufoff;
-	spar.convbuf = drawbuf+spar.convbufoff;
+	z->spar.bufbase = drawbuf+z->spar.bufoff;
+	z->mpar.bufbase = drawbuf+z->mpar.bufoff;
+	z->dpar.bufbase = drawbuf+z->dpar.bufoff;
+	z->spar.convbuf = drawbuf+z->spar.convbufoff;
 
 	if(dir == 1){
 		starty = 0;
@@ -757,18 +775,19 @@ alphadraw(Memdrawparam *par)
 		clipy(dst, &dsty);
 		clipy(mask, &masky);
 
-		bsrc = rdsrc(&spar, spar.bufbase, srcy);
+		bsrc = rdsrc(&z->spar, z->spar.bufbase, srcy);
 DBG print("[");
-		bmask = rdmask(&mpar, mpar.bufbase, masky);
+		bmask = rdmask(&z->mpar, z->mpar.bufbase, masky);
 DBG print("]\n");
-		bdst = rddst(&dpar, dpar.bufbase, dsty);
+		bdst = rddst(&z->dpar, z->dpar.bufbase, dsty);
 DBG		dumpbuf("src", bsrc, dx);
 DBG		dumpbuf("mask", bmask, dx);
 DBG		dumpbuf("dst", bdst, dx);
 		bdst = calc(bdst, bsrc, bmask, dx, isgrey, op);
-		wrdst(&dpar, dpar.bytermin+dsty*dpar.bwidth, bdst);
+		wrdst(&z->dpar, z->dpar.bytermin+dsty*z->dpar.bwidth, bdst);
 	}
 
+	z->inuse = 0;
 	return 1;
 }
 #undef DBG
@@ -1825,7 +1844,7 @@ genconv(Param *p, uchar *buf, int y)
 }
 
 static Readfn*
-convfn(Memimage *dst, Param *dpar, Memimage *src, Param *spar)
+convfn(Memimage *dst, Param *dpar, Memimage *src, Param *spar, int *ndrawbuf)
 {
 	if(dst->chan == src->chan && !(src->flags&Frepl)){
 //if(drawdebug) iprint("readptr...");
@@ -1843,8 +1862,8 @@ convfn(Memimage *dst, Param *dpar, Memimage *src, Param *spar)
 	spar->convdpar = dpar;
 
 	/* allocate a conversion buffer */
-	spar->convbufoff = ndrawbuf;
-	ndrawbuf += spar->dx*4;
+	spar->convbufoff = *ndrawbuf;
+	*ndrawbuf += spar->dx*4;
 
 	if(spar->dx > Dx(spar->img->r)){
 		spar->convdx = spar->dx;
