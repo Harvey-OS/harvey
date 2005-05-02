@@ -2,8 +2,8 @@
 #
 # include "t.h"
 
-# define MACROS "/usr/lib/tmac.s"
-# define PYMACS "/usr/lib/tmac.m"
+# define MACROS "/sys/lib/tmac/tmac.s"
+# define PYMACS "/sys/lib/tmac/tmac.m"
 
 
 # define ever (;;)
@@ -43,9 +43,10 @@ setinp(int argc, char **argv)
 	sargv = argv;
 	sargc--; 
 	sargv++;
-	if (sargc > 0)
-		swapin();
-	else {
+	if (sargc > 0) {
+		if(swapin() == 0)
+			error("flags but no input files");
+	} else {
 		tabin = (Biobuf*)getcore(sizeof(Biobuf), 1);
 		Binit(tabin, 0, OREAD);
 	}
