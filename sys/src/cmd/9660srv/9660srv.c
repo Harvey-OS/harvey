@@ -707,6 +707,11 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 			s += fs->suspoff;
 			sysl -= fs->suspoff;
 			for(; sysl >= 4 && have != (Hname|Hmode); sysl -= l, s += l){
+				if(s[0] == 0 && ((ulong)s & 1)){
+					/* MacOS pads individual entries, contrary to spec */
+					s++;
+					sysl--;
+				}
 				l = s[2];
 				if(s[0] == 'P' && s[1] == 'X' && s[3] == 1){
 					/* posix file attributes */

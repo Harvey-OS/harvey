@@ -411,7 +411,7 @@
 386/bin/syscall - 775 sys sys 1104122060 73536
 386/bin/tail - 775 sys sys 1104122060 65938
 386/bin/tar - 775 sys sys 1113794395 96205
-386/bin/tbl - 775 sys sys 1104122061 113124
+386/bin/tbl - 775 sys sys 1115003380 113176
 386/bin/tcs - 775 sys sys 1104122062 256588
 386/bin/tee - 775 sys sys 1104122062 38428
 386/bin/telco - 775 sys sys 1108354564 103315
@@ -7228,7 +7228,7 @@ sys/src/cmd/8l/optab.c - 664 sys sys 1111156413 16231
 sys/src/cmd/8l/pass.c - 664 sys sys 1095107668 13675
 sys/src/cmd/8l/span.c - 664 sys sys 1107721554 23294
 sys/src/cmd/9660srv - 20000000775 sys sys 944960735 0
-sys/src/cmd/9660srv/9660srv.c - 664 sys sys 1014924873 17018
+sys/src/cmd/9660srv/9660srv.c - 664 sys sys 1115039888 17143
 sys/src/cmd/9660srv/dat.h - 664 sys sys 1091904429 2097
 sys/src/cmd/9660srv/data.c - 664 sys sys 944960735 373
 sys/src/cmd/9660srv/fns.h - 664 sys sys 1019425186 428
@@ -11381,7 +11381,7 @@ sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
 sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1114697983 44543
 sys/src/cmd/upas/pop3 - 20000000775 sys sys 1015009816 0
 sys/src/cmd/upas/pop3/mkfile - 664 sys sys 1064589604 186
-sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1076176207 14301
+sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1115039848 14327
 sys/src/cmd/upas/q - 20000000775 sys sys 988250019 0
 sys/src/cmd/upas/q/mkfile - 664 sys sys 1064589601 262
 sys/src/cmd/upas/q/qer.c - 664 sys sys 1014926528 3179
@@ -12963,4 +12963,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/tbl - 775 sys sys 1115003380 113176
+386/bin/9660srv - 775 sys sys 1115089909 104037
+386/bin/upas/pop3 - 775 sys sys 1115089909 259875

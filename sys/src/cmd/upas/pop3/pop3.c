@@ -244,8 +244,9 @@ readmbox(char *box)
 		for(;;){
 			p = Brdline(b, '\n');
 			if(p == nil){
-				if(Blinelen(b) == 0)
+				if((n = Blinelen(b)) == 0)
 					break;
+				Bseek(b, n, 1);
 			}else
 				lines++;
 		}
