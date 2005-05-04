@@ -17,7 +17,7 @@
 386/bin/8a - 775 sys sys 1108285260 115096
 386/bin/8c - 775 sys sys 1113620963 358011
 386/bin/8l - 775 sys sys 1107835553 115728
-386/bin/9660srv - 775 sys sys 1113794389 103976
+386/bin/9660srv - 775 sys sys 1115089909 104037
 386/bin/aan - 775 sys sys 1108354539 130710
 386/bin/acid - 775 sys sys 1114484867 389719
 386/bin/acme - 775 sys sys 1111637282 428512
@@ -53,7 +53,7 @@
 386/bin/auth/debug - 775 sys sys 1104121962 101064
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
-386/bin/auth/factotum - 775 sys sys 1108354543 312307
+386/bin/auth/factotum - 775 sys sys 1115143225 312314
 386/bin/auth/fgui - 775 sys sys 1106799169 217787
 386/bin/auth/guard.srv - 775 sys sys 1104121964 142850
 386/bin/auth/iam - 775 sys sys 1085076981 50791
@@ -453,7 +453,7 @@
 386/bin/upas/msgcat - 775 sys sys 1064598353 38
 386/bin/upas/msgtok - 775 sys sys 1064598354 75149
 386/bin/upas/nedmail - 775 sys sys 1114744259 156346
-386/bin/upas/pop3 - 775 sys sys 1113794399 259820
+386/bin/upas/pop3 - 775 sys sys 1115089909 259875
 386/bin/upas/qer - 775 sys sys 1113794399 99878
 386/bin/upas/ratfs - 775 sys sys 1108354565 111342
 386/bin/upas/runq - 775 sys sys 1113794400 113527
@@ -7365,7 +7365,7 @@ sys/src/cmd/auth/factotum/log.c - 664 sys sys 1046655068 1781
 sys/src/cmd/auth/factotum/mkfile - 664 sys sys 1107706102 481
 sys/src/cmd/auth/factotum/p9any.c - 664 sys sys 1107706103 8484
 sys/src/cmd/auth/factotum/p9cr.c - 664 sys sys 1107706103 6666
-sys/src/cmd/auth/factotum/p9sk1.c - 664 sys sys 1107706208 9771
+sys/src/cmd/auth/factotum/p9sk1.c - 664 sys sys 1115143213 9743
 sys/src/cmd/auth/factotum/pass.c - 664 sys sys 1107706104 1514
 sys/src/cmd/auth/factotum/rpc.c - 664 sys sys 1107633794 11167
 sys/src/cmd/auth/factotum/rsa.c - 664 sys sys 1107706104 3416
@@ -12963,5 +12963,10 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/9660srv - 775 sys sys 1115089909 104037
-386/bin/upas/pop3 - 775 sys sys 1115089909 259875
+386/9loaddebug - 775 sys sys 1115176426 310268
+386/9loadlitedebug - 775 sys sys 1115176427 198758
+386/9pc - 775 sys sys 1115176431 1834438
+386/9pccpu - 775 sys sys 1115176435 1488655
+386/9pcdisk - 775 sys sys 1115176439 2040140
+386/9pcf - 775 sys sys 1115176444 2382972
+386/bin/auth/factotum - 775 sys sys 1115176426 312290

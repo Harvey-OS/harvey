@@ -304,10 +304,8 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 		convM2A((char*)a+TICKETLEN, &auth, s->t.key);
 		if(auth.num != AuthAc
 		|| memcmp(auth.chal, s->tr.chal, CHALLEN) != 0
-		|| auth.id != 0){
-			disablekey(s->key);
+		|| auth.id != 0)
 			return failure(fss, Easproto);
-		}
 		auth.num = AuthAs;
 		memmove(auth.chal, s->cchal, CHALLEN);
 		auth.id = 0;
