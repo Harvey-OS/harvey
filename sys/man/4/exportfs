@@ -4,30 +4,7 @@ exportfs, srvfs \- network file server plumbing
 .SH SYNOPSIS
 .B exportfs
 [
-.B -adnsR
-] [
-.B -f
-.I dbgfile
-] [
-.B -m
-.I msize
-] [
-.B -r
-.I root
-] [
-.B -S
-.I service
-] [
-.B -A announce
-] [
-.B -e
-.I "'enc auth'"
-] [
-.B -N
-.I nsfile
-] [
-.B -P
-.I patternfile
+.I options
 ]
 .PP
 .B srvfs
@@ -71,68 +48,77 @@ creates a new name space for each connection, using
 .B /lib/namespace
 by default (see
 .IR namespace (6)).
-The
-.B -n
-option gives an alternative name space file.
-.PP
-The
-.B -R
-option makes the served name space read only.
-.PP
-The 
-.B -r
-option bypasses the initial protocol, instead immediately
-serving the name space rooted at 
-.IR root .
-The
-.B -s
-option is equivalent to
-.B -r 
-.BR / ,
-but predates
-.B -r
-and remains for compatibility.
-.PP
-The
-.B -S
-option also bypasses the initial protocol but
-serves the result of mounting
-.IR service .
-A separate mount is used for each
-.IR attach (5)
-message,
-to correctly handle servers in which each mount
-corresponds to a different client
-.IR e.g. , (
-.IR rio (4)).
-.PP
-The
-.B -m
-option sets the maximum message size that 
-exportfs should offer to send (see
-.IR version (5));
-this helps tunneled
-9P connections to avoid unnecessary fragmentation.
-.PP
-The
+The options are:
+.TP
+.PD
+.B -A \fIaddress
+Use the address
+.I address
+for
+.IR aan (8)
+connections.
+.TP
 .B -a
-option instructs
+Authenticate the user with the
+.I p9any
+protocol before running the regular
 .I exportfs
-to authenticate the user, usually because it is
-being invoked from a remote machine.
-.PP
-The
-.B -d
-option instructs
+session; used when 
 .I exportfs
-to log all 9P traffic to 
+is invoked to handle an incoming network connection.
+.TP
+.B -B \fIaddress
+Dial
+.IR address ,
+authenticate as a
+.I p9any
+client, and then
+serve that network connection.
+Requires setting the root of the name space with 
+.B -r
+or
+.BR -s .
+The remote system should run
+.B import
+.B -B
+to handle the call.
+See
+.IR import (4)
+for an example.
+.TP
+.B -d -f \fIdbgfile
+Log all 9P traffic to
 .I dbgfile
 (default
 .BR /tmp/exportdb ).
-.PP
-The
-.BI  -P patternfile
-option restricts the set of exported files.
+.TP
+.B -e '\fIenc auth\fL'
+Set the encryption and authentication algorithms to use for
+encrypting the wire traffic (see
+.IR ssl (3)).
+The defaults are
+.B rc4_256
+and
+.BR sha1 .
+.TP
+.B -m \fImsize
+Set the maximum message size that 
+.I exportfs
+should offer to send (see
+.IR version (5));
+this helps tunneled
+9P connections to avoid unnecessary fragmentation.
+.TP
+.B -N \fInsfile
+Serve the name space described by
+.IR nsfile .
+.TP
+.B -n
+Disallow mounts by user
+.BR none .
+.TP
+.B -P \fIpatternfile
+Restrict the set of exported files.
 .I Patternfile
 contains one regular expression per line,
 to be matched against path names
@@ -144,16 +130,31 @@ For a file to be exported, all lines with a prefix
 must match and all those with prefix
 .B -
 must not match.
-.PP
-The
-.B -e
-option specifies the encryption and authentication algorithms to use for
-encrypting the wire traffic.  The defaults are
-.B rc4_256
-and
-.BR sha1 .
-The full list of supported protocols in in
-.IR ssl (3).
+.TP
+.B -R
+Make the served name space read only.
+.TP
+.B -r \fIroot
+Bypass the initial protocol, serving the name space rooted at
+.IR root .
+.TP
+.B -S \fIservice
+bypass the initial protocol, serving the result of mounting
+.IR service .
+A separate mount is used for each
+.IR attach (5)
+message,
+to correctly handle servers in which each mount
+corresponds to a different client
+.IR e.g. , (
+.IR rio (4)).
+.TP
+.B -s
+equivalent to
+.B -r
+.BR / ;
+kept for compatibility.
+.PD
 .PP
 The
 .B cpu
@@ -165,6 +166,7 @@ command calls
 .I exportfs
 on a remote machine, permitting users to access arbitrary pieces of
 name space on other systems.
+.PP
 Because the kernel disallows reads and writes on mounted pipes
 (as might be found in
 .BR /srv ),
@@ -186,23 +188,15 @@ and posts it at
 which is created with mode
 .I perm
 (default 0600).
-By default, the name space is the directory tree rooted at 
+The name space is the directory tree rooted at 
 .IR path .
-If the
-.BR -d ,
-.BR -R ,
-or
-.B -P
-options are given,
-.I srvfs
-passes them to
-.IR exportprog .
-.PP
 The
-.B -A
-filter specifies an announce string when exportfs is used in combination
-with aan.  The announce string identifies the network and network 
-protocol to use for aan connections.
+.B -d ,
+.B -P ,
+and
+.B -R
+options, if present, are relayed to
+.IR exportprog .
 .SH EXAMPLES
 To export the archive of one user for one month, except for secrets,
 .IP
