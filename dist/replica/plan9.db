@@ -219,7 +219,7 @@
 386/bin/ed - 775 sys sys 1104122006 93034
 386/bin/eqn - 775 sys sys 1087442511 242933
 386/bin/execnet - 775 sys sys 1108354551 171896
-386/bin/exportfs - 775 sys sys 1108354552 161148
+386/bin/exportfs - 775 sys sys 1115348876 161171
 386/bin/ext2srv - 775 sys sys 1108354552 173894
 386/bin/faces - 775 sys sys 1106799174 192579
 386/bin/factor - 775 sys sys 1104122008 61475
@@ -5495,13 +5495,13 @@ sys/man/4/cfs - 664 sys sys 1015024813 1758
 sys/man/4/consolefs - 664 sys sys 1069179473 3920
 sys/man/4/dossrv - 664 sys sys 1015024813 4176
 sys/man/4/execnet - 664 sys sys 1019866708 1069
-sys/man/4/exportfs - 664 sys sys 1105574692 4692
+sys/man/4/exportfs - 664 sys sys 1115314261 4653
 sys/man/4/ext2srv - 664 sys sys 1055692986 2409
 sys/man/4/factotum - 664 sys sys 1107836362 14708
 sys/man/4/fossil - 664 sys sys 1112368411 9546
 sys/man/4/fs - 664 sys sys 1019058716 3387
 sys/man/4/ftpfs - 664 sys sys 1112563349 4410
-sys/man/4/import - 664 sys sys 1034195346 2204
+sys/man/4/import - 664 sys sys 1115314601 3095
 sys/man/4/iostats - 664 sys sys 1105574383 1621
 sys/man/4/keyfs - 664 sys sys 1017251244 5003
 sys/man/4/kfs - 664 sys sys 1102088374 2164
@@ -7993,7 +7993,7 @@ sys/src/cmd/execnet/main.c - 664 sys sys 1019861330 657
 sys/src/cmd/execnet/mkfile - 664 sys sys 1032059543 208
 sys/src/cmd/execnet/note.c - 664 sys sys 1019855740 2315
 sys/src/cmd/exportfs - 20000000775 sys sys 988249971 0
-sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1084471862 16296
+sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1115314269 16357
 sys/src/cmd/exportfs/exportfs.h - 664 sys sys 1066823091 2800
 sys/src/cmd/exportfs/exportsrv.c - 664 sys sys 1081082332 11914
 sys/src/cmd/exportfs/mkfile - 664 sys sys 1066825703 194
