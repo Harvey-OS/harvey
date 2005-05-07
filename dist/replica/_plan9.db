@@ -219,7 +219,7 @@
 386/bin/ed - 775 sys sys 1104122006 93034
 386/bin/eqn - 775 sys sys 1087442511 242933
 386/bin/execnet - 775 sys sys 1108354551 171896
-386/bin/exportfs - 775 sys sys 1108354552 161148
+386/bin/exportfs - 775 sys sys 1115348876 161171
 386/bin/ext2srv - 775 sys sys 1108354552 173894
 386/bin/faces - 775 sys sys 1106799174 192579
 386/bin/factor - 775 sys sys 1104122008 61475
@@ -5887,7 +5887,7 @@ sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1099761152 8095
 sys/src/9/pc/kbd.c - 664 sys sys 1079617269 11655
 sys/src/9/pc/l.s - 664 sys sys 1113926772 23705
-sys/src/9/pc/main.c - 664 sys sys 1089046997 14677
+sys/src/9/pc/main.c - 664 sys sys 1115352568 14694
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
@@ -12963,4 +12963,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/exportfs - 775 sys sys 1115348876 161171

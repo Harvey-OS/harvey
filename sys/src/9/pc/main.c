@@ -631,14 +631,15 @@ shutdown(int ispanic)
 			break;
 	}
 
-	if(active.ispanic && m->machno == 0){
-		if(cpuserver)
-			delay(10000);
-		else
+	if(getconf("*debug"))
+		delay(5*60*1000);
+
+	if(active.ispanic){
+		if(!cpuserver)
 			for(;;)
 				halt();
-	}
-	else
+		delay(10000);
+	}else
 		delay(1000);
 }
 
