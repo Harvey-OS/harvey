@@ -5860,7 +5860,7 @@ sys/src/9/pc/ether8139.c - 664 sys sys 1086987324 18362
 sys/src/9/pc/ether8169.c - 664 sys sys 1110882037 22704
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
 sys/src/9/pc/ether82557.c - 664 sys sys 1098848151 30040
-sys/src/9/pc/ether83815.c - 664 sys sys 1081706477 23479
+sys/src/9/pc/ether83815.c - 664 sys sys 1115476450 23479
 sys/src/9/pc/ether8390.c - 664 sys sys 1112382834 17701
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherdp83820.c - 664 sys sys 1083469193 29134
