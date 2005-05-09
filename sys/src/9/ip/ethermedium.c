@@ -16,6 +16,15 @@ struct Etherhdr
 	uchar	t[2];
 };
 
+static uchar ipbroadcast[IPaddrlen] = {
+	0xff,0xff,0xff,0xff,  
+	0xff,0xff,0xff,0xff,  
+	0xff,0xff,0xff,0xff,  
+	0xff,0xff,0xff,0xff,
+};
+
+static uchar etherbroadcast[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+
 static void	etherread4(void *a);
 static void	etherread6(void *a);
 static void	etherbind(Ipifc *ifc, int argc, char **argv);
@@ -602,6 +611,14 @@ recvarp(Ipifc *ifc)
 					e->s, e->sha, e->spa);
 				break;
 			}
+		}
+
+		/* make sure we're not entering broadcast addresses */
+		if(ipcmp(ip, ipbroadcast) == 0 ||
+			!memcmp(e->sha, etherbroadcast, sizeof(e->sha))){
+			print("arprep: 0x%E/0x%E cannot register broadcast address %I\n",
+				e->s, e->sha, e->spa);
+			break;
 		}
 
 		arpenter(er->f, V4, e->spa, e->sha, sizeof(e->sha), 0);

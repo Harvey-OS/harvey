@@ -592,6 +592,10 @@ TEXT xchgw(SB), $0
 	RET
 
 TEXT mul64fract(SB), $0
+/*
+ * Multiply two 64-bit number s and keep the middle 64 bits from the 128-bit result
+ * See ../port/tod.c for motivation.
+ */
 	MOVL	r+0(FP), CX
 	XORL	BX, BX				/* BX = 0 */
 

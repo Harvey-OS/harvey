@@ -925,6 +925,7 @@ i82557pci(void)
 		default:
 			continue;
 		case 0x1031:		/* Intel 82562EM */
+		case 0x1050:		/* Intel 82562EZ */
 		case 0x2449:		/* Intel 82562ET */
 			nop = 1;
 			/*FALLTHROUGH*/
