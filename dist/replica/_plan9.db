@@ -5771,8 +5771,8 @@ sys/src/9/ip/chandial.c - 664 sys sys 1099020048 2295
 sys/src/9/ip/devip.c - 664 sys sys 1084331653 24164
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
 sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
-sys/src/9/ip/ethermedium.c - 664 sys sys 1066514880 15124
-sys/src/9/ip/gre.c - 664 sys sys 1047260562 4684
+sys/src/9/ip/ethermedium.c - 664 sys sys 1115565973 15592
+sys/src/9/ip/gre.c - 664 sys sys 1115566178 5069
 sys/src/9/ip/icmp.c - 664 sys sys 1077376217 9511
 sys/src/9/ip/icmp6.c - 664 sys sys 1047260563 18098
 sys/src/9/ip/igmp.c - 664 sys sys 1055700768 5175
@@ -5781,7 +5781,7 @@ sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
 sys/src/9/ip/ip.c - 664 sys sys 1101906449 15285
 sys/src/9/ip/ip.h - 664 sys sys 1091904429 15818
 sys/src/9/ip/ipaux.c - 664 sys sys 1079538100 12862
-sys/src/9/ip/ipifc.c - 664 sys sys 1091733773 34267
+sys/src/9/ip/ipifc.c - 664 sys sys 1115566009 34255
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
 sys/src/9/ip/iproute.c - 664 sys sys 1049423192 14763
 sys/src/9/ip/ipv6.c - 664 sys sys 1047951328 14433
@@ -5836,7 +5836,7 @@ sys/src/9/pc/archmp.c - 664 sys sys 1084475127 2311
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1091904418 6281
-sys/src/9/pc/devarch.c - 664 sys sys 1109854210 18553
+sys/src/9/pc/devarch.c - 664 sys sys 1115566123 18554
 sys/src/9/pc/devether.c - 664 sys sys 1078928204 10183
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1099761153 20505
@@ -5859,7 +5859,7 @@ sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1086987324 18362
 sys/src/9/pc/ether8169.c - 664 sys sys 1110882037 22704
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
-sys/src/9/pc/ether82557.c - 664 sys sys 1098848151 30040
+sys/src/9/pc/ether82557.c - 664 sys sys 1115566440 30076
 sys/src/9/pc/ether83815.c - 664 sys sys 1115476450 23479
 sys/src/9/pc/ether8390.c - 664 sys sys 1112382834 17701
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
@@ -5886,7 +5886,7 @@ sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1099761152 8095
 sys/src/9/pc/kbd.c - 664 sys sys 1079617269 11655
-sys/src/9/pc/l.s - 664 sys sys 1113926772 23705
+sys/src/9/pc/l.s - 664 sys sys 1115566067 23833
 sys/src/9/pc/main.c - 664 sys sys 1115352568 14694
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
@@ -7004,7 +7004,7 @@ sys/src/boot/pc/ether79c970.c - 664 sys sys 1015007950 11717
 sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
 sys/src/boot/pc/ether8139.c - 664 sys sys 1102429126 14806
 sys/src/boot/pc/ether8169.c - 664 sys sys 1106018997 18687
-sys/src/boot/pc/ether82557.c - 664 sys sys 1098848150 18911
+sys/src/boot/pc/ether82557.c - 664 sys sys 1115566440 18947
 sys/src/boot/pc/ether83815.c - 664 sys sys 1019537742 19576
 sys/src/boot/pc/ether8390.c - 664 sys sys 1112382847 16209
 sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392

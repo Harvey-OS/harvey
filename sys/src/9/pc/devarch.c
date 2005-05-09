@@ -144,10 +144,10 @@ ioinit(void)
 // This is in particular useful for exchangable cards, such
 // as pcmcia and cardbus cards.
 int
-ioreserve(int port, int size, int align, char *tag)
+ioreserve(int, int size, int align, char *tag)
 {
 	IOMap *m, **l;
-	int i;
+	int i, port;
 
 	lock(&iomap);
 	// find a free port above 0x400 and below 0x1000
