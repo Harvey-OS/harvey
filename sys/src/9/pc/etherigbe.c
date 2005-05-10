@@ -7,6 +7,7 @@
  *	82541GI
  *	82547GI
  *	82546GB
+ *	82546EB
  * To Do:
  *	finish autonegotiation code;
  *	integrate fiber stuff back in (this ONLY handles
@@ -28,15 +29,16 @@
 #include "ethermii.h"
 
 enum {
-	i82542     = (0x1000<<16)|0x8086,
-	i82543gc   = (0x1004<<16)|0x8086,
-	i82544ei   = (0x1008<<16)|0x8086,
-	i82547ei   = (0x1019<<16)|0x8086,
-	i82540em   = (0x100E<<16)|0x8086,
-	i82540eplp = (0x101E<<16)|0x8086,
-	i82547gi   = (0x1075<<16)|0x8086,
-	i82541gi   = (0x1076<<16)|0x8086,
-	i82546gb   = (0x1079<<16)|0x8086,
+	i82542     	= (0x1000<<16)|0x8086,
+	i82543gc   	= (0x1004<<16)|0x8086,
+	i82544ei   	= (0x1008<<16)|0x8086,
+	i82547ei   	= (0x1019<<16)|0x8086,
+	i82540em   	= (0x100E<<16)|0x8086,
+	i82540eplp 	= (0x101E<<16)|0x8086,
+	i82547gi   	= (0x1075<<16)|0x8086,
+	i82541gi   	= (0x1076<<16)|0x8086,
+	i82546gb   	= (0x1079<<16)|0x8086,
+	i82546eb	= (0x1010<<16)|0x8086,
 };
 
 enum {
@@ -876,6 +878,7 @@ igbetxinit(Ctlr* ctlr)
 	case i82540eplp:
 	case i82541gi:
 	case i82546gb:
+	case i82546eb:
 	case i82547gi:
 		r = 8;
 		break;
@@ -911,6 +914,7 @@ igbetxinit(Ctlr* ctlr)
 	case i82540eplp:
 	case i82547gi:
 	case i82546gb:
+	case i82546eb:
 	case i82541gi:
 		r = csr32r(ctlr, Txdctl);
 		r &= ~WthreshMASK;
@@ -1041,6 +1045,7 @@ igberxinit(Ctlr* ctlr)
 	case i82540eplp:
 	case i82541gi:
 	case i82546gb:
+	case i82546eb:
 	case i82547gi:
 		csr32w(ctlr, Radv, 64);
 		break;
@@ -1434,6 +1439,7 @@ igbemii(Ctlr* ctlr)
 	case i82547gi:
 	case i82541gi:
 	case i82546gb:
+	case i82546eb:
 		ctrl &= ~(Frcdplx|Frcspd);
 		csr32w(ctlr, Ctrl, ctrl);
 		ctlr->mii->mir = igbemiimir;
@@ -1459,7 +1465,7 @@ igbemii(Ctlr* ctlr)
 	 * Set appropriate values then reset the PHY to have
 	 * changes noted.
 	 */
-	if (ctlr->id != i82547gi && ctlr->id != i82541gi && ctlr->id != i82546gb) {
+	if (ctlr->id != i82547gi && ctlr->id != i82541gi && ctlr->id != i82546gb && ctlr->id != i82546eb) {
 		r = miimir(ctlr->mii, 16);
 		r |= 0x0800;			/* assert CRS on Tx */
 		r |= 0x0060;			/* auto-crossover all speeds */
@@ -1588,6 +1594,7 @@ at93c46r(Ctlr* ctlr)
 	case i82541gi:
 	case i82547gi:
 	case i82546gb:
+	case i82546eb:
 		areq = 1;
 		csr32w(ctlr, Eecd, eecd|Areq);
 		for(i = 0; i < 1000; i++){
@@ -1669,6 +1676,7 @@ igbedetach(Ctlr* ctlr)
 	case i82541gi:
 	case i82547gi:
 	case i82546gb:
+	case i82546eb:
 		r = csr32r(ctlr, Manc);
 		r &= ~Arpen;
 		csr32w(ctlr, Manc, r);
@@ -1716,7 +1724,7 @@ igbereset(Ctlr* ctlr)
 	 * There are 16 addresses. The first should be the MAC address.
 	 * The others are cleared and not marked valid (MS bit of Rah).
 	 */
-	if (ctlr->id == i82546gb && BUSFNO(ctlr->pcidev->tbdf) == 1)
+	if ((ctlr->id == i82546gb || ctlr->id == i82546eb) && BUSFNO(ctlr->pcidev->tbdf) == 1)
 		ctlr->eeprom[Ea+2] += 0x100;	// second interface
 	for(i = Ea; i < Eaddrlen/2; i++){
 		ctlr->ra[2*i] = ctlr->eeprom[i];
@@ -1836,6 +1844,7 @@ igbepci(void)
 		case i82547gi:
 		case i82541gi:
 		case i82546gb:
+		case i82546eb:
 			break;
 		}
 

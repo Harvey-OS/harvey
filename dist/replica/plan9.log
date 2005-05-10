@@ -14888,3 +14888,5 @@
 1115566361 4 c sys/src/9/pc/l.s - 664 sys sys 1115566067 23833
 1115568160 0 c sys/src/9/pc/ether82557.c - 664 sys sys 1115566440 30076
 1115568160 1 c sys/src/boot/pc/ether82557.c - 664 sys sys 1115566440 18947
+1115694191 0 c sys/src/9/pc/etherigbe.c - 664 sys sys 1115694068 43995
+1115694191 1 c sys/src/boot/pc/etherigbe.c - 664 sys sys 1115693946 40304
