@@ -147,7 +147,7 @@
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1104121988 83293
 386/bin/aux/typepasswd - 775 sys sys 1104121988 69503
-386/bin/aux/vga - 775 sys sys 1114744259 314451
+386/bin/aux/vga - 775 sys sys 1115781003 333311
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -824,7 +824,7 @@ alpha/mkfile - 664 sys sys 948141303 46
 amd64 - 20000000775 sys sys 1114458599 0
 amd64/bin - 20000000775 sys sys 1114458475 0
 amd64/include - 20000000775 sys sys 1114458660 0
-amd64/include/u.h - 644 sys sys 1114458660 1658
+amd64/include/u.h - 664 sys sys 1114458660 1658
 amd64/include/ureg.h - 644 sys sys 1114458660 454
 amd64/lib - 20000000775 sys sys 1114458490 0
 amd64/mkfile - 644 sys sys 1114458599 46
@@ -5860,7 +5860,7 @@ sys/src/9/pc/ether8139.c - 664 sys sys 1086987324 18362
 sys/src/9/pc/ether8169.c - 664 sys sys 1110882037 22704
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
 sys/src/9/pc/ether82557.c - 664 sys sys 1115566440 30076
-sys/src/9/pc/ether83815.c - 664 sys sys 1115476450 23479
+sys/src/9/pc/ether83815.c - 664 sys sys 1115744557 23481
 sys/src/9/pc/ether8390.c - 664 sys sys 1112382834 17701
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherdp83820.c - 664 sys sys 1083469193 29134
@@ -7610,13 +7610,13 @@ sys/src/cmd/aux/vga/io.c - 664 sys sys 1014925009 6222
 sys/src/cmd/aux/vga/mach32.c - 664 sys sys 1014925009 6004
 sys/src/cmd/aux/vga/mach64.c - 664 sys sys 1014925009 8279
 sys/src/cmd/aux/vga/mach64xx.c - 664 sys sys 1097900455 30266
-sys/src/cmd/aux/vga/main.c - 664 sys sys 1114703149 9471
+sys/src/cmd/aux/vga/main.c - 664 sys sys 1115734902 9535
 sys/src/cmd/aux/vga/mga2164w.c - 664 sys sys 1014925010 13196
 sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1014925010 35895
-sys/src/cmd/aux/vga/mkfile - 664 sys sys 1114453579 915
+sys/src/cmd/aux/vga/mkfile - 664 sys sys 1115734903 927
 sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1104430499 8975
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
-sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1109511456 23718
+sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1115734903 31499
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
 sys/src/cmd/aux/vga/pci.c - 664 sys sys 1014925011 8659
 sys/src/cmd/aux/vga/pci.h - 664 sys sys 1014925011 3290
@@ -7638,9 +7638,10 @@ sys/src/cmd/aux/vga/tvp3025.c - 664 sys sys 1014925013 1960
 sys/src/cmd/aux/vga/tvp3025clock.c - 664 sys sys 1014925013 1511
 sys/src/cmd/aux/vga/tvp3026.c - 664 sys sys 1014925013 3580
 sys/src/cmd/aux/vga/tvp3026clock.c - 664 sys sys 1014925013 1960
-sys/src/cmd/aux/vga/vesa.c - 664 sys sys 1114703149 9421
+sys/src/cmd/aux/vga/vesa.c - 664 sys sys 1115734903 21639
+sys/src/cmd/aux/vga/vesadb.c - 664 sys sys 1115734902 10446
 sys/src/cmd/aux/vga/vga.c - 664 sys sys 1014925013 9305
-sys/src/cmd/aux/vga/vga.h - 664 sys sys 1114453579 10336
+sys/src/cmd/aux/vga/vga.h - 664 sys sys 1115734902 10470
 sys/src/cmd/aux/vga/virge.c - 664 sys sys 1090439328 18587
 sys/src/cmd/aux/vga/vision864.c - 664 sys sys 1014925014 2325
 sys/src/cmd/aux/vga/vision964.c - 664 sys sys 1014925014 3426
