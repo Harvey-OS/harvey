@@ -93,6 +93,7 @@ typedef struct Mode {
 	char	type[Namelen+1];	/* monitor type e.g. "vs1782" */
 	char	size[Namelen+1];	/* size e.g. "1376x1024x8" */
 	char	chan[Namelen+1];	/* channel descriptor, e.g. "m8" or "r8g8b8a8" */
+	char name[Namelen+1];	/* optional */
 
 	int	frequency;		/* Dot Clock (MHz) */
 	int	deffrequency;		/* Default dot clock if calculation can't be done */
@@ -111,6 +112,9 @@ typedef struct Mode {
 	int	vrs;			/* Vertical Retrace Start (Crt10) */
 	int	vre;			/* Vertical Retrace End (Crt11) */
 
+	int		vbs;		/* optional Vertical Blank Start */
+	int		vbe;		/* optional Vertical Blank End */
+	
 	ulong	videobw;
 
 	char	hsync;

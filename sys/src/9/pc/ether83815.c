@@ -44,13 +44,13 @@ typedef struct Des {
 } Des;
 
 enum {	/* cmdsts */
-	Own		= 1<<31,	/* set by data producer to hand to consumer */
+	Own	= 1<<31,	/* set by data producer to hand to consumer */
 	More	= 1<<30,	/* more of packet in next descriptor */
-	Intr		= 1<<29,	/* interrupt when device is done with it */
+	Intr	= 1<<29,	/* interrupt when device is done with it */
 	Supcrc	= 1<<28,	/* suppress crc on transmit */
 	Inccrc	= 1<<28,	/* crc included on receive (always) */
-	Ok		= 1<<27,	/* packet ok */
-	Size		= 0xFFF,	/* packet size in bytes */
+	Ok	= 1<<27,	/* packet ok */
+	Size	= 0xFFF,	/* packet size in bytes */
 
 	/* transmit */
 	Txa	= 1<<26,	/* transmission aborted */
@@ -70,17 +70,17 @@ enum {	/* cmdsts */
 	  Duni=	1<<23,		/* unicast */
 	  Dmulti=	2<<23,		/* multicast */
 	  Dbroad=	3<<23,		/* broadcast */
-	Long = 1<<22,	/* too long packet received */
-	Runt =  1<<21,	/* packet less than 64 bytes */
-	Ise =	1<<20,	/* invalid symbol */
-	Crce =	1<<19,	/* invalid crc */
-	Fae =	1<<18,	/* frame alignment error */
-	Lbp =	1<<17,	/* loopback packet */
-	Col =	1<<16,	/* collision during receive */
+	Long = 1<<22,		/* too long packet received */
+	Runt =  1<<21,		/* packet less than 64 bytes */
+	Ise =	1<<20,		/* invalid symbol */
+	Crce =	1<<19,		/* invalid crc */
+	Fae =	1<<18,		/* frame alignment error */
+	Lbp =	1<<17,		/* loopback packet */
+	Col =	1<<16,		/* collision during receive */
 };
 
-enum {					/* Variants */
-	Nat83815		= (0x0020<<16)|0x100B,
+enum {				/* Variants */
+	Nat83815	= (0x0020<<16)|0x100B,
 };
 
 typedef struct Ctlr Ctlr;
@@ -92,7 +92,7 @@ typedef struct Ctlr {
 	int	id;			/* (pcidev->did<<16)|pcidev->vid */
 
 	ushort	srom[0xB+1];
-	uchar	sromea[Eaddrlen];			/* MAC address */
+	uchar	sromea[Eaddrlen];	/* MAC address */
 
 	uchar	fd;			/* option or auto negotiation */
 
@@ -133,7 +133,7 @@ typedef struct Ctlr {
 	ulong	ec;
 	ulong	txurn;
 
-	ulong	dperr;		/* system errors */
+	ulong	dperr;			/* system errors */
 	ulong	rmabt;
 	ulong	rtabt;
 	ulong	sserr;
@@ -145,7 +145,7 @@ static Ctlr* ctlrtail;
 
 enum {
 	/* registers (could memory map) */
-	Rcr=		0x00,	/* command register */
+	Rcr=	0x00,		/* command register */
 	  Rst=		1<<8,
 	  Rxr=		1<<5,	/* receiver reset */
 	  Txr=		1<<4,	/* transmitter reset */
@@ -153,8 +153,8 @@ enum {
 	  Rxe=		1<<2,	/* receiver enable */
 	  Txd=		1<<1,	/* transmitter disable */
 	  Txe=		1<<0,	/* transmitter enable */
-	Rcfg=	0x04,	/* configuration */
-	  Lnksts=		1<<31,	/* link good */
+	Rcfg=	0x04,		/* configuration */
+	  Lnksts=	1<<31,	/* link good */
 	  Speed100=	1<<30,	/* 100 Mb/s link */
 	  Fdup=		1<<29,	/* full duplex */
 	  Pol=		1<<28,	/* polarity reversal (10baseT) */
@@ -164,115 +164,115 @@ enum {
 	  Paneg_ena=	1<<13,	/* auto negotiation enable */
 	  Paneg_all=	7<<13,	/* auto negotiation enable 10/100 half & full */
 	  Ext_phy=	1<<12,	/* enable MII for external PHY */
-	  Phy_rst=		1<<10,	/* reset internal PHY */
-	  Phy_dis=		1<<9,	/* disable internal PHY (eg, low power) */
+	  Phy_rst=	1<<10,	/* reset internal PHY */
+	  Phy_dis=	1<<9,	/* disable internal PHY (eg, low power) */
 	  Req_alg=	1<<7,	/* PCI bus request: set means less aggressive */
-	  Sb=			1<<6,	/* single slot back-off not random */
+	  Sb=		1<<6,	/* single slot back-off not random */
 	  Pow=		1<<5,	/* out of window timer selection */
 	  Exd=		1<<4,	/* disable excessive deferral timer */
-	  Pesel=		1<<3,	/* parity error algorithm selection */
+	  Pesel=	1<<3,	/* parity error algorithm selection */
 	  Brom_dis=	1<<2,	/* disable boot rom interface */
 	  Bem=		1<<0,	/* big-endian mode */
-	Rmear=	0x08,	/* eeprom access */
+	Rmear=	0x08,		/* eeprom access */
 	  Mdc=		1<<6,	/* MII mangement check */
-	  Mddir=		1<<5,	/* MII management direction */
+	  Mddir=	1<<5,	/* MII management direction */
 	  Mdio=		1<<4,	/* MII mangement data */
-	  Eesel=		1<<3,	/* EEPROM chip select */
-	  Eeclk=		1<<2,	/* EEPROM clock */
+	  Eesel=	1<<3,	/* EEPROM chip select */
+	  Eeclk=	1<<2,	/* EEPROM clock */
 	  Eedo=		1<<1,	/* EEPROM data out (from chip) */
 	  Eedi=		1<<0,	/* EEPROM data in (to chip) */
-	Rptscr=	0x0C,	/* pci test control */
-	Risr=		0x10,	/* interrupt status */
+	Rptscr=	0x0C,		/* pci test control */
+	Risr=	0x10,		/* interrupt status */
 	  Txrcmp=	1<<25,	/* transmit reset complete */
 	  Rxrcmp=	1<<24,	/* receiver reset complete */
-	  Dperr=		1<<23,	/* detected parity error */
-	  Sserr=		1<<22,	/* signalled system error */
-	  Rmabt=		1<<21,	/* received master abort */
-	  Rtabt=		1<<20,	/* received target abort */
-	  Rxsovr=		1<<16,	/* RX status FIFO overrun */
-	  Hiberr=		1<<15,	/* high bits error set (OR of 25-16) */
+	  Dperr=	1<<23,	/* detected parity error */
+	  Sserr=	1<<22,	/* signalled system error */
+	  Rmabt=	1<<21,	/* received master abort */
+	  Rtabt=	1<<20,	/* received target abort */
+	  Rxsovr=	1<<16,	/* RX status FIFO overrun */
+	  Hiberr=	1<<15,	/* high bits error set (OR of 25-16) */
 	  Phy=		1<<14,	/* PHY interrupt */
 	  Pme=		1<<13,	/* power management event (wake online) */
 	  Swi=		1<<12,	/* software interrupt */
 	  Mib=		1<<11,	/* MIB service */
-	  Txurn=		1<<10,	/* TX underrun */
-	  Txidle=		1<<9,	/* TX idle */
-	  Txerr=		1<<8,	/* TX packet error */
-	  Txdesc=		1<<7,	/* TX descriptor (with Intr bit done) */
+	  Txurn=	1<<10,	/* TX underrun */
+	  Txidle=	1<<9,	/* TX idle */
+	  Txerr=	1<<8,	/* TX packet error */
+	  Txdesc=	1<<7,	/* TX descriptor (with Intr bit done) */
 	  Txok=		1<<6,	/* TX ok */
-	  Rxorn=		1<<5,	/* RX overrun */
-	  Rxidle=		1<<4,	/* RX idle */
-	  Rxearly=		1<<3,	/* RX early threshold */
-	  Rxerr=		1<<2,	/* RX packet error */
-	  Rxdesc=		1<<1,	/* RX descriptor (with Intr bit done) */
+	  Rxorn=	1<<5,	/* RX overrun */
+	  Rxidle=	1<<4,	/* RX idle */
+	  Rxearly=	1<<3,	/* RX early threshold */
+	  Rxerr=	1<<2,	/* RX packet error */
+	  Rxdesc=	1<<1,	/* RX descriptor (with Intr bit done) */
 	  Rxok=		1<<0,	/* RX ok */
-	Rimr=	0x14,	/* interrupt mask */
-	Rier=	0x18,	/* interrupt enable */
-	  Ie=			1<<0,	/* interrupt enable */
-	Rtxdp=	0x20,	/* transmit descriptor pointer */
-	Rtxcfg=	0x24,	/* transmit configuration */
+	Rimr=	0x14,		/* interrupt mask */
+	Rier=	0x18,		/* interrupt enable */
+	  Ie=		1<<0,	/* interrupt enable */
+	Rtxdp=	0x20,		/* transmit descriptor pointer */
+	Rtxcfg=	0x24,		/* transmit configuration */
 	  Csi=		1<<31,	/* carrier sense ignore (needed for full duplex) */
 	  Hbi=		1<<30,	/* heartbeat ignore (needed for full duplex) */
 	  Atp=		1<<28,	/* automatic padding of runt packets */
-	  Mxdma=		7<<20,	/* maximum dma transfer field */
+	  Mxdma=	7<<20,	/* maximum dma transfer field */
 	  Mxdma32=	4<<20,	/* 4x32-bit words (32 bytes) */
 	  Mxdma64=	5<<20,	/* 8x32-bit words (64 bytes) */
-	  Flth=		0x3F<<8,	/* Tx fill threshold, units of 32 bytes (must be > Mxdma) */
-	  Drth=		0x3F<<0,	/* Tx drain threshold (units of 32 bytes) */
-	  Flth128=		4<<8,	/* fill at 128 bytes */
+	  Flth=		0x3F<<8,/* Tx fill threshold, units of 32 bytes (must be > Mxdma) */
+	  Drth=		0x3F<<0,/* Tx drain threshold (units of 32 bytes) */
+	  Flth128=	4<<8,	/* fill at 128 bytes */
 	  Drth512=	16<<0,	/* drain at 512 bytes */
-	Rrxdp=	0x30,	/* receive descriptor pointer */
-	Rrxcfg=	0x34,	/* receive configuration */
+	Rrxdp=	0x30,		/* receive descriptor pointer */
+	Rrxcfg=	0x34,		/* receive configuration */
 	  Atx=		1<<28,	/* accept transmit packets (needed for full duplex) */
-	  Rdrth=		0x1F<<1,	/* Rx drain threshold (units of 32 bytes) */
+	  Rdrth=	0x1F<<1,/* Rx drain threshold (units of 32 bytes) */
 	  Rdrth64=	2<<1,	/* drain at 64 bytes */
-	Rccsr=	0x3C,	/* CLKRUN control/status */
-	  Pmests=		1<<15,	/* PME status */
-	Rwcsr=	0x40,	/* wake on lan control/status */
-	Rpcr=	0x44,	/* pause control/status */
-	Rrfcr=	0x48,	/* receive filter/match control */
+	Rccsr=	0x3C,		/* CLKRUN control/status */
+	  Pmests=	1<<15,	/* PME status */
+	Rwcsr=	0x40,		/* wake on lan control/status */
+	Rpcr=	0x44,		/* pause control/status */
+	Rrfcr=	0x48,		/* receive filter/match control */
 	  Rfen=		1<<31,	/* receive filter enable */
 	  Aab=		1<<30,	/* accept all broadcast */
 	  Aam=		1<<29,	/* accept all multicast */
 	  Aau=		1<<28,	/* accept all unicast */
 	  Apm=		1<<27,	/* accept on perfect match */
-	  Apat=		0xF<<23,	/* accept on pattern match */
+	  Apat=		0xF<<23,/* accept on pattern match */
 	  Aarp=		1<<22,	/* accept ARP */
 	  Mhen=		1<<21,	/* multicast hash enable */
 	  Uhen=		1<<20,	/* unicast hash enable */
 	  Ulm=		1<<19,	/* U/L bit mask */
-						/* bits 0-9 are rfaddr */
-	Rrfdr=	0x4C,	/* receive filter/match data */
-	Rbrar=	0x50,	/* boot rom address */
-	Rbrdr=	0x54,	/* boot rom data */
-	Rsrr=	0x58,	/* silicon revision */
-	Rmibc=	0x5C,	/* MIB control */
-					/* 60-78 MIB data */
+				/* bits 0-9 are rfaddr */
+	Rrfdr=	0x4C,		/* receive filter/match data */
+	Rbrar=	0x50,		/* boot rom address */
+	Rbrdr=	0x54,		/* boot rom data */
+	Rsrr=	0x58,		/* silicon revision */
+	Rmibc=	0x5C,		/* MIB control */
+				/* 60-78 MIB data */
 
 	/* PHY registers */
-	Rbmcr=	0x80,	/* basic mode configuration */
-	  Reset=		1<<15,
-	  Sel100=		1<<13,	/* select 100Mb/sec if no auto neg */
-	  Anena=		1<<12,	/* auto negotiation enable */
+	Rbmcr=	0x80,		/* basic mode configuration */
+	  Reset=	1<<15,
+	  Sel100=	1<<13,	/* select 100Mb/sec if no auto neg */
+	  Anena=	1<<12,	/* auto negotiation enable */
 	  Anrestart=	1<<9,	/* restart auto negotiation */
-	  Selfdx=		1<<8,	/* select full duplex if no auto neg */
-	Rbmsr=	0x84,	/* basic mode status */
+	  Selfdx=	1<<8,	/* select full duplex if no auto neg */
+	Rbmsr=	0x84,		/* basic mode status */
 	  Ancomp=	1<<5,	/* autonegotiation complete */
 	Rphyidr1= 0x88,
 	Rphyidr2= 0x8C,
-	Ranar=	0x90,	/* autonegotiation advertisement */
-	Ranlpar=	0x94,	/* autonegotiation link partner ability */
-	Raner=	0x98,	/* autonegotiation expansion */
-	Rannptr=	0x9C,	/* autonegotiation next page TX */
-	Rphysts=	0xC0,	/* PHY status */
-	Rmicr=	0xC4,	/* MII control */
-	  Inten=		1<<1,	/* PHY interrupt enable */
-	Rmisr=	0xC8,	/* MII status */
-	Rfcscr=	0xD0,	/* false carrier sense counter */
-	Rrecr=	0xD4,	/* receive error counter */
-	Rpcsr=	0xD8,	/* 100Mb config/status */
-	Rphycr=	0xE4,	/* PHY control */
-	Rtbscr=	0xE8,	/* 10BaseT status/control */
+	Ranar=	0x90,		/* autonegotiation advertisement */
+	Ranlpar= 0x94,		/* autonegotiation link partner ability */
+	Raner=	0x98,		/* autonegotiation expansion */
+	Rannptr= 0x9C,		/* autonegotiation next page TX */
+	Rphysts= 0xC0,		/* PHY status */
+	Rmicr=	0xC4,		/* MII control */
+	  Inten=	1<<1,	/* PHY interrupt enable */
+	Rmisr=	0xC8,		/* MII status */
+	Rfcscr=	0xD0,		/* false carrier sense counter */
+	Rrecr=	0xD4,		/* receive error counter */
+	Rpcsr=	0xD8,		/* 100Mb config/status */
+	Rphycr=	0xE4,		/* PHY control */
+	Rtbscr=	0xE8,		/* 10BaseT status/control */
 };
 
 /*
@@ -771,6 +771,7 @@ softreset(Ctlr* ctlr, int resetphys)
 		w &= 0xFFFF;
 		debug("bmsr: %4.4ux\n", w);
 	}
+	USED(w);
 	debug("anar: %4.4ux\n", csr16r(ctlr, Ranar));
 	debug("anlpar: %4.4ux\n", csr16r(ctlr, Ranlpar));
 	debug("aner: %4.4ux\n", csr16r(ctlr, Raner));
