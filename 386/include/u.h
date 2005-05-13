@@ -6,15 +6,16 @@ typedef unsigned int	uint;
 typedef   signed char	schar;
 typedef	long long	vlong;
 typedef	unsigned long long uvlong;
+typedef unsigned long	uintptr;
 typedef	ushort		Rune;
-typedef 	union FPdbleword FPdbleword;
-typedef long	jmp_buf[2];
+typedef union FPdbleword FPdbleword;
+typedef long		jmp_buf[2];
 #define	JMPBUFSP	0
 #define	JMPBUFPC	1
 #define	JMPBUFDPC	0
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
-typedef unsigned char u8int;
-typedef unsigned short u16int;
+typedef unsigned char	u8int;
+typedef unsigned short	u16int;
 typedef unsigned int	u32int;
 typedef unsigned long long u64int;
 

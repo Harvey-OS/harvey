@@ -97,6 +97,7 @@ a prerequisite of several other include files,
 declares the architecture-dependent and -independent types, including:
 .IR uchar ,
 .IR ushort ,
+.IR uint ,
 and
 .IR ulong ,
 the unsigned integer types;
@@ -114,6 +115,8 @@ the Unicode character type;
 and
 .IR u64int ,
 the unsigned integral types with specific widths;
+.IR uintptr ,
+the unsigned integral type with the same width as a pointer;
 .IR jmp_buf ,
 the type of the argument to
 .I setjmp

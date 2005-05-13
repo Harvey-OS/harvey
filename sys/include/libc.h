@@ -44,7 +44,7 @@ enum
 	UTFmax		= 3,		/* maximum bytes per rune */
 	Runesync	= 0x80,		/* cannot represent part of a UTF sequence (<) */
 	Runeself	= 0x80,		/* rune and UTF sequences are the same (<) */
-	Runeerror	= 0x80,		/* decoding error in UTF */
+	Runeerror	= 0xFFFD,		/* decoding error in UTF */
 };
 
 /*
@@ -201,12 +201,13 @@ extern	Rune*	runefmtstrflush(Fmt*);
 #pragma	varargck	type	"r"	void
 #pragma	varargck	type	"%"	void
 #pragma	varargck	type	"n"	int*
+#pragma	varargck	type	"p"	uintptr
 #pragma	varargck	type	"p"	void*
 #pragma	varargck	flag	','
-#pragma varargck	type	"<" void*
-#pragma varargck	type	"[" void*
-#pragma varargck	type	"H" void*
-#pragma varargck	type	"lH" void*
+#pragma varargck	type	"<"	void*
+#pragma varargck	type	"["	void*
+#pragma varargck	type	"H"	void*
+#pragma varargck	type	"lH"	void*
 
 extern	int	fmtinstall(int, int (*)(Fmt*));
 extern	int	dofmt(Fmt*, char*);

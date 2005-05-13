@@ -372,10 +372,11 @@ verb is similar, but works on runes.
 .PP
 The
 .B p
-verb formats a pointer value.
-At the moment, it is a synonym for
-.BR ux ,
-but that will change once pointers and integers are different sizes.
+verb formats a single pointer or pointer-sized integer
+.RB ( uintptr ,
+see
+.IR intro (2))
+in hexadecimal.
 .PP
 The
 .B r
