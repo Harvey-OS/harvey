@@ -8,12 +8,12 @@ if(! test -d /n/sources/patch){
 
 pref=''
 cd /n/sources/patch
-if(~ $1 saved sorry applied){
+if(~ $1 saved sorry applied undecided){
 	pref=$1^'/'
 	shift
 }
 if(~ $#* 0)
-	*=(`{if(~ $pref *?*) cd $pref; ls -t | grep -v '^(saved|sorry|applied)$'})
+	*=(`{if(~ $pref *?*) cd $pref; ls -t | grep -v '^(saved|sorry|applied|undecided)$'})
 
 trunc=(sed 5q)
 if(~ $#* 1)
