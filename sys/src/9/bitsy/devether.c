@@ -120,7 +120,7 @@ etherconfig(int on, char *spec, DevConf *cf)
 			p = seprint(p, e, " addr 0x%luX", PADDR(ether->mem));
 		if(ether->ports[0].size)
 			p = seprint(p, e, " size 0x%X", ether->ports[0].size);
-		p = seprint(p, e, ": %2.2uX%2.2uX%2.2uX%2.2uX%2.2uX%2.2uX",
+		p = seprint(p, e, ": %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 			ether->ea[0], ether->ea[1], ether->ea[2],
 			ether->ea[3], ether->ea[4], ether->ea[5]);
 		seprint(p, e, "\n");

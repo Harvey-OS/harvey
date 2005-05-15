@@ -1210,7 +1210,7 @@ wavelanreset(Ether* ether, Ctlr *ctlr)
 
 	DEBUG("#l%d: irq %lud port %lx type %s",
 		ether->ctlrno, ether->intnum, ether->ports[0].port,	ether->type);
-	DEBUG(" %2.2uX%2.2uX%2.2uX%2.2uX%2.2uX%2.2uX\n",
+	DEBUG(" %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux\n",
 		ether->ea[0], ether->ea[1], ether->ea[2],
 		ether->ea[3], ether->ea[4], ether->ea[5]);
 

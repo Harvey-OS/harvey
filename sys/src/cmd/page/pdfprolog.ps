@@ -8,7 +8,10 @@
   dup /CropBox pget {
       boxrect
       2 array astore /PageSize exch 4 2 roll
-      neg exch neg exch 2 array astore /PageOffset exch
+      4 index /Rotate pget {
+        dup 0 lt {360 add} if 90 idiv {exch neg} repeat
+      } if
+      exch neg exch 2 array astore /PageOffset exch
       << 5 1 roll >> setpagedevice
   } if
 } bind def

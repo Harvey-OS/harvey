@@ -24,7 +24,7 @@ int
 eipfmt(Fmt *f)
 {
 	char buf[5*8];
-	static char *efmt = "%.2lux%.2lux%.2lux%.2lux%.2lux%.2lux";
+	static char *efmt = "%.2ux%.2ux%.2ux%.2ux%.2ux%.2ux";
 	static char *ifmt = "%d.%d.%d.%d";
 	uchar *p, ip[16];
 	ulong *lp;
