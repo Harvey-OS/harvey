@@ -395,7 +395,7 @@ etherreset(void)
 				i += sprint(buf+i, " addr 0x%luX", PADDR(ether->mem));
 			if(ether->size)
 				i += sprint(buf+i, " size 0x%luX", ether->size);
-			i += sprint(buf+i, ": %2.2uX%2.2uX%2.2uX%2.2uX%2.2uX%2.2uX",
+			i += sprint(buf+i, ": %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 				ether->ea[0], ether->ea[1], ether->ea[2],
 				ether->ea[3], ether->ea[4], ether->ea[5]);
 			sprint(buf+i, "\n");
