@@ -7757,7 +7757,7 @@ sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1091904418 6281
 sys/src/9/pc/devarch.c - 664 sys sys 1115566123 18554
-sys/src/9/pc/devether.c - 664 sys sys 1116097836 10183
+sys/src/9/pc/devether.c - 664 sys sys 1116173410 10327
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1099761153 20505
 sys/src/9/pc/devlm78.c - 664 sys sys 1091129037 6255
