@@ -425,7 +425,11 @@ etherprobe(int cardno, int ctlrno)
 	sprint(buf+i, "\n");
 	print(buf);
 
-	if(ether->mbps >= 100){
+	if (ether->mbps >= 1000) {
+		netifinit(ether, name, Ntypes, 512*1024);
+		if(ether->oq == 0)
+			ether->oq = qopen(512*1024, Qmsg, 0, 0);
+	} else if(ether->mbps >= 100){
 		netifinit(ether, name, Ntypes, 256*1024);
 		if(ether->oq == 0)
 			ether->oq = qopen(256*1024, Qmsg, 0, 0);
