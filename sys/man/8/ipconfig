@@ -192,7 +192,7 @@ are always requested.
 .B O
 addresses specified on the command line override those obtained
 via DHCP.
-A command line addresse of 0 implies no override.
+A command line address of 0 implies no override.
 .PD
 .PP
 If DHCP is requested, a process is forked

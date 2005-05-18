@@ -7525,7 +7525,7 @@ sys/man/8/fs - 664 sys sys 1055701170 15029
 sys/man/8/fsconfig - 664 sys sys 1045501600 8142
 sys/man/8/httpd - 664 sys sys 1065640802 6426
 sys/man/8/init - 664 sys sys 944959679 1430
-sys/man/8/ipconfig - 664 sys sys 1084462164 6171
+sys/man/8/ipconfig - 664 sys sys 1116383710 6170
 sys/man/8/ipserv - 664 sys sys 1095862383 4375
 sys/man/8/kfscmd - 664 sys sys 1068569797 4515
 sys/man/8/listen - 664 sys sys 1045501609 3740
