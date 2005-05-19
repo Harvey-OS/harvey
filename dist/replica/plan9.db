@@ -6012,7 +6012,7 @@ sys/lib/dist/pc/inst/finish - 775 sys sys 1032990669 266
 sys/lib/dist/pc/inst/fmtfossil - 775 sys sys 1112361038 1981
 sys/lib/dist/pc/inst/fmtventi - 775 sys sys 1112361038 3733
 sys/lib/dist/pc/inst/gui - 775 sys sys 1032539034 79
-sys/lib/dist/pc/inst/halt - 775 sys sys 1063856192 497
+sys/lib/dist/pc/inst/halt - 775 sys sys 1116424549 325
 sys/lib/dist/pc/inst/hasmbr - 775 sys sys 1018469719 171
 sys/lib/dist/pc/inst/hdrs - 775 sys sys 1018469719 106
 sys/lib/dist/pc/inst/is9660 - 775 sys sys 1018469719 307
@@ -7402,7 +7402,7 @@ sys/man/3/srv - 664 sys sys 958419690 1470
 sys/man/3/ssl - 664 sys sys 1018386776 3413
 sys/man/3/tls - 664 sys sys 1045501496 7018
 sys/man/3/uart - 664 sys sys 1102093395 1710
-sys/man/3/usb - 664 sys sys 1063855746 6727
+sys/man/3/usb - 664 sys sys 1116424546 6826
 sys/man/3/vga - 664 sys sys 1020356225 4827
 sys/man/4 - 20000000775 sys sys 1018581459 0
 sys/man/4/0intro - 664 sys sys 944959699 472
