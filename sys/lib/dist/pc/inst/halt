@@ -1,15 +1,7 @@
 #!/bin/rc
 
 echo -n 'Halting file systems...'
-for (i in /srv/kfs*) {
-	if(! ~ $i /srv/kfs*cmd) {
-		n=`{echo $i | sed 's!/srv/kfs\.(.*)!\1!'}
-		if(~ $n /srv/kfs)
-			disk/kfscmd halt
-		if not
-			disk/kfscmd -n$n halt
-	}
-}
+
 if(ps | grep -s ' venti$')
 	venti/sync -h tcp!127.0.0.1!17034
 if(ps | grep -s ' fossil$'){

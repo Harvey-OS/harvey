@@ -222,6 +222,13 @@ file.
 USB device data channel for the
 .IR k 'th
 configuration.
+.SH SOURCE
+.B /sys/src/9/pc/usb.h
+.br
+.B /sys/src/9/pc/devusb.c
+.br
+.B /sys/src/9/pc/usbuhci.c
+.br
 .SH "SEE ALSO"
 .IR usb (4),
 .IR usbd (4),
