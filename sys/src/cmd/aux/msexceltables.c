@@ -13,6 +13,8 @@ enum {
 	Terror,
 
 	Ver8 = 0x600,		// only BIFF8 and BIFF8x files support unicode
+
+	Nwidths = 4096,
 };
 	
 	
@@ -64,8 +66,7 @@ static int Nxf = 0;		// # of above
 static Biobuf *bo;		// stdout (sic)
 
 // table scope
-static int *Width = nil;	// array of colum widths
-static int Nwidths = 0;		// # of above
+static int Width[Nwidths];	// array of colum widths
 static int Ncols = -1;		// max colums in table used
 static int Content = 0;		// type code for contents of sheet
 static Row *Root = nil;		// one worksheet's worth of cells
@@ -150,22 +151,29 @@ cell(int r, int c, int f, int type, void *val)
 	sysfatal("cannot happen error\n");
 }
 
-void
-numfmt(int fmt, int min, int max, double num)
+struct Tm *
+bifftime(double num)
 {
-	long t;
-	char buf[1024];
-	struct Tm *tm;
+	long long t = num;
 
 	/* Beware - These epochs are wrong, this
 	 * is to remain compatible with Lotus-123
 	 * which believed 1900 was a leap year
 	 */
 	if (Datemode)
-		t = (num-24107)*60*60*24;	// epoch = 1/1/1904
+		t -= 24107;		// epoch = 1/1/1904
 	else
-		t = (num-25569)*60*60*24;	// epoch = 31/12/1899
-	tm = localtime(t);
+		t -= 25569;		// epoch = 31/12/1899
+	t *= 60*60*24;
+
+	return localtime((long)t);
+}
+
+void
+numfmt(int fmt, int min, int max, double num)
+{
+	char buf[1024];
+	struct Tm *tm;
 
 	if (fmt == 9)
 		snprint(buf, sizeof(buf),"%.0f%%", num);
@@ -176,19 +184,29 @@ numfmt(int fmt, int min, int max, double num)
 	if (fmt == 11 || fmt == 48)
 		snprint(buf, sizeof(buf),"%e", num);
 	else
-	if (fmt >= 14 && fmt <= 17)
+	if (fmt >= 14 && fmt <= 17){
+		tm = bifftime(num);
 		snprint(buf, sizeof(buf),"%d-%s-%d",
 			tm->mday, Months[tm->mon], tm->year+1900);
+	}
 	else
-	if ((fmt >= 18 && fmt <= 21) || (fmt >= 45 && fmt <= 47))
+	if ((fmt >= 18 && fmt <= 21) || (fmt >= 45 && fmt <= 47)){
+
+		tm = bifftime(num);
 		snprint(buf, sizeof(buf),"%02d:%02d:%02d", tm->hour, tm->min, tm->sec);
+
+	}
 	else
-	if (fmt == 22)
+	if (fmt == 22){
+
+		tm = bifftime(num);
 		snprint(buf, sizeof(buf),"%02d:%02d:%02d %d-%s-%d",
 			tm->hour, tm->min, tm->sec,
 			tm->mday, Months[tm->mon], tm->year+1900);
-	else
+
+	}else
 		snprint(buf, sizeof(buf),"%g", num);
+
 	Bprint(bo, "%-*.*q", min, max, buf);
 }
 
@@ -210,6 +228,7 @@ dump(void)
 				max = min -2;		// FIXME: -2 because of bug %q format ?
 
 			switch(c->type){
+
 			case Tnumber:
 				if (Xf[c->f] == 0)
 					Bprint(bo, "%-*.*g", min, max, c->number);
@@ -278,9 +297,7 @@ release(void)
 	}
 	Root = nil;
 
-	free(Width);
-	Width = nil;
-	Nwidths = 0;
+	memset(Width, 0, sizeof(Width));
 	Ncols = -1;
 }
 
@@ -411,8 +428,8 @@ char *
 gstr(Biff *b, int len_width)
 {
 	Rune r;
-	int nch, sz, len, opt;
 	char *buf, *p;
+	int nch, w, sz, ln, rt, opt;
 
 	if (b->len < len_width){
 		if (getrec(b) == -1)
@@ -421,30 +438,47 @@ gstr(Biff *b, int len_width)
 			sysfatal("expected CONTINUE, got op=0x%x\n", b->op);
 	}
 
-	len = gint(b, len_width);
+	ln = gint(b, len_width);
 	if (Biffver != Ver8){
-		if ((buf = calloc(len+1, sizeof(char))) == nil)
+		if ((buf = calloc(ln+1, sizeof(char))) == nil)
 			sysfatal("no memory\n");
-		gmem(b, buf, len);
+		gmem(b, buf, ln);
 		return buf;
 	}
 
 
-	if ((buf = calloc(len+1, sizeof(char)*UTFmax)) == nil)
+	if ((buf = calloc(ln+1, sizeof(char)*UTFmax)) == nil)
 		sysfatal("no memory\n");
 	p = buf;
 
-	if (len == 0)
+	if (ln == 0)
 		return buf;
-
 	nch = 0;
+	*buf = 0;
 	while (1){
 		opt = gint(b, 1);
-		sz = (opt & 1)? sizeof(Rune): sizeof(char);
+		w = (opt & 1)? sizeof(Rune): sizeof(char);
+		/*
+		 * some people and compilers hate '?'
+		sz = (opt & 4)? gint(b, 4): 0;
+		rt = (opt & 8)? gint(b, 2): 0;
+		 */
+		if(opt & 4)
+			sz = gint(b,4);
+		else
+			sz = 0;
+		if(opt & 8)
+			rt = gint(b, 2);
+		else
+			rt = 0;
 		while(b->len > 0){
-			r = gint(b, sz);
+			r = gint(b, w);
 			p += runetochar(p, &r);
-			if (++nch >= len){
+			if (++nch >= ln){
+				if (opt & 4)
+					skip(b, sz);
+				if (opt & 8)
+					skip(b, rt*4);
 				return buf;
 			}
 		}
@@ -454,7 +488,7 @@ gstr(Biff *b, int len_width)
 			sysfatal("expected CONTINUE, got op=0x%x\n", b->op);
 	}
 	sysfatal("cannot ever happen error\n");
-	return buf;
+	return nil;  // shut up 8c
 }
 
 void
@@ -593,12 +627,10 @@ colinfo(Biff *b)
 	int c2 = gint(b, 2);
 	int w  = gint(b, 2);
 
-	if (c2 >= Nwidths){
-		Nwidths = c2+20;
-		if ((Width = realloc(Width, Nwidths*sizeof(int))) == nil)
-			sysfatal("no memory\n");
-	}
-
+	if (c1 < 0)
+		sysfatal("negitive collum number (%d)\n", c1);
+	if (c2 >= Nwidths)
+		sysfatal("too many collums (%d > %d)\n", c2, Nwidths);
 	w /= 256;
 
 	if (w > 100)
@@ -649,21 +681,21 @@ xls2csv(Biobuf *bp)
 		int op;
 		void (*func)(Biff *);
 	} dispatch[] = {
-		0x00a,	eof,
-		0x022,	datemode,
-		0x042,	codepage,
-		0x055,	defcolwidth,
-		0x05c,	writeaccess,
-		0x07d,	colinfo,
-		0x0bd,	mulrk,
-		0x0fc,	sst,
-		0x0fd,	labelsst,
-		0x203,	number,
-		0x204,	label,
-		0x205,	boolerr,
-		0x27e,	rk,
-		0x809,	bof,
-		0x0e0,	xf,
+		0x000a,	eof,
+		0x0022,	datemode,
+		0x0042,	codepage,
+		0x0055,	defcolwidth,
+		0x005c,	writeaccess,
+		0x007d,	colinfo,
+		0x00bd,	mulrk,
+		0x00fc,	sst,
+		0x00fd,	labelsst,
+		0x0203,	number,
+		0x0204,	label,
+		0x0205,	boolerr,
+		0x027e,	rk,
+		0x0809,	bof,
+		0x00e0,	xf,
 	};		
 	
 	b = &biff;

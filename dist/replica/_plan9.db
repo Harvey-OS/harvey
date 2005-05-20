@@ -118,7 +118,7 @@
 386/bin/aux/mnihongo - 775 sys sys 1115950044 139321
 386/bin/aux/mouse - 775 sys sys 1115950044 44026
 386/bin/aux/ms2 - 775 sys sys 1115950044 84166
-386/bin/aux/msexceltables - 775 sys sys 1115950044 80995
+386/bin/aux/msexceltables - 775 sys sys 1116557402 81233
 386/bin/aux/mswordstrings - 775 sys sys 1115950044 65317
 386/bin/aux/na - 775 sys sys 1115950045 154186
 386/bin/aux/nfsmount - 775 sys sys 1115950045 234092
@@ -7149,7 +7149,7 @@ sys/man/1/marshal - 664 sys sys 1079970326 3150
 sys/man/1/mc - 664 sys sys 1113743326 552
 sys/man/1/mk - 664 sys sys 1113743328 13198
 sys/man/1/mkdir - 664 sys sys 1082593141 717
-sys/man/1/mlmgr - 664 sys sys 1045501403 2427
+sys/man/1/mlmgr - 664 sys sys 1116513886 2542
 sys/man/1/ms2html - 664 sys sys 960001562 856
 sys/man/1/nedmail - 664 sys sys 1114697978 6820
 sys/man/1/netstat - 664 sys sys 953344523 827
@@ -9485,7 +9485,7 @@ sys/src/cmd/aux/mnihongo/mnihongo.c - 664 sys sys 946759402 6406
 sys/src/cmd/aux/mnihongo/tmac.nihongo - 664 sys sys 944960789 22
 sys/src/cmd/aux/mouse.c - 664 sys sys 1063855425 7049
 sys/src/cmd/aux/ms2.c - 664 sys sys 1015008685 3129
-sys/src/cmd/aux/msexceltables.c - 664 sys sys 1106410108 13282
+sys/src/cmd/aux/msexceltables.c - 664 sys sys 1116513714 13568
 sys/src/cmd/aux/mswordstrings.c - 664 sys sys 952201344 5767
 sys/src/cmd/aux/na - 20000000775 sys sys 955036627 0
 sys/src/cmd/aux/na/mkfile - 664 sys sys 955036627 121
@@ -14884,3 +14884,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/src/cmd/aux/msexceltables.c - 664 sys sys 1116559800 13722
