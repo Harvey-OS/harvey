@@ -55,7 +55,7 @@ case go
 	if(! ~ $#ventiarena 0){
 		default=(-d $"ventiarena)
 	}
-	echo You have the following Venti index partitions.
+	echo You have the following Venti arena partitions.
 	ls -l $ff
 	echo
 
@@ -91,7 +91,7 @@ case go
 	ls -l $gg
 	echo
 
-	prompt $default 'Venti arena partitions to use'
+	prompt $default 'Venti index partitions to use'
 	aa=`{echo $rd}
 	bad=no
 	for(a in $aa){

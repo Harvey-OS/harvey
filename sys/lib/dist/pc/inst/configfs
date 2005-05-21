@@ -15,9 +15,6 @@ case go
 	echo '	fossil			the new Plan9 fileserver'
 	echo '	fossil+venti	fossil + a archival dump server'
 	echo
-	echo '(fossil+venti only reserves and formats the partitions'
-	echo ' venti will need, but it will be started on the first'
-	echo ' boot.)'
 	prompt -d fossil 'File system' fossil fossil+venti
 	fstype=$rd
 	export fstype

@@ -19179,3 +19179,11 @@
 1116514858 1 c sys/src/cmd/aux/msexceltables.c - 664 sys sys 1116513714 13568
 1116558007 0 c 386/bin/aux/msexceltables - 775 sys sys 1116557402 81233
 1116559806 0 c sys/src/cmd/aux/msexceltables.c - 664 sys sys 1116559800 13722
+1116595814 0 c sys/lib/dist/pc/inst/bootsetup - 775 sys sys 1116595009 3542
+1116595814 1 c sys/lib/dist/pc/inst/configfs - 775 sys sys 1116594995 427
+1116595814 2 c sys/lib/dist/pc/inst/confignet - 775 sys sys 1116594996 1294
+1116595814 3 c sys/lib/dist/pc/inst/fmtventi - 775 sys sys 1116594986 3733
+1116595814 4 c sys/man/4/keyfs - 664 sys sys 1116594919 5048
+1116595814 5 c sys/src/cmd/aux/msexceltables.c - 664 sys sys 1116594581 13722
+1116595814 6 c sys/src/cmd/disk/format.c - 664 sys sys 1116595013 17648
+1116646225 0 c 386/bin/aux/msexceltables - 775 sys sys 1116644791 81249

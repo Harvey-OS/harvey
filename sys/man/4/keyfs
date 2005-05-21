@@ -140,19 +140,20 @@ Writing the string
 increments this number; writing
 .B good
 resets it to 0.
-If the number reaches fifty,
-.I keyfs
-disables the account.
-Once the account is disabled,
-the only way to enable it is to write the string
-.B ok
-to
-.BR status .
 This number is not stored in
 .IR keyfile ,
 and is initialized to 0 when
 .I keyfs
 starts.
+When the number reaches a multiple of ten,
+.I keyfs
+temporarily disables the account for that many seconds.
+Reads from the
+.B key
+or
+.B secret
+files during this time return the error
+``user in purgatory.''
 .TP
 .B status
 The current status of the account, either
