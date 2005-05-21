@@ -481,7 +481,7 @@ dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc, char *argv[], int
 	 */
 	if(dofat) {
 		if(commit) {
-			print("Initialising FAT file system\n");
+			print("Initializing FAT file system\n");
 			print("type %s, %d tracks, %d heads, %d sectors/track, %lld bytes/sec\n",
 				t->name, t->tracks, t->heads, t->sectors, secsize);
 		}

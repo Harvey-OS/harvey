@@ -91,14 +91,11 @@ case go
 	echo
 	echo 'There are myriad ways to boot a Plan 9 system.'
 	echo 'You can use any of the following.'
-	echo '(You can also repeat this task to use more than one).'
 	echo
 	echo '  floppy - create a boot floppy'
 	echo '  plan9  - make the plan 9 disk partition the default for booting'
 	echo '  win9x  - add a plan 9 option to windows 9x boot menu'
 	echo '  winnt  - add a plan 9 option to windows nt/2000/xp boot manager'
-	echo
-	echo '(See the documentation for instructions on booting Plan 9 from LILO.)'
 	echo
 	echo 'If you are upgrading an extant third edition installation and booting'
 	echo 'from something other than a floppy, you needn''t run anything here.'

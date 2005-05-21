@@ -628,9 +628,9 @@ colinfo(Biff *b)
 	int w  = gint(b, 2);
 
 	if (c1 < 0)
-		sysfatal("negitive collum number (%d)\n", c1);
+		sysfatal("negative column number (%d)\n", c1);
 	if (c2 >= Nwidths)
-		sysfatal("too many collums (%d > %d)\n", c2, Nwidths);
+		sysfatal("too many columns (%d > %d)\n", c2, Nwidths);
 	w /= 256;
 
 	if (w > 100)
