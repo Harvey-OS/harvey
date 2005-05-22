@@ -118,7 +118,7 @@
 386/bin/aux/mnihongo - 775 sys sys 1115950044 139321
 386/bin/aux/mouse - 775 sys sys 1115950044 44026
 386/bin/aux/ms2 - 775 sys sys 1115950044 84166
-386/bin/aux/msexceltables - 775 sys sys 1116557402 81233
+386/bin/aux/msexceltables - 775 sys sys 1116644791 81249
 386/bin/aux/mswordstrings - 775 sys sys 1115950044 65317
 386/bin/aux/na - 775 sys sys 1115950045 154186
 386/bin/aux/nfsmount - 775 sys sys 1115950045 234092
@@ -14884,4 +14884,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/aux/msexceltables - 775 sys sys 1116644791 81249
