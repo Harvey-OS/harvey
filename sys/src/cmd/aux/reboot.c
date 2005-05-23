@@ -64,9 +64,9 @@ main(int argc, char **argv)
 
 	notify(ding);
 	if(argc > 1)
-		strcpy(file, argv[1]);
+		strecpy(file, file+sizeof file, argv[1]);
 	else{
-		p = readenv("cputype", buf, sizeof(buf));
+		p = readenv("cputype", buf, sizeof buf);
 		if(p == 0)
 			exits(0);
 		file[0] = 0;

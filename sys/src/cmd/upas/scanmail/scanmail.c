@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 				usage();
 			argc--;
 			argv++;
-			strcpy(patfile, *argv);
+			strecpy(patfile, patfile+sizeof patfile, *argv);
 			break;
 		case 'q':			/* queue name */
 			if(argv[0][2] ||  argv[1] == 0)

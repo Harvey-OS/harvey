@@ -429,7 +429,7 @@ sysname_read(void)
 		cp = alt_sysname_read();
 	if(cp == 0 || *cp == 0)
 		cp = "kremvax";
-	strcpy(name, cp);
+	strecpy(name, name+sizeof name, cp);
 	return name;
 }
 extern char *

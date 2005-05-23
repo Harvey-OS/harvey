@@ -116,8 +116,7 @@ nextfile(void)
 			fprint(2, "split: file %szz not split\n",stem);
 		canopen = 0;
 	} else {
-		strcpy(name, stem);
-		strcat(name, suff);
+		snprint(name, sizeof name, "%s%s", stem, suff);
 		if(++suff[1] > 'z') 
 			suff[1] = 'a', ++suff[0];
 		openf();

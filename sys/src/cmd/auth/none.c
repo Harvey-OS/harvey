@@ -23,12 +23,12 @@ main(int argc, char *argv[])
 		sysfatal("can't build namespace");
 
 	if (argc > 1) {
-		strcpy(cmd, argv[1]);
+		strecpy(cmd, cmd+sizeof cmd, argv[1]);
 		exec(cmd, &argv[1]);
 		if (strncmp(cmd, "/", 1) != 0
 		&& strncmp(cmd, "./", 2) != 0
 		&& strncmp(cmd, "../", 3) != 0) {
-			sprint(cmd, "/bin/%s", argv[1]);
+			snprint(cmd, sizeof cmd, "/bin/%s", argv[1]);
 			exec(cmd, &argv[1]);
 		}
 	} else {
