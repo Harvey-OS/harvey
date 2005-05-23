@@ -2111,26 +2111,26 @@ openup(char *stem, int dflag, int vflag, int ytab, char *ytabc)
 	char buf[256];
 
 	if(vflag) {
-		sprint(buf, "%s.%s", stem, FILEU);
+		snprint(buf, sizeof buf, "%s.%s", stem, FILEU);
 		foutput = Bopen(buf, OWRITE);
 		if(foutput == 0)
 			error("cannot open %s", buf);
 	}
 	if(yydebug) {
-		sprint(buf, "%s.%s", stem, FILEDEBUG);
+		snprint(buf, sizeof buf, "%s.%s", stem, FILEDEBUG);
 		if((fdebug = Bopen(buf, OWRITE)) == 0)
 			error("can't open %s", buf);
 	}
 	if(dflag) {
-		sprint(buf, "%s.%s", stem, FILED);
+		snprint(buf, sizeof buf, "%s.%s", stem, FILED);
 		fdefine = Bopen(buf, OWRITE);
 		if(fdefine == 0)
 			error("can't create %s", buf);
 	}
 	if(ytab == 0)
-		sprint(buf, "%s.%s", stem, OFILE);
+		snprint(buf, sizeof buf, "%s.%s", stem, OFILE);
 	else
-		strcpy(buf, ytabc);
+		strecpy(buf, buf+sizeof buf, ytabc);
 	ftable = Bopen(buf, OWRITE);
 	if(ftable == 0)
 		error("cannot open table file %s", buf);

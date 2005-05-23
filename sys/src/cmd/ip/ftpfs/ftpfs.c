@@ -178,6 +178,8 @@ main(int argc, char *argv[])
 
 		close(p[1]);
 		fmtinstall('F', fcallfmt); /* debugging */
+		fmtinstall('D', dirfmt); /* expected by %F */
+		fmtinstall('M', dirmodefmt); /* expected by %F */
 		io();
 		quit();
 		break;

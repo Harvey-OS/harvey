@@ -1,34 +1,38 @@
 #include <u.h>
 #include <libc.h>
 
+/*
+ * like fprint but be sure to deliver as a single write.
+ * (fprint uses a small write buffer.)
+ */
+void
+xfprint(int fd, char *fmt, ...)
+{
+	char *s;
+	va_list arg;
+
+	va_start(arg, fmt);
+	s = vsmprint(fmt, arg);
+	va_end(arg);
+	if(s == nil)
+		sysfatal("smprint: %r");
+	write(fd, s, strlen(s));
+	free(s);
+}
+
 void
 main(int argc, char **argv)
 {
-	int fd, n, m;
-	char buf[1024], dir[512], *str;
+	int fd;
+	char dir[512];
 
 	fd = open("/dev/acme/ctl", OWRITE);
 	if(fd < 0)
 		exits(0);
 	getwd(dir, 512);
-	strcpy(buf, "name ");
-	strcpy(buf+5, dir);
-	n = strlen(buf);
-	if(n>0 && buf[n-1]!='/')
-		buf[n++] = '/';
-	buf[n++] = '-';
-	if(argc > 1)
-		str = argv[1];
-	else
-		str = "rc";
-	m = strlen(str);
-	strcpy(buf+n, str);
-	n += m;
-	buf[n++] = '\n';
-	write(fd, buf, n);
-	strcpy(buf, "dumpdir ");
-	strcpy(buf+8, dir);
-	strcat(buf, "\n");
-	write(fd, buf, strlen(buf));
+	if(dir[0]!=0 && dir[strlen(dir)-1]=='/')
+		dir[strlen(dir)-1] = 0;
+	xfprint(fd, "name %s/-%s\n",  dir, argc > 1 ? argv[1] : "rc");
+	xfprint(fd, "dumpdir %s\n", dir);
 	exits(0);
 }

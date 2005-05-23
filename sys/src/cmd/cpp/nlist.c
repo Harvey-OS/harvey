@@ -83,7 +83,7 @@ setup(int argc, char **argv)
 	 * (Note that includelist is searched from high end to low)
 	 */
 	if ((objtype = getenv("objtype"))){
-		sprintf(nbuf, "/%s/include", objtype);
+		snprintf(nbuf, sizeof nbuf, "/%s/include", objtype);
 		includelist[1].file = nbuf;
 		includelist[1].always = 1;
 	} else {

@@ -79,9 +79,9 @@ main(int argc, char **argv)
 		exits("OK");
 	}
 	if(argv[0][0] == '/')
-		strcpy(buf, argv[0]);
+		strecpy(buf, buf+sizeof buf, argv[0]);
 	else
-		sprint(buf, "/srv/%s", argv[0]);
+		snprint(buf, sizeof buf, "/srv/%s", argv[0]);
 	fd = create(buf, OWRITE, perm);
 	if(fd < 0){
 		fprint(2, "can't create %s: %r\n", buf);

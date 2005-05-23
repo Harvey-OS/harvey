@@ -97,7 +97,7 @@ ysearch(char *file, char *ndump)
 		ndump = "dump";
 
 	tm = localtime(time(0));
-	sprint(buf, "/n/%s/%.4d/", ndump, tm->year+1900);
+	snprint(buf, sizeof buf, "/n/%s/%.4d/", ndump, tm->year+1900);
 	if(access(buf, AREAD) < 0) {
 		if(verb)
 			print("mounting dump %s\n", ndump);
@@ -124,7 +124,7 @@ ysearch(char *file, char *ndump)
 	else{
 		print("%s %s %lld [%s]\n", prtime(dir->mtime), file, dir->length, dir->muid);
 		started = 1;
-		strcpy(pair[1], file);
+		strecpy(pair[1], pair[1]+sizeof pair[1], file);
 	}
 	free(dir);
 	otime = starttime(sflag);
