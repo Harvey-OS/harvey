@@ -10,7 +10,7 @@ extern	char	*xbufp;
 extern	char	*xeibuf;
 extern	char	cfname[NSO+1][NS];
 extern  int	trace;
-extern	char	devname[];
+extern	char	devname[20];
 extern	char	ibuf[IBUFSZ];
 extern	char	mfiles[NMF][NS];
 extern	char	nextf[];
