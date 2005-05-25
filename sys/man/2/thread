@@ -460,7 +460,7 @@ the value pointer (which may be null); and
 the operation:
 .B CHANSND
 for a send operation,
-.B CHANRECV
+.B CHANRCV
 for a recv operation;
 .B CHANNOP
 for no operation
