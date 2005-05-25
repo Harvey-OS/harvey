@@ -12,7 +12,7 @@ command on the console of the file server
 (see
 .IR users (6)
 and
-.IR fossilcons (4)).
+.IR fossilcons (8)).
 Next, give the user a password using
 .I auth/changeuser
 on the console of the authentication server (see
