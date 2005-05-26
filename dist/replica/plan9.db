@@ -7364,7 +7364,7 @@ sys/man/2/string - 664 sys sys 1055701090 5306
 sys/man/2/stringsize - 664 sys sys 952627482 1409
 sys/man/2/subfont - 664 sys sys 956345937 5140
 sys/man/2/symbol - 664 sys sys 950892874 9423
-sys/man/2/thread - 664 sys sys 1116954249 11640
+sys/man/2/thread - 664 sys sys 1117034202 11640
 sys/man/2/time - 664 sys sys 1015091527 739
 sys/man/2/tmpfile - 664 sys sys 1048637161 1157
 sys/man/2/wait - 664 sys sys 1015091528 2481
@@ -7915,7 +7915,7 @@ sys/src/9/port/devtls.c - 664 sys sys 1086406907 45225
 sys/src/9/port/devuart.c - 664 sys sys 1102093393 12192
 sys/src/9/port/edf.c - 664 sys sys 1099760881 12742
 sys/src/9/port/edf.h - 664 sys sys 1084475128 1156
-sys/src/9/port/error.h - 664 sys sys 1055700517 2630
+sys/src/9/port/error.h - 664 sys sys 1117055493 2637
 sys/src/9/port/fault.c - 664 sys sys 1067722722 6628
 sys/src/9/port/initcode.c - 664 sys sys 1055688491 574
 sys/src/9/port/latin1.c - 664 sys sys 1015278339 1418
