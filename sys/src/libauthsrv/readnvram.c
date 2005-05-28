@@ -209,6 +209,12 @@ readnvram(Nvrsafe *safep, int flag)
 //		err |= check(safe->config, CONFIGLEN, safe->configsum, "bad secstore key");
 		err |= check(safe->authid, ANAMELEN, safe->authidsum, "bad authentication id");
 		err |= check(safe->authdom, DOMLEN, safe->authdomsum, "bad authentication domain");
+
+		if(err == 0)
+		if(safe->authid[0]==0 || safe->authdom[0]==0){
+			fprint(2, "empty nvram authid or authdom\n");
+			err = 1;
+		}
 	}
 
 	if((flag&NVwrite) || (err && (flag&NVwriteonerr))){

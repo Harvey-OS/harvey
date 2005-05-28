@@ -454,7 +454,7 @@ getnvramkey(int flag, char **secstorepw)
 	 * readnvram can return -1 meaning nvram wasn't written,
 	 * but safe still holds good data.
 	 */
-	if(readnvram(&safe, flag)<0 && safe.authid[0]=='0') 
+	if(readnvram(&safe, flag)<0 && safe.authid[0]==0) 
 		return nil;
 
 	/*
