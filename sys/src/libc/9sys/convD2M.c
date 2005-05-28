@@ -50,7 +50,7 @@ convD2M(Dir *d, uchar *buf, uint nbuf)
 
 	ss = STATFIXLEN + ns;
 
-	/* set size befor erroring, so user can know how much is needed */
+	/* set size before erroring, so user can know how much is needed */
 	/* note that length excludes count field itself */
 	PBIT16(p, ss-BIT16SZ);
 	p += BIT16SZ;

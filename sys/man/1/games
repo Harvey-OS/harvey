@@ -1,6 +1,6 @@
 .TH GAMES 1
 .SH NAME
-mahjongg, sokoban \- time wasters
+mahjongg, sokoban, sudoku \- time wasters
 .SH SYNOPSIS
 .B games/juggle
 [
@@ -32,6 +32,8 @@ mahjongg, sokoban \- time wasters
 [
 .I level
 ]
+.br
+.B games/sudoku
 .SH DESCRIPTION
 There are a few games in
 .BR /bin/games :
@@ -100,6 +102,64 @@ quit.  The right mouse button invokes a menu to restart the current level or loa
 level sets.  The middle mouse button lets you change between levels. 
 .I Sokoban
 accepts a level file as its argument.
+.TP
+.B sudoku
+.I Sudoku
+is a puzzle game from Japan.  The goal of the game is to
+fill the numbers 1 to 9 in all squares of the 9x9 board following a
+few simple rules: no digit should repeat on the same row and column,
+and no digit should repeat in the same 3x3 boxes outlined with thicker
+lines.  The board is initially filled with a partial solution which
+can be used for inferring digits for the empty squares.  The top row
+of the board contains the digits 1 through 9, clicking on one of those
+digits selects that number for placement on the board, clicking it
+again will deselect that digit.  Clicking on an empty square will then
+affix the square with the selected digit or, if no digit is selected
+empty the square.
+.IP
+The left mouse button presents a menu with the following options:
+.RS \w'\fLfireworksXX'u
+.TP \w'\fLOffsetXX'u
+.B New
+autogenerate a new, random board
+.TP
+.B Check
+mark in red any digits not placed according to the rules
+.TP
+.B Solve
+present the board's solution
+.TP
+.B Clear
+clear the board to its starting (or last loaded) state
+.TP
+.B Save
+save the current board to
+.I /tmp/sudoku-save
+.TP
+.B Load
+load the last saved board from
+.I /tmp/sudoku-save
+.TP
+.B Print
+print the current board and solution in a format
+suitable for addition in the sudoku library to
+.I /tmp/sudoku-board
+.TP
+.B Offline
+pretty-print the board for off-line solving to
+.I /tmp/sudoku-print
+.TP
+.B Exit
+quit the game
+.RE
+.IP
+The middle mouse button presents a list of sudoku boards from
+.I /sys/games/lib/sudoku/boards
+with varying degree of difficulty.
+.IP
+Pressing the
+.B Q
+key quits sudoku
 .SH FILES
 .TP
 .B /sys/games/lib/mahjongg/*
@@ -109,5 +169,9 @@ image sprites, levels and backgrounds used by
 .B /sys/games/lib/sokoban/*
 image sprites and levels used by
 .I sokoban
+.TP
+.B /sys/games/lib/sudoku/*
+images and boards used by
+.I sudoku
 .SH SOURCE
 .B /sys/src/games

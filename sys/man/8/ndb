@@ -308,7 +308,7 @@ address range you are serving reversed and with
 appended.  This is a standard form for a domain name in an IPv4 PTR record.
 .PP
 If such an entry exists in the database, reverse addresses will
-automaticly be generated from any IP addresses in the database
+automatically be generated from any IP addresses in the database
 that are under this root.  For example
 .EX
 
