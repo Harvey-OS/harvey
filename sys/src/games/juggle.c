@@ -2,18 +2,27 @@
 #include <libc.h>
 #include <draw.h>
 #include <event.h>
-#define	NSTEP	10		/* number of steps between throws */
-#define	RBALL	10		/* radius of ball images */
-#define	NBALL	100
+
+enum
+{
+	NSTEP		= 10,		/* number of steps between throws */
+	RBALL		= 10,		/* radius of ball images */
+	Nball		= 100,
+};
+
+Image *image, **disk;
+int ndisk=0;
 int nhand=2;
 int delay=20;			/* ms delay between steps */
 int nball;
 int maxhgt;
 Rectangle win;
 
+
 #define add addpt
 #define sub subpt
 #define inset insetrect
+
 
 /*
  * pattern lists the heights of a repeating sequence of throws.
@@ -29,7 +38,7 @@ struct Ball{
 	int time;	/* time at which ball will arrive */
 	int hand;	/* hand in which ball will rest on arrival */
 };
-Ball ball[NBALL];
+Ball ball[Nball];
 void throw(int t, int hgt){
 	int hand=t%nhand;
 	int i, b, n;
@@ -63,20 +72,51 @@ Point bpos(int b, int step, int t){
 	return (Point){win.min.x+(win.max.x-win.min.x)*alpha,
 		       win.max.y-1+(win.min.y-win.max.y)*hgt};
 }
-Image *image, *disk;
+
 void move(int t){
 	int i, j;
 	for(i=0;i!=NSTEP;i++){
 		if(ecanmouse()) emouse();
 		draw(image, inset(image->r, 3), display->white, nil, ZP);
 		for(j=0;j!=nball;j++)
-			draw(image, rectaddpt(disk->r, sub(bpos(j, i, t), Pt(RBALL, RBALL))),
-				disk, nil, ZP);
+			draw(image, rectaddpt(disk[j%ndisk]->r, sub(bpos(j, i, t), Pt(RBALL, RBALL))),
+				disk[j%ndisk], nil, ZP);
 		draw(screen, screen->r, image, nil, image->r.min);
 		flushimage(display, 1);
 		if(delay>0)
 			sleep(delay);
 	}
+}
+
+void
+adddisk(int c)
+{
+	Image *col;
+	disk = realloc(disk, (ndisk+1)*sizeof(Image*));
+	col=allocimage(display, Rect(0,0,1,1), CMAP8, 1, c);
+	disk[ndisk]=allocimage(display, Rect(0, 0, 2*RBALL+1, 2*RBALL+1), screen->chan, 0, DWhite);
+	fillellipse(disk[ndisk], Pt(RBALL, RBALL), RBALL, RBALL, col, ZP);
+	ndisk++;
+}
+
+void
+diskinit(void)
+{
+	/* colors taken from /sys/src/cmd/stats.c */
+
+	adddisk(0xFFAAAAFF);
+	adddisk(DPalegreygreen);
+	adddisk(DDarkyellow);
+	adddisk(DMedgreen);
+	adddisk(0x00AAFFFF);
+	adddisk(0xCCCCCCFF);
+
+	adddisk(0xBB5D5DFF);
+	adddisk(DPurpleblue);
+	adddisk(DYellowgreen);
+	adddisk(DDarkgreen);
+	adddisk(0x0088CCFF);
+	adddisk(0x888888FF);
 }
 
 void
@@ -161,8 +201,7 @@ main(int argc, char *argv[]){
 	if(initdraw(nil, nil, "juggle") < 0)
 		sysfatal("initdraw failed: %r");
 	einit(Emouse);
-	disk=allocimage(display, Rect(0, 0, 2*RBALL+1, 2*RBALL+1), screen->chan, 0, DWhite);
-	fillellipse(disk, Pt(RBALL, RBALL), RBALL, RBALL, display->black, ZP);
+	diskinit();
 	eresized(0);
 	if(image==0){
 		print("can't allocate bitmap");
