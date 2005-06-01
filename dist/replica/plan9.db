@@ -7931,7 +7931,7 @@ sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1086987324 18362
 sys/src/9/pc/ether8169.c - 664 sys sys 1110882037 22704
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
-sys/src/9/pc/ether82557.c - 664 sys sys 1115566440 30076
+sys/src/9/pc/ether82557.c - 664 sys sys 1117550886 30121
 sys/src/9/pc/ether83815.c - 664 sys sys 1115744557 23481
 sys/src/9/pc/ether8390.c - 664 sys sys 1112382834 17701
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
@@ -9076,7 +9076,7 @@ sys/src/boot/pc/ether79c970.c - 664 sys sys 1015007950 11717
 sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
 sys/src/boot/pc/ether8139.c - 664 sys sys 1102429126 14806
 sys/src/boot/pc/ether8169.c - 664 sys sys 1106018997 18687
-sys/src/boot/pc/ether82557.c - 664 sys sys 1115566440 18947
+sys/src/boot/pc/ether82557.c - 664 sys sys 1117550886 19045
 sys/src/boot/pc/ether83815.c - 664 sys sys 1019537742 19576
 sys/src/boot/pc/ether8390.c - 664 sys sys 1112382847 16209
 sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392
