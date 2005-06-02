@@ -636,6 +636,7 @@ static Bridge southbridges[] = {
 	{ 0x8086, 0x244c, pIIxget, pIIxset },	// Intel 82801BAM
 	{ 0x8086, 0x248c, pIIxget, pIIxset },	// Intel 82801CAM
 	{ 0x8086, 0x24d0, pIIxget, pIIxset },	// Intel 82801EB
+	{ 0x8086, 0x2640, pIIxget, pIIxset },	// Intel 82801FB
 	{ 0x1106, 0x0586, viaget, viaset },	// Viatech 82C586
 	{ 0x1106, 0x0596, viaget, viaset },	// Viatech 82C596
 	{ 0x1106, 0x0686, viaget, viaset },	// Viatech 82C686
@@ -1208,6 +1209,20 @@ void
 pciclrbme(Pcidev* p)
 {
 	p->pcr &= ~MASen;
+	pcicfgw16(p, PciPCR, p->pcr);
+}
+
+void
+pcisetmwi(Pcidev* p)
+{
+	p->pcr |= MemWrInv;
+	pcicfgw16(p, PciPCR, p->pcr);
+}
+
+void
+pciclrmwi(Pcidev* p)
+{
+	p->pcr &= ~MemWrInv;
 	pcicfgw16(p, PciPCR, p->pcr);
 }
 

@@ -286,9 +286,9 @@ eresized(int new)
 	}
 
 	p = Pt(Dx(screen->r), Dy(screen->r));
-	if(!new || !eqpt(p, Pt(Maxx, Maxy))) {
+	if(!new || !eqpt(p, Pt(Maxx - 8, Maxy - 8)))
 		resize();
-	}
+
 	drawscreen();
 }
 
