@@ -5911,7 +5911,6 @@ sys/games/lib/sudoku/boards/medium-2005-05-25.su - 644 sys sys 1117314031 180
 sys/games/lib/sudoku/boards/medium-2005-05-26.su - 644 sys sys 1117314031 180
 sys/games/lib/sudoku/boards/medium-2005-05-27.su - 644 sys sys 1117314031 180
 sys/games/lib/sudoku/boards/medium000.su - 664 sys sys 1117226433 180
-sys/games/lib/sudoku/boards/medium001.su - 664 sys sys 1117226433 180
 sys/games/lib/sudoku/boards/medium002.su - 664 sys sys 1117226433 180
 sys/games/lib/sudoku/boards/medium003.su - 664 sys sys 1117226433 180
 sys/games/lib/sudoku/boards/veasy000.su - 664 sys sys 1117226433 180
@@ -7694,7 +7693,7 @@ sys/man/8/nfsserver - 664 sys sys 1017251291 3397
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1084473185 3436
-sys/man/8/plan9.ini - 664 sys sys 1112972932 21498
+sys/man/8/plan9.ini - 664 sys sys 1117814755 21579
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1096036494 4424
 sys/man/8/prep - 664 sys sys 1079705872 13820
