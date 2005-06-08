@@ -35,7 +35,7 @@ plumb start window rc -c '''echo % mail '''$0'; mail '$0
 # image files go to page
 type is text
 data matches '[a-zA-Z¡-￿0-9_\-./]+'
-data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(jpe?g|JPE?G|gif|GIF|tiff?|TIFF?|ppm|PPM|bit|BIT|png|PNG)'
+data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(jpe?g|JPE?G|gif|GIF|tiff?|TIFF?|ppm|PPM|bit|BIT|png|PNG|pgm|PGM|bmp|BMP)'
 arg isfile	$0
 plumb to image
 plumb client page -wi

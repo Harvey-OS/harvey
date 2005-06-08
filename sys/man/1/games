@@ -2,6 +2,10 @@
 .SH NAME
 mahjongg, sokoban, sudoku \- time wasters
 .SH SYNOPSIS
+.B games/4s
+.br
+.B games/5s
+.br
 .B games/juggle
 [
 .B -d
@@ -37,6 +41,12 @@ mahjongg, sokoban, sudoku \- time wasters
 .SH DESCRIPTION
 There are a few games in
 .BR /bin/games :
+.TP \w'\fLfireworksXX'u
+.BR 4s , " 5s"
+Try to fill complete rows using 4-square or 5-square tiles.
+Move tiles left or right by moving the mouse.
+Rotate tiles with buttons 1 and 3.
+Drop tiles for more points with button 2 or the space bar.
 .TP
 .B juggle
 Display the juggling
@@ -50,6 +60,7 @@ and
 .I delay
 can be used to speed up or slow down the action (default is 20).
 Try the pattern 333333441333333 or 333353505151512333333
+or YWUSQOMKIGECA
 (see
 .IR http://seehuhn.de/jong/theory.html ).
 .TP
@@ -98,8 +109,16 @@ restarts the current level.
 .LR Del 
 and
 .LR Q
-quit.  The right mouse button invokes a menu to restart the current level or load different
-level sets.  The middle mouse button lets you change between levels. 
+quit.  The right mouse button invokes a menu to restart the current level, load different level sets, and en- and disable animation of multi-step moves.
+The middle mouse button lets you change between levels. 
+The left mouse button lets you do multi-step moves and pushes,
+by clicking it on the destination where you want Glenda to go.
+Glenda will only move if it can reach the destination.
+For a multi-step push the pebble must be next to Glenda,
+the destination must be on the same row or column,
+and there must be a free place next to the destination
+where the pebble can be pushed to.
+Otherwise, if possible, Glenda will walk to the destination without pushing the pebble.
 .I Sokoban
 accepts a level file as its argument.
 .TP
@@ -160,6 +179,7 @@ with varying degree of difficulty.
 Pressing the
 .B Q
 key quits sudoku
+
 .SH FILES
 .TP
 .B /sys/games/lib/mahjongg/*
