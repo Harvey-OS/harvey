@@ -640,11 +640,15 @@ static Bridge southbridges[] = {
 	{ 0x1106, 0x0586, viaget, viaset },	// Viatech 82C586
 	{ 0x1106, 0x0596, viaget, viaset },	// Viatech 82C596
 	{ 0x1106, 0x0686, viaget, viaset },	// Viatech 82C686
+	{ 0x1106, 0x3227, viaget, viaset },	// Viatech VT8237
 	{ 0x1045, 0xc700, optiget, optiset },	// Opti 82C700
 	{ 0x10b9, 0x1533, aliget, aliset },	// Al M1533
 	{ 0x1039, 0x0008, pIIxget, pIIxset },	// SI 503
 	{ 0x1039, 0x0496, pIIxget, pIIxset },	// SI 496
-	{ 0x1078, 0x0100, cyrixget, cyrixset }	// Cyrix 5530 Legacy
+	{ 0x1078, 0x0100, cyrixget, cyrixset },	// Cyrix 5530 Legacy
+
+	{ 0x1022, 0x746B, nil, nil },		// AMD 8111
+	{ 0x10DE, 0x00D1, nil, nil },		// NVIDIA nForce 3
 };
 
 typedef struct Slot Slot;
@@ -680,7 +684,7 @@ pcirouting(void)
 	Router *r;
 	int size, i, fn, tbdf;
 	Pcidev *sbpci, *pci;
-	uchar *p, *m, pin, irq, link;
+	uchar *p, pin, irq, link, *map;
 
 	// Search for PCI interrupt routing table in BIOS
 	for(p = (uchar *)KADDR(0xf0000); p < (uchar *)KADDR(0xfffff); p += 16)
@@ -711,6 +715,8 @@ pcirouting(void)
 		return;
 	}
 	southbridge = &southbridges[i];
+	if(southbridge->get == nil || southbridge->set == nil)
+		return;
 
 	pciirqs = (r->pciirqs[1] << 8)|r->pciirqs[0];
 
@@ -733,8 +739,8 @@ pcirouting(void)
 			if(pin == 0 || pin == 0xff) 
 				continue;
 
-			m = &e->maps[(pin - 1) * 3];
-			link = m[0];
+			map = &e->maps[(pin - 1) * 3];
+			link = map[0];
 			irq = southbridge->get(sbpci, link);
 			if(irq == 0 || irq == pci->intl)
 				continue;

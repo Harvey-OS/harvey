@@ -79,8 +79,7 @@ void move(int t){
 		if(ecanmouse()) emouse();
 		draw(image, inset(image->r, 3), display->white, nil, ZP);
 		for(j=0;j!=nball;j++)
-			draw(image, rectaddpt(disk[j%ndisk]->r, sub(bpos(j, i, t), Pt(RBALL, RBALL))),
-				disk[j%ndisk], nil, ZP);
+			fillellipse(image, bpos(j, i, t), RBALL, RBALL, disk[j%ndisk], ZP);
 		draw(screen, screen->r, image, nil, image->r.min);
 		flushimage(display, 1);
 		if(delay>0)
@@ -94,8 +93,7 @@ adddisk(int c)
 	Image *col;
 	disk = realloc(disk, (ndisk+1)*sizeof(Image*));
 	col=allocimage(display, Rect(0,0,1,1), CMAP8, 1, c);
-	disk[ndisk]=allocimage(display, Rect(0, 0, 2*RBALL+1, 2*RBALL+1), screen->chan, 0, DWhite);
-	fillellipse(disk[ndisk], Pt(RBALL, RBALL), RBALL, RBALL, col, ZP);
+	disk[ndisk]=col;
 	ndisk++;
 }
 
