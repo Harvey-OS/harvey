@@ -3,13 +3,13 @@
 386/9loaddebug - 775 sys sys 1118115914 310423
 386/9loadlite - 775 sys sys 1112757508 135244
 386/9loadlitedebug - 775 sys sys 1118115915 198782
-386/9pc - 775 sys sys 1118115924 1834753
+386/9pc - 775 sys sys 1118202763 1834827
 386/9pc.gz - 664 sys sys 1112757510 643423
-386/9pccpu - 775 sys sys 1118115930 1489242
+386/9pccpu - 775 sys sys 1118202770 1489316
 386/9pccpu.gz - 664 sys sys 1112757511 529529
-386/9pcdisk - 775 sys sys 1118115941 2040559
+386/9pcdisk - 775 sys sys 1118202783 2040633
 386/9pcdisk.gz - 664 sys sys 1112757513 733576
-386/9pcf - 775 sys sys 1118115953 2383391
+386/9pcf - 775 sys sys 1118202796 2383465
 386/9pcf.gz - 664 sys sys 1112757515 886966
 386/9pxeload - 775 sys sys 1112757508 215872
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
@@ -246,7 +246,7 @@
 386/bin/ftpfs - 775 sys sys 1116903732 271518
 386/bin/games - 20000000775 sys sys 1096298711 0
 386/bin/games/catclock - 775 sys sys 1115950075 140798
-386/bin/games/juggle - 775 sys sys 1117508921 125685
+386/bin/games/juggle - 775 sys sys 1118202754 125319
 386/bin/games/jukebox - 775 sys sys 1105589128 264821
 386/bin/games/jukefs - 775 sys sys 1105589129 165320
 386/bin/games/mahjongg - 775 sys sys 1115950075 164297
@@ -13014,7 +13014,7 @@ sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1014926385 3754
 sys/src/cmd/tapefs/v6fs.c - 664 sys sys 1014926385 3971
 sys/src/cmd/tapefs/zip.h - 664 sys sys 1097914153 1428
 sys/src/cmd/tapefs/zipfs.c - 664 sys sys 1097900277 6803
-sys/src/cmd/tar.c - 664 sys sys 1113742126 20439
+sys/src/cmd/tar.c - 664 sys sys 1118244397 20697
 sys/src/cmd/tbl - 20000000775 sys sys 954038038 0
 sys/src/cmd/tbl/mkfile - 664 sys sys 944961243 268
 sys/src/cmd/tbl/t.h - 664 sys sys 944961244 3987
@@ -15044,3 +15044,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/tar - 775 sys sys 1118286689 96201
