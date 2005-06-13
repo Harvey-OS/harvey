@@ -47,7 +47,7 @@ main(int argc, char **argv)
 	}ARGEND;
 
 	if(argc == 0){
-		fprint(2, "usage: %s portrange", argv0);
+		fprint(2, "usage: %s portrange\n", argv0);
 		exits("usage");
 	}
 

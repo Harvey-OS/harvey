@@ -281,7 +281,7 @@
 386/bin/ip/ftpd - 775 sys sys 1116903734 169211
 386/bin/ip/gizzard - 775 sys sys 1081480408 101521
 386/bin/ip/gping - 775 sys sys 1116126318 182819
-386/bin/ip/hogports - 775 sys sys 1115950083 42883
+386/bin/ip/hogports - 775 sys sys 1118632064 42883
 386/bin/ip/httpd - 20000000775 sys sys 1016920846 0
 386/bin/ip/httpd/httpd - 775 sys sys 1115950083 290319
 386/bin/ip/httpd/imagemap - 775 sys sys 1115950084 114785
@@ -12013,7 +12013,7 @@ sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1112563713 30346
 sys/src/cmd/ip/glob.c - 664 sys sys 1101155057 3290
 sys/src/cmd/ip/glob.h - 664 sys sys 1101155058 308
 sys/src/cmd/ip/gping.c - 664 sys sys 1015013112 20476
-sys/src/cmd/ip/hogports.c - 664 sys sys 988225294 987
+sys/src/cmd/ip/hogports.c - 664 sys sys 1118623129 989
 sys/src/cmd/ip/httpd - 20000000775 sys sys 1016902735 0
 sys/src/cmd/ip/httpd/anonymous.c - 664 sys sys 984773807 195
 sys/src/cmd/ip/httpd/authorize.c - 664 sys sys 1016902735 2387
