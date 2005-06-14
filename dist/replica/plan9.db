@@ -245,6 +245,8 @@
 386/bin/fs/zipfs - 775 sys sys 1115950074 109088
 386/bin/ftpfs - 775 sys sys 1116903732 271518
 386/bin/games - 20000000775 sys sys 1096298711 0
+386/bin/games/4s - 775 sys sys 1118718525 175529
+386/bin/games/5s - 775 sys sys 1118718525 178065
 386/bin/games/catclock - 775 sys sys 1115950075 140798
 386/bin/games/juggle - 775 sys sys 1118202754 125319
 386/bin/games/jukebox - 775 sys sys 1105589128 264821
@@ -347,7 +349,7 @@
 386/bin/nntpfs - 775 sys sys 1115950100 160898
 386/bin/ns - 775 sys sys 1115950100 65260
 386/bin/p - 775 sys sys 1115950100 64990
-386/bin/page - 775 sys sys 1115950101 232679
+386/bin/page - 775 sys sys 1118671839 232775
 386/bin/paqfs - 775 sys sys 1115950101 107558
 386/bin/passwd - 775 sys sys 1115950101 83747
 386/bin/pbd - 775 sys sys 1085077087 4661
@@ -5761,6 +5763,8 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
+sys/games/lib/4scores - 664 sys sys 1118680448 0
+sys/games/lib/5scores - 664 sys sys 1118680453 0
 sys/games/lib/fortunes - 664 sys sys 1117193231 253904
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
@@ -13861,6 +13865,8 @@ sys/src/fs/sony/mem.h - 664 sys sys 1015110103 2865
 sys/src/fs/sony/mkfile - 664 sys sys 1091803623 1594
 sys/src/fs/worms - 664 sys sys 1015110031 2806
 sys/src/games - 20000000775 sys sys 1095792091 0
+sys/src/games/4s.c - 664 sys sys 1118672529 1466
+sys/src/games/5s.c - 664 sys sys 1118672529 3802
 sys/src/games/catback.p - 664 sys sys 1108184106 35763
 sys/src/games/catclock.c - 664 sys sys 1108184106 10354
 sys/src/games/eyes.p - 664 sys sys 1108184106 1128
@@ -13872,7 +13878,7 @@ sys/src/games/mahjongg/mahjongg.c - 644 sys sys 1095792293 3452
 sys/src/games/mahjongg/mahjongg.h - 644 sys sys 1095792293 1606
 sys/src/games/mahjongg/mkfile - 644 sys sys 1095792293 230
 sys/src/games/memo.c - 644 sys sys 1110436470 6837
-sys/src/games/mkfile - 664 sys sys 1110435498 533
+sys/src/games/mkfile - 664 sys sys 1118672535 567
 sys/src/games/music - 20000000775 sys sys 1103793915 0
 sys/src/games/music/Readme - 664 sys sys 1103793914 488
 sys/src/games/music/debug.h - 664 sys sys 1103793914 201
@@ -13940,6 +13946,7 @@ sys/src/games/sudoku/levels.c - 664 sys sys 1117226433 3186
 sys/src/games/sudoku/mkfile - 664 sys sys 1117226432 218
 sys/src/games/sudoku/sudoku.c - 664 sys sys 1117636441 7809
 sys/src/games/sudoku/sudoku.h - 664 sys sys 1117226432 1159
+sys/src/games/xs.h - 664 sys sys 1118672529 14310
 sys/src/lib9p - 20000000775 sys sys 1015023311 0
 sys/src/lib9p/_post.c - 664 sys sys 1103565871 1642
 sys/src/lib9p/dirread.c - 664 sys sys 1015023310 641
