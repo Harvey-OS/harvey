@@ -1,6 +1,8 @@
 </$objtype/mkfile
 
-TARG=catclock\
+TARG=4s\
+	5s\
+	catclock\
 	juggle\
 	memo\
 
@@ -14,6 +16,8 @@ DIRS=\
 	mahjongg\
 	sokoban\
 
+4s.$O:	xs.h
+5s.$O:	xs.h
 catclock.$O:	catback.p eyes.p
 
 all:V:	dirall
