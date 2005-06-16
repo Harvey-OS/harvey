@@ -10,7 +10,7 @@ int	exists (char*, char*);
 void
 usage(void)
 {
-	fprint(2, "usage: changeuser [-pnm] user\n");
+	fprint(2, "usage: changeuser [-pn] user\n");
 	exits("usage");
 }
 
