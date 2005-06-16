@@ -92,7 +92,7 @@ struct {
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-hv] [-o outfile] [-p body] [-x netmtpt] url\n", argv0);
+	fprint(2, "usage: %s [-dhv] [-o outfile] [-p body] [-x netmtpt] url\n", argv0);
 	exits("usage");
 }
 
@@ -387,10 +387,8 @@ dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 					"Host: %s\r\n"
 					"Content-type: application/x-www-form-urlencoded\r\n"
 					"Content-length: %d\r\n"
-					"User-agent: Plan9/hget\r\n"
-					"\r\n",
+					"User-agent: Plan9/hget\r\n",
 					u->page, u->host, strlen(u->postbody));
-			dfprint(fd,	"%s", u->postbody);
 		}
 		if(r->start != 0){
 			dfprint(fd, "Range: bytes=%d-\n", r->start);
@@ -417,6 +415,8 @@ dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 		}
 			
 		dfprint(fd, "\r\n", u->host);
+		if(u->postbody)
+			dfprint(fd,	"%s", u->postbody);
 
 		auth = 0;
 		redirect = 0;
@@ -758,10 +758,11 @@ hhcrange(char *p, URL*, Range *r)
 	x = strchr(p, '/');
 	if(x)
 		l = atoll(x+1);
-	if(l == 0)
-	x = strchr(p, '-');
-	if(x)
-		l = atoll(x+1);
+	if(l == 0) {
+		x = strchr(p, '-');
+		if(x)
+			l = atoll(x+1);
+	}
 	if(l)
 		r->end = l;
 }
@@ -842,7 +843,7 @@ doftp(URL *u, URL *px, Range *r, Out *out, long mtime)
 	char conndir[NETPATHLEN];
 	char *p;
 
-	/* untested, proxy dosn't work with ftp (I think) */
+	/* untested, proxy doesn't work with ftp (I think) */
 	if(px->host == nil){
 		ctl = dial(netmkaddr(u->host, tcpdir, u->port), 0, conndir, 0);
 	} else {
@@ -1417,6 +1418,10 @@ setoffset(Out *out, int offset)
 	else
 		out->curr = nil;
 	out->offset = offset;
+	out->written = offset;
+	if(ofile != nil)
+		if(seek(out->fd, offset, 0) != offset)
+			sysfatal("seek: %r");
 }
 
 /*

@@ -5763,8 +5763,8 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/4scores - 664 sys sys 1118680448 0
-sys/games/lib/5scores - 664 sys sys 1118680453 0
+sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
+sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
 sys/games/lib/fortunes - 664 sys sys 1117193231 253904
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
@@ -7694,7 +7694,7 @@ sys/man/8/mkpaqfs - 664 sys sys 1018386778 892
 sys/man/8/mksacfs - 664 sys sys 964886843 710
 sys/man/8/mouse - 664 sys sys 971455511 2476
 sys/man/8/na - 664 sys sys 958527089 859
-sys/man/8/ndb - 664 sys sys 1117227905 9941
+sys/man/8/ndb - 664 sys sys 1118851681 9943
 sys/man/8/newuser - 664 sys sys 1116954242 2418
 sys/man/8/nfsserver - 664 sys sys 1017251291 3397
 sys/man/8/pcmcia - 664 sys sys 944959679 408
@@ -9424,7 +9424,7 @@ sys/src/cmd/auth/asn12rsa.c - 664 sys sys 1048614959 1192
 sys/src/cmd/auth/authcmdlib.h - 664 sys sys 1032497636 1438
 sys/src/cmd/auth/authsrv.c - 664 sys sys 1078839960 18395
 sys/src/cmd/auth/challenge.c - 664 sys sys 1015008432 980
-sys/src/cmd/auth/changeuser.c - 664 sys sys 1015008431 2933
+sys/src/cmd/auth/changeuser.c - 664 sys sys 1118884775 2932
 sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212
 sys/src/cmd/auth/convkeys.c - 664 sys sys 1015008430 2347
 sys/src/cmd/auth/convkeys2.c - 664 sys sys 1015008432 2401
@@ -11965,7 +11965,7 @@ sys/src/cmd/gzip/mkfile - 664 sys sys 984758036 125
 sys/src/cmd/gzip/unzip.c - 664 sys sys 1050689595 13603
 sys/src/cmd/gzip/zip.c - 664 sys sys 1033183074 7054
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
-sys/src/cmd/hget.c - 664 sys sys 1091129591 25650
+sys/src/cmd/hget.c - 664 sys sys 1118885209 25774
 sys/src/cmd/history.c - 664 sys sys 1116770200 6046
 sys/src/cmd/hoc - 20000000775 sys sys 954036932 0
 sys/src/cmd/hoc/code.c - 664 sys sys 944961000 10041
@@ -13865,7 +13865,7 @@ sys/src/fs/sony/mem.h - 664 sys sys 1015110103 2865
 sys/src/fs/sony/mkfile - 664 sys sys 1091803623 1594
 sys/src/fs/worms - 664 sys sys 1015110031 2806
 sys/src/games - 20000000775 sys sys 1095792091 0
-sys/src/games/4s.c - 664 sys sys 1118672529 1466
+sys/src/games/4s.c - 664 sys sys 1118885272 1466
 sys/src/games/5s.c - 664 sys sys 1118672529 3802
 sys/src/games/catback.p - 664 sys sys 1108184106 35763
 sys/src/games/catclock.c - 664 sys sys 1108184106 10354
@@ -13946,7 +13946,7 @@ sys/src/games/sudoku/levels.c - 664 sys sys 1117226433 3186
 sys/src/games/sudoku/mkfile - 664 sys sys 1117226432 218
 sys/src/games/sudoku/sudoku.c - 664 sys sys 1117636441 7809
 sys/src/games/sudoku/sudoku.h - 664 sys sys 1117226432 1159
-sys/src/games/xs.h - 664 sys sys 1118672529 14310
+sys/src/games/xs.h - 664 sys sys 1118886450 14271
 sys/src/lib9p - 20000000775 sys sys 1015023311 0
 sys/src/lib9p/_post.c - 664 sys sys 1103565871 1642
 sys/src/lib9p/dirread.c - 664 sys sys 1015023310 641
@@ -15051,3 +15051,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/games/4s - 775 sys sys 1118891246 175563
+386/bin/games/5s - 775 sys sys 1118891246 178075
+386/bin/hget - 775 sys sys 1118891247 231963
+386/bin/auth/changeuser - 775 sys sys 1118891246 97026
