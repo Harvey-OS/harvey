@@ -46,7 +46,7 @@
 386/bin/auth/aescbc - 775 sys sys 1117249742 140735
 386/bin/auth/asn12rsa - 775 sys sys 1115950027 119644
 386/bin/auth/authsrv - 775 sys sys 1115950028 165463
-386/bin/auth/changeuser - 775 sys sys 1115950028 97026
+386/bin/auth/changeuser - 775 sys sys 1118891246 97026
 386/bin/auth/convkeys - 775 sys sys 1117249742 87396
 386/bin/auth/convkeys2 - 775 sys sys 1117249742 87447
 386/bin/auth/cron - 775 sys sys 1115950029 142890
@@ -245,8 +245,8 @@
 386/bin/fs/zipfs - 775 sys sys 1115950074 109088
 386/bin/ftpfs - 775 sys sys 1116903732 271518
 386/bin/games - 20000000775 sys sys 1096298711 0
-386/bin/games/4s - 775 sys sys 1118718525 175529
-386/bin/games/5s - 775 sys sys 1118718525 178065
+386/bin/games/4s - 775 sys sys 1118891246 175563
+386/bin/games/5s - 775 sys sys 1118891246 178075
 386/bin/games/catclock - 775 sys sys 1115950075 140798
 386/bin/games/juggle - 775 sys sys 1118202754 125319
 386/bin/games/jukebox - 775 sys sys 1105589128 264821
@@ -266,7 +266,7 @@
 386/bin/gview - 775 sys sys 1115950078 238067
 386/bin/gzip - 775 sys sys 1115950078 84762
 386/bin/hayes - 775 sys sys 1115950078 64556
-386/bin/hget - 775 sys sys 1115950079 231848
+386/bin/hget - 775 sys sys 1118891247 231963
 386/bin/history - 775 sys sys 1116903733 75357
 386/bin/hoc - 775 sys sys 1115950079 99875
 386/bin/html2ms - 775 sys sys 1115950079 66095
@@ -15051,7 +15051,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/games/4s - 775 sys sys 1118891246 175563
-386/bin/games/5s - 775 sys sys 1118891246 178075
-386/bin/hget - 775 sys sys 1118891247 231963
-386/bin/auth/changeuser - 775 sys sys 1118891246 97026
