@@ -365,7 +365,7 @@
 386/bin/primes - 775 sys sys 1115950104 38793
 386/bin/prof - 775 sys sys 1115950104 106950
 386/bin/proof - 775 sys sys 1115950105 178410
-386/bin/ps - 775 sys sys 1115950105 65805
+386/bin/ps - 775 sys sys 1119063981 66688
 386/bin/pwd - 775 sys sys 1115950105 36897
 386/bin/ramfs - 775 sys sys 1115950105 89167
 386/bin/rc - 775 sys sys 1115950106 143210
@@ -12707,7 +12707,7 @@ sys/src/cmd/proof/main.c - 664 sys sys 955242172 3268
 sys/src/cmd/proof/mkfile - 664 sys sys 944961622 180
 sys/src/cmd/proof/proof.h - 664 sys sys 955223407 919
 sys/src/cmd/proof/screen.c - 664 sys sys 1014926867 6659
-sys/src/cmd/ps.c - 664 sys sys 1014926697 2352
+sys/src/cmd/ps.c - 664 sys sys 1119012350 2403
 sys/src/cmd/pwd.c - 664 sys sys 1067722792 287
 sys/src/cmd/qa - 20000000775 sys sys 954037936 0
 sys/src/cmd/qa/a.h - 664 sys sys 1089299169 3252

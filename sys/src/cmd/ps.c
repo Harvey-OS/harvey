@@ -57,7 +57,7 @@ ps(char *s)
 	int i, n, fd;
 	char buf[64];
 	int basepri, pri;
-	long utime, stime, size;
+	ulong utime, stime, size;
 	char pbuf[8];
 #define NAMELEN 28
 	char status[2*NAMELEN+12+9*12+1];
@@ -82,16 +82,16 @@ ps(char *s)
 		return;
 	*p = 0;
 	status[2*NAMELEN+12-1] = 0;
-	utime = atol(status+2*NAMELEN+12)/1000;
-	stime = atol(status+2*NAMELEN+12+1*12)/1000;
-	size  = atol(status+2*NAMELEN+12+6*12);
+	utime = strtoul(status+2*NAMELEN+12, 0, 0)/1000;
+	stime = strtoul(status+2*NAMELEN+12+1*12, 0, 0)/1000;
+	size  = strtoul(status+2*NAMELEN+12+6*12, 0, 0);
 	if(pflag){
-		basepri = atol(status+2*NAMELEN+12+7*12);
-		pri = atol(status+2*NAMELEN+12+8*12);
+		basepri = strtoul(status+2*NAMELEN+12+7*12, 0, 0);
+		pri = strtoul(status+2*NAMELEN+12+8*12, 0, 0);
 		sprint(pbuf, " %2d %2d", basepri, pri);
 	} else
 		pbuf[0] = 0;
-	Bprint(&bout, "%-10s %8s %4ld:%.2ld %3ld:%.2ld%s %7ldK %-.8s ",
+	Bprint(&bout, "%-10s %8s %4lud:%.2lud %3lud:%.2lud%s %7ludK %-.8s ",
 			status+NAMELEN,
 			s,
 			utime/60, utime%60,
