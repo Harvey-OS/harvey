@@ -9726,7 +9726,7 @@ sys/src/cmd/aux/vga/vision964.c - 664 sys sys 1014925014 3426
 sys/src/cmd/aux/vga/vision968.c - 664 sys sys 1014925014 3959
 sys/src/cmd/aux/vga/vmware.c - 664 sys sys 1020313485 4907
 sys/src/cmd/aux/vga/w30c516.c - 664 sys sys 1014925014 3158
-sys/src/cmd/aux/write.c - 664 sys sys 944960778 471
+sys/src/cmd/aux/write.c - 664 sys sys 1119143661 471
 sys/src/cmd/aux/zerotrunc.c - 664 sys sys 1063855383 318
 sys/src/cmd/awd.c - 664 sys sys 1116815657 661
 sys/src/cmd/awk - 20000000775 sys sys 944964677 0

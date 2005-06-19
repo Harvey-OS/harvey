@@ -2,7 +2,7 @@
 #include <libc.h>
 
 static char x[1024];
-static char s[64] = "  ABCDEFGHIJKLMNOPQRSTUVWYYZabcdefghijklmnopqrstuvwxyz0123456789";
+static char s[64] = "  ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 static void
 fill(void)
