@@ -365,7 +365,7 @@
 386/bin/primes - 775 sys sys 1115950104 38793
 386/bin/prof - 775 sys sys 1115950104 106950
 386/bin/proof - 775 sys sys 1115950105 178410
-386/bin/ps - 775 sys sys 1115950105 65805
+386/bin/ps - 775 sys sys 1119063981 66688
 386/bin/pwd - 775 sys sys 1115950105 36897
 386/bin/ramfs - 775 sys sys 1115950105 89167
 386/bin/rc - 775 sys sys 1115950106 143210
@@ -9726,7 +9726,7 @@ sys/src/cmd/aux/vga/vision964.c - 664 sys sys 1014925014 3426
 sys/src/cmd/aux/vga/vision968.c - 664 sys sys 1014925014 3959
 sys/src/cmd/aux/vga/vmware.c - 664 sys sys 1020313485 4907
 sys/src/cmd/aux/vga/w30c516.c - 664 sys sys 1014925014 3158
-sys/src/cmd/aux/write.c - 664 sys sys 944960778 471
+sys/src/cmd/aux/write.c - 664 sys sys 1119143661 471
 sys/src/cmd/aux/zerotrunc.c - 664 sys sys 1063855383 318
 sys/src/cmd/awd.c - 664 sys sys 1116815657 661
 sys/src/cmd/awk - 20000000775 sys sys 944964677 0
@@ -15051,4 +15051,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/ps - 775 sys sys 1119063981 66688
