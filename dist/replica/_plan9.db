@@ -838,7 +838,6 @@ arm/bin/ape - 20000000775 sys sys 985644327 0
 arm/bin/auth - 20000000775 sys sys 985644308 0
 arm/bin/aux - 20000000775 sys sys 985644327 0
 arm/bin/bitsy - 20000000775 sys sys 985559407 0
-arm/bin/bitsy/pencal - 775 sys sys 1079016939 119781
 arm/bin/dial - 20000000775 sys sys 1059180057 0
 arm/bin/disk - 20000000775 sys sys 985644211 0
 arm/bin/fossil - 20000000775 sys sys 1042090587 0
@@ -7928,7 +7927,7 @@ sys/src/9/pc/devtv.c - 664 sys sys 1091734484 45725
 sys/src/9/pc/devusb.c - 664 sys sys 1105193103 18364
 sys/src/9/pc/devvga.c - 664 sys sys 1063857412 8714
 sys/src/9/pc/dma.c - 664 sys sys 1015014515 4736
-sys/src/9/pc/errstr.h - 664 sys sys 1075069582 2137
+sys/src/9/pc/errstr.h - 664 sys sys 1119276286 2144
 sys/src/9/pc/ether2000.c - 664 sys sys 1089299187 4819
 sys/src/9/pc/ether2114x.c - 664 sys sys 1081706476 41545
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
@@ -12209,7 +12208,7 @@ sys/src/cmd/kl/pass.c - 664 sys sys 1045503969 9348
 sys/src/cmd/kl/sched.c - 664 sys sys 1089299170 10796
 sys/src/cmd/kl/span.c - 664 sys sys 1045503970 10146
 sys/src/cmd/kprof.c - 664 sys sys 1014926615 2542
-sys/src/cmd/ktrace.c - 664 sys sys 1014926179 5758
+sys/src/cmd/ktrace.c - 664 sys sys 1119276523 5785
 sys/src/cmd/lens.c - 664 sys sys 1045505408 4645
 sys/src/cmd/lex - 20000000775 sys sys 944961017 0
 sys/src/cmd/lex/header.c - 664 sys sys 1032060383 3368
@@ -12327,7 +12326,7 @@ sys/src/cmd/ms2html.c - 664 sys sys 1084470689 40502
 sys/src/cmd/mtime.c - 664 sys sys 1036172302 450
 sys/src/cmd/mv.c - 664 sys sys 1014926695 4276
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
-sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1060612175 6862
+sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1119276409 6866
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248
 sys/src/cmd/ndb/cs.c - 664 sys sys 1104854491 33070
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
@@ -14350,7 +14349,7 @@ sys/src/libc/port/pool.c - 664 sys sys 1102093118 30853
 sys/src/libc/port/pow.c - 664 sys sys 1014927401 965
 sys/src/libc/port/pow10.c - 664 sys sys 1014927401 1946
 sys/src/libc/port/profile.c - 664 sys sys 1111156473 5343
-sys/src/libc/port/qsort.c - 664 sys sys 1014927401 1650
+sys/src/libc/port/qsort.c - 664 sys sys 1119276453 1669
 sys/src/libc/port/quote.c - 664 sys sys 1014927401 2246
 sys/src/libc/port/rand.c - 664 sys sys 1035832918 79
 sys/src/libc/port/readn.c - 664 sys sys 1014927401 234

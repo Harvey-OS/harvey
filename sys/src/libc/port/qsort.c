@@ -2,6 +2,8 @@
  * qsort -- simple quicksort
  */
 
+#include <u.h>
+
 typedef
 struct
 {
@@ -116,7 +118,7 @@ qsort(void *va, long n, long es, int (*cmp)(void*, void*))
 	s.cmp = cmp;
 	s.es = es;
 	s.swap = swapi;
-	if(((long)va | es) % sizeof(long))
+	if(((uintptr)va | es) % sizeof(long))
 		s.swap = swapb;
 	qsorts((char*)va, n, &s);
 }
