@@ -19505,3 +19505,8 @@
 1119013317 0 c sys/src/cmd/ps.c - 664 sys sys 1119012350 2403
 1119065410 0 c 386/bin/ps - 775 sys sys 1119063981 66688
 1119144627 0 c sys/src/cmd/aux/write.c - 664 sys sys 1119143661 471
+1119277857 0 c sys/src/9/pc/errstr.h - 664 sys sys 1119276286 2144
+1119277857 1 c sys/src/cmd/ktrace.c - 664 sys sys 1119276523 5785
+1119277857 2 c sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1119276409 6866
+1119277857 3 c sys/src/libc/port/qsort.c - 664 sys sys 1119276453 1669
+1119277857 4 d arm/bin/bitsy/pencal - 775 sys sys 1079016939 0

@@ -94,6 +94,7 @@ main(int argc, char *argv[])
 	inithdr(fd);
 	switch(fhdr.magic){
 	case I_MAGIC:	/* intel 386 */
+	case S_MAGIC:	/* amd64 */
 		t = i386trace;
 		break;
 	case A_MAGIC:	/* 68020 */
