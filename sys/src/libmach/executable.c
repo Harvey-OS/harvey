@@ -36,7 +36,7 @@ static	void	setdata(Fhdr*, long, long, long, long);
 static	void	settext(Fhdr*, long, long, long, long);
 static	void	hswal(long*, int, long(*)(long));
 static	long	noswal(long);
-static	long	_round(long, long);
+static	ulong	_round(ulong, ulong);
 
 /*
  *	definition of per-executable file type structures
@@ -342,7 +342,7 @@ common(int fd, Fhdr *fp, ExecHdr *hp)
 			fp->txtaddr = sizeof(Exec);
 			fp->name = "386 plan 9 boot image";
 			fp->hdrsz = 0;		/* header stripped */
-			fp->dataddr = fp->txtaddr+fp->txtsz;
+			fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
 			break;
 		case FARM:
 			fp->txtaddr = kbase+0x8010;
@@ -363,6 +363,13 @@ common(int fd, Fhdr *fp, ExecHdr *hp)
 			fp->name = "power plan 9 boot image";
 			fp->hdrsz = 0;		/* header stripped */
 			fp->dataddr = fp->txtaddr+fp->txtsz;
+			break;
+		case FAMD64:
+			fp->type = FAMD64B;
+			fp->txtaddr = sizeof(Exec);
+			fp->name = "amd64 plan 9 boot image";
+			fp->hdrsz = 0;		/* header stripped */
+			fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
 			break;
 		default:
 			break;
@@ -683,10 +690,10 @@ setsym(Fhdr *fp, long sy, long sppc, long lnpc, long symoff)
 }
 
 
-static long
-_round(long a, long b)
+static ulong
+_round(ulong a, ulong b)
 {
-	long w;
+	ulong w;
 
 	w = (a/b)*b;
 	if (a!=w)
