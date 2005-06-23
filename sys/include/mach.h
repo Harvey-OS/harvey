@@ -60,6 +60,7 @@ enum
 	FMIPSLE,		/* 3k little endian */
 	FSPARC64,		/* u.out */
 	FAMD64,			/* 6.out */
+	FAMD64B,		/* 6.out bootable */
 
 	ANONE = 0,		/* dissembler types */
 	AMIPS,

@@ -107,7 +107,7 @@ Mach mamd64=
 	"setSB",	/* static base register name (bogus anyways) */
 	0,		/* static base register value */
 	0x1000,		/* page size */
-	0x80100000,	/* kernel base */	/* TO DO: uvlong or vlong */
+	0x80110000,	/* kernel base */	/* TO DO: uvlong or vlong */
 	0,		/* kernel text mask */
 	1,		/* quantization of pc */
 	8,		/* szaddr */

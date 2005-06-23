@@ -4066,3 +4066,4 @@ It's the ship that made the Kessel run in less than twelve parsecs.
 CPU0 states:   0.0% user, 150.0% system,   0.0%nice,   0.0% idle
 i know what jmk did.  he added reentrancy for threads.  - boyd, about uintptr
 i hate all sorts of zealots  - boyd
+/* Watch the brackets - even Ken and Dennis get some language design wrong */

@@ -54,15 +54,9 @@ main(int argc, char *argv[])
 void
 ps(char *s)
 {
-	int i, n, fd;
-	char buf[64];
-	int basepri, pri;
 	ulong utime, stime, size;
-	char pbuf[8];
-#define NAMELEN 28
-	char status[2*NAMELEN+12+9*12+1];
-	char args[256];
-	char *p;
+	int argc, basepri, fd, i, n, pri;
+	char args[256], *argv[16], buf[64], pbuf[8], status[4096];
 
 	sprint(buf, "%s/status", s);
 	fd = open(buf, OREAD);
@@ -73,36 +67,41 @@ ps(char *s)
 	if(n <= 0)
 		return;
 	status[n] = '\0';
-	p = strchr(status, ' ');
-	if(!p)
+
+	if((argc = tokenize(status, argv, nelem(argv)-1)) < 12)
 		return;
-	*p = 0;
-	p = strchr(status+NAMELEN, ' ');
-	if(!p)
-		return;
-	*p = 0;
-	status[2*NAMELEN+12-1] = 0;
-	utime = strtoul(status+2*NAMELEN+12, 0, 0)/1000;
-	stime = strtoul(status+2*NAMELEN+12+1*12, 0, 0)/1000;
-	size  = strtoul(status+2*NAMELEN+12+6*12, 0, 0);
+	argv[argc] = 0;
+
+	/*
+	 * 0  text
+	 * 1  user
+	 * 2  state
+	 * 3  cputime[6]
+	 * 9  memory
+	 * 10 basepri
+	 * 11 pri
+	 */
+	utime = strtoul(argv[3], 0, 0)/1000;
+	stime = strtoul(argv[4], 0, 0)/1000;
+	size  = strtoul(argv[9], 0, 0);
 	if(pflag){
-		basepri = strtoul(status+2*NAMELEN+12+7*12, 0, 0);
-		pri = strtoul(status+2*NAMELEN+12+8*12, 0, 0);
+		basepri = strtoul(argv[10], 0, 0);
+		pri = strtoul(argv[11], 0, 0);
 		sprint(pbuf, " %2d %2d", basepri, pri);
 	} else
 		pbuf[0] = 0;
-	Bprint(&bout, "%-10s %8s %4lud:%.2lud %3lud:%.2lud%s %7ludK %-.8s ",
-			status+NAMELEN,
+	Bprint(&bout, "%-10s %8s %4lud:%.2lud %3lud:%.2lud%s %7ludK %-8.8s ",
+			argv[1],
 			s,
 			utime/60, utime%60,
 			stime/60, stime%60,
 			pbuf,
 			size,
-			status+2*NAMELEN);
+			argv[2]);
 
 	if(aflag == 0){
     Noargs:
-		Bprint(&bout, "%s\n", status);
+		Bprint(&bout, "%s\n", argv[0]);
 		return;
 	}
 
@@ -124,7 +123,7 @@ ps(char *s)
 	return;
 
     Badargs:
-	Bprint(&bout, "%s ?\n", status);
+	Bprint(&bout, "%s ?\n", argv[0]);
 }
 
 void

@@ -88,9 +88,9 @@ Machtab	machines[] =
 		AI8086,
 		&mi386,
 		&i386mach,	},
-	{	"amd64",				/* amd64 */
+	{	"amd64",			/*amd64*/
 		FAMD64,
-		FI386B,
+		FAMD64B,
 		AAMD64,
 		&mamd64,
 		&i386mach,	},
