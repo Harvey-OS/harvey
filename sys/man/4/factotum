@@ -327,7 +327,7 @@ to configure the wireless ethernet card
 .B #l/ether0
 for WEP encryption with the given password.
 .PP
-All keys can have additional attibutes that act either as comments
+All keys can have additional attributes that act either as comments
 or as selectors to distinguish them in the
 .IR auth (2)
 library calls.
