@@ -38,7 +38,7 @@ authrsafn(Conn *c)
 		putmpint(m, mod);
 		sendmsg(m);
 		mpfree(mod);
-		m = recvmsg(c, 0);
+		m = recvmsg(c, -1);
 		switch(m->type){
 		case SSH_SMSG_FAILURE:
 			debug(DBG_AUTH, "\tnot accepted\n", (char*)rpc->arg);
@@ -87,7 +87,7 @@ authrsafn(Conn *c)
 		putbytes(m, response, MD5dlen);
 		sendmsg(m);
 
-		m = recvmsg(c, 0);
+		m = recvmsg(c, -1);
 		switch(m->type){
 		case SSH_SMSG_FAILURE:
 			free(m);
