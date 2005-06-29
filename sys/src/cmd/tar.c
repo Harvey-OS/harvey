@@ -127,6 +127,7 @@ static int settime;
 static int verbose;
 static int docompress;
 static int keepexisting;
+static Off blkoff;	/* offset of the current archive block (not Tblock) */
 static Off nexthdr;
 
 static int nblock = Dblock;
@@ -249,6 +250,7 @@ refill(int ar, char *bufs, int justhdr)
 		seekable = seek(ar, 0, 1) >= 0;
 	/* try to size non-pipe input at first read */
 	if (first && usefile) {
+		blkoff = seek(ar, 0, 1);	/* note position */
 		n = read(ar, bufs, bytes);
 		if (n <= 0)
 			sysfatal("error reading archive: %r");
@@ -380,17 +382,23 @@ putblkmany(int ar, int blks)
  * common routines
  */
 
-/* modifies hp->chksum */
+/*
+ * modifies hp->chksum but restores it; important for the last block of the
+ * old archive when updating with `tar rf archive'
+ */
 long
 chksum(Hdr *hp)
 {
 	int n = Tblock;
 	long i = 0;
 	uchar *cp = hp->data;
+	char oldsum[sizeof hp->chksum];
 
+	memmove(oldsum, hp->chksum, sizeof oldsum);
 	memset(hp->chksum, ' ', sizeof hp->chksum);
 	while (n-- > 0)
 		i += *cp++;
+	memmove(hp->chksum, oldsum, sizeof oldsum);
 	return i;
 }
 
@@ -712,7 +720,7 @@ replace(char **argv)
 		 * now seek back over the (big) archive block containing it,
 		 * and back up curblk ptr over end-of-archive Tblock in memory.
 		 */
-		if (seek(ar, -Tblock*nblock, 1) < 0)
+		if (seek(ar, blkoff, 0) < 0)
 			sysfatal("can't seek back over end-of-archive: %r");
 		curblk--;
 	}

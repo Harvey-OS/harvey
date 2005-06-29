@@ -172,7 +172,7 @@ startagent(Conn *c)
 	m = allocmsg(c, SSH_CMSG_AGENT_REQUEST_FORWARDING, 0);
 	sendmsg(m);
 
-	m = recvmsg(c, 0);
+	m = recvmsg(c, -1);
 	switch(m->type){
 	case SSH_SMSG_SUCCESS:
 		debug(DBG_AUTH, "agent allocated\n");

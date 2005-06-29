@@ -165,3 +165,8 @@ File path names are limited to
 .PP
 The tar format allows specification of links and symbolic links,
 concepts foreign to Plan 9: they are ignored.
+.PP
+The
+.B r
+key (append)
+cannot be used on compressed archives.

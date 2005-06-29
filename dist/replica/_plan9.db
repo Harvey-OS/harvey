@@ -7352,7 +7352,7 @@ sys/man/1/strip - 664 sys sys 958580250 448
 sys/man/1/sum - 664 sys sys 984772442 1390
 sys/man/1/syscall - 664 sys sys 1016466457 1439
 sys/man/1/tail - 664 sys sys 1113743327 1413
-sys/man/1/tar - 664 sys sys 1113743326 3396
+sys/man/1/tar - 664 sys sys 1119991094 3461
 sys/man/1/tbl - 664 sys sys 944959674 4308
 sys/man/1/tcs - 664 sys sys 952627441 2575
 sys/man/1/tee - 664 sys sys 969499886 351
@@ -7866,7 +7866,6 @@ sys/src/9/ip/ipv6.h - 664 sys sys 1087406259 4321
 sys/src/9/ip/loopbackmedium.c - 664 sys sys 1055701769 1671
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
 sys/src/9/ip/netlog.c - 664 sys sys 1026847568 4003
-sys/src/9/ip/nudp.c - 664 sys sys 1050756592 13069
 sys/src/9/ip/nullmedium.c - 664 sys sys 1086406910 492
 sys/src/9/ip/pktmedium.c - 664 sys sys 1084331746 1314
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
@@ -8056,7 +8055,6 @@ sys/src/9/port/devloopback.c - 664 sys sys 1076612248 14573
 sys/src/9/port/devmnt.c - 664 sys sys 1117197997 21545
 sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1099760452 12504
-sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
 sys/src/9/port/devpipe.c - 664 sys sys 1077055016 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1088560907 13624
 sys/src/9/port/devproc.c - 664 sys sys 1106585362 28465
@@ -12971,12 +12969,12 @@ sys/src/cmd/srvold9p/fcall.c - 664 sys sys 1016921010 2571
 sys/src/cmd/srvold9p/mkfile - 664 sys sys 1016921011 132
 sys/src/cmd/srvold9p/srvold9p.c - 664 sys sys 1045505578 19752
 sys/src/cmd/ssh - 20000000775 sys sys 1016927305 0
-sys/src/cmd/ssh/agent.c - 664 sys sys 1062091014 9053
-sys/src/cmd/ssh/authpasswd.c - 664 sys sys 1062091016 728
-sys/src/cmd/ssh/authrsa.c - 664 sys sys 1062091017 2582
+sys/src/cmd/ssh/agent.c - 664 sys sys 1119985570 9054
+sys/src/cmd/ssh/authpasswd.c - 664 sys sys 1119985570 729
+sys/src/cmd/ssh/authrsa.c - 664 sys sys 1119985570 2584
 sys/src/cmd/ssh/authsrvpasswd.c - 664 sys sys 1016466379 296
 sys/src/cmd/ssh/authsrvtis.c - 664 sys sys 1074731315 928
-sys/src/cmd/ssh/authtis.c - 664 sys sys 1062091017 1004
+sys/src/cmd/ssh/authtis.c - 664 sys sys 1119985570 1006
 sys/src/cmd/ssh/cipher3des.c - 664 sys sys 1016466379 836
 sys/src/cmd/ssh/cipherblowfish.c - 664 sys sys 1016466379 631
 sys/src/cmd/ssh/cipherdes.c - 664 sys sys 1016466379 567
@@ -13017,7 +13015,7 @@ sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1014926385 3754
 sys/src/cmd/tapefs/v6fs.c - 664 sys sys 1014926385 3971
 sys/src/cmd/tapefs/zip.h - 664 sys sys 1097914153 1428
 sys/src/cmd/tapefs/zipfs.c - 664 sys sys 1097900277 6803
-sys/src/cmd/tar.c - 664 sys sys 1118244397 20697
+sys/src/cmd/tar.c - 664 sys sys 1119986000 21041
 sys/src/cmd/tbl - 20000000775 sys sys 954038038 0
 sys/src/cmd/tbl/mkfile - 664 sys sys 944961243 268
 sys/src/cmd/tbl/t.h - 664 sys sys 944961244 3987
@@ -15050,3 +15048,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/ssh - 775 sys sys 1120014537 211039
+386/bin/sshnet - 775 sys sys 1120014538 282738
+386/bin/tar - 775 sys sys 1120014538 96347
