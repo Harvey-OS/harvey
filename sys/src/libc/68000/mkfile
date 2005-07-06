@@ -10,6 +10,7 @@ SFILES=\
 	memccpy.s\
 	memchr.s\
 	memcmp.s\
+	memcpy.s\
 	memmove.s\
 	memset.s\
 	muldivrt.s\
@@ -24,7 +25,6 @@ SFILES=\
 
 CFILES=\
 	cycles.c\
-	doprint.c\
 	notejmp.c\
 	vlrt.c\
 

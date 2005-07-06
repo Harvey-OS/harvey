@@ -1,4 +1,6 @@
 #suffix		generic type	specific type	encoding	safe? y=yes, m=maybe, n=no, p=previous.suffix, r=mailreject
+.3gp		video		3gpp		-		y
+.3gpp		video		3gpp		-		y
 .C		text		plain		-		y # C++ program
 .Z		-		-		compress	m
 .a		application	octet-stream	-		y
@@ -162,3 +164,4 @@
 -		application	x-gunzip	-		p # type for .tar.gz
 -		message		delivery-status	-		y # mail bounces
 -		application	pgp-signature	-		y
+-		application	pgp-encrypted	-		y

@@ -161,7 +161,6 @@ main(int argc, char *argv[])
 			diag("phase error in optab: %d", i);
 			errorexit();
 		}
-	maxop = i;
 
 	zprg.link = P;
 	zprg.pcond = P;
@@ -706,11 +705,11 @@ loop:
 		goto loop;
 	}
 	o = bloc[0] | (bloc[1] << 8);
-	if(o <= 0 || o >= maxop) {
+	if(o <= AXXX || o >= ALAST) {
 		if(o < 0)
 			goto eof;
 		diag("%s: opcode out of range %d", pn, o);
-		print("	probably not a .2 file\n");
+		print("	probably not a .%c file\n", thechar);
 		errorexit();
 	}
 

@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <ctype.h>
 #include <ndb.h>
 #include "dns.h"
 #include "ip.h"
@@ -56,13 +57,19 @@ main(int argc, char *argv[])
 	}
 	Binit(&in, 0, OREAD);
 	for(print("> "); lp = Brdline(&in, '\n'); print("> ")){
-		n = Blinelen(&in)-1;
-		strncpy(line, lp, n);
-		line[n] = 0;
-		if (n<=1)
+		n = Blinelen(&in) -1;
+		while(isspace(lp[n]))
+			lp[n--] = 0;
+		n++;
+		while(isspace(*lp)){
+			lp++;
+			n--;
+		}
+		if(!*lp)
 			continue;
+		strcpy(line, lp);
 		/* default to an "ip" request if alpha, "ptr" if numeric */
-		if (strchr(line, ' ')==0) {
+		if(strchr(line, ' ')==0) {
 			if(strcmp(ipattr(line), "ip") == 0) {
 				strcat(line, " ptr");
 				n += 4;

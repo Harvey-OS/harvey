@@ -1,4 +1,4 @@
-	TEXT	memmove(SB), $0
+	TEXT	memcpy(SB), $0
 
 	MOVL	n+8(FP), R0	/* count */
 	BEQ	return
