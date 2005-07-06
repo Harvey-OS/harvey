@@ -431,6 +431,8 @@ enum	as
 	AUNPK,
 	AWORD,
 	ASIGNAME,
+
+	ALAST
 };
 
 enum

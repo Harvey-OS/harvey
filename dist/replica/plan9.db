@@ -16,7 +16,7 @@
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1115950022 115096
 386/bin/8c - 775 sys sys 1119496639 358027
-386/bin/8l - 775 sys sys 1115950023 115728
+386/bin/8l - 775 sys sys 1120619353 115703
 386/bin/9660srv - 775 sys sys 1115950023 104037
 386/bin/aan - 775 sys sys 1115950023 130710
 386/bin/acid - 775 sys sys 1119496640 390040
@@ -245,8 +245,8 @@
 386/bin/fs/zipfs - 775 sys sys 1115950074 109088
 386/bin/ftpfs - 775 sys sys 1116903732 271518
 386/bin/games - 20000000775 sys sys 1096298711 0
-386/bin/games/4s - 775 sys sys 1118891246 175563
-386/bin/games/5s - 775 sys sys 1118891246 178075
+386/bin/games/4s - 775 sys sys 1120619353 177844
+386/bin/games/5s - 775 sys sys 1120619353 180356
 386/bin/games/catclock - 775 sys sys 1115950075 140798
 386/bin/games/juggle - 775 sys sys 1118202754 125319
 386/bin/games/jukebox - 775 sys sys 1105589128 264821
@@ -334,7 +334,7 @@
 386/bin/ndb/csquery - 775 sys sys 1115950095 61476
 386/bin/ndb/dns - 775 sys sys 1119496651 219934
 386/bin/ndb/dnsdebug - 775 sys sys 1119496652 194546
-386/bin/ndb/dnsquery - 775 sys sys 1115950096 63790
+386/bin/ndb/dnsquery - 775 sys sys 1120619354 63643
 386/bin/ndb/dnstcp - 775 sys sys 1119496652 193187
 386/bin/ndb/ipquery - 775 sys sys 1116126323 95480
 386/bin/ndb/mkdb - 775 sys sys 1115950097 63982
@@ -552,7 +552,7 @@
 386/lib/libhttpd.a - 664 sys sys 1115950154 99488
 386/lib/libip.a - 664 sys sys 1116126324 35602
 386/lib/libl.a - 664 sys sys 1115950154 5384
-386/lib/libmach.a - 664 sys sys 1119496671 755696
+386/lib/libmach.a - 664 sys sys 1120619355 755696
 386/lib/libmemdraw.a - 664 sys sys 1115950157 283978
 386/lib/libmemlayer.a - 664 sys sys 1115950157 47360
 386/lib/libmp.a - 664 sys sys 1115950157 79532
@@ -6595,7 +6595,7 @@ sys/lib/man/preface4 - 664 sys sys 1020082276 1758
 sys/lib/man/secindex - 775 sys sys 956337727 322
 sys/lib/man/title - 664 sys sys 1019915894 746
 sys/lib/man/trademarks - 664 sys sys 958527089 1838
-sys/lib/mimetype - 664 sys sys 1102352651 6153
+sys/lib/mimetype - 664 sys sys 1120564829 6236
 sys/lib/newuser - 775 sys sys 1112362340 1226
 sys/lib/plumb - 20000000775 sys sys 944957365 0
 sys/lib/plumb/basic - 664 sys sys 1118196423 2946
@@ -9152,10 +9152,10 @@ sys/src/cmd/1l - 20000000775 sys sys 954038577 0
 sys/src/cmd/1l/asm.c - 664 sys sys 1089299178 27888
 sys/src/cmd/1l/compat.c - 664 sys sys 946595451 466
 sys/src/cmd/1l/cputime.c - 664 sys sys 944961466 134
-sys/src/cmd/1l/l.h - 664 sys sys 1089299178 4736
+sys/src/cmd/1l/l.h - 664 sys sys 1120557137 4718
 sys/src/cmd/1l/list.c - 664 sys sys 1014926814 4816
-sys/src/cmd/1l/mkfile - 664 sys sys 944961466 314
-sys/src/cmd/1l/obj.c - 664 sys sys 1119493854 23886
+sys/src/cmd/1l/mkfile - 664 sys sys 1120557136 237
+sys/src/cmd/1l/obj.c - 664 sys sys 1120557137 23887
 sys/src/cmd/1l/optab.c - 664 sys sys 947979660 16060
 sys/src/cmd/1l/pass.c - 664 sys sys 1045503930 11701
 sys/src/cmd/1l/span.c - 664 sys sys 1045503931 8925
@@ -9166,7 +9166,7 @@ sys/src/cmd/2a/l.s - 664 sys sys 944960717 9796
 sys/src/cmd/2a/lex.c - 664 sys sys 1089299177 19549
 sys/src/cmd/2a/mkfile - 664 sys sys 944960717 214
 sys/src/cmd/2c - 20000000775 sys sys 954034944 0
-sys/src/cmd/2c/2.out.h - 664 sys sys 1089299176 5075
+sys/src/cmd/2c/2.out.h - 664 sys sys 1120557091 5083
 sys/src/cmd/2c/bits.c - 664 sys sys 944960717 1370
 sys/src/cmd/2c/cgen.c - 664 sys sys 1089299176 28451
 sys/src/cmd/2c/enam.c - 664 sys sys 1089299176 4239
@@ -9183,10 +9183,10 @@ sys/src/cmd/2l - 20000000775 sys sys 954035020 0
 sys/src/cmd/2l/asm.c - 664 sys sys 1045503932 28491
 sys/src/cmd/2l/compat.c - 664 sys sys 946595431 465
 sys/src/cmd/2l/cputime.c - 664 sys sys 944960718 134
-sys/src/cmd/2l/l.h - 664 sys sys 1089299175 4596
+sys/src/cmd/2l/l.h - 664 sys sys 1120557113 4578
 sys/src/cmd/2l/list.c - 664 sys sys 1014924691 5814
 sys/src/cmd/2l/mkfile - 664 sys sys 969512132 237
-sys/src/cmd/2l/obj.c - 664 sys sys 1089299175 24382
+sys/src/cmd/2l/obj.c - 664 sys sys 1120557113 24373
 sys/src/cmd/2l/optab.c - 664 sys sys 947979527 16965
 sys/src/cmd/2l/pass.c - 664 sys sys 1045503934 9412
 sys/src/cmd/2l/span.c - 664 sys sys 1045503935 9612
@@ -9295,10 +9295,10 @@ sys/src/cmd/8c/txt.c - 664 sys sys 1089299180 24215
 sys/src/cmd/8l - 20000000775 sys sys 1017165863 0
 sys/src/cmd/8l/asm.c - 664 sys sys 1107755623 11882
 sys/src/cmd/8l/compat.c - 664 sys sys 944960733 445
-sys/src/cmd/8l/l.h - 664 sys sys 1107721553 5803
+sys/src/cmd/8l/l.h - 664 sys sys 1120557254 5785
 sys/src/cmd/8l/list.c - 664 sys sys 1045503947 4185
 sys/src/cmd/8l/mkfile - 664 sys sys 1032102046 363
-sys/src/cmd/8l/obj.c - 664 sys sys 1107756104 26053
+sys/src/cmd/8l/obj.c - 664 sys sys 1120557253 26041
 sys/src/cmd/8l/optab.c - 664 sys sys 1111156413 16231
 sys/src/cmd/8l/pass.c - 664 sys sys 1095107668 13675
 sys/src/cmd/8l/span.c - 664 sys sys 1107721554 23294
@@ -12338,7 +12338,7 @@ sys/src/cmd/ndb/dns.c - 664 sys sys 1079747686 15333
 sys/src/cmd/ndb/dns.h - 664 sys sys 1079747686 8980
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1079747685 8488
 sys/src/cmd/ndb/dnserver.c - 664 sys sys 1021579994 3687
-sys/src/cmd/ndb/dnsquery.c - 664 sys sys 1014926160 2108
+sys/src/cmd/ndb/dnsquery.c - 664 sys sys 1120564714 2198
 sys/src/cmd/ndb/dnstcp.c - 664 sys sys 1063861697 7085
 sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1055701924 5277
 sys/src/cmd/ndb/ipquery.c - 664 sys sys 960335375 760
@@ -13862,8 +13862,8 @@ sys/src/fs/sony/mem.h - 664 sys sys 1015110103 2865
 sys/src/fs/sony/mkfile - 664 sys sys 1091803623 1594
 sys/src/fs/worms - 664 sys sys 1015110031 2806
 sys/src/games - 20000000775 sys sys 1095792091 0
-sys/src/games/4s.c - 664 sys sys 1118885272 1466
-sys/src/games/5s.c - 664 sys sys 1118672529 3802
+sys/src/games/4s.c - 664 sys sys 1120564580 1486
+sys/src/games/5s.c - 664 sys sys 1120564580 3822
 sys/src/games/catback.p - 664 sys sys 1108184106 35763
 sys/src/games/catclock.c - 664 sys sys 1108184106 10354
 sys/src/games/eyes.p - 664 sys sys 1108184106 1128
@@ -13943,7 +13943,7 @@ sys/src/games/sudoku/levels.c - 664 sys sys 1117226433 3186
 sys/src/games/sudoku/mkfile - 664 sys sys 1117226432 218
 sys/src/games/sudoku/sudoku.c - 664 sys sys 1117636441 7809
 sys/src/games/sudoku/sudoku.h - 664 sys sys 1117226432 1159
-sys/src/games/xs.h - 664 sys sys 1118886450 14271
+sys/src/games/xs.h - 664 sys sys 1120564579 17389
 sys/src/lib9p - 20000000775 sys sys 1015023311 0
 sys/src/lib9p/_post.c - 664 sys sys 1103565871 1642
 sys/src/lib9p/dirread.c - 664 sys sys 1015023310 641
@@ -14079,6 +14079,7 @@ sys/src/libc/386/vlop.s - 664 sys sys 1067718935 884
 sys/src/libc/386/vlrt.c - 664 sys sys 1067723053 9567
 sys/src/libc/68000 - 20000000775 sys sys 984709478 0
 sys/src/libc/68000/argv0.s - 664 sys sys 1067722826 88
+sys/src/libc/68000/cycles.c - 664 sys sys 1120556959 71
 sys/src/libc/68000/doprint.c - 664 sys sys 944961722 8554
 sys/src/libc/68000/getfcr.s - 664 sys sys 944961722 229
 sys/src/libc/68000/main9.s - 664 sys sys 1067722824 336
@@ -14086,9 +14087,10 @@ sys/src/libc/68000/main9p.s - 664 sys sys 1067722815 586
 sys/src/libc/68000/memccpy.s - 664 sys sys 944961722 333
 sys/src/libc/68000/memchr.s - 664 sys sys 944961722 170
 sys/src/libc/68000/memcmp.s - 664 sys sys 944961722 196
-sys/src/libc/68000/memmove.s - 664 sys sys 944961722 1514
+sys/src/libc/68000/memcpy.s - 664 sys sys 1120557009 1475
+sys/src/libc/68000/memmove.s - 664 sys sys 1120556960 1476
 sys/src/libc/68000/memset.s - 664 sys sys 944961722 634
-sys/src/libc/68000/mkfile - 664 sys sys 1067723171 462
+sys/src/libc/68000/mkfile - 664 sys sys 1120557008 461
 sys/src/libc/68000/muldivrt.s - 664 sys sys 984709478 2033
 sys/src/libc/68000/notejmp.c - 664 sys sys 944961722 282
 sys/src/libc/68000/scale.s - 664 sys sys 944961722 67

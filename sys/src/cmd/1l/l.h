@@ -183,7 +183,6 @@ EXTERN	char	inuxi4[4];
 EXTERN	Prog*	lastp;
 EXTERN	long	lcsize;
 EXTERN	long	relocsize;
-EXTERN	int	maxop;
 EXTERN	long	ndata;
 EXTERN	int	nerrors;
 EXTERN	long	nhunk;

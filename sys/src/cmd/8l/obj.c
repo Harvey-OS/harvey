@@ -195,7 +195,6 @@ main(int argc, char *argv[])
 			diag("phase error in optab: %d", i);
 			errorexit();
 		}
-	maxop = i;
 
 	for(i=0; i<Ymax; i++)
 		ycover[i*Ymax + i] = 1;

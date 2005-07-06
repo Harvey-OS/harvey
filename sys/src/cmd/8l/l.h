@@ -248,7 +248,6 @@ EXTERN	uchar	and[30];
 EXTERN	char	reg[D_NONE];
 EXTERN	Prog*	lastp;
 EXTERN	long	lcsize;
-EXTERN	int	maxop;
 EXTERN	int	nerrors;
 EXTERN	long	nhunk;
 EXTERN	long	nsymbol;
