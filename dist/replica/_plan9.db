@@ -16,7 +16,7 @@
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1115950022 115096
 386/bin/8c - 775 sys sys 1119496639 358027
-386/bin/8l - 775 sys sys 1115950023 115728
+386/bin/8l - 775 sys sys 1120619353 115703
 386/bin/9660srv - 775 sys sys 1115950023 104037
 386/bin/aan - 775 sys sys 1115950023 130710
 386/bin/acid - 775 sys sys 1119496640 390040
@@ -245,8 +245,8 @@
 386/bin/fs/zipfs - 775 sys sys 1115950074 109088
 386/bin/ftpfs - 775 sys sys 1116903732 271518
 386/bin/games - 20000000775 sys sys 1096298711 0
-386/bin/games/4s - 775 sys sys 1118891246 175563
-386/bin/games/5s - 775 sys sys 1118891246 178075
+386/bin/games/4s - 775 sys sys 1120619353 177844
+386/bin/games/5s - 775 sys sys 1120619353 180356
 386/bin/games/catclock - 775 sys sys 1115950075 140798
 386/bin/games/juggle - 775 sys sys 1118202754 125319
 386/bin/games/jukebox - 775 sys sys 1105589128 264821
@@ -334,7 +334,7 @@
 386/bin/ndb/csquery - 775 sys sys 1115950095 61476
 386/bin/ndb/dns - 775 sys sys 1119496651 219934
 386/bin/ndb/dnsdebug - 775 sys sys 1119496652 194546
-386/bin/ndb/dnsquery - 775 sys sys 1115950096 63790
+386/bin/ndb/dnsquery - 775 sys sys 1120619354 63643
 386/bin/ndb/dnstcp - 775 sys sys 1119496652 193187
 386/bin/ndb/ipquery - 775 sys sys 1116126323 95480
 386/bin/ndb/mkdb - 775 sys sys 1115950097 63982
@@ -552,7 +552,7 @@
 386/lib/libhttpd.a - 664 sys sys 1115950154 99488
 386/lib/libip.a - 664 sys sys 1116126324 35602
 386/lib/libl.a - 664 sys sys 1115950154 5384
-386/lib/libmach.a - 664 sys sys 1119496671 755696
+386/lib/libmach.a - 664 sys sys 1120619355 755696
 386/lib/libmemdraw.a - 664 sys sys 1115950157 283978
 386/lib/libmemlayer.a - 664 sys sys 1115950157 47360
 386/lib/libmp.a - 664 sys sys 1115950157 79532
@@ -15050,8 +15050,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/8l - 775 sys sys 1120619353 115703
-386/bin/games/4s - 775 sys sys 1120619353 177844
-386/bin/games/5s - 775 sys sys 1120619353 180356
-386/bin/ndb/dnsquery - 775 sys sys 1120619354 63643
-386/lib/libmach.a - 664 sys sys 1120619355 755696
