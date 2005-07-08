@@ -197,11 +197,11 @@ static void
 dols(char *dir)
 {
 	Dir	*d;
-	char	*f, *p;
+	char	*f, *p,*nm;
 	long	i, n;
 	int	fd;
 
-	cleanname(dir);
+	cleanname(dir); //  expands "" to "."; ``dir+1'' access below depends on that
 	if (!allowed(dir)) {
 		error("Permission denied", "<p>Cannot list directory %s: Access prohibited</p>", dir);
 		return;
@@ -220,7 +220,19 @@ dols(char *dir)
 	hprint(hout, "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
 	hprint(hout, "<head><title>Index of %s</title></head>\n", dir);
 	hprint(hout, "<body>\n");
-	hprint(hout, "<h1>Index of %s</h1>\n", dir);
+	hprint(hout, "<h1>Index of ");
+	nm = dir;
+	while((p = strchr(nm, '/')) != nil){
+		*p = '\0';
+		f = (*dir == '\0') ? "/" : dir;
+		if (!(*dir == '\0' && *(dir+1) == '\0') && allowed(f))
+			hprint(hout, "<a href=\"/magic/webls?dir=%H\">%s/</a>", f, nm);
+		else
+			hprint(hout, "%s/", nm);
+		*p = '/';
+		nm = p+1;
+	}
+	hprint(hout, "%s</h1>\n", nm);
 	n = dirreadall(fd, &d);
 	close(fd);
 	maxwidths(d, n);
@@ -245,7 +257,7 @@ dols(char *dir)
 	}
 	f = smprint("%s/..", dir);
 	cleanname(f);
-	if (allowed(f))
+	if (strcmp(f, dir) != 0 && allowed(f))
 		hprint(hout, "\nGo to <a href=\"/magic/webls?dir=%H\">parent</a> directory\n", f);
 	else
 		hprint(hout, "\nEnd of directory listing\n");

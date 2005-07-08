@@ -368,6 +368,7 @@ _memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius,
 			r.max.y += radius+1;
 		}
 		oclipr = dst->clipr;
+		sp = addpt(r.min, d);
 		dst->clipr = clipr;
 		memimagedraw(dst, r, src, sp, memopaque, sp, op);
 		dst->clipr = oclipr;
