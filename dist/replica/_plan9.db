@@ -7278,7 +7278,7 @@ sys/man/1/filter - 664 sys sys 1041108741 4403
 sys/man/1/fmt - 664 sys sys 1070032221 1557
 sys/man/1/fortune - 664 sys sys 944959673 449
 sys/man/1/freq - 664 sys sys 944959673 735
-sys/man/1/games - 664 sys sys 1118153814 4772
+sys/man/1/games - 664 sys sys 1120737932 5357
 sys/man/1/grap - 664 sys sys 944959675 6417
 sys/man/1/graph - 664 sys sys 944959673 2858
 sys/man/1/grep - 664 sys sys 969512677 2224
@@ -12034,7 +12034,7 @@ sys/src/cmd/ip/httpd/netlib_history.c - 664 sys sys 1015096252 4744
 sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1042522766 2978
 sys/src/cmd/ip/httpd/save.c - 664 sys sys 1015090172 3175
 sys/src/cmd/ip/httpd/sendfd.c - 664 sys sys 1017679317 12134
-sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1070288192 7269
+sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1120737502 7658
 sys/src/cmd/ip/httpd/webls.denied - 664 sys sys 1064887847 3
 sys/src/cmd/ip/httpd/wikipost.c - 664 sys sys 1083771074 5913
 sys/src/cmd/ip/imap4d - 20000000775 sys sys 988249981 0
@@ -13495,7 +13495,7 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1108827987 20071
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1108827986 1270
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1102093207 30350
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1120737512 30820
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1061836986 6949
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1098803961 10231
@@ -14679,7 +14679,7 @@ sys/src/libmemdraw/ellipse.c - 664 sys sys 1039752933 4866
 sys/src/libmemdraw/fillpoly.c - 664 sys sys 1039752933 9841
 sys/src/libmemdraw/hwdraw.c - 664 sys sys 944961741 147
 sys/src/libmemdraw/iprint.c - 664 sys sys 969511513 112
-sys/src/libmemdraw/line.c - 664 sys sys 1110918933 11040
+sys/src/libmemdraw/line.c - 664 sys sys 1120737758 11064
 sys/src/libmemdraw/load.c - 664 sys sys 944961742 1495
 sys/src/libmemdraw/mkcmap.c - 664 sys sys 1029430944 1394
 sys/src/libmemdraw/mkfile - 664 sys sys 1045502238 593
@@ -15050,3 +15050,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/vncs - 775 sys sys 1120792316 471216
+386/bin/ip/httpd/webls - 775 sys sys 1120792314 131226
+386/bin/upas/smtpd - 775 sys sys 1120792315 328918
+386/lib/libmemdraw.a - 664 sys sys 1120792317 284130
