@@ -291,7 +291,7 @@
 386/bin/ip/httpd/netlib_find - 775 sys sys 1115950084 115630
 386/bin/ip/httpd/netlib_history - 775 sys sys 1115950085 114417
 386/bin/ip/httpd/save - 775 sys sys 1115950085 131081
-386/bin/ip/httpd/webls - 775 sys sys 1119496650 130914
+386/bin/ip/httpd/webls - 775 sys sys 1120792314 131226
 386/bin/ip/httpd/wikipost - 775 sys sys 1115950085 112655
 386/bin/ip/imap4d - 775 sys sys 1115950086 236497
 386/bin/ip/ipconfig - 775 sys sys 1116126318 137736
@@ -463,7 +463,7 @@
 386/bin/upas/scanmail - 775 sys sys 1116990557 129045
 386/bin/upas/send - 775 sys sys 1116990558 191823
 386/bin/upas/smtp - 775 sys sys 1119496663 273869
-386/bin/upas/smtpd - 775 sys sys 1116990559 328770
+386/bin/upas/smtpd - 775 sys sys 1120792315 328918
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1115950131 83668
 386/bin/upas/token - 775 sys sys 1115950132 77554
@@ -496,7 +496,7 @@
 386/bin/venti/verifyarena - 775 sys sys 1115950139 104270
 386/bin/venti/wrarena - 775 sys sys 1115950140 176179
 386/bin/venti/write - 775 sys sys 1115950140 102499
-386/bin/vncs - 775 sys sys 1119496666 471156
+386/bin/vncs - 775 sys sys 1120792316 471216
 386/bin/vncv - 775 sys sys 1115950142 518017
 386/bin/vt - 775 sys sys 1115950143 173664
 386/bin/vtdump - 775 sys sys 1119496667 159467
@@ -553,7 +553,7 @@
 386/lib/libip.a - 664 sys sys 1116126324 35602
 386/lib/libl.a - 664 sys sys 1115950154 5384
 386/lib/libmach.a - 664 sys sys 1120619355 755696
-386/lib/libmemdraw.a - 664 sys sys 1115950157 283978
+386/lib/libmemdraw.a - 664 sys sys 1120792317 284130
 386/lib/libmemlayer.a - 664 sys sys 1115950157 47360
 386/lib/libmp.a - 664 sys sys 1115950157 79532
 386/lib/libndb.a - 664 sys sys 1115950157 60666
@@ -15050,7 +15050,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/vncs - 775 sys sys 1120792316 471216
-386/bin/ip/httpd/webls - 775 sys sys 1120792314 131226
-386/bin/upas/smtpd - 775 sys sys 1120792315 328918
-386/lib/libmemdraw.a - 664 sys sys 1120792317 284130
