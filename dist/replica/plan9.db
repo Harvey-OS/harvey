@@ -8020,7 +8020,7 @@ sys/src/9/pc/vgamach64xx.c - 664 sys sys 1071245447 29146
 sys/src/9/pc/vgamga2164w.c - 664 sys sys 1015014527 5654
 sys/src/9/pc/vgamga4xx.c - 664 sys sys 1015014527 11122
 sys/src/9/pc/vganeomagic.c - 664 sys sys 1104430511 11327
-sys/src/9/pc/vganvidia.c - 664 sys sys 1081358011 12205
+sys/src/9/pc/vganvidia.c - 664 sys sys 1120909910 12617
 sys/src/9/pc/vgargb524.c - 664 sys sys 1015014527 4235
 sys/src/9/pc/vgas3.c - 664 sys sys 1090439162 12189
 sys/src/9/pc/vgasavage.c - 664 sys sys 1064679984 16251
@@ -9874,7 +9874,7 @@ sys/src/cmd/cpp/mkfile - 664 sys sys 944960879 178
 sys/src/cmd/cpp/nlist.c - 664 sys sys 1116770041 4645
 sys/src/cmd/cpp/test.c - 664 sys sys 944960879 47
 sys/src/cmd/cpp/tokens.c - 664 sys sys 944960879 6755
-sys/src/cmd/cpu.c - 664 sys sys 1084471915 20651
+sys/src/cmd/cpu.c - 664 sys sys 1120909565 21106
 sys/src/cmd/crop.c - 664 sys sys 1039753034 4136
 sys/src/cmd/date.c - 664 sys sys 944961351 449
 sys/src/cmd/db - 20000000775 sys sys 988249965 0
