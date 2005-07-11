@@ -1053,7 +1053,7 @@ err:
 	if(dbg)
 		fprint(2, "notefs exiting: %r\n");
 	werrstr("success");
-	postnote(PNGROUP, exportpid, "hangup");
+	postnote(PNGROUP, exportpid, "kill");
 	if(dbg)
 		fprint(2, "postnote PNGROUP %d: %r\n", exportpid);
 	close(fd);

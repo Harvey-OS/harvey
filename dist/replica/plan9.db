@@ -184,7 +184,7 @@
 386/bin/con - 775 sys sys 1115950058 78211
 386/bin/cp - 775 sys sys 1115950058 63215
 386/bin/cpp - 775 sys sys 1116903731 149799
-386/bin/cpu - 775 sys sys 1115950059 137694
+386/bin/cpu - 775 sys sys 1121051350 138031
 386/bin/crop - 775 sys sys 1115950059 116008
 386/bin/date - 775 sys sys 1115950059 43261
 386/bin/db - 775 sys sys 1119496644 336326
@@ -9874,7 +9874,7 @@ sys/src/cmd/cpp/mkfile - 664 sys sys 944960879 178
 sys/src/cmd/cpp/nlist.c - 664 sys sys 1116770041 4645
 sys/src/cmd/cpp/test.c - 664 sys sys 944960879 47
 sys/src/cmd/cpp/tokens.c - 664 sys sys 944960879 6755
-sys/src/cmd/cpu.c - 664 sys sys 1120909565 21106
+sys/src/cmd/cpu.c - 664 sys sys 1121004911 21104
 sys/src/cmd/crop.c - 664 sys sys 1039753034 4136
 sys/src/cmd/date.c - 664 sys sys 944961351 449
 sys/src/cmd/db - 20000000775 sys sys 988249965 0

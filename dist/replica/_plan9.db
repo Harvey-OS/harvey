@@ -9874,7 +9874,7 @@ sys/src/cmd/cpp/mkfile - 664 sys sys 944960879 178
 sys/src/cmd/cpp/nlist.c - 664 sys sys 1116770041 4645
 sys/src/cmd/cpp/test.c - 664 sys sys 944960879 47
 sys/src/cmd/cpp/tokens.c - 664 sys sys 944960879 6755
-sys/src/cmd/cpu.c - 664 sys sys 1120909565 21106
+sys/src/cmd/cpu.c - 664 sys sys 1121004911 21104
 sys/src/cmd/crop.c - 664 sys sys 1039753034 4136
 sys/src/cmd/date.c - 664 sys sys 944961351 449
 sys/src/cmd/db - 20000000775 sys sys 988249965 0
@@ -15050,3 +15050,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/cpu - 775 sys sys 1121051350 138031
