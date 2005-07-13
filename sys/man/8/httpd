@@ -126,6 +126,16 @@ and the request has no explicit host,
 then
 .I domain
 is the host name used in the redirection.
+The prefix can either be a domain root like
+.B http://system/
+(which matches that URL only)
+or a path like
+.B /who/rob
+(which matches that path no matter what
+the requested server),
+but not both:
+.B http://system/who/rob
+will never match a request.
 .PP
 Before opening any file,
 .I httpd
