@@ -4068,3 +4068,4 @@ i know what jmk did.  he added reentrancy for threads.  - boyd, about uintptr
 i hate all sorts of zealots  - boyd
 /* Watch the brackets - even Ken and Dennis get some language design wrong */
 Not related to the portable reciprocating power saw trademark of the Milwaukee Electric Tool Corporation.
+GNU C++ does not support old-style function definitions, so this extension is irrelevant.

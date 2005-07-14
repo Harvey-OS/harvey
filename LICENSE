@@ -1,6 +1,6 @@
 The Plan 9 software is provided under the terms of the
 Lucent Public License, Version 1.02, reproduced below,
-with the following exceptions:
+with the following notable exceptions:
 
 1. No right is granted to create derivative works of or
    to redistribute (other than with the Plan 9 Operating System)
@@ -16,6 +16,9 @@ with the following exceptions:
 3. The ghostscript program in the subdirectory /sys/src/cmd/gs is
    covered by the Aladdin Free Public License, reproduced in the file
    /LICENSE.afpl.
+
+Other, less notable exceptions are marked in the file tree with
+COPYING, COPYRIGHT, or LICENSE files.
 
 ===================================================================
 

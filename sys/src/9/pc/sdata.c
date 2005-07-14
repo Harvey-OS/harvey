@@ -149,7 +149,7 @@ enum {					/* Bmisx */
 	Dma1cap		= 0x40,		/* Drive 0 DMA Capable */
 };
 enum {					/* Physical Region Descriptor */
-	PrdEOT		= 0x80000000,	/* Bus Master IDE Active */
+	PrdEOT		= 0x80000000,	/* End of Transfer */
 };
 
 enum {					/* offsets into the identify info. */
@@ -260,7 +260,8 @@ typedef struct Prd {
 } Prd;
 
 enum {
-	Nprd		= SDmaxio/(64*1024)+2,
+	PRDmaxio	= 32*1024,	/* must be power of 2 <= 64*1024 */
+	Nprd		= SDmaxio/PRDmaxio+2,
 };
 
 typedef struct Ctlr {
@@ -278,7 +279,6 @@ typedef struct Ctlr {
 	Drive*	drive[2];
 
 	Prd*	prdt;			/* physical region descriptor table */
-	void*	prdtbase;
 
 	QLock;				/* current command */
 	Drive*	curdrive;
@@ -1075,9 +1075,9 @@ atadmasetup(Drive* drive, int len)
 
 	for(;;){
 		prd->pa = pa;
-		count = 64*1024 - (pa & 0xFFFF);
+		count = PRDmaxio - (pa & (PRDmaxio-1));
 		if(count >= len){
-			prd->count = PrdEOT|(len & 0xFFFF);
+			prd->count = PrdEOT|(len & (PRDmaxio-1));
 			break;
 		}
 		prd->count = count;
@@ -1913,10 +1913,21 @@ atapnp(void)
 			 * address for the registers (0x50?).
 			 */
 			break;
+		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
+			{
+				Pcidev *sb;
+
+				sb = pcimatch(nil, 0x1166, 0x0200);
+				if(sb == nil)
+					break;
+				r = pcicfgr32(sb, 0x64);
+				r &= ~0x2000;
+				pcicfgw32(sb, 0x64, r);
+			}
+			break;
 		case (0x5513<<16)|0x1039:	/* SiS 962 */
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
-		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
 		case (0x1230<<16)|0x8086:	/* 82371FB (PIIX) */
 		case (0x7010<<16)|0x8086:	/* 82371SB (PIIX3) */
 		case (0x7111<<16)|0x8086:	/* 82371[AE]B (PIIX4[E]) */
@@ -2063,9 +2074,7 @@ ataenable(SDev* sdev)
 #define ALIGN	(4 * 1024)
 		if(ctlr->pcidev != nil)
 			pcisetbme(ctlr->pcidev);
-		// ctlr->prdt = xspanalloc(Nprd*sizeof(Prd), 4, 4*1024);
-		ctlr->prdtbase = xalloc(Nprd * sizeof(Prd) + ALIGN);
-		ctlr->prdt = (Prd *)(((ulong)ctlr->prdtbase + ALIGN) & ~(ALIGN - 1));
+		ctlr->prdt = mallocalign(Nprd*sizeof(Prd), 4, 0, 4*1024);
 	}
 	snprint(name, sizeof(name), "%s (%s)", sdev->name, sdev->ifc->name);
 	intrenable(ctlr->irq, atainterrupt, ctlr, ctlr->tbdf, name);
@@ -2091,7 +2100,7 @@ atadisable(SDev *sdev)
 	if (ctlr->bmiba) {
 		if (ctlr->pcidev)
 			pciclrbme(ctlr->pcidev);
-		xfree(ctlr->prdtbase);
+		free(ctlr->prdt);
 	}
 	return 0;
 }

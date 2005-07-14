@@ -261,7 +261,6 @@ attachimage(int type, Chan *c, ulong base, ulong len)
 			   eqqid(c->mqid, i->mqid) &&
 			   c->mchan == i->mchan &&
 			   c->type == i->type) {
-				i->ref++;
 				goto found;
 			}
 			unlock(i);
@@ -288,7 +287,6 @@ attachimage(int type, Chan *c, ulong base, ulong len)
 	i->qid = c->qid;
 	i->mqid = c->mqid;
 	i->mchan = c->mchan;
-	i->ref = 1;
 	l = &ihash(c->qid.path);
 	i->hash = *l;
 	*l = i;
@@ -303,6 +301,7 @@ found:
 		}
 		i->s = newseg(type, base, len);
 		i->s->image = i;
+		i->ref++;
 		poperror();
 	}
 	else
