@@ -635,6 +635,7 @@ static Bridge southbridges[] = {
 	{ 0x8086, 0x2440, pIIxget, pIIxset },	// Intel 82801BA
 	{ 0x8086, 0x244c, pIIxget, pIIxset },	// Intel 82801BAM
 	{ 0x8086, 0x248c, pIIxget, pIIxset },	// Intel 82801CAM
+	{ 0x8086, 0x24cc, pIIxget, pIIxset },	// Intel 82801DBM
 	{ 0x8086, 0x24d0, pIIxget, pIIxset },	// Intel 82801EB
 	{ 0x8086, 0x2640, pIIxget, pIIxset },	// Intel 82801FB
 	{ 0x1106, 0x0586, viaget, viaset },	// Viatech 82C586
@@ -649,6 +650,7 @@ static Bridge southbridges[] = {
 
 	{ 0x1022, 0x746B, nil, nil },		// AMD 8111
 	{ 0x10DE, 0x00D1, nil, nil },		// NVIDIA nForce 3
+	{ 0x1166, 0x0200, nil, nil },		// ServerWorks ServerSet III LE
 };
 
 typedef struct Slot Slot;

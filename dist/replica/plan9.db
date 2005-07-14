@@ -609,7 +609,7 @@
 68020/lib - 20000000775 sys sys 947992106 0
 68020/lib/ape - 20000000775 sys sys 947992106 0
 68020/mkfile - 664 sys sys 948141303 52
-LICENSE - 444 sys sys 1056856036 12895
+LICENSE - 444 sys sys 1121255398 13006
 LICENSE.afpl - 664 sys sys 1056855682 14333
 LICENSE.gpl - 664 sys sys 1056572448 15081
 NOTICE - 444 sys sys 1018803063 63
@@ -5764,7 +5764,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1120502468 254088
+sys/games/lib/fortunes - 664 sys sys 1121303903 254178
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7981,7 +7981,7 @@ sys/src/9/pc/pcdisk - 664 sys sys 1073851851 1427
 sys/src/9/pc/pcf - 664 sys sys 1104430623 1485
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1112361040 1454
-sys/src/9/pc/pci.c - 664 sys sys 1118159824 26297
+sys/src/9/pc/pci.c - 664 sys sys 1121260128 26418
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1091129037 5230
@@ -7996,7 +7996,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1060267144 3797
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1112461125 52220
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1114981770 51181
+sys/src/9/pc/sdata.c - 664 sys sys 1121260176 51278
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
 sys/src/9/pc/trap.c - 664 sys sys 1105109602 20537
@@ -8106,7 +8106,7 @@ sys/src/9/port/qlock.c - 664 sys sys 1067722765 3196
 sys/src/9/port/rdb.c - 664 sys sys 1018721202 1698
 sys/src/9/port/rebootcmd.c - 664 sys sys 1015278340 1561
 sys/src/9/port/sd.h - 664 sys sys 1098546338 2348
-sys/src/9/port/segment.c - 664 sys sys 1032990942 13776
+sys/src/9/port/segment.c - 664 sys sys 1121259584 13761
 sys/src/9/port/swap.c - 664 sys sys 1055688551 6980
 sys/src/9/port/sysfile.c - 664 sys sys 1100363052 22146
 sys/src/9/port/sysproc.c - 664 sys sys 1067722765 15396
