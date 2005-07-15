@@ -588,7 +588,7 @@ procsave(Proc *p)
 			 * until the process runs again and generates an
 			 * emulation fault to activate the FPU.
 			 */
-			fpsave(&up->fpsave);
+			fpsave(&p->fpsave);
 		}
 		p->fpstate = FPinactive;
 	}

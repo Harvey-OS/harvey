@@ -865,7 +865,7 @@ rtl8169interrupt(Ureg*, void* arg)
 		 * Some of the reserved bits get set sometimes...
 		 */
 		if(isr & (Serr|Timeout|Tdu|Fovw|Punlc|Rdu|Ter|Tok|Rer|Rok))
-			panic("rtl8139interrupt: imr %4.4uX isr %4.4uX\n",
+			panic("rtl8169interrupt: imr %4.4uX isr %4.4uX\n",
 				csr16r(ctlr, Imr), isr);
 	}
 }

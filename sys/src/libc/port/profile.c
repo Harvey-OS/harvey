@@ -6,6 +6,7 @@ extern	long	_callpc(void**);
 extern	long	_savearg(void);
 
 ulong	khz;
+ulong	perr;
 uvlong	cyclefreq;
 int		havecycles;
 
@@ -43,6 +44,7 @@ _profin(void)
 	p = _tos->prof.next + 1;
 	if(p >= _tos->prof.last) {
 		_tos->prof.pp = 0;
+		perr++;
 		return arg;
 	}
 	_tos->prof.next = p;
@@ -66,7 +68,7 @@ out:
 		p->time = p->time + _tos->kcycles;
 		/* fall through */
 	case Proftime:	
-	proftime:					/* Subtract cycle counter on proc entry */
+	proftime:		/* Subtract cycle counter on proc entry */
 		cycles((uvlong*)&t);
 		p->time = p->time - t;
 		break;
@@ -121,6 +123,8 @@ _profdump(void)
 		return;	/* No profiling */
 	if (_tos->prof.pid != 0 && _tos->pid != _tos->prof.pid)
 		return;	/* Not our process */
+	if(perr)
+		fprint(2, "%lud Prof errors\n", perr);
 	_tos->prof.pp = nil;
 	if (_tos->prof.pid)
 		snprint(filename, sizeof filename - 1, "prof.%ld", _tos->prof.pid);

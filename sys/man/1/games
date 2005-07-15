@@ -208,7 +208,6 @@ with varying degree of difficulty.
 Pressing the
 .B Q
 key quits sudoku
-
 .SH FILES
 .TP
 .B /sys/games/lib/[45]scores
@@ -230,7 +229,6 @@ images and boards used by
 .I sudoku
 .SH SOURCE
 .B /sys/src/games
-
 .SH BUGS
 In 4s and 5s mouse warping (when the game is resumed,
 and when a new tile appears) does not happen when

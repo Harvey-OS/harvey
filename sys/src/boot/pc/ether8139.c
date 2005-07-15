@@ -478,7 +478,7 @@ rtl8139interrupt(Ureg*, void* arg)
 		 * by Serr, that's pretty serious; is there anyhing to do
 		 * other than try to reinitialise the chip?
 		 */
-		if(isr != 0){
+		if((isr & (Serr|Timer)) != 0){
 			print("rtl8139interrupt: imr %4.4uX isr %4.4uX\n",
 				csr16r(ctlr, Imr), isr);
 			if(isr & Timer)
