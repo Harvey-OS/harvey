@@ -1,5 +1,5 @@
 objtype=arm
-</arm/mkfile
+</$objtype/mkfile
 
 LIB=/$objtype/lib/libmp.a
 OFILES=	\

@@ -4,7 +4,6 @@
 #include <thread.h>
 #include <ip.h>
 #include <bio.h>
-#include <stdio.h>
 #include <draw.h>
 #include <mouse.h>
 #include <cursor.h>

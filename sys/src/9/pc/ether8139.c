@@ -582,13 +582,13 @@ rtl8139interrupt(Ureg*, void* arg)
 		}
 
 		/*
-		 * Only Serr|Timer should be left by now.
+		 * Only Serr|Timerbit should be left by now.
 		 * Should anything be done to tidy up? TimerInt isn't
 		 * used so that can be cleared. A PCI bus error is indicated
 		 * by Serr, that's pretty serious; is there anyhing to do
 		 * other than try to reinitialise the chip?
 		 */
-		if(isr != 0){
+		if((isr & (Serr|Timerbit)) != 0){
 			iprint("rtl8139interrupt: imr %4.4uX isr %4.4uX\n",
 				csr16r(ctlr, Imr), isr);
 			if(isr & Timerbit)

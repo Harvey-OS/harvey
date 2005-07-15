@@ -3,13 +3,13 @@
 386/9loaddebug - 775 sys sys 1118115914 310423
 386/9loadlite - 775 sys sys 1112757508 135244
 386/9loadlitedebug - 775 sys sys 1118115915 198782
-386/9pc - 775 sys sys 1121138612 1835078
+386/9pc - 775 sys sys 1121312907 1835225
 386/9pc.gz - 664 sys sys 1112757510 643423
-386/9pccpu - 775 sys sys 1119582817 1489332
+386/9pccpu - 775 sys sys 1121312909 1489479
 386/9pccpu.gz - 664 sys sys 1112757511 529529
-386/9pcdisk - 775 sys sys 1121138616 2040876
+386/9pcdisk - 775 sys sys 1121312913 2041023
 386/9pcdisk.gz - 664 sys sys 1112757513 733576
-386/9pcf - 775 sys sys 1121138621 2383700
+386/9pcf - 775 sys sys 1121312917 2383847
 386/9pcf.gz - 664 sys sys 1112757515 886966
 386/9pxeload - 775 sys sys 1112757508 215872
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
@@ -6588,7 +6588,7 @@ sys/lib/man/permind/makind1 - 775 sys sys 956337770 530
 sys/lib/man/permind/mkfile - 664 sys sys 964889107 921
 sys/lib/man/permind/ptx.1 - 664 sys sys 956337771 2457
 sys/lib/man/permind/ptx1.c - 664 sys sys 1019537299 10958
-sys/lib/man/permind/toc - 664 sys sys 1018974165 5419
+sys/lib/man/permind/toc - 664 sys sys 1121367333 5757
 sys/lib/man/preface - 664 sys sys 958249721 2963
 sys/lib/man/preface3 - 664 sys sys 1018974168 2046
 sys/lib/man/preface4 - 664 sys sys 1020082276 1758
@@ -7278,7 +7278,7 @@ sys/man/1/filter - 664 sys sys 1041108741 4403
 sys/man/1/fmt - 664 sys sys 1070032221 1557
 sys/man/1/fortune - 664 sys sys 944959673 449
 sys/man/1/freq - 664 sys sys 944959673 735
-sys/man/1/games - 664 sys sys 1120737932 5357
+sys/man/1/games - 664 sys sys 1121367092 5355
 sys/man/1/grap - 664 sys sys 944959675 6417
 sys/man/1/graph - 664 sys sys 944959673 2858
 sys/man/1/grep - 664 sys sys 969512677 2224
@@ -7932,8 +7932,8 @@ sys/src/9/pc/ether2114x.c - 664 sys sys 1081706476 41545
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1071245466 14094
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
-sys/src/9/pc/ether8139.c - 664 sys sys 1086987324 18362
-sys/src/9/pc/ether8169.c - 664 sys sys 1110882037 22704
+sys/src/9/pc/ether8139.c - 664 sys sys 1121393473 18385
+sys/src/9/pc/ether8169.c - 664 sys sys 1121391723 22704
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
 sys/src/9/pc/ether82557.c - 664 sys sys 1117550886 30121
 sys/src/9/pc/ether83815.c - 664 sys sys 1115744557 23481
@@ -7963,7 +7963,7 @@ sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1099761152 8095
 sys/src/9/pc/kbd.c - 664 sys sys 1079617269 11655
 sys/src/9/pc/l.s - 664 sys sys 1115566067 23833
-sys/src/9/pc/main.c - 664 sys sys 1115352568 14694
+sys/src/9/pc/main.c - 664 sys sys 1121367242 14693
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
@@ -7999,7 +7999,7 @@ sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
 sys/src/9/pc/sdata.c - 664 sys sys 1121260176 51278
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
-sys/src/9/pc/trap.c - 664 sys sys 1105109602 20537
+sys/src/9/pc/trap.c - 664 sys sys 1121367232 20503
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartisa.c - 664 sys sys 1111725178 1775
 sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
@@ -9077,8 +9077,8 @@ sys/src/boot/pc/ether2114x.c - 664 sys sys 1066618033 37048
 sys/src/boot/pc/ether589.c - 664 sys sys 1107921511 4620
 sys/src/boot/pc/ether79c970.c - 664 sys sys 1015007950 11717
 sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
-sys/src/boot/pc/ether8139.c - 664 sys sys 1102429126 14806
-sys/src/boot/pc/ether8169.c - 664 sys sys 1106018997 18687
+sys/src/boot/pc/ether8139.c - 664 sys sys 1121393459 14823
+sys/src/boot/pc/ether8169.c - 664 sys sys 1121391787 18687
 sys/src/boot/pc/ether82557.c - 664 sys sys 1117550886 19045
 sys/src/boot/pc/ether83815.c - 664 sys sys 1019537742 19576
 sys/src/boot/pc/ether8390.c - 664 sys sys 1112382847 16209
@@ -9116,7 +9116,7 @@ sys/src/boot/pc/pbsdisk.s - 664 sys sys 1017854325 6371
 sys/src/boot/pc/pbsdisklba - 775 sys sys 1015007954 509
 sys/src/boot/pc/pbsdisklba.s - 664 sys sys 1015007954 6022
 sys/src/boot/pc/pbslba.s - 664 sys sys 1017854326 8147
-sys/src/boot/pc/pci.c - 664 sys sys 1117636062 17818
+sys/src/boot/pc/pci.c - 664 sys sys 1121366869 17898
 sys/src/boot/pc/print.c - 664 sys sys 1094674483 219
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1094674489 2271
@@ -9433,7 +9433,7 @@ sys/src/cmd/auth/factotum - 20000000775 sys sys 1017165894 0
 sys/src/cmd/auth/factotum/apop.c - 664 sys sys 1107706102 6099
 sys/src/cmd/auth/factotum/chap.c - 664 sys sys 1107706103 8967
 sys/src/cmd/auth/factotum/confirm.c - 664 sys sys 1044829586 3103
-sys/src/cmd/auth/factotum/dat.h - 664 sys sys 1107706102 4972
+sys/src/cmd/auth/factotum/dat.h - 664 sys sys 1121367028 4946
 sys/src/cmd/auth/factotum/fgui.c - 664 sys sys 1044829587 15948
 sys/src/cmd/auth/factotum/fs.c - 664 sys sys 1107706104 10447
 sys/src/cmd/auth/factotum/log.c - 664 sys sys 1046655068 1781
@@ -13097,7 +13097,7 @@ sys/src/cmd/tlssrv.c - 664 sys sys 1087829606 3411
 sys/src/cmd/touch.c - 664 sys sys 1099760670 899
 sys/src/cmd/tprof.c - 664 sys sys 1063858806 2716
 sys/src/cmd/tr.c - 664 sys sys 944961464 6008
-sys/src/cmd/trace.c - 664 sys sys 1099760769 17947
+sys/src/cmd/trace.c - 664 sys sys 1121367076 17928
 sys/src/cmd/troff - 20000000775 sys sys 944961294 0
 sys/src/cmd/troff/FIXES - 644 sys sys 944961293 24982
 sys/src/cmd/troff/README - 644 sys sys 944961293 1168
@@ -14348,7 +14348,7 @@ sys/src/libc/port/pool.acid - 664 sys sys 1110989242 12026
 sys/src/libc/port/pool.c - 664 sys sys 1102093118 30853
 sys/src/libc/port/pow.c - 664 sys sys 1014927401 965
 sys/src/libc/port/pow10.c - 664 sys sys 1014927401 1946
-sys/src/libc/port/profile.c - 664 sys sys 1111156473 5343
+sys/src/libc/port/profile.c - 664 sys sys 1121367263 5413
 sys/src/libc/port/qsort.c - 664 sys sys 1119276453 1669
 sys/src/libc/port/quote.c - 664 sys sys 1014927401 2246
 sys/src/libc/port/rand.c - 664 sys sys 1035832918 79
@@ -14646,7 +14646,7 @@ sys/src/libmach/kobj.c - 664 sys sys 1091732625 2217
 sys/src/libmach/machdata.c - 664 sys sys 964540516 8814
 sys/src/libmach/map.c - 664 sys sys 964540517 3053
 sys/src/libmach/mkfile - 664 sys sys 1114459827 467
-sys/src/libmach/obj.c - 664 sys sys 1114459829 5918
+sys/src/libmach/obj.c - 664 sys sys 1121367249 5918
 sys/src/libmach/obj.h - 664 sys sys 964540517 603
 sys/src/libmach/q.c - 664 sys sys 1091732625 3590
 sys/src/libmach/qdb.c - 664 sys sys 1114459830 27490
@@ -14720,7 +14720,7 @@ sys/src/libmp/386/mpvecsub.s - 664 sys sys 944961744 767
 sys/src/libmp/alpha - 20000000775 sys sys 944961745 0
 sys/src/libmp/alpha/mkfile - 664 sys sys 1032061349 180
 sys/src/libmp/arm - 20000000775 sys sys 984710655 0
-sys/src/libmp/arm/mkfile - 664 sys sys 1032061349 177
+sys/src/libmp/arm/mkfile - 664 sys sys 1121367256 182
 sys/src/libmp/bigtest.c - 664 sys sys 956275914 2064
 sys/src/libmp/mips - 20000000775 sys sys 953845707 0
 sys/src/libmp/mips/mkfile - 664 sys sys 1034626997 289
@@ -15050,3 +15050,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/lib/libc.a - 664 sys sys 1121397029 502522
