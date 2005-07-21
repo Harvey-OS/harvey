@@ -453,7 +453,7 @@ mathnote(void)
 		break;
 	}
 	if(status & 0x01){
-		if(status & 0x30){
+		if(status & 0x40){
 			if(status & 0x200)
 				msg = "stack overflow";
 			else
