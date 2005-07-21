@@ -7451,7 +7451,7 @@ sys/man/2/getfields - 664 sys sys 1068209043 1605
 sys/man/2/getpid - 664 sys sys 944959694 657
 sys/man/2/getuser - 664 sys sys 1016466457 641
 sys/man/2/getwd - 664 sys sys 971455511 701
-sys/man/2/graphics - 664 sys sys 1035232002 13129
+sys/man/2/graphics - 664 sys sys 1121858846 13131
 sys/man/2/html - 664 sys sys 1019828742 29269
 sys/man/2/httpd - 664 sys sys 1032633536 5941
 sys/man/2/hypot - 664 sys sys 944959693 302
@@ -7963,7 +7963,7 @@ sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1099761152 8095
 sys/src/9/pc/kbd.c - 664 sys sys 1079617269 11655
 sys/src/9/pc/l.s - 664 sys sys 1115566067 23833
-sys/src/9/pc/main.c - 664 sys sys 1121367242 14693
+sys/src/9/pc/main.c - 664 sys sys 1121858827 14693
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
@@ -13420,7 +13420,7 @@ sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1018549521 1312
 sys/src/cmd/upas/fs - 20000000775 sys sys 988250018 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1047490337 4267
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1107880276 27460
-sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1075069146 16233
+sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1121865168 16259
 sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1107835226 28935
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1071334861 7465
@@ -15050,3 +15050,8 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/9pc - 775 sys sys 1121915497 1835203
+386/9pccpu - 775 sys sys 1121915500 1489457
+386/9pcdisk - 775 sys sys 1121915504 2041001
+386/9pcf - 775 sys sys 1121915509 2383825
+386/bin/upas/fs - 775 sys sys 1121915493 332331
