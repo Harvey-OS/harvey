@@ -417,7 +417,7 @@ newcall(int fd, char *proto, char *dir, Service *s)
 	 */
 	for(fd=3; fd<20; fd++)
 		close(fd);
-	execl(s->prog, s->prog, s->serv, proto, dir, 0);
+	execl(s->prog, s->prog, s->serv, proto, dir, nil);
 	error(s->prog);
 }
 

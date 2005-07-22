@@ -261,9 +261,9 @@ mail(Fs *f, char *rcvr, char *user, long et)
 	putenv("upasname", "netkeys");
 	if(debug){
 		print("\nto %s\n", rcvr);
-		execl("/bin/cat", "cat", 0);
+		execl("/bin/cat", "cat", nil);
 	}
-	execl("/bin/upas/send", "send", "-r", rcvr, 0);
+	execl("/bin/upas/send", "send", "-r", rcvr, nil);
 
 	/* just in case */
 	fprint(2, "warning can't exec send\n");

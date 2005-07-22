@@ -170,7 +170,7 @@ main(int argc, char *argv[])
 		dup(fd, 2);
 		close(fd);
 		segdetach(cons);
-		execl("/bin/rc", "rc", "-il", 0);
+		execl("/bin/rc", "rc", "-il", nil);
 		fatal("/bin/rc", 0, 0);
 	default:
 		sprint(buf, "/proc/%d/notepg", childpid);

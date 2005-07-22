@@ -1072,7 +1072,7 @@ zerox(void)
 		case 0: 
 			dup(pfd[1], 0);
 			close(pfd[0]);
-			execl("/bin/page", "page", "-w", 0);
+			execl("/bin/page", "page", "-w", nil);
 			wexits("cannot exec in zerox: %r\n");
 		default:
 			close(pfd[1]);

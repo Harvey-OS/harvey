@@ -718,7 +718,7 @@ findctype(Message *m)
 		dup(pfd[0], 0);
 		close(1);
 		dup(pfd[0], 1);
-		execl("/bin/file", "file", "-m", s_to_c(extendpath(m->path, "body")), 0);
+		execl("/bin/file", "file", "-m", s_to_c(extendpath(m->path, "body")), nil);
 		exits(0);
 	default:
 		close(pfd[0]);

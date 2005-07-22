@@ -461,7 +461,7 @@ filter(int fd)
 		dup(p[0], 0);
 		close(p[0]);
 		close(p[1]);
-		execl("/bin/aux/fcall", "fcall", 0);
+		execl("/bin/aux/fcall", "fcall", nil);
 		fprint(2, "stats: can't exec fcall: %r\n");
 		killall("fcall");
 	default:
@@ -520,9 +520,9 @@ old9p(int fd)
 				dup(fd, 2);
 				close(fd);
 			}
-			execl("/bin/srvold9p", "srvold9p", "-ds", 0);
+			execl("/bin/srvold9p", "srvold9p", "-ds", nil);
 		} else
-			execl("/bin/srvold9p", "srvold9p", "-s", 0);
+			execl("/bin/srvold9p", "srvold9p", "-s", nil);
 		return -1;
 	default:
 		close(fd);

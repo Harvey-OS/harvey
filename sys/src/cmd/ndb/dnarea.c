@@ -109,7 +109,7 @@ refresh_areas(Area *s)
 		case -1:
 			break;
 		case 0:
-			execl(zonerefreshprogram, "zonerefresh", s->soarr->owner->name, 0);
+			execl(zonerefreshprogram, "zonerefresh", s->soarr->owner->name, nil);
 			exits(0);
 			break;
 		default:

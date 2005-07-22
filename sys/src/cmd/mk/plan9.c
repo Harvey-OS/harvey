@@ -193,9 +193,9 @@ execsh(char *args, char *cmd, Bufblock *buf, Envy *e)
 			if (e)
 				exportenv(e);
 			if(shflags)
-				execl(shell, shellname, shflags, args, 0);
+				execl(shell, shellname, shflags, args, nil);
 			else
-				execl(shell, shellname, args, 0);
+				execl(shell, shellname, args, nil);
 			perror(shell);
 			_exits("exec");
 		}
@@ -256,9 +256,9 @@ pipecmd(char *cmd, Envy *e, int *fd)
 		if(e)
 			exportenv(e);
 		if(shflags)
-			execl(shell, shellname, shflags, "-c", cmd, 0);
+			execl(shell, shellname, shflags, "-c", cmd, nil);
 		else
-			execl(shell, shellname, "-c", cmd, 0);
+			execl(shell, shellname, "-c", cmd, nil);
 		perror(shell);
 		_exits("exec");
 	}

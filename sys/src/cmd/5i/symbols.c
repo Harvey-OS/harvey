@@ -66,7 +66,7 @@ stktrace(int modif)
 	i = 0;
 	while (findsym(pc, CTEXT, &s)) {
 		if(strcmp(STARTSYM, s.name) == 0) {
-			Bprint(bioout, "%s() at #%lux\n", s.name, s.value);
+			Bprint(bioout, "%s() at #%llux\n", s.name, s.value);
 			break;
 		}
 		if (pc == s.value)	/* at first instruction */

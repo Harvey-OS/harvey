@@ -979,5 +979,5 @@ main(int argc, char **argv)
 	dup(p[0], 0);
 	close(p[0]);
 	close(p[1]);
-	execl("/bin/dc", "dc", 0);
+	execl("/bin/dc", "dc", nil);
 }

@@ -42,7 +42,7 @@ start_host(void)
 		dup(fd,2);
 		if(fd != 1 && fd !=2)
 			close(fd);
-		execl("/bin/rc","rcX",0);
+		execl("/bin/rc","rcX",nil);
 		fprint(2,"failed to start up rc\n");
 		_exits("rc");
 	case -1:

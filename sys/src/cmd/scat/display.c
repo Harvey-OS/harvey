@@ -25,7 +25,7 @@ displaypic(Picture *pic)
 		close(p[1]);
 		dup(p[0], 0);
 		close(p[0]);
-		execl("/bin/page", "page", "-w", 0);
+		execl("/bin/page", "page", "-w", nil);
 		fprint(2, "exec failed: %r\n");
 		exits("exec");
 
@@ -72,7 +72,7 @@ displayimage(Image *im)
 		close(p[1]);
 		dup(p[0], 0);
 		close(p[0]);
-		execl("/bin/page", "page", "-w", 0);
+		execl("/bin/page", "page", "-w", nil);
 		fprint(2, "exec failed: %r\n");
 		exits("exec");
 

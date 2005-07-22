@@ -170,19 +170,19 @@ void
 rcexec(void)
 {
 	if(cmd)
-		execl("/bin/rc", "rc", "-c", cmd, 0);
+		execl("/bin/rc", "rc", "-c", cmd, nil);
 	else if(manual || iscpu)
-		execl("/bin/rc", "rc", 0);
+		execl("/bin/rc", "rc", nil);
 	else if(strcmp(service, "terminal") == 0)
-		execl("/bin/rc", "rc", "-c", ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", 0);
+		execl("/bin/rc", "rc", "-c", ". /rc/bin/termrc; home=/usr/$user; cd; . lib/profile", nil);
 	else
-		execl("/bin/rc", "rc", 0);
+		execl("/bin/rc", "rc", nil);
 }
 
 void
 cpustart(void)
 {
-	execl("/bin/rc", "rc", "-c", "/rc/bin/cpurc", 0);
+	execl("/bin/rc", "rc", "-c", "/rc/bin/cpurc", nil);
 }
 
 char*

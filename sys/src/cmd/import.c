@@ -201,7 +201,7 @@ main(int argc, char **argv)
 	alarm(0);
 
 	if(backwards && argc > 1){
-		execl(argv[1], &argv[1]);
+		execl(argv[1], &argv[1], nil);
 		sysfatal("exec: %r");
 	}
 	exits(0);
@@ -242,9 +242,9 @@ old9p(int fd)
 				dup(fd, 2);
 				close(fd);
 			}
-			execl("/bin/srvold9p", "srvold9p", "-ds", 0);
+			execl("/bin/srvold9p", "srvold9p", "-ds", nil);
 		} else
-			execl("/bin/srvold9p", "srvold9p", "-s", 0);
+			execl("/bin/srvold9p", "srvold9p", "-s", nil);
 		sysfatal("exec srvold9p: %r");
 	default:
 		close(fd);
