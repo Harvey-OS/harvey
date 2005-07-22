@@ -605,7 +605,7 @@ returnmail(char **av, char *name, char *msg)
 		putenv("upasname", "/dev/null");
 		snprint(buf, sizeof(buf), "%s/marshal", UPASBIN);
 		snprint(attachment, sizeof(attachment), "%s", file(name, 'D'));
-		execl(buf, "send", "-A", attachment, "-s", "permanent failure", sender, 0);
+		execl(buf, "send", "-A", attachment, "-s", "permanent failure", sender, nil);
 		error("can't exec", 0);
 		break;
 	default:

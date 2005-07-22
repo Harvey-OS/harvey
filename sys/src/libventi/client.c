@@ -96,7 +96,7 @@ vtStdioServer(char *server)
 		close(pfd[0]);
 		dup(pfd[1], 0);
 		dup(pfd[1], 1);
-		execl(server, "ventiserver", "-i", 0);
+		execl(server, "ventiserver", "-i", nil);
 		exits("exec failed");
 	}
 	close(pfd[1]);

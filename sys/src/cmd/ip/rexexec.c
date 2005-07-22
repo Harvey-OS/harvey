@@ -35,6 +35,6 @@ main(int argc, char **argv)
 	} while (buf[n-1] != '\0');
 
 	putenv("service", "rx");
-	execl("/bin/rc", "rc", "-lc", buf, 0);
+	execl("/bin/rc", "rc", "-lc", buf, nil);
 	sysfatal("can't exec rc");
 }

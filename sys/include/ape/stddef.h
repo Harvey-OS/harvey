@@ -2,7 +2,11 @@
 #define __STDDEF_H
 
 #ifndef NULL
+#ifdef __cplusplus
 #define NULL 0
+#else
+#define NULL ((void*)0)
+#endif
 #endif
 #define offsetof(ty,mem) ((size_t) &(((ty *)0)->mem))
 

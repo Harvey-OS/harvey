@@ -463,9 +463,9 @@ system(Conn *c, char *cmd)
 		close(c->fd[0]);	/* same as c->fd[1] */
 		close(pfd[0]);
 		if(*cmd)
-			execl("/bin/rc", "rc", "-c", cmd, 0);
+			execl("/bin/rc", "rc", "-c", cmd, nil);
 		else
-			execl("/bin/rc", "rc", 0);
+			execl("/bin/rc", "rc", nil);
 		perror("con");
 		exits("exec");
 		break;

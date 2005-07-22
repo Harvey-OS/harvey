@@ -408,7 +408,7 @@ transfer(char *cmd, char *a1, char *a2, char *a3, int image)
 				exits("building name space");
 			close(fd);
 		}
-		execl(cmd, cmd, a1, a2, a3, 0);
+		execl(cmd, cmd, a1, a2, a3, nil);
 		exits(cmd);
 	default:
 		close(pfd[0]);

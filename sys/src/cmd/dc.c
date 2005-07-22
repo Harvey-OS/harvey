@@ -1920,7 +1920,7 @@ command(void)
 			*sl++ = c;
 		*sl = 0;
 		if((pid = fork()) == 0) {
-			execl("/bin/rc","rc","-c",line,0);
+			execl("/bin/rc","rc","-c",line,nil);
 			exits("shell");
 		}
 		for(;;) {

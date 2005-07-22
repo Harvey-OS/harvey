@@ -258,7 +258,7 @@ loop:
 	s1 = open("/srv/il!jukefs", ORDWR);
 	if(s1 < 0) {
 		if(fork() == 0) {
-			execl("/bin/srv", "srv", "-q", "il!jukefs", 0);
+			execl("/bin/srv", "srv", "-q", "il!jukefs", nil);
 			exits(0);
 		}
 		waitpid();
@@ -284,7 +284,7 @@ loop:
 	s2 = open("/srv/9660", ORDWR);
 	if(s2 < 0) {
 		if(fork() == 0) {
-			execl("/bin/9660srv", "9660srv", 0);
+			execl("/bin/9660srv", "9660srv", nil);
 			exits(0);
 		}
 		waitpid();

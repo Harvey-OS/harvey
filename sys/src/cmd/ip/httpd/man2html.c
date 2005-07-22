@@ -360,7 +360,7 @@ doconvert(char *uri, int vermaj)
 		dup(pfd[0], 0);
 		close(pfd[0]);
 		close(pfd[1]);
-		execl("/bin/troff2html", "troff2html", "-t", title, 0);
+		execl("/bin/troff2html", "troff2html", "-t", title, nil);
 		errstr(err, sizeof err);
 		exits(err);
 	}
@@ -374,7 +374,7 @@ doconvert(char *uri, int vermaj)
 		dup(pfd[1], 1);
 		close(pfd[0]);
 		close(pfd[1]);
-		execl("/bin/troff", "troff", "-manhtml", file, 0);
+		execl("/bin/troff", "troff", "-manhtml", file, nil);
 		errstr(err, sizeof err);
 		exits(err);
 	}

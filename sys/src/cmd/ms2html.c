@@ -2099,7 +2099,7 @@ g_startgif(int, char **argv)
 		dup(pfd[0], 0);
 		close(pfd[0]);
 		close(pfd[1]);
-		execl("/bin/troff2gif", "troff2gif", 0);
+		execl("/bin/troff2gif", "troff2gif", nil);
 		fprint(2, "ms2html: couldn't exec troff2gif: %r\n");
 		_exits(nil);
 	default:
@@ -2198,7 +2198,7 @@ g_BP(int argc, char **argv)
 	case 0:
 		dup(fd, 1);
 		close(fd);
-		execl("/bin/ps2gif", "ps2gif", argv[1], 0);
+		execl("/bin/ps2gif", "ps2gif", argv[1], nil);
 		fprint(2, "ms2html: couldn't exec ps2gif: %r\n");
 		_exits(nil);
 	default:

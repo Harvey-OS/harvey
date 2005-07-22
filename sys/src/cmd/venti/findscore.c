@@ -45,6 +45,7 @@ findscore(Arena *arena, uchar *score)
 
 	cis = MKN(ClumpInfo, ClumpChunks);
 	found = 0;
+	a = 0;
 	memset(&ie, 0, sizeof(IEntry));
 	for(clump = 0; clump < arena->clumps; clump += n){
 		n = ClumpChunks;

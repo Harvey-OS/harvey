@@ -410,9 +410,9 @@ system(int fd, char *cmd)
 		close(ctl);
 		close(fd);
 		if(*cmd)
-			execl("/bin/rc", "rc", "-c", cmd, 0);
+			execl("/bin/rc", "rc", "-c", cmd, nil);
 		else
-			execl("/bin/rc", "rc", 0);
+			execl("/bin/rc", "rc", nil);
 		perror("con");
 		exits("exec");
 	}

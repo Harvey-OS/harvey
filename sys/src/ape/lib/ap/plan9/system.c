@@ -19,7 +19,7 @@ system(const char *s)
 	pid = fork();
 	snprintf(cmd, sizeof cmd, "/%s/bin/ape/sh", oty);
 	if(pid == 0) {
-		execl(cmd, "sh", "-c", s, 0);
+		execl(cmd, "sh", "-c", s, NULL);
 		_exit(1);
 	}
 	if(pid < 0){

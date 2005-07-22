@@ -43,7 +43,7 @@ popen(char *cmd, char *mode)
 		dup2(hisside, tst(0, 1));
 		for (i=NSYSFILE; i<FOPEN_MAX; i++)
 			close(i);
-		execl("/bin/ape/sh", "sh", "-c", cmd, 0);
+		execl("/bin/ape/sh", "sh", "-c", cmd, NULL);
 		_exit(1);
 	default:
 		the_fork[ind].pid = pid;

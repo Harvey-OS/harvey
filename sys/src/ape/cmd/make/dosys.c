@@ -177,7 +177,7 @@ if((pid = fork()) == 0)
 	enbint(SIG_DFL);
 	doclose();
 
-	execl(SHELLCOM, "sh", (nohalt ? "-c" : "-ce"), comstring, 0);
+	execl(SHELLCOM, "sh", (nohalt ? "-c" : "-ce"), comstring, NULL);
 	fatal("Couldn't load Shell");
 	}
 

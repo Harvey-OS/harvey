@@ -81,7 +81,7 @@ printfile(int f)
 		if(*cmd == '!'){
 			if(fork() == 0){
 				dup(Bfildes(cons), 0);
-				execl("/bin/rc", "rc", "-c", cmd+1, 0);
+				execl("/bin/rc", "rc", "-c", cmd+1, nil);
 			}
 			waitpid();
 			goto getcmd;

@@ -48,7 +48,7 @@ gunzip(char *f, char *tmp)
 		dup(fd, 1);
 		close(fd);
 		close(0);
-		execl("/bin/gunzip", "gunzip", "-c", f, 0);
+		execl("/bin/gunzip", "gunzip", "-c", f, nil);
 		hprint(HO, "can't exec gunzip: %r\n");
 		break;
 	case -1:
@@ -116,7 +116,7 @@ netlibhistory(char *file)
 			switch(fork()){
 			case 0:
 				execl("/bin/diff", "diff", "-nb",
-					pair[1-toggle], pair[toggle], 0);
+					pair[1-toggle], pair[toggle], nil);
 				hprint(HO, "can't exec diff: %r\n");
 				break;
 			case -1:

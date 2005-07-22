@@ -251,9 +251,9 @@ old9p(int fd)
 				dup(fd, 2);
 				close(fd);
 			}
-			execl("/bin/srvold9p", "srvold9p", "-ds", 0);
+			execl("/bin/srvold9p", "srvold9p", "-ds", nil);
 		} else
-			execl("/bin/srvold9p", "srvold9p", "-s", 0);
+			execl("/bin/srvold9p", "srvold9p", "-s", nil);
 		fatal(1, "exec srvold9p");
 	default:
 		close(fd);
@@ -349,9 +349,9 @@ remoteside(int old)
 		print("cpu: failed to chdir to '%s'\n", xdir);
 
 	if(gotcmd)
-		execl("/bin/rc", "rc", "-lc", cmd, 0);
+		execl("/bin/rc", "rc", "-lc", cmd, nil);
 	else
-		execl("/bin/rc", "rc", "-li", 0);
+		execl("/bin/rc", "rc", "-li", nil);
 	fatal(1, "exec shell");
 }
 
