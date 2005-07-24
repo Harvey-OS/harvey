@@ -19751,3 +19751,5 @@
 1122003124 9 c 386/lib/ape/libv.a - 664 sys sys 1122001338 19668
 1122003124 10 c sys/src/cmd/plot/libplot/subr.c - 664 sys sys 1122001714 2137
 1122089543 0 c 386/bin/venti/findscore - 775 sys sys 1122088325 127919
+1122129152 0 c sys/src/cmd/aux/listen.c - 664 sys sys 1122127534 8153
+1122129152 1 c sys/src/cmd/import.c - 664 sys sys 1122127534 6886

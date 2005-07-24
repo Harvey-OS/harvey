@@ -9629,7 +9629,7 @@ sys/src/cmd/aux/gps/mkfile - 664 sys sys 1108397331 219
 sys/src/cmd/aux/gps/util.c - 664 sys sys 1107448815 2795
 sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
-sys/src/cmd/aux/listen.c - 664 sys sys 1121977157 8144
+sys/src/cmd/aux/listen.c - 664 sys sys 1122127534 8153
 sys/src/cmd/aux/listen1.c - 664 sys sys 1093452955 2018
 sys/src/cmd/aux/mkfile - 664 sys sys 1108184527 980
 sys/src/cmd/aux/mklatinkbd.c - 664 sys sys 953253425 3813
@@ -11982,7 +11982,7 @@ sys/src/cmd/htmlfmt/mkfile - 664 sys sys 1034015650 297
 sys/src/cmd/htmlfmt/util.c - 664 sys sys 1015364025 1765
 sys/src/cmd/iconv.c - 664 sys sys 1039753035 1801
 sys/src/cmd/idiff.c - 664 sys sys 1014926695 6896
-sys/src/cmd/import.c - 664 sys sys 1121977160 6891
+sys/src/cmd/import.c - 664 sys sys 1122127534 6886
 sys/src/cmd/init.c - 664 sys sys 1121977160 4462
 sys/src/cmd/iostats - 20000000775 sys sys 944962001 0
 sys/src/cmd/iostats/iostats.c - 664 sys sys 1014925727 9691
