@@ -245,7 +245,8 @@ extern int errno;
 
 /* Do struct stat *S, *T describe the same file?  Answer -1 if unknown.  */
 #ifndef same_file
-#define same_file(s,t) ((s)->st_ino==(t)->st_ino && (s)->st_dev==(t)->st_dev)
+/* #define same_file(s,t) ((s)->st_ino==(t)->st_ino && (s)->st_dev==(t)->st_dev) */
+#define same_file(s,t) 0
 #endif
 
 /* Place into Q a quoted version of A suitable for `popen' or `system',
