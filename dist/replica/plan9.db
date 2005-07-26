@@ -24,8 +24,8 @@
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1115950025 70297
-386/bin/ape/diff - 775 sys sys 1094040080 349639
-386/bin/ape/diff3 - 775 sys sys 1094040081 188059
+386/bin/ape/diff - 775 sys sys 1122299107 349579
+386/bin/ape/diff3 - 775 sys sys 1122299110 188063
 386/bin/ape/dirname - 775 sys sys 1087442502 132460
 386/bin/ape/expr - 775 sys sys 1087442502 142097
 386/bin/ape/kill - 775 sys sys 1087442503 138039
@@ -107,7 +107,7 @@
 386/bin/aux/hardcopy - 775 sys sys 1020319063 1699
 386/bin/aux/isvmware - 775 sys sys 1032486791 23997
 386/bin/aux/lines - 775 sys sys 1115950042 60492
-386/bin/aux/listen - 775 sys sys 1115950042 106884
+386/bin/aux/listen - 775 sys sys 1122347399 106896
 386/bin/aux/listen1 - 775 sys sys 1115950042 93419
 386/bin/aux/lpdaemon - 775 sys sys 1094040084 168085
 386/bin/aux/lpdsend - 775 sys sys 1116815421 153582
@@ -274,7 +274,7 @@
 386/bin/ico - 775 sys sys 1115950080 161430
 386/bin/iconv - 775 sys sys 1115950080 113265
 386/bin/idiff - 775 sys sys 1115950080 76112
-386/bin/import - 775 sys sys 1122001334 100307
+386/bin/import - 775 sys sys 1122347399 100299
 386/bin/iostats - 775 sys sys 1115950081 97978
 386/bin/ip - 20000000775 sys sys 1016920851 0
 386/bin/ip/dhcpclient - 775 sys sys 1116126317 94096
@@ -504,7 +504,7 @@
 386/bin/webcookies - 775 sys sys 1119496667 161521
 386/bin/webfs - 775 sys sys 1119496668 349179
 386/bin/webfsget - 775 sys sys 1115950144 39143
-386/bin/wikifs - 775 sys sys 1119496669 201604
+386/bin/wikifs - 775 sys sys 1122347400 201648
 386/bin/winwatch - 775 sys sys 1115950145 154555
 386/bin/xd - 775 sys sys 1115950145 64039
 386/bin/xmr - 775 sys sys 1115950145 40157
@@ -8199,7 +8199,7 @@ sys/src/ape/cmd/diff/regex.c - 664 sys sys 1046198749 186345
 sys/src/ape/cmd/diff/regex.h - 664 sys sys 1046198749 19353
 sys/src/ape/cmd/diff/sdiff.c - 664 sys sys 1046198750 23417
 sys/src/ape/cmd/diff/side.c - 664 sys sys 1046198750 7012
-sys/src/ape/cmd/diff/system.h - 664 sys sys 1046198750 5744
+sys/src/ape/cmd/diff/system.h - 664 sys sys 1122299097 5775
 sys/src/ape/cmd/diff/util.c - 664 sys sys 1046198750 18335
 sys/src/ape/cmd/diff/version.c - 664 sys sys 1046198750 94
 sys/src/ape/cmd/diff/xmalloc.c - 664 sys sys 1046198751 1828
@@ -13729,7 +13729,7 @@ sys/src/cmd/webfs/url.c - 664 sys sys 1019240175 24238
 sys/src/cmd/webfs/util.c - 664 sys sys 1015015823 1211
 sys/src/cmd/webfsget.c - 664 sys sys 1068413017 1595
 sys/src/cmd/wikifs - 20000000775 sys sys 1018211094 0
-sys/src/cmd/wikifs/fs.c - 664 sys sys 1079380576 15626
+sys/src/cmd/wikifs/fs.c - 664 sys sys 1122335732 15656
 sys/src/cmd/wikifs/io.c - 664 sys sys 1084469671 11572
 sys/src/cmd/wikifs/lookup.c - 664 sys sys 1018211093 182
 sys/src/cmd/wikifs/map.c - 664 sys sys 1018211093 109
