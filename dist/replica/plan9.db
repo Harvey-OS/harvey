@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1115950023 104037
 386/bin/aan - 775 sys sys 1115950023 130710
 386/bin/acid - 775 sys sys 1119496640 390040
-386/bin/acme - 775 sys sys 1119496641 428436
+386/bin/acme - 775 sys sys 1122606669 428394
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1115950025 70297
@@ -9378,7 +9378,7 @@ sys/src/cmd/acme/scrl.c - 664 sys sys 1111119426 2875
 sys/src/cmd/acme/text.c - 664 sys sys 1111171700 27912
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1107154483 7984
-sys/src/cmd/acme/wind.c - 664 sys sys 1104874643 11201
+sys/src/cmd/acme/wind.c - 664 sys sys 1122526112 11233
 sys/src/cmd/acme/xfid.c - 664 sys sys 1107154483 19555
 sys/src/cmd/ar.c - 664 sys sys 1046643027 23717
 sys/src/cmd/archfs.c - 664 sys sys 1014925694 3871

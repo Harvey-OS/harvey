@@ -153,15 +153,17 @@ winunlock(Window *w)
 	int i;
 	File *f;
 
+	/*
+	 * subtle: loop runs backwards to avoid tripping over
+	 * winclose indirectly editing f->text and freeing f
+	 * on the last iteration of the loop.
+	 */
 	f = w->body.file;
-	for(i=0; i<f->ntext; i++){
+	for(i=f->ntext-1; i>=0; i--){
 		w = f->text[i]->w;
 		w->owner = 0;
 		qunlock(w);
 		winclose(w);
-		/* winclose() can change up f->text; beware */
-		if(f->ntext>0 && w != f->text[i]->w)
-			--i;	/* winclose() deleted window */
 	}
 }
 
