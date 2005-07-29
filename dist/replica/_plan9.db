@@ -9378,7 +9378,7 @@ sys/src/cmd/acme/scrl.c - 664 sys sys 1111119426 2875
 sys/src/cmd/acme/text.c - 664 sys sys 1111171700 27912
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1107154483 7984
-sys/src/cmd/acme/wind.c - 664 sys sys 1104874643 11201
+sys/src/cmd/acme/wind.c - 664 sys sys 1122526112 11233
 sys/src/cmd/acme/xfid.c - 664 sys sys 1107154483 19555
 sys/src/cmd/ar.c - 664 sys sys 1046643027 23717
 sys/src/cmd/archfs.c - 664 sys sys 1014925694 3871
@@ -15050,3 +15050,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/acme - 775 sys sys 1122606669 428394
