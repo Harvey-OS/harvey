@@ -323,7 +323,6 @@
 386/bin/mk - 775 sys sys 1115950093 144090
 386/bin/mkdir - 775 sys sys 1115950093 60964
 386/bin/mkpaqfs - 775 sys sys 1115950093 94509
-386/bin/mkstate - 775 sys sys 1115950093 63519
 386/bin/mntgen - 775 sys sys 1115950094 139193
 386/bin/mount - 775 sys sys 1115950094 73011
 386/bin/ms2html - 775 sys sys 1115950094 103585
@@ -12316,7 +12315,6 @@ sys/src/cmd/mkfile - 664 sys sys 1108476348 2414
 sys/src/cmd/mklib - 664 sys sys 1101213349 618
 sys/src/cmd/mkmany - 664 sys sys 1110990445 1283
 sys/src/cmd/mkone - 664 sys sys 1110990445 898
-sys/src/cmd/mkstate.c - 664 sys sys 1014926695 2995
 sys/src/cmd/mksyslib - 664 sys sys 1022112160 660
 sys/src/cmd/mntgen.c - 664 sys sys 1106410349 3630
 sys/src/cmd/mount.c - 664 sys sys 1034195354 1508
