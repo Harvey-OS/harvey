@@ -266,7 +266,7 @@ mail(Fs *f, char *rcvr, char *user, long et)
 	execl("/bin/upas/send", "send", "-r", rcvr, nil);
 
 	/* just in case */
-	fprint(2, "warning can't exec send\n");
+	fprint(2, "warning can't exec send: %r\n");
 	exits("exec send");
 
 	return 0;		/* for compiler */
@@ -295,13 +295,13 @@ readnumfile(char *file)
 
 	fd = open(file, OREAD);
 	if(fd < 0){
-		complain("can't open %s:r", file);
+		complain("can't open %s: %r", file);
 		return 0;
 	}
 	n = read(fd, buf, sizeof(buf)-1);
 	close(fd);
 	if(n < 0){
-		complain("can't read %s:r", file);
+		complain("can't read %s: %r", file);
 		return 0;
 	}
 	buf[n] = 0;
@@ -315,7 +315,7 @@ writenumfile(char *file, long num)
 
 	fd = open(file, OWRITE);
 	if(fd < 0){
-		complain("can't open %s", file);
+		complain("can't open %s: %r", file);
 		return;
 	}
 	fprint(fd, "%ld", num);
