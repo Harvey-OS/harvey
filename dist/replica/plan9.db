@@ -9503,7 +9503,7 @@ sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1078840013 9007
 sys/src/cmd/auth/status - 775 sys sys 1015008430 738
 sys/src/cmd/auth/uniq.c - 664 sys sys 1015008430 1429
 sys/src/cmd/auth/userpasswd.c - 664 sys sys 1015008432 591
-sys/src/cmd/auth/warning.c - 664 sys sys 1121977157 5291
+sys/src/cmd/auth/warning.c - 664 sys sys 1122901749 5303
 sys/src/cmd/auth/wrkey.c - 664 sys sys 1019058717 176
 sys/src/cmd/aux - 20000000775 sys sys 1015008975 0
 sys/src/cmd/aux/9pcon.c - 664 sys sys 1032059259 6283
