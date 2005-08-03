@@ -19766,3 +19766,4 @@
 1122638544 0 d sys/src/cmd/mkstate.c - 664 sys sys 1014926695 0
 1122638544 1 d 386/bin/mkstate - 775 sys sys 1115950093 0
 1122903082 0 c sys/src/cmd/auth/warning.c - 664 sys sys 1122901749 5303
+1122962495 0 c 386/bin/auth/warning - 775 sys sys 1122961620 99567
