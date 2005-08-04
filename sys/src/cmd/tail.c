@@ -40,7 +40,7 @@ extern	void	skip(void);
 extern	void	suffix(char*);
 extern	long	tread(char*, long);
 extern	void	trunc(Dir*, Dir**);
-extern	long	tseek(long, int);
+extern	vlong	tseek(vlong, int);
 extern	void	twrite(char*, long);
 extern	void	usage(void);
 static	int	isseekable(int fd);
@@ -126,7 +126,7 @@ void
 trunc(Dir *old, Dir **new)
 {
 	Dir *d;
-	ulong olength;
+	vlong olength;
 
 	d = dirfstat(file);
 	if(d == nil)
@@ -135,7 +135,7 @@ trunc(Dir *old, Dir **new)
 	if(old)
 		olength = old->length;
 	if(d->length < olength)
-		d->length = tseek(0L, 0);
+		d->length = tseek(0LL, 0);
 	free(*new);
 	*new = d;
 }
@@ -268,10 +268,10 @@ reverse(void)
 	long n = 0;
 	long bufsiz = 0;
 	char *buf = 0;
-	long pos = tseek(0L, 2);
+	vlong pos = tseek(0LL, 2);
 
 	for(first=1; pos>0 && count>0; first=0) {
-		n = pos>Bsize? Bsize: (int)pos;
+		n = pos>Bsize? Bsize: (long)pos;
 		pos -= n;
 		if(len+n > bufsiz) {
 			bufsiz += 2*Bsize;
@@ -294,15 +294,18 @@ reverse(void)
 			}
 	}
 	if(dir == FWD) {
-		tseek(n==0? 0 : pos+n+1, 0);
+		if(n)
+			tseek(pos+n+1, 0);
+		else
+			tseek(0, 0);
 		copy();
 	} else
 	if(count > 0)
 		twrite(buf, len);
 }
 
-long
-tseek(long o, int p)
+vlong
+tseek(vlong o, int p)
 {
 	o = seek(file, o, p);
 	if(o == -1)

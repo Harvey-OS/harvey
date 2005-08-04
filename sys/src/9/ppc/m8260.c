@@ -145,7 +145,7 @@ machinit(void)
 	 * Currently we use 32-bit transfers, because the 8260 does not easily do 64-bit operations.
 	 */
 	iomem->bank[6].br = 0xe0001801;
-	iomem->bank[6].or = 0xff000896;	/* Was 0xff000816; one wait state */
+	iomem->bank[6].or = 0xff000830;	/* Was 0xff000816 */
 
 /*
  * All systems with rev. A.1 (0K26N) silicon had serious problems when doing
