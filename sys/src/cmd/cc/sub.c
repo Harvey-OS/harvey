@@ -686,6 +686,15 @@ arith(Node *n, int f)
 		w = n->right->type->link->width;
 		if(w < 1)
 			goto bad;
+		n->type = types[ewidth[TIND] <= ewidth[TLONG]? TLONG: TVLONG];
+		if(1 && ewidth[TIND] > ewidth[TLONG]){
+			n1 = new1(OXXX, Z, Z);
+			*n1 = *n;
+			n->op = OCAST;
+			n->left = n1;
+			n->right = Z;
+			n->type = types[TLONG];
+		}
 		if(w > 1) {
 			n1 = new1(OXXX, Z, Z);
 			*n1 = *n;
@@ -701,7 +710,6 @@ arith(Node *n, int f)
 				n1->vconst = w;
 			}
 		}
-		n->type = types[TLONG];
 		return;
 	}
 	if(!sametype(n->type, n->left->type)) {

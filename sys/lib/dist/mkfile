@@ -116,7 +116,7 @@ scansources-mail:V:
 	scansources |mail -s 'nightly fs vs. martha scan '^$dd 9trouble
 
 worldwritable-mail:V:
-	cd /n/sources; /usr/rsc/bin/$cputype/lsr -t -d | awk '$2 ~ /[2367]$/' |grep -v '^./patch' >/sys/lib/dist/writable
+	cd /n/sources; /usr/rsc/bin/$cputype/lsr -t -d | awk '$2 ~ /[2367]$/' |{grep -v '^./patch' >/sys/lib/dist/writable || status=''}
 	if(test -s /sys/lib/dist/writable){
 		dd=`{date}
 		dd=$"date

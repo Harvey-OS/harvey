@@ -38,6 +38,7 @@ root.bz2:Q: boot.bz2
 
 /sys/src/9/pc/9pcflop.gz: root.bz2
 	@{
+		rfork n
 		cd /sys/src/9/pc
 		mk 'CONF=pcflop' 9pcflop.gz
 	}
