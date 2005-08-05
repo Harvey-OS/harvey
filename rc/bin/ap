@@ -6,7 +6,7 @@
 wire='http://www.newsday.com/news/nationworld/wire'
 if ( ~ $#* 0 )
 	hget $wire | #tee /tmp/ap.$pid |
-		sed -n '/LAST 7 DAYS/,/end last 7 days/p' |
+		sed -n '/AP Top News/,/AP News Wire/p' |
 		htmlfmt -a -w 100 |
 		sed -n '
 			/^• / {
@@ -30,11 +30,10 @@ if not
 	hget $wire/sns-ap-^$1^.story |
 		htmlfmt |
 		sed '
-			s/\| Article licensing.*$//
-			/^Copyright ©/p
-			/^Copyright ©/,$d
-			/^Subscribe to Newsday/d
-			1,/^Top Stories$/d
-			s/[ 	]*$//
-			s/^\* __$//
-		' #| fmt
+			1,/^=======$/d
+			/^Email this story$/d
+			/^Printer friendly format/d
+			/^\* __$/,$d
+			/^Subscribe to Newsday home delivery/,$d
+			/^SPONSORED LINKS$/,$d
+		' 

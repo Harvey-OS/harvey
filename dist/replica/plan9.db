@@ -411,7 +411,7 @@
 386/bin/sum - 775 sys sys 1115950116 39470
 386/bin/swap - 775 sys sys 1115950116 62094
 386/bin/syscall - 775 sys sys 1115950116 73536
-386/bin/tail - 775 sys sys 1123123798 66144
+386/bin/tail - 775 sys sys 1123211424 66178
 386/bin/tar - 775 sys sys 1120014538 96347
 386/bin/tbl - 775 sys sys 1115950117 113176
 386/bin/tcs - 775 sys sys 1115950118 256588
@@ -5389,7 +5389,7 @@ rc/bin/B - 775 sys sys 945617206 645
 rc/bin/C - 775 sys sys 1045493437 788
 rc/bin/Kill - 775 sys sys 1018637942 115
 rc/bin/a: - 775 sys sys 1063856406 255
-rc/bin/ap - 775 sys sys 1101132631 734
+rc/bin/ap - 775 sys sys 1123163734 733
 rc/bin/ape - 20000000775 sys sys 954039414 0
 rc/bin/ape/ar89 - 775 sys sys 945617285 308
 rc/bin/ape/c89 - 775 sys sys 945617285 39
