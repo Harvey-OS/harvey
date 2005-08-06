@@ -411,7 +411,7 @@
 386/bin/sum - 775 sys sys 1115950116 39470
 386/bin/swap - 775 sys sys 1115950116 62094
 386/bin/syscall - 775 sys sys 1115950116 73536
-386/bin/tail - 775 sys sys 1123123798 66144
+386/bin/tail - 775 sys sys 1123211424 66178
 386/bin/tar - 775 sys sys 1120014538 96347
 386/bin/tbl - 775 sys sys 1115950117 113176
 386/bin/tcs - 775 sys sys 1115950118 256588
@@ -8058,7 +8058,7 @@ sys/src/9/port/devpipe.c - 664 sys sys 1077055016 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1088560907 13624
 sys/src/9/port/devproc.c - 664 sys sys 1106585362 28465
 sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
-sys/src/9/port/devsd.c - 664 sys sys 1071245428 28564
+sys/src/9/port/devsd.c - 664 sys sys 1123255503 28564
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
 sys/src/9/port/devsegment.c - 664 sys sys 1017679394 9600
 sys/src/9/port/devsrv.c - 664 sys sys 1107232208 5418
@@ -12112,7 +12112,7 @@ sys/src/cmd/kl/optab.c - 664 sys sys 1105798985 7369
 sys/src/cmd/kl/pass.c - 664 sys sys 1045503969 9348
 sys/src/cmd/kl/sched.c - 664 sys sys 1089299170 10796
 sys/src/cmd/kl/span.c - 664 sys sys 1045503970 10146
-sys/src/cmd/kprof.c - 664 sys sys 1014926615 2542
+sys/src/cmd/kprof.c - 664 sys sys 1123244004 2550
 sys/src/cmd/ktrace.c - 664 sys sys 1119276523 5785
 sys/src/cmd/lens.c - 664 sys sys 1045505408 4645
 sys/src/cmd/lex - 20000000775 sys sys 944961017 0
@@ -14956,4 +14956,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/tail - 775 sys sys 1123211424 66178
+386/bin/kprof - 775 sys sys 1123297918 102527
