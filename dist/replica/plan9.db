@@ -311,7 +311,7 @@
 386/bin/join - 775 sys sys 1115950090 114091
 386/bin/jpg - 775 sys sys 1115950090 174528
 386/bin/kbmap - 775 sys sys 1115950090 143307
-386/bin/kprof - 775 sys sys 1119496650 102457
+386/bin/kprof - 775 sys sys 1123297918 102527
 386/bin/ktrace - 775 sys sys 1119496650 116616
 386/bin/lens - 775 sys sys 1115950091 124095
 386/bin/lex - 775 sys sys 1115950091 98664
@@ -8058,7 +8058,7 @@ sys/src/9/port/devpipe.c - 664 sys sys 1077055016 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1088560907 13624
 sys/src/9/port/devproc.c - 664 sys sys 1106585362 28465
 sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
-sys/src/9/port/devsd.c - 664 sys sys 1071245428 28564
+sys/src/9/port/devsd.c - 664 sys sys 1123255503 28564
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
 sys/src/9/port/devsegment.c - 664 sys sys 1017679394 9600
 sys/src/9/port/devsrv.c - 664 sys sys 1107232208 5418
@@ -12112,7 +12112,7 @@ sys/src/cmd/kl/optab.c - 664 sys sys 1105798985 7369
 sys/src/cmd/kl/pass.c - 664 sys sys 1045503969 9348
 sys/src/cmd/kl/sched.c - 664 sys sys 1089299170 10796
 sys/src/cmd/kl/span.c - 664 sys sys 1045503970 10146
-sys/src/cmd/kprof.c - 664 sys sys 1014926615 2542
+sys/src/cmd/kprof.c - 664 sys sys 1123244004 2550
 sys/src/cmd/ktrace.c - 664 sys sys 1119276523 5785
 sys/src/cmd/lens.c - 664 sys sys 1045505408 4645
 sys/src/cmd/lex - 20000000775 sys sys 944961017 0

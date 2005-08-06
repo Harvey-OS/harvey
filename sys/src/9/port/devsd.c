@@ -459,7 +459,7 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 	switch(TYPE(c->qid)){
 	case Qtopdir:
 		if(s == DEVDOTDOT){
-			mkqid(&q, QID(0, s, 0, Qtopdir), 0, QTDIR);
+			mkqid(&q, QID(0, 0, 0, Qtopdir), 0, QTDIR);
 			sprint(up->genbuf, "#%C", sddevtab.dc);
 			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
@@ -505,7 +505,7 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 
 	case Qunitdir:
 		if(s == DEVDOTDOT){
-			mkqid(&q, QID(0, s, 0, Qtopdir), 0, QTDIR);
+			mkqid(&q, QID(0, 0, 0, Qtopdir), 0, QTDIR);
 			sprint(up->genbuf, "#%C", sddevtab.dc);
 			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
