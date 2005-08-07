@@ -16,6 +16,7 @@ enum {
 	But3	= Button_bit(3),
 };
 int cantmv = 1;			/* disallow rotate and move? 0..1 */
+int plotdots;			/* plot dots instead of lines */
 int top_border, bot_border, lft_border, rt_border;
 int lft_border0;		/* lft_border for y-axis labels >0 */
 int top_left, top_right;	/* edges of top line free space */
@@ -1432,7 +1433,10 @@ void draw_fpts(const fpoint* p0, double n1, const transform* tr, int thick,
 		fillellipse(screen, qq, 1+thick, 1+thick, clr, qq);
 	for (; p>=p0; p--) {
 		do_transform(&q, tr, p);
-		line(screen, qq, q, Enddisc, Enddisc, thick, clr, qq);
+		if(plotdots)
+			fillellipse(screen, q, Dotrad, Dotrad, clr, q);
+		else
+			line(screen, qq, q, Enddisc, Enddisc, thick, clr, qq);
 		qq = q;
 	}
 }
@@ -1980,6 +1984,9 @@ void main(int argc, char *argv[])
 	case 'm': cantmv=0;
 		break;
 	case 'l': logfil = fopen(ARGF(),"w");
+		break;
+	case 'p':
+		plotdots++;
 		break;
 	default: usage();
 	} ARGEND

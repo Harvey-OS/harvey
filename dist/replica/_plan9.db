@@ -3,13 +3,13 @@
 386/9loaddebug - 775 sys sys 1121398844 310435
 386/9loadlite - 775 sys sys 1112757508 135244
 386/9loadlitedebug - 775 sys sys 1121398844 198794
-386/9pc - 775 sys sys 1121915497 1835203
+386/9pc - 775 sys sys 1123301357 1835193
 386/9pc.gz - 664 sys sys 1112757510 643423
-386/9pccpu - 775 sys sys 1121915500 1489457
+386/9pccpu - 775 sys sys 1123301360 1489449
 386/9pccpu.gz - 664 sys sys 1112757511 529529
-386/9pcdisk - 775 sys sys 1121915504 2041001
+386/9pcdisk - 775 sys sys 1123301364 2040991
 386/9pcdisk.gz - 664 sys sys 1112757513 733576
-386/9pcf - 775 sys sys 1121915509 2383825
+386/9pcf - 775 sys sys 1123301369 2383815
 386/9pcf.gz - 664 sys sys 1112757515 886966
 386/9pxeload - 775 sys sys 1112757508 215872
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
@@ -311,7 +311,7 @@
 386/bin/join - 775 sys sys 1115950090 114091
 386/bin/jpg - 775 sys sys 1115950090 174528
 386/bin/kbmap - 775 sys sys 1115950090 143307
-386/bin/kprof - 775 sys sys 1119496650 102457
+386/bin/kprof - 775 sys sys 1123301353 102527
 386/bin/ktrace - 775 sys sys 1119496650 116616
 386/bin/lens - 775 sys sys 1115950091 124095
 386/bin/lex - 775 sys sys 1115950091 98664
@@ -5408,7 +5408,7 @@ rc/bin/b: - 775 sys sys 1015089510 204
 rc/bin/broke - 775 sys sys 945617206 132
 rc/bin/bundle - 775 sys sys 945617206 173
 rc/bin/c: - 775 sys sys 1015089511 86
-rc/bin/cpurc - 775 sys sys 1048777186 1338
+rc/bin/cpurc - 775 sys sys 1123380857 1306
 rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/dircp - 775 sys sys 1107836261 193
@@ -7282,7 +7282,7 @@ sys/man/1/grap - 664 sys sys 944959675 6417
 sys/man/1/graph - 664 sys sys 944959673 2858
 sys/man/1/grep - 664 sys sys 969512677 2224
 sys/man/1/gs - 664 sys sys 1032054727 6906
-sys/man/1/gview - 664 sys sys 1087829746 4298
+sys/man/1/gview - 664 sys sys 1123348216 4370
 sys/man/1/gzip - 664 sys sys 969499884 3073
 sys/man/1/hget - 664 sys sys 1067722859 1483
 sys/man/1/history - 664 sys sys 1109685635 1709
@@ -11860,7 +11860,7 @@ sys/src/cmd/gs/zlib/zlib.h - 664 sys sys 1015035350 36326
 sys/src/cmd/gs/zlib/zlib.rc - 664 sys sys 1015035349 879
 sys/src/cmd/gs/zlib/zutil.c - 664 sys sys 1015035350 5015
 sys/src/cmd/gs/zlib/zutil.h - 664 sys sys 1015035350 4945
-sys/src/cmd/gview.c - 664 sys sys 1099760990 50655
+sys/src/cmd/gview.c - 664 sys sys 1123348216 50812
 sys/src/cmd/gzip - 20000000775 sys sys 984789976 0
 sys/src/cmd/gzip/gunzip.c - 664 sys sys 1014924864 6039
 sys/src/cmd/gzip/gzip.c - 664 sys sys 1014924864 3646
@@ -14956,4 +14956,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/kprof - 775 sys sys 1123297918 102527
+386/bin/gview - 775 sys sys 1123384234 238204
