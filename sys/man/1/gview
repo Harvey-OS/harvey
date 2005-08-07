@@ -11,6 +11,9 @@ gview \- interactive graph viewer
 .B -m
 ]
 [
+.B -p
+]
+[
 .I files
 ]
 .SH DESCRIPTION
@@ -35,6 +38,10 @@ commands are undesirable when just viewing a graph, they are only enabled if
 is invoked with the
 .B -m
 option.
+.PP
+The
+.B -p
+option plots only the vertices of the polygons.
 .PP
 Clicking on a polyline with button 1 displays the coordinates and a
 .I t
