@@ -263,7 +263,7 @@
 386/bin/grep - 775 sys sys 1119496649 79067
 386/bin/gs - 775 sys sys 1094040110 11124993
 386/bin/gunzip - 775 sys sys 1115950078 80284
-386/bin/gview - 775 sys sys 1115950078 238067
+386/bin/gview - 775 sys sys 1123384234 238204
 386/bin/gzip - 775 sys sys 1115950078 84762
 386/bin/hayes - 775 sys sys 1115950078 64556
 386/bin/hget - 775 sys sys 1118891247 231963
@@ -7765,7 +7765,7 @@ sys/src/9/alphapc/mem.h - 664 sys sys 1077408326 3131
 sys/src/9/alphapc/memmove.s - 664 sys sys 1015012786 2936
 sys/src/9/alphapc/memset.s - 664 sys sys 1015012786 844
 sys/src/9/alphapc/mkfile - 664 sys sys 1109218102 1682
-sys/src/9/alphapc/mmu.c - 664 sys sys 1015012786 4872
+sys/src/9/alphapc/mmu.c - 664 sys sys 1123438209 4905
 sys/src/9/alphapc/pci.c - 664 sys sys 1039753420 7868
 sys/src/9/alphapc/screen.h - 664 sys sys 1060267151 3584
 sys/src/9/alphapc/sd53c8xx.c - 664 sys sys 1015012787 51009
@@ -7800,7 +7800,7 @@ sys/src/9/bitsy/main.c - 664 sys sys 1067722593 9083
 sys/src/9/bitsy/map - 664 sys sys 1017695515 236
 sys/src/9/bitsy/mem.h - 664 sys sys 1055700932 8049
 sys/src/9/bitsy/mkfile - 664 sys sys 1072705544 2452
-sys/src/9/bitsy/mmu.c - 664 sys sys 1055700931 11228
+sys/src/9/bitsy/mmu.c - 664 sys sys 1123438209 11261
 sys/src/9/bitsy/mouse.c - 664 sys sys 1017695516 962
 sys/src/9/bitsy/paqfiles - 20000000775 sys sys 1020011250 0
 sys/src/9/bitsy/paqfiles/cpurc - 664 sys sys 1020011249 3524
@@ -7893,7 +7893,7 @@ sys/src/9/mtx/l.s - 664 sys sys 1067722599 10730
 sys/src/9/mtx/main.c - 664 sys sys 1018721287 8344
 sys/src/9/mtx/mem.h - 664 sys sys 1026848200 5959
 sys/src/9/mtx/mkfile - 664 sys sys 1072972534 1520
-sys/src/9/mtx/mmu.c - 664 sys sys 1018721287 4388
+sys/src/9/mtx/mmu.c - 664 sys sys 1123438210 4421
 sys/src/9/mtx/mtx - 664 sys sys 1056336297 416
 sys/src/9/mtx/mtxcpu - 664 sys sys 1039753442 421
 sys/src/9/mtx/pci.c - 664 sys sys 1087657434 16662
@@ -7944,7 +7944,7 @@ sys/src/9/pc/etherelnk3.c - 664 sys sys 1081706477 48724
 sys/src/9/pc/etherga620.c - 664 sys sys 1074785126 28754
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
-sys/src/9/pc/etherigbe.c - 664 sys sys 1115694068 43995
+sys/src/9/pc/etherigbe.c - 664 sys sys 1123445077 44186
 sys/src/9/pc/ethermii.c - 664 sys sys 1084331434 4612
 sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
@@ -7966,7 +7966,7 @@ sys/src/9/pc/main.c - 664 sys sys 1121858827 14693
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
-sys/src/9/pc/mmu.c - 664 sys sys 1091110410 10043
+sys/src/9/pc/mmu.c - 664 sys sys 1123438210 10452
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1084475127 17013
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
@@ -7998,7 +7998,7 @@ sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
 sys/src/9/pc/sdata.c - 664 sys sys 1121260176 51278
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
-sys/src/9/pc/trap.c - 664 sys sys 1121367232 20503
+sys/src/9/pc/trap.c - 664 sys sys 1123438642 20550
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartisa.c - 664 sys sys 1111725178 1775
 sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
@@ -8069,7 +8069,7 @@ sys/src/9/port/devuart.c - 664 sys sys 1102093393 12192
 sys/src/9/port/edf.c - 664 sys sys 1099760881 12742
 sys/src/9/port/edf.h - 664 sys sys 1084475128 1156
 sys/src/9/port/error.h - 664 sys sys 1117055493 2637
-sys/src/9/port/fault.c - 664 sys sys 1067722722 6628
+sys/src/9/port/fault.c - 664 sys sys 1123438654 7282
 sys/src/9/port/initcode.c - 664 sys sys 1055688491 574
 sys/src/9/port/latin1.c - 664 sys sys 1015278339 1418
 sys/src/9/port/latin1.h - 664 sys sys 1103633666 3563
@@ -8108,7 +8108,7 @@ sys/src/9/port/sd.h - 664 sys sys 1098546338 2348
 sys/src/9/port/segment.c - 664 sys sys 1121259584 13761
 sys/src/9/port/swap.c - 664 sys sys 1055688551 6980
 sys/src/9/port/sysfile.c - 664 sys sys 1100363052 22146
-sys/src/9/port/sysproc.c - 664 sys sys 1067722765 15396
+sys/src/9/port/sysproc.c - 664 sys sys 1123438659 15118
 sys/src/9/port/systab.h - 664 sys sys 1062721698 3044
 sys/src/9/port/taslock.c - 664 sys sys 1084475129 3658
 sys/src/9/port/thwack.c - 664 sys sys 1057323394 7253
@@ -8142,7 +8142,7 @@ sys/src/9/ppc/main.c - 664 sys sys 1097073343 9041
 sys/src/9/ppc/mcc.c - 664 sys sys 1059490752 9667
 sys/src/9/ppc/mem.h - 664 sys sys 1091021860 7002
 sys/src/9/ppc/mkfile - 664 sys sys 1067722849 1813
-sys/src/9/ppc/mmu.c - 664 sys sys 1111504133 4864
+sys/src/9/ppc/mmu.c - 664 sys sys 1123438210 4897
 sys/src/9/ppc/msaturn.c - 664 sys sys 1072705482 2801
 sys/src/9/ppc/msaturn.h - 664 sys sys 1059490753 99
 sys/src/9/ppc/mtx.c - 664 sys sys 1059490753 177
@@ -8994,7 +8994,7 @@ sys/src/boot/pc/etherec2t.c - 664 sys sys 1015007951 3598
 sys/src/boot/pc/etherelnk3.c - 664 sys sys 1034454878 44068
 sys/src/boot/pc/etherelnk3x.c - 664 sys sys 1015007951 24989
 sys/src/boot/pc/etherif.h - 664 sys sys 1107882190 1255
-sys/src/boot/pc/etherigbe.c - 664 sys sys 1115693946 40304
+sys/src/boot/pc/etherigbe.c - 664 sys sys 1123445062 40477
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
 sys/src/boot/pc/etherrhine.c - 664 sys sys 1071175087 12403
@@ -14956,4 +14956,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/gview - 775 sys sys 1123384234 238204

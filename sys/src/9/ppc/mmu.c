@@ -257,3 +257,5 @@ putmmu(ulong va, ulong pa, Page *pg)
 	}
 
 }
+
+void checkmmu(ulong, ulong) { }
