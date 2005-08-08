@@ -4,7 +4,7 @@
  *	82543GC	Intel PRO/1000 T
  *	82544EI Intel PRO/1000 XT
  *	82540EM Intel PRO/1000 MT
- *	82541GI
+ *	82541[GP]I
  *	82547GI
  *	82546GB
  *	82546EB
@@ -38,6 +38,7 @@ enum {
 	i82547gi   	= (0x1075<<16)|0x8086,
 	i82541gi   	= (0x1076<<16)|0x8086,
 	i82546gb   	= (0x1079<<16)|0x8086,
+	i82541pi	= (0x107c<<16)|0x8086,
 	i82546eb	= (0x1010<<16)|0x8086,
 };
 
@@ -828,6 +829,7 @@ igbelproc(void* arg)
 		case i82540eplp:
 		case i82547gi:
 		case i82541gi:
+		case i82541pi:
 			break;
 		}
 
@@ -877,6 +879,7 @@ igbetxinit(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82541gi:
+	case i82541pi:
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
@@ -916,6 +919,7 @@ igbetxinit(Ctlr* ctlr)
 	case i82546gb:
 	case i82546eb:
 	case i82541gi:
+	case i82541pi:
 		r = csr32r(ctlr, Txdctl);
 		r &= ~WthreshMASK;
 		r |= Gran|(4<<WthreshSHIFT);
@@ -1044,6 +1048,7 @@ igberxinit(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82541gi:
+	case i82541pi:
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
@@ -1438,6 +1443,7 @@ igbemii(Ctlr* ctlr)
 	case i82540eplp:
 	case i82547gi:
 	case i82541gi:
+	case i82541pi:
 	case i82546gb:
 	case i82546eb:
 		ctrl &= ~(Frcdplx|Frcspd);
@@ -1465,7 +1471,14 @@ igbemii(Ctlr* ctlr)
 	 * Set appropriate values then reset the PHY to have
 	 * changes noted.
 	 */
-	if (ctlr->id != i82547gi && ctlr->id != i82541gi && ctlr->id != i82546gb && ctlr->id != i82546eb) {
+	switch(ctlr->id){
+	case i82547gi:
+	case i82541gi:
+	case i82541pi:
+	case i82546gb:
+	case i82546eb:
+		break;
+	default:
 		r = miimir(ctlr->mii, 16);
 		r |= 0x0800;			/* assert CRS on Tx */
 		r |= 0x0060;			/* auto-crossover all speeds */
@@ -1485,7 +1498,7 @@ igbemii(Ctlr* ctlr)
 		if(ctlr->txcw & TxcwAs)
 			p |= AnaAP;
 		miiane(ctlr->mii, ~0, p, ~0);
-
+		break;
 	}
 	return 0;
 }
@@ -1592,6 +1605,7 @@ at93c46r(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82541gi:
+	case i82541pi:
 	case i82547gi:
 	case i82546gb:
 	case i82546eb:
@@ -1674,6 +1688,7 @@ igbedetach(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82541gi:
+	case i82541pi:
 	case i82547gi:
 	case i82546gb:
 	case i82546eb:
@@ -1843,6 +1858,7 @@ igbepci(void)
 		case i82540eplp:
 		case i82547gi:
 		case i82541gi:
+		case i82541pi:
 		case i82546gb:
 		case i82546eb:
 			break;

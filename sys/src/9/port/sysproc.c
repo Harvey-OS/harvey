@@ -11,31 +11,13 @@
 
 int	shargs(char*, int, char**);
 
-Ref sysr1ref;
+extern void checkpages(void);
 
 long
 sysr1(ulong *arg)
 {
-	long a;
-
-	a = *arg;
-	if(a > 0)
-		return incref(&sysr1ref);
-	if(a < 0)
-		return decref(&sysr1ref);
-	return sysr1ref.ref;
-
-/*
-	extern int chandebug;
-	extern void dumpmount(void);
-
-	print("[%s %s %lud] r1 = %lud\n", up->user, up->text, up->pid, arg[0]);
-	chandebug=!chandebug;
-	if(chandebug)
-		dumpmount();
-
+	checkpages();
 	return 0;
-*/
 }
 
 long

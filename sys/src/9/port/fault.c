@@ -383,3 +383,38 @@ seg(Proc *p, ulong addr, int dolock)
 
 	return 0;
 }
+
+extern void checkmmu(ulong, ulong);
+void
+checkpages(void)
+{
+	int checked;
+	ulong addr, off;
+	Pte *p;
+	Page *pg;
+	Segment **sp, **ep, *s;
+	
+	if(up == nil)
+		return;
+
+	checked = 0;
+	for(sp=up->seg, ep=&up->seg[NSEG]; sp<ep; sp++){
+		s = *sp;
+		if(s == nil)
+			continue;
+		qlock(&s->lk);
+		for(addr=s->base; addr<s->top; addr+=BY2PG){
+			off = addr - s->base;
+			p = s->map[off/PTEMAPMEM];
+			if(p == 0)
+				continue;
+			pg = p->pages[(off&(PTEMAPMEM-1))/BY2PG];
+			if(pg == 0 || pagedout(pg))
+				continue;
+			checkmmu(addr, pg->pa);
+			checked++;
+		}
+		qunlock(&s->lk);
+	}
+	print("%ld %s: checked %d page table entries\n", up->pid, up->text, checked);
+}

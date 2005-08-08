@@ -244,6 +244,29 @@ mmupdballoc(void)
 }
 
 void
+checkmmu(ulong va, ulong pa)
+{
+	ulong *pdb, *pte;
+	int pdbx;
+	
+	if(up->mmupdb == 0)
+		return;
+
+	pdb = (ulong*)up->mmupdb->va;
+	pdbx = PDX(va);
+	if(PPN(pdb[pdbx]) == 0){
+		/* okay to be empty - will fault and get filled */
+		return;
+	}
+	
+	pte = KADDR(PPN(pdb[pdbx]));
+	if((pte[PTX(va)]&~4095) != pa)
+		print("%d %s: va=0x%08ux pa=0x%08ux pte=0x%08ux\n",
+			up->pid, up->text,
+			va, pa, pte[PTX(va)]);
+}
+
+void
 putmmu(ulong va, ulong pa, Page*)
 {
 	int pdbx;
