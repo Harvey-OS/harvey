@@ -261,7 +261,7 @@ checkmmu(ulong va, ulong pa)
 	
 	pte = KADDR(PPN(pdb[pdbx]));
 	if((pte[PTX(va)]&~4095) != pa)
-		print("%d %s: va=0x%08ux pa=0x%08ux pte=0x%08ux\n",
+		print("%ld %s: va=0x%08lux pa=0x%08lux pte=0x%08lux\n",
 			up->pid, up->text,
 			va, pa, pte[PTX(va)]);
 }

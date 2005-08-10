@@ -369,6 +369,8 @@ squidboy(Apic* apic)
 	syncclock();
 	timersinit();
 
+	fpoff();
+
 	lock(&active);
 	active.machs |= 1<<m->machno;
 	unlock(&active);
