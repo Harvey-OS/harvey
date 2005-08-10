@@ -331,10 +331,10 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1116126321 149237
 386/bin/ndb/csquery - 775 sys sys 1115950095 61476
-386/bin/ndb/dns - 775 sys sys 1119496651 219934
-386/bin/ndb/dnsdebug - 775 sys sys 1119496652 194546
+386/bin/ndb/dns - 775 sys sys 1123643766 220090
+386/bin/ndb/dnsdebug - 775 sys sys 1123643767 194702
 386/bin/ndb/dnsquery - 775 sys sys 1120619354 63643
-386/bin/ndb/dnstcp - 775 sys sys 1119496652 193187
+386/bin/ndb/dnstcp - 775 sys sys 1123643767 193343
 386/bin/ndb/ipquery - 775 sys sys 1116126323 95480
 386/bin/ndb/mkdb - 775 sys sys 1115950097 63982
 386/bin/ndb/mkhash - 775 sys sys 1115950097 83917
@@ -7679,6 +7679,7 @@ sys/man/8/drawterm - 664 sys sys 958419689 2458
 sys/man/8/fossilcons - 664 sys sys 1087406046 17788
 sys/man/8/fs - 664 sys sys 1055701170 15029
 sys/man/8/fsconfig - 664 sys sys 1045501600 8142
+sys/man/8/gpsfs - 664 sys sys 1123643451 4924
 sys/man/8/httpd - 664 sys sys 1121198377 6675
 sys/man/8/init - 664 sys sys 944959679 1430
 sys/man/8/ipconfig - 664 sys sys 1116383710 6170
@@ -7968,7 +7969,7 @@ sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
 sys/src/9/pc/mmu.c - 664 sys sys 1123438210 10452
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
-sys/src/9/pc/mp.c - 664 sys sys 1084475127 17013
+sys/src/9/pc/mp.c - 664 sys sys 1123637234 17024
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1079575705 1367
@@ -12235,7 +12236,7 @@ sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248
 sys/src/cmd/ndb/cs.c - 664 sys sys 1104854491 33070
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
-sys/src/cmd/ndb/dblookup.c - 664 sys sys 1087406287 18127
+sys/src/cmd/ndb/dblookup.c - 664 sys sys 1123602793 18275
 sys/src/cmd/ndb/dn.c - 664 sys sys 1090409399 26970
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1121977162 2128
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1055701929 3062

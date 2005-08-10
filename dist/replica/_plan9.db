@@ -7968,7 +7968,7 @@ sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
 sys/src/9/pc/mmu.c - 664 sys sys 1123438210 10452
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
-sys/src/9/pc/mp.c - 664 sys sys 1084475127 17013
+sys/src/9/pc/mp.c - 664 sys sys 1123637234 17024
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1079575705 1367
@@ -12235,7 +12235,7 @@ sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248
 sys/src/cmd/ndb/cs.c - 664 sys sys 1104854491 33070
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
-sys/src/cmd/ndb/dblookup.c - 664 sys sys 1087406287 18127
+sys/src/cmd/ndb/dblookup.c - 664 sys sys 1123602793 18275
 sys/src/cmd/ndb/dn.c - 664 sys sys 1090409399 26970
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1121977162 2128
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1055701929 3062
@@ -14956,3 +14956,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/ndb/dns - 775 sys sys 1123643766 220090
+386/bin/ndb/dnsdebug - 775 sys sys 1123643767 194702
+386/bin/ndb/dnstcp - 775 sys sys 1123643767 193343
+sys/man/8/gpsfs - 664 sys sys 1123643451 4924

@@ -20757,3 +20757,9 @@
 1123439478 7 c sys/src/9/ppc/mmu.c - 664 sys sys 1123438210 4897
 1123446680 0 c sys/src/9/pc/etherigbe.c - 664 sys sys 1123445077 44186
 1123446680 1 c sys/src/boot/pc/etherigbe.c - 664 sys sys 1123445062 40477
+1123603314 0 c sys/src/cmd/ndb/dblookup.c - 664 sys sys 1123602793 18275
+1123637523 0 c sys/src/9/pc/mp.c - 664 sys sys 1123637234 17024
+1123644725 0 c 386/bin/ndb/dns - 775 sys sys 1123643766 220090
+1123644725 1 c 386/bin/ndb/dnsdebug - 775 sys sys 1123643767 194702
+1123644725 2 c 386/bin/ndb/dnstcp - 775 sys sys 1123643767 193343
+1123644725 3 a sys/man/8/gpsfs - 664 sys sys 1123643451 4924

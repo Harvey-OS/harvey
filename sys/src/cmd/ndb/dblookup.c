@@ -416,6 +416,12 @@ soarr(Ndbtuple *entry, Ndbtuple *pair)
 	rp->soa->retry = Hour;
 	rp->soa->expire = Day;
 	rp->soa->minttl = Day;
+	t = look(entry, pair, "retry");
+	if(t)
+		rp->soa->retry = atoi(t->val);
+	t = look(entry, pair, "expire");
+	if(t)
+		rp->soa->expire = atoi(t->val);
 	t = look(entry, pair, "ttl");
 	if(t)
 		rp->soa->minttl = atoi(t->val);
