@@ -353,6 +353,7 @@ ulong		userpc(void);
 long		userwrite(char*, int);
 void		validaddr(ulong, ulong, int);
 void		validname(char*, int);
+char*		validnamedup(char*, int);
 void		validstat(uchar*, int);
 void*		vmemchr(void*, int, int);
 Proc*		wakeup(Rendez*);

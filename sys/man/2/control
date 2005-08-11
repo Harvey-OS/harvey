@@ -1159,7 +1159,6 @@ Controls the left-right placement of the text in its rectangle.
 .BI reveal
 .TP
 .BI size " minx miny maxx maxy
-.TP
 Only the origin of the rectangle is significant; menus calculate the appropriate size.
 .TP
 .BI selectcolor " name

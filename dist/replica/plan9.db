@@ -184,7 +184,7 @@
 386/bin/con - 775 sys sys 1115950058 78211
 386/bin/cp - 775 sys sys 1115950058 63215
 386/bin/cpp - 775 sys sys 1116903731 149799
-386/bin/cpu - 775 sys sys 1121051350 138031
+386/bin/cpu - 775 sys sys 1123729447 138028
 386/bin/crop - 775 sys sys 1115950059 116008
 386/bin/date - 775 sys sys 1115950059 43261
 386/bin/db - 775 sys sys 1119496644 336326
@@ -320,7 +320,7 @@
 386/bin/ls - 775 sys sys 1119496651 82480
 386/bin/mc - 775 sys sys 1115950092 133620
 386/bin/md5sum - 775 sys sys 1115950092 61265
-386/bin/mk - 775 sys sys 1123123798 144048
+386/bin/mk - 775 sys sys 1123729447 144048
 386/bin/mkdir - 775 sys sys 1115950093 60964
 386/bin/mkpaqfs - 775 sys sys 1115950093 94509
 386/bin/mntgen - 775 sys sys 1115950094 139193
@@ -5763,7 +5763,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1121303903 254178
+sys/games/lib/fortunes - 664 sys sys 1123730222 254387
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7189,8 +7189,8 @@ sys/lib/wiki/page.html - 664 sys sys 1018580959 943
 sys/lib/wiki/page.txt - 664 sys sys 1018580959 12
 sys/lib/wiki/sandbox - 664 sys sys 1018580959 102
 sys/lib/wiki/werror.html - 664 sys sys 1018580959 1234
-sys/lib/yaccpar - 664 sys sys 944956052 4588
-sys/lib/yaccpars - 664 sys sys 1045432683 4596
+sys/lib/yaccpar - 664 sys sys 1123699615 4588
+sys/lib/yaccpars - 664 sys sys 1123699616 4596
 sys/log - 20000000775 sys sys 984760091 0
 sys/log/aan - 10000000666 sys sys 1019856844 0
 sys/log/auth - 10000000666 sys sys 959261821 0
@@ -7408,7 +7408,7 @@ sys/man/2/chdir - 664 sys sys 944959694 552
 sys/man/2/cleanname - 664 sys sys 950593488 709
 sys/man/2/color - 664 sys sys 944959697 1335
 sys/man/2/complete - 664 sys sys 1076276513 2396
-sys/man/2/control - 664 sys sys 1037465511 42782
+sys/man/2/control - 664 sys sys 1123676381 42778
 sys/man/2/cputime - 664 sys sys 1015091518 713
 sys/man/2/ctime - 664 sys sys 954378853 2547
 sys/man/2/ctype - 664 sys sys 1079535676 2611
@@ -7881,7 +7881,6 @@ sys/src/9/mtx/dat.h - 664 sys sys 1091904417 3874
 sys/src/9/mtx/devarch.c - 664 sys sys 1018721285 6793
 sys/src/9/mtx/devether.c - 664 sys sys 1116097786 9281
 sys/src/9/mtx/devrtc.c - 664 sys sys 1018721285 6772
-sys/src/9/mtx/errstr.h - 664 sys sys 1089390059 2137
 sys/src/9/mtx/ether2114x.c - 664 sys sys 1026848191 37904
 sys/src/9/mtx/etherif.h - 664 sys sys 1045504432 785
 sys/src/9/mtx/fns.h - 664 sys sys 1111851554 2722
@@ -7926,7 +7925,6 @@ sys/src/9/pc/devtv.c - 664 sys sys 1091734484 45725
 sys/src/9/pc/devusb.c - 664 sys sys 1105193103 18364
 sys/src/9/pc/devvga.c - 664 sys sys 1063857412 8714
 sys/src/9/pc/dma.c - 664 sys sys 1015014515 4736
-sys/src/9/pc/errstr.h - 664 sys sys 1119276286 2144
 sys/src/9/pc/ether2000.c - 664 sys sys 1089299187 4819
 sys/src/9/pc/ether2114x.c - 664 sys sys 1081706476 41545
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
@@ -7967,7 +7965,7 @@ sys/src/9/pc/main.c - 664 sys sys 1121858827 14693
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
-sys/src/9/pc/mmu.c - 664 sys sys 1123438210 10452
+sys/src/9/pc/mmu.c - 664 sys sys 1123645071 10456
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1123637234 17024
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
@@ -8034,10 +8032,10 @@ sys/src/9/pc/wavelan.h - 664 sys sys 1107448246 6169
 sys/src/9/port - 20000000775 sys sys 1018469625 0
 sys/src/9/port/alarm.c - 664 sys sys 1067722766 1426
 sys/src/9/port/alloc.c - 664 sys sys 1102093389 5645
-sys/src/9/port/allocb.c - 664 sys sys 1067722759 3200
-sys/src/9/port/auth.c - 664 sys sys 1055688251 2308
+sys/src/9/port/allocb.c - 664 sys sys 1123676437 3340
+sys/src/9/port/auth.c - 664 sys sys 1123647282 2392
 sys/src/9/port/cache.c - 664 sys sys 1055688274 9241
-sys/src/9/port/chan.c - 664 sys sys 1072704672 29140
+sys/src/9/port/chan.c - 664 sys sys 1123647283 29928
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1077896125 8247
@@ -8097,7 +8095,7 @@ sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
 sys/src/9/port/portclock.c - 664 sys sys 1102093397 4556
 sys/src/9/port/portdat.h - 664 sys sys 1109541435 22233
-sys/src/9/port/portfns.h - 664 sys sys 1111851541 10943
+sys/src/9/port/portfns.h - 664 sys sys 1123647283 10976
 sys/src/9/port/portmkfile - 664 sys sys 1109202242 2043
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1099760501 28207
@@ -8108,8 +8106,8 @@ sys/src/9/port/rebootcmd.c - 664 sys sys 1015278340 1561
 sys/src/9/port/sd.h - 664 sys sys 1098546338 2348
 sys/src/9/port/segment.c - 664 sys sys 1121259584 13761
 sys/src/9/port/swap.c - 664 sys sys 1055688551 6980
-sys/src/9/port/sysfile.c - 664 sys sys 1100363052 22146
-sys/src/9/port/sysproc.c - 664 sys sys 1123438659 15118
+sys/src/9/port/sysfile.c - 664 sys sys 1123647282 22249
+sys/src/9/port/sysproc.c - 664 sys sys 1123645064 15114
 sys/src/9/port/systab.h - 664 sys sys 1062721698 3044
 sys/src/9/port/taslock.c - 664 sys sys 1084475129 3658
 sys/src/9/port/thwack.c - 664 sys sys 1057323394 7253
@@ -8126,7 +8124,6 @@ sys/src/9/ppc/devether.c - 664 sys sys 1116097817 9264
 sys/src/9/ppc/devflash.c - 664 sys sys 1059490750 19885
 sys/src/9/ppc/devirq.c - 664 sys sys 1100701675 6314
 sys/src/9/ppc/devtls.c - 664 sys sys 1059490751 43721
-sys/src/9/ppc/errstr.h - 664 sys sys 1059490751 2137
 sys/src/9/ppc/etherfcc.c - 664 sys sys 1100701674 19690
 sys/src/9/ppc/etherif.h - 664 sys sys 1059490751 785
 sys/src/9/ppc/ethersaturn.c - 664 sys sys 1059490751 4321
@@ -9782,7 +9779,7 @@ sys/src/cmd/cpp/mkfile - 664 sys sys 944960879 178
 sys/src/cmd/cpp/nlist.c - 664 sys sys 1116770041 4645
 sys/src/cmd/cpp/test.c - 664 sys sys 944960879 47
 sys/src/cmd/cpp/tokens.c - 664 sys sys 944960879 6755
-sys/src/cmd/cpu.c - 664 sys sys 1121977158 21112
+sys/src/cmd/cpu.c - 664 sys sys 1123676384 21128
 sys/src/cmd/crop.c - 664 sys sys 1039753034 4136
 sys/src/cmd/date.c - 664 sys sys 944961351 449
 sys/src/cmd/db - 20000000775 sys sys 988249965 0
@@ -12204,7 +12201,7 @@ sys/src/cmd/mk/job.c - 664 sys sys 944961025 692
 sys/src/cmd/mk/lex.c - 664 sys sys 944961025 2315
 sys/src/cmd/mk/main.c - 664 sys sys 1123094366 4790
 sys/src/cmd/mk/match.c - 664 sys sys 1014926073 856
-sys/src/cmd/mk/mk.c - 664 sys sys 1014926073 5195
+sys/src/cmd/mk/mk.c - 664 sys sys 1123676387 5348
 sys/src/cmd/mk/mk.h - 664 sys sys 1055698812 3735
 sys/src/cmd/mk/mkconv - 775 sys sys 944961025 555
 sys/src/cmd/mk/mkfile - 664 sys sys 1055698812 376
