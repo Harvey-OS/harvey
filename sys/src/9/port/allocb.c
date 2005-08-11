@@ -76,19 +76,29 @@ Block*
 iallocb(int size)
 {
 	Block *b;
-	static int m1, m2;
+	static int m1, m2, mp;
 
 	if(ialloc.bytes > conf.ialloc){
-		if((m1++%10000)==0)
+		if((m1++%10000)==0){
+			if(mp++ > 1000){
+				active.exiting = 1;
+				exit(0);
+			}
 			iprint("iallocb: limited %lud/%lud\n",
 				ialloc.bytes, conf.ialloc);
-		return 0;
+		}
+		return nil;
 	}
 
 	if((b = _allocb(size)) == nil){
-		if((m2++%10000)==0)
+		if((m2++%10000)==0){
+			if(mp++ > 1000){
+				active.exiting = 1;
+				exit(0);
+			}
 			iprint("iallocb: no memory %lud/%lud\n",
 				ialloc.bytes, conf.ialloc);
+		}
 		return nil;
 	}
 	setmalloctag(b, getcallerpc(&size));

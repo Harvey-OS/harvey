@@ -1148,5 +1148,6 @@ lclnoteproc(int netfd)
 
 	if(w == nil)
 		exits(nil);
-	exits(w->msg);
+	exits(0);
+/*	exits(w->msg); */
 }

@@ -1029,13 +1029,19 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char
 		bogus.spec = spec;
 		if(waserror())
 			error(Ebadspec);
-		validname(spec, 1);
+		spec = validnamedup(spec, 1);
 		poperror();
+		
+		if(waserror()){
+			free(spec);
+			nexterror();
+		}
 
 		ret = devno('M', 0);
 		c0 = devtab[ret]->attach((char*)&bogus);
 
-		poperror();
+		poperror();	/* spec */
+		poperror();	/* ac bc */
 		if(ac)
 			cclose(ac);
 		cclose(bc);
