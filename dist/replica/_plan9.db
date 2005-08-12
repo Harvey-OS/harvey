@@ -184,7 +184,7 @@
 386/bin/con - 775 sys sys 1115950058 78211
 386/bin/cp - 775 sys sys 1115950058 63215
 386/bin/cpp - 775 sys sys 1116903731 149799
-386/bin/cpu - 775 sys sys 1121051350 138031
+386/bin/cpu - 775 sys sys 1123729447 138028
 386/bin/crop - 775 sys sys 1115950059 116008
 386/bin/date - 775 sys sys 1115950059 43261
 386/bin/db - 775 sys sys 1119496644 336326
@@ -320,7 +320,7 @@
 386/bin/ls - 775 sys sys 1119496651 82480
 386/bin/mc - 775 sys sys 1115950092 133620
 386/bin/md5sum - 775 sys sys 1115950092 61265
-386/bin/mk - 775 sys sys 1123123798 144048
+386/bin/mk - 775 sys sys 1123729447 144048
 386/bin/mkdir - 775 sys sys 1115950093 60964
 386/bin/mkpaqfs - 775 sys sys 1115950093 94509
 386/bin/mntgen - 775 sys sys 1115950094 139193
@@ -5763,7 +5763,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1121303903 254178
+sys/games/lib/fortunes - 664 sys sys 1123761247 254403
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -14954,6 +14954,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/cpu - 775 sys sys 1123729447 138028
-386/bin/mk - 775 sys sys 1123729447 144048
-sys/games/lib/fortunes - 664 sys sys 1123730222 254387
