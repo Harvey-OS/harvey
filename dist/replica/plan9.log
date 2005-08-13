@@ -20782,3 +20782,7 @@
 1123731145 1 c 386/bin/mk - 775 sys sys 1123729447 144048
 1123731145 2 c sys/games/lib/fortunes - 664 sys sys 1123730222 254387
 1123761752 0 c sys/games/lib/fortunes - 664 sys sys 1123761247 254403
+1123819365 0 c sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1123818679 1571
+1123819365 1 c sys/src/cmd/mkmany - 664 sys sys 1123818681 1304
+1123857174 0 c sys/lib/acid/port - 664 sys sys 1123856142 8902
+1123903865 0 c sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1123902339 1353

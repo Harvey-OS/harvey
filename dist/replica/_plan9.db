@@ -6060,7 +6060,7 @@ sys/lib/acid/leak - 664 sys sys 1110989276 2185
 sys/lib/acid/mips - 664 sys sys 944955985 5472
 sys/lib/acid/network - 664 sys sys 1020313817 2499
 sys/lib/acid/pool - 664 sys sys 1063858105 4898
-sys/lib/acid/port - 664 sys sys 1049580489 8902
+sys/lib/acid/port - 664 sys sys 1123856142 8902
 sys/lib/acid/power - 664 sys sys 969499633 3058
 sys/lib/acid/sparc - 664 sys sys 944955986 5339
 sys/lib/acid/sparc64 - 664 sys sys 1114524607 5441
@@ -11933,7 +11933,7 @@ sys/src/cmd/ip/httpd/imagemap.c - 664 sys sys 984773808 5229
 sys/src/cmd/ip/httpd/init.c - 664 sys sys 1015090171 2182
 sys/src/cmd/ip/httpd/log.c - 664 sys sys 1015090171 1391
 sys/src/cmd/ip/httpd/man2html.c - 664 sys sys 1121977160 8793
-sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1067742150 1406
+sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1123818679 1571
 sys/src/cmd/ip/httpd/netlib_find.c - 664 sys sys 1015090172 6247
 sys/src/cmd/ip/httpd/netlib_history.c - 664 sys sys 1121977160 4748
 sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1042522766 2978
@@ -12219,7 +12219,7 @@ sys/src/cmd/mk/word.c - 664 sys sys 944961025 2595
 sys/src/cmd/mkdir.c - 664 sys sys 1082593106 1026
 sys/src/cmd/mkfile - 664 sys sys 1108476348 2414
 sys/src/cmd/mklib - 664 sys sys 1101213349 618
-sys/src/cmd/mkmany - 664 sys sys 1110990445 1283
+sys/src/cmd/mkmany - 664 sys sys 1123818681 1304
 sys/src/cmd/mkone - 664 sys sys 1110990445 898
 sys/src/cmd/mksyslib - 664 sys sys 1022112160 660
 sys/src/cmd/mntgen.c - 664 sys sys 1106410349 3630
@@ -14954,3 +14954,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1123902339 1353
