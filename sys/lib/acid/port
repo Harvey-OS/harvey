@@ -250,13 +250,13 @@ defn src(addr)
 	line = cline-5;
 	loop 0,10 do {
 		if line >= 0 then {
+			text = src[line];
+			if text == {} then
+				return {};
 			if line == cline then
 				print(">");
 			else
 				print(" ");
-			text = src[line];
-			if text == {} then
-				return {};
 			print(line+1, "\t", text, "\n");
 		}
 		line = line+1;
