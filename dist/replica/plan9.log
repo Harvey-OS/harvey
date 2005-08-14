@@ -20786,3 +20786,5 @@
 1123819365 1 c sys/src/cmd/mkmany - 664 sys sys 1123818681 1304
 1123857174 0 c sys/lib/acid/port - 664 sys sys 1123856142 8902
 1123903865 0 c sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1123902339 1353
+1123945274 0 c sys/man/4/webfs - 664 sys sys 1123943673 6454
+1123945274 1 c sys/src/cmd/mkone - 664 sys sys 1123943673 910
