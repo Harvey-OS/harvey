@@ -123,7 +123,7 @@ The default is
 The top-level directory also contains
 numbered directories corresponding to connections, which
 may be used to fetch a single URL.
-To allocated a connection, open the
+To allocate a connection, open the
 .B clone
 file and read a number 
 .I n
