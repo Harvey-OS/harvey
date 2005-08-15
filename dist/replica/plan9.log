@@ -20788,3 +20788,5 @@
 1123903865 0 c sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1123902339 1353
 1123945274 0 c sys/man/4/webfs - 664 sys sys 1123943673 6454
 1123945274 1 c sys/src/cmd/mkone - 664 sys sys 1123943673 910
+1124028092 0 c sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1124027454 32708
+1124076703 0 c 386/bin/upas/marshal - 775 sys sys 1124075449 132904

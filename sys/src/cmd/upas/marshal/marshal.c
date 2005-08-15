@@ -42,6 +42,7 @@ enum {
 	Hmsgid,
 	Hcontent,
 	Hx,
+	Hprecedence,
 	Nhdr,
 };
 
@@ -65,6 +66,7 @@ char *hdrs[Nhdr] = {
 [Hmime]		"mime-",
 [Hcontent]	"content-",
 [Hx]		"x-",
+[Hprecedence]	"precedence",
 };
 
 struct Ctype {

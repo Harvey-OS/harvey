@@ -448,7 +448,7 @@
 386/bin/upas/fs - 775 sys sys 1121915493 332331
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1115950126 82776
-386/bin/upas/marshal - 775 sys sys 1116990555 132884
+386/bin/upas/marshal - 775 sys sys 1124075449 132904
 386/bin/upas/ml - 775 sys sys 1116990556 123786
 386/bin/upas/mlmgr - 775 sys sys 1116990556 104472
 386/bin/upas/mlowner - 775 sys sys 1115950127 92108
@@ -13333,7 +13333,7 @@ sys/src/cmd/upas/fs/readdir.c - 664 sys sys 944961331 203
 sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1041137528 1904
 sys/src/cmd/upas/fs/tester.c - 664 sys sys 985037420 1418
 sys/src/cmd/upas/marshal - 20000000775 sys sys 1015009721 0
-sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1121977165 32666
+sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1124027454 32708
 sys/src/cmd/upas/marshal/mkfile - 664 sys sys 1047490298 235
 sys/src/cmd/upas/misc - 20000000775 sys sys 944961318 0
 sys/src/cmd/upas/misc/gone.fishing - 664 sys sys 944961318 313
