@@ -20790,3 +20790,6 @@
 1123945274 1 c sys/src/cmd/mkone - 664 sys sys 1123943673 910
 1124028092 0 c sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1124027454 32708
 1124076703 0 c 386/bin/upas/marshal - 775 sys sys 1124075449 132904
+1124118112 0 a sys/lib/kbmap/dvorak - 664 sys sys 1124117871 1588
+1124118112 1 a sys/lib/kbmap/dvorakl - 664 sys sys 1124117871 1945
+1124118112 2 a sys/lib/kbmap/dvorakr - 664 sys sys 1124117871 1869
