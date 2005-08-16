@@ -6474,6 +6474,9 @@ sys/lib/kbmap/ascii - 664 sys sys 1082221421 6248
 sys/lib/kbmap/azerty - 664 sys sys 1079473812 735
 sys/lib/kbmap/bg - 664 sys sys 1106924292 561
 sys/lib/kbmap/de - 664 sys sys 1100894012 6265
+sys/lib/kbmap/dvorak - 664 sys sys 1124117871 1588
+sys/lib/kbmap/dvorakl - 664 sys sys 1124117871 1945
+sys/lib/kbmap/dvorakr - 664 sys sys 1124117871 1869
 sys/lib/kbmap/ee - 664 sys sys 1080222237 429
 sys/lib/kbmap/es - 664 sys sys 1079535430 1360
 sys/lib/kbmap/fi - 664 sys sys 1079617317 369

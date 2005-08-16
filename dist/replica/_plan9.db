@@ -448,7 +448,7 @@
 386/bin/upas/fs - 775 sys sys 1121915493 332331
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1115950126 82776
-386/bin/upas/marshal - 775 sys sys 1116990555 132884
+386/bin/upas/marshal - 775 sys sys 1124075449 132904
 386/bin/upas/ml - 775 sys sys 1116990556 123786
 386/bin/upas/mlmgr - 775 sys sys 1116990556 104472
 386/bin/upas/mlowner - 775 sys sys 1115950127 92108
@@ -6474,6 +6474,9 @@ sys/lib/kbmap/ascii - 664 sys sys 1082221421 6248
 sys/lib/kbmap/azerty - 664 sys sys 1079473812 735
 sys/lib/kbmap/bg - 664 sys sys 1106924292 561
 sys/lib/kbmap/de - 664 sys sys 1100894012 6265
+sys/lib/kbmap/dvorak - 664 sys sys 1124117871 1588
+sys/lib/kbmap/dvorakl - 664 sys sys 1124117871 1945
+sys/lib/kbmap/dvorakr - 664 sys sys 1124117871 1869
 sys/lib/kbmap/ee - 664 sys sys 1080222237 429
 sys/lib/kbmap/es - 664 sys sys 1079535430 1360
 sys/lib/kbmap/fi - 664 sys sys 1079617317 369
@@ -14954,4 +14957,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/upas/marshal - 775 sys sys 1124075449 132904
