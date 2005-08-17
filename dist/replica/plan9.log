@@ -20793,3 +20793,17 @@
 1124118112 0 a sys/lib/kbmap/dvorak - 664 sys sys 1124117871 1588
 1124118112 1 a sys/lib/kbmap/dvorakl - 664 sys sys 1124117871 1945
 1124118112 2 a sys/lib/kbmap/dvorakr - 664 sys sys 1124117871 1869
+1124229739 0 c sys/src/cmd/5i/5i.c - 664 sys sys 1124229121 4415
+1124229739 1 c sys/src/cmd/5i/arm.h - 664 sys sys 1124229121 3901
+1124229739 2 c sys/src/cmd/5i/mkfile - 664 sys sys 1124229121 265
+1124229739 3 c sys/src/cmd/5i/syscall.c - 664 sys sys 1124229122 13686
+1124229739 4 c sys/src/cmd/ki/ki.c - 664 sys sys 1124229139 8476
+1124229739 5 c sys/src/cmd/ki/mkfile - 664 sys sys 1124229139 278
+1124229739 6 c sys/src/cmd/ki/syscall.c - 664 sys sys 1124229139 14075
+1124229739 7 c sys/src/cmd/vi/mips.h - 664 sys sys 1124229127 4836
+1124229739 8 c sys/src/cmd/vi/mkfile - 664 sys sys 1124229127 289
+1124229739 9 c sys/src/cmd/vi/syscall.c - 664 sys sys 1124229128 14183
+1124229739 10 c sys/src/cmd/vi/vi.c - 664 sys sys 1124229128 8989
+1124229739 11 c sys/src/cmd/qi/mkfile - 664 sys sys 1124229161 298
+1124229739 12 c sys/src/cmd/qi/qi.c - 664 sys sys 1124229161 7867
+1124229739 13 c sys/src/cmd/qi/syscall.c - 664 sys sys 1124229161 14420
