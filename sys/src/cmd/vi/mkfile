@@ -16,5 +16,13 @@ OFILES=vi.$O\
 HFILES=mips.h\
 
 BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
 </sys/src/cmd/mkone
 
+acid:	
+	$CC -a run.c > acid.def

@@ -58,7 +58,7 @@ initmap()
 	s->end = t;
 	s->fileoff = fhdr.txtoff - fhdr.hdrsz;
 	s->fileend = s->fileoff + fhdr.txtsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
 
 	iprof = emalloc(((s->end-s->base)/PROFGRAN)*sizeof(long));
 	textbase = s->base;
@@ -70,19 +70,19 @@ initmap()
 	s->fileoff = fhdr.datoff;
 	s->fileend = s->fileoff + fhdr.datsz;
 	datasize = fhdr.datsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
 
 	s = &memory.seg[Bss];
 	s->type = Bss;
 	s->base = d;
 	s->end = d+(b-d);
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
 
 	s = &memory.seg[Stack];
 	s->type = Stack;
 	s->base = STACKTOP-STACKSIZE;
 	s->end = STACKTOP;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
 
 	reg.r[REGPC] = fhdr.entry;
 }
@@ -110,41 +110,6 @@ inithdr(int fd)
 	machdata = &armmach;
 }
 
-ulong
-greg(int f, ulong off)
-{
-	int n;
-	ulong l;
-	uchar wd[BY2WD];
-	
-	seek(f, off, 0);
-	n = read(f, wd, BY2WD);
-	if(n != BY2WD)
-		fatal(1, "read register");
-
-	l  = wd[0]<<24;
-	l |= wd[1]<<16;
-	l |= wd[2]<<8;
-	l |= wd[3];
-	return l;
-}
-
-void
-seginit(int fd, Segment *s, int idx, ulong vastart, ulong vaend)
-{
-	int n;
-
-	while(vastart < vaend) {
-		seek(fd, vastart, 0);
-		s->table[idx] = emalloc(BY2PG);
-		n = read(fd, s->table[idx], BY2PG);
-		if(n != BY2PG)
-			fatal(1, "data read");
-		vastart += BY2PG;
-		idx++;
-	}
-}
-
 void
 reset(void)
 {
@@ -156,7 +121,7 @@ reset(void)
 
 	for(i = 0; i > Nseg; i++) {
 		s = &memory.seg[i];
-		l = ((s->end-s->base)/BY2PG)*BY2WD;
+		l = ((s->end-s->base)/BY2PG)*sizeof(uchar*);
 		for(m = 0; m < l; m++)
 			if(s->table[m])
 				free(s->table[m]);

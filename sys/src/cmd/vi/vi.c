@@ -74,7 +74,7 @@ initmap()
 	s->end = t;
 	s->fileoff = fhdr.txtoff - fhdr.hdrsz;
 	s->fileend = s->fileoff + fhdr.txtsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
 
 	iprof = emalloc(((s->end-s->base)/PROFGRAN)*sizeof(long));
 	textbase = s->base;
@@ -86,19 +86,19 @@ initmap()
 	s->fileoff = fhdr.datoff;
 	s->fileend = s->fileoff + fhdr.datsz;
 	datasize = fhdr.datsz;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
 
 	s = &memory.seg[Bss];
 	s->type = Bss;
 	s->base = d;
 	s->end = d+(b-d);
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
 
 	s = &memory.seg[Stack];
 	s->type = Stack;
 	s->base = STACKTOP-STACKSIZE;
 	s->end = STACKTOP;
-	s->table = emalloc(((s->end-s->base)/BY2PG)*BY2WD);
+	s->table = emalloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
 
 	reg.pc = fhdr.entry;
 }
@@ -218,7 +218,7 @@ procinit(int pid)
 		s->base = vastart;
 		s->end = vaend;
 		free(s->table);
-		s->table = malloc(((s->end-s->base)/BY2PG)*BY2WD);
+		s->table = malloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
 	}
 	seginit(m, s, 0, vastart, vaend);
 	
@@ -233,7 +233,7 @@ procinit(int pid)
 		s->base = vastart;
 		s->end = vaend;
 		free(s->table);
-		s->table = malloc(((s->end-s->base)/BY2PG)*BY2WD);
+		s->table = malloc(((s->end-s->base)/BY2PG)*sizeof(uchar*));
 	}
 	seginit(m, s, 0, vastart, vaend);
 
@@ -274,7 +274,7 @@ reset(void)
 
 	for(i = 0; i > Nseg; i++) {
 		s = &memory.seg[i];
-		l = ((s->end-s->base)/BY2PG)*BY2WD;
+		l = ((s->end-s->base)/BY2PG)*sizeof(uchar*);
 		for(m = 0; m < l; m++)
 			if(s->table[m])
 				free(s->table[m]);

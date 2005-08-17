@@ -209,7 +209,7 @@ Extern		int trace;
 Extern 		int sysdbg;
 Extern 		int calltree;
 Extern		Inst itab[];
-Extern  	Inst ispec[];
+Extern		Inst ispec[];
 Extern		Icache icache;
 Extern		Tlb tlb;
 Extern		int count;

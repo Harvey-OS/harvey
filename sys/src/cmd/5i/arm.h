@@ -1,12 +1,6 @@
 /*
- * mipsim.h
+ * arm.h
  */
-#include "/mips/include/ureg.h"
-#define	USERADDR	0xC0000000
-#define	UREGADDR	(USERADDR+BY2PG-4-0xA0)
-#define USER_REG(x)	(UREGADDR+(ulong)(x))
-#define	REGOFF(x)	(USER_REG(&((struct Ureg *) 0)->x))
-
 #ifndef	EXTERN
 #define	EXTERN	extern
 #endif
