@@ -55,8 +55,8 @@ main(int argc, char *argv[])
 	char *s;
 
 	s = getenv("tabstop");
-	if(s!=nil && atoi(s)>0)
-		tabstop = atoi(s);
+	if(s!=nil && strtol(s,0,0)>0)
+		tabstop = strtol(s,0,0);
 	ARGBEGIN{
 	case 'v':
 		verbose = 1;
@@ -182,7 +182,7 @@ name(ulong pc)
 
 	if (findsym(pc, CTEXT, &s))
 		return(s.name);
-	sprint(buf, "#%lux", pc);
+	snprint(buf, sizeof(buf), "#%lux", pc);
 	return buf;
 }
 

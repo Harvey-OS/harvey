@@ -9547,7 +9547,7 @@ sys/src/cmd/aux/mnihongo/mkfile - 664 sys sys 944960789 95
 sys/src/cmd/aux/mnihongo/mnihongo.c - 664 sys sys 946759402 6406
 sys/src/cmd/aux/mnihongo/tmac.nihongo - 664 sys sys 944960789 22
 sys/src/cmd/aux/mouse.c - 664 sys sys 1063855425 7049
-sys/src/cmd/aux/ms2.c - 664 sys sys 1015008685 3129
+sys/src/cmd/aux/ms2.c - 664 sys sys 1124305056 3153
 sys/src/cmd/aux/msexceltables.c - 664 sys sys 1116594581 13722
 sys/src/cmd/aux/mswordstrings.c - 664 sys sys 952201344 5767
 sys/src/cmd/aux/na - 20000000775 sys sys 955036627 0
@@ -10019,7 +10019,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 664 sys sys 1110816880 3780
-sys/src/cmd/file.c - 664 sys sys 1113312632 23324
+sys/src/cmd/file.c - 664 sys sys 1124305142 23332
 sys/src/cmd/fmt.c - 664 sys sys 1070032009 4088
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
@@ -12603,7 +12603,7 @@ sys/src/cmd/postscript/trofftable/trofftable.rc - 664 sys sys 984789206 2637
 sys/src/cmd/postscript/trofftable/trofftable.sh - 664 sys sys 984789206 2613
 sys/src/cmd/pr.c - 664 sys sys 1050689592 11172
 sys/src/cmd/primes.c - 664 sys sys 944961351 2126
-sys/src/cmd/prof.c - 664 sys sys 1067718957 5521
+sys/src/cmd/prof.c - 664 sys sys 1124305301 5547
 sys/src/cmd/proof - 20000000775 sys sys 944961622 0
 sys/src/cmd/proof/font.c - 664 sys sys 944961621 8525
 sys/src/cmd/proof/htroff.c - 664 sys sys 955223407 10496
@@ -13002,7 +13002,7 @@ sys/src/cmd/time.c - 664 sys sys 1014926662 1546
 sys/src/cmd/tlsclient.c - 664 sys sys 1024375149 1631
 sys/src/cmd/tlssrv.c - 664 sys sys 1087829606 3411
 sys/src/cmd/touch.c - 664 sys sys 1099760670 899
-sys/src/cmd/tprof.c - 664 sys sys 1063858806 2716
+sys/src/cmd/tprof.c - 664 sys sys 1124305452 2731
 sys/src/cmd/tr.c - 664 sys sys 944961464 6008
 sys/src/cmd/trace.c - 664 sys sys 1121367076 17928
 sys/src/cmd/troff - 20000000775 sys sys 944961294 0
@@ -14957,3 +14957,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/file - 775 sys sys 1124335228 118879
+386/bin/prof - 775 sys sys 1124335228 107945
+386/bin/aux/ms2 - 775 sys sys 1124335228 85677
+386/bin/tprof - 775 sys sys 1124335229 290189

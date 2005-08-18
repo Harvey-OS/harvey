@@ -78,10 +78,11 @@ main(int argc, char *argv[])
 	/*
 	 * Read timing data
 	 */
-	sprint(file, "/proc/%s/profile", argv[1]);
+	file = smprint("/proc/%s/profile", argv[1]);
 	fd = open(file, OREAD);
 	if(fd < 0)
 		error(1, file);
+	free(file);
 	d = dirfstat(fd);
 	if(d == nil)
 		error(1, "stat");

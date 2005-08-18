@@ -1041,7 +1041,7 @@ depthof(char *s, int *newp)
 	if(s == es)
 		return -1;
 	if('0'<=*s && *s<='9')
-		return 1<<atoi(s);
+		return 1<<strtol(s, 0, 0);
 
 	*newp = 1;
 	d = 0;
