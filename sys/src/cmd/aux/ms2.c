@@ -3,9 +3,9 @@
 #include <bio.h>
 #include <mach.h>
 
-void	record(uchar*, int);
+void	record(uchar*, long);
 void	usage(void);
-void	segment(long, int);
+void	segment(vlong, vlong);
 
 enum
 {
@@ -17,7 +17,7 @@ int	supressend;
 int	binary;
 int	halfswap;
 int	srec = 2;
-ulong	addr;
+uvlong	addr;
 ulong 	psize = 4096;
 Biobuf 	stdout;
 Fhdr	exech;
@@ -27,7 +27,7 @@ void
 main(int argc, char **argv)
 {
 	Dir *dir;
-	ulong totsz;
+	uvlong totsz;
 
 	ARGBEGIN{
 	case 'd':
@@ -37,7 +37,7 @@ main(int argc, char **argv)
 		supressend++;
 		break;
 	case 'a':
-		addr = strtoul(ARGF(), 0, 0);
+		addr = strtoull(ARGF(), 0, 0);
 		break;
 	case 'p':
 		psize = strtoul(ARGF(), 0, 0);
@@ -91,7 +91,7 @@ main(int argc, char **argv)
 	}
 
 	totsz = exech.txtsz + exech.datsz + exech.bsssz;
-	fprint(2, "%s: %lud+%lud+%lud=%lud\n",
+	fprint(2, "%s: %lud+%lud+%lud=%llud\n",
 		exech.name, exech.txtsz, exech.datsz, exech.bsssz, totsz);
 
 	if(dsegonly)
@@ -120,9 +120,10 @@ main(int argc, char **argv)
 }
 
 void
-segment(long foff, int len)
+segment(vlong foff, vlong len)
 {
-	int l, n, i;
+	int i;
+	long l, n;
 	uchar t, buf[2*Recordsize];
 
 	Bseek(bio, foff, 0);
@@ -154,7 +155,7 @@ segment(long foff, int len)
 }
 
 void
-record(uchar *s, int l)
+record(uchar *s, long l)
 {
 	int i;
 	ulong cksum = 0;
@@ -162,20 +163,20 @@ record(uchar *s, int l)
 	switch(srec) {
 	case 1:
 		cksum = l+3;
-		Bprint(&stdout, "S1%.2X%.4luX", l+3, addr);
+		Bprint(&stdout, "S1%.2lX%.4lluX", l+3, addr);
 		cksum += addr&0xff;
 		cksum += (addr>>8)&0xff;
 		break;
 	case 2:
 		cksum = l+4;
-		Bprint(&stdout, "S2%.2X%.6luX", l+4, addr);
+		Bprint(&stdout, "S2%.2lX%.6lluX", l+4, addr);
 		cksum += addr&0xff;
 		cksum += (addr>>8)&0xff;
 		cksum += (addr>>16)&0xff;
 		break;
 	case 3:
 		cksum = l+5;
-		Bprint(&stdout, "S3%.2X%.8luX", l+5, addr);
+		Bprint(&stdout, "S3%.2lX%.8lluX", l+5, addr);
 		cksum += addr&0xff;
 		cksum += (addr>>8)&0xff;
 		cksum += (addr>>16)&0xff;
