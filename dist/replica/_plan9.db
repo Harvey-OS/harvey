@@ -117,7 +117,7 @@
 386/bin/aux/mklatinkbd - 775 sys sys 1115950043 64179
 386/bin/aux/mnihongo - 775 sys sys 1115950044 139321
 386/bin/aux/mouse - 775 sys sys 1115950044 44026
-386/bin/aux/ms2 - 775 sys sys 1119496642 84323
+386/bin/aux/ms2 - 775 sys sys 1124335228 85677
 386/bin/aux/msexceltables - 775 sys sys 1116644791 81249
 386/bin/aux/mswordstrings - 775 sys sys 1115950044 65317
 386/bin/aux/na - 775 sys sys 1115950045 154186
@@ -224,7 +224,7 @@
 386/bin/faces - 775 sys sys 1115950068 193388
 386/bin/factor - 775 sys sys 1115950068 61475
 386/bin/fcp - 775 sys sys 1115950068 82162
-386/bin/file - 775 sys sys 1119496646 118863
+386/bin/file - 775 sys sys 1124335228 118879
 386/bin/fmt - 775 sys sys 1115950069 65301
 386/bin/fortune - 775 sys sys 1115950069 67136
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -362,7 +362,7 @@
 386/bin/ppm - 775 sys sys 1115950104 149347
 386/bin/pr - 775 sys sys 1115950104 77408
 386/bin/primes - 775 sys sys 1115950104 38793
-386/bin/prof - 775 sys sys 1119496655 107123
+386/bin/prof - 775 sys sys 1124335228 107945
 386/bin/proof - 775 sys sys 1115950105 178410
 386/bin/ps - 775 sys sys 1119496655 67994
 386/bin/pwd - 775 sys sys 1115950105 36897
@@ -427,7 +427,7 @@
 386/bin/topng - 775 sys sys 1115950121 138328
 386/bin/toppm - 775 sys sys 1115950121 165150
 386/bin/touch - 775 sys sys 1115950122 63763
-386/bin/tprof - 775 sys sys 1119496661 289288
+386/bin/tprof - 775 sys sys 1124335229 290189
 386/bin/tr - 775 sys sys 1115950123 61851
 386/bin/trace - 775 sys sys 1123123799 180764
 386/bin/troff - 775 sys sys 1116990553 357750
@@ -14957,7 +14957,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/file - 775 sys sys 1124335228 118879
-386/bin/prof - 775 sys sys 1124335228 107945
-386/bin/aux/ms2 - 775 sys sys 1124335228 85677
-386/bin/tprof - 775 sys sys 1124335229 290189
