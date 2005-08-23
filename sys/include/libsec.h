@@ -339,6 +339,10 @@ typedef struct TLSconn{
 	int certlen, sessionIDlen;
 	int (*trace)(char*fmt, ...);
 	PEMChain *chain; // optional extra certificate evidence for servers to present
+	char *sessionType;
+	uchar *sessionKey;
+	int sessionKeylen;
+	char *sessionConst;
 } TLSconn;
 
 // tlshand.c

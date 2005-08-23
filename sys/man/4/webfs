@@ -158,7 +158,7 @@ or a relative URL such as
 The
 .B baseurl
 string variable sets the URL against which relative URLs
-are based.
+are interpreted.
 Once the URL has been set,
 its pieces can be retrieved via individual files in the
 .B parsed
@@ -292,12 +292,14 @@ does not conform to the cookie standard, RFC2109.
 It is assumed that when presenting the cookie to the server,
 it must be sent back in Netscape style as well.
 .PD
-.PP
+.SH EXAMPLE
+.B /sys/src/cmd/webfs/webget.c
+is a simple client.
 .SH SOURCE
 .B /sys/src/cmd/webfs
 .SH SEE ALSO
 .IR hget (1),
-.IR webcookies (4).
+.IR webcookies (4)
 .SH BUGS
 It's not clear what the relationship between
 .IR hget ,
