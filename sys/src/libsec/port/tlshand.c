@@ -118,7 +118,7 @@ typedef struct Msg{
 
 typedef struct TlsSec{
 	char *server;	// name of remote; nil for server
-	int ok;	// <0 killed; ==0 in progress; >0 reusable
+	int ok;	// <0 killed; == 0 in progress; >0 reusable
 	RSApub *rsapub;
 	AuthRpc *rpc;	// factotum for rsa private key
 	uchar sec[MasterSecretSize];	// master secret
@@ -357,6 +357,8 @@ tlsServer(int fd, TLSconn *conn)
 	conn->sessionIDlen = tls->sid->len;
 	conn->sessionID = emalloc(conn->sessionIDlen);
 	memcpy(conn->sessionID, tls->sid->data, conn->sessionIDlen);
+	if(conn->sessionKey != nil && conn->sessionType != nil && strcmp(conn->sessionType, "ttls") == 0)
+		tls->sec->prf(conn->sessionKey, conn->sessionKeylen, tls->sec->sec, MasterSecretSize, conn->sessionConst,  tls->sec->crandom, RandomSize, tls->sec->srandom, RandomSize);
 	tlsConnectionFree(tls);
 	return data;
 }
@@ -408,6 +410,8 @@ tlsClient(int fd, TLSconn *conn)
 	conn->sessionIDlen = tls->sid->len;
 	conn->sessionID = emalloc(conn->sessionIDlen);
 	memcpy(conn->sessionID, tls->sid->data, conn->sessionIDlen);
+	if(conn->sessionKey != nil && conn->sessionType != nil && strcmp(conn->sessionType, "ttls") == 0)
+		tls->sec->prf(conn->sessionKey, conn->sessionKeylen, tls->sec->sec, MasterSecretSize, conn->sessionConst,  tls->sec->crandom, RandomSize, tls->sec->srandom, RandomSize);
 	tlsConnectionFree(tls);
 	return data;
 }
@@ -1142,8 +1146,14 @@ msgRecv(TlsConnection *c, Msg *m)
 		nn = get24(p);
 		p += 3;
 		n -= 3;
+		/*
+		 * can't do this because it fails in 802.1x-TTLS
+		 * for unknown reasons.  maybe the other side generates
+		 * bogus data, or maybe we're just confused.
+		 *
 		if(nn == 0 || n != nn)
 			goto Short;
+		 */
 		/* cas */
 		i = 0;
 		while(n > 0) {

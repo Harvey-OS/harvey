@@ -23,18 +23,18 @@ typedef struct Col Col;
 typedef struct Row Row;
 
 struct Row {
-	Row *next;
-	int r;
-	Col *col;
+	Row *next;		// next row
+	int r;			// row number
+	Col *col;		// list of cols in row
 };
 
 struct Col {
-	Col *next;
-	int c;
-	int f;
-	int type;
-	union {
-		int index;
+	Col *next;		// next col in row
+	int c;			// col number
+	int f;			// index into formating table (Xf)
+	int type;		// type of value for union below
+	union {			// value
+		int index;	// index into string table (Strtab)
 		int error;
 		int bool;
 		char *label;
@@ -43,9 +43,9 @@ struct Col {
 };
 
 struct  Biff {
-	Biobuf *bp;
-	int op;
-	int len;
+	Biobuf *bp;		// input file
+	int op;			// current record type
+	int len;		// length of current record
 };
 
 // options
@@ -157,8 +157,9 @@ bifftime(double num)
 	long long t = num;
 
 	/* Beware - These epochs are wrong, this
-	 * is to remain compatible with Lotus-123
-	 * which believed 1900 was a leap year
+	 * is due to Excel still remaining compatible
+	 * with Lotus-123, which incorrectly believed 1900
+	 * was a leap year
 	 */
 	if (Datemode)
 		t -= 24107;		// epoch = 1/1/1904
@@ -191,14 +192,12 @@ numfmt(int fmt, int min, int max, double num)
 	}
 	else
 	if ((fmt >= 18 && fmt <= 21) || (fmt >= 45 && fmt <= 47)){
-
 		tm = bifftime(num);
 		snprint(buf, sizeof(buf),"%02d:%02d:%02d", tm->hour, tm->min, tm->sec);
 
 	}
 	else
 	if (fmt == 22){
-
 		tm = bifftime(num);
 		snprint(buf, sizeof(buf),"%02d:%02d:%02d %d-%s-%d",
 			tm->hour, tm->min, tm->sec,
@@ -225,10 +224,9 @@ dump(void)
 				min = 0;
 			max = -1;
 			if (Trunc && min > 2)
-				max = min -2;		// FIXME: -2 because of bug %q format ?
+				max = min -2;	// FIXME: -2 because of bug %q format ?
 
 			switch(c->type){
-
 			case Tnumber:
 				if (Xf[c->f] == 0)
 					Bprint(bo, "%-*.*g", min, max, c->number);
@@ -242,12 +240,12 @@ dump(void)
 				Bprint(bo, "%-*.*s", min, max, (c->bool)? "True": "False");
 				break;
 			case Tindex:
-				if (c->error < 0 || c->error >= Nstrtab)
+				if (c->index < 0 || c->index >= Nstrtab)
 					sysfatal("SST string out of range - corrupt file?\n");
 				Bprint(bo, "%-*.*q", min, max, Strtab[c->index]);
 				break;
 			case Terror:
-				if (c->error < 0 || c->error >= nelem(Errmsgs))
+				if (c->error < 0 || c->error >= nelem(Errmsgs) || !Errmsgs[c->error])
 					Bprint(bo, "#ERR=%d", c->index);
 				else
 					Bprint(bo, "%-*.*q", min, max, Errmsgs[c->error]);
@@ -458,11 +456,6 @@ gstr(Biff *b, int len_width)
 	while (1){
 		opt = gint(b, 1);
 		w = (opt & 1)? sizeof(Rune): sizeof(char);
-		/*
-		 * some people and compilers hate '?'
-		sz = (opt & 4)? gint(b, 4): 0;
-		rt = (opt & 8)? gint(b, 2): 0;
-		 */
 		if(opt & 4)
 			sz = gint(b,4);
 		else

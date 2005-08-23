@@ -30,7 +30,7 @@ all:V:
 		mk 'CONF='$i
 
 clean:V:
-	rm -f *.[$OS] *.root.s *.rootc.c cfs.h fs.h init.h conf.h *.out *.m
+	rm -f *.[$OS] *.root.s *.rootc.c cfs.h fs.h init.h conf.h *.out *.m errstr.h
 	for(i in $CONFLIST)
 		mk $i.clean
 

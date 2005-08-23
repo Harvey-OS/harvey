@@ -92,10 +92,14 @@ points to a (caller-allocated) struct
    typedef struct TLSconn{
       char dir[40];     // OUT    connection directory
       uchar *cert;      // IN/OUT certificate
-      uchar *sessionID; // IN/OUT sessionID
+      uchar *sessionID; // IN/OUT session ID
       int certlen, sessionIDlen;
       void (*trace)(char*fmt, ...);
       PEMChain *chain;
+      char *sessionType;  // opt IN  session type
+      uchar *sessionKey;  // opt IN/OUT session key
+      int sessionKeylen;  // opt IN  session key length
+      char *sessionConst; // opt IN  session constant
    } TLSconn;
 .EE
 defined in
@@ -115,42 +119,48 @@ is freed and a freshly allocated copy of the remote's certificate
 is returned in
 .IR conn ,
 to be checked by the caller
-according to its needs.  One mechanism is supplied by
+according to its needs.
+One way to check the remote certificate is to use
 .I initThumbprints
 and
 .I freeThumbprints
 which allocate and free, respectively, a table of hashes
 from files of known trusted and revoked certificates.
 .I okThumbprint
-confirms that a particular hash is in the table, as computed by
+confirms that a particular hash is in the table.
 .PP
-.EX
-   uchar hash[SHA1dlen];
-   conn = (TLSconn*)mallocz(sizeof *conn, 1);
-   fd = tlsClient(fd, conn);
-   sha1(conn->cert, conn->certlen, hash, nil);
-   if(!okThumbprint(hash,table))
-      exits("suspect server");
-   ...application begins...
-.EE
+.I TlsClient
+will optionally compute a session key for use
+by higher-level protocols.
+To compute a session key, the caller must set
+.I sessionType
+to a known session type;
+.I sessionKeylen
+to the desired key length;
+.I sessionKey
+to a buffer of length
+.IR sessionKeylen ;
+and
+.I sessionConst
+to the desired salting constant.
+The only supported session type is
+.BR ttls ,
+as used by 802.1x.
 .PP
-Call
-.I tlsServer
-to perform the corresponding function on the server side:
-.PP
-.EX
-   fd = accept(lcfd, ldir);
-   conn = (TLSconn*)mallocz(sizeof *conn, 1);
-   conn->cert = readcert("cert.pem", &conn->certlen);
-   fd = tlsServer(fd, conn);
-   ...application begins...
-.EE
+.I TlsServer
+executes the server side of the handshake.
+The caller must initialize
+.IB conn ->cert \fR,
+usually by calling
+.I readcert
+to read the certificate out of a file.
 The private key corresponding to
 .I cert.pem
 should have been previously loaded into factotum.
 (See
 .IR rsa (8)
 for more about key generation.)
+
 By setting
 .EX
    conn->chain = readcertchain("intermediate-certs.pem");
@@ -162,6 +172,28 @@ known to the client.
 .I Conn
 is not required for the ongoing conversation and may
 be freed by the application whenever convenient.
+.SH EXAMPLES
+Start the client half of TLS and check the remote certificate:
+.PP
+.EX
+    uchar hash[SHA1dlen];
+    conn = (TLSconn*)mallocz(sizeof *conn, 1);
+    fd = tlsClient(fd, conn);
+    sha1(conn->cert, conn->certlen, hash, nil);
+    if(!okThumbprint(hash,table))
+        exits("suspect server");
+    \fI...application begins...\fP
+.EE
+.PP
+Run the server side:
+.PP
+.EX
+    fd = accept(lcfd, ldir);
+    conn = (TLSconn*)mallocz(sizeof *conn, 1);
+    conn->cert = readcert("cert.pem", &conn->certlen);
+    fd = tlsServer(fd, conn);
+    \fI...application begins...\fP
+.EE
 .SH FILES
 .TP 
 .B /sys/lib/tls

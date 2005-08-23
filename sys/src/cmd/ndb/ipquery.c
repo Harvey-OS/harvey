@@ -18,13 +18,13 @@ usage(void)
 void
 search(Ndb *db, char *attr, char *val, char **rattr, int nrattr)
 {
-	Ndbtuple *t;
+	Ndbtuple *t, *tt;
 
-	t = ndbipinfo(db, attr, val, rattr, nrattr);
-	for(; t; t = t->entry)
+	tt = ndbipinfo(db, attr, val, rattr, nrattr);
+	for(t = tt; t; t = t->entry)
 		print("%s=%s ", t->attr, t->val);
 	print("\n");
-	ndbfree(t);
+	ndbfree(tt);
 }
 
 void
