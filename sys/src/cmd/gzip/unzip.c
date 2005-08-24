@@ -46,6 +46,7 @@ static	char	**want;
 static	int	wbad;
 static	ulong	wlen;
 static	jmp_buf	zjmp;
+static	jmp_buf	seekjmp;
 
 static void
 usage(void)
@@ -111,6 +112,12 @@ main(int argc, char *argv[])
 		if(fd < 0)
 			sysfatal("can't open %s: %r", zfile);
 		Binit(&bin, fd, OREAD);
+	}
+
+	if(setjmp(seekjmp)){
+		fprint(2, "trying to re-run assuming -s\n");
+		stream = 1;
+		Bseek(&bin, 0, 0);
 	}
 
 	if(table){
@@ -471,19 +478,21 @@ static int
 findCDir(Biobuf *bin, char *file)
 {
 	vlong ecoff;
-	long off, size;
+	long off, size, m;
 	int entries, zclen, dn, ds, de;
 
 	ecoff = Bseek(bin, -ZECHeadSize, 2);
 	if(ecoff < 0){
-		fprint(2, "unzip: can't seek to contents of %s; try adding -s\n", file);
+		fprint(2, "unzip: can't seek to contents of %s\n", file);
+		longjmp(seekjmp, 1);
 		return -1;
 	}
 	if(setjmp(zjmp))
 		return -1;
 
-	if(get4(bin) != ZECHeader){
-		fprint(2, "unzip: bad magic number for contents of %s\n", file);
+	if((m=get4(bin)) != ZECHeader){
+		fprint(2, "unzip: bad magic number for table of contents of %s: %#.8lx\n", file, m);
+		longjmp(seekjmp, 1);
 		return -1;
 	}
 	dn = get2(bin);
@@ -506,6 +515,7 @@ findCDir(Biobuf *bin, char *file)
 
 	if(Bseek(bin, off, 0) != off){
 		fprint(2, "unzip: can't seek to start of contents of %s\n", file);
+		longjmp(seekjmp, 1);
 		return -1;
 	}
 
