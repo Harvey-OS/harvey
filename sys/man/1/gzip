@@ -158,3 +158,10 @@ can only extract files which are uncompressed or compressed
 with the
 .B deflate
 compression scheme.  Recent zip files fall into this category.
+Very recent zip files may have tables of contents that 
+.I unzip
+cannot read.  Such files are still readable by invoking
+.I unzip
+with the
+.B -s
+option.
