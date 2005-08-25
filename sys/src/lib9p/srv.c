@@ -724,6 +724,16 @@ srv(Srv *srv)
 		}
 	}
 
+	free(srv->rbuf);
+	srv->rbuf = nil;
+	free(srv->wbuf);
+	srv->wbuf = nil;
+	srv->msize = 0;
+	freefidpool(srv->fpool);
+	srv->fpool = nil;
+	freereqpool(srv->rpool);
+	srv->rpool = nil;
+
 	if(srv->end)
 		srv->end(srv);
 }

@@ -1154,6 +1154,7 @@ msgRecv(TlsConnection *c, Msg *m)
 		if(nn == 0 || n != nn)
 			goto Short;
 		 */
+		USED(nn);
 		/* cas */
 		i = 0;
 		while(n > 0) {

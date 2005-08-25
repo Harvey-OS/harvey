@@ -175,10 +175,15 @@ to any related filenames.
 .B /sys/lib/mimetype
 contains the list of known MIME content types and file extensions.
 .I Vf
-wraps all those for which the fifth field of
+considers all those for which the fifth field of
 .B mimetype
 is
 .BR n .
+If the script
+.B /mail/lib/validateattachment
+exists and is executable, each attachment
+is passed, as a mail message, to the script
+for further examination.
 .SH FILES
 .TF /mail/box/*/dead.letter
 .TP
@@ -187,6 +192,9 @@ mail filter
 .TP
 .B /sys/lib/mimetype
 mime content types
+.TP
+.B /mail/lib/validateattachment
+attachment checker
 .SH SOURCE
 .TP
 .B /sys/src/cmd/upas/send

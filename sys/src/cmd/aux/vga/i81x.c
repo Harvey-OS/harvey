@@ -106,7 +106,7 @@ static void
 i81xdclk(I81x *i81x, Vga *vga)		/* freq = MHz */
 {
 	int m, n, post, mtp, ntp;
-	double md, freq, error=1.0;
+	double md, freq, error;
 
 	freq = vga->mode->deffrequency/1000000.0;
 	post = log(600.0/freq)/log(2.0);
