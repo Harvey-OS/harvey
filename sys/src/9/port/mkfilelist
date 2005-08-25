@@ -4,7 +4,10 @@ rfork e
 switch($#*){
 case 1
 	RE=`{echo *.c | sed 's/ /|/g; s/.*/^(&)$/'}
-	LIST=`{builtin cd $1; ls *.c | grep -v ''$RE''}
+	if(~ $RE '^(*.c)$')
+		LIST=`{builtin cd $1; ls *.c }
+	if not
+		LIST=`{builtin cd $1; ls *.c | grep -v ''$RE''}
 	echo $LIST | sed 's/\.c//g; s/ +/|/g'
 case *
 	exit 'usage'

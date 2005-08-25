@@ -32,12 +32,12 @@ static Part*	problemchild(Part *p);
 static void	readheader(Part *p);
 static Hline*	readhl(void);
 static void	readmtypes(void);
-static void	save(Part *p);
+static int	save(Part *p, char *file);
 static void	setfilename(Part *p, char *name);
 static char*	skiptosemi(char *p);
 static char*	skipwhite(char *p);
 static String*	tokenconvert(String *t);
-static void	writeheader(Part *p);
+static void	writeheader(Part *p, int);
 
 enum
 {
@@ -70,7 +70,8 @@ struct Part
 	int	blen;
 	String	*charset;	/* character set */
 	String	*type;		/* content type */
-	String	*filename;	/* content type */
+	String	*filename;	/* file name */
+	Biobuf	*tmpbuf;		/* diversion input buffer */
 };
 
 /*
@@ -144,6 +145,14 @@ main(int argc, char **argv)
 	exits(0);
 }
 
+void
+refuse(void)
+{
+	postnote(PNGROUP, getpid(), "mail refused: we don't accept executable attachments");
+	exits("mail refused: we don't accept executable attachments");
+}
+
+
 /*
  *  parse a part; returns the ancestor whose boundary terminated
  *  this part or nil on EOF.
@@ -167,7 +176,7 @@ part(Part *pp)
 		 *   boundary
 		 *   ...
 		 */
-		writeheader(p);
+		writeheader(p, 1);
 		np = passbody(p, 1);
 		if(np != p)
 			return np;
@@ -185,29 +194,31 @@ part(Part *pp)
 			 *   header
 			 *   body
 			 */
-			writeheader(p);
+			writeheader(p, 1);
 			passnotheader();
 			return part(p);
 		} else {
-			/* This is the meat.  This may be an executable.
+			/* 
+			 * This is the meat.  This may be an executable.
 			 * if so, wrap it and change its type
 			 */
 			if(p->badtype || p->badfile){
 				if(p->badfile == 2){
 					if(savefile != nil)
-						save(p);
+						save(p, savefile);
 					syslog(0, "vf", "vf rejected %s %s", p->type?s_to_c(p->type):"?",
 						p->filename?s_to_c(p->filename):"?");
 					fprint(2, "The mail contained an executable attachment.\n");
 					fprint(2, "We refuse all mail containing such.\n");
-					postnote(PNGROUP, getpid(), "mail refused: we don't accept executable attachments");
-					exits("mail refused: we don't accept executable attachments");
+					refuse();
 				}
-				return problemchild(p);
-			} else {
-				writeheader(p);
-				return passbody(p, 1);
+				np = problemchild(p);
+				if(np != p)
+					return np;
+				/* if problemchild returns p, it turns out p is okay: fall thru */
 			}
+			writeheader(p, 1);
+			return passbody(p, 1);
 		}
 	}
 }
@@ -279,17 +290,20 @@ readhl(void)
  *  write out a complete header
  */
 static void
-writeheader(Part *p)
+writeheader(Part *p, int xfree)
 {
 	Hline *hl, *next;
 
 	for(hl = p->hl; hl != nil; hl = next){
 		Bprint(&out, "%s", s_to_c(hl->s));
-		s_free(hl->s);
+		if(xfree)
+			s_free(hl->s);
 		next = hl->next;
-		free(hl);
+		if(xfree)
+			free(hl);
 	}
-	p->hl = nil;
+	if(xfree)
+		p->hl = nil;
 }
 
 /*
@@ -301,22 +315,35 @@ static Part*
 passbody(Part *p, int dobound)
 {
 	Part *pp;
+	Biobuf *b;
 	char *cp;
 
 	for(;;){
-		cp = Brdline(&in, '\n');
+		if(p->tmpbuf){
+			b = p->tmpbuf;
+			cp = Brdline(b, '\n');
+			if(cp == nil){
+				Bterm(b);
+				p->tmpbuf = nil;
+				goto Stdin;
+			}
+		}else{
+		Stdin:
+			b = &in;
+			cp = Brdline(b, '\n');
+		}
 		if(cp == nil)
 			return nil;
 		for(pp = p; pp != nil; pp = pp->pp)
 			if(pp->boundary != nil
 			&& strncmp(cp, s_to_c(pp->boundary), pp->blen) == 0){
 				if(dobound)
-					Bwrite(&out, cp, Blinelen(&in));
+					Bwrite(&out, cp, Blinelen(b));
 				else
-					Bseek(&in, -Blinelen(&in), 1);
+					Bseek(b, -Blinelen(b), 1);
 				return pp;
 			}
-		Bwrite(&out, cp, Blinelen(&in));
+		Bwrite(&out, cp, Blinelen(b));
 	}
 	return nil;
 }
@@ -324,8 +351,9 @@ passbody(Part *p, int dobound)
 /*
  *  save the message somewhere
  */
-static void
-save(Part *p)
+static vlong bodyoff;	/* clumsy hack */
+static int
+save(Part *p, char *file)
 {
 	int fd;
 	char *cp;
@@ -333,19 +361,108 @@ save(Part *p)
 	Bterm(&out);
 	memset(&out, 0, sizeof(out));
 
-	fd = open(savefile, OWRITE);
+	fd = open(file, OWRITE);
 	if(fd < 0)
-		return;
+		return -1;
 	seek(fd, 0, 2);
 	Binit(&out, fd, OWRITE);
 	cp = ctime(time(0));
 	cp[28] = 0;
 	Bprint(&out, "From virusfilter %s\n", cp);
-	writeheader(p);
+	writeheader(p, 0);
+	bodyoff = Boffset(&out);
 	passbody(p, 1);
 	Bprint(&out, "\n");
 	Bterm(&out);
 	close(fd);
+	
+	memset(&out, 0, sizeof out);
+	Binit(&out, 1, OWRITE);
+	return 0;
+}
+
+/*
+ * write to a file but save the fd for passbody.
+ */
+static char*
+savetmp(Part *p)
+{
+	char buf[40], *name;
+	int fd;
+	
+	strcpy(buf, "/tmp/vf.XXXXXXXXXXX");
+	name = mktemp(buf);
+	if((fd = create(name, OWRITE|OEXCL, 0666)) < 0){
+		fprint(2, "error creating temporary file: %r\n");
+		refuse();
+	}
+	close(fd);
+	if(save(p, name) < 0){
+		fprint(2, "error saving temporary file: %r\n");
+		refuse();
+	}
+	if(p->tmpbuf){
+		fprint(2, "error in savetmp: already have tmp file!\n");
+		refuse();
+	}
+	p->tmpbuf = Bopen(name, OREAD|ORCLOSE);
+	if(p->tmpbuf == nil){
+		fprint(2, "error reading tempoary file: %r\n");
+		refuse();
+	}
+	Bseek(p->tmpbuf, bodyoff, 0);
+	return strdup(name);
+}
+
+/*
+ * XXX save the decoded file, run 9 unzip -tf on it, and then
+ * look at the file list.
+ */
+static int
+runchecker(Part *p)
+{
+	int pid;
+	char *name;
+	Waitmsg *w;
+	
+	if(access("/mail/lib/validateattachment", AEXEC) < 0)
+		return 0;
+	
+	name = savetmp(p);
+	fprint(2, "run checker %s\n", name);
+	switch(pid = fork()){
+	case -1:
+		sysfatal("fork: %r");
+	case 0:
+		dup(2, 1);
+		execl("/mail/lib/validateattachment", "validateattachment", name, nil);
+		_exits("exec failed");
+	}
+
+	/*
+	 * Okay to return on error - will let mail through but wrapped.
+	 */
+	w = wait();
+	if(w == nil){
+		syslog(0, "mail", "vf wait failed: %r");
+		return 0;
+	}
+	if(w->pid != pid){
+		syslog(0, "mail", "vf wrong pid %d != %d", w->pid, pid);
+		return 0;
+	}
+	if(p->filename)
+		name = s_to_c(p->filename);
+	if(strstr(w->msg, "discard")){
+		syslog(0, "mail", "vf validateattachment rejected %s", name);
+		refuse();
+	}
+	if(strstr(w->msg, "accept")){
+		syslog(0, "mail", "vf validateattachment accepted %s", name);
+		return 1;
+	}
+	free(w);
+	return 0;
 }
 
 /*
@@ -359,17 +476,27 @@ problemchild(Part *p)
 	String *boundary;
 	char *cp;
 
+	/*
+	 * We don't know whether the attachment is okay.
+	 * If there's an external checker, let it have a crack at it.
+	 */
+	if(runchecker(p) > 0)
+		return p;
+
+fprint(2, "x\n");
 	syslog(0, "mail", "vf wrapped %s %s", p->type?s_to_c(p->type):"?",
 		p->filename?s_to_c(p->filename):"?");
+fprint(2, "x\n");
 
 	boundary = mkboundary();
-
+fprint(2, "x\n");
 	/* print out non-mime headers */
 	for(hl = p->hl; hl != nil; hl = hl->next)
 		if(cistrncmp(s_to_c(hl->s), "content-", 8) != 0)
 			Bprint(&out, "%s", s_to_c(hl->s));
 
-	/* add in out own multipart headers and message */
+fprint(2, "x\n");
+	/* add in our own multipart headers and message */
 	Bprint(&out, "Content-Type: multipart/mixed;\n");
 	Bprint(&out, "\tboundary=\"%s\"\n", s_to_c(boundary));
 	Bprint(&out, "Content-Disposition: inline\n");
@@ -412,16 +539,19 @@ problemchild(Part *p)
 		break;
 	}
 
+fprint(2, "z\n");
 	/* pass the body */
 	np = passbody(p, 0);
 
+fprint(2, "w\n");
 	/* add the new boundary and the original terminator */
 	Bprint(&out, "--%s--\n", s_to_c(boundary));
 	if(np && np->boundary){
 		cp = Brdline(&in, '\n');
 		Bwrite(&out, cp, Blinelen(&in));
 	}
-	
+
+fprint(2, "a %p\n", np);
 	return np;
 }
 

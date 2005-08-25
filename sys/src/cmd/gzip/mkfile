@@ -10,6 +10,6 @@ TARG=\
 	zip\
 	unzip\
 
-BIN=/$objtype/bin/
+BIN=/$objtype/bin
 
 </sys/src/cmd/mkmany

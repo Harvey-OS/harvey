@@ -1,0 +1,43 @@
+#!/bin/rc
+
+# exit status matching:
+#
+#	*discard* - is really bad, refuse the message 
+#	*accept* - is really good, leave attachment alone
+#	* - rewrite attachment to have .suspect extension
+# 
+
+if(! ~ $#* 1){
+	echo usage: validateattachment mboxfile >[1=2]
+	exit usage
+}
+
+echo validating >[1=2]
+
+upas/fs -f $1
+cd /mail/fs/mbox/1
+
+x=`{file body}
+x=$"x
+switch($x){
+case *Ascii* *text* *'c program'* *'rc executable'* 
+	exit accept
+
+case *'zip archive'*
+	if(unzip -tsf body | grep -si '      |\.(scr|exe|pif|bat|com)$'){
+		echo executables inside zip file!
+		exit discard
+	}
+
+case *Microsoft* *Office*
+	exit wrap
+
+case *MSDOS*
+	# no executables
+	echo $x
+	exit discard
+}
+
+exit wrap
+
+

@@ -1653,6 +1653,7 @@ ndbconfig(void)
 int
 addoption(char *opt)
 {
+	int i;
 	Option *o;
 
 	if(opt == nil)
@@ -1661,9 +1662,10 @@ addoption(char *opt)
 		if(o->name == nil)
 			continue;
 		if(strcmp(opt, o->name) == 0){
-			if(!memchr(requested, (int)opt, nrequested))
+			i = o-option;
+			if(!memchr(requested, i, nrequested))
 				if(nrequested < nelem(requested))
-					requested[nrequested++] = o-option;
+					requested[nrequested++] = i;
 			return 0;
 		}
 	}
