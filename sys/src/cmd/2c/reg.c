@@ -632,9 +632,9 @@ mkvar(Adr *a, int as)
 	v->etype = a->etype;
 	v->type = t;
 	if(debug['R'])
-		print("bit=%2d et=%2d %s (%d,%d,%ld)\n",
+		print("bit=%2d et=%2d %s (%p,%d,%ld)\n",
 			i, a->etype, s->name,
-			(int)v->sym, v->type, v->offset);
+			v->sym, v->type, v->offset);
 
 out:
 	bit = blsh(i);
