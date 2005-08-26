@@ -59,17 +59,15 @@ extern struct cmdtab{
 
 #define	INCR	25	/* delta when growing list */
 
-struct List	/* code depends on a long being able to hold a pointer */
+struct List
 {
 	int	nalloc;
 	int	nused;
 	union{
 		void	*listptr;
-		Block	*blkptr;
-		long	*longptr;
+		void*	*ptr;
 		uchar*	*ucharptr;
 		String*	*stringptr;
-		File*	*fileptr;
 	};
 };
 
@@ -90,7 +88,7 @@ int	x_cmd(Text*, Cmd*), X_cmd(Text*, Cmd*), pipe_cmd(Text*, Cmd*);
 int	eq_cmd(Text*, Cmd*);
 
 String	*allocstring(int);
-void		freestring(String*);
+void	freestring(String*);
 String	*getregexp(int);
 Addr	*newaddr(void);
 Address	cmdaddress(Addr*, Address, int);

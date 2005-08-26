@@ -14,6 +14,7 @@ mkwtxt(int type, char *text)
 	w = emalloc(sizeof(*w));
 	w->type = type;
 	w->text = text;
+	setmalloctag(w, getcallerpc(&type));
 	return w;
 }
 
@@ -100,6 +101,7 @@ mklink(char *s)
 		w = mkwtxt(Wlink, estrdup(strcondense(s, 1)));
 		w->url = estrdup(strcondense(q+1, 1));
 	}
+	setmalloctag(w, getcallerpc(&s));
 	return w;
 }
 
@@ -176,6 +178,7 @@ findmanref(char *p, char **beginp, char **endp)
 		*q = '(';
 		w->section = q[1]-'0';
 		*endp = q+3;
+		setmalloctag(w, getcallerpc(&p));
 		return w;
 	}
 	return nil;
@@ -289,6 +292,7 @@ Brdpage(char *(*rdline)(void*,int), void *b)
 	w = wcondense(w);
 	w = wlink(w);
 	w = wman(w);
+	setmalloctag(w, getcallerpc(&rdline));
 
 	return w;		
 }

@@ -87,7 +87,7 @@ qidfile(uvlong path)
 
 typedef struct Aux Aux;
 struct Aux {
-	char *name;
+	String *name;
 	Whist *w;
 	int n;
 	ulong t;
@@ -107,7 +107,7 @@ fsattach(Req *r)
 
 	a = emalloc(sizeof(Aux));
 	r->fid->aux = a;
-	a->name = estrdup(r->ifcall.uname);
+	a->name = s_copy(r->ifcall.uname);
 
 	r->ofcall.qid = (Qid){mkqid(Droot, 0, 0, 42), 0, QTDIR};
 	r->fid->qid = r->ofcall.qid;
@@ -357,6 +357,8 @@ fsclone(Fid *old, Fid *new)
 		incref(a->w);
 	if(a->map)
 		incref(a->map);
+	if(a->name)
+		s_incref(a->name);
 	new->aux = a;
 	new->qid = old->qid;
 
@@ -372,6 +374,8 @@ fsdestroyfid(Fid *fid)
 	if(a==nil)
 		return;
 
+	if(a->name)
+		s_free(a->name);
 	if(a->map)
 		closemap(a->map);
 	if(a->s)
@@ -713,7 +717,7 @@ fswrite(Req *r)
 		w->title = estrdup(title);
 
 		t = 0;
-		author = estrdup(a->name);
+		author = estrdup(s_to_c(a->name));
 
 		comment = nil;
 		while(s.rp && *s.rp && *s.rp != '\n'){
@@ -880,8 +884,8 @@ listensrv(Srv *os, char *addr)
 		s->infd = s->outfd = data;
 		srv(s);
 		close(data);
-		free(s);
 		free(s->aux);
+		free(s);
 		_exits(nil);
 	}
 }

@@ -11,7 +11,7 @@ int		swizzle;
 int		flush;
 int		abase=2;
 int		xd(char *, int);
-void		xprint(char *, long);
+void		xprint(char *, ...);
 void		initarg(void), swizz(void);
 enum{
 	Narg=10
@@ -206,7 +206,7 @@ xd(char *name, int title)
 		Binit(bp, fd, OREAD);
 	}
 	if(title)
-		xprint("%s\n", (long)name);
+		xprint("%s\n", name);
 	addr = 0;
 	star = 0;
 	while((ndata=Bread(bp, data, 16)) >= 0){
@@ -325,16 +325,16 @@ fmtc(char *f)
 	for(i=0; i<ndata; i++)
 		switch(data[i]){
 		case '\t':
-			xprint(cfmt[1][2], (long)"\\t");
+			xprint(cfmt[1][2], "\\t");
 			break;
 		case '\r':
-			xprint(cfmt[1][2], (long)"\\r");
+			xprint(cfmt[1][2], "\\r");
 			break;
 		case '\n':
-			xprint(cfmt[1][2], (long)"\\n");
+			xprint(cfmt[1][2], "\\n");
 			break;
 		case '\b':
-			xprint(cfmt[1][2], (long)"\\b");
+			xprint(cfmt[1][2], "\\b");
 			break;
 		default:
 			if(data[i]>=0x7F || ' '>data[i])
@@ -346,10 +346,14 @@ fmtc(char *f)
 }
 
 void
-xprint(char *fmt, long d)
+xprint(char *fmt, ...)
 {
-	if(Bprint(&bout, fmt, d)<0){
+	va_list arglist;
+
+	va_start(arglist, fmt);
+	if(Bvprint(&bout, fmt, arglist)<0){
 		fprint(2, "xd: i/o error\n");
 		exits("i/o error");
 	}
+	va_end(arglist);
 }

@@ -1142,13 +1142,13 @@ runproc(void *argvp)
 	win = argv[0];
 	s = argv[1];
 	rdir = argv[2];
-	ndir = (int)argv[3];
-	newns = (int)argv[4];
+	ndir = (uintptr)argv[3];
+	newns = (uintptr)argv[4];
 	argaddr = argv[5];
 	arg = argv[6];
 	c = argv[7];
 	cpid = argv[8];
-	iseditcmd = (int)argv[9];
+	iseditcmd = (uintptr)argv[9];
 	free(argv);
 
 	t = s;
