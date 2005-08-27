@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1115950023 104037
 386/bin/aan - 775 sys sys 1115950023 130710
 386/bin/acid - 775 sys sys 1119496640 390040
-386/bin/acme - 775 sys sys 1122606669 428394
+386/bin/acme - 775 sys sys 1125025928 428392
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1115950025 70297
@@ -243,7 +243,7 @@
 386/bin/fs/v10fs - 775 sys sys 1115950073 94571
 386/bin/fs/v6fs - 775 sys sys 1115950073 94489
 386/bin/fs/zipfs - 775 sys sys 1115950074 109088
-386/bin/ftpfs - 775 sys sys 1124766754 271942
+386/bin/ftpfs - 775 sys sys 1125025929 271942
 386/bin/games - 20000000775 sys sys 1096298711 0
 386/bin/games/4s - 775 sys sys 1120619353 177844
 386/bin/games/5s - 775 sys sys 1120619353 180356
@@ -294,7 +294,7 @@
 386/bin/ip/httpd/webls - 775 sys sys 1120792314 131226
 386/bin/ip/httpd/wikipost - 775 sys sys 1115950085 112655
 386/bin/ip/imap4d - 775 sys sys 1115950086 236497
-386/bin/ip/ipconfig - 775 sys sys 1116126318 137736
+386/bin/ip/ipconfig - 775 sys sys 1125025929 137751
 386/bin/ip/ping - 775 sys sys 1116126319 77010
 386/bin/ip/ppp - 775 sys sys 1116126319 218631
 386/bin/ip/pppoe - 775 sys sys 1116126319 77535
@@ -503,9 +503,9 @@
 386/bin/webcookies - 775 sys sys 1124939607 161634
 386/bin/webfs - 775 sys sys 1124939607 349707
 386/bin/webfsget - 775 sys sys 1115950144 39143
-386/bin/wikifs - 775 sys sys 1124939608 201761
+386/bin/wikifs - 775 sys sys 1125025930 202144
 386/bin/winwatch - 775 sys sys 1115950145 154555
-386/bin/xd - 775 sys sys 1115950145 64039
+386/bin/xd - 775 sys sys 1125025930 64053
 386/bin/xmr - 775 sys sys 1115950145 40157
 386/bin/xms - 775 sys sys 1115950146 40735
 386/bin/yacc - 775 sys sys 1116903737 102292
@@ -559,7 +559,7 @@
 386/lib/libplumb.a - 664 sys sys 1115950157 18876
 386/lib/libregexp.a - 664 sys sys 1115950157 37464
 386/lib/libscribble.a - 664 sys sys 1116815422 107282
-386/lib/libsec.a - 664 sys sys 1124766771 645078
+386/lib/libsec.a - 664 sys sys 1125025932 645078
 386/lib/libstdio.a - 664 sys sys 1115950159 126206
 386/lib/libsunrpc.a - 664 sys sys 1115950160 355994
 386/lib/libthread.a - 664 sys sys 1115950160 71162
@@ -14959,9 +14959,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/acme - 775 sys sys 1125025928 428392
-386/bin/wikifs - 775 sys sys 1125025930 202144
-386/bin/ftpfs - 775 sys sys 1125025929 271942
-386/bin/ip/ipconfig - 775 sys sys 1125025929 137751
-386/bin/xd - 775 sys sys 1125025930 64053
-386/lib/libsec.a - 664 sys sys 1125025932 645078
