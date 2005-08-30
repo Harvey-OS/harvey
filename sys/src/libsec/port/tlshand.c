@@ -1135,26 +1135,23 @@ msgRecv(TlsConnection *c, Msg *m)
 		}
 		break;
 	case HCertificateRequest:
+		if(n < 1)
+			goto Short;
+		nn = p[0];
+		p += 1;
+		n -= 1;
+		if(nn < 1 || nn > n)
+			goto Short;
+		m->u.certificateRequest.types = makebytes(p, nn);
+		p += nn;
+		n -= nn;
 		if(n < 2)
 			goto Short;
 		nn = get16(p);
 		p += 2;
 		n -= 2;
-		if(nn < 1 || nn > n)
-			goto Short;
-		m->u.certificateRequest.types = makebytes(p, nn);
-		nn = get24(p);
-		p += 3;
-		n -= 3;
-		/*
-		 * can't do this because it fails in 802.1x-TTLS
-		 * for unknown reasons.  maybe the other side generates
-		 * bogus data, or maybe we're just confused.
-		 *
 		if(nn == 0 || n != nn)
 			goto Short;
-		 */
-		USED(nn);
 		/* cas */
 		i = 0;
 		while(n > 0) {

@@ -269,6 +269,27 @@ winclean(Window *w)
 }
 
 int
+winisdirty(Window *w)
+{
+	char m;
+
+	if (seek(w->ctl, 4*(11+1) + 10, 0) < 0)
+		error("control file seek error: %r");
+		
+	if(read(w->ctl, &m, 1)  != 1)
+		error("control file read error: %r");
+
+	if (m == '0')
+		return 0;
+	else if (m == '1')
+		return 1;
+	else
+		error("can't parse ismodified field: %c", m);
+	return 1; // better safe than sorry
+
+}
+
+int
 winsetaddr(Window *w, char *addr, int errok)
 {
 	if(w->addr < 0)

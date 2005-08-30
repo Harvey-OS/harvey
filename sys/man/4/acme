@@ -230,6 +230,15 @@ Cancel
 returning the window to the usual state wherein each modification to the
 body must be undone individually.
 .TP
+.B menu
+Maintain
+.BR Undo ,
+.BR Redo ,
+and
+.B Put
+in the left half of the tag.
+(This is the default for file windows.)
+.TP
 .BI name " name
 Set the name of the window to
 .IR name .
@@ -239,6 +248,15 @@ Turn off automatic `marking' of changes, so a set of related changes
 may be undone in a single
 .B Undo
 interactive command.
+.TP
+.B nomenu
+Do not maintain
+.BR Undo ,
+.BR Redo ,
+and
+.B Put
+in the left half of the tag.
+(This is the default for directory and error windows.)
 .TP
 .B noscroll
 Turn off automatic `scrolling' of the window to show text written to the body.
