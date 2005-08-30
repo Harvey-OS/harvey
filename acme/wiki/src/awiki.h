@@ -42,7 +42,7 @@ struct Window
 	int		nbuf;
 	Event	e[NEVENT];
 
-	int		dirtied;
+	int		warned;
 	int		id;
 	int		open;
 	Channel	*cevent;	/* chan(Event*) */
@@ -61,6 +61,7 @@ extern	void		wingetevent(Window*, Event*);
 extern	void		wineventproc(void*);
 extern	void		winwritebody(Window*, char*, int);
 extern	void		winclean(Window*);
+extern	int		winisdirty(Window*);
 extern	int		winselect(Window*, char*, int);
 extern	int		winsetaddr(Window*, char*, int);
 extern	char*	winreadbody(Window*, int*);

@@ -2899,11 +2899,19 @@ putndb(PPP *ppp, char *net)
 		p = seprint(p, e, "\twins=%I", ppp->wins[0]);
 	if(validv4(ppp->wins[1]))
 		p = seprint(p, e, "\twins=%I", ppp->wins[1]);
-	snprint(file, sizeof file, "%s/ndb", net);
+	seprint(file, file+sizeof file, "%s/ndb", net);
 	fd = open(file, OWRITE);
 	if(fd < 0)
 		return;
 	write(fd, buf, p-buf);
+	close(fd);
+	seprint(file, file+sizeof file, "%s/cs", net);
+	fd = open(file, OWRITE);
+	write(fd, "refresh", 7);
+	close(fd);
+	seprint(file, file+sizeof file, "%s/dns", net);
+	fd = open(file, OWRITE);
+	write(fd, "refresh", 7);
 	close(fd);
 }
 

@@ -926,7 +926,7 @@ ismung(void)
 	if(nbuf < 64)
 		return 0;
 	memset(bucket, 0, sizeof(bucket));
-	for(i=0; i<64; i++)
+	for(i=nbuf-64; i<nbuf; i++)
 		bucket[(buf[i]>>5)&07] += 1;
 
 	cs = 0.;
@@ -934,8 +934,14 @@ ismung(void)
 		cs += (bucket[i]-8)*(bucket[i]-8);
 	cs /= 8.;
 	if(cs <= 24.322) {
-		if(buf[0]==0x1f && (buf[1]==0x8b || buf[1]==0x9d))
+		if(buf[0]==0x1f && buf[1]==0x9d)
 			print(mime ? OCTET : "compressed\n");
+		else
+		if(buf[0]==0x1f && buf[1]==0x8b)
+			print(mime ? OCTET : "gzip compressed\n");
+		else
+		if(buf[0]=='B' && buf[1]=='Z' && buf[2]=='h')
+			print(mime ? OCTET : "bzip2 compressed\n");
 		else
 			print(mime ? OCTET : "encrypted\n");
 		return 1;
