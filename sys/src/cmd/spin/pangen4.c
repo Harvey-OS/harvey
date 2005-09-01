@@ -1,14 +1,13 @@
 /***** spin: pangen4.c *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
 #ifdef PC
@@ -18,16 +17,13 @@
 #endif
 
 extern FILE	*tc, *tb;
-extern ProcList	*cur_proc;
 extern Queue	*qtab;
 extern Symbol	*Fname;
-extern int	lineno, m_loss, Pid, eventmapnr, verbose, multi_oval;
-extern short	terse, nocast, has_provided, has_sorted;
-extern short	evalindex, withprocname, _isok;
+extern int	lineno, m_loss, Pid, eventmapnr, multi_oval;
+extern short	nocast, has_provided, has_sorted;
 extern char	*R13[], *R14[], *R15[];
 
 static void	check_proc(Lextok *, int);
-extern int	dolocal(FILE *, char *, int, int, char *, char *);
 
 void
 undostmnt(Lextok *now, int m)
@@ -52,9 +48,10 @@ undostmnt(Lextok *now, int m)
 	case FULL:	case EMPTY:	case 'R':
 	case NFULL:	case NEMPTY:	case ENABLED:
 	case '?':	case PC_VAL:	case '^':
+	case C_EXPR:
 	case NONPROGRESS:
-			putstmnt(tb, now, m);
-			break;
+		putstmnt(tb, now, m);
+		break;
 
 	case RUN:
 		fprintf(tb, "delproc(0, now._nr_pr-1)");
@@ -64,12 +61,8 @@ undostmnt(Lextok *now, int m)
 		if (Pid == eventmapnr) break;
 
 		if (m_loss)
-		{	fprintf(tb, "if (m == 2) m = unsend");
-			putname(tb, "(", now->lft, m, ")");
-		} else
-		{	fprintf(tb, "m = unsend");
-			putname(tb, "(", now->lft, m, ")");
-		}
+			fprintf(tb, "if (_m == 2) ");
+		putname(tb, "_m = unsend(", now->lft, m, ")");
 		break;
 
 	case 'r':
@@ -133,8 +126,11 @@ undostmnt(Lextok *now, int m)
 						jj++;
 					break;
 			}	}
-
 			jj = multi_oval - ii - 1;
+
+			if (now->val == 1 && multi_oval > 0)
+				jj++;	/* new 3.4.0 */
+
 			for (v = now->rgt, i = 0; v; v = v->rgt, i++)
 			{	switch(v->lft->ntyp) {
 				case CONST:
@@ -181,9 +177,15 @@ undostmnt(Lextok *now, int m)
 	case BREAK:
 		break;
 
+	case C_CODE:
+		fprintf(tb, "sv_restor();\n");
+		break;
+
 	case ASSERT:
 	case PRINT:
 		check_proc(now, m);
+		break;
+	case PRINTM:
 		break;
 
 	default:
@@ -201,6 +203,7 @@ any_undo(Lextok *now)
 	case ASSERT:
 	case PRINT:	return any_oper(now, RUN);
 
+	case PRINTM:
 	case   '.':
 	case  GOTO:
 	case  ELSE:
@@ -240,29 +243,31 @@ genunio(void)
 	for (q = qtab; q; q = q->nxt)
 	{	fprintf(tc, "\tcase %d:\n", q->qid);
 
-	if (has_sorted)
-	{	sprintf(buf1, "((Q%d *)z)->contents", q->qid);
-		fprintf(tc, "\t\tj = trpt->bup.oval;\n");
-		fprintf(tc, "\t\tfor (k = j; k < ((Q%d *)z)->Qlen; k++)\n",
-			q->qid);
-		fprintf(tc, "\t\t{\n");
-		for (i = 0; i < q->nflds; i++)
-		fprintf(tc, "\t\t\t%s[k].fld%d = %s[k+1].fld%d;\n",
-			buf1, i, buf1, i);
-		fprintf(tc, "\t\t}\n");
-		fprintf(tc, "\t\tj = ((Q0 *)z)->Qlen;\n");
-	}
+		if (has_sorted)
+		{	sprintf(buf1, "((Q%d *)z)->contents", q->qid);
+			fprintf(tc, "#ifdef HAS_SORTED\n");
+			fprintf(tc, "\t\tj = trpt->ipt;\n");	/* ipt was bup.oval */
+			fprintf(tc, "#endif\n");
+			fprintf(tc, "\t\tfor (k = j; k < ((Q%d *)z)->Qlen; k++)\n",
+				q->qid);
+			fprintf(tc, "\t\t{\n");
+			for (i = 0; i < q->nflds; i++)
+			fprintf(tc, "\t\t\t%s[k].fld%d = %s[k+1].fld%d;\n",
+				buf1, i, buf1, i);
+			fprintf(tc, "\t\t}\n");
+			fprintf(tc, "\t\tj = ((Q0 *)z)->Qlen;\n");
+		}
 
 		sprintf(buf1, "((Q%d *)z)->contents[j].fld", q->qid);
 		for (i = 0; i < q->nflds; i++)
 			fprintf(tc, "\t\t%s%d = 0;\n", buf1, i);
 		if (q->nslots==0)
 		{	/* check if rendezvous succeeded, 1 level down */
-			fprintf(tc, "\t\tm = (trpt+1)->o_m;\n");
-			fprintf(tc, "\t\tif (m) (trpt-1)->o_pm |= 1;\n");
+			fprintf(tc, "\t\t_m = (trpt+1)->o_m;\n");
+			fprintf(tc, "\t\tif (_m) (trpt-1)->o_pm |= 1;\n");
 			fprintf(tc, "\t\tUnBlock;\n");
 		} else
-			fprintf(tc, "\t\tm = trpt->o_m;\n");
+			fprintf(tc, "\t\t_m = trpt->o_m;\n");
 
 		fprintf(tc, "\t\tbreak;\n");
 	}

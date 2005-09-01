@@ -17,7 +17,7 @@ void execppp(int);
 int alarmed;
 int debug;
 int sessid;
-char *namesecret;
+char *keyspec;
 int primary;
 char *pppnetmtpt;
 char *acname;
@@ -32,7 +32,7 @@ int mtu = 1492;
 void
 usage(void)
 {
-	fprint(2, "usage: pppoe [-Pd] [-S srvname] [-s name:pass] [-x pppnet] ether0\n");
+	fprint(2, "usage: pppoe [-Pd] [-A acname] [-S srvname] [-k keyspec] [-m mtu] [-x pppnet] [ether0]\n");
 	exits("usage");
 }
 
@@ -73,7 +73,7 @@ main(int argc, char **argv)
 		mtu = atoi(EARGF(usage()));
 		break;
 	case 'k':
-		namesecret = EARGF(usage());
+		keyspec = EARGF(usage());
 		break;
 	case 'x':
 		pppnetmtpt = EARGF(usage());
@@ -522,9 +522,9 @@ execppp(int fd)
 		argv[argc++] = "-x";
 		argv[argc++] = pppnetmtpt;
 	}
-	if(namesecret){
+	if(keyspec){
 		argv[argc++] = "-k";
-		argv[argc++] = namesecret;
+		argv[argc++] = keyspec;
 	}
 	argv[argc] = nil;
 

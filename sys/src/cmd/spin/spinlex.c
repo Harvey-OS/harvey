@@ -1,14 +1,13 @@
 /***** spin: spinlex.c *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include <stdlib.h>
 #include "spin.h"
@@ -27,25 +26,38 @@ typedef struct IType {
 	Lextok *cn;		/* contents */
 	Lextok *params;		/* formal pars if any */
 	char   **anms;		/* literal text for actual pars */
+	char   *prec;		/* precondition for c_code or c_expr */
 	int    dln, cln;	/* def and call linenr */
 	Symbol *dfn, *cfn;	/* def and call filename */
 	struct IType *nxt;	/* linked list */
 } IType;
 
-extern Symbol	*Fname;
-extern YYSTYPE	yylval;
-extern short	has_last, terse;
-extern int	verbose, IArgs;
+typedef struct C_Added {
+	Symbol *s;
+	Symbol *t;
+	Symbol *ival;
+	struct C_Added *nxt;
+} C_Added;
 
-int	lineno  = 1, IArgno = 0;
-int	Inlining = -1;
-char	*Inliner[MAXINL], IArg_cont[MAXPAR][MAXLEN];
-IType	*Inline_stub[MAXINL];
+extern RunList	*X;
+extern ProcList	*rdy;
+extern Symbol	*Fname;
+extern Symbol	*context, *owner;
+extern YYSTYPE	yylval;
+extern short	has_last, has_code;
+extern int	verbose, IArgs, hastrack, separate;
+
+short	has_stack = 0;
+int	lineno  = 1;
 char	yytext[2048];
 FILE	*yyin, *yyout;
 
-static unsigned char	in_comment=0;
+static C_Added	*c_added, *c_tracked;
+static IType	*Inline_stub[MAXINL];
 static char	*ReDiRect;
+static char	*Inliner[MAXINL], IArg_cont[MAXPAR][MAXLEN];
+static unsigned char	in_comment=0;
+static int	IArgno = 0, Inlining = -1;
 static int	check_name(char *);
 
 #if 1
@@ -68,11 +80,40 @@ static int	check_name(char *);
 			if (!in_comment) return y; else goto again; }
 #endif
 
+static int	getinline(void);
+static void	uninline(void);
+
+#if 1
 #define Getchar()	((Inlining<0)?getc(yyin):getinline())
 #define Ungetch(c)	{if (Inlining<0) ungetc(c,yyin); else uninline(); }
 
-static int	getinline(void);
-static void	uninline(void);
+#else
+
+static int
+Getchar(void)
+{	int c;
+	if (Inlining<0)
+		c = getc(yyin);
+	else
+		c = getinline();
+#if 1
+	printf("<%c>", c);
+#endif
+	return c;
+}
+
+static void
+Ungetch(int c)
+{
+	if (Inlining<0)
+		ungetc(c,yyin);
+	else
+		uninline();
+#if 1
+	printf("<bs>");
+#endif
+}
+#endif
 
 static int
 notquote(int c)
@@ -100,7 +141,10 @@ getword(int first, int (*tst)(int))
 
 	yytext[i++]= (char) first;
 	while (tst(c = Getchar()))
-		yytext[i++] = c;
+	{	yytext[i++] = c;
+		if (c == '\\')
+			yytext[i++] = Getchar();	/* no tst */
+	}
 	yytext[i] = '\0';
 	Ungetch(c);
 }
@@ -119,9 +163,9 @@ follow(int tok, int ifyes, int ifno)
 static IType *seqnames;
 
 static void
-def_inline(Symbol *s, int ln, char *ptr, Lextok *nms)
+def_inline(Symbol *s, int ln, char *ptr, char *prc, Lextok *nms)
 {	IType *tmp;
-	char *nw = (char *) emalloc(strlen(ptr)+1);
+	char *nw = (char *) emalloc((int) strlen(ptr)+1);
 	strcpy(nw, ptr);
 
 	for (tmp = seqnames; tmp; tmp = tmp->nxt)
@@ -138,10 +182,65 @@ def_inline(Symbol *s, int ln, char *ptr, Lextok *nms)
 	tmp->nm = s;
 	tmp->cn = (Lextok *) nw;
 	tmp->params = nms;
+	if (strlen(prc) > 0)
+	{	tmp->prec = (char *) emalloc((int) strlen(prc)+1);
+		strcpy(tmp->prec, prc);
+	}
 	tmp->dln = ln;
 	tmp->dfn = Fname;
 	tmp->nxt = seqnames;
 	seqnames = tmp;
+}
+
+void
+gencodetable(FILE *fd)
+{	IType *tmp;
+	char *q;
+	int cnt;
+
+	if (separate == 2) return;
+
+	fprintf(fd, "struct {\n");
+	fprintf(fd, "	char *c; char *t;\n");
+	fprintf(fd, "} code_lookup[] = {\n");
+
+	if (has_code)
+	for (tmp = seqnames; tmp; tmp = tmp->nxt)
+		if (tmp->nm->type == CODE_FRAG
+		||  tmp->nm->type == CODE_DECL)
+		{	fprintf(fd, "\t{ \"%s\", ",
+				tmp->nm->name);
+			q = (char *) tmp->cn;
+
+			while (*q == '\n' || *q == '\r' || *q == '\\')
+				q++;
+
+			fprintf(fd, "\"");
+			cnt = 0;
+			while (*q && cnt < 1024) /* pangen1.h allows 2048 */
+			{	switch (*q) {
+				case '"':
+					fprintf(fd, "\\\"");
+					break;
+				case '%':
+					fprintf(fd, "%%");
+					break;
+				case '\n':
+					fprintf(fd, "\\n");
+					break;
+				default:
+					putc(*q, fd);
+					break;
+				}
+				q++; cnt++;
+			}
+			if (*q) fprintf(fd, "...");
+			fprintf(fd, "\"");
+			fprintf(fd, " },\n");
+		}
+
+	fprintf(fd, "	{ (char *) 0, \"\" }\n");
+	fprintf(fd, "};\n");
 }
 
 static int
@@ -191,16 +290,594 @@ uninline(void)
 		Inliner[Inlining]--;
 }
 
+IType *
+find_inline(char *s)
+{	IType *tmp;
+
+	for (tmp = seqnames; tmp; tmp = tmp->nxt)
+		if (!strcmp(s, tmp->nm->name))
+			break;
+	if (!tmp)
+		fatal("cannot happen, missing inline def %s", s);
+	return tmp;
+}
+
+void
+c_state(Symbol *s, Symbol *t, Symbol *ival)	/* name, scope, ival */
+{	C_Added *r;
+
+	r = (C_Added *) emalloc(sizeof(C_Added));
+	r->s = s;	/* pointer to a data object */
+	r->t = t;	/* size of object, or "global", or "local proctype_name"  */
+	r->ival = ival;
+	r->nxt = c_added;
+	c_added = r;
+}
+
+void
+c_track(Symbol *s, Symbol *t, Symbol *stackonly)	/* name, size */
+{	C_Added *r;
+
+	r = (C_Added *) emalloc(sizeof(C_Added));
+	r->s = s;
+	r->t = t;
+	r->ival = stackonly;	/* abuse of name */
+	r->nxt = c_tracked;
+	c_tracked = r;
+
+	if (stackonly != ZS)
+	{	if (strcmp(stackonly->name, "\"Matched\"") == 0)
+			r->ival = ZS;	/* the default */
+		else if (strcmp(stackonly->name, "\"UnMatched\"") != 0
+		     &&  strcmp(stackonly->name, "\"unMatched\"") != 0
+		     &&  strcmp(stackonly->name, "\"StackOnly\"") != 0)
+			non_fatal("expecting '[Un]Matched', saw %s", stackonly->name);
+		else
+			has_stack = 1;
+	}
+}
+
+char *
+jump_etc(char *op)
+{	char *p = op;
+
+	/* kludgy - try to get the type separated from the name */
+
+	while (*p == ' ' || *p == '\t')
+		p++;	/* initial white space */
+	while (*p != ' ' && *p != '\t')
+		p++;	/* type name */
+	while (*p == ' ' || *p == '\t')
+		p++;	/* white space */
+	while (*p == '*')
+		p++;	/* decorations */
+	while (*p == ' ' || *p == '\t')
+		p++;	/* white space */
+
+	if (*p == '\0')
+		fatal("c_state format (%s)", op);
+
+	if (strchr(p, '[')
+	&&  !strchr(p, '{'))
+	{	non_fatal("array initialization error, c_state (%s)", p);
+		return (char *) 0;
+	}
+
+	return p;
+}
+
+void
+c_add_globinit(FILE *fd)
+{	C_Added *r;
+	char *p, *q;
+
+	fprintf(fd, "void\nglobinit(void)\n{\n");
+	for (r = c_added; r; r = r->nxt)
+	{	if (r->ival == ZS)
+			continue;
+
+		if (strncmp(r->t->name, " Global ", strlen(" Global ")) == 0)
+		{	for (q = r->ival->name; *q; q++)
+			{	if (*q == '\"')
+					*q = ' ';
+				if (*q == '\\')
+					*q++ = ' '; /* skip over the next */
+			}
+			p = jump_etc(r->s->name);	/* e.g., "int **q" */
+			if (p)
+			fprintf(fd, "	now.%s = %s;\n", p, r->ival->name);
+
+		} else
+		if (strncmp(r->t->name, " Hidden ", strlen(" Hidden ")) == 0)
+		{	for (q = r->ival->name; *q; q++)
+			{	if (*q == '\"')
+					*q = ' ';
+				if (*q == '\\')
+					*q++ = ' '; /* skip over the next */
+			}
+			p = jump_etc(r->s->name);	/* e.g., "int **q" */
+			if (p)
+			fprintf(fd, "	%s = %s;\n", p, r->ival->name);	/* no now. prefix */
+
+	}	}
+	fprintf(fd, "}\n");
+}
+
+void
+c_add_locinit(FILE *fd, int tpnr, char *pnm)
+{	C_Added *r;
+	char *p, *q, *s;
+	int frst = 1;
+
+	fprintf(fd, "void\nlocinit%d(int h)\n{\n", tpnr);
+	for (r = c_added; r; r = r->nxt)
+		if (r->ival != ZS
+		&&  strncmp(r->t->name, " Local", strlen(" Local")) == 0)
+		{	for (q = r->ival->name; *q; q++)
+				if (*q == '\"')
+					*q = ' ';
+			
+			p = jump_etc(r->s->name);	/* e.g., "int **q" */
+
+			q = r->t->name + strlen(" Local");
+			while (*q == ' ' || *q == '\t')
+				q++;			/* process name */
+
+			s = (char *) emalloc(strlen(q)+1);
+			strcpy(s, q);
+
+			q = &s[strlen(s)-1];
+			while (*q == ' ' || *q == '\t')
+				*q-- = '\0';
+
+			if (strcmp(pnm, s) != 0)
+				continue;
+
+			if (frst)
+			{	fprintf(fd, "\tuchar *this = pptr(h);\n");
+				frst = 0;
+			}
+
+			if (p)
+			fprintf(fd, "		((P%d *)this)->%s = %s;\n",
+				tpnr, p, r->ival->name);
+
+		}
+	fprintf(fd, "}\n");
+}
+
+/* tracking:
+	1. for non-global and non-local c_state decls: add up all the sizes in c_added
+	2. add a global char array of that size into now
+	3. generate a routine that memcpy's the required values into that array
+	4. generate a call to that routine
+ */
+
+void
+c_preview(void)
+{	C_Added *r;
+
+	hastrack = 0;
+	if (c_tracked)
+		hastrack = 1;
+	else
+	for (r = c_added; r; r = r->nxt)
+		if (strncmp(r->t->name, " Global ", strlen(" Global ")) != 0
+		&&  strncmp(r->t->name, " Hidden ", strlen(" Hidden ")) != 0
+		&&  strncmp(r->t->name, " Local",  strlen(" Local"))  != 0)
+		{	hastrack = 1;	/* c_state variant now obsolete */
+			break;
+		}
+}
+
+int
+c_add_sv(FILE *fd)	/* 1+2 -- called in pangen1.c */
+{	C_Added *r;
+	int cnt = 0;
+
+	if (!c_added && !c_tracked) return 0;
+
+	for (r = c_added; r; r = r->nxt)	/* pickup global decls */
+		if (strncmp(r->t->name, " Global ", strlen(" Global ")) == 0)
+			fprintf(fd, "	%s;\n", r->s->name);
+
+	for (r = c_added; r; r = r->nxt)
+		if (strncmp(r->t->name, " Global ", strlen(" Global ")) != 0
+		&&  strncmp(r->t->name, " Hidden ", strlen(" Hidden ")) != 0
+		&&  strncmp(r->t->name, " Local",  strlen(" Local"))  != 0)
+		{	cnt++;	/* obsolete use */
+		}
+
+	for (r = c_tracked; r; r = r->nxt)
+		cnt++;		/* preferred use */
+
+	if (cnt == 0) return 0;
+
+	cnt = 0;
+	fprintf(fd, "	uchar c_state[");
+	for (r = c_added; r; r = r->nxt)
+		if (strncmp(r->t->name, " Global ", strlen(" Global ")) != 0
+		&&  strncmp(r->t->name, " Hidden ", strlen(" Hidden ")) != 0
+		&&  strncmp(r->t->name, " Local",  strlen(" Local"))  != 0)
+		{	fprintf(fd, "%ssizeof(%s)",
+				(cnt==0)?"":"+", r->t->name);
+			cnt++;
+		}
+
+	for (r = c_tracked; r; r = r->nxt)
+	{	if (r->ival != ZS) continue;
+
+		fprintf(fd, "%s%s",
+			(cnt==0)?"":"+", r->t->name);
+		cnt++;
+	}
+
+	if (cnt == 0) fprintf(fd, "4");	/* now redundant */
+	fprintf(fd, "];\n");
+	return 1;
+}
+
+void
+c_add_stack(FILE *fd)
+{	C_Added *r;
+	int cnt = 0;
+
+	if ((!c_added && !c_tracked) || !has_stack) return;
+
+
+	for (r = c_tracked; r; r = r->nxt)
+		if (r->ival != ZS)
+			cnt++;
+
+	if (cnt == 0) return;
+
+	fprintf(fd, "	uchar c_stack[");
+
+	cnt = 0;
+	for (r = c_tracked; r; r = r->nxt)
+	{	if (r->ival == ZS) continue;
+
+		fprintf(fd, "%s%s",
+			(cnt==0)?"":"+", r->t->name);
+		cnt++;
+	}
+
+	if (cnt == 0) fprintf(fd, "4"); /* can't happen */
+	fprintf(fd, "];\n");
+}
+
+void
+c_add_hidden(FILE *fd)
+{	C_Added *r;
+
+	for (r = c_added; r; r = r->nxt)	/* pickup hidden decls */
+		if (strncmp(r->t->name, "\"Hidden\"", strlen("\"Hidden\"")) == 0)
+		{	r->s->name[strlen(r->s->name)-1] = ' ';
+			fprintf(fd, "%s;	/* Hidden */\n", &r->s->name[1]);
+			r->s->name[strlen(r->s->name)-1] = '"';
+		}
+	/* called before c_add_def - quotes are still there */
+}
+
+void
+c_add_loc(FILE *fd, char *s)	/* state vector entries for proctype s */
+{	C_Added *r;
+	static char buf[1024];
+	char *p;
+
+	if (!c_added) return;
+
+	strcpy(buf, s);
+	strcat(buf, " ");
+	for (r = c_added; r; r = r->nxt)	/* pickup local decls */
+		if (strncmp(r->t->name, " Local", strlen(" Local")) == 0)
+		{	p = r->t->name + strlen(" Local");
+			while (*p == ' ' || *p == '\t')
+				p++;
+			if (strcmp(p, buf) == 0)
+				fprintf(fd, "	%s;\n", r->s->name);
+		}
+}
+void
+c_add_def(FILE *fd)	/* 3 - called in plunk_c_fcts() */
+{	C_Added *r;
+
+	fprintf(fd, "#if defined(C_States) && defined(HAS_TRACK)\n");
+	for (r = c_added; r; r = r->nxt)
+	{	r->s->name[strlen(r->s->name)-1] = ' ';
+		r->s->name[0] = ' '; /* remove the "s */
+
+		r->t->name[strlen(r->t->name)-1] = ' ';
+		r->t->name[0] = ' ';
+
+		if (strncmp(r->t->name, " Global ", strlen(" Global ")) == 0
+		||  strncmp(r->t->name, " Hidden ", strlen(" Hidden ")) == 0
+		||  strncmp(r->t->name, " Local",  strlen(" Local"))  == 0)
+			continue;
+
+		if (strchr(r->s->name, '&'))
+			fatal("dereferencing state object: %s", r->s->name);
+
+		fprintf(fd, "extern %s %s;\n", r->t->name, r->s->name);
+	}
+	for (r = c_tracked; r; r = r->nxt)
+	{	r->s->name[strlen(r->s->name)-1] = ' ';
+		r->s->name[0] = ' '; /* remove " */
+
+		r->t->name[strlen(r->t->name)-1] = ' ';
+		r->t->name[0] = ' ';
+	}
+
+	if (separate == 2)
+	{	fprintf(fd, "#endif\n");
+		return;
+	}
+
+	if (has_stack)
+	{	fprintf(fd, "void\nc_stack(char *p_t_r)\n{\n");
+		fprintf(fd, "#ifdef VERBOSE\n");
+		fprintf(fd, "	printf(\"c_stack %%u\\n\", p_t_r);\n");
+		fprintf(fd, "#endif\n");
+		for (r = c_tracked; r; r = r->nxt)
+		{	if (r->ival == ZS) continue;
+	
+			fprintf(fd, "\tif(%s)\n", r->s->name);
+			fprintf(fd, "\t\tmemcpy(p_t_r, %s, %s);\n",
+				r->s->name, r->t->name);
+			fprintf(fd, "\telse\n");
+			fprintf(fd, "\t\tmemset(p_t_r, 0, %s);\n",
+				r->t->name);
+			fprintf(fd, "\tp_t_r += %s;\n", r->t->name);
+		}
+		fprintf(fd, "}\n\n");
+	}
+
+	fprintf(fd, "void\nc_update(char *p_t_r)\n{\n");
+	fprintf(fd, "#ifdef VERBOSE\n");
+	fprintf(fd, "	printf(\"c_update %%u\\n\", p_t_r);\n");
+	fprintf(fd, "#endif\n");
+	for (r = c_added; r; r = r->nxt)
+	{	if (strncmp(r->t->name, " Global ", strlen(" Global ")) == 0
+		||  strncmp(r->t->name, " Hidden ", strlen(" Hidden ")) == 0
+		||  strncmp(r->t->name, " Local",  strlen(" Local"))  == 0)
+			continue;
+
+		fprintf(fd, "\tmemcpy(p_t_r, &%s, sizeof(%s));\n",
+			r->s->name, r->t->name);
+		fprintf(fd, "\tp_t_r += sizeof(%s);\n", r->t->name);
+	}
+
+	for (r = c_tracked; r; r = r->nxt)
+	{	if (r->ival) continue;
+
+		fprintf(fd, "\tif(%s)\n", r->s->name);
+		fprintf(fd, "\t\tmemcpy(p_t_r, %s, %s);\n",
+			r->s->name, r->t->name);
+		fprintf(fd, "\telse\n");
+		fprintf(fd, "\t\tmemset(p_t_r, 0, %s);\n",
+			r->t->name);
+		fprintf(fd, "\tp_t_r += %s;\n", r->t->name);
+	}
+
+	fprintf(fd, "}\n");
+
+	if (has_stack)
+	{	fprintf(fd, "void\nc_unstack(char *p_t_r)\n{\n");
+		fprintf(fd, "#ifdef VERBOSE\n");
+		fprintf(fd, "	printf(\"c_unstack %%u\\n\", p_t_r);\n");
+		fprintf(fd, "#endif\n");
+		for (r = c_tracked; r; r = r->nxt)
+		{	if (r->ival == ZS) continue;
+
+			fprintf(fd, "\tif(%s)\n", r->s->name);
+			fprintf(fd, "\t\tmemcpy(%s, p_t_r, %s);\n",
+				r->s->name, r->t->name);
+			fprintf(fd, "\tp_t_r += %s;\n", r->t->name);
+		}
+		fprintf(fd, "}\n");
+	}
+
+	fprintf(fd, "void\nc_revert(char *p_t_r)\n{\n");
+	fprintf(fd, "#ifdef VERBOSE\n");
+	fprintf(fd, "	printf(\"c_revert %%u\\n\", p_t_r);\n");
+	fprintf(fd, "#endif\n");
+	for (r = c_added; r; r = r->nxt)
+	{	if (strncmp(r->t->name, " Global ", strlen(" Global ")) == 0
+		||  strncmp(r->t->name, " Hidden ", strlen(" Hidden ")) == 0
+		||  strncmp(r->t->name, " Local",  strlen(" Local"))  == 0)
+			continue;
+
+		fprintf(fd, "\tmemcpy(&%s, p_t_r, sizeof(%s));\n",
+			r->s->name, r->t->name);
+		fprintf(fd, "\tp_t_r += sizeof(%s);\n", r->t->name);
+	}
+	for (r = c_tracked; r; r = r->nxt)
+	{	if (r->ival != ZS) continue;
+
+		fprintf(fd, "\tif(%s)\n", r->s->name);
+		fprintf(fd, "\t\tmemcpy(%s, p_t_r, %s);\n",
+			r->s->name, r->t->name);
+		fprintf(fd, "\tp_t_r += %s;\n", r->t->name);
+	}
+
+	fprintf(fd, "}\n");
+	fprintf(fd, "#endif\n");
+}
+
+void
+plunk_reverse(FILE *fd, IType *p, int matchthis)
+{	char *y, *z;
+
+	if (!p) return;
+	plunk_reverse(fd, p->nxt, matchthis);
+
+	if (!p->nm->context
+	&&   p->nm->type == matchthis)
+	{	fprintf(fd, "\n/* start of %s */\n", p->nm->name);
+		z = (char *) p->cn;
+		while (*z == '\n' || *z == '\r' || *z == '\\')
+			z++;
+		/* e.g.: \#include "..." */
+
+		y = z;
+		while ((y = strstr(y, "\\#")) != NULL)
+		{	*y = '\n'; y++;
+		}
+
+		fprintf(fd, "%s\n", z);
+		fprintf(fd, "\n/* end of %s */\n", p->nm->name);
+	}
+}
+
+void
+plunk_c_decls(FILE *fd)
+{
+	plunk_reverse(fd, seqnames, CODE_DECL);
+}
+
+void
+plunk_c_fcts(FILE *fd)
+{
+	if (separate == 2 && hastrack)
+	{	c_add_def(fd);
+		return;
+	}
+
+	c_add_hidden(fd);
+	plunk_reverse(fd, seqnames, CODE_FRAG);
+
+	if (c_added || c_tracked)	/* enables calls to c_revert and c_update */
+		fprintf(fd, "#define C_States	1\n");
+	else
+		fprintf(fd, "#undef C_States\n");
+
+	if (hastrack)
+		c_add_def(fd);
+
+	c_add_globinit(fd);
+	do_locinits(fd);
+}
+
+static void
+check_inline(IType *tmp)
+{	char buf[128];
+	ProcList *p;
+
+	if (!X) return;
+
+	for (p = rdy; p; p = p->nxt)
+	{	if (strcmp(p->n->name, X->n->name) == 0)
+			continue;
+		sprintf(buf, "P%s->", p->n->name);
+		if (strstr((char *)tmp->cn, buf))
+		{	printf("spin: in proctype %s, ref to object in proctype %s\n",
+				X->n->name, p->n->name);
+			fatal("invalid variable ref in '%s'", tmp->nm->name);
+	}	}
+}
+
+void
+plunk_expr(FILE *fd, char *s)
+{	IType *tmp;
+
+	tmp = find_inline(s);
+	check_inline(tmp);
+
+	fprintf(fd, "%s", (char *) tmp->cn);
+}
+
+void
+preruse(FILE *fd, Lextok *n)	/* check a condition for c_expr with preconditions */
+{	IType *tmp;
+
+	if (!n) return;
+	if (n->ntyp == C_EXPR)
+	{	tmp = find_inline(n->sym->name);
+		if (tmp->prec)
+		{	fprintf(fd, "if (!(%s)) { if (!readtrail) { depth++; ", tmp->prec);
+			fprintf(fd, "trpt++; trpt->pr = II; trpt->o_t = t;");
+			fprintf(fd, "trpt->st = tt; Uerror(\"%s\"); } ", tmp->prec);
+			fprintf(fd, "else { printf(\"pan: precondition false: %s\\n\"); ", tmp->prec);
+			fprintf(fd, "_m = 3; goto P999; } } \n\t\t");
+		}
+	} else
+	{	preruse(fd, n->rgt);
+		preruse(fd, n->lft);
+	}
+}
+
+int
+glob_inline(char *s)
+{	IType *tmp;
+	char *bdy;
+
+	tmp = find_inline(s);
+	bdy = (char *) tmp->cn;
+	return (strstr(bdy, "now.")		/* global ref or   */
+	||      strchr(bdy, '(') > bdy);	/* possible C-function call */
+}
+
+void
+plunk_inline(FILE *fd, char *s, int how)	/* c_code with precondition */
+{	IType *tmp;
+
+	tmp = find_inline(s);
+	check_inline(tmp);
+
+	fprintf(fd, "{ ");
+	if (how && tmp->prec)
+	{	fprintf(fd, "if (!(%s)) { if (!readtrail) { depth++; ", tmp->prec);
+		fprintf(fd, "trpt++; trpt->pr = II; trpt->o_t = t;");
+		fprintf(fd, "trpt->st = tt; Uerror(\"%s\"); } ", tmp->prec);
+		fprintf(fd, "else { printf(\"pan: precondition false: %s\\n\"); ", tmp->prec);
+		fprintf(fd, "_m = 3; goto P999; } } ");
+	}
+	fprintf(fd, "%s", (char *) tmp->cn);
+	fprintf(fd, " }\n");
+}
+
+void
+no_side_effects(char *s)
+{	IType *tmp;
+	char *t;
+
+	/* could still defeat this check via hidden
+	 * side effects in function calls,
+	 * but this will catch at least some cases
+	 */
+
+	tmp = find_inline(s);
+	t = (char *) tmp->cn;
+
+	if (strchr(t, ';')
+	||  strstr(t, "++")
+	||  strstr(t, "--"))
+	{
+bad:		lineno = tmp->dln;
+		Fname = tmp->dfn;
+		non_fatal("c_expr %s has side-effects", s);
+		return;
+	}
+	while ((t = strchr(t, '=')) != NULL)
+	{	if (*(t-1) == '!'
+		||  *(t-1) == '>'
+		||  *(t-1) == '<')
+		{	t++;
+			continue;
+		}
+		t++;
+		if (*t != '=')
+			goto bad;
+		t++;
+	}
+}
+
 void
 pickup_inline(Symbol *t, Lextok *apars)
 {	IType *tmp; Lextok *p, *q; int j;
 
-	for (tmp = seqnames; tmp; tmp = tmp->nxt)
-		if (!strcmp(t->name, tmp->nm->name))
-			break;
+	tmp = find_inline(t->name);
 
-	if (!tmp)
-		fatal("cannot happen, ns %s", t->name);
 	if (++Inlining >= MAXINL)
 		fatal("inline fcts too deeply nested", 0);
 
@@ -214,7 +891,7 @@ pickup_inline(Symbol *t, Lextok *apars)
 
 	tmp->anms  = (char **) emalloc(j * sizeof(char *));
 	for (p = apars, j = 0; p; p = p->rgt, j++)
-	{	tmp->anms[j] = (char *) emalloc(strlen(IArg_cont[j])+1);
+	{	tmp->anms[j] = (char *) emalloc((int) strlen(IArg_cont[j])+1);
 		strcpy(tmp->anms[j], IArg_cont[j]);
 	}
 
@@ -233,10 +910,13 @@ pickup_inline(Symbol *t, Lextok *apars)
 }
 
 static void
-do_directive(int first, int fromwhere)
+do_directive(int first)
 {	int c = first;	/* handles lines starting with pound */
 
 	getword(c, isalpha_);
+
+	if (strcmp(yytext, "#ident") == 0)
+		goto done;
 
 	if ((c = Getchar()) != ' ')
 		fatal("malformed preprocessor directive - # .", 0);
@@ -262,17 +942,42 @@ do_directive(int first, int fromwhere)
 
 	strcat(yytext, "\"");
 	Fname = lookup(yytext);
+done:
 	while (Getchar() != '\n')
 		;
 }
 
-#define SOMETHINGBIG	65536
-
 void
+precondition(char *q)
+{	int c, nest = 1;
+
+	for (;;)
+	{	c = Getchar();
+		*q++ = c;
+		switch (c) {
+		case '\n':
+			lineno++;
+			break;
+		case '[':
+			nest++;
+			break;
+		case ']':
+			if (--nest <= 0)
+			{	*--q = '\0';
+				return;
+			}
+			break;
+		}
+	}
+	fatal("cannot happen", (char *) 0);			
+}
+
+Symbol *
 prep_inline(Symbol *s, Lextok *nms)
 {	int c, nest = 1, dln, firstchar, cnr;
-	char *p, buf[SOMETHINGBIG];
+	char *p, buf[SOMETHINGBIG], buf2[RATHERSMALL];
 	Lextok *t;
+	static int c_code = 1;
 
 	for (t = nms; t; t = t->rgt)
 		if (t->lft)
@@ -280,12 +985,26 @@ prep_inline(Symbol *s, Lextok *nms)
 			fatal("bad param to inline %s", s->name);
 			t->lft->sym->hidden |= 32;
 		}
-		
-	s->type = PREDEF;
+
+	if (!s)	/* C_Code fragment */
+	{	s = (Symbol *) emalloc(sizeof(Symbol));
+		s->name = (char *) emalloc((int) strlen("c_code")+26);
+		sprintf(s->name, "c_code%d", c_code++);
+		s->context = context;
+		s->type = CODE_FRAG;
+	} else
+		s->type = PREDEF;
+
 	p = &buf[0];
+	buf2[0] = '\0';
 	for (;;)
 	{	c = Getchar();
 		switch (c) {
+		case '[':
+			if (s->type != CODE_FRAG)
+				goto bad;
+			precondition(&buf2[0]);	/* e.g., c_code [p] { r = p-r; } */
+			continue;
 		case '{':
 			break;
 		case '\n':
@@ -293,12 +1012,21 @@ prep_inline(Symbol *s, Lextok *nms)
 			/* fall through */
 		case ' ': case '\t': case '\f': case '\r':
 			continue;
-		default : fatal("bad inline: %s", s->name);
+		default :
+			 printf("spin: saw char '%c'\n", c);
+bad:			 fatal("bad inline: %s", s->name);
 		}
 		break;
 	}
 	dln = lineno;
-	sprintf(buf, "\n#line %d %s\n{", lineno, Fname->name);
+	if (s->type == CODE_FRAG)
+	{	if (verbose&32)
+			sprintf(buf, "\t/* line %d %s */\n\t\t",
+				lineno, Fname->name);
+		else
+			strcpy(buf, "");
+	} else
+		sprintf(buf, "\n#line %d %s\n{", lineno, Fname->name);
 	p += strlen(buf);
 	firstchar = 1;
 
@@ -320,16 +1048,19 @@ more:
 		cnr++;
 		if (--nest <= 0)
 		{	*p = '\0';
-			def_inline(s, dln, &buf[0], nms);
-			if (firstchar)
-			fatal("empty inline definition '%s'", s->name);
-			return;
+			if (s->type == CODE_FRAG)
+				*--p = '\0';	/* remove trailing '}' */	
+			def_inline(s, dln, &buf[0], &buf2[0], nms);
+			if (firstchar && s)
+				printf("%3d: %s, warning: empty inline definition (%s)\n",
+					dln, Fname->name, s->name);
+			return s;	/* normal return */
 		}
 		break;
 	case '#':
 		if (cnr == 0)
 		{	p--;
-			do_directive(c, 4); /* reads to newline */
+			do_directive(c); /* reads to newline */
 			break;
 		} /* else fall through */
 	default:
@@ -362,7 +1093,7 @@ again:
 
 	case '#':		/* preprocessor directive */
 		if (in_comment) goto again;
-		do_directive(c, 5);
+		do_directive(c);
 		goto again;
 
 	case '\"':
@@ -381,8 +1112,8 @@ again:
 			else if (c == 't') c = '\t';
 			else if (c == 'f') c = '\f';
 		}
-		if (Getchar() != '\'')
-			fatal("character quote missing", yytext);
+		if (Getchar() != '\'' && !in_comment)
+			fatal("character quote missing: %s", yytext);
 		ValToken(c, CONST)
 
 	default:
@@ -437,6 +1168,11 @@ static struct {
 	{"bool",	TYPE,		BIT,		0},
 	{"break",	BREAK,		0,		0},
 	{"byte",	TYPE,		BYTE,		0},
+	{"c_code",	C_CODE,		0,		0},
+	{"c_decl",	C_DECL,		0,		0},
+	{"c_expr",	C_EXPR,		0,		0},
+	{"c_state",	C_STATE,	0,		0},
+	{"c_track",	C_TRACK,	0,		0},
 	{"D_proctype",	D_PROCTYPE,	0,		0},
 	{"do",		DO,		0,		0},
 	{"chan",	TYPE,		CHAN,		0},
@@ -452,8 +1188,8 @@ static struct {
 	{"if",		IF,		0,		0},
 	{"init",	INIT,		0,		":init:"},
 	{"int",		TYPE,		INT,		0},
-	{"local",	ISLOCAL,	0,		":local:"},
 	{"len",		LEN,		0,		0},
+	{"local",	ISLOCAL,	0,		":local:"},
 	{"mtype",	TYPE,		MTYPE,		0},
 	{"nempty",	NEMPTY,		0,		0},
 	{"never",	CLAIM,		0,		":never:"},
@@ -463,7 +1199,9 @@ static struct {
 	{"od",		OD,		0,		0},
 	{"of",		OF,		0,		0},
 	{"pc_value",	PC_VAL,		0,		0},
+	{"pid",		TYPE,		BYTE,		0},
 	{"printf",	PRINT,		0,		0},
+	{"printm",	PRINTM,		0,		0},
 	{"priority",	PRIORITY,	0,		0},
 	{"proctype",	PROCTYPE,	0,		0},
 	{"provided",	PROVIDED,	0,		0},
@@ -486,7 +1224,7 @@ static struct {
 
 static int
 check_name(char *s)
-{	register int i;
+{	int i;
 
 	yylval = nn(ZN, 0, ZN, ZN);
 	for (i = 0; Names[i].s; i++)
@@ -497,7 +1235,7 @@ check_name(char *s)
 			return Names[i].tok;
 		}
 
-	if (yylval->val = ismtype(s))
+	if ((yylval->val = ismtype(s)) != 0)
 	{	yylval->ismtyp = 1;
 		return CONST;
 	}
@@ -507,9 +1245,10 @@ check_name(char *s)
 
 	if (Inlining >= 0 && !ReDiRect)
 	{	Lextok *tt, *t = Inline_stub[Inlining]->params;
-		for (i = 0; t; t = t->rgt, i++)
-		 if (!strcmp(s, t->lft->sym->name)
-		 &&   strcmp(s, Inline_stub[Inlining]->anms[i]) != 0)
+
+		for (i = 0; t; t = t->rgt, i++)				/* formal pars */
+		 if (!strcmp(s, t->lft->sym->name)			/* varname matches formal */
+		 &&   strcmp(s, Inline_stub[Inlining]->anms[i]) != 0)	/* actual pars */
 		 {
 #if 0
 			if (verbose&32)
@@ -518,15 +1257,19 @@ check_name(char *s)
 				Inline_stub[Inlining]->nm->name,
 				Inline_stub[Inlining]->anms[i]);
 #endif
-			tt = Inline_stub[Inlining]->params;
-			for ( ; tt; tt = tt->rgt)
-			if (!strcmp(Inline_stub[Inlining]->anms[i],
-				tt->lft->sym->name))
-			{	/* would be cyclic if not caught */
-				yylval->ntyp = tt->lft->ntyp;
-				yylval->sym = lookup(tt->lft->sym->name);
-				return NAME;
-			}
+			
+			for (tt = Inline_stub[Inlining]->params; tt; tt = tt->rgt)
+				if (!strcmp(Inline_stub[Inlining]->anms[i],
+					tt->lft->sym->name))
+				{	/* would be cyclic if not caught */
+					printf("spin: line %d replacement value: %s\n",
+						lineno, tt->lft->sym->name);
+					fatal("formal par of %s matches replacement value",
+						Inline_stub[Inlining]->nm->name);
+					yylval->ntyp = tt->lft->ntyp;
+					yylval->sym = lookup(tt->lft->sym->name);
+					return NAME;
+				}
 			ReDiRect = Inline_stub[Inlining]->anms[i];
 			return 0;
 	}	 }
@@ -579,8 +1322,7 @@ yylex(void)
 			return SEMI;	/* insert ';' */
 		}
 		if (c == SEMI)
-		{	extern Symbol *context, *owner;
-			/* if context, we're not in a typedef
+		{	/* if context, we're not in a typedef
 			 * because they're global.
 			 * if owner, we're at the end of a ref
 			 * to a struct field -- prevent that the
@@ -600,17 +1342,24 @@ yylex(void)
 
 	if (IArgs)
 	{	static int IArg_nst = 0;
+
 		if (strcmp(yytext, ",") == 0)
 		{	IArg_cont[++IArgno][0] = '\0';
 		} else if (strcmp(yytext, "(") == 0)
 		{	if (IArg_nst++ == 0)
 			{	IArgno = 0;
 				IArg_cont[0][0] = '\0';
-			}
+			} else
+				strcat(IArg_cont[IArgno], yytext);
 		} else if (strcmp(yytext, ")") == 0)
-		{	IArg_nst--;
-		} else
+		{	if (--IArg_nst > 0)
+				strcat(IArg_cont[IArgno], yytext);
+		} else if (c == CONST && yytext[0] == '\'')
+		{	sprintf(yytext, "'%c'", yylval->val);
 			strcat(IArg_cont[IArgno], yytext);
+		} else
+		{	strcat(IArg_cont[IArgno], yytext);
+		}
 	}
 
 	return c;

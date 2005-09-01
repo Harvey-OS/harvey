@@ -1,14 +1,16 @@
 /***** tl_spin: tl_parse.c *****/
 
-/* Copyright (c) 1995-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1995-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Written by Gerard J. Holzmann, Bell Laboratories, U.S.A.               */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+
 /* Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper, */
 /* presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.   */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
 
 #include "tl.h"
 
@@ -48,7 +50,7 @@ tl_factor(void)
 		tl_yychar = tl_yylex();
 
 		ptr = tl_factor();
-
+#ifndef NO_OPT
 		if (ptr->ntyp == FALSE
 		||  ptr->ntyp == TRUE)
 			break;	/* [] false == false */
@@ -59,7 +61,7 @@ tl_factor(void)
 
 			ptr = ptr->rgt;	/* [] (p V q) = [] q */
 		}
-
+#endif
 		ptr = tl_nn(V_OPER, False, ptr);
 		break;
 #ifdef NXT
@@ -75,6 +77,7 @@ tl_factor(void)
 		tl_yychar = tl_yylex();
 
 		ptr = tl_factor();
+#ifndef NO_OPT
 		if (ptr->ntyp == TRUE
 		||  ptr->ntyp == FALSE)
 			break;	/* <> true == true */
@@ -88,7 +91,7 @@ tl_factor(void)
 			ptr = ptr->rgt;
 			/* fall thru */
 		}
-
+#endif
 		ptr = tl_nn(U_OPER, True, ptr);
 
 		break;
@@ -118,6 +121,7 @@ bin_simpler(Node *ptr)
 	if (ptr)
 	switch (ptr->ntyp) {
 	case U_OPER:
+#ifndef NO_OPT
 		if (ptr->rgt->ntyp == TRUE
 		||  ptr->rgt->ntyp == FALSE
 		||  ptr->lft->ntyp == FALSE)
@@ -151,8 +155,10 @@ bin_simpler(Node *ptr)
 					ptr->rgt->lft), ZN);
 		}
 #endif
+#endif
 		break;
 	case V_OPER:
+#ifndef NO_OPT
 		if (ptr->rgt->ntyp == FALSE
 		||  ptr->rgt->ntyp == TRUE
 		||  ptr->lft->ntyp == TRUE)
@@ -177,20 +183,25 @@ bin_simpler(Node *ptr)
 			ptr->rgt = ptr->rgt->rgt;
 			break;
 		}
+#endif
 		break;
 	case IMPLIES:
+#ifndef NO_OPT
 		if (isequal(ptr->lft, ptr->rgt))
 		{	ptr = True;
 			break;
 		}
+#endif
 		ptr = tl_nn(OR, Not(ptr->lft), ptr->rgt);
 		ptr = rewrite(ptr);
 		break;
 	case EQUIV:
+#ifndef NO_OPT
 		if (isequal(ptr->lft, ptr->rgt))
 		{	ptr = True;
 			break;
 		}
+#endif
 		a = rewrite(tl_nn(AND,
 			dupnode(ptr->lft),
 			dupnode(ptr->rgt)));
@@ -201,6 +212,7 @@ bin_simpler(Node *ptr)
 		ptr = rewrite(ptr);
 		break;
 	case AND:
+#ifndef NO_OPT
 		/* p && (q U p) = p */
 		if (ptr->rgt->ntyp == U_OPER
 		&&  isequal(ptr->rgt->rgt, ptr->lft))
@@ -275,9 +287,11 @@ bin_simpler(Node *ptr)
 		{	ptr = ptr->lft;
 			break;
 		}
+#endif
 		break;
 
 	case OR:
+#ifndef NO_OPT
 		/* p || (q U p) == q U p */
 		if (ptr->rgt->ntyp == U_OPER
 		&&  isequal(ptr->rgt->rgt, ptr->lft))
@@ -331,7 +345,7 @@ bin_simpler(Node *ptr)
 		{	ptr = ptr->rgt;
 			break;
 		}		
-
+#endif
 		break;
 	}
 	return ptr;

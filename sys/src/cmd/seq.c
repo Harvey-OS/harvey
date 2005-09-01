@@ -81,12 +81,22 @@ main(int argc, char *argv[]){
 	}
 	if(!format)
 		buildfmt();
-	for(val = min; val <= max; val += incr){
-		n = sprint(buf, format, val);
-		if(constant)
-			for(j=0; buf[j]==' '; j++)
-				buf[j] ='0';
-		write(1, buf, n);
+	if(incr > 0){
+		for(val = min; val <= max; val += incr){
+			n = sprint(buf, format, val);
+			if(constant)
+				for(j=0; buf[j]==' '; j++)
+					buf[j] ='0';
+			write(1, buf, n);
+		}
+	}else{
+		for(val = min; val >= max; val += incr){
+			n = sprint(buf, format, val);
+			if(constant)
+				for(j=0; buf[j]==' '; j++)
+					buf[j] ='0';
+			write(1, buf, n);
+		}
 	}
 	exits(0);
 }

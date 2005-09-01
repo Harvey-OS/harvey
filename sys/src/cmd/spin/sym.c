@@ -1,14 +1,13 @@
 /***** spin: sym.c *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
 #ifdef PC
@@ -68,7 +67,7 @@ lookup(char *s)
 			return sp;		/* global */
 
 	sp = (Symbol *) emalloc(sizeof(Symbol));
-	sp->name = (char *) emalloc(strlen(s) + 1);
+	sp->name = (char *) emalloc((int) strlen(s) + 1);
 	strcpy(sp->name, s);
 	sp->nel = 1;
 	sp->setat = depth;
@@ -155,7 +154,7 @@ checkrun(Symbol *parnm, int posno)
 	{	if (!(verbose&32)) return;
 		strcpy(buf2, (!(res&4))?"bit":"byte");
 		sputtype(buf, parnm->type);
-		i = strlen(buf);
+		i = (int) strlen(buf);
 		while (buf[--i] == ' ') buf[i] = '\0';
 		if (strcmp(buf, buf2) == 0) return;
 		prehint(parnm);
@@ -331,7 +330,8 @@ setmtype(Lextok *m)
 			n->lft->sym->ini = nn(ZN,CONST,ZN,ZN);
 			n->lft->sym->ini->val = cnt;
 		} else if (n->lft->sym->ini->val != cnt)
-			fatal("cannot happen: setmtype", (char *) 0);
+			non_fatal("name %s appears twice in mtype declaration",
+				n->lft->sym->name);
 	}
 	lineno = oln;
 	if (cnt > 256)
@@ -382,7 +382,7 @@ puttype(int m)
 	return 0;
 }
 
-static void
+void
 symvar(Symbol *sp)
 {	Lextok *m;
 
@@ -402,10 +402,10 @@ symvar(Symbol *sp)
 		printf("\t%d", eval(sp->ini));
 
 	if (sp->owner)
-		printf("\t<struct-field>");
+		printf("\t<:struct-field:>");
 	else
 	if (!sp->context)
-		printf("\t<global>");
+		printf("\t<:global:>");
 	else
 		printf("\t<%s>", sp->context->name);
 
@@ -419,7 +419,10 @@ symvar(Symbol *sp)
 			i++;
 		printf("\t%d\t", i);
 		for (m = sp->ini->rgt; m; m = m->rgt)
-		{	(void) puttype(m->ntyp);
+		{	if (m->ntyp == STRUCT)
+				printf("struct %s", m->sym->name);
+			else
+				(void) puttype(m->ntyp);
 			if (m->rgt) printf("\t");
 		}
 	}
@@ -496,6 +499,7 @@ chanaccess(void)
 {	Ordered *walk;
 	char buf[128];
 	extern int Caccess, separate;
+	extern short has_code;
 
 	for (walk = all_names; walk; walk = walk->next)
 	{	if (!walk->entry->owner)
@@ -512,10 +516,13 @@ chanaccess(void)
 			if ((walk->entry->hidden&32))
 				continue;
 
-			if (!separate && !walk->entry->context && deadvar)
+			if (!separate
+			&&  !walk->entry->context
+			&&  !has_code
+			&&   deadvar)
 				walk->entry->hidden |= 1; /* auto-hide */
 
-			if (!(verbose&32)) continue;
+			if (!(verbose&32) || has_code) continue;
 
 			printf("spin: warning, %s, ", Fname->name);
 			sputtype(buf, walk->entry->type);
@@ -526,6 +533,5 @@ chanaccess(void)
 				printf("global");
 			printf(", '%s%s' variable is never used\n",
 				buf, walk->entry->name);
-		}
-	}
+	}	}
 }

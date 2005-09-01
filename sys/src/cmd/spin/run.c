@@ -1,14 +1,13 @@
 /***** spin: run.c *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include <stdlib.h>
 #include "spin.h"
@@ -52,7 +51,7 @@ rev_escape(SeqList *e)
 	if (!e)
 		return (Element *) 0;
 
-	if (r = rev_escape(e->nxt)) /* reversed order */
+	if ((r = rev_escape(e->nxt)) != ZE) /* reversed order */
 		return r;
 
 	return eval_sub(e->this->frst);		
@@ -84,7 +83,7 @@ eval_sub(Element *e)
 	} else if (e->sub)	/* true for IF, DO, and UNLESS */
 	{	Element *has_else = ZE;
 		Element *bas_else = ZE;
-		int nr_else, nr_choices = 0;
+		int nr_else = 0, nr_choices = 0;
 
 		if (interactive
 		&& !MadeChoice && !E_Check
@@ -174,8 +173,21 @@ eval_sub(Element *e)
 					continue;
 				}
 			}
+			if (z->this->frst
+			&&  ((z->this->frst->n->ntyp == ATOMIC
+			  ||  z->this->frst->n->ntyp == D_STEP)
+			  &&  z->this->frst->n->sl->this->frst->n->ntyp == ELSE))
+			{	bas_else = z->this->frst->n->sl->this->frst;
+				has_else = (Rvous)?ZE:bas_else->nxt;
+				if (!interactive || depth < jumpsteps
+				|| Escape_Check
+				|| (e->status&(D_ATOM)))
+				{	z = (z->nxt)?z->nxt:e->sub;
+					continue;
+				}
+			}
 			if (i >= k)
-			{	if (f = eval_sub(z->this->frst))
+			{	if ((f = eval_sub(z->this->frst)) != ZE)
 					return f;
 				else if (interactive && depth >= jumpsteps
 				&& !(e->status&(D_ATOM)))
@@ -222,11 +234,13 @@ eval_sub(Element *e)
 				}
 				printf("\n");
 			}
-
+#if 0
 			if (!(e->status & D_ATOM))	/* escapes don't reach inside d_steps */
+			/* 4.2.4: only the guard of a d_step can have an escape */
+#endif
 			{	Escape_Check++;
 				if (like_java)
-				{	if (g = rev_escape(e->esc))
+				{	if ((g = rev_escape(e->esc)) != ZE)
 					{	if (verbose&4)
 							printf("\tEscape taken\n");
 						Escape_Check--;
@@ -234,7 +248,7 @@ eval_sub(Element *e)
 					}
 				} else
 				{	for (x = e->esc; x; x = x->nxt)
-					{	if (g = eval_sub(x->this->frst))
+					{	if ((g = eval_sub(x->this->frst)) != ZE)
 						{	if (verbose&4)
 								printf("\tEscape taken\n");
 							Escape_Check--;
@@ -245,7 +259,8 @@ eval_sub(Element *e)
 		
 			switch (e->n->ntyp) {
 			case TIMEOUT: case RUN:
-			case PRINT:
+			case PRINT: case PRINTM:
+			case C_CODE: case C_EXPR:
 			case ASGN: case ASSERT:
 			case 's': case 'r': case 'c':
 				/* toplevel statements only */
@@ -350,7 +365,7 @@ eval(Lextok *now)
 	case   '?': return (eval(now->lft) ? eval(now->rgt->lft)
 					   : eval(now->rgt->rgt));
 
-	case     'p': return remotevar(now);	/* only _p allowed */
+	case     'p': return remotevar(now);	/* _p for remote reference */
 	case     'q': return remotelab(now);
 	case     'R': return qrecv(now, 0);	/* test only    */
 	case     LEN: return qlen(now);
@@ -372,7 +387,18 @@ eval(Lextok *now)
 	case   'r': return qrecv(now, 1);	/* receive or poll */
 	case   'c': return eval(now->lft);	/* condition    */
 	case PRINT: return TstOnly?1:interprint(stdout, now);
+	case PRINTM: return TstOnly?1:printm(stdout, now);
 	case  ASGN: return assign(now);
+
+	case C_CODE: printf("%s:\t", now->sym->name);
+		     plunk_inline(stdout, now->sym->name, 0);
+		     return 1; /* uninterpreted */
+
+	case C_EXPR: printf("%s:\t", now->sym->name);
+		     plunk_expr(stdout, now->sym->name);
+		     printf("\n");
+		     return 1; /* uninterpreted */
+
 	case ASSERT: if (TstOnly || eval(now->lft)) return 1;
 		     non_fatal("assertion violated", (char *) 0);
 			printf("spin: text of failed assertion: assert(");
@@ -390,6 +416,25 @@ eval(Lextok *now)
 		    fatal("aborting", 0);
 	}}
 	return 0;
+}
+
+int
+printm(FILE *fd, Lextok *n)
+{	extern char Buf[];
+	int j;
+
+	Buf[0] = '\0';
+	if (!no_print)
+	if (!s_trail || depth >= jumpsteps) {
+		if (n->lft->ismtyp)
+			j = n->lft->val;
+		else
+			j = eval(n->lft);
+		Buf[0] = '\0';
+		sr_buf(j, 1);
+		dotag(fd, Buf);
+	}
+	return 1;
 }
 
 int
@@ -465,22 +510,24 @@ Enabled1(Lextok *n)
 		/* else fall through */
 	default:	/* side-effect free */
 		verbose = 0;
-E_Check++;
+		E_Check++;
 		i = eval(n);
-E_Check--;
+		E_Check--;
 		verbose = v;
 		return i;
 
-	case PRINT: case  ASGN: case ASSERT:
+	case C_CODE: case C_EXPR:
+	case PRINT: case PRINTM:
+	case   ASGN: case ASSERT:
 		return 1;
 
 	case 's':
 		if (q_is_sync(n))
 		{	if (Rvous) return 0;
 			TstOnly = 1; verbose = 0;
-E_Check++;
+			E_Check++;
 			i = eval(n);
-E_Check--;
+			E_Check--;
 			TstOnly = 0; verbose = v;
 			return i;
 		}
@@ -489,9 +536,9 @@ E_Check--;
 		if (q_is_sync(n))
 			return 0;	/* it's never a user-choice */
 		n->ntyp = 'R'; verbose = 0;
-E_Check++;
+		E_Check++;
 		i = eval(n);
-E_Check--;
+		E_Check--;
 		n->ntyp = 'r'; verbose = v;
 		return i;
 	}
@@ -544,6 +591,9 @@ pc_enabled(Lextok *n)
 	int pid = eval(n);
 	int result = 0;
 	RunList *Y, *oX;
+
+	if (pid == X->pid)
+		fatal("used: enabled(pid=thisproc) [%s]", X->n->name);
 
 	for (Y = run; Y; Y = Y->nxt)
 		if (--i == pid)

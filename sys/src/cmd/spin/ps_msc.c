@@ -1,10 +1,13 @@
 /***** spin: ps_msc.c *****/
 
-/* Copyright (c) 1997-2000 by Lucent Technologies - Bell Laboratories.    */
+/* Copyright (c) 1997-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 /* The Postscript generation code below was written by Gerard J. Holzmann */
 /* in June 1997. Parts of the prolog template are based on similar boiler */
@@ -13,6 +16,10 @@
 
 #include "spin.h"
 #include "version.h"
+
+#ifdef PC
+extern void free(void *);
+#endif
 
 static char *PsPre[] = {
 	"%%%%Pages: (atend)",
@@ -121,10 +128,10 @@ static char	**L;		/* text labels */
 static char	*ProcLine;	/* active processes */
 static int	pspno = 0;	/* postscript page */
 static int	ldepth = 1;
-static int	maxx, TotSteps = 4096; /* max nr of steps, about 40 pages */
+static int	maxx, TotSteps = 2*4096; /* max nr of steps, about 40 pages */
 static float	Scaler = (float) 1.0;
 
-extern int	nproc, nstop, ntrail, s_trail, pno, depth;
+extern int	ntrail, s_trail, pno, depth;
 extern Symbol	*oFname;
 extern void	exit(int);
 void putpages(void);
@@ -151,7 +158,7 @@ startpage(void)
 	fprintf(pfd, "%%%%Page: %d %d\n", pspno, pspno);
 	putlegend();
 
-	for (i = 255; i >= 0; i--)
+	for (i = TotSteps-1; i >= 0; i--)
 	{	if (!I[i]) continue;
 		spitbox(i, RH, -PH, I[i]);
 	}
@@ -161,11 +168,7 @@ startpage(void)
 	fprintf(pfd, "%d %d lineto\n", RH+MW, LH+oMH+5);
 	fprintf(pfd, "%d %d lineto\n", RH+MW, LH);
 	fprintf(pfd, "10 %d lineto\n", LH);
-#if 0
-	fprintf(pfd, "closepath\n");
-#else
 	fprintf(pfd, "closepath clip newpath\n");
-#endif
 	fprintf(pfd, "%f %f translate\n",
 		(float) RH, (float) LH);
 	memset(ProcLine, 0, 256*sizeof(char));
@@ -189,9 +192,9 @@ putprelude(void)
 
 	if (s_trail)
 	{	if (ntrail)
-		sprintf(snap, "%s%d.trail", oFname->name, ntrail);
+		sprintf(snap, "%s%d.trail", oFname?oFname->name:"msc", ntrail);
 		else
-		sprintf(snap, "%s.trail", oFname->name);
+		sprintf(snap, "%s.trail", oFname?oFname->name:"msc");
 		if (!(fd = fopen(snap, "r")))
 		{	snap[strlen(snap)-2] = '\0';
 			if (!(fd = fopen(snap, "r")))
@@ -206,8 +209,8 @@ putprelude(void)
 	M = (short *) emalloc(TotSteps * sizeof(short));
 	T = (short *) emalloc(TotSteps * sizeof(short));
 	L = (char **) emalloc(TotSteps * sizeof(char *));
-	I = (char **) emalloc(256 * sizeof(char *));
-	ProcLine = (char *) emalloc(256 * sizeof(char));
+	I = (char **) emalloc(TotSteps * sizeof(char *));
+	ProcLine = (char *) emalloc(1024 * sizeof(char));
 	startpage();
 }
 
@@ -226,13 +229,10 @@ putpostlude(void)
 }
 void
 psline(int x0, int iy0, int x1, int iy1, float r, float g, float b, int w)
-{
-	int y0 = MH-iy0;
+{	int y0 = MH-iy0;
 	int y1 = MH-iy1;
-	int dx = 5;
 
 	if (y1 > y0) y1 -= MH;
-	if (x0 > x1) dx = -5;
 
 	fprintf(pfd, "gsave\n");
 	fprintf(pfd, "%d %d moveto\n", x0*WW, y0);
@@ -268,13 +268,15 @@ putgrid(int p)
 }
 
 void
-putarrow(int from, int to) { T[D[from]] = D[to]; }
+putarrow(int from, int to)
+{
+	T[D[from]] = D[to];
+}
 
 void
 stepnumber(int i)
 {	int y = MH-(i*HH)%MH;
 
-/*	if (y == MH) y -= 5; */
 	fprintf(pfd, "gsave\n");
 	fprintf(pfd, "/Courier-Bold findfont 6 scalefont ");
 	fprintf(pfd, "ISOEncode setfont\n");
@@ -318,11 +320,11 @@ spitbox(int x, int dx, int y, char *s)
 	} else
 	{	r = (float) 1.; g = (float) 1.; b = (float) 0.;
 		if (!dx
-		&&  sscanf(s, "%d:%s", &a, &d) == 2
-		&&  a >= 0 && a <= 255)
+		&&  sscanf(s, "%d:%s", &a, d) == 2	/* was &d */
+		&&  a >= 0 && a < TotSteps)
 		{	if (!I[a]
 			||  strlen(I[a]) <= strlen(s))
-				I[a] = emalloc(strlen(s)+1);
+				I[a] = emalloc((int) strlen(s)+1);
 			strcpy(I[a], s);
 	}	}
 	colbox(x*WW+dx, MH-(y*HH)%MH, (int) bw, 4, r,g,b);
@@ -338,7 +340,6 @@ spitbox(int x, int dx, int y, char *s)
 void
 putpages(void)
 {	int i, lasti=0; float nmh;
-/*	extern int free(void *); */
 
 	if (maxx*WW > MW-RH/2)
 	{	Scaler = (float) (MW-RH/2) / (float) (maxx*WW);
@@ -346,7 +347,7 @@ putpages(void)
 		nmh = (float) MH; nmh /= Scaler; MH = (int) nmh;
 	}
 
-	for (i = 255; i >= 0; i--)
+	for (i = TotSteps-1; i >= 0; i--)
 	{	if (!I[i]) continue;
 		spitbox(i, 0, 0, I[i]);
 	}
@@ -397,7 +398,7 @@ putbox(int x)
 {
 	if (ldepth >= TotSteps)
 	{	putpostlude();
-		fprintf(stderr, "max length of %d steps exceeded",
+		fprintf(stderr, "max length of %d steps exceeded\n",
 			TotSteps);
 		fatal("postscript file truncated", (char *) 0);
 	}
@@ -407,13 +408,19 @@ putbox(int x)
 
 void
 pstext(int x, char *s)
-{	char *tmp = emalloc(strlen(s)+1);
+{	char *tmp = emalloc((int) strlen(s)+1);
 
 	strcpy(tmp, s);
 	if (depth == 0)
 		I[x] = tmp;
 	else
 	{	putbox(x);
+		if (depth >= TotSteps || ldepth >= TotSteps)
+		{	fprintf(stderr, "max nr of %d steps exceeded\n",
+				TotSteps);
+			fatal("aborting", (char *) 0);
+		}
+
 		D[depth] = ldepth;
 		R[ldepth] = depth;
 		L[ldepth] = tmp;
@@ -423,15 +430,19 @@ pstext(int x, char *s)
 
 void
 dotag(FILE *fd, char *s)
-{	extern int columns; extern RunList *X;
+{	extern int columns, notabs; extern RunList *X;
 	int i = (!strncmp(s, "MSC: ", 5))?5:0;
 	int pid = s_trail ? pno : (X?X->pid:0);
 
 	if (columns == 2)
 		pstext(pid, &s[i]);
 	else
-	{	for (i = 0; i < pid; i++)
-			printf("\t");
+	{	if (!notabs)
+		{	printf("  ");
+			for (i = 0; i <= pid; i++)
+				printf("    ");
+		}
 		fprintf(fd, "%s", s);
+		fflush(fd);
 	}
 }

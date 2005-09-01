@@ -1,13 +1,16 @@
 /***** spin: pc_zpp.c *****/
 
-/* Copyright (c) 1997-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1997-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann, gerard@research.bell-labs.com  */
-/* pc_zpp.c is only used in the PC version of Spin, to avoid too great a  */
-/* reliance on the cpp command.                                           */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+
+/* pc_zpp.c is only used in the PC version of Spin                        */
+/* it is included to avoid too great a reliance on an external cpp        */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,16 +23,17 @@ enum cstate { PLAIN, IN_STRING, IN_QUOTE, S_COMM, COMMENT, E_COMM };
 #define MAXNEST	32
 #define MAXDEF	128
 #define MAXLINE	512
+#define GENEROUS 4096
 
 #define debug(x,y)	if (verbose) printf(x,y)
 
-static FILE *outpp = stdout;
+static FILE *outpp /* = stdout */;
 
 static int if_truth[MAXNEST];
 static int printing[MAXNEST];
 static int if_depth, nr_defs, verbose = 0;
 static enum cstate state = PLAIN;
-static char Out1[4096], Out2[4096];
+static char Out1[GENEROUS], Out2[GENEROUS];
 
 static struct Defines {
 	int exists;
@@ -38,6 +42,8 @@ static struct Defines {
 
 static int process(char *, int, char *);
 static int zpp_do(char *);
+
+extern char *emalloc(int);	/* main.c */
 
 static int
 do_define(char *p)
@@ -73,8 +79,8 @@ do_define(char *p)
 adddef:		for (j = 0; j < nr_defs; j++)
 			if (!strcmp(d[j].src, q))
 				d[j].exists = 0;
-		d[nr_defs].src = malloc(strlen(q)+1);
-		d[nr_defs].trg = malloc(strlen(s)+1);
+		d[nr_defs].src = emalloc(strlen(q)+1);
+		d[nr_defs].trg = emalloc(strlen(s)+1);
 		strcpy(d[nr_defs].src, q);
 		strcpy(d[nr_defs].trg, s);
 		d[nr_defs++].exists = 1;
@@ -98,7 +104,7 @@ apply(char *p0)
 
 	for (i = nr_defs-1; i >= 0; i--)
 	{	if (!d[i].exists) continue;
-		j = strlen(d[i].src);
+		j = (int) strlen(d[i].src);
 more:		in2 = strstr(startat, d[i].src);
 		if (!in2)	/* no more matches */
 		{	startat = in1;
@@ -107,6 +113,13 @@ more:		in2 = strstr(startat, d[i].src);
 		if ((in2 == in1 || !isvalid(*(in2-1)))
 		&&  (in2+j == '\0' || !isvalid(*(in2+j))))
 		{	*in2 = '\0';
+
+			if (strlen(in1)+strlen(d[i].trg)+strlen(in2+j) >= GENEROUS)
+			{
+				printf("spin: circular macro expansion %s -> %s ?\n",
+					d[i].src, d[i].trg);
+				return in1;
+			}
 			strcat(out, in1);
 			strcat(out, d[i].trg);
 			strcat(out, in2+j);
@@ -217,7 +230,7 @@ do_if(char *p)
 }
 
 static int
-do_else(char *p)
+do_else(char *unused)
 {
 	if_truth[if_depth] = 1-if_truth[if_depth];
 	printing[if_depth] = printing[if_depth-1]&&if_truth[if_depth];
@@ -304,13 +317,13 @@ zpp_do(char *fnm)
 	FILE *inp; int lno = 0, nw_lno = 0;
 
 	if ((inp = fopen(fnm, "r")) == NULL)
-	{	debug("error: cannot open %s\n", fnm);
-		return 0;
+	{	fprintf(stdout, "spin: error, '%s': No such file\n", fnm);
+		return 0;	/* 4.1.2 was stderr */
 	}
 	printing[0] = if_truth[0] = 1;
 	fprintf(outpp, "#line %d \"%s\"\n", lno+1, fnm);
 	while (fgets(buf, MAXLINE, inp))
-	{	lno++; n = strlen(buf);
+	{	lno++; n = (int) strlen(buf);
 		on = 0; nw_lno = 0;
 		while (n > 2 && buf[n-2] == '\\')
 		{	buf[n-2] = '\0';
@@ -324,7 +337,7 @@ feedme:			if (!fgets(buf2, MAXLINE, inp))
 				return 0;
 			}
 			strcat(buf, buf2);
-			n = strlen(buf);
+			n = (int) strlen(buf);
 		}
 		if (in_comment(&buf[on]))
 		{	buf[n-1] = '\0'; /* eat newline */

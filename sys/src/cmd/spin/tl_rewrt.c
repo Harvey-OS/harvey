@@ -1,14 +1,16 @@
 /***** tl_spin: tl_rewrt.c *****/
 
-/* Copyright (c) 1995-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1995-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Written by Gerard J. Holzmann, Bell Laboratories, U.S.A.               */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+
 /* Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper, */
 /* presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.   */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
 
 #include "tl.h"
 
@@ -40,7 +42,7 @@ canonical(Node *n)
 {	Node *m;	/* assumes input is right_linked */
 
 	if (!n) return n;
-	if (m = in_cache(n))
+	if ((m = in_cache(n)) != ZN)
 		return m;
 
 	n->rgt = canonical(n->rgt);
@@ -127,11 +129,7 @@ addcan(int tok, Node *n)
 		addcan(tok, n->lft);
 		return;
 	}
-#if 0
-	if ((tok == AND && n->ntyp == TRUE)
-	||  (tok == OR  && n->ntyp == FALSE))
-		return;
-#endif
+
 	N = dupnode(n);
 	if (!can)	
 	{	can = N;
@@ -196,7 +194,7 @@ Canonical(Node *n)
 
 	can = ZN;
 	addcan(tok, n);
-#if 1
+#if 0
 	Debug("\nA0: "); Dump(can); 
 	Debug("\nA1: "); Dump(n); Debug("\n");
 #endif
@@ -233,11 +231,6 @@ Canonical(Node *n)
 			{	marknode(AND, p);
 				continue;
 			}
-			if (k2->ntyp == U_OPER
-			&&  anywhere(AND, k2->rgt, can))
-			{	marknode(AND, p);
-				continue;
-			}	/* q && (p U q) = q */
 	}	}
 	if (tok == OR)
 	{	for (m = can; m; m = (m->ntyp == OR) ? m->rgt : ZN)
@@ -269,12 +262,6 @@ Canonical(Node *n)
 			{	marknode(OR, p);
 				continue;
 			}
-			if (k2->ntyp == V_OPER
-			&&  k2->lft->ntyp == FALSE
-			&&  anywhere(AND, k2->rgt, can))
-			{	marknode(OR, p);
-				continue;
-			}	/* p || (F V p) = p */
 	}	}
 	for (m = can, prev = ZN; m; )	/* remove marked nodes */
 	{	if (m->ntyp == -1)
@@ -301,7 +288,7 @@ Canonical(Node *n)
 		m = m->rgt;
 	}
 out:
-#if 1
+#if 0
 	Debug("A2: "); Dump(can); Debug("\n");
 #endif
 	if (!can)

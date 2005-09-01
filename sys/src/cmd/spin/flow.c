@@ -1,14 +1,13 @@
 /***** spin: flow.c *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
 #ifdef PC
@@ -97,6 +96,7 @@ int
 is_skip(Lextok *n)
 {
 	return (n->ntyp == PRINT
+	||	n->ntyp == PRINTM
 	||	(n->ntyp == 'c'
 		&& n->lft
 		&& n->lft->ntyp == CONST
@@ -113,15 +113,19 @@ check_sequence(Sequence *s)
 	{	n = e->n;
 		if (is_skip(n) && !has_lab(e, 0))
 		{	cnt++;
-			if (cnt > 1 && n->ntyp != PRINT)
+			if (cnt > 1
+			&&  n->ntyp != PRINT
+			&&  n->ntyp != PRINTM)
 			{	if (verbose&32)
 					printf("spin: line %d %s, redundant skip\n",
 						n->ln, n->fn->name);
-				if (le)
+				if (e != s->frst
+				&&  e != s->last
+				&&  e != s->extent)
 				{	e->status |= DONE;	/* not unreachable */
 					le->nxt = e->nxt;	/* remove it */
 					e = le;
-				} /* else, can't happen */
+				}
 			}
 		} else
 			cnt = 0;
@@ -307,6 +311,45 @@ has_chanref(Lextok *n)
 		return 1;
 
 	return has_chanref(n->rgt);
+}
+
+void
+loose_ends(void)	/* properly tie-up ends of sub-sequences */
+{	Element *e, *f;
+
+	for (e = Al_El; e; e = e->Nxt)
+	{	if (!e->n
+		||  !e->nxt)
+			continue;
+		switch (e->n->ntyp) {
+		case ATOMIC:
+		case NON_ATOMIC:
+		case D_STEP:
+			f = e->nxt;
+			while (f && f->n->ntyp == '.')
+				f = f->nxt;
+			if (0) printf("link %d, {%d .. %d} -> %d (ntyp=%d) was %d\n",
+				e->seqno,
+				e->n->sl->this->frst->seqno,
+				e->n->sl->this->last->seqno,
+				f?f->seqno:-1, f?f->n->ntyp:-1,
+				e->n->sl->this->last->nxt?e->n->sl->this->last->nxt->seqno:-1);
+			if (!e->n->sl->this->last->nxt)
+				e->n->sl->this->last->nxt = f;
+			else
+			{	if (e->n->sl->this->last->nxt->n->ntyp != GOTO)
+				{	if (!f || e->n->sl->this->last->nxt->seqno != f->seqno)
+					non_fatal("unexpected: loose ends", (char *)0);
+				} else
+					e->n->sl->this->last = e->n->sl->this->last->nxt;
+				/*
+				 * fix_dest can push a goto into the nxt position
+				 * in that case the goto wins and f is not needed
+				 * but the last fields needs adjusting
+				 */
+			}
+			break;
+	}	}
 }
 
 static Element *
@@ -547,6 +590,7 @@ get_lab(Lextok *n, int md)
 	for (l = labtab; l; l = l->nxt)
 		if (s == l->s)
 			return (l->e);
+
 	lineno = n->ln;
 	Fname = n->fn;
 	if (md) fatal("undefined label %s", s->name);
@@ -586,12 +630,19 @@ mov_lab(Symbol *z, Element *e, Element *y)
 }
 
 void
-fix_dest(Symbol *c, Symbol *a)	/* label, proctype */
+fix_dest(Symbol *c, Symbol *a)		/* c:label name, a:proctype name */
 {	Label *l; extern Symbol *context;
+
+#if 0
+	printf("ref to label '%s' in proctype '%s', search:\n",
+		c->name, a->name);
+	for (l = labtab; l; l = l->nxt)
+		printf("	%s in	%s\n", l->s->name, l->c->name);
+#endif
 
 	for (l = labtab; l; l = l->nxt)
 	{	if (strcmp(c->name, l->s->name) == 0
-		&&  strcmp(a->name, l->c->name) == 0)
+		&&  strcmp(a->name, l->c->name) == 0)	/* ? */
 			break;
 	}
 	if (!l)
@@ -622,6 +673,10 @@ fix_dest(Symbol *c, Symbol *a)	/* label, proctype */
 		l->e->nxt = y;		/* append the goto  */
 	}
 	l->e->status |= CHECK2;	/* treat as if global */
+	if (l->e->status & (ATOM | L_ATOM | D_ATOM))
+	{	non_fatal("cannot reference label inside atomic or d_step (%s)",
+			c->name);
+	}
 }
 
 int
@@ -660,10 +715,28 @@ break_dest(void)
 
 void
 make_atomic(Sequence *s, int added)
-{
+{	Element *f;
+
 	walk_atomic(s->frst, s->last, added);
-	s->last->status &= ~ATOM;
-	s->last->status |= L_ATOM;
+
+	f = s->last;
+	switch (f->n->ntyp) {	/* is last step basic stmnt or sequence ? */
+	case NON_ATOMIC:
+	case ATOMIC:
+		/* redo and search for the last step of that sequence */
+		make_atomic(f->n->sl->this, added);
+		break;
+
+	case UNLESS:
+		/* escapes are folded into main sequence */
+		make_atomic(f->sub->this, added);
+		break;
+
+	default:
+		f->status &= ~ATOM;
+		f->status |= L_ATOM;
+		break;
+	}
 }
 
 static void
@@ -699,6 +772,11 @@ mknonat:		f->n->ntyp = NON_ATOMIC; /* can jump here */
 			h = f->n->sl;
 			walk_atomic(h->this->frst, h->this->last, added);
 			break;
+		case UNLESS:
+			if (added)
+			{ printf("spin: error, line %3d %s, unless in d_step (ignored)\n",
+			 	 f->n->ln, f->n->fn->name);
+			}
 		}
 		for (h = f->sub; h; h = h->nxt)
 			walk_atomic(h->this->frst, h->this->last, added);

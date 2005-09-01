@@ -2892,13 +2892,13 @@ putndb(PPP *ppp, char *net)
 	p = seprint(p, e, "ip=%I ipmask=255.255.255.255 ipgw=%I\n", ppp->local,
 			ppp->remote);
 	if(validv4(ppp->dns[0]))
-		p = seprint(p, e, "\tdns=%I", ppp->dns[0]);
+		p = seprint(p, e, "\tdns=%I\n", ppp->dns[0]);
 	if(validv4(ppp->dns[1]))
-		p = seprint(p, e, "\tdns=%I", ppp->dns[1]);
+		p = seprint(p, e, "\tdns=%I\n", ppp->dns[1]);
 	if(validv4(ppp->wins[0]))
-		p = seprint(p, e, "\twins=%I", ppp->wins[0]);
+		p = seprint(p, e, "\twins=%I\n", ppp->wins[0]);
 	if(validv4(ppp->wins[1]))
-		p = seprint(p, e, "\twins=%I", ppp->wins[1]);
+		p = seprint(p, e, "\twins=%I\n", ppp->wins[1]);
 	seprint(file, file+sizeof file, "%s/ndb", net);
 	fd = open(file, OWRITE);
 	if(fd < 0)

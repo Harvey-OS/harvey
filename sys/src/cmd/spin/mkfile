@@ -13,8 +13,10 @@ SPIN_OS=\
 	pangen3.$O\
 	pangen4.$O\
 	pangen5.$O\
+	pangen6.$O\
 	pc_zpp.$O\
 	ps_msc.$O\
+	reprosrc.$O\
 	run.$O\
 	sched.$O\
 	spinlex.$O\

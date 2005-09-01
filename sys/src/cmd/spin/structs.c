@@ -1,14 +1,13 @@
 /***** spin: structs.c *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
 #ifdef PC
@@ -23,8 +22,6 @@ typedef struct UType {
 	struct UType *nxt;	/* linked list */
 } UType;
 
-extern	Symbol	*context;
-extern	RunList	*X;
 extern	Symbol	*Fname;
 extern	int	lineno, depth, Expand_Ok;
 
@@ -254,7 +251,7 @@ is_lst:
 	for (tl = fp->lft; tl; tl = tl->rgt)
 	{	if (tl->sym->type == STRUCT)
 		{	if (tl->sym->nel != 1)
-				fatal("hidden array in parameter, %s",
+				fatal("array of structures in param list, %s",
 					tl->sym->name);
 			cnt += Cnt_flds(tl->sym->Slst);
 		}  else
@@ -275,7 +272,7 @@ Sym_typ(Lextok *t)
 	if (!t->rgt
 	||  !t->rgt->ntyp == '.'
 	||  !t->rgt->lft)
-		fatal("unexpected struct layout %s", s->name);
+		return STRUCT;	/* not a field reference */
 
 	return Sym_typ(t->rgt->lft);
 }
@@ -386,7 +383,7 @@ void
 struct_name(Lextok *n, Symbol *v, int xinit, char *buf)
 {	Symbol *tl;
 	Lextok *tmp;
-	char lbuf[128];
+	char lbuf[512];
 
 	if (!n || !(tl = do_same(n, v, xinit)))
 		return;
@@ -448,9 +445,36 @@ walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c
 }
 
 void
+c_struct(FILE *fd, char *ipref, Symbol *z)
+{	Lextok *fp, *tl;
+	char pref[256], eprefix[256];
+	int ix;
+
+	ini_struct(z);
+
+	for (ix = 0; ix < z->nel; ix++)
+	for (fp = z->Sval[ix]; fp; fp = fp->rgt)
+	for (tl = fp->lft; tl; tl = tl->rgt)
+	{	strcpy(eprefix, ipref);
+		if (z->nel > 1)
+		{	/* insert index before last '.' */
+			eprefix[strlen(eprefix)-1] = '\0';
+			sprintf(pref, "[ %d ].", ix);
+			strcat(eprefix, pref);
+		}
+		if (tl->sym->type == STRUCT)
+		{	strcat(eprefix, tl->sym->name);
+			strcat(eprefix, ".");
+			c_struct(fd, eprefix, tl->sym);
+		} else
+			c_var(fd, eprefix, tl->sym);
+	}
+}
+
+void
 dump_struct(Symbol *z, char *prefix, RunList *r)
 {	Lextok *fp, *tl;
-	char eprefix[128];
+	char eprefix[256];
 	int ix, jx;
 
 	ini_struct(z);
@@ -464,7 +488,7 @@ dump_struct(Symbol *z, char *prefix, RunList *r)
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
 		{	if (tl->sym->type == STRUCT)
-			{	char pref[128];
+			{	char pref[256];
 				strcpy(pref, eprefix);
 				strcat(pref, ".");
 				strcat(pref, tl->sym->name);
@@ -561,6 +585,22 @@ mk_explicit(Lextok *n, int Ok, int Ntyp)
 	if (n->sym->type != STRUCT
 	||  is_explicit(n))
 		return n;
+
+	if (n->rgt
+	&&  n->rgt->ntyp == '.'
+	&&  n->rgt->lft
+	&&  n->rgt->lft->sym
+	&&  n->rgt->lft->sym->type == STRUCT)
+	{	Lextok *y;
+		bld = mk_explicit(n->rgt->lft, Ok, Ntyp);
+		for (x = bld; x; x = x->rgt)
+		{	y = cpnn(n, 1, 0, 0);
+			y->rgt = nn(ZN, '.', x->lft, ZN);
+			x->lft = y;
+		}
+
+		return bld;
+	}
 
 	if (!Ok || !n->sym->Slst)
 	{	if (IArgs) return n;

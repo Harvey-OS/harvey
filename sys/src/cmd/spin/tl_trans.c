@@ -1,14 +1,16 @@
 /***** tl_spin: tl_trans.c *****/
 
-/* Copyright (c) 1995-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1995-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Written by Gerard J. Holzmann, Bell Laboratories, U.S.A.               */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+
 /* Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper, */
 /* presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.   */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
 
 #include "tl.h"
 
@@ -40,7 +42,7 @@ static int	set_prefix(char *, int, Graph *);
 static void	Addout(char *, char *);
 static void	fsm_trans(Graph *, int, char *);
 static void	mkbuchi(void);
-static void	expand(Graph *);
+static void	expand_g(Graph *);
 static void	fixinit(Node *);
 static void	liveness(Node *);
 static void	mk_grn(Node *);
@@ -131,6 +133,7 @@ mk_grn(Node *n)
 {	Graph *p;
 
 	n = right_linked(n);
+more:
 	for (p = Nodes_Set; p; p = p->nxt)
 		if (p->outgoing
 		&&  has_clause(AND, p, n))
@@ -138,6 +141,11 @@ mk_grn(Node *n)
 				(unsigned char) Red_cnt;
 			Lab_cnt++;
 		}
+
+	if (n->ntyp == U_OPER)	/* 3.4.0 */
+	{	n = n->rgt;
+		goto more;
+	}
 }
 
 static void
@@ -347,6 +355,14 @@ fsm_trans(Graph *p, int count, char *curnm)
 			sprintf(nwnm, "%s_%s", prefix, s->name);
 		} else
 			strcpy(nwnm, "accept_all");
+
+		if (tl_verbose)
+		{	printf("maxred=%d, count=%d, curnm=%s, nwnm=%s ",
+				Max_Red, count, curnm, nwnm);
+			printf("(greencnt=%d,%d, redcnt=%d,%d)\n",
+				r->grncnt, r->isgrn[0],
+				r->redcnt, r->isred[0]);
+		}
 		addtrans(p, curnm, r->Old, nwnm);
 	}
 }
@@ -625,10 +641,9 @@ not_new(Graph *g)
 }
 
 static void
-expand(Graph *g)
+expand_g(Graph *g)
 {	Node *now, *n1, *n2, *nx;
 	int can_release;
-	extern void cache_dump(void);
 
 	if (!g->New)
 	{	Debug2("\nDone with %s", g->name->name);
@@ -681,14 +696,7 @@ expand(Graph *g)
 	g->New = g->New->nxt;
 	now->nxt = ZN;
 
-	if (now->ntyp != TRUE
-#if 1
-/* 3.4.0 */
-		)
-#else
-/* 3.3.9 */
-	&&  now->ntyp != FALSE)
-#endif
+	if (now->ntyp != TRUE)
 	{	if (g->Old)
 		{	for (n1 = g->Old; n1->nxt; n1 = n1->nxt)
 				if (isequal(now, n1))
@@ -702,24 +710,7 @@ expand(Graph *g)
 out:
 	switch (now->ntyp) {
 	case FALSE:
-#if 1
-/* 3.4.0 */
-push_stack(g);
-#else
-		releasenode(1, now);
-		for (n1 = g->Old; n1; n1 = n2)
-		{	n2 = n1->nxt;
-			releasenode(1, n1);
-		}
-		for (n1 = g->New; n1; n1 = n2)
-		{	n2 = n1->nxt;
-			releasenode(1, n1);
-		}
-		for (n1 = g->Next; n1; n1 = n2)
-		{	n2 = n1->nxt;
-			releasenode(1, n1);
-		}
-#endif
+		push_stack(g);
 		break;
 	case TRUE:
 		releasenode(1, now);
@@ -863,9 +854,9 @@ trans(Node *p)
 	op = dupnode(p);
 
 	ng(ZS, getsym(tl_lookup("init")), p, ZN, ZN);
-	while (g = Nodes_Stack)
+	while ((g = Nodes_Stack) != (Graph *) 0)
 	{	Nodes_Stack = g->nxt;
-		expand(g);
+		expand_g(g);
 	}
 	if (newstates)
 		return;
