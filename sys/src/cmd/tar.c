@@ -804,6 +804,20 @@ mkpdirs(char *s)
 	}
 }
 
+/* Call access but preserve the error string. */
+static int
+xaccess(char *name, int mode)
+{
+	char err[ERRMAX];
+	int rv;
+
+	err[0] = 0;
+	errstr(err, sizeof err);
+	rv = access(name, mode);
+	errstr(err, sizeof err);
+	return rv;
+}
+
 /* copy a file from the archive into the filesystem */
 /* fname is result of name(), so has two extra bytes at beginning */
 static void
@@ -858,7 +872,7 @@ extract1(int ar, Hdr *hp, char *fname)
 					fd = create(fname, rw, mode);
 				}
 				if (fd < 0 &&
-				    (!dir || access(fname, AEXIST) < 0))
+				    (!dir || xaccess(fname, AEXIST) < 0))
 					fprint(2, "%s: can't create %s: %r\n",
 						argv0, fname);
 			}

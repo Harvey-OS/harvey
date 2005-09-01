@@ -1,14 +1,13 @@
 /***** spin: sched.c *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include <stdlib.h>
 #include "spin.h"
@@ -23,8 +22,9 @@ extern char	*claimproc, *eventmap, Buf[];
 extern Ordered	*all_names;
 extern Symbol	*Fname, *context;
 extern int	lineno, nr_errs, dumptab, xspin, jumpsteps, columns;
-extern int	u_sync, Elcnt, interactive, TstOnly;
-extern short	has_enabled, has_provided;
+extern int	u_sync, Elcnt, interactive, TstOnly, cutoff;
+extern short	has_enabled;
+extern int	limited_vis;
 
 RunList		*X   = (RunList  *) 0;
 RunList		*run = (RunList  *) 0;
@@ -46,11 +46,20 @@ runnable(ProcList *p, int weight, int noparams)
 
 	r->n  = p->n;
 	r->tn = p->tn;
-	r->pid = ++nproc-nstop-1;
-	r->pc = huntele(p->s->frst, p->s->frst->status);
+	r->pid = nproc++ - nstop + Skip_claim;
+
+	if ((verbose&4) || (verbose&32))
+		printf("Starting %s with pid %d\n", p->n->name, r->pid);
+
+	if (!p->s)
+		fatal("parsing error, no sequence %s", p->n?p->n->name:"--");
+
+	r->pc = huntele(p->s->frst, p->s->frst->status, -1);
 	r->ps = p->s;
-	if (p->s && p->s->last)
-		p->s->last->status |= ENDSTATE; /* normal endstate */
+
+	if (p->s->last)
+		p->s->last->status |= ENDSTATE; /* normal end state */
+
 	r->nxt = run;
 	r->prov = p->prov;
 	r->priority = weight;
@@ -120,22 +129,22 @@ announce(char *w)
 		firstrow = 1;
 		if (columns == 2)
 		{	sprintf(Buf, "%d:%s",
-			run->pid, run->n->name);
-			pstext(run->pid, Buf);
+			run->pid - Have_claim, run->n->name);
+			pstext(run->pid - Have_claim, Buf);
 		} else
 			printf("proc %d = %s\n",
 			run->pid - Have_claim, run->n->name);
 		return;
 	}
-#if 1
+
 	if (dumptab
 	||  analyze
 	||  s_trail
 	|| !(verbose&4))
 		return;
-#endif
+
 	if (w)
-		printf("  0:	proc - (%s) ", w);
+		printf("  0:	proc  - (%s) ", w);
 	else
 		whoruns(1);
 	printf("creates proc %2d (%s)",
@@ -146,6 +155,10 @@ announce(char *w)
 	printf("\n");
 }
 
+#ifndef MAXP
+#define MAXP	255	/* matches max nr of processes in verifier */
+#endif
+
 int
 enable(Lextok *m)
 {	ProcList *p;
@@ -155,11 +168,15 @@ enable(Lextok *m)
 	if (m->val < 1) m->val = 1;	/* minimum priority */
 	for (p = rdy; p; p = p->nxt)
 		if (strcmp(s->name, p->n->name) == 0)
-		{	runnable(p, m->val, 0);
+		{	if (nproc-nstop >= MAXP)
+			{	printf("spin: too many processes (%d max)\n", MAXP);
+				break;
+			}
+			runnable(p, m->val, 0);
 			announce((char *) 0);
 			setparams(run, p, n);
 			setlocals(run); /* after setparams */
-			return run->pid - Have_claim;	/* pid */
+			return run->pid - Have_claim + Skip_claim; /* effective simu pid */
 		}
 	return 0; /* process not found */
 }
@@ -179,7 +196,7 @@ start_claim(int n)
 	Skip_claim = 1;
 	goto done;
 found:
-	/* move claim to far end of runlist, with pid 0 */
+	/* move claim to far end of runlist, and reassign it pid 0 */
 	if (columns == 2)
 	{	depth = 0;
 		pstext(0, "0::never:");
@@ -190,23 +207,42 @@ found:
 				r->pid+1, r->n->name);
 			pstext(r->pid+1, Buf);
 	}	}
-	if (run->pid == 0) return;	/* already there */
+
+	if (run->pid == 0) return; /* it is the first process started */
 
 	q = run; run = run->nxt;
-	q->pid = 0; q->nxt = (RunList *) 0;
+	q->pid = 0; q->nxt = (RunList *) 0;	/* remove */
 done:
+	Have_claim = 1;
 	for (r = run; r; r = r->nxt)
-	{	r->pid = r->pid+1;
+	{	r->pid = r->pid+Have_claim;	/* adjust */
 		if (!r->nxt)
 		{	r->nxt = q;
 			break;
 	}	}
-	Have_claim = 1;
+}
+
+int
+f_pid(char *n)
+{	RunList *r;
+	int rval = -1;
+
+	for (r = run; r; r = r->nxt)
+		if (strcmp(n, r->n->name) == 0)
+		{	if (rval >= 0)
+			{	printf("spin: remote ref to proctype %s, ", n);
+				printf("has more than one match: %d and %d\n",
+					rval, r->pid);
+			} else
+				rval = r->pid;
+		}
+	return rval;
 }
 
 void
 wrapup(int fini)
 {
+	limited_vis = 0;
 	if (columns)
 	{	extern void putpostlude(void);
 		if (columns == 2) putpostlude();
@@ -217,7 +253,7 @@ wrapup(int fini)
 		goto short_cut;
 	if (nproc != nstop)
 	{	int ov = verbose;
-		printf("#processes: %d\n", nproc-nstop);
+		printf("#processes: %d\n", nproc-nstop - Have_claim + Skip_claim);
 		verbose &= ~4;
 		dumpglobals();
 		verbose = ov;
@@ -227,7 +263,9 @@ wrapup(int fini)
 			talk(X);
 		verbose = ov;	/* restore */
 	}
-	printf("%d processes created\n", nproc);
+	printf("%d process%s created\n",
+		nproc - Have_claim + Skip_claim,
+		(xspin || nproc!=1)?"es":"");
 short_cut:
 	if (xspin) alldone(0);	/* avoid an abort from xspin */
 	if (fini)  alldone(1);
@@ -237,7 +275,7 @@ static char is_blocked[256];
 
 static int
 p_blocked(int p)
-{	register int i, j;
+{	int i, j;
 
 	is_blocked[p%256] = 1;
 	for (i = j = 0; i < nproc - nstop; i++)
@@ -276,7 +314,7 @@ static void
 pickproc(void)
 {	SeqList *z; Element *has_else;
 	short Choices[256];
-	int j, k, nr_else;
+	int j, k, nr_else = 0;
 
 	if (nproc <= nstop+1)
 	{	X = run;
@@ -422,7 +460,7 @@ sched(void)
 {	Element *e;
 	RunList *Y=0;	/* previous process in run queue */
 	RunList *oX;
-	int go, notbeyond;
+	int go, notbeyond = 0;
 #ifdef PC
 	int bufmax = 100;
 #endif
@@ -450,11 +488,8 @@ sched(void)
 	if (eventmap)
 	printf("warning: trace assertion not used in random simulation\n");
 
-/*	if (interactive) Tval = 1; */
-
 	X = run;
 	pickproc();
-	notbeyond = 0;
 
 	while (X)
 	{	context = X->n;
@@ -462,19 +497,25 @@ sched(void)
 		{	lineno = X->pc->n->ln;
 			Fname  = X->pc->n->fn;
 		}
+		if (cutoff > 0 && depth >= cutoff)
+		{	printf("-------------\n");
+			printf("depth-limit (-u%d steps) reached\n", cutoff);
+			break;
+		}
 #ifdef PC
 		if (xspin && !interactive && --bufmax <= 0)
-		{	/* avoid buffer overflow on pc's */
+		{	int c; /* avoid buffer overflow on pc's */
 			printf("spin: type return to proceed\n");
 			fflush(stdout);
-			getc(stdin);
+			c = getc(stdin);
+			if (c == 'q') wrapup(0);
 			bufmax = 100;
 		}
 #endif
 		depth++; LastStep = ZE;
 		oX = X;	/* a rendezvous could change it */
 		go = 1;
-		if (X && X->prov
+		if (X && X->prov && X->pc
 		&& !(X->pc->status & D_ATOM)
 		&& !eval(X->prov))
 		{	if (!xspin && ((verbose&32) || (verbose&4)))
@@ -487,6 +528,7 @@ sched(void)
 		{	if (depth >= jumpsteps
 			&& ((verbose&32) || (verbose&4)))
 			{	if (X == oX)
+				if (!(e->status & D_ATOM) || (verbose&32)) /* no talking in d_steps */
 				{	p_talk(X->pc, 1);
 					printf("	[");
 					if (!LastStep) LastStep = X->pc;
@@ -495,17 +537,23 @@ sched(void)
 				}
 				if (verbose&1) dumpglobals();
 				if (verbose&2) dumplocal(X);
-				if (xspin) printf("\n");
+
+				if (!(e->status & D_ATOM))
+				if (xspin)
+					printf("\n");
 			}
-			if (oX != X)  e = silent_moves(e);
+			if (oX != X)
+			{	e = silent_moves(e);
+				notbeyond = 0;
+			}
 			oX->pc = e; LastX = X;
 
 			if (!interactive) Tval = 0;
 			memset(is_blocked, 0, 256);
 
-			if ((X->pc->status & (ATOM|L_ATOM))
-			&&  notbeyond == 0)
-			{	if (X->pc->status & L_ATOM)
+			if (X->pc && (X->pc->status & (ATOM|L_ATOM))
+			&&  (notbeyond == 0 || oX != X))
+			{	if ((X->pc->status & L_ATOM))
 					notbeyond = 1;
 				continue; /* no process switch */
 			}
@@ -535,8 +583,11 @@ sched(void)
 				{	if (Tval) break;
 					Tval = 1;
 					if (depth >= jumpsteps)
+					{	oX = X;
+						X = (RunList *) 0; /* to suppress indent */
 						dotag(stdout, "timeout\n");
-		}	}	}
+						X = oX;
+		}	}	}	}
 		Y = X;
 		pickproc();
 		notbeyond = 0;
@@ -739,6 +790,20 @@ findloc(Symbol *s)
 }
 
 int
+in_bound(Symbol *r, int n)
+{
+	if (!r)	return 0;
+
+	if (n >= r->nel || n < 0)
+	{	printf("spin: indexing %s[%d] - size is %d\n",
+			r->name, n, r->nel);
+		non_fatal("indexing array \'%s\'", r->name);
+		return 0;
+	}
+	return 1;
+}
+
+int
 getlocal(Lextok *sn)
 {	Symbol *r, *s = sn->sym;
 	int n = eval(sn->lft);
@@ -746,14 +811,8 @@ getlocal(Lextok *sn)
 	r = findloc(s);
 	if (r && r->type == STRUCT)
 		return Rval_struct(sn, r, 1); /* 1 = check init */
-	if (r)
-	{	if (n >= r->nel || n < 0)
-		{	printf("spin: indexing %s[%d] - size is %d\n",
-				s->name, n, r->nel);
-			non_fatal("indexing array \'%s\'", s->name);
-		} else
-		{	return cast_val(r->type, r->val[n], r->nbits);
-	}	}
+	if (in_bound(r, n))
+		return cast_val(r->type, r->val[n], r->nbits);
 	return 0;
 }
 
@@ -762,19 +821,18 @@ setlocal(Lextok *p, int m)
 {	Symbol *r = findloc(p->sym);
 	int n = eval(p->lft);
 
-	if (!r) return 1;
-
-	if (n >= r->nel || n < 0)
-	{	printf("spin: indexing %s[%d] - size is %d\n",
-			r->name, n, r->nel);
-		non_fatal("indexing array \'%s\'", r->name);
-	} else
+	if (in_bound(r, n))
 	{	if (r->type == STRUCT)
 			(void) Lval_struct(p, r, 1, m); /* 1 = check init */
 		else
-		{	if (r->nbits > 0)
-				m = (m & ((1<<r->nbits)-1));	
+		{
+#if 0
+			if (r->nbits > 0)
+				m = (m & ((1<<r->nbits)-1));
 			r->val[n] = m;
+#else
+			r->val[n] = cast_val(r->type, m, r->nbits);
+#endif
 			r->setat = depth;
 	}	}
 
@@ -817,12 +875,14 @@ p_talk(Element *e, int lnr)
 	&&  lastnever != newnever && e)
 	{	if (xspin)
 		{	printf("MSC: ~G line %d\n", newnever);
-			printf("%3d:	proc 0 (NEVER) line   %d \"never\" ",
+#if 0
+			printf("%3d:	proc  - (NEVER) line   %d \"never\" ",
 				depth, newnever);
 			printf("(state 0)\t[printf('MSC: never\\\\n')]\n");
 		} else
-		{	printf("%3d:	proc 0 (NEVER) line   %d \"never\"\n",
+		{	printf("%3d:	proc  - (NEVER) line   %d \"never\"\n",
 				depth, newnever);
+#endif
 		}
 		lastnever = newnever;
 	}
@@ -835,7 +895,7 @@ p_talk(Element *e, int lnr)
 			e->seqno);
 		if (!xspin
 		&&  ((e->status&ENDSTATE) || has_lab(e, 2)))	/* 2=end */
-		{	printf(" <valid endstate>");
+		{	printf(" <valid end state>");
 		}
 	}
 }
@@ -846,8 +906,10 @@ remotelab(Lextok *n)
 
 	lineno = n->ln;
 	Fname  = n->fn;
-	if (n->sym->type)
+	if (n->sym->type != 0 && n->sym->type != LABEL)
+	{	printf("spin: error, type: %d\n", n->sym->type);
 		fatal("not a labelname: '%s'", n->sym->name);
+	}
 	if (n->indstep >= 0)
 	{	fatal("remote ref to label '%s' inside d_step",
 			n->sym->name);
@@ -859,29 +921,40 @@ remotelab(Lextok *n)
 
 int
 remotevar(Lextok *n)
-{	int prno, i, trick=0;
-	RunList *Y;
+{	int prno, i, added=0;
+	RunList *Y, *oX;
+	Lextok *onl;
+	Symbol *os;
 
 	lineno = n->ln;
 	Fname  = n->fn;
-	if (!n->lft->lft)
-	{	non_fatal("missing pid in %s", n->sym->name);
-		return 0;
-	}
 
-	prno = eval(n->lft->lft); /* pid - can cause recursive call */
-TryAgain:
+	if (!n->lft->lft)
+		prno = f_pid(n->lft->sym->name);
+	else
+	{	prno = eval(n->lft->lft); /* pid - can cause recursive call */
+#if 0
+		if (n->lft->lft->ntyp == CONST)	/* user-guessed pid */
+#endif
+		{	prno += Have_claim;
+			added = Have_claim;
+	}	}
+
+	if (prno < 0)
+		return 0;	/* non-existing process */
+#if 0
+	i = nproc - nstop;
+	for (Y = run; Y; Y = Y->nxt)
+	{	--i;
+		printf("	%s: i=%d, prno=%d, ->pid=%d\n", Y->n->name, i, prno, Y->pid);
+	}
+#endif
 	i = nproc - nstop;
 	for (Y = run; Y; Y = Y->nxt)
 	if (--i == prno)
 	{	if (strcmp(Y->n->name, n->lft->sym->name) != 0)
-		{	if (!trick && Have_claim)
-			{	trick = 1; prno++;
-				/* assumes user guessed the pid */
-				goto TryAgain;
-			}
-			printf("spin: remote reference error on '%s[%d]'\n",
-				n->lft->sym->name, prno-trick);
+		{	printf("spin: remote reference error on '%s[%d]'\n",
+				n->lft->sym->name, prno-added);
 			non_fatal("refers to wrong proctype '%s'", Y->n->name);
 		}
 		if (strcmp(n->sym->name, "_p") == 0)
@@ -890,9 +963,28 @@ TryAgain:
 			/* harmless, can only happen with -t */
 			return 0;
 		}
+#if 1
+		/* new 4.0 allow remote variables */
+		oX = X;
+		X = Y;
+
+		onl = n->lft;
+		n->lft = n->rgt;
+
+		os = n->sym;
+		n->sym = findloc(n->sym);
+
+		i = getval(n);
+
+		n->sym = os;
+		n->lft = onl;
+		X = oX;
+		return i;
+#else
 		break;
+#endif
 	}
-	printf("remote ref: %s[%d] ", n->lft->sym->name, prno-trick);
+	printf("remote ref: %s[%d] ", n->lft->sym->name, prno-added);
 	non_fatal("%s not found", n->sym->name);
 	printf("have only:\n");
 	i = nproc - nstop - 1;

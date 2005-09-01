@@ -1,14 +1,16 @@
 /***** tl_spin: tl_mem.c *****/
 
-/* Copyright (c) 1995-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1995-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Written by Gerard J. Holzmann, Bell Laboratories, U.S.A.               */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+
 /* Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper, */
 /* presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.   */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
 
 #include "tl.h"
 

@@ -1,14 +1,13 @@
 /***** spin: dstep.c *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
 #ifdef PC
@@ -26,7 +25,7 @@ static int	Tj=0, Jt=0, LastGoto=0;
 static int	Tojump[MAXDSTEP], Jumpto[MAXDSTEP], Special[MAXDSTEP];
 static void	putCode(FILE *, Element *, Element *, Element *, int);
 
-extern int	Pid, claimnr;
+extern int	Pid, claimnr, separate, OkBreak;
 
 static void
 Sourced(int n, int special)
@@ -57,7 +56,7 @@ Dested(int n)
 
 static void
 Mopup(FILE *fd)
-{	int i, j; extern int OkBreak;
+{	int i, j;
 
 	for (i = 0; i < Jt; i++)
 	{	for (j = 0; j < Tj; j++)
@@ -172,10 +171,21 @@ CollectGuards(FILE *fd, Element *e, int inh)
 			fprintf(fd, "(1 /* else */)");
 			break;
 		case 'R':
+			if (inh++ > 0) fprintf(fd, " || ");
+			fprintf(fd, "("); TestOnly=1;
+			putstmnt(fd, ee->n, ee->seqno);
+			fprintf(fd, ")"); TestOnly=0;
+			break;
 		case 'r':
+			if (inh++ > 0) fprintf(fd, " || ");
+			fprintf(fd, "("); TestOnly=1;
+			putstmnt(fd, ee->n, ee->seqno);
+			fprintf(fd, ")"); TestOnly=0;
+			break;
 		case 's':
 			if (inh++ > 0) fprintf(fd, " || ");
 			fprintf(fd, "("); TestOnly=1;
+/* 4.2.1 */		if (Pid != claimnr) fprintf(fd, "(boq == -1) && ");
 			putstmnt(fd, ee->n, ee->seqno);
 			fprintf(fd, ")"); TestOnly=0;
 			break;
@@ -194,7 +204,7 @@ CollectGuards(FILE *fd, Element *e, int inh)
 }
 
 int
-putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln)
+putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 {	int isg=0; char buf[64];
 
 	NextLab[0] = "continue";
@@ -203,13 +213,13 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln)
 	switch (s->frst->n->ntyp) {
 	case UNLESS:
 		non_fatal("'unless' inside d_step - ignored", (char *) 0);
-		return putcode(fd, s->frst->n->sl->this, nxt, 0, ln);
+		return putcode(fd, s->frst->n->sl->this, nxt, 0, ln, seqno);
 	case NON_ATOMIC:
-		(void) putcode(fd, s->frst->n->sl->this, ZE, 1, ln);
+		(void) putcode(fd, s->frst->n->sl->this, ZE, 1, ln, seqno);
 		break;
 	case IF:
 		fprintf(fd, "if (!(");
-		if (!CollectGuards(fd, s->frst, 0))
+		if (!CollectGuards(fd, s->frst, 0))	/* what about boq? */
 			fprintf(fd, "1");
 		fprintf(fd, "))\n\t\t\tcontinue;");
 		isg = 1;
@@ -224,9 +234,21 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln)
 		}
 		break;
 	case 'R': /* <- can't really happen (it's part of a 'c') */
-	case 'r':
-	case 's':
 		fprintf(fd, "if (!("); TestOnly=1;
+		putstmnt(fd, s->frst->n, s->frst->seqno);
+		fprintf(fd, "))\n\t\t\tcontinue;"); TestOnly=0;
+		break;
+	case 'r':
+		fprintf(fd, "if (!("); TestOnly=1;
+		putstmnt(fd, s->frst->n, s->frst->seqno);
+		fprintf(fd, "))\n\t\t\tcontinue;"); TestOnly=0;
+		break;
+	case 's':
+		fprintf(fd, "if (");
+#if 1
+/* 4.2.1 */	if (Pid != claimnr) fprintf(fd, "(boq != -1) || ");
+#endif
+		fprintf(fd, "!("); TestOnly=1;
 		putstmnt(fd, s->frst->n, s->frst->seqno);
 		fprintf(fd, "))\n\t\t\tcontinue;"); TestOnly=0;
 		break;
@@ -237,26 +259,40 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln)
 		putstmnt(fd, s->frst->n->lft, s->frst->seqno);
 		fprintf(fd, "))\n\t\t\tcontinue;"); TestOnly=0;
 		break;
+	case ELSE:
+		fprintf(fd, "if (boq != -1 || (");
+		if (separate != 2) fprintf(fd, "trpt->");
+		fprintf(fd, "o_pm&1))\n\t\t\tcontinue;");
+		break;
 	case ASGN:	/* new 3.0.8 */
 		fprintf(fd, "IfNotBlocked");
 		break;
 	}
 	if (justguards) return 0;
 
-	fprintf(fd, "\n\t\tsv_save((char *)&now);\n");
-
+	fprintf(fd, "\n\t\tsv_save();\n\t\t");
+#if 1
+	fprintf(fd, "reached[%d][%d] = 1;\n\t\t", Pid, seqno);
+	fprintf(fd, "reached[%d][t->st] = 1;\n\t\t", Pid);	/* true next state */
+	fprintf(fd, "reached[%d][tt] = 1;\n", Pid);		/* true current state */
+#endif
 	sprintf(buf, "Uerror(\"block in d_step seq, line %d\")", ln);
 	NextLab[0] = buf;
 	putCode(fd, s->frst, s->extent, nxt, isg);
 
 	if (nxt)
-	{	if (FirstTime(nxt->Seqno)
+	{	extern Symbol *Fname;
+		extern int lineno;
+
+		if (FirstTime(nxt->Seqno)
 		&& (!(nxt->status & DONE2) || !(nxt->status & D_ATOM)))
 		{	fprintf(fd, "S_%.3d_0: /* 1 */\n", nxt->Seqno);
 			nxt->status |= DONE2;
 			LastGoto = 0;
 		}
 		Sourced(nxt->Seqno, 1);
+		lineno = ln;
+		Fname = nxt->n->fn;	
 		Mopup(fd);
 	}
 	unskip(s->frst->seqno);
@@ -299,7 +335,7 @@ putCode(FILE *fd, Element *f, Element *last, Element *next, int isguard)
 				if (LastGoto) break;
 				if (e->nxt)
 				{	i = target( huntele(e->nxt,
-						e->status))->Seqno;
+						e->status, -1))->Seqno;
 					fprintf(fd, "\t\tgoto S_%.3d_0;	", i);
 					fprintf(fd, "/* 'break' */\n");
 					Dested(i);
@@ -316,7 +352,7 @@ putCode(FILE *fd, Element *f, Element *last, Element *next, int isguard)
 			case GOTO:
 				if (LastGoto) break;
 				i = huntele( get_lab(e->n,1),
-					e->status)->Seqno;
+					e->status, -1)->Seqno;
 				fprintf(fd, "\t\tgoto S_%.3d_0;	", i);
 				fprintf(fd, "/* 'goto' */\n");
 				Dested(i);

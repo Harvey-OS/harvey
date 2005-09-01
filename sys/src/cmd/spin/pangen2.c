@@ -1,14 +1,13 @@
 /***** spin: pangen2.c *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
 #include "version.h"
@@ -30,17 +29,18 @@
 
 extern ProcList	*rdy;
 extern RunList	*run;
-extern Symbol	*Fname, *oFname, *owner, *context;
+extern Symbol	*Fname, *oFname, *context;
 extern char	*claimproc, *eventmap;
 extern int	lineno, verbose, Npars, Mpars;
-extern int	m_loss, Nid, has_remote, merger, rvopt, separate;
-extern int	Ntimeouts, Etimeouts;
-extern int	u_sync, u_async, nrRdy, nqs;
+extern int	m_loss, has_remote, has_remvar, merger, rvopt, separate;
+extern int	Ntimeouts, Etimeouts, deadvar;
+extern int	u_sync, u_async, nrRdy;
 extern int	GenCode, IsGuard, Level, TestOnly;
+extern short	has_stack;
 extern char	*NextLab[];
 
 FILE	*tc, *th, *tt, *tm, *tb;
-ProcList	*cur_proc;
+
 int	OkBreak = -1;
 short	nocast=0;	/* to turn off casts in lvalues */
 short	terse=0;	/* terse printing of varnames */
@@ -55,7 +55,8 @@ short	has_random=0;	/* spec contains `??' (random-recv) operator */
 short	has_xu=0;	/* spec contains xr or xs assertions */
 short	has_unless=0;	/* spec contains unless statements */
 short	has_provided=0;	/* spec contains PROVIDED clauses on procs */
-short	_isok=0;	/* checks usage of predefined varble _ */
+short	has_code=0;	/* spec contains c_code, c_expr, c_state */
+short	_isok=0;	/* checks usage of predefined variable _ */
 short	evalindex=0;	/* evaluate index of var names */
 short	withprocname=0;	/* prefix local varnames with procname */
 int	mst=0;		/* max nr of state/process */
@@ -63,7 +64,6 @@ int	claimnr = -1;	/* claim process, if any */
 int	eventmapnr = -1; /* event trace, if any */
 int	Pid;		/* proc currently processed */
 int	multi_oval;	/* set in merges, used also in pangen4.c */
-
 
 #define MAXMERGE	256	/* max nr of bups per merge sequence */
 
@@ -88,7 +88,7 @@ static void	patch_atomic(Sequence *);
 static void	put_seq(Sequence *, int, int);
 static void	putproc(ProcList *);
 static void	Tpe(Lextok *);
-extern void spit_recvs(FILE *, FILE*);
+extern void	spit_recvs(FILE *, FILE*);
 
 static int
 fproc(char *s)
@@ -125,7 +125,7 @@ tm_predef_np(void)
 	fprintf(tm, "\t\t\tcontinue;\n");
 	fprintf(tm, "\t\t/* else fall through */\n");
 	fprintf(tm, "\tcase  _T2:\t/* true */\n");
-	fprintf(tm, "\t\tm = 3; goto P999;\n");
+	fprintf(tm, "\t\t_m = 3; goto P999;\n");
 }
 
 static void
@@ -135,9 +135,9 @@ tt_predef_np(void)
 	fprintf(tt, "\ttrans[_NP_] = ");
 	fprintf(tt, "(Trans **) emalloc(2*sizeof(Trans *));\n");
 	fprintf(tt, "\tT = trans[_NP_][0] = ");
-	fprintf(tt, "settr(9997,0,0,_T2,0,\"(1)\",   0,2,0);\n");
+	fprintf(tt, "settr(9997,0,1,_T5,0,\"(np_)\", 1,2,0);\n");
 	fprintf(tt, "\t    T->nxt	  = ");
-	fprintf(tt, "settr(9998,0,1,_T5,0,\"(np_)\", 1,2,0);\n");
+	fprintf(tt, "settr(9998,0,0,_T2,0,\"(1)\",   0,2,0);\n");
 	fprintf(tt, "\tT = trans[_NP_][1] = ");
 	fprintf(tt, "settr(9999,0,1,_T5,0,\"(np_)\", 1,2,0);\n");
 }
@@ -145,11 +145,11 @@ tt_predef_np(void)
 static struct {
 	char *nm[3];
 } Cfile[] = {
-	{ "pan.c", "pan_s.c", "pan_t.c" },
-	{ "pan.h", "pan_s.h", "pan_t.h" },
-	{ "pan.t", "pan_s.t", "pan_t.t" },
-	{ "pan.m", "pan_s.m", "pan_t.m" },
-	{ "pan.b", "pan_s.b", "pan_t.b" },
+	{ { "pan.c", "pan_s.c", "pan_t.c" } },
+	{ { "pan.h", "pan_s.h", "pan_t.h" } },
+	{ { "pan.t", "pan_s.t", "pan_t.t" } },
+	{ { "pan.m", "pan_s.m", "pan_t.m" } },
+	{ { "pan.b", "pan_s.b", "pan_t.b" } }
 };
 
 void
@@ -164,13 +164,35 @@ gensrc(void)
 	{	printf("spin: cannot create pan.[chtmfb]\n");
 		alldone(1);
 	}
+
 	fprintf(th, "#define Version	\"%s\"\n", Version);
 	fprintf(th, "#define Source	\"%s\"\n\n", oFname->name);
 	if (separate != 2)
 	fprintf(th, "char *TrailFile = Source; /* default */\n");
-	fprintf(th, "#define uchar	unsigned char\n");
 
-	if (sizeof(long)==8)
+	fprintf(th, "#if defined(BFS)\n");
+	fprintf(th, "#ifndef SAFETY\n");
+	fprintf(th, "#define SAFETY\n");
+	fprintf(th, "#endif\n");
+	fprintf(th, "#ifndef XUSAFE\n");
+	fprintf(th, "#define XUSAFE\n");
+	fprintf(th, "#endif\n");
+	fprintf(th, "#endif\n");
+
+	fprintf(th, "#ifndef uchar\n");
+	fprintf(th, "#define uchar	unsigned char\n");
+	fprintf(th, "#endif\n");
+	fprintf(th, "#ifndef uint\n");
+	fprintf(th, "#define uint	unsigned int\n");
+	fprintf(th, "#endif\n");
+
+	if (sizeof(long) > 4)	/* 64 bit machine */
+	{	fprintf(th, "#ifndef HASH32\n");
+		fprintf(th, "#define HASH64\n");
+		fprintf(th, "#endif\n");
+	}
+
+	if (sizeof(long)==sizeof(int))
 		fprintf(th, "#define long	int\n");
 
 	if (separate == 1 && !claimproc)
@@ -208,18 +230,23 @@ gensrc(void)
 	fprintf(th, "#define NTIM	%d\n", Ntimeouts);
 	if (Etimeouts)
 	fprintf(th, "#define ETIM	%d\n", Etimeouts);
+	if (has_remvar)
+	fprintf(th, "#define REM_VARS	1\n");
 	if (has_remote)
 	fprintf(th, "#define REM_REFS	%d\n", has_remote); /* not yet used */
 	if (has_last)
 	fprintf(th, "#define HAS_LAST	%d\n", has_last);
 	if (has_sorted)
 	fprintf(th, "#define HAS_SORTED	%d\n", has_sorted);
+	if (m_loss)
+	fprintf(th, "#define M_LOSS\n");
 	if (has_random)
 	fprintf(th, "#define HAS_RANDOM	%d\n", has_random);
-	if (!has_enabled && !eventmap)
-		fprintf(th, "#define INLINE	1\n");
+	fprintf(th, "#define HAS_CODE\n");	/* doesn't seem to cause measurable overhead */
+	if (has_stack)
+	fprintf(th, "#define HAS_STACK\n");
 	if (has_enabled)
-		fprintf(th, "#define HAS_ENABLED	1\n");
+	fprintf(th, "#define HAS_ENABLED	1\n");
 	if (has_unless)
 	fprintf(th, "#define HAS_UNLESS	%d\n", has_unless);
 	if (has_provided)
@@ -228,6 +255,14 @@ gensrc(void)
 	fprintf(th, "#define HAS_PCVALUE	%d\n", has_pcvalue);
 	if (has_badelse)
 	fprintf(th, "#define HAS_BADELSE	%d\n", has_badelse);
+	if (has_enabled
+	||  has_pcvalue
+	||  has_badelse
+	||  has_last)
+	{	fprintf(th, "#ifndef NOREDUCE\n");
+		fprintf(th, "#define NOREDUCE	1\n");
+		fprintf(th, "#endif\n");
+	}
 	if (has_np)
 	fprintf(th, "#define HAS_NP	%d\n", has_np);
 	if (merger)
@@ -252,7 +287,7 @@ doless:
 	{	eventmapnr = fproc(eventmap);
 		fprintf(th, "#define EVENT_TRACE	%d\n",	eventmapnr);
 		fprintf(th, "#define endevent	endstate%d\n",	eventmapnr);
-		if (eventmap[2] == 'o')	/* ":no_trace:" */
+		if (eventmap[2] == 'o')	/* ":notrace:" */
 		fprintf(th, "#define NEGATED_TRACE	1\n");
 	}
 
@@ -264,11 +299,19 @@ doless:
 	fprintf(tc, "/*** From source: %s ***/\n\n", oFname->name);
 
 	ntimes(tc, 0, 1, Pre0);
+
+	plunk_c_decls(tc);	/* types can be refered to in State */
+
 	switch (separate) {
 	case 0:	fprintf(tc, "#include \"pan.h\"\n"); break;
 	case 1:	fprintf(tc, "#include \"pan_s.h\"\n"); break;
 	case 2:	fprintf(tc, "#include \"pan_t.h\"\n"); break;
 	}
+
+	fprintf(tc, "State	A_Root;	/* seed-state for cycles */\n");
+	fprintf(tc, "State	now;	/* the full state-vector */\n");
+	plunk_c_fcts(tc);	/* State can be used in fcts */
+
 	if (separate != 2)
 		ntimes(tc, 0, 1, Preamble);
 
@@ -277,6 +320,8 @@ doless:
 	fprintf(tc, "#else\n");
 	fprintf(tc, "#define Index(x, y)\tx\n");
 	fprintf(tc, "#endif\n");
+
+	c_preview();	/* sets hastrack */
 
 	for (p = rdy; p; p = p->nxt)
 		mst = max(p->s->maxel, mst);
@@ -310,11 +355,15 @@ doless:
 		if (separate == 1)
 		{
 		fprintf(tm, "	if (II == 0)\n");
-		fprintf(tm, "	{ m = step_claim(trpt->o_pm, trpt->tau, tt, ot, t);\n");
-		fprintf(tm, "	  if (m) goto P999; else continue;\n");
+		fprintf(tm, "	{ _m = step_claim(trpt->o_pm, trpt->tau, tt, ot, t);\n");
+		fprintf(tm, "	  if (_m) goto P999; else continue;\n");
 		fprintf(tm, "	} else\n");
 		}
 
+		fprintf(tm, "#define rand	pan_rand\n");
+		fprintf(tm, "#if defined(HAS_CODE) && defined(VERBOSE)\n");
+		fprintf(tm, "	printf(\"Pr: %%d Tr: %%d\\n\", II, t->forw);\n");
+		fprintf(tm, "#endif\n");
 		fprintf(tm, "	switch (t->forw) {\n");
 	} else
 	{	fprintf(tt, "#ifndef PEG\n");
@@ -325,6 +374,10 @@ doless:
 		fprintf(tt, "\textern Trans *settr(int, int, int, int, int,");
 		fprintf(tt, " char *, int, int, int);\n\n");
 
+		fprintf(tm, "#define rand	pan_rand\n");
+		fprintf(tm, "#if defined(HAS_CODE) && defined(VERBOSE)\n");
+		fprintf(tm, "	printf(\"Pr: %%d Tr: %%d\\n\", II, forw);\n");
+		fprintf(tm, "#endif\n");
 		fprintf(tm, "	switch (forw) {\n");
 	}
 
@@ -334,7 +387,7 @@ doless:
 	fprintf(tm, "	case 1: /* generic 'goto' or 'skip' */\n");
 	if (separate != 2)
 		fprintf(tm, "		IfNotBlocked\n");
-	fprintf(tm, "		m = 3; goto P999;\n");
+	fprintf(tm, "		_m = 3; goto P999;\n");
 	fprintf(tm, "	case 2: /* generic 'else' */\n");
 	if (separate == 2)
 		fprintf(tm, "		if (o_pm&1) continue;\n");
@@ -342,7 +395,7 @@ doless:
 	{	fprintf(tm, "		IfNotBlocked\n");
 		fprintf(tm, "		if (trpt->o_pm&1) continue;\n");
 	}
-	fprintf(tm, "		m = 3; goto P999;\n");
+	fprintf(tm, "		_m = 3; goto P999;\n");
 	uniq = 3;
 
 	if (separate == 1)
@@ -353,14 +406,28 @@ doless:
 	fprintf(tb, "	case  0: goto R999; /* nothing to undo */\n");
 
 	for (p = rdy; p; p = p->nxt)
-	{	cur_proc = p;
 		putproc(p);
+
+	if (separate != 2)
+	{	fprintf(th, "struct {\n");
+		fprintf(th, "	int tp; short *src;\n");
+		fprintf(th, "} src_all[] = {\n");
+		for (p = rdy; p; p = p->nxt)
+			fprintf(th, "	{ %d, &src_ln%d[0] },\n",
+				p->tn, p->tn);
+		fprintf(th, "	{ 0, (short *) 0 }\n");
+		fprintf(th, "};\n");
 	}
+
+	gencodetable(th);
+
 	if (separate != 1)
 	{	tm_predef_np();
 		tt_predef_np();
 	}
 	fprintf(tt, "}\n\n");	/* end of settable() */
+
+	fprintf(tm, "#undef rand\n");
 	fprintf(tm, "	}\n\n");
 	fprintf(tb, "	}\n\n");
 
@@ -370,6 +437,7 @@ doless:
 		if (separate == 1)
 		{	fprintf(th, "#define FORWARD_MOVES\t\"pan_s.m\"\n");
 			fprintf(th, "#define REVERSE_MOVES\t\"pan_s.b\"\n");
+			fprintf(th, "#define SEPARATE\n");
 			fprintf(th, "#define TRANSITIONS\t\"pan_s.t\"\n");
 			fprintf(th, "extern void ini_claim(int, int);\n");
 		} else
@@ -411,6 +479,7 @@ doless:
 		fprintf(tc, "extern uchar *progstate[];\n");
 		fprintf(tc, "extern uchar *stopstate[];\n");
 		fprintf(tc, "extern uchar *visstate[];\n\n");
+		fprintf(tc, "extern short *mapstate[];\n");
 
 		fprintf(tc, "void\nini_claim(int n, int h)\n{");
 		fprintf(tc, "\textern State now;\n");
@@ -425,17 +494,22 @@ doless:
 		fprintf(tc, "\t}\n");
 		fprintf(tc, "\n}\n");
 		fprintf(tc, "int\nstep_claim(int o_pm, int tau, int tt, int ot, Trans *t)\n");
-		fprintf(tc, "{	int forw = t->forw; int m = 0; extern char *noptr; int II=0;\n");
+		fprintf(tc, "{	int forw = t->forw; int _m = 0; extern char *noptr; int II=0;\n");
 		fprintf(tc, "	extern State now;\n");
 		fprintf(tc, "#define continue	return 0\n");
 		fprintf(tc, "#include \"pan_t.m\"\n");
-		fprintf(tc, "P999:\n\treturn m;\n}\n");
+		fprintf(tc, "P999:\n\treturn _m;\n}\n");
 		fprintf(tc, "#undef continue\n");
 		fprintf(tc, "int\nrev_claim(int backw)\n{ return 0; }\n");
 		fprintf(tc, "#include TRANSITIONS\n");
 	}
 	if (separate != 1)
 		ntimes(tc, 0, 1, Nvr1);
+
+	if (separate != 2)
+	{	c_wrapper(tc);
+		c_chandump(tc);
+	}
 }
 
 static int
@@ -651,7 +725,9 @@ putproc(ProcList *p)
 	}
 	if (Pid != claimnr
 	&&  separate == 2)
+	{	fprintf(th, "extern short src_ln%d[];\n", Pid);
 		return;
+	}
 
 	AllGlobal = (p->prov)?1:0;	/* process has provided clause */
 
@@ -674,6 +750,7 @@ putproc(ProcList *p)
 	{	fprintf(th, "\n#define in_s_scope(x_y3_)	0");
 		fprintf(tc, "\n#define in_r_scope(x_y3_)	0");
 	}
+
 	put_seq(p->s, 2, 0);
 	if (Pid == eventmapnr)
 	{	fprintf(th, "\n\n");
@@ -700,7 +777,7 @@ cnt_seq(Sequence *s)
 	SeqList *h;
 
 	if (s)
-	for (f = s->frst; ; f = f->nxt)
+	for (f = s->frst; f; f = f->nxt)
 	{	Tpe(f->n);	/* sets EPT */
 		addTpe(EPT[0]);
 		addTpe(EPT[1]);
@@ -753,7 +830,7 @@ getNid(Lextok *n)
 	&&  n->rgt && n->rgt->lft)
 		return getNid(n->rgt->lft);
 
-	if (n->sym->Nid == 0)
+	if (!n->sym || n->sym->Nid == 0)
 	{	fatal("bad channel name '%s'",
 		(n->sym)?n->sym->name:"no name");
 	}
@@ -817,9 +894,9 @@ put_escp(Element *e)
 {	int n;
 	SeqList *x;
 
-	if (e->esc && e->n->ntyp != GOTO && e->n->ntyp != '.')
+	if (e->esc /* && e->n->ntyp != GOTO */ && e->n->ntyp != '.')
 	{	for (x = e->esc, n = 0; x; x = x->nxt, n++)
-		{	int i = huntele(x->this->frst, e->status)->seqno;
+		{	int i = huntele(x->this->frst, e->status, -1)->seqno;
 			fprintf(tt, "\ttrans[%d][%d]->escp[%d] = %d;\n",
 				Pid, e->seqno, n, i);
 			fprintf(tt, "\treached%d[%d] = 1;\n",
@@ -827,7 +904,7 @@ put_escp(Element *e)
 		}
 		for (x = e->esc, n=0; x; x = x->nxt, n++)
 		{	fprintf(tt, "	/* escape #%d: %d */\n", n,
-				huntele(x->this->frst, e->status)->seqno);
+				huntele(x->this->frst, e->status, -1)->seqno);
 			put_seq(x->this, 2, 0);	/* args?? */
 		}
 		fprintf(tt, "	/* end-escapes */\n");
@@ -844,6 +921,8 @@ put_sub(Element *e, int Tt0, int Tt1)
 	putskip(s->frst->seqno);
 	g = huntstart(s->frst);
 	a = g->seqno;
+
+	if (0) printf("put_sub %d -> %d -> %d\n", e->seqno, s->frst->seqno, a);
 
 	if ((e->n->ntyp == ATOMIC
 	||  e->n->ntyp == D_STEP)
@@ -863,20 +942,28 @@ put_sub(Element *e, int Tt0, int Tt1)
 
 		if (s->last->n->ntyp == BREAK)
 			OkBreak = target(huntele(s->last->nxt,
-				s->last->status))->Seqno;
+				s->last->status, -1))->Seqno;
 		else
 			OkBreak = -1;
 
-		if (!putcode(tm, s, e->nxt, 0, e->n->ln))
-			fprintf(tm, "\t\tm = %d; goto P999;\n\n",
-			getweight(s->frst->n));
+		if (!putcode(tm, s, e->nxt, 0, e->n->ln, e->seqno))
+		{
+			fprintf(tm, "\n#if defined(C_States) && (HAS_TRACK==1)\n");
+			fprintf(tm, "\t\tc_update((uchar *) &(now.c_state[0]));\n");
+			fprintf(tm, "#endif\n");
+
+			fprintf(tm, "\t\t_m = %d", getweight(s->frst->n));
+			if (m_loss && s->frst->n->ntyp == 's')
+				fprintf(tm, "+delta_m; delta_m = 0");
+			fprintf(tm, "; goto P999;\n\n");
+		}
 	
 		fprintf(tb, "\tcase %d: ", uniq-1);
 		fprintf(tb, "/* STATE %d */\n", e->seqno);
 		fprintf(tb, "\t\tsv_restor();\n");
 		fprintf(tb, "\t\tgoto R999;\n");
 		if (e->nxt)
-			a = huntele(e->nxt, e->status)->seqno;
+			a = huntele(e->nxt, e->status, -1)->seqno;
 		else
 			a = 0;
 		tr_map(uniq-1, e);
@@ -892,7 +979,7 @@ put_sub(Element *e, int Tt0, int Tt1)
 	{	/* ATOMIC or NON_ATOMIC */
 		fprintf(tt, "\tT = trans[ %d][%d] = ", Pid, e->seqno);
 		fprintf(tt, "settr(%d,%d,0,0,0,\"",
-		e->Seqno, (e->n->ntyp == ATOMIC)?ATOM:0);
+			e->Seqno, (e->n->ntyp == ATOMIC)?ATOM:0);
 		comment(tt, e->n, e->seqno);
 		if ((e->status&CHECK2)
 		||  (g->status&CHECK2))
@@ -918,7 +1005,7 @@ put_sub(Element *e, int Tt0, int Tt1)
 }
 
 typedef struct CaseCache {
-	int m, b;
+	int m, b, owner;
 	Element *e;
 	Lextok *n;
 	FSM_use *u;
@@ -965,7 +1052,7 @@ findnext(Element *f)
 
 	if (f->n->ntyp == GOTO)
 	{	g = get_lab(f->n, 1);
-		return huntele(g, f->status);
+		return huntele(g, f->status, -1);
 	}
 	return f->nxt;
 }
@@ -981,6 +1068,7 @@ advance(Element *e, int stopat)
 		case GOTO:
 		case '.':
 		case PRINT:
+		case PRINTM:
 			break;
 		default:
 			return f;
@@ -1022,7 +1110,7 @@ equiv_merges(Element *a, Element *b)
 }
 
 static CaseCache *
-prev_case(Element *e)
+prev_case(Element *e, int owner)
 {	int j; CaseCache *nc;
 
 	switch (e->n->ntyp) {
@@ -1036,14 +1124,15 @@ prev_case(Element *e)
 	for (nc = casing[j]; nc; nc = nc->nxt)
 		if (identical(nc->n, e->n)
 		&&  samedeads(nc->u, e->dead)
-		&&  equiv_merges(nc->e, e))
+		&&  equiv_merges(nc->e, e)
+		&&  nc->owner == owner)
 			return nc;
 
 	return (CaseCache *) 0;
 }
 
 static void
-new_case(Element *e, int m, int b)
+new_case(Element *e, int m, int b, int owner)
 {	int j; CaseCache *nc;
 
 	switch (e->n->ntyp) {
@@ -1055,6 +1144,7 @@ new_case(Element *e, int m, int b)
 	default:	j = 5; break;
 	}
 	nc = (CaseCache *) emalloc(sizeof(CaseCache));
+	nc->owner = owner;
 	nc->m = m;
 	nc->b = b;
 	nc->e = e;
@@ -1075,7 +1165,7 @@ nr_bup(Element *e)
 		nr++;
 		break;
 	case  'r':
-		if (e->n->val == 1)
+		if (e->n->val >= 1)
 			nr++;	/* random recv */
 		for (v = e->n->rgt; v; v = v->rgt)
 		{	if ((v->lft->ntyp == CONST
@@ -1113,26 +1203,32 @@ nrhops(Element *e)
 		stopat = e->merge_start;
 	else
 		stopat = e->merge;
-
+#if 0
+	printf("merge: %d merge_start %d - seqno %d\n",
+		e->merge, e->merge_start, e->seqno);
+#endif
 	do {
 		cnt += nr_bup(f);
 
 		if (f->n->ntyp == GOTO)
 		{	g = get_lab(f->n, 1);
-			f = huntele(g, f->status);
+			if (g->seqno == stopat)
+				f = g;
+			else
+				f = huntele(g, f->status, stopat);
 		} else
-			f = f->nxt;
-#if 1
-		if (f && !f->merge && !f->merge_single && f->seqno != stopat)
 		{
-			fprintf(tm, "\n\t\tbad hop %s:%d -- at %d, <",
+			f = f->nxt;
+		}
+
+		if (f && !f->merge && !f->merge_single && f->seqno != stopat)
+		{	fprintf(tm, "\n\t\tbad hop %s:%d -- at %d, <",
 				f->n->fn->name,f->n->ln, f->seqno);
 			comment(tm, f->n, 0);
 			fprintf(tm, "> looking for %d -- merge %d:%d:%d\n\t\t",
 				stopat, f->merge, f->merge_start, f->merge_single);
 		 	break;
 		}
-#endif
 	} while (f && f->seqno != stopat);
 
 	return cnt;
@@ -1159,7 +1255,7 @@ doforward(FILE *tm, Element *e)
 	{	fprintf(tm, ";\n\t\tif (trpt->o_pm&1)\n\t\t");
 		fprintf(tm, "\tuerror(\"non-determinism in D_proctype\")");
 	}
-
+	if (deadvar && !has_code)
 	for (u = e->dead; u; u = u->nxt)
 	{	fprintf(tm, ";\n\t\t/* dead %d: %s */  ",
 			u->special, u->var->name);
@@ -1173,6 +1269,9 @@ doforward(FILE *tm, Element *e)
 			}
 			if (e->n->ntyp != 'r')
 			{	XZ.sym = u->var;
+				fprintf(tm, "\n#ifdef HAS_CODE\n");
+				fprintf(tm, "\t\tif (!readtrail)\n");
+				fprintf(tm, "#endif\n\t\t\t");
 				putname(tm, "", &XZ, 0, " = 0");
 				break;
 			} /* else fall through */
@@ -1186,8 +1285,11 @@ doforward(FILE *tm, Element *e)
 				multi_oval++;
 			} else
 				fprintf(tm, "(trpt+1)->bup.oval = ");
-			putname(tm, "", &YZ[YZmax], 0, "");
-			putname(tm, ";\n\t\t", &YZ[YZmax], 0, " = 0");
+			putname(tm, "", &YZ[YZmax], 0, ";\n");
+			fprintf(tm, "#ifdef HAS_CODE\n");
+			fprintf(tm, "\t\tif (!readtrail)\n");
+			fprintf(tm, "#endif\n\t\t\t");
+			putname(tm, "", &YZ[YZmax], 0, " = 0");
 			YZmax++;
 			break;
 	}	}
@@ -1221,6 +1323,7 @@ dobackward(Element *e, int casenr)
 			fprintf(tb, "s[%d]", multi_oval-1);
 		}
 	}
+
 	if (e->n->ntyp != '.')
 	{	fprintf(tb, ";\n\t\t");
 		undostmnt(e->n, e->seqno);
@@ -1237,11 +1340,15 @@ lastfirst(int stopat, Element *fin, int casenr)
 
 	if (f->n->ntyp == GOTO)
 	{	g = get_lab(f->n, 1);
-		f = huntele(g, f->status);
+		if (g->seqno == stopat)
+			f = g;
+		else
+			f = huntele(g, f->status, stopat);
 	} else
 		f = f->nxt;
 
-	if (!f || f->seqno == stopat)
+	if (!f || f->seqno == stopat
+	|| (!f->merge && !f->merge_single))
 		return;
 	lastfirst(stopat, f, casenr);
 #if 0
@@ -1267,14 +1374,14 @@ lab_transfer(Element *to, Element *from)
 
 	if (!s) return;
 
-	/* from could have all three labels -- rename
+	/* "from" could have all three labels -- rename
 	 * to prevent jumps to the transfered copies
 	 */
 	oc = context;	/* remember */
 	for (ltp = 1; ltp < 8; ltp *= 2)	/* 1, 2, and 4 */
-		if (s = has_lab(from, ltp))
+		if ((s = has_lab(from, ltp)) != (Symbol *) 0)
 		{	ns = (Symbol *) emalloc(sizeof(Symbol));
-			ns->name = (char *) emalloc(strlen(s->name) + 4);
+			ns->name = (char *) emalloc((int) strlen(s->name) + 4);
 			sprintf(ns->name, "%s%d", s->name, modifier);
 
 			context = s->context;
@@ -1300,25 +1407,29 @@ case_cache(Element *e, int a)
 
 	if (e->merge_mark > 0
 	||  (merger && e->merge_in == 0))
-	{	/* state is unreachable */
-#if 0
-		casenr = bupcase = 0;
-		fromcache = -1;
-		goto gotit;
-#else
+	{	/* state nominally unreachable (part of merge chains) */
+		if (e->n->ntyp != '.'
+		&&  e->n->ntyp != GOTO)
+		{	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
+			fprintf(tt, "settr(0,0,0,0,0,\"");
+			comment(tt, e->n, e->seqno);
+			fprintf(tt, "\",0,0,0);\n");
+		} else
+		{	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
+			casenr = 1; /* mhs example */
+			j = a;
+			goto haveit; /* pakula's example */
+		}
+
 		return -1;
-#endif
 	}
 
 	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
 
 	if (ccache
-#if 0
-	&&  !e->merge
-	&&  !e->merge_start
-#endif
 	&&  Pid != claimnr
-	&& (Cached = prev_case(e)))
+	&&  Pid != eventmapnr
+	&& (Cached = prev_case(e, Pid)))
 	{	bupcase = Cached->b;
 		casenr  = Cached->m;
 		fromcache = 1;
@@ -1344,7 +1455,7 @@ case_cache(Element *e, int a)
 	if (nrbups > MAXMERGE-1)
 		fatal("merge requires more than 256 bups", (char *)0);
 
-	if (e->n->ntyp != 'r' && Pid != claimnr)
+	if (e->n->ntyp != 'r' && Pid != claimnr && Pid != eventmapnr)
 		fprintf(tm, "IfNotBlocked\n\t\t");
 
 	if (multi_needed != 0 || multi_undo != 0)
@@ -1358,6 +1469,10 @@ case_cache(Element *e, int a)
 
 	memset(CnT, 0, sizeof(CnT));
 	YZmax = YZcnt = 0;
+
+	/* the src xrefs have the numbers in e->seqno builtin */
+	fprintf(tm, "reached[%d][%d] = 1;\n\t\t", Pid, e->seqno);
+
 	doforward(tm, e);
 
 	if (e->merge_start)
@@ -1370,17 +1485,24 @@ case_cache(Element *e, int a)
 
 more:		if (f->n->ntyp == GOTO)
 		{	g = get_lab(f->n, 1);
-			f = huntele(g, f->status);
+			if (g->seqno == target)
+				f = g;
+			else
+				f = huntele(g, f->status, target);
 		} else
 			f = f->nxt;
 
+
 		if (f && f->seqno != target)
-		{
+		{	if (!f->merge && !f->merge_single)
+			{	fprintf(tm, "/* stop at bad hop %d, %d */\n\t\t",
+					f->seqno, target);
+				goto out;
+			}
 			fprintf(tm, "/* merge: ");
 			comment(tm, f->n, 0);
 			fprintf(tm,  "(%d, %d, %d) */\n\t\t", f->merge, f->seqno, target);
-			fprintf(tm, "reached[ot][%d] = 1;\n\t\t", f->seqno);
-
+			fprintf(tm, "reached[%d][%d] = 1;\n\t\t", Pid, f->seqno);
 			YZcnt++;
 			lab_transfer(e, f);
 			mark = f->status&(ATOM|L_ATOM); /* last step wins */
@@ -1389,7 +1511,10 @@ more:		if (f->n->ntyp == GOTO)
 
 			goto more;
 	}	}
-	fprintf(tm, "m = %d; goto P999; /* %d */\n", getweight(e->n), YZcnt);
+out:
+	fprintf(tm, "_m = %d", getweight(e->n));
+	if (m_loss && e->n->ntyp == 's') fprintf(tm, "+delta_m; delta_m = 0");
+	fprintf(tm, "; goto P999; /* %d */\n", YZcnt);
 
 	multi_needed = 0;
 	didcase = 0;
@@ -1423,7 +1548,7 @@ more:		if (f->n->ntyp == GOTO)
 	}
 
 	if (!e->merge && !e->merge_start)
-		new_case(e, casenr, bupcase);
+		new_case(e, casenr, bupcase, Pid);
 
 gotit:
 	j = a;
@@ -1431,7 +1556,7 @@ gotit:
 		j = e->merge_start;
 	else if (e->merge)
 		j = e->merge;
-
+haveit:
 	fprintf(tt, "%ssettr(%d,%d,%d,%d,%d,\"", fromcache?"/* c */ ":"",
 		e->Seqno, mark, j, casenr, bupcase);
 
@@ -1445,11 +1570,11 @@ put_el(Element *e, int Tt0, int Tt1)
 
 	if (e->n->ntyp == GOTO)
 	{	g = get_lab(e->n, 1);
-		g = huntele(g, e->status);
+		g = huntele(g, e->status, -1);
 		cross_dsteps(e->n, g->n);
 		a = g->seqno;
 	} else if (e->nxt)
-	{	g = huntele(e->nxt, e->status);
+	{	g = huntele(e->nxt, e->status, -1);
 		a = g->seqno;
 	} else
 		a = 0;
@@ -1459,7 +1584,6 @@ put_el(Element *e, int Tt0, int Tt1)
 		e->status |= I_GLOB;
 
 	/* don't remove dead edges in here, to preserve structure of fsm */
-
 	if (e->merge_start || e->merge)
 		goto non_generic;
 
@@ -1467,8 +1591,9 @@ put_el(Element *e, int Tt0, int Tt1)
 	switch (e->n->ntyp) {
 	case ELSE:
 		casenr = 2; /* standard else */
+		putskip(e->seqno);
 		goto generic_case;
-		break;
+		/* break; */
 	case '.':
 	case GOTO:
 	case BREAK:
@@ -1480,16 +1605,15 @@ generic_case:	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
 		break;
 #ifndef PRINTF
 	case PRINT:
-		if (e->n->lft == ZN)
-		{	casenr = 1;
-			goto generic_case;
-		}
+		goto non_generic;
+	case PRINTM:
 		goto non_generic;
 #endif
 	case 'c':
 		if (e->n->lft->ntyp == CONST
 		&&  e->n->lft->val == 1)	/* skip or true */
 		{	casenr = 1;
+			putskip(e->seqno);
 			goto generic_case;
 		}
 		goto non_generic;
@@ -1497,9 +1621,7 @@ generic_case:	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
 	default:
 non_generic:
 		casenr = case_cache(e, a);
-
 		if (casenr < 0) return;	/* unreachable state */
-
 		break;
 	}
 	/* tailend of settr(...); */
@@ -1514,9 +1636,13 @@ non_generic:
 	}
 	if ((e->merge_start && e->merge_start != a)
 	||  (e->merge && e->merge != a))
-		fprintf(tt, " /* m: %d -> %d,%d */",
+	{	fprintf(tt, " /* m: %d -> %d,%d */\n",
 			a, e->merge_start, e->merge);
+		fprintf(tt, "	reached%d[%d] = 1;",
+			Pid, a); /* Sheinman's example */
+	}
 	fprintf(tt, "\n");
+
 	if (casenr > 2)
 		tr_map(casenr, e);
 	put_escp(e);
@@ -1558,18 +1684,29 @@ put_seq(Sequence *s, int Tt0, int Tt1)
 	Element *e, *g;
 	int a, deadlink;
 
+	if (0) printf("put_seq %d\n", s->frst->seqno);
+
 	for (e = s->frst; e; e = e->nxt)
-	{	if (e->status & DONE)
+	{
+		if (0) printf("	step %d\n", e->seqno);
+		if (e->status & DONE)
+		{
+			if (0) printf("		done before\n");
 			goto checklast;
+		}
 		e->status |= DONE;
 
 		if (e->n->ln)
 			putsrc(e);
 
 		if (e->n->ntyp == UNLESS)
-		{	put_seq(e->sub->this, Tt0, Tt1);
+		{
+			if (0) printf("		an unless\n");
+			put_seq(e->sub->this, Tt0, Tt1);
 		} else if (e->sub)
-		{	fprintf(tt, "\tT = trans[%d][%d] = ",
+		{
+			if (0) printf("		has sub\n");
+			fprintf(tt, "\tT = trans[%d][%d] = ",
 				Pid, e->seqno);
 			fprintf(tt, "settr(%d,%d,0,0,0,\"",
 				e->Seqno, e->status&ATOM);
@@ -1597,7 +1734,7 @@ put_seq(Sequence *s, int Tt0, int Tt1)
 						g->n->ln, g->n->fn?g->n->fn->name:"");
 				} else
 					deadlink = 0;
-
+				if (0) printf("			settr %d %d\n", a, 0);
 				if (h->nxt)
 					fprintf(tt, "\tT = T->nxt\t= ");
 				else
@@ -1617,16 +1754,22 @@ put_seq(Sequence *s, int Tt0, int Tt1)
 			for (h = e->sub; h; h = h->nxt)
 				put_seq(h->this, Tt0, Tt1);
 		} else
-		{	if (e->n->ntyp == ATOMIC
+		{
+			if (0) printf("		[non]atomic %d\n", e->n->ntyp);
+			if (e->n->ntyp == ATOMIC
 			||  e->n->ntyp == D_STEP
 			||  e->n->ntyp == NON_ATOMIC)
 				put_sub(e, Tt0, Tt1);
 			else 
+			{
+				if (0) printf("			put_el %d\n", e->seqno);
 				put_el(e, Tt0, Tt1);
+			}
 		}
 checklast:	if (e == s->last)
 			break;
 	}
+	if (0) printf("put_seq done\n");
 }
 
 static void
@@ -1634,8 +1777,9 @@ patch_atomic(Sequence *s)	/* catch goto's that break the chain */
 {	Element *f, *g;
 	SeqList *h;
 
-	for (f = s->frst; ; f = f->nxt)
-	{	if (f->n && f->n->ntyp == GOTO)
+	for (f = s->frst; f ; f = f->nxt)
+	{
+		if (f->n && f->n->ntyp == GOTO)
 		{	g = get_lab(f->n,1);
 			cross_dsteps(f->n, g->n);
 			if ((f->status & (ATOM|L_ATOM))
@@ -1643,13 +1787,12 @@ patch_atomic(Sequence *s)	/* catch goto's that break the chain */
 			{	f->status &= ~ATOM;
 				f->status |= L_ATOM;
 			}
-/* new - bridges atomics */
+			/* bridge atomics */
 			if ((f->status & L_ATOM)
 			&&  (g->status & (ATOM|L_ATOM)))
 			{	f->status &= ~L_ATOM;
 				f->status |= ATOM;
 			}
-/* end */
 		} else
 		for (h = f->sub; h; h = h->nxt)
 			patch_atomic(h->this);
@@ -1663,8 +1806,14 @@ mark_seq(Sequence *s)
 {	Element *f;
 	SeqList *h;
 
-	for (f = s->frst; ; f = f->nxt)
+	for (f = s->frst; f; f = f->nxt)
 	{	f->status |= I_GLOB;
+
+		if (f->n->ntyp == ATOMIC
+		||  f->n->ntyp == NON_ATOMIC
+		||  f->n->ntyp == D_STEP)
+			mark_seq(f->n->sl->this);
+
 		for (h = f->sub; h; h = h->nxt)
 			mark_seq(h->this);
 		if (f == s->last)
@@ -1689,7 +1838,7 @@ find_target(Element *e)
 		break;
 	case BREAK:
 		if (e->nxt)
-		f = find_target(huntele(e->nxt, e->status));
+		f = find_target(huntele(e->nxt, e->status, -1));
 		/* else fall through */
 	default:
 		f = e;
@@ -1713,7 +1862,7 @@ scan_seq(Sequence *s)
 {	Element *f, *g;
 	SeqList *h;
 
-	for (f = s->frst; ; f = f->nxt)
+	for (f = s->frst; f; f = f->nxt)
 	{	if ((f->status&CHECK2)
 		||  has_global(f->n))
 			return 1;
@@ -1760,12 +1909,19 @@ has_global(Lextok *n)
 	if (AllGlobal) return 1;	/* global provided clause */
 
 	switch (n->ntyp) {
-	case '.': case BREAK: case GOTO: case CONST:
+	case ATOMIC:
+	case D_STEP:
+	case NON_ATOMIC:
+		return scan_seq(n->sl->this);
+
+	case '.':
+	case BREAK:
+	case GOTO:
+	case CONST:
 		return 0;
 
 	case   ELSE: return n->val; /* true if combined with chan refs */
 
-	case   NAME: return (n->sym->context || (n->sym->hidden&64))?0:1;
 	case    's': return glob_args(n)!=0 || ((n->sym->xu&(XS|XX)) != XS);
 	case    'r': return glob_args(n)!=0 || ((n->sym->xu&(XR|XX)) != XR);
 	case    'R': return glob_args(n)!=0 || (((n->sym->xu)&(XR|XS|XX)) != (XR|XS));
@@ -1775,7 +1931,18 @@ has_global(Lextok *n)
 	case  EMPTY: return ((n->sym->xu&(XS|XX)) != XS);
 	case  LEN:   return (((n->sym->xu)&(XR|XS|XX)) != (XR|XS));
 
+	case   NAME:
+		if (n->sym->context
+		|| (n->sym->hidden&64)
+		||  strcmp(n->sym->name, "_pid") == 0
+		||  strcmp(n->sym->name, "_") == 0)
+			return 0;
+		return 1;
+
 	case RUN: return 1-runsafe;
+
+	case C_CODE: case C_EXPR:
+		return glob_inline(n->sym->name);
 
 	case ENABLED: case PC_VAL: case NONPROGRESS:
 	case 'p': case 'q':
@@ -1804,6 +1971,8 @@ has_global(Lextok *n)
 		for (v = n->lft; v; v = v->rgt)
 			if (has_global(v->lft)) return 1;
 		return 0;
+	case PRINTM:
+		return has_global(n->lft);
 	}
 	return 0;
 }
@@ -1888,9 +2057,10 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		}
 
 		if (i > Npars)
+		{	printf("	%d parameters used, %d expected\n", i, Npars);
 			fatal("too many parameters in run %s(...)",
 			now->sym->name);
-
+		}
 		for ( ; i < Npars; i++)
 			fprintf(fd, ", 0");
 		fprintf(fd, ")");
@@ -1973,7 +2143,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 	case 's':
 		if (Pid == eventmapnr)
-		{	fprintf(fd, "if (_tp != 's' ");
+		{	fprintf(fd, "if ((ot == EVENT_TRACE && _tp != 's') ");
 			putname(fd, "|| _qid+1 != ", now->lft, m, "");
 			for (v = now->rgt, i=0; v; v = v->rgt, i++)
 			{	if (v->lft->ntyp != CONST
@@ -2011,21 +2181,31 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		putname(fd, "(", now->lft, m, "))\n");
 
 		if (m_loss)
-		{	if (!GenCode)
-			  fprintf(fd, "\t\t{ nlost++; m=3; goto P999; }\n");
-			else
-			  fprintf(fd, "\t\t\tnlost++;\n\t\telse {");
-		} else
+			fprintf(fd, "\t\t{ nlost++; delta_m = 1; } else {");
+		else
 		{	fprintf(fd, "\t\t\t");
 			Bailout(fd, ";");
 		}
 
 		if (has_enabled)
 			fprintf(fd, "\n\t\tif (TstOnly) return 1;");
-#if 1
+
 		if (u_sync && !u_async && rvopt)
 			fprintf(fd, "\n\n\t\tif (no_recvs(II)) continue;\n");
-#endif
+
+		fprintf(fd, "\n#ifdef HAS_CODE\n");
+		fprintf(fd, "\t\tif (readtrail && gui) {\n");
+		fprintf(fd, "\t\t\tchar simtmp[32];\n");
+		putname(fd, "\t\t\tsprintf(simvals, \"%%d!\", ", now->lft, m, ");\n");
+		_isok++;
+		for (v = now->rgt, i = 0; v; v = v->rgt, i++)
+		{	cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft, "); strcat(simvals, simtmp);");
+			if (v->rgt)
+			fprintf(fd, "\t\tstrcat(simvals, \",\");\n");
+		}
+		_isok--;
+		fprintf(fd, "\t\t}\n");
+		fprintf(fd, "#endif\n\t\t");
 
 		putname(fd, "\n\t\tqsend(", now->lft, m, "");
 		fprintf(fd, ", %d", now->val);
@@ -2033,8 +2213,10 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		{	cat2(", ", v->lft);
 		}
 		if (i > Mpars)
-		{	putname(stdout, "channel name: ", now->lft, m, "\n");
-			printf("	%d msg parameters\n", i);
+		{	terse++;
+			putname(stdout, "channel name: ", now->lft, m, "\n");
+			terse--;
+			printf("	%d msg parameters sent, %d expected\n", i, Mpars);
 			fatal("too many pars in send", "");
 		}
 		for ( ; i < Mpars; i++)
@@ -2049,13 +2231,13 @@ putstmnt(FILE *fd, Lextok *now, int m)
 			  fprintf(fd, "; Uerror(\"rv-attempt in d_step\")");
 			fprintf(fd, "; }");
 		}
-		if (m_loss && GenCode)
-			fprintf(fd, ";\n\t\t}\n\t\t");
+		if (m_loss)
+			fprintf(fd, ";\n\t\t}\n\t\t"); /* end of m_loss else */
 		break;
 
 	case 'r':
 		if (Pid == eventmapnr)
-		{	fprintf(fd, "if (_tp != 'r' ");
+		{	fprintf(fd, "if ((ot == EVENT_TRACE && _tp != 'r') ");
 			putname(fd, "|| _qid+1 != ", now->lft, m, "");
 			for (v = now->rgt, i=0; v; v = v->rgt, i++)
 			{	if (v->lft->ntyp != CONST
@@ -2078,13 +2260,15 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		}
 		if (TestOnly)
 		{	fprintf(fd, "((");
-			if (u_sync)
-				fprintf(fd, "(boq == -1 && ");
+			if (u_sync) fprintf(fd, "(boq == -1 && ");
+
 			putname(fd, "q_len(", now->lft, m, ")");
+
 			if (u_sync && now->val <= 1)
 			{ putname(fd, ") || (boq == ",  now->lft,m," && ");
 			  putname(fd, "q_zero(", now->lft,m,"))");
 			}
+
 			fprintf(fd, ")");
 			if (now->val == 0 || now->val == 2)
 			{	for (v = now->rgt, i=j=0; v; v = v->rgt, i++)
@@ -2100,7 +2284,6 @@ putstmnt(FILE *fd, Lextok *now, int m)
 				  {	j++; continue;
 				  }
 				}
-				fprintf(fd, ")");
 			} else
 			{	fprintf(fd, "\n\t\t&& Q_has(");
 				putname(fd, "", now->lft, m, "");
@@ -2116,8 +2299,9 @@ putstmnt(FILE *fd, Lextok *now, int m)
 				}	}
 				for ( ; i < Mpars; i++)
 					fprintf(fd, ", 0, 0");
-				fprintf(fd, "))");
+				fprintf(fd, ")");
 			}
+			fprintf(fd, ")");
 			break;
 		}
 		if (has_xu)
@@ -2194,7 +2378,6 @@ putstmnt(FILE *fd, Lextok *now, int m)
 				fprintf(fd, ", 0, 0");
 			fprintf(fd, "))) ");
 			Bailout(fd, "");
-/* new */
 			fprintf(fd, ";\n\t\t");
 			if (multi_oval)
 			{	check_needed();
@@ -2204,7 +2387,6 @@ putstmnt(FILE *fd, Lextok *now, int m)
 			} else
 				fprintf(fd, "(trpt+1)->bup.oval = ");
 			fprintf(fd, "XX");
-/* end */
 		}
 
 		if (has_enabled)
@@ -2225,9 +2407,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 				fprintf(fd, " != %d)\n\t", i);
 				fprintf(fd, "\t\tUerror(\"wrong nr of msg fields in rcv\");\n\t\t");
 			}
-#if 0
-			putname(fd, "bup_q(II, ", now->lft, m, ");\n\t\t");
-#else
+
 			for (v = now->rgt; v; v = v->rgt)
 				if ((v->lft->ntyp != CONST
 				&&   v->lft->ntyp != EVAL))
@@ -2259,9 +2439,23 @@ putstmnt(FILE *fd, Lextok *now, int m)
 					_isok--;
 				}
 			}
-#endif
-		}
 
+			if (jj)	/* check for double entries q?x,x */
+			{	Lextok *w;
+
+				for (v = now->rgt; v; v = v->rgt)
+				{	if (v->lft->ntyp != CONST
+					&&  v->lft->ntyp != EVAL
+					&&  v->lft->sym
+					&&  v->lft->sym->type != STRUCT	/* not a struct */
+					&&  v->lft->sym->nel == 1	/* not an array */
+					&&  strcmp(v->lft->sym->name, "_") != 0)
+					for (w = v->rgt; w; w = w->rgt)
+						if (v->lft->sym == w->lft->sym)
+						{	fatal("cannot use var ('%s') in multiple msg fields",
+								v->lft->sym->name);
+			}	}		}
+		}
 /* set */	for (v = now->rgt, i = 0; v; v = v->rgt, i++)
 		{	if ((v->lft->ntyp == CONST
 			||   v->lft->ntyp == EVAL) && v->rgt)
@@ -2301,6 +2495,25 @@ putstmnt(FILE *fd, Lextok *now, int m)
 			}
 		}
 		fprintf(fd, ";\n\t\t");
+
+		fprintf(fd, "\n#ifdef HAS_CODE\n");
+		fprintf(fd, "\t\tif (readtrail && gui) {\n");
+		fprintf(fd, "\t\t\tchar simtmp[32];\n");
+		putname(fd, "\t\t\tsprintf(simvals, \"%%d?\", ", now->lft, m, ");\n");
+		_isok++;
+		for (v = now->rgt, i = 0; v; v = v->rgt, i++)
+		{	if (v->lft->ntyp != EVAL)
+			{ cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft, "); strcat(simvals, simtmp);");
+			} else
+			{ cat3("\t\tsprintf(simtmp, \"%%d\", ", v->lft->lft, "); strcat(simvals, simtmp);");
+			}
+			if (v->rgt)
+			fprintf(fd, "\t\tstrcat(simvals, \",\");\n");
+		}
+		_isok--;
+		fprintf(fd, "\t\t}\n");
+		fprintf(fd, "#endif\n\t\t");
+
 		if (u_sync)
 		{	putname(fd, "if (q_zero(", now->lft, m, "))");
 			fprintf(fd, "\n\t\t{	boq = -1;\n");
@@ -2380,6 +2593,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case 'c':
+		preruse(fd, now->lft);	/* preconditions */
 		cat3("if (!(", now->lft, "))\n\t\t\t");
 		Bailout(fd, "");
 		break;
@@ -2397,9 +2611,13 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case '?':
-		cat3("( (", now->lft, ") ? ");
-		cat3("(", now->rgt->lft, ") : ");
-		cat3("(", now->rgt->rgt, ") )");
+		if (now->lft)
+		{	cat3("( (", now->lft, ") ? ");
+		}
+		if (now->rgt)
+		{	cat3("(", now->rgt->lft, ") : ");
+			cat3("(", now->rgt->rgt, ") )");
+		}
 		break;
 
 	case ASGN:
@@ -2453,6 +2671,17 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		fprintf(fd, ")");
 		break;
 
+	case PRINTM:
+		if (has_enabled)
+		fprintf(fd, "if (TstOnly) return 1;\n\t\t");
+		fprintf(fd, "printm(");
+		if (now->lft && now->lft->ismtyp)
+			fprintf(fd, "%d", now->lft->val);
+		else
+			putstmnt(fd, now->lft, m);
+		fprintf(fd, ")");
+		break;
+
 	case NAME:
 		if (!nocast && now->sym && Sym_typ(now) < SHORT)
 			putname(fd, "((int)", now, m, ")");
@@ -2469,6 +2698,29 @@ putstmnt(FILE *fd, Lextok *now, int m)
 			fprintf(fd, "%s", now->sym->name);
 		else
 			fprintf(fd, "%d", remotelab(now));
+		break;
+
+	case C_EXPR:
+		fprintf(fd, "(");
+		plunk_expr(fd, now->sym->name);
+		fprintf(fd, ") /* %s */ ", now->sym->name);
+		break;
+
+	case C_CODE:
+		fprintf(fd, "/* %s */\n\t\t", now->sym->name);
+		if (has_enabled)
+			fprintf(fd, "if (TstOnly) return 1;\n\t\t");
+		if (!GenCode)	/* not in d_step */
+		{	fprintf(fd, "sv_save();\n\t\t");
+			/* store the old values for reverse moves */
+		}
+		plunk_inline(fd, now->sym->name, 1);
+		if (!GenCode)
+		{	fprintf(fd, "\n");	/* state changed, capture it */
+			fprintf(fd, "#if defined(C_States) && (HAS_TRACK==1)\n");
+			fprintf(fd, "\t\tc_update((uchar *) &(now.c_state[0]));\n");
+			fprintf(fd, "#endif\n");
+		}
 		break;
 
 	case ASSERT:
@@ -2506,6 +2758,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 	default:
 		printf("spin: bad node type %d (.m) - line %d\n",
 			now->ntyp, now->ln);
+		fflush(tm);
 		alldone(1);
 	}
 }
@@ -2580,7 +2833,8 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 		{	fprintf(fd, "[%%d]");
 		} else if (evalindex == 1)
 		{	evalindex = 0;		/* no good if index is indexed array */
-			cat3(", ", n->lft, "");
+			fprintf(fd, ", ");
+			putstmnt(fd, n->lft, m);
 			evalindex = 1;
 		} else
 		{	if (terse
@@ -2604,25 +2858,34 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 void
 putremote(FILE *fd, Lextok *n, int m)	/* remote reference */
 {	int promoted = 0;
+	int pt;
 
 	if (terse)
-	{	fprintf(fd, "%s[", n->lft->sym->name);
-		putstmnt(fd, n->lft->lft, m);
-		fprintf(fd, "].%s", n->sym->name);
+	{	fprintf(fd, "%s", n->lft->sym->name);	/* proctype name */
+		if (n->lft->lft)
+		{	fprintf(fd, "[");
+			putstmnt(fd, n->lft->lft, m);	/* pid */
+			fprintf(fd, "]");
+		}
+		fprintf(fd, ".%s", n->sym->name);
 	} else
 	{	if (Sym_typ(n) < SHORT)
 		{	promoted = 1;
 			fprintf(fd, "((int)");
 		}
-		fprintf(fd, "((P%d *)Pptr(",
-			fproc(n->lft->sym->name));
-		fprintf(fd, "BASE+");
-		putstmnt(fd, n->lft->lft, m);
+
+		pt = fproc(n->lft->sym->name);
+		fprintf(fd, "((P%d *)Pptr(", pt);
+		if (n->lft->lft)
+		{	fprintf(fd, "BASE+");
+			putstmnt(fd, n->lft->lft, m);
+		} else
+			fprintf(fd, "f_pid(%d)", pt);
 		fprintf(fd, "))->%s", n->sym->name);
 	}
 	if (n->rgt)
 	{	fprintf(fd, "[");
-		putstmnt(fd, n->rgt, m);
+		putstmnt(fd, n->rgt, m);	/* array var ref */
 		fprintf(fd, "]");
 	}
 	if (promoted) fprintf(fd, ")");
@@ -2650,4 +2913,34 @@ has_typ(Lextok *n, int m)
 	if (!n) return 0;
 	if (n->ntyp == m) return 1;
 	return (has_typ(n->lft, m) || has_typ(n->rgt, m));
+}
+
+static int runcount, opcount;
+
+static void
+do_count(Lextok *n, int checkop)
+{
+	if (!n) return;
+
+	switch (n->ntyp) {
+	case RUN:
+		runcount++;
+		break;
+	default:
+		if (checkop) opcount++;
+		break;
+	}
+	do_count(n->lft, checkop && (n->ntyp != RUN));
+	do_count(n->rgt, checkop);
+}
+
+void
+count_runs(Lextok *n)
+{
+	runcount = opcount = 0;
+	do_count(n, 1);
+	if (runcount > 1)
+		fatal("more than one run operator in expression", "");
+	if (runcount == 1 && opcount > 1)
+		fatal("use of run operator in compound expression", "");
 }

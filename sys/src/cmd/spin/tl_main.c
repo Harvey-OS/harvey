@@ -1,14 +1,16 @@
 /***** tl_spin: tl_main.c *****/
 
-/* Copyright (c) 1995-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1995-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Written by Gerard J. Holzmann, Bell Laboratories, U.S.A.               */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+
 /* Based on the translation algorithm by Gerth, Peled, Vardi, and Wolper, */
 /* presented at the PSTV Conference, held in 1995, Warsaw, Poland 1995.   */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
 
 #include "tl.h"
 
@@ -24,8 +26,8 @@ unsigned long	All_Mem = 0;
 static char	uform[4096];
 static int	hasuform=0, cnt=0;
 
-static void	tl_stats(void);
-static void	non_fatal(char *, char *);
+extern void cache_stats(void);
+extern void a_stats(void);
 
 int
 tl_Getchar(void)
@@ -48,6 +50,15 @@ tl_UnGetchar(void)
 	if (cnt > 0) cnt--;
 }
 
+static void
+tl_stats(void)
+{	extern int Stack_mx;
+	printf("total memory used: %9ld\n", All_Mem);
+	printf("largest stack sze: %9d\n", Stack_mx);
+	cache_stats();
+	a_stats();
+}
+
 int
 tl_main(int argc, char *argv[])
 {	int i;
@@ -67,7 +78,7 @@ tl_main(int argc, char *argv[])
 						argv[1][i] = ' ';
 				}
 				strcpy(uform, argv[1]);
-				hasuform = strlen(uform);
+				hasuform = (int) strlen(uform);
 				break;
 		case 'v':	tl_verbose++;
 				break;
@@ -88,15 +99,6 @@ nogood:		printf("usage:\tspin [-v] [-n] -f formula\n");
 	tl_parse();
 	if (tl_verbose) tl_stats();
 	return tl_errs;
-}
-
-static void
-tl_stats(void)
-{	extern int Stack_mx;
-	printf("total memory used: %9ld\n", All_Mem);
-	printf("largest stack sze: %9d\n", Stack_mx);
-	cache_stats();
-	a_stats();
 }
 
 #define Binop(a)		\
@@ -174,7 +176,7 @@ tl_explain(int n)
 }
 
 static void
-non_fatal(char *s1, char *s2)
+tl_non_fatal(char *s1, char *s2)
 {	extern int tl_yychar;
 	int i;
 
@@ -205,7 +207,7 @@ tl_yyerror(char *s1)
 void
 Fatal(char *s1, char *s2)
 {
-	non_fatal(s1, s2);
+	tl_non_fatal(s1, s2);
 	/* tl_stats(); */
 	exit(1);
 }

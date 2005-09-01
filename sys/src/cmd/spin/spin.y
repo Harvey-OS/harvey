@@ -1,14 +1,13 @@
 /***** spin: spin.y *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 %{
 #include "spin.h"
@@ -20,6 +19,8 @@
 extern  Symbol	*context, *owner;
 extern  int	u_sync, u_async, dumptab;
 extern	short	has_sorted, has_random, has_enabled, has_pcvalue, has_np;
+extern	short	has_code, has_state, has_io;
+extern	void	count_runs(Lextok *);
 extern	void	validref(Lextok *, Lextok *);
 extern	char	yytext[];
 
@@ -33,7 +34,8 @@ static	int	Embedded = 0, inEventMap = 0, has_ini = 0;
 
 %}
 
-%token	ASSERT PRINT
+%token	ASSERT PRINT PRINTM
+%token	C_CODE C_DECL C_EXPR C_STATE C_TRACK
 %token	RUN LEN ENABLED EVAL PC_VAL
 %token	TYPEDEF MTYPE INLINE LABEL OF
 %token	GOTO BREAK ELSE SEMI
@@ -80,6 +82,7 @@ unit	: proc		/* proctype { }       */
 	| events	/* event assertions   */
 	| one_decl	/* variables, chans   */
 	| utype		/* user defined types */
+	| c_fcts	/* c functions etc.   */
 	| ns		/* named sequence     */
 	| SEMI		/* optional separator */
 	| error
@@ -121,14 +124,17 @@ inst	: /* empty */	{ $$ = ZN; }
 	| ACTIVE	{ $$ = nn(ZN,CONST,ZN,ZN); $$->val = 1; }
 	| ACTIVE '[' CONST ']' {
 			  $$ = nn(ZN,CONST,ZN,ZN); $$->val = $3->val;
+			  if ($3->val > 255)
+				non_fatal("max nr of processes is 255\n", "");
 			}
 	| ACTIVE '[' NAME ']' {
 			  $$ = nn(ZN,CONST,ZN,ZN);
 			  $$->val = 0;
 			  if (!$3->sym->type)
-				non_fatal("undeclared variable %s", $3->sym->name);
+				non_fatal("undeclared variable %s",
+					$3->sym->name);
 			  else if ($3->sym->ini->ntyp != CONST)
-				non_fatal("constant initializer required for %s\n",
+				non_fatal("need constant initializer for %s\n",
 					$3->sym->name);
 			  else
 				$$->val = $3->sym->ini->val;
@@ -183,7 +189,63 @@ nm	: NAME			{ $$ = $1; }
 	;
 
 ns	: INLINE nm '('		{ NamesNotAdded++; }
-	  args ')'		{ prep_inline($2->sym, $5); NamesNotAdded--; }
+	  args ')'		{ prep_inline($2->sym, $5);
+				  NamesNotAdded--;
+				}
+	;
+
+c_fcts	: ccode			{ /* leaves pseudo-inlines with sym of
+				   * type CODE_FRAG or CODE_DECL in global context
+				   */
+				}
+	| cstate
+	;
+
+cstate	: C_STATE STRING STRING	{
+				  c_state($2->sym, $3->sym, ZS);
+				  has_code = has_state = 1;
+				}
+	| C_TRACK STRING STRING {
+				  c_track($2->sym, $3->sym, ZS);
+				  has_code = has_state = 1;
+				}
+	| C_STATE STRING STRING	STRING {
+				  c_state($2->sym, $3->sym, $4->sym);
+				  has_code = has_state = 1;
+				}
+	| C_TRACK STRING STRING STRING {
+				  c_track($2->sym, $3->sym, $4->sym);
+				  has_code = has_state = 1;
+				}
+	;
+
+ccode	: C_CODE		{ Symbol *s;
+				  NamesNotAdded++;
+				  s = prep_inline(ZS, ZN);
+				  NamesNotAdded--;
+				  $$ = nn(ZN, C_CODE, ZN, ZN);
+				  $$->sym = s;
+				  has_code = 1;
+				}
+	| C_DECL		{ Symbol *s;
+				  NamesNotAdded++;
+				  s = prep_inline(ZS, ZN);
+				  NamesNotAdded--;
+				  s->type = CODE_DECL;
+				  $$ = nn(ZN, C_CODE, ZN, ZN);
+				  $$->sym = s;
+				  has_code = 1;
+				}
+	;
+cexpr	: C_EXPR		{ Symbol *s;
+				  NamesNotAdded++;
+				  s = prep_inline(ZS, ZN);
+				  NamesNotAdded--;
+				  $$ = nn(ZN, C_EXPR, ZN, ZN);
+				  $$->sym = s;
+				  no_side_effects(s->name);
+				  has_code = 1;
+				}
 	;
 
 body	: '{'			{ open_seq(1); }
@@ -197,6 +259,8 @@ sequence: step			{ if ($1) add_seq($1); }
 
 step    : one_decl		{ $$ = ZN; }
 	| XU vref_lst		{ setxus($2, $1->val); $$ = ZN; }
+	| NAME ':' one_decl	{ fatal("label preceding declaration,", (char *)0); }
+	| NAME ':' XU		{ fatal("label predecing xr/xs claim,", 0); }
 	| stmnt			{ $$ = $1; }
 	| stmnt UNLESS stmnt	{ $$ = do_unless($1, $3); }
 	;
@@ -269,6 +333,11 @@ ch_init : '[' CONST ']' OF
 
 vardcl  : NAME  		{ $1->sym->nel = 1; $$ = $1; }
 	| NAME ':' CONST	{ $1->sym->nbits = $3->val;
+				  if ($3->val >= 8*sizeof(long))
+				  {	non_fatal("width-field %s too large",
+						$1->sym->name);
+					$3->val = 8*sizeof(long)-1;
+				  }
 				  $1->sym->nel = 1; $$ = $1;
 				}
 	| NAME '[' CONST ']'	{ $1->sym->nel = $3->val; $$ = $1; }
@@ -311,12 +380,12 @@ stmnt	: Special		{ $$ = $1; }
 	;
 
 Special : varref RCV		{ Expand_Ok++; }
-	  rargs			{ Expand_Ok--;
+	  rargs			{ Expand_Ok--; has_io++;
 				  $$ = nn($1,  'r', $1, $4);
 				  trackchanuse($4, ZN, 'R');
 				}
 	| varref SND		{ Expand_Ok++; }
-	  margs			{ Expand_Ok--;
+	  margs			{ Expand_Ok--; has_io++;
 				  $$ = nn($1, 's', $1, $4);
 				  $$->val=0; trackchanuse($4, ZN, 'S');
 				}
@@ -370,32 +439,35 @@ Stmnt	: varref ASGN expr	{ $$ = nn($1, ASGN, $1, $3);
 				}
 	| PRINT	'(' STRING	{ realread = 0; }
 	  prargs ')'		{ $$ = nn($3, PRINT, $5, ZN); realread = 1; }
-	| ASSERT full_expr    	{ $$ = nn(ZN, ASSERT, $2, ZN); }
+	| PRINTM '(' varref ')'	{ $$ = nn(ZN, PRINTM, $3, ZN); }
+	| PRINTM '(' CONST ')'	{ $$ = nn(ZN, PRINTM, $3, ZN); }
+	| ASSERT full_expr    	{ $$ = nn(ZN, ASSERT, $2, ZN); AST_track($2, 0); }
+	| ccode			{ $$ = $1; }
 	| varref R_RCV		{ Expand_Ok++; }
-	  rargs			{ Expand_Ok--;
+	  rargs			{ Expand_Ok--; has_io++;
 				  $$ = nn($1,  'r', $1, $4);
 				  $$->val = has_random = 1;
 				  trackchanuse($4, ZN, 'R');
 				}
 	| varref RCV		{ Expand_Ok++; }
-	  LT rargs GT		{ Expand_Ok--;
+	  LT rargs GT		{ Expand_Ok--; has_io++;
 				  $$ = nn($1, 'r', $1, $5);
 				  $$->val = 2;	/* fifo poll */
 				  trackchanuse($5, ZN, 'R');
 				}
 	| varref R_RCV		{ Expand_Ok++; }
-	  LT rargs GT		{ Expand_Ok--;	/* rrcv poll */
+	  LT rargs GT		{ Expand_Ok--; has_io++;	/* rrcv poll */
 				  $$ = nn($1, 'r', $1, $5);
 				  $$->val = 3; has_random = 1;
 				  trackchanuse($5, ZN, 'R');
 				}
 	| varref O_SND		{ Expand_Ok++; }
-	  margs			{ Expand_Ok--;
+	  margs			{ Expand_Ok--; has_io++;
 				  $$ = nn($1, 's', $1, $4);
 				  $$->val = has_sorted = 1;
 				  trackchanuse($4, ZN, 'S');
 				}
-	| full_expr		{ $$ = nn(ZN, 'c', $1, ZN); }
+	| full_expr		{ $$ = nn(ZN, 'c', $1, ZN); count_runs($$); }
 	| ELSE  		{ $$ = nn(ZN,ELSE,ZN,ZN);
 				}
 	| ATOMIC   '{'   	{ open_seq(0); }
@@ -485,15 +557,16 @@ expr    : '(' expr ')'		{ $$ = $2; }
 				  has_enabled++;
 				}
 	| varref RCV		{ Expand_Ok++; }
-	  '[' rargs ']'		{ Expand_Ok--;
+	  '[' rargs ']'		{ Expand_Ok--; has_io++;
 				  $$ = nn($1, 'R', $1, $5);
 				}
 	| varref R_RCV		{ Expand_Ok++; }
-	  '[' rargs ']'		{ Expand_Ok--;
+	  '[' rargs ']'		{ Expand_Ok--; has_io++;
 				  $$ = nn($1, 'R', $1, $5);
 				  $$->val = has_random = 1;
 				}
 	| varref		{ $$ = $1; trapwonly($1, "varref"); }
+	| cexpr			{ $$ = $1; }
 	| CONST 		{ $$ = nn(ZN,CONST,ZN,ZN);
 				  $$->ismtyp = $1->ismtyp;
 				  $$->val = $1->val;
@@ -505,8 +578,12 @@ expr    : '(' expr ')'		{ $$ = $2; }
 	| PC_VAL '(' expr ')'	{ $$ = nn(ZN, PC_VAL, $3, ZN);
 				  has_pcvalue++;
 				}
-	| PNAME '[' expr ']' '@'
-	  NAME			{ $$ = rem_lab($1->sym, $3, $6->sym); }
+	| PNAME '[' expr ']' '@' NAME
+	  			{ $$ = rem_lab($1->sym, $3, $6->sym); }
+	| PNAME '[' expr ']' ':' pfld
+	  			{ $$ = rem_var($1->sym, $3, $6->sym, $6->lft); }
+	| PNAME '@' NAME	{ $$ = rem_lab($1->sym, ZN, $3->sym); }
+	| PNAME ':' pfld	{ $$ = rem_var($1->sym, ZN, $3->sym, $3->lft); }
 	;
 
 Opt_priority:	/* none */	{ $$ = ZN; }

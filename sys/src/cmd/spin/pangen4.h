@@ -1,10 +1,13 @@
 /***** spin: pangen4.h *****/
 
-/* Copyright (c) 1997-2000 by Lucent Technologies - Bell Laboratories.    */
+/* Copyright (c) 1997-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 /* The DFA code below was written by Anuj Puri and Gerard J. Holzmann in  */
 /* May 1997, and was inspired by earlier work on data compression using   */
@@ -29,7 +32,7 @@ static char *Dfa[] = {
 	"",
 	"extern char	*emalloc(unsigned long);	/* imported routine  */",
 	"extern void	dfa_init(ushort);	/* 4 exported routines */",
-	"extern int	dfa_member(ushort);",
+	"extern int	dfa_member(ulong);",
 	"extern int	dfa_store(uchar *);",
 	"extern void	dfa_stats(void);",
 	"",
@@ -53,9 +56,6 @@ static char *Dfa[] = {
 	"static Vertex	**layers;	/* one splay tree of nodes per layer */",
 	"static Vertex	**path;		/* run of word in the DFA */",
 	"static Vertex	*R, *F, *NF;	/* Root, Final, Not-Final */",
-#if 0
-	"/* extern ulong nr_states=0;	/* number of nodes in the DFA */",
-#endif
 	"static uchar	*word, *lastword;/* string, and last string inserted */",
 	"static int	dfa_depth, iv=0, nv=0, pfrst=0, Tally;",
 	"",
@@ -204,7 +204,7 @@ static char *Dfa[] = {
 	"",
 	"static Vertex *",
 	"Delta(Vertex *v, int h)	/* v->delta[h] */",
-	"{	register Edge *e;",
+	"{	Edge *e;",
 	"",
 	"	if (v->dst[0] && h >= v->from[0] && h <= v->to[0])",
 	"		return v->dst[0];	/* oldest edge */",
@@ -219,8 +219,8 @@ static char *Dfa[] = {
 	"",
 	"static void",
 	"numDelta(Vertex *v, int d)",
-	"{	register Edge *e;",
-	"	register ulong cnt;",
+	"{	Edge *e;",
+	"	ulong cnt;",
 	"	int i;",
 	"",
 	"	for (i = 0; i < 2; i++)",
@@ -367,8 +367,8 @@ static char *Dfa[] = {
 	"",
 	"static ulong",
 	"mk_key(Vertex *v)	/* not sensitive to order */",
-	"{	register ulong m = 0, vk2 = 0;",
-	"	register Edge *e;",
+	"{	ulong m = 0, vk2 = 0;",
+	"	Edge *e;",
 	"",
 	"	if (v->dst[0])",
 	"	{	m += HASH(v->dst[0], v->to[0] - v->from[0] + 1);",
@@ -388,8 +388,8 @@ static char *Dfa[] = {
 	"",
 	"static ulong",
 	"mk_special(int sigma, Vertex *n, Vertex *v)",
-	"{	register ulong m = 0, vk2 = 0;",
-	"	register Edge *f; Vertex *last = (Vertex *) 0;",
+	"{	ulong m = 0, vk2 = 0;",
+	"	Edge *f;",
 	"	int i;",
 	"",
 	"	for (i = 0; i < 2; i++)",
@@ -471,7 +471,7 @@ static char *Dfa[] = {
 	"}",
 	"",
 	"int",
-	"dfa_member(ushort n)",
+	"dfa_member(ulong n)",
 	"{	Vertex **p, **q;",
 	"	uchar *w = &word[n];",
 	"	int i;",
@@ -495,20 +495,20 @@ static char *Dfa[] = {
 	"	memcpy(&lastword[pfrst], &sv[pfrst], dfa_depth-pfrst);",
 	"	if (pfrst > iv) pfrst = iv;",
 	"	if (pfrst > nv) pfrst = nv;",
-	"phase1:",
+	"/* phase1: */",
 	"	p = &path[pfrst]; q = (p+1); w = &word[pfrst];",
 	"	for (i = pfrst; i < dfa_depth; i++)",
 	"		*q++ = Delta(*p++, *w++);	/* (*p)->delta[*w++]; */",
 	"",
 	"	if (*p == F) return 1;	/* it's already there */",
-	"phase2:",
+	"/* phase2: */",
 	"	iv = dfa_depth;",
 	"	do {	iv--;",
 	"		old = new;",
 	"		new = find_it(path[iv], old, word[iv], iv);",
 	"	} while (new && iv > 0);",
 	"",
-	"phase3:",
+	"/* phase3: */",
 	"	nv = k = 0; s = path[0];",
 	"	for (j = 1; j <= iv; ++j) ",
 	"		if (path[j]->num > 1)",

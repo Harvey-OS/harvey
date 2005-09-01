@@ -1,14 +1,13 @@
 /***** spin: pangen3.c *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
 #ifdef PC
@@ -109,7 +108,7 @@ putsrc(Element *e)	/* match states to source lines */
 		if (tmp->st == m)
 		{	if (tmp->ln != n || tmp->fn != e->n->fn)
 			printf("putsrc mismatch %d - %d, file %s\n", n,
-				tmp->ln, tmp->fn);
+				tmp->ln, tmp->fn->name);
 			return;
 		}
 	tmp = (SRC *) emalloc(sizeof(SRC));
@@ -160,12 +159,6 @@ dumpsrc(int n, int m)
 		for (tmp = frst; tmp; lst = tmp, tmp = tmp->nxt)
 			if (tmp->st == j)
 			{	putnr(tmp->ln);
-#if 0
-				if (lst)
-					lst->nxt = tmp->nxt;
-				else
-					frst = tmp->nxt;
-#endif
 				break;
 			}
 		if (!tmp)
@@ -321,9 +314,13 @@ comwork(FILE *fd, Lextok *now, int m)
 	case 'c':	Cat3("(", now->lft, ")");
 			break;
 
-	case '?':	Cat3("( (", now->lft, ") -> ");
-			Cat3("(", now->rgt->lft, ") : ");
-			Cat3("(", now->rgt->rgt, ") )");
+	case '?':	if (now->lft)
+			{	Cat3("( (", now->lft, ") -> ");
+			}
+			if (now->rgt)
+			{	Cat3("(", now->rgt->lft, ") : ");
+				Cat3("(", now->rgt->rgt, ") )");
+			}
 			break;	
 
 	case ASGN:	comwork(fd,now->lft,m);
@@ -351,11 +348,18 @@ comwork(FILE *fd, Lextok *now, int m)
 			}
 			fprintf(fd, ")");
 			break;
+	case PRINTM:	fprintf(fd, "printm(");
+			comwork(fd, now->lft, m);
+			fprintf(fd, ")");
+			break;
 	case NAME:	putname(fd, "", now, m, "");
 			break;
 	case   'p':	putremote(fd, now, m);
 			break;
 	case   'q':	fprintf(fd, "%s", now->sym->name);
+			break;
+	case C_EXPR:	
+	case C_CODE:	fprintf(fd, "{%s}", now->sym->name);
 			break;
 	case ASSERT:	Cat3("assert(", now->lft, ")");
 			break;

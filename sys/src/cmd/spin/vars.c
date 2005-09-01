@@ -1,14 +1,13 @@
 /***** spin: vars.c *****/
 
-/* Copyright (c) 1991-2000 by Lucent Technologies - Bell Laboratories     */
+/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* Software written by Gerard J. Holzmann as part of the book:            */
-/* `Design and Validation of Computer Protocols,' ISBN 0-13-539925-4,     */
-/* Prentice Hall, Englewood Cliffs, NJ, 07632.                            */
-/* Send bug-reports and/or questions to: gerard@research.bell-labs.com    */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
 #ifdef PC
@@ -23,7 +22,7 @@ extern Symbol	*Fname;
 extern char	Buf[];
 extern int	lineno, depth, verbose, xspin, limited_vis;
 extern int	analyze, jumpsteps, nproc, nstop, columns;
-extern short	no_arrays, Have_claim, Skip_claim;
+extern short	no_arrays, Have_claim;
 extern void	sr_mesg(FILE *, int, int);
 extern void	sr_buf(int, int);
 
@@ -96,12 +95,9 @@ checkvar(Symbol *s, int n)
 {	int	i, oln = lineno;	/* calls on eval() change it */
 	Symbol	*ofnm = Fname;
 
-	if (n >= s->nel || n < 0)
-	{	printf("spin: indexing %s[%d] - size is %d\n",
-			s->name, n, s->nel);
-		non_fatal("indexing array \'%s\'", s->name);
+	if (!in_bound(s, n))
 		return 0;
-	}
+
 	if (s->type == 0)
 	{	non_fatal("undecl var %s (assuming int)", s->name);
 		s->type = INT;
@@ -139,19 +135,20 @@ getglobal(Lextok *sn)
 
 int
 cast_val(int t, int v, int w)
-{	int i=0; short s=0; unsigned char u=0;
+{	int i=0; short s=0; unsigned int u=0;
 
-	if (t == INT || t == CHAN) i = v;
+	if (t == PREDEF || t == INT || t == CHAN) i = v;	/* predef means _ */
 	else if (t == SHORT) s = (short) v;
 	else if (t == BYTE || t == MTYPE)  u = (unsigned char)v;
 	else if (t == BIT)   u = (unsigned char)(v&1);
 	else if (t == UNSIGNED)
 	{	if (w == 0)
 			fatal("cannot happen, cast_val", (char *)0);
-		u = (unsigned char)(v& ((1<<w)-1));
+	/*	u = (unsigned)(v& ((1<<w)-1));		problem when w=32	*/
+		u = (unsigned)(v& (~0u>>(8*sizeof(unsigned)-w)));	/* doug */
 	}
 
-	if (v != i+s+u)
+	if (v != i+s+ (int) u)
 	{	char buf[32]; sprintf(buf, "%d->%d (%d)", v, i+s+u, t);
 		non_fatal("value (%s) truncated in assignment", buf);
 	}
@@ -166,9 +163,7 @@ setglobal(Lextok *v, int m)
 	else
 	{	int n = eval(v->lft);
 		if (checkvar(v->sym, n))
-		{	if (v->sym->nbits > 0)
-				m = (m & ((1<<v->sym->nbits)-1));	
-			v->sym->val[n] = m;
+		{	v->sym->val[n] = cast_val(v->sym->type, m, v->sym->nbits);
 			v->sym->setat = depth;
 	}	}
 	return 1;
@@ -208,14 +203,18 @@ dumpclaims(FILE *fd, int pid, char *s)
 void
 dumpglobals(void)
 {	Ordered *walk;
-	Lextok *dummy;
+	static Lextok *dummy = ZN;
 	Symbol *sp;
 	int j;
+
+	if (!dummy)
+		dummy = nn(ZN, NAME, nn(ZN,CONST,ZN,ZN), ZN);
 
 	for (walk = all_names; walk; walk = walk->next)
 	{	sp = walk->entry;
 		if (!sp->type || sp->context || sp->owner
-		||  sp->type == PROCTYPE || sp->type == PREDEF
+		||  sp->type == PROCTYPE  || sp->type == PREDEF
+		||  sp->type == CODE_FRAG || sp->type == CODE_DECL
 		||  (sp->type == MTYPE && ismtype(sp->name)))
 			continue;
 
@@ -233,7 +232,6 @@ dumpglobals(void)
 			&&  (sp->setat < depth
 			&&   jumpsteps != depth))
 				continue;
-			dummy = nn(ZN, NAME, nn(ZN,CONST,ZN,ZN), ZN);
 			dummy->sym = sp;
 			dummy->lft->val = j;
 			/* in case of cast_val warnings, do this first: */
@@ -279,9 +277,12 @@ dumpglobals(void)
 
 void
 dumplocal(RunList *r)
-{	Lextok *dummy;
+{	static Lextok *dummy = ZN;
 	Symbol *z, *s = r->symtab;
 	int i;
+
+	if (!dummy)
+		dummy = nn(ZN, NAME, nn(ZN,CONST,ZN,ZN), ZN);
 
 	for (z = s; z; z = z->next)
 	{	if (z->type == STRUCT)
@@ -298,7 +299,6 @@ dumplocal(RunList *r)
 			&&   jumpsteps != depth))
 				continue;
 
-			dummy = nn(ZN, NAME, nn(ZN,CONST,ZN,ZN), ZN);
 			dummy->sym = z;
 			dummy->lft->val = i;
 
@@ -306,8 +306,7 @@ dumplocal(RunList *r)
 				r->n->name, r->pid, z->name);
 			if (z->nel > 1) printf("[%d]", i);
 			printf(" = ");
-			sr_mesg(stdout, getval(dummy),
-				z->type == MTYPE);
+			sr_mesg(stdout, getval(dummy), z->type == MTYPE);
 			printf("\n");
 			if (limited_vis && (z->hidden&2))
 			{	int colpos;

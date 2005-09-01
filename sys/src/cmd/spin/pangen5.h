@@ -1,14 +1,16 @@
 /***** spin: pangen5.h *****/
 
-/* Copyright (c) 1997-2000 by Lucent Technologies - Bell Laboratories.    */
+/* Copyright (c) 1997-2003 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
-/* Permission is given to distribute this code provided that this intro-  */
-/* ductory message is not removed and no monies are exchanged.            */
-/* No guarantee is expressed or implied by the distribution of this code. */
-/* The checkpointing code below was written by Gerard J. Holzmann         */
+/* No guarantee whatsoever is expressed or implied by the distribution of */
+/* this code.  Permission is given to distribute this code provided that  */
+/* this introductory message is not removed and no monies are exchanged.  */
+/* Software written by Gerard J. Holzmann.  For tool documentation see:   */
+/*             http://spinroot.com/                                       */
+/* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 static char *Xpt[] = {
-	"#if defined(W_XPT) || defined(R_XPT)",
+	"#if defined(MA) && (defined(W_XPT) || defined(R_XPT))",
 	"static Vertex	**temptree;",
 	"static char	wbuf[4096];",
 	"static int	WCNT = 4096, wcnt=0;",
@@ -129,7 +131,6 @@ static char *Xpt[] = {
 	"static void",
 	"x_remove(void)",
 	"{	Vertex *tmp; int i, s;",
-	"#if 1",
 	"	int r, j;",
 	"	/* double-check: */",
 	"	stacker[dfa_depth-1] = 0; r = dfa_store(stacker);",
@@ -141,7 +142,6 @@ static char *Xpt[] = {
 	"		printf(\" -- not a stackstate <o:%%d,4:%%d>\\n\", r, j);",
 	"		return;",
 	"	}",
-	"#endif",
 	"	stacker[dfa_depth-1] = 1;",
 	"	s = dfa_member(dfa_depth-1);",
 	"",
@@ -291,7 +291,9 @@ static char *Xpt[] = {
 	"	yes = no = 0;",
 	"	for (i = 0; i < 2; i++)",
 	"		if ((ulong) t->dst[i] == want)",
-	"		{	if (t->from[i] <= 0 && t->to[i] >= 0)",
+	"		{	/* was t->from[i] <= 0 && t->to[i] >= 0 */",
+	"			/* but from and to are uchar */",
+	"			if (t->from[i] == 0)",
 	"				yes = 1;",
 	"			else",
 	"			if (t->from[i] <= 4 && t->to[i] >= 4)",
@@ -300,7 +302,8 @@ static char *Xpt[] = {
 	"",
 	"	for (e = t->Succ; e; e = e->Nxt)",
 	"		if ((ulong) e->Dst == want)",
-	"		{	if (INRANGE(e, 0))",
+	"		{	/* was INRANGE(e,0) but From and To are uchar */",
+	"			if ((e->From == 0) || (e->s==1 && e->S==0))",
 	"				yes = 1;",
 	"			else if (INRANGE(e, 4))",
 	"				no = 1;",
@@ -348,9 +351,7 @@ static char *Xpt[] = {
 	"",
 	"static Vertex *",
 	"x_cpy_rev(void)",
-	"{	Vertex *c, *v;",
-	"",
-	"	/* find 0 and !4 predecessor of F */",
+	"{	Vertex *c, *v;	/* find 0 and !4 predecessor of F */",
 	"",
 	"	v = x_tail(temptree[dfa_depth-1], F->key);",
 	"	if (!v) return (Vertex *) 0;",

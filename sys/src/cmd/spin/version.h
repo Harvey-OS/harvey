@@ -1,1 +1,1 @@
-#define Version	"Spin Version 3.4.0 -- 27 March 2000"
+#define Version	"Spin Version 4.2.5 -- 2 April 2005"
