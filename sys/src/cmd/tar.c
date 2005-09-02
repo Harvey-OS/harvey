@@ -778,6 +778,34 @@ match(char *name, char **argv)
 	return 0;
 }
 
+static void
+cantcreate(char *s, int mode)
+{
+	int len;
+	static char *last;
+	
+	/*
+	 * Always print about files.  Only print about directories
+	 * we haven't printed about.  (Assumes archive is ordered
+	 * nicely.)
+	 */
+	if(mode&DMDIR){
+		if(last){
+			/* already printed this directory */
+			if(strcmp(s, last) == 0)
+				return;
+			/* printed a higher directory, so printed this one */
+			len = strlen(s);
+			if(memcmp(s, last, len) == 0 && last[len] == '/')
+				return;
+		}
+		/* save */
+		free(last);
+		last = strdup(s);
+	}
+	fprint(2, "%s: can't create %s: %r\n", argv0, s);
+}
+	
 static int
 makedir(char *s)
 {
@@ -788,20 +816,25 @@ makedir(char *s)
 	f = create(s, OREAD, DMDIR | 0777);
 	if (f >= 0)
 		close(f);
+	else
+		cantcreate(s, DMDIR);
 	return f;
 }
 
-static void
+static int
 mkpdirs(char *s)
 {
-	int done = 0;
-	char *p = s;
-
-	while (!done && (p = strchr(p + 1, '/')) != nil) {
+	int err;
+	char *p;
+	
+	p = s;
+	err = 0;
+	while (!err && (p = strchr(p+1, '/')) != nil) {
 		*p = '\0';
-		done = (access(s, AEXIST) < 0 && makedir(s) < 0);
+		err = (access(s, AEXIST) < 0 && makedir(s) < 0);
 		*p = '/';
 	}
+	return -err;
 }
 
 /* Call access but preserve the error string. */
@@ -873,8 +906,7 @@ extract1(int ar, Hdr *hp, char *fname)
 				}
 				if (fd < 0 &&
 				    (!dir || xaccess(fname, AEXIST) < 0))
-					fprint(2, "%s: can't create %s: %r\n",
-						argv0, fname);
+				    	cantcreate(fname, mode);
 			}
 			if (fd >= 0 && verbose)
 				fprint(2, "%s\n", fname);
