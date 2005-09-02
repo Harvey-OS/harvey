@@ -412,7 +412,7 @@
 386/bin/swap - 775 sys sys 1115950116 62094
 386/bin/syscall - 775 sys sys 1115950116 73536
 386/bin/tail - 775 sys sys 1125346016 66169
-386/bin/tar - 775 sys sys 1125544175 96517
+386/bin/tar - 775 sys sys 1125631815 97035
 386/bin/tbl - 775 sys sys 1125346017 113167
 386/bin/tcs - 775 sys sys 1125544176 256580
 386/bin/tee - 775 sys sys 1115950118 38428
@@ -5764,7 +5764,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1125330091 255536
+sys/games/lib/fortunes - 664 sys sys 1125564446 255656
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7969,7 +7969,7 @@ sys/src/9/pc/main.c - 664 sys sys 1121858827 14693
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
-sys/src/9/pc/mmu.c - 664 sys sys 1123645071 10456
+sys/src/9/pc/mmu.c - 664 sys sys 1125564128 10489
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1123637234 17024
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
@@ -8039,7 +8039,7 @@ sys/src/9/port/alloc.c - 664 sys sys 1102093389 5645
 sys/src/9/port/allocb.c - 664 sys sys 1123676437 3340
 sys/src/9/port/auth.c - 664 sys sys 1123647282 2392
 sys/src/9/port/cache.c - 664 sys sys 1055688274 9241
-sys/src/9/port/chan.c - 664 sys sys 1125517669 30203
+sys/src/9/port/chan.c - 664 sys sys 1125551975 31560
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1077896125 8247
@@ -12925,7 +12925,7 @@ sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1014926385 3754
 sys/src/cmd/tapefs/v6fs.c - 664 sys sys 1014926385 3971
 sys/src/cmd/tapefs/zip.h - 664 sys sys 1097914153 1428
 sys/src/cmd/tapefs/zipfs.c - 664 sys sys 1097900277 6803
-sys/src/cmd/tar.c - 664 sys sys 1125515072 21269
+sys/src/cmd/tar.c - 664 sys sys 1125553195 21864
 sys/src/cmd/tbl - 20000000775 sys sys 954038038 0
 sys/src/cmd/tbl/mkfile - 664 sys sys 944961243 268
 sys/src/cmd/tbl/t.h - 664 sys sys 944961244 3987

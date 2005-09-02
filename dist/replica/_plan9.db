@@ -252,7 +252,7 @@
 386/bin/games/jukebox - 775 sys sys 1105589128 264821
 386/bin/games/jukefs - 775 sys sys 1105589129 165320
 386/bin/games/mahjongg - 775 sys sys 1125345978 164288
-386/bin/games/memo - 775 sys sys 1115950076 157374
+386/bin/games/memo - 775 sys sys 1125544173 156892
 386/bin/games/playlistfs - 775 sys sys 1105589129 148484
 386/bin/games/sokoban - 775 sys sys 1125345978 163379
 386/bin/games/sudoku - 775 sys sys 1117249746 171666
@@ -296,8 +296,8 @@
 386/bin/ip/imap4d - 775 sys sys 1125345987 236488
 386/bin/ip/ipconfig - 775 sys sys 1125345988 137742
 386/bin/ip/ping - 775 sys sys 1116126319 77010
-386/bin/ip/ppp - 775 sys sys 1125345988 218875
-386/bin/ip/pppoe - 775 sys sys 1116126319 77535
+386/bin/ip/ppp - 775 sys sys 1125544173 218875
+386/bin/ip/pppoe - 775 sys sys 1125544173 77548
 386/bin/ip/pptp - 775 sys sys 1116126320 126658
 386/bin/ip/pptpd - 775 sys sys 1125345988 125824
 386/bin/ip/rarpd - 775 sys sys 1125345990 111572
@@ -389,7 +389,7 @@
 386/bin/scp - 775 sys sys 1119496657 151927
 386/bin/scuzz - 775 sys sys 1125346011 111604
 386/bin/sed - 775 sys sys 1125346011 89514
-386/bin/seq - 775 sys sys 1115950111 38206
+386/bin/seq - 775 sys sys 1125544174 38396
 386/bin/sha1sum - 775 sys sys 1115950111 61133
 386/bin/size - 775 sys sys 1119496658 76974
 386/bin/sleep - 775 sys sys 1085077097 3413
@@ -398,7 +398,7 @@
 386/bin/sniffer - 775 sys sys 1038443185 99028
 386/bin/snoopy - 775 sys sys 1125346014 157537
 386/bin/sort - 775 sys sys 1125346014 82276
-386/bin/spin - 775 sys sys 1116903736 655162
+386/bin/spin - 775 sys sys 1125544175 758333
 386/bin/split - 775 sys sys 1125346015 75635
 386/bin/srv - 775 sys sys 1115950113 82387
 386/bin/srvfs - 775 sys sys 1116903736 40065
@@ -412,9 +412,9 @@
 386/bin/swap - 775 sys sys 1115950116 62094
 386/bin/syscall - 775 sys sys 1115950116 73536
 386/bin/tail - 775 sys sys 1125346016 66169
-386/bin/tar - 775 sys sys 1120014538 96347
+386/bin/tar - 775 sys sys 1125553200 97047
 386/bin/tbl - 775 sys sys 1125346017 113167
-386/bin/tcs - 775 sys sys 1125501123 256580
+386/bin/tcs - 775 sys sys 1125544176 256580
 386/bin/tee - 775 sys sys 1115950118 38428
 386/bin/telco - 775 sys sys 1115950118 103315
 386/bin/telnet - 775 sys sys 1125346017 80355
@@ -5764,7 +5764,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1125330091 255536
+sys/games/lib/fortunes - 664 sys sys 1125564446 255656
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7969,7 +7969,7 @@ sys/src/9/pc/main.c - 664 sys sys 1121858827 14693
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
-sys/src/9/pc/mmu.c - 664 sys sys 1123645071 10456
+sys/src/9/pc/mmu.c - 664 sys sys 1125564128 10489
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1123637234 17024
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
@@ -8039,7 +8039,7 @@ sys/src/9/port/alloc.c - 664 sys sys 1102093389 5645
 sys/src/9/port/allocb.c - 664 sys sys 1123676437 3340
 sys/src/9/port/auth.c - 664 sys sys 1123647282 2392
 sys/src/9/port/cache.c - 664 sys sys 1055688274 9241
-sys/src/9/port/chan.c - 664 sys sys 1125517669 30203
+sys/src/9/port/chan.c - 664 sys sys 1125551975 31560
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1077896125 8247
@@ -12925,7 +12925,7 @@ sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1014926385 3754
 sys/src/cmd/tapefs/v6fs.c - 664 sys sys 1014926385 3971
 sys/src/cmd/tapefs/zip.h - 664 sys sys 1097914153 1428
 sys/src/cmd/tapefs/zipfs.c - 664 sys sys 1097900277 6803
-sys/src/cmd/tar.c - 664 sys sys 1125515072 21269
+sys/src/cmd/tar.c - 664 sys sys 1125553195 21864
 sys/src/cmd/tbl - 20000000775 sys sys 954038038 0
 sys/src/cmd/tbl/mkfile - 664 sys sys 944961243 268
 sys/src/cmd/tbl/t.h - 664 sys sys 944961244 3987
@@ -14961,10 +14961,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/games/memo - 775 sys sys 1125544173 156892
-386/bin/seq - 775 sys sys 1125544174 38396
-386/bin/spin - 775 sys sys 1125544175 758333
-386/bin/ip/ppp - 775 sys sys 1125544173 218875
-386/bin/ip/pppoe - 775 sys sys 1125544173 77548
-386/bin/tar - 775 sys sys 1125544175 96517
-386/bin/tcs - 775 sys sys 1125544176 256580
+386/bin/tar - 775 sys sys 1125631815 97035
