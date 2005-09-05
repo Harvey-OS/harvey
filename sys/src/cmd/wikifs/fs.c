@@ -109,7 +109,7 @@ fsattach(Req *r)
 	r->fid->aux = a;
 	a->name = s_copy(r->ifcall.uname);
 
-	r->ofcall.qid = (Qid){mkqid(Droot, 0, 0, 42), 0, QTDIR};
+	r->ofcall.qid = (Qid){mkqid(Droot, 0, 0, 0), 0, QTDIR};
 	r->fid->qid = r->ofcall.qid;
 	respond(r, nil);
 }

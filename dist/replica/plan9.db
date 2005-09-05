@@ -3,13 +3,13 @@
 386/9loaddebug - 775 sys sys 1124856571 310547
 386/9loadlite - 775 sys sys 1112757508 135244
 386/9loadlitedebug - 775 sys sys 1121398844 198794
-386/9pc - 775 sys sys 1124856576 1836888
+386/9pc - 775 sys sys 1125835513 1838424
 386/9pc.gz - 664 sys sys 1112757510 643423
-386/9pccpu - 775 sys sys 1124856579 1491144
+386/9pccpu - 775 sys sys 1125835516 1492680
 386/9pccpu.gz - 664 sys sys 1112757511 529529
-386/9pcdisk - 775 sys sys 1124856583 2042686
+386/9pcdisk - 775 sys sys 1125835520 2044222
 386/9pcdisk.gz - 664 sys sys 1112757513 733576
-386/9pcf - 775 sys sys 1124856588 2385510
+386/9pcf - 775 sys sys 1125835525 2387046
 386/9pcf.gz - 664 sys sys 1112757515 886966
 386/9pxeload - 775 sys sys 1112757508 215872
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
@@ -503,7 +503,7 @@
 386/bin/webcookies - 775 sys sys 1125346039 161625
 386/bin/webfs - 775 sys sys 1125346039 349737
 386/bin/webfsget - 775 sys sys 1115950144 39143
-386/bin/wikifs - 775 sys sys 1125346040 202135
+386/bin/wikifs - 775 sys sys 1125889831 202134
 386/bin/winwatch - 775 sys sys 1115950145 154555
 386/bin/xd - 775 sys sys 1125346040 64044
 386/bin/xmr - 775 sys sys 1115950145 40157
@@ -5528,7 +5528,7 @@ rc/bin/start - 775 sys sys 945617209 120
 rc/bin/stock - 775 sys sys 1055701355 288
 rc/bin/stop - 775 sys sys 945617209 110
 rc/bin/tel - 775 sys sys 1019854296 136
-rc/bin/termrc - 775 sys sys 1064585645 2650
+rc/bin/termrc - 775 sys sys 1125835735 2653
 rc/bin/thesaurus - 775 sys sys 1068054167 246
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
@@ -13640,7 +13640,7 @@ sys/src/cmd/webfs/util.c - 664 sys sys 1015015823 1211
 sys/src/cmd/webfs/webget.c - 664 sys sys 1124711795 1589
 sys/src/cmd/webfsget.c - 664 sys sys 1068413017 1595
 sys/src/cmd/wikifs - 20000000775 sys sys 1018211094 0
-sys/src/cmd/wikifs/fs.c - 664 sys sys 1124975709 15731
+sys/src/cmd/wikifs/fs.c - 664 sys sys 1125835789 15730
 sys/src/cmd/wikifs/io.c - 664 sys sys 1084469671 11572
 sys/src/cmd/wikifs/lookup.c - 664 sys sys 1018211093 182
 sys/src/cmd/wikifs/map.c - 664 sys sys 1018211093 109
