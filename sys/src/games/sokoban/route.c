@@ -4,8 +4,8 @@
 
 #include "sokoban.h"
 
-static int trydir(int, Point, Point, Route*, Visited*);
-static int dofind(Point, Point, Route*, Visited*);
+static int dirlist[] = { Up, Down, Left, Right, Up, Down, Left, Right, };
+static int ndir = 4;
 
 static Point
 dir2point(int dir)
@@ -23,73 +23,23 @@ dir2point(int dir)
 	return Pt(0,0);
 }
 
-Route*
-newroute(void)
-{
-	Route *r = malloc(sizeof(Route));
-	memset(r, 0, sizeof(Route));
-	return r;
-}
-
-void
-freeroute(Route *r)
-{
-	if (r->step != nil) {
-		free(r->step);
-		memset(r, 0, sizeof(Route));
-	}
-	free(r);
-}
-
-void
-reverseroute(Route *r)
-{
-	int i;
-	Step tmp;
-
-	for (i=1; i< r->nstep; i++) {
-		tmp = r->step[i];
-		r->step[i] = r->step[i-1];
-		r->step[i-1] = tmp;
-	}
-}
-
-void
-pushstep(Route *r, int dir, int count)
-{
-	if (r->beyond < r->nstep+1) {
-		r->beyond = r->nstep+1;
-		r->step = realloc(r->step, sizeof(Step)*r->beyond);
-	}
-	if (r->step == nil)
-		exits("pushstep out of memory");
-	r->step[r->nstep].dir = dir;
-	r->step[r->nstep].count = count;
-	r->nstep++;
-}
-
-void
-popstep(Route*r)
-{
-	if (r->nstep > 0) {
-		r->nstep--;
-		r->step[r->nstep].dir = 0;
-		r->step[r->nstep].count = 0;
-	}
-}
-
 int
-validpush(Point g, Step s, Point *t)
+validpush(Point g, Step *s, Point *t)
 {
 	int i;
-	Point m = dir2point(s.dir);
+	Point m;
+
+	if (s == nil)
+		return 0;
+
+	m = dir2point(s->dir);
 
 	// first test for  Cargo next to us (in direction dir)
-	if (s.count > 0) {
+	if (s->count > 0) {
 		g = addpt(g, m);
 		if (!ptinrect(g, Rpt(Pt(0,0), level.max)))
 			return 0;
-		switch (level.board[g.x ][g.y]) {
+		switch (level.board[g.x][g.y]) {
 		case Wall:
 		case Empty:
 		case Goal:
@@ -97,11 +47,11 @@ validpush(Point g, Step s, Point *t)
 		}
 	}
 	// then test for  enough free space for us _and_ Cargo
-	for (i=0; i < s.count; i++) {
+	for (i=0; i < s->count; i++) {
 		g = addpt(g, m);
 		if (!ptinrect(g, Rpt(Pt(0,0), level.max)))
 			return 0;
-		switch (level.board[g.x ][g.y]) {
+		switch (level.board[g.x][g.y]) {
 		case Wall:
 		case Cargo:
 		case GoalCargo:
@@ -114,117 +64,224 @@ validpush(Point g, Step s, Point *t)
 }
 
 int
-validwalk(Point g, Step s, Point *t)
+isvalid(Point s, Route* r, int (*isallowed)(Point, Step*, Point*))
 {
-	int i;
-	Point m = dir2point(s.dir);
+	Point m;
+	Step *p;
 
-	for (i=0; i < s.count; i++) {
-		g = addpt(g, m);
-		if (!ptinrect(g, Rpt(Pt(0,0), level.max)))
+	if (r == nil)
+		return 0;
+
+	m = s;
+	for (p=r->step; p < r->step +r->nstep; p++)
+		if (! isallowed(m, p, &m))
 			return 0;
-		switch (level.board[g.x ][g.y]) {
-		case Wall:
-		case Cargo:
-		case GoalCargo:
-			return 0;
-		}
+	return 1;
+}
+
+static Walk*
+newwalk(void)
+{
+	Walk *w;
+
+	w = malloc(sizeof(Walk));
+	if (w->route == nil)
+		sysfatal("cannot allocate walk");
+	memset(w, 0, sizeof(Walk));
+	return w;
+}
+
+static void
+resetwalk(Walk *w)
+{
+	Route **p;
+
+	if (w == nil || w->route == nil)
+		return;
+
+	for (p=w->route; p < w->route + w->nroute; p++)
+		freeroute(*p);
+	w->nroute = 0;
+}
+
+static void
+freewalk(Walk *w)
+{
+	if (w == nil)
+		return;
+
+	resetwalk(w);
+	if(w->route)
+		free(w->route);
+	free(w);
+}
+
+static void
+addroute(Walk *w, Route *r)
+{
+	if (w == nil || r == nil)
+		return;
+
+	if (w->beyond < w->nroute+1) {
+		w->beyond = w->nroute+1;
+		w->route = realloc(w->route, sizeof(Route*)*w->beyond);
 	}
-	if (t != nil)
-		*t = g;
-	return 1;
+	if (w->route == nil)
+		sysfatal("cannot allocate route in addroute");
+	w->route[w->nroute] = r;
+	w->nroute++;
 }
 
-int
-isvalid(Point s, Route* r, int (*isallowed)(Point, Step, Point*))
+void
+freeroute(Route *r)
 {
-	int i;
-	Point m = s;
-
-	for (i=0; i< r->nstep; i++)
-		if (! isallowed(m, r->step[i], &m))
-			return 0;
-	return 1;
+	if (r == nil)
+		return;
+	if (r->step != nil)
+		free(r->step);
+	free(r);
 }
 
-static int
-trydir(int dir, Point m, Point d, Route *r, Visited *v)
+Route*
+extend(Route *rr, int dir, int count, Point dest)
 {
-	Point p = dir2point(dir);
-	Point n = addpt(m, p);
+	Route *r;
+
+	r = malloc(sizeof(Route));
+	if (r == nil)
+		sysfatal("cannot allocate route in extend");
+
+	memset(r, 0, sizeof(Route));
+
+	r->dest = dest;
+
+	if (count > 0) {
+		r->nstep = 1;
+		if (rr != nil)
+			r->nstep += rr->nstep;
+
+		r->step = malloc(sizeof(Step)*r->nstep);
+		if (r->step == nil)
+			sysfatal("cannot allocate step in extend");
+
+		if (rr != nil)
+			memmove(r->step, rr->step, sizeof(Step)*rr->nstep);
+
+		r->step[r->nstep-1].dir = dir;
+		r->step[r->nstep-1].count = count;
+	}
+	return r;
+}
+
+static Step*
+laststep(Route*r)
+{
+	if (r != nil && r->nstep > 0) {
+		return &r->step[r->nstep-1];
+	}
+	return nil;
+}
+
+static int*
+startwithdirfromroute(Route *r, int* dl, int n)
+{
+	Step *s;
+	int *p;
+	
+	if (r == nil || dl == nil)
+		return dl;
+
+	s =  laststep(r);
+	if (s == nil || s->count == 0)
+		return dl;
+
+	for (p=dl; p < dl + n; p++)
+		if (*p == s->dir)
+			break;
+	return p;
+}
+
+static Route*
+bfstrydir(Route *r, int dir, Visited *v)
+{
+	Point m, p, n;
+
+	if (r == nil)
+		return nil;
+
+	m = r->dest;
+	p = dir2point(dir);
+	n = addpt(m, p);
 
 	if (ptinrect(n, Rpt(Pt(0,0), level.max)) &&
 	    v->board[n.x][n.y] == 0) {
 		v->board[n.x][n.y] = 1;
-		switch (level.board[n.x ][n.y]) {
+		switch (level.board[n.x][n.y]) {
 		case Empty:
 		case Goal:
-			pushstep(r, dir, 1);
-			if (dofind(n, d, r, v))
-				return 1;
-			else
-				popstep(r);
+			return extend(r, dir, 1, n);
 		}
 	}
-	return 0;
+	return nil;
 }
 
-static int
-dofind(Point m, Point d, Route *r, Visited *v)
+static Route*
+bfs(Point src, Point dst, Visited *v)
 {
-	if (eqpt(m, d))
-		return 1;
+	Walk *cur, *new, *tmp;
+	Route *r, **p;
+	int progress, *dirs, *dirp;
+	Point n;
 
-	v->board[m.x][m.y] = 1;
+	if (v == nil)
+		return nil;
 
-	return trydir(Left, m, d, r, v) ||
-	            trydir(Up, m, d, r, v) ||
-	            trydir(Right, m, d, r, v) ||
-	            trydir(Down, m, d, r, v);
-}
-
-static int
-dobfs(Point m, Point d, Route *r, Visited *v)
-{
-	if (eqpt(m, d))
-		return 1;
-
-	v->board[m.x][m.y] = 1;
-
-	return trydir(Left, m, d, r, v) ||
-	            trydir(Up, m, d, r, v) ||
-	            trydir(Right, m, d, r, v) ||
-	            trydir(Down, m, d, r, v);
-}
-
-int
-findwalk(Point src, Point dst, Route *r)
-{
-	Visited* v;
-	int found;
-
-	v = malloc(sizeof(Visited));
-	memset(v, 0, sizeof(Visited));
-	found = dofind(src, dst, r, v);
-	free(v);
-	
-	return found;
-}
-
-void
-applyroute(Route *r)
-{
-	int j, i;
-	
-	for (i=0; i< r->nstep; i++) {
-		j = r->step[i].count;
-		while (j > 0) {
-			move(r->step[i].dir);
-			if (animate) {
-				drawscreen();
-				sleep(200);
+	cur = newwalk();
+	new = newwalk();
+	v->board[src.x][src.y] = 1;
+	r = extend(nil, 0, 0, src);
+	if (eqpt(src, dst)) {
+		freewalk(cur);
+		freewalk(new);
+		return r;
+	}
+	addroute(cur, r);
+	progress = 1;
+	while (progress) {
+		progress = 0;
+		for (p=cur->route; p < cur->route + cur->nroute; p++) {
+			dirs = startwithdirfromroute(*p, dirlist, ndir);
+			for (dirp=dirs; dirp < dirs + ndir; dirp++) {
+				r = bfstrydir(*p, *dirp, v);
+				if (r != nil) {
+					progress = 1;
+					n = r->dest;
+					if (eqpt(n, dst)) {
+						freewalk(cur);
+						freewalk(new);
+						return(r);
+					}
+					addroute(new, r);
+				}
 			}
-			j--;
 		}
+		resetwalk(cur);
+		tmp = cur;
+		cur = new;
+		new = tmp;
 	}
+	freewalk(cur);
+	freewalk(new);
+	return nil;
+}
+
+Route*
+findroute(Point src, Point dst)
+{
+	Visited v;
+	Route* r;
+
+	memset(&v, 0, sizeof(Visited));
+	r = bfs(src, dst, &v);
+	return r;
 }

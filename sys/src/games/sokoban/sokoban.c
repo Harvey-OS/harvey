@@ -18,7 +18,6 @@ char		*GoalCargoImage = "/sys/games/lib/sokoban/images/goalcargo.bit";
 char		*GoalImage = "/sys/games/lib/sokoban/images/goal.bit";
 char		*WinImage = "/sys/games/lib/sokoban/images/win.bit";
 
-
 char *buttons[] = 
 {
 	"restart",
@@ -29,17 +28,35 @@ char *buttons[] =
 	0
 };
 
+char **levelnames;
+
 Menu menu = 
 {
-	buttons
+	buttons,
 };
 
 Menu lmenu =
 {
-	nil,
-	genlevels,
-	0,
+	levelnames,
 };
+
+void
+buildmenu(void)
+{
+	int i;
+
+	if (levelnames != nil) {
+		for(i=0; levelnames[i] != 0; i++)
+			free(levelnames[i]);
+	}
+	levelnames = realloc(levelnames, sizeof(char*)*(numlevels+1));
+	if (levelnames == nil)
+		sysfatal("cannot allocate levelnames");
+	for(i=0; i < numlevels; i++)
+		levelnames[i] = genlevels(i);
+	levelnames[numlevels] = 0;
+	lmenu.item = levelnames;
+}
 
 Image *
 eallocimage(Rectangle r, int repl, uint color)
@@ -119,7 +136,7 @@ static Route*
 mouse2route(Mouse m)
 {
 	Point p, q;
-	Route *r, *rr;
+	Route *r;
 
 	p = subpt(m.xy, screen->r.min);
 	p.x /= BoardX;
@@ -129,35 +146,26 @@ mouse2route(Mouse m)
 	// fprint(2, "x=%d y=%d\n", q.x, q.y);
 
 	if (q.x == 0 && q.y ==  0)
-		return newroute();
+		return nil;
 
-	r = newroute();
-	if (q.x < 0)
-		pushstep(r, Left, -q.x);
-	if (q.x > 0)
-		pushstep(r, Right, q.x);
+	if (q.x == 0 || q.y ==  0) {
+		if (q.x < 0)
+			r = extend(nil, Left, -q.x, Pt(level.glenda.x, p.y));
+		else if (q.x > 0)
+			r = extend(nil, Right, q.x, Pt(level.glenda.x, p.y));
+		else if (q.y < 0)
+			r = extend(nil, Up, -q.y, level.glenda);
+		else if (q.y > 0)
+			r = extend(nil, Down, q.y, level.glenda);
+		else
+			r = nil;
 
-	if (q.y < 0)
-		pushstep(r, Up, -q.y);
-	if (q.y > 0)
-		pushstep(r, Down, q.y);
+		if (r != nil && isvalid(level.glenda, r, validpush))
+			return r;
+		freeroute(r);
+	}
 
-	if ((q.x == 0 || q.y ==  0) && isvalid(level.glenda, r, validpush))
-		return r;
-
-	if (isvalid(level.glenda, r, validwalk))
-		return r;
-	reverseroute(r);
-	if (isvalid(level.glenda, r, validwalk))
-		return r;
-	freeroute(r);
-
-	rr = newroute();
-	if (findwalk(level.glenda, p, rr))
-		return rr;
-	freeroute(rr);
-
-	return newroute();
+	return findroute(level.glenda, p);
 }
 
 char *
@@ -203,8 +211,13 @@ void
 main(int argc, char **argv)
 {
 	Mouse m;
-	Event e;
+	Event ev;
+	int e;
 	Route *r;
+	int timer;
+	Animation a;
+	int animate;
+
 
 	if(argc == 2) 
 		levelfile = argv[1];
@@ -215,6 +228,7 @@ main(int argc, char **argv)
 		fprint(2, "usage: %s [levelfile]\n", argv[0]);
 		exits("usage");
 	}
+	buildmenu();
 
 	animate = 0;
 	buttons[3] = animate ? "noanimate" : "animate";
@@ -223,19 +237,28 @@ main(int argc, char **argv)
 		sysfatal("initdraw failed: %r");
 	einit(Emouse|Ekeyboard);
 
+	timer = etimer(0, 200);
+	initanimation(&a);
+
 	allocimages();
 	glenda = gright;
 	eresized(0);
 
 	for(;;) {
-		switch(event(&e)) {
+		e = event(&ev);
+		switch(e) {
 		case Emouse:
-			m = e.mouse;
+			m = ev.mouse;
 			if(m.buttons&1) {
+				stopanimation(&a);
 				r = mouse2route(m);
-				applyroute(r);
-				freeroute(r);
-				drawscreen();
+				if (r)
+					setupanimation(&a, r);
+				if (! animate) {
+					while(onestep(&a))
+						;
+					drawscreen();
+				}
 			}
 			if(m.buttons&2) {
 				int l;
@@ -243,6 +266,7 @@ main(int argc, char **argv)
 				lmenu.lasthit = level.index;
 				l=emenuhit(2, &m, &lmenu);
 				if(l>=0){
+					stopanimation(&a);
 					level = levels[l];
 					drawlevel();
 					drawscreen();
@@ -251,17 +275,22 @@ main(int argc, char **argv)
 			if(m.buttons&4)
 				switch(emenuhit(3, &m, &menu)) {
 				case 0:
+					stopanimation(&a);
 					level = levels[level.index];
 					drawlevel();
 					drawscreen();
 					break;
 				case 1:
+					stopanimation(&a);
 					loadlevels(LEasy);
+					buildmenu();
 					drawlevel();
 					drawscreen();
 					break;
 				case 2:
+					stopanimation(&a);
 					loadlevels(LHard);
+					buildmenu();
 					drawlevel();
 					drawscreen();
 					break;
@@ -278,7 +307,9 @@ main(int argc, char **argv)
 			if(level.done)
 				break;
 
-			switch(e.kbdc) {
+			stopanimation(&a);
+
+			switch(ev.kbdc) {
 			case 127:
 			case 'q':
 			case 'Q':
@@ -310,12 +341,23 @@ main(int argc, char **argv)
 			case 61457:
 			case 61458:
 			case ' ':
-				move(key2move(e.kbdc));
+				move(key2move(ev.kbdc));
 				drawscreen();
 				break;
 			default:
 				// fprint(2, "key: %d]\n", e.kbdc);
 				break;
+			}
+			break;
+
+		default:
+			if (e == timer) {
+				if (animate)
+					onestep(&a);
+				else
+					while(onestep(&a))
+						;
+				drawscreen();
 			}
 			break;
 		}

@@ -17,6 +17,6 @@ without touching anything, it will do so.
 
 Otherwise, nothing will happen.
 
-The search algorithm is pretty simplistic;
+The breadth-first search algorithm should find a fast route.
 it can be seen in action by toggling the 'animate'
 entry in the button 3 menu.

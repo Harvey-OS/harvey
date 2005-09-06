@@ -32,20 +32,32 @@ enum {
 	Maxlevels = 200,
 };
 
-typedef struct {
+typedef struct Step {
 	uint dir;		/* direction */
 	uint count;	/* number of single-step moves */
 } Step;
 
-typedef struct {
-	uint nstep;	/* number of valid steps */
+typedef struct Route {
+	uint nstep;	/* number of valid Step */
 	Step *step;
-	uint beyond;	/* number of allocated Step */
+	Point dest;	/* result of step */
 } Route;
 
-typedef struct {
+typedef struct Walk {
+	uint nroute;	/* number of valid Route* */
+	Route **route;
+	uint beyond;	/* number of allocated Route* */
+} Walk;
+
+typedef struct Visited {
 	uint 	board[MazeX][MazeY];
 } Visited;
+
+typedef struct Animation {
+	Route* route;
+	Step *step;
+	int count;
+} Animation;
 
 typedef struct {
 	Point 	glenda;
@@ -58,7 +70,6 @@ typedef struct {
 Level level;		/* the current level */
 Level levels[Maxlevels];	/* all levels from this file */
 int numlevels;		/* how many levels do we have */
-int animate;		/* boolean: animate during multi-step move? */
 
 Image *img;		/* buffer */
 Image *text;		/* for text messages */
@@ -90,16 +101,18 @@ int loadlevels(char *);
 void move(int);
 
 /* route.c */
-Route* newroute(void);
+int validpush(Point, Step*, Point*);
+int isvalid(Point, Route*, int (*)(Point, Step*, Point*));
 void freeroute(Route*);
-void reverseroute(Route*);
-void pushstep(Route*, int, int);
-void popstep(Route*);
-int validwalk(Point, Step, Point*);
-int validpush(Point, Step, Point*);
-int isvalid(Point, Route*, int (*)(Point, Step, Point*));
-int findwalk(Point, Point, Route*);
-void applyroute(Route*);
+Route* extend(Route*, int, int, Point);
+Route* findroute(Point, Point);
+
+/* animation.c */
+void initanimation(Animation*);
+void setupanimation(Animation*, Route*);
+int onestep(Animation*);
+void stopanimation(Animation*);
+
 
 /* sokoban.c */
 char *genlevels(int);
