@@ -503,7 +503,7 @@
 386/bin/webcookies - 775 sys sys 1125346039 161625
 386/bin/webfs - 775 sys sys 1125346039 349737
 386/bin/webfsget - 775 sys sys 1115950144 39143
-386/bin/wikifs - 775 sys sys 1125346040 202135
+386/bin/wikifs - 775 sys sys 1125889831 202134
 386/bin/winwatch - 775 sys sys 1115950145 154555
 386/bin/xd - 775 sys sys 1125346040 64044
 386/bin/xmr - 775 sys sys 1115950145 40157
@@ -13840,14 +13840,15 @@ sys/src/games/music/playlistfs/playplumb.c - 664 sys sys 1103793924 280
 sys/src/games/music/playlistfs/volume.c - 664 sys sys 1103793924 2065
 sys/src/games/music/readcd - 775 sys sys 1103793915 996
 sys/src/games/sokoban - 20000000775 sys sys 1095792097 0
-sys/src/games/sokoban/README - 664 sys sys 1102439103 781
+sys/src/games/sokoban/README - 664 sys sys 1125919542 799
+sys/src/games/sokoban/animation.c - 664 sys sys 1125919541 973
 sys/src/games/sokoban/graphics.c - 664 sys sys 1095792097 1846
 sys/src/games/sokoban/level.c - 664 sys sys 1095792097 1654
 sys/src/games/sokoban/mkfile - 664 sys sys 1102439103 247
 sys/src/games/sokoban/move.c - 664 sys sys 1095792097 2671
-sys/src/games/sokoban/route.c - 664 sys sys 1102439103 3684
-sys/src/games/sokoban/sokoban.c - 664 sys sys 1102439104 5540
-sys/src/games/sokoban/sokoban.h - 664 sys sys 1102439105 1876
+sys/src/games/sokoban/route.c - 664 sys sys 1125919542 4486
+sys/src/games/sokoban/sokoban.c - 664 sys sys 1125919542 6358
+sys/src/games/sokoban/sokoban.h - 664 sys sys 1125919542 2062
 sys/src/games/sudoku - 20000000775 sys sys 1117225572 0
 sys/src/games/sudoku/game.c - 664 sys sys 1117226433 7788
 sys/src/games/sudoku/levels.c - 664 sys sys 1117226433 3186
@@ -14961,4 +14962,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/wikifs - 775 sys sys 1125889831 202134
+sys/src/games/sokoban/mkfile - 664 sys sys 1125976294 261

@@ -3,12 +3,12 @@ BIN=/$objtype/bin/games
 
 TARG=sokoban
 OFILES=\
-	sokoban.$O\
-	move.$O\
+	animation.$O\
 	graphics.$O\
 	level.$O\
+	move.$O\
+	sokoban.$O\
 	route.$O\
-
 
 HFILES=sokoban.h\
 
