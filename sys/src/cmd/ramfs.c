@@ -88,6 +88,22 @@ char	*rflush(Fid*), *rversion(Fid*), *rauth(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
 	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
 
+int needfid[] = {
+	[Tversion] 0,
+	[Tflush] 0,
+	[Tauth] 0,
+	[Tattach] 0,
+	[Twalk] 1,
+	[Topen] 1,
+	[Tcreate] 1,
+	[Tread] 1,
+	[Twrite] 1,
+	[Tclunk] 1,
+	[Tremove] 1,
+	[Tstat] 1,
+	[Twstat] 1,
+};
+
 char 	*(*fcalls[])(Fid*) = {
 	[Tversion]	rversion,
 	[Tflush]	rflush,
@@ -177,7 +193,7 @@ main(int argc, char *argv[])
 		if(defmnt == 0){
 			char buf[64];
 			snprint(buf, sizeof buf, "#s/%s", service);
-			fd = create(buf, OWRITE, 0666);
+			fd = create(buf, OWRITE|ORCLOSE, 0666);
 			if(fd < 0)
 				error("create failed");
 			sprint(buf, "%d", p[1]);
@@ -351,6 +367,8 @@ rwalk(Fid *f)
 		f->busy = 0;
 		f->ram = nil;
 	}
+	if(rhdr.nwqid > 0)
+		err = nil;	/* didn't get everything in 9P2000 right! */
 	if(rhdr.nwqid == thdr.nwname)	/* update the fid after a successful walk */
 		f->ram = fram;
 	return err;
@@ -747,6 +765,7 @@ io(void)
 {
 	char *err, buf[40];
 	int n, pid, ctl;
+	Fid *fid;
 
 	pid = getpid();
 	if(private){
@@ -787,10 +806,12 @@ io(void)
 		if(debug)
 			fprint(2, "ramfs %d:<-%F\n", pid, &thdr);
 
-		if(!fcalls[thdr.type])
+		if(thdr.type<0 || thdr.type>=nelem(fcalls) || !fcalls[thdr.type])
 			err = "bad fcall type";
+		else if(((fid=newfid(thdr.fid))==nil || !fid->ram) && needfid[thdr.type])
+			err = "fid not in use";
 		else
-			err = (*fcalls[thdr.type])(newfid(thdr.fid));
+			err = (*fcalls[thdr.type])(fid);
 		if(err){
 			rhdr.type = Rerror;
 			rhdr.ename = err;
