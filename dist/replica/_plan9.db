@@ -254,7 +254,7 @@
 386/bin/games/mahjongg - 775 sys sys 1125345978 164288
 386/bin/games/memo - 775 sys sys 1125544173 156892
 386/bin/games/playlistfs - 775 sys sys 1105589129 148484
-386/bin/games/sokoban - 775 sys sys 1125345978 163379
+386/bin/games/sokoban - 775 sys sys 1126062686 164713
 386/bin/games/sudoku - 775 sys sys 1117249746 171666
 386/bin/getmap - 775 sys sys 1115950076 65180
 386/bin/gif - 775 sys sys 1125345979 158054
@@ -366,7 +366,7 @@
 386/bin/proof - 775 sys sys 1125346007 178401
 386/bin/ps - 775 sys sys 1125346007 67985
 386/bin/pwd - 775 sys sys 1115950105 36897
-386/bin/ramfs - 775 sys sys 1126005943 89803
+386/bin/ramfs - 775 sys sys 1126062687 89789
 386/bin/rc - 775 sys sys 1119496655 143226
 386/bin/rdbfs - 775 sys sys 1125346008 168500
 386/bin/read - 775 sys sys 1115950106 58046
@@ -7723,7 +7723,7 @@ sys/man/8/stub - 664 sys sys 1044830500 943
 sys/man/8/swap - 664 sys sys 944959679 880
 sys/man/8/timesync - 664 sys sys 1107606876 1717
 sys/man/8/tlssrv - 664 sys sys 1037580152 2594
-sys/man/8/trampoline - 664 sys sys 1094150519 1073
+sys/man/8/trampoline - 664 sys sys 1126104844 1199
 sys/man/8/udpecho - 664 sys sys 954305553 303
 sys/man/8/update - 664 sys sys 961259288 2336
 sys/man/8/venti - 664 sys sys 1069101926 5422
@@ -8076,7 +8076,7 @@ sys/src/9/port/fault.c - 664 sys sys 1123438654 7282
 sys/src/9/port/initcode.c - 664 sys sys 1055688491 574
 sys/src/9/port/latin1.c - 664 sys sys 1015278339 1418
 sys/src/9/port/latin1.h - 664 sys sys 1103633666 3563
-sys/src/9/port/lib.h - 664 sys sys 1091733556 5737
+sys/src/9/port/lib.h - 664 sys sys 1126103560 5770
 sys/src/9/port/log.c - 664 sys sys 1014931175 2860
 sys/src/9/port/master - 664 sys sys 1104430269 505
 sys/src/9/port/master.local - 664 sys sys 1063856961 130
@@ -9564,7 +9564,7 @@ sys/src/cmd/aux/reboot.c - 664 sys sys 1116769521 1429
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1014925091 18176
 sys/src/cmd/aux/stub.c - 664 sys sys 1098196222 2723
 sys/src/cmd/aux/timesync.c - 664 sys sys 1107448970 25758
-sys/src/cmd/aux/trampoline.c - 664 sys sys 1078840013 3521
+sys/src/cmd/aux/trampoline.c - 664 sys sys 1126104850 3790
 sys/src/cmd/aux/typepasswd.c - 664 sys sys 1014925091 1761
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
 sys/src/cmd/aux/vga - 20000000775 sys sys 1018723175 0
@@ -11966,7 +11966,7 @@ sys/src/cmd/ip/imap4d/nodes.c - 664 sys sys 1015013077 3173
 sys/src/cmd/ip/imap4d/search.c - 664 sys sys 1015013077 4520
 sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1015013077 2481
-sys/src/cmd/ip/ipconfig.c - 664 sys sys 1124936750 34907
+sys/src/cmd/ip/ipconfig.c - 664 sys sys 1126103921 34865
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1089739069 1232
 sys/src/cmd/ip/ping.c - 664 sys sys 1084471009 5651
@@ -14962,5 +14962,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/games/sokoban - 775 sys sys 1126062686 164713
-386/bin/ramfs - 775 sys sys 1126062687 89789
+386/bin/aux/trampoline - 775 sys sys 1126148864 83645
+386/bin/ip/ipconfig - 775 sys sys 1126148865 137742

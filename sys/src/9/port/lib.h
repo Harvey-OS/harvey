@@ -43,6 +43,7 @@ extern	int	runetochar(char*, Rune*);
 extern	int	chartorune(Rune*, char*);
 extern	char*	utfrune(char*, long);
 extern	int	utflen(char*);
+extern	int	utfnlen(char*, long);
 extern	int	runelen(long);
 
 extern	int	abs(int);

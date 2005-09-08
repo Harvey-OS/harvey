@@ -21246,3 +21246,9 @@
 1126031509 0 c sys/src/cmd/sleep.c - 664 sys sys 1126031186 170
 1126063917 0 c 386/bin/games/sokoban - 775 sys sys 1126062686 164713
 1126063917 1 c 386/bin/ramfs - 775 sys sys 1126062687 89789
+1126105206 0 c sys/man/8/trampoline - 664 sys sys 1126104844 1199
+1126105206 1 c sys/src/9/port/lib.h - 664 sys sys 1126103560 5770
+1126105206 2 c sys/src/cmd/aux/trampoline.c - 664 sys sys 1126104850 3790
+1126105206 3 c sys/src/cmd/ip/ipconfig.c - 664 sys sys 1126103921 34865
+1126150216 0 c 386/bin/aux/trampoline - 775 sys sys 1126148864 83645
+1126150216 1 c 386/bin/ip/ipconfig - 775 sys sys 1126148865 137742
