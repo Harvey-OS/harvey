@@ -37,7 +37,6 @@ struct {
 	char	*dev;
 	char	mpoint[32];
 	int	cfd;			// ifc control channel
-	int	dfd;			// ifc data channel (for ppp)
 	char	*cputype;
 	uchar	hwa[32];		// hardware address
 	int	hwatype;

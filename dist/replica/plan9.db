@@ -145,7 +145,7 @@
 386/bin/aux/text2post - 775 sys sys 1104121986 78336
 386/bin/aux/timesync - 775 sys sys 1116126317 128213
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
-386/bin/aux/trampoline - 775 sys sys 1125345960 83284
+386/bin/aux/trampoline - 775 sys sys 1126148864 83645
 386/bin/aux/typepasswd - 775 sys sys 1115950050 69503
 386/bin/aux/vga - 775 sys sys 1125345961 333550
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
@@ -294,7 +294,7 @@
 386/bin/ip/httpd/webls - 775 sys sys 1125345987 131217
 386/bin/ip/httpd/wikipost - 775 sys sys 1115950085 112655
 386/bin/ip/imap4d - 775 sys sys 1125345987 236488
-386/bin/ip/ipconfig - 775 sys sys 1125345988 137742
+386/bin/ip/ipconfig - 775 sys sys 1126148865 137742
 386/bin/ip/ping - 775 sys sys 1116126319 77010
 386/bin/ip/ppp - 775 sys sys 1125544173 218875
 386/bin/ip/pppoe - 775 sys sys 1125544173 77548
@@ -7723,7 +7723,7 @@ sys/man/8/stub - 664 sys sys 1044830500 943
 sys/man/8/swap - 664 sys sys 944959679 880
 sys/man/8/timesync - 664 sys sys 1107606876 1717
 sys/man/8/tlssrv - 664 sys sys 1037580152 2594
-sys/man/8/trampoline - 664 sys sys 1094150519 1073
+sys/man/8/trampoline - 664 sys sys 1126104844 1199
 sys/man/8/udpecho - 664 sys sys 954305553 303
 sys/man/8/update - 664 sys sys 961259288 2336
 sys/man/8/venti - 664 sys sys 1069101926 5422
@@ -8076,7 +8076,7 @@ sys/src/9/port/fault.c - 664 sys sys 1123438654 7282
 sys/src/9/port/initcode.c - 664 sys sys 1055688491 574
 sys/src/9/port/latin1.c - 664 sys sys 1015278339 1418
 sys/src/9/port/latin1.h - 664 sys sys 1103633666 3563
-sys/src/9/port/lib.h - 664 sys sys 1091733556 5737
+sys/src/9/port/lib.h - 664 sys sys 1126103560 5770
 sys/src/9/port/log.c - 664 sys sys 1014931175 2860
 sys/src/9/port/master - 664 sys sys 1104430269 505
 sys/src/9/port/master.local - 664 sys sys 1063856961 130
@@ -9564,7 +9564,7 @@ sys/src/cmd/aux/reboot.c - 664 sys sys 1116769521 1429
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1014925091 18176
 sys/src/cmd/aux/stub.c - 664 sys sys 1098196222 2723
 sys/src/cmd/aux/timesync.c - 664 sys sys 1107448970 25758
-sys/src/cmd/aux/trampoline.c - 664 sys sys 1078840013 3521
+sys/src/cmd/aux/trampoline.c - 664 sys sys 1126104850 3790
 sys/src/cmd/aux/typepasswd.c - 664 sys sys 1014925091 1761
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
 sys/src/cmd/aux/vga - 20000000775 sys sys 1018723175 0
@@ -11966,7 +11966,7 @@ sys/src/cmd/ip/imap4d/nodes.c - 664 sys sys 1015013077 3173
 sys/src/cmd/ip/imap4d/search.c - 664 sys sys 1015013077 4520
 sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1015013077 2481
-sys/src/cmd/ip/ipconfig.c - 664 sys sys 1124936750 34907
+sys/src/cmd/ip/ipconfig.c - 664 sys sys 1126103921 34865
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1089739069 1232
 sys/src/cmd/ip/ping.c - 664 sys sys 1084471009 5651
