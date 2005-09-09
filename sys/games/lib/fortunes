@@ -4082,3 +4082,4 @@ I recently visited plan9.bell-labs.com/wiki/plan9 and I would like to offer my w
 There are no network problems with scone, hale and poptart. IT support is working these issues and we will notify you when the problem is resolved.
 A C, an E-flat, and a G walk into a bar.  The bartender says, "Sorry, but we don't serve minors."
 		exhausted("sleep");
+/// The ForTo class avoids confusing syntax of "for (int i=1;i<=4;i++) {...}". This can be replaced with "foreach (int i in new ForTo(1,4)) {...}".

@@ -21252,3 +21252,4 @@
 1126105206 3 c sys/src/cmd/ip/ipconfig.c - 664 sys sys 1126103921 34865
 1126150216 0 c 386/bin/aux/trampoline - 775 sys sys 1126148864 83645
 1126150216 1 c 386/bin/ip/ipconfig - 775 sys sys 1126148865 137742
+1126211429 0 c sys/games/lib/fortunes - 664 sys sys 1126211316 255804
