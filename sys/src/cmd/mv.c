@@ -37,7 +37,7 @@ main(int argc, char *argv[])
 	}
 	failed = 0;
 	for(i=1; i < argc-1; i++)
-		if (mv(argv[i], todir, toelem) < 0)
+		if(mv(argv[i], todir, toelem) < 0)
 			failed++;
 	if(failed)
 		exits("failure");
@@ -117,19 +117,18 @@ mv(char *from, char *todir, char *toelem)
 		close(fdf);
 		return -1;
 	}
-	if ((stat = copy1(fdf, fdt, fromname, toname)) != -1) {
+	stat = copy1(fdf, fdt, fromname, toname);
+	close(fdf);
+	if(stat >= 0){
 		nulldir(&null);
 		null.mtime = dirb->mtime;
 		null.mode = dirb->mode;
 		dirfwstat(fdt, &null);	/* ignore errors; e.g. user none always fails */
-		if (remove(fromname) < 0) {
+		if(remove(fromname) < 0){
 			fprint(2, "mv: can't remove %s: %r\n", fromname);
-			close(fdf);
-			close(fdt);
-			return -1;
+			stat = -1;
 		}
 	}
-	close(fdf);
 	close(fdt);
 	return stat;
 }
@@ -140,19 +139,19 @@ copy1(int fdf, int fdt, char *from, char *to)
 	char buf[8192];
 	long n, n1;
 
-	for(;;) {
+	for(;;){
 		n = read(fdf, buf, sizeof buf);
-		if(n >= 0) {
+		if(n >= 0){
 			if(n == 0)
 				break;
 			n1 = write(fdt, buf, n);
-			if(n1 != n) {
+			if(n1 != n){
 				fprint(2, "mv: error writing %s: %r\n", to);
 				return -1;
 			}
 		}
 	}
-	if(n < 0) {
+	if(n < 0){
 		fprint(2, "mv: error reading %s: %r\n", from);
 		return -1;
 	}

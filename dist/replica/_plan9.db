@@ -9912,7 +9912,7 @@ sys/src/cmd/disk/prep/edit.c - 664 sys sys 1017854327 9714
 sys/src/cmd/disk/prep/edit.h - 664 sys sys 1015009215 994
 sys/src/cmd/disk/prep/fdisk.c - 664 sys sys 1050689604 21894
 sys/src/cmd/disk/prep/mkfile - 664 sys sys 1022450200 250
-sys/src/cmd/disk/prep/prep.c - 664 sys sys 1068820485 10636
+sys/src/cmd/disk/prep/prep.c - 664 sys sys 1126278202 10098
 sys/src/cmd/disk/rd9660.c - 664 sys sys 1021579990 7446
 sys/src/cmd/disk/sacfs - 20000000775 sys sys 964815355 0
 sys/src/cmd/disk/sacfs/mkfile - 664 sys sys 964815354 204
@@ -12230,7 +12230,7 @@ sys/src/cmd/mntgen.c - 664 sys sys 1106410349 3630
 sys/src/cmd/mount.c - 664 sys sys 1034195354 1508
 sys/src/cmd/ms2html.c - 664 sys sys 1121977162 40506
 sys/src/cmd/mtime.c - 664 sys sys 1036172302 450
-sys/src/cmd/mv.c - 664 sys sys 1014926695 4276
+sys/src/cmd/mv.c - 664 sys sys 1126278115 4241
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1119276409 6866
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248
@@ -14381,10 +14381,10 @@ sys/src/libcontrol/text.c - 664 sys sys 1091982888 12388
 sys/src/libcontrol/textbutton.c - 664 sys sys 1088784891 7486
 sys/src/libcontrol/textbutton3.c - 664 sys sys 1088784891 9104
 sys/src/libdisk - 20000000775 sys sys 969512501 0
-sys/src/libdisk/disk.c - 664 sys sys 1032061278 6662
+sys/src/libdisk/disk.c - 664 sys sys 1126278243 6665
 sys/src/libdisk/mkfile - 664 sys sys 1035389777 269
 sys/src/libdisk/proto.c - 664 sys sys 1020313839 8808
-sys/src/libdisk/scsi.c - 664 sys sys 1014930428 6046
+sys/src/libdisk/scsi.c - 664 sys sys 1126278243 6023
 sys/src/libdisk/test.c - 664 sys sys 960347152 275
 sys/src/libdraw - 20000000775 sys sys 1014927873 0
 sys/src/libdraw/alloc.c - 664 sys sys 1014927873 4095
@@ -14962,3 +14962,10 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/cdfs - 775 sys sys 1126321689 161177
+386/bin/mv - 775 sys sys 1126321691 65489
+386/bin/disk/fdisk - 775 sys sys 1126321690 103794
+386/bin/disk/format - 775 sys sys 1126321690 89534
+386/bin/disk/mbr - 775 sys sys 1126321690 73689
+386/bin/disk/prep - 775 sys sys 1126321691 95831
+386/lib/libdisk.a - 664 sys sys 1126321691 42236

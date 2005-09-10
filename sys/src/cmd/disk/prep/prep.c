@@ -25,7 +25,6 @@ static int	docache;
 static int	donvram;
 
 static void	autoxpart(Edit*);
-static vlong	memsize(void);
 static Part	*mkpart(char*, vlong, vlong, int);
 static void	rdpart(Edit*);
 static void	wrpart(Edit*);
@@ -268,38 +267,6 @@ cmdokname(Edit*, char *elem)
 		if(isfrog[*(uchar*)elem])
 			return "bad character in name";
 	return nil;
-}
-
-/*
- *  return memory size in bytes
- */
-static vlong
-memsize(void)
-{
-	int fd, n, by2pg;
-	char *p;
-	char buf[128];
-	vlong mem;
-
-	p = getenv("cputype");
-	if(p && (strcmp(p, "68020") == 0 || strcmp(p, "alpha") == 0))
-		by2pg = 8*1024;
-	else
-		by2pg = 4*1024;
-
-	mem = 64*1024*1024;
-	fd = open("/dev/swap", OREAD);
-	if(fd < 0)
-		return mem;
-	n = read(fd, buf, sizeof(buf)-1);
-	close(fd);
-	if(n <= 0)
-		return mem;
-	buf[n] = 0;
-	p = strchr(buf, '/');
-	if(p)
-		mem = strtoul(p+1, 0, 0) * (vlong)by2pg;
-	return mem;
 }
 
 static Part*

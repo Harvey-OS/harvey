@@ -308,13 +308,12 @@ openscsi(char *dev)
 	if((p = strdup(buf+8)) == nil)
 		goto Error;
 
-	s = malloc(sizeof(*s));
+	s = mallocz(sizeof(*s), 1);
 	if(s == nil) {
 	Error1:
 		free(p);
 		goto Error;
 	}
-	memset(s, 0, sizeof(*s));
 
 	s->rawfd = rawfd;
 	s->inquire = p;
