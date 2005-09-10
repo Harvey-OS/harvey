@@ -272,7 +272,7 @@ opendisk(char *disk, int rdonly, int noctl)
 	char *p, *q;
 	Disk *d;
 
-	d = malloc(sizeof(*d));
+	d = mallocz(sizeof(*d), 1);
 	if(d == nil)
 		return nil;
 
@@ -347,4 +347,3 @@ opendisk(char *disk, int rdonly, int noctl)
 	d->type = Tfile;
 	return openfile(d);
 }
-
