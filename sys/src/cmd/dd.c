@@ -51,7 +51,7 @@ void	unblock(int cc);
 void	ebcdic(int cc);
 void	ibm(int cc);
 void	block(int cc);
-void	term(void);
+void	term(char*);
 void	stats(void);
 
 #define	iskey(s)	((key[0] == '-') && (strcmp(key+1, s) == 0))
@@ -248,7 +248,7 @@ loop:
 			perror("read");
 			if((cflag&NERR) == 0) {
 				flsh();
-				term();
+				term("errors");
 			}
 			ibc = 0;
 			for(c=0; c<ibs; c++)
@@ -258,7 +258,7 @@ loop:
 			stats();
 		}else if(ibc == 0 && --files<=0) {
 			flsh();
-			term();
+			term(nil);
 		}
 		if(ibc != ibs) {
 			nipr++;
@@ -300,7 +300,7 @@ flsh(void)
 			if(c > 0)
 				++nopr;
 			perror("write");
-			term();
+			term("errors");
 		}
 		if(obc == obs)
 			nofr++;
@@ -541,11 +541,10 @@ block(int cc)
 }
 
 void
-term(void)
+term(char *status)
 {
-
 	stats();
-	exits(0);
+	exits(status);
 }
 
 void

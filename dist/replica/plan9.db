@@ -189,7 +189,7 @@
 386/bin/date - 775 sys sys 1115950059 43261
 386/bin/db - 775 sys sys 1125345965 336317
 386/bin/dc - 775 sys sys 1125345966 99019
-386/bin/dd - 775 sys sys 1115950060 45347
+386/bin/dd - 775 sys sys 1126408183 45398
 386/bin/deroff - 775 sys sys 1125345966 74235
 386/bin/dial - 20000000775 sys sys 1058790015 0
 386/bin/dial/at - 775 sys sys 1115950061 60779
@@ -6218,7 +6218,7 @@ sys/lib/dist/pc/sub/pci - 775 sys sys 1018469726 52
 sys/lib/dist/pc/sub/pwd - 664 sys sys 1018469726 59
 sys/lib/dist/pc/sub/ramfs - 775 sys sys 1063856126 48
 sys/lib/dist/pc/sub/sleep - 664 sys sys 1018469726 118
-sys/lib/dist/pc/sub/termrc - 664 sys sys 1063856126 1965
+sys/lib/dist/pc/sub/termrc - 664 sys sys 1126355274 2209
 sys/lib/dist/pc/sub/unmount - 664 sys sys 1018469726 46
 sys/lib/dist/pc/sub/users - 664 sys sys 1018469726 103
 sys/lib/dist/pc/sub/vmware - 775 sys sys 1033073493 132
@@ -9803,7 +9803,7 @@ sys/src/cmd/db/runpcs.c - 664 sys sys 1014925293 2929
 sys/src/cmd/db/setup.c - 664 sys sys 1014925293 3581
 sys/src/cmd/db/trcrun.c - 664 sys sys 1016731556 4432
 sys/src/cmd/dc.c - 664 sys sys 1121977159 36572
-sys/src/cmd/dd.c - 664 sys sys 1055693435 11721
+sys/src/cmd/dd.c - 664 sys sys 1126360951 11753
 sys/src/cmd/deroff.c - 664 sys sys 1017679319 14611
 sys/src/cmd/dial - 20000000775 sys sys 1058789955 0
 sys/src/cmd/dial/at.c - 664 sys sys 1058789951 2011
