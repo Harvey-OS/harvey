@@ -53,6 +53,26 @@ if(test -f /n/a:/vgadb)
 
 aux/vmware
 
+# configure loopback device without touching /net/ndb
+{
+	echo bind loopback /dev/null
+	echo add 127.0.0.1 255.255.255.0 
+} >/net/ipifc/clone
+
+if(~ $installmode ask){
+	echo -n 'install mode is (text, graphics)[graphics]: '
+	installmode=`{read}
+	if(~ $#installmode 0)
+		installmode=graphics
+}
+if(~ $installmode text){
+	mouseport=()
+	vgasize=()
+	monitor=()
+}
+if not
+	installmode=graphics
+	
 if(~ $mouseport ask){
 	echo -n 'mouseport is (ps2, ps2intellimouse, 0, 1, 2)[ps2]: '
 	mouseport=`{read}
@@ -71,7 +91,6 @@ if(~ $monitor ask){
 	if(~ $#monitor 0)
 		monitor=xga
 }
-
 if(~ $#mouseport 1) {
 	aux/mouse $mouseport
 	if(~ $#vgasize 1 && ! ~ $vgasize '') {
@@ -86,10 +105,4 @@ if(~ $#mouseport 1) {
 			echo -n 'hwblank off' >'#v/vgactl' >[2]/dev/null
 	}
 }
-
-# configure loopback device without touching /net/ndb
-{
-	echo bind loopback /dev/null
-	echo add 127.0.0.1 255.255.255.0 
-} >/net/ipifc/clone
 
