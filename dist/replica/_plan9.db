@@ -189,7 +189,7 @@
 386/bin/date - 775 sys sys 1115950059 43261
 386/bin/db - 775 sys sys 1125345965 336317
 386/bin/dc - 775 sys sys 1125345966 99019
-386/bin/dd - 775 sys sys 1115950060 45347
+386/bin/dd - 775 sys sys 1126408183 45398
 386/bin/deroff - 775 sys sys 1125345966 74235
 386/bin/dial - 20000000775 sys sys 1058790015 0
 386/bin/dial/at - 775 sys sys 1115950061 60779
@@ -14962,4 +14962,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/dd - 775 sys sys 1126408183 45398
