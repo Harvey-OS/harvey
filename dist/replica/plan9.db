@@ -8098,8 +8098,8 @@ sys/src/9/port/page.c - 664 sys sys 1102133425 8281
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
 sys/src/9/port/portclock.c - 664 sys sys 1102093397 4556
-sys/src/9/port/portdat.h - 664 sys sys 1109541435 22233
-sys/src/9/port/portfns.h - 664 sys sys 1123647283 10976
+sys/src/9/port/portdat.h - 664 sys sys 1126582287 22484
+sys/src/9/port/portfns.h - 664 sys sys 1126582287 11006
 sys/src/9/port/portmkfile - 664 sys sys 1124708650 2052
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1099760501 28207

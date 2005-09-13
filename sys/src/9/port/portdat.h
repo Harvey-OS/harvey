@@ -44,6 +44,7 @@ typedef struct Timers	Timers;
 typedef struct Uart	Uart;
 typedef struct Waitq	Waitq;
 typedef struct Walkqid	Walkqid;
+typedef struct Watchdog	Watchdog;
 typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 #pragma incomplete DevConf
@@ -911,6 +912,15 @@ struct Perf
 	ulong	last;		/* value of perfticks() at last clock tick */
 	ulong	period;		/* perfticks() per clock tick */
 };
+
+struct Watchdog
+{
+	void	(*enable)(void);	/* watchdog enable */
+	void	(*disable)(void);	/* watchdog disable */
+	void	(*restart)(void);	/* watchdog restart */
+	void	(*stat)(char*, char*);	/* watchdog statistics */
+};
+
 
 /* queue state bits,  Qmsg, Qcoalesce, and Qkick can be set in qopen */
 enum
