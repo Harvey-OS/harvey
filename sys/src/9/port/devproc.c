@@ -539,7 +539,7 @@ procfdprint(Chan *c, int fd, int w, char *s, int ns)
 		&"r w rw"[(c->mode&3)<<1],
 		devtab[c->type]->dc, c->dev,
 		c->qid.path, w, c->qid.vers, c->qid.type,
-		c->iounit, c->offset, c->name->s);
+		c->iounit, c->offset, c->path->s);
 	return n;
 }
 
@@ -570,7 +570,7 @@ procfds(Proc *p, char *va, int count, long offset)
 		nexterror();
 	}
 
-	n = readstr(0, a, count, p->dot->name->s);
+	n = readstr(0, a, count, p->dot->path->s);
 	n += snprint(a+n, count-n, "\n");
 	offset = procoffset(offset, a, &n);
 	/* compute width of qid.path */
@@ -935,21 +935,21 @@ procread(Chan *c, void *va, long n, vlong off)
 		mntscan(mw, p);
 		if(mw->mh == 0){
 			mw->cddone = 1;
-			i = snprint(a, n, "cd %s\n", p->dot->name->s);
+			i = snprint(a, n, "cd %s\n", p->dot->path->s);
 			qunlock(&p->debug);
 			poperror();
 			return i;
 		}
 		int2flag(mw->cm->mflag, flag);
-		if(strcmp(mw->cm->to->name->s, "#M") == 0){
+		if(strcmp(mw->cm->to->path->s, "#M") == 0){
 			srv = srvname(mw->cm->to->mchan);
 			i = snprint(a, n, "mount %s %s %s %s\n", flag,
-				srv==nil? mw->cm->to->mchan->name->s : srv,
-				mw->mh->from->name->s, mw->cm->spec? mw->cm->spec : "");
+				srv==nil? mw->cm->to->mchan->path->s : srv,
+				mw->mh->from->path->s, mw->cm->spec? mw->cm->spec : "");
 			free(srv);
 		}else
 			i = snprint(a, n, "bind %s %s %s\n", flag,
-				mw->cm->to->name->s, mw->mh->from->name->s);
+				mw->cm->to->path->s, mw->mh->from->path->s);
 		qunlock(&p->debug);
 		poperror();
 		return i;

@@ -7765,7 +7765,7 @@ sys/src/9/alphapc/initcode - 664 sys sys 1039753419 779
 sys/src/9/alphapc/io.h - 664 sys sys 1087657423 4540
 sys/src/9/alphapc/kbd.c - 664 sys sys 1015012785 8676
 sys/src/9/alphapc/l.s - 664 sys sys 1067722580 9124
-sys/src/9/alphapc/main.c - 664 sys sys 1039753420 13626
+sys/src/9/alphapc/main.c - 664 sys sys 1126586256 13624
 sys/src/9/alphapc/mem.h - 664 sys sys 1077408326 3131
 sys/src/9/alphapc/memmove.s - 664 sys sys 1015012786 2936
 sys/src/9/alphapc/memset.s - 664 sys sys 1015012786 844
@@ -7801,7 +7801,7 @@ sys/src/9/bitsy/gamma.h - 664 sys sys 1017695514 540718
 sys/src/9/bitsy/init9.s - 664 sys sys 1043922398 183
 sys/src/9/bitsy/io.h - 664 sys sys 1064584624 8040
 sys/src/9/bitsy/l.s - 664 sys sys 1055700934 18211
-sys/src/9/bitsy/main.c - 664 sys sys 1067722593 9083
+sys/src/9/bitsy/main.c - 664 sys sys 1126586256 9081
 sys/src/9/bitsy/map - 664 sys sys 1017695515 236
 sys/src/9/bitsy/mem.h - 664 sys sys 1055700932 8049
 sys/src/9/bitsy/mkfile - 664 sys sys 1072705544 2452
@@ -7894,7 +7894,7 @@ sys/src/9/mtx/initcode - 664 sys sys 1039753442 444
 sys/src/9/mtx/io.h - 664 sys sys 1087657404 4817
 sys/src/9/mtx/kbd.c - 664 sys sys 1018721286 8358
 sys/src/9/mtx/l.s - 664 sys sys 1067722599 10730
-sys/src/9/mtx/main.c - 664 sys sys 1018721287 8344
+sys/src/9/mtx/main.c - 664 sys sys 1126586256 8342
 sys/src/9/mtx/mem.h - 664 sys sys 1026848200 5959
 sys/src/9/mtx/mkfile - 664 sys sys 1072972534 1520
 sys/src/9/mtx/mmu.c - 664 sys sys 1123438210 4421
@@ -7965,7 +7965,7 @@ sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1099761152 8095
 sys/src/9/pc/kbd.c - 664 sys sys 1079617269 11655
 sys/src/9/pc/l.s - 664 sys sys 1115566067 23833
-sys/src/9/pc/main.c - 664 sys sys 1121858827 14693
+sys/src/9/pc/main.c - 664 sys sys 1126586232 14691
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
@@ -8038,11 +8038,11 @@ sys/src/9/port/alarm.c - 664 sys sys 1067722766 1426
 sys/src/9/port/alloc.c - 664 sys sys 1102093389 5645
 sys/src/9/port/allocb.c - 664 sys sys 1123676437 3340
 sys/src/9/port/auth.c - 664 sys sys 1123647282 2392
-sys/src/9/port/cache.c - 664 sys sys 1055688274 9241
-sys/src/9/port/chan.c - 664 sys sys 1125551975 31560
+sys/src/9/port/cache.c - 664 sys sys 1126586168 9241
+sys/src/9/port/chan.c - 664 sys sys 1126586131 33640
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
-sys/src/9/port/dev.c - 664 sys sys 1077896125 8247
+sys/src/9/port/dev.c - 664 sys sys 1126586172 8246
 sys/src/9/port/devaudio.c - 664 sys sys 1067722761 21130
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
 sys/src/9/port/devcap.c - 664 sys sys 1048644215 4113
@@ -8054,12 +8054,12 @@ sys/src/9/port/devfs.c - 664 sys sys 1105799131 10783
 sys/src/9/port/devkbmap.c - 664 sys sys 1079463756 2774
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1076612248 14573
-sys/src/9/port/devmnt.c - 664 sys sys 1117197997 21545
+sys/src/9/port/devmnt.c - 664 sys sys 1126586197 21545
 sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1099760452 12504
 sys/src/9/port/devpipe.c - 664 sys sys 1077055016 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1088560907 13624
-sys/src/9/port/devproc.c - 664 sys sys 1106585362 28465
+sys/src/9/port/devproc.c - 664 sys sys 1126586197 28465
 sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
 sys/src/9/port/devsd.c - 664 sys sys 1123255503 28564
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
@@ -8069,10 +8069,11 @@ sys/src/9/port/devssl.c - 664 sys sys 1045063590 26100
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1086406907 45225
 sys/src/9/port/devuart.c - 664 sys sys 1102093393 12192
+sys/src/9/port/devwd.c - 664 sys sys 1126582325 2342
 sys/src/9/port/edf.c - 664 sys sys 1099760881 12742
 sys/src/9/port/edf.h - 664 sys sys 1084475128 1156
 sys/src/9/port/error.h - 664 sys sys 1117055493 2637
-sys/src/9/port/fault.c - 664 sys sys 1123438654 7282
+sys/src/9/port/fault.c - 664 sys sys 1126586199 7282
 sys/src/9/port/initcode.c - 664 sys sys 1055688491 574
 sys/src/9/port/latin1.c - 664 sys sys 1015278339 1418
 sys/src/9/port/latin1.h - 664 sys sys 1103633666 3563
@@ -8098,8 +8099,8 @@ sys/src/9/port/page.c - 664 sys sys 1102133425 8281
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
 sys/src/9/port/portclock.c - 664 sys sys 1102093397 4556
-sys/src/9/port/portdat.h - 664 sys sys 1109541435 22233
-sys/src/9/port/portfns.h - 664 sys sys 1123647283 10976
+sys/src/9/port/portdat.h - 664 sys sys 1126586141 22608
+sys/src/9/port/portfns.h - 664 sys sys 1126586141 11002
 sys/src/9/port/portmkfile - 664 sys sys 1124708650 2052
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1099760501 28207
@@ -8110,8 +8111,8 @@ sys/src/9/port/rebootcmd.c - 664 sys sys 1015278340 1561
 sys/src/9/port/sd.h - 664 sys sys 1098546338 2348
 sys/src/9/port/segment.c - 664 sys sys 1121259584 13761
 sys/src/9/port/swap.c - 664 sys sys 1055688551 6980
-sys/src/9/port/sysfile.c - 664 sys sys 1123647282 22249
-sys/src/9/port/sysproc.c - 664 sys sys 1123645064 15114
+sys/src/9/port/sysfile.c - 664 sys sys 1126586199 22173
+sys/src/9/port/sysproc.c - 664 sys sys 1126586213 15164
 sys/src/9/port/systab.h - 664 sys sys 1062721698 3044
 sys/src/9/port/taslock.c - 664 sys sys 1084475129 3658
 sys/src/9/port/thwack.c - 664 sys sys 1057323394 7253
@@ -8140,7 +8141,7 @@ sys/src/9/ppc/lblast.h - 664 sys sys 1059490752 1694
 sys/src/9/ppc/lucu.h - 664 sys sys 1059490752 935
 sys/src/9/ppc/m8260.c - 664 sys sys 1123094594 14482
 sys/src/9/ppc/m8260.h - 664 sys sys 1100701674 20899
-sys/src/9/ppc/main.c - 664 sys sys 1097073343 9041
+sys/src/9/ppc/main.c - 664 sys sys 1126586256 9039
 sys/src/9/ppc/mcc.c - 664 sys sys 1059490752 9667
 sys/src/9/ppc/mem.h - 664 sys sys 1091021860 7002
 sys/src/9/ppc/mkfile - 664 sys sys 1067722849 1813
@@ -9910,7 +9911,7 @@ sys/src/cmd/disk/prep - 20000000775 sys sys 988249968 0
 sys/src/cmd/disk/prep/calc.y - 664 sys sys 958519682 2378
 sys/src/cmd/disk/prep/edit.c - 664 sys sys 1017854327 9714
 sys/src/cmd/disk/prep/edit.h - 664 sys sys 1015009215 994
-sys/src/cmd/disk/prep/fdisk.c - 664 sys sys 1050689604 21894
+sys/src/cmd/disk/prep/fdisk.c - 664 sys sys 1126623191 21983
 sys/src/cmd/disk/prep/mkfile - 664 sys sys 1022450200 250
 sys/src/cmd/disk/prep/prep.c - 664 sys sys 1126278202 10098
 sys/src/cmd/disk/rd9660.c - 664 sys sys 1021579990 7446
@@ -14962,5 +14963,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/src/9/port/portdat.h - 664 sys sys 1126582287 22484
-sys/src/9/port/portfns.h - 664 sys sys 1126582287 11006
+386/bin/disk/fdisk - 775 sys sys 1126667443 103810

@@ -188,7 +188,7 @@ struct Tentry {
 	uchar	endh;			/* ending head */
 	uchar	ends;			/* ending sector */
 	uchar	endc;			/* ending cylinder */
-	uchar	xlba[4];			/* starting LBA from beginning of disc or ext. partition */
+	uchar	xlba[4];		/* starting LBA from beginning of disc or ext. partition */
 	uchar	xsize[4];		/* size in sectors */
 };
 
@@ -211,10 +211,11 @@ enum {
 	TypeOS2BOOT	= 0x0A,		/* OS/2 Boot Manager */
 	TypeFAT32	= 0x0B,		/* FAT 32 */
 	TypeFAT32LBA	= 0x0C,		/* FAT 32 needing LBA support */
+	TypeFAT16X	= 0x0E,		/* FAT 16 needing LBA support */
 	TypeEXTHUGE	= 0x0F,		/* FAT 32 extended partition */
 	TypeUNFORMATTED	= 0x16,		/* unformatted primary partition (OS/2 FDISK)? */
 	TypeHPFS2	= 0x17,
-	TypeIBMRecovery = 0x1C,	/* really hidden fat */
+	TypeIBMRecovery = 0x1C,		/* really hidden fat */
 	TypeCPM0	= 0x52,
 	TypeDMDDO	= 0x54,		/* Disk Manager Dynamic Disk Overlay */
 	TypeGB		= 0x56,		/* ???? */
@@ -234,7 +235,7 @@ enum {
 	TypeBSDISWAP	= 0xB8,
 	TypeOTHER	= 0xDA,
 	TypeCPM		= 0xDB,
-	TypeDellRecovery	= 0xDE,
+	TypeDellRecovery= 0xDE,
 	TypeSPEEDSTOR12	= 0xE1,
 	TypeSPEEDSTOR16	= 0xE4,
 	TypeLANSTEP	= 0xFE,
@@ -276,6 +277,7 @@ static Type types[256] = {
 	[TypeFAT16]		{ "FAT16", "dos" },
 	[TypeFAT32]		{ "FAT32", "dos" },
 	[TypeFAT32LBA]		{ "FAT32LBA", "dos" },
+	[TypeFAT16X]		{ "FAT16X", "dos" },
 	[TypeEXTHUGE]		{ "EXTHUGE", "" },
 	[TypeIBMRecovery]	{ "IBMRECOVERY", "ibm" },
 	[TypeEXTENDED]		{ "EXTENDED", "" },

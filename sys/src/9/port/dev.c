@@ -135,7 +135,7 @@ devattach(int tc, char *spec)
 		spec = "";
 	buf = smalloc(4+strlen(spec)+1);
 	sprint(buf, "#%C%s", tc, spec);
-	c->name = newcname(buf);
+	c->path = newpath(buf);
 	free(buf);
 	return c;
 }
@@ -269,12 +269,12 @@ devstat(Chan *c, uchar *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 		switch((*gen)(c, nil, tab, ntab, i, &dir)){
 		case -1:
 			if(c->qid.type & QTDIR){
-				if(c->name == nil)
+				if(c->path == nil)
 					elem = "???";
-				else if(strcmp(c->name->s, "/") == 0)
+				else if(strcmp(c->path->s, "/") == 0)
 					elem = "/";
 				else
-					for(elem=p=c->name->s; *p; p++)
+					for(elem=p=c->path->s; *p; p++)
 						if(*p == '/')
 							elem = p+1;
 				devdir(c, c->qid, elem, 0, eve, DMDIR|0555, &dir);
