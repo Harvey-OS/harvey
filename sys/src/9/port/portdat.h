@@ -3,7 +3,6 @@ typedef struct Block	Block;
 typedef struct Chan	Chan;
 typedef struct Cmdbuf	Cmdbuf;
 typedef struct Cmdtab	Cmdtab;
-typedef struct Cname	Cname;
 typedef struct Dev	Dev;
 typedef struct Dirtab	Dirtab;
 typedef struct Edf	Edf;
@@ -22,6 +21,7 @@ typedef struct Mnt	Mnt;
 typedef struct Mhead	Mhead;
 typedef struct Note	Note;
 typedef struct Page	Page;
+typedef struct Path	Path;
 typedef struct Palloc	Palloc;
 typedef struct Perf	Perf;
 typedef struct PhysUart	PhysUart;
@@ -186,15 +186,18 @@ struct Chan
 	};
 	Chan*	mchan;			/* channel to mounted server */
 	Qid	mqid;			/* qid of root of mount point */
-	Cname*	name;
+	Path*	path;
 };
 
-struct Cname
+struct Path
 {
 	Ref;
-	int	alen;			/* allocated length */
-	int	len;			/* strlen(s) */
 	char	*s;
+	Chan	**mtpt;			/* mtpt history */
+	int	len;			/* strlen(s) */
+	int	alen;			/* allocated length of s */
+	int	mlen;			/* number of path elements */
+	int	malen;			/* allocated length of mtpt */
 };
 
 struct Dev

@@ -771,11 +771,11 @@ mountrpc(Mnt *m, Mntrpc *r)
 		if(t == r->request.type+1)
 			break;
 		sn = "?";
-		if(m->c->name != nil)
-			sn = m->c->name->s;
+		if(m->c->path != nil)
+			sn = m->c->path->s;
 		cn = "?";
-		if(r->c != nil && r->c->name != nil)
-			cn = r->c->name->s;
+		if(r->c != nil && r->c->path != nil)
+			cn = r->c->path->s;
 		print("mnt: proc %s %lud: mismatch from %s %s rep 0x%lux tag %d fid %d T%d R%d rp %d\n",
 			up->text, up->pid, sn, cn,
 			r, r->request.tag, r->request.fid, r->request.type,
@@ -1150,12 +1150,12 @@ mntchk(Chan *c)
 	/* This routine is mostly vestiges of prior lives; now it's just sanity checking */
 
 	if(c->mchan == nil)
-		panic("mntchk 1: nil mchan c %s\n", channame(c));
+		panic("mntchk 1: nil mchan c %s\n", chanpath(c));
 
 	m = c->mchan->mux;
 
 	if(m == nil)
-		print("mntchk 2: nil mux c %s c->mchan %s \n", channame(c), channame(c->mchan));
+		print("mntchk 2: nil mux c %s c->mchan %s \n", chanpath(c), chanpath(c->mchan));
 
 	/*
 	 * Was it closed and reused (was error(Eshutdown); now, it cannot happen)

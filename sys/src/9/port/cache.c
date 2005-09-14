@@ -148,7 +148,7 @@ cprint(Chan *c, Mntcache *m, char *s)
 		o = e->start+e->len;
 	}
 	pprint("%s: 0x%lux.0x%lux %d %d %s (%d %c)\n",
-	s, m->qid.path, m->qid.vers, m->type, m->dev, c->name, nb, ct ? 'C' : 'N');
+	s, m->qid.path, m->qid.vers, m->type, m->dev, c->path, nb, ct ? 'C' : 'N');
 
 	for(e = m->list; e; e = e->next) {
 		pprint("\t%4d %5d %4d %lux\n",

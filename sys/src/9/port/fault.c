@@ -44,8 +44,8 @@ faulterror(char *s, Chan *c, int freemem)
 {
 	char buf[ERRMAX];
 
-	if(c && c->name){
-		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->name->s, up->errstr);
+	if(c && c->path){
+		snprint(buf, sizeof buf, "%s accessing %s: %s", s, c->path->s, up->errstr);
 		s = buf;
 	}
 	if(up->nerrlab) {

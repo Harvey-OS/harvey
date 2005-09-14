@@ -178,11 +178,7 @@ sysfd2path(ulong *arg)
 	validaddr(arg[1], arg[2], 1);
 
 	c = fdtochan(arg[0], -1, 0, 1);
-
-	if(c->name == nil)
-		snprint((char*)arg[1], arg[2], "<null>");
-	else
-		snprint((char*)arg[1], arg[2], "%s", c->name->s);
+	snprint((char*)arg[1], arg[2], "%s", chanpath(c));
 	cclose(c);
 	return 0;
 }
@@ -918,18 +914,18 @@ validstat(uchar *s, int n)
 }
 
 static char*
-cnamelast(Cname *n)
+pathlast(Path *p)
 {
 	char *s;
 
-	if(n == nil)
+	if(p == nil)
 		return nil;
-	if(n->len == 0)
+	if(p->len == 0)
 		return nil;
-	s = strrchr(n->s, '/');
+	s = strrchr(p->s, '/');
 	if(s)
 		return s+1;
-	return n->s;
+	return p->s;
 }
 
 long
@@ -967,7 +963,7 @@ sysstat(ulong *arg)
 		nexterror();
 	}
 	l = devtab[c->type]->stat(c, (uchar*)arg[1], l);
-	name = cnamelast(c->name);
+	name = pathlast(c->path);
 	if(name)
 		l = dirsetname(name, strlen(name), (uchar*)arg[1], l, arg[2]);
 
@@ -1199,11 +1195,11 @@ wstat(Chan *c, uchar *d, int nd)
 	if(c->ismtpt){
 		/*
 		 * Renaming mount points is disallowed to avoid surprises
-		 * (which should be renamed: the mount point or the mounted Chan?).
+		 * (which should be renamed? the mount point or the mounted Chan?).
 		 */
 		dirname(d, &namelen);
 		if(namelen)
-			nameerror(channame(c), Eismtpt);
+			nameerror(chanpath(c), Eismtpt);
 	}
 	l = devtab[c->type]->wstat(c, d, nd);
 	poperror();
@@ -1293,7 +1289,7 @@ sys_stat(ulong *arg)
 	/* buf contains a new stat buf; convert to old. yuck. */
 	if(l <= BIT16SZ)	/* buffer too small; time to face reality */
 		error(old);
-	name = cnamelast(c->name);
+	name = pathlast(c->path);
 	if(name)
 		l = dirsetname(name, strlen(name), buf, l, sizeof buf);
 	l = convM2D(buf, l, &d, strs);
@@ -1327,7 +1323,7 @@ sys_fstat(ulong *arg)
 	/* buf contains a new stat buf; convert to old. yuck. */
 	if(l <= BIT16SZ)	/* buffer too small; time to face reality */
 		error(old);
-	name = cnamelast(c->name);
+	name = pathlast(c->path);
 	if(name)
 		l = dirsetname(name, strlen(name), buf, l, sizeof buf);
 	l = convM2D(buf, l, &d, strs);
