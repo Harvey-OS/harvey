@@ -6056,7 +6056,7 @@ sys/lib/acid/alef - 664 sys sys 944955985 2293
 sys/lib/acid/alpha - 664 sys sys 944955985 4849
 sys/lib/acid/arm - 664 sys sys 984696197 1842
 sys/lib/acid/coverage - 664 sys sys 944955985 1746
-sys/lib/acid/kernel - 664 sys sys 1063858104 4994
+sys/lib/acid/kernel - 664 sys sys 1126699644 6303
 sys/lib/acid/leak - 664 sys sys 1110989276 2185
 sys/lib/acid/mips - 664 sys sys 944955985 5472
 sys/lib/acid/network - 664 sys sys 1020313817 2499

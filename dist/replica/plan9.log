@@ -21287,3 +21287,5 @@
 1126587661 14 c sys/src/9/ppc/main.c - 664 sys sys 1126586256 9039
 1126623670 0 c sys/src/cmd/disk/prep/fdisk.c - 664 sys sys 1126623191 21983
 1126668680 0 c 386/bin/disk/fdisk - 775 sys sys 1126667443 103810
+1126697486 0 c sys/lib/acid/kernel - 664 sys sys 1126697446 6307
+1126701087 0 c sys/lib/acid/kernel - 664 sys sys 1126699644 6303

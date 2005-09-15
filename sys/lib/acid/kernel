@@ -18,10 +18,10 @@ defn qid(qid) {
 	return itoa(qid.path\X)+"."+itoa(qid.vers\X);
 }
 
-defn cname(c) {
-	complex Cname c;
-	if c != 0 then {
-		return *(c.s\s);
+defn path(p) {
+	complex Path p;
+	if p != 0 then {
+		return *(p.s\s);
 	} else
 		return "<null>";
 }
@@ -53,7 +53,7 @@ defn chan(c) {
 	c = (Chan)c;
 	d=(Dev)(*(devtab+4*c.type));
 	q=c.qid;
-	print(c\X, " ref=", c.ref\D, " #", d.dc\r, c.dev\D, " (", q.path, " ", q.vers\D, " ", q.type\X, ")");
+	print("chan(", c\X, "): ref=", c.ref\D, " #", d.dc\r, c.dev\D, " (", q.path, " ", q.vers\D, " ", q.type\X, ")");
 	print(" fid=", c.fid\D, " iounit=", c.iounit\D);
 	if c.ref != 0 then {
 		print(" ", cname(c.name), " mchan=", c.mchan\X);
@@ -69,8 +69,94 @@ defn chans() {
 
 	c = (Chan)chanalloc.list;
 	while c != 0 do {
-		chan(c);
+		if c.ref != 0 then
+			chan(c);
 		c=(Chan)c.link;
+	}
+}
+
+defn nchans() {
+	local c, n;
+	
+	n = 0;
+	c = (Chan)chanalloc.list;
+	while c != 0 do {
+		if c.ref != 0 then
+			n++;
+		c = (Chan)c.link;
+	}
+	return n;
+}
+
+defn activechanlist() {
+	local l, n;
+	
+	l = {};
+	c = (Chan)chanalloc.list;
+	while c != 0 do {
+		if c.ref != 0 then
+			l = append l,c;
+		c = (Chan)c.link;
+	}
+	return l;
+}
+
+defn difflist(a, b) {
+	local l, x;
+	
+	l = {};
+	while a != {} do {
+		x = head a;
+		if match(x, b) == -1 then
+			l = append l, x;
+		a = tail a;
+	}
+	return l;
+}
+
+_active_chan_list = {};
+defn newchans() {
+	local l, new;
+	
+	l = activechanlist();
+	if _active_chan_list != {} then
+		newerchans(_active_chan_list);
+	_active_chan_list = l;
+}
+
+defn newerchans(oldlist){
+	local new;
+	
+	new = difflist(activechanlist(), oldlist);
+	while new != {} do {
+		chan(head new);
+		new = tail new;
+	}
+}
+
+// look for channels that refer to themselves
+defn badchans() {
+	local bad, c, i, len, mtpt, p;
+	
+	c = (Chan)chanalloc.list;
+	while c != 0 do {
+		if c.ref != 0 then {
+			bad = "";
+			p = (Path)c.path;
+			if p != 0 then {
+				path(p);
+				mtpt = p.mtpt;
+				len = p.mlen;
+				i=0; loop 1,len do {
+					if mtpt[i] == c then
+						bad = bad+" mtpt self-ref";
+					i = i+1;
+				}
+			}
+			if bad != "" then
+				print("chan(", c\X, "):", bad, "\n");
+		}
+		c = (Chan)c.link;
 	}
 }
 
