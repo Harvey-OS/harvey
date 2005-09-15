@@ -201,7 +201,7 @@
 386/bin/disk - 20000000775 sys sys 984788664 0
 386/bin/disk/dump9660 - 775 sys sys 1125345967 152253
 386/bin/disk/exsort - 775 sys sys 1119496645 60226
-386/bin/disk/fdisk - 775 sys sys 1126321690 103794
+386/bin/disk/fdisk - 775 sys sys 1126667443 103810
 386/bin/disk/format - 775 sys sys 1126321690 89534
 386/bin/disk/kfs - 775 sys sys 1119496646 248974
 386/bin/disk/kfscmd - 775 sys sys 1115950064 38222
@@ -6056,7 +6056,7 @@ sys/lib/acid/alef - 664 sys sys 944955985 2293
 sys/lib/acid/alpha - 664 sys sys 944955985 4849
 sys/lib/acid/arm - 664 sys sys 984696197 1842
 sys/lib/acid/coverage - 664 sys sys 944955985 1746
-sys/lib/acid/kernel - 664 sys sys 1063858104 4994
+sys/lib/acid/kernel - 664 sys sys 1126699644 6303
 sys/lib/acid/leak - 664 sys sys 1110989276 2185
 sys/lib/acid/mips - 664 sys sys 944955985 5472
 sys/lib/acid/network - 664 sys sys 1020313817 2499
@@ -14963,4 +14963,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/disk/fdisk - 775 sys sys 1126667443 103810
