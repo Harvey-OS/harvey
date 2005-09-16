@@ -116,6 +116,17 @@ cddbfilltoc(Toc *t)
 	if((p = Brdline(&bin, '\n')) == nil || atoi(p)/100 != 2)
 		goto died;
 
+	/*
+	 *	Protocol level 6 is the same as level 5 except that
+	 *	the character set is now UTF-8 instead of ISO-8859-1. 
+ 	 */
+	fprint(fd, "proto 6\r\n");
+	DPRINT(2, "proto 6\r\n");
+	if((p = Brdline(&bin, '\n')) == nil || atoi(p)/100 != 2)
+		goto died;
+	p[Blinelen(&bin)-1] = 0;
+	DPRINT(2, "cddb: %s\n", p);
+
 	fprint(fd, "cddb query %8.8lux %d", t->diskid, t->ntrack);
 	DPRINT(2, "cddb query %8.8lux %d", t->diskid, t->ntrack);
 	for(i=0; i<t->ntrack; i++) {

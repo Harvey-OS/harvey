@@ -9506,7 +9506,7 @@ sys/src/cmd/aux/antiword/xmalloc.c - 664 sys sys 1069793877 2185
 sys/src/cmd/aux/antiword/xml.c - 664 sys sys 1069793877 30883
 sys/src/cmd/aux/apm.c - 664 sys sys 1084472324 20263
 sys/src/cmd/aux/astarld.c - 664 sys sys 1015008684 4638
-sys/src/cmd/aux/cddb.c - 664 sys sys 1032059267 4303
+sys/src/cmd/aux/cddb.c - 664 sys sys 1126795279 4610
 sys/src/cmd/aux/clog.c - 664 sys sys 1014925109 1000
 sys/src/cmd/aux/consolefs.c - 664 sys sys 1123094543 20187
 sys/src/cmd/aux/conswdir.c - 664 sys sys 1045504955 2077
@@ -14963,3 +14963,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/aux/cddb - 775 sys sys 1126840256 72218

@@ -87,7 +87,7 @@
 386/bin/aux/antiword - 775 sys sys 1070288096 511478
 386/bin/aux/apm - 775 sys sys 1124939597 174208
 386/bin/aux/astarld - 775 sys sys 1125345953 64683
-386/bin/aux/cddb - 775 sys sys 1125345953 71985
+386/bin/aux/cddb - 775 sys sys 1126840256 72218
 386/bin/aux/clog - 775 sys sys 1125345954 66441
 386/bin/aux/consolefs - 775 sys sys 1125345954 153850
 386/bin/aux/conswdir - 775 sys sys 1062080411 38855
@@ -9506,7 +9506,7 @@ sys/src/cmd/aux/antiword/xmalloc.c - 664 sys sys 1069793877 2185
 sys/src/cmd/aux/antiword/xml.c - 664 sys sys 1069793877 30883
 sys/src/cmd/aux/apm.c - 664 sys sys 1084472324 20263
 sys/src/cmd/aux/astarld.c - 664 sys sys 1015008684 4638
-sys/src/cmd/aux/cddb.c - 664 sys sys 1032059267 4303
+sys/src/cmd/aux/cddb.c - 664 sys sys 1126795279 4610
 sys/src/cmd/aux/clog.c - 664 sys sys 1014925109 1000
 sys/src/cmd/aux/consolefs.c - 664 sys sys 1123094543 20187
 sys/src/cmd/aux/conswdir.c - 664 sys sys 1045504955 2077
