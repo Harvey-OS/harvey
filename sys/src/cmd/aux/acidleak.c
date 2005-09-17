@@ -271,7 +271,7 @@ main(int argc, char **argv)
 					else
 						nhdr++;
 				}
-				if(b->mark == 0)
+				if(b->mark == 0 && !b->free)
 					nleak++;
 				nb++;
 			}
