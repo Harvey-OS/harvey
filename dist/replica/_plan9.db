@@ -87,7 +87,7 @@
 386/bin/aux/antiword - 775 sys sys 1070288096 511478
 386/bin/aux/apm - 775 sys sys 1124939597 174208
 386/bin/aux/astarld - 775 sys sys 1125345953 64683
-386/bin/aux/cddb - 775 sys sys 1125345953 71985
+386/bin/aux/cddb - 775 sys sys 1126840256 72218
 386/bin/aux/clog - 775 sys sys 1125345954 66441
 386/bin/aux/consolefs - 775 sys sys 1125345954 153850
 386/bin/aux/conswdir - 775 sys sys 1062080411 38855
@@ -7998,7 +7998,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1060267144 3797
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1112461125 52220
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1121260176 51278
+sys/src/9/pc/sdata.c - 664 sys sys 1126906010 51396
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
 sys/src/9/pc/trap.c - 664 sys sys 1123438642 20550
@@ -9032,7 +9032,7 @@ sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1094674489 2271
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1077033951 52135
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
-sys/src/boot/pc/sdata.c - 664 sys sys 1112727812 38106
+sys/src/boot/pc/sdata.c - 664 sys sys 1126906010 38224
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1015007955 28743
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1077033682 7022
 sys/src/boot/pc/trap.c - 664 sys sys 1018462833 7098
@@ -9419,7 +9419,7 @@ sys/src/cmd/auth/wrkey.c - 664 sys sys 1019058717 176
 sys/src/cmd/aux - 20000000775 sys sys 1015008975 0
 sys/src/cmd/aux/9pcon.c - 664 sys sys 1032059259 6283
 sys/src/cmd/aux/accupoint.c - 664 sys sys 985124882 2166
-sys/src/cmd/aux/acidleak.c - 664 sys sys 1092148212 5940
+sys/src/cmd/aux/acidleak.c - 664 sys sys 1126879783 5952
 sys/src/cmd/aux/antiword - 20000000775 sys sys 1069793877 0
 sys/src/cmd/aux/antiword/COPYING - 664 sys sys 1069793863 17985
 sys/src/cmd/aux/antiword/ChangeLog - 664 sys sys 1069793863 7543
@@ -14963,4 +14963,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/aux/cddb - 775 sys sys 1126840256 72218
+386/9loaddebug - 775 sys sys 1126926546 310558
+386/9loadlitedebug - 775 sys sys 1126926546 198805
+386/bin/aux/acidleak - 775 sys sys 1126926426 69436

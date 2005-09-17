@@ -1868,6 +1868,8 @@ atapnp(void)
 		case (0x4D69<<16)|0x105A:	/* Promise Ultra/133 TX2 */
 		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
 		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
+		case (0x3112<<16)|0x1095:   	/* SiL 3112 SATA (DMA busted?) */
+		case (0x3114<<16)|0x1095:	/* SiL 3114 SATA/RAID */
 			pi = 0x85;
 			break;
 		case (0x0004<<16)|0x1103:	/* HighPoint HPT366 */
