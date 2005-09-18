@@ -533,7 +533,7 @@ mesgdel(Message *mbox, Message *m)
 	Message *n, *next;
 
 	if(m->opened)
-		error("internal error: deleted message still open in mesgdel\n");
+		error("internal error: deleted message still open in mesgdel");
 	/* delete subparts */
 	for(n=m->head; n!=nil; n=next){
 		next = n->next;

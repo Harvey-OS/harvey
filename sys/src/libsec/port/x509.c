@@ -1459,21 +1459,21 @@ freevalfields(Value* v)
 		freeints(v->u.objidval);
 		break;
 	case VString:
-		if (v->u.stringval)
+		if(v->u.stringval)
 			free(v->u.stringval);
 		break;
 	case VSeq:
 		el = v->u.seqval;
 		for(l = el; l != nil; l = l->tl)
 			freevalfields(&l->hd.val);
-		if (el)
+		if(el)
 			freeelist(el);
 		break;
 	case VSet:
 		el = v->u.setval;
 		for(l = el; l != nil; l = l->tl)
 			freevalfields(&l->hd.val);
-		if (el)
+		if(el)
 			freeelist(el);
 		break;
 	}
@@ -1598,7 +1598,7 @@ static DigestFun digestalg[NUMALGS+1] = { md5, md5, md5, md5, sha1, md5, nil };
 static void
 freecert(CertX509* c)
 {
-	if (!c) return;
+	if(!c) return;
 	if(c->issuer != nil)
 		free(c->issuer);
 	if(c->validity_start != nil)
@@ -1609,6 +1609,7 @@ freecert(CertX509* c)
 		free(c->subject);
 	freebytes(c->publickey);
 	freebytes(c->signature);
+	free(c);
 }
 
 /*
@@ -1831,15 +1832,18 @@ static RSApub*
 decode_rsapubkey(Bytes* a)
 {
 	Elem e;
-	Elist *el;
+	Elist *el, *l;
 	mpint *mp;
 	RSApub* key;
 
+	l = nil;
 	key = rsapuballoc();
 	if(decode(a->data, a->len, &e) != ASN_OK)
 		goto errret;
 	if(!is_seq(&e, &el) || elistlen(el) != 2)
 		goto errret;
+	
+	l = el;
 
 	key->n = mp = asn1mpint(&el->hd);
 	if(mp == nil)
@@ -1849,8 +1853,13 @@ decode_rsapubkey(Bytes* a)
 	key->ek = mp = asn1mpint(&el->hd);
 	if(mp == nil)
 		goto errret;
+
+	if(l != nil)
+		freeelist(l);
 	return key;
 errret:
+	if(l != nil)
+		freeelist(l);
 	rsapubfree(key);
 	return nil;
 }
@@ -2003,7 +2012,10 @@ digest_certinfo(Bytes *cert, DigestFun digestfun, uchar *digest)
 	   p+length < p)
 		return;
 	info = p;
-	if(ber_decode(&p, pend, &elem) != ASN_OK || elem.tag.num != SEQUENCE)
+	if(ber_decode(&p, pend, &elem) != ASN_OK)
+		return;
+	freevalfields(&elem.val);
+	if(elem.tag.num != SEQUENCE)
 		return;
 	infolen = p - info;
 	(*digestfun)(info, infolen, digest, nil);
@@ -2019,6 +2031,10 @@ verify_signature(Bytes* signature, RSApub *pk, uchar *edigest, Elem **psigalg)
 	int buflen;
 	mpint *pkcs1;
 	int nlen;
+	char *err;
+
+	err = nil;
+	pkcs1buf = nil;
 
 	/* one less than the byte length of the modulus */
 	nlen = (mpsignif(pk->n)-1)/8;
@@ -2029,22 +2045,35 @@ verify_signature(Bytes* signature, RSApub *pk, uchar *edigest, Elem **psigalg)
 	pkcs1buf = nil;
 	buflen = mptobe(pkcs1, nil, 0, &pkcs1buf);
 	buf = pkcs1buf;
-	if(buflen != nlen || buf[0] != 1)
-		return "expected 1";
+	if(buflen != nlen || buf[0] != 1) {
+		err = "expected 1";
+		goto end;
+	}
 	buf++;
 	while(buf[0] == 0xff)
 		buf++;
-	if(buf[0] != 0)
-		return "expected 0";
+	if(buf[0] != 0) {
+		err = "expected 0";
+		goto end;
+	}
 	buf++;
 	buflen -= buf-pkcs1buf;
 	if(decode(buf, buflen, &e) != ASN_OK || !is_seq(&e, &el) || elistlen(el) != 2 ||
-			!is_octetstring(&el->tl->hd, &digest))
-		return "signature parse error";
+			!is_octetstring(&el->tl->hd, &digest)) {
+		err = "signature parse error";
+		goto end;
+	}
 	*psigalg = &el->hd;
 	if(memcmp(digest->data, edigest, digest->len) == 0)
-		return nil;
-	return "digests did not match";
+		goto end;
+	err = "digests did not match";
+
+end:
+	if(pkcs1 != nil)
+		mpfree(pkcs1);
+	if(pkcs1buf != nil)
+		free(pkcs1buf);
+	return err;
 }
 	
 RSApub*
