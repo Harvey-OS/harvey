@@ -201,6 +201,9 @@ on the endpoint file.  See also
 .SH FILES
 .TF "#U/usb n /*/status"
 .TP
+.BI #U/usb n /port
+USB port status file; for each port, space separated: port number, hexadecimal port status, port status string
+.TP
 .BI #U/usb n /*/status
 USB device status file; class/subclass/proto, vendor-id and product-id are found in line one
 .TP
