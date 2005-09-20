@@ -15,6 +15,7 @@ mptobe(mpint *b, uchar *p, uint n, uchar **pp)
 	if(p == nil){
 		n = (b->top+1)*Dbytes;
 		p = malloc(n);
+		setmalloctag(p, getcallerpc(&b));
 	}
 	if(p == nil)
 		return -1;

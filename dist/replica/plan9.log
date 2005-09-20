@@ -21319,3 +21319,14 @@
 1127014238 14 c 386/bin/upas/smtpd - 775 sys sys 1127012956 329607
 1127014238 15 c 386/lib/libsec.a - 664 sys sys 1127012961 645922
 1127014238 16 c acme/bin/386/Mail - 775 sys sys 1127012960 179106
+1127127671 0 c sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
+1127127671 1 a sys/src/ape/lib/ap/stdio/atexit.c - 664 sys sys 1127126836 220
+1127127671 2 c sys/src/ape/lib/ap/stdio/exit.c - 664 sys sys 1127126840 321
+1127127671 3 c sys/src/ape/lib/ap/stdio/mkfile - 664 sys sys 1127126838 841
+1127127671 4 c sys/src/cmd/acid/builtin.c - 664 sys sys 1127126990 20156
+1127129466 0 c sys/src/libmp/port/betomp.c - 664 sys sys 1127128751 617
+1127129466 1 c sys/src/libmp/port/mpaux.c - 664 sys sys 1127128751 2685
+1127129466 2 c sys/src/libmp/port/mptobe.c - 664 sys sys 1127128751 915
+1127129466 3 c sys/src/libsec/port/x509.c - 664 sys sys 1127128751 50918
+1127149212 0 c sys/src/libhtml/lex.c - 664 sys sys 1127148223 25918
+1127183419 0 c sys/src/libhtml/lex.c - 664 sys sys 1127183300 25915

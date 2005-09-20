@@ -34,7 +34,7 @@ uartisa(int ctlrno, ISAConf* isa)
 	}
 
 	uart->regs = ctlr;
-	snprint(buf, sizeof(buf), "COM%d", ctlrno);
+	snprint(buf, sizeof(buf), "COM%d", ctlrno+1);
 	kstrdup(&uart->name, buf);
 	uart->freq = isa->freq;
 	uart->phys = &i8250physuart;

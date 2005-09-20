@@ -250,7 +250,7 @@ Rune* attrnames[] = {
 
 // Character entity to unicode character number map.
 // Keep sorted by name.
-StringInt	chartab[142]= {
+StringInt	chartab[]= {
 	{L"AElig", 198},
 	{L"Aacute", 193},
 	{L"Acirc", 194},
@@ -307,9 +307,9 @@ StringInt	chartab[142]= {
 	{L"eacute", 233},
 	{L"ecirc", 234},
 	{L"egrave", 232},
-	{L"emdash", 8212},
+	{L"emdash", 8212},	/* non-standard but commonly used */
 	{L"emsp", 8195},
-	{L"endash", 8211},
+	{L"endash", 8211},	/* non-standard but commonly used */
 	{L"ensp", 8194},
 	{L"epsilon", 949},
 	{L"eta", 951},
@@ -333,10 +333,12 @@ StringInt	chartab[142]= {
 	{L"ldots", 8230},
 	{L"lt", 60},
 	{L"macr", 175},
+	{L"mdash", 8212},
 	{L"micro", 181},
 	{L"middot", 183},
 	{L"mu", 956},
 	{L"nbsp", 160},
+	{L"ndash", 8211},
 	{L"not", 172},
 	{L"ntilde", 241},
 	{L"nu", 957},
