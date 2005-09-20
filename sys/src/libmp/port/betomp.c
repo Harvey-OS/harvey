@@ -9,8 +9,10 @@ betomp(uchar *p, uint n, mpint *b)
 	int m, s;
 	mpdigit x;
 
-	if(b == nil)
+	if(b == nil){
 		b = mpnew(0);
+		setmalloctag(b, getcallerpc(&p));
+	}
 
 	// dump leading zeros
 	while(*p == 0 && n > 1){
