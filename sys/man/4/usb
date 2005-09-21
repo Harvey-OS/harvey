@@ -197,3 +197,7 @@ Playback volume control and mute control.
 Xitel Pro HiFi-Link
 Playback only.  48 KHz only.  There is a volume control but it isn't connected
 to the output, so does nothing.
+.TP
+Onkyo WAVIO series MA-500U
+Includes three optical digital interfaces, two analog, and an
+amplifier (15W + 15W).

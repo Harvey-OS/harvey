@@ -254,3 +254,5 @@ struct DevConf
 	int	nports;	/* Number of ports */
 	Devport	*ports;	/* The ports themselves */
 };
+
+extern FPsave initfp;
