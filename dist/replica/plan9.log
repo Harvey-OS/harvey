@@ -21330,3 +21330,8 @@
 1127129466 3 c sys/src/libsec/port/x509.c - 664 sys sys 1127128751 50918
 1127149212 0 c sys/src/libhtml/lex.c - 664 sys sys 1127148223 25918
 1127183419 0 c sys/src/libhtml/lex.c - 664 sys sys 1127183300 25915
+1127205025 0 c sys/man/4/usb - 664 sys sys 1127204688 4546
+1127215827 0 c sys/src/9/alphapc/dat.h - 664 sys sys 1127215703 5238
+1127215827 1 c sys/src/9/mtx/dat.h - 664 sys sys 1127215703 3897
+1127215827 2 c sys/src/9/port/portdat.h - 664 sys sys 1127215703 22586
+1127215827 3 c sys/src/cmd/acid/builtin.c - 664 sys sys 1127214825 20156

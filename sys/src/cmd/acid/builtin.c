@@ -39,7 +39,7 @@ void	readfile(Node*, Node*);
 void	interpret(Node*, Node*);
 void	include(Node*, Node*);
 void	regexp(Node*, Node*);
-void dosysr1(Node*, Node*);
+void	dosysr1(Node*, Node*);
 
 typedef struct Btab Btab;
 struct Btab

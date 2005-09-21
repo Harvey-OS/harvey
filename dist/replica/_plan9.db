@@ -7603,7 +7603,7 @@ sys/man/4/tapefs - 664 sys sys 1107543772 1811
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
 sys/man/4/upasfs - 664 sys sys 1034348505 6212
-sys/man/4/usb - 664 sys sys 1112038986 4430
+sys/man/4/usb - 664 sys sys 1127204688 4546
 sys/man/4/usbd - 664 sys sys 1018386778 731
 sys/man/4/vacfs - 664 sys sys 1084333062 1545
 sys/man/4/webcookies - 664 sys sys 1019828742 3525
@@ -7750,7 +7750,7 @@ sys/src/9/alphapc/axp.h - 664 sys sys 1015012783 1090
 sys/src/9/alphapc/cga.c - 664 sys sys 1015012783 1814
 sys/src/9/alphapc/clock.c - 664 sys sys 1032052963 1472
 sys/src/9/alphapc/cycintr.c - 664 sys sys 1018721238 230
-sys/src/9/alphapc/dat.h - 664 sys sys 1071245535 5215
+sys/src/9/alphapc/dat.h - 664 sys sys 1127215703 5238
 sys/src/9/alphapc/devarch.c - 664 sys sys 1039753422 9760
 sys/src/9/alphapc/devvga.c - 664 sys sys 1015012784 7513
 sys/src/9/alphapc/dma.c - 664 sys sys 1015012784 6112
@@ -7881,7 +7881,7 @@ sys/src/9/mkfile - 664 sys sys 1063857477 205
 sys/src/9/mtx - 20000000775 sys sys 1018721288 0
 sys/src/9/mtx/clock.c - 664 sys sys 1032053278 1293
 sys/src/9/mtx/cycintr.c - 664 sys sys 1018721285 230
-sys/src/9/mtx/dat.h - 664 sys sys 1091904417 3874
+sys/src/9/mtx/dat.h - 664 sys sys 1127215703 3897
 sys/src/9/mtx/devarch.c - 664 sys sys 1018721285 6793
 sys/src/9/mtx/devether.c - 664 sys sys 1116097786 9281
 sys/src/9/mtx/devrtc.c - 664 sys sys 1018721285 6772
@@ -8099,7 +8099,7 @@ sys/src/9/port/page.c - 664 sys sys 1102133425 8281
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
 sys/src/9/port/portclock.c - 664 sys sys 1102093397 4556
-sys/src/9/port/portdat.h - 664 sys sys 1126586141 22608
+sys/src/9/port/portdat.h - 664 sys sys 1127215703 22586
 sys/src/9/port/portfns.h - 664 sys sys 1126586141 11002
 sys/src/9/port/portmkfile - 664 sys sys 1124708650 2052
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
@@ -9254,7 +9254,7 @@ sys/src/cmd/9nfs/xfile.c - 664 sys sys 1017337816 1847
 sys/src/cmd/aan.c - 664 sys sys 1019856827 9758
 sys/src/cmd/acid - 20000000775 sys sys 944960739 0
 sys/src/cmd/acid/acid.h - 664 sys sys 1046198958 4354
-sys/src/cmd/acid/builtin.c - 664 sys sys 1127126990 20156
+sys/src/cmd/acid/builtin.c - 664 sys sys 1127214825 20156
 sys/src/cmd/acid/dbg.y - 664 sys sys 1081736447 5567
 sys/src/cmd/acid/dot.c - 664 sys sys 944960739 2161
 sys/src/cmd/acid/exec.c - 664 sys sys 1016833876 8187
