@@ -600,6 +600,14 @@ m3mouseputc(Queue*, int c)
 	static uchar b[] = { 0, 4, 1, 5, 0, 2, 1, 3 };
 	short x;
 	int dx, dy, newbuttons;
+	static ulong lasttick;
+	ulong m;
+	
+	/* Resynchronize in stream with timing. */
+	m = MACHP(0)->ticks;
+	if(TK2SEC(m - lasttick) > 2)
+		nb = 0;
+	lasttick = m;
 
 	if(nb==0){
 		/*
@@ -646,6 +654,15 @@ m5mouseputc(Queue*, int c)
 {
 	static uchar msg[3];
 	static int nb;
+	static ulong lasttick;
+	ulong m;
+	
+	/* Resynchronize in stream with timing. */
+	m = MACHP(0)->ticks;
+	if(TK2SEC(m - lasttick) > 2)
+		nb = 0;
+	lasttick = m;
+
 	msg[nb++] = c & 0x7f;
 	if (nb == 4) {
 		schar dx,dy,newbuttons;
@@ -675,6 +692,14 @@ mouseputc(Queue*, int c)
 	static int nb;
 	static uchar b[] = {0, 4, 2, 6, 1, 5, 3, 7, 0, 2, 2, 6, 1, 3, 3, 7};
 	int dx, dy, newbuttons;
+	static ulong lasttick;
+	ulong m;
+	
+	/* Resynchronize in stream with timing. */
+	m = MACHP(0)->ticks;
+	if(TK2SEC(m - lasttick) > 2)
+		nb = 0;
+	lasttick = m;
 
 	if((c&0xF0) == 0x80)
 		nb=0;
