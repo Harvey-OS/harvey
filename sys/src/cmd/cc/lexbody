@@ -342,9 +342,14 @@ l1:
 		if(c == 'e' || c == 'E')
 			goto casee;
 		*cp = 0;
-		yylval.lval = atol(symb);
+		if(sizeof(yylval.lval) == sizeof(vlong))
+			yylval.lval = strtoll(symb, nil, 10);
+		else
+			yylval.lval = strtol(symb, nil, 10);
 
 	ncu:
+		while(c == 'U' || c == 'u' || c == 'l' || c == 'L')
+			c = GETC();
 		peekc = c;
 		return LCONST;
 
