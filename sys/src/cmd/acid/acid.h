@@ -232,6 +232,7 @@ String	*runenode(Rune*);
 int	scmp(String*, String*);
 void	sproc(int);
 String*	stradd(String*, String*);
+String*	straddrune(String*, Rune);
 String*	strnode(char*);
 String*	strnodlen(char*, int);
 char*	system(void);

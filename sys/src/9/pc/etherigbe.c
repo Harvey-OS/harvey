@@ -35,6 +35,7 @@ enum {
 	i82547ei   	= (0x1019<<16)|0x8086,
 	i82540em   	= (0x100E<<16)|0x8086,
 	i82540eplp 	= (0x101E<<16)|0x8086,
+	i82545gmc	= (0x1026<<16)|0x8086,
 	i82547gi   	= (0x1075<<16)|0x8086,
 	i82541gi   	= (0x1076<<16)|0x8086,
 	i82546gb   	= (0x1079<<16)|0x8086,
@@ -44,6 +45,7 @@ enum {
 
 enum {
 	Ctrl		= 0x00000000,	/* Device Control */
+	Ctrldup		= 0x00000004,	/* Device Control Duplicate */
 	Status		= 0x00000008,	/* Device Status */
 	Eecd		= 0x00000010,	/* EEPROM/Flash Control/Data */
 	Ctrlext		= 0x00000018,	/* Extended Device Control */
@@ -880,6 +882,7 @@ igbetxinit(Ctlr* ctlr)
 	case i82540eplp:
 	case i82541gi:
 	case i82541pi:
+	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
@@ -916,6 +919,7 @@ igbetxinit(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82547gi:
+	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 	case i82541gi:
@@ -1049,6 +1053,7 @@ igberxinit(Ctlr* ctlr)
 	case i82540eplp:
 	case i82541gi:
 	case i82541pi:
+	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
@@ -1444,6 +1449,7 @@ igbemii(Ctlr* ctlr)
 	case i82547gi:
 	case i82541gi:
 	case i82541pi:
+	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 		ctrl &= ~(Frcdplx|Frcspd);
@@ -1475,6 +1481,7 @@ igbemii(Ctlr* ctlr)
 	case i82547gi:
 	case i82541gi:
 	case i82541pi:
+	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 		break;
@@ -1607,6 +1614,7 @@ at93c46r(Ctlr* ctlr)
 	case i82541gi:
 	case i82541pi:
 	case i82547gi:
+	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 		areq = 1;
@@ -1690,6 +1698,7 @@ igbedetach(Ctlr* ctlr)
 	case i82541gi:
 	case i82541pi:
 	case i82547gi:
+	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 		r = csr32r(ctlr, Manc);
@@ -1859,6 +1868,7 @@ igbepci(void)
 		case i82547gi:
 		case i82541gi:
 		case i82541pi:
+		case i82545gmc:
 		case i82546gb:
 		case i82546eb:
 			break;

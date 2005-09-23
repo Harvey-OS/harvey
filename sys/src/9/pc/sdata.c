@@ -1909,7 +1909,13 @@ atapnp(void)
 			 * This can probably be lumped in with the 768 above.
 			 */
 			/*FALLTHROUGH*/
+		case (0x01BC<<16)|0x10DE:	/* nVidia nForce1 */
+		case (0x0065<<16)|0x10DE:	/* nVidia nForce2 */
+		case (0x0085<<16)|0x10DE:	/* nVidia nForce2 MCP */
 		case (0x00D5<<16)|0x10DE:	/* nVidia nForce3 */
+		case (0x00E5<<16)|0x10DE:	/* nVidia nForce3 Pro */
+		case (0x0035<<16)|0x10DE:	/* nVidia nForce3 MCP */
+		case (0x0053<<16)|0x10DE:	/* nVidia nForce4 */
 			/*
 			 * Ditto, although it may have a different base
 			 * address for the registers (0x50?).

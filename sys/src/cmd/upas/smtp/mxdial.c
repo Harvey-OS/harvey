@@ -48,6 +48,14 @@ mxdial(char *addr, char *ddomain, char *gdomain)
 	return fd;
 }
 
+static int
+timeout(void *x, char *msg)
+{
+	if(strstr(msg, "alarm"))
+		return 1;
+	return 0;
+}
+
 /*
  *  take an address and return all the mx entries for it,
  *  most preferred first
@@ -90,7 +98,11 @@ callmx(DS *ds, char *dest, char *domain)
 			mx[i].host, ds->service);
 		if(debug)
 			fprint(2, "mxdial trying %s\n", addr);
+		atnotify(timeout, 1);
+		alarm(10*1000);
 		fd = dial(addr, 0, 0, 0);
+		alarm(0);
+		atnotify(timeout, 0);
 		if(fd >= 0)
 			return fd;
 	}

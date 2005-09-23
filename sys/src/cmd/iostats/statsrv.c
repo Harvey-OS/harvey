@@ -32,29 +32,29 @@ okfile(char *s, int mode)
 }
 
 void
-update(Rpc *rpc, ulong t)
+update(Rpc *rpc, vlong t)
 {
-	ulong t2;
+	vlong t2;
 
-	t2 = msec();
-	t -= t2;
-	if((long)t < 0)
+	t2 = nsec();
+	t = t2 - t;
+	if(t < 0)
 		t = 0;
 
 	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	if(t < rpc->lo)
+		rpc->lo = t;
+	if(t > rpc->hi)
+		rpc->hi = t;
 }
 
 void
 Xversion(Fsrpc *r)
 {
 	Fcall thdr;
-	ulong t;
+	vlong t;
 
-	t = msec();
+	t = nsec();
 
 	if(r->work.msize > IOHDRSZ+Maxfdata)
 		thdr.msize = IOHDRSZ+Maxfdata;
@@ -78,9 +78,9 @@ void
 Xauth(Fsrpc *r)
 {
 	Fcall thdr;
-	ulong t;
+	vlong t;
 
-	t = msec();
+	t = nsec();
 
 	reply(&r->work, &thdr, Enoauth);
 	r->busy = 0;
@@ -120,9 +120,9 @@ Xattach(Fsrpc *r)
 {
 	Fcall thdr;
 	Fid *f;
-	ulong t;
+	vlong t;
 
-	t = msec();
+	t = nsec();
 
 	f = newfid(r->work.fid);
 	if(f == 0) {
@@ -146,10 +146,10 @@ Xwalk(Fsrpc *r)
 	Fcall thdr;
 	Fid *f, *n;
 	File *nf;
-	ulong t;
+	vlong t;
 	int i;
 
-	t = msec();
+	t = nsec();
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
@@ -217,10 +217,10 @@ Xclunk(Fsrpc *r)
 {
 	Fcall thdr;
 	Fid *f;
-	ulong t;
+	vlong t;
 	int fid;
 
-	t = msec();
+	t = nsec();
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
@@ -252,9 +252,9 @@ Xstat(Fsrpc *r)
 	Fcall thdr;
 	Fid *f;
 	int s;
-	ulong t;
+	vlong t;
 
-	t = msec();
+	t = nsec();
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
@@ -296,9 +296,9 @@ Xcreate(Fsrpc *r)
 	Fcall thdr;
 	Fid *f;
 	File *nf;
-	ulong t;
+	vlong t;
 
-	t = msec();
+	t = nsec();
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
@@ -342,9 +342,9 @@ Xremove(Fsrpc *r)
 	char err[ERRMAX], path[128];
 	Fcall thdr;
 	Fid *f;
-	ulong t;
+	vlong t;
 
-	t = msec();
+	t = nsec();
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
@@ -381,9 +381,9 @@ Xwstat(Fsrpc *r)
 	Fcall thdr;
 	Fid *f;
 	int s;
-	ulong t;
+	vlong t;
 
-	t = msec();
+	t = nsec();
 
 	f = getfid(r->work.fid);
 	if(f == 0) {
@@ -502,11 +502,11 @@ slaveopen(Fsrpc *p)
 	char err[ERRMAX], path[128];
 	Fcall *work, thdr;
 	Fid *f;
-	ulong t;
+	vlong t;
 
 	work = &p->work;
 
-	t = msec();
+	t = nsec();
 
 	f = getfid(work->fid);
 	if(f == 0) {
@@ -556,11 +556,11 @@ slaveread(Fsrpc *p)
 	Fcall *work, thdr;
 	Fid *f;
 	int n, r;
-	ulong t;
+	vlong t;
 
 	work = &p->work;
 
-	t = msec();
+	t = nsec();
 
 	f = getfid(work->fid);
 	if(f == 0) {
@@ -618,11 +618,11 @@ slavewrite(Fsrpc *p)
 	Fcall *work, thdr;
 	Fid *f;
 	int n;
-	ulong t;
+	vlong t;
 
 	work = &p->work;
 
-	t = msec();
+	t = nsec();
 
 	f = getfid(work->fid);
 	if(f == 0) {

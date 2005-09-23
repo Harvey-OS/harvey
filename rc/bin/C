@@ -16,17 +16,22 @@ while(~ $1 -*)
 	}
 
 switch($1){
+case fs
+	server=edith
+case ella
+	exec C office0
+	exit
 case erika
 	exec C office1
 	exit
-}
-
-# look for server in /lib/ndb
-server=`{ndb/query sys $1 console}
-switch($server){
-case ''
-	echo C: unknown console server for $1
-	exit 1
+case *
+	# look for server in /lib/ndb
+	server=`{ndb/query sys $1 console}
+	switch($server){
+	case ''
+		echo C: unknown console server for $1
+		exit 1
+	}
 }
 
 # can't cpu to old servers any more

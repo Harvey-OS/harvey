@@ -4,17 +4,15 @@ ramfs  \- memory file system
 .SH SYNOPSIS
 .B ramfs
 [
-.B -i
-]
-[
-.B -s
-]
-[
-.B -p
+.B -Dips
 ]
 [
 .B -m
 .I mountpoint
+]
+[
+.B -S
+.I srvname
 ]
 .SH DESCRIPTION
 .I Ramfs
@@ -32,6 +30,10 @@ keeping all files in memory.
 Initially the file tree is empty.
 .PP
 The
+.B -D
+option enables a trace of general debugging messages.
+.PP
+The
 .B -i
 flag tells
 .I ramfs
@@ -43,18 +45,6 @@ as a file server on a remote machine: the file descriptors 0
 and 1 will be the network channel from
 .I ramfs
 to the client machine.
-The
-.B -s
-flag causes
-.I ramfs
-to post its channel on
-.B /srv/ramfs
-rather than mounting it on
-.IR mountpoint ,
-enabling multiple clients to access its files.
-However, it does not authenticate its clients and its
-implementation of groups is simplistic, so
-it should not be used for precious data.
 .PP
 The
 .B -p
@@ -64,6 +54,21 @@ to make its memory `private'
 (see
 .IR proc (3))
 so that its files are not accessible through the debugging interface.
+.PP
+The
+.B -s
+.RB ( -S )
+flag causes
+.I ramfs
+to post its channel on
+.B /srv/ramfs
+.RB ( /srv/ \fIsrvname\fR)
+rather than mounting it on
+.IR mountpoint ,
+enabling multiple clients to access its files.
+However, it does not authenticate its clients and its
+implementation of groups is simplistic, so
+it should not be used for precious data.
 .PP
 This program is useful mainly as an example of how
 to write a user-level file server.

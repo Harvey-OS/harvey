@@ -827,7 +827,6 @@ Computing Science Technical Report No. \\*(MN
 .
 .de P1
 .nr P1 .4i	\" program indent in .P1
-.nr OI .4i
 .if \\n(.$ .nr P1 \\$1
 .br
 .nr v \\n(.v
@@ -847,7 +846,7 @@ Computing Science Technical Report No. \\*(MN
 .vs \\n(VSp
 .vs \\nvu
 .ft 1
-.in
+.in -\\n(P1u
 .di
 .br
 .sp \\n(DVu

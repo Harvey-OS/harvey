@@ -267,6 +267,24 @@ stradd(String *l, String *r)
 	return s;
 }
 
+String*
+straddrune(String *l, Rune r)
+{
+	int len;
+	String *s;
+
+	len = l->len+runelen(r);
+	s = gmalloc(sizeof(String)+len+1);
+	s->gclink = gcl;
+	gcl = s;
+	s->len = len;
+	s->string = (char*)s+sizeof(String);
+	memmove(s->string, l->string, l->len);
+	runetochar(s->string+l->len, &r);
+	s->string[s->len] = 0;
+	return s;
+}
+
 int
 scmp(String *sr, String *sl)
 {

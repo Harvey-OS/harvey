@@ -2,33 +2,69 @@ typedef struct Ndbtuple Ndbtuple;
 
 enum
 {
-	/* RR types */
-	Ta=	1,
-	Tns=	2,
-	Tmd=	3,
-	Tmf=	4,
-	Tcname=	5,
-	Tsoa=	6,
-	Tmb=	7,
-	Tmg=	8,
-	Tmr=	9,
-	Tnull=	10,
-	Twks=	11,
-	Tptr=	12,
-	Thinfo=	13,
-	Tminfo=	14,
-	Tmx=	15,
-	Ttxt=	16,
-	Trp=	17,
-	Tsig=	24,
-	Tkey=	25,
-	Taaaa=	28,
-	Tcert=	37,
+	/* RR types; see: http://www.iana.org/assignments/dns-parameters */
+	Ta=			1,
+	Tns=		2,
+	Tmd=		3,
+	Tmf=		4,
+	Tcname=		5,
+	Tsoa=		6,
+	Tmb=		7,
+	Tmg=		8,
+	Tmr=		9,
+	Tnull=		10,
+	Twks=		11,
+	Tptr=		12,
+	Thinfo=		13,
+	Tminfo=		14,
+	Tmx=		15,
+	Ttxt=		16,
+	Trp=		17,
+	Tafsdb=		18,
+	Tx25=		19,
+	Tisdn=		20,
+	Trt=		21,
+	Tnsap=		22,
+	Tnsapptr=	23,
+	Tsig=		24,
+	Tkey=		25,
+	Tpx=		26,
+	Tgpos=		27,
+	Taaaa=		28,
+	Tloc=		29,
+	Tnxt=		30,
+	Teid=		31,
+	Tnimloc=	32,
+	Tsrv=		33,
+	Tatma=		34,
+	Tnaptr=		35,
+	Tkx=		36,
+	Tcert=		37,
+	Ta6=		38,
+	Tdname=		39,
+	Tsink=		40,
+	Topt=		41,
+	Tapl=		42,
+	Tds=		43,
+	Tsshfp=		44,
+	Tipseckey=	45,
+	Trrsig=		46,
+	Tnsec=		47,
+	Tdnskey=	48,
+
+	Tspf=		99,
+	Tuinfo=		100,
+	Tuid=		101,
+	Tgid=		102,
+	Tunspec=	103,
 
 	/* query types (all RR types are also queries) */
+	Ttkey=	249,	/* transaction key */
+	Ttsig=	250,	/* transaction signature */
 	Tixfr=	251,	/* incremental zone transfer */
 	Taxfr=	252,	/* zone transfer */
 	Tmailb=	253,	/* { Tmb, Tmg, Tmr } */	
+	Tmaila= 254,	/* obsolete */
 	Tall=	255,	/* all records */
 
 	/* classes */
@@ -43,9 +79,10 @@ enum
 
 	/* opcodes */
 	Oquery=		0<<11,		/* normal query */
-	Oinverse=	1<<11,		/* inverse query */
+	Oinverse=	1<<11,		/* inverse query (retired) */
 	Ostatus=	2<<11,		/* status request */
 	Onotify=	4<<11,		/* notify slaves of updates */
+	Oupdate=	5<<11,
 	Omask=		0xf<<11,	/* mask for opcode */
 
 	/* response codes */
@@ -55,8 +92,20 @@ enum
 	Rname=		3,	/* bad name */
 	Runimplimented=	4,	/* unimplemented */
 	Rrefused=	5,	/* we don't like you */
-	Rmask=		0xf,	/* mask for response */
-	Rtimeout=	0x10,	/* timeout sending (for internal use only) */
+	Ryxdomain=	6,	/* name exists when it should not */
+	Ryxrrset=	7,	/* rr set exists when it should not */
+	Rnxrrset=	8,	/* rr set that should exist does not */
+	Rnotauth=	9,	/* not authoritative */
+	Rnotzone=	10,	/* name not in zone */
+	Rbadvers=	16,	/* bad opt version */
+/*	Rbadsig=	16, */	/* also tsig signature failure */
+	Rbadkey=	17,		/* key not recognized */
+	Rbadtime=	18,		/* signature out of time window */
+	Rbadmode=	19,		/* bad tkey mode */
+	Rbadname=	20,		/* duplicate key name */
+	Rbadalg=	21,		/* algorithm not supported */
+	Rmask=		0x1f,	/* mask for response */
+	Rtimeout=	0x20,	/* timeout sending (for internal use only) */
 
 	/* bits in flag word (other than opcode and response) */
 	Fresp=		1<<15,	/* message is a response */

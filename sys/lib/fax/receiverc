@@ -2,10 +2,10 @@
 spool=/mail/faxqueue
 recipients=/mail/faxqueue/faxrecipients
 
-# run mail as if we're on emelie
-rm /srv/emelie
-9fs emelie
-bind -c /n/emelie/mail/faxqueue /mail/faxqueue
+# run mail as if we're on fs
+rm /srv/fs
+9fs fs
+bind -c /n/fs/mail/faxqueue /mail/faxqueue
 
 #
 # Arguments should be
@@ -43,9 +43,9 @@ case 4
 			case ???
 				ext=$i
 			}
-			cp $spool/$1.$ext /n/emelie/lib/nyt/nyt.$to($i)
+			cp $spool/$1.$ext /n/fs/lib/nyt/nyt.$to($i)
 		}
-		cp $spool/$1.1 /n/emelie/lib/nyt/nyt.$3
+		cp $spool/$1.1 /n/fs/lib/nyt/nyt.$3
 		rm -f $spool/$1.*
 	case *
 		{echo $*; echo FAX: page -w $spool/$1.'*'} | mail `{cat $recipients}
