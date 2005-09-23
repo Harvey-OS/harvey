@@ -109,6 +109,7 @@ rebuild-mail:V:
 		dd=$"date
 		mail -s 'nightly build differences '^$dd 9trouble <checkbuild.out
 	}
+	status=''
 
 scansources-mail:V:
 	dd=`{date}
@@ -123,4 +124,17 @@ worldwritable-mail:V:
 		mail -s 'WRITABLE FILES ON SOURCES '^$dd 9trouble </sys/lib/dist/writable
 	}
 	status=''
-
+	cd /n/sources/plan9; /usr/rsc/bin/$cputype/lsr -t -d /n/sources/plan9 | awk '$2 ~ /[2367][^2367].$/' >/sys/lib/dist/writable
+	if(test -s /sys/lib/dist/writable){
+		dd=`{date}
+		dd=$"date
+		mail -s 'non-group-writable files on sources'^$dd 9trouble </sys/lib/dist/writable
+	}
+	status=''
+	/usr/rsc/bin/$cputype/lsr -t -d /sys /lib | awk '$2 ~ /[2367][^2367].$/' >/sys/lib/dist/writable
+	if(test -s /sys/lib/dist/writable){
+		dd=`{date}
+		dd=$"date
+		mail -s 'non-group-writable files on fs '^$dd 9trouble </sys/lib/dist/writable
+	}
+	status=''

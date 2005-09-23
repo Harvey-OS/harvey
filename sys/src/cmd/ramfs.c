@@ -172,7 +172,7 @@ main(int argc, char *argv[])
 		defmnt = 0;
 		break;
 	case 'm':
-		defmnt = ARGF();
+		defmnt = EARGF(usage());
 		break;
 	case 'p':
 		private++;
@@ -887,6 +887,6 @@ estrdup(char *q)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-is] [-m mountpoint]\n", argv0);
+	fprint(2, "usage: %s [-Dips] [-m mountpoint] [-S srvname]\n", argv0);
 	exits("usage");
 }

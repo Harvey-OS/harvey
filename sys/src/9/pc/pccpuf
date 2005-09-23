@@ -32,19 +32,26 @@ dev
 	usb
 
 link
+	devpccard
+	devi82365
 	ether2000	ether8390
 	ether2114x	pci
+	ether589	etherelnk3
 	ether79c970	pci
 	ether8003	ether8390
 	ether8139	pci
+	ether8169	pci ethermii
 	ether82543gc	pci
 	ether82557	pci
 	ether83815	pci
+	etherec2t	ether8390
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
 	etherrhine	pci ethermii
 	ethersink
+	ethersmc	devi82365 cis
+	etherwavelan	wavelan devi82365 cis pci
 	ethermedium
 	netdevmedium
 	loopbackmedium

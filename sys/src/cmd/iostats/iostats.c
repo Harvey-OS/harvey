@@ -144,7 +144,7 @@ main(int argc, char **argv)
 	stats->rpc[Twstat].name = "wstat";
 
 	for(n = 0; n < Maxrpc; n++)
-		stats->rpc[n].loms = 10000000;
+		stats->rpc[n].lo = 10000000000LL;
 
 	fmtinstall('F', fcallfmt);
 
@@ -191,10 +191,10 @@ main(int argc, char **argv)
 		postnote(PNPROC, m->pid, "kill");
 
 	rpc = &stats->rpc[Tread];
-	brpsec = (float)stats->totread / (((float)rpc->time/1000.0)+.000001);
+	brpsec = (float)stats->totread / (((float)rpc->time/1e9)+.000001);
 
 	rpc = &stats->rpc[Twrite];
-	bwpsec = (float)stats->totwrite / (((float)rpc->time/1000.0)+.000001);
+	bwpsec = (float)stats->totwrite / (((float)rpc->time/1e9)+.000001);
 
 	ttime = 0;
 	for(n = 0; n < Maxrpc; n++) {
@@ -204,27 +204,27 @@ main(int argc, char **argv)
 		ttime += rpc->time;
 	}
 
-	bppsec = (float)stats->nproto / ((ttime/1000.0)+.000001);
+	bppsec = (float)stats->nproto / ((ttime/1e9)+.000001);
 
 	fprint(2, "\nread      %lud bytes, %g Kb/sec\n", stats->totread, brpsec/1024.0);
 	fprint(2, "write     %lud bytes, %g Kb/sec\n", stats->totwrite, bwpsec/1024.0);
 	fprint(2, "protocol  %lud bytes, %g Kb/sec\n", stats->nproto, bppsec/1024.0);
 	fprint(2, "rpc       %lud count\n\n", stats->nrpc);
 
-	fprint(2, "%-10s %5s %5s %5s %5s %5s          in      out\n", 
+	fprint(2, "%-10s %5s %5s %5s %5s %5s          T       R\n", 
 	      "Message", "Count", "Low", "High", "Time", "Averg");
 
 	for(n = 0; n < Maxrpc; n++) {
 		rpc = &stats->rpc[n];
 		if(rpc->count == 0)
 			continue;
-		fprint(2, "%-10s %5lud %5lud %5lud %5lud %5lud ms %8lud %8lud bytes\n", 
+		fprint(2, "%-10s %5lud %5llud %5llud %5llud %5llud ms %8lud %8lud bytes\n", 
 			rpc->name, 
 			rpc->count,
-			rpc->loms,
-			rpc->hims,
-			rpc->time,
-			rpc->time/rpc->count,
+			rpc->lo/1000000,
+			rpc->hi/1000000,
+			rpc->time/1000000,
+			rpc->time/1000000/rpc->count,
 			rpc->bin,
 			rpc->bout);
 	}
@@ -524,12 +524,6 @@ catcher(void *a, char *msg)
 		exits("exit");
 
 	noted(NDFLT);
-}
-
-ulong
-msec(void)
-{
-	return nsec()/1000000;
 }
 
 void

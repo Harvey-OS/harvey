@@ -807,8 +807,10 @@ If both operands are of either
 .I string
 or
 .I list
-type  then addition is defined as concatenation. Subtraction is undefined for
-these two types.
+type then addition is defined as concatenation. 
+Adding a string and an integer is treated as concatenation
+with the Unicode character corresponding to the integer.
+Subtraction is undefined for strings and lists.
 .DS
 	shift-expression:
 		additive-expression

@@ -4083,3 +4083,5 @@ There are no network problems with scone, hale and poptart. IT support is workin
 A C, an E-flat, and a G walk into a bar.  The bartender says, "Sorry, but we don't serve minors."
 		exhausted("sleep");
 /// The ForTo class avoids confusing syntax of "for (int i=1;i<=4;i++) {...}". This can be replaced with "foreach (int i in new ForTo(1,4)) {...}".
+Linux is for people who hate Windows.  BSD is for people who love UNIX.
+If plan9 was a village then I'd probably be the village idiot, but it would still be better than living in the city.  - Dave Lukes

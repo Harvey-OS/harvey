@@ -198,12 +198,12 @@ main(int argc, char **argv)
 		exits(0);
 	}
 
-	/* 10 minutes to get through the initial handshake */
-	atnotify(timeout, 1);
-
-	alarm(10*alarmscale);
+	/* mxdial uses its own timeout handler */
 	if((rv = connect(addr)) != 0)
 		exits(rv);
+
+	/* 10 minutes to get through the initial handshake */
+	atnotify(timeout, 1);
 	alarm(10*alarmscale);
 	if((rv = hello(hellodomain, 0)) != 0)
 		goto error;

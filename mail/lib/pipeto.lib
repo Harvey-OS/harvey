@@ -75,7 +75,7 @@ fn qualify {
 	} >$TMP.msg2 || exit $status
 	mv $TMP.msg2 $TMP.msg || exit $status
 	unmount /mail/fs
-	upas/fs -f $TMP.msg || exit $status
+	upas/fs -pf $TMP.msg || exit $status
 }
 
 # classify message according to token-based white list 
@@ -150,5 +150,5 @@ fn isspam {
 
 # save and parse the mail file
 sed '/^$/,$ s/^From / From /' >$TMP.msg
-upas/fs -f $TMP.msg || exit $status
+upas/fs -pf $TMP.msg || exit $status
 

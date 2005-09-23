@@ -127,7 +127,7 @@ tcreate(Fcall *f, int, char **argv)
 {
 	f->fid = atoi(argv[0]);
 	f->name = argv[1];
-	f->perm = strtol(argv[2], 0, 8);
+	f->perm = strtoul(argv[2], 0, 8);
 	f->mode = atoi(argv[3]);
 	return nil;
 }

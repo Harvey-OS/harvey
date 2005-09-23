@@ -362,6 +362,12 @@ oadd(Node *n, Node *res)
 			res->string = stradd(l.string, r.string); 
 			break;
 		}
+		if(r.type == TINT) {
+			res->type = TSTRING;
+			res->fmt = 's';
+			res->string = straddrune(l.string, r.ival);
+			break;
+		}
 		error("bad rhs for +");
 	case TLIST:
 		res->type = TLIST;
