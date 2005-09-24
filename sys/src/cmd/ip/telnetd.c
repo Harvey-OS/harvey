@@ -547,14 +547,15 @@ xlocsub(Biobuf *bp, uchar *sub, int n)
 void*
 share(int len)
 {
-	ulong vastart;
+	uchar *vastart;
 
-	vastart = ((ulong)sbrk(0)) + 2*1024*1024;
+	vastart = sbrk(0);
+	vastart += 2*1024*1024;
 
-	if(segattach(0, "shared", (void *)vastart, len) < 0)
+	if(segattach(0, "shared", vastart, len) < 0)
 		return 0;
 
-	return (void*)vastart;
+	return vastart;
 }
 
 /*
