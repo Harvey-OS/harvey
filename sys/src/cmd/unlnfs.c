@@ -40,7 +40,6 @@ renamedir(char *d)
 	Dir *dir;
 	char *sub;
 	int fd, i;
-	uchar digest[MD5dlen];
 	Name *na;
 
 	fd = open(d, OREAD);
@@ -95,7 +94,6 @@ readnames(char *lnfile)
 {
 	Biobuf *bio;
 	char *f;
-	int slot;
 	Name *n;
 
 	bio = Bopen(lnfile, OREAD);

@@ -97,55 +97,22 @@ fmtZBInit(Fmt *f, ZBlock *b)
 	f->args = nil;
 }
 
-static int
-sFlush(Fmt *f)
-{
-	char *s;
-	int n;
-
-	n = (int)f->farg;
-	n += 256;
-	f->farg = (void*)n;
-	s = f->start;
-	f->start = realloc(s, n);
-	if(f->start == nil){
-		f->start = s;
-		return 0;
-	}
-	f->to = (char*)f->start + ((char*)f->to - s);
-	f->stop = (char*)f->start + n - 1;
-	return 1;
-}
-
 static char*
 logit(int severity, char *fmt, va_list args)
 {
-	Fmt f;
-	int n;
+	char *s;
 
-	f.runes = 0;
-	n = 32;
-	f.start = malloc(n);
-	if(f.start == nil)
+	s = vsmprint(fmt, args);
+	if(s == nil)
 		return nil;
-	f.to = f.start;
-	f.stop = (char*)f.start + n - 1;
-	f.flush = sFlush;
-	f.farg = (void*)n;
-	f.nfmt = 0;
-	f.args = args;
-	n = dofmt(&f, fmt);
-	if(n < 0)
-		return nil;
-	*(char*)f.to = '\0';
 
 	if(severity != EOk){
 		if(argv0 == nil)
-			fprint(2, "%s: err %d: %s\n", argv0, severity, f.start);
+			fprint(2, "%s: err %d: %s\n", argv0, severity, s);
 		else
-			fprint(2, "err %d: %s\n", severity, f.start);
+			fprint(2, "err %d: %s\n", severity, s);
 	}
-	return f.start;
+	return s;
 }
 
 void
