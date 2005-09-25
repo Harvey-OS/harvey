@@ -830,7 +830,7 @@ and the
 option causes
 .I check
 to scan old snapshots.
-Specfying
+Specifying
 .B snapshot
 causes
 .I check

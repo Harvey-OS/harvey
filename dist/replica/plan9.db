@@ -7680,7 +7680,7 @@ sys/man/8/cpurc - 664 sys sys 971455510 1275
 sys/man/8/cron - 664 sys sys 1063858596 1867
 sys/man/8/dhcpd - 664 sys sys 1032654987 5237
 sys/man/8/drawterm - 664 sys sys 958419689 2458
-sys/man/8/fossilcons - 664 sys sys 1087406046 17788
+sys/man/8/fossilcons - 664 sys sys 1127560168 17789
 sys/man/8/fs - 664 sys sys 1055701170 15029
 sys/man/8/fsconfig - 664 sys sys 1045501600 8142
 sys/man/8/gpsfs - 664 sys sys 1123643451 4924
