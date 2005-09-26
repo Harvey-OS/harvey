@@ -6164,7 +6164,7 @@ sys/lib/dist/pc/inst/confignet - 775 sys sys 1116594996 1294
 sys/lib/dist/pc/inst/configppp - 775 sys sys 1019058714 1402
 sys/lib/dist/pc/inst/copydist - 775 sys sys 1112361037 713
 sys/lib/dist/pc/inst/defs - 664 sys sys 1112361037 2439
-sys/lib/dist/pc/inst/download - 775 sys sys 1112361038 1217
+sys/lib/dist/pc/inst/download - 775 sys sys 1127670124 1218
 sys/lib/dist/pc/inst/finish - 775 sys sys 1032990669 266
 sys/lib/dist/pc/inst/fmtfossil - 775 sys sys 1112361038 1981
 sys/lib/dist/pc/inst/fmtventi - 775 sys sys 1116594986 3733
@@ -6196,7 +6196,7 @@ sys/lib/dist/pc/inst/stop - 775 sys sys 1033073371 1148
 sys/lib/dist/pc/inst/stopether - 775 sys sys 1018469719 269
 sys/lib/dist/pc/inst/stopppp - 775 sys sys 1018469719 250
 sys/lib/dist/pc/inst/textonly - 775 sys sys 1112361039 182
-sys/lib/dist/pc/inst/watchfd - 775 sys sys 1112361039 361
+sys/lib/dist/pc/inst/watchfd - 775 sys sys 1127670125 362
 sys/lib/dist/pc/inst/xxx - 775 sys sys 1018469719 160
 sys/lib/dist/pc/mkfile - 664 sys sys 1123094452 2158
 sys/lib/dist/pc/plan9.ini - 664 sys sys 1020361168 512

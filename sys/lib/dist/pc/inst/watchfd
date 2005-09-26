@@ -8,7 +8,7 @@ while(! ~ $#p 1) {
 p=$p(1)
 
 baropt='-w 145,129,445,168'
-if(~ textinst 1)
+if(~ $textinst 1)
 	baropt=-t
 
 {

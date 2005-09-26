@@ -31,7 +31,7 @@ case go
 	# BUG make restartable
 	echo 'Downloading distribution package...'
 	baropt='-w 145,129,445,168'
-	if(~ textinst 1)
+	if(~ $textinst 1)
 		baropt=-t
 	if(! hget -vo /n/newfs/dist/_plan9.iso.bz2 $installurl/plan9.iso.bz2 |[2] bargraph $baropt 'downloading '^plan9.iso.bz2)
 			exit
