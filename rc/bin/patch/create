@@ -6,7 +6,7 @@ if(~ $#* 0 1){
 }
 
 if(! echo $1 | grep -s '^[a-z_0-9.\-]+$'){
-	echo bad name
+	echo 'bad name: [a-z0-9._\-]+ only' >[1=2]
 	exit usage
 }
 
