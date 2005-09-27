@@ -297,17 +297,30 @@ resets all of the counts on all processors.
 .PP
 The
 .B swap
-device holds a string of the form
+device holds a text block giving memory usage statistics:
 .IP
-.IB m1 / m2
-.B memory
-.IB s1 / s2
-.B swap
+.EX
+\fIn\fP memory
+\fIn\fP pagesize
+\fIn\fP kernel
+\fIn\fP/\fIm\fP user
+\fIn\fP/\fIm\fP swap
+\fIn\fP/\fIm\fP kernel malloc
+\fIn\fP/\fIm\fP kernel draw
+.EE
 .PP
-These give, for each of
-internal memory and the swapping area,
-the number of pages used and the total available.
+These are total memory (bytes), system page size (bytes),
+kernel memory (pages), user memory (pages), swap space (pages),
+kernel malloced data (bytes), and kernel graphics data (bytes).
+The expression
+.IR n / m
+indicates
+.I n
+used out of
+.I m
+available.
 These numbers are not blank padded.
+.PP
 To turn on swapping, write to
 .B swap
 the textual file descriptor number of a file or device on which to swap.

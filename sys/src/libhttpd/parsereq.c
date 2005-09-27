@@ -15,7 +15,6 @@ static	char*		abspath(HConnect *cc, char *origpath, char *curdir);
 static	int		getc(HConnect*);
 static	char*		getword(HConnect*);
 static	Strings		parseuri(HConnect *c, char*);
-static	Strings		stripmagic(char*);
 static	Strings		stripsearch(char*);
 
 /*
@@ -41,10 +40,12 @@ hparsereq(HConnect *c, int timeout)
 	 * later requests have to come quickly.
 	 * only works for http/1.1 or later.
 	 */
-	alarm(timeout);
-	if(!hgethead(c, 0))
-		return 0;
-	alarm(0);
+	if(timeout)
+		alarm(timeout);
+	if(hgethead(c, 0) < 0)
+		return -1;
+	if(timeout)
+		alarm(0);
 	c->reqtime = time(nil);
 	c->req.meth = getword(c);
 	if(c->req.meth == nil){
@@ -284,7 +285,7 @@ getword(HConnect *c)
 		}
 		ch = getc(c);
 	}
-	return nil;
+	return nil;	/* stupid 8c */
 }
 
 static int

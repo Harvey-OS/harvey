@@ -35,6 +35,7 @@ These scripts are a simple patch submission and tracking system
 used to propose additions or changes to Plan 9.
 Each patch has a 
 .I name
+(lowercase letters, numbers, dash, dot, and underscore only)
 and is stored in
 .BI /n/sources/patch/ name \fR.
 .PP

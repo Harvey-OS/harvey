@@ -177,7 +177,8 @@ compile(char *file, char **defs, int ndef)
 	}
 	if((debug['a'] || debug['Z']) && !debug['n']) {
 		outfile = 0;
-		Binit(&outbuf, 1, OWRITE);
+		Binit(&outbuf, dup(1, -1), OWRITE);
+		dup(2, 1);
 	} else {
 		c = mycreat(outfile, 0664);
 		if(c < 0) {
