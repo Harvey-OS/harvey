@@ -27,11 +27,12 @@ struct Graph
 
 enum
 {
-	/* /dev/swap */
+	/* old /dev/swap */
 	Mem		= 0,
 	Maxmem,
 	Swap,
 	Maxswap,
+	
 	/* /dev/sysstats */
 	Procno	= 0,
 	Context,
@@ -284,7 +285,7 @@ loadbuf(Machine *m, int *fd)
 	if(*fd < 0)
 		return 0;
 	seek(*fd, 0, 0);
-	n = read(*fd, m->buf, sizeof m->buf);
+	n = read(*fd, m->buf, sizeof m->buf-1);
 	if(n <= 0){
 		close(*fd);
 		*fd = -1;
@@ -292,6 +293,7 @@ loadbuf(Machine *m, int *fd)
 	}
 	m->bufp = m->buf;
 	m->ebufp = m->buf+n;
+	m->buf[n] = 0;
 	return 1;
 }
 
@@ -577,6 +579,22 @@ connectexportfs(char *addr)
 }
 
 int
+readswap(Machine *m, ulong *a)
+{
+	if(strstr(m->buf, "memory\n")){
+		/* new /dev/swap - skip first 3 numbers */
+		if(!readnums(m, 7, a, 1))
+			return 0;
+		a[0] = a[3];
+		a[1] = a[4];
+		a[2] = a[5];
+		a[3] = a[6];
+		return 1;
+	}
+	return readnums(m, nelem(m->devswap), a, 0);
+}
+
+int
 initmach(Machine *m, char *name)
 {
 	int n, fd;
@@ -612,7 +630,7 @@ initmach(Machine *m, char *name)
 
 	snprint(buf, sizeof buf, "%s/dev/swap", mpt);
 	m->swapfd = open(buf, OREAD);
-	if(loadbuf(m, &m->swapfd) && readnums(m, nelem(m->devswap), a, 0))
+	if(loadbuf(m, &m->swapfd) && readswap(m, a))
 		memmove(m->devswap, a, sizeof m->devswap);
 	else
 		m->devswap[Maxmem] = m->devswap[Maxswap] = 100;
@@ -722,7 +740,7 @@ readmach(Machine *m, int init)
 		notify(alarmed);
 		alarm(5000);
 	}
-	if(needswap(init) && loadbuf(m, &m->swapfd) && readnums(m, nelem(m->devswap), a, 0))
+	if(needswap(init) && loadbuf(m, &m->swapfd) && readswap(m, a))
 		memmove(m->devswap, a, sizeof m->devswap);
 	if(needstat(init) && loadbuf(m, &m->statsfd)){
 		memmove(m->prevsysstat, m->devsysstat, sizeof m->devsysstat);

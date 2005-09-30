@@ -5764,7 +5764,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1127394114 256007
+sys/games/lib/fortunes - 664 sys sys 1128038631 256100
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -12905,7 +12905,7 @@ sys/src/cmd/ssh/ssh.h - 664 sys sys 1091904420 6086
 sys/src/cmd/ssh/sshnet.c - 664 sys sys 1078840016 17641
 sys/src/cmd/ssh/sshserve.c - 664 sys sys 1062091020 5786
 sys/src/cmd/ssh/util.c - 664 sys sys 1063858753 4478
-sys/src/cmd/stats.c - 664 sys sys 1121977164 27868
+sys/src/cmd/stats.c - 664 sys sys 1127974208 28128
 sys/src/cmd/strings.c - 664 sys sys 944961364 1216
 sys/src/cmd/strip.c - 664 sys sys 1108077276 3350
 sys/src/cmd/sum.c - 664 sys sys 1014926615 5548
@@ -14967,3 +14967,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/stats - 775 sys sys 1128049805 190269
