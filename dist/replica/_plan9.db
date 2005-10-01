@@ -405,7 +405,7 @@
 386/bin/srvold9p - 775 sys sys 1115950114 130193
 386/bin/ssh - 775 sys sys 1127360606 211173
 386/bin/sshnet - 775 sys sys 1127360607 282985
-386/bin/stats - 775 sys sys 1115950115 190072
+386/bin/stats - 775 sys sys 1128049805 190269
 386/bin/strings - 775 sys sys 1125346016 62115
 386/bin/strip - 775 sys sys 1115950116 61981
 386/bin/sum - 775 sys sys 1115950116 39470
@@ -5764,7 +5764,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1128038631 256100
+sys/games/lib/fortunes - 664 sys sys 1128093789 256215
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -14967,4 +14967,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/stats - 775 sys sys 1128049805 190269
