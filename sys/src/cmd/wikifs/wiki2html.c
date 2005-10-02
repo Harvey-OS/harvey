@@ -10,7 +10,7 @@ char *wikidir;
 void
 usage(void)
 {
-	fprint(2, "usage: wiki2html [-d dir] wikifile\n");
+	fprint(2, "usage: wiki2html [-hoDP ] [-d dir] wikifile\n");
 	exits("usage");
 }
 
@@ -18,6 +18,7 @@ void
 main(int argc, char **argv)
 {
 	int t;
+	int parse;
 	String *h;
 	Whist *doc;
 
@@ -39,6 +40,8 @@ main(int argc, char **argv)
 	case 'D':
 		t = Tdiff;
 		break;
+	case 'P':
+		parse = 1;
 	}ARGEND
 
 	if(argc != 1)
@@ -52,6 +55,10 @@ main(int argc, char **argv)
 	if(doc == nil)
 		sysfatal("doc: %r");
 
+	if(parse){
+		printpage(doc->doc->wtxt);
+		exits(0);
+	}
 	if((h = tohtml(doc, doc->doc+doc->ndoc-1, t)) == nil)
 		sysfatal("wiki2html: %r");
 

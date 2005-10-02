@@ -4,17 +4,23 @@ snoopy \- spy on network packets
 .SH SYNOPSIS
 .B snoopy
 [
-.B -?stdCp
-] [
-.B -f
-.I filter-expression
+.B -CDdpst
 ] [
 .B -N
 .I n
 ] [
+.B -f
+.I filter-expression
+] [
 .B -h first-header
 ] [
 packet-file
+]
+.PP
+.B snoopy
+.B -?
+[
+.I proto...
 ]
 .SH DESCRIPTION
 .PP
@@ -33,14 +39,14 @@ and each contains the dump of a single protocol header.  The last line
 contains the dump of any contained data.  For example, a
 .SM BOOTP
 packet would look like:
-.sp
+.IP
 .EX
 324389 ms
-	ether(s=0000929b1b54 d=ffffffffffff pr=0800 ln=342)
-	ip(s=135.104.9.62 d=255.255.255.255 id=5099 frag=0000...
-	udp(s=68 d=67 ck=d151 ln= 308)
-	bootp(t=Req ht=1 hl=16 hp=0 xid=217e5f27 sec=0 fl=800...
-	dhcp(t=Request clientid=0152415320704e7266238ebf01030...
+  	ether(s=0000929b1b54 d=ffffffffffff pr=0800 ln=342)
+  	ip(s=135.104.9.62 d=255.255.255.255 id=5099 frag=0000...
+  	udp(s=68 d=67 ck=d151 ln= 308)
+  	bootp(t=Req ht=1 hl=16 hp=0 xid=217e5f27 sec=0 fl=800...
+  	dhcp(t=Request clientid=0152415320704e7266238ebf01030...
 .EE
 .PP
 The binary format consists of:
@@ -54,41 +60,47 @@ the packet
 Filters are expressions specifying protocols to be traced
 and specific values for fields in the protocol headers.
 The grammar is:
-.sp
+.IP
 .EX
-expr	: protocol
-	| field '=' value
-	| protocol '(' expr ')'
-	| '(' expr ')'
-	| expr '||' expr
-	| expr '&&' expr
-	| '!' expr
+\fIexpr\fP:	  \fIprotocol\fP
+	| \fIfield\fP '=' \fIvalue\fP
+	| \fIprotocol\fP '(' \fIexpr\fP ')'
+	| '(' \fIexpr\fP ')'
+	| \fIexpr\fP '||' \fIexpr\fP
+	| \fIexpr\fP '&&' \fIexpr\fP
+	| '!' \fIexpr\fP
 .EE
 .PP
-The values for <protocol> and <field> can
+The values for
+.I protocol
+and 
+.I field
+can
 be obtained using the
 .B -?
-option.  It will list each known protocol,
+option.  With no arguments, it lists the known protocols.
+Otherwise it prints, for each protocol specified,
 which subprotocols it can multiplex to,
 and which fields can be used for filtering.
 For example, the listing for ethernet is currently:
-.sp
+.IP
 .EX
-ether's filter attr:
-	s	- source address
-	d	- destination address
-	a	- source|destination address
-	t	- type
+ether's filter attributes:
+  s  - source address
+  d  - destination address
+  a  - source|destination address
+  sd - source|destination address
+  t  - type
 ether's subprotos:
-	ip
-	arp
-	rarp
-	ip6
-	pppoe_disc
-	pppoe_sess
+  0x0800 ip		  0x8863 pppoe_disc
+  0x0806 arp		  0x8864 pppoe_sess
+  0x0806 rarp		  0x888e eapol
+  0x86dd ip6
 .EE
 .PP
-The format of <value> depends on context.  In general,
+The format of 
+.I value
+depends on context.  In general,
 ethernet addresses are entered as a string of hex
 digits; IP numbers in the canonical `.' format for v4 and `:' format
 for v6; and ports in decimal.
@@ -96,29 +108,32 @@ for v6; and ports in decimal.
 .IR Snoopy 's
 options are:
 .TP
-.B -t
-input is a binary trace file.  The default assumes
-a packet device, one packet per read.
-.TP
-.B -d
-output will be a binary trace file.  The default is
-human readable.
-.TP
-.B -s
-force one output line per packet.  The
-default is multiline.
-.TP
 .B -C
-compute correct checksums and if doesn't match
-the contained one, add a field
+compute the correct checksum for each packet;
+on mismatch, add a field
 .B !ck=\fIxxxx\fP
 where
 .I xxxx
 is the correct checksum.
 .TP
+.B -D
+output will be a binary trace file in Unix pcap format.
+.TP
+.B -d
+output will be a binary trace file.
+.TP
+.B -t
+input is a binary trace file as generated with the
+.B -d
+option.
+.TP
 .B -p
 do not enter promiscuous mode.  Only packets to
 this interface will be seen.
+.TP
+.B -s
+force one output line per packet.  The
+default is multiline.
 .TP
 .B -N
 dump
@@ -137,15 +152,15 @@ assume the first header per packet to be
 The default is
 .IR ether .
 .SH EXAMPLES
-the following would display only
+To display only
 .SM BOOTP
 and
 .SM ARP
 packets:
-.sp
+.IP
 .EX
 % snoopy -f 'arp || bootp'
-after optimize: ether( arp || ip( udp( bootp ) ) )
+after optimize: ether(arp || ip(udp(bootp)))
 .EE
 .PP
 The first line of output shows the completed filter
@@ -157,7 +172,7 @@ comparisons.
 .PP
 To save all packets between 135.104.9.2 to 135.104.9.6 and
 later display those to/from TCP port 80:
-.sp
+.IP
 .EX
 % ramfs
 % snoopy -df 'ip(s=135.104.9.2 && d=135.104.9.6) ||\\
@@ -172,6 +187,6 @@ Ethernet device
 .SH SOURCE
 .B /sys/src/cmd/ip/snoopy
 .SH BUGS
-At the moment it only dumps ethernet packets because there's
-no device to get IP packets without the media header.  This will
-be corrected soon.
+.I Snoopy
+only dumps ethernet packets, because there's
+no device to get IP packets without a media header.
