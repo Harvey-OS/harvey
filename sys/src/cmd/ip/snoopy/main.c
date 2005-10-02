@@ -35,14 +35,21 @@ void	mkprotograph(void);
 Proto*	findproto(char *name);
 Filter*	compile(Filter *f);
 void	printfilter(Filter *f, char *tag);
-void	printhelp(void);
+void	printhelp(char*);
 void	tracepkt(uchar*, int);
 void	pcaphdr(void);
 
 void
+printusage(void)
+{
+	fprint(2, "usage: %s [-CDdpst] [-N n] [-f filter] [-h first-header] path\n", argv0);
+	fprint(2, "  for protocol help: %s -? [proto]\n", argv0);
+}
+
+void
 usage(void)
 {
-	fprint(2, "usage: %s [-std?] [-c] [-N n] [-f filter] [-h first-header] path", argv0);
+	printusage();
 	exits("usage");
 }
 
@@ -74,20 +81,19 @@ main(int argc, char **argv)
 	mkprotograph();
 
 	ARGBEGIN{
+	default:
+		usage();
 	case '?':
-		printhelp();
+		printusage();
+		printhelp(ARGF());
 		exits(0);
 		break;
 	case 'N':
-		p = ARGF();
-		if(p == nil)
-			usage();
+		p = EARGF(usage());
 		Nflag = atoi(p);
 		break;
 	case 'f':
-		p = ARGF();
-		if(p == nil)
-			usage();
+		p = EARGF(usage());
 		yyinit(p);
 		yyparse();
 		break;
@@ -95,9 +101,7 @@ main(int argc, char **argv)
 		sflag = 1;
 		break;
 	case 'h':
-		p = ARGF();
-		if(p == nil)
-			usage();
+		p = EARGF(usage());
 		root = findproto(p);
 		if(root == nil)
 			sysfatal("unknown protocol: %s", p);
@@ -770,9 +774,9 @@ _pf(Filter *f)
 	case WORD:
 		fprint(2, "%s", f->s);
 		if(f->l != nil){
-			fprint(2, "( ");
+			fprint(2, "(");
 			_pf(f->l);
-			fprint(2, " )");
+			fprint(2, ")");
 		}
 		break;
 	case LAND:
@@ -805,24 +809,96 @@ printfilter(Filter *f, char *tag)
 }
 
 void
-printhelp(void)
+cat(void)
 {
+	char buf[1024];
+	int n;
+	
+	while((n = read(0, buf, sizeof buf)) > 0)
+		write(1, buf, n);
+}
+
+static int fd1 = -1;
+void
+startmc(void)
+{
+	int p[2];
+	
+	if(fd1 == -1)
+		fd1 = dup(1, -1);
+	
+	if(pipe(p) < 0)
+		return;
+	switch(fork()){
+	case -1:
+		return;
+	default:
+		close(p[0]);
+		dup(p[1], 1);
+		if(p[1] != 1)
+			close(p[1]);
+		return;
+	case 0:
+		close(p[1]);
+		dup(p[0], 0);
+		if(p[0] != 0)
+			close(p[0]);
+		execl("/bin/mc", "mc", nil);
+		cat();
+		_exits(0);
+	}
+}
+
+void
+stopmc(void)
+{
+	close(1);
+	dup(fd1, 1);
+	waitpid();
+}
+
+void
+printhelp(char *name)
+{
+	int len;
 	Proto *pr, **l;
 	Mux *m;
 	Field *f;
-
-	for(l = protos; *l != nil; l++){
-		pr = *l;
-		if(pr->field != nil){
-			print("%s's filter attr:\n", pr->name);
-			for(f = pr->field; f->name != nil; f++)
-				print("\t%s\t- %s\n", f->name, f->help);
-		}
-		if(pr->mux != nil){
-			print("%s's subprotos:\n", pr->name);
-			for(m = pr->mux; m->name != nil; m++)
-				print("\t%s\n", m->name);
-		}
+	char fmt[40];
+	
+	if(name == nil){
+		print("protocols:\n");
+		startmc();
+		for(l=protos; (pr=*l) != nil; l++)
+			print("  %s\n", pr->name);
+		stopmc();
+		return;
+	}
+	
+	pr = findproto(name);
+	if(pr == nil){
+		print("unknown protocol %s\n", name);
+		return;
+	}
+	
+	if(pr->field){
+		print("%s's filter attributes:\n", pr->name);
+		len = 0;
+		for(f=pr->field; f->name; f++)
+			if(len < strlen(f->name))
+				len = strlen(f->name);
+		startmc();
+		for(f=pr->field; f->name; f++)
+			print("  %-*s - %s\n", len, f->name, f->help);
+		stopmc();
+	}
+	if(pr->mux){
+		print("%s's subprotos:\n", pr->name);
+		startmc();
+		snprint(fmt, sizeof fmt, "  %s %%s\n", pr->valfmt);
+		for(m=pr->mux; m->name != nil; m++)
+			print(fmt, m->val, m->name);
+		stopmc();
 	}
 }
 

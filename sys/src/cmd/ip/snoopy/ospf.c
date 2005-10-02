@@ -397,5 +397,6 @@ Proto ospf =
 	p_seprint,
 	nil,
 	nil,
+	nil,
 	defaultframer,
 };
