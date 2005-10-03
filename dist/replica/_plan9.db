@@ -396,7 +396,7 @@
 386/bin/snap - 775 sys sys 1125346012 303711
 386/bin/snapfs - 775 sys sys 1125346013 372678
 386/bin/sniffer - 775 sys sys 1038443185 99028
-386/bin/snoopy - 775 sys sys 1125346014 157537
+386/bin/snoopy - 775 sys sys 1128222506 168209
 386/bin/sort - 775 sys sys 1125346014 82276
 386/bin/spin - 775 sys sys 1127360605 758519
 386/bin/split - 775 sys sys 1125346015 75635
@@ -503,7 +503,7 @@
 386/bin/webcookies - 775 sys sys 1125346039 161625
 386/bin/webfs - 775 sys sys 1127360616 350516
 386/bin/webfsget - 775 sys sys 1115950144 39143
-386/bin/wikifs - 775 sys sys 1125889831 202134
+386/bin/wikifs - 775 sys sys 1128222506 202486
 386/bin/winwatch - 775 sys sys 1115950145 154555
 386/bin/xd - 775 sys sys 1125346040 64044
 386/bin/xmr - 775 sys sys 1115950145 40157
@@ -7312,7 +7312,7 @@ sys/man/1/mkdir - 664 sys sys 1082593141 717
 sys/man/1/mlmgr - 664 sys sys 1116513886 2542
 sys/man/1/ms2html - 664 sys sys 960001562 856
 sys/man/1/nedmail - 664 sys sys 1114697978 6820
-sys/man/1/netstat - 664 sys sys 953344523 827
+sys/man/1/netstat - 664 sys sys 1128255431 942
 sys/man/1/news - 664 sys sys 1113743329 1151
 sys/man/1/nm - 664 sys sys 944959673 1539
 sys/man/1/ns - 664 sys sys 944959677 893
@@ -7919,7 +7919,7 @@ sys/src/9/pc/devarch.c - 664 sys sys 1115566123 18554
 sys/src/9/pc/devether.c - 664 sys sys 1116173410 10327
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1099761153 20505
-sys/src/9/pc/devlm78.c - 664 sys sys 1091129037 6255
+sys/src/9/pc/devlm78.c - 664 sys sys 1128255048 6291
 sys/src/9/pc/devlml.c - 664 sys sys 1026847636 7486
 sys/src/9/pc/devlml.h - 664 sys sys 1026847636 2948
 sys/src/9/pc/devlpt.c - 664 sys sys 1015014514 4420
@@ -9218,7 +9218,7 @@ sys/src/cmd/9660srv/9660srv.c - 664 sys sys 1115039888 17143
 sys/src/cmd/9660srv/dat.h - 664 sys sys 1091904429 2097
 sys/src/cmd/9660srv/data.c - 664 sys sys 944960735 373
 sys/src/cmd/9660srv/fns.h - 664 sys sys 1019425186 428
-sys/src/cmd/9660srv/iobuf.c - 664 sys sys 1022085197 3125
+sys/src/cmd/9660srv/iobuf.c - 664 sys sys 1128255068 3126
 sys/src/cmd/9660srv/iso9660.h - 664 sys sys 1014924873 2607
 sys/src/cmd/9660srv/main.c - 664 sys sys 1020313483 9680
 sys/src/cmd/9660srv/mkfile - 664 sys sys 1048644372 238
@@ -10031,7 +10031,7 @@ sys/src/cmd/fossil/9auth.c - 664 sys sys 1061530721 3393
 sys/src/cmd/fossil/9dir.c - 664 sys sys 1085333382 2219
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
 sys/src/cmd/fossil/9fid.c - 664 sys sys 1045600016 5521
-sys/src/cmd/fossil/9fsys.c - 664 sys sys 1104858629 33296
+sys/src/cmd/fossil/9fsys.c - 664 sys sys 1128255102 33313
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1042005503 2865
 sys/src/cmd/fossil/9p.c - 664 sys sys 1104940048 21862
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
@@ -12264,7 +12264,7 @@ sys/src/cmd/ndb/mkhash.c - 664 sys sys 1014926160 2899
 sys/src/cmd/ndb/mkhosts.c - 664 sys sys 957402054 4294
 sys/src/cmd/ndb/query.c - 664 sys sys 1078840016 1120
 sys/src/cmd/ndb/time.c - 664 sys sys 957402055 321
-sys/src/cmd/netstat.c - 664 sys sys 1078839959 3846
+sys/src/cmd/netstat.c - 664 sys sys 1128255434 4086
 sys/src/cmd/news.c - 664 sys sys 1014926614 3778
 sys/src/cmd/nfs.c - 664 sys sys 1050068720 31096
 sys/src/cmd/nm.c - 664 sys sys 1073313392 4912
@@ -13782,8 +13782,8 @@ sys/src/fs/sony/mem.h - 664 sys sys 1015110103 2865
 sys/src/fs/sony/mkfile - 664 sys sys 1091803623 1594
 sys/src/fs/worms - 664 sys sys 1015110031 2806
 sys/src/games - 20000000775 sys sys 1095792091 0
-sys/src/games/4s.c - 664 sys sys 1120564580 1486
-sys/src/games/5s.c - 664 sys sys 1120564580 3822
+sys/src/games/4s.c - 664 sys sys 1128271724 1285
+sys/src/games/5s.c - 664 sys sys 1128271724 3621
 sys/src/games/catback.p - 664 sys sys 1108184106 35763
 sys/src/games/catclock.c - 664 sys sys 1108184106 10354
 sys/src/games/eyes.p - 664 sys sys 1108184106 1128
@@ -13795,7 +13795,7 @@ sys/src/games/mahjongg/mahjongg.c - 664 sys sys 1095792293 3452
 sys/src/games/mahjongg/mahjongg.h - 664 sys sys 1095792293 1606
 sys/src/games/mahjongg/mkfile - 664 sys sys 1095792293 230
 sys/src/games/memo.c - 664 sys sys 1125514848 6321
-sys/src/games/mkfile - 664 sys sys 1118672535 567
+sys/src/games/mkfile - 664 sys sys 1128271766 586
 sys/src/games/music - 20000000775 sys sys 1103793915 0
 sys/src/games/music/Readme - 664 sys sys 1103793914 488
 sys/src/games/music/debug.h - 664 sys sys 1103793914 201
@@ -13864,7 +13864,8 @@ sys/src/games/sudoku/levels.c - 664 sys sys 1117226433 3186
 sys/src/games/sudoku/mkfile - 664 sys sys 1117226432 218
 sys/src/games/sudoku/sudoku.c - 664 sys sys 1117636441 7809
 sys/src/games/sudoku/sudoku.h - 664 sys sys 1117226432 1159
-sys/src/games/xs.h - 664 sys sys 1120564579 17389
+sys/src/games/xs.c - 664 sys sys 1128271724 17124
+sys/src/games/xs.h - 664 sys sys 1128271724 292
 sys/src/lib9p - 20000000775 sys sys 1015023311 0
 sys/src/lib9p/_post.c - 664 sys sys 1103565871 1642
 sys/src/lib9p/dirread.c - 664 sys sys 1015023310 641
@@ -14973,5 +14974,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/wikifs - 775 sys sys 1128222506 202486
-386/bin/snoopy - 775 sys sys 1128222506 168209
+386/bin/games/4s - 775 sys sys 1128309084 177871
+386/bin/games/5s - 775 sys sys 1128309084 180159
+386/bin/netstat - 775 sys sys 1128309084 84664
+386/bin/fossil/fossil - 775 sys sys 1128309083 360426
