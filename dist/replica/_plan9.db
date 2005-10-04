@@ -231,7 +231,7 @@
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
 386/bin/fossil/flchk - 775 sys sys 1125345972 237504
 386/bin/fossil/flfmt - 775 sys sys 1125345973 245653
-386/bin/fossil/fossil - 775 sys sys 1119496648 360407
+386/bin/fossil/fossil - 775 sys sys 1128309083 360426
 386/bin/fossil/last - 775 sys sys 1115950071 63298
 386/bin/freq - 775 sys sys 1125345973 61793
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -245,8 +245,8 @@
 386/bin/fs/zipfs - 775 sys sys 1125345976 109079
 386/bin/ftpfs - 775 sys sys 1127360573 272753
 386/bin/games - 20000000775 sys sys 1096298711 0
-386/bin/games/4s - 775 sys sys 1120619353 177844
-386/bin/games/5s - 775 sys sys 1120619353 180356
+386/bin/games/4s - 775 sys sys 1128309084 177871
+386/bin/games/5s - 775 sys sys 1128309084 180159
 386/bin/games/catclock - 775 sys sys 1115950075 140798
 386/bin/games/juggle - 775 sys sys 1118202754 125319
 386/bin/games/jukebox - 775 sys sys 1105589128 264821
@@ -341,7 +341,7 @@
 386/bin/ndb/mkhosts - 775 sys sys 1125346000 84954
 386/bin/ndb/query - 775 sys sys 1125346000 83041
 386/bin/netkey - 775 sys sys 1115950098 72307
-386/bin/netstat - 775 sys sys 1125346001 84376
+386/bin/netstat - 775 sys sys 1128309084 84664
 386/bin/news - 775 sys sys 1125346001 71660
 386/bin/nfs - 775 sys sys 1125346002 315509
 386/bin/nm - 775 sys sys 1125346002 121794
@@ -6118,7 +6118,7 @@ sys/lib/dist/bin/386 - 20000000775 sys sys 1018720418 0
 sys/lib/dist/cdstub - 20000000555 sys sys 1018640690 0
 sys/lib/dist/cdstub/bootdisk.img - 664 sys sys 1019324215 0
 sys/lib/dist/cmd - 20000000775 sys sys 1018641008 0
-sys/lib/dist/cmd/bargraph.c - 664 sys sys 1114364700 5871
+sys/lib/dist/cmd/bargraph.c - 664 sys sys 1128338667 5951
 sys/lib/dist/cmd/bflz.c - 664 sys sys 1033073375 6115
 sys/lib/dist/cmd/bzfs - 20000000775 sys sys 1018641007 0
 sys/lib/dist/cmd/bzfs/bzfs.h - 664 sys sys 1018469727 223
@@ -14974,7 +14974,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/games/4s - 775 sys sys 1128309084 177871
-386/bin/games/5s - 775 sys sys 1128309084 180159
-386/bin/netstat - 775 sys sys 1128309084 84664
-386/bin/fossil/fossil - 775 sys sys 1128309083 360426

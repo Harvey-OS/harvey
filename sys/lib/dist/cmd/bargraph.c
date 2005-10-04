@@ -30,7 +30,7 @@ Rectangle rbar;
 Point ptext;
 vlong n, d;
 int last;
-int lastp;
+int lastp = -1;
 int first = 1;
 
 char backup[80];
@@ -40,16 +40,14 @@ drawbar(void)
 {
 	int i, j;
 	int p;
-	char buf[10], bar[100];
+	char buf[200], bar[100], *s;
+	static char lastbar[100];
 
 	if(n > d || n < 0 || d <= 0)
 		return;
 
 	i = (Dx(rbar)*n)/d;
 	p = (n*100LL)/d;
-
-	if(lastp == p && last == i)
-		return;
 
 	if(textmode){
 		bar[0] = '|';
@@ -59,20 +57,20 @@ drawbar(void)
 			bar[j+1] = '-';
 		bar[61] = '|';
 		bar[62] = ' ';
-		sprint(bar+63, "%3d%%", p);
-		if(first)
-			first = 0;
-		else{
-			for(i=0; i<strlen(bar); i++)
-				backup[i] = '\b';
-			write(1, backup, i);
-		}
-		write(1, bar, strlen(bar));
-		lastp = p;
-		last = i;
+		sprint(bar+63, "%3d%% ", p);
+		for(i=0; bar[i]==lastbar[i] && bar[i]; i++)
+			;
+		memset(buf, '\b', strlen(lastbar)-i);
+		strcpy(buf+strlen(lastbar)-i, bar+i);
+		if(buf[0])
+			write(1, buf, strlen(buf));
+		strcpy(lastbar, bar);
 		return;
 	}
-		
+	
+	if(lastp == p && last == i)
+		return;
+
 	if(lastp != p){
 		sprint(buf, "%d%%", p);
 		
@@ -220,7 +218,7 @@ rdenv(char *name)
 	size = seek(fd, 0, 2);
 	v = malloc(size+1);
 	if(v == 0){
-		fprint(2, "page: can't malloc: %r\n");
+		fprint(2, "%s: can't malloc: %r\n", argv0);
 		exits("no mem");
 	}
 	seek(fd, 0, 0);
@@ -303,11 +301,11 @@ screenrect(void)
 	if(fd == -1)
 		fd=open("/mnt/term/dev/screen", OREAD);
 	if(fd == -1){
-		fprint(2, "page: can't open /dev/screen: %r\n");
+		fprint(2, "%s: can't open /dev/screen: %r\n", argv0);
 		exits("window read");
 	}
 	if(read(fd, buf, sizeof buf) != sizeof buf){
-		fprint(2, "page: can't read /dev/screen: %r\n");
+		fprint(2, "%s: can't read /dev/screen: %r\n", argv0);
 		exits("screen read");
 	}
 	close(fd);

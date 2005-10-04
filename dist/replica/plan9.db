@@ -6118,7 +6118,7 @@ sys/lib/dist/bin/386 - 20000000775 sys sys 1018720418 0
 sys/lib/dist/cdstub - 20000000555 sys sys 1018640690 0
 sys/lib/dist/cdstub/bootdisk.img - 664 sys sys 1019324215 0
 sys/lib/dist/cmd - 20000000775 sys sys 1018641008 0
-sys/lib/dist/cmd/bargraph.c - 664 sys sys 1114364700 5871
+sys/lib/dist/cmd/bargraph.c - 664 sys sys 1128338667 5951
 sys/lib/dist/cmd/bflz.c - 664 sys sys 1033073375 6115
 sys/lib/dist/cmd/bzfs - 20000000775 sys sys 1018641007 0
 sys/lib/dist/cmd/bzfs/bzfs.h - 664 sys sys 1018469727 223
