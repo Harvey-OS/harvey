@@ -7257,7 +7257,7 @@ sys/man/1/comm - 664 sys sys 944959675 665
 sys/man/1/con - 664 sys sys 1071156278 4318
 sys/man/1/cp - 664 sys sys 1110816882 1947
 sys/man/1/cpp - 664 sys sys 944959674 2105
-sys/man/1/cpu - 664 sys sys 1104939775 3540
+sys/man/1/cpu - 664 sys sys 1128462781 3804
 sys/man/1/crop - 664 sys sys 984709627 2596
 sys/man/1/date - 664 sys sys 969499884 996
 sys/man/1/db - 664 sys sys 1015024738 17862

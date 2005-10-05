@@ -181,7 +181,7 @@ don't look for a secstore.
 .TP
 .B \-S
 indicates that the agent is running on a
-cpu server.  On starting, it will attempt to get a
+CPU server.  On starting, it will attempt to get a
 .B 9psk1
 key from NVRAM using
 .B readnvram

@@ -25,7 +25,7 @@ The
 .B -f
 option disables the prompting; all keys matching the pattern are deleted.
 .PP
-When run on a cpu server,
+When run on a CPU server,
 .I delkey
 uses the terminal's factotum, if present, instead of the server's factotum.
 .SH FILES

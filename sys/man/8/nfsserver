@@ -131,7 +131,7 @@ aux/pcnfsd
 aux/portmapper
 .EE
 .PP
-Assuming the cpu server's name is
+Assuming the CPU server's name is
 .BR eduardo ,
 the mount commands on the client would be:
 .PP
