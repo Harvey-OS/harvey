@@ -1,25 +1,59 @@
-This directory contains the source for programs that
-live in both the Plan 9 and Unix worlds.  The following
-programs are supplied:
 
-	u9fs - a Unix resident file server that serves the
-		Plan 9 protocol, P9.
+This directory contains source for some programs that
+help Plan 9 co-exist with the non-Plan 9 world.
 
-	sam - an X-windows version of the sam editor that runs
-		on most popular Unix systems and Suns, too.
+	9pfreebsd/
+		Patches to FreeBSD 3.2 to add the IL network protocol
+		and the pre-9P2000 version of 9P.
 
-	bootp - program to allow a Unix machine to answer a Plan 9 bootp.
+	drawterm/
+		Drawterm is a Unix and Windows program that simulates
+		a Plan 9 terminal to connect to a Plan 9 cpu server.
+		The version in this directory speaks the pre-9P2000 
+		protocols.  
 
-	tcs.shar.Z - a compressed version of the Unix source for the
-		character set converter.
+		A new 9P2000 version is in progress but still crashes
+		with some regularity on Unix.  It can be found at
+		  http://cvs.pdos.csail.mit.edu/cvs/drawterm/
+		or use
+		  cvs -d :pserver:anoncvs@cvs.pdos.csail.mit.edu:/cvs co drawterm
+		For more information about CVS, see
+		  http://swtch.com/plan9port/man/man1/cvs.html
 
-	spin - on-the-fly verification program for concurrent systems.
+	u9fs/
+		U9fs is a simple 9P server that runs on Unix.
+		It serves both 9P2000 and the older 9P.
 
-	9pfreebsd - IL and 9FS for FreeBSD 3.2.
+	netkey.c
+		A standalone Unix version of Plan 9's netkey(1).
 
-A README file in each subdirectory further explains each
-program.
+	winstart
+	winplumb.c
+	winplumb.exe
+		Winstart is a shell script to be used with the plumber
+		to relay plumbing messages (typically URLs) to a Windows
+		machine.  It is particularly useful with VMware.
 
-For a more up-to-date copy of sam and tcs, see Plan 9 from
-User Space at http://swtch.com/plan9port.
+The following programs at external locations may also be of interest:
+
+	Plan 9 from User Space
+		a Unix port of acme, sam, tcs, and many other Plan 9 programs
+		- http://swtch.com/plan9port
+
+	V9fs
+		a project to write 9P drivers for other operating systems
+		- 9p2000.ko is now part of the standard Linux 2.6 tree
+		- http://v9fs.sourceforge.net/
+
+	spin, the protocol verifier
+		- http://spinroot.com/
+
+	sam
+		older ports of Sam to Unix and Windows
+		- ftp://ftp.demon.co.uk/pub/unix/plan9
+		- ftp://plan9.bell-labs.com/netlib/research/
+
+	9pm
+		an old port of much of the Plan 9 tools to Windows
+		- http://plan9.bell-labs.com/plan9dist/ureg.html
 
