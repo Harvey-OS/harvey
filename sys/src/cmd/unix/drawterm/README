@@ -5,5 +5,5 @@ of Unix.  See the manual page for more information.
 
 This drawterm still uses the old (third edition) 9P, aka 9P1.
 A 9P2000 version of drawterm and many other tools is in 
-progress.  If you are interested in helping, mail rsc@plan9.bell-labs.com.
+progress.  See ../README for details.
 
