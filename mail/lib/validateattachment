@@ -1,4 +1,5 @@
 #!/bin/rc
+rfork n
 
 # exit status matching:
 #
@@ -13,23 +14,40 @@ if(! ~ $#* 1){
 }
 
 echo validating >[1=2]
+9fs other
+fn save {
+	d=`{date -n}
+	cp body /n/other/upas/tmp/$d.$1
+	cp raw /n/other/upas/tmp/$d.$1.raw
+	whatis x >/n/other/upas/tmp/$d.$1.file
+}
 
 upas/fs -f $1
 cd /mail/fs/mbox/1
 
-x=`{file body}
+x=`{file body | sed s/body://}
 x=$"x
 switch($x){
 case *Ascii* *text* *'c program'* *'rc executable'* 
+	save accept
 	exit accept
 
 case *'zip archive'*
-	if(unzip -tsf body | grep -si '      |\.(scr|exe|pif|bat|com)$'){
+	# >[2=1] because sometimes we get zip files we can't parse
+	# but the errors look like
+	# unzip: reading data for philw.doc.scr failed: ...
+	# so we can still catch these.
+	if(unzip -tsf body >[2=1] | grep -si '      |\.(scr|exe|pif|bat|com)$'){
 		echo executables inside zip file!
 		exit discard
 	}
 
+case jpeg 'PNG image' bmp 'GIF image' *'plan 9 image'
+	save accept
+	exit accept
+
 case *Microsoft* *Office*
+	save wrap
 	exit wrap
 
 case *MSDOS*
@@ -38,6 +56,7 @@ case *MSDOS*
 	exit discard
 }
 
+save wrap
 exit wrap
 
 
