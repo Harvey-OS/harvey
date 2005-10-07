@@ -5250,7 +5250,7 @@ mail/lib/smtpd.conf - 664 upas upas 961114164 536
 mail/lib/spam.rc - 775 upas upas 1063950954 400
 mail/lib/unspam.rc - 775 upas upas 1063950954 400
 mail/lib/validateaddress - 775 upas upas 1098803974 48
-mail/lib/validateattachment - 775 upas upas 1124885063 680
+mail/lib/validateattachment - 775 upas upas 1128571809 1144
 mail/lib/validatesender - 775 upas upas 1106233741 1128
 mail/lib/white.starter - 664 upas upas 1067739606 326
 mail/queue - 20000000777 upas upas 953302652 0
@@ -11949,7 +11949,7 @@ sys/src/cmd/ip/httpd/sendfd.c - 664 sys sys 1017679317 12134
 sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1120737502 7658
 sys/src/cmd/ip/httpd/webls.denied - 664 sys sys 1064887847 3
 sys/src/cmd/ip/httpd/wikipost.c - 664 sys sys 1083771074 5913
-sys/src/cmd/ip/httpfile.c - 600 sys sys 1128556975 10037
+sys/src/cmd/ip/httpfile.c - 664 sys sys 1128556975 10037
 sys/src/cmd/ip/imap4d - 20000000775 sys sys 988249981 0
 sys/src/cmd/ip/imap4d/auth.c - 664 sys sys 1015013075 3510
 sys/src/cmd/ip/imap4d/copy.c - 664 sys sys 1062298855 4597
