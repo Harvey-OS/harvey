@@ -254,6 +254,26 @@ start of area (for DNS)
 .sp
 .PD
 .PP
+.I Cs
+defers to
+.I dns
+to translate dotted names to IP addresses,
+only consulting the database files if
+.I dns
+cannot translate the name.
+.PP
+.I Cs
+allows network entries with
+.B sys
+and
+.B dom
+attributes but no
+.B ip
+attribute.
+Searches for the system name are resolved
+by looking up the domain name with
+.IR dns .
+.PP
 The file
 .B /lib/ndb/auth
 is used during authentication to decide who has the power to `speak for' other
@@ -264,7 +284,7 @@ users; see
 A tuple for the CPU server, spindle.
 .LP
 .EX
-sys = spindle
+sys=spindle
 	dom=spindle.research.bell-labs.com
 	bootf=/mips/9powerboot
 	ip=135.104.117.32 ether=080069020677

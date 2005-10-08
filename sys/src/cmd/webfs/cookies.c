@@ -108,7 +108,7 @@ cookiefmt(Fmt *fp)
 
 	first = 1;
 	for(j=0; j<nelem(stab); j++){
-		t = *(char**)((ulong)c+stab[j].offset);
+		t = *(char**)((uintptr)c+stab[j].offset);
 		if(t == nil)
 			continue;
 		if(first)
@@ -118,7 +118,7 @@ cookiefmt(Fmt *fp)
 		fmtprint(fp, "%s=%q", stab[j].s, t);
 	}
 	for(j=0; j<nelem(itab); j++){
-		k = *(int*)((ulong)c+itab[j].offset);
+		k = *(int*)((uintptr)c+itab[j].offset);
 		if(k == 0)
 			continue;
 		if(first)
@@ -197,7 +197,7 @@ freecookie(Cookie *c)
 	int i;
 
 	for(i=0; i<nelem(stab); i++)
-		free(*(char**)((ulong)c+stab[i].offset));
+		free(*(char**)((uintptr)c+stab[i].offset));
 }
 
 static void
@@ -207,7 +207,7 @@ copycookie(Cookie *c)
 	char **ps;
 
 	for(i=0; i<nelem(stab); i++){
-		ps = (char**)((ulong)c+stab[i].offset);
+		ps = (char**)((uintptr)c+stab[i].offset);
 		if(*ps)
 			*ps = estrdup9p(*ps);
 	}
@@ -295,14 +295,14 @@ addtojar(Jar *jar, char *line, int ondisk)
 		/* string attributes */
 		for(j=0; j<nelem(stab); j++){
 			if(strcmp(stab[j].s, attr) == 0){
-				pstr = (char**)((ulong)&c+stab[j].offset);
+				pstr = (char**)((uintptr)&c+stab[j].offset);
 				*pstr = val;
 			}
 		}
 		/* integer attributes */
 		for(j=0; j<nelem(itab); j++){
 			if(strcmp(itab[j].s, attr) == 0){
-				pint = (int*)((ulong)&c+itab[j].offset);
+				pint = (int*)((uintptr)&c+itab[j].offset);
 				if(val[0]=='\0')
 					*pint = 1;
 				else
@@ -967,7 +967,7 @@ parsecookie(Cookie *c, char *p, char **e, int isns, char *dom, char *path)
 		}
 		for(i=0; i<nelem(stab); i++)
 			if(stab[i].ishttp && cistrcmp(stab[i].s, attr)==0)
-				*(char**)((ulong)c+stab[i].offset) = val;
+				*(char**)((uintptr)c+stab[i].offset) = val;
 		if(cistrcmp(attr, "expires") == 0){
 			if(!isns)
 				return "non-netscape cookie has Expires tag";

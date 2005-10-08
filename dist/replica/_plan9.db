@@ -329,7 +329,7 @@
 386/bin/mtime - 775 sys sys 1115950094 59139
 386/bin/mv - 775 sys sys 1126321691 65489
 386/bin/ndb - 20000000775 sys sys 985743147 0
-386/bin/ndb/cs - 775 sys sys 1125345996 149228
+386/bin/ndb/cs - 775 sys sys 1128707756 149400
 386/bin/ndb/csquery - 775 sys sys 1125345996 61467
 386/bin/ndb/dns - 775 sys sys 1127445050 245101
 386/bin/ndb/dnsdebug - 775 sys sys 1127445050 219717
@@ -5764,7 +5764,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1128093789 256215
+sys/games/lib/fortunes - 664 sys sys 1128693010 256476
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6022,7 +6022,7 @@ sys/include/fcall.h - 664 sys sys 1032058178 3062
 sys/include/flate.h - 664 sys sys 1014929063 1245
 sys/include/frame.h - 664 sys sys 1014929063 2666
 sys/include/geometry.h - 664 sys sys 1014929063 2632
-sys/include/html.h - 664 sys sys 1091904420 15220
+sys/include/html.h - 664 sys sys 1128662123 15232
 sys/include/httpd.h - 664 sys sys 1091904418 5771
 sys/include/ip.h - 664 sys sys 1103554773 2989
 sys/include/keyboard.h - 664 sys sys 1079577798 815
@@ -7642,7 +7642,7 @@ sys/man/6/map - 664 sys sys 944959678 1892
 sys/man/6/mpictures - 664 sys sys 944959678 2899
 sys/man/6/ms - 664 sys sys 958249504 6815
 sys/man/6/namespace - 664 sys sys 1048637182 1576
-sys/man/6/ndb - 664 sys sys 1108476850 6113
+sys/man/6/ndb - 664 sys sys 1128707622 6431
 sys/man/6/plot - 664 sys sys 944959679 6739
 sys/man/6/plumb - 664 sys sys 969499892 10918
 sys/man/6/regexp - 664 sys sys 954089523 2050
@@ -12244,7 +12244,7 @@ sys/src/cmd/mv.c - 664 sys sys 1126278115 4241
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1119276409 6866
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248
-sys/src/cmd/ndb/cs.c - 664 sys sys 1104854491 33070
+sys/src/cmd/ndb/cs.c - 664 sys sys 1128706486 33223
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1123602793 18275
@@ -13627,17 +13627,17 @@ sys/src/cmd/wc.c - 664 sys sys 984717764 12652
 sys/src/cmd/webcookies.c - 664 sys sys 1068411571 23687
 sys/src/cmd/webfs - 20000000775 sys sys 1015015823 0
 sys/src/cmd/webfs/buf.c - 664 sys sys 1032665987 1198
-sys/src/cmd/webfs/client.c - 664 sys sys 1045503603 6504
-sys/src/cmd/webfs/cookies.c - 664 sys sys 1068412965 21874
-sys/src/cmd/webfs/dat.h - 664 sys sys 1045503604 1600
+sys/src/cmd/webfs/client.c - 664 sys sys 1128664611 6608
+sys/src/cmd/webfs/cookies.c - 664 sys sys 1128664611 21888
+sys/src/cmd/webfs/dat.h - 664 sys sys 1128664462 1621
 sys/src/cmd/webfs/fns.h - 664 sys sys 1032665987 1453
-sys/src/cmd/webfs/fs.c - 664 sys sys 1036000101 10942
-sys/src/cmd/webfs/http.c - 664 sys sys 1067722969 6726
+sys/src/cmd/webfs/fs.c - 664 sys sys 1128664603 10944
+sys/src/cmd/webfs/http.c - 664 sys sys 1128666924 9396
 sys/src/cmd/webfs/io.c - 664 sys sys 1034736588 1384
-sys/src/cmd/webfs/main.c - 664 sys sys 1067722969 1062
+sys/src/cmd/webfs/main.c - 664 sys sys 1128664462 1083
 sys/src/cmd/webfs/mkfile - 664 sys sys 1032665986 340
 sys/src/cmd/webfs/plumb.c - 664 sys sys 1015090008 2761
-sys/src/cmd/webfs/url.c - 664 sys sys 1019240175 24238
+sys/src/cmd/webfs/url.c - 664 sys sys 1128664462 24144
 sys/src/cmd/webfs/util.c - 664 sys sys 1015015823 1211
 sys/src/cmd/webfs/webget.c - 664 sys sys 1124711795 1589
 sys/src/cmd/webfsget.c - 664 sys sys 1068413017 1595
@@ -14967,3 +14967,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/webfs - 775 sys sys 1128740945 353759
+386/bin/ndb/cs - 775 sys sys 1128740944 149386
+386/lib/libhtml.a - 664 sys sys 1128740945 220134

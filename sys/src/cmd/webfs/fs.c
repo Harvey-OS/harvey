@@ -273,7 +273,7 @@ fsread(Req *r)
 		c = client[NUM(path)];
 		r->ofcall.count = 0;
 		if(c->url != nil
-		&& (s = *(char**)((ulong)c->url+tab[TYPE(path)].offset)) != nil)
+		&& (s = *(char**)((uintptr)c->url+tab[TYPE(path)].offset)) != nil)
 			readstr(r, s);
 		respond(r, nil);
 		break;
