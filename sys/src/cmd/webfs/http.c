@@ -6,6 +6,8 @@
 #include <thread.h>
 #include <fcall.h>
 #include <9p.h>
+#include <libsec.h>
+#include <auth.h>
 #include "dat.h"
 #include "fns.h"
 
@@ -20,6 +22,8 @@ struct HttpState
 	char *location;
 	char *setcookie;
 	char *netaddr;
+	char *credentials;
+	char autherror[ERRMAX];
 	Ibuf	b;
 };
 
@@ -57,6 +61,106 @@ setcookie(HttpState *hs, char *value)
 	}
 }
 
+static char*
+unquote(char *s, char **ps)
+{
+	char *p;
+
+	if(*s != '"'){
+		p = strpbrk(s, " \t\r\n");
+		*p++ = 0;
+		*ps = p;
+		return s;
+	}
+	for(p=s+1; *p; p++){
+		if(*p == '\"'){
+			*p++ = 0;
+			break;
+		}
+		if(*p == '\\' && *(p+1)){
+			p++;
+			continue;
+		}
+	}
+	memmove(s, s+1, p-(s+1));
+	s[p-(s+1)] = 0;
+	*ps = p;
+	return s;
+}
+
+static char*
+servername(char *addr)
+{
+	char *p;
+
+	if(strncmp(addr, "tcp!", 4) == 0
+	|| strncmp(addr, "net!", 4) == 0)
+		addr += 4;
+	addr = estrdup(addr);
+	p = addr+strlen(addr);
+	if(p>addr && *(p-1) == 's')
+		p--;
+	if(p>addr+5 && strcmp(p-5, "!http") == 0)
+		p[-5] = 0;
+	return addr;
+}
+
+void
+wwwauthenticate(HttpState *hs, char *line)
+{
+	char cred[64], *user, *pass, *realm, *s, *spec, *name;
+	Fmt fmt;
+	UserPasswd *up;
+
+	spec = nil;
+	up = nil;
+	cred[0] = 0;
+	hs->autherror[0] = 0;
+	if(cistrncmp(line, "basic ", 6) != 0){
+		werrstr("unknown auth: %s", line);
+		goto error;
+	}
+	line += 6;
+	if(cistrncmp(line, "realm=", 6) != 0){
+		werrstr("missing realm: %s", line);
+		goto error;
+	}
+	line += 6;
+	user = hs->c->url->user;
+	pass = hs->c->url->passwd;
+	if(user==nil || pass==nil){
+		realm = unquote(line, &line);
+		fmtstrinit(&fmt);
+		name = servername(hs->netaddr);
+		fmtprint(&fmt, "proto=pass service=http server=%q realm=%q", name, realm);
+		free(name);
+		if(hs->c->url->user)
+			fmtprint(&fmt, " user=%q", hs->c->url->user);
+		spec = fmtstrflush(&fmt);
+		if(spec == nil)
+			goto error;
+		if((up = auth_getuserpasswd(nil, "%s", spec)) == nil)
+			goto error;
+		user = up->user;
+		pass = up->passwd;
+	}
+	if((s = smprint("%s:%s", user, pass)) == nil)
+		goto error;
+	free(up);
+	enc64(cred, sizeof(cred), (uchar*)s, strlen(s));
+	memset(s, 0, strlen(s));
+	free(s);
+	hs->credentials = smprint("Basic %s", cred);
+	if(hs->credentials == nil)
+		goto error;
+	return;
+
+error:
+	free(up);
+	free(spec);
+	snprint(hs->autherror, sizeof hs->autherror, "%r");
+}
+
 struct {
 	char *name;									/* Case-insensitive */
 	void (*fn)(HttpState *hs, char *value);
@@ -64,6 +168,7 @@ struct {
 	{ "location:", location },
 	{ "content-type:", contenttype },
 	{ "set-cookie:", setcookie },
+	{ "www-authenticate:", wwwauthenticate },
 };
 
 static int
@@ -137,9 +242,9 @@ httpheaders(HttpState *hs)
 		n = getheader(hs, buf, sizeof(buf));
 		if(n < 0)
 			return -1;
-		if (n == 0)
+		if(n == 0)
 			return 0;
-//print("http header: '%.*s'\n", n, buf);
+		//	print("http header: '%.*s'\n", n, buf);
 		for(i = 0; i < nelem(hdrtab); i++){
 			n = strlen(hdrtab[i].name);
 			if(cistrncmp(buf, hdrtab[i].name, n) == 0){
@@ -158,7 +263,7 @@ httpheaders(HttpState *hs)
 int
 httpopen(Client *c, Url *url)
 {
-	int fd, code, redirect;
+	int fd, code, redirect, authenticate;
 	char *cookies;
 	Ioproc *io;
 	HttpState *hs;
@@ -211,6 +316,11 @@ httpopen(Client *c, Url *url)
 			fprint(2, "<- Content-length: %ud\n", c->npostbody);
 		}
 	}
+	if(c->authenticate){
+		ioprint(io, fd, "Authorization: %s\r\n", c->authenticate);
+		if(httpdebug)
+			fprint(2, "<- Authorization: %s\n", c->authenticate);
+	}
 	ioprint(io, fd, "\r\n");
 	if(c->havepostbody)
 		if(iowrite(io, fd, c->postbody, c->npostbody) != c->npostbody)
@@ -218,6 +328,7 @@ httpopen(Client *c, Url *url)
 
 	c->havepostbody = 0;
 	redirect = 0;
+	authenticate = 0;
 	initibuf(&hs->b, io, fd);
 	code = httprcode(hs);
 
@@ -258,8 +369,14 @@ httpopen(Client *c, Url *url)
 		goto Error;
 
 	case 401:	/* Unauthorized */
+		if(c->authenticate){
+			werrstr("Authentication failed (401)");
+			goto Error;
+		}
+		authenticate = 1;
+		break;
 	case 402:	/* ??? */
-		werrstr("Unauthorized (401,402)");
+		werrstr("Unauthorized (402)");
 		goto Error;
 
 	case 403:	/* Forbidden */
@@ -268,6 +385,10 @@ httpopen(Client *c, Url *url)
 
 	case 404:	/* Not Found */
 		werrstr("Not found on server (404)");
+		goto Error;
+
+	case 407:	/* Proxy auth */
+		werrstr("Proxy authentication required (407)");
 		goto Error;
 
 	case 500:	/* Internal server error */
@@ -296,6 +417,17 @@ httpopen(Client *c, Url *url)
 		goto Error;
 	if(c->ctl.acceptcookies && hs->setcookie)
 		httpsetcookie(hs->setcookie, url->host, url->path);
+	if(authenticate){
+		if(!hs->credentials){
+			if(hs->autherror[0])
+				werrstr("%s", hs->autherror);
+			else
+				werrstr("unauthorized; no www-authenticate: header");
+			return -1;
+		}
+		c->authenticate = hs->credentials;
+		hs->credentials = nil;
+	}
 	if(redirect){
 		if(!hs->location){
 			werrstr("redirection without Location: header");
@@ -349,6 +481,7 @@ httpclose(Client *c)
 	free(hs->location);
 	free(hs->setcookie);
 	free(hs->netaddr);
+	free(hs->credentials);
 	free(hs);
 	c->aux = nil;
 }

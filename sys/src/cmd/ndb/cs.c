@@ -1330,7 +1330,7 @@ ipattrlookup(Ndb *db, char *ipa, char *attr, char *val, int vlen)
 Ndbtuple*
 iplookup(Network *np, char *host, char *serv, int nolookup)
 {
-	char *attr;
+	char *attr, *dnsname;
 	Ndbtuple *t, *nt;
 	Ndbs s;
 	char ts[Maxservice];
@@ -1397,6 +1397,13 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 		t = dnsiplookup(host, &s);
 	if(t == 0)
 		free(ndbgetvalue(db, &s, attr, host, "ip", &t));
+	if(t == 0){
+		dnsname = ndbgetvalue(db, &s, attr, host, "dom", nil);
+		if(dnsname){
+			t = dnsiplookup(dnsname, &s);
+			free(dnsname);
+		}
+	}
 	if(t == 0)
 		t = dnsiplookup(host, &s);
 	if(t == 0)
