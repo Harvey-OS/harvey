@@ -413,7 +413,7 @@
 386/bin/syscall - 775 sys sys 1115950116 73536
 386/bin/tail - 775 sys sys 1125346016 66169
 386/bin/tar - 775 sys sys 1125631815 97035
-386/bin/tbl - 775 sys sys 1125346017 113167
+386/bin/tbl - 775 sys sys 1128827256 113237
 386/bin/tcs - 775 sys sys 1125544176 256580
 386/bin/tee - 775 sys sys 1115950118 38428
 386/bin/telco - 775 sys sys 1115950118 103315
@@ -12954,7 +12954,7 @@ sys/src/cmd/tbl/tb.c - 664 sys sys 944961244 1732
 sys/src/cmd/tbl/tc.c - 664 sys sys 944961244 1268
 sys/src/cmd/tbl/te.c - 664 sys sys 944961244 1071
 sys/src/cmd/tbl/tf.c - 664 sys sys 944961244 1283
-sys/src/cmd/tbl/tg.c - 664 sys sys 944961244 2058
+sys/src/cmd/tbl/tg.c - 664 sys sys 1128819351 2164
 sys/src/cmd/tbl/ti.c - 664 sys sys 944961244 1202
 sys/src/cmd/tbl/tm.c - 664 sys sys 944961244 1139
 sys/src/cmd/tbl/tr.c - 664 sys sys 944961244 993
