@@ -329,7 +329,7 @@
 386/bin/mtime - 775 sys sys 1115950094 59139
 386/bin/mv - 775 sys sys 1126321691 65489
 386/bin/ndb - 20000000775 sys sys 985743147 0
-386/bin/ndb/cs - 775 sys sys 1128707756 149400
+386/bin/ndb/cs - 775 sys sys 1128740944 149386
 386/bin/ndb/csquery - 775 sys sys 1125345996 61467
 386/bin/ndb/dns - 775 sys sys 1127445050 245101
 386/bin/ndb/dnsdebug - 775 sys sys 1127445050 219717
@@ -501,7 +501,7 @@
 386/bin/vtdump - 775 sys sys 1125346038 159458
 386/bin/wc - 775 sys sys 1115950143 41156
 386/bin/webcookies - 775 sys sys 1125346039 161625
-386/bin/webfs - 775 sys sys 1127360616 350516
+386/bin/webfs - 775 sys sys 1128740945 353759
 386/bin/webfsget - 775 sys sys 1115950144 39143
 386/bin/wikifs - 775 sys sys 1128222506 202486
 386/bin/winwatch - 775 sys sys 1115950145 154555
@@ -547,7 +547,7 @@
 386/lib/libflate.a - 664 sys sys 1115950153 76872
 386/lib/libframe.a - 664 sys sys 1115950153 66060
 386/lib/libgeometry.a - 664 sys sys 1115950153 50470
-386/lib/libhtml.a - 664 sys sys 1127360619 220134
+386/lib/libhtml.a - 664 sys sys 1128740945 220134
 386/lib/libhttpd.a - 664 sys sys 1127790504 99596
 386/lib/libip.a - 664 sys sys 1116126324 35602
 386/lib/libl.a - 664 sys sys 1115950154 5384
@@ -12954,7 +12954,7 @@ sys/src/cmd/tbl/tb.c - 664 sys sys 944961244 1732
 sys/src/cmd/tbl/tc.c - 664 sys sys 944961244 1268
 sys/src/cmd/tbl/te.c - 664 sys sys 944961244 1071
 sys/src/cmd/tbl/tf.c - 664 sys sys 944961244 1283
-sys/src/cmd/tbl/tg.c - 664 sys sys 944961244 2058
+sys/src/cmd/tbl/tg.c - 664 sys sys 1128819351 2164
 sys/src/cmd/tbl/ti.c - 664 sys sys 944961244 1202
 sys/src/cmd/tbl/tm.c - 664 sys sys 944961244 1139
 sys/src/cmd/tbl/tr.c - 664 sys sys 944961244 993
@@ -14967,6 +14967,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/webfs - 775 sys sys 1128740945 353759
-386/bin/ndb/cs - 775 sys sys 1128740944 149386
-386/lib/libhtml.a - 664 sys sys 1128740945 220134
+386/bin/tbl - 775 sys sys 1128827256 113237
