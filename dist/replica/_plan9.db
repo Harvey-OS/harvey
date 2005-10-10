@@ -413,7 +413,7 @@
 386/bin/syscall - 775 sys sys 1115950116 73536
 386/bin/tail - 775 sys sys 1125346016 66169
 386/bin/tar - 775 sys sys 1125631815 97035
-386/bin/tbl - 775 sys sys 1125346017 113167
+386/bin/tbl - 775 sys sys 1128827256 113237
 386/bin/tcs - 775 sys sys 1125544176 256580
 386/bin/tee - 775 sys sys 1115950118 38428
 386/bin/telco - 775 sys sys 1115950118 103315
@@ -14967,4 +14967,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/tbl - 775 sys sys 1128827256 113237
