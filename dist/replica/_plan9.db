@@ -13650,7 +13650,7 @@ sys/src/cmd/wikifs/mkfile - 664 sys sys 1045503591 468
 sys/src/cmd/wikifs/parse.c - 664 sys sys 1124975709 5394
 sys/src/cmd/wikifs/parsehist.c - 664 sys sys 1124975708 1988
 sys/src/cmd/wikifs/testwrite.c - 664 sys sys 1018211093 818
-sys/src/cmd/wikifs/tohtml.c - 664 sys sys 1128179598 14527
+sys/src/cmd/wikifs/tohtml.c - 664 sys sys 1128979520 14527
 sys/src/cmd/wikifs/util.c - 664 sys sys 1018211093 1807
 sys/src/cmd/wikifs/wdir.c - 664 sys sys 1018211094 876
 sys/src/cmd/wikifs/wiki.h - 664 sys sys 1113275619 1897
@@ -14967,3 +14967,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/wikifs - 775 sys sys 1129000073 202470
