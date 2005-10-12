@@ -503,7 +503,7 @@
 386/bin/webcookies - 775 sys sys 1125346039 161625
 386/bin/webfs - 775 sys sys 1128740945 353759
 386/bin/webfsget - 775 sys sys 1115950144 39143
-386/bin/wikifs - 775 sys sys 1128222506 202486
+386/bin/wikifs - 775 sys sys 1129000073 202470
 386/bin/winwatch - 775 sys sys 1115950145 154555
 386/bin/xd - 775 sys sys 1125346040 64044
 386/bin/xmr - 775 sys sys 1115950145 40157
@@ -14967,4 +14967,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/wikifs - 775 sys sys 1129000073 202470
