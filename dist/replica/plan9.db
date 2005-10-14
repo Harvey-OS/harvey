@@ -285,12 +285,12 @@
 386/bin/ip/gping - 775 sys sys 1116126318 182819
 386/bin/ip/hogports - 775 sys sys 1118632064 42883
 386/bin/ip/httpd - 20000000775 sys sys 1016920846 0
-386/bin/ip/httpd/httpd - 775 sys sys 1128568177 292364
+386/bin/ip/httpd/httpd - 775 sys sys 1129259480 292482
 386/bin/ip/httpd/imagemap - 775 sys sys 1127790501 114798
 386/bin/ip/httpd/man2html - 775 sys sys 1127790501 123085
 386/bin/ip/httpd/netlib_find - 775 sys sys 1127790502 115643
 386/bin/ip/httpd/netlib_history - 775 sys sys 1127790502 114439
-386/bin/ip/httpd/save - 775 sys sys 1127790502 131094
+386/bin/ip/httpd/save - 775 sys sys 1129259481 131212
 386/bin/ip/httpd/webls - 775 sys sys 1127790503 131239
 386/bin/ip/httpd/wikipost - 775 sys sys 1127790503 112677
 386/bin/ip/imap4d - 775 sys sys 1128568177 237569
@@ -11945,7 +11945,7 @@ sys/src/cmd/ip/httpd/netlib_find.c - 664 sys sys 1015090172 6247
 sys/src/cmd/ip/httpd/netlib_history.c - 664 sys sys 1121977160 4748
 sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1042522766 2978
 sys/src/cmd/ip/httpd/save.c - 664 sys sys 1015090172 3175
-sys/src/cmd/ip/httpd/sendfd.c - 664 sys sys 1017679317 12134
+sys/src/cmd/ip/httpd/sendfd.c - 664 sys sys 1129202621 12264
 sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1120737502 7658
 sys/src/cmd/ip/httpd/webls.denied - 664 sys sys 1064887847 3
 sys/src/cmd/ip/httpd/wikipost.c - 664 sys sys 1083771074 5913
