@@ -125,9 +125,10 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		r = c->head.range;
 		if(r == nil)
 			hprint(hout, "Content-Length: %lld\r\n", length);
-		else if(r->next == nil)
+		else if(r->next == nil){
 			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, length);
-		else{
+			hprint(hout, "Content-Length: %ld\r\n", r->stop - r->start);
+		}else{
 			multir = 1;
 			boundary = hmkmimeboundary(c);
 			hprint(hout, "Content-Type: multipart/byteranges; boundary=%s\r\n", boundary);
@@ -195,6 +196,7 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 			hprint(hout, "\r\n--%s\r\n", boundary);
 			printtype(hout, type, enc);
 			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, length);
+			hprint(hout, "Content-Length: %ld\r\n", r->stop - r->start);
 			hprint(hout, "\r\n");
 		}
 		hflush(hout);
