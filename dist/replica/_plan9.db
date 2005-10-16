@@ -8040,7 +8040,7 @@ sys/src/9/port/alloc.c - 664 sys sys 1102093389 5645
 sys/src/9/port/allocb.c - 664 sys sys 1123676437 3340
 sys/src/9/port/auth.c - 664 sys sys 1123647282 2392
 sys/src/9/port/cache.c - 664 sys sys 1126586168 9241
-sys/src/9/port/chan.c - 664 sys sys 1126586131 33640
+sys/src/9/port/chan.c - 664 sys sys 1129373741 33642
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1126586172 8246
