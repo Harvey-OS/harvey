@@ -156,7 +156,7 @@
 386/bin/awd - 775 sys sys 1116903729 58738
 386/bin/awk - 775 sys sys 1127360571 321759
 386/bin/basename - 775 sys sys 1115950051 37884
-386/bin/bc - 775 sys sys 1125345961 81767
+386/bin/bc - 775 sys sys 1129518547 81774
 386/bin/bind - 775 sys sys 1115950052 59566
 386/bin/bitsy - 20000000775 sys sys 1018721039 0
 386/bin/bitsy/bitsyload - 775 sys sys 1115950052 63363
@@ -9653,7 +9653,7 @@ sys/src/cmd/awk/re.c - 664 sys sys 964456820 6987
 sys/src/cmd/awk/run.c - 664 sys sys 1036687054 42680
 sys/src/cmd/awk/tran.c - 664 sys sys 944960802 11855
 sys/src/cmd/basename.c - 664 sys sys 944961619 605
-sys/src/cmd/bc.y - 664 sys sys 1121977158 13370
+sys/src/cmd/bc.y - 664 sys sys 1129475330 13379
 sys/src/cmd/bind.c - 664 sys sys 944961467 830
 sys/src/cmd/bitsy - 20000000775 sys sys 988249960 0
 sys/src/cmd/bitsy/bitsyload.c - 664 sys sys 1019509527 2494
