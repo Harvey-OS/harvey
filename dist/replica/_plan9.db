@@ -156,7 +156,7 @@
 386/bin/awd - 775 sys sys 1116903729 58738
 386/bin/awk - 775 sys sys 1127360571 321759
 386/bin/basename - 775 sys sys 1115950051 37884
-386/bin/bc - 775 sys sys 1125345961 81767
+386/bin/bc - 775 sys sys 1129518547 81774
 386/bin/bind - 775 sys sys 1115950052 59566
 386/bin/bitsy - 20000000775 sys sys 1018721039 0
 386/bin/bitsy/bitsyload - 775 sys sys 1115950052 63363
@@ -14967,4 +14967,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/bc - 775 sys sys 1129518547 81774
