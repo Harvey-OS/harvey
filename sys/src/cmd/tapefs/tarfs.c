@@ -61,11 +61,11 @@ populate(char *name)
 		||  strrchr(dblock.dbuf.name, '\0')[-1] == '/')
 			f.mode |= DMDIR;
 		f.mode &= DMDIR|0777;
-		linkflg = dblock.dbuf.linkflag=='s' || dblock.dbuf.linkflag=='1';
+		linkflg = dblock.dbuf.linkflag=='5' || dblock.dbuf.linkflag=='1';
 		isabs = dblock.dbuf.name[0]=='/';
 		if (chksum != checksum()){
 			fprint(1, "bad checksum on %.28s\n", dblock.dbuf.name);
-			abort();
+			exits("checksum");
 		}
 		if (linkflg) {
 			/*fprint(2, "link %s->%s skipped\n", dblock.dbuf.name,
@@ -99,7 +99,7 @@ char *
 doread(Ram *r, long off, long cnt)
 {
 
-	seek(tapefile, (TBLOCK * (long)r->data)+off, 0);
+	seek(tapefile, (TBLOCK * (vlong)r->data)+off, 0);
 	if (cnt>sizeof(dblock.tbuf))
 		error("read too big");
 	read(tapefile, dblock.tbuf, cnt);

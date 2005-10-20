@@ -238,7 +238,7 @@
 386/bin/fs/32vfs - 775 sys sys 1125345974 94498
 386/bin/fs/cpiofs - 775 sys sys 1125345974 93418
 386/bin/fs/tapfs - 775 sys sys 1125345974 95971
-386/bin/fs/tarfs - 775 sys sys 1125345974 94319
+386/bin/fs/tarfs - 775 sys sys 1129777706 94353
 386/bin/fs/tpfs - 775 sys sys 1125345975 93174
 386/bin/fs/v10fs - 775 sys sys 1125345975 94562
 386/bin/fs/v6fs - 775 sys sys 1125345975 94480
@@ -9849,7 +9849,7 @@ sys/src/cmd/diff/diff.h - 664 sys sys 1106723609 794
 sys/src/cmd/diff/diffdir.c - 664 sys sys 1014925333 1791
 sys/src/cmd/diff/diffio.c - 664 sys sys 1114696977 6599
 sys/src/cmd/diff/diffreg.c - 664 sys sys 1114037841 8825
-sys/src/cmd/diff/main.c - 664 sys sys 1106938096 4338
+sys/src/cmd/diff/main.c - 664 sys sys 1129722806 4340
 sys/src/cmd/diff/mkfile - 664 sys sys 944960882 141
 sys/src/cmd/disk - 20000000775 sys sys 1018468546 0
 sys/src/cmd/disk/9660 - 20000000775 sys sys 1017681443 0
@@ -12929,7 +12929,7 @@ sys/src/cmd/tapefs/fs.c - 664 sys sys 1109607563 9754
 sys/src/cmd/tapefs/mkfile - 664 sys sys 1097914131 254
 sys/src/cmd/tapefs/tapefs.h - 664 sys sys 1014926384 1609
 sys/src/cmd/tapefs/tapfs.c - 664 sys sys 1063854819 1938
-sys/src/cmd/tapefs/tarfs.c - 664 sys sys 1071458376 2672
+sys/src/cmd/tapefs/tarfs.c - 664 sys sys 1129723024 2683
 sys/src/cmd/tapefs/tpfs.c - 664 sys sys 1071322722 2012
 sys/src/cmd/tapefs/util.c - 664 sys sys 1014926385 2653
 sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1014926385 3754
