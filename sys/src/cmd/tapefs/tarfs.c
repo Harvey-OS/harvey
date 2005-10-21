@@ -58,10 +58,12 @@ populate(char *name)
 		/* the mode test is ugly but sometimes necessary */
 		if (dblock.dbuf.linkflag == '5'
 		|| (f.mode&0170000) == 040000
-		||  strrchr(dblock.dbuf.name, '\0')[-1] == '/')
+		||  strrchr(dblock.dbuf.name, '\0')[-1] == '/'){
 			f.mode |= DMDIR;
+			f.size = 0;
+		}
 		f.mode &= DMDIR|0777;
-		linkflg = dblock.dbuf.linkflag=='5' || dblock.dbuf.linkflag=='1';
+		linkflg = dblock.dbuf.linkflag=='s' || dblock.dbuf.linkflag=='1';
 		isabs = dblock.dbuf.name[0]=='/';
 		if (chksum != checksum()){
 			fprint(1, "bad checksum on %.28s\n", dblock.dbuf.name);
