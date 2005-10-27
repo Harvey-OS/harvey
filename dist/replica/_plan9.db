@@ -14154,7 +14154,7 @@ sys/src/libc/fmt - 20000000775 sys sys 1014927318 0
 sys/src/libc/fmt/dofmt.c - 664 sys sys 1115925565 8658
 sys/src/libc/fmt/dorfmt.c - 664 sys sys 1014927313 777
 sys/src/libc/fmt/errfmt.c - 664 sys sys 1016731560 175
-sys/src/libc/fmt/fltfmt.c - 664 sys sys 1034952854 4339
+sys/src/libc/fmt/fltfmt.c - 664 sys sys 1130374352 4490
 sys/src/libc/fmt/fmt.c - 664 sys sys 1115925564 3102
 sys/src/libc/fmt/fmtdef.h - 664 sys sys 1018029975 1808
 sys/src/libc/fmt/fmtfd.c - 664 sys sys 1014927314 508
