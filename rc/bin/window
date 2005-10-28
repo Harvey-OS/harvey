@@ -81,6 +81,10 @@ if(~ $1 -m){
 					shift 2
 				case -r
 					shift 5
+				case -scroll
+					shift
+				case -noscroll
+					shift
 				case -hide
 					shift
 				}

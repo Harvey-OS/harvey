@@ -3,12 +3,14 @@
 
 #define	NEXIT	33
 
-static Lock onexlock;
-static struct
-{
+typedef struct Onex Onex;
+struct Onex{
 	void	(*f)(void);
 	int	pid;
-}onex[NEXIT];
+};
+
+static Lock onexlock;
+Onex onex[NEXIT];
 
 atexit(void (*f)(void))
 {

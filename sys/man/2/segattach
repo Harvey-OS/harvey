@@ -87,7 +87,7 @@ the segment is freed.
 .I Addr
 may be any address within the bounds of the segment.
 .PP
-The system will not permit the text and stack segments to be detached
+The system will not permit the initial stack segment to be detached
 from the address space.
 .PP
 .I Segfree

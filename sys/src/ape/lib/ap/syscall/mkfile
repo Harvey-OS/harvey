@@ -63,7 +63,16 @@ install:V:
 				MOVL AX,4(CX)'
 			}
 			echo RET
-		case sparc
+		case amd64
+			if(~ $i _SEEK)
+				echo TEXT __SEEK'(SB)', 1, '$0'
+			if not
+				echo TEXT $i'(SB)', 1, '$0'
+			echo MOVQ RARG, 'a0+0(FP)'
+			echo MOVQ '$'$n, RARG
+			echo SYSCALL
+			echo RET
+		case sparc sparc64
 			echo TEXT $i'(SB)', 1, '$0'
 			echo MOVW R7, '0(FP)'
 			echo MOVW '$'$n, R7

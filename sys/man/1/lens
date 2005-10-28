@@ -37,6 +37,8 @@ display, as will changing the magnification.
 To make counting pixels easier, typing a
 .B g
 toggles whether a checkerboard grid is imposed on the magnified area.
+.PP
+Button 3 brings up a menu of actions.
 .SH SOURCE
 .B /sys/src/cmd/lens.c
 .SH BUGS

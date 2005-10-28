@@ -8,6 +8,29 @@ enum {
 	Maxmag = 16
 };
 
+enum {
+	Mzoom,
+	Munzoom,
+	Mgrid,
+	Mredraw,
+	Mexit
+};
+
+char *menustr[] = {
+	"zoom",
+	"unzoom",
+	"grid",
+	"redraw",
+	"exit",
+	nil
+};
+
+Menu menu = {
+	menustr,
+	nil,
+	-1
+};
+
 Point lastp;
 Image *red;
 Image *tmp;
@@ -86,10 +109,13 @@ main(int argc, char *argv[])
 		case Ekeyboard:
 			switch(e.kbdc){
 			case 'q':
+			case 0x7f:
 			case '\04':
+			caseexit:
 				exits(nil);
 			case '=':
 			case '+':
+			casezoom:
 				if(mag < Maxmag){
 					mag++;
 					makegrid();
@@ -97,12 +123,14 @@ main(int argc, char *argv[])
 				}
 				break;
 			case 'g':
+			casegrid:
 				showgrid = !showgrid;
 				makegrid();
 				drawit();
 				break;
 			case '-':
 			case '_':
+			caseunzoom:
 				if(mag > 1){
 					mag--;
 					makegrid();
@@ -111,6 +139,7 @@ main(int argc, char *argv[])
 				break;
 			case '.':
 			case ' ':
+			caseredraw:
 				drawit();
 				break;
 			case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case'0':
@@ -121,14 +150,25 @@ main(int argc, char *argv[])
 				drawit();
 				break;
 			}
-			if(e.kbdc == 'q' || e.kbdc == '\04')
-				exits(nil);
 			break;
 		case Emouse:
-			if(e.mouse.buttons){
+			if(e.mouse.buttons & 1){
 				lastp = e.mouse.xy;
 				drawit();
 			}
+			if(e.mouse.buttons & 4)
+				switch(emenuhit(3, &e.mouse, &menu)){
+				case Mzoom:
+					goto casezoom;
+				case Munzoom:
+					goto caseunzoom;
+				case Mgrid:
+					goto casegrid;
+				case Mredraw:
+					goto caseredraw;
+				case Mexit:
+					goto caseexit;
+				}
 			break;
 		}
 }
