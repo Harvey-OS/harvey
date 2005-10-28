@@ -112,7 +112,7 @@ char *
 doread(Ram *r, long off, long cnt)
 {
 
-	seek(tapefile, (long)r->data+off, 0);
+	seek(tapefile, (vlong)r->data+off, 0);
 	if (cnt>sizeof(dblock.tbuf))
 		error("read too big");
 	read(tapefile, dblock.tbuf, cnt);

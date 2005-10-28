@@ -268,7 +268,7 @@ int	yyerrflag = 0;		/* error recovery flag */
 char*
 yytokname(int yyc)
 {
-	static char x[10];
+	static char x[16];
 
 	if(yyc > 0 && yyc <= sizeof(yytoknames)/sizeof(yytoknames[0]))
 	if(yytoknames[yyc-1])
@@ -280,7 +280,7 @@ yytokname(int yyc)
 char*
 yystatname(int yys)
 {
-	static char x[10];
+	static char x[16];
 
 	if(yys >= 0 && yys < sizeof(yystates)/sizeof(yystates[0]))
 	if(yystates[yys])

@@ -138,7 +138,7 @@ xfstat(Xfid *xf, Dir *dp)
 		dp->uid = xf->uid;
 		dp->gid = xf->uid;
 		dp->muid = xf->uid;
-		dp->qid.path = (ulong)xf->uid;
+		dp->qid.path = (uvlong)xf->uid;
 		dp->qid.type = QTFILE;
 		dp->qid.vers = 0;
 		dp->mode = 0666;

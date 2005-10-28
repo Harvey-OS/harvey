@@ -616,7 +616,7 @@ fswalk(Fs *fs, Request *r, Fid *f)
 				err = Eexist;
 				break;
 			}
-			qid[nqid].path = (uint)dp;
+			qid[nqid].path = (uvlong)dp;
 			qid[nqid].vers = 0;
 		}
 		if(nqid == 0 && err == nil)
@@ -856,7 +856,7 @@ fsread(Fs *fs, Request *r, Fid *f)
 					d.gid = "none";
 					d.muid = "none";
 					d.qid.type = QTFILE;
-					d.qid.path = (uint)dp;
+					d.qid.path = (uvlong)dp;
 					d.qid.vers = 0;
 					d.length = f->df->file[dp->fno].tarlen;
 					d.mode = 0444;
@@ -932,7 +932,7 @@ fsstat(Fs *fs, Request *r, Fid *f)
 		d.gid = "none";
 		d.muid = "none";
 		d.qid.type = QTFILE;
-		d.qid.path = (uint)dp;
+		d.qid.path = (uvlong)dp;
 		d.qid.vers = 0;
 		d.length = f->df->file[dp->fno].tarlen;
 		d.mode = 0444;

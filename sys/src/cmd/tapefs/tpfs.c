@@ -89,7 +89,7 @@ doread(Ram *r, long off, long cnt)
 {
 	if (cnt>sizeof(buffer))
 		print("count too big\n");
-	seek(tapefile, 512*(int)r->data+off, 0);
+	seek(tapefile, 512*(vlong)r->data+off, 0);
 	read(tapefile, buffer, cnt);
 	return buffer;
 }

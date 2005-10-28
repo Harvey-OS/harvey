@@ -747,6 +747,10 @@ bogus:
 	s = (char*)headStr;
 	if(date2tm(&tm, s) == nil)
 		s = m->info[IUnixDate];
+	if(s == nil){
+		free(ss);
+		goto bogus;
+	}
 	m->unixDate = estrdup(s);
 	free(ss);
 	return 1;
