@@ -52,11 +52,11 @@ main(int argc, char *argv[])
 	exits(0);
 }
 void
-work(void){
-	int c;
+work(void)
+{
+	int c, cc;
 	struct keyw *lptr;
 	char *pt;
-	char cc;
 	int ct;
 
 	while ((c = getch()) != Beof){
@@ -471,6 +471,7 @@ work(void){
 				putch(cc,NO);
 				continue;
 			}
+			unget(cc);
 			if (question == 1){
 				question = 0;
 				gotop(c);

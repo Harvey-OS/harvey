@@ -25,7 +25,7 @@ static struct
 	QLock;
 
 	int	raw;		/* true if we shouldn't process input */
-	int	ctl;		/* number of opens to the control file */
+	Ref	ctl;		/* number of opens to the control file */
 	int	x;		/* index into line */
 	char	line[1024];	/* current input line */
 
@@ -147,6 +147,9 @@ putstrn0(char *str, int n, int usewrite)
 {
 	int m;
 	char *t;
+
+	if(!islo())
+		usewrite = 0;
 
 	/*
 	 *  how many different output devices do we need?
@@ -408,6 +411,7 @@ echo(char *buf, int n)
 			xsummary();
 			ixsummary();
 			mallocsummary();
+		//	memorysummary();
 			pagersummary();
 			return;
 		case 'd':
@@ -564,9 +568,9 @@ static Dirtab consdir[]={
 	"cputime",	{Qcputime},	6*NUMSIZE,	0444,
 	"drivers",	{Qdrivers},	0,		0444,
 	"hostdomain",	{Qhostdomain},	DOMLEN,		0664,
-	"hostowner",	{Qhostowner},	0,	0664,
-	"kmesg",		{Qkmesg},	0,	0440,
-	"kprint",		{Qkprint, 0, QTEXCL},	0,	DMEXCL|0440,
+	"hostowner",	{Qhostowner},	0,		0664,
+	"kmesg",	{Qkmesg},	0,		0440,
+	"kprint",	{Qkprint, 0, QTEXCL},	0,	DMEXCL|0440,
 	"null",		{Qnull},	0,		0666,
 	"osversion",	{Qosversion},	0,		0444,
 	"pgrpid",	{Qpgrpid},	NUMSIZE,	0444,
@@ -578,7 +582,7 @@ static Dirtab consdir[]={
 	"sysname",	{Qsysname},	0,		0664,
 	"sysstat",	{Qsysstat},	0,		0666,
 	"time",		{Qtime},	NUMSIZE+3*VLNUMSIZE,	0664,
-	"user",		{Quser},	0,	0666,
+	"user",		{Quser},	0,		0666,
 	"zero",		{Qzero},	0,		0444,
 };
 
@@ -648,9 +652,7 @@ consopen(Chan *c, int omode)
 	c = devopen(c, omode, consdir, nelem(consdir), devgen);
 	switch((ulong)c->qid.path){
 	case Qconsctl:
-		qlock(&kbd);
-		kbd.ctl++;
-		qunlock(&kbd);
+		incref(&kbd.ctl);
 		break;
 
 	case Qkprint:
@@ -680,10 +682,8 @@ consclose(Chan *c)
 	/* last close of control file turns off raw */
 	case Qconsctl:
 		if(c->flag&COPEN){
-			qlock(&kbd);
-			if(--kbd.ctl == 0)
+			if(decref(&kbd.ctl) == 0)
 				kbd.raw = 0;
-			qunlock(&kbd);
 		}
 		break;
 
@@ -702,14 +702,14 @@ consread(Chan *c, void *buf, long n, vlong off)
 {
 	ulong l;
 	Mach *mp;
-	char *b, *bp;
+	char *b, *bp, ch;
 	char tmp[256];		/* must be >= 18*NUMSIZE (Qswap) */
-	char *cbuf = buf;
-	int ch, i, k, id, eol;
+	int i, k, id, send;
 	vlong offset = off;
 
 	if(n <= 0)
 		return n;
+
 	switch((ulong)c->qid.path){
 	case Qdir:
 		return devdirread(c, buf, n, consdir, nelem(consdir), devgen);
@@ -720,47 +720,40 @@ consread(Chan *c, void *buf, long n, vlong off)
 			qunlock(&kbd);
 			nexterror();
 		}
-		if(kbd.raw) {
-			if(qcanread(lineq))
-				n = qread(lineq, buf, n);
-			else {
-				/* read as much as possible */
-				do {
-					i = qread(kbdq, cbuf, n);
-					cbuf += i;
-					n -= i;
-				} while (n>0 && qcanread(kbdq));
-				n = cbuf - (char*)buf;
-			}
-		} else {
-			while(!qcanread(lineq)) {
-				qread(kbdq, &kbd.line[kbd.x], 1);
-				ch = kbd.line[kbd.x];
-				eol = 0;
+		while(!qcanread(lineq)){
+			qread(kbdq, &ch, 1);
+			send = 0;
+			if(ch == 0){
+				/* flush output on rawoff -> rawon */
+				if(kbd.x > 0)
+					send = !qcanread(kbdq);
+			}else if(kbd.raw){
+				kbd.line[kbd.x++] = ch;
+				send = !qcanread(kbdq);
+			}else{
 				switch(ch){
 				case '\b':
-					if(kbd.x)
+					if(kbd.x > 0)
 						kbd.x--;
 					break;
-				case 0x15:
+				case 0x15:	/* ^U */
 					kbd.x = 0;
 					break;
 				case '\n':
-				case 0x04:
-					eol = 1;
+				case 0x04:	/* ^D */
+					send = 1;
 				default:
-					kbd.line[kbd.x++] = ch;
+					if(ch != 0x04)
+						kbd.line[kbd.x++] = ch;
 					break;
 				}
-				if(kbd.x == sizeof(kbd.line) || eol){
-					if(ch == 0x04)
-						kbd.x--;
-					qwrite(lineq, kbd.line, kbd.x);
-					kbd.x = 0;
-				}
 			}
-			n = qread(lineq, buf, n);
+			if(send || kbd.x == sizeof kbd.line){
+				qwrite(lineq, kbd.line, kbd.x);
+				kbd.x = 0;
+			}
 		}
+		n = qread(lineq, buf, n);
 		qunlock(&kbd);
 		poperror();
 		return n;
@@ -932,15 +925,18 @@ consread(Chan *c, void *buf, long n, vlong off)
 static long
 conswrite(Chan *c, void *va, long n, vlong off)
 {
-	char buf[256];
+	char buf[256], ch;
 	long l, bp;
-	char *a = va;
+	char *a;
 	Mach *mp;
 	int id, fd;
 	Chan *swc;
-	ulong offset = off;
+	ulong offset;
 	Cmdbuf *cb;
 	Cmdtab *ct;
+
+	a = va;
+	offset = off;
 
 	switch((ulong)c->qid.path){
 	case Qcons:
@@ -967,16 +963,14 @@ conswrite(Chan *c, void *va, long n, vlong off)
 		for(a = buf; a;){
 			if(strncmp(a, "rawon", 5) == 0){
 				qlock(&kbd);
-				if(kbd.x){
-					qwrite(kbdq, kbd.line, kbd.x);
-					kbd.x = 0;
-				}
 				kbd.raw = 1;
+				/* clumsy hack - wake up reader */
+				ch = 0;
+				qwrite(kbdq, &ch, 1);			
 				qunlock(&kbd);
 			} else if(strncmp(a, "rawoff", 6) == 0){
 				qlock(&kbd);
 				kbd.raw = 0;
-				kbd.x = 0;
 				qunlock(&kbd);
 			} else if(strncmp(a, "ctlpon", 6) == 0){
 				kbd.ctlpoff = 0;

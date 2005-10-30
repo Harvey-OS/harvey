@@ -20,7 +20,7 @@ case checkready checkdone
 	if(! ps | grep -s ' fossil$'){
 		echo 'srv -p fscons' > /env/fossilconf
 		echo 'srv -AP fossil' >> /env/fossilconf
-		fossil/conf $fossil | sed 's/^fsys main open .*/& -AWVP/' |
+		fossil/conf $fossil | sed 's/^fsys main open .*/& -c 100 -AWVP/' |
 			sed 's/^fsys main snaptime .*//' >> /env/fossilconf
 		if(! logprog fossil/fossil -c .' /env/fossilconf'>>[2]/srv/log){
 			echo 'fossil: '^$status
