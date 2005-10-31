@@ -122,6 +122,8 @@ struct File {
 	Tree *tree;
 	int nchild;
 	int allocd;
+	int nxchild;
+	Ref readers;
 };
 
 struct Tree {
