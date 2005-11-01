@@ -30,7 +30,7 @@ The scan code values are hardware dependent and can vary
 from keyboard to keyboard.
 .PP
 Writes to the file change the map.
-Lines written to the file must contain three space-separated numeric fields,
+Lines written to the file must contain three space-separated fields,
 representing the table number, scan code index, and Unicode character.
 Values are taken to be decimal unless they start with
 .B 0x
@@ -43,7 +43,20 @@ where
 .I x
 gives the UTF-8 representation of the character
 (see
-.IR utf (6)).
+.IR utf (6)),
+or as 
+.BI ^ X
+to represent a control character or as
+.BI M n
+to represent a mouse button.
+.PP
+The map
+.B /sys/lib/kbmap/mouse-fn
+maps the F1, F2, and F3 keys to the three mouse buttons.
+Similarly, 
+.B mouse-csa
+maps the left Control, Start, and Alt keys to the three mouse buttons.
+These maps are useful on laptops without three-button mice.
 .SH "SEE ALSO"
 .IR cons (3),
 .IR keyboard (6),

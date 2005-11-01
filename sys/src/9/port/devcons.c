@@ -962,16 +962,12 @@ conswrite(Chan *c, void *va, long n, vlong off)
 		buf[n] = 0;
 		for(a = buf; a;){
 			if(strncmp(a, "rawon", 5) == 0){
-				qlock(&kbd);
 				kbd.raw = 1;
 				/* clumsy hack - wake up reader */
 				ch = 0;
 				qwrite(kbdq, &ch, 1);			
-				qunlock(&kbd);
 			} else if(strncmp(a, "rawoff", 6) == 0){
-				qlock(&kbd);
 				kbd.raw = 0;
-				qunlock(&kbd);
 			} else if(strncmp(a, "ctlpon", 6) == 0){
 				kbd.ctlpoff = 0;
 			} else if(strncmp(a, "ctlpoff", 7) == 0){

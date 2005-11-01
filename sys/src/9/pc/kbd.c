@@ -6,6 +6,8 @@
 #include	"io.h"
 #include	"../port/error.h"
 
+extern void mousetrack(int, int, int, int);
+
 enum {
 	Data=		0x60,		/* data port */
 
@@ -22,7 +24,6 @@ enum {
 	Cmd=		0x64,		/* command port (write only) */
 
 	Spec=		0xF800,		/* Unicode private space */
-
 	PF=		Spec|0x20,	/* num pad function key */
 	View=		Spec|0x00,	/* view (shift window up) */
 	KF=		0xF000,		/* function key (begin Unicode private space) */
@@ -34,6 +35,7 @@ enum {
 	Num=		Spec|0x65,
 	Middle=		Spec|0x66,
 	Altgr=		Spec|0x67,
+	Kmouse=		Spec|0x100,
 	No=		0x00,		/* peter */
 
 	Home=		KF|13,
@@ -168,6 +170,7 @@ enum
 };
 
 int mouseshifted;
+int kbdbuttons;
 
 static Lock i8042lock;
 static uchar ccc;
@@ -289,6 +292,20 @@ i8042auxcmds(uchar *cmd, int ncmd)
 	return i;
 }
 
+struct {
+	int esc1;
+	int esc2;
+	int alt;
+	int altgr;
+	int caps;
+	int ctl;
+	int num;
+	int shift;
+	int collecting;
+	int nk;
+	Rune kc[5];
+} kbscan;
+
 /*
  *  keyboard interrupt
  */
@@ -296,10 +313,6 @@ static void
 i8042intr(Ureg*, void*)
 {
 	int s, c, i;
-	static int esc1, esc2;
-	static int alt, altgr, caps, ctl, num, shift;
-	static int collecting, nk;
-	static Rune kc[5];
 	int keyup;
 
 	/*
@@ -323,7 +336,7 @@ i8042intr(Ureg*, void*)
 	 */
 	if(s & Minready){
 		if(auxputc != nil)
-			auxputc(c, shift);
+			auxputc(c, kbscan.shift);
 		return;
 	}
 
@@ -332,10 +345,10 @@ i8042intr(Ureg*, void*)
 	 *  of a 3 character sequence (on the safari)
 	 */
 	if(c == 0xe0){
-		esc1 = 1;
+		kbscan.esc1 = 1;
 		return;
 	} else if(c == 0xe1){
-		esc2 = 2;
+		kbscan.esc2 = 2;
 		return;
 	}
 
@@ -348,22 +361,22 @@ i8042intr(Ureg*, void*)
 		return;
 	}
 
-	if(esc1){
+	if(kbscan.esc1){
 		c = kbtabesc1[c];
-		esc1 = 0;
-	} else if(esc2){
-		esc2--;
+		kbscan.esc1 = 0;
+	} else if(kbscan.esc2){
+		kbscan.esc2--;
 		return;
-	} else if(shift)
+	} else if(kbscan.shift)
 		c = kbtabshift[c];
-	else if(altgr)
+	else if(kbscan.altgr)
 		c = kbtabaltgr[c];
-	else if(ctl)
+	else if(kbscan.ctl)
 		c = kbtabctrl[c];
 	else
 		c = kbtab[c];
 
-	if(caps && c<='z' && c>='a')
+	if(kbscan.caps && c<='z' && c>='a')
 		c += 'A' - 'a';
 
 	/*
@@ -372,17 +385,25 @@ i8042intr(Ureg*, void*)
 	if(keyup){
 		switch(c){
 		case Latin:
-			alt = 0;
+			kbscan.alt = 0;
 			break;
 		case Shift:
-			shift = 0;
+			kbscan.shift = 0;
 			mouseshifted = 0;
 			break;
 		case Ctrl:
-			ctl = 0;
+			kbscan.ctl = 0;
 			break;
 		case Altgr:
-			altgr = 0;
+			kbscan.altgr = 0;
+			break;
+		case Kmouse|1:
+		case Kmouse|2:
+		case Kmouse|3:
+		case Kmouse|4:
+		case Kmouse|5:
+			kbdbuttons &= ~(1<<(c-Kmouse-1));
+			mousetrack(0, 0, 0, TK2MS(MACHP(0)->ticks));
 			break;
 		}
 		return;
@@ -392,41 +413,41 @@ i8042intr(Ureg*, void*)
  	 *  normal character
 	 */
 	if(!(c & (Spec|KF))){
-		if(ctl)
-			if(alt && c == Del)
+		if(kbscan.ctl)
+			if(kbscan.alt && c == Del)
 				exit(0);
-		if(!collecting){
+		if(!kbscan.collecting){
 			kbdputc(kbdq, c);
 			return;
 		}
-		kc[nk++] = c;
-		c = latin1(kc, nk);
+		kbscan.kc[kbscan.nk++] = c;
+		c = latin1(kbscan.kc, kbscan.nk);
 		if(c < -1)	/* need more keystrokes */
 			return;
 		if(c != -1)	/* valid sequence */
 			kbdputc(kbdq, c);
 		else	/* dump characters */
-			for(i=0; i<nk; i++)
-				kbdputc(kbdq, kc[i]);
-		nk = 0;
-		collecting = 0;
+			for(i=0; i<kbscan.nk; i++)
+				kbdputc(kbdq, kbscan.kc[i]);
+		kbscan.nk = 0;
+		kbscan.collecting = 0;
 		return;
 	} else {
 		switch(c){
 		case Caps:
-			caps ^= 1;
+			kbscan.caps ^= 1;
 			return;
 		case Num:
-			num ^= 1;
+			kbscan.num ^= 1;
 			return;
 		case Shift:
-			shift = 1;
+			kbscan.shift = 1;
 			mouseshifted = 1;
 			return;
 		case Latin:
-			alt = 1;
+			kbscan.alt = 1;
 			/*
-			 * VMware uses Ctl-Alt as the key combination
+			 * VMware and Qemu use Ctl-Alt as the key combination
 			 * to make the VM give up keyboard and mouse focus.
 			 * This has the unfortunate side effect that when you
 			 * come back into focus, Plan 9 thinks you want to type
@@ -435,17 +456,25 @@ i8042intr(Ureg*, void*)
 			 * As a clumsy hack around this, we look for ctl-alt
 			 * and don't treat it as the start of a compose sequence.
 			 */
-			if(!ctl){
-				collecting = 1;
-				nk = 0;
+			if(!kbscan.ctl){
+				kbscan.collecting = 1;
+				kbscan.nk = 0;
 			}
 			return;
 		case Ctrl:
-			ctl = 1;
+			kbscan.ctl = 1;
 			return;
 		case Altgr:
-			altgr = 1;
-			collecting = 0;
+			kbscan.altgr = 1;
+			kbscan.collecting = 0;
+			return;
+		case Kmouse|1:
+		case Kmouse|2:
+		case Kmouse|3:
+		case Kmouse|4:
+		case Kmouse|5:
+			kbdbuttons |= 1<<(c-Kmouse-1);
+			mousetrack(0, 0, 0, TK2MS(MACHP(0)->ticks));
 			return;
 		}
 	}

@@ -118,6 +118,9 @@ kbmapwrite(Chan *c, void *a, long n, vlong)
 					lp = line;
 					continue;
 				}
+				lp = line;
+				while(*lp == ' ' || *lp == '\t')
+					lp++;
 				m = strtoul(line, &lp, 0);
 				key = strtoul(lp, &lp, 0);
 				while(*lp == ' ' || *lp == '\t')
@@ -125,6 +128,14 @@ kbmapwrite(Chan *c, void *a, long n, vlong)
 				r = 0;
 				if(*lp == '\'' && lp[1])
 					chartorune(&r, lp+1);
+				else if(*lp == '^' && lp[1]){
+					chartorune(&r, lp+1);
+					if(0x40 <= r && r < 0x60)
+						r -= 0x40;
+					else
+						error(Ebadarg);
+				}else if(*lp == 'M' && ('1' <= lp[1] && lp[1] <= '5'))
+					r = 0xF900+lp[1]-'0';
 				else if(*lp>='0' && *lp<='9') /* includes 0x... */
 					r = strtoul(lp, &lp, 0);
 				else
