@@ -22493,3 +22493,14 @@
 1130781693 0 c sys/src/9/port/devmouse.c - 664 sys sys 1130780334 13327
 1130788894 0 c sys/man/3/kbmap - 664 sys sys 1130788502 1666
 1130788894 1 c sys/src/9/pc/kbd.c - 664 sys sys 1130788367 12382
+1130848311 0 c sys/src/9/pc/kbd.c - 664 sys sys 1130848300 12362
+1130848311 1 c sys/src/9/port/devmouse.c - 664 sys sys 1130848303 13517
+1130850113 0 c sys/src/cmd/troff/tdef.h - 664 sys sys 1130848601 18335
+1130853713 0 c sys/src/games/memo.c - 664 sys sys 1130853201 6471
+1130887922 0 c sys/src/boot/pc/boot.c - 664 sys sys 1130887226 8421
+1130887922 1 c sys/src/boot/pc/fns.h - 664 sys sys 1130887225 4273
+1130887922 2 c sys/src/boot/pc/l.s - 664 sys sys 1130887225 18115
+1130887922 3 c sys/src/boot/pc/load.c - 664 sys sys 1130887225 8932
+1130887922 4 c sys/src/boot/pc/mem.h - 664 sys sys 1130887225 3371
+1130887922 5 c sys/src/boot/pc/trap.c - 664 sys sys 1130887225 7501
+1130905809 0 c 386/bin/games/memo - 775 sys sys 1130904586 157331

@@ -548,6 +548,10 @@ warp9(ulong entry)
 		sddetach();
 
 	consdrain();
+	
+	splhi();
+	trapdisable();
+
 	/*
 	 * This is where to push things on the stack to
 	 * boot *BSD systems, e.g.

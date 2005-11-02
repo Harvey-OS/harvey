@@ -356,12 +356,15 @@ TEXT	tgdt(SB),$0
 	LONG	$(0xFFFF)
 	LONG	$(SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(0)|SEGEXEC|SEGR)
 
+	/* exec segment descriptor for 4 gigabytes (PL 0) 16-bit */
+	LONG	$(0xFFFF)
+	LONG	$(SEGG|(0xF<<16)|SEGP|SEGPL(0)|SEGEXEC|SEGR)
+
 /*
  *  pointer to initial gdt
  */
 TEXT	tgdtptr(SB),$0
-
-	WORD	$(3*8)
+	WORD	$(4*8)
 	LONG	$tgdt-KZERO(SB)
 
 /*
@@ -847,3 +850,230 @@ DATA	pxe+0(SB)/4, $1
 #else
 DATA	pxe+0(SB)/4, $0
 #endif /* PXE */
+
+/*
+ * Save registers.
+ */
+TEXT saveregs(SB), $0
+	/* appease 8l */
+	SUBL $32, SP
+	POPL AX
+	POPL AX
+	POPL AX
+	POPL AX
+	POPL AX
+	POPL AX
+	POPL AX
+	POPL AX
+	
+	PUSHL	AX
+	PUSHL	BX
+	PUSHL	CX
+	PUSHL	DX
+	PUSHL	BP
+	PUSHL	DI
+	PUSHL	SI
+	PUSHFL
+
+	XCHGL	32(SP), AX	/* swap return PC and saved flags */
+	XCHGL	0(SP), AX
+	XCHGL	32(SP), AX
+	RET
+
+TEXT restoreregs(SB), $0
+	/* appease 8l */
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	ADDL	$32, SP
+	
+	XCHGL	32(SP), AX	/* swap return PC and saved flags */
+	XCHGL	0(SP), AX
+	XCHGL	32(SP), AX
+
+	POPFL
+	POPL	SI
+	POPL	DI
+	POPL	BP
+	POPL	DX
+	POPL	CX
+	POPL	BX
+	POPL	AX
+	RET
+
+/*
+ * Assumed to be in protected mode at time of call.
+ * Switch to real mode, execute an interrupt, and
+ * then switch back to protected mode.  
+ *
+ * Assumes:
+ *
+ *	- no device interrupts are going to come in
+ *	- 0-16MB is identity mapped in page tables
+ *	- can use code segment 0x1000 in real mode
+ *		to get at l.s code
+ */
+TEXT realmodeidtptr(SB), $0
+	WORD	$(4*256-1)
+	LONG	$0
+
+TEXT realmode0(SB), $0
+	CALL	saveregs(SB)
+
+	/* switch to low code address */
+	LEAL	physcode-KZERO(SB), AX
+	JMP *AX
+
+TEXT physcode(SB), $0
+
+	/* switch to low stack */
+	MOVL	SP, AX
+	MOVL	$0x7C00, SP
+	PUSHL	AX
+
+	/* load IDT with real-mode version; GDT already fine */
+	MOVL	realmodeidtptr(SB), IDTR
+
+	/* edit INT $0x00 instruction below */
+	MOVL	realmodeintr(SB), AX
+	MOVB	AX, realmodeintrinst+1(SB)
+
+	/* disable paging */
+	MOVL	CR0, AX
+	ANDL	$0x7FFFFFFF, AX
+	MOVL	AX, CR0
+	/* JMP .+2 to clear prefetch queue*/
+	BYTE $0xEB; BYTE $0x00
+
+	/* jump to 16-bit code segment */
+/*	JMPFAR	SELECTOR(3, SELGDT, 0):$again16bit(SB) /**/
+	 BYTE	$0xEA
+	 LONG	$again16bit-KZERO(SB)
+	 WORD	$SELECTOR(3, SELGDT, 0)
+
+TEXT again16bit(SB), $0
+	/*
+	 * Now in 16-bit compatibility mode.
+	 * These are 32-bit instructions being interpreted
+	 * as 16-bit instructions.  I'm being lazy and
+	 * not using the macros because I know when
+	 * the 16- and 32-bit instructions look the same
+	 * or close enough.
+	 */
+
+	/* disable protected mode and jump to real mode cs */
+	OPSIZE; MOVL CR0, AX
+	OPSIZE; XORL BX, BX
+	OPSIZE; INCL BX
+	OPSIZE; XORL BX, AX
+	OPSIZE; MOVL AX, CR0
+
+	/* JMPFAR 0x1000:now16real */
+	 BYTE $0xEA
+	 WORD	$now16real-KZERO(SB)
+	 WORD	$0x1000
+
+TEXT now16real(SB), $0
+	/* copy the registers for the bios call */
+	LWI(0x1000, rAX)
+	MOVW	AX,SS
+	LWI(realmoderegs(SB), rBP)
+	
+	/* offsets are in Ureg */
+	LXW(44, xBP, rAX)
+	MOVW	AX, DS
+	LXW(40, xBP, rAX)
+	MOVW	AX, ES
+
+	OPSIZE; LXW(0, xBP, rDI)
+	OPSIZE; LXW(4, xBP, rSI)
+	OPSIZE; LXW(16, xBP, rBX)
+	OPSIZE; LXW(20, xBP, rDX)
+	OPSIZE; LXW(24, xBP, rCX)
+	OPSIZE; LXW(28, xBP, rAX)
+
+	CLC
+
+TEXT realmodeintrinst(SB), $0
+	INT $0x00
+
+	/* save the registers after the call */
+
+	LWI(0x7bfc, rSP)
+	OPSIZE; PUSHFL
+	OPSIZE; PUSHL AX
+
+	LWI(0x1000, rAX)
+	MOVW	AX,SS
+	LWI(realmoderegs(SB), rBP)
+	
+	OPSIZE; SXW(rDI, 0, xBP)
+	OPSIZE; SXW(rSI, 4, xBP)
+	OPSIZE; SXW(rBX, 16, xBP)
+	OPSIZE; SXW(rDX, 20, xBP)
+	OPSIZE; SXW(rCX, 24, xBP)
+	OPSIZE; POPL AX
+	OPSIZE; SXW(rAX, 28, xBP)
+
+	MOVW	DS, AX
+	OPSIZE; SXW(rAX, 44, xBP)
+	MOVW	ES, AX
+	OPSIZE; SXW(rAX, 40, xBP)
+
+	OPSIZE; POPL AX
+	OPSIZE; SXW(rAX, 64, xBP)	/* flags */
+
+	/* re-enter protected mode and jump to 32-bit code */
+	OPSIZE; MOVL $1, AX
+	OPSIZE; MOVL AX, CR0
+	
+/*	JMPFAR	SELECTOR(2, SELGDT, 0):$again32bit(SB) /**/
+	 OPSIZE
+	 BYTE $0xEA
+	 LONG	$again32bit-KZERO(SB)
+	 WORD	$SELECTOR(2, SELGDT, 0)
+
+TEXT again32bit(SB), $0
+	MOVW	$SELECTOR(1, SELGDT, 0),AX
+	MOVW	AX,DS
+	MOVW	AX,SS
+	MOVW	AX,ES
+	MOVW	AX,FS
+	MOVW	AX,GS
+
+	/* enable paging and jump to kzero-address code */
+	MOVL	CR0, AX
+	ORL	$0x80000000, AX
+	MOVL	AX, CR0
+	LEAL	again32kzero(SB), AX
+	JMP*	AX
+
+TEXT again32kzero(SB), $0
+	/* breathe a sigh of relief - back in 32-bit protected mode */
+
+	/* switch to old stack */	
+	PUSHL	AX	/* match popl below for 8l */
+	MOVL	$0x7BFC, SP
+	POPL	SP
+
+	/* restore idt */
+	MOVL	idtptr(SB),IDTR
+
+	CALL	restoreregs(SB)
+	RET
+
+TEXT realmoderegs(SB), $0
+	LONG $0; LONG $0; LONG $0; LONG $0
+	LONG $0; LONG $0; LONG $0; LONG $0
+	LONG $0; LONG $0; LONG $0; LONG $0
+	LONG $0; LONG $0; LONG $0; LONG $0
+	LONG $0; LONG $0; LONG $0; LONG $0
+
+TEXT realmodeintr(SB), $0
+	LONG $0
+

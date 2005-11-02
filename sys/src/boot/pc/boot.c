@@ -149,7 +149,7 @@ nextphdr(Boot *b)
 		if(php->type != LOAD)
 			continue;
 		offset = php->offset;
-		paddr = (char*)(php->paddr & ~0xF0000000);
+		paddr = (char*)PADDR(php->paddr);
 		if(offset < curoff){
 			/*
 			 * Can't (be bothered to) rewind the
@@ -215,7 +215,7 @@ readedata(Boot *b)
 	if(php->filesz < php->memsz){
 		print("%lud",  php->memsz-php->filesz);
 		elftotal += php->memsz-php->filesz;
-		memset((char*)((php->paddr & ~0xF0000000)+php->filesz), 0, php->memsz-php->filesz);
+		memset((char*)(PADDR(php->paddr)+php->filesz), 0, php->memsz-php->filesz);
 	}
 	curoff = php->offset+php->filesz;
 	curphdr++;
@@ -326,7 +326,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 		case READ9TEXT:
 			ep = &b->exec;
 			b->state = READ9DATA;
-			b->bp = (char*)PGROUND(GLLONG(ep->entry)+GLLONG(ep->text));
+			b->bp = (char*)PGROUND(PADDR(GLLONG(ep->entry))+GLLONG(ep->text));
 			b->wp = b->bp;
 			b->ep = b->wp + GLLONG(ep->data);
 			print("+%ld", GLLONG(ep->data));
@@ -432,7 +432,7 @@ Endofinput:
 		}
 
 		/* relocate data to start at page boundary */
-		memmove((void*)PGROUND(entry+text), (void*)(entry+text), data);
+		memmove((void*)PGROUND(PADDR(entry+text)), (void*)(PADDR(entry+text)), data);
 
 		print("entry: %lux\n", entry);
 		warp9(PADDR(entry));

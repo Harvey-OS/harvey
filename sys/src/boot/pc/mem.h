@@ -6,12 +6,12 @@
  * Sizes
  */
 #define	BI2BY		8			/* bits per byte */
-#define BI2WD		32			/* bits per word */
+#define	BI2WD		32			/* bits per word */
 #define	BY2WD		4			/* bytes per word */
 #define	BY2PG		4096			/* bytes per page */
 #define	WD2PG		(BY2PG/BY2WD)		/* words per page */
 #define	PGSHIFT		12			/* log(BY2PG) */
-#define PGROUND(s)	(((s)+(BY2PG-1))&~(BY2PG-1))
+#define	PGROUND(s)	(((s)+(BY2PG-1))&~(BY2PG-1))
 
 #define	MAXMACH		1			/* max # cpus system can run */
 
@@ -102,11 +102,11 @@
  */
 #define	PTEVALID	(1<<0)
 #define	PTEUNCACHED	0		/* everything is uncached */
-#define PTEWRITE	(1<<1)
+#define	PTEWRITE	(1<<1)
 #define	PTERONLY	(0<<1)
 #define	PTEKERNEL	(0<<2)
 #define	PTEUSER		(1<<2)
-#define PTESIZE		(1<<7)
+#define	PTESIZE		(1<<7)
 
 /*
  *  flag register bits that we care about

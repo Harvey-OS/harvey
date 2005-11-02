@@ -106,6 +106,8 @@ int	splhi(void);
 int	spllo(void);
 void	splx(int);
 void	trapinit(void);
+void	trapdisable(void);
+void	trapenable(void);
 void	uartdrain(void);
 void	uartspecial(int, void (*)(int), int (*)(void), int);
 void	uartputs(IOQ*, char*, int);
@@ -130,7 +132,7 @@ void*	xspanalloc(ulong, int, ulong);
 #define	PLLONG(p,v)	(p)[3]=(v);(p)[2]=(v)>>8;(p)[1]=(v)>>16;(p)[0]=(v)>>24
 
 #define KADDR(a)	((void*)((ulong)(a)|KZERO))
-#define PADDR(a)	((ulong)(a)&~KZERO)
+#define PADDR(a)	((ulong)(a)&~0xF0000000)
 
 #define	HOWMANY(x, y)	(((x)+((y)-1))/(y))
 #define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))

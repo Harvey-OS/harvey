@@ -6,8 +6,6 @@
 #include	"io.h"
 #include	"../port/error.h"
 
-extern void mousetrack(int, int, int, int);
-
 enum {
 	Data=		0x60,		/* data port */
 
@@ -170,7 +168,7 @@ enum
 };
 
 int mouseshifted;
-int kbdbuttons;
+void (*kbdmouse)(int);
 
 static Lock i8042lock;
 static uchar ccc;
@@ -304,6 +302,7 @@ struct {
 	int collecting;
 	int nk;
 	Rune kc[5];
+	int buttons;
 } kbscan;
 
 /*
@@ -402,8 +401,9 @@ i8042intr(Ureg*, void*)
 		case Kmouse|3:
 		case Kmouse|4:
 		case Kmouse|5:
-			kbdbuttons &= ~(1<<(c-Kmouse-1));
-			mousetrack(0, 0, 0, TK2MS(MACHP(0)->ticks));
+			kbscan.buttons &= ~(1<<(c-Kmouse-1));
+			if(kbdmouse)
+				kbdmouse(kbscan.buttons);
 			break;
 		}
 		return;
@@ -473,8 +473,9 @@ i8042intr(Ureg*, void*)
 		case Kmouse|3:
 		case Kmouse|4:
 		case Kmouse|5:
-			kbdbuttons |= 1<<(c-Kmouse-1);
-			mousetrack(0, 0, 0, TK2MS(MACHP(0)->ticks));
+			kbscan.buttons |= 1<<(c-Kmouse-1);
+			if(kbdmouse)
+				kbdmouse(kbscan.buttons);
 			return;
 		}
 	}
