@@ -99,6 +99,21 @@ setvec(int v, void (*r)(Ureg*, void*), void *arg)
 	}
 }
 
+void
+trapdisable(void)
+{
+	outb(Int0aux, 0xFF);
+	outb(Int1aux, 0xFF);
+}
+
+void
+trapenable(void)
+{
+	outb(Int0aux, int0mask);
+	outb(Int1aux, int1mask);
+}
+
+
 /*
  *  set up the interrupt/trap gates
  */
@@ -298,4 +313,19 @@ trap(Ureg *ur)
 		(*h->r)(ur, h->arg);
 		h = h->next;
 	} while(h);
+}
+
+void
+realmode(int intr, Ureg *ureg)
+{
+	extern void realmode0(void);	/* in l.s */
+	extern int realmodeintr;
+	extern Ureg realmoderegs;
+
+	realmoderegs = *ureg;
+	realmodeintr = intr;
+	trapdisable();
+	realmode0();
+	trapenable();
+	*ureg = realmoderegs;
 }
