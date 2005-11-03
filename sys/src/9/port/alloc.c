@@ -227,6 +227,8 @@ mallocalign(ulong size, ulong align, long offset, ulong span)
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
+	if(v)
+		memset(v, 0, size);
 	return v;
 }
 

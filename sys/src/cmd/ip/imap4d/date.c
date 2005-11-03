@@ -30,7 +30,7 @@ rfc822date(char *s, int n, Tm *tm)
 	if(tm->tzoff < 0)
 		plus = "";
 	m = 0;
-	if(tm->wday != 8){
+	if(0 <= tm->wday && tm->wday < 7){
 		m = snprint(s, n, "%s, ", wdayname[tm->wday]);
 		if(m < 0)
 			return m;
