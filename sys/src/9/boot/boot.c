@@ -69,6 +69,8 @@ boot(int argc, char *argv[])
 	/*
 	 *  pick a method and initialize it
 	 */
+	if(method[0].name == nil)
+		fatal("no boot methods");
 	mp = rootserver(argc ? *argv : 0);
 	(*mp->config)(mp);
 	islocal = strcmp(mp->name, "local") == 0;
