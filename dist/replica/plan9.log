@@ -22514,3 +22514,4 @@
 1130981426 0 c sys/src/9/boot/boot.c - 664 sys sys 1130980323 6067
 1130983227 0 c sys/src/9/boot/boot.c - 664 sys sys 1130982159 6067
 1130992232 0 c 386/bin/ip/imap4d - 775 sys sys 1130991193 237645
+1131039043 0 c sys/src/libdraw/string.c - 664 sys sys 1131037549 3166

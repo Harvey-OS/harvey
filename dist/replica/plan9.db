@@ -14438,7 +14438,7 @@ sys/src/libdraw/rectclip.c - 664 sys sys 944961725 571
 sys/src/libdraw/replclipr.c - 664 sys sys 944961725 363
 sys/src/libdraw/rgb.c - 664 sys sys 984709666 1679
 sys/src/libdraw/scroll.c - 664 sys sys 1097972686 444
-sys/src/libdraw/string.c - 664 sys sys 1040442975 2978
+sys/src/libdraw/string.c - 664 sys sys 1131037549 3166
 sys/src/libdraw/stringbg.c - 664 sys sys 1040442975 1611
 sys/src/libdraw/stringsubfont.c - 664 sys sys 944961725 960
 sys/src/libdraw/stringwidth.c - 664 sys sys 1080400060 1589
