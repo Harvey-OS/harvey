@@ -293,7 +293,7 @@
 386/bin/ip/httpd/save - 775 sys sys 1130594753 131244
 386/bin/ip/httpd/webls - 775 sys sys 1130594753 131271
 386/bin/ip/httpd/wikipost - 775 sys sys 1130594753 112709
-386/bin/ip/imap4d - 775 sys sys 1130594754 237629
+386/bin/ip/imap4d - 775 sys sys 1130991193 237645
 386/bin/ip/ipconfig - 775 sys sys 1130594754 137774
 386/bin/ip/ping - 775 sys sys 1130594754 77042
 386/bin/ip/ppp - 775 sys sys 1130594755 219988
@@ -14438,7 +14438,7 @@ sys/src/libdraw/rectclip.c - 664 sys sys 944961725 571
 sys/src/libdraw/replclipr.c - 664 sys sys 944961725 363
 sys/src/libdraw/rgb.c - 664 sys sys 984709666 1679
 sys/src/libdraw/scroll.c - 664 sys sys 1097972686 444
-sys/src/libdraw/string.c - 664 sys sys 1040442975 2978
+sys/src/libdraw/string.c - 664 sys sys 1131037549 3166
 sys/src/libdraw/stringbg.c - 664 sys sys 1040442975 1611
 sys/src/libdraw/stringsubfont.c - 664 sys sys 944961725 960
 sys/src/libdraw/stringwidth.c - 664 sys sys 1080400060 1589
@@ -14969,4 +14969,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/ip/imap4d - 775 sys sys 1130991193 237645
