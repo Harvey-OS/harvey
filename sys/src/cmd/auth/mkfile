@@ -118,11 +118,11 @@ nuke:V:
 	mk nukedirs
 	rm -f *.[$OS] *.[$OS].a [$OS].* y.tab.? y.debug y.output $TARG *.acid
 
-$O.authsrv: lib.$O.a authsrv.$O secureidcheck.$O
-	$LD -o $O.authsrv $prereq
+$O.%: lib.$O.a
+$O.rsa2ssh $O.rsafill $O.rsa2x509 $O.rsa2pub $O.rsa2csr: rsa2any.$O
+$O.authsrv $O.guard.srv: secureidcheck.$O
 
-$O.guard.srv: lib.$O.a guard.srv.$O secureidcheck.$O
-	$LD -o $O.guard.srv $prereq
+rsa2ssh.$O rsafill.$O rsa2x509.$O rsa2pub.$O rsa2csr.$O: rsa2any.h
 
 $BIN/netkey:V:	$O.netkey
 	cp $O.netkey /$objtype/bin/netkey
@@ -138,7 +138,4 @@ $BIN/enable:V:
 
 $BIN/disable:V:
 	cp disable $target
-
-$O.rsa2ssh $O.rsafill $O.rsa2x509 $O.rsa2pub $O.rsa2csr: rsa2any.$O
-rsa2ssh.$O rsafill.$O rsa2x509.$O rsa2pub.$O rsa2csr.$O: rsa2any.h
 

@@ -850,7 +850,7 @@ doread(Mnt *m, int len)
 		b = devtab[m->c->type]->bread(m->c, m->msize, 0);
 		if(b == nil)
 			return -1;
-		if(BLEN(b) == 0){
+		if(blocklen(b) == 0){
 			freeblist(b);
 			return -1;
 		}
