@@ -618,7 +618,8 @@ sslbread(Chan *c, long n, ulong)
 			if(b == nil)
 				error("ssl message too short (digesting)");
 			checkdigestb(s, b);
-			b->rp += s->diglen;
+			pullblock(&b, s->diglen);
+			len -= s->diglen;
 			break;
 		case Sdigenc:
 			b = decryptb(s, b);
@@ -626,7 +627,7 @@ sslbread(Chan *c, long n, ulong)
 			if(b == nil)
 				error("ssl message too short (dig+enc)");
 			checkdigestb(s, b);
-			b->rp += s->diglen;
+			pullblock(&b, s->diglen);
 			len -= s->diglen;
 			break;
 		}

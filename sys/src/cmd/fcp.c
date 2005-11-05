@@ -201,7 +201,7 @@ worker(int fdf, int fdt, char *from, char *to)
 
 	while(n = pread(fdf, bp, len, o)){
 		if(n < 0){
-			fprint(2, "reading %s: %r\n", from);
+			fprint(2, "reading %s at %lld: %r\n", from, o);
 			_exits("bad");
 		}
 		if(pwrite(fdt, buf, n, o) != n){
