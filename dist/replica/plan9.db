@@ -140,7 +140,7 @@
 386/bin/aux/sprog - 775 sys sys 1130594714 79372
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
 386/bin/aux/sshserve - 775 sys sys 1130594715 252742
-386/bin/aux/statusbar - 775 sys sys 1131163700 151550
+386/bin/aux/statusbar - 775 sys sys 1131250131 151558
 386/bin/aux/stub - 775 sys sys 1130731910 135498
 386/bin/aux/tcpostio - 775 sys sys 1094040084 200808
 386/bin/aux/text2post - 775 sys sys 1104121986 78336
@@ -7724,6 +7724,7 @@ sys/man/8/send - 664 sys sys 1045501634 2168
 sys/man/8/smtp - 664 sys sys 1091126310 4724
 sys/man/8/snoopy - 664 sys sys 1128179510 4054
 sys/man/8/stats - 664 sys sys 1067722908 4291
+sys/man/8/statusbar - 664 sys sys 1131209276 1199
 sys/man/8/stub - 664 sys sys 1044830500 943
 sys/man/8/swap - 664 sys sys 944959679 880
 sys/man/8/timesync - 664 sys sys 1107606876 1717
@@ -9569,7 +9570,7 @@ sys/src/cmd/aux/portmap.c - 664 sys sys 1049776133 3617
 sys/src/cmd/aux/rdwr.c - 664 sys sys 1016833876 811
 sys/src/cmd/aux/reboot.c - 664 sys sys 1116769521 1429
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1014925091 18176
-sys/src/cmd/aux/statusbar.c - 664 sys sys 1131110489 6015
+sys/src/cmd/aux/statusbar.c - 664 sys sys 1131209286 6025
 sys/src/cmd/aux/stub.c - 664 sys sys 1098196222 2723
 sys/src/cmd/aux/timesync.c - 664 sys sys 1107448970 25758
 sys/src/cmd/aux/trampoline.c - 664 sys sys 1126104850 3790
