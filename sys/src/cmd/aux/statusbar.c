@@ -159,7 +159,7 @@ bar(Biobuf *b)
 void
 usage(void)
 {
-	fprint(2, "usage: bargraph [-kt] [-w minx,miny,maxx,maxy] 'title'\n");
+	fprint(2, "usage: aux/statusbar [-kt] [-w minx,miny,maxx,maxy] 'title'\n");
 	exits("usage");
 }
 
@@ -241,7 +241,7 @@ newwin(char *win)
 
 	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFENVG|RFNOTEG|RFNOWAIT)){
 	case -1:
-		fprint(2, "bargraph: can't fork: %r\n");
+		fprint(2, "statusbar: can't fork: %r\n");
 		return -1;
 	case 0:
 		break;
@@ -253,7 +253,7 @@ newwin(char *win)
 	if(srv == 0){
 		mntsrv = rdenv("/mnt/term/env/wsys");
 		if(mntsrv == 0){
-			fprint(2, "bargraph: can't find $wsys\n");
+			fprint(2, "statusbar: can't find $wsys\n");
 			return -1;
 		}
 		srv = malloc(strlen(mntsrv)+10);
@@ -266,12 +266,12 @@ newwin(char *win)
 	srvfd = open(srv, ORDWR);
 	free(srv);
 	if(srvfd == -1){
-		fprint(2, "bargraph: can't open %s: %r\n", srv);
+		fprint(2, "statusbar: can't open %s: %r\n", srv);
 		return -1;
 	}
 	sprint(spec, "new -r %s", win);
 	if(mount(srvfd, -1, "/mnt/wsys", 0, spec) == -1){
-		fprint(2, "bargraph: can't mount /mnt/wsys: %r (spec=%s)\n", spec);
+		fprint(2, "statusbar: can't mount /mnt/wsys: %r (spec=%s)\n", spec);
 		return -1;
 	}
 	close(srvfd);
@@ -280,7 +280,7 @@ newwin(char *win)
 	cons = open("/dev/cons", OREAD);
 	if(cons==-1){
 	NoCons:
-		fprint(2, "bargraph: can't open /dev/cons: %r");
+		fprint(2, "statusbar: can't open /dev/cons: %r");
 		return -1;
 	}
 	dup(cons, 0);
