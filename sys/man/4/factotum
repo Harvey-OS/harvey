@@ -4,7 +4,7 @@ factotum, fgui \- authentication agent
 .SH SYNOPSIS
 .B auth/factotum
 [
-.B -DdkSun
+.B -DdknpuS
 ] [
 .B -a asaddr
 ] [
@@ -211,6 +211,14 @@ and
 .BR \-S .
 This option is typically used by
 the kernel at boot time.
+.TP
+.B \-p
+causes the agent not to mark itself `private'
+via 
+.IR proc (3),
+so that it can be debugged.
+It is implied by
+.BR \-d .
 .PD
 .PP
 .I Fgui

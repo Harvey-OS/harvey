@@ -4,10 +4,10 @@
 #include <mach.h>
 #include <ctype.h>
 
-static	int	rtrace(ulong, ulong, ulong);
-static	int	ctrace(ulong, ulong, ulong);
-static	int	i386trace(ulong, ulong, ulong);
-static	ulong	getval(ulong);
+static	int	rtrace(uvlong, uvlong, uvlong);
+static	int	ctrace(uvlong, uvlong, uvlong);
+static	int	i386trace(uvlong, uvlong, uvlong);
+static	uvlong	getval(uvlong);
 static	void	inithdr(int);
 static	void	fatal(char*, ...);
 static	void	readstack(void);
@@ -25,7 +25,7 @@ usage(void)
 }
 
 static void
-printaddr(char *addr, ulong pc)
+printaddr(char *addr, uvlong pc)
 {
 	int i;
 	char *p;
@@ -42,25 +42,25 @@ printaddr(char *addr, ulong pc)
 			if(!isxdigit(addr[i]))
 				break;
 		if(i == 8){
-			print("src(0x%.8lux); // 0x%s\n", pc, addr);
+			print("src(0x%.8llux); // 0x%s\n", pc, addr);
 			return;
 		}
 	}
 
 	if(p=strchr(addr, '+')){
 		*p++ = 0;
-		print("src(0x%.8lux); // %s+0x%s\n", pc, addr, p);
+		print("src(0x%.8llux); // %s+0x%s\n", pc, addr, p);
 	}else
-		print("src(0x%.8lux); // %s\n", pc, addr);
+		print("src(0x%.8llux); // %s\n", pc, addr);
 }
 
-static void (*fmt)(char*, ulong) = printaddr;
+static void (*fmt)(char*, uvlong) = printaddr;
 
 void
 main(int argc, char *argv[])
 {
-	int (*t)(ulong, ulong, ulong);
-	ulong pc, sp, link;
+	int (*t)(uvlong, uvlong, uvlong);
+	uvlong pc, sp, link;
 	int fd;
 
 	ARGBEGIN{
@@ -76,15 +76,15 @@ main(int argc, char *argv[])
 	switch(argc){
 	case 4:
 		t = rtrace;
-		link = strtoul(argv[3], 0, 16);
+		link = strtoull(argv[3], 0, 16);
 		break;
 	case 3:
 		break;
 	default:
 		usage();
 	}
-	pc = strtoul(argv[1], 0, 16);
-	sp = strtoul(argv[2], 0, 16);
+	pc = strtoull(argv[1], 0, 16);
+	sp = strtoull(argv[2], 0, 16);
 	if(!interactive)
 		readstack();
 
@@ -135,11 +135,11 @@ inithdr(int fd)
 }
 
 static int
-rtrace(ulong pc, ulong sp, ulong link)
+rtrace(uvlong pc, uvlong sp, uvlong link)
 {
 	Symbol s, f;
 	char buf[128];
-	ulong oldpc;
+	uvlong oldpc;
 	int i;
 
 	i = 0;
@@ -175,21 +175,21 @@ rtrace(ulong pc, ulong sp, ulong link)
 }
 
 static int
-ctrace(ulong pc, ulong sp, ulong link)
+ctrace(uvlong pc, uvlong sp, uvlong link)
 {
 	Symbol s;
 	char buf[128];
 	int found;
-	ulong opc;
-	long moved, j;
+	uvlong opc, moved;
+	long j;
 
 	USED(link);
 	j = 0;
 	opc = 0;
 	while(pc && opc != pc) {
 		moved = pc2sp(pc);
-		if (moved == -1){
-			print("pc2sp(%.8lux) = -1 %r\n", pc);
+		if (moved == ~0){
+			print("pc2sp(%.8llux) = -1 %r\n", pc);
 			break;
 		}
 		found = findsym(pc, CTEXT, &s);
@@ -213,10 +213,10 @@ ctrace(ulong pc, ulong sp, ulong link)
 }
 
 static int
-i386trace(ulong pc, ulong sp, ulong link)
+i386trace(uvlong pc, uvlong sp, uvlong link)
 {
 	int i;
-	ulong osp;
+	uvlong osp;
 	Symbol s, f;
 	char buf[128];
 
@@ -228,29 +228,34 @@ i386trace(ulong pc, ulong sp, ulong link)
 		symoff(buf, sizeof buf, pc, CANY);
 		fmt(buf, pc);
 
+//XXX		s.value &= ~(uintptr)0;
 		if(pc != s.value) {	/* not at first instruction */
 			if(findlocal(&s, FRAMENAME, &f) == 0)
 				break;
 			sp += f.value-mach->szaddr;
 		}else if(strcmp(s.name, "forkret") == 0){
-			print("//passing interrupt frame; last pc found at sp=%lux\n", osp);
+//XXX
+			print("//passing interrupt frame; last pc found at sp=%llux\n", osp);
+
 			sp +=  15 * mach->szaddr;		/* pop interrupt frame */
 		}
 
 		pc = getval(sp);
+//XXX
 		if(pc == 0 && strcmp(s.name, "forkret") == 0){
 			sp += 3 * mach->szaddr;			/* pop iret eip, cs, eflags */
-			print("//guessing call through invalid pointer, try again at sp=%lux\n", sp);
+			print("//guessing call through invalid pointer, try again at sp=%llux\n", sp);
 			s.name = "";
 			pc = getval(sp);
 		}
 		if(pc == 0) {
-			print("//didn't find pc at sp=%lux, last pc found at sp=%lux\n", sp, osp);
+			print("//didn't find pc at sp=%llux, last pc found at sp=%llux\n", sp, osp);
 			break;
 		}
 		osp = sp;
 
 		sp += mach->szaddr;
+//XXX
 		if(strcmp(s.name, "forkret") == 0)
 			sp += 2 * mach->szaddr;			/* pop iret cs, eflags */
 
@@ -261,11 +266,11 @@ i386trace(ulong pc, ulong sp, ulong link)
 }
 
 int naddr;
-ulong addr[1024];
-ulong val[1024];
+uvlong addr[1024];
+uvlong val[1024];
 
 static void
-putval(ulong a, ulong v)
+putval(uvlong a, uvlong v)
 {
 	if(naddr < nelem(addr)){
 		addr[naddr] = a;
@@ -289,25 +294,25 @@ readstack(void)
 		for(i=0; i<nf; i++){
 			if(p=strchr(f[i], '=')){
 				*p++ = 0;
-				putval(strtoul(f[i], 0, 16), strtoul(p, 0, 16));
+				putval(strtoull(f[i], 0, 16), strtoull(p, 0, 16));
 			}
 		}
 	}
 }
 
-static ulong
-getval(ulong a)
+static uvlong
+getval(uvlong a)
 {
 	char buf[256];
 	int i, n;
 
 	if(interactive){
-		print("// data at 0x%8.8lux? ", a);
+		print("// data at 0x%8.8llux? ", a);
 		n = read(0, buf, sizeof(buf)-1);
 		if(n <= 0)
 			return 0;
 		buf[n] = '\0';
-		return strtoul(buf, 0, 16);
+		return strtoull(buf, 0, 16);
 	}else{
 		for(i=0; i<naddr; i++)
 			if(addr[i] == a)

@@ -6,6 +6,7 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
+#include "io.h"
 #include "../port/error.h"
 
 #define	Image	IMAGE
@@ -16,6 +17,7 @@
 
 enum {
 	Qdir,
+	Qvgabios,
 	Qvgactl,
 	Qvgaovl,
 	Qvgaovlctl,
@@ -23,6 +25,7 @@ enum {
 
 static Dirtab vgadir[] = {
 	".",	{ Qdir, 0, QTDIR },		0,	0550,
+	"vgabios",	{ Qvgabios, 0 },	0x100000, 0440,
 	"vgactl",		{ Qvgactl, 0 },		0,	0660,
 	"vgaovl",		{ Qvgaovl, 0 },		0,	0660,
 	"vgaovlctl",	{ Qvgaovlctl, 0 },	0, 	0660,
@@ -40,6 +43,7 @@ enum {
 	CMpalettedepth,
 	CMpanning,
 	CMsize,
+	CMtextmode,
 	CMtype,
 	CMunblank,
 };
@@ -56,6 +60,7 @@ static Cmdtab vgactlmsg[] = {
 	CMpalettedepth,	"palettedepth",	2,
 	CMpanning,	"panning",	2,
 	CMsize,		"size",		3,
+	CMtextmode,	"textmode",	1,
 	CMtype,		"type",		2,
 	CMunblank,	"unblank",	1,
 };
@@ -153,6 +158,14 @@ vgaread(Chan* c, void* a, long n, vlong off)
 	case Qdir:
 		return devdirread(c, a, n, vgadir, nelem(vgadir), devgen);
 
+	case Qvgabios:
+		if(offset >= 0x100000)
+			return 0;
+		if(offset+n >= 0x100000)
+			n = 0x100000 - offset;
+		memmove(a, (uchar*)kaddr(0)+offset, n);
+		return n;
+
 	case Qvgactl:
 		scr = &vgascreen[0];
 
@@ -186,7 +199,9 @@ vgaread(Chan* c, void* a, long n, vlong off)
 		len += snprint(p+len, READSTR-len, "hwaccel %s\n", hwaccel ? "on" : "off");
 		len += snprint(p+len, READSTR-len, "hwblank %s\n", hwblank ? "on" : "off");
 		len += snprint(p+len, READSTR-len, "panning %s\n", panning ? "on" : "off");
-		snprint(p+len, READSTR-len, "addr 0x%lux\n", scr->aperture);
+		len += snprint(p+len, READSTR-len, "addr p 0x%lux v 0x%p size 0x%ux\n", scr->paddr, scr->vaddr, scr->apsize);
+		USED(len);
+
 		n = readstr(offset, a, n, p);
 		poperror();
 		free(p);
@@ -233,7 +248,17 @@ vgactl(Cmdbuf *cb)
 			unlock(&cursor);
 			return;
 		}
-
+		if(strcmp(cb->f[1], "soft") == 0){
+			lock(&cursor);
+			swcursorinit();
+			if(scr->cur && scr->cur->disable)
+				scr->cur->disable(scr);
+			scr->cur = &swcursor;
+			if(scr->cur->enable)
+				scr->cur->enable(scr);
+			unlock(&cursor);
+			return;
+		}
 		for(i = 0; vgacur[i]; i++){
 			if(strcmp(cb->f[1], vgacur[i]->name))
 				continue;
@@ -261,9 +286,11 @@ vgactl(Cmdbuf *cb)
 		}
 		break;
 
+	case CMtextmode:
+		screeninit();
+		return;
+
 	case CMsize:
-		if(drawhasclients())
-			error(Ebusy);
 
 		x = strtoul(cb->f[1], &p, 0);
 		if(x == 0 || x > 2048)
@@ -291,6 +318,7 @@ vgactl(Cmdbuf *cb)
 		if(screensize(x, y, z, chan))
 			error(Egreg);
 		vgascreenwin(scr);
+		resetscreenimage();
 		cursoron(1);
 		return;
 
@@ -337,7 +365,7 @@ vgactl(Cmdbuf *cb)
 			align = 0;
 		else
 			align = strtoul(cb->f[2], 0, 0);
-		if(screenaperture(size, align))
+		if(screenaperture(size, align) < 0)
 			error("not enough free address space");
 		return;
 /*	

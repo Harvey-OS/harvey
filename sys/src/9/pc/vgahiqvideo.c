@@ -34,65 +34,21 @@ hiqvideoxo(long port, uchar index, uchar data)
 	outb(port+1, data);
 }
 
-static ulong
-hiqvideolinear(VGAscr* scr, int* size, int* align)
+static void
+hiqvideolinear(VGAscr*, int, int)
 {
-	ulong aperture, oaperture;
-	int oapsize, wasupamem;
-	Pcidev *p;
-
-	oaperture = scr->aperture;
-	oapsize = scr->apsize;
-	wasupamem = scr->isupamem;
-
-	aperture = 0;
-	if(p = pcimatch(nil, 0x102C, 0)){
-		switch(p->did){
-		case 0x00C0:		/* 69000 HiQVideo */
-		case 0x00E0:		/* 65550 HiQV32 */
-		case 0x00E4:		/* 65554 HiQV32 */
-		case 0x00E5:		/* 65555 HiQV32 */
-			aperture = p->mem[0].bar & ~0x0F;
-			*size = p->mem[0].size;
-			break;
-		default:
-			break;
-		}
-	}
-
-	if(wasupamem){
-		if(oaperture == aperture)
-			return oaperture;
-		upafree(oaperture, oapsize);
-	}
-	scr->isupamem = 0;
-
-	aperture = upamalloc(aperture, *size, *align);
-	if(aperture == 0){
-		if(wasupamem && upamalloc(oaperture, oapsize, 0)){
-			aperture = oaperture;
-			scr->isupamem = 1;
-		}
-		else
-			scr->isupamem = 0;
-	}
-	else
-		scr->isupamem = 1;
-
-	return aperture;
 }
 
 static void
 hiqvideoenable(VGAscr* scr)
 {
 	Pcidev *p;
-	int align, size, vmsize;
-	ulong aperture;
+	int vmsize;
 
 	/*
 	 * Only once, can't be disabled for now.
 	 */
-	if(scr->io)
+	if(scr->mmio)
 		return;
 	if(p = pcimatch(nil, 0x102C, 0)){
 		switch(p->did){
@@ -119,23 +75,21 @@ hiqvideoenable(VGAscr* scr)
 	else
 		return;
 
-	size = p->mem[0].size;
-	align = 0;
-	aperture = hiqvideolinear(scr, &size, &align);
-	if(aperture) {
-		scr->aperture = aperture;
-		scr->apsize = size;
-		addvgaseg("hiqvideoscreen", aperture, size);
+	scr->pci = p;
+	vgalinearpci(scr);
+	
+	if(scr->paddr) {
+		addvgaseg("hiqvideoscreen", scr->paddr, scr->apsize);
 	}
 
 	/*
 	 * Find a place for the cursor data in display memory.
 	 * Must be on a 4096-byte boundary.
-	 * scr->io holds the physical address of the cursor
+	 * scr->mmio holds the virtual address of the cursor
 	 * storage area in the framebuffer region.
 	 */
 	scr->storage = vmsize-4096;
-	scr->io = scr->aperture+scr->storage;
+	scr->mmio = (ulong*)((uchar*)scr->vaddr+scr->storage);
 }
 
 static void
@@ -155,9 +109,9 @@ hiqvideocurload(VGAscr* scr, Cursor* curs)
 	 */
 	hiqvideocurdisable(scr);
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
-	p = KADDR(scr->io);
+	p = (uchar*)scr->mmio;
 
 	for(y = 0; y < 16; y += 2){
 		*p++ = ~(curs->clr[2*y]|curs->set[2*y]);
@@ -197,7 +151,7 @@ hiqvideocurmove(VGAscr* scr, Point p)
 {
 	int x, y;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return 1;
 
 	if((x = p.x+scr->offset.x) < 0)
@@ -219,7 +173,7 @@ hiqvideocurenable(VGAscr* scr)
 	uchar xr80;
 
 	hiqvideoenable(scr);
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
 
 	/*

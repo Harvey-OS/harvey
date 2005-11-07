@@ -758,7 +758,7 @@ ga620init(Ether* edev)
 	 * memory it is accessed via the Local Memory Window; with a send
 	 * ring size of 128 the window covers the whole ring and then need
 	 * only be set once:
-	 *	ctlr->sr = KADDR(ctlr->port+Lmw);
+	 *	ctlr->sr = (uchar*)ctlr->nic+Lmw;
 	 *	ga620lmw(ctlr, Sr, nil, sizeof(Sbd)*Nsr);
 	 *	ctlr->gib->srcb.addr.lo = Sr;
 	 * There is nowhere in the Sbd to hold the Block* associated
@@ -1114,7 +1114,7 @@ ga620reset(Ctlr* ctlr)
 static void
 ga620pci(void)
 {
-	int port;
+	void *mem;
 	Pcidev *p;
 	Ctlr *ctlr;
 
@@ -1135,18 +1135,18 @@ ga620pci(void)
 			break;
 		}
 
-		port = upamalloc(p->mem[0].bar & ~0x0F, p->mem[0].size, 0);
-		if(port == 0){
+		mem = vmap(p->mem[0].bar & ~0x0F, p->mem[0].size);
+		if(mem == 0){
 			print("ga620: can't map %8.8luX\n", p->mem[0].bar);
 			continue;
 		}
 
 		ctlr = malloc(sizeof(Ctlr));
-		ctlr->port = port;
+		ctlr->port = p->mem[0].bar & ~0x0F;
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;
 
-		ctlr->nic = KADDR(ctlr->port);
+		ctlr->nic = mem;
 		if(ga620reset(ctlr)){
 			free(ctlr);
 			continue;

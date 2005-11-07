@@ -454,17 +454,17 @@ confinit(void)
 	 * allocating low memory pages from bank 0 for any peripherals
 	 * which only have a 24bit address counter.
 	 */
-	conf.npage0 = (8*1024*1024)/BY2PG;
-	conf.base0 = 0;
+	conf.mem[0].npage = (8*1024*1024)/BY2PG;
+	conf.mem[0].base = 0;
 
-	conf.npage1 = (b->max-8*1024*1024)/BY2PG;
-	conf.base1 = 8*1024*1024;
+	conf.mem[1].npage = (b->max-8*1024*1024)/BY2PG;
+	conf.mem[1].base = 8*1024*1024;
 
-	conf.npage = conf.npage0+conf.npage1;
+	conf.npage = conf.mem[0].npage+conf.mem[1].npage;
 	conf.upages = (conf.npage*70)/100;
 
-	conf.npage0 -= ktop/BY2PG;
-	conf.base0 += ktop;
+	conf.mem[0].npage -= ktop/BY2PG;
+	conf.mem[0].base += ktop;
 	conf.ialloc = ((conf.npage-conf.upages)/2)*BY2PG;
 
 	/*

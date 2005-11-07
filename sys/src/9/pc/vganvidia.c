@@ -77,8 +77,6 @@ struct {
 	int		dmamax;
 } nv;
 
-
-/* Nvidia is good about backwards compatibility -- any did >= 0x20 is fine */
 static Pcidev*
 nvidiapci(void)
 {
@@ -92,83 +90,40 @@ nvidiapci(void)
 	return nil;
 }
 
-static ulong
-nvidialinear(VGAscr* scr, int* size, int* align)
+static void
+nvidialinear(VGAscr*, int, int)
 {
-	Pcidev *p;
-	int oapsize, wasupamem;
-	ulong aperture, oaperture;
-
-	oaperture = scr->aperture;
-	oapsize = scr->apsize;
-	wasupamem = scr->isupamem;
-
-	aperture = 0;
-	if(p = nvidiapci()){
-		aperture = p->mem[1].bar & ~0x0F;
-		*size = p->mem[1].size;
-	}
-
-	if(wasupamem){
-		if(oaperture == aperture)
-			return oaperture;
-		upafree(oaperture, oapsize);
-	}
-	scr->isupamem = 0;
-
-	aperture = upamalloc(aperture, *size, *align);
-	if(aperture == 0){
-		if(wasupamem && upamalloc(oaperture, oapsize, 0)){
-			aperture = oaperture;
-			scr->isupamem = 1;
-		}
-		else
-			scr->isupamem = 0;
-	}
-	else
-		scr->isupamem = 1;
-
-	return aperture;
 }
 
 static void
 nvidiaenable(VGAscr* scr)
 {
 	Pcidev *p;
-	ulong aperture, *q;
-	int align, size, tmp;
+	ulong *q;
+	int tmp;
 
-	/*
-	 * Only once, can't be disabled for now.
-	 * scr->io holds the physical address of
-	 * the MMIO registers.
-	 */
-	if(scr->io)
+	if(scr->mmio)
 		return;
 	p = nvidiapci();
 	if(p == nil)
 		return;
 	scr->id = p->did;
+	scr->pci = p;
 
-	scr->io = upamalloc(p->mem[0].bar & ~0x0F, p->mem[0].size, 0);
-	if(scr->io == 0)
+	scr->mmio = vmap(p->mem[0].bar & ~0x0F, p->mem[0].size);
+	if(scr->mmio == nil)
 		return;
-	addvgaseg("nvidiammio", scr->io, p->mem[0].size);
+	addvgaseg("nvidiammio", p->mem[0].bar&~0x0F, p->mem[0].size);
 
-	size = p->mem[1].size;
-	align = 0;
-	aperture = nvidialinear(scr, &size, &align);
-	if(aperture){
-		scr->aperture = aperture;
-		scr->apsize = size;
-		addvgaseg("nvidiascreen", aperture, size);
-	}
+	vgalinearpci(scr);
+	if(scr->apsize)
+		addvgaseg("nvidiascreen", scr->paddr, scr->apsize);
 
 	/* find video memory size */
 	switch (scr->id & 0x0ff0) {
 	case 0x0020:
 	case 0x00A0:
-		q = KADDR(scr->io + Pfb);
+		q = (void*)((uchar*)scr->mmio + Pfb);
 		tmp = *q;
 		if (tmp & 0x0100) {
 			scr->storage = ((tmp >> 12) & 0x0F) * 1024 + 1024 * 2;
@@ -191,7 +146,7 @@ nvidiaenable(VGAscr* scr)
 		scr->storage = (((tmp >> 4) & 127) + 1) * 1024 * 1024;
 		break;
 	default:
-		q = KADDR(scr->io + Pfb +  0x020C);
+		q = (void*)((uchar*)scr->mmio + Pfb +  0x020C);
 		tmp = (*q >> 20) & 0xFF;
 		if (tmp == 0)
 			tmp = 16;
@@ -203,7 +158,7 @@ nvidiaenable(VGAscr* scr)
 static void
 nvidiacurdisable(VGAscr* scr)
 {
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
 
 	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) & ~0x01);
@@ -218,7 +173,7 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 	ushort	c,s;
 	ulong	tmp;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
 
 	vgaxo(Crtx, 0x31, vgaxi(Crtx, 0x31) & ~0x01);
@@ -226,10 +181,10 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 	switch (scr->id & 0x0ff0) {
 	case 0x0020:
 	case 0x00A0:
-		p = KADDR(scr->io + Pramin + 0x1E00 * 4);
+		p = (void*)((uchar*)scr->mmio + Pramin + 0x1E00 * 4);
 		break;
 	default:
-		p = KADDR(scr->aperture + scr->storage - 96*1024);
+		p = (void*)((uchar*)scr->vaddr + scr->storage - 96*1024);
 		break;
 	}
 
@@ -268,10 +223,10 @@ nvidiacurmove(VGAscr* scr, Point p)
 {
 	ulong*	cursorpos;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return 1;
 
-	cursorpos = KADDR(scr->io + hwCurPos);
+	cursorpos = (void*)((uchar*)scr->mmio + hwCurPos);
 	*cursorpos = ((p.y+scr->offset.y)<<16)|((p.x+scr->offset.x) & 0xFFFF);
 
 	return 0;
@@ -281,7 +236,7 @@ static void
 nvidiacurenable(VGAscr* scr)
 {
 	nvidiaenable(scr);
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
 
 	vgaxo(Crtx, 0x1F, 0x57);
@@ -299,9 +254,9 @@ writeput(VGAscr *scr, int data)
 	ulong	*fifo;
 
 	outb(0x3D0,0);
-	p=KADDR(scr->aperture);
+	p = scr->vaddr;
 	scratch = *p;
-	fifo = KADDR(scr->io + Fifo);
+	fifo = (void*)((uchar*)scr->mmio + Fifo);
 	fifo[0x10] = (data << 2);
 	USED(scratch);
 }
@@ -311,7 +266,7 @@ readget(VGAscr *scr)
 {
 	ulong	*fifo;
 
-	fifo = KADDR(scr->io + Fifo);
+	fifo = (void*)((uchar*)scr->mmio + Fifo);
 	return (fifo[0x0011] >> 2);
 }
 
@@ -375,7 +330,7 @@ waitforidle(VGAscr *scr)
 	ulong*	pgraph;
 	int x;
 
-	pgraph = KADDR(scr->io + Pgraph);
+	pgraph = (void*)((uchar*)scr->mmio + Pgraph);
 
 	x = 0;
 	while((readget(scr) != nv.dmaput) && x++ < 1000000)
@@ -388,7 +343,7 @@ waitforidle(VGAscr *scr)
 		;
 
 	if(x >= 1000000)
-		iprint("idle stat %lud scrio %.8lux scr %p pc %luX\n", *pgraph, scr->io, scr, getcallerpc(&scr));
+		iprint("idle stat %lud scrio %.8lux scr %p pc %luX\n", *pgraph, scr->mmio, scr, getcallerpc(&scr));
 }
 
 static void
@@ -399,7 +354,7 @@ nvresetgraphics(VGAscr *scr)
 
 	pitch = scr->gscreen->width*BY2WD;
 
-	nv.dmabase = KADDR(scr->aperture + scr->storage - 128*1024);
+	nv.dmabase = (void*)((uchar*)scr->vaddr + scr->storage - 128*1024);
 
 	for(i=0; i<SKIPS; i++)
 		nv.dmabase[i] = 0x00000000;

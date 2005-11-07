@@ -28,6 +28,7 @@ dev
 	usb
 
 link
+	realmode
 	ether2000	ether8390
 	ether2114x	pci
 	ether79c970	pci
@@ -53,6 +54,7 @@ misc
 
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
+	sdmv50xx	pci sdscsi
 
 
 ip

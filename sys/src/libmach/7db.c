@@ -7,10 +7,10 @@
  */
 
 static 	char	*alphaexcep(Map*, Rgetter);
-static	int	alphafoll(Map*, ulong, Rgetter, ulong*);
-static	int	alphainst(Map*, ulong, char, char*, int);
-static	int	alphadas(Map*, ulong, char*, int);
-static	int	alphainstlen(Map*, ulong);
+static	int	alphafoll(Map*, uvlong, Rgetter, uvlong*);
+static	int	alphainst(Map*, uvlong, char, char*, int);
+static	int	alphadas(Map*, uvlong, char*, int);
+static	int	alphainstlen(Map*, uvlong);
 /*
  *	Debugger interface
  */
@@ -86,7 +86,7 @@ alphaexcep(Map *map, Rgetter rget)
 static	char FRAMENAME[] = ".frame";
 
 typedef struct {
-	ulong addr;
+	uvlong addr;
 	uchar op;			/* bits 31-26 */
 	uchar ra;			/* bits 25-21 */
 	uchar rb;			/* bits 20-16 */
@@ -109,9 +109,9 @@ typedef struct {
 static Map *mymap;
 
 static int
-decode(ulong pc, Instr *i)
+decode(uvlong pc, Instr *i)
 {
-	long w;
+	ulong w;
 
 	if (get4(mymap, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -140,7 +140,7 @@ decode(ulong pc, Instr *i)
 }
 
 static int
-mkinstr(ulong pc, Instr *i)
+mkinstr(uvlong pc, Instr *i)
 {
 /*	Instr x; */
 
@@ -397,10 +397,10 @@ static Opcode opcodes[64] = {
 	"OPC07",	0,	alphaxxx,
 	"MOVQA",	load,	alphaload,
 	"MOVQAH",	load,	alphaload,
-	"MOVBU",	load,	alphaload,			/* v 3 */
+	"MOVBU",	load,	alphaload,		/* v 3 */
 	"MOVQU",	load,	alphaload,
 	"MOVWU",	load,	alphaload,		/* v 3 */
-	"MOVWU",	store,	alphastore,	/* v 3 */
+	"MOVWU",	store,	alphastore,		/* v 3 */
 	"MOVBU",	store,	alphastore,		/* v 3 */
 	"MOVQU",	store,	alphastore,
 	0,		0,	0,			/* int arith */
@@ -412,13 +412,13 @@ static Opcode opcodes[64] = {
 	0,		0,	0,			/* ieee */
 	0,		0,	0,			/* fp */
 	0,		misc,	alphaxxx,
-	"PAL19 [HW_MFPR]",	0,	alphaxxx,
+	"PAL19 [HW_MFPR]",0,	alphaxxx,
 	"JSR",		jmp,	0,
-	"PAL1B [HW_LD]",	0,	alphaxxx,
+	"PAL1B [HW_LD]",0,	alphaxxx,
 	"OPC1C",	0,	alphaxxx,
-	"PAL1D [HW_MTPR]",	0,	alphaxxx,
-	"PAL1E [HW_REI]",	0,	alphaxxx,
-	"PAL1F [HW_ST]",	0,	alphaxxx,
+	"PAL1D [HW_MTPR]",0,	alphaxxx,
+	"PAL1E [HW_REI]",0,	alphaxxx,
+	"PAL1F [HW_ST]",0,	alphaxxx,
 	"MOVF",		loadf,	alphafload,
 	"MOVG",		loadf,	alphafload,
 	"MOVS",		loadf,	alphafload,
@@ -804,7 +804,7 @@ format(char *mnemonic, Instr *i, char *f)
 }
 
 static int
-printins(Map *map, ulong pc, char *buf, int n)
+printins(Map *map, uvlong pc, char *buf, int n)
 {
 	Instr i;
 	Opcode *o;
@@ -855,14 +855,14 @@ printins(Map *map, ulong pc, char *buf, int n)
 }
 
 static int
-alphainst(Map *map, ulong pc, char modifier, char *buf, int n)
+alphainst(Map *map, uvlong pc, char modifier, char *buf, int n)
 {
 	USED(modifier);
 	return printins(map, pc, buf, n);
 }
 
 static int
-alphadas(Map *map, ulong pc, char *buf, int n)
+alphadas(Map *map, uvlong pc, char *buf, int n)
 {
 	Instr i;
 
@@ -882,7 +882,7 @@ alphadas(Map *map, ulong pc, char *buf, int n)
 }
 
 static int
-alphainstlen(Map *map, ulong pc)
+alphainstlen(Map *map, uvlong pc)
 {
 	Instr i;
 
@@ -893,7 +893,7 @@ alphainstlen(Map *map, ulong pc)
 }
 
 static int
-alphafoll(Map *map, ulong pc, Rgetter rget, ulong *foll)
+alphafoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
 {
 	char buf[8];
 	Instr i;

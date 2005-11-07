@@ -9,7 +9,7 @@
 #include	<trace.h>
 
 static Lock vctllock;
-static Vctl *vctl[256];
+Vctl *vctl[256];
 
 void
 intrenable(int irq, void (*f)(Ureg*, void*), void* a, char *name)
@@ -56,7 +56,12 @@ intrdisable(int irq, void (*f)(Ureg *, void *), void *a, char *name)
 		  ((*pv)->irq != irq || (*pv)->f != f || (*pv)->a != a ||
 		   strcmp((*pv)->name, name)))
 		pv = &((*pv)->next);
-	assert(*pv);
+
+	if(*pv == nil){
+		print("intrdisable: irq %d not found\n", irq);
+		iunlock(&vctllock);
+		return;
+	}
 
 	v = *pv;
 	*pv = (*pv)->next;	/* Link out the entry */
@@ -154,6 +159,7 @@ trap(Ureg *ureg)
 {
 	int ecode, user;
 	char buf[ERRMAX], *s;
+	extern FPsave initfp;
 
 	ecode = (ureg->cause >> 8) & 0xff;
 	user = (ureg->srr1 & MSR_PR) != 0;
@@ -379,93 +385,6 @@ setmvec(int v, void (*r)(void), void (*t)(void))
 		vp[n] = 0x4e800021;		/* BL (LR) */
 	}else
 		vp[n] = (18<<26)|(pa&0x3FFFFFC)|3;	/* bla */
-}
-
-int intrstack[5];
-uvlong intrtime[5];
-vlong lastoffset;
-int inintr;
-int nintr[10];
-int nintro;
-int dblintr[64];
-ulong thisto[32];
-ulong thistoo;
-vlong vnot[64];
-ulong vnon[64];
-
-void
-dumpvno(void)
-{
-	int i;
-
-	for(i = 0; i < nelem(vnon); i++){
-		if(vnon[i])
-			print("%d	%lld	%lud\n", i, vnot[i], vnon[i]);
-		vnot[i] = 0;
-		vnon[i] = 0;
-	}
-	for(i = 0; i < nelem(thisto); i++){
-		if(thisto[i]) print("%d	%lud\n", i, thisto[i]);
-		thisto[i] = 0;
-	}
-	if(thistoo) print("ovl	%lud\n", thistoo);
-	thistoo = 0;
-}
-
-void
-intr(Ureg *ureg)
-{
-	int vno, pvno, i;
-	Vctl *ctl, *v;
-	void (*pt)(Proc*, int, vlong);
-	uvlong tt, x;
-
-	cycles(&tt);
-	pt = proctrace;
-	pvno = -1;
-	for(i = 0; i < 64; i++){
-		vno = intvec();
-		if(vno == 0)
-			break;
-		cycles(&x);
-		vnot[vno] -= x;
-		if(vno == pvno)
-			dblintr[vno]++;
-		pvno = vno;
-		if(pt && up && up->trace)
-			pt(up, (vno << 16) | SInts, 0);
-	
-		if(vno > nelem(vctl) || (ctl = vctl[vno]) == 0) {
-			iprint("spurious intr %d\n", vno);
-			return;
-		}
-
-		for(v = ctl; v != nil; v = v->next)
-			if(v->f)
-				v->f(ureg, v->a);
-
-		intend(vno);	/* reenable the interrupt */
-
-		if(pt && up && up->trace)
-			pt(up, (vno << 16) | SInte, 0);
-		cycles(&x);
-		vnot[vno] += x;
-		vnon[vno]++;
-	}
-	if(i < nelem(nintr))
-		nintr[i]++;
-	else
-		nintro++;
-	cycles(&x);
-	tt = x - tt;
-	i = tt / 3600;	 /* 100 microseconds units */
-	if(i < nelem(thisto))
-		thisto[i]++;
-	else
-		thistoo++;
-
-	if(up)
-		preempted();
 }
 
 char*

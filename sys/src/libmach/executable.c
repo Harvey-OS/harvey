@@ -12,14 +12,17 @@
 
 typedef struct {
 	union{
-		Exec;			/* in a.out.h */
-		Ehdr;			/* in elf.h */
-		struct mipsexec;
-		struct mips4kexec;
-		struct sparcexec;
-		struct nextexec;
+		struct {
+			Exec;		/* a.out.h */
+			uvlong hdr[1];
+		};
+		Ehdr;			/* elf.h */
+		struct mipsexec;	/* bootexec.h */
+		struct mips4kexec;	/* bootexec.h */
+		struct sparcexec;	/* bootexec.h */
+		struct nextexec;	/* bootexec.h */
 	} e;
-	long dummy;		/* padding to ensure extra long */
+	long dummy;			/* padding to ensure extra long */
 } ExecHdr;
 
 static	int	nextboot(int, Fhdr*, ExecHdr*);
@@ -27,16 +30,16 @@ static	int	sparcboot(int, Fhdr*, ExecHdr*);
 static	int	mipsboot(int, Fhdr*, ExecHdr*);
 static	int	mips4kboot(int, Fhdr*, ExecHdr*);
 static	int	common(int, Fhdr*, ExecHdr*);
+static	int	commonllp64(int, Fhdr*, ExecHdr*);
 static	int	adotout(int, Fhdr*, ExecHdr*);
 static	int	elfdotout(int, Fhdr*, ExecHdr*);
 static	int	armdotout(int, Fhdr*, ExecHdr*);
 static	int	alphadotout(int, Fhdr*, ExecHdr*);
-static	void	setsym(Fhdr*, long, long, long, long);
-static	void	setdata(Fhdr*, long, long, long, long);
-static	void	settext(Fhdr*, long, long, long, long);
-static	void	hswal(long*, int, long(*)(long));
-static	long	noswal(long);
-static	ulong	_round(ulong, ulong);
+static	void	setsym(Fhdr*, long, long, long, vlong);
+static	void	setdata(Fhdr*, uvlong, long, vlong, long);
+static	void	settext(Fhdr*, uvlong, uvlong, long, vlong);
+static	void	hswal(void*, int, ulong(*)(ulong));
+static	uvlong	_round(uvlong, ulong);
 
 /*
  *	definition of per-executable file type structures
@@ -48,8 +51,8 @@ typedef struct Exectable{
 	char	*dlmname;		/* dynamically loadable module identifier */
 	int	type;			/* Internal code */
 	Mach	*mach;			/* Per-machine data */
-	ulong	hsize;			/* header size */
-	long	(*swal)(long);		/* beswal or leswal */
+	long	hsize;			/* header size */
+	ulong	(*swal)(ulong);		/* beswal or leswal */
 	int	(*hparse)(int, Fhdr*, ExecHdr*);
 } ExecTable;
 
@@ -160,9 +163,9 @@ ExecTable exectab[] =
 		"amd64 plan 9 dlm",
 		FAMD64,
 		&mamd64,
-		sizeof(Exec),
-		beswal,
-		common },
+		sizeof(Exec)+8,
+		nil,
+		commonllp64 },
 	{ Q_MAGIC,			/* PowerPC q.out & boot image */
 		"power plan 9 executable",
 		"power plan 9 dlm",
@@ -177,7 +180,7 @@ ExecTable exectab[] =
 		FNONE,
 		&mi386,
 		sizeof(Ehdr),
-		noswal,
+		nil,
 		elfdotout },
 	{ E_MAGIC,			/* Arm 5.out */
 		"arm plan 9 executable",
@@ -242,7 +245,8 @@ crackhdr(int fd, Fhdr *fp)
 {
 	ExecTable *mp;
 	ExecHdr d;
-	int nb, magic, ret;
+	int nb, ret;
+	ulong magic;
 
 	fp->type = FNONE;
 	nb = read(fd, (char *)&d.e, sizeof(d.e));
@@ -258,7 +262,6 @@ crackhdr(int fd, Fhdr *fp)
 			if(mp->magic == V_MAGIC)
 				mp = couldbe4k(mp);
 
-			hswal((long *) &d, sizeof(d.e)/sizeof(long), mp->swal);
 			fp->type = mp->type;
 			if ((magic & DYN_MAGIC) && mp->dlmname != nil)
 				fp->name = mp->dlmname;
@@ -266,7 +269,9 @@ crackhdr(int fd, Fhdr *fp)
 				fp->name = mp->name;
 			fp->hdrsz = mp->hsize;		/* zero on bootables */
 			mach = mp->mach;
-			ret  = mp->hparse(fd, fp, &d);
+			if(mp->swal != nil)
+				hswal(&d, sizeof(d.e)/sizeof(ulong), mp->swal);
+			ret = mp->hparse(fd, fp, &d);
 			seek(fd, mp->hsize, 0);		/* seek to end of header */
 			break;
 		}
@@ -275,25 +280,19 @@ crackhdr(int fd, Fhdr *fp)
 		werrstr("unknown header type");
 	return ret;
 }
+
 /*
  * Convert header to canonical form
  */
 static void
-hswal(long *lp, int n, long (*swap) (long))
+hswal(void *v, int n, ulong (*swap)(ulong))
 {
-	while (n--) {
-		*lp = (*swap) (*lp);
-		lp++;
-	}
+	ulong *ulp;
+
+	for(ulp = v; n--; ulp++)
+		*ulp = (*swap)(*ulp);
 }
-/*
- * noop
- */
-static long
-noswal(long x)
-{
-	return x;
-}
+
 /*
  *	Crack a normal a.out-type header
  */
@@ -312,6 +311,55 @@ adotout(int fd, Fhdr *fp, ExecHdr *hp)
 	return 1;
 }
 
+static void
+commonboot(Fhdr *fp)
+{
+	uvlong kbase;
+
+	kbase = mach->kbase;
+	if ((fp->entry & kbase) != kbase)
+		return;
+
+	switch(fp->type) {				/* boot image */
+	case F68020:
+		fp->type = F68020B;
+		fp->name = "68020 plan 9 boot image";
+		break;
+	case FI386:
+		fp->type = FI386B;
+		fp->txtaddr = (u32int)fp->entry;
+		fp->name = "386 plan 9 boot image";
+		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
+		break;
+	case FARM:
+		fp->txtaddr = kbase+0x8010;
+		fp->name = "ARM plan 9 boot image";
+		fp->dataddr = fp->txtaddr+fp->txtsz;
+		return;
+	case FALPHA:
+		fp->type = FALPHAB;
+		fp->txtaddr = (u32int)fp->entry;
+		fp->name = "alpha plan 9 boot image?";
+		fp->dataddr = fp->txtaddr+fp->txtsz;
+		break;
+	case FPOWER:
+		fp->type = FPOWERB;
+		fp->txtaddr = (u32int)fp->entry;
+		fp->name = "power plan 9 boot image";
+		fp->dataddr = fp->txtaddr+fp->txtsz;
+		break;
+	case FAMD64:
+		fp->type = FAMD64B;
+		fp->txtaddr = fp->entry;
+		fp->name = "amd64 plan 9 boot image";
+		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
+		break;
+	default:
+		return;
+	}
+	fp->hdrsz = 0;					/* header stripped */
+}
+
 /*
  *	68020 2.out and 68020 bootable images
  *	386I 8.out and 386I bootable images
@@ -321,63 +369,48 @@ adotout(int fd, Fhdr *fp, ExecHdr *hp)
 static int
 common(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	long kbase;
-
 	adotout(fd, fp, hp);
 	if(hp->e.magic & DYN_MAGIC) {
 		fp->txtaddr = 0;
 		fp->dataddr = fp->txtsz;
 		return 1;
 	}
-	kbase = mach->kbase;
-	if ((fp->entry & kbase) == kbase) {		/* Boot image */
-		switch(fp->type) {
-		case F68020:
-			fp->type = F68020B;
-			fp->name = "68020 plan 9 boot image";
-			fp->hdrsz = 0;		/* header stripped */
-			break;
-		case FI386:
-			fp->type = FI386B;
-			fp->txtaddr = sizeof(Exec);
-			fp->name = "386 plan 9 boot image";
-			fp->hdrsz = 0;		/* header stripped */
-			fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
-			break;
-		case FARM:
-			fp->txtaddr = kbase+0x8010;
-			fp->name = "ARM plan 9 boot image";
-			fp->hdrsz = 0;		/* header stripped */
-			fp->dataddr = fp->txtaddr+fp->txtsz;
-			return 1;
-		case FALPHA:
-			fp->type = FALPHAB;
-			fp->txtaddr = fp->entry;
-			fp->name = "alpha plan 9 boot image?";
-			fp->hdrsz = 0;		/* header stripped */
-			fp->dataddr = fp->txtaddr+fp->txtsz;
-			break;
-		case FPOWER:
-			fp->type = FPOWERB;
-			fp->txtaddr = fp->entry;
-			fp->name = "power plan 9 boot image";
-			fp->hdrsz = 0;		/* header stripped */
-			fp->dataddr = fp->txtaddr+fp->txtsz;
-			break;
-		case FAMD64:
-			fp->type = FAMD64B;
-			fp->txtaddr = sizeof(Exec);
-			fp->name = "amd64 plan 9 boot image";
-			fp->hdrsz = 0;		/* header stripped */
-			fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
-			break;
-		default:
-			break;
-		}
-		fp->txtaddr |= kbase;
-		fp->entry |= kbase;
-		fp->dataddr |= kbase;
+	commonboot(fp);
+	return 1;
+}
+
+static int
+commonllp64(int, Fhdr *fp, ExecHdr *hp)
+{
+	long pgsize;
+	uvlong entry;
+
+	hswal(&hp->e, sizeof(Exec)/sizeof(long), beswal);
+	if(!(hp->e.magic & HDR_MAGIC))
+		return 0;
+
+	/*
+	 * There can be more magic here if the
+	 * header ever needs more expansion.
+	 * For now just catch use of any of the
+	 * unused bits.
+	 */
+	if((hp->e.magic & ~DYN_MAGIC)>>16)
+		return 0;
+	entry = beswav(hp->e.hdr[0]);
+
+	pgsize = mach->pgsize;
+	settext(fp, entry, pgsize+fp->hdrsz, hp->e.text, fp->hdrsz);
+	setdata(fp, _round(pgsize+fp->txtsz+fp->hdrsz, pgsize),
+		hp->e.data, fp->txtsz+fp->hdrsz, hp->e.bss);
+	setsym(fp, hp->e.syms, hp->e.spsz, hp->e.pcsz, fp->datoff+fp->datsz);
+
+	if(hp->e.magic & DYN_MAGIC) {
+		fp->txtaddr = 0;
+		fp->dataddr = fp->txtsz;
+		return 1;
 	}
+	commonboot(fp);
 	return 1;
 }
 
@@ -472,7 +505,6 @@ nextboot(int fd, Fhdr *fp, ExecHdr *hp)
 	return 1;
 }
 
-
 /*
  * Elf32 binaries.
  */
@@ -480,7 +512,7 @@ static int
 elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
 
-	long (*swal)(long);
+	ulong (*swal)(ulong);
 	ushort (*swab)(ushort);
 	Ehdr *ep;
 	Phdr *ph;
@@ -560,28 +592,28 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 		free(ph);
 		return 0;
 	}
-	hswal((long*)ph, phsz/sizeof(long), swal);
+	hswal(ph, phsz/sizeof(ulong), swal);
 
 	/* find text, data and symbols and install them */
 	it = id = is = -1;
 	for(i = 0; i < ep->phnum; i++) {
-		if(ph[i].type == LOAD 
+		if(ph[i].type == LOAD
 		&& (ph[i].flags & (R|X)) == (R|X) && it == -1)
 			it = i;
-		else if(ph[i].type == LOAD 
+		else if(ph[i].type == LOAD
 		&& (ph[i].flags & (R|W)) == (R|W) && id == -1)
 			id = i;
 		else if(ph[i].type == NOPTYPE && is == -1)
 			is = i;
 	}
 	if(it == -1 || id == -1) {
-		/* 
+		/*
 		 * The SPARC64 boot image is something of an ELF hack.
 		 * Text+Data+BSS are represented by ph[0].  Symbols
 		 * are represented by ph[1]:
 		 *
 		 *		filesz, memsz, vaddr, paddr, off
-		 * ph[0] : txtsz+datsz, txtsz+datsz+bsssz, txtaddr-KZERO, datasize,  txtoff
+		 * ph[0] : txtsz+datsz, txtsz+datsz+bsssz, txtaddr-KZERO, datasize, txtoff
 		 * ph[1] : symsz, lcsz, 0, 0, symoff
 		 */
 		if(ep->machine == SPARC64 && ep->phnum == 2) {
@@ -617,7 +649,7 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 static int
 alphadotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	long kbase;
+	uvlong kbase;
 
 	USED(fd);
 	settext(fp, hp->e.entry, sizeof(Exec), hp->e.text, sizeof(Exec));
@@ -645,7 +677,7 @@ alphadotout(int fd, Fhdr *fp, ExecHdr *hp)
 static int
 armdotout(int fd, Fhdr *fp, ExecHdr *hp)
 {
-	long kbase;
+	uvlong kbase;
 
 	USED(fd);
 	settext(fp, hp->e.entry, sizeof(Exec), hp->e.text, sizeof(Exec));
@@ -663,37 +695,39 @@ armdotout(int fd, Fhdr *fp, ExecHdr *hp)
 }
 
 static void
-settext(Fhdr *fp, long e, long a, long s, long off)
+settext(Fhdr *fp, uvlong e, uvlong a, long s, vlong off)
 {
 	fp->txtaddr = a;
 	fp->entry = e;
 	fp->txtsz = s;
 	fp->txtoff = off;
 }
+
 static void
-setdata(Fhdr *fp, long a, long s, long off, long bss)
+setdata(Fhdr *fp, uvlong a, long s, vlong off, long bss)
 {
 	fp->dataddr = a;
 	fp->datsz = s;
 	fp->datoff = off;
 	fp->bsssz = bss;
 }
+
 static void
-setsym(Fhdr *fp, long sy, long sppc, long lnpc, long symoff)
+setsym(Fhdr *fp, long symsz, long sppcsz, long lnpcsz, vlong symoff)
 {
-	fp->symsz = sy;
+	fp->symsz = symsz;
 	fp->symoff = symoff;
-	fp->sppcsz = sppc;
+	fp->sppcsz = sppcsz;
 	fp->sppcoff = fp->symoff+fp->symsz;
-	fp->lnpcsz = lnpc;
+	fp->lnpcsz = lnpcsz;
 	fp->lnpcoff = fp->sppcoff+fp->sppcsz;
 }
 
 
-static ulong
-_round(ulong a, ulong b)
+static uvlong
+_round(uvlong a, ulong b)
 {
-	ulong w;
+	uvlong w;
 
 	w = (a/b)*b;
 	if (a!=w)

@@ -3,9 +3,7 @@
 void	aamloop(int);
 Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,vlong), long(*)(Chan*,void*,long,vlong));
 void	archinit(void);
-void	bootargs(ulong);
-int	cistrcmp(char*, char*);
-int	cistrncmp(char*, char*, int);
+void	bootargs(void*);
 void	clockintr(Ureg*, void*);
 void	(*coherence)(void);
 void	cpuid(char*, int*, int*);
@@ -46,11 +44,13 @@ void	i8253init(void);
 void	i8253link(void);
 uvlong	i8253read(uvlong*);
 void	i8253timerset(uvlong);
+int	i8259disable(int);
+int	i8259enable(Vctl*);
 void	i8259init(void);
 int	i8259isr(int);
-int	i8259enable(Vctl*);
+void	i8259on(void);
+void	i8259off(void);
 int	i8259vecno(int);
-int	i8259disable(int);
 void	idle(void);
 void	idlehands(void);
 int	inb(int);
@@ -61,6 +61,9 @@ ulong	inl(int);
 void	insl(int, void*, int);
 int	intrdisable(int, void (*)(Ureg *, void *), void*, int, char*);
 void	intrenable(int, void (*)(Ureg*, void*), void*, int, char*);
+void	introff(void);
+void	intron(void);
+void	invlpg(ulong);
 void	iofree(int);
 void	ioinit(void);
 int	iounused(int, int);
@@ -68,6 +71,7 @@ int	ioalloc(int, int, int, char*);
 int	ioreserve(int, int, int, char*);
 int	iprint(char*, ...);
 int	isaconfig(char*, int, ISAConf*);
+void*	kaddr(ulong);
 void	kbdenable(void);
 void	kbdinit(void);
 #define	kmapinval()
@@ -82,10 +86,9 @@ void	mathinit(void);
 void	mb386(void);
 void	mb586(void);
 void	meminit(void);
+void	memorysummary(void);
 #define mmuflushtlb(pdb) putcr3(pdb)
 void	mmuinit(void);
-ulong	mmukmap(ulong, ulong, int);
-int	mmukmapsync(ulong);
 ulong*	mmuwalk(ulong*, ulong, int, int);
 uchar	nvramread(int);
 void	nvramwrite(int, uchar);
@@ -95,6 +98,7 @@ void	outs(int, ushort);
 void	outss(int, void*, int);
 void	outl(int, ulong);
 void	outsl(int, void*, int);
+ulong	paddr(void*);
 int	pciscan(int, Pcidev**);
 ulong	pcibarsize(Pcidev*, int);
 int	pcicfgr8(Pcidev*, int);
@@ -122,33 +126,43 @@ int	(*_pcmspecial)(char *, ISAConf *);
 void	pcmspecialclose(int);
 void	(*_pcmspecialclose)(int);
 void	pcmunmap(int, PCMmap*);
+int	pdbmap(ulong*, ulong, ulong, int);
 void	procrestore(Proc*);
 void	procsave(Proc*);
 void	procsetup(Proc*);
 void	putcr3(ulong);
 void	putcr4(ulong);
+void*	rampage(void);
 void	rdmsr(int, vlong*);
+void	realmode(Ureg*);
 void	screeninit(void);
 void	(*screenputs)(char*, int);
 void	syncclock(void);
+void*	tmpmap(Page*);
+void	tmpunmap(void*);
 void	touser(void*);
 void	trapenable(int, void (*)(Ureg*, void*), void*, char*);
 void	trapinit(void);
+void	trapinit0(void);
 int	tas(void*);
 uvlong	tscticks(uvlong*);
 ulong	umbmalloc(ulong, int, int);
 void	umbfree(ulong, int);
 ulong	umbrwmalloc(ulong, int, int);
 void	umbrwfree(ulong, int);
-ulong	upamalloc(ulong, int, int);
+ulong	upaalloc(int, int);
 void	upafree(ulong, int);
+void	upareserve(ulong, int);
 #define	userureg(ur) (((ur)->cs & 0xFFFF) == UESEL)
 void	vectortable(void);
+void*	vmap(ulong, int);
+int	vmapsync(ulong);
+void	vunmap(void*, int);
 void	wrmsr(int, vlong);
 int	xchgw(ushort*, int);
 
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))
-#define KADDR(a)	((void*)((ulong)(a)|KZERO))
-#define PADDR(a)	((ulong)(a)&~KZERO)
+#define	KADDR(a)	kaddr(a)
+#define PADDR(a)	paddr((void*)(a))
 
 #define	dcflush(a, b)

@@ -1,22 +1,21 @@
-
 /*
  *	Definitions needed for  accessing Irix ELF headers
  */
 typedef struct {
-	unsigned char	ident[16];	/* ident bytes */
-	ushort		type;		/* file type */
-	ushort		machine;	/* target machine */
-	int		version;	/* file version */
-	ulong		elfentry;	/* start address */
-	ulong		phoff;		/* phdr file offset */
-	ulong		shoff;		/* shdr file offset */
-	int		flags;		/* file flags */
-	ushort		ehsize;		/* sizeof ehdr */
-	ushort		phentsize;	/* sizeof phdr */
-	ushort		phnum;		/* number phdrs */
-	ushort		shentsize;	/* sizeof shdr */
-	ushort		shnum;		/* number shdrs */
-	ushort		shstrndx;	/* shdr string index */
+	uchar	ident[16];	/* ident bytes */
+	ushort	type;		/* file type */
+	ushort	machine;	/* target machine */
+	int	version;	/* file version */
+	ulong	elfentry;	/* start address */
+	ulong	phoff;		/* phdr file offset */
+	ulong	shoff;		/* shdr file offset */
+	int	flags;		/* file flags */
+	ushort	ehsize;		/* sizeof ehdr */
+	ushort	phentsize;	/* sizeof phdr */
+	ushort	phnum;		/* number phdrs */
+	ushort	shentsize;	/* sizeof shdr */
+	ushort	shnum;		/* number shdrs */
+	ushort	shstrndx;	/* shdr string index */
 } Ehdr;
 
 typedef struct {

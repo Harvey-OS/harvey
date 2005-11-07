@@ -9,10 +9,10 @@
 
 static	char	*m68020excep(Map*, Rgetter);
 
-static	int	m68020foll(Map*, ulong, Rgetter, ulong*);
-static	int	m68020inst(Map*, ulong, char, char*, int);
-static	int	m68020das(Map*, ulong, char*, int);
-static	int	m68020instlen(Map*, ulong);
+static	int	m68020foll(Map*, uvlong, Rgetter, uvlong*);
+static	int	m68020inst(Map*, uvlong, char, char*, int);
+static	int	m68020das(Map*, uvlong, char*, int);
+static	int	m68020instlen(Map*, uvlong);
 
 Machdata m68020mach =
 {
@@ -95,9 +95,10 @@ m68020ufix(Map *map)
 {
 	struct ftype *ft;
 	int i, size, vec;
-	ulong efl[2], stktop;
+	ulong efl[2];
 	uchar *ef=(uchar*)efl;
-	long l;
+	ulong l;
+	uvlong stktop;
 	short fvo;
 
 		/* The kernel proc pointer on a 68020 is always
@@ -112,7 +113,8 @@ m68020ufix(Map *map)
 	if ((l&0xfc000000) == 0x04000000)	/* if NeXT */
 		size = 30*2;
 	else
-		size = 46*2;		/* 68020 */
+		size = 46*2;			/* 68020 */
+	USED(size);
 
 	stktop = mach->kbase+mach->pgsize;
 	for(i=3; i<100; i++){
@@ -145,7 +147,7 @@ m68020ufix(Map *map)
 static char *
 m68020excep(Map *map, Rgetter rget)
 {
-	ulong pc;
+	uvlong pc;
 	uchar buf[4];
 
 	if (m68020ufix(map) < 0)
@@ -381,7 +383,7 @@ struct	operand
 struct	inst
 {
 	int	n;		/* # bytes in instruction */
-	ulong	addr;		/* addr of start of instruction */
+	uvlong	addr;		/* addr of start of instruction */
 	ushort	raw[4+12];	/* longest instruction: 24 byte packed immediate */
 	Operand	and[2];
 	char	*end;		/* end of print buffer */
@@ -906,7 +908,7 @@ dumpinst(Inst *ip, char *buf, int n)
 }
 
 static int
-getword(Inst *ip, long offset)
+getword(Inst *ip, uvlong offset)
 {
 	if (ip->n < nelem(ip->raw)) {
 		if (get2(mymap, offset, &ip->raw[ip->n++]) > 0)
@@ -1314,7 +1316,7 @@ static void
 plocal(Inst *ip, Operand *ap)
 {
 	int ret, offset;
-	long moved;
+	uvlong moved;
 	Symbol s;
 
 	offset = ap->disp;
@@ -1979,7 +1981,7 @@ eaval(Inst *ip, Operand *ap, Rgetter rget)
 }
 
 static int
-m68020instlen(Map *map, ulong pc)
+m68020instlen(Map *map, uvlong pc)
 {
 	Inst i;
 	Optable *op;
@@ -1994,10 +1996,11 @@ m68020instlen(Map *map, ulong pc)
 }
 
 static int
-m68020foll(Map *map, ulong pc, Rgetter rget, ulong *foll)
+m68020foll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
 {
 	int j;
 	Inst i;
+	ulong l;
 	Optable *op;
 
 	mymap = map;
@@ -2019,8 +2022,9 @@ m68020foll(Map *map, ulong pc, Rgetter rget, ulong *foll)
 			foll[1] = pc+2+i.and[j].immediate;
 			return 2;
 		case STACK:	/* RTR, RTS, RTD */
-			if (get4(map, (*rget)(map, mach->sp), (long*) foll) < 0)
+			if (get4(map, (*rget)(map, mach->sp), &l) < 0)
 				return -1;
+			*foll = l;
 			return 1;
 		default:
 			break;
@@ -2031,7 +2035,7 @@ m68020foll(Map *map, ulong pc, Rgetter rget, ulong *foll)
 }
 
 static int
-m68020inst(Map *map, ulong pc, char modifier, char *buf, int n)
+m68020inst(Map *map, uvlong pc, char modifier, char *buf, int n)
 {
 	Inst i;
 	Optable *op;
@@ -2057,7 +2061,7 @@ m68020inst(Map *map, ulong pc, char modifier, char *buf, int n)
 }
 
 static int
-m68020das(Map *map, ulong pc, char *buf, int n)
+m68020das(Map *map, uvlong pc, char *buf, int n)
 {
 	Inst i;
 	Optable *op;

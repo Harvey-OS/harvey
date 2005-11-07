@@ -8,12 +8,12 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
-#include "m8260.h"
+#include "imm.h"
 #include "../port/error.h"
 #include "../port/netif.h"
 
 #include "etherif.h"
-#include "ethermii.h"
+#include "../ppc/ethermii.h"
 
 #define DBG 1
 
@@ -523,73 +523,73 @@ fccsetup(Ctlr *ctlr, FCC *fcc, uchar *ea)
 		/* Step 1 (Section 28.9), write the parallel ports */
 		ctlr->pmdio = 0x01000000;
 		ctlr->pmdck = 0x08000000;
-		iomem->port[0].pdir &= ~A1dir0;
-		iomem->port[0].pdir |= A1dir1;
-		iomem->port[0].psor &= ~A1psor0;
-		iomem->port[0].psor |= A1psor1;
-		iomem->port[0].ppar |= (A1dir0 | A1dir1);
+		imm->port[0].pdir &= ~A1dir0;
+		imm->port[0].pdir |= A1dir1;
+		imm->port[0].psor &= ~A1psor0;
+		imm->port[0].psor |= A1psor1;
+		imm->port[0].ppar |= (A1dir0 | A1dir1);
 		/* Step 2, Port C clocks */
-		iomem->port[2].psor &= ~0x00000c00;
-		iomem->port[2].pdir &= ~0x00000c00;
-		iomem->port[2].ppar |= 0x00000c00;
-		iomem->port[3].pdat |= (ctlr->pmdio | ctlr->pmdck);
-		iomem->port[3].podr |= ctlr->pmdio;
-		iomem->port[3].pdir |= (ctlr->pmdio | ctlr->pmdck);
-		iomem->port[3].ppar &= ~(ctlr->pmdio | ctlr->pmdck);
+		imm->port[2].psor &= ~0x00000c00;
+		imm->port[2].pdir &= ~0x00000c00;
+		imm->port[2].ppar |= 0x00000c00;
+		imm->port[3].pdat |= (ctlr->pmdio | ctlr->pmdck);
+		imm->port[3].podr |= ctlr->pmdio;
+		imm->port[3].pdir |= (ctlr->pmdio | ctlr->pmdck);
+		imm->port[3].ppar &= ~(ctlr->pmdio | ctlr->pmdck);
 		eieio();
 		/* Step 3, Serial Interface clock routing */
-		iomem->cmxfcr &= ~0xff000000;	/* Clock mask */
-		iomem->cmxfcr |= 0x37000000;	/* Clock route */
+		imm->cmxfcr &= ~0xff000000;	/* Clock mask */
+		imm->cmxfcr |= 0x37000000;	/* Clock route */
 		break;
 
 	case 1:
 		/* Step 1 (Section 28.9), write the parallel ports */
 		ctlr->pmdio = 0x00400000;
 		ctlr->pmdck = 0x00200000;
-		iomem->port[1].pdir &= ~B2dir0;
-		iomem->port[1].pdir |= B2dir1;
-		iomem->port[1].psor &= ~B2psor0;
-		iomem->port[1].psor |= B2psor1;
-		iomem->port[1].ppar |= (B2dir0 | B2dir1);
+		imm->port[1].pdir &= ~B2dir0;
+		imm->port[1].pdir |= B2dir1;
+		imm->port[1].psor &= ~B2psor0;
+		imm->port[1].psor |= B2psor1;
+		imm->port[1].ppar |= (B2dir0 | B2dir1);
 		/* Step 2, Port C clocks */
-		iomem->port[2].psor &= ~0x00003000;
-		iomem->port[2].pdir &= ~0x00003000;
-		iomem->port[2].ppar |= 0x00003000;
+		imm->port[2].psor &= ~0x00003000;
+		imm->port[2].pdir &= ~0x00003000;
+		imm->port[2].ppar |= 0x00003000;
 
-		iomem->port[2].pdat |= (ctlr->pmdio | ctlr->pmdck);
-		iomem->port[2].podr |= ctlr->pmdio;
-		iomem->port[2].pdir |= (ctlr->pmdio | ctlr->pmdck);
-		iomem->port[2].ppar &= ~(ctlr->pmdio | ctlr->pmdck);
+		imm->port[2].pdat |= (ctlr->pmdio | ctlr->pmdck);
+		imm->port[2].podr |= ctlr->pmdio;
+		imm->port[2].pdir |= (ctlr->pmdio | ctlr->pmdck);
+		imm->port[2].ppar &= ~(ctlr->pmdio | ctlr->pmdck);
 		eieio();
 		/* Step 3, Serial Interface clock routing */
-		iomem->cmxfcr &= ~0x00ff0000;
-		iomem->cmxfcr |= 0x00250000;
+		imm->cmxfcr &= ~0x00ff0000;
+		imm->cmxfcr |= 0x00250000;
 		break;
 
 	case 2:
 		/* Step 1 (Section 28.9), write the parallel ports */
-		iomem->port[1].pdir &= ~B3dir0;
-		iomem->port[1].pdir |= B3dir1;
-		iomem->port[1].psor &= ~B3psor0;
-		iomem->port[1].psor |= B3psor1;
-		iomem->port[1].ppar |= (B3dir0 | B3dir1);
+		imm->port[1].pdir &= ~B3dir0;
+		imm->port[1].pdir |= B3dir1;
+		imm->port[1].psor &= ~B3psor0;
+		imm->port[1].psor |= B3psor1;
+		imm->port[1].ppar |= (B3dir0 | B3dir1);
 		/* Step 2, Port C clocks */
-		iomem->port[2].psor &= ~0x0000c000;
-		iomem->port[2].pdir &= ~0x0000c000;
-		iomem->port[2].ppar |= 0x0000c000;
-		iomem->port[3].pdat |= (ctlr->pmdio | ctlr->pmdck);
-		iomem->port[3].podr |= ctlr->pmdio;
-		iomem->port[3].pdir |= (ctlr->pmdio | ctlr->pmdck);
-		iomem->port[3].ppar &= ~(ctlr->pmdio | ctlr->pmdck);
+		imm->port[2].psor &= ~0x0000c000;
+		imm->port[2].pdir &= ~0x0000c000;
+		imm->port[2].ppar |= 0x0000c000;
+		imm->port[3].pdat |= (ctlr->pmdio | ctlr->pmdck);
+		imm->port[3].podr |= ctlr->pmdio;
+		imm->port[3].pdir |= (ctlr->pmdio | ctlr->pmdck);
+		imm->port[3].ppar &= ~(ctlr->pmdio | ctlr->pmdck);
 		eieio();
 		/* Step 3, Serial Interface clock routing */
-		iomem->cmxfcr &= ~0x0000ff00;
-		iomem->cmxfcr |= 0x00003700;
+		imm->cmxfcr &= ~0x0000ff00;
+		imm->cmxfcr |= 0x00003700;
 		break;
 	}
 	iopunlock();
 
-	p = (Etherparam*)(m->imap->prmfcc + ctlr->port);
+	p = (Etherparam*)(m->immr->prmfcc + ctlr->port);
 	memset(p, 0, sizeof(Etherparam));
 
 	/* Step 4 */
@@ -623,10 +623,10 @@ fccsetup(Ctlr *ctlr, FCC *fcc, uchar *ea)
 		p->paddr[2-i/2] = (ea[i+1]<<8)|ea[i];
 
 	/* Step 7, initialize parameter ram, configuration-dependent values */
-	p->riptr = m->imap->fccextra[ctlr->port].ri - (uchar*)INTMEM;
-	p->tiptr = m->imap->fccextra[ctlr->port].ti - (uchar*)INTMEM;
-	p->padptr = m->imap->fccextra[ctlr->port].pad - (uchar*)INTMEM;
-	memset(m->imap->fccextra[ctlr->port].pad, 0x88, 0x20);
+	p->riptr = m->immr->fccextra[ctlr->port].ri - (uchar*)IMMR;
+	p->tiptr = m->immr->fccextra[ctlr->port].ti - (uchar*)IMMR;
+	p->padptr = m->immr->fccextra[ctlr->port].pad - (uchar*)IMMR;
+	memset(m->immr->fccextra[ctlr->port].pad, 0x88, 0x20);
 
 	/* Step 8, clear out events */
 	fcc->fcce = ~0;
@@ -690,7 +690,7 @@ reset(Ether* ether)
 	}
 	ether->irq = fccirq[ether->port];
 	ether->tbdf = BusPPC;
-	fcc = iomem->fcc + ether->port;
+	fcc = imm->fcc + ether->port;
 
 	ctlr = malloc(sizeof(*ctlr));
 	ether->ctlr = ctlr;
@@ -786,7 +786,7 @@ fccmiimiw(Mii *mii, int pa, int ra, int data)
 	 */
 
 	ctlr = mii->ctlr;
-	port = iomem->port + 3;
+	port = imm->port + 3;
 	cmd = MDIwrite | (pa<<(5+2+16))| (ra<<(2+16)) | (data & 0xffff);
 
 	x = splhi();
@@ -815,7 +815,7 @@ fccmiimir(Mii *mii, int pa, int ra)
 	Ctlr *ctlr;
 
 	ctlr = mii->ctlr;
-	port = iomem->port + 3;
+	port = imm->port + 3;
 
 	cmd = MDIread | pa<<(5+2+16) | ra<<(2+16);
 

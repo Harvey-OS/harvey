@@ -330,13 +330,13 @@ confinit(void)
 	pa = PGROUND(PADDR(end));
 
 	/* Blast Board specific */
-	conf.npage0 = (MEM1SIZE - pa)/BY2PG;
-	conf.base0 = pa;
+	conf.mem[0].npage = (MEM1SIZE - pa)/BY2PG;
+	conf.mem[0].base = pa;
 	
-	conf.npage1 = MEM2SIZE/BY2PG;
-	conf.base1 = MEM2BASE;
+	conf.mem[1].npage = MEM2SIZE/BY2PG;
+	conf.mem[1].base = MEM2BASE;
 
-	conf.npage = conf.npage0 + conf.npage1;
+	conf.npage = conf.mem[0].npage + conf.mem[1].npage;
 
 	conf.nmach = 1;
 	conf.nproc = 100 + ((conf.npage*BY2PG)/MB)*5;

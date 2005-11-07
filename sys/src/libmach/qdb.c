@@ -9,10 +9,10 @@
  */
 
 static	char	*powerexcep(Map*, Rgetter);
-static	int	powerfoll(Map*, ulong, Rgetter, ulong*);
-static	int	powerinst(Map*, ulong, char, char*, int);
-static	int	powerinstlen(Map*, ulong);
-static	int	powerdas(Map*, ulong, char*, int);
+static	int	powerfoll(Map*, uvlong, Rgetter, uvlong*);
+static	int	powerinst(Map*, uvlong, char, char*, int);
+static	int	powerinstlen(Map*, uvlong);
+static	int	powerdas(Map*, uvlong, char*, int);
 
 /*
  *	Machine description
@@ -146,7 +146,7 @@ typedef struct {
 	long	immediate;
 	long w0;
 	long w1;
-	ulong	addr;		/* pc of instruction */
+	uvlong	addr;		/* pc of instruction */
 	short	target;
 	char	*curr;		/* current fill level in output buffer */
 	char	*end;		/* end of buffer */
@@ -168,9 +168,9 @@ bprint(Instr *i, char *fmt, ...)
 }
 
 static int
-decode(ulong pc, Instr *i)
+decode(uvlong pc, Instr *i)
 {
-	long w;
+	ulong w;
 
 	if (get4(mymap, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -224,7 +224,7 @@ decode(ulong pc, Instr *i)
 }
 
 static int
-mkinstr(ulong pc, Instr *i)
+mkinstr(uvlong pc, Instr *i)
 {
 	Instr x;
 
@@ -271,17 +271,17 @@ plocal(Instr *i)
 }
 
 static int
-pglobal(Instr *i, long off, int anyoff, char *reg)
+pglobal(Instr *i, uvlong off, int anyoff, char *reg)
 {
 	Symbol s, s2;
-	long off1;
+	uvlong off1;
 
 	if(findsym(off, CANY, &s) &&
 	   s.value-off < 4096 &&
 	   (s.class == CDATA || s.class == CTEXT)) {
 		if(off==s.value && s.name[0]=='$'){
 			off1 = 0;
-			get4(mymap, s.value, &off1);
+			geta(mymap, s.value, &off1);
 			if(off1 && findsym(off1, CANY, &s2) && s2.value == off1){
 				bprint(i, "$%s%s", s2.name, reg);
 				return 1;
@@ -696,8 +696,8 @@ static Opcode opcodes[] = {
 
 	{31,	28,	ALL,	"AND%C",	and,	il3},
 	{31,	60,	ALL,	"ANDN%C",	and,	il3},
-	{28,	0,	0,	"ANDCC",		andi,	il2u},
-	{29,	0,	0,	"ANDCC",		shifted, 0},
+	{28,	0,	0,	"ANDCC",	andi,	il2u},
+	{29,	0,	0,	"ANDCC",	shifted, 0},
 
 	{18,	0,	0,	"B%L",		gencc,	"%j"},
 	{16,	0,	0,	"BC%L",		branch,	"%d,%a,%J"},
@@ -798,12 +798,12 @@ static Opcode opcodes[] = {
 	{41,	0,	0,	"MOVHZU",	load,	ldop},
 	{31,	311,	ALL,	"MOVHZU",	ldx,	0},
 	{31,	279,	ALL,	"MOVHZ",	ldx,	0},
-	{46,	0,	0,	"MOVMW",		load,	ldop},
+	{46,	0,	0,	"MOVMW",	load,	ldop},
 	{31,	277,	ALL,	"LSCBX%C",	ldx,	0},	/* POWER */
 	{31,	597,	ALL,	"LSW",		gen,	"(R%a),$%n,R%d"},
 	{31,	533,	ALL,	"LSW",		ldx,	0},
 	{31,	20,	ALL,	"LWAR",		ldx,	0},
-	{31,	534,	ALL,	"MOVWBR",		ldx,	0},
+	{31,	534,	ALL,	"MOVWBR",	ldx,	0},
 	{32,	0,	0,	"MOVW",		load,	ldop},
 	{33,	0,	0,	"MOVWU",	load,	ldop},
 	{31,	55,	ALL,	"MOVWU",	ldx,	0},
@@ -814,15 +814,15 @@ static Opcode opcodes[] = {
 
 	{19,	0,	ALL,	"MOVFL",	gen,	"%S,%D"},
 	{63,	64,	ALL,	"MOVCRFS",	gen,	"%S,%D"},
-	{31,	512,	ALL,	"MOVW",	gen,	"XER,%D"},
-	{31,	19,	ALL,	"MOVW",	gen,	"CR,R%d"},
+	{31,	512,	ALL,	"MOVW",		gen,	"XER,%D"},
+	{31,	19,	ALL,	"MOVW",		gen,	"CR,R%d"},
 
 	{63,	583,	ALL,	"MOVW%C",	gen,	"FPSCR, F%d"},	/* mffs */
 	{31,	83,	ALL,	"MOVW",		gen,	"MSR,R%d"},
 	{31,	339,	ALL,	"MOVW",		gen,	"%P,R%d"},
 	{31,	595,	ALL,	"MOVW",		gen,	"SEG(%a),R%d"},
 	{31,	659,	ALL,	"MOVW",		gen,	"SEG(R%b),R%d"},
-	{31,	323,	ALL,	"MOVW",		gen, "DCR(%Q),R%d"},
+	{31,	323,	ALL,	"MOVW",		gen,	"DCR(%Q),R%d"},
 	{31,	451,	ALL,	"MOVW",		gen,	"R%s,DCR(%Q)"},
 	{31,	144,	ALL,	"MOVFL",	gen,	"R%s,%m,CR"},
 	{63,	70,	ALL,	"MTFSB0%C",	gencc,	"%D"},
@@ -846,7 +846,7 @@ static Opcode opcodes[] = {
 	{31,	476,	ALL,	"NAND%C",	gencc,	il3},
 	{31,	104,	OEM,	"NEG%V%C",	neg,	ir2},
 	{31,	124,	ALL,	"NOR%C",	gencc,	il3},
-	{31,	444,	ALL,	"OR%C",	or,	il3},
+	{31,	444,	ALL,	"OR%C",		or,	il3},
 	{31,	412,	ALL,	"ORN%C",	or,	il3},
 	{24,	0,	0,	"OR",		and,	"%I,R%d,R%a"},
 	{25,	0,	0,	"OR",		shifted, 0},
@@ -905,12 +905,12 @@ static Opcode opcodes[] = {
 	{45,	0,	0,	"MOVHU",	store,	stop},
 	{31,	439,	ALL,	"MOVHU",	stx,	0},
 	{31,	407,	ALL,	"MOVH",		stx,	0},
-	{47,	0,	0,	"MOVMW",		store,	stop},
+	{47,	0,	0,	"MOVMW",	store,	stop},
 	{31,	725,	ALL,	"STSW",		gen,	"R%d,$%n,(R%a)"},
 	{31,	661,	ALL,	"STSW",		stx,	0},
 	{36,	0,	0,	"MOVW",		store,	stop},
 	{31,	662,	ALL,	"MOVWBR",	stx,	0},
-	{31,	150,	ALL,	"STWCCC",		stx,	0},
+	{31,	150,	ALL,	"STWCCC",	stx,	0},
 	{37,	0,	0,	"MOVWU",	store,	stop},
 	{31,	183,	ALL,	"MOVWU",	stx,	0},
 	{31,	151,	ALL,	"MOVW",		stx,	0},
@@ -1153,7 +1153,7 @@ format(char *mnemonic, Instr *i, char *f)
 }
 
 static int
-printins(Map *map, ulong pc, char *buf, int n)
+printins(Map *map, uvlong pc, char *buf, int n)
 {
 	Instr i;
 	Opcode *o;
@@ -1177,14 +1177,14 @@ printins(Map *map, ulong pc, char *buf, int n)
 }
 
 static int
-powerinst(Map *map, ulong pc, char modifier, char *buf, int n)
+powerinst(Map *map, uvlong pc, char modifier, char *buf, int n)
 {
 	USED(modifier);
 	return printins(map, pc, buf, n);
 }
 
 static int
-powerdas(Map *map, ulong pc, char *buf, int n)
+powerdas(Map *map, uvlong pc, char *buf, int n)
 {
 	Instr instr;
 
@@ -1205,7 +1205,7 @@ powerdas(Map *map, ulong pc, char *buf, int n)
 }
 
 static int
-powerinstlen(Map *map, ulong pc)
+powerinstlen(Map *map, uvlong pc)
 {
 	Instr i;
 
@@ -1216,7 +1216,7 @@ powerinstlen(Map *map, ulong pc)
 }
 
 static int
-powerfoll(Map *map, ulong pc, Rgetter rget, ulong *foll)
+powerfoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
 {
 	char *reg;
 	Instr i;

@@ -88,101 +88,49 @@ s3page(VGAscr* scr, int page)
 	}
 }
 
-static ulong
-s3linear(VGAscr* scr, int* size, int* align)
+static void
+s3linear(VGAscr* scr, int, int)
 {
-	char *mmioname;
-	ulong aperture, oaperture, mmiobase, mmiosize;
-	int i, id, j, osize, oapsize, wasupamem;
+	int id, j;
+	ulong mmiobase, mmiosize;
 	Pcidev *p;
-
-	osize = *size;
-	oaperture = scr->aperture;
-	oapsize = scr->apsize;
-	wasupamem = scr->isupamem;
-
-	mmiosize = 0;
-	mmiobase = 0;
-	mmioname = nil;
-
-	/*
-	 * S3 makes cards other than display controllers, so
-	 * look for the first S3 display controller (device class 3)
-	 * and not one of their sound cards.
-	 */
-	p = nil;
-	while(p = pcimatch(p, PCIS3, 0)){
-		if(p->ccrb == 0x03)
-			break;
-	}
-	if(p != nil){
-		for(i=0; i<nelem(p->mem); i++){
-			if(p->mem[i].size >= *size
-			&& ((p->mem[i].bar & ~0x0F) & (*align-1)) == 0)
+	
+	vgalinearpciid(scr, PCIS3, 0);
+	p = scr->pci;
+	if(scr->paddr == 0 || p == nil)
+		return;
+		
+	addvgaseg("s3screen", scr->paddr, scr->apsize);
+	
+	id = (vgaxi(Crtx, 0x2D)<<8)|vgaxi(Crtx, 0x2E);
+	switch(id){			/* find mmio */
+	case SAVAGE4:
+	case PROSAVAGEP:
+	case PROSAVAGEK:
+	case PROSAVAGE8:
+	case SUPERSAVAGEIXC16:
+		/*
+		 * We could assume that the MMIO registers
+		 * will be in the screen segment and just use
+		 * that, but PCI software is allowed to move them
+		 * if it feels like it, so we look for an aperture of
+		 * the right size; only the first 512k actually means
+		 * anything.  The S3 engineers overestimated how
+		 * much space they would need in the first design.
+		 */
+		for(j=0; j<nelem(p->mem); j++){
+			if((p->mem[j].bar&~0x0F) != scr->paddr)
+			if(p->mem[j].size==512*1024 || p->mem[j].size==16*1024*1024){
+				mmiobase = p->mem[j].bar & ~0x0F;
+				mmiosize = 512*1024;
+				scr->mmio = vmap(mmiobase, mmiosize);
+				if(scr->mmio == nil)
+					return;
+				addvgaseg("savagemmio", mmiobase, mmiosize);
 				break;
-		}
-		if(i >= nelem(p->mem)){
-			print("vgas3: aperture not found\n");
-			return 0;
-		}
-		aperture = p->mem[i].bar & ~0x0F;
-		*size = p->mem[i].size;
-
-		id = (vgaxi(Crtx, 0x2D)<<8)|vgaxi(Crtx, 0x2E);
-		switch(id){			/* find mmio */
-		case SAVAGE4:
-		case PROSAVAGEP:
-		case PROSAVAGEK:
-		case PROSAVAGE8:
-		case SUPERSAVAGEIXC16:
-			/*
-			 * We could assume that the MMIO registers
-			 * will be in the screen segment and just use
-			 * that, but PCI software is allowed to move them
-			 * if it feels like it, so we look for an aperture of
-			 * the right size; only the first 512k actually means
-			 * anything.  The S3 engineers overestimated how
-			 * much space they would need in the first design.
-			 */
-			for(j=0; j<nelem(p->mem); j++){
-				if(i == j)
-					continue;
-				if(p->mem[j].size==512*1024 || p->mem[j].size==16*1024*1024){
-					mmiobase = p->mem[j].bar & ~0x0F;
-					mmiosize = 512*1024;
-					scr->mmio = (ulong*)upamalloc(mmiobase, mmiosize, 0);
-					mmioname = "savagemmio";
-					break;
-				}
-			}
-			if(mmiosize == 0){
-				print("savage4: mmio not found\n");
-				return 0;
 			}
 		}
-	}else
-		aperture = 0;
-
-	if(wasupamem)
-		upafree(oaperture, oapsize);
-	scr->isupamem = 0;
-
-	aperture = upamalloc(aperture, *size, *align);
-	if(aperture == 0){
-		if(wasupamem && upamalloc(oaperture, oapsize, 0))
-			scr->isupamem = 1;
 	}
-	else
-		scr->isupamem = 1;
-
-	if(oaperture && oaperture != aperture)
-		print("warning (BUG): redefinition of aperture does not change s3screen segment\n");
-	addvgaseg("s3screen", aperture, osize);
-
-	if(mmiosize)
-		addvgaseg(mmioname, mmiobase, mmiosize);
-
-	return aperture;
 }
 
 static void
@@ -223,7 +171,7 @@ s3load(VGAscr* scr, Cursor* curs)
 	s3disable(scr);
 
 	opage = 0;
-	p = KADDR(scr->aperture);
+	p = scr->vaddr;
 	id = (vgaxi(Crtx, 0x2D)<<8)|vgaxi(Crtx, 0x2E);
 	switch(id){
 
@@ -498,8 +446,8 @@ hwscroll(VGAscr *scr, Rectangle r, Rectangle sr)
 	mmio = scr->mmio;
 	waitforlinearfifo(scr);
 	waitforfifo(scr, 7);
-	mmio[SrcBase] = scr->aperture;
-	mmio[DstBase] = scr->aperture;
+	mmio[SrcBase] = scr->paddr;
+	mmio[DstBase] = scr->paddr;
 	mmio[Stride] = (stride<<16)|stride;
 	mmio[WidthHeight] = ((Dx(r)-1)<<16)|Dy(r);
 	mmio[SrcXY] = (sp.x<<16)|sp.y;
@@ -524,9 +472,9 @@ hwfill(VGAscr *scr, Rectangle r, ulong sval)
 	mmio = scr->mmio;
 	waitforlinearfifo(scr);
 	waitforfifo(scr, 8);
-	mmio[SrcBase] = scr->aperture;
-	mmio[DstBase] = scr->aperture;
-	mmio[DstBase] = scr->aperture;
+	mmio[SrcBase] = scr->paddr;
+	mmio[DstBase] = scr->paddr;
+	mmio[DstBase] = scr->paddr;
 	mmio[Stride] = (stride<<16)|stride;
 	mmio[FgrdData] = sval;
 	mmio[WidthHeight] = ((Dx(r)-1)<<16)|Dy(r);
@@ -579,13 +527,13 @@ s3drawinit(VGAscr *scr)
 	case VIRGE:
 	case VIRGEVX:
 	case VIRGEGX2:
-		scr->mmio = (ulong*)(scr->aperture+0x1000000);
+		scr->mmio = (ulong*)((char*)scr->vaddr+0x1000000);
 		scr->fill = hwfill;
 		scr->scroll = hwscroll;
 		break;
 	case SAVAGEMXMV:
 	case SAVAGEIXMV:
-		scr->mmio = (ulong*)(scr->aperture+0x1000000);
+		scr->mmio = (ulong*)((char*)scr->vaddr+0x1000000);
 		savageinit(scr);	
 		break;
 	case SUPERSAVAGEIXC16:

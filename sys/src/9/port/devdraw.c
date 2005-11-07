@@ -16,6 +16,7 @@ enum
 {
 	Qtopdir		= 0,
 	Qnew,
+	Qwinname,
 	Q3rd,
 	Q2nd,
 	Qcolormap,
@@ -53,7 +54,6 @@ ulong blanktime = 30;	/* in minutes; a half hour */
 
 struct Draw
 {
-	QLock;
 	int		clientid;
 	int		nclient;
 	Client**	client;
@@ -154,8 +154,13 @@ struct DScreen
 };
 
 static	Draw		sdraw;
+	QLock	drawlock;
+
 static	Memimage	*screenimage;
-static	Memdata		screendata;
+static	DImage*	screendimage;
+static	char	screenname[40];
+static	int	screennameid;
+
 static	Rectangle	flushrect;
 static	int		waste;
 static	DScreen*	dscreen;
@@ -164,6 +169,7 @@ extern	void		flushmemscreen(Rectangle);
 	void		drawuninstall(Client*, int);
 	void		drawfreedimage(DImage*);
 	Client*		drawclientofpath(ulong);
+	DImage*	allocdimage(Memimage*);
 
 static	char Enodrawimage[] =	"unknown id for draw image";
 static	char Enodrawscreen[] =	"unknown id for draw screen";
@@ -183,6 +189,24 @@ static	char Enoname[] =	"no image with that name";
 static	char Eoldname[] =	"named image no longer valid";
 static	char Enamed[] = 	"image already has name";
 static	char Ewrongname[] = 	"wrong name for image";
+
+static void
+dlock(void)
+{
+	qlock(&drawlock);
+}
+
+static int
+candlock(void)
+{
+	return canqlock(&drawlock);
+}
+
+static void
+dunlock(void)
+{
+	qunlock(&drawlock);
+}
 
 static int
 drawgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
@@ -225,6 +249,10 @@ drawgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 		case 0:
 			mkqid(&q, Q2nd, 0, QTDIR);
 			devdir(c, q, "draw", 0, eve, 0555, dp);
+			break;
+		case 1:
+			mkqid(&q, Qwinname, 0, 0);
+			devdir(c, q, "winname", 0, eve, 0444, dp);
 			break;
 		default:
 			return -1;
@@ -498,15 +526,14 @@ drawlookupscreen(Client *client, int id, CScreen **cs)
 	return 0;
 }
 
-Memimage*
-drawinstall(Client *client, int id, Memimage *i, DScreen *dscreen)
+DImage*
+allocdimage(Memimage *i)
 {
 	DImage *d;
 
 	d = malloc(sizeof(DImage));
 	if(d == 0)
 		return 0;
-	d->id = id;
 	d->ref = 1;
 	d->name = 0;
 	d->vers = 0;
@@ -514,6 +541,18 @@ drawinstall(Client *client, int id, Memimage *i, DScreen *dscreen)
 	d->nfchar = 0;
 	d->fchar = 0;
 	d->fromname = 0;
+	return d;
+}
+
+Memimage*
+drawinstall(Client *client, int id, Memimage *i, DScreen *dscreen)
+{
+	DImage *d;
+
+	d = allocdimage(i);
+	if(d == 0)
+		return 0;
+	d->id = id;
 	d->dscreen = dscreen;
 	d->next = client->dimage[id&HASHMASK];
 	client->dimage[id&HASHMASK] = d;
@@ -637,8 +676,8 @@ drawfreedimage(DImage *dimage)
 		drawfreedimage(dimage->fromname);
 		goto Return;
 	}
-	if(dimage->image == screenimage)	/* don't free the display */
-		goto Return;
+//	if(dimage->image == screenimage)	/* don't free the display */
+//		goto Return;
 	ds = dimage->dscreen;
 	if(ds){
 		l = dimage->image;
@@ -856,60 +895,103 @@ drawchar(Memimage *dst, Point p, Memimage *src, Point *sp, DImage *font, int ind
 	return p;
 }
 
-static int
-initscreenimage(void)
+static DImage*
+makescreenimage(void)
 {
 	int width, depth;
 	ulong chan;
+	DImage *di;
+	Memdata *md;
+	Memimage *i;
 	Rectangle r;
 
+	md = malloc(sizeof *md);
+	if(md == nil)
+		return nil;
+	md->allocd = 1;
+	md->base = nil;
+	md->bdata = attachscreen(&r, &chan, &depth, &width, &sdraw.softscreen);
+	if(md->bdata == nil){
+		free(md);
+		return nil;
+	}
+	md->ref = 1;
+	i = allocmemimaged(r, chan, md);
+	if(i == nil){
+		free(md);
+		return nil;
+	}
+	i->width = width;
+	i->clipr = r;
+
+	di = allocdimage(i);
+	if(di == nil){
+		freememimage(i);	/* frees md */
+		return nil;
+	}
+	if(!waserror()){
+		snprint(screenname, sizeof screenname, "noborder.screen.%d", ++screennameid);
+		drawaddname(nil, di, strlen(screenname), screenname);
+		poperror();
+	}
+	return di;
+}
+
+static int
+initscreenimage(void)
+{
 	if(screenimage != nil)
 		return 1;
 
-	screendata.base = nil;
-	screendata.bdata = attachscreen(&r, &chan, &depth, &width, &sdraw.softscreen);
-	if(screendata.bdata == nil)
+	screendimage = makescreenimage();
+	if(screendimage == nil)
 		return 0;
-	screendata.ref = 1;
-
-	screenimage = allocmemimaged(r, chan, &screendata);
-	if(screenimage == nil){
-		/* RSC: BUG: detach screen */
-		return 0;
-	}
-
-	screenimage->width = width;
-	screenimage->clipr = r;
+	screenimage = screendimage->image;
+// iprint("initscreenimage %p %p\n", screendimage, screenimage);
+	mouseresize();
 	return 1;
 }
 
 void
 deletescreenimage(void)
 {
-	qlock(&sdraw);
-	/* RSC: BUG: detach screen */
-	if(screenimage)
-		freememimage(screenimage);
-	screenimage = nil;
-	qunlock(&sdraw);
+	dlock();
+	if(screenimage){
+		/* will be freed via screendimage; disable */
+		screenimage->clipr = ZR;
+		screenimage = nil;
+	}
+	if(screendimage){
+		drawfreedimage(screendimage);
+		screendimage = nil;
+	}
+	dunlock();
+}
+
+void
+resetscreenimage(void)
+{
+	dlock();
+	initscreenimage();
+	dunlock();
 }
 
 static Chan*
 drawattach(char *spec)
 {
-	qlock(&sdraw);
+	dlock();
 	if(!initscreenimage()){
-		qunlock(&sdraw);
+		dunlock();
 		error("no frame buffer");
 	}
-	qunlock(&sdraw);
+	dunlock();
 	return devattach('i', spec);
 }
 
 static Walkqid*
 drawwalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	if(screendata.bdata == nil)
+	if(screenimage == nil)
 		error("no frame buffer");
 	return devwalk(c, nc, name, nname, 0, 0, drawgen);
 }
@@ -924,15 +1006,17 @@ static Chan*
 drawopen(Chan *c, int omode)
 {
 	Client *cl;
+	DName *dn;
+	DImage *di;
 
 	if(c->qid.type & QTDIR){
 		c = devopen(c, omode, 0, 0, drawgen);
 		c->iounit = IOUNIT;
 	}
 
-	qlock(&sdraw);
+	dlock();
 	if(waserror()){
-		qunlock(&sdraw);
+		dunlock();
 		nexterror();
 	}
 
@@ -944,6 +1028,9 @@ drawopen(Chan *c, int omode)
 	}
 
 	switch(QID(c->qid)){
+	case Qwinname:
+		break;
+
 	case Qnew:
 		break;
 
@@ -953,9 +1040,22 @@ drawopen(Chan *c, int omode)
 			error(Einuse);
 		cl->busy = 1;
 		flushrect = Rect(10000, 10000, -10000, -10000);
-		drawinstall(cl, 0, screenimage, 0);
+		dn = drawlookupname(strlen(screenname), screenname);
+		if(dn == 0)
+			error("draw: cannot happen 2");
+		if(drawinstall(cl, 0, dn->dimage->image, 0) == 0)
+			error(Edrawmem);
+		di = drawlookup(cl, 0, 0);
+		if(di == 0)
+			error("draw: cannot happen 1");
+		di->vers = dn->vers;
+		di->name = smalloc(strlen(screenname)+1);
+		strcpy(di->name, screenname);
+		di->fromname = dn->dimage;
+		di->fromname->ref++;
 		incref(&cl->r);
 		break;
+
 	case Qcolormap:
 	case Qdata:
 	case Qrefresh:
@@ -963,7 +1063,7 @@ drawopen(Chan *c, int omode)
 		incref(&cl->r);
 		break;
 	}
-	qunlock(&sdraw);
+	dunlock();
 	poperror();
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
@@ -982,9 +1082,9 @@ drawclose(Chan *c)
 
 	if(QID(c->qid) < Qcolormap)	/* Qtopdir, Qnew, Q3rd, Q2nd have no client */
 		return;
-	qlock(&sdraw);
+	dlock();
 	if(waserror()){
-		qunlock(&sdraw);
+		dunlock();
 		nexterror();
 	}
 
@@ -1017,7 +1117,7 @@ drawclose(Chan *c)
 		drawflush();	/* to erase visible, now dead windows */
 		free(cl);
 	}
-	qunlock(&sdraw);
+	dunlock();
 	poperror();
 }
 
@@ -1036,10 +1136,13 @@ drawread(Chan *c, void *a, long n, vlong off)
 
 	if(c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, drawgen);
+	if(QID(c->qid) == Qwinname)
+		return readstr(off, a, n, screenname);
+
 	cl = drawclient(c);
-	qlock(&sdraw);
+	dlock();
 	if(waserror()){
-		qunlock(&sdraw);
+		dunlock();
 		nexterror();
 	}
 	switch(QID(c->qid)){
@@ -1096,14 +1199,14 @@ drawread(Chan *c, void *a, long n, vlong off)
 		for(;;){
 			if(cl->refreshme || cl->refresh)
 				break;
-			qunlock(&sdraw);
+			dunlock();
 			if(waserror()){
-				qlock(&sdraw);	/* restore lock for waserror() above */
+				dlock();	/* restore lock for waserror() above */
 				nexterror();
 			}
 			sleep(&cl->refrend, drawrefactive, cl);
 			poperror();
-			qlock(&sdraw);
+			dlock();
 		}
 		p = a;
 		while(cl->refresh && n>=5*4){
@@ -1120,8 +1223,9 @@ drawread(Chan *c, void *a, long n, vlong off)
 		}
 		cl->refreshme = 0;
 		n = p-(uchar*)a;
+		break;
 	}
-	qunlock(&sdraw);
+	dunlock();
 	poperror();
 	return n;
 }
@@ -1149,10 +1253,10 @@ drawwrite(Chan *c, void *a, long n, vlong)
 	if(c->qid.type & QTDIR)
 		error(Eisdir);
 	cl = drawclient(c);
-	qlock(&sdraw);
+	dlock();
 	if(waserror()){
 		drawwakeall();
-		qunlock(&sdraw);
+		dunlock();
 		nexterror();
 	}
 	switch(QID(c->qid)){
@@ -1206,7 +1310,7 @@ drawwrite(Chan *c, void *a, long n, vlong)
 	default:
 		error(Ebadusefd);
 	}
-	qunlock(&sdraw);
+	dunlock();
 	poperror();
 	return n;
 }
@@ -2022,10 +2126,10 @@ drawblankscreen(int blank)
 
 	if(blank == sdraw.blanked)
 		return;
-	if(!canqlock(&sdraw))
+	if(!candlock())
 		return;
 	if(!initscreenimage()){
-		qunlock(&sdraw);
+		dunlock();
 		return;
 	}
 	p = sdraw.savemap;
@@ -2048,7 +2152,7 @@ drawblankscreen(int blank)
 		}
 	}
 	sdraw.blanked = blank;
-	qunlock(&sdraw);
+	dunlock();
 }
 
 /*

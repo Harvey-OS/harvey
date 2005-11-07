@@ -259,7 +259,7 @@ sysexec(ulong *arg)
 		text = l2be(exec.text);
 		entry = l2be(exec.entry);
 		if(n==sizeof(Exec) && (magic == AOUT_MAGIC)){
-			if((text&KZERO) == KZERO
+			if(text >= USTKTOP-UTZERO
 			|| entry < UTZERO+sizeof(Exec)
 			|| entry >= UTZERO+sizeof(Exec)+text)
 				error(Ebadexec);
@@ -298,7 +298,7 @@ sysexec(ulong *arg)
 	d = (t + data + (BY2PG-1)) & ~(BY2PG-1);
 	bssend = t + data + bss;
 	b = (bssend + (BY2PG-1)) & ~(BY2PG-1);
-	if(((t|d|b) & KZERO) == KZERO)
+	if(t >= KZERO || d >= KZERO || b >= KZERO)
 		error(Ebadexec);
 
 	/*
@@ -807,13 +807,12 @@ sysbrk_(ulong *arg)
 long
 sysrendezvous(ulong *arg)
 {
-	ulong tag;
-	ulong val;
+	uintptr tag, val;
 	Proc *p, **l;
 
 	tag = arg[0];
 	l = &REND(up->rgrp, tag);
-	up->rendval = ~0UL;
+	up->rendval = ~(uintptr)0;
 
 	lock(up->rgrp);
 	for(p = *l; p; p = p->rendhash) {

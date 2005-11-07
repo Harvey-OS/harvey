@@ -22,72 +22,20 @@ struct CursorNM {
 	int	addr;
 };
 
-static ulong
-neomagiclinear(VGAscr* scr, int* size, int* align)
-{
-	ulong aperture, oaperture;
-	int oapsize, wasupamem;
-	Pcidev *p;
-
-	oaperture = scr->aperture;
-	oapsize = scr->apsize;
-	wasupamem = scr->isupamem;
-
-	aperture = 0;
-	if(p = pcimatch(nil, 0x10C8, 0)){
-		switch(p->did){
-		case 0x0003:		/* MagicGraph 128ZV */
-		case 0x0083:		/* MagicGraph 128ZV+ */
-		case 0x0004:		/* MagicGraph 128XD */
-		case 0x0005:		/* MagicMedia 256AV */
-		case 0x0006:		/* MagicMedia 256ZX */
-			aperture = p->mem[0].bar & ~0x0F;
-			*size = p->mem[0].size;
-			break;
-		default:
-			break;
-		}
-	}
-
-	if(wasupamem){
-		if(oaperture == aperture)
-			return oaperture;
-		upafree(oaperture, oapsize);
-	}
-	scr->isupamem = 0;
-
-	aperture = upamalloc(aperture, *size, *align);
-//print("neomagiclinear1 %lux %d\n", aperture, *size);
-	if(aperture == 0){
-		if(wasupamem && upamalloc(oaperture, oapsize, 0)){
-			aperture = oaperture;
-			scr->isupamem = 1;
-		}
-		else
-			scr->isupamem = 0;
-	}
-	else
-		scr->isupamem = 1;
-
-	return aperture;
-}
-
 static void
 neomagicenable(VGAscr* scr)
 {
 	Pcidev *p;
-	int align, curoff, size, vmsize;
-	ulong aperture;
+	int curoff, vmsize;
 	ulong ioaddr;
 	ulong iosize;
 
 	/*
-	 * Only once, can't be disabled for now.
-	 * scr->io holds the physical address of the cursor registers
+	 * scr->mmio holds the virtual address of the cursor registers
 	 * in the MMIO space. This may need to change for older chips
 	 * which have the MMIO space offset in the framebuffer region.
 	 */
-	if(scr->io)
+	if(scr->mmio)
 		return;
 	if(p = pcimatch(nil, 0x10C8, 0)){
 		switch(p->did){
@@ -127,11 +75,12 @@ neomagicenable(VGAscr* scr)
 	}
 	else
 		return;
-	scr->io = upamalloc(ioaddr, iosize, 0);
-	if(scr->io == 0)
+	scr->pci = p;
+
+	scr->mmio = vmap(ioaddr, iosize);
+	if(scr->mmio == nil)
 		return;
-	addvgaseg("neomagicmmio", scr->io, iosize);
-	scr->mmio = KADDR(scr->io);
+	addvgaseg("neomagicmmio", ioaddr, iosize);
 
 	/*
 	 * Find a place for the cursor data in display memory.
@@ -139,16 +88,10 @@ neomagicenable(VGAscr* scr)
 	 * last 2KB of the framebuffer.
 	 */
 	scr->storage = vmsize-2*1024;
-	scr->io += curoff;
-
-	size = p->mem[0].size;
-	align = 0;
-	aperture = neomagiclinear(scr, &size, &align);
-	if(aperture) {
-		scr->aperture = aperture;
-		scr->apsize = size;
-		addvgaseg("neomagicscreen", aperture, size);
-	}
+	scr->mmio = (ulong*)((uchar*)scr->mmio + curoff);
+	vgalinearpci(scr);
+	if(scr->paddr)
+		addvgaseg("neomagicscreen", scr->paddr, scr->apsize);
 }
 
 static void
@@ -156,9 +99,9 @@ neomagiccurdisable(VGAscr* scr)
 {
 	CursorNM *cursornm;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
-	cursornm = KADDR(scr->io);
+	cursornm = (void*)scr->mmio;
 	cursornm->enable = 0;
 }
 
@@ -169,7 +112,7 @@ neomagicinitcursor(VGAscr* scr, int xo, int yo, int index)
 	uint p0, p1;
 	int x, y;
 
-	p = KADDR(scr->aperture);
+	p = (uchar*)scr->mmio;
 	p += scr->storage + index*1024;
 
 	for(y = yo; y < 16; y++){
@@ -211,9 +154,9 @@ neomagiccurload(VGAscr* scr, Cursor* curs)
 {
 	CursorNM *cursornm;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
-	cursornm = KADDR(scr->io);
+	cursornm = (void*)scr->mmio;
 
 	cursornm->enable = 0;
 	memmove(&scr->Cursor, curs, sizeof(Cursor));
@@ -227,9 +170,9 @@ neomagiccurmove(VGAscr* scr, Point p)
 	CursorNM *cursornm;
 	int addr, index, x, xo, y, yo;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return 1;
-	cursornm = KADDR(scr->io);
+	cursornm = (void*)scr->mmio;
 
 	index = 0;
 	if((x = p.x+scr->offset.x) < 0){
@@ -266,9 +209,9 @@ neomagiccurenable(VGAscr* scr)
 	CursorNM *cursornm;
 
 	neomagicenable(scr);
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
-	cursornm = KADDR(scr->io);
+	cursornm = (void*)scr->mmio;
 	cursornm->enable = 0;
 
 	/*
@@ -426,7 +369,7 @@ neomagichwfill(VGAscr *scr, Rectangle r, ulong sval)
 		| NEO_BC0_SRC_IS_FG
 		| NEO_BC3_SKIP_MAPPING
 		| GXcopy;
-	mmio[DstStartOff] = scr->aperture
+	mmio[DstStartOff] = scr->paddr
 		+ r.min.y*scr->gscreen->width*BY2WD
 		+ r.min.x*scr->gscreen->depth/BI2BY;
 	mmio[XYExt] = (Dy(r) << 16) | (Dx(r) & 0xffff);
@@ -452,9 +395,9 @@ neomagichwscroll(VGAscr *scr, Rectangle r, Rectangle sr)
 			| NEO_BC3_FIFO_EN
 			| NEO_BC3_SKIP_MAPPING
 			| GXcopy;
-		mmio[SrcStartOff] = scr->aperture
+		mmio[SrcStartOff] = scr->paddr
 			+ sr.min.y*pitch + sr.min.x*pixel;
-		mmio[DstStartOff] = scr->aperture
+		mmio[DstStartOff] = scr->paddr
 			+ r.min.y*pitch + r.min.x*pixel;
 	} else {
 		/* start from lower-right */
@@ -465,9 +408,9 @@ neomagichwscroll(VGAscr *scr, Rectangle r, Rectangle sr)
 			| NEO_BC3_FIFO_EN
 			| NEO_BC3_SKIP_MAPPING
 			| GXcopy;
-		mmio[SrcStartOff] = scr->aperture
+		mmio[SrcStartOff] = scr->paddr
 			+ (sr.max.y-1)*pitch + (sr.max.x-1)*pixel;
-		mmio[DstStartOff] = scr->aperture
+		mmio[DstStartOff] = scr->paddr
 			+ (r.max.y-1)*pitch + (r.max.x-1)*pixel;
 	}
 	mmio[XYExt] = (Dy(r) << 16) | (Dx(r) & 0xffff);
@@ -549,7 +492,7 @@ VGAdev vganeomagicdev = {
 	neomagicenable,
 	nil,
 	nil,
-	neomagiclinear,
+	nil,
 	neomagicdrawinit,
 };
 

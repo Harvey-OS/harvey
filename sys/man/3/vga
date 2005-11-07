@@ -5,11 +5,10 @@ vga \- VGA controller device
 .nf
 .B bind #v /dev
 
+.B /dev/vgabios
 .B /dev/vgactl
-
-.B /dev/vgaovlctl
-
 .B /dev/vgaovl
+.B /dev/vgaovlctl
 .fi
 .SH DESCRIPTION
 The VGA device allows configuration of a graphics controller
@@ -23,6 +22,10 @@ provided by
 it is used to implement configuration and setup of VGA controller cards.
 This is usually performed by
 .IR vga (8).
+.PP
+.B Vgabios
+provides read-only access to the low 640kB of memory,
+where the VGA and other BIOS ROMs are located.
 .PP
 Writing strings to 
 .B vgactl

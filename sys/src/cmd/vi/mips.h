@@ -193,7 +193,7 @@ void		inithdr(int);
 void		initstk(int, char**);
 void		reset(void);
 void		dobplist(void);
-int		_mipscoinst(Map*, ulong, char*, int);
+int		_mipscoinst(Map*, uvlong, char*, int);
 void		procinit(int);
 void		printsource(long);
 void		printparams(Symbol *, ulong);

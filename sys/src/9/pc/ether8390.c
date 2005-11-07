@@ -400,7 +400,7 @@ receive(Ether* ether)
 		 */
 		if(hdr.next < ctlr->pstart || hdr.next >= ctlr->pstop
 		  || len < 60 || len > sizeof(Etherpkt)){
-			print("dp8390: H#%2.2ux#%2.2ux#%2.2ux#%2.2ux,%lud\n",
+			print("dp8390: H%2.2ux+%2.2ux+%2.2ux+%2.2ux,%lud\n",
 				hdr.status, hdr.next, hdr.len0, hdr.len1, len);
 			regw(ctlr, Cr, Page0|RdABORT|Stp);
 			ringinit(ctlr);
@@ -588,7 +588,7 @@ interrupt(Ureg*, void* arg)
 		if(isr & (Txe|Ptx)){
 			r = regr(ctlr, Tsr);
 			if((isr & Txe) && (r & (Cdh|Fu|Crs|Abt))){
-				print("dp8390: Tsr#%2.2ux|", r);
+				print("dp8390: Tsr %#2.2ux", r);
 				ether->oerrs++;
 			}
 
@@ -686,7 +686,7 @@ multicast(void* arg, uchar *addr, int on)
 	if(reverse[1] == 0){
 		for(i = 0; i < 64; i++)
 			reverse[i] = ((i&1)<<5) | ((i&2)<<3) | ((i&4)<<1)
-					| ((i&8)>>1) | ((i&16)>>3) | ((i&32)>>5);
+				   | ((i&8)>>1) | ((i&16)>>3) | ((i&32)>>5);
 	}
 
 	/*

@@ -486,7 +486,7 @@ globalsegattach(Proc *p, char *name)
 	s = g->s;
 	if(s == nil)
 		error("global segment not assigned a virtual address");
-	if(isoverlap(p, s->base, s->top) != nil)
+	if(isoverlap(p, s->base, s->top - s->base) != nil)
 		error("overlaps existing segment");
 	incref(s);
 	unlock(&globalseglock);

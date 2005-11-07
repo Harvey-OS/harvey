@@ -1,4 +1,6 @@
 #include "mem.h"
+#include "/sys/src/boot/pc/x16.h"
+#undef DELAY
 
 #define PADDR(a)	((a) & ~KZERO)
 #define KADDR(a)	(KZERO|(a))
@@ -13,6 +15,7 @@
 #define RDTSC 		BYTE $0x0F; BYTE $0x31	/* RDTSC, result in AX/DX (lo/hi) */
 #define RDMSR		BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
 #define HLT		BYTE $0xF4
+#define INVLPG	BYTE $0x0F; BYTE $0x01; BYTE $0x39	/* INVLPG (%ecx) */
 
 /*
  * Macros for calculating offsets within the page directory base
@@ -27,8 +30,8 @@
  * 9load currently sets up the mmu, however the first 16MB of memory is identity
  * mapped, so behave as if the mmu was not setup
  */
-TEXT _start0x80100020(SB), $0
-	MOVL	$_start0x00100020(SB), AX
+TEXT _startKADDR(SB), $0
+	MOVL	$_startPADDR(SB), AX
 	ANDL	$~KZERO, AX
 	JMP*	AX
 
@@ -40,10 +43,10 @@ TEXT _multibootheader(SB), $0
 	LONG	$0x00010003			/* flags */
 	LONG	$-(0x1BADB002 + 0x00010003)	/* checksum */
 	LONG	$_multibootheader-KZERO(SB)	/* header_addr */
-	LONG	$_start0x80100020-KZERO(SB)	/* load_addr */
+	LONG	$_startKADDR-KZERO(SB)		/* load_addr */
 	LONG	$edata-KZERO(SB)		/* load_end_addr */
 	LONG	$end-KZERO(SB)			/* bss_end_addr */
-	LONG	$_start0x80100020-KZERO(SB)	/* entry_addr */
+	LONG	$_startKADDR-KZERO(SB)		/* entry_addr */
 	LONG	$0				/* mode_type */
 	LONG	$0				/* width */
 	LONG	$0				/* height */
@@ -51,7 +54,7 @@ TEXT _multibootheader(SB), $0
 
 /*
  * In protected mode with paging turned off and segment registers setup to linear map all memory.
- * Entered via a jump to 0x00100020, the physical address of the virtual kernel entry point of 0x80100020
+ * Entered via a jump to PADDR(entry), the physical address of the virtual kernel entry point of KADDR(entry)
  * Make the basic page tables for processor 0. Four pages are needed for the basic set:
  * a page directory, a page table for mapping the first 4MB of physical memory to KZERO,
  * and virtual and physical pages for mapping the Mach structure.
@@ -60,7 +63,7 @@ TEXT _multibootheader(SB), $0
  * identity mapping is removed once the MMU is going and the JMP has been made
  * to virtual memory.
  */
-TEXT _start0x00100020(SB), $0
+TEXT _startPADDR(SB), $0
 	CLI					/* make sure interrupts are off */
 
 	/* set up the gdt so we have sane plan 9 style gdts. */
@@ -109,9 +112,20 @@ TEXT tgdt(SB), $0
  *  that's needed as we start executing in physical addresses. 
  */
 TEXT tgdtptr(SB), $0
-
 	WORD	$(3*8)
 	LONG	$tgdt-KZERO(SB)
+
+TEXT m0rgdtptr(SB), $0
+	WORD	$(NGDT*8-1)
+	LONG	$(CPU0GDT-KZERO)
+
+TEXT m0gdtptr(SB), $0
+	WORD	$(NGDT*8-1)
+	LONG	$CPU0GDT
+
+TEXT m0idtptr(SB), $0
+	WORD $(256*8-1)
+	LONG $IDTADDR
 
 TEXT mode32bit(SB), $0
 	/* At this point, the GDT setup is done. */
@@ -126,7 +140,7 @@ TEXT mode32bit(SB), $0
 
 	MOVL	$PADDR(CPU0PDB), AX
 	ADDL	$PDO(KZERO), AX			/* page directory offset for KZERO */
-	MOVL	$PADDR(CPU0PTE), (AX)		/* PTE's for 0x80000000 */
+	MOVL	$PADDR(CPU0PTE), (AX)		/* PTE's for KZERO */
 	MOVL	$(PTEWRITE|PTEVALID), BX	/* page permissions */
 	ORL	BX, (AX)
 
@@ -211,6 +225,234 @@ _idle:
 	HLT
 	JMP	_idle
 
+/*
+ * Save registers.
+ */
+TEXT saveregs(SB), $0
+	/* appease 8l */
+	SUBL $32, SP
+	POPL AX
+	POPL AX
+	POPL AX
+	POPL AX
+	POPL AX
+	POPL AX
+	POPL AX
+	POPL AX
+	
+	PUSHL	AX
+	PUSHL	BX
+	PUSHL	CX
+	PUSHL	DX
+	PUSHL	BP
+	PUSHL	DI
+	PUSHL	SI
+	PUSHFL
+
+	XCHGL	32(SP), AX	/* swap return PC and saved flags */
+	XCHGL	0(SP), AX
+	XCHGL	32(SP), AX
+	RET
+
+TEXT restoreregs(SB), $0
+	/* appease 8l */
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	PUSHL	AX
+	ADDL	$32, SP
+	
+	XCHGL	32(SP), AX	/* swap return PC and saved flags */
+	XCHGL	0(SP), AX
+	XCHGL	32(SP), AX
+
+	POPFL
+	POPL	SI
+	POPL	DI
+	POPL	BP
+	POPL	DX
+	POPL	CX
+	POPL	BX
+	POPL	AX
+	RET
+
+/*
+ * Assumed to be in protected mode at time of call.
+ * Switch to real mode, execute an interrupt, and
+ * then switch back to protected mode.  
+ *
+ * Assumes:
+ *
+ *	- no device interrupts are going to come in
+ *	- 0-16MB is identity mapped in page tables
+ *	- realmode() has copied us down from 0x100000 to 0x8000
+ *	- can use code segment 0x0800 in real mode
+ *		to get at l.s code
+ *	- l.s code is less than 1 page
+ */
+#define RELOC	(RMCODE-KTZERO)
+
+TEXT realmodeidtptr(SB), $0
+	WORD	$(4*256-1)
+	LONG	$0
+
+TEXT realmode0(SB), $0
+	CALL	saveregs(SB)
+
+	/* switch to low code address */
+	LEAL	physcode-KZERO(SB), AX
+	JMP *AX
+
+TEXT physcode(SB), $0
+
+	/* switch to low stack */
+	MOVL	SP, AX
+	MOVL	$0x7C00, SP
+	PUSHL	AX
+
+	/* change gdt to physical pointer */
+	MOVL	m0rgdtptr-KZERO(SB), GDTR
+
+	/* load IDT with real-mode version*/
+	MOVL	realmodeidtptr-KZERO(SB), IDTR
+
+	/* edit INT $0x00 instruction below */
+	MOVL	$(RMUADDR-KZERO+48), AX	/* &rmu.trap */
+	MOVL	(AX), AX
+	MOVB	AX, realmodeintrinst+(-KZERO+1+RELOC)(SB)
+
+	/* disable paging */
+	MOVL	CR0, AX
+	ANDL	$0x7FFFFFFF, AX
+	MOVL	AX, CR0
+	/* JMP .+2 to clear prefetch queue*/
+	BYTE $0xEB; BYTE $0x00
+
+	/* jump to 16-bit code segment */
+/*	JMPFAR	SELECTOR(KESEG16, SELGDT, 0):$again16bit(SB) /**/
+	 BYTE	$0xEA
+	 LONG	$again16bit-KZERO(SB)
+	 WORD	$SELECTOR(KESEG16, SELGDT, 0)
+
+TEXT again16bit(SB), $0
+	/*
+	 * Now in 16-bit compatibility mode.
+	 * These are 32-bit instructions being interpreted
+	 * as 16-bit instructions.  I'm being lazy and
+	 * not using the macros because I know when
+	 * the 16- and 32-bit instructions look the same
+	 * or close enough.
+	 */
+
+	/* disable protected mode and jump to real mode cs */
+	OPSIZE; MOVL CR0, AX
+	OPSIZE; XORL BX, BX
+	OPSIZE; INCL BX
+	OPSIZE; XORL BX, AX
+	OPSIZE; MOVL AX, CR0
+
+	/* JMPFAR 0x0800:now16real */
+	 BYTE $0xEA
+	 WORD	$now16real-KZERO(SB)
+	 WORD	$0x0800
+
+TEXT now16real(SB), $0
+	/* copy the registers for the bios call */
+	LWI(0x0000, rAX)
+	MOVW	AX,SS
+	LWI(RMUADDR, rBP)
+	
+	/* offsets are in Ureg */
+	LXW(44, xBP, rAX)
+	MOVW	AX, DS
+	LXW(40, xBP, rAX)
+	MOVW	AX, ES
+
+	OPSIZE; LXW(0, xBP, rDI)
+	OPSIZE; LXW(4, xBP, rSI)
+	OPSIZE; LXW(16, xBP, rBX)
+	OPSIZE; LXW(20, xBP, rDX)
+	OPSIZE; LXW(24, xBP, rCX)
+	OPSIZE; LXW(28, xBP, rAX)
+
+	CLC
+
+TEXT realmodeintrinst(SB), $0
+	INT $0x00
+
+	/* save the registers after the call */
+
+	LWI(0x7bfc, rSP)
+	OPSIZE; PUSHFL
+	OPSIZE; PUSHL AX
+
+	LWI(0, rAX)
+	MOVW	AX,SS
+	LWI(RMUADDR, rBP)
+	
+	OPSIZE; SXW(rDI, 0, xBP)
+	OPSIZE; SXW(rSI, 4, xBP)
+	OPSIZE; SXW(rBX, 16, xBP)
+	OPSIZE; SXW(rDX, 20, xBP)
+	OPSIZE; SXW(rCX, 24, xBP)
+	OPSIZE; POPL AX
+	OPSIZE; SXW(rAX, 28, xBP)
+
+	MOVW	DS, AX
+	OPSIZE; SXW(rAX, 44, xBP)
+	MOVW	ES, AX
+	OPSIZE; SXW(rAX, 40, xBP)
+
+	OPSIZE; POPL AX
+	OPSIZE; SXW(rAX, 64, xBP)	/* flags */
+
+	/* re-enter protected mode and jump to 32-bit code */
+	OPSIZE; MOVL $1, AX
+	OPSIZE; MOVL AX, CR0
+	
+/*	JMPFAR	SELECTOR(KESEG, SELGDT, 0):$again32bit(SB) /**/
+	 OPSIZE
+	 BYTE $0xEA
+	 LONG	$again32bit-KZERO(SB)
+	 WORD	$SELECTOR(KESEG, SELGDT, 0)
+
+TEXT again32bit(SB), $0
+	MOVW	$SELECTOR(KDSEG, SELGDT, 0),AX
+	MOVW	AX,DS
+	MOVW	AX,SS
+	MOVW	AX,ES
+	MOVW	AX,FS
+	MOVW	AX,GS
+
+	/* enable paging and jump to kzero-address code */
+	MOVL	CR0, AX
+	ORL	$0x80000000, AX
+	MOVL	AX, CR0
+	LEAL	again32kzero(SB), AX
+	JMP*	AX
+
+TEXT again32kzero(SB), $0
+	/* breathe a sigh of relief - back in 32-bit protected mode */
+
+	/* switch to old stack */	
+	PUSHL	AX	/* match popl below for 8l */
+	MOVL	$0x7BFC, SP
+	POPL	SP
+
+	/* restore idt */
+	MOVL	m0idtptr(SB),IDTR
+
+	/* restore gdt */
+	MOVL	m0gdtptr(SB), GDTR
+
+	CALL	restoreregs(SB)
+	RET
+
+/*
 /*
  * Port I/O.
  *	in[bsl]		input a byte|short|long
@@ -347,6 +589,12 @@ TEXT putcr4(SB), $0
 	MOVL	AX, CR4
 	RET
 
+TEXT invlpg(SB), $0
+	/* 486+ only */
+	MOVL	va+0(FP), CX
+	INVLPG
+	RET
+
 TEXT _cycles(SB), $0				/* time stamp counter */
 	RDTSC
 	MOVL	vlong+0(FP), CX			/* &vlong */
@@ -442,21 +690,21 @@ _aamloop:
  * FNxxx variations) so WAIT instructions must be explicitly placed in the
  * code as necessary.
  */
-#define	FPOFF(l)							;\
-	MOVL	CR0, AX 					 	;\
-	ANDL	$0xC, AX			/* EM, TS */	 	;\
-	CMPL	AX, $0x8					 	;\
-	JEQ 	l						 	;\
-	WAIT							 	;\
-l:								 	;\
-	MOVL	CR0, AX							;\
-	ANDL	$~0x4, AX			/* EM=0 */		;\
-	ORL	$0x28, AX			/* NE=1, TS=1 */	;\
+#define	FPOFF(l)						 ;\
+	MOVL	CR0, AX 					 ;\
+	ANDL	$0xC, AX			/* EM, TS */	 ;\
+	CMPL	AX, $0x8					 ;\
+	JEQ 	l						 ;\
+	WAIT							 ;\
+l:								 ;\
+	MOVL	CR0, AX						 ;\
+	ANDL	$~0x4, AX			/* EM=0 */	 ;\
+	ORL	$0x28, AX			/* NE=1, TS=1 */ ;\
 	MOVL	AX, CR0
 
-#define	FPON								;\
-	MOVL	CR0, AX							;\
-	ANDL	$~0xC, AX			/* EM=0, TS=0 */	;\
+#define	FPON							 ;\
+	MOVL	CR0, AX						 ;\
+	ANDL	$~0xC, AX			/* EM=0, TS=0 */ ;\
 	MOVL	AX, CR0
 	
 TEXT fpoff(SB), $0				/* disable */

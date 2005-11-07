@@ -24,10 +24,6 @@ void		errors(char*, char*);
 void		execbkpt(BKPT*, int);
 char*		exform(int, int, char*, Map*, int, int);
 int		expr(int);
-/*
-void		fixregs(Map*);
-void		adjustreg(char*, ulong, long);
-*/
 void		flush(void);
 void		flushbuf(void);
 char*		getfname(void);
@@ -35,7 +31,7 @@ void		getformat(char*);
 int		getnum(int (*)(void));
 void		grab(void);
 void		iclose(int, int);
-ADDR		inkdot(long);
+ADDR		inkdot(WORD);
 int		isfileref(void);
 int		item(int);
 void		killpcs(void);
@@ -55,7 +51,7 @@ void		printparams(Symbol *, ADDR);
 void		printpc(void);
 void		printregs(int);
 void		prints(char*);
-void		printsource(long);
+void		printsource(ADDR);
 void		printsym(void);
 void		printsyscall(void);
 void		printtrace(int);
@@ -68,12 +64,12 @@ void		redirout(char*);
 void		readfname(char *);
 void		reread(void);
 char*		regname(int);
-vlong		rget(Map*, char*);
+uvlong		rget(Map*, char*);
 Reglist*	rname(char*);
 void		rput(Map*, char*, vlong);
 int		runpcs(int, int);
 void		runrun(int);
-void		runstep(ulong, int);
+void		runstep(uvlong, int);
 BKPT*		scanbkpt(ADDR adr);
 void		scanform(long, int, char*, Map*, int);
 void		setbp(void);
@@ -88,3 +84,6 @@ int		symchar(int);
 int		term(int);
 void		ungrab(void);
 int		valpr(long, int);
+
+#pragma	varargck	argpos	dprint	1
+#pragma	varargck	type	"t"	void

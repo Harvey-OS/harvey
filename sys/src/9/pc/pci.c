@@ -759,6 +759,8 @@ pcirouting(void)
 	}
 }
 
+static void pcireservemem(void);
+
 static void
 pcicfginit(void)
 {
@@ -898,10 +900,27 @@ pcicfginit(void)
 		pcirouting();
 
 out:
+	pcireservemem();
 	unlock(&pcicfginitlock);
 
 	if(getconf("*pcihinv"))
 		pcihinv(nil);
+}
+
+static void
+pcireservemem(void)
+{
+	int i;
+	Pcidev *p;
+	
+	/*
+	 * mark all the physical address space claimed by pci devices
+	 * as in use, so that upaalloc doesn't give it out.
+	 */
+	for(p=pciroot; p; p=p->list)
+		for(i=0; i<nelem(p->mem); i++)
+			if(p->mem[i].bar && (p->mem[i].bar&1) == 0)
+				upareserve(p->mem[i].bar&~0x0F, p->mem[i].size);
 }
 
 static int

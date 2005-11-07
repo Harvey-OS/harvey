@@ -127,7 +127,7 @@ readobj(Biobuf *bp, int objtype)
 }
 
 int
-readar(Biobuf *bp, int objtype, int end, int doautos)
+readar(Biobuf *bp, int objtype, vlong end, int doautos)
 {
 	Prog p;
 
@@ -253,7 +253,7 @@ objtraverse(void (*fn)(Sym*, void*), void *pointer)
  * update the offset information for a 'a' or 'p' symbol in an intermediate file
  */
 void
-_offset(int id, long off)
+_offset(int id, vlong off)
 {
 	Sym *s;
 
@@ -299,7 +299,7 @@ nextar(Biobuf *bp, int offset, char *buf)
 	for(i=0; i<sizeof(a.name) && i<SARNAME && a.name[i] != ' '; i++)
 		buf[i] = a.name[i];
 	buf[i] = 0;
-	arsize = atol(a.size);
+	arsize = strtol(a.size, 0, 0);
 	if (arsize&1)
 		arsize++;
 	return arsize + SAR_HDR;

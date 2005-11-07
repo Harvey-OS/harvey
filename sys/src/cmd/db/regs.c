@@ -19,11 +19,12 @@ rname(char *name)
 	return 0;
 }
 
-static vlong
+static uvlong
 getreg(Map *map, Reglist *rp)
 {
-	vlong v;
-	long w;
+	uvlong v;
+	ulong w;
+	ushort s;
 	int ret;
 
 	v = 0;
@@ -31,12 +32,12 @@ getreg(Map *map, Reglist *rp)
 	switch (rp->rformat)
 	{
 	case 'x':
-		ret = get2(map, rp->roffs, (ushort*) &w);
-		v = w;
+		ret = get2(map, rp->roffs, &s);
+		v = s;
 		break;
 	case 'f':
 	case 'X':
-		ret = get4(map, rp->roffs, (long*) &w);
+		ret = get4(map, rp->roffs, &w);
 		v = w;
 		break;
 	case 'F':
@@ -55,7 +56,7 @@ getreg(Map *map, Reglist *rp)
 	return v;
 }
 
-vlong
+uvlong
 rget(Map *map, char *name)
 {
 	Reglist *rp;
@@ -104,6 +105,7 @@ printregs(int c)
 {
 	Reglist *rp;
 	int i;
+	uvlong v;
 
 	for (i = 1, rp = mach->reglist; rp->rname; rp++, i++) {
 		if ((rp->rflags & RFLT)) {
@@ -112,10 +114,11 @@ printregs(int c)
 			if (rp->rformat == '8' || rp->rformat == '3')
 				continue;
 		}
+		v = getreg(cormap, rp);
 		if(rp->rformat == 'Y')
-			dprint("%-8s %-20#llux", rp->rname, getreg(cormap, rp));
+			dprint("%-8s %-20#llux", rp->rname, v);
 		else
-			dprint("%-8s %-12#lux", rp->rname, (ulong)getreg(cormap, rp));
+			dprint("%-8s %-12#lux", rp->rname, (ulong)v);
 		if ((i % 3) == 0) {
 			dprint("\n");
 			i = 0;

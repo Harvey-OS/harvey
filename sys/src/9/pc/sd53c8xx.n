@@ -54,12 +54,14 @@ SIR_NOTIFY_BLOCK_DATA_IN = 114
 SIR_NOTIFY_WSR = 115
 SIR_NOTIFY_LOAD_SYNC = 116
 SIR_NOTIFY_RESELECTED_ON_SELECT = 117
+SIR_NOTIFY_LOAD_STATE = 118
 
 STATE_FREE = 0
 STATE_ALLOCATED = 1
 STATE_ISSUE = 2
 STATE_DISCONNECTED = 3
 STATE_DONE = 4
+STATE_END = 5
 
 RESULT_OK = 0
 	
@@ -76,7 +78,7 @@ MSG_REJECT = 0x07
 BSIZE = 512
 //BSIZE=4096
 
-idle:
+ // idle:
 	jump	wait_for_reselection	
 start:
 	call	load_sync
@@ -84,7 +86,7 @@ start:
 //	int	SIR_NOTIFY_ISSUE
 	clear	target
 	select	atn from scsi_id_buf, reselected_on_select // do I need to clear ATN here?
-	jump	start1, when msg_in
+	jump	start1, when msg_in	// why is this here?
 start1:
 //	move	14 to ctest0
 	move	from msg_out_buf, when msg_out
@@ -320,21 +322,13 @@ find_dsa:
  	move	memory 4, dsa_head, dsa
 find_dsa_loop:
 //	move	7 to ctest0
-	move	dsa0 to sfbr
-	jump	find_dsa_1, if not 0
-	move	dsa1 to sfbr
-	jump	find_dsa_1, if not 0
-	move	dsa2 to sfbr
-	jump	find_dsa_1, if not 0
-	move	dsa3 to sfbr
-	int	error_reselected, if 0			// couldn't match dsa (panic)
-find_dsa_1:
 //	move	8 to ctest0
 	// load state from DSA into dsa_copy
 	call	load_state
 	move	memory 4, state, scratcha		// get dsastate in scratcha
 	move	scratcha0 to sfbr			// and state variable in sfbr
 	jump	find_dsa_next, if not STATE_DISCONNECTED // wrong state
+	int	error_reselected, if STATE_END
 	move	ssid & ssid_mask to sfbr			// get target ID
 	move	memory 1, targ, find_dsa_smc1		// forge target comparison instruction
 find_dsa_smc1:
@@ -350,6 +344,7 @@ find_dsa_next:
 // id_out terminated early
 // most likely the message wasn't recognised
 // clear ATN and accept the message in
+// called from sd53c8xx.c directly
 id_out_mismatch_recover:
 	clear	atn
         jump    msg_in_phase, when msg_in
@@ -374,6 +369,7 @@ to_decisions:
 	jump	status_phase, if status
 	jump	msg_in_phase, if msg_in
 	int	error_unexpected_phase
+
 post_data_to_decisions:
 	jump	status_phase, when status
 	jump	msg_in_phase, if msg_in
@@ -398,6 +394,30 @@ dsa_load_len = dsa_load_end - dsa_copy
 dsa_save_len = dsa_save_end - dsa_copy
 
 load_state:
+//	int	SIR_NOTIFY_LOAD_STATE
+	jump load_state_okay
+
+	move	dsa0 to sfbr
+	jump load_state_okay, if not 0
+	move	dsa1 to sfbr
+	jump load_state_okay, if not 0
+	move	dsa2 to sfbr
+	jump load_state_okay, if not 0
+	move	dsa3 to sfbr
+	jump load_state_okay, if not 0
+	// dsa is 0
+	move	memory 4, dsa, dmaaddr
+	move	memory 4, dsa, targ
+	move	memory 4, dsa, lun
+	move	memory 4, dsa, sync
+	move	memory 4, dsa, next
+	move	memory 4, dsa, scratcha
+	move	STATE_END to sfbr
+	move	sfbr to scratcha0
+	move	memory 4, scratcha, state
+	return
+
+load_state_okay:
 	// load state from DSA into dsa_copy
 //	move	9 to ctest0
 	move	memory 4, dsa, load_state_smc0 + 4
@@ -419,30 +439,21 @@ issue_check:
 //	move	1 to ctest0
 	move	memory 4, dsa_head, dsa
 issue_check_loop:
-//	move	2 to ctest0
-	move	dsa0 to sfbr
-	jump	issue_check_1, if not 0
-	move	dsa1 to sfbr
-	jump	issue_check_1, if not 0
-	move	dsa2 to sfbr
-	jump	issue_check_1, if not 0
-	move	dsa3 to sfbr
-	jump	wait_for_reselection, if 0		// nothing to do
-issue_check_1:
-//	move	3 to ctest0
  	call	load_state
 	move	memory 4, state, scratcha		// get dsastate in scratcha
 	move	scratcha0 to sfbr			// and state variable in sfbr
 	jump	start, if STATE_ISSUE			// right state
-issue_check_next:
-//	move	4 to ctest0
+	jump	wait_for_reselection, if STATE_END
+ //	move	4 to ctest0
 	move	memory 4, next, dsa			// find next
 	jump	issue_check_loop
+
+
 load_sync:
 	move	memory 4, sync, scratcha		// load the sync stuff
 	move	scratcha0 to sfbr			// assuming load_state has been called
 	move	sfbr to scntl3
 	move	scratcha1 to sfbr
 	move	sfbr to sxfer
-//	int	SIR_NOTIFY_LOAD_SYNC
+ //	int	SIR_NOTIFY_LOAD_SYNC
 	return

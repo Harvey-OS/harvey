@@ -67,7 +67,7 @@ struct VGAdev {
 	void	(*enable)(VGAscr*);
 	void	(*disable)(VGAscr*);
 	void	(*page)(VGAscr*, int);
-	ulong	(*linear)(VGAscr*, int*, int*);
+	void	(*linear)(VGAscr*, int, int);
 	void	(*drawinit)(VGAscr*);
 	int	(*fill)(VGAscr*, Rectangle, ulong);
 	void	(*ovlctl)(VGAscr*, Chan*, void*, int);
@@ -91,6 +91,7 @@ struct VGAcur {
 struct VGAscr {
 	Lock	devlock;
 	VGAdev*	dev;
+	Pcidev*	pci;
 
 	VGAcur*	cur;
 	ulong	storage;
@@ -98,16 +99,16 @@ struct VGAscr {
 
 	int	useflush;
 
-	ulong	aperture;			/* physical address */
-	int	isupamem;
-	int	apsize;
+	ulong	paddr;		/* frame buffer */
+	void*	vaddr;
+	int		apsize;
 
 	ulong	io;				/* device specific registers */
-
+	ulong	*mmio;
+	
 	ulong	colormap[Pcolours][3];
 	int	palettedepth;
 
-	ulong	*mmio;
 	Memimage* gscreen;
 	Memdata* gscreendata;
 	Memsubfont* memdefont;
@@ -128,6 +129,7 @@ enum {
 
 /* mouse.c */
 extern void mousectl(Cmdbuf*);
+extern void mouseresize(void);
 
 /* screen.c */
 extern int		hwaccel;	/* use hw acceleration; default on */
@@ -144,18 +146,34 @@ extern int	screenaperture(int, int);
 extern Rectangle physgscreenr;	/* actual monitor size */
 extern void	blankscreen(int);
 
+extern VGAcur swcursor;
+extern void swcursorinit(void);
+extern void swcursorhide(void);
+extern void swcursoravoid(Rectangle);
+extern void swcursorunhide(void);
+
 /* devdraw.c */
 extern void	deletescreenimage(void);
+extern void	resetscreenimage(void);
 extern int		drawhasclients(void);
 extern ulong	blanktime;
 extern void	setscreenimageclipr(Rectangle);
 extern void	drawflush(void);
 extern int drawidletime(void);
+extern QLock	drawlock;
 
 /* vga.c */
 extern void	vgascreenwin(VGAscr*);
 extern void	vgaimageinit(ulong);
-extern ulong	vgapcilinear(VGAscr*, int*, int*, int, int);
+extern void	vgalinearpciid(VGAscr*, int, int);
+extern void	vgalinearpci(VGAscr*);
+extern void	vgalinearaddr(VGAscr*, ulong, int);
 
 extern void	drawblankscreen(int);
 extern void	vgablank(VGAscr*, int);
+
+extern Lock	vgascreenlock;
+
+
+
+

@@ -376,3 +376,16 @@ lapicclock(Ureg *u, void*)
 {
 	timerintr(u, 0);
 }
+
+void
+lapicintron(void)
+{
+	lapicw(LapicTPR, 0);
+}
+
+void
+lapicintroff(void)
+{
+	lapicw(LapicTPR, 0xFF);
+}
+

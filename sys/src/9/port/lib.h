@@ -1,6 +1,9 @@
 /*
  * functions (possibly) linked in, complete, from libc.
  */
+#define nelem(x)	(sizeof(x)/sizeof((x)[0]))
+#define offsetof(s, m)	(ulong)(&(((s*)0)->m))
+#define assert(x)	if(x){}else _assert("x")
 
 /*
  * mem routines
@@ -27,6 +30,8 @@ extern	long	strlen(char*);
 extern	char*	strstr(char*, char*);
 extern	int	atoi(char*);
 extern	int	fullrune(char*, int);
+extern	int	cistrcmp(char*, char*);
+extern	int	cistrncmp(char*, char*, int);
 
 enum
 {
@@ -103,6 +108,7 @@ extern	char	end[];
 extern	int	getfields(char*, char**, int, int, char*);
 extern	int	tokenize(char*, char**, int);
 extern	int	dec64(uchar*, int, char*, int);
+extern	void	qsort(void*, long, long, int (*)(void*, void*));
 
 /*
  * Syscall data structures

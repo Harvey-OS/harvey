@@ -439,7 +439,7 @@ enum {
 
 typedef struct Ctlr Ctlr;
 typedef struct Ctlr {
-	int	port;
+	ulong	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
 	int	active;
@@ -1468,7 +1468,8 @@ igbemii(Ctlr* ctlr)
 		ctlr->mii = nil;
 		return -1;
 	}
-	print("oui %X phyno %d\n", phy->oui, phy->phyno);
+	USED(phy);
+	// print("oui %X phyno %d\n", phy->oui, phy->phyno);
 
 	/*
 	 * 8254X-specific PHY registers not in 802.3:
@@ -1848,10 +1849,11 @@ igbereset(Ctlr* ctlr)
 static void
 igbepci(void)
 {
-	int port, cls;
+	int cls;
 	Pcidev *p;
 	Ctlr *ctlr;
-
+	void *mem;
+	
 	p = nil;
 	while(p = pcimatch(p, 0, 0)){
 		if(p->ccrb != 0x02 || p->ccru != 0)
@@ -1874,8 +1876,8 @@ igbepci(void)
 			break;
 		}
 
-		port = upamalloc(p->mem[0].bar & ~0x0F, p->mem[0].size, 0);
-		if(port == 0){
+		mem = vmap(p->mem[0].bar & ~0x0F, p->mem[0].size);
+		if(mem == nil){
 			print("igbe: can't map %8.8luX\n", p->mem[0].bar);
 			continue;
 		}
@@ -1893,11 +1895,11 @@ igbepci(void)
 				break;
 		}
 		ctlr = malloc(sizeof(Ctlr));
-		ctlr->port = port;
+		ctlr->port = p->mem[0].bar & ~0x0F;
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;
 		ctlr->cls = cls*4;
-		ctlr->nic = KADDR(ctlr->port);
+		ctlr->nic = mem;
 
 		if(igbereset(ctlr)){
 			free(ctlr);

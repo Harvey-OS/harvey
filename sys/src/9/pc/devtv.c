@@ -557,7 +557,7 @@ tvinit(void)
 		tv = &tvs[ntvs++];
 		tv->variant = &variant[i];
 		tv->pci = pci;
-		tv->bt848 = (Bt848 *)upamalloc(pci->mem[0].bar & ~0x0F, 4 * K, K);
+		tv->bt848 = (Bt848 *)vmap(pci->mem[0].bar & ~0x0F, 4 * K);
 		if (tv->bt848 == nil)
 			panic("#V: Cannot allocate memory for Bt848");
 		bt848 = tv->bt848;
@@ -591,7 +591,7 @@ tvinit(void)
 				panic("#V: Unsupported Hauppage board");
 
 			tv->bt878 = bt878 = 
-				(Bt848 *)upamalloc(pci878->mem[0].bar & ~0x0F, 4 * K, K);
+				(Bt848 *)vmap(pci878->mem[0].bar & ~0x0F, 4 * K);
 			if (bt878 == nil)
 				panic("#V: Cannot allocate memory for the Bt878");
 
@@ -1206,7 +1206,7 @@ i2cwrite(Tv *tv, uchar addr, uchar sub, uchar data, int both)
 }
 
 static ulong *
-riscpacked(ulong paddr, int fnum, int w, int h, int stride, ulong **lastjmp)
+riscpacked(ulong pa, int fnum, int w, int h, int stride, ulong **lastjmp)
 {
 	ulong *p, *pbase;
 	int i;
@@ -1224,7 +1224,7 @@ riscpacked(ulong paddr, int fnum, int w, int h, int stride, ulong **lastjmp)
 
 	for (i = 0; i != h / 2; i++) {
 		*p++ = riscwrite | w | riscwrite_sol | riscwrite_eol;
-		*p++ = paddr + i * 2 * stride;
+		*p++ = pa + i * 2 * stride;
 	}
 
 	*p++ = riscsync | riscsync_resync | riscsync_vro;
@@ -1235,7 +1235,7 @@ riscpacked(ulong paddr, int fnum, int w, int h, int stride, ulong **lastjmp)
 
 	for (i = 0; i != h / 2; i++) {
 		*p++ = riscwrite | w | riscwrite_sol | riscwrite_eol;
-		*p++ = paddr + (i * 2 + 1) * stride;
+		*p++ = pa + (i * 2 + 1) * stride;
 	}
 
 	// reset status.  you really need two instructions ;-(.
@@ -1248,7 +1248,7 @@ riscpacked(ulong paddr, int fnum, int w, int h, int stride, ulong **lastjmp)
 }
 
 static ulong *
-riscplanar411(ulong paddr, int fnum, int w, int h, ulong **lastjmp)
+riscplanar411(ulong pa, int fnum, int w, int h, ulong **lastjmp)
 {
 	ulong *p, *pbase, Cw, Yw, Ch;
 	uchar *Ybase, *Cbbase, *Crbase;
@@ -1260,7 +1260,7 @@ riscplanar411(ulong paddr, int fnum, int w, int h, ulong **lastjmp)
 	assert(p);
 
 	Yw = w;
-	Ybase = (uchar *)paddr;
+	Ybase = (uchar *)pa;
 	Cw = w >> 1;
 	Ch = h >> 1;
 	Cbbase = Ybase + Yw * h;
@@ -1302,7 +1302,7 @@ riscplanar411(ulong paddr, int fnum, int w, int h, ulong **lastjmp)
 }
 
 static ulong *
-riscplanar422(ulong paddr, int fnum, int w, int h, ulong **lastjmp)
+riscplanar422(ulong pa, int fnum, int w, int h, ulong **lastjmp)
 {
 	ulong *p, *pbase, Cw, Yw;
 	uchar *Ybase, *Cbbase, *Crbase;
@@ -1314,7 +1314,7 @@ riscplanar422(ulong paddr, int fnum, int w, int h, ulong **lastjmp)
 	assert(p);
 
 	Yw = w;
-	Ybase = (uchar *)paddr;
+	Ybase = (uchar *)pa;
 	Cw = w >> 1;
 	Cbbase = Ybase + Yw * h;
 	Crbase = Cbbase + Cw * h;
@@ -1357,7 +1357,7 @@ riscplanar422(ulong paddr, int fnum, int w, int h, ulong **lastjmp)
 }
 
 static ulong *
-riscaudio(ulong paddr, int nblocks, int bsize)
+riscaudio(ulong pa, int nblocks, int bsize)
 {
 	ulong *p, *pbase;
 	int i;
@@ -1372,7 +1372,7 @@ riscaudio(ulong paddr, int nblocks, int bsize)
 		*p++ = riscwrite | riscwrite_sol | riscwrite_eol | bsize | riscirq |
 				((i & 0xf) << risclabelshift_set) | 
 				((~i & 0xf) << risclabelshift_reset);
-		*p++ = paddr + i * bsize;
+		*p++ = pa + i * bsize;
 	}
 
 	*p++ = riscsync | riscsync_vro;
@@ -1556,7 +1556,7 @@ astop(Tv *tv)
 }
 
 static void
-vgastart(Tv *tv, ulong paddr, int stride)
+vgastart(Tv *tv, ulong pa, int stride)
 {
 	Frame *frame;
 
@@ -1568,7 +1568,7 @@ vgastart(Tv *tv, ulong paddr, int stride)
 	}
 
 	frame->fbase = nil;
-	frame->fstart = riscpacked(paddr, 0, ntsc_hactive * getbitspp(tv) / 8, 
+	frame->fstart = riscpacked(pa, 0, ntsc_hactive * getbitspp(tv) / 8, 
 						   ntsc_vactive, stride * getbitspp(tv) / 8, 
 						   &frame->fjmp);
 	*frame->fjmp = PADDR(frame->fstart);

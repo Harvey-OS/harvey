@@ -925,7 +925,7 @@ vt6102reset(Ctlr* ctlr)
 		ctlr->mii = nil;
 		return -1;
 	}
-	print("oui %X phyno %d\n", phy->oui, phy->phyno);
+	// print("oui %X phyno %d\n", phy->oui, phy->phyno);
 
 	//miiane(ctlr->mii, ~0, ~0, ~0);
 

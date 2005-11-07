@@ -40,6 +40,7 @@ r	µc
 s	srv
 t	uart
 v	vga
+w	wd
 y	i82365
 y	pcmcia
 z	mntstats

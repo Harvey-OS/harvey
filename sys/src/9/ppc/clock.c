@@ -57,7 +57,11 @@ delay(int l)
 {
 	ulong i, j;
 
-	j = m->loopconst;
+	j = 0;
+	if(m)
+		j = m->loopconst;
+	if(j == 0)
+		j = 1096;
 	while(l-- > 0)
 		for(i=0; i < j; i++)
 			;

@@ -53,6 +53,8 @@ struct Mouseinfo
 	Lock;
 	Mousestate;
 	ulong	lastcounter;	/* value when /dev/mouse read */
+	ulong	resize;
+	ulong	lastresize;
 	Rendez	r;
 	Ref;
 	QLock;
@@ -285,6 +287,10 @@ penmouseread(Chan *c, void *va, long n, vlong)
 		mouse.lastcounter = m.counter;
 		if(n > 1+4*12)
 			n = 1+4*12;
+		if(mouse.lastresize != mouse.resize){
+			mouse.lastresize = mouse.resize;
+			buf[0] = 'r';
+		}
 		memmove(va, buf, n);
 		return n;
 	}
@@ -481,7 +487,8 @@ penmousetrack(int b, int x, int y)
 int
 penmousechanged(void*)
 {
-	return mouse.lastcounter != mouse.counter;
+	return mouse.lastcounter != mouse.counter ||
+		mouse.lastresize != mouse.resize;
 }
 
 Point
@@ -489,3 +496,14 @@ penmousexy(void)
 {
 	return mouse.xy;
 }
+
+/*
+ * notify reader that screen has been resized (ha!)
+ */
+void
+mouseresize(void)
+{
+	mouse.resize++;
+	wakeup(&mouse.r);
+}
+

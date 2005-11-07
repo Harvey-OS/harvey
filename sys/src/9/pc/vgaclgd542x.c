@@ -41,36 +41,10 @@ clgd542xpage(VGAscr* scr, int page)
 	unlock(&scr->devlock);
 }
 
-static ulong
-clgd542xlinear(VGAscr* scr, int* size, int* align)
+static void
+clgd542xlinear(VGAscr* scr, int, int)
 {
-	ulong aperture, oaperture;
-	int oapsize, wasupamem;
-	Pcidev *p;
-
-	oaperture = scr->aperture;
-	oapsize = scr->apsize;
-	wasupamem = scr->isupamem;
-	if(wasupamem)
-		upafree(oaperture, oapsize);
-	scr->isupamem = 0;
-
-	if(p = pcimatch(nil, 0x1013, 0)){
-		aperture = p->mem[0].bar & ~0x0F;
-		*size = p->mem[0].size;
-	}
-	else
-		aperture = 0;
-
-	aperture = upamalloc(aperture, *size, *align);
-	if(aperture == 0){
-		if(wasupamem && upamalloc(oaperture, oapsize, 0))
-			scr->isupamem = 1;
-	}
-	else
-		scr->isupamem = 1;
-
-	return aperture;
+	vgalinearpciid(scr, 0x1013, 0);
 }
 
 static void
@@ -171,7 +145,7 @@ clgd542xinitcursor(VGAscr* scr, int xo, int yo, int index)
 	 */
 	seq07 = vgaxi(Seqx, 0x07);
 	opage = 0;
-	p = KADDR(scr->aperture);
+	p = scr->vaddr;
 	if(!(seq07 & 0xF0)){
 		lock(&scr->devlock);
 		opage = clgd542xpageset(scr, scr->storage>>16);

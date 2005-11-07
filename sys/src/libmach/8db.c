@@ -10,12 +10,12 @@
 
 static	char	*i386excep(Map*, Rgetter);
 
-static	int	i386trace(Map*, ulong, ulong, ulong, Tracer);
-static	ulong	i386frame(Map*, ulong, ulong, ulong, ulong);
-static	int	i386foll(Map*, ulong, Rgetter, ulong*);
-static	int	i386inst(Map*, ulong, char, char*, int);
-static	int	i386das(Map*, ulong, char*, int);
-static	int	i386instlen(Map*, ulong);
+static	int	i386trace(Map*, uvlong, uvlong, uvlong, Tracer);
+static	uvlong	i386frame(Map*, uvlong, uvlong, uvlong, uvlong);
+static	int	i386foll(Map*, uvlong, Rgetter, uvlong*);
+static	int	i386inst(Map*, uvlong, char, char*, int);
+static	int	i386das(Map*, uvlong, char*, int);
+static	int	i386instlen(Map*, uvlong);
 
 static	char	STARTSYM[] =	"_main";
 static	char	PROFSYM[] =	"_mainp";
@@ -74,7 +74,7 @@ static char*
 i386excep(Map *map, Rgetter rget)
 {
 	ulong c;
-	ulong pc;
+	uvlong pc;
 	static char buf[16];
 
 	c = (*rget)(map, "TRAP");
@@ -85,17 +85,17 @@ i386excep(Map *map, Rgetter rget)
 			if (memcmp(buf, machdata->bpinst, machdata->bpsize) == 0)
 				return "breakpoint";
 		}
-		sprint(buf, "exception %ld", c);
+		snprint(buf, sizeof(buf), "exception %ld", c);
 		return buf;
 	} else
 		return excname[c];
 }
 
 static int
-i386trace(Map *map, ulong pc, ulong sp, ulong link, Tracer trace)
+i386trace(Map *map, uvlong pc, uvlong sp, uvlong link, Tracer trace)
 {
 	int i;
-	ulong osp;
+	uvlong osp;
 	Symbol s, f;
 
 	USED(link);
@@ -115,7 +115,7 @@ i386trace(Map *map, ulong pc, ulong sp, ulong link, Tracer trace)
 			sp += f.value-mach->szaddr;
 		}
 
-		if (get4(map, sp, (long *) &pc) < 0)
+		if (geta(map, sp, &pc) < 0)
 			break;
 
 		if(pc == 0)
@@ -130,8 +130,8 @@ i386trace(Map *map, ulong pc, ulong sp, ulong link, Tracer trace)
 	return i;
 }
 
-static ulong
-i386frame(Map *map, ulong addr, ulong pc, ulong sp, ulong link)
+static uvlong
+i386frame(Map *map, uvlong addr, uvlong pc, uvlong sp, uvlong link)
 {
 	Symbol s, f;
 
@@ -149,7 +149,7 @@ i386frame(Map *map, ulong addr, ulong pc, ulong sp, ulong link)
 		if (s.value == addr)
 			return sp;
 
-		if (get4(map, sp, (long *)&pc) < 0)
+		if (geta(map, sp, &pc) < 0)
 			break;
 		sp += mach->szaddr;
 	}
@@ -165,13 +165,13 @@ typedef struct Instr Instr;
 struct	Instr
 {
 	uchar	mem[1+1+1+1+2+1+1+4+4];		/* raw instruction */
-	ulong	addr;		/* address of start of instruction */
+	uvlong	addr;		/* address of start of instruction */
 	int	n;		/* number of bytes in instruction */
 	char	*prefix;	/* instr prefix */
 	char	*segment;	/* segment override */
 	uchar	jumptype;	/* set to the operand type for jump/ret/call */
 	uchar	amd64;
-	uchar	rex;	/* REX prefix (or zero) */
+	uchar	rex;		/* REX prefix (or zero) */
 	char	osize;		/* 'W' or 'L' (or 'Q' on amd64) */
 	char	asize;		/* address size 'W' or 'L' (or 'Q' or amd64) */
 	uchar	mod;		/* bits 6-7 of mod r/m field */
@@ -179,13 +179,13 @@ struct	Instr
 	char	ss;		/* bits 6-7 of SIB */
 	char	index;		/* bits 3-5 of SIB */
 	char	base;		/* bits 0-2 of SIB */
-	char	rip;	/* RIP-relative in amd64 mode */
-	uchar	opre;	/* f2/f3 could introduce media */
+	char	rip;		/* RIP-relative in amd64 mode */
+	uchar	opre;		/* f2/f3 could introduce media */
 	short	seg;		/* segment of far address */
 	ulong	disp;		/* displacement */
 	ulong 	imm;		/* immediate */
 	ulong 	imm2;		/* second immediate operand */
-	uvlong	imm64;	/* big immediate */
+	uvlong	imm64;		/* big immediate */
 	char	*curr;		/* fill level in output buffer */
 	char	*end;		/* end of output buffer */
 	char	*err;		/* error message */
@@ -215,7 +215,7 @@ enum{
 
 	/* amd64 rex extension byte */
 enum{
-	REXW	= 1<<3,	/* =1, 64-bit operand size */
+	REXW		= 1<<3,	/* =1, 64-bit operand size */
 	REXR		= 1<<2,	/* extend modrm reg */
 	REXX		= 1<<1,	/* extend sib index */
 	REXB		= 1<<0	/* extend modrm r/m, sib base, or opcode reg */
@@ -255,7 +255,7 @@ enum {
 	Iw,			/* 16-bit immediate -> imm */
 	Iw2,			/* 16-bit immediate -> imm2 */
 	Iwd,			/* Operand-sized immediate (no sign extension)*/
-	Iwdq,		/* Operand-sized immediate, possibly 64 bits */
+	Iwdq,			/* Operand-sized immediate, possibly 64 bits */
 	Awd,			/* Address offset */
 	Iwds,			/* Operand-sized immediate (sign extended) */
 	RM,			/* Word or long R/M field with register (/r) */
@@ -273,9 +273,9 @@ enum {
 	OA,			/* literal 0x0a byte */
 	PTR,			/* Seg:Displacement addr (ptr16:16 or ptr16:32) */
 	AUX,			/* Multi-byte op code - Auxiliary table */
-	AUXMM,		/* multi-byte op code - auxiliary table chosen by prefix */
+	AUXMM,			/* multi-byte op code - auxiliary table chosen by prefix */
 	PRE,			/* Instr Prefix */
-	OPRE,		/* Instr Prefix or media op extension */
+	OPRE,			/* Instr Prefix or media op extension */
 	SEG,			/* Segment Prefix */
 	OPOVER,			/* Operand size override */
 	ADDOVER,		/* Address size override */
@@ -299,7 +299,7 @@ static Optable optab0F01[8]=
 [0x03]	0,0,		"MOVL	%e,IDTR",
 [0x04]	0,0,		"MOVW	MSW,%e",	/* word */
 [0x06]	0,0,		"MOVW	%e,MSW",	/* word */
-[0x07]	0,0,		"INVLPG	%e",	/* TO DO: distinguish SWAPGS? */
+[0x07]	0,0,		"INVLPG	%e",		/* TO DO: distinguish SWAPGS? */
 };
 
 /* 0F71 */
@@ -330,29 +330,29 @@ static Optable optab0FBA[8]=
 
 static Optable optab0F0F[256]=
 {
-[0x0c]	0,0,	"PI2FW	%m,%M",
-[0x0d]	0,0,	"PI2L	%m,%M",
-[0x1c]	0,0,	"PF2IW	%m,%M",
-[0x1d]	0,0,	"PF2IL	%m,%M",
-[0x8a]	0,0,	"PFNACC	%m,%M",
-[0x8e]	0,0,	"PFPNACC	%m,%M",
-[0x90]	0,0,	"PFCMPGE	%m,%M",
-[0x94]	0,0,	"PFMIN	%m,%M",
-[0x96]	0,0,	"PFRCP	%m,%M",
-[0x97]	0,0,	"PFRSQRT	%m,%M",
-[0x9a]	0,0,	"PFSUB	%m,%M",
-[0x9e]	0,0,	"PFADD	%m,%M",
-[0xa0]	0,0,	"PFCMPGT	%m,%M",
-[0xa4]	0,0,	"PFMAX	%m,%M",
-[0xa6]	0,0,	"PFRCPIT1	%m,%M",
-[0xa7]	0,0,	"PFRSQIT1	%m,%M",
-[0xaa]	0,0,	"PFSUBR	%m,%M",
-[0xae]	0,0,	"PFACC	%m,%M",
-[0xb0]	0,0,	"PFCMPEQ	%m,%M",
-[0xb4]	0,0,	"PFMUL	%m,%M",
-[0xb6]	0,0,	"PFRCPI2T	%m,%M",
-[0xb7]	0,0,	"PMULHRW	%m,%M",
-[0xbb]	0,0,	"PSWAPL	%m,%M",
+[0x0c]	0,0,		"PI2FW	%m,%M",
+[0x0d]	0,0,		"PI2L	%m,%M",
+[0x1c]	0,0,		"PF2IW	%m,%M",
+[0x1d]	0,0,		"PF2IL	%m,%M",
+[0x8a]	0,0,		"PFNACC	%m,%M",
+[0x8e]	0,0,		"PFPNACC	%m,%M",
+[0x90]	0,0,		"PFCMPGE	%m,%M",
+[0x94]	0,0,		"PFMIN	%m,%M",
+[0x96]	0,0,		"PFRCP	%m,%M",
+[0x97]	0,0,		"PFRSQRT	%m,%M",
+[0x9a]	0,0,		"PFSUB	%m,%M",
+[0x9e]	0,0,		"PFADD	%m,%M",
+[0xa0]	0,0,		"PFCMPGT	%m,%M",
+[0xa4]	0,0,		"PFMAX	%m,%M",
+[0xa6]	0,0,		"PFRCPIT1	%m,%M",
+[0xa7]	0,0,		"PFRSQIT1	%m,%M",
+[0xaa]	0,0,		"PFSUBR	%m,%M",
+[0xae]	0,0,		"PFACC	%m,%M",
+[0xb0]	0,0,		"PFCMPEQ	%m,%M",
+[0xb4]	0,0,		"PFMUL	%m,%M",
+[0xb6]	0,0,		"PFRCPI2T	%m,%M",
+[0xb7]	0,0,		"PMULHRW	%m,%M",
+[0xbb]	0,0,		"PSWAPL	%m,%M",
 };
 
 static Optable optab0FC7[8]=
@@ -385,8 +385,8 @@ static Optable optab660F73[8]=
 static Optable optab660F[256]=
 {
 [0x2B]	RM,0,		"MOVNTPD	%x,%e",
-[0x2E]	RM,0,	"UCOMISD	%x,%X",
-[0x2F]	RM,0,	"COMISD	%x,%X",
+[0x2E]	RM,0,		"UCOMISD	%x,%X",
+[0x2F]	RM,0,		"COMISD	%x,%X",
 [0x5A]	RM,0,		"CVTPD2PS	%x,%X",
 [0x5B]	RM,0,		"CVTPS2PL	%x,%X",
 [0x6A]	RM,0,		"PUNPCKHLQ %x,%X",
@@ -394,7 +394,7 @@ static Optable optab660F[256]=
 [0x6C]	RM,0,		"PUNPCKLQDQ %x,%X",
 [0x6D]	RM,0,		"PUNPCKHQDQ %x,%X",
 [0x6E]	RM,0,		"MOV%S	%e,%X",
-[0x6F]	RM,0,		"MOVO	%x,%X",	/* MOVDQA */
+[0x6F]	RM,0,		"MOVO	%x,%X",		/* MOVDQA */
 [0x70]	RM,Ib,		"PSHUFL	%i,%x,%X",
 [0x71]	RMOP,0,		optab660F71,
 [0x72]	RMOP,0,		optab660F72,
@@ -413,8 +413,8 @@ static Optable optab660F[256]=
 
 static Optable optabF20F[256]=
 {
-[0x10]	RM,0,	"MOVSD	%x,%X",
-[0x11]	RM,0,	"MOVSD	%X,%x",
+[0x10]	RM,0,		"MOVSD	%x,%X",
+[0x11]	RM,0,		"MOVSD	%X,%x",
 [0x2A]	RM,0,		"CVTS%S2SD	%e,%X",
 [0x2C]	RM,0,		"CVTTSD2S%S	%x,%r",
 [0x2D]	RM,0,		"CVTSD2S%S	%x,%r",
@@ -428,8 +428,8 @@ static Optable optabF20F[256]=
 
 static Optable optabF30F[256]=
 {
-[0x10]	RM,0,	"MOVSS	%x,%X",
-[0x11]	RM,0,	"MOVSS	%X,%x",
+[0x10]	RM,0,		"MOVSS	%x,%X",
+[0x11]	RM,0,		"MOVSS	%X,%x",
 [0x2A]	RM,0,		"CVTS%S2SS	%e,%X",
 [0x2C]	RM,0,		"CVTTSS2S%S	%x,%r",
 [0x2D]	RM,0,		"CVTSS2S%S	%x,%r",
@@ -449,33 +449,35 @@ static Optable optab0F[256]=
 [0x01]	RMOP,0,		optab0F01,
 [0x02]	RM,0,		"LAR	%e,%r",
 [0x03]	RM,0,		"LSL	%e,%r",
+[0x05]	0,0,		"SYSCALL",
 [0x06]	0,0,		"CLTS",
 [0x07]	0,0,		"SYSRET",
 [0x08]	0,0,		"INVD",
 [0x09]	0,0,		"WBINVD",
-[0x0F]	RM,AUX,	optab0F0F,	/* 3DNow! */
-[0x10]	RM,0,	"MOVU%s	%x,%X",
-[0x11]	RM,0,	"MOVU%s	%X,%x",
-[0x12]	RM,0,	"MOV[H]L%s	%x,%X",	/* TO DO: H if source is XMM */
-[0x13]	RM,0,	"MOVL%s	%X,%e",
-[0x14]	RM,0,	"UNPCKL%s	%x,%X",
-[0x15]	RM,0,	"UNPCKH%s	%x,%X",
-[0x16]	RM,0,	"MOV[L]H%s	%x,%X",	/* TO DO: L if source is XMM */
-[0x17]	RM,0,	"MOVH%s	%X,%x",
+[0x0B]	0,0,		"UD2",
+[0x0F]	RM,AUX,		optab0F0F,		/* 3DNow! */
+[0x10]	RM,0,		"MOVU%s	%x,%X",
+[0x11]	RM,0,		"MOVU%s	%X,%x",
+[0x12]	RM,0,		"MOV[H]L%s	%x,%X",	/* TO DO: H if source is XMM */
+[0x13]	RM,0,		"MOVL%s	%X,%e",
+[0x14]	RM,0,		"UNPCKL%s	%x,%X",
+[0x15]	RM,0,		"UNPCKH%s	%x,%X",
+[0x16]	RM,0,		"MOV[L]H%s	%x,%X",	/* TO DO: L if source is XMM */
+[0x17]	RM,0,		"MOVH%s	%X,%x",
 [0x20]	RMR,0,		"MOVL	%C,%e",
 [0x21]	RMR,0,		"MOVL	%D,%e",
 [0x22]	RMR,0,		"MOVL	%e,%C",
 [0x23]	RMR,0,		"MOVL	%e,%D",
 [0x24]	RMR,0,		"MOVL	%T,%e",
 [0x26]	RMR,0,		"MOVL	%e,%T",
-[0x28]	RM,0,	"MOVA%s	%x,%X",
-[0x29]	RM,0,	"MOVA%s	%X,%x",
-[0x2A]	RM,0,	"CVTPL2%s	%m*,%X",
-[0x2B]	RM,0,	"MOVNT%s	%X,%e",
-[0x2C]	RM,0,	"CVTT%s2PL	%x,%M",
-[0x2D]	RM,0,	"CVT%s2PL	%x,%M",
-[0x2E]	RM,0,	"UCOMISS	%x,%X",
-[0x2F]	RM,0,	"COMISS	%x,%X",
+[0x28]	RM,0,		"MOVA%s	%x,%X",
+[0x29]	RM,0,		"MOVA%s	%X,%x",
+[0x2A]	RM,0,		"CVTPL2%s	%m*,%X",
+[0x2B]	RM,0,		"MOVNT%s	%X,%e",
+[0x2C]	RM,0,		"CVTT%s2PL	%x,%M",
+[0x2D]	RM,0,		"CVT%s2PL	%x,%M",
+[0x2E]	RM,0,		"UCOMISS	%x,%X",
+[0x2F]	RM,0,		"COMISS	%x,%X",
 [0x30]	0,0,		"WRMSR",
 [0x31]	0,0,		"RDTSC",
 [0x32]	0,0,		"RDMSR",
@@ -500,15 +502,15 @@ static Optable optab0F[256]=
 [0x53]	RM,0,		"RCP%s	%x,%X",
 [0x54]	RM,0,		"AND%s	%x,%X",
 [0x55]	RM,0,		"ANDN%s	%x,%X",
-[0x56]	RM,0,		"OR%s	%x,%X",	/* TO DO: S/D */
-[0x57]	RM,0,		"XOR%s	%x,%X",	/* S/D */
-[0x58]	RM,0,		"ADD%s	%x,%X",	/* S/P S/D */
+[0x56]	RM,0,		"OR%s	%x,%X",		/* TO DO: S/D */
+[0x57]	RM,0,		"XOR%s	%x,%X",		/* S/D */
+[0x58]	RM,0,		"ADD%s	%x,%X",		/* S/P S/D */
 [0x59]	RM,0,		"MUL%s	%x,%X",
 [0x5A]	RM,0,		"CVTPS2PD	%x,%X",
 [0x5B]	RM,0,		"CVTPL2PS	%x,%X",
 [0x5C]	RM,0,		"SUB%s	%x,%X",
 [0x5D]	RM,0,		"MIN%s	%x,%X",
-[0x5E]	RM,0,		"DIV%s	%x,%X",	/* TO DO: S/P S/D */
+[0x5E]	RM,0,		"DIV%s	%x,%X",		/* TO DO: S/P S/D */
 [0x5F]	RM,0,		"MAX%s	%x,%X",
 [0x60]	RM,0,		"PUNPCKLBW %m,%M",
 [0x61]	RM,0,		"PUNPCKLWL %m,%M",
@@ -531,7 +533,7 @@ static Optable optab0F[256]=
 [0x7E]	RM,0,		"MOV%S %M,%e",
 [0x7F]	RM,0,		"MOVQ %M,%m",
 [0xAE]	RMOP,0,		optab0FAE,
-[0xAA]	0,0,			"RSM",
+[0xAA]	0,0,		"RSM",
 [0xB0]	RM,0,		"CMPXCHGB	%r,%e",
 [0xB1]	RM,0,		"CMPXCHG%S	%r,%e",
 [0xC0]	RMB,0,		"XADDB	%r,%e",
@@ -539,6 +541,14 @@ static Optable optab0F[256]=
 [0xC2]	RM,Ib,		"CMP%s	%i,%x,%X",
 [0xC3]	RM,0,		"MOVNTI%S	%r,%e",
 [0xC6]	RM,Ib,		"SHUF%s	%i,%x,%X",
+[0xC8]	0,0,		"BSWAP	AX",
+[0xC9]	0,0,		"BSWAP	CX",
+[0xCA]	0,0,		"BSWAP	DX",
+[0xCB]	0,0,		"BSWAP	BX",
+[0xCC]	0,0,		"BSWAP	SP",
+[0xCD]	0,0,		"BSWAP	BP",
+[0xCE]	0,0,		"BSWAP	SI",
+[0xCF]	0,0,		"BSWAP	DI",
 [0xD1]	RM,0,		"PSRLW %m,%M",
 [0xD2]	RM,0,		"PSRLL %m,%M",
 [0xD3]	RM,0,		"PSRLQ %m,%M",
@@ -969,7 +979,7 @@ static Optable optable[256+1] =
 [0x0c]	Ib,0,		"ORB	%i,AL",
 [0x0d]	Iwd,0,		"OR%S	%i,%OAX",
 [0x0e]	0,0,		"PUSHL	CS",
-[0x0f]	AUXMM,0,		optab0F,
+[0x0f]	AUXMM,0,	optab0F,
 [0x10]	RMB,0,		"ADCB	%r,%e",
 [0x11]	RM,0,		"ADC%S	%r,%e",
 [0x12]	RMB,0,		"ADCB	%e,%r",
@@ -1094,7 +1104,7 @@ static Optable optable[256+1] =
 [0x8a]	RMB,0,		"MOVB	%e,%r",
 [0x8b]	RM,0,		"MOV%S	%e,%r",
 [0x8c]	RM,0,		"MOVW	%g,%e",
-[0x8d]	RM,0,		"LEA	%e,%r",
+[0x8d]	RM,0,		"LEA%S	%e,%r",
 [0x8e]	RM,0,		"MOVW	%e,%g",
 [0x8f]	RM,0,		"POP%S	%e",
 [0x90]	0,0,		"NOP",
@@ -1214,7 +1224,7 @@ static Optable optable[256+1] =
  *  get a byte of the instruction
  */
 static int
-igetc(Map * map, Instr *ip, uchar *c)
+igetc(Map *map, Instr *ip, uchar *c)
 {
 	if(ip->n+1 > sizeof(ip->mem)){
 		werrstr("instruction too long");
@@ -1234,7 +1244,7 @@ igetc(Map * map, Instr *ip, uchar *c)
 static int
 igets(Map *map, Instr *ip, ushort *sp)
 {
-	uchar	c;
+	uchar c;
 	ushort s;
 
 	if (igetc(map, ip, &c) < 0)
@@ -1378,7 +1388,7 @@ modrm(Map *map, Instr *ip, uchar c)
 }
 
 static Optable *
-mkinstr(Map *map, Instr *ip, ulong pc)
+mkinstr(Map *map, Instr *ip, uvlong pc)
 {
 	int i, n, norex;
 	uchar c;
@@ -1451,6 +1461,7 @@ badop:
 					ip->imm = c|0xff00;
 			else
 				ip->imm = c&0xff;
+			ip->imm64 = (long)ip->imm;
 			break;
 		case Iw:	/* 16-bit immediate -> imm */
 			if (igets(map, ip, &s) < 0)
@@ -1819,7 +1830,7 @@ immediate(Instr *ip, vlong val)
 	Symbol s;
 	long w;
 
-	if (findsym((long)val, CANY, &s)) {	/* TO DO */
+	if (findsym(val, CANY, &s)) {		/* TO DO */
 		w = val - s.value;
 		if (w < 0)
 			w = -w;
@@ -1981,7 +1992,11 @@ prinstr(Instr *ip, char *fmt)
 				bprint(ip,"???");
 			break;
 		case 'p':
-			immediate(ip, ip->imm+ip->addr+ip->n);
+			/*
+			 * signed immediate in the ulong ip->imm.
+			 */
+			v = (long)ip->imm;
+			immediate(ip, v+ip->addr+ip->n);
 			break;
 		case 'r':
 			if (ip->osize == 'B')
@@ -2022,9 +2037,9 @@ prinstr(Instr *ip, char *fmt)
 }
 
 static int
-i386inst(Map *map, ulong pc, char modifier, char *buf, int n)
+i386inst(Map *map, uvlong pc, char modifier, char *buf, int n)
 {
-	Instr	instr;
+	Instr instr;
 	Optable *op;
 
 	USED(modifier);
@@ -2040,9 +2055,9 @@ i386inst(Map *map, ulong pc, char modifier, char *buf, int n)
 }
 
 static int
-i386das(Map *map, ulong pc, char *buf, int n)
+i386das(Map *map, uvlong pc, char *buf, int n)
 {
-	Instr	instr;
+	Instr instr;
 	int i;
 
 	if (mkinstr(map, &instr, pc) == 0) {
@@ -2059,7 +2074,7 @@ i386das(Map *map, ulong pc, char *buf, int n)
 }
 
 static int
-i386instlen(Map *map, ulong pc)
+i386instlen(Map *map, uvlong pc)
 {
 	Instr i;
 
@@ -2069,12 +2084,13 @@ i386instlen(Map *map, ulong pc)
 }
 
 static int
-i386foll(Map *map, ulong pc, Rgetter rget, ulong *foll)
+i386foll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
 {
 	Instr i;
 	Optable *op;
 	ushort s;
-	ulong l, addr;
+	uvlong l, addr;
+	vlong v;
 	int n;
 
 	op = mkinstr(map, &i, pc);
@@ -2087,15 +2103,16 @@ i386foll(Map *map, ulong pc, Rgetter rget, ulong *foll)
 	case RET:		/* RETURN or LEAVE */
 	case Iw:		/* RETURN */
 		if (strcmp(op->proto, "LEAVE") == 0) {
-			if (get4(map, (*rget)(map, "BP"), (long*)&l) < 0)
+			if (geta(map, (*rget)(map, "BP"), &l) < 0)
 				return -1;
-		} else if (get4(map, (*rget)(map, mach->sp), (long*)&l) < 0)
+		} else if (geta(map, (*rget)(map, mach->sp), &l) < 0)
 			return -1;
 		foll[0] = l;
 		return 1;
 	case Iwds:		/* pc relative JUMP or CALL*/
 	case Jbs:		/* pc relative JUMP or CALL */
-		foll[0] = pc+i.imm+i.n;
+		v = (long)i.imm;
+		foll[0] = pc+v+i.n;
 		n = 1;
 		break;
 	case PTR:		/* seg:displacement JUMP or CALL */
@@ -2110,22 +2127,22 @@ i386foll(Map *map, ulong pc, Rgetter rget, ulong *foll)
 			/* calculate the effective address */
 		addr = i.disp;
 		if (i.base >= 0) {
-			if (get4(map, (*rget)(map, reg[i.rex&REXB? i.base+8: i.base]), (long*)&l) < 0)
+			if (geta(map, (*rget)(map, reg[i.rex&REXB? i.base+8: i.base]), &l) < 0)
 				return -1;
 			addr += l;
 		}
 		if (i.index >= 0) {
-			if (get4(map, (*rget)(map, reg[i.rex&REXX? i.index+8: i.index]), (long*)&l) < 0)
+			if (geta(map, (*rget)(map, reg[i.rex&REXX? i.index+8: i.index]), &l) < 0)
 				return -1;
 			addr += l*(1<<i.ss);
 		}
 			/* now retrieve a seg:disp value at that address */
-		if (get2(map, addr, &s) < 0)		/* seg */
+		if (get2(map, addr, &s) < 0)			/* seg */
 			return -1;
 		foll[0] = s<<4;
 		addr += 2;
 		if (i.asize == 'L') {
-			if (get4(map, addr, (long*)&l) < 0)	/* disp32 */
+			if (geta(map, addr, &l) < 0)		/* disp32 */
 				return -1;
 			foll[0] += l;
 		} else {					/* disp16 */

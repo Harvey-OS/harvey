@@ -522,7 +522,6 @@ reset(Ether* ether)
 		ctlr->iow = io32w;
 	}else{
 		print("#l%d: card doesn't talk right\n", ether->ctlrno);
-iprint("#l%d: card doesn't talk right\n", ether->ctlrno);
 		iunlock(ctlr);
 		return -1;
 	}
@@ -538,8 +537,6 @@ iprint("#l%d: card doesn't talk right\n", ether->ctlrno);
 		break;
 	default:
 		print("#l%d: unknown PCnet card version %.7ux\n",
-			ether->ctlrno, x&0xFFFFFFF);
-iprint("#l%d: unknown PCnet card version %.7ux\n",
 			ether->ctlrno, x&0xFFFFFFF);
 		iunlock(ctlr);
 		return -1;

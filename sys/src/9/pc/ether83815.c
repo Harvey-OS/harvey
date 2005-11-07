@@ -81,6 +81,7 @@ enum {	/* cmdsts */
 
 enum {				/* Variants */
 	Nat83815	= (0x0020<<16)|0x100B,
+	Sis900 = (0x0630<<16)|0x1039,	/* untested */
 };
 
 typedef struct Ctlr Ctlr;
@@ -841,6 +842,7 @@ scanpci83815(void)
 			continue;
 
 		case Nat83815:
+		case Sis900:
 			break;
 		}
 

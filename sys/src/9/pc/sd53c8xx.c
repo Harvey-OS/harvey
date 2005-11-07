@@ -52,8 +52,9 @@ extern SDifc sd53c8xxifc;
 
 #else
 
-#define KPRINT	if(0) print
-#define IPRINT	if(0) print
+static int idebug = 1;
+#define KPRINT	if(0) iprint
+#define IPRINT	if(idebug) iprint
 #define DEBUG(n)	(0)
 #define IFLUSH()
 
@@ -304,7 +305,6 @@ typedef struct Controller {
 	struct {
 		Lock;
 		uchar head[4];		/* head of free list (NCR byte order) */
-		Dsa	*tail;
 		Dsa	*freechain;
 	} dsalist;
 
@@ -383,32 +383,51 @@ oprint(char *format, ...)
 
 #include "sd53c8xx.i"
 
+/*
+ * We used to use a linked list of Dsas with nil as the terminator,
+ * but occasionally the 896 card seems not to notice that the 0
+ * is really a 0, and then it tries to reference the Dsa at address 0.
+ * To address this, we use a sentinel dsa that links back to itself
+ * and has state A_STATE_END.  If the card takes an iteration or
+ * two to notice that the state says A_STATE_END, that's no big 
+ * deal.  Clearly this isn't the right approach, but I'm just
+ * stumped.  Even with this, we occasionally get prints about
+ * "WSR set", usually with about the same frequency that the
+ * card used to walk past 0. 
+ */
+static Dsa *dsaend;
+
+static Dsa*
+dsaallocnew(Controller *c)
+{
+	Dsa *d;
+	
+	/* c->dsalist must be ilocked */
+	d = xalloc(sizeof *d);
+	lesetl(d->next, legetl(c->dsalist.head));
+	lesetl(&d->stateb, A_STATE_FREE);
+	coherence();
+	lesetl(c->dsalist.head, DMASEG(d));
+	coherence();
+	return d;
+}
+
 static Dsa *
 dsaalloc(Controller *c, int target, int lun)
 {
 	Dsa *d;
 
 	ilock(&c->dsalist);
-	if ((d = c->dsalist.freechain) == 0) {
-		d = xalloc(sizeof(*d));
-		if (DEBUG(1)) {
-			KPRINT(PRINTPREFIX "%d/%d: allocated new dsa %lux\n", target, lun, (ulong)d);
-		}
-		lesetl(d->next, 0);
-		lesetl(&d->stateb, A_STATE_ALLOCATED);
-		if (legetl(c->dsalist.head) == 0)
-			lesetl(c->dsalist.head, DMASEG(d));	/* ATOMIC?!? */
-		else
-			lesetl(c->dsalist.tail->next, DMASEG(d));	/* ATOMIC?!? */
-		c->dsalist.tail = d;
+	if ((d = c->dsalist.freechain) != 0) {
+		if (DEBUG(1))
+			IPRINT(PRINTPREFIX "%d/%d: reused dsa %lux\n", target, lun, (ulong)d);
+	} else {	
+		d = dsaallocnew(c);
+		if (DEBUG(1))
+			IPRINT(PRINTPREFIX "%d/%d: allocated dsa %lux\n", target, lun, (ulong)d);
 	}
-	else {
-		if (DEBUG(1)) {
-			KPRINT(PRINTPREFIX "%d/%d: reused dsa %lux\n", target, lun, (ulong)d);
-		}
-		c->dsalist.freechain = d->freechain;
-		lesetl(&d->stateb, A_STATE_ALLOCATED);
-	}
+	c->dsalist.freechain = d->freechain;
+	lesetl(&d->stateb, A_STATE_ALLOCATED);
 	iunlock(&c->dsalist);
 	d->target = target;
 	d->lun = lun;
@@ -425,11 +444,50 @@ dsafree(Controller *c, Dsa *d)
 	iunlock(&c->dsalist);
 }
 
+static void
+dsadump(Controller *c)
+{
+	Dsa *d;
+	u32int *a;
+	
+	iprint("dsa controller list: c=%p head=%.8lux\n", c, legetl(c->dsalist.head));
+	for(d=KPTR(legetl(c->dsalist.head)); d != dsaend; d=KPTR(legetl(d->next))){
+		if(d == (void*)-1){
+			iprint("\t dsa %p\n", d);
+			break;
+		}
+		a = (u32int*)d;
+		iprint("\tdsa %p %.8ux %.8ux %.8ux %.8ux %.8ux %.8ux\n", a, a[0], a[1], a[2], a[3], a[4], a[5]);
+	}
+
+/*
+	a = KPTR(c->scriptpa+E_dsa_addr);
+	iprint("dsa_addr: %.8ux %.8ux %.8ux %.8ux %.8ux\n",
+		a[0], a[1], a[2], a[3], a[4]);
+	a = KPTR(c->scriptpa+E_issue_addr);
+	iprint("issue_addr: %.8ux %.8ux %.8ux %.8ux %.8ux\n",
+		a[0], a[1], a[2], a[3], a[4]);
+
+	a = KPTR(c->scriptpa+E_issue_test_begin);
+	e = KPTR(c->scriptpa+E_issue_test_end);
+	iprint("issue_test code (at offset %.8ux):\n", E_issue_test_begin);
+	
+	i = 0;
+	for(; a<e; a++){
+		iprint(" %.8ux", *a);
+		if(++i%8 == 0)
+			iprint("\n");
+	}
+	if(i%8)
+		iprint("\n");
+*/
+}
+
 static Dsa *
 dsafind(Controller *c, uchar target, uchar lun, uchar state)
 {
 	Dsa *d;
-	for (d = KPTR(legetl(c->dsalist.head)); d; d = KPTR(legetl(d->next))) {
+	for (d = KPTR(legetl(c->dsalist.head)); d != dsaend; d = KPTR(legetl(d->next))) {
 		if (d->target != 0xff && d->target != target)
 			continue;
 		if (lun != 0xff && d->lun != lun)
@@ -764,6 +822,7 @@ start(Controller *c, long entry)
 	c->running = 1;
 	p = c->scriptpa + entry;
 	lesetl(c->n->dsp, p);
+	coherence();
 	if (c->ssm)
 		c->n->dcntl |= 0x4;		/* start DMA in SSI mode */
 }
@@ -775,6 +834,7 @@ ncrcontinue(Controller *c)
 		panic(PRINTPREFIX "ncrcontinue called while running");
 	/* set the start DMA bit to continue execution */
 	c->running = 1;
+	coherence();
 	c->n->dcntl |= 0x4;
 }
 
@@ -1126,6 +1186,7 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 	int wakeme = 0;
 	int cont = -1;
 	Dsa *dsa;
+	ulong dsapa;
 	Controller *c = a;
 	Ncr *n = c->n;
 
@@ -1143,7 +1204,7 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 		}
 		n->istat = Intf;
 		/* search for structures in A_STATE_DONE */
-		for (d = KPTR(legetl(c->dsalist.head)); d; d = KPTR(legetl(d->next))) {
+		for (d = KPTR(legetl(c->dsalist.head)); d != dsaend; d = KPTR(legetl(d->next))) {
 			if (d->stateb == A_STATE_DONE) {
 				d->p9status = d->status;
 				if (DEBUG(1)) {
@@ -1168,7 +1229,25 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 
 	sist = (n->sist1<<8)|n->sist0;	/* BUG? can two-byte read be inconsistent? */
 	dstat = n->dstat;
-	dsa = (Dsa *)DMASEG_TO_KADDR(legetl(n->dsa));
+	dsapa = legetl(n->dsa);
+
+	/*
+	 * Can't compute dsa until we know that dsapa is valid.
+	 */
+	if(dsapa < -KZERO)
+		dsa = (Dsa*)DMASEG_TO_KADDR(dsapa);
+	else{
+		dsa = nil;
+		/*
+		 * happens at startup on some cards but we 
+		 * don't actually deref dsa because none of the
+		 * flags we are about are set.
+		 * still, print in case that changes and we're
+		 * about to dereference nil.
+		 */
+		iprint("sd53c8xxinterrupt: dsa=%.8lux istat=%ux sist=%ux dstat=%ux\n", dsapa, istat, sist, dstat);
+	}
+
 	c->running = 0;
 	if (istat & Sip) {
 		if (DEBUG(1)) {
@@ -1315,6 +1394,7 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 			}
 			dsa->p9status = SDtimeout;
 			dsa->stateb = A_STATE_DONE;
+			coherence();
 			softreset(c);
 			cont = E_issue_check;
 			wakeme = 1;
@@ -1336,8 +1416,7 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 			IPRINT("dstat = %.2x\n", dstat);
 		}
 		/*else*/ if (dstat & Ssi) {
-			ulong *p = DMASEG_TO_KADDR(legetl(n->dsp));
-			ulong w = (uchar *)p - (uchar *)c->script;
+			ulong w = legetl(n->dsp) - c->scriptpa;
 			IPRINT("[%lux]", w);
 			USED(w);
 			cont = -2;	/* restart */
@@ -1374,6 +1453,15 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				dsa = dsafind(c, n->ssid & SSIDMASK(c), -1, A_STATE_DISCONNECTED);
 				dumpncrregs(c, 1);
 				wakeme = 1;
+				break;
+			case A_SIR_NOTIFY_LOAD_STATE:
+				IPRINT(PRINTPREFIX ": load_state dsa=%p\n", dsa);
+				if (dsa == (void*)KZERO || dsa == (void*)-1) {
+					dsadump(c);
+					dumpncrregs(c, 1);
+					panic("bad dsa in load_state");
+				}
+				cont = -2;
 				break;
 			case A_SIR_NOTIFY_MSG_IN:
 				IPRINT(PRINTPREFIX "%d/%d: msg_in %d\n",
@@ -1431,7 +1519,7 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_ISSUE:
-				IPRINT(PRINTPREFIX "%d/%d: issue:", dsa->target, dsa->lun);
+				IPRINT(PRINTPREFIX "%d/%d: issue dsa=%p end=%p:", dsa->target, dsa->lun, dsa, dsaend);
 			dsadump:
 				IPRINT(" tgt=%d", dsa->target);
 				IPRINT(" time=%ld", TK2MS(m->ticks));
@@ -1447,7 +1535,7 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				cont = -2;
 				break;
 			case A_SIR_NOTIFY_DUMP_NEXT_CODE: {
-				ulong *dsp = DMASEG_TO_KADDR(legetl(n->dsp));
+				ulong *dsp = c->script + (legetl(n->dsp)-c->scriptpa)/4;
 				int x;
 				IPRINT(PRINTPREFIX "code at %lux", dsp - c->script);
 				for (x = 0; x < 6; x++) {
@@ -1475,9 +1563,9 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 				cont = -2;
 				break;
 			case A_error_reselected:		/* dsa isn't valid here */
-				print(PRINTPREFIX "reselection error\n");
+				iprint(PRINTPREFIX "reselection error\n");
 				dumpncrregs(c, 1);
-				for (dsa = KPTR(legetl(c->dsalist.head)); dsa; dsa = KPTR(legetl(dsa->next))) {
+				for (dsa = KPTR(legetl(c->dsalist.head)); dsa != dsaend; dsa = KPTR(legetl(dsa->next))) {
 					IPRINT(PRINTPREFIX "dsa target %d lun %d state %d\n", dsa->target, dsa->lun, dsa->stateb);
 				}
 				break;
@@ -1489,15 +1577,40 @@ sd53c8xxinterrupt(Ureg *ur, void *a)
 			}
 		}
 		/*else*/ if (dstat & Iid) {
-			ulong addr = legetl(n->dsp);
-			ulong dbc = (n->dbc[2]<<16)|(n->dbc[1]<<8)|n->dbc[0];
+			int i, target, lun;
+			ulong addr, dbc, *v;
+			
+			addr = legetl(n->dsp);
+			if(dsa){
+				target = dsa->target;
+				lun = dsa->lun;
+			}else{
+				target = -1;
+				lun = -1;
+			}
+			dbc = (n->dbc[2]<<16)|(n->dbc[1]<<8)|n->dbc[0];
+
+		//	if(dsa == nil)
+				idebug++;
 			IPRINT(PRINTPREFIX "%d/%d: Iid pa=%.8lux sa=%.8lux dbc=%lux\n",
-			    dsa->target, dsa->lun,
+			    target, lun,
 			    addr, addr - c->scriptpa, dbc);
-			addr = (ulong)DMASEG_TO_KADDR(addr);
-			IPRINT("%.8lux %.8lux %.8lux\n",
-			    *(ulong *)(addr - 12), *(ulong *)(addr - 8), *(ulong *)(addr - 4));
+			addr = (ulong)c->script + addr - c->scriptpa;
+			addr -= 64;
+			addr &= ~63;
+			v = (ulong*)addr;
+			for(i=0; i<8; i++){
+				IPRINT("%.8lux: %.8lux %.8lux %.8lux %.8lux\n", 
+					addr, v[0], v[1], v[2], v[3]);
+				addr += 4*4;
+				v += 4;
+			}
 			USED(addr, dbc);
+			if(dsa == nil){
+				dsadump(c);
+				dumpncrregs(c, 1);
+				panic("bad dsa");
+			}
 			dsa->p9status = SDeio;
 			wakeme = 1;
 		}
@@ -1634,6 +1747,7 @@ sd53c8xxrio(SDreq* r)
 
 	if((target = r->unit->subno) == 0x07)
 		return r->status = SDtimeout;	/* assign */
+
 	c = r->unit->dev->ctlr;
 
 	check = 0;
@@ -1702,7 +1816,7 @@ docheck:
 
 	setmovedata(&d->msg_out_buf, DMASEG(d->msg_out), bc);
 	setmovedata(&d->cmd_buf, DMASEG(r->cmd), r->clen);
-	calcblockdma(d, DMASEG(r->data), r->dlen);
+	calcblockdma(d, r->data ? DMASEG(r->data) : 0, r->dlen);
 
 	if (DEBUG(0)) {
 		KPRINT(PRINTPREFIX "%d/%d: exec: ", target, r->lun);
@@ -1722,14 +1836,15 @@ docheck:
 
 	d->p9status = SDnostatus;
 	d->parityerror = 0;
-
+	coherence();
 	d->stateb = A_STATE_ISSUE;		/* start operation */
+	coherence();
 
 	ilock(c);
 	if (c->ssm)
-		c->n->dcntl |= 0x10;		/* SSI */
+		c->n->dcntl |= 0x10;		/* single step */
 	if (c->running) {
-		c->n->istat |= Sigp;
+		c->n->istat = Sigp;
 	}
 	else {
 		start(c, E_issue_check);
@@ -1802,6 +1917,7 @@ docheck:
 		 * so the Dsa can be re-used.
 		 */
 		lesetl(&d->stateb, A_STATE_ALLOCATED);
+		coherence();
 		goto docheck;
 	}
 	qunlock(&c->q[target]);
@@ -1825,12 +1941,14 @@ docheck:
 	return r->status = status;
 }
 
+#define	vpt ((ulong*)VPT)
+#define	VPTX(va)		(((ulong)(va))>>12)
 static void
 cribbios(Controller *c)
 {
 	c->bios.scntl3 = c->n->scntl3;
 	c->bios.stest2 = c->n->stest2;
-	KPRINT(PRINTPREFIX "bios scntl3(%.2x) stest2(%.2x)\n", c->bios.scntl3, c->bios.stest2);
+	print(PRINTPREFIX "bios scntl3(%.2x) stest2(%.2x)\n", c->bios.scntl3, c->bios.stest2);
 }
 
 static int
@@ -1878,8 +1996,6 @@ static Variant variant[] = {
 { SYM_1010_DID,  0xff, "SYM53C1010",	Burst128, 16, 64, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
 { SYM_1011_DID,   0xff, "SYM53C1010",	Burst128, 16, 64, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
 };
-
-#define offsetof(s, t) ((ulong)&((s *)0)->t)
 
 static int
 xfunc(Controller *c, enum na_external x, unsigned long *v)
@@ -1968,6 +2084,7 @@ sd53c8xxpnp(void)
 	Controller *ctlr;
 	SDev *sdev, *head, *tail;
 	ulong regpa, *script, scriptpa;
+	void *regva, *scriptva;
 
 	if(cp = getconf("*maxsd53c8xx"))
 		nctlr = strtoul(cp, 0, 0);
@@ -1995,23 +2112,27 @@ sd53c8xxpnp(void)
 				continue;
 			ba++;
 		}
-		regpa = upamalloc(regpa & ~0x0F, p->mem[1].size, 0);
 		if(regpa == 0)
+			print("regpa 0\n");
+		regpa &= ~0xF;
+		regva = vmap(regpa, p->mem[1].size);
+		if(regva == 0)
 			continue;
 
 		script = nil;
 		scriptpa = 0;
+		scriptva = nil;
 		scriptma = nil;
 		if((v->feature & LocalRAM) && sizeof(na_script) <= 4096){
 			scriptpa = p->mem[ba].bar;
 			if((scriptpa & 0x04) && p->mem[ba+1].bar){
-				upafree(regpa, p->mem[1].size);
+				vunmap(regva, p->mem[1].size);
 				continue;
 			}
-			scriptpa = upamalloc(scriptpa & ~0x0F,
-					p->mem[ba].size, 0);
-			if(scriptpa)
-				script = KADDR(scriptpa);
+			scriptpa &= ~0x0F;
+			scriptva = vmap(scriptpa, p->mem[ba].size);
+			if(scriptva)
+				script = scriptva;
 		}
 		if(scriptpa == 0){
 			/*
@@ -2020,7 +2141,7 @@ sd53c8xxpnp(void)
 			 */
 			scriptma = malloc(sizeof(na_script));
 			if(scriptma == nil){
-				upafree(regpa, p->mem[1].size);
+				vunmap(regva, p->mem[1].size);
 				continue;
 			}
 			scriptpa = DMASEG(scriptma);
@@ -2037,13 +2158,23 @@ buggery:
 				free(sdev);
 			if(scriptma)
 				free(scriptma);
-			else
-				upafree(scriptpa, p->mem[ba].size);
-			upafree(regpa, p->mem[1].size);
+			else if(scriptva)
+				vunmap(scriptva, p->mem[ba].size);
+			if(regva)
+				vunmap(regva, p->mem[1].size);
 			continue;
 		}
 
-		ctlr->n = KADDR(regpa);
+		if(dsaend == nil)
+			dsaend = xalloc(sizeof *dsaend);
+		lesetl(&dsaend->stateb, A_STATE_END);
+	//	lesetl(dsaend->next, DMASEG(dsaend));
+		coherence();
+		lesetl(ctlr->dsalist.head, DMASEG(dsaend));
+		coherence();
+		ctlr->dsalist.freechain = 0;
+
+		ctlr->n = regva;
 		ctlr->v = v;
 		ctlr->script = script;
 		memmove(ctlr->script, na_script, sizeof(na_script));
@@ -2062,19 +2193,17 @@ buggery:
 		}
 		swabl(ctlr->script, ctlr->script, sizeof(na_script));
 
-		ctlr->dsalist.freechain = 0;
-		lesetl(ctlr->dsalist.head, 0);
-
 		ctlr->pcidev = p;
 
 		sdev->ifc = &sd53c8xxifc;
 		sdev->ctlr = ctlr;
+		sdev->idno = '0';
 		if(!(v->feature & Wide))
 			sdev->nunit = 8;
 		else
 			sdev->nunit = MAXTARGET;
 		ctlr->sdev = sdev;
-
+		
 		if(head != nil)
 			tail->next = sdev;
 		else
@@ -2085,12 +2214,6 @@ buggery:
 	}
 
 	return head;
-}
-
-static SDev*
-sd53c8xxid(SDev* sdev)
-{
-	return scsiid(sdev, &sd53c8xxifc);
 }
 
 static int
@@ -2104,13 +2227,13 @@ sd53c8xxenable(SDev* sdev)
 	pcidev = ctlr->pcidev;
 
 	pcisetbme(pcidev);
-	snprint(name, sizeof(name), "%s (%s)", sdev->name, sdev->ifc->name);
-	intrenable(pcidev->intl, sd53c8xxinterrupt, ctlr, pcidev->tbdf, name);
 
 	ilock(ctlr);
 	synctabinit(ctlr);
 	cribbios(ctlr);
 	reset(ctlr);
+	snprint(name, sizeof(name), "%s (%s)", sdev->name, sdev->ifc->name);
+	intrenable(pcidev->intl, sd53c8xxinterrupt, ctlr, pcidev->tbdf, name);
 	iunlock(ctlr);
 
 	return 1;
@@ -2121,7 +2244,6 @@ SDifc sd53c8xxifc = {
 
 	sd53c8xxpnp,			/* pnp */
 	nil,				/* legacy */
-	sd53c8xxid,			/* id */
 	sd53c8xxenable,			/* enable */
 	nil,				/* disable */
 

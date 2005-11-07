@@ -58,6 +58,7 @@ link
 	usbuhci
 
 misc
+	realmode
 	archmp		mp apic
 
 	uarti8250
@@ -86,6 +87,7 @@ misc
 	vgat2r4		+cur
 	vgatvp3020	=cur
 	vgatvp3026	=cur
+	vgavesa
 	vgavmware	+cur
 
 

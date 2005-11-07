@@ -1243,7 +1243,8 @@ gc82543watchdog(void* arg)
 static void
 gc82543pci(void)
 {
-	int port, cls;
+	int cls;
+	void *mem;
 	Pcidev *p;
 	Ctlr *ctlr;
 
@@ -1262,8 +1263,8 @@ gc82543pci(void)
 			break;
 		}
 
-		port = upamalloc(p->mem[0].bar & ~0x0F, p->mem[0].size, 0);
-		if(port == 0){
+		mem = vmap(p->mem[0].bar & ~0x0F, p->mem[0].size);
+		if(mem == 0){
 			print("gc82543: can't map %8.8luX\n", p->mem[0].bar);
 			continue;
 		}
@@ -1280,11 +1281,10 @@ gc82543pci(void)
 					cls*4);
 		}
 		ctlr = malloc(sizeof(Ctlr));
-		ctlr->port = port;
+		ctlr->port = p->mem[0].bar & ~0x0F;
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;
-
-		ctlr->nic = KADDR(ctlr->port);
+		ctlr->nic = mem;
 
 		if(gc82543reset(ctlr)){
 			free(ctlr);

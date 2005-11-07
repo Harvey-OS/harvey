@@ -343,7 +343,7 @@ follow(Node *r, Node *args)
 {
 	int n, i;
 	Node res;
-	ulong f[10];
+	uvlong f[10];
 	List **tail, *l;
 
 	if(args == 0)
@@ -370,7 +370,7 @@ funcbound(Node *r, Node *args)
 {
 	int n;
 	Node res;
-	ulong bounds[2];
+	uvlong bounds[2];
 	List *l;
 
 	if(args == 0)
@@ -425,14 +425,14 @@ filepc(Node *r, Node *args)
 
 	c = *p;
 	*p++ = '\0';
-	r->ival = file2pc(res.string->string, atoi(p));
+	r->ival = file2pc(res.string->string, strtol(p, 0, 0));
 	p[-1] = c;
-	if(r->ival == -1)
+	if(r->ival == ~0)
 		error("filepc(filename:line): can't find address");
 
 	r->op = OCONST;
 	r->type = TINT;
-	r->fmt = 'D';
+	r->fmt = 'V';
 }
 
 void
@@ -674,8 +674,8 @@ cvtatoi(Node *r, Node *args)
 
 	r->op = OCONST;
 	r->type = TINT;
-	r->ival = strtoul(res.string->string, 0, 0);
-	r->fmt = 'D';
+	r->ival = strtoull(res.string->string, 0, 0);
+	r->fmt = 'V';
 }
 
 void
@@ -683,7 +683,7 @@ cvtitoa(Node *r, Node *args)
 {
 	Node res;
 	Node *av[Maxarg];
-	int ival;
+	vlong ival;
 	char buf[128], *fmt;
 
 	if(args == 0)
@@ -696,8 +696,8 @@ err:
 	expr(av[0], &res);
 	if(res.type != TINT)
 		error("itoa(integer): arg type");
-	ival = (int)res.ival;
-	fmt = "%d";
+	ival = res.ival;
+	fmt = "%lld";
 	if(na == 2){
 		expr(av[1], &res);
 		if(res.type != TSTRING)
@@ -705,7 +705,7 @@ err:
 		fmt = res.string->string;
 	}
 
-	sprint(buf, fmt, ival);
+	snprint(buf, sizeof(buf), fmt, ival);
 	r->op = OCONST;
 	r->type = TSTRING;
 	r->string = strnode(buf);
@@ -733,15 +733,15 @@ mapent(Map *m)
 		l->next = al(TINT);
 		l = l->next;
 		l->ival = m->seg[i].b;
-		l->fmt = 'X';
+		l->fmt = 'W';
 		l->next = al(TINT);
 		l = l->next;
 		l->ival = m->seg[i].e;
-		l->fmt = 'X';
+		l->fmt = 'W';
 		l->next = al(TINT);
 		l = l->next;
 		l->ival = m->seg[i].f;
-		l->fmt = 'X';
+		l->fmt = 'W';
 	}
 	return h;
 }
@@ -831,7 +831,7 @@ void
 strace(Node *r, Node *args)
 {
 	Node *av[Maxarg], *n, res;
-	ulong pc, sp;
+	uvlong pc, sp;
 
 	na = 0;
 	flatten(av, args);
@@ -857,7 +857,7 @@ strace(Node *r, Node *args)
 
 	tracelist = 0;
 	if ((*machdata->ctrace)(cormap, pc, sp, res.ival, trlist) <= 0)
-		error("no stack frame");
+		error("no stack frame: %r");
 	r->type = TLIST;
 	r->l = tracelist;
 }
@@ -896,7 +896,7 @@ regexp(Node *r, Node *args)
 	free(rp);
 }
 
-char vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVxXYZ";
+char vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVWxXYZ";
 
 void
 fmt(Node *r, Node *args)
@@ -954,9 +954,6 @@ patom(char type, Store *res)
 	case 'x':
 		Bprint(bout, "%.4lux", (ulong)res->ival&0xffff);
 		break;
-	case 'W':
-		Bprint(bout, "%.16llux", res->ival);
-		break;
 	case 'D':
 		Bprint(bout, "%d", (int)res->ival);
 		break;
@@ -974,6 +971,9 @@ patom(char type, Store *res)
 		break;
 	case 'V':
 		Bprint(bout, "%lld", res->ival);
+		break;
+	case 'W':
+		Bprint(bout, "%.8llux", res->ival);
 		break;
 	case 'Y':
 		Bprint(bout, "%.16llux", res->ival);
@@ -1214,5 +1214,5 @@ pcline(Node *r, Node *args)
 	p = strrchr(buf, ':');
 	if(p == 0)
 		error("pcline(addr): funny file %s", buf);
-	r->ival = atoi(p+1);	
+	r->ival = strtol(p+1, 0, 0);	
 }

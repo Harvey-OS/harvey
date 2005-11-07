@@ -45,8 +45,11 @@ static Xalloc	xlists;
 void
 xinit(void)
 {
+	int i, n, upages, kpages;
+	ulong maxkpa;
+	Confmem *m;
+	Pallocmem *pm;
 	Hole *h, *eh;
-	int upages, np0, np1;
 
 	eh = &xlists.hole[Nhole-1];
 	for(h = xlists.hole; h < eh; h++)
@@ -55,32 +58,37 @@ xinit(void)
 	xlists.flist = xlists.hole;
 
 	upages = conf.upages;
-	np1 = upages;
-	if(np1 > conf.npage1)
-		np1 = conf.npage1;
-
-	palloc.p1 = conf.base1 + (conf.npage1 - np1)*BY2PG;
-	conf.npage1 -= np1;
-	xhole(conf.base1, conf.npage1*BY2PG);
-	conf.npage1 = conf.base1+(conf.npage1*BY2PG);
-	upages -= np1;
-
-	np0 = upages;
-	if(np0 > conf.npage0)
-		np0 = conf.npage0;
-
-	palloc.p0 = conf.base0 + (conf.npage0 - np0)*BY2PG;
-	conf.npage0 -= np0;
-	xhole(conf.base0, conf.npage0*BY2PG);
-	conf.npage0 = conf.base0+(conf.npage0*BY2PG);
-
-	palloc.np0 = np0;
-	palloc.np1 = np1;
-	/* Save the bounds of kernel alloc memory for kernel mmu mapping */
-	conf.base0 = (ulong)KADDR(conf.base0);
-	conf.base1 = (ulong)KADDR(conf.base1);
-	conf.npage0 = (ulong)KADDR(conf.npage0);
-	conf.npage1 = (ulong)KADDR(conf.npage1);
+	kpages = conf.npage - upages;
+	pm = palloc.mem;
+	maxkpa = -KZERO;
+	for(i=0; i<nelem(conf.mem); i++){
+		m = &conf.mem[i];
+		n = m->npage;
+		if(n > kpages)
+			n = kpages;
+		if(m->base >= maxkpa)
+			n = 0;
+		else if(n > 0 && m->base+n*BY2PG >= maxkpa)
+			n = (maxkpa - m->base)/BY2PG;
+		/* first give to kernel */
+		if(n > 0){
+			m->kbase = (ulong)KADDR(m->base);
+			m->klimit = (ulong)KADDR(m->base+n*BY2PG);
+			xhole(m->base, n*BY2PG);
+			kpages -= n;
+		}
+		/* if anything left over, give to user */
+		if(n < m->npage){
+			if(pm >= palloc.mem+nelem(palloc.mem)){
+				print("xinit: losing %lud pages\n", m->npage-n);
+				continue;
+			}
+			pm->base = m->base+n*BY2PG;
+			pm->npage = m->npage - n;
+			pm++;
+		}
+	}
+	xsummary();
 }
 
 void*
@@ -122,7 +130,7 @@ xallocz(ulong size, int zero)
 	l = &xlists.table;
 	for(h = *l; h; h = h->link) {
 		if(h->size >= size) {
-			p = (Xhdr*)h->addr;
+			p = (Xhdr*)KADDR(h->addr);
 			h->addr += size;
 			h->size -= size;
 			if(h->size == 0) {
@@ -131,7 +139,6 @@ xallocz(ulong size, int zero)
 				xlists.flist = h;
 			}
 			iunlock(&xlists);
-			p = KADDR(p);
 			if(zero)
 				memset(p->data, 0, size);
 			p->magix = Magichole;

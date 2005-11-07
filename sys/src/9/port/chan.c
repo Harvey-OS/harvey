@@ -1600,7 +1600,8 @@ validname0(char *aname, int slashok, int dup, ulong pc)
 	Rune r;
 
 	name = aname;
-	if(((ulong)name & KZERO) != KZERO){
+	if((ulong)name < KZERO){
+		validaddr((ulong)name, 1, 0);
 		if(!dup)
 			print("warning: validname called from %lux with user pointer", pc);
 		p = name;

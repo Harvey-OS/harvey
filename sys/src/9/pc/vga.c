@@ -3,6 +3,7 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
+#include "io.h"
 #include "../port/error.h"
 
 #define	Image	IMAGE
@@ -18,7 +19,7 @@ static Point curpos;
 static Rectangle window;
 static int *xp;
 static int xbuf[256];
-static Lock vgascreenlock;
+Lock vgascreenlock;
 int drawdebug;
 
 void
@@ -136,7 +137,7 @@ vgascreenputc(VGAscr* scr, char* buf, Rectangle *flushr)
 static void
 vgascreenputs(char* s, int n)
 {
-	int i;
+	int i, gotdraw;
 	Rune r;
 	char buf[4];
 	VGAscr *scr;
@@ -155,6 +156,12 @@ vgascreenputs(char* s, int n)
 	else
 		lock(&vgascreenlock);
 
+	/*
+	 * Be nice to hold this, but not going to deadlock
+	 * waiting for it.  Just try and see.
+	 */
+	gotdraw = canqlock(&drawlock);
+
 	flushr = Rect(10000, 10000, -10000, -10000);
 
 	while(n > 0){
@@ -172,6 +179,8 @@ vgascreenputs(char* s, int n)
 	}
 	flushmemscreen(flushr);
 
+	if(gotdraw)
+		qunlock(&drawlock);
 	unlock(&vgascreenlock);
 }
 
@@ -241,7 +250,7 @@ cornerstring(char *s)
 	Point p;
 
 	scr = &vgascreen[0];
-	if(scr->aperture == 0 || screenputs != vgascreenputs)
+	if(scr->vaddr == nil || screenputs != vgascreenputs)
 		return;
 	p = memsubfontwidth(scr->memdefont, s);
 	w = p.x;

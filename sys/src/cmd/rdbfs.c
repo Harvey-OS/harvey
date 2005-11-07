@@ -275,7 +275,7 @@ fsopen(Req *r)
 {
 	char buf[ERRMAX];
 
-	switch((int)r->fid->file->aux){
+	switch((uintptr)r->fid->file->aux){
 	case Xtext:
 		close(textfd);
 		textfd = open(textfile, OREAD);
@@ -295,7 +295,7 @@ fsread(Req *r)
 	int i, n;
 	char buf[512];
 
-	switch((int)r->fid->file->aux) {
+	switch((uintptr)r->fid->file->aux) {
 	case Xfpregs:
 	case Xproc:
 	case Xregs:
@@ -336,7 +336,7 @@ fswrite(Req *r)
 {
 	char buf[ERRMAX];
 
-	switch((int)r->fid->file->aux) {
+	switch((uintptr)r->fid->file->aux) {
 	case Xctl:
 		if(strncmp(r->ifcall.data, "kill", 4) == 0 ||
 		   strncmp(r->ifcall.data, "exit", 4) == 0) {

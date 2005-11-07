@@ -9,6 +9,9 @@
 
 #include "../port/sd.h"
 
+#define	HOWMANY(x, y)	(((x)+((y)-1))/(y))
+#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))
+
 extern SDifc sdataifc;
 
 enum {
@@ -254,14 +257,15 @@ enum {					/* bit masks for supported/enabled features */
 typedef struct Ctlr Ctlr;
 typedef struct Drive Drive;
 
-typedef struct Prd {
+typedef struct Prd {			/* Physical Region Descriptor */
 	ulong	pa;			/* Physical Base Address */
 	int	count;
 } Prd;
 
 enum {
-	PRDmaxio	= 32*1024,	/* must be power of 2 <= 64*1024 */
-	Nprd		= SDmaxio/PRDmaxio+2,
+	BMspan		= 64*1024,	/* must be power of 2 <= 64*1024 */
+
+	Nprd		= SDmaxio/BMspan+2,
 };
 
 typedef struct Ctlr {
@@ -270,6 +274,8 @@ typedef struct Ctlr {
 	int	irq;
 	int	tbdf;
 	int	bmiba;			/* bus master interface base address */
+	int	maxio;			/* sector count transfer maximum */
+	int	span;			/* don't span this boundary with dma */
 
 	Pcidev*	pcidev;
 	void	(*ienable)(Ctlr*);
@@ -734,7 +740,8 @@ ataprobe(int cmdport, int ctlport, int irq)
 	SDev *sdev;
 	Drive *drive;
 	int dev, error, rhi, rlo;
-
+	static int nonlegacy = 'C';
+	
 	if(ioalloc(cmdport, 8, 0, "atacmd") < 0) {
 		print("ataprobe: Cannot allocate %X\n", cmdport);
 		return nil;
@@ -877,7 +884,20 @@ tryedd1:
 	ctlr->irq = irq;
 	ctlr->tbdf = BUSUNKNOWN;
 	ctlr->command = Cedd;		/* debugging */
-
+	
+	switch(cmdport){
+	default:
+		sdev->idno = nonlegacy;
+		break;
+	case 0x1F0:
+		sdev->idno = 'C';
+		nonlegacy = 'E';
+		break;
+	case 0x170:
+		sdev->idno = 'D';
+		nonlegacy = 'E';
+		break;
+	}
 	sdev->ifc = &sdataifc;
 	sdev->ctlr = ctlr;
 	sdev->nunit = 2;
@@ -921,12 +941,26 @@ atastat(SDev *sdev, char *p, char *e)
 static SDev*
 ataprobew(DevConf *cf)
 {
+	char *p;
+	ISAConf isa;
+	
 	if (cf->nports != 2)
 		error(Ebadarg);
+
+	memset(&isa, 0, sizeof isa);
+	isa.port = cf->ports[0].port;
+	isa.irq = cf->intnum;
+	if((p=strchr(cf->type, '/')) == nil || pcmspecial(p+1, &isa) < 0)
+		error("cannot find controller");
 
 	return ataprobe(cf->ports[0].port, cf->ports[1].port, cf->intnum);
 }
 
+/*
+ * These are duplicated with sdsetsense, etc., in devsd.c, but
+ * those assume that the disk is not SCSI while in fact here
+ * ata drives are not SCSI but ATAPI ones kind of are.
+ */
 static int
 atasetsense(Drive* drive, int status, int key, int asc, int ascq)
 {
@@ -935,39 +969,6 @@ atasetsense(Drive* drive, int status, int key, int asc, int ascq)
 	drive->sense[13] = ascq;
 
 	return status;
-}
-
-static int
-atastandby(Drive* drive, int period)
-{
-	Ctlr* ctlr;
-	int cmdport, done;
-
-	ctlr = drive->ctlr;
-	drive->command = Cstandby;
-	qlock(ctlr);
-
-	cmdport = ctlr->cmdport;
-	ilock(ctlr);
-	outb(cmdport+Count, period);
-	outb(cmdport+Dh, drive->dev);
-	ctlr->done = 0;
-	ctlr->curdrive = drive;
-	ctlr->command = Cstandby;	/* debugging */
-	outb(cmdport+Command, Cstandby);
-	iunlock(ctlr);
-
-	while(waserror())
-		;
-	tsleep(ctlr, atadone, ctlr, 30*1000);
-	poperror();
-
-	done = ctlr->done;
-	qunlock(ctlr);
-
-	if(!done || (drive->status & Err))
-		return atasetsense(drive, SDcheck, 4, 8, drive->error);
-	return SDok;
 }
 
 static int
@@ -994,6 +995,39 @@ atamodesense(Drive* drive, uchar* cmd)
 	memmove(drive->data+8, drive->info, sizeof(drive->info));
 	drive->data += 8+sizeof(drive->info);
 
+	return SDok;
+}
+
+static int
+atastandby(Drive* drive, int period)
+{
+	Ctlr* ctlr;
+	int cmdport, done;
+
+	ctlr = drive->ctlr;
+	drive->command = Cstandby;
+	qlock(ctlr);
+
+	cmdport = ctlr->cmdport;
+	ilock(ctlr);
+	outb(cmdport+Count, period);
+	outb(cmdport+Dh, drive->dev);
+	ctlr->done = 0;
+	ctlr->curdrive = drive;
+	ctlr->command = Cstandby;	/* debugging */
+	outb(cmdport+Command, Cstandby);
+	iunlock(ctlr);
+
+	while(waserror())
+		;
+	tsleep(ctlr, atadone, ctlr, 60*1000);
+	poperror();
+
+	done = ctlr->done;
+	qunlock(ctlr);
+
+	if(!done || (drive->status & Err))
+		return atasetsense(drive, SDcheck, 4, 8, drive->error);
 	return SDok;
 }
 
@@ -1055,29 +1089,32 @@ atadmasetup(Drive* drive, int len)
 	Prd *prd;
 	ulong pa;
 	Ctlr *ctlr;
-	int bmiba, bmisx, count;
+	int bmiba, bmisx, count, i, span;
 
+	ctlr = drive->ctlr;
 	pa = PCIWADDR(drive->data);
 	if(pa & 0x03)
 		return -1;
-	ctlr = drive->ctlr;
-	prd = ctlr->prdt;
 
 	/*
 	 * Sometimes drives identify themselves as being DMA capable
 	 * although they are not on a busmastering controller.
 	 */
+	prd = ctlr->prdt;
 	if(prd == nil){
 		drive->dmactl = 0;
 		print("disabling dma: not on a busmastering controller\n");
 		return -1;
 	}
 
-	for(;;){
+	for(i = 0; len && i < Nprd; i++){
 		prd->pa = pa;
-		count = PRDmaxio - (pa & (PRDmaxio-1));
+		span = ROUNDUP(pa, ctlr->span);
+		if(span == pa)
+			span += ctlr->span;
+		count = span - pa;
 		if(count >= len){
-			prd->count = PrdEOT|(len & (PRDmaxio-1));
+			prd->count = PrdEOT|len;
 			break;
 		}
 		prd->count = count;
@@ -1085,6 +1122,8 @@ atadmasetup(Drive* drive, int len)
 		pa += count;
 		prd++;
 	}
+	if(i == Nprd)
+		(prd-1)->count |= PrdEOT;
 
 	bmiba = ctlr->bmiba;
 	outl(bmiba+Bmidtpx, PCIWADDR(ctlr->prdt));
@@ -1271,7 +1310,7 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 			break;
 		ilock(ctlr);
 		atadmainterrupt(drive, 0);
-		if(!drive->error && timeo > 10){
+		if(!drive->error && timeo > 20){
 			ataabort(drive, 0);
 			atadmastop(ctlr);
 			drive->dmactl = 0;
@@ -1389,7 +1428,8 @@ atageniostart(Drive* drive, vlong lba)
 	case Cws:
 	case Cwsm:
 		microdelay(1);
-		as = ataready(cmdport, ctlport, 0, Bsy, Drq|Err, 1000);
+		/* 10*1000 for flash ide drives - maybe detect them? */
+		as = ataready(cmdport, ctlport, 0, Bsy, Drq|Err, 10*1000);
 		if(as < 0 || (as & Err)){
 			iunlock(ctlr);
 			return -1;
@@ -1430,8 +1470,8 @@ atagenio(Drive* drive, uchar* cmd, int)
 {
 	uchar *p;
 	Ctlr *ctlr;
-	int count, max;
 	vlong lba, len;
+	int count, maxio;
 
 	/*
 	 * Map SCSI commands into ATA commands for discs.
@@ -1522,7 +1562,7 @@ atagenio(Drive* drive, uchar* cmd, int)
 		*p++ = len>>16;
 		*p++ = len>>8;
 		*p = len;
-		drive->data += 8;
+		drive->data += 12;
 		return SDok;
 
 	case 0x28:			/* read */
@@ -1541,10 +1581,15 @@ atagenio(Drive* drive, uchar* cmd, int)
 	if(drive->dlen < count*drive->secsize)
 		count = drive->dlen/drive->secsize;
 	qlock(ctlr);
+	if(ctlr->maxio)
+		maxio = ctlr->maxio;
+	else if(drive->flags & Lba48)
+		maxio = 65536;
+	else
+		maxio = 256;
 	while(count){
-		max = (drive->flags&Lba48) ? 65536 : 256;
-		if(count > max)
-			drive->count = max;
+		if(count > maxio)
+			drive->count = maxio;
 		else
 			drive->count = count;
 		if(atageniostart(drive, lba)){
@@ -1557,7 +1602,7 @@ atagenio(Drive* drive, uchar* cmd, int)
 
 		while(waserror())
 			;
-		tsleep(ctlr, atadone, ctlr, 30*1000);
+		tsleep(ctlr, atadone, ctlr, 60*1000);
 		poperror();
 		if(!ctlr->done){
 			/*
@@ -1797,8 +1842,8 @@ atapnp(void)
 {
 	Ctlr *ctlr;
 	Pcidev *p;
-	int channel, ispc87415, pi, r;
 	SDev *legacy[2], *sdev, *head, *tail;
+	int channel, ispc87415, maxio, pi, r, span;
 
 	legacy[0] = legacy[1] = head = tail = nil;
 	if(sdev = ataprobe(0x1F0, 0x3F4, IrqATA0)){
@@ -1839,6 +1884,8 @@ atapnp(void)
 			continue;
 		pi = p->ccrp;
 		ispc87415 = 0;
+		maxio = 0;
+		span = BMspan;
 
 		switch((p->did<<16)|p->vid){
 		default:
@@ -1868,8 +1915,11 @@ atapnp(void)
 		case (0x4D69<<16)|0x105A:	/* Promise Ultra/133 TX2 */
 		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
 		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
-		case (0x3112<<16)|0x1095:   	/* SiL 3112 SATA (DMA busted?) */
-		case (0x3114<<16)|0x1095:	/* SiL 3114 SATA/RAID */
+		case (0x3112<<16)|0x1095:   	/* SiI 3112 SATA/RAID */
+			maxio = 15;
+			span = 8*1024;
+			/*FALLTHROUGH*/
+		case (0x3114<<16)|0x1095:	/* SiI 3114 SATA/RAID */
 			pi = 0x85;
 			break;
 		case (0x0004<<16)|0x1103:	/* HighPoint HPT366 */
@@ -1932,6 +1982,7 @@ atapnp(void)
 				r &= ~0x2000;
 				pcicfgw32(sb, 0x64, r);
 			}
+			span = 32*1024;
 			break;
 		case (0x5513<<16)|0x1039:	/* SiS 962 */
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
@@ -1979,6 +2030,8 @@ atapnp(void)
 				ctlr = sdev->ctlr;
 
 			ctlr->pcidev = p;
+			ctlr->maxio = maxio;
+			ctlr->span = span;
 			if(!(pi & 0x80))
 				continue;
 			ctlr->bmiba = (p->mem[4].bar & ~0x01) + channel*8;
@@ -2028,46 +2081,6 @@ static SDev*
 atalegacy(int port, int irq)
 {
 	return ataprobe(port, port+0x204, irq);
-}
-
-static SDev*
-ataid(SDev* sdev)
-{
-	int i;
-	Ctlr *ctlr;
-	char name[32];
-
-	/*
-	 * Legacy controllers are always 'C' and 'D' and if
-	 * they exist and have drives will be first in the list.
-	 * If there are no active legacy controllers, native
-	 * controllers start at 'C'.
-	 */
-	if(sdev == nil)
-		return nil;
-	ctlr = sdev->ctlr;
-	if(ctlr->cmdport == 0x1F0 || ctlr->cmdport == 0x170)
-		i = 2;
-	else
-		i = 0;
-	while(sdev){
-		if(sdev->ifc == &sdataifc){
-			ctlr = sdev->ctlr;
-			if(ctlr->cmdport == 0x1F0)
-				sdev->idno = 'C';
-			else if(ctlr->cmdport == 0x170)
-				sdev->idno = 'D';
-			else{
-				sdev->idno = 'C'+i;
-				i++;
-			}
-			snprint(name, sizeof(name), "sd%c", sdev->idno);
-			kstrdup(&sdev->name, name);
-		}
-		sdev = sdev->next;
-	}
-
-	return nil;
 }
 
 static int
@@ -2230,7 +2243,6 @@ SDifc sdataifc = {
 
 	atapnp,				/* pnp */
 	atalegacy,			/* legacy */
-	ataid,				/* id */
 	ataenable,			/* enable */
 	atadisable,			/* disable */
 

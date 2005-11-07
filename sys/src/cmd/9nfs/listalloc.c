@@ -6,13 +6,12 @@ void*	listalloc(long, long);
 void *
 listalloc(long n, long size)
 {
-	ulong *p, *base;
+	char *p, *base;
 
-	size += sizeof(ulong) - 1;
-	size /= sizeof(ulong);
-	p = base = malloc(n*size*sizeof(ulong));
+	size = (size+sizeof(ulong)-1)/sizeof(ulong);
+	p = base = malloc(n*size);
 	while(--n > 0){
-		*p = (ulong)(p+size);
+		*(char**)p = p+size;
 		p += size;
 	}
 	*p = 0;

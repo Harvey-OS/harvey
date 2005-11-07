@@ -3,6 +3,7 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
+#include "io.h"
 #include "../port/error.h"
 
 #define	Image	IMAGE
@@ -52,7 +53,7 @@ ct65545initcursor(VGAscr* scr, int xo, int yo, int index)
 	uint and, clr, set, xor;
 	int i, x, y;
 
-	mem = KADDR(scr->aperture);
+	mem = scr->vaddr;
 	mem += scr->storage + index*1024;
 
 	for(y = yo; y < 16; y++){

@@ -168,15 +168,15 @@ Lfmt(Fmt *f)
 
 	e = lexio;
 	if(e) {
-		i = sprint(buf, "%s:%d", e->name, line);
+		i = snprint(buf, sizeof(buf), "%s:%d", e->name, line);
 		while(e->prev) {
 			e = e->prev;
 			if(initialising && e->prev == 0)
 				break;
-			i += sprint(buf+i, " [%s:%d]", e->name, e->line);
+			i += snprint(buf+i, sizeof(buf)-i, " [%s:%d]", e->name, e->line);
 		}
 	} else
-		sprint(buf, "no file:0");
+		snprint(buf, sizeof(buf),  "no file:0");
 	fmtstrcpy(f, buf);
 	return 0;
 }
@@ -228,6 +228,8 @@ escchar(char c)
 				unlexc(c);
 				break;
 			}
+			if(n >= Strsize)
+				error("string escape too long");
 			buf[n++] = c;
 		}
 		buf[n] = '\0';
@@ -517,9 +519,9 @@ numsym(char first)
 		}
 
 		if(isbin)
-			yylval.ival = strtoul(symbol+2, 0, 2);
+			yylval.ival = strtoull(symbol+2, 0, 2);
 		else
-			yylval.ival = strtoul(symbol, 0, 0);
+			yylval.ival = strtoull(symbol, 0, 0);
 		return Tconst;
 	}
 
@@ -550,7 +552,7 @@ Lsym*
 enter(char *name, int t)
 {
 	Lsym *s;
-	ulong h;
+	uint h;
 	char *p;
 	Value *v;
 
@@ -581,7 +583,7 @@ Lsym*
 look(char *name)
 {
 	Lsym *s;
-	ulong h;
+	uint h;
 	char *p;
 
 	h = 0;
