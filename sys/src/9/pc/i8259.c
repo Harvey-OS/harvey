@@ -197,3 +197,18 @@ i8259disable(int irq)
 	iunlock(&i8259lock);
 	return 0;
 }
+
+void
+i8259on(void)
+{
+	outb(Int0aux, i8259mask&0xFF);
+	outb(Int1aux, (i8259mask>>8)&0xFF);
+}
+
+void
+i8259off(void)
+{
+	outb(Int0aux, 0xFF);
+	outb(Int1aux, 0xFF);
+}
+

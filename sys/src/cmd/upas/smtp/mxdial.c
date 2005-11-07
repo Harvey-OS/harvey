@@ -49,7 +49,7 @@ mxdial(char *addr, char *ddomain, char *gdomain)
 }
 
 static int
-timeout(void *x, char *msg)
+timeout(void*, char *msg)
 {
 	if(strstr(msg, "alarm"))
 		return 1;

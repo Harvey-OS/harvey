@@ -387,7 +387,7 @@ xp2fhandle(Xfile *xp, Fhandle fh)
 		dataptr[2+n] = 0;
 	}else{
 		PLONG(starttime);
-		PLONG(xp->s);
+		PLONG((u32int)(uintptr)xp->s);
 		x = xp->qid.path;
 		PLONG(x);
 		x = xp->qid.path>>32;

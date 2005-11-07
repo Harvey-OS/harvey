@@ -520,6 +520,8 @@ PCArch archgeneric = {
 .intrenable=	i8259enable,
 .intrvecno=	i8259vecno,
 .intrdisable=	i8259disable,
+.intron=		i8259on,
+.introff=		i8259off,
 
 .clockenable=	i8253enable,
 .fastclock=	i8253read,

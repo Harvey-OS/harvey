@@ -3,6 +3,7 @@ typedef struct Block	Block;
 typedef struct Chan	Chan;
 typedef struct Cmdbuf	Cmdbuf;
 typedef struct Cmdtab	Cmdtab;
+typedef struct Confmem	Confmem;
 typedef struct Dev	Dev;
 typedef struct Dirtab	Dirtab;
 typedef struct Edf	Edf;
@@ -23,6 +24,7 @@ typedef struct Note	Note;
 typedef struct Page	Page;
 typedef struct Path	Path;
 typedef struct Palloc	Palloc;
+typedef struct Pallocmem	Pallocmem;
 typedef struct Perf	Perf;
 typedef struct PhysUart	PhysUart;
 typedef struct Pgrp	Pgrp;
@@ -176,7 +178,6 @@ struct Chan
 	int	mrock;
 	QLock	rockqlock;
 	int	ismtpt;
-	ulong	mountid;
 	Mntcache*mcp;			/* Mount cache pointer */
 	Mnt*	mux;			/* Mnt for clients using me for messages */
 	union {
@@ -480,11 +481,16 @@ enum
 	DELTAFD	= 20		/* incremental increase in Fgrp.fd's */
 };
 
+struct Pallocmem
+{
+	ulong base;
+	ulong npage;
+};
+
 struct Palloc
 {
 	Lock;
-	ulong	p0, p1;			/* base of pages in bank 0/1 */
-	ulong	np0, np1;		/* number of pages in bank 0/1 */
+	Pallocmem	mem[4];
 	Page	*head;			/* most recently used */
 	Page	*tail;			/* least recently used */
 	ulong	freecount;		/* how many pages on free list now */
@@ -660,17 +666,17 @@ struct Proc
 	ulong	pc;		/* DEBUG only */
 
 	Lock	rlock;		/* sync sleep/wakeup with postnote */
-	Rendez	*r;			/* rendezvous point slept on */
+	Rendez	*r;		/* rendezvous point slept on */
 	Rendez	sleep;		/* place for syssleep/debug */
-	int	notepending;/* note issued but not acted on */
+	int	notepending;	/* note issued but not acted on */
 	int	kp;		/* true if a kernel process */
 	Proc	*palarm;	/* Next alarm time */
 	ulong	alarm;		/* Time of call */
 	int	newtlb;		/* Pager has changed my pte's, I must flush */
 	int	noswap;		/* process is not swappable */
 
-	ulong	rendtag;	/* Tag for rendezvous */
-	ulong	rendval;	/* Value for rendezvous */
+	uintptr	rendtag;	/* Tag for rendezvous */
+	uintptr	rendval;	/* Value for rendezvous */
 	Proc	*rendhash;	/* Hash list for tag values */
 
 	Timer;			/* For tsleep and real-time */
@@ -747,17 +753,18 @@ extern	Conf	conf;
 extern	char*	conffile;
 extern	int	cpuserver;
 extern	Dev*	devtab[];
-extern  char*	eve;
+extern	char*	eve;
 extern	char	hostdomain[];
 extern	uchar	initcode[];
-extern  Queue*	kbdq;
-extern  Queue*	kprintoq;
-extern  Ref	noteidalloc;
-extern	Palloc	palloc;
-extern  Queue*	serialoq;
-extern	char*	statename[];
-extern  Image	swapimage;
+extern	int	kbdbuttons;
+extern	Queue*	kbdq;
+extern	Queue*	kprintoq;
+extern 	Ref	noteidalloc;
 extern	int	nsyscall;
+extern	Palloc	palloc;
+extern	Queue*	serialoq;
+extern	char*	statename[];
+extern	Image	swapimage;
 extern	char*	sysname;
 extern	Talarm	talarm;
 extern	uint	qiomaxatomic;
@@ -943,7 +950,7 @@ enum
 #pragma	varargck	argpos	snprint	3
 #pragma	varargck	argpos	sprint	2
 #pragma	varargck	argpos	fprint	2
-#pragma varargck	argpos	panic	1
+#pragma	varargck	argpos	panic	1
 
 #pragma	varargck	type	"lld"	vlong
 #pragma	varargck	type	"llx"	vlong
@@ -972,4 +979,4 @@ enum
 #pragma	varargck	type	"M"	uchar*
 #pragma	varargck	type	"p"	void*
 #pragma	varargck	type	"q"	char*
-#pragma varargck	flag	','
+#pragma	varargck	flag	','

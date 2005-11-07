@@ -137,6 +137,7 @@ static Apic*
 mkioapic(PCMPioapic* p)
 {
 	Apic *apic;
+	void *va;
 
 	if(!(p->flags & PcmpEN) || p->apicno > MaxAPICNO)
 		return 0;
@@ -144,13 +145,13 @@ mkioapic(PCMPioapic* p)
 	/*
 	 * Map the I/O APIC.
 	 */
-	if(mmukmap(p->addr, 0, 1024) == 0)
+	if((va = vmap(p->addr, 1024)) == 0)
 		return 0;
 
 	apic = &mpapic[p->apicno];
 	apic->type = PcmpIOAPIC;
 	apic->apicno = p->apicno;
-	apic->addr = KADDR(p->addr);
+	apic->addr = va;
 	apic->flags = p->flags;
 
 	return apic;
@@ -440,6 +441,9 @@ mpstartap(Apic* apic)
 	*p++ = PADDR(APBOOTSTRAP);
 	*p++ = PADDR(APBOOTSTRAP)>>8;
 	i = (PADDR(APBOOTSTRAP) & ~0xFFFF)/16;
+	/* code assumes i==0 */
+	if(i != 0)
+		print("mp: bad APBOOTSTRAP\n");
 	*p++ = i;
 	*p = i>>8;
 
@@ -465,6 +469,7 @@ mpinit(void)
 	PCMP *pcmp;
 	uchar *e, *p;
 	Apic *apic, *bpapic;
+	void *va;
 
 	i8259init();
 	syncclock();
@@ -476,7 +481,7 @@ mpinit(void)
 	/*
 	 * Map the local APIC.
 	 */
-	if(mmukmap(pcmp->lapicbase, 0, 1024) == 0)
+	if((va = vmap(pcmp->lapicbase, 1024)) == nil)
 		return;
 
 	bpapic = nil;
@@ -508,7 +513,7 @@ mpinit(void)
 			 * guarantee that the bootstrap processor appears
 			 * first in the table before the others.
 			 */
-			apic->addr = KADDR(pcmp->lapicbase);
+			apic->addr = va;
 			if(apic->flags & PcmpBP)
 				bpapic = apic;
 		}
@@ -766,7 +771,7 @@ mpintrenable(Vctl* v)
 		if(vno != -1)
 			return vno;
 	}
-
+	print("mpintrenable: out of choices %d %d\n", mpeisabus, mpisabus);
 	return -1;
 }
 

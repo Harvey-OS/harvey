@@ -109,8 +109,7 @@ whatis(Lsym *l)
 		if(t == TINT || t == TFLOAT)
 			Bprint(bout, " format %c", l->v->fmt);
 		if(l->v->comt)
-			Bprint(bout, " complex %s",
-						l->v->comt->base->name);
+			Bprint(bout, " complex %s", l->v->comt->base->name);
 		Bputc(bout, '\n');
 		def = 1;
 	}
@@ -252,7 +251,7 @@ pexpr(Node *n)
 	case OCONST:
 		switch(n->type) {
 		case TINT:
-			Bprint(bout, "%d", (int)n->ival);
+			Bprint(bout, "%lld", n->ival);
 			break;
 		case TFLOAT:
 			Bprint(bout, "%g", n->fval);

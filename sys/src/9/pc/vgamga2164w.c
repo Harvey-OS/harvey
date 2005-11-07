@@ -42,82 +42,31 @@ mgapcimatch(void)
 	return p;
 }
 
-static ulong
-mga2164wlinear(VGAscr* scr, int* size, int* align)
-{
-	ulong aperture, oaperture;
-	int oapsize, wasupamem;
-	Pcidev *p;
-
-	oaperture = scr->aperture;
-	oapsize = scr->apsize;
-	wasupamem = scr->isupamem;
-
-	if(p = mgapcimatch()){
-		aperture = p->mem[p->did==MGA2064? 1 : 0].bar & ~0x0F;
-		*size = (p->did==MGA2064? 8 :16)*1024*1024;
-	}
-	else
-		aperture = 0;
-
-	if(wasupamem) {
-		if(oaperture == aperture)
-			return oaperture;
-		upafree(oaperture, oapsize);
-	}
-	scr->isupamem = 0;
-
-	aperture = upamalloc(aperture, *size, *align);
-	if(aperture == 0){
-		if(wasupamem && upamalloc(oaperture, oapsize, 0)) {
-			aperture = oaperture;
-			scr->isupamem = 1;
-		}
-		else
-			scr->isupamem = 0;
-	}
-	else
-		scr->isupamem = 1;
-
-	return aperture;
-}
-
 static void
 mga2164wenable(VGAscr* scr)
 {
 	Pcidev *p;
-	int size, align, immio;
-	ulong aperture;
 
-	/*
-	 * Only once, can't be disabled for now.
-	 * scr->io holds the virtual address of
-	 * the MMIO registers.
-	 */
-	if(scr->io)
+	if(scr->mmio)
 		return;
 
 	p = mgapcimatch();
 	if(p == nil)
 		return;
 
-	immio = p->did==MGA2064? 0 : 1;
-	scr->io = upamalloc(p->mem[immio].bar & ~0x0F, p->mem[immio].size, 0);
-	if(scr->io == 0)
-		return;
-	addvgaseg("mga2164wmmio", scr->io, p->mem[immio].size);
-
-	scr->io = (ulong)KADDR(scr->io);
-
-	/* need to map frame buffer here too, so vga can find memory size */
-	size = (p->did==MGA2064? 8 :16)*1024*1024;
-	align = 0;
-	aperture = mga2164wlinear(scr, &size, &align);
-	if(aperture) {
-		scr->aperture = aperture;
-		scr->apsize = size;
-		addvgaseg("mga2164wscreen", aperture, size);
+	if(p->did == MGA2064){
+		scr->mmio = vmap(p->mem[0].bar&~0x0F, p->mem[0].size);
+		if(scr->mmio == nil)
+			return;
+		vgalinearaddr(scr, p->mem[1].bar&~0x0F, 8*MB);
+	}else{
+		scr->mmio = vmap(p->mem[1].bar&~0x0F, p->mem[1].size);
+		if(scr->mmio == nil)
+			return;
+		vgalinearaddr(scr, p->mem[0].bar&~0x0F, 16*MB);
 	}
+	if(scr->paddr)
+		addvgaseg("mga2164wscreen", scr->paddr, scr->apsize);
 }
 
 enum {
@@ -142,9 +91,9 @@ tvp3026disable(VGAscr* scr)
 {
 	uchar *tvp3026;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
-	tvp3026 = KADDR(scr->io+0x3C00);
+	tvp3026 = (uchar*)scr->mmio+0x3C00;
 
 	/*
 	 * Make sure cursor is off
@@ -161,9 +110,9 @@ tvp3026load(VGAscr* scr, Cursor* curs)
 	int x, y;
 	uchar *tvp3026;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
-	tvp3026 = KADDR(scr->io+0x3C00);
+	tvp3026 = (uchar*)scr->mmio+0x3C00;
 
 	/*
 	 * Make sure cursor is off by initialising the cursor
@@ -223,9 +172,9 @@ tvp3026move(VGAscr* scr, Point p)
 	int x, y;
 	uchar *tvp3026;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return 1;
-	tvp3026 = KADDR(scr->io+0x3C00);
+	tvp3026 = (uchar*)scr->mmio+0x3C00;
 
 	x = p.x+scr->offset.x;
 	y = p.y+scr->offset.y;
@@ -244,9 +193,9 @@ tvp3026enable(VGAscr* scr)
 	int i;
 	uchar *tvp3026;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
-	tvp3026 = KADDR(scr->io+0x3C00);
+	tvp3026 = (uchar*)scr->mmio+0x3C00;
 
 	tvp3026disable(scr);
 
@@ -276,7 +225,7 @@ VGAdev vgamga2164wdev = {
 	mga2164wenable,			/* enable */
 	0,				/* disable */
 	0,				/* page */
-	mga2164wlinear,			/* linear */
+	0,				/* linear */
 };
 
 VGAcur vgamga2164wcur = {

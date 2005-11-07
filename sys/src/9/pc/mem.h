@@ -11,6 +11,7 @@
 #define	BY2V		8			/* bytes per double word */
 #define	BY2PG		4096			/* bytes per page */
 #define	WD2PG		(BY2PG/BY2WD)		/* words per page */
+#define	BY2XPG		(4096*1024)	/* bytes per big page */
 #define	PGSHIFT		12			/* log(BY2PG) */
 #define	ROUND(s, sz)	(((s)+((sz)-1))&~((sz)-1))
 #define	PGROUND(s)	ROUND(s, BY2PG)
@@ -27,38 +28,46 @@
 #define	TK2SEC(t)	((t)/HZ)		/* ticks to seconds */
 
 /*
- * Fundamental addresses
- */
-#define	IDTADDR		0x80000800		/* idt */
-#define	REBOOTADDR	0x00001000		/* reboot code - physical address */
-#define	APBOOTSTRAP	0x80001000		/* AP bootstrap code */
-#define	CONFADDR	0x80001200		/* info passed from boot loader */
-#define	CPU0PDB		0x80002000		/* bootstrap processor PDB */
-#define	CPU0PTE		0x80003000		/* bootstrap processor PTE's for 0-4MB */
-#define	CPU0GDT		0x80004000		/* bootstrap processor GDT */
-#define	MACHADDR	0x80005000		/* as seen by current processor */
-#define	CPU0MACH	0x80006000		/* Mach for bootstrap processor */
-#define	MACHSIZE	BY2PG
-/*
- * N.B.  ramscan knows that CPU0MACH+BY2PG is the end of reserved data
- * N.B.  _start0x00100020 knows that CPU0PDB is the first reserved page
- * and that there are 5 of them.
- */
-
-/*
  *  Address spaces
- *
- *  User is at 0-2GB
- *  Kernel is at 2GB-4GB
  */
+#define	KZERO		0xF0000000		/* base of kernel address space */
+#define	KTZERO		(KZERO+0x100000)		/* first address in kernel text - 9load sits below */
+#define	VPT			(KZERO-VPTSIZE)
+#define	VPTSIZE		BY2XPG
+#define	NVPT		(VPTSIZE/BY2WD)
+#define	KMAP		(VPT-KMAPSIZE)
+#define	KMAPSIZE	BY2XPG
+#define	VMAP		(KMAP-VMAPSIZE)
+#define	VMAPSIZE	(0x10000000-VPTSIZE-KMAPSIZE)
 #define	UZERO		0			/* base of user address space */
 #define	UTZERO		(UZERO+BY2PG)		/* first address in user text */
-#define	KZERO		0x80000000		/* base of kernel address space */
-#define	KTZERO		0x80100000		/* first address in kernel text */
-#define	USTKTOP		(KZERO-BY2PG)		/* byte just beyond user stack */
+#define	USTKTOP		(VMAP-BY2PG)		/* byte just beyond user stack */
 #define	USTKSIZE	(16*1024*1024)		/* size of user stack */
 #define	TSTKTOP		(USTKTOP-USTKSIZE)	/* end of new stack in sysexec */
 #define	TSTKSIZ 	100
+
+/*
+ * Fundamental addresses - bottom 64kB saved for return to real mode
+ */
+#define	CONFADDR	(KZERO+0x1200)		/* info passed from boot loader */
+#define	TMPADDR		(KZERO+0x2000)		/* used for temporary mappings */
+#define	APBOOTSTRAP	(KZERO+0x3000)		/* AP bootstrap code */
+#define	RMUADDR		(KZERO+0x7C00)		/* real mode Ureg */
+#define	RMCODE		(KZERO+0x8000)		/* copy of first page of KTEXT */
+#define	RMBUF		(KZERO+0x9000)		/* buffer for user space - known to vga */
+#define	IDTADDR		(KZERO+0x10800)		/* idt */
+#define	REBOOTADDR	(KZERO+0x11000)		/* reboot code - physical address */
+#define	CPU0PDB		(KZERO+0x12000)		/* bootstrap processor PDB */
+#define	CPU0PTE		(KZERO+0x13000)		/* bootstrap processor PTE's for 0-4MB */
+#define	CPU0GDT		(KZERO+0x14000)		/* bootstrap processor GDT */
+#define	MACHADDR	(KZERO+0x15000)		/* as seen by current processor */
+#define	CPU0MACH	(KZERO+0x16000)		/* Mach for bootstrap processor */
+#define	MACHSIZE	BY2PG
+/*
+ * N.B.  ramscan knows that CPU0MACH+BY2PG is the end of reserved data
+ * N.B.  _startPADDR knows that CPU0PDB is the first reserved page
+ * and that there are 5 of them.
+ */
 
 /*
  *  known x86 segments (in GDT) and their selectors
@@ -72,6 +81,7 @@
 #define	APMCSEG		6	/* APM code segment */
 #define	APMCSEG16	7	/* APM 16-bit code segment */
 #define	APMDSEG		8	/* APM data segment */
+#define	KESEG16		9	/* kernel executable 16-bit */
 #define	NGDT		10	/* number of GDT entries required */
 /* #define	APM40SEG	8	/* APM segment 0x40 */
 
@@ -141,3 +151,4 @@
 #define	PTX(va)		((((ulong)(va))>>12) & 0x03FF)
 
 #define	getpgcolor(a)	0
+

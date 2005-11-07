@@ -416,7 +416,7 @@ etherprobe(int cardno, int ctlrno)
 	i = sprint(buf, "#l%d: %s: %dMbps port 0x%luX irq %d",
 		ctlrno, cards[cardno].type, ether->mbps, ether->port, ether->irq);
 	if(ether->mem)
-		i += sprint(buf+i, " addr 0x%luX", PADDR(ether->mem));
+		i += sprint(buf+i, " addr 0x%luX", ether->mem);
 	if(ether->size)
 		i += sprint(buf+i, " size 0x%luX", ether->size);
 	i += sprint(buf+i, ": %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
@@ -425,16 +425,15 @@ etherprobe(int cardno, int ctlrno)
 	sprint(buf+i, "\n");
 	print(buf);
 
-	if (ether->mbps >= 1000) {
+	if(ether->mbps >= 1000){
 		netifinit(ether, name, Ntypes, 512*1024);
 		if(ether->oq == 0)
 			ether->oq = qopen(512*1024, Qmsg, 0, 0);
-	} else if(ether->mbps >= 100){
+	}else if(ether->mbps >= 100){
 		netifinit(ether, name, Ntypes, 256*1024);
 		if(ether->oq == 0)
 			ether->oq = qopen(256*1024, Qmsg, 0, 0);
-	}
-	else{
+	}else{
 		netifinit(ether, name, Ntypes, 128*1024);
 		if(ether->oq == 0)
 			ether->oq = qopen(128*1024, Qmsg, 0, 0);

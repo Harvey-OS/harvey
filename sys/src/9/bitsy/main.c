@@ -268,19 +268,18 @@ rdb(void)
 int
 probemem(ulong addr)
 {
+	int i;
 	ulong *p;
 	ulong a;
 
 	addr += OneMeg - sizeof(ulong);
 	p = (ulong*)addr;
 	*p = addr;
-	for(a = conf.base0+OneMeg-sizeof(ulong); a < conf.npage0; a += OneMeg){
-		p = (ulong*)a;
-		*p = 0;
-	}
-	for(a = conf.base1+OneMeg-sizeof(ulong); a < conf.npage1; a += OneMeg){
-		p = (ulong*)a;
-		*p = 0;
+	for(i=0; i<nelem(conf.mem); i++){
+		for(a = conf.mem[i].base+OneMeg-sizeof(ulong); a < conf.mem[i].limit; a += OneMeg){
+			p = (ulong*)a;
+			*p = 0;
+		}
 	}
 	p = (ulong*)addr;
 	if(*p != addr)
@@ -295,56 +294,46 @@ probemem(ulong addr)
 void
 confinit(void)
 {
-	int i;
+	int i, j;
 	ulong addr;
 	ulong ktop;
 
 	/* find first two contiguous sections of available memory */
 	addr = PHYSDRAM0;
-	conf.base0 = conf.npage0 = addr;
-	conf.base1 = conf.npage1 = addr;
-	for(i = 0; i < 512; i++){
-		if(probemem(addr) == 0)
-			break;
-		addr += OneMeg;
+	for(i=0; i<nelem(conf.mem); i++){
+		conf.mem[i].base = addr;
+		conf.mem[i].limit = addr;
 	}
-	for(; i < 512; i++){
-		if(probemem(addr) < 0)
-			break;
-		addr += OneMeg;
-		conf.npage0 = addr;
+	for(j=0; j<nelem(conf.mem); j++){
+		conf.mem[j].base = addr;
+		conf.mem[j].limit = addr;
+		
+		for(i = 0; i < 512; i++){
+			if(probemem(addr) == 0)
+				break;
+			addr += OneMeg;
+		}
+		for(; i < 512; i++){
+			if(probemem(addr) < 0)
+				break;
+			addr += OneMeg;
+			conf.mem[j].limit = addr;
+		}
 	}
+	
+	conf.npage = 0;
+	for(i=0; i<nelem(conf.mem); i++){
+		/* take kernel out of allocatable space */
+		ktop = PGROUND((ulong)end);
+		if(ktop >= conf.mem[i].base && ktop <= conf.mem[i].limit)
+			conf.mem[i].base = ktop;
+		
+		/* zero memory */
+		memset((void*)conf.mem[i].base, 0, conf.mem[i].limit - conf.mem[i].base);
 
-	conf.base1 = conf.npage1 = addr;
-	for(; i < 512; i++){
-		if(probemem(addr) == 0)
-			break;
-		addr += OneMeg;
+		conf.mem[i].npage = (conf.mem[i].limit - conf.mem[i].base)/BY2PG;
+		conf.npage += conf.mem[i].npage;
 	}
-	for(; i < 512; i++){
-		if(probemem(addr) < 0)
-			break;
-		addr += OneMeg;
-		conf.npage1 = addr;
-	}
-
-	/* take kernel out of allocatable space */
-	ktop = PGROUND((ulong)end);
-	if(ktop >= conf.base0 && ktop <= conf.npage0)
-		conf.base0 = ktop;
-	else if(ktop >= conf.base1 && ktop <= conf.npage1)
-		conf.base1 = ktop;
-	else
-		iprint("kernel not in allocatable space\n");
-
-	/* zero memory */
-	memset((void*)conf.base0, 0, conf.npage0 - conf.base0);
-	memset((void*)conf.base1, 0, conf.npage1 - conf.base1);
-
-	/* make npage the right thing */
-	conf.npage0 = (conf.npage0 - conf.base0)/BY2PG;
-	conf.npage1 = (conf.npage1 - conf.base1)/BY2PG;
-	conf.npage = conf.npage0+conf.npage1;
 
 	if(conf.npage > 16*MB/BY2PG){
 		conf.upages = (conf.npage*60)/100;

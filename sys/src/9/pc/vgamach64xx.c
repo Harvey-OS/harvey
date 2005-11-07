@@ -168,13 +168,11 @@ mach64xxenable(VGAscr* scr)
 {
 	Pcidev *p;
 
-	/*
-	 * Only once, can't be disabled for now.
-	 */
 	if(scr->io)
 		return;
 	if(p = mach64xxpci()){
 		scr->id = p->did;
+		scr->pci = p;
 
 		/*
 		 * The CT doesn't always have the I/O base address
@@ -189,53 +187,15 @@ mach64xxenable(VGAscr* scr)
 	}
 }
 
-static ulong
-mach64xxlinear(VGAscr* scr, int* size, int* align)
+static void
+mach64xxlinear(VGAscr* scr, int size, int)
 {
-	ulong aperture, osize, oaperture;
-	int i, oapsize, wasupamem;
-	Pcidev *p;
-
-	osize = *size;
-	oaperture = scr->aperture;
-	oapsize = scr->apsize;
-	wasupamem = scr->isupamem;
-
-	if(p = mach64xxpci()){
-		for(i=0; i<nelem(p->mem); i++){
-			if(p->mem[i].size >= *size
-			&& ((p->mem[i].bar & ~0x0F) & (*align-1)) == 0)
-				break;
-		}
-		if(i >= nelem(p->mem)){
-			print("vgamach64xx: aperture not found\n");
-			return 0;
-		}
-		aperture = p->mem[i].bar & ~0x0F;
-		*size = p->mem[i].size;
-	}
-	else
-		aperture = 0;
-
-	if(wasupamem)
-		upafree(oaperture, oapsize);
-	scr->isupamem = 0;
-
-	aperture = upamalloc(aperture, *size, *align);
-	if(aperture == 0){
-		if(wasupamem && upamalloc(oaperture, oapsize, 0))
-			scr->isupamem = 1;
-	}
-	else
-		scr->isupamem = 1;
-
-	scr->mmio = KADDR(aperture+osize-0x400);
-	if(oaperture && oaperture != aperture)
-		print("warning (BUG): redefinition of aperture does not change mach64mmio segment\n");
-	addvgaseg("mach64mmio", aperture+osize-BY2PG, BY2PG);
-	addvgaseg("mach64screen", aperture, osize);
-
-	return aperture;
+	vgalinearpci(scr);
+	if(scr->paddr == 0)
+		return;
+	scr->mmio = (ulong*)((uchar*)scr->vaddr+size-1024);
+	addvgaseg("mach64mmio", scr->paddr+size-BY2PG, BY2PG);
+	addvgaseg("mach64screen", scr->paddr, scr->apsize);
 }
 
 enum {
@@ -474,7 +434,7 @@ mach64xxcurload(VGAscr* scr, Cursor* curs)
 	r = ior32(scr, GenTestCntl);
 	iow32(scr, GenTestCntl, r & ~0x80);
 
-	p = KADDR(scr->aperture);
+	p = scr->vaddr;
 	p += scr->storage;
 
 	/*
@@ -792,7 +752,7 @@ initengine(VGAscr *scr)
 	}
 
 	/* Get the base freq from the BIOS */
-	bios  = KADDR(0xC000);
+	bios  = kaddr(0xC000);
 	table = *(ushort *)(bios + 0x48);
 	table = *(ushort *)(bios + table + 0x10);
 	switch (*(ushort *)(bios + table + 0x08)) {
@@ -1120,7 +1080,7 @@ ovl_status(VGAscr *scr, Chan *, char **field)
 		   mach64revb? "yes": "no",
 		   mach64refclock);
 	pprint("%s: storage @%.8luX, aperture @%8.ulX, ovl buf @%.8ulX\n",
-		   scr->dev->name, scr->storage, scr->aperture,
+		   scr->dev->name, scr->storage, scr->paddr,
 		   mach64overlay);
 }
 	
@@ -1215,7 +1175,7 @@ mach64xxovlwrite(VGAscr *scr, void *a, int len, vlong offs)
 
 		_offs = (ulong)(offs % ovl_fib);
 		nb     = (_offs + len > ovl_fib)? ovl_fib - _offs: len;
-		memmove((uchar *)KADDR(scr->aperture + mach64overlay + _offs), 
+		memmove((uchar *)scr->vaddr + mach64overlay + _offs, 
 				  src, nb);
 		offs += nb;
 		src  += nb;

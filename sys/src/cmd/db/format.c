@@ -51,9 +51,9 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 	 * sets `dotinc' and moves `dot'
 	 * returns address of next format item
 	 */
-	vlong	v;
-	long	w;
-	ulong	savdot;
+	uvlong	v;
+	ulong	w;
+	ADDR	savdot;
 	char	*fp;
 	char	c, modifier;
 	int	i;
@@ -102,7 +102,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 			break;
 
 		case 'A':
-			dprint("%#lux%10t", dot);
+			dprint("%#llux%10t", dot);
 			dotinc = 0;
 			break;
 
@@ -294,7 +294,7 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 		case 'f':
 			/* BUG: 'f' and 'F' assume szdouble is sizeof(vlong) in the literal case */
 			if (literal) {
-				v = machdata->swav((ulong)dot);
+				v = machdata->swav(dot);
 				memmove(buf, &v, mach->szfloat);
 			}else if (get1(map, dot, (uchar*)buf, mach->szfloat) < 0)
 				error("%r");

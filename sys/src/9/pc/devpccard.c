@@ -515,6 +515,7 @@ devpccardlink(void)
 	int i;
 	uchar intl;
 	char *p;
+	void *baddrva;
 
 	if (initialized) 
 		return;
@@ -623,14 +624,15 @@ devpccardlink(void)
 		intl = pci->intl;
 
 		if ((baddr = pcicfgr32(cb->pci, PciBAR0)) == 0) {
-			int align = (pci->did == Ricoh_478_did)? 0x10000: 0x1000;
+			int size = (pci->did == Ricoh_478_did)? 0x10000: 0x1000;
 
-			baddr = upamalloc(baddr, align, align);
+			baddr = upaalloc(size, size);
+			baddrva = vmap(baddr, size);
 			pcicfgw32(cb->pci, PciBAR0, baddr);
-			cb->regs = (ulong *)KADDR(baddr);
+			cb->regs = (ulong *)baddrva;
 		}
 		else
-			cb->regs = (ulong *)KADDR(upamalloc(baddr, 4096, 0));
+			cb->regs = (ulong *)vmap(baddr, 4096);
 		cb->state = SlotEmpty;
 
 		/* Don't really know what to do with this... */
@@ -810,7 +812,7 @@ configure(Cardbus *cb)
 				continue;
 			}
 
-			bar = upamalloc(0, pci->mem[i].size, BY2PG);
+			bar = upaalloc(pci->mem[i].size, BY2PG);
 			pci->mem[i].bar = bar | (pci->mem[i].bar & 0x80);
 			pcicfgw32(pci, PciBAR0 + i * sizeof(ulong), pci->mem[i].bar);
 			pcicfgw32(cb->pci, PciCBMBR0 + memindex * 8, bar);
@@ -834,7 +836,7 @@ configure(Cardbus *cb)
 				print("#Y%ld: WARNING: Too many memory spaces, not mapping ROM space\n",
 					cb - cbslots);
 			else {
-				pci->rom.bar = upamalloc(0, size, BY2PG);
+				pci->rom.bar = upaalloc(size, BY2PG);
 				pci->rom.size = size;
 
 				pcicfgw32(pci, PciEBAR0, pci->rom.bar);

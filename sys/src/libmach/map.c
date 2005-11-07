@@ -26,7 +26,7 @@ newmap(Map *map, int n)
 }
 
 int
-setmap(Map *map, int fd, ulong b, ulong e, ulong f, char *name)
+setmap(Map *map, int fd, uvlong b, uvlong e, vlong f, char *name)
 {
 	int i;
 
@@ -46,7 +46,7 @@ setmap(Map *map, int fd, ulong b, ulong e, ulong f, char *name)
 	return 1;
 }
 
-static ulong
+static uvlong
 stacktop(int pid)
 {
 	char buf[64];
@@ -54,7 +54,7 @@ stacktop(int pid)
 	int n;
 	char *cp;
 
-	sprint(buf, "/proc/%d/segment", pid);
+	snprint(buf, sizeof(buf), "/proc/%d/segment", pid);
 	fd = open(buf, 0);
 	if (fd < 0)
 		return 0;
@@ -74,7 +74,7 @@ stacktop(int pid)
 		cp++;
 	if (!*cp)
 		return 0;
-	return strtoul(cp, 0, 16);
+	return strtoull(cp, 0, 16);
 }
 
 Map*
@@ -83,7 +83,7 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 	char buf[64], *regs;
 	int fd;
 	Map *map;
-	ulong n;
+	uvlong n;
 	int mode;
 
 	map = newmap(0, 4);
@@ -116,13 +116,13 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 		setmap(map, fd, mach->regsize, mach->regsize+mach->fpregsize, 0, "fpregs");
 	}
 	setmap(map, corefd, fp->txtaddr, fp->txtaddr+fp->txtsz, fp->txtaddr, "text");
-	if(kflag || (ulong) fp->dataddr >= 0x7fffffff) {
-		setmap(map, corefd, fp->dataddr, 0xffffffff, fp->dataddr, "data");
+	if(kflag || fp->dataddr >= mach->utop) {
+		setmap(map, corefd, fp->dataddr, ~0, fp->dataddr, "data");
 		return map;
 	}
 	n = stacktop(pid);
 	if (n == 0) {
-		setmap(map, corefd, fp->dataddr, 0x7fffffff, fp->dataddr, "data");
+		setmap(map, corefd, fp->dataddr, mach->utop, fp->dataddr, "data");
 		return map;
 	}
 	setmap(map, corefd, fp->dataddr, n, fp->dataddr, "data");

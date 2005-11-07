@@ -1,5 +1,6 @@
 typedef struct Cisdat 		Cisdat;
 typedef struct Conf		Conf;
+typedef struct Confmem	Confmem;
 typedef struct FPU		FPU;
 typedef struct FPenv		FPenv;
 typedef struct FPsave		FPsave;
@@ -37,6 +38,7 @@ struct Lock
 	ulong	sr;
 	ulong	pc;
 	Proc	*p;
+	Mach	*m;
 	ushort	isilock;
 };
 
@@ -62,19 +64,25 @@ struct	FPsave
 	ulong	regs[8][3];	/* emulated fp */	
 };
 
+struct Confmem
+{
+	ulong	base;
+	ulong	npage;
+	ulong	limit;
+	ulong	kbase;
+	ulong	klimit;
+};
+
 struct Conf
 {
 	ulong	nmach;		/* processors */
 	ulong	nproc;		/* processes */
-	ulong	npage0;		/* total physical pages of memory */
-	ulong	npage1;		/* total physical pages of memory */
+	Confmem	mem[2];
 	ulong	npage;		/* total physical pages of memory */
 	ulong	upages;		/* user page pool */
 	ulong	nimage;		/* number of page cache image headers */
 	ulong	nswap;		/* number of swap pages */
 	int	nswppo;		/* max # of pageouts per segment pass */
-	ulong	base0;		/* base of bank 0 */
-	ulong	base1;		/* base of bank 1 */
 	ulong	copymode;	/* 0 is copy on write, 1 is copy on reference */
 	int	monitor;
 	ulong	ialloc;		/* bytes available for interrupt time allocation */

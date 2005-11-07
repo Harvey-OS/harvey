@@ -108,8 +108,9 @@ Mach msparc64 =
 	"setSB",	/* static base register name */
 	0,		/* value */
 	0x2000,		/* page size */
-	0x80000000,	/* kernel base */
+	0x80000000ULL,	/* kernel base */
 	0,		/* kernel text mask */
+	0x7FFFFFFFULL,	/* user stack top */
 	4,		/* quantization of pc */
 	4,		/* szaddr */
 	4,		/* szreg */

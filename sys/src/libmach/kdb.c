@@ -8,10 +8,10 @@
  */
 
 static	char	*sparcexcep(Map*, Rgetter);
-static	int	sparcfoll(Map*, ulong, Rgetter, ulong*);
-static	int	sparcinst(Map*, ulong, char, char*, int);
-static	int	sparcdas(Map*, ulong, char*, int);
-static	int	sparcinstlen(Map*, ulong);
+static	int	sparcfoll(Map*, uvlong, Rgetter, uvlong*);
+static	int	sparcinst(Map*, uvlong, char, char*, int);
+static	int	sparcdas(Map*, uvlong, char*, int);
+static	int	sparcinstlen(Map*, uvlong);
 
 Machdata sparcmach =
 {
@@ -116,7 +116,7 @@ struct instr {
 	int	target;		/* SETHI+ADD dest reg */
 	long	w0;
 	long	w1;
-	ulong	addr;		/* pc of instruction */
+	uvlong	addr;		/* pc of instruction */
 	char	*curr;		/* current fill level in output buffer */
 	char	*end;		/* end of buffer */
 	int 	size;		/* number of longs in instr */
@@ -126,7 +126,7 @@ struct instr {
 static	Map	*mymap;		/* disassembler context */
 static	int	dascase;
 
-static int	mkinstr(ulong, Instr*);
+static int	mkinstr(uvlong, Instr*);
 static void	bra1(Instr*, char*, char*[]);
 static void	bra(Instr*, char*);
 static void	fbra(Instr*, char*);
@@ -288,9 +288,9 @@ bprint(Instr *i, char *fmt, ...)
 }
 
 static int
-decode(ulong pc, Instr *i)
+decode(uvlong pc, Instr *i)
 {
-	long w;
+	ulong w;
 
 	if (get4(mymap, pc, &w) < 0) {
 		werrstr("can't read instruction: %r");
@@ -323,7 +323,7 @@ decode(ulong pc, Instr *i)
 }
 
 static int
-mkinstr(ulong pc, Instr *i)
+mkinstr(uvlong pc, Instr *i)
 {
 	Instr xi;
 
@@ -354,7 +354,7 @@ mkinstr(ulong pc, Instr *i)
 }
 
 static int
-printins(Map *map, ulong pc, char *buf, int n)
+printins(Map *map, uvlong pc, char *buf, int n)
 {
 	Instr instr;
 	void (*f)(Instr*, char*);
@@ -424,7 +424,7 @@ Xfmt(Fmt *f)
 }
 
 static int
-sparcinst(Map *map, ulong pc, char modifier, char *buf, int n)
+sparcinst(Map *map, uvlong pc, char modifier, char *buf, int n)
 {
 	static int fmtinstalled = 0;
 
@@ -442,7 +442,7 @@ sparcinst(Map *map, ulong pc, char modifier, char *buf, int n)
 }
 
 static int
-sparcdas(Map *map, ulong pc, char *buf, int n)
+sparcdas(Map *map, uvlong pc, char *buf, int n)
 {
 	Instr instr;
 
@@ -463,7 +463,7 @@ sparcdas(Map *map, ulong pc, char *buf, int n)
 }
 
 static int
-sparcinstlen(Map *map, ulong pc)
+sparcinstlen(Map *map, uvlong pc)
 {
 	Instr i;
 
@@ -500,7 +500,7 @@ static void
 address(Instr *i)
 {
 	Symbol s, s2;
-	long off, off1;
+	uvlong off, off1;
 
 	if (i->rs1 == 1 && plocal(i) >= 0)
 		return;
@@ -510,7 +510,7 @@ address(Instr *i)
 			&& (s.class == CDATA || s.class == CTEXT)) {
 		if(off==s.value && s.name[0]=='$'){
 			off1 = 0;
-			get4(mymap, s.value, &off1);
+			geta(mymap, s.value, &off1);
 			if(off1 && findsym(off1, CANY, &s2) && s2.value == off1){
 				bprint(i, "$%s(SB)", s2.name);
 				return;
@@ -878,8 +878,8 @@ loadf(Instr *i, char *m)		/* page 70 */
 		bprint(i, ", R%d", i->rd);
 }
 
-static
-void storef(Instr *i, char *m)		/* page 70 */
+static void
+storef(Instr *i, char *m)		/* page 70 */
 {
 	if(!dascase){
 		m = "FMOVD";
@@ -901,8 +901,8 @@ void storef(Instr *i, char *m)		/* page 70 */
 		address(i);
 }
 
-static
-void loadc(Instr *i, char *m)			/* page 72 */
+static void
+loadc(Instr *i, char *m)			/* page 72 */
 {
 	if(i->i == 0)
 		bprint(i, "%s\t(R%d+R%d), C%d", m, i->rs1, i->rs2, i->rd);
@@ -913,8 +913,8 @@ void loadc(Instr *i, char *m)			/* page 72 */
 	}
 }
 
-static
-void loadcsr(Instr *i, char *m)			/* page 72 */
+static void
+loadcsr(Instr *i, char *m)			/* page 72 */
 {
 	if(i->i == 0)
 		bprint(i, "%s\t(R%d+R%d), CSR", m, i->rs1, i->rs2);
@@ -1007,7 +1007,7 @@ fpop(Instr *i, char *m)	/* page 108-116 */
 }
 
 static int
-sparcfoll(Map *map, ulong pc, Rgetter rget, ulong *foll)
+sparcfoll(Map *map, uvlong pc, Rgetter rget, uvlong *foll)
 {
 	ulong w, r1, r2;
 	char buf[8];

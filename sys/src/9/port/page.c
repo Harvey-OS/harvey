@@ -12,54 +12,55 @@ struct	Palloc palloc;
 void
 pageinit(void)
 {
-	int color;
+	int color, i, j;
 	Page *p;
-	ulong np, vm, pm;
+	Pallocmem *pm;
+	ulong m, np, k, vkb, pkb;
 
-	np = palloc.np0+palloc.np1;
+	np = 0;
+	for(i=0; i<nelem(palloc.mem); i++){
+		pm = &palloc.mem[i];
+		np += pm->npage;
+	}
 	palloc.head = xalloc(np*sizeof(Page));
 	if(palloc.head == 0)
 		panic("pageinit");
 
 	color = 0;
 	p = palloc.head;
-	while(palloc.np0 > 0) {
-		p->prev = p-1;
-		p->next = p+1;
-		p->pa = palloc.p0;
-		p->color = color;
-		palloc.freecount++;
-		color = (color+1)%NCOLOR;
-		palloc.p0 += BY2PG;
-		palloc.np0--;
-		p++;
-	}
-	while(palloc.np1 > 0) {
-		p->prev = p-1;
-		p->next = p+1;
-		p->pa = palloc.p1;
-		p->color = color;
-		palloc.freecount++;
-		color = (color+1)%NCOLOR;
-		palloc.p1 += BY2PG;
-		palloc.np1--;
-		p++;
+	for(i=0; i<nelem(palloc.mem); i++){
+		pm = &palloc.mem[i];
+		for(j=0; j<pm->npage; j++){
+			p->prev = p-1;
+			p->next = p+1;
+			p->pa = pm->base+j*BY2PG;
+			p->color = color;
+			palloc.freecount++;
+			color = (color+1)%NCOLOR;
+			p++;
+		}
 	}
 	palloc.tail = p - 1;
 	palloc.head->prev = 0;
 	palloc.tail->next = 0;
 
 	palloc.user = p - palloc.head;
-	pm = palloc.user*BY2PG/1024;
-	vm = pm + (conf.nswap*BY2PG)/1024;
+	pkb = palloc.user*BY2PG/1024;
+	vkb = pkb + (conf.nswap*BY2PG)/1024;
 
-	/* Pageing numbers */
+	/* Paging numbers */
 	swapalloc.highwater = (palloc.user*5)/100;
 	swapalloc.headroom = swapalloc.highwater + (swapalloc.highwater/4);
 
-	print("%lud free pages, ", palloc.user);
-	print("%ludK bytes, ", pm);
-	print("%ludK swap\n", vm);
+	m = 0;
+	for(i=0; i<nelem(conf.mem); i++)
+		if(conf.mem[i].npage)
+			m += conf.mem[i].npage*BY2PG;
+	k = PGROUND(end - (char*)KTZERO);
+	print("%ldM memory: ", (m+k+1024*1024-1)/(1024*1024));
+	print("%ldM kernel data, ", (m+k-pkb*1024+1024*1024-1)/(1024*1024));
+	print("%ldM user, ", pkb/1024);
+	print("%ldM swap\n", vkb/1024);
 }
 
 static void

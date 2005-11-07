@@ -1,3 +1,13 @@
+/*
+ * Start an Application Processor. This must be placed on a 4KB boundary
+ * somewhere in the 1st MB of conventional memory (APBOOTSTRAP). However,
+ * due to some shortcuts below it's restricted further to within the 1st
+ * 64KB. The AP starts in real-mode, with
+ *   CS selector set to the startup memory address/16;
+ *   CS base set to startup memory address;
+ *   CS limit set to 64KB;
+ *   CPL and IP set to 0.
+ */
 #include "mem.h"
 
 #define NOP		BYTE $0x90		/* NOP */
@@ -23,16 +33,6 @@
 #define PDO(a)		(((((a))>>22) & 0x03FF)<<2)
 #define PTO(a)		(((((a))>>12) & 0x03FF)<<2)
 
-/*
- * Start an Application Processor. This must be placed on a 4KB boundary
- * somewhere in the 1st MB of conventional memory (APBOOTSTRAP). However,
- * due to some shortcuts below it's restricted further to within the 1st
- * 64KB. The AP starts in real-mode, with
- *   CS selector set to the startup memory address/16;
- *   CS base set to startup memory address;
- *   CS limit set to 64KB;
- *   CPL and IP set to 0.
- */
 TEXT apbootstrap(SB), $0
 	FARJUMP16(0, _apbootstrap(SB))
 TEXT _apvector(SB), $0				/* address APBOOTSTRAP+0x08 */

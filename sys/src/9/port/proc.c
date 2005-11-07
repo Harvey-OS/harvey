@@ -113,13 +113,13 @@ schedinit(void)		/* never returns */
 void
 sched(void)
 {
-	int x[1];
 	Proc *p;
 
 	if(m->ilockdepth)
 		panic("ilockdepth %d, last lock 0x%p at 0x%lux, sched called from 0x%lux",
 			m->ilockdepth, up?up->lastilock:nil,
-			(up && up->lastilock)?up->lastilock->pc:0, getcallerpc(x+3));
+			(up && up->lastilock)?up->lastilock->pc:0,
+			getcallerpc(&p+2));
 
 	if(up){
 		if(up->nlocks.ref && up->state != Moribund && up->delaysched < 20){
@@ -688,8 +688,10 @@ procinit0(void)		/* bad planning - clashes with devproc.c */
 	int i;
 
 	procalloc.free = xalloc(conf.nproc*sizeof(Proc));
-	if(procalloc.free == nil)
-		panic("cannot allocate %lud procs\n", conf.nproc);
+	if(procalloc.free == nil){
+		xsummary();
+		panic("cannot allocate %lud procs (%ludMB)\n", conf.nproc, conf.nproc*sizeof(Proc)/(1024*1024));
+	}
 	procalloc.arena = procalloc.free;
 
 	p = procalloc.free;

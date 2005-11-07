@@ -1485,15 +1485,15 @@ tcm59Xpci(void)
 			break;
 		case 0x5157:
 			ctlr->eepromcmd = EepromRead8bRegister;
-			ctlr->cbfnpa = upamalloc(p->mem[2].bar, p->mem[2].size, 0);
+			ctlr->cbfnpa = p->mem[2].bar&~0x0F;
+			ctlr->cbfn = vmap(p->mem[2].bar&~0x0F, p->mem[2].size);
 			break;
 		case 0x6056:
 			ctlr->eepromcmd = EepromReadOffRegister;
-			ctlr->cbfnpa = upamalloc(p->mem[2].bar, p->mem[2].size, 0);
+			ctlr->cbfnpa = p->mem[2].bar&~0x0F;
+			ctlr->cbfn = vmap(p->mem[2].bar&~0x0F, p->mem[2].size);
 			break;
 		}
-		if(ctlr->cbfnpa != 0)
-			ctlr->cbfn = KADDR(ctlr->cbfnpa);
 		pcisetbme(p);
 	}
 }

@@ -348,6 +348,8 @@ findkey(Key **ret, Keyinfo *ki, char *fmt, ...)
 	if(p && findproto(p) == nil){
 		werrstr("unknown protocol %s", p);
 		_freeattr(attr1);
+		_freeattr(attr2);
+		_freeattr(attr3);
 		return failure(ki->fss, nil);
 	}
 
@@ -374,6 +376,8 @@ findkey(Key **ret, Keyinfo *ki, char *fmt, ...)
 				}
 			}
 			_freeattr(attr1);
+			_freeattr(attr2);
+			_freeattr(attr3);
 			k->ref++;
 			*ret = k;
 			return RpcOk;
@@ -381,6 +385,8 @@ findkey(Key **ret, Keyinfo *ki, char *fmt, ...)
 	}
 	flog("%d: no key matches %A %A %A %A", ki->fss->seqnum, attr0, attr1, attr2, attr3);
 	werrstr("no key matches %A %A", attr0, attr1);
+	_freeattr(attr2);
+	_freeattr(attr3);
 	s = RpcFailure;
 	if(askforkeys && who==nil && (hasqueries(attr0) || hasqueries(attr1))){
 		if(nmatch == 0){

@@ -123,40 +123,40 @@ ilock(Lock *l)
 	lockstats.locks++;
 
 	x = splhi();
-	if(tas(&l->key) == 0){
-		m->ilockdepth++;
-		if(up)
-			up->lastilock = l;
-		l->sr = x;
-		l->pc = pc;
-		l->p = up;
-		l->isilock = 1;
-		return;
-	}
-
-	lockstats.glare++;
-	if(conf.nmach < 2){
-		dumplockmem("ilock:", l);
-		panic("ilock: no way out: pc %luX\n", pc);
-	}
-
-	for(;;){
-		lockstats.inglare++;
-		splx(x);
-		while(l->key)
-			;
-		x = splhi();
-		if(tas(&l->key) == 0){
-			m->ilockdepth++;
-			if(up)
-				up->lastilock = l;
-			l->sr = x;
-			l->pc = pc;
-			l->p = up;
-			l->isilock = 1;
-			return;
+	if(tas(&l->key) != 0){
+		lockstats.glare++;
+		/*
+		 * Cannot also check l->pc and l->m here because
+		 * they might just not be set yet, or the lock might 
+		 * even have been let go.
+		 */
+		if(!l->isilock){
+			dumplockmem("ilock:", l);
+			panic("corrupt ilock %p pc=%luX m=%p isilock=%d", 
+				l, l->pc, l->m, l->isilock);
+		}
+		if(l->m == MACHP(m->machno))
+			panic("ilock: deadlock on cpu%d pc=%luX lockpc=%luX\n", 
+				m->machno, pc, l->pc);
+		for(;;){
+			lockstats.inglare++;
+			splx(x);
+			while(l->key)
+				;
+			x = splhi();
+			if(tas(&l->key) == 0)
+				goto acquire;
 		}
 	}
+acquire:
+	m->ilockdepth++;
+	if(up)
+		up->lastilock = l;
+	l->sr = x;
+	l->pc = pc;
+	l->p = up;
+	l->isilock = 1;
+	l->m = MACHP(m->machno);
 }
 
 int
@@ -174,6 +174,7 @@ canlock(Lock *l)
 		up->lastlock = l;
 	l->pc = getcallerpc(&l);
 	l->p = up;
+	l->m = MACHP(m->machno);
 	l->isilock = 0;
 	return 1;
 }
@@ -187,6 +188,7 @@ unlock(Lock *l)
 		print("unlock of ilock: pc %lux, held by %lux\n", getcallerpc(&l), l->pc);
 	if(l->p != up)
 		print("unlock: up changed: pc %lux, acquired at pc %lux, lock p 0x%p, unlock up 0x%p\n", getcallerpc(&l), l->pc, l->p, up);
+	l->m = nil;
 	l->key = 0;
 	coherence();
 
@@ -212,6 +214,7 @@ iunlock(Lock *l)
 		print("iunlock while lo: pc %lux, held by %lux\n", getcallerpc(&l), l->pc);
 
 	sr = l->sr;
+	l->m = nil;
 	l->key = 0;
 	coherence();
 

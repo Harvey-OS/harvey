@@ -288,13 +288,9 @@ confinit(void)
 
 	pa = PGROUND(PADDR(end));
 
-	conf.npage0 = memsize/BY2PG;
-	conf.base0 = pa;
-	
-	conf.npage1 = 0;
-	conf.base1 = pa;
-
-	conf.npage = conf.npage0 + conf.npage1;
+	conf.mem[0].npage = memsize/BY2PG;
+	conf.mem[0].base = pa;
+	conf.npage = conf.mem[0].npage;
 
 	conf.nmach = 1;
 	conf.nproc = 100 + ((conf.npage*BY2PG)/MB)*5;

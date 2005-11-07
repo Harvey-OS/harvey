@@ -116,7 +116,10 @@ typedef struct Symtab
 {
 	short		space;
 	char		*name;
-	void		*value;
+	union{
+		void		*ptr;
+		uintptr	value;
+	} u;
 	struct Symtab	*next;
 } Symtab;
 

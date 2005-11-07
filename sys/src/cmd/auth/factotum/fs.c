@@ -3,6 +3,7 @@
 int		askforkeys = 1;
 char		*authaddr;
 int		debug;
+int		doprivate = 1;
 int		gflag;
 char		*owner;
 int		kflag;
@@ -75,6 +76,7 @@ main(int argc, char **argv)
 		break;
 	case 'd':
 		debug = 1;
+		doprivate = 0;
 		break;
 	case 'g':		/* get: prompt for key for name and domain */
 		gflag = 1;
@@ -88,6 +90,9 @@ main(int argc, char **argv)
 	case 'n':
 		trysecstore = 0;
 		break;
+	case 'p':
+		doprivate = 0;
+		break;
 	case 's':		/* set service name */
 		service = EARGF(usage());
 		break;
@@ -100,7 +105,7 @@ main(int argc, char **argv)
 
 	if(argc != 0 && !gflag)
 		usage();
-	if(!debug)
+	if(doprivate)
 		private();
 
 	initcap();

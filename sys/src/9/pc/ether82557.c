@@ -290,7 +290,7 @@ command(Ctlr* ctlr, int c, int v)
 	if(timeo >= 100){
 		ctlr->command = -1;
 		iunlock(&ctlr->rlock);
-		iprint("i82557: command 0x%uX %uX timeout\n", c, v);
+		iprint("i82557: command %#ux %#ux timeout\n", c, v);
 		return;
 	}
 
@@ -462,7 +462,7 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	for(i = 0; i < (1<<ctlr->eepromsz); i++){
 		if(i && ((i & 0x07) == 0))
 			len += snprint(p+len, READSTR-len, "\n       ");
-		len += snprint(p+len, READSTR-len, " %4.4uX", ctlr->eeprom[i]);
+		len += snprint(p+len, READSTR-len, " %4.4ux", ctlr->eeprom[i]);
 	}
 
 	if((ctlr->eeprom[6] & 0x1F00) && !(ctlr->eeprom[6] & 0x8000)){
@@ -471,7 +471,7 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 		for(i = 0; i < 6; i++){
 			static int miir(Ctlr*, int, int);
 
-			len += snprint(p+len, READSTR-len, " %4.4uX",
+			len += snprint(p+len, READSTR-len, " %4.4ux",
 				miir(ctlr, phyaddr, i));
 		}
 	}
@@ -523,7 +523,7 @@ txstart(Ether* ether)
 			ctlr->action = 0;
 		}
 		else{
-			print("#l%d: action 0x%uX\n", ether->ctlrno, ctlr->action);
+			print("#l%d: action %#ux\n", ether->ctlrno, ctlr->action);
 			ctlr->action = 0;
 			break;
 		}
@@ -630,14 +630,14 @@ receive(Ether* ether)
 			pbp = nil;
 			count = rfd->count & 0x3FFF;
 			if((count < ETHERMAXTU/4) && (pbp = iallocb(count))){
-				memmove(pbp->rp, bp->rp+sizeof(Rfd)-sizeof(rfd->data), count);
+				memmove(pbp->rp, bp->rp+offsetof(Rfd, data[0]), count);
 				pbp->wp = pbp->rp + count;
 
 				rfd->count = 0;
 				rfd->field = 0;
 			}
 			else if(xbp = rfdalloc(rfd->link)){
-				bp->rp += sizeof(Rfd)-sizeof(rfd->data);
+				bp->rp += offsetof(Rfd, data[0]);
 				bp->wp = bp->rp + count;
 
 				xbp->next = bp->next;
@@ -748,7 +748,7 @@ interrupt(Ureg*, void* arg)
 		}
 
 		if(status & (StatCX|StatFR|StatCNA|StatRNR|StatMDI|StatSWI))
-			panic("#l%d: status %uX\n", ether->ctlrno, status);
+			panic("#l%d: status %#ux\n", ether->ctlrno, status);
 	}
 }
 
@@ -955,7 +955,7 @@ i82557pci(void)
 		 */
 		port = p->mem[1].bar & ~0x01;
 		if(ioalloc(port, p->mem[1].size, 0, "i82557") < 0){
-			print("i82557: port 0x%uX in use\n", port);
+			print("i82557: port %#ux in use\n", port);
 			continue;
 		}
 
@@ -997,7 +997,7 @@ scanphy(Ctlr* ctlr)
 		oui <<= 6;
 		x = miir(ctlr, i, 3);
 		oui |= x>>10;
-		//print("phy%d: oui %uX reg1 %uX\n", i, oui, miir(ctlr, i, 1));
+		//print("phy%d: oui %#ux reg1 %#ux\n", i, oui, miir(ctlr, i, 1));
 
 		ctlr->eeprom[6] = i;
 		if(oui == 0xAA00)
@@ -1093,7 +1093,7 @@ reset(Ether* ether)
 		sum += x;
 	}
 	if(sum != 0xBABA)
-		print("#l%d: EEPROM checksum - 0x%4.4uX\n", ether->ctlrno, sum);
+		print("#l%d: EEPROM checksum - %#4.4ux\n", ether->ctlrno, sum);
 
 	/*
 	 * Eeprom[6] indicates whether there is a PHY and whether

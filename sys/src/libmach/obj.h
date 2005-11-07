@@ -21,4 +21,4 @@ struct Prog		/* info from .$O files */
 };
 
 #define UNKNOWN	'?'
-void		_offset(int, long);
+void		_offset(int, vlong);

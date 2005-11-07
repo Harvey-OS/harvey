@@ -352,7 +352,7 @@ vmemchr(void *s, int c, int n)
 			return t;
 		a += m;
 		n -= m;
-		if((a & KZERO) != KZERO)
+		if(a < KZERO)
 			validaddr(a, 1, 0);
 	}
 

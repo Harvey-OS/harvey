@@ -3,6 +3,7 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
+#include "io.h"
 #include "../port/error.h"
 
 #define	Image	IMAGE
@@ -139,7 +140,7 @@ et4000load(VGAscr *scr, Cursor *c)
 	et4000disable(scr);
 
 	setet4000page(scr->storage>>16);
-	mem = (uchar*)KADDR(scr->aperture) + (scr->storage & 0xFFFF);
+	mem = (uchar*)scr->vaddr + (scr->storage & 0xFFFF);
 
 	/*
 	 * Initialise the 64x64 cursor RAM array. There are 2 planes,

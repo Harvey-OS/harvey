@@ -46,22 +46,25 @@ set the coordinates of the statusbar window created
 .PD
 .SH EXAMPLE
 The
-.B -d
-options to
-.IR hget(1),
-.IR venti/fmtarenas ,
-and
-.I venti/fmtisect
-(see
-.IR ventiaux (8))
-cause them to print status lines suitable for
+.B -v
+option to
+.IR hget(1)
+.\" and the 
+.\" .B -d
+.\" option to
+.\" .IR venti/fmtarenas
+.\" and
+.\" .I venti/fmtisect
+.\" (see
+,\" .IR ventiaux (8))
+causes it to print status lines suitable for
 input to
 .IR statusbar .
 .PP
 Monitor a long download:
 .IP
 .EX
-hget -d -o bigfile http://server.com/bigfile | 
+hget -v -o bigfile http://server.com/bigfile | 
   aux/statusbar 'big file download'
 .EE
 .SH SOURCE

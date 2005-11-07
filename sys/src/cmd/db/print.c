@@ -20,7 +20,7 @@ static void	printfp(Map*, int);
  *	callback on stack trace
  */
 static void
-ptrace(Map *map, ulong pc, ulong sp, Symbol *sym)
+ptrace(Map *map, uvlong pc, uvlong sp, Symbol *sym)
 {
 	char buf[512];
 
@@ -41,13 +41,13 @@ ptrace(Map *map, ulong pc, ulong sp, Symbol *sym)
 void
 printtrace(int modif)
 {
-	int	i;
-	ulong pc, sp, link;
-	long v;
+	int i;
+	uvlong pc, sp, link;
+	ulong w;
 	BKPT *bk;
 	Symbol s;
-	int	stack;
-	char	*fname;
+	int stack;
+	char *fname;
 	char buf[512];
 
 	if (cntflg==0)
@@ -127,9 +127,14 @@ printtrace(int modif)
 	case 'C':
 		tracetype = modif;
 		if (machdata->ctrace) {
-			if (adrflg) {	/* trace from jmpbuf for multi-threaded code */
-				if (get4(cormap, adrval, (long*)&sp) < 0 ||
-					get4(cormap, adrval+4, (long*)&pc) < 0)
+			if (adrflg) {
+				/*
+				 * trace from jmpbuf for multi-threaded code.
+				 * assume sp and pc are in adjacent locations
+				 * and mach->szaddr in size.
+				 */
+				if (geta(cormap, adrval, &sp) < 0 ||
+					geta(cormap, adrval+mach->szaddr, &pc) < 0)
 						error("%r");
 			} else {
 				sp = rget(cormap, mach->sp);
@@ -147,8 +152,8 @@ printtrace(int modif)
 		/*print externals*/
 	case 'e':
 		for (i = 0; globalsym(&s, i); i++) {
-			if (get4(cormap, s.value, &v) > 0)
-				dprint("%s/%12t%#lux\n", s.name,	v);
+			if (get4(cormap, s.value, &w) > 0)
+				dprint("%s/%12t%#lux\n", s.name, w);
 		}
 		break;
 
@@ -226,7 +231,7 @@ printfp(Map *map, int modif)
 void
 redirin(int stack, char *file)
 {
-	char pfile[ARB];
+	char *pfile;
 
 	if (file == 0) {
 		iclose(-1, 0);
@@ -234,10 +239,10 @@ redirin(int stack, char *file)
 	}
 	iclose(stack, 0);
 	if ((infile = open(file, 0)) < 0) {
-		strcpy(pfile, Ipath);
-		strcat(pfile, "/");
-		strcat(pfile, file);
-		if ((infile = open(pfile, 0)) < 0) {
+		pfile = smprint("%s/%s", Ipath, file);
+		infile = open(pfile, 0);
+		free(pfile);
+		if(infile < 0) {
 			infile = STDIN;
 			error("cannot open");
 		}
@@ -259,8 +264,9 @@ printmap(char *s, Map *map)
 		dprint("%s\n", s);
 	for (i = 0; i < map->nsegs; i++) {
 		if (map->seg[i].inuse)
-			dprint("%s%8t%-16#lux %-16#lux %-16#lux\n", map->seg[i].name,
-				map->seg[i].b, map->seg[i].e, map->seg[i].f);
+			dprint("%s%8t%-16#llux %-16#llux %-16#llux\n",
+				map->seg[i].name, map->seg[i].b,
+				map->seg[i].e, map->seg[i].f);
 	}
 }
 
@@ -277,11 +283,11 @@ printsym(void)
 		switch(sp->type) {
 		case 't':
 		case 'l':
-			dprint("%8#lux t %s\n", sp->value, sp->name);
+			dprint("%16#llux t %s\n", sp->value, sp->name);
 			break;
 		case 'T':
 		case 'L':
-			dprint("%8#lux T %s\n", sp->value, sp->name);
+			dprint("%16#llux T %s\n", sp->value, sp->name);
 			break;
 		case 'D':
 		case 'd':
@@ -290,7 +296,7 @@ printsym(void)
 		case 'a':
 		case 'p':
 		case 'm':
-			dprint("%8#lux %c %s\n", sp->value, sp->type, sp->name);
+			dprint("%16#llux %c %s\n", sp->value, sp->type, sp->name);
 			break;
 		default:
 			break;
@@ -304,7 +310,7 @@ printsym(void)
  *	print the value of dot as file:line
  */
 void
-printsource(long dot)
+printsource(ADDR dot)
 {
 	char str[STRINGSZ];
 
@@ -317,7 +323,7 @@ printpc(void)
 {
 	char buf[512];
 
-	dot = (ulong)rget(cormap, mach->pc);
+	dot = rget(cormap, mach->pc);
 	if(dot){
 		printsource((long)dot);
 		printc(' ');
@@ -333,15 +339,15 @@ void
 printlocals(Symbol *fn, ADDR fp)
 {
 	int i;
-	long val;
+	ulong w;
 	Symbol s;
 
 	s = *fn;
 	for (i = 0; localsym(&s, i); i++) {
 		if (s.class != CAUTO)
 			continue;
-		if (get4(cormap, fp-s.value, &val) > 0)
-			dprint("%8t%s.%s/%10t%#lux\n", fn->name, s.name, val);
+		if (get4(cormap, fp-s.value, &w) > 0)
+			dprint("%8t%s.%s/%10t%#lux\n", fn->name, s.name, w);
 		else
 			dprint("%8t%s.%s/%10t?\n", fn->name, s.name);
 	}
@@ -352,7 +358,7 @@ printparams(Symbol *fn, ADDR fp)
 {
 	int i;
 	Symbol s;
-	long v;
+	ulong w;
 	int first = 0;
 
 	fp += mach->szaddr;			/* skip saved pc */
@@ -362,7 +368,7 @@ printparams(Symbol *fn, ADDR fp)
 			continue;
 		if (first++)
 			dprint(", ");
-		if (get4(cormap, fp+s.value, &v) > 0)
-			dprint("%s=%#lux", s.name, v);
+		if (get4(cormap, fp+s.value, &w) > 0)
+			dprint("%s=%#lux", s.name, w);
 	}
 }

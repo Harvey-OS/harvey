@@ -127,6 +127,7 @@ lmlreset(void)
 {
 	Physseg segbuf;
 	ulong regpa;
+	void *regva;
 	ISAConf isa;
 	char name[32];
 	Pcidev *pcidev;
@@ -157,12 +158,13 @@ lmlreset(void)
 
 		print("zr36067 found at 0x%.8lux", pcidev->mem[0].bar & ~0x0F);
 
-		regpa = upamalloc(pcidev->mem[0].bar & ~0x0F, pcidev->mem[0].size, 0);
-		if (regpa == 0) {
+		regpa = pcidev->mem[0].bar & ~0x0F;
+		regva = vmap(regpa, pcidev->mem[0].size, 0);
+		if (regva == 0) {
 			print("lml: failed to map registers\n");
 			return;
 		}
-		lml->pciBaseAddr = (ulong)KADDR(regpa);
+		lml->pciBaseAddr = (ulong)regva;
 		print(", mapped at 0x%.8lux\n", lml->pciBaseAddr);
 
 		memset(&segbuf, 0, sizeof(segbuf));

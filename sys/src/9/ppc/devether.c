@@ -11,6 +11,7 @@
 #include "etherif.h"
 
 static Ether *etherxx[MaxEther];
+extern uchar etheraddr[];
 
 Chan*
 etherattach(char* spec)
@@ -365,6 +366,7 @@ etherreset(void)
 		for(n = 0; cards[n].type; n++){
 			if(cistrcmp(cards[n].type, ether->type))
 				continue;
+			memmove(ether->ea, etheraddr, 6);
 			for(i = 0; i < ether->nopt; i++){
 				if(strncmp(ether->opt[i], "ea=", 3))
 					continue;

@@ -22,7 +22,9 @@ authentication(int cpuflag)
 	ac = 0;
 	av = argv;
 	av[ac++] = "factotum";
-//av[ac++] = "-d";
+	if(getenv("debugfactotum"))
+		av[ac++] = "-p";
+//av[ac++] = "-d";	//debug traces
 //av[ac++] = "-D";	//9p messages
 	if(cpuflag)
 		av[ac++] = "-S";

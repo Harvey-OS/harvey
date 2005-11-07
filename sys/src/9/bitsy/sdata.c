@@ -742,6 +742,7 @@ tryedd1:
 
 	sdev->ifc = &sdataifc;
 	sdev->ctlr = ctlr;
+	sdev->idno = 'C';
 	sdev->nunit = 1;
 	ctlr->sdev = sdev;
 
@@ -1571,26 +1572,6 @@ atalegacy(int port, int irq)
 	return ataprobe(port, port+0x204, irq);
 }
 
-static SDev*
-ataid(SDev* sdev)
-{
-	int i;
-
-	if(sdev == nil)
-		return nil;
-	i = 0;
-	while(sdev){
-		if(sdev->ifc == &sdataifc){
-			sdev->idno = 'C'+i;
-			i++;
-			snprint(sdev->name, KNAMELEN, "sd%c", sdev->idno);
-		}
-		sdev = sdev->next;
-	}
-
-	return nil;
-}
-
 static int ataitype;
 static int atairq;
 static int
@@ -2089,7 +2070,6 @@ SDifc sdataifc = {
 
 	nil,				/* pnp */
 	atalegacy,			/* legacy */
-	ataid,				/* id */
 	ataenable,			/* enable */
 	nil,				/* disable */
 

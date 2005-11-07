@@ -1,206 +1,170 @@
 #include <u.h>
 #include <libc.h>
-#include <a.out.h>
+#include <bio.h>
+#include <mach.h>
 
-int	strip(char*);
-int	stripfilt(int, int);
 void
-main(int argc, char *argv[])
+error(char* fmt, ...)
 {
-	int i;
-	int rv;
+	va_list arg;
+	char *e, s[256];
 
-	rv = 0;
+	va_start(arg, fmt);
+	e = seprint(s, s+sizeof(s), "%s: ", argv0);
+	e = vseprint(e, s+sizeof(s), fmt, arg);
+	e = seprint(e, s+sizeof(s), "\n");
+	va_end(arg);
 
-	if(argc == 1) {
-		if(stripfilt(0, 1))
-			exits("error");
-		exits(0);
-	}
-
-	for(i = 1; i < argc; i++)
-		rv |= strip(argv[i]);
-	if(rv)
-		exits("error");
-	exits(0);
+	write(2, s, e-s);
 }
 
-long
-ben(long xen)
+static void
+usage(void)
 {
-	union
-	{
-		long	xen;
-		uchar	uch[sizeof(long)];
-	} u;
-
-	u.xen = xen;
-	return (u.uch[0] << 24) | (u.uch[1] << 16) | (u.uch[2] << 8) | (u.uch[3] << 0);
+	error("usage: %s -o ofile file\n\t%s file ...\n", argv0, argv0);
+	exits("usage");
 }
 
-int
-stripfilt(int in, int out)
+static int
+strip(char* file, char* out)
 {
-	Exec exec;
-	int i, j, n, m, len;
-	char buf[8192];
+	Dir *dir;
+	int fd, i;
+	Fhdr fhdr;
+	Exec *exec;
+	ulong mode;
+	void *data;
+	vlong length;
 
-	/*
-	 * read header
-	 */
-
-	if(readn(in, &exec, sizeof(Exec)) != sizeof(Exec)) {
-		fprint(2, "strip: short read\n");
+	if((fd = open(file, OREAD)) < 0){
+		error("%s: open: %r", file);
 		return 1;
 	}
-	i = ben(exec.magic);
-	for (j = MIN_MAGIC; j <= MAX_MAGIC; j++)
-		if (i == _MAGIC(j))
+
+	if(!crackhdr(fd, &fhdr)){
+		error("%s: %r", file);
+		close(fd);
+		return 1;
+	}
+	for(i = MIN_MAGIC; i <= MAX_MAGIC; i++){
+		if(fhdr.magic == _MAGIC(0, i) || fhdr.magic == _MAGIC(HDR_MAGIC, i))
 			break;
-	if (j > MAX_MAGIC) {
-		fprint(2, "strip: not a recognizable binary\n");
+	}
+	if(i > MAX_MAGIC){
+		error("%s: not a recognizeable binary", file);
+		close(fd);
 		return 1;
 	}
 
-	len = ben(exec.data) + ben(exec.text);
+	if((dir = dirfstat(fd)) == nil){
+		error("%s: stat: %r", file);
+		close(fd);
+		return 1;
+	}
 
-	/*
-	 *  copy exec, text and data
-	 */
-	exec.syms = 0;
-	exec.spsz = 0;
-	exec.pcsz = 0;
-	write(out, &exec, sizeof(exec));
-	
-	for(n=0; n<len; n+=m) {
-		m = len - n;
-		if(m > sizeof(buf))
-			m = sizeof(buf);
-		if((m = read(in, buf, m)) < 0) {
-			fprint(2, "strip: premature eof: %r\n");
-			return 1;
-		}
-		if(write(out, buf, m) != m) {
-			fprint(2, "strip: write error; %r\n");
-			return 1;
+	length = fhdr.datoff+fhdr.datsz;
+	if(length == dir->length){
+		if(out == nil){	/* nothing to do */
+			error("%s: already stripped", file);
+			free(dir);
+			close(fd);
+			return 0;
 		}
 	}
-
-	return 0;
-}
-
-
-int
-strip(char *file)
-{
-	int fd;
-	Exec exec;
-	char *data;
-	Dir *d;
-	long n, len;
-	int i, j;
-
-	/*
-	 *  make sure file is executable
-	 */
-	d = dirstat(file);
-	if(d == nil){
-		perror(file);
-		return 1;
-	}
-	if((d->qid.path & (DMDIR|DMAPPEND|DMEXCL))){
-		fprint(2, "strip: %s must be executable\n", file);
-		return 1;
-	}
-	/*
-	 *  read its header and see if that makes sense
-	 */
-	fd = open(file, OREAD);
-	if(fd < 0){
-		perror(file);
-		free(d);
-		return 1;
-	}
-	n = read(fd, &exec, sizeof exec);
-	if (n != sizeof(exec)) {
-		fprint(2, "strip: Unable to read header of %s\n", file);
+	if(length > dir->length){
+		error("%s: strange length", file);
 		close(fd);
-		free(d);
-		return 1;
-	}
-	i = ben(exec.magic);
-	for (j = MIN_MAGIC; j <= MAX_MAGIC; j++)
-		if (i == _MAGIC(j))
-			break;
-	if (j > MAX_MAGIC) {
-		fprint(2, "strip: %s is not a recognizable binary\n", file);
-		close(fd);
-		free(d);
+		free(dir);
 		return 1;
 	}
 
-	len = ben(exec.data) + ben(exec.text);
-	if(len+sizeof(exec) == d->length) {
-		fprint(2, "strip: %s is already stripped\n", file);
+	mode = dir->mode;
+	free(dir);
+
+	if((data = malloc(length)) == nil){
+		error("%s: malloc failure", file);
 		close(fd);
-		free(d);
-		return 0;
-	}
-	if(len+sizeof(exec) > d->length) {
-		fprint(2, "strip: %s has strange length\n", file);
-		close(fd);
-		free(d);
 		return 1;
 	}
-	/*
-	 *  allocate a huge buffer, copy the header into it, then
-	 *  read the file.
-	 */
-	data = malloc(len+sizeof(exec));
-	if (!data) {
-		fprint(2, "strip: Malloc failure. %s too big to strip.\n", file);
+	seek(fd, 0LL, 0);
+	if(read(fd, data, length) != length){
+		error("%s: read: %r", file);
 		close(fd);
-		free(d);
-		return 1;
-	}
-	/*
-	 *  copy exec, text and data
-	 */
-	exec.syms = 0;
-	exec.spsz = 0;
-	exec.pcsz = 0;
-	memcpy(data, &exec, sizeof(exec));
-	n = read(fd, data+sizeof(exec), len);
-	if (n != len) {
-		perror(file);
-		close(fd);
-		free(d);
+		free(data);
 		return 1;
 	}
 	close(fd);
-	if(remove(file) < 0) {
-		perror(file);
+
+	exec = data;
+	exec->syms = 0;
+	exec->spsz = 0;
+	exec->pcsz = 0;
+
+	if(out == nil){
+		if(remove(file) < 0) {
+			error("%s: remove: %r", file);
+			free(data);
+			return 1;
+		}
+		out = file;
+	}
+	if((fd = create(out, OWRITE, mode)) < 0){
+		error("%s: create: %r", out);
 		free(data);
-		free(d);
 		return 1;
 	}
-	fd = create(file, OWRITE, d->mode);
-	if (fd < 0) {
-		perror(file);
-		free(data);
-		free(d);
-		return 1;
-	}
-	n = write(fd, data, len+sizeof(exec));
-	if (n != len+sizeof(exec)) {
-		perror(file);
+	if(write(fd, data, length) != length){
+		error("%s: write: %r", out);
 		close(fd);
 		free(data);
-		free(d);
 		return 1;
-	} 
+	}
 	close(fd);
 	free(data);
-	free(d);
+
 	return 0;
+}
+
+void
+main(int argc, char* argv[])
+{
+	int r;
+	char *p;
+
+	p = nil;
+
+	ARGBEGIN{
+	default:
+		usage();
+		break;
+	case 'o':
+		p = ARGF();
+		if(p == nil)
+			usage();
+		break;
+	}ARGEND;
+
+	switch(argc){
+	case 0:
+		usage();
+		return;
+	case 1:
+		if(p != nil){
+			r = strip(*argv, p);
+			break;
+		}
+		/*FALLTHROUGH*/
+	default:
+		r = 0;
+		while(argc > 0){
+			r |= strip(*argv, nil);
+			argc--;
+			argv++;
+		}
+		break;
+	}
+
+	if(r)
+		exits("error");
+	exits(0);
 }

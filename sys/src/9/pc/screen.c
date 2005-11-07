@@ -38,11 +38,14 @@ Cursor	arrow = {
 	},
 };
 
+int didswcursorinit;
+
 int
 screensize(int x, int y, int z, ulong chan)
 {
 	VGAscr *scr;
 
+	lock(&vgascreenlock);
 	memimageinit();
 	scr = &vgascreen[0];
 
@@ -50,7 +53,7 @@ screensize(int x, int y, int z, ulong chan)
 	 * BUG: need to check if any xalloc'ed memory needs to
 	 * be given back if aperture is set.
 	 */
-	if(scr->aperture == 0){
+	if(scr->paddr == 0){
 		int width = (x*z)/BI2WD;
 
 		gscreendata.bdata = xalloc(width*BY2WD*y);
@@ -58,19 +61,23 @@ screensize(int x, int y, int z, ulong chan)
 			error("screensize: vga soft memory");
 /*		memset(gscreendata.bdata, 0x72, width*BY2WD*y);	/* not really black */
 		scr->useflush = 1;
-		scr->aperture = VGAMEM();
+		scr->paddr = VGAMEM();
+		scr->vaddr = KADDR(scr->paddr);
 		scr->apsize = 1<<16;
 	}
 	else
-		gscreendata.bdata = KADDR(scr->aperture);
+		gscreendata.bdata = scr->vaddr;
 
 	if(gscreen)
 		freememimage(gscreen);
+	scr->gscreen = nil;
 
 	gscreen = allocmemimaged(Rect(0,0,x,y), chan, &gscreendata);
 	vgaimageinit(chan);
-	if(gscreen == nil)
+	if(gscreen == nil){
+		unlock(&vgascreenlock);
 		return -1;
+	}
 
 	if(scr->dev && scr->dev->flush)
 		scr->useflush = 1;
@@ -81,7 +88,10 @@ screensize(int x, int y, int z, ulong chan)
 	scr->gscreen = gscreen;
 
 	physgscreenr = gscreen->r;
+	unlock(&vgascreenlock);
 
+	if(didswcursorinit)
+		swcursorinit();
 	drawcmap();
 	return 0;
 }
@@ -90,32 +100,31 @@ int
 screenaperture(int size, int align)
 {
 	VGAscr *scr;
-	ulong aperture;
 
 	scr = &vgascreen[0];
 
-	if(size == 0){
-		if(scr->aperture && scr->isupamem)
-			upafree(scr->aperture, scr->apsize);
-		scr->aperture = 0;
-		scr->isupamem = 0;
+	if(scr->paddr)	/* set up during enable */
+		return 0;
+
+	if(size == 0)
+		return 0;
+
+	if(scr->dev && scr->dev->linear){
+		scr->dev->linear(scr, size, align);
 		return 0;
 	}
-	if(scr->dev && scr->dev->linear){
-		aperture = scr->dev->linear(scr, &size, &align);
-		if(aperture == 0)
-			return 1;
-	}else{
-		aperture = upamalloc(0, size, align);
-		if(aperture == 0)
-			return 1;
 
-		if(scr->aperture && scr->isupamem)
-			upafree(scr->aperture, scr->apsize);
-		scr->isupamem = 1;
-	}
-
-	scr->aperture = aperture;
+	/*
+	 * Need to allocate some physical address space.
+	 * The driver will tell the card to use it.
+	 */
+	size = PGROUND(size);
+	scr->paddr = upaalloc(size, align);
+	if(scr->paddr == 0)
+		return -1;
+	scr->vaddr = vmap(scr->paddr, size);
+	if(scr->vaddr == nil)
+		return -1;
 	scr->apsize = size;
 
 	return 0;
@@ -179,7 +188,7 @@ flushmemscreen(Rectangle r)
 	off = r.min.y*scr->gscreen->width*BY2WD+(r.min.x*scr->gscreen->depth)/8;
 	page = off/scr->apsize;
 	off %= scr->apsize;
-	disp = KADDR(scr->aperture);
+	disp = scr->vaddr;
 	sdisp = disp+off;
 	edisp = disp+scr->apsize;
 
@@ -339,17 +348,29 @@ int
 hwdraw(Memdrawparam *par)
 {
 	VGAscr *scr;
-	Memimage *dst, *src;
+	Memimage *dst, *src, *mask;
 	int m;
 
 	if(hwaccel == 0)
 		return 0;
 
-	dst = par->dst;
 	scr = &vgascreen[0];
-	if(dst == nil || dst->data == nil)
+	if((dst=par->dst) == nil || dst->data == nil)
+		return 0;
+	if((src=par->src) == nil || src->data == nil)
+		return 0;
+	if((mask=par->mask) == nil || mask->data == nil)
 		return 0;
 
+	if(scr->cur == &swcursor){
+		if(dst->data->bdata == gscreendata.bdata)
+			swcursoravoid(par->r);
+		if(src->data->bdata == gscreendata.bdata)
+			swcursoravoid(par->sr);
+		if(mask->data->bdata == gscreendata.bdata)
+			swcursoravoid(par->mr);
+	}
+	
 	if(dst->data->bdata != gscreendata.bdata)
 		return 0;
 
@@ -374,7 +395,6 @@ hwdraw(Memdrawparam *par)
 	 * the source is not replicated, memmove suffices.
 	 */
 	m = Simplemask|Fullmask;
-	src = par->src;
 	if(scr->scroll
 	&& src->data->bdata==dst->data->bdata
 	&& !(src->flags&Falpha)
@@ -398,3 +418,294 @@ blankscreen(int blank)
 			vgablank(scr, blank);
 	}
 }
+
+void
+vgalinearpciid(VGAscr *scr, int vid, int did)
+{
+	Pcidev *p;
+
+	p = nil;
+	while((p = pcimatch(p, vid, 0)) != nil){
+		if(p->ccrb != 3)	/* video card */
+			continue;
+		if(did != 0 && p->did != did)
+			continue;
+		break;
+	}
+	if(p == nil)
+		error("pci video card not found");
+
+	scr->pci = p;
+	vgalinearpci(scr);
+}
+
+void
+vgalinearpci(VGAscr *scr)
+{
+	ulong paddr;
+	int i, size, best;
+	Pcidev *p;
+	
+	p = scr->pci;
+	if(p == nil)
+		return;
+
+	/*
+	 * Scan for largest memory region on card.
+	 * Some S3 cards (e.g. Savage) have enormous
+	 * mmio regions (but even larger frame buffers).
+	 */
+	best = -1;
+	for(i=0; i<nelem(p->mem); i++){
+		if(p->mem[i].bar&1)	/* not memory */
+			continue;
+		if(p->mem[i].size < 640*480)	/* not big enough */
+			continue;
+		if(best==-1 || p->mem[i].size > p->mem[best].size)
+			best = i;
+	}
+	if(best >= 0){
+		paddr = p->mem[best].bar & ~0x0F;
+		size = p->mem[best].size;
+		vgalinearaddr(scr, paddr, size);
+		return;
+	}
+	error("no video memory found on pci card");
+}
+
+void
+vgalinearaddr(VGAscr *scr, ulong paddr, int size)
+{
+	int x, nsize;
+	ulong npaddr;
+
+	/*
+	 * new approach.  instead of trying to resize this
+	 * later, let's assume that we can just allocate the
+	 * entire window to start with.
+	 */
+
+	if(scr->paddr == paddr && size <= scr->apsize)
+		return;
+
+	if(scr->paddr){
+		/*
+		 * could call vunmap and vmap,
+		 * but worried about dangling pointers in devdraw
+		 */
+		error("cannot grow vga frame buffer");
+	}
+	
+	/* round to page boundary, just in case */
+	x = paddr&(BY2PG-1);
+	npaddr = paddr-x;
+	nsize = PGROUND(size+x);
+
+	scr->vaddr = vmap(npaddr, nsize);
+	if(scr->vaddr == 0)
+		error("cannot allocate vga frame buffer");
+	scr->vaddr = (char*)scr->vaddr+x;
+	scr->paddr = paddr;
+	scr->apsize = nsize;
+}
+
+
+/*
+ * Software cursor. 
+ */
+int	swvisible;	/* is the cursor visible? */
+int	swenabled;	/* is the cursor supposed to be on the screen? */
+Memimage*	swback;	/* screen under cursor */
+Memimage*	swimg;	/* cursor image */
+Memimage*	swmask;	/* cursor mask */
+Memimage*	swimg1;
+Memimage*	swmask1;
+
+Point	swoffset;
+Rectangle	swrect;	/* screen rectangle in swback */
+Point	swpt;	/* desired cursor location */
+Point	swvispt;	/* actual cursor location */
+int	swvers;	/* incremented each time cursor image changes */
+int	swvisvers;	/* the version on the screen */
+
+/*
+ * called with drawlock locked for us, most of the time.
+ * kernel prints at inopportune times might mean we don't
+ * hold the lock, but memimagedraw is now reentrant so
+ * that should be okay: worst case we get cursor droppings.
+ */
+void
+swcursorhide(void)
+{
+	if(swvisible == 0)
+		return;
+	if(swback == nil)
+		return;
+	swvisible = 0;
+	memimagedraw(gscreen, swrect, swback, ZP, memopaque, ZP, S);
+}
+
+void
+swcursoravoid(Rectangle r)
+{
+	if(swvisible && rectXrect(r, swrect))
+		swcursorhide();
+}
+
+void
+swcursordraw(void)
+{
+	if(swvisible)
+		return;
+	if(swenabled == 0)
+		return;
+	if(swback == nil || swimg1 == nil || swmask1 == nil)
+		return;
+	assert(!canqlock(&drawlock));
+	swvispt = swpt;
+	swvisvers = swvers;
+	swrect = rectaddpt(Rect(0,0,16,16), swvispt);
+	memimagedraw(swback, swback->r, gscreen, swpt, memopaque, ZP, S);
+	memimagedraw(gscreen, swrect, swimg1, ZP, swmask1, ZP, SoverD);
+	swvisible = 1;
+}
+
+/*
+ * Need to lock drawlock for ourselves.
+ */
+void
+swenable(VGAscr*)
+{
+	swenabled = 1;
+	if(canqlock(&drawlock)){
+		swcursordraw();
+		qunlock(&drawlock);
+	}
+}
+
+void
+swdisable(VGAscr*)
+{
+	swenabled = 0;
+	if(canqlock(&drawlock)){
+		swcursorhide();
+		qunlock(&drawlock);
+	}
+}
+
+void
+swload(VGAscr*, Cursor *curs)
+{
+	uchar *ip, *mp;
+	int i, j, set, clr;
+
+	if(!swimg || !swmask || !swimg1 || !swmask1)
+		return;
+	/*
+	 * Build cursor image and mask.
+	 * Image is just the usual cursor image
+	 * but mask is a transparent alpha mask.
+	 * 
+	 * The 16x16x8 memimages do not have
+	 * padding at the end of their scan lines.
+	 */
+	ip = byteaddr(swimg, ZP);
+	mp = byteaddr(swmask, ZP);
+	for(i=0; i<32; i++){
+		set = curs->set[i];
+		clr = curs->clr[i];
+		for(j=0x80; j; j>>=1){
+			*ip++ = set&j ? 0x00 : 0xFF;
+			*mp++ = (clr|set)&j ? 0xFF : 0x00;
+		}
+	}
+	swoffset = curs->offset;
+	swvers++;
+	memimagedraw(swimg1, swimg1->r, swimg, ZP, memopaque, ZP, S);
+	memimagedraw(swmask1, swmask1->r, swmask, ZP, memopaque, ZP, S);
+}
+
+int
+swmove(VGAscr*, Point p)
+{
+	swpt = addpt(p, swoffset);
+	return 0;
+}
+
+void
+swcursorclock(void)
+{
+	int x;
+
+	if(!swenabled)
+		return;
+	if(swvisible && eqpt(swpt, swvispt) && swvers==swvisvers)
+		return;
+
+	x = splhi();
+	if(swenabled)
+	if(!swvisible || !eqpt(swpt, swvispt) || swvers!=swvisvers)
+	if(canqlock(&drawlock)){
+		swcursorhide();
+		swcursordraw();
+		qunlock(&drawlock);
+	}
+	splx(x);
+}
+
+void
+swcursorinit(void)
+{
+	static int init, warned;
+	VGAscr *scr;
+
+	didswcursorinit = 1;
+	if(!init){
+		init = 1;
+		addclock0link(swcursorclock, 50);
+	}
+	scr = &vgascreen[0];
+	if(scr==nil || scr->gscreen==nil)
+		return;
+
+	if(scr->dev == nil || scr->dev->linear == nil){
+		if(!warned){
+			print("cannot use software cursor on non-linear vga screen\n");
+			warned = 1;
+		}
+		return;
+	}
+
+	if(swback){
+		freememimage(swback);
+		freememimage(swmask);
+		freememimage(swmask1);
+		freememimage(swimg);
+		freememimage(swimg1);
+	}
+
+	swback = allocmemimage(Rect(0,0,32,32), gscreen->chan);
+	swmask = allocmemimage(Rect(0,0,16,16), GREY8);
+	swmask1 = allocmemimage(Rect(0,0,16,16), GREY1);
+	swimg = allocmemimage(Rect(0,0,16,16), GREY8);
+	swimg1 = allocmemimage(Rect(0,0,16,16), GREY1);
+	if(swback==nil || swmask==nil || swmask1==nil || swimg==nil || swimg1 == nil){
+		print("software cursor: allocmemimage: %r");
+		return;
+	}
+
+	memfillcolor(swmask, DOpaque);
+	memfillcolor(swmask1, DOpaque);
+	memfillcolor(swimg, DBlack);
+	memfillcolor(swimg1, DBlack);
+}
+
+VGAcur swcursor =
+{
+	"soft",
+	swenable,
+	swdisable,
+	swload,
+	swmove,
+};
+

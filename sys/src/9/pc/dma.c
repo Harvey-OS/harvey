@@ -140,10 +140,9 @@ dmasetup(int chan, void *va, long len, int isread)
 	 *  if this isn't kernel memory or crossing 64k boundary or above 16 meg
 	 *  use the bounce buffer.
 	 */
-	pa = PADDR(va);
-	if((((ulong)va)&0xF0000000) != KZERO
-	|| (pa&0xFFFF0000) != ((pa+len)&0xFFFF0000)
-	|| pa >= 16*MB) {
+	if((ulong)va < KZERO 
+	|| ((pa=PADDR(va))&0xFFFF0000) != ((pa+len)&0xFFFF0000)
+	|| pa >= 16*MB){
 		if(xp->bva == nil)
 			return -1;
 		if(len > xp->blen)

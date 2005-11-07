@@ -49,94 +49,44 @@ i81xpcimatch(void)
 	return nil;
 }
 
-static ulong
-i81xlinear(VGAscr* scr, int* size, int* align)
-{
-	Pcidev *p;
-	int oapsize, wasupamem;
-	ulong aperture, oaperture, fbuf, fbend, *rp;
-
-	oaperture = scr->aperture;
-	oapsize = scr->apsize;
-	wasupamem = scr->isupamem;
-
-	aperture = 0;
-	p = i81xpcimatch();
-	if(p != nil) {
-		aperture = p->mem[0].bar & ~0x0F;
-		*size = p->mem[0].size;
-		if(*size > Fbsize)
-			*size = Fbsize;
-	}
-
-	if(wasupamem){
-		if(oaperture == aperture)
-			return oaperture;
-		upafree(oaperture, oapsize);
-	}
-	scr->isupamem = 0;
-
-	aperture = upamalloc(aperture, *size, *align);
-	if(aperture == 0){
-		if(wasupamem && upamalloc(oaperture, oapsize, 0)){
-			aperture = oaperture;
-			scr->isupamem = 1;
-		}
-		else
-			scr->isupamem = 0;
-	}
-	else
-		scr->isupamem = 1;
-
-	/* allocate space for frame buffer, populate page table */
-	if(oapsize == 0) {
-		fbuf = PADDR(xspanalloc(*size, BY2PG, 0));
-		fbend = PGROUND(fbuf+*size);
-		rp = KADDR(scr->io+0x10000);
-		while(fbuf < fbend) {
-			*rp++ = fbuf | (1<<0);
-			fbuf += BY2PG;
-		}
-	}
-	return aperture;
-}
-
 static void
 i81xenable(VGAscr* scr)
 {
 	Pcidev *p;
-	int align, size;
+	int size;
 	Mach *mach0;
-	ulong aperture, pgtbl, *rp, cursor, *pte;
-
-	/*
-	 * Only once, can't be disabled for now.
-	 * scr->io holds the physical address of
-	 * the MMIO registers.
-	 */
-	if(scr->io)
+	ulong *pgtbl, *rp, cursor, *pte, fbuf, fbend;
+	
+	if(scr->mmio)
 		return;
 	p = i81xpcimatch();
 	if(p == nil)
 		return;
-	scr->io = upamalloc(p->mem[1].bar & ~0x0F, p->mem[1].size, 0);
-	if(scr->io == 0)
+	scr->mmio = vmap(p->mem[1].bar & ~0x0F, p->mem[1].size);
+	if(scr->mmio == 0)
 		return;
+	addvgaseg("i81xmmio", p->mem[1].bar&~0x0F, p->mem[1].size);
 
 	/* allocate page table */
-	pgtbl = PADDR(xspanalloc(64*1024, BY2PG, 0));
-	rp = KADDR(scr->io+0x2020);
-	*rp = pgtbl | 1;
-
-	addvgaseg("i81xmmio", (ulong)scr->io, p->mem[0].size);
+	pgtbl = xspanalloc(64*1024, BY2PG, 0);
+	scr->mmio[0x2020/4] = PADDR(pgtbl) | 1;
 
 	size = p->mem[0].size;
-	align = 0;
-	aperture = i81xlinear(scr, &size, &align);
-	if(aperture){
-		scr->aperture = aperture;
-		scr->apsize = size;
-		addvgaseg("i81xscreen", aperture, size);
+	if(size > 0)
+		size = Fbsize;
+	vgalinearaddr(scr, p->mem[0].bar&~0xF, size);
+	addvgaseg("i81xscreen", p->mem[0].bar&~0xF, size);
+
+	/*
+	 * allocate backing store for frame buffer
+	 * and populate device page tables.
+	 */
+	fbuf = PADDR(xspanalloc(size, BY2PG, 0));
+	fbend = PGROUND(fbuf+size);
+	rp = scr->mmio+0x10000/4;
+	while(fbuf < fbend) {
+		*rp++ = fbuf | 1;
+		fbuf += BY2PG;
 	}
 
 	/*
@@ -147,9 +97,9 @@ i81xenable(VGAscr* scr)
 	mach0 = MACHP(0);
 	pte = mmuwalk(mach0->pdb, cursor, 2, 0);
 	if(pte == nil)
-		panic("i81x cursor");
+		panic("i81x cursor mmuwalk");
 	*pte |= PTEUNCACHED;
-	scr->storage = PADDR(cursor);
+	scr->storage = cursor;
 }
 
 static void
@@ -157,9 +107,9 @@ i81xcurdisable(VGAscr* scr)
 {
 	CursorI81x *hwcurs;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
-	hwcurs = KADDR(scr->io+hwCur);
+	hwcurs = (void*)((uchar*)scr->mmio+hwCur);
 	hwcurs->ctl = (1<<4);
 }
 
@@ -170,9 +120,9 @@ i81xcurload(VGAscr* scr, Cursor* curs)
 	uchar *p;
 	CursorI81x *hwcurs;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
-	hwcurs = KADDR(scr->io+hwCur);
+	hwcurs = (void*)((uchar*)scr->mmio+hwCur);
 
 	/*
 	 * Disable the cursor then load the new image in
@@ -181,7 +131,7 @@ i81xcurload(VGAscr* scr, Cursor* curs)
 	 * transparent.
 	 */
 	hwcurs->ctl = (1<<4);
-	p = KADDR(scr->storage);
+	p = (uchar*)scr->storage;
 	for(y = 0; y < 16; y += 2) {
 		*p++ = ~(curs->clr[2*y]|curs->set[2*y]);
 		*p++ = ~(curs->clr[2*y+1]|curs->set[2*y+1]);
@@ -213,9 +163,9 @@ i81xcurmove(VGAscr* scr, Point p)
 	ulong pos;
 	CursorI81x *hwcurs;
 
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return 1;
-	hwcurs = KADDR(scr->io+hwCur);
+	hwcurs = (void*)((uchar*)scr->mmio+hwCur);
 
 	x = p.x+scr->offset.x;
 	y = p.y+scr->offset.y;
@@ -242,15 +192,15 @@ i81xcurenable(VGAscr* scr)
 	CursorI81x *hwcurs;
 
 	i81xenable(scr);
-	if(scr->io == 0)
+	if(scr->mmio == 0)
 		return;
-	hwcurs = KADDR(scr->io+hwCur);
+	hwcurs = (void*)((uchar*)scr->mmio+hwCur);
 
 	/*
 	 * Initialise the 32x32 cursor to be transparent in 2bpp mode.
 	 */
-	hwcurs->base = scr->storage;
-	p = KADDR(scr->storage);
+	hwcurs->base = PADDR(scr->storage);
+	p = (uchar*)scr->storage;
 	for(i = 0; i < 32/2; i++) {
 		memset(p, 0xff, 8);
 		memset(p+8, 0, 8);
@@ -269,7 +219,7 @@ VGAdev vgai81xdev = {
 	i81xenable,
 	nil,
 	nil,
-	i81xlinear,
+	nil,
 };
 
 VGAcur vgai81xcur = {

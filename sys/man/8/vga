@@ -59,7 +59,6 @@ dump the BIOS memory (in hex) to standard output and exit.
 .TP
 .B -c
 disable the use of the hardware graphics cursor.
-(Since there is no software cursor, this disables the cursor entirely.)
 .TP
 .B -d
 include the color palette in whatever actions are performed,

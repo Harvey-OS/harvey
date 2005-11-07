@@ -157,7 +157,6 @@ devclone(Chan *c)
 	nc->qid = c->qid;
 	nc->offset = c->offset;
 	nc->umh = nil;
-	nc->mountid = c->mountid;
 	nc->aux = c->aux;
 	nc->mqid = c->mqid;
 	nc->mcp = c->mcp;

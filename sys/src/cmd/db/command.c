@@ -150,7 +150,7 @@ acommand(int pc)
 			map = symmap;
 	}
 	if (!map) {
-		sprint(buf, "no map for %c", pc);
+		snprint(buf, sizeof(buf), "no map for %c", pc);
 		error(buf);
 	}
 
@@ -186,7 +186,7 @@ acommand(int pc)
 void
 cmdsrc(int c, Map *map)
 {
-	long w;
+	ulong w;
 	long locval, locmsk;
 	ADDR savdot;
 	ushort sh;

@@ -28,7 +28,7 @@ odot(Node *n, Node *r)
 	char *s;
 	Type *t;
 	Node res;
-	ulong addr;
+	uvlong addr;
 
 	s = n->sym->name;
 	if(s == 0)

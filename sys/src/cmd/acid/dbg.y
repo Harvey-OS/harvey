@@ -11,7 +11,7 @@
 {
 	Node	*node;
 	Lsym	*sym;
-	ulong	ival;
+	uvlong	ival;
 	float	fval;
 	String	*string;
 }

@@ -224,8 +224,8 @@ flushmmu(void)
 
 }
 
-ulong
-upamalloc(ulong pa, int size, int align)
+void*
+vmap(ulong pa, int size)
 {
 	void *va;
 
@@ -234,17 +234,16 @@ upamalloc(ulong pa, int size, int align)
 	 */
 	if(pa == 0)
 		return 0;
-	USED(align);
 	va = kmapv(((uvlong)0x88<<32LL)|pa, size);
 	if(va == nil)
 		return 0;
-	return PADDR(va);
+	return (void*)va;
 }
 
 void
-upafree(ulong, int)
+vunmap(void*, int)
 {
-	print("upafree: virtual mapping not freed\n");
+	print("vunmap: virtual mapping not freed\n");
 }
 
 void
@@ -263,4 +262,19 @@ mmudump(void)
 	}
 }
 
-void checkmmu(ulong, ulong) { }
+ulong
+upaalloc(int, int)
+{
+	return 0;
+}
+
+void
+upafree(ulong, int)
+{
+}
+
+void
+checkmmu(ulong, ulong)
+{
+}
+

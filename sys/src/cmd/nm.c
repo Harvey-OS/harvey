@@ -265,7 +265,7 @@ printsyms(Sym **symptr, long nsym)
 		} else
 			cp = s->name;
 		if (s->value || s->type == 'a' || s->type == 'p')
-			Bprint(&bout, "%8lux %c %s\n", s->value, s->type, cp);
+			Bprint(&bout, "%16llux %c %s\n", s->value, s->type, cp);
 		else
 			Bprint(&bout, "         %c %s\n", s->type, cp);
 	}

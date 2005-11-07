@@ -10,8 +10,8 @@
 
 #include <mach.h>
 
-typedef long WORD;
-typedef vlong ADDR;
+typedef ulong WORD;
+typedef uvlong ADDR;
 
 #define	HUGEINT	0x7fffffff	/* enormous WORD */
 
@@ -57,6 +57,7 @@ typedef	int	BOOL;
 #define BKPTSKIP 2	/* real, skip over it next time */
 #define	BKPTTMP	3	/* temporary; clear when it happens */
 
+typedef struct bkpt	BKPT;
 struct bkpt {
 	ADDR	loc;
 	uchar	save[4];
@@ -64,9 +65,8 @@ struct bkpt {
 	int	initcnt;
 	int	flag;
 	char	comm[MAXCOM];
-	struct bkpt *nxtbkpt;
+	BKPT	*nxtbkpt;
 };
-typedef struct bkpt	BKPT;
 
 #define	BADREG	(-1)
 
@@ -75,7 +75,7 @@ typedef struct bkpt	BKPT;
  */
 
 extern	WORD	adrval;
-extern	vlong	expv;
+extern	uvlong	expv;
 extern	int	adrflg;
 extern	WORD	cntval;
 extern	int	cntflg;

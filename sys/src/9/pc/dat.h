@@ -1,4 +1,5 @@
 typedef struct Conf	Conf;
+typedef struct Confmem	Confmem;
 typedef struct FPsave	FPsave;
 typedef struct ISAConf	ISAConf;
 typedef struct Label	Label;
@@ -32,6 +33,7 @@ struct Lock
 	ulong	sr;
 	ulong	pc;
 	Proc	*p;
+	Mach	*m;
 	ushort	isilock;
 };
 
@@ -73,13 +75,20 @@ struct	FPsave
 	uchar	regs[80];	/* floating point registers */
 };
 
+struct Confmem
+{
+	ulong	base;
+	ulong	npage;
+	ulong	kbase;
+	ulong	klimit;
+};
+
 struct Conf
 {
 	ulong	nmach;		/* processors */
 	ulong	nproc;		/* processes */
 	ulong	monitor;	/* has monitor? */
-	ulong	npage0;		/* total physical pages of memory */
-	ulong	npage1;		/* total physical pages of memory */
+	Confmem	mem[4];		/* physical memory */
 	ulong	npage;		/* total physical pages of memory */
 	ulong	upages;		/* user page pool */
 	ulong	nimage;		/* number of page cache image headers */
@@ -102,6 +111,7 @@ struct PMMU
 	Page*	mmupdb;			/* page directory base */
 	Page*	mmufree;		/* unused page table pages */
 	Page*	mmuused;		/* used page table pages */
+	uint	lastkmap;		/* last entry used by kmap */
 };
 
 /*
@@ -212,12 +222,12 @@ struct Mach
 };
 
 /*
- * Fake kmap
+ * KMap the structure doesn't exist, but the functions do.
  */
-typedef void		KMap;
-#define	VA(k)		((ulong)(k))
-#define	kmap(p)		(KMap*)((p)->pa|KZERO)
-#define	kunmap(k)
+typedef struct KMap		KMap;
+#define	VA(k)		((void*)(k))
+KMap*	kmap(Page*);
+void	kunmap(KMap*);
 
 struct
 {
@@ -243,6 +253,8 @@ struct PCArch
 	int	(*intrenable)(Vctl*);
 	int	(*intrvecno)(int);
 	int	(*intrdisable)(int);
+	void	(*introff)(void);
+	void	(*intron)(void);
 
 	void	(*clockenable)(void);
 	uvlong	(*fastclock)(uvlong*);
