@@ -639,7 +639,8 @@ resized(void)
 			wsendctlmesg(w, Reshaped, r, im);
 	}
 	viewr = screen->r;
-	flushimage(display, 1);}
+	flushimage(display, 1);
+}
 
 void
 button3menu(void)

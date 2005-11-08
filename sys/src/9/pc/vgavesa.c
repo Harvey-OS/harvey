@@ -23,11 +23,14 @@ extern void realmode(Ureg*);
 static uchar*
 vbesetup(Ureg *u, int ax)
 {
+	ulong pa;
+	
+	pa = PADDR(RMBUF);
 	memset(u, 0, sizeof *u);
 	u->ax = ax;
-	u->es = (RMBUF>>4)&0xF000;
-	u->di = RMBUF&0xFFFF;
-	return KADDR(RMBUF);
+	u->es = (pa>>4)&0xF000;
+	u->di = pa&0xFFFF;
+	return (void*)RMBUF;
 }
 
 static void
