@@ -6058,7 +6058,7 @@ sys/lib/acid/alef - 664 sys sys 944955985 2293
 sys/lib/acid/alpha - 664 sys sys 944955985 4849
 sys/lib/acid/arm - 664 sys sys 984696197 1842
 sys/lib/acid/coverage - 664 sys sys 944955985 1746
-sys/lib/acid/kernel - 664 sys sys 1126699644 6303
+sys/lib/acid/kernel - 664 sys sys 1131375651 6370
 sys/lib/acid/leak - 664 sys sys 1131289472 2363
 sys/lib/acid/mips - 664 sys sys 944955985 5472
 sys/lib/acid/network - 664 sys sys 1020313817 2499
@@ -7912,7 +7912,6 @@ sys/src/9/mtx/raven.c - 664 sys sys 1018721288 2587
 sys/src/9/mtx/trap.c - 664 sys sys 1105030157 15882
 sys/src/9/mtx/uarti8250.c - 664 sys sys 1018721288 11590
 sys/src/9/pc - 20000000775 sys sys 1018721225 0
-sys/src/9/pc/apbootstrap.h - 664 sys sys 1018553448 928
 sys/src/9/pc/apbootstrap.s - 664 sys sys 1131293655 3037
 sys/src/9/pc/apic.c - 664 sys sys 1131290206 8748
 sys/src/9/pc/apm.c - 664 sys sys 1131290210 3723
@@ -8007,7 +8006,7 @@ sys/src/9/pc/sdata.c - 664 sys sys 1131290578 52168
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1131290638 25780
 sys/src/9/pc/sdmylex.c - 664 sys sys 1131290583 27737
 sys/src/9/pc/sdscsi.c - 664 sys sys 1131293342 7133
-sys/src/9/pc/trap.c - 664 sys sys 1131306249 21180
+sys/src/9/pc/trap.c - 664 sys sys 1131375347 21210
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
@@ -8027,7 +8026,7 @@ sys/src/9/pc/vgai81x.c - 664 sys sys 1131290601 4030
 sys/src/9/pc/vgamach64xx.c - 664 sys sys 1131290601 28257
 sys/src/9/pc/vgamga2164w.c - 664 sys sys 1131290602 4637
 sys/src/9/pc/vgamga4xx.c - 664 sys sys 1131290602 10201
-sys/src/9/pc/vganeomagic.c - 664 sys sys 1131290602 10143
+sys/src/9/pc/vganeomagic.c - 664 sys sys 1131422294 10255
 sys/src/9/pc/vganvidia.c - 664 sys sys 1131290602 11783
 sys/src/9/pc/vgargb524.c - 664 sys sys 1131290602 4251
 sys/src/9/pc/vgas3.c - 664 sys sys 1131290603 10994
@@ -8035,7 +8034,7 @@ sys/src/9/pc/vgasavage.c - 664 sys sys 1064679984 16251
 sys/src/9/pc/vgat2r4.c - 664 sys sys 1131290603 9351
 sys/src/9/pc/vgatvp3020.c - 664 sys sys 1131290603 4507
 sys/src/9/pc/vgatvp3026.c - 664 sys sys 1131290603 3956
-sys/src/9/pc/vgavesa.c - 664 sys sys 1131290603 2369
+sys/src/9/pc/vgavesa.c - 664 sys sys 1131402428 2396
 sys/src/9/pc/vgavmware.c - 664 sys sys 1131290604 5840
 sys/src/9/pc/vgax.c - 664 sys sys 1131290604 1671
 sys/src/9/pc/wavelan.c - 664 sys sys 1127743243 27879
@@ -9604,7 +9603,7 @@ sys/src/cmd/aux/vga/io.c - 664 sys sys 1131110425 6329
 sys/src/cmd/aux/vga/mach32.c - 664 sys sys 1014925009 6004
 sys/src/cmd/aux/vga/mach64.c - 664 sys sys 1014925009 8279
 sys/src/cmd/aux/vga/mach64xx.c - 664 sys sys 1097900455 30266
-sys/src/cmd/aux/vga/main.c - 664 sys sys 1116769799 9583
+sys/src/cmd/aux/vga/main.c - 664 sys sys 1131375677 9584
 sys/src/cmd/aux/vga/mga2164w.c - 664 sys sys 1014925010 13196
 sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1014925010 35895
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1115734903 927
@@ -12742,7 +12741,7 @@ sys/src/cmd/rio/data.c - 664 sys sys 1014926356 6169
 sys/src/cmd/rio/fns.h - 664 sys sys 1039133251 1065
 sys/src/cmd/rio/fsys.c - 664 sys sys 1019678647 13259
 sys/src/cmd/rio/mkfile - 664 sys sys 1111249068 431
-sys/src/cmd/rio/rio.c - 664 sys sys 1121977163 22142
+sys/src/cmd/rio/rio.c - 664 sys sys 1131375663 22143
 sys/src/cmd/rio/scrl.c - 664 sys sys 1014926357 3245
 sys/src/cmd/rio/time.c - 664 sys sys 1014926357 1829
 sys/src/cmd/rio/util.c - 664 sys sys 1014926357 2061
@@ -14567,7 +14566,7 @@ sys/src/libmach/kdb.c - 664 sys sys 1131289381 21161
 sys/src/libmach/kobj.c - 664 sys sys 1091732625 2217
 sys/src/libmach/machdata.c - 664 sys sys 1131289377 8799
 sys/src/libmach/map.c - 664 sys sys 1131289376 3056
-sys/src/libmach/mkfile - 664 sys sys 1114459827 467
+sys/src/libmach/mkfile - 664 sys sys 1131375713 479
 sys/src/libmach/obj.c - 664 sys sys 1131289376 5929
 sys/src/libmach/obj.h - 664 sys sys 1131292890 604
 sys/src/libmach/q.c - 664 sys sys 1131289379 3630
@@ -14974,3 +14973,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/aux/vga - 775 sys sys 1131422827 333645

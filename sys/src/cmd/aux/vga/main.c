@@ -455,7 +455,7 @@ main(int argc, char** argv)
 			vgactlw("drawinit", "");
 
 			if(vga->hwgc == 0 || cflag)
-				vgactlw("hwgc", "off");
+				vgactlw("hwgc", "soft");
 			else
 				vgactlw("hwgc", vga->hwgc->name);
 

@@ -38,7 +38,7 @@ FILES=executable\
 	qobj\
 	vcodas\
 
-HFILES=/sys/include/mach.h
+HFILES=/sys/include/mach.h elf.h obj.h
 
 CFILES=${FILES:%=%.c}
 
