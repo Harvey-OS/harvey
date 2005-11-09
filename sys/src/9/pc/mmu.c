@@ -317,14 +317,40 @@ mmuswitch(Proc* proc)
  *   if there's a pdb put it in the cache of pre-initialised pdb's
  *   for this processor (m->pdbpool) or on the process' free list;
  *   finally, place any pages freed back into the free pool (palloc).
- * This routine is only called from sched() with palloc locked.
+ * This routine is only called from schedinit() with palloc locked.
  */
 void
 mmurelease(Proc* proc)
 {
+	int s;
 	Page *page, *next;
+	ulong *pdb;
 
 	taskswitch(PADDR(m->pdb), (ulong)m + BY2PG);
+	if(proc->kmaptable){
+		if(proc->mmupdb == nil)
+			panic("mmurelease: no mmupdb");
+		if(--proc->kmaptable->ref)
+			panic("mmurelease: kmap ref %d\n", proc->kmaptable->ref);
+		if(up->nkmap)
+			panic("mmurelease: nkmap %d\n", up->nkmap);
+		/*
+		 * remove kmaptable from pdb before putting pdb up for reuse.
+		 */
+		s = splhi();
+		pdb = tmpmap(proc->mmupdb);
+		if(PPN(pdb[PDX(KMAP)]) != proc->kmaptable->pa)
+			panic("mmurelease: bad kmap pde %#.8lux kmap %#.8lux",
+				pdb[PDX(KMAP)], proc->kmaptable->pa);
+		pdb[PDX(KMAP)] = 0;
+		tmpunmap(pdb);
+		splx(s);
+		/*
+		 * move kmaptable to free list.
+		 */
+		pagechainhead(proc->kmaptable);
+		proc->kmaptable = 0;
+	}
 	if(proc->mmupdb){
 		mmuptefree(proc);
 		mmupdbfree(proc, proc->mmupdb);
@@ -738,20 +764,22 @@ KMap*
 kmap(Page *page)
 {
 	int i, o, s;
-	Page *pdb;
 
 	if(up == nil)
 		panic("kmap: up=0 pc=%#.8lux", getcallerpc(&page));
 	if(up->mmupdb == nil)
 		upallocpdb();
+	up->nkmap++;
 	if(!(vpd[PDX(KMAP)]&PTEVALID)){
 		/* allocate page directory */
 		if(KMAPSIZE > BY2XPG)
 			panic("bad kmapsize");
+		if(up->kmaptable != nil)
+			panic("kmaptable");
 		s = spllo();
-		pdb = newpage(0, 0, 0);
+		up->kmaptable = newpage(0, 0, 0);
 		splx(s);
-		vpd[PDX(KMAP)] = pdb->pa|PTEWRITE|PTEVALID;
+		vpd[PDX(KMAP)] = up->kmaptable->pa|PTEWRITE|PTEVALID;
 		memset(kpt, 0, BY2PG);
 
 		/* might as well finish the job */
@@ -759,6 +787,8 @@ kmap(Page *page)
 		up->lastkmap = 0;
 		return (KMap*)KMAP;
 	}
+	if(up->kmaptable == nil)
+		panic("no kmaptable");
 	o = up->lastkmap+1;
 	for(i=0; i<NKPT; i++){
 		if(kpt[(i+o)%NKPT] == 0){
@@ -784,6 +814,7 @@ kunmap(KMap *k)
 		panic("kunmap: bad address %#.8lux pc=%#.8lux", va, getcallerpc(&k));
 	if(!(vpt[VPTX(va)]&PTEVALID))
 		panic("kunmap: not mapped %#.8lux pc=%#.8lux", va, getcallerpc(&k));
+	up->nkmap--;
 	vpt[VPTX(va)] = 0;
 	flushpg(va);
 }
@@ -867,4 +898,94 @@ paddr(void *v)
 	if(va < KZERO)
 		panic("paddr: va=%#.8lux", va);
 	return va-KZERO;
+}
+
+/*
+ * More debugging.
+ */
+void
+countpagerefs(ulong *ref, int print)
+{
+	int i, n;
+	Mach *mm;
+	Page *pg;
+	Proc *p;
+	
+	n = 0;
+	for(i=0; i<conf.nproc; i++){
+		p = proctab(i);
+		if(p->mmupdb){
+			if(print){
+				if(ref[pagenumber(p->mmupdb)])
+					iprint("page %#.8lux is proc %d (pid %lud) pdb\n",
+						p->mmupdb->pa, i, p->pid);
+				continue;
+			}
+			if(ref[pagenumber(p->mmupdb)]++ == 0)
+				n++;
+			else
+				iprint("page %#.8lux is proc %d (pid %lud) pdb but has other refs!\n",
+					p->mmupdb->pa, i, p->pid);
+		}
+		if(p->kmaptable){
+			if(print){
+				if(ref[pagenumber(p->kmaptable)])
+					iprint("page %#.8lux is proc %d (pid %lud) kmaptable\n",
+						p->kmaptable->pa, i, p->pid);
+				continue;
+			}
+			if(ref[pagenumber(p->kmaptable)]++ == 0)
+				n++;
+			else
+				iprint("page %#.8lux is proc %d (pid %lud) kmaptable but has other refs!\n",
+					p->kmaptable->pa, i, p->pid);
+		}
+		for(pg=p->mmuused; pg; pg=pg->next){
+			if(print){
+				if(ref[pagenumber(pg)])
+					iprint("page %#.8lux is on proc %d (pid %lud) mmuused\n",
+						pg->pa, i, p->pid);
+				continue;
+			}
+			if(ref[pagenumber(pg)]++ == 0)
+				n++;
+			else
+				iprint("page %#.8lux is on proc %d (pid %lud) mmuused but has other refs!\n",
+					pg->pa, i, p->pid);
+		}
+		for(pg=p->mmufree; pg; pg=pg->next){
+			if(print){
+				if(ref[pagenumber(pg)])
+					iprint("page %#.8lux is on proc %d (pid %lud) mmufree\n",
+						pg->pa, i, p->pid);
+				continue;
+			}
+			if(ref[pagenumber(pg)]++ == 0)
+				n++;
+			else
+				iprint("page %#.8lux is on proc %d (pid %lud) mmufree but has other refs!\n",
+					pg->pa, i, p->pid);
+		}
+	}
+	if(!print)
+		iprint("%d pages in proc mmu\n", n);
+	n = 0;
+	for(i=0; i<conf.nmach; i++){
+		mm = MACHP(i);
+		for(pg=mm->pdbpool; pg; pg=pg->next){
+			if(print){
+				if(ref[pagenumber(pg)])
+					iprint("page %#.8lux is in cpu%d pdbpool\n",
+						pg->pa, i);
+				continue;
+			}
+			if(ref[pagenumber(pg)]++ == 0)
+				n++;
+			else
+				iprint("page %#.8lux is in cpu%d pdbpool but has other refs!\n",
+					pg->pa, i);
+		}
+	}
+	if(!print)
+		iprint("%d pages in mach pdbpools\n", n);
 }

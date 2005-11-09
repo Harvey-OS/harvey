@@ -22850,3 +22850,5 @@
 1131402435 0 c sys/src/9/pc/vgavesa.c - 664 sys sys 1131402428 2396
 1131422433 0 c sys/src/9/pc/vganeomagic.c - 664 sys sys 1131422294 10255
 1131424234 0 c 386/bin/aux/vga - 775 sys sys 1131422827 333645
+1131462044 0 c sys/src/9/pc/memory.c - 664 sys sys 1131461842 18127
+1131498052 0 c sys/src/9/pc/mmu.c - 664 sys sys 1131497813 22628
