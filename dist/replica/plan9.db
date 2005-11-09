@@ -7972,9 +7972,9 @@ sys/src/9/pc/kbd.c - 664 sys sys 1130848300 12362
 sys/src/9/pc/l.s - 664 sys sys 1131290403 28347
 sys/src/9/pc/main.c - 664 sys sys 1131290418 15224
 sys/src/9/pc/mem.h - 664 sys sys 1131290422 5209
-sys/src/9/pc/memory.c - 664 sys sys 1131290429 18222
+sys/src/9/pc/memory.c - 664 sys sys 1131461842 18127
 sys/src/9/pc/mkfile - 664 sys sys 1131294850 3580
-sys/src/9/pc/mmu.c - 664 sys sys 1131326224 19739
+sys/src/9/pc/mmu.c - 664 sys sys 1131497813 22628
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1131326235 17157
 sys/src/9/pc/mp.h - 664 sys sys 1131290475 6638
