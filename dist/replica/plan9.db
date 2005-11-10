@@ -383,7 +383,7 @@
 386/bin/replica/setupdirs - 775 sys sys 1020319083 44
 386/bin/replica/updatedb - 775 sys sys 1130594777 95918
 386/bin/resample - 775 sys sys 1130594778 120772
-386/bin/rio - 775 sys sys 1131109833 309227
+386/bin/rio - 775 sys sys 1131595241 309753
 386/bin/rm - 775 sys sys 1130594779 61365
 386/bin/rx - 775 sys sys 1130594779 82087
 386/bin/sam - 775 sys sys 1130594780 158504
@@ -7776,7 +7776,7 @@ sys/src/9/alphapc/mem.h - 664 sys sys 1077408326 3131
 sys/src/9/alphapc/memmove.s - 664 sys sys 1015012786 2936
 sys/src/9/alphapc/memset.s - 664 sys sys 1015012786 844
 sys/src/9/alphapc/mkfile - 664 sys sys 1109218102 1682
-sys/src/9/alphapc/mmu.c - 664 sys sys 1131289708 4945
+sys/src/9/alphapc/mmu.c - 664 sys sys 1131538486 4981
 sys/src/9/alphapc/pci.c - 664 sys sys 1039753420 7868
 sys/src/9/alphapc/screen.h - 664 sys sys 1131289708 3818
 sys/src/9/alphapc/sd53c8xx.c - 664 sys sys 1131289709 50963
@@ -7811,7 +7811,7 @@ sys/src/9/bitsy/main.c - 664 sys sys 1131289775 8816
 sys/src/9/bitsy/map - 664 sys sys 1017695515 236
 sys/src/9/bitsy/mem.h - 664 sys sys 1055700932 8049
 sys/src/9/bitsy/mkfile - 664 sys sys 1131289775 2459
-sys/src/9/bitsy/mmu.c - 664 sys sys 1123438209 11261
+sys/src/9/bitsy/mmu.c - 664 sys sys 1131538486 11298
 sys/src/9/bitsy/mouse.c - 664 sys sys 1017695516 962
 sys/src/9/bitsy/paqfiles - 20000000775 sys sys 1020011250 0
 sys/src/9/bitsy/paqfiles/cpurc - 664 sys sys 1020011249 3524
@@ -7903,7 +7903,7 @@ sys/src/9/mtx/l.s - 664 sys sys 1067722599 10730
 sys/src/9/mtx/main.c - 664 sys sys 1131289814 8307
 sys/src/9/mtx/mem.h - 664 sys sys 1026848200 5959
 sys/src/9/mtx/mkfile - 664 sys sys 1072972534 1520
-sys/src/9/mtx/mmu.c - 664 sys sys 1123438210 4421
+sys/src/9/mtx/mmu.c - 664 sys sys 1131538486 4458
 sys/src/9/mtx/mtx - 664 sys sys 1056336297 416
 sys/src/9/mtx/mtxcpu - 664 sys sys 1039753442 421
 sys/src/9/mtx/pci.c - 664 sys sys 1087657434 16662
@@ -7919,7 +7919,7 @@ sys/src/9/pc/apmjump.s - 664 sys sys 1032058947 1527
 sys/src/9/pc/archmp.c - 664 sys sys 1131290214 2357
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
-sys/src/9/pc/dat.h - 664 sys sys 1131290217 6462
+sys/src/9/pc/dat.h - 664 sys sys 1131537242 6554
 sys/src/9/pc/devarch.c - 664 sys sys 1131290259 18594
 sys/src/9/pc/devether.c - 664 sys sys 1131290265 10315
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
@@ -7958,7 +7958,7 @@ sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1071245461 15103
-sys/src/9/pc/ethervt6102.c - 664 sys sys 1131290379 22572
+sys/src/9/pc/ethervt6102.c - 664 sys sys 1131538568 22616
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1131290380 3747
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
 sys/src/9/pc/fns.h - 664 sys sys 1131290383 4461
@@ -7972,12 +7972,12 @@ sys/src/9/pc/kbd.c - 664 sys sys 1130848300 12362
 sys/src/9/pc/l.s - 664 sys sys 1131290403 28347
 sys/src/9/pc/main.c - 664 sys sys 1131290418 15224
 sys/src/9/pc/mem.h - 664 sys sys 1131290422 5209
-sys/src/9/pc/memory.c - 664 sys sys 1131461842 18127
+sys/src/9/pc/memory.c - 664 sys sys 1131573303 18191
 sys/src/9/pc/mkfile - 664 sys sys 1131294850 3580
 sys/src/9/pc/mmu.c - 664 sys sys 1131497813 22628
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
-sys/src/9/pc/mp.c - 664 sys sys 1131326235 17157
-sys/src/9/pc/mp.h - 664 sys sys 1131290475 6638
+sys/src/9/pc/mp.c - 664 sys sys 1131538523 17317
+sys/src/9/pc/mp.h - 664 sys sys 1131538511 6652
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1131290481 1427
 sys/src/9/pc/pcauth - 664 sys sys 1131290482 714
@@ -8000,7 +8000,7 @@ sys/src/9/pc/realmode.c - 664 sys sys 1131294602 2658
 sys/src/9/pc/rebootcode.s - 664 sys sys 1015014522 988
 sys/src/9/pc/screen.c - 664 sys sys 1131290512 13460
 sys/src/9/pc/screen.h - 664 sys sys 1131290516 4156
-sys/src/9/pc/sd53c8xx.c - 664 sys sys 1131290539 55206
+sys/src/9/pc/sd53c8xx.c - 664 sys sys 1131538448 55207
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1131290578 52168
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1131290638 25780
@@ -8052,7 +8052,7 @@ sys/src/9/port/dev.c - 664 sys sys 1131289870 8219
 sys/src/9/port/devaudio.c - 664 sys sys 1067722761 21130
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
 sys/src/9/port/devcap.c - 664 sys sys 1048644215 4113
-sys/src/9/port/devcons.c - 664 sys sys 1130759309 22495
+sys/src/9/port/devcons.c - 664 sys sys 1131537286 23004
 sys/src/9/port/devdraw.c - 664 sys sys 1131289870 43537
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1048644225 6992
@@ -8101,12 +8101,12 @@ sys/src/9/port/mksystab - 664 sys sys 1014931176 783
 sys/src/9/port/mul64fract.c - 664 sys sys 1071671674 867
 sys/src/9/port/netif.c - 664 sys sys 1066514951 13421
 sys/src/9/port/netif.h - 664 sys sys 1066514947 2975
-sys/src/9/port/page.c - 664 sys sys 1131289949 8449
+sys/src/9/port/page.c - 664 sys sys 1131537265 11124
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
 sys/src/9/port/portclock.c - 664 sys sys 1102093397 4556
-sys/src/9/port/portdat.h - 664 sys sys 1131289971 22628
-sys/src/9/port/portfns.h - 664 sys sys 1131289972 10925
+sys/src/9/port/portdat.h - 664 sys sys 1131537261 22702
+sys/src/9/port/portfns.h - 664 sys sys 1131537254 11022
 sys/src/9/port/portmkfile - 664 sys sys 1124708650 2052
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1131289980 28264
@@ -8118,7 +8118,7 @@ sys/src/9/port/sd.h - 664 sys sys 1131289990 2494
 sys/src/9/port/segment.c - 664 sys sys 1131298540 13722
 sys/src/9/port/swap.c - 664 sys sys 1055688551 6980
 sys/src/9/port/sysfile.c - 664 sys sys 1126586199 22173
-sys/src/9/port/sysproc.c - 664 sys sys 1131298541 15159
+sys/src/9/port/sysproc.c - 664 sys sys 1131537275 15145
 sys/src/9/port/systab.h - 664 sys sys 1062721698 3044
 sys/src/9/port/taslock.c - 664 sys sys 1131290039 3928
 sys/src/9/port/thwack.c - 664 sys sys 1057323394 7253
@@ -8151,7 +8151,7 @@ sys/src/9/ppc/main.c - 664 sys sys 1131290117 9075
 sys/src/9/ppc/mcc.c - 664 sys sys 1059490752 9667
 sys/src/9/ppc/mem.h - 664 sys sys 1091021860 7002
 sys/src/9/ppc/mkfile - 664 sys sys 1067722849 1813
-sys/src/9/ppc/mmu.c - 664 sys sys 1123438210 4897
+sys/src/9/ppc/mmu.c - 664 sys sys 1131538486 4934
 sys/src/9/ppc/msaturn.c - 664 sys sys 1072705482 2801
 sys/src/9/ppc/msaturn.h - 664 sys sys 1059490753 99
 sys/src/9/ppc/mtx.c - 664 sys sys 1059490753 177
@@ -12741,7 +12741,7 @@ sys/src/cmd/rio/data.c - 664 sys sys 1014926356 6169
 sys/src/cmd/rio/fns.h - 664 sys sys 1039133251 1065
 sys/src/cmd/rio/fsys.c - 664 sys sys 1019678647 13259
 sys/src/cmd/rio/mkfile - 664 sys sys 1111249068 431
-sys/src/cmd/rio/rio.c - 664 sys sys 1131375663 22143
+sys/src/cmd/rio/rio.c - 664 sys sys 1131571117 22788
 sys/src/cmd/rio/scrl.c - 664 sys sys 1014926357 3245
 sys/src/cmd/rio/time.c - 664 sys sys 1014926357 1829
 sys/src/cmd/rio/util.c - 664 sys sys 1014926357 2061

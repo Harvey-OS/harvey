@@ -633,7 +633,8 @@ e820scan(void)
 {
 	int i;
 	Ureg u;
-	ulong cont, base, last, len;
+	ulong cont, base, len;
+	uvlong last;
 	Emap *e;
 
 	if(getconf("*norealmode") || getconf("*noe820scan"))
@@ -696,7 +697,8 @@ e820scan(void)
 		else
 			map(base, len, MemReserved);
 	}
-	
+	if(last < (1LL<<32))
+		map(last, (u32int)-last, MemUPA);
 	return 0;
 }
 

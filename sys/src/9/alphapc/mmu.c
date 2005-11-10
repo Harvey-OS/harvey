@@ -278,3 +278,7 @@ checkmmu(ulong, ulong)
 {
 }
 
+void
+countpagerefs(ulong*, int)
+{
+}
