@@ -948,6 +948,7 @@ vt6102pci(void)
 		default:
 			continue;
 		case (0x3065<<16)|0x1106:	/* Rhine II */
+		case (0x3106<<16)|0x1106:	/* Rhine III */
 			break;
 		}
 

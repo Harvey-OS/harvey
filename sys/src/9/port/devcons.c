@@ -227,10 +227,32 @@ print(char *fmt, ...)
 	return n;
 }
 
+/*
+ * Want to interlock iprints to avoid interlaced output on 
+ * multiprocessor, but don't want to deadlock if one processor
+ * dies during print and another has something important to say.
+ * Make a good faith effort.
+ */
+static Lock iprintlock;
+static int
+iprintcanlock(Lock *l)
+{
+	int i;
+	
+	for(i=0; i<1000; i++){
+		if(canlock(l))
+			return 1;
+		if(l->m == MACHP(m->machno))
+			return 0;
+		microdelay(100);
+	}
+	return 0;
+}
+
 int
 iprint(char *fmt, ...)
 {
-	int n, s;
+	int n, s, locked;
 	va_list arg;
 	char buf[PRINTSIZE];
 
@@ -238,9 +260,12 @@ iprint(char *fmt, ...)
 	va_start(arg, fmt);
 	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
+	locked = iprintcanlock(&iprintlock);
 	if(screenputs != nil && iprintscreenputs)
 		screenputs(buf, n);
 	uartputs(buf, n);
+	if(locked)
+		unlock(&iprintlock);
 	splx(s);
 
 	return n;

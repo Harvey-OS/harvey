@@ -12,14 +12,12 @@
 int	shargs(char*, int, char**);
 
 extern void checkpages(void);
+extern void checkpagerefs(void);
 
 long
 sysr1(ulong*)
 {
-	extern int chandebug;
-	
-	chandebug = !chandebug;
-	checkpages();
+	checkpagerefs();
 	return 0;
 }
 

@@ -22,11 +22,12 @@ pageinit(void)
 		pm = &palloc.mem[i];
 		np += pm->npage;
 	}
-	palloc.head = xalloc(np*sizeof(Page));
-	if(palloc.head == 0)
+	palloc.pages = xalloc(np*sizeof(Page));
+	if(palloc.pages == 0)
 		panic("pageinit");
 
 	color = 0;
+	palloc.head = palloc.pages;
 	p = palloc.head;
 	for(i=0; i<nelem(palloc.mem); i++){
 		pm = &palloc.mem[i];
@@ -44,7 +45,7 @@ pageinit(void)
 	palloc.head->prev = 0;
 	palloc.tail->next = 0;
 
-	palloc.user = p - palloc.head;
+	palloc.user = p - palloc.pages;
 	pkb = palloc.user*BY2PG/1024;
 	vkb = pkb + (conf.nswap*BY2PG)/1024;
 
@@ -323,7 +324,17 @@ retry:
 
 	pageunchain(np);
 	pagechaintail(np);
-
+/*
+* XXX - here's a bug? - np is on the freelist but it's not really free.
+* when we unlock palloc someone else can come in, decide to
+* use np, and then try to lock it.  they succeed after we've 
+* run copypage and cachepage and unlock(np).  then what?
+* they call pageunchain before locking(np), so it's removed
+* from the freelist, but still in the cache because of
+* cachepage below.  if someone else looks in the cache
+* before they remove it, the page will have a nonzero ref
+* once they finally lock(np).
+*/
 	lock(np);
 	unlock(&palloc);
 
@@ -526,3 +537,116 @@ freepte(Segment *s, Pte *p)
 	}
 	free(p);
 }
+
+ulong
+pagenumber(Page *p)
+{
+	return p-palloc.pages;
+}
+
+void
+checkpagerefs(void)
+{
+	int s;
+	ulong i, np, nwrong;
+	ulong *ref;
+	
+	np = palloc.user;
+	ref = malloc(np*sizeof ref[0]);
+	if(ref == nil){
+		print("checkpagerefs: out of memory\n");
+		return;
+	}
+	
+	/*
+	 * This may not be exact if there are other processes
+	 * holding refs to pages on their stacks.  The hope is
+	 * that if you run it on a quiescent system it will still
+	 * be useful.
+	 */
+	s = splhi();
+	lock(&palloc);
+	countpagerefs(ref, 0);
+	portcountpagerefs(ref, 0);
+	nwrong = 0;
+	for(i=0; i<np; i++){
+		if(palloc.pages[i].ref != ref[i]){
+			iprint("page %#.8lux ref %d actual %lud\n", 
+				palloc.pages[i].pa, palloc.pages[i].ref, ref[i]);
+			ref[i] = 1;
+			nwrong++;
+		}else
+			ref[i] = 0;
+	}
+	countpagerefs(ref, 1);
+	portcountpagerefs(ref, 1);
+	iprint("%lud mistakes found\n", nwrong);
+	unlock(&palloc);
+	splx(s);
+}
+
+void
+portcountpagerefs(ulong *ref, int print)
+{
+	ulong i, j, k, ns, n;
+	Page **pg, *entry;
+	Proc *p;
+	Pte *pte;
+	Segment *s;
+
+	/*
+	 * Pages in segments.  s->mark avoids double-counting.
+	 */
+	n = 0;
+	ns = 0;
+	for(i=0; i<conf.nproc; i++){
+		p = proctab(i);
+		for(j=0; j<NSEG; j++){
+			s = p->seg[j];
+			if(s)
+				s->mark = 0;
+		}
+	}
+	for(i=0; i<conf.nproc; i++){
+		p = proctab(i);
+		for(j=0; j<NSEG; j++){
+			s = p->seg[j];
+			if(s == nil || s->mark++)
+				continue;
+			ns++;
+			for(k=0; k<s->mapsize; k++){
+				pte = s->map[k];
+				if(pte == nil)
+					continue;
+				for(pg = pte->first; pg <= pte->last; pg++){
+					entry = *pg;
+					if(pagedout(entry))
+						continue;
+					if(print){
+						if(ref[pagenumber(entry)])
+							iprint("page %#.8lux in segment %#p\n", entry->pa, s);
+						continue;
+					}
+					if(ref[pagenumber(entry)]++ == 0)
+						n++;
+				}
+			}
+		}
+	}
+	if(!print){
+		iprint("%lud pages in %lud segments\n", n, ns);
+		for(i=0; i<conf.nproc; i++){
+			p = proctab(i);
+			for(j=0; j<NSEG; j++){
+				s = p->seg[j];
+				if(s == nil)
+					continue;
+				if(s->ref != s->mark){
+					iprint("segment %#.8lux (used by proc %lud pid %lud) has bad ref count %lud actual %lud\n",
+						s, i, p->pid, s->ref, s->mark);
+				}
+			}
+		}
+	}
+}
+
