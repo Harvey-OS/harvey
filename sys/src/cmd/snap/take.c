@@ -96,7 +96,7 @@ readsection(long pid, char *sec)
 }
 
 static Seg*
-readseg(int fd, long off, ulong len, char *name)
+readseg(int fd, vlong off, ulong len, char *name)
 {
 	char buf[Pagesize];
 	Page **pg;
@@ -187,7 +187,7 @@ stackptr(Proc *proc, int fd)
 	switch(mach->szreg) {
 	case 2:	return machdata->swab(*(ushort*)q);
 	case 4:	return machdata->swal(*(ulong*)q);
-	case 8:	/* too much code assumes stackptr fits in ulong */
+	case 8:	return machdata->swav(*(uvlong*)q);
 	default:
 		fprint(2, "register size is %d bytes?\n", mach->szreg);
 		return 0;
@@ -200,10 +200,10 @@ snap(long pid, int usetext)
 	Data *d;
 	Proc *proc;
 	Seg **s;
-	char *segdat, *q, *f[128+1], buf[128];
+	char *name, *segdat, *q, *f[128+1], buf[128];
 	int fd, i, stacki, nf, np;
-	ulong off, len, stackoff, stacklen;
-	ulong sp;
+	uvlong off, len, stackoff, stacklen;
+	uvlong sp;
 
 	proc = emalloc(sizeof(*proc));
 	proc->pid = pid;
@@ -263,16 +263,15 @@ snap(long pid, int usetext)
 	for(i=0; i<nf; i++) {
 		if(q = strchr(f[i], ' ')) 
 			*q = 0;
-		q = f[i];
-		off = strtoul(q+10, 0, 16);
-		len = strtoul(q+10+8+1, 0, 16) - off;
-
-		if(strcmp(q, "Stack") == 0) {
+		name = f[i];
+		off = strtoull(name+10, &q, 16);
+		len = strtoull(q, &q, 16) - off;
+		if(strcmp(name, "Stack") == 0) {
 			stackoff = off;
 			stacklen = len;
 			stacki = i;
 		} else
-			s[i] = readseg(fd, off, len, q);
+			s[i] = readseg(fd, off, len, name);
 	}
 	proc->nseg = nf;
 	proc->seg = s;

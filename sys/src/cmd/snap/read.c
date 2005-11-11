@@ -23,7 +23,7 @@ findpid(Proc *plist, long pid)
 }
 
 Page*
-findpage(Proc *plist, long pid, int type, ulong off)
+findpage(Proc *plist, long pid, int type, uvlong off)
 {
 	Seg *s;
 	int i;
@@ -58,6 +58,59 @@ findpage(Proc *plist, long pid, int type, ulong off)
 	return s->pg[off/Pagesize];
 }
 
+static int
+Breadnumber(Biobuf *b, char *buf)
+{
+	int i;
+	int c;
+	int havedigits;
+	
+	havedigits = 0;
+	for(i=0; i<22; i++){
+		if((c = Bgetc(b)) == Beof)
+			return -1;
+		if('0' <= c && c <= '9'){
+			*buf++ = c;
+			havedigits = 1;
+		}else if(c == ' '){
+			if(havedigits){
+				while((c = Bgetc(b)) == ' ')
+					;
+				if(c != Beof)
+					Bungetc(b);
+				break;
+			}
+		}else{
+			werrstr("bad character %.2ux", c);
+			return -1;
+		}
+	}
+	*buf = 0;
+	return 0;
+}
+
+static int
+Breadulong(Biobuf *b, ulong *x)
+{
+	char buf[32];
+	
+	if(Breadnumber(b, buf) < 0)
+		return -1;
+	*x = strtoul(buf, 0, 0);
+	return 0;
+}
+
+static int
+Breaduvlong(Biobuf *b, uvlong *x)
+{
+	char buf[32];
+	
+	if(Breadnumber(b, buf) < 0)
+		return -1;
+	*x = strtoull(buf, 0, 0);
+	return 0;
+}
+
 static Data*
 readdata(Biobuf *b)
 {
@@ -84,16 +137,16 @@ readseg(Seg **ps, Biobuf *b, Proc *plist)
 	int i, npg;
 	int t;
 	int len;
-	ulong pid, off;
+	ulong pid;
+	uvlong off;
 	char buf[Pagesize];
 	static char zero[Pagesize];
 
 	s = emalloc(sizeof *s);
-	if(Bread(b, buf, 2*12) != 2*12)
+	if(Breaduvlong(b, &s->offset) < 0
+	|| Breaduvlong(b, &s->len) < 0)
 		panic("error reading segment");
 
-	s->offset = atoi(buf);
-	s->len = atoi(buf+12);
 	npg = (s->len + Pagesize-1)/Pagesize;
 	s->npg = npg;
 
@@ -113,28 +166,28 @@ readseg(Seg **ps, Biobuf *b, Proc *plist)
 		case 'z':
 			pp[i] = datapage(zero, len);
 			if(debug)
-				fprint(2, "0x%.8lux all zeros\n", s->offset+i*Pagesize);
+				fprint(2, "0x%.8llux all zeros\n", s->offset+i*Pagesize);
 			break;
 		case 'm':
 		case 't':
-			if(Bread(b, buf, 2*12) != 2*12)
-				panic("error reading segment");
-			pid = atol(buf);
-			off = atol(buf+12);
+			if(Breadulong(b, &pid) < 0 
+			|| Breaduvlong(b, &off) < 0)
+				panic("error reading segment x");
 			pp[i] = findpage(plist, pid, t, off);
 			if(pp[i] == nil)
 				panic("bad page reference in snapshot");
 			if(debug)
-				fprint(2, "0x%.8lux same as %s pid %lud 0x%.8lux\n", s->offset+i*Pagesize, t=='m'?"mem":"text", pid, off);
+				fprint(2, "0x%.8llux same as %s pid %lud 0x%.8llux\n", s->offset+i*Pagesize, t=='m'?"mem":"text", pid, off);
 			break;
 		case 'r':
 			if(Bread(b, buf, len) != len)
-				panic("error reading segment");
+				panic("error reading segment xx");
 			pp[i] = datapage(buf, len);
 			if(debug)
-				fprint(2, "0x%.8lux is raw data\n", s->offset+i*Pagesize);
+				fprint(2, "0x%.8llux is raw data\n", s->offset+i*Pagesize);
 			break;
 		default:
+			fprint(2, "bad type char %#.2ux\n", t);
 			panic("error reading segment");
 		}
 	}

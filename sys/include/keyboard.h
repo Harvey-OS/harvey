@@ -16,8 +16,8 @@ struct	Keyboardctl
 
 
 extern	Keyboardctl*	initkeyboard(char*);
-extern	int			ctlkeyboard(Keyboardctl*, char*);
-extern	void			closekeyboard(Keyboardctl*);
+extern	int		ctlkeyboard(Keyboardctl*, char*);
+extern	void		closekeyboard(Keyboardctl*);
 
 enum {
 	KF=	0xF000,	/* Rune: beginning of private Unicode space */
@@ -38,4 +38,9 @@ enum {
 	Kalt=		KF|0x15,
 	Kshift=	KF|0x16,
 	Kctl=		KF|0x17,
+
+	Kbs=	0x08,
+	Kdel=	0x7f,
+	Kesc=	0x1b,
+	Keof=	0x04,
 };

@@ -240,7 +240,7 @@ putpage(Page *p)
 }
 
 Page*
-auxpage()
+auxpage(void)
 {
 	Page *p;
 
