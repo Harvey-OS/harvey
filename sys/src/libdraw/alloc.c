@@ -5,7 +5,12 @@
 Image*
 allocimage(Display *d, Rectangle r, ulong chan, int repl, ulong val)
 {
-	return _allocimage(nil, d, r, chan, repl, val, 0, 0);
+	Image*	i;
+
+	i =  _allocimage(nil, d, r, chan, repl, val, 0, 0);
+	if (i)
+		setmalloctag(i, getcallerpc(&d));
+	return i;
 }
 
 Image*

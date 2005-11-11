@@ -22,13 +22,17 @@ writeseg(Biobuf *b, Proc *proc, Seg *s)
 	Page **pp, *p;
 	int type;
 
-	type = proc->text ==  s ? 't' : 'm';
+	if(s == nil){
+		Bprint(b, "%-11ud %-11ud ", 0, 0);
+		return;
+	}
 
+	type = proc->text ==  s ? 't' : 'm';
 	npg = (s->len+Pagesize-1)/Pagesize;
 	if(npg != s->npg)
 		abort();
 
-	Bprint(b, "%-11lud %-11lud ", s->offset, s->len);
+	Bprint(b, "%-11llud %-11llud ", s->offset, s->len);
 	if(s->len == 0)
 		return;
 
@@ -38,7 +42,7 @@ writeseg(Biobuf *b, Proc *proc, Seg *s)
 				Bprint(b, "z");
 				continue;
 			}
-			Bprint(b, "%c%-11ld %-11lud ", p->type, p->pid, p->offset);
+			Bprint(b, "%c%-11ld %-11llud ", p->type, p->pid, p->offset);
 		} else {
 			Bprint(b, "r");
 			Bwrite(b, p->data, p->len);
