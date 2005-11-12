@@ -153,7 +153,7 @@ main(int argc, char** argv)
 {
 	char *bios, buf[256], sizeb[256], *p, *vsize, *psize;
 	char *type, *vtype;
-	int virtual, len;
+	int fd, virtual, len;
 	Ctlr *ctlr;
 	Vga *vga;
 
@@ -458,6 +458,12 @@ main(int argc, char** argv)
 				vgactlw("hwgc", "soft");
 			else
 				vgactlw("hwgc", vga->hwgc->name);
+
+			/* might as well initialize the cursor */
+			if((fd = open("/dev/cursor", OWRITE)) >= 0){
+				write(fd, buf, 0);
+				close(fd);
+			}
 
 			if(vga->virtx != vga->mode->x || vga->virty != vga->mode->y){
 				sprint(buf, "%dx%d", vga->mode->x, vga->mode->y);
