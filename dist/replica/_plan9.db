@@ -122,13 +122,13 @@
 386/bin/aux/mswordstrings - 775 sys sys 1130594710 65340
 386/bin/aux/na - 775 sys sys 1130594710 154218
 386/bin/aux/nfsmount - 775 sys sys 1130594711 234124
-386/bin/aux/nfsserver - 775 sys sys 1131296673 185439
+386/bin/aux/nfsserver - 775 sys sys 1131682222 185445
 386/bin/aux/olefs - 775 sys sys 1130731910 143686
 386/bin/aux/p9bitpost - 775 sys sys 1104121982 127974
 386/bin/aux/pcmcia - 775 sys sys 1130384255 46923
-386/bin/aux/pcnfsd - 775 sys sys 1131296674 129365
+386/bin/aux/pcnfsd - 775 sys sys 1131682222 129371
 386/bin/aux/portmap - 775 sys sys 1130594713 143642
-386/bin/aux/portmapper - 775 sys sys 1131296674 128251
+386/bin/aux/portmapper - 775 sys sys 1131682222 128257
 386/bin/aux/postgif - 775 sys sys 1087442507 175380
 386/bin/aux/postprint - 775 sys sys 1087442507 160041
 386/bin/aux/postreverse - 775 sys sys 1087442508 164726
@@ -148,7 +148,7 @@
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1130594716 83677
 386/bin/aux/typepasswd - 775 sys sys 1130594716 69535
-386/bin/aux/vga - 775 sys sys 1131422827 333645
+386/bin/aux/vga - 775 sys sys 1131742008 333745
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -395,8 +395,8 @@
 386/bin/sha1sum - 775 sys sys 1130594782 61165
 386/bin/size - 775 sys sys 1131296676 78794
 386/bin/sleep - 775 sys sys 1085077097 3413
-386/bin/snap - 775 sys sys 1131302429 310917
-386/bin/snapfs - 775 sys sys 1131302430 380175
+386/bin/snap - 775 sys sys 1131682223 313407
+386/bin/snapfs - 775 sys sys 1131682224 382669
 386/bin/sniffer - 775 sys sys 1038443185 99028
 386/bin/snoopy - 775 sys sys 1130594784 168241
 386/bin/sort - 775 sys sys 1130594784 82308
@@ -9603,7 +9603,7 @@ sys/src/cmd/aux/vga/io.c - 664 sys sys 1131110425 6329
 sys/src/cmd/aux/vga/mach32.c - 664 sys sys 1014925009 6004
 sys/src/cmd/aux/vga/mach64.c - 664 sys sys 1014925009 8279
 sys/src/cmd/aux/vga/mach64xx.c - 664 sys sys 1097900455 30266
-sys/src/cmd/aux/vga/main.c - 664 sys sys 1131375677 9584
+sys/src/cmd/aux/vga/main.c - 664 sys sys 1131741978 9725
 sys/src/cmd/aux/vga/mga2164w.c - 664 sys sys 1014925010 13196
 sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1014925010 35895
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1115734903 927
@@ -14973,8 +14973,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/snap - 775 sys sys 1131682223 313407
-386/bin/snapfs - 775 sys sys 1131682224 382669
-386/bin/aux/nfsserver - 775 sys sys 1131682222 185445
-386/bin/aux/pcnfsd - 775 sys sys 1131682222 129371
-386/bin/aux/portmapper - 775 sys sys 1131682222 128257
+386/bin/aux/vga - 775 sys sys 1131768547 333745
