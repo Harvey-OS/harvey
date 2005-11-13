@@ -148,7 +148,7 @@
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1130594716 83677
 386/bin/aux/typepasswd - 775 sys sys 1130594716 69535
-386/bin/aux/vga - 775 sys sys 1131742008 333745
+386/bin/aux/vga - 775 sys sys 1131768547 333745
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -297,7 +297,7 @@
 386/bin/ip/httpfile - 775 sys sys 1131163702 278386
 386/bin/ip/imap4d - 775 sys sys 1130991193 237645
 386/bin/ip/ipconfig - 775 sys sys 1130594754 137774
-386/bin/ip/ping - 775 sys sys 1130594754 77042
+386/bin/ip/ping - 775 sys sys 1131814950 76630
 386/bin/ip/ppp - 775 sys sys 1130594755 219988
 386/bin/ip/pppoe - 775 sys sys 1130594755 77580
 386/bin/ip/pptp - 775 sys sys 1130594755 126690
@@ -497,7 +497,7 @@
 386/bin/venti/verifyarena - 775 sys sys 1130594812 104009
 386/bin/venti/wrarena - 775 sys sys 1130594812 175914
 386/bin/venti/write - 775 sys sys 1130594812 102531
-386/bin/vncs - 775 sys sys 1130594813 472457
+386/bin/vncs - 775 sys sys 1131814951 472300
 386/bin/vncv - 775 sys sys 1131646651 519358
 386/bin/vt - 775 sys sys 1131646652 173951
 386/bin/vtdump - 775 sys sys 1130594815 159490
@@ -11979,7 +11979,7 @@ sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1015013077 2481
 sys/src/cmd/ip/ipconfig.c - 664 sys sys 1126103921 34865
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1131110598 1243
-sys/src/cmd/ip/ping.c - 664 sys sys 1084471009 5651
+sys/src/cmd/ip/ping.c - 664 sys sys 1131802956 5708
 sys/src/cmd/ip/ppp - 20000000775 sys sys 988249980 0
 sys/src/cmd/ip/ppp/block.c - 664 sys sys 1015090266 5353
 sys/src/cmd/ip/ppp/compress.c - 664 sys sys 1072729513 11774
@@ -13592,7 +13592,7 @@ sys/src/cmd/vnc/color.c - 664 sys sys 1044880749 3088
 sys/src/cmd/vnc/compat.c - 664 sys sys 1044880749 3122
 sys/src/cmd/vnc/compat.h - 664 sys sys 1047512521 3425
 sys/src/cmd/vnc/dev.c - 664 sys sys 1044880749 5496
-sys/src/cmd/vnc/devcons.c - 664 sys sys 1045758532 6978
+sys/src/cmd/vnc/devcons.c - 664 sys sys 1131801747 6806
 sys/src/cmd/vnc/devdraw.c - 664 sys sys 1044880749 42068
 sys/src/cmd/vnc/devmouse.c - 664 sys sys 1091816253 7389
 sys/src/cmd/vnc/draw.c - 664 sys sys 1044880749 6974
@@ -14973,4 +14973,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/aux/vga - 775 sys sys 1131768547 333745
