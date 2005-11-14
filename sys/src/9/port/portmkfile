@@ -31,7 +31,7 @@ all:V:
 
 clean:V:
 	rm -f *.[$OS] *.root.s *.rootc.c cfs.h fs.h init.h conf.h *.out *.m errstr.h
-	for(i in $CONFLIST)
+	for(i in $CONFLIST $CRAPLIST)
 		mk $i.clean
 
 %.clean:V:

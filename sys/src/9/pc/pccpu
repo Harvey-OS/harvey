@@ -41,7 +41,7 @@ link
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
-	etherrhine	pci ethermii
+	ethervt6102	pci ethermii
 	ethersink
 	ethermedium
 	loopbackmedium

@@ -102,9 +102,8 @@ a non-Plan 9 system.
 .TP
 .B v
 (verbose)
-Print the name of each file treated
-preceded by the function letter.
-With 
+Print the name of each file as it is processed.
+With
 .BR t ,
 give more details about the
 archive entries.
