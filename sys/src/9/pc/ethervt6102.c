@@ -331,10 +331,6 @@ static char* txstats[Ntxstats] = {
 	"Excessive Collisions",
 };
 
-//extern void cgapost(char[2]);
-//extern char* cgapostlo;
-//extern char* cgaposthi;
-
 static long
 vt6102ifstat(Ether* edev, void* a, long n, ulong offset)
 {
@@ -598,17 +594,13 @@ vt6102transmit(Ether* edev)
 		 * To do: adjust Tx FIFO threshold on underflow.
 		 */
 		if(ds->status & (Abt|Tbuff|Udf)){
-//*cgaposthi = 'A';
 			for(timeo = 0; timeo < 1000; timeo++){
 				if(!(csr16r(ctlr, Cr) & Txon))
 					break;
 				microdelay(1);
 			}
-//			if(timeo >= 1000)
-//				*cgaposthi = 'T';
 			ds->status = Own;
 			csr32w(ctlr, Txdaddr, PCIWADDR(ds));
-//*cgaposthi = 'B';
 		}
 
 		if(ds->status & Own)
@@ -712,12 +704,10 @@ vt6102receive(Ether* edev)
 	ds = ctlr->rdh;
 	while(!(ds->status & Own) && ds->status != 0){
 		if(ds->status & Rerr){
-//*cgaposthi = 'R';
 			for(i = 0; i < Nrxstats; i++){
 				if(ds->status & (1<<i))
 					ctlr->rxstats[i]++;
 			}
-//*cgaposthi = 'r';
 		}
 		else if(bp = iallocb(Rdbsz+3)){
 			len = ((ds->status & LengthMASK)>>LengthSHIFT)-4;
@@ -776,16 +766,11 @@ vt6102interrupt(Ureg*, void* arg)
 		}
 		if(isr & (Abti|Udfi|Tu|Txe|Ptx)){
 			if(isr & (Abti|Udfi|Tu)){
-//*cgaposthi = 'a';
 				for(timeo = 0; timeo < 1000; timeo++){
 					if(!(csr16r(ctlr, Cr) & Txon))
 						break;
 					microdelay(1);
 				}
-//				if(timeo >= 1000)
-//					*cgapostlo = 't';
-//				else
-//					*cgapostlo = 'b';
 
 				if((isr & Udfi) && ctlr->tft < CtftSAF){
 					ctlr->tft += 1<<CtftSHIFT;
@@ -797,10 +782,8 @@ vt6102interrupt(Ureg*, void* arg)
 			isr &= ~(Abti|Udfi|Tu|Txe|Ptx);
 			ctlr->tintr++;
 		}
-		if(isr){
-//*cgaposthi = 'X';
+		if(isr)
 			panic("vt6102: isr %4.4uX\n", isr);
-		}
 	}
 	ctlr->imr = imr;
 	csr16w(ctlr, Imr, ctlr->imr);
@@ -926,6 +909,7 @@ vt6102reset(Ctlr* ctlr)
 		return -1;
 	}
 	// print("oui %X phyno %d\n", phy->oui, phy->phyno);
+	USED(phy);
 
 	//miiane(ctlr->mii, ~0, ~0, ~0);
 

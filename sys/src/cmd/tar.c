@@ -248,9 +248,9 @@ refill(int ar, char *bufs, int justhdr)
 
 	if (first)
 		seekable = seek(ar, 0, 1) >= 0;
+	blkoff = seek(ar, 0, 1);		/* note position for `tar r' */
 	/* try to size non-pipe input at first read */
 	if (first && usefile) {
-		blkoff = seek(ar, 0, 1);	/* note position */
 		n = read(ar, bufs, bytes);
 		if (n <= 0)
 			sysfatal("error reading archive: %r");
