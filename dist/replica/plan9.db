@@ -7974,17 +7974,17 @@ sys/src/9/pc/main.c - 664 sys sys 1131290418 15224
 sys/src/9/pc/mem.h - 664 sys sys 1131290422 5209
 sys/src/9/pc/memory.c - 664 sys sys 1131573303 18191
 sys/src/9/pc/mkfile - 664 sys sys 1131907946 3571
-sys/src/9/pc/mmu.c - 664 sys sys 1131497813 22628
+sys/src/9/pc/mmu.c - 664 sys sys 1132341477 23864
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1131538523 17317
 sys/src/9/pc/mp.h - 664 sys sys 1131538511 6652
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
-sys/src/9/pc/pc - 664 sys sys 1131907692 1428
+sys/src/9/pc/pc - 664 sys sys 1132333161 1428
 sys/src/9/pc/pcauth - 664 sys sys 1131907692 715
 sys/src/9/pc/pccd - 664 sys sys 1131636104 1427
 sys/src/9/pc/pccpu - 664 sys sys 1131907692 867
 sys/src/9/pc/pccpuf - 664 sys sys 1131907692 1487
-sys/src/9/pc/pcdisk - 664 sys sys 1131907692 1447
+sys/src/9/pc/pcdisk - 664 sys sys 1132333161 1447
 sys/src/9/pc/pcf - 664 sys sys 1131907692 1505
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1131907692 1474
@@ -8006,7 +8006,7 @@ sys/src/9/pc/sdata.c - 664 sys sys 1131290578 52168
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1131290638 25780
 sys/src/9/pc/sdmylex.c - 664 sys sys 1131290583 27737
 sys/src/9/pc/sdscsi.c - 664 sys sys 1131293342 7133
-sys/src/9/pc/trap.c - 664 sys sys 1131375347 21210
+sys/src/9/pc/trap.c - 664 sys sys 1132341484 21278
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
@@ -8024,7 +8024,7 @@ sys/src/9/pc/vgaet4000.c - 664 sys sys 1131290601 5111
 sys/src/9/pc/vgahiqvideo.c - 664 sys sys 1131290601 4098
 sys/src/9/pc/vgai81x.c - 664 sys sys 1131290601 4030
 sys/src/9/pc/vgamach64xx.c - 664 sys sys 1131290601 28257
-sys/src/9/pc/vgamga2164w.c - 664 sys sys 1131290602 4637
+sys/src/9/pc/vgamga2164w.c - 664 sys sys 1132331257 4769
 sys/src/9/pc/vgamga4xx.c - 664 sys sys 1131290602 10201
 sys/src/9/pc/vganeomagic.c - 664 sys sys 1131422294 10255
 sys/src/9/pc/vganvidia.c - 664 sys sys 1131290602 11783
@@ -13400,7 +13400,7 @@ sys/src/cmd/upas/send/makefile - 664 sys sys 944961322 1247
 sys/src/cmd/upas/send/message.c - 664 sys sys 1065717617 11064
 sys/src/cmd/upas/send/mkfile - 664 sys sys 1064589602 706
 sys/src/cmd/upas/send/regtest.c - 664 sys sys 944961322 566
-sys/src/cmd/upas/send/rewrite.c - 664 sys sys 1031707304 6294
+sys/src/cmd/upas/send/rewrite.c - 664 sys sys 1132331205 6386
 sys/src/cmd/upas/send/send.h - 664 sys sys 1069366924 3265
 sys/src/cmd/upas/send/skipequiv.c - 664 sys sys 944961322 1747
 sys/src/cmd/upas/send/translate.c - 664 sys sys 944961322 804
@@ -13413,7 +13413,7 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1127394218 20091
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1108827986 1270
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1120737512 30820
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1132331205 31097
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1061836986 6949
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1098803961 10231
@@ -13869,7 +13869,7 @@ sys/src/lib9p - 20000000775 sys sys 1015023311 0
 sys/src/lib9p/_post.c - 664 sys sys 1103565871 1642
 sys/src/lib9p/dirread.c - 664 sys sys 1015023310 641
 sys/src/lib9p/fid.c - 664 sys sys 1089299187 1066
-sys/src/lib9p/file.c - 664 sys sys 1130597663 6695
+sys/src/lib9p/file.c - 664 sys sys 1132336580 6695
 sys/src/lib9p/ftest.c - 664 sys sys 1015023310 502
 sys/src/lib9p/intmap.c - 664 sys sys 1016833881 2255
 sys/src/lib9p/mem.c - 664 sys sys 1015023310 765
@@ -14084,7 +14084,7 @@ sys/src/libc/9sys/dirstat.c - 664 sys sys 1041363499 688
 sys/src/libc/9sys/dirwstat.c - 664 sys sys 1014927337 246
 sys/src/libc/9sys/fcallfmt.c - 664 sys sys 1108319655 5740
 sys/src/libc/9sys/fork.c - 664 sys sys 950892938 89
-sys/src/libc/9sys/getenv.c - 664 sys sys 985023079 548
+sys/src/libc/9sys/getenv.c - 664 sys sys 1132331534 589
 sys/src/libc/9sys/getnetconninfo.c - 664 sys sys 1108157974 2477
 sys/src/libc/9sys/getpid.c - 664 sys sys 944961712 198
 sys/src/libc/9sys/getppid.c - 664 sys sys 944961712 202
@@ -14182,7 +14182,7 @@ sys/src/libc/fmt/runevseprint.c - 664 sys sys 1014927316 313
 sys/src/libc/fmt/runevsmprint.c - 664 sys sys 1050433061 1043
 sys/src/libc/fmt/runevsnprint.c - 664 sys sys 1014927316 330
 sys/src/libc/fmt/seprint.c - 664 sys sys 1014927317 196
-sys/src/libc/fmt/smprint.c - 664 sys sys 1014927317 168
+sys/src/libc/fmt/smprint.c - 664 sys sys 1132331535 205
 sys/src/libc/fmt/snprint.c - 664 sys sys 1014927317 195
 sys/src/libc/fmt/sprint.c - 664 sys sys 1015088665 236
 sys/src/libc/fmt/vfprint.c - 664 sys sys 1014927317 518
