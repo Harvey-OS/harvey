@@ -282,6 +282,8 @@ extern void
 regerror(char* s)
 {
 	fprint(2, "rewrite: %s\n", s);
+	/* make sure the message is seen locally */
+	syslog(0, "mail", "error in rewrite: %s", s);
 }
 
 extern void

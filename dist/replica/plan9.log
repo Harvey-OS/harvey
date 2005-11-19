@@ -22979,3 +22979,15 @@
 1131908513 7 c sys/src/9/pc/pccpuf - 664 sys sys 1131907692 1487
 1131908513 8 c sys/src/9/pc/pcflop - 664 sys sys 1131907692 1474
 1131908513 9 c sys/src/9/port/portmkfile - 664 sys sys 1131907975 2062
+1132331439 0 c sys/src/9/pc/pcdisk - 664 sys sys 1132331387 1447
+1132331439 1 c sys/src/9/pc/vgamga2164w.c - 664 sys sys 1132331257 4769
+1132331439 2 c sys/src/cmd/upas/send/rewrite.c - 664 sys sys 1132331205 6386
+1132331439 3 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1132331205 31097
+1132333239 0 c sys/src/9/pc/pc - 664 sys sys 1132333161 1428
+1132333239 1 c sys/src/9/pc/pcdisk - 664 sys sys 1132333161 1447
+1132333239 2 c sys/src/lib9p/file.c - 664 sys sys 1132332118 6663
+1132333239 3 c sys/src/libc/9sys/getenv.c - 664 sys sys 1132331534 589
+1132333239 4 c sys/src/libc/fmt/smprint.c - 664 sys sys 1132331535 205
+1132336840 0 c sys/src/lib9p/file.c - 664 sys sys 1132336580 6695
+1132342242 0 c sys/src/9/pc/mmu.c - 664 sys sys 1132341477 23864
+1132342242 1 c sys/src/9/pc/trap.c - 664 sys sys 1132341484 21278

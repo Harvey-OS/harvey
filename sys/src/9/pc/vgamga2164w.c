@@ -58,11 +58,13 @@ mga2164wenable(VGAscr* scr)
 		scr->mmio = vmap(p->mem[0].bar&~0x0F, p->mem[0].size);
 		if(scr->mmio == nil)
 			return;
+		addvgaseg("mga2164wmmio", p->mem[0].bar&~0x0F, p->mem[0].size);
 		vgalinearaddr(scr, p->mem[1].bar&~0x0F, 8*MB);
 	}else{
 		scr->mmio = vmap(p->mem[1].bar&~0x0F, p->mem[1].size);
 		if(scr->mmio == nil)
 			return;
+		addvgaseg("mga2164wmmio", p->mem[1].bar&~0x0F, p->mem[1].size);
 		vgalinearaddr(scr, p->mem[0].bar&~0x0F, 16*MB);
 	}
 	if(scr->paddr)

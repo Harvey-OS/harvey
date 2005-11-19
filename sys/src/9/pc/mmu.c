@@ -393,12 +393,13 @@ upallocpdb(void)
 void
 putmmu(ulong va, ulong pa, Page*)
 {
-	int old;
+	int old, s;
 	Page *page;
 
 	if(up->mmupdb == nil)
 		upallocpdb();
 
+	s = splhi();
 	if(!(vpd[PDX(va)]&PTEVALID)){
 		if(up->mmufree == 0)
 			page = newpage(0, 0, 0);
@@ -417,6 +418,7 @@ putmmu(ulong va, ulong pa, Page*)
 	vpt[VPTX(va)] = pa|PTEUSER|PTEVALID;
 	if(old&PTEVALID)
 		flushpg(va);
+	splx(s);
 }
 
 /*
@@ -896,7 +898,7 @@ paddr(void *v)
 	
 	va = (ulong)v;
 	if(va < KZERO)
-		panic("paddr: va=%#.8lux", va);
+		panic("paddr: va=%#.8lux pc=%#.8lux", va, getcallerpc(&va));
 	return va-KZERO;
 }
 
@@ -989,3 +991,46 @@ countpagerefs(ulong *ref, int print)
 	if(!print)
 		iprint("%d pages in mach pdbpools\n", n);
 }
+
+void
+checkfault(ulong addr, ulong pc)
+{
+	ulong *a;
+	int i;
+	
+	print("user fault: addr=%.8lux pc=%.8lux\n", addr, pc);
+	if(!(vpd[PDX(addr)]&PTEVALID))
+		print("addr not mapped (vpd=%.8lux)\n", vpd[PDX(addr)]);
+	else if(!(vpt[VPTX(addr)]&PTEVALID))
+		print("addr not mapped (vpd=%.8lux vpt=%.8lux)\n",
+			vpd[PDX(addr)], vpt[VPTX(addr)]);
+	else
+		print("addr mapped (vpd=%.8lux vpt=%.8lux)\n",
+			vpd[PDX(addr)], vpt[VPTX(addr)]);
+	
+	if(!(vpd[PDX(pc)]&PTEVALID))
+		print("pc not mapped (vpd=%.8lux)\n", vpd[PDX(pc)]);
+	else if(!(vpt[VPTX(pc)]&PTEVALID))
+		print("pc not mapped (vpd=%.8lux vpt=%.8lux)\n",
+			vpd[PDX(pc)], vpt[VPTX(pc)]);
+	else{
+		print("pc mapped (vpd=%.8lux vpt=%.8lux)\n",
+			vpd[PDX(pc)], vpt[VPTX(pc)]);
+		if(PPN(pc) == PPN(pc+4))	/* not crossing into an unmapped page */
+			print("*pc: %.8lux\n", *(ulong*)pc);
+		a = (ulong*)PPN(pc);
+		for(i=0; i<WD2PG; i++)
+			if(a[i] != 0)
+				break;
+		if(i == WD2PG)
+			print("pc's page is all zeros\n");
+		else{
+			for(i=0; i<256/4; i+=8){
+				print("%.8lux: %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux\n",
+					PPN(pc)+i*4, a[i], a[i+1], a[i+2], a[i+3], 
+					a[i+4], a[i+5], a[i+6], a[i+7]);
+			}
+		}
+	}
+}
+
