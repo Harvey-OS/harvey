@@ -515,7 +515,7 @@ iso9660copyfile(Fs *fs, File *dir, Cdir *c)
 	ind++;
 	memset(&d, 0, sizeof d);
 	p = c->name + c->namelen;
-	if(((ulong)p) & 1)
+	if(((uintptr)p) & 1)
 		p++;
 	sysl = (uchar*)c + c->len - p;
 	if(sysl <= 0)
@@ -523,7 +523,7 @@ iso9660copyfile(Fs *fs, File *dir, Cdir *c)
 	d.name = getname(&p);
 	d.uid = getname(&p);
 	d.gid = getname(&p);
-	if((ulong)p & 1)
+	if((uintptr)p & 1)
 		p++;
 	d.mode = little(p, 4);
 	if(d.name[0] == 0)

@@ -17,7 +17,7 @@ ptclbsum(uchar *addr, int len)
 	mdsum = 0;
 
 	x = 0;
-	if((ulong)addr & 1) {
+	if((uintptr)addr & 1) {
 		if(len) {
 			hisum += addr[0];
 			len--;

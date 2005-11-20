@@ -7,13 +7,16 @@ enum{
 	Wid = 20,	/* tmac.anhtml sets page width to 20" so we can recognize .nf text */
 };
 
-typedef ulong Char;
+typedef uintptr Char;
 typedef struct Troffchar Troffchar;
 typedef struct Htmlchar Htmlchar;
 typedef struct Font Font;
 typedef struct HTMLfont HTMLfont;
 
-/* a Char is 32 bits. low 16 bits are the rune. higher are attributes */
+/*
+ * a Char is >= 32 bits. low 16 bits are the rune. higher are attributes.
+ * must be able to hold a pointer.
+ */
 enum
 {
 	Italic	=	16,
@@ -66,56 +69,56 @@ struct HTMLfont{
 /* R must be first; it's the default representation for fonts we don't recognize */
 HTMLfont htmlfonts[] =
 {
-	"R",			nil,		0,
-	"LucidaSans",	nil,		0,
-	"I",			"i",	Italic,
+	"R",		nil,	0,
+	"LucidaSans",	nil,	0,
+	"I",		"i",	Italic,
 	"LucidaSansI",	"i",	Italic,
-	"CW",		"tt",		CW,
-	"LucidaCW",	"tt",		CW,
+	"CW",		"tt",	CW,
+	"LucidaCW",	"tt",	CW,
 	nil,	nil,
 };
 
 #define TABLE "<table border=0 cellpadding=0 cellspacing=0>"
 
 char*
-onattr[8*sizeof(ulong)] =
+onattr[8*sizeof(int)] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
-	"<i>",	/* italic */
-	"<b>",	/* bold */
+	"<i>",			/* italic */
+	"<b>",			/* bold */
 	"<tt><font size=+1>",	/* cw */
-	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",	/* indent1 */
-	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",	/* indent2 */
-	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",	/* indent3 */
+	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",		/* indent1 */
+	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",		/* indent2 */
+	"<+table border=0 cellpadding=0 cellspacing=0><tr height=2><td><tr><td width=20><td>\n",		/* indent3 */
 	0,
 	0,
 	0,
 	"<p><font size=+1><b>",	/* heading 25 */
-	"<unused>",	/* anchor 26 */
+	"<unused>",		/* anchor 26 */
 };
 
 char*
-offattr[8*sizeof(ulong)] =
+offattr[8*sizeof(int)] =
 {
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
-	"</i>",	/* italic */
-	"</b>",	/* bold */
-	"</font></tt>",	/* cw */
-	"<-/table>",	/* indent1 */
-	"<-/table>",	/* indent2 */
-	"<-/table>",	/* indent3 */
+	"</i>",			/* italic */
+	"</b>",			/* bold */
+	"</font></tt>",		/* cw */
+	"<-/table>",		/* indent1 */
+	"<-/table>",		/* indent2 */
+	"<-/table>",		/* indent3 */
 	0,
 	0,
 	0,
-	"</b></font>",	/* heading 25 */
-	"</a>",	/* anchor 26 */
+	"</b></font>",		/* heading 25 */
+	"</a>",			/* anchor 26 */
 };
 
-Font *font[Nfont];
+Font	*font[Nfont];
 
-Biobuf bout;
+Biobuf	bout;
 int	debug = 0;
 
 /* troff state */
@@ -126,16 +129,16 @@ int	hp = 0;
 int	ps = 1;
 int	res = 720;
 
-int		didP = 0;
-int		atnewline = 1;
-int		prevlineH = 0;
-ulong	attr = 0;	/* or'ed into each Char */
+int	didP = 0;
+int	atnewline = 1;
+int	prevlineH = 0;
+Char	attr = 0;	/* or'ed into each Char */
 
-Char		*chars;
-int		nchars;
-int		nalloc;
+Char	*chars;
+int	nchars;
+int	nalloc;
 char**	anchors;	/* allocated in order */
-int		nanchors;
+int	nanchors;
 
 char	*filename;
 int	cno;
@@ -245,7 +248,7 @@ main(int argc, char *argv[])
 }
 
 void
-emitul(ulong ul)
+emitchar(Char c)
 {
 	if(nalloc == nchars){
 		nalloc += 10000;
@@ -253,13 +256,13 @@ emitul(ulong ul)
 		if(chars == nil)
 			sysfatal("malloc failed: %r");
 	}
-	chars[nchars++] = ul;
+	chars[nchars++] = c;
 }
 
 void
 emit(Rune r)
 {
-	emitul(r | attr);
+	emitchar(r | attr);
 	/*
 	 * Close man page references early, so that 
 	 * .IR proof (1),
@@ -272,8 +275,8 @@ emit(Rune r)
 void
 emitstr(char *s)
 {
-	emitul(Estring);
-	emitul((ulong)s);
+	emitchar(Estring);
+	emitchar((Char)s);
 }
 
 int indentlevel;
@@ -312,9 +315,10 @@ iputs(Biobuf *b, char *s)
 }
 
 void
-setattr(ulong a)
+setattr(Char a)
 {
-	int on, off, i, j;
+	Char on, off;
+	int i, j;
 
 	on = a & ~attr;
 	off = attr & ~a;
@@ -348,6 +352,8 @@ setattr(ulong a)
 			if(j == Anchor)
 				onattr[j] = anchors[nanchors++];
 			iputs(&bout, onattr[j]);
+			if(nnest >= nelem(nest))
+				sysfatal("nesting too deep");
 			nest[nnest++] = j;
 		}
 	}
@@ -358,7 +364,7 @@ void
 flush(void)
 {
 	int i;
-	ulong c, a;
+	Char c, a;
 
 	nanchors = 0;
 	for(i=0; i<nchars; i++){
@@ -561,12 +567,12 @@ xcmd(Biobuf *b)
 			}
 		}else if(strcmp(fld[2], "manPP") == 0){
 			didP = 1;
-			emitul(Epp);
+			emitchar(Epp);
 		}else if(nfld<4 || strcmp(fld[2], "manref")!=0){
 			if(nfld>2 && strcmp(fld[2], "<P>")==0){	/* avoid triggering extra <br> */
 				didP = 1;
 				/* clear all font attributes before paragraph */
-				emitul(' ' | (attr & ~(0xFFFF|((1<<Italic)|(1<<Bold)|(1<<CW)))));
+				emitchar(' ' | (attr & ~(0xFFFF|((1<<Italic)|(1<<Bold)|(1<<CW)))));
 				emitstr("<P>");
 				/* next emittec char will turn font attributes back on */
 			}else if(nfld>2 && strcmp(fld[2], "<H4>")==0)

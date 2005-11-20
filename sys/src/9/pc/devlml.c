@@ -159,7 +159,7 @@ lmlreset(void)
 		print("zr36067 found at 0x%.8lux", pcidev->mem[0].bar & ~0x0F);
 
 		regpa = pcidev->mem[0].bar & ~0x0F;
-		regva = vmap(regpa, pcidev->mem[0].size, 0);
+		regva = vmap(regpa, pcidev->mem[0].size);
 		if (regva == 0) {
 			print("lml: failed to map registers\n");
 			return;

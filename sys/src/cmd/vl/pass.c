@@ -133,7 +133,7 @@ dodata(void)
 				continue;
 			/* size should be 19 max */
 			if(strlen(s->name) >= 10)	/* has loader address */ 
-				sprint(literal, "$%lux.%lux", (long)s, p->from.offset);
+				sprint(literal, "$%p.%lux", s, p->from.offset);
 			else
 				sprint(literal, "$%s.%d.%lux", s->name, s->version, p->from.offset);
 		} else {

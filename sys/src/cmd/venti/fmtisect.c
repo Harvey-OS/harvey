@@ -26,6 +26,9 @@ main(int argc, char *argv[])
 	setSize = 64 * 1024;
 	zero = 1;
 	ARGBEGIN{
+	case 'd':
+		chattyzero++;
+		break;
 	case 'b':
 		blockSize = unittoull(ARGF());
 		if(blockSize == ~0)

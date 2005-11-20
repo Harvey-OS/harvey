@@ -40,3 +40,8 @@ mallocz(ulong size, int clr)
 		memset(v, 0, size);
 	return v;
 }
+
+void
+setmalloctag(void*, ulong)
+{
+}

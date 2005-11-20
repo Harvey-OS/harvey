@@ -14,7 +14,7 @@ File	*curfile;
 File	*flist;
 File	*cmd;
 jmp_buf	mainloop;
-List	tempfile;
+List	tempfile = { 'p' };
 int	quitok = TRUE;
 int	downloaded;
 int	dflag;
@@ -73,7 +73,6 @@ void main(int argc, char *argv[])
 	Strinit0(&genstr);
 	Strinit0(&rhs);
 	Strinit0(&curwd);
-	tempfile.listptr = emalloc(1);	/* so it can be freed later */
 	Strinit0(&plan9cmd);
 	home = getenv(HOME);
 	disk = diskinit();
@@ -707,10 +706,11 @@ void
 settempfile(void)
 {
 	if(tempfile.nalloc < file.nused){
-		free(tempfile.listptr);
-		tempfile.listptr = emalloc(sizeof(*tempfile.filepptr)*file.nused);
+		if(tempfile.filepptr)
+			free(tempfile.filepptr);
+		tempfile.filepptr = emalloc(sizeof(File*)*file.nused);
 		tempfile.nalloc = file.nused;
 	}
+	memmove(tempfile.filepptr, file.filepptr, sizeof(File*)*file.nused);
 	tempfile.nused = file.nused;
-	memmove(&tempfile.filepptr[0], &file.filepptr[0], file.nused*sizeof(File*));
 }

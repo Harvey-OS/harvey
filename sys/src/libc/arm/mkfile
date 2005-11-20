@@ -5,6 +5,7 @@ LIB=/$objtype/lib/libc.a
 SFILES=\
 	argv0.s\
 	div.s\
+	getcallerpc.$O\
 	getfcr.s\
 	main9.s\
 	main9p.s\

@@ -25,51 +25,51 @@ struct Cookie
 	char*	dom;		/* starts with . */
 	char*	path;
 	char*	version;
-	char*	comment;		/* optional, may be nil */
+	char*	comment;	/* optional, may be nil */
 
-	uint		expire;		/* time of expiration: ~0 means when webcookies dies */
-	int		secure;
-	int		explicitdom;	/* dom was explicitly set */
-	int		explicitpath;	/* path was explicitly set */
-	int		netscapestyle;
+	uint	expire;		/* time of expiration: ~0 means when webcookies dies */
+	int	secure;
+	int	explicitdom;	/* dom was explicitly set */
+	int	explicitpath;	/* path was explicitly set */
+	int	netscapestyle;
 
 	/* internal info */
-	int		deleted;
-	int		mark;
-	int		ondisk;
+	int	deleted;
+	int	mark;
+	int	ondisk;
 };
 
 struct Jar
 {
 	Cookie	*c;
-	int		nc;
-	int		mc;
+	int	nc;
+	int	mc;
 
-	Qid		qid;
-	int		dirty;
-	char		*file;
-	char		*lockfile;
+	Qid	qid;
+	int	dirty;
+	char	*file;
+	char	*lockfile;
 };
 
 struct {
-	char *s;
+	char	*s;
 	int	offset;
 	int	ishttp;
 } stab[] = {
 	"domain",		offsetof(Cookie, dom),		1,
-	"path",		offsetof(Cookie, path),		1,
-	"name",		offsetof(Cookie, name),		0,
-	"value",		offsetof(Cookie, value),		0,
-	"comment",	offsetof(Cookie, comment),	1,
-	"version",		offsetof(Cookie, version),		1,
+	"path",			offsetof(Cookie, path),		1,
+	"name",			offsetof(Cookie, name),		0,
+	"value",		offsetof(Cookie, value),	0,
+	"comment",		offsetof(Cookie, comment),	1,
+	"version",		offsetof(Cookie, version),	1,
 };
 
 struct {
 	char *s;
 	int	offset;
 } itab[] = {
-	"expire",			offsetof(Cookie, expire),
-	"secure",			offsetof(Cookie, secure),
+	"expire",		offsetof(Cookie, expire),
+	"secure",		offsetof(Cookie, secure),
 	"explicitdomain",	offsetof(Cookie, explicitdom),
 	"explicitpath",		offsetof(Cookie, explicitpath),
 	"netscapestyle",	offsetof(Cookie, netscapestyle),
@@ -110,7 +110,7 @@ cookiefmt(Fmt *fmt)
 
 	first = 1;
 	for(j=0; j<nelem(stab); j++){
-		t = *(char**)((ulong)c+stab[j].offset);
+		t = *(char**)((char*)c+stab[j].offset);
 		if(t == nil)
 			continue;
 		if(first)
@@ -120,7 +120,7 @@ cookiefmt(Fmt *fmt)
 		fmtprint(fmt, "%s=%q", stab[j].s, t);
 	}
 	for(j=0; j<nelem(itab); j++){
-		k = *(int*)((ulong)c+itab[j].offset);
+		k = *(int*)((char*)c+itab[j].offset);
 		if(k == 0)
 			continue;
 		if(first)
@@ -199,7 +199,7 @@ freecookie(Cookie *c)
 	int i;
 
 	for(i=0; i<nelem(stab); i++)
-		free(*(char**)((ulong)c+stab[i].offset));
+		free(*(char**)((char*)c+stab[i].offset));
 }
 
 void
@@ -209,7 +209,7 @@ copycookie(Cookie *c)
 	char **ps;
 
 	for(i=0; i<nelem(stab); i++){
-		ps = (char**)((ulong)c+stab[i].offset);
+		ps = (char**)((char*)c+stab[i].offset);
 		if(*ps)
 			*ps = estrdup9p(*ps);
 	}
@@ -297,14 +297,14 @@ addtojar(Jar *jar, char *line, int ondisk)
 		/* string attributes */
 		for(j=0; j<nelem(stab); j++){
 			if(strcmp(stab[j].s, attr) == 0){
-				pstr = (char**)((ulong)&c+stab[j].offset);
+				pstr = (char**)((char*)&c+stab[j].offset);
 				*pstr = val;
 			}
 		}
 		/* integer attributes */
 		for(j=0; j<nelem(itab); j++){
 			if(strcmp(itab[j].s, attr) == 0){
-				pint = (int*)((ulong)&c+itab[j].offset);
+				pint = (int*)((char*)&c+itab[j].offset);
 				if(val[0]=='\0')
 					*pint = 1;
 				else
@@ -933,7 +933,7 @@ parsecookie(Cookie *c, char *p, char **e, int isns, char *dom, char *path)
 		}
 		for(i=0; i<nelem(stab); i++)
 			if(stab[i].ishttp && cistrcmp(stab[i].s, attr)==0)
-				*(char**)((ulong)c+stab[i].offset) = val;
+				*(char**)((char*)c+stab[i].offset) = val;
 		if(cistrcmp(attr, "expires") == 0){
 			if(!isns)
 				return "non-netscape cookie has Expires tag";
@@ -1003,7 +1003,7 @@ fsopen(Req *r)
 	int i, sz;
 	Aux *a;
 
-	switch((int)r->fid->file->aux){
+	switch((uintptr)r->fid->file->aux){
 	case Xhttp:
 		syncjar(jar);
 		a = emalloc9p(sizeof(Aux));
@@ -1039,7 +1039,7 @@ fsread(Req *r)
 	Aux *a;
 
 	a = r->fid->aux;
-	switch((int)r->fid->file->aux){
+	switch((uintptr)r->fid->file->aux){
 	case Xhttp:
 		if(a->state == NeedUrl){
 			respond(r, "must write url before read");
@@ -1071,7 +1071,7 @@ fswrite(Req *r)
 	Jar *j;
 
 	a = r->fid->aux;
-	switch((int)r->fid->file->aux){
+	switch((uintptr)r->fid->file->aux){
 	case Xhttp:
 		if(a->state == NeedUrl){
 			if(r->ifcall.count >= sizeof buf){
@@ -1157,7 +1157,7 @@ fsdestroyfid(Fid *fid)
 	a = fid->aux;
 	if(a == nil)
 		return;
-	switch((int)fid->file->aux){
+	switch((uintptr)fid->file->aux){
 	case Xhttp:
 		parsehttp(jar, a->inhttp, a->dom, a->path);
 		break;
