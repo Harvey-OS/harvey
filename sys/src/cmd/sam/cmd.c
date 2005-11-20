@@ -50,10 +50,12 @@ Rune	termline[BLOCKSIZE];
 Rune	*linep = line;
 Rune	*terminp = termline;
 Rune	*termoutp = termline;
-List	cmdlist;
-List	addrlist;
-List	relist;
-List	stringlist;
+
+List	cmdlist = { 'p' };
+List	addrlist = { 'p' };
+List	relist = { 'p' };
+List	stringlist = { 'p' };
+
 int	eof;
 
 void
@@ -244,7 +246,7 @@ newcmd(void){
 	Cmd *p;
 
 	p = emalloc(sizeof(Cmd));
-	inslist(&cmdlist, cmdlist.nused, (long)p);
+	inslist(&cmdlist, cmdlist.nused, p);
 	return p;
 }
 
@@ -254,7 +256,7 @@ newaddr(void)
 	Addr *p;
 
 	p = emalloc(sizeof(Addr));
-	inslist(&addrlist, addrlist.nused, (long)p);
+	inslist(&addrlist, addrlist.nused, p);
 	return p;
 }
 
@@ -264,7 +266,7 @@ newre(void)
 	String *p;
 
 	p = emalloc(sizeof(String));
-	inslist(&relist, relist.nused, (long)p);
+	inslist(&relist, relist.nused, p);
 	Strinit(p);
 	return p;
 }
@@ -275,7 +277,7 @@ newstring(void)
 	String *p;
 
 	p = emalloc(sizeof(String));
-	inslist(&stringlist, stringlist.nused, (long)p);
+	inslist(&stringlist, stringlist.nused, p);
 	Strinit(p);
 	return p;
 }
@@ -286,9 +288,9 @@ freecmd(void)
 	int i;
 
 	while(cmdlist.nused > 0)
-		free(cmdlist.ucharpptr[--cmdlist.nused]);
+		free(cmdlist.voidpptr[--cmdlist.nused]);
 	while(addrlist.nused > 0)
-		free(addrlist.ucharpptr[--addrlist.nused]);
+		free(addrlist.voidpptr[--addrlist.nused]);
 	while(relist.nused > 0){
 		i = --relist.nused;
 		Strclose(relist.stringpptr[i]);

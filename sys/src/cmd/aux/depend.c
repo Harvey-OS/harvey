@@ -5,6 +5,13 @@
 #include <thread.h>
 #include <bio.h>
 
+typedef struct Args Args;
+
+struct Args {
+	int	argc;
+	char	**argv;
+};
+
 typedef struct Dfile Dfile;
 typedef struct Fid Fid;
 typedef struct File File;
@@ -258,11 +265,13 @@ realmain(void *a)
 	int srv;
 	char service[128];
 	struct Fsarg fsarg;
+	Args *args;
 	int argc;
 	char **argv;
 
-	argc = (int)((void**)a)[0];
-	argv = ((void**)a)[1];
+	args = a;
+	argc = args->argc;
+	argv = args->argv;
 
 	fmtinstall('F', fcallfmt);
 
@@ -272,7 +281,7 @@ realmain(void *a)
 			break;
 	}ARGEND
 	if(argc != 2){
-		fprint(2, "usage: %s [-d] svc-name directory", argv0);
+		fprint(2, "usage: %s [-d] svc-name directory\n", argv0);
 		exits("usage");
 	}
 	snprint(service, sizeof service, "#s/%s", argv[0]);
@@ -307,12 +316,12 @@ realmain(void *a)
 void
 threadmain(int argc, char *argv[])
 {
-	static void *a[2];
+	static Args args;
 
-	a[0] = (void*)argc;
-	a[1] = argv;
+	args.argc = argc;
+	args.argv = argv;
 	rfork(RFNAMEG);
-	proccreate(realmain, a, 16*1024);
+	proccreate(realmain, &args, 16*1024);
 }
 
 char*

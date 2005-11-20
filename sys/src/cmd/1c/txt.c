@@ -638,10 +638,10 @@ gopcode(int o, Type *ty, int gf, Node *f, int gt, Node *t)
 	} else {
 		p->from.type = gf;
 		if(gf == D_CONST) {
-			p->from.offset = (long)f;
+			p->from.offset = (long)(uintptr)f;
 			if(typefd[i]) {
 				p->from.type = D_FCONST;
-				p->from.dval = (long)f;
+				p->from.dval = (long)(uintptr)f;
 			}
 		}
 	}
@@ -651,7 +651,7 @@ gopcode(int o, Type *ty, int gf, Node *f, int gt, Node *t)
 	} else {
 		p->to.type = gt;
 		if(gt == D_CONST)
-			p->to.offset = (long)t;
+			p->to.offset = (long)(uintptr)t;
 	}
 	if(o == OBIT) {
 		p->from.field = f->type->nbits;
@@ -803,11 +803,23 @@ gpseudo(int a, Sym *s, int g, long v)
 	if(a == ADATA)
 		pc--;
 	p->as = a;
-	if(g != D_TREE) {
-		p->to.type = g;
-		p->to.offset = v;
-	} else
-		naddr((Node*)v, &p->to, D_NONE);
+	p->to.type = g;
+	p->to.offset = v;
+	p->from.sym = s;
+	p->from.type = D_EXTERN;
+	if(s->class == CSTATIC)
+		p->from.type = D_STATIC;
+}
+
+void
+gpseudotree(int a, Sym *s, Node *n)
+{
+
+	nextpc();
+	if(a == ADATA)
+		pc--;
+	p->as = a;
+	naddr(n, &p->to, D_NONE);
 	p->from.sym = s;
 	p->from.type = D_EXTERN;
 	if(s->class == CSTATIC)

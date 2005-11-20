@@ -9,6 +9,7 @@ partition=new
 mouseport=ask
 monitor=ask
 vgasize=ask
+dmamode=ask
 adisk=/dev/sdD0/cdboot
 cdboot=yes
 

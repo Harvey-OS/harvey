@@ -29,6 +29,9 @@ main(int argc, char *argv[])
 	tabSize = 64 * 1024;		/* BUG: should be determine from number of arenas */
 	zero = 1;
 	ARGBEGIN{
+	case 'd':
+		chattyzero++;
+		break;
 	case 'a':
 		asize = unittoull(ARGF());
 		if(asize == TWID64)

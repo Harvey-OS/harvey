@@ -64,28 +64,26 @@ struct String
 	Rune	*s;
 };
 
-struct List	/* code depends on a long being able to hold a pointer */
+struct List
 {
+	int	type;
 	int	nalloc;
 	int	nused;
 	union{
-		void	*listp;
-		Block	*blkp;
-		long	*longp;
-		uchar*	*ucharp;
-		String*	*stringp;
-		File*	*filep;
-		long	listv;
+		void*	listp;
+		Block*	blkp;
+		void**	voidp;
+		Posn*	posnp;
+		String**stringp;
+		File**	filep;
 	}g;
 };
 
 #define	listptr		g.listp
-#define	blkptr		g.blkp
-#define	longptr		g.longp
-#define	ucharpptr	g.ucharp
+#define	voidpptr	g.voidp
+#define	posnptr		g.posnp
 #define	stringpptr	g.stringp
 #define	filepptr	g.filep
-#define	listval		g.listv
 
 enum
 {
@@ -262,8 +260,9 @@ File	*getfile(String*);
 int	getname(File*, String*, int);
 long	getnum(int);
 void	hiccough(char*);
-void	inslist(List*, int, long);
+void	inslist(List*, int, ...);
 Address	lineaddr(Posn, Address, int);
+List	*listalloc(int);
 void	listfree(List*);
 void	load(File*);
 File	*lookfile(String*);
@@ -396,11 +395,5 @@ void	outTsS(Hmesg, int, String*);
 void	outTsllS(Hmesg, int, long, long, String*);
 void	outTsll(Hmesg, int, long, long);
 void	outTsl(Hmesg, int, long);
-void	outTsv(Hmesg, int, long);
-void	outstart(Hmesg);
-void	outcopy(int, void*);
-void	outshort(int);
-void	outlong(long);
-void	outvlong(void*);
-void	outsend(void);
+void	outTsv(Hmesg, int, vlong);
 void	outflush(void);

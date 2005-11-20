@@ -1987,7 +1987,7 @@ buggery:
 		/*
 		 * Because we don't yet have an abstraction for the
 		 * addresses as seen from the controller side (and on
-		 * the 386 it doesn't matter), the follwong two lines
+		 * the 386 it doesn't matter), the following two lines
 		 * are different between the 386 and alpha copies of
 		 * this driver.
 		 */

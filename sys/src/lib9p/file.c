@@ -310,13 +310,11 @@ alloctree(char *uid, char *gid, ulong mode, void (*destroy)(File*))
 	f = allocfile();
 	f->name = estrdup9p("/");
 	if(uid == nil){
-		if(uid = getuser())
-			uid = estrdup9p(uid);
+		uid = getuser();
+		if(uid == nil)
+			uid = "none";
 	}
-	if(uid == nil)
-		uid = estrdup9p("none");
-	else
-		uid = estrdup9p(uid);
+	uid = estrdup9p(uid);
 
 	if(gid == nil)
 		gid = estrdup9p(uid);

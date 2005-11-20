@@ -59,6 +59,19 @@ aux/vmware
 	echo add 127.0.0.1 255.255.255.0 
 } >/net/ipifc/clone
 
+if(~ $#dmamode 0)
+	dmamode=ask
+if(~ $dmamode ask){
+	echo -n 'use DMA for ide drives[yes]: '
+	dmamode=`{read}
+	if(~ $#dmamode 0)
+		dmamode=yes
+}
+if(~ $dmamode yes)
+	for(i in /dev/sd*/ctl)
+		if(test -f $i)
+			{echo dma on; echo rwm on} >$i
+
 if(~ $installmode ask){
 	echo -n 'install mode is (text, graphics)[graphics]: '
 	installmode=`{read}

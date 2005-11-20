@@ -18,7 +18,7 @@ Programs reading snapshots should only
 check that this line begins with the specified prefix.
 .PP
 Throughout the rest of the snapshot, decimal strings are
-always right-justified, blank-padded to 11 characters,
+always right-justified, blank-padded to at least 11 characters,
 and followed by a single space character.
 .PP
 The rest of the snapshot is one or more records,

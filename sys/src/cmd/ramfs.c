@@ -791,13 +791,11 @@ io(void)
 		 */
 		n = read9pmsg(mfd[0], mdata, messagesize);
 		if(n < 0){
-			errstr(buf, sizeof buf);
+			rerrstr(buf, sizeof buf);
 			if(buf[0]=='\0' || strstr(buf, "hungup"))
 				exits("");
 			error("mount read");
 		}
-		if(n < 0)
-			error("mount read");
 		if(n == 0)
 			continue;
 		if(convM2S(mdata, n, &thdr) == 0)
