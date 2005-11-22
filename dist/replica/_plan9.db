@@ -15,7 +15,7 @@
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1132506823 116045
-386/bin/8c - 775 sys sys 1132506824 358646
+386/bin/8c - 775 sys sys 1132603401 358647
 386/bin/8l - 775 sys sys 1130384229 115712
 386/bin/9660srv - 775 sys sys 1130594690 104069
 386/bin/aan - 775 sys sys 1130594690 130742
@@ -7968,7 +7968,7 @@ sys/src/9/pc/i8259.c - 664 sys sys 1131290399 4586
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1099761152 8095
-sys/src/9/pc/kbd.c - 664 sys sys 1130848300 12362
+sys/src/9/pc/kbd.c - 664 sys sys 1132574883 12365
 sys/src/9/pc/l.s - 664 sys sys 1131290403 28347
 sys/src/9/pc/main.c - 664 sys sys 1131290418 15224
 sys/src/9/pc/mem.h - 664 sys sys 1131290422 5209
@@ -9733,7 +9733,7 @@ sys/src/cmd/cc/com.c - 664 sys sys 1089299183 18909
 sys/src/cmd/cc/com64.c - 664 sys sys 1089299182 9975
 sys/src/cmd/cc/compat - 664 sys sys 1014925177 684
 sys/src/cmd/cc/compat.c - 664 sys sys 1132451523 454
-sys/src/cmd/cc/dcl.c - 664 sys sys 1132451524 26833
+sys/src/cmd/cc/dcl.c - 664 sys sys 1132595282 26815
 sys/src/cmd/cc/dpchk.c - 664 sys sys 1107365037 7152
 sys/src/cmd/cc/funct.c - 664 sys sys 984718510 6167
 sys/src/cmd/cc/lex.c - 664 sys sys 1131293446 23883

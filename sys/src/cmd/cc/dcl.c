@@ -1572,8 +1572,8 @@ if not, bail
 		if(n->left->type)
 		if(n->left->type->width == w)
 			goto no;
-	while(w & ewidth[TIND])
-		w++;	/* is this a bug?? */
+	while(w & (ewidth[TIND]-1))
+		w++;
 /*
  * insert the following code, where long becomes vlong if pointers are fat
  *
