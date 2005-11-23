@@ -19,7 +19,7 @@
 386/bin/8l - 775 sys sys 1130384229 115712
 386/bin/9660srv - 775 sys sys 1130594690 104069
 386/bin/aan - 775 sys sys 1130594690 130742
-386/bin/acid - 775 sys sys 1132506825 400142
+386/bin/acid - 775 sys sys 1132682570 400153
 386/bin/acme - 775 sys sys 1132506826 428944
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1127360557 132862
@@ -9271,7 +9271,7 @@ sys/src/cmd/acid/acid.h - 664 sys sys 1131289460 4273
 sys/src/cmd/acid/builtin.c - 664 sys sys 1131289462 20193
 sys/src/cmd/acid/dbg.y - 664 sys sys 1131289463 5568
 sys/src/cmd/acid/dot.c - 664 sys sys 1131289462 2162
-sys/src/cmd/acid/exec.c - 664 sys sys 1131289461 8383
+sys/src/cmd/acid/exec.c - 664 sys sys 1132674180 8383
 sys/src/cmd/acid/expr.c - 664 sys sys 1131289461 15220
 sys/src/cmd/acid/lex.c - 664 sys sys 1131289460 7963
 sys/src/cmd/acid/list.c - 664 sys sys 1131289462 3680
