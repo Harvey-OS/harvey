@@ -19,7 +19,7 @@
 386/bin/8l - 775 sys sys 1130384229 115712
 386/bin/9660srv - 775 sys sys 1130594690 104069
 386/bin/aan - 775 sys sys 1130594690 130742
-386/bin/acid - 775 sys sys 1132682570 400153
+386/bin/acid - 775 sys sys 1132820116 400246
 386/bin/acme - 775 sys sys 1132506826 428944
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1127360557 132862
@@ -188,7 +188,7 @@
 386/bin/cpu - 775 sys sys 1132418760 139238
 386/bin/crop - 775 sys sys 1130594724 116040
 386/bin/date - 775 sys sys 1130384272 43279
-386/bin/db - 775 sys sys 1132506847 345611
+386/bin/db - 775 sys sys 1132820117 345704
 386/bin/dc - 775 sys sys 1130594725 99051
 386/bin/dd - 775 sys sys 1130384273 45416
 386/bin/deroff - 775 sys sys 1130594726 74267
@@ -395,8 +395,8 @@
 386/bin/sha1sum - 775 sys sys 1130594782 61165
 386/bin/size - 775 sys sys 1131296676 78794
 386/bin/sleep - 775 sys sys 1085077097 3413
-386/bin/snap - 775 sys sys 1132506873 313451
-386/bin/snapfs - 775 sys sys 1132506874 382623
+386/bin/snap - 775 sys sys 1132820118 313544
+386/bin/snapfs - 775 sys sys 1132820119 382716
 386/bin/sniffer - 775 sys sys 1038443185 99028
 386/bin/snoopy - 775 sys sys 1130594784 168241
 386/bin/sort - 775 sys sys 1130594784 82308
@@ -429,7 +429,7 @@
 386/bin/topng - 775 sys sys 1130594792 138351
 386/bin/toppm - 775 sys sys 1131646650 165250
 386/bin/touch - 775 sys sys 1130594792 63795
-386/bin/tprof - 775 sys sys 1132418766 297408
+386/bin/tprof - 775 sys sys 1132820120 297501
 386/bin/tr - 775 sys sys 1130594793 61883
 386/bin/trace - 775 sys sys 1132418767 181163
 386/bin/troff - 775 sys sys 1127360609 357940
@@ -553,7 +553,7 @@
 386/lib/libhttpd.a - 664 sys sys 1127790504 99596
 386/lib/libip.a - 664 sys sys 1116126324 35602
 386/lib/libl.a - 664 sys sys 1115950154 5384
-386/lib/libmach.a - 664 sys sys 1131296679 782950
+386/lib/libmach.a - 664 sys sys 1132820122 783254
 386/lib/libmemdraw.a - 664 sys sys 1120792317 284130
 386/lib/libmemlayer.a - 664 sys sys 1115950157 47360
 386/lib/libmp.a - 664 sys sys 1127360619 79944
@@ -14568,7 +14568,7 @@ sys/src/libmach/7.c - 664 sys sys 1131289380 3299
 sys/src/libmach/7db.c - 664 sys sys 1131289384 17330
 sys/src/libmach/7obj.c - 664 sys sys 1091732676 2367
 sys/src/libmach/8.c - 664 sys sys 1131289381 2060
-sys/src/libmach/8db.c - 664 sys sys 1131289384 50612
+sys/src/libmach/8db.c - 664 sys sys 1132812801 50731
 sys/src/libmach/8obj.c - 664 sys sys 1091732625 2200
 sys/src/libmach/access.c - 664 sys sys 1131289377 4588
 sys/src/libmach/elf.h - 664 sys sys 1131292881 2301
