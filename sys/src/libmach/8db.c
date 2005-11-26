@@ -1446,6 +1446,7 @@ badop:
 			if (igetc(map, ip, &c) < 0)
 				return 0;
 			ip->imm = c&0xff;
+			ip->imm64 = ip->imm;
 			break;
 		case Jbs:	/* 8-bit jump immediate (sign extended) */
 			if (igetc(map, ip, &c) < 0)
@@ -1454,6 +1455,7 @@ badop:
 				ip->imm = c|0xffffff00;
 			else
 				ip->imm = c&0xff;
+			ip->imm64 = (long)ip->imm;
 			ip->jumptype = Jbs;
 			break;
 		case Ibs:	/* 8-bit immediate (sign extended) */
@@ -1472,6 +1474,7 @@ badop:
 			if (igets(map, ip, &s) < 0)
 				return 0;
 			ip->imm = s&0xffff;
+			ip->imm64 = ip->imm;
 			ip->jumptype = Iw;
 			break;
 		case Iw2:	/* 16-bit immediate -> in imm2*/
@@ -1887,6 +1890,8 @@ pea(Instr *ip)
 			immediate(ip, ip->disp);
 		else {
 			bprint(ip, "%lux", ip->disp);
+			if(ip->rip)
+				bprint(ip, "(RIP)");
 			bprint(ip,"(%s%s)", ANAME(ip), reg[ip->rex&REXB? ip->base+8: ip->base]);
 		}
 	}
