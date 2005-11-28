@@ -136,6 +136,7 @@ tcp=uucp-path port=117
 tcp=nntp port=119
 tcp=netbios port=139
 tcp=imap4 port=143
+tcp=imap port=143
 tcp=NeWS port=144
 tcp=print-srv port=170
 tcp=z39.50 port=210
@@ -159,7 +160,6 @@ tcp=9fs port=564
 tcp=whoami port=565
 tcp=guard port=566
 tcp=ticket port=567
-tcp=dlsftp port=666
 tcp=fmclient port=729
 tcp=imaps port=993
 tcp=pop3s port=995
@@ -168,6 +168,8 @@ tcp=pptp port=1723
 tcp=nfs port=2049
 tcp=webster port=2627
 tcp=weather port=3000
+tcp=sip port=5060
+tcp=sips port=5061
 tcp=secstore port=5356
 tcp=vnc-http port=5800
 tcp=vnc port=5900
@@ -197,7 +199,6 @@ tcp=glenglenda8 port=17027
 tcp=glenglenda9 port=17028
 tcp=glenglenda10 port=17029
 tcp=flyboy port=17032
-tcp=dlsftp port=17033
 tcp=venti port=17034
 tcp=wiki port=17035
 tcp=vica port=17036
@@ -212,13 +213,16 @@ udp=bootp port=67
 udp=domain port=53
 udp=dns port=53
 udp=portmap port=111
-udp=netbios-ns port=137
 udp=ntp port=123
+udp=netbios-ns port=137
 udp=snmp port=161
 udp=rip port=520
+udp=dhcp6c port=546
+udp=dhcp6s port=547
 udp=nfs port=2049
 udp=bfs port=2201
 udp=virgil port=2202
+udp=sip port=5060
 udp=bandt2 port=7331
 udp=oradius port=1645
 udp=dhash port=11977
