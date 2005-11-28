@@ -5180,7 +5180,7 @@ lib/namespace.ftp - 664 sys sys 1020313578 373
 lib/namespace.httpd - 664 sys sys 984695868 1209
 lib/ndb - 20000000775 sys sys 959260770 0
 lib/ndb/auth - 664 sys sys 1117108784 572
-lib/ndb/common - 664 sys sys 1091203571 5285
+lib/ndb/common - 664 sys sys 1133147947 5356
 lib/ndb/consoledb - 664 sys sys 960222421 95
 lib/ndb/dhcp - 20000000775 sys sys 959260749 0
 lib/ndb/dnsdump - 664 sys sys 1032057649 61
@@ -8004,7 +8004,7 @@ sys/src/9/pc/sd53c8xx.c - 664 sys sys 1131538448 55207
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1131290578 52168
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1131290638 25780
-sys/src/9/pc/sdmylex.c - 664 sys sys 1131290583 27737
+sys/src/9/pc/sdmylex.c - 664 sys sys 1133068062 27806
 sys/src/9/pc/sdscsi.c - 664 sys sys 1131293342 7133
 sys/src/9/pc/trap.c - 664 sys sys 1132341484 21278
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
@@ -13347,7 +13347,7 @@ sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1018549521 1312
 sys/src/cmd/upas/fs - 20000000775 sys sys 988250018 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1047490337 4267
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1107880276 27460
-sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1121865168 16259
+sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1133147970 16258
 sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1107835226 28935
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1071334861 7465

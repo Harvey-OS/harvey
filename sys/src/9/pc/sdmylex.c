@@ -368,7 +368,10 @@ mylex24rio(SDreq* r)
 	ccb->datalen[0] = n>>16;
 	ccb->datalen[1] = n>>8;
 	ccb->datalen[2] = n;
-	p = PADDR(data);
+	if(data == nil)
+		p = 0;
+	else
+		p = PADDR(data);
 	ccb->dataptr[0] = p>>16;
 	ccb->dataptr[1] = p>>8;
 	ccb->dataptr[2] = p;
@@ -586,7 +589,10 @@ mylex32rio(SDreq* r)
 	ccb->datalen[1] = n>>8;
 	ccb->datalen[2] = n>>16;
 	ccb->datalen[3] = n>>24;
-	p = PADDR(r->data);
+	if(r->data == nil)
+		p = 0;
+	else
+		p = PADDR(r->data);
 	ccb->dataptr[0] = p;
 	ccb->dataptr[1] = p>>8;
 	ccb->dataptr[2] = p>>16;
