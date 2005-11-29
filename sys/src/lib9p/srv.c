@@ -806,6 +806,8 @@ if(chatty9p)
 	for(i=0; i<r->nflush; i++)
 		respond(r->flush[i], nil);
 	free(r->flush);
+	r->flush = nil;
+	r->nflush = 0;
 
 	if(r->pool)
 		closereq(r);

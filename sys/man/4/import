@@ -61,6 +61,10 @@ Only valid when
 .I file
 is a directory.
 .TP
+.B -A
+Skip the authentication protocol.
+This is useful for connecting to foreign systems like Inferno.
+.TP
 .B -B
 Run in ``backwards'' mode, described below.
 .TP

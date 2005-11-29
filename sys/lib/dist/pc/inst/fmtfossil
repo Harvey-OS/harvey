@@ -58,7 +58,7 @@ case go
 	}
 	if(~ $do yes){
 		fossil/flfmt -y $f
-		n=`{cat /dev/swap | sed 's/^[0-9]+\/([0-9]+) .*/\1/'}
+		n=`{cat /dev/swap | grep ' user' | sed 's/^[0-9]+\/([0-9]+) .*/\1/'}
 		if(test $n -gt 32768)
 			m=3000	# if have at least 128 user MB, use 24MB for fossil
 		if not if(test $n -gt 16384)
