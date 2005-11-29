@@ -23,6 +23,7 @@ int		encproto = Encnone;
 char		*aan = "/bin/aan";
 AuthInfo 	*ai;
 int		debug;
+int		doauth = 1;
 
 int	connect(char*, char*, int);
 int	passive(void);
@@ -74,6 +75,9 @@ main(int argc, char **argv)
 	oldserver = 0;
 	mntflags = MREPL;
 	ARGBEGIN{
+	case 'A':
+		doauth = 0;
+		break;
 	case 'a':
 		mntflags = MAFTER;
 		break;
@@ -264,14 +268,16 @@ connect(char *system, char *tree, int oldserver)
 	if((fd = dial(na, 0, dir, 0)) < 0)
 		sysfatal("can't dial %s: %r", system);
 
-	if(oldserver)
-		authp = "p9sk2";
-	else
-		authp = "p9any";
-
-	ai = auth_proxy(fd, auth_getkey, "proto=%q role=client %s", authp, keyspec);
-	if(ai == nil)
-		sysfatal("%r: %s", system);
+	if(doauth){
+		if(oldserver)
+			authp = "p9sk2";
+		else
+			authp = "p9any";
+	
+		ai = auth_proxy(fd, auth_getkey, "proto=%q role=client %s", authp, keyspec);
+		if(ai == nil)
+			sysfatal("%r: %s", system);
+	}
 
 	n = write(fd, tree, strlen(tree));
 	if(n < 0)
@@ -295,6 +301,10 @@ passive(void)
 {
 	int fd;
 
+	/*
+	 * Ignore doauth==0 on purpose.  Is it useful here?
+	 */
+
 	ai = auth_proxy(0, auth_getkey, "proto=p9any role=server");
 	if(ai == nil)
 		sysfatal("auth_proxy: %r");
@@ -314,7 +324,7 @@ passive(void)
 void
 usage(void)
 {
-	fprint(2, "usage: import [-abcC] [-E clear|ssl|tls] [-e 'crypt auth'|clear] [-k keypattern] [-p] host remotefs [mountpoint]\n");
+	fprint(2, "usage: import [-abcC] [-A] [-E clear|ssl|tls] [-e 'crypt auth'|clear] [-k keypattern] [-p] host remotefs [mountpoint]\n");
 	exits("usage");
 }
 

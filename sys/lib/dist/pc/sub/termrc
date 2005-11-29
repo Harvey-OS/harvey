@@ -18,10 +18,10 @@ if(~ $debug yes) echo binddev done
 for(disk in /dev/sd??) {
 	if(test -f $disk/data && test -f $disk/ctl){
 		disk/fdisk -p $disk/data >$disk/ctl >[2]/dev/null
-		if(~ $#nosddma 0)
-			echo dma on >$disk/ctl
-		if(~ $#nosdrwm 0)
-			echo rwm on >$disk/ctl
+#		if(~ $#nosddma 0)
+#			echo dma on >$disk/ctl
+#		if(~ $#nosdrwm 0)
+#			echo rwm on >$disk/ctl
 	}
 }
 
@@ -70,7 +70,7 @@ if(~ $dmamode ask){
 if(~ $dmamode yes)
 	for(i in /dev/sd*/ctl)
 		if(test -f $i)
-			{echo dma on; echo rwm on} >$i
+			{echo dma on; echo rwm on >[2]/dev/null} >$i
 
 if(~ $installmode ask){
 	echo -n 'install mode is (text, graphics)[graphics]: '

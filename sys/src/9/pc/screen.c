@@ -454,6 +454,12 @@ vgalinearpci(VGAscr *scr)
 	 * Scan for largest memory region on card.
 	 * Some S3 cards (e.g. Savage) have enormous
 	 * mmio regions (but even larger frame buffers).
+	 * Some 3dfx cards (e.g., Voodoo3) have mmio
+	 * buffers the same size as the frame buffer,
+	 * but only the frame buffer is marked as
+	 * prefetchable (bar&8).  If a card doesn't fit
+	 * into these heuristics, its driver will have to
+	 * call vgalinearaddr directly.
 	 */
 	best = -1;
 	for(i=0; i<nelem(p->mem); i++){
@@ -461,7 +467,9 @@ vgalinearpci(VGAscr *scr)
 			continue;
 		if(p->mem[i].size < 640*480)	/* not big enough */
 			continue;
-		if(best==-1 || p->mem[i].size > p->mem[best].size)
+		if(best==-1 
+		|| p->mem[i].size > p->mem[best].size 
+		|| (p->mem[i].size == p->mem[best].size && (p->mem[i].bar&8)))
 			best = i;
 	}
 	if(best >= 0){

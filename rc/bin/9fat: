@@ -1,7 +1,7 @@
 #!/bin/rc
 
 rfork e
-part=`{ls /dev/sd*/9fat >[2]/dev/null}
+part=`{ls /dev/fs/9fat /dev/sd*/9fat >[2]/dev/null}
 if(~ $#part 0) {
 	echo 'no 9fat partition found' >[1=2]
 	exit no.9fat
