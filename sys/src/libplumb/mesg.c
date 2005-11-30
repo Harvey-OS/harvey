@@ -15,9 +15,9 @@ plumbopen(char *name, int omode)
 		return open(name, omode);
 		
 	/* find elusive plumber */
-	if(access("/mnt/plumb/send", OWRITE) >= 0)
+	if(access("/mnt/plumb/send", AWRITE) >= 0)
 		plumber = "/mnt/plumb";
-	else if(access("/mnt/term/mnt/plumb/send", OWRITE) >= 0)
+	else if(access("/mnt/term/mnt/plumb/send", AWRITE) >= 0)
 		plumber = "/mnt/term/mnt/plumb";
 	else{
 		/* last resort: try mounting service */
@@ -32,7 +32,7 @@ plumbopen(char *name, int omode)
 			close(f);
 			return -1;
 		}
-		if(access("/mnt/plumb/send", OWRITE) < 0)
+		if(access("/mnt/plumb/send", AWRITE) < 0)
 			return -1;
 	}
 
