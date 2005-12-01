@@ -4093,3 +4093,4 @@ gcc is the holy cow of compilers, not the holy grail.  - forsyth
 NOTE 3: Each bit has the value either ZERO or ONE.  - ECMA-035 spec
 cpu90112: exiting
 cpu0: existing
+The operation timed out while trying to contact void.

@@ -469,7 +469,9 @@ vgalinearpci(VGAscr *scr)
 			continue;
 		if(best==-1 
 		|| p->mem[i].size > p->mem[best].size 
-		|| (p->mem[i].size == p->mem[best].size && (p->mem[i].bar&8)))
+		|| (p->mem[i].size == p->mem[best].size 
+		  && (p->mem[i].bar&8)
+		  && !(p->mem[best].bar&8)))
 			best = i;
 	}
 	if(best >= 0){
