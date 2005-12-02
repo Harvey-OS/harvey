@@ -199,7 +199,7 @@ emulate(void)
 					Rpt(pt(x, y), pt(xmax-n+1, y+1)), S);
 			}
 			xtipple(Rpt(pt(x,y), pt(x+n, y+1)));
-			string(&screen, pt(x, y), font, buf, DxorS);
+			string(&screen, pt(x, y), fnt, buf, DxorS);
 			if (standout)
 				rectf(&screen,
 				      Rpt(pt(x,y),pt(x+n,y+1)),
