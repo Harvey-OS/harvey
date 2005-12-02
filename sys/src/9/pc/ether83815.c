@@ -594,13 +594,16 @@ ctlrinit(Ether* ether)
 	ctlr = ether->ctlr;
 
 	/*
-	 * Allocate and initialise the receive ring;
-	 * allocate and initialise the transmit ring;
-	 * unmask interrupts and start the transmit side
+	 * Allocate suitable aligned descriptors
+	 * for the transmit and receive rings;
+	 * initialise the receive ring;
+	 * initialise the transmit ring;
+	 * unmask interrupts and start the transmit side.
 	 */
-	ctlr->rdr = malloc(ctlr->nrdr*sizeof(Des));
-	if (ctlr->rdr == nil)
-		error(Enomem);
+	des = xspanalloc((ctlr->nrdr+ctlr->ntdr)*sizeof(Des), 32, 0);
+	ctlr->tdr = des;
+	ctlr->rdr = des+ctlr->ntdr;
+
 	last = nil;
 	for(des = ctlr->rdr; des < &ctlr->rdr[ctlr->nrdr]; des++){
 		des->bp = iallocb(Rbsz);
@@ -616,7 +619,6 @@ ctlrinit(Ether* ether)
 	ctlr->rdrx = 0;
 	csr32w(ctlr, Rrxdp, PADDR(ctlr->rdr));
 
-	ctlr->tdr = xspanalloc(ctlr->ntdr*sizeof(Des), 8*sizeof(ulong), 0);
 	last = nil;
 	for(des = ctlr->tdr; des < &ctlr->tdr[ctlr->ntdr]; des++){
 		des->cmdsts = 0;

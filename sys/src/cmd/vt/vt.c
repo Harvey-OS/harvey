@@ -65,6 +65,27 @@ struct funckey vt220fk[NKEYS] = {
 	{ "right key",		"\033[C", },
 };
 
+struct funckey xtermfk[NKEYS] = {
+	{ "page up",	"\033[5~", },
+	{ "page down",	"\033[6~", },
+	{ "up key",		"\033[A", },
+	{ "down key",		"\033[B", },
+	{ "left key",		"\033[D", },
+	{ "right key",		"\033[C", },
+	{ "F1",			"\033[11~", },
+	{ "F2",			"\033[12~", },
+	{ "F3",			"\033[13~", },
+	{ "F4",			"\033[14~", },
+	{ "F5",			"\033[15~", },
+	{ "F6",			"\033[17~", },
+	{ "F7",			"\033[18~", },
+	{ "F8",			"\033[19~", },
+	{ "F9",			"\033[20~", },
+	{ "F10",		"\033[21~", },
+	{ "F11",		"\033[22~", },
+	{ "F12",		"\033[23~", },
+};
+
 char gmap[256] = {
 	['_']	' ',	/* blank */
 	['\\']	'*',	/* diamond */
@@ -103,9 +124,17 @@ char gmap[256] = {
 static void setattr(int argc, int *argv);
 
 void
+fixops(int *operand)
+{
+	if(operand[0] < 1)
+		operand[0] = 1;
+}
+
+void
 emulate(void)
 {
 	char buf[BUFS+1];
+	int i;
 	int n;
 	int c;
 	int operand[10];
@@ -113,6 +142,7 @@ emulate(void)
 	int savex, savey, saveattribute, saveisgraphics;
 	int isgraphics;
 	int g0set, g1set;
+	int dch;
 
 	isgraphics = 0;
 	g0set = 'B';	/* US ASCII */
@@ -166,14 +196,14 @@ emulate(void)
 		case '\013':
 		case '\014':
 			newline();
-			attribute = 0;
+			//attribute = attdefault;
 			if (ttystate[cs->raw].nlcr)
 				x = 0;
 			break;
 
 		case '\015':		/* carriage return */
 			x = 0;
-			attribute = 0;
+			//attribute = attdefault;
 			if (ttystate[cs->raw].crnl)
 				newline();
 			break;
@@ -208,7 +238,7 @@ emulate(void)
 			break;
 
 		case '\033':
-			switch(get_next_char()){
+			switch(dch = get_next_char()){
 			/*
 			 * 1 - graphic processor option on (no-op; not installed)
 			 */
@@ -225,6 +255,7 @@ emulate(void)
 			 * 7 - save cursor position.
 			 */
 			case '7':
+//print("save\n");
 				savex = x;
 				savey = y;
 				saveattribute = attribute;
@@ -235,6 +266,7 @@ emulate(void)
 			 * 8 - restore cursor position.
 			 */
 			case '8':
+//print("restore\n");
 				x = savex;
 				y = savey;
 				attribute = saveattribute;
@@ -245,8 +277,8 @@ emulate(void)
 			 * c - Reset terminal.
 			 */
 			case 'c':
+print("resetterminal\n");
 				cursoron = 1;
-				curson(0);
 				ttystate[cs->raw].nlcr = 0;
 				break;
 
@@ -357,10 +389,10 @@ emulate(void)
 				 * A semi-colon or ? delimits arguments.
 				 */
 				memset(operand, 0, sizeof(operand));
-				operand[0] = number(buf, nil);
+				operand[0] = number(buf, &i);
 				noperand = 1;
 				while(buf[0] == ';' || buf[0] == '?'){
-					if(noperand < nelem(operand)) {
+					if(noperand < nelem(operand)){
 						noperand++;
 						operand[noperand-1] = number(buf, nil);
 					} else
@@ -370,7 +402,7 @@ emulate(void)
 				/*
 				 * do escape2 stuff
 				 */
-				switch(buf[0]){
+				switch(dch = buf[0]){
 					/*
 					 * c - same as ESC Z: what are you?
 					 */
@@ -399,7 +431,8 @@ emulate(void)
 						if(noperand == 1){
 							switch(operand[0]){	
 							case 20:	/* set line feed mode */
-								ttystate[cs->raw].nlcr = 0;
+print("linefeedmode\n");
+								ttystate[cs->raw].nlcr = 1;
 								break;
 							case 30:	/* screen invisible (? not supported through VT220) */
 								break;
@@ -418,7 +451,7 @@ emulate(void)
 							case 5:	/* set normal video on screen */
 								break;
 							case 6:	/* set origin to absolute */
-print("OL\n");
+//print("OL\n");
 								originrelative = 0;
 								x = y = 0;
 								break;
@@ -431,10 +464,15 @@ print("OL\n");
 								break;
 							case 25:	/* text cursor off (VT220) */
 								cursoron = 0;
-								cursoff();
 								break;
 							}
 						}
+						break;
+
+					/*
+					* s - some dec private stuff. actually [ ? num s, but we can't detect it.
+					*/
+					case 's':
 						break;
 
 					/*
@@ -443,27 +481,35 @@ print("OL\n");
 					case 'h':
 //print("h%d:%d,%d\n", noperand, operand[0], operand[1]);
 						if(noperand == 1){
-							switch(operand[0]){	
+							switch(operand[0]){
+							default:
+//print("escape2 'h' unknown operand %d (n:%d)\n", operand[0], noperand-1);
+								break;
 							case 20:	/* set newline mode */
-								ttystate[cs->raw].nlcr = 1;
+print("newlinemode\n");
+								ttystate[cs->raw].nlcr = 0;
 								break;
 							case 30:	/* screen visible (? not supported through VT220) */
 								break;
 							}
 						}else while(--noperand > 0){
 							switch(operand[noperand]){
+							default:
+//print("escape2 'h' operand: %d (n:%d)\n", operand[noperand], noperand);
+								break;
 							case 1:	/* set cursor keys to send application function: ESC O A..D */
 								break;
 							case 2:	/* set ANSI */
 								break;
 							case 3:	/* set 132 columns */
 								setdim(-1, 132);
-							break;
+								break;
 							case 4:	/* set smooth scrolling */
 								break;
 							case 5:	/* set screen to reverse video (not implemented) */
 								break;
 							case 6:	/* set origin to relative */
+//print("origin relative\n");
 								originrelative = 1;
 								x = 0;
 								y = yscrmin;
@@ -477,7 +523,6 @@ print("OL\n");
 								break;
 							case 25:	/* text cursor on (VT220) */
 								cursoron = 1;
-								curson(0);
 								break;
 							}
 						}
@@ -499,6 +544,7 @@ print("OL\n");
 							sendnchars2(4, "\033[0n");	/* terminal ok */
 							break;
 						case 6:	/* cursor position */
+//print("cursor pos\n");
 							sendnchars2(sprint(buf, "\033[%d;%dR",
 								originrelative ? y+1 - yscrmin : y+1, x+1), buf);
 							break;
@@ -509,7 +555,7 @@ print("OL\n");
 					 * q - turn on list of LEDs; turn off others.
 					 */
 					case 'q':
-//						print("LED\n");
+//print("LED\n");
 						break;
 
 					/*
@@ -518,6 +564,7 @@ print("OL\n");
 					 * scrolling region.
 					 */
 					case 'r':
+//print("scrolling region: n:%d %d %d\n", noperand, operand[1], operand[0]);
 						yscrmin = 0;
 						yscrmax = ymax;
 						switch(noperand){
@@ -550,9 +597,9 @@ print("OL\n");
 					/*
 					 * A - cursor up.
 					 */
+					case 'e':
 					case 'A':
-						if(operand[0] == 0)
-							operand[0] = 1;
+						fixops(operand);
 						y -= operand[0];
 						if(y < yscrmin)
 							y = yscrmin;
@@ -565,8 +612,7 @@ print("OL\n");
 					 * B - cursor down
 					 */
 					case 'B':
-						if(operand[0] == 0)
-							operand[0] = 1;
+						fixops(operand);
 						y += operand[0];
 						if(y > yscrmax)
 							y=yscrmax;
@@ -575,27 +621,37 @@ print("OL\n");
 					/*
 					 * C - cursor right
 					 */
+					case 'a':
 					case 'C':
-						if(operand[0] == 0)
-							operand[0] = 1;
+						fixops(operand);
 						x += operand[0];
 						/*
 						 * VT-100-UG says not to go past the
 						 * right margin.
 						 */
 						if(x > xmax)
-							x=xmax;
+							x = xmax;
 						break;
 
 					/*
 					 * D - cursor left
 					 */
 					case 'D':
-						if(operand[0] == 0)
-							operand[0] = 1;
+						fixops(operand);
 						x -= operand[0];
 						if(x < 0)
 							x = 0;
+						break;
+
+					/*
+					 *	G - cursor to column
+					 */
+					case '\'':
+					case 'G':
+						fixops(operand);
+						x = operand[0] - 1;
+						if(x > xmax)
+							x = xmax;
 						break;
 
 					/*
@@ -604,21 +660,26 @@ print("OL\n");
 					 */
 					case 'H':
 					case 'f':
+						fixops(operand+1);
 						x = operand[1] - 1;
-						if(x < 0)
-							x = 0;
 						if(x > xmax)
 							x = xmax;
+
+						/* fallthrough */
+
+					/*
+					 * d - cursor to line n (xterm)
+					 */
+					case 'd':
+						fixops(operand);
 						y = operand[0] - 1;
-						if(y < 0)
-							y = 0;
 						if(originrelative){
 							y += yscrmin;
 							if(y > yscrmax)
-								y = ymax;
-						}else{
-							if(y > yscrmax)
 								y = yscrmax;
+						}else{
+							if(y > ymax)
+								y = ymax;
 						}
 						break;
 
@@ -677,17 +738,66 @@ print("OL\n");
 						break;
 
 					/*
+					 *	P - delete character(s) from right of cursor (xterm)
+					 */
+					case 'P':
+						fixops(operand);
+						i = x + operand[0];
+						draw(screen, Rpt(pt(x, y), pt(xmax+1, y+1)), screen, nil, pt(i, y));
+						clear(Rpt(pt(xmax-operand[0], y), pt(xmax+1, y+1)));
+						break;
+
+					/*
+					 *	@ - insert blank(s) to right of cursor (xterm)
+					 */
+					case '@':
+						fixops(operand);
+						i = x + operand[0];
+						draw(screen, Rpt(pt(i, y), pt(xmax+1, y+1)), screen, nil, pt(x, y));
+						clear(Rpt(pt(x, y), pt(i, y+1)));
+						break;
+
+
+					/*
+					 *	X - erase character(s) at cursor and to the right (xterm)
+					 */
+					case 'X':
+						fixops(operand);
+						i = x + operand[0];
+						clear(Rpt(pt(x, y), pt(i, y+1)));
+						break;
+
+					/*
 					 * L - insert a line at cursor position (VT102 and later)
 					 */
 					case 'L':
-						scroll(y, yscrmax, y+1, y);
+						fixops(operand);
+						for(i = 0; i < operand[0]; ++i)
+							scroll(y, yscrmax, y+1, y);
 						break;
 
 					/*
 					 * M - delete a line at cursor position (VT102 and later)
 					 */
 					case 'M':
-						scroll(y+1, yscrmax+1, y, yscrmax);
+						fixops(operand);
+						for(i = 0; i < operand[0]; ++i)
+							scroll(y+1, yscrmax+1, y, yscrmax);
+						break;
+
+					/*
+					 * S,T - scroll up/down (xterm)
+					 */
+					case 'T':
+						fixops(operand);
+						for(i = 0; i < operand[0]; ++i)
+							scroll(yscrmin, yscrmax, yscrmin+1, yscrmin);
+						break;
+
+					case 'S':
+						fixops(operand);
+						for(i = 0; i < operand[0]; ++i)
+							scroll(yscrmin+1, yscrmax+1, yscrmin, yscrmin);
 						break;
 
 					case '=':	/* ? not supported through VT220 */
@@ -703,6 +813,7 @@ print("OL\n");
 					 * Anything else we ignore for now...
 					 */
 					default:
+print("unknown escape2 '%c' (0x%x)\n", dch, dch);
 						break;
 				}
 
@@ -715,10 +826,26 @@ print("OL\n");
 				peekc = '\033';
 				break;
 
+			/* set title */
+			case ']':	/* it's actually <esc> ] num ; title <bel> */
+				{
+					int ch, fd;
+					number(buf, nil);
+					i = 0;
+					while((ch = get_next_char()) != '\a')
+						if(i < sizeof buf)
+							buf[i++] = ch;
+					fd = open("/dev/label", OWRITE);
+					write(fd, buf, i);
+					close(fd);
+				}
+				break;
+
 			/*
 			 * Ignore other commands.
 			 */
 			default:
+print("unknown command '%c' (0x%x)\n", dch, dch);
 				break;
 
 			}
@@ -763,7 +890,9 @@ setattr(int argc, int *argv)
 	for(i=0; i<argc; i++) {
 		switch(argv[i]) {
 		case 0:
-			attribute = 0;
+			attribute = attdefault;
+			frgcolor = frgdefault;
+			bckcolor = bckdefault;
 			break;
 		case 1:
 			attribute |= THighIntensity;
@@ -795,25 +924,31 @@ setattr(int argc, int *argv)
 		case 28:
 			attribute &= ~TInvisible;
 			break;
-		case 30:
-		case 31:
-		case 32:
-		case 33:
-		case 34:
-		case 35:
-		case 36:
-		case 37:
+		case 30:	/* black */
+		case 31:	/* red */
+		case 32:	/* green */
+		case 33:	/* brown */
+		case 34:	/* blue */
+		case 35:	/* purple */
+		case 36:	/* cyan */
+		case 37:	/* white */
 			frgcolor = argv[i]-30;
 			break;
-		case 40:
-		case 41:
-		case 42:
-		case 43:
-		case 44:
-		case 45:
-		case 46:
-		case 47:
+		case 39:
+			frgcolor = frgdefault;
+			break;
+		case 40:	/* black */
+		case 41:	/* red */
+		case 42:	/* green */
+		case 43:	/* brown */
+		case 44:	/* blue */
+		case 45:	/* purple */
+		case 46:	/* cyan */
+		case 47:	/* white */
 			bckcolor = argv[i]-40;
+			break;
+		case 49:
+			bckcolor = bckdefault;
 			break;
 		}
 	}
