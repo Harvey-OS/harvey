@@ -216,6 +216,7 @@ udp=portmap port=111
 udp=ntp port=123
 udp=netbios-ns port=137
 udp=snmp port=161
+udp=syslog port=514
 udp=rip port=520
 udp=dhcp6c port=546
 udp=dhcp6s port=547
