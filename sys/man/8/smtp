@@ -52,20 +52,16 @@ The options are:
 .B -d
 turn on debugging to standard error.
 .TP
-.B -a
-authenticate ourself to the server if the server
-supports PLAIN authentication and allows us to first
-start up an encrypted TLS connection
-.TP
 .B -s
 if the server supports the ESMTP extension to use TLS encryption, turn it on for
 this session.  See RFC3207 for details.
 .TP
-.B -a
-if the server supports the ESMTP extension to use TLS encryption, turn it
-on.  If the server also supports the PLAIN (user + password) authentication,
+if the server also supports PLAIN or LOGIN authentication,
 authenticate to the server using a password from
-.IR factotum (4).  See RFC's 3207 and 2554.
+.IR factotum (4).
+See RFCs 3207 and 2554.
+This option also implies
+.B -s .
 .TP
 .B -u
 specify a user name to be used in authentication.  The default name is
@@ -92,7 +88,7 @@ find an address or MX entry for the destination system.
 .PP
 Finally if
 .I .domain
-is given, it is appended to the end of any unqaulified system names
+is given, it is appended to the end of any unqualified system names
 in the envelope or header.
 .PP
 .I Smtpd
@@ -118,9 +114,11 @@ retry code) unless the sender's IP address is on the whitelist,
 .BR /mail/lib/whitelist ,
 an append only file.
 Addresses can be added to the whitelist by the administrator.  However,
-the usual way for addresses to be added is by smtpd itself.  Whenever,
-a message is received and the sender's address isn't on the whitelist,
-.B smtpd
+the usual way for addresses to be added is by
+.I smtpd
+itself.
+Whenever a message is received and the sender's address isn't on the whitelist,
+.I smtpd
 first looks for the file,
 .B /mail/grey/<remote ipaddr>/<local ipaddr>/<recipient> .
 If that file exists, the remote address is added to the whitelist.  If

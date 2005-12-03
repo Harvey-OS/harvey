@@ -37,7 +37,7 @@
 386/bin/ape/stty - 775 sys sys 1130384232 41057
 386/bin/ape/tar - 775 sys sys 1132418759 61979
 386/bin/ape/uname - 775 sys sys 1127360563 132691
-386/bin/aquarela - 775 sys sys 1064598027 319170
+386/bin/aquarela - 775 sys sys 1133529402 319170
 386/bin/ar - 775 sys sys 1131296672 111983
 386/bin/archfs - 775 sys sys 1133186773 141184
 386/bin/ascii - 775 sys sys 1130594693 64691
@@ -53,7 +53,7 @@
 386/bin/auth/debug - 775 sys sys 1130594696 101087
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
-386/bin/auth/factotum - 775 sys sys 1133186774 313147
+386/bin/auth/factotum - 775 sys sys 1133561367 313136
 386/bin/auth/fgui - 775 sys sys 1132506830 218304
 386/bin/auth/guard.srv - 775 sys sys 1130594697 142873
 386/bin/auth/iam - 775 sys sys 1085076981 50791
@@ -5180,7 +5180,7 @@ lib/namespace.ftp - 664 sys sys 1020313578 373
 lib/namespace.httpd - 664 sys sys 984695868 1209
 lib/ndb - 20000000775 sys sys 959260770 0
 lib/ndb/auth - 664 sys sys 1117108784 572
-lib/ndb/common - 664 sys sys 1133147947 5356
+lib/ndb/common - 664 sys sys 1133553666 5376
 lib/ndb/consoledb - 664 sys sys 960222421 95
 lib/ndb/dhcp - 20000000775 sys sys 959260749 0
 lib/ndb/dnsdump - 664 sys sys 1032057649 61
@@ -7721,7 +7721,7 @@ sys/man/8/scuzz - 664 sys sys 984709640 7916
 sys/man/8/secstore - 664 sys sys 1105016705 1954
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
-sys/man/8/smtp - 664 sys sys 1091126310 4724
+sys/man/8/smtp - 664 sys sys 1133542190 4509
 sys/man/8/snoopy - 664 sys sys 1128179510 4054
 sys/man/8/stats - 664 sys sys 1067722908 4291
 sys/man/8/statusbar - 664 sys sys 1131317865 1251
@@ -9371,7 +9371,7 @@ sys/src/cmd/auth/factotum/rpc.c - 664 sys sys 1107633794 11167
 sys/src/cmd/auth/factotum/rsa.c - 664 sys sys 1107706104 3416
 sys/src/cmd/auth/factotum/secstore.c - 664 sys sys 1107633794 14935
 sys/src/cmd/auth/factotum/sshrsa.c - 664 sys sys 1107633793 3416
-sys/src/cmd/auth/factotum/util.c - 664 sys sys 1131289797 18035
+sys/src/cmd/auth/factotum/util.c - 664 sys sys 1133553937 18036
 sys/src/cmd/auth/factotum/wep.c - 664 sys sys 1107706104 2140
 sys/src/cmd/auth/guard.srv.c - 664 sys sys 1032497638 2334
 sys/src/cmd/auth/iam.c - 664 sys sys 1015008430 841
