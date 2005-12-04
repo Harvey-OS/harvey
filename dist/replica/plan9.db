@@ -37,7 +37,6 @@
 386/bin/ape/stty - 775 sys sys 1130384232 41057
 386/bin/ape/tar - 775 sys sys 1132418759 61979
 386/bin/ape/uname - 775 sys sys 1127360563 132691
-386/bin/aquarela - 775 sys sys 1133529402 319170
 386/bin/ar - 775 sys sys 1131296672 111983
 386/bin/archfs - 775 sys sys 1133186773 141184
 386/bin/ascii - 775 sys sys 1130594693 64691
@@ -7721,7 +7720,7 @@ sys/man/8/scuzz - 664 sys sys 984709640 7916
 sys/man/8/secstore - 664 sys sys 1105016705 1954
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
-sys/man/8/smtp - 664 sys sys 1133542190 4509
+sys/man/8/smtp - 664 sys sys 1133631990 4507
 sys/man/8/snoopy - 664 sys sys 1128179510 4054
 sys/man/8/stats - 664 sys sys 1067722908 4291
 sys/man/8/statusbar - 664 sys sys 1131317865 1251

@@ -24,7 +24,7 @@ smtp, smtpd \-  mail transport
 .PP
 .B upas/smtpd
 [
-.B -dfrg
+.B -adfrg
 ][
 .B -n
 .I netdir
@@ -52,16 +52,17 @@ The options are:
 .B -d
 turn on debugging to standard error.
 .TP
-.B -s
-if the server supports the ESMTP extension to use TLS encryption, turn it on for
-this session.  See RFC3207 for details.
-.TP
-if the server also supports PLAIN or LOGIN authentication,
+.B -a
+if the server supports PLAIN or LOGIN authentication,
 authenticate to the server using a password from
 .IR factotum (4).
 See RFCs 3207 and 2554.
-This option also implies
-.B -s .
+This option implies
+.BR -s .
+.TP
+.B -s
+if the server supports the ESMTP extension to use TLS encryption, turn it on for
+this session.  See RFC3207 for details.
 .TP
 .B -u
 specify a user name to be used in authentication.  The default name is
