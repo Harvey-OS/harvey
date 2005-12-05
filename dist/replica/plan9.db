@@ -1271,7 +1271,7 @@ lib/face/48x48x2/x - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/y - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/z - 20000000775 sys sys 1020895710 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1124711578 2496
+lib/face/48x48x4/.dict - 664 sys sys 1133715253 2561
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -1372,6 +1372,7 @@ lib/face/48x48x4/u/unknown.ebay.com - 664 sys sys 1079017045 588
 lib/face/48x48x4/u/unknown.ghs.com - 664 sys sys 1079016859 490
 lib/face/48x48x4/u/unknown.rs-components.com - 664 sys sys 1079017058 512
 lib/face/48x48x4/u/unknown.snellwilcox.com - 664 sys sys 1079017415 901
+lib/face/48x48x4/u/uriel.1 - 664 sys sys 1133715222 833
 lib/face/48x48x4/v - 20000000775 sys sys 944945622 0
 lib/face/48x48x4/v/va.1 - 664 sys sys 944941894 1116
 lib/face/48x48x4/v/virus.1 - 664 sys sys 1079017494 1110
