@@ -83,6 +83,8 @@ struct Btab
 	0
 };
 
+char vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVWxXYZ";
+
 void
 mkprint(Lsym *s)
 {
@@ -678,31 +680,78 @@ cvtatoi(Node *r, Node *args)
 	r->fmt = 'V';
 }
 
+static char *fmtflags = "-0123456789. #,u";
+static char *fmtverbs = "bdox";
+
+static int
+acidfmt(char *fmt, char *buf, int blen)
+{
+	char *r, *w, *e;
+	
+	w = buf;
+	e = buf+blen;
+	for(r=fmt; *r; r++){
+		if(w >= e)
+			return -1;
+		if(*r != '%'){
+			*w++ = *r;
+			continue;
+		}
+		if(*r == '%'){
+			*w++ = *r++;
+			if(*r == '%'){
+				if(w >= e)
+					return -1;
+				*w++ = *r;
+				continue;
+			}
+			while(*r && strchr(fmtflags, *r)){
+				if(w >= e)
+					return -1;
+				*w++ = *r++;
+			}
+			if(*r == 0 || strchr(fmtverbs, *r) == nil)
+				return -1;
+			if(w+3 > e)
+				return -1;
+			*w++ = 'l';
+			*w++ = 'l';
+			*w++ = *r;
+		}
+	}
+	if(w >= e)
+		return -1;
+	*w = 0;
+
+	return 0;
+}
+
 void
 cvtitoa(Node *r, Node *args)
 {
 	Node res;
 	Node *av[Maxarg];
 	vlong ival;
-	char buf[128], *fmt;
+	char buf[128], fmt[32];
 
 	if(args == 0)
 err:
-		error("itoa(number [, printformat]): arg count");
+		error("itoa(number [, fmt]): arg count");
 	na = 0;
 	flatten(av, args);
 	if(na == 0 || na > 2)
 		goto err;
 	expr(av[0], &res);
 	if(res.type != TINT)
-		error("itoa(integer): arg type");
+		error("itoa(number [, fmt]): arg type");
 	ival = res.ival;
-	fmt = "%lld";
+	strncpy(fmt, "%lld", sizeof(fmt));
 	if(na == 2){
 		expr(av[1], &res);
 		if(res.type != TSTRING)
-			error("itoa(integer, string): arg type");
-		fmt = res.string->string;
+			error("itoa(number [, fmt]): fmt type");
+		if(acidfmt(res.string->string, fmt, sizeof(buf)))
+			error("itoa(number [, fmt]): malformed fmt");
 	}
 
 	snprint(buf, sizeof(buf), fmt, ival);
@@ -895,8 +944,6 @@ regexp(Node *r, Node *args)
 	r->ival = regexec(rp, res.string->string, 0, 0);
 	free(rp);
 }
-
-char vfmt[] = "aBbcCdDfFgGiIoOqQrRsSuUVWxXYZ";
 
 void
 fmt(Node *r, Node *args)

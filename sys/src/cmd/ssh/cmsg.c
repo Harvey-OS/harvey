@@ -252,52 +252,25 @@ intgetenv(char *name, int def)
 }
 
 /*
- * clumsy hack -- rather than open the font and fetch
- * the real character width and height, we assume that
- * LINES and COLS are initially correct and use them to 
- * derive cwidth, cheight.  this is definitely a mistake,
- * but i don't care.  if you do, fix it.
+ * assumes that if you care, you're running under vt
+ * and therefore these are set.
  */
 int
 readgeom(int *nrow, int *ncol, int *width, int *height)
 {
-	int ret;
-	static int first=1;
 	static int fd = -1;
-	static int cwidth, cheight;
 	char buf[64];
-	int n;
 
-	ret = 0;
-	/* defaults */
-	*width = 640;
-	*height = 480;
-
-	if(fd < 0)
-		fd = open("/dev/wctl", OREAD);
-	if(fd >= 0){
-		n = read(fd, buf, sizeof(buf));
-		if(n < 48){
-			close(fd);
-			fd = -1;
-			ret = -1;
-			goto Out;
-		}
-	}
-	*width = atoi(&buf[2*12]) - atoi(&buf[0*12]);
-	*height = atoi(&buf[3*12]) - atoi(&buf[1*12]);
-
-Out:
-	*nrow = intgetenv("LINES", 0);
-	*ncol = intgetenv("COLS", 0);
-	if(first){
-		first = 0;
-		if(*nrow)
-			cwidth = *width/(*nrow);
-		if(*ncol)
-			cheight = *height/(*ncol);
-	}
-	return ret;
+	if(fd < 0 && (fd = open("/dev/wctl", OREAD)) < 0)
+		return -1;
+	/* wait for event, but don't care what it says */
+	if(read(fd, buf, sizeof buf) < 0)
+		return -1;
+	*nrow = intgetenv("LINES", 24);
+	*ncol = intgetenv("COLS", 80);
+	*width = intgetenv("XPIXELS", 640);
+	*height = intgetenv("YPIXELS", 480);
+	return 0;
 }
 
 void
