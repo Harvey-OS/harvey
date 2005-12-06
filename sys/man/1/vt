@@ -4,7 +4,11 @@ vt \- emulate a VT-100 or VT-220 terminal
 .SH SYNOPSIS
 .B vt
 [
-.B -2sa
+.B -2aswx
+]
+[
+.B -f
+.I font
 ]
 .SH DESCRIPTION
 .I Vt
@@ -12,16 +16,32 @@ replaces a rio window with a fresh instance of the shell
 .IR rc (1)
 running within an emulation of a DEC VT-100 terminal.
 The
-.B -2
-and
+.BR -2 ,
 .B -a
-options configure
+and
+.B -x
+options change
 .I vt
-to emulate a VT-220 and Ansi terminal respectively.
+to emulate a VT-220, ANSI, or XTerm terminal respectively.
+.PP
 The
 .B -s
-options forces a saner color scheme, i.e, black text on white
-background.
+option changes the color scheme to black text on a white background.
+.PP
+The
+.B -w
+option causes
+.I vt
+to provide a 
+.B /dev/wctl
+file that can be read to learn about window size changes.
+In particular,
+.IR ssh (1)
+will read this file and inform the remote system about size changes.
+.PP
+The
+.B -f
+option sets the font.
 .PP
 The right button has a menu with the following entries to provide
 the sort of character processing expected by non-Plan 9 systems:
@@ -51,7 +71,7 @@ Enter raw (no echo, no interpretation) character mode for input.
 Leave raw mode.
 .TP
 .B exit
-Exits
+Exit
 .IR vt .
 .PD
 .PP
@@ -93,9 +113,9 @@ The down arrow key advances a page without sending the character to the host.
 .PP
 To exit
 .IR vt ,
-exit its
+exit the
 .B rc
-session by, for example, typing EOT (control-D).
+it starts.
 .SH SOURCE
 .B /sys/src/cmd/vt
 .SH BUGS
@@ -105,5 +125,7 @@ as rich an emulation as its equivalent in other environments.
 .PP
 Use care in setting raw and newline modes when connecting to Unix systems
 via
-.IR con .
+.IR con (1)
+or
+.IR ssh (1).
 It may also be necessary to set the emulator into raw mode.

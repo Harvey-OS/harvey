@@ -59,7 +59,7 @@ findauth(char *name, Auth **list, int nlist)
 void
 usage(void)
 {
-	fprint(2, "usage: ssh [-CiImPpRrw] [-A authlist] [-c cipherlist] [user@]hostname [cmd [args]]\n");
+	fprint(2, "usage: ssh [-CiImPpRr] [-A authlist] [-c cipherlist] [user@]hostname [cmd [args]]\n");
 	exits("usage");
 }
 
@@ -78,6 +78,8 @@ main(int argc, char **argv)
 	atexitkill(getpid());
 
 	dowinchange = 0;
+	if(getenv("LINES"))
+		dowinchange = 1;
 	usepty = -1;
 	user = nil;
 	ARGBEGIN{
@@ -127,9 +129,6 @@ main(int argc, char **argv)
 		break;
 	case 'r':
 		crstrip = 1;
-		break;
-	case 'w':
-		dowinchange = 1;
 		break;
 	default:
 		usage();
