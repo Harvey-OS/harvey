@@ -385,7 +385,7 @@
 386/bin/rio - 775 sys sys 1133287403 310310
 386/bin/rm - 775 sys sys 1130594779 61365
 386/bin/rx - 775 sys sys 1130594779 82087
-386/bin/sam - 775 sys sys 1133287404 159353
+386/bin/sam - 775 sys sys 1133892147 159358
 386/bin/scat - 775 sys sys 1132506872 284491
 386/bin/scp - 775 sys sys 1132506873 152166
 386/bin/scuzz - 775 sys sys 1130594781 111636
@@ -7379,7 +7379,7 @@ sys/man/1/uptime - 664 sys sys 1074733782 380
 sys/man/1/vac - 664 sys sys 1021579977 3227
 sys/man/1/vi - 664 sys sys 1101668051 2904
 sys/man/1/vnc - 664 sys sys 1045501432 4186
-sys/man/1/vt - 664 sys sys 1133804098 2472
+sys/man/1/vt - 664 sys sys 1133880370 2256
 sys/man/1/wc - 664 sys sys 1113743327 908
 sys/man/1/who - 664 sys sys 944959674 332
 sys/man/1/winwatch - 664 sys sys 1113252108 723
@@ -7472,7 +7472,7 @@ sys/man/2/lock - 664 sys sys 1048643958 4692
 sys/man/2/mach - 664 sys sys 1080179298 7995
 sys/man/2/malloc - 664 sys sys 1102093069 4763
 sys/man/2/matrix - 664 sys sys 950892861 6090
-sys/man/2/memdraw - 664 sys sys 1113742428 10111
+sys/man/2/memdraw - 664 sys sys 1133883757 10112
 sys/man/2/memlayer - 664 sys sys 1040484074 6963
 sys/man/2/memory - 664 sys sys 944959694 2139
 sys/man/2/mktemp - 664 sys sys 950892862 669
@@ -7538,17 +7538,17 @@ sys/man/3/INDEX - 664 sys sys 1104736375 363
 sys/man/3/INDEX.html - 664 sys sys 1104736377 3590
 sys/man/3/apm - 664 sys sys 984709634 1625
 sys/man/3/arch - 664 sys sys 958419692 1425
-sys/man/3/audio - 664 sys sys 1015024777 2932
+sys/man/3/audio - 664 sys sys 1133880494 2933
 sys/man/3/cap - 664 sys sys 1032632323 2137
-sys/man/3/cons - 664 sys sys 1127766305 8965
+sys/man/3/cons - 664 sys sys 1133880397 8972
 sys/man/3/draw - 664 sys sys 1040457030 13813
 sys/man/3/dup - 664 sys sys 1015024778 1099
 sys/man/3/env - 664 sys sys 1015024778 1409
 sys/man/3/ether - 664 sys sys 984709635 2563
 sys/man/3/floppy - 664 sys sys 954378905 881
-sys/man/3/fs - 664 sys sys 1055701106 2706
+sys/man/3/fs - 664 sys sys 1133880474 2702
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1103554774 21677
+sys/man/3/ip - 664 sys sys 1133880453 21677
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -7557,7 +7557,7 @@ sys/man/3/mnt - 664 sys sys 944959698 1994
 sys/man/3/mouse - 664 sys sys 1020313480 4276
 sys/man/3/pipe - 664 sys sys 1032640674 1145
 sys/man/3/pnp - 664 sys sys 1088560895 4547
-sys/man/3/proc - 664 sys sys 1093452918 12027
+sys/man/3/proc - 664 sys sys 1133880424 12029
 sys/man/3/root - 664 sys sys 1046958450 632
 sys/man/3/rtc - 664 sys sys 954378857 667
 sys/man/3/sd - 664 sys sys 1018386776 4805
@@ -12768,7 +12768,7 @@ sys/src/cmd/sam/error.c - 664 sys sys 1108939612 2222
 sys/src/cmd/sam/errors.h - 664 sys sys 944961628 695
 sys/src/cmd/sam/file.c - 664 sys sys 1045505553 11030
 sys/src/cmd/sam/io.c - 664 sys sys 1111181614 4688
-sys/src/cmd/sam/list.c - 664 sys sys 1132448975 1431
+sys/src/cmd/sam/list.c - 664 sys sys 1133885097 1437
 sys/src/cmd/sam/mesg.c - 664 sys sys 1132448975 14291
 sys/src/cmd/sam/mesg.h - 664 sys sys 1111181613 3785
 sys/src/cmd/sam/mkfile - 664 sys sys 1111181613 429
@@ -12778,8 +12778,8 @@ sys/src/cmd/sam/parse.h - 664 sys sys 1130423794 1934
 sys/src/cmd/sam/plan9.c - 664 sys sys 1112535044 2303
 sys/src/cmd/sam/rasp.c - 664 sys sys 1132448976 5618
 sys/src/cmd/sam/regexp.c - 664 sys sys 944961629 15390
-sys/src/cmd/sam/sam.c - 664 sys sys 1132448976 12016
-sys/src/cmd/sam/sam.h - 664 sys sys 1132448977 9345
+sys/src/cmd/sam/sam.c - 664 sys sys 1133885145 12016
+sys/src/cmd/sam/sam.h - 664 sys sys 1133885097 9366
 sys/src/cmd/sam/shell.c - 664 sys sys 1121977163 3143
 sys/src/cmd/sam/string.c - 664 sys sys 944961629 2766
 sys/src/cmd/sam/sys.c - 664 sys sys 1014926939 745

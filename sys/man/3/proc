@@ -360,12 +360,12 @@ give up the processor voluntarily, they exhaust their CPU allocation, or they re
 .IR deadline .
 The moment of release is dictated by the
 .I period
-and whther the process is
+and whether the process is
 .I sporadic
 or not.
 Non-sporadic processes are called
 .I periodic
-and they are released precisely at intervals of their period (but perods can be skipped
+and they are released precisely at intervals of their period (but periods can be skipped
 if the process blocks on I/O).  Sporadic processes are released whenever they become
 runnable (after being blocked by
 .IR sleep ()

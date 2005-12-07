@@ -165,8 +165,8 @@ Reassemble IP fragments before forwarding to this interface
 .TP
 .BI iprouting\  n
 Allow
-.RI ( n is missing
-or non-zero) or disallow
+.RI ( n
+is missing or non-zero) or disallow
 .RI ( n
 is 0) forwarding packets between this interface and
 others.
@@ -341,7 +341,7 @@ and
 (see
 .IR ndb (8)).
 .B /net/ndb
-may contain up tp 1024 bytes.
+may contain up to 1024 bytes.
 .PP
 The file
 .B /net/ipselftab
@@ -711,7 +711,7 @@ and
 .B header
 Turn on header mode.  Every buffer read from
 .B data
-starts with 4 unsued bytes, and the first 4 bytes
+starts with 4 unused bytes, and the first 4 bytes
 of every buffer written to
 .B data
 are ignored.

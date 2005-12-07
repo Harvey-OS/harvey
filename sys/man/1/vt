@@ -4,7 +4,7 @@ vt \- emulate a VT-100 or VT-220 terminal
 .SH SYNOPSIS
 .B vt
 [
-.B -2aswx
+.B -2asx
 ]
 [
 .B -f
@@ -27,17 +27,6 @@ to emulate a VT-220, ANSI, or XTerm terminal respectively.
 The
 .B -s
 option changes the color scheme to black text on a white background.
-.PP
-The
-.B -w
-option causes
-.I vt
-to provide a 
-.B /dev/wctl
-file that can be read to learn about window size changes.
-In particular,
-.IR ssh (1)
-will read this file and inform the remote system about size changes.
 .PP
 The
 .B -f
