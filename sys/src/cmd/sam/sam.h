@@ -66,12 +66,11 @@ struct String
 
 struct List
 {
-	int	type;
+	int	type;	/* 'p' for pointer, 'P' for Posn */
 	int	nalloc;
 	int	nused;
 	union{
 		void*	listp;
-		Block*	blkp;
 		void**	voidp;
 		Posn*	posnp;
 		String**stringp;

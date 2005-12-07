@@ -75,7 +75,7 @@ For example, if all of the values are shared, the form degenerates to
 .RI ` source
 .IR value '.
 Valid sources depend on the particular audio device,
-though all devices have a
+though all devices have an
 .B audio
 stereo source, which controls the output volume from the D/A converter
 connected to

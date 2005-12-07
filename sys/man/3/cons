@@ -84,7 +84,9 @@ file and the file is still open,
 is in
 .IR "raw mode" :
 characters are not echoed as they are typed,
-backspace and
+backspace,
+.L ^U
+and
 .L ^D
 are not treated specially,
 and characters are available to

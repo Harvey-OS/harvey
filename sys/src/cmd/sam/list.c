@@ -16,7 +16,7 @@ growlist(List *l, int esize)
 	else if(l->nused == l->nalloc){
 		p = erealloc(l->listptr, (l->nalloc+INCR)*esize);
 		l->listptr = p;
-		memset(p+l->nalloc, 0, INCR*esize);
+		memset(p+l->nalloc*esize, 0, INCR*esize);
 		l->nalloc += INCR;
 	}
 }

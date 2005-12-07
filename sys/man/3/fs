@@ -45,7 +45,7 @@ Writes to
 are handled by sequentially writing to the
 .I files
 from right to left (the reverse of
-of the order in the control message).
+the order in the control message).
 If any write fails, the write is aborted.
 Reads from
 .BI new
@@ -78,7 +78,7 @@ corresponds to the block interleaving of
 .IR files ;
 an 8192-byte block size is assumed.
 .TP
-.BI cat " name files" \fR...
+.BI cat " new files" \fR...
 The device
 .I new
 corresponds to the catenation of

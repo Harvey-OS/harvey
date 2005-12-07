@@ -173,7 +173,7 @@ RPCs to the
 .B /dev/draw
 hierarchy.
 The
-.Bmemdraw
+.B memdraw
 library is the basis for the kernel 
 .IR draw (3)
 driver and also used by a number of programs that must manipulate
