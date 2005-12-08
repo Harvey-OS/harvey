@@ -134,7 +134,7 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 	char *p;
 
 	iosize = maxiosize;
-	nbytes = 0x7FFFFFFFFFFFULL & ~iosize;
+	nbytes = ~0ULL >> 1;
 	switch(argc){
 
 	default:
@@ -193,7 +193,7 @@ cmdwrite(ScsiReq *rp, int argc, char *argv[])
 	int fd, pid;
 	char *p;
 
-	nbytes = 0x7FFFFFFF & ~maxiosize;
+	nbytes = ~0ULL >> 1;
 	switch(argc){
 
 	default:

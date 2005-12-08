@@ -168,6 +168,8 @@ pop3capa(Pop *pop)
 			hastls = 1;
 		if(strcmp(s, "PIPELINING") == 0)
 			pop->pipeline = 1;
+		if(strcmp(s, "EXPIRE 0") == 0)
+			return "server does not allow mail to be left on server";
 	}
 
 	if(hastls && !pop->notls){

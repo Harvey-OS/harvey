@@ -22,16 +22,15 @@ brk(char *p)
 	return 0;
 }
 
-char *
-sbrk(int n)
+void *
+sbrk(unsigned long n)
 {
-
 	n += 3;
 	n &= ~3;
 	if(_BRK_((void *)(bloc+n)) < 0){
 		errno = ENOMEM;
-		return (char *)-1;
+		return (void *)-1;
 	}
 	bloc += n;
-	return (char *)(bloc-n);
+	return (void *)(bloc-n);
 }

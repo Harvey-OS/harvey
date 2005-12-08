@@ -388,7 +388,7 @@
 386/bin/sam - 775 sys sys 1133892147 159358
 386/bin/scat - 775 sys sys 1132506872 284491
 386/bin/scp - 775 sys sys 1132506873 152166
-386/bin/scuzz - 775 sys sys 1130594781 111636
+386/bin/scuzz - 775 sys sys 1133964107 111619
 386/bin/sed - 775 sys sys 1130594781 89546
 386/bin/seq - 775 sys sys 1130384331 38414
 386/bin/sha1sum - 775 sys sys 1130594782 61165
@@ -446,7 +446,7 @@
 386/bin/upas/bayes - 775 sys sys 1130594796 74627
 386/bin/upas/deliver - 775 sys sys 1132506877 100133
 386/bin/upas/filter - 775 sys sys 1132506878 147676
-386/bin/upas/fs - 775 sys sys 1133287405 333936
+386/bin/upas/fs - 775 sys sys 1133993447 334032
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1130594798 82799
 386/bin/upas/marshal - 775 sys sys 1132506879 132971
@@ -525,7 +525,7 @@
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 944969312 0
 386/lib/ape/lib9.a - 664 sys sys 1132506894 6988
-386/lib/ape/libap.a - 664 sys sys 1127360618 809456
+386/lib/ape/libap.a - 664 sys sys 1134007326 809456
 386/lib/ape/libbsd.a - 664 sys sys 1122001336 179308
 386/lib/ape/libdraw.a - 664 sys sys 1131646653 574552
 386/lib/ape/libfmt.a - 664 sys sys 1122001337 147204
@@ -5766,7 +5766,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1133400893 256649
+sys/games/lib/fortunes - 664 sys sys 1133956965 256761
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -8588,7 +8588,7 @@ sys/src/ape/lib/ap/plan9/access.c - 664 sys sys 1014921983 904
 sys/src/ape/lib/ap/plan9/acid.c - 664 sys sys 1014921985 729
 sys/src/ape/lib/ap/plan9/acidlib - 664 sys sys 1014921985 10866
 sys/src/ape/lib/ap/plan9/alarm.c - 664 sys sys 1014921983 127
-sys/src/ape/lib/ap/plan9/brk.c - 664 sys sys 1014921983 463
+sys/src/ape/lib/ap/plan9/brk.c - 664 sys sys 1134003440 472
 sys/src/ape/lib/ap/plan9/buf.prom - 664 sys sys 1014921984 6783
 sys/src/ape/lib/ap/plan9/cfgetospeed.c - 664 sys sys 1014921985 270
 sys/src/ape/lib/ap/plan9/chdir.c - 664 sys sys 1014921983 147
@@ -8644,7 +8644,7 @@ sys/src/ape/lib/ap/plan9/open.c - 664 sys sys 1048644335 1088
 sys/src/ape/lib/ap/plan9/opendir.c - 664 sys sys 1014921984 1881
 sys/src/ape/lib/ap/plan9/pause.c - 664 sys sys 1014921985 124
 sys/src/ape/lib/ap/plan9/pipe.c - 664 sys sys 1014921984 476
-sys/src/ape/lib/ap/plan9/profile.c - 664 sys sys 1014921985 2521
+sys/src/ape/lib/ap/plan9/profile.c - 664 sys sys 1134003027 2531
 sys/src/ape/lib/ap/plan9/qlock.c - 664 sys sys 1070330880 5124
 sys/src/ape/lib/ap/plan9/raise.c - 664 sys sys 1014921985 120
 sys/src/ape/lib/ap/plan9/read.c - 664 sys sys 1014921984 767
@@ -12825,7 +12825,7 @@ sys/src/cmd/scuzz/changer.c - 664 sys sys 944961084 1137
 sys/src/cmd/scuzz/mkfile - 664 sys sys 1032060571 231
 sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1032060572 11501
 sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1113741890 5929
-sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1121977163 37610
+sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1133957139 37580
 sys/src/cmd/scuzz/sense.c - 664 sys sys 969510790 3901
 sys/src/cmd/sed.c - 664 sys sys 1100962924 27001
 sys/src/cmd/seq.c - 664 sys sys 1125529033 1683
@@ -13351,7 +13351,7 @@ sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1133147970 16258
 sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1107835226 28935
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1071334861 7465
-sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1107358653 12930
+sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1133988332 13024
 sys/src/cmd/upas/fs/readdir.c - 664 sys sys 944961331 203
 sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1041137528 1904
 sys/src/cmd/upas/fs/tester.c - 664 sys sys 985037420 1418

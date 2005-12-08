@@ -23375,3 +23375,11 @@
 1133886712 1 c sys/src/cmd/sam/sam.c - 664 sys sys 1133885145 12016
 1133886712 2 c sys/src/cmd/sam/sam.h - 664 sys sys 1133885097 9366
 1133893914 0 c 386/bin/sam - 775 sys sys 1133892147 159358
+1133958609 0 c sys/games/lib/fortunes - 664 sys sys 1133956965 256761
+1133958609 1 c sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1133957139 37580
+1133965811 0 c 386/bin/scuzz - 775 sys sys 1133964107 111619
+1133989217 0 c sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1133988332 13024
+1133994618 0 c 386/bin/upas/fs - 775 sys sys 1133993447 334032
+1134003620 0 c sys/src/ape/lib/ap/plan9/brk.c - 664 sys sys 1134003440 472
+1134003620 1 c sys/src/ape/lib/ap/plan9/profile.c - 664 sys sys 1134003027 2531
+1134009023 0 c 386/lib/ape/libap.a - 664 sys sys 1134007326 809456
