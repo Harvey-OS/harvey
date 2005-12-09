@@ -1056,6 +1056,8 @@ dp83820reset(Ctlr* ctlr)
 		delay(1);
 
 	atc93c46r(ctlr, 0);
+	if(ctlr->eeprom == nil)
+		return -1;
 	sum = 0;
 	for(i = 0; i < 0x0E; i++){
 		r = atc93c46r(ctlr, i);

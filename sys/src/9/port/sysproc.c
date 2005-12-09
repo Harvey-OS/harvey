@@ -568,8 +568,8 @@ sysexits(ulong *arg)
 				buf[ERRMAX-1] = 0;
 				status = buf;
 			}
+			poperror();
 		}
-		poperror();
 
 	}
 	pexit(status, 1);
