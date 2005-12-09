@@ -598,23 +598,15 @@ rxmitsols(Arp *arp)
 		else
 			break;
 	}
+	if(a == nil)
+		goto dodrops;
 
-	 /* need to unlock arp, else will deadlock when icmpns 
-	  * wants to lock arp later.
-	  */
-	
-	qunlock(arp);
 
-	if(a == nil) 
-		goto dodrops; 		// return 0;
-
+	qunlock(arp);	/* for icmpns */
 	if((sflag = ipv6anylocal(ifc, ipsrc)) != SRC_UNSPEC) 
 		icmpns(f, ipsrc, sflag, a->ip, TARG_MULTI, ifc->mac); 
 
 	runlock(ifc);
-
-	/* grab lock on arp again */
-
 	qlock(arp);	
 
 	/* put to the end of re-transmit chain */

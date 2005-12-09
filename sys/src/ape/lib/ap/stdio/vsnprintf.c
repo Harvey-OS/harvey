@@ -4,7 +4,6 @@
 #include "iolib.h"
 int vsnprintf(char *buf, size_t nbuf, const char *fmt, va_list args){
 	int n;
-	char *v;
 	FILE *f=_IO_sopenw();
 	if(f==NULL)
 		return 0;

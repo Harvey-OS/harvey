@@ -582,7 +582,7 @@ mountfix(Chan *c, uchar *op, long n, long maxn)
 			l = devtab[nc->type]->stat(nc, buf, nbuf);
 			l = dirsetname(name, nname, buf, l, nbuf);
 			if(l == BIT16SZ)
-				goto Norewrite;
+				error("dirsetname");
 			poperror();
 
 			/*

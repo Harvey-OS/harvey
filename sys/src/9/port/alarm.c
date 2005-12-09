@@ -4,9 +4,8 @@
 #include	"dat.h"
 #include	"fns.h"
 
-Alarms	alarms;
-Rendez	alarmr;
-Talarm	talarm;
+static Alarms	alarms;
+static Rendez	alarmr;
 
 void
 alarmkproc(void*)

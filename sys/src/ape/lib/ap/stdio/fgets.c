@@ -3,7 +3,7 @@
  */
 #include "iolib.h"
 char *fgets(char *as, int n, FILE *f){
-	int c;
+	int c=0;
 	char *s=as;
 	while(n>1 && (c=getc(f))!=EOF){
 		*s++=c;

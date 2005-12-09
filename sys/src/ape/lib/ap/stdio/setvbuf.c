@@ -34,6 +34,6 @@ int setvbuf(FILE *f, char *buf, int mode, size_t size){
 }
 int _IO_setvbuf(FILE *f){
 	if(f==stderr || (f==stdout && isatty(1)))
-		setvbuf(f, (char *)0, _IOLBF, BUFSIZ);
-	else setvbuf(f, (char *)0, _IOFBF, BUFSIZ);
+		return setvbuf(f, (char *)0, _IOLBF, BUFSIZ);
+	return setvbuf(f, (char *)0, _IOFBF, BUFSIZ);
 }
