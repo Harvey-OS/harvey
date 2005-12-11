@@ -112,7 +112,7 @@ main(int argc, char **argv)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-8] [-xod | -b8] [-ncst] [--] [text]\n", argv0);
+	fprint(2, "usage: %s [-8cnt] [-dox | -b n] [text]\n", argv0);
 	exits("usage");
 }
 void

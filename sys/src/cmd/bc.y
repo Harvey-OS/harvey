@@ -956,7 +956,7 @@ main(int argc, char **argv)
 			sflag++;
 			break;
 		default:
-			fprint(2, "Usage: bc [-l] [-c] [file ...]\n");
+			fprint(2, "Usage: bc [-cdls] [file ...]\n");
 			exits("usage");
 		}
 		argc--;
