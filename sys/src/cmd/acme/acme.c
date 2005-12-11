@@ -101,7 +101,7 @@ threadmain(int argc, char *argv[])
 		break;
 	default:
 	Usage:
-		fprint(2, "usage: acme -a -c ncol -f fontname -F fixedwidthfontname -l loadfile\n");
+		fprint(2, "usage: acme [-ab] [-c ncol] [-f font] [-F fixedfont] [-l loadfile | file...]\n");
 		exits("usage");
 	}ARGEND
 

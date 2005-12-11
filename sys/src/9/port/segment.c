@@ -453,6 +453,8 @@ ibrk(ulong addr, int seg)
 	newsize = (newtop-s->base)/BY2PG;
 	if(newtop < s->top) {
 		mfreeseg(s, newtop, (s->top-newtop)/BY2PG);
+		s->top = newtop;
+		s->size = newsize;
 		qunlock(&s->lk);
 		flushmmu();
 		return 0;

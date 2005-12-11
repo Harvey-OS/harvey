@@ -7,6 +7,10 @@ acme, win, awd \- interactive text windows
 .B -ab
 ]
 [
+.B -c
+.I ncol
+]
+[
 .B -f
 .I varfont
 ]
@@ -15,12 +19,8 @@ acme, win, awd \- interactive text windows
 .I fixfont
 ]
 [
-.B -c
-.I ncol
-]
-[
 .B -l
-.I file
+.I loadfile
 |
 .I file
 \&... ]
@@ -54,7 +54,7 @@ With the
 .B -l
 option, the state of the entire system is loaded
 from
-.IR file ,
+.IR loadfile ,
 which should have been created by a
 .B Dump
 command (q.v.),

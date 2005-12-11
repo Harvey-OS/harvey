@@ -4,22 +4,31 @@ awk \- pattern-directed scanning and processing language
 .SH SYNOPSIS
 .B awk
 [
-.BI -F fs
+.B -F
+.I fs
 ]
 [
-.BI -v
+.B -d
+]
+[
+.BI -mf
+.I n
+]
+[
+.B -mr
+.I n
+]
+[
+.B -safe
+]
+[
+.B -v
 .I var=value
 ]
 [
-.BI -mr n
-]
-[
-.BI -mf n
-]
-[
 .B -f
-.I prog
-[
+.I progfile
+|
 .I prog
 ]
 [
@@ -30,11 +39,11 @@ awk \- pattern-directed scanning and processing language
 scans each input
 .I file
 for lines that match any of a set of patterns specified literally in
-.IR prog
+.I prog
 or in one or more files
 specified as
 .B -f
-.IR file .
+.IR progfile .
 With each pattern
 there can be an associated action that will be performed
 when a line of a
@@ -56,13 +65,12 @@ The option
 .B -v
 followed by
 .I var=value
-is an assignment to be done before
-.I prog
+is an assignment to be done before the program
 is executed;
 any number of
 .B -v
 options may be present.
-.B \-F
+.B -F
 .IR fs
 option defines the input field separator to be the regular expression
 .IR fs .
@@ -82,11 +90,24 @@ is null, the input line is split into one field per character.
 .PP
 To compensate for inadequate implementation of storage management,
 the 
-.B \-mr
+.B -mr
 option can be used to set the maximum size of the input record,
 and the
-.B \-mf
+.B -mf
 option to set the maximum number of fields.
+.PP
+The
+.B -safe
+option causes
+.I awk
+to run in 
+``safe mode,''
+in which it is not allowed to 
+run shell commands or open files
+and the environment is not made available
+in the 
+.B ENVIRON
+variable.
 .PP
 A pattern-action statement has the form
 .IP

@@ -4,13 +4,7 @@ bc \- arbitrary-precision arithmetic language
 .SH SYNOPSIS
 .B bc
 [
-.B -c
-]
-[
-.B -l
-]
-[
-.B -s
+.B -cdls
 ]
 [
 .I file ...
@@ -22,13 +16,17 @@ C but provides arithmetic on numbers of arbitrary length with up
 to 100 digits right of the decimal point.
 It takes input from any files given, then reads
 the standard input.
+.PP
+The
+.B -d
+option enables debugging output.
 The
 .B -l
-argument stands for the name
+option stands for the name
 of an arbitrary precision math library.
 The
 .B -s
-argument suppresses the automatic display
+option suppresses the automatic display
 of calculation results; all output is via the
 .B print
 command.
