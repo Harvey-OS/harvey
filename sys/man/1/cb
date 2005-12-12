@@ -1,31 +1,46 @@
 .TH CB 1
 .SH NAME
-.I cb 
-\- C program beautifier
+cb \- C program beautifier
 .SH SYNOPSIS
-\fBcb\fR [\fB-s\fR] [\fB-j\fR] [\fB-l\fR \fIlength\fR] [\fIfile\fR ...]
+.B cb
+[
+.B -js
+]
+[
+.B -l
+.I length
+]
+[
+.I file
+\&...
+]
 .SH DESCRIPTION
-\fBCb\fR reads syntactically correct C programs from
+.I Cb
+reads syntactically correct C programs from
 from its input or the given files, and writes them to its stdout
-with a more visualy pleasing spacing and indentation. \fBCb\fR
+with a more visualy pleasing spacing and indentation.
+.I Cb
 understands no C++ syntax bar newline terminated comments;
 and by default all user new-lines are preserved in the output.
 .PP
-\fBCb\fR accepts the following options.
-.TP 
-.B -s
-Write the code in the style of Kernighan and
-Ritchie found in The C Programming Language.
+The options are:
 .TP
 .B -j
-Put split lines back together.
+Join split lines.
+.TP 
+.B -s
+Print code in the so-called K&R style used in
+.IR "The C Programming Language" .
 .TP 
 .B -l length
-Split lines that are longer than \fIlength\fR.
+Split lines that are longer than
+.IR length .
+.PD
 .SH SOURCE
 .B /sys/src/cmd/cb
-.SH NOTES
-The format of structure initializations is unchanged by \fBcb\fR.
+.SH BUGS
+.I Cb
+does not reformat structure initializers.
 .br
-Punctuation that is hidden in preprocessing directives
-causes indentation errors.
+Punctuation hidden in macros can cause
+indentation errors.

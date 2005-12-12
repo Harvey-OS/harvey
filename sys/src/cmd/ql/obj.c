@@ -434,7 +434,7 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 	a->name = p[3];
 	c = 4;
 
-	if(a->reg < 0 || a->reg > NREG) {
+	if(a->reg > NREG) {
 		print("register out of range %d\n", a->reg);
 		p[0] = AEND+1;
 		return 0;	/*  force real diagnostic */

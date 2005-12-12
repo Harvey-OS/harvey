@@ -129,6 +129,7 @@ usage(void)
 void
 main(int argc, char **argv)
 {
+	char *addr = nil;
 	char *srvname = nil;
 	char *mtpt = nil;
 	Qid q;
@@ -139,6 +140,9 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	case 'D':
 		chatty9p++;
+		break;
+	case 'a':
+		addr = EARGF(usage());
 		break;
 	case 's':
 		srvname = EARGF(usage());
@@ -155,9 +159,12 @@ main(int argc, char **argv)
 
 	if(chatty9p)
 		fprint(2, "ramsrv.nopipe %d srvname %s mtpt %s\n", fs.nopipe, srvname, mtpt);
-	if(srvname == nil && mtpt == nil)
-		sysfatal("you should at least specify a -s or -m option");
+	if(addr == nil && srvname == nil && mtpt == nil)
+		sysfatal("must specify -a, -s, or -m option");
+	if(addr)
+		listensrv(&fs, addr);
 
-	postmountsrv(&fs, srvname, mtpt, MREPL|MCREATE);
+	if(srvname || mtpt)
+		postmountsrv(&fs, srvname, mtpt, MREPL|MCREATE);
 	exits(0);
 }

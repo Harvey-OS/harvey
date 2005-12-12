@@ -395,7 +395,7 @@ long
 yylex(void)
 {
 	vlong vv;
-	long c, c1;
+	long c, c1, t;
 	char *cp;
 	Rune rune;
 	Sym *s;
@@ -540,8 +540,10 @@ l1:
 		if(yylval.vval != vv)
 			yyerror("overflow in character constant: 0x%lx", c);
 		else
-		if(c & 0x80)
+		if(c & 0x80){
+			nearln = lineno;
 			warn(Z, "sign-extended character constant");
+		}
 		yylval.vval = convvtox(vv, TCHAR);
 		return LCONST;
 
@@ -784,45 +786,42 @@ ncu:
 	if(mpatov(symb, &yylval.vval))
 		yyerror("overflow in constant");
 
+	vv = yylval.vval;
 	if(c1 & Numvlong) {
-		if(c1 & Numuns) {
+		if((c1 & Numuns) || convvtox(vv, TVLONG) < 0) {
 			c = LUVLCONST;
-			goto nret;
-		}
-		yylval.vval = convvtox(yylval.vval, TVLONG);
-		if(yylval.vval < 0) {
-			c = LUVLCONST;
+			t = TUVLONG;
 			goto nret;
 		}
 		c = LVLCONST;
+		t = TVLONG;
 		goto nret;
 	}
 	if(c1 & Numlong) {
-		if(c1 & Numuns) {
+		if((c1 & Numuns) || convvtox(vv, TLONG) < 0) {
 			c = LULCONST;
-			goto nret;
-		}
-		yylval.vval = convvtox(yylval.vval, TLONG);
-		if(yylval.vval < 0) {
-			c = LULCONST;
+			t = TULONG;
 			goto nret;
 		}
 		c = LLCONST;
+		t = TLONG;
 		goto nret;
 	}
-	if(c1 & Numuns) {
+	if((c1 & Numuns) || convvtox(vv, TINT) < 0) {
 		c = LUCONST;
-		goto nret;
-	}
-	yylval.vval = convvtox(yylval.vval, TINT);
-	if(yylval.vval < 0) {
-		c = LUCONST;
+		t = TUINT;
 		goto nret;
 	}
 	c = LCONST;
+	t = TINT;
 	goto nret;
 
 nret:
+	yylval.vval = convvtox(vv, t);
+	if(yylval.vval != vv){
+		nearln = lineno;
+		warn(Z, "truncated constant: %T %s", types[t], symb);
+	}
 	return c;
 
 casedot:

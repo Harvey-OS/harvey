@@ -630,7 +630,7 @@ if(chatty) print("files @%lluX\n", seek(disk->wfd, 0LL, 1));
 			fatal("open %s: %r", *argv);
 		if((d = dirfstat(sysfd)) == nil)
 			fatal("stat %s: %r", *argv);
-		if(d->length > 0xFFFFFFFF)
+		if(d->length > 0xFFFFFFFFU)
 			fatal("file %s too big\n", *argv, d->length);
 		if(commit)
 			print("Adding file %s, length %lld\n", *argv, d->length);

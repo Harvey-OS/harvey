@@ -2081,10 +2081,6 @@ drawactive(int active)
 	if(active){
 		drawblankscreen(0);
 		sdraw.blanktime = 0;
-	}else{
-		if(blanktime && TK2SEC(sdraw.blanktime)/60 >= blanktime)
-			drawblankscreen(1);
-		else
-			sdraw.blanktime++;
-	}
+	}else
+		sdraw.blanktime++;
 }

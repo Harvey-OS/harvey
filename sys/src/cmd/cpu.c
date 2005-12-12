@@ -921,7 +921,7 @@ notefs(int fd)
 				fprint(2, "read9pmsg(%d) returns %d: %r\n", fd, n);
 			break;
 		}
-		if(convM2S(buf, n, &f) < 0)
+		if(convM2S(buf, n, &f) <= BIT16SZ)
 			break;
 		if(dbg)
 			fprint(2, "->%F\n", &f);

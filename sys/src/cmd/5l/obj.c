@@ -819,7 +819,7 @@ loop:
 	bloc += r;
 	c -= r;
 
-	if(p->reg < 0 || p->reg > NREG)
+	if(p->reg > NREG)
 		diag("register out of range %d", p->reg);
 
 	p->link = P;

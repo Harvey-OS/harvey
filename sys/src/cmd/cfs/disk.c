@@ -153,7 +153,7 @@ dformat(Disk *d, int f, char *name, ulong bsize, ulong psize)
 	 *  allocate allocation blocks
 	 */
 	for(i = 0; i < d->nab; i++)
-		if(dalloc(d, &dptr) < 0){
+		if(dalloc(d, &dptr) == Notabno){
 			fprint(2, "can't allocate allocation blocks\n");
 			return -1;
 		}

@@ -1449,7 +1449,7 @@ unlink( Xfile *file )
 	es = getext2(xf, EXT2_SUPER, 0);
 
 	/* get dir inode */
-	if( file->pinbr < 0 || file->pinbr > es.u.sb->s_inodes_count ){
+	if( file->pinbr >= es.u.sb->s_inodes_count ){
     		chat("inode number %d is too big...",  file->pinbr);
 		putext2(es);
 		errno = Eintern;

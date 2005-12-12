@@ -519,11 +519,12 @@ rwrite(Fid *f)
 	cnt = rhdr.count;
 	if(f->qid.type & QTDIR)
 		return "file is a directory";
-	thdr.count = vfWrite(vf, buf, cnt, off, "none");
-	if(thdr.count < 0) {
+	cnt = vfWrite(vf, buf, cnt, off, "none");
+	if(cnt < 0) {
 fprint(2, "write failed: %s\n", vtGetError());
 		return vtGetError();
 	}
+	thdr.count = cnt;
 	return 0;
 }
 

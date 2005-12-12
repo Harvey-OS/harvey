@@ -28,7 +28,7 @@ runpcs(int runmode, int keepnote)
 		rput(cormap, mach->pc, dot);
 	dot = rget(cormap, mach->pc);
 	flush();
-	while (--loopcnt >= 0) {
+	while (loopcnt-- > 0) {
 		if(loopcnt != 0)
 			printpc();
 		if (runmode == SINGLE) {

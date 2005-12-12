@@ -2,21 +2,23 @@
 
 LIB=/$objtype/lib/lib9p.a
 OFILES=\
-	_post.$O\
+	auth.$O\
 	dirread.$O\
 	fid.$O\
 	file.$O\
 	intmap.$O\
+	listen.$O\
 	mem.$O\
 	req.$O\
 	parse.$O\
 	post.$O\
+	rfork.$O\
 	srv.$O\
-	tpost.$O\
+	thread.$O\
 	uid.$O\
 	util.$O\
 
-HFILES=/sys/include/9p.h post.h
+HFILES=/sys/include/9p.h
 
 UPDATE=\
 	mkfile\

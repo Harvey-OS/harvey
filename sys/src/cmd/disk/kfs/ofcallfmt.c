@@ -161,7 +161,7 @@ dumpsome(char *ans, char *buf, long count)
 	if(count > DUMPL)
 		count = DUMPL;
 	for(i=0; i<count && printable; i++)
-		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || buf[i]>127)
+		if((buf[i]<32 && buf[i] !='\n' && buf[i] !='\t') || (uchar)buf[i]>127)
 			printable = 0;
 	p = ans;
 	*p++ = '\'';
