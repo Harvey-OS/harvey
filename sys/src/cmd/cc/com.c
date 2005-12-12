@@ -1,5 +1,7 @@
 #include "cc.h"
 
+int compar(Node*, int);
+
 void
 complex(Node *n)
 {
@@ -985,6 +987,8 @@ loop:
 	case OHI:
 		ccom(l);
 		ccom(r);
+		if(compar(n, 0) || compar(n, 1))
+			break;
 		relcon(l, r);
 		relcon(r, l);
 		goto common;
@@ -1082,7 +1086,7 @@ loop:
 			*n = *l;
 			break;
 		}
-		goto commun;
+		goto commute;
 
 	case OAND:
 		ccom(l);
@@ -1096,7 +1100,7 @@ loop:
 			break;
 		}
 
-	commun:
+	commute:
 		/* look for commutative constant */
 		if(r->op == OCONST) {
 			if(l->op == n->op) {
@@ -1162,3 +1166,181 @@ loop:
 		evconst(n);
 	}
 }
+
+/*	OEQ, ONE, OLE, OLS, OLT, OLO, OGE, OHS, OGT, OHI */
+static char *cmps[12] = 
+{
+	"==", "!=", "<=", "<=", "<", "<", ">=", ">=", ">", ">",
+};
+
+/* 128-bit numbers */
+typedef struct Big Big;
+struct Big
+{
+	vlong a;
+	uvlong b;
+};
+static int
+cmp(Big x, Big y)
+{
+	if(x.a != y.a){
+		if(x.a < y.a)
+			return -1;
+		return 1;
+	}
+	if(x.b != y.b){
+		if(x.b < y.b)
+			return -1;
+		return 1;
+	}
+	return 0;
+}
+static Big
+add(Big x, int y)
+{
+	uvlong ob;
+	
+	ob = x.b;
+	x.b += y;
+	if(y > 0 && x.b < ob)
+		x.a++;
+	if(y < 0 && x.b > ob)
+		x.a--;
+	return x;
+} 
+
+Big
+big(vlong a, uvlong b)
+{
+	Big x;
+
+	x.a = a;
+	x.b = b;
+	return x;
+}
+
+int
+compar(Node *n, int reverse)
+{
+	Big lo, hi, x;
+	int op;
+	char xbuf[40], cmpbuf[50];
+	Node *l, *r;
+	Type *lt, *rt;
+
+	/*
+	 * The point of this function is to diagnose comparisons 
+	 * that can never be true or that look misleading because
+	 * of the `usual arithmetic conversions'.  As an example 
+	 * of the latter, if x is a ulong, then if(x <= -1) really means
+	 * if(x <= 0xFFFFFFFF), while if(x <= -1LL) really means
+	 * what it says (but 8c compiles it wrong anyway).
+	 */
+
+	if(reverse){
+		r = n->left;
+		l = n->right;
+		op = comrel[relindex(n->op)];
+	}else{
+		l = n->left;
+		r = n->right;
+		op = n->op;
+	}
+
+	/*
+	 * Skip over left casts to find out the original expression range.
+	 */
+	while(l->op == OCAST)
+		l = l->left;
+	if(l->op == OCONST)
+		return 0;
+	lt = l->type;
+	if(l->op == ONAME){
+		lt = l->sym->type;
+		if(lt && lt->etype == TARRAY)
+			lt = lt->link;
+	}
+	if(lt == T)
+		return 0;
+	if(lt->etype == TXXX || lt->etype > TUVLONG)
+		return 0;
+	
+	/*
+	 * Skip over the right casts to find the on-screen value.
+	 */
+	if(r->op != OCONST)
+		return 0;
+	while(r->oldop == OCAST && !r->xcast)
+		r = r->left;
+	rt = r->type;
+	if(rt == T)
+		return 0;
+
+	x.b = r->vconst;
+	x.a = 0;
+	if((rt->etype&1) && r->vconst < 0)	/* signed negative */
+		x.a = ~0ULL;
+
+	if((lt->etype&1)==0){
+		/* unsigned */
+		lo = big(0, 0);
+		if(lt->width == 8)
+			hi = big(0, ~0ULL);
+		else
+			hi = big(0, (1LL<<(l->type->width*8))-1);
+	}else{
+		lo = big(~0ULL, -(1LL<<(l->type->width*8-1)));
+		hi = big(0, (1LL<<(l->type->width*8-1))-1);
+	}
+
+	switch(op){
+	case OLT:
+	case OLO:
+	case OGE:
+	case OHS:
+		if(cmp(x, lo) <= 0)
+			goto useless;
+		if(cmp(x, add(hi, 1)) >= 0)
+			goto useless;
+		break;
+	case OLE:
+	case OLS:
+	case OGT:
+	case OHI:
+		if(cmp(x, add(lo, -1)) <= 0)
+			goto useless;
+		if(cmp(x, hi) >= 0)
+			goto useless;
+		break;
+	case OEQ:
+	case ONE:
+		/*
+		 * Don't warn about comparisons if the expression
+		 * is as wide as the value: the compiler-supplied casts
+		 * will make both outcomes possible.
+		 */
+		if(lt->width >= rt->width && debug['w'] < 2)
+			return 0;
+		if(cmp(x, lo) < 0 || cmp(x, hi) > 0)
+			goto useless;
+		break;
+	}
+	return 0;
+
+useless:
+	if((x.a==0 && x.b<=9) || (x.a==~0LL && x.b >= -9ULL))
+		snprint(xbuf, sizeof xbuf, "%lld", x.b);
+	else if(x.a == 0)
+		snprint(xbuf, sizeof xbuf, "%#llux", x.b);
+	else
+		snprint(xbuf, sizeof xbuf, "%#llx", x.b);
+	if(reverse)
+		snprint(cmpbuf, sizeof cmpbuf, "%s %s %T",
+			xbuf, cmps[relindex(n->op)], lt);
+	else
+		snprint(cmpbuf, sizeof cmpbuf, "%T %s %s",
+			lt, cmps[relindex(n->op)], xbuf);
+	warn(n, "useless or misleading comparison: %s", cmpbuf);
+	return 0;
+}
+

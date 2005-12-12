@@ -1165,7 +1165,7 @@ void
 cntledit(char *tag)
 {
 	char buf[256];
-	ulong l;
+	long l;
 
 	buttons(Up);
 	if(type(buf, tag) == 0)

@@ -432,8 +432,6 @@ io(void)
 			freejob(job);
 			continue;
 		}
-		if(job->request.fid<0)
-			error("fid out of range");
 		lock(&dblock);
 		mf = newfid(job->request.fid);
 		if(debug)
@@ -563,10 +561,6 @@ rwalk(Job *job, Mfile *mf)
 
 	if(job->request.newfid != job->request.fid){
 		/* clone fid */
-		if(job->request.newfid<0){
-			err = "clone newfid out of range";
-			goto send;
-		}
 		nmf = newfid(job->request.newfid);
 		if(nmf->busy){
 			nmf = nil;

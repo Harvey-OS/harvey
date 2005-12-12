@@ -61,7 +61,7 @@ void	simple(char*, char*);
 void
 usage(void)
 {
-	punt("usage: con [-drCvsn] [-b baud] [-l [user]] [-c cmd] net!host[!service]");
+	punt("usage: con [-CdnrRsTv] [-b baud] [-l [user]] [-c cmd] net!host[!service]");
 }
 
 void

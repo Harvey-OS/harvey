@@ -1222,7 +1222,7 @@ fsysWstat(Fsys *fsys, int argc, char* argv[])
 	}
 	if(strcmp(argv[5], "-") != 0){
 		de.size = strtoull(argv[5], &p, 0);
-		if(argv[5][0] == '\0' || *p != '\0' || de.size < 0){
+		if(argv[5][0] == '\0' || *p != '\0' || (vlong)de.size < 0){
 			vtSetError("console wstat - bad length");
 			goto error;
 		}

@@ -986,7 +986,7 @@ fsread(Fs *fs, Request *r, Fid *f)
 		return;
 	}
 
-	if(r->f.count < 0){
+	if((int)r->f.count < 0){
 		fsreply(fs, r, Ebadcount);
 		return;
 	}
@@ -1045,7 +1045,7 @@ fswrite(Fs *fs, Request *r, Fid *f)
 		return;
 	}
 
-	if(r->f.count < 0){
+	if((int)r->f.count < 0){
 		fsreply(fs, r, Ebadcount);
 		return;
 	}
@@ -1112,18 +1112,19 @@ fsremove(Fs *fs, Request *r, Fid*)
 void
 fsstat(Fs *fs, Request *r, Fid *f)
 {
-	int i;
+	int i, n;
 	Qid q;
 	Dir d;
 
 	q = parentqid(f->qid);
 	for(i = 0; ; i++){
 		r->f.stat = r->buf+IOHDRSZ;
-		r->f.nstat = fsdirgen(fs, q, i, &d, r->f.stat, messagesize-IOHDRSZ);
-		if(r->f.nstat < 0){
+		n = fsdirgen(fs, q, i, &d, r->f.stat, messagesize-IOHDRSZ);
+		if(n < 0){
 			fsreply(fs, r, Eexist);
 			return;
 		}
+		r->f.nstat = n;
 		if(r->f.nstat > BIT16SZ && d.qid.path == f->qid.path)
 			break;
 	}

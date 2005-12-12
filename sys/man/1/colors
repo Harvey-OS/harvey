@@ -5,8 +5,7 @@ getmap, colors \- display color map
 .PP
 .B colors
 [
-.B -r
-.B -x
+.B -rx
 ]
 .PP
 .B getmap

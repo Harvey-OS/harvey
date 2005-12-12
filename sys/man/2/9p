@@ -10,6 +10,7 @@ postmountsrv,
 readbuf,
 readstr,
 respond,
+responderror,
 threadpostmountsrv,
 srv \- 9P file service
 .SH SYNOPSIS
@@ -61,8 +62,11 @@ typedef struct Srv {
 int	srv(Srv *s)
 void	postmountsrv(Srv *s, char *name, char *mtpt, int flag)
 void	threadpostmountsrv(Srv *s, char *name, char *mtpt, int flag)
+void	listensrv(Srv *s, char *addr)
+void	threadlistensrv(Srv *s, char *addr)
 int	postfd(char *srvname, int fd)
 void	respond(Req *r, char *error)
+void	responderror(Req*)
 void	readstr(Req *r, char *src)
 void	readbuf(Req *r, void *src, long nsrc)
 typedef int Dirgen(int n, Dir *dir, void *aux)
@@ -217,6 +221,21 @@ this process, the entire process is terminated by calling
 .I sysfatal
 (see
 .IR perror (2)).
+.PP
+.I Listensrv
+and
+.I threadlistensrv
+create a separate process to announce as
+.IR addr .
+The process listens for incoming connections,
+creating a new process to serve each.
+Using these functions results in 
+.I srv
+and the service functions
+being run in multiple processes simultaneously.
+The library locks its own data structures as necessary;
+the client may need to lock data it shares between
+the multiple connections.
 .SS Service functions
 The functions in a 
 .B Srv
@@ -288,6 +307,13 @@ has been called, the
 .B Req*
 as well as any pointers it once contained must
 be considered freed and not referenced.
+.PP
+.I Responderror
+calls 
+.I respond
+with the system error string
+(see
+.IR errstr (2)).
 .PP
 If the service loop detects an error in a request
 (e.g., an attempt to reuse an extant fid, an open of

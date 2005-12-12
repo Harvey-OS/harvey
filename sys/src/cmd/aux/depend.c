@@ -828,7 +828,7 @@ fsread(Fs *fs, Request *r, Fid *f)
 		fsreply(fs, r, Enofid);
 		return;
 	}
-	if(r->f.count < 0){
+	if((int)r->f.count < 0){
 		fsreply(fs, r, "bad read count");
 		return;
 	}

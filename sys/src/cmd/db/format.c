@@ -273,16 +273,18 @@ exform(int fcount, int prt, char *ifp, Map *map, int literal, int firstpass)
 
 		case 'I':
 		case 'i':
-			dotinc = machdata->das(map, dot, modifier, buf, sizeof(buf));
-			if (dotinc < 0)
+			i = machdata->das(map, dot, modifier, buf, sizeof(buf));
+			if (i < 0)
 				error("%r");
+			dotinc = i;
 			dprint("%s\n", buf);
 			break;
 
 		case 'M':
-			dotinc = machdata->hexinst(map, dot, buf, sizeof(buf));
-			if (dotinc < 0)
+			i = machdata->hexinst(map, dot, buf, sizeof(buf));
+			if (i < 0)
 				error("%r");
+			dotinc = i;
 			dprint("%s", buf);
 			if (*fp) {
 				dotinc = 0;

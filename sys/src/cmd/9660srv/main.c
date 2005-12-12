@@ -181,7 +181,7 @@ io(int srvfd)
 		errno = 0;
 		if(!waserror()){
 			err_msg[0] = 0;
-			if(req->type < 0 || req->type > nelem(fcalls) || !fcalls[req->type])
+			if(req->type >= nelem(fcalls) || !fcalls[req->type])
 				error("bad fcall type");
 			(*fcalls[req->type])();
 			poperror();

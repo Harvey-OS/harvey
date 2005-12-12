@@ -57,6 +57,8 @@ struct	Node
 	Type*	type;
 	long	lineno;
 	char	op;
+	char	oldop;
+	char xcast;
 	char	class;
 	char	etype;
 	char	complex;
@@ -497,6 +499,7 @@ extern	char	typeil[];
 extern	char	typeilp[];
 extern	char	typechl[];
 extern	char	typechlv[];
+extern	char	typechlvp[];
 extern	char	typechlp[];
 extern	char	typechlpfd[];
 

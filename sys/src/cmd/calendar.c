@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 		ahead = atoi(ARGF());
 		break;
 	default:
-		fprint(2, "usage: calendar [-y] [-d] [files ...]\n");
+		fprint(2, "usage: calendar [-dy] [-p days] [files ...]\n");
 		exits("usage");
 	}ARGEND;
 

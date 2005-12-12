@@ -248,7 +248,7 @@ main(int argc, char **argv)
 		/*
 		 *  get rid of telnet control sequences (we don't need them)
 		 */
-		while(*cmd && *cmd == Iac){
+		while(*cmd && (uchar)*cmd == Iac){
 			cmd++;
 			if(*cmd)
 				cmd++;

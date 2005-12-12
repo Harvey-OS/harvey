@@ -4,7 +4,7 @@ con, telnet, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
 .SH SYNOPSIS
 .B con
 [
-.B -CdnrRvsT
+.B -CdnrRsTv
 ]
 [
 .B -b
@@ -13,7 +13,7 @@ con, telnet, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
 [
 .B -l
 [
-.I remuser
+.I user
 ]
 ]
 [
@@ -37,7 +37,7 @@ con, telnet, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
 ]
 [
 .B -l
-.I remuser
+.I user
 ]
 .RI [ net !] machine
 [
@@ -73,7 +73,7 @@ but instead wait for the remote end to hang up.
 .TP
 .B -l
 with an argument causes
-.I remuser
+.I user
 to be used as the account name on the remote system.
 Without an argument this option disables automatic login
 and a normal login session ensues.
@@ -178,7 +178,7 @@ connection when standard input is closed.
 .TP
 .B \-l
 allows
-.I remuser
+.I user
 to be used on the remote machine if the remote
 is a BSD machine.
 .TP
