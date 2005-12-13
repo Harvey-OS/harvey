@@ -369,7 +369,7 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 		ipoput4(icmp->f, r, 0, MAXTTL, DFLTTOS, nil);
 		break;
 	case Unreachable:
-		if(p->code > 5 || p->code < 0)
+		if(p->code > 5)
 			msg = unreachcode[1];
 		else
 			msg = unreachcode[p->code];

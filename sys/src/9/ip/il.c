@@ -563,7 +563,7 @@ iliput(Proto *il, Ipifc*, Block *bp)
 	v4tov6(laddr, ih->dst);
 
 	if((csum = ptclcsum(bp, IL_IPSIZE, illen)) != 0) {
-		if(ih->iltype < 0 || ih->iltype > Ilclose)
+		if(ih->iltype > Ilclose)
 			st = "?";
 		else
 			st = iltype[ih->iltype];
@@ -586,7 +586,7 @@ iliput(Proto *il, Ipifc*, Block *bp)
 	if(ic->state == Illistening){
 		if(ih->iltype != Ilsync){
 			qunlock(il);
-			if(ih->iltype < 0 || ih->iltype > Ilclose)
+			if(ih->iltype > Ilclose)
 				st = "?";
 			else
 				st = iltype[ih->iltype];

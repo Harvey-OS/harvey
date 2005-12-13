@@ -1,6 +1,6 @@
 </$objtype/mkfile
 
-DIRS=port 386 alpha arm mips power
+DIRS=port $CPUS
 
 default:V:	all
 
@@ -11,12 +11,15 @@ install all:V:
 		mk $MKFLAGS $target
 	}
 
-clean nuke:V:
+clean:V:
 	for(i in $DIRS)@{
 		echo $i
 		cd $i
 		mk $MKFLAGS $target
 	}
+
+nuke:V: clean
+	rm -f /$objtype/lib/libsec.a
 
 update:V:
 	for(i in $DIRS)@{
@@ -30,9 +33,9 @@ installall:V:
 	for(objtype in $CPUS) mk $MKFLAGS install
 
 everything:V:
-	rm -f */*.[012456789kvx]
+	rm -f */*.[012456789kqv]
 	for(objtype in 386)@{
 		echo $objtype
 		mk $MKFLAGS install
 	}
-	rm -f */*.[012456789kvx]
+	rm -f */*.[012456789kqv]

@@ -4,12 +4,15 @@ DIRS=port $CPUS
 
 default:V:	all
 
-install clean nuke all:V:
+install clean all:V:
 	for(i in port $objtype)@{
 		echo $i
 		cd $i
 		mk $MKFLAGS $target
 	}
+
+nuke:V: clean
+	rm -f /$objtype/lib/libmp.a
 
 update:V:
 	for(i in port $CPUS)@{
