@@ -169,7 +169,7 @@ defn proc(p) {
 	complex Proc p;
 	local s, i;
 
-	if p.state != 0 then {	// 0 is Dead
+	if p.state != 0 && p.pid != 0 && p.text != 0 then {	// 0 is Dead
 		s = p.psstate;
 		if s == 0 then {
 			s = "kproc";

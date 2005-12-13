@@ -749,7 +749,7 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 		break;
 
 	case UnreachableV6:
-		if(p->code > 4 || p->code < 0)
+		if(p->code > 4)
 			msg = unreachcode[icmp6_unkn_code];
 		else
 			msg = unreachcode[p->code];

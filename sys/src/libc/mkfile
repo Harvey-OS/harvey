@@ -1,9 +1,10 @@
 </$objtype/mkfile
 
-DIRS=9sys 9syscall fmt port $CPUS
+PORTDIRS=9sys 9syscall fmt port
+DIRS=$PORTDIRS $CPUS
 
 all install:V:
-	for(i in 9sys 9syscall fmt port $objtype)@{
+	for(i in $PORTDIRS $objtype)@{
 		echo $i
 		cd $i
 		mk $MKFLAGS install
@@ -17,10 +18,16 @@ clean:V:
 	}
 
 nuke:V:
-	for(i in $DIRS)@{
+	for(i in $PORTDIRS $objtype)@{
 		echo $i
 		cd $i
 		mk $MKFLAGS nuke
+	}
+	# do not nuke other objtypes
+	for(i in $CPUS)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS clean
 	}
 
 update:V:

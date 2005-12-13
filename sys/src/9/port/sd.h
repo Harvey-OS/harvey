@@ -25,7 +25,7 @@ struct SDpart {
 struct SDunit {
 	SDev*	dev;
 	int	subno;
-	uchar	inquiry[256];		/* format follows SCSI spec */
+	uchar	inquiry[255];		/* format follows SCSI spec */
 	uchar	sense[18];		/* format follows SCSI spec */
 	SDperm;
 

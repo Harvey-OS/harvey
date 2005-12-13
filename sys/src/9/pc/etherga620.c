@@ -1056,7 +1056,7 @@ print("ga620shutdown\n");
 static int
 ga620reset(Ctlr* ctlr)
 {
-	int cls, csr, i;
+	int cls, csr, i, r;
 
 	if(ga620detach(ctlr) < 0)
 		return -1;
@@ -1095,8 +1095,9 @@ ga620reset(Ctlr* ctlr)
 	 * Snarf the MAC address from the serial EEPROM.
 	 */
 	for(i = 0; i < Eaddrlen; i++){
-		if((ctlr->ea[i] = at24c32r(ctlr, 0x8E+i)) == -1)
+		if((r = at24c32r(ctlr, 0x8E+i)) == -1)
 			return -1;
+		ctlr->ea[i] = r;
 	}
 
 	/*

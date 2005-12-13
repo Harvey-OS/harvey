@@ -34,7 +34,7 @@ clean:V:
 	rm -f $stem.[$OS] [$OS].$stem $stem.acid $stem
 
 nuke:V:
-	rm -f *.[$OS] [$OS].out $CLEANFILES
+	rm -f *.[$OS] [$OS].out $CLEANFILES $LIB
 
 %.acid: %.$O $HFILES
 	$CC $CFLAGS -a $stem.c >$target

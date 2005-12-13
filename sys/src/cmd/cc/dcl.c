@@ -1324,8 +1324,8 @@ xdecl(int c, Type *t, Sym *s)
 	if(s->type != T)
 		if(s->class != c || !sametype(t, s->type) || t->etype == TENUM) {
 			diag(Z, "external redeclaration of: %s", s->name);
-			print("	%s %T %L\n", cnames[c], t, nearln);
-			print("	%s %T %L\n", cnames[s->class], s->type, s->varlineno);
+			Bprint(&diagbuf, "	%s %T %L\n", cnames[c], t, nearln);
+			Bprint(&diagbuf, "	%s %T %L\n", cnames[s->class], s->type, s->varlineno);
 		}
 	tmerge(t, s);
 	s->type = t;
