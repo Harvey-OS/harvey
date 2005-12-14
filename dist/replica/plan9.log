@@ -23612,3 +23612,12 @@
 1134412218 0 c sys/src/9/port/sd.h - 664 sys sys 1134411408 2494
 1134426622 0 c sys/src/libmp/mkfile - 664 sys sys 1134426476 962
 1134426622 1 c sys/src/libsec/mkfile - 664 sys sys 1134426497 554
+1134500443 0 c sys/src/9/ip/icmp6.c - 664 sys sys 1134498903 18054
+1134500443 1 c sys/src/9/ip/il.c - 664 sys sys 1134498903 27226
+1134500443 2 c sys/src/9/port/devtls.c - 664 sys sys 1134498858 45226
+1134500443 3 c sys/src/cmd/auth/factotum/util.c - 664 sys sys 1134500240 18043
+1134500443 4 c sys/src/cmd/tlssrv.c - 664 sys sys 1134498997 3426
+1134500443 5 c sys/src/cmd/wikifs/io.c - 664 sys sys 1134498935 11573
+1134505845 0 c 386/bin/wikifs - 775 sys sys 1134505646 203414
+1134505845 1 c 386/bin/auth/factotum - 775 sys sys 1134505645 318360
+1134505845 2 c 386/bin/tlssrv - 775 sys sys 1134505646 198760

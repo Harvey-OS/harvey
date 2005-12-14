@@ -857,8 +857,7 @@ setattrs(Attr *a, Attr *b)
 					}
 					break;
 				case AttrQuery:
-					found++;
-					break;
+					goto continue2;
 				}
 			}else
 				l = &(*l)->next;
@@ -867,6 +866,7 @@ setattrs(Attr *a, Attr *b)
 			*l = _mkattr(b->type, b->name, b->val, nil);
 			setmalloctag(*l, getcallerpc(&a));
 		}
+continue2:;
 	}
 	return a;		
 }

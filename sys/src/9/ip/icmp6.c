@@ -337,7 +337,7 @@ mkechoreply6(Block *bp)
  * sends out an ICMPv6 neighbor solicitation
  * 	suni == SRC_UNSPEC or SRC_UNI, 
  *	tuni == TARG_MULTI => multicast for address resolution,
- * 	and tflag == TARG_UNI => neighbor reachability.
+ * 	and tuni == TARG_UNI => neighbor reachability.
  */
 
 extern void
@@ -831,7 +831,6 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 			freeblist(bp);
 		}
 
-		ipriv->out[NbrSolicit]++;
 		break;
 
 	case NbrAdvert:
