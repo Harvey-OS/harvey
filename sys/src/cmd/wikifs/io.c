@@ -445,7 +445,7 @@ allocnum(char *title, int mustbenew)
 		return -1;
 	}
 
-	if(title[0]=='\0' || strpbrk(title, "/<>:")){
+	if(title[0]=='\0' || strpbrk(title, "/<>:?")){
 		werrstr("invalid character in name");
 		return -1;
 	}
