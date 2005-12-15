@@ -4,7 +4,7 @@
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-t secs] [-iq] good-string [bad-strings]\n", argv0);
+	fprint(2, "usage: %s [-q] [-t secs] goodstring [badstring ...]\n", argv0);
 	exits("usage");
 }
 

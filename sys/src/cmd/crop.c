@@ -16,9 +16,9 @@ enum
 void
 usage(void)
 {
-	fprint(2, "usage: crop [-c rgb] [-i ±inset | -r R | -x ±inset | -y ±inset] [-t tx ty] [-b rgb ] [imagefile]\n");
-	fprint(2, "\twhere R is a rectangle minx miny maxx maxy\n");
-	fprint(2, "\twhere rgb is a color red green blue\n");
+	fprint(2, "usage: crop [-b rgb] [-c rgb] [-i ±inset | -r R | -x ±inset | -y ±inset] [-t tx ty] [imagefile]\n");
+	fprint(2, "\twhere R is a rectangle: minx miny maxx maxy\n");
+	fprint(2, "\twhere rgb is a color: red green blue\n");
 	exits("usage");
 }
 
