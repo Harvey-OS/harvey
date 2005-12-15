@@ -19,6 +19,13 @@ char	*fmt = "%llud\t%q\n";
 vlong	blocksize = 1024LL;
 
 void
+usage(void)
+{
+	fprint(2, "usage: du [-afnqstu] [-b size] [file...]\n");
+	exits("usage");
+}
+
+void
 main(int argc, char *argv[])
 {
 	int i;
@@ -61,6 +68,8 @@ main(int argc, char *argv[])
 				blocksize *= 1024;
 		}
 		break;
+	default:
+		usage();
 	} ARGEND
 	if(argc==0)
 		print(fmt, du(".", dirstat(".")), ".");

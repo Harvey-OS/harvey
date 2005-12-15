@@ -369,7 +369,7 @@ Ilwr(ulong inst)
 		reg.r[rt] = (v>>16) | (reg.r[rt] & 0xffff0000);
 		break;
 	case 3:
-		reg.r[rt] = (v>>8) | (reg.r[rt] & 0xff0000000);
+		reg.r[rt] = (v>>8) | (reg.r[rt] & 0xff000000);
 		break;
 	}
 }

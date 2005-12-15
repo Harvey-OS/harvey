@@ -4,6 +4,12 @@ crop, iconv \- frame, crop, and convert image
 .SH SYNOPSIS
 .B crop
 [
+.B -b
+.I red
+.I green
+.I blue
+]
+[
 .BI -c
 .I red
 .I green
@@ -13,17 +19,17 @@ crop, iconv \- frame, crop, and convert image
 .B -i
 .I n
 |
-.B -x
-.I dx
-|
-.B -y
-.I dy
-|
 .B -r
 .I minx
 .I miny
 .I maxx
 .I maxy
+|
+.B -x
+.I dx
+|
+.B -y
+.I dy
 ]
 [
 .B -t

@@ -24,13 +24,10 @@ doc2txt, xls2txt olefs, mswordstrings msexceltable \- extract printable strings 
 .br
 .B aux/msexceltable
 [
-.B -n
+.B -aDnt
 ] [
-.B -t
-] [
-.B -a
-] [
-.BI -d delim
+.B -d
+.I delim
 ]
 .I /mnt/doc/Workbook
 .SH DESCRIPTION
@@ -59,17 +56,22 @@ a text stream.
 .I Msexceltables
 may be given options to control the formatting of its output.
 .TP
--n
+.B -n
 Disables field padding to colum width.
 .TP
--t
+.B -t
 Truncate fields to the colum width.
 .TP
--a
+.B -a
 Attempt conversion of non-tabular sheets in the workbook. (charts).
 .TP
--d \fIdelim\fR
-Sets the interfield delimiter to the string \fIdelim\fR, by default a single space.
+.BI -d " delim
+Sets the interfield delimiter to the string
+.IR delim ,
+by default a single space.
+.TP
+.B -D
+Enables debugging output.
 .SH SOURCE
 .B /sys/src/cmd/aux/mswordstrings.c
 .br
@@ -95,4 +97,4 @@ available on line at Microsoft's developer home page.
 .I http://snake.cs.tu-berlin.de:8081/~schwartz/pmh 
 .br
 ``OpenOffice.Org's Excel Documentation'',
-.I http:\/\/sc.openoffice.org/excelfileformat.pdf
+.I http://sc.openoffice.org/excelfileformat.pdf

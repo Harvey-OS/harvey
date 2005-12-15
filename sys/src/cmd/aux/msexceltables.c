@@ -703,7 +703,7 @@ xls2csv(Biobuf *bp)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-nta] [-d delim] file.xls\n", argv0);
+	fprint(2, "usage: %s [-aDnt] [-d delim] file.xls\n", argv0);
 	exits("usage");
 }
 

@@ -4,7 +4,7 @@ diff \- differential file comparator
 .SH SYNOPSIS
 .B diff
 [
-.B -acefmnbwr
+.B -abcefmnrw
 ] file1 ... file2
 .SH DESCRIPTION
 .I Diff

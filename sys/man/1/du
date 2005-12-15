@@ -4,28 +4,11 @@ du \- disk usage
 .SH SYNOPSIS
 .B du
 [
-.B -a
+.B -afnqstu
 ]
 [
-.B -f
-]
-[
-.B -n
-]
-[
-.B -q
-]
-[
-.B -s
-]
-[
-.B -t
-]
-[
-.B -u
-]
-[
-.BI -b size
+.B -b
+.I size
 ]
 [
 .I file ...
