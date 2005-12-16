@@ -477,26 +477,9 @@ mntstat(Chan *c, uchar *dp, int n)
 	r->request.fid = c->fid;
 	mountrpc(m, r);
 
-	if(r->reply.nstat >= 1<<(8*BIT16SZ))
-		error("returned stat buffer count too large");
-
 	if(r->reply.nstat > n){
-		/*
-		 * 12/31/2002 RSC
-		 * 
-		 * This should be nstat-2, which is the first two
-		 * bytes of the stat buffer.  But dirstat and dirfstat
-		 * depended on getting the full nstat (they didn't
-		 * add BIT16SZ themselves).  I fixed dirstat and dirfstat
-		 * but am leaving this unchanged for now.  After a
-		 * few months, once enough of the relevant binaries
-		 * have been recompiled for other reasons, we can
-		 * change this to nstat-2.  Devstat gets this right
-		 * (via convD2M).
-		 */
-		/* doesn't fit; just patch the count and return */
-		PBIT16((uchar*)dp, r->reply.nstat);
 		n = BIT16SZ;
+		PBIT16((uchar*)dp, r->reply.nstat-2);
 	}else{
 		n = r->reply.nstat;
 		memmove(dp, r->reply.stat, n);
