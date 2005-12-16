@@ -21,7 +21,7 @@ vlong	blocksize = 1024LL;
 void
 usage(void)
 {
-	fprint(2, "usage: du [-afnqstu] [-b size] [file...]\n");
+	fprint(2, "usage: du [-afnqstu] [-b size] [file ...]\n");
 	exits("usage");
 }
 

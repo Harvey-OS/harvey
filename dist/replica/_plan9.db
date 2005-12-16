@@ -117,7 +117,7 @@
 386/bin/aux/mnihongo - 775 sys sys 1132506839 139667
 386/bin/aux/mouse - 775 sys sys 1130384253 44044
 386/bin/aux/ms2 - 775 sys sys 1131296673 87464
-386/bin/aux/msexceltables - 775 sys sys 1134568941 81256
+386/bin/aux/msexceltables - 775 sys sys 1134669748 81264
 386/bin/aux/mswordstrings - 775 sys sys 1130594710 65340
 386/bin/aux/na - 775 sys sys 1130594710 154218
 386/bin/aux/nfsmount - 775 sys sys 1130594711 234124
@@ -214,7 +214,7 @@
 386/bin/disk/prep - 775 sys sys 1130594730 95863
 386/bin/disk/sacfs - 775 sys sys 1020319075 79882
 386/bin/dossrv - 775 sys sys 1134389863 137779
-386/bin/du - 775 sys sys 1134568941 73748
+386/bin/du - 775 sys sys 1134669748 73748
 386/bin/echo - 775 sys sys 1130594730 57387
 386/bin/ed - 775 sys sys 1130594731 93057
 386/bin/eqn - 775 sys sys 1134151330 243031
@@ -5766,7 +5766,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1133956965 256761
+sys/games/lib/fortunes - 664 sys sys 1134659796 256797
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -8060,7 +8060,7 @@ sys/src/9/port/devfs.c - 664 sys sys 1105799131 10783
 sys/src/9/port/devkbmap.c - 664 sys sys 1130763846 3064
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1076612248 14573
-sys/src/9/port/devmnt.c - 664 sys sys 1131107956 21549
+sys/src/9/port/devmnt.c - 664 sys sys 1134659798 20918
 sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1130848303 13517
 sys/src/9/port/devpipe.c - 664 sys sys 1077055016 5825
@@ -9566,7 +9566,7 @@ sys/src/cmd/aux/mnihongo/mnihongo.c - 664 sys sys 946759402 6406
 sys/src/cmd/aux/mnihongo/tmac.nihongo - 664 sys sys 944960789 22
 sys/src/cmd/aux/mouse.c - 664 sys sys 1063855425 7049
 sys/src/cmd/aux/ms2.c - 664 sys sys 1124305056 3153
-sys/src/cmd/aux/msexceltables.c - 664 sys sys 1134556625 13913
+sys/src/cmd/aux/msexceltables.c - 664 sys sys 1134659789 13922
 sys/src/cmd/aux/mswordstrings.c - 664 sys sys 952201344 5767
 sys/src/cmd/aux/na - 20000000775 sys sys 955036627 0
 sys/src/cmd/aux/na/mkfile - 664 sys sys 955036627 121
@@ -9864,7 +9864,7 @@ sys/src/cmd/diff/diff.h - 664 sys sys 1106723609 794
 sys/src/cmd/diff/diffdir.c - 664 sys sys 1014925333 1791
 sys/src/cmd/diff/diffio.c - 664 sys sys 1114696977 6599
 sys/src/cmd/diff/diffreg.c - 664 sys sys 1114037841 8825
-sys/src/cmd/diff/main.c - 664 sys sys 1134556503 4338
+sys/src/cmd/diff/main.c - 664 sys sys 1134659792 4338
 sys/src/cmd/diff/mkfile - 664 sys sys 944960882 141
 sys/src/cmd/disk - 20000000775 sys sys 1018468546 0
 sys/src/cmd/disk/9660 - 20000000775 sys sys 1017681443 0
@@ -9957,7 +9957,7 @@ sys/src/cmd/dossrv/lock.c - 664 sys sys 954305577 504
 sys/src/cmd/dossrv/mkfile - 664 sys sys 1032057270 310
 sys/src/cmd/dossrv/xfile.c - 664 sys sys 1017679315 4391
 sys/src/cmd/dossrv/xfssrv.c - 664 sys sys 1018323479 3397
-sys/src/cmd/du.c - 664 sys sys 1134556965 3420
+sys/src/cmd/du.c - 664 sys sys 1134659785 3421
 sys/src/cmd/echo.c - 664 sys sys 1081736344 581
 sys/src/cmd/ed.c - 664 sys sys 1121977159 21944
 sys/src/cmd/eqn - 20000000775 sys sys 944960990 0
@@ -14225,7 +14225,7 @@ sys/src/libc/mips/strcpy.s - 664 sys sys 944961714 1202
 sys/src/libc/mips/tas.s - 664 sys sys 944961714 494
 sys/src/libc/mips/vlop.s - 664 sys sys 944961714 239
 sys/src/libc/mips/vlrt.c - 664 sys sys 1067719030 9086
-sys/src/libc/mkfile - 664 sys sys 1134396380 745
+sys/src/libc/mkfile - 664 sys sys 1134659890 743
 sys/src/libc/port - 20000000775 sys sys 1016833881 0
 sys/src/libc/port/_assert.c - 664 sys sys 1014927393 166
 sys/src/libc/port/abs.c - 664 sys sys 1014927393 146

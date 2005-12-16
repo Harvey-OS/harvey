@@ -23637,3 +23637,11 @@
 1134570664 1 c 386/bin/du - 775 sys sys 1134568941 73748
 1134570664 2 c 386/bin/aux/msexceltables - 775 sys sys 1134568941 81256
 1134594068 0 c sys/man/1/eqn - 664 sys sys 1134592617 5655
+1134660686 0 c sys/games/lib/fortunes - 664 sys sys 1134659796 256797
+1134660686 1 c sys/src/9/port/devmnt.c - 664 sys sys 1134659798 20918
+1134660686 2 c sys/src/cmd/aux/msexceltables.c - 664 sys sys 1134659789 13922
+1134660686 3 c sys/src/cmd/diff/main.c - 664 sys sys 1134659792 4338
+1134660686 4 c sys/src/cmd/du.c - 664 sys sys 1134659785 3421
+1134660686 5 c sys/src/libc/mkfile - 664 sys sys 1134659890 743
+1134671489 0 c 386/bin/du - 775 sys sys 1134669748 73748
+1134671489 1 c 386/bin/aux/msexceltables - 775 sys sys 1134669748 81264
