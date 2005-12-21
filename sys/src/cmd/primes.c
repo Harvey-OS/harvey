@@ -40,7 +40,7 @@ main(int argc, char *argp[])
 	double k, temp, v, limit, nn;
 
 	if(argc <= 1) {
-		fprint(2, "usage: primes starting [ending]\n");
+		fprint(2, "usage: primes start [finish]\n");
 		exits("usage");
 	}
 	nn = atof(argp[1]);

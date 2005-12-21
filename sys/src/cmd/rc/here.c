@@ -62,7 +62,7 @@ readhere(void)
 		while((c = rchr(runq->cmdfd))!=EOF){
 			if(c=='\n' || s==&line[NLINE]){
 				*s='\0';
-				if(strcmp(line, tag)==0) break;
+				if(tag && strcmp(line, tag)==0) break;
 				if(subst)
 					psubst(f, line);
 				else pstr(f, line);
