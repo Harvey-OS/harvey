@@ -23647,3 +23647,17 @@
 1134671489 1 c 386/bin/aux/msexceltables - 775 sys sys 1134669748 81264
 1134909030 0 c sys/src/cmd/tar.c - 664 sys sys 1134907488 22101
 1134930637 0 c 386/bin/tar - 775 sys sys 1134928898 97221
+1135081817 0 c sys/src/cmd/primes.c - 664 sys sys 1135081181 2123
+1135081817 1 c sys/src/cmd/rc/here.c - 664 sys sys 1135080780 2504
+1135085417 0 c sys/man/1/factor - 664 sys sys 1135084026 1015
+1135085417 1 c sys/man/1/filter - 664 sys sys 1135083932 6142
+1135085417 2 c sys/src/cmd/upas/filterkit/deliver.c - 664 sys sys 1135083942 1070
+1135085417 3 c sys/src/cmd/upas/filterkit/list.c - 664 sys sys 1135083949 4754
+1135085417 4 c sys/src/cmd/upas/send/filter.c - 664 sys sys 1135083956 2365
+1135085417 5 c sys/src/cmd/upas/vf/vf.c - 664 sys sys 1135083959 20043
+1135103422 0 c 386/bin/primes - 775 sys sys 1135101636 38803
+1135103422 1 c 386/bin/rc - 775 sys sys 1135101637 143284
+1135103422 2 c 386/bin/upas/deliver - 775 sys sys 1135101637 100133
+1135103422 3 c 386/bin/upas/filter - 775 sys sys 1135101637 147751
+1135103422 4 c 386/bin/upas/list - 775 sys sys 1135101638 82799
+1135103422 5 c 386/bin/upas/vf - 775 sys sys 1135101638 97135

@@ -9,14 +9,17 @@ filter, list, deliver, token, vf \-  filtering mail
 ]
 .I rcvr
 .I mailbox
-.I "regexp file
 [
 .I "regexp file
-]*
+] ...
 .PP
-.B upas/list add|check
-.I patterns
-.I addrfile ...
+.B upas/list
+[
+.B -d
+]
+.B add|check
+.I patternfile
+.I addressfile ...
 .PP
 .B upas/deliver 
 .I recipient
@@ -30,6 +33,13 @@ filter, list, deliver, token, vf \-  filtering mail
 ]
 .PP
 .B upas/vf
+[
+.B -r
+]
+[
+.B -s 
+.I savefile
+]
 .SH DESCRIPTION
 .PP
 A user may filter all incoming mail by creating
@@ -51,15 +61,20 @@ follows the expression.  The file must be world writable and should
 be append only.
 A message that matches none of the expressions is delivered into
 the user's standard mail box.
-The flags are:
-.TP
-.B h
-the regular expression is matched against the message header
-rather than the address.
-.TP
-.B b
-the regular expression is matched against both the header and the body
-of the message.
+.PP
+By default, 
+.I filter
+matches each regular expression against the message's sender.
+The 
+.B -h
+flag causes 
+.I filter
+to match against the entire header,
+and the
+.B -b
+flag causes
+.I filter
+to match against the entire message (header and body).
 .PP
 For example, to delete any messages of precedence bulk, place in
 your
@@ -133,7 +148,7 @@ directs
 to add a pattern to
 .I patternfile
 for each address in the
-.IR addrssfile 's
+.I addressfiles
 that doesh't already match a pattern.
 .PP
 .IR Token ,
@@ -168,22 +183,110 @@ bound by your profile onto
 .BR /bin .
 .PP
 .I Vf
-takes a mail message as standard input, searches for executable
-MIME attachments, wraps them in a warning message, and appends
-.B .suspect
-to any related filenames.
+(virus filter)
+takes a mail message as standard input
+and searches for executable MIME attachments,
+either rewriting them to be non-executable or
+rejecting the message.
+The behavior depends on the attachment's file name
+extension and MIME content type.
 .B /sys/lib/mimetype
-contains the list of known MIME content types and file extensions.
+contains the list of known extensions and MIME content types.
+The fifth field of each line specifies the 
+safety of a particular file type:
+.B y
+(yes),
+.B m
+(maybe; treated same as yes),
+.B n
+(no),
+.B p
+(previous),
+or
+.B r
+(reject).
 .I Vf
-considers all those for which the fifth field of
-.B mimetype
-is
-.BR n .
-If the script
+allows attachments with safety
+.B y
+or
+.B m
+to pass through unaltered.
+Attachments with safety
+.B n
+both are wrapped in extra MIME headers
+and have
+.B .suspect
+appended to their file names, to avoid
+automatic execution by mail readers.
+Attachments with safety
+.B r
+(currently,
+.BR .bat ,
+.BR .com ,
+.BR .exe ,
+and
+.BR .scr ,
+all Microsoft executable extensions)
+are taken as 
+cause for the entire message to be rejected.
+A safety of
+.B p
+(used for the 
+.B x-gunzip
+mime type)
+causes the previous extension to be tested,
+so that
+.B x.tar.gz
+is treated the same as
+.BR x.tar .
+.PP
+If
 .B /mail/lib/validateattachment
-exists and is executable, each attachment
-is passed, as a mail message, to the script
-for further examination.
+exists and is executable, 
+.B vf
+runs it on all attachments with safety 
+.B n
+(attachments it would normally sanitize).
+If
+.IR validateattachment 's
+exit status contains the string
+.L discard ,
+.I vf
+rejects the entire message.
+If the status contains the string
+.L accept ,
+.I vf 
+does not sanitize the attachment.
+Otherwise, 
+.I vf 
+sanitizes the attachment as before.
+The standard 
+.I validateattachment
+uses
+.IR file (1)
+to determine the file type.
+It accepts text and image files
+and discards messages containing
+executables or
+.I zip
+(see
+.IR gzip(1))
+archives of executables.
+.PP
+The
+.B -r
+option causes
+.I vf
+not to sanitize MIME attachments, only to
+reject messages it determines to be viruses.
+The
+.B -s
+option causes
+.I vf
+to log all attachments of safety
+.B r
+in the mail box 
+.IR savefile .
 .SH FILES
 .TF /mail/box/*/dead.letter
 .TP
@@ -191,7 +294,7 @@ for further examination.
 mail filter
 .TP
 .B /sys/lib/mimetype
-mime content types
+MIME content types
 .TP
 .B /mail/lib/validateattachment
 attachment checker

@@ -117,6 +117,13 @@ int justreject;
 char *savefile;
 
 void
+usage(void)
+{
+	fprint(2, "usage: upas/vf [-r] [-s savefile]\n");
+	exits("usage");
+}
+
+void
 main(int argc, char **argv)
 {
 	ARGBEGIN{
@@ -124,11 +131,14 @@ main(int argc, char **argv)
 		justreject = 1;
 		break;
 	case 's':
-		savefile = ARGF();
-		if(savefile == nil)
-			exits("usage");
+		savefile = EARGF(usage());
 		break;
-	}ARGEND;
+	default:
+		usage();
+	}ARGEND
+
+	if(argc)
+		usage();
 
 	Binit(&in, 0, OREAD);
 	Binit(&out, 1, OWRITE);
@@ -415,8 +425,7 @@ savetmp(Part *p)
 }
 
 /*
- * XXX save the decoded file, run 9 unzip -tf on it, and then
- * look at the file list.
+ * Run the external checker to do content-based checks.
  */
 static int
 runchecker(Part *p)
@@ -481,6 +490,9 @@ problemchild(Part *p)
 	 * If there's an external checker, let it have a crack at it.
 	 */
 	if(runchecker(p) > 0)
+		return p;
+
+	if(justreject)
 		return p;
 
 fprint(2, "x\n");
@@ -871,8 +883,6 @@ badfile(char *name)
 				return 2;
 			}
 		}
-	if(justreject)
-		return 0;
 	return 1;
 }
 
@@ -886,9 +896,6 @@ badtype(char *type)
 	Mtype *m;
 	char *s, *fix;
 	int rv = 1;
-
-	if(justreject)
-		return 0;
 
 	fix = s = strchr(type, '/');
 	if(s != nil)

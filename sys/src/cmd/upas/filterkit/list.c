@@ -30,7 +30,7 @@ String	*mbox;
 static void
 usage(void)
 {
-	fprint(2, "usage: %s 'check|add' patternfile addr [addr*]\n", argv0);
+	fprint(2, "usage: %s add|check patternfile [addressfile ...]\n", argv0);
 	exits("usage");
 }
 

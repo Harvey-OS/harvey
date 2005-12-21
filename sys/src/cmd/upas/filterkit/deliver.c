@@ -4,7 +4,7 @@
 void
 usage(void)
 {
-	fprint(2, "usage: %s recipient fromaddr-file mbox\n", argv0);
+	fprint(2, "usage: %s recipient fromfile mbox\n", argv0);
 	exits("usage");
 }
 
