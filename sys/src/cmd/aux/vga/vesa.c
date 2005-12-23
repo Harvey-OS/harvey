@@ -226,7 +226,8 @@ dump(Vga*, Ctlr*)
 	if(p){
 		for(ep=p+1024; (p[0]!=0xFF || p[1]!=0xFF) && p<ep; p+=2){
 			vbeprintmodeinfo(vbe, WORD(p), "");
-			did[WORD(p)] = 1;
+			if(WORD(p) < nelem(did))
+				did[WORD(p)] = 1;
 		}
 	}
 	for(i=0x100; i<0x1FF; i++)
