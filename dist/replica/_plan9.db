@@ -147,7 +147,7 @@
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1130594716 83677
 386/bin/aux/typepasswd - 775 sys sys 1130594716 69535
-386/bin/aux/vga - 775 sys sys 1134395572 333878
+386/bin/aux/vga - 775 sys sys 1135283089 333900
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -9640,7 +9640,7 @@ sys/src/cmd/aux/vga/tvp3025.c - 664 sys sys 1014925013 1960
 sys/src/cmd/aux/vga/tvp3025clock.c - 664 sys sys 1014925013 1511
 sys/src/cmd/aux/vga/tvp3026.c - 664 sys sys 1014925013 3580
 sys/src/cmd/aux/vga/tvp3026clock.c - 664 sys sys 1014925013 1960
-sys/src/cmd/aux/vga/vesa.c - 664 sys sys 1115734903 21639
+sys/src/cmd/aux/vga/vesa.c - 664 sys sys 1135273443 21668
 sys/src/cmd/aux/vga/vesadb.c - 664 sys sys 1115734902 10446
 sys/src/cmd/aux/vga/vga.c - 664 sys sys 1014925013 9305
 sys/src/cmd/aux/vga/vga.h - 664 sys sys 1115734902 10470
