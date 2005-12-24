@@ -296,7 +296,7 @@
 386/bin/ip/httpfile - 775 sys sys 1134389869 283607
 386/bin/ip/imap4d - 775 sys sys 1132506861 237689
 386/bin/ip/ipconfig - 775 sys sys 1132506861 137882
-386/bin/ip/ping - 775 sys sys 1132544402 76457
+386/bin/ip/ping - 775 sys sys 1135360964 76456
 386/bin/ip/ppp - 775 sys sys 1130594755 219988
 386/bin/ip/pppoe - 775 sys sys 1130594755 77580
 386/bin/ip/pptp - 775 sys sys 1130594755 126690
@@ -449,7 +449,7 @@
 386/bin/upas/fs - 775 sys sys 1134389879 334032
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1135101638 82799
-386/bin/upas/marshal - 775 sys sys 1132506879 132971
+386/bin/upas/marshal - 775 sys sys 1135360965 133019
 386/bin/upas/ml - 775 sys sys 1132506879 123917
 386/bin/upas/mlmgr - 775 sys sys 1132506880 104539
 386/bin/upas/mlowner - 775 sys sys 1130594799 92131
@@ -11988,7 +11988,7 @@ sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1015013077 2481
 sys/src/cmd/ip/ipconfig.c - 664 sys sys 1126103921 34865
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1131110598 1243
-sys/src/cmd/ip/ping.c - 664 sys sys 1132503333 5642
+sys/src/cmd/ip/ping.c - 664 sys sys 1135352233 5611
 sys/src/cmd/ip/ppp - 20000000775 sys sys 988249980 0
 sys/src/cmd/ip/ppp/block.c - 664 sys sys 1015090266 5353
 sys/src/cmd/ip/ppp/compress.c - 664 sys sys 1072729513 11774
@@ -13357,7 +13357,7 @@ sys/src/cmd/upas/fs/readdir.c - 664 sys sys 944961331 203
 sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1041137528 1904
 sys/src/cmd/upas/fs/tester.c - 664 sys sys 985037420 1418
 sys/src/cmd/upas/marshal - 20000000775 sys sys 1015009721 0
-sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1124027454 32708
+sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1135352267 32852
 sys/src/cmd/upas/marshal/mkfile - 664 sys sys 1047490298 235
 sys/src/cmd/upas/misc - 20000000775 sys sys 944961318 0
 sys/src/cmd/upas/misc/gone.fishing - 664 sys sys 944961318 313
@@ -14600,7 +14600,7 @@ sys/src/libmach/vcodas.c - 664 sys sys 1131289385 10258
 sys/src/libmach/vdb.c - 664 sys sys 1131289381 22264
 sys/src/libmach/vobj.c - 664 sys sys 1091732625 2206
 sys/src/libmemdraw - 20000000775 sys sys 985020762 0
-sys/src/libmemdraw/alloc.c - 664 sys sys 1046640198 3234
+sys/src/libmemdraw/alloc.c - 664 sys sys 1135394719 3332
 sys/src/libmemdraw/alpha.hoc - 664 sys sys 944961741 220
 sys/src/libmemdraw/arc.c - 664 sys sys 1039752932 2608
 sys/src/libmemdraw/arctest.c - 664 sys sys 1045502219 865
