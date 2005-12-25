@@ -185,7 +185,7 @@
 386/bin/cp - 775 sys sys 1130594723 63247
 386/bin/cpp - 775 sys sys 1132506846 149875
 386/bin/cpu - 775 sys sys 1134389862 139238
-386/bin/crop - 775 sys sys 1134568941 116040
+386/bin/crop - 775 sys sys 1135447281 116060
 386/bin/date - 775 sys sys 1130384272 43279
 386/bin/db - 775 sys sys 1134389862 345823
 386/bin/dc - 775 sys sys 1130594725 99051
@@ -272,7 +272,7 @@
 386/bin/html2ms - 775 sys sys 1130594747 66118
 386/bin/htmlfmt - 775 sys sys 1132506857 160819
 386/bin/ico - 775 sys sys 1132506857 161776
-386/bin/iconv - 775 sys sys 1130594747 113297
+386/bin/iconv - 775 sys sys 1135447282 113317
 386/bin/idiff - 775 sys sys 1130594748 76135
 386/bin/import - 775 sys sys 1133186779 101465
 386/bin/iostats - 775 sys sys 1134389868 98415
@@ -381,7 +381,7 @@
 386/bin/replica/scan - 775 sys sys 1020319083 39
 386/bin/replica/setupdirs - 775 sys sys 1020319083 44
 386/bin/replica/updatedb - 775 sys sys 1132506870 95962
-386/bin/resample - 775 sys sys 1130594778 120772
+386/bin/resample - 775 sys sys 1135447282 120792
 386/bin/rio - 775 sys sys 1134389874 310310
 386/bin/rm - 775 sys sys 1130594779 61365
 386/bin/rx - 775 sys sys 1130594779 82087
@@ -423,10 +423,10 @@
 386/bin/time - 775 sys sys 1130594789 61418
 386/bin/tlsclient - 775 sys sys 1132418765 198498
 386/bin/tlssrv - 775 sys sys 1134505646 198760
-386/bin/togif - 775 sys sys 1131646649 189866
+386/bin/togif - 775 sys sys 1135447282 189886
 386/bin/toico - 775 sys sys 1131646649 123673
-386/bin/topng - 775 sys sys 1130594792 138351
-386/bin/toppm - 775 sys sys 1131646650 165250
+386/bin/topng - 775 sys sys 1135447283 138371
+386/bin/toppm - 775 sys sys 1135447283 165270
 386/bin/touch - 775 sys sys 1130594792 63795
 386/bin/tprof - 775 sys sys 1132950495 297591
 386/bin/tr - 775 sys sys 1130594793 61883
@@ -496,7 +496,7 @@
 386/bin/venti/verifyarena - 775 sys sys 1130594812 104009
 386/bin/venti/wrarena - 775 sys sys 1132506889 175958
 386/bin/venti/write - 775 sys sys 1132506889 102575
-386/bin/vncs - 775 sys sys 1134389882 472325
+386/bin/vncs - 775 sys sys 1135447284 472345
 386/bin/vncv - 775 sys sys 1132506891 519422
 386/bin/vt - 775 sys sys 1133820585 176212
 386/bin/vtdump - 775 sys sys 1132506892 159534
@@ -553,7 +553,7 @@
 386/lib/libip.a - 664 sys sys 1116126324 35602
 386/lib/libl.a - 664 sys sys 1115950154 5384
 386/lib/libmach.a - 664 sys sys 1134389887 783460
-386/lib/libmemdraw.a - 664 sys sys 1120792317 284130
+386/lib/libmemdraw.a - 664 sys sys 1135447284 284166
 386/lib/libmemlayer.a - 664 sys sys 1115950157 47360
 386/lib/libmp.a - 664 sys sys 1127360619 79944
 386/lib/libndb.a - 664 sys sys 1115950157 60666
