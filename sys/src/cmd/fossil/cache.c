@@ -281,7 +281,7 @@ cacheDump(Cache *c)
 
 	for(i = 0; i < c->nblocks; i++){
 		b = &c->blocks[i];
-		fprint(2, "%d. p=%d a=%ud %V t=%d ref=%d state=%s io=%s pc=0x%lux\n",
+		fprint(2, "%d. p=%d a=%ud %V t=%d ref=%d state=%s io=%s pc=%#p\n",
 			i, b->part, b->addr, b->score, b->l.type, b->ref,
 			bsStr(b->l.state), bioStr(b->iostate), b->pc);
 	}

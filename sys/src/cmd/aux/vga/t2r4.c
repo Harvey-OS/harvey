@@ -11,7 +11,7 @@
 typedef struct {
 	Pcidev*	pci;
 	ulong	io;
-	ulong	mmio;
+	uchar*	mmio;
 
 	ulong	ioreg[13];
 	ulong	g[25];
@@ -90,7 +90,7 @@ _rgb524xo(Vga* vga, int index, uchar data)
 static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
-	long m;
+	ulong *mmio;
 	int f, i, x;
 	Pcidev *p;
 	T2r4 *t2r4;
@@ -113,13 +113,14 @@ snarf(Vga* vga, Ctlr* ctlr)
 			error("%s: can't set type\n", ctlr->name);
 		close(f);
 	
-		if((m = segattach(0, "t2r4mmio", 0, p->mem[4].size)) == -1)
+		mmio = segattach(0, "t2r4mmio", 0, p->mem[4].size);
+		if(mmio == (void*)-1)
 			error("%s: can't attach mmio segment\n", ctlr->name);
 
 		t2r4 = vga->private;
 		t2r4->pci = p;
 		t2r4->io = p->mem[5].bar & ~0x0F;
-		t2r4->mmio = m;
+		t2r4->mmio = (uchar*)mmio;
 	}
 	t2r4 = vga->private;
 	for(i = 0; i < nelem(t2r4->ioreg); i++)

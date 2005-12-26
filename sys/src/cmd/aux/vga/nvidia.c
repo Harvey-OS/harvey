@@ -130,7 +130,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 {
 	Nvidia *nv;
 	Pcidev *p;
-	ulong m, *mmio, tmp;
+	ulong *mmio, tmp;
 	int implementation;
 
 	if(vga->private == nil){
@@ -192,14 +192,14 @@ snarf(Vga* vga, Ctlr* ctlr)
 		}
 		vgactlw("type", ctlr->name);
 
-		if((m = segattach(0, "nvidiammio", 0, p->mem[0].size)) == -1)
+		mmio = segattach(0, "nvidiammio", 0, p->mem[0].size);
+		if(mmio == (void*)-1)
 			error("%s: segattach nvidiammio, size %d: %r\n",
 				ctlr->name, p->mem[0].size);
 
 		nv->pci = p;
-		nv->mmio = (ulong*)m;
+		nv->mmio = mmio;
 
-		mmio = (ulong*)m;
 		nv->pfb = mmio+0x00100000/4;
 		nv->pramdac = mmio+0x00680000/4;
 		nv->pextdev = mmio+0x00101000/4;

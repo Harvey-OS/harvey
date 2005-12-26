@@ -70,7 +70,7 @@ alt(Alt *alts)
 	Alt *a, *xa;
 	Channel volatile *c;
 	int n, s;
-	ulong r;
+	void* r;
 	Thread *t;
 
 	/*
@@ -137,11 +137,11 @@ alt(Alt *alts)
 	    Again:
 		unlock(&chanlock);
 		_procsplx(s);
-		r = _threadrendezvous((ulong)&c, 0);
+		r = _threadrendezvous(&c, 0);
 		s = _procsplhi();
 		lock(&chanlock);
 
-		if(r==~0){		/* interrupted */
+		if(r==(void*)~0){		/* interrupted */
 			if(c!=nil)		/* someone will meet us; go back */
 				goto Again;
 			c = (Channel*)~0;	/* so no one tries to meet us */
@@ -467,7 +467,7 @@ altexec(Alt *a, int spl)
 		unlock(&chanlock);
 		_procsplx(spl);
 		_threaddebug(DBGCHAN, "chanlock is %lud", *(ulong*)&chanlock);
-		while(_threadrendezvous((ulong)b->tag, 0) == ~0)
+		while(_threadrendezvous(b->tag, 0) == (void*)~0)
 			;
 		return 1;
 	}

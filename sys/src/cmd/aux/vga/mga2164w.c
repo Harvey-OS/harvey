@@ -11,7 +11,7 @@
  * Texas Instruments Tvp3026 RAMDAC.
  */
 enum {
-	Meg			= 1024*1024,
+	Meg		= 1024*1024,
 	/* pci chip manufacturer */
 	MATROX		= 0x102B,
 
@@ -34,9 +34,9 @@ enum {
 
 typedef struct {
 	Pcidev*	pci;
-	int		devid;
-	ulong	membase1;
-	ulong	membase2;
+	int	devid;
+	uchar*	membase1;
+	uchar*	membase2;
 	ulong	devctrl;
 	ulong	option;
 	uchar	crtcext[6];
@@ -58,7 +58,7 @@ _tvp3026i(Vga* vga, Ctlr* ctlr, uchar reg)
 		error("%s: tvp3026io: no *mga\n", ctlr->name);
 	mga = vga->private;
 
-	return *((uchar*)(mga->membase1+RAMDAC+reg));
+	return *(mga->membase1+RAMDAC+reg);
 }
 
 static void
@@ -73,7 +73,7 @@ _tvp3026o(Vga* vga, Ctlr* ctlr, uchar reg, uchar data)
 		error("%s: tvp3026io: no *mga\n", ctlr->name);
 	mga = vga->private;
 
-	*((uchar*)(mga->membase1+RAMDAC+reg)) = data;
+	*(mga->membase1+RAMDAC+reg) = data;
 }
 
 static uchar
@@ -119,7 +119,7 @@ static void
 mapmga(Vga* vga, Ctlr* ctlr)
 {
 	int f;
-	long m;
+	uchar *m;
 	Mga *mga;
 
 	if(vga->private == nil)
@@ -133,12 +133,12 @@ mapmga(Vga* vga, Ctlr* ctlr)
 		error("%s: can't set mga type\n", ctlr->name);
 	
 	m = segattach(0, "mga2164wmmio", 0, 16*1024);
-	if(m == -1)
+	if(m == (void*)-1)
 		error("%s: can't attach mga2164wmmio segment\n", ctlr->name);
 	mga->membase1 = m;
 
 	m = segattach(0, "mga2164wscreen", 0, (mga->devid==MGA2064? 8 : 16)*Meg);
-	if(m == -1)
+	if(m ==(void*)-1)
 		error("%s: can't attach mga2164wscreen segment\n", ctlr->name);
 
 	mga->membase2 = m;
@@ -278,13 +278,13 @@ snarf(Vga* vga, Ctlr* ctlr)
 
 	/* find out how much memory is here, some multiple of 2Meg */
 	crtcexto(3, mga->crtcext[3] | 0x80);	/* mga mode */
-	p = (uchar*)mga->membase2;
+	p = mga->membase2;
 	n = (mga->devid==MGA2064? 4 : 8);
 	for(i = 0; i < n; i++) {
 		k = (2*i+1)*Meg;
 		p[k] = 0;
 		p[k] = i+1;
-		*((uchar*)(mga->membase1+CACHEFLUSH)) = 0;
+		*(mga->membase1+CACHEFLUSH) = 0;
 		x[i] = p[k];
 		trace("x[%d]=%d\n", i, x[i]);
 	}

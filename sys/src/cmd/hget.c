@@ -799,7 +799,7 @@ hhauth(char *p, URL *u, Range*)
 	if (gettokens(p, f, nelem(f), "\"") < 2)
 		sysfatal("garbled auth data");
 
-	if ((up = auth_getuserpasswd(auth_getkey, "proto=pass service=http dom=%q relm=%q",
+	if ((up = auth_getuserpasswd(auth_getkey, "proto=pass service=http server=%q realm=%q",
 	    	u->host, f[1])) == nil)
 			sysfatal("cannot authenticate");
 

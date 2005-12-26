@@ -8,7 +8,7 @@ segbrk \- change memory allocation
 .PP
 .ta \w'\fLvoid* 'u
 .B
-int	segbrk(void *saddr, void *addr)
+void*	segbrk(void *saddr, void *addr)
 .PP
 .SH DESCRIPTION
 .I Segbrk
@@ -41,3 +41,24 @@ text, data, or stack segment to be altered.
 .SH DIAGNOSTICS
 Sets
 .IR errstr .
+.I Segbrk
+returns
+.B (void*)-1
+on error.
+.SH BUGS
+.I Segbrk
+is not fully defined or implemented.
+In particular,
+it cannot always return the top of bss
+when called with a zero
+.I addr
+argument.
+The
+.I segbrk
+system call may go away or be re-implemented
+to give more general segment control,
+subsuming the functions of
+.IR brk (2),
+.IR segflush (2)
+and
+.IR segfree (2).

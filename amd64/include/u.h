@@ -7,6 +7,7 @@ typedef   signed char	schar;
 typedef	long long	vlong;
 typedef	unsigned long long uvlong;
 typedef unsigned long long uintptr;
+typedef unsigned long	usize;
 typedef	ushort		Rune;
 typedef union FPdbleword FPdbleword;
 typedef uvlong		jmp_buf[2];

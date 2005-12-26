@@ -8,10 +8,10 @@
 char Ebadfid[]	= "Bad fid";
 char Enotdir[]	="Not a directory";
 char Edupfid[]	= "Fid already in use";
-char	Eopen[]	= "Fid already opened";
-char	Exmnt[]	= "Cannot .. past mount point";
-char	Enoauth[]	= "iostats: Authentication failed";
-char	Ebadver[]	= "Unrecognized 9P version";
+char Eopen[]	= "Fid already opened";
+char Exmnt[]	= "Cannot .. past mount point";
+char Enoauth[]	= "iostats: Authentication failed";
+char Ebadver[]	= "Unrecognized 9P version";
 
 int
 okfile(char *s, int mode)
@@ -98,7 +98,7 @@ Xflush(Fsrpc *r)
 
 	for(t = Workq; t < e; t++) {
 		if(t->work.tag == r->work.oldtag) {
-			DEBUG(2, "\tQ busy %d pid %d can %d\n", t->busy, t->pid, t->canint);
+			DEBUG(2, "\tQ busy %d pid %p can %d\n", t->busy, t->pid, t->canint);
 			if(t->busy && t->pid) {
 				t->flushtag = r->work.tag;
 				DEBUG(2, "\tset flushtag %d\n", r->work.tag);
@@ -412,7 +412,7 @@ void
 slave(Fsrpc *f)
 {
 	Proc *p;
-	int pid;
+	uintptr pid;
 	static int nproc;
 
 	for(;;) {
@@ -420,7 +420,7 @@ slave(Fsrpc *f)
 			if(p->busy == 0) {
 				f->pid = p->pid;
 				p->busy = 1;
-				pid = rendezvous(p->pid, (ulong)f);
+				pid = (uintptr)rendezvous((void*)p->pid, f);
 				if(pid != p->pid)
 					fatal("rendezvous sync fail");
 				return;
@@ -446,7 +446,7 @@ slave(Fsrpc *f)
 		p->next = Proclist;
 		Proclist = p;
 
-		rendezvous(pid, (ulong)p);
+		rendezvous((void*)pid, p);
 	}
 }
 
@@ -454,7 +454,7 @@ void
 blockingslave(void)
 {
 	Proc *m;
-	int pid;
+	uintptr pid;
 	Fsrpc *p;
 	Fcall thdr;
 
@@ -462,14 +462,14 @@ blockingslave(void)
 
 	pid = getpid();
 
-	m = (Proc*)rendezvous(pid, 0);
+	m = rendezvous((void*)pid, 0);
 		
 	for(;;) {
-		p = (Fsrpc*)rendezvous(pid, pid);
-		if((int)p == ~0)			/* Interrupted */
+		p = rendezvous((void*)pid, (void*)pid);
+		if(p == (void*)~0)			/* Interrupted */
 			continue;
 
-		DEBUG(2, "\tslave: %d %F b %d p %d\n", pid, &p->work, p->busy, p->pid);
+		DEBUG(2, "\tslave: %p %F b %d p %p\n", pid, &p->work, p->busy, p->pid);
 		if(p->flushtag != NOTAG)
 			return;
 

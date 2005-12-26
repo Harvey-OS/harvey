@@ -473,7 +473,6 @@ dumpregs2(Ureg* ureg)
 void
 dumpregs(Ureg* ureg)
 {
-	extern ulong etext;
 	vlong mca, mct;
 
 	dumpregs2(ureg);

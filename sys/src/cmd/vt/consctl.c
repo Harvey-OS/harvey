@@ -8,14 +8,16 @@
  *  end of process memory.
  */
 static void*
-share(int len)
+share(ulong len)
 {
 	uchar *vastart;
 
 	vastart = sbrk(0);
+	if(vastart == (void*)-1)
+		return 0;
 	vastart += 2*1024*1024;
 
-	if(segattach(0, "shared", vastart, len) < 0)
+	if(segattach(0, "shared", vastart, len) == (void*)-1)
 		return 0;
 	memset(vastart, 0, len);
 

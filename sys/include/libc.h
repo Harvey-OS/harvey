@@ -44,7 +44,7 @@ enum
 	UTFmax		= 3,		/* maximum bytes per rune */
 	Runesync	= 0x80,		/* cannot represent part of a UTF sequence (<) */
 	Runeself	= 0x80,		/* rune and UTF sequences are the same (<) */
-	Runeerror	= 0xFFFD,		/* decoding error in UTF */
+	Runeerror	= 0xFFFD,	/* decoding error in UTF */
 };
 
 /*
@@ -94,8 +94,8 @@ extern	ulong	msize(void*);
 extern	void*	mallocalign(ulong, ulong, long, ulong);
 extern	void*	calloc(ulong, ulong);
 extern	void*	realloc(void*, ulong);
-extern	void		setmalloctag(void*, ulong);
-extern	void		setrealloctag(void*, ulong);
+extern	void	setmalloctag(void*, ulong);
+extern	void	setrealloctag(void*, ulong);
 extern	ulong	getmalloctag(void*);
 extern	ulong	getrealloctag(void*);
 extern	void*	malloctopoolblock(void*);
@@ -132,7 +132,7 @@ enum{
 	FmtLong		= FmtShort << 1,
 	FmtVLong	= FmtLong << 1,
 	FmtComma	= FmtVLong << 1,
-	FmtByte	= FmtComma << 1,
+	FmtByte		= FmtComma << 1,
 
 	FmtFlag		= FmtByte << 1
 };
@@ -164,16 +164,16 @@ extern	int	runefmtstrinit(Fmt*);
 extern	Rune*	runefmtstrflush(Fmt*);
 
 #pragma	varargck	argpos	fmtprint	2
-#pragma	varargck	argpos	fprint	2
-#pragma	varargck	argpos	print	1
+#pragma	varargck	argpos	fprint		2
+#pragma	varargck	argpos	print		1
 #pragma	varargck	argpos	runeseprint	3
 #pragma	varargck	argpos	runesmprint	1
 #pragma	varargck	argpos	runesnprint	3
 #pragma	varargck	argpos	runesprint	2
-#pragma	varargck	argpos	seprint	3
-#pragma	varargck	argpos	smprint	1
-#pragma	varargck	argpos	snprint	3
-#pragma	varargck	argpos	sprint	2
+#pragma	varargck	argpos	seprint		3
+#pragma	varargck	argpos	smprint		1
+#pragma	varargck	argpos	snprint		3
+#pragma	varargck	argpos	sprint		2
 
 #pragma	varargck	type	"lld"	vlong
 #pragma	varargck	type	"llx"	vlong
@@ -348,7 +348,7 @@ extern	int	enc16(char*, int, uchar*, int);
 extern	int	encodefmt(Fmt*);
 extern	void	exits(char*);
 extern	double	frexp(double, int*);
-extern	ulong	getcallerpc(void*);
+extern	uintptr	getcallerpc(void*);
 extern	char*	getenv(char*);
 extern	int	getfields(char*, char**, int, int, char*);
 extern	int	gettokens(char *, char **, int, char *);
@@ -385,10 +385,10 @@ extern	int	toupper(int);
  *  profiling
  */
 enum {
-	Profoff,			/* No profiling */
-	Profuser,			/* Measure user time only (default) */
+	Profoff,		/* No profiling */
+	Profuser,		/* Measure user time only (default) */
 	Profkernel,		/* Measure user + kernel time */
-	Proftime,			/* Measure total time */
+	Proftime,		/* Measure total time */
 	Profsample,		/* Use clock interrupt to sample (default when there is no cycle counter) */
 }; /* what */
 extern	void	prof(void (*fn)(void*), void *arg, int entries, int what);
@@ -427,7 +427,7 @@ struct QLock
 extern	void	qlock(QLock*);
 extern	void	qunlock(QLock*);
 extern	int	canqlock(QLock*);
-extern	void	_qlockinit(ulong (*)(ulong, ulong));	/* called only by the thread library */
+extern	void	_qlockinit(void* (*)(void*, void*));	/* called only by the thread library */
 
 typedef
 struct RWLock
@@ -441,15 +441,15 @@ struct RWLock
 
 extern	void	rlock(RWLock*);
 extern	void	runlock(RWLock*);
-extern	int		canrlock(RWLock*);
+extern	int	canrlock(RWLock*);
 extern	void	wlock(RWLock*);
 extern	void	wunlock(RWLock*);
-extern	int		canwlock(RWLock*);
+extern	int	canwlock(RWLock*);
 
 typedef
 struct Rendez
 {
-	QLock *l;
+	QLock	*l;
 	QLp	*head;
 	QLp	*tail;
 } Rendez;
@@ -493,7 +493,7 @@ struct NetConnInfo
 	char	*rsys;		/* remote system */
 	char	*rserv;		/* remote service */
 	char	*laddr;		/* local address */
-	char *raddr;		/* remote address */
+	char	*raddr;		/* remote address */
 };
 extern	NetConnInfo*	getnetconninfo(char*, int);
 extern	void		freenetconninfo(NetConnInfo*);
@@ -543,7 +543,7 @@ extern	void		freenetconninfo(NetConnInfo*);
 #define QTEXCL		0x20		/* type bit for exclusive use files */
 #define QTMOUNT		0x10		/* type bit for mounted channel */
 #define QTAUTH		0x08		/* type bit for authentication file */
-#define QTTMP			0x04		/* type bit for not-backed-up file */
+#define QTTMP		0x04		/* type bit for not-backed-up file */
 #define QTFILE		0x00		/* plain file */
 
 /* bits in Dir.mode */
@@ -603,8 +603,8 @@ struct Dir {
 typedef
 struct Waitmsg
 {
-	int pid;	/* of loved one */
-	ulong time[3];	/* of loved one & descendants */
+	int	pid;		/* of loved one */
+	ulong	time[3];	/* of loved one & descendants */
 	char	*msg;
 } Waitmsg;
 
@@ -654,8 +654,8 @@ extern	int	remove(char*);
 extern	void*	sbrk(ulong);
 extern	long	oseek(int, long, int);
 extern	vlong	seek(int, vlong, int);
-extern	long	segattach(int, char*, void*, ulong);
-extern	int	segbrk(void*, void*);
+extern	void*	segattach(int, char*, void*, ulong);
+extern	void*	segbrk(void*, void*);
 extern	int	segdetach(void*);
 extern	int	segflush(void*, ulong);
 extern	int	segfree(void*, ulong);
@@ -666,7 +666,7 @@ extern	int	waitpid(void);
 extern	long	write(int, void*, long);
 extern	long	writev(int, IOchunk*, int);
 extern	int	wstat(char*, uchar*, int);
-extern	ulong	rendezvous(ulong, ulong);
+extern	void*	rendezvous(void*, void*);
 
 extern	Dir*	dirstat(char*);
 extern	Dir*	dirfstat(int);

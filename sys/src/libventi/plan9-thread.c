@@ -455,13 +455,13 @@ vtWakeupAll(VtRendez *q)
 static void
 threadSleep(Thread *t)
 {
-	if(rendezvous((ulong)t, 0x22bbdfd6) != 0x44391f14)
+	if(rendezvous(t, (void*)0x22bbdfd6) != (void*)0x44391f14)
 		sysfatal("threadSleep: rendezvous failed: %r");
 }
 
 static void
 threadWakeup(Thread *t)
 {
-	if(rendezvous((ulong)t, 0x44391f14) != 0x22bbdfd6)
+	if(rendezvous(t, (void*)0x44391f14) != (void*)0x22bbdfd6)
 		sysfatal("threadWakeup: rendezvous failed: %r");
 }

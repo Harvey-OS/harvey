@@ -1209,7 +1209,7 @@ esignal(Event *e)
 	}
 	assert(e->ready == 0);
 	e->wait = 0;
-	rendezvous((ulong)e, 1);
+	rendezvous(e, (void*)1);
 	qunlock(e);
 }
 
@@ -1224,7 +1224,7 @@ ewait(Event *e)
 	} else {	
 		e->wait = 1;
 		qunlock(e);
-		rendezvous((ulong)e, 2);
+		rendezvous(e, (void*)2);
 		qlock(e);
 	}
 	qunlock(e);

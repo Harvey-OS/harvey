@@ -66,11 +66,11 @@ vtMemBrk(int n)
 		align = 4;
 
 	lock(&lk);
-	pad = (align - (ulong)buf) & (align-1);
+	pad = (align - (uintptr)buf) & (align-1);
 	if(n + pad > nbuf) {
 		buf = vtMemAllocZ(ChunkSize);
 		nbuf = ChunkSize;
-		pad = (align - (ulong)buf) & (align-1);
+		pad = (align - (uintptr)buf) & (align-1);
 		nchunk++;
 	}
 

@@ -16,7 +16,7 @@
 
 typedef struct {
 	Pcidev*	pci;
-	ulong	mmio;
+	uchar*	mmio;
 	ulong	clk[6];
 	ulong	lcd[9];
 	ulong	pixconf;
@@ -26,7 +26,7 @@ static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
 	int f, i;
-	long m;
+	uchar *mmio;
 	ulong *rp;
 	Pcidev *p;
 	I81x *i81x;
@@ -59,12 +59,13 @@ snarf(Vga* vga, Ctlr* ctlr)
 			error("%s: can't set type\n", ctlr->name);
 		close(f);
 
-		if((m = segattach(0, "i81xmmio", 0, p->mem[1].size)) == -1)
+		mmio = segattach(0, "i81xmmio", 0, p->mem[1].size);
+		if(mmio == (void*)-1)
 			error("%s: can't attach mmio segment\n", ctlr->name);
 	
 		i81x = vga->private;
 		i81x->pci = p;
-		i81x->mmio = m;
+		i81x->mmio = mmio;
 	}
 	i81x = vga->private;
 
@@ -314,7 +315,6 @@ load(Vga* vga, Ctlr* ctlr)
 	int i;
 	ulong *rp;
 	I81x *i81x;
-	char *p;
 
 	i81x = vga->private;
 
@@ -338,20 +338,6 @@ load(Vga* vga, Ctlr* ctlr)
 		*rp++ = i81x->lcd[i];
 	/* set cursor, graphic mode */
 	rp = (ulong*)(i81x->mmio+0x70008);
-	*rp = i81x->pixconf | (1<<8);
-
-	p = (char*)(i81x->mmio+Pixmask);		/* DACMASK */
-	*p = 0xff;
-	p = (char*)(i81x->mmio+PaddrW);		/* DACWX */
-	*p = 0x04;
-	p = (char*)(i81x->mmio+Pdata);		/* DACDATA */
-	*p = 0xff;
-	*p = 0xff;
-	*p = 0xff;
-	*p = 0x00;
-	*p = 0x00;
-	*p = 0x00;
-
 	*rp = i81x->pixconf;
 
 	ctlr->flag |= Fload;

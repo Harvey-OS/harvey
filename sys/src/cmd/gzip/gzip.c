@@ -187,7 +187,7 @@ crcread(void *fd, void *buf, int n)
 
 	nr = 0;
 	for(; !eof && n > 0; n -= m){
-		m = read((int)fd, (char*)buf+nr, n);
+		m = read((int)(uintptr)fd, (char*)buf+nr, n);
 		if(m <= 0){
 			eof = 1;
 			if(m < 0)

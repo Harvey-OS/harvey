@@ -143,29 +143,29 @@ readstr(ulong off, char *buf, ulong n, char *str)
 }
 
 void
-_rendsleep(ulong tag)
+_rendsleep(void* tag)
 {
-	ulong value;
+	void *value;
 
 	for(;;){
-		value = rendezvous(tag, 0x22a891b8);
-		if(value == 0x7f7713f9)
+		value = rendezvous(tag, (void*)0x22a891b8);
+		if(value == (void*)0x7f7713f9)
 			break;
-		if(tag != ~0)
+		if(tag != (void*)~0)
 			panic("_rendsleep: rendezvous mismatch");
 	}
 }
 
 void
-_rendwakeup(ulong tag)
+_rendwakeup(void* tag)
 {
-	ulong value;
+	void *value;
 
 	for(;;){
-		value = rendezvous(tag, 0x7f7713f9);
-		if(value == 0x22a891b8)
+		value = rendezvous(tag, (void*)0x7f7713f9);
+		if(value == (void*)0x22a891b8)
 			break;
-		if(tag != ~0)
+		if(tag != (void*)~0)
 			panic("_rendwakeup: rendezvous mismatch");
 	}
 }
@@ -196,7 +196,7 @@ rendsleep(Rendez *r, int (*f)(void*), void *arg)
 	r->p = up;
 	unlock(r);
 
-	_rendsleep((ulong)r);
+	_rendsleep(r);
 
 Done:
 	lock(&up->rlock);
@@ -220,7 +220,7 @@ rendwakeup(Rendez *r)
 	rv = 0;
 	if(p){
 		r->p = nil;
-		_rendwakeup((ulong)r);
+		_rendwakeup(r);
 		rv = 1;
 	}
 	unlock(r);

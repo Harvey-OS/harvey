@@ -1549,7 +1549,7 @@ ipopen(PPP *ppp)
 		ppp->ipcfd = cfd;
 
 		/* signal main() that ip is configured */
-		rendezvous(Rmagic, 0);
+		rendezvous((void*)Rmagic, 0);
 
 		switch(ipinprocpid = rfork(RFPROC|RFMEM|RFNOWAIT)){
 		case -1:
@@ -2810,7 +2810,7 @@ main(int argc, char **argv)
 	pppopen(ppp, mediain, mediaout, net, ipaddr, remip, mtu, framing);
 
 	/* wait until ip is configured */
-	rendezvous(Rmagic, 0);
+	rendezvous((void*)Rmagic, 0);
 
 	if(primary){
 		/* create a /net/ndb entry */

@@ -7,7 +7,7 @@ rendezvous \- user level process synchronization
 .B #include <libc.h>
 .PP
 .B
-ulong rendezvous(ulong tag, ulong value)
+void* rendezvous(void* tag, void* value)
 .SH DESCRIPTION
 The rendezvous system call allows two processes to synchronize and
 exchange a value.

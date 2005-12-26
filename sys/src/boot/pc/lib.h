@@ -94,7 +94,7 @@ extern	int	fmtinstall(int, int (*)(Fmt*));
  * one-of-a-kind
  */
 extern	int	atoi(char*);
-extern	ulong	getcallerpc(void*);
+extern	uintptr	getcallerpc(void*);
 extern	long	strtol(char*, char**, int);
 extern	ulong	strtoul(char*, char**, int);
 extern	long	end;

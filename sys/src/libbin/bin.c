@@ -17,9 +17,9 @@ struct Bin
 {
 	Bin	*next;
 	ulong	total;			/* total bytes allocated in can->next */
-	ulong	pos;
-	ulong	end;
-	ulong	v;			/* last value allocated */
+	uintptr	pos;
+	uintptr	end;
+	uintptr	v;			/* last value allocated */
 	uchar	body[BinSize];
 };
 
@@ -38,8 +38,8 @@ mkbin(Bin *bin, ulong size)
 	b->next = bin;
 	b->total = 0;
 	if(bin != nil)
-		b->total = bin->total + bin->pos - (ulong)bin->body;
-	b->pos = (ulong)b->body;
+		b->total = bin->total + bin->pos - (uintptr)bin->body;
+	b->pos = (uintptr)b->body;
 	b->end = b->pos + size;
 	return b;
 }
@@ -48,7 +48,7 @@ void*
 binalloc(Bin **bin, ulong size, int zero)
 {
 	Bin *b;
-	ulong p;
+	uintptr p;
 
 	if(size == 0)
 		size = 1;
@@ -80,9 +80,9 @@ bingrow(Bin **bin, void *op, ulong osize, ulong size, int zero)
 {
 	Bin *b;
 	void *np;
-	ulong p;
+	uintptr p;
 
-	p = (ulong)op;
+	p = (uintptr)op;
 	b = *bin;
 	if(b != nil && p == b->v && p + size <= b->end){
 		b->pos = p + size;
@@ -105,7 +105,7 @@ binfree(Bin **bin)
 	while(*bin != nil){
 		last = *bin;
 		*bin = (*bin)->next;
-		last->pos = (ulong)last->body;
+		last->pos = (uintptr)last->body;
 		free(last);
 	}
 }

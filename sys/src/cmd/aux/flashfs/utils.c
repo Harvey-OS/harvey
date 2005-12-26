@@ -33,7 +33,7 @@ putc3(uchar *buff, ulong v)
 		return 3;
 	}
 
-	fprint(2, "%s: putc3 fail 0x%lux, called from 0x%lux\n", prog, v, getcallerpc(&buff));
+	fprint(2, "%s: putc3 fail 0x%lux, called from %#p\n", prog, v, getcallerpc(&buff));
 	abort();
 	return -1;
 }

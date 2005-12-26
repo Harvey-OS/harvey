@@ -6,10 +6,10 @@
 Rgrp _threadrgrp;
 static int isdirty;
 
-static ulong
-finish(Thread *t, ulong val)
+static void*
+finish(Thread *t, void *val)
 {
-	ulong ret;
+	void *ret;
 
 	ret = t->rendval;
 	t->rendval = val;
@@ -24,14 +24,14 @@ finish(Thread *t, ulong val)
 	return ret;
 }
 
-ulong
-_threadrendezvous(ulong tag, ulong val)
+void*
+_threadrendezvous(void *tag, void *val)
 {
-	ulong ret;
+	void *ret;
 	Thread *t, **l;
 
 	lock(&_threadrgrp.lock);
-	l = &_threadrgrp.hash[tag%nelem(_threadrgrp.hash)];
+	l = &_threadrgrp.hash[((uintptr)tag)%nelem(_threadrgrp.hash)];
 	for(t=*l; t; l=&t->rendhash, t=*l){
 		if(t->rendtag==tag){
 			_threaddebug(DBGREND, "Rendezvous with thread %d.%d", t->proc->pid, t->id);
@@ -51,11 +51,11 @@ _threadrendezvous(ulong tag, ulong val)
 	t->rendhash = *l;
 	*l = t;
 	t->nextstate = Rendezvous;
-	_threaddebug(DBGREND, "Rendezvous for tag %lud", t->rendtag);
+	_threaddebug(DBGREND, "Rendezvous for tag %p", t->rendtag);
 	unlock(&_threadrgrp.lock);
 	_sched();
 	t->inrendez = 0;
-	_threaddebug(DBGREND, "Woke after rendezvous; val is %lud", t->rendval);
+	_threaddebug(DBGREND, "Woke after rendezvous; val is %p", t->rendval);
 	return t->rendval;
 }
 
@@ -90,7 +90,7 @@ _threadbreakrendez(void)
 		for(t=*l; t; t=*l){
 			if(t->rendbreak){
 				*l = t->rendhash;
-				finish(t, ~0);
+				finish(t, (void*)~0);
 			}else
 				 l=&t->rendhash;
 		}
