@@ -43,7 +43,7 @@ int	xlocchange(Biobuf*, int);
 int	xlocsub(Biobuf*, uchar*, int);
 int	challuser(char*);
 int	noworldlogin(char*);
-void*	share(int);
+void*	share(ulong);
 int	doauth(char*);
 
 #define TELNETLOG "telnet"
@@ -545,14 +545,16 @@ xlocsub(Biobuf *bp, uchar *sub, int n)
  *  end of process memory.
  */
 void*
-share(int len)
+share(ulong len)
 {
 	uchar *vastart;
 
 	vastart = sbrk(0);
+	if(vastart == (void*)-1)
+		return 0;
 	vastart += 2*1024*1024;
 
-	if(segattach(0, "shared", vastart, len) < 0)
+	if(segattach(0, "shared", vastart, len) == (void*)-1)
 		return 0;
 
 	return vastart;

@@ -8,7 +8,7 @@ segattach, segdetach, segfree \- map/unmap a segment in virtual memory
 .PP
 .ta \w'\fLlong 'u
 .B
-long	segattach(int attr, char *class, void *va, ulong len)
+void*	segattach(int attr, char *class, void *va, ulong len)
 .PP
 .B
 int	segdetach(void *addr)
@@ -19,7 +19,7 @@ int	segfree(void *va, ulong len)
 .SH DESCRIPTION
 .I Segattach
 creates a new memory segment, adds it
-to the calling process's address space, and returns its lowest address (as an integer).
+to the calling process's address space, and returns its lowest address.
 Segments belong to system-dependent classes.
 Segment classes
 .B memory
@@ -159,15 +159,10 @@ btas:
 .SH DIAGNOSTICS
 These functions set
 .IR errstr .
+.I Segattach
+returns
+.B (void*)-1
+on error.
 .SH BUGS
-The return type of
-.I segattach
-is peculiar.
-Also,
-.I segattach
-returns -1 on error;
-beware that on some systems other negative
-values might be legal addresses.
-.br
 There is a small fixed limit on the number of segments that may be attached,
 as well as a maximum segment size.

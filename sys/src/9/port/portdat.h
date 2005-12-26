@@ -243,7 +243,6 @@ enum
 struct Mntwalk				/* state for /proc/#/ns */
 {
 	int	cddone;
-	ulong	id;
 	Mhead*	mh;
 	Mount*	cm;
 };

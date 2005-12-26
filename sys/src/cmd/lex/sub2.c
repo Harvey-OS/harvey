@@ -22,7 +22,7 @@ cfoll(int v)
 			else if(i == RCCL || i == RNCCL){	/* compress ccl list */
 				for(j=1; j<NCH;j++)
 					symbol[j] = (i==RNCCL);
-				p = (uchar *)left[v];
+				p = ptr[v];
 				while(*p)
 					symbol[*p++] = (i == RCCL);
 				p = pcptr;
@@ -36,7 +36,7 @@ cfoll(int v)
 				*pcptr++ = 0;
 				if(pcptr > pchar + pchlen)
 					error("Too many packed character classes");
-				left[v] = (int)p;
+				ptr[v] = p;
 				name[v] = RCCL;	/* RNCCL eliminated */
 # ifdef DEBUG
 				if(debug && *p){

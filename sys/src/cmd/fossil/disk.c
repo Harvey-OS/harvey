@@ -270,7 +270,7 @@ diskSize(Disk *disk, int part)
 	return partEnd(disk, part) - partStart(disk, part);
 }
 
-static ulong
+static uintptr
 mypc(int x)
 {
 	return getcallerpc(&x);

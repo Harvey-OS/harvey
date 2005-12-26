@@ -7,6 +7,7 @@
 static	int	rtrace(uvlong, uvlong, uvlong);
 static	int	ctrace(uvlong, uvlong, uvlong);
 static	int	i386trace(uvlong, uvlong, uvlong);
+static	int	amd64trace(uvlong, uvlong, uvlong);
 static	uvlong	getval(uvlong);
 static	void	inithdr(int);
 static	void	fatal(char*, ...);
@@ -42,16 +43,16 @@ printaddr(char *addr, uvlong pc)
 			if(!isxdigit(addr[i]))
 				break;
 		if(i == 8){
-			print("src(0x%.8llux); // 0x%s\n", pc, addr);
+			print("src(%#.8llux); // 0x%s\n", pc, addr);
 			return;
 		}
 	}
 
 	if(p=strchr(addr, '+')){
 		*p++ = 0;
-		print("src(0x%.8llux); // %s+0x%s\n", pc, addr, p);
+		print("src(%#.8llux); // %s+0x%s\n", pc, addr, p);
 	}else
-		print("src(0x%.8llux); // %s\n", pc, addr);
+		print("src(%#.8llux); // %s\n", pc, addr);
 }
 
 static void (*fmt)(char*, uvlong) = printaddr;
@@ -94,8 +95,10 @@ main(int argc, char *argv[])
 	inithdr(fd);
 	switch(fhdr.magic){
 	case I_MAGIC:	/* intel 386 */
-	case S_MAGIC:	/* amd64 */
 		t = i386trace;
+		break;
+	case S_MAGIC:	/* amd64 */
+		t = amd64trace;
 		break;
 	case A_MAGIC:	/* 68020 */
 	case J_MAGIC:	/* intel 960 */
@@ -189,7 +192,7 @@ ctrace(uvlong pc, uvlong sp, uvlong link)
 	while(pc && opc != pc) {
 		moved = pc2sp(pc);
 		if (moved == ~0){
-			print("pc2sp(%.8llux) = -1 %r\n", pc);
+			print("pc2sp(%#.8llux) = -1 %r\n", pc);
 			break;
 		}
 		found = findsym(pc, CTEXT, &s);
@@ -235,7 +238,7 @@ i386trace(uvlong pc, uvlong sp, uvlong link)
 			sp += f.value-mach->szaddr;
 		}else if(strcmp(s.name, "forkret") == 0){
 //XXX
-			print("//passing interrupt frame; last pc found at sp=%llux\n", osp);
+			print("//passing interrupt frame; last pc found at sp=%#llux\n", osp);
 
 			sp +=  15 * mach->szaddr;		/* pop interrupt frame */
 		}
@@ -244,12 +247,12 @@ i386trace(uvlong pc, uvlong sp, uvlong link)
 //XXX
 		if(pc == 0 && strcmp(s.name, "forkret") == 0){
 			sp += 3 * mach->szaddr;			/* pop iret eip, cs, eflags */
-			print("//guessing call through invalid pointer, try again at sp=%llux\n", sp);
+			print("//guessing call through invalid pointer, try again at sp=%#llux\n", sp);
 			s.name = "";
 			pc = getval(sp);
 		}
 		if(pc == 0) {
-			print("//didn't find pc at sp=%llux, last pc found at sp=%llux\n", sp, osp);
+			print("//didn't find pc at sp=%#llux, last pc found at sp=%#llux\n", sp, osp);
 			break;
 		}
 		osp = sp;
@@ -258,6 +261,68 @@ i386trace(uvlong pc, uvlong sp, uvlong link)
 //XXX
 		if(strcmp(s.name, "forkret") == 0)
 			sp += 2 * mach->szaddr;			/* pop iret cs, eflags */
+
+		if(++i > 40)
+			break;
+	}
+	return i;
+}
+
+static int
+amd64trace(uvlong pc, uvlong sp, uvlong link)
+{
+	int i, isintrr;
+	uvlong osp;
+	Symbol s, f;
+	char buf[128];
+
+	USED(link);
+	i = 0;
+	osp = 0;
+	while(findsym(pc, CTEXT, &s)) {
+
+		symoff(buf, sizeof buf, pc, CANY);
+		fmt(buf, pc);
+
+		if(strcmp(s.name, "_intrr") == 0)
+			isintrr = 1;
+		else
+			isintrr = 0;
+		if(pc != s.value) {	/* not at first instruction */
+			if(findlocal(&s, FRAMENAME, &f) == 0)
+				break;
+			sp += f.value-mach->szaddr;
+		}
+		else if(isintrr){
+			print("//passing interrupt frame; last pc found at sp=%#llux\n", osp);
+			/*
+			 * Pop interrupt frame (ureg.h) up to the IP value.
+			 */
+			sp += 19 * mach->szaddr;
+		}
+
+		pc = getval(sp);
+		if(pc == 0 && isintrr){
+			/*
+			 * Pop IP, CS and FLAGS to get to the SP.
+			 * The AMD64 aligns the interrupt stack on
+			 * a 16-byte boundary so have the get the
+			 * SP from the saved frame.
+			 */
+			sp += 3 * mach->szaddr;
+			print("//guessing call through invalid pointer; try again at sp=%#llux\n", sp);
+			s.name = "";
+			sp = getval(sp);
+			pc = getval(sp);
+		}
+		if(pc == 0) {
+			print("//didn't find pc at sp=%#llux, last pc found at sp=%#llux\n", sp, osp);
+			break;
+		}
+		osp = sp;
+
+		if(!isintrr)
+			sp += mach->szaddr;
 
 		if(++i > 40)
 			break;
@@ -305,20 +370,23 @@ getval(uvlong a)
 {
 	char buf[256];
 	int i, n;
+	uvlong r;
 
 	if(interactive){
-		print("// data at 0x%8.8llux? ", a);
+		print("// data at %#8.8llux? ", a);
 		n = read(0, buf, sizeof(buf)-1);
 		if(n <= 0)
 			return 0;
 		buf[n] = '\0';
-		return strtoull(buf, 0, 16);
+		r = strtoull(buf, 0, 16);
 	}else{
+		r = 0;
 		for(i=0; i<naddr; i++)
 			if(addr[i] == a)
-				return val[i];
-		return 0;
+				r = val[i];
 	}
+
+	return r;
 }
 
 static void

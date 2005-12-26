@@ -17,6 +17,7 @@ static jmp_buf _mainjmp;
 static void mainlauncher(void*);
 extern void (*_sysfatal)(char*, va_list);
 extern void (*__assert)(char*);
+static Proc **mainp;
 
 void
 main(int argc, char **argv)
@@ -25,7 +26,8 @@ main(int argc, char **argv)
 	Proc *p;
 
 	rfork(RFREND);
-	if(p = (Proc*)setjmp(_mainjmp))
+	mainp = &p;
+	if(setjmp(_mainjmp))
 		_schedinit(p);
 
 //_threaddebuglevel = (DBGSCHED|DBGCHAN|DBGREND)^~0;
@@ -135,7 +137,8 @@ _schedfork(Proc *p)
 
 	switch(pid = rfork(RFPROC|RFMEM|RFNOWAIT|p->rforkflag)){
 	case 0:
-		longjmp(_mainjmp, (int)p);
+		*mainp = p;	/* write to stack, so local to proc */
+		longjmp(_mainjmp, 1);
 	default:
 		return pid;
 	}

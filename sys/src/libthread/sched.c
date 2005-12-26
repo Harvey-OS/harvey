@@ -86,7 +86,7 @@ _sched(void)
 Resched:
 	p = _threadgetproc();
 	if((t = p->thread) != nil){
-		if((ulong)&p < (ulong)t->stk)	/* stack overflow */
+		if((uchar*)&p < t->stk)		/* stack overflow */
 			abort();
 		_threaddebug(DBGSCHED, "pausing, state=%s", psstate(t->state));
 		if(setjmp(t->sched)==0)
@@ -124,7 +124,7 @@ runthread(Proc *p)
 		q->asleep = 1;
 		_threaddebug(DBGSCHED, "sleeping for more work");
 		unlock(&p->readylock);
-		while(rendezvous((ulong)q, 0) == ~0){
+		while(rendezvous(q, 0) == (void*)~0){
 			if(_threadexitsallstatus)
 				exits(_threadexitsallstatus);
 		}
@@ -155,7 +155,7 @@ _threadready(Thread *t)
 		q->asleep = 0;
 		/* lock passes to runthread */
 		_threaddebug(DBGSCHED, "waking process %d", t->proc->pid);
-		while(rendezvous((ulong)q, 0) == ~0){
+		while(rendezvous(q, 0) == (void*)~0){
 			if(_threadexitsallstatus)
 				exits(_threadexitsallstatus);
 		}

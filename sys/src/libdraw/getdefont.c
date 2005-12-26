@@ -19,7 +19,7 @@ getdefont(Display *d)
 	 * declared as char*, not ulong*.
 	 */
 	p = (char*)defontdata;
-	n = (ulong)p & 3;
+	n = (int)(uvlong)p & 3;				/* stupid ape */
 	if(n != 0){
 		memmove(p+(4-n), p, sizeofdefont-n);
 		p += 4-n;

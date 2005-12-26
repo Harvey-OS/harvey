@@ -59,7 +59,7 @@ extern	int	print(char*, ...);
  * one-of-a-kind
  */
 extern	char*	cleanname(char*);
-extern	ulong	getcallerpc(void*);
+extern	uintptr	getcallerpc(void*);
 extern	long	strtol(char*, char**, int);
 extern	ulong	strtoul(char*, char**, int);
 extern	vlong	strtoll(char*, char**, int);

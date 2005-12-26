@@ -447,7 +447,7 @@ ialloc(ulong n, int align)
 
 	palloc = p+n;
 	if(palloc > PEND)
-		panic("ialloc(%lud, %d) called from 0x%lux\n",
+		panic("ialloc(%lud, %d) called from %#p\n",
 			n, align, getcallerpc(&n));
 	return memset((void*)(p|KZERO), 0, n);
 }
@@ -458,7 +458,7 @@ xspanalloc(ulong size, int align, ulong span)
 	ulong a, v;
 
 	if((palloc + (size+align+span)) > PEND)
-		panic("xspanalloc(%lud, %d, 0x%lux) called from 0x%lux\n",
+		panic("xspanalloc(%lud, %d, 0x%lux) called from %#p\n",
 			size, align, span, getcallerpc(&size));
 
 	a = (ulong)ialloc(size+align+span, 0);
@@ -492,7 +492,7 @@ allocb(int size)
 	}
 	if(bp == 0){
 		if((palloc + (sizeof(Block)+size+64)) > PEND)
-			panic("allocb(%d) called from 0x%lux\n",
+			panic("allocb(%d) called from %#p\n",
 				size, getcallerpc(&size));
 		bp = ialloc(sizeof(Block)+size+64, 0);
 		addr = (ulong)bp;

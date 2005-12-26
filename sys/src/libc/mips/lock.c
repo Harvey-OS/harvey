@@ -21,19 +21,19 @@ extern	int C_fcr0(void);
 static void
 lockinit(void)
 {
-	int n;
+	void *v;
 
 	if(arch != 0)
 		return;	/* allow multiple calls */
 	arch = C_fcr0();
 	switch(arch) {
 	case POWER:
-		n = segattach(SG_CEXEC, "lock", (void*)Lockaddr, Pagesize);
-		if(n < 0) {
+		v = (void*)Lockaddr;
+		if(segattach(SG_CEXEC, "lock", v, Pagesize) == (void*)-1) {
 			arch = MAGNUM;
 			break;
 		}
-		memset((void*)Lockaddr, 0, Pagesize);
+		memset(v, 0, Pagesize);
 		break;
 	case MAGNUM:
 	case MAGNUMII:
@@ -43,7 +43,6 @@ lockinit(void)
 		arch = R4K;
 		break;
 	}
-	
 }
 
 void
@@ -88,7 +87,7 @@ retry:
 			while(lk->val)
 				;
 		}
-	}	
+	}
 }
 
 int
@@ -126,7 +125,7 @@ retry:
 			}
 		}
 		return 0;
-	}	
+	}
 }
 
 void
@@ -166,5 +165,5 @@ retry:
 			}
 		}
 		return 1;
-	}	
+	}
 }

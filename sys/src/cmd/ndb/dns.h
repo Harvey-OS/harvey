@@ -241,7 +241,7 @@ struct RR
 	ulong	magic;
 	DN	*owner;		/* domain that owns this resource record */
 	uchar	negative;	/* this is a cached negative response */
-	ulong	pc;
+	uintptr	pc;
 	ulong	ttl;		/* time to live to be passed on */
 	ulong	expire;		/* time this entry expires locally */
 	ushort	type;		/* RR type */

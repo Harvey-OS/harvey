@@ -10,7 +10,7 @@
  */
 typedef struct {
 	Pcidev*	pci;
-	ulong	mmio;
+	uchar*	mmio;
 	int	mem;
 
 	int	format;			/* graphics and video format */
@@ -37,13 +37,13 @@ enum {
 static int
 mmio8r(Laguna* laguna, int offset)
 {
-	return *((uchar*)(laguna->mmio+offset)) & 0xFF;
+	return *(laguna->mmio+offset) & 0xFF;
 }
 
 static void
 mmio8w(Laguna* laguna, int offset, int data)
 {
-	*((uchar*)(laguna->mmio+offset)) = data;
+	*(laguna->mmio+offset) = data;
 }
 
 static int
@@ -74,7 +74,7 @@ static void
 snarf(Vga* vga, Ctlr* ctlr)
 {
 	int f, i;
-	long m;
+	uchar *mmio;
 	Pcidev *p;
 	Laguna *laguna;
 
@@ -113,11 +113,12 @@ snarf(Vga* vga, Ctlr* ctlr)
 			error("%s: can't set type\n", ctlr->name);
 		close(f);
 	
-		if((m = segattach(0, "clgd546xmmio", 0, p->mem[1].size)) == -1)
+		mmio = segattach(0, "clgd546xmmio", 0, p->mem[1].size);
+		if(mmio == (void*)-1)
 			error("%s: can't attach mmio segment\n", ctlr->name);
 		laguna = vga->private;
 		laguna->pci = p;
-		laguna->mmio = m;
+		laguna->mmio = mmio;
 	}
 	laguna = vga->private;
 

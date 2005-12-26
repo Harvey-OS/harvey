@@ -276,7 +276,7 @@ startcmd(Conn *c, char *cmd, int *kidpid, int *kidin)
 			}
 		default:
 			*kidpid = kpid;
-			rendezvous((ulong)kidpid, 0);
+			rendezvous(kidpid, 0);
 			for(;;){
 				if((w = wait()) == nil)
 					sysfatal("wait: %r");
@@ -301,7 +301,7 @@ startcmd(Conn *c, char *cmd, int *kidpid, int *kidin)
 		}
 	default:
 		atexitkill(pid);
-		rendezvous((ulong)kidpid, 0);
+		rendezvous(kidpid, 0);
 		break;
 	}
 

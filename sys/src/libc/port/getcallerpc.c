@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
 
-ulong
+uintptr
 getcallerpc(void*)
 {
 	return 0;

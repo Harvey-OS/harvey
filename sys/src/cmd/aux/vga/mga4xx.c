@@ -30,49 +30,49 @@ static int	 ultradebug = 0;
  * Matrox G4xx 3D graphics accelerators
  */
 enum {
-	Kilo				= 1024,
-	Meg				= 1024*1024,
+	Kilo			= 1024,
+	Meg			= 1024*1024,
 	
-	MATROX			= 0x102B,		/* pci chip manufacturer */
-	MGA4XX			= 0x0525,		/* pci chip device ids */
+	MATROX			= 0x102B,	/* pci chip manufacturer */
+	MGA4XX			= 0x0525,	/* pci chip device ids */
 	MGA200			= 0x0521,
 
 	/* Pci configuration space mapping */
 	PCfgMgaFBAA		= 0x10,		/* Frame buffer Aperture Address */
 	PCfgMgaCAA		= 0x14,		/* Control Aperture Address base */
 	PCfgMgaIAA		= 0x18,		/* ILOAD Aperture base Address */
-	PCfgMgaOption1	= 0x40,		/* Option Register 1 */
-	PCfgMgaOption2	= 0x50,		/* Option Register 2 */
-	PCfgMgaOption3	= 0x54,		/* Option Register 3 */
-	PCfgMgaDevCtrl	= 0x04,		/* Device Control */
+	PCfgMgaOption1		= 0x40,		/* Option Register 1 */
+	PCfgMgaOption2		= 0x50,		/* Option Register 2 */
+	PCfgMgaOption3		= 0x54,		/* Option Register 3 */
+	PCfgMgaDevCtrl		= 0x04,		/* Device Control */
 
 	/* control aperture offsets */
-	DMAWIN			= 0x0000,		/* 7KByte Pseudo-DMA Window */
+	DMAWIN			= 0x0000,	/* 7KByte Pseudo-DMA Window */
 
-	STATUS0			= 0x1FC2,		/* Input Status 0 */
+	STATUS0			= 0x1FC2,	/* Input Status 0 */
 	STATUS1			= 0x1FDA,	/* Input Status 1 */
 	
-	SEQIDX			= 0x1FC4,		/* Sequencer Index */
-	SEQDATA			= 0x1FC5,		/* Sequencer Data */
+	SEQIDX			= 0x1FC4,	/* Sequencer Index */
+	SEQDATA			= 0x1FC5,	/* Sequencer Data */
 
-	MISC_W			= 0x1FC2,		/* Misc. WO */
+	MISC_W			= 0x1FC2,	/* Misc. WO */
 	MISC_R			= 0x1FCC,	/* Misc. RO */
 
-	GCTLIDX			= 0x1FCE,		/* Graphic Controler Index */
-	GCTLDATA		= 0x1FCF,		/* Graphic Controler Data */
+	GCTLIDX			= 0x1FCE,	/* Graphic Controler Index */
+	GCTLDATA		= 0x1FCF,	/* Graphic Controler Data */
 
 	CRTCIDX			= 0x1FD4,	/* CRTC Index */
 	CRTCDATA		= 0x1FD5,	/* CRTC Data */
 
-	CRTCEXTIDX		= 0x1FDE,		/* CRTC Extension Index */
-	CRTCEXTDATA		= 0x1FDF,		/* CRTC Extension Data */
+	CRTCEXTIDX		= 0x1FDE,	/* CRTC Extension Index */
+	CRTCEXTDATA		= 0x1FDF,	/* CRTC Extension Data */
 	
 	RAMDACIDX		= 0x3C00,	/* RAMDAC registers Index */
 	RAMDACDATA		= 0x3C0A,	/* RAMDAC Indexed Data */
 	RAMDACPALDATA		= 0x3C01,
 
-	ATTRIDX			= 0x1FC0,		/* Attribute Index */
-	ATTRDATA		= 0x1FC1,		/* Attribute Data */
+	ATTRIDX			= 0x1FC0,	/* Attribute Index */
+	ATTRDATA		= 0x1FC1,	/* Attribute Data */
 
 	CACHEFLUSH		= 0x1FFF,
 
@@ -82,36 +82,36 @@ enum {
 	
  	/* ... */
 	Seq_ClockingMode =	0x01,
-		Dotmode =			(1<<0),
-		Shftldrt =				(1<<2),
-		Dotclkrt =				(1<<3),
-		Shiftfour =			(1<<4),
-		Scroff =				(1<<5),
+		Dotmode =		(1<<0),
+		Shftldrt =		(1<<2),
+		Dotclkrt =		(1<<3),
+		Shiftfour =		(1<<4),
+		Scroff =		(1<<5),
 
 	CrtcExt_Horizontcount =	0x01,
-		Htotal =				(1<<0),
-		Hblkstr =				(1<<1),
-		Hsyncstr =			(1<<2),
-		Hrsten =				(1<<3),
-		Hsyncoff =			(1<<4),
-		Vsyncoff =			(1<<5),
-		Hblkend =				(1<<6),
-		Vrsten =				(1<<7),
+		Htotal =		(1<<0),
+		Hblkstr =		(1<<1),
+		Hsyncstr =		(1<<2),
+		Hrsten =		(1<<3),
+		Hsyncoff =		(1<<4),
+		Vsyncoff =		(1<<5),
+		Hblkend =		(1<<6),
+		Vrsten =		(1<<7),
 
 	CrtcExt_Miscellaneous =	0x03,
-		Mgamode =			(1<<7),
+		Mgamode =		(1<<7),
 
-	Dac_Xpixclkctrl =		0x1a,
-		Pixclksl = 				(3<<0),
-		Pixclkdis =			(1<<2),
-		Pixpllpdn =			(1<<3),
+	Dac_Xpixclkctrl =	0x1a,
+		Pixclksl = 		(3<<0),
+		Pixclkdis =		(1<<2),
+		Pixpllpdn =		(1<<3),
 
-	Dac_Xpixpllstat =		0x4f,
-		Pixlock = 				(1<<6),
+	Dac_Xpixpllstat =	0x4f,
+		Pixlock = 		(1<<6),
 	
 	Dac_Xpixpllan =		0x45,
 	Dac_Xpixpllbn =		0x49,
-	Dac_Xpixpllcn  =		0x4d,
+	Dac_Xpixpllcn  =	0x4d,
 
 	Dac_Xpixpllam =		0x44, 
 	Dac_Xpixpllbm =		0x48,
@@ -122,7 +122,7 @@ enum {
 	Dac_Xpixpllcp =		0x4e,
 
 	Dac_Xmulctrl =		0x19,
-		ColorDepth =			(7<<0),
+		ColorDepth =		(7<<0),
 			_8bitsPerPixel = 		0,
 			_15bitsPerPixel =		1,
 			_16bitsPerPixel =		2,
@@ -130,33 +130,33 @@ enum {
 			_32bitsPerPixelWithOv = 	4,
 			_32bitsPerPixel	=		7,
 
-	Dac_Xpanelmode =		0x1f,
+	Dac_Xpanelmode =	0x1f,
 
 	Dac_Xmiscctrl =		0x1e,
-		Dacpdn =				(1<<0),
-		Mfcsel =				(3<<1),
-		Vga8dac =			(1<<3),
-		Ramcs =				(1<<4),
-		Vdoutsel =			(7<<5),
+		Dacpdn =		(1<<0),
+		Mfcsel =		(3<<1),
+		Vga8dac =		(1<<3),
+		Ramcs =			(1<<4),
+		Vdoutsel =		(7<<5),
 
-	Dac_Xcurctrl =			0x06,
-		CursorDis = 			0,
+	Dac_Xcurctrl =		0x06,
+		CursorDis = 		0,
 		Cursor3Color = 		1,
-		CursorXGA = 			2,
-		CursorX11 = 			3,
-		Cursor16Color = 		4,
+		CursorXGA = 		2,
+		CursorX11 = 		3,
+		Cursor16Color = 	4,
 
 	Dac_Xzoomctrl =		0x38,
 
 	Misc_loaddsel =			(1<<0),
 	Misc_rammapen =			(1<<1),
-	Misc_clksel =				(3<<2),
+	Misc_clksel =			(3<<2),
 	Misc_videodis =			(1<<4),
-	Misc_hpgoddev = 			(1<<5),
+	Misc_hpgoddev = 		(1<<5),
 	Misc_hsyncpol =			(1<<6),
 	Misc_vsyncpol =			(1<<7),
 
-	MNP_TABLE_SIZE =		64,
+	MNP_TABLE_SIZE =	64,
 
 	TRUE = 	(1 == 1),
 	FALSE = (1 == 0),
@@ -164,12 +164,12 @@ enum {
 
 typedef struct {
 	Pcidev*	pci;
-	int		devid;
-	int		revid;
+	int	devid;
+	int	revid;
 	
-	ulong	mmio;
-	ulong	mmfb;
-	int		fbsize;
+	uchar*	mmio;
+	uchar*	mmfb;
+	int	fbsize;
 	ulong	iload;
 
 	uchar	syspll_m;
@@ -272,13 +272,13 @@ mgaread32(Mga* mga, int index)
 static void
 mgawrite8(Mga* mga, int index, uchar val)
 {
-	((uchar*)mga->mmio)[index] = val;
+	mga->mmio[index] = val;
 }
 
 static uchar
 mgaread8(Mga* mga, int index)
 {
-	return ((uchar*)mga->mmio)[index];
+	return mga->mmio[index];
 }
 
 static uchar
@@ -464,7 +464,7 @@ static void
 mapmga4xx(Vga* vga, Ctlr* ctlr)
 {
 	int 	f;
-	long 	m;
+	uchar* 	m;
 	Mga *	mga;
 
 	if(vga->private == nil)
@@ -479,22 +479,22 @@ mapmga4xx(Vga* vga, Ctlr* ctlr)
 		error("%s: can't set mga type\n", ctlr->name);
 	
 	m = segattach(0, "mga4xxmmio", 0, 16*Kilo);
-	if(m == -1)
+	if(m == (void*)-1)
 		error("%s: can't attach mga4xxmmio segment\n", ctlr->name);
 	mga->mmio = m;
-	trace("%s: mmio at 0x%lx\n", ctlr->name, mga->mmio);
+	trace("%s: mmio at %#p\n", ctlr->name, mga->mmio);
 
 	m = segattach(0, "mga4xxscreen", 0, 32*Meg);
-	if(m == -1) {
+	if(m == (void*)-1) {
 		mga->mgaapsize = 8*Meg;
 		m = segattach(0, "mga4xxscreen", 0, 8*Meg);
-		if(m == -1)
+		if(m == (void*)-1)
 			error("%s: can't attach mga4xxscreen segment\n", ctlr->name);
 	} else {
 		mga->mgaapsize = 32*Meg;
 	}
 	mga->mmfb = m;
-	trace("%s: frame buffer at 0x%lx\n", ctlr->name, mga->mmfb);
+	trace("%s: frame buffer at %#p\n", ctlr->name, mga->mmfb);
 
 	close(f);
 }
@@ -544,13 +544,13 @@ snarf(Vga* vga, Ctlr* ctlr)
 	/* First Set MGA Mode ... */
 	crtcext3 = crtcextset(mga, 3, 0x80, 0x00);
 
-	p = (uchar*)mga->mmfb;
+	p = mga->mmfb;
 	n = (mga->mgaapsize / Meg) / 2;
 	for (i = 0; i < n; i++) {
 		k = (2*i+1)*Meg;
 		p[k] = 0;
 		p[k] = i+1;
-		*((uchar*)(mga->mmio + CACHEFLUSH)) = 0;
+		*(mga->mmio + CACHEFLUSH) = 0;
 		x[i] = p[k];
 		trace("x[%d]=%d\n", i, x[i]);
 	}
@@ -1064,7 +1064,7 @@ init(Vga* vga, Ctlr* ctlr)
 	mga = vga->private;
 	mode = vga->mode;
 
-	trace("mga mmio at 0x%lx\n", mga->mmio);
+	trace("mga mmio at %#p\n", mga->mmio);
 
 	ctlr->flag |= Ulinear;
 
@@ -1417,7 +1417,7 @@ load(Vga* vga, Ctlr* ctlr)
 	if (mode->z == 8)
 		setpalettedepth(mode->z);
 
-	trace("mga mmio at 0x%lx\n", mga->mmio);
+	trace("mga mmio at %#p\n", mga->mmio);
 	trace("mga: loading vga registers ...\n" );
 	if (ultradebug) Bflush(&stdout);
 
@@ -1578,7 +1578,7 @@ load(Vga* vga, Ctlr* ctlr)
 	trace("screen enabled ...\n");
 
 	if (0) {
-		p = (uchar*)mga->mmfb;
+		p = mga->mmfb;
 		for (i = 0; i < mga->fbsize; i++)
 			*p++ = (0xff & i);
 	}

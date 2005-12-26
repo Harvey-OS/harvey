@@ -661,7 +661,7 @@ cut(Text *et, Text *t, Text*, int dosnarf, int docut, Rune*, int)
 	Rune *r;
 
 	/* use current window if snarfing and its selection is non-null */
-	if(et!=t && dosnarf && et->w!=nil){
+	if(et!=nil && dosnarf && et->w!=nil){
 		if(et->w->body.q1>et->w->body.q0){
 			t = &et->w->body;
 			if(docut)

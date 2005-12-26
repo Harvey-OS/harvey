@@ -56,7 +56,7 @@ Xflush(Fsrpc *t)
 
 	for(w = Workq; w < e; w++) {
 		if(w->work.tag == t->work.oldtag) {
-			DEBUG(DFD, "\tQ busy %d pid %d can %d\n", w->busy, w->pid, w->canint);
+			DEBUG(DFD, "\tQ busy %d pid %p can %d\n", w->busy, w->pid, w->canint);
 			if(w->busy && w->pid) {
 				w->flushtag = t->work.tag;
 				DEBUG(DFD, "\tset flushtag %d\n", t->work.tag);
@@ -394,7 +394,7 @@ Xwstat(Fsrpc *t)
 		return;
 	}
 	strings = emallocz(t->work.nstat);	/* ample */
-	if(convM2D(t->work.stat, t->work.nstat, &d, strings) < 0){
+	if(convM2D(t->work.stat, t->work.nstat, &d, strings) <= BIT16SZ){
 		rerrstr(err, sizeof err);
 		reply(&t->work, &rhdr, err);
 		t->busy = 0;
@@ -429,7 +429,7 @@ void
 slave(Fsrpc *f)
 {
 	Proc *p;
-	int pid;
+	uintptr pid;
 	Fcall rhdr;
 	static int nproc;
 
@@ -452,7 +452,7 @@ slave(Fsrpc *f)
 			if(p->busy == 0) {
 				f->pid = p->pid;
 				p->busy = 1;
-				pid = rendezvous(p->pid, (ulong)f);
+				pid = (uintptr)rendezvous((void*)p->pid, f);
 				if(pid != p->pid)
 					fatal("rendezvous sync fail");
 				return;
@@ -481,7 +481,7 @@ slave(Fsrpc *f)
 			p->next = Proclist;
 			Proclist = p;
 
-			rendezvous(pid, (ulong)p);
+			rendezvous((void*)pid, p);
 		}
 	}
 }
@@ -492,20 +492,20 @@ blockingslave(void)
 	Fsrpc *p;
 	Fcall rhdr;
 	Proc *m;
-	int pid;
+	uintptr pid;
 
 	notify(flushaction);
 
 	pid = getpid();
 
-	m = (Proc*)rendezvous(pid, 0);
+	m = rendezvous((void*)pid, 0);
 	
 	for(;;) {
-		p = (Fsrpc*)rendezvous(pid, pid);
-		if((int)p == ~0)			/* Interrupted */
+		p = rendezvous((void*)pid, (void*)pid);
+		if(p == (void*)~0)			/* Interrupted */
 			continue;
 
-		DEBUG(DFD, "\tslave: %d %F b %d p %d\n", pid, &p->work, p->busy, p->pid);
+		DEBUG(DFD, "\tslave: %p %F b %d p %p\n", pid, &p->work, p->busy, p->pid);
 		if(p->flushtag != NOTAG)
 			goto flushme;
 

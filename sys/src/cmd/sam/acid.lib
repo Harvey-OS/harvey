@@ -58,14 +58,14 @@ defn filemenu(f)
 
 defn files()
 {
-	local i, f;
+	local i, f, fx, fp;
 	
-	i = 0;
-	tempfile = (List)tempfile;
-	if tempfile.nused == 0 then
+	fx = (List)file;
+	if fx.nused == 0 then
 		filemenu(*cmd);
-	loop 1,tempfile.nused do {
-		f = (File)tempfile.g.filep[i];
+	i = 0;
+	loop 1,fx.nused do {
+		f = (File)fx.g.filep[i];
 		filemenu(f);
 		i = i+1;
 	}

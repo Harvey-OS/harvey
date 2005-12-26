@@ -24,7 +24,31 @@ enum {
 	Fbsize		= 8*MB,
 
 	hwCur		= 0x70080,
+	SRX		= 0x3c4,
+	DPMSsync	= 0x5002,
 };
+
+static void
+i81xblank(VGAscr *scr, int blank)
+{
+	char *srx, *srxd, *dpms;
+	char sr01, mode;
+
+	srx = (char *)scr->mmio+SRX;
+	srxd = srx+1;
+	dpms = (char *)scr->mmio+DPMSsync;
+
+	*srx = 0x01;
+	sr01 = *srxd & ~0x20;
+	mode = *dpms & 0xf0;
+
+	if(blank) {
+		sr01 |= 0x20;
+		mode |= 0x0a;
+	}
+	*srxd = sr01;
+	*dpms = mode;
+}
 
 static Pcidev *
 i81xpcimatch(void)
@@ -100,6 +124,9 @@ i81xenable(VGAscr* scr)
 		panic("i81x cursor mmuwalk");
 	*pte |= PTEUNCACHED;
 	scr->storage = cursor;
+
+	scr->blank = i81xblank;
+	hwblank = 1;
 }
 
 static void

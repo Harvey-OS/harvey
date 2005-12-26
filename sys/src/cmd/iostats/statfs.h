@@ -11,7 +11,7 @@
 
 enum{
 	Maxfdata	= 8192,	/* max size of data in 9P message */
-	Maxrpc	= 20000,	/* number of RPCs we'll log */
+	Maxrpc		= 20000,/* number of RPCs we'll log */
 };
 
 typedef struct Fsrpc Fsrpc;
@@ -56,7 +56,7 @@ struct Stats
 struct Fsrpc
 {
 	int	busy;			/* Work buffer has pending rpc to service */
-	int	pid;			/* Pid of slave process executing the rpc */
+	uintptr	pid;			/* Pid of slave process executing the rpc */
 	int	canint;			/* Interrupt gate */
 	int	flushtag;		/* Tag on which to reply to flush */
 	Fcall	work;			/* Plan 9 incoming Fcall */
@@ -74,7 +74,7 @@ struct Fid
 	ulong	nwrite;
 	ulong	bread;
 	ulong	bwrite;
-	vlong	offset;	/* for directories */
+	vlong	offset;			/* for directories */
 };
 
 struct File
@@ -89,7 +89,7 @@ struct File
 
 struct Proc
 {
-	int	pid;
+	uintptr	pid;
 	int	busy;
 	Proc	*next;
 };
@@ -112,7 +112,7 @@ Extern int	done;
 Extern Stats	*stats;
 Extern Frec	*frhead;
 Extern Frec	*frtail;
-Extern int		myiounit;
+Extern int	myiounit;
 
 /* File system protocol service procedures */
 void Xcreate(Fsrpc*), Xclunk(Fsrpc*); 

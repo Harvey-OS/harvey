@@ -15,11 +15,11 @@ typedef struct Qidtab Qidtab;
 struct Fsrpc
 {
 	int	busy;		/* Work buffer has pending rpc to service */
-	int	pid;		/* Pid of slave process executing the rpc */
+	uintptr	pid;		/* Pid of slave process executing the rpc */
 	int	canint;		/* Interrupt gate */
 	int	flushtag;	/* Tag on which to reply to flush */
-	Fcall work;		/* Plan 9 incoming Fcall */
-	uchar	*buf;	/* Data buffer */
+	Fcall	work;		/* Plan 9 incoming Fcall */
+	uchar	*buf;		/* Data buffer */
 };
 
 struct Fid
@@ -53,7 +53,7 @@ struct File
 
 struct Proc
 {
-	int	pid;
+	uintptr	pid;
 	int	busy;
 	Proc	*next;
 };

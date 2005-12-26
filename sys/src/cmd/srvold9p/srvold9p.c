@@ -370,7 +370,7 @@ demux(void)
 		msg = emalloc(sizeof(Message));
 		msg->data = data;
 		msg->n = n;
-		rendezvous(r.tag, (ulong)msg);
+		rendezvous((void*)r.tag, msg);
 	}
 }
 
@@ -515,8 +515,8 @@ recv9p1(Fcall9p1 *r, int tag, char *data)
 	int n;
 	Message *msg;
 
-	msg = (Message*)rendezvous(tag, 0);
-	if((ulong)msg == ~0UL)
+	msg = rendezvous((void*)tag, 0);
+	if(msg == (void*)~0)
 		fatal("rendezvous: %r");
 	if(msg == nil){
 		if(debug)
@@ -577,7 +577,7 @@ rflush(Fcall *t, Fcall *, char *mdata9p1)
 		if(debug)
 			fprint(2, "wake up receiver\n");
 		oldt->received = 1;
-		rendezvous(t->oldtag, 0);
+		rendezvous((void*)t->oldtag, 0);
 	}
 	freetag(oldt);
 	qunlock(&taglock);
