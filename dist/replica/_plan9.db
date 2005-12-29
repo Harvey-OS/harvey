@@ -7948,7 +7948,7 @@ sys/src/9/pc/ether83815.c - 664 sys sys 1133464742 23556
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherdp83820.c - 664 sys sys 1134042756 29166
-sys/src/9/pc/etherec2t.c - 664 sys sys 1086960044 4039
+sys/src/9/pc/etherec2t.c - 664 sys sys 1135784135 4092
 sys/src/9/pc/etherelnk3.c - 664 sys sys 1131290378 48733
 sys/src/9/pc/etherga620.c - 664 sys sys 1134390125 28760
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
