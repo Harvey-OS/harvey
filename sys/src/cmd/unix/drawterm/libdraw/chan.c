@@ -1,7 +1,6 @@
-#include "../lib9.h"
-
-#include "../libdraw/draw.h"
-#include <ctype.h>
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
 
 static char channames[] = "rgbkamx";
 char*
@@ -30,6 +29,13 @@ chantostr(char *buf, ulong cc)
 	return buf;
 }
 
+/* avoid pulling in ctype when using with drawterm etc. */
+static int
+xisspace(char c)
+{
+	return c==' ' || c== '\t' || c=='\r' || c=='\n';
+}
+
 ulong
 strtochan(char *s)
 {
@@ -39,10 +45,10 @@ strtochan(char *s)
 
 	c = 0;
 	p=s;
-	while(*p && isspace(*p))
+	while(*p && xisspace(*p))
 		p++;
 
-	while(*p && !isspace(*p)){
+	while(*p && !xisspace(*p)){
 		if((q = strchr(channames, p[0])) == nil) 
 			return 0;
 		t = q-channames;
@@ -59,12 +65,13 @@ int
 chantodepth(ulong c)
 {
 	int n;
+
 	for(n=0; c; c>>=8){
 		if(TYPE(c) >= NChan || NBITS(c) > 8 || NBITS(c) <= 0)
 			return 0;
 		n += NBITS(c);
 	}
-	if((n>8 && n%8) || (n<8 && 8%n))
+	if(n==0 || (n>8 && n%8) || (n<8 && 8%n))
 		return 0;
 	return n;
 }

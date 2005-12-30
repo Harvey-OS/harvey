@@ -1,5 +1,5 @@
-#include "../lib9.h"
-#include "../libsec/libsec.h"
+#include "os.h"
+#include <libsec.h>
 
 /*
  *  rfc1321 requires that I include this.  The code is new.  The constants

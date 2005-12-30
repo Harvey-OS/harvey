@@ -1,5 +1,5 @@
-#include "../lib9.h"
-#include "../libsec/libsec.h"
+#include "os.h"
+#include <libsec.h>
 
 /*
  *  rfc1321 requires that I include this.  The code is new.  The constants
@@ -28,7 +28,6 @@
  */
 
 static void encode(uchar*, u32int*, ulong);
-static void decode(u32int*, uchar*, ulong);
 
 extern void _md5block(uchar*, ulong, u32int*);
 

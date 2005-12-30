@@ -1,8 +1,8 @@
-#include "../lib9.h"
-
-#include "../libdraw/draw.h"
-#include "../libmemdraw/memdraw.h"
-#include "../libmemlayer/memlayer.h"
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+#include <memdraw.h>
+#include <memlayer.h>
 
 /*
  * elarc(dst,c,a,b,t,src,sp,alpha,phi)
@@ -33,7 +33,7 @@ Point p00;
  * wedge to make a mask through which to copy src to dst.
  */
 void
-memarc(Memimage *dst, Point c, int a, int b, int t, Memimage *src, Point sp, int alpha, int phi)
+memarc(Memimage *dst, Point c, int a, int b, int t, Memimage *src, Point sp, int alpha, int phi, int op)
 {
 	int i, w, beta, tmp, c1, c2, m, m1;
 	Rectangle rect;
@@ -57,7 +57,7 @@ memarc(Memimage *dst, Point c, int a, int b, int t, Memimage *src, Point sp, int
 		phi = -phi;
 	}
 	if(phi >= 360){
-		memellipse(dst, c, a, b, t, src, sp);
+		memellipse(dst, c, a, b, t, src, sp, op);
 		return;
 	}
 	while(alpha < 0)
@@ -96,19 +96,19 @@ memarc(Memimage *dst, Point c, int a, int b, int t, Memimage *src, Point sp, int
 	if(wedge == nil)
 		goto Return;
 	memfillcolor(wedge, DTransparent);
-	memfillpoly(wedge, bnd, i, ~0, memopaque, p00);
+	memfillpoly(wedge, bnd, i, ~0, memopaque, p00, S);
 	figure = allocmemimage(rect, GREY1);
 	if(figure == nil)
 		goto Return;
 	memfillcolor(figure, DTransparent);
-	memellipse(figure, p00, a, b, t, memopaque, p00);
+	memellipse(figure, p00, a, b, t, memopaque, p00, S);
 	mask = allocmemimage(rect, GREY1);
 	if(mask == nil)
 		goto Return;
 	memfillcolor(mask, DTransparent);
-	memimagedraw(mask, rect, figure, rect.min, wedge, rect.min);
+	memimagedraw(mask, rect, figure, rect.min, wedge, rect.min, S);
 	c = subpt(c, dst->r.min);
-	memdraw(dst, dst->r, src, subpt(sp, c), mask, subpt(p00, c));
+	memdraw(dst, dst->r, src, subpt(sp, c), mask, subpt(p00, c), op);
 
     Return:
 	freememimage(wedge);

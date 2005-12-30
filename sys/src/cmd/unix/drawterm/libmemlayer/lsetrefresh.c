@@ -1,8 +1,8 @@
-#include "../lib9.h"
-
-#include "../libdraw/draw.h"
-#include "../libmemdraw/memdraw.h"
-#include "../libmemlayer/memlayer.h"
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+#include <memdraw.h>
+#include <memlayer.h>
 
 int
 memlsetrefresh(Memimage *i, Refreshfn fn, void *ptr)

@@ -1,7 +1,7 @@
-#include "../lib9.h"
-
-#include "../libdraw/draw.h"
-#include "../libmemdraw/memdraw.h"
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+#include <memdraw.h>
 
 Memsubfont*
 getmemdefont(void)
@@ -12,6 +12,7 @@ getmemdefont(void)
 	Memsubfont *f;
 	int ld;
 	Rectangle r;
+	Memdata *md;
 	Memimage *i;
 
 	/*
@@ -31,14 +32,23 @@ getmemdefont(void)
 	r.max.x = atoi(p+3*12);
 	r.max.y = atoi(p+4*12);
 
+	md = mallocz(sizeof(Memdata), 1);
+	if(md == nil)
+		return nil;
+	
 	p += 5*12;
 
-	i = allocmemimage(r, drawld2chan[ld]);
-	if(i == nil)
+	md->base = nil;		/* so freememimage doesn't free p */
+	md->bdata = (uchar*)p;	/* ick */
+	md->ref = 1;
+	md->allocd = 1;		/* so freememimage does free md */
+
+	i = allocmemimaged(r, drawld2chan[ld], md, nil);
+	if(i == nil){
+		free(md);
 		return nil;
-		
-	loadmemimage(i, i->r, (uchar*)p, Dy(r)*i->width*sizeof(ulong));
-	
+	}
+
 	hdr = p+Dy(r)*i->width*sizeof(ulong);
 	n = atoi(hdr);
 	p = hdr+3*12;

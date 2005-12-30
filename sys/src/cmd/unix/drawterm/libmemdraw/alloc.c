@@ -1,7 +1,10 @@
-#include "../lib9.h"
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+#include <memdraw.h>
 
-#include "../libdraw/draw.h"
-#include "../libmemdraw/memdraw.h"
+#define poolalloc(a, b) malloc(b)
+#define poolfree(a, b) free(b)
 
 void
 memimagemove(void *from, void *to)
@@ -26,6 +29,10 @@ allocmemimaged(Rectangle r, ulong chan, Memdata *md, void *X)
 	ulong l;
 	Memimage *i;
 
+	if(Dx(r) <= 0 || Dy(r) <= 0){
+		werrstr("bad rectangle %R", r);
+		return nil;
+	}
 	if((d = chantodepth(chan)) == 0) {
 		werrstr("bad channel descriptor %.8lux", chan);
 		return nil;
@@ -33,10 +40,11 @@ allocmemimaged(Rectangle r, ulong chan, Memdata *md, void *X)
 
 	l = wordsperline(r, d);
 
-	i = mallocz(sizeof(Memimage));
+	i = mallocz(sizeof(Memimage), 1);
 	if(i == nil)
 		return nil;
 
+	i->X = X;
 	i->data = md;
 	i->zero = sizeof(ulong)*l*r.min.y;
 	
@@ -55,7 +63,6 @@ allocmemimaged(Rectangle r, ulong chan, Memdata *md, void *X)
 		free(i);
 		return nil;
 	}
-	i->X = X;
 	return i;
 }
 
@@ -79,7 +86,7 @@ _allocmemimage(Rectangle r, ulong chan)
 		return nil;
 
 	md->ref = 1;
-	md->base = mallocz((2+nw)*sizeof(ulong));
+	md->base = poolalloc(imagmem, (2+nw)*sizeof(ulong));
 	if(md->base == nil){
 		free(md);
 		return nil;
@@ -95,6 +102,7 @@ _allocmemimage(Rectangle r, ulong chan)
 
 	i = allocmemimaged(r, chan, md, nil);
 	if(i == nil){
+		poolfree(imagmem, md->base);
 		free(md);
 		return nil;
 	}
@@ -109,7 +117,7 @@ _freememimage(Memimage *i)
 		return;
 	if(i->data->ref-- == 1 && i->data->allocd){
 		if(i->data->base)
-			free(i->data->base);
+			poolfree(imagmem, i->data->base);
 		free(i->data);
 	}
 	free(i);
@@ -155,7 +163,6 @@ memsetchan(Memimage *i, ulong chan)
 	ulong cc;
 	int bytes;
 
-	assert(i->X == nil);
 	if((d = chantodepth(chan)) == 0) {
 		werrstr("bad channel descriptor");
 		return -1;

@@ -1,5 +1,5 @@
-#include "../lib9.h"
-#include "../libsec/libsec.h"
+#include "os.h"
+#include <libsec.h>
 
 /*
  * integrated sbox & p perm

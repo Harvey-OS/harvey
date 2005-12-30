@@ -1,8 +1,8 @@
-#include "../lib9.h"
-
-#include "../libdraw/draw.h"
-#include "../libmemdraw/memdraw.h"
-#include "../libmemlayer/memlayer.h"
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+#include <memdraw.h>
+#include <memlayer.h>
 
 int
 memload(Memimage *dst, Rectangle r, uchar *data, int n, int iscompressed)
@@ -49,7 +49,7 @@ memload(Memimage *dst, Rectangle r, uchar *data, int n, int iscompressed)
 	if(tmp == nil)
 		return -1;
 	n = loadfn(tmp, lr, data, n);
-	memdraw(dst, lr, tmp, lr.min, nil, lr.min);
+	memdraw(dst, lr, tmp, lr.min, nil, lr.min, S);
 	freememimage(tmp);
 	return n;
 }

@@ -1,6 +1,6 @@
-#include "../lib9.h"
-
-#include "../libdraw/draw.h"
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
 
 Point
 Pt(int x, int y)
@@ -158,3 +158,49 @@ combinerect(Rectangle *r1, Rectangle r2)
 	if(r1->max.y < r2.max.y)
 		r1->max.y = r2.max.y;
 }
+
+ulong
+drawld2chan[] = {
+	GREY1,
+	GREY2,
+	GREY4,
+	CMAP8,
+};
+
+int log2[] = { -1, 0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 4, -1, -1, -1, -1, -1, -1, -1, 4 /* BUG */, -1, -1, -1, -1, -1, -1, -1, 5 };
+
+ulong
+setalpha(ulong color, uchar alpha)
+{
+	int red, green, blue;
+
+	red = (color >> 3*8) & 0xFF;
+	green = (color >> 2*8) & 0xFF;
+	blue = (color >> 1*8) & 0xFF;
+	/* ignore incoming alpha */
+	red = (red * alpha)/255;
+	green = (green * alpha)/255;
+	blue = (blue * alpha)/255;
+	return (red<<3*8) | (green<<2*8) | (blue<<1*8) | (alpha<<0*8);
+}
+
+Point	ZP;
+Rectangle ZR;
+int
+Rfmt(Fmt *f)
+{
+	Rectangle r;
+
+	r = va_arg(f->args, Rectangle);
+	return fmtprint(f, "%P %P", r.min, r.max);
+}
+
+int
+Pfmt(Fmt *f)
+{
+	Point p;
+
+	p = va_arg(f->args, Point);
+	return fmtprint(f, "[%d %d]", p.x, p.y);
+}
+

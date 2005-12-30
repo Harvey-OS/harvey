@@ -1,9 +1,7 @@
-#include "../lib9.h"
-
-#include "../libdraw/draw.h"
-#include "../libmemdraw/memdraw.h"
-
-#define	CHUNK	8000
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+#include <memdraw.h>
 
 Memimage*
 readmemimage(int fd)
@@ -11,20 +9,24 @@ readmemimage(int fd)
 	char hdr[5*12+1];
 	int dy;
 	ulong chan;
-	uint l, m, n;
-	int j;
+	uint l, n;
+	int m, j;
 	int new, miny, maxy;
 	Rectangle r;
 	uchar *tmp;
-	int ldepth;
+	int ldepth, chunk;
 	Memimage *i;
 
-	if(readn(fd, hdr, 11) != 11)
+	if(readn(fd, hdr, 11) != 11){
+		werrstr("readimage: short header");
 		return nil;
+	}
 	if(memcmp(hdr, "compressed\n", 11) == 0)
 		return creadmemimage(fd);
-	if(readn(fd, hdr+11, 5*12-11) != 5*12-11)
+	if(readn(fd, hdr+11, 5*12-11) != 5*12-11){
+		werrstr("readimage: short header (2)");
 		return nil;
+	}
 
 	/*
 	 * distinguish new channel descriptor from old ldepth.
@@ -73,13 +75,16 @@ readmemimage(int fd)
 	i = allocmemimage(r, chan);
 	if(i == nil)
 		return nil;
-	tmp = malloc(CHUNK);
+	chunk = 32*1024;
+	if(chunk < l)
+		chunk = l;
+	tmp = malloc(chunk);
 	if(tmp == nil)
 		goto Err;
 	while(maxy > miny){
 		dy = maxy - miny;
-		if(dy*l > CHUNK)
-			dy = CHUNK/l;
+		if(dy*l > chunk)
+			dy = chunk/l;
 		if(dy <= 0){
 			werrstr("readmemimage: image too wide for buffer");
 			goto Err;
@@ -94,10 +99,10 @@ readmemimage(int fd)
 			return nil;
 		}
 		if(!new)	/* an old image: must flip all the bits */
-			for(j=0; j<CHUNK; j++)
+			for(j=0; j<chunk; j++)
 				tmp[j] ^= 0xFF;
 
-		if(loadmemimage(i, Rect(r.min.x, miny, r.max.x, miny+dy), tmp, CHUNK) <= 0)
+		if(loadmemimage(i, Rect(r.min.x, miny, r.max.x, miny+dy), tmp, chunk) <= 0)
 			goto Err;
 		miny += dy;
 	}
