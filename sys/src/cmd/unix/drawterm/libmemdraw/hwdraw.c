@@ -1,11 +1,12 @@
-#include "../lib9.h"
-
-#include "../libdraw/draw.h"
-#include "../libmemdraw/memdraw.h"
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+#include <memdraw.h>
 
 int
-hwdraw(Memdrawparam *notused)
+hwdraw(Memdrawparam *p)
 {
+	USED(p);
 	return 0;	/* could not satisfy request */
 }
 

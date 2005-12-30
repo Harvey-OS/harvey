@@ -1,5 +1,6 @@
-#include "../lib9.h"
-#include "../libsec/libsec.h"
+#include "os.h"
+#include <mp.h>
+#include <libsec.h>
 
 // I wasn't sure what to do when the buffer was not
 // a multiple of 8.  I did what lacy's cryptolib did

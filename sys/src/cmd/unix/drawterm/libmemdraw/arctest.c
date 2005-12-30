@@ -1,8 +1,8 @@
-#include "../lib9.h"
-
-#include "../libdraw/draw.h"
-#include "../libmemdraw/memdraw.h"
-#include "../libmemlayer/memlayer.h"
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+#include <memdraw.h>
+#include <memlayer.h>
 
 extern int drawdebug;
 void
@@ -33,7 +33,7 @@ main(int argc, char **argv)
 	del = t1-t0;
 	t0 = nsec();
 	for(i=0; i<n; i++)
-		memarc(x, c, a, b, thick, memblack, sp, alpha, phi);
+		memarc(x, c, a, b, thick, memblack, sp, alpha, phi, SoverD);
 	t1 = nsec();
 	print("%lld %lld\n", t1-t0-del, del);
 }

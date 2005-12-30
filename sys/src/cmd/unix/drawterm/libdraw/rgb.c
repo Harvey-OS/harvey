@@ -1,7 +1,18 @@
-#include "../lib9.h"
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
 
-#include "../libdraw/draw.h"
-
+/*
+ * This original version, although fast and a true inverse of
+ * cmap2rgb, in the sense that rgb2cmap(cmap2rgb(c))
+ * returned the original color, does a terrible job for RGB
+ * triples that do not appear in the color map, so it has been
+ * replaced by the much slower version below, that loops
+ * over the color map looking for the nearest point in RGB
+ * space.  There is no visual psychology reason for that
+ * criterion, but it's easy to implement and the results are
+ * far more pleasing. 
+ *
 int
 rgb2cmap(int cr, int cg, int cb)
 {
@@ -29,6 +40,30 @@ rgb2cmap(int cr, int cg, int cb)
 		cv = cb;
 	v = (cv>>4)&3;
 	return ((((r<<2)+v)<<4)+(((g<<2)+b+v-r)&15));
+}
+*/
+
+int
+rgb2cmap(int cr, int cg, int cb)
+{
+	int i, r, g, b, sq;
+	ulong rgb;
+	int best, bestsq;
+
+	best = 0;
+	bestsq = 0x7FFFFFFF;
+	for(i=0; i<256; i++){
+		rgb = cmap2rgb(i);
+		r = (rgb>>16) & 0xFF;
+		g = (rgb>>8) & 0xFF;
+		b = (rgb>>0) & 0xFF;
+		sq = (r-cr)*(r-cr)+(g-cg)*(g-cg)+(b-cb)*(b-cb);
+		if(sq < bestsq){
+			bestsq = sq;
+			best = i;
+		}
+	}
+	return best;
 }
 
 int

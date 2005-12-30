@@ -1,0 +1,19 @@
+draw1:	6M for draw 0,0,100,100 no repl
+draw3:	4M for draw 0,0,100,100 no repl
+just read src, dst - 250k
+mask reading - 650k
+write dst - 100k
+alpha calculation - 3000k
+
+olddraw:	10M for draw 0, 0, 1000, 1000 no repl all ldepth 3
+		44M for draw 0, 0, 1000, 1000 src, mask ldepth 2 dst ldepth 3
+draw4:	160M for draw 0, 0, 1000, 1000 no repl all r8g8b8
+	null loop: 10k
+	src, dst reading: 13-15M each
+	mask reading: 30M
+	alpha calculation loop: 90M
+		null alpha loop: 2M
+		minimal loop control +20M
+		alpha calculation with divides +190M
+		alpha calculation wtih shifts +70M
+	writeback: 11M

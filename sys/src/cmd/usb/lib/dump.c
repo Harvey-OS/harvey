@@ -515,9 +515,8 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			if (d->nif <= ep) d->nif = ep+1;
 			break;
 		default:
-			f = nil;
-			if(b[1] < nelem(dprinter))
-				f = dprinter[b[1]];
+			assert(nelem(dprinter) == 0x100);
+			f = dprinter[b[1]];
 			if(f != nil) {
 				(*f)(d, c, (dalt<<24) | (ifc<<16) | (csp&0xffff), b, b[0]);
 				if (debug & Dbginfo)
