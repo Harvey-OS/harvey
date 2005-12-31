@@ -317,7 +317,7 @@
 386/bin/kprof - 775 sys sys 1135570830 105465
 386/bin/ktrace - 775 sys sys 1135570830 123137
 386/bin/lens - 775 sys sys 1135570830 150725
-386/bin/lex - 775 sys sys 1135570831 98935
+386/bin/lex - 775 sys sys 1135973488 98980
 386/bin/lnfs - 775 sys sys 1135570831 99434
 386/bin/look - 775 sys sys 1135570831 65531
 386/bin/ls - 775 sys sys 1135570831 82459
@@ -670,11 +670,11 @@ acme/bin/source/acd/toc.c - 664 sys sys 1015011255 753
 acme/bin/source/acd/util.c - 664 sys sys 1032232411 1145
 acme/bin/source/acd/win.c - 664 sys sys 1032232411 5104
 acme/bin/source/adict - 20000000775 sys sys 1015011255 0
-acme/bin/source/adict/adict.c - 664 sys sys 1015011255 10913
+acme/bin/source/adict/adict.c - 664 sys sys 1135960478 10915
 acme/bin/source/adict/adict.h - 664 sys sys 1015011255 102
 acme/bin/source/adict/man - 664 sys sys 1015011255 1044
 acme/bin/source/adict/mkfile - 664 sys sys 1015011255 117
-acme/bin/source/adict/win.c - 664 sys sys 1015011255 4885
+acme/bin/source/adict/win.c - 664 sys sys 1135960478 4800
 acme/bin/source/adict/win.h - 664 sys sys 1015011255 934
 acme/bin/source/mkfile - 664 sys sys 1017679345 263
 acme/bin/source/mkwnew.c - 664 sys sys 1017680666 862
@@ -8048,7 +8048,7 @@ sys/src/9/port/alloc.c - 664 sys sys 1130964595 5674
 sys/src/9/port/allocb.c - 664 sys sys 1123676437 3340
 sys/src/9/port/auth.c - 664 sys sys 1123647282 2392
 sys/src/9/port/cache.c - 664 sys sys 1126586168 9241
-sys/src/9/port/chan.c - 664 sys sys 1131298713 33663
+sys/src/9/port/chan.c - 664 sys sys 1135974610 33663
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1131289870 8219
@@ -12227,12 +12227,12 @@ sys/src/cmd/lens.c - 664 sys sys 1130425803 5109
 sys/src/cmd/lex - 20000000775 sys sys 944961017 0
 sys/src/cmd/lex/header.c - 664 sys sys 1032060383 3368
 sys/src/cmd/lex/ldefs.h - 664 sys sys 1135487942 4101
-sys/src/cmd/lex/lmain.c - 664 sys sys 1135487944 6059
+sys/src/cmd/lex/lmain.c - 664 sys sys 1135921540 6076
 sys/src/cmd/lex/mkfile - 664 sys sys 1032060382 328
 sys/src/cmd/lex/ncform - 664 sys sys 944961017 4060
 sys/src/cmd/lex/parser.y - 664 sys sys 1135487944 14215
-sys/src/cmd/lex/sub1.c - 664 sys sys 1135487942 10099
-sys/src/cmd/lex/sub2.c - 664 sys sys 1135487944 17109
+sys/src/cmd/lex/sub1.c - 664 sys sys 1135921541 10121
+sys/src/cmd/lex/sub2.c - 664 sys sys 1135921541 17089
 sys/src/cmd/lnfs.c - 664 sys sys 1094156765 13332
 sys/src/cmd/look.c - 664 sys sys 944961619 5994
 sys/src/cmd/lp - 20000000775 sys sys 953344617 0
@@ -13091,7 +13091,7 @@ sys/src/cmd/tcs/font/qbits.c - 664 sys sys 944961251 2037
 sys/src/cmd/tcs/gb.c - 664 sys sys 944961288 62707
 sys/src/cmd/tcs/gb.h - 664 sys sys 944961287 183
 sys/src/cmd/tcs/hdr.h - 664 sys sys 944961287 1213
-sys/src/cmd/tcs/html.c - 664 sys sys 1135893400 5237
+sys/src/cmd/tcs/html.c - 664 sys sys 1135958471 5247
 sys/src/cmd/tcs/jis.h - 664 sys sys 944961287 2873
 sys/src/cmd/tcs/ksc.c - 664 sys sys 944961289 72413
 sys/src/cmd/tcs/ksc.h - 664 sys sys 944961287 112
@@ -13177,7 +13177,7 @@ sys/src/cmd/unix/drawterm/Makefile - 664 sys sys 1135900534 1112
 sys/src/cmd/unix/drawterm/README - 664 sys sys 1135900534 925
 sys/src/cmd/unix/drawterm/args.h - 664 sys sys 1135900534 709
 sys/src/cmd/unix/drawterm/bin - 20000000775 sys sys 959090509 0
-sys/src/cmd/unix/drawterm/cpu-bl.c - 644 sys sys 1135900534 14118
+sys/src/cmd/unix/drawterm/cpu-bl.c - 664 sys sys 1135900534 14118
 sys/src/cmd/unix/drawterm/cpu.c - 664 sys sys 1135900534 13988
 sys/src/cmd/unix/drawterm/drawterm.h - 664 sys sys 1135900535 472
 sys/src/cmd/unix/drawterm/drawterm.ico - 664 sys sys 1135900535 1662

@@ -137,7 +137,7 @@ main(int argc, char **argv)
 	gch();
 		/* may be gotten: def, subs, sname, stchar, ccl, dchar */
 	get1core();
-		/* may be gotten: name, left, right, nullstr, parent */
+		/* may be gotten: name, left, right, nullstr, parent, ptr */
 	strcpy((char*)sp, "INITIAL");
 	sname[0] = sp;
 	sp += strlen("INITIAL") + 1;
@@ -246,6 +246,7 @@ free2core(void)
 	free(right);
 	free(parent);
 	free(nullstr);
+	free(ptr);
 	free(state);
 	free(sname);
 	free(stchar);
