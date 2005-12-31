@@ -412,7 +412,7 @@ addelem(Path *p, char *s, Chan *from)
 	if(isdotdot(s)){
 		fixdotdotname(p);
 		DBG("addelem %s .. => rm %p\n", p->s, p->mtpt[p->mlen-1]);
-		if(p->mlen>0 && (c = p->mtpt[--p->mlen])){
+		if(p->mlen>1 && (c = p->mtpt[--p->mlen])){
 			p->mtpt[p->mlen] = nil;
 			cclose(c);
 		}

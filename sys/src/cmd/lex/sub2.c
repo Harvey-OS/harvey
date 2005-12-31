@@ -238,7 +238,7 @@ cgoto(void)
 			else switch(name[curpos]){
 			case RCCL:
 				tryit = TRUE;
-				q = (uchar *)left[curpos];
+				q = ptr[curpos];
 				while(*q){
 					for(j=1;j<NCH;j++)
 						if(cindex[j] == *q)
@@ -323,7 +323,7 @@ nextstate(int s, int c)
 		j = name[curpos];
 		if(j < NCH && j == c
 		|| j == RSTR && c == right[curpos]
-		|| j == RCCL && member(c, (uchar *)left[curpos])){
+		|| j == RCCL && member(c, ptr[curpos])){
 			f = foll[curpos];
 			number = *f;
 			newpos = f+1;

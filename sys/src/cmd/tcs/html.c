@@ -314,6 +314,7 @@ html_out(Rune *r, int n, long *x)
 	Biobuf b;
 	Rune *er;
 	
+	USED(x);
 	html_init();
 	Binit(&b, 1, OWRITE);
 	er = r+n;

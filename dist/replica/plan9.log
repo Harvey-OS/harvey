@@ -24679,3 +24679,12 @@
 1135902654 0 c sys/man/8/drawterm - 664 sys sys 1135901219 1741
 1135915258 0 a 386/bin/aquarela - 775 sys sys 1135914849 331831
 1135915258 1 a 386/bin/cifscmd - 775 sys sys 1135914850 342709
+1135922460 0 c sys/src/cmd/lex/lmain.c - 664 sys sys 1135921540 6076
+1135922460 1 c sys/src/cmd/lex/sub1.c - 664 sys sys 1135921541 10121
+1135922460 2 c sys/src/cmd/lex/sub2.c - 664 sys sys 1135921541 17089
+1135958414 0 c sys/src/cmd/tcs/html.c - 664 sys sys 1135958471 5247
+1135958414 1 m sys/src/cmd/unix/drawterm/cpu-bl.c - 664 sys sys 1135900534 14118
+1135962010 0 c acme/bin/source/adict/adict.c - 664 sys sys 1135960478 10915
+1135962010 1 c acme/bin/source/adict/win.c - 664 sys sys 1135960478 4800
+1135974618 0 c 386/bin/lex - 775 sys sys 1135973488 98980
+1135974618 1 c sys/src/9/port/chan.c - 664 sys sys 1135974610 33663
