@@ -612,6 +612,7 @@ static X86type x86winchip[] =
 	{5,	4,	23,	"Winchip",},	/* guesswork */
 	{6,	7,	23,	"Via C3 Samuel 2 or Ezra",},
 	{6,	8,	23,	"Via C3 Ezra-T",},
+	{6,	9,	23,	"Via C3 Eden-N",},
 	{ -1,	-1,	23,	"unknown", },	/* total default */
 };
 

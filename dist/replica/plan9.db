@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1135570766 104023
 386/bin/aan - 775 sys sys 1135570767 130761
 386/bin/acid - 775 sys sys 1135570768 400931
-386/bin/acme - 775 sys sys 1135570768 429211
+386/bin/acme - 775 sys sys 1136087521 429186
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1134151323 132870
 386/bin/ape/cc - 775 sys sys 1135570769 70399
@@ -148,7 +148,7 @@
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1135570791 83641
 386/bin/aux/typepasswd - 775 sys sys 1135570791 69495
-386/bin/aux/vga - 775 sys sys 1135570792 333791
+386/bin/aux/vga - 775 sys sys 1136087522 333880
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -549,7 +549,7 @@
 386/lib/libdisk.a - 664 sys sys 1126321691 42236
 386/lib/libdraw.a - 664 sys sys 1135570858 374160
 386/lib/libflate.a - 664 sys sys 1115950153 76872
-386/lib/libframe.a - 664 sys sys 1115950153 66060
+386/lib/libframe.a - 664 sys sys 1136087523 66130
 386/lib/libgeometry.a - 664 sys sys 1115950153 50470
 386/lib/libhtml.a - 664 sys sys 1128740945 220134
 386/lib/libhttpd.a - 664 sys sys 1127790504 99596
@@ -7923,7 +7923,7 @@ sys/src/9/pc/archmp.c - 664 sys sys 1131290214 2357
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1131537242 6554
-sys/src/9/pc/devarch.c - 664 sys sys 1131290259 18594
+sys/src/9/pc/devarch.c - 664 sys sys 1136048694 18625
 sys/src/9/pc/devether.c - 664 sys sys 1131290265 10315
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1099761153 20505
@@ -9295,7 +9295,7 @@ sys/src/cmd/acme/ecmd.c - 664 sys sys 1111606460 24205
 sys/src/cmd/acme/edit.c - 664 sys sys 1124993578 12019
 sys/src/cmd/acme/edit.h - 664 sys sys 1124993577 2369
 sys/src/cmd/acme/elog.c - 664 sys sys 1111607796 7294
-sys/src/cmd/acme/exec.c - 664 sys sys 1135487943 28257
+sys/src/cmd/acme/exec.c - 664 sys sys 1136064450 28267
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1107154481 2916
 sys/src/cmd/acme/fsys.c - 664 sys sys 1111171699 13097
@@ -9304,7 +9304,7 @@ sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
 sys/src/cmd/acme/rows.c - 664 sys sys 1103565437 14702
 sys/src/cmd/acme/scrl.c - 664 sys sys 1111119426 2875
-sys/src/cmd/acme/text.c - 664 sys sys 1111171700 27912
+sys/src/cmd/acme/text.c - 664 sys sys 1136064450 27870
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1107154483 7984
 sys/src/cmd/acme/wind.c - 664 sys sys 1122526112 11233
@@ -9685,7 +9685,7 @@ sys/src/cmd/aux/vga/error.c - 664 sys sys 1014925008 745
 sys/src/cmd/aux/vga/et4000.c - 664 sys sys 1014925008 6720
 sys/src/cmd/aux/vga/et4000hwgc.c - 664 sys sys 1014925008 552
 sys/src/cmd/aux/vga/hiqvideo.c - 664 sys sys 1048635653 9211
-sys/src/cmd/aux/vga/i81x.c - 664 sys sys 1135487946 11780
+sys/src/cmd/aux/vga/i81x.c - 664 sys sys 1136074453 12059
 sys/src/cmd/aux/vga/ibm8514.c - 664 sys sys 1014925009 2389
 sys/src/cmd/aux/vga/icd2061a.c - 664 sys sys 1014925009 2152
 sys/src/cmd/aux/vga/ics2494.c - 664 sys sys 1014925009 2000
@@ -14799,7 +14799,7 @@ sys/src/libflate/zlib.h - 664 sys sys 984709217 219
 sys/src/libframe - 20000000775 sys sys 944961726 0
 sys/src/libframe/frbox.c - 664 sys sys 1078466650 3028
 sys/src/libframe/frdelete.c - 664 sys sys 944961726 3079
-sys/src/libframe/frdraw.c - 664 sys sys 1101910634 3271
+sys/src/libframe/frdraw.c - 664 sys sys 1136063243 3366
 sys/src/libframe/frinit.c - 664 sys sys 1019498851 1761
 sys/src/libframe/frinsert.c - 664 sys sys 984709939 6700
 sys/src/libframe/frptofchar.c - 664 sys sys 944961726 1995

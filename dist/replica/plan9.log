@@ -24688,3 +24688,13 @@
 1135962010 1 c acme/bin/source/adict/win.c - 664 sys sys 1135960478 4800
 1135974618 0 c 386/bin/lex - 775 sys sys 1135973488 98980
 1135974618 1 c sys/src/9/port/chan.c - 664 sys sys 1135974610 33663
+1136050243 0 c sys/src/9/pc/devarch.c - 664 sys sys 1136048694 18625
+1136061048 0 c sys/src/cmd/acme/text.c - 664 sys sys 1136060428 27874
+1136062838 0 c sys/src/libframe/frdraw.c - 664 sys sys 1136061888 3292
+1136064642 0 c sys/src/cmd/acme/exec.c - 664 sys sys 1136064450 28267
+1136064642 1 c sys/src/cmd/acme/text.c - 664 sys sys 1136064450 27870
+1136064642 2 c sys/src/libframe/frdraw.c - 664 sys sys 1136063243 3366
+1136075420 0 c sys/src/cmd/aux/vga/i81x.c - 664 sys sys 1136074453 12059
+1136088015 0 c 386/bin/acme - 775 sys sys 1136087521 429186
+1136088015 1 c 386/bin/aux/vga - 775 sys sys 1136087522 333880
+1136088015 2 c 386/lib/libframe.a - 664 sys sys 1136087523 66130
