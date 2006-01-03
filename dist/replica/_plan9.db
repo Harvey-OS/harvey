@@ -317,7 +317,7 @@
 386/bin/kprof - 775 sys sys 1135570830 105465
 386/bin/ktrace - 775 sys sys 1135570830 123137
 386/bin/lens - 775 sys sys 1135570830 150725
-386/bin/lex - 775 sys sys 1135973488 98980
+386/bin/lex - 775 sys sys 1136224362 99020
 386/bin/lnfs - 775 sys sys 1135570831 99434
 386/bin/look - 775 sys sys 1135570831 65531
 386/bin/ls - 775 sys sys 1135570831 82459
@@ -1426,7 +1426,7 @@ lib/face/48x48x8/n/noah.1 - 664 sys sys 1081200582 7065
 lib/face/48x48x8/o - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/p - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/q - 20000000775 sys sys 944941833 0
-lib/face/48x48x8/q/quanstro.1 - 644 sys sys 1136131296 2250
+lib/face/48x48x8/q/quanstro.1 - 664 sys sys 1136131296 2250
 lib/face/48x48x8/r - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/r/rog.1 - 664 sys sys 1057005153 1621
 lib/face/48x48x8/s - 20000000775 sys sys 944941833 0
@@ -12231,7 +12231,7 @@ sys/src/cmd/lex/ldefs.h - 664 sys sys 1135487942 4101
 sys/src/cmd/lex/lmain.c - 664 sys sys 1135921540 6076
 sys/src/cmd/lex/mkfile - 664 sys sys 1032060382 328
 sys/src/cmd/lex/ncform - 664 sys sys 944961017 4060
-sys/src/cmd/lex/parser.y - 664 sys sys 1135487944 14215
+sys/src/cmd/lex/parser.y - 664 sys sys 1136219175 14263
 sys/src/cmd/lex/sub1.c - 664 sys sys 1135921541 10121
 sys/src/cmd/lex/sub2.c - 664 sys sys 1135921541 17089
 sys/src/cmd/lnfs.c - 664 sys sys 1094156765 13332
