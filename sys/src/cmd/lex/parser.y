@@ -120,7 +120,7 @@ r:	CHAR
 			}
 		else
 			p = psave;
-		$$.i = mnp(RCCL, (uchar*)p);
+		$$.i = mnp(RCCL, p);
 		cclinter(1);
 		}
 	| CCL
@@ -254,7 +254,8 @@ yylex(void)
 						right = myalloc(treesize,sizeof(*right));
 						nullstr = myalloc(treesize,sizeof(*nullstr));
 						parent = myalloc(treesize,sizeof(*parent));
-						if(name == 0 || left == 0 || right == 0 || parent == 0 || nullstr == 0)
+						ptr = myalloc(treesize,sizeof(*ptr));
+						if(name == 0 || left == 0 || right == 0 || parent == 0 || nullstr == 0 || ptr == 0)
 							error("Too little core for parse tree");
 						return(freturn(DELIM));
 					case 'p': case 'P':	/* has overridden number of positions */
