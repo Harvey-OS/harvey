@@ -1,9 +1,10 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
 <title>
 -
 </title>
 <body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
-<H1>Plan 9 from Bell Labs
+<center><H1>Plan 9 from Bell Labs
 </H1>
 <DL><DD><I>Rob Pike<br>
 Dave Presotto<br>
@@ -14,7 +15,7 @@ Howard Trickey<br>
 Phil Winterbottom<br>
 Bell Laboratories, Murray Hill, NJ, 07974
 USA<br>
-</I></DL>
+</center></I></DL>
 <H4>Motivation
 </H4>
 <P>
@@ -84,7 +85,7 @@ desired, rather than doing all computing on a private machine.
 It soon became clear that this model was richer
 than we had foreseen, and the ideas of per-process name spaces
 and file-system-like resources were extended throughout
-the system&#173;to processes, graphics, even the network itself.
+the system&#x2014;to processes, graphics, even the network itself.
 </P>
 <P>
 By 1989 the system had become solid enough
@@ -142,7 +143,7 @@ from the lowest building blocks to the computing environment seen by users.
 It also serves as an introduction to the rest of the Plan 9 Programmer's Manual,
 which it accompanies.  More detail about topics in this paper
 can be found elsewhere in the manual.
-</P>
+</center></P>
 <H4>Design
 </H4>
 <P>
@@ -167,7 +168,7 @@ servers to office- and home-resident workstations or PCs, called terminals
 in Plan 9 terminology.
 Figure 1 shows the arrangement.
 <DL><DT><DD><TT><PRE>
-<br><img src="network.pic.19237420.gif"><br>
+<br><img src="network.pic.0.gif"><br>
 </PRE></TT></DL>
 </P>
 <DL>
@@ -265,23 +266,23 @@ so services built this way are ready-made for a distributed system.
 (This is a distinction from `object-oriented' models, where these issues
 must be faced anew for every class of object.)
 Examples in the sections that follow illustrate these ideas in action.
-</P>
+</center></P>
 <H4>The Command-level View
 </H4>
 <P>
 Plan 9 is meant to be used from a machine with a screen running
 the window system.
 It has no notion of `teletype' in the UNIX sense.  The keyboard handling of
-the bare system is rudimentary, but once the window system, 8&#189; [Pike91],
+the bare system is rudimentary, but once the window system, 8&frac12; [Pike91],
 is running,
 text can be edited with `cut and paste' operations from a pop-up menu,
 copied between windows, and so on.
-8&#189; permits editing text from the past, not just on the current input line.
-The text-editing capabilities of 8&#189; are strong enough to displace
+8&frac12; permits editing text from the past, not just on the current input line.
+The text-editing capabilities of 8&frac12; are strong enough to displace
 special features such as history in the shell,
 paging and scrolling,
 and mail editors.
-8&#189; windows do not support cursor addressing and,
+8&frac12; windows do not support cursor addressing and,
 except for one terminal emulator to simplify connecting to traditional systems,
 there is no cursor-addressing software in Plan 9.
 </P>
@@ -307,14 +308,14 @@ and
 <TT>/dev/cons</TT>
 (analogous to UNIX's
 <TT>/dev/tty</TT>).
-These files are provided by 8&#189;, which is implemented as a file server.
+These files are provided by 8&frac12;, which is implemented as a file server.
 Unlike X windows, where a new application typically creates a new window
-to run in, an 8&#189; graphics application usually runs in the window where it starts.
+to run in, an 8&frac12; graphics application usually runs in the window where it starts.
 It is possible and efficient for an application to create a new window, but
 that is not the style of the system.
 Again contrasting to X, in which a remote application makes a network
 call to the X server to start running,
-a remote 8&#189; application sees the
+a remote 8&frac12; application sees the
 <TT>mouse</TT>,
 <TT>bitblt</TT>,
 and
@@ -366,7 +367,7 @@ Finally, about half the commands are new.
 Compatibility was not a requirement for the system.
 Where the old commands or notation seemed good enough, we
 kept them.  When they didn't, we replaced them.
-</P>
+</center></P>
 <H4>The File Server
 </H4>
 <P>
@@ -491,7 +492,7 @@ doubling the capacity of the individual disks.
 If we were to upgrade to the new media,
 we would have more free space than in the original empty jukebox.
 Technology has created storage faster than we can use it.
-</P>
+</center></P>
 <H4>Unusual file servers
 </H4>
 <P>
@@ -503,9 +504,9 @@ a user process, or a remote server is irrelevant to the way it is used.
 There are dozens of such servers; in this section we present three representative ones.
 </P>
 <P>
-Perhaps the most remarkable file server in Plan 9 is 8&#189;, the window system.
+Perhaps the most remarkable file server in Plan 9 is 8&frac12;, the window system.
 It is discussed at length elsewhere [Pike91], but deserves a brief explanation here.
-8&#189; provides two interfaces: to the user seated at the terminal, it offers a traditional
+8&frac12; provides two interfaces: to the user seated at the terminal, it offers a traditional
 style of interaction with multiple windows, each running an application, all controlled
 by a mouse and keyboard.
 To the client programs, the view is also fairly traditional:
@@ -526,27 +527,27 @@ on which clients write encoded messages to execute graphical operations such as
 <TT>bitblt</TT>
 (RasterOp).
 What is unusual is how this is done:
-8&#189; is a file server, serving the files in
+8&frac12; is a file server, serving the files in
 <TT>/dev</TT>
 to the clients running in each window.
 Although every window looks the same to its client,
 each window has a distinct set of files in
 <TT>/dev</TT>.
-8&#189; multiplexes its clients' access to the resources of the terminal
+8&frac12; multiplexes its clients' access to the resources of the terminal
 by serving multiple sets of files.  Each client is given a private name space
 with a
 <I>different</I>
 set of files that behave the same as in all other windows.
 There are many advantages to this structure.
-One is that 8&#189; serves the same files it needs for its own implementation&#173;it
-multiplexes its own interface&#173;so it may be run, recursively, as a client of itself.
+One is that 8&frac12; serves the same files it needs for its own implementation&#x2014;it
+multiplexes its own interface&#x2014;so it may be run, recursively, as a client of itself.
 Also, consider the implementation of
 <TT>/dev/tty</TT>
 in UNIX, which requires special code in the kernel to redirect
 <TT>open</TT>
 calls to the appropriate device.
-Instead, in 8&#189; the equivalent service falls out
-automatically: 8&#189; serves
+Instead, in 8&frac12; the equivalent service falls out
+automatically: 8&frac12; serves
 <TT>/dev/cons</TT>
 as its basic function; there is nothing extra to do.
 When a program wants to
@@ -557,7 +558,7 @@ Again, local name spaces make this possible; conventions about the consistency o
 the files within them make it natural.
 </P>
 <P>
-8&#189; has a unique feature made possible by its design.
+8&frac12; has a unique feature made possible by its design.
 Because it is implemented as a file server,
 it has the power to postpone answering read requests for a particular window.
 This behavior is toggled by a reserved key on the keyboard.
@@ -690,7 +691,7 @@ For example, it is reasonable
 to start a window system in a window running a
 <TT>cpu</TT>
 command; all windows created there automatically start processes on the CPU server.
-</P>
+</center></P>
 <H4>Configurability and administration
 </H4>
 <P>
@@ -716,8 +717,8 @@ workstation community, machines tend to be owned by people who customize them
 by storing private information on local disk.
 We reject this style of use,
 although the system itself can be used this way.
-In our group, we have a laboratory with many public-access machines&#173;a terminal
-room&#173;and a user may sit down at any one of them and work.
+In our group, we have a laboratory with many public-access machines&#x2014;a terminal
+room&#x2014;and a user may sit down at any one of them and work.
 </P>
 <P>
 Central file servers centralize not just the files, but also their administration
@@ -772,7 +773,7 @@ The money saved by avoiding regular upgrades of terminals
 is instead spent on the newest, fastest multiprocessor servers.
 We estimate this costs about half the money of networked workstations
 yet provides general access to more powerful machines.
-</P>
+</center></P>
 <H4>C Programming
 </H4>
 <P>
@@ -805,7 +806,7 @@ For example, the standard Plan 9 library is called
 so all C source files include
 <TT>&lt;libc.h&gt;</TT>.
 These rules guarantee that all functions
-are called with arguments having the expected types &#173; something
+are called with arguments having the expected types &#x2014; something
 that was not true with pre-ANSI C programs.
 </P>
 <P>
@@ -909,7 +910,7 @@ POSIX specifications.
 To port network-based software such as X Windows, it was necessary to add
 some extensions to those
 specifications, such as the BSD networking functions.
-</P>
+</center></P>
 <H4>Portability and Compilation
 </H4>
 <P>
@@ -1047,7 +1048,7 @@ that configures the build to use the appropriate compilers and loader.
 Although simple-minded, this technique works well in practice:
 all applications in Plan 9 are built from a single source tree
 and it is possible to build the various architectures in parallel without conflict.
-</P>
+</center></P>
 <H4>Parallel programming
 </H4>
 <P>
@@ -1114,7 +1115,7 @@ it is hard to find two calls to
 <TT>rfork</TT>
 with the same bits set; programs
 use it to create many different forms of sharing and resource allocation.
-A system with just two types of processes&#173;regular processes and threads&#173;could
+A system with just two types of processes&#x2014;regular processes and threads&#x2014;could
 not handle this variety.
 </P>
 <P>
@@ -1217,7 +1218,7 @@ Complex applications such as Acme prove that
 careful operating system support can reduce the difficulty of writing
 multi-threaded applications without moving threading and
 synchronization primitives into the kernel.
-</P>
+</center></P>
 <H4>Implementation of Name Spaces
 </H4>
 <P>
@@ -1537,7 +1538,7 @@ If the file recovered from a walk has the same type, device, and qid path
 as an entry in the mount table, they are the same file and the
 corresponding substitution from the mount table is made.
 This is how the name space is implemented.
-</P>
+</center></P>
 <H4>File Caching
 </H4>
 <P>
@@ -1559,13 +1560,13 @@ The same method can be used to build a local caching file server.
 This user-level server interposes on the 9P connection to the remote server and
 monitors the traffic, copying data to a local disk.
 When it sees a read of known data, it answers directly,
-while writes are passed on immediately&#173;the cache is write-through&#173;to keep
+while writes are passed on immediately&#x2014;the cache is write-through&#x2014;to keep
 the central copy up to date.
 This is transparent to processes on the terminal and requires no change to 9P;
 it works well on home machines connected over serial lines.
 A similar method can be applied to build a general client cache in unused local
 memory, but this has not been done in Plan 9.
-</P>
+</center></P>
 <H4>Networks and Communication Devices
 </H4>
 <P>
@@ -1686,7 +1687,7 @@ hides the details.
 The uniform structure for networks in Plan 9 makes the
 <TT>import</TT>
 command all that is needed to construct gateways.
-</P>
+</center></P>
 <H4>Kernel structure for networks
 </H4>
 <P>
@@ -1709,7 +1710,7 @@ inserts data into the stream.
 Each module calls the succeeding one to send data up or down the stream.
 Like UNIX streams [Rit84],
 Plan 9 streams can be dynamically configured.
-</P>
+</center></P>
 <H4>The IL Protocol
 </H4>
 <P>
@@ -1739,7 +1740,7 @@ Full details are in another paper [PrWi95].
 <P>
 In Plan 9, the implementation of IL is smaller and faster than TCP.
 IL is our main Internet transport protocol.
-</P>
+</center></P>
 <H4>Overview of authentication
 </H4>
 <P>
@@ -1804,12 +1805,12 @@ this is how a CPU server runs processes on behalf of its clients.
 Plan 9's authentication structure builds
 secure services rather than depending on firewalls.
 Whereas firewalls require special code for every service penetrating the wall,
-the Plan 9 approach permits authentication to be done in a single place&#173;9P&#173;for
+the Plan 9 approach permits authentication to be done in a single place&#x2014;9P&#x2014;for
 all services.
 For example, the
 <TT>cpu</TT>
 command works securely across the Internet.
-</P>
+</center></P>
 <H4>Authenticating external connections
 </H4>
 <P>
@@ -1826,7 +1827,7 @@ Since a correct challenge/response exchange is valid only once
 and keys are never sent over the network,
 this procedure is not susceptible to replay attacks, yet
 is compatible with protocols like Telnet and FTP.
-</P>
+</center></P>
 <H4>Special users
 </H4>
 <P>
@@ -1880,7 +1881,7 @@ but makes it possible to make local files available to guests
 by binding them explicitly into the space.
 A restricted name space is more secure than the usual technique of exporting
 an ad hoc directory tree; the result is a kind of cage around untrusted users.
-</P>
+</center></P>
 <H4>The cpu command and proxied authentication
 </H4>
 <P>
@@ -1915,7 +1916,7 @@ for example saying that user
 in one domain is the same person as user
 <TT>rtmorris</TT>
 in another.
-</P>
+</center></P>
 <H4>File Permissions
 </H4>
 <P>
@@ -1990,7 +1991,7 @@ Also, since the dump file system is immutable, the file cannot be changed;
 it is read-protected forever.
 Drawbacks are that if the file is readable but should have been read-protected,
 it is readable forever, and that user names are hard to re-use.
-</P>
+</center></P>
 <H4>Performance
 </H4>
 <P>
@@ -2022,13 +2023,13 @@ and
 It also measures the time to send a byte on a pipe from one process
 to another and the throughput on a pipe between two processes.
 The results appear in Table 1.
-<br><img src="-.19237421.gif"><br>
+<br><img src="-.1.gif"><br>
 Table 1.  Performance comparison.
 </P>
 <br>&#32;<br>
 Although the Plan 9 times are not spectacular, they show that the kernel is
 competitive with commercial systems.
-<H4>Discussion
+</center><H4>Discussion
 </H4>
 <P>
 Plan 9 has a relatively conventional kernel;
@@ -2173,7 +2174,7 @@ Active use forces us to address shortcomings as they arise and to adapt the syst
 to solve our problems.
 Through this process, Plan 9 has become a comfortable, productive programming
 environment, as well as a vehicle for further systems research.
-</P>
+</center></P>
 <H4>References
 <DL COMPACT>
 <DT>[9man]<DD>
@@ -2203,7 +2204,7 @@ ISO/IEC JTC1/SC2/WG2 N 1036, dated 1994-08-01.
 <DT>[ISO10646] <DD>
 ISO/IEC DIS 10646-1:1993
 Information technology -
-Universal Multiple-Octet Coded Character Set (UCS) &#173;
+Universal Multiple-Octet Coded Character Set (UCS) &#x2014;
 Part 1: Architecture and Basic Multilingual Plane.
 <DT>[Kill84]<DD>
 T.J. Killian,
@@ -2255,7 +2256,7 @@ Rob Pike, ``The Text Editor <TT>sam</TT>'',
 Software - Practice and Experience,
 Nov 1987, <B>17</B>(11), pp. 813-845; reprinted in this volume.
 <DT>[Pike91]<DD>
-Rob Pike, ``8&#189;, the Plan 9 Window System'',
+Rob Pike, ``8&frac12;, the Plan 9 Window System'',
 USENIX Summer Conf. Proc.,
 Nashville, June, 1991, pp. 257-265,
 reprinted in this volume.
@@ -2279,7 +2280,7 @@ AT&amp;T Bell Laboratories,
 Murray Hill, NJ,
 1995.
 <DT>[POSIX]<DD>
-Information Technology&#173;Portable Operating
+Information Technology&#x2014;Portable Operating
 System Interface (POSIX) Part 1:
 System Application Program Interface (API)
 [C Language],
@@ -2333,7 +2334,7 @@ AT&amp;T Bell Laboratories Technical Journal,
 <B>63</B>(8), October, 1984.
 <DT>[Tric95]<DD>
 Howard Trickey,
-``APE &#173; The ANSI/POSIX Environment'',
+``APE &#x2014; The ANSI/POSIX Environment'',
 Plan 9 Programmer's Manual,
 Volume 2,
 AT&amp;T Bell Laboratories,
@@ -2368,5 +2369,5 @@ Murray Hill, NJ,
 </dl>
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2006 Lucent Technologies Inc.  All rights reserved.
 </body></html>

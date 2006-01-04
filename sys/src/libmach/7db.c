@@ -169,6 +169,8 @@ mkinstr(uvlong pc, Instr *i)
 	return 1;
 }
 
+#pragma	varargck	argpos	bprint		2
+
 static void
 bprint(Instr *i, char *fmt, ...)
 {
@@ -256,7 +258,7 @@ _store(Opcode *o, Instr *i, char r)
 	if (i->rb == 29 && mach->sb) {
 		bprint(i, "%s\t%c%d,", m, r, i->ra);
 		i->curr += symoff(i->curr, i->end-i->curr, i->mem+mach->sb, CANY);
-		bprint(i, "(SB)", r, i->ra);
+		bprint(i, "(SB)");
 		return;
 	}
 	format(o->mnemonic, i, o->ken);
@@ -769,7 +771,7 @@ format(char *mnemonic, Instr *i, char *f)
 
 		case 'v':
 			if (i->islit)
-				bprint(i, "$%lx", i->literal);
+				bprint(i, "$%ux", i->literal);
 			else
 				bprint(i, "R%d", i->rb);
 			break;

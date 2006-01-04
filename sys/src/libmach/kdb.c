@@ -277,6 +277,26 @@ static struct opcode sparcop3[64]={
 	[0x1F]	"swapa",	loada,	0,
 };
 
+#pragma	varargck	argpos	bprint	2
+#pragma	varargck	type	"T"	char*
+
+/* convert to lower case from upper, according to dascase */
+static int
+Tfmt(Fmt *f)
+{
+	char buf[128];
+	char *s, *t, *oa;
+
+	oa = va_arg(f->args, char*);
+	if(dascase){
+		for(s=oa,t=buf; *t = *s; s++,t++)
+			if('A'<=*t && *t<='Z')
+				*t += 'a'-'A';
+		return fmtstrcpy(f, buf);
+	}
+	return fmtstrcpy(f, oa);
+}
+
 static void
 bprint(Instr *i, char *fmt, ...)
 {
@@ -375,7 +395,7 @@ printins(Map *map, uvlong pc, char *buf, int n)
 		break;
 
 	case 1:
-		bprint(&instr, "%X", "CALL\t");
+		bprint(&instr, "%T", "CALL\t");
 		instr.curr += symoff(instr.curr, instr.end-instr.curr,
 					pc+instr.disp30*4, CTEXT);
 		if (!dascase)
@@ -406,23 +426,6 @@ printins(Map *map, uvlong pc, char *buf, int n)
 	return instr.size*4;
 }
 
-/* convert to lower case from upper, according to dascase */
-static int
-Xfmt(Fmt *f)
-{
-	char buf[128];
-	char *s, *t, *oa;
-
-	oa = va_arg(f->args, char*);
-	if(dascase){
-		for(s=oa,t=buf; *t = *s; s++,t++)
-			if('A'<=*t && *t<='Z')
-				*t += 'a'-'A';
-		return fmtstrcpy(f, buf);
-	}
-	return fmtstrcpy(f, oa);
-}
-
 static int
 sparcinst(Map *map, uvlong pc, char modifier, char *buf, int n)
 {
@@ -431,7 +434,7 @@ sparcinst(Map *map, uvlong pc, char modifier, char *buf, int n)
 		/* a modifier of 'I' toggles the dissassembler type */
 	if (!fmtinstalled) {
 		fmtinstalled = 1;
-		fmtinstall('X', Xfmt);
+		fmtinstall('T', Tfmt);
 	}
 	if ((asstype == ASUNSPARC && modifier == 'i')
 		|| (asstype == ASPARC && modifier == 'I'))
@@ -483,7 +486,7 @@ plocal(Instr *i)
 		return -1;
 	if (s.value > i->simm13) {
 		if(getauto(&s, s.value-i->simm13, CAUTO, &s)) {
-			bprint(i, "%s+%d(SP)", s.name, s.value);
+			bprint(i, "%s+%lld(SP)", s.name, s.value);
 			return 1;
 		}
 	} else {
@@ -518,17 +521,17 @@ address(Instr *i)
 		}
 		bprint(i, "%s", s.name);
 		if (s.value != off)
-			bprint(i, "+%lux", s.value-off);
+			bprint(i, "+%llux", s.value-off);
 		bprint(i, "(SB)");
 		return;
 	}
-	bprint(i, "%lux(R%d)", i->simm13, i->rs1);
+	bprint(i, "%ux(R%d)", i->simm13, i->rs1);
 }
 
 static void
 unimp(Instr *i, char *m)
 {
-	bprint(i, "%X", m);
+	bprint(i, "%T", m);
 }
 
 static char	*bratab[16] = {	/* page 91 */
@@ -595,9 +598,9 @@ bra1(Instr *i, char *m, char *tab[])
 
 	imm = i->simmdisp22;
 	if(i->a)
-		bprint(i, "%X%X.%c\t", m, tab[i->cond], 'A'+dascase);
+		bprint(i, "%T%T.%c\t", m, tab[i->cond], 'A'+dascase);
 	else
-		bprint(i, "%X%X\t", m, tab[i->cond]);
+		bprint(i, "%T%T\t", m, tab[i->cond]);
 	i->curr += symoff(i->curr, i->end-i->curr, i->addr+4*imm, CTEXT);
 	if (!dascase)
 		bprint(i, "(SB)");
@@ -625,9 +628,9 @@ static void
 trap(Instr *i, char *m)			/* page 101 */
 {
 	if(i->i == 0)
-		bprint(i, "%X%X\tR%d+R%d", m, bratab[i->cond], i->rs2, i->rs1);
+		bprint(i, "%T%T\tR%d+R%d", m, bratab[i->cond], i->rs2, i->rs1);
 	else
-		bprint(i, "%X%X\t$%lux+R%d", m, bratab[i->cond], i->simm13, i->rs1);
+		bprint(i, "%T%T\t$%ux+R%d", m, bratab[i->cond], i->simm13, i->rs1);
 }
 
 static void
@@ -637,7 +640,7 @@ sethi(Instr *i, char *m)		/* page 89 */
 
 	imm = i->immdisp22<<10;
 	if(dascase){
-		bprint(i, "%X\t%lux, R%d", m, imm, i->rd);
+		bprint(i, "%T\t%lux, R%d", m, imm, i->rd);
 		return;
 	}
 	if(imm==0 && i->rd==0){
@@ -733,25 +736,25 @@ shift(Instr *i, char *m)	/* page 88 */
 	if(i->i == 0){
 		if(i->rs1 == i->rd)
 			if(dascase)
-				bprint(i, "%X\tR%d, R%d", m, i->rs1, i->rs2);
+				bprint(i, "%T\tR%d, R%d", m, i->rs1, i->rs2);
 			else
-				bprint(i, "%X\tR%d, R%d", m, i->rs2, i->rs1);
+				bprint(i, "%T\tR%d, R%d", m, i->rs2, i->rs1);
 		else
 			if(dascase)
-				bprint(i, "%X\tR%d, R%d, R%d", m, i->rs1, i->rs2, i->rd);
+				bprint(i, "%T\tR%d, R%d, R%d", m, i->rs1, i->rs2, i->rd);
 			else
-				bprint(i, "%X\tR%d, R%d, R%d", m, i->rs2, i->rs1, i->rd);
+				bprint(i, "%T\tR%d, R%d, R%d", m, i->rs2, i->rs1, i->rd);
 	}else{
 		if(i->rs1 == i->rd)
 			if(dascase)
-				bprint(i, "%X\t$%d,R%d", m, i->simm13&0x1F, i->rs1);
+				bprint(i, "%T\t$%d,R%d", m, i->simm13&0x1F, i->rs1);
 			else
-				bprint(i, "%X\tR%d, $%d", m,  i->rs1, i->simm13&0x1F);
+				bprint(i, "%T\tR%d, $%d", m,  i->rs1, i->simm13&0x1F);
 		else
 			if(dascase)
-				bprint(i, "%X\tR%d, $%d, R%d",m,i->rs1,i->simm13&0x1F,i->rd);
+				bprint(i, "%T\tR%d, $%d, R%d",m,i->rs1,i->simm13&0x1F,i->rd);
 			else
-				bprint(i, "%X\t$%d, R%d, R%d",m,i->simm13&0x1F,i->rs1,i->rd);
+				bprint(i, "%T\t$%d, R%d, R%d",m,i->simm13&0x1F,i->rs1,i->rd);
 	}
 }
 
@@ -760,24 +763,24 @@ add(Instr *i, char *m)	/* page 82 */
 {
 	if(i->i == 0){
 		if(dascase)
-			bprint(i, "%X\tR%d, R%d", m, i->rs1, i->rs2);
+			bprint(i, "%T\tR%d, R%d", m, i->rs1, i->rs2);
 		else
 			if(i->op3==2 && i->rs1==0 && i->rd)  /* OR R2, R0, R1 */
 				bprint(i, "MOVW\tR%d", i->rs2);
 			else
-				bprint(i, "%X\tR%d, R%d", m, i->rs2, i->rs1);
+				bprint(i, "%T\tR%d, R%d", m, i->rs2, i->rs1);
 	}else{
 		if(dascase)
-			bprint(i, "%X\tR%d, $%lux", m, i->rs1, i->simm13);
+			bprint(i, "%T\tR%d, $%ux", m, i->rs1, i->simm13);
 		else
 			if(i->op3==0 && i->rd && i->rs1==0)	/* ADD $x, R0, R1 */
-				bprint(i, "MOVW\t$%lux", i->simm13);
+				bprint(i, "MOVW\t$%ux", i->simm13);
 			else if(i->op3==0 && i->rd && i->rs1==2){
 				/* ADD $x, R2, R1 -> MOVW $x(SB), R1 */
 				bprint(i, "MOVW\t$");
 				address(i);
 			} else
-				bprint(i, "%X\t$%lux, R%d", m, i->simm13, i->rs1);
+				bprint(i, "%T\t$%ux, R%d", m, i->simm13, i->rs1);
 	}
 	if(i->rs1 != i->rd)
 		bprint(i, ", R%d", i->rd);
@@ -793,7 +796,7 @@ cmp(Instr *i, char *m)
 	if(i->i == 0)
 		bprint(i, "CMP\tR%d, R%d", i->rs1, i->rs2);
 	else
-		bprint(i, "CMP\tR%d, $%lux", i->rs1, i->simm13);
+		bprint(i, "CMP\tR%d, $%ux", i->rs1, i->simm13);
 }
 
 static char *regtab[4] = {
@@ -810,14 +813,14 @@ wr(Instr *i, char *m)		/* page 82 */
 		if(i->i == 0)
 			bprint(i, "%s\tR%d, R%d", m, i->rs1, i->rs2);
 		else
-			bprint(i, "%s\tR%d, $%lux", m, i->rs1, i->simm13);
+			bprint(i, "%s\tR%d, $%ux", m, i->rs1, i->simm13);
 	}else{
 		if(i->i && i->simm13==0)
 			bprint(i, "MOVW\tR%d", i->rs1);
 		else if(i->i == 0)
 			bprint(i, "wr\tR%d, R%d", i->rs2, i->rs1);
 		else
-			bprint(i, "wr\t$%lux, R%d", i->simm13, i->rs1);
+			bprint(i, "wr\t$%ux, R%d", i->simm13, i->rs1);
 	}
 	bprint(i, ", %s", regtab[i->op3&3]);
 }
@@ -842,14 +845,14 @@ jmpl(Instr *i, char *m)		/* page 82 */
 {
 	if(i->i == 0){
 		if(i->rd == 15)
-			bprint(i, "%X\t(R%d+R%d)", "CALL", i->rs2, i->rs1);
+			bprint(i, "%T\t(R%d+R%d)", "CALL", i->rs2, i->rs1);
 		else
-			bprint(i, "%X\t(R%d+R%d), R%d", m, i->rs2, i->rs1, i->rd);
+			bprint(i, "%T\t(R%d+R%d), R%d", m, i->rs2, i->rs1, i->rd);
 	}else{
 		if(!dascase && i->simm13==8 && i->rs1==15 && i->rd==0)
 			bprint(i, "RETURN");
 		else{
-			bprint(i, "%X\t", m);
+			bprint(i, "%T\t", m);
 			address(i);
 			bprint(i, ", R%d", i->rd);
 		}
@@ -995,15 +998,15 @@ fpop(Instr *i, char *m)	/* page 108-116 */
 	}
 	for(j=0; fptab1[j].name; j++)
 		if(fptab1[j].opf == i->opf){
-			bprint(i, "%X\tF%d, F%d", fptab1[j].name, i->rs2, i->rd);
+			bprint(i, "%T\tF%d, F%d", fptab1[j].name, i->rs2, i->rd);
 			return;
 		}
 	for(j=0; fptab2[j].name; j++)
 		if(fptab2[j].opf == i->opf){
-			bprint(i, "%X\tF%d, F%d, F%d", fptab2[j].name, i->rs1, i->rs2, i->rd);
+			bprint(i, "%T\tF%d, F%d, F%d", fptab2[j].name, i->rs1, i->rs2, i->rd);
 			return;
 		}
-	bprint(i, "%X%ux\tF%d, F%d, F%d", m, i->opf, i->rs1, i->rs2, i->rd);
+	bprint(i, "%T%ux\tF%d, F%d, F%d", m, i->opf, i->rs1, i->rs2, i->rd);
 }
 
 static int

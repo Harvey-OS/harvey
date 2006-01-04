@@ -1701,6 +1701,8 @@ badop:
 	return op;
 }
 
+#pragma	varargck	argpos	bprint		2
+
 static void
 bprint(Instr *ip, char *fmt, ...)
 {
@@ -1750,7 +1752,8 @@ static char *sreg[] = { "ES", "CS", "SS", "DS", "FS", "GS" };
 static void
 plocal(Instr *ip)
 {
-	int ret, offset;
+	int ret;
+	long offset;
 	Symbol s;
 	char *reg;
 
@@ -1975,7 +1978,7 @@ prinstr(Instr *ip, char *fmt)
 				bprint(ip, "CBW");
 			break;
 		case 'd':
-			bprint(ip,"%lux:%lux",ip->seg,ip->disp);
+			bprint(ip,"%ux:%lux",ip->seg,ip->disp);
 			break;
 		case 'm':
 			if (ip->mod == 3 && ip->osize != 'B') {

@@ -157,6 +157,8 @@ typedef struct {
 #define	IBF(v,a,b) (((ulong)(v)>>(32-(b)-1)) & ~(~0L<<(((b)-(a)+1))))
 #define	IB(v,b) IBF((v),(b),(b))
 
+#pragma	varargck	argpos	bprint		2
+
 static void
 bprint(Instr *i, char *fmt, ...)
 {
@@ -250,7 +252,7 @@ mkinstr(uvlong pc, Instr *i)
 static int
 plocal(Instr *i)
 {
-	int offset;
+	long offset;
 	Symbol s;
 
 	if (!findsym(i->addr, CTEXT, &s) || !findlocal(&s, FRAMENAME, &s))
@@ -258,12 +260,12 @@ plocal(Instr *i)
 	offset = s.value - i->immediate;
 	if (offset > 0) {
 		if(getauto(&s, offset, CAUTO, &s)) {
-			bprint(i, "%s+%d(SP)", s.name, s.value);
+			bprint(i, "%s+%lld(SP)", s.name, s.value);
 			return 1;
 		}
 	} else {
 		if (getauto(&s, -offset-4, CPARAM, &s)) {
-			bprint(i, "%s+%d(FP)", s.name, -offset);
+			bprint(i, "%s+%ld(FP)", s.name, -offset);
 			return 1;
 		}
 	}
@@ -289,13 +291,13 @@ pglobal(Instr *i, uvlong off, int anyoff, char *reg)
 		}
 		bprint(i, "%s", s.name);
 		if (s.value != off)
-			bprint(i, "+%lux", off-s.value);
+			bprint(i, "+%llux", off-s.value);
 		bprint(i, reg);
 		return 1;
 	}
 	if(!anyoff)
 		return 0;
-	bprint(i, "%lux%s", off, reg);
+	bprint(i, "%llux%s", off, reg);
 	return 1;
 }
 
@@ -307,7 +309,7 @@ address(Instr *i)
 	if (i->ra == REGSB && mach->sb && pglobal(i, mach->sb+i->immediate, 0, "(SB)") >= 0)
 		return;
 	if(i->simm < 0)
-		bprint(i, "-%lx(R%d)", -i->simm, i->ra);
+		bprint(i, "-%x(R%d)", -i->simm, i->ra);
 	else
 		bprint(i, "%lux(R%d)", i->immediate, i->ra);
 }
@@ -389,7 +391,7 @@ addis(Opcode *o, Instr *i)
 		address(i);
 		bprint(i, ",R%d", i->rd);
 	} else if(i->op==15 && v < 0) {
-		bprint(i, "SUB\t$%d,R%d", -v, i->ra);
+		bprint(i, "SUB\t$%ld,R%d", -v, i->ra);
 		if(i->rd != i->ra)
 			bprint(i, ",R%d", i->rd);
 	} else {
@@ -1058,17 +1060,17 @@ format(char *mnemonic, Instr *i, char *f)
 
 		case 'l':
 			if(i->simm < 0)
-				bprint(i, "-%lx(R%d)", -i->simm, i->ra);
+				bprint(i, "-%x(R%d)", -i->simm, i->ra);
 			else
-				bprint(i, "%lx(R%d)", i->simm, i->ra);
+				bprint(i, "%x(R%d)", i->simm, i->ra);
 			break;
 
 		case 'i':
-			bprint(i, "$%ld", i->simm);
+			bprint(i, "$%d", i->simm);
 			break;
 
 		case 'I':
-			bprint(i, "$%lx", i->uimm);
+			bprint(i, "$%ux", i->uimm);
 			break;
 
 		case 'w':
@@ -1099,11 +1101,11 @@ format(char *mnemonic, Instr *i, char *f)
 			break;
 
 		case 'm':
-			bprint(i, "%lx", i->crm);
+			bprint(i, "%ux", i->crm);
 			break;
 
 		case 'M':
-			bprint(i, "%lx", i->fm);
+			bprint(i, "%ux", i->fm);
 			break;
 
 		case 'z':

@@ -190,11 +190,17 @@ rget(Map *map, char *reg)
 	if(s == 0)
 		fatal("rget: %s\n", reg);
 
-	if(s->v->fmt == 'W')
-		ret = get8(map, s->v->ival, &v);
-	else {
+	switch(s->v->fmt){
+	default:
 		ret = get4(map, s->v->ival, &x);
 		v = x;
+		break;
+	case 'V':
+	case 'W':
+	case 'Y':
+	case 'Z':
+		ret = get8(map, s->v->ival, &v);
+		break;
 	}
 	if(ret < 0)
 		error("can't get register %s: %r\n", reg);

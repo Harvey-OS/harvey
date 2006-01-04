@@ -212,6 +212,8 @@ decode(Map *map, uvlong pc, Instr *i)
 	return 1;
 }
 
+#pragma	varargck	argpos	bprint		2
+
 static void
 bprint(Instr *i, char *fmt, ...)
 {
@@ -254,7 +256,7 @@ plocal(Instr *i)
 			class == CAUTO ? " auto" : "param", offset);
 		return 0;
 	}
-	bprint(i, "%s%c%d%s", s.name, class == CPARAM ? '+' : '-', s.value, reg);
+	bprint(i, "%s%c%lld%s", s.name, class == CPARAM ? '+' : '-', s.value, reg);
 	return 1;
 }
 
@@ -885,11 +887,11 @@ format(char *mnemonic, Instr *i, char *f)
 			break;
 				
 		case 'M':
-			bprint(i, "%d", (i->w>>8) & 0xf);
+			bprint(i, "%lud", (i->w>>8) & 0xf);
 			break;
 				
 		case 'm':
-			bprint(i, "%d", (i->w>>7) & 0x1f);
+			bprint(i, "%lud", (i->w>>7) & 0x1f);
 			break;
 
 		case 'h':

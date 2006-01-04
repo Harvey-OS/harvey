@@ -511,6 +511,12 @@ vgalinearaddr(VGAscr *scr, ulong paddr, int size)
 	npaddr = paddr-x;
 	nsize = PGROUND(size+x);
 
+	/*
+	 * Don't bother trying to map more than 4000x4000x32 = 64MB.
+	 * We only have a 256MB window.
+	 */
+	if(nsize > 64*MB)
+		nsize = 64*MB;
 	scr->vaddr = vmap(npaddr, nsize);
 	if(scr->vaddr == 0)
 		error("cannot allocate vga frame buffer");
