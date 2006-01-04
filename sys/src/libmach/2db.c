@@ -1296,6 +1296,8 @@ instruction(Inst *ip)
 	return 0;
 }
 
+#pragma	varargck	argpos	bprint		2
+
 static void
 bprint(Inst *i, char *fmt, ...)
 {
@@ -1315,7 +1317,8 @@ static	char	*regname[] =
 static void
 plocal(Inst *ip, Operand *ap)
 {
-	int ret, offset;
+	int ret;
+	long offset;
 	uvlong moved;
 	Symbol s;
 
@@ -1533,7 +1536,7 @@ pea(int reg, Inst *ip, Operand *ap)
 	case ADisp:	/* references off the static base */
 		if (reg == 6 && mach->sb && ap->disp) {
 			ip->curr += symoff(ip->curr, left, ap->disp+mach->sb, CANY);
-			bprint(ip, "(SB)", reg);
+			bprint(ip, "(SB)");
 			break;
 		}
 			/* reference autos and parameters off the stack */
