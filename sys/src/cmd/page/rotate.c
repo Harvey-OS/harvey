@@ -245,6 +245,31 @@ rot90(Image *im)
 	return(tmp);
 }
 
+/* rotates an image 270 degrees clockwise */
+Image *
+rot270(Image *im)
+{
+	Image *tmp;
+	int i, j, dx, dy;
+
+	dx = Dx(im->r);
+	dy = Dy(im->r);
+	tmp = xallocimage(display, Rect(0, 0, dy, dx), im->chan, 0, DCyan);
+	if(tmp == nil) {
+		fprint(2, "out of memory during rot270: %r\n");
+		wexits("memory");
+	}
+
+	for(i = 0; i < dy; i++) {
+		for(j = 0; j < dx; j++) {
+			drawop(tmp, Rect(i, j, i+1, j+1), im, nil, Pt(dx-(j+1), i), S);
+		}
+	}
+	freeimage(im);
+
+	return(tmp);
+}
+
 /* from resample.c -- resize from → to using interpolation */
 
 

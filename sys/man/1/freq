@@ -4,7 +4,7 @@ freq \- print histogram of character frequencies
 .SH SYNOPSIS
 .B freq
 [
-.B -dxocr
+.B -cdorx
 ]
 [
 .I file ...
