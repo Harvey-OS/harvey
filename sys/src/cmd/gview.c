@@ -1960,7 +1960,7 @@ void usage(void)
 	int i;
 	fprintf(stderr,"Usage %s [options] [infile]\n", argv0);
 	fprintf(stderr,
-"option ::= -l logfile | -m\n"
+"option ::= -l logfile | -m | -p\n"
 "\n"
 "Read a polygonal line graph in an ASCII format (one x y pair per line, delimited\n"
 "by spaces with a label after each polyline), and view it interactively.  Use\n"
@@ -1968,6 +1968,7 @@ void usage(void)
 "Option -l specifies a file in which to log the coordinates of each point selected.\n"
 "(Clicking a point with button one selects it and displays its coordinates and\n"
 "the label of its polylone.)  Option -m allows polylines to be moved and rotated.\n"
+"The -p option plots only the vertices of the polygons.\n"
 "The polyline labels can use the following color names:"
 	);
 	for (i=0; clrtab[i].c!=DNofill; i++)
@@ -1981,15 +1982,18 @@ void main(int argc, char *argv[])
 	int e;
 
 	ARGBEGIN {
-	case 'm': cantmv=0;
+	case 'm':
+		cantmv=0;
 		break;
-	case 'l': logfil = fopen(ARGF(),"w");
+	case 'l':
+		logfil = fopen(ARGF(),"w");
 		break;
 	case 'p':
 		plotdots++;
 		break;
-	default: usage();
-	} ARGEND
+	default:
+		usage();
+	} ARGEND;
 
 	if(initdraw(0, 0, "gview") < 0)
 		exits("initdraw");

@@ -184,7 +184,16 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 		p = (void*)((uchar*)scr->mmio + Pramin + 0x1E00 * 4);
 		break;
 	default:
-		p = (void*)((uchar*)scr->vaddr + scr->storage - 96*1024);
+		/*
+		 * Reset the cursor location, since the kernel may
+		 * have allocated less storage than aux/vga
+		 * expected.
+		 */
+		tmp = scr->storage - 96*1024;
+		p = (void*)((uchar*)scr->vaddr + tmp);
+		vgaxo(Crtx, 0x30, 0x80|(tmp>>17));
+		vgaxo(Crtx, 0x31, (tmp>>11)<<2);
+		vgaxo(Crtx, 0x2F, tmp>>24);
 		break;
 	}
 

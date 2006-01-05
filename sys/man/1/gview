@@ -4,14 +4,11 @@ gview \- interactive graph viewer
 .SH SYNOPSIS
 .B gview
 [
+.B -mp
+]
+[
 .B -l
 .I logfile
-]
-[
-.B -m
-]
-[
-.B -p
 ]
 [
 .I files

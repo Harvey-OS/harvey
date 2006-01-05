@@ -12,6 +12,7 @@ int	diff;
 int	diffb;
 char*	sflag;
 
+void	usage(void);
 void	ysearch(char*, char*);
 long	starttime(char*);
 void	lastbefore(ulong, char*, char*, char*);
@@ -26,7 +27,7 @@ main(int argc, char *argv[])
 	ndump = nil;
 	ARGBEGIN {
 	default:
-		goto usage;
+		usage();
 	case 'v':
 		verb = 1;
 		break;
@@ -50,15 +51,19 @@ main(int argc, char *argv[])
 		break;
 	} ARGEND
 
-	if(argc == 0) {
-	usage:
-		fprint(2, "usage: history [-bDfuv] [-d 9fsname] [-s yyyymmdd] files\n");
-		exits(0);
-	}
+	if(argc == 0)
+		usage();
 
 	for(i=0; i<argc; i++)
 		ysearch(argv[i], ndump);
 	exits(0);
+}
+
+void
+usage(void)
+{
+	fprint(2, "usage: history [-bDfuv] [-d dumpfilesystem] [-s yyyymmdd] files\n");
+	exits("usage");
 }
 
 void

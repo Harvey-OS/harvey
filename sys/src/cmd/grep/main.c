@@ -1,11 +1,11 @@
 #define	EXTERN
 #include	"grep.h"
 
-char *validflags = "1bchiLlnsv";
+char *validflags = "bchiLlnsv";
 void
 usage(void)
 {
-	fprint(2, "usage: grep [-%s] [-f file] [-e expr] [file ...]\n", validflags);
+	fprint(2, "usage: grep [-%s] [-e pattern] [-f patternfile] [file ...]\n", validflags);
 	exits("usage");
 }
 
