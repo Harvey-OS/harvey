@@ -36,8 +36,11 @@ smbglobalsguess(int client)
 	if (smbglobals.serverinfo.remark == nil)
 		smbglobals.serverinfo.remark = "This is a default server comment";
 	if (smbglobals.log.fd < 0)
-		if (client)
+		if (client){
 			smbglobals.log.fd = create("client.log", OWRITE|OTRUNC, 0666);
-		else
-			smbglobals.log.fd = create("aquarela.log", OWRITE|OTRUNC, 0666);
+		}
+		else{
+			if (access("/sys/log/aquarela", 2) == 0)
+				smbglobals.log.fd = open("/sys/log/aquarela", OWRITE);
+		}
 }
