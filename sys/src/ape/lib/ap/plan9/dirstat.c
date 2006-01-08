@@ -18,11 +18,11 @@ _dirstat(char *name)
 
 	nd = DIRSIZE;
 	for(i=0; i<2; i++){	/* should work by the second try */
-		d = malloc(sizeof(Dir) + nd);
+		d = malloc(sizeof(Dir) + BIT16SZ +nd);
 		if(d == nil)
 			return nil;
 		buf = (uchar*)&d[1];
-		n = _STAT(name, buf, nd);
+		n = _STAT(name, buf, BIT16SZ+nd);
 		if(n < BIT16SZ){
 			free(d);
 			return nil;
@@ -32,7 +32,7 @@ _dirstat(char *name)
 			_convM2D(buf, n, d, (char*)&d[1]);
 			return d;
 		}
-		/* else sizeof(Dir)+nd is plenty */
+		/* else sizeof(Dir)+BIT16SZ+nd is plenty */
 		free(d);
 	}
 	return nil;

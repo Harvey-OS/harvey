@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 	if(dirb!=nil && (dirb->mode&DMDIR))
 		todir=1;
 	if(argc>2 && !todir){
-		fprint(2, "cp: %s not a directory\n", argv[argc-1]);
+		fprint(2, "fcp: %s not a directory\n", argv[argc-1]);
 		exits("bad usage");
 	}
 	for(i=0; i<argc-1; i++)
@@ -73,7 +73,7 @@ samefile(Dir *a, char *an, char *bn)
 	if(b->qid.vers==a->qid.vers)
 	if(b->dev==a->dev)
 	if(b->type==a->type){
-		fprint(2, "cp: %s and %s are the same file\n", an, bn);
+		fprint(2, "fcp: %s and %s are the same file\n", an, bn);
 		ret = 1;
 	}
 	free(b);
@@ -98,13 +98,13 @@ copy(char *from, char *to, int todir)
 	}
 
 	if((dirb=dirstat(from))==nil){
-		fprint(2,"cp: can't stat %s: %r\n", from);
+		fprint(2,"fcp: can't stat %s: %r\n", from);
 		failed = 1;
 		return;
 	}
 	mode = dirb->mode;
 	if(mode&DMDIR){
-		fprint(2, "cp: %s is a directory\n", from);
+		fprint(2, "fcp: %s is a directory\n", from);
 		free(dirb);
 		failed = 1;
 		return;
@@ -117,14 +117,14 @@ copy(char *from, char *to, int todir)
 	mode &= 0777;
 	fdf=open(from, OREAD);
 	if(fdf<0){
-		fprint(2, "cp: can't open %s: %r\n", from);
+		fprint(2, "fcp: can't open %s: %r\n", from);
 		free(dirb);
 		failed = 1;
 		return;
 	}
 	fdt=create(to, OWRITE, mode);
 	if(fdt<0){
-		fprint(2, "cp: can't create %s: %r\n", to);
+		fprint(2, "fcp: can't create %s: %r\n", to);
 		close(fdf);
 		free(dirb);
 		failed = 1;
@@ -141,7 +141,7 @@ copy(char *from, char *to, int todir)
 		if(gflag)
 			dirt.gid = dirb->gid;
 		if(dirfwstat(fdt, &dirt) < 0)
-			fprint(2, "cp: warning: can't wstat %s: %r\n", to);
+			fprint(2, "fcp: warning: can't wstat %s: %r\n", to);
 	}			
 	free(dirb);
 	close(fdf);
@@ -169,7 +169,7 @@ copy1(int fdf, int fdt, char *from, char *to)
 		}
 	}
 	if(n == 0){
-		fprint(2, "cp: rfork: %r\n");
+		fprint(2, "fcp: rfork: %r\n");
 		failed = 1;
 		return -1;
 	}
