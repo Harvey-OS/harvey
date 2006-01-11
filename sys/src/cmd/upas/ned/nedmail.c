@@ -64,6 +64,7 @@ Ctype ctype[] = {
 	{ "image/bmp",			"bmp",	0,	"image"	},
 	{ "image/jpeg",			"jpg",	0,	"image"	},
 	{ "image/gif",			"gif",	0,	"image"	},
+	{ "image/png",			"png",	0,	"image"	},
 	{ "application/pdf",		"pdf",	0,	"postscript"	},
 	{ "application/postscript",	"ps",	0,	"postscript"	},
 	{ "application/",		0,	0,	0	},
