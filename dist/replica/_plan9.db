@@ -7289,7 +7289,7 @@ sys/man/1/filter - 664 sys sys 1135083932 6142
 sys/man/1/fmt - 664 sys sys 1070032221 1557
 sys/man/1/fortune - 664 sys sys 944959673 449
 sys/man/1/freq - 664 sys sys 1136378272 735
-sys/man/1/games - 664 sys sys 1121367092 5355
+sys/man/1/games - 664 sys sys 1137080360 5373
 sys/man/1/grap - 664 sys sys 944959675 6417
 sys/man/1/graph - 664 sys sys 944959673 2858
 sys/man/1/grep - 664 sys sys 1136378273 2257
@@ -14112,10 +14112,10 @@ sys/src/games/catclock.c - 664 sys sys 1108184106 10354
 sys/src/games/eyes.p - 664 sys sys 1108184106 1128
 sys/src/games/juggle.c - 664 sys sys 1118153689 4471
 sys/src/games/mahjongg - 20000000775 sys sys 1095792293 0
-sys/src/games/mahjongg/graphics.c - 664 sys sys 1095792293 5794
-sys/src/games/mahjongg/level.c - 664 sys sys 1095792293 2522
-sys/src/games/mahjongg/mahjongg.c - 664 sys sys 1095792293 3452
-sys/src/games/mahjongg/mahjongg.h - 664 sys sys 1095792293 1606
+sys/src/games/mahjongg/graphics.c - 664 sys sys 1137080359 7054
+sys/src/games/mahjongg/level.c - 664 sys sys 1137080360 2560
+sys/src/games/mahjongg/mahjongg.c - 664 sys sys 1137080360 3631
+sys/src/games/mahjongg/mahjongg.h - 664 sys sys 1137080360 1687
 sys/src/games/mahjongg/mkfile - 664 sys sys 1095792293 230
 sys/src/games/memo.c - 664 sys sys 1130853201 6471
 sys/src/games/mkfile - 664 sys sys 1128271766 586

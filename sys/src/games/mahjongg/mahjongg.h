@@ -55,6 +55,7 @@ typedef struct {
 typedef struct {
 	Brick 	board[Depth][Lx][Ly];
 	Click		c; 		/* player has a brick selected */
+	Click		l; 		/* mouse-over-brick indicator */
 	int			done;
 	int 		remaining;
 } Level;
@@ -69,12 +70,14 @@ Image *brdr;
 Image *mask;
 Image *background;
 Image *selected;
+Image *litbrdr;
 Image *gameover;
 
 /* graphics.c */
 void drawlevel(void);
 void resize(Point);
 void clicked(Point);
+void light(Point);
 void hint(void);
 void done(void);
 void clearlevel(void);

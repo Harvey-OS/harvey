@@ -145,6 +145,8 @@ generate(uint seed)
 
 	orig.c.d = -1;
 	orig.c.p = Pt(0, 0);
+	orig.l.d = -1;
+	orig.l.p = Pt(0, 0);
 	orig.done = 0;
 	level = orig;
 }

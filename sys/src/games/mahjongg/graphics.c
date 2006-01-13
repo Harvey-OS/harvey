@@ -84,6 +84,9 @@ drawbrick(int d, int x, int y)
 	if(level.board[d][x][y].clicked)
 		draw(img, r, selected, nil, ZP);
 
+	if(level.l.d == d && eqpt(level.l.p, Pt(x, y)))
+		border(img, r, 2, litbrdr, level.board[d][x][y].start);
+
 	/* looks better without borders, uncomment to check it out with'em */
 //	r = Rpt(r.min, addpt(r.min, Pt(Tilex, Tiley)));
 //	draw(img, r, brdr, nil, ZP);
@@ -248,6 +251,70 @@ Found:
 		drawlevel();
 		if(!canmove())
 			done();
+	}
+}
+
+void
+light(Point coord)
+{
+	Point p;
+	int d;
+
+	/* ugly on purpose */
+
+	for(d = Depth - 1; d >= 0; d--) {
+		p = Pt((coord.x + TileDxy*d)/(Facex/2), (coord.y + TileDxy*d)/(Facey/2));
+		switch(level.board[d][p.x][p.y].which) {
+		case 0:
+			break;
+		case 1:
+			goto Found;
+		case 2:
+			p = Pt(p.x-1, p.y);
+			goto Found;
+		case 3:
+			p = Pt(p.x-1, p.y-1);
+			goto Found;
+		case 4:
+			p = Pt(p.x, p.y-1);
+			goto Found;
+		}
+	}
+
+	return;
+
+Found:
+	if(level.l.d == d && eqpt(level.l.p, p))
+		return;
+
+	if(freeup(d, p) && (freeleft(d, p) || freeright(d, p))) {
+		Point tmpp;
+		int tmpd;
+
+		tmpd = level.l.d;
+		tmpp = level.l.p;
+
+		level.l.d = d;
+		level.l.p = p;
+		drawbrick(d, p.x, p.y);
+
+		/* clean up the previously lit brick */
+		if(tmpd != -1 && level.board[tmpd][tmpp.x][tmpp.y].which == 1) 
+			drawbrick(tmpd, tmpp.x, tmpp.y);
+			
+		draw(screen, screen->r, img, nil, ZP);
+		flushimage(display, 1);
+	} else if(level.l.d != -1) {
+		d = level.l.d;
+		p = level.l.p;
+		level.l.d = -1;
+		level.l.p = Pt(0, 0);
+
+		if(level.board[d][p.x][p.y].which == 1) {
+			drawbrick(d, p.x, p.y);
+			draw(screen, screen->r, img, nil, ZP);
+			flushimage(display, 1);
+		}
 	}
 }
 

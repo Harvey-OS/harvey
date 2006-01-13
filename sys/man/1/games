@@ -1,6 +1,6 @@
 .TH GAMES 1
 .SH NAME
-mahjongg, sokoban, sudoku \- time wasters
+4s, 5s, juggle, mahjongg, sokoban, sudoku \- time wasters
 .SH SYNOPSIS
 .B games/4s
 .br
@@ -21,6 +21,8 @@ mahjongg, sokoban, sudoku \- time wasters
 .B games/mahjongg
 [
 .B -c
+] [
+.B -f
 ] [
 .B -b
 .I background
@@ -47,8 +49,6 @@ Try to fill complete rows using 4-square or 5-square tiles.
 Move tiles left or right by moving the mouse.
 Rotate tiles with buttons 1 and 3.
 Drop tiles for more points with button 2 or the space bar.
-Move the mouse out of or back into the play area to
-suspend or resume the game.
 Keys
 .LR a
 and 
@@ -107,8 +107,10 @@ and layout
 .RB (-l)
 images;
 .RB -c
-selects a true-color buffer image, use with
-drawterm or in case selecting a tile obscures it completely.
+selects a true-color buffer image, for use with
+drawterm or in case selecting a tile obscures it completely;
+.RB -f
+causes mahjongg to indicate non-blocked tiles on mouse-over.
 The 
 .LR N
 key will generate a new level, 
