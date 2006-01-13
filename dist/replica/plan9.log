@@ -24795,3 +24795,8 @@
 1136656852 19 c 386/bin/fcp - 775 sys sys 1136656336 82190
 1136656852 20 c 386/lib/ape/libap.a - 664 sys sys 1136656401 809476
 1136912467 0 c sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1136911937 44584
+1137081716 0 c sys/man/1/games - 664 sys sys 1137080360 5373
+1137081716 1 c sys/src/games/mahjongg/graphics.c - 664 sys sys 1137080359 7054
+1137081716 2 c sys/src/games/mahjongg/level.c - 664 sys sys 1137080360 2560
+1137081716 3 c sys/src/games/mahjongg/mahjongg.c - 664 sys sys 1137080360 3631
+1137081716 4 c sys/src/games/mahjongg/mahjongg.h - 664 sys sys 1137080360 1687
