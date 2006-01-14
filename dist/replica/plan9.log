@@ -24800,3 +24800,12 @@
 1137081716 2 c sys/src/games/mahjongg/level.c - 664 sys sys 1137080360 2560
 1137081716 3 c sys/src/games/mahjongg/mahjongg.c - 664 sys sys 1137080360 3631
 1137081716 4 c sys/src/games/mahjongg/mahjongg.h - 664 sys sys 1137080360 1687
+1137178824 0 c sys/src/boot/alphapc/l.s - 664 sys sys 1137178711 1513
+1137178824 1 c sys/src/boot/alphapc/mem.h - 664 sys sys 1137178711 363
+1137178824 2 a sys/src/boot/alphapc/vmspal.h - 664 sys sys 1137178711 2580
+1137180625 0 c sys/src/9/alphapc/io.h - 664 sys sys 1137179966 4618
+1137180625 1 c sys/src/9/alphapc/l.s - 664 sys sys 1137179966 9141
+1137180625 2 c sys/src/9/alphapc/main.c - 664 sys sys 1137179966 13675
+1137180625 3 c sys/src/9/alphapc/mem.h - 664 sys sys 1137179967 2312
+1137180625 4 a sys/src/9/alphapc/osf1pal.h - 664 sys sys 1137179966 1471
+1137180625 5 c sys/src/9/alphapc/sd53c8xx.c - 664 sys sys 1137179967 55257

@@ -1,4 +1,5 @@
 #include "mem.h"
+#include "vmspal.h"
 
 #define SP		R30
 
@@ -17,7 +18,7 @@ loop2:
 TEXT	firmware(SB), $-8
 	CALL_PAL $PALhalt
 	MOVQ	$_divq(SB), R31		/* touch _divq etc.; doesn't need to execute */
-	MOVQ	$_divl(SB), R31			/* touch _divl etc.; doesn't need to execute */
+	MOVQ	$_divl(SB), R31		/* touch _divl etc.; doesn't need to execute */
 	RET
 
 TEXT	mb(SB), $-8
@@ -39,7 +40,7 @@ TEXT	gendispatch(SB), $-8
 	MOVQ	32(FP), R19
 	MOVQ	40(FP), R20
 	MOVQ	R26, R1
-	JSR		(R0)
+	JSR	(R0)
 	MOVQ	R1, R26
 	RET					/* 7a bug: should be RET (R1) */
 
@@ -53,41 +54,41 @@ TEXT	wrv(SB), $-8
 	RET
 
 TEXT	ipl(SB), $-8
-	CALL_PAL	$PALmfpr_ipl
+	CALL_PAL $PALmfpr_ipl
 	RET
 
 TEXT	mces(SB), $-8
-	CALL_PAL	$PALmfpr_mces
+	CALL_PAL $PALmfpr_mces
 	RET
 
 TEXT	setipl(SB), $-8
 	MOVQ	R0, R16
-	CALL_PAL	$PALmtpr_ipl
+	CALL_PAL $PALmtpr_ipl
 	RET
 
 TEXT	setmces(SB), $-8
 	MOVQ	R0, R16
-	CALL_PAL	$PALmtpr_mces
+	CALL_PAL $PALmtpr_mces
 	RET
 
 TEXT	ldqp(SB), $-8
 	MOVQ	R0, R16
-	CALL_PAL	$PALldqp
+	CALL_PAL $PALldqp
 	RET
 
 TEXT	stqp(SB), $-8
 	MOVQ	R0, R16
 	MOVQ	8(FP), R17
-	CALL_PAL	$PALstqp
+	CALL_PAL $PALstqp
 	RET
 
 TEXT	getptbr(SB), $-8
-	CALL_PAL	$PALmfpr_ptbr
+	CALL_PAL $PALmfpr_ptbr
 	RET
 
 TEXT	swppal(SB), $-8
 	MOVQ	R0, R16			/* which PALcode */
-	MOVQ	8(FP), R17			/* new PC */
+	MOVQ	8(FP), R17		/* new PC */
 	MOVQ	16(FP), R18		/* PCBB (physical) */
 	MOVQ	24(FP), R19		/* VPTB */
 	MOVQ	32(FP), R20		/* new KSP */

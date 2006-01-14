@@ -1,4 +1,5 @@
 #include "mem.h"
+#include "osf1pal.h"
 
 #define SP	R30
 
@@ -174,22 +175,22 @@ tas2:
 	RET
 
 TEXT	_xdec(SB), $-8
-	MOVQ	R0, R1		/* p */
+	MOVQ	R0, R1			/* p */
 dec1:
 	MOVLL	(R1), R0		/* *p */
-	SUBL		$1, R0
+	SUBL	$1, R0
 	MOVQ	R0, R2
 	MOVLC	R2, (R1)		/* --(*p) */
-	BEQ		R2, dec1		/* write failed, retry */
+	BEQ	R2, dec1		/* write failed, retry */
 	RET
 
 TEXT	_xinc(SB), $-8
-	MOVQ	R0, R1		/* p */
+	MOVQ	R0, R1			/* p */
 inc1:
 	MOVLL	(R1), R0		/* *p */
 	ADDL	$1, R0
 	MOVLC	R0, (R1)		/* (*p)++ */
-	BEQ		R0, inc1		/* write failed, retry */
+	BEQ	R0, inc1		/* write failed, retry */
 	RET
 
 TEXT	fpenab(SB), $-8
@@ -222,25 +223,25 @@ TEXT	arith(SB), $-8
 	SUBQ	$(4*BY2WD+31*BY2V), R30
 	MOVQ	R0, (4*BY2WD+4*BY2V)(R30)
 	MOVQ	$1, R0
-	JMP		trapcommon
+	JMP	trapcommon
 
 TEXT	illegal0(SB), $-8
 	SUBQ	$(4*BY2WD+31*BY2V), R30
 	MOVQ	R0, (4*BY2WD+4*BY2V)(R30)
 	MOVQ	$2, R0
-	JMP		trapcommon
+	JMP	trapcommon
 
 TEXT	fault0(SB), $-8
 	SUBQ	$(4*BY2WD+31*BY2V), R30
 	MOVQ	R0, (4*BY2WD+4*BY2V)(R30)
 	MOVQ	$4, R0
-	JMP		trapcommon
+	JMP	trapcommon
 
 TEXT	unaligned(SB), $-8
 	SUBQ	$(4*BY2WD+31*BY2V), R30
 	MOVQ	R0, (4*BY2WD+4*BY2V)(R30)
 	MOVQ	$6, R0
-	JMP		trapcommon
+	JMP	trapcommon
 
 TEXT	intr0(SB), $-8
 	SUBQ	$(4*BY2WD+31*BY2V), R30
@@ -283,12 +284,12 @@ trapcommon:
 	MOVQ	$HI_IPL, R16
 	CALL_PAL $PALswpipl
 
-	CALL_PAL	$PALrdusp
+	CALL_PAL $PALrdusp
 	MOVQ	R0, (4*BY2WD+30*BY2V)(R30)	/* save USP */
 
 	MOVQ	$mach0(SB), R(MACH)
 	MOVQ	$(4*BY2WD)(R30), R0
-	JSR		trap(SB)
+	JSR	trap(SB)
 trapret:
 	MOVQ	(4*BY2WD+30*BY2V)(R30), R16	/* USP */
 	CALL_PAL $PALwrusp			/* ... */
@@ -320,10 +321,10 @@ trapret:
 	MOVQ	(4*BY2WD+29*BY2V)(R30), R28
 	/* USP already restored from (4*BY2WD+30*BY2V)(R30) */
 	ADDQ	$(4*BY2WD+31*BY2V), R30
-	CALL_PAL	$PALrti
+	CALL_PAL $PALrti
 
 TEXT	forkret(SB), $0
-	MOVQ	R31, R0			/* Fake out system call return */
+	MOVQ	R31, R0				/* Fake out system call return */
 	JMP	systrapret
 
 TEXT	syscall0(SB), $-8
@@ -339,10 +340,10 @@ TEXT	syscall0(SB), $-8
 	JSR	syscall(SB)
 systrapret:
 	MOVQ	(4*BY2WD+30*BY2V)(R30), R16	/* USP */
-	CALL_PAL $PALwrusp		/* consider doing this in execregs... */
+	CALL_PAL $PALwrusp			/* consider doing this in execregs... */
 	MOVQ	(4*BY2WD+27*BY2V)(R30), R26	/* restore last return address */
 	ADDQ	$(4*BY2WD+31*BY2V), R30
-	CALL_PAL	$PALretsys
+	CALL_PAL $PALretsys
 
 /*
  * Take first processor into user mode
@@ -355,7 +356,7 @@ TEXT	touser(SB), $-8
 	SUBQ	$(6*BY2V), R30			/* create frame for retsys */
 	MOVQ	$(UTZERO+32), R26		/* header appears in text */
 	MOVQ	R26, (1*BY2V)(R30)		/* PC -- only reg that matters */
-	CALL_PAL	$PALretsys
+	CALL_PAL $PALretsys
 
 TEXT	rfnote(SB), $0
 	SUBL	$(2*BY2WD), R0, SP
