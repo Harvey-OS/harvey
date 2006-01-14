@@ -80,46 +80,6 @@
 #define	USTKSIZE	(4*1024*1024)	/* size of user stack */
 
 /*
- * Palcode instructions a la OSF/1
- */
-#define	PALbpt		0x80
-#define	PALbugchk	0x81
-#define	PALcallsys	0x83
-#define	PALimb		0x86
-#define	PALgentrap	0xaa
-#define	PALrdunique	0x9e
-#define	PALwrunique	0x9f
-
-#define	PALhalt		0x00
-#define	PALdraina	0x02
-#define	PALcserve	0x09
-#define	PALrdps		0x36
-#define	PALrdusp	0x3a
-#define	PALrdval	0x32
-#define	PALretsys	0x3d
-#define	PALrti		0x3f
-#define	PALswpctx	0x30
-#define	PALswpipl	0x35
-#define	PALtbi		0x33
-#define	PALwhami	0x3c
-#define	PALwrent	0x34
-#define	PALwrfen	0x2b
-#define	PALwrkgp	0x37
-#define	PALwrusp	0x38
-#define	PALwrval	0x31
-#define	PALwrvptptr	0x2d
-
-/*
- * Plus some useful VMS ones (needed at early boot time)
- */
-#define	PALmfpr_pcbb	0x12
-#define	PALmfpr_ptbr	0x15
-#define	PALmfpr_vptb	0x29
-#define	PALldqp		0x03
-#define	PALstqp		0x04
-#define	PALswppal	0x0a
-
-/*
  * Processor Status (as returned by rdps)
  */
 #define	UMODE	0x8

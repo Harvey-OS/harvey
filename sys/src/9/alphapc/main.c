@@ -134,7 +134,7 @@ enum {
 	Cpuhaltcoldboot = 0x20000,
 	Cpuhaltwarmboot = 0x30000,
 	Cpuhaltstayhalted = 0x40000,
-	Cpumustbezero = 0xffffffffff000000,	/* 24:63 -- must be zero */
+	Cpumustbezero = 0xffffffffff000000ULL,	/* 24:63 -- must be zero */
 };
 
 /*
