@@ -1,6 +1,6 @@
 /*
  * blocklist.c
- * Copyright (C) 1998-2003 A.J. van Os; Released under GPL
+ * Copyright (C) 1998-2005 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Build, read and destroy the lists of Word "text" blocks
@@ -19,21 +19,28 @@ typedef struct list_mem_tag {
 	struct list_mem_tag	*pNext;
 } list_mem_type;
 
+typedef struct readinfo_tag {
+	list_mem_type		*pBlockCurrent;
+	ULONG			ulBlockOffset;
+	size_t			tByteNext;
+	UCHAR			aucBlock[BIG_BLOCK_SIZE];
+} readinfo_type;
+
 /* Variables to describe the start of the block lists */
 static list_mem_type	*pTextAnchor = NULL;
-static list_mem_type	*pFootAnchor = NULL;
+static list_mem_type	*pFootnoteAnchor = NULL;
 static list_mem_type	*pHdrFtrAnchor = NULL;
 static list_mem_type	*pMacroAnchor = NULL;
 static list_mem_type	*pAnnotationAnchor = NULL;
-static list_mem_type	*pEndAnchor = NULL;
+static list_mem_type	*pEndnoteAnchor = NULL;
 static list_mem_type	*pTextBoxAnchor = NULL;
 static list_mem_type	*pHdrTextBoxAnchor = NULL;
 /* Variable needed to build the block list */
 static list_mem_type	*pBlockLast = NULL;
-/* Variable needed to read a block list */
-static list_mem_type	*pBlockCurrent = NULL;
-/* Last block read */
-static UCHAR		aucBlock[BIG_BLOCK_SIZE];
+/* Variable needed to read the block lists */
+static readinfo_type	tOthers = { NULL, 0, 0, };
+static readinfo_type	tHdrFtr = { NULL, 0, 0, };
+static readinfo_type	tFootnote = { NULL, 0, 0, };
 
 
 /*
@@ -65,16 +72,18 @@ vDestroyTextBlockList(void)
 
 	/* Free the lists one by one */
 	pTextAnchor = pFreeOneList(pTextAnchor);
-	pFootAnchor = pFreeOneList(pFootAnchor);
+	pFootnoteAnchor = pFreeOneList(pFootnoteAnchor);
 	pHdrFtrAnchor = pFreeOneList(pHdrFtrAnchor);
 	pMacroAnchor = pFreeOneList(pMacroAnchor);
 	pAnnotationAnchor = pFreeOneList(pAnnotationAnchor);
-	pEndAnchor = pFreeOneList(pEndAnchor);
+	pEndnoteAnchor = pFreeOneList(pEndnoteAnchor);
 	pTextBoxAnchor = pFreeOneList(pTextBoxAnchor);
 	pHdrTextBoxAnchor = pFreeOneList(pHdrTextBoxAnchor);
 	/* Reset all the controle variables */
 	pBlockLast = NULL;
-	pBlockCurrent = NULL;
+	tOthers.pBlockCurrent = NULL;
+	tHdrFtr.pBlockCurrent = NULL;
+	tFootnote.pBlockCurrent = NULL;
 } /* end of vDestroyTextBlockList */
 
 /*
@@ -283,11 +292,12 @@ bIsEmptyBox(FILE *pFile, const list_mem_type *pAnchor)
 	for (pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
 		fail(pCurr->tInfo.ulLength == 0);
 		tSize = (size_t)pCurr->tInfo.ulLength;
-#if defined(__dos)
+#if defined(__dos) && !defined(__DJGPP__)
 		if (pCurr->tInfo.ulLength > 0xffffUL) {
 			tSize = 0xffff;
 		}
-#endif /* __dos */
+#endif /* __dos && !__DJGPP__ */
+		fail(aucBuffer != NULL);
 		aucBuffer = xmalloc(tSize);
 		if (!bReadBytes(aucBuffer, tSize,
 				pCurr->tInfo.ulFileOffset, pFile)) {
@@ -306,8 +316,9 @@ bIsEmptyBox(FILE *pFile, const list_mem_type *pAnchor)
 				return FALSE;
 			}
 		}
+		aucBuffer = xfree(aucBuffer);
 	}
-	aucBuffer = xfree(aucBuffer);
+	fail(aucBuffer != NULL);
 	return TRUE;
 } /* end of bIsEmptyBox */
 
@@ -337,17 +348,17 @@ vSplitBlockList(FILE *pFile, ULONG ulTextLen, ULONG ulFootnoteLen,
 	pGarbageAnchor = NULL;
 
 	DBG_MSG_C(ulTextLen != 0, "Text block list");
-	vSpitList(&pTextAnchor, &pFootAnchor, ulTextLen);
+	vSpitList(&pTextAnchor, &pFootnoteAnchor, ulTextLen);
 	DBG_MSG_C(ulFootnoteLen != 0, "Footnote block list");
-	vSpitList(&pFootAnchor, &pHdrFtrAnchor, ulFootnoteLen);
+	vSpitList(&pFootnoteAnchor, &pHdrFtrAnchor, ulFootnoteLen);
 	DBG_MSG_C(ulHdrFtrLen != 0, "Header/Footer block list");
 	vSpitList(&pHdrFtrAnchor, &pMacroAnchor, ulHdrFtrLen);
 	DBG_MSG_C(ulMacroLen != 0, "Macro block list");
 	vSpitList(&pMacroAnchor, &pAnnotationAnchor, ulMacroLen);
 	DBG_MSG_C(ulAnnotationLen != 0, "Annotation block list");
-	vSpitList(&pAnnotationAnchor, &pEndAnchor, ulAnnotationLen);
+	vSpitList(&pAnnotationAnchor, &pEndnoteAnchor, ulAnnotationLen);
 	DBG_MSG_C(ulEndnoteLen != 0, "Endnote block list");
-	vSpitList(&pEndAnchor, &pTextBoxAnchor, ulEndnoteLen);
+	vSpitList(&pEndnoteAnchor, &pTextBoxAnchor, ulEndnoteLen);
 	DBG_MSG_C(ulTextBoxLen != 0, "Textbox block list");
 	vSpitList(&pTextBoxAnchor, &pHdrTextBoxAnchor, ulTextBoxLen);
 	DBG_MSG_C(ulHdrTextBoxLen != 0, "HeaderTextbox block list");
@@ -359,12 +370,12 @@ vSplitBlockList(FILE *pFile, ULONG ulTextLen, ULONG ulFootnoteLen,
 
 #if defined(DEBUG)
 	vCheckList(pTextAnchor, ulTextLen, "Software error (Text)");
-	vCheckList(pFootAnchor, ulFootnoteLen, "Software error (Footnote)");
+	vCheckList(pFootnoteAnchor, ulFootnoteLen, "Software error (Footnote)");
 	vCheckList(pHdrFtrAnchor, ulHdrFtrLen, "Software error (Hdr/Ftr)");
 	vCheckList(pMacroAnchor, ulMacroLen, "Software error (Macro)");
 	vCheckList(pAnnotationAnchor, ulAnnotationLen,
 						"Software error (Annotation)");
-	vCheckList(pEndAnchor, ulEndnoteLen, "Software error (Endnote)");
+	vCheckList(pEndnoteAnchor, ulEndnoteLen, "Software error (Endnote)");
 	vCheckList(pTextBoxAnchor, ulTextBoxLen, "Software error (TextBox)");
 	vCheckList(pHdrTextBoxAnchor, ulHdrTextBoxLen,
 						"Software error (HdrTextBox)");
@@ -387,11 +398,11 @@ vSplitBlockList(FILE *pFile, ULONG ulTextLen, ULONG ulFootnoteLen,
 	 */
 
 	apAnchors[0] = pTextAnchor;
-	apAnchors[1] = pFootAnchor;
+	apAnchors[1] = pFootnoteAnchor;
 	apAnchors[2] = pHdrFtrAnchor;
 	apAnchors[3] = pMacroAnchor;
 	apAnchors[4] = pAnnotationAnchor;
-	apAnchors[5] = pEndAnchor;
+	apAnchors[5] = pEndnoteAnchor;
 	apAnchors[6] = pTextBoxAnchor;
 	apAnchors[7] = pHdrTextBoxAnchor;
 
@@ -428,14 +439,26 @@ ulGetDocumentLength(void)
 	DBG_MSG("ulGetDocumentLength");
 
 	ulTotal = ulComputeListLength(pTextAnchor);
-	ulTotal += ulComputeListLength(pFootAnchor);
-	ulTotal += ulComputeListLength(pEndAnchor);
+	ulTotal += ulComputeListLength(pFootnoteAnchor);
+	ulTotal += ulComputeListLength(pEndnoteAnchor);
 	ulTotal += ulComputeListLength(pTextBoxAnchor);
 	ulTotal += ulComputeListLength(pHdrTextBoxAnchor);
 	DBG_DEC(ulTotal);
 	return ulTotal;
 } /* end of ulGetDocumentLength */
 #endif /* __riscos */
+
+#if 0
+/*
+ * bExistsHdrFtr - are there headers and/or footers?
+ */
+BOOL
+bExistsHdrFtr(void)
+{
+	return pHdrFtrAnchor != NULL &&
+		pHdrFtrAnchor->tInfo.ulLength != 0;
+} /* end of bExistsHdrFtr */
+#endif
 
 /*
  * bExistsTextBox - is there a text box?
@@ -456,83 +479,129 @@ bExistsHdrTextBox(void)
 	return pHdrTextBoxAnchor != NULL &&
 		pHdrTextBoxAnchor->tInfo.ulLength != 0;
 } /* end of bExistsHdrTextBox */
+
 /*
  * usGetNextByte - get the next byte from the specified block list
  */
 static USHORT
-usGetNextByte(FILE *pFile, list_mem_type *pAnchor,
+usGetNextByte(FILE *pFile, readinfo_type *pInfoCurrent, list_mem_type *pAnchor,
 	ULONG *pulFileOffset, ULONG *pulCharPos, USHORT *pusPropMod)
 {
-	static ULONG	ulBlockOffset = 0;
-	static size_t	tByteNext = 0;
 	ULONG	ulReadOff;
 	size_t	tReadLen;
 
-	if (pBlockCurrent == NULL ||
-	    tByteNext >= sizeof(aucBlock) ||
-	    ulBlockOffset + tByteNext >= pBlockCurrent->tInfo.ulLength) {
-		if (pBlockCurrent == NULL) {
+	fail(pInfoCurrent == NULL);
+
+	if (pInfoCurrent->pBlockCurrent == NULL ||
+	    pInfoCurrent->tByteNext >= sizeof(pInfoCurrent->aucBlock) ||
+	    pInfoCurrent->ulBlockOffset + pInfoCurrent->tByteNext >=
+				pInfoCurrent->pBlockCurrent->tInfo.ulLength) {
+		if (pInfoCurrent->pBlockCurrent == NULL) {
 			/* First block, first part */
-			pBlockCurrent = pAnchor;
-			ulBlockOffset = 0;
-		} else if (ulBlockOffset + sizeof(aucBlock) <
-				pBlockCurrent->tInfo.ulLength) {
+			pInfoCurrent->pBlockCurrent = pAnchor;
+			pInfoCurrent->ulBlockOffset = 0;
+		} else if (pInfoCurrent->ulBlockOffset +
+				sizeof(pInfoCurrent->aucBlock) <
+				pInfoCurrent->pBlockCurrent->tInfo.ulLength) {
 			/* Same block, next part */
-			ulBlockOffset += sizeof(aucBlock);
+			pInfoCurrent->ulBlockOffset +=
+					sizeof(pInfoCurrent->aucBlock);
 		} else {
 			/* Next block, first part */
-			pBlockCurrent = pBlockCurrent->pNext;
-			ulBlockOffset = 0;
+			pInfoCurrent->pBlockCurrent =
+					pInfoCurrent->pBlockCurrent->pNext;
+			pInfoCurrent->ulBlockOffset = 0;
 		}
-		if (pBlockCurrent == NULL) {
+		if (pInfoCurrent->pBlockCurrent == NULL) {
 			/* Past the last part of the last block */
 			return (USHORT)EOF;
 		}
 		tReadLen = (size_t)
-			(pBlockCurrent->tInfo.ulLength - ulBlockOffset);
-		if (tReadLen > sizeof(aucBlock)) {
-			tReadLen = sizeof(aucBlock);
+			(pInfoCurrent->pBlockCurrent->tInfo.ulLength -
+			 pInfoCurrent->ulBlockOffset);
+		if (tReadLen > sizeof(pInfoCurrent->aucBlock)) {
+			tReadLen = sizeof(pInfoCurrent->aucBlock);
 		}
-		ulReadOff = pBlockCurrent->tInfo.ulFileOffset +
-				ulBlockOffset;
-		if (!bReadBytes(aucBlock, tReadLen, ulReadOff, pFile)) {
+		ulReadOff = pInfoCurrent->pBlockCurrent->tInfo.ulFileOffset +
+				pInfoCurrent->ulBlockOffset;
+		if (!bReadBytes(pInfoCurrent->aucBlock,
+						tReadLen, ulReadOff, pFile)) {
 			/* Don't read from this list any longer */
-			pBlockCurrent = NULL;
+			pInfoCurrent->pBlockCurrent = NULL;
 			return (USHORT)EOF;
 		}
-		tByteNext = 0;
+		pInfoCurrent->tByteNext = 0;
 	}
 	if (pulFileOffset != NULL) {
-		*pulFileOffset = pBlockCurrent->tInfo.ulFileOffset +
-			ulBlockOffset + tByteNext;
+		*pulFileOffset =
+			pInfoCurrent->pBlockCurrent->tInfo.ulFileOffset +
+			pInfoCurrent->ulBlockOffset +
+			pInfoCurrent->tByteNext;
 	}
 	if (pulCharPos != NULL) {
-		*pulCharPos = pBlockCurrent->tInfo.ulCharPos +
-			ulBlockOffset + tByteNext;
+		*pulCharPos =
+			pInfoCurrent->pBlockCurrent->tInfo.ulCharPos +
+			pInfoCurrent->ulBlockOffset +
+			pInfoCurrent->tByteNext;
 	}
 	if (pusPropMod != NULL) {
-		*pusPropMod = pBlockCurrent->tInfo.usPropMod;
+		*pusPropMod = pInfoCurrent->pBlockCurrent->tInfo.usPropMod;
 	}
-	return (USHORT)aucBlock[tByteNext++];
+	return (USHORT)pInfoCurrent->aucBlock[pInfoCurrent->tByteNext++];
 } /* end of usGetNextByte */
+
 
 /*
  * usGetNextChar - get the next character from the specified block list
  */
 static USHORT
-usGetNextChar(FILE *pFile, list_mem_type *pAnchor,
+usGetNextChar(FILE *pFile, list_id_enum eListID,
 	ULONG *pulFileOffset, ULONG *pulCharPos, USHORT *pusPropMod)
 {
+	readinfo_type	*pReadinfo;
+	list_mem_type	*pAnchor;
 	USHORT	usLSB, usMSB;
 
-	usLSB = usGetNextByte(pFile, pAnchor,
-			pulFileOffset, pulCharPos, pusPropMod);
+	switch (eListID) {
+	case text_list:
+		pReadinfo = &tOthers;
+		pAnchor = pTextAnchor;
+		break;
+	case footnote_list:
+		pReadinfo = &tFootnote;
+		pAnchor = pFootnoteAnchor;
+		break;
+	case hdrftr_list:
+		pReadinfo = &tHdrFtr;
+		pAnchor = pHdrFtrAnchor;
+		break;
+	case endnote_list:
+		pReadinfo = &tOthers;
+		pAnchor = pEndnoteAnchor;
+		break;
+	case textbox_list:
+		pReadinfo = &tOthers;
+		pAnchor = pTextBoxAnchor;
+		break;
+	case hdrtextbox_list:
+		pReadinfo = &tOthers;
+		pAnchor = pHdrTextBoxAnchor;
+		break;
+	default:
+		DBG_DEC(eListID);
+		return (USHORT)EOF;
+	}
+
+	usLSB = usGetNextByte(pFile, pReadinfo, pAnchor,
+				pulFileOffset, pulCharPos, pusPropMod);
 	if (usLSB == (USHORT)EOF) {
 		return (USHORT)EOF;
 	}
-	if (pBlockCurrent->tInfo.bUsesUnicode) {
-		usMSB = usGetNextByte(pFile, pAnchor,
-				NULL, NULL, NULL);
+	fail(pReadinfo->pBlockCurrent == NULL);
+
+	if (pReadinfo->pBlockCurrent->tInfo.bUsesUnicode) {
+		usMSB = usGetNextByte(pFile,
+				pReadinfo, pAnchor, NULL, NULL, NULL);
 	} else {
 		usMSB = 0x00;
 	}
@@ -556,33 +625,8 @@ usNextChar(FILE *pFile, list_id_enum eListID,
 
 	fail(pFile == NULL);
 
-	switch (eListID) {
-	case text_list:
-		usRetVal = usGetNextChar(pFile, pTextAnchor,
+	usRetVal = usGetNextChar(pFile, eListID,
 				pulFileOffset, pulCharPos, pusPropMod);
-		break;
-	case footnote_list:
-		usRetVal = usGetNextChar(pFile, pFootAnchor,
-				pulFileOffset, pulCharPos, pusPropMod);
-		break;
-	case endnote_list:
-		usRetVal = usGetNextChar(pFile, pEndAnchor,
-				pulFileOffset, pulCharPos, pusPropMod);
-		break;
-	case textbox_list:
-		usRetVal = usGetNextChar(pFile, pTextBoxAnchor,
-				pulFileOffset, pulCharPos, pusPropMod);
-		break;
-	case hdrtextbox_list:
-		usRetVal = usGetNextChar(pFile, pHdrTextBoxAnchor,
-				pulFileOffset, pulCharPos, pusPropMod);
-		break;
-	default:
-		DBG_DEC(eListID);
-		usRetVal = (USHORT)EOF;
-		break;
-	}
-
 	if (usRetVal == (USHORT)EOF) {
 		if (pulFileOffset != NULL) {
 			*pulFileOffset = FC_INVALID;
@@ -598,27 +642,82 @@ usNextChar(FILE *pFile, list_id_enum eListID,
 } /* end of usNextChar */
 
 /*
- * Translate a character position to an offset in the file.
+ * usToHdrFtrPosition - Go to a character position in header/foorter list
+ *
+ * Returns the character found on the specified character position
+ */
+USHORT
+usToHdrFtrPosition(FILE *pFile, ULONG ulCharPos)
+{
+	ULONG	ulCharPosCurr;
+	USHORT	usChar;
+
+	tHdrFtr.pBlockCurrent = NULL;	/* To reset the header/footer list */
+	do {
+		usChar = usNextChar(pFile,
+				hdrftr_list, NULL, &ulCharPosCurr, NULL);
+	} while (usChar != (USHORT)EOF && ulCharPosCurr != ulCharPos);
+	return usChar;
+} /* end of usToHdrFtrPosition */
+
+/*
+ * usToFootnotePosition - Go to a character position in footnote list
+ *
+ * Returns the character found on the specified character position
+ */
+USHORT
+usToFootnotePosition(FILE *pFile, ULONG ulCharPos)
+{
+	ULONG	ulCharPosCurr;
+	USHORT	usChar;
+
+	tFootnote.pBlockCurrent = NULL;	/* To reset the footnote list */
+	do {
+		usChar = usNextChar(pFile,
+				footnote_list, NULL, &ulCharPosCurr, NULL);
+	} while (usChar != (USHORT)EOF && ulCharPosCurr != ulCharPos);
+	return usChar;
+} /* end of usToFootnotePosition */
+
+/*
+ * Convert a character position to an offset in the file.
  * Logical to physical offset.
  *
  * Returns:	FC_INVALID: in case of error
  *		otherwise: the computed file offset
  */
 ULONG
-ulCharPos2FileOffset(ULONG ulCharPos)
+ulCharPos2FileOffsetX(ULONG ulCharPos, list_id_enum *peListID)
 {
-	list_mem_type	*apAnchors[5];
+	static list_id_enum	eListIDs[8] = {
+		text_list,	footnote_list,		hdrftr_list,
+		macro_list,	annotation_list,	endnote_list,
+		textbox_list,	hdrtextbox_list,
+	};
+	list_mem_type	*apAnchors[8];
 	list_mem_type	*pCurr;
+	list_id_enum	eListGuess;
 	ULONG		ulBestGuess;
 	size_t		tIndex;
 
-	apAnchors[0] = pTextAnchor;
-	apAnchors[1] = pFootAnchor;
-	apAnchors[2] = pEndAnchor;
-	apAnchors[3] = pTextBoxAnchor;
-	apAnchors[4] = pHdrTextBoxAnchor;
+	fail(peListID == NULL);
 
-	ulBestGuess = FC_INVALID; /* Best guess is "fileoffset not found" */
+	if (ulCharPos == CP_INVALID) {
+		*peListID = no_list;
+		return FC_INVALID;
+	}
+
+	apAnchors[0] = pTextAnchor;
+	apAnchors[1] = pFootnoteAnchor;
+	apAnchors[2] = pHdrFtrAnchor;
+	apAnchors[3] = pMacroAnchor;
+	apAnchors[4] = pAnnotationAnchor;
+	apAnchors[5] = pEndnoteAnchor;
+	apAnchors[6] = pTextBoxAnchor;
+	apAnchors[7] = pHdrTextBoxAnchor;
+
+	eListGuess = no_list;	  /* Best guess is no list */
+	ulBestGuess = FC_INVALID; /* Best guess is "file offset not found" */
 
 	for (tIndex = 0; tIndex < elementsof(apAnchors); tIndex++) {
 		for (pCurr = apAnchors[tIndex];
@@ -632,6 +731,7 @@ ulCharPos2FileOffset(ULONG ulCharPos)
 				 * block, so we guess it's the first byte of
 				 * the next block (if there is a next block)
 				 */
+				eListGuess= eListIDs[tIndex];
 				ulBestGuess = pCurr->pNext->tInfo.ulFileOffset;
 			}
 
@@ -643,6 +743,7 @@ ulCharPos2FileOffset(ULONG ulCharPos)
 			}
 
 			/* The character position is in the current block */
+			*peListID = eListIDs[tIndex];
 			return pCurr->tInfo.ulFileOffset +
 				ulCharPos - pCurr->tInfo.ulCharPos;
 		}
@@ -650,8 +751,48 @@ ulCharPos2FileOffset(ULONG ulCharPos)
 	/* Passed beyond the end of the last list */
 	NO_DBG_HEX(ulCharPos);
 	NO_DBG_HEX(ulBestGuess);
+	*peListID = eListGuess;
 	return ulBestGuess;
+} /* end of ulCharPos2FileOffsetX */
+
+/*
+ * Convert a character position to an offset in the file.
+ * Logical to physical offset.
+ *
+ * Returns:	FC_INVALID: in case of error
+ *		otherwise: the computed file offset
+ */
+ULONG
+ulCharPos2FileOffset(ULONG ulCharPos)
+{
+	list_id_enum	eListID;
+
+	return ulCharPos2FileOffsetX(ulCharPos, &eListID);
 } /* end of ulCharPos2FileOffset */
+
+/*
+ * Convert an offset in the header/footer list to a character position.
+ *
+ * Returns:	CP_INVALID: in case of error
+ *		otherwise: the computed character position
+ */
+ULONG
+ulHdrFtrOffset2CharPos(ULONG ulHdrFtrOffset)
+{
+	list_mem_type	*pCurr;
+	ULONG		ulOffset;
+
+	ulOffset = ulHdrFtrOffset;
+	for (pCurr = pHdrFtrAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
+		if (ulOffset >= pCurr->tInfo.ulLength) {
+			/* The offset is not in this block */
+			ulOffset -= pCurr->tInfo.ulLength;
+			continue;
+		}
+		return pCurr->tInfo.ulCharPos + ulOffset;
+	}
+	return CP_INVALID;
+} /* end of ulHdrFtrOffset2CharPos */
 
 /*
  * Get the sequence number beloning to the given file offset

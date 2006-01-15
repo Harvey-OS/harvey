@@ -1,6 +1,6 @@
 /*
  * rowlist.c
- * Copyright (C) 1998-2001 A.J. van Os; Released under GPL
+ * Copyright (C) 1998-2004 A.J. van Os; Released under GPL
  *
  * Description:
  * Build, read and destroy a list of Word table-row information
@@ -74,7 +74,6 @@ vAdd2RowInfoList(const row_block_type *pRowBlock)
 	NO_DBG_HEX(pRowBlock->ulFileOffsetStart);
 	NO_DBG_HEX(pRowBlock->ulFileOffsetEnd);
 	NO_DBG_DEC(pRowBlock->ucNumberOfColumns);
-	NO_DBG_DEC(pRowBlock->iColumnWidthSum);
 
 	/* Create the new list member */
 	pListMember = xmalloc(sizeof(row_desc_type));

@@ -1,6 +1,6 @@
 /*
  * wordole.c
- * Copyright (C) 1998-2003 A.J. van Os; Released under GPL
+ * Copyright (C) 1998-2004 A.J. van Os; Released under GPL
  *
  * Description:
  * Deal with the OLE internals of a MS Word file
@@ -557,6 +557,7 @@ vGetDocumentData(FILE *pFile, const pps_info_type *pPPS,
 
 	if (!bHasImages ||
 	    tOptions.eConversionType == conversion_text ||
+	    tOptions.eConversionType == conversion_fmt_text ||
 	    tOptions.eConversionType == conversion_xml ||
 	    tOptions.eImageLevel == level_no_images) {
 		/*
@@ -629,7 +630,7 @@ iInitDocumentOLE(FILE *pFile, long lFilesize)
 	size_t	tBBDLen, tSBDLen, tNumBbdBlocks, tRootListLen;
 	int	iWordVersion, iIndex, iToGo;
 	BOOL	bSuccess;
-	USHORT	usIdent;
+	USHORT	usIdent, usDocStatus;
 	UCHAR	aucHeader[HEADER_SIZE];
 
 	fail(pFile == NULL);
@@ -771,16 +772,27 @@ iInitDocumentOLE(FILE *pFile, long lFilesize)
 		return -1;
 	}
 
+	/* Get the status flags from the header */
+	usDocStatus = usGetWord(0x0a, aucHeader);
+        if (usDocStatus & BIT(9)) {
+		PPS_info.tTable = PPS_info.t1Table;
+	} else {
+		PPS_info.tTable = PPS_info.t0Table;
+	}
+	/* Clean the entries that should not be used */
+	memset(&PPS_info.t0Table, 0, sizeof(PPS_info.t0Table));
+	memset(&PPS_info.t1Table, 0, sizeof(PPS_info.t1Table));
+
 	bSuccess = bGetDocumentText(pFile, &PPS_info,
 			aulBBD, tBBDLen, aulSBD, tSBDLen,
 			aucHeader, iWordVersion);
 	if (bSuccess) {
 		vGetDocumentData(pFile, &PPS_info,
 			aulBBD, tBBDLen, aucHeader, iWordVersion);
-		vSetDefaultTabWidth(pFile, &PPS_info,
+		vGetPropertyInfo(pFile, &PPS_info,
 			aulBBD, tBBDLen, aulSBD, tSBDLen,
 			aucHeader, iWordVersion);
-		vGetPropertyInfo(pFile, &PPS_info,
+		vSetDefaultTabWidth(pFile, &PPS_info,
 			aulBBD, tBBDLen, aulSBD, tSBDLen,
 			aucHeader, iWordVersion);
 		vGetNotesInfo(pFile, &PPS_info,

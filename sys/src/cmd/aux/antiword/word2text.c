@@ -1,9 +1,9 @@
 /*
  * word2text.c
- * Copyright (C) 1998-2003 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 1998-2005 A.J. van Os; Released under GNU GPL
  *
  * Description:
- * MS Word to text functions
+ * MS Word to "text" functions
  */
 
 #include <stdio.h>
@@ -11,7 +11,8 @@
 #include <string.h>
 #include <ctype.h>
 #if defined(__riscos)
-#include "visdelay.h"
+#include "DeskLib:Hourglass.h"
+#include "drawfile.h"
 #endif /* __riscos */
 #include "antiword.h"
 
@@ -24,6 +25,7 @@
 #define OUTPUT_LINE()		\
 	do {\
 		vAlign2Window(pDiag, pAnchor, lWidthMax, ucAlignment);\
+		TRACE_MSG("after vAlign2Window");\
 		pAnchor = pStartNewOutput(pAnchor, NULL);\
 		pOutput = pAnchor;\
 	} while(0)
@@ -43,7 +45,7 @@ static int	iCurrPct, iPrevPct;
 #endif /* __riscos */
 /* The document is in the format belonging to this version of Word */
 static int	iWordVersion = -1;
-/* Special treatment for files from Word 6 on an Apple Macintosh */
+/* Special treatment for files from Word 4/5/6 on an Apple Macintosh */
 static BOOL	bOldMacFile = FALSE;
 /* Section Information */
 static const section_block_type	*pSection = NULL;
@@ -82,7 +84,7 @@ vUpdateCounters(void)
 	ulCharCounter++;
 	iCurrPct = (int)((ulCharCounter * 100) / ulDocumentLength);
 	if (iCurrPct != iPrevPct) {
-		visdelay_percent(iCurrPct);
+		Hourglass_Percentage(iCurrPct);
 		iPrevPct = iCurrPct;
 	}
 #endif /* __riscos */
@@ -91,10 +93,10 @@ vUpdateCounters(void)
 /*
  * bOutputContainsText - see if the output contains more than white space
  */
-static BOOL
-bOutputContainsText(output_type *pAnchor)
+BOOL
+bOutputContainsText(const output_type *pAnchor)
 {
-	output_type	*pCurr;
+	const output_type	*pCurr;
 	size_t	tIndex;
 
 	fail(pAnchor == NULL);
@@ -120,9 +122,9 @@ bOutputContainsText(output_type *pAnchor)
  * lTotalStringWidth - compute the total width of the output string
  */
 static long
-lTotalStringWidth(output_type *pAnchor)
+lTotalStringWidth(const output_type *pAnchor)
 {
-	output_type	*pCurr;
+	const output_type	*pCurr;
 	long		lTotal;
 
 	lTotal = 0;
@@ -168,7 +170,7 @@ vStoreChar(ULONG ulChar, BOOL bChangeAllowed, output_type *pOutput)
 
 	fail(pOutput == NULL);
 
-	if (tOptions.eEncoding == encoding_utf8 && bChangeAllowed) {
+	if (tOptions.eEncoding == encoding_utf_8 && bChangeAllowed) {
 		DBG_HEX_C(ulChar > 0xffff, ulChar);
 		fail(ulChar > 0xffff);
 		tLen = tUcs2Utf8(ulChar, szResult, sizeof(szResult));
@@ -208,7 +210,7 @@ vStoreString(const char *szString, size_t tStringLength, output_type *pOutput)
 	fail(szString == NULL || pOutput == NULL);
 
 	for (tIndex = 0; tIndex < tStringLength; tIndex++) {
-		vStoreCharacter((UCHAR)szString[tIndex], pOutput);
+		vStoreCharacter((ULONG)(UCHAR)szString[tIndex], pOutput);
 	}
 } /* end of vStoreString */
 
@@ -261,7 +263,8 @@ vStoreStyle(diagram_type *pDiag, output_type *pOutput,
 	if (tOptions.eConversionType == conversion_xml) {
 		vSetHeaders(pDiag, pStyle->usIstd);
 	} else {
-		tLen = tStyle2Window(szString, pStyle, pSection);
+		tLen = tStyle2Window(szString, sizeof(szString),
+					pStyle, pSection);
 		vStoreString(szString, tLen, pOutput);
 	}
 } /* end of vStoreStyle */
@@ -306,7 +309,7 @@ vPutIndentation(diagram_type *pDiag, output_type *pOutput,
 	}
 
 #if defined(DEBUG)
-	if (tOptions.eEncoding == encoding_utf8) {
+	if (tOptions.eEncoding == encoding_utf_8) {
 		fail(strlen(szListChar) > 3);
 	} else {
 		DBG_HEX_C(iscntrl((int)szListChar[0]), szListChar[0]);
@@ -317,6 +320,7 @@ vPutIndentation(diagram_type *pDiag, output_type *pOutput,
 
 	switch (ucNFC) {
 	case LIST_ARABIC_NUM:
+	case LIST_NUMBER_TXT:
 		tNextFree = (size_t)sprintf(szLine, "%u", uiListNumber);
 		break;
 	case LIST_UPPER_ROMAN:
@@ -330,6 +334,7 @@ vPutIndentation(diagram_type *pDiag, output_type *pOutput,
 				ucNFC == LIST_UPPER_ALPHA, szLine);
 		break;
 	case LIST_ORDINAL_NUM:
+	case LIST_ORDINAL_TXT:
 		if (uiListNumber % 10 == 1 && uiListNumber != 11) {
 			tNextFree =
 				(size_t)sprintf(szLine, "%ust", uiListNumber);
@@ -344,12 +349,16 @@ vPutIndentation(diagram_type *pDiag, output_type *pOutput,
 				(size_t)sprintf(szLine, "%uth", uiListNumber);
 		}
 		break;
+	case LIST_OUTLINE_NUM:
+		tNextFree = (size_t)sprintf(szLine, "%02u", uiListNumber);
+		break;
 	case LIST_SPECIAL:
+	case LIST_SPECIAL2:
 	case LIST_BULLETS:
 		tNextFree = 0;
 		break;
 	default:
-		DBG_DEC(ucNFC);
+		DBG_HEX(ucNFC);
 		DBG_FIXME();
 		tNextFree = (size_t)sprintf(szLine, "%u", uiListNumber);
 		break;
@@ -365,7 +374,7 @@ vPutIndentation(diagram_type *pDiag, output_type *pOutput,
 	}
 	vSetLeftIndentation(pDiag, lLeftIndentation);
 	for (tIndex = 0; tIndex < tNextFree; tIndex++) {
-		vStoreChar((UCHAR)szLine[tIndex], FALSE, pOutput);
+		vStoreChar((ULONG)(UCHAR)szLine[tIndex], FALSE, pOutput);
 	}
 } /* end of vPutIndentation */
 
@@ -406,6 +415,8 @@ pStartNextOutput(output_type *pCurrent)
 {
 	output_type	*pNew;
 
+	TRACE_MSG("pStartNextOutput");
+
 	if (pCurrent->tNextFree == 0) {
 		/* The current record is empty, re-use */
 		fail(pCurrent->szStorage[0] != '\0');
@@ -422,7 +433,7 @@ pStartNextOutput(output_type *pCurrent)
 	pNew->lStringWidth = 0;
 	pNew->ucFontColor = FONT_COLOR_DEFAULT;
 	pNew->usFontStyle = FONT_REGULAR;
-	pNew->tFontRef = (draw_fontref)0;
+	pNew->tFontRef = (drawfile_fontref)0;
 	pNew->usFontSize = DEFAULT_FONT_SIZE;
 	pNew->pPrev = pCurrent;
 	pNew->pNext = NULL;
@@ -437,16 +448,19 @@ pStartNewOutput(output_type *pAnchor, output_type *pLeftOver)
 {
 	output_type	*pCurr, *pNext;
 	USHORT		usFontStyle, usFontSize;
-	draw_fontref	tFontRef;
+	drawfile_fontref	tFontRef;
 	UCHAR		ucFontColor;
+
+	TRACE_MSG("pStartNewOutput");
 
 	ucFontColor = FONT_COLOR_DEFAULT;
 	usFontStyle = FONT_REGULAR;
-	tFontRef = (draw_fontref)0;
+	tFontRef = (drawfile_fontref)0;
 	usFontSize = DEFAULT_FONT_SIZE;
 	/* Free the old output space */
 	pCurr = pAnchor;
 	while (pCurr != NULL) {
+		TRACE_MSG("Free the old output space");
 		pNext = pCurr->pNext;
 		pCurr->szStorage = xfree(pCurr->szStorage);
 		if (pCurr->pNext == NULL) {
@@ -460,9 +474,13 @@ pStartNewOutput(output_type *pAnchor, output_type *pLeftOver)
 	}
 	if (pLeftOver == NULL) {
 		/* Create new output space */
+		TRACE_MSG("Create new output space");
 		pLeftOver = xmalloc(sizeof(*pLeftOver));
 		pLeftOver->tStorageSize = INITIAL_SIZE;
+		NO_DBG_DEC(pLeftOver->tStorageSize);
+		TRACE_MSG("before 2nd xmalloc");
 		pLeftOver->szStorage = xmalloc(pLeftOver->tStorageSize);
+		TRACE_MSG("after 2nd xmalloc");
 		pLeftOver->szStorage[0] = '\0';
 		pLeftOver->tNextFree = 0;
 		pLeftOver->lStringWidth = 0;
@@ -486,7 +504,7 @@ static ULONG
 ulGetChar(FILE *pFile, list_id_enum eListID)
 {
 	const font_block_type	*pCurr;
-	ULONG		ulChar, ulFileOffset, ulTextOffset;
+	ULONG		ulChar, ulFileOffset, ulCharPos;
 	row_info_enum	eRowInfo;
 	USHORT		usChar, usPropMod;
 	BOOL		bSkip;
@@ -497,7 +515,7 @@ ulGetChar(FILE *pFile, list_id_enum eListID)
 	bSkip = FALSE;
 	for (;;) {
 		usChar = usNextChar(pFile, eListID,
-				&ulFileOffset, &ulTextOffset, &usPropMod);
+				&ulFileOffset, &ulCharPos, &usPropMod);
 		if (usChar == (USHORT)EOF) {
 			return (ULONG)EOF;
 		}
@@ -583,14 +601,36 @@ ulGetChar(FILE *pFile, list_id_enum eListID)
 		}
 		if (ulChar == PAGE_BREAK) {
 			/* Might be the start of a new section */
-			pSectionNext = pGetSectionInfo(pSection, ulTextOffset);
+			pSectionNext = pGetSectionInfo(pSection, ulCharPos);
 		}
 		return ulChar;
 	}
 } /* end of ulGetChar */
 
 /*
- * bWordDecryptor - translate Word to text or PostScript
+ * lGetWidthMax - get the maximum line width from the paragraph break value
+ *
+ * Returns the maximum line width in millipoints
+ */
+static long
+lGetWidthMax(int iParagraphBreak)
+{
+	fail(iParagraphBreak < 0);
+
+	if (iParagraphBreak == 0) {
+		return LONG_MAX;
+	}
+	if (iParagraphBreak < MIN_SCREEN_WIDTH) {
+		return lChar2MilliPoints(MIN_SCREEN_WIDTH);
+	}
+	if (iParagraphBreak > MAX_SCREEN_WIDTH) {
+		return lChar2MilliPoints(MAX_SCREEN_WIDTH);
+	}
+	return lChar2MilliPoints(iParagraphBreak);
+} /* end of lGetWidthMax */
+
+/*
+ * bWordDecryptor - turn Word to something more useful
  *
  * returns TRUE when succesful, otherwise FALSE
  */
@@ -605,7 +645,7 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 	ULONG	ulChar;
 	long	lBeforeIndentation, lAfterIndentation;
 	long	lLeftIndentation, lLeftIndentation1, lRightIndentation;
-	long	lWidthCurr, lWidthMax, lDefaultTabWidth, lTmp;
+	long	lWidthCurr, lWidthMax, lDefaultTabWidth, lHalfSpaceWidth, lTmp;
 	list_id_enum 	eListID;
 	image_info_enum	eRes;
 	UINT	uiFootnoteNumber, uiEndnoteNumber, uiTmp;
@@ -620,13 +660,19 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 
 	fail(pFile == NULL || lFilesize <= 0 || pDiag == NULL);
 
-	DBG_MSG("bWordDecryptor");
+	TRACE_MSG("bWordDecryptor");
 
 	iWordVersion = iInitDocument(pFile, lFilesize);
 	if (iWordVersion < 0) {
 		DBG_DEC(iWordVersion);
 		return FALSE;
 	}
+
+	vGetOptions(&tOptions);
+	bOldMacFile = bIsOldMacFile();
+	vPrepareHdrFtrText(pFile);
+	vPrepareFootnoteText(pFile);
+
 	vPrologue2(pDiag, iWordVersion);
 
 	/* Initialisation */
@@ -636,7 +682,6 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 	iPrevPct = -1;
 	ulDocumentLength = ulGetDocumentLength();
 #endif /* __riscos */
-	bOldMacFile = bIsOldMacFile();
 	pSection = pGetSectionInfo(NULL, 0);
 	pSectionNext = pSection;
 	lDefaultTabWidth = lGetDefaultTabWidth();
@@ -651,7 +696,7 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 	bIsTableRow = FALSE;
 	bWasTableRow = FALSE;
 	vResetStyles();
-	pStyleInfo = pGetNextStyleInfoListItem(NULL);
+	pStyleInfo = pGetNextTextStyle(NULL);
 	bStartStyle = FALSE;
 	bInList = FALSE;
 	bWasInList = FALSE;
@@ -683,7 +728,6 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 	bNoMarks = TRUE;
 	bFirstLine = TRUE;
 	ucNFC = LIST_BULLETS;
-	vGetOptions(&tOptions);
 	if (pStyleInfo != NULL) {
 		szListChar = pStyleInfo->szListChar;
 		pStyleTmp = pStyleInfo;
@@ -700,19 +744,10 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 	bAllCapitals = FALSE;
 	bHiddenText = FALSE;
 	bMarkDelText = FALSE;
-	fail(tOptions.iParagraphBreak < 0);
-	if (tOptions.iParagraphBreak == 0) {
-		lWidthMax = LONG_MAX;
-	} else if (tOptions.iParagraphBreak < MIN_SCREEN_WIDTH) {
-		lWidthMax = lChar2MilliPoints(MIN_SCREEN_WIDTH);
-	} else if (tOptions.iParagraphBreak > MAX_SCREEN_WIDTH) {
-		lWidthMax = lChar2MilliPoints(MAX_SCREEN_WIDTH);
-	} else {
-		lWidthMax = lChar2MilliPoints(tOptions.iParagraphBreak);
-	}
+	lWidthMax = lGetWidthMax(tOptions.iParagraphBreak);
 	NO_DBG_DEC(lWidthMax);
 
-	visdelay_begin();
+	Hourglass_On();
 
 	uiFootnoteNumber = 0;
 	uiEndnoteNumber = 0;
@@ -727,13 +762,17 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 			}
 			switch (eListID) {
 			case text_list:
-				eListID = footnote_list;
-				if (uiFootnoteNumber != 0) {
-					vPutSeparatorLine(pAnchor);
-					OUTPUT_LINE();
-					uiFootnoteNumber = 0;
+				if (tOptions.eConversionType !=
+							conversion_xml) {
+					eListID = footnote_list;
+					if (uiFootnoteNumber != 0) {
+						vPutSeparatorLine(pAnchor);
+						OUTPUT_LINE();
+						uiFootnoteNumber = 0;
+					}
+					break;
 				}
-				break;
+				/* No break or return */
 			case footnote_list:
 				eListID = endnote_list;
 				if (uiEndnoteNumber != 0) {
@@ -834,7 +873,7 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 		case PAGE_BREAK:
 		case COLUMN_FEED:
 			if (bIsTableRow) {
-				vStoreCharacter((ULONG)'\n', pOutput);
+				/* Ignore when in a table */
 				break;
 			}
 			if (bOutputContainsText(pAnchor)) {
@@ -843,8 +882,8 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 				RESET_LINE();
 			}
 			if (ulChar == PAGE_BREAK) {
-				vEndOfPage(pDiag,
-					lAfterIndentation);
+				vEndOfPage(pDiag, lAfterIndentation,
+						pSection != pSectionNext);
 			} else {
 				vEndOfParagraph(pDiag,
 					pOutput->tFontRef,
@@ -945,8 +984,7 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 			}
 			bWasInList = bInList;
 			if (bStartStyle) {
-				pStyleInfo =
-					pGetNextStyleInfoListItem(pStyleInfo);
+				pStyleInfo = pGetNextTextStyle(pStyleInfo);
 				NO_DBG_HEX_C(pStyleInfo != NULL,
 						pStyleInfo->ulFileOffset);
 				DBG_MSG_C(pStyleInfo == NULL,
@@ -1015,6 +1053,11 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 			break;
 		case FOOTNOTE_CHAR:
 			uiFootnoteNumber++;
+			if (tOptions.eConversionType == conversion_xml) {
+				vStoreCharacter((ULONG)FOOTNOTE_OR_ENDNOTE,
+								pOutput);
+				break;
+			}
 			vStoreCharacter((ULONG)'[', pOutput);
 			vStoreNumberAsDecimal(uiFootnoteNumber, pOutput);
 			vStoreCharacter((ULONG)']', pOutput);
@@ -1033,7 +1076,13 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 				vStoreCharacter((ULONG)'\n', pOutput);
 				break;
 			}
-			OUTPUT_LINE();
+			if (bOutputContainsText(pAnchor)) {
+				OUTPUT_LINE();
+			} else {
+				vMove2NextLine(pDiag,
+					pOutput->tFontRef, pOutput->usFontSize);
+				RESET_LINE();
+			}
 			vEndOfParagraph(pDiag,
 					pOutput->tFontRef,
 					pOutput->usFontSize,
@@ -1047,9 +1096,11 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 			}
 			if (bOutputContainsText(pAnchor)) {
 				OUTPUT_LINE();
-			}
-			vMove2NextLine(pDiag,
+			} else {
+				vMove2NextLine(pDiag,
 					pOutput->tFontRef, pOutput->usFontSize);
+				RESET_LINE();
+			}
 			break;
 		case PAGE_BREAK:
 		case COLUMN_FEED:
@@ -1070,11 +1121,15 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 				break;
 			}
 			if (tOptions.iParagraphBreak == 0 &&
-			    tOptions.eConversionType == conversion_text) {
+			    (tOptions.eConversionType == conversion_text ||
+			     tOptions.eConversionType == conversion_fmt_text)) {
 				/* No logical lines, so no tab expansion */
 				vStoreCharacter(TAB, pOutput);
 				break;
 			}
+			lHalfSpaceWidth = (lComputeSpaceWidth(
+					pOutput->tFontRef,
+					pOutput->usFontSize) + 1) / 2;
 			lTmp = lTotalStringWidth(pAnchor);
 			lTmp += lDrawUnits2MilliPoints(pDiag->lXleft);
 			lTmp /= lDefaultTabWidth;
@@ -1090,14 +1145,18 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 			if (bHiddenText && tOptions.bHideHiddenText) {
 				continue;
 			}
-			if (bMarkDelText &&
-			    tOptions.eConversionType != conversion_ps) {
+			if (bMarkDelText && tOptions.bRemoveRemovedText) {
 				continue;
 			}
-			if (bAllCapitals) {
-				ulChar = ulToUpper(ulChar);
+			if (ulChar == UNICODE_ELLIPSIS &&
+			    tOptions.eEncoding != encoding_utf_8) {
+				vStoreString("...", 3, pOutput);
+			} else {
+				if (bAllCapitals) {
+					ulChar = ulToUpper(ulChar);
+				}
+				vStoreCharacter(ulChar, pOutput);
 			}
-			vStoreCharacter(ulChar, pOutput);
 			break;
 		}
 
@@ -1124,7 +1183,9 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 			/* End of a table row */
 			if (bEndRowNorm) {
 				fail(pRowInfo == NULL);
-				vTableRow2Window(pDiag, pAnchor, pRowInfo);
+				vTableRow2Window(pDiag, pAnchor, pRowInfo,
+						tOptions.eConversionType,
+						tOptions.iParagraphBreak);
 			} else {
 				fail(!bEndRowFast);
 			}
@@ -1167,6 +1228,278 @@ bWordDecryptor(FILE *pFile, long lFilesize, diagram_type *pDiag)
 	pAnchor = xfree(pAnchor);
 	vCloseFont();
 	vFreeDocument();
-	visdelay_end();
+	Hourglass_Off();
 	return TRUE;
 } /* end of bWordDecryptor */
+
+/*
+ * lLastStringWidth - compute the width of the last part of the output string
+ */
+static long
+lLastStringWidth(const output_type *pAnchor)
+{
+	const output_type	*pCurr, *pStart;
+
+	pStart = NULL;
+	for (pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
+		if (pCurr->tNextFree == 1 &&
+		    (pCurr->szStorage[0] == PAR_END ||
+		     pCurr->szStorage[0] == HARD_RETURN)) {
+			/* Found a separator. Start after the separator */
+			pStart = pCurr->pNext;
+		}
+	}
+	if (pStart == NULL) {
+		/* No separators. Use the whole output string */
+		pStart = pAnchor;
+	}
+	return lTotalStringWidth(pStart);
+} /* end of lLastStringWidth */
+
+/*
+ * pHdrFtrDecryptor - turn a header/footer list element to something useful
+ */
+output_type *
+pHdrFtrDecryptor(FILE *pFile, ULONG ulCharPosStart, ULONG ulCharPosNext)
+{
+	output_type	*pAnchor, *pOutput, *pLeftOver;
+	ULONG	ulChar, ulFileOffset, ulCharPos;
+	long	lWidthCurr, lWidthMax;
+	long	lRightIndentation;
+	USHORT	usChar;
+	UCHAR	ucAlignment;
+	BOOL	bSkip;
+
+	fail(iWordVersion < 0);
+	fail(tOptions.eConversionType == conversion_unknown);
+	fail(tOptions.eEncoding == 0);
+
+	if (ulCharPosStart == ulCharPosNext) {
+		/* There are no bytes to decrypt */
+		return NULL;
+	}
+
+	lRightIndentation = 0;
+	ucAlignment = ALIGNMENT_LEFT;
+	bSkip = FALSE;
+	lWidthMax = lGetWidthMax(tOptions.iParagraphBreak);
+	pAnchor = pStartNewOutput(NULL, NULL);
+	pOutput = pAnchor;
+	pOutput->tFontRef = tOpenFont(0, FONT_REGULAR, DEFAULT_FONT_SIZE);
+	usChar = usToHdrFtrPosition(pFile, ulCharPosStart);
+	ulCharPos = ulCharPosStart;
+	ulFileOffset = ulCharPos2FileOffset(ulCharPos);
+	while (usChar != (USHORT)EOF && ulCharPos != ulCharPosNext) {
+		/* Skip embedded characters */
+		if (usChar == START_EMBEDDED) {
+			bSkip = TRUE;
+		} else if (usChar == END_IGNORE || usChar == END_EMBEDDED) {
+			bSkip = FALSE;
+		}
+		/* Translate character */
+		if (bSkip || usChar == END_IGNORE || usChar == END_EMBEDDED) {
+			ulChar = IGNORE_CHARACTER;
+		} else {
+			ulChar = ulTranslateCharacters(usChar,
+					ulFileOffset,
+					iWordVersion,
+					tOptions.eConversionType,
+					tOptions.eEncoding,
+					bOldMacFile);
+		}
+		/* Process character */
+		if (ulChar != IGNORE_CHARACTER) {
+			switch (ulChar) {
+			case PICTURE:
+				vStoreString("[pic]", 5, pOutput);
+				break;
+			case PAR_END:
+			case HARD_RETURN:
+			case PAGE_BREAK:
+			case COLUMN_FEED:
+				/* To the next substring */
+				pOutput = pStartNextOutput(pOutput);
+				vCloseFont();
+				pOutput->tFontRef = tOpenFont(0,
+					FONT_REGULAR, DEFAULT_FONT_SIZE);
+				/* A substring with just one character */
+				if (ulChar == HARD_RETURN) {
+					vStoreCharacter(HARD_RETURN, pOutput);
+				} else {
+					vStoreCharacter(PAR_END, pOutput);
+				}
+				/* To the next substring */
+				pOutput = pStartNextOutput(pOutput);
+				vCloseFont();
+				pOutput->tFontRef = tOpenFont(0,
+					FONT_REGULAR, DEFAULT_FONT_SIZE);
+				fail(!bCheckDoubleLinkedList(pAnchor));
+				break;
+			case TABLE_SEPARATOR:
+				vStoreCharacter((ULONG)' ', pOutput);
+				vStoreCharacter((ULONG)TABLE_SEPARATOR_CHAR,
+							pOutput);
+				break;
+			case TAB:
+				vStoreCharacter((ULONG)FILLER_CHAR, pOutput);
+				break;
+			default:
+				vStoreCharacter(ulChar, pOutput);
+				break;
+			}
+		}
+		lWidthCurr = lLastStringWidth(pAnchor);
+		if (lWidthCurr >= lWidthMax + lRightIndentation) {
+			pLeftOver = pSplitList(pAnchor);
+			for (pOutput = pAnchor;
+			     pOutput->pNext != NULL;
+			     pOutput = pOutput->pNext)
+				;	/* EMPTY */
+			fail(pOutput == NULL);
+			/* To the next substring */
+			pOutput = pStartNextOutput(pOutput);
+			/* A substring with just one HARD_RETURN */
+			vStoreCharacter(HARD_RETURN, pOutput);
+			/* Put the leftover piece(s) at the end */
+			pOutput->pNext = pLeftOver;
+			if (pLeftOver != NULL) {
+				pLeftOver->pPrev = pOutput;
+			}
+			fail(!bCheckDoubleLinkedList(pAnchor));
+			for (pOutput = pAnchor;
+			     pOutput->pNext != NULL;
+			     pOutput = pOutput->pNext)
+				;	/* EMPTY */
+			fail(pOutput == NULL);
+		}
+		usChar = usNextChar(pFile, hdrftr_list,
+					&ulFileOffset, &ulCharPos, NULL);
+	}
+	vCloseFont();
+	if (bOutputContainsText(pAnchor)) {
+		return pAnchor;
+	}
+	pAnchor = pStartNewOutput(pAnchor, NULL);
+	pAnchor->szStorage = xfree(pAnchor->szStorage);
+	pAnchor = xfree(pAnchor);
+	return NULL;
+} /* end of pHdrFtrDecryptor */
+
+/*
+ * pFootnoteDecryptor - turn a footnote text list element into text
+ */
+char *
+szFootnoteDecryptor(FILE *pFile, ULONG ulCharPosStart, ULONG ulCharPosNext)
+{
+	char	*szText;
+	ULONG	ulChar, ulFileOffset, ulCharPos;
+	USHORT	usChar;
+	size_t	tLen, tIndex, tNextFree, tStorageSize;
+	char	szResult[6];
+	BOOL	bSkip;
+
+	fail(iWordVersion < 0);
+	fail(tOptions.eConversionType == conversion_unknown);
+	fail(tOptions.eEncoding == 0);
+
+	if (ulCharPosStart == ulCharPosNext) {
+		/* There are no bytes to decrypt */
+		return NULL;
+	}
+
+	if (tOptions.eConversionType != conversion_xml) {
+		/* Only implemented for XML output */
+		return NULL;
+	}
+
+	bSkip = FALSE;
+
+	/* Initialise the text buffer */
+	tStorageSize = INITIAL_SIZE;
+	szText = xmalloc(tStorageSize);
+	tNextFree = 0;
+	szText[tNextFree] = '\0';
+
+	/* Goto the start */
+	usChar = usToFootnotePosition(pFile, ulCharPosStart);
+	ulCharPos = ulCharPosStart;
+	ulFileOffset = ulCharPos2FileOffset(ulCharPos);
+	/* Skip the unwanted starting characters */
+	while (usChar != (USHORT)EOF && ulCharPos != ulCharPosNext &&
+	       (usChar == FOOTNOTE_OR_ENDNOTE ||
+		usChar == PAR_END ||
+		usChar == TAB ||
+		usChar == (USHORT)' ')) {
+		usChar = usNextChar(pFile, footnote_list,
+					&ulFileOffset, &ulCharPos, NULL);
+	}
+	/* Process the footnote text */
+	while (usChar != (USHORT)EOF && ulCharPos != ulCharPosNext) {
+		/* Skip embedded characters */
+		if (usChar == START_EMBEDDED) {
+			bSkip = TRUE;
+		} else if (usChar == END_IGNORE || usChar == END_EMBEDDED) {
+			bSkip = FALSE;
+		}
+		/* Translate character */
+		if (bSkip ||
+		    usChar == END_IGNORE ||
+		    usChar == END_EMBEDDED ||
+		    usChar == FOOTNOTE_OR_ENDNOTE) {
+			ulChar = IGNORE_CHARACTER;
+		} else {
+			ulChar = ulTranslateCharacters(usChar,
+					ulFileOffset,
+					iWordVersion,
+					tOptions.eConversionType,
+					tOptions.eEncoding,
+					bOldMacFile);
+		}
+		/* Process character */
+		if (ulChar == PICTURE) {
+			tLen = 5;
+			strcpy(szResult, "[pic]");
+		} else if (ulChar == IGNORE_CHARACTER) {
+			tLen = 0;
+			szResult[0] = '\0';
+		} else {
+			switch (ulChar) {
+			case PAR_END:
+			case HARD_RETURN:
+			case PAGE_BREAK:
+			case COLUMN_FEED:
+				ulChar = (ULONG)PAR_END;
+				break;
+			case TAB:
+				ulChar = (ULONG)' ';
+				break;
+			default:
+				break;
+			}
+			tLen = tUcs2Utf8(ulChar, szResult, sizeof(szResult));
+		}
+		/* Add the results to the text */
+		if (tNextFree + tLen + 1 > tStorageSize) {
+			tStorageSize += EXTENTION_SIZE;
+			szText = xrealloc(szText, tStorageSize);
+		}
+		for (tIndex = 0; tIndex < tLen; tIndex++) {
+			szText[tNextFree++] = szResult[tIndex];
+		}
+		szText[tNextFree] = '\0';
+		/* Next character */
+		usChar = usNextChar(pFile, footnote_list,
+					&ulFileOffset, &ulCharPos, NULL);
+	}
+	/* Remove redundant spaces */
+	while (tNextFree != 0 && szText[tNextFree - 1] == ' ') {
+		szText[tNextFree - 1] = '\0';
+		tNextFree--;
+	}
+	if (tNextFree == 0) {
+		/* No text */
+		szText = xfree(szText);
+		return NULL;
+	}
+	return szText;
+} /* end of szFootnoteDecryptor */

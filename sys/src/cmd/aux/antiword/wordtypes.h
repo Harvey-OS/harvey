@@ -1,6 +1,6 @@
 /*
  * wordtypes.h
- * Copyright (C) 1998-2003 A.J. van Os; Released under GPL
+ * Copyright (C) 1998-2004 A.J. van Os; Released under GPL
  *
  * Description:
  * Typedefs for the interpretation of MS Word files
@@ -9,6 +9,12 @@
 #if !defined(__wordtypes_h)
 #define __wordtypes_h 1
 
+#include <time.h>
+#if defined(__riscos)
+#include "DeskLib:Font.h"
+#include "DeskLib:Wimp.h"
+#endif /* __riscos */
+
 typedef unsigned char	UCHAR;
 typedef unsigned short	USHORT;
 typedef unsigned int	UINT;
@@ -16,9 +22,10 @@ typedef unsigned long	ULONG;
 
 #if defined(__riscos)
 typedef struct diagram_tag {
-	draw_diag	tInfo;
-	wimp_w		tMainWindow;
-	wimp_w		tScaleWindow;
+	drawfile_info	tInfo;
+	window_handle	tMainWindow;
+	window_handle	tScaleWindow;
+	menu_ptr	pSaveMenu;
 	long		lXleft;			/* In DrawUnits */
 	long		lYtop;			/* In DrawUnits */
 	size_t		tMemorySize;
@@ -32,18 +39,18 @@ typedef struct diagram_tag {
 	long		lXleft;			/* In DrawUnits */
 	long		lYtop;			/* In DrawUnits */
 } diagram_type;
-typedef UCHAR	draw_fontref;
+typedef UCHAR		drawfile_fontref;
 #endif /* __riscos */
 
 typedef struct output_tag {
- 	char	*szStorage;
+	char	*szStorage;
 	long	lStringWidth;		/* In millipoints */
 	size_t	tStorageSize;
 	size_t	tNextFree;
 	USHORT	usFontStyle;
 	USHORT	usFontSize;
 	UCHAR	ucFontColor;
-	draw_fontref		tFontRef;
+	drawfile_fontref	tFontRef;
 	struct output_tag	*pPrev;
 	struct output_tag	*pNext;
 } output_type;
@@ -54,21 +61,26 @@ typedef enum conversion_tag {
 	conversion_text,
 	conversion_draw,
 	conversion_ps,
-	conversion_xml
+	conversion_xml,
+	conversion_pdf,
+	conversion_fmt_text
 } conversion_type;
 
 /* Types of encoding */
 typedef enum encoding_tag {
 	encoding_neutral = 100,
-	encoding_iso_8859_1 = 801,
-	encoding_iso_8859_2 = 802,
-	encoding_utf8 = 1601
+	encoding_latin_1 = 801,
+	encoding_latin_2 = 802,
+	encoding_cyrillic = 805,
+	encoding_utf_8 = 1601
 } encoding_type;
 
 /* Font translation table entry */
 typedef struct font_table_tag {
 	USHORT	usFontStyle;
 	UCHAR	ucWordFontNumber;
+	UCHAR	ucFFN;
+	UCHAR	ucEmphasis;
 	UCHAR	ucInUse;
 	char	szWordFontname[65];
 	char	szOurFontname[33];
@@ -87,6 +99,7 @@ typedef struct options_tag {
 	int		iParagraphBreak;
 	conversion_type	eConversionType;
 	BOOL		bHideHiddenText;
+	BOOL		bRemoveRemovedText;
 	BOOL		bUseLandscape;
 	encoding_type	eEncoding;
 	int		iPageHeight;		/* In points */
@@ -106,10 +119,11 @@ typedef struct pps_tag {
 typedef struct pps_info_tag {
 	pps_type	tWordDocument;	/* Text stream */
 	pps_type	tData;		/* Data stream */
-	pps_type	t0Table;	/* Table 0 stream */
-	pps_type	t1Table;	/* Table 1 stream */
+	pps_type	tTable;		/* Table stream */
 	pps_type	tSummaryInfo;	/* Summary Information */
 	pps_type	tDocSummaryInfo;/* Document Summary Information */
+	pps_type	t0Table;	/* Table 0 stream */
+	pps_type	t1Table;	/* Table 1 stream */
 } pps_info_type;
 
 /* Record of data block information */
@@ -128,13 +142,20 @@ typedef struct text_block_tag {
 	USHORT	usPropMod;
 } text_block_type;
 
+/* Record of the document block information */
+typedef struct document_block_tag {
+	time_t	tCreateDate;		/* Unix timestamp */
+	time_t	tRevisedDate;		/* Unix timestamp */
+	USHORT	usDefaultTabWidth;	/* In twips */
+	UCHAR	ucHdrFtrSpecification;
+} document_block_type;
+
 /* Record of table-row block information */
 typedef struct row_block_tag {
 	ULONG	ulFileOffsetStart;
 	ULONG	ulFileOffsetEnd;
 	ULONG	ulCharPosStart;
 	ULONG	ulCharPosEnd;
-	int	iColumnWidthSum;			/* In twips */
 	short	asColumnWidth[TABLE_COLUMN_MAX+1];	/* In twips */
 	UCHAR	ucNumberOfColumns;
 	UCHAR	ucBorderInfo;
@@ -149,9 +170,23 @@ typedef enum level_type_tag {
 	level_type_pause
 } level_type_enum;
 
+typedef enum list_id_tag {
+	no_list = 0,
+	text_list,
+	footnote_list,
+	hdrftr_list,
+	macro_list,
+	annotation_list,
+	endnote_list,
+	textbox_list,
+	hdrtextbox_list,
+	end_of_lists
+} list_id_enum;
+
 /* Linked list of style description information */
 typedef struct style_block_tag {
-	ULONG	ulFileOffset;
+	ULONG	ulFileOffset;   /* The style start with this character */
+	list_id_enum	eListID;/* The fileoffset is in this list */
 	BOOL	bNumPause;
 	BOOL	bNoRestart;	/* Don't restart by more significant levels */
 	USHORT	usIstd;		/* Current style */
@@ -171,7 +206,7 @@ typedef struct style_block_tag {
 	char	szListChar[4];	/* Character for an itemized list */
 } style_block_type;
 
-/* Linked list of font description information */
+/* Font description information */
 typedef struct font_block_tag {
 	ULONG	ulFileOffset;
 	USHORT	usFontStyle;
@@ -179,29 +214,33 @@ typedef struct font_block_tag {
 	UCHAR	ucFontNumber;
 	UCHAR	ucFontColor;
 } font_block_type;
-typedef struct font_desc_tag {
-	font_block_type	tInfo;
-	struct font_desc_tag	*pNext;
-} font_desc_type;
 
-/* Linked list of picture description information */
+/* Picture description information */
 typedef struct picture_block_tag {
 	ULONG	ulFileOffset;
 	ULONG	ulFileOffsetPicture;
 	ULONG	ulPictureOffset;
 } picture_block_type;
-typedef struct picture_desc_tag {
-	picture_block_type	tInfo;
-	struct picture_desc_tag	*pNext;
-} picture_desc_type;
 
 /* Section description information */
 typedef struct section_block_tag {
 	BOOL	bNewPage;
-	UCHAR	aucNFC[9];		/* Number format code */
 	USHORT	usNeedPrevLvl;		/* Print previous level numbers */
 	USHORT	usHangingIndent;
+	UCHAR	aucNFC[9];		/* Number format code */
+	UCHAR	ucHdrFtrSpecification;	/* Which headers/footers Word < 8 */
 } section_block_type;
+
+/* Header/footer description information */
+typedef struct hdrftr_block_tag {
+	output_type	*pText;
+	long		lHeight;	/* In DrawUnits */
+} hdrftr_block_type;
+
+/* Footnote description information */
+typedef struct footnote_block_tag {
+	char		*szText;
+} footnote_block_type;
 
 /* List description information */
 typedef struct list_block_tag {
@@ -262,15 +301,6 @@ typedef enum row_info_tag {
 	found_end_of_row,
 	found_not_end_of_row
 } row_info_enum;
-
-typedef enum list_id_tag {
-	text_list,
-	footnote_list,
-	endnote_list,
-	textbox_list,
-	hdrtextbox_list,
-	end_of_lists
-} list_id_enum;
 
 typedef enum notetype_tag {
 	notetype_is_footnote,

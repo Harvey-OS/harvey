@@ -7,8 +7,10 @@
  */
 
 #include <string.h>
-#include "kernel.h"
-#include "swis.h"
+#include <stdlib.h>
+#include <stdarg.h>
+#include "DeskLib:Error.h"
+#include "DeskLib:SWI.h"
 #include "antiword.h"
 
 #if !defined(DrawFile_Render)
@@ -18,6 +20,26 @@
 #define JPEG_Info		0x049980
 #endif /* !JPEG_Info */
 
+/*
+ * werr - write an error message and exit if needed
+ */
+void
+werr(int iFatal, const char *szFormat, ...)
+{
+	va_list tArg;
+
+	va_start(tArg, szFormat);
+	Error_Report(iFatal, (char *)szFormat, tArg);
+	va_end(tArg);
+	switch (iFatal) {
+	case 0:		/* The message is just a warning, so no exit */
+		return;
+	case 1:		/* Fatal error with a standard exit */
+		exit(EXIT_FAILURE);
+	default:	/* Fatal error with a non-standard exit */
+		exit(iFatal);
+	}
+} /* end of werr */
 
 /*
  * iGetFiletype
@@ -27,17 +49,16 @@
 int
 iGetFiletype(const char *szFilename)
 {
-	_kernel_swi_regs	regs;
-	_kernel_oserror		*e;
+	os_error	*e;
+	int		iType;
 
 	fail(szFilename == NULL || szFilename[0] == '\0');
 
-	(void)memset((void *)&regs, 0, sizeof(regs));
-	regs.r[0] = 23;
-	regs.r[1] = (int)szFilename;
-	e = _kernel_swi(OS_File, &regs, &regs);
+	e = SWI(2, 7, SWI_OS_File | XOS_Bit,
+		23, szFilename,
+		NULL, NULL, NULL, NULL, NULL, NULL, &iType);
 	if (e == NULL) {
-		return regs.r[6];
+		return iType;
 	}
 	werr(0, "Get Filetype error %d: %s", e->errnum, e->errmess);
 	return -1;
@@ -51,19 +72,15 @@ iGetFiletype(const char *szFilename)
 void
 vSetFiletype(const char *szFilename, int iFiletype)
 {
-	_kernel_swi_regs	regs;
-	_kernel_oserror		*e;
+	os_error	*e;
 
 	fail(szFilename == NULL || szFilename[0] == '\0');
 
 	if (iFiletype < 0x000 || iFiletype > 0xfff) {
 		return;
 	}
-	(void)memset((void *)&regs, 0, sizeof(regs));
-	regs.r[0] = 18;
-	regs.r[1] = (int)szFilename;
-	regs.r[2] = iFiletype;
-	e = _kernel_swi(OS_File, &regs, &regs);
+	e = SWI(3, 0, SWI_OS_File | XOS_Bit,
+		18, szFilename, iFiletype);
 	if (e != NULL) {
 		switch (e->errnum) {
 		case 0x000113:	/* ROM */
@@ -88,9 +105,9 @@ vSetFiletype(const char *szFilename, int iFiletype)
 BOOL
 bMakeDirectory(const char *szFilename)
 {
-	_kernel_swi_regs	regs;
-	_kernel_oserror		*e;
+	os_error	*e;
 	char	*pcLastDot;
+	int	iObjectType;
 	char	szDirectory[PATH_MAX+1];
 
 	DBG_MSG("bMakeDirectory");
@@ -111,30 +128,26 @@ bMakeDirectory(const char *szFilename)
 	*pcLastDot = '\0';
 	DBG_MSG(szDirectory);
 	/* Check if the name exists */
-	(void)memset((void *)&regs, 0, sizeof(regs));
-	regs.r[0] = 17;
-	regs.r[1] = (int)szDirectory;
-	e = _kernel_swi(OS_File, &regs, &regs);
+	e = SWI(2, 1, SWI_OS_File | XOS_Bit,
+		17, szDirectory,
+		&iObjectType);
 	if (e != NULL) {
 		werr(0, "Directory check %d: %s", e->errnum, e->errmess);
 		return FALSE;
 	}
-	if (regs.r[0] == 2) {
+	if (iObjectType == 2) {
 		/* The name exists and it is a directory */
 		DBG_MSG("The directory already exists");
 		return TRUE;
 	}
-	if (regs.r[0] != 0) {
+	if (iObjectType != 0) {
 		/* The name exists and it is not a directory */
-		DBG_DEC(regs.r[0]);
+		DBG_DEC(iObjectType);
 		return FALSE;
 	}
 	/* The name does not exist, make the directory */
-	(void)memset((void *)&regs, 0, sizeof(regs));
-	regs.r[0] = 8;
-	regs.r[1] = (int)szDirectory;
-	regs.r[4] = 0;
-	e = _kernel_swi(OS_File, &regs, &regs);
+	e = SWI(5, 0, SWI_OS_File | XOS_Bit,
+		8, szDirectory, 0, 0, 0);
 	if (e != NULL) {
 		werr(0, "I can't make a directory %d: %s",
 			e->errnum, e->errmess);
@@ -151,15 +164,14 @@ bMakeDirectory(const char *szFilename)
 int
 iReadCurrentAlphabetNumber(void)
 {
-	_kernel_swi_regs	regs;
-	_kernel_oserror		*e;
+	os_error	*e;
+	int		iAlphabetNumber;
 
-	(void)memset((void *)&regs, 0, sizeof(regs));
-	regs.r[0] = 71;
-	regs.r[1] = 127;
-	e = _kernel_swi(OS_Byte, &regs, &regs);
+	e = SWI(2, 2, SWI_OS_Byte | XOS_Bit,
+		71, 127,
+		NULL, &iAlphabetNumber);
 	if (e == NULL) {
-		return regs.r[1];
+		return iAlphabetNumber;
 	}
 	werr(0, "Read alphabet error %d: %s", e->errnum, e->errmess);
 	return -1;
@@ -173,20 +185,18 @@ iReadCurrentAlphabetNumber(void)
 int
 iGetRiscOsVersion(void)
 {
-	_kernel_swi_regs	regs;
-	_kernel_oserror		*e;
+	os_error	*e;
+	int		iVersion;
 
-	(void)memset((void *)&regs, 0, sizeof(regs));
-	regs.r[0] = 129;
-	regs.r[1] = 0;
-	regs.r[2] = 0xff;
-	e = _kernel_swi(OS_Byte, &regs, &regs);
+	e = SWI(3, 2, SWI_OS_Byte | XOS_Bit,
+		129, 0, 0xff,
+		NULL, &iVersion);
 	if (e != NULL) {
 		werr(0, "Read RISC OS version error %d: %s",
 			e->errnum, e->errmess);
 		return 0;
 	}
-	switch (regs.r[1]) {
+	switch (iVersion) {
 	case 0xa0:	/* Arthur 1.20 */
 		return 120;
 	case 0xa1:	/* RISC OS 2.00 */
@@ -206,7 +216,7 @@ iGetRiscOsVersion(void)
 	case 0xa8:	/* RISC OS 4.0x */
 		return 400;
 	default:
-		if (regs.r[1] >= 0xa9 && regs.r[1] <= 0xaf) {
+		if (iVersion >= 0xa9 && iVersion <= 0xaf) {
 			/* RISC OS 4.10 and up */
 			return 410;
 		}
@@ -215,73 +225,24 @@ iGetRiscOsVersion(void)
 	}
 } /* end of iGetRiscOsVersion */
 
-/*
- * Replaces the draw_render_diag function from RISC_OSLib when using
- * RISC OS version 3.60 or higher
- * This function calls a SWI that does not exist in earlier versions
- */
-BOOL
-bDrawRenderDiag360(draw_diag *pInfo,
-	draw_redrawstr *pRedraw, double dScale, draw_error *pError)
-{
-	_kernel_swi_regs	regs;
-	_kernel_oserror		*e;
-	int	aiTransform[6];
-
-	fail(pInfo == NULL);
-	fail(pRedraw == NULL);
-	fail(dScale < 0.01);
-	fail(pError == NULL);
-	fail(iGetRiscOsVersion() < 360);
-
-	aiTransform[0] = (int)(dScale * 0x10000);
-	aiTransform[1] = 0;
-	aiTransform[2] = 0;
-	aiTransform[3] = (int)(dScale * 0x10000);
-	aiTransform[4] = (pRedraw->box.x0 - pRedraw->scx) * 256;
-	aiTransform[5] = (pRedraw->box.y1 - pRedraw->scy) * 256;
-
-	(void)memset((void *)&regs, 0, sizeof(regs));
-	regs.r[0] = 0;
-	regs.r[1] = (int)pInfo->data;
-	regs.r[2] = pInfo->length;
-	regs.r[3] = (int)aiTransform;
-	regs.r[4] = (int)&pRedraw->box;
-	regs.r[5] = 0;
-	e = _kernel_swi(DrawFile_Render, &regs, &regs);
-	if (e == NULL) {
-		return TRUE;
-	}
-	werr(0, "DrawFile render error %d: %s", e->errnum, e->errmess);
-	pError->type = DrawOSError;
-	pError->err.os.errnum = e->errnum;
-	strncpy(pError->err.os.errmess,
-		e->errmess,
-		sizeof(pError->err.os.errmess) - 1);
-	pError->err.os.errmess[sizeof(pError->err.os.errmess) - 1] = '\0';
-	return FALSE;
-} /* end of bDrawRenderDiag360 */
-
 #if defined(DEBUG)
 BOOL
 bGetJpegInfo(UCHAR *pucJpeg, size_t tJpegSize)
 {
-	_kernel_swi_regs	regs;
-	_kernel_oserror		*e;
+	os_error	*e;
+	int	iReg0, iReg4, iReg5;
 
-	(void)memset((void *)&regs, 0, sizeof(regs));
-	regs.r[0] = 0x00;
-	regs.r[1] = (int)pucJpeg;
-	regs.r[2] = (int)tJpegSize;
-	e = _kernel_swi(JPEG_Info, &regs, &regs);
+	e = SWI(3, 6, JPEG_Info | XOS_Bit,
+		0x00, pucJpeg, tJpegSize,
+		&iReg0, NULL, NULL, NULL, &iReg4, &iReg5);
 	if (e == NULL) {
-		if (regs.r[0] & BIT(2)) {
+		if (iReg0 & BIT(2)) {
 			DBG_MSG("Pixel density is a simple ratio");
 		} else {
 			DBG_MSG("Pixel density is in dpi");
 		}
-		DBG_DEC(regs.r[4]);
-		DBG_DEC(regs.r[5]);
+		DBG_DEC(iReg4);
+		DBG_DEC(iReg5);
 		return TRUE;
 	}
 	werr(0, "JPEG Info error %d: %s", e->errnum, e->errmess);

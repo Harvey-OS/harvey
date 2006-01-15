@@ -1,14 +1,133 @@
 /*
  * prop0.c
- * Copyright (C) 2002,2003 A.J. van Os; Released under GPL
+ * Copyright (C) 2002-2004 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Read the property information from a Word for DOS file
  */
 
 #include <string.h>
+#include <time.h>
 #include "antiword.h"
 
+
+/*
+ * tConvertDosDate - convert DOS date format
+ *
+ * returns Unix time_t or -1
+ */
+static time_t
+tConvertDosDate(const char *szDosDate)
+{
+	struct tm	tTime;
+	const char	*pcTmp;
+	time_t		tResult;
+
+	memset(&tTime, 0, sizeof(tTime));
+	pcTmp = szDosDate;
+	/* Get the month */
+	if (!isdigit(*pcTmp)) {
+		return (time_t)-1;
+	}
+	tTime.tm_mon = (int)(*pcTmp - '0');
+	pcTmp++;
+	if (isdigit(*pcTmp)) {
+		tTime.tm_mon *= 10;
+		tTime.tm_mon += (int)(*pcTmp - '0');
+		pcTmp++;
+	}
+	/* Get the first separater */
+	if (isalnum(*pcTmp)) {
+		return (time_t)-1;
+	}
+	pcTmp++;
+	/* Get the day */
+	if (!isdigit(*pcTmp)) {
+		return (time_t)-1;
+	}
+	tTime.tm_mday = (int)(*pcTmp - '0');
+	pcTmp++;
+	if (isdigit(*pcTmp)) {
+		tTime.tm_mday *= 10;
+		tTime.tm_mday += (int)(*pcTmp - '0');
+		pcTmp++;
+	}
+	/* Get the second separater */
+	if (isalnum(*pcTmp)) {
+		return (time_t)-1;
+	}
+	pcTmp++;
+	/* Get the year */
+	if (!isdigit(*pcTmp)) {
+		return (time_t)-1;
+	}
+	tTime.tm_year = (int)(*pcTmp - '0');
+	pcTmp++;
+	if (isdigit(*pcTmp)) {
+		tTime.tm_year *= 10;
+		tTime.tm_year += (int)(*pcTmp - '0');
+		pcTmp++;
+	}
+	/* Check the values */
+	if (tTime.tm_mon == 0 || tTime.tm_mday == 0 || tTime.tm_mday > 31) {
+		return (time_t)-1;
+	}
+	/* Correct the values */
+	tTime.tm_mon--;		/* From 01-12 to 00-11 */
+	if (tTime.tm_year < 80) {
+		tTime.tm_year += 100;	/* 00 means 2000 is 100 */
+	}
+	tTime.tm_isdst = -1;
+	tResult = mktime(&tTime);
+	NO_DBG_MSG(ctime(&tResult));
+	return tResult;
+} /* end of tConvertDosDate */
+
+/*
+ * Build the lists with Document Property Information for Word for DOS files
+ */
+void
+vGet0DopInfo(FILE *pFile, const UCHAR *aucHeader)
+{
+	document_block_type	tDocument;
+	UCHAR	*aucBuffer;
+	ULONG	ulBeginSumdInfo, ulBeginNextBlock;
+	size_t	tLen;
+	USHORT	usOffset;
+
+        tDocument.ucHdrFtrSpecification = 0;
+        tDocument.usDefaultTabWidth = usGetWord(0x70, aucHeader); /* dxaTab */
+        tDocument.tCreateDate = (time_t)-1;
+        tDocument.tRevisedDate = (time_t)-1;
+
+	ulBeginSumdInfo = 128 * (ULONG)usGetWord(0x1c, aucHeader);
+	DBG_HEX(ulBeginSumdInfo);
+	ulBeginNextBlock = 128 * (ULONG)usGetWord(0x6a, aucHeader);
+	DBG_HEX(ulBeginNextBlock);
+
+	if (ulBeginSumdInfo < ulBeginNextBlock && ulBeginNextBlock != 0) {
+		/* There is a summary information block */
+		tLen = (size_t)(ulBeginNextBlock - ulBeginSumdInfo);
+		aucBuffer = xmalloc(tLen);
+		/* Read the summary information block */
+		if (bReadBytes(aucBuffer, tLen, ulBeginSumdInfo, pFile)) {
+       			usOffset = usGetWord(12, aucBuffer);
+			if (aucBuffer[usOffset] != 0) {
+				NO_DBG_STRN(aucBuffer + usOffset, 8);
+				tDocument.tRevisedDate =
+				tConvertDosDate((char *)aucBuffer + usOffset);
+			}
+			usOffset = usGetWord(14, aucBuffer);
+			if (aucBuffer[usOffset] != 0) {
+				NO_DBG_STRN(aucBuffer + usOffset, 8);
+				tDocument.tCreateDate =
+				tConvertDosDate((char *)aucBuffer + usOffset);
+			}
+		}
+		aucBuffer = xfree(aucBuffer);
+	}
+        vCreateDocumentInfoList(&tDocument);
+} /* end of vGet0DopInfo */
 
 /*
  * Fill the section information block with information
@@ -48,14 +167,15 @@ vGet0SepInfo(FILE *pFile, const UCHAR *aucHeader)
 {
 	section_block_type	tSection;
 	UCHAR	*aucBuffer;
-	ULONG	ulBeginSectInfo, ulBeginNextBlock;
-	ULONG	ulSectPage, ulTextOffset;
-	size_t	tSectInfoLen, tBytes;
-	int	iIndex, iSections;
+	ULONG	ulBeginOfText, ulTextOffset, ulBeginSectInfo;
+	ULONG	ulCharPos, ulSectPage, ulBeginNextBlock;
+	size_t	tSectInfoLen, tIndex, tSections, tBytes;
 	UCHAR	aucTmp[2], aucFpage[35];
 
 	fail(pFile == NULL || aucHeader == NULL);
 
+	ulBeginOfText = 128;
+	NO_DBG_HEX(ulBeginOfText);
 	ulBeginSectInfo = 128 * (ULONG)usGetWord(0x18, aucHeader);
 	DBG_HEX(ulBeginSectInfo);
 	ulBeginNextBlock = 128 * (ULONG)usGetWord(0x1a, aucHeader);
@@ -69,11 +189,11 @@ vGet0SepInfo(FILE *pFile, const UCHAR *aucHeader)
 	if (!bReadBytes(aucTmp, 2, ulBeginSectInfo, pFile)) {
 		return;
 	}
-	iSections = (int)usGetWord(0, aucTmp);
-	NO_DBG_DEC(iSections);
+	tSections = (size_t)usGetWord(0, aucTmp);
+	NO_DBG_DEC(tSections);
 
 	/* Read the Section Descriptors */
-	tSectInfoLen = 10 * (size_t)iSections;
+	tSectInfoLen = 10 * tSections;
 	NO_DBG_DEC(tSectInfoLen);
 	aucBuffer = xmalloc(tSectInfoLen);
 	if (!bReadBytes(aucBuffer, tSectInfoLen, ulBeginSectInfo + 4, pFile)) {
@@ -83,16 +203,18 @@ vGet0SepInfo(FILE *pFile, const UCHAR *aucHeader)
 	NO_DBG_PRINT_BLOCK(aucBuffer, tSectInfoLen);
 
 	/* Read the Section Properties */
-	for (iIndex = 0; iIndex < iSections; iIndex++) {
-		ulTextOffset = ulGetLong(10 * iIndex, aucBuffer);
+	for (tIndex = 0; tIndex < tSections; tIndex++) {
+		ulTextOffset = ulGetLong(10 * tIndex, aucBuffer);
 		NO_DBG_HEX(ulTextOffset);
-		ulSectPage = ulGetLong(10 * iIndex + 6, aucBuffer);
+		ulCharPos = ulBeginOfText + ulTextOffset;
+		NO_DBG_HEX(ulTextOffset);
+		ulSectPage = ulGetLong(10 * tIndex + 6, aucBuffer);
 		NO_DBG_HEX(ulSectPage);
 		if (ulSectPage == FC_INVALID ||		/* Must use defaults */
 		    ulSectPage < 128 ||			/* Should not happen */
 		    ulSectPage >= ulBeginSectInfo) {	/* Should not happen */
 			DBG_HEX_C(ulSectPage != FC_INVALID, ulSectPage);
-			vDefault2SectionInfoList(ulTextOffset);
+			vDefault2SectionInfoList(ulCharPos);
 			continue;
 		}
 		/* Get the number of bytes to read */
@@ -101,7 +223,6 @@ vGet0SepInfo(FILE *pFile, const UCHAR *aucHeader)
 		}
 		tBytes = 1 + (size_t)ucGetByte(0, aucTmp);
 		NO_DBG_DEC(tBytes);
-		fail(tBytes > sizeof(aucFpage));
 		if (tBytes > sizeof(aucFpage)) {
 			DBG_DEC(tBytes);
 			tBytes = sizeof(aucFpage);
@@ -114,7 +235,7 @@ vGet0SepInfo(FILE *pFile, const UCHAR *aucHeader)
 		/* Process the bytes */
 		vGetDefaultSection(&tSection);
 		vGet0SectionInfo(aucFpage + 1, tBytes - 1, &tSection);
-		vAdd2SectionInfoList(&tSection, ulTextOffset);
+		vAdd2SectionInfoList(&tSection, ulCharPos);
 	}
 	/* Clean up before you leave */
 	aucBuffer = xfree(aucBuffer);
@@ -268,7 +389,7 @@ vGet0FontInfo(int iFodo, const UCHAR *aucGrpprl, font_block_type *pFont)
 		return;
 	}
 	/* cHps */
-	pFont->usFontSize = ucGetByte(iFodo + 3, aucGrpprl);
+	pFont->usFontSize = (USHORT)ucGetByte(iFodo + 3, aucGrpprl);
 	NO_DBG_DEC(pFont->usFontSize);
 	if (iBytes < 4) {
 		return;

@@ -1,6 +1,6 @@
 /*
  * fontlist.c
- * Copyright (C) 1998-2002 A.J. van Os; Released under GPL
+ * Copyright (C) 1998-2004 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Build, read and destroy a list of Word font information
@@ -11,9 +11,18 @@
 #include "antiword.h"
 
 
+/*
+ * Private structure to hide the way the information
+ * is stored from the rest of the program
+ */
+typedef struct font_desc_tag {
+	font_block_type tInfo;
+	struct font_desc_tag    *pNext;
+} font_mem_type;
+
 /* Variables needed to write the Font Information List */
-static font_desc_type	*pAnchor = NULL;
-static font_desc_type	*pFontLast = NULL;
+static font_mem_type	*pAnchor = NULL;
+static font_mem_type	*pFontLast = NULL;
 
 
 /*
@@ -22,7 +31,7 @@ static font_desc_type	*pFontLast = NULL;
 void
 vDestroyFontInfoList(void)
 {
-	font_desc_type	*pCurr, *pNext;
+	font_mem_type	*pCurr, *pNext;
 
 	DBG_MSG("vDestroyFontInfoList");
 
@@ -83,7 +92,7 @@ vCorrectFontValues(font_block_type *pFontBlock)
 void
 vAdd2FontInfoList(const font_block_type *pFontBlock)
 {
-	font_desc_type	*pListMember;
+	font_mem_type	*pListMember;
 
 	fail(pFontBlock == NULL);
 
@@ -119,7 +128,7 @@ vAdd2FontInfoList(const font_block_type *pFontBlock)
 	}
 
 	/* Create list member */
-	pListMember = xmalloc(sizeof(font_desc_type));
+	pListMember = xmalloc(sizeof(font_mem_type));
 	/* Fill the list member */
 	pListMember->tInfo = *pFontBlock;
 	pListMember->pNext = NULL;
@@ -141,7 +150,7 @@ vAdd2FontInfoList(const font_block_type *pFontBlock)
 const font_block_type *
 pGetNextFontInfoListItem(const font_block_type *pCurr)
 {
-	const font_desc_type	*pRecord;
+	const font_mem_type	*pRecord;
 	size_t	tOffset;
 
 	if (pCurr == NULL) {
@@ -152,9 +161,9 @@ pGetNextFontInfoListItem(const font_block_type *pCurr)
 		/* The first record is the only one without a predecessor */
 		return &pAnchor->tInfo;
 	}
-	tOffset = offsetof(font_desc_type, tInfo);
+	tOffset = offsetof(font_mem_type, tInfo);
 	/* Many casts to prevent alignment warnings */
-	pRecord = (font_desc_type *)(void *)((char *)pCurr - tOffset);
+	pRecord = (font_mem_type *)(void *)((char *)pCurr - tOffset);
 	fail(pCurr != &pRecord->tInfo);
 	if (pRecord->pNext == NULL) {
 		/* The last record has no successor */

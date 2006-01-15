@@ -1,6 +1,6 @@
 /*
  * wordmac.c
- * Copyright (C) 2002 A.J. van Os; Released under GPL
+ * Copyright (C) 2002-2004 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Deal with the MAC internals of a MS Word file
@@ -20,11 +20,25 @@ bGetDocumentText(FILE *pFile, const UCHAR *aucHeader)
 	text_block_type	tTextBlock;
 	ULONG	ulBeginOfText, ulEndOfText;
 	ULONG	ulTextLen;
+	UCHAR	ucDocStatus;
+	BOOL    bFastSaved;
 
 	fail(pFile == NULL);
 	fail(aucHeader == NULL);
 
 	DBG_MSG("bGetDocumentText");
+
+	NO_DBG_PRINT_BLOCK(aucHeader, 0x20);
+
+	/* Get the status flags from the header */
+	ucDocStatus = ucGetByte(0x0a, aucHeader);
+	DBG_HEX(ucDocStatus);
+	bFastSaved = (ucDocStatus & BIT(5)) != 0;
+	DBG_MSG_C(bFastSaved, "This document is Fast Saved");
+	if (bFastSaved) {
+		werr(0, "MacWord: fast saved documents are not supported yet");
+		return FALSE;
+	}
 
 	/* Get length information */
 	ulBeginOfText = ulGetLongBE(0x14, aucHeader);
@@ -83,10 +97,10 @@ iInitDocumentMAC(FILE *pFile, long lFilesize)
 	}
 	bSuccess = bGetDocumentText(pFile, aucHeader);
 	if (bSuccess) {
-		vSetDefaultTabWidth(pFile, NULL,
+		vGetPropertyInfo(pFile, NULL,
 				NULL, 0, NULL, 0,
 				aucHeader, iWordVersion);
-		vGetPropertyInfo(pFile, NULL,
+		vSetDefaultTabWidth(pFile, NULL,
 				NULL, 0, NULL, 0,
 				aucHeader, iWordVersion);
 	}

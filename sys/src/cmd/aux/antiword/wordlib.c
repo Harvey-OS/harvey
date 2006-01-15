@@ -1,6 +1,6 @@
 /*
  * wordlib.c
- * Copyright (C) 1998-2003 A.J. van Os; Released under GPL
+ * Copyright (C) 1998-2004 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Deal with the internals of a MS Word file
@@ -349,7 +349,9 @@ vFreeDocument(void)
 	vDestroyFontInfoList();
 	vDestroyStylesheetList();
 	vDestroyPictInfoList();
+	vDestroyDocumentInfoList();
 	vDestroySectionInfoList();
+	vDestroyHdrFtrInfoList();
 	vDestroyPropModList();
 	vDestroyNotesInfoLists();
 	vDestroyFontTable();
