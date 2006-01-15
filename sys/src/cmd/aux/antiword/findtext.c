@@ -1,6 +1,6 @@
 /*
  * findtext.c
- * Copyright (C) 1998-2001 A.J. van Os; Released under GPL
+ * Copyright (C) 1998-2004 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Find the blocks that contain the text of MS Word files
@@ -183,12 +183,11 @@ bGet8DocumentText(FILE *pFile, const pps_info_type *pPPS,
 	UCHAR	*aucBuffer;
 	ULONG	ulTextOffset, ulBeginTextInfo;
 	ULONG	ulTotLength, ulLen;
-	ULONG	ulTableStartBlock, ulTableSize;
 	long	lIndex, lPieces, lOff;
 	size_t	tTextInfoLen, tBlockDepotLen, tBlockSize;
 	int	iType, iLen;
 	BOOL	bUsesUnicode;
-	USHORT	usDocStatus, usPropMod;
+	USHORT	usPropMod;
 
 	DBG_MSG("bGet8DocumentText");
 
@@ -201,22 +200,13 @@ bGet8DocumentText(FILE *pFile, const pps_info_type *pPPS,
 	tTextInfoLen = (size_t)ulGetLong(0x1a6, aucHeader);	/* lcbClx */
 	DBG_DEC(tTextInfoLen);
 
-	/* Use 0Table or 1Table? */
-	usDocStatus = usGetWord(0x0a, aucHeader);
-	if (usDocStatus & BIT(9)) {
-		ulTableStartBlock = pPPS->t1Table.ulSB;
-		ulTableSize = pPPS->t1Table.ulSize;
-	} else {
-		ulTableStartBlock = pPPS->t0Table.ulSB;
-		ulTableSize = pPPS->t0Table.ulSize;
-	}
-	DBG_DEC(ulTableStartBlock);
-	if (ulTableStartBlock == 0) {
-		DBG_DEC(ulTableStartBlock);
+	DBG_DEC(pPPS->tTable.ulSB);
+	DBG_HEX(pPPS->tTable.ulSize);
+	if (pPPS->tTable.ulSize == 0) {
 		return FALSE;
 	}
-	DBG_HEX(ulTableSize);
-	if (ulTableSize < MIN_SIZE_FOR_BBD_USE) {
+
+	if (pPPS->tTable.ulSize < MIN_SIZE_FOR_BBD_USE) {
 	  	/* Use the Small Block Depot */
 		aulBlockDepot = aulSBD;
 		tBlockDepotLen = tSBDLen;
@@ -228,7 +218,7 @@ bGet8DocumentText(FILE *pFile, const pps_info_type *pPPS,
 		tBlockSize = BIG_BLOCK_SIZE;
 	}
 	aucBuffer = xmalloc(tTextInfoLen);
-	if (!bReadBuffer(pFile, ulTableStartBlock,
+	if (!bReadBuffer(pFile, pPPS->tTable.ulSB,
 			aulBlockDepot, tBlockDepotLen, tBlockSize,
 			aucBuffer, ulBeginTextInfo, tTextInfoLen)) {
 		aucBuffer = xfree(aucBuffer);

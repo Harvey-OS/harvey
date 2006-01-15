@@ -1,6 +1,6 @@
 /*
  * prop2.c
- * Copyright (C) 2002,2003 A.J. van Os; Released under GPL
+ * Copyright (C) 2002-2005 A.J. van Os; Released under GPL
  *
  * Description:
  * Read the property information from a WinWord 1 or 2 file
@@ -9,6 +9,8 @@
 #include <string.h>
 #include "antiword.h"
 
+
+#define MAX_FILESIZE		0x2000000UL	/* 32 Mb */
 
 /*
  * iGet2InfoLength - the length of the information for WinWord 1/2 files
@@ -54,6 +56,45 @@ iGet2InfoLength(int iByteNbr, const UCHAR *aucGrpprl)
 } /* end of iGet2InfoLength */
 
 /*
+ * Build the lists with Document Property Information for WinWord 1/2 files
+ */
+void
+vGet2DopInfo(FILE *pFile, const UCHAR *aucHeader)
+{
+	document_block_type	tDocument;
+	UCHAR	*aucBuffer;
+	ULONG	ulBeginDocpInfo, ulTmp;
+	size_t	tDocpInfoLen;
+	USHORT	usTmp;
+
+	ulBeginDocpInfo = ulGetLong(0x112, aucHeader); /* fcDop */
+	DBG_HEX(ulBeginDocpInfo);
+	tDocpInfoLen = (size_t)usGetWord(0x116, aucHeader); /* cbDop */
+	DBG_DEC(tDocpInfoLen);
+	if (tDocpInfoLen < 28) {
+		DBG_MSG("No Document information");
+		return;
+	}
+
+	aucBuffer = xmalloc(tDocpInfoLen);
+	if (!bReadBytes(aucBuffer, tDocpInfoLen, ulBeginDocpInfo, pFile)) {
+		aucBuffer = xfree(aucBuffer);
+		return;
+	}
+
+	usTmp = usGetWord(0x00, aucBuffer);
+	tDocument.ucHdrFtrSpecification = (UCHAR)(usTmp >> 8); /* grpfIhdt */
+	tDocument.usDefaultTabWidth = usGetWord(0x0a, aucBuffer); /* dxaTab */
+	ulTmp = ulGetLong(0x14, aucBuffer); /* dttmCreated */
+	tDocument.tCreateDate = tConvertDTTM(ulTmp);
+	ulTmp = ulGetLong(0x18, aucBuffer); /* dttmRevised */
+	tDocument.tRevisedDate = tConvertDTTM(ulTmp);
+	vCreateDocumentInfoList(&tDocument);
+
+	aucBuffer = xfree(aucBuffer);
+} /* end of vGet2DopInfo */
+
+/*
  * Fill the section information block with information
  * from a WinWord 1/2 file.
  */
@@ -79,6 +120,10 @@ vGet2SectionInfo(const UCHAR *aucGrpprl, size_t tBytes,
 			usCcol = 1 + usGetWord(iFodoOff + 1, aucGrpprl);
 			DBG_DEC(usCcol);
 			break;
+		case 128:	/* grpfIhdt */
+			pSection->ucHdrFtrSpecification =
+					ucGetByte(iFodoOff + 1, aucGrpprl);
+			break;
 		default:
 			break;
 		}
@@ -95,15 +140,16 @@ void
 vGet2SepInfo(FILE *pFile, const UCHAR *aucHeader)
 {
 	section_block_type	tSection;
-	ULONG	*aulSectPage, *aulTextOffset;
+	ULONG	*aulSectPage, *aulCharPos;
 	UCHAR	*aucBuffer, *aucFpage;
-	ULONG	ulBeginSectInfo;
-	size_t	tSectInfoLen, tOffset, tLen, tBytes;
-	int	iIndex;
+	ULONG	ulBeginOfText, ulTextOffset, ulBeginSectInfo;
+	size_t	tSectInfoLen, tIndex, tOffset, tLen, tBytes;
 	UCHAR	aucTmp[1];
 
 	fail(pFile == NULL || aucHeader == NULL);
 
+	ulBeginOfText = ulGetLong(0x18, aucHeader); /* fcMin */
+	NO_DBG_HEX(ulBeginOfText);
 	ulBeginSectInfo = ulGetLong(0x7c, aucHeader); /* fcPlcfsed */
 	DBG_HEX(ulBeginSectInfo);
 	tSectInfoLen = (size_t)usGetWord(0x80, aucHeader); /* cbPlcfsed */
@@ -123,37 +169,40 @@ vGet2SepInfo(FILE *pFile, const UCHAR *aucHeader)
 	/* Read the Section Descriptors */
 	tLen = (tSectInfoLen - 4) / 10;
 	/* Save the section offsets */
-	aulTextOffset = xcalloc(tLen, sizeof(ULONG));
-	for (iIndex = 0, tOffset = 0;
-	     iIndex < (int)tLen;
-	     iIndex++, tOffset += 4) {
-		aulTextOffset[iIndex] = ulGetLong(tOffset, aucBuffer);
+	aulCharPos = xcalloc(tLen, sizeof(ULONG));
+	for (tIndex = 0, tOffset = 0;
+	     tIndex < tLen;
+	     tIndex++, tOffset += 4) {
+		ulTextOffset = ulGetLong(tOffset, aucBuffer);
+		NO_DBG_HEX(ulTextOffset);
+		aulCharPos[tIndex] = ulBeginOfText + ulTextOffset;
+		NO_DBG_HEX(aulCharPos[tIndex]);
 	}
 	/* Save the Sepx offsets */
 	aulSectPage = xcalloc(tLen, sizeof(ULONG));
-	for (iIndex = 0, tOffset = (tLen + 1) * 4;
-	     iIndex < (int)tLen;
-	     iIndex++, tOffset += 6) {
-		aulSectPage[iIndex] = ulGetLong(tOffset + 2, aucBuffer);
-		NO_DBG_HEX(aulSectPage[iIndex]); /* fcSepx */
+	for (tIndex = 0, tOffset = (tLen + 1) * 4;
+	     tIndex < tLen;
+	     tIndex++, tOffset += 6) {
+		aulSectPage[tIndex] = ulGetLong(tOffset + 2, aucBuffer);
+		NO_DBG_HEX(aulSectPage[tIndex]); /* fcSepx */
 	}
 	aucBuffer = xfree(aucBuffer);
 
 	/* Read the Section Properties */
-	for (iIndex = 0; iIndex < (int)tLen; iIndex++) {
-		if (aulSectPage[iIndex] == FC_INVALID) {
-			vDefault2SectionInfoList(aulTextOffset[iIndex]);
+	for (tIndex = 0; tIndex < tLen; tIndex++) {
+		if (aulSectPage[tIndex] == FC_INVALID) {
+			vDefault2SectionInfoList(aulCharPos[tIndex]);
 			continue;
 		}
 		/* Get the number of bytes to read */
-		if (!bReadBytes(aucTmp, 1, aulSectPage[iIndex], pFile)) {
+		if (!bReadBytes(aucTmp, 1, aulSectPage[tIndex], pFile)) {
 			continue;
 		}
 		tBytes = 1 + (size_t)ucGetByte(0, aucTmp);
 		NO_DBG_DEC(tBytes);
 		/* Read the bytes */
 		aucFpage = xmalloc(tBytes);
-		if (!bReadBytes(aucFpage, tBytes, aulSectPage[iIndex], pFile)) {
+		if (!bReadBytes(aucFpage, tBytes, aulSectPage[tIndex], pFile)) {
 			aucFpage = xfree(aucFpage);
 			continue;
 		}
@@ -161,12 +210,57 @@ vGet2SepInfo(FILE *pFile, const UCHAR *aucHeader)
 		/* Process the bytes */
 		vGetDefaultSection(&tSection);
 		vGet2SectionInfo(aucFpage + 1, tBytes - 1, &tSection);
-		vAdd2SectionInfoList(&tSection, aulTextOffset[iIndex]);
+		vAdd2SectionInfoList(&tSection, aulCharPos[tIndex]);
 		aucFpage = xfree(aucFpage);
 	}
-	aulTextOffset = xfree(aulTextOffset);
+	aulCharPos = xfree(aulCharPos);
 	aulSectPage = xfree(aulSectPage);
 } /* end of vGet2SepInfo */
+
+/*
+ * Build the list with Header/Footer Information for WinWord 1/2 files
+ */
+void
+vGet2HdrFtrInfo(FILE *pFile, const UCHAR *aucHeader)
+{
+	ULONG	*aulCharPos;
+	UCHAR	*aucBuffer;
+	ULONG	ulHdrFtrOffset, ulBeginHdrFtrInfo;
+	size_t	tHdrFtrInfoLen, tIndex, tOffset, tLen;
+
+	fail(pFile == NULL || aucHeader == NULL);
+
+	ulBeginHdrFtrInfo = ulGetLong(0x9a, aucHeader); /* fcPlcfhdd */
+	NO_DBG_HEX(ulBeginHdrFtrInfo);
+	tHdrFtrInfoLen = (size_t)usGetWord(0x9e, aucHeader); /* cbPlcfhdd */
+	NO_DBG_DEC(tHdrFtrInfoLen);
+	if (tHdrFtrInfoLen < 8) {
+		DBG_DEC_C(tHdrFtrInfoLen != 0, tHdrFtrInfoLen);
+		return;
+	}
+
+	aucBuffer = xmalloc(tHdrFtrInfoLen);
+	if (!bReadBytes(aucBuffer, tHdrFtrInfoLen, ulBeginHdrFtrInfo, pFile)) {
+		aucBuffer = xfree(aucBuffer);
+		return;
+	}
+	NO_DBG_PRINT_BLOCK(aucBuffer, tHdrFtrInfoLen);
+
+	tLen = tHdrFtrInfoLen / 4 - 1;
+	/* Save the header/footer offsets */
+	aulCharPos = xcalloc(tLen, sizeof(ULONG));
+	for (tIndex = 0, tOffset = 0;
+	     tIndex < tLen;
+	     tIndex++, tOffset += 4) {
+		ulHdrFtrOffset = ulGetLong(tOffset, aucBuffer);
+		NO_DBG_HEX(ulHdrFtrOffset);
+		aulCharPos[tIndex] = ulHdrFtrOffset2CharPos(ulHdrFtrOffset);
+		NO_DBG_HEX(aulCharPos[tIndex]);
+	}
+	vCreat2HdrFtrInfoList(aulCharPos, tLen);
+	aulCharPos = xfree(aulCharPos);
+	aucBuffer = xfree(aucBuffer);
+} /* end of vGet2HdrFtrInfo */
 
 /*
  * Translate the rowinfo to a member of the row_info enumeration
@@ -311,7 +405,6 @@ eGet2RowInfo(int iFodo,
 				werr(1, "The number of columns is corrupt");
 			}
 			pRow->ucNumberOfColumns = (UCHAR)iCol;
-			pRow->iColumnWidthSum = 0;
 			iPosPrev = (int)(short)usGetWord(
 					iFodo + iFodoOff + 4,
 					aucGrpprl);
@@ -321,8 +414,6 @@ eGet2RowInfo(int iFodo,
 					aucGrpprl);
 				pRow->asColumnWidth[iIndex] =
 						(short)(iPosCurr - iPosPrev);
-				pRow->iColumnWidthSum +=
-					pRow->asColumnWidth[iIndex];
 				iPosPrev = iPosCurr;
 			}
 			bFound154 = TRUE;
@@ -393,6 +484,7 @@ vGet2StyleInfo(int iFodo,
 				eGetNumType(ucTmp) == level_type_pause;
 			break;
 		case  15:	/* ChgTabsPapx */
+		case  23:	/* ChgTabs */
 			iTmp = (int)ucGetByte(iFodo + iFodoOff + 1, aucGrpprl);
 			if (iTmp < 2) {
 				iInfoLen = 1;
@@ -804,7 +896,7 @@ bGet1PicInfo(int iFodo,
 
 	if (tBytes > sizeof(aucChpx)) {
 		NO_DBG_PRINT_BLOCK(aucGrpprl + iFodo, tBytes);
-		return FALSE;
+		tBytes = sizeof(aucChpx);
 	}
 
 	/* Build the CHPX structure */
@@ -812,7 +904,7 @@ bGet1PicInfo(int iFodo,
 	(void)memcpy(aucChpx, aucGrpprl + iFodo, min(tBytes, sizeof(aucChpx)));
 
 	ulTmp = ulGetLong(8, aucChpx);
-	if (ulTmp != 0) {
+	if (ulTmp != 0 && ulTmp < MAX_FILESIZE) {
 		pPicture->ulPictureOffset = ulTmp;
 		DBG_HEX(pPicture->ulPictureOffset);
 		return TRUE;
@@ -835,7 +927,7 @@ bGet2PicInfo(int iFodo,
 
 	if (tBytes > sizeof(aucChpx)) {
 		NO_DBG_PRINT_BLOCK(aucGrpprl + iFodo, tBytes);
-		return FALSE;
+		tBytes = sizeof(aucChpx);
 	}
 
 	/* Build the CHPX structure */
@@ -843,7 +935,7 @@ bGet2PicInfo(int iFodo,
 	(void)memcpy(aucChpx, aucGrpprl + iFodo, min(tBytes, sizeof(aucChpx)));
 
 	ulTmp = ulGetLong(14, aucChpx);
-	if (ulTmp != 0) {
+	if (ulTmp != 0 && ulTmp < MAX_FILESIZE) {
 		pPicture->ulPictureOffset = ulTmp;
 		DBG_HEX(pPicture->ulPictureOffset);
 		DBG_DEC(tBytes);
@@ -879,6 +971,7 @@ vGet2ChrInfo(FILE *pFile, int iWordVersion, const UCHAR *aucHeader)
 	DBG_DEC(tCharInfoLen);
 	if (tCharInfoLen < 4) {
 		DBG_DEC(tCharInfoLen);
+		return;
 	}
 
 	aucBuffer = xmalloc(tCharInfoLen);

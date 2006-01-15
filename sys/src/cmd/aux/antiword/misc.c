@@ -1,6 +1,6 @@
 /*
  * misc.c
- * Copyright (C) 1998-2003 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 1998-2005 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Miscellaneous functions
@@ -12,19 +12,19 @@
 #include <ctype.h>
 #include <time.h>
 #if defined(__riscos)
-#include "kernel.h"
-#include "swis.h"
+#include "DeskLib:SWI.h"
 #else
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #endif /* __riscos */
-#if defined(__dos)
-#define S_ISDIR(x)	(((x) & S_IFMT) == S_IFDIR)
+#if !defined(S_ISREG)
 #define S_ISREG(x)	(((x) & S_IFMT) == S_IFREG)
-#endif /* __dos */
+#endif /* !S_ISREG */
 #include "antiword.h"
-
+#if defined(__vms)
+#include <unixlib.h>
+#endif
 
 #if !defined(__riscos)
 /*
@@ -36,16 +36,17 @@ szGetHomeDirectory(void)
 	const char	*szHome;
 
 #if defined(__vms)
-#include <unixlib.h>
 	szHome = decc$translate_vms(getenv("HOME"));
 #elif defined(__Plan9__)
 	szHome = getenv("home");
-#else 
+#else
 	szHome = getenv("HOME");
-#endif
+#endif /* __vms */
 
 	if (szHome == NULL || szHome[0] == '\0') {
-#if defined(__dos)
+#if defined(N_PLAT_NLM)
+		szHome = "SYS:";
+#elif defined(__dos)
 		szHome = "C:";
 #else
 		werr(0, "I can't find the name of your HOME directory");
@@ -62,12 +63,11 @@ const char *
 szGetAntiwordDirectory(void)
 {
 #if defined(__vms)
-#include <unixlib.h>
 	return decc$translate_vms(getenv("ANTIWORDHOME"));
 #else
 	return getenv("ANTIWORDHOME");
 #endif /* __vms */
-} /* end of szGetHomeDirectory */
+} /* end of szGetAntiwordDirectory */
 #endif /* !__riscos */
 
 /*
@@ -78,26 +78,26 @@ long
 lGetFilesize(const char *szFilename)
 {
 #if defined(__riscos)
-	_kernel_swi_regs	regs;
-	_kernel_oserror		*e;
+	os_error	*e;
+	int	iType, iSize;
 
-	(void)memset(&regs, 0, sizeof(regs));
-	regs.r[0] = 17;
-	regs.r[1] = (int)szFilename;
-	e = _kernel_swi(OS_File, &regs, &regs);
+	e = SWI(2, 5, SWI_OS_File | XOS_Bit,
+		17, szFilename,
+		&iType, NULL, NULL, NULL, &iSize);
 	if (e != NULL) {
 		werr(0, "Get Filesize error %d: %s",
 			e->errnum, e->errmess);
 		return -1;
 	}
-	if (regs.r[0] != 1) {
+	if (iType != 1) {
 		/* It's not a proper file or the file does not exist */
 		return -1;
 	}
-	return (long)regs.r[4];
+	return (long)iSize;
 #else
 	struct stat	tBuffer;
 
+	errno = 0;
 	if (stat(szFilename, &tBuffer) != 0) {
 		werr(0, "Get Filesize error %d", errno);
 		return -1;
@@ -136,7 +136,7 @@ vPrintBlock(const char	*szFile, int iLine,
 } /* end of vPrintBlock */
 
 void
-vPrintUnicode(const char  *szFile, int iLine, const UCHAR *aucUni, size_t tLen)
+vPrintUnicode(const char *szFile, int iLine, const UCHAR *aucUni, size_t tLen)
 {
 	char	*szASCII;
 
@@ -249,7 +249,7 @@ bReadBuffer(FILE *pFile, ULONG ulStartBlock,
 } /* end of bReadBuffer */
 
 /*
- * Translate a Word colornumber into a true color for use in a drawfile
+ * Convert a Word colornumber into a true color for use in a drawfile
  *
  * Returns the true color
  */
@@ -469,12 +469,12 @@ tNumber2Alpha(UINT uiNumber, BOOL bUpperCase, char *szOutput)
 char *
 unincpy(char *s1, const UCHAR *s2, size_t n)
 {
-	char	*dest;
+	char	*pcDest;
 	ULONG	ulChar;
 	size_t	tLen;
 	USHORT	usUni;
 
-	for (dest = s1, tLen = 0; tLen < n; dest++, tLen++) {
+	for (pcDest = s1, tLen = 0; tLen < n; pcDest++, tLen++) {
 		usUni = usGetWord(tLen * 2, s2);
 		if (usUni == 0) {
 			break;
@@ -484,10 +484,10 @@ unincpy(char *s1, const UCHAR *s2, size_t n)
 		if (ulChar == IGNORE_CHARACTER) {
 			ulChar = (ULONG)'?';
 		}
-		*dest = (char)ulChar;
+		*pcDest = (char)ulChar;
 	}
 	for (; tLen < n; tLen++) {
-		*dest++ = '\0';
+		*pcDest++ = '\0';
 	}
 	return s1;
 } /* end of unincpy */
@@ -614,14 +614,11 @@ vGetBulletValue(conversion_type eConversionType, encoding_type eEncoding,
 	fail(szResult == NULL);
 	fail(tMaxResultLen < 2);
 
-	if (eEncoding == encoding_utf8) {
+	if (eEncoding == encoding_utf_8) {
 		(void)tUcs2Utf8(UNICODE_BULLET, szResult, tMaxResultLen);
-	} else if (eEncoding == encoding_iso_8859_1 &&
-		   eConversionType == conversion_ps) {
-		szResult[0] = OUR_BULLET_PS;
-		szResult[1] = '\0';
 	} else {
-		szResult[0] = OUR_BULLET_TEXT;
+		szResult[0] = (char)ucGetBulletCharacter(eConversionType,
+							eEncoding);
 		szResult[1] = '\0';
 	}
 } /* end of vGetBulletValue */
@@ -645,3 +642,253 @@ bAllZero(const UCHAR *aucBytes, size_t tLength)
 	}
 	return TRUE;
 } /* end of bAllZero */
+
+#if !defined(__riscos)
+/*
+ * GetCodesetFromLocale - get the codeset from the current locale
+ *
+ * Original version: Copyright (C) 1999  Bruno Haible
+ * Syntax:
+ * language[_territory][.codeset][@modifier][+special][,[sponsor][_revision]]
+ *
+ * Returns TRUE when sucessful, otherwise FALSE
+ */
+static BOOL
+bGetCodesetFromLocale(char *szCodeset, size_t tMaxCodesetLength, BOOL *pbEuro)
+{
+#if !defined(__dos)
+	const char	*szLocale;
+	const char	*pcTmp;
+	size_t		tIndex;
+	char		szModifier[6];
+#endif /* __dos */
+
+	if (pbEuro != NULL) {
+		*pbEuro = FALSE;	/* Until proven otherwise */
+	}
+	if (szCodeset == NULL || tMaxCodesetLength == 0) {
+		return FALSE;
+	}
+
+#if defined(__dos)
+	if (tMaxCodesetLength < 2 + sizeof(int) * 3 + 1) {
+		DBG_DEC(tMaxCodesetLength);
+		DBG_DEC(2 + sizeof(int) * 3 + 1);
+		return FALSE;
+	}
+	/* Get the active codepage from DOS */
+	sprintf(szCodeset, "cp%d", iGetCodepage());
+	DBG_MSG(szCodeset);
+#else
+	/* Get the locale from the environment */
+	szLocale = getenv("LC_ALL");
+	if (szLocale == NULL || szLocale[0] == '\0') {
+		szLocale = getenv("LC_CTYPE");
+		if (szLocale == NULL || szLocale[0] == '\0') {
+			szLocale = getenv("LANG");
+		}
+	}
+	if (szLocale == NULL || szLocale[0] == '\0') {
+		/* No locale, so no codeset name and no modifier */
+		return FALSE;
+	}
+	DBG_MSG(szLocale);
+	pcTmp = strchr(szLocale, '.');
+	if (pcTmp == NULL) {
+		/* No codeset name */
+		szCodeset[0] = '\0';
+	} else {
+		/* Copy the codeset name */
+		pcTmp++;
+		for (tIndex = 0; tIndex < tMaxCodesetLength; tIndex++) {
+			if (*pcTmp == '@' || *pcTmp == '+' ||
+			    *pcTmp == ',' || *pcTmp == '_' ||
+			    *pcTmp == '\0') {
+				szCodeset[tIndex] = '\0';
+				break;
+			}
+			szCodeset[tIndex] = *pcTmp;
+			pcTmp++;
+		}
+		szCodeset[tMaxCodesetLength - 1] = '\0';
+	}
+	if (pbEuro == NULL) {
+		/* No need to get the modifier */
+		return TRUE;
+	}
+	pcTmp = strchr(szLocale, '@');
+	if (pcTmp != NULL) {
+		/* Copy the modifier */
+		pcTmp++;
+		for (tIndex = 0; tIndex < sizeof(szModifier); tIndex++) {
+			if (*pcTmp == '+' || *pcTmp == ',' ||
+			    *pcTmp == '_' || *pcTmp == '\0') {
+				szModifier[tIndex] = '\0';
+				break;
+			}
+			szModifier[tIndex] = *pcTmp;
+			pcTmp++;
+		}
+		szModifier[sizeof(szModifier) - 1] = '\0';
+		*pbEuro = STRCEQ(szModifier, "Euro");
+	}
+#endif /* __dos */
+	return TRUE;
+} /* end of bGetCodesetFromLocale */
+
+/*
+ * GetNormalizedCodeset - get the normalized codeset from the current locale
+ *
+ * Returns TRUE when sucessful, otherwise FALSE
+ */
+BOOL
+bGetNormalizedCodeset(char *szCodeset, size_t tMaxCodesetLength, BOOL *pbEuro)
+{
+	BOOL	bOnlyDigits;
+	const char	*pcSrc;
+	char	*pcDest;
+	char	*szTmp, *szCodesetNorm;
+
+	if (pbEuro != NULL) {
+		*pbEuro = FALSE;	/* Until proven otherwise */
+	}
+	if (szCodeset == NULL || tMaxCodesetLength < 4) {
+		return FALSE;
+	}
+
+	/* Get the codeset name */
+	szTmp = xmalloc(tMaxCodesetLength - 3);
+	if (!bGetCodesetFromLocale(szTmp, tMaxCodesetLength - 3, pbEuro)) {
+		szTmp = xfree(szTmp);
+		return FALSE;
+	}
+	/* Normalize the codeset name */
+	szCodesetNorm = xmalloc(tMaxCodesetLength - 3);
+	bOnlyDigits = TRUE;
+	pcDest = szCodesetNorm;
+	for (pcSrc = szTmp; *pcSrc != '\0'; pcSrc++) {
+		if (isalnum(*pcSrc)) {
+			*pcDest = tolower(*pcSrc);
+			if (!isdigit(*pcDest)) {
+				bOnlyDigits = FALSE;
+			}
+			pcDest++;
+		}
+	}
+	*pcDest = '\0';
+	DBG_MSG(szCodesetNorm);
+	/* Add "iso" when szCodesetNorm contains all digits */
+	if (bOnlyDigits && szCodesetNorm[0] != '\0') {
+		fail(strlen(szCodesetNorm) + 3 >= tMaxCodesetLength);
+		sprintf(szCodeset, "iso%s", szCodesetNorm);
+	} else {
+		fail(strlen(szCodesetNorm) >= tMaxCodesetLength);
+		strncpy(szCodeset, szCodesetNorm, pcDest - szCodesetNorm + 1);
+		szCodeset[tMaxCodesetLength - 1] = '\0';
+	}
+	DBG_MSG(szCodeset);
+	/* Clean up and leave */
+	szCodesetNorm = xfree(szCodesetNorm);
+	szTmp = xfree(szTmp);
+	return TRUE;
+} /* end of bGetNormalizedCodeset */
+
+/*
+ * szGetDefaultMappingFile - get the default mapping file
+ *
+ * Returns the basename of the default mapping file
+ */
+const char *
+szGetDefaultMappingFile(void)
+{
+	static const struct {
+		const char	*szCodeset;
+		const char	*szMappingFile;
+	} atMappingFile[] = {
+		{ "iso88591",	MAPPING_FILE_8859_1 },
+		{ "iso88592",	MAPPING_FILE_8859_2 },
+		{ "iso88593",	"8859-3.txt" },
+		{ "iso88594",	"8859-4.txt" },
+		{ "iso88595",	"8859-5.txt" },
+		{ "iso88596",	MAPPING_FILE_8859_5 },
+		{ "iso88597",	"8859-7.txt" },
+		{ "iso88598",	"8859-8.txt" },
+		{ "iso88599",	"8859-9.txt" },
+		{ "iso885910",	"8859-10.txt" },
+		{ "iso885913",	"8859-13.txt" },
+		{ "iso885914",	"8859-14.txt" },
+		{ "iso885915",	MAPPING_FILE_8859_15 },
+		{ "iso885916",	"8859-16.txt" },
+		{ "koi8r",	MAPPING_FILE_KOI8_R },
+		{ "koi8u",	MAPPING_FILE_KOI8_U },
+		{ "utf8",	MAPPING_FILE_UTF_8 },
+		{ "cp437",	MAPPING_FILE_CP437 },
+		{ "cp850",	"cp850.txt" },
+		{ "cp852",	MAPPING_FILE_CP852 },
+		{ "cp862",	"cp862.txt" },
+		{ "cp864",	"cp864.txt" },
+		{ "cp866",	MAPPING_FILE_CP866 },
+		{ "cp1250",	MAPPING_FILE_CP1250 },
+		{ "cp1251",	MAPPING_FILE_CP1251 },
+		{ "cp1252",	"cp1252.txt" },
+	};
+	size_t	tIndex;
+	BOOL	bEuro;
+	char	szCodeset[20];
+
+	szCodeset[0] = '\0';
+	bEuro = FALSE;
+	/* Get the normalized codeset name */
+	if (!bGetNormalizedCodeset(szCodeset, sizeof(szCodeset), &bEuro)) {
+		return MAPPING_FILE_8859_1;
+	}
+	if (szCodeset[0] == '\0') {
+		if (bEuro) {
+			/* Default mapping file (with Euro sign) */
+			return MAPPING_FILE_8859_15;
+		} else {
+			/* Default mapping file (without Euro sign) */
+			return MAPPING_FILE_8859_1;
+		}
+	}
+	/* Find the name in the table */
+	for (tIndex = 0; tIndex < elementsof(atMappingFile); tIndex++) {
+		if (STREQ(atMappingFile[tIndex].szCodeset, szCodeset)) {
+			return atMappingFile[tIndex].szMappingFile;
+		}
+	}
+	/* Default default mapping file */
+#if defined(__dos)
+	return MAPPING_FILE_CP437;
+#else
+	return MAPPING_FILE_8859_1;
+#endif /* __dos */
+} /* end of szGetDefaultMappingFile */
+#endif /* !__riscos */
+
+/*
+ * tConvertDTTM - convert Windows Date and Time format
+ *
+ * returns Unix time_t or -1
+ */
+time_t
+tConvertDTTM(ULONG ulDTTM)
+{
+	struct tm	tTime;
+	time_t		tResult;
+
+	if (ulDTTM == 0) {
+		return (time_t)-1;
+	}
+	memset(&tTime, 0, sizeof(tTime));
+	tTime.tm_min = (int)(ulDTTM & 0x0000003f);
+	tTime.tm_hour = (int)((ulDTTM & 0x000007c0) >> 6);
+	tTime.tm_mday = (int)((ulDTTM & 0x0000f800) >> 11);
+	tTime.tm_mon = (int)((ulDTTM & 0x000f0000) >> 16);
+	tTime.tm_year = (int)((ulDTTM & 0x1ff00000) >> 20);
+	tTime.tm_isdst = -1;
+	tTime.tm_mon--;         /* From 01-12 to 00-11 */
+	tResult = mktime(&tTime);
+	NO_DBG_MSG(ctime(&tResult));
+	return tResult;
+} /* end of tConvertDTTM */

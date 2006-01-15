@@ -1,6 +1,6 @@
 /*
  * pictlist.c
- * Copyright (C) 2000,2001 A.J. van Os; Released under GPL
+ * Copyright (C) 2000-2004 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Build, read and destroy a list of Word picture information
@@ -10,9 +10,18 @@
 #include "antiword.h"
 
 
+/*
+ * Private structure to hide the way the information
+ * is stored from the rest of the program
+ */
+typedef struct picture_mem_tag {
+	picture_block_type      tInfo;
+	struct picture_mem_tag *pNext;
+} picture_mem_type;
+
 /* Variables needed to write the Picture Information List */
-static picture_desc_type	*pAnchor = NULL;
-static picture_desc_type	*pPictureLast = NULL;
+static picture_mem_type	*pAnchor = NULL;
+static picture_mem_type	*pPictureLast = NULL;
 
 
 /*
@@ -21,7 +30,7 @@ static picture_desc_type	*pPictureLast = NULL;
 void
 vDestroyPictInfoList(void)
 {
-	picture_desc_type	*pCurr, *pNext;
+	picture_mem_type	*pCurr, *pNext;
 
 	DBG_MSG("vDestroyPictInfoList");
 
@@ -43,7 +52,7 @@ vDestroyPictInfoList(void)
 void
 vAdd2PictInfoList(const picture_block_type *pPictureBlock)
 {
-	picture_desc_type	*pListMember;
+	picture_mem_type	*pListMember;
 
 	fail(pPictureBlock == NULL);
 
@@ -69,7 +78,7 @@ vAdd2PictInfoList(const picture_block_type *pPictureBlock)
 	NO_DBG_HEX(pPictureBlock->ulPictureOffset);
 
 	/* Create list member */
-	pListMember = xmalloc(sizeof(picture_desc_type));
+	pListMember = xmalloc(sizeof(picture_mem_type));
 	/* Fill the list member */
 	pListMember->tInfo = *pPictureBlock;
 	pListMember->pNext = NULL;
@@ -89,7 +98,7 @@ vAdd2PictInfoList(const picture_block_type *pPictureBlock)
 ULONG
 ulGetPictInfoListItem(ULONG ulFileOffset)
 {
-	picture_desc_type	*pCurr;
+	picture_mem_type	*pCurr;
 
 	for (pCurr = pAnchor; pCurr != NULL; pCurr = pCurr->pNext) {
 		if (pCurr->tInfo.ulFileOffset == ulFileOffset) {

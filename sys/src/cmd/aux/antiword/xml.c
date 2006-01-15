@@ -1,6 +1,6 @@
 /*
  * xml.c
- * Copyright (C) 2002,2003 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 2002-2005 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Functions to deal with the XML/DocBook format
@@ -19,6 +19,12 @@
 #define vStackTrace()	/* EMPTY */
 #endif /* DEBUG */
 
+/* The character set */
+static encoding_type	eEncoding = encoding_neutral;
+/* Word version */
+static int	iWordVersion = -1;
+/* Special treatment for files from Word 4/5/6 on an Apple Macintosh */
+static BOOL	bOldMacFile = FALSE;
 /* Text is emphasised */
 static BOOL	bEmphasisOpen = FALSE;
 /* Text is superscript */
@@ -29,6 +35,8 @@ static BOOL	bSubscriptOpen = FALSE;
 static BOOL	bTitleOpen = FALSE;
 /* Table is open */
 static BOOL	bTableOpen = FALSE;
+/* Footnote is open */
+static BOOL	bFootnoteOpen = FALSE;
 /* Current paragraph level */
 static UINT	uiParagraphLevel = 0;
 /* Current list level */
@@ -41,6 +49,8 @@ static USHORT	usHeaderLevelCurrent = 0;
 static BOOL	bEmptyHeaderLevel = TRUE;
 /* Number of columns in the current table */
 static int	iTableColumnsCurrent = 0;
+/* Footnote number */
+static UINT	uiFootnoteNumber = 0;
 
 /* Constants for the stack */
 #define INITIAL_STACK_SIZE	10
@@ -68,63 +78,71 @@ static size_t	tStackNextFree = 0;
 #define TAG_EMPHASIS		(UCHAR)9
 #define TAG_ENTRY		(UCHAR)10
 #define TAG_FILENAME		(UCHAR)11
-#define TAG_INFORMALTABLE	(UCHAR)12
-#define TAG_ITEMIZEDLIST	(UCHAR)13
-#define TAG_LISTITEM		(UCHAR)14
-#define TAG_ORDEREDLIST		(UCHAR)15
-#define TAG_PARA		(UCHAR)16
-#define TAG_ROW			(UCHAR)17
-#define TAG_SECT1		(UCHAR)18
-#define TAG_SECT2		(UCHAR)19
-#define TAG_SECT3		(UCHAR)20
-#define TAG_SECT4		(UCHAR)21
-#define TAG_SECT5		(UCHAR)22
-#define TAG_SUBSCRIPT		(UCHAR)23
-#define TAG_SUBTITLE		(UCHAR)24
-#define TAG_SUPERSCRIPT		(UCHAR)25
-#define TAG_SURNAME		(UCHAR)26
-#define TAG_TBODY		(UCHAR)27
-#define TAG_TGROUP		(UCHAR)28
-#define TAG_TITLE		(UCHAR)29
+#define TAG_FOOTNOTE		(UCHAR)12
+#define TAG_INFORMALTABLE	(UCHAR)13
+#define TAG_ITEMIZEDLIST	(UCHAR)14
+#define TAG_LISTITEM		(UCHAR)15
+#define TAG_ORDEREDLIST		(UCHAR)16
+#define TAG_PARA		(UCHAR)17
+#define TAG_ROW			(UCHAR)18
+#define TAG_SECT1		(UCHAR)19
+#define TAG_SECT2		(UCHAR)20
+#define TAG_SECT3		(UCHAR)21
+#define TAG_SECT4		(UCHAR)22
+#define TAG_SECT5		(UCHAR)23
+#define TAG_SUBSCRIPT		(UCHAR)24
+#define TAG_SUBTITLE		(UCHAR)25
+#define TAG_SUPERSCRIPT		(UCHAR)26
+#define TAG_SURNAME		(UCHAR)27
+#define TAG_TBODY		(UCHAR)28
+#define TAG_TGROUP		(UCHAR)29
+#define TAG_TITLE		(UCHAR)30
 
 typedef struct docbooktags_tag {
 	UCHAR	ucTagnumber;
 	char	szTagname[15];
-	BOOL	bAddNewline;
+	BOOL	bAddNewlineStart;
+	BOOL	bAddNewlineEnd;
 } docbooktags_type;
 
 static const docbooktags_type atDocBookTags[] = {
-	{	TAG_NOTAG, 		"!ERROR!",	TRUE	},
-	{	TAG_AUTHOR,		"author",	TRUE	},
-	{	TAG_BEGINPAGE,		"beginpage",	TRUE	},
-	{	TAG_BOOK, 		"book",		TRUE	},
-	{	TAG_BOOKINFO, 		"bookinfo",	TRUE	},
-	{	TAG_CHAPTER, 		"chapter",	TRUE	},
-	{	TAG_COLSPEC,		"colspec",	TRUE	},
-	{	TAG_CORPNAME,		"corpname",	FALSE	},
-	{	TAG_DATE,		"date",		FALSE	},
-	{	TAG_EMPHASIS,		"emphasis",	FALSE	},
-	{	TAG_ENTRY,		"entry",	TRUE	},
-	{	TAG_FILENAME,		"filename",	FALSE	},
-	{	TAG_INFORMALTABLE,	"informaltable",TRUE	},
-	{	TAG_ITEMIZEDLIST,	"itemizedlist",	TRUE	},
-	{	TAG_LISTITEM,		"listitem",	TRUE	},
-	{	TAG_ORDEREDLIST,	"orderedlist",	TRUE	},
-	{	TAG_PARA, 		"para",		TRUE	},
-	{	TAG_ROW,		"row",		TRUE	},
-	{	TAG_SECT1, 		"sect1",	TRUE	},
-	{	TAG_SECT2, 		"sect2",	TRUE	},
-	{	TAG_SECT3, 		"sect3",	TRUE	},
-	{	TAG_SECT4, 		"sect4",	TRUE	},
-	{	TAG_SECT5, 		"sect5",	TRUE	},
-	{	TAG_SUBSCRIPT,		"subscript",	FALSE	},
-	{	TAG_SUBTITLE,		"subtitle",	FALSE	},
-	{	TAG_SUPERSCRIPT,	"superscript",	FALSE	},
-	{	TAG_SURNAME,		"surname",	FALSE	},
-	{	TAG_TBODY,		"tbody",	TRUE	},
-	{	TAG_TGROUP,		"tgroup",	TRUE	},
-	{	TAG_TITLE, 		"title",	FALSE	},
+	{	TAG_NOTAG, 		"!ERROR!",	TRUE,	TRUE	},
+	{	TAG_AUTHOR,		"author",	TRUE,	TRUE	},
+	{	TAG_BEGINPAGE,		"beginpage",	TRUE,	TRUE	},
+	{	TAG_BOOK, 		"book",		TRUE,	TRUE	},
+	{	TAG_BOOKINFO, 		"bookinfo",	TRUE,	TRUE	},
+	{	TAG_CHAPTER, 		"chapter",	TRUE,	TRUE	},
+	{	TAG_COLSPEC,		"colspec",	TRUE,	TRUE	},
+	{	TAG_CORPNAME,		"corpname",	FALSE,	FALSE	},
+	{	TAG_DATE,		"date",		FALSE,	FALSE	},
+	{	TAG_EMPHASIS,		"emphasis",	FALSE,	FALSE	},
+	{	TAG_ENTRY,		"entry",	TRUE,	TRUE	},
+	{	TAG_FILENAME,		"filename",	FALSE,	FALSE	},
+	{	TAG_FOOTNOTE,		"footnote",	FALSE,	FALSE	},
+	{	TAG_INFORMALTABLE,	"informaltable",TRUE,	TRUE	},
+	{	TAG_ITEMIZEDLIST,	"itemizedlist",	TRUE,	TRUE	},
+	{	TAG_LISTITEM,		"listitem",	TRUE,	TRUE	},
+	{	TAG_ORDEREDLIST,	"orderedlist",	TRUE,	TRUE	},
+	{	TAG_PARA, 		"para",		TRUE,	TRUE	},
+	{	TAG_ROW,		"row",		TRUE,	TRUE	},
+	{	TAG_SECT1, 		"sect1",	TRUE,	TRUE	},
+	{	TAG_SECT2, 		"sect2",	TRUE,	TRUE	},
+	{	TAG_SECT3, 		"sect3",	TRUE,	TRUE	},
+	{	TAG_SECT4, 		"sect4",	TRUE,	TRUE	},
+	{	TAG_SECT5, 		"sect5",	TRUE,	TRUE	},
+	{	TAG_SUBSCRIPT,		"subscript",	FALSE,	FALSE	},
+	{	TAG_SUBTITLE,		"subtitle",	FALSE,	FALSE	},
+	{	TAG_SUPERSCRIPT,	"superscript",	FALSE,	FALSE	},
+	{	TAG_SURNAME,		"surname",	FALSE,	FALSE	},
+	{	TAG_TBODY,		"tbody",	TRUE,	TRUE	},
+	{	TAG_TGROUP,		"tgroup",	TRUE,	TRUE	},
+	{	TAG_TITLE, 		"title",	FALSE,	FALSE	},
 };
+
+static void	vAddStartTag(diagram_type *, UCHAR, const char *);
+static void	vAddEndTag(diagram_type *, UCHAR);
+static void	vAddCombinedTag(diagram_type *, UCHAR, const char *);
+static void	vPrintChar(diagram_type *, char);
 
 
 #if defined(DEBUG)
@@ -238,60 +256,131 @@ vPrintLevel(FILE *pOutFile)
 } /* end of vPrintLevel */
 
 /*
+ * vPrintFootnote - print a footnote
+ */
+static void
+vPrintFootnote(diagram_type *pDiag, UINT uiFootnoteIndex)
+{
+	const char	*szText, *pcTmp;
+	BOOL	bSuScript;
+	UCHAR	ucTopTag;
+
+	TRACE_MSG("vPrintFootnote");
+
+	szText = szGetFootnootText(uiFootnoteIndex);
+
+	if (szText == NULL) {
+		szText = "";
+	}
+
+	/* Remove the subscript/superscript (if any) */
+	ucTopTag = ucReadStack();
+	bSuScript = ucTopTag == TAG_SUBSCRIPT || ucTopTag == TAG_SUPERSCRIPT;
+	if (bSuScript) {
+		vAddEndTag(pDiag, ucTopTag);
+	}
+
+	/* Start a footnote */
+	vAddStartTag(pDiag, TAG_FOOTNOTE, NULL);
+	vAddStartTag(pDiag, TAG_PARA, NULL);
+
+	/* Print a footnote */
+	for (pcTmp = szText; *pcTmp != '\0'; pcTmp++) {
+		if (*pcTmp == PAR_END) {
+			if (*(pcTmp + 1) != PAR_END && *(pcTmp + 1) != '\0') {
+				/* PAR_END is not empty and not last */
+				vAddEndTag(pDiag, TAG_PARA);
+				vAddStartTag(pDiag, TAG_PARA, NULL);
+			}
+		} else {
+			vPrintChar(pDiag, *pcTmp);
+		}
+	}
+
+	/* End a footnote */
+	vAddEndTag(pDiag, TAG_PARA);
+	vAddEndTag(pDiag, TAG_FOOTNOTE);
+
+	/* Repair the subscript/superscript (if any) */
+	if (bSuScript) {
+		vAddStartTag(pDiag, ucTopTag, NULL);
+	}
+} /* end of vPrintFootnote */
+
+/*
  * vPrintChar - print a character with XML encoding
  */
 static void
-vPrintChar(FILE *pOutFile, char cChar)
+vPrintChar(diagram_type *pDiag, char cChar)
 {
+	fail(pDiag == NULL);
+	fail(pDiag->pOutFile == NULL);
+
 	switch (cChar) {
+	case FOOTNOTE_OR_ENDNOTE:
+		uiFootnoteNumber++;
+		vPrintFootnote(pDiag, uiFootnoteNumber - 1);
+		break;
 	case '<':
-		fprintf(pOutFile, "%s", "&lt;");
+		fprintf(pDiag->pOutFile, "%s", "&lt;");
 		break;
 	case '>':
-		fprintf(pOutFile, "%s", "&gt;");
+		fprintf(pDiag->pOutFile, "%s", "&gt;");
 		break;
 	case '&':
-		fprintf(pOutFile, "%s", "&amp;");
+		fprintf(pDiag->pOutFile, "%s", "&amp;");
 		break;
 	default:
-		(void)putc(cChar, pOutFile);
+		(void)putc(cChar, pDiag->pOutFile);
 		break;
 	}
 } /* end of vPrintChar */
 
 /*
- * vPrintSpecial
+ * vPrintSpecialChar - convert and print a character
  */
 static void
-vPrintSpecial(FILE *pOutFile, const char *szString,
-	int iWordVersion, encoding_type eEncoding)
+vPrintSpecialChar(diagram_type *pDiag, USHORT usChar)
 {
-	ULONG	ulChar;
-	size_t	tLen, tIndex;
+	ULONG   ulChar;
+	size_t  tLen, tIndex;
+	char    szResult[4];
+
+	fail(pDiag == NULL);
+	fail(pDiag->pOutFile == NULL);
+	fail(iWordVersion < 0);
+	fail(eEncoding == encoding_neutral);
+
+	ulChar = ulTranslateCharacters(usChar, 0, iWordVersion,
+				conversion_xml, eEncoding, bOldMacFile);
+	tLen = tUcs2Utf8(ulChar, szResult, sizeof(szResult));
+	if (tLen == 1) {
+		vPrintChar(pDiag, szResult[0]);
+	} else {
+		for (tIndex = 0; tIndex < tLen; tIndex++) {
+			(void)putc(szResult[tIndex], pDiag->pOutFile);
+		}
+	}
+} /* end of vPrintSpecialChar */
+
+/*
+ * vPrintSpecialString - convert and print a string
+ */
+static void
+vPrintSpecialString(diagram_type *pDiag, const char *szString)
+{
 	int	iIndex;
-	BOOL	bOldMacFile;
 	USHORT	usChar;
-	char	szResult[4];
 
-	fail(pOutFile == NULL);
+	fail(pDiag == NULL);
+	fail(pDiag->pOutFile == NULL);
 	fail(szString == NULL);
-
-	bOldMacFile = bIsOldMacFile();
 
 	for (iIndex = 0; szString[iIndex] != '\0'; iIndex++) {
 		usChar = (USHORT)(UCHAR)szString[iIndex];
-		ulChar = ulTranslateCharacters(usChar, 0, iWordVersion,
-				conversion_xml, eEncoding, bOldMacFile);
-		tLen = tUcs2Utf8(ulChar, szResult, sizeof(szResult));
-		if (tLen == 1) {
-			vPrintChar(pOutFile, szResult[0]);
-		} else {
-			for (tIndex = 0; tIndex < tLen; tIndex++) {
-				(void)putc(szResult[tIndex], pOutFile);
-			}
-		}
+		vPrintSpecialChar(pDiag, usChar);
 	}
-} /* end of vPrintSpecial */
+} /* end of vPrintSpecialString */
 
 /*
  * vAddStartTag - add the specified start tag to the file
@@ -303,7 +392,7 @@ vAddStartTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 	fail(pDiag->pOutFile == NULL);
 	fail((size_t)ucTag >= elementsof(atDocBookTags));
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewline) {
+	if (atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
 		fprintf(pDiag->pOutFile, "\n");
 		vPrintLevel(pDiag->pOutFile);
 	}
@@ -316,7 +405,7 @@ vAddStartTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 			atDocBookTags[(UINT)ucTag].szTagname, szAttribute);
 	}
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewline) {
+	if (atDocBookTags[(UINT)ucTag].bAddNewlineEnd) {
 		fprintf(pDiag->pOutFile, "\n");
 		pDiag->lXleft = 0;
 	}
@@ -353,8 +442,11 @@ vAddStartTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 		fail(uiParagraphLevel != 0);
 		bTitleOpen = TRUE;
 		break;
+	case TAG_FOOTNOTE:
+		bFootnoteOpen = TRUE;
+		break;
 	case TAG_PARA:
-		fail(bTitleOpen);
+		fail(bTitleOpen && !bFootnoteOpen);
 		uiParagraphLevel++;
 		bEmptyHeaderLevel = FALSE;
 		break;
@@ -415,14 +507,14 @@ vAddEndTag(diagram_type *pDiag, UCHAR ucTag)
 		werr(1, "Impossible tag sequence, unable to continue");
 	}
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewline) {
+	if (atDocBookTags[(UINT)ucTag].bAddNewlineEnd) {
 		fprintf(pDiag->pOutFile, "\n");
 		vPrintLevel(pDiag->pOutFile);
 	}
 
 	fprintf(pDiag->pOutFile, "</%s>", atDocBookTags[(UINT)ucTag].szTagname);
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewline) {
+	if (atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
 		fprintf(pDiag->pOutFile, "\n");
 		pDiag->lXleft = 0;
 	}
@@ -449,6 +541,9 @@ vAddEndTag(diagram_type *pDiag, UCHAR ucTag)
 		break;
 	case TAG_TITLE:
 		bTitleOpen = FALSE;
+		break;
+	case TAG_FOOTNOTE:
+		bFootnoteOpen = FALSE;
 		break;
 	case TAG_PARA:
 		uiParagraphLevel--;
@@ -499,7 +594,7 @@ vAddCombinedTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 	fail(pDiag->pOutFile == NULL);
 	fail((size_t)ucTag >= elementsof(atDocBookTags));
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewline) {
+	if (atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
 		fprintf(pDiag->pOutFile, "\n");
 		vPrintLevel(pDiag->pOutFile);
 	}
@@ -512,7 +607,7 @@ vAddCombinedTag(diagram_type *pDiag, UCHAR ucTag, const char *szAttribute)
 			atDocBookTags[(UINT)ucTag].szTagname, szAttribute);
 	}
 
-	if (atDocBookTags[(UINT)ucTag].bAddNewline) {
+	if (atDocBookTags[(UINT)ucTag].bAddNewlineStart) {
 		fprintf(pDiag->pOutFile, "\n");
 		pDiag->lXleft = 0;
 	}
@@ -568,7 +663,7 @@ vAddEndTagsUntil2(diagram_type *pDiag, UCHAR ucTag1, UCHAR ucTag2)
  * vCreateBookIntro - create title and bookinfo
  */
 void
-vCreateBookIntro(diagram_type *pDiag, int iWordVersion, encoding_type eEncoding)
+vCreateBookIntro(diagram_type *pDiag, int iVersion)
 {
 	const char	*szTitle, *szSubject, *szAuthor;
 	const char	*szLastSaveDtm, *szCompany;
@@ -577,9 +672,11 @@ vCreateBookIntro(diagram_type *pDiag, int iWordVersion, encoding_type eEncoding)
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
-	fail(iWordVersion < 0);
+	fail(iVersion < 0);
 	fail(eEncoding == encoding_neutral);
 
+	iWordVersion = iVersion;
+	bOldMacFile = bIsOldMacFile();
 	szTitle = szGetTitle();
 	szSubject = szGetSubject();
 	szAuthor = szGetAuthor();
@@ -598,8 +695,7 @@ vCreateBookIntro(diagram_type *pDiag, int iWordVersion, encoding_type eEncoding)
 	/* Book title */
 	if (szTitle != NULL && szTitle[0] != '\0') {
 		vAddStartTag(pDiag, TAG_TITLE, NULL);
-		vPrintSpecial(pDiag->pOutFile,
-				szTitle, iWordVersion, eEncoding);
+		vPrintSpecialString(pDiag, szTitle);
 		vAddEndTag(pDiag, TAG_TITLE);
 	}
 	/* Bookinfo */
@@ -611,34 +707,29 @@ vCreateBookIntro(diagram_type *pDiag, int iWordVersion, encoding_type eEncoding)
 		vAddStartTag(pDiag, TAG_BOOKINFO, NULL);
 		if (szTitle != NULL && szTitle[0] != '\0') {
 			vAddStartTag(pDiag, TAG_TITLE, NULL);
-			vPrintSpecial(pDiag->pOutFile,
-					szTitle, iWordVersion, eEncoding);
+			vPrintSpecialString(pDiag, szTitle);
 			vAddEndTag(pDiag, TAG_TITLE);
 		}
 		if (szSubject != NULL && szSubject[0] != '\0') {
 			vAddStartTag(pDiag, TAG_SUBTITLE, NULL);
-			vPrintSpecial(pDiag->pOutFile,
-					szSubject, iWordVersion, eEncoding);
+			vPrintSpecialString(pDiag, szSubject);
 			vAddEndTag(pDiag, TAG_SUBTITLE);
 		}
 		if (szAuthor != NULL && szAuthor[0] != '\0') {
 			vAddStartTag(pDiag, TAG_AUTHOR, NULL);
 			vAddStartTag(pDiag, TAG_SURNAME, NULL);
-			vPrintSpecial(pDiag->pOutFile,
-					szAuthor, iWordVersion, eEncoding);
+			vPrintSpecialString(pDiag, szAuthor);
 			vAddEndTag(pDiag, TAG_SURNAME);
 			vAddEndTag(pDiag, TAG_AUTHOR);
 		}
 		if (szLastSaveDtm != NULL && szLastSaveDtm[0] != '\0') {
 			vAddStartTag(pDiag, TAG_DATE, NULL);
-			vPrintSpecial(pDiag->pOutFile,
-					szLastSaveDtm, iWordVersion, eEncoding);
+			vPrintSpecialString(pDiag, szLastSaveDtm);
 			vAddEndTag(pDiag, TAG_DATE);
 		}
 		if (szCompany != NULL && szCompany[0] != '\0') {
 			vAddStartTag(pDiag, TAG_CORPNAME, NULL);
-			vPrintSpecial(pDiag->pOutFile,
-					szCompany, iWordVersion, eEncoding);
+			vPrintSpecialString(pDiag, szCompany);
 			vAddEndTag(pDiag, TAG_CORPNAME);
 		}
 		vAddEndTag(pDiag, TAG_BOOKINFO);
@@ -649,28 +740,32 @@ vCreateBookIntro(diagram_type *pDiag, int iWordVersion, encoding_type eEncoding)
  * vPrologueXML - perform the XML initialization
  */
 void
-vPrologueXML(diagram_type *pDiag)
+vPrologueXML(diagram_type *pDiag, const options_type *pOptions)
 {
 
 	fail(pDiag == NULL);
 	fail(pDiag->pOutFile == NULL);
+	fail(pOptions == NULL);
 
 #if defined(DEBUG)
 	vCheckTagTable();
 #endif /* DEBUG */
 
 	/* Set global variables to their start values */
+	eEncoding = pOptions->eEncoding;
 	bEmphasisOpen = FALSE;
 	bSuperscriptOpen = FALSE;
 	bSubscriptOpen = FALSE;
 	bTitleOpen = FALSE;
 	bTableOpen = FALSE;
+	bFootnoteOpen = FALSE;
 	uiParagraphLevel = 0;
 	uiListLevel = 0;
 	bEmptyListLevel = TRUE;
 	usHeaderLevelCurrent = 0;
 	bEmptyHeaderLevel = TRUE;
 	iTableColumnsCurrent = 0;
+	uiFootnoteNumber = 0;
 
 	pDiag->lXleft = 0;
 	pDiag->lYtop = 0;
@@ -707,6 +802,7 @@ static void
 vPrintXML(diagram_type *pDiag, const char *szString, size_t tStringLength,
 		USHORT usFontstyle)
 {
+	const char	*szAttr;
 	int	iCount;
 	size_t	tNextFree;
 	BOOL	bNotReady, bEmphasisNew, bSuperscriptNew, bSubscriptNew;
@@ -718,12 +814,20 @@ vPrintXML(diagram_type *pDiag, const char *szString, size_t tStringLength,
 		return;
 	}
 
-	bEmphasisNew = bIsBold(usFontstyle) ||
-			bIsItalic(usFontstyle) ||
-			bIsUnderline(usFontstyle) ||
-			bIsStrike(usFontstyle);
-	bSuperscriptNew = bIsSuperscript(usFontstyle);
-	bSubscriptNew = bIsSubscript(usFontstyle);
+	if (tStringLength == 1 && szString[0] == FOOTNOTE_OR_ENDNOTE) {
+		/* Don't do anything special for just a single footnote */
+		bEmphasisNew = FALSE;
+		bSuperscriptNew = FALSE;
+		bSubscriptNew = FALSE;
+	} else {
+		/* Situation normal */
+		bEmphasisNew = bIsBold(usFontstyle) ||
+				bIsItalic(usFontstyle) ||
+				bIsUnderline(usFontstyle) ||
+				bIsStrike(usFontstyle);
+		bSuperscriptNew = bIsSuperscript(usFontstyle);
+		bSubscriptNew = bIsSubscript(usFontstyle);
+	}
 
 	/* End what has to be ended (or more to keep the stack happy) */
 	tNextFree = 0;
@@ -770,7 +874,18 @@ vPrintXML(diagram_type *pDiag, const char *szString, size_t tStringLength,
 
 	/* Start what has to be started */
 	if (bEmphasisNew && !bEmphasisOpen) {
-		vAddStartTag(pDiag, TAG_EMPHASIS, NULL);
+		if (bIsBold(usFontstyle)) {
+			szAttr = "role='bold'";
+		} else if (bIsItalic(usFontstyle)) {
+			szAttr = NULL;
+		} else if (bIsUnderline(usFontstyle)) {
+			szAttr = "role='underline'";
+		} else if (bIsStrike(usFontstyle)) {
+			szAttr = "role='strikethrough'";
+		} else {
+			szAttr = NULL;
+		}
+		vAddStartTag(pDiag, TAG_EMPHASIS, szAttr);
 	}
 	if (bSuperscriptNew && !bSuperscriptOpen) {
 		vAddStartTag(pDiag, TAG_SUPERSCRIPT, NULL);
@@ -781,7 +896,7 @@ vPrintXML(diagram_type *pDiag, const char *szString, size_t tStringLength,
 
 	/* The print the string */
 	for (iCount = 0; iCount < (int)tStringLength; iCount++) {
-		vPrintChar(pDiag->pOutFile, szString[iCount]);
+		vPrintChar(pDiag, szString[iCount]);
 	}
 } /* end of vPrintXML */
 
@@ -793,10 +908,11 @@ vMove2NextLineXML(diagram_type *pDiag)
 {
 	fail(pDiag == NULL);
 
+	/*
 	if (uiParagraphLevel != 0) {
-		vEndOfParagraphXML(pDiag, INT_MAX);
-		vStartOfParagraphXML(pDiag, INT_MAX);
+		We need something like HTML's <BR> tag
 	}
+	*/
 } /* end of vMove2NextLineXML */
 
 /*
@@ -826,12 +942,12 @@ vSubstringXML(diagram_type *pDiag,
  * in paragraphs. Other paragraph levels result from DocBooks special needs.
  */
 void
-vStartOfParagraphXML(diagram_type *pDiag, int iMaxLevel)
+vStartOfParagraphXML(diagram_type *pDiag, UINT uiMaxLevel)
 {
 	fail(pDiag == NULL);
 
-	if (uiParagraphLevel >= (UINT)iMaxLevel || bTitleOpen) {
-		/* To Word titles are just paragraphs */
+	if (uiParagraphLevel >= uiMaxLevel || bTitleOpen) {
+		/* In Word a title is just a paragraph */
 		return;
 	}
 	if (uiListLevel != 0 && bEmptyListLevel) {
@@ -852,13 +968,13 @@ vStartOfParagraphXML(diagram_type *pDiag, int iMaxLevel)
  * Only for paragraph level one and for titles
  */
 void
-vEndOfParagraphXML(diagram_type *pDiag, int iMaxLevel)
+vEndOfParagraphXML(diagram_type *pDiag, UINT uiMaxLevel)
 {
 	UCHAR	ucTopTag;
 
 	fail(pDiag == NULL);
 
-	if (uiParagraphLevel > (UINT)iMaxLevel) {
+	if (uiParagraphLevel > uiMaxLevel) {
 		DBG_DEC(uiParagraphLevel);
 		return;
 	}
@@ -918,8 +1034,8 @@ vEndOfPageXML(diagram_type *pDiag)
 	if (bTitleOpen) {
 		/* A beginpage is not allowed when in a title */
 		/* So start a new paragraph */
-		vEndOfParagraphXML(pDiag, INT_MAX);
-		vStartOfParagraphXML(pDiag, INT_MAX);
+		vEndOfParagraphXML(pDiag, UINT_MAX);
+		vStartOfParagraphXML(pDiag, UINT_MAX);
 		return;
 	}
 	vAddCombinedTag(pDiag, TAG_BEGINPAGE, NULL);
@@ -1060,6 +1176,9 @@ vStartOfListXML(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
 	switch (ucNFC) {
 	case LIST_ARABIC_NUM:
 	case LIST_ORDINAL_NUM:
+	case LIST_NUMBER_TXT:
+	case LIST_ORDINAL_TXT:
+	case LIST_OUTLINE_NUM:
 		ucTag = TAG_ORDEREDLIST;
 		szAttr = "numeration='arabic'";
 		break;
@@ -1080,6 +1199,7 @@ vStartOfListXML(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
 		szAttr = "numeration='loweralpha'";
 		break;
 	case LIST_SPECIAL:
+	case LIST_SPECIAL2:
 	case LIST_BULLETS:
 		ucTag = TAG_ITEMIZEDLIST;
 		szAttr = "mark='bullet'";
@@ -1087,7 +1207,7 @@ vStartOfListXML(diagram_type *pDiag, UCHAR ucNFC, BOOL bIsEndOfTable)
 	default:
 		ucTag = TAG_ORDEREDLIST;
 		szAttr = "numeration='arabic'";
-		DBG_DEC(ucNFC);
+		DBG_HEX(ucNFC);
 		DBG_FIXME();
 		break;
 	}
@@ -1310,7 +1430,7 @@ vAddTableRowXML(diagram_type *pDiag, char **aszColTxt,
 		vAddStartTag(pDiag, TAG_ENTRY, NULL);
 		tStringLength = strlen(aszColTxt[iIndex]);
 		for (tCount = 0; tCount < tStringLength; tCount++) {
-			vPrintChar(pDiag->pOutFile, aszColTxt[iIndex][tCount]);
+			vPrintChar(pDiag, aszColTxt[iIndex][tCount]);
 		}
 		vAddEndTag(pDiag, TAG_ENTRY);
 	}

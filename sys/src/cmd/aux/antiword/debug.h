@@ -1,6 +1,6 @@
 /*
  * debug.h
- * Copyright (C) 1998-2001 A.J. van Os; Released under GPL
+ * Copyright (C) 1998-2005 A.J. van Os; Released under GPL
  *
  * Description:
  * Macro's for debuging.
@@ -98,5 +98,20 @@
 #define NO_DBG_DEC_C(c,m)	/* EMPTY */
 #define NO_DBG_HEX_C(c,m)	/* EMPTY */
 #define NO_DBG_FLT_C(c,m)	/* EMPTY */
+
+#if defined(TRACE)
+
+#define TRACE_MSG(t)	do {\
+			(void)fprintf(stderr,\
+				"%s[%3d]: TRACE:%.40s\n",\
+				__FILE__, __LINE__, (t));\
+			(void)fflush(stderr);\
+			} while(0)
+
+#else
+
+#define TRACE_MSG(t)		/* EMPTY */
+
+#endif /* TRACE */
 
 #endif /* !__debug_h */

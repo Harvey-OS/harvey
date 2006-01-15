@@ -1,6 +1,6 @@
 /*
  * stylelist.c
- * Copyright (C) 1998-2003 A.J. van Os; Released under GNU GPL
+ * Copyright (C) 1998-2005 A.J. van Os; Released under GNU GPL
  *
  * Description:
  * Build, read and destroy a list of Word style information
@@ -79,7 +79,9 @@ vConvertListCharacter(UCHAR ucNFC, USHORT usListChar, char *szListChar)
 		return;
 	}
 
-	if (ucNFC != LIST_SPECIAL && ucNFC != LIST_BULLETS) {
+	if (ucNFC != LIST_SPECIAL &&
+	    ucNFC != LIST_SPECIAL2 &&
+	    ucNFC != LIST_BULLETS) {
 		szListChar[0] = '.';
 		szListChar[1] = '\0';
 		return;
@@ -94,7 +96,7 @@ vConvertListCharacter(UCHAR ucNFC, USHORT usListChar, char *szListChar)
 
 	switch (usListChar) {
 	case 0x0000: case 0x00b7: case 0x00fe: case  0xf021: case 0xf043:
-	case 0xf093: case 0xf0b7:
+	case 0xf06c: case 0xf093: case 0xf0b7:
 		usListChar = 0x2022;	/* BULLET */
 		break;
 	case 0x0096: case 0xf02d:
@@ -130,7 +132,7 @@ vConvertListCharacter(UCHAR ucNFC, USHORT usListChar, char *szListChar)
 	case 0xf071:
 		usListChar = 0x2751;	/* LOWER RIGHT SHADOWED WHITE SQUARE */
 		break;
-	case 0xf075:
+	case 0xf075: case 0xf077:
 		usListChar = 0x25c6;	/* BLACK DIAMOND */
 		break;
 	case 0xf076:
@@ -156,16 +158,21 @@ vConvertListCharacter(UCHAR ucNFC, USHORT usListChar, char *szListChar)
 		    (usListChar < 0x80 && !isprint((int)usListChar))) {
 			/*
 			 * All remaining private area characters and all
-			 * remaining non-printable ASCII characters to bullet
+			 * remaining non-printable ASCII characters to their
+			 * default bullet character
 			 */
 			DBG_HEX(usListChar);
 			DBG_FIXME();
-			usListChar = 0x2022;	/* BULLET */
+			if (ucNFC == LIST_SPECIAL || ucNFC == LIST_SPECIAL2) {
+				usListChar = 0x2190;	/* LEFTWARDS ARROW */
+			} else {
+				usListChar = 0x2022;	/* BULLET */
+			}
 		}
 		break;
 	}
 
-	if (eEncoding == encoding_utf8) {
+	if (eEncoding == encoding_utf_8) {
 		tLen = tUcs2Utf8(usListChar, szListChar, 4);
 		szListChar[tLen] = '\0';
 	} else {
@@ -177,7 +184,7 @@ vConvertListCharacter(UCHAR ucNFC, USHORT usListChar, char *szListChar)
 		case 0x2013: case 0x2500:
 			szListChar[0] = '-';
 			break;
-		case 0x2199: case 0x2329:
+		case 0x2190: case 0x2199: case 0x2329:
 			szListChar[0] = '<';
 			break;
 		case 0x21d2:
@@ -386,6 +393,24 @@ pGetNextStyleInfoListItem(const style_block_type *pCurr)
 	}
 	return &pRecord->pNext->tInfo;
 } /* end of pGetNextStyleInfoListItem */
+
+/*
+ * Get the next text style
+ */
+const style_block_type *
+pGetNextTextStyle(const style_block_type *pCurr)
+{
+	const style_block_type	*pRecord;
+
+	pRecord = pCurr;
+	do {
+		pRecord = pGetNextStyleInfoListItem(pRecord);
+	} while (pRecord != NULL &&
+		 (pRecord->eListID == hdrftr_list ||
+		  pRecord->eListID == macro_list ||
+		  pRecord->eListID == annotation_list));
+	return pRecord;
+} /* end of pGetNextTextStyle */
 
 /*
  * usGetIstd - get the istd that belongs to the given file offset

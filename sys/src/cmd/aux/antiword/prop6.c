@@ -1,6 +1,6 @@
 /*
  * prop6.c
- * Copyright (C) 1998-2003 A.J. van Os; Released under GPL
+ * Copyright (C) 1998-2005 A.J. van Os; Released under GPL
  *
  * Description:
  * Read the property information from a MS Word 6 or 7 file
@@ -50,14 +50,55 @@ iGet6InfoLength(int iByteNbr, const UCHAR *aucGrpprl)
 		return 1 + 5;
 	case  73: case  95: case 136: case 137:
 		return 1 + 3;
-	case 120:
-		return 1 + 13;
-	case 187:
+	case 120: case 187:
 		return 1 + 12;
 	default:
 		return 1 + 1;
 	}
 } /* end of iGet6InfoLength */
+
+/*
+ * Build the lists with Document Property Information for Word 6/7 files
+ */
+void
+vGet6DopInfo(FILE *pFile, ULONG ulStartBlock,
+	const ULONG *aulBBD, size_t tBBDLen,
+	const UCHAR *aucHeader)
+{
+	document_block_type	tDocument;
+	UCHAR	*aucBuffer;
+	ULONG	ulBeginDocpInfo, ulTmp;
+	size_t	tDocpInfoLen;
+	USHORT	usTmp;
+
+	ulBeginDocpInfo = ulGetLong(0x150, aucHeader); /* fcDop */
+	DBG_HEX(ulBeginDocpInfo);
+	tDocpInfoLen = (size_t)ulGetLong(0x154, aucHeader); /* lcbDop */
+	DBG_DEC(tDocpInfoLen);
+	if (tDocpInfoLen < 28) {
+		DBG_MSG("No Document information");
+		return;
+	}
+
+	aucBuffer = xmalloc(tDocpInfoLen);
+	if (!bReadBuffer(pFile, ulStartBlock,
+			aulBBD, tBBDLen, BIG_BLOCK_SIZE,
+			aucBuffer, ulBeginDocpInfo, tDocpInfoLen)) {
+		aucBuffer = xfree(aucBuffer);
+		return;
+	}
+
+	usTmp = usGetWord(0x00, aucBuffer);
+	tDocument.ucHdrFtrSpecification = (UCHAR)(usTmp >> 8); /* grpfIhdt */
+	tDocument.usDefaultTabWidth = usGetWord(0x0a, aucBuffer); /* dxaTab */
+	ulTmp = ulGetLong(0x14, aucBuffer); /* dttmCreated */
+	tDocument.tCreateDate = tConvertDTTM(ulTmp);
+	ulTmp = ulGetLong(0x18, aucBuffer); /* dttmRevised */
+	tDocument.tRevisedDate = tConvertDTTM(ulTmp);
+	vCreateDocumentInfoList(&tDocument);
+
+	aucBuffer = xfree(aucBuffer);
+} /* end of vGet6DopInfo */
 
 /*
  * Fill the section information block with information
@@ -110,6 +151,10 @@ vGet6SectionInfo(const UCHAR *aucGrpprl, size_t tBytes,
 			usCcol = 1 + usGetWord(iFodoOff + 1, aucGrpprl);
 			DBG_DEC(usCcol);
 			break;
+		case 153:	/* grpfIhdt */
+			pSection->ucHdrFtrSpecification =
+					ucGetByte(iFodoOff + 1, aucGrpprl);
+			break;
 		default:
 			break;
 		}
@@ -130,17 +175,18 @@ vGet6SepInfo(FILE *pFile, ULONG ulStartBlock,
 	const UCHAR *aucHeader)
 {
 	section_block_type	tSection;
-	ULONG		*aulSectPage, *aulTextOffset;
+	ULONG		*aulSectPage, *aulCharPos;
 	UCHAR	*aucBuffer, *aucFpage;
-	ULONG	ulBeginSectInfo;
-	size_t	tSectInfoLen, tOffset, tLen, tBytes;
-	int	iIndex;
+	ULONG	ulBeginOfText, ulTextOffset, ulBeginSectInfo;
+	size_t	tSectInfoLen, tIndex, tOffset, tLen, tBytes;
 	UCHAR	aucTmp[2];
 
 	fail(pFile == NULL || aucHeader == NULL);
 	fail(ulStartBlock > MAX_BLOCKNUMBER && ulStartBlock != END_OF_CHAIN);
 	fail(aulBBD == NULL);
 
+        ulBeginOfText = ulGetLong(0x18, aucHeader); /* fcMin */
+        NO_DBG_HEX(ulBeginOfText);
 	ulBeginSectInfo = ulGetLong(0x88, aucHeader); /* fcPlcfsed */
 	DBG_HEX(ulBeginSectInfo);
 	tSectInfoLen = (size_t)ulGetLong(0x8c, aucHeader); /* lcbPlcfsed */
@@ -162,32 +208,33 @@ vGet6SepInfo(FILE *pFile, ULONG ulStartBlock,
 	/* Read the Section Descriptors */
 	tLen = (tSectInfoLen - 4) / 16;
 	/* Save the section offsets */
-	aulTextOffset = xcalloc(tLen, sizeof(ULONG));
-	for (iIndex = 0, tOffset = 0;
-	     iIndex < (int)tLen;
-	     iIndex++, tOffset += 4) {
-		aulTextOffset[iIndex] = ulGetLong(tOffset, aucBuffer);
+	aulCharPos = xcalloc(tLen, sizeof(ULONG));
+	for (tIndex = 0, tOffset = 0; tIndex < tLen; tIndex++, tOffset += 4) {
+		ulTextOffset = ulGetLong(tOffset, aucBuffer);
+		NO_DBG_HEX(ulTextOffset);
+		aulCharPos[tIndex] = ulBeginOfText + ulTextOffset;
+		NO_DBG_HEX(aulCharPos[tIndex]);
 	}
 	/* Save the Sepx offsets */
 	aulSectPage = xcalloc(tLen, sizeof(ULONG));
-	for (iIndex = 0, tOffset = (tLen + 1) * 4;
-	     iIndex < (int)tLen;
-	     iIndex++, tOffset += 12) {
-		aulSectPage[iIndex] = ulGetLong(tOffset + 2, aucBuffer);
-		NO_DBG_HEX(aulSectPage[iIndex]); /* fcSepx */
+	for (tIndex = 0, tOffset = (tLen + 1) * 4;
+	     tIndex < tLen;
+	     tIndex++, tOffset += 12) {
+		aulSectPage[tIndex] = ulGetLong(tOffset + 2, aucBuffer);
+		NO_DBG_HEX(aulSectPage[tIndex]); /* fcSepx */
 	}
 	aucBuffer = xfree(aucBuffer);
 
 	/* Read the Section Properties */
-	for (iIndex = 0; iIndex < (int)tLen; iIndex++) {
-		if (aulSectPage[iIndex] == FC_INVALID) {
-			vDefault2SectionInfoList(aulTextOffset[iIndex]);
+	for (tIndex = 0; tIndex < tLen; tIndex++) {
+		if (aulSectPage[tIndex] == FC_INVALID) {
+			vDefault2SectionInfoList(aulCharPos[tIndex]);
 			continue;
 		}
 		/* Get the number of bytes to read */
 		if (!bReadBuffer(pFile, ulStartBlock,
 				aulBBD, tBBDLen, BIG_BLOCK_SIZE,
-				aucTmp, aulSectPage[iIndex], 2)) {
+				aucTmp, aulSectPage[tIndex], 2)) {
 			continue;
 		}
 		tBytes = 2 + (size_t)usGetWord(0, aucTmp);
@@ -196,7 +243,7 @@ vGet6SepInfo(FILE *pFile, ULONG ulStartBlock,
 		aucFpage = xmalloc(tBytes);
 		if (!bReadBuffer(pFile, ulStartBlock,
 				aulBBD, tBBDLen, BIG_BLOCK_SIZE,
-				aucFpage, aulSectPage[iIndex], tBytes)) {
+				aucFpage, aulSectPage[tIndex], tBytes)) {
 			aucFpage = xfree(aucFpage);
 			continue;
 		}
@@ -204,12 +251,63 @@ vGet6SepInfo(FILE *pFile, ULONG ulStartBlock,
 		/* Process the bytes */
 		vGetDefaultSection(&tSection);
 		vGet6SectionInfo(aucFpage + 2, tBytes - 2, &tSection);
-		vAdd2SectionInfoList(&tSection, aulTextOffset[iIndex]);
+		vAdd2SectionInfoList(&tSection, aulCharPos[tIndex]);
 		aucFpage = xfree(aucFpage);
 	}
-	aulTextOffset = xfree(aulTextOffset);
+	aulCharPos = xfree(aulCharPos);
 	aulSectPage = xfree(aulSectPage);
 } /* end of vGet6SepInfo */
+
+/*
+ * Build the list with Header/Footer Information for Word 6/7 files
+ */
+void
+vGet6HdrFtrInfo(FILE *pFile, ULONG ulStartBlock,
+	const ULONG *aulBBD, size_t tBBDLen,
+	const UCHAR *aucHeader)
+{
+	ULONG	*aulCharPos;
+	UCHAR	*aucBuffer;
+	ULONG	ulHdrFtrOffset, ulBeginHdrFtrInfo;
+	size_t	tHdrFtrInfoLen, tIndex, tOffset, tLen;
+
+	fail(pFile == NULL || aucHeader == NULL);
+	fail(ulStartBlock > MAX_BLOCKNUMBER && ulStartBlock != END_OF_CHAIN);
+	fail(aulBBD == NULL);
+
+	ulBeginHdrFtrInfo = ulGetLong(0xb0, aucHeader); /* fcPlcfhdd */
+	NO_DBG_HEX(ulBeginHdrFtrInfo);
+	tHdrFtrInfoLen = (size_t)ulGetLong(0xb4, aucHeader); /* lcbPlcfhdd */
+	NO_DBG_DEC(tHdrFtrInfoLen);
+	if (tHdrFtrInfoLen < 8) {
+		DBG_DEC_C(tHdrFtrInfoLen != 0, tHdrFtrInfoLen);
+		return;
+	}
+
+	aucBuffer = xmalloc(tHdrFtrInfoLen);
+	if (!bReadBuffer(pFile, ulStartBlock,
+			aulBBD, tBBDLen, BIG_BLOCK_SIZE,
+			aucBuffer, ulBeginHdrFtrInfo, tHdrFtrInfoLen)) {
+		aucBuffer = xfree(aucBuffer);
+		return;
+	}
+	NO_DBG_PRINT_BLOCK(aucBuffer, tHdrFtrInfoLen);
+
+	tLen = tHdrFtrInfoLen / 4 - 1;
+	/* Save the header/footer offsets */
+	aulCharPos = xcalloc(tLen, sizeof(ULONG));
+	for (tIndex = 0, tOffset = 0;
+	     tIndex < tLen;
+	     tIndex++, tOffset += 4) {
+		ulHdrFtrOffset = ulGetLong(tOffset, aucBuffer);
+		NO_DBG_HEX(ulHdrFtrOffset);
+		aulCharPos[tIndex] = ulHdrFtrOffset2CharPos(ulHdrFtrOffset);
+		NO_DBG_HEX(aulCharPos[tIndex]);
+	}
+	vCreat6HdrFtrInfoList(aulCharPos, tLen);
+	aulCharPos = xfree(aulCharPos);
+	aucBuffer = xfree(aucBuffer);
+} /* end of vGet6HdrFtrInfo */
 
 /*
  * Translate the rowinfo to a member of the row_info enumeration
@@ -235,7 +333,7 @@ eGet6RowInfo(int iFodo,
 	while (iBytes >= iFodoOff + 1) {
 		iInfoLen = 0;
 		switch (ucGetByte(iFodo + iFodoOff, aucGrpprl)) {
-		case  24:	/* fIntable */
+		case  24:	/* fInTable */
 			if (odd(ucGetByte(iFodo + iFodoOff + 1, aucGrpprl))) {
 				bFound24_1 = TRUE;
 			} else {
@@ -289,6 +387,11 @@ eGet6RowInfo(int iFodo,
 				pRow->ucBorderInfo |= TABLE_BORDER_RIGHT;
 			}
 			break;
+		case 188:	/* cDefTable10 */
+			DBG_MSG("188: sprmTDefTable10");
+			iSize = (int)usGetWord(iFodo + iFodoOff + 1, aucGrpprl);
+			DBG_DEC(iSize);
+			break;
 		case 190:	/* cDefTable */
 			iSize = (int)usGetWord(iFodo + iFodoOff + 1, aucGrpprl);
 			if (iSize < 6 || iBytes < iFodoOff + 7) {
@@ -310,7 +413,6 @@ eGet6RowInfo(int iFodo,
 				werr(1, "The number of columns is corrupt");
 			}
 			pRow->ucNumberOfColumns = (UCHAR)iCol;
-			pRow->iColumnWidthSum = 0;
 			iPosPrev = (int)(short)usGetWord(
 					iFodo + iFodoOff + 4,
 					aucGrpprl);
@@ -320,8 +422,6 @@ eGet6RowInfo(int iFodo,
 					aucGrpprl);
 				pRow->asColumnWidth[iIndex] =
 						(short)(iPosCurr - iPosPrev);
-				pRow->iColumnWidthSum +=
-					pRow->asColumnWidth[iIndex];
 				iPosPrev = iPosCurr;
 			}
 			bFound190 = TRUE;
@@ -336,10 +436,11 @@ eGet6RowInfo(int iFodo,
 		}
 		iFodoOff += iInfoLen;
 	}
-	if (bFound24_1 && bFound25_1 && bFound190) {
+
+	if (bFound25_1 && bFound190) {
 		return found_end_of_row;
 	}
-	if (bFound24_0 && bFound25_0 && !bFound190) {
+	if (bFound25_0 && !bFound190) {
 		return found_not_end_of_row;
 	}
 	if (bFound24_1) {
@@ -413,6 +514,7 @@ vGet6StyleInfo(int iFodo,
 				eGetNumType(ucTmp) == level_type_pause;
 			break;
 		case  15:	/* ChgTabsPapx */
+		case  23:	/* ChgTabs */
 			iTmp = (int)ucGetByte(iFodo + iFodoOff + 1, aucGrpprl);
 			if (iTmp < 2) {
 				iInfoLen = 1;
@@ -495,7 +597,8 @@ vGet6PapInfo(FILE *pFile, ULONG ulStartBlock,
 	ULONG	ulCharPos, ulCharPosFirst, ulCharPosLast;
 	ULONG	ulBeginParfInfo;
 	size_t	tParfInfoLen, tParfPageNum, tOffset, tSize, tLenOld, tLen;
-	int	iIndex, iIndex2, iRun, iFodo, iLen;
+	size_t	tIndex, tIndex2, tRun;
+	int	iFodo, iLen;
 	row_info_enum	eRowInfo;
 	USHORT	usParfFirstPage, usCount, usIstd;
 	UCHAR	aucFpage[BIG_BLOCK_SIZE];
@@ -524,11 +627,11 @@ vGet6PapInfo(FILE *pFile, ULONG ulStartBlock,
 
 	tLen = (tParfInfoLen - 4) / 6;
 	ausParfPage = xcalloc(tLen, sizeof(USHORT));
-	for (iIndex = 0, tOffset = (tLen + 1) * 4;
-	     iIndex < (int)tLen;
-	     iIndex++, tOffset += 2) {
-		 ausParfPage[iIndex] = usGetWord(tOffset, aucBuffer);
-		 NO_DBG_DEC(ausParfPage[iIndex]);
+	for (tIndex = 0, tOffset = (tLen + 1) * 4;
+	     tIndex < tLen;
+	     tIndex++, tOffset += 2) {
+		 ausParfPage[tIndex] = usGetWord(tOffset, aucBuffer);
+		 NO_DBG_DEC(ausParfPage[tIndex]);
 	}
 	DBG_HEX(ulGetLong(0, aucBuffer));
 	aucBuffer = xfree(aucBuffer);
@@ -544,29 +647,29 @@ vGet6PapInfo(FILE *pFile, ULONG ulStartBlock,
 		ausParfPage = xrealloc(ausParfPage, tSize);
 		/* Add new values */
 		usCount = usParfFirstPage + 1;
-		for (iIndex = (int)tLenOld; iIndex < (int)tLen; iIndex++) {
-			ausParfPage[iIndex] = usCount;
-			NO_DBG_DEC(ausParfPage[iIndex]);
+		for (tIndex = tLenOld; tIndex < tLen; tIndex++) {
+			ausParfPage[tIndex] = usCount;
+			NO_DBG_DEC(ausParfPage[tIndex]);
 			usCount++;
 		}
 	}
 
 	(void)memset(&tRow, 0, sizeof(tRow));
 	ulCharPosFirst = CP_INVALID;
-	for (iIndex = 0; iIndex < (int)tLen; iIndex++) {
+	for (tIndex = 0; tIndex < tLen; tIndex++) {
 		if (!bReadBuffer(pFile, ulStartBlock,
 				aulBBD, tBBDLen, BIG_BLOCK_SIZE,
 				aucFpage,
-				(ULONG)ausParfPage[iIndex] * BIG_BLOCK_SIZE,
+				(ULONG)ausParfPage[tIndex] * BIG_BLOCK_SIZE,
 				BIG_BLOCK_SIZE)) {
 			break;
 		}
-		iRun = (int)ucGetByte(0x1ff, aucFpage);
-		NO_DBG_DEC(iRun);
-		for (iIndex2 = 0; iIndex2 < iRun; iIndex2++) {
-			NO_DBG_HEX(ulGetLong(iIndex2 * 4, aucFpage));
+		tRun = (size_t)ucGetByte(0x1ff, aucFpage);
+		NO_DBG_DEC(tRun);
+		for (tIndex2 = 0; tIndex2 < tRun; tIndex2++) {
+			NO_DBG_HEX(ulGetLong(tIndex2 * 4, aucFpage));
 			iFodo = 2 * (int)ucGetByte(
-				(iRun + 1) * 4 + iIndex2 * 7, aucFpage);
+				(tRun + 1) * 4 + tIndex2 * 7, aucFpage);
 			if (iFodo <= 0) {
 				continue;
 			}
@@ -576,9 +679,10 @@ vGet6PapInfo(FILE *pFile, ULONG ulStartBlock,
 			usIstd = (USHORT)ucGetByte(iFodo + 1, aucFpage);
 			vFillStyleFromStylesheet(usIstd, &tStyle);
 			vGet6StyleInfo(iFodo, aucFpage + 3, iLen - 3, &tStyle);
-			ulCharPos = ulGetLong(iIndex2 * 4, aucFpage);
+			ulCharPos = ulGetLong(tIndex2 * 4, aucFpage);
 			NO_DBG_HEX(ulCharPos);
-			tStyle.ulFileOffset = ulCharPos2FileOffset(ulCharPos);
+			tStyle.ulFileOffset = ulCharPos2FileOffsetX(
+				ulCharPos, &tStyle.eListID);
 			vAdd2StyleInfoList(&tStyle);
 
 			eRowInfo = eGet6RowInfo(iFodo,
@@ -589,7 +693,7 @@ vGet6PapInfo(FILE *pFile, ULONG ulStartBlock,
 					break;
 				}
 				ulCharPosFirst = ulGetLong(
-						iIndex2 * 4, aucFpage);
+						tIndex2 * 4, aucFpage);
 				NO_DBG_HEX(ulCharPosFirst);
 				tRow.ulCharPosStart = ulCharPosFirst;
 				tRow.ulFileOffsetStart =
@@ -599,11 +703,11 @@ vGet6PapInfo(FILE *pFile, ULONG ulStartBlock,
 				break;
 			case found_end_of_row:
 				ulCharPosLast = ulGetLong(
-						iIndex2 * 4, aucFpage);
+						tIndex2 * 4, aucFpage);
 				NO_DBG_HEX(ulCharPosLast);
 				tRow.ulCharPosEnd = ulCharPosLast;
-				tRow.ulFileOffsetEnd = ulCharPos2FileOffset(
-							ulCharPosLast);
+				tRow.ulFileOffsetEnd =
+					ulCharPos2FileOffset(ulCharPosLast);
 				DBG_HEX_C(tRow.ulFileOffsetEnd == FC_INVALID,
 							ulCharPosLast);
 				vAdd2RowInfoList(&tRow);
@@ -635,6 +739,8 @@ vGet6FontInfo(int iFodo, USHORT usIstd,
 	USHORT	usTmp;
 	UCHAR	ucTmp;
 
+	TRACE_MSG("vGet6FontInfo");
+
 	fail(iFodo < 0 || aucGrpprl == NULL || pFont == NULL);
 
 	iFodoOff = 0;
@@ -651,7 +757,7 @@ vGet6FontInfo(int iFodo, USHORT usIstd,
 		case  80:	/* cIstd */
 			usTmp = usGetWord(iFodo + iFodoOff + 1, aucGrpprl);
 			NO_DBG_DEC(usTmp);
-                        break;
+			break;
 		case  82:	/* cDefault */
 			pFont->usFontStyle &= FONT_HIDDEN;
 			pFont->ucFontColor = FONT_COLOR_DEFAULT;
@@ -785,6 +891,8 @@ vGet6FontInfo(int iFodo, USHORT usIstd,
 			if (usTmp <= (USHORT)UCHAR_MAX) {
 				pFont->ucFontNumber = (UCHAR)usTmp;
 			} else {
+				DBG_DEC(usTmp);
+				DBG_FIXME();
 				pFont->ucFontNumber = 0;
 			}
 			break;
@@ -803,9 +911,11 @@ vGet6FontInfo(int iFodo, USHORT usIstd,
 			break;
 		case  95:	/* cHps, cHpsPos */
 			ucTmp = ucGetByte(iFodo + iFodoOff + 1, aucGrpprl);
+			DBG_DEC(ucTmp);
 			if (ucTmp != 0) {
 				pFont->usFontSize = (USHORT)ucTmp;
 			}
+			ucTmp = ucGetByte(iFodo + iFodoOff + 2, aucGrpprl);
 			DBG_DEC(ucTmp);
 			break;
 		case  98:	/* cIco */
@@ -815,6 +925,14 @@ vGet6FontInfo(int iFodo, USHORT usIstd,
 		case  99:	/* cHps */
 			pFont->usFontSize =
 				usGetWord(iFodo + iFodoOff + 1, aucGrpprl);
+			break;
+		case 100:	/* cHpsInc */
+			DBG_MSG("100: sprmCHpsInc");
+			ucTmp = ucGetByte(iFodo + iFodoOff + 1, aucGrpprl);
+			DBG_DEC(ucTmp);
+			break;
+		case 103:	/* cMajority */
+			DBG_MSG("103: sprmCMajority");
 			break;
 		case 104:	/* cIss */
 			ucTmp = ucGetByte(iFodo + iFodoOff + 1, aucGrpprl);
@@ -827,7 +945,7 @@ vGet6FontInfo(int iFodo, USHORT usIstd,
 				NO_DBG_MSG("Subscript");
 			}
 			break;
-		case 106:	/* cHps */
+		case 106:	/* cHpsInc1 */
 			usTmp = usGetWord(iFodo + iFodoOff + 1, aucGrpprl);
 			lTmp = (long)pFont->usFontSize + (long)usTmp;
 			if (lTmp < 8) {
@@ -837,6 +955,14 @@ vGet6FontInfo(int iFodo, USHORT usIstd,
 			} else {
 				pFont->usFontSize = (USHORT)lTmp;
 			}
+			break;
+		case 108:	/* cMajority50 */
+			DBG_MSG("108: sprmCMajority50");
+			break;
+		case 109:	/* cHpsMul */
+			DBG_MSG("109: sprmCHpsMul");
+			usTmp = usGetWord(iFodo + iFodoOff + 1, aucGrpprl);
+			DBG_DEC(usTmp);
 			break;
 		default:
 			break;
@@ -860,6 +986,8 @@ bGet6PicInfo(int iFodo,
 	BOOL	bFound;
 	UCHAR	ucTmp;
 
+	TRACE_MSG("vGet6PicInfo");
+
 	fail(iFodo < 0 || aucGrpprl == NULL || pPicture == NULL);
 
 	iFodoOff = 0;
@@ -871,7 +999,8 @@ bGet6PicInfo(int iFodo,
 					iFodo + iFodoOff + 2, aucGrpprl);
 			bFound = TRUE;
 			break;
-		case  71:	/* dttm */
+#if 0
+		case  71:	/* fData */
 			ucTmp = ucGetByte(iFodo + iFodoOff + 1, aucGrpprl);
 			if (ucTmp == 0x01) {
 				/* Not a picture, but a form field */
@@ -879,6 +1008,7 @@ bGet6PicInfo(int iFodo,
 			}
 			DBG_DEC_C(ucTmp != 0, ucTmp);
 			break;
+#endif
 		case  75:	/* fOle2 */
 			ucTmp = ucGetByte(iFodo + iFodoOff + 1, aucGrpprl);
 			if (ucTmp == 0x01) {
@@ -910,7 +1040,8 @@ vGet6ChrInfo(FILE *pFile, ULONG ulStartBlock,
 	UCHAR	*aucBuffer;
 	ULONG	ulFileOffset, ulCharPos, ulBeginCharInfo;
 	size_t	tCharInfoLen, tOffset, tSize, tLenOld, tLen, tCharPageNum;
-	int	iIndex, iIndex2, iRun, iFodo, iLen;
+	size_t	tIndex, tIndex2, tRun;
+	int	iFodo, iLen;
 	USHORT	usCharFirstPage, usCount, usIstd;
 	UCHAR	aucFpage[BIG_BLOCK_SIZE];
 
@@ -937,11 +1068,11 @@ vGet6ChrInfo(FILE *pFile, ULONG ulStartBlock,
 
 	tLen = (tCharInfoLen - 4) / 6;
 	ausCharPage = xcalloc(tLen, sizeof(USHORT));
-	for (iIndex = 0, tOffset = (tLen + 1) * 4;
-	     iIndex < (int)tLen;
-	     iIndex++, tOffset += 2) {
-		 ausCharPage[iIndex] = usGetWord(tOffset, aucBuffer);
-		 NO_DBG_DEC(ausCharPage[iIndex]);
+	for (tIndex = 0, tOffset = (tLen + 1) * 4;
+	     tIndex < tLen;
+	     tIndex++, tOffset += 2) {
+		 ausCharPage[tIndex] = usGetWord(tOffset, aucBuffer);
+		 NO_DBG_DEC(ausCharPage[tIndex]);
 	}
 	DBG_HEX(ulGetLong(0, aucBuffer));
 	aucBuffer = xfree(aucBuffer);
@@ -957,28 +1088,28 @@ vGet6ChrInfo(FILE *pFile, ULONG ulStartBlock,
 		ausCharPage = xrealloc(ausCharPage, tSize);
 		/* Add new values */
 		usCount = usCharFirstPage + 1;
-		for (iIndex = (int)tLenOld; iIndex < (int)tLen; iIndex++) {
-			ausCharPage[iIndex] = usCount;
-			NO_DBG_DEC(ausCharPage[iIndex]);
+		for (tIndex = tLenOld; tIndex < tLen; tIndex++) {
+			ausCharPage[tIndex] = usCount;
+			NO_DBG_DEC(ausCharPage[tIndex]);
 			usCount++;
 		}
 	}
 
-	for (iIndex = 0; iIndex < (int)tLen; iIndex++) {
+	for (tIndex = 0; tIndex < tLen; tIndex++) {
 		if (!bReadBuffer(pFile, ulStartBlock,
 				aulBBD, tBBDLen, BIG_BLOCK_SIZE,
 				aucFpage,
-				(ULONG)ausCharPage[iIndex] * BIG_BLOCK_SIZE,
+				(ULONG)ausCharPage[tIndex] * BIG_BLOCK_SIZE,
 				BIG_BLOCK_SIZE)) {
 			break;
 		}
-		iRun = (int)ucGetByte(0x1ff, aucFpage);
-		NO_DBG_DEC(iRun);
-		for (iIndex2 = 0; iIndex2 < iRun; iIndex2++) {
-		  	ulCharPos = ulGetLong(iIndex2 * 4, aucFpage);
+		tRun = (size_t)ucGetByte(0x1ff, aucFpage);
+		NO_DBG_DEC(tRun);
+		for (tIndex2 = 0; tIndex2 < tRun; tIndex2++) {
+		  	ulCharPos = ulGetLong(tIndex2 * 4, aucFpage);
 			ulFileOffset = ulCharPos2FileOffset(ulCharPos);
 			iFodo = 2 * (int)ucGetByte(
-				(iRun + 1) * 4 + iIndex2, aucFpage);
+				(tRun + 1) * 4 + tIndex2, aucFpage);
 
 			iLen = (int)ucGetByte(iFodo, aucFpage);
 

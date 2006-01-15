@@ -3,7 +3,7 @@
  *
  * Released under GPL
  *
- * Copyright (C) 1998-2003 A.J. van Os
+ * Copyright (C) 1998-2004 A.J. van Os
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,9 +29,21 @@
 #include <fcntl.h>
 #include <io.h>
 #endif /* __dos */
-#if defined(__STDC_ISO_10646__)
+#if defined(__CYGWIN__) || defined(__CYGMING__)
+#  ifdef X_LOCALE
+#    include <X11/Xlocale.h>
+#  else
+#    include <locale.h>
+#  endif
+#else
 #include <locale.h>
-#endif /* __STDC_ISO_10646__ */
+#endif /* __CYGWIN__ || __CYGMING__ */
+#if defined(N_PLAT_NLM)
+#if !defined(_VA_LIST)
+#include "NW-only/nw_os.h"
+#endif /* !_VA_LIST */
+#include "getopt.h"
+#endif /* N_PLAT_NLM */
 #include "version.h"
 #include "antiword.h"
 
@@ -45,22 +57,29 @@ vUsage(void)
 	fprintf(stderr, "\tName: %s\n", szTask);
 	fprintf(stderr, "\tPurpose: "PURPOSESTRING"\n");
 	fprintf(stderr, "\tAuthor: "AUTHORSTRING"\n");
-	fprintf(stderr, "\tVersion: "VERSIONSTRING"\n");
+	fprintf(stderr, "\tVersion: "VERSIONSTRING);
+#if defined(__dos)
+	fprintf(stderr, VERSIONSTRING2);
+#endif /* __dos */
+	fprintf(stderr, "\n");
 	fprintf(stderr, "\tStatus: "STATUSSTRING"\n");
 	fprintf(stderr,
 		"\tUsage: %s [switches] wordfile1 [wordfile2 ...]\n", szTask);
 	fprintf(stderr,
-		"\tSwitches: [-t|-p papersize|-x dtd][-m mapping][-w #][-i #]"
-		"[-Ls]\n");
+		"\tSwitches: [-f|-t|-a papersize|-p papersize|-x dtd]"
+		"[-m mapping][-w #][-i #][-Ls]\n");
+	fprintf(stderr, "\t\t-f formatted text output\n");
 	fprintf(stderr, "\t\t-t text output (default)\n");
+	fprintf(stderr, "\t\t-a <paper size name> Adobe PDF output\n");
 	fprintf(stderr, "\t\t-p <paper size name> PostScript output\n");
-	fprintf(stderr, "\t\t   like: a4, letter or legal\n");
+	fprintf(stderr, "\t\t   paper size like: a4, letter or legal\n");
 	fprintf(stderr, "\t\t-x <dtd> XML output\n");
 	fprintf(stderr, "\t\t   like: db (DocBook)\n");
 	fprintf(stderr, "\t\t-m <mapping> character mapping file\n");
 	fprintf(stderr, "\t\t-w <width> in characters of text output\n");
 	fprintf(stderr, "\t\t-i <level> image level (PostScript only)\n");
 	fprintf(stderr, "\t\t-L use landscape mode (PostScript only)\n");
+	fprintf(stderr, "\t\t-r Show removed text\n");
 	fprintf(stderr, "\t\t-s Show hidden (by Word) text\n");
 } /* end of vUsage */
 
@@ -225,26 +244,50 @@ main(int argc, char **argv)
 		return iFirst < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 	}
 
+#if defined(N_PLAT_NLM) && !defined(_VA_LIST)
+	nwinit();
+#endif /* N_PLAT_NLM && !_VA_LIST */
+
 	vGetOptions(&tOptions);
 
+#if !defined(__dos)
+	if (is_locale_utf8()) {
 #if defined(__STDC_ISO_10646__)
-	/*
-	 * If the user wants UTF-8 and the envirionment variables support
-	 * UTF-8, than set the locale accordingly
-	 */
-	if (tOptions.eEncoding == encoding_utf8 && is_locale_utf8()) {
-		if (setlocale(LC_CTYPE, "") == NULL) {
-			werr(1, "Can't set the UTF-8 locale! "
-				"Check LANG, LC_CTYPE, LC_ALL.");
+		/*
+		 * If the user wants UTF-8 and the envirionment variables
+		 * support UTF-8, than set the locale accordingly
+		 */
+		if (tOptions.eEncoding == encoding_utf_8) {
+			if (setlocale(LC_CTYPE, "") == NULL) {
+				werr(1, "Can't set the UTF-8 locale! "
+					"Check LANG, LC_CTYPE, LC_ALL.");
+			}
+			DBG_MSG("The UTF-8 locale has been set");
+		} else {
+			(void)setlocale(LC_CTYPE, "C");
 		}
-		DBG_MSG("The UTF-8 locale has been set");
-	}
 #endif /* __STDC_ISO_10646__ */
+	} else {
+		if (setlocale(LC_CTYPE, "") == NULL) {
+			werr(0, "Can't set the locale! Will use defaults");
+			(void)setlocale(LC_CTYPE, "C");
+		}
+		DBG_MSG("The locale has been set");
+	}
+#endif /* !__dos */
 
 	bMultiple = argc - iFirst > 1;
-	bUseTXT = tOptions.eConversionType == conversion_text;
+	bUseTXT = tOptions.eConversionType == conversion_text ||
+		tOptions.eConversionType == conversion_fmt_text;
 	bUseXML = tOptions.eConversionType == conversion_xml;
 	iGoodCount = 0;
+
+#if defined(__dos)
+	if (tOptions.eConversionType == conversion_pdf) {
+		/* PDF must be written as a binary stream */
+		setmode(fileno(stdout), O_BINARY);
+	}
+#endif /* __dos */
 
 	if (bUseXML) {
 		fprintf(stdout,
