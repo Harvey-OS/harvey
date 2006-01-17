@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zvmem.c,v 1.3.2.1 2002/01/25 06:33:09 rayjj Exp $ */
+/* $Id: zvmem.c,v 1.8 2004/08/04 19:36:13 stefan Exp $ */
 /* "Virtual memory" operators */
 #include "ghost.h"
 #include "gsstruct.h"
@@ -30,7 +28,6 @@
 #include "stream.h"		/* for files.h */
 #include "files.h"		/* for e-stack processing */
 #include "store.h"
-#include "gsmalloc.h"		/* for gs_memory_default */
 #include "gsmatrix.h"		/* for gsstate.h */
 #include "gsstate.h"
 
@@ -102,9 +99,9 @@ zsave(i_ctx_t *i_ctx_p)
 }
 
 /* <save> restore - */
-private int restore_check_operand(P3(os_ptr, alloc_save_t **, gs_dual_memory_t *));
-private int restore_check_stack(P3(const ref_stack_t *, const alloc_save_t *, bool));
-private void restore_fix_stack(P3(ref_stack_t *, const alloc_save_t *, bool));
+private int restore_check_operand(os_ptr, alloc_save_t **, gs_dual_memory_t *);
+private int restore_check_stack(const ref_stack_t *, const alloc_save_t *, bool);
+private void restore_fix_stack(ref_stack_t *, const alloc_save_t *, bool);
 int
 zrestore(i_ctx_t *i_ctx_p)
 {
@@ -234,7 +231,8 @@ restore_check_stack(const ref_stack_t * pstack, const alloc_save_t * asave,
 		    break;
 		case t_name:
 		    /* Names are special because of how they are allocated. */
-		    if (alloc_name_is_since_save(stkp, asave))
+		    if (alloc_name_is_since_save((const gs_memory_t *)pstack->memory,
+						 stkp, asave))
 			return_error(e_invalidrestore);
 		    continue;
 		case t_string:
@@ -338,7 +336,7 @@ zvmstatus(i_ctx_t *i_ctx_p)
 	mstat.allocated += sstat.allocated;
 	mstat.used += sstat.used;
     }
-    gs_memory_status(&gs_memory_default, &dstat);
+    gs_memory_status(imemory->non_gc_memory, &dstat);
     push(3);
     make_int(op - 2, imemory_save_level(iimemory_local));
     make_int(op - 1, mstat.used);

@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gconf.c,v 1.2 2000/09/19 19:00:11 lpd Exp $ */
+/* $Id: gconf.c,v 1.6 2002/08/22 07:12:28 henrys Exp $ */
 /* Configuration tables */
 #include "memory_.h"
 #include "gx.h"
@@ -27,6 +25,7 @@
 #include "gxiclass.h"
 #include "gxiodev.h"
 #include "gxiparam.h"
+#include "gxcomp.h"
 
 /*
  * The makefile generates the file gconfig.h, which consists of
@@ -53,6 +52,8 @@
  * for each operator option;
  *      psfile_("gs_xxxx.ps", strlen("gs_xxxx.ps"))
  * for each optional initialization file.
+ *      plug_(gs_xxx_init)
+ * for each plugin;
  *
  * We include this file multiple times to generate various different
  * source structures.  (It's a hack, but we haven't come up with anything
@@ -62,6 +63,7 @@
 /* ---------------- Resources (devices, inits, IODevices) ---------------- */
 
 /* Declare devices, image types, init procedures, and IODevices as extern. */
+#define compositor_(comp_type) extern gs_composite_type_t comp_type;
 #define device_(dev) extern gx_device dev;
 #define device2_(dev) extern const gx_device dev;
 #define halftone_(dht) extern DEVICE_HALFTONE_RESOURCE_PROC(dht);
@@ -77,6 +79,15 @@
 #undef halftone_
 #undef device2_
 #undef device_
+#undef compositor_
+
+/* Set up compositor type table. */
+#define compositor_(comp_type) &comp_type,
+private const gs_composite_type_t *const gx_compositor_list[] = {
+#include "gconf.h"
+    0
+};
+#undef compositor_
 
 /* Set up the device table. */
 #define device_(dev) (const gx_device *)&dev,
@@ -141,6 +152,19 @@ const gx_io_device *const gx_io_device_table[] = {
 #undef io_device_
 /* We must use unsigned here, not uint.  See gscdefs.h. */
 const unsigned gx_io_device_table_count = countof(gx_io_device_table) - 1;
+
+/* Find a compositor by name. */
+extern_gs_find_compositor();
+const gs_composite_type_t *
+gs_find_compositor(int comp_id)
+{
+    const gs_composite_type_t *const * ppcomp = gx_compositor_list;
+    const gs_composite_type_t *  pcomp;
+
+    while ((pcomp = *ppcomp++) != 0 && pcomp->comp_id != comp_id)
+        ;
+    return pcomp;
+}
 
 /* Return the list of device prototypes, a NULL list of their structure */
 /* descriptors (no longer used), and (as the value) the length of the lists. */

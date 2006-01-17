@@ -129,6 +129,7 @@ WritePathSetting()
 WriteSETTINGLIST()
 {
     TARGETNAME=$1
+    OUTPUTNAME=$2
     
     echo "<SETTINGLIST>"
         
@@ -146,15 +147,18 @@ WriteSETTINGLIST()
         
         echo "<!-- Settings for "Access Paths" panel -->"
         WriteValueSetting AlwaysSearchUserPaths false
-        WriteValueSetting InterpretDOSAndUnixPaths false
+        WriteValueSetting InterpretDOSAndUnixPaths true
         echo "<SETTING><NAME>UserSearchPaths</NAME>"
             WritePathSetting SearchPath ":src:" MacOS Project
             WritePathSetting SearchPath ":obj:" MacOS Project
             WritePathSetting SearchPath ":" MacOS Project
         echo "</SETTING>"
         echo "<SETTING><NAME>SystemSearchPaths</NAME>"
+            WritePathSetting SearchPath ":jbig2dec:" MacOS Project
+            WritePathSetting SearchPath ":jasper/src/libjasper/include:" MacOS Project
+            WritePathSetting SearchPath ":obj:" MacOS Project
             WritePathSetting SearchPath ":MacOS Support:" MacOS CodeWarrior
-            WritePathSetting SearchPath ":MSL:" MacOS CodeWarrior
+            WritePathSetting SearchPath ":MSL:MSL_C" MacOS CodeWarrior
             WritePathSetting SearchPath ":" MacOS CodeWarrior
             WritePathSetting SearchPath ":" MacOS Project
         echo "</SETTING>"
@@ -167,7 +171,7 @@ WriteSETTINGLIST()
         
 	echo "<!-- Settings for "PPC Project" panel -->"
 	WriteValueSetting MWProject_PPC_type SharedLibrary
-	WriteValueSetting MWProject_PPC_outfile "GhostScriptLib PPC"
+	WriteValueSetting MWProject_PPC_outfile "$OUTPUTNAME"
 	WriteValueSetting MWProject_PPC_filecreator 1061109567
 	WriteValueSetting MWProject_PPC_filetype 1936223330
 	WriteValueSetting MWProject_PPC_size 0
@@ -191,7 +195,22 @@ WriteSETTINGLIST()
 	WriteValueSetting MWFrontEnd_C_onlystdkeywords 0
 	WriteValueSetting MWFrontEnd_C_enumsalwaysint 0
 	WriteValueSetting MWFrontEnd_C_mpwpointerstyle 1
-	WriteValueSetting MWFrontEnd_C_prefixname 
+	
+	# install the carbon prefix file for carbon targets
+	if test "$OUTPUTNAME" = "GhostscriptLib Carbon"; then
+	  if test "$TARGETNAME" = "GhostscriptLib Carbon (Debug)"; then
+	    WriteValueSetting MWFrontEnd_C_prefixname macos_carbon_d_pre.h
+	  else
+	    WriteValueSetting MWFrontEnd_C_prefixname macos_carbon_pre.h
+	  fi
+	else
+	  if test "$TARGETNAME" = "GhostscriptLib PPC (Debug)"; then
+	    WriteValueSetting MWFrontEnd_C_prefixname macos_classic_d_pre.h
+	  else
+	    WriteValueSetting MWFrontEnd_C_prefixname
+	  fi
+	fi
+	
 	WriteValueSetting MWFrontEnd_C_ansistrict 0
 	WriteValueSetting MWFrontEnd_C_mpwcnewline 0
 	WriteValueSetting MWFrontEnd_C_wchar_type 1
@@ -214,8 +233,8 @@ WriteSETTINGLIST()
         
 	echo "<!-- Settings for "C/C++ Warnings" panel -->"
 	WriteValueSetting MWWarning_C_warn_illpragma 1
-	WriteValueSetting MWWarning_C_warn_emptydecl 1
-	WriteValueSetting MWWarning_C_warn_possunwant 1
+	WriteValueSetting MWWarning_C_warn_emptydecl 0
+	WriteValueSetting MWWarning_C_warn_possunwant 0
 	WriteValueSetting MWWarning_C_warn_unusedvar 1
 	WriteValueSetting MWWarning_C_warn_unusedarg 0
 	WriteValueSetting MWWarning_C_warn_extracomma 1
@@ -279,13 +298,14 @@ WriteSETTINGLIST()
 WriteTARGET()
 {
     TARGETNAME=$1
-    shift
+    OUTPUTNAME=$2
+    shift 2
     
     echo "<TARGET>"
         
         echo "<NAME>$TARGETNAME</NAME>"
         
-        WriteSETTINGLIST "$TARGETNAME"
+        WriteSETTINGLIST "$TARGETNAME" "$OUTPUTNAME"
         
         echo "<FILELIST>"
             for file in "$@"; do
@@ -341,29 +361,35 @@ while [ $# -ge 1 ]; do
     shift
 done
 
-LIBS="console.stubs.c MSL\ ShLibRuntime.Lib MSL\ RuntimePPC.Lib"
-CARBONLIBS="MSL\ C.Carbon.Lib CarbonLib"
+# libs for codewarrior 6
+#LIBS="console.stubs.c MSL\ ShLibRuntime.Lib MSL\ RuntimePPC.Lib"
 #CLASSICLIBS="MSL\ C.PPC.Lib InterfaceLib FontManager MathLib"
-CLASSICLIBS="MSL\ C.PPC.Lib InterfaceLib MathLib"
+
+# libs for codewarrior 7 & 8
+LIBS=""
+CARBONLIBS="MSL_All_Carbon.Lib CarbonLib"
+CLASSICLIBS="MSL_All_PPC.Lib InterfaceLib FontManager MathLib"
+CLASSICLIBS="$CLASSICLIBS TextCommon UnicodeConverter UTCUtils"
 
 #####
 # 
 #####
 
-CLASSICDEBUGTARGETNAME="GhostscriptLib PPC (Debug)"
-CLASSICFINALTARGETNAME="GhostscriptLib PPC (Final)"
-CARBONDEBUGTARGETNAME="GhostscriptLib Carbon (Debug)"
-CARBONFINALTARGETNAME="GhostscriptLib Carbon (Final)"
+GSNAME="GhostscriptLib"
+CLASSICGSNAME="$GSNAME PPC"
+CARBONGSNAME="$GSNAME Carbon"
+CLASSICDEBUGTARGETNAME="$CLASSICGSNAME (Debug)"
+CLASSICFINALTARGETNAME="$CLASSICGSNAME (Final)"
+CARBONDEBUGTARGETNAME="$CARBONGSNAME (Debug)"
+CARBONFINALTARGETNAME="$CARBONGSNAME (Final)"
 
 WriteXMLHeader
 
 echo "<PROJECT>"
     
     echo "<TARGETLIST>"
-#    WriteTARGET "$CARBONDEBUGTARGETNAME" $CFILES $LIBS $CARBONLIBS
-    WriteTARGET "$CARBONDEBUGTARGETNAME" $CFILES "console.stubs.c" "MSL ShLibRuntime.Lib" "MSL RuntimePPC.Lib" "MSL C.Carbon.Lib" "CarbonLib"
-#    WriteTARGET "$CLASSICDEBUGTARGETNAME" $CFILES $LIBS $CLASSICLIBS
-    WriteTARGET "$CLASSICDEBUGTARGETNAME" $CFILES "console.stubs.c" "MSL ShLibRuntime.Lib" "MSL RuntimePPC.Lib" "MSL C.PPC.Lib" "InterfaceLib" "FontManager" "MathLib"
+    WriteTARGET "$CARBONDEBUGTARGETNAME" "$CARBONGSNAME" $CFILES $LIBS $CARBONLIBS
+    WriteTARGET "$CLASSICDEBUGTARGETNAME" "$CLASSICGSNAME" $CFILES $LIBS $CLASSICLIBS
     echo "</TARGETLIST>"
     
     echo "<TARGETORDER>"
@@ -375,17 +401,19 @@ echo "<PROJECT>"
         WriteGROUP "Ghostscript Sources" "$CARBONDEBUGTARGETNAME" $CFILES
 #        WriteGROUP "Libraries" "$CARBONDEBUGTARGETNAME" $LIBS $CARBONLIBS $CLASSICLIBS
 #        WriteGROUP "Libraries" "$CARBONDEBUGTARGETNAME" "console.stubs.c" "MSL ShLibRuntime.Lib" "MSL RuntimePPC.Lib" "MSL C.Carbon.Lib" "CarbonLib" "MSL C.PPC.Lib" "InterfaceLib" "FontManager" "MathLib"
-        
+
+# nb: this code doesn't work if there are spaces in the library filenames        
         echo "<GROUP><NAME>Libraries</NAME>"
-            WriteFILEREF "console.stubs.c" "$CARBONDEBUGTARGETNAME"
-            WriteFILEREF "MSL ShLibRuntime.Lib" "$CARBONDEBUGTARGETNAME"
-            WriteFILEREF "MSL RuntimePPC.Lib" "$CARBONDEBUGTARGETNAME"
-            WriteFILEREF "MSL C.Carbon.Lib" "$CARBONDEBUGTARGETNAME"
-            WriteFILEREF "CarbonLib" "$CARBONDEBUGTARGETNAME"
-            WriteFILEREF "MSL C.PPC.Lib" "$CLASSICDEBUGTARGETNAME"
-            WriteFILEREF "InterfaceLib" "$CLASSICDEBUGTARGETNAME"
-            WriteFILEREF "FontManager" "$CLASSICDEBUGTARGETNAME"
-            WriteFILEREF "MathLib" "$CLASSICDEBUGTARGETNAME"
+	for lib in $LIBS; do
+            WriteFILEREF "$lib" "$CARBONDEBUGTARGETNAME"
+	    WriteFILEREF "$lib" "$CLASSICDEBUGTARGETNAME"
+	done
+	for lib in $CARBONLIBS; do
+            WriteFILEREF "$lib" "$CARBONDEBUGTARGETNAME"
+	done
+	for lib in $CLASSICLIBS; do
+            WriteFILEREF "$lib" "$CLASSICDEBUGTARGETNAME"
+	done
         echo "</GROUP>"
         
     echo "</GROUPLIST>"

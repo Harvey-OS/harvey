@@ -1,5 +1,9 @@
 #!/bin/sh
-# $Id: ps2epsi,v 1.7 2001/06/22 16:09:22 lpd Exp $
+# $Id: ps2epsi,v 1.10 2004/08/04 00:55:46 giles Exp $
+
+# This definition is changed on install to match the
+# executable name set in the makefile
+GS_EXECUTABLE=gs
 
 tmpfile=/tmp/ps2epsi$$
 
@@ -51,7 +55,7 @@ awk 'F==1	{
 		}
 	' U="$USERNAME$LOGNAME"  F=1 - F=2 "${infile}" >$tmpfile
 
-gs -q -dNOPAUSE -dSAFER -dDELAYSAFER -r72 -sDEVICE=bit -sOutputFile=/dev/null $tmpfile ps2epsi.ps $tmpfile <"${infile}" 1>&2
+$GS_EXECUTABLE -q -dNOPAUSE -dSAFER -dDELAYSAFER -r72 -sDEVICE=bit -sOutputFile=/dev/null $tmpfile ps2epsi.ps $tmpfile <"${infile}" 1>&2
 rm -f $tmpfile
 
 (

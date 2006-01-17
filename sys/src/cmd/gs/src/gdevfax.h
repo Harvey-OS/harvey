@@ -1,22 +1,20 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevfax.h,v 1.2 2000/09/19 19:00:13 lpd Exp $ */
+/* $Id: gdevfax.h,v 1.5 2002/06/16 07:25:26 lpd Exp $ */
 /* Definitions and interface for fax devices */
 
 #ifndef gdevfax_INCLUDED
@@ -53,14 +51,14 @@ dev_proc_put_params(gdev_fax_put_params); /* adds AdjustWidth */
 extern const gx_device_procs gdev_fax_std_procs;
 
 /* Other procedures */
-void gdev_fax_init_state(P2(stream_CFE_state *ss, const gx_device_fax *fdev));
-void gdev_fax_init_fax_state(P2(stream_CFE_state *ss,
-				const gx_device_fax *fdev));
-int gdev_fax_print_strip(P7(gx_device_printer * pdev, FILE * prn_stream,
-			    const stream_template * temp, stream_state * ss,
-			    int width, int row_first,
-			    int row_end /* last + 1 */));
-int gdev_fax_print_page(P3(gx_device_printer *pdev, FILE *prn_stream,
-			   stream_CFE_state *ss));
+void gdev_fax_init_state(stream_CFE_state *ss, const gx_device_fax *fdev);
+void gdev_fax_init_fax_state(stream_CFE_state *ss,
+			     const gx_device_fax *fdev);
+int gdev_fax_print_strip(gx_device_printer * pdev, FILE * prn_stream,
+			 const stream_template * temp, stream_state * ss,
+			 int width, int row_first,
+			 int row_end /* last + 1 */);
+int gdev_fax_print_page(gx_device_printer *pdev, FILE *prn_stream,
+			stream_CFE_state *ss);
 
 #endif /* gdevfax_INCLUDED */

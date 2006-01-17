@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: stream.h,v 1.8 2001/03/29 04:09:40 rayjj Exp $ */
+/* $Id: stream.h,v 1.11 2002/06/16 05:00:54 lpd Exp $ */
 /* Definitions for Ghostscript stream package */
 /* Requires stdio.h */
 
@@ -42,31 +40,31 @@ typedef struct {
     /* Store # available for reading. */
     /* Return 0 if OK, ERRC if error or not implemented. */
 #define stream_proc_available(proc)\
-  int proc(P2(stream *, long *))
+  int proc(stream *, long *)
     stream_proc_available((*available));
 
     /* Set position. */
     /* Return 0 if OK, ERRC if error or not implemented. */
 #define stream_proc_seek(proc)\
-  int proc(P2(stream *, long))
+  int proc(stream *, long)
     stream_proc_seek((*seek));
 
     /* Clear buffer and, if relevant, unblock channel. */
     /* Cannot cause an error. */
 #define stream_proc_reset(proc)\
-  void proc(P1(stream *))
+  void proc(stream *)
     stream_proc_reset((*reset));
 
     /* Flush buffered data to output, or drain input. */
     /* Return 0 if OK, ERRC if error. */
 #define stream_proc_flush(proc)\
-  int proc(P1(stream *))
+  int proc(stream *)
     stream_proc_flush((*flush));
 
     /* Flush data (if writing) & close stream. */
     /* Return 0 if OK, ERRC if error. */
 #define stream_proc_close(proc)\
-  int proc(P1(stream *))
+  int proc(stream *)
     stream_proc_close((*close));
 
     /* Process a buffer, updating the cursor pointers. */
@@ -77,7 +75,7 @@ typedef struct {
     /* false = read, true = write. */
     /* If the procedure is 0, switching is not allowed. */
 #define stream_proc_switch_mode(proc)\
-  int proc(P2(stream *, bool))
+  int proc(stream *, bool)
     stream_proc_switch_mode((*switch_mode));
 
 } stream_procs;
@@ -169,7 +167,7 @@ struct stream_s {
     stream *prev, *next;	/* keep track of all files */
     bool close_strm;		/* CloseSource/CloseTarget */
     bool close_at_eod;		/*(default is true, only false if "reusable")*/
-    int (*save_close)(P1(stream *));	/* save original close proc */
+    int (*save_close)(stream *);	/* save original close proc */
     /*
      * In order to avoid allocating a separate stream_state for
      * file streams, which are the most heavily used stream type,
@@ -219,17 +217,17 @@ extern_st(st_stream);
 /* it actively disables them. */
 /* The close routine must do a flush if needed. */
 #define sseekable(s) s_can_seek(s)
-int savailable(P2(stream *, long *));
+int savailable(stream *, long *);
 
 #define sreset(s) (*(s)->procs.reset)(s)
 #define sflush(s) (*(s)->procs.flush)(s)
-int sclose(P1(stream *));
-int sswitch(P2(stream *, bool));
+int sclose(stream *);
+int sswitch(stream *, bool);
 
 /*
  * Following are only valid for read streams.
  */
-int spgetcc(P2(stream *, bool));	/* bool indicates close at EOD */
+int spgetcc(stream *, bool);	/* bool indicates close at EOD */
 #define spgetc(s) spgetcc(s, true)	/* a procedure equivalent of sgetc */
 /*
  * Note that sgetc must call spgetc one byte early, because filter must read
@@ -242,13 +240,13 @@ int spgetcc(P2(stream *, bool));	/* bool indicates close at EOD */
  */
 #define sgetc(s)\
   ((int)((s)->srlimit - (s)->srptr > 1 ? (++((s)->srptr), (int)*(s)->srptr) : spgetc(s)))
-int sgets(P4(stream *, byte *, uint, uint *));
-int sungetc(P2(stream *, byte));	/* ERRC on error, 0 if OK */
+int sgets(stream *, byte *, uint, uint *);
+int sungetc(stream *, byte);	/* ERRC on error, 0 if OK */
 
 #define sputback(s) ((s)->srptr--)	/* can only do this once! */
 #define seofp(s) (sendrp(s) && (s)->end_status == EOFC)
 #define serrorp(s) (sendrp(s) && (s)->end_status == ERRC)
-int spskip(P3(stream *, long, long *));
+int spskip(stream *, long, long *);
 
 #define sskip(s,nskip,pskipped) spskip(s, (long)(nskip), pskipped)
 /*
@@ -256,12 +254,12 @@ int spskip(P3(stream *, long, long *));
  * Only call this if the end_status is not EOFC,
  * and if the buffer is (nearly) empty.
  */
-int s_process_read_buf(P1(stream *));
+int s_process_read_buf(stream *);
 
 /*
  * Following are only valid for write streams.
  */
-int spputc(P2(stream *, byte));	/* a procedure equivalent of sputc */
+int spputc(stream *, byte);	/* a procedure equivalent of sputc */
 
 /*
  * The first alternative should read
@@ -270,17 +268,17 @@ int spputc(P2(stream *, byte));	/* a procedure equivalent of sputc */
  */
 #define sputc(s,c)\
   (!sendwp(s) ? (++((s)->swptr), *(s)->swptr=(c), 0) : spputc((s),(c)))
-int sputs(P4(stream *, const byte *, uint, uint *));
+int sputs(stream *, const byte *, uint, uint *);
 
 /*
  * Attempt to empty the buffer of a write stream.
  * Only call this if the end_status is not EOFC.
  */
-int s_process_write_buf(P2(stream *, bool));
+int s_process_write_buf(stream *, bool);
 
 /* Following are only valid for positionable streams. */
-long stell(P1(stream *));
-int spseek(P2(stream *, long));
+long stell(stream *);
+int spseek(stream *, long);
 
 #define sseek(s,pos) spseek(s, (long)(pos))
 
@@ -329,52 +327,52 @@ int spseek(P2(stream *, long));
   --cp
 
 /* Allocate a stream or a stream state. */
-stream *s_alloc(P2(gs_memory_t *, client_name_t));
-stream_state *s_alloc_state(P3(gs_memory_t *, gs_memory_type_ptr_t, client_name_t));
+stream *s_alloc(gs_memory_t *, client_name_t);
+stream_state *s_alloc_state(gs_memory_t *, gs_memory_type_ptr_t, client_name_t);
 /*
  * Initialize a separately allocated stream or stream state, as if allocated
  * by s_alloc[_state].
  */
-void s_init(P2(stream *, gs_memory_t *));
-void s_init_state(P3(stream_state *, const stream_template *, gs_memory_t *));
+void s_init(stream *, gs_memory_t *);
+void s_init_state(stream_state *, const stream_template *, gs_memory_t *);
 
 /* Create a stream on a string or a file. */
-void sread_string(P3(stream *, const byte *, uint)),
-    sread_string_reusable(P3(stream *, const byte *, uint)),
-    swrite_string(P3(stream *, byte *, uint));
-void sread_file(P4(stream *, FILE *, byte *, uint)),
-    swrite_file(P4(stream *, FILE *, byte *, uint)),
-    sappend_file(P4(stream *, FILE *, byte *, uint));
+void sread_string(stream *, const byte *, uint),
+    sread_string_reusable(stream *, const byte *, uint),
+    swrite_string(stream *, byte *, uint);
+void sread_file(stream *, FILE *, byte *, uint),
+    swrite_file(stream *, FILE *, byte *, uint),
+    sappend_file(stream *, FILE *, byte *, uint);
 
 /* Confine reading to a subfile.  This is primarily for reusable streams. */
-int sread_subfile(P3(stream *s, long start, long length));
+int sread_subfile(stream *s, long start, long length);
 
 /* Set the file name of a stream, copying the name. */
 /* Return <0 if the copy could not be allocated. */
-int ssetfilename(P3(stream *, const byte *, uint));
+int ssetfilename(stream *, const byte *, uint);
 
 /* Return the file name of a stream, if any. */
 /* There is a guaranteed 0 byte after the string. */
-int sfilename(P2(stream *, gs_const_string *));
+int sfilename(stream *, gs_const_string *);
 
 /* Create a stream that tracks the position, */
 /* for calculating how much space to allocate when actually writing. */
-void swrite_position_only(P1(stream *));
+void swrite_position_only(stream *);
 
 /* Standard stream initialization */
-void s_std_init(P5(stream *, byte *, uint, const stream_procs *, int /*mode */ ));
+void s_std_init(stream *, byte *, uint, const stream_procs *, int /*mode */ );
 
 /* Standard stream finalization */
-void s_disable(P1(stream *));
+void s_disable(stream *);
 
 /* Generic stream procedures exported for templates */
-int s_std_null(P1(stream *));
-void s_std_read_reset(P1(stream *)), s_std_write_reset(P1(stream *));
-int s_std_read_flush(P1(stream *)), s_std_write_flush(P1(stream *)), s_std_noavailable(P2(stream *, long *)),
-     s_std_noseek(P2(stream *, long)), s_std_close(P1(stream *)), s_std_switch_mode(P2(stream *, bool));
+int s_std_null(stream *);
+void s_std_read_reset(stream *), s_std_write_reset(stream *);
+int s_std_read_flush(stream *), s_std_write_flush(stream *), s_std_noavailable(stream *, long *),
+     s_std_noseek(stream *, long), s_std_close(stream *), s_std_switch_mode(stream *, bool);
 
 /* Generic procedures for filters. */
-int s_filter_write_flush(P1(stream *)), s_filter_close(P1(stream *));
+int s_filter_write_flush(stream *), s_filter_close(stream *);
 
 /* Generic procedure structures for filters. */
 extern const stream_procs s_filter_read_procs, s_filter_write_procs;
@@ -387,16 +385,16 @@ extern const stream_procs s_filter_read_procs, s_filter_write_procs;
  * Note that if additional buffering is needed, s_add_filter may add
  * an additional filter to provide it.
  */
-int s_init_filter(P5(stream *fs, stream_state *fss, byte *buf, uint bsize,
-		     stream *target));
-stream *s_add_filter(P4(stream **ps, const stream_template *template,
-			stream_state *ss, gs_memory_t *mem));
+int s_init_filter(stream *fs, stream_state *fss, byte *buf, uint bsize,
+		  stream *target);
+stream *s_add_filter(stream **ps, const stream_template *template,
+		     stream_state *ss, gs_memory_t *mem);
 
 /*
  * Close the filters in a pipeline, up to a given target stream, freeing
  * their buffers and state structures.
  */
-int s_close_filters(P2(stream **ps, stream *target));
+int s_close_filters(stream **ps, stream *target);
 
 /* Define templates for the NullEncode/Decode filters. */
 /* They have no state. */

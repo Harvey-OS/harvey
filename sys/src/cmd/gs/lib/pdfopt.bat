@@ -1,5 +1,5 @@
 @echo off 
-@rem $Id: pdfopt.bat,v 1.4 2001/07/23 06:57:27 lpd Exp $
+@rem $Id: pdfopt.bat,v 1.7 2003/04/02 23:45:47 alexcher Exp $
 @rem Convert PDF to "optimized" form.
 
 if %1/==/ goto usage
@@ -14,6 +14,7 @@ goto cp
 
 :doit
 %GSC% -q @_.at -- pdfopt.ps %1 %2
+if exist _.at erase _.at
 goto end
 
 :usage

@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevrops.c,v 1.3 2000/09/19 19:00:22 lpd Exp $ */
+/* $Id: gdevrops.c,v 1.12 2004/06/24 05:03:36 dan Exp $ */
 /* RasterOp source device */
 #include "gx.h"
 #include "gserrors.h"
@@ -94,7 +92,23 @@ private const gx_device_rop_texture gs_rop_texture_device = {
      NULL,				/* create_compositor */
      gx_forward_get_hardware_params,
      NULL,				/* text_begin */
-     NULL				/* finish_copydevice */
+     NULL,				/* finish_copydevice */
+     NULL,				/* begin_transparency_group */
+     NULL,				/* end_transparency_group */
+     NULL,				/* begin_transparency_mask */
+     NULL,				/* end_transparency_mask */
+     NULL,				/* discard_transparency_layer */
+     gx_forward_get_color_mapping_procs,
+     gx_forward_get_color_comp_index,
+     gx_forward_encode_color,
+     gx_forward_decode_color,
+     gx_forward_pattern_manage,
+     gx_forward_fill_rectangle_hl_color,
+     gx_forward_include_color_space,
+     gx_forward_fill_linear_color_scanline,
+     gx_forward_fill_linear_color_trapezoid,
+     gx_forward_fill_linear_color_triangle,
+     gx_forward_update_spot_equivalent_colors
     },
     0,				/* target */
     lop_default			/* log_op */
@@ -121,6 +135,7 @@ gx_make_rop_texture_device(gx_device_rop_texture * dev, gx_device * target,
 		   NULL, true);
     gx_device_set_target((gx_device_forward *)dev, target);
     /* Drawing operations are defaulted, non-drawing are forwarded. */
+    check_device_separable((gx_device *) dev);
     gx_device_fill_in_procs((gx_device *) dev);
     gx_device_copy_params((gx_device *)dev, target);
     dev->log_op = log_op;

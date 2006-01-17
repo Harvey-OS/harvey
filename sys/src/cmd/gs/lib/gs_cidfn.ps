@@ -1,21 +1,19 @@
 %    Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: gs_cidfn.ps,v 1.18 2000/12/08 23:35:38 lpd Exp $
+% $Id: gs_cidfn.ps,v 1.27 2003/05/23 09:57:34 igor Exp $
 % ProcSet for implementing CIDFont and CIDMap resources.
 % When this is run, systemdict is still writable.
 
@@ -61,7 +59,7 @@ dup 0 {
     end
   } if
   1 index exch .buildfont9 exch pop
-} bind put
+} put % Don't bind it here, because gs_fapi.ps redefines .buildfont9
 
 % Add entries to a new CIDFontType 0 font per documentation (FontMatrix)
 % or for .buildfont9 (FDArray.Private.Subrs).
@@ -70,7 +68,10 @@ dup 0 {
   dup /FontMatrix known not {
     dup /FontMatrix [0.001 0 0 0.001 0 0] put
     dup /FDArray get {
-      /FontMatrix get [1000 0 0 1000 0 0] 1 index concatmatrix pop
+       currentglobal exch dup gcheck setglobal
+       dup /FontMatrix get [1000 0 0 1000 0 0] matrix concatmatrix
+       /FontMatrix exch put
+       setglobal
     } forall
   } if
   dup /FDArray get {
@@ -131,14 +132,14 @@ dup 0 {
 dup 1 {
   10 .checkfonttype pop
   1 index exch .buildfont10 exch pop
-} bind put
+} put % Don't bind it here because gs_fapi.ps redefines .buildfont10
 
 % ------ CIDFontType 2 (FontType 11) ------ %
 
 dup 2 {
   11 .checkfonttype pop
   1 index exch .buildfont11 exch pop
-} bind put
+} put % Don't bind it here because gs_fapi.ps redefines .buildfont11
 
 pop		% .cidfonttypes
 
@@ -178,7 +179,7 @@ pop		% .cidfonttypes
       mark 3 1 roll {
 		% Stack: mark str ... readproc length
 	dup 0 eq { pop exit } if
-	dup 65400 min dup string 3 index exec
+	dup 65400 .min dup string 3 index exec
 		% Stack: mark str ... readproc length newstrlen newstr
 	4 1 roll sub
       } loop
@@ -334,6 +335,10 @@ languagelevel exch 2 .setlanguagelevel
 % category with only a CIDFontType and no FontType.
 /.buildcidfont {		% <name> <fontdict> .buildcidfont
 				%   <name> <cidfont>
+  systemdict /ProvideUnicode .knownget not { false } if {
+    /FontEmulationProcs /ProcSet findresource
+    /ProvideUnicodeDecoding get exec
+  } if
   dup /CIDFontType get //.cidfonttypes exch get exec
 } odef
 
@@ -391,3 +396,6 @@ dup /.CheckResource {
 /Category defineresource pop
 
 .setlanguagelevel
+
+%% Replace 1 (gs_ciddc.ps)
+(gs_ciddc.ps) runlibfile

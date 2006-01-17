@@ -1,21 +1,19 @@
 %    Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: gs_statd.ps,v 1.5 2001/05/30 21:14:35 rayjj Exp $
+% $Id: gs_statd.ps,v 1.14 2003/12/17 09:45:58 ray Exp $
 % This file provides statusdict, serverdict, and assorted LaserWriter
 % operators, mostly for the benefit of poorly designed PostScript programs
 % that 'know' they are running on a LaserWriter.
@@ -39,8 +37,10 @@ end
 /.setpagesize { /statusdict .systemvar begin .setpagesize end } bind def
 userdict begin
 		% Page sizes defined by Adobe documentation
+		% Note: these executable arrays should all begin with two
+		% integers which are the width and height (see gs_setpd.ps).
  /11x17 {792 1224 //.setpagesize exec} bind def  % 11x17 portrait
- /a3 {842 1190 //.setpagesize exec} bind def
+ /a3 {842 1191 //.setpagesize exec} bind def
  /a4 {595 842 //.setpagesize exec} bind def
 % a4small should be a4 with an ImagingBBox of [25 25 570 817].
  /a4small /a4 load def
@@ -57,41 +57,41 @@ userdict begin
 STRICT { (%END SIZES) .skipeof } if
 		% Other page sizes
 	% ISO standard paper sizes
- /a0 {2380 3368 //.setpagesize exec} bind def
- /a1 {1684 2380 //.setpagesize exec} bind def
- /a2 {1190 1684 //.setpagesize exec} bind def
-% /a3 {842 1190 //.setpagesize exec} bind def	% defined by Adobe
+ /a0 {2384 3370 //.setpagesize exec} bind def
+ /a1 {1684 2384 //.setpagesize exec} bind def
+ /a2 {1191 1684 //.setpagesize exec} bind def
+% /a3 {842 1191 //.setpagesize exec} bind def	% defined by Adobe
 % /a4 {595 842 //.setpagesize exec} bind def	% defined by Adobe
- /a5 {421 595 //.setpagesize exec} bind def
- /a6 {297 421 //.setpagesize exec} bind def
+ /a5 {420 595 //.setpagesize exec} bind def
+ /a6 {297 420 //.setpagesize exec} bind def
  /a7 {210 297 //.setpagesize exec} bind def
  /a8 {148 210 //.setpagesize exec} bind def
  /a9 {105 148 //.setpagesize exec} bind def
- /a10 {74 105 //.setpagesize exec} bind def
+ /a10 {73 105 //.setpagesize exec} bind def
 % ISO and JIS B sizes are different....
- /isob0 {2836 4008 //.setpagesize exec} bind def
+ /isob0 {2835 4008 //.setpagesize exec} bind def
  /b0 /isob0 load def
- /isob1 {2004 2836 //.setpagesize exec} bind def
+ /isob1 {2004 2835 //.setpagesize exec} bind def
  /b1 /isob1 load def
- /isob2 {1418 2004 //.setpagesize exec} bind def
+ /isob2 {1417 2004 //.setpagesize exec} bind def
  /b2 /isob2 load def
- /isob3 {1002 1418 //.setpagesize exec} bind def
+ /isob3 {1001 1417 //.setpagesize exec} bind def
  /b3 /isob3 load def
- /isob4 {709 1002 //.setpagesize exec} bind def
+ /isob4 {709 1001 //.setpagesize exec} bind def
  /b4 /isob4 load def
- /isob5 {501 709 //.setpagesize exec} bind def
+ /isob5 {499 709 //.setpagesize exec} bind def
  /b5 /isob5 load def
- /isob6 {354 501 //.setpagesize exec} bind def
+ /isob6 {354 499 //.setpagesize exec} bind def
  /b6 /isob6 load def
- /jisb0 {2916 4128 //.setpagesize exec} bind def
- /jisb1 {2064 2916 //.setpagesize exec} bind def
- /jisb2 {1458 2064 //.setpagesize exec} bind def
- /jisb3 {1032 1458 //.setpagesize exec} bind def
+ /jisb0 {2920 4127 //.setpagesize exec} bind def
+ /jisb1 {2064 2920 //.setpagesize exec} bind def
+ /jisb2 {1460 2064 //.setpagesize exec} bind def
+ /jisb3 {1032 1460 //.setpagesize exec} bind def
  /jisb4 {729 1032 //.setpagesize exec} bind def
  /jisb5 {516 729 //.setpagesize exec} bind def
  /jisb6 {363 516 //.setpagesize exec} bind def
- /c0 {2600 3677 //.setpagesize exec} bind def
- /c1 {1837 2600 //.setpagesize exec} bind def
+ /c0 {2599 3677 //.setpagesize exec} bind def
+ /c1 {1837 2599 //.setpagesize exec} bind def
  /c2 {1298 1837 //.setpagesize exec} bind def
  /c3 {918 1298 //.setpagesize exec} bind def
  /c4 {649 918 //.setpagesize exec} bind def
@@ -107,6 +107,8 @@ STRICT { (%END SIZES) .skipeof } if
  /flsa {612 936 //.setpagesize exec} bind def  % U.S. foolscap
  /flse {612 936 //.setpagesize exec} bind def  % European foolscap
  /halfletter {396 612 //.setpagesize exec} bind def
+	% minimum of a4 and letter (a4 width, letter length)
+ /pa4 {595 792 //.setpagesize exec} bind def
 % /tabloid {792 1224 //.setpagesize exec} bind def  % 11x17 portrait
 % /csheet {1224 1584 //.setpagesize exec} bind def % ANSI C 17x22
 % /dsheet {1584 2448 //.setpagesize exec} bind def % ANSI D 22x34
@@ -120,7 +122,7 @@ statusdict begin
 % Define the pagetype values for the known page formats.
 % The values for all but letter and note are arbitrary.
 /.pagetypenames
- { /letter /note	%do not change this line, needed by 'setpagetype'
+ [ /letter /note	%do not change this line, needed by 'setpagetype'
    /legal /lettersmall
    /11x17 /ledger
    /a4small /a3 /a4
@@ -132,8 +134,9 @@ STRICT { (%END SIZES) .skipeof } if
    /flsa /flse /halfletter
    /isob0 /isob1 /isob2 /isob3 /isob4 /isob5 /isob6
    /jisb0 /jisb1 /jisb2 /jisb3 /jisb4 /jisb5 /jisb6
+   /pa4
 %END SIZES
- } cvlit readonly def
+ ] cvlit readonly def
 
 %%%%%% The following items were suggested by a user as useful.
 
@@ -190,8 +193,10 @@ STRICT { (%END SIZES) .skipeof } if
  /checkpassword {statusdict begin .password eq end} bind def
  /defaulttimeouts {statusdict begin .timeouts aload pop end} bind def
  /diskonline {
-    false (%disk*%) { pop not exit } 100 string /IODevice resourceforall
+    false (%disk*%) { pop not exit } 8192 string /IODevice resourceforall
  } bind def
+ /diskstatus {10240 2097152 } bind odef %  - diskstatus <free> <total> (in 1024 byte pages)
+
 %/dostartpage
  /eescratch {pop 0} bind def
  /idlefonts {statusdict begin mark .idlefonts aload pop end} bind def
@@ -258,7 +263,8 @@ STRICT { (%END SIZES) .skipeof } if
 		% The Adobe documentation only defines setpagetype
 		% (a Level 1 operator) as accepting the values 0 and 1,
 		% so we do too.
-      dup .pagetypenames 0 2 getinterval exch get //systemdict exch get exec
+      dup .pagetypenames 0 2 getinterval exch get
+      //systemdict /userdict get exch get cvx exec
       /pagetype exch def
     end
   } bind def
@@ -311,6 +317,7 @@ end	% statusdict
 systemdict begin
 .currentglobal true .setglobal
 
+/devformat true def
 /devforall {		% <pattern> <proc> <scratch> devforall -
   exch {
     1 index currentdevparams

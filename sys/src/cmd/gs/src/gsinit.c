@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1997 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsinit.c,v 1.3 2001/03/13 06:51:39 ghostgum Exp $ */
+/* $Id: gsinit.c,v 1.7 2004/08/10 12:59:53 stefan Exp $ */
 /* Initialization for the imager */
 #include "stdio_.h"
 #include "memory_.h"
@@ -26,9 +24,6 @@
 #include "gsmalloc.h"
 #include "gp.h"
 #include "gslib.h"		/* interface definition */
-
-/* Imported from gsmisc.c */
-extern FILE *gs_debug_out;
 
 /* Configuration information from gconfig.c. */
 extern_gx_init_table();
@@ -44,8 +39,8 @@ gs_lib_init0(FILE * debug_out)
 {
     gs_memory_t *mem;
 
-    gs_debug_out = debug_out;
-    mem = (gs_memory_t *) gs_malloc_init();
+    mem = (gs_memory_t *) gs_malloc_init(NULL);
+
     /* Reset debugging flags */
     memset(gs_debug, 0, 128);
     gs_log_errors = 0;
@@ -66,9 +61,16 @@ gs_lib_init1(gs_memory_t * mem)
 
 /* Clean up after execution. */
 void
-gs_lib_finit(int exit_status, int code)
+gs_lib_finit(int exit_status, int code, gs_memory_t *mem)
 {
     /* Do platform-specific cleanup. */
     gp_exit(exit_status, code);
-    gs_malloc_release();
+
+    /* NB: interface problem.
+     * if gs_lib_init0 was called the we should
+     *    gs_malloc_release(mem);
+     * else
+     *    someone else has control of mem so we can't free it.
+     *    gs_view and iapi.h interface 
+     */
 }

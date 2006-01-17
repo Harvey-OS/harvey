@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: icontext.h,v 1.2 2000/09/19 19:00:42 lpd Exp $ */
+/* $Id: icontext.h,v 1.5 2002/06/16 04:47:10 lpd Exp $ */
 /* Externally visible context state */
 /* Requires iref.h, stdio_.h */
 
@@ -33,23 +31,23 @@ extern_st(st_context_state);
  * Define the procedure for resetting user parameters when switching
  * contexts. This is defined in either zusparam.c or inouparm.c.
  */
-extern int set_user_params(P2(i_ctx_t *i_ctx_p, const ref * paramdict));
+extern int set_user_params(i_ctx_t *i_ctx_p, const ref * paramdict);
 
 /* Allocate the state of a context, always in local VM. */
 /* If *ppcst == 0, allocate the state object as well. */
-int context_state_alloc(P3(gs_context_state_t ** ppcst,
-			   const ref *psystem_dict,
-			   const gs_dual_memory_t * dmem));
+int context_state_alloc(gs_context_state_t ** ppcst,
+			const ref *psystem_dict,
+			const gs_dual_memory_t * dmem);
 
 /* Load the state of the interpreter from a context. */
 /* The argument is not const because caches may be updated. */
-int context_state_load(P1(gs_context_state_t *));
+int context_state_load(gs_context_state_t *);
 
 /* Store the state of the interpreter into a context. */
-int context_state_store(P1(gs_context_state_t *));
+int context_state_store(gs_context_state_t *);
 
 /* Free the contents of the state of a context, always to its local VM. */
 /* Return a mask of which of its VMs, if any, we freed. */
-int context_state_free(P1(gs_context_state_t *));
+int context_state_free(gs_context_state_t *);
 
 #endif /* icontext_INCLUDED */

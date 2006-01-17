@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 1995, 1997, 1998, 1999, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zfproc.c,v 1.9 2001/03/29 04:09:40 rayjj Exp $ */
+/* $Id: zfproc.c,v 1.12 2002/06/16 03:43:51 lpd Exp $ */
 /* Procedure-based filter stream support */
 #include "memory_.h"
 #include "ghost.h"
@@ -130,7 +128,7 @@ s_proc_set_defaults(stream_state * st)
 
 /* Forward references */
 private stream_proc_process(s_proc_read_process);
-private int s_proc_read_continue(P1(i_ctx_t *));
+private int s_proc_read_continue(i_ctx_t *);
 
 /* Stream templates */
 private const stream_template s_proc_read_template = {
@@ -250,7 +248,7 @@ s_proc_read_continue(i_ctx_t *i_ctx_p)
 /* Forward references */
 private stream_proc_flush(s_proc_write_flush);
 private stream_proc_process(s_proc_write_process);
-private int s_proc_write_continue(P1(i_ctx_t *));
+private int s_proc_write_continue(i_ctx_t *);
 
 /* Stream templates */
 private const stream_template s_proc_write_template = {

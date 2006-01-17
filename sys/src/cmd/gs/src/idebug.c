@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: idebug.c,v 1.4 2001/10/12 21:37:08 ghostgum Exp $ */
+/* $Id: idebug.c,v 1.9 2004/08/04 19:36:12 stefan Exp $ */
 /* Debugging support for Ghostscript interpreter */
 /* This file must always be compiled with DEBUG set. */
 #undef DEBUG
@@ -43,25 +41,25 @@ extern const int tx_next_index;	/* in interp.c */
 
 /* Print a name. */
 void
-debug_print_name(const ref * pnref)
+debug_print_name(const gs_memory_t *mem, const ref * pnref)
 {
     ref sref;
 
-    name_string_ref(pnref, &sref);
+    name_string_ref(mem, pnref, &sref);
     debug_print_string(sref.value.const_bytes, r_size(&sref));
 }
 void
-debug_print_name_index(name_index_t nidx)
+debug_print_name_index(const gs_memory_t *mem, name_index_t nidx)
 {
     ref nref;
 
-    name_index_ref(nidx, &nref);
-    debug_print_name(&nref);
+    name_index_ref(mem, nidx, &nref);
+    debug_print_name(mem, &nref);
 }
 
 /* Print a ref. */
 private void
-debug_print_full_ref(const ref * pref)
+debug_print_full_ref(const gs_memory_t *mem, const ref * pref)
 {
     uint size = r_size(pref);
     ref nref;
@@ -101,8 +99,8 @@ debug_print_full_ref(const ref * pref)
 	    break;
 	case t_name:
 	    dprintf2("name(0x%lx#%u)", (ulong) pref->value.pname,
-		     name_index(pref));
-	    debug_print_name(pref);
+		     name_index(mem, pref));
+	    debug_print_name(mem, pref);
 	    break;
 	case t_null:
 	    dprintf("null");
@@ -112,9 +110,9 @@ debug_print_full_ref(const ref * pref)
 	    {
 		const op_array_table *opt = op_index_op_array_table(size);
 
-		name_index_ref(opt->nx_table[size - opt->base_index], &nref);
+		name_index_ref(mem, opt->nx_table[size - opt->base_index], &nref);
 	    }
-	    debug_print_name(&nref);
+	    debug_print_name(mem, &nref);
 	    break;
 	case t_operator:
 	    dprintf1("op(%u", size);
@@ -153,7 +151,7 @@ debug_print_full_ref(const ref * pref)
     }
 }
 private void
-debug_print_packed_ref(const ref_packed * pref)
+debug_print_packed_ref(const gs_memory_t *mem, const ref_packed *pref)
 {
     ushort elt = *pref & packed_value_mask;
     ref nref;
@@ -162,7 +160,7 @@ debug_print_packed_ref(const ref_packed * pref)
 	case pt_executable_operator:
 	    dprintf("<op_name>");
 	    op_index_ref(elt, &nref);
-	    debug_print_ref(&nref);
+	    debug_print_ref(mem, &nref);
 	    break;
 	case pt_integer:
 	    dprintf1("<int> %d", (int)elt + packed_min_intval);
@@ -172,41 +170,41 @@ debug_print_packed_ref(const ref_packed * pref)
 	    goto ptn;
 	case pt_executable_name:
 	    dprintf("<exec_name>");
-	  ptn:name_index_ref(elt, &nref);
+    ptn:    name_index_ref(mem, elt, &nref);
 	    dprintf2("(0x%lx#%u)", (ulong) nref.value.pname, elt);
-	    debug_print_name(&nref);
+	    debug_print_name(mem, &nref);
 	    break;
 	default:
 	    dprintf2("<packed_%d?>0x%x", *pref >> r_packed_type_shift, elt);
     }
 }
 void
-debug_print_ref_packed(const ref_packed *rpp)
+debug_print_ref_packed(const gs_memory_t *mem, const ref_packed *rpp)
 {
     if (r_is_packed(rpp))
-	debug_print_packed_ref(rpp);
+	debug_print_packed_ref(mem, rpp);
     else
-	debug_print_full_ref((const ref *)rpp);
+	debug_print_full_ref(mem, (const ref *)rpp);
     dflush();
 }
 void
-debug_print_ref(const ref * pref)
+debug_print_ref(const gs_memory_t *mem, const ref * pref)
 {
-    debug_print_ref_packed((const ref_packed *)pref);
+    debug_print_ref_packed(mem, (const ref_packed *)pref);
 }
 
 /* Dump one ref. */
-private void print_ref_data(P1(const ref *));
+private void print_ref_data(const gs_memory_t *mem, const ref *);
 void
-debug_dump_one_ref(const ref * p)
+debug_dump_one_ref(const gs_memory_t *mem, const ref * p)
 {
     uint attrs = r_type_attrs(p);
     uint type = r_type(p);
-    static const attr_print_mask apm[] = {
-	attr_print_masks,
+    static const ref_attr_print_mask_t apm[] = {
+	REF_ATTR_PRINT_MASKS,
 	{0, 0, 0}
     };
-    const attr_print_mask *ap = apm;
+    const ref_attr_print_mask_t *ap = apm;
 
     if (type >= tx_next_index)
 	dprintf1("0x%02x?? ", type);
@@ -218,18 +216,18 @@ debug_dump_one_ref(const ref * p)
 	if ((attrs & ap->mask) == ap->value)
 	    dputc(ap->print);
     dprintf2(" 0x%04x 0x%08lx", r_size(p), *(const ulong *)&p->value);
-    print_ref_data(p);
+    print_ref_data(mem, p);
     dflush();
 }
 private void
-print_ref_data(const ref *p)
+print_ref_data(const gs_memory_t *mem, const ref *p)
 {
 #define BUF_SIZE 30
     byte buf[BUF_SIZE + 1];
     const byte *pchars;
     uint plen;
 
-    if (obj_cvs(p, buf, countof(buf) - 1, &plen, &pchars) >= 0 &&
+    if (obj_cvs(mem, p, buf, countof(buf) - 1, &plen, &pchars) >= 0 &&
 	pchars == buf &&
 	((buf[plen] = 0), strcmp((char *)buf, "--nostringval--"))
 	)
@@ -239,7 +237,8 @@ print_ref_data(const ref *p)
 
 /* Dump a region of memory containing refs. */
 void
-debug_dump_refs(const ref * from, uint size, const char *msg)
+debug_dump_refs(const gs_memory_t *mem, const ref * from, 
+		uint size, const char *msg)
 {
     const ref *p = from;
     uint count = size;
@@ -248,7 +247,7 @@ debug_dump_refs(const ref * from, uint size, const char *msg)
 	dprintf2("%s at 0x%lx:\n", msg, (ulong) from);
     while (count--) {
 	dprintf2("0x%lx: 0x%04x ", (ulong)p, r_type_attrs(p));
-	debug_dump_one_ref(p);
+	debug_dump_one_ref(mem, p);
 	dputc('\n');
 	p++;
     }
@@ -256,7 +255,8 @@ debug_dump_refs(const ref * from, uint size, const char *msg)
 
 /* Dump a stack. */
 void
-debug_dump_stack(const ref_stack_t * pstack, const char *msg)
+debug_dump_stack(const gs_memory_t *mem, 
+		 const ref_stack_t * pstack, const char *msg)
 {
     uint i;
     const char *m = msg;
@@ -269,14 +269,14 @@ debug_dump_stack(const ref_stack_t * pstack, const char *msg)
 	    m = NULL;
 	}
 	dprintf2("0x%lx: 0x%02x ", (ulong)p, r_type(p));
-	debug_dump_one_ref(p);
+	debug_dump_one_ref(mem, p);
 	dputc('\n');
     }
 }
 
 /* Dump an array. */
 void
-debug_dump_array(const ref * array)
+debug_dump_array(const gs_memory_t *mem, const ref * array)
 {
     const ref_packed *pp;
     uint type = r_type(array);
@@ -292,7 +292,7 @@ debug_dump_array(const ref * array)
 	case t_oparray:
 	    /* This isn't really an array, but we'd like to see */
 	    /* its contents anyway. */
-	    debug_dump_array(array->value.const_refs);
+	    debug_dump_array(mem, array->value.const_refs);
 	    return;
 	case t_array:
 	case t_mixedarray:
@@ -306,13 +306,13 @@ debug_dump_array(const ref * array)
 	 len--, pp = packed_next(pp)) {
 	ref temp;
 
-	packed_get(pp, &temp);
+	packed_get(mem, pp, &temp);
 	if (r_is_packed(pp)) {
 	    dprintf2("0x%lx* 0x%04x ", (ulong)pp, (uint)*pp);
-	    print_ref_data(&temp);
+	    print_ref_data(mem, &temp);
 	} else {
 	    dprintf2("0x%lx: 0x%02x ", (ulong)pp, r_type(&temp));
-	    debug_dump_one_ref(&temp);
+	    debug_dump_one_ref(mem, &temp);
 	}
 	dputc('\n');
     }

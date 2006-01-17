@@ -1,25 +1,24 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: smd5.c,v 1.3 2000/09/19 19:00:50 lpd Exp $ */
+/* $Id: smd5.c,v 1.6 2004/01/13 14:03:30 igor Exp $ */
 /* MD5Encode filter */
 #include "memory_.h"
 #include "strimpl.h"
+#include "stream.h"
 #include "smd5.h"
 
 /* ------ MD5Encode ------ */
@@ -63,3 +62,22 @@ s_MD5E_process(stream_state * st, stream_cursor_read * pr,
 const stream_template s_MD5E_template = {
     &st_MD5E_state, s_MD5E_init, s_MD5E_process, 1, 16
 };
+
+stream *
+s_MD5E_make_stream(gs_memory_t *mem, byte *digest, int digest_size)
+{
+    stream *s = s_alloc(mem, "s_MD5E_make_stream");
+    stream_state *ss = s_alloc_state(mem, s_MD5E_template.stype, "s_MD5E_make_stream");
+
+    if (ss == NULL || s == NULL)
+	goto err;
+    ss->template = &s_MD5E_template;
+    if (s_init_filter(s, ss, digest, digest_size, NULL) < 0)
+	goto err;
+    s->strm = s;
+    return s;
+err:
+    gs_free_object(mem, ss, "s_MD5E_make_stream");
+    gs_free_object(mem, s, "s_MD5E_make_stream");
+    return NULL;
+}

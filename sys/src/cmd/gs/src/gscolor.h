@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gscolor.h,v 1.3 2000/09/19 19:00:26 lpd Exp $ */
+/* $Id: gscolor.h,v 1.6 2002/06/16 08:45:42 lpd Exp $ */
 /* Client interface to color routines */
 
 #ifndef gscolor_INCLUDED
@@ -25,15 +23,15 @@
 #include "gxtmap.h"
 
 /* Color and gray interface */
-int gs_setgray(P2(gs_state *, floatp));
-int gs_currentgray(P2(const gs_state *, float *));
-int gs_setrgbcolor(P4(gs_state *, floatp, floatp, floatp));
-int gs_currentrgbcolor(P2(const gs_state *, float[3]));
-int gs_setnullcolor(P1(gs_state *));
+int gs_setgray(gs_state *, floatp);
+int gs_currentgray(const gs_state *, float *);
+int gs_setrgbcolor(gs_state *, floatp, floatp, floatp);
+int gs_currentrgbcolor(const gs_state *, float[3]);
+int gs_setnullcolor(gs_state *);
 
 /* Transfer function */
-int gs_settransfer(P2(gs_state *, gs_mapping_proc));
-int gs_settransfer_remap(P3(gs_state *, gs_mapping_proc, bool));
-gs_mapping_proc gs_currenttransfer(P1(const gs_state *));
+int gs_settransfer(gs_state *, gs_mapping_proc);
+int gs_settransfer_remap(gs_state *, gs_mapping_proc, bool);
+gs_mapping_proc gs_currenttransfer(const gs_state *);
 
 #endif /* gscolor_INCLUDED */

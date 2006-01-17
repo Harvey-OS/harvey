@@ -1,22 +1,20 @@
-/* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1998, 2000, 2002 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsmalloc.c,v 1.3 2000/09/19 19:00:29 lpd Exp $ */
+/* $Id: gsmalloc.c,v 1.13 2004/08/18 22:24:47 stefan Exp $ */
 /* C heap allocator */
 #include "malloc_.h"
 #include "gdebug.h"
@@ -29,6 +27,7 @@
 #include "gsmalloc.h"
 #include "gsmemlok.h"		/* locking (multithreading) wrapper */
 #include "gsmemret.h"		/* retrying wrapper */
+
 
 /* ------ Heap allocator ------ */
 
@@ -101,13 +100,13 @@ struct gs_malloc_block_s {
     malloc_block_data;
 /* ANSI C does not allow zero-size arrays, so we need the following */
 /* unnecessary and wasteful workaround: */
-#define _npad (-size_of(struct malloc_block_data_s) & 7)
-    byte _pad[(_npad == 0 ? 8 : _npad)];	/* pad to double */
+#define _npad (-size_of(struct malloc_block_data_s) & (arch_align_memory_mod - 1))
+    byte _pad[(_npad == 0 ? arch_align_memory_mod : _npad)];
 #undef _npad
 };
 
 /* Initialize a malloc allocator. */
-private long heap_available(P0());
+private long heap_available(void);
 gs_malloc_memory_t *
 gs_malloc_memory_init(void)
 {
@@ -120,6 +119,9 @@ gs_malloc_memory_init(void)
     mem->limit = max_long;
     mem->used = 0;
     mem->max_used = 0;
+    mem->gs_lib_ctx = 0;
+    mem->non_gc_memory = (gs_memory_t *)mem;
+
     return mem;
 }
 /*
@@ -130,7 +132,7 @@ gs_malloc_memory_init(void)
 #define max_malloc_probes 20
 #define malloc_probe_size 64000
 private long
-heap_available(void)
+heap_available()
 {
     long avail = 0;
     void *probes[max_malloc_probes];
@@ -177,6 +179,13 @@ gs_heap_alloc_bytes(gs_memory_t * mem, uint size, client_name_t cname)
 	else {
 	    gs_malloc_block_t *bp = (gs_malloc_block_t *) ptr;
 
+	    /*
+	     * We would like to check that malloc aligns blocks at least as
+	     * strictly as the compiler (as defined by arch_align_memory_mod).
+	     * However, Microsoft VC 6 does not satisfy this requirement.
+	     * See gsmemory.h for more explanation.
+	     */
+	    set_msg(ok_msg);
 	    if (mmem->allocated)
 		mmem->allocated->prev = bp;
 	    bp->next = mmem->allocated;
@@ -185,7 +194,6 @@ gs_heap_alloc_bytes(gs_memory_t * mem, uint size, client_name_t cname)
 	    bp->type = &st_bytes;
 	    bp->cname = cname;
 	    mmem->allocated = bp;
-	    set_msg(ok_msg);
 	    ptr = (byte *) (bp + 1);
 	    gs_alloc_fill(ptr, gs_alloc_fill_alloc, size);
 	    mmem->used += size + sizeof(gs_malloc_block_t);
@@ -462,8 +470,9 @@ gs_malloc_wrapped_contents(gs_memory_t *wrapped)
     gs_memory_retrying_t *rmem = (gs_memory_retrying_t *)wrapped;
     gs_memory_locked_t *lmem =
 	(gs_memory_locked_t *)gs_memory_retrying_target(rmem);
-
-    return (gs_malloc_memory_t *)gs_memory_locked_target(lmem);
+    if (lmem) 
+	return (gs_malloc_memory_t *)gs_memory_locked_target(lmem);
+    return (gs_malloc_memory_t *) wrapped;
 }
 
 /* Free the wrapper, and return the wrapped contents. */
@@ -481,27 +490,28 @@ gs_malloc_unwrap(gs_memory_t *wrapped)
     return (gs_malloc_memory_t *)contents;
 }
 
-/* ------ Historical single-instance artifacts ------ */
 
-/* Define the default allocator. */
-gs_malloc_memory_t *gs_malloc_memory_default;
-gs_memory_t *gs_memory_t_default;
-
-/* Create the default allocator. */
+/* Create the default allocator, and return it. */
 gs_memory_t *
-gs_malloc_init(void)
+gs_malloc_init(const gs_memory_t *parent)
 {
-    gs_malloc_memory_default = gs_malloc_memory_init();
-    gs_malloc_wrap(&gs_memory_t_default, gs_malloc_memory_default);
-    return gs_memory_t_default;
+    gs_malloc_memory_t *malloc_memory_default = gs_malloc_memory_init();
+    gs_memory_t *memory_t_default;
+
+    if (parent)
+	malloc_memory_default->gs_lib_ctx = parent->gs_lib_ctx;
+    else 
+        gs_lib_ctx_init((gs_memory_t *)malloc_memory_default);
+
+    gs_malloc_wrap(&memory_t_default, malloc_memory_default);
+    memory_t_default->stable_memory = memory_t_default;
+    return memory_t_default;
 }
 
 /* Release the default allocator. */
 void
-gs_malloc_release(void)
+gs_malloc_release(gs_memory_t *mem)
 {
-    gs_malloc_unwrap(gs_memory_t_default);
-    gs_memory_t_default = 0;
-    gs_malloc_memory_release(gs_malloc_memory_default);
-    gs_malloc_memory_default = 0;
+    gs_malloc_memory_t * malloc_memory_default = gs_malloc_unwrap(mem);
+    gs_malloc_memory_release(malloc_memory_default);
 }

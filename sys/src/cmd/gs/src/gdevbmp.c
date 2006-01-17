@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1993, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevbmp.c,v 1.4 2001/09/28 22:06:21 ghostgum Exp $ */
+/* $Id: gdevbmp.c,v 1.12 2005/10/20 19:42:18 ray Exp $ */
 /* .BMP file format output drivers */
 #include "gdevprn.h"
 #include "gdevpccm.h"
@@ -42,12 +40,13 @@ prn_device(prn_std_procs, "bmpmono",
 private const gx_device_procs bmpgray_procs =
 prn_color_procs(gdev_prn_open, gdev_prn_output_page, gdev_prn_close,
 		gx_default_gray_map_rgb_color, gx_default_gray_map_color_rgb);
-const gx_device_printer gs_bmpgray_device =
-prn_device(bmpgray_procs, "bmpgray",
+const gx_device_printer gs_bmpgray_device = {
+  prn_device_body(gx_device_printer, bmpgray_procs, "bmpgray",
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,
 	   0, 0, 0, 0,		/* margins */
-	   8, bmp_print_page);
+	   1, 8, 255, 0, 256, 0, bmp_print_page)
+};
 
 /* 1-bit-per-plane separated CMYK color. */
 
@@ -91,7 +90,7 @@ const gx_device_printer gs_bmp16_device = {
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,
 	   0, 0, 0, 0,		/* margins */
-	   3, 4, 3, 2, 4, 3, bmp_print_page)
+	   3, 4, 1, 1, 2, 2, bmp_print_page)
 };
 
 /* 8-bit (SuperVGA-style) color. */
@@ -105,7 +104,7 @@ const gx_device_printer gs_bmp256_device = {
 	   DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 	   X_DPI, Y_DPI,
 	   0, 0, 0, 0,		/* margins */
-	   3, 8, 6, 6, 7, 7, bmp_print_page)
+	   3, 8, 5, 5, 6, 6, bmp_print_page)
 };
 
 /* 24-bit color. */
@@ -141,13 +140,14 @@ bmp_print_page(gx_device_printer * pdev, FILE * file)
 {
     uint raster = gdev_prn_raster(pdev);
     /* BMP scan lines are padded to 32 bits. */
-    uint bmp_raster = raster + (-raster & 3);
+    uint bmp_raster = raster + (-(int)raster & 3);
     byte *row = gs_alloc_bytes(pdev->memory, bmp_raster, "bmp file buffer");
     int y;
     int code;		/* return code */
 
     if (row == 0)		/* can't allocate row buffer */
 	return_error(gs_error_VMerror);
+    memset(row+raster, 0, bmp_raster - raster); /* clear the padding bytes */
 
     /* Write the file header. */
 
@@ -175,9 +175,9 @@ private int
 bmp_cmyk_print_page(gx_device_printer * pdev, FILE * file)
 {
     int plane_depth = pdev->color_info.depth / 4;
-    uint raster = bitmap_raster(pdev->width * plane_depth);
+    uint raster = (pdev->width * plane_depth + 7) >> 3;
     /* BMP scan lines are padded to 32 bits. */
-    uint bmp_raster = raster + (-raster & 3);
+    uint bmp_raster = raster + (-(int)raster & 3);
     byte *row = gs_alloc_bytes(pdev->memory, bmp_raster, "bmp file buffer");
     int y;
     int code = 0;		/* return code */
@@ -185,13 +185,14 @@ bmp_cmyk_print_page(gx_device_printer * pdev, FILE * file)
 
     if (row == 0)		/* can't allocate row buffer */
 	return_error(gs_error_VMerror);
-
+    memset(row+raster, 0, bmp_raster - raster); /* clear the padding bytes */
+    
     for (plane = 0; plane <= 3; ++plane) {
 	gx_render_plane_t render_plane;
 
 	/* Write the page header. */
 
-	code = write_bmp_separated_header(pdev, file);
+    	code = write_bmp_separated_header(pdev, file);
 	if (code < 0)
 	    break;
 

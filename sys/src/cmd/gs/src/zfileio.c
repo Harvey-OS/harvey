@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zfileio.c,v 1.12 2001/07/11 12:05:52 joukj Exp $ */
+/* $Id: zfileio.c,v 1.18 2005/08/30 23:19:01 ray Exp $ */
 /* File I/O operators */
 #include "memory_.h"
 #include "ghost.h"
@@ -34,11 +32,11 @@
 #include "estack.h"
 
 /* Forward references */
-private int write_string(P2(ref *, stream *));
-private int handle_read_status(P5(i_ctx_t *, int, const ref *, const uint *,
-				  op_proc_t));
-private int handle_write_status(P5(i_ctx_t *, int, const ref *, const uint *,
-				   op_proc_t));
+private int write_string(ref *, stream *);
+private int handle_read_status(i_ctx_t *, int, const ref *, const uint *,
+			       op_proc_t);
+private int handle_write_status(i_ctx_t *, int, const ref *, const uint *,
+				op_proc_t);
 
 /* ------ Operators ------ */
 
@@ -76,15 +74,27 @@ zread(i_ctx_t *i_ctx_p)
     int ch;
 
     check_read_file(s, op);
+    /* We 'push' first in case of ostack block overflow and the */
+    /* usual case is we will need to push anyway. If we get EOF */
+    /* we will need to 'pop' and decrement the 'op' pointer.    */
+    /* This is required since the 'push' macro might return with*/
+    /* stackoverflow which will result in another stack block   */
+    /* added on, then the operator being retried. We can't read */
+    /* (sgetc) prior to having a place on the ostack to return  */
+    /* the character.						*/
+    push(1);
     ch = sgetc(s);
     if (ch >= 0) {
-	push(1);
 	make_int(op - 1, ch);
 	make_bool(op, 1);
-    } else if (ch == EOFC)
+    } else {
+	pop(1);		/* Adjust ostack back from preparatory 'pop' */
+	op--;
+	if (ch == EOFC) 
 	make_bool(op, 0);
     else
 	return handle_read_status(i_ctx_p, ch, op, NULL, zread);
+    }
     return 0;
 }
 
@@ -109,7 +119,7 @@ zwrite(i_ctx_t *i_ctx_p)
 }
 
 /* <file> <string> readhexstring <substring> <filled_bool> */
-private int zreadhexstring_continue(P1(i_ctx_t *));
+private int zreadhexstring_continue(i_ctx_t *);
 
 /* We keep track of the odd digit in the next byte of the string */
 /* beyond the bytes already used.  (This is just for convenience; */
@@ -195,7 +205,7 @@ zreadhexstring_continue(i_ctx_t *i_ctx_p)
 }
 
 /* <file> <string> writehexstring - */
-private int zwritehexstring_continue(P1(i_ctx_t *));
+private int zwritehexstring_continue(i_ctx_t *);
 private int
 zwritehexstring_at(i_ctx_t *i_ctx_p, os_ptr op, uint odd)
 {
@@ -274,7 +284,7 @@ zwritehexstring_continue(i_ctx_t *i_ctx_p)
 }
 
 /* <file> <string> readstring <substring> <filled_bool> */
-private int zreadstring_continue(P1(i_ctx_t *));
+private int zreadstring_continue(i_ctx_t *);
 private int
 zreadstring_at(i_ctx_t *i_ctx_p, os_ptr op, uint start)
 {
@@ -352,8 +362,8 @@ zwritestring(i_ctx_t *i_ctx_p)
 }
 
 /* <file> <string> readline <substring> <bool> */
-private int zreadline(P1(i_ctx_t *));
-private int zreadline_continue(P1(i_ctx_t *));
+private int zreadline(i_ctx_t *);
+private int zreadline_continue(i_ctx_t *);
 
 /*
  * We could handle readline the same way as readstring,
@@ -687,17 +697,17 @@ zpeekstring(i_ctx_t *i_ctx_p)
     while ((rlen = sbufavailable(s)) < len) {
 	int status = s->end_status;
 
-	/*
-	 * The following is a HACK.  It should reallocate the buffer to hold
-	 * at least len bytes.  However, this raises messy problems about
-	 * which allocator to use and how it should interact with restore.
-	 */
-	if (len >= s->bsize)
-	    return_error(e_rangecheck);
 	switch (status) {
 	case EOFC:
 	    break;
 	case 0:
+	    /*
+	     * The following is a HACK.  It should reallocate the buffer to hold
+	     * at least len bytes.  However, this raises messy problems about
+	     * which allocator to use and how it should interact with restore.
+	     */
+	    if (len >= s->bsize)
+		return_error(e_rangecheck);
 	    s_process_read_buf(s);
 	    continue;
 	default:
@@ -736,7 +746,7 @@ zunread(i_ctx_t *i_ctx_p)
 }
 
 /* <file> <obj> <==flag> .writecvp - */
-private int zwritecvp_continue(P1(i_ctx_t *));
+private int zwritecvp_continue(i_ctx_t *);
 private int
 zwritecvp_at(i_ctx_t *i_ctx_p, os_ptr op, uint start, bool first)
 {
@@ -752,7 +762,7 @@ zwritecvp_at(i_ctx_t *i_ctx_p, os_ptr op, uint start, bool first)
     code = obj_cvp(op - 1, str, sizeof(str), &len, (int)op->value.intval,
 		   start, imemory);
     if (code == e_rangecheck) {
-	code = obj_string_data(op - 1, &data, &len);
+        code = obj_string_data(imemory, op - 1, &data, &len);
 	if (len < start)
 	    return_error(e_rangecheck);
 	data += start;

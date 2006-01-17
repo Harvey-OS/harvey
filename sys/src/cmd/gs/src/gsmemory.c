@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsmemory.c,v 1.4 2001/08/25 06:46:21 lpd Exp $ */
+/* $Id: gsmemory.c,v 1.9 2004/08/04 19:36:12 stefan Exp $ */
 /* Generic allocator support */
 #include "memory_.h"
 #include "gdebug.h"
@@ -117,9 +115,14 @@ gs_resize_struct_array(gs_memory_t *mem, void *obj, uint num_elements,
     return gs_resize_object(mem, obj, num_elements, cname);
 }
 
-/* Allocate a structure using a "raw memory" allocator. */
+
+/* Allocate a structure using a "raw memory" allocator.
+ * really just an alias for gs_alloc_struct_immovable 
+ * with the clients false expectation that it is saving memory   
+ */
+ 
 void *
-gs_raw_alloc_struct_immovable(gs_raw_memory_t * rmem,
+gs_raw_alloc_struct_immovable(gs_memory_t * rmem,
 			      gs_memory_type_ptr_t pstype,
 			      client_name_t cname)
 {
@@ -292,10 +295,27 @@ ENUM_PTRS_BEGIN_PROC(basic_enum_ptrs)
 {
     const gc_struct_data_t *psd = pstype->proc_data;
 
+    /* This check is primarily for misuse of the alloc_struct_array */
+    /* with number of elements 0 and allocation not passing 'element' */
+    if (size == 0) {
+#ifdef DEBUG
+	dprintf2("  basic_enum_ptrs: Attempt to enum 0 size structure at 0x%lx, type: %s\n",
+		vptr, pstype->sname);
+#endif
+	return 0;
+    }
     if (index < psd->num_ptrs) {
 	const gc_ptr_element_t *ppe = &psd->ptrs[index];
 	EV_CONST char *pptr = (EV_CONST char *)vptr + ppe->offset;
 
+#ifdef DEBUG
+	/* some extra checking to make sure we aren't out of bounds */
+	if (ppe->offset > size - sizeof(void *)) {
+	    dprintf4("  basic_enum_ptrs: Attempt to enum ptr with offset=%d beyond size=%d: structure at 0x%lx, type: %s\n",
+		    ppe->offset, size, vptr, pstype->sname);
+	    return 0;
+	}
+#endif
 	switch ((gc_ptr_type_index_t)ppe->type) {
 	    case GC_ELT_OBJ:
 		return ENUM_OBJ(*(const void *EV_CONST *)pptr);

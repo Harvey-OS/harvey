@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1992, 1995 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevepsc.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
+/* $Id: gdevepsc.c,v 1.11 2004/08/04 19:36:12 stefan Exp $*/
 /* Epson color dot-matrix printer driver by dave@exlog.com */
 #include "gdevprn.h"
 
@@ -69,26 +67,25 @@
 **	the ESC-r n value
 */
 static char rgb_color[2][2][2] =	{
-	BLACK, VIOLET, GREEN,
-	CYAN, RED, MAGENTA,
-	YELLOW, WHITE,
+	{{BLACK, VIOLET}, {GREEN, CYAN}}, 
+	{{RED, MAGENTA}, {YELLOW, WHITE}}
 	};
 
 /* Map an RGB color to a printer color. */
 #define cv_shift (sizeof(gx_color_value) * 8 - 1)
 private gx_color_index
-epson_map_rgb_color(gx_device *dev,
-  gx_color_value r, gx_color_value g, gx_color_value b)
+epson_map_rgb_color(gx_device *dev, const gx_color_value cv[])
 {
-if (gx_device_has_color(dev))
-	{
+
+    gx_color_value r = cv[0];
+    gx_color_value g = cv[1];
+    gx_color_value b = cv[2];
+    
+    if (gx_device_has_color(dev))
 /* use ^7 so WHITE is 0 for internal calculations */
-	return (gx_color_index)rgb_color[r >> cv_shift][g >> cv_shift][b >> cv_shift] ^ 7;	
-	}
-else
-	{
-	return gx_default_map_rgb_color(dev, r, g, b);
-	}
+        return (gx_color_index)rgb_color[r >> cv_shift][g >> cv_shift][b >> cv_shift] ^ 7;	
+    else
+	return gx_default_map_rgb_color(dev, cv);
 }
 
 /* Map the printer color back to RGB. */
@@ -139,16 +136,16 @@ const gx_device_printer far_data gs_epsonc_device =
 /* ------ Internal routines ------ */
 
 /* Forward references */
-private void epsc_output_run(P6(byte *, int, int, char, FILE *, int));
+private void epsc_output_run(byte *, int, int, char, FILE *, int);
 
 /* Send the page to the printer. */
 #define DD 0x80				/* double density flag */
 private int
 epsc_print_page(gx_device_printer *pdev, FILE *prn_stream)
-{	static char graphics_modes_9[5] =
+{	static int graphics_modes_9[5] =
 	   {	-1, 0 /*60*/, 1	/*120*/, -1, DD+3 /*240*/
 	   };
-	static char graphics_modes_24[7] =
+	static int graphics_modes_24[7] =
 	   {	-1, 32 /*60*/, 33 /*120*/, 39 /*180*/,
 		-1, -1, DD+40 /*360*/
 	   };
@@ -156,12 +153,12 @@ epsc_print_page(gx_device_printer *pdev, FILE *prn_stream)
 	int y_mult = (y_24pin ? 3 : 1);
 	int line_size = (pdev->width + 7) >> 3;	/* always mono */
 	int in_size = line_size * (8 * y_mult);
-	byte *in = (byte *)gs_malloc(in_size+1, 1, "epsc_print_page(in)");
+	byte *in = (byte *)gs_malloc(pdev->memory, in_size+1, 1, "epsc_print_page(in)");
 	int out_size = ((pdev->width + 7) & -8) * y_mult;
-	byte *out = (byte *)gs_malloc(out_size+1, 1, "epsc_print_page(out)");
-	int x_dpi = pdev->x_pixels_per_inch;
-	char start_graphics =
-		(y_24pin ? graphics_modes_24 : graphics_modes_9)[x_dpi / 60];
+	byte *out = (byte *)gs_malloc(pdev->memory, out_size+1, 1, "epsc_print_page(out)");
+	int x_dpi = (int)pdev->x_pixels_per_inch;
+	char start_graphics = (char)
+		((y_24pin ? graphics_modes_24 : graphics_modes_9)[x_dpi / 60]);
 	int first_pass = (start_graphics & DD ? 1 : 0);
 	int last_pass = first_pass * 2;
 	int dots_per_space = x_dpi / 10;	/* pica space = 1/10" */
@@ -175,8 +172,8 @@ epsc_print_page(gx_device_printer *pdev, FILE *prn_stream)
 
 	/* Check allocations */
 	if ( in == 0 || out == 0 )
-	   {	if ( in ) gs_free((char *)in, in_size+1, 1, "epsc_print_page(in)");
-		if ( out ) gs_free((char *)out, out_size+1, 1, "epsc_print_page(out)");
+	    {	if ( in ) gs_free(pdev->memory, (char *)in, in_size+1, 1, "epsc_print_page(in)");
+		if ( out ) gs_free(pdev->memory, (char *)out, out_size+1, 1, "epsc_print_page(out)");
 		return -1;
 	   }
 
@@ -188,13 +185,13 @@ epsc_print_page(gx_device_printer *pdev, FILE *prn_stream)
 		{
 		color_line_size = gdev_mem_bytes_per_scan_line((gx_device *)pdev);
 		color_in_size = color_line_size * (8 * y_mult);
-		if((color_in = (byte *)gs_malloc(color_in_size+1, 1,
-			"epsc_print_page(color)")) == 0)
-			{
-			gs_free((char *)in, in_size+1, 1, "epsc_print_page(in)");
-			gs_free((char *)out, out_size+1, 1, "epsc_print_page(out)");
+		if((color_in = (byte *)gs_malloc(pdev->memory, color_in_size+1, 1,
+						 "epsc_print_page(color)")) == 0)
+		    {
+			gs_free(pdev->memory, (char *)in, in_size+1, 1, "epsc_print_page(in)");
+			gs_free(pdev->memory, (char *)out, out_size+1, 1, "epsc_print_page(out)");
 			return(-1);
-			}
+		    }
 		}
 	else
 		{
@@ -261,7 +258,7 @@ epsc_print_page(gx_device_printer *pdev, FILE *prn_stream)
 
 		if (gx_device_has_color(pdev))
 			{
-			register i,j;
+			register int i,j;
 			register byte *outbuf, *realbuf;
 			byte current_color;
 			int end_next_bits = whole_bits;
@@ -420,10 +417,10 @@ epsc_print_page(gx_device_printer *pdev, FILE *prn_stream)
 	fputs("\f\033@", prn_stream);
 
 
-	gs_free((char *)out, out_size+1, 1, "epsc_print_page(out)");
-	gs_free((char *)in, in_size+1, 1, "epsc_print_page(in)");
+	gs_free(pdev->memory, (char *)out, out_size+1, 1, "epsc_print_page(out)");
+	gs_free(pdev->memory, (char *)in, in_size+1, 1, "epsc_print_page(in)");
 	if (gx_device_has_color(pdev))
-		gs_free((char *)color_in, color_in_size+1, 1, "epsc_print_page(rin)");
+	    gs_free(pdev->memory, (char *)color_in, color_in_size+1, 1, "epsc_print_page(rin)");
 	return 0;
 }
 
@@ -435,7 +432,7 @@ epsc_output_run(byte *data, int count, int y_mult,
 {	int xcount = count / y_mult;
 	fputc(033, prn_stream);
 	if ( !(start_graphics & ~3) )
-	   {	fputc("KLYZ"[start_graphics], prn_stream);
+	   {	fputc("KLYZ"[(int)start_graphics], prn_stream);
 	   }
 	else
 	   {	fputc('*', prn_stream);

@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpcx.c,v 1.2 2000/09/19 19:00:17 lpd Exp $ */
+/* $Id: gdevpcx.c,v 1.8 2004/09/20 22:14:59 dan Exp $ */
 /* PCX file format drivers */
 #include "gdevprn.h"
 #include "gdevpccm.h"
@@ -60,7 +58,7 @@ const gx_device_printer gs_pcxgray_device =
 		 DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 		 X_DPI, Y_DPI,
 		 0, 0, 0, 0,	/* margins */
-		 1, 8, 255, 0, 256, 0, pcx256_print_page)
+		 1, 8, 255, 255, 256, 256, pcx256_print_page)
 };
 
 /* 4-bit planar (EGA/VGA-style) color. */
@@ -75,7 +73,7 @@ const gx_device_printer gs_pcx16_device =
 		 DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 		 X_DPI, Y_DPI,
 		 0, 0, 0, 0,	/* margins */
-		 3, 4, 3, 2, 4, 3, pcx16_print_page)
+		 3, 4, 1, 1, 2, 2, pcx16_print_page)
 };
 
 /* Chunky 8-bit (SuperVGA-style) color. */
@@ -89,7 +87,7 @@ const gx_device_printer gs_pcx256_device =
 		 DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 		 X_DPI, Y_DPI,
 		 0, 0, 0, 0,	/* margins */
-		 3, 8, 6, 6, 7, 7, pcx256_print_page)
+		 3, 8, 5, 5, 6, 6, pcx256_print_page)
 };
 
 /* 24-bit color, 3 8-bit planes. */
@@ -212,8 +210,8 @@ private const pcx_header pcx_header_prototype =
 #define dcx_max_pages 1023
 
 /* Forward declarations */
-private void pcx_write_rle(P4(const byte *, const byte *, int, FILE *));
-private int pcx_write_page(P4(gx_device_printer *, FILE *, pcx_header *, bool));
+private void pcx_write_rle(const byte *, const byte *, int, FILE *);
+private int pcx_write_page(gx_device_printer *, FILE *, pcx_header *, bool);
 
 /* Write a monochrome PCX page. */
 private int

@@ -1,24 +1,23 @@
 /* Copyright (C) 1989, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsht.c,v 1.2 2000/09/19 19:00:29 lpd Exp $ */
+/*$Id: gsht.c,v 1.23 2005/03/14 18:08:36 dan Exp $ */
 /* setscreen operator for Ghostscript library */
 #include "memory_.h"
+#include "string_.h"
 #include <stdlib.h>		/* for qsort */
 #include "gx.h"
 #include "gserrors.h"
@@ -28,9 +27,24 @@
 #include "gzstate.h"
 #include "gxdevice.h"		/* for gzht.h */
 #include "gzht.h"
+#include "gswts.h"
 
 /* Forward declarations */
-void gx_set_effective_transfer(P1(gs_state *));
+void gx_set_effective_transfer(gs_state *);
+
+/*
+ * *HACK ALERT*
+ *
+ * Value stored in the width field of a well-tempered screen halftone
+ * order, to indicate that the wts field of this order points to the
+ * same structure as an earlier order. This is used to suppress
+ * multiple realeases of shared wts_screen_t orders.
+ * 
+ * The width field is available for this purpose at it is nominally
+ * unused in a well-tempered screening halftone.
+ */
+private const ushort    ht_wts_suppress_release = (ushort)(-1);
+
 
 /* Structure types */
 public_st_ht_order();
@@ -163,7 +177,14 @@ gs_currentscreen(const gs_state * pgs, gs_screen_halftone * phsp)
 int
 gs_currentscreenlevels(const gs_state * pgs)
 {
-    return pgs->dev_ht->order.num_levels;
+    int gi = 0;
+
+    if (pgs->device != 0)
+        gi = pgs->device->color_info.gray_index;
+    if (gi != GX_CINFO_COMP_NO_INDEX)
+        return pgs->dev_ht->components[gi].corder.num_levels;
+    else
+        return pgs->dev_ht->components[0].corder.num_levels;
 }
 
 /* .setscreenphase */
@@ -201,15 +222,22 @@ gs_setscreenphase(gs_state * pgs, int x, int y, gs_color_select_t select)
     return code;
 }
 
+int
+gs_currentscreenphase_pis(const gs_imager_state * pis, gs_int_point * pphase,
+		      gs_color_select_t select)
+{
+    if (select < 0 || select >= gs_color_select_count)
+	return_error(gs_error_rangecheck);
+    *pphase = pis->screen_phase[select];
+    return 0;
+}
+
 /* .currentscreenphase */
 int
 gs_currentscreenphase(const gs_state * pgs, gs_int_point * pphase,
 		      gs_color_select_t select)
 {
-    if (select < 0 || select >= gs_color_select_count)
-	return_error(gs_error_rangecheck);
-    *pphase = pgs->screen_phase[select];
-    return 0;
+    return gs_currentscreenphase_pis((const gs_imager_state *)pgs, pphase, select);
 }
 
 /* currenthalftone */
@@ -242,12 +270,17 @@ gx_ht_process_screen_memory(gs_screen_enum * penum, gs_state * pgs,
  * Internal procedure to allocate and initialize either an internally
  * generated or a client-defined halftone order.  For spot halftones,
  * the client is responsible for calling gx_compute_cell_values.
+ *
+ * Note: this function is used for old-style halftones only. WTS
+ * halftones are allocated in gs_sethalftone_try_wts().
  */
 int
 gx_ht_alloc_ht_order(gx_ht_order * porder, uint width, uint height,
 		     uint num_levels, uint num_bits, uint strip_shift,
 		     const gx_ht_order_procs_t *procs, gs_memory_t * mem)
 {
+    porder->wse = NULL;
+    porder->wts = NULL;
     porder->width = width;
     porder->height = height;
     porder->raster = bitmap_raster(width);
@@ -259,24 +292,89 @@ gx_ht_alloc_ht_order(gx_ht_order * porder, uint width, uint height,
     porder->num_bits = num_bits;
     porder->procs = procs;
     porder->data_memory = mem;
-    porder->levels =
-	(uint *)gs_alloc_byte_array(mem, porder->num_levels, sizeof(uint),
-				    "alloc_ht_order_data(levels)");
-    porder->bit_data =
-	gs_alloc_byte_array(mem, porder->num_bits,
-			    porder->procs->bit_data_elt_size,
-			    "alloc_ht_order_data(bit_data)");
-    if (porder->levels == 0 || porder->bit_data == 0) {
-	gs_free_object(mem, porder->bit_data, "alloc_ht_order_data(bit_data)");
-	porder->bit_data = 0;
-	gs_free_object(mem, porder->levels, "alloc_ht_order_data(levels)");
+
+    if (num_levels > 0) {
+        porder->levels =
+	    (uint *)gs_alloc_byte_array(mem, porder->num_levels, sizeof(uint),
+				        "alloc_ht_order_data(levels)");
+	if (porder->levels == 0)
+	    return_error(gs_error_VMerror);
+    } else
 	porder->levels = 0;
-	return_error(gs_error_VMerror);
-    }
+
+    if (num_bits > 0) {
+	porder->bit_data =
+	    gs_alloc_byte_array(mem, porder->num_bits,
+			        porder->procs->bit_data_elt_size,
+			        "alloc_ht_order_data(bit_data)");
+	if (porder->bit_data == 0) {
+	    gs_free_object(mem, porder->levels, "alloc_ht_order_data(levels)");
+	    porder->levels = 0;
+	    return_error(gs_error_VMerror);
+	}
+    } else
+	porder->bit_data = 0;
+
     porder->cache = 0;
     porder->transfer = 0;
     return 0;
 }
+
+/*
+ * Procedure to copy a halftone order.
+ */
+private int
+gx_ht_copy_ht_order(gx_ht_order * pdest, gx_ht_order * psrc, gs_memory_t * mem)
+{
+    int code;
+
+    *pdest = *psrc;
+
+    code = gx_ht_alloc_ht_order(pdest, psrc->width, psrc->height,
+		     psrc->num_levels, psrc->num_bits, psrc->shift,
+		     psrc->procs, mem);
+    if (code < 0)
+	return code;
+    if (pdest->levels != 0)
+        memcpy(pdest->levels, psrc->levels, psrc->num_levels * sizeof(uint));
+    if (pdest->bit_data != 0)
+        memcpy(pdest->bit_data, psrc->bit_data,
+		psrc->num_bits * psrc->procs->bit_data_elt_size);
+    pdest->wse = psrc->wse;
+    pdest->transfer = psrc->transfer;
+    rc_increment(pdest->transfer);
+    return 0;
+}
+
+/*
+ * Set the destination component to match the source component, and
+ * "assume ownership" of all of the refrernced data structures.
+ */
+private void
+gx_ht_move_ht_order(gx_ht_order * pdest, gx_ht_order * psrc)
+{
+    uint    width = psrc->width, height = psrc->height, shift = psrc->shift;
+
+    pdest->params = psrc->params;
+    pdest->wse = psrc->wse;
+    pdest->wts = 0;
+    pdest->width = width;
+    pdest->height = height;
+    pdest->raster = bitmap_raster(width);
+    pdest->shift = shift;
+    pdest->orig_height = height;
+    pdest->orig_shift = shift;
+    pdest->full_height = ht_order_full_height(pdest);
+    pdest->num_levels = psrc->num_levels;
+    pdest->num_bits = psrc->num_bits;
+    pdest->procs = psrc->procs;
+    pdest->data_memory = psrc->data_memory;
+    pdest->levels = psrc->levels;
+    pdest->bit_data = psrc->bit_data;
+    pdest->cache = psrc->cache;    /* should be 0 */
+    pdest->transfer = psrc->transfer;
+}
+
 
 /* Allocate and initialize the contents of a halftone order. */
 /* The client must have set the defining values in porder->params. */
@@ -478,16 +576,29 @@ gx_ht_construct_bits(gx_ht_order * porder)
 void
 gx_ht_order_release(gx_ht_order * porder, gs_memory_t * mem, bool free_cache)
 {
-    if (free_cache && porder->cache)
-	gx_ht_free_cache(mem, porder->cache);
-    gs_free_object(mem, porder->transfer, "gx_ht_order_release(transfer)");
-    if (porder->data_memory) {
+    /* "free cache" is a proxy for "differs from default" */
+    if (free_cache) {
+        if (porder->cache != 0)
+            gx_ht_free_cache(mem, porder->cache);
+        else if (porder->wse != 0)
+            gs_wts_free_enum(porder->wse);
+    }
+    porder->cache = 0;
+    if (porder->wts != 0 && porder->width != ht_wts_suppress_release)
+        gs_wts_free_screen(porder->wts);
+    porder->wts = 0;
+    rc_decrement(porder->transfer, "gx_ht_order_release(transfer)");
+    porder->transfer = 0;
+    if (porder->data_memory != 0) {
 	gs_free_object(porder->data_memory, porder->bit_data,
 		       "gx_ht_order_release(bit_data)");
 	gs_free_object(porder->data_memory, porder->levels,
 		       "gx_ht_order_release(levels)");
     }
+    porder->levels = 0;
+    porder->bit_data = 0;
 }
+
 void
 gx_device_halftone_release(gx_device_halftone * pdht, gs_memory_t * mem)
 {
@@ -512,127 +623,596 @@ gx_device_halftone_release(gx_device_halftone * pdht, gs_memory_t * mem)
 }
 
 /*
- * Install a device halftone in an imager state.  Note that this does not
- * read or update the client halftone.  There is a special check for pdht ==
- * pis->dev_ht, for the benefit of the band rendering code.
+ * This routine will take a color name (defined by a ptr and size) and
+ * check if this is a valid colorant name for the current device.  If
+ * so then the device's colorant number is returned.
+ *
+ * Two other checks are also made.  If the name is "Default" then a value
+ * of GX_DEVICE_COLOR_MAX_COMPONENTS is returned.  This is done to
+ * simplify the handling of default halftones.  Note:  The device also
+ * uses GX_DEVICE_COLOR_MAX_COMPONENTS to indicate colorants which are
+ * known but not being used due to the SeparationOrder parameter.  In this
+ * case we return -1 since the colorant is not currently being used by the
+ * device.
+ *
+ * If the halftone type is colorscreen or multiple colorscreen, then we
+ * also check for Red/Cyan, Green/Magenta, Blue/Yellow, and Gray/Black
+ * component name pairs.  This is done since the setcolorscreen and
+ * sethalftone types 2 and 4 imply the dual name sets.
+ *
+ * A negative value is returned if the color name is not found.
  */
 int
-gx_imager_dev_ht_install(gs_imager_state * pis,
-			 const gx_device_halftone * pdht,
-			 gs_halftone_type type, const gx_device * dev)
+gs_color_name_component_number(gx_device * dev, const char * pname,
+				int name_size, int halftonetype)
 {
-    gx_device_halftone *pgdht = pis->dev_ht;
+    int num_colorant;
 
-    if ((ulong) pdht->order.raster *
-	(pdht->order.num_bits / pdht->order.width) > pis->ht_cache->bits_size
-	)
-	return_error(gs_error_limitcheck);
-    if (pdht == pgdht)
-	DO_NOTHING;		/* special hack for band renderer */
-    else if (pgdht != 0 && pgdht->rc.ref_count == 1 &&
-	pgdht->rc.memory == pdht->rc.memory
-	) {
-	/* The current device halftone isn't shared. */
-	/* Just release its components. */
-	gx_device_halftone_release(pgdht, pgdht->rc.memory);
-    } else {			/* The device halftone is shared or not yet allocated. */
-	rc_unshare_struct(pis->dev_ht, gx_device_halftone,
-			  &st_device_halftone, pdht->rc.memory,
-			  return_error(gs_error_VMerror),
-			  "gx_imager_dev_ht_install");
-	pgdht = pis->dev_ht;
-    }
-    {
-	rc_header rc;
+#define check_colorant_name(dev, name) \
+    ((*dev_proc(dev, get_color_comp_index)) (dev, name, strlen(name), NO_COMP_NAME_TYPE))
 
-	rc = pgdht->rc;
-	*pgdht = *pdht;
-	pgdht->rc = rc;
+#define check_colorant_name_length(dev, name, length) \
+    ((*dev_proc(dev, get_color_comp_index)) (dev, name, length, NO_COMP_NAME_TYPE))
+
+#define check_name(str, pname, length) \
+    ((strlen(str) == length) && (strncmp(pname, str, length) == 0))
+
+    /*
+     * Check if this is a device colorant.
+     */
+    num_colorant = check_colorant_name_length(dev, pname, name_size);
+    if (num_colorant >= 0) {
+	/*
+	 * The device will return GX_DEVICE_COLOR_MAX_COMPONENTS if the
+	 * colorant is logically present in the device but not being used
+	 * because a SeparationOrder parameter is specified.  Since we are
+	 * using this value to indicate 'Default', we use -1 to indicate
+	 * that the colorant is not really being used.
+	 */
+	if (num_colorant == GX_DEVICE_COLOR_MAX_COMPONENTS)
+	    num_colorant = -1;
+	return num_colorant;
     }
-    pgdht->id = gs_next_ids(1);
-    pgdht->type = type;
-    /* Clear the cache, to avoid confusion in case the address of */
-    /* a new order vector matches that of a (deallocated) old one. */
-    gx_ht_clear_cache(pis->ht_cache);
-    /* Set the color_indices according to the device color_info. */
-    /* Also compute the LCM of the primary color cell sizes. */
-    /* Note that for strip halftones, the "cell size" is the */
-    /* theoretical fully expanded size with shift = 0. */
+
+    /*
+     * Check if this is the default component
+     */
+    if (check_name("Default", pname, name_size))
+	return GX_DEVICE_COLOR_MAX_COMPONENTS;
+
+    /* Halftones set by setcolorscreen, and (we think) */
+    /* Type 2 and Type 4 halftones, are supposed to work */
+    /* for both RGB and CMYK, so we need a special check here. */
+    if (halftonetype == ht_type_colorscreen ||
+	halftonetype == ht_type_multiple_colorscreen) {
+	if (check_name("Red", pname, name_size))
+	    num_colorant = check_colorant_name(dev, "Cyan");
+	else if (check_name("Green", pname, name_size))
+	    num_colorant = check_colorant_name(dev, "Magenta");
+	else if (check_name("Blue", pname, name_size))
+	    num_colorant = check_colorant_name(dev, "Yellow");
+	else if (check_name("Gray", pname, name_size))
+	    num_colorant = check_colorant_name(dev, "Black");
+
+#undef check_colorant_name
+#undef check_colorant_name_length
+#undef check_name
+
+    }
+    return num_colorant;
+}
+
+/*
+ * See gs_color_name_component_number for main description.
+ *
+ * This version converts a name index value into a string and size and
+ * then call gs_color_name_component_number.
+ */
+int
+gs_cname_to_colorant_number(gs_state * pgs, byte * pname, uint name_size,
+		int halftonetype)
+{
+    gx_device * dev = pgs->device;
+
+    return gs_color_name_component_number(dev, (char *)pname, name_size,
+		    halftonetype);
+}
+
+/*
+ * Install a device halftone into the imager state.
+ *
+ * To allow halftones to be shared between graphic states, the imager
+ * state contains a pointer to a device halftone structure. Thus, when 
+ * we say a halftone is "in" the imager state, we are only claiming 
+ * that the halftone pointer in the imager state points to that halftone.
+ *
+ * Though the operand halftone uses the same structure as the halftone
+ * "in" the imager state, not all of its fields are filled in, and the
+ * organization of components differs. Specifically, the following fields
+ * are not filled in:
+ *
+ *  rc          The operand device halftone has only a transient existence,
+ *              its reference count information is not initialized. In many
+ *              cases, the operand device halftone structure is allocated
+ *              on the stack by clients.
+ *
+ *  id          A halftone is not considered to have an identity until it
+ *              is installed in the imager state. This is a design error
+ *              which reflects the PostScript origins of this code. In
+ *              PostScript, it is impossible to check if two halftone
+ *              specifications (sets of operands to setscreen/setcolorscreen
+ *              or halftone dictionaries) are the same. Hence, the only way
+ *              a halftone could be identified was by the graphic state in
+ *              which it was included. In PCL it is possible to directly
+ *              identify a halftone specification, but currently there is
+ *              no way to use this knowledge in the graphic library.
+ *
+ *              (An altogether more reasonable approach would be to apply
+ *              id's to halftone orders.)
+ *
+ *  type        This is filled in by the type operand. It is used by
+ *              PostScript's currentscreen/currentcolorscreen operators to
+ *              determine if a sampling procedure or a halftone dictionary
+ *              should be pushed onto the stack. More importantly, it is
+ *              also used to determine if specific halftone components can
+ *              be used for either the additive or subtractive version of
+ *              that component in the process color model. For example, a
+ *              RedThreshold in a HalftoneType 4 dictionary can be applied
+ *              to either the component "Red" or the component "Cyan", but
+ *              the value of the key "Red" in a HalftoneType 5 dictionary
+ *              can only be used for a "Red" component (not a "Cyan"
+ *              component).
+ *
+ *  num_comp    For the operand halftone, this is the number of halftone
+ *              components included in the specification. For the device
+ *              halftone in the imager state, this is always the same as
+ *              the number of color model components (see num_dev_comp).
+ *
+ *  num_dev_comp The number of components in the device process color model
+ *		when the operand halftone was created.  With some compositor
+ *		devices (for example PDF 1.4) we can have differences in the
+ *		process color model of the compositor versus the output device.
+ *		These compositor devices do not halftone.
+ *
+ *  components  For the operand halftone, this field is non-null only if
+ *              multiple halftones are provided. In that case, the size
+ *              of the array pointed is the same as the number of
+ *              components provided. One of these components will usually
+ *              be the same as that identified by the "order" field.
+ *
+ *              For the device halftone in the imager state, this field is
+ *              always non-null, and the size of the array pointed to will
+ *              be the same as the number of components in the process
+ *              color model.
+ *
+ *  lcm_width,  These fields provide the least common multiple of the
+ *  lcm_height  halftone dimensions of the individual component orders.
+ *              They represent the dimensions of the smallest tile that
+ *              repeats for all color components (this is of interest
+ *              because Ghostscript uses a "chunky" raster format for all
+ *              drawing procedures). These fields cannot be set in the
+ *              operand device halftone as we do not yet know which of
+ *              the halftone components will actually be used.
+ *
+ * Conversely, the "order" field is significant only in the operand device
+ * halftone. There it represents the default halftone component, which will
+ * be used for all device color components for which a named halftone is
+ * not available. It is ignored (filled with 0's) in the device halftone
+ * in the imager state.
+ *
+ * The ordering of entries and the set of fields initialized in the
+ * components array also vary between the operand device halftone and
+ * the device halftone in the imager state.
+ *
+ * If the components array is present in the operand device halftone, the
+ * cname field in each entry of the array will contain a name index
+ * identifying the colorant name, and the comp_number field will provide the
+ * index of the corresponding component in the process color model. The
+ * order of entries in the components array is essentially arbitrary,
+ * but in some common cases will reflect the order in which the halftone
+ * specification is provided. By convention, if no explicit default order
+ * is provided (i.e.: via a HalftoneType 5 dictionary), the first
+ * entry of the array will be the same as the "order" (default) field.
+ *
+ * For the device halftone in the imager state, the components array is
+ * always present, but the cname and comp_number fields of individual
+ * entries are ignored. The order of the entries in the array always
+ * matches the order of components in the device color model.
+ *
+ * The distinction between the operand device halftone and the one in
+ * the graphic state extends even to the individual fields of the
+ * gx_ht_order structure incorporated in the order field of the halftone
+ * and the corder field of the elements of the components array. The
+ * fields of this structure that are handled differently in the operand 
+ * and imager state device halftones are:
+ *
+ *  params          Provides a set of parameters that are required for
+ *                  converting a halftone specification to a single
+ *                  component order. This field is used only in the
+ *                  operand device halftone; it is not set in the device
+ *                  halftone in the imager state.
+ *
+ *  wse            Points to an "enumerator" instance, used to construct
+ *                 a well-tempered screen. This is only required while
+ *                 the well-tempered screen is being constructed. This
+ *                 field is always a null pointer in the device halftone
+ *                 in the imager state.
+ *
+ *  wts            Points to the "constructed" form of a well-tempered
+ *                 screen. The "construction" operation occurs as part
+ *                 of the installation process. Hence, this should
+ *                 always be a null pointer in the operand device
+ *                 halftone.
+ *
+ *  orig_height,   The height and shift values of the halftone cell,
+ *  orig_shift     prior to any replication. These fields are currently
+ *                 unused, and will always be the same as the height
+ *                 and width fields in the device halftone in the
+ *                 imager state.
+ *
+ *  full_height    The height of the smallest replicated tile whose shift
+ *                 value is 0. This is calculated as part of the
+ *                 installation process; it may be set in the operand
+ *                 device halftone, but its value is ignored.
+ *
+ *  
+ *  data_memory    Points to the memory structure used to allocate the
+ *                 levels and bit_data arrays. The handling of this field
+ *                 is a bit complicated. For orders that are "taken over"
+ *                 by the installation process, this field will have the
+ *                 same value in the operand device halftone and the
+ *                 device halftone in the imager state. For halftones
+ *                 that are copied by the installation process, this
+ *                 field will have the same value as the memory field in
+ *                 the imager state (the two are usually the same).
+ *
+ *  cache          Pointer to a cache of tiles representing various
+ *                 levels of the halftone. This may or may not be
+ *                 provided in the operand device halftone (in principle
+ *                 this should always be a null pointer in the operand
+ *                 device halftone, but this is not the manner in which
+ *                 the cache was handled historically).
+ *
+ *  screen_params  This structure contains transformation information
+ *                 that is required when reading the sample data for a
+ *                 screen. It is no longer required once the halftone
+ *                 order has been constructed.
+ *
+ * In addition to what is noted above, this procedure is made somewhat
+ * more complex than expected due to memory management considerations. To
+ * clarify this, it is necessary to consider the properties of the pieces
+ * that constitute a device halftone.
+ *
+ *  The gx_device_halftone structure itself is shareable and uses
+ *  reference counts.
+ *
+ *  The gx_ht_order_component array (components array entry) is in
+ *  principle shareable, though it does not provide any reference
+ *  counting mechanism. Hence any sharing needs to be done with
+ *  caution.
+ *
+ *  Individual component orders are not shareable, as they are part of
+ *  the gx_ht_order_commponent structure (a major design error).
+ *
+ *  The levels, bit_data, and cache structures referenced by the
+ *  gx_ht_order structure are in principle shareable, but they also do
+ *  not provide any reference counting mechanism. Traditionally, one set
+ *  of two component orders could share these structures, using the
+ *  halftone's "order" field and various scattered bits of special case
+ *  code. This practice has been ended because it did not extend to
+ *  sharing amongst more than two components.
+ *
+ *  The gx_transfer_map structure referenced by the gx_ht_order structure
+ *  is shareable, and uses reference counts. Traditionally this structure
+ *  was not shared, but this is no longer the case.
+ *
+ * As noted, the rc field of the operand halftone is not initialized, so
+ * this procedure cannot simply take ownership of the operand device
+ * halftone structure (i.e.: an ostensibly shareable structure is not
+ * shareable). Hence, this procedure will always create a new copy of the
+ * gx_device_halftone structure, either by allocating a new structure or
+ * re-using the structure already referenced by the imager state. This
+ * feature must be retained, as in several cases the calling code will
+ * allocate the operand device halftone structure on the stack.
+ *
+ * Traditionally, this procedure took ownership of all of the structures
+ * referenced by the operand device halftone structure. This implied
+ * that all structures referenced by the gx_device_halftone structure
+ * needed to be allocated on the heap, and should not be released once
+ * the call to gx_imager_dev_ht_install completes.
+ *
+ * There were two problems with this approach:
+ *
+ *  1. In the event of an error, the calling code most likely would have
+ *     to release referenced components, as the imager state had not yet
+ *     take ownership of them. In many cases, the code did not do this.
+ *
+ *  2. When the structures referenced by a single order needed to be
+ *     shared amongst more than one component, there was no easy way to
+ *     discover this sharing when the imager state's device halftone
+ *     subsequently needed to be released. Hence, objects would be
+ *     released multiple times.
+ *
+ * Subsequently, the code in this routine was changed to copy most of
+ * the referenced structures (everything except the transfer functions).
+ * Unfortunately, the calling code was not changed, which caused memory
+ * leaks.
+ *
+ * The approach now taken uses a mixture of the two approaches.
+ * Ownership to structures referenced by the operand device halftone is
+ * assumed by the device halftone in the imager state where this is
+ * possible. In these cases, the corresponding references are removed in
+ * the operand device halftone (hence, this operand is no longer
+ * qualified as const). When a structure is required but ownership cannot
+ * be assumed, a copy is made and the reference in the operand device
+ * halftone is left undisturbed. The calling code has also been modified
+ * to release any remaining referenced structures when this routine
+ * returns, whether or not an error is indicated.
+ */
+int
+gx_imager_dev_ht_install(
+    gs_imager_state *       pis,
+    gx_device_halftone *    pdht,
+    gs_halftone_type        type,
+    const gx_device *       dev )
+{
+    gx_device_halftone      dht;
+    int                     num_comps = pdht->num_dev_comp;
+    int                     i, code = 0;
+    bool                    used_default = false;
+    int                     lcm_width = 1, lcm_height = 1;
+    gs_wts_screen_enum_t *  wse0 = pdht->order.wse;
+    wts_screen_t *          wts0 = 0;
+    bool                    mem_diff = pdht->rc.memory != pis->memory;
+
+    /* construct the new device halftone structure */
+    memset(&dht.order, 0, sizeof(dht.order));
+    /* the rc field is filled in later */
+    dht.id = gs_next_ids(pis->memory, 1);
+    dht.type = type;
+    dht.components =  gs_alloc_struct_array(
+                          pis->memory,
+                          num_comps,
+                          gx_ht_order_component,
+                          &st_ht_order_component_element,
+                          "gx_imager_dev_ht_install(components)" );
+    if (dht.components == NULL)
+	return_error(gs_error_VMerror);
+    dht.num_comp = dht.num_dev_comp = num_comps;
+    /* lcm_width, lcm_height are filled in later */
+
+    /* initialize the components array */
+    memset(dht.components, 0, num_comps * sizeof(dht.components[0]));
+    for (i = 0; i < num_comps; i++)
+        dht.components[i].comp_number = -1;
+
+    /*
+     * Duplicate any of the non-default components, but do not create copies
+     * of the levels or bit_data arrays. If all goes according to plan, the
+     * imager state's device halftone will assume ownership of these arrays
+     * by clearing the corresponding pointers in the operand halftone's
+     * orders.
+     */
     if (pdht->components != 0) {
-	static const gs_ht_separation_name dcnames[5][4] =
-	{
-	    {gs_ht_separation_Default},		/* not used */
-	    {gs_ht_separation_Default, gs_ht_separation_Default,
-	     gs_ht_separation_Default, gs_ht_separation_Gray
-	    },
-	    {gs_ht_separation_Default},		/* not used */
-	    {gs_ht_separation_Red, gs_ht_separation_Green,
-	     gs_ht_separation_Blue, gs_ht_separation_Default
-	    },
-	    {gs_ht_separation_Cyan, gs_ht_separation_Magenta,
-	     gs_ht_separation_Yellow, gs_ht_separation_Black
-	    }
-	};
-	static const gs_ht_separation_name cscnames[4] =
-	{gs_ht_separation_Red, gs_ht_separation_Green,
-	 gs_ht_separation_Blue, gs_ht_separation_Default
-	};
-	int num_comps = dev->color_info.num_components;
-	const gs_ht_separation_name *cnames = dcnames[num_comps];
-	int lcm_width = 1, lcm_height = 1;
-	uint i;
+        int     input_ncomps = pdht->num_comp;
 
-	/* Halftones set by setcolorscreen, and (we think) */
-	/* Type 2 and Type 4 halftones, are supposed to work */
-	/* for both RGB and CMYK, so we need a special check here. */
-	if (num_comps == 4 &&
-	    (type == ht_type_colorscreen ||
-	     type == ht_type_multiple_colorscreen)
-	    )
-	    cnames = cscnames;
-	if_debug4('h', "[h]dcnames=%lu,%lu,%lu,%lu\n",
-		  (ulong) cnames[0], (ulong) cnames[1],
-		  (ulong) cnames[2], (ulong) cnames[3]);
-	memset(pgdht->color_indices, 0, sizeof(pdht->color_indices));
-	for (i = 0; i < pdht->num_comp; i++) {
-	    const gx_ht_order_component *pcomp =
-	    &pdht->components[i];
-	    int j;
+        for (i = 0; i < input_ncomps && code >= 0; i++) {
+            gx_ht_order_component * p_s_comp = &pdht->components[i];
+            gx_ht_order *           p_s_order = &p_s_comp->corder;
+            int                     comp_num = p_s_comp->comp_number;
 
-	    if_debug2('h', "[h]cname[%d]=%lu\n",
-		      i, (ulong) pcomp->cname);
-	    for (j = 0; j < 4; j++) {
-		if (pcomp->cname == cnames[j]) {
-		    if_debug2('h', "[h]color_indices[%d]=%d\n",
-			      j, i);
-		    pgdht->color_indices[j] = i;
-		}
-	    }
-	}
-	/* Now do a second pass to compute the LCM. */
-	/* We have to do it this way in case some entry in */
-	/* color_indices is still 0. */
-	for (i = 0; i < 4; ++i) {
-	    const gx_ht_order_component *pcomp =
-	    &pdht->components[pgdht->color_indices[i]];
-	    uint cw = pcomp->corder.width;
-	    uint ch = pcomp->corder.full_height;
-	    int dw = lcm_width / igcd(lcm_width, cw);
-	    int dh = lcm_height / igcd(lcm_height, ch);
+	    if (comp_num >= 0 && comp_num < GX_DEVICE_COLOR_MAX_COMPONENTS) {
+                gx_ht_order *   p_d_order = &dht.components[comp_num].corder;
 
-	    lcm_width = (cw > max_int / dw ? max_int : cw * dw);
-	    lcm_height = (ch > max_int / dh ? max_int : ch * dh);
-	}
-	pgdht->lcm_width = lcm_width;
-	pgdht->lcm_height = lcm_height;
-    } else {			/* Only one component. */
-	pgdht->lcm_width = pgdht->order.width;
-	pgdht->lcm_height = pgdht->order.full_height;
+                /* indicate that this order has been filled in */
+                dht.components[comp_num].comp_number = comp_num;
+
+                /*
+                 * The component can be used only if it is from the
+                 * proper memory
+                 */
+                if (mem_diff)
+                    code = gx_ht_copy_ht_order( p_d_order,
+                                                p_s_order,
+                                                pis->memory );
+                else {
+                    /* check if this is also the default component */
+                    used_default = used_default ||
+                                   p_s_order->bit_data == pdht->order.bit_data;
+
+                    gx_ht_move_ht_order(p_d_order, p_s_order);
+                }
+            }
+        }
     }
-    if_debug2('h', "[h]LCM=(%d,%d)\n",
-	      pgdht->lcm_width, pgdht->lcm_height);
-    gx_imager_set_effective_xfer(pis);
-    return 0;
+
+    /*
+     * Copy the default order to any remaining components.
+     *
+     * For well-tempered screens, generate the wts_screen_t structure
+     * for each component that corresponds to the sample information
+     * that has been gathered.
+     *
+     * Some caution is necessary here, as multiple component orders may
+     * have wse fields pointing to the same gs_wts_creeen_enum_t
+     * structure. This structure should only be released once. If
+     * multiple components have such a wse value, it will be the same as
+     * pdht->order.wse pointer, so we can just release that pointer once
+     * when done.
+     *
+     * If serveral component orders have the same wse value, this code
+     * will create just one wts_screen_t structure. In a somewhat ugly
+     * hack, the width field (which is otherwise unused) will be set to
+     * 0xffff for all components other than the first component that
+     * makes use of a give wts_screen_t structure. gx_ht_order_release
+     * will check this field to see if it should release the structure
+     * pointed to by the wts field of a component order.
+     *
+     * Components that are not well-tempered screens require a cache.
+     * In practice, either all or non of the components will be well-
+     * tempered screens, but we ignore that fact here.
+     *
+     * While engaged in all of these other activities, also calculate
+     * the lcm_width and lcm_heigth values (only for non-well-tempered
+     * components).
+     */
+    for (i = 0; i < num_comps && code >= 0; i++) {
+        gx_ht_order *           porder = &dht.components[i].corder;
+        gs_wts_screen_enum_t *  wse;
+
+        if (dht.components[i].comp_number != i) {
+            if (used_default || mem_diff)
+                code = gx_ht_copy_ht_order(porder, &pdht->order, pis->memory);
+            else {
+                gx_ht_move_ht_order(porder, &pdht->order);
+                used_default = true;
+            }
+            dht.components[i].comp_number = i;
+        }
+        if ((wse = porder->wse) != 0) {
+            wts_screen_t *  wts = 0;
+
+            porder->width = 0;
+            porder->wse = 0;
+            if (wse != wse0)
+                wts = wts_screen_from_enum(wse);
+            else {
+                if (wts0 == 0)
+                    wts0 = wts_screen_from_enum(wse);
+                else
+                    porder->width = ht_wts_suppress_release;
+                wts = wts0;
+            }
+            if (wts == 0)
+                code = gs_error_VMerror;
+            else
+                porder->wts = wts;
+        } else {
+            uint   w = porder->width, h = porder->full_height;
+            int    dw = igcd(lcm_width, w), dh = igcd(lcm_height, h);
+
+            lcm_width /= dw;
+            lcm_height /= dh;
+            lcm_width = (w > max_int / lcm_width ? max_int : lcm_width * w);
+            lcm_height = (h > max_int / lcm_height ? max_int : lcm_height * h);
+
+            if (porder->cache == 0) {
+                uint            tile_bytes, num_tiles;
+                gx_ht_cache *   pcache;
+
+                tile_bytes = porder->raster
+                              * (porder->num_bits / porder->width);
+                num_tiles = 1 + max_tile_cache_bytes / tile_bytes;
+                pcache = gx_ht_alloc_cache( pis->memory,
+                                            num_tiles,
+                                            tile_bytes * num_tiles );
+                if (pcache == NULL) 
+                    code = gs_error_VMerror;
+                else {
+                    porder->cache = pcache;
+                    gx_ht_init_cache(pis->memory, pcache, porder);
+                }
+            }
+        }
+    }
+    dht.lcm_width = lcm_width;
+    dht.lcm_height = lcm_height;
+
+    /*
+     * If everything is OK so far, allocate a unique copy of the device
+     * halftone reference by the imager state.
+     *
+     * This code requires a special check for the case in which the
+     * deivce halftone referenced by the imager state is already unique.
+     * In this case, we must explicitly release just the components array
+     * (and any structures it refers to) of the existing halftone. This
+     * cannot be done automatically, as the rc_unshare_struct macro only
+     * ensures that a unique instance of the top-level structure is
+     * created, not that any substructure references are updated.
+     *
+     * Though this is scheduled to be changed, for the time being the
+     * command list renderer may invoke this code with pdht == psi->dev_ht
+     * (in which case we know pis->dev_ht.rc.ref_count == 1). Special
+     * handling is required in that case, to avoid releasing structures
+     * we still need.
+     */
+    if (code >= 0) {
+        gx_device_halftone *    pisdht = pis->dev_ht;
+        rc_header               tmp_rc;
+
+        if (pisdht != 0 && pisdht->rc.ref_count == 1) {
+            if (pdht != pisdht)
+                gx_device_halftone_release(pisdht, pisdht->rc.memory);
+        } else {
+            rc_unshare_struct( pis->dev_ht,
+                               gx_device_halftone,
+                               &st_device_halftone,
+                               pis->memory,
+                               BEGIN code = gs_error_VMerror; goto err; END,
+                               "gx_imager_dev_ht_install" );
+            pisdht = pis->dev_ht;
+        }
+
+        /*
+         * Everything worked. "Assume ownership" of the appropriate
+         * portions of the source device halftone by clearing the
+         * associated references. This includes explicitly releasing
+         * any gs_wts_screen_enum_t structures. Since we might have
+         * pdht == pis->dev_ht, this must done before updating pis->dev_ht.
+         *
+         * If the default order has been used for a device component, and
+         * any of the source component orders share their levels or bit_data
+         * arrays with the default order, clear the pointers in those orders
+         * now. This is necessary because the default order's pointers will
+         * be cleared immediately below, so subsequently it will not be
+         * possible to tell if that this information is being shared.
+         */
+        if (pdht->components != 0) {
+            int     input_ncomps = pdht->num_comp;
+
+            for (i = 0; i < input_ncomps; i++) {
+                gx_ht_order_component * p_s_comp = &pdht->components[i];
+                gx_ht_order *           p_s_order = &p_s_comp->corder;
+                int                     comp_num = p_s_comp->comp_number;
+
+                if ( comp_num >= 0                            &&
+                     comp_num < GX_DEVICE_COLOR_MAX_COMPONENTS  ) {
+                    if (p_s_order->wse != 0)
+                        gs_wts_free_enum(p_s_order->wse);
+                    memset(p_s_order, 0, sizeof(*p_s_order));
+                } else if ( comp_num == GX_DEVICE_COLOR_MAX_COMPONENTS &&
+                            used_default                                 )
+                    memset(p_s_order, 0, sizeof(*p_s_order));
+            }
+        }
+        if (used_default) {
+            if (wse0 != 0)
+                gs_wts_free_enum(wse0);
+            memset(&pdht->order, 0, sizeof(pdht->order));
+        }
+
+        tmp_rc = pisdht->rc;
+        *pisdht = dht;
+        pisdht->rc = tmp_rc;
+
+        /* update the effective transfer function array */
+        gx_imager_set_effective_xfer(pis);
+
+        return 0;
+    }
+
+    /* something went amiss; release all copied components */
+  err:
+    for (i = 0; i < num_comps; i++) {
+        gx_ht_order_component * pcomp = &dht.components[i];
+        gx_ht_order *           porder = &pcomp->corder;
+
+        if (pcomp->comp_number == -1)
+            gx_ht_order_release(porder, pis->memory, true);
+    }
+    gs_free_object(pis->memory, dht.components, "gx_imager_dev_ht_install");
+
+    return code;
 }
 
 /*
@@ -642,13 +1222,14 @@ gx_imager_dev_ht_install(gs_imager_state * pis,
  */
 int
 gx_ht_install(gs_state * pgs, const gs_halftone * pht,
-	      const gx_device_halftone * pdht)
+	      gx_device_halftone * pdht)
 {
     gs_memory_t *mem = pht->rc.memory;
     gs_halftone *old_ht = pgs->halftone;
     gs_halftone *new_ht;
     int code;
 
+    pdht->num_dev_comp = pgs->device->color_info.num_components;
     if (old_ht != 0 && old_ht->rc.memory == mem &&
 	old_ht->rc.ref_count == 1
 	)
@@ -664,6 +1245,13 @@ gx_ht_install(gs_state * pgs, const gs_halftone * pht,
 	    gs_free_object(mem, new_ht, "gx_ht_install(new halftone)");
 	return code;
     }
+
+    /*
+     * Discard and unused components and the components array of the
+     * operand device halftone
+     */
+    gx_device_halftone_release(pdht, pdht->rc.memory);
+
     if (new_ht != old_ht)
 	rc_decrement(old_ht, "gx_ht_install(old halftone)");
     {
@@ -678,37 +1266,52 @@ gx_ht_install(gs_state * pgs, const gs_halftone * pht,
     return 0;
 }
 
+/*
+ * This macro will determine the colorant number of a given color name.
+ * A value of -1 indicates that the name is not valid.
+ */
+#define check_colorant_name(name, dev) \
+   ((*dev_proc(dev, get_color_comp_index)) (dev, name, strlen(name), NO_NAME_TYPE))
+
 /* Reestablish the effective transfer functions, taking into account */
 /* any overrides from halftone dictionaries. */
 void
 gx_imager_set_effective_xfer(gs_imager_state * pis)
 {
     const gx_device_halftone *pdht = pis->dev_ht;
+    gx_transfer_map *pmap;
+    int i, component_num;
 
-    pis->effective_transfer = pis->set_transfer;	/* default */
-    if (pdht == 0)
+    for (i = 0; i < GX_DEVICE_COLOR_MAX_COMPONENTS; i++)
+	pis->effective_transfer[i] = pis->set_transfer.gray;	/* default */
+
+    /* Check if we have a transfer functions from setcolortransfer */
+    if (pis->set_transfer.red) {
+	component_num = pis->set_transfer.red_component_num;
+	if (component_num >= 0)
+	    pis->effective_transfer[component_num] = pis->set_transfer.red;;
+    }
+    if (pis->set_transfer.green) {
+	component_num = pis->set_transfer.green_component_num;
+	if (component_num >= 0)
+	    pis->effective_transfer[component_num] = pis->set_transfer.green;
+    }
+    if (pis->set_transfer.blue) {
+	component_num = pis->set_transfer.blue_component_num;
+	if (component_num >= 0)
+	    pis->effective_transfer[component_num] = pis->set_transfer.blue;
+    }
+
+    if (pdht == NULL)
 	return;			/* not initialized yet */
-    if (pdht->components == 0) {	/* Check for transfer function override in single halftone */
-	gx_transfer_map *pmap = pdht->order.transfer;
 
-	if (pmap != 0)
-	    pis->effective_transfer.indexed[0] =
-		pis->effective_transfer.indexed[1] =
-		pis->effective_transfer.indexed[2] =
-		pis->effective_transfer.indexed[3] = pmap;
-    } else {			/* Check in all 4 standard separations */
-	int i;
-
-	for (i = 0; i < 4; ++i) {
-	    gx_transfer_map *pmap =
-	    pdht->components[pdht->color_indices[i]].corder.
-	    transfer;
-
-	    if (pmap != 0)
-		pis->effective_transfer.indexed[i] = pmap;
-	}
+    for (i = 0; i < pdht->num_comp; i++) {
+	pmap = pdht->components[i].corder.transfer;
+	if (pmap != NULL)
+	    pis->effective_transfer[i] = pmap;
     }
 }
+
 void
 gx_set_effective_transfer(gs_state * pgs)
 {

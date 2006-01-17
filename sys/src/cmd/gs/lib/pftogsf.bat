@@ -1,5 +1,5 @@
 @echo off
-@rem $Id: pftogsf.bat,v 1.2 2000/05/20 20:53:05 lpd Exp $
+@rem $Id: pftogsf.bat,v 1.4 2002/02/21 21:49:28 giles Exp $
 
 rem ******************************
 rem * Convert .pf? files to .gsf *

@@ -1,25 +1,24 @@
 /* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zfrsd.c,v 1.4 2000/09/19 19:00:53 lpd Exp $ */
+/* $Id: zfrsd.c,v 1.10 2004/08/04 19:36:13 stefan Exp $ */
 /* ReusableStreamDecode filter support */
 #include "memory_.h"
 #include "ghost.h"
+#include "gsfname.h"		/* for gs_parse_file_name */
 #include "gxiodev.h"
 #include "oper.h"
 #include "stream.h"
@@ -79,16 +78,16 @@ zrsdparams(i_ctx_t *i_ctx_p)
     for (i = 0; i < r_size(pFilter); ++i) {
 	ref f, fname, dp;
 
-	array_get(pFilter, (long)i, &f);
+	array_get(imemory, pFilter, (long)i, &f);
 	if (!r_has_type(&f, t_name))
 	    return_error(e_typecheck);
-	name_string_ref(&f, &fname);
+	name_string_ref(imemory, &f, &fname);
 	if (r_size(&fname) < 6 ||
 	    memcmp(fname.value.bytes + r_size(&fname) - 6, "Decode", 6)
 	    )
 	    return_error(e_rangecheck);
 	if (pDecodeParms) {
-	    array_get(pDecodeParms, (long)i, &dp);
+	    array_get(imemory, pDecodeParms, (long)i, &dp);
 	    if (!(r_has_type(&dp, t_dictionary) || r_has_type(&dp, t_null)))
 		return_error(e_typecheck);
 	}
@@ -117,11 +116,11 @@ zrsdparams(i_ctx_t *i_ctx_p)
  * Reusable streams are also reusable sources, but they look just like
  * ordinary file or string streams.
  */
-private int make_rss(P8(i_ctx_t *i_ctx_p, os_ptr op, const byte * data,
-			uint size, int space, long offset, long length,
-			bool is_bytestring));
-private int make_rfs(P5(i_ctx_t *i_ctx_p, os_ptr op, stream *fs,
-			long offset, long length));
+private int make_rss(i_ctx_t *i_ctx_p, os_ptr op, const byte * data,
+		     uint size, int space, long offset, long length,
+		     bool is_bytestring);
+private int make_rfs(i_ctx_t *i_ctx_p, os_ptr op, stream *fs,
+		     long offset, long length);
 private int
 zreusablestream(i_ctx_t *i_ctx_p)
 {
@@ -225,17 +224,23 @@ private int
 make_rfs(i_ctx_t *i_ctx_p, os_ptr op, stream *fs, long offset, long length)
 {
     gs_const_string fname;
+    gs_parsed_file_name_t pname;
     stream *s;
     int code;
 
     if (sfilename(fs, &fname) < 0)
 	return_error(e_ioerror);
-    if (fname.data[0] == '%')
+    code = gs_parse_file_name(&pname, (const char *)fname.data, fname.size);
+    if (code < 0)
+	return code;
+    if (pname.len == 0)		/* %stdin% etc. won't have a filename */
 	return_error(e_invalidfileaccess); /* can't reopen */
+    if (pname.iodev == NULL)
+	pname.iodev = iodev_default;
     /* Open the file again, to be independent of the source. */
-    code = file_open_stream((const char *)fname.data, fname.size, "r",
-			    fs->cbsize, &s, iodev_default->procs.fopen,
-			    imemory);
+    code = file_open_stream((const char *)pname.fname, pname.len, "r",
+			    fs->cbsize, &s, pname.iodev,
+			    pname.iodev->procs.fopen, imemory);
     if (code < 0)
 	return code;
     if (sread_subfile(s, offset, length) < 0) {

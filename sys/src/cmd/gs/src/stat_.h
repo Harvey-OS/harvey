@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: stat_.h,v 1.6 2001/08/07 22:13:29 dancoby Exp $ */
+/* $Id: stat_.h,v 1.10 2003/04/10 18:45:12 alexcher Exp $ */
 /* Generic substitute for Unix sys/stat.h */
 
 #ifndef stat__INCLUDED
@@ -24,7 +22,13 @@
 
 /* We must include std.h before any file that includes sys/types.h. */
 #include "std.h"
+
+/* Metrowerks Standard Library doesn't use subdirs */
+#ifdef __MWERKS__
+#include <stat.h>
+#else
 #include <sys/stat.h>
+#endif
 
 /*
  * Many environments, including the MS-DOS compilers, don't define
@@ -62,19 +66,22 @@
 /*
  * Some systems have S_IFMT and S_IFCHR but not S_ISCHR.
  */
-#ifndef S_ISCHR
+#if !defined(S_ISCHR) || !defined(S_ISREG)
 #  ifndef S_IFMT
 #    ifdef _S_IFMT
 #      define S_IFMT _S_IFMT
 #      define S_IFCHR _S_IFCHR
+#      define S_IFREG _S_IFREG
 #    else
 #    ifdef __S_IFMT
 #      define S_IFMT __S_IFMT
 #      define S_IFCHR __S_IFCHR
+#      define S_IFREG __S_IFREG
 #    endif
 #    endif
 #  endif
 #  define S_ISCHR(mode) (((mode) & S_IFMT) == S_IFCHR)
+#  define S_ISREG(mode) (((mode) & S_IFMT) == S_IFREG)
 #endif
 
 /*

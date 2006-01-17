@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdebug.h,v 1.3 2001/06/16 19:02:32 igorm Exp $ */
+/* $Id: gdebug.h,v 1.6 2002/06/16 08:45:42 lpd Exp $ */
 /* Debugging machinery definitions */
 
 #ifndef gdebug_INCLUDED
@@ -54,7 +52,7 @@
 
 /* Define the array of debugging flags, indexed by character code. */
 extern char gs_debug[128];
-bool gs_debug_c(P1(int /*char */ ));
+bool gs_debug_c(int /*char */ );
 
 /*
  * Define an alias for a specialized debugging flag
@@ -117,11 +115,11 @@ extern FILE *gs_debug_out;
 #endif
 
 /* Debugging support procedures in gsmisc.c */
-void debug_dump_bytes(P3(const byte * from, const byte * to,
-			 const char *msg));
-void debug_dump_bitmap(P4(const byte * from, uint raster, uint height,
-			  const char *msg));
-void debug_print_string(P2(const byte * str, uint len));
-void debug_print_string_hex(P2(const byte * str, uint len));
+void debug_dump_bytes(const byte * from, const byte * to,
+		      const char *msg);
+void debug_dump_bitmap(const byte * from, uint raster, uint height,
+		       const char *msg);
+void debug_print_string(const byte * str, uint len);
+void debug_print_string_hex(const byte * str, uint len);
 
 #endif /* gdebug_INCLUDED */

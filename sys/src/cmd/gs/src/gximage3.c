@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gximage3.c,v 1.6 2000/09/19 19:00:38 lpd Exp $ */
+/* $Id: gximage3.c,v 1.15 2005/03/29 14:26:26 igor Exp $ */
 /* ImageType 3 image implementation */
 #include "math_.h"		/* for ceil, floor */
 #include "memory_.h"
@@ -112,6 +110,7 @@ make_mid_default(gx_device **pmidev, gx_device *dev, int width, int height,
     midev->bitmap_memory = mem;
     midev->width = width;
     midev->height = height;
+    check_device_separable((gx_device *)midev);
     gx_device_fill_in_procs((gx_device *)midev);
     code = dev_proc(midev, open_device)((gx_device *)midev);
     if (code < 0) {
@@ -183,7 +182,7 @@ gx_begin_image3(gx_device * dev,
  * Begin a generic ImageType 3 image, with client handling the creation of
  * the mask image and mask clip devices.
  */
-private bool check_image3_extent(P2(floatp mask_coeff, floatp data_coeff));
+private bool check_image3_extent(floatp mask_coeff, floatp data_coeff);
 int
 gx_begin_image3_generic(gx_device * dev,
 			const gs_imager_state *pis, const gs_matrix *pmat,
@@ -330,8 +329,9 @@ gx_begin_image3_generic(gx_device * dev,
 	(code = gs_bbox_transform(&mrect, &mat, &mrect)) < 0
 	)
 	return code;
-    origin.x = floor(mrect.p.x);
-    origin.y = floor(mrect.p.y);
+
+    origin.x = (mrect.p.x < 0) ? (int)ceil(mrect.p.x) : (int)floor(mrect.p.x);
+    origin.y = (mrect.p.y < 0) ? (int)ceil(mrect.p.y) : (int)floor(mrect.p.y);
     code = make_mid(&mdev, dev, (int)ceil(mrect.q.x) - origin.x,
 		    (int)ceil(mrect.q.y) - origin.y, mem);
     if (code < 0)
@@ -350,7 +350,7 @@ gx_begin_image3_generic(gx_device * dev,
 	gx_drawing_color dcolor;
 	gs_matrix m_mat;
 
-	color_set_pure(&dcolor, 1);
+	set_nonclient_dev_color(&dcolor, 1);
 	/*
 	 * Adjust the translation for rendering the mask to include a
 	 * negative translation by origin.{x,y} in device space.
@@ -372,8 +372,14 @@ gx_begin_image3_generic(gx_device * dev,
     gs_image_t_init(&i_pixel, pim->ColorSpace);
     {
 	const gx_image_type_t *type1 = i_pixel.type;
+        const bool mask = i_pixel.ImageMask;
 
+        /* On gcc 2.95.4 for Alpha all structures are padded to 8 byte
+         * boundary but sizeof(bool) == 4. First member of the subclass
+         * is restored because it is overwritten by padding data.
+         */
 	*(gs_pixel_image_t *)&i_pixel = *(const gs_pixel_image_t *)pim;
+	i_pixel.ImageMask = mask;
 	i_pixel.type = type1;
     }
     code = make_mcde(dev, pis, pmat, (const gs_image_common_t *)&i_pixel,
@@ -725,9 +731,9 @@ gx_image3_end_image(gx_image_enum_common_t * info, bool draw_last)
     int mcode = gx_image_end(penum->mask_info, draw_last);
     gx_device *pcdev = penum->pcdev;
     int pcode = gx_image_end(penum->pixel_info, draw_last);
+    int code1 = gs_closedevice(pcdev);
+    int code2 = gs_closedevice(mdev);
 
-    gs_closedevice(pcdev);
-    gs_closedevice(mdev);
     gs_free_object(mem, penum->mask_data,
 		   "gx_image3_end_image(mask_data)");
     gs_free_object(mem, penum->pixel_data,
@@ -735,5 +741,5 @@ gx_image3_end_image(gx_image_enum_common_t * info, bool draw_last)
     gs_free_object(mem, pcdev, "gx_image3_end_image(pcdev)");
     gs_free_object(mem, mdev, "gx_image3_end_image(mdev)");
     gs_free_object(mem, penum, "gx_image3_end_image");
-    return (pcode < 0 ? pcode : mcode);
+    return (pcode < 0 ? pcode : mcode < 0 ? mcode : code1 < 0 ? code1 : code2);
 }

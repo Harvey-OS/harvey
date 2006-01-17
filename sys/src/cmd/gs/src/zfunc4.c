@@ -1,22 +1,20 @@
 /* Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zfunc4.c,v 1.7.4.1 2002/01/17 02:59:35 dancoby Exp $ */
+/* $Id: zfunc4.c,v 1.12 2004/08/04 19:36:13 stefan Exp $ */
 /* PostScript language support for FunctionType 4 (PS Calculator) Functions */
 #include "memory_.h"
 #include "ghost.h"
@@ -29,7 +27,7 @@
 #include "ifunc.h"
 #include "iname.h"
 #include "dstack.h"
-
+#include "ialloc.h"
 /*
  * FunctionType 4 functions are not defined in the PostScript language.  We
  * provide support for them because they are needed for PDF 1.3.  In
@@ -43,7 +41,7 @@
  *
  * The following list is taken directly from the PDF 1.3 documentation.
  */
-#define XOP(zfn) int zfn(P1(i_ctx_t *))
+#define XOP(zfn) int zfn(i_ctx_t *)
 XOP(zabs); XOP(zand); XOP(zatan); XOP(zbitshift);
 XOP(zceiling); XOP(zcos); XOP(zcvi); XOP(zcvr);
 XOP(zdiv); XOP(zexp); XOP(zfloor); XOP(zidiv);
@@ -145,7 +143,7 @@ check_psc_function(i_ctx_t *i_ctx_p, const ref *pref, int depth, byte *ops, int 
 	ref * delp;
 	int code;
 
-	array_get(pref, i, &elt);
+	array_get(imemory, pref, i, &elt);
 	switch (r_btype(&elt)) {
 	case t_integer: {
 	    int i = elt.value.intval;
@@ -180,7 +178,7 @@ check_psc_function(i_ctx_t *i_ctx_p, const ref *pref, int depth, byte *ops, int 
 	case t_name:
 	    if (!r_has_attr(&elt, a_executable))
 		return_error(e_rangecheck);
-	    name_string_ref(&elt, &elt);
+	    name_string_ref(imemory, &elt, &elt);
 	    if (!bytes_compare(elt.value.bytes, r_size(&elt),
 			       (const byte *)"true", 4)) {
 		*p = PtCr_true;
@@ -218,7 +216,7 @@ check_psc_function(i_ctx_t *i_ctx_p, const ref *pref, int depth, byte *ops, int 
 		return_error(e_typecheck);
 	    if (depth == MAX_PSC_FUNCTION_NESTING)
 		return_error(e_limitcheck);
-	    if ((code = array_get(pref, ++i, &elt2)) < 0)
+	    if ((code = array_get(imemory, pref, ++i, &elt2)) < 0)
 		return code;
 	    *psize += 3;
 	    code = check_psc_function(i_ctx_p, &elt, depth + 1, ops, psize);
@@ -235,7 +233,7 @@ check_psc_function(i_ctx_t *i_ctx_p, const ref *pref, int depth, byte *ops, int 
 		}
 	    } else if (!r_is_proc(&elt2))
 		return_error(e_rangecheck);
-	    else if ((code == array_get(pref, ++i, &elt3)) < 0)
+	    else if ((code == array_get(imemory, pref, ++i, &elt3)) < 0)
 		return code;
 	    else if (R_IS_OPER(&elt3, zifelse)) {
 		if (ops) {

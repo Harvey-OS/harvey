@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gscrdp.h,v 1.2 2000/09/19 19:00:27 lpd Exp $ */
+/* $Id: gscrdp.h,v 1.5 2002/06/16 08:45:42 lpd Exp $ */
 /* Interface for device-specified CRDs */
 
 #ifndef gscrdp_INCLUDED
@@ -41,17 +39,17 @@ typedef struct gx_device_s gx_device;
  * should be declared as const gs_cie_render *, but the procedures may
  * cause certain cached (idempotent) values to be computed.
  */
-int param_write_cie_render1(P4(gs_param_list * plist, gs_param_name key,
-			       gs_cie_render * pcrd,
-			       gs_memory_t * mem));
+int param_write_cie_render1(gs_param_list * plist, gs_param_name key,
+			    gs_cie_render * pcrd,
+			    gs_memory_t * mem);
 
 /*
  * For internal use, we also provide an API that writes the CRD directly
  * into a parameter list, rather than as a named parameter in a larger
  * list.
  */
-int param_put_cie_render1(P3(gs_param_list * plist, gs_cie_render * pcrd,
-			     gs_memory_t * mem));
+int param_put_cie_render1(gs_param_list * plist, gs_cie_render * pcrd,
+			  gs_memory_t * mem);
 
 /*
  * Client code that wants to initialize a CRD from a device parameter
@@ -71,18 +69,18 @@ int param_put_cie_render1(P3(gs_param_list * plist, gs_cie_render * pcrd,
 
  * where "ParamName" is the parameter name, e.g., "CRDDefault".
  */
-int gs_cie_render1_param_initialize(P4(gs_cie_render * pcrd,
-				       gs_param_list * plist,
-				       gs_param_name key,
-				       gx_device * dev));
+int gs_cie_render1_param_initialize(gs_cie_render * pcrd,
+				    gs_param_list * plist,
+				    gs_param_name key,
+				    gx_device * dev);
 
 /*
  * Again, we provide an internal procedure that doesn't involve a
  * parameter name.
  */
-int param_get_cie_render1(P3(gs_cie_render * pcrd,
-			     gs_param_list * plist,
-			     gx_device * dev));
+int param_get_cie_render1(gs_cie_render * pcrd,
+			  gs_param_list * plist,
+			  gx_device * dev);
 
 /*
  * The actual representation of the CRD is a slightly modified PostScript

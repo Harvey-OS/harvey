@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 1997 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsht1.h,v 1.2 2000/09/19 19:00:29 lpd Exp $ */
+/* $Id: gsht1.h,v 1.5 2002/06/16 08:45:42 lpd Exp $ */
 /* Extended public interface to halftones */
 
 #ifndef gsht1_INCLUDED
@@ -25,8 +23,8 @@
 #include "gsht.h"
 
 /* Procedural interface */
-int gs_setcolorscreen(P2(gs_state *, gs_colorscreen_halftone *));
-int gs_currentcolorscreen(P2(gs_state *, gs_colorscreen_halftone *));
+int gs_setcolorscreen(gs_state *, gs_colorscreen_halftone *);
+int gs_currentcolorscreen(gs_state *, gs_colorscreen_halftone *);
 
 /*
  * We include sethalftone here, even though it is a Level 2 feature,
@@ -47,8 +45,8 @@ typedef struct gs_halftone_s gs_halftone;
  * copy the top-level structure (using the appropriate allocator), but take
  * ownership of the substructures.
  */
-int gs_sethalftone(P2(gs_state *, gs_halftone *));
-int gs_sethalftone_allocated(P2(gs_state *, gs_halftone *));
-int gs_currenthalftone(P2(gs_state *, gs_halftone *));
+int gs_sethalftone(gs_state *, gs_halftone *);
+int gs_sethalftone_allocated(gs_state *, gs_halftone *);
+int gs_currenthalftone(gs_state *, gs_halftone *);
 
 #endif /* gsht1_INCLUDED */

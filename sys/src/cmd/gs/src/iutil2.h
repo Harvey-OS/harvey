@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 1994, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: iutil2.h,v 1.2.6.1 2002/01/25 06:33:09 rayjj Exp $ */
+/* $Id: iutil2.h,v 1.6 2002/06/16 04:47:10 lpd Exp $ */
 /* Interface to procedures in iutil2.c */
 
 #ifndef iutil2_INCLUDED
@@ -35,16 +33,16 @@ typedef struct password_s {
 # define NULL_PASSWORD {0, {0}}
 
 /* Transmit a password to or from a parameter list. */
-int param_read_password(P3(gs_param_list *, const char *, password *));
-int param_write_password(P3(gs_param_list *, const char *, const password *));
+int param_read_password(gs_param_list *, const char *, password *);
+int param_write_password(gs_param_list *, const char *, const password *);
 
 /* Check a password from a parameter list. */
 /* Return 0 if OK, 1 if not OK, or an error code. */
-int param_check_password(P2(gs_param_list *, const password *));
+int param_check_password(gs_param_list *, const password *);
 
 /* Read a password from, or write a password into, a dictionary */
 /* (presumably systemdict). */
-int dict_read_password(P3(password *, const ref *, const char *));
-int dict_write_password(P4(const password *, ref *, const char *, bool));
+int dict_read_password(password *, const ref *, const char *);
+int dict_write_password(const password *, ref *, const char *, bool);
 
 #endif /* iutil2_INCLUDED */

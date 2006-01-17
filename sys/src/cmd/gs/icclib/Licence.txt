@@ -1,5 +1,5 @@
 *************************************************************************
-Copyright (c) 1997-2001 Graeme W. Gill
+Copyright (c) 1997-2002 Graeme W. Gill
 
 Permission is hereby granted, to use, copy, modify, distribute,
 and sell this software and its associated documentation files

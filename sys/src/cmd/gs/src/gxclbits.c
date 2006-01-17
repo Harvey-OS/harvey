@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxclbits.c,v 1.4 2000/11/05 18:44:57 raph Exp $ */
+/* $Id: gxclbits.c,v 1.9 2004/08/04 19:36:12 stefan Exp $ */
 /* Halftone and bitmap writing for command lists */
 #include "memory_.h"
 #include "gx.h"
@@ -129,7 +127,7 @@ cmd_put_bits(gx_device_clist_writer * cldev, gx_clist_state * pcls,
     clist_bitmap_bytes(width_bits, height, compression_mask,
 		       &uncompressed_raster, &full_raster);
     uint max_size = cbuf_size - op_size;
-    gs_memory_t *mem = (cldev->memory ? cldev->memory : &gs_memory_default);
+    gs_memory_t *mem = cldev->memory;
     byte *dp;
     int compress = 0;
 
@@ -256,7 +254,7 @@ cmd_store_tile_params(byte * dp, const gx_strip_bitmap * tile, int depth,
 		      uint csize)
 {
     byte *p = dp + 2;
-    byte bd = depth - 1;
+    byte bd = cmd_depth_to_code(depth);
 
     *dp = cmd_count_op(cmd_opv_set_tile_size, csize);
     p = cmd_put_w(tile->rep_width, p);
@@ -306,7 +304,7 @@ cmd_put_tile_index(gx_device_clist_writer *cldev, gx_clist_state *pcls,
 /* If necessary, write out data for a single color map. */
 int
 cmd_put_color_map(gx_device_clist_writer * cldev, cmd_map_index map_index,
-		  const gx_transfer_map * map, gs_id * pid)
+	int comp_num, const gx_transfer_map * map, gs_id * pid)
 {
     byte *dp;
     int code;
@@ -314,27 +312,30 @@ cmd_put_color_map(gx_device_clist_writer * cldev, cmd_map_index map_index,
     if (map == 0) {
 	if (pid && *pid == gs_no_id)
 	    return 0;	/* no need to write */
-	code = set_cmd_put_all_op(dp, cldev, cmd_opv_set_misc, 2);
+	code = set_cmd_put_all_op(dp, cldev, cmd_opv_set_misc, 3);
 	if (code < 0)
 	    return code;
 	dp[1] = cmd_set_misc_map + (cmd_map_none << 4) + map_index;
+	dp[2] = comp_num;
 	if (pid)
 	    *pid = gs_no_id;
     } else {
 	if (pid && map->id == *pid)
 	    return 0;	/* no need to write */
 	if (map->proc == gs_identity_transfer) {
-	    code = set_cmd_put_all_op(dp, cldev, cmd_opv_set_misc, 2);
+	    code = set_cmd_put_all_op(dp, cldev, cmd_opv_set_misc, 3);
 	    if (code < 0)
 		return code;
 	    dp[1] = cmd_set_misc_map + (cmd_map_identity << 4) + map_index;
+	    dp[2] = comp_num;
 	} else {
 	    code = set_cmd_put_all_op(dp, cldev, cmd_opv_set_misc,
-				      2 + sizeof(map->values));
+				      3 + sizeof(map->values));
 	    if (code < 0)
 		return code;
 	    dp[1] = cmd_set_misc_map + (cmd_map_other << 4) + map_index;
-	    memcpy(dp + 2, map->values, sizeof(map->values));
+	    dp[2] = comp_num;
+	    memcpy(dp + 3, map->values, sizeof(map->values));
 	}
 	if (pid)
 	    *pid = map->id;

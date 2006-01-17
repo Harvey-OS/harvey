@@ -1,22 +1,20 @@
 /* Copyright (C) 1989-1994, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevlxm.c,v 1.2 2000/09/19 19:00:13 lpd Exp $*/
+/* $Id: gdevlxm.c,v 1.5 2004/08/10 13:02:36 stefan Exp $*/
 /*
  * Lexmark 5700 ink-jet printer driver for Ghostscript
  *
@@ -156,18 +154,18 @@ lxm5700m_print_page(gx_device_printer *pdev, FILE *prn_stream)
     /* Note that in_size is a multiple of 8. */
     int in_size = line_size * (swipeHeight);
     int swipeBuf_size = in_size;
-    byte *buf1 = (byte *)gs_malloc(in_size, 1, "lxm_print_page(buf1)");
+    byte *buf1 = (byte *)gs_malloc(pdev->memory, in_size, 1, "lxm_print_page(buf1)");
     byte *swipeBuf =
-	(byte *)gs_malloc(swipeBuf_size, 1, "lxm_print_page(swipeBuf)");
+	(byte *)gs_malloc(pdev->memory, swipeBuf_size, 1, "lxm_print_page(swipeBuf)");
     byte *in = buf1;
 
     /* Check allocations */
     if ( buf1 == 0 || swipeBuf == 0 ) {
 	if ( buf1 ) 
 quit_ignomiously: /* and a goto into an if statement is pretty ignomious! */
-	gs_free((char *)buf1, in_size, 1, "lxm_print_page(buf1)");
+	gs_free(pdev->memory, (char *)buf1, in_size, 1, "lxm_print_page(buf1)");
 	if ( swipeBuf ) 
-	    gs_free((char *)swipeBuf, swipeBuf_size, 1, "lxm_print_page(swipeBuf)");
+	    gs_free(pdev->memory, (char *)swipeBuf, swipeBuf_size, 1, "lxm_print_page(swipeBuf)");
 	return_error(gs_error_VMerror);
     }
 
@@ -252,9 +250,9 @@ quit_ignomiously: /* and a goto into an if statement is pretty ignomious! */
 
 	/* macro, not fcn call.  Space penalty is modest, speed helps */
 #define buffer_store(x) if(outp-swipeBuf>=swipeBuf_size) {\
-	    gs_free((char *)swipeBuf, swipeBuf_size, 1, "lxm_print_page(swipeBuf)");\
+	    gs_free(pdev->memory, (char *)swipeBuf, swipeBuf_size, 1, "lxm_print_page(swipeBuf)");\
 	    swipeBuf_size*=2;\
-	    swipeBuf = (byte *)gs_malloc(swipeBuf_size, 1, "lxm_print_page(swipeBuf)");\
+	    swipeBuf = (byte *)gs_malloc(pdev->memory, swipeBuf_size, 1, "lxm_print_page(swipeBuf)");\
 	    if (swipeBuf == 0) goto quit_ignomiously;\
 	    break;}\
 	else *outp++ = (x)
@@ -361,8 +359,8 @@ quit_ignomiously: /* and a goto into an if statement is pretty ignomious! */
     }
     fflush(prn_stream);
 
-    gs_free((char *)swipeBuf, swipeBuf_size, 1, "lxm_print_page(swipeBuf)");
-    gs_free((char *)buf1, in_size, 1, "lxm_print_page(buf1)");
+    gs_free(pdev->memory, (char *)swipeBuf, swipeBuf_size, 1, "lxm_print_page(swipeBuf)");
+    gs_free(pdev->memory, (char *)buf1, in_size, 1, "lxm_print_page(buf1)");
     return 0;
 }
 

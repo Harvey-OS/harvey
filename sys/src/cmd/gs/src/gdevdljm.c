@@ -1,39 +1,20 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
 
-   This program may be distributed as part of AFPL Ghostscript, under the
-   terms of the Aladdin Free Public License (the "License").
-
-   AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No
-   author or distributor accepts any responsibility for the consequences of
-   using it, or for whether it serves any particular purpose or works at
-   all, unless he or she says so in writing.  Refer to the License for full
-   details.
-
-   Every copy of AFPL Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute AFPL Ghostscript, but only
-   under certain conditions described in the License.  Among other things,
-   the License requires that the copyright notice and this notice be
-   preserved on all copies.
-
-   This program may also be distributed and/or modified under the terms of
-   the GNU General Public License as published by the Free Software
-   Foundation (the "GPL"); either version 2 of the GPL, or (at your option)
-   any later version.
-
-   When distributed under the terms of the GPL, this program is distributed
-   in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-   even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-   PURPOSE.  See the GPL for more details.
-
-   If this program is being distributed under the terms of the GPL, you
-   should have received a copy of the GPL along with this program, normally
-   in a plain ASCII text file named COPYING; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111
-   U.S.A.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
+  
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
+  
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
  */
 
-/*$Id: gdevdljm.c,v 1.4 2000/09/19 19:00:12 lpd Exp $ */
+/* $Id: gdevdljm.c,v 1.11 2004/01/29 18:19:41 ray Exp $ */
 /* Generic monochrome H-P DeskJet/LaserJet driver */
 #include "gdevprn.h"
 #include "gdevdljm.h"
@@ -91,8 +72,8 @@ dljet_mono_print_page_copies(gx_device_printer * pdev, FILE * prn_stream,
 #define out_row_alt ((byte *)out_row_alt_words)
 #define prev_row ((byte *)prev_row_words)
     byte *out_data;
-    int x_dpi = pdev->x_pixels_per_inch;
-    int y_dpi = pdev->y_pixels_per_inch;
+    int x_dpi = (int)pdev->x_pixels_per_inch;
+    int y_dpi = (int)pdev->y_pixels_per_inch;
     int y_dots_per_pixel = dots_per_inch / y_dpi;
     int num_rows = dev_print_scan_lines(pdev);
 
@@ -140,6 +121,9 @@ dljet_mono_print_page_copies(gx_device_printer * pdev, FILE * prn_stream,
 	}
     }
     /* Put out per-page initialization. */
+    if (features & PCL_CAN_SET_PAPER_SIZE){ 
+        fprintf(prn_stream, "\033&l%dA", paper_size); 
+    } 
     fputs("\033&l0o0l0E", prn_stream);
     fputs(page_init, prn_stream);
     fprintf(prn_stream, "\033&l%dX", num_copies);	/* # of copies */

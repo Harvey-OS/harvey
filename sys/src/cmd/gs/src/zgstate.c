@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zgstate.c,v 1.2 2000/09/19 19:00:54 lpd Exp $ */
+/* $Id: zgstate.c,v 1.10 2004/08/04 19:36:13 stefan Exp $ */
 /* Graphics state operators */
 #include "math_.h"
 #include "ghost.h"
@@ -28,6 +26,8 @@
 #include "igstate.h"
 #include "gsmatrix.h"
 #include "store.h"
+#include "gscspace.h"
+#include "iname.h"
 
 /* Structure descriptors */
 private_st_int_gstate();
@@ -36,7 +36,7 @@ private_st_int_remap_color_info();
 /* ------ Utilities ------ */
 
 private int
-zset_real(i_ctx_t *i_ctx_p, int (*set_proc)(P2(gs_state *, floatp)))
+zset_real(i_ctx_t *i_ctx_p, int (*set_proc)(gs_state *, floatp))
 {
     os_ptr op = osp;
     double param;
@@ -51,7 +51,7 @@ zset_real(i_ctx_t *i_ctx_p, int (*set_proc)(P2(gs_state *, floatp)))
 }
 
 private int
-zset_bool(i_ctx_t *i_ctx_p, void (*set_proc)(P2(gs_state *, bool)))
+zset_bool(i_ctx_t *i_ctx_p, void (*set_proc)(gs_state *, bool))
 {
     os_ptr op = osp;
 
@@ -62,7 +62,7 @@ zset_bool(i_ctx_t *i_ctx_p, void (*set_proc)(P2(gs_state *, bool)))
 }
 
 private int
-zcurrent_bool(i_ctx_t *i_ctx_p, bool (*current_proc)(P1(const gs_state *)))
+zcurrent_bool(i_ctx_t *i_ctx_p, bool (*current_proc)(const gs_state *))
 {
     os_ptr op = osp;
 
@@ -71,16 +71,38 @@ zcurrent_bool(i_ctx_t *i_ctx_p, bool (*current_proc)(P1(const gs_state *)))
     return 0;
 }
 
+private int
+zset_uint(i_ctx_t *i_ctx_p, void (*set_proc)(gs_state *, uint))
+{
+    os_ptr op = osp;
+
+    check_type(*op, t_integer);
+    set_proc(igs, op->value.intval);
+    pop(1);
+    return 0;
+}
+
+private int
+zcurrent_uint(i_ctx_t *i_ctx_p, uint (*current_proc)(const gs_state *))
+{
+    os_ptr op = osp;
+
+    push(1);
+    make_int(op, current_proc(igs));
+    return 0;
+}
+
 /* ------ Operations on the entire graphics state ------ */
 
 /* "Client" procedures */
-private void *gs_istate_alloc(P1(gs_memory_t * mem));
-private int gs_istate_copy(P2(void *to, const void *from));
-private void gs_istate_free(P2(void *old, gs_memory_t * mem));
+private void *gs_istate_alloc(gs_memory_t * mem);
+private int gs_istate_copy(void *to, const void *from);
+private void gs_istate_free(void *old, gs_memory_t * mem);
 private const gs_state_client_procs istate_procs = {
     gs_istate_alloc,
     gs_istate_copy,
-    gs_istate_free
+    gs_istate_free,
+    0,			/* copy_for */
 };
 
 /* Initialize the graphics stack. */
@@ -104,6 +126,7 @@ int_gstate_alloc(const gs_dual_memory_t * dmem)
     make_real(proc0.value.refs + 1, 0.0);
     iigs->black_generation = proc0;
     iigs->undercolor_removal = proc0;
+    make_false(&iigs->use_cie_color);
     /*
      * Even though the gstate itself is allocated in local VM, the
      * container for the color remapping procedure must be allocated in
@@ -114,7 +137,7 @@ int_gstate_alloc(const gs_dual_memory_t * dmem)
 			   "int_gstate_alloc(remap color info)");
     make_struct(&iigs->remap_color_info, imemory_space(gmem), prci);
     clear_pagedevice(iigs);
-    gs_state_set_client(pgs, iigs, &istate_procs);
+    gs_state_set_client(pgs, iigs, &istate_procs, true);
     /* PostScript code wants limit clamping enabled. */
     gs_setlimitclamp(pgs, true);
     /*
@@ -150,13 +173,11 @@ zgrestoreall(i_ctx_t *i_ctx_p)
 private int
 zinitgraphics(i_ctx_t *i_ctx_p)
 {
-    /* gs_initgraphics does a setgray; we must clear the interpreter's */
-    /* cached copy of the color space object. */
-    int code = gs_initgraphics(igs);
-
-    if (code >= 0)
-	make_null(&istate->colorspace.array);
-    return code;
+    /*
+     * gs_initigraphics does not reset the colorspace;
+     * this is now handled in the PostScript code.
+     */
+    return gs_initgraphics(igs);
 }
 
 /* ------ Operations on graphics state elements ------ */
@@ -290,7 +311,7 @@ zsetdash(i_ctx_t *i_ctx_p)
     for (i = 0, code = 0; i < n && code >= 0; ++i) {
 	ref element;
 
-	array_get(op1, (long)i, &element);
+	array_get(mem, op1, (long)i, &element);
 	code = float_param(&element, &pattern[i]);
     }
     if (code >= 0)
@@ -480,6 +501,20 @@ zcurrentlimitclamp(i_ctx_t *i_ctx_p)
     return zcurrent_bool(i_ctx_p, gs_currentlimitclamp);
 }
 
+/* <int> .settextrenderingmode - */
+private int
+zsettextrenderingmode(i_ctx_t *i_ctx_p)
+{
+    return zset_uint(i_ctx_p, gs_settextrenderingmode);
+}
+
+/* - .currenttextrenderingmode <int> */
+private int
+zcurrenttextrenderingmode(i_ctx_t *i_ctx_p)
+{
+    return zcurrent_uint(i_ctx_p, gs_currenttextrenderingmode);
+}
+
 /* ------ Initialization procedure ------ */
 
 /* We need to split the table because of the 16-element limit. */
@@ -517,6 +552,11 @@ const op_def zgstate2_op_defs[] = {
     {"1.setlinejoin", zsetlinejoin},
     {"1setlinewidth", zsetlinewidth},
     {"1setmiterlimit", zsetmiterlimit},
+    op_def_end(0)
+};
+const op_def zgstate3_op_defs[] = {
+    {"0.settextrenderingmode", zsettextrenderingmode},
+    {"0.currenttextrenderingmode", zcurrenttextrenderingmode},
     op_def_end(0)
 };
 

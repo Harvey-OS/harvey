@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 1994, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsrefct.h,v 1.2 2000/09/19 19:00:32 lpd Exp $ */
+/* $Id: gsrefct.h,v 1.5 2002/06/16 08:45:42 lpd Exp $ */
 /* Reference counting definitions */
 
 #ifndef gsrefct_INCLUDED
@@ -41,16 +39,16 @@ struct rc_header_s {
     long ref_count;
     gs_memory_t *memory;
 #define rc_free_proc(proc)\
-  void proc(P3(gs_memory_t *, void *, client_name_t))
+  void proc(gs_memory_t *, void *, client_name_t)
     rc_free_proc((*free));
 };
 
 #ifdef DEBUG
-void rc_trace_init_free(P2(const void *vp, const rc_header *prc));
-void rc_trace_free_struct(P3(const void *vp, const rc_header *prc,
-			     client_name_t cname));
-void rc_trace_increment(P2(const void *vp, const rc_header *prc));
-void rc_trace_adjust(P3(const void *vp, const rc_header *prc, int delta));
+void rc_trace_init_free(const void *vp, const rc_header *prc);
+void rc_trace_free_struct(const void *vp, const rc_header *prc,
+			  client_name_t cname);
+void rc_trace_increment(const void *vp, const rc_header *prc);
+void rc_trace_adjust(const void *vp, const rc_header *prc, int delta);
 #define IF_RC_DEBUG(call) if (gs_debug_c('^')) dlputs(""), call
 #else
 #define IF_RC_DEBUG(call) DO_NOTHING

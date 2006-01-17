@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: windows_.h,v 1.2 2000/09/19 19:00:52 lpd Exp $ */
+/* $Id: windows_.h,v 1.7 2004/08/31 19:23:14 alexcher Exp $ */
 /* Wrapper for windows.h */
 
 #ifndef windows__INCLUDED
@@ -26,6 +24,7 @@
 #include <windows.h>
 
 #ifdef __WATCOMC__
+typedef RGBQUAD FAR * LPRGBQUAD;
 	/* Watcom's _beginthread takes an extra stack_bottom argument. */
 #  define BEGIN_THREAD(proc, stksize, data)\
      _beginthread(proc, NULL, stksize, data)
@@ -45,6 +44,10 @@
 #ifdef __WIN32__
 #  undef _fstrtok
 #  define _fstrtok(str, set) strtok(str, set)
+#endif
+
+#if defined(__BORLANDC__)
+#  define exception_code() __exception_code  
 #endif
 
 #endif /* windows__INCLUDED */

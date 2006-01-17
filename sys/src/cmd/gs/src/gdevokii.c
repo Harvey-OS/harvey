@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1992, 1995 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevokii.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
+/* $Id: gdevokii.c,v 1.7 2004/08/10 13:02:36 stefan Exp $*/
 /*
  * Okidata IBM compatible dot-matrix printer driver for Ghostscript.
  *
@@ -87,7 +85,7 @@ const gx_device_printer far_data gs_okiibm_device =
 /* ------ Internal routines ------ */
 
 /* Forward references */
-private void okiibm_output_run(P6(byte *, int, int, char, FILE *, int));
+private void okiibm_output_run(byte *, int, int, char, FILE *, int);
 
 /* Send the page to the printer. */
 private int
@@ -104,8 +102,8 @@ okiibm_print_page1(gx_device_printer *pdev, FILE *prn_stream, int y_9pin_high,
 	int line_size = gdev_mem_bytes_per_scan_line((gx_device *)pdev);
 	/* Note that in_size is a multiple of 8. */
 	int in_size = line_size * (8 * in_y_mult);
-	byte *buf1 = (byte *)gs_malloc(in_size, 1, "okiibm_print_page(buf1)");
-	byte *buf2 = (byte *)gs_malloc(in_size, 1, "okiibm_print_page(buf2)");
+	byte *buf1 = (byte *)gs_malloc(pdev->memory, in_size, 1, "okiibm_print_page(buf1)");
+	byte *buf2 = (byte *)gs_malloc(pdev->memory, in_size, 1, "okiibm_print_page(buf2)");
 	byte *in = buf1;
 	byte *out = buf2;
 	int out_y_mult = 1;
@@ -120,9 +118,9 @@ okiibm_print_page1(gx_device_printer *pdev, FILE *prn_stream, int y_9pin_high,
 	/* Check allocations */
 	if ( buf1 == 0 || buf2 == 0 )
 	{	if ( buf1 ) 
-		  gs_free((char *)buf1, in_size, 1, "okiibm_print_page(buf1)");
+		  gs_free(pdev->memory, (char *)buf1, in_size, 1, "okiibm_print_page(buf1)");
 		if ( buf2 ) 
-		  gs_free((char *)buf2, in_size, 1, "okiibm_print_page(buf2)");
+		  gs_free(pdev->memory, (char *)buf2, in_size, 1, "okiibm_print_page(buf2)");
 		return_error(gs_error_VMerror);
 	}
 
@@ -250,8 +248,8 @@ okiibm_print_page1(gx_device_printer *pdev, FILE *prn_stream, int y_9pin_high,
 	fwrite(end_string, 1, end_length, prn_stream);
 	fflush(prn_stream);
 
-	gs_free((char *)buf2, in_size, 1, "okiibm_print_page(buf2)");
-	gs_free((char *)buf1, in_size, 1, "okiibm_print_page(buf1)");
+	gs_free(pdev->memory, (char *)buf2, in_size, 1, "okiibm_print_page(buf2)");
+	gs_free(pdev->memory, (char *)buf1, in_size, 1, "okiibm_print_page(buf1)");
 	return 0;
 }
 

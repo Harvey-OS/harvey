@@ -40,6 +40,9 @@
 -dupWeaveInitialPins="{  15  9 18 12  6 15  9 18 27 21 30 24 18 27 21 30}"
 -dupFormatYabsolute
 -dupBeginPageCommand="<
+   00 00 00 
+   1b01 40 45 4a 4c 20 31 32 38 34 2e 34 0a 
+   40 45 4a 4c 20 20 20 20 20 0a 
    1b40   1b40
    1b2847 0100 01
    1b2855 0100 05

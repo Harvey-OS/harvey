@@ -1,5 +1,19 @@
-%! viewjpeg.ps   Copyright (C) Thomas Merz 1994
+%! viewjpeg.ps   Copyright (C) 1994 Thomas Merz <tm@pdflib.com>
 %
+% This software is provided AS-IS with no warranty, either express or
+% implied.
+% 
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
+% 
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+
+% $Id: viewjpeg.ps,v 1.6 2003/04/12 18:08:18 ray Exp $
 % View JPEG files with Ghostscript
 %
 % This PostScript code relies on level 2 features.
@@ -16,6 +30,7 @@
 % pstack exec quit              |    voice +49/89/29160728
 % ------------------------------+    tm@muc.de  http://www.muc.de/~tm/
 %
+% $Id: viewjpeg.ps,v 1.6 2003/04/12 18:08:18 ray Exp $
 % Updated by L. Peter Deutsch 20-May-1997:
 %   move the usage example to the beginning
 % Updates by Tom Lane 6-Sep-1995
@@ -73,7 +88,7 @@ JPEGdict begin
 		/width NextByte 8 bitshift NextByte add def
 		/colors NextByte def
 
-		DEBUG { currentdict { exch == == } forall flush } if
+		VJPGDEBUG { currentdict { exch == == } forall flush } if
 		exit
 	    } if
 

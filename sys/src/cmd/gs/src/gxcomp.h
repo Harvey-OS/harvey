@@ -1,22 +1,20 @@
 /* Copyright (C) 1997 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxcomp.h,v 1.2 2000/09/19 19:00:35 lpd Exp $ */
+/* $Id: gxcomp.h,v 1.7 2005/03/14 18:08:36 dan Exp $ */
 /* Definitions for implementing compositing functions */
 
 #ifndef gxcomp_INCLUDED
@@ -25,6 +23,32 @@
 #include "gscompt.h"
 #include "gsrefct.h"
 #include "gxbitfmt.h"
+
+/*
+ * Because compositor information is passed through the command list,
+ * individual compositors must be identified by some means that is
+ * independent of address space. The address of the compositor method
+ * array, gs_composite_type_t (see below), cannot be used, as it is
+ * meaningful only within a single address space.
+ *
+ * In addition, it is desirable the keep the compositor identifier
+ * size as small as possible, as this identifier must be passed through
+ * the command list for all bands whenever the compositor is invoked.
+ * Fortunately, compositor invocation is not so frequent as to warrant
+ * byte-sharing techniques, which most likely would store the identifier
+ * in some unused bits of a command code byte. Hence, the smallest
+ * reasonable size for the identifier is one byte. This allows for up
+ * to 255 compositors, which should be ample (as of this writing, there
+ * are only two compositors, only one of which can be passed through
+ * the command list).
+ *
+ * The following list is intended to enumerate all compositors. We
+ * use definitions rather than an encoding to ensure a one-byte size.
+ */
+#define GX_COMPOSITOR_ALPHA        0x01   /* DPS/Next alpha compositor */
+#define GX_COMPOSITOR_OVERPRINT    0x02   /* overprint/overprintmode compositor */
+#define GX_COMPOSITOR_PDF14_TRANS  0x03   /* PDF 1.4 transparency compositor */
+
 
 /*
  * Define the abstract superclass for all compositing function types.
@@ -49,15 +73,15 @@ typedef struct gs_composite_type_procs_s {
      * Create the default compositor for a compositing function.
      */
 #define composite_create_default_compositor_proc(proc)\
-  int proc(P5(const gs_composite_t *pcte, gx_device **pcdev,\
-    gx_device *dev, const gs_imager_state *pis, gs_memory_t *mem))
+  int proc(const gs_composite_t *pcte, gx_device **pcdev,\
+    gx_device *dev, gs_imager_state *pis, gs_memory_t *mem)
     composite_create_default_compositor_proc((*create_default_compositor));
 
     /*
      * Test whether this function is equal to another one.
      */
 #define composite_equal_proc(proc)\
-  bool proc(P2(const gs_composite_t *pcte, const gs_composite_t *pcte2))
+  bool proc(const gs_composite_t *pcte, const gs_composite_t *pcte2)
     composite_equal_proc((*equal));
 
     /*
@@ -70,22 +94,53 @@ typedef struct gs_composite_type_procs_s {
      * not changed.
      */
 #define composite_write_proc(proc)\
-  int proc(P3(const gs_composite_t *pcte, byte *data, uint *psize))
+  int proc(const gs_composite_t *pcte, byte *data, uint *psize)
     composite_write_proc((*write));
 
     /*
      * Convert the string representation of a function back to
-     * a structure, allocating the structure.
+     * a structure, allocating the structure. Return the number of
+     * bytes read, or < 0 in the event of an error.
      */
 #define composite_read_proc(proc)\
-  int proc(P4(gs_composite_t **ppcte, const byte *data, uint size,\
-    gs_memory_t *mem))
+  int proc(gs_composite_t **ppcte, const byte *data, uint size,\
+    gs_memory_t *mem)
     composite_read_proc((*read));
 
+    /*
+     * Update the clist write device when a compositor device is created.
+     */
+#define composite_clist_write_update(proc)\
+  int proc(const gs_composite_t * pcte, gx_device * dev, gx_device ** pcdev,\
+			gs_imager_state * pis, gs_memory_t * mem)
+    composite_clist_write_update((*clist_compositor_write_update));
+
+    /*
+     * Update the clist read device when a compositor device is created.
+     */
+#define composite_clist_read_update(proc)\
+  int proc(gs_composite_t * pcte, gx_device * cdev, gx_device * tdev,\
+			gs_imager_state * pis, gs_memory_t * mem)
+    composite_clist_read_update((*clist_compositor_read_update));
+
 } gs_composite_type_procs_t;
+
 typedef struct gs_composite_type_s {
+    byte comp_id;   /* to identify compositor passed through command list */
     gs_composite_type_procs_t procs;
 } gs_composite_type_t;
+
+/*
+ * Default implementation for creating a compositor for clist writing.
+ * The default does nothing.
+ */
+composite_clist_write_update(gx_default_composite_clist_write_update);
+
+/*
+ * Default implementation for adjusting the clist reader when a compositor
+ * device is added.  The default does nothing.
+ */
+composite_clist_read_update(gx_default_composite_clist_read_update);
 
 /*
  * Compositing objects are reference-counted, because graphics states will

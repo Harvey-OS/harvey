@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gzcpath.h,v 1.2 2000/09/19 19:00:40 lpd Exp $ */
+/* $Id: gzcpath.h,v 1.5 2003/11/12 14:29:08 igor Exp $ */
 /* Structure definitions for clipping paths */
 /* Requires gzpath.h. */
 
@@ -42,6 +40,26 @@ typedef struct gx_clip_rect_list_s {
     "gx_clip_rect_list", clip_rect_list_enum_ptrs, clip_rect_list_reloc_ptrs,\
     st_clip_list, list)
 
+/*
+ * When the clip path consists of the intersection of two or more
+ * source paths, we maintain the complete list paths, so that it
+ * can be accurately output for high-level devices.
+ */
+
+typedef struct gx_cpath_path_list_s gx_cpath_path_list;
+
+struct gx_cpath_path_list_s {
+    gx_path path;
+    rc_header rc;
+    int rule;
+    gx_cpath_path_list *next;
+};
+
+#define private_st_cpath_path_list() 	/* in gxcpath.c */\
+  gs_private_st_suffix_add1(st_cpath_path_list, gx_cpath_path_list,\
+    "gs_cpath_list", cpath_path_list_enum_ptrs, cpath_path_list_reloc_ptrs,\
+    st_path, next)
+
 /* gx_clip_path is a 'subclass' of gx_path. */
 struct gx_clip_path_s {
     gx_path path;
@@ -56,6 +74,7 @@ struct gx_clip_path_s {
     gs_fixed_rect outer_box;
     gx_clip_rect_list *rect_list;
     bool path_valid;		/* path representation is valid */
+    gx_cpath_path_list *path_list;
     /* The id changes whenever the clipping region changes. */
     gs_id id;
 };

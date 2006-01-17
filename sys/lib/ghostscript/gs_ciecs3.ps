@@ -1,0 +1,123 @@
+%    Copyright (C) 2002 Aladdin Enterprises.  All rights reserved.
+% 
+% This software is provided AS-IS with no warranty, either express or
+% implied.
+% 
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
+% 
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+
+% $Id: gs_ciecs3.ps,v 1.1 2002/08/22 07:12:28 henrys Exp $
+% Level 3 CIEBased color space method dictionaries.
+% This assumes gs_ciecs2.ps has already been processed.
+
+%
+% The validation routines in these method dictionaries perform only
+% partial validations; the .setcie* operators will perform the rest.
+%
+
+
+.currentglobal true .setglobal
+.cspace_util begin
+
+
+/.setciedefspace where
+  {
+    pop
+    colorspacedict
+    /CIEBasedDEF
+      mark
+        /cs_potential_indexed_base true
+        /cs_potential_pattern_base true
+        /cs_potential_alternate true
+        /cs_potential_icc_alternate true
+        /cs_get_ncomps //ncomps_3
+
+        /cs_get_range
+          {
+            1 get /RangeDEF .knownget not
+              { //dflt_range_3 }
+            if
+          }
+        bind
+
+        /cs_get_default_color { pop 0 0 0 } bind
+        /cs_get_currentgray //no_currentgray
+        /cs_get_currentrgb //no_currentrgb
+        /cs_get_currentcmyk //no_currentcmyk
+        /cs_validate //check_cie_cspace
+        /cs_substitute //dup_1
+        /cs_prepare {}
+
+        /cs_install
+          {
+            NOCIE
+              { pop /DeviceRGB //.cs_install exec }
+              { 1 get .setciedefspace }
+            ifelse
+          }
+        bind
+
+        /cs_prepare_color //validate_3
+        /cs_complete_setcolor //pop_1
+      .dicttomark
+    put
+  }
+if
+
+
+/.setciedefgspace where
+  {
+    pop
+    colorspacedict
+    /CIEBasedDEFG
+      mark
+        /cs_potential_indexed_base true
+        /cs_potential_pattern_base true
+        /cs_potential_alternate true
+        /cs_potential_icc_alternate true
+        /cs_get_ncomps //ncomps_4
+
+        /cs_get_range
+          {
+            1 get /RangeDEFG .knownget not
+              { //dflt_range_4 }
+            if
+          }
+        bind
+
+        /cs_get_default_color { pop 0 0 0 0 } bind
+        /cs_get_currentgray //no_currentgray
+        /cs_get_currentrgb //no_currentrgb
+        /cs_get_currentcmyk //no_currentcmyk
+        /cs_validate //check_cie_cspace
+        /cs_substitute //dup_1
+        /cs_prepare {}
+
+        % the use of the DeviceCMYK color space is questionable:
+        % it will likely have the wrong polarity
+        /cs_install
+          {
+            NOCIE
+              { pop /DeviceCMYK //.cs_install exec }
+              { 1 get .setciedefgspace }
+            ifelse
+          }
+        bind
+
+        /cs_prepare_color //validate_4
+        /cs_complete_setcolor //pop_1
+      .dicttomark
+    put
+  }
+if
+
+
+end     % .cspace_util
+.setglobal

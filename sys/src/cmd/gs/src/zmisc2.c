@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zmisc2.c,v 1.3 2000/09/19 19:00:54 lpd Exp $ */
+/* $Id: zmisc2.c,v 1.7 2004/08/04 19:36:13 stefan Exp $ */
 /* Miscellaneous Level 2 operators */
 #include "memory_.h"
 #include "string_.h"
@@ -34,7 +32,7 @@
 #include "store.h"
 
 /* Forward references */
-private int set_language_level(P2(i_ctx_t *, int));
+private int set_language_level(i_ctx_t *, int);
 
 /* ------ Language level operators ------ */
 
@@ -84,9 +82,9 @@ const op_def zmisc2_op_defs[] =
  * This is used for the .setlanguagelevel operator,
  * and (perhaps someday) after a restore.
  */
-private int swap_level_dict(P2(i_ctx_t *i_ctx_p, const char *dict_name));
-private int swap_entry(P4(i_ctx_t *i_ctx_p, ref elt[2], ref * pdict,
-			  ref * pdict2));
+private int swap_level_dict(i_ctx_t *i_ctx_p, const char *dict_name);
+private int swap_entry(i_ctx_t *i_ctx_p, ref elt[2], ref * pdict,
+		       ref * pdict2);
 private int
 set_language_level(i_ctx_t *i_ctx_p, int new_level)
 {
@@ -127,7 +125,7 @@ set_language_level(i_ctx_t *i_ctx_p, int new_level)
 		    *pgdict = *pdict;
 		}
 		/* Set other flags for Level 2 operation. */
-		dict_auto_expand = true;
+		imemory->gs_lib_ctx->dict_auto_expand = true;
 		}
 		code = swap_level_dict(i_ctx_p, "level2dict");
 		if (code < 0)
@@ -155,11 +153,11 @@ set_language_level(i_ctx_t *i_ctx_p, int new_level)
 
 		while ((index = dict_next(pgdict, index, &elt[0])) >= 0)
 		    if (r_has_type(&elt[0], t_name))
-			name_invalidate_value_cache(&elt[0]);
+		        name_invalidate_value_cache(imemory, &elt[0]);
 		/* Overwrite globaldict in the dictionary stack. */
 		*pgdict = *systemdict;
 		/* Set other flags for Level 1 operation. */
-		dict_auto_expand = false;
+		imemory->gs_lib_ctx->dict_auto_expand = false;
 		}
 		code = swap_level_dict(i_ctx_p, "level2dict");
 		break;
@@ -202,7 +200,7 @@ swap_level_dict(i_ctx_t *i_ctx_p, const char *dict_name)
     while ((index = dict_next(&rleveldict, index, &elt[0])) >= 0)
 	if (r_has_type(&elt[1], t_dictionary) &&
 	    dict_find(&elt[1], &elt[0], &psubdict) > 0 &&
-	    obj_eq(&elt[1], psubdict)
+	    obj_eq(imemory, &elt[1], psubdict)
 	    ) {
 	    /* elt[1] is the 2nd-level sub-dictionary */
 	    int isub = dict_first(&elt[1]);
@@ -214,7 +212,7 @@ swap_level_dict(i_ctx_t *i_ctx_p, const char *dict_name)
 		continue;
 	    rsubdict = *psubdict;
 	    while ((isub = dict_next(&elt[1], isub, &subelt[0])) >= 0)
-		if (!obj_eq(&subelt[0], &elt[0])) {
+	        if (!obj_eq(imemory, &subelt[0], &elt[0])) {
 		    /* don't swap dict itself */
 		    int code = swap_entry(i_ctx_p, subelt, &rsubdict, &elt[1]);
 

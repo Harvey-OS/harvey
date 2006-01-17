@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevdrop.c,v 1.3 2000/09/19 19:00:12 lpd Exp $ */
+/* $Id: gdevdrop.c,v 1.7 2002/08/22 07:12:28 henrys Exp $ */
 /* Default and device-independent RasterOp algorithms */
 #include "memory_.h"
 #include "gx.h"
@@ -257,15 +255,20 @@ pack_cmyk_1bit_from_standard(gx_device * dev, byte * dest, int destx,
 }
 
 private gx_color_index
-map_rgb_to_color_via_cmyk(gx_device * dev, gx_color_value r,
-			  gx_color_value g, gx_color_value b)
+map_rgb_to_color_via_cmyk(gx_device * dev, const gx_color_value rgbcv[])
 {
-    gx_color_value c = gx_max_color_value - r;
-    gx_color_value m = gx_max_color_value - g;
-    gx_color_value y = gx_max_color_value - b;
-    gx_color_value k = (c < m ? min(c, y) : min(m, y));
+    gx_color_value cmykcv[4];
+    
+    cmykcv[0] = gx_max_color_value - rgbcv[0];
+    cmykcv[1] = gx_max_color_value - rgbcv[1];
+    cmykcv[2] = gx_max_color_value - rgbcv[2];
+    cmykcv[3] = (cmykcv[0] < cmykcv[1] ? min(cmykcv[0], cmykcv[2]) : min(cmykcv[1], cmykcv[2]));
 
-    return (*dev_proc(dev, map_cmyk_color)) (dev, c - k, m - k, y - k, k);
+    cmykcv[0] -= cmykcv[3];
+    cmykcv[1] -= cmykcv[3];
+    cmykcv[2] -= cmykcv[3];
+
+    return (*dev_proc(dev, map_cmyk_color)) (dev, cmykcv);
 }
 private void
 pack_from_standard(gx_device * dev, byte * dest, int destx, const byte * src,
@@ -283,7 +286,6 @@ pack_from_standard(gx_device * dev, byte * dest, int destx, const byte * src,
 
     for (x = width; --x >= 0;) {
 	byte vr, vg, vb;
-	gx_color_value r, g, b;
 	gx_color_index pixel;
 	byte chop = 0x1;
 
@@ -298,10 +300,11 @@ pack_from_standard(gx_device * dev, byte * dest, int destx, const byte * src,
 	 * isn't accurate.
 	 */
 	for (;;) {
-	    r = gx_color_value_from_byte(vr);
-	    g = gx_color_value_from_byte(vg);
-	    b = gx_color_value_from_byte(vb);
-	    pixel = (*map) (dev, r, g, b);
+            gx_color_value cv[3];
+	    cv[0] = gx_color_value_from_byte(vr);
+	    cv[1] = gx_color_value_from_byte(vg);
+	    cv[2] = gx_color_value_from_byte(vb);
+	    pixel = (*map) (dev, cv);
 	    if (pixel != gx_no_color_index)
 		break;
 	    /* Reduce the color accuracy and try again. */
@@ -353,7 +356,7 @@ mem_default_strip_copy_rop(gx_device * dev,
 {
     int depth = dev->color_info.depth;
     int rop_depth = (gx_device_has_color(dev) ? 24 : 8);
-    void (*pack)(P7(gx_device *, byte *, int, const byte *, int, int, int)) =
+    void (*pack)(gx_device *, byte *, int, const byte *, int, int, int) =
 	(dev_proc(dev, map_cmyk_color) == cmyk_1bit_map_cmyk_color &&
 	 rop_depth == 24 ? pack_cmyk_1bit_from_standard : pack_from_standard);
     const gx_bitmap_format_t no_expand_options =

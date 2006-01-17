@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevmrop.h,v 1.3 2000/09/19 19:00:14 lpd Exp $ */
+/* $Id: gdevmrop.h,v 1.6 2002/06/16 07:25:26 lpd Exp $ */
 /* Definitions for device RasterOp implementations. */
 /* Requires gxdevmem.h, gsropt.h */
 
@@ -27,17 +25,17 @@
  * Compute the effective RasterOp for the 1-bit case,
  * taking transparency into account.
  */
-gs_rop3_t gs_transparent_rop(P1(gs_logical_operation_t lop));
+gs_rop3_t gs_transparent_rop(gs_logical_operation_t lop);
 
 #ifdef DEBUG
 /* Trace a [strip_]copy_rop call. */
-void trace_copy_rop(P16(const char *cname, gx_device * dev,
-			const byte * sdata, int sourcex, uint sraster,
-			gx_bitmap_id id, const gx_color_index * scolors,
-			const gx_strip_bitmap * textures,
-			const gx_color_index * tcolors,
-			int x, int y, int width, int height,
-			int phase_x, int phase_y, gs_logical_operation_t lop));
+void trace_copy_rop(const char *cname, gx_device * dev,
+		    const byte * sdata, int sourcex, uint sraster,
+		    gx_bitmap_id id, const gx_color_index * scolors,
+		    const gx_strip_bitmap * textures,
+		    const gx_color_index * tcolors,
+		    int x, int y, int width, int height,
+		    int phase_x, int phase_y, gs_logical_operation_t lop);
 #endif
 
 /*
@@ -72,14 +70,14 @@ struct gx_device_rop_texture_s {
     gx_device_finalize)
 
 /* Create a RasterOp source device. */
-int gx_alloc_rop_texture_device(P3(gx_device_rop_texture ** prsdev,
-				   gs_memory_t * mem,
-				   client_name_t cname));
+int gx_alloc_rop_texture_device(gx_device_rop_texture ** prsdev,
+				gs_memory_t * mem,
+				client_name_t cname);
 
 /* Initialize a RasterOp source device. */
-void gx_make_rop_texture_device(P4(gx_device_rop_texture * rsdev,
-				   gx_device * target,
-				   gs_logical_operation_t lop,
-				   const gx_device_color * texture));
+void gx_make_rop_texture_device(gx_device_rop_texture * rsdev,
+				gx_device * target,
+				gs_logical_operation_t lop,
+				const gx_device_color * texture);
 
 #endif /* gdevmrop_INCLUDED */

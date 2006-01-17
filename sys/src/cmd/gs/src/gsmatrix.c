@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsmatrix.c,v 1.2 2000/09/19 19:00:29 lpd Exp $ */
+/* $Id: gsmatrix.c,v 1.8 2004/08/31 13:23:16 igor Exp $ */
 /* Matrix operators for Ghostscript library */
 #include "math_.h"
 #include "memory_.h"
@@ -311,7 +309,7 @@ gs_points_bbox(const gs_point pts[4], gs_rect * pbox)
 private int
 bbox_transform_either_only(const gs_rect * pbox_in, const gs_matrix * pmat,
 			   gs_point pts[4],
-     int (*point_xform) (P4(floatp, floatp, const gs_matrix *, gs_point *)))
+     int (*point_xform) (floatp, floatp, const gs_matrix *, gs_point *))
 {
     int code;
 
@@ -327,7 +325,7 @@ bbox_transform_either_only(const gs_rect * pbox_in, const gs_matrix * pmat,
 private int
 bbox_transform_either(const gs_rect * pbox_in, const gs_matrix * pmat,
 		      gs_rect * pbox_out,
-     int (*point_xform) (P4(floatp, floatp, const gs_matrix *, gs_point *)))
+     int (*point_xform) (floatp, floatp, const gs_matrix *, gs_point *))
 {
     int code;
 
@@ -417,13 +415,15 @@ gs_point_transform2fixed(const gs_matrix_fixed * pmat,
 	    if ((code = CHECK_DFMUL2FIXED_VARS(t, x, pmat->xx, xtemp)) < 0)
 		return code;
 	    FINISH_DFMUL2FIXED_VARS(t, xtemp);
-	    px += t;		/* should check for overflow */
+	    if ((code = CHECK_SET_FIXED_SUM(px, px, t)) < 0)
+	        return code;
 	}
 	if (!is_fzero(pmat->yy)) {
 	    if ((code = CHECK_DFMUL2FIXED_VARS(t, y, pmat->yy, ytemp)) < 0)
 		return code;
 	    FINISH_DFMUL2FIXED_VARS(t, ytemp);
-	    py += t;		/* should check for overflow */
+	    if ((code = CHECK_SET_FIXED_SUM(py, py, t)) < 0)
+	        return code;
 	}
     } else {
 	if ((code = CHECK_DFMUL2FIXED_VARS(px, x, pmat->xx, xtemp)) < 0 ||
@@ -436,13 +436,34 @@ gs_point_transform2fixed(const gs_matrix_fixed * pmat,
 	    if ((code = CHECK_DFMUL2FIXED_VARS(t, y, pmat->yx, ytemp)) < 0)
 		return code;
 	    FINISH_DFMUL2FIXED_VARS(t, ytemp);
-	    px += t;		/* should check for overflow */
+	    if ((code = CHECK_SET_FIXED_SUM(px, px, t)) < 0)
+	        return code;
 	}
     }
-    ppt->x = px + pmat->tx_fixed;	/* should check for overflow */
-    ppt->y = py + pmat->ty_fixed;	/* should check for overflow */
+    if (((code = CHECK_SET_FIXED_SUM(ppt->x, px, pmat->tx_fixed)) < 0) ||
+        ((code = CHECK_SET_FIXED_SUM(ppt->y, py, pmat->ty_fixed)) < 0) )
+        return code;
     return 0;
 }
+
+#if PRECISE_CURRENTPOINT
+/* Transform a point with a fixed-point result. */
+/* Used for the best precision of the current point,
+   see comment in clamp_point_aux. */
+int
+gs_point_transform2fixed_rounding(const gs_matrix_fixed * pmat,
+			 floatp x, floatp y, gs_fixed_point * ppt)
+{
+    gs_point fpt;
+
+    gs_point_transform(x, y, (const gs_matrix *)pmat, &fpt);
+    if (!(f_fits_in_fixed(fpt.x) && f_fits_in_fixed(fpt.y)))
+	return_error(gs_error_limitcheck);
+    ppt->x = float2fixed_rounded(fpt.x);
+    ppt->y = float2fixed_rounded(fpt.y);
+    return 0;
+}
+#endif
 
 /* Transform a distance with a fixed-point result. */
 int
@@ -463,13 +484,15 @@ gs_distance_transform2fixed(const gs_matrix_fixed * pmat,
 	if ((code = CHECK_DFMUL2FIXED_VARS(t, dy, pmat->yx, ytemp)) < 0)
 	    return code;
 	FINISH_DFMUL2FIXED_VARS(t, ytemp);
-	px += t;		/* should check for overflow */
+	if ((code = CHECK_SET_FIXED_SUM(px, px, t)) < 0)
+	    return code;
     }
     if (!is_fzero(pmat->xy)) {
 	if ((code = CHECK_DFMUL2FIXED_VARS(t, dx, pmat->xy, xtemp)) < 0)
 	    return code;
 	FINISH_DFMUL2FIXED_VARS(t, xtemp);
-	py += t;		/* should check for overflow */
+	if ((code = CHECK_SET_FIXED_SUM(py, py, t)) < 0)
+	    return code;
     }
     ppt->x = px;
     ppt->y = py;
@@ -561,8 +584,8 @@ sget_matrix(stream *s, gs_matrix *pmat)
 	    float value;
 
 	    status = sgets(s, (byte *)&value, sizeof(value), &nread);
-	    if (status < 0)
-		return status;
+	    if (status < 0 && status != EOFC)
+		return_error(gs_error_ioerror);
 	    coeff[i] = value;
 	    switch ((b >> 6) & 3) {
 		case 1:
@@ -574,15 +597,15 @@ sget_matrix(stream *s, gs_matrix *pmat)
 		case 3:
 		    status = sgets(s, (byte *)&coeff[i ^ 3],
 				   sizeof(coeff[0]), &nread);
-		    if (status < 0)
-			return status;
+		    if (status < 0 && status != EOFC)
+			return_error(gs_error_ioerror);
 	    }
 	}
     for (; i < 6; ++i, b <<= 1)
 	if (b & 0x80) {
 	    status = sgets(s, (byte *)&coeff[i], sizeof(coeff[0]), &nread);
-	    if (status < 0)
-		return status;
+	    if (status < 0 && status != EOFC)
+		return_error(gs_error_ioerror);
 	} else
 	    coeff[i] = 0.0;
     pmat->xx = coeff[0];

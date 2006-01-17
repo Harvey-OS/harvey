@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsfunc0.h,v 1.2 2000/09/19 19:00:28 lpd Exp $ */
+/* $Id: gsfunc0.h,v 1.7 2005/04/19 07:27:32 igor Exp $ */
 /* Definitions for FunctionType 0 (Sampled) Functions */
 
 #ifndef gsfunc0_INCLUDED
@@ -39,6 +37,10 @@ typedef struct gs_function_Sd_params_s {
     const float *Encode;	/* 2 x m, optional */
     const float *Decode;	/* 2 x n, optional */
     const int *Size;		/* m */
+    double *pole;               /* cached poles (internal data) */
+    int *array_step;		/* pole array element step by dimensions */
+    int *stream_step;		/* sample stream element step by dimensions */
+    int array_size;		/* The number of elements in the pole array. */
 } gs_function_Sd_params_t;
 
 #define private_st_function_Sd()	/* in gsfunc.c */\
@@ -48,12 +50,12 @@ typedef struct gs_function_Sd_params_s {
 /* ---------------- Procedures ---------------- */
 
 /* Allocate and initialize a Sampled function. */
-int gs_function_Sd_init(P3(gs_function_t ** ppfn,
-			   const gs_function_Sd_params_t * params,
-			   gs_memory_t * mem));
+int gs_function_Sd_init(gs_function_t ** ppfn,
+			const gs_function_Sd_params_t * params,
+			gs_memory_t * mem);
 
 /* Free the parameters of a Sampled function. */
-void gs_function_Sd_free_params(P2(gs_function_Sd_params_t * params,
-				   gs_memory_t * mem));
+void gs_function_Sd_free_params(gs_function_Sd_params_t * params,
+				gs_memory_t * mem);
 
 #endif /* gsfunc0_INCLUDED */

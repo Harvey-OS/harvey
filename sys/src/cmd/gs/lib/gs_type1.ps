@@ -1,21 +1,19 @@
 %    Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: gs_type1.ps,v 1.5 2001/08/06 16:47:43 igorm Exp $
+% $Id: gs_type1.ps,v 1.16 2004/12/15 23:21:33 igor Exp $
 % Type 1 font support code.
 
 % The standard representation for PostScript compatible fonts is described
@@ -28,10 +26,9 @@
 % that these entries are present in the built-in fonts.)
 /.buildfont1
  {
-   false 1 index /FontBBox .knownget {
-     { 0 ne { not exit } if } forall
-   } if
-   { dup /FontInfo known not
+   dup .fontbbox {
+     pop pop pop pop
+     dup /FontInfo known not
       { .growfontdict dup /FontInfo 2 dict put }
      if
      dup dup /FontInfo get dup dup
@@ -40,15 +37,13 @@
       }
       { dup length 2 add dict .copydict
         dup /UnderlinePosition known not
-         { dup /UnderlinePosition 3 index /FontBBox .knownget
-            { 1 get 2 div }			% 1/2 the font descent
-	    { -100 } ifelse put
+         { dup /UnderlinePosition 3 index /FontBBox get
+           1 get 2 div put 			% 1/2 the font descent
          }
         if
         dup /UnderlineThickness known not
-         { dup /UnderlineThickness 3 index /FontBBox .knownget
-            { dup 3 get exch 1 get sub 20 div }	% 1/20 the font height
-    	    { 50 } ifelse put
+         { dup /UnderlineThickness 3 index /FontBBox get
+           dup 3 get exch 1 get sub 20 div put 	% 1/20 the font height
          }
         if
         1 index /FontInfo get wcheck not { readonly } if
@@ -84,6 +79,10 @@ ifelse
    DISKFONTS { end } if
    cleartomark
  } bind def
+ % container for CloseSource flag (default true to prevent buildup of file handles)
+ /closesourcedict mark
+   /CloseSource true
+ .dicttomark readonly def
 /.loadfont1 {		% <file> .loadfont1 <errorflag>
   {	% We would like to use `false /PFBDecode filter',
 	% but this occasionally produces a whitespace character as
@@ -95,7 +94,7 @@ ifelse
 	% we have to create a procedure to close the file reliably.
     dup read not { -1 } if
     2 copy unread 16#80 eq {
-	dup true /PFBDecode filter cvx
+	dup //closesourcedict //true /PFBDecode filter cvx
 	exch .currentresourcefile eq {
 	  dup /.execasresource .systemvar
 	} {
@@ -108,6 +107,8 @@ ifelse
     } ifelse
   } stopped
 } bind def
+% undefine a dict that is only used internally, and is immediately bound
+currentdict /closesourcedict .undef
 
 % Here are the BuildChar and BuildGlyph implementation for Type 1 fonts.
 % The names %Type1BuildChar and %Type1BuildGlyph are known to the interpreter.
@@ -127,15 +128,19 @@ ifelse
     dup CharStrings exch .knownget not {
       2 copy eq { exch pop /.notdef exch } if
        QUIET not
-	{ (Substituting .notdef for ) print = flush }
+	{ (Substituting .notdef for ) print
+	  =string cvs print ( in the font ) print
+	  1 index /FontName get = flush
+	}
 	{ pop }
        ifelse
        /.notdef CharStrings /.notdef get
     } if
   end
 } bind def
-% CCRun is an undocumented procedure provided for Type 4 and Type 0 fonts.
+
 1183615869 internaldict begin
+% CCRun is an undocumented procedure provided for Type 4 and Type 0 fonts.
 % Apparently there are two different argument lists for CCRun.
 % Handling the one with the extra Private dictionary requires fabricating
 % a Type 1 font on the fly, since we aren't currently prepared to parse the
@@ -165,6 +170,23 @@ ifelse
     3 index /Encoding get exch get
   } if exch .type1execchar
 } bind def
+
+% setweightvector is an undocumented procedure that force writes
+% weight vector to the font. Do extra checks for safety.
+/setweightvector { % <font> <vector> setweightvector -
+  dup type dup /arraytype ne exch /packedarraytype ne and
+  2 index type /dicttype ne or {
+    /setweightvector cvx /typecheck signalerror
+  } if
+  1 index /FontType known not {
+    /setweightvector cvx /invalidfont signalerror
+  } if
+  dup gcheck 2 index gcheck not and {
+    /setweightvector cvx /invalidaccess signalerror
+  } if
+  2 copy /WeightVector exch .forceput
+  .setweightvector
+} .bind executeonly def 
 end
 
 % Register the font types for definefont.

@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxcindex.h,v 1.2 2000/09/19 19:00:34 lpd Exp $ */
+/* $Id: gxcindex.h,v 1.7 2005/06/20 08:59:23 igor Exp $ */
 /* Define the device color index type and macros */
 
 #ifndef gxcindex_INCLUDED
@@ -27,10 +25,10 @@
 /*
  * Define the maximum number of components in a device color.
  * The minimum value is 4, to handle CMYK; the maximum value is
- * sizeof(gx_color_index) * 8, since for larger values, there aren't enough
+ * arch_sizeof_color_index * 8, since for larger values, there aren't enough
  * bits in a gx_color_index to have even 1 bit per component.
  */
-#define GX_DEVICE_COLOR_MAX_COMPONENTS 6
+#define GX_DEVICE_COLOR_MAX_COMPONENTS 16
 
 /*
  * We might change gx_color_index to a pointer or a structure in the
@@ -56,7 +54,11 @@ typedef struct { ulong value[2]; } gx_color_index_data;
 #else  /* !TEST_CINDEX_STRUCT */
 
 /* Define the type for device color index (pixel value) data. */
+#ifdef GX_COLOR_INDEX_TYPE
+typedef GX_COLOR_INDEX_TYPE gx_color_index_data;
+#else
 typedef ulong gx_color_index_data;
+#endif
 
 #endif /* (!)TEST_CINDEX_STRUCT */
 
@@ -72,18 +74,21 @@ extern const gx_color_index_data gx_no_color_index_data;
 
 #else  /* !TEST_CINDEX_POINTER */
 
+#define arch_sizeof_color_index sizeof(gx_color_index_data)
+
 /* Define the type for device color indices (pixel values). */
 typedef gx_color_index_data gx_color_index;
-#define arch_sizeof_color_index arch_sizeof_long
 
-/* Define the 'transparent' color index. */
-#define gx_no_color_index_value (-1)	/* no cast -> can be used in #if */
-
-/* The SGI C compiler provided with Irix 5.2 gives error messages */
-/* if we use the proper definition of gx_no_color_index: */
-/*#define gx_no_color_index ((gx_color_index)gx_no_color_index_value) */
-/* Instead, we must spell out the typedef: */
-#define gx_no_color_index ((unsigned long)gx_no_color_index_value)
+/*
+ * Define the 'transparent' or 'undefined' color index.
+ */
+#define gx_no_color_index_value (~0)	/* no cast -> can be used in #if */
+/*
+ * There was a comment here about the SGI C compiler provided with Irix 5.2
+ * giving error messages.  I hope that was fixed when the value of gx_no_color_index
+ * was changed from (-1) to (~0).  If not then let us know.
+ */
+#define gx_no_color_index ((gx_color_index)gx_no_color_index_value)
 
 #endif /* (!)TEST_CINDEX_POINTER */
 
@@ -96,7 +101,7 @@ typedef gx_color_index_data gx_color_index;
  *          LINE_ACCUM(color, bpp);
  *      }
  * This code must be enclosed in { }, since DECLARE_LINE_ACCUM declares
- * variables.  Supported values of bpp are 1, 2, 4, 8, 12, 16, 24, 32.
+ * variables.  Supported values of bpp are 1, 2, 4, or n * 8, where n <= 8.
  *
  * Note that DECLARE_LINE_ACCUM declares the variables l_dptr, l_dbyte, and
  * l_dbit.  Other code in the loop may use these variables.
@@ -104,7 +109,7 @@ typedef gx_color_index_data gx_color_index;
 #define DECLARE_LINE_ACCUM(line, bpp, xo)\
 	sample_store_declare_setup(l_dptr, l_dbit, l_dbyte, line, 0, bpp)
 #define LINE_ACCUM(color, bpp)\
-	sample_store_next32(color, l_dptr, l_dbit, bpp, l_dbyte)
+	sample_store_next_any(color, l_dptr, l_dbit, bpp, l_dbyte)
 #define LINE_ACCUM_SKIP(bpp)\
 	sample_store_skip_next(l_dptr, l_dbit, bpp, l_dbyte)
 #define LINE_ACCUM_STORE(bpp)\

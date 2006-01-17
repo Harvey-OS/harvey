@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevmrun.c,v 1.2 2000/09/19 19:00:14 lpd Exp $ */
+/* $Id: gdevmrun.c,v 1.5 2003/08/21 14:55:14 igor Exp $ */
 /* Run-length encoded memory device */
 #include "memory_.h"
 #include "gx.h"
@@ -621,37 +619,3 @@ run_fill_rectangle(gx_device *dev, int x, int y, int w, int h,
     return 0;
 }
 
-/* Debugging code */
-
-#ifdef DEBUG
-
-void
-debug_print_run(const run *data, run_index index, const char *prefix)
-{
-    const run *pr = data + index;
-
-    dlprintf6("%s%5d: length = %3d, value = 0x%lx, prev = %5u, next = %5u\n",
-	      prefix, index, pr->length, (ulong)pr->value, pr->prev, pr->next);
-}
-
-void
-debug_print_run_line(const run_line *line, const char *prefix)
-{
-    const run *data = CONST_RL_DATA(line);
-
-    dlprintf5("%sruns at 0x%lx: zero = 0x%lx, free = %u, xcur = %u,\n",
-	      prefix, (ulong)data, (ulong)line->zero, line->free, line->xcur);
-    dlprintf3("%s  rpcur = {ptr = 0x%lx, index = %u}\n",
-	      prefix, (ulong)line->rpcur.ptr, line->rpcur.index);
-    {
-	const_run_ptr rpc;
-
-	RP_TO_START(rpc, data);
-	while (!RP_AT_END(rpc)) {
-	    debug_print_run(data, rpc.index, prefix);
-	    RP_TO_NEXT(rpc, data, rpc);
-	}
-    }
-}
-
-#endif /* DEBUG */

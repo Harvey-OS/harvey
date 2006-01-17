@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: scfd.c,v 1.3 2000/11/01 22:36:13 lpd Exp $ */
+/* $Id: scfd.c,v 1.9 2005/09/21 03:24:16 ray Exp $ */
 /* CCITTFax decoding filter */
 #include "stdio_.h"		/* includes std.h */
 #include "memory_.h"
@@ -72,6 +70,7 @@ s_CFD_init(stream_state * st)
     ss->cbit = 0;
     ss->uncomp_run = 0;
     ss->rows_left = (ss->Rows <= 0 || ss->EndOfBlock ? -1 : ss->Rows + 1);
+    ss->row = 0;
     ss->rpos = ss->wpos = raster - 1;
     ss->eol_count = 0;
     ss->invert = white;
@@ -200,10 +199,10 @@ d:			memset(q, black_byte, rlen >> 3);\
 		*q ^= ((1 << rlen) - 1) << qbit
 
 /* Buffer refill for CCITTFaxDecode filter */
-private int cf_decode_eol(P2(stream_CFD_state *, stream_cursor_read *));
-private int cf_decode_1d(P2(stream_CFD_state *, stream_cursor_read *));
-private int cf_decode_2d(P2(stream_CFD_state *, stream_cursor_read *));
-private int cf_decode_uncompressed(P2(stream_CFD_state *, stream_cursor_read *));
+private int cf_decode_eol(stream_CFD_state *, stream_cursor_read *);
+private int cf_decode_1d(stream_CFD_state *, stream_cursor_read *);
+private int cf_decode_2d(stream_CFD_state *, stream_cursor_read *);
+private int cf_decode_uncompressed(stream_CFD_state *, stream_cursor_read *);
 private int
 s_CFD_process(stream_state * st, stream_cursor_read * pr,
 	      stream_cursor_write * pw, bool last)
@@ -226,9 +225,8 @@ s_CFD_process(stream_state * st, stream_cursor_read * pr,
     {
 	hcd_declare_state;
 	hcd_load_state();
-	if_debug8('w', "\
-[w]CFD_process top: eol_count=%d, k_left=%d, rows_left=%d\n\
-    bits=0x%lx, bits_left=%d, read %u, wrote %u%s\n",
+	if_debug8('w', "[w]CFD_process top: eol_count=%d, k_left=%d, rows_left=%d\n"
+    		"    bits=0x%lx, bits_left=%d, read %u, wrote %u%s\n",
 		  eol_count, k_left, rows_left,
 		  (ulong) bits, bits_left,
 		  (uint) (p - rstart), (uint) (pw->ptr - wstart),
@@ -284,10 +282,9 @@ s_CFD_process(stream_state * st, stream_cursor_read * pr,
 	    if (status)
 		goto out;
 	}
-	if (rows_left > 0 && --rows_left == 0) {
-	    status = EOFC;
-	    goto out;
-	}
+	ss->row++;
+	if (rows_left > 0 && --rows_left == 0) 
+	    goto ck_eol;	/* handle EOD if it is present */
 	if (ss->K != 0) {
 	    byte *prev_bits = ss->lprev;
 
@@ -312,6 +309,12 @@ s_CFD_process(stream_state * st, stream_cursor_read * pr,
     }
     /* If we're between scan lines, scan for EOLs. */
     if (ss->wpos < 0) {
+	    /*
+	     * According to Adobe, the decoder should always check for
+	     * the EOD sequence, regardless of EndOfBlock: the Red Book's
+	     * documentation of EndOfBlock is wrong.
+	     */
+ck_eol:
 	while ((status = cf_decode_eol(ss, pr)) > 0) {
 	    if_debug0('w', "[w]EOL\n");
 	    /* If we are in a Group 3 mixed regime, */
@@ -325,15 +328,14 @@ s_CFD_process(stream_state * st, stream_cursor_read * pr,
 		hcd_store_state();
 	    }
 	    ++eol_count;
-	    /*
-	     * According to Adobe, the decoder should always check for
-	     * the EOD sequence, regardless of EndOfBlock: the Red Book's
-	     * documentation of EndOfBlock is wrong.
-	     */
 	    if (eol_count == (ss->K < 0 ? 2 : 6)) {
 		status = EOFC;
 		goto out;
 	    }
+	}
+	if (rows_left == 0) {
+	    status = EOFC;
+	    goto out;
 	}
 	if (status == 0)	/* input empty while scanning EOLs */
 	    goto out;
@@ -709,6 +711,10 @@ v0:	    skip_bits(1);
     /* falls through */
   out:cfd_store_state();
     ss->invert = invert;
+    /* Ignore an error (missing EOFB/RTC when EndOfBlock == true) */
+    /* if we have finished all rows. */
+    if (status == ERRC && ss->Rows > 0 && ss->row > ss->Rows)
+	status = EOFC;
     return status;
     /*
      * We handle horizontal decoding here, so that we can

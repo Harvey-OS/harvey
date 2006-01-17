@@ -1,31 +1,31 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpdfb.c,v 1.6 2001/07/29 02:21:43 lpd Exp $ */
+/* $Id: gdevpdfb.c,v 1.34 2005/10/10 19:09:30 leonardo Exp $ */
 /* Low-level bitmap image handling for PDF-writing driver */
 #include "string_.h"
 #include "gx.h"
 #include "gserrors.h"
 #include "gdevpdfx.h"
-#include "gdevpdff.h"		/* for synthesized bitmap fonts */
 #include "gdevpdfg.h"
 #include "gdevpdfo.h"		/* for data stream */
 #include "gxcspace.h"
+#include "gxdcolor.h"
+#include "gxpcolor.h"
+#include "gxhldevc.h"
 
 /* We need this color space type for constructing temporary color spaces. */
 extern const gs_color_space_type gs_color_space_type_Indexed;
@@ -55,7 +55,6 @@ pdf_copy_mask_data(gx_device_pdf * pdev, const byte * base, int sourcex,
     int code;
     const byte *row_base;
     int row_step;
-    long pos;
     bool in_line;
 
     gs_image_t_init_mask(pim, true);
@@ -73,7 +72,7 @@ pdf_copy_mask_data(gx_device_pdf * pdev, const byte * base, int sourcex,
     } else {
 	row_base = base;
 	row_step = raster;
-	in_line = nbytes <= MAX_INLINE_IMAGE_BYTES;
+	in_line = nbytes < pdev->MaxInlineImageSize;
 	pdf_put_image_matrix(pdev, &pim->ImageMatrix, 1.0);
 	/*
 	 * Check whether we've already made an XObject resource for this
@@ -92,19 +91,30 @@ pdf_copy_mask_data(gx_device_pdf * pdev, const byte * base, int sourcex,
      */
     if (for_pattern < 0)
 	stream_puts(pdev->strm, "q ");
+    pdf_image_writer_init(piw);
     if ((code = pdf_begin_write_image(pdev, piw, id, w, h, NULL, in_line)) < 0 ||
 	(code = psdf_setup_lossless_filters((gx_device_psdf *) pdev,
-					    &piw->binary,
+					    &piw->binary[0],
 					    (gs_pixel_image_t *)pim)) < 0 ||
 	(code = pdf_begin_image_data(pdev, piw, (const gs_pixel_image_t *)pim,
-				     NULL)) < 0
+				     NULL, 0)) < 0
 	)
 	return code;
-    pos = stell(pdev->streams.strm);
-    pdf_copy_mask_bits(piw->binary.strm, row_base, sourcex, row_step, w, h, 0);
-    cos_stream_add_since(piw->data, pos);
+    pdf_copy_mask_bits(piw->binary[0].strm, row_base, sourcex, row_step, w, h, 0);
     pdf_end_image_binary(pdev, piw, piw->height);
     return pdf_end_write_image(pdev, piw);
+}
+
+private void 
+set_image_color(gx_device_pdf *pdev, gx_color_index c)
+{
+    pdf_set_pure_color(pdev, c, &pdev->saved_fill_color,
+			&pdev->fill_used_process_color,
+			&psdf_set_fill_color_commands);
+    if (!pdev->HaveStrokeColor)
+	pdf_set_pure_color(pdev, c, &pdev->saved_stroke_color,
+			    &pdev->stroke_used_process_color,
+			    &psdf_set_stroke_color_commands);
 }
 
 /* Copy a monochrome bitmap or mask. */
@@ -118,21 +128,22 @@ pdf_copy_mono(gx_device_pdf *pdev,
     gs_color_space cs;
     cos_value_t cs_value;
     cos_value_t *pcsvalue;
-    byte palette[sizeof(gx_color_index) * 2];
+    byte palette[arch_sizeof_color_index * 2];
     gs_image_t image;
     pdf_image_writer writer;
     pdf_stream_position_t ipos;
     pdf_resource_t *pres = 0;
     byte invert = 0;
     bool in_line = false;
-    long pos;
 
     /* Update clipping. */
     if (pdf_must_put_clip_path(pdev, pcpath)) {
 	code = pdf_open_page(pdev, PDF_IN_STREAM);
 	if (code < 0)
 	    return code;
-	pdf_put_clip_path(pdev, pcpath);
+	code = pdf_put_clip_path(pdev, pcpath);
+	if (code < 0)
+	    return code;
     }
     /* We have 3 cases: mask, inverse mask, and solid. */
     if (zero == gx_no_color_index) {
@@ -140,25 +151,16 @@ pdf_copy_mono(gx_device_pdf *pdev,
 	    return 0;
 	/* If a mask has an id, assume it's a character. */
 	if (id != gx_no_bitmap_id && sourcex == 0) {
-	    pdf_set_pure_color(pdev, one, &pdev->fill_color,
-			       &psdf_set_fill_color_commands);
 	    pres = pdf_find_resource_by_gs_id(pdev, resourceCharProc, id);
 	    if (pres == 0) {	/* Define the character in an embedded font. */
 		pdf_char_proc_t *pcp;
+		double x_offset;
 		int y_offset;
-		int max_y_offset =
-		(pdev->open_font == 0 ? 0 :
-		 pdev->open_font->max_y_offset);
 
 		gs_image_t_init_mask(&image, false);
 		invert = 0xff;
 		pdf_make_bitmap_image(&image, x, y, w, h);
-		y_offset =
-		    image.ImageMatrix.ty - (int)(pdev->text.current.y + 0.5);
-		if (x < pdev->text.current.x ||
-		    y_offset < -max_y_offset || y_offset > max_y_offset
-		    )
-		    y_offset = 0;
+		y_offset = pdf_char_image_y_offset(pdev, x, y, h);
 		/*
 		 * The Y axis of the text matrix is inverted,
 		 * so we need to negate the Y offset appropriately.
@@ -168,33 +170,37 @@ pdf_copy_mono(gx_device_pdf *pdev,
 		if (code < 0)
 		    return code;
 		y_offset = -y_offset;
-		pprintd3(pdev->strm, "0 0 0 %d %d %d d1\n", y_offset,
-			 w, h + y_offset);
+		x_offset = psdf_round(pdev->char_width.x, 100, 10); /* See 
+			pdf_write_Widths about rounding. We need to provide 
+			a compatible data for Tj. */
+		pprintg1(pdev->strm, "%g ", x_offset);
+		pprintd3(pdev->strm, "0 0 %d %d %d d1\n", y_offset, w, h + y_offset);
 		pprintd3(pdev->strm, "%d 0 0 %d 0 %d cm\n", w, h,
 			 y_offset);
+		pdf_image_writer_init(&writer);
 		code = pdf_begin_write_image(pdev, &writer, gs_no_id, w, h, NULL, true);
 		if (code < 0)
 		    return code;
-		pcp->rid = id;
 		pres = (pdf_resource_t *) pcp;
 		goto wr;
-	    }
+	    } else if (pdev->pte) {
+		/* We're under pdf_text_process. It set a high level color. */
+	    } else
+		set_image_color(pdev, one);
 	    pdf_make_bitmap_matrix(&image.ImageMatrix, x, y, w, h, h);
 	    goto rx;
 	}
-	pdf_set_pure_color(pdev, one, &pdev->fill_color,
-			   &psdf_set_fill_color_commands);
+	set_image_color(pdev, one);
 	gs_image_t_init_mask(&image, false);
 	invert = 0xff;
     } else if (one == gx_no_color_index) {
 	gs_image_t_init_mask(&image, false);
-	pdf_set_pure_color(pdev, zero, &pdev->fill_color,
-			   &psdf_set_fill_color_commands);
+	set_image_color(pdev, zero);
     } else if (zero == pdev->black && one == pdev->white) {
-	gs_cspace_init_DeviceGray(&cs);
+	gs_cspace_init_DeviceGray(pdev->memory, &cs);
 	gs_image_t_init(&image, &cs);
     } else if (zero == pdev->white && one == pdev->black) {
-	gs_cspace_init_DeviceGray(&cs);
+	gs_cspace_init_DeviceGray(pdev->memory, &cs);
 	gs_image_t_init(&image, &cs);
 	invert = 0xff;
     } else {
@@ -210,12 +216,12 @@ pdf_copy_mono(gx_device_pdf *pdev,
 	int ncomp = pdev->color_info.num_components;
 	byte *p;
 
-	code = pdf_cspace_init_Device(&cs_base, ncomp);
+	code = pdf_cspace_init_Device(pdev->memory, &cs_base, ncomp);
 	if (code < 0)
 	    return code;
 	c[0] = psdf_adjust_color_index((gx_device_vector *)pdev, zero);
 	c[1] = psdf_adjust_color_index((gx_device_vector *)pdev, one);
-	gs_cspace_init(&cs, &gs_color_space_type_Indexed, NULL);
+	gs_cspace_init(&cs, &gs_color_space_type_Indexed, pdev->memory, false);
 	cs.params.indexed.base_space = *(gs_direct_color_space *)&cs_base;
 	cs.params.indexed.hival = 1;
 	p = palette;
@@ -232,12 +238,13 @@ pdf_copy_mono(gx_device_pdf *pdev,
     {
 	ulong nbytes = (ulong) ((w + 7) >> 3) * h;
 
-	in_line = nbytes <= MAX_INLINE_IMAGE_BYTES;
+	in_line = nbytes < pdev->MaxInlineImageSize;
 	if (in_line)
 	    pdf_put_image_matrix(pdev, &image.ImageMatrix, 1.0);
 	code = pdf_open_page(pdev, PDF_IN_STREAM);
 	if (code < 0)
 	    return code;
+	pdf_image_writer_init(&writer);
 	code = pdf_begin_write_image(pdev, &writer, gs_no_id, w, h, NULL, in_line);
 	if (code < 0)
 	    return code;
@@ -246,7 +253,11 @@ pdf_copy_mono(gx_device_pdf *pdev,
     if (image.ImageMask)
 	pcsvalue = NULL;
     else {
-	code = pdf_color_space(pdev, &cs_value, &cs,
+	/*
+	 * We don't have to worry about color space scaling: the color
+	 * space is always a Device space.
+	 */
+	code = pdf_color_space(pdev, &cs_value, NULL, &cs,
 			       &writer.pin->color_spaces, in_line);
 	if (code < 0)
 	    return code;
@@ -271,21 +282,19 @@ pdf_copy_mono(gx_device_pdf *pdev,
 
 	image.Decode[0] = image.Decode[1];
 	image.Decode[1] = d0;
-	psdf_CFE_binary(&writer.binary, image.Width, image.Height, true);
+	psdf_CFE_binary(&writer.binary[0], image.Width, image.Height, true);
 	invert ^= 0xff;
     } else {
 	/* Use the Distiller compression parameters. */
-	psdf_setup_image_filters((gx_device_psdf *) pdev, &writer.binary,
-				 (gs_pixel_image_t *)&image, NULL, NULL);
+	psdf_setup_image_filters((gx_device_psdf *) pdev, &writer.binary[0],
+				 (gs_pixel_image_t *)&image, NULL, NULL, true);
     }
     pdf_begin_image_data(pdev, &writer, (const gs_pixel_image_t *)&image,
-			 pcsvalue);
-    pos = stell(pdev->streams.strm);
-    code = pdf_copy_mask_bits(writer.binary.strm, base, sourcex, raster,
+			 pcsvalue, 0);
+    code = pdf_copy_mask_bits(writer.binary[0].strm, base, sourcex, raster,
 			      w, h, invert);
     if (code < 0)
 	return code;
-    code = cos_stream_add_since(writer.data, pos);
     pdf_end_image_binary(pdev, &writer, writer.height);
     if (!pres) {
 	switch ((code = pdf_end_write_image(pdev, &writer))) {
@@ -336,8 +345,8 @@ gdev_pdf_copy_mono(gx_device * dev,
 }
 
 /* Copy a color bitmap.  for_pattern = -1 means put the image in-line, */
-/* 1 means put the image in a resource. */
-private int
+/* 1 means put the image in a resource, 2 means image is a rasterized shading. */
+int
 pdf_copy_color_data(gx_device_pdf * pdev, const byte * base, int sourcex,
 		    int raster, gx_bitmap_id id, int x, int y, int w, int h,
 		    gs_image_t *pim, pdf_image_writer *piw,
@@ -348,10 +357,9 @@ pdf_copy_color_data(gx_device_pdf * pdev, const byte * base, int sourcex,
     gs_color_space cs;
     cos_value_t cs_value;
     ulong nbytes;
-    int code = pdf_cspace_init_Device(&cs, bytes_per_pixel);
+    int code = pdf_cspace_init_Device(pdev->memory, &cs, bytes_per_pixel);
     const byte *row_base;
     int row_step;
-    long pos;
     bool in_line;
 
     if (code < 0)
@@ -361,7 +369,7 @@ pdf_copy_color_data(gx_device_pdf * pdev, const byte * base, int sourcex,
     pim->BitsPerComponent = 8;
     nbytes = (ulong)w * bytes_per_pixel * h;
 
-    if (for_pattern) {
+    if (for_pattern == 1) {
 	/*
 	 * Patterns must be emitted in order of increasing user Y, i.e.,
 	 * the opposite of PDF's standard image order.
@@ -372,7 +380,7 @@ pdf_copy_color_data(gx_device_pdf * pdev, const byte * base, int sourcex,
     } else {
 	row_base = base;
 	row_step = raster;
-	in_line = nbytes <= MAX_INLINE_IMAGE_BYTES;
+	in_line = nbytes < pdev->MaxInlineImageSize;
 	pdf_put_image_matrix(pdev, &pim->ImageMatrix, 1.0);
 	/*
 	 * Check whether we've already made an XObject resource for this
@@ -391,20 +399,26 @@ pdf_copy_color_data(gx_device_pdf * pdev, const byte * base, int sourcex,
      */
     if (for_pattern < 0)
 	stream_puts(pdev->strm, "q ");
+    /*
+     * We don't have to worry about color space scaling: the color
+     * space is always a Device space.
+     */
+    pdf_image_writer_init(piw);
     if ((code = pdf_begin_write_image(pdev, piw, id, w, h, NULL, in_line)) < 0 ||
-	(code = pdf_color_space(pdev, &cs_value, &cs,
+	(code = pdf_color_space(pdev, &cs_value, NULL, &cs,
 				&piw->pin->color_spaces, in_line)) < 0 ||
-	(code = psdf_setup_lossless_filters((gx_device_psdf *) pdev,
-					    &piw->binary,
-					    (gs_pixel_image_t *)pim)) < 0 ||
+	(for_pattern < 2 || nbytes < 512000 ?
+	    (code = psdf_setup_lossless_filters((gx_device_psdf *) pdev,
+			&piw->binary[0], (gs_pixel_image_t *)pim)) :
+	    (code = psdf_setup_image_filters((gx_device_psdf *) pdev,
+			&piw->binary[0], (gs_pixel_image_t *)pim, NULL, NULL, false))
+	) < 0 ||
 	(code = pdf_begin_image_data(pdev, piw, (const gs_pixel_image_t *)pim,
-				     &cs_value)) < 0
+				     &cs_value, 0)) < 0
 	)
 	return code;
-    pos = stell(pdev->streams.strm);
-    pdf_copy_color_bits(piw->binary.strm, row_base, sourcex, row_step, w, h,
+    pdf_copy_color_bits(piw->binary[0].strm, row_base, sourcex, row_step, w, h,
 			bytes_per_pixel);
-    cos_stream_add_since(piw->data, pos);
     pdf_end_image_binary(pdev, piw, piw->height);
     return pdf_end_write_image(pdev, piw);
 }
@@ -424,7 +438,9 @@ gdev_pdf_copy_color(gx_device * dev, const byte * base, int sourcex,
     if (code < 0)
 	return code;
     /* Make sure we aren't being clipped. */
-    pdf_put_clip_path(pdev, NULL);
+    code = pdf_put_clip_path(pdev, NULL);
+    if (code < 0)
+	return code;
     code = pdf_copy_color_data(pdev, base, sourcex, raster, id, x, y, w, h,
 			       &image, &writer, 0);
     switch (code) {
@@ -449,7 +465,7 @@ gdev_pdf_fill_mask(gx_device * dev,
 
     if (width <= 0 || height <= 0)
 	return 0;
-    if (depth > 1 || !gx_dc_is_pure(pdcolor) != 0)
+    if (depth > 1 || (!gx_dc_is_pure(pdcolor) != 0 && pdcolor->type != &gx_dc_pattern))
 	return gx_default_fill_mask(dev, data, data_x, raster, id,
 				    x, y, width, height, pdcolor, depth, lop,
 				    pcpath);
@@ -471,18 +487,16 @@ gdev_pdf_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
 	yscale = pdev->HWResolution[1] / 72.0;
     bool mask;
     int depth;
-    int (*copy_data)(P12(gx_device_pdf *, const byte *, int, int,
-			 gx_bitmap_id, int, int, int, int,
-			 gs_image_t *, pdf_image_writer *, int));
+    int (*copy_data)(gx_device_pdf *, const byte *, int, int,
+		     gx_bitmap_id, int, int, int, int,
+		     gs_image_t *, pdf_image_writer *, int);
     pdf_resource_t *pres;
     cos_value_t cs_value;
     int code;
 
     if (tiles->id == gx_no_bitmap_id || tiles->shift != 0 ||
 	(w < tw && h < th) ||
-	color0 != gx_no_color_index ||
-	/* Pattern fills are only available starting in PDF 1.2. */
-	pdev->CompatibilityLevel < 1.2
+	color0 != gx_no_color_index
 	)
 	goto use_default;
     if (color1 != gx_no_color_index) {
@@ -509,7 +523,7 @@ gdev_pdf_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
 	gs_image_t image;
 	pdf_image_writer writer;
 	long image_bytes = ((long)tw * depth + 7) / 8 * th;
-	bool in_line = image_bytes <= MAX_INLINE_IMAGE_BYTES;
+	bool in_line = image_bytes < pdev->MaxInlineImageSize;
 	ulong tile_id =
 	    (tw == tiles->size.x && th == tiles->size.y ? tiles->id :
 	     gx_no_bitmap_id);
@@ -523,7 +537,7 @@ gdev_pdf_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
 	     */
 	    goto use_default;
 	} else {
-	    /* Write out the image as an XObject resource now. */
+	    /* Write the image as an XObject resource now. */
 	    code = copy_data(pdev, tiles->data, 0, tiles->raster,
 			     tile_id, 0, 0, tw, th, &image, &writer, 1);
 	    if (code < 0)
@@ -583,7 +597,9 @@ gdev_pdf_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
 	if (code < 0)
 	    goto use_default;
 	/* Make sure we aren't being clipped. */
-	pdf_put_clip_path(pdev, NULL);
+	code = pdf_put_clip_path(pdev, NULL);
+	if (code < 0)
+	    return code;
 	s = pdev->strm;
 	/*
 	 * Because of bugs in Acrobat Reader's Print function, we can't
@@ -593,8 +609,9 @@ gdev_pdf_strip_tile_rectangle(gx_device * dev, const gx_strip_bitmap * tiles,
 	cos_value_write(&cs_value, pdev);
 	stream_puts(s, " cs");
 	if (mask)
-	    pprintd3(s, " %d %d %d", (int)(color1 >> 16),
-		     (int)((color1 >> 8) & 0xff), (int)(color1 & 0xff));
+	    pprintg3(s, " %g %g %g", (int)(color1 >> 16) / 255.0,
+		     (int)((color1 >> 8) & 0xff) / 255.0,
+		     (int)(color1 & 0xff) / 255.0);
 	pprintld1(s, "/R%ld scn", pdf_resource_id(pres));
 	pprintg4(s, " %g %g %g %g re f Q\n",
 		 x / xscale, y / yscale, w / xscale, h / xscale);

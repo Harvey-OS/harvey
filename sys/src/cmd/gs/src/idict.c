@@ -1,28 +1,26 @@
 /* Copyright (C) 1989, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: idict.c,v 1.4 2000/12/26 06:09:58 lpd Exp $ */
+/* $Id: idict.c,v 1.12 2004/08/19 19:33:09 stefan Exp $ */
 /* Dictionary implementation */
 #include "math_.h"		/* for frexp */
 #include "string_.h"		/* for strlen */
 #include "ghost.h"
 #include "gxalloc.h"		/* for accessing masks */
-#include "errors.h"
+#include "ierrors.h"
 #include "imemory.h"
 #include "idebug.h"		/* for debug_print_name */
 #include "inamedef.h"
@@ -57,9 +55,6 @@
  */
 const uint dict_max_size = max_array_size - 1;
 
-/* Define whether dictionaries expand automatically when full. */
-bool dict_auto_expand = false;
-
 /* Define whether dictionaries are packed by default. */
 bool dict_default_pack = true;
 
@@ -72,7 +67,7 @@ bool dict_default_pack = true;
   (pds && dstack_dict_is_permanent(pds, pdref) && !ref_saving_in(mem))
 
 /* Forward references */
-private int dict_create_contents(P3(uint size, const ref * pdref, bool pack));
+private int dict_create_contents(uint size, const ref * pdref, bool pack);
 
 /* Debugging statistics */
 #ifdef DEBUG
@@ -83,7 +78,7 @@ struct stats_dict_s {
 } stats_dict;
 
 /* Wrapper for dict_find */
-int real_dict_find(P3(const ref * pdref, const ref * key, ref ** ppvalue));
+int real_dict_find(const ref * pdref, const ref * key, ref ** ppvalue);
 int
 dict_find(const ref * pdref, const ref * pkey, ref ** ppvalue)
 {
@@ -92,7 +87,7 @@ dict_find(const ref * pdref, const ref * pkey, ref ** ppvalue)
 
     stats_dict.lookups++;
     if (r_has_type(pkey, t_name) && dict_is_packed(pdict)) {
-	uint nidx = name_index(pkey);
+	uint nidx = name_index(dict_mem(pdict), pkey);
 	uint hash =
 	dict_hash_mod(dict_name_index_hash(nidx), npairs(pdict)) + 1;
 
@@ -256,7 +251,7 @@ dict_unpack(ref * pdref, dict_stack_t *pds)
 	    return code;
 	for (nkp = pdict->keys.value.refs; count--; okp++, nkp++)
 	    if (r_packed_is_name(okp)) {
-		packed_get(okp, nkp);
+	        packed_get((const gs_memory_t *)mem, okp, nkp);
 		ref_mark_new_in(mem, nkp);
 	    } else if (*okp == packed_key_deleted)
 		r_set_attrs(nkp, a_executable);
@@ -286,12 +281,13 @@ dict_find(const ref * pdref, const ref * pkey,
     ref_packed kpack;
     uint hash;
     int ktype;
+    const gs_memory_t *mem = dict_mem(pdict);
 
     /* Compute hash.  The only types we bother with are strings, */
     /* names, and (unlikely, but worth checking for) integers. */
     switch (r_type(pkey)) {
     case t_name:
-	nidx = name_index(pkey);
+	nidx = name_index(mem, pkey);
     nh:
 	hash = dict_name_index_hash(nidx);
 	kpack = packed_name_key(nidx);
@@ -304,10 +300,10 @@ dict_find(const ref * pdref, const ref * pkey,
 
 	    if (!r_has_attr(pkey, a_read))
 		return_error(e_invalidaccess);
-	    code = name_ref(pkey->value.bytes, r_size(pkey), &nref, 1);
+	    code = name_ref(mem, pkey->value.bytes, r_size(pkey), &nref, 1);
 	    if (code < 0)
 		return code;
-	    nidx = name_index(&nref);
+	    nidx = name_index(mem, &nref);
 	}
 	goto nh;
     case t_real:
@@ -315,7 +311,7 @@ dict_find(const ref * pdref, const ref * pkey,
 	 * Make sure that equal reals and integers hash the same.
 	 */
 	{
-	    int expt;
+	    int expt, i;
 	    double mant = frexp(pkey->value.realval, &expt);
 	    /*
 	     * The value is mant * 2^expt, where 0.5 <= mant < 1,
@@ -323,9 +319,10 @@ dict_find(const ref * pdref, const ref * pkey,
 	     */
 
 	    if (expt < sizeof(long) * 8 || pkey->value.realval == min_long)
-		hash = (uint)(int)pkey->value.realval * 30503;
+		i = (int)pkey->value.realval;
 	    else
-		hash = (uint)(int)(mant * min_long) * 30503;
+		i = (int)(mant * min_long); /* MSVC 6.00.8168.0 cannot compile this */
+	    hash = (uint)i * 30503;         /*   with -O2 as a single expression    */
 	}
 	goto ih;
     case t_integer:
@@ -378,7 +375,7 @@ dict_find(const ref * pdref, const ref * pkey,
 	for (kp = kbot + dict_hash_mod(hash, size) + 2;;) {
 	    --kp;
 	    if ((etype = r_type(kp)) == ktype) {	/* Fast comparison if both keys are names */
-		if (name_index(kp) == nidx) {
+		if (name_index(mem, kp) == nidx) {
 		    *ppvalue = pdict->values.value.refs + (kp - kbot);
 		    return 1;
 		}
@@ -397,7 +394,7 @@ dict_find(const ref * pdref, const ref * pkey,
 		} else		/* key not found */
 		    break;
 	    } else {
-		if (obj_eq(kp, pkey)) {
+	        if (obj_eq(mem, kp, pkey)) {
 		    *ppvalue = pdict->values.value.refs + (kp - kbot);
 		    return 1;
 		}
@@ -420,10 +417,15 @@ dict_find_string(const ref * pdref, const char *kstr, ref ** ppvalue)
 {
     int code;
     ref kname;
+    if ( pdref != 0 ) {
+	dict *pdict = pdref->value.pdict;
 
-    if ((code = name_ref((const byte *)kstr, strlen(kstr), &kname, -1)) < 0)
-	return code;
-    return dict_find(pdref, &kname, ppvalue);
+	if ((code = name_ref(dict_mem(pdict), 
+			     (const byte *)kstr, strlen(kstr), &kname, -1)) < 0)
+	    return code;
+	return dict_find(pdref, &kname, ppvalue);
+    }
+    return 0;
 }
 
 /*
@@ -436,6 +438,7 @@ dict_put(ref * pdref /* t_dictionary */ , const ref * pkey, const ref * pvalue,
 {
     dict *pdict = pdref->value.pdict;
     gs_ref_memory_t *mem = dict_memory(pdict);
+    gs_memory_t *pmem = dict_mem(pdict);
     int rcode = 0;
     int code;
     ref *pvslot;
@@ -450,7 +453,7 @@ dict_put(ref * pdref /* t_dictionary */ , const ref * pkey, const ref * pvalue,
 	    case 0:
 		break;
 	    case e_dictfull:
-		if (!dict_auto_expand)
+		if (!pmem->gs_lib_ctx->dict_auto_expand)
 		    return_error(e_dictfull);
 		code = dict_grow(pdref, pds);
 		if (code < 0)
@@ -466,7 +469,7 @@ dict_put(ref * pdref /* t_dictionary */ , const ref * pkey, const ref * pvalue,
 
 	    if (!r_has_attr(pkey, a_read))
 		return_error(e_invalidaccess);
-	    code = name_from_string(pkey, &kname);
+	    code = name_from_string(pmem, pkey, &kname);
 	    if (code < 0)
 		return code;
 	    pkey = &kname;
@@ -475,7 +478,7 @@ dict_put(ref * pdref /* t_dictionary */ , const ref * pkey, const ref * pvalue,
 	    ref_packed *kp;
 
 	    if (!r_has_type(pkey, t_name) ||
-		name_index(pkey) > packed_name_max_index
+		name_index(pmem, pkey) > packed_name_max_index
 		) {		/* Change to unpacked representation. */
 		int code = dict_unpack(pdref, pds);
 
@@ -489,7 +492,7 @@ dict_put(ref * pdref /* t_dictionary */ , const ref * pkey, const ref * pvalue,
 		/* array itself is new. */
 		ref_do_save_in(mem, &pdict->keys, kp, "dict_put(key)");
 	    }
-	    *kp = pt_tag(pt_literal_name) + name_index(pkey);
+	    *kp = pt_tag(pt_literal_name) + name_index(pmem, pkey);
 	} else {
 	    ref *kp = pdict->keys.value.refs + index;
 
@@ -537,8 +540,10 @@ dict_put_string(ref * pdref, const char *kstr, const ref * pvalue,
 {
     int code;
     ref kname;
+    dict *pdict = pdref->value.pdict;
 
-    if ((code = name_ref((const byte *)kstr, strlen(kstr), &kname, 0)) < 0)
+    if ((code = name_ref(dict_mem(pdict),
+			 (const byte *)kstr, strlen(kstr), &kname, 0)) < 0)
 	return code;
     return dict_put(pdref, &kname, pvalue, pds);
 }
@@ -721,7 +726,7 @@ dict_resize(ref * pdref, uint new_size, dict_stack_t *pds)
     int code;
 
     if (new_size < d_length(pdict)) {
-	if (!dict_auto_expand)
+	if (!mem->gs_lib_ctx->dict_auto_expand)
 	    return_error(e_dictfull);
 	new_size = d_length(pdict);
     }
@@ -825,7 +830,7 @@ dict_next(const ref * pdref, int index, ref * eltp /* ref eltp[2] */ )
     ref *vp = pdict->values.value.refs + index;
 
     while (vp--, --index >= 0) {
-	array_get(&pdict->keys, (long)index, eltp);
+	array_get(dict_mem(pdict), &pdict->keys, (long)index, eltp);
 	/* Make sure this is a valid entry. */
 	if (r_has_type(eltp, t_name) ||
 	    (!dict_is_packed(pdict) && !r_has_type(eltp, t_null))
@@ -855,7 +860,7 @@ dict_index_entry(const ref * pdref, int index, ref * eltp /* ref eltp[2] */ )
 {
     const dict *pdict = pdref->value.pdict;
 
-    array_get(&pdict->keys, (long)(index + 1), eltp);
+    array_get(dict_mem(pdict), &pdict->keys, (long)(index + 1), eltp);
     if (r_has_type(eltp, t_name) ||
 	(!dict_is_packed(pdict) && !r_has_type(eltp, t_null))
 	) {

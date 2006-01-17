@@ -1,4 +1,4 @@
-/      \/PermitFileWriting [ ]
+/      \/PermitFileWriting \[ \]
 s;PermitFileWriting \[ \];PermitFileWriting [ (/fd/*) ];
 w
 q

@@ -1,22 +1,20 @@
 /* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gpsync.h,v 1.2 2000/09/19 19:00:25 lpd Exp $ */
+/* $Id: gpsync.h,v 1.5 2002/06/16 06:59:02 lpd Exp $ */
 /* Interface to platform-dependent synchronization primitives */
 
 #if !defined(gpsync_INCLUDED)
@@ -37,15 +35,15 @@ typedef struct {
     void *dummy_;
 } gp_semaphore;
 
-uint gp_semaphore_sizeof(P0());
+uint gp_semaphore_sizeof(void);
 /*
  * Hack: gp_semaphore_open(0) succeeds iff it's OK for the memory manager
  * to move a gp_semaphore in memory.
  */
-int gp_semaphore_open(P1(gp_semaphore * sema));
-int gp_semaphore_close(P1(gp_semaphore * sema));
-int gp_semaphore_wait(P1(gp_semaphore * sema));
-int gp_semaphore_signal(P1(gp_semaphore * sema));
+int gp_semaphore_open(gp_semaphore * sema);
+int gp_semaphore_close(gp_semaphore * sema);
+int gp_semaphore_wait(gp_semaphore * sema);
+int gp_semaphore_signal(gp_semaphore * sema);
 
 /*
  * Monitors support enter/leave semantics: at most one thread can have
@@ -55,21 +53,21 @@ typedef struct {
     void *dummy_;
 } gp_monitor;
 
-uint gp_monitor_sizeof(P0());
+uint gp_monitor_sizeof(void);
 /*
  * Hack: gp_monitor_open(0) succeeds iff it's OK for the memory manager
  * to move a gp_monitor in memory.
  */
-int gp_monitor_open(P1(gp_monitor * mon));
-int gp_monitor_close(P1(gp_monitor * mon));
-int gp_monitor_enter(P1(gp_monitor * mon));
-int gp_monitor_leave(P1(gp_monitor * mon));
+int gp_monitor_open(gp_monitor * mon);
+int gp_monitor_close(gp_monitor * mon);
+int gp_monitor_enter(gp_monitor * mon);
+int gp_monitor_leave(gp_monitor * mon);
 
 /*
  * A new thread starts by calling a procedure, passing it a void * that
  * allows it to gain access to whatever data it needs.
  */
-typedef void (*gp_thread_creation_callback_t) (P1(void *));
-int gp_create_thread(P2(gp_thread_creation_callback_t, void *));
+typedef void (*gp_thread_creation_callback_t) (void *);
+int gp_create_thread(gp_thread_creation_callback_t, void *);
 
 #endif /* !defined(gpsync_INCLUDED) */

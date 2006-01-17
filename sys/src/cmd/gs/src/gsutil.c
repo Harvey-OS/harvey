@@ -1,27 +1,27 @@
 /* Copyright (C) 1992, 1993, 1994, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsutil.c,v 1.4.6.1 2002/01/25 06:33:09 rayjj Exp $ */
+/* $Id: gsutil.c,v 1.11 2005/09/14 07:13:51 ray Exp $ */
 /* Utilities for Ghostscript library */
 #include "string_.h"
 #include "memory_.h"
 #include "gstypes.h"
 #include "gconfigv.h"		/* for USE_ASM */
+#include "gserror.h"
+#include "gserrors.h"
 #include "gsmemory.h"		/* for init procedure */
 #include "gsrect.h"		/* for prototypes */
 #include "gsuid.h"
@@ -29,23 +29,12 @@
 
 /* ------ Unique IDs ------ */
 
-/* Generate a block of unique IDs. */
-static ulong gs_next_id;
-
-init_proc(gs_gsutil_init);	/* check prototype */
-int
-gs_gsutil_init(gs_memory_t *mem)
-{
-    gs_next_id = 1;
-    return 0;
-}
-
 ulong
-gs_next_ids(uint count)
+gs_next_ids(const gs_memory_t *mem, uint count)
 {
-    ulong id = gs_next_id;
+    ulong id = mem->gs_lib_ctx->gs_next_id;
 
-    gs_next_id += count;
+    mem->gs_lib_ctx->gs_next_id += count;
     return id;
 }
 
@@ -75,19 +64,19 @@ memflip8x8(const byte * inp, int line_size, byte * outp, int dist)
     /* Check for all 8 bytes being the same. */
     /* This is especially worth doing for the case where all are zero. */
     if (aceg == bdfh && (aceg >> 8) == (aceg & 0xffffff)) {
-	if (aceg == 0)
+	if (aceg == 0 || aceg == 0xffffffff)
 	    goto store;
-	*outp = -((aceg >> 7) & 1);
-	outp[dist] = -((aceg >> 6) & 1);
+	*outp = (byte)-(int)((aceg >> 7) & 1);
+	outp[dist] = (byte)-(int)((aceg >> 6) & 1);
 	outp += dist << 1;
-	*outp = -((aceg >> 5) & 1);
-	outp[dist] = -((aceg >> 4) & 1);
+	*outp = (byte)-(int)((aceg >> 5) & 1);
+	outp[dist] = (byte)-(int)((aceg >> 4) & 1);
 	outp += dist << 1;
-	*outp = -((aceg >> 3) & 1);
-	outp[dist] = -((aceg >> 2) & 1);
+	*outp = (byte)-(int)((aceg >> 3) & 1);
+	outp[dist] = (byte)-(int)((aceg >> 2) & 1);
 	outp += dist << 1;
-	*outp = -((aceg >> 1) & 1);
-	outp[dist] = -(aceg & 1);
+	*outp = (byte)-(int)((aceg >> 1) & 1);
+	outp[dist] = (byte)-(int)(aceg & 1);
 	return;
     } {
 	register uint temp;
@@ -235,6 +224,23 @@ uid_equal(register const gs_uid * puid1, register const gs_uid * puid2)
 	!memcmp((const char *)puid1->xvalues,
 		(const char *)puid2->xvalues,
 		(uint) - (puid1->id) * sizeof(long));
+}
+
+/* Copy the XUID data for a uid, if needed, updating the uid in place. */
+int
+uid_copy(gs_uid *puid, gs_memory_t *mem, client_name_t cname)
+{
+    if (uid_is_XUID(puid)) {
+	uint xsize = uid_XUID_size(puid);
+	long *xvalues = (long *)
+	    gs_alloc_byte_array(mem, xsize, sizeof(long), cname);
+
+	if (xvalues == 0)
+	    return_error(gs_error_VMerror);
+	memcpy(xvalues, uid_XUID_values(puid), xsize * sizeof(long));
+	puid->xvalues = xvalues;
+    }
+    return 0;
 }
 
 /* ------ Rectangle utilities ------ */

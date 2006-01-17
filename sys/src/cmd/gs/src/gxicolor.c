@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxicolor.c,v 1.3 2001/08/06 21:22:31 dancoby Exp $ */
+/* $Id: gxicolor.c,v 1.9 2003/08/18 21:21:57 dan Exp $ */
 /* Color image rendering */
 #include "gx.h"
 #include "memory_.h"
@@ -86,7 +84,7 @@ gs_image_class_4_color(gx_image_enum * penum)
 	penum->mask_color.mask = 0;
 	penum->mask_color.test = ~0;
     }
-    return image_render_color;
+    return &image_render_color;
 }
 
 /* ------ Rendering procedures ------ */
@@ -122,12 +120,11 @@ image_render_color(gx_image_enum *penum_orig, const byte *buffer, int data_x,
     int vci, vdi;
     const gs_color_space *pcs = penum->pcs;
     cs_proc_remap_color((*remap_color)) = pcs->type->remap_color;
+    cs_proc_remap_concrete_color((*remap_concrete_color)) =
+	    pcs->type->remap_concrete_color;
     gs_client_color cc;
     bool device_color = penum->device_color;
     const gx_color_map_procs *cmap_procs = gx_get_cmap_procs(pis, dev);
-    cmap_proc_rgb((*map_3)) = cmap_procs->map_rgb;
-    cmap_proc_cmyk((*map_4)) =
-	(penum->alpha ? cmap_procs->map_rgb_alpha : cmap_procs->map_cmyk);
     bits32 mask = penum->mask_color.mask;
     bits32 test = penum->mask_color.test;
     gx_image_clue *pic = &clues[0];
@@ -162,10 +159,9 @@ image_render_color(gx_image_enum *penum_orig, const byte *buffer, int data_x,
 	    irun = fixed2int_var_rounded(xrun);
 	    break;
 	case image_landscape:
+	default:    /* we don't handle skew -- treat as landscape */
 	    vci = penum->xci, vdi = penum->wci;
 	    irun = fixed2int_var_rounded(yrun);
-	    break;
-	default:
 	    break;
     }
 
@@ -175,7 +171,7 @@ image_render_color(gx_image_enum *penum_orig, const byte *buffer, int data_x,
     memset(&next, 0, sizeof(next));
     /* Ensure that we don't get any false dev_color_eq hits. */
     if (use_cache) {
-	color_set_pure(&empty_clue.dev_color, gx_no_color_index);
+	set_nonclient_dev_color(&empty_clue.dev_color, gx_no_color_index);
 	pic = &empty_clue;
     }
     cs_full_init_color(&cc, pcs);
@@ -221,10 +217,30 @@ map4:	    if (next.all[0] == run.all[0])
 		goto mapped;
 	    }
 	    if (device_color) {
-		(*map_4)(byte2frac(next.v[0]), byte2frac(next.v[1]),
+		frac frac_color[4];
+
+		if (penum->alpha) {
+		    /*
+		     * We do not have support for DeviceN color and alpha.
+		     */
+		    cmap_procs->map_rgb_alpha
+			(byte2frac(next.v[0]), byte2frac(next.v[1]),
 			 byte2frac(next.v[2]), byte2frac(next.v[3]),
 			 pdevc_next, pis, dev,
 			 gs_color_select_source);
+		    goto mapped;
+		}
+		/*
+		 * We can call the remap concrete_color for the colorspace
+		 * directly since device_color is only true if the colorspace
+		 * is concrete.
+		 */
+		frac_color[0] = byte2frac(next.v[0]);
+		frac_color[1] = byte2frac(next.v[1]);
+		frac_color[2] = byte2frac(next.v[2]);
+		frac_color[3] = byte2frac(next.v[3]);
+		remap_concrete_color(frac_color, pcs, pdevc_next, pis,
+					    dev, gs_color_select_source);
 		goto mapped;
 	    }
 	    decode_sample(next.v[3], cc, 3);
@@ -262,10 +278,17 @@ do3:	    decode_sample(next.v[0], cc, 0);
 		goto mapped;
 	    }
 	    if (device_color) {
-		(*map_3)(byte2frac(next.v[0]), byte2frac(next.v[1]),
-			 byte2frac(next.v[2]),
-			 pdevc_next, pis, dev,
-			 gs_color_select_source);
+		frac frac_color[3];
+		/*
+		 * We can call the remap concrete_color for the colorspace
+		 * directly since device_color is only true if the colorspace
+		 * is concrete.
+		 */
+		frac_color[0] = byte2frac(next.v[0]);
+		frac_color[1] = byte2frac(next.v[1]);
+		frac_color[2] = byte2frac(next.v[2]);
+		remap_concrete_color(frac_color, pcs, pdevc_next, pis,
+						dev, gs_color_select_source);
 		goto mapped;
 	    }
 	    goto do3;
@@ -342,7 +365,7 @@ fill:	/* Fill the region between */
 	/* xrun/irun and xprev */
         /*
 	 * Note;  This section is nearly a copy of a simlar section below
-         * for processing the image pixel in the loop.  This would have been
+         * for processing the last image pixel in the loop.  This would have been
          * made into a subroutine except for complications about the number of
          * variables that would have been needed to be passed to the routine.
 	 */

@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gspath1.c,v 1.3 2000/12/04 21:13:55 raph Exp $ */
+/* $Id: gspath1.c,v 1.10 2004/08/31 13:23:16 igor Exp $ */
 /* Additional PostScript Level 1 path routines for Ghostscript library */
 #include "math_.h"
 #include "gx.h"
@@ -61,7 +59,31 @@ typedef struct arc_curve_params_s {
 } arc_curve_params_t;
 
 /* Forward declarations */
-private int arc_add(P2(const arc_curve_params_t *arc, bool is_quadrant));
+private int arc_add(const arc_curve_params_t *arc, bool is_quadrant);
+
+
+int
+gx_setcurrentpoint_from_path(gs_imager_state *pis, gx_path *path)
+{
+    gs_point pt;
+
+    pt.x = fixed2float(path->position.x);
+    pt.y = fixed2float(path->position.y);
+    gx_setcurrentpoint(pis, pt.x, pt.y);
+    pis->current_point_valid = true;
+    return 0;
+}
+
+private inline int
+gs_arc_add_inline(gs_state *pgs, bool cw, floatp xc, floatp yc, floatp rad, 
+		    floatp a1, floatp a2, bool add)
+{
+    int code = gs_imager_arc_add(pgs->path, (gs_imager_state *)pgs, cw, xc, yc, rad, a1, a2, add);
+
+    if (code < 0)
+	return code;
+    return gx_setcurrentpoint_from_path((gs_imager_state *)pgs, pgs->path);
+}
 
 int
 gs_arc(gs_state * pgs,
@@ -323,6 +345,8 @@ floatp ax1, floatp ay1, floatp ax2, floatp ay2, floatp arad, float retxy[4])
 	    arc.pt.x = ax1;
 	    arc.pt.y = ay1;
 	    code = arc_add(&arc, false);
+	    if (code == 0)
+		code = gx_setcurrentpoint_from_path((gs_imager_state *)pgs, pgs->path);
 	}
     }
     if (retxy != 0) {
@@ -347,9 +371,15 @@ arc_add(const arc_curve_params_t * arc, bool is_quadrant)
     int code;
 
     if ((arc->action != arc_nothing &&
+#if !PRECISE_CURRENTPOINT
 	 (code = gs_point_transform2fixed(&pis->ctm, x0, y0, &p0)) < 0) ||
 	(code = gs_point_transform2fixed(&pis->ctm, xt, yt, &pt)) < 0 ||
 	(code = gs_point_transform2fixed(&pis->ctm, arc->p3.x, arc->p3.y, &p3)) < 0 ||
+#else
+	 (code = gs_point_transform2fixed_rounding(&pis->ctm, x0, y0, &p0)) < 0) ||
+	(code = gs_point_transform2fixed_rounding(&pis->ctm, xt, yt, &pt)) < 0 ||
+	(code = gs_point_transform2fixed_rounding(&pis->ctm, arc->p3.x, arc->p3.y, &p3)) < 0 ||
+#endif
 	(code =
 	 (arc->action == arc_nothing ?
 	  (p0.x = path->position.x, p0.y = path->position.y, 0) :
@@ -406,6 +436,21 @@ add:
     return gx_path_add_curve_notes(path, p0.x, p0.y, p2.x, p2.y, p3.x, p3.y,
 				   arc->notes | sn_from_arc);
 }
+
+void
+make_quadrant_arc(gs_point *p, const gs_point *c, 
+	const gs_point *p0, const gs_point *p1, double r)
+{
+    p[0].x = c->x + p0->x * r;
+    p[0].y = c->y + p0->y * r;
+    p[1].x = c->x + p0->x * r + p1->x * r * quarter_arc_fraction;
+    p[1].y = c->y + p0->y * r + p1->y * r * quarter_arc_fraction;
+    p[2].x = c->x + p0->x * r * quarter_arc_fraction + p1->x * r;
+    p[2].y = c->y + p0->y * r * quarter_arc_fraction + p1->y * r;
+    p[3].x = c->x + p1->x * r;
+    p[3].y = c->y + p1->y * r;
+}
+
 
 /* ------ Path transformers ------ */
 
@@ -465,6 +510,13 @@ gs_reversepath(gs_state * pgs)
 	gx_path_free(&rpath, "gs_reversepath");
 	return code;
     }
+    if (pgs->current_point_valid) {
+	/* Not empty. */
+	gx_setcurrentpoint(pgs, fixed2float(rpath.position.x), 
+				fixed2float(rpath.position.y));
+	pgs->subpath_start.x = fixed2float(rpath.segments->contents.subpath_current->pt.x);
+	pgs->subpath_start.y = fixed2float(rpath.segments->contents.subpath_current->pt.y);
+    }
     gx_path_assign_free(ppath, &rpath);
     return 0;
 }
@@ -476,7 +528,7 @@ gs_upathbbox(gs_state * pgs, gs_rect * pbox, bool include_moveto)
 {
     gs_fixed_rect fbox;		/* box in device coordinates */
     gs_rect dbox;
-    int code = gx_path_bbox(pgs->path, &fbox);
+    int code = gx_path_bbox_set(pgs->path, &fbox);
 
     if (code < 0)
 	return code;

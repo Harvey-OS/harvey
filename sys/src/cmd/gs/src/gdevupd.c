@@ -1,22 +1,20 @@
-/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997-2004 artofcode LLC. All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/* $Id: gdevupd.c,v 1.5 2001/03/13 06:51:39 ghostgum Exp $ */
+/* $Id: gdevupd.c,v 1.16 2004/08/04 19:36:12 stefan Exp $ */
 /* gdevupd.c Revision: 1.88 */
 /* "uniprint" -- Ugly Printer Driver by Gunther Hess (ghess@elmos.de) */
 
@@ -87,6 +85,8 @@ There are two compile-time options for this driver:
 /* Required Header-Files                                               */
 /* ------------------------------------------------------------------- */
 
+#include "stdint_.h"
+
 #ifndef   hess_test_INCLUDED /* A private test-Option */
 
 #include "gdevprn.h" /** Printer-superclass header */
@@ -141,11 +141,11 @@ RGB-Values, but promises to deal with R==G==B-Values when asking to map.
 The second pair deals with RGB-Values.
 */
 
-private dev_proc_map_rgb_color( upd_rgb_1color);  /** RGB->Gray-Index */
-private dev_proc_map_color_rgb( upd_1color_rgb);  /** Gray-Index->RGB */
+private dev_proc_encode_color( upd_rgb_1color);  /** Gray-Gray->Index */
+private dev_proc_decode_color( upd_1color_rgb);  /** Gray-Index->Gray */
 
-private dev_proc_map_rgb_color( upd_rgb_3color);  /** RGB->RGB-Index */
-private dev_proc_map_color_rgb( upd_3color_rgb);  /** RGB-Index->RGB */
+private dev_proc_encode_color( upd_rgb_3color);  /** RGB->RGB-Index */
+private dev_proc_decode_color( upd_3color_rgb);  /** RGB-Index->RGB */
 
 /**
 The third pair maps RGB-Values into four components, which one might
@@ -153,8 +153,8 @@ expect to be KCMY-Values, but they are not: "uniprint" considers this four
 Values as White+RGB Values!
 */
 
-private dev_proc_map_rgb_color( upd_rgb_4color);  /** RGB->WRGB-Index */
-private dev_proc_map_color_rgb(upd_4color_rgb);   /** WRGB-Index->RGB */
+private dev_proc_encode_color( upd_rgb_4color);  /** RGB->WRGB-Index */
+private dev_proc_decode_color(upd_4color_rgb);   /** WRGB-Index->RGB */
 
 /**
 The fourth pair deals with KCMY-Values. The Mapping-Function
@@ -163,8 +163,8 @@ inverse-Function is of the same type, and expects RGB-Values to be
 deliverd into the receiving 3-Component-Array!
 */
 
-private dev_proc_map_cmyk_color(upd_cmyk_icolor); /** KCMY->KCMY-Index */
-private dev_proc_map_color_rgb( upd_icolor_rgb);  /** KCMY->RGB-Index */
+private dev_proc_encode_color(upd_cmyk_icolor); /** KCMY->KCMY-Index */
+private dev_proc_decode_color( upd_icolor_rgb);  /** KCMY->RGB-Index */
 
 /**
 The difference between the icolor-pair and the kcolor-pair is the enforced
@@ -172,8 +172,8 @@ black-generation in the forward-mapping. that is taken into account by the
 reverse-mapping too.
 */
 
-private dev_proc_map_cmyk_color(upd_cmyk_kcolor); /** adds black generation */
-private dev_proc_map_color_rgb( upd_kcolor_rgb);  /** watches black-gen */
+private dev_proc_encode_color(upd_cmyk_kcolor); /** adds black generation */
+private dev_proc_decode_color( upd_kcolor_rgb);  /** watches black-gen */
 
 /**
 "ovcolor" is CMYK with Black-Generation and Undercolor-Removal, which
@@ -183,7 +183,7 @@ with
    K'   = min(C,M,Y)
 */
 
-private dev_proc_map_rgb_color(upd_rgb_ovcolor);  /** RGB->CMYK-Index */
+private dev_proc_encode_color(upd_rgb_ovcolor);  /** RGB->CMYK-Index */
 #define upd_ovcolor_rgb upd_icolor_rgb            /** CMYK-Index->RGB */
 
 /**
@@ -194,7 +194,7 @@ with
    K'   = min(C,M,Y)
 */
 
-private dev_proc_map_rgb_color(upd_rgb_novcolor); /** RGB->CMYK-Index */
+private dev_proc_encode_color(upd_rgb_novcolor); /** RGB->CMYK-Index */
 #define upd_novcolor_rgb upd_icolor_rgb           /** CMYK-Index->RGB */
 
 /**
@@ -204,7 +204,7 @@ only active, if there is a valid device-structure for then.
 upd_procs_map performs this task.
 */
 
-private int             upd_procs_map( P1(upd_device *udev));
+private int             upd_procs_map( upd_device *udev);
 
 /* ------------------------------------------------------------------- */
 /* Prototype of the Device-Structure (the only thing exported!)        */
@@ -267,8 +267,8 @@ upd_device far_data gs_uniprint_device = { /** */
       1, /**  color_info.depth         1/2/4/8/16/24/32 */
       1, /**  color_info.max_gray      # of distinct gray levels -1 (255/1) */
       0, /**  color_info.max_color     # of distinct color levels -1 (255/1/0)*/
-      1, /**  color_info.dither_grays  size of gray ramp for dithering (5/2) */
-      0, /**  color_info.dither_colors size of color cube ditto (5/2/0) */
+      2, /**  color_info.dither_grays  size of gray ramp for dithering (256/2) */
+      0, /**  color_info.dither_colors size of color cube ditto (256/2/0) */
       upd_print_page),                     /** Print-procedure */
       { NULL, 0, true },                   /** Driver-Version */
       NULL                                 /** upd-field: Initially none */
@@ -381,53 +381,53 @@ static const char *const *const upd_choice[] = {
 */
 
 static const char *const upd_flags[] = {      /** */
-#define B_REVDIR            ((uint32) 1<<0)   /** FS-Dir-Flag */
+#define B_REVDIR            ((uint32_t) 1<<0)   /** FS-Dir-Flag */
 "upFSReverseDirection",                       /** FS-Dir-Flag */
-#define B_FIXDIR            ((uint32) 1<<1)   /** Do not alter FS-direction */
+#define B_FIXDIR            ((uint32_t) 1<<1)   /** Do not alter FS-direction */
 "upFSFixedDirection",                         /** Do not alter FS-direction */
-#define B_FSWHITE           ((uint32) 1<<2)   /** Process white in FS */
+#define B_FSWHITE           ((uint32_t) 1<<2)   /** Process white in FS */
 "upFSProcessWhiteSpace",                      /** Process white in FS */
-#define B_FSZERO            ((uint32) 1<<3)   /** Zero FS-Initialization */
+#define B_FSZERO            ((uint32_t) 1<<3)   /** Zero FS-Initialization */
 "upFSZeroInit",                               /** Zero FS-Initialization */
 
-#define B_PAGEWIDTH         ((uint32) 1<<4)   /** Adjust Width in BOP */
+#define B_PAGEWIDTH         ((uint32_t) 1<<4)   /** Adjust Width in BOP */
 "upAdjustPageWidthCommand",                   /** Adjust Page-Width in BOP */
-#define B_PAGELENGTH        ((uint32) 1<<5)   /** Adjust Length in BOP */
+#define B_PAGELENGTH        ((uint32_t) 1<<5)   /** Adjust Length in BOP */
 "upAdjustPageLengthCommand",                  /** Adjust Page-Length in BOP */
-#define B_TOPMARGIN         ((uint32) 1<<6)   /** Adjust Top-Margin in BOP */
+#define B_TOPMARGIN         ((uint32_t) 1<<6)   /** Adjust Top-Margin in BOP */
 "upAdjustTopMarginCommand",                   /** Adjust Top-Margin in BOP */
-#define B_BOTTOMMARGIN      ((uint32) 1<<7)   /** Adjust Bottom-Margin in BOP */
+#define B_BOTTOMMARGIN      ((uint32_t) 1<<7)   /** Adjust Bottom-Margin in BOP */
 "upAdjustBottomMarginCommand",                /** Adjust Bottom-Margin in BOP */
-#define B_RESOLUTION        ((uint32) 1<<8)   /** Adjust Resolution in BOP */
+#define B_RESOLUTION        ((uint32_t) 1<<8)   /** Adjust Resolution in BOP */
 "upAdjustResolutionCommand",                  /** Adjust Resolution in BOP */
-#define B_MEDIASIZE         ((uint32) 1<<9)   /** Adjust Mediasize in BOP */
+#define B_MEDIASIZE         ((uint32_t) 1<<9)   /** Adjust Mediasize in BOP */
 "upAdjustMediaSize",                          /** Adjust Mediasize in BOP */
 
-#define B_XABS              ((uint32) 1<<10)  /** Use Absolute X-Values */
+#define B_XABS              ((uint32_t) 1<<10)  /** Use Absolute X-Values */
 "upFormatXabsolute",                          /** Use Absolute X-Values */
-#define B_YABS              ((uint32) 1<<11)  /** Use Absolute Y-Values */
+#define B_YABS              ((uint32_t) 1<<11)  /** Use Absolute Y-Values */
 "upFormatYabsolute",                          /** Use Absolute Y-Values */
 
-#define B_MAP               ((uint32) 1<<12)  /** Mapping Initialized */
+#define B_MAP               ((uint32_t) 1<<12)  /** Mapping Initialized */
 "upColorModelInitialized",                    /** Mapping Initialized */
-#define B_BUF               ((uint32) 1<<13)  /** Raster-Buffer Initialized */
+#define B_BUF               ((uint32_t) 1<<13)  /** Raster-Buffer Initialized */
 "upRasterBufferInitialized",                  /** Raster-Buffer Initialized */
-#define B_RENDER            ((uint32) 1<<14)  /** Rendering Initialized */
+#define B_RENDER            ((uint32_t) 1<<14)  /** Rendering Initialized */
 "upRenderingInitialized",                     /** Rendering Initialized */
-#define B_FORMAT            ((uint32) 1<<15)  /** Formatter Initialized */
+#define B_FORMAT            ((uint32_t) 1<<15)  /** Formatter Initialized */
 "upOutputFormatInitialized",                  /** Formatter Initialized */
-#define B_ABORT             ((uint32) 1<<16)  /** Abort on Interrupt */
+#define B_ABORT             ((uint32_t) 1<<16)  /** Abort on Interrupt */
 "upOutputAborted",                            /** Abort on Interrupt */
-#define B_ERROR             ((uint32) 1<<17)  /** Severe Error detected */
+#define B_ERROR             ((uint32_t) 1<<17)  /** Severe Error detected */
 "upErrorDetected",                            /** Severe Error detected */
 
-#define B_OPEN              ((uint32) 1<<18)  /** Open-Command written */
+#define B_OPEN              ((uint32_t) 1<<18)  /** Open-Command written */
 "upWroteData",                                /** Open-Command written */
 
-#define B_YFLIP             ((uint32) 1<<19)  /** Mirrored printing (hr) */
+#define B_YFLIP             ((uint32_t) 1<<19)  /** Mirrored printing (hr) */
 "upYFlip",                                    /** Mirrored printing (hr) */
 
-#define B_REDUCEK           ((uint32) 1<<20)  /** CMY->Black Reduction */
+#define B_REDUCEK           ((uint32_t) 1<<20)  /** CMY->Black Reduction */
 "upFSReduceK"
 
 };
@@ -582,23 +582,23 @@ static const char *const upd_float_a[] = {    /** */
 /* ------------------------------------------------------------------- */
 
 /**
-int32 and uint32 are 32Bit-Integer-Types used in the
+int32_t and uint32_t are 32Bit-Integer-Types used in the
 Floyd-Steinberg Algorithm and instead of gx_color_index. The
 8-Byte long's on some 64Bit-Machines are apparently useless,
 since gdevprn.c does (currently) support only 32-Bit Rasterdata.
 */
 
+#undef INT32_MIN
+#undef INT32_MAX
+#undef UINT32_MAX
+
 #if     arch_log2_sizeof_int < 2  /* int is too small */
-   typedef          long  int32;
 #define                   INT32_MIN  LONG_MIN
 #define                   INT32_MAX  LONG_MAX
-   typedef unsigned long uint32;
 #define                  UINT32_MAX ULONG_MAX
 #else                             /* int is sufficient */
-   typedef          int   int32;
 #define                   INT32_MIN   INT_MIN
 #define                   INT32_MAX   INT_MAX
-   typedef unsigned int  uint32;
 #define                  UINT32_MAX  UINT_MAX
 #endif                            /* use int or long ? */
 
@@ -610,7 +610,7 @@ To be exact, it's not "4" but rather "UPD_CMAP_MAX", which is a synonym.
 
 typedef struct updcmap_s { /** */
    gx_color_value      *code;      /** Values related to codes */
-   uint32               bitmsk;    /** Mask, right justified */
+   uint32_t               bitmsk;    /** Mask, right justified */
    int                  bitshf;    /** Shift to right-justify */
    int                  xfer;      /** Index to the Xfer-Array */
    int                  bits;      /** # of Bits */
@@ -625,11 +625,11 @@ typedef const updcmap_t *updcmap_pc;
 */
 
 typedef struct updcomp_s {  /* Parameters for Floyd-Steinberg */
-   int32                offset;    /* Offset added to scaled values */
-   int32                scale;     /* Scale for the raw values */
-   int32                threshold; /* Val must be larger than this to fire */
-   int32                spotsize;  /* subtracted from Val when fired */
-   uint32               bitmsk;    /* Mask */
+   int32_t                offset;    /* Offset added to scaled values */
+   int32_t                scale;     /* Scale for the raw values */
+   int32_t                threshold; /* Val must be larger than this to fire */
+   int32_t                spotsize;  /* subtracted from Val when fired */
+   uint32_t               bitmsk;    /* Mask */
    int                  bitshf;    /* shift */
    int                  bits;      /* # of Bits */
    int                  cmap;      /* Index for the Parameter-name */
@@ -649,9 +649,9 @@ typedef struct updscan_s { /* Single Scanline (1 Bit/Pixel) */
 #define UPD_CMAP_MAX     4 /** Number of Colormaps provided */
 #define UPD_VALPTR_MAX  32 /** Number of valbuf-Pointers */
 
-#define upd_proc_pxlget(name) uint32 name(P1(upd_p upd))
-#define upd_proc_render(name) int name(P1(upd_p upd))
-#define upd_proc_writer(name) int name(P2(upd_p upd,FILE *out))
+#define upd_proc_pxlget(name) uint32_t name(upd_p upd)
+#define upd_proc_render(name) int name(upd_p upd)
+#define upd_proc_writer(name) int name(upd_p upd,FILE *out)
 
 struct upd_s { /* All upd-specific data */
 
@@ -673,14 +673,14 @@ struct upd_s { /* All upd-specific data */
    upd_proc_writer(     (*writer));
 
    updscan_p             *scnbuf;     /* Output-Values */
-   int32                 *valbuf;     /* Floyd-Steinberg-Buffer */
+   int32_t                 *valbuf;     /* Floyd-Steinberg-Buffer */
    void                  *valptr[UPD_VALPTR_MAX];
 
    byte                  *outbuf;     /* Output-Buffer */
    upd_proc_render(     (*start_render)); /* Setup for rendering */
    upd_proc_writer(     (*start_writer)); /* Setup for writilg */
 
-   uint32                 flags;      /** Some flags */
+   uint32_t                 flags;      /** Some flags */
    int                    pdwidth;    /** pdev-width upon open */
    int                    pdheight;   /** pdev-height upon open */
 
@@ -746,8 +746,8 @@ Most prominent are "upd_open_map" and "upd_close_map", which
 do the proper actions when opening and closing the device.
 */
 
-private int             upd_open_map( P1(upd_device *udev));
-private int             upd_close_map(P1(upd_device *udev));
+private int             upd_open_map( upd_device *udev);
+private int             upd_close_map(upd_device *udev);
 
 /**
 But "upd_truncate" and "upd_expand" are also mentionable. They are
@@ -757,8 +757,23 @@ and this is what "upd_truncate" does, in the most general manner i can
 think of and with O(log(n)) in time. "upd_expand" is required for the
 reverse mapping-functions and is a constant-time `algorithm'.
 */
-private uint32          upd_truncate(P3(upd_pc,int,gx_color_value));
-private gx_color_value  upd_expand(  P3(upd_pc,int,uint32));
+private inline uint32_t   upd_truncate(upd_pc,int,gx_color_value);
+
+/* ------------------------------------------------------------------- */
+/* Return the gx_color_value for a given component                     */
+/* ------------------------------------------------------------------- */
+private inline gx_color_value
+upd_expand(upd_pc upd,int i,gx_color_index ci0)
+{
+   const updcmap_pc cmap = upd->cmap + i;    /* Writing-Shortcut */
+   uint32_t ci = (uint32_t)((ci0 >> cmap->bitshf) & cmap->bitmsk); /* Extract the component */
+
+   if(!cmap->rise) ci = cmap->bitmsk - ci;   /* Invert, if necessary */
+/* no Truncation/Expansion on full range */
+   if(gx_color_value_bits > cmap->bits) return cmap->code[ci];
+   else                                 return (gx_color_value) ci;
+}
+/* That's simple, isn't it? */
 
 /**
 The next group of internal functions adresses the rendering. Besides
@@ -769,18 +784,18 @@ is called for each scanline. Actually a fourth function is provided,
 that is invoked at the beginning of each page to be printed, but the
 current algorithms do not need it.
 */
-private void            upd_open_render(   P1(upd_device *udev));
-private void            upd_close_render(  P1(upd_device *udev));
+private void            upd_open_render(   upd_device *udev);
+private void            upd_close_render(  upd_device *udev);
 
-private void            upd_open_fscomp(   P1(upd_device *udev));
-private int             upd_fscomp(        P1(upd_p upd));
-private void            upd_close_fscomp(  P1(upd_device *udev));
+private void            upd_open_fscomp(   upd_device *udev);
+private int             upd_fscomp(        upd_p upd);
+private void            upd_close_fscomp(  upd_device *udev);
 
-private void            upd_open_fscmyk(   P1(upd_device *udev));
-private int             upd_fscmyk(        P1(upd_p upd));
+private void            upd_open_fscmyk(   upd_device *udev);
+private int             upd_fscmyk(        upd_p upd);
 
-private void            upd_open_fscmy_k(  P1(upd_device *udev));
-private int             upd_fscmy_k(       P1(upd_p upd));
+private void            upd_open_fscmy_k(  upd_device *udev);
+private int             upd_fscmy_k(       upd_p upd);
 
 /**
 I hope that the formatting stuff can be kept simple and thus most
@@ -789,10 +804,10 @@ During open, there is a call to a format-specific open-function, but
 this is only for checking and determining the amount of of bytes required
 for the output-buffer (and limit-values in the scan-buffer).
 */
-private int             upd_open_writer(   P1(upd_device *udev));
-private void            upd_close_writer(  P1(upd_device *udev));
+private int             upd_open_writer(   upd_device *udev);
+private void            upd_close_writer(  upd_device *udev);
 #if UPD_SIGNAL
-private void            upd_signal_handler(P1(int sig));
+private void            upd_signal_handler(int sig);
 #endif
 
 /**
@@ -803,9 +818,9 @@ it is a violation of UPD's rules: the start-routine computes the Begin-Page
 sequence (the Rasterfile header) since it would be a nuisance to provide
 this code within each (test-)personalization in PostScript.
 */
-private int             upd_open_rascomp(   P1(upd_device *udev));
-private int             upd_start_rascomp(  P2(upd_p upd, FILE *out));
-private int             upd_rascomp(        P2(upd_p upd, FILE *out));
+private int             upd_open_rascomp(   upd_device *udev);
+private int             upd_start_rascomp(  upd_p upd, FILE *out);
+private int             upd_rascomp(        upd_p upd, FILE *out);
 
 /**
 The second format is ESC/P, the format introduced with the first Epson
@@ -814,9 +829,9 @@ It is also uncompressed. This formatter supports X- and Y-Weaving,
 which makes it the most sophisticated one inside this driver.
 */
 
-private void            upd_limits(        P2(upd_p upd, bool check));
-private int             upd_open_wrtescp(  P1(upd_device *udev));
-private int             upd_wrtescp(       P2(upd_p upd, FILE *out));
+private void            upd_limits(        upd_p upd, bool check);
+private int             upd_open_wrtescp(  upd_device *udev);
+private int             upd_wrtescp(       upd_p upd, FILE *out);
 
 /**
 The third format is ESC/P2, the format use by the newer Epson-Printers.
@@ -825,40 +840,40 @@ This formatter does not allow for X-Weaving.
 
 The fourth writer is a ESC/P2-Writer, that supports X-Weaving
 */
-private int             upd_rle(P3(byte *out,const byte *in,int nbytes));
-private int             upd_open_wrtescp2( P1(upd_device *udev));
-private int             upd_wrtescp2(      P2(upd_p upd, FILE *out));
-private int             upd_wrtescp2x(     P2(upd_p upd, FILE *out));
+private int             upd_rle(byte *out,const byte *in,int nbytes);
+private int             upd_open_wrtescp2( upd_device *udev);
+private int             upd_wrtescp2(      upd_p upd, FILE *out);
+private int             upd_wrtescp2x(     upd_p upd, FILE *out);
 
 /**
 The fifth writer is a HP-RTL/PCL-Writer
 */
 
-private int             upd_open_wrtrtl(   P1(upd_device *udev));
-private int             upd_wrtrtl(        P2(upd_p upd, FILE *out));
+private int             upd_open_wrtrtl(   upd_device *udev);
+private int             upd_wrtrtl(        upd_p upd, FILE *out);
 
 /**
 The sixth writer is for Canon Extended Mode (currently BJC610) (hr)
 */
 
-private int             upd_open_wrtcanon( P1(upd_device *udev));
-private int             upd_wrtcanon(      P2(upd_p upd, FILE *out));
+private int             upd_open_wrtcanon( upd_device *udev);
+private int             upd_wrtcanon(      upd_p upd, FILE *out);
 
 /**
 The seventh writer is for ESC P/2 Nozzle Map Mode (currently Stylus Color 300) (GR)
 */
 
-private int             upd_wrtescnm(      P2(upd_p upd, FILE *out));
+private int             upd_wrtescnm(      upd_p upd, FILE *out);
 
 
 /**
 Generalized Pixel Get & Read
 */
-private uint32 upd_pxlfwd(P1(upd_p upd));
-private uint32 upd_pxlrev(P1(upd_p upd));
+private uint32_t upd_pxlfwd(upd_p upd);
+private uint32_t upd_pxlrev(upd_p upd);
 #define upd_pxlget(UPD) (*UPD->pxlget)(UPD)
 
-private void *upd_cast(P1(const void *));
+private void *upd_cast(const void *);
 
 /* ------------------------------------------------------------------- */
 /* Macros to deal with the Parameter-Memory                            */
@@ -874,10 +889,10 @@ Here are several Macros, named "UPD_MM_*" to deal with that.
 */
 
 /** UPD_MM_GET_ARRAY allocates & initializes an array of values */
-#define UPD_MM_GET_ARRAY(Which,Nelts)                                 \
+#define UPD_MM_GET_ARRAY(mem, Which,Nelts)                                 \
    Which = NULL;                                                      \
    if(0 < (Nelts)) {                                                  \
-      byte *tmp = gs_malloc(Nelts,sizeof(Which[0]),"uniprint/params");\
+      byte *tmp = gs_malloc(mem, Nelts,sizeof(Which[0]),"uniprint/params");\
       if(tmp) {                                                       \
          memset(tmp,0,(Nelts)*sizeof(Which[0]));                      \
          Which = (void *) tmp;                                        \
@@ -887,50 +902,52 @@ Here are several Macros, named "UPD_MM_*" to deal with that.
    }
 
 /** UPD_MM_DEL_ARRAY frees an array of values */
-#define UPD_MM_DEL_ARRAY(Which,Nelts,Delete)                            \
+#define UPD_MM_DEL_ARRAY(mem, Which,Nelts,Delete)                            \
    if(Which && 0 < (Nelts)) {                                           \
       uint ii;                                                          \
-      for(ii = 0; (Nelts) > ii; ++ii) Delete(Which[ii]);                \
-      gs_free(upd_cast(Which),Nelts,sizeof(Which[0]),"uniprint/params");\
+      for(ii = 0; (Nelts) > ii; ++ii) Delete(mem, Which[ii]);                \
+      gs_free(mem, upd_cast(Which),Nelts,sizeof(Which[0]),"uniprint/params");\
    }                                                                    \
    Which = 0
 
 /** UPD_MM_DEL_VALUE deletes a value, does nothing */
-#define UPD_MM_DEL_VALUE(Which) /* */
+#define UPD_MM_DEL_VALUE(mem, Which) /* */
 
 /** UPD_MM_DEL_PARAM deletes a single gs-array-parameter */
-#define UPD_MM_DEL_PARAM(Which)  {                                  \
+#define UPD_MM_DEL_PARAM(mem, Which)  {                                  \
    if(Which.data && Which.size)                                     \
-      gs_free(upd_cast(Which.data),Which.size,sizeof(Which.data[0]),\
+      gs_free(mem, upd_cast(Which.data),Which.size,sizeof(Which.data[0]),\
          "uniprint/params");                                        \
 }
 
 /** UPD_MM_DEL_APARAM deletes a nested gs-array-parameter */
-#define UPD_MM_DEL_APARAM(Which) {                                  \
+#define UPD_MM_DEL_APARAM(mem, Which) {                                  \
    if(Which.data && Which.size) {                                   \
       uint iii;                                                     \
       for(iii = 0; iii < Which.size; ++iii)                         \
-         UPD_MM_DEL_PARAM(Which.data[iii]);                         \
-      gs_free(upd_cast(Which.data),Which.size,sizeof(Which.data[0]),\
+         UPD_MM_DEL_PARAM(mem, Which.data[iii]);                         \
+      gs_free(mem, upd_cast(Which.data),Which.size,sizeof(Which.data[0]),\
          "uniprint/params");                                        \
    }                                                                \
 }
 
 /** UPD_MM_CPY_ARRAY creates a new copy of an array of values */
-#define UPD_MM_CPY_ARRAY(To,From,Nelts,Copy)                \
-   UPD_MM_GET_ARRAY(To,Nelts);                              \
+#define UPD_MM_CPY_ARRAY(mem, To,From,Nelts,Copy)                \
+   UPD_MM_GET_ARRAY(mem, To,Nelts);                              \
    if(To && From) {                                         \
       uint ii;                                              \
-      for(ii = 0; (Nelts) > ii; ++ii) Copy(To[ii],From[ii]);\
+      for(ii = 0; (Nelts) > ii; ++ii) Copy(mem, To[ii],From[ii]);\
    }
 
 /** UPD_MM_CPY_VALUE Copies a simple Value */
-#define UPD_MM_CPY_VALUE(To,From)  To = From
+#define UPD_MM_CPY_VALUE(mem,To,From)  To = From
+
+#define UPD_MM_CPY_VALUE_3(mem,To,From)  To = From
 
 /** UPD_MM_CPY_PARAM Creates a copy of a gs-parameter */
-#define UPD_MM_CPY_PARAM(To,From)                                       \
+#define UPD_MM_CPY_PARAM(mem, To, From)                                       \
    if(From.data && From.size) {                                         \
-      UPD_MM_GET_ARRAY(To.data,From.size);                              \
+      UPD_MM_GET_ARRAY(mem, To.data,From.size);                              \
       if(To.data) {                                                     \
          To.size = From.size;                                           \
          memcpy(upd_cast(To.data),From.data,To.size*sizeof(To.data[0]));\
@@ -938,15 +955,15 @@ Here are several Macros, named "UPD_MM_*" to deal with that.
    }
 
 /** UPD_MM_CPY_APARAM Creates a copy of a nested gs-parameter */
-#define UPD_MM_CPY_APARAM(To,From)                                     \
+#define UPD_MM_CPY_APARAM(mem, To,From)                                     \
    if(From.data && From.size) {                                        \
-      UPD_MM_GET_ARRAY(To.data,From.size);                             \
+       UPD_MM_GET_ARRAY(mem, To.data,From.size);			       \
       if(To.data) {                                                    \
          gs_param_string *tmp2 = (gs_param_string *) upd_cast(To.data);\
          uint iii;                                                     \
          To.size = From.size;                                          \
          for(iii = 0; To.size > iii; ++iii)                            \
-            UPD_MM_CPY_PARAM(tmp2[iii],From.data[iii]);                \
+	     UPD_MM_CPY_PARAM(mem, tmp2[iii],From.data[iii]);	       \
       }                                                                \
    }
 
@@ -956,7 +973,7 @@ Here are several Macros, named "UPD_MM_*" to deal with that.
 
 /** Version-String */
 
-static const char rcsid[] = "$Revision: 1.5 $";
+static const char rcsid[] = "$Revision: 1.16 $";
 
 /** Default-Transfer-curve */
 
@@ -1030,8 +1047,8 @@ upd_print_page(gx_device_printer *pdev, FILE *out)
    int error,need,yfill;
 
 #if UPD_SIGNAL /* variables required for signal-handling only */
-   void (*oldint )(P1(int)) = NULL;
-   void (*oldterm)(P1(int)) = NULL;
+   void (*oldint )(int) = NULL;
+   void (*oldterm)(int) = NULL;
    upd_p  oldupd            = sigupd;
 #endif         /* variables required for signal-handling only */
 
@@ -1281,17 +1298,17 @@ It determines the size of the printed image and allocates the
 buffer for the raw raster-data
 */
       upd->gswidth  = udev->width -
-         (dev_l_margin(udev)+dev_r_margin(udev))*udev->x_pixels_per_inch;
+         (int)((dev_l_margin(udev)+dev_r_margin(udev))*udev->x_pixels_per_inch);
 
       upd->gsheight = udev->height -
-         (dev_t_margin(udev)+dev_b_margin(udev))*udev->y_pixels_per_inch;
+         (int)((dev_t_margin(udev)+dev_b_margin(udev))*udev->y_pixels_per_inch);
 
       upd->ngsbuf = 0;    /* Ensure sane values */
       upd->gsbuf  = NULL; /* Ensure sane values */
 
       if(B_MAP & upd->flags) { /* Only if prerequisites were met */
          uint want  = gx_device_raster(pdev,true);
-         upd->gsbuf = gs_malloc(want,1,"upd/gsbuf");
+         upd->gsbuf = gs_malloc(pdev->memory, want,1,"upd/gsbuf");
 
          if(upd->gsbuf) {
             upd->ngsbuf = want;
@@ -1406,10 +1423,10 @@ buffer for the raw raster-data
         for(i = 0; countof(upd_flags) > i; ++i) {
           if(upd_flags[i]) {
             errprintf("%*s = %s\n",ln,upd_flags[i],
-               ((uint32) 1 << i) & upd->flags ? "true" : "false");
+               ((uint32_t) 1 << i) & upd->flags ? "true" : "false");
           } else {
             errprintf("%*s[%2d] = %s\n",ln-4,"upd_flags",i,
-               ((uint32) 1 << i) & upd->flags ? "true" : "false");
+               ((uint32_t) 1 << i) & upd->flags ? "true" : "false");
 
           }
         }
@@ -1474,7 +1491,7 @@ upd_close(gx_device *pdev)
       upd_close_writer(udev);
 
       if(upd->gsbuf)
-         gs_free(upd->gsbuf,upd->ngsbuf,1,"uniprint/gsbuf");
+         gs_free(pdev->memory, upd->gsbuf,upd->ngsbuf,1,"uniprint/gsbuf");
       upd->gsbuf  = NULL;
       upd->ngsbuf = 0;
       upd->flags &= ~B_BUF;
@@ -1482,14 +1499,14 @@ upd_close(gx_device *pdev)
       upd_close_render(udev);
       upd_close_map(udev);
 
-      UPD_MM_DEL_ARRAY(upd->choice,  countof(upd_choice),  UPD_MM_DEL_VALUE);
-      UPD_MM_DEL_ARRAY(upd->ints,    countof(upd_ints),    UPD_MM_DEL_VALUE);
-      UPD_MM_DEL_ARRAY(upd->int_a,   countof(upd_int_a),   UPD_MM_DEL_PARAM);
-      UPD_MM_DEL_ARRAY(upd->strings, countof(upd_strings), UPD_MM_DEL_PARAM);
-      UPD_MM_DEL_ARRAY(upd->string_a,countof(upd_string_a),UPD_MM_DEL_APARAM);
-      UPD_MM_DEL_ARRAY(upd->float_a, countof(upd_float_a), UPD_MM_DEL_PARAM);
+      UPD_MM_DEL_ARRAY(pdev->memory, upd->choice,  countof(upd_choice),  UPD_MM_DEL_VALUE);
+      UPD_MM_DEL_ARRAY(pdev->memory, upd->ints,    countof(upd_ints),    UPD_MM_DEL_VALUE);
+      UPD_MM_DEL_ARRAY(pdev->memory, upd->int_a,   countof(upd_int_a),   UPD_MM_DEL_PARAM);
+      UPD_MM_DEL_ARRAY(pdev->memory, upd->strings, countof(upd_strings), UPD_MM_DEL_PARAM);
+      UPD_MM_DEL_ARRAY(pdev->memory, upd->string_a,countof(upd_string_a),UPD_MM_DEL_APARAM);
+      UPD_MM_DEL_ARRAY(pdev->memory, upd->float_a, countof(upd_float_a), UPD_MM_DEL_PARAM);
 
-      gs_free(upd,sizeof(upd[0]),1,"uniprint");
+      gs_free(pdev->memory, upd,sizeof(upd[0]),1,"uniprint");
 
       udev->upd = NULL;
    }
@@ -1566,7 +1583,7 @@ upd_get_params(gx_device *pdev, gs_param_list *plist)
    for(i = 0; i < countof(upd_flags); ++i) {
       if(!upd_flags[i]) continue; /* Flag-Export disabled */
       if(upd) {
-         bool value = upd->flags & ((uint32) 1 << i);
+         bool value = upd->flags & ((uint32_t) 1 << i);
          error = param_write_bool(plist,upd_flags[i],&value);
       } else {
          error = param_write_null(plist,upd_flags[i]);
@@ -1655,7 +1672,7 @@ upd_put_params(gx_device *pdev, gs_param_list *plist)
 
    float                  MarginsHWResolution[2],Margins[2];
    gx_device_color_info   color_info;
-   uint32                 flags      = 0;
+   uint32_t                 flags      = 0;
    int                   *choice     = NULL;
    int                   *ints       = NULL;
    gs_param_int_array    *int_a      = NULL;
@@ -1777,26 +1794,26 @@ out on this copies.
    color_info = udev->color_info;
    if(upd) {
      flags = upd->flags;
-     UPD_MM_CPY_ARRAY(choice,  upd->choice,  countof(upd_choice),
+     UPD_MM_CPY_ARRAY(udev->memory, choice,  upd->choice,  countof(upd_choice),
         UPD_MM_CPY_VALUE);
-     UPD_MM_CPY_ARRAY(ints,    upd->ints,    countof(upd_ints),
+     UPD_MM_CPY_ARRAY(udev->memory, ints,    upd->ints,    countof(upd_ints),
         UPD_MM_CPY_VALUE);
-     UPD_MM_CPY_ARRAY(int_a,   upd->int_a,   countof(upd_int_a),
+     UPD_MM_CPY_ARRAY(udev->memory, int_a,   upd->int_a,   countof(upd_int_a),
         UPD_MM_CPY_PARAM);
-     UPD_MM_CPY_ARRAY(strings, upd->strings, countof(upd_strings),
+     UPD_MM_CPY_ARRAY(udev->memory, strings, upd->strings, countof(upd_strings),
         UPD_MM_CPY_PARAM);
-     UPD_MM_CPY_ARRAY(string_a,upd->string_a,countof(upd_string_a),
+     UPD_MM_CPY_ARRAY(udev->memory, string_a,upd->string_a,countof(upd_string_a),
         UPD_MM_CPY_APARAM);
-     UPD_MM_CPY_ARRAY(float_a, upd->float_a, countof(upd_float_a),
+     UPD_MM_CPY_ARRAY(udev->memory, float_a, upd->float_a, countof(upd_float_a),
         UPD_MM_CPY_PARAM);
    } else {
      flags = 0;
-     UPD_MM_GET_ARRAY(choice,  countof(upd_choice));
-     UPD_MM_GET_ARRAY(ints,    countof(upd_ints));
-     UPD_MM_GET_ARRAY(int_a,   countof(upd_int_a));
-     UPD_MM_GET_ARRAY(strings, countof(upd_strings));
-     UPD_MM_GET_ARRAY(string_a,countof(upd_string_a));
-     UPD_MM_GET_ARRAY(float_a, countof(upd_float_a));
+     UPD_MM_GET_ARRAY(udev->memory, choice,  countof(upd_choice));
+     UPD_MM_GET_ARRAY(udev->memory, ints,    countof(upd_ints));
+     UPD_MM_GET_ARRAY(udev->memory, int_a,   countof(upd_int_a));
+     UPD_MM_GET_ARRAY(udev->memory, strings, countof(upd_strings));
+     UPD_MM_GET_ARRAY(udev->memory, string_a,countof(upd_string_a));
+     UPD_MM_GET_ARRAY(udev->memory, float_a, countof(upd_float_a));
    }
 
 /** Import the Multiple-Choices */
@@ -1823,7 +1840,7 @@ out on this copies.
 
 /** Import the Boolean Values */
    for(i = 0; countof(upd_flags) > i; ++i) {
-      uint32 bit  = (uint32) 1 << i;
+      uint32_t bit  = (uint32_t) 1 << i;
       bool   flag = flags & bit ? true : false;
       if(!upd_flags[i]) continue;
       UPD_PARAM_READ(param_read_bool,upd_flags[i],flag);
@@ -1852,12 +1869,12 @@ out on this copies.
       UPD_PARAM_READ(param_read_int_array,upd_int_a[i],value);
       if(0 == code) {
          if(0 <= error) error |= UPD_PUT_INT_A;
-         UPD_MM_DEL_PARAM(int_a[i]);
+         UPD_MM_DEL_PARAM(udev->memory, int_a[i]);
          if(!value.size) {
             value.data = NULL;
             int_a[i]   = value;
          } else {
-            UPD_MM_CPY_PARAM(int_a[i],value);
+            UPD_MM_CPY_PARAM(udev->memory, int_a[i],value);
          }
       }
    }
@@ -1869,12 +1886,12 @@ out on this copies.
       UPD_PARAM_READ(param_read_string,upd_strings[i],value);
       if(0 == code) {
          if(0 <= error) error |= UPD_PUT_STRINGS;
-         UPD_MM_DEL_PARAM(strings[i]);
+         UPD_MM_DEL_PARAM(udev->memory, strings[i]);
          if(!value.size) {
             value.data = NULL;
             strings[i]   = value;
          } else {
-            UPD_MM_CPY_PARAM(strings[i],value);
+            UPD_MM_CPY_PARAM(udev->memory, strings[i],value);
          }
       }
    }
@@ -1886,12 +1903,12 @@ out on this copies.
       UPD_PARAM_READ(param_read_string_array,upd_string_a[i],value);
       if(0 == code) {
          if(0 <= error) error |= UPD_PUT_STRING_A;
-         UPD_MM_DEL_APARAM(string_a[i]);
+         UPD_MM_DEL_APARAM(udev->memory, string_a[i]);
          if(!value.size) {
             value.data  = NULL;
             string_a[i] = value;
          } else {
-            UPD_MM_CPY_APARAM(string_a[i],value);
+            UPD_MM_CPY_APARAM(udev->memory, string_a[i],value);
          }
       }
    }
@@ -1903,12 +1920,12 @@ out on this copies.
       UPD_PARAM_READ(param_read_float_array,upd_float_a[i],value);
       if(0 == code) {
          if(0 <= error) error |= UPD_PUT_FLOAT_A;
-         UPD_MM_DEL_PARAM(float_a[i]);
+         UPD_MM_DEL_PARAM(udev->memory, float_a[i]);
          if(!value.size) {
             value.data = NULL;
             float_a[i] = value;
          } else {
-            UPD_MM_CPY_PARAM(float_a[i],value);
+            UPD_MM_CPY_PARAM(udev->memory, float_a[i],value);
          }
       }
    }
@@ -1924,8 +1941,8 @@ In addition to that, Resolution & Margin-Parameters are tested & adjusted.
       int *ip,*ip2,ncomp,nbits;
 
       if(6 > int_a[IA_COLOR_INFO].size) {
-         UPD_MM_DEL_PARAM(int_a[IA_COLOR_INFO]);
-         UPD_MM_GET_ARRAY(int_a[IA_COLOR_INFO].data,6);
+         UPD_MM_DEL_PARAM(udev->memory, int_a[IA_COLOR_INFO]);
+         UPD_MM_GET_ARRAY(udev->memory, int_a[IA_COLOR_INFO].data,6);
          int_a[IA_COLOR_INFO].size = 6;
       }
       ip = (int *) upd_cast(int_a[IA_COLOR_INFO].data);
@@ -1956,11 +1973,11 @@ In addition to that, Resolution & Margin-Parameters are tested & adjusted.
       if(UPD_CMAP_MAX < ncomp) ncomp = UPD_CMAP_MAX;
 
       if(ncomp > int_a[IA_COMPBITS].size) { /* Default ComponentBits */
-         UPD_MM_GET_ARRAY(ip2,ncomp);
+         UPD_MM_GET_ARRAY(udev->memory, ip2,ncomp);
          nbits = 32 / ncomp;
          if(8 < nbits) nbits = 8;
          for(i = 0; i < ncomp; ++i) ip2[i] = nbits;
-         UPD_MM_DEL_PARAM(int_a[IA_COMPBITS]);
+         UPD_MM_DEL_PARAM(udev->memory, int_a[IA_COMPBITS]);
          int_a[IA_COMPBITS].data = ip2;
          int_a[IA_COMPBITS].size = ncomp;
       }                                     /* Default ComponentBits */
@@ -1968,12 +1985,12 @@ In addition to that, Resolution & Margin-Parameters are tested & adjusted.
       if(ncomp > int_a[IA_COMPSHIFT].size) {  /* Default ComponentShift */
          nbits = 0;
          for(i = 0; i < ncomp; ++i) nbits += int_a[IA_COMPBITS].data[i];
-         UPD_MM_GET_ARRAY(ip2,ncomp);
+         UPD_MM_GET_ARRAY(udev->memory, ip2,ncomp);
          for(i = 0; i < ncomp; ++i) {
             ip2[i] = nbits - int_a[IA_COMPBITS].data[i];
             nbits -= int_a[IA_COMPBITS].data[i];
          }
-         UPD_MM_DEL_PARAM(int_a[IA_COMPSHIFT]);
+         UPD_MM_DEL_PARAM(udev->memory, int_a[IA_COMPSHIFT]);
          int_a[IA_COMPSHIFT].data = ip2;
          int_a[IA_COMPSHIFT].size = ncomp;
       }                                       /* Default ComponentShift */
@@ -2017,7 +2034,7 @@ In addition to that, Resolution & Margin-Parameters are tested & adjusted.
          nbits = 0;
          for(i = 0; i < ncomp; ++i) if(nbits < int_a[IA_COMPBITS].data[i])
             nbits = int_a[IA_COMPBITS].data[i];
-         if(2 < nbits) ip[4] = 5;
+         if(2 < nbits) ip[4] = 256;
          else          ip[4] = 2;
       }                /* Gray-Ramp */
 
@@ -2025,7 +2042,7 @@ In addition to that, Resolution & Margin-Parameters are tested & adjusted.
          nbits = 0;
          for(i = 0; i < ncomp; ++i) if(nbits < int_a[IA_COMPBITS].data[i])
             nbits = int_a[IA_COMPBITS].data[i];
-         if(2 < nbits) ip[5] = 5;
+         if(2 < nbits) ip[5] = 256;
          else          ip[5] = 2;
       }                             /* Color-Ramp */
 
@@ -2082,15 +2099,15 @@ transferred into the device-structure. In the case of "uniprint", this may
    if(0 < error) { /* Actually something loaded without error */
 
       if(!(upd = udev->upd)) {
-        UPD_MM_GET_ARRAY(udev->upd,1);
+        UPD_MM_GET_ARRAY(udev->memory, udev->upd,1);
         upd = udev->upd;
       } else {
-        UPD_MM_DEL_ARRAY(upd->choice,  countof(upd_choice),  UPD_MM_DEL_VALUE);
-        UPD_MM_DEL_ARRAY(upd->ints,    countof(upd_ints),    UPD_MM_DEL_VALUE);
-        UPD_MM_DEL_ARRAY(upd->int_a,   countof(upd_int_a),   UPD_MM_DEL_PARAM);
-        UPD_MM_DEL_ARRAY(upd->strings, countof(upd_strings), UPD_MM_DEL_PARAM);
-        UPD_MM_DEL_ARRAY(upd->string_a,countof(upd_string_a),UPD_MM_DEL_APARAM);
-        UPD_MM_DEL_ARRAY(upd->float_a, countof(upd_float_a), UPD_MM_DEL_PARAM);
+        UPD_MM_DEL_ARRAY(udev->memory, upd->choice,  countof(upd_choice),  UPD_MM_DEL_VALUE);
+        UPD_MM_DEL_ARRAY(udev->memory, upd->ints,    countof(upd_ints),    UPD_MM_DEL_VALUE);
+        UPD_MM_DEL_ARRAY(udev->memory, upd->int_a,   countof(upd_int_a),   UPD_MM_DEL_PARAM);
+        UPD_MM_DEL_ARRAY(udev->memory, upd->strings, countof(upd_strings), UPD_MM_DEL_PARAM);
+        UPD_MM_DEL_ARRAY(udev->memory, upd->string_a,countof(upd_string_a),UPD_MM_DEL_APARAM);
+        UPD_MM_DEL_ARRAY(udev->memory, upd->float_a, countof(upd_float_a), UPD_MM_DEL_PARAM);
       }
 
       upd->choice   = choice;
@@ -2111,12 +2128,12 @@ transferred into the device-structure. In the case of "uniprint", this may
       udev->MarginsHWResolution[1] = MarginsHWResolution[1];
 
       udev->color_info = color_info;
-      UPD_MM_DEL_ARRAY(choice,  countof(upd_choice),  UPD_MM_DEL_VALUE);
-      UPD_MM_DEL_ARRAY(ints,    countof(upd_ints),    UPD_MM_DEL_VALUE);
-      UPD_MM_DEL_ARRAY(int_a,   countof(upd_int_a),   UPD_MM_DEL_PARAM);
-      UPD_MM_DEL_ARRAY(strings, countof(upd_strings), UPD_MM_DEL_PARAM);
-      UPD_MM_DEL_ARRAY(string_a,countof(upd_string_a),UPD_MM_DEL_APARAM);
-      UPD_MM_DEL_ARRAY(float_a, countof(upd_float_a), UPD_MM_DEL_PARAM);
+      UPD_MM_DEL_ARRAY(udev->memory, choice,  countof(upd_choice),  UPD_MM_DEL_VALUE);
+      UPD_MM_DEL_ARRAY(udev->memory, ints,    countof(upd_ints),    UPD_MM_DEL_VALUE);
+      UPD_MM_DEL_ARRAY(udev->memory, int_a,   countof(upd_int_a),   UPD_MM_DEL_PARAM);
+      UPD_MM_DEL_ARRAY(udev->memory, strings, countof(upd_strings), UPD_MM_DEL_PARAM);
+      UPD_MM_DEL_ARRAY(udev->memory, string_a,countof(upd_string_a),UPD_MM_DEL_APARAM);
+      UPD_MM_DEL_ARRAY(udev->memory, float_a, countof(upd_float_a), UPD_MM_DEL_PARAM);
 
    }
 
@@ -2148,11 +2165,12 @@ reverses this in the reverse-mapping procedures.
 */
 
 private gx_color_index
-upd_cmyk_icolor(gx_device *pdev,
-   gx_color_value c, gx_color_value m, gx_color_value y,gx_color_value k)
+upd_cmyk_icolor(gx_device *pdev, const gx_color_value cv[])
 {
    const upd_p     upd = ((upd_device *)pdev)->upd;
    gx_color_index  rv;
+   gx_color_value c, m, y, k;
+   c = cv[0]; m = cv[1]; y = cv[2]; k = cv[3];
 
 /**
 All 4-Component-Modi have to deal with the Problem, that a value
@@ -2164,7 +2182,7 @@ in the W- or K-Component.
 
    if((c == m) && (m == y)) {
 
-      rv = upd_truncate(upd,0,c > k ? c : k);
+      rv = upd_truncate(upd,0,(gx_color_value)(c > k ? c : k));
 
    } else {
 
@@ -2258,24 +2276,23 @@ upd_icolor_rgb(gx_device *pdev, gx_color_index color, gx_color_value prgb[3])
 }
 
 /* ------------------------------------------------------------------- */
-/* upd_rgb_1color: Grayscale-RGB->Grayscale-index-Mapping              */
+/* upd_rgb_1color: Grayscale->Grayscale-index-Mapping              */
 /* ------------------------------------------------------------------- */
 
 private gx_color_index
-upd_rgb_1color(gx_device *pdev,
-   gx_color_value r, gx_color_value g, gx_color_value b)
+upd_rgb_1color(gx_device *pdev, const gx_color_value cv[])
 {
    const upd_p     upd = ((upd_device *)pdev)->upd;
    gx_color_index  rv;
+   gx_color_value g;
 
-   rv = upd_truncate(upd,0,r);
+   g = cv[0];
+   rv = upd_truncate(upd,0,g);
 
 #if UPD_MESSAGES & UPD_M_MAPCALLS
    errprintf(
-      "rgb_1color: (%5.1f,%5.1f,%5.1f) : (%5.1f) : 0x%0*lx\n",
-      255.0 * (double) r  / (double) gx_max_color_value,
+      "rgb_1color: (%5.1f) : (%5.1f) : 0x%0*lx\n",
       255.0 * (double) g  / (double) gx_max_color_value,
-      255.0 * (double) b  / (double) gx_max_color_value,
       255.0 * (double) ((rv >> upd->cmap[0].bitshf) & upd->cmap[0].bitmsk)
                     / (double) upd->cmap[0].bitmsk,
       (pdev->color_info.depth + 3)>>2,rv);
@@ -2289,15 +2306,13 @@ upd_rgb_1color(gx_device *pdev,
 /* ------------------------------------------------------------------- */
 
 private int
-upd_1color_rgb(gx_device *pdev, gx_color_index color, gx_color_value prgb[3])
+upd_1color_rgb(gx_device *pdev, gx_color_index color, gx_color_value cv[1])
 {
    const upd_p     upd = ((upd_device *)pdev)->upd;
 /*
  * Actual task: expand to full range of gx_color_value
  */
-   prgb[0] = upd_expand(upd,0,color);
-
-   prgb[2] = prgb[1] = prgb[0];
+   cv[0] = upd_expand(upd,0,color);
 
 #if UPD_MESSAGES & UPD_M_MAPCALLS
    errprintf("1color_rgb: 0x%0*lx -> %5.1f -> (%5.1f,%5.1f,%5.1f)\n",
@@ -2305,8 +2320,8 @@ upd_1color_rgb(gx_device *pdev, gx_color_index color, gx_color_value prgb[3])
       255.0 * (double) ((color >> upd->cmap[0].bitshf) & upd->cmap[0].bitmsk)
                        / (double) upd->cmap[0].bitmsk,
       255.0 * (double) prgb[0] / (double) gx_max_color_value,
-      255.0 * (double) prgb[1] / (double) gx_max_color_value,
-      255.0 * (double) prgb[2] / (double) gx_max_color_value);
+      255.0 * (double) prgb[0] / (double) gx_max_color_value,
+      255.0 * (double) prgb[0] / (double) gx_max_color_value);
 #endif
 
    return 0;
@@ -2317,11 +2332,12 @@ upd_1color_rgb(gx_device *pdev, gx_color_index color, gx_color_value prgb[3])
 /* ------------------------------------------------------------------- */
 
 private gx_color_index
-upd_rgb_3color(gx_device *pdev,
-   gx_color_value r, gx_color_value g, gx_color_value b)
+upd_rgb_3color(gx_device *pdev, const gx_color_value cv[])
 {
    const upd_p     upd = ((upd_device *)pdev)->upd;
    gx_color_index  rv;
+   gx_color_value r, g, b;
+   r = cv[0]; g = cv[1]; b = cv[2];
 
    rv = upd_truncate(upd,0,r) | upd_truncate(upd,1,g) | upd_truncate(upd,2,b);
    if(rv == gx_no_color_index) rv ^= 1;
@@ -2381,11 +2397,13 @@ upd_3color_rgb(gx_device *pdev, gx_color_index color, gx_color_value prgb[3])
 /* ------------------------------------------------------------------- */
 
 private gx_color_index
-upd_rgb_4color(gx_device *pdev,
-   gx_color_value r, gx_color_value g, gx_color_value b)
+upd_rgb_4color(gx_device *pdev, const gx_color_value cv[])
 {
    const upd_p     upd = ((upd_device *)pdev)->upd;
    gx_color_index  rv;
+   gx_color_value r, g, b;
+
+   r = cv[0]; g = cv[1]; b = cv[2];
 
    if((r == g) && (g == b)) {
 
@@ -2469,12 +2487,14 @@ upd_4color_rgb(gx_device *pdev, gx_color_index color, gx_color_value prgb[3])
 /* ------------------------------------------------------------------- */
 
 private gx_color_index
-upd_cmyk_kcolor(gx_device *pdev,
-   gx_color_value c, gx_color_value m, gx_color_value y,gx_color_value k)
+upd_cmyk_kcolor(gx_device *pdev, const gx_color_value cv[])
 {
    const upd_p     upd = ((upd_device *)pdev)->upd;
    gx_color_index  rv;
    gx_color_value  black;
+
+   gx_color_value c, m, y, k;
+   c = cv[0]; m = cv[1]; y = cv[2]; k = cv[3];
 
    if((c == m) && (m == y)) {
 
@@ -2580,13 +2600,13 @@ upd_kcolor_rgb(gx_device *pdev, gx_color_index color, gx_color_value prgb[3])
 /* ------------------------------------------------------------------- */
 
 private gx_color_index
-upd_rgb_ovcolor(gx_device *pdev,
-   gx_color_value r, gx_color_value g, gx_color_value b)
+upd_rgb_ovcolor(gx_device *pdev, const gx_color_value cv[])
 {
    const upd_p     upd = ((upd_device *)pdev)->upd;
    gx_color_index  rv;
    gx_color_value  c,m,y,black;
-
+   gx_color_value r, g, b;
+   r = cv[0]; g = cv[1]; b = cv[2];
    if((r == g) && (g == b)) {
 
       black  = gx_max_color_value - r;
@@ -2605,22 +2625,22 @@ upd_rgb_ovcolor(gx_device *pdev,
       if(black != gx_max_color_value) {
         float tmp,d;
         
-        d   = gx_max_color_value - black;
+        d   = (float)(gx_max_color_value - black);
 
         tmp = (float) (c-black) / d;
         if(      0.0 > tmp) tmp = 0.0;
         else if( 1.0 < tmp) tmp = 1.0;
-        c   = tmp * gx_max_color_value + 0.499;
+        c   = (gx_color_value)(tmp * gx_max_color_value + 0.499);
 
         tmp = (float) (m-black) / d;
         if(      0.0 > tmp) tmp = 0.0;
         else if( 1.0 < tmp) tmp = 1.0;
-        m   = tmp * gx_max_color_value + 0.499;
+        m   = (gx_color_value)(tmp * gx_max_color_value + 0.499);
 
         tmp = (float) (y-black) / d;
         if(      0.0 > tmp) tmp = 0.0;
         else if( 1.0 < tmp) tmp = 1.0;
-        y   = tmp * gx_max_color_value + 0.499;
+        y   = (gx_color_value)(tmp * gx_max_color_value + 0.499);
 
       } else {
 
@@ -2661,12 +2681,13 @@ upd_rgb_ovcolor(gx_device *pdev,
 /* ------------------------------------------------------------------- */
 
 private gx_color_index
-upd_rgb_novcolor(gx_device *pdev,
-   gx_color_value r, gx_color_value g, gx_color_value b)
+upd_rgb_novcolor(gx_device *pdev, const gx_color_value cv[])
 {
    const upd_p     upd = ((upd_device *)pdev)->upd;
    gx_color_index  rv;
    gx_color_value  c,m,y,black;
+   gx_color_value r, g, b;
+   r = cv[0]; g = cv[1]; b = cv[2];
 
    if((r == g) && (g == b)) {
 
@@ -2719,30 +2740,13 @@ upd_rgb_novcolor(gx_device *pdev,
 /* ------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------- */
-/* Return the gx_color_value for a given component                     */
-/* ------------------------------------------------------------------- */
-
-private gx_color_value
-upd_expand(upd_pc upd,int i,uint32 ci)
-{
-   const updcmap_pc cmap = upd->cmap + i;    /* Writing-Shortcut */
-
-   ci = (ci >> cmap->bitshf) & cmap->bitmsk; /* Extract the component */
-   if(!cmap->rise) ci = cmap->bitmsk - ci;   /* Invert, if necessary */
-/* no Truncation/Expansion on full range */
-   if(gx_color_value_bits > cmap->bits) return cmap->code[ci];
-   else                                 return (gx_color_value) ci;
-}
-/* That's simple, isn't it? */
-
-/* ------------------------------------------------------------------- */
 /* Truncate a gx_color_value to the desired number of bits.            */
 /* ------------------------------------------------------------------- */
 
-private uint32
+private uint32_t
 upd_truncate(upd_pc upd,int i,gx_color_value v) {
    const updcmap_pc cmap = upd->cmap + i;
-   int32           s; /* step size */
+   int32_t           s; /* step size */
    gx_color_value *p; /* value-pointer */
 
    if(0 == cmap->bits) {                          /* trivial case */
@@ -2774,7 +2778,7 @@ upd_truncate(upd_pc upd,int i,gx_color_value v) {
 
    if(!cmap->rise) v = cmap->bitmsk - v; /* Again reverse, if necessary */
 
-   return ((uint32) v) << cmap->bitshf;
+   return ((uint32_t) v) << cmap->bitshf;
 }
 
 /* ------------------------------------------------------------------- */
@@ -2861,7 +2865,7 @@ upd_open_map(upd_device *udev)
    if(imap) { /* Check number of Bits & Shifts */
 
 #if      UPD_MESSAGES & UPD_M_WARNING
-      uint32 used = 0,bitmsk;
+      uint32_t used = 0,bitmsk;
 #endif
       bool success = true;
 
@@ -2892,8 +2896,8 @@ upd_open_map(upd_device *udev)
             if((NULL == upd->float_a[upd->cmap[imap].xfer].data) ||
                (2    >  upd->float_a[upd->cmap[imap].xfer].size)   ) {
                float *fp;
-               UPD_MM_DEL_PARAM(upd->float_a[upd->cmap[imap].xfer]);
-               UPD_MM_GET_ARRAY(fp,2);
+               UPD_MM_DEL_PARAM(udev->memory, upd->float_a[upd->cmap[imap].xfer]);
+               UPD_MM_GET_ARRAY(udev->memory, fp,2);
                fp[0] = 0.0;
                fp[1] = 1.0;
                upd->float_a[upd->cmap[imap].xfer].data = fp;
@@ -2928,7 +2932,7 @@ upd_open_map(upd_device *udev)
 
 #if            UPD_MESSAGES & UPD_M_WARNING
 
-               bitmsk   = ((uint32) 1 << upd->int_a[IA_COMPBITS].data[imap]) -1;
+               bitmsk   = ((uint32_t) 1 << upd->int_a[IA_COMPBITS].data[imap]) -1;
                bitmsk <<= upd->int_a[IA_COMPSHIFT].data[imap];
 
                if(used & bitmsk) errprintf(
@@ -2961,7 +2965,7 @@ upd_open_map(upd_device *udev)
             upd->float_a[upd->cmap[imap].xfer].data[
                upd->float_a[upd->cmap[imap].xfer].size-1] ?
             true : false;
-         upd->cmap[imap].code     = gs_malloc(upd->cmap[imap].bitmsk+1,
+         upd->cmap[imap].code     = gs_malloc(udev->memory, upd->cmap[imap].bitmsk+1,
              sizeof(upd->cmap[imap].code[0]),"upd/code");
          if(!upd->cmap[imap].code) break;
       }
@@ -2990,7 +2994,7 @@ upd_open_map(upd_device *udev)
       for(imap = 0; UPD_CMAP_MAX > imap; ++imap) {
 
          const updcmap_p cmap = upd->cmap + imap;
-         uint32 ly,iy;
+         uint32_t ly,iy;
          float ystep,xstep,fx,fy;
 
 /*       Variables & Macro for Range-Normalization */
@@ -3033,7 +3037,7 @@ upd_open_map(upd_device *udev)
             fx  = fx < 0.0 ? 0.0 :
                  (fx > gx_max_color_value ? gx_max_color_value : fx);
 
-            cmap->code[ly] = fx;
+            cmap->code[ly] = (gx_color_value)fx;
             if((fx - cmap->code[ly]) >= 0.5) cmap->code[ly] += 1;
          }
 
@@ -3114,42 +3118,58 @@ upd_procs_map(upd_device *udev)
 
    switch(imap) {
      case MAP_GRAY: /* Grayscale -> Grayscale */
+       set_dev_proc(udev,encode_color, upd_rgb_1color); 
+       set_dev_proc(udev,decode_color, upd_1color_rgb); 
        set_dev_proc(udev,map_rgb_color, upd_rgb_1color);
        set_dev_proc(udev,map_cmyk_color,gx_default_map_cmyk_color);
        set_dev_proc(udev,map_color_rgb, upd_1color_rgb);
      break;
      case MAP_RGBW: /* RGB->RGBW */
+       set_dev_proc(udev,encode_color, upd_rgb_4color); 
+       set_dev_proc(udev,decode_color, upd_4color_rgb); 
        set_dev_proc(udev,map_rgb_color, upd_rgb_4color);
        set_dev_proc(udev,map_cmyk_color,gx_default_map_cmyk_color);
        set_dev_proc(udev,map_color_rgb, upd_4color_rgb);
      break;
      case MAP_RGB: /* Plain RGB */
+       set_dev_proc(udev,encode_color, upd_rgb_3color); 
+       set_dev_proc(udev,decode_color, upd_3color_rgb); 
        set_dev_proc(udev,map_rgb_color, upd_rgb_3color);
        set_dev_proc(udev,map_cmyk_color,gx_default_map_cmyk_color);
        set_dev_proc(udev,map_color_rgb, upd_3color_rgb);
      break;
      case MAP_CMYK: /* Plain KCMY */
+       set_dev_proc(udev,encode_color, upd_cmyk_icolor); 
+       set_dev_proc(udev,decode_color, upd_icolor_rgb); 
        set_dev_proc(udev,map_rgb_color, gx_default_map_rgb_color);
        set_dev_proc(udev,map_cmyk_color,upd_cmyk_icolor);
        set_dev_proc(udev,map_color_rgb, upd_icolor_rgb);
      break;
      case MAP_CMYKGEN: /* KCMY with black-generation */
+       set_dev_proc(udev,encode_color, upd_cmyk_kcolor); 
+       set_dev_proc(udev,decode_color, upd_kcolor_rgb); 
        set_dev_proc(udev,map_rgb_color, gx_default_map_rgb_color);
        set_dev_proc(udev,map_cmyk_color,upd_cmyk_kcolor);
        set_dev_proc(udev,map_color_rgb, upd_kcolor_rgb);
      break;
      case MAP_RGBOV: /* RGB -> KCMY with BG and UCR for CMYK-Output */
+       set_dev_proc(udev,encode_color, upd_rgb_ovcolor); 
+       set_dev_proc(udev,decode_color, upd_ovcolor_rgb); 
        set_dev_proc(udev,map_rgb_color, upd_rgb_ovcolor);
        set_dev_proc(udev,map_cmyk_color,gx_default_map_cmyk_color);
        set_dev_proc(udev,map_color_rgb, upd_ovcolor_rgb);
      break;
      case MAP_RGBNOV: /* RGB -> KCMY with BG and UCR for CMY+K-Output */
+       set_dev_proc(udev,encode_color, upd_rgb_novcolor); 
+       set_dev_proc(udev,decode_color, upd_novcolor_rgb); 
        set_dev_proc(udev,map_rgb_color, upd_rgb_novcolor);
        set_dev_proc(udev,map_cmyk_color,gx_default_map_cmyk_color);
        set_dev_proc(udev,map_color_rgb, upd_novcolor_rgb);
      break;
 
      default:
+       set_dev_proc(udev,encode_color, gx_default_map_rgb_color); 
+       set_dev_proc(udev,decode_color, gx_default_map_color_rgb); 
        set_dev_proc(udev,map_rgb_color, gx_default_map_rgb_color);
        set_dev_proc(udev,map_cmyk_color,gx_default_map_cmyk_color);
        set_dev_proc(udev,map_color_rgb, gx_default_map_color_rgb);
@@ -3174,7 +3194,7 @@ upd_close_map(upd_device *udev)
       for(imap = 0; UPD_CMAP_MAX > imap; ++imap) {
 
          if(upd->cmap[imap].code)
-            gs_free(upd->cmap[imap].code,sizeof(upd->cmap[imap].code[0]),
+            gs_free(udev->memory, upd->cmap[imap].code,sizeof(upd->cmap[imap].code[0]),
                 upd->cmap[imap].bitmsk+1,"upd/code");
          upd->cmap[imap].code   = NULL;
 
@@ -3273,7 +3293,7 @@ upd_close_render(upd_device *udev)
          (upd->render == upd_fscmyk)   )  upd_close_fscomp(udev);
 
       if((0 < upd->nvalbuf) && upd->valbuf)
-         gs_free(upd->valbuf,upd->nvalbuf,sizeof(upd->valbuf[0]),"upd/valbuf");
+         gs_free(udev->memory, upd->valbuf,upd->nvalbuf,sizeof(upd->valbuf[0]),"upd/valbuf");
       upd->valbuf  = NULL;
       upd->nvalbuf = 0;
 
@@ -3290,7 +3310,7 @@ upd_close_render(upd_device *udev)
 /* upd_open_fscomp: Initialize Component-Floyd-Steinberg               */
 /* ------------------------------------------------------------------- */
 #if UPD_MESSAGES & UPD_M_FSBUF
-static int32 fs_emin[UPD_VALPTR_MAX],fs_emax[UPD_VALPTR_MAX];
+static int32_t fs_emin[UPD_VALPTR_MAX],fs_emax[UPD_VALPTR_MAX];
 #endif
 private void
 upd_open_fscomp(upd_device *udev)
@@ -3342,7 +3362,7 @@ If anything was ok. up to now, memory get's allocated.
    if(icomp) {
 
       for(icomp = 0; upd->ncomp > icomp; ++icomp) {
-         upd->valptr[icomp] = gs_malloc(1,sizeof(updcomp_t),"upd/fscomp");
+         upd->valptr[icomp] = gs_malloc(udev->memory, 1,sizeof(updcomp_t),"upd/fscomp");
          if(NULL == upd->valptr[icomp]) {
 #if UPD_MESSAGES & UPD_M_ERROR
             errprintf(
@@ -3359,7 +3379,7 @@ If anything was ok. up to now, memory get's allocated.
       uint need;
 
       need  = (2 + upd->rwidth) * upd->ncomp;
-      upd->valbuf = gs_malloc(need,sizeof(upd->valbuf[0]),"upd/valbuf");
+      upd->valbuf = gs_malloc(udev->memory, need,sizeof(upd->valbuf[0]),"upd/valbuf");
 
       if(upd->valbuf) {
          upd->nvalbuf = need;
@@ -3379,9 +3399,9 @@ If anything was ok. up to now, memory get's allocated.
       for(icomp = 0; upd->ncomp > icomp; ++icomp) {
 
          const updcomp_p comp   = upd->valptr[icomp];
-         const int32     nsteps = upd->cmap[order[icomp]].bitmsk;
+         const int32_t     nsteps = upd->cmap[order[icomp]].bitmsk;
          float ymin,ymax;
-         int32 highmod,highval;
+         int32_t highmod,highval;
          int i;
 
          comp->threshold = nsteps;
@@ -3412,22 +3432,22 @@ If anything was ok. up to now, memory get's allocated.
          }
          if(1.0 < ymax) ymax = 1.0;
 
-         comp->spotsize = ((int32) 1 << 28) - 1;
+         comp->spotsize = ((int32_t) 1 << 28) - 1;
 
          for(i = 0; i < 32; ++i) { /* Attempt Ideal */
 
-            highval = (ymax-ymin) * (double) comp->spotsize + 0.5;
+            highval = (int32_t)((ymax-ymin) * (double) comp->spotsize + 0.5);
 
             if(!(highmod = highval % nsteps)) break; /* Gotcha */
 
             highval += nsteps - highmod;
-            comp->spotsize = (double) highval / (ymax-ymin) + 0.5;
+            comp->spotsize = (int32_t)((double) highval / (ymax-ymin) + 0.5);
 
             if(!(comp->spotsize % 2)) comp->spotsize++;
 
          }                         /* Attempt Ideal */
 
-         comp->offset    = ymin * (double) comp->spotsize + (double) 0.5;
+         comp->offset    = (int32_t)(ymin * (double) comp->spotsize + (double) 0.5);
          comp->scale     = highval / nsteps;
          comp->threshold = comp->spotsize / 2;
 
@@ -3458,7 +3478,7 @@ Optional Random Initialization of the value-Buffer
       for(icomp = 0; icomp < upd->ncomp; ++icomp) {
          const updcomp_p comp = upd->valptr[icomp];
          int i;
-         int32 lv = INT32_MAX, hv = INT32_MIN, v;
+         int32_t lv = INT32_MAX, hv = INT32_MIN, v;
          float scale;
          for(i = icomp; i < upd->nvalbuf; i += upd->ncomp) {
             v = rand();
@@ -3467,9 +3487,9 @@ Optional Random Initialization of the value-Buffer
             upd->valbuf[i] = v;
          }
          scale = (float) comp->threshold / (float) (hv - lv);
-         lv   += comp->threshold / (2*scale);
+         lv   += (int32_t)(comp->threshold / (2*scale));
          for(i = icomp; i < upd->nvalbuf; i += upd->ncomp)
-            upd->valbuf[i] = scale * (upd->valbuf[i] - lv);
+            upd->valbuf[i] = (int32_t)(scale * (upd->valbuf[i] - lv));
       }
    }
 
@@ -3512,7 +3532,7 @@ upd_close_fscomp(upd_device *udev)
 
    for(icomp = 0; UPD_VALPTR_MAX > icomp; ++icomp) {
       if(!upd->valptr[icomp]) continue;
-      gs_free(upd->valptr[icomp],1,sizeof(updcomp_t),"upd/fscomp");
+      gs_free(udev->memory, upd->valptr[icomp],1,sizeof(updcomp_t),"upd/fscomp");
       upd->valptr[icomp] = NULL;
    }
 }
@@ -3535,7 +3555,7 @@ upd_close_fscomp(upd_device *udev)
    FS_GOAL computes the desired Pixel-Value
 */
 #define FS_GOAL(Raw,I)                                                     \
-   pixel[I] = (int32)(Raw) * comp[I]->scale +    comp[I]->offset           \
+   pixel[I] = (int32_t)(Raw) * comp[I]->scale +    comp[I]->offset           \
             + rowerr[I]  + colerr[I] -       ((colerr[I]+4)>>3);           \
    if(         pixel[I] < 0)                    pixel[I] = 0;              \
    else if(    pixel[I] >    comp[I]->spotsize) pixel[I] = comp[I]->spotsize;
@@ -3569,13 +3589,13 @@ upd_fscomp(upd_p upd)
 {
    const updscan_p  scan    = upd->scnbuf[upd->yscnbuf & upd->scnmsk];
    const updcomp_p *comp    = (updcomp_p *) upd->valptr;
-   int32 *const     pixel  = upd->valbuf;
-   int32 *const     colerr = pixel  + upd->ncomp;
-   int32           *rowerr = colerr + upd->ncomp;
+   int32_t *const     pixel  = upd->valbuf;
+   int32_t *const     colerr = pixel  + upd->ncomp;
+   int32_t           *rowerr = colerr + upd->ncomp;
    int              pwidth = upd->rwidth;
    int              dir,ibyte;
    int              iblack,bblack,pxlset;
-   uint32       ci;
+   uint32_t       ci;
    byte         bit;
    bool         first = true;
 /*
@@ -3777,11 +3797,11 @@ private int
 upd_fscmyk(upd_p upd)
 {
    const updscan_p  scan   = upd->scnbuf[upd->yscnbuf & upd->scnmsk];
-   int32 *const     pixel  = upd->valbuf;
+   int32_t *const     pixel  = upd->valbuf;
    const updcomp_p *comp   = (updcomp_p *) upd->valptr;
-   int32 *const     colerr = pixel  + 4;
-   int32           *rowerr = colerr + 4;
-   int32            pwidth = upd->rwidth;
+   int32_t *const     colerr = pixel  + 4;
+   int32_t           *rowerr = colerr + 4;
+   int32_t            pwidth = upd->rwidth;
    int              dir,ibyte;
    byte             bit,*data;
    bool             first = false;
@@ -3800,7 +3820,7 @@ upd_fscmyk(upd_p upd)
 
       if(!(upd->flags & B_FSWHITE)) {
          data = upd->gsscan;
-         while(0 < pwidth && !*(uint32 *)data) pwidth--, data += 4;
+         while(0 < pwidth && !*(uint32_t *)data) pwidth--, data += 4;
          if(0 >= pwidth) {
             if(0 < upd->nlimits) upd_limits(upd,false);
             return 0;
@@ -3813,7 +3833,7 @@ upd_fscmyk(upd_p upd)
 
       if(!(upd->flags & B_FSWHITE)) {
          data = upd->gsscan + 4 * (upd->rwidth-1);
-         while(0 < pwidth && !*(uint32 *)data) pwidth--, data -= 4;
+         while(0 < pwidth && !*(uint32_t *)data) pwidth--, data -= 4;
          if(0 >= pwidth) {
             if(0 < upd->nlimits) upd_limits(upd,false);
             return 0;
@@ -3845,7 +3865,7 @@ upd_fscmyk(upd_p upd)
  * Skip over leading white-space
  */
    if(!(upd->flags & B_FSWHITE)) {
-      while(0 < pwidth && !*((uint32 *)data)) {
+      while(0 < pwidth && !*((uint32_t *)data)) {
          pwidth--;
          if(B_YFLIP  & upd->flags) data -= dir;
          else                      data += dir;
@@ -3966,12 +3986,12 @@ upd_fscmy_k(upd_p upd)
 {
    const updscan_p  scan    = upd->scnbuf[upd->yscnbuf & upd->scnmsk];
    const updcomp_p *comp    = (updcomp_p *) upd->valptr;
-   int32 *const     pixel  = upd->valbuf;
-   int32 *const     colerr = pixel  + upd->ncomp;
-   int32           *rowerr = colerr + upd->ncomp;
+   int32_t *const     pixel  = upd->valbuf;
+   int32_t *const     colerr = pixel  + upd->ncomp;
+   int32_t           *rowerr = colerr + upd->ncomp;
    int              pwidth = upd->rwidth;
    int              dir,ibyte;
-   uint32       ci;
+   uint32_t       ci;
    byte         bit;
    bool         first = true;
 /*
@@ -4156,8 +4176,8 @@ upd_open_writer(upd_device *udev)
 
       if(upd->ints[I_NPASS] > upd->int_a[IA_STD_DY].size) {
          int ix,iy,*ip;
-         UPD_MM_DEL_PARAM(upd->int_a[IA_STD_DY]);
-         UPD_MM_GET_ARRAY(ip,upd->ints[I_NPASS]);
+         UPD_MM_DEL_PARAM(udev->memory, upd->int_a[IA_STD_DY]);
+         UPD_MM_GET_ARRAY(udev->memory, ip,upd->ints[I_NPASS]);
          upd->int_a[IA_STD_DY].data = ip;
          upd->int_a[IA_STD_DY].size = upd->ints[I_NPASS];
 
@@ -4203,8 +4223,8 @@ upd_open_writer(upd_device *udev)
 
       if(0 >= upd->int_a[IA_STD_IX].size) {
          int ix,i,*ip;
-         UPD_MM_DEL_PARAM(upd->int_a[IA_STD_IX]);
-         UPD_MM_GET_ARRAY(ip,upd->int_a[IA_STD_DY].size);
+         UPD_MM_DEL_PARAM(udev->memory, upd->int_a[IA_STD_IX]);
+         UPD_MM_GET_ARRAY(udev->memory, ip,upd->int_a[IA_STD_DY].size);
          upd->int_a[IA_STD_IX].data = ip;
          upd->int_a[IA_STD_IX].size = upd->int_a[IA_STD_DY].size;
 
@@ -4217,8 +4237,8 @@ upd_open_writer(upd_device *udev)
       if((0 >= upd->int_a[IA_BEG_IX].size) &&
          (0 <  upd->int_a[IA_BEG_DY].size)   ) {
          int ix,i,*ip;
-         UPD_MM_DEL_PARAM(upd->int_a[IA_BEG_IX]);
-         UPD_MM_GET_ARRAY(ip,upd->int_a[IA_BEG_DY].size);
+         UPD_MM_DEL_PARAM(udev->memory, upd->int_a[IA_BEG_IX]);
+         UPD_MM_GET_ARRAY(udev->memory, ip,upd->int_a[IA_BEG_DY].size);
          upd->int_a[IA_BEG_IX].data = ip;
          upd->int_a[IA_BEG_IX].size = upd->int_a[IA_BEG_DY].size;
 
@@ -4231,8 +4251,8 @@ upd_open_writer(upd_device *udev)
       if((0 >= upd->int_a[IA_END_IX].size) &&
          (0 <  upd->int_a[IA_END_DY].size)   ) {
          int ix,i,*ip;
-         UPD_MM_DEL_PARAM(upd->int_a[IA_END_IX]);
-         UPD_MM_GET_ARRAY(ip,upd->int_a[IA_END_DY].size);
+         UPD_MM_DEL_PARAM(udev->memory, upd->int_a[IA_END_IX]);
+         UPD_MM_GET_ARRAY(udev->memory, ip,upd->int_a[IA_END_DY].size);
          upd->int_a[IA_END_IX].data = ip;
          upd->int_a[IA_END_IX].size = upd->int_a[IA_END_DY].size;
 
@@ -4376,7 +4396,7 @@ upd_open_writer(upd_device *udev)
 /** Determine required number of scan-Buffers */
 
    if(success) { /* Compute nscnbuf */
-      int32 want,use;
+      int32_t want,use;
 
       want  = upd->ints[I_NYPASS];
       want *= upd->ints[I_PINS2WRITE];
@@ -4442,20 +4462,20 @@ upd_open_writer(upd_device *udev)
 
 /** Allocate the Outputbuffer */
    if(success && (0 < upd->noutbuf)) { /* Allocate outbuf */
-      upd->outbuf = gs_malloc(upd->noutbuf,sizeof(upd->outbuf[0]),"upd/outbuf");
+      upd->outbuf = gs_malloc(udev->memory, upd->noutbuf,sizeof(upd->outbuf[0]),"upd/outbuf");
       if(!upd->outbuf) success = false;
    }                                   /* Allocate outbuf */
 
 /** Allocate the desired scan-buffer-pointers */
    if(success) {
-      upd->scnbuf = gs_malloc(upd->nscnbuf,sizeof(upd->scnbuf[0]),"upd/scnbuf");
+      upd->scnbuf = gs_malloc(udev->memory, upd->nscnbuf,sizeof(upd->scnbuf[0]),"upd/scnbuf");
       if(NULL == upd->scnbuf) {
          success = false;
       } else {
          int ibuf;
          for(ibuf = 0; ibuf < upd->nscnbuf; ++ibuf) {
             if(success) upd->scnbuf[ibuf] =
-               gs_malloc(upd->ocomp,sizeof(upd->scnbuf[0][0]),"upd/scnbuf[]");
+               gs_malloc(udev->memory, upd->ocomp,sizeof(upd->scnbuf[0][0]),"upd/scnbuf[]");
             else upd->scnbuf[ibuf] = NULL;
 
             if(!upd->scnbuf[ibuf]) {
@@ -4464,18 +4484,18 @@ upd_open_writer(upd_device *udev)
                int icomp;
                for(icomp = 0; icomp < upd->ocomp; ++icomp) {
                   if(success) upd->scnbuf[ibuf][icomp].bytes =
-                    gs_malloc(upd->nbytes,sizeof(upd->scnbuf[0][0].bytes[0]),
+                    gs_malloc(udev->memory, upd->nbytes,sizeof(upd->scnbuf[0][0].bytes[0]),
                     "upd/bytes");
                   else        upd->scnbuf[ibuf][icomp].bytes = NULL;
                   if(!upd->scnbuf[ibuf][icomp].bytes) success = false;
 
                   if(0 < upd->nlimits) {
 
-                     upd->scnbuf[ibuf][icomp].xbegin = gs_malloc(upd->nlimits,
+                     upd->scnbuf[ibuf][icomp].xbegin = gs_malloc(udev->memory, upd->nlimits,
                         sizeof(upd->scnbuf[0][0].xbegin[0]),"upd/xbegin");
                      if(!upd->scnbuf[ibuf][icomp].xbegin) success = false;
 
-                     upd->scnbuf[ibuf][icomp].xend   = gs_malloc(upd->nlimits,
+                     upd->scnbuf[ibuf][icomp].xend   = gs_malloc(udev->memory, upd->nlimits,
                         sizeof(upd->scnbuf[0][0].xend[0]),"upd/xend");
                      if(!upd->scnbuf[ibuf][icomp].xbegin) success = false;
 
@@ -4510,7 +4530,7 @@ upd_close_writer(upd_device *udev)
       int ibuf,icomp;
 
       if((0 < upd->noutbuf) && upd->outbuf)
-         gs_free(upd->outbuf,upd->noutbuf,sizeof(upd->outbuf[0]),"upd/outbuf");
+         gs_free(udev->memory, upd->outbuf,upd->noutbuf,sizeof(upd->outbuf[0]),"upd/outbuf");
       upd->noutbuf = 0;
       upd->outbuf  = NULL;
 
@@ -4522,28 +4542,28 @@ upd_close_writer(upd_device *udev)
             for(icomp = 0; icomp < upd->ocomp; ++icomp) {
 
                if((0 < upd->nbytes) && upd->scnbuf[ibuf][icomp].bytes)
-                  gs_free(upd->scnbuf[ibuf][icomp].bytes,upd->nbytes,
+                  gs_free(udev->memory, upd->scnbuf[ibuf][icomp].bytes,upd->nbytes,
                      sizeof(upd->scnbuf[ibuf][icomp].words[0]),"upd/bytes");
                upd->scnbuf[ibuf][icomp].bytes = NULL;
 
                if((0 < upd->nlimits) && upd->scnbuf[ibuf][icomp].xbegin)
-                  gs_free(upd->scnbuf[ibuf][icomp].xbegin,upd->nlimits,
+                  gs_free(udev->memory, upd->scnbuf[ibuf][icomp].xbegin,upd->nlimits,
                      sizeof(upd->scnbuf[ibuf][icomp].xbegin[0]),"upd/xbegin");
                upd->scnbuf[ibuf][icomp].xbegin = NULL;
 
                if((0 < upd->nlimits) && upd->scnbuf[ibuf][icomp].xend)
-                  gs_free(upd->scnbuf[ibuf][icomp].xend,upd->nlimits,
+                  gs_free(udev->memory, upd->scnbuf[ibuf][icomp].xend,upd->nlimits,
                      sizeof(upd->scnbuf[ibuf][icomp].xend[0]),"upd/xend");
                upd->scnbuf[ibuf][icomp].xend = NULL;
             }
 
             if(icomp)
-               gs_free(upd->scnbuf[ibuf],upd->ocomp,sizeof(upd->scnbuf[0][0]),
+               gs_free(udev->memory, upd->scnbuf[ibuf],upd->ocomp,sizeof(upd->scnbuf[0][0]),
                   "upd/scnbuf[]");
             upd->scnbuf[ibuf] = NULL;
 
          }
-         gs_free(upd->scnbuf,upd->nscnbuf,sizeof(upd->scnbuf[0]),"upd/scnbuf");
+         gs_free(udev->memory, upd->scnbuf,upd->nscnbuf,sizeof(upd->scnbuf[0]),"upd/scnbuf");
       }
 
 
@@ -4623,7 +4643,7 @@ private int
 upd_open_rascomp(upd_device *udev)
 {
    const upd_p upd = udev->upd;
-   int32 noutbuf;
+   int32_t noutbuf;
    int error = 0;
 
    noutbuf = upd->pwidth;
@@ -4662,7 +4682,7 @@ upd_start_rascomp(upd_p upd, FILE *out) {
 
 /** if no begin-sequence externally set */
    if(0 == upd->strings[S_BEGIN].size) {
-      int32 val;
+      int32_t val;
 
 /**   ras_magic */
       val = 0x59a66a95;
@@ -4730,7 +4750,7 @@ upd_start_rascomp(upd_p upd, FILE *out) {
          for(rgb = 16; 0 <= rgb; rgb -= 8) {
             int entry;
             for(entry = 0; entry < 16; ++entry) {
-               uint32 rgbval = 0;
+               uint32_t rgbval = 0;
 
                if(entry & (1<<upd->cmap[0].comp)) {
 
@@ -4827,8 +4847,8 @@ upd_open_wrtescp(upd_device *udev)
            break;
            case  2:
               if(bp[i]) {
-                 value = 0.5 + udev->height * (float) bp[i]
-                               / udev->y_pixels_per_inch;
+                 value = (int)(0.5 + udev->height * (float) bp[i]
+                               / udev->y_pixels_per_inch);
                  if(       0 >= value) bp[i] = 1;
                  else if(128 >  value) bp[i] = value;
                  else                  bp[i] = 127;
@@ -4838,7 +4858,7 @@ upd_open_wrtescp(upd_device *udev)
               }
            break;
            case  3:
-              value = 0.5 + udev->height / udev->y_pixels_per_inch;
+              value = (int)(0.5 + udev->height / udev->y_pixels_per_inch);
               if(       0 >= value) bp[i] = 1;
               else if( 22 >  value) bp[i] = value;
               else                  bp[i] = 22;
@@ -4891,7 +4911,7 @@ It must hold:
   5. The Data
 */
    if(0 <= error) {
-      int32 i,noutbuf,need;
+      int32_t i,noutbuf,need;
 
       if(0 < upd->strings[S_YMOVE].size) {
          noutbuf = upd->strings[S_YMOVE].size + 2;
@@ -5259,8 +5279,8 @@ upd_open_wrtescp2(upd_device *udev)
            break;
            case  8:
               if(B_PAGELENGTH & upd->flags) {
-                 value = 0.5 + udev->height
-                               * pixels_per_inch / udev->y_pixels_per_inch;
+                 value = (int)(0.5 + udev->height
+                               * pixels_per_inch / udev->y_pixels_per_inch);
                  bp[i] =  value     & 0xff;
               }
               state = 9;
@@ -5281,7 +5301,7 @@ upd_open_wrtescp2(upd_device *udev)
            break;
            case  12:
               if(B_TOPMARGIN & upd->flags) {
-                 value =  dev_t_margin(udev) * pixels_per_inch;
+                 value =  (int)(dev_t_margin(udev) * pixels_per_inch);
                  bp[i] =  value     & 0xff;
               }
               state = 13;
@@ -5294,9 +5314,9 @@ upd_open_wrtescp2(upd_device *udev)
            break;
            case  14:
               if(B_BOTTOMMARGIN & upd->flags) {
-                 value = 0.5 + udev->height
+                 value = (int)(0.5 + udev->height
                                * pixels_per_inch / udev->y_pixels_per_inch
-                       - dev_b_margin(udev) * pixels_per_inch;
+                       - dev_b_margin(udev) * pixels_per_inch);
                  bp[i] =  value     & 0xff;
               }
               state = 15;
@@ -5314,8 +5334,8 @@ upd_open_wrtescp2(upd_device *udev)
 /** Create Y-Move-Command, if not given */
    if(0 == upd->strings[S_YMOVE].size) {
       byte *bp;
-      UPD_MM_DEL_PARAM(upd->strings[S_YMOVE]);
-      UPD_MM_GET_ARRAY(bp,5);
+      UPD_MM_DEL_PARAM(udev->memory, upd->strings[S_YMOVE]);
+      UPD_MM_GET_ARRAY(udev->memory, bp,5);
       upd->strings[S_YMOVE].data = bp;
       upd->strings[S_YMOVE].size = 5;
       *bp++ = 0x1b; /* ESC */
@@ -5341,7 +5361,7 @@ upd_open_wrtescp2(upd_device *udev)
       byte *bp;
       int ratio;
 
-      ratio = (udev->y_pixels_per_inch + .5) / udev->x_pixels_per_inch;
+      ratio = (int)((udev->y_pixels_per_inch + 0.5) / udev->x_pixels_per_inch);
 
       if(0 == upd->ints[I_XSTEP]) { /* Adjust scale-factor too! */
          if(ratio > 1) upd->ints[I_XSTEP] = -ratio;
@@ -5351,8 +5371,8 @@ upd_open_wrtescp2(upd_device *udev)
 
       if(2 == upd->ints[I_NXPASS]) { /* Use a relative Step */
 
-         UPD_MM_DEL_PARAM(upd->strings[S_XSTEP]);
-         UPD_MM_GET_ARRAY(bp,4);
+         UPD_MM_DEL_PARAM(udev->memory, upd->strings[S_XSTEP]);
+         UPD_MM_GET_ARRAY(udev->memory, bp,4);
          upd->strings[S_XSTEP].size = 4;
          upd->strings[S_XSTEP].data = bp;
          *bp++ = 0x1b;
@@ -5362,8 +5382,8 @@ upd_open_wrtescp2(upd_device *udev)
 
       } else {                      /* Use relative or absolute Move */
 
-         UPD_MM_DEL_PARAM(upd->strings[S_XMOVE]);
-         UPD_MM_GET_ARRAY(bp,2);
+         UPD_MM_DEL_PARAM(udev->memory, upd->strings[S_XMOVE]);
+         UPD_MM_GET_ARRAY(udev->memory, bp,2);
          upd->strings[S_XMOVE].size = 2;
          upd->strings[S_XMOVE].data = bp;
          *bp++  = 0x1b;
@@ -5387,8 +5407,8 @@ upd_open_wrtescp2(upd_device *udev)
          /* RowMask - default is all 1's */
          if( upd->ints[I_PATRPT] != upd->int_a[IA_ROWMASK].size ) {
             int i, *bp;
-            UPD_MM_DEL_PARAM(upd->int_a[IA_ROWMASK]);
-            UPD_MM_GET_ARRAY(bp,upd->ints[I_PATRPT]);
+            UPD_MM_DEL_PARAM(udev->memory, upd->int_a[IA_ROWMASK]);
+            UPD_MM_GET_ARRAY(udev->memory, bp,upd->ints[I_PATRPT]);
             upd->int_a[IA_ROWMASK].size = upd->ints[I_PATRPT];
             upd->int_a[IA_ROWMASK].data = bp;
             for (i = 0 ; i < upd->ints[I_PATRPT] ; i++){
@@ -5398,8 +5418,8 @@ upd_open_wrtescp2(upd_device *udev)
          /* MaskScanOffset - default is 0-patternRepeat */
          if( upd->ints[I_PATRPT] != upd->int_a[IA_SCNOFS].size ) {
             int i, *bp;
-            UPD_MM_DEL_PARAM(upd->int_a[IA_SCNOFS]);
-            UPD_MM_GET_ARRAY(bp,upd->ints[I_PATRPT]);
+            UPD_MM_DEL_PARAM(udev->memory, upd->int_a[IA_SCNOFS]);
+            UPD_MM_GET_ARRAY(udev->memory, bp,upd->ints[I_PATRPT]);
             upd->int_a[IA_SCNOFS].size = upd->ints[I_PATRPT];
             upd->int_a[IA_SCNOFS].data = bp;
             for (i = 0 ; i < upd->ints[I_PATRPT] ; i++){
@@ -5423,12 +5443,12 @@ upd_open_wrtescp2(upd_device *udev)
       int   i;
 
       if(4 == upd->ocomp) { /* Establish Component-Selection */
-         UPD_MM_DEL_APARAM(upd->string_a[SA_SETCOMP]);
-         UPD_MM_GET_ARRAY(ap,4);
+         UPD_MM_DEL_APARAM(udev->memory, upd->string_a[SA_SETCOMP]);
+         UPD_MM_GET_ARRAY(udev->memory, ap,4);
          upd->string_a[SA_SETCOMP].data = ap;
          upd->string_a[SA_SETCOMP].size = 4;
          for(i = 0; i < 4; ++i) {
-            UPD_MM_GET_ARRAY(bp,3);
+            UPD_MM_GET_ARRAY(udev->memory, bp,3);
             ap[i].size = 3;
             ap[i].data = bp;
             *bp++ = 0x1b;
@@ -5442,12 +5462,12 @@ upd_open_wrtescp2(upd_device *udev)
          }
       }                     /* Establish Component-Selection */
 
-      UPD_MM_DEL_APARAM(upd->string_a[SA_WRITECOMP]);
-      UPD_MM_GET_ARRAY(ap,upd->ocomp);
+      UPD_MM_DEL_APARAM(udev->memory, upd->string_a[SA_WRITECOMP]);
+      UPD_MM_GET_ARRAY(udev->memory, ap,upd->ocomp);
       upd->string_a[SA_WRITECOMP].data = ap;
       upd->string_a[SA_WRITECOMP].size = upd->ncomp;
       for(i = 0; i < upd->ocomp; ++i) {
-         UPD_MM_GET_ARRAY(bp,6);
+         UPD_MM_GET_ARRAY(udev->memory, bp,6);
          ap[i].size = 6;
          ap[i].data = bp;
          *bp++ = 0x1b;
@@ -5456,10 +5476,10 @@ upd_open_wrtescp2(upd_device *udev)
          switch(upd->choice[C_FORMAT]){
             case FMT_ESCP2Y:
             case FMT_ESCP2XY:
-               *bp++ = 3600.0 * upd->ints[I_NYPASS] / 
-                                 udev->y_pixels_per_inch + 0.5;
-               *bp++ = 3600.0 * upd->ints[I_NXPASS] /
-                                 udev->x_pixels_per_inch + 0.5;
+               *bp++ = (byte)(3600.0 * upd->ints[I_NYPASS] / 
+                                 udev->y_pixels_per_inch + 0.5);
+               *bp++ = (byte)(3600.0 * upd->ints[I_NXPASS] /
+                                 udev->x_pixels_per_inch + 0.5);
                *bp++ = upd->ints[I_PINS2WRITE];
             break;
             case FMT_ESCNMY:
@@ -5538,7 +5558,7 @@ It must hold:
   5. The Data
 */
    if(0 <= error) {
-      int32 i,noutbuf,need;
+      int32_t i,noutbuf,need;
       /* Y-Positioning */
       if(0 < upd->strings[S_YMOVE].size) {
          noutbuf = upd->strings[S_YMOVE].size + 2;
@@ -6479,14 +6499,14 @@ upd_open_wrtrtl(upd_device *udev)
              ncv = strlen(cv);
 
              nbp = (j+1) + ncv + (upd->strings[S_BEGIN].size-i);
-             UPD_MM_GET_ARRAY(bp,nbp);
+             UPD_MM_GET_ARRAY(udev->memory, bp,nbp);
 
              if(0 <= j) memcpy(bp,upd->strings[S_BEGIN].data,j+1);
              memcpy(bp+j+1,    cv,ncv);
              memcpy(bp+j+1+ncv,upd->strings[S_BEGIN].data+i,
                                upd->strings[S_BEGIN].size-i);
              i = j+1+ncv;
-             UPD_MM_DEL_PARAM(upd->strings[S_BEGIN]);
+             UPD_MM_DEL_PARAM(udev->memory, upd->strings[S_BEGIN]);
              upd->strings[S_BEGIN].data = bp;
              upd->strings[S_BEGIN].size = nbp;
 
@@ -6497,14 +6517,14 @@ upd_open_wrtrtl(upd_device *udev)
              ncv = strlen(cv);
 
              nbp = (j+1) + ncv + (upd->strings[S_BEGIN].size-i);
-             UPD_MM_GET_ARRAY(bp,nbp);
+             UPD_MM_GET_ARRAY(udev->memory, bp,nbp);
 
              if(0 <= j) memcpy(bp,upd->strings[S_BEGIN].data,j+1);
              memcpy(bp+j+1,    cv,ncv);
              memcpy(bp+j+1+ncv,upd->strings[S_BEGIN].data+i,
                                upd->strings[S_BEGIN].size-i);
              i = j+1+ncv;
-             UPD_MM_DEL_PARAM(upd->strings[S_BEGIN]);
+             UPD_MM_DEL_PARAM(udev->memory, upd->strings[S_BEGIN]);
              upd->strings[S_BEGIN].data = bp;
              upd->strings[S_BEGIN].size = nbp;
 
@@ -6529,14 +6549,14 @@ upd_open_wrtrtl(upd_device *udev)
              ncv = strlen(cv);
 
              nbp = (j+1) + ncv + (upd->strings[S_BEGIN].size-i);
-             UPD_MM_GET_ARRAY(bp,nbp);
+             UPD_MM_GET_ARRAY(udev->memory, bp,nbp);
 
              if(0 <= j) memcpy(bp,upd->strings[S_BEGIN].data,j+1);
              memcpy(bp+j+1,    cv,ncv);
              memcpy(bp+j+1+ncv,upd->strings[S_BEGIN].data+i,
                                upd->strings[S_BEGIN].size-i);
              i = j+1+ncv;
-             UPD_MM_DEL_PARAM(upd->strings[S_BEGIN]);
+             UPD_MM_DEL_PARAM(udev->memory, upd->strings[S_BEGIN]);
              upd->strings[S_BEGIN].data = bp;
              upd->strings[S_BEGIN].size = nbp;
 
@@ -6734,14 +6754,14 @@ upd_open_wrtrtl(upd_device *udev)
                ncv = strlen(cv);
 
                nbp = (j+1) + ncv + (upd->strings[S_BEGIN].size-i);
-               UPD_MM_GET_ARRAY(bp,nbp);
+               UPD_MM_GET_ARRAY(udev->memory, bp,nbp);
 
                if(0 <= j) memcpy(bp,upd->strings[S_BEGIN].data,j+1);
                memcpy(bp+j+1,    cv,ncv);
                memcpy(bp+j+1+ncv,upd->strings[S_BEGIN].data+i,
                                upd->strings[S_BEGIN].size-i);
                i = j+1+ncv;
-               UPD_MM_DEL_PARAM(upd->strings[S_BEGIN]);
+               UPD_MM_DEL_PARAM(udev->memory, upd->strings[S_BEGIN]);
                upd->strings[S_BEGIN].data = bp;
                upd->strings[S_BEGIN].size = nbp;
              }                                /* insert new number */
@@ -6799,14 +6819,14 @@ upd_open_wrtrtl(upd_device *udev)
                ncv = strlen(cv);
 
                nbp = (j+1) + ncv + (upd->strings[S_BEGIN].size-i);
-               UPD_MM_GET_ARRAY(bp,nbp);
+               UPD_MM_GET_ARRAY(udev->memory, bp,nbp);
 
                if(0 <= j) memcpy(bp,upd->strings[S_BEGIN].data,j+1);
                memcpy(bp+j+1,    cv,ncv);
                memcpy(bp+j+1+ncv,upd->strings[S_BEGIN].data+i,
                                upd->strings[S_BEGIN].size-i);
                i = j+1+ncv;
-               UPD_MM_DEL_PARAM(upd->strings[S_BEGIN]);
+               UPD_MM_DEL_PARAM(udev->memory, upd->strings[S_BEGIN]);
                upd->strings[S_BEGIN].data = bp;
                upd->strings[S_BEGIN].size = nbp;
              }                                /* insert new number */
@@ -6896,14 +6916,14 @@ upd_open_wrtrtl(upd_device *udev)
                ncv = strlen(cv);
 
                nbp = (j+1) + ncv + (upd->strings[S_BEGIN].size-i);
-               UPD_MM_GET_ARRAY(bp,nbp);
+               UPD_MM_GET_ARRAY(udev->memory, bp,nbp);
 
                if(0 <= j) memcpy(bp,upd->strings[S_BEGIN].data,j+1);
                memcpy(bp+j+1,    cv,ncv);
                memcpy(bp+j+1+ncv,upd->strings[S_BEGIN].data+i,
                                upd->strings[S_BEGIN].size-i);
                i = j+1+ncv;
-               UPD_MM_DEL_PARAM(upd->strings[S_BEGIN]);
+               UPD_MM_DEL_PARAM(udev->memory, upd->strings[S_BEGIN]);
                upd->strings[S_BEGIN].data = bp;
                upd->strings[S_BEGIN].size = nbp;
              }                                /* insert new number */
@@ -6939,7 +6959,7 @@ It must hold:
   2. Component-Data
 */
    if(0 <= error) {
-      int32 ny,noutbuf;
+      int32_t ny,noutbuf;
       char  tmp[16];
 
       if(0 < upd->strings[S_YMOVE].size) {
@@ -7234,7 +7254,7 @@ private upd_proc_pxlget(upd_pxlget32r); /* 32 Bit Reverse */
 
 /* Initialize Forward-Run */
 
-private uint32
+private uint32_t
 upd_pxlfwd(upd_p upd)
 {
    if(!(upd->pxlptr = upd->gsscan)) {
@@ -7259,148 +7279,148 @@ upd_pxlfwd(upd_p upd)
            break;
       }
    }
-   return (uint32) 0;
+   return (uint32_t) 0;
 }
 
 /* 1 Bit Forward */
 
-private uint32
+private uint32_t
 upd_pxlget1f1(upd_p upd)
 {
    upd->pxlget = upd_pxlget1f2;
-   return *upd->pxlptr   & 0x80 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x80 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1f2(upd_p upd)
 {
    upd->pxlget = upd_pxlget1f3;
-   return *upd->pxlptr   & 0x40 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x40 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1f3(upd_p upd)
 {
    upd->pxlget = upd_pxlget1f4;
-   return *upd->pxlptr   & 0x20 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x20 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1f4(upd_p upd)
 {
    upd->pxlget = upd_pxlget1f5;
-   return *upd->pxlptr   & 0x10 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x10 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1f5(upd_p upd)
 {
    upd->pxlget = upd_pxlget1f6;
-   return *upd->pxlptr   & 0x08 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x08 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1f6(upd_p upd)
 {
    upd->pxlget = upd_pxlget1f7;
-   return *upd->pxlptr   & 0x04 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x04 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1f7(upd_p upd)
 {
    upd->pxlget = upd_pxlget1f8;
-   return *upd->pxlptr   & 0x02 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x02 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1f8(upd_p upd)
 {
    upd->pxlget = upd_pxlget1f1;
-   return *upd->pxlptr++ & 0x01 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr++ & 0x01 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
 /* 2 Bit Forward */
 
-private uint32
+private uint32_t
 upd_pxlget2f1(upd_p upd)
 {
    upd->pxlget = upd_pxlget2f2;
-   return ((uint32) (*upd->pxlptr  ) & (uint32) 0xC0) >> 6;
+   return ((uint32_t) (*upd->pxlptr  ) & (uint32_t) 0xC0) >> 6;
 }
 
-private uint32
+private uint32_t
 upd_pxlget2f2(upd_p upd)
 {
    upd->pxlget = upd_pxlget2f3;
-   return ((uint32) (*upd->pxlptr  ) & (uint32) 0x30) >> 4;
+   return ((uint32_t) (*upd->pxlptr  ) & (uint32_t) 0x30) >> 4;
 }
 
-private uint32
+private uint32_t
 upd_pxlget2f3(upd_p upd)
 {
    upd->pxlget = upd_pxlget2f4;
-   return ((uint32) (*upd->pxlptr  ) & (uint32) 0x0C) >> 2;
+   return ((uint32_t) (*upd->pxlptr  ) & (uint32_t) 0x0C) >> 2;
 }
 
-private uint32
+private uint32_t
 upd_pxlget2f4(upd_p upd)
 {
    upd->pxlget = upd_pxlget2f1;
-   return  (uint32) (*upd->pxlptr++) & (uint32) 0x03;
+   return  (uint32_t) (*upd->pxlptr++) & (uint32_t) 0x03;
 }
 
 
 /* 4 Bit Forward */
-private uint32
+private uint32_t
 upd_pxlget4f1(upd_p upd)
 {
    upd->pxlget = upd_pxlget4f2;
-   return ((uint32) (*upd->pxlptr  ) & (uint32) 0xF0) >> 4;
+   return ((uint32_t) (*upd->pxlptr  ) & (uint32_t) 0xF0) >> 4;
 }
 
-private uint32
+private uint32_t
 upd_pxlget4f2(upd_p upd)
 {
    upd->pxlget = upd_pxlget4f1;
-   return  (uint32) (*upd->pxlptr++) & (uint32) 0x0F;
+   return  (uint32_t) (*upd->pxlptr++) & (uint32_t) 0x0F;
 }
 
 
 /* 8 Bit Forward */
-private uint32
+private uint32_t
 upd_pxlget8f(upd_p upd)
 {
-   return (uint32) (*upd->pxlptr++);
+   return (uint32_t) (*upd->pxlptr++);
 }
 
 
 /* 16 Bit Forward */
-private uint32
+private uint32_t
 upd_pxlget16f(upd_p upd)
 {
-   uint32 ci  = (uint32) (*upd->pxlptr++) << 8;
+   uint32_t ci  = (uint32_t) (*upd->pxlptr++) << 8;
                   ci |=                   *upd->pxlptr++;
    return         ci;
 }
 
 /* 24 Bit Forward */
-private uint32
+private uint32_t
 upd_pxlget24f(upd_p upd)
 {
-   uint32 ci  = (uint32) (*upd->pxlptr++) << 16;
-          ci |= (uint32) (*upd->pxlptr++) <<  8;
+   uint32_t ci  = (uint32_t) (*upd->pxlptr++) << 16;
+          ci |= (uint32_t) (*upd->pxlptr++) <<  8;
           ci |=           *upd->pxlptr++;
    return ci;
 }
 
 /* 32 Bit Forward */
-private uint32
+private uint32_t
 upd_pxlget32f(upd_p upd)
 {
-   uint32 ci  = (uint32) (*upd->pxlptr++) << 24;
-                  ci |= (uint32) (*upd->pxlptr++) << 16;
-                  ci |= (uint32) (*upd->pxlptr++) <<  8;
+   uint32_t ci  = (uint32_t) (*upd->pxlptr++) << 24;
+                  ci |= (uint32_t) (*upd->pxlptr++) << 16;
+                  ci |= (uint32_t) (*upd->pxlptr++) <<  8;
                   ci |=                   *upd->pxlptr++;
    return         ci;
 }
@@ -7408,15 +7428,15 @@ upd_pxlget32f(upd_p upd)
 
 /* Dummy-Routine */
 
-private uint32
+private uint32_t
 upd_pxlgetnix(upd_p upd)
 {
-   return (uint32) 0;
+   return (uint32_t) 0;
 }
 
 /* Initialize Reverse-Run */
 
-private uint32
+private uint32_t
 upd_pxlrev(upd_p upd)
 {
    const uint width = upd->pwidth < upd->gswidth ? upd->pwidth : upd->gswidth;
@@ -7426,7 +7446,7 @@ upd_pxlrev(upd_p upd)
       upd->pxlget = upd_pxlgetnix;
 
    } else {
-      uint32 ofs = (uint32) upd->int_a[IA_COLOR_INFO].data[1] * (width-1);
+      uint32_t ofs = (uint32_t) upd->int_a[IA_COLOR_INFO].data[1] * (width-1);
 
       upd->pxlptr += ofs>>3;
 
@@ -7475,148 +7495,148 @@ upd_pxlrev(upd_p upd)
            break;
       }
    }
-   return (uint32) 0;
+   return (uint32_t) 0;
 }
 
 /* 1 Bit Reverse */
 
-private uint32
+private uint32_t
 upd_pxlget1r1(upd_p upd)
 {
    upd->pxlget = upd_pxlget1r8;
-   return *upd->pxlptr-- & 0x80 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr-- & 0x80 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1r2(upd_p upd)
 {
    upd->pxlget = upd_pxlget1r1;
-   return *upd->pxlptr   & 0x40 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x40 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1r3(upd_p upd)
 {
    upd->pxlget = upd_pxlget1r2;
-   return *upd->pxlptr   & 0x20 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x20 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1r4(upd_p upd)
 {
    upd->pxlget = upd_pxlget1r3;
-   return *upd->pxlptr   & 0x10 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x10 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1r5(upd_p upd)
 {
    upd->pxlget = upd_pxlget1r4;
-   return *upd->pxlptr   & 0x08 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x08 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1r6(upd_p upd)
 {
    upd->pxlget = upd_pxlget1r5;
-   return *upd->pxlptr   & 0x04 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x04 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1r7(upd_p upd)
 {
    upd->pxlget = upd_pxlget1r6;
-   return *upd->pxlptr   & 0x02 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x02 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
-private uint32
+private uint32_t
 upd_pxlget1r8(upd_p upd)
 {
    upd->pxlget = upd_pxlget1r7;
-   return *upd->pxlptr   & 0x01 ? (uint32) 1 : (uint32) 0;
+   return *upd->pxlptr   & 0x01 ? (uint32_t) 1 : (uint32_t) 0;
 }
 
 /* 2 Bit Reverse */
 
-private uint32
+private uint32_t
 upd_pxlget2r1(upd_p upd)
 {
    upd->pxlget = upd_pxlget2r4;
-   return ((uint32) (*upd->pxlptr--) & (uint32) 0xC0) >> 6;
+   return ((uint32_t) (*upd->pxlptr--) & (uint32_t) 0xC0) >> 6;
 }
 
-private uint32
+private uint32_t
 upd_pxlget2r2(upd_p upd)
 {
    upd->pxlget = upd_pxlget2r1;
-   return ((uint32) (*upd->pxlptr  ) & (uint32) 0x30) >> 4;
+   return ((uint32_t) (*upd->pxlptr  ) & (uint32_t) 0x30) >> 4;
 }
 
-private uint32
+private uint32_t
 upd_pxlget2r3(upd_p upd)
 {
    upd->pxlget = upd_pxlget2r2;
-   return ((uint32) (*upd->pxlptr  ) & (uint32) 0x0C) >> 2;
+   return ((uint32_t) (*upd->pxlptr  ) & (uint32_t) 0x0C) >> 2;
 }
 
-private uint32
+private uint32_t
 upd_pxlget2r4(upd_p upd)
 {
    upd->pxlget = upd_pxlget2r3;
-   return  (uint32) (*upd->pxlptr  ) & (uint32) 0x03;
+   return  (uint32_t) (*upd->pxlptr  ) & (uint32_t) 0x03;
 }
 
 /* 4 Bit Reverse */
 
-private uint32
+private uint32_t
 upd_pxlget4r1(upd_p upd)
 {
    upd->pxlget = upd_pxlget4r2;
-   return ((uint32) (*upd->pxlptr--) & (uint32) 0xF0) >> 4;
+   return ((uint32_t) (*upd->pxlptr--) & (uint32_t) 0xF0) >> 4;
 }
 
-private uint32
+private uint32_t
 upd_pxlget4r2(upd_p upd)
 {
    upd->pxlget = upd_pxlget4r1;
-   return  (uint32) (*upd->pxlptr  ) & (uint32) 0x0F;
+   return  (uint32_t) (*upd->pxlptr  ) & (uint32_t) 0x0F;
 }
 
 
 /* 8 Bit Reverse */
-private uint32
+private uint32_t
 upd_pxlget8r(upd_p upd)
 {
-   return (uint32) (*upd->pxlptr--);
+   return (uint32_t) (*upd->pxlptr--);
 }
 
 
 /* 16 Bit Reverse */
-private uint32
+private uint32_t
 upd_pxlget16r(upd_p upd)
 {
-   uint32 ci  =                   *upd->pxlptr--;
-                  ci |= (uint32) (*upd->pxlptr--) << 8;
+   uint32_t ci  =                   *upd->pxlptr--;
+                  ci |= (uint32_t) (*upd->pxlptr--) << 8;
    return         ci;
 }
 
 /* 24 Bit Reverse */
-private uint32
+private uint32_t
 upd_pxlget24r(upd_p upd)
 {
-   uint32 ci  =           *upd->pxlptr--;
-          ci |= (uint32) (*upd->pxlptr--) <<  8;
-          ci |= (uint32) (*upd->pxlptr--) << 16;
+   uint32_t ci  =           *upd->pxlptr--;
+          ci |= (uint32_t) (*upd->pxlptr--) <<  8;
+          ci |= (uint32_t) (*upd->pxlptr--) << 16;
    return ci;
 }
 
 /* 32 Bit Reverse */
-private uint32
+private uint32_t
 upd_pxlget32r(upd_p upd)
 {
-   uint32 ci  =                   *upd->pxlptr--;
-                  ci |= (uint32) (*upd->pxlptr--) <<  8;
-                  ci |= (uint32) (*upd->pxlptr--) << 16;
-                  ci |= (uint32) (*upd->pxlptr--) << 24;
+   uint32_t ci  =                   *upd->pxlptr--;
+                  ci |= (uint32_t) (*upd->pxlptr--) <<  8;
+                  ci |= (uint32_t) (*upd->pxlptr--) << 16;
+                  ci |= (uint32_t) (*upd->pxlptr--) << 24;
    return         ci;
 }

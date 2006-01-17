@@ -1,6 +1,6 @@
 ICC profile I/O library (icclib), README file
 
-Date 2001/6/3, Version 2.00
+Date 2002/4/22, Version 2.02
 
 This distribution contains source code which implements the reading and
 writing of color profile files that conform to the International Color
@@ -15,6 +15,9 @@ with the ICC.)
 
 The ICC profile I/O library archive is kept at
 http://web.access.net.au/argyll/color.html
+
+(Version 2.02 is has a few minor changes and fixups from V2.00.
+See icc.c for a more detailed change history.) 
 
 Motivation
 
@@ -101,8 +104,8 @@ Package contents:
  icc.c     Library source file.
 
  icc.h     Library include file. Note machine dependent defines. Includes
-           icc34.h.
- icc34.h   Lightly modified standard ICC header file.
+           icc9809.h.
+ icc9809.h Lightly modified standard ICC header file.
  iccdump.c Program that dumps ASCII description of a profile.
 
  icclu.c   Program that allows interactive or batch translation of color
@@ -137,7 +140,7 @@ types of profiles, including monochrome, matrix and Lut style profiles. The
 last is a source code skeleton, that reads a profile completely into
 memory, and then writes it out again to a different file.
 
-With the release of version 2.00 of icclib, the library is now as useful as
+With the release of version 2.02 of icclib, the library is now as useful as
 it is likely to be, allowing convenient color conversion between PCS
 (profile connection spaces, either XYZ or Lab) and device specific color
 spaces. The library does not attempt to be a complete color management

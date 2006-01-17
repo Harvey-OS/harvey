@@ -1,22 +1,20 @@
 /* Copyright (C) 2000, 2001 Artifex Software, Inc. All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: unistd_.h,v 1.4 2001/10/12 21:37:08 ghostgum Exp $ */
+/* $Id: unistd_.h,v 1.12 2004/09/15 19:41:01 ray Exp $ */
 /* Generic substitute for Unix unistd.h */
 
 #ifndef unistd__INCLUDED
@@ -38,11 +36,23 @@
 #  include <io.h>
 #endif
 
-#if defined(_MSC_VER) && defined(__WIN32__)
+#if defined(_MSC_VER) 
 #  define fsync(handle) _commit(handle)
 #  define read(fd, buf, len) _read(fd, buf, len)
+#  define isatty(fd) _isatty(fd)
+#  define setmode(fd, mode) _setmode(fd, mode)
+#  define fstat(fd, buf) _fstat(fd, buf)
+#  define dup(fd) _dup(fd)
+#  define open(fname, flags, mode) _open(fname, flags, mode)
+#  define close(fd) _close(fd)
+#elif defined(__BORLANDC__) && defined(__WIN32__) 
+#  define fsync(handle) _commit(handle)
+#  define read(fd, buf, len) _read(fd, buf, len)
+#  define isatty(fd) _isatty(fd)
+#  define setmode(fd, mode) _setmode(fd, mode)
 #else
 #  include <unistd.h>
 #endif
 
 #endif   /* unistd__INCLUDED */
+

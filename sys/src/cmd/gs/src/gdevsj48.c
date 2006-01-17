@@ -1,22 +1,20 @@
 /* Copyright (C) 1990, 1992, 1993 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevsj48.c,v 1.2 2000/09/19 19:00:22 lpd Exp $*/
+/* $Id: gdevsj48.c,v 1.5 2004/08/10 13:02:36 stefan Exp $*/
 /*
  * StarJet SJ48 printer driver.
  *
@@ -94,8 +92,8 @@ sj48_print_page(gx_device_printer *pdev, FILE *prn_stream)
 	int bytes_per_column = (yres == 180) ? 3 : 6;
 	int bits_per_column = bytes_per_column * 8;
 	int skip_unit = bytes_per_column * (xres == 180 ? 1 : 2); /* Skips in step of 1/180" */
-	byte *in = (byte *)gs_malloc(8, line_size, "sj48_print_page(in)");
-	byte *out = (byte *)gs_malloc(bits_per_column, line_size, "sj48_print_page(out)");
+	byte *in = (byte *)gs_malloc(pdev->memory, 8, line_size, "sj48_print_page(in)");
+	byte *out = (byte *)gs_malloc(pdev->memory, bits_per_column, line_size, "sj48_print_page(out)");
 	int lnum = 0;
 	int skip = 0;
 	int skips;
@@ -284,9 +282,9 @@ notz:			;
 xit:	fputc(014, prn_stream);	/* form feed */
 	fflush(prn_stream);
 fin:	if ( out != 0 )
-		gs_free((char *)out, bits_per_column, line_size,
+		gs_free(pdev->memory, (char *)out, bits_per_column, line_size,
 			"sj48_print_page(out)");
 	if ( in != 0 )
-		gs_free((char *)in, 8, line_size, "sj48_print_page(in)");
+		gs_free(pdev->memory, (char *)in, 8, line_size, "sj48_print_page(in)");
 	return code;
 }

@@ -1,21 +1,19 @@
 #    Copyright (C) 1991-2001 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: msvclib.mak,v 1.16.2.1 2002/02/01 03:25:45 raph Exp $
+# $Id: msvclib.mak,v 1.29 2004/12/20 22:17:39 igor Exp $
 # makefile for Microsoft Visual C++ 4.1 or later, Windows NT or Windows 95 LIBRARY.
 #
 # All configurable options are surrounded by !ifndef/!endif to allow 
@@ -42,14 +40,14 @@ GSROOTDIR=$(AROOTDIR)/gs$(GS_DOT_VERSION)
 GS_DOCDIR=$(GSROOTDIR)/doc
 !endif
 
-# Define the default directory/ies for the runtime initialization and
+# Define the default directory/ies for the runtime initialization, resource and
 # font files.  Separate multiple directories with ';'.
 # Use / to indicate directories, not \.
 # MSVC will not allow \'s here because it sees '\;' CPP-style as an
 # illegal escape.
 
 !ifndef GS_LIB_DEFAULT
-GS_LIB_DEFAULT=$(GSROOTDIR)/lib;$(AROOTDIR)/fonts
+GS_LIB_DEFAULT=$(GSROOTDIR)/lib;$(GSROOTDIR)/Resource;$(AROOTDIR)/fonts
 !endif
 
 # Define whether or not searching for initialization files should always
@@ -141,7 +139,7 @@ JVERSION=6
 
 !ifndef PSRCDIR
 PSRCDIR=libpng
-PVERSION=10201
+PVERSION=10208
 !endif
 
 # Define the directory where the zlib sources are stored.
@@ -149,6 +147,13 @@ PVERSION=10201
 
 !ifndef ZSRCDIR
 ZSRCDIR=zlib
+!endif
+
+# Define the jbig2dec library source location.
+# See jbig2.mak for more information.
+
+!ifndef JBIG2SRCDIR
+JBIG2SRCDIR=jbig2dec
 !endif
 
 # Define the directory where the icclib source are stored.
@@ -166,10 +171,10 @@ CFLAGS=
 
 # ------ Platform-specific options ------ #
 
-# Define which major version of MSVC is being used (currently, 4 & 5 supported)
+# Define which major version of MSVC is being used (currently, 4, 5 & 6 supported)
 
 !ifndef MSVC_VERSION
-MSVC_VERSION = 5
+MSVC_VERSION = 6
 !endif
 
 # Define the drive, directory, and compiler name for the Microsoft C files.
@@ -384,8 +389,7 @@ BAND_LIST_STORAGE=file
 !endif
 
 # Choose which compression method to use when storing band lists in memory.
-# The choices are 'lzw' or 'zlib'.  lzw is not recommended, because the
-# LZW-compatible code in Ghostscript doesn't actually compress its input.
+# The choices are 'lzw' or 'zlib'.
 
 !ifndef BAND_LIST_COMPRESSOR
 BAND_LIST_COMPRESSOR=zlib
@@ -481,7 +485,7 @@ $(GLOBJ)gp_mslib.$(OBJ): $(GLSRC)gp_mslib.c $(AK)
 mslib32__=$(GLOBJ)gp_mslib.$(OBJ)
 
 $(GLGEN)mslib32_.dev: $(mslib32__) $(ECHOGS_XE) $(GLGEN)mswin32_.dev
-        $(SETMOD) $(GLGEN)mslib32_ $(mslib32__)
+	$(SETMOD) $(GLGEN)mslib32_ $(mslib32__)
 	$(ADDMOD) $(GLGEN)mslib32_ -include $(GLGEN)mswin32_.dev
 
 # ----------------------------- Main program ------------------------------ #
@@ -494,6 +498,6 @@ $(GS_XE):  $(GS_ALL) $(DEVS_ALL) $(LIB_ONLY) $(LIBCTR)
 	echo $(GLOBJ)gscdefs.obj >> $(GLGENDIR)\gslib32.tr
 	echo  /SUBSYSTEM:CONSOLE > $(GLGENDIR)\gslib32.rsp
 	echo  /OUT:$(GS_XE) >> $(GLGENDIR)\gslib32.rsp
-        $(LINK) $(LCT) @$(GLGENDIR)\gslib32.rsp $(GLOBJ)gslib @$(GLGENDIR)\gslib32.tr @$(LIBCTR) $(INTASM) @$(GLGENDIR)\lib.tr
+	$(LINK) $(LCT) @$(GLGENDIR)\gslib32.rsp $(GLOBJ)gslib @$(GLGENDIR)\gslib32.tr @$(LIBCTR) $(INTASM)
 	-del $(GLGENDIR)\gslib32.rsp
 	-del $(GLGENDIR)\gslib32.tr

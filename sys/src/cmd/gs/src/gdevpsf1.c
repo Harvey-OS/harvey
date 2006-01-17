@@ -1,24 +1,23 @@
 /* Copyright (C) 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpsf1.c,v 1.9 2001/04/01 00:35:26 raph Exp $ */
+/* $Id: gdevpsf1.c,v 1.21 2005/03/17 15:45:52 igor Exp $ */
 /* Write an embedded Type 1 font */
 #include "memory_.h"
+#include <assert.h>
 #include "gx.h"
 #include "gserrors.h"
 #include "gsccode.h"
@@ -41,12 +40,12 @@
 /* Gather glyph information for a Type 1 or Type 2 font. */
 int
 psf_type1_glyph_data(gs_font_base *pbfont, gs_glyph glyph,
-		     gs_const_string *pstr, gs_font_type1 **ppfont)
+		     gs_glyph_data_t *pgd, gs_font_type1 **ppfont)
 {
     gs_font_type1 *const pfont = (gs_font_type1 *)pbfont;
 
     *ppfont = pfont;
-    return pfont->data.procs.glyph_data(pfont, glyph, pstr);
+    return pfont->data.procs.glyph_data(pfont, glyph, pgd);
 }
 int
 psf_get_type1_glyphs(psf_outline_glyphs_t *pglyphs, gs_font_type1 *pfont,
@@ -128,8 +127,7 @@ write_Encoding(stream *s, gs_font_type1 *pfont, int options,
 		    gs_glyph glyph =
 			(*pfont->procs.encode_char)
 			((gs_font *)pfont, (gs_char)i, GLYPH_SPACE_NAME);
-		    const char *namestr;
-		    uint namelen;
+		    gs_const_string namestr;
 
 		    if (subset_glyphs && subset_size) {
 			/*
@@ -142,11 +140,11 @@ write_Encoding(stream *s, gs_font_type1 *pfont, int options,
 			    continue;
 		    }
 		    if (glyph != gs_no_glyph && glyph != notdef &&
-			(namestr = (*pfont->procs.callbacks.glyph_name)
-			 (glyph, &namelen)) != 0
+			pfont->procs.glyph_name((gs_font *)pfont, glyph,
+						&namestr) >= 0
 			) {
 			pprintd1(s, "dup %d /", (int)i);
-			stream_write(s, namestr, namelen);
+			stream_write(s, namestr.data, namestr.size);
 			stream_puts(s, " put\n");
 		    }
 		}
@@ -167,7 +165,7 @@ private int
 write_Private(stream *s, gs_font_type1 *pfont,
 	      gs_glyph *subset_glyphs, uint subset_size,
 	      gs_glyph notdef, int lenIV,
-	      int (*write_CharString)(P3(stream *, const void *, uint)),
+	      int (*write_CharString)(stream *, const void *, uint),
 	      const param_printer_params_t *ppp)
 {
     const gs_type1_data *const pdata = &pfont->data;
@@ -202,9 +200,9 @@ write_Private(stream *s, gs_font_type1 *pfont,
 	gs_type1_data defaults;
 
 	defaults.BlueFuzz = 1;
-	defaults.BlueScale = 0.039625;
+	defaults.BlueScale = (float)0.039625;
 	defaults.BlueShift = 7.0;
-	defaults.ExpansionFactor = 0.06;
+	defaults.ExpansionFactor = (float)0.06;
 	defaults.ForceBold = false;
 	defaults.LanguageGroup = 0;
 	defaults.RndStemUp = true;
@@ -244,30 +242,30 @@ write_Private(stream *s, gs_font_type1 *pfont,
 
     {
 	int n, i;
-	gs_const_string str;
+	gs_glyph_data_t gdata;
 	int code;
 
+	gdata.memory = pfont->memory;
 	for (n = 0;
-	     (code = pdata->procs.subr_data(pfont, n, false, &str)) !=
+	     (code = pdata->procs.subr_data(pfont, n, false, &gdata)) !=
 		 gs_error_rangecheck;
 	     ) {
 	    ++n;
-	    if (code > 0)
-		gs_free_const_string(pfont->memory, str.data, str.size,
-				     "write_Private(Subrs)");
+	    if (code >= 0)
+		gs_glyph_data_free(&gdata, "write_Private(Subrs)");
 	}
 	pprintd1(s, "/Subrs %d array\n", n);
 	for (i = 0; i < n; ++i)
-	    if ((code = pdata->procs.subr_data(pfont, i, false, &str)) >= 0) {
+	    if ((code = pdata->procs.subr_data(pfont, i, false, &gdata)) >= 0) {
 		char buf[50];
 
-		sprintf(buf, "dup %d %u -| ", i, str.size);
-		stream_puts(s, buf);
-		write_CharString(s, str.data, str.size);
-		stream_puts(s, " |\n");
-		if (code > 0)
-		    gs_free_const_string(pfont->memory, str.data, str.size,
-					 "write_Private(Subrs)");
+		if (gdata.bits.size) {
+		    sprintf(buf, "dup %d %u -| ", i, gdata.bits.size);
+		    stream_puts(s, buf);
+		    write_CharString(s, gdata.bits.data, gdata.bits.size);
+		    stream_puts(s, " |\n");
+		}
+		gs_glyph_data_free(&gdata, "write_Private(Subrs)");
 	    }
 	stream_puts(s, "|-\n");
     }
@@ -280,9 +278,10 @@ write_Private(stream *s, gs_font_type1 *pfont,
 	int num_chars = 0;
 	gs_glyph glyph;
 	psf_glyph_enum_t genum;
-	gs_const_string gdata;
+	gs_glyph_data_t gdata;
 	int code;
 
+	gdata.memory = pfont->memory;
 	psf_enumerate_glyphs_begin(&genum, (gs_font *)pfont, subset_glyphs,
 				    (subset_glyphs ? subset_size : 0),
 				    GLYPH_SPACE_NAME);
@@ -293,9 +292,7 @@ write_Private(stream *s, gs_font_type1 *pfont,
 		(code = pdata->procs.glyph_data(pfont, glyph, &gdata)) >= 0
 		) {
 		++num_chars;
-		if (code > 0)
-		    gs_free_const_string(pfont->memory, gdata.data, gdata.size,
-					 "write_Private(CharStrings)");
+		gs_glyph_data_free(&gdata, "write_Private(CharStrings)");
 	    }
 	pprintd1(s, "2 index /CharStrings %d dict dup begin\n", num_chars);
 	psf_enumerate_glyphs_reset(&genum);
@@ -305,18 +302,17 @@ write_Private(stream *s, gs_font_type1 *pfont,
 	    if (code == 0 &&
 		(code = pdata->procs.glyph_data(pfont, glyph, &gdata)) >= 0
 		) {
-		uint gssize;
-		const char *gstr =
-		    (*pfont->procs.callbacks.glyph_name)(glyph, &gssize);
+		gs_const_string gstr;
+		int code;
 
+		code = pfont->procs.glyph_name((gs_font *)pfont, glyph, &gstr);
+		assert(code >= 0);
 		stream_puts(s, "/");
-		stream_write(s, gstr, gssize);
-		pprintd1(s, " %d -| ", gdata.size);
-		write_CharString(s, gdata.data, gdata.size);
+		stream_write(s, gstr.data, gstr.size);
+		pprintd1(s, " %d -| ", gdata.bits.size);
+		write_CharString(s, gdata.bits.data, gdata.bits.size);
 		stream_puts(s, " |-\n");
-		if (code > 0)
-		    gs_free_const_string(pfont->memory, gdata.data, gdata.size,
-					 "write_Private(CharStrings)");
+		gs_glyph_data_free(&gdata, "write_Private(CharStrings)");
 	    }
     }
 
@@ -376,7 +372,7 @@ psf_write_type1_font(stream *s, gs_font_type1 *pfont, int options,
     byte exE_buf[200];		/* arbitrary */
     psf_outline_glyphs_t glyphs;
     int lenIV = pfont->data.lenIV;
-    int (*write_CharString)(P3(stream *, const void *, uint)) = stream_write;
+    int (*write_CharString)(stream *, const void *, uint) = stream_write;
     int code = psf_get_type1_glyphs(&glyphs, pfont, orig_subset_glyphs,
 				     orig_subset_size);
 
@@ -475,14 +471,14 @@ psf_write_type1_font(stream *s, gs_font_type1 *pfont, int options,
 	lengths[0] = stell(s) - start;
 	start = stell(s);
 	if (options & WRITE_TYPE1_ASCIIHEX) {
-	    s_init(&AXE_stream, NULL);
+	    s_init(&AXE_stream, s->memory);
 	    s_init_state((stream_state *)&AXE_state, &s_AXE_template, NULL);
 	    AXE_state.EndOfData = false;
 	    s_init_filter(&AXE_stream, (stream_state *)&AXE_state,
 			  AXE_buf, sizeof(AXE_buf), es);
 	    es = &AXE_stream;
 	}
-	s_init(&exE_stream, NULL);
+	s_init(&exE_stream, s->memory);
 	s_init_state((stream_state *)&exE_state, &s_exE_template, NULL);
 	exE_state.cstate = 55665;
 	s_init_filter(&exE_stream, (stream_state *)&exE_state,

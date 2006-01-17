@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 1995, 1997, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: time_.h,v 1.3 2001/06/07 21:04:52 raph Exp $ */
+/* $Id: time_.h,v 1.8 2003/08/16 23:59:19 giles Exp $ */
 /* Generic substitute for Unix sys/time.h */
 
 #ifndef time__INCLUDED
@@ -38,19 +36,20 @@
  */
 #ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
-#  if defined(Plan9) || defined(M_UNIX) || defined(_IBMR2) || defined(_SEQUENT_) || defined(__GNUC__)
+#  if defined(Plan9) || defined(M_UNIX) || defined(_IBMR2) || defined(_SEQUENT_) || defined(__GNUC__) || defined(__INTEL_COMPILER)
      /* Plan 9, SCO, AIX and Sequent's DYNIX/ptx need both time.h and
-        sys/time.h! As of version 2.2, at least some glibc
-        installations also require both files. */
+      * sys/time.h! As of version 2.2, at least some glibc
+      * installations also require both files. 
+      * Following Duraid Madina's request we also do it on Intel compiler.
+      */
 #    include <time.h>
 #  endif
 #else
 #  include <time.h>
-#  ifndef __DECC
+#  if !defined(__DECC) && !defined(__MWERKS__)
 struct timeval {
     long tv_sec, tv_usec;
 };
-
 #  endif
 struct timezone {
     int tz_minuteswest, tz_dsttime;
@@ -93,3 +92,4 @@ struct timezone {
 #endif
 
 #endif /* time__INCLUDED */
+

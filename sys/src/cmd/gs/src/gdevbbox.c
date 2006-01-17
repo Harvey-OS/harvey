@@ -1,22 +1,20 @@
 /* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevbbox.c,v 1.4 2001/04/01 00:33:36 raph Exp $ */
+/*$Id: gdevbbox.c,v 1.23 2005/03/14 18:08:36 dan Exp $ */
 /* Device for tracking bounding box */
 #include "math_.h"
 #include "memory_.h"
@@ -131,7 +129,16 @@ gx_device_bbox gs_bbox_device =
      bbox_create_compositor,
      NULL,			/* get_hardware_params */
      bbox_text_begin,
-     NULL			/* finish_copydevice */
+     NULL,			/* finish_copydevice */
+     NULL,			/* begin_transparency_group */
+     NULL,			/* end_transparency_group */
+     NULL,			/* begin_transparency_mask */
+     NULL,			/* end_transparency_mask */
+     NULL,			/* discard_transparency_layer */
+     NULL,			/* get_color_mapping_procs */
+     NULL,			/* get_color_comp_index */
+     NULL,			/* encode_color */
+     NULL			/* decode_color */
     },
     0,				/* target */
     1,				/*true *//* free_standing */
@@ -248,19 +255,31 @@ bbox_close_device(gx_device * dev)
 
 /* Initialize a bounding box device. */
 void
-gx_device_bbox_init(gx_device_bbox * dev, gx_device * target)
+gx_device_bbox_init(gx_device_bbox * dev, gx_device * target, gs_memory_t *mem)
 {
     gx_device_init((gx_device *) dev, (const gx_device *)&gs_bbox_device,
-		   (target ? target->memory : NULL), true);
-    gx_device_forward_fill_in_procs((gx_device_forward *) dev);
+		   (target ? target->memory : mem), true);
     if (target) {
+        gx_device_forward_fill_in_procs((gx_device_forward *) dev);
 	set_dev_proc(dev, get_initial_matrix, gx_forward_get_initial_matrix);
 	set_dev_proc(dev, map_rgb_color, gx_forward_map_rgb_color);
 	set_dev_proc(dev, map_color_rgb, gx_forward_map_color_rgb);
 	set_dev_proc(dev, map_cmyk_color, gx_forward_map_cmyk_color);
 	set_dev_proc(dev, map_rgb_alpha_color, gx_forward_map_rgb_alpha_color);
-	set_dev_proc(dev, map_color_rgb_alpha, gx_forward_map_color_rgb_alpha);
+	set_dev_proc(dev, get_color_mapping_procs, gx_forward_get_color_mapping_procs);
+	set_dev_proc(dev, get_color_comp_index, gx_forward_get_color_comp_index);
+	set_dev_proc(dev, encode_color, gx_forward_encode_color);
+	set_dev_proc(dev, decode_color, gx_forward_decode_color);
+	set_dev_proc(dev, pattern_manage, gx_forward_pattern_manage);
+	set_dev_proc(dev, fill_rectangle_hl_color, gx_forward_fill_rectangle_hl_color);
+	set_dev_proc(dev, include_color_space, gx_forward_include_color_space);
+	set_dev_proc(dev, update_spot_equivalent_colors,
+				gx_forward_update_spot_equivalent_colors);
+	set_dev_proc(dev, get_page_device, gx_forward_get_page_device);
 	gx_device_set_target((gx_device_forward *)dev, target);
+    } else {
+	gx_device_fill_in_procs((gx_device *)dev);
+        gx_device_forward_fill_in_procs((gx_device_forward *) dev);
     }
     dev->box_procs = box_procs_default;
     dev->box_proc_data = dev;
@@ -506,7 +525,11 @@ bbox_get_params(gx_device * dev, gs_param_list * plist)
     bbox[2] = fixed2float(fbox.q.x);
     bbox[3] = fixed2float(fbox.q.y);
     bba.data = bbox, bba.size = 4, bba.persistent = false;
-    return param_write_float_array(plist, "PageBoundingBox", &bba);
+    code = param_write_float_array(plist, "PageBoundingBox", &bba);
+    if (code < 0)
+        return code;
+    code = param_write_bool(plist, "WhiteIsOpaque", &bdev->white_is_opaque);
+    return code;
 }
 
 /* We implement put_params to ensure that we keep the important */
@@ -518,6 +541,7 @@ bbox_put_params(gx_device * dev, gs_param_list * plist)
     gx_device_bbox *const bdev = (gx_device_bbox *) dev;
     int code;
     int ecode = 0;
+    bool white_is_opaque = bdev->white_is_opaque;
     gs_param_name param_name;
     gs_param_float_array bba;
 
@@ -532,20 +556,32 @@ bbox_put_params(gx_device * dev, gs_param_list * plist)
 	    break;
 	default:
 	    ecode = code;
-	  e:param_signal_error(plist, param_name, ecode);
+	    e:param_signal_error(plist, param_name, ecode);
 	case 1:
 	    bba.data = 0;
+    }
+
+    switch (code = param_read_bool(plist, (param_name = "WhiteIsOpaque"), &white_is_opaque)) {
+	default:
+	    ecode = code;
+	    param_signal_error(plist, param_name, ecode);
+	case 0:
+        case 1:
+	    break;
     }
 
     code = gx_forward_put_params(dev, plist);
     if (ecode < 0)
 	code = ecode;
-    if (code >= 0 && bba.data != 0) {
-	BBOX_INIT_BOX(bdev);
-	BBOX_ADD_RECT(bdev, float2fixed(bba.data[0]), float2fixed(bba.data[1]),
-		      float2fixed(bba.data[2]), float2fixed(bba.data[3]));
+    if (code >= 0) {
+        if( bba.data != 0) {
+	    BBOX_INIT_BOX(bdev);
+	    BBOX_ADD_RECT(bdev, float2fixed(bba.data[0]), float2fixed(bba.data[1]),
+	    	          float2fixed(bba.data[2]), float2fixed(bba.data[3]));
+        }
+        bdev->white_is_opaque = white_is_opaque;
     }
-    bbox_copy_params(bdev, true);
+    bbox_copy_params(bdev, bdev->is_open);
     return code;
 }
 
@@ -758,7 +794,7 @@ bbox_fill_path(gx_device * dev, const gs_imager_state * pis, gx_path * ppath,
 	     */
 	    gx_drawing_color devc;
 
-	    color_set_pure(&devc, bdev->black);  /* any non-white color will do */
+	    set_nonclient_dev_color(&devc, bdev->black);  /* any non-white color will do */
 	    bdev->target = NULL;
 	    code = gx_default_fill_path(dev, pis, ppath, params, &devc, pcpath);
 	    bdev->target = tdev;
@@ -820,7 +856,7 @@ bbox_stroke_path(gx_device * dev, const gs_imager_state * pis, gx_path * ppath,
 	    /* fill path into pieces for computing the bounding box. */
 	    gx_drawing_color devc;
 
-	    color_set_pure(&devc, bdev->black);  /* any non-white color will do */
+	    set_nonclient_dev_color(&devc, bdev->black);  /* any non-white color will do */
 	    bdev->target = NULL;
 	    gx_default_stroke_path(dev, pis, ppath, params, &devc, pcpath);
 	    bdev->target = tdev;
@@ -1046,7 +1082,7 @@ bbox_image_plane_data(gx_image_enum_common_t * info,
 	gx_make_clip_path_device(&cdev, pcpath);
 	cdev.target = dev;
 	(*dev_proc(&cdev, open_device)) ((gx_device *) & cdev);
-	color_set_pure(&devc, bdev->black);  /* any non-white color will do */
+	set_nonclient_dev_color(&devc, bdev->black);  /* any non-white color will do */
 	bdev->target = NULL;
 	gx_default_fill_triangle((gx_device *) & cdev, x0, y0,
 				 float2fixed(corners[1].x) - x0,
@@ -1130,7 +1166,7 @@ private const gx_device_bbox_procs_t box_procs_forward = {
 private int
 bbox_create_compositor(gx_device * dev,
 		       gx_device ** pcdev, const gs_composite_t * pcte,
-		       const gs_imager_state * pis, gs_memory_t * memory)
+		       gs_imager_state * pis, gs_memory_t * memory)
 {
     gx_device_bbox *const bdev = (gx_device_bbox *) dev;
     gx_device *target = bdev->target;
@@ -1154,8 +1190,11 @@ bbox_create_compositor(gx_device * dev,
 	int code = (*dev_proc(target, create_compositor))
 	    (target, &cdev, pcte, pis, memory);
 
-	if (code < 0)
+	/* If the target did not create a new compositor then we are done. */
+	if (code < 0 || target == cdev) {
+	    *pcdev = dev;
 	    return code;
+	}
 	bbcdev = gs_alloc_struct_immovable(memory, gx_device_bbox,
 					   &st_device_bbox,
 					   "bbox_create_compositor");
@@ -1163,7 +1202,7 @@ bbox_create_compositor(gx_device * dev,
 	    (*dev_proc(cdev, close_device)) (cdev);
 	    return_error(gs_error_VMerror);
 	}
-	gx_device_bbox_init(bbcdev, target);
+	gx_device_bbox_init(bbcdev, target, memory);
 	gx_device_set_target((gx_device_forward *)bbcdev, cdev);
 	bbcdev->box_procs = box_procs_forward;
 	bbcdev->box_proc_data = bdev;
@@ -1174,44 +1213,6 @@ bbox_create_compositor(gx_device * dev,
 
 /* ------ Text imaging ------ */
 
-extern_st(st_gs_text_enum);
-
-typedef struct bbox_text_enum_s {
-    gs_text_enum_common;
-    gs_text_enum_t *target_info;
-} bbox_text_enum;
-
-gs_private_st_suffix_add1(st_bbox_text_enum, bbox_text_enum, "bbox_text_enum",
-			bbox_text_enum_enum_ptrs, bbox_text_enum_reloc_ptrs,
-			  st_gs_text_enum, target_info);
-
-private text_enum_proc_resync(bbox_text_resync);
-private text_enum_proc_process(bbox_text_process);
-private text_enum_proc_is_width_only(bbox_text_is_width_only);
-private text_enum_proc_current_width(bbox_text_current_width);
-private text_enum_proc_set_cache(bbox_text_set_cache);
-private text_enum_proc_retry(bbox_text_retry);
-private text_enum_proc_release(bbox_text_release);
-private rc_free_proc(bbox_text_free);
-
-private const gs_text_enum_procs_t bbox_text_procs =
-{
-    bbox_text_resync, bbox_text_process, bbox_text_is_width_only,
-    bbox_text_current_width, bbox_text_set_cache, bbox_text_retry,
-    bbox_text_release
-};
-
-private void
-bbox_text_enum_copy(bbox_text_enum *pbte)
-{
-    rc_header rc_save;
-
-    rc_save = pbte->rc;
-    *(gs_text_enum_t *)pbte = *pbte->target_info;	/* copy common info */
-    pbte->rc = rc_save;
-    pbte->procs = &bbox_text_procs;
-}
-
 private int
 bbox_text_begin(gx_device * dev, gs_imager_state * pis,
 		const gs_text_params_t * text, gs_font * font,
@@ -1220,105 +1221,14 @@ bbox_text_begin(gx_device * dev, gs_imager_state * pis,
 		gs_memory_t * memory, gs_text_enum_t ** ppenum)
 {
     gx_device_bbox *const bdev = (gx_device_bbox *) dev;
-    gx_device *tdev = bdev->target;
-    bbox_text_enum *pbte;
-    int code;
-
-    if (tdev == 0)
-	return gx_default_text_begin(dev, pis, text, font, path, pdcolor,
+    int code = gx_default_text_begin(dev, pis, text, font, path, pdcolor,
 				     pcpath, memory, ppenum);
-    rc_alloc_struct_1(pbte, bbox_text_enum, &st_bbox_text_enum, memory,
-		      return_error(gs_error_VMerror),
-		      "bbox_text_begin");
-    pbte->rc.free = bbox_text_free;
-    code =
-	(*dev_proc(tdev, text_begin))
-	(tdev, pis, text, font, path, pdcolor, pcpath, memory,
-	 &pbte->target_info);
-    if (code < 0) {
-	gs_free_object(memory, pbte, "bbox_text_begin");
-	return code;
+
+    if (bdev->target != NULL) {
+        /* See note on imaging_dev in gxtext.h */
+        rc_assign((*ppenum)->imaging_dev, dev, "bbox_text_begin");
     }
-    bbox_text_enum_copy(pbte);
 
-    /* See note on imaging_dev in gxtext.h */
-    rc_assign(pbte->target_info->imaging_dev, dev, "bbox_text_begin");
-
-    *ppenum = (gs_text_enum_t *) pbte;
     return code;
 }
 
-private int
-bbox_text_resync(gs_text_enum_t *pte, const gs_text_enum_t *pfrom)
-{
-    bbox_text_enum *const pbte = (bbox_text_enum *) pte;
-    int code = gs_text_resync(pbte->target_info, pfrom);
-
-    if (code >= 0)
-	bbox_text_enum_copy(pbte);
-    return code;
-}
-
-private int
-bbox_text_process(gs_text_enum_t * pte)
-{
-    bbox_text_enum *const pbte = (bbox_text_enum *) pte;
-    int code = gs_text_process(pbte->target_info);
-
-    gs_text_enum_copy_dynamic(pte, pbte->target_info, true);
-    return code;
-}
-
-private bool
-bbox_text_is_width_only(const gs_text_enum_t *pte)
-{
-    const bbox_text_enum *const pbte = (const bbox_text_enum *)pte;
-
-    return gs_text_is_width_only(pbte->target_info);
-}
-
-private int
-bbox_text_current_width(const gs_text_enum_t *pte, gs_point *pwidth)
-{
-    const bbox_text_enum *const pbte = (const bbox_text_enum *)pte;
-
-    return gs_text_current_width(pbte->target_info, pwidth);
-}
-
-private int
-bbox_text_set_cache(gs_text_enum_t * pte, const double *values,
-		    gs_text_cache_control_t control)
-{
-    bbox_text_enum *const pbte = (bbox_text_enum *) pte;
-    gs_text_enum_t *tpte = pbte->target_info;
-    int code = gs_text_set_cache(tpte, values, control);
-
-    if (code < 0)
-	return code;
-    /* Copy back the dynamic information for the client. */
-    pte->index = tpte->index;
-    return code;
-}
-
-private int
-bbox_text_retry(gs_text_enum_t *pte)
-{
-    bbox_text_enum *const pbte = (bbox_text_enum *) pte;
-
-    return gs_text_retry(pbte->target_info);
-}
-
-private void
-bbox_text_release(gs_text_enum_t *pte, client_name_t cname)
-{
-    bbox_text_enum *const pbte = (bbox_text_enum *)pte;
-
-    gs_text_release(pbte->target_info, cname);
-}
-
-private void
-bbox_text_free(gs_memory_t * memory, void *vpte, client_name_t cname)
-{
-    bbox_text_release((gs_text_enum_t *)vpte, cname);
-    rc_free_struct_only(memory, vpte, cname);
-}

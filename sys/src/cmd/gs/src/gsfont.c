@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsfont.c,v 1.4 2000/11/23 23:23:40 lpd Exp $ */
+/* $Id: gsfont.c,v 1.37 2005/07/27 11:24:38 igor Exp $ */
 /* Font operators for Ghostscript library */
 #include "gx.h"
 #include "memory_.h"
@@ -29,10 +27,7 @@
 #include "gxdevice.h"		/* must precede gxfont */
 #include "gxfont.h"
 #include "gxfcache.h"
-#include "gxpath.h"		/* for default implementation */
-
-/* Imported procedures */
-void gs_purge_font_from_char_caches(P2(gs_font_dir *, const gs_font *));
+#include "gzpath.h"		/* for default implementation */
 
 /* Define the sizes of the various aspects of the font/character cache. */
 /*** Big memory machines ***/
@@ -55,22 +50,21 @@ const gs_font_procs gs_font_procs_default = {
     gs_default_font_info,
     gs_default_same_font,
     gs_no_encode_char,
+    gs_no_decode_glyph,
     gs_no_enumerate_glyph,
     gs_default_glyph_info,
     gs_no_glyph_outline,
+    gs_no_glyph_name,
     gs_default_init_fstack,
     gs_default_next_char_glyph,
-    gs_no_build_char,
-    {
-	0,			/* glyph_name */
-	0			/* known_encode */
-    }				/* callbacks */
+    gs_no_build_char
 };
 
 private_st_font_dir();
 private struct_proc_enum_ptrs(font_enum_ptrs);
 private struct_proc_reloc_ptrs(font_reloc_ptrs);
 
+public_st_gs_font_info();
 public_st_gs_font();
 public_st_gs_font_base();
 private_st_gs_font_ptr();
@@ -115,7 +109,7 @@ ENUM_PTRS_WITH(font_dir_enum_ptrs, gs_font_dir *dir)
 
 	if (cc != 0 && !--count) {
 	    (*dir->ccache.mark_glyph)
-		(cc->code, dir->ccache.mark_glyph_data);
+		(mem, cc->code, dir->ccache.mark_glyph_data);
 	    /****** HACK: break const.  We'll fix this someday. ******/
 	    ((gs_font_dir *)dir)->enum_index = cci;
 	    ((gs_font_dir *)dir)->enum_offset = offset;
@@ -215,7 +209,7 @@ RELOC_PTRS_END
 
 /* Allocate a font directory */
 private bool
-cc_no_mark_glyph(gs_glyph glyph, void *ignore_data)
+cc_no_mark_glyph(const gs_memory_t *mem, gs_glyph glyph, void *ignore_data)
 {
     return false;
 }
@@ -266,6 +260,13 @@ gs_font_dir_alloc2_limits(gs_memory_t * struct_mem, gs_memory_t * bits_mem,
     pdir->scaled_fonts = 0;
     pdir->ssize = 0;
     pdir->smax = smax;
+    pdir->align_to_pixels = false;
+    pdir->glyph_to_unicode_table = NULL;
+    pdir->grid_fit_tt = 2;
+    pdir->memory = struct_mem;
+    pdir->tti = 0;
+    pdir->san = 0;
+    pdir->global_glyph_code = NULL;
     return pdir;
 }
 
@@ -279,12 +280,26 @@ gs_font_alloc(gs_memory_t *mem, gs_memory_type_ptr_t pstype,
 
     if (pfont == 0)
 	return 0;
+#if 1 /* Clear entire structure to avoid unitialized pointers 
+         when the initialization exits prematurely by error. */
+    memset(pfont, 0, pstype->ssize);
+    pfont->memory = mem;
+    pfont->dir = dir;
+    gs_font_notify_init(pfont);
+    pfont->id = gs_next_ids(mem, 1);
+    pfont->base = pfont;
+    pfont->ExactSize = pfont->InBetweenSize = pfont->TransformedChar =
+	fbit_use_outlines;
+    pfont->procs = *procs;
+#else
+    /* For clarity we leave old initializations here
+       to know which fields needs to be initialized. */
     pfont->next = pfont->prev = 0;
     pfont->memory = mem;
     pfont->dir = dir;
     pfont->is_resource = false;
-    gs_notify_init(&pfont->notify_list, gs_memory_stable(mem));
-    pfont->id = gs_next_ids(1);
+    gs_font_notify_init(pfont);
+    pfont->id = gs_next_ids(mem, 1);
     pfont->base = pfont;
     pfont->client_data = 0;
     /* not FontMatrix, FontType */
@@ -295,6 +310,8 @@ gs_font_alloc(gs_memory_t *mem, gs_memory_type_ptr_t pstype,
     pfont->PaintType = 0;
     pfont->StrokeWidth = 0;
     pfont->procs = *procs;
+    memset(&pfont->orig_FontMatrix, 0, sizeof(pfont->orig_FontMatrix));
+#endif
     /* not key_name, font_name */
     return pfont;
 }
@@ -315,6 +332,30 @@ gs_font_base_alloc(gs_memory_t *mem, gs_memory_type_ptr_t pstype,
     pfont->encoding_index = pfont->nearest_encoding_index = -1;
     return pfont;
 }
+
+/* Initialize the notification list for a font. */
+void
+gs_font_notify_init(gs_font *font)
+{
+    /*
+     * The notification list for a font must be allocated in the font's
+     * stable memory, because of the following possible sequence of events:
+     *
+     *   - Allocate font X in local VM.
+     *   - Client A registers for notification when X is freed.
+     *   - 'save'
+     *   - Client B registers for notification when X is freed.
+     *   - 'restore'
+     *
+     * If the notification list element for client B is allocated in
+     * restorable local VM (i.e., the same VM as the font), then when the
+     * 'restore' occurs, either the list element will be deleted (not what
+     * client B wants, because font X hasn't been freed yet), or there will
+     * be a dangling pointer.
+     */
+    gs_notify_init(&font->notify_list, gs_memory_stable(font->memory));
+}
+
 
 /*
  * Register/unregister a client for notification by a font.  Currently
@@ -362,6 +403,26 @@ gs_definefont(gs_font_dir * pdir, gs_font * pfont)
     font_link_first(&pdir->orig_fonts, pfont);
     if_debug2('m', "[m]defining font 0x%lx, next=0x%lx\n",
 	      (ulong) pfont, (ulong) pfont->next);
+    return 0;
+}
+
+/* Find a sililar registered font of same type. */
+int
+gs_font_find_similar(const gs_font_dir * pdir, const gs_font **ppfont, 
+		       int (*similar)(const gs_font *, const gs_font *))
+{
+    const gs_font *pfont0 = *ppfont;
+    const gs_font *pfont1 = pdir->orig_fonts;
+
+    for (; pfont1 != NULL; pfont1 = pfont1->next) {
+	if (pfont1 != pfont0 && pfont1->FontType == pfont0->FontType) {
+	    int code = similar(pfont0, pfont1);
+	    if (code != 0) {
+		*ppfont = pfont1;
+		return code;
+	    }
+	}
+    }
     return 0;
 }
 
@@ -441,7 +502,7 @@ gs_makefont(gs_font_dir * pdir, const gs_font * pfont,
     if (!pf_out)
 	return_error(gs_error_VMerror);
     memcpy(pf_out, pfont, gs_object_size(mem, pfont));
-    gs_notify_init(&pf_out->notify_list, gs_memory_stable(mem));
+    gs_font_notify_init(pf_out);
     pf_out->FontMatrix = newmat;
     pf_out->client_data = 0;
     pf_out->dir = pdir;
@@ -550,6 +611,18 @@ gs_setcacheupper(gs_font_dir * pdir, uint size)
     pdir->ccache.upper = size;
     return 0;
 }
+int
+gs_setaligntopixels(gs_font_dir * pdir, uint v)
+{
+    pdir->align_to_pixels = v;
+    return 0;
+}
+int
+gs_setgridfittt(gs_font_dir * pdir, uint v)
+{
+    pdir->grid_fit_tt = v;
+    return 0;
+}
 
 /* currentcacheparams */
 uint
@@ -566,6 +639,16 @@ uint
 gs_currentcacheupper(const gs_font_dir * pdir)
 {
     return pdir->ccache.upper;
+}
+uint
+gs_currentaligntopixels(const gs_font_dir * pdir)
+{
+    return pdir->align_to_pixels;
+}
+uint
+gs_currentgridfittt(const gs_font_dir * pdir)
+{
+    return pdir->grid_fit_tt;
 }
 
 /* Purge a font from all font- and character-related tables. */
@@ -607,6 +690,19 @@ gs_purge_font(gs_font * pfont)
 
 }
 
+/* Locate a gs_font by gs_id. */
+gs_font *
+gs_find_font_by_id(gs_font_dir *pdir, gs_id id, gs_matrix *FontMatrix)
+ {
+    gs_font *pfont = pdir->orig_fonts;
+
+    for(; pfont != NULL; pfont = pfont->next)
+	if(pfont->id == id &&
+	    !memcmp(&pfont->FontMatrix, FontMatrix, sizeof(pfont->FontMatrix)))
+	    return pfont;
+    return NULL;
+ }
+
 /* ---------------- Default font procedures ---------------- */
 
 /* ------ Font-level procedures ------ */
@@ -630,22 +726,8 @@ int
 gs_base_make_font(gs_font_dir * pdir, const gs_font * pfont,
 		  const gs_matrix * pmat, gs_font ** ppfont)
 {
-    gs_font_base *const pbfont = (gs_font_base *)*ppfont;
-
-    if (uid_is_XUID(&pbfont->UID)) {
-	uint xsize = uid_XUID_size(&pbfont->UID);
-	long *xvalues = (long *)
-	    gs_alloc_byte_array(pbfont->memory, xsize, sizeof(long),
-				"gs_base_make_font(XUID)");
-
-	if (xvalues == 0)
-	    return_error(gs_error_VMerror);
-	memcpy(xvalues, uid_XUID_values(&pbfont->UID),
-	       xsize * sizeof(long));
-
-	pbfont->UID.xvalues = xvalues;
-    }
-    return 0;
+    return uid_copy(&((gs_font_base *)*ppfont)->UID, (*ppfont)->memory,
+		    "gs_base_make_font(XUID)");
 }
 
 /* Default font info procedure */
@@ -672,6 +754,13 @@ gs_default_font_info(gs_font *font, const gs_point *pscale, int members,
 	info->Flags_returned = 0;
     if (font->FontType == ft_composite)
 	return 0;		/* nothing available */
+    if (members & FONT_INFO_BBOX) {
+	info->BBox.p.x = (int)bfont->FontBBox.p.x;
+	info->BBox.p.y = (int)bfont->FontBBox.p.y;
+	info->BBox.q.x = (int)bfont->FontBBox.q.x;
+	info->BBox.q.y = (int)bfont->FontBBox.q.y;
+	info->Flags_returned |= FONT_INFO_BBOX;
+    }
     if ((members & FONT_INFO_FLAGS) &&
 	(info->Flags_requested & FONT_IS_FIXED_WIDTH)
 	) {
@@ -681,7 +770,8 @@ gs_default_font_info(gs_font *font, const gs_point *pscale, int members,
 	gs_glyph notdef = gs_no_glyph;
 	gs_glyph glyph;
 	int fixed_width = 0;
-	int index, code;
+	int index;
+	int code = 0; /* Quiet compiler. */
 
 	for (index = 0;
 	     fixed_width >= 0 &&
@@ -697,13 +787,13 @@ gs_default_font_info(gs_font *font, const gs_point *pscale, int members,
 		return code;
 	    if (notdef == gs_no_glyph && gs_font_glyph_is_notdef(bfont, glyph)) {
 		notdef = glyph;
-		info->MissingWidth = glyph_info.width[wmode].x;
+		info->MissingWidth = (int)glyph_info.width[wmode].x;
 		info->members |= FONT_INFO_MISSING_WIDTH;
 	    }
 	    if (glyph_info.width[wmode].y != 0)
 		fixed_width = min_int;
 	    else if (fixed_width == 0)
-		fixed_width = glyph_info.width[wmode].x;
+		fixed_width = (int)glyph_info.width[wmode].x;
 	    else if (glyph_info.width[wmode].x != fixed_width)
 		fixed_width = min_int;
 	}
@@ -738,7 +828,7 @@ gs_default_font_info(gs_font *font, const gs_point *pscale, int members,
 
 		if (code < 0)
 		    return code;
-		info->MissingWidth = glyph_info.width[wmode].x;
+		info->MissingWidth = (int)glyph_info.width[wmode].x;
 		info->members |= FONT_INFO_MISSING_WIDTH;
 		break;
 	    }
@@ -796,9 +886,8 @@ gs_font_glyph_is_notdef(gs_font_base *bfont, gs_glyph glyph)
 	return false;
     if (glyph >= gs_min_cid_glyph)
 	return (glyph == gs_min_cid_glyph);
-    gnstr.data = (const byte *)
-	bfont->procs.callbacks.glyph_name(glyph, &gnstr.size);
-    return (gnstr.size == 7 && !memcmp(gnstr.data, ".notdef", 7));
+    return (bfont->procs.glyph_name((gs_font *)bfont, glyph, &gnstr) >= 0 &&
+	    gnstr.size == 7 && !memcmp(gnstr.data, ".notdef", 7));
 }
 
 /* Dummy character encoding procedure */
@@ -806,6 +895,13 @@ gs_glyph
 gs_no_encode_char(gs_font *pfont, gs_char chr, gs_glyph_space_t glyph_space)
 {
     return gs_no_glyph;
+}
+
+/* Dummy glyph decoding procedure */
+gs_char
+gs_no_decode_glyph(gs_font *pfont, gs_glyph glyph)
+{
+    return GS_NO_CHAR;
 }
 
 /* Dummy glyph enumeration procedure */
@@ -820,17 +916,22 @@ gs_no_enumerate_glyph(gs_font *font, int *pindex, gs_glyph_space_t glyph_space,
 int
 gs_default_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
 		      int members, gs_glyph_info_t *info)
-{
-    gx_path *ppath = gx_path_alloc(font->memory, "glyph_path");
+{   /* WMode may be inherited from an upper font. */
+    gx_path path;
     int returned = 0;
     int code;
+    int wmode = ((members & GLYPH_INFO_WIDTH1) != 0);
+    double sbw[4] = {0, 0, 0, 0};
+    /* Currently glyph_outline retrieves sbw only with type 1,2,9 fonts. */
+    bool charstrings_font = (font->FontType == ft_encrypted || 
+			     font->FontType == ft_encrypted2 || 
+			     font->FontType == ft_CID_encrypted);
 
-    if (ppath == 0)
-	return_error(gs_error_VMerror);
-    code = gx_path_add_point(ppath, fixed_0, fixed_0);
+    gx_path_init_bbox_accumulator(&path);
+    code = gx_path_add_point(&path, fixed_0, fixed_0);
     if (code < 0)
 	goto out;
-    code = font->procs.glyph_outline(font, glyph, pmat, ppath);
+    code = font->procs.glyph_outline(font, wmode, glyph, pmat, &path, sbw);
     if (code < 0)
 	goto out;
     if (members & GLYPH_INFO_WIDTHS) {
@@ -840,7 +941,7 @@ gs_default_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
 	if (members & wmask) {
 	    gs_fixed_point pt;
 
-	    code = gx_path_current_point(ppath, &pt);
+	    code = gx_path_current_point(&path, &pt);
 	    if (code < 0)
 		goto out;
 	    info->width[wmode].x = fixed2float(pt.x);
@@ -851,7 +952,7 @@ gs_default_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
     if (members & GLYPH_INFO_BBOX) {
 	gs_fixed_rect bbox;
 
-	code = gx_path_bbox(ppath, &bbox);
+	code = gx_path_bbox(&path, &bbox);
 	if (code < 0)
 	    goto out;
 	info->bbox.p.x = fixed2float(bbox.p.x);
@@ -860,21 +961,50 @@ gs_default_glyph_info(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
 	info->bbox.q.y = fixed2float(bbox.q.y);
 	returned |= GLYPH_INFO_BBOX;
     }
+    if (members & (GLYPH_INFO_WIDTH0 << wmode) && charstrings_font) {
+	if (pmat == 0) {
+	    info->width[wmode].x = sbw[2];
+	    info->width[wmode].y = sbw[3];
+	} else {
+	    code = gs_distance_transform(sbw[2], sbw[3], pmat, &info->width[wmode]);
+	    if (code < 0)
+		return code;
+	}
+	returned |= GLYPH_INFO_WIDTH0 << wmode;
+    }
+    if (members & (GLYPH_INFO_VVECTOR0 << wmode) && charstrings_font) {
+	if (pmat == 0) {
+	    info->v.x = sbw[0];
+	    info->v.y = sbw[1];
+	} else {
+	    gs_distance_transform(sbw[0], sbw[1], pmat, &info->v);
+	    if (code < 0)
+		return code;
+	}
+	returned |= GLYPH_INFO_VVECTOR0 << wmode;
+    }
     if (members & GLYPH_INFO_NUM_PIECES) {
 	info->num_pieces = 0;
 	returned |= GLYPH_INFO_NUM_PIECES;
     }
     returned |= members & GLYPH_INFO_PIECES; /* no pieces stored */
  out:
-    gx_path_free(ppath, "gs_default_glyph_bbox");
     info->members = returned;
     return code;
 }
 
 /* Dummy glyph outline procedure */
 int
-gs_no_glyph_outline(gs_font *font, gs_glyph glyph, const gs_matrix *pmat,
-		    gx_path *ppath)
+gs_no_glyph_outline(gs_font *font, int WMode, gs_glyph glyph, const gs_matrix *pmat,
+		    gx_path *ppath, double sbw[4])
 {
     return_error(gs_error_undefined);
 }
+
+/* Dummy glyph name procedure */
+int
+gs_no_glyph_name(gs_font *font, gs_glyph glyph, gs_const_string *pstr)
+{
+    return_error(gs_error_undefined);
+}
+

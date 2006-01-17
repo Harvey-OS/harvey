@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1997, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsmatrix.h,v 1.2 2000/09/19 19:00:29 lpd Exp $ */
+/* $Id: gsmatrix.h,v 1.5 2002/06/16 08:45:42 lpd Exp $ */
 /* Definition of matrices and client interface to matrix routines */
 
 #ifndef gsmatrix_INCLUDED
@@ -52,33 +50,34 @@ typedef struct gs_matrix_s gs_matrix;
   constant_matrix_body(1, 0, 0, 1, 0, 0)
 
 /* Matrix creation */
-void gs_make_identity(P1(gs_matrix *));
-int gs_make_translation(P3(floatp, floatp, gs_matrix *)),
-    gs_make_scaling(P3(floatp, floatp, gs_matrix *)),
-    gs_make_rotation(P2(floatp, gs_matrix *));
+void gs_make_identity(gs_matrix *);
+int gs_make_translation(floatp, floatp, gs_matrix *),
+    gs_make_scaling(floatp, floatp, gs_matrix *),
+    gs_make_rotation(floatp, gs_matrix *);
 
 /* Matrix arithmetic */
-int gs_matrix_multiply(P3(const gs_matrix *, const gs_matrix *, gs_matrix *)),
-    gs_matrix_invert(P2(const gs_matrix *, gs_matrix *)),
-    gs_matrix_translate(P4(const gs_matrix *, floatp, floatp, gs_matrix *)),
-    gs_matrix_scale(P4(const gs_matrix *, floatp, floatp, gs_matrix *)),
-    gs_matrix_rotate(P3(const gs_matrix *, floatp, gs_matrix *));
+int gs_matrix_multiply(const gs_matrix *, const gs_matrix *, gs_matrix *),
+    gs_matrix_invert(const gs_matrix *, gs_matrix *),
+    gs_matrix_translate(const gs_matrix *, floatp, floatp, gs_matrix *),
+    gs_matrix_scale(const gs_matrix *, floatp, floatp, gs_matrix *),
+    gs_matrix_rotate(const gs_matrix *, floatp, gs_matrix *);
 
 /* Coordinate transformation */
-int gs_point_transform(P4(floatp, floatp, const gs_matrix *, gs_point *)),
-    gs_point_transform_inverse(P4(floatp, floatp, const gs_matrix *, gs_point *)),
-    gs_distance_transform(P4(floatp, floatp, const gs_matrix *, gs_point *)),
-    gs_distance_transform_inverse(P4(floatp, floatp, const gs_matrix *, gs_point *)),
-    gs_points_bbox(P2(const gs_point[4], gs_rect *)), gs_bbox_transform_only(P3(const gs_rect *, const gs_matrix *, gs_point[4])),
-    gs_bbox_transform(P3(const gs_rect *, const gs_matrix *, gs_rect *)),
-    gs_bbox_transform_inverse(P3(const gs_rect *, const gs_matrix *, gs_rect *));
+int gs_point_transform(floatp, floatp, const gs_matrix *, gs_point *),
+    gs_point_transform_inverse(floatp, floatp, const gs_matrix *, gs_point *),
+    gs_distance_transform(floatp, floatp, const gs_matrix *, gs_point *),
+    gs_distance_transform_inverse(floatp, floatp, const gs_matrix *, gs_point *),
+    gs_points_bbox(const gs_point[4], gs_rect *),
+    gs_bbox_transform_only(const gs_rect *, const gs_matrix *, gs_point[4]),
+    gs_bbox_transform(const gs_rect *, const gs_matrix *, gs_rect *),
+    gs_bbox_transform_inverse(const gs_rect *, const gs_matrix *, gs_rect *);
 
 /* Serialization */
 #ifndef stream_DEFINED
 #  define stream_DEFINED
 typedef struct stream_s stream;
 #endif
-int sget_matrix(P2(stream *, gs_matrix *));
-int sput_matrix(P2(stream *, const gs_matrix *));
+int sget_matrix(stream *, gs_matrix *);
+int sput_matrix(stream *, const gs_matrix *);
 
 #endif /* gsmatrix_INCLUDED */

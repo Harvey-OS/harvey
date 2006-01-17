@@ -1,21 +1,19 @@
-#    Copyright (C) 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1995-2004 artofcode LLC. All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: zlib.mak,v 1.3 2001/01/07 18:36:35 giles Exp $
+# $Id: zlib.mak,v 1.10 2005/03/08 07:40:45 giles Exp $
 # makefile for zlib library code.
 # Users of this makefile must define the following:
 #	GSSRCDIR - the GS library source directory
@@ -27,8 +25,8 @@
 
 # This partial makefile compiles the zlib library for use in Ghostscript.
 # You can get the source code for this library from:
-#   http://www.info-zip.org/pub/infozip/zlib/
-#   ftp://ftp.info-zip.org/pub/infozip/zlib/
+#   http://www.gzip.org/zlib/
+#   http://www.libpng.org/pub/png/src/
 #	zlib-#.#.#.tar.gz or zlib###.zip
 # Please see Ghostscript's `Make.htm' file for instructions about how to
 # unpack these archives.
@@ -38,10 +36,12 @@
 #	ftp://ftp.cs.wisc.edu/ghost/3rdparty/
 # for more convenient access.
 #
-# This makefile is known to work with zlib versions through 1.1.3.
+# This makefile is known to work with zlib source version 1.2.1.
+# It will only work with earlier versions (1.1.4) when SHARE_ZLIB=1.
 # Note that there are obscure bugs in zlib versions before 1.1.3 that
-# may cause the FlateDecode filter to produce an occasional ioerror:
-# we strongly recommend using version 1.1.3 or later.
+# may cause the FlateDecode filter to produce an occasional ioerror
+# and there is a serious security problem with 1.1.3: we strongly
+# recommend using version 1.1.4 or later.
 
 ZSRC=$(ZSRCDIR)$(D)
 ZGEN=$(ZGENDIR)$(D)
@@ -85,7 +85,8 @@ $(ZGEN)zlibe.dev : $(TOP_MAKEFILES) $(ZGEN)zlibe_$(SHARE_ZLIB).dev
 $(ZGEN)zlibe_1.dev : $(TOP_MAKEFILES) $(ZLIB_MAK) $(ECHOGS_XE)
 	$(SETMOD) $(ZGEN)zlibe_1 -lib $(ZLIB_NAME)
 
-zlibe_=$(ZOBJ)adler32.$(OBJ) $(ZOBJ)deflate.$(OBJ) $(ZOBJ)trees.$(OBJ)
+zlibe_=$(ZOBJ)adler32.$(OBJ) $(ZOBJ)deflate.$(OBJ) \
+	$(ZOBJ)compress.$(OBJ) $(ZOBJ)trees.$(OBJ) $(ZOBJ)crc32.$(OBJ)
 $(ZGEN)zlibe_0.dev : $(ZLIB_MAK) $(ECHOGS_XE) $(ZGEN)zlibc.dev $(zlibe_)
 	$(SETMOD) $(ZGEN)zlibe_0 $(zlibe_)
 	$(ADDMOD) $(ZGEN)zlibe_0 -include $(ZGEN)zlibc.dev
@@ -95,6 +96,10 @@ $(ZOBJ)adler32.$(OBJ) : $(ZSRC)adler32.c $(ZDEP)
 
 $(ZOBJ)deflate.$(OBJ) : $(ZSRC)deflate.c $(ZDEP)
 	$(ZCC) $(ZO_)deflate.$(OBJ) $(C_) $(ZSRC)deflate.c
+
+# new file in zlib 1.2.x
+$(ZOBJ)compress.$(OBJ) : $(ZSRC)compress.c $(ZDEP)
+	$(ZCC) $(ZO_)compress.$(OBJ) $(C_) $(ZSRC)compress.c
 
 $(ZOBJ)trees.$(OBJ) : $(ZSRC)trees.c $(ZDEP)
 	$(ZCC) $(ZO_)trees.$(OBJ) $(C_) $(ZSRC)trees.c
@@ -124,12 +129,16 @@ $(ZGEN)zlibd.dev : $(TOP_MAKEFILES) $(ZGEN)zlibd_$(SHARE_ZLIB).dev
 $(ZGEN)zlibd_1.dev : $(TOP_MAKEFILES) $(ZLIB_MAK) $(ECHOGS_XE)
 	$(SETMOD) $(ZGEN)zlibd_1 -lib $(ZLIB_NAME)
 
+# zlibd[12]_ list the decompression source files for zlib 1.4.x
 zlibd1_=$(ZOBJ)infblock.$(OBJ) $(ZOBJ)infcodes.$(OBJ) $(ZOBJ)inffast.$(OBJ)
-zlibd2_=$(ZOBJ)inflate.$(OBJ) $(ZOBJ)inftrees.$(OBJ) $(ZOBJ)infutil.$(OBJ)
-zlibd_ = $(zlibd1_) $(zlibd2_)
+zlibd2_=$(ZOBJ)inflate.$(OBJ) $(ZOBJ)inftrees.$(OBJ) $(ZOBJ)infutil.$(OBJ) $(ZOBJ)crc32.$(OBJ)
+
+# shorter list of files for zlib 1.2.x
+zlibd_=$(ZOBJ)inffast.$(OBJ) $(ZOBJ)inflate.$(OBJ) $(ZOBJ)inftrees.$(OBJ) $(ZOBJ)uncompr.$(OBJ)
+
+
 $(ZGEN)zlibd_0.dev : $(ZLIB_MAK) $(ECHOGS_XE) $(ZGEN)zlibc.dev $(zlibd_)
-	$(SETMOD) $(ZGEN)zlibd_0 $(zlibd1_)
-	$(ADDMOD) $(ZGEN)zlibd_0 -obj $(zlibd2_)
+	$(SETMOD) $(ZGEN)zlibd_0 $(zlibd_)
 	$(ADDMOD) $(ZGEN)zlibd_0 -include $(ZGEN)zlibc.dev
 
 $(ZOBJ)infblock.$(OBJ) : $(ZSRC)infblock.c $(ZDEP)
@@ -149,3 +158,8 @@ $(ZOBJ)inftrees.$(OBJ) : $(ZSRC)inftrees.c $(ZDEP)
 
 $(ZOBJ)infutil.$(OBJ) : $(ZSRC)infutil.c $(ZDEP)
 	$(ZCC) $(ZO_)infutil.$(OBJ) $(C_) $(ZSRC)infutil.c
+
+# new file in zlib 1.2.x
+$(ZOBJ)uncompr.$(OBJ) : $(ZSRC)uncompr.c $(ZDEP)
+	$(ZCC) $(ZO_)uncompr.$(OBJ) $(C_) $(ZSRC)uncompr.c
+

@@ -1,22 +1,20 @@
 /* Copyright (C) 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: iimage.h,v 1.2 2000/09/19 19:00:44 lpd Exp $ */
+/* $Id: iimage.h,v 1.7 2004/08/04 19:36:12 stefan Exp $ */
 /* Image operator entry points */
 /* Requires gscspace.h, gxiparam.h */
 
@@ -25,21 +23,31 @@
 
 /* These procedures are exported by zimage.c for other modules. */
 
-/* Exported for zcolor1.c */
-int zimage_opaque_setup(P6(i_ctx_t *i_ctx_p, os_ptr op, bool multi,
-			   gs_image_alpha_t alpha, const gs_color_space * pcs,
-			   int npop));
+/*
+ * Define a structure for image parameters other than those defined
+ * in the gs_*image*_t structure.
+ */
+typedef struct image_params_s {
+    bool MultipleDataSources;
+    ref DataSource[gs_image_max_components];
+    const float *pDecode;
+} image_params;
 
-/* Exported for zimage2.c */
-int zimage_setup(P5(i_ctx_t *i_ctx_p, const gs_pixel_image_t * pim,
-		    const ref * sources, bool uses_color, int npop));
+/* Extract and check parameters for an image. */
+int data_image_params(const gs_memory_t *mem, 
+		      const ref *op, gs_data_image_t *pim,
+                      image_params *pip, bool require_DataSource,
+                      int num_components, int max_bits_per_component,
+                      bool has_alpha);
+int pixel_image_params(i_ctx_t *i_ctx_p, const ref *op,
+                       gs_pixel_image_t *pim, image_params * pip,
+                       int max_bits_per_component, bool has_alpha);
 
-/* Exported for zcolor3.c */
-int zimage_data_setup(P5(i_ctx_t *i_ctx_p, const gs_pixel_image_t * pim,
-			 gx_image_enum_common_t * pie,
-			 const ref * sources, int npop));
+/* Exported for zimage3.c and ztrans.c */
+int zimage_setup(i_ctx_t *i_ctx_p, const gs_pixel_image_t * pim,
+                 const ref * sources, bool uses_color, int npop);
 
-/* Exported for zcolor1.c and zdpnext.c. */
-int zimage_multiple(P2(i_ctx_t *i_ctx_p, bool has_alpha));
+/* Exported for zdpnext.c */
+int image1_setup(i_ctx_t * i_ctx_p, bool has_alpha);
 
 #endif /* iimage_INCLUDED */

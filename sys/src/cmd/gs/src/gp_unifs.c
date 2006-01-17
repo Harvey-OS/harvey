@@ -1,25 +1,25 @@
-/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993, 2000-2004 artofcode LLC. All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gp_unifs.c,v 1.6 2001/07/15 13:57:50 lpd Exp $ */
+/* $Id: gp_unifs.c,v 1.17 2004/01/20 01:39:30 giles Exp $ */
 /* "Unix-like" file system platform routines for Ghostscript */
+
 #include "memory_.h"
 #include "string_.h"
+#include "stdio_.h"		/* for FILENAME_MAX */
 #include "gx.h"
 #include "gp.h"
 #include "gpmisc.h"
@@ -29,18 +29,23 @@
 #include "dirent_.h"
 #include "unistd_.h"
 #include <stdlib.h>             /* for mkstemp/mktemp */
-#include <sys/param.h>		/* for MAXPATHLEN */
 
-/* Some systems (Interactive for example) don't define MAXPATHLEN,
- * so we define it here.  (This probably should be done via a Config-Script.)
+/* Provide a definition of the maximum path length in case the system
+ * headers don't define it. This should be gp_file_name_sizeof from
+ * gp.h once that value is properly sent in a system-dependent way.
+ * HP-UX 11i 11.11 incorrectly defines FILENAME_MAX as 14.
  */
-
-#ifndef MAXPATHLEN
-#  define MAXPATHLEN 1024
+#ifdef FILENAME_MAX
+#  if FILENAME_MAX < 80  /* arbitrary */
+#    undef FILENAME_MAX
+#  endif
+#endif
+#ifndef FILENAME_MAX
+#  define FILENAME_MAX 1024
 #endif
 
 /* Library routines not declared in a standard header */
-extern char *mktemp(P1(char *));
+extern char *mktemp(char *);
 
 /* ------ File naming and accessing ------ */
 
@@ -61,6 +66,7 @@ gp_open_scratch_file(const char *prefix, char fname[gp_file_name_sizeof],
 {	/* The -8 is for XXXXXX plus a possible final / and -. */
     int prefix_length = strlen(prefix);
     int len = gp_file_name_sizeof - prefix_length - 8;
+    FILE *fp;
 
     if (gp_file_name_is_absolute(prefix, prefix_length))
 	*fname = 0;
@@ -81,21 +87,27 @@ gp_open_scratch_file(const char *prefix, char fname[gp_file_name_sizeof],
 #ifdef HAVE_MKSTEMP
     {
 	    int file;
-	    FILE *fp;
+	    char ofname[gp_file_name_sizeof];
+
+	    /* save the old filename template in case mkstemp fails */
+	    memcpy(ofname, fname, gp_file_name_sizeof);
 
 	    file = mkstemp(fname);
-	    if (file < -1)
+	    if (file < -1) {
+		    eprintf1("**** Could not open temporary file %s\n", ofname);
 		    return NULL;
+	    }
 	    fp = fdopen(file, mode);
-	    if (fp == NULL)
-		    close(file);
-		    
-	    return fp;
+ 	    if (fp == NULL)
+ 		    close(file);
     }
 #else
     mktemp(fname);
-    return gp_fopentemp(fname, mode);
+    fp = gp_fopentemp(fname, mode);
 #endif
+    if (fp == NULL)
+	eprintf1("**** Could not open temporary file %s\n", fname);
+    return fp;
 }
 
 /* Open a file with the given name, as a stream of uninterpreted bytes. */
@@ -204,7 +216,7 @@ gp_enumerate_files_init(const char *pat, uint patlen, gs_memory_t * mem)
 
     /* Reject attempts to enumerate paths longer than the */
     /* system-dependent limit. */
-    if (patlen > MAXPATHLEN)
+    if (patlen > FILENAME_MAX)
 	return 0;
 
     /* Reject attempts to enumerate with a pattern containing zeroes. */
@@ -234,7 +246,7 @@ gp_enumerate_files_init(const char *pat, uint patlen, gs_memory_t * mem)
     memcpy(pfen->pattern, pat, patlen);
     pfen->pattern[patlen] = 0;
 
-    work = (char *)gs_alloc_bytes(mem, MAXPATHLEN + 1,
+    work = (char *)gs_alloc_bytes(mem, FILENAME_MAX + 1,
 				  "gp_enumerate_files(work)");
     if (work == 0)
 	return 0;
@@ -332,7 +344,7 @@ gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen)
     len = strlen(de->d_name);
     if (len <= 2 && (!strcmp(de->d_name, ".") || !strcmp(de->d_name, "..")))
 	goto top;
-    if (len + worklen + 1 > MAXPATHLEN)
+    if (len + worklen + 1 > FILENAME_MAX)
 	/* Should be an error, I suppose */
 	goto top;
     if (worklen == 0) {		/* "Current" directory (evil un*x kludge) */

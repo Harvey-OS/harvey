@@ -1,22 +1,20 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gstparam.h,v 1.7 2000/09/19 19:00:32 lpd Exp $ */
+/* $Id: gstparam.h,v 1.15 2005/08/30 16:49:34 igor Exp $ */
 /* Transparency parameter definitions */
 
 #ifndef gstparam_INCLUDED
@@ -77,6 +75,11 @@ typedef struct gs_transparency_mask_s {
 #  define gs_color_space_DEFINED
 typedef struct gs_color_space_s gs_color_space;
 #endif
+#ifndef gs_function_DEFINED
+typedef struct gs_function_s gs_function_t;
+#  define gs_function_DEFINED
+#endif
+
 /* (Update gs_trans_group_params_init if these change.) */
 typedef struct gs_transparency_group_params_s {
     const gs_color_space *ColorSpace;
@@ -89,16 +92,32 @@ typedef enum {
     TRANSPARENCY_MASK_Alpha,
     TRANSPARENCY_MASK_Luminosity
 } gs_transparency_mask_subtype_t;
+
 #define GS_TRANSPARENCY_MASK_SUBTYPE_NAMES\
   "Alpha", "Luminosity"
+
+/* See the gx_transparency_mask_params_t type below */
 /* (Update gs_trans_mask_params_init if these change.) */
 typedef struct gs_transparency_mask_params_s {
     gs_transparency_mask_subtype_t subtype;
-    bool has_Background;
+    int Background_components;
     float Background[GS_CLIENT_COLOR_MAX_COMPONENTS];
-    int (*TransferFunction)(P3(floatp in, float *out, void *proc_data));
-    void *TransferFunction_data;
+    float GrayBackground;
+    int (*TransferFunction)(floatp in, float *out, void *proc_data);
+    gs_function_t *TransferFunction_data;
 } gs_transparency_mask_params_t;
+
+#define MASK_TRANSFER_FUNCTION_SIZE 256
+
+/* The post clist version of transparency mask parameters */
+typedef struct gx_transparency_mask_params_s {
+    gs_transparency_mask_subtype_t subtype;
+    int Background_components;
+    float Background[GS_CLIENT_COLOR_MAX_COMPONENTS];
+    float GrayBackground;
+    bool function_is_identity;
+    byte transfer_fn[MASK_TRANSFER_FUNCTION_SIZE];
+} gx_transparency_mask_params_t;
 
 /* Select the opacity or shape parameters. */
 typedef enum {

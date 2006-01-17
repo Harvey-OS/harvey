@@ -1,3 +1,8 @@
 #!/bin/sh
-# $Id: gslj,v 1.1 2000/03/09 08:40:40 lpd Exp $
-exec gs -q -sDEVICE=laserjet -r300 -dNOPAUSE -sPROGNAME=$0 -- gslp.ps --heading-center "`date`" "$@"
+# $Id: gslj,v 1.4 2004/08/04 00:55:46 giles Exp $
+
+# This definition is changed on install to match the
+# executable name set in the makefile
+GS_EXECUTABLE=gs
+
+exec $GS_EXECUTABLE -q -sDEVICE=laserjet -r300 -dNOPAUSE -sPROGNAME=$0 -- gslp.ps --heading-center "`date`" "$@"

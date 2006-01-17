@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevdgbr.c,v 1.2 2000/09/19 19:00:12 lpd Exp $ */
+/* $Id: gdevdgbr.c,v 1.14 2005/09/04 05:44:43 dan Exp $ */
 /* Default implementation of device get_bits[_rectangle] */
 #include "memory_.h"
 #include "gx.h"
@@ -172,7 +170,7 @@ gx_get_bits_return_pointer(gx_device * dev, int x, int h,
 		    bytes = bit_offset / step * step;
 		} else {
 		    /* Use a faster algorithm if depth is a power of 2. */
-		    bytes = bit_offset & (-depth & -align_mod);
+		    bytes = bit_offset & (-depth & -(int)align_mod);
 		}
 		base = stored_base + arith_rshift(bytes, 3);
 		params->x_offset = (bit_offset - bytes) / depth;
@@ -253,16 +251,16 @@ gx_get_bits_copy_cmyk_1bit(byte *dest_line, uint dest_raster,
  * A good optimizing compiler would compile them in-line.
  */
 private int
-    gx_get_bits_std_to_native(P10(gx_device * dev, int x, int w, int h,
+    gx_get_bits_std_to_native(gx_device * dev, int x, int w, int h,
 				  gs_get_bits_params_t * params,
-				  const gs_get_bits_params_t *stored,
-				  const byte * src_base, uint dev_raster,
-				  int x_offset, uint raster)),
-    gx_get_bits_native_to_std(P11(gx_device * dev, int x, int w, int h,
-				  gs_get_bits_params_t * params,
-				  const gs_get_bits_params_t *stored,
-				  const byte * src_base, uint dev_raster,
-				  int x_offset, uint raster, uint std_raster));
+			      const gs_get_bits_params_t *stored,
+			      const byte * src_base, uint dev_raster,
+			      int x_offset, uint raster),
+    gx_get_bits_native_to_std(gx_device * dev, int x, int w, int h,
+			      gs_get_bits_params_t * params,
+			      const gs_get_bits_params_t *stored,
+			      const byte * src_base, uint dev_raster,
+			      int x_offset, uint raster, uint std_raster);
 int
 gx_get_bits_copy(gx_device * dev, int x, int w, int h,
 		 gs_get_bits_params_t * params,
@@ -326,6 +324,7 @@ gx_get_bits_copy(gx_device * dev, int x, int w, int h,
 	     */
 	    gx_device_memory tdev;
 	    byte *line_ptr = data;
+	    int bit_w = w * depth;
 
 	    tdev.line_ptrs = &tdev.base;
 	    for (; h > 0; line_ptr += raster, src += dev_raster, --h) {
@@ -333,9 +332,12 @@ gx_get_bits_copy(gx_device * dev, int x, int w, int h,
 		int align = ALIGNMENT_MOD(line_ptr, align_bitmap_mod);
 
 		tdev.base = line_ptr - align;
+		/* set up parameters required by copy_mono's fit_copy */
+		tdev.width = dest_bit_x + (align << 3) + bit_w;
+		tdev.height = 1;
 		(*dev_proc(&mem_mono_device, copy_mono))
 		    ((gx_device *) & tdev, src, bit_x, dev_raster, gx_no_bitmap_id,
-		     dest_bit_x + (align << 3), 0, w, 1,
+		     dest_bit_x + (align << 3), 0, bit_w, 1,
 		     (gx_color_index) 0, (gx_color_index) 1);
 	    }
 	} else if (options & ~stored_options & GB_COLORS_NATIVE) {
@@ -430,44 +432,67 @@ gx_get_bits_std_to_native(gx_device * dev, int x, int w, int h,
 	sample_store_declare_setup(dest, dbit, dbyte, dest_line,
 				   dest_bit_offset & 7, depth);
 
-	for (i = 0; i < w; ++i) {
-	    int j;
-	    gx_color_value v[4], va = alpha_default;
-	    gx_color_index pixel;
+#define v2frac(value) ((long)(value) * frac_1 / src_max)
 
-	    /* Fetch the source data. */
-	    if (stored->options & GB_ALPHA_FIRST) {
-		sample_load_next16(va, src, sbit, src_depth);
-		va = v2cv(va);
-	    }
-	    for (j = 0; j < ncolors; ++j) {
-		gx_color_value vj;
+        for (i = 0; i < w; ++i) {
+            int j;
+            frac sc[4], dc[GX_DEVICE_COLOR_MAX_COMPONENTS];
+            gx_color_value v[GX_DEVICE_COLOR_MAX_COMPONENTS], va = alpha_default;
+            gx_color_index pixel;
+            bool do_alpha = false;
+            const gx_cm_color_map_procs * map_procs;
 
-		sample_load_next16(vj, src, sbit, src_depth);
-		v[j] = v2cv(vj);
-	    }
-	    if (stored->options & GB_ALPHA_LAST) {
-		sample_load_next16(va, src, sbit, src_depth);
-		va = v2cv(va);
-	    }
-	    /* Convert and store the pixel value. */
-	    switch (ncolors) {
-	    case 1:
-		v[2] = v[1] = v[0];
-	    case 3:
-		pixel = (*dev_proc(dev, map_rgb_alpha_color))
-		    (dev, v[0], v[1], v[2], va);
-		break;
-	    case 4:
-		/****** NO ALPHA FOR CMYK ******/
-		pixel = (*dev_proc(dev, map_cmyk_color))
-		    (dev, v[0], v[1], v[2], v[3]);
-		break;
-	    default:
-		return_error(gs_error_rangecheck);
-	    }
-	    sample_store_next32(pixel, dest, dbit, depth, dbyte);
-	}
+            map_procs = dev_proc(dev, get_color_mapping_procs)(dev);
+
+            /* Fetch the source data. */
+            if (stored->options & GB_ALPHA_FIRST) {
+                sample_load_next16(va, src, sbit, src_depth);
+                va = v2cv(va);
+                do_alpha = true;
+            }
+            for (j = 0; j < ncolors; ++j) {
+                gx_color_value vj;
+
+                sample_load_next16(vj, src, sbit, src_depth);
+                sc[j] = v2frac(vj);
+            }
+            if (stored->options & GB_ALPHA_LAST) {
+                sample_load_next16(va, src, sbit, src_depth);
+                va = v2cv(va);
+                do_alpha = true;
+            }
+
+            /* Convert and store the pixel value. */
+            if (do_alpha) {
+                for (j = 0; j < ncolors; j++)
+                    v[j] = frac2cv(sc[j]);
+                if (ncolors == 1)
+                    v[2] = v[1] = v[0];
+                pixel = dev_proc(dev, map_rgb_alpha_color)
+                    (dev, v[0], v[1], v[2], va);
+            } else {
+
+                switch (ncolors) {
+                case 1:
+                    map_procs->map_gray(dev, sc[0], dc);
+                    break;
+                case 3:
+                    map_procs->map_rgb(dev, 0, sc[0], sc[1], sc[2], dc);
+                    break;
+                case 4:
+                    map_procs->map_cmyk(dev, sc[0], sc[1], sc[2], sc[3], dc);
+                    break;
+                default:
+                    return_error(gs_error_rangecheck);
+                }
+
+                for (j = 0; j < dev->color_info.num_components; j++)
+                    v[j] = frac2cv(dc[j]);
+
+                pixel = dev_proc(dev, encode_color)(dev, v);
+            }
+            sample_store_next_any(pixel, dest, dbit, depth, dbyte);
+        }
 	sample_store_flush(dest, dbit, depth, dbyte);
     }
     return 0;
@@ -545,7 +570,7 @@ gx_get_bits_native_to_std(gx_device * dev, int x, int w, int h,
 	    gx_color_index pixel = 0;
 	    gx_color_value rgba[4];
 
-	    sample_load_next32(pixel, src, bit, depth);
+	    sample_load_next_any(pixel, src, bit, depth);
 	    if (pixel < 16) {
 		if (mapped[pixel]) {
 		    /* Use the value from the cache. */
@@ -644,11 +669,13 @@ gx_default_get_bits_rectangle(gx_device * dev, const gs_int_rect * prect,
 		goto ret;
 	    }
 	}
-	code = (*dev_proc(dev, get_bits))
-	    (dev, prect->p.y, row, &params->data[0]);
+	code = (*dev_proc(dev, get_bits)) (dev, prect->p.y, row,
+		(params->options & GB_RETURN_POINTER) ? &params->data[0]
+						      : NULL );
 	if (code >= 0) {
 	    if (row != data) {
-		if (prect->p.x == 0 && params->data[0] != row) {
+		if (prect->p.x == 0 && params->data[0] != row
+		    && params->options & GB_RETURN_POINTER) {
 		    /*
 		     * get_bits returned an appropriate pointer: we can
 		     * avoid doing any copying.
@@ -664,7 +691,7 @@ gx_default_get_bits_rectangle(gx_device * dev, const gs_int_rect * prect,
 		    tdev.line_ptrs = &tdev.base;
 		    tdev.base = data;
 		    code = (*dev_proc(&mem_mono_device, copy_mono))
-			((gx_device *) & tdev, params->data[0], prect->p.x * depth,
+			((gx_device *) & tdev, row, prect->p.x * depth,
 			 min_raster, gx_no_bitmap_id, 0, 0, width_bits, 1,
 			 (gx_color_index) 0, (gx_color_index) 1);
 		    params->data[0] = data;
@@ -748,51 +775,4 @@ gx_default_get_bits_rectangle(gx_device * dev, const gs_int_rect * prect,
     return (code < 0 ? code : 0);
 }
 
-/* ------ Debugging printout ------ */
 
-#ifdef DEBUG
-
-void
-debug_print_gb_options(gx_bitmap_format_t options)
-{
-    static const char *const option_names[] = {
-	GX_BITMAP_FORMAT_NAMES
-    };
-    const char *prev = "   ";
-    int i;
-
-    dlprintf1("0x%lx", (ulong) options);
-    for (i = 0; i < sizeof(options) * 8; ++i)
-	if ((options >> i) & 1) {
-	    dprintf2("%c%s",
-		     (!memcmp(prev, option_names[i], 3) ? '|' : ','),
-		     option_names[i]);
-	    prev = option_names[i];
-	}
-    dputc('\n');
-}
-
-void 
-debug_print_gb_planes(const gs_get_bits_params_t * params, int num_planes)
-{
-    gs_get_bits_options_t options = params->options;
-    int i;
-
-    debug_print_gb_options(options);
-    for (i = 0; i < num_planes; ++i)
-	dprintf2("data[%d]=0x%lx ", i, (ulong)params->data[i]);
-    if (options & GB_OFFSET_SPECIFIED)
-	dprintf1("x_offset=%d ", params->x_offset);
-    if (options & GB_RASTER_SPECIFIED)
-	dprintf1("raster=%u", params->raster);
-    dputc('\n');
-}
-
-void 
-debug_print_gb_params(const gs_get_bits_params_t * params)
-{
-    debug_print_gb_planes(params, 1);
-}
-
-
-#endif /* DEBUG */

@@ -1,32 +1,27 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpsdu.c,v 1.10 2001/04/04 19:20:27 alexcher Exp $ */
+/* $Id: gdevpsdu.c,v 1.23 2005/03/14 18:08:36 dan Exp $ */
 /* Common utilities for PostScript and PDF writers */
 #include "stdio_.h"		/* for FILE for jpeglib.h */
 #include "jpeglib_.h"		/* for sdct.h */
 #include "memory_.h"
-#include <stdlib.h>		/* for qsort */
 #include "gx.h"
 #include "gserrors.h"
 #include "gdevpsdf.h"
-#include "gxfont.h"
-#include "scanchar.h"
 #include "strimpl.h"
 #include "sa85x.h"
 #include "scfx.h"
@@ -34,6 +29,7 @@
 #include "sjpeg.h"
 #include "spprint.h"
 #include "sstring.h"
+#include "gsovrc.h"
 
 /* Structure descriptors */
 public_st_device_psdf();
@@ -111,18 +107,6 @@ psdf_setlogop(gx_device_vector * vdev, gs_logical_operation_t lop,
 }
 
 int
-psdf_setfillcolor(gx_device_vector * vdev, const gx_drawing_color * pdc)
-{
-    return psdf_set_color(vdev, pdc, &psdf_set_fill_color_commands);
-}
-
-int
-psdf_setstrokecolor(gx_device_vector * vdev, const gx_drawing_color * pdc)
-{
-    return psdf_set_color(vdev, pdc, &psdf_set_stroke_color_commands);
-}
-
-int
 psdf_dorect(gx_device_vector * vdev, fixed x0, fixed y0, fixed x1, fixed y1,
 	    gx_path_type_t type)
 {
@@ -163,7 +147,9 @@ psdf_curveto(gx_device_vector * vdev, floatp x0, floatp y0,
 	   floatp x1, floatp y1, floatp x2, floatp y2, floatp x3, floatp y3,
 	     gx_path_type_t type)
 {
-    if (x1 == x0 && y1 == y0)
+    if (x1 == x0 && y1 == y0 && x2 == x3 && y2 == y3)
+	pprintg2(gdev_vector_stream(vdev), "%g %g l\n", x3, y3);
+    else if (x1 == x0 && y1 == y0)
 	pprintg4(gdev_vector_stream(vdev), "%g %g %g %g v\n",
 		 x2, y2, x3, y3);
     else if (x3 == x2 && y3 == y2)
@@ -200,14 +186,30 @@ psdf_adjust_color_index(gx_device_vector *vdev, gx_color_index color)
     return (color == (gx_no_color_index ^ 1) ? gx_no_color_index : color);
 }
 
+/* Round a double value to a specified precision. */
+double 
+psdf_round(double v, int precision, int radix)
+{
+    double mul = 1;
+    double w = v;
+
+    if (w <= 0)
+	return w;
+    while (w < precision) {
+	w *= radix;
+	mul *= radix;
+    }
+    return (int)(w + 0.5) / mul;
+}
+
 /*
  * Since we only have 8 bits of color to start with, round the
  * values to 3 digits for more compact output.
  */
-private double
-round_byte_color(int cv)
+private inline double
+round_byte_color(gx_color_index cv)
 {
-    return (int)(cv * (1000.0 / 255.0) + 0.5) / 1000.0;
+    return (int)((uint)cv * (1000.0 / 255.0) + 0.5) / 1000.0;
 }
 int
 psdf_set_color(gx_device_vector * vdev, const gx_drawing_color * pdc,
@@ -231,7 +233,7 @@ psdf_set_color(gx_device_vector * vdev, const gx_drawing_color * pdc,
 	switch (vdev->color_info.num_components) {
 	case 4:
 	    /* if (v0 == 0 && v1 == 0 && v2 == 0 && ...) */
-	    if ((color & (0xffffff << 8)) == 0 && ppscc->setgray != 0) {
+	    if ((color & 0xffffff00) == 0 && ppscc->setgray != 0) {
 		v3 = 1.0 - v3;
 		goto g;
 	    }
@@ -272,6 +274,7 @@ psdf_begin_binary(gx_device_psdf * pdev, psdf_binary_writer * pbw)
 
     pbw->target = pdev->strm;
     pbw->dev = pdev;
+    pbw->strm = 0;		/* for GC in case of failure */
     /* If not binary, set up the encoding stream. */
     if (!pdev->binary_ok) {
 #define BUF_SIZE 100		/* arbitrary */
@@ -290,9 +293,8 @@ psdf_begin_binary(gx_device_psdf * pdev, psdf_binary_writer * pbw)
 	ss->template = &s_A85E_template;
 	s_init_filter(s, (stream_state *)ss, buf, BUF_SIZE, pdev->strm);
 #undef BUF_SIZE
-	pbw->strm = pbw->A85E = s;
+	pbw->strm = s;
     } else {
-	pbw->A85E = 0;		/* for GC */
 	pbw->strm = pdev->strm;
     }
     return 0;
@@ -408,9 +410,51 @@ psdf_CFE_binary(psdf_binary_writer * pbw, int w, int h, bool invert)
 int
 psdf_end_binary(psdf_binary_writer * pbw)
 {
-    int code = s_close_filters(&pbw->strm, pbw->target);
+    int status = s_close_filters(&pbw->strm, pbw->target);
 
-    /* s_close_filters freed the A85E stream, if any. */
-    pbw->A85E = 0;		/* for GC */
-    return code;
+    return (status >= 0 ? 0 : gs_note_error(gs_error_ioerror));
+}
+
+/* ---------------- Overprint, Get Bits ---------------- */
+
+/*
+ * High level devices cannot perform get_bits or get_bits_rectangle
+ * operations, for obvious reasons.
+ */
+int
+psdf_get_bits(gx_device * dev, int y, byte * data, byte ** actual_data)
+{
+    return_error(gs_error_unregistered);
+}
+
+int
+psdf_get_bits_rectangle(
+    gx_device *             dev,
+    const gs_int_rect *     prect,
+    gs_get_bits_params_t *  params,
+    gs_int_rect **          unread )
+{
+    return_error(gs_error_unregistered);
+}
+
+/*
+ * Create compositor procedure for PostScript/PDF writer. Since these
+ * devices directly support overprint (and have access to the imager
+ * state), no compositor is required for overprint support. Hence, this
+ * routine just recognizes and discards invocations of the overprint
+ * compositor.
+ */
+int
+psdf_create_compositor(
+    gx_device *             dev,
+    gx_device **            pcdev,
+    const gs_composite_t *  pct,
+    gs_imager_state * pis,
+    gs_memory_t *           mem )
+{
+    if (gs_is_overprint_compositor(pct)) {
+        *pcdev = dev;
+        return 0;
+    } else
+        return gx_default_create_compositor(dev, pcdev, pct, pis, mem);
 }

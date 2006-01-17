@@ -1,21 +1,19 @@
 %    Copyright (C) 1991, 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: ps2ascii.ps,v 1.3 2001/07/22 20:43:32 igorm Exp $
+% $Id: ps2ascii.ps,v 1.10 2004/06/23 09:04:17 igor Exp $
 % Extract the ASCII text from a PostScript file.  Nothing is displayed.
 % Instead, ASCII information is written to stdout.  The idea is similar to
 % Glenn Reid's `distillery', only a lot more simple-minded, and less robust.
@@ -60,7 +58,7 @@
 % Note that this code will only work in all cases if systemdict is writable
 % and if `binding' the definitions of operators defined as procedures
 % is deferred.  For this reason, it is normally invoked with
-%	gs -q -dNODISPLAY -dNOBIND -dWRITESYSTEMDICT ps2ascii.ps
+%	gs -q -dNODISPLAY -dDELAYBIND -dWRITESYSTEMDICT ps2ascii.ps
 
 % Thanks to:
 %    J Greely <jgreely@cis.ohio-state.edu> for improvements to this code;
@@ -271,7 +269,7 @@ ifelse
 		% tox and toy are in user coordinates.
  { .coord 2 copy 6 2 roll .orderrect
 	% Add in the line width.  Assume square or round caps.
-   currentlinewidth 2 div dup .dcoord add abs 1 max 5 1 roll
+   currentlinewidth 2 div dup .dcoord add abs 1 .max 5 1 roll
    4 index add 4 1 roll 4 index add 4 1 roll
    4 index sub 4 1 roll 5 -1 roll sub 4 1 roll
    (R ) //print .show==4
@@ -1189,6 +1187,15 @@ mark
     /cc X                           % char-data
     dup type /stringtype ne {]} if  % char-data
 
+    /ch-xoff where
+    { pop }
+    { dup /Cd exch def
+      /ch-width { Cw } def
+      /ch-height { Ch } def
+      /ch-xoff { Cx } def
+      /ch-yoff { Cy } def
+      /ch-dx { Cdx } def
+    } ifelse
     /ch-data X
     nn /base get cc ctr put     % (adds ctr to cc'th position of BASE)
     nn /BitMaps get
@@ -1208,24 +1215,24 @@ mark
     dup                     % calculate new llx
     dup 0 get
     ch-xoff
-    min
+    .min
     0 exch put
 
     dup                     % calculate new lly
     dup 1 get
     ch-yoff ch-height sub
-    min
+    .min
     1 exch put
 
     dup                     % calculate new urx
     dup 2 get
     ch-dx ch-width add
-    max
+    .max 
     2 exch put
 
     dup 3 get               % calculate new ury
     ch-yoff
-    max
+    .max 
     3 exch put
 
 } def
@@ -1278,18 +1285,33 @@ userdict /start-hook {
                                                     % was a hyphen
         }
     if                                          % string
-    { % begin forall                            % c
-        dup                                     % c c
-        currentfont /Encoding get               % c c vec
-        exch get                                % c name
-        dup //.char.map exch known              % c name bool
-          { exch pop }
-          { pop OT1Encoding exch get }
-        ifelse                                  % name
-        //.char.map exch get                    % translation
+    currentfont /FontType get 0 ne
+      {
+          { % begin forall                          % c
+            dup                                     % c c
+            currentfont /Encoding get               % c c vec
+            exch get                                % c name
+            dup //.char.map exch known              % c name bool
+              { exch pop }
+              { pop OT1Encoding exch get }
+            ifelse                                  % name
+            //.char.map exch get                    % translation
+            .show.stdout exch writestring
+          }
+        forall
+      }
+      { (\0) dup 0 get 0 eq
+          { 0 1 put
+            (%stderr) (w) file dup
+            (*** Warning: composite font characters dumped without decoding.\n) writestring
+            closefile
+          }
+          { pop
+          }
+        ifelse 
         .show.stdout exch writestring
-    }
-    forall
+      }
+    ifelse
 } odef
 
 /.showstring1 {                 % string
@@ -1489,15 +1511,9 @@ userdict /start-hook {
 end
 
 % Bind the operators we just defined, and all the others if we didn't
-% do it before.  Also reenable 'bind' for future files.
+% do it before.
 
-.bindoperators
-NOBIND currentdict systemdict ne and
- { systemdict begin .bindoperators end }
-if
-NOBIND
- { /bind /.bind load def }
-if
+DELAYBIND { .bindnow } if
 
 % Make systemdict read-only if it wasn't already.
 
@@ -1506,5 +1522,3 @@ systemdict wcheck { systemdict readonly pop } if
 % Restore the current local/global VM mode.
 
 exec
-
-

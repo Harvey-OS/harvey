@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gschar.h,v 1.3 2000/09/19 19:00:26 lpd Exp $ */
+/* $Id: gschar.h,v 1.6 2002/06/16 08:45:42 lpd Exp $ */
 /* Client interface to character operations */
 
 #ifndef gschar_INCLUDED
@@ -39,30 +37,30 @@ typedef struct gs_font_s gs_font;
 #endif
 
 /* Allocate an enumerator. */
-gs_show_enum *gs_show_enum_alloc(P3(gs_memory_t *, gs_state *, client_name_t));
+gs_show_enum *gs_show_enum_alloc(gs_memory_t *, gs_state *, client_name_t);
 
 /* Release the contents of an enumerator. */
 /* (This happens automatically if the enumeration finishes normally.) */
 /* If the second argument is not NULL, also free the enumerator. */
-void gs_show_enum_release(P2(gs_show_enum *, gs_memory_t *));
+void gs_show_enum_release(gs_show_enum *, gs_memory_t *);
 
 /* Initialize a text enumeration. */
 int
     /* PostScript operators */
-    gs_show_n_init(P4(gs_show_enum *, gs_state *, const char *, uint)),
-    gs_ashow_n_init(P6(gs_show_enum *, gs_state *, floatp, floatp, const char *, uint)),
-    gs_widthshow_n_init(P7(gs_show_enum *, gs_state *, floatp, floatp, gs_char, const char *, uint)),
-    gs_awidthshow_n_init(P9(gs_show_enum *, gs_state *, floatp, floatp, gs_char, floatp, floatp, const char *, uint)),
-    gs_kshow_n_init(P4(gs_show_enum *, gs_state *, const char *, uint)),
-    gs_xyshow_n_init(P4(gs_show_enum *, gs_state *, const char *, uint)),
-    gs_glyphshow_init(P3(gs_show_enum *, gs_state *, gs_glyph)), gs_cshow_n_init(P4(gs_show_enum *, gs_state *, const char *, uint)),
-    gs_stringwidth_n_init(P4(gs_show_enum *, gs_state *, const char *, uint)),
-    gs_charpath_n_init(P5(gs_show_enum *, gs_state *, const char *, uint, bool)),
+    gs_show_n_init(gs_show_enum *, gs_state *, const char *, uint),
+    gs_ashow_n_init(gs_show_enum *, gs_state *, floatp, floatp, const char *, uint),
+    gs_widthshow_n_init(gs_show_enum *, gs_state *, floatp, floatp, gs_char, const char *, uint),
+    gs_awidthshow_n_init(gs_show_enum *, gs_state *, floatp, floatp, gs_char, floatp, floatp, const char *, uint),
+    gs_kshow_n_init(gs_show_enum *, gs_state *, const char *, uint),
+    gs_xyshow_n_init(gs_show_enum *, gs_state *, const char *, uint),
+    gs_glyphshow_init(gs_show_enum *, gs_state *, gs_glyph), gs_cshow_n_init(gs_show_enum *, gs_state *, const char *, uint),
+    gs_stringwidth_n_init(gs_show_enum *, gs_state *, const char *, uint),
+    gs_charpath_n_init(gs_show_enum *, gs_state *, const char *, uint, bool),
     /* Extensions */
-    gs_glyphpath_init(P4(gs_show_enum *, gs_state *, gs_glyph, bool)),
-    gs_glyphwidth_init(P3(gs_show_enum *, gs_state *, gs_glyph)),
-    gs_charboxpath_n_init(P5(gs_show_enum *, gs_state *, const char *, uint, bool));
-int gs_show_use_glyph(P2(gs_show_enum *, gs_glyph));
+    gs_glyphpath_init(gs_show_enum *, gs_state *, gs_glyph, bool),
+    gs_glyphwidth_init(gs_show_enum *, gs_state *, gs_glyph),
+    gs_charboxpath_n_init(gs_show_enum *, gs_state *, const char *, uint, bool);
+int gs_show_use_glyph(gs_show_enum *, gs_glyph);
 
 /* After setting up the enumeration, all the string-related routines */
 /* work the same way.  The client calls gs_show_next until it returns */
@@ -86,40 +84,40 @@ int gs_show_use_glyph(P2(gs_show_enum *, gs_glyph));
 	/* call gs_show_next again. */
 #define gs_show_move TEXT_PROCESS_INTERVENE
 
-int gs_show_next(P1(gs_show_enum *));
+int gs_show_next(gs_show_enum *);
 
 gs_char
-    gs_show_current_char(P1(const gs_show_enum *)),
-    gs_kshow_previous_char(P1(const gs_show_enum *)),
-    gs_kshow_next_char(P1(const gs_show_enum *));
+    gs_show_current_char(const gs_show_enum *),
+    gs_kshow_previous_char(const gs_show_enum *),
+    gs_kshow_next_char(const gs_show_enum *);
 gs_font *
-    gs_show_current_font(P1(const gs_show_enum *));
+    gs_show_current_font(const gs_show_enum *);
 
 gs_glyph
-    gs_show_current_glyph(P1(const gs_show_enum *));
-int gs_show_current_width(P2(const gs_show_enum *, gs_point *));
-void gs_show_width(P2(const gs_show_enum *, gs_point *));  /* cumulative width */
+    gs_show_current_glyph(const gs_show_enum *);
+int gs_show_current_width(const gs_show_enum *, gs_point *);
+void gs_show_width(const gs_show_enum *, gs_point *);  /* cumulative width */
 
 gs_char_path_mode
-    gs_show_in_charpath(P1(const gs_show_enum *));  /* return charpath flag */
+    gs_show_in_charpath(const gs_show_enum *);  /* return charpath flag */
 
 /* Character cache and metrics operators. */
 /* gs_setcachedevice* return 1 iff the cache device was just installed. */
-int gs_setcachedevice_float(P3(gs_show_enum *, gs_state *, const float * /*[6] */ ));
-int gs_setcachedevice_double(P3(gs_show_enum *, gs_state *, const double * /*[6] */ ));
+int gs_setcachedevice_float(gs_show_enum *, gs_state *, const float * /*[6] */ );
+int gs_setcachedevice_double(gs_show_enum *, gs_state *, const double * /*[6] */ );
 #define gs_setcachedevice(penum, pgs, pw)\
   gs_setcachedevice_float(penum, pgs, pw)
-int gs_setcachedevice2_float(P3(gs_show_enum *, gs_state *, const float * /*[10] */ ));
-int gs_setcachedevice2_double(P3(gs_show_enum *, gs_state *, const double * /*[10] */ ));
+int gs_setcachedevice2_float(gs_show_enum *, gs_state *, const float * /*[10] */ );
+int gs_setcachedevice2_double(gs_show_enum *, gs_state *, const double * /*[10] */ );
 #define gs_setcachedevice2(penum, pgs, pw2)\
   gs_setcachedevice2_float(penum, pgs, pw2)
-int gs_setcharwidth(P4(gs_show_enum *, gs_state *, floatp, floatp));
+int gs_setcharwidth(gs_show_enum *, gs_state *, floatp, floatp);
 
 /* Return true if we only need the width from the rasterizer */
 /* and can short-circuit the full rendering of the character, */
 /* false if we need the actual character bits. */
 /* This is only meaningful just before calling gs_setcharwidth or */
 /* gs_setcachedevice[2]. */
-bool gs_show_width_only(P1(const gs_show_enum *));
+bool gs_show_width_only(const gs_show_enum *);
 
 #endif /* gschar_INCLUDED */

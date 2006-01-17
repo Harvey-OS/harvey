@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ghostscript C coding guidelines</title>
-<!-- $Id: C-style.htm,v 1.21.2.2 2002/02/01 05:31:24 raph Exp $ -->
+<!-- $Id: C-style.htm,v 1.55 2005/10/20 19:46:23 ray Exp $ -->
 <!-- Originally: c-style.txt -->
 <link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
@@ -151,6 +151,14 @@ Restrictions:
 <li><b><tt>CAPITALIZE</tt></b> macro names unless there is a good reason not
 to.
 
+<li>Even though the legacy code contains some macros which contain
+control flow statments, avoid the use of this in new code and do not
+create macros which contain hidden control flow, especially 'return'.
+The use of control flow in macros complicates debug significantly
+requiring tedious expansion of macros to build a module to be debugged
+or resorting to disassembly windows to set breakpoints or to trace
+flow.
+
 <li>Don't use a macro call within a macro argument if the call expands to a
 token sequence that includes any commas not within parentheses: this
 produces different results depending on whether the compiler expands the
@@ -183,6 +191,12 @@ a synonym.
 one or more statements), surround it with <b><tt>BEGIN</tt></b> and
 <b><tt>END</tt></b>.  These work around the fact that simple statements and
 compound statements in C can't be substituted for each other syntactically.
+
+<li>If a macro introduces local variables, only use names that end with an
+underscore (<b><tt>_</tt></b>), such as <b><tt>code_</tt></b>.  This avoids
+clashes both with ordinary variable names (which should never end with an
+underscore) and with system-defined names (which may begin with an
+underscore).
 
 </ul>
 
@@ -354,6 +368,8 @@ allow it.
 
 <p>
 Restrictions:
+
+<ul>
 
 <li>Don't use anonymous structures if you can possibly avoid it, except
 occasionally as components of other structures. Ideally, use the
@@ -608,6 +624,12 @@ integer.
 <dd>These types are simply shorthands for <b><tt>unsigned char, short, int,
 long</tt></b>.
 
+<p>
+In addition, the use of <b><tt>byte *</tt></b> indicates a
+Ghostscript-style string, with explicit length given separately, as
+opposed to a null terminated C-style string, which is <b><tt>char
+*</tt></b>.
+
 <dt><b><tt>floatp</tt></b>
 
 <dd>This is a synonym for <b><tt>double</tt></b>.  It should be used for,
@@ -627,22 +649,6 @@ the actual width matters: do <em>not</em>, for example, use
 This is an unsigned 64-bit integer type, but it may not be available on all
 platforms.  Any code that uses this type should be surrounded by
 <b><tt>#if&nbsp;ARCH_HAS_BITS64</tt></b>.
-
-</dl>
-
-<h3>Procedures</h3>
-
-<dl>
-
-<dt><b><tt>P0(), P1(p1), ..., P16(p1, ..., p16)</tt></b> [deprecated]
-
-<dd>Nearly all existing code uses these macros for the parameter lists of
-procedure prototypes, e.g.,
-<b><tt>int&nbsp;proc(P2(int&nbsp;a,&nbsp;int&nbsp;b))</tt></b>, to provide
-compatibility with pre-ANSI, a.k.a. "traditional" or "K &amp; R", compilers.
-Since only ANSI compilers are now supported, don't use these macros in new
-code: use the ANSI standard syntax
-<b><tt>int&nbsp;proc(int&nbsp;a,&nbsp;int&nbsp;b)</tt></b>.
 
 </dl>
 
@@ -678,6 +684,18 @@ script in the Ghostscript fileset contains the necessary workarounds.
 
 <p>
 Put indentation points every 4 spaces, with 8 spaces = 1 tab stop.
+  
+<p>
+Don't indent the initial <b><tt>#</tt></b> of preprocessor commands.
+However, for nested preprocessor commands, do use indentation between the
+<b><tt>#</tt></b> and the command itself.  Use 2 spaces per level of
+nesting, e.g.:
+
+<blockquote>
+<b><tt>#ifndef&nbsp;xyz</tt></b><br>
+<b><tt>#&nbsp;&nbsp;define&nbsp;xyz&nbsp;0</tt></b><br>
+<b><tt>#endif</tt></b>
+</blockquote>
 
 <p>
 For assignments (including chain assignments), put the entire statement on
@@ -930,6 +948,12 @@ that aren't apparent as arguments of the macro.  If you must use free
 variables, list them all in a comment at the point where the macro is
 defined.
 
+<p>
+If you define new macros or groups of macros, especially if they aren't
+simply inline procedures or named constant values, put some extra effort
+into documenting them, to compensate for the fact that macros are
+intrinsically harder to understand than procedures.
+
 <h3><a name="Comments"></a>Comments</h3>
 
 <p>
@@ -1074,6 +1098,20 @@ someproc(... <b><tt>gx_device *dev</tt></b> ...)<br>
 <b><tt>}</tt></b>
 </blockquote>
 
+<p>
+Don't "shadow" a local variable or procedure parameter with an inner local
+variable of the same name.  I.e., don't do this:
+
+<blockquote>
+<b><tt>int</tt></b><br>
+someproc(... <b><tt>int x</tt></b> ...)<br>
+<b><tt>{</tt></b><br>
+&nbsp;&nbsp;&nbsp;...<br>
+<b><tt>&nbsp;&nbsp;&nbsp;int x;</tt></b><br>
+&nbsp;&nbsp;&nbsp;...<br>
+<b><tt>}</tt></b>
+</blockquote>
+
 <h4><a name="Compiler_warnings"></a>Compiler warnings</h4>
 
 <p>
@@ -1130,7 +1168,7 @@ Every code file should start with comments containing
 <li>the name of the file in the form of an RCS Id:
 
 <blockquote><b><tt>
-/*Id$: filename.ext $*/
+/* $<!-- -->Id: filename.ext $*/
 </tt></b></blockquote>
 
 <p>
@@ -1259,7 +1297,7 @@ A value to be returned from a procedure:
 	<td>&nbsp;&nbsp;&nbsp;&nbsp;
 	<td>An error code defined in
 <a href="../src/gserrors.h">gserrors.h</a>
-(or <a href="../src/errors.h">errors.h</a>)
+(or <a href="../src/ierrors.h">ierrors.h</a>)
 <tr valign=top>	<td align=right>0
 	<td>&nbsp;
 	<td>Normal return
@@ -1575,7 +1613,7 @@ details of the terms of using, copying, modifying, and redistributing AFPL
 Ghostscript.</small>
 
 <p>
-<small>Ghostscript version 7.04, 31 January 2002
+<small>Ghostscript version 8.53, 20 October 2005
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

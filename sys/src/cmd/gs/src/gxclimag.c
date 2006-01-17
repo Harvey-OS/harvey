@@ -1,22 +1,20 @@
 /* Copyright (C) 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxclimag.c,v 1.3 2001/08/01 16:21:35 stefan911 Exp $ */
+/*$Id: gxclimag.c,v 1.13 2005/10/10 18:58:18 leonardo Exp $ */
 /* Higher-level image operations for band lists */
 #include "math_.h"
 #include "memory_.h"
@@ -36,6 +34,9 @@
 #include "stream.h"
 #include "strimpl.h"		/* for sisparam.h */
 #include "sisparam.h"
+#include "gxcomp.h"
+#include "gsserial.h"
+#include "gxdhtserial.h"
 
 extern_gx_image_type_table();
 
@@ -44,15 +45,12 @@ extern_gx_image_type_table();
 static const bool USE_HL_IMAGES = true;
 
 /* Forward references */
-private int cmd_put_set_data_x(P3(gx_device_clist_writer * cldev,
-				  gx_clist_state * pcls, int data_x));
-private int cmd_put_color_mapping(P3(gx_device_clist_writer * cldev,
-				     const gs_imager_state * pis,
-				     bool write_rgb_to_cmyk));
-private bool check_rect_for_trivial_clip(P5(
+private int cmd_put_set_data_x(gx_device_clist_writer * cldev,
+			       gx_clist_state * pcls, int data_x);
+private bool check_rect_for_trivial_clip(
     const gx_clip_path *pcpath,  /* May be NULL, clip to evaluate */
     int px, int py, int qx, int qy  /* corners of box to test */
-));
+);
 
 /* ------ Driver procedures ------ */
 
@@ -75,29 +73,41 @@ clist_fill_mask(gx_device * dev,
     int data_x_bit;
     byte copy_op =
 	(depth > 1 ? cmd_op_copy_color_alpha :
-	 gx_dc_is_pure(pdcolor) ? cmd_op_copy_mono :
 	 cmd_op_copy_mono + cmd_copy_ht_color);
     bool slow_rop =
 	cmd_slow_rop(dev, lop_know_S_0(lop), pdcolor) ||
 	cmd_slow_rop(dev, lop_know_S_1(lop), pdcolor);
+
+    /* If depth > 1, this call will be translated to a copy_alpha call. */
+    /* if the target device can't perform copy_alpha, exit now. */
+    if (depth > 1 && (cdev->disable_mask & clist_disable_copy_alpha) != 0)
+	return_error(gs_error_unknownerror);
+
     fit_copy(dev, data, data_x, raster, id, x, y, width, height);
     y0 = y;			/* must do after fit_copy */
 
     /* If non-trivial clipping & complex clipping disabled, default */
+    /* Also default for uncached bitmap or non-defaul lop; */
+    /* We could handle more RasterOp cases here directly, but it */
+    /* doesn't seem worth the trouble right now. */
+    /* Lastly, the command list will translate calls with depth > 1 to */
+    /* copy_alpha calls, so the device color must be pure */
     if (((cdev->disable_mask & clist_disable_complex_clip) &&
 	 !check_rect_for_trivial_clip(pcpath, x, y, x + width, y + height)) ||
-	gs_debug_c('`')
+	gs_debug_c('`') || id == gx_no_bitmap_id || lop != lop_default ||
+	(depth > 1 && !color_writes_pure(pdcolor, lop))
 	)
+  copy:
 	return gx_default_fill_mask(dev, data, data_x, raster, id,
 				    x, y, width, height, pdcolor, depth,
 				    lop, pcpath);
+
     if (cmd_check_clip_path(cdev, pcpath))
 	cmd_clear_known(cdev, clip_path_known);
     data_x_bit = data_x << log2_depth;
     FOR_RECTS {
-	int dx = (data_x_bit & 7) >> log2_depth;
-	const byte *row = data + (y - y0) * raster + (data_x_bit >> 3);
 	int code;
+        ulong offset_temp;
 
 	TRY_RECT {
 	    code = cmd_update_lop(cdev, pcls, lop);
@@ -118,89 +128,64 @@ clist_fill_mask(gx_device * dev,
 	} HANDLE_RECT(code);
 	TRY_RECT {
 	    code = cmd_put_drawing_color(cdev, pcls, pdcolor);
+	    if (depth > 1 && code >= 0)
+		code = cmd_set_color1(cdev, pcls, pdcolor->colors.pure);
 	} HANDLE_RECT(code);
 	pcls->colors_used.slow_rop |= slow_rop;
-	/*
-	 * Unfortunately, painting a character with a halftone requires the
-	 * use of two bitmaps, a situation that we can neither represent in
-	 * the band list nor guarantee will both be present in the tile
-	 * cache; in this case, we always write the bits of the character.
-	 *
-	 * We could handle more RasterOp cases here directly, but it
-	 * doesn't seem worth the trouble right now.
-	 */
-	if (id != gx_no_bitmap_id && gx_dc_is_pure(pdcolor) &&
-	    lop == lop_default
-	    ) {			/* This is a character.  ****** WRONG IF HALFTONE CELL. ***** */
-	    /* Put it in the cache if possible. */
-	    ulong offset_temp;
 
-	    if (!cls_has_tile_id(cdev, pcls, id, offset_temp)) {
-		gx_strip_bitmap tile;
+	/* Put it in the cache if possible. */
+	if (!cls_has_tile_id(cdev, pcls, id, offset_temp)) {
+	    gx_strip_bitmap tile;
 
-		tile.data = (byte *) orig_data;	/* actually const */
-		tile.raster = raster;
-		tile.size.x = tile.rep_width = orig_width;
-		tile.size.y = tile.rep_height = orig_height;
-		tile.rep_shift = tile.shift = 0;
-		tile.id = id;
-		TRY_RECT {
-		    code = clist_change_bits(cdev, pcls, &tile, depth);
-		} HANDLE_RECT_UNLESS(code,
-		    (code != gs_error_VMerror || !cdev->error_is_retryable) );
-		if (code < 0) {
-		    /* Something went wrong; just copy the bits. */
-		    goto copy;
-		}
-	    } {
-		gx_cmd_rect rect;
-		int rsize;
-		byte op = copy_op + cmd_copy_use_tile;
-
-		/* Output a command to copy the entire character. */
-		/* It will be truncated properly per band. */
-		rect.x = orig_x, rect.y = y0;
-		rect.width = orig_width, rect.height = yend - y0;
-		rsize = 1 + cmd_sizexy(rect);
-		TRY_RECT {
-		    code = (orig_data_x ?
-			    cmd_put_set_data_x(cdev, pcls, orig_data_x) : 0);
-		    if (code >= 0) {
-			byte *dp;
-
-			code = set_cmd_put_op(dp, cdev, pcls, op, rsize);
-			/*
-			 * The following conditional is unnecessary: the two
-			 * statements inside it should go outside the
-			 * HANDLE_RECT.  They are here solely to pacify
-			 * stupid compilers that don't understand that dp
-			 * will always be set if control gets past the
-			 * HANDLE_RECT.
-			 */
-			if (code >= 0) {
-			    dp++;
-			    cmd_putxy(rect, dp);
-			}
-		    }
-		} HANDLE_RECT(code);
-		pcls->rect = rect;
-		goto end;
+	    tile.data = (byte *) orig_data;	/* actually const */
+	    tile.raster = raster;
+	    tile.size.x = tile.rep_width = orig_width;
+	    tile.size.y = tile.rep_height = orig_height;
+	    tile.rep_shift = tile.shift = 0;
+	    tile.id = id;
+	    TRY_RECT {
+	        code = clist_change_bits(cdev, pcls, &tile, depth);
+	    } HANDLE_RECT_UNLESS(code,
+	        (code != gs_error_VMerror || !cdev->error_is_retryable) );
+	    if (code < 0) {
+	        /* Something went wrong; just copy the bits. */
+	        goto copy;
 	    }
 	}
-copy:	/*
-	 * The default fill_mask implementation uses strip_copy_rop;
-	 * this is exactly what we want.
-	 */
-	TRY_RECT {
-	    NEST_RECT {
-		code = gx_default_fill_mask(dev, row, dx, raster,
-					(y == y0 && height == orig_height &&
-					 dx == orig_data_x ? id :
-					 gx_no_bitmap_id),
-					    x, y, width, height, pdcolor,
-					    depth, lop, pcpath);
-	    } UNNEST_RECT;
-	} HANDLE_RECT(code);
+	{
+	    gx_cmd_rect rect;
+	    int rsize;
+	    byte op = copy_op + cmd_copy_use_tile;
+
+	    /* Output a command to copy the entire character. */
+	    /* It will be truncated properly per band. */
+	    rect.x = orig_x, rect.y = y0;
+	    rect.width = orig_width, rect.height = yend - y0;
+	    rsize = 1 + cmd_sizexy(rect);
+	    TRY_RECT {
+	        code = (orig_data_x ?
+	      		cmd_put_set_data_x(cdev, pcls, orig_data_x) : 0);
+		if (code >= 0) {
+		    byte *dp;
+
+		    code = set_cmd_put_op(dp, cdev, pcls, op, rsize);
+		    /*
+		     * The following conditional is unnecessary: the two
+		     * statements inside it should go outside the
+		     * HANDLE_RECT.  They are here solely to pacify
+		     * stupid compilers that don't understand that dp
+		     * will always be set if control gets past the
+		     * HANDLE_RECT.
+		     */
+		    if (code >= 0) {
+		        dp++;
+		        cmd_putxy(rect, dp);
+		    }
+		}
+	    } HANDLE_RECT(code);
+	    pcls->rect = rect;
+	    goto end;
+	}
 end:
 	;
     } END_RECTS;
@@ -227,7 +212,6 @@ typedef struct clist_image_enum_s {
     bool uses_color;
     clist_color_space_t color_space;
     int ymin, ymax;
-    bool map_rgb_to_cmyk;
     gx_colors_used_t colors_used;
     /* begin_image command prepared & ready to output */
     /****** SIZE COMPUTATION IS WRONG, TIED TO gximage.c, gsmatrix.c ******/
@@ -261,20 +245,20 @@ private const gx_image_enum_procs_t clist_image_enum_procs =
 };
 
 /* Forward declarations */
-private bool image_band_box(P5(gx_device * dev, const clist_image_enum * pie,
-			       int y, int h, gs_int_rect * pbox));
-private int begin_image_command(P3(byte *buf, uint buf_size,
-				   const gs_image_common_t *pic));
-private int cmd_image_plane_data(P8(gx_device_clist_writer * cldev,
-				    gx_clist_state * pcls,
-				    const gx_image_plane_t * planes,
-				    const gx_image_enum_common_t * pie,
-				    uint bytes_per_plane,
-				    const uint * offsets, int dx, int h));
-private uint clist_image_unknowns(P2(gx_device *dev,
-				     const clist_image_enum *pie));
-private int write_image_end_all(P2(gx_device *dev,
-				   const clist_image_enum *pie));
+private bool image_band_box(gx_device * dev, const clist_image_enum * pie,
+			    int y, int h, gs_int_rect * pbox);
+private int begin_image_command(byte *buf, uint buf_size,
+				const gs_image_common_t *pic);
+private int cmd_image_plane_data(gx_device_clist_writer * cldev,
+				 gx_clist_state * pcls,
+				 const gx_image_plane_t * planes,
+				 const gx_image_enum_common_t * pie,
+				 uint bytes_per_plane,
+				 const uint * offsets, int dx, int h);
+private uint clist_image_unknowns(gx_device *dev,
+				  const clist_image_enum *pie);
+private int write_image_end_all(gx_device *dev,
+				const clist_image_enum *pie);
 
 /*
  * Since currently we are limited to writing a single subrectangle of the
@@ -502,8 +486,6 @@ clist_begin_typed_image(gx_device * dev,
 	}
     }
 
-    pie->map_rgb_to_cmyk = dev->color_info.num_components == 4 &&
-	base_index == gs_color_space_index_DeviceRGB;
     pie->colors_used.or = colors_used;
     pie->colors_used.slow_rop =
 	cmd_slow_rop(dev, pis->log_op, (uses_color ? pdcolor : NULL));
@@ -652,13 +634,14 @@ clist_image_plane_data(gx_image_enum_common_t * info,
 	    /* Make sure the imager state is up to date. */
 	    TRY_RECT {
 	        code = (pie->color_map_is_known ? 0 :
-			cmd_put_color_mapping(cdev, pie->pis,
-					      pie->map_rgb_to_cmyk));
+			cmd_put_color_mapping(cdev, pie->pis));
 		pie->color_map_is_known = true;
 		if (code >= 0) {
 		    uint want_known = ctm_known | clip_path_known |
-			(pie->color_space.id == gs_no_id ? 0 :
-			 color_space_known);
+				op_bm_tk_known | opacity_alpha_known |
+				shape_alpha_known | alpha_known |
+				(pie->color_space.id == gs_no_id ? 0 :
+							 color_space_known);
 
 		    code = cmd_do_write_unknown(cdev, pcls, want_known);
 		}
@@ -809,10 +792,56 @@ clist_image_end_image(gx_image_enum_common_t * info, bool draw_last)
 int
 clist_create_compositor(gx_device * dev,
 			gx_device ** pcdev, const gs_composite_t * pcte,
-			const gs_imager_state * pis, gs_memory_t * mem)
+			gs_imager_state * pis, gs_memory_t * mem)
 {
-    /****** NYI ******/
-    return gx_no_create_compositor(dev, pcdev, pcte, pis, mem);
+    byte * dp;
+    uint size = 0;
+    int code = pcte->type->procs.write(pcte, 0, &size);
+
+    /* determine the amount of space required */
+    if (code < 0 && code != gs_error_rangecheck)
+        return code;
+    size += 2 + 1;      /* 2 bytes for the command code, one for the id */
+
+    /* Create a compositor device for clist writing (if needed) */
+    code = pcte->type->procs.clist_compositor_write_update(pcte, dev,
+		    					pcdev, pis, mem);
+    if (code < 0)
+        return code;
+
+    if (pcte->type->comp_id == GX_COMPOSITOR_PDF14_TRANS) {
+	gx_device_clist_writer * const cldev =
+			&((gx_device_clist *)dev)->writer;
+	int len = cmd_write_ctm_return_length(cldev, &ctm_only(pis));
+
+	code = set_cmd_put_all_op(dp, (gx_device_clist_writer *)dev,
+                           cmd_opv_set_ctm, len + 1);
+	if (code < 0)
+	    return code;
+	/* fixme: would like to set pcls->known for covered bands. */
+	code = cmd_write_ctm(&ctm_only(pis), dp, len);
+	if (code < 0)
+	    return code;
+    }
+
+    /* overprint applies to all bands */
+    /* fixme: optimize: the pdf14 compositor could be applied 
+       only to bands covered by the pcte->params.bbox. */
+    code = set_cmd_put_all_op( dp,
+                               (gx_device_clist_writer *)dev,
+                               cmd_opv_extend,
+                               size );
+    if (code < 0)
+        return code;
+
+    /* insert the command and compositor identifier */
+    dp[1] = cmd_opv_ext_create_compositor;
+    dp[2] = pcte->type->comp_id;
+
+    /* serialize the remainder of the compositor */
+    if ((code = pcte->type->procs.write(pcte, dp + 3, &size)) < 0)
+        ((gx_device_clist_writer *)dev)->cnext = dp;
+    return code;
 }
 
 /* ------ Utilities ------ */
@@ -842,179 +871,222 @@ cmd_put_set_data_x(gx_device_clist_writer * cldev, gx_clist_state * pcls,
     return code;
 }
 
-/* Add commands to represent a halftone order. */
-private int
-cmd_put_ht_order(gx_device_clist_writer * cldev, const gx_ht_order * porder,
-		 gs_ht_separation_name cname,
-		 int component /* -1 = default/gray/black screen */ )
-{
-    byte command[cmd_max_intsize(sizeof(long)) * 8];
-    byte *cp;
-    uint len;
-    byte *dp;
-    uint i, n;
-    int code;
-    int pi = porder->procs - ht_order_procs_table;
-    uint elt_size = porder->procs->bit_data_elt_size;
-    const uint nlevels = min((cbuf_size - 2) / sizeof(*porder->levels), 255);
-    const uint nbits = min((cbuf_size - 2) / elt_size, 255);
-
-    if (pi < 0 || pi > countof(ht_order_procs_table))
-	return_error(gs_error_unregistered);
-    /* Put out the order parameters. */
-    cp = cmd_put_w(component + 1, command);
-    if (component >= 0)
-	cp = cmd_put_w(cname, cp);
-    cp = cmd_put_w(porder->width, cp);
-    cp = cmd_put_w(porder->height, cp);
-    cp = cmd_put_w(porder->raster, cp);
-    cp = cmd_put_w(porder->shift, cp);
-    cp = cmd_put_w(porder->num_levels, cp);
-    cp = cmd_put_w(porder->num_bits, cp);
-    *cp++ = (byte)pi;
-    len = cp - command;
-    code = set_cmd_put_all_op(dp, cldev, cmd_opv_set_ht_order, len + 1);
-    if (code < 0)
-	return code;
-    memcpy(dp + 1, command, len);
-
-    /* Put out the transfer function, if any. */
-    code = cmd_put_color_map(cldev, cmd_map_ht_transfer, porder->transfer,
-			     NULL);
-    if (code < 0)
-	return code;
-
-    /* Put out the levels array. */
-    for (i = 0; i < porder->num_levels; i += n) {
-	n = porder->num_levels - i;
-	if (n > nlevels)
-	    n = nlevels;
-	code = set_cmd_put_all_op(dp, cldev, cmd_opv_set_ht_data,
-				  2 + n * sizeof(*porder->levels));
-	if (code < 0)
-	    return code;
-	dp[1] = n;
-	memcpy(dp + 2, porder->levels + i, n * sizeof(*porder->levels));
-    }
-
-    /* Put out the bits array. */
-    for (i = 0; i < porder->num_bits; i += n) {
-	n = porder->num_bits - i;
-	if (n > nbits)
-	    n = nbits;
-	code = set_cmd_put_all_op(dp, cldev, cmd_opv_set_ht_data,
-				  2 + n * elt_size);
-	if (code < 0)
-	    return code;
-	dp[1] = n;
-	memcpy(dp + 2, (const byte *)porder->bit_data + i * elt_size,
-	       n * elt_size);
-    }
-
-    return 0;
-}
-
 /* Add commands to represent a full (device) halftone. */
-/* We put out the default/gray/black screen last so that the reading */
-/* pass can recognize the end of the halftone. */
 int
-cmd_put_halftone(gx_device_clist_writer * cldev, const gx_device_halftone * pdht,
-		 gs_halftone_type type)
+cmd_put_halftone(gx_device_clist_writer * cldev, const gx_device_halftone * pdht)
 {
-    uint num_comp = (pdht->components == 0 ? 0 : pdht->num_comp);
+    uint    ht_size = 0, req_size;
+    byte *  dp;
+    byte *  dp0 = 0;
+    byte *  pht_buff = 0;
+    int     code = gx_ht_write(pdht, (gx_device *)cldev, 0, &ht_size);
 
-    {
-	byte *dp;
-	int code = set_cmd_put_all_op(dp, cldev, cmd_opv_set_misc,
-				      2 + cmd_size_w(num_comp));
+    /*
+     * Determine the required size, and if necessary allocate a buffer.
+     *
+     * The full serialized representation consists of:
+     *  command code (2 bytes)
+     *  length of serialized halftone (enc_u_sizew(ht_size)
+     *  one or more halfton segments, which consist of:
+     *    command code (2 bytes)
+     *    segment size (enc_u_sizew(seg_size) (seg_size < cbuf_ht_seg_max_size)
+     *    the serialized halftone segment (seg_size)
+     *
+     * Serialized halftones may be larger than the command buffer, so it
+     * is sent in segments. The cmd_opv_extend/cmd_opv_ext_put_halftone
+     * combination indicates that a device halftone is being sent, and
+     * provides the length of the entire halftone. This is followed by
+     * one or more cmd_opv_extend/cmd_opv_ext_ht_seg commands, which
+     * convey the segments of the serialized hafltone. The reader can
+     * identify the final segment by adding segment lengths.
+     *
+     * This complexity is hidden from the serialization code. If the
+     * halftone is larger than a single halftone buffer, we allocate a
+     * buffer to hold the entire representation, and divided into
+     * segments in this routine.
+     */
+    if (code < 0 && code != gs_error_rangecheck)
+        return code;
+    req_size = 2 + enc_u_sizew(ht_size);
 
-	if (code < 0)
-	    return code;
-	dp[1] = cmd_set_misc_halftone + type;
-	cmd_put_w(num_comp, dp + 2);
+    /* output the "put halftone" command */
+    if ((code = set_cmd_put_all_op(dp, cldev, cmd_opv_extend, req_size)) < 0)
+        return code;
+    dp[1] = cmd_opv_ext_put_halftone;
+    dp += 2;
+    enc_u_putw(ht_size, dp);
+
+    /* see if a spearate allocated buffer is required */
+    if (ht_size > cbuf_ht_seg_max_size) {
+        pht_buff = gs_alloc_bytes( cldev->bandlist_memory,
+                                   ht_size,
+                                   "cmd_put_halftone" );
+        if (pht_buff == 0)
+            return_error(gs_error_VMerror);
+    } else {
+        /* send the only segment command */
+        req_size += ht_size;
+        code = set_cmd_put_all_op(dp, cldev, cmd_opv_extend, req_size);
+        if (code < 0)
+            return code;
+        dp0 = dp;
+        dp[1] = cmd_opv_ext_put_ht_seg;
+        dp += 2;
+        enc_u_putw(ht_size, dp);
+        pht_buff = dp;
     }
-    if (num_comp == 0)
-	return cmd_put_ht_order(cldev, &pdht->order,
-				gs_ht_separation_Default, -1);
-    {
-	int i;
 
-	for (i = num_comp; --i >= 0;) {
-	    int code = cmd_put_ht_order(cldev, &pdht->components[i].corder,
-					pdht->components[i].cname, i);
-
-	    if (code < 0)
-		return code;
-	}
+    /* serialize the halftone */
+    code = gx_ht_write(pdht, (gx_device *)cldev, pht_buff, &ht_size);
+    if (code < 0) {
+        if (ht_size > cbuf_ht_seg_max_size)
+            gs_free_object( cldev->bandlist_memory,
+                            pht_buff,
+                            "cmd_put_halftone" );
+        else
+            cldev->cnext = dp0;
+        return code;
     }
-    return 0;
+
+    /*
+     * If the halftone fit into a single command buffer, we are done.
+     * Otherwise, process the individual segments.
+     *
+     * If bandlist memory is exhausted while processing the segments,
+     * we do not make any attempt to recover the partially submitted
+     * halftone. The reader will discard any partially sent hafltone
+     * when it receives the next cmd_opv_extend/
+     * cmd_opv_ext_put_halftone combination.
+     */
+    if (ht_size > cbuf_ht_seg_max_size) {
+        byte *  pbuff = pht_buff;
+
+        while (ht_size > 0 && code >= 0) {
+            int     seg_size, tmp_size;
+
+            seg_size = ( ht_size > cbuf_ht_seg_max_size ? cbuf_ht_seg_max_size
+                                                        : ht_size );
+            tmp_size = 2 + enc_u_sizew(seg_size) + seg_size;
+            code = set_cmd_put_all_op(dp, cldev, cmd_opv_extend, tmp_size);
+            if (code >= 0) {
+                dp[1] = cmd_opv_ext_put_ht_seg;
+                dp += 2;
+                enc_u_putw(seg_size, dp);
+                memcpy(dp, pbuff, seg_size);
+                ht_size -= seg_size;
+                pbuff += seg_size;
+            }
+        }
+        gs_free_object( cldev->bandlist_memory, pht_buff, "cmd_put_halftone");
+        pht_buff = 0;
+    }
+
+    if (code >= 0)
+        cldev->device_halftone_id = pdht->id;
+
+    return code;
 }
 
 /* Write out any necessary color mapping data. */
-private int
+int
 cmd_put_color_mapping(gx_device_clist_writer * cldev,
-		      const gs_imager_state * pis, bool write_rgb_to_cmyk)
+		      const gs_imager_state * pis)
 {
     int code;
     const gx_device_halftone *pdht = pis->dev_ht;
 
     /* Put out the halftone. */
     if (pdht->id != cldev->device_halftone_id) {
-	code = cmd_put_halftone(cldev, pdht, pis->halftone->type);
+	code = cmd_put_halftone(cldev, pdht);
 	if (code < 0)
 	    return code;
 	cldev->device_halftone_id = pdht->id;
     }
-    /* If we need to map RGB to CMYK, put out b.g. and u.c.r. */
-    if (write_rgb_to_cmyk) {
-	code = cmd_put_color_map(cldev, cmd_map_black_generation,
-				 pis->black_generation,
+    /* Put the under color removal and black generation functions */
+    code = cmd_put_color_map(cldev, cmd_map_black_generation,
+				 0, pis->black_generation,
 				 &cldev->black_generation_id);
-	if (code < 0)
-	    return code;
-	code = cmd_put_color_map(cldev, cmd_map_undercolor_removal,
-				 pis->undercolor_removal,
+    if (code < 0)
+	return code;
+    code = cmd_put_color_map(cldev, cmd_map_undercolor_removal,
+				 0, pis->undercolor_removal,
 				 &cldev->undercolor_removal_id);
-	if (code < 0)
-	    return code;
-    }
+    if (code < 0)
+	return code;
     /* Now put out the transfer functions. */
     {
 	uint which = 0;
 	bool all_same = true;
+	bool send_default_comp = false;
 	int i;
+	gs_id default_comp_id, xfer_ids[4];
+
+	/*
+	 * Determine the ids for the transfer functions that we currently
+	 * have in the set_transfer structure.  The halftone xfer funcs
+	 * are sent in cmd_put_halftone.
+	 */
+#define get_id(pis, color, color_num) \
+    ((pis->set_transfer.color != NULL && pis->set_transfer.color_num >= 0) \
+	? pis->set_transfer.color->id\
+	: pis->set_transfer.gray->id)
+
+        xfer_ids[0] = get_id(pis, red, red_component_num);
+        xfer_ids[1] = get_id(pis, green, green_component_num);
+        xfer_ids[2] = get_id(pis, blue, blue_component_num);
+	xfer_ids[3] = default_comp_id = pis->set_transfer.gray->id;
+#undef get_id
 
 	for (i = 0; i < countof(cldev->transfer_ids); ++i) {
-	    if (pis->effective_transfer.indexed[i]->id !=
-		cldev->transfer_ids[i]
-		)
+	    if (xfer_ids[i] != cldev->transfer_ids[i])
 		which |= 1 << i;
-	    if (pis->effective_transfer.indexed[i]->id !=
-		pis->effective_transfer.indexed[0]->id
-		)
+	    if (xfer_ids[i] != default_comp_id)
 		all_same = false;
+	    if (xfer_ids[i] == default_comp_id &&
+		cldev->transfer_ids[i] != default_comp_id)
+		send_default_comp = true;
 	}
 	/* There are 3 cases for transfer functions: nothing to write, */
 	/* a single function, and multiple functions. */
 	if (which == 0)
 	    return 0;
-	if (which == (1 << countof(cldev->transfer_ids)) - 1 && all_same) {
-	    code = cmd_put_color_map(cldev, cmd_map_transfer,
-				     pis->effective_transfer.indexed[0],
-				     &cldev->transfer_ids[0]);
+	/*
+	 * Send default transfer function if changed or we need it for a
+	 * component
+	 */
+	if (send_default_comp || cldev->transfer_ids[0] != default_comp_id) {
+	    gs_id dummy = gs_no_id;
+
+	    code = cmd_put_color_map(cldev, cmd_map_transfer, 0,
+		pis->set_transfer.gray, &dummy);
 	    if (code < 0)
 		return code;
-	    for (i = 1; i < countof(cldev->transfer_ids); ++i)
-		cldev->transfer_ids[i] = cldev->transfer_ids[0];
-	} else
-	    for (i = 0; i < countof(cldev->transfer_ids); ++i) {
-		code = cmd_put_color_map(cldev,
-				   (cmd_map_index) (cmd_map_transfer_0 + i),
-					 pis->effective_transfer.indexed[i],
-					 &cldev->transfer_ids[i]);
-		if (code < 0)
-		    return code;
-	    }
+	    /* Sending a default will force all xfers to default */
+	    for (i = 0; i < countof(cldev->transfer_ids); ++i)
+		cldev->transfer_ids[i] = default_comp_id;
+	}
+	/* Send any transfer functions which have changed */
+	if (cldev->transfer_ids[0] != xfer_ids[0]) {
+	    code = cmd_put_color_map(cldev, cmd_map_transfer_0,
+			pis->set_transfer.red_component_num,
+			pis->set_transfer.red, &cldev->transfer_ids[0]);
+	    if (code < 0)
+		return code;
+	}
+	if (cldev->transfer_ids[1] != xfer_ids[1]) {
+	    code = cmd_put_color_map(cldev, cmd_map_transfer_1,
+			pis->set_transfer.green_component_num,
+			pis->set_transfer.green, &cldev->transfer_ids[1]);
+	    if (code < 0)
+		return code;
+	}
+	if (cldev->transfer_ids[2] != xfer_ids[2]) {
+	    code = cmd_put_color_map(cldev, cmd_map_transfer_2,
+			pis->set_transfer.blue_component_num,
+			pis->set_transfer.blue, &cldev->transfer_ids[2]);
+	    if (code < 0)
+		return code;
+	}
     }
 
     return 0;
@@ -1235,7 +1307,34 @@ clist_image_unknowns(gx_device *dev, const clist_image_enum *pie)
     }
     if (cmd_check_clip_path(cdev, pie->pcpath))
 	unknown |= clip_path_known;
-
+    /*
+     * Note: overprint and overprint_mode are implemented via a compositor
+     * device, which is passed separately through the command list. Hence,
+     * though both parameters are passed in the state as well, this usually
+     * has no effect.
+     */
+    if (cdev->imager_state.overprint != pis->overprint ||
+        cdev->imager_state.overprint_mode != pis->overprint_mode ||
+        cdev->imager_state.blend_mode != pis->blend_mode ||
+        cdev->imager_state.text_knockout != pis->text_knockout) {
+	unknown |= op_bm_tk_known;
+        cdev->imager_state.overprint = pis->overprint;
+        cdev->imager_state.overprint_mode = pis->overprint_mode;
+        cdev->imager_state.blend_mode = pis->blend_mode;
+        cdev->imager_state.text_knockout = pis->text_knockout;
+    }
+    if (cdev->imager_state.opacity.alpha != pis->opacity.alpha) {
+	unknown |= opacity_alpha_known;
+        cdev->imager_state.opacity.alpha = pis->opacity.alpha;
+    }
+    if (cdev->imager_state.shape.alpha != pis->shape.alpha) {
+	unknown |= shape_alpha_known;
+        cdev->imager_state.shape.alpha = pis->shape.alpha;
+    }
+    if (cdev->imager_state.alpha != pis->alpha) {
+	unknown |= alpha_known;
+        cdev->imager_state.alpha = pis->alpha;
+    }
     return unknown;
 }
 
@@ -1253,6 +1352,7 @@ begin_image_command(byte *buf, uint buf_size, const gs_image_common_t *pic)
 	    break;
     if (i >= gx_image_type_table_count)
 	return_error(gs_error_rangecheck);
+    s_init(&s, NULL);
     swrite_string(&s, buf, buf_size);
     sputc(&s, (byte)i);
     code = pic->type->sput(pic, &s, &ignore_pcs);

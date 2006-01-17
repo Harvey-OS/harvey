@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevbit.c,v 1.2 2000/09/19 19:00:11 lpd Exp $ */
+/* $Id: gdevbit.c,v 1.10 2004/06/23 18:57:15 stefan Exp $ */
 /* "Plain bits" devices to measure rendering time. */
 #include "math_.h"
 #include "gdevprn.h"
@@ -35,22 +33,21 @@
 #endif
 
 /* The device descriptor */
-private dev_proc_map_rgb_color(bit_mono_map_rgb_color);
-private dev_proc_map_rgb_color(bit_forcemono_map_rgb_color);
+private dev_proc_map_rgb_color(bit_mono_map_color);
 private dev_proc_map_color_rgb(bit_map_color_rgb);
 private dev_proc_map_cmyk_color(bit_map_cmyk_color);
 private dev_proc_get_params(bit_get_params);
 private dev_proc_put_params(bit_put_params);
 private dev_proc_print_page(bit_print_page);
 
-#define bit_procs(map_rgb_color, map_cmyk_color)\
+#define bit_procs(encode_color)\
 {	gdev_prn_open,\
 	gx_default_get_initial_matrix,\
 	NULL,	/* sync_output */\
 	gdev_prn_output_page,\
 	gdev_prn_close,\
-	map_rgb_color,\
-	bit_map_color_rgb,\
+	encode_color,	/* map_rgb_color */\
+	bit_map_color_rgb,	/* map_color_rgb */\
 	NULL,	/* fill_rectangle */\
 	NULL,	/* tile_rectangle */\
 	NULL,	/* copy_mono */\
@@ -59,11 +56,44 @@ private dev_proc_print_page(bit_print_page);
 	NULL,	/* get_bits */\
 	bit_get_params,\
 	bit_put_params,\
-	map_cmyk_color,\
+	encode_color,	/* map_cmyk_color */\
 	NULL,	/* get_xfont_procs */\
 	NULL,	/* get_xfont_device */\
 	NULL,	/* map_rgb_alpha_color */\
-	gx_page_device_get_page_device	/* get_page_device */\
+	gx_page_device_get_page_device,	/* get_page_device */\
+	NULL,	/* get_alpha_bits */\
+	NULL,	/* copy_alpha */\
+	NULL,	/* get_band */\
+	NULL,	/* copy_rop */\
+	NULL,	/* fill_path */\
+	NULL,	/* stroke_path */\
+	NULL,	/* fill_mask */\
+	NULL,	/* fill_trapezoid */\
+	NULL,	/* fill_parallelogram */\
+	NULL,	/* fill_triangle */\
+	NULL,	/* draw_thin_line */\
+	NULL,	/* begin_image */\
+	NULL,	/* image_data */\
+	NULL,	/* end_image */\
+	NULL,	/* strip_tile_rectangle */\
+	NULL,	/* strip_copy_rop */\
+	NULL,	/* get_clipping_box */\
+	NULL,	/* begin_typed_image */\
+	NULL,	/* get_bits_rectangle */\
+	NULL,	/* map_color_rgb_alpha */\
+	NULL,	/* create_compositor */\
+	NULL,	/* get_hardware_params */\
+	NULL,	/* text_begin */\
+	NULL,	/* finish_copydevice */\
+	NULL,	/* begin_transparency_group */\
+	NULL,	/* end_transparency_group */\
+	NULL,	/* begin_transparency_mask */\
+	NULL,	/* end_transparency_mask */\
+	NULL,	/* discard_transparency_layer */\
+	NULL,	/* get_color_mapping_procs */\
+	NULL,	/* get_color_comp_index */\
+	encode_color,		/* encode_color */\
+	bit_map_color_rgb	/* decode_color */\
 }
 
 /*
@@ -78,7 +108,7 @@ private dev_proc_print_page(bit_print_page);
 				  dev->dname[3] == 'r' ? 3 : 1)
 
 private const gx_device_procs bitmono_procs =
-bit_procs(bit_mono_map_rgb_color, NULL);
+bit_procs(bit_mono_map_color);
 const gx_device_printer gs_bit_device =
 {prn_device_body(gx_device_printer, bitmono_procs, "bit",
 		 DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
@@ -88,7 +118,7 @@ const gx_device_printer gs_bit_device =
 };
 
 private const gx_device_procs bitrgb_procs =
-bit_procs(gx_default_rgb_map_rgb_color, NULL);
+bit_procs(gx_default_rgb_map_rgb_color);
 const gx_device_printer gs_bitrgb_device =
 {prn_device_body(gx_device_printer, bitrgb_procs, "bitrgb",
 		 DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
@@ -98,7 +128,7 @@ const gx_device_printer gs_bitrgb_device =
 };
 
 private const gx_device_procs bitcmyk_procs =
-bit_procs(bit_forcemono_map_rgb_color, bit_map_cmyk_color);
+bit_procs(bit_map_cmyk_color);
 const gx_device_printer gs_bitcmyk_device =
 {prn_device_body(gx_device_printer, bitcmyk_procs, "bitcmyk",
 		 DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
@@ -110,47 +140,19 @@ const gx_device_printer gs_bitcmyk_device =
 /* Map gray to color. */
 /* Note that 1-bit monochrome is a special case. */
 private gx_color_index
-bit_mono_map_rgb_color(gx_device * dev, gx_color_value red,
-		       gx_color_value green, gx_color_value blue)
+bit_mono_map_color(gx_device * dev, const gx_color_value cv[])
 {
     int bpc = dev->color_info.depth;
     int drop = sizeof(gx_color_value) * 8 - bpc;
-    gx_color_value gray =
-    (red * (unsigned long)lum_red_weight +
-     green * (unsigned long)lum_green_weight +
-     blue * (unsigned long)lum_blue_weight +
-     (lum_all_weights / 2))
-    / lum_all_weights;
+    gx_color_value gray = cv[0];
 
     return (bpc == 1 ? gx_max_color_value - gray : gray) >> drop;
-}
-
-/* Map RGB to gray shade. */
-/* Only used in CMYK mode when put_params has set ForceMono=1 */
-private gx_color_index
-bit_forcemono_map_rgb_color(gx_device * dev, gx_color_value red,
-		  gx_color_value green, gx_color_value blue)
-{
-    gx_color_value color;
-    int bpc = dev->color_info.depth / 4;	/* This function is used in CMYK mode */
-    int drop = sizeof(gx_color_value) * 8 - bpc;
-    gx_color_value gray = red;
-
-    if ((red != green) || (green != blue))
-	gray = (red * (unsigned long)lum_red_weight +
-	     green * (unsigned long)lum_green_weight +
-	     blue * (unsigned long)lum_blue_weight +
-	     (lum_all_weights / 2))
-		/ lum_all_weights;
-
-    color = (gx_max_color_value - gray) >> drop;	/* color is in K channel */
-    return color;
 }
 
 /* Map color to RGB.  This has 3 separate cases, but since it is rarely */
 /* used, we do a case test rather than providing 3 separate routines. */
 private int
-bit_map_color_rgb(gx_device * dev, gx_color_index color, gx_color_value rgb[3])
+bit_map_color_rgb(gx_device * dev, gx_color_index color, gx_color_value cv[4])
 {
     int depth = dev->color_info.depth;
     int ncomp = REAL_NUM_COMPONENTS(dev);
@@ -161,7 +163,7 @@ bit_map_color_rgb(gx_device * dev, gx_color_index color, gx_color_value rgb[3])
 
     switch (ncomp) {
 	case 1:		/* gray */
-	    rgb[0] = rgb[1] = rgb[2] =
+	    cv[0] =
 		(depth == 1 ? (color ? 0 : gx_max_color_value) :
 		 cvalue(color));
 	    break;
@@ -169,10 +171,10 @@ bit_map_color_rgb(gx_device * dev, gx_color_index color, gx_color_value rgb[3])
 	    {
 		gx_color_index cshift = color;
 
-		rgb[2] = cvalue(cshift & mask);
+		cv[2] = cvalue(cshift & mask);
 		cshift >>= bpc;
-		rgb[1] = cvalue(cshift & mask);
-		rgb[0] = cvalue(cshift >> bpc);
+		cv[1] = cvalue(cshift & mask);
+		cv[0] = cvalue(cshift >> bpc);
 	    }
 	    break;
 	case 4:		/* CMYK */
@@ -188,9 +190,9 @@ bit_map_color_rgb(gx_device * dev, gx_color_index color, gx_color_value rgb[3])
 		m = cshift & mask;
 		c = cshift >> bpc;
 		/* We use our improved conversion rule.... */
-		rgb[0] = cvalue((mask - c) * (mask - k) / mask);
-		rgb[1] = cvalue((mask - m) * (mask - k) / mask);
-		rgb[2] = cvalue((mask - y) * (mask - k) / mask);
+		cv[0] = cvalue((mask - c) * (mask - k) / mask);
+		cv[1] = cvalue((mask - m) * (mask - k) / mask);
+		cv[2] = cvalue((mask - y) * (mask - k) / mask);
 	    }
 	    break;
     }
@@ -200,16 +202,15 @@ bit_map_color_rgb(gx_device * dev, gx_color_index color, gx_color_value rgb[3])
 
 /* Map CMYK to color. */
 private gx_color_index
-bit_map_cmyk_color(gx_device * dev, gx_color_value cyan,
-	gx_color_value magenta, gx_color_value yellow, gx_color_value black)
+bit_map_cmyk_color(gx_device * dev, const gx_color_value cv[])
 {
     int bpc = dev->color_info.depth / 4;
     int drop = sizeof(gx_color_value) * 8 - bpc;
     gx_color_index color =
-    ((((((cyan >> drop) << bpc) +
-	(magenta >> drop)) << bpc) +
-      (yellow >> drop)) << bpc) +
-    (black >> drop);
+    (((((((gx_color_index) cv[0] >> drop) << bpc) +
+	(cv[1] >> drop)) << bpc) +
+      (cv[2] >> drop)) << bpc) +
+    (cv[3] >> drop);
 
     return (color == gx_no_color_index ? color ^ 1 : color);
 }
@@ -259,11 +260,11 @@ bit_put_params(gx_device * pdev, gs_param_list * plist)
     int v;
     int ecode = 0;
     int code;
-    static const byte depths[4][8] = {
-	{1, 2, 0, 4, 8, 0, 0, 8},
+    static const byte depths[4][16] = {
+	{1, 2, 0, 4, 8, 0, 0, 8, 0, 0, 0, 16, 0, 0, 0, 16},
 	{0},
-	{4, 8, 0, 16, 16, 0, 0, 24},
-	{4, 8, 0, 16, 32, 0, 0, 32}
+	{4, 8, 0, 16, 16, 0, 0, 24, 0, 0, 0, 40, 0, 0, 0, 48},
+	{4, 8, 0, 16, 32, 0, 0, 32, 0, 0, 0, 48, 0, 0, 0, 64}
     };
     const char *vname;
 
@@ -287,6 +288,8 @@ bit_put_params(gx_device * pdev, gs_param_list * plist)
 		case  16: bpc = 4; break;
 		case  32: bpc = 5; break;
 		case 256: bpc = 8; break;
+		case 4096: bpc = 12; break;
+		case 65536: bpc = 16; break;
 		default:
 		    param_signal_error(plist, vname,
 				       ecode = gs_error_rangecheck);
@@ -345,6 +348,9 @@ bit_put_params(gx_device * pdev, gs_param_list * plist)
 		     pdev->color_info.depth == 32 ? cmyk_8bit_map_cmyk_color :
 		     bit_map_cmyk_color);
     }
+    /* Reset the sparable and linear shift, masks, bits. */
+    set_linear_color_bits_mask_shift(pdev);
+    pdev->color_info.separable_and_linear = GX_CINFO_SEP_LIN;
     return 0;
 }
 

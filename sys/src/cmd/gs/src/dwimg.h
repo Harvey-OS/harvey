@@ -1,25 +1,39 @@
-/* Copyright (C) 1996, 2001, Ghostgum Software Pty Ltd.  All rights reserved.
+/* Copyright (C) 1996-2004, Ghostgum Software Pty Ltd.  All rights reserved.
 
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
  */
 
-/* $Id: dwimg.h,v 1.4 2001/08/01 09:50:36 ghostgum Exp $ */
+/* $Id: dwimg.h,v 1.11 2004/09/15 19:41:01 ray Exp $ */
+
+#ifndef dwimg_INCLUDED
+#  define dwimg_INCLUDED
 
 
 /* Windows Image Window structure */
+
+typedef struct IMAGE_DEVICEN_S IMAGE_DEVICEN;
+struct IMAGE_DEVICEN_S {
+    int used;		/* non-zero if in use */
+    int visible;	/* show on window */
+    char name[64];
+    int cyan;
+    int magenta;
+    int yellow;
+    int black;
+    int menu;		/* non-zero if menu item added to system menu */
+};
+#define IMAGE_DEVICEN_MAX 8
 
 typedef struct IMAGE_S IMAGE;
 struct IMAGE_S {
@@ -33,11 +47,16 @@ struct IMAGE_S {
     BITMAPINFOHEADER bmih;
     HPALETTE palette;
     int bytewidth;
-    int sep;		/* CMYK separations to display */
+    int devicen_gray;	/* true if a single separation should be shown gray */
+    IMAGE_DEVICEN devicen[IMAGE_DEVICEN_MAX];
 
     /* periodic redrawing */
-    SYSTEMTIME update_time;
-    int update_interval;
+    UINT update_timer;		/* identifier */
+    int update_tick;		/* timer duration in milliseconds */
+    int update_count;		/* Number of WM_TIMER messages received */
+    int update_interval;	/* Number of WM_TIMER until refresh */
+    int pending_update;		/* We have asked for periodic updates */
+    int pending_sync;		/* We have asked for a SYNC */
 
     /* Window scrolling stuff */
     int cxClient, cyClient;
@@ -72,4 +91,7 @@ void image_page(IMAGE *img);
 void image_presize(IMAGE *img, int new_width, int new_height, int new_raster, 
    unsigned int new_format);
 void image_poll(IMAGE *img);
+void image_updatesize(IMAGE *img);
 
+
+#endif /* dwimg_INCLUDED */

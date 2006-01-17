@@ -1,36 +1,34 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995-2000, 2004 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: ilocate.c,v 1.4 2001/09/06 15:46:13 rayjj Exp $ */
+/* $Id: ilocate.c,v 1.14 2005/10/12 11:05:11 leonardo Exp $ */
 /* Object locating and validating for Ghostscript memory manager */
 #include "ghost.h"
 #include "memory_.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "gsexit.h"
 #include "gsstruct.h"
 #include "iastate.h"
 #include "idict.h"
-#include "igc.h"		/* for gc_state_t */
-#include "igcstr.h"		/* for prototype */
+#include "igc.h"	/* for gc_state_t and gcst_get_memory_ptr() */
+#include "igcstr.h"	/* for prototype */
 #include "iname.h"
 #include "ipacked.h"
 #include "isstate.h"
-#include "iutil.h"		/* for packed_get */
+#include "iutil.h"	/* for packed_get */
 #include "ivmspace.h"
 #include "store.h"
 
@@ -287,8 +285,15 @@ object_size_valid(const obj_header_t * pre, uint size, const chunk_t * cp)
 }
 
 /* Validate all the objects in a chunk. */
-private void ialloc_validate_ref(P2(const ref *, gc_state_t *));
-private void ialloc_validate_ref_packed(P2(const ref_packed *, gc_state_t *));
+#if IGC_PTR_STABILITY_CHECK
+void ialloc_validate_pointer_stability(const obj_header_t * ptr_from, 
+				   const obj_header_t * ptr_to);
+private void ialloc_validate_ref(const ref *, gc_state_t *, const obj_header_t *pre_fr);
+private void ialloc_validate_ref_packed(const ref_packed *, gc_state_t *, const obj_header_t *pre_fr);
+#else
+private void ialloc_validate_ref(const ref *, gc_state_t *);
+private void ialloc_validate_ref_packed(const ref_packed *, gc_state_t *);
+#endif
 void
 ialloc_validate_chunk(const chunk_t * cp, gc_state_t * gcst)
 {
@@ -309,7 +314,11 @@ ialloc_validate_chunk(const chunk_t * cp, gc_state_t * gcst)
 	const char *end = (const char *)rp + size;
 
 	while ((const char *)rp < end) {
+#	    if IGC_PTR_STABILITY_CHECK
+	    ialloc_validate_ref_packed(rp, gcst, pre);
+#	    else
 	    ialloc_validate_ref_packed(rp, gcst);
+#	    endif
 	    rp = packed_next(rp);
 	}
     } else {
@@ -319,36 +328,71 @@ ialloc_validate_chunk(const chunk_t * cp, gc_state_t * gcst)
 	gs_ptr_type_t ptype;
 
 	if (proc != gs_no_struct_enum_ptrs)
-	    for (; (ptype = (*proc) (pre + 1, size, index, &eptr, pre->o_type, NULL)) != 0; ++index)
+	    for (; (ptype = (*proc) (gcst_get_memory_ptr(gcst), 
+				     pre + 1, size, index, &eptr, 
+				     pre->o_type, gcst)) != 0; ++index) {
 		if (eptr.ptr == 0)
 		    DO_NOTHING;
-		else if (ptype == ptr_struct_type)
+		else if (ptype == ptr_struct_type) {
 		    ialloc_validate_object(eptr.ptr, NULL, gcst);
-		else if (ptype == ptr_ref_type)
+#		    if IGC_PTR_STABILITY_CHECK
+			ialloc_validate_pointer_stability(pre, 
+			    (const obj_header_t *)eptr.ptr - 1);
+#		    endif
+		} else if (ptype == ptr_ref_type)
+#		    if IGC_PTR_STABILITY_CHECK
+		    ialloc_validate_ref_packed(eptr.ptr, gcst, pre);
+#		    else
 		    ialloc_validate_ref_packed(eptr.ptr, gcst);
+#		    endif
+	    }
     }
     END_OBJECTS_SCAN
 }
 /* Validate a ref. */
+#if IGC_PTR_STABILITY_CHECK
 private void
-ialloc_validate_ref_packed(const ref_packed * rp, gc_state_t * gcst)
+ialloc_validate_ref_packed(const ref_packed * rp, gc_state_t * gcst, const obj_header_t *pre_fr)
 {
+    const gs_memory_t *cmem = gcst->spaces.memories.named.system->stable_memory;
+
     if (r_is_packed(rp)) {
 	ref unpacked;
 
-	packed_get(rp, &unpacked);
+	packed_get(cmem, rp, &unpacked);
+	ialloc_validate_ref(&unpacked, gcst, pre_fr);
+    } else {
+	ialloc_validate_ref((const ref *)rp, gcst, pre_fr);
+    }
+}
+#else
+private void
+ialloc_validate_ref_packed(const ref_packed * rp, gc_state_t * gcst)
+{
+    const gs_memory_t *cmem = gcst->spaces.memories.named.system->stable_memory;
+
+    if (r_is_packed(rp)) {
+	ref unpacked;
+
+	packed_get(cmem, rp, &unpacked);
 	ialloc_validate_ref(&unpacked, gcst);
     } else {
 	ialloc_validate_ref((const ref *)rp, gcst);
     }
 }
+#endif
 private void
-ialloc_validate_ref(const ref * pref, gc_state_t * gcst)
+ialloc_validate_ref(const ref * pref, gc_state_t * gcst
+#		    if IGC_PTR_STABILITY_CHECK
+			, const obj_header_t *pre_fr
+#		    endif
+		    )
 {
     const void *optr;
     const ref *rptr;
     const char *tname;
     uint size;
+    const gs_memory_t *cmem = gcst->spaces.memories.named.system->stable_memory;
 
     if (!gs_debug_c('?'))
 	return;			/* no check */
@@ -365,19 +409,24 @@ ialloc_validate_ref(const ref * pref, gc_state_t * gcst)
 	case t_struct:
 	case t_astruct:
 	    optr = pref->value.pstruct;
-cks:	    if (optr != 0)
+cks:	    if (optr != 0) {
 		ialloc_validate_object(optr, NULL, gcst);
+#		if IGC_PTR_STABILITY_CHECK
+		    ialloc_validate_pointer_stability(pre_fr, 
+			    (const obj_header_t *)optr - 1);
+#		endif
+	    }
 	    break;
 	case t_name:
-	    if (name_index_ptr(name_index(pref)) != pref->value.pname) {
+	    if (name_index_ptr(cmem, name_index(cmem, pref)) != pref->value.pname) {
 		lprintf3("At 0x%lx, bad name %u, pname = 0x%lx\n",
-			 (ulong) pref, (uint)name_index(pref),
+			 (ulong) pref, (uint)name_index(cmem, pref),
 			 (ulong) pref->value.pname);
 		break;
 	    } {
 		ref sref;
 
-		name_string_ref(pref, &sref);
+		name_string_ref(cmem, pref, &sref);
 		if (r_space(&sref) != avm_foreign &&
 		    !gc_locate(sref.value.const_bytes, gcst)
 		    ) {
@@ -444,6 +493,29 @@ cka:	    if (!gc_locate(rptr, gcst)) {
     }
 }
 
+#if IGC_PTR_STABILITY_CHECK
+/* Validate an pointer stability. */
+void
+ialloc_validate_pointer_stability(const obj_header_t * ptr_fr, 
+				   const obj_header_t * ptr_to)
+{
+    static const char *sn[] = {"undef", "undef", "system", "undef", 
+		"global_stable", "global", "local_stable", "local"};
+
+    if (ptr_fr->d.o.space_id < ptr_to->d.o.space_id) {
+	const char *sn_fr = (ptr_fr->d.o.space_id < count_of(sn) 
+			? sn[ptr_fr->d.o.space_id] : "unknown");
+	const char *sn_to = (ptr_to->d.o.space_id < count_of(sn) 
+			? sn[ptr_to->d.o.space_id] : "unknown");
+
+	lprintf6("Reference to a less stable object 0x%lx<%s> "
+	         "in the space \'%s\' from 0x%lx<%s> in the space \'%s\' !\n",
+		 (ulong) ptr_to, ptr_to->d.o.t.type->sname, sn_to, 
+		 (ulong) ptr_fr, ptr_fr->d.o.t.type->sname, sn_fr);
+    }
+}
+#endif
+
 /* Validate an object. */
 void
 ialloc_validate_object(const obj_header_t * ptr, const chunk_t * cp,
@@ -469,7 +541,7 @@ ialloc_validate_object(const obj_header_t * ptr, const chunk_t * cp,
     if (otype == &st_free) {
 	lprintf3("Reference to free object 0x%lx(%lu), in chunk 0x%lx!\n",
 		 (ulong) ptr, (ulong) size, (ulong) cp);
-	gs_abort();
+	gs_abort(gcst->heap);
     }
     if ((cp != 0 && !object_size_valid(pre, size, cp)) ||
 	otype->ssize == 0 ||
@@ -481,7 +553,7 @@ ialloc_validate_object(const obj_header_t * ptr, const chunk_t * cp,
 		 (ulong) ptr, (ulong) size);
 	dprintf2(" ssize = %u, in chunk 0x%lx!\n",
 		 otype->ssize, (ulong) cp);
-	gs_abort();
+	gs_abort(gcst->heap);
     }
 }
 

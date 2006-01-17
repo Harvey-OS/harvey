@@ -1,26 +1,24 @@
 /* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: isave.c,v 1.3 2000/09/19 19:00:46 lpd Exp $ */
+/* $Id: isave.c,v 1.14 2005/06/23 07:35:30 igor Exp $ */
 /* Save/restore manager for Ghostscript interpreter */
 #include "ghost.h"
 #include "memory_.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "gsexit.h"
 #include "gsstruct.h"
 #include "stream.h"		/* for linking for forgetsave */
@@ -34,8 +32,6 @@
 #include "ivmspace.h"
 #include "gsutil.h"		/* gs_next_ids prototype */
 
-/* Imported save/restore routines */
-extern void font_restore(P1(const alloc_save_t *));
 
 /* Structure descriptor */
 private_st_alloc_save();
@@ -43,6 +39,10 @@ private_st_alloc_save();
 /* Define the maximum amount of data we are willing to scan repeatedly -- */
 /* see below for details. */
 private const long max_repeated_scan = 100000;
+
+/* Define the minimum space for creating an inner chunk. */
+/* Must be at least sizeof(chunk_head_t). */
+private const long min_inner_chunk_space = sizeof(chunk_head_t) + 500;
 
 /*
  * The logic for saving and restoring the state is complex.
@@ -53,22 +53,22 @@ private const long max_repeated_scan = 100000;
 /*
  * To save the state of the memory manager:
  *      Save the state of the current chunk in which we are allocating.
- *      Shrink the current chunk to its inner unallocated region.
+ *      Shrink all chunks to their inner unallocated region.
  *      Save and reset the free block chains.
  * By doing this, we guarantee that no object older than the save
  * can be freed.
  *
  * To restore the state of the memory manager:
- *      Free all chunks newer than the save, and the descriptor for
- *        the inner chunk created by the save.
+ *      Free all chunks newer than the save, and the descriptors for
+ *        the inner chunks created by the save.
  *      Make current the chunk that was current at the time of the save.
  *      Restore the state of the current chunk.
  *
  * In addition to save ("start transaction") and restore ("abort transaction"),
  * we support forgetting a save ("commit transation").  To forget a save:
  *      Reassign to the next outer save all chunks newer than the save.
- *      Free the descriptor for the inner chunk, updating its outer chunk
- *        to reflect additional allocations in the inner chunk.
+ *      Free the descriptors for the inners chunk, updating their outer
+ *        chunks to reflect additional allocations in the inner chunks.
  *      Concatenate the free block chains with those of the outer save.
  */
 
@@ -250,10 +250,10 @@ alloc_save_print(alloc_change_t * cp, bool print_current)
 #endif
 
 /* Forward references */
-private void restore_resources(P2(alloc_save_t *, gs_ref_memory_t *));
-private void restore_free(P1(gs_ref_memory_t *));
-private long save_set_new(P2(gs_ref_memory_t *, bool));
-private void save_set_new_changes(P2(gs_ref_memory_t *, bool));
+private void restore_resources(alloc_save_t *, gs_ref_memory_t *);
+private void restore_free(gs_ref_memory_t *);
+private long save_set_new(gs_ref_memory_t *, bool);
+private void save_set_new_changes(gs_ref_memory_t *, bool);
 
 /* Initialize the save/restore machinery. */
 void
@@ -294,24 +294,22 @@ alloc_set_not_in_save(gs_dual_memory_t *dmem)
 }
 
 /* Save the state. */
-private alloc_save_t *alloc_save_space(P3(gs_ref_memory_t *mem,
-					  gs_dual_memory_t *dmem,
-					  ulong sid));
+private alloc_save_t *alloc_save_space(gs_ref_memory_t *mem,
+				       gs_dual_memory_t *dmem,
+				       ulong sid);
 private void
-alloc_free_save(gs_ref_memory_t *mem, alloc_save_t *save, const char *scn,
-		const char *icn)
+alloc_free_save(gs_ref_memory_t *mem, alloc_save_t *save, const char *scn)
 {
-    chunk_t *inner = mem->pcc;
-
     gs_free_object((gs_memory_t *)mem, save, scn);
-    gs_free_object(mem->parent, inner, icn);
+    /* Free any inner chunk structures.  This is the easiest way to do it. */
+    restore_free(mem);
 }
 ulong
 alloc_save_state(gs_dual_memory_t * dmem, void *cdata)
 {
     gs_ref_memory_t *lmem = dmem->space_local;
     gs_ref_memory_t *gmem = dmem->space_global;
-    ulong sid = gs_next_ids(2);
+    ulong sid = gs_next_ids((const gs_memory_t *)lmem->stable_memory, 2);
     bool global =
 	lmem->save_level == 0 && gmem != lmem &&
 	gmem->num_contexts == 1;
@@ -319,13 +317,11 @@ alloc_save_state(gs_dual_memory_t * dmem, void *cdata)
 	(global ? alloc_save_space(gmem, dmem, sid + 1) : (alloc_save_t *) 0);
     alloc_save_t *lsave = alloc_save_space(lmem, dmem, sid);
 
-    if (lsave == 0 || (global &&gsave == 0)) {
+    if (lsave == 0 || (global && gsave == 0)) {
 	if (lsave != 0)
-	    alloc_free_save(lmem, lsave, "alloc_save_state(local save)",
-			    "alloc_save_state(local inner)");
+	    alloc_free_save(lmem, lsave, "alloc_save_state(local save)");
 	if (gsave != 0)
-	    alloc_free_save(gmem, gsave, "alloc_save_state(global save)",
-			    "alloc_save_state(global inner)");
+	    alloc_free_save(gmem, gsave, "alloc_save_state(global save)");
 	return 0;
     }
     if (gsave != 0) {
@@ -351,11 +347,18 @@ alloc_save_state(gs_dual_memory_t * dmem, void *cdata)
 	    rsave = alloc_save_space(lmem, dmem, 0L);
 	    if (rsave != 0) {
 		rsave->client_data = cdata;
+#if 0 /* Bug 688153 */
 		rsave->id = lsave->id;
 		print_save("save", lmem->space, rsave);
 		lsave->id = 0;	/* mark as invisible */
 		rsave->state.save_level--; /* ditto */
 		lsave->client_data = 0;
+#else
+		rsave->id = 0;  /* mark as invisible */
+		print_save("save", lmem->space, rsave);
+		rsave->state.save_level--; /* ditto */
+		rsave->client_data = 0;
+#endif
 		/* Inherit the allocated space count -- */
 		/* we need this for triggering a GC. */
 		rsave->state.inherited =
@@ -374,52 +377,50 @@ alloc_save_space(gs_ref_memory_t * mem, gs_dual_memory_t * dmem, ulong sid)
 {
     gs_ref_memory_t save_mem;
     alloc_save_t *save;
-    chunk_t *inner = 0;
+    chunk_t *cp;
+    chunk_t *new_pcc = 0;
 
-    if (mem->cc.ctop - mem->cc.cbot > sizeof(chunk_head_t)) {
-	inner = gs_raw_alloc_struct_immovable(mem->parent, &st_chunk,
-					      "alloc_save_space(inner)");
-	if (inner == 0)
-	    return 0;
-    }
     save_mem = *mem;
     alloc_close_chunk(mem);
+    mem->pcc = 0;
     gs_memory_status((gs_memory_t *) mem, &mem->previous_status);
     ialloc_reset(mem);
-    mem->cc.cnext = mem->cc.cprev = 0;
-    if (inner != 0) {		/* Create an inner chunk to cover only the unallocated part. */
-	alloc_init_chunk(&mem->cc, mem->cc.cbot, mem->cc.ctop,
-			 true, mem->pcc);
-	*inner = mem->cc;
-	mem->pcc = inner;
-	mem->cfirst = mem->clast = inner;
-    } else {			/* Not enough room to create an inner chunk. */
-	mem->pcc = 0;
-	mem->cfirst = mem->clast = 0;
-	mem->cc.cbot = mem->cc.ctop = 0;
+
+    /* Create inner chunks wherever it's worthwhile. */
+
+    for (cp = save_mem.cfirst; cp != 0; cp = cp->cnext) {
+	if (cp->ctop - cp->cbot > min_inner_chunk_space) {
+	    /* Create an inner chunk to cover only the unallocated part. */
+	    chunk_t *inner =
+		gs_raw_alloc_struct_immovable(mem->non_gc_memory, &st_chunk,
+					      "alloc_save_space(inner)");
+
+	    if (inner == 0)
+		break;		/* maybe should fail */
+	    alloc_init_chunk(inner, cp->cbot, cp->ctop, cp->sreloc != 0, cp);
+	    alloc_link_chunk(inner, mem);
+	    if_debug2('u', "[u]inner chunk: cbot=0x%lx ctop=0x%lx\n",
+		      (ulong) inner->cbot, (ulong) inner->ctop);
+	    if (cp == save_mem.pcc)
+		new_pcc = inner;
+	}
     }
+    mem->pcc = new_pcc;
+    alloc_open_chunk(mem);
+
     save = gs_alloc_struct((gs_memory_t *) mem, alloc_save_t,
 			   &st_alloc_save, "alloc_save_space(save)");
-#ifdef DEBUG
-    if (inner != 0) {
-	if_debug4('u',
-		  "[u]save space %u at 0x%lx: cbot=0x%lx ctop=0x%lx\n",
-		  mem->space, (ulong) save,
-		  (ulong) inner->cbot, (ulong) inner->ctop);
-    } else {
-	if_debug2('u',
-		  "[u]save space %u at 0x%lx (no inner)\n",
-		  mem->space, (ulong) save);
-    }
-#endif
+    if_debug2('u', "[u]save space %u at 0x%lx\n",
+	      mem->space, (ulong) save);
     if (save == 0) {
-	gs_free_object(mem->parent, inner, "alloc_save_space(inner)");
+	/* Free the inner chunk structures.  This is the easiest way. */
+	restore_free(mem);
 	*mem = save_mem;
 	return 0;
     }
     save->state = save_mem;
     save->spaces = dmem->spaces;
-    save->restore_names = (name_memory() == (gs_memory_t *) mem);
+    save->restore_names = (name_memory(mem) == (gs_memory_t *) mem);
     save->is_current = (dmem->current == mem);
     save->id = sid;
     mem->saved = save;
@@ -457,7 +458,7 @@ alloc_save_change_in(gs_ref_memory_t *mem, const ref * pcont,
     else {
 	lprintf3("Bad type %u for save!  pcont = 0x%lx, where = 0x%lx\n",
 		 r_type(pcont), (ulong) pcont, (ulong) where);
-	gs_abort();
+	gs_abort((const gs_memory_t *)mem);
     }
     if (r_is_packed(where))
 	*(ref_packed *)&cp->contents = *where;
@@ -507,7 +508,7 @@ bool
 alloc_is_since_save(const void *vptr, const alloc_save_t * save)
 {
     /* A reference postdates a save iff it is in a chunk allocated */
-    /* since the save (including the carried-over inner chunk). */
+    /* since the save (including any carried-over inner chunks). */
 
     const char *const ptr = (const char *)vptr;
     register const gs_ref_memory_t *mem = save->space_local;
@@ -540,13 +541,13 @@ alloc_is_since_save(const void *vptr, const alloc_save_t * save)
     }
 
     /*
-     * If we're about to do a global restore (save level = 1),
+     * If we're about to do a global restore (a restore to the level 0),
      * and there is only one context using this global VM
      * (the normal case, in which global VM is saved by the
      * outermost save), we also have to check the global save.
      * Global saves can't be nested, which makes things easy.
      */
-    if (mem->save_level == 1 &&
+    if (save->state.save_level == 0 /* Restoring to save level 0 - see bug 688157, 688161 */ &&
 	(mem = save->space_global) != save->space_local &&
 	save->space_global->num_contexts == 1
 	) {
@@ -567,24 +568,30 @@ alloc_is_since_save(const void *vptr, const alloc_save_t * save)
 
 /* Test whether a name would be invalidated by a restore. */
 bool
-alloc_name_is_since_save(const ref * pnref, const alloc_save_t * save)
+alloc_name_is_since_save(const gs_memory_t *mem,
+			 const ref * pnref, const alloc_save_t * save)
 {
     const name_string_t *pnstr;
 
     if (!save->restore_names)
 	return false;
-    pnstr = names_string_inline(the_gs_name_table, pnref);
+    pnstr = names_string_inline(mem->gs_lib_ctx->gs_name_table, pnref);
     if (pnstr->foreign_string)
 	return false;
     return alloc_is_since_save(pnstr->string_bytes, save);
 }
 bool
-alloc_name_index_is_since_save(uint nidx, const alloc_save_t * save)
+alloc_name_index_is_since_save(const gs_memory_t *mem,
+			       uint nidx, const alloc_save_t *save)
 {
-    ref nref;
+    const name_string_t *pnstr;
 
-    nref.value.pname = name_index_ptr(nidx);
-    return alloc_name_is_since_save(&nref, save);
+    if (!save->restore_names)
+	return false;
+    pnstr = names_index_string_inline(mem->gs_lib_ctx->gs_name_table, nidx);
+    if (pnstr->foreign_string)
+	return false;
+    return alloc_is_since_save(pnstr->string_bytes, save);
 }
 
 /* Check whether any names have been created since a given save */
@@ -628,8 +635,8 @@ alloc_save_client_data(const alloc_save_t * save)
  * if this is the outermost restore (which requires restoring both local
  * and global VM) or if we created extra save levels to reduce scanning.
  */
-private void restore_finalize(P1(gs_ref_memory_t *));
-private void restore_space(P2(gs_ref_memory_t *, gs_dual_memory_t *));
+private void restore_finalize(gs_ref_memory_t *);
+private void restore_space(gs_ref_memory_t *, gs_dual_memory_t *);
 
 bool
 alloc_restore_step_in(gs_dual_memory_t *dmem, alloc_save_t * save)
@@ -719,7 +726,7 @@ restore_space(gs_ref_memory_t * mem, gs_dual_memory_t *dmem)
     }
 
     /* Free memory allocated since the save. */
-    /* Note that this frees all chunks except the inner one */
+    /* Note that this frees all chunks except the inner ones */
     /* belonging to this level. */
     saved = *save;
     restore_free(mem);
@@ -840,7 +847,7 @@ restore_resources(alloc_save_t * sprev, gs_ref_memory_t * mem)
 
     /* Adjust the name table. */
     if (sprev->restore_names)
-	names_restore(the_gs_name_table, sprev);
+	names_restore(mem->gs_lib_ctx->gs_name_table, sprev);
 }
 
 /* Release memory for a restore. */
@@ -852,9 +859,9 @@ restore_free(gs_ref_memory_t * mem)
 }
 
 /* Forget a save, by merging this level with the next outer one. */
-private void file_forget_save(P1(gs_ref_memory_t *));
-private void combine_space(P1(gs_ref_memory_t *));
-private void forget_changes(P1(gs_ref_memory_t *));
+private void file_forget_save(gs_ref_memory_t *);
+private void combine_space(gs_ref_memory_t *);
+private void forget_changes(gs_ref_memory_t *);
 void
 alloc_forget_save_in(gs_dual_memory_t *dmem, alloc_save_t * save)
 {
@@ -947,7 +954,7 @@ combine_space(gs_ref_memory_t * mem)
 	    outer->rtop = cp->rtop;
 	    outer->ctop = cp->ctop;
 	    outer->has_refs |= cp->has_refs;
-	    gs_free_object(mem->parent, cp,
+	    gs_free_object(mem->non_gc_memory, cp,
 			   "combine_space(inner)");
 	}
     }

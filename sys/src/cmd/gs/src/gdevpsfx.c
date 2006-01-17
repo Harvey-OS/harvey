@@ -1,22 +1,20 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpsfx.c,v 1.9 2001/07/26 03:04:51 lpd Exp $ */
+/* $Id: gdevpsfx.c,v 1.25 2005/07/30 02:39:45 alexcher Exp $ */
 /* Convert Type 1 Charstrings to Type 2 */
 #include "math_.h"
 #include "memory_.h"
@@ -42,13 +40,29 @@
 
 #define CE_OFFSET 32		/* offset for extended opcodes */
 
+typedef struct {
+    fixed v0, v1;		/* coordinates */
+    ushort index;		/* sequential index of hint */
+} cv_stem_hint;
+typedef struct {
+    int count;
+    int current;		/* cache cursor for search */
+    /*
+     * For dotsection and Type 1 Charstring hint replacement,
+     * we store active hints at the bottom of the table, and
+     * replaced hints at the top.
+     */
+    int replaced_count;		/* # of replaced hints at top */
+    cv_stem_hint data[max_total_stem_hints];
+} cv_stem_hint_table;
+
 /* Skip over the initial bytes in a Charstring, if any. */
 private void
 skip_iv(gs_type1_state *pcis)
 {
     int skip = pcis->pfont->data.lenIV;
     ip_state_t *ipsp = &pcis->ipstack[pcis->ips_count - 1];
-    const byte *cip = ipsp->char_string.data;
+    const byte *cip = ipsp->cs_data.bits.data;
     crypt_state state = crypt_charstring_seed;
 
     for (; skip > 0; ++cip, --skip)
@@ -64,16 +78,12 @@ skip_iv(gs_type1_state *pcis)
  *	data.lenIV
  */
 private void
-type1_next_init(gs_type1_state *pcis, const gs_const_string *pstr,
+type1_next_init(gs_type1_state *pcis, const gs_glyph_data_t *pgd,
 		gs_font_type1 *pfont)
 {
-    static const gs_log2_scale_point no_scale = {0, 0};
-
-    gs_type1_interp_init(pcis, NULL, NULL, &no_scale, false, 0, pfont);
+    gs_type1_interp_init(pcis, NULL, NULL, NULL, NULL, false, 0, pfont);
     pcis->flex_count = flex_max;
-    pcis->dotsection_flag = dotsection_out;
-    pcis->ipstack[0].char_string = *pstr;
-    pcis->ipstack[0].free_char_string = 0;
+    pcis->ipstack[0].cs_data = *pgd;
     skip_iv(pcis);
 }
 
@@ -91,11 +101,10 @@ type1_callsubr(gs_type1_state *pcis, int index)
     gs_font_type1 *pfont = pcis->pfont;
     ip_state_t *ipsp1 = &pcis->ipstack[pcis->ips_count];
     int code = pfont->data.procs.subr_data(pfont, index, false,
-					   &ipsp1->char_string);
+					   &ipsp1->cs_data);
 
     if (code < 0)
 	return_error(code);
-    ipsp1->free_char_string = code;
     pcis->ips_count++;
     skip_iv(pcis);
     return code;
@@ -103,15 +112,15 @@ type1_callsubr(gs_type1_state *pcis, int index)
 
 /* Add 1 or 3 stem hints. */
 private int
-type1_stem1(gs_type1_state *pcis, stem_hint_table *psht, const fixed *pv,
-	    byte *active_hints)
+type1_stem1(gs_type1_state *pcis, cv_stem_hint_table *psht, const fixed *pv,
+	    fixed lsb, byte *active_hints)
 {
-    fixed v0 = pv[0], v1 = v0 + pv[1];
-    stem_hint *bot = &psht->data[0];
-    stem_hint *orig_top = bot + psht->count;
-    stem_hint *top = orig_top;
+    fixed v0 = pv[0] + lsb, v1 = v0 + pv[1];
+    cv_stem_hint *bot = &psht->data[0];
+    cv_stem_hint *orig_top = bot + psht->count;
+    cv_stem_hint *top = orig_top;
 
-    if (psht->count >= max_stems)
+    if (psht->count >= max_total_stem_hints)
 	return_error(gs_error_limitcheck);
     while (top > bot &&
 	   (v0 < top[-1].v0 || (v0 == top[-1].v0 && v1 < top[-1].v1))
@@ -135,12 +144,12 @@ type1_stem1(gs_type1_state *pcis, stem_hint_table *psht, const fixed *pv,
     return 0;
 }
 private void
-type1_stem3(gs_type1_state *pcis, stem_hint_table *psht, const fixed *pv3,
-	    byte *active_hints)
+type1_stem3(gs_type1_state *pcis, cv_stem_hint_table *psht, const fixed *pv3,
+	    fixed lsb, byte *active_hints)
 {
-    type1_stem1(pcis, psht, pv3, active_hints);
-    type1_stem1(pcis, psht, pv3 + 2, active_hints);
-    type1_stem1(pcis, psht, pv3 + 4, active_hints);
+    type1_stem1(pcis, psht, pv3, lsb, active_hints);
+    type1_stem1(pcis, psht, pv3 + 2, lsb, active_hints);
+    type1_stem1(pcis, psht, pv3 + 4, lsb, active_hints);
 }
 
 /*
@@ -151,30 +160,33 @@ private int
 type1_next(gs_type1_state *pcis)
 {
     ip_state_t *ipsp = &pcis->ipstack[pcis->ips_count - 1];
-    const byte *cip;
+    const byte *cip, *cipe;
     crypt_state state;
 #define CLEAR (csp = pcis->ostack - 1)
     fixed *csp = &pcis->ostack[pcis->os_count - 1];
     const bool encrypted = pcis->pfont->data.lenIV >= 0;
-    int c, code, num_results;
+    int c, code, num_results, c0;
 
  load:
     cip = ipsp->ip;
+    cipe = ipsp->cs_data.bits.data + ipsp->cs_data.bits.size;
     state = ipsp->dstate;
     for (;;) {
-	uint c0 = *cip++;
-
+        if (cip >= cipe)
+	    return_error(gs_error_invalidfont);
+	c0 = *cip++;
 	charstring_next(c0, state, c, encrypted);
 	if (c >= c_num1) {
 	    /* This is a number, decode it and push it on the stack. */
 	    if (c < c_pos2_0) {	/* 1-byte number */
-		decode_push_num1(csp, c);
+		decode_push_num1(csp, pcis->ostack, c);
 	    } else if (c < cx_num4) {	/* 2-byte number */
-		decode_push_num2(csp, c, cip, state, encrypted);
+		decode_push_num2(csp, pcis->ostack, c, cip, state, encrypted);
 	    } else if (c == cx_num4) {	/* 4-byte number */
 		long lw;
 
 		decode_num4(lw, cip, state, encrypted);
+		CS_CHECK_PUSH(csp, pcis->ostack);
 		*++csp = int2fixed(lw);
 	    } else		/* not possible */
 		return_error(gs_error_invalidfont);
@@ -204,7 +216,8 @@ type1_next(gs_type1_state *pcis)
 	case c_undef17:
 	    return_error(gs_error_invalidfont);
 	case c_callsubr:
-	    code = type1_callsubr(pcis, fixed2int_var(*csp));
+	    code = type1_callsubr(pcis, fixed2int_var(*csp) +
+				  pcis->pfont->data.subroutineNumberBias);
 	    if (code < 0)
 		return_error(code);
 	    ipsp->ip = cip, ipsp->dstate = state;
@@ -212,13 +225,14 @@ type1_next(gs_type1_state *pcis)
 	    ++ipsp;
 	    goto load;
 	case c_return:
-	    if (ipsp->free_char_string > 0)
-		gs_free_const_string(pcis->pfont->memory,
-				     ipsp->char_string.data,
-				     ipsp->char_string.size, "type1_next");
+	    gs_glyph_data_free(&ipsp->cs_data, "type1_next");
 	    pcis->ips_count--;
 	    --ipsp;
 	    goto load;
+	case c_undoc15:
+	    /* See gstype1.h for information on this opcode. */
+	    CLEAR;
+	    continue;
 	case cx_escape:
 	    charstring_next(*cip, state, c, encrypted);
 	    ++cip;
@@ -300,9 +314,9 @@ type2_put_op(stream *s, int op)
 {
     if (op >= CE_OFFSET) {
 	spputc(s, cx_escape);
-	spputc(s, op - CE_OFFSET);
+	spputc(s, (byte)(op - CE_OFFSET));
     } else
-	sputc(s, op);
+	sputc(s, (byte)op);
 }
 
 /* Put a Type 2 number on a stream. */
@@ -351,10 +365,10 @@ type2_put_fixed(stream *s, fixed v)
 
 /* Put a stem hint table on a stream. */
 private void
-type2_put_stems(stream *s, const stem_hint_table *psht, int op)
+type2_put_stems(stream *s, int os_count, const cv_stem_hint_table *psht, int op)
 {
     fixed prev = 0;
-    int pushed = 0;
+    int pushed = os_count;
     int i;
 
     for (i = 0; i < psht->count; ++i, pushed += 2) {
@@ -384,6 +398,7 @@ type2_put_hintmask(stream *s, const byte *mask, uint size)
 
 /* ------ Main program ------ */
 
+
 /*
  * Convert a Type 1 Charstring to (unencrypted) Type 2.
  * For simplicity, we expand all Subrs in-line.
@@ -395,13 +410,19 @@ type2_put_hintmask(stream *s, const byte *mask, uint size)
  */
 #define MAX_STACK ostack_size
 int
-psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
+psf_convert_type1_to_type2(stream *s, const gs_glyph_data_t *pgd,
 			   gs_font_type1 *pfont)
 {
     gs_type1_state cis;
+    cv_stem_hint_table hstem_hints;	/* horizontal stem hints */
+    cv_stem_hint_table vstem_hints;	/* vertical stem hints */
     bool first = true;
     bool replace_hints = false;
     bool hints_changed = false;
+    enum {
+	dotsection_in = 0,
+	dotsection_out = -1
+    } dotsection_flag = dotsection_out;
     byte active_hints[(max_total_stem_hints + 7) / 8];
     byte dot_save_hints[(max_total_stem_hints + 7) / 8];
     uint hintmask_size;
@@ -434,10 +455,15 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
 	CLEAR_OP();\
     }\
   END
+    fixed mx0 = 0, my0 = 0; /* See ce1_setcurrentpoint. */
 
-    /* Do a first pass to collect hints. */
-    reset_stem_hints(&cis);
-    type1_next_init(&cis, pstr, pfont);
+    /*
+     * Do a first pass to collect hints.  Note that we must also process
+     * [h]sbw, because the hint coordinates are relative to the lsb.
+     */
+    hstem_hints.count = hstem_hints.replaced_count = hstem_hints.current = 0;
+    vstem_hints.count = vstem_hints.replaced_count = vstem_hints.current = 0;
+    type1_next_init(&cis, pgd, pfont);
     for (;;) {
 	int c = type1_next(&cis);
 	fixed *csp = &cis.ostack[cis.os_count - 1];
@@ -448,17 +474,24 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
 		return c;
 	    type1_clear(&cis);
 	    continue;
+	case c1_hsbw:
+	    gs_type1_sbw(&cis, cis.ostack[0], fixed_0, cis.ostack[1], fixed_0);
+	    goto clear;
 	case cx_hstem:
-	    type1_stem1(&cis, &cis.hstem_hints, csp - 1, NULL);
+	    type1_stem1(&cis, &hstem_hints, csp - 1, cis.lsb.y, NULL);
 	    goto clear;
 	case cx_vstem:
-	    type1_stem1(&cis, &cis.vstem_hints, csp - 1, NULL);
+	    type1_stem1(&cis, &vstem_hints, csp - 1, cis.lsb.x, NULL);
+	    goto clear;
+	case CE_OFFSET + ce1_sbw:
+	    gs_type1_sbw(&cis, cis.ostack[0], cis.ostack[1],
+			 cis.ostack[2], cis.ostack[3]);
 	    goto clear;
 	case CE_OFFSET + ce1_vstem3:
-	    type1_stem3(&cis, &cis.vstem_hints, csp - 5, NULL);
+	    type1_stem3(&cis, &vstem_hints, csp - 5, cis.lsb.x, NULL);
 	    goto clear;
 	case CE_OFFSET + ce1_hstem3:
-	    type1_stem3(&cis, &cis.hstem_hints, csp - 5, NULL);
+	    type1_stem3(&cis, &hstem_hints, csp - 5, cis.lsb.y, NULL);
 	clear:
 	    type1_clear(&cis);
 	    continue;
@@ -484,20 +517,20 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
     {
 	int i;
 
-	for (i = 0; i < cis.hstem_hints.count; ++i)
-	    cis.hstem_hints.data[i].index = i;
-	for (i = 0; i < cis.vstem_hints.count; ++i)
-	    cis.vstem_hints.data[i].index = i + cis.hstem_hints.count;
+	for (i = 0; i < hstem_hints.count; ++i)
+	    hstem_hints.data[i].index = i;
+	for (i = 0; i < vstem_hints.count; ++i)
+	    vstem_hints.data[i].index = i + hstem_hints.count;
     }
     if (replace_hints) {
 	hintmask_size =
-	    (cis.hstem_hints.count + cis.vstem_hints.count + 7) / 8;
+	    (hstem_hints.count + vstem_hints.count + 7) / 8;
 	memset(active_hints, 0, hintmask_size);
     } else 
 	hintmask_size = 0;
 
     /* Do a second pass to write the result. */
-    type1_next_init(&cis, pstr, pfont);
+    type1_next_init(&cis, pgd, pfont);
     CLEAR_OP();
     for (;;) {
 	int c = type1_next(&cis);
@@ -525,33 +558,40 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
 	    type1_clear(&cis);
 	    continue;
 	case cx_hstem:
-	    type1_stem1(&cis, &cis.hstem_hints, csp - 1, active_hints);
+	    type1_stem1(&cis, &hstem_hints, csp - 1, cis.lsb.y, active_hints);
 	hint:
 	    HINTS_CHANGED();
 	    type1_clear(&cis);
 	    continue;
 	case cx_vstem:
-	    type1_stem1(&cis, &cis.vstem_hints, csp - 1, active_hints);
+	    type1_stem1(&cis, &vstem_hints, csp - 1, cis.lsb.x, active_hints);
 	    goto hint;
 	case CE_OFFSET + ce1_vstem3:
-	    type1_stem3(&cis, &cis.vstem_hints, csp - 5, active_hints);
+	    type1_stem3(&cis, &vstem_hints, csp - 5, cis.lsb.x, active_hints);
 	    goto hint;
 	case CE_OFFSET + ce1_hstem3:
-	    type1_stem3(&cis, &cis.hstem_hints, csp - 5, active_hints);
+	    type1_stem3(&cis, &hstem_hints, csp - 5, cis.lsb.y, active_hints);
 	    goto hint;
 	case CE_OFFSET + ce1_dotsection:
-	    if (cis.dotsection_flag == dotsection_out) {
+	    if (dotsection_flag == dotsection_out) {
 		memcpy(dot_save_hints, active_hints, hintmask_size);
 		memset(active_hints, 0, hintmask_size);
-		cis.dotsection_flag = dotsection_in;
+		dotsection_flag = dotsection_in;
 	    } else {
 		memcpy(active_hints, dot_save_hints, hintmask_size);
-		cis.dotsection_flag = dotsection_out;
+		dotsection_flag = dotsection_out;
 	    }
 	    HINTS_CHANGED();
 	    continue;
 	case c1_closepath:
+	    continue;
 	case CE_OFFSET + ce1_setcurrentpoint:
+	    if (first) {
+		/*  A workaround for fonts which use ce1_setcurrentpoint 
+		    in an illegal way for shifting a path. 
+		    See t1_hinter__setcurrentpoint for more information. */
+		mx0 = csp[-1], my0 = *csp;
+	    }
 	    continue;
 	case cx_vmoveto:
 	    mx = 0, my = *csp;
@@ -567,7 +607,7 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
 	    if (first) {
 		if (cis.os_count)
 		    type2_put_fixed(s, *csp); /* width */
-		mx += cis.lsb.x, my += cis.lsb.y;
+		mx += cis.lsb.x + mx0, my += cis.lsb.y + my0;
 		first = false;
 	    }
 	    if (cis.flex_count != flex_max) {
@@ -609,19 +649,19 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
 		cis.ostack[0] -= pfont->data.nominalWidthX;
 		cis.os_count = 1;
 	    }
-	    if (cis.hstem_hints.count) {
+	    if (hstem_hints.count) {
 		if (cis.os_count)
 		    type2_put_fixed(s, cis.ostack[0]);
-		cis.os_count = 0;
-		type2_put_stems(s, &cis.hstem_hints,
+		type2_put_stems(s, cis.os_count, &hstem_hints,
 				(replace_hints ? c2_hstemhm : cx_hstem));
+		cis.os_count = 0;
 	    }
-	    if (cis.vstem_hints.count) {
+	    if (vstem_hints.count) {
 		if (cis.os_count)
 		    type2_put_fixed(s, cis.ostack[0]);
-		cis.os_count = 0;
-		type2_put_stems(s, &cis.vstem_hints,
+		type2_put_stems(s, cis.os_count, &vstem_hints,
 				(replace_hints ? c2_vstemhm : cx_vstem));
+		cis.os_count = 0;
 	    }
 	    continue;
 	case CE_OFFSET + ce1_seac:
@@ -739,7 +779,7 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
 		    c = c2_vvcurveto;
 		    csp[-1] = csp[0];
 		    if (csp[-5] == 0) {
-			memcpy(csp - 5, csp - 4, sizeof(*csp) * 4);
+			memmove(csp - 5, csp - 4, sizeof(*csp) * 4);
 			POP(2);
 		    } else
 			POP(1);
@@ -747,7 +787,7 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
 		    /* A B|0 C D E 0 rrcurveto => [B] A C D E hhcurveto */
 		    c = c2_hhcurveto;
 		    if (csp[-4] == 0) {
-			memcpy(csp - 4, csp - 3, sizeof(*csp) * 3);
+			memmove(csp - 4, csp - 3, sizeof(*csp) * 3);
 			POP(2);
 		    } else {
 			*csp = csp[-5], csp[-5] = csp[-4], csp[-4] = *csp;
@@ -769,7 +809,7 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
 	    case c2_hhcurveto:	/* hrcurveto (x1 0 x2 y2 x3 0 rrcurveto)* => */
 				/* hhcurveto */
 		if (csp[-4] == 0 && *csp == 0) {
-		    memcpy(csp - 4, csp - 3, sizeof(*csp) * 3);
+		    memmove(csp - 4, csp - 3, sizeof(*csp) * 3);
 		    c = prev_op;
 		    POP(2);
 		    goto put;
@@ -778,7 +818,7 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
 	    case c2_vvcurveto:	/* rvcurveto (0 y1 x2 y2 0 y3 rrcurveto)* => */
 				/* vvcurveto */
 		if (csp[-5] == 0 && csp[-1] == 0) {
-		    memcpy(csp - 5, csp - 4, sizeof(*csp) * 3);
+		    memmove(csp - 5, csp - 4, sizeof(*csp) * 3);
 		    csp[-2] = *csp;
 		    c = prev_op;
 		    POP(2);
@@ -794,7 +834,7 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
 		/* hvcurveto (vhcurveto hvcurveto)* vrcurveto => hvcurveto */
 		if (csp[-5] != 0)
 		    goto copy;
-		memcpy(csp - 5, csp - 4, sizeof(*csp) * 5);
+		memmove(csp - 5, csp - 4, sizeof(*csp) * 5);
 		c = prev_op;
 		POP(1);
 		goto put;
@@ -808,7 +848,7 @@ psf_convert_type1_to_type2(stream *s, const gs_const_string *pstr,
 		if (csp[-4] != 0)
 		    goto copy;
 		/* A 0 C D E F => A C D F E */
-		memcpy(csp - 4, csp - 3, sizeof(*csp) * 2);
+		memmove(csp - 4, csp - 3, sizeof(*csp) * 2);
 		csp[-2] = *csp;
 		c = prev_op;
 		POP(1);

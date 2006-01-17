@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxfixed.h,v 1.3 2000/11/24 06:53:23 lpd Exp $ */
+/* $Id: gxfixed.h,v 1.9 2004/08/31 13:23:16 igor Exp $ */
 /* Fixed-point arithmetic for Ghostscript */
 
 #ifndef gxfixed_INCLUDED
@@ -36,10 +34,10 @@ typedef ulong ufixed;		/* only used in a very few places */
 #define fixed_0 0L
 #define fixed_epsilon 1L
 /*
- * 12 bits of fraction provides both the necessary accuracy and
+ * 8 bits of fraction provides both the necessary accuracy and
  * a sufficiently large range of coordinates.
  */
-#define _fixed_shift 12
+#define _fixed_shift 8
 #define fixed_fraction_bits _fixed_shift
 #define fixed_int_bits (sizeof(fixed) * 8 - _fixed_shift)
 #define fixed_scale (1<<_fixed_shift)
@@ -107,6 +105,8 @@ typedef ulong ufixed;		/* only used in a very few places */
 #define fixed2long_ceiling(x) ((long)_fixed_rshift((x)+_fixed_fraction_v))
 #define fixed2long_pixround(x) ((long)_fixed_rshift((x)+_fixed_pixround_v))
 #define float2fixed(f) ((fixed)((f)*(float)fixed_scale))
+#define float2fixed_rounded(f) ((fixed)floor((f)*(float)fixed_scale + 0.5))
+
 /* Note that fixed2float actually produces a double result. */
 #define fixed2float(x) ((x)*(1.0/fixed_scale))
 
@@ -135,6 +135,21 @@ typedef ulong ufixed;		/* only used in a very few places */
 #endif
 
 /*
+ * Define a macro for checking for overflow of the sum of two fixed values
+ * and and setting the result to the sum if no overflow.
+ * This is a pseudo-function that returns a "limitcheck" if the result
+ * will overflow. Set the result to the max/min _fixed value (depending
+ * on the sign of the operands (note: overflow can only occur with like
+ * signed input values). While the result is only set once, the operand
+ * values are used multiply, so pointer modification operand use will
+ * result in MANY more increments/decrements of the pointer than desired.
+ */
+/* usage: (int)code = CHECK_SET_FIXED_SUM(fixed_result, fixed_op1, fixed_op2); */
+#define CHECK_SET_FIXED_SUM(r, a, b) \
+     ((((a) ^ (b)) >= 0) && ((((a)+(b)) ^ (a)) < 0) ? \
+       (((r)=(((a)<0) ? min_fixed : max_fixed)), gs_error_limitcheck) : \
+       (((r) = ((a)+(b))), 0))		/* no overflow */
+/*
  * Define a procedure for computing a * b / c when b and c are non-negative,
  * b < c, and a * b exceeds (or might exceed) the capacity of a long.
  * Note that this procedure takes the floor, rather than truncating
@@ -144,7 +159,7 @@ typedef ulong ufixed;		/* only used in a very few places */
  * the double-length multiply/divide instructions that almost all hardware
  * provides....
  */
-fixed fixed_mult_quo(P3(fixed A, fixed B, fixed C));
+fixed fixed_mult_quo(fixed A, fixed B, fixed C);
 
 /*
  * Transforming coordinates involves multiplying two floats, or a float
@@ -173,12 +188,12 @@ fixed fixed_mult_quo(P3(fixed A, fixed B, fixed C));
  */
 #if USE_FPU_FIXED && arch_sizeof_short == 2
 #define NEED_SET_FMUL2FIXED
-int set_fmul2fixed_(P3(fixed *, long, long));
+int set_fmul2fixed_(fixed *, long, long);
 #define CHECK_FMUL2FIXED_VARS(vr, vfa, vfb, dtemp)\
   set_fmul2fixed_(&vr, *(const long *)&vfa, *(const long *)&vfb)
 #define FINISH_FMUL2FIXED_VARS(vr, dtemp)\
   DO_NOTHING
-int set_dfmul2fixed_(P4(fixed *, ulong, long, long));
+int set_dfmul2fixed_(fixed *, ulong, long, long);
 #  if arch_is_big_endian
 #  define CHECK_DFMUL2FIXED_VARS(vr, vda, vfb, dtemp)\
      set_dfmul2fixed_(&vr, ((const ulong *)&vda)[1], *(const long *)&vfb, *(const long *)&vda)
@@ -215,8 +230,8 @@ int set_dfmul2fixed_(P4(fixed *, ulong, long, long));
  * R and F must be variables, not expressions; V and E may be expressions.
  */
 #if USE_FPU_FIXED
-int set_float2fixed_(P3(fixed *, long, int));
-int set_double2fixed_(P4(fixed *, ulong, long, int));
+int set_float2fixed_(fixed *, long, int);
+int set_double2fixed_(fixed *, ulong, long, int);
 
 # define set_float2fixed_vars(vr,vf)\
     (sizeof(vf) == sizeof(float) ?\
@@ -224,8 +239,8 @@ int set_double2fixed_(P4(fixed *, ulong, long, int));
      set_double2fixed_(&vr, ((const ulong *)&vf)[arch_is_big_endian],\
 		       ((const long *)&vf)[1 - arch_is_big_endian],\
 		       fixed_fraction_bits))
-long fixed2float_(P2(fixed, int));
-void set_fixed2double_(P3(double *, fixed, int));
+long fixed2float_(fixed, int);
+void set_fixed2double_(double *, fixed, int);
 
 /*
  * We need the (double *)&vf cast to prevent compile-time error messages,

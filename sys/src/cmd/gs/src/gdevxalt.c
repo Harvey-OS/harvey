@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevxalt.c,v 1.2.6.1 2002/01/30 20:09:26 raph Exp $ */
+/* $Id: gdevxalt.c,v 1.11 2004/05/26 04:10:58 dan Exp $ */
 /* Alternative X Windows drivers for help in driver debugging */
 #include "gx.h"			/* for gx_bitmap; includes std.h */
 #include "math_.h"
@@ -59,12 +57,10 @@ gs_private_st_suffix_add0_final(st_device_X_wrapper, gx_device_X_wrapper,
 /* ---------------- Generic procedures ---------------- */
 
 /* Forward declarations */
-private int get_dev_target(P2(gx_device **, gx_device *));
+private int get_dev_target(gx_device **, gx_device *);
 
-#define set_dev_target(tdev, dev)\
-  return_if_error(get_dev_target(&tdev, dev))
-private int get_target_info(P1(gx_device *));
-private gx_color_index x_alt_map_color(P2(gx_device *, gx_color_index));
+private int get_target_info(gx_device *);
+private gx_color_index x_alt_map_color(gx_device *, gx_color_index);
 
 /* Clear the color mapping cache. */
 private void
@@ -86,7 +82,8 @@ x_wrap_open(gx_device * dev)
     gx_device *tdev;
     int rcode, code;
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     rcode = (*dev_proc(tdev, open_device)) (tdev);
     if (rcode < 0)
 	return rcode;
@@ -99,8 +96,10 @@ private int
 x_forward_sync_output(gx_device * dev)
 {
     gx_device *tdev;
+    int code;
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     return (*dev_proc(tdev, sync_output)) (tdev);
 }
 
@@ -108,8 +107,10 @@ private int
 x_forward_output_page(gx_device * dev, int num_copies, int flush)
 {
     gx_device *tdev;
+    int code;
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     return (*dev_proc(tdev, output_page)) (tdev, num_copies, flush);
 }
 
@@ -131,8 +132,10 @@ x_wrap_map_color_rgb(gx_device * dev, gx_color_index color,
 		     gx_color_value prgb[3])
 {
     gx_device *tdev;
+    int code;
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     return (*dev_proc(tdev, map_color_rgb)) (tdev,
 					     x_alt_map_color(dev, color),
 					     prgb);
@@ -143,8 +146,10 @@ x_wrap_fill_rectangle(gx_device * dev, int x, int y, int w, int h,
 		      gx_color_index color)
 {
     gx_device *tdev;
+    int code;
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     return (*dev_proc(tdev, fill_rectangle)) (tdev, x, y, w, h,
 					      x_alt_map_color(dev, color));
 }
@@ -156,8 +161,10 @@ x_wrap_copy_mono(gx_device * dev,
 		 gx_color_index zero, gx_color_index one)
 {
     gx_device *tdev;
+    int code;
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     return (*dev_proc(tdev, copy_mono)) (tdev, base, sourcex, raster, id,
 					 x, y, w, h,
 					 x_alt_map_color(dev, zero),
@@ -176,9 +183,11 @@ x_wrap_copy_color(gx_device * dev, const byte * base, int sourcex,
     int block_w, block_h;
     int xblock, yblock;
     byte mapped[mapped_bytes];
+    int code;
 
     fit_copy(dev, base, sourcex, raster, id, x, y, w, h);
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     /* Device pixels must be an integral number of bytes. */
     if (tdev->color_info.depth & 7)
 	return gx_default_copy_color(dev, base, sourcex, raster, id,
@@ -239,8 +248,10 @@ x_forward_copy_color(gx_device * dev, const byte * base, int sourcex,
 		     int raster, gx_bitmap_id id, int x, int y, int w, int h)
 {
     gx_device *tdev;
+    int code;
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     return (*dev_proc(tdev, copy_color)) (tdev, base, sourcex, raster, id,
 					  x, y, w, h);
 }
@@ -249,8 +260,10 @@ private int
 x_forward_get_bits(gx_device * dev, int y, byte * str, byte ** actual_data)
 {
     gx_device *tdev;
+    int code;
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     return (*dev_proc(tdev, get_bits)) (tdev, y, str, actual_data);
 }
 
@@ -281,7 +294,8 @@ x_wrap_get_bits(gx_device * dev, int y, byte * str, byte ** actual_data)
 
     DECLARE_LINE_ACCUM(str, depth, 0);
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     width = tdev->width;
     sdepth = tdev->color_info.depth;
     smask = (sdepth <= 8 ? (1 << sdepth) - 1 : 0xff);
@@ -309,8 +323,7 @@ x_wrap_get_bits(gx_device * dev, int y, byte * str, byte ** actual_data)
 	    (*dev_proc(tdev, map_color_rgb))(tdev, pixel, rgb);
 	    pixel_in = pixel;
 	    if (dev->color_info.num_components <= 3)
-		pixel_out = (*dev_proc(dev, map_rgb_color))
-		    (dev, rgb[0], rgb[1], rgb[2]);
+		pixel_out = (*dev_proc(dev, map_rgb_color))(dev, rgb);
 	    else {
 		/* Convert RGB to CMYK. */
 		gx_color_value c = gx_max_color_value - rgb[0];
@@ -318,8 +331,9 @@ x_wrap_get_bits(gx_device * dev, int y, byte * str, byte ** actual_data)
 		gx_color_value y = gx_max_color_value - rgb[2];
 		gx_color_value k = (c < m ? min(c, y) : min(m, y));
 
-		pixel_out = (*dev_proc(dev, map_cmyk_color))
-		    (dev, c - k, m - k, y - k, k);
+                gx_color_value cmyk[4];
+                cmyk[0] = c - k; cmyk[1] = m - k; cmyk[2] = y - k; cmyk[3] = k;
+		pixel_out = (*dev_proc(dev, map_cmyk_color))(dev, cmyk);
 	    }
 	}
 	LINE_ACCUM(pixel_out, depth);
@@ -337,8 +351,10 @@ x_wrap_get_params(gx_device * dev, gs_param_list * plist)
     /* We assume that a get_params call has no side effects.... */
     gx_device_X save_dev;
     int ecode;
+    int code;
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     save_dev = *(gx_device_X *) tdev;
     if (tdev->is_open)
 	tdev->color_info = dev->color_info;
@@ -356,7 +372,8 @@ x_wrap_put_params(gx_device * dev, gs_param_list * plist)
     const char *dname;
     int rcode, code;
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     /*
      * put_params will choke if we simply feed it the output of
      * get_params; we have to substitute color_info the same way.
@@ -389,6 +406,7 @@ get_dev_target(gx_device ** ptdev, gx_device * dev)
 
 	if (code < 0)
 	    return 0;
+        check_device_separable(tdev);
 	gx_device_fill_in_procs(tdev);
 	gx_device_set_target((gx_device_forward *)dev, tdev);
 	x_clear_color_cache(dev);
@@ -402,8 +420,10 @@ private int
 get_target_info(gx_device * dev)
 {
     gx_device *tdev;
+    int code;
 
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
 
 #define copy(m) dev->m = tdev->m;
 #define copy2(m) copy(m[0]); copy(m[1])
@@ -444,6 +464,7 @@ x_alt_map_color(gx_device * dev, gx_color_index color)
     gx_color_value rgb[3];
     gx_color_index cindex;
     int result;
+    int code;
 
     if (color == gx_no_color_index)
 	return color;
@@ -452,12 +473,13 @@ x_alt_map_color(gx_device * dev, gx_color_index color)
 	if (cindex != gx_no_color_index)
 	    return cindex;
     }
-    set_dev_target(tdev, dev);
+    if ((code = get_dev_target(&tdev, dev)) < 0)
+        return code;
     result = xdev->alt_map_color(dev, color, rgb);
     if (result >= 0)
 	cindex = result;
     else
-	cindex = dev_proc(tdev, map_rgb_color)(tdev, rgb[0], rgb[1], rgb[2]);
+	cindex = dev_proc(tdev, map_rgb_color)(tdev, rgb);
     if (color < 16)
 	((gx_device_X_wrapper *) dev)->color_cache[color] = cindex;
     return cindex;
@@ -586,13 +608,12 @@ x_cmyk_put_params(gx_device * dev, gs_param_list * plist)
 }
 
 private gx_color_index
-x_cmyk_map_cmyk_color(gx_device * dev,
-		      gx_color_value c, gx_color_value m, gx_color_value y,
-		      gx_color_value k)
+x_cmyk_map_cmyk_color(gx_device * dev, const gx_color_value cv[])
 {
     int shift = dev->color_info.depth >> 2;
-    gx_color_index pixel = c >> (gx_color_value_bits - shift);
-
+    gx_color_index pixel = cv[0] >> (gx_color_value_bits - shift);
+    gx_color_value c, m, y, k;
+    c = cv[0]; m = cv[1]; y = cv[2]; k = cv[3];
     pixel = (pixel << shift) | (m >> (gx_color_value_bits - shift));
     pixel = (pixel << shift) | (y >> (gx_color_value_bits - shift));
     return (pixel << shift) | (k >> (gx_color_value_bits - shift));
@@ -708,157 +729,22 @@ x_gray_alt_map_color(gx_device * dev, gx_color_index color,
     return -1;
 }
 
-#ifdef USE_BROKEN_X11ALPHA
-/* ---------------- Alpha procedures ---------------- */
-
-/* Device procedures */
-private dev_proc_map_color_rgb(x_alpha_map_color_rgb);
-private dev_proc_map_rgb_alpha_color(x_alpha_map_rgb_alpha_color);
-private dev_proc_copy_alpha(x_alpha_copy_alpha);
-/* Extended device procedures */
-private dev_proc_map_color_rgb(x_alpha_alt_map_color);
-
-/* The device descriptor */
-private const gx_device_procs x_alpha_procs = {
-    x_wrap_open,
-    gx_forward_get_initial_matrix,
-    x_forward_sync_output,
-    x_forward_output_page,
-    x_wrap_close,
-    gx_forward_map_rgb_color,
-    x_alpha_map_color_rgb,
-    x_wrap_fill_rectangle,
-    gx_default_tile_rectangle,
-    x_wrap_copy_mono,
-    x_forward_copy_color,
-    gx_default_draw_line,
-    x_forward_get_bits,
-    x_wrap_get_params,
-    x_wrap_put_params,
-    gx_forward_map_cmyk_color,
-    gx_forward_get_xfont_procs,
-    gx_forward_get_xfont_device,
-    x_alpha_map_rgb_alpha_color,
-    gx_forward_get_page_device,
-    gx_default_get_alpha_bits,
-	/*gx_default_copy_alpha */ x_alpha_copy_alpha
-};
-
-/* The instance is public. */
-const gx_device_X_wrapper gs_x11alpha_device = {
-    std_device_dci_alpha_type_body(gx_device_X_wrapper, &x_alpha_procs,
-	"x11alpha", &st_device_X_wrapper,
-	FAKE_RES * 85 / 10, FAKE_RES * 11,	/* x and y extent (nominal) */
-	FAKE_RES, FAKE_RES,	/* x and y density (nominal) */
-	3, 32, 255, 255, 256, 256, 4, 4),
-    X_WRAPPER_DATA(x_alpha_alt_map_color)
-};
-
-/* Map a fake color to RGB. */
-private int
-x_alpha_alt_map_color(gx_device * dev, gx_color_index color,
-		      gx_color_value rgb[3])
-{
-    return color & 0xffffff;	/* just remove alpha */
-}
-#endif
 /* Device procedures */
 
 /* We encode a complemented alpha value in the top 8 bits of the */
 /* device color. */
-private int
-x_alpha_map_color_rgb(gx_device * dev, gx_color_index color,
-		      gx_color_value prgb[3])
-{
-    return gx_forward_map_color_rgb(dev, color & 0xffffff, prgb);
-}
 private gx_color_index
 x_alpha_map_rgb_alpha_color(gx_device * dev,
  gx_color_value r, gx_color_value g, gx_color_value b, gx_color_value alpha)
 {
-    gx_color_index color = gx_forward_map_rgb_color(dev, r, g, b);
+    gx_color_index color;
+    gx_color_value cv[3];
     byte abyte = alpha >> (gx_color_value_bits - 8);
-
+    cv[0] = r; cv[1] = g; cv[2] = b;
+    color = gx_forward_map_rgb_color(dev, cv);
     return (abyte == 0 ? (gx_color_index)0xff << 24 :
 	    ((gx_color_index) (abyte ^ 0xff) << 24) + color);
 }
-
-#ifdef USE_BROKEN_X11ALPHA
-private int
-x_alpha_copy_alpha(gx_device * dev, const unsigned char *base, int sourcex,
-		   int raster, gx_bitmap_id id, int x, int y, int w, int h,
-		   gx_color_index color, int depth)
-{
-    gx_device *tdev;
-    int xi, yi;
-    const byte *row = base;
-    gx_color_index base_color = color & 0xffffff;
-
-    /* We fake alpha by interpreting it as saturation, i.e., */
-    /* alpha = 0 is white, alpha = 15/15 is the full color. */
-    gx_color_value rgb[3];
-    gx_color_index shades[16];
-    int i;
-
-    set_dev_target(tdev, dev);
-    for (i = 0; i < 15; ++i)
-	shades[i] = gx_no_color_index;
-    shades[15] = base_color;
-    (*dev_proc(tdev, map_color_rgb)) (tdev, base_color, rgb);
-    /* Do the copy operation pixel-by-pixel. */
-    /* For the moment, if the base color has alpha in it, we ignore it. */
-    for (yi = y; yi < y + h; row += raster, ++yi) {
-	int prev_x = x;
-	gx_color_index prev_color = gx_no_color_index;
-	uint prev_alpha = 0x10;	/* not a possible value */
-
-	for (xi = x; xi < x + w; ++xi) {
-	    int sx = sourcex + xi - x;
-	    uint alpha2 = row[sx >> 1];
-	    uint alpha = (sx & 1 ? alpha2 & 0xf : alpha2 >> 4);
-	    gx_color_index a_color;
-
-	    if (alpha == prev_alpha)
-		continue;
-	    prev_alpha = alpha;
-	    if (alpha == 0)
-		a_color = gx_no_color_index;
-	    else
-		while ((a_color = shades[alpha]) == gx_no_color_index) {	/* Map the color now. */
-#define make_shade(v, alpha)\
-  (gx_max_color_value -\
-   ((gx_max_color_value - (v)) * (alpha) / 15))
-		    gx_color_value r = make_shade(rgb[0], alpha);
-		    gx_color_value g = make_shade(rgb[1], alpha);
-		    gx_color_value b = make_shade(rgb[2], alpha);
-
-#undef make_shade
-		    a_color = (*dev_proc(tdev, map_rgb_color)) (tdev, r, g, b);
-		    if (a_color != gx_no_color_index) {
-			shades[alpha] = a_color;
-			break;
-		    }
-		    /* Try a higher saturation.  (We know */
-		    /* the fully saturated color exists.) */
-		    alpha += (16 - alpha) >> 1;
-		}
-	    if (a_color != prev_color) {
-		if (prev_color != gx_no_color_index)
-		    (*dev_proc(tdev, fill_rectangle)) (tdev,
-						 prev_x, yi, xi - prev_x, 1,
-						       prev_color);
-		prev_x = xi;
-		prev_color = a_color;
-	    }
-	}
-	if (prev_color != gx_no_color_index)
-	    (*dev_proc(tdev, fill_rectangle)) (tdev,
-					       prev_x, yi, x + w - prev_x, 1,
-					       prev_color);
-    }
-    return 0;
-}
-#endif
 
 /* ---------------- Permuted RGB16/32 procedures ---------------- */
 
@@ -920,19 +806,21 @@ const gx_device_X_wrapper gs_x11rg32x_device = {
 
 /* Map RGB to a fake color. */
 private gx_color_index
-x_rg16x_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
-		      gx_color_value b)
+x_rg16x_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
     /* Permute the colors to G5/B5/R6. */
+    gx_color_value r, g, b;
+    r = cv[0]; g = cv[1]; b = cv[2];
     return (r >> (gx_color_value_bits - 6)) +
 	((g >> (gx_color_value_bits - 5)) << 11) +
 	((b >> (gx_color_value_bits - 5)) << 6);
 }
 private gx_color_index
-x_rg32x_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
-		      gx_color_value b)
+x_rg32x_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
     /* Permute the colors to G11/B10/R11. */
+    gx_color_value r, g, b;
+    r = cv[0]; g = cv[1]; b = cv[2];
     return (r >> (gx_color_value_bits - 11)) +
 	((gx_color_index)(g >> (gx_color_value_bits - 11)) << 21) +
 	((gx_color_index)(b >> (gx_color_value_bits - 10)) << 11);

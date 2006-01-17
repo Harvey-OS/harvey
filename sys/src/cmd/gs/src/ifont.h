@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: ifont.h,v 1.6 2000/12/03 23:35:30 lpd Exp $ */
+/* $Id: ifont.h,v 1.14 2004/08/04 19:36:12 stefan Exp $ */
 /* Interpreter internal font representation */
 
 #ifndef ifont_INCLUDED
@@ -38,6 +36,7 @@ typedef struct font_data_s {
     ref BuildGlyph;
     ref Encoding;
     ref CharStrings;
+    ref GlyphNames2Unicode;
     union _fs {
 	struct _f1 {
 	    ref OtherSubrs;	/* from Private dictionary */
@@ -71,15 +70,6 @@ extern_st(st_font_data);
 #define pfont_data(pfont) ((font_data *)((pfont)->client_data))
 #define pfont_dict(pfont) (&pfont_data(pfont)->dict)
 
-/* Registered encodings, for the benefit of platform fonts, `seac', */
-/* and compiled font initialization. */
-/* This is a t_array ref that points to the encodings. */
-#define registered_Encodings_countof NUM_KNOWN_ENCODINGS
-extern ref registered_Encodings;
-
-#define registered_Encoding(i) (registered_Encodings.value.refs[i])
-#define StandardEncoding registered_Encoding(0)
-
 /* ================Internal procedures shared across files ================ */
 
 /* ---------------- Exported by zchar.c ---------------- */
@@ -88,7 +78,7 @@ extern ref registered_Encodings;
  * Get the FontBBox from a font dictionary, if any; if none, or if invalid,
  * return 4 zeros.
  */
-int font_bbox_param(P2(const ref * pfdict, double bbox[4]));
+int font_bbox_param(const gs_memory_t *mem, const ref *pfdict, double bbox[4]);
 
 /* ---------------- Exported by zfont.c ---------------- */
 
@@ -101,14 +91,14 @@ typedef struct gs_font_s gs_font;
  * Check a parameter that should be a valid font dictionary, and return
  * the gs_font stored in its FID entry.
  */
-int font_param(P2(const ref * pfdict, gs_font ** ppfont));
+int font_param(const ref * pfdict, gs_font ** ppfont);
 
 /*
  * Mark a glyph as a PostScript name (if it isn't a CID) for the garbage
  * collector.  Return true if a mark was just added.  This procedure is
  * intended to be used as the mark_glyph procedure in the character cache.
  */
-bool zfont_mark_glyph_name(P2(gs_glyph glyph, void *ignore_data));
+bool zfont_mark_glyph_name(const gs_memory_t *mem, gs_glyph glyph, void *ignore_data);
 
 /*
  * Return information about a font, including information from the FontInfo

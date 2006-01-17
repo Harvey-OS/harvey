@@ -1,34 +1,34 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxshade.c,v 1.6 2001/03/25 10:18:50 igorm Exp $ */
+/* $Id: gxshade.c,v 1.22 2005/01/31 03:08:43 igor Exp $ */
 /* Shading rendering support */
 #include "math_.h"
 #include "gx.h"
 #include "gserrors.h"
 #include "gsrect.h"
 #include "gxcspace.h"
+#include "gscindex.h"
 #include "gscie.h"		/* requires gscspace.h */
 #include "gxdevcli.h"
 #include "gxistate.h"
 #include "gxdht.h"		/* for computing # of different colors */
 #include "gxpaint.h"
 #include "gxshade.h"
+#include "gxshade4.h"
 #include "gsicc.h"
 
 /* Define a maximum smoothness value. */
@@ -38,12 +38,13 @@
 /* ================ Packed coordinate streams ================ */
 
 /* Forward references */
-private int cs_next_packed_value(P3(shade_coord_stream_t *, int, uint *));
-private int cs_next_array_value(P3(shade_coord_stream_t *, int, uint *));
-private int cs_next_packed_decoded(P4(shade_coord_stream_t *, int,
-				      const float[2], float *));
-private int cs_next_array_decoded(P4(shade_coord_stream_t *, int,
-				     const float[2], float *));
+private int cs_next_packed_value(shade_coord_stream_t *, int, uint *);
+private int cs_next_array_value(shade_coord_stream_t *, int, uint *);
+private int cs_next_packed_decoded(shade_coord_stream_t *, int,
+				   const float[2], float *);
+private int cs_next_array_decoded(shade_coord_stream_t *, int,
+				  const float[2], float *);
+private bool cs_eod(const shade_coord_stream_t * cs);
 
 /* Initialize a packed value stream. */
 void
@@ -76,7 +77,16 @@ shade_next_init(shade_coord_stream_t * cs,
 	cs->get_value = cs_next_packed_value;
 	cs->get_decoded = cs_next_packed_decoded;
     }
+    cs->is_eod = cs_eod;
     cs->left = 0;
+    cs->ds_EOF = false;
+}
+
+/* Check for the End-Of-Data state form a stream. */
+private bool
+cs_eod(const shade_coord_stream_t * cs)
+{
+    return cs->ds_EOF;
 }
 
 /* Get the next (integer) value from a packed value stream. */
@@ -99,8 +109,10 @@ cs_next_packed_value(shade_coord_stream_t * cs, int num_bits, uint * pvalue)
 	for (; needed >= 8; needed -= 8) {
 	    int b = sgetc(cs->s);
 
-	    if (b < 0)
+	    if (b < 0) {
+	        cs->ds_EOF = true;
 		return_error(gs_error_rangecheck);
+	    }
 	    value = (value << 8) + b;
 	}
 	if (needed == 0) {
@@ -109,8 +121,10 @@ cs_next_packed_value(shade_coord_stream_t * cs, int num_bits, uint * pvalue)
 	} else {
 	    int b = sgetc(cs->s);
 
-	    if (b < 0)
+	    if (b < 0) {
+	        cs->ds_EOF = true;
 		return_error(gs_error_rangecheck);
+	    }
 	    cs->bits = b;
 	    cs->left = left = 8 - needed;
 	    *pvalue = (value << needed) + (b >> left);
@@ -119,7 +133,10 @@ cs_next_packed_value(shade_coord_stream_t * cs, int num_bits, uint * pvalue)
     return 0;
 }
 
-/* Get the next (integer) value from an unpacked array. */
+/*
+ * Get the next (integer) value from an unpacked array.  Note that
+ * num_bits may be 0 if we are reading a coordinate or color value.
+ */
 private int
 cs_next_array_value(shade_coord_stream_t * cs, int num_bits, uint * pvalue)
 {
@@ -127,8 +144,13 @@ cs_next_array_value(shade_coord_stream_t * cs, int num_bits, uint * pvalue)
     uint read;
 
     if (sgets(cs->s, (byte *)&value, sizeof(float), &read) < 0 ||
-	read != sizeof(float) || value < 0 || value >= (1 << num_bits) ||
-	value != (int)value
+	read != sizeof(float)) {
+	cs->ds_EOF = true;
+	return_error(gs_error_rangecheck);
+    }
+    if (value < 0 || (num_bits != 0 && num_bits < sizeof(uint) * 8 &&
+	 value >= (1 << num_bits)) ||
+	value != (uint)value
 	)
 	return_error(gs_error_rangecheck);
     *pvalue = (uint) value;
@@ -167,8 +189,10 @@ cs_next_array_decoded(shade_coord_stream_t * cs, int num_bits,
 
     if (sgets(cs->s, (byte *)&value, sizeof(float), &read) < 0 ||
 	read != sizeof(float)
-    )
+    ) {
+	cs->ds_EOF = true;
 	return_error(gs_error_rangecheck);
+    }
     *pvalue = value;
     return 0;
 }
@@ -218,15 +242,25 @@ shade_next_color(shade_coord_stream_t * cs, float *pc)
     int num_bits = cs->params->BitsPerComponent;
 
     if (index == gs_color_space_index_Indexed) {
-	uint i;
-	int code = cs->get_value(cs, num_bits, &i);
+	int ncomp = gs_color_space_num_components(gs_cspace_base_space(pcs));
+	uint ci;
+	int code = cs->get_value(cs, num_bits, &ci);
+	gs_client_color cc;
+	int i;
 
 	if (code < 0)
 	    return code;
-	/****** DO INDEXED LOOKUP TO pc[] ******/
+	if (ci >= gs_cspace_indexed_num_entries(pcs))
+	    return_error(gs_error_rangecheck);
+	code = gs_cspace_indexed_lookup(&pcs->params.indexed, (int)ci, &cc);
+	if (code < 0)
+	    return code;
+	for (i = 0; i < ncomp; ++i)
+	    pc[i] = cc.paint.values[i];
     } else {
 	int i, code;
-	int ncomp = gs_color_space_num_components(pcs);
+	int ncomp = (cs->params->Function != 0 ? 1 :
+		     gs_color_space_num_components(pcs));
 
 	for (i = 0; i < ncomp; ++i)
 	    if ((code = cs->get_decoded(cs, num_bits, decode + i * 2, &pc[i])) < 0)
@@ -237,12 +271,13 @@ shade_next_color(shade_coord_stream_t * cs, float *pc)
 
 /* Get the next vertex for a mesh element. */
 int
-shade_next_vertex(shade_coord_stream_t * cs, mesh_vertex_t * vertex)
+shade_next_vertex(shade_coord_stream_t * cs, shading_vertex_t * vertex)
 {
     int code = shade_next_coords(cs, &vertex->p, 1);
 
+    vertex->c.cc.paint.values[1] = 0; /* safety. (patch_fill may assume 2 arguments) */
     if (code >= 0)
-	code = shade_next_color(cs, vertex->cc);
+	code = shade_next_color(cs, vertex->c.cc.paint.values);
     return code;
 }
 
@@ -267,8 +302,9 @@ shade_init_fill_state(shading_fill_state_t * pfs, const gs_shading_t * psh,
 
     pfs->dev = dev;
     pfs->pis = pis;
-    pfs->num_components = gs_color_space_num_components(pcs);
 top:
+    pfs->direct_space = pcs;
+    pfs->num_components = gs_color_space_num_components(pcs);
     switch ( gs_color_space_get_index(pcs) )
 	{
 	case gs_color_space_index_Indexed:
@@ -292,8 +328,16 @@ top:
 	    break;
 	}
     if (num_colors <= 32) {
-	/****** WRONG FOR MULTI-PLANE HALFTONES ******/
-	num_colors *= pis->dev_ht->order.num_levels;
+	gx_ht_order_component *components = pis->dev_ht->components;
+	if (components && components[0].corder.wts)
+	    num_colors = 256;
+	else
+	    /****** WRONG FOR MULTI-PLANE HALFTONES ******/
+	    num_colors *= pis->dev_ht->components[0].corder.num_levels;
+    }
+    if (psh->head.type == 2 || psh->head.type == 3) {
+	max_error *= 0.25;
+	num_colors *= 2;
     }
     if (max_error < 1.0 / num_colors)
 	max_error = 1.0 / num_colors;
@@ -303,32 +347,15 @@ top:
 	     max_error * (ranges[ci].rmax - ranges[ci].rmin));
 }
 
-/* Transform a bounding box into device space. */
-int
-shade_bbox_transform2fixed(const gs_rect * rect, const gs_imager_state * pis,
-			   gs_fixed_rect * rfixed)
-{
-    gs_rect dev_rect;
-    int code = gs_bbox_transform(rect, &ctm_only(pis), &dev_rect);
-
-    if (code >= 0) {
-	rfixed->p.x = float2fixed(dev_rect.p.x);
-	rfixed->p.y = float2fixed(dev_rect.p.y);
-	rfixed->q.x = float2fixed(dev_rect.q.x);
-	rfixed->q.y = float2fixed(dev_rect.q.y);
-    }
-    return code;
-}
-
 /* Fill one piece of a shading. */
 int
 shade_fill_path(const shading_fill_state_t * pfs, gx_path * ppath,
-		gx_device_color * pdevc)
+		gx_device_color * pdevc, const gs_fixed_point *fill_adjust)
 {
     gx_fill_params params;
 
     params.rule = -1;		/* irrelevant */
-    params.adjust = pfs->pis->fill_adjust;
+    params.adjust = *fill_adjust;
     params.flatness = 0;	/* irrelevant */
     params.fill_zero_width = false;
     return (*dev_proc(pfs->dev, fill_path)) (pfs->dev, pfs->pis, ppath,

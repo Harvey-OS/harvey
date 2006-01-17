@@ -1,22 +1,20 @@
-/* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989-2005 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpcfb.c,v 1.2 2000/09/19 19:00:15 lpd Exp $ */
+/* $Id: gdevpcfb.c,v 1.7 2005/08/09 20:23:07 giles Exp $ */
 /* IBM PC frame buffer (EGA/VGA) drivers */
 #include "memory_.h"
 #include "gconfigv.h"		/* for USE_ASM */
@@ -180,21 +178,21 @@ svga16_put_params(gx_device * dev, gs_param_list * plist)
 }
 
 /* Map a r-g-b color to an EGA color code. */
-#define Nb gx_color_value_bits
 private gx_color_index
-ega0_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
-		   gx_color_value b)
+ega0_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
-    return pc_4bit_map_rgb_color(dev, r, r, r);
+    return pc_4bit_map_rgb_color(dev, cv);
 }
 private gx_color_index
-ega1_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
-		   gx_color_value b)
+ega1_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
-#define cvtop (gx_color_value)(1 << (Nb - 1))
-    return pc_4bit_map_rgb_color(dev, r & cvtop, g & cvtop, b & cvtop);
+    const gx_color_value cvtop = (1 << (gx_color_value_bits - 1));
+    gx_color_value cvt[3];
+    cvt[0] = cv[0] & cvtop;
+    cvt[1] = cv[1] & cvtop;
+    cvt[2] = cv[2] & cvtop;
+    return pc_4bit_map_rgb_color(dev, cvt);
 }
-#undef Nb
 
 /* Map a color code to r-g-b. */
 #define icolor (int)color
@@ -232,7 +230,7 @@ typedef rop_params _ss *rop_ptr;
 /* Assembly language routines */
 
 #if USE_ASM
-void memsetcol(P1(rop_ptr));	/* dest, draster, height, data */
+void memsetcol(rop_ptr);	/* dest, draster, height, data */
 #else
 #define memsetcol cmemsetcol
 private void
@@ -252,7 +250,7 @@ cmemsetcol(rop_ptr rop)
 #endif
 
 #if USE_ASM
-void memsetrect(P1(rop_ptr));	/* dest, draster, width, height, data */
+void memsetrect(rop_ptr);	/* dest, draster, width, height, data */
 #else
 #define memsetrect cmemsetrect
 private void
@@ -293,7 +291,7 @@ cmemsetrect(rop_ptr rop)
 #endif
 
 #if USE_ASM
-void memrwcol(P1(rop_ptr));	/* dest, draster, src, sraster, height, shift, invert */
+void memrwcol(rop_ptr);	/* dest, draster, src, sraster, height, shift, invert */
 #  define memrwcol0(rop) memrwcol(rop)	/* same except shift = 0 */
 #else
 #  define memrwcol cmemrwcol
@@ -334,7 +332,7 @@ cmemrwcol0(rop_ptr rop)
 #endif
 
 #if USE_ASM
-void memrwcol2(P1(rop_ptr));	/* dest, draster, src, sraster, height, shift, invert */
+void memrwcol2(rop_ptr);	/* dest, draster, src, sraster, height, shift, invert */
 #else
 #define memrwcol2 cmemrwcol2
 private void
@@ -356,9 +354,9 @@ cmemrwcol2(rop_ptr rop)
 #endif
 
 /* Forward definitions */
-int ega_write_dot(P4(gx_device *, int, int, gx_color_index));
-private void fill_rectangle(P4(rop_ptr, int, int, int));
-private void fill_row_only(P4(byte *, int, int, int));
+int ega_write_dot(gx_device *, int, int, gx_color_index);
+private void fill_rectangle(rop_ptr, int, int, int);
+private void fill_row_only(byte *, int, int, int);
 
 /* Clean up after writing */
 #define dot_end()\

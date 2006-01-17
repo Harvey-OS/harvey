@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gscpm.h,v 1.2 2000/09/19 19:00:26 lpd Exp $ */
+/* $Id: gscpm.h,v 1.5 2005/05/23 14:59:28 igor Exp $ */
 /* Charpath mode and cache device status definitions */
 
 #ifndef gscpm_INCLUDED
@@ -34,6 +32,7 @@ typedef enum {
 typedef enum {
     CACHE_DEVICE_NONE = 0,	/* default, must be 0 */
     CACHE_DEVICE_NOT_CACHING,	/* setcachedevice done but not caching */
+    CACHE_DEVICE_NONE_AND_CLIP, /* setcachedevice done, not caching and applied gsave and clip */
     CACHE_DEVICE_CACHING	/* setcachedevice done and caching */
 } gs_in_cache_device_t;
 

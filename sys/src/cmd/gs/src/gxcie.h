@@ -1,22 +1,20 @@
-/* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1999, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxcie.h,v 1.3 2001/03/17 01:15:42 raph Exp $ */
+/* $Id: gxcie.h,v 1.7 2002/06/16 08:45:43 lpd Exp $ */
 /* Internal definitions for CIE color implementation */
 /* Requires gxcspace.h */
 
@@ -47,6 +45,15 @@ cs_proc_install_cspace(gx_install_CIEABC);
 cs_proc_restrict_color(gx_restrict_CIEA);
 cs_proc_install_cspace(gx_install_CIEA);
 
+/*
+ * Initialize (just enough of) an imager state so that "concretizing" colors
+ * using this imager state will do only the CIE->XYZ mapping.  This is a
+ * semi-hack for the PDF writer.
+ */
+extern	int	gx_cie_to_xyz_alloc(gs_imager_state **,
+				    const gs_color_space *, gs_memory_t *);
+extern	void	gx_cie_to_xyz_free(gs_imager_state *);
+
 /* Defined in gsciemap.c */
 
 /*
@@ -70,13 +77,27 @@ cs_proc_install_cspace(gx_install_CIEA);
     END
 
 /*
- * Do the common remapping operation for CIE color spaces. Returns the numver
- * of components of the concrete color space (3 if RGB, 4 if CMYK).
+ * Do the common remapping operation for CIE color spaces. Returns the
+ * number of components of the concrete color space (3 if RGB, 4 if CMYK).
+ * This simply calls a procedure variable stored in the joint caches
+ * structure.
  */
-extern  int     gx_cie_remap_finish( P4( cie_cached_vector3,
-		       	                 frac *,
-                                         const gs_imager_state *,
-				         const gs_color_space * ) );
+extern  int     gx_cie_remap_finish( cie_cached_vector3,
+				     frac *,
+				     const gs_imager_state *,
+				     const gs_color_space * );
+/* Make sure the prototype matches the one defined in gscie.h. */
+extern GX_CIE_REMAP_FINISH_PROC(gx_cie_remap_finish);
+
+/*
+ * Define the real remap_finish procedure.  Except for CIE->XYZ mapping,
+ * this is what is stored in the remap_finish member of the joint caches.
+ */
+extern GX_CIE_REMAP_FINISH_PROC(gx_cie_real_remap_finish);
+/*
+ * Define the remap_finish procedure for CIE->XYZ mapping.
+ */
+extern GX_CIE_REMAP_FINISH_PROC(gx_cie_xyz_remap_finish);
 
 cs_proc_concretize_color(gx_concretize_CIEDEFG);
 cs_proc_concretize_color(gx_concretize_CIEDEF);
@@ -91,23 +112,23 @@ extern_st(st_cie_common);
 extern_st(st_cie_common_elements_t);
 
 /* set up the common default values for a CIE color space */
-extern  void    gx_set_common_cie_defaults( P2( gs_cie_common *,
-                                                void *  client_data ) );
+extern  void    gx_set_common_cie_defaults( gs_cie_common *,
+					    void *  client_data );
 
 /* Load the common caches for a CIE color space */
-extern  void    gx_cie_load_common_cache(P2(gs_cie_common *, gs_state *));
+extern  void    gx_cie_load_common_cache(gs_cie_common *, gs_state *);
 
 /* Complete loading of the common caches */
-extern  void    gx_cie_common_complete(P1(gs_cie_common *));
+extern  void    gx_cie_common_complete(gs_cie_common *);
 
 /* "indirect" color space installation procedure */
 cs_proc_install_cspace(gx_install_CIE);
 
 /* allocate and initialize the common part of a cie color space */
-extern  void *  gx_build_cie_space( P4( gs_color_space **           ppcspace,
-                                        const gs_color_space_type * pcstype,
-                                        gs_memory_type_ptr_t        stype,
-                                        gs_memory_t *               pmem ) );
+extern  void *  gx_build_cie_space( gs_color_space **           ppcspace,
+				    const gs_color_space_type * pcstype,
+				    gs_memory_type_ptr_t        stype,
+				    gs_memory_t *               pmem );
 
 /*
  * Determine the concrete space which underlies a CIE based space. For all

@@ -1,29 +1,26 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zmisc3.c,v 1.2 2000/09/19 19:00:55 lpd Exp $ */
+/* $Id: zmisc3.c,v 1.6 2004/08/04 19:36:13 stefan Exp $ */
 /* Miscellaneous LanguageLevel 3 operators */
 #include "ghost.h"
 #include "gscspace.h"		/* for gscolor2.h */
 #include "gsmatrix.h"		/* ditto */
 #include "gsclipsr.h"
 #include "gscolor2.h"
-#include "gscssub.h"
 #include "oper.h"
 #include "igstate.h"
 #include "store.h"
@@ -76,8 +73,8 @@ zeqproc(i_ctx_t *i_ctx_p)
 	}
 	/* Look at the next elements of the arrays. */
 	i = r_size(&top->proc1) - 1;
-	array_get(&top->proc1, i, &top[1].proc1);
-	array_get(&top->proc2, i, &top[1].proc2);
+	array_get(imemory, &top->proc1, i, &top[1].proc1);
+	array_get(imemory, &top->proc2, i, &top[1].proc2);
 	r_dec_size(&top->proc1, 1);
 	++top;
 	/*
@@ -91,7 +88,7 @@ zeqproc(i_ctx_t *i_ctx_p)
 	    )
 	    break;
 #endif
-	if (obj_eq(&top->proc1, &top->proc2)) {
+	if (obj_eq(imemory, &top->proc1, &top->proc2)) {
 	    /* Names don't match strings. */
 	    if (r_type(&top->proc1) != r_type(&top->proc2) &&
 		(r_type(&top->proc1) == t_name ||
@@ -116,25 +113,6 @@ zeqproc(i_ctx_t *i_ctx_p)
     return 0;
 }
 
-/* <index> <bool> .setsubstitutecolorspace - */
-private int
-zsetsubstitutecolorspace(i_ctx_t *i_ctx_p)
-{
-    os_ptr op = osp;
-    int index, code;
-
-    check_type(*op, t_boolean);
-    check_int_leu(op[-1], 2);
-    index = (int)op[-1].value.intval;
-    code = gs_setsubstitutecolorspace(igs, index,
-				      (op->value.boolval ?
-				       gs_currentcolorspace(igs) :
-				       NULL));
-    if (code >= 0)
-	pop(2);
-    return code;
-}
-
 /* ------ Initialization procedure ------ */
 
 const op_def zmisc3_op_defs[] =
@@ -143,6 +121,5 @@ const op_def zmisc3_op_defs[] =
     {"0cliprestore", zcliprestore},
     {"0clipsave", zclipsave},
     {"2.eqproc", zeqproc},
-    {"2.setsubstitutecolorspace", zsetsubstitutecolorspace},
     op_def_end(0)
 };

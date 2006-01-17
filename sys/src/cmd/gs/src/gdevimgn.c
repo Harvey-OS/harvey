@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1993, 1994, 1996 by Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
  
-/*$Id: gdevimgn.c,v 1.4 2001/08/01 00:48:23 stefan911 Exp $*/
+/* $Id: gdevimgn.c,v 1.7 2004/08/10 13:02:36 stefan Exp $*/
 /*
  * Imagen ImPRESS printer driver - version 1.4
  *
@@ -357,7 +355,7 @@ imagen_print_page(gx_device_printer *pdev, FILE *prn_stream)
 { 
   int line_size = gdev_mem_bytes_per_scan_line((gx_device *)pdev); 
   /* input buffer: one line of bytes rasterized by gs */
-  byte *in = (byte *)gs_malloc(BIGSIZE, line_size / BIGSIZE + 1,
+  byte *in = (byte *)gs_malloc(pdev->memory, BIGSIZE, line_size / BIGSIZE + 1,
 	"imagen_print_page(in)"); 
   /* output buffer: 32 lines, interleaved into imPress swatches */
   byte *out; 
@@ -403,10 +401,10 @@ imagen_print_page(gx_device_printer *pdev, FILE *prn_stream)
   DebugMsg(2,"Swatch count = %d\n",swatchCount);
   DebugMsg(2,"Line size = %d\n",line_size );
 
-  out = (byte *)gs_malloc(TotalBytesPerSw , swatchCount + 1, 
+  out = (byte *)gs_malloc(pdev->memory, TotalBytesPerSw , swatchCount + 1, 
 		    "imagen_print_page(out)"); 
 
-  swatchMap = (byte *)gs_malloc(BIGSIZE,swatchCount / BIGSIZE + 1,
+  swatchMap = (byte *)gs_malloc(pdev->memory, BIGSIZE,swatchCount / BIGSIZE + 1,
 	"imagen_print_page(swatchMap)" );
  
   if ( in == 0 || out == 0 ) 
@@ -555,10 +553,10 @@ imagen_print_page(gx_device_printer *pdev, FILE *prn_stream)
  
   fflush(prn_stream); 
  
-  gs_free((char *)swatchMap, BIGSIZE, swatchCount / BIGSIZE + 1,
+  gs_free(pdev->memory, (char *)swatchMap, BIGSIZE, swatchCount / BIGSIZE + 1,
 	"imagen_print_page(swatchMap)" );
-  gs_free((char *)out, TotalBytesPerSw, swatchCount+1, "imagen_print_page(out)"); 
-  gs_free((char *)in, BIGSIZE, line_size / BIGSIZE + 1, "imagen_print_page(in)"); 
+  gs_free(pdev->memory, (char *)out, TotalBytesPerSw, swatchCount+1, "imagen_print_page(out)"); 
+  gs_free(pdev->memory, (char *)in, BIGSIZE, line_size / BIGSIZE + 1, "imagen_print_page(in)"); 
   /* ----------------------------------------- */
 
   DebugMsg(1,"Debug: Grey: %d \n",totalGreySwatches);

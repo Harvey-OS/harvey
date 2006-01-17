@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxclist.h,v 1.2 2000/09/19 19:00:34 lpd Exp $ */
+/* $Id: gxclist.h,v 1.7 2005/03/14 18:08:36 dan Exp $ */
 /* Command list definitions for Ghostscript. */
 /* Requires gxdevice.h and gxdevmem.h */
 
@@ -88,7 +86,7 @@ typedef struct gx_placed_page_s {
  * probably by rendering current bandlist contents.
  */
 #define proc_free_up_bandlist_memory(proc)\
-  int proc(P2(gx_device *dev, bool flush_current))
+  int proc(gx_device *dev, bool flush_current)
 
 /* ---------------- Internal structures ---------------- */
 
@@ -168,6 +166,7 @@ typedef struct gx_clist_state_s gx_clist_state;
 	uint data_size;			/* size of buffer */\
 	gx_band_params_t band_params;	/* band buffering parameters */\
 	bool do_not_open_or_close_bandfiles;	/* if true, do not open/close bandfiles */\
+	bool page_uses_transparency;	/* if true then page uses PDF 1.4 transparency */\
 		/* Following are used for both writing and reading. */\
 	gx_bits_cache_chunk chunk;	/* the only chunk of bits */\
 	gx_bits_cache bits;\
@@ -255,6 +254,7 @@ typedef struct gx_device_clist_writer_s {
 #define clist_disable_complex_clip (1 << 3)
 #define clist_disable_nonrect_hl_image (1 << 4)
 #define clist_disable_pass_thru_params (1 << 5)	/* disable EXCEPT at top of page */
+#define clist_disable_copy_alpha (1 << 6) /* target does not support copy_alpha */
 
 /* Define the state of a band list when reading. */
 /* For normal rasterizing, pages and num_pages are both 0. */
@@ -281,7 +281,7 @@ extern_st(st_device_clist);
   (st_device_forward_max_ptrs + st_imager_state_num_ptrs + 1)
 
 /* setup before opening clist device */
-#define clist_init_params(xclist, xdata, xdata_size, xtarget, xbuf_procs, xband_params, xexternal, xmemory, xfree_bandlist, xdisable)\
+#define clist_init_params(xclist, xdata, xdata_size, xtarget, xbuf_procs, xband_params, xexternal, xmemory, xfree_bandlist, xdisable, pageusestransparency)\
     BEGIN\
 	(xclist)->common.data = (xdata);\
 	(xclist)->common.data_size = (xdata_size);\
@@ -292,6 +292,7 @@ extern_st(st_device_clist);
 	(xclist)->common.bandlist_memory = (xmemory);\
 	(xclist)->writer.free_up_bandlist_memory = (xfree_bandlist);\
 	(xclist)->writer.disable_mask = (xdisable);\
+	(xclist)->writer.page_uses_transparency = (pageusestransparency);\
     END
 
 /* Determine whether this clist device is able to recover VMerrors */
@@ -302,16 +303,16 @@ extern_st(st_device_clist);
 extern const gx_device_procs gs_clist_device_procs;
 
 /* Reset (or prepare to append to) the command list after printing a page. */
-int clist_finish_page(P2(gx_device * dev, bool flush));
+int clist_finish_page(gx_device * dev, bool flush);
 
 /* Close the band files and delete their contents. */
-int clist_close_output_file(P1(gx_device *dev));
+int clist_close_output_file(gx_device *dev);
 
 /*
  * Close and delete the contents of the band files associated with a
  * page_info structure (a page that has been separated from the device).
  */
-int clist_close_page_info(P1(gx_band_page_info_t *ppi));
+int clist_close_page_info(gx_band_page_info_t *ppi);
 
 /*
  * Compute the colors-used information in the page_info structure from the
@@ -319,7 +320,7 @@ int clist_close_page_info(P1(gx_band_page_info_t *ppi));
  * end of a page.  gdev_prn_colors_used calls this procedure if it hasn't
  * been called since the page was started.  clist_end_page also calls it.
  */
-void clist_compute_colors_used(P1(gx_device_clist_writer *cldev));
+void clist_compute_colors_used(gx_device_clist_writer *cldev);
 
 /* Define the abstract type for a printer device. */
 #ifndef gx_device_printer_DEFINED
@@ -328,7 +329,7 @@ typedef struct gx_device_printer_s gx_device_printer;
 #endif
 
 /* Do device setup from params passed in the command list. */
-int clist_setup_params(P1(gx_device *dev));
+int clist_setup_params(gx_device *dev);
 
 /*
  * Render a rectangle to a client-supplied image.  This implements
@@ -341,9 +342,9 @@ int clist_setup_params(P1(gx_device *dev));
  * some rectangle smaller than ((0, 0), (bdev->width, bdev->height)), it
  * must set up a clipping device.
  */
-int clist_render_rectangle(P5(gx_device_clist *cdev,
-			      const gs_int_rect *prect, gx_device *bdev,
-			      const gx_render_plane_t *render_plane,
-			      bool clear));
+int clist_render_rectangle(gx_device_clist *cdev,
+			   const gs_int_rect *prect, gx_device *bdev,
+			   const gx_render_plane_t *render_plane,
+			   bool clear);
 
 #endif /* gxclist_INCLUDED */

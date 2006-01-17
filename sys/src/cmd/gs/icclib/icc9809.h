@@ -7,7 +7,7 @@
  * Replace tag last values 0xFFFFFFFFL with define icMaxTagVal,
  * and define this to be -1, for better compiler compatibility.
  *
- * Add section to use machine specific INT & ORD to define
+ * Add section to use machine specific INR & ORD to define
  * the sizes of ic Numbers, if ORD is defined.
  *
  * Adding colorspaces 'MCH5-8' for Hexachrome and others. (Colorsync ?)
@@ -190,7 +190,7 @@ authorization from SunSoft Inc.
  */
 #ifdef ORD32			/* Formal sizes defined */
 
-typedef INT32           icSignature;
+typedef INR32           icSignature;
 
 /* Unsigned integer numbers */
 typedef ORD8            icUInt8Number;
@@ -199,13 +199,13 @@ typedef ORD32           icUInt32Number;
 typedef ORD32           icUInt64Number[2];
 
 /* Signed numbers */
-typedef INT8            icInt8Number;
-typedef INT16           icInt16Number;
-typedef INT32	        icInt32Number;
-typedef INT32           icInt64Number[2];
+typedef INR8            icInt8Number;
+typedef INR16           icInt16Number;
+typedef INR32	        icInt32Number;
+typedef INR32           icInt64Number[2];
 
 /* Fixed numbers */
-typedef INT32           icS15Fixed16Number;
+typedef INR32           icS15Fixed16Number;
 typedef ORD32           icU16Fixed16Number;
 
 #else /* Not formal */

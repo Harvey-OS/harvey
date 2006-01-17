@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxidata.c,v 1.4 2000/09/19 19:00:37 lpd Exp $ */
+/* $Id: gxidata.c,v 1.9 2005/06/08 14:38:21 igor Exp $ */
 /* Generic image enumeration and cleanup */
 #include "gx.h"
 #include "memory_.h"
@@ -26,12 +24,12 @@
 #include "gximage.h"
 
 /* Forward declarations */
-private void update_strip(P1(gx_image_enum *penum));
-private void repack_bit_planes(P7(const gx_image_plane_t *src_planes,
-				  const ulong *offsets, int num_planes,
-				  byte *buffer, int width,
-				  const sample_lookup_t * ptab, int spread));
-private gx_device *setup_image_device(P1(const gx_image_enum *penum));
+private void update_strip(gx_image_enum *penum);
+private void repack_bit_planes(const gx_image_plane_t *src_planes,
+			       const ulong *offsets, int num_planes,
+			       byte *buffer, int width,
+			       const sample_lookup_t * ptab, int spread);
+private gx_device *setup_image_device(const gx_image_enum *penum);
 
 /* Process the next piece of an ImageType 1 image. */
 int
@@ -45,6 +43,7 @@ gx_image1_plane_data(gx_image_enum_common_t * info,
     int y_end = min(y + height, penum->rect.h);
     int width_spp = penum->rect.w * penum->spp;
     int num_planes = penum->num_planes;
+    int num_components_per_plane = 1;
 
 #define BCOUNT(plane)		/* bytes per data row */\
   (((penum->rect.w + (plane).data_x) * penum->spp * penum->bps / num_planes\
@@ -76,6 +75,10 @@ gx_image1_plane_data(gx_image_enum_common_t * info,
 	penum->used.y = 0;
     } else
 	memset(offsets, 0, num_planes * sizeof(offsets[0]));
+    if (num_planes == 1 && penum->plane_depths[0] != penum->bps) {
+	/* A single plane with multiple components. */
+	num_components_per_plane = penum->plane_depths[0] / penum->bps;
+    }
     for (; penum->y < y_end; penum->y++) {
 	int px;
 	const byte *buffer;
@@ -89,7 +92,7 @@ gx_image1_plane_data(gx_image_enum_common_t * info,
 	    sourcex = 0;
 	    for (px = 0; px < num_planes; px += penum->bps)
 		repack_bit_planes(planes, offsets, penum->bps, penum->buffer,
-				  penum->rect.w, &penum->map[0].table,
+				  penum->rect.w, &penum->map[px].table,
 				  penum->spread);
 	    for (px = 0; px < num_planes; ++px)
 		offsets[px] += planes[px].raster;
@@ -104,7 +107,7 @@ gx_image1_plane_data(gx_image_enum_common_t * info,
 		(*penum->unpack)(penum->buffer, &sourcex,
 				 planes[0].data + offsets[0],
 				 planes[0].data_x, BCOUNT(planes[0]),
-				 &penum->map[0].table, penum->spread);
+				 &penum->map[0], penum->spread, num_components_per_plane);
 
 	    offsets[0] += planes[0].raster;
 	    for (px = 1; px < num_planes; ++px) {
@@ -112,7 +115,7 @@ gx_image1_plane_data(gx_image_enum_common_t * info,
 				 &ignore_data_x,
 				 planes[px].data + offsets[px],
 				 planes[px].data_x, BCOUNT(planes[px]),
-				 &penum->map[px].table, penum->spread);
+				 &penum->map[px], penum->spread, 1);
 		offsets[px] += planes[px].raster;
 	    }
 	}

@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1995, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevwdib.c,v 1.3 2001/03/12 03:56:13 ghostgum Exp $ */
+/* $Id: gdevwdib.c,v 1.9 2004/09/15 19:41:01 ray Exp $ */
 /* MS Windows 3.n driver for Ghostscript using a DIB for buffering. */
 #include "gdevmswn.h"
 #include "gxdevmem.h"
@@ -101,7 +99,7 @@ private const gx_device_procs win_dib_procs =
 gx_device_win_dib far_data gs_mswindll_device =
 {
     std_device_std_body(gx_device_win_dib, &win_dib_procs, "mswindll",
-			INITIAL_WIDTH, INITIAL_HEIGHT,	/* win_open() fills these in later */
+			INITIAL_WIDTH, INITIAL_HEIGHT,/* win_open() fills these in later */
 			INITIAL_RESOLUTION, INITIAL_RESOLUTION	/* win_open() fills these in later */
     ),
     {0},			/* std_procs */
@@ -440,11 +438,10 @@ win_dib_make_dib(gx_device_win * dev, int orgx, int orgy, int wx, int wy)
     int palcount;
     int i;
     UINT lwidth;		/* line width in bytes rounded up to multiple of 4 bytes */
-
-#ifdef USE_SEGMENTS
     int loffset;		/* byte offset to start of line */
-    UINT lseg;			/* bytes remaining in this segment */
 
+#if USE_SEGMENTS
+    UINT lseg;			/* bytes remaining in this segment */
 #endif
 
     if (orgx + wx > wdev->width)
@@ -459,7 +456,7 @@ win_dib_make_dib(gx_device_win * dev, int orgx, int orgy, int wx, int wy)
     if (wdev->color_info.depth > 16)
 	palcount = 0;
     else if (wdev->color_info.depth > 8)
-	palcount = 3;		// 16-bit BI_BITFIELDS
+	palcount = 3;		/* 16-bit BI_BITFIELDS */
     else
 	palcount = wdev->nColors;
 
@@ -544,13 +541,12 @@ win_dib_alloc_bitmap(gx_device_win * dev, gx_device * param_dev)
     gx_device_memory mdev;
     HGLOBAL hmdata;
     byte FAR *base;
-    byte FAR *ptr_base;
     uint ptr_size;
     uint raster;
-
-#ifdef USE_SEGMENTS
     ulong data_size;
 
+#if USE_SEGMENTS
+   byte FAR *ptr_base;
 #endif
 
 #ifdef __WIN32__

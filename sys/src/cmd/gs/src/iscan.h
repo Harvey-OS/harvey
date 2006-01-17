@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: iscan.h,v 1.4 2000/09/19 19:00:46 lpd Exp $ */
+/* $Id: iscan.h,v 1.9 2004/03/19 08:30:16 ray Exp $ */
 /* Token scanner state and interface */
 /* Requires gsstruct.h, ostack.h, stream.h */
 
@@ -64,7 +62,7 @@ typedef dynamic_area *da_ptr;
 /* Define state specific to binary tokens and binary object sequences. */
 typedef struct scan_binary_state_s {
     int num_format;
-    int (*cont)(P4(i_ctx_t *, stream *, ref *, scanner_state *));
+    int (*cont)(i_ctx_t *, stream *, ref *, scanner_state *);
     ref bin_array;
     uint index;
     uint max_array_index;	/* largest legal index in objects */
@@ -113,10 +111,14 @@ extern_st(st_scanner_state);
 				/* (for Level 1 `\' handling) */
 #define SCAN_CHECK_ONLY 2	/* true if just checking for syntax errors */
 				/* and complete statements (no value) */
-#define SCAN_PROCESS_COMMENTS 4  /* return scan_Comment for comments */
+#define SCAN_PROCESS_COMMENTS 4	/* return scan_Comment for comments */
 				/* (all comments or only non-DSC) */
 #define SCAN_PROCESS_DSC_COMMENTS 8  /* return scan_DSC_Comment */
-void scanner_state_init_options(P2(scanner_state *sstate, int options));
+#define SCAN_PDF_RULES 16	/* PDF scanning rules (for names) */
+#define SCAN_PDF_INV_NUM 32	/* Adobe ignores invalid numbers */
+				/* This is for compatibility with Adobe */
+				/* Acrobat Reader			*/
+void scanner_state_init_options(scanner_state *sstate, int options);
 #define scanner_state_init_check(pstate, from_string, check_only)\
   scanner_state_init_options(pstate,\
 			     (from_string ? SCAN_FROM_STRING : 0) |\
@@ -133,15 +135,15 @@ void scanner_state_init_options(P2(scanner_state *sstate, int options));
 #define scan_Refill 3		/* get more input data, then call again */
 #define scan_Comment 4		/* comment, non-DSC if processing DSC */
 #define scan_DSC_Comment 5	/* DSC comment */
-int scan_token(P4(i_ctx_t *i_ctx_p, stream * s, ref * pref,
-		  scanner_state * pstate));
+int scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref,
+	       scanner_state * pstate);
 
 /*
  * Read a token from a string.  Return like scan_token, but also
  * update the string to move past the token (if no error).
  */
-int scan_string_token_options(P4(i_ctx_t *i_ctx_p, ref * pstr, ref * pref,
-				 int options));
+int scan_string_token_options(i_ctx_t *i_ctx_p, ref * pstr, ref * pref,
+			      int options);
 #define scan_string_token(i_ctx_p, pstr, pref)\
   scan_string_token_options(i_ctx_p, pstr, pref, 0)
 
@@ -150,15 +152,15 @@ int scan_string_token_options(P4(i_ctx_t *i_ctx_p, ref * pstr, ref * pref,
  * This may return o_push_estack, 0 (meaning just call scan_token again),
  * or an error code.
  */
-int scan_handle_refill(P6(i_ctx_t *i_ctx_p, const ref * fop,
-			  scanner_state * pstate, bool save, bool push_file,
-			  op_proc_t cont));
+int scan_handle_refill(i_ctx_t *i_ctx_p, const ref * fop,
+		       scanner_state * pstate, bool save, bool push_file,
+		       op_proc_t cont);
 
 /*
  * Define the procedure "hook" for parsing DSC comments.  If not NULL,
  * this procedure is called for every DSC comment seen by the scanner.
  */
-extern int (*scan_dsc_proc) (P2(const byte *, uint));
+extern int (*scan_dsc_proc) (const byte *, uint);
 
 /*
  * Define the procedure "hook" for parsing general comments.  If not NULL,
@@ -166,6 +168,6 @@ extern int (*scan_dsc_proc) (P2(const byte *, uint));
  * If both scan_dsc_proc and scan_comment_proc are set,
  * scan_comment_proc is called only for non-DSC comments.
  */
-extern int (*scan_comment_proc) (P2(const byte *, uint));
+extern int (*scan_comment_proc) (const byte *, uint);
 
 #endif /* iscan_INCLUDED */

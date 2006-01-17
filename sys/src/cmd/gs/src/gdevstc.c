@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 1996 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevstc.c,v 1.2 2000/09/19 19:00:22 lpd Exp $*/
+/* $Id: gdevstc.c,v 1.11 2004/11/22 19:25:57 giles Exp $*/
 /* Epson Stylus-Color Printer-Driver */
 
 /***
@@ -189,13 +187,13 @@ stcolor_device far_data gs_stcolor_device = {
 /***
  *** Test for white scan-lines
  ***/
-private bool stc_iswhite(P3(stcolor_device *, int, byte *));
+private bool stc_iswhite(stcolor_device *, int, byte *);
 
 /***
  *** Functions used for conversion inside the print-loop
  ***/
 #define stc_proc_iconvert(Name) \
-byte * Name(P4(stcolor_device *sd,byte *ext_data,int prt_pixels,byte *alg_line))
+byte * Name(stcolor_device *sd,byte *ext_data,int prt_pixels,byte *alg_line)
 
 private stc_proc_iconvert(stc_any_depth);    /* general input-conversion */
 private stc_proc_iconvert(stc_rgb24_long);   /* 24Bit RGB  -> long's */
@@ -212,10 +210,10 @@ private stc_proc_iconvert(stc_cmyk10_dlong); /* CMYK10 direct longs */
 /***
  *** Print-functions
  ***/
-private void stc_print_weave(P2(stcolor_device *sd,FILE *prn_stream));
-private void stc_print_bands(P2(stcolor_device *sd,FILE *prn_stream));
-private void stc_print_delta(P2(stcolor_device *sd,FILE *prn_stream));
-private int  stc_print_setup(P1(stcolor_device *sd));
+private void stc_print_weave(stcolor_device *sd,FILE *prn_stream);
+private void stc_print_bands(stcolor_device *sd,FILE *prn_stream);
+private void stc_print_delta(stcolor_device *sd,FILE *prn_stream);
+private int  stc_print_setup(stcolor_device *sd);
 
 /***
  *** compute the ESC/P2 specific values
@@ -228,8 +226,8 @@ stc_print_setup(stcolor_device *sd)
 /*
  * Compute the resolution-parameters
  */
-   sd->stc.escp_u = 3600.0 / sd->y_pixels_per_inch; /* y-units */
-   sd->stc.escp_h = 3600.0 / sd->x_pixels_per_inch; /* x-units */
+   sd->stc.escp_u = (int)(3600.0 / sd->y_pixels_per_inch); /* y-units */
+   sd->stc.escp_h = (int)(3600.0 / sd->x_pixels_per_inch); /* x-units */
    sd->stc.escp_v = sd->stc.flags & (STCUWEAVE | STCNWEAVE) ?
                     sd->stc.escp_u : 40;
 /*
@@ -253,17 +251,18 @@ stc_print_setup(stcolor_device *sd)
  * Page-Dimensions
  */
    if((sd->stc.flags & STCWIDTH ) == 0)
-       sd->stc.escp_width = sd->width -
-           (dev_l_margin(sd)+dev_r_margin(sd))*sd->x_pixels_per_inch;
+       sd->stc.escp_width = (int)(sd->width -
+           (dev_l_margin(sd)+dev_r_margin(sd))*sd->x_pixels_per_inch);
 
    if((sd->stc.flags & STCHEIGHT) == 0)
        sd->stc.escp_height = sd->height;
 
    if((sd->stc.flags & STCTOP) == 0)
-       sd->stc.escp_top = dev_t_margin(sd)*sd->y_pixels_per_inch;
+       sd->stc.escp_top = (int)(dev_t_margin(sd)*sd->y_pixels_per_inch);
 
    if((sd->stc.flags & STCBOTTOM) == 0)
-      sd->stc.escp_bottom = sd->height - dev_b_margin(sd)*sd->y_pixels_per_inch;
+      sd->stc.escp_bottom = (int)(sd->height - 
+	    dev_b_margin(sd)*sd->y_pixels_per_inch);
 
    if((sd->stc.flags & STCINIT) == 0) { /* No Initialization-String defined */
       int need  = 8  /* Reset, Graphics-Mode 1 */
@@ -276,9 +275,9 @@ stc_print_setup(stcolor_device *sd)
 
       if(need != sd->stc.escp_init.size) {  /* Reallocate */
 
-         if(NULL != (bp = gs_malloc(need,1,"stcolor/init"))) { /* Replace */
+         if(NULL != (bp = gs_malloc(sd->memory, need,1,"stcolor/init"))) { /* Replace */
             if(0 != sd->stc.escp_init.size)
-               gs_free((byte *)sd->stc.escp_init.data,sd->stc.escp_init.size,1,
+               gs_free(sd->memory, (byte *)sd->stc.escp_init.data,sd->stc.escp_init.size,1,
                        "stcolor/init");
             sd->stc.escp_init.data       = bp;
             sd->stc.escp_init.size       = need;
@@ -321,9 +320,9 @@ stc_print_setup(stcolor_device *sd)
 
       if(need != sd->stc.escp_release.size) {  /* Reallocate */
 
-         if(NULL != (bp = gs_malloc(need,1,"stcolor/release"))) { /* Replace */
+         if(NULL != (bp = gs_malloc(sd->memory, need,1,"stcolor/release"))) { /* Replace */
             if(0 != sd->stc.escp_release.size)
-               gs_free((byte *)sd->stc.escp_release.data,sd->stc.escp_release.size,1,
+               gs_free(sd->memory, (byte *)sd->stc.escp_release.data,sd->stc.escp_release.size,1,
                        "stcolor/release");
             sd->stc.escp_release.data       = bp;
             sd->stc.escp_release.size       = need;
@@ -377,17 +376,17 @@ stc_print_page(gx_device_printer * pdev, FILE * prn_stream)
  ***/
 
    ext_size   = gdev_prn_raster(sd);
-   ext_line   = gs_malloc(ext_size,1,"stc_print_page/ext_line");
+   ext_line   = gs_malloc(sd->memory, ext_size,1,"stc_print_page/ext_line");
    if(ext_line == NULL) SORRY;
 
    prt_pixels        = sd->stc.escp_width;
    sd->stc.prt_size  = (prt_pixels+7)/8;
    prt_pixels        =  sd->stc.prt_size * 8;
 
-   sd->stc.prt_scans  = sd->height -
-      (dev_t_margin(sd)+dev_b_margin(sd))*sd->y_pixels_per_inch;
+   sd->stc.prt_scans  = (int)(sd->height -
+      (dev_t_margin(sd)+dev_b_margin(sd))*sd->y_pixels_per_inch);
 
-   col_line   = gs_malloc(prt_pixels,1,"stc_print_page/col_line");
+   col_line   = gs_malloc(sd->memory, prt_pixels,1,"stc_print_page/col_line");
    if(col_line == NULL) SORRY;
 
    alg_size  = prt_pixels;
@@ -398,14 +397,14 @@ stc_print_page(gx_device_printer * pdev, FILE * prn_stream)
        (sd->stc.alg_item                     == 1)))  {
       alg_line = NULL;
    } else {
-      alg_line = gs_malloc(alg_size,sd->stc.alg_item,"stc_print_page/alg_line");
+      alg_line = gs_malloc(sd->memory, alg_size,sd->stc.alg_item,"stc_print_page/alg_line");
       if(alg_line == NULL) SORRY;
    }
 
    buf_size = sd->stc.dither->bufadd
             + alg_size*(sd->stc.dither->flags/STC_SCAN);
    if(buf_size > 0) {
-      buf    = gs_malloc(buf_size,sd->stc.alg_item,"stc_print_page/buf");
+      buf    = gs_malloc(sd->memory, buf_size,sd->stc.alg_item,"stc_print_page/buf");
       if(buf == NULL) SORRY;
    } else {
       buf = NULL;
@@ -419,11 +418,11 @@ stc_print_page(gx_device_printer * pdev, FILE * prn_stream)
         sd->stc.prt_buf <<= 1);
     if(sd->color_info.num_components > 1) sd->stc.prt_buf *= 4;
 
-    sd->stc.prt_width = gs_malloc(sd->stc.prt_buf,sizeof(int),
+    sd->stc.prt_width = gs_malloc(sd->memory, sd->stc.prt_buf,sizeof(int),
                         "stc_print_page/prt_width");
     if(sd->stc.prt_width == NULL) SORRY;
 
-    sd->stc.prt_data  = gs_malloc(sd->stc.prt_buf,sizeof(byte *),
+    sd->stc.prt_data  = gs_malloc(sd->memory, sd->stc.prt_buf,sizeof(byte *),
                         "stc_print_page/prt_data");
 
     if(sd->stc.prt_data == NULL) {
@@ -432,7 +431,7 @@ stc_print_page(gx_device_printer * pdev, FILE * prn_stream)
        int i;
 
        for(i = 0; i < sd->stc.prt_buf; ++i) {
-          sd->stc.prt_data[i] = gs_malloc(sd->stc.prt_size,1,
+          sd->stc.prt_data[i] = gs_malloc(sd->memory, sd->stc.prt_size,1,
                                 "stc_print_page/prt");
           if(sd->stc.prt_data[i] == NULL) SORRY;
        }
@@ -443,7 +442,7 @@ stc_print_page(gx_device_printer * pdev, FILE * prn_stream)
        int i;
        for(i = 0; i < sd->color_info.num_components; ++i) {
           if((flags & STCCOMP) == STCDELTA) {
-             sd->stc.seed_row[i] = gs_malloc(sd->stc.seed_size,sizeof(int),
+             sd->stc.seed_row[i] = gs_malloc(sd->memory, sd->stc.seed_size,sizeof(int),
                                    "stc_print_page/seed_row");
              if(sd->stc.seed_row[i] == NULL) SORRY;
              else memset(sd->stc.seed_row[i],0,sd->stc.seed_size*sizeof(int));
@@ -467,7 +466,7 @@ stc_print_page(gx_device_printer * pdev, FILE * prn_stream)
           break;
     }
 
-    sd->stc.escp_data = gs_malloc(sd->stc.escp_size,1,
+    sd->stc.escp_data = gs_malloc(sd->memory, sd->stc.escp_size,1,
                                   "stc_print_page/escp_data");
     if(sd->stc.escp_data == NULL) SORRY;
 
@@ -750,20 +749,20 @@ stc_print_page(gx_device_printer * pdev, FILE * prn_stream)
  ***/
 
    if(ext_line != NULL)
-      gs_free(ext_line,ext_size,1,"stc_print_page/ext_line");
+      gs_free(sd->memory, ext_line,ext_size,1,"stc_print_page/ext_line");
 
    if(col_line != NULL)
-      gs_free(col_line,prt_pixels,1,"stc_print_page/col_line");
+      gs_free(sd->memory, col_line,prt_pixels,1,"stc_print_page/col_line");
 
    if(alg_line != NULL)
-      gs_free(alg_line,alg_size,sd->stc.alg_item,
+      gs_free(sd->memory, alg_line,alg_size,sd->stc.alg_item,
          "stc_print_page/alg_line");
 
    if(buf != NULL)
-      gs_free(buf,buf_size,sd->stc.alg_item,"stc_print_page/buf");
+      gs_free(sd->memory, buf,buf_size,sd->stc.alg_item,"stc_print_page/buf");
 
     if(sd->stc.prt_width != NULL)
-       gs_free(sd->stc.prt_width,sd->stc.prt_buf,sizeof(int),
+       gs_free(sd->memory, sd->stc.prt_width,sd->stc.prt_buf,sizeof(int),
        "stc_print_page/prt_width");
 
     if(sd->stc.prt_data != NULL) {
@@ -771,11 +770,11 @@ stc_print_page(gx_device_printer * pdev, FILE * prn_stream)
 
        for(i = 0; i < sd->stc.prt_buf; ++i) {
           if(sd->stc.prt_data[i] != NULL)
-             gs_free(sd->stc.prt_data[i],sd->stc.prt_size,1,
+             gs_free(sd->memory, sd->stc.prt_data[i],sd->stc.prt_size,1,
              "stc_print_page/prt");
        }
 
-       gs_free(sd->stc.prt_data,sd->stc.prt_buf,sizeof(byte *),
+       gs_free(sd->memory, sd->stc.prt_data,sd->stc.prt_buf,sizeof(byte *),
        "stc_print_page/prt_data");
     }
 
@@ -783,13 +782,13 @@ stc_print_page(gx_device_printer * pdev, FILE * prn_stream)
        int i;
        for(i = 0; i < sd->color_info.num_components; ++i) {
           if(sd->stc.seed_row[i] != NULL)
-            gs_free(sd->stc.seed_row[i],sd->stc.seed_size,sizeof(int),
+            gs_free(sd->memory, sd->stc.seed_row[i],sd->stc.seed_size,sizeof(int),
             "stc_print_page/seed_row");
        }
     }
 
     if(sd->stc.escp_data != NULL)
-       gs_free(sd->stc.escp_data,sd->stc.escp_size,1,
+       gs_free(sd->memory, sd->stc.escp_data,sd->stc.escp_size,1,
        "stc_print_page/escp_data");
 
    return OK4GO ? 0 : gs_error_undefined;
@@ -1529,7 +1528,7 @@ stc_print_delta(stcolor_device *sd, FILE *prn_stream)
  *** Free-Data: release the specific-Arrays
  ***/
 private void 
-stc_freedata(stc_t *stc)
+stc_freedata(gs_memory_t *mem, stc_t *stc)
 {
    int i,j;
 
@@ -1538,7 +1537,7 @@ stc_freedata(stc_t *stc)
 
          for(j = 0; j < i; ++j) if(stc->code[i] == stc->code[j]) break;
 
-         if(i == j) gs_free(stc->code[i],1<<stc->bits,sizeof(gx_color_value),
+         if(i == j) gs_free(mem, stc->code[i],1<<stc->bits,sizeof(gx_color_value),
                            "stcolor/code");
       }
 
@@ -1547,7 +1546,7 @@ stc_freedata(stc_t *stc)
          for(j = 0; j < i; ++j)
             if(stc->vals[i] == stc->vals[j]) break;
 
-         if(i == j) gs_free(stc->vals[i],1<<stc->bits,sd->stc.alg_item,
+         if(i == j) gs_free(mem, stc->vals[i],1<<stc->bits,sd->stc.alg_item,
                            "stcolor/transfer");
       }
    }
@@ -1578,7 +1577,7 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
      gs_param_string *dp;
      for(i = 0; stc_dither[i].name != NULL; ++i); /* count 'em */
      sd->stc.algorithms.size = i;
-     dp = gs_malloc(i,sizeof(gs_param_string),
+     dp = gs_malloc(sd->memory, i,sizeof(gs_param_string),
                                         "stcolor/algorithms");
      if(dp == NULL) {
         code = gs_error_VMerror;
@@ -1609,7 +1608,7 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
         for(j = 0; j < i; ++j) if(sd->stc.extc[i] == sd->stc.extc[j]) break;
 
         if(i == j) { /* new one */
-           sd->stc.code[i] = gs_malloc(1<<sd->stc.bits,sizeof(gx_color_value),
+           sd->stc.code[i] = gs_malloc(sd->memory, 1<<sd->stc.bits,sizeof(gx_color_value),
                              "stcolor/code");
 
            if(sd->stc.code[i] == NULL) { /* error */
@@ -1654,7 +1653,7 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
                  fx = fx < 0.0 ? 0.0 :
                       (fx > gx_max_color_value ? gx_max_color_value : fx);
 
-                 sd->stc.code[i][ly] = fx;
+                 sd->stc.code[i][ly] = (gx_color_value)fx;
                  if((fx-sd->stc.code[i][ly]) >= 0.5) sd->stc.code[i][ly] += 1;
               }
            }                             /* error || success */
@@ -1675,7 +1674,7 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
         if(i == j) { /* new one */
 
              sd->stc.vals[i] =
-                gs_malloc(1<<sd->stc.bits,sd->stc.alg_item,"stcolor/transfer");
+                gs_malloc(sd->memory, 1<<sd->stc.bits,sd->stc.alg_item,"stcolor/transfer");
 
            if(sd->stc.vals[i] == NULL) {
 
@@ -1717,12 +1716,12 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
 
                     switch(sd->stc.dither->flags & STC_TYPE) {
                        case STC_BYTE:
-                          Ovb = Y;
+                          Ovb = (byte)Y;
                           if(((Y-Ovb) >= 0.5) && ((Ovb+1) <= Omax)) Ovb += 1;
                           Out[io] = Ovb;
                           break;
                        case STC_LONG:
-                          Ovl = Y;
+                          Ovl = (long)Y;
                           if(((Y-Ovl) >= 0.5) && ((Ovl+1) <= Omax)) Ovl += 1;
                           if(((Ovl-Y) >= 0.5) && ((Ovl-1) >= Omax)) Ovl -= 1;
                           ((long *)Out)[io] = Ovl;
@@ -1747,7 +1746,7 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
 
                     x = sd->stc.code[i][o]; x /= gx_max_color_value;
 
-                    j = x / xstep;
+                    j = (unsigned long)(x / xstep);
 
                     if((j+1) < sd->stc.sizv[i]) {
                        y  = sd->stc.extv[i][j];
@@ -1761,7 +1760,7 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
                       +(sd->stc.dither->minmax[1]-sd->stc.dither->minmax[0])*y;
 
 #                   define stc_adjvals(T)                                             \
-                     ((T *)(sd->stc.vals[i]))[o] = y;                                 \
+                     ((T *)(sd->stc.vals[i]))[o] = (T)y;                                 \
                                                                                       \
                     if(((y-((T *)(sd->stc.vals[i]))[o]) >= 0.5) &&                    \
                        ((1+((T *)(sd->stc.vals[i]))[o]) <= sd->stc.dither->minmax[1]))\
@@ -1787,7 +1786,7 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
   }                                                    /* comp */
 
   if(code == 0) {
-
+      gx_color_value cv[4];
       sd->stc.flags |= STCOK4GO;
 
 /*
@@ -1800,26 +1799,36 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
          set_dev_proc(sd,map_rgb_color, stc_map_gray_color);
          set_dev_proc(sd,map_cmyk_color,gx_default_map_cmyk_color);
          set_dev_proc(sd,map_color_rgb, stc_map_color_gray);
-         white = stc_map_gray_color((gx_device *) sd,
-                    gx_max_color_value,gx_max_color_value,gx_max_color_value);
+	 set_dev_proc(sd,encode_color, stc_map_gray_color);
+         set_dev_proc(sd,decode_color, stc_map_color_gray);
+         cv[0] = cv[1] = cv[2] = gx_max_color_value;
+         white = stc_map_gray_color((gx_device *) sd, cv);
          break;
       case 3:
          set_dev_proc(sd,map_rgb_color, stc_map_rgb_color);
          set_dev_proc(sd,map_cmyk_color,gx_default_map_cmyk_color);
          set_dev_proc(sd,map_color_rgb, stc_map_color_rgb);
-         white = stc_map_rgb_color((gx_device *) sd,
-                    gx_max_color_value,gx_max_color_value,gx_max_color_value);
+	 set_dev_proc(sd,encode_color, stc_map_rgb_color);
+         set_dev_proc(sd,decode_color, stc_map_color_rgb);
+         cv[0] = cv[1] = cv[2] = gx_max_color_value;
+         white = stc_map_rgb_color((gx_device *) sd, cv);
          break;
       default:
          set_dev_proc(sd,map_rgb_color, gx_default_map_rgb_color);
          if(sd->stc.flags & STCCMYK10) {
             set_dev_proc(sd,map_cmyk_color,stc_map_cmyk10_color);
             set_dev_proc(sd,map_color_rgb, stc_map_color_cmyk10);
-            white = stc_map_cmyk10_color((gx_device *) sd,0,0,0,0);
+	    set_dev_proc(sd,encode_color,stc_map_cmyk10_color);
+            set_dev_proc(sd,decode_color, stc_map_color_cmyk10);
+            cv[0] = cv[1] = cv[2] = cv[3] = 0;
+            white = stc_map_cmyk10_color((gx_device *) sd, cv);
          } else {
             set_dev_proc(sd,map_cmyk_color,stc_map_cmyk_color);
             set_dev_proc(sd,map_color_rgb, stc_map_color_cmyk);
-            white = stc_map_cmyk_color((gx_device *) sd,0,0,0,0);
+	    set_dev_proc(sd,encode_color,stc_map_cmyk_color);
+            set_dev_proc(sd,decode_color, stc_map_color_cmyk);
+            cv[0] = cv[1] = cv[2] = cv[3] = 0;
+            white = stc_map_cmyk_color((gx_device *) sd,cv);
          }
          break;                               /* Establish color-procs */
       }
@@ -1863,8 +1872,8 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
 /*
  *    compute the trailer
  */
-      j  = sd->width -
-          (dev_l_margin(sd)+dev_r_margin(sd))*sd->x_pixels_per_inch;
+      j  = (unsigned long)(sd->width -
+          (dev_l_margin(sd)+dev_r_margin(sd))*sd->x_pixels_per_inch);
       j  = j * sd->color_info.depth;            /* the Bit-count */
       j  = j % (32*countof(sd->stc.white_run)); /* remaining Bits */
 
@@ -1890,7 +1899,7 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
 
    } else {
 
-      stc_freedata(&sd->stc);
+      stc_freedata(sd->memory, &sd->stc);
 
       return_error(code);
    }
@@ -1903,7 +1912,7 @@ stc_open(gx_device *pdev) /* setup margins & arrays */
 private int 
 stc_close(gx_device *pdev)
 {
-   stc_freedata(&((stcolor_device *) pdev)->stc);
+   stc_freedata(pdev->memory, &((stcolor_device *) pdev)->stc);
    ((stcolor_device *) pdev)->stc.flags &= ~STCOK4GO;
    return gdev_prn_close(pdev);
 }
@@ -1998,12 +2007,14 @@ stc_expand(stcolor_device *sd,int i,gx_color_index col)
  *** color-mapping of gray-scales
  ***/
 private gx_color_index 
-stc_map_gray_color(gx_device *pdev,
-        gx_color_value r, gx_color_value g, gx_color_value b)
+stc_map_gray_color(gx_device *pdev, const gx_color_value cv[])
 {
 
    stcolor_device *sd = (stcolor_device *) pdev;
    gx_color_index rv;
+   gx_color_value r = cv[0];
+   gx_color_value g = cv[1];
+   gx_color_value b = cv[2];
 
    if((r == g) && (g == b)) {
 
@@ -2019,7 +2030,7 @@ stc_map_gray_color(gx_device *pdev,
 
       if(     fv < 0.0)                      rv = 0;
       else if((fv+0.5) > gx_max_color_value) rv = gx_max_color_value;
-      else                                   rv = fv+0.5;
+      else                                   rv = (gx_color_index)(fv+0.5);
 
    } else {
 
@@ -2057,14 +2068,15 @@ stc_map_color_gray(gx_device *pdev, gx_color_index color,gx_color_value prgb[3])
  *** color-mapping of rgb-values
  ***/
 private gx_color_index 
-stc_map_rgb_color(gx_device *pdev,
-                  gx_color_value r, gx_color_value g, gx_color_value b)
+stc_map_rgb_color(gx_device *pdev, const gx_color_value cv[])
 {
 
    stcolor_device *sd = (stcolor_device *) pdev;
    int          shift = sd->color_info.depth == 24 ? 8 : sd->stc.bits;
    gx_color_index  rv = 0;
-
+   gx_color_value r = cv[0];
+   gx_color_value g = cv[1];
+   gx_color_value b = cv[2];
    if((sd->stc.am != NULL) && ((r != g) || (g != b))) {
       float *m,fr,fg,fb,fv;
 
@@ -2075,19 +2087,19 @@ stc_map_rgb_color(gx_device *pdev,
 
       if(     fv < 0.0)                      r = 0;
       else if((fv+0.5) > gx_max_color_value) r = gx_max_color_value;
-      else                                   r = fv+0.5;
+      else                                   r = (gx_color_value)(fv+0.5);
 
       fv = *m++ * fr; fv += *m++ * fg; fv += *m++ * fb;
 
       if(     fv < 0.0)                      g = 0;
       else if((fv+0.5) > gx_max_color_value) g = gx_max_color_value;
-      else                                   g = fv+0.5;
+      else                                   g = (gx_color_value)(fv+0.5);
 
       fv = *m++ * fr; fv += *m++ * fg; fv += *m++ * fb;
 
       if(     fv < 0.0)                      b = 0;
       else if((fv+0.5) > gx_max_color_value) b = gx_max_color_value;
-      else                                   b = fv+0.5;
+      else                                   b = (gx_color_value)(fv+0.5);
 
    }
 
@@ -2124,13 +2136,16 @@ stc_map_color_rgb(gx_device *pdev, gx_color_index color,gx_color_value prgb[3])
  *** color-mapping of cmyk-values
  ***/
 private gx_color_index 
-stc_map_cmyk_color(gx_device *pdev,
-        gx_color_value c, gx_color_value m, gx_color_value y,gx_color_value k)
+stc_map_cmyk_color(gx_device *pdev, const gx_color_value cv[])
 {
 
    stcolor_device *sd = (stcolor_device *) pdev;
    int          shift = sd->color_info.depth == 32 ? 8 : sd->stc.bits;
    gx_color_index rv = 0;
+   gx_color_value c = cv[0];
+   gx_color_value m = cv[1];
+   gx_color_value y = cv[2];
+   gx_color_value k = cv[3];
 
    if((c == m) && (m == y)) {
 
@@ -2166,22 +2181,22 @@ stc_map_cmyk_color(gx_device *pdev,
          fv = *a++ * fc; fv += *a++ * fm; fv += *a++ * fy; fv += *a++ * fk;
          if(     fv < 0.0)                      c = 0;
          else if((fv+0.5) > gx_max_color_value) c = gx_max_color_value;
-         else                                   c = fv+0.5;
+         else                                   c = (gx_color_value)(fv+0.5);
 
          fv = *a++ * fc; fv += *a++ * fm; fv += *a++ * fy; fv += *a++ * fk;
          if(     fv < 0.0)                      m = 0;
          else if((fv+0.5) > gx_max_color_value) m = gx_max_color_value;
-         else                                   m = fv+0.5;
+         else                                   m = (gx_color_value)(fv+0.5);
 
          fv = *a++ * fc; fv += *a++ * fm; fv += *a++ * fy; fv += *a++ * fk;
          if(     fv < 0.0)                      y = 0;
          else if((fv+0.5) > gx_max_color_value) y = gx_max_color_value;
-         else                                   y = fv+0.5;
+         else                                   y = (gx_color_value)(fv+0.5);
 
          fv = *a++ * fc; fv += *a++ * fm; fv += *a++ * fy; fv += *a++ * fk;
          if(     fv < 0.0)                      k = 0;
          else if((fv+0.5) > gx_max_color_value) k = gx_max_color_value;
-         else                                   k = fv+0.5;
+         else                                   k = (gx_color_value)(fv+0.5);
 
       } else if(k == 0) {
 
@@ -2213,8 +2228,9 @@ stc_map_cmyk_color(gx_device *pdev,
    return rv;
 }
 
+/* Modified to be a "decode_color" routine */
 private int 
-stc_map_color_cmyk(gx_device *pdev, gx_color_index color,gx_color_value prgb[3])
+stc_map_color_cmyk(gx_device *pdev, gx_color_index color,gx_color_value cv[4])
 {
 
    stcolor_device *sd = (stcolor_device *) pdev;
@@ -2227,15 +2243,12 @@ stc_map_color_cmyk(gx_device *pdev, gx_color_index color,gx_color_value prgb[3])
    m = stc_expand(sd,1, color & l); color >>= shift;
    c = stc_expand(sd,0, color & l);
 
-   if((c == m) && (m == y)) {
-      prgb[0] = gx_max_color_value-k;
-      prgb[1] = prgb[0];
-      prgb[2] = prgb[0];
-   } else {
-      prgb[0] = gx_max_color_value-c;
-      prgb[1] = gx_max_color_value-m;
-      prgb[2] = gx_max_color_value-y;
-   }
+   
+   cv[0] = c;
+   cv[1] = m;
+   cv[2] = y;
+   cv[3] = k;
+   
    return 0;
 }
 
@@ -2243,13 +2256,17 @@ stc_map_color_cmyk(gx_device *pdev, gx_color_index color,gx_color_value prgb[3])
  *** color-mapping of cmyk10-values
  ***/
 private gx_color_index 
-stc_map_cmyk10_color(gx_device *pdev,
-        gx_color_value c, gx_color_value m, gx_color_value y,gx_color_value k)
+stc_map_cmyk10_color(gx_device *pdev, const gx_color_value cv[])
 {
 
    stcolor_device *sd = (stcolor_device *) pdev;
    int             mode;
    gx_color_index rv  = 0;
+
+   gx_color_value c = cv[0];
+   gx_color_value m = cv[1];
+   gx_color_value y = cv[2];
+   gx_color_value k = cv[3];
 
    if((c == m) && (m == y)) {
 
@@ -2277,17 +2294,17 @@ stc_map_cmyk10_color(gx_device *pdev,
          fv = *a++ * fc; fv += *a++ * fm; fv += *a++ * fy; fv += *a++ * fk;
          if(     fv < 0.0)                      c = 0;
          else if((fv+0.5) > gx_max_color_value) c = gx_max_color_value;
-         else                                   c = fv+0.5;
+         else                                   c = (gx_color_value)(fv+0.5);
 
          fv = *a++ * fc; fv += *a++ * fm; fv += *a++ * fy; fv += *a++ * fk;
          if(     fv < 0.0)                      m = 0;
          else if((fv+0.5) > gx_max_color_value) m = gx_max_color_value;
-         else                                   m = fv+0.5;
+         else                                   m = (gx_color_value)(fv+0.5);
 
          fv = *a++ * fc; fv += *a++ * fm; fv += *a++ * fy; fv += *a++ * fk;
          if(     fv < 0.0)                      y = 0;
          else if((fv+0.5) > gx_max_color_value) y = gx_max_color_value;
-         else                                   y = fv+0.5;
+         else                                   y = (gx_color_value)(fv+0.5);
 
       }
 
@@ -2373,7 +2390,7 @@ stc_map_cmyk10_color(gx_device *pdev,
 
 private int 
 stc_map_color_cmyk10(gx_device *pdev, gx_color_index color,
-                     gx_color_value prgb[3])
+                     gx_color_value cv[3])
 {
 
    stcolor_device *sd = (stcolor_device *) pdev;
@@ -2394,7 +2411,8 @@ stc_map_color_cmyk10(gx_device *pdev, gx_color_index color,
 
    c    =   stc_expand(sd,3,(color>>2)&0x3ff);
 
-   switch(color & 3) {
+   /* cast the 64 bit switch argument to work around broken HPUX 10 cc */
+   switch((int)(color & 3)) {
      case 0:
         m = stc_expand(sd,1,(color>>22) & 0x3ff);
         y = stc_expand(sd,2,(color>>12) & 0x3ff);
@@ -2415,9 +2433,9 @@ stc_map_color_cmyk10(gx_device *pdev, gx_color_index color,
         break;
    }
 
-   prgb[0] = gx_max_color_value - c;
-   prgb[1] = gx_max_color_value - m;
-   prgb[2] = gx_max_color_value - y;
+   cv[0] = c;
+   cv[1] = m;
+   cv[2] = y;
 
    return 0;
 }
@@ -3032,8 +3050,8 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
       if(((sd->stc.dither->flags & STC_TYPE) != STC_FLOAT) &&
          ((sd->stc.dither->minmax[1]-sd->stc.dither->minmax[0]) <
            sd->color_info.max_gray))
-         sd->color_info.max_gray =
-                sd->stc.dither->minmax[1]-sd->stc.dither->minmax[0]+0.5;
+         sd->color_info.max_gray = (gx_color_value)
+                (sd->stc.dither->minmax[1]-sd->stc.dither->minmax[0]+0.5);
 
       sd->color_info.max_color = sd->color_info.num_components < 3 ? 0 :
                                  sd->color_info.max_gray;
@@ -3083,7 +3101,7 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
            if(j < i) {
               sd->stc.extv[i] = sd->stc.extv[j];
            } else {
-              fp = gs_malloc(sd->stc.sizv[i],sizeof(float),"stc_put_params");
+              fp = gs_malloc(sd->memory, sd->stc.sizv[i],sizeof(float),"stc_put_params");
               if(fp != NULL)
                  memcpy(fp,sd->stc.extv[i],sd->stc.sizv[i]*sizeof(float));
                else
@@ -3103,7 +3121,7 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
            if(j < i) {
               sd->stc.extc[i] = sd->stc.extc[j];
            } else {
-              fp = gs_malloc(sd->stc.sizc[i],sizeof(float),"stc_put_params");
+              fp = gs_malloc(sd->memory, sd->stc.sizc[i],sizeof(float),"stc_put_params");
               if(fp != NULL)
                  memcpy(fp,sd->stc.extc[i],sd->stc.sizc[i]*sizeof(float));
                else
@@ -3118,7 +3136,7 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
         if(     sd->color_info.num_components == 1) i =  3;
         else if(sd->color_info.num_components == 3) i =  9;
         else                                        i = 16;
-        fp = gs_malloc(i,sizeof(float),"stc_put_params");
+        fp = gs_malloc(sd->memory, i,sizeof(float),"stc_put_params");
         if(fp != NULL) memcpy(fp,sd->stc.am,i*sizeof(float));
         else           code = gs_error_VMerror;
         sd->stc.am = fp;
@@ -3128,7 +3146,7 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
         byte *ip = NULL;
 
         if(sd->stc.escp_init.size > 0) {
-           ip = gs_malloc(sd->stc.escp_init.size,1,"stcolor/init");
+           ip = gs_malloc(sd->memory, sd->stc.escp_init.size,1,"stcolor/init");
            if(ip == NULL) {
               code = gs_error_VMerror;
               sd->stc.escp_init.size = 0;
@@ -3144,7 +3162,7 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
         byte *ip = NULL;
 
         if(sd->stc.escp_release.size > 0) {
-           ip = gs_malloc(sd->stc.escp_release.size,1,"stcolor/release");
+           ip = gs_malloc(sd->memory, sd->stc.escp_release.size,1,"stcolor/release");
            if(ip == NULL) {
               code = gs_error_VMerror;
               sd->stc.escp_release.size = 0;
@@ -3162,17 +3180,17 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
            if(     sd->color_info.num_components == 1) i =  3;
            else if(sd->color_info.num_components == 3) i =  9;
            else                                        i = 16;
-           gs_free(sd->stc.am,i,sizeof(float),"stc_put_params");
+           gs_free(sd->memory, sd->stc.am,i,sizeof(float),"stc_put_params");
         }
 
         if((sd->stc.escp_init.data != NULL) &&
            (sd->stc.escp_init.data != oldstc.escp_init.data))
-           gs_free((byte *) sd->stc.escp_init.data,sd->stc.escp_init.size,1,
+           gs_free(sd->memory, (byte *) sd->stc.escp_init.data,sd->stc.escp_init.size,1,
               "stcolor/init");
 
         if((sd->stc.escp_release.data != NULL) &&
            (sd->stc.escp_release.data != oldstc.escp_release.data))
-           gs_free((byte *) sd->stc.escp_release.data,sd->stc.escp_release.
+           gs_free(sd->memory, (byte *) sd->stc.escp_release.data,sd->stc.escp_release.
               size,1,"stcolor/release");
 
         for(i = 0; i < sd->color_info.num_components; ++i) { /* components */
@@ -3185,7 +3203,7 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
               for(j = 0; j < i; ++j)
                  if(sd->stc.extc[i] == sd->stc.extc[j]) break;
 
-              if(i == j) gs_free(sd->stc.extc[i],sd->stc.sizc[i],sizeof(float),
+              if(i == j) gs_free(sd->memory, sd->stc.extc[i],sd->stc.sizc[i],sizeof(float),
                             "stc_put_params");
            }
 
@@ -3196,7 +3214,7 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
               for(j = 0; j < i; ++j)
                  if(sd->stc.extv[i] == sd->stc.extv[j]) break;
 
-              if(i == j) gs_free(sd->stc.extv[i],sd->stc.sizv[i],sizeof(float),
+              if(i == j) gs_free(sd->memory, sd->stc.extv[i],sd->stc.sizv[i],sizeof(float),
                             "stc_put_params");
            }
         }                                                    /* components */
@@ -3215,13 +3233,13 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
 
       if((oldstc.escp_init.data != NULL) &&
          (oldstc.escp_init.data != sd->stc.escp_init.data)) {
-            gs_free((byte *)oldstc.escp_init.data,
+            gs_free(sd->memory, (byte *)oldstc.escp_init.data,
                             oldstc.escp_init.size,1,"stcolor/init");
       }
 
       if((oldstc.escp_release.data != NULL) &&
          (oldstc.escp_release.data != sd->stc.escp_release.data)) {
-            gs_free((byte *)oldstc.escp_release.data,
+            gs_free(sd->memory, (byte *)oldstc.escp_release.data,
                             oldstc.escp_release.size,1,"stcolor/release");
       }
 
@@ -3229,7 +3247,7 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
          if(     oldcolor.num_components == 1) i =  3;
          else if(oldcolor.num_components == 3) i =  9;
          else                                  i = 16;
-         gs_free(oldstc.am,i,sizeof(float),"stc_put_params");
+         gs_free(sd->memory, oldstc.am,i,sizeof(float),"stc_put_params");
       }
 
       for(i = 0; i < 4; ++i) {
@@ -3242,7 +3260,7 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
 
             for(j = 0; j < i; ++j) if(oldstc.extc[i] == oldstc.extc[j]) break;
 
-            if(i == j) gs_free(oldstc.extc[i],oldstc.sizc[i],sizeof(float),
+            if(i == j) gs_free(sd->memory, oldstc.extc[i],oldstc.sizc[i],sizeof(float),
                             "stc_put_params");
          }
 
@@ -3252,7 +3270,7 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
 
             for(j = 0; j < i; ++j) if(oldstc.extv[i] == oldstc.extv[j]) break;
 
-            if(i == j) gs_free(oldstc.extv[i],oldstc.sizv[i],sizeof(float),
+            if(i == j) gs_free(sd->memory, oldstc.extv[i],oldstc.sizv[i],sizeof(float),
                             "stc_put_params");
          }
       }
@@ -3274,7 +3292,7 @@ stc_put_params(gx_device *pdev, gs_param_list *plist)
             if(sd->stc.extc[i] != oldstc.extc[i]) doclose = true;
          }
          if(doclose) {
-            stc_freedata(&oldstc);
+            stc_freedata(pdev->memory, &oldstc);
             for(i = 0; i < 4; ++i) {
                sd->stc.vals[i] = NULL;
                sd->stc.code[i] = NULL;

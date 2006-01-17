@@ -1,28 +1,26 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: iutil.c,v 1.3 2001/02/05 20:43:40 alexcher Exp $ */
+/* $Id: iutil.c,v 1.11 2004/08/19 19:33:09 stefan Exp $ */
 /* Utilities for Ghostscript interpreter */
 #include "math_.h"		/* for fabs */
 #include "memory_.h"
 #include "string_.h"
 #include "ghost.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "gsccode.h"		/* for gxfont.h */
 #include "gsmatrix.h"
 #include "gsutil.h"
@@ -89,7 +87,7 @@ refset_null_new(ref * to, uint size, uint new_mask)
 
 /* Compare two objects for equality. */
 bool
-obj_eq(const ref * pref1, const ref * pref2)
+obj_eq(const gs_memory_t *mem, const ref * pref1, const ref * pref2)
 {
     ref nref;
 
@@ -97,7 +95,7 @@ obj_eq(const ref * pref1, const ref * pref2)
 	/*
 	 * Only a few cases need be considered here:
 	 * integer/real (and vice versa), name/string (and vice versa),
-	 * and extended operators.
+	 * arrays, and extended operators.
 	 */
 	switch (r_type(pref1)) {
 	    case t_integer:
@@ -109,15 +107,22 @@ obj_eq(const ref * pref1, const ref * pref2)
 	    case t_name:
 		if (!r_has_type(pref2, t_string))
 		    return false;
-		name_string_ref(pref1, &nref);
+		name_string_ref(mem, pref1, &nref);
 		pref1 = &nref;
 		break;
 	    case t_string:
 		if (!r_has_type(pref2, t_name))
 		    return false;
-		name_string_ref(pref2, &nref);
+		name_string_ref(mem, pref2, &nref);
 		pref2 = &nref;
 		break;
+
+		/* differing array types can match if length is 0 */
+	    case t_array:
+	    case t_mixedarray:
+	    case t_shortarray:
+		return r_is_array(pref2) &&
+		       r_size(pref1) == 0 && r_size(pref2) == 0;
 	    default:
 		if (r_btype(pref1) != r_btype(pref2))
 		    return false;
@@ -129,11 +134,13 @@ obj_eq(const ref * pref1, const ref * pref2)
      */
     switch (r_btype(pref1)) {
 	case t_array:
-	    return (pref1->value.refs == pref2->value.refs &&
+	    return ((pref1->value.refs == pref2->value.refs ||
+	             r_size(pref1) == 0) &&
 		    r_size(pref1) == r_size(pref2));
 	case t_mixedarray:
 	case t_shortarray:
-	    return (pref1->value.packed == pref2->value.packed &&
+	    return ((pref1->value.packed == pref2->value.packed ||
+	             r_size(pref1) == 0) &&
 		    r_size(pref1) == r_size(pref2));
 	case t_boolean:
 	    return (pref1->value.boolval == pref2->value.boolval);
@@ -184,14 +191,14 @@ obj_eq(const ref * pref1, const ref * pref2)
 
 /* Compare two objects for identity. */
 bool
-obj_ident_eq(const ref * pref1, const ref * pref2)
+obj_ident_eq(const gs_memory_t *mem, const ref * pref1, const ref * pref2)
 {
     if (r_type(pref1) != r_type(pref2))
 	return false;
     if (r_has_type(pref1, t_string))
 	return (pref1->value.bytes == pref2->value.bytes &&
 		r_size(pref1) == r_size(pref2));
-    return obj_eq(pref1, pref2);
+    return obj_eq(mem, pref1, pref2);
 }
 
 /*
@@ -200,13 +207,13 @@ obj_ident_eq(const ref * pref1, const ref * pref2)
  * If the object is a string without read access, return e_invalidaccess.
  */
 int
-obj_string_data(const ref *op, const byte **pchars, uint *plen)
+obj_string_data(const gs_memory_t *mem, const ref *op, const byte **pchars, uint *plen)
 {
     switch (r_type(op)) {
     case t_name: {
 	ref nref;
 
-	name_string_ref(op, &nref);
+	name_string_ref(mem, op, &nref);
 	*pchars = nref.value.bytes;
 	*plen = r_size(&nref);
 	return 0;
@@ -237,10 +244,10 @@ obj_string_data(const ref *op, const byte **pchars, uint *plen)
  * repeatedly to print on a stream, which may require suspending at any
  * point to handle stream callouts.
  */
-private void ensure_dot(P1(char *));
+private void ensure_dot(char *);
 int
 obj_cvp(const ref * op, byte * str, uint len, uint * prlen,
-	int full_print, uint start_pos, gs_memory_t *mem)
+	int full_print, uint start_pos, const gs_memory_t *mem)
 {
     char buf[50];  /* big enough for any float, double, or struct name */
     const byte *data = (const byte *)buf;
@@ -291,7 +298,7 @@ obj_cvp(const ref * op, byte * str, uint len, uint * prlen,
 	    goto nl;
 	case t_name:	 
 	    if (r_has_attr(op, a_executable)) {
-		code = obj_string_data(op, &data, &size);
+		code = obj_string_data(mem, op, &data, &size);
 		if (code < 0)
 		    return code;
 		goto nl;
@@ -395,8 +402,8 @@ obj_cvp(const ref * op, byte * str, uint len, uint * prlen,
 	    }
 	    data = (const byte *)
 		gs_struct_type_name_string(
-			gs_object_type(mem,
-			       (const obj_header_t *)op->value.pstruct));
+		     gs_object_type((gs_memory_t *)mem,
+				    (const obj_header_t *)op->value.pstruct));
 	    size = strlen((const char *)data);
 	    if (size > 4 && !memcmp(data + size - 4, "type", 4))
 		size -= 4;
@@ -434,7 +441,7 @@ other:
 	check_read(*op);
 	/* falls through */
     case t_name:
-	code = obj_string_data(op, &data, &size);
+	code = obj_string_data(mem, op, &data, &size);
 	if (code < 0)
 	    return code;
 	goto nl;
@@ -442,9 +449,9 @@ other:
 	uint index = op_index(op);
 	const op_array_table *opt = op_index_op_array_table(index);
 
-	name_index_ref(opt->nx_table[index - opt->base_index], &nref);
-	name_string_ref(&nref, &nref);
-	code = obj_string_data(&nref, &data, &size);
+	name_index_ref(mem, opt->nx_table[index - opt->base_index], &nref);
+	name_string_ref(mem, &nref, &nref);
+	code = obj_string_data(mem, &nref, &data, &size);
 	if (code < 0)
 	    return code;
 	goto nl;
@@ -513,16 +520,16 @@ ensure_dot(char *buf)
  * str.  In any case, store the length in *prlen.
  */
 int
-obj_cvs(const ref * op, byte * str, uint len, uint * prlen,
+obj_cvs(const gs_memory_t *mem, const ref * op, byte * str, uint len, uint * prlen,
 	const byte ** pchars)
 {
-    int code = obj_cvp(op, str, len, prlen, 0, 0, NULL);
+    int code = obj_cvp(op, str, len, prlen, 0, 0, mem);  /* NB: NULL memptr */
 
     if (code != 1 && pchars) {
 	*pchars = str;
 	return code;
     }
-    obj_string_data(op, pchars, prlen);
+    obj_string_data(mem, op, pchars, prlen);
     return gs_note_error(e_rangecheck);
 }
 
@@ -569,7 +576,7 @@ op_index_ref(uint index, ref * pref)
 /* This is also used to index into Encoding vectors, */
 /* the error name vector, etc. */
 int
-array_get(const ref * aref, long index_long, ref * pref)
+array_get(const gs_memory_t *mem, const ref * aref, long index_long, ref * pref)
 {
     if ((ulong)index_long >= r_size(aref))
 	return_error(e_rangecheck);
@@ -588,14 +595,14 @@ array_get(const ref * aref, long index_long, ref * pref)
 
 		for (; index--;)
 		    packed = packed_next(packed);
-		packed_get(packed, pref);
+		packed_get(mem, packed, pref);
 	    }
 	    break;
 	case t_shortarray:
 	    {
 		const ref_packed *packed = aref->value.packed + index_long;
 
-		packed_get(packed, pref);
+		packed_get(mem, packed, pref);
 	    }
 	    break;
 	default:
@@ -609,7 +616,7 @@ array_get(const ref * aref, long index_long, ref * pref)
 /* Source and destination are allowed to overlap if the source is packed, */
 /* or if they are identical. */
 void
-packed_get(const ref_packed * packed, ref * pref)
+packed_get(const gs_memory_t *mem, const ref_packed * packed, ref * pref)
 {
     const ref_packed elt = *packed;
     uint value = elt & packed_value_mask;
@@ -625,10 +632,10 @@ packed_get(const ref_packed * packed, ref * pref)
 	    make_int(pref, (int)value + packed_min_intval);
 	    break;
 	case pt_literal_name:
-	    name_index_ref(value, pref);
+	    name_index_ref(mem, value, pref);
 	    break;
 	case pt_executable_name:
-	    name_index_ref(value, pref);
+	    name_index_ref(mem, value, pref);
 	    r_set_attrs(pref, a_executable);
 	    break;
 	case pt_full_ref:
@@ -725,7 +732,7 @@ float_params(const ref * op, int count, float *pval)
 		*--pval = op->value.realval;
 		break;
 	    case t_integer:
-		*--pval = op->value.intval;
+		*--pval = (float)op->value.intval;
 		break;
 	    case t__invalid:
 		return_error(e_stackunderflow);
@@ -733,6 +740,34 @@ float_params(const ref * op, int count, float *pval)
 		return_error(e_typecheck);
 	}
     return 0;
+}
+
+/* Get N numeric parameters (as floating point numbers) from an array */
+int
+process_float_array(const gs_memory_t *mem, const ref * parray, int count, float * pval)
+{
+    int         code = 0, indx0 = 0;
+
+    /* we assume parray is an array of some type, of adequate length */
+    if (r_has_type(parray, t_array))
+        return float_params(parray->value.refs + count - 1, count, pval);
+
+    /* short/mixed array; convert the entries to refs */
+    while (count > 0 && code >= 0) {
+        int     i, subcount;
+        ref     ref_buff[20];   /* 20 is arbitrary */
+
+        subcount = (count > countof(ref_buff) ? countof(ref_buff) : count);
+        for (i = 0; i < subcount && code >= 0; i++)
+            code = array_get(mem, parray, (long)(i + indx0), &ref_buff[i]);
+        if (code >= 0)
+            code = float_params(ref_buff + subcount - 1, subcount, pval);
+        count -= subcount;
+        pval += subcount;
+        indx0 += subcount;
+    }
+
+    return code;
 }
 
 /* Get a single real parameter. */
@@ -816,7 +851,7 @@ check_type_failed(const ref * op)
 /* Read a matrix operand. */
 /* Return 0 if OK, error code if not. */
 int
-read_matrix(const ref * op, gs_matrix * pmat)
+read_matrix(const gs_memory_t *mem, const ref * op, gs_matrix * pmat)
 {
     int code;
     ref values[6];
@@ -828,7 +863,7 @@ read_matrix(const ref * op, gs_matrix * pmat)
 	int i;
 
 	for (i = 0; i < 6; ++i) {
-	    code = array_get(op, (long)i, &values[i]);
+	    code = array_get(mem, op, (long)i, &values[i]);
 	    if (code < 0)
 		return code;
 	}

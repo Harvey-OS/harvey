@@ -1,22 +1,20 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsptype1.c,v 1.3 2001/08/07 22:13:29 dancoby Exp $ */
+/* $Id: gsptype1.c,v 1.23 2005/06/15 18:40:07 igor Exp $ */
 /* PatternType 1 pattern implementation */
 #include "math_.h"
 #include "gx.h"
@@ -41,6 +39,12 @@
 #include "gzstate.h"
 #include "gsimage.h"
 #include "gsiparm4.h"
+#include "gsovrc.h"
+
+/* Temporary switches for experimanting with Adobe compatibility. */
+#define ADJUST_SCALE_FOR_THIN_LINES 0	/* Old code = 0 */
+#define ADJUST_SCALE_BY_GS_TRADITION 0	/* Old code = 1 */
+#define ADJUST_AS_ADOBE 1		/* Old code = 0 *//* This one is closer to Adobe. */
 
 /* GC descriptors */
 private_st_pattern1_template();
@@ -68,10 +72,12 @@ private RELOC_PTRS_BEGIN(pattern1_instance_reloc_ptrs) {
 private pattern_proc_uses_base_space(gs_pattern1_uses_base_space);
 private pattern_proc_make_pattern(gs_pattern1_make_pattern);
 private pattern_proc_get_pattern(gs_pattern1_get_pattern);
+private pattern_proc_set_color(gs_pattern1_set_color);
 private const gs_pattern_type_t gs_pattern1_type = {
     1, {
 	gs_pattern1_uses_base_space, gs_pattern1_make_pattern,
-	gs_pattern1_get_pattern, gs_pattern1_remap_color
+	gs_pattern1_get_pattern, gs_pattern1_remap_color,
+	gs_pattern1_set_color
     }
 };
 
@@ -111,8 +117,8 @@ gs_pattern1_init(gs_pattern1_template_t * ppat)
 }
 
 /* Make an instance of a PatternType 1 pattern. */
-private int compute_inst_matrix(P3(gs_pattern1_instance_t * pinst,
-				   const gs_state * saved, gs_rect * pbbox));
+private int compute_inst_matrix(gs_pattern1_instance_t * pinst,
+	const gs_state * saved, gs_rect * pbbox, int width, int height);
 int
 gs_makepattern(gs_client_color * pcc, const gs_pattern1_template_t * pcp,
 	       const gs_matrix * pmat, gs_state * pgs, gs_memory_t * mem)
@@ -132,6 +138,9 @@ gs_pattern1_make_pattern(gs_client_color * pcc,
     gs_state *saved;
     gs_rect bbox;
     gs_fixed_rect cbox;
+    gx_device * pdev = pgs->device;
+    int dev_width = pdev->width;
+    int dev_height = pdev->height;
     int code = gs_make_pattern_common(pcc, (const gs_pattern_template_t *)pcp,
 				      pmat, pgs, mem,
 				      &st_pattern1_instance);
@@ -155,9 +164,10 @@ gs_pattern1_make_pattern(gs_client_color * pcc,
 	    goto fsaved;
     }
     inst.template = *pcp;
-    code = compute_inst_matrix(&inst, saved, &bbox);
+    code = compute_inst_matrix(&inst, saved, &bbox, dev_width, dev_height);
     if (code < 0)
 	goto fsaved;
+
 #define mat inst.step_matrix
     if_debug6('t', "[t]step_matrix=[%g %g %g %g %g %g]\n",
 	      mat.xx, mat.xy, mat.yx, mat.yy, mat.tx, mat.ty);
@@ -169,8 +179,13 @@ gs_pattern1_make_pattern(gs_client_color * pcc,
 
 	/* If the step and the size agree to within 1/2 pixel, */
 	/* make them the same. */
-	inst.size.x = (int)(bbw + 0.8);		/* 0.8 is arbitrary */
-	inst.size.y = (int)(bbh + 0.8);
+	if (ADJUST_SCALE_BY_GS_TRADITION) {
+	    inst.size.x = (int)(bbw + 0.8);		/* 0.8 is arbitrary */
+	    inst.size.y = (int)(bbh + 0.8);
+	} else {
+	    inst.size.x = (int)ceil(bbw);
+	    inst.size.y = (int)ceil(bbh);
+	}
 
 	if (inst.size.x == 0 || inst.size.y == 0) {
 	    /*
@@ -184,20 +199,60 @@ gs_pattern1_make_pattern(gs_client_color * pcc,
 		code = gs_note_error(gs_error_rangecheck);
 		goto fsaved;
 	    }
-	    if (mat.xy == 0 && mat.yx == 0 &&
+	    if (ADJUST_SCALE_BY_GS_TRADITION &&
+	        mat.xy == 0 && mat.yx == 0 &&
 		fabs(fabs(mat.xx) - bbw) < 0.5 &&
 		fabs(fabs(mat.yy) - bbh) < 0.5
 		) {
 		gs_scale(saved, fabs(inst.size.x / mat.xx),
 			 fabs(inst.size.y / mat.yy));
-		code = compute_inst_matrix(&inst, saved, &bbox);
+		code = compute_inst_matrix(&inst, saved, &bbox,
+						dev_width, dev_height);
 		if (code < 0)
 		    goto fsaved;
+		if (ADJUST_SCALE_FOR_THIN_LINES) {
+		    /* To allow thin lines at a cell boundary 
+		       to be painted inside the cell,
+		       we adjust the scale so that 
+		       the scaled width is in fixed_1 smaller */
+		    gs_scale(saved, (fabs(inst.size.x) - 1.0 / fixed_scale) / fabs(inst.size.x),
+				    (fabs(inst.size.y) - 1.0 / fixed_scale) / fabs(inst.size.y));
+		}
 		if_debug2('t',
 			  "[t]adjusted XStep & YStep to size=(%d,%d)\n",
 			  inst.size.x, inst.size.y);
 		if_debug4('t', "[t]bbox=(%g,%g),(%g,%g)\n",
 			  bbox.p.x, bbox.p.y, bbox.q.x, bbox.q.y);
+	    } else if (ADJUST_AS_ADOBE) {
+		if (mat.xy == 0 && mat.yx == 0 &&
+		    fabs(fabs(mat.xx) - bbw) < 0.5 &&
+		    fabs(fabs(mat.yy) - bbh) < 0.5
+		    ) {
+		    if (inst.step_matrix.xx <= 2) { 
+			/* Prevent a degradation - see -r72 mspro.pdf */
+			gs_scale(saved, fabs(inst.size.x / mat.xx), 1);
+			inst.step_matrix.xx = (float)inst.size.x;
+		    } else {
+			inst.step_matrix.xx = (float)floor(inst.step_matrix.xx + 0.5);
+			/* To allow thin lines at a cell boundary 
+			   to be painted inside the cell,
+			   we adjust the scale so that 
+			   the scaled width is in fixed_1 smaller */
+			if (bbw >= inst.size.x - 1.0 / fixed_scale)
+			    gs_scale(saved, (fabs(inst.size.x) - 1.0 / fixed_scale) / fabs(inst.size.x), 1);
+		    }
+		    if (inst.step_matrix.yy <= 2) {
+			gs_scale(saved, 1, fabs(inst.size.y / mat.yy));
+			inst.step_matrix.yy = (float)inst.size.y;
+		    } else {
+			inst.step_matrix.yy = (float)floor(inst.step_matrix.yy + 0.5);
+			if (bbh >= inst.size.y - 1.0 / fixed_scale)
+			    gs_scale(saved, 1, (fabs(inst.size.y) - 1.0 / fixed_scale) / fabs(inst.size.y));
+		    }
+		    code = gs_bbox_transform(&inst.template.BBox, &ctm_only(saved), &bbox);
+		    if (code < 0)
+			goto fsaved;
+		}
 	    }
 	}
     }
@@ -214,8 +269,8 @@ gs_pattern1_make_pattern(gs_client_color * pcc,
 	      inst.size.x, inst.size.y);
     /* Absent other information, instances always require a mask. */
     inst.uses_mask = true;
-    gx_translate_to_fixed(saved, float2fixed(mat.tx - bbox.p.x),
-			  float2fixed(mat.ty - bbox.p.y));
+    gx_translate_to_fixed(saved, float2fixed_rounded(mat.tx - bbox.p.x),
+			         float2fixed_rounded(mat.ty - bbox.p.y));
     mat.tx = bbox.p.x;
     mat.ty = bbox.p.y;
 #undef mat
@@ -226,7 +281,7 @@ gs_pattern1_make_pattern(gs_client_color * pcc,
     code = gx_clip_to_rectangle(saved, &cbox);
     if (code < 0)
 	goto fsaved;
-    inst.id = gs_next_ids(1);
+    inst.id = gs_next_ids(mem, 1);
     *pinst = inst;
     return 0;
 #undef mat
@@ -234,16 +289,122 @@ gs_pattern1_make_pattern(gs_client_color * pcc,
     gs_free_object(mem, pinst, "gs_makepattern");
     return code;
 }
+
+/*
+ * Clamp the bound box for a pattern to the region of the pattern that will
+ * actually be on our page.  We need to do this becuase some applications
+ * create patterns which specify a bounding box which is much larger than
+ * the page.  We allocate a buffer for holding the pattern.  We need to
+ * prevent this buffer from getting too large.
+ */
+private int
+clamp_pattern_bbox(gs_pattern1_instance_t * pinst, gs_rect * pbbox,
+		    int width, int height, const gs_matrix * pmat)
+{
+    double xstep = pinst->template.XStep;
+    double ystep = pinst->template.YStep;
+    double xmin = pbbox->q.x;
+    double xmax = pbbox->p.x;
+    double ymin = pbbox->q.y;
+    double ymax = pbbox->p.y;
+    int ixpat, iypat, iystart;
+    double xpat, ypat;
+    double xlower, xupper, ylower, yupper;
+    double xdev, ydev;
+    gs_rect dev_page, pat_page;
+    gs_point dev_pat_origin, dev_step;
+    int code;
+
+    /*
+     * Scan across the page.  We determine the region to be scanned
+     * by working in the pattern coordinate space.  This is logically
+     * simpler since XStep and YStep are on axis in the pattern space.
+     */
+    /*
+     * Convert the page dimensions from device coordinates into the
+     * pattern coordinate frame.
+     */
+    dev_page.p.x = dev_page.p.y = 0;
+    dev_page.q.x = width;
+    dev_page.q.y = height;
+    code = gs_bbox_transform_inverse(&dev_page, pmat, &pat_page);
+    if (code < 0)
+	return code;
+    /*
+     * Determine the location of the pattern origin in device coordinates.
+     */
+    gs_point_transform(0.0, 0.0, pmat, &dev_pat_origin);
+    /*
+     * Determine our starting point.  We start with a postion that puts the
+     * pattern below and to the left of the page (in pattern space) and scan
+     * until the pattern is above and right of the page.
+     */
+    ixpat = (int) floor((pat_page.p.x - pinst->template.BBox.q.x) / xstep);
+    iystart = (int) floor((pat_page.p.y - pinst->template.BBox.q.y) / ystep);
+
+    /* Now do the scan */
+    for (; ; ixpat++) {
+        xpat = ixpat * xstep;
+	for (iypat = iystart; ; iypat++) {
+            ypat = iypat * ystep;
+            /*
+	     * Calculate the shift in the pattern's location.
+	     */
+	    gs_point_transform(xpat, ypat, pmat, &dev_step);
+	    xdev = dev_step.x - dev_pat_origin.x;
+	    ydev = dev_step.y - dev_pat_origin.y;
+	    /*
+	     * Check if the pattern bounding box intersects the page.
+	     */
+	    xlower = (xdev + pbbox->p.x > 0) ? pbbox->p.x : -xdev;
+	    xupper = (xdev + pbbox->q.x < width) ? pbbox->q.x : -xdev + width;
+	    ylower = (ydev + pbbox->p.y > 0) ? pbbox->p.y : -ydev;
+	    yupper = (ydev + pbbox->q.y < height) ? pbbox->q.y : -ydev + height;
+	    if (xlower < xupper && ylower < yupper) {
+		/*
+		 * The pattern intersects the page.  Expand required area if
+		 * needed.
+		 */
+		if (xlower < xmin)
+		    xmin = xlower;
+		if (xupper > xmax)
+		    xmax = xupper;
+		if (ylower < ymin)
+		    ymin = ylower;
+		if (yupper > ymax)
+		    ymax = yupper;
+	    }
+	    if (ypat > pat_page.q.y - pinst->template.BBox.p.y)
+	        break;
+	}
+	if (xpat > pat_page.q.x - pinst->template.BBox.p.x)
+	    break;
+    }
+    /* Update the bounding box. */
+    if (xmin < xmax && ymin < ymax) {
+	pbbox->p.x = xmin;
+	pbbox->q.x = xmax;
+	pbbox->p.y = ymin;
+	pbbox->q.y = ymax;
+    } else {
+	/* The pattern is never on the page.  Set bbox = 1, 1 */
+	pbbox->p.x = pbbox->p.y = 0;
+	pbbox->q.x = pbbox->q.y = 1;
+    }
+    return 0;
+}
+
 /* Compute the stepping matrix and device space instance bounding box */
 /* from the step values and the saved matrix. */
 private int
 compute_inst_matrix(gs_pattern1_instance_t * pinst, const gs_state * saved,
-		    gs_rect * pbbox)
+			    gs_rect * pbbox, int width, int height)
 {
     double xx = pinst->template.XStep * saved->ctm.xx;
     double xy = pinst->template.XStep * saved->ctm.xy;
     double yx = pinst->template.YStep * saved->ctm.yx;
     double yy = pinst->template.YStep * saved->ctm.yy;
+    int code;
 
     /* Adjust the stepping matrix so all coefficients are >= 0. */
     if (xx == 0 || yy == 0) {	/* We know that both xy and yx are non-zero. */
@@ -263,8 +424,18 @@ compute_inst_matrix(gs_pattern1_instance_t * pinst, const gs_state * saved,
     pinst->step_matrix.yy = yy;
     pinst->step_matrix.tx = saved->ctm.tx;
     pinst->step_matrix.ty = saved->ctm.ty;
-    return gs_bbox_transform(&pinst->template.BBox, &ctm_only(saved),
-			     pbbox);
+    code = gs_bbox_transform(&pinst->template.BBox, &ctm_only(saved), pbbox);
+    /*
+     * Some applications produce patterns that are larger than the page.
+     * If the bounding box for the pattern is larger than the page. clamp
+     * the pattern to the page size.
+     */
+    if (code >= 0 &&
+	(pbbox->q.x - pbbox->p.x > width || pbbox->q.y - pbbox->p.y > height))
+	code = clamp_pattern_bbox(pinst, pbbox, width,
+					height, &ctm_only(saved));
+
+    return code;
 }
 
 /* Test whether a PatternType 1 pattern uses a base space. */
@@ -282,6 +453,67 @@ gs_pattern1_get_pattern(const gs_pattern_instance_t *pinst)
     return (const gs_pattern_template_t *)
 	&((const gs_pattern1_instance_t *)pinst)->template;
 }
+
+/*
+ * Perform actions required at setcolor time. This procedure resets the
+ * overprint information (almost) as required by the pattern. The logic
+ * behind this operation is a bit convoluted:
+ *
+ *  1. Both PatternType 1 and 2 "colors" occur within the pattern color
+ *     space.
+ *
+ *  2. Nominally, the set of drawn components is a property of the color
+ *     space, and is set at the time setcolorspace is called. This is
+ *     not the case for patterns, so overprint information must be set
+ *     at setcolor time for them.
+ *
+ *  3. PatternType 2 color spaces incorporate their own color space, so
+ *     the set of drawn components is determined by that color space.
+ *     For PatternType 1 color spaces, the PaintType determines the
+ *     appropriate color space to use. If PaintType is 2 (uncolored),
+ *     the pattern makes use of the base color space of the current
+ *     pattern color space, so overprint is set as appropriate for
+ *     that color space.
+ *
+ *  4. For PatternType 1 color spaces with PaintType 1 (colored), the
+ *     appropriate color space to use is determined by the pattern's
+ *     PaintProc. This cannot be handled by the current graphic
+ *     library mechanism, because color space information is lost when
+ *     the pattern tile is cached (and the pattern tile is essentially
+ *     always cached). We punt in this case and list all components
+ *     as drawn components. (This feature could be support by retaining
+ *     per-component pattern masks, but complete re-design of the
+ *     pattern mechanism is probably more appropriate.)
+ *
+ *  5. Once overprint information has been set for a particular color,
+ *     it must be reset to the proper value when that color is no
+ *     longer in use. "Normal" (non-pattern) colors do not have a
+ *     "set_color" action, both for performance and logical reasons.
+ *     This does not, however, cause significant difficulty, as the
+ *     change in color space required to set a normal color will
+ *     reset the overprint information as required.
+ */
+private int
+gs_pattern1_set_color(const gs_client_color * pcc, gs_state * pgs)
+{
+    gs_pattern1_instance_t * pinst = (gs_pattern1_instance_t *)pcc->pattern;
+    gs_pattern1_template_t * ptmplt = &pinst->template;
+
+    if (ptmplt->PaintType == 2) {
+        const gs_color_space *  pcs = pgs->color_space;
+
+        pcs = (const gs_color_space *)&(pcs->params.pattern.base_space);
+        return pcs->type->set_overprint(pcs, pgs);
+    } else {
+        gs_overprint_params_t   params;
+
+        params.retain_any_comps = false;
+        pgs->effective_overprint_mode = 0;
+        return gs_state_update_overprint(pgs, &params);
+    }
+}
+
+
 const gs_pattern1_template_t *
 gs_getpattern(const gs_client_color * pcc)
 {
@@ -319,7 +551,7 @@ typedef struct pixmap_info_s {
     gs_depth_bitmap bitmap;	/* must be first */
     const gs_color_space *pcspace;
     uint white_index;
-    void (*free_proc)(P3(gs_memory_t *, void *, client_name_t));
+    void (*free_proc)(gs_memory_t *, void *, client_name_t);
 } pixmap_info;
 
 gs_private_st_suffix_add1(st_pixmap_info,
@@ -359,8 +591,8 @@ free_pixmap_pattern(
 /*
  *  PaintProcs for bitmap and pixmap patterns.
  */
-private int bitmap_paint(P4(gs_image_enum * pen, gs_data_image_t * pim,
-			  const gs_depth_bitmap * pbitmap, gs_state * pgs));
+private int bitmap_paint(gs_image_enum * pen, gs_data_image_t * pim,
+			 const gs_depth_bitmap * pbitmap, gs_state * pgs);
 private int
 mask_PaintProc(const gs_client_color * pcolor, gs_state * pgs)
 {
@@ -385,10 +617,8 @@ image_PaintProc(const gs_client_color * pcolor, gs_state * pgs)
     const gs_depth_bitmap *pbitmap = &(ppmap->bitmap);
     gs_image_enum *pen =
         gs_image_enum_alloc(gs_state_memory(pgs), "image_PaintProc");
-    const gs_color_space *pcspace =
-    	(ppmap->pcspace == 0 ?
-     	    gs_cspace_DeviceGray((const gs_imager_state *)pgs) :
-     	    ppmap->pcspace);
+    gs_color_space cs;
+    const gs_color_space *pcspace;
     gx_image_enum_common_t *pie;
     /*
      * If the image is transparent then we want to do image type4 processing.
@@ -411,6 +641,14 @@ image_PaintProc(const gs_client_color * pcolor, gs_state * pgs)
 
     if (pen == 0)
 	return_error(gs_error_VMerror);
+
+    if (ppmap->pcspace == 0) {
+        gs_cspace_init_DeviceGray(pgs->memory, &cs);
+        pcspace = &cs;
+    } else
+        pcspace = ppmap->pcspace;
+    gs_gsave(pgs);
+    gs_setcolorspace(pgs, pcspace);
     if (transparent)
         gs_image4_t_init( (gs_image4_t *) &image, pcspace);
     else
@@ -421,22 +659,26 @@ image_PaintProc(const gs_client_color * pcolor, gs_state * pgs)
         image.i4.MaskColor_is_range = false;
         image.i4.MaskColor[0] = ppmap->white_index;
     }
-    image.i1.Decode[0] = 0;
-    image.i1.Decode[1] = (1 << pbitmap->pix_depth) - 1;
+    image.i1.Decode[0] = 0.0;
+    image.i1.Decode[1] = (float)((1 << pbitmap->pix_depth) - 1);
     image.i1.BitsPerComponent = pbitmap->pix_depth;
     /* backwards compatibility */
     if (ppmap->pcspace == 0) {
 	image.i1.Decode[0] = 1.0;
 	image.i1.Decode[1] = 0.0;
     }
-    code = gs_image_begin_typed((const gs_image_common_t *)&image, pgs,
-				false, &pie);
-    if (code < 0)
-	return code;
-    code = gs_image_enum_init(pen, pie, (gs_data_image_t *)&image, pgs);
-    if (code < 0)
-	return code;
-    return bitmap_paint(pen, (gs_data_image_t *) & image, pbitmap, pgs);
+
+    if ( (code = gs_image_begin_typed( (const gs_image_common_t *)&image,
+                                       pgs,
+		                       false,
+                                       &pie )) >= 0 &&
+         (code = gs_image_enum_init( pen,
+                                     pie,
+                                     (gs_data_image_t *)&image,
+                                     pgs )) >= 0      )
+	code = bitmap_paint(pen, (gs_data_image_t *) & image, pbitmap, pgs);
+    gs_grestore(pgs);
+    return code;
 }
 /* Finish painting any kind of bitmap pattern. */
 private int
@@ -448,15 +690,16 @@ bitmap_paint(gs_image_enum * pen, gs_data_image_t * pim,
     uint used;
     const byte *dp = pbitmap->data;
     int n;
-    int code = 0;
+    int code = 0, code1;
 
     if (nbytes == raster)
 	code = gs_image_next(pen, dp, nbytes * pim->Height, &used);
     else
 	for (n = pim->Height; n > 0 && code >= 0; dp += raster, --n)
 	    code = gs_image_next(pen, dp, nbytes, &used);
-    gs_image_cleanup(pen);
-    gs_free_object(gs_state_memory(pgs), pen, "bitmap_paint");
+    code1 = gs_image_cleanup_and_free_enum(pen);
+    if (code >= 0 && code1 < 0)
+	code = code1;
     return code;
 }
 
@@ -513,15 +756,15 @@ gs_makepixmappattern(
 
     /* set up the client pattern structure */
     gs_pattern1_init(&pat);
-    uid_set_UniqueID(&pat.uid, (id == no_UniqueID) ? gs_next_ids(1) : id);
+    uid_set_UniqueID(&pat.uid, (id == no_UniqueID) ? gs_next_ids(mem, 1) : id);
     pat.PaintType = (mask ? 2 : 1);
     pat.TilingType = 1;
     pat.BBox.p.x = 0;
     pat.BBox.p.y = 0;
     pat.BBox.q.x = pbitmap->size.x;
     pat.BBox.q.y = pbitmap->size.y;
-    pat.XStep = pbitmap->size.x;
-    pat.YStep = pbitmap->size.y;
+    pat.XStep = (float)pbitmap->size.x;
+    pat.YStep = (float)pbitmap->size.y;
     pat.PaintProc = (mask ? mask_PaintProc : image_PaintProc);
     pat.client_data = ppmap;
 
@@ -600,19 +843,23 @@ gs_makebitmappattern_xform(
  * 'masked_fill_rect' instead of 'masked_fill_rectangle' in order to limit
  * identifier lengths to 32 characters.
  */
+private dev_color_proc_get_dev_halftone(gx_dc_pattern_get_dev_halftone);
 private dev_color_proc_load(gx_dc_pattern_load);
 /*dev_color_proc_fill_rectangle(gx_dc_pattern_fill_rectangle); *//*gxp1fill.h */
 private dev_color_proc_equal(gx_dc_pattern_equal);
 private dev_color_proc_load(gx_dc_pure_masked_load);
 
+private dev_color_proc_get_dev_halftone(gx_dc_pure_masked_get_dev_halftone);
 /*dev_color_proc_fill_rectangle(gx_dc_pure_masked_fill_rect); *//*gxp1fill.h */
 private dev_color_proc_equal(gx_dc_pure_masked_equal);
 private dev_color_proc_load(gx_dc_binary_masked_load);
 
+private dev_color_proc_get_dev_halftone(gx_dc_binary_masked_get_dev_halftone);
 /*dev_color_proc_fill_rectangle(gx_dc_binary_masked_fill_rect); *//*gxp1fill.h */
 private dev_color_proc_equal(gx_dc_binary_masked_equal);
 private dev_color_proc_load(gx_dc_colored_masked_load);
 
+private dev_color_proc_get_dev_halftone(gx_dc_colored_masked_get_dev_halftone);
 /*dev_color_proc_fill_rectangle(gx_dc_colored_masked_fill_rect); *//*gxp1fill.h */
 private dev_color_proc_equal(gx_dc_colored_masked_equal);
 
@@ -621,8 +868,12 @@ gs_private_st_composite(st_dc_pattern, gx_device_color, "dc_pattern",
 			dc_pattern_enum_ptrs, dc_pattern_reloc_ptrs);
 const gx_device_color_type_t gx_dc_pattern = {
     &st_dc_pattern,
+    gx_dc_pattern_save_dc, gx_dc_pattern_get_dev_halftone,
+    gx_dc_ht_get_phase,
     gx_dc_pattern_load, gx_dc_pattern_fill_rectangle,
-    gx_dc_default_fill_masked, gx_dc_pattern_equal
+    gx_dc_default_fill_masked, gx_dc_pattern_equal,
+    gx_dc_pattern_write, gx_dc_pattern_read, 
+    gx_dc_pattern_get_nonzero_comps
 };
 
 extern_st(st_dc_ht_binary);
@@ -630,8 +881,12 @@ gs_private_st_composite(st_dc_pure_masked, gx_device_color, "dc_pure_masked",
 			dc_masked_enum_ptrs, dc_masked_reloc_ptrs);
 const gx_device_color_type_t gx_dc_pure_masked = {
     &st_dc_pure_masked,
+    gx_dc_pattern_save_dc, gx_dc_pure_masked_get_dev_halftone,
+    gx_dc_no_get_phase,
     gx_dc_pure_masked_load, gx_dc_pure_masked_fill_rect,
-    gx_dc_default_fill_masked, gx_dc_pure_masked_equal
+    gx_dc_default_fill_masked, gx_dc_pure_masked_equal,
+    gx_dc_pattern_write, gx_dc_pattern_read, 
+    gx_dc_pure_get_nonzero_comps
 };
 
 gs_private_st_composite(st_dc_binary_masked, gx_device_color,
@@ -639,8 +894,12 @@ gs_private_st_composite(st_dc_binary_masked, gx_device_color,
 			dc_binary_masked_reloc_ptrs);
 const gx_device_color_type_t gx_dc_binary_masked = {
     &st_dc_binary_masked,
+    gx_dc_pattern_save_dc, gx_dc_binary_masked_get_dev_halftone,
+    gx_dc_ht_get_phase,
     gx_dc_binary_masked_load, gx_dc_binary_masked_fill_rect,
-    gx_dc_default_fill_masked, gx_dc_binary_masked_equal
+    gx_dc_default_fill_masked, gx_dc_binary_masked_equal,
+    gx_dc_pattern_write, gx_dc_pattern_read, 
+    gx_dc_ht_binary_get_nonzero_comps
 };
 
 gs_private_st_composite_only(st_dc_colored_masked, gx_device_color,
@@ -648,8 +907,12 @@ gs_private_st_composite_only(st_dc_colored_masked, gx_device_color,
 			     dc_masked_enum_ptrs, dc_masked_reloc_ptrs);
 const gx_device_color_type_t gx_dc_colored_masked = {
     &st_dc_colored_masked,
+    gx_dc_pattern_save_dc, gx_dc_colored_masked_get_dev_halftone,
+    gx_dc_ht_get_phase,
     gx_dc_colored_masked_load, gx_dc_colored_masked_fill_rect,
-    gx_dc_default_fill_masked, gx_dc_colored_masked_equal
+    gx_dc_default_fill_masked, gx_dc_colored_masked_equal,
+    gx_dc_pattern_write, gx_dc_pattern_read, 
+    gx_dc_ht_colored_get_nonzero_comps
 };
 
 #undef gx_dc_type_pattern
@@ -717,6 +980,68 @@ private RELOC_PTRS_BEGIN(dc_binary_masked_reloc_ptrs)
 }
 RELOC_PTRS_END
 
+
+/*
+ * Currently patterns cannot be passed through the command list,
+ * however vector devices need to save a color for comparing
+ * it with another color, which appears later.
+ * We provide a minimal support, which is necessary
+ * for the current implementation of pdfwrite.
+ * It is not sufficient for restoring the pattern from the saved color.
+ */
+void
+gx_dc_pattern_save_dc(
+    const gx_device_color * pdevc, 
+    gx_device_color_saved * psdc )
+{
+    psdc->type = pdevc->type;
+    if (pdevc->ccolor_valid) {
+	psdc->colors.pattern.id = pdevc->ccolor.pattern->pattern_id;
+	psdc->colors.pattern.phase = pdevc->phase;
+    } {
+	/* The client color has been changed to a non-pattern color,
+	   but device color has not been created yet. 
+	 */
+	psdc->colors.pattern.id = gs_no_id;
+	psdc->colors.pattern.phase.x = psdc->colors.pattern.phase.y = 0;
+    }
+}
+
+/*
+ * Colored Type 1 patterns cannot provide a halftone, as multiple
+ * halftones may be used by the PaintProc procedure. Hence, we can only
+ * hope this is a contone device.
+ */
+private const gx_device_halftone *
+gx_dc_pattern_get_dev_halftone(const gx_device_color * pdevc)
+{
+    return 0;
+}
+
+/*
+ * Uncolored Type 1 halftones make use of the halftone impplied by their
+ * base color. Ideally this would be returned via an inhereted method,
+ * but the device color structure does not support such an arrangement.
+ */
+private const gx_device_halftone *
+gx_dc_pure_masked_get_dev_halftone(const gx_device_color * pdevc)
+{
+    return 0;
+}
+
+private const gx_device_halftone *
+gx_dc_binary_masked_get_dev_halftone(const gx_device_color * pdevc)
+{
+    return pdevc->colors.binary.b_ht;
+}
+
+private const gx_device_halftone *
+gx_dc_colored_masked_get_dev_halftone(const gx_device_color * pdevc)
+{
+    return pdevc->colors.colored.c_ht;
+}
+
+
 /* Macros for pattern loading */
 #define FINISH_PATTERN_LOAD\
 	while ( !gx_pattern_cache_lookup(pdevc, pis, dev, select) )\
@@ -780,8 +1105,15 @@ gx_pattern_cache_lookup(gx_device_color * pdevc, const gs_imager_state * pis,
     }
     if (pcache != 0) {
 	gx_color_tile *ctile = &pcache->tiles[id % pcache->num_tiles];
-
+	bool internal_accum = true;
+	if (pis->have_pattern_streams) {
+	    int code = dev_proc(dev, pattern_manage)(dev, id, NULL, pattern_manage__load);
+	    internal_accum = (code == 0);
+	    if (code < 0)
+		return false;
+	}
 	if (ctile->id == id &&
+	    ctile->is_dummy == !internal_accum &&
 	    (pdevc->type != &gx_dc_pattern ||
 	     ctile->depth == dev->color_info.depth)
 	    ) {
@@ -817,6 +1149,23 @@ gx_dc_pattern_equal(const gx_device_color * pdevc1,
 	pdevc1->phase.y == pdevc2->phase.y &&
 	pdevc1->mask.id == pdevc2->mask.id;
 }
+
+/*
+ * For shading and colored tiling patterns, it is not possible to say
+ * which color components have non-zero values. The following routine
+ * indicates this by just returning 1. The procedure is exported for
+ * the benefit of gsptype2.c.
+ */
+int
+gx_dc_pattern_get_nonzero_comps(
+    const gx_device_color * pdevc_ignored,
+    const gx_device *       dev_ignored,
+    gx_color_index *        pcomp_bits_ignored )
+{
+    return 1;
+}
+
+
 private bool
 gx_dc_pure_masked_equal(const gx_device_color * pdevc1,
 			const gx_device_color * pdevc2)
@@ -837,4 +1186,29 @@ gx_dc_colored_masked_equal(const gx_device_color * pdevc1,
 {
     return (*gx_dc_type_ht_colored->equal) (pdevc1, pdevc2) &&
 	pdevc1->mask.id == pdevc2->mask.id;
+}
+
+/* currently, patterns cannot be passed through the command list */
+int
+gx_dc_pattern_write(
+    const gx_device_color *         pdevc,
+    const gx_device_color_saved *   psdc,
+    const gx_device *               dev,
+    byte *                          data,
+    uint *                          psize )
+{
+    return_error(gs_error_unknownerror);
+}
+
+int
+gx_dc_pattern_read(
+    gx_device_color *       pdevc,
+    const gs_imager_state * pis,
+    const gx_device_color * prior_devc,
+    const gx_device *       dev,
+    const byte *            data,
+    uint                    size,
+    gs_memory_t *           mem )
+{
+    return_error(gs_error_unknownerror);
 }

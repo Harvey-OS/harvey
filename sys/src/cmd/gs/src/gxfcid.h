@@ -1,22 +1,20 @@
-/* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 2000, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxfcid.h,v 1.6 2000/09/19 19:00:36 lpd Exp $ */
+/* $Id: gxfcid.h,v 1.14 2005/01/13 16:58:07 igor Exp $ */
 /* Definitions for CID-keyed fonts */
 
 #ifndef gxfcid_INCLUDED
@@ -77,11 +75,9 @@ typedef struct gs_font_cid0_data_s {
     int FDBytes;		/* optional, for standard glyph_data */
     /*
      * The third argument of glyph_data may be NULL if only the font number
-     * is wanted.  glyph_data returns 1 if the string is newly allocated
-     * (using the font's allocator) and can be freed by the client.
+     * is wanted.
      */
-    int (*glyph_data)(P4(gs_font_base *, gs_glyph, gs_const_string *,
-			 int *));
+    int (*glyph_data)(gs_font_base *, gs_glyph, gs_glyph_data_t *, int *);
     void *proc_data;
 } gs_font_cid0_data;
 struct gs_font_cid0_s {
@@ -96,6 +92,9 @@ extern_st(st_gs_font_cid0);
     font_cid0_enum_ptrs, font_cid0_reloc_ptrs, gs_font_finalize)
 #define st_gs_font_cid0_max_ptrs\
   (st_gs_font_max_ptrs + st_gs_font_cid_data_num_ptrs + 2)
+
+/* Define a GC descriptor for allocating FDArray. */
+extern_st(st_gs_font_type1_ptr_element); /* in gsfcid.c */
 
 /* CIDFontType 1 doesn't reference any additional structures. */
 
@@ -124,14 +123,14 @@ typedef struct gs_font_cid2_s gs_font_cid2;
 typedef struct gs_font_cid2_data_s {
     gs_font_cid_data common;
     int MetricsCount;
-    int (*CIDMap_proc)(P2(gs_font_cid2 *, gs_glyph));
+    int (*CIDMap_proc)(gs_font_cid2 *, gs_glyph);
     /*
      * "Wrapper" get_outline and glyph_info procedures are needed, to
      * handle MetricsCount.  Save the original ones here.
      */
     struct o_ {
-	int (*get_outline)(P3(gs_font_type42 *, uint, gs_const_string *));
-	int (*get_metrics)(P4(gs_font_type42 *, uint, int, float [4]));
+	int (*get_outline)(gs_font_type42 *, uint, gs_glyph_data_t *);
+	int (*get_metrics)(gs_font_type42 *, uint, int, float [4]);
     } orig_procs;
 } gs_font_cid2_data;
 struct gs_font_cid2_s {
@@ -153,12 +152,24 @@ extern_st(st_gs_font_cid2);
  * Get the CIDSystemInfo of a font.  If the font is not a CIDFont,
  * return NULL.
  */
-const gs_cid_system_info_t *gs_font_cid_system_info(P1(const gs_font *));
+const gs_cid_system_info_t *gs_font_cid_system_info(const gs_font *);
 
 /*
  * Provide a default enumerate_glyph procedure for CIDFontType 0 fonts.
  * Built for simplicity, not for speed.
  */
 font_proc_enumerate_glyph(gs_font_cid0_enumerate_glyph);
+
+/*
+ * Check CIDSystemInfo compatibility.
+ */
+bool gs_is_CIDSystemInfo_compatible(const gs_cid_system_info_t *info0, 
+				    const gs_cid_system_info_t *info1);
+
+/* Return the font from the FDArray at the given index */
+const gs_font *gs_cid0_indexed_font(const gs_font *, int);
+
+/* Check whether a CID font has a Type 2 subfont. */
+bool gs_cid0_has_type2(const gs_font *font);
 
 #endif /* gxfcid_INCLUDED */

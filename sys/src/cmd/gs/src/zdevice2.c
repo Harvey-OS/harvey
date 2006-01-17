@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zdevice2.c,v 1.4.2.1 2002/01/25 06:33:09 rayjj Exp $ */
+/* $Id: zdevice2.c,v 1.10 2005/10/04 06:30:02 ray Exp $ */
 /* Level 2 device operators */
 #include "math_.h"
 #include "memory_.h"
@@ -33,9 +31,12 @@
 #include "gxdevice.h"
 #include "gsstate.h"
 
+/* Exported for zfunc4.c */
+int z2copy(i_ctx_t *);
+
 /* Forward references */
-private int z2copy_gstate(P1(i_ctx_t *));
-private int push_callout(P2(i_ctx_t *, const char *));
+private int z2copy_gstate(i_ctx_t *);
+private int push_callout(i_ctx_t *, const char *);
 
 /* Extend the `copy' operator to deal with gstates. */
 /* This is done with a hack -- we know that gstates are the only */
@@ -256,7 +257,7 @@ restore_page_device(const gs_state * pgs_old, const gs_state * pgs_new)
     gx_device *dev_new;
     gx_device *dev_t1;
     gx_device *dev_t2;
-    bool samepagedevice = obj_eq(&gs_int_gstate(pgs_old)->pagedevice,
+    bool samepagedevice = obj_eq(dev_old->memory, &gs_int_gstate(pgs_old)->pagedevice,
     	&gs_int_gstate(pgs_new)->pagedevice);
 
     if ((dev_t1 = (*dev_proc(dev_old, get_page_device)) (dev_old)) == 0)
@@ -369,7 +370,7 @@ push_callout(i_ctx_t *i_ctx_p, const char *callout_name)
     int code;
 
     check_estack(1);
-    code = name_enter_string(callout_name, esp + 1);
+    code = name_enter_string(imemory, callout_name, esp + 1);
     if (code < 0)
 	return code;
     ++esp;

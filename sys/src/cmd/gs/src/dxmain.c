@@ -1,22 +1,20 @@
 /* Copyright (C) 2001 Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/* $Id: dxmain.c,v 1.7 2001/10/20 08:22:05 ghostgum Exp $ */
+/* $Id: dxmain.c,v 1.15 2004/09/14 06:42:32 ghostgum Exp $ */
 
 /* dxmain.c */
 /* 
@@ -37,7 +35,7 @@
 #include <fcntl.h>
 #include <gtk/gtk.h>
 #define __PROTOTYPES__
-#include "errors.h"
+#include "ierrors.h"
 #include "iapi.h"
 #include "gdevdsp.h"
 
@@ -60,12 +58,9 @@ static int display_page(void *handle, void *device, int copies, int flush);
 static int display_update(void *handle, void *device, int x, int y, 
 	int w, int h);
 
-enum SEPARATIONS {
-    SEP_CYAN = 8,
-    SEP_MAGENTA = 4,
-    SEP_YELLOW = 2,
-    SEP_BLACK = 1
-};
+#ifndef min
+#define min(a,b) ((a) < (b) ? (a) : (b))
+#endif
 
 /*********************************************************************/
 /* stdio functions */
@@ -140,6 +135,19 @@ gsdll_stderr(void *instance, const char *str, int len)
 /*********************************************************************/
 /* dll display device */
 
+typedef struct IMAGE_DEVICEN_S IMAGE_DEVICEN;
+struct IMAGE_DEVICEN_S {
+    int used;		/* non-zero if in use */
+    int visible;	/* show on window */
+    char name[64];
+    int cyan;
+    int magenta;
+    int yellow;
+    int black;
+    int menu;		/* non-zero if menu item added to system menu */
+};
+#define IMAGE_DEVICEN_MAX 8
+
 typedef struct IMAGE_S IMAGE;
 struct IMAGE_S {
     void *handle;
@@ -147,6 +155,8 @@ struct IMAGE_S {
     GtkWidget *window;
     GtkWidget *vbox;
     GtkWidget *cmyk_bar;
+    GtkWidget *separation[IMAGE_DEVICEN_MAX];
+    GtkWidget *show_as_gray;
     GtkWidget *scroll;
     GtkWidget *darea;
     guchar *buf;
@@ -155,7 +165,8 @@ struct IMAGE_S {
     gint rowstride;
     unsigned int format;
     GdkRgbCmap *cmap;
-    int separation;	/* for displaying C or M or Y or K */
+    int devicen_gray;	/* true if a single separation should be shown gray */
+    IMAGE_DEVICEN devicen[IMAGE_DEVICEN_MAX];
     guchar *rgbbuf;	/* used when we need to convert raster format */
     IMAGE *next;
 };
@@ -164,6 +175,7 @@ IMAGE *first_image;
 static IMAGE *image_find(void *handle, void *device);
 static void window_destroy(GtkWidget *w, gpointer data);
 static void window_create(IMAGE *img);
+static void window_resize(IMAGE *img);
 static gboolean window_draw(GtkWidget *widget, GdkEventExpose *event, gpointer user_data);
 
 static IMAGE *
@@ -186,48 +198,95 @@ window_draw(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
     if (img && img->window && img->buf) {
         int color = img->format & DISPLAY_COLORS_MASK;
 	int depth = img->format & DISPLAY_DEPTH_MASK;
-	switch (color) {
-	    case DISPLAY_COLORS_NATIVE:
-		if (depth == DISPLAY_DEPTH_8)
-		    gdk_draw_indexed_image(widget->window, 
-			widget->style->fg_gc[GTK_STATE_NORMAL],
-			0, 0, img->width, img->height,
-			GDK_RGB_DITHER_MAX, img->buf, img->rowstride,
-			img->cmap);
-	  	else if ((depth == DISPLAY_DEPTH_16) && img->rgbbuf)
-		    gdk_draw_rgb_image(widget->window, 
-			widget->style->fg_gc[GTK_STATE_NORMAL],
-			0, 0, img->width, img->height,
-			GDK_RGB_DITHER_MAX, img->rgbbuf, img->width * 3);
-		break;
-	    case DISPLAY_COLORS_GRAY:
-		if (depth == DISPLAY_DEPTH_8)
-		    gdk_draw_gray_image(widget->window, 
-			widget->style->fg_gc[GTK_STATE_NORMAL],
-			0, 0, img->width, img->height,
-			GDK_RGB_DITHER_MAX, img->buf, img->rowstride);
-		break;
-	    case DISPLAY_COLORS_RGB:
-		if (depth == DISPLAY_DEPTH_8) {
-		    if (img->rgbbuf)
+	int x, y, width, height;
+	if (event->area.x + event->area.width > img->width) {
+	    x = img->width;
+	    width = (event->area.x + event->area.width) - x;
+	    y = event->area.y;
+            height = min(img->height, event->area.y + event->area.height) - y;
+	    gdk_window_clear_area(widget->window, x, y, width, height);
+	}
+	if (event->area.y + event->area.height > img->height) {
+	    x = event->area.x;
+	    width = event->area.width;
+	    y = img->height;
+	    height = (event->area.y + event->area.height) - y;
+	    gdk_window_clear_area(widget->window, x, y, width, height);
+	}
+	x = event->area.x;
+	y = event->area.y;
+	width = event->area.width;
+	height = event->area.height;
+	if ((x>=0) && (y>=0) && (x < img->width) && (y < img->height)) {
+	    /* drawing area intersects bitmap */
+	    if (x + width > img->width)
+		width = img->width - x;
+	    if (y + height > img->height)
+		height =  img->height - y;
+	    switch (color) {
+		case DISPLAY_COLORS_NATIVE:
+		    if (depth == DISPLAY_DEPTH_8)
+			gdk_draw_indexed_image(widget->window, 
+			    widget->style->fg_gc[GTK_STATE_NORMAL],
+			    x, y, width, height, 
+			    GDK_RGB_DITHER_MAX, 
+			    img->buf + x + y*img->rowstride, 
+			    img->rowstride, img->cmap);
+		    else if ((depth == DISPLAY_DEPTH_16) && img->rgbbuf)
 			gdk_draw_rgb_image(widget->window, 
 			    widget->style->fg_gc[GTK_STATE_NORMAL],
-			    0, 0, img->width, img->height,
-			    GDK_RGB_DITHER_MAX, img->rgbbuf, img->width * 3);
-		    else
+			    x, y, width, height, 
+			    GDK_RGB_DITHER_MAX, 
+			    img->rgbbuf + x*3 + y*img->width*3, 
+			    img->width * 3);
+		    break;
+		case DISPLAY_COLORS_GRAY:
+		    if (depth == DISPLAY_DEPTH_8)
+			gdk_draw_gray_image(widget->window, 
+			    widget->style->fg_gc[GTK_STATE_NORMAL],
+			    x, y, width, height,
+			    GDK_RGB_DITHER_MAX, 
+			    img->buf + x + y*img->rowstride, 
+			    img->rowstride);
+		    break;
+		case DISPLAY_COLORS_RGB:
+		    if (depth == DISPLAY_DEPTH_8) {
+			if (img->rgbbuf)
+			    gdk_draw_rgb_image(widget->window, 
+				widget->style->fg_gc[GTK_STATE_NORMAL],
+				x, y, width, height,
+				GDK_RGB_DITHER_MAX, 
+				img->rgbbuf + x*3 + y*img->width*3, 
+				img->width * 3);
+			else
+			    gdk_draw_rgb_image(widget->window, 
+				widget->style->fg_gc[GTK_STATE_NORMAL],
+				x, y, width, height,
+				GDK_RGB_DITHER_MAX, 
+				img->buf + x*3 + y*img->rowstride, 
+				img->rowstride);
+		    }
+		    break;
+		case DISPLAY_COLORS_CMYK:
+		    if (((depth == DISPLAY_DEPTH_1) || 
+		        (depth == DISPLAY_DEPTH_8)) && img->rgbbuf)
 			gdk_draw_rgb_image(widget->window, 
 			    widget->style->fg_gc[GTK_STATE_NORMAL],
-			    0, 0, img->width, img->height,
-			    GDK_RGB_DITHER_MAX, img->buf, img->rowstride);
-		}
-		break;
-	    case DISPLAY_COLORS_CMYK:
-		if ((depth == DISPLAY_DEPTH_8) && img->rgbbuf)
-		    gdk_draw_rgb_image(widget->window, 
-			widget->style->fg_gc[GTK_STATE_NORMAL],
-			0, 0, img->width, img->height,
-			GDK_RGB_DITHER_MAX, img->rgbbuf, img->width * 3);
-		break;
+			    x, y, width, height,
+			    GDK_RGB_DITHER_MAX, 
+			    img->rgbbuf + x*3 + y*img->width*3, 
+			    img->width * 3);
+		    break;
+		case DISPLAY_COLORS_SEPARATION:
+		    if ((depth == DISPLAY_DEPTH_8) && img->rgbbuf)
+			gdk_draw_rgb_image(widget->window, 
+			    widget->style->fg_gc[GTK_STATE_NORMAL],
+			    x, y, width, height,
+			    GDK_RGB_DITHER_MAX, 
+			    img->rgbbuf + x*3 + y*img->width*3, 
+			    img->width * 3);
+		    break;
+	    }
 	}
     }
     return TRUE;
@@ -246,7 +305,6 @@ static void window_create(IMAGE *img)
     /* Create a gtk window */
     img->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(img->window), "gs");
-    gtk_window_set_default_size(GTK_WINDOW(img->window), 500, 400);
     img->vbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add(GTK_CONTAINER(img->window), img->vbox);
     gtk_widget_show(img->vbox);
@@ -267,42 +325,98 @@ static void window_create(IMAGE *img)
     /* do not show img->window until we know the image size */
 }
 
-static void window_separation(IMAGE *img, int layer)
+static void window_resize(IMAGE *img)
 {
-    img->separation ^= layer;
+    gtk_drawing_area_size(GTK_DRAWING_AREA (img->darea), 
+	img->width, img->height);
+    if (!(GTK_WIDGET_FLAGS(img->window) & GTK_VISIBLE)) {
+	/* We haven't yet shown the window, so set a default size 
+	 * which is smaller than the desktop to allow room for 
+	 * desktop toolbars, and if possible a little larger than 
+	 * the image to allow room for the scroll bars.
+	 * We don't know the width of the scroll bars, so just guess. */
+	gtk_window_set_default_size(GTK_WINDOW(img->window), 
+	    min(gdk_screen_width()-96, img->width+24),
+	    min(gdk_screen_height()-96, img->height+24));
+    }
+}
+
+static void window_separation(IMAGE *img, int sep)
+{
+    img->devicen[sep].visible = !img->devicen[sep].visible;
     display_sync(img->handle, img->device);
 }
 
-static void cmyk_cyan(GtkWidget *w, gpointer data)
+static void signal_sep0(GtkWidget *w, gpointer data)
 {
-    window_separation((IMAGE *)data, SEP_CYAN);
+    window_separation((IMAGE *)data, 0);
 }
 
-static void cmyk_magenta(GtkWidget *w, gpointer data)
+static void signal_sep1(GtkWidget *w, gpointer data)
 {
-    window_separation((IMAGE *)data, SEP_MAGENTA);
+    window_separation((IMAGE *)data, 1);
 }
 
-static void cmyk_yellow(GtkWidget *w, gpointer data)
+static void signal_sep2(GtkWidget *w, gpointer data)
 {
-    window_separation((IMAGE *)data, SEP_YELLOW);
+    window_separation((IMAGE *)data, 2);
 }
 
-static void cmyk_black(GtkWidget *w, gpointer data)
+static void signal_sep3(GtkWidget *w, gpointer data)
 {
-    window_separation((IMAGE *)data, SEP_BLACK);
+    window_separation((IMAGE *)data, 3);
 }
 
-static void
+static void signal_sep4(GtkWidget *w, gpointer data)
+{
+    window_separation((IMAGE *)data, 4);
+}
+
+static void signal_sep5(GtkWidget *w, gpointer data)
+{
+    window_separation((IMAGE *)data, 5);
+}
+
+static void signal_sep6(GtkWidget *w, gpointer data)
+{
+    window_separation((IMAGE *)data, 6);
+}
+
+static void signal_sep7(GtkWidget *w, gpointer data)
+{
+    window_separation((IMAGE *)data, 7);
+}
+
+GtkSignalFunc signal_separation[IMAGE_DEVICEN_MAX] = {
+    signal_sep0, 
+    signal_sep1, 
+    signal_sep2, 
+    signal_sep3, 
+    signal_sep4, 
+    signal_sep5, 
+    signal_sep6, 
+    signal_sep7
+};
+
+static GtkWidget *
 window_add_button(IMAGE *img, const char *label, GtkSignalFunc fn)
 {
     GtkWidget *w;
     w = gtk_check_button_new_with_label(label);
-    gtk_box_pack_start(GTK_BOX(img->cmyk_bar), w, TRUE, FALSE, 5);
+    gtk_box_pack_start(GTK_BOX(img->cmyk_bar), w, FALSE, FALSE, 5);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w), TRUE);
     gtk_signal_connect(GTK_OBJECT(w), "clicked", fn, img);
     gtk_widget_show(w);
+    return w;
 }
+
+static void signal_show_as_gray(GtkWidget *w, gpointer data)
+{
+    IMAGE *img= (IMAGE *)data;
+    img->devicen_gray= !img->devicen_gray;
+    display_sync(img->handle, img->device);
+}
+
 
 /* New device has been opened */
 static int display_open(void *handle, void *device)
@@ -402,6 +516,7 @@ static int display_size(void *handle, void *device, int width, int height,
     IMAGE *img = image_find(handle, device);
     int color;
     int depth;
+    int i;
     if (img == NULL)
 	return -1;
 
@@ -417,7 +532,17 @@ static int display_size(void *handle, void *device, int width, int height,
     img->rowstride = raster;
     img->buf = pimage;
     img->format = format;
-    gtk_drawing_area_size(GTK_DRAWING_AREA (img->darea), width, height);
+
+    /* Reset separations */
+    for (i=0; i<IMAGE_DEVICEN_MAX; i++) {
+	img->devicen[i].used = 0;
+	img->devicen[i].visible = 1;
+	memset(img->devicen[i].name, 0, sizeof(img->devicen[i].name));
+	img->devicen[i].cyan = 0;
+	img->devicen[i].magenta = 0;
+	img->devicen[i].yellow = 0;
+	img->devicen[i].black = 0;
+    }
 
     color = img->format & DISPLAY_COLORS_MASK;
     depth = img->format & DISPLAY_DEPTH_MASK;
@@ -475,29 +600,64 @@ static int display_size(void *handle, void *device, int width, int height,
 		return -1;	/* not supported */
 	    break;
 	case DISPLAY_COLORS_CMYK:
-	    if (depth == DISPLAY_DEPTH_8) {
+	    if ((depth == DISPLAY_DEPTH_1) || (depth == DISPLAY_DEPTH_8)) {
 		/* need to convert to 24RGB */
 		img->rgbbuf = (guchar *)malloc(width * height * 3);
 		if (img->rgbbuf == NULL)
 		    return -1;
+		/* We already know about the CMYK components */
+		img->devicen[0].used = 1;
+		img->devicen[0].cyan = 65535;
+		strncpy(img->devicen[0].name, "Cyan", 
+		    sizeof(img->devicen[0].name));
+		img->devicen[1].used = 1;
+		img->devicen[1].magenta = 65535;
+		strncpy(img->devicen[1].name, "Magenta", 
+		    sizeof(img->devicen[1].name));
+		img->devicen[2].used = 1;
+		img->devicen[2].yellow = 65535;
+		strncpy(img->devicen[2].name, "Yellow", 
+		    sizeof(img->devicen[2].name));
+		img->devicen[3].used = 1;
+		img->devicen[3].black = 65535;
+		strncpy(img->devicen[3].name, "Black", 
+		    sizeof(img->devicen[3].name));
 	    }
 	    else
 		return -1;	/* not supported */
 	    break;
+	case DISPLAY_COLORS_SEPARATION:
+	    /* we can't display this natively */
+	    /* we will convert it just before displaying */
+	    if (depth != DISPLAY_DEPTH_8)
+		return -1;	/* not supported */
+	    img->rgbbuf = (guchar *)malloc(width * height * 3);
+	    if (img->rgbbuf == NULL)
+		return -1;
+	    break;
     }
 
 
-    if (color == DISPLAY_COLORS_CMYK) {
+    if ((color == DISPLAY_COLORS_CMYK) || 
+	(color == DISPLAY_COLORS_SEPARATION)) {
 	if (!img->cmyk_bar) {
 	    /* add bar to select separation */
-	    img->cmyk_bar = gtk_hbox_new(TRUE, 0);
+	    img->cmyk_bar = gtk_hbox_new(FALSE, 0);
 	    gtk_box_pack_start(GTK_BOX(img->vbox), img->cmyk_bar, 
 		FALSE, FALSE, 0);
-	    img->separation = 0xf;	/* all layers */
-	    window_add_button(img, "Cyan", (GtkSignalFunc)cmyk_cyan);
-	    window_add_button(img, "Magenta", (GtkSignalFunc)cmyk_magenta);
-	    window_add_button(img, "Yellow", (GtkSignalFunc)cmyk_yellow);
-	    window_add_button(img, "Black", (GtkSignalFunc)cmyk_black);
+	    for (i=0; i<IMAGE_DEVICEN_MAX; i++) {
+	       img->separation[i] = 
+		window_add_button(img, img->devicen[i].name,
+		   signal_separation[i]);
+	    }
+	    img->show_as_gray = gtk_check_button_new_with_label("Show as Gray");
+	    gtk_box_pack_end(GTK_BOX(img->cmyk_bar), img->show_as_gray, 
+		FALSE, FALSE, 5);
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(img->show_as_gray), 
+		FALSE);
+	    gtk_signal_connect(GTK_OBJECT(img->show_as_gray), "clicked", 
+		signal_show_as_gray, img);
+	    gtk_widget_show(img->show_as_gray);
 	}
 	gtk_widget_show(img->cmyk_bar);
     }
@@ -506,7 +666,7 @@ static int display_size(void *handle, void *device, int width, int height,
 	    gtk_widget_hide(img->cmyk_bar);
     }
 
-
+    window_resize(img);
     if (!(GTK_WIDGET_FLAGS(img->window) & GTK_VISIBLE))
 	gtk_widget_show(img->window);
 
@@ -525,16 +685,38 @@ static int display_sync(void *handle, void *device)
     if (img == NULL)
 	return -1;
 
-    if (img->window == NULL)
-	window_create(img);
-    if (!(GTK_WIDGET_FLAGS(img->window) & GTK_VISIBLE))
-	gtk_widget_show_all(img->window);
-
     color = img->format & DISPLAY_COLORS_MASK;
     depth = img->format & DISPLAY_DEPTH_MASK;
     endian = img->format & DISPLAY_ENDIAN_MASK;
     native555 = img->format & DISPLAY_555_MASK;
     alpha = img->format & DISPLAY_ALPHA_MASK;
+
+    if ((color == DISPLAY_COLORS_CMYK) ||
+	(color == DISPLAY_COLORS_SEPARATION)) {
+	/* check if separations have changed */
+	int i;
+	int num_visible = 0;
+	gchar *str;
+	for (i=0; i<IMAGE_DEVICEN_MAX; i++) {
+	    gtk_label_get(
+		GTK_LABEL(GTK_BIN(img->separation[i])->child), &str);
+	    if (!img->devicen[i].used)
+		gtk_widget_hide(img->separation[i]);
+	    else if (strcmp(img->devicen[i].name, str) != 0) {
+		/* text has changed, update it */
+		gtk_label_set_text(
+		    GTK_LABEL(GTK_BIN(img->separation[i])->child),
+		    img->devicen[i].name);
+		gtk_widget_show(img->separation[i]);
+	    }
+	    if (img->devicen[i].used && img->devicen[i].visible)
+		num_visible++;
+	}
+	if (num_visible <= 1)
+	    gtk_widget_show(img->separation[i]);
+	else
+	    gtk_widget_hide(img->separation[i]);
+    }
 		
     /* some formats need to be converted for use by GdkRgb */
     switch (color) {
@@ -706,6 +888,12 @@ static int display_sync(void *handle, void *device)
 		int x, y;
 		int cyan, magenta, yellow, black;
 		unsigned char *s, *d;
+		int vc = img->devicen[0].visible;
+		int vm = img->devicen[1].visible;
+		int vy = img->devicen[2].visible;
+		int vk = img->devicen[3].visible;
+		int vall = vc && vm && vy && vk;
+		int show_gray = (vc + vm + vy + vk == 1) && img->devicen_gray;
 		for (y = 0; y<img->height; y++) {
 		    s = img->buf + y * img->rowstride;
 		    d = img->rgbbuf + y * img->width * 3;
@@ -714,14 +902,63 @@ static int display_sync(void *handle, void *device)
 			magenta = *s++;
 			yellow = *s++;
 			black = *s++;
-			if (!(img->separation & SEP_CYAN))
-			    cyan = 0;
-			if (!(img->separation & SEP_MAGENTA))
-			    magenta = 0;
-			if (!(img->separation & SEP_YELLOW))
-			    yellow = 0;
-			if (!(img->separation & SEP_BLACK))
-			    black = 0;
+			if (!vall) {
+			    if (!vc)
+				cyan = 0;
+			    if (!vm)
+				magenta = 0;
+			    if (!vy)
+				yellow = 0;
+			    if (!vk)
+				black = 0;
+			    if (show_gray) {
+				black += cyan + magenta + yellow;
+				cyan = magenta = yellow = 0;
+			    }
+			}
+			*d++ = (255-cyan)    * (255-black) / 255; /* r */
+			*d++ = (255-magenta) * (255-black) / 255; /* g */
+			*d++ = (255-yellow)  * (255-black) / 255; /* b */
+		    }
+		}
+	    }
+	    else if (depth == DISPLAY_DEPTH_1) {
+	    	/* Separations */
+		int x, y;
+		int cyan, magenta, yellow, black;
+		unsigned char *s, *d;
+		int vc = img->devicen[0].visible;
+		int vm = img->devicen[1].visible;
+		int vy = img->devicen[2].visible;
+		int vk = img->devicen[3].visible;
+		int vall = vc && vm && vy && vk;
+		int show_gray = (vc + vm + vy + vk == 1) && img->devicen_gray;
+		int value;
+		for (y = 0; y<img->height; y++) {
+		    s = img->buf + y * img->rowstride;
+		    d = img->rgbbuf + y * img->width * 3;
+		    for (x=0; x<img->width; x++) {
+			value = s[x/2];
+			if (x & 0)
+			    value >>= 4;
+			cyan = ((value >> 3) & 1) * 255;
+			magenta = ((value >> 2) & 1) * 255;
+			yellow = ((value >> 1) & 1) * 255;
+			black = (value & 1) * 255;
+			if (!vall) {
+			    if (!vc)
+				cyan = 0;
+			    if (!vm)
+				magenta = 0;
+			    if (!vy)
+				yellow = 0;
+			    if (!vk)
+				black = 0;
+			    if (show_gray) {
+				black += cyan + magenta + yellow;
+				cyan = magenta = yellow = 0;
+			    }
+			}
 			*d++ = (255-cyan)    * (255-black) / 255; /* r */
 			*d++ = (255-magenta) * (255-black) / 255; /* g */
 			*d++ = (255-yellow)  * (255-black) / 255; /* b */
@@ -729,7 +966,75 @@ static int display_sync(void *handle, void *device)
 		}
 	    }
 	    break;
+	case DISPLAY_COLORS_SEPARATION:
+	    if (depth == DISPLAY_DEPTH_8) {
+		int j;
+		int x, y;
+		unsigned char *s, *d;
+		int cyan, magenta, yellow, black;
+		int num_comp = 0;
+		int value;
+		int num_visible = 0;
+		int show_gray = 0;
+	        IMAGE_DEVICEN *devicen = img->devicen;
+		for (j=0; j<IMAGE_DEVICEN_MAX; j++) {
+		    if (img->devicen[j].used) {
+		       num_comp = j+1;
+		       if (img->devicen[j].visible)
+			    num_visible++;
+		    }
+		}
+		if ((num_visible == 1) && img->devicen_gray)
+		    show_gray = 1;
+
+		for (y = 0; y<img->height; y++) {
+		    s = img->buf + y * img->rowstride;
+		    d = img->rgbbuf + y * img->width * 3;
+		    for (x=0; x<img->width; x++) {
+			cyan = magenta = yellow = black = 0;
+			if (show_gray) {
+			    for (j=0; j<num_comp; j++) {
+				devicen = &img->devicen[j];
+				if (devicen->visible && devicen->used)
+				    black += s[j];
+			    }
+			}
+			else {
+			    for (j=0; j<num_comp; j++) {
+				devicen = &img->devicen[j];
+				if (devicen->visible && devicen->used) {
+				    value = s[j];
+				    cyan    += value*devicen->cyan   /65535;
+				    magenta += value*devicen->magenta/65535;
+				    yellow  += value*devicen->yellow /65535;
+				    black   += value*devicen->black  /65535;
+				}
+			    }
+			}
+			if (cyan > 255)
+			   cyan = 255;
+			if (magenta > 255)
+			   magenta = 255;
+			if (yellow > 255)
+			   yellow = 255;
+			if (black > 255)
+			   black = 255;
+			*d++ = (255-cyan)    * (255-black) / 255; /* r */
+			*d++ = (255-magenta) * (255-black) / 255; /* g */
+			*d++ = (255-yellow)  * (255-black) / 255; /* b */
+			s += 8;
+		    }
+		}
+	    }
+	    break;
     }
+
+    if (img->window == NULL) {
+	window_create(img);
+	window_resize(img);
+    }
+    if (!(GTK_WIDGET_FLAGS(img->window) & GTK_VISIBLE))
+	gtk_widget_show_all(img->window);
 
     gtk_widget_draw(img->darea, NULL);
     gtk_main_iteration_do(FALSE);
@@ -749,6 +1054,29 @@ static int display_update(void *handle, void *device,
     return 0;
 }
 
+
+static int 
+display_separation(void *handle, void *device,
+    int comp_num, const char *name,
+    unsigned short c, unsigned short m,
+    unsigned short y, unsigned short k)
+{
+    IMAGE *img = image_find(handle, device);
+    if (img == NULL)
+	return -1;
+    if ((comp_num < 0) || (comp_num > IMAGE_DEVICEN_MAX))
+	return -1;
+    img->devicen[comp_num].used = 1;
+    strncpy(img->devicen[comp_num].name, name,
+	sizeof(img->devicen[comp_num].name)-1);
+    img->devicen[comp_num].cyan    = c;
+    img->devicen[comp_num].magenta = m;
+    img->devicen[comp_num].yellow  = y;
+    img->devicen[comp_num].black   = k;
+    return 0;
+}
+
+
 /* callback structure for "display" device */
 display_callback display = { 
     sizeof(display_callback),
@@ -763,7 +1091,8 @@ display_callback display = {
     display_page,
     display_update,
     NULL,	/* memalloc */
-    NULL	/* memfree */
+    NULL,	/* memfree */
+    display_separation
 };
 
 /*********************************************************************/
@@ -771,8 +1100,8 @@ display_callback display = {
 int main(int argc, char *argv[])
 {
     int exit_status;
-    int code = 1;
-    gs_main_instance *instance;
+    int code = 1, code1;
+    void *instance;
     int nargc;
     char **nargv;
     char dformat[64];
@@ -802,7 +1131,9 @@ int main(int argc, char *argv[])
 
 	if (code == 0)
 	    code = gsapi_run_string(instance, start_string, 0, &exit_code);
-        gsapi_exit(instance);
+        code1 = gsapi_exit(instance);
+	if (code == 0 || code == e_Quit)
+	    code = code1;
 	if (code == e_Quit)
 	    code = 0;	/* user executed 'quit' */
 

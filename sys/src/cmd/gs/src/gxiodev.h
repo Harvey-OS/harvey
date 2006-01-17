@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 1994, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxiodev.h,v 1.2 2000/09/19 19:00:38 lpd Exp $ */
+/* $Id: gxiodev.h,v 1.6 2002/06/16 08:45:43 lpd Exp $ */
 /* Structure and default implementation of IODvices */
 /* Requires gsmemory.h */
 
@@ -28,7 +26,7 @@
 /*
  * Note that IODevices are not the same as Ghostscript output devices.
  * See section 3.8.2 of the PostScript Language Reference Manual,
- * Second Edition, for more information.
+ * Second and Third Edition, for more information.
  */
 
 #ifndef gx_io_device_DEFINED
@@ -57,73 +55,88 @@ typedef struct gs_param_list_s gs_param_list;
 typedef struct stream_s stream;
 #endif
 
-/* Definition of IODevice procedures */
-/* Note that file names for fopen, delete, rename, and status */
-/* are C strings, not pointer + length. */
+/*
+ * Define the IODevice procedures.  Note that file names for fopen, delete,
+ * rename, and status are C strings, not pointer + length.
+ *
+ * open_device is called when opening a file whose name consists only of
+ * the IODevice name, e.g., '%lineedit'.  open_file is called when opening
+ * a file whose name includes both an (optional) IODevice and a further
+ * name, e.g., '%os%xyz' or just 'xyz'.
+ *
+ * The open_device and open_file procedures return streams.  The default
+ * implementation of open_device returns an error; the default
+ * implementation of open_file in the PostScript interpreter,
+ * iodev_os_open_file, uses the IODevice's fopen procedure to open a stream
+ * based on an OS FILE *.  However, IODevices are free to implement
+ * open_file (and, if desired, open_device) in any way they want, returning
+ * a stream that need not have any relationship to the OS's file system.
+ * In this case there is no need to implement fopen or fclose.
+ */
 /* Note also that "streams" are a higher-level concept; */
 /* the open_device and open_file procedures are normally NULL. */
 
 struct gx_io_device_procs_s {
 
 #define iodev_proc_init(proc)\
-  int proc(P2(gx_io_device *iodev, gs_memory_t *mem))
+  int proc(gx_io_device *iodev, gs_memory_t *mem)
     iodev_proc_init((*init));	/* one-time initialization */
 
 #define iodev_proc_open_device(proc)\
-  int proc(P4(gx_io_device *iodev, const char *access, stream **ps,\
-	      gs_memory_t *mem))
+  int proc(gx_io_device *iodev, const char *access, stream **ps,\
+	   gs_memory_t *mem)
     iodev_proc_open_device((*open_device));
 
 #define iodev_proc_open_file(proc)\
-  int proc(P6(gx_io_device *iodev, const char *fname, uint namelen,\
-	      const char *access, stream **ps, gs_memory_t *mem))
+  int proc(gx_io_device *iodev, const char *fname, uint namelen,\
+	   const char *access, stream **ps, gs_memory_t *mem)
     iodev_proc_open_file((*open_file));
 
     /* fopen was changed in release 2.9.6, */
     /* and again in 3.20 to return the real fname separately */
 
 #define iodev_proc_fopen(proc)\
-  int proc(P6(gx_io_device *iodev, const char *fname, const char *access,\
-	      FILE **pfile, char *rfname, uint rnamelen))
+  int proc(gx_io_device *iodev, const char *fname, const char *access,\
+	   FILE **pfile, char *rfname, uint rnamelen)
     iodev_proc_fopen((*fopen));
 
 #define iodev_proc_fclose(proc)\
-  int proc(P2(gx_io_device *iodev, FILE *file))
+  int proc(gx_io_device *iodev, FILE *file)
     iodev_proc_fclose((*fclose));
 
 #define iodev_proc_delete_file(proc)\
-  int proc(P2(gx_io_device *iodev, const char *fname))
+  int proc(gx_io_device *iodev, const char *fname)
     iodev_proc_delete_file((*delete_file));
 
 #define iodev_proc_rename_file(proc)\
-  int proc(P3(gx_io_device *iodev, const char *from, const char *to))
+  int proc(gx_io_device *iodev, const char *from, const char *to)
     iodev_proc_rename_file((*rename_file));
 
 #define iodev_proc_file_status(proc)\
-  int proc(P3(gx_io_device *iodev, const char *fname, struct stat *pstat))
+  int proc(gx_io_device *iodev, const char *fname, struct stat *pstat)
     iodev_proc_file_status((*file_status));
 
 #define iodev_proc_enumerate_files(proc)\
-  file_enum *proc(P4(gx_io_device *iodev, const char *pat, uint patlen,\
-		     gs_memory_t *mem))
+  file_enum *proc(gx_io_device *iodev, const char *pat, uint patlen,\
+		  gs_memory_t *mem)
     iodev_proc_enumerate_files((*enumerate_files));
 
 #define iodev_proc_enumerate_next(proc)\
-  uint proc(P3(file_enum *pfen, char *ptr, uint maxlen))
+  uint proc(file_enum *pfen, char *ptr, uint maxlen)
     iodev_proc_enumerate_next((*enumerate_next));
 
 #define iodev_proc_enumerate_close(proc)\
-  void proc(P1(file_enum *pfen))
+  void proc(file_enum *pfen)
     iodev_proc_enumerate_close((*enumerate_close));
 
     /* Added in release 2.9 */
 
 #define iodev_proc_get_params(proc)\
-  int proc(P2(gx_io_device *iodev, gs_param_list *plist))
+  int proc(gx_io_device *iodev, gs_param_list *plist)
     iodev_proc_get_params((*get_params));
 
 #define iodev_proc_put_params(proc)\
-  int proc(P2(gx_io_device *iodev, gs_param_list *plist))
+  int proc(gx_io_device *iodev, gs_param_list *plist)
     iodev_proc_put_params((*put_params));
 
 };
@@ -150,20 +163,20 @@ iodev_proc_fopen(iodev_os_fopen);
 iodev_proc_fclose(iodev_os_fclose);
 
 /* Get the N'th IODevice. */
-gx_io_device *gs_getiodevice(P1(int));
+gx_io_device *gs_getiodevice(int);
 
 #define iodev_default (gs_getiodevice(0))
 
 /* Look up an IODevice name. */
-gx_io_device *gs_findiodevice(P2(const byte *, uint));
+gx_io_device *gs_findiodevice(const byte *, uint);
 
 /* Get and put IODevice parameters. */
-int gs_getdevparams(P2(gx_io_device *, gs_param_list *));
-int gs_putdevparams(P2(gx_io_device *, gs_param_list *));
+int gs_getdevparams(gx_io_device *, gs_param_list *);
+int gs_putdevparams(gx_io_device *, gs_param_list *);
 
 /* Convert an OS error number to a PostScript error */
 /* if opening a file fails. */
-int gs_fopen_errno_to_code(P1(int));
+int gs_fopen_errno_to_code(int);
 
 /* Test whether a string is equal to a character. */
 /* (This is used for access testing in file_open procedures.) */

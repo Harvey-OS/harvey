@@ -1,0 +1,33 @@
+%!
+% $Id: FAPIfontmap,v 1.6 2002/06/07 20:21:16 igor Exp $
+% This is a sample map file for FAPI fonts.
+
+%
+% The map is a set of records like this :
+%
+%  /font_name options_dict ;
+%
+% where options_dict is a dictionary with the following entries :
+%
+% Key       Type      Description  
+% Path      string    Absolute path to font file, or relative path to font file from
+%                     the GS_EXTFONTPATH value.  
+% FontType  interger  PostScript type for this font. Only 1 and 42 are currently allowed.
+%                     Note that this is unrelated to the real type of the font file -
+%                     the bridge will perform format conversion.
+% FAPI      name      Name of the renderer to be used with the font. Only /AgfaUFST is now allowed.
+% SubfontId integer   (optional) Index of the font in font collection, such as FCO or TTC.
+%                     It is being ignored if /Path doesn't specify a collection.
+%                     Default value is 0.
+% Decoding  name      (optional) The name of a Decoding resource to be used with the font.
+%                     If specified, "xlatmap" doesn't work for this font.
+%
+% Use regular Postscript syntax.
+%
+% Examples :
+%
+%  /ArialTT     << /Path (arial.ttf) /FontType 1 /FAPI /AgfaUFST >> ;
+%  /CourierTT   << /Path (F:/WIN2000/Fonts/cour.ttf) /FontType 1 /FAPI /AgfaUFST >> ;
+%  /FCO1        << /Path (F:/AFPL/Agfa/fontdata/MTFONTS/PCLPS3/MT1/PCLP3__G.FCO) /FontType 42 /FAPI /AgfaUFST /SubfontId 10 >> ;
+%
+

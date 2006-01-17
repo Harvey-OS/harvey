@@ -1,26 +1,25 @@
-/* Copyright (C) 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1996-2005 artofcode LLC. All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gscdef.c,v 1.15 2001/10/20 08:44:31 raph Exp $ */
+/* $Id: gscdef.c,v 1.58 2005/10/20 19:46:55 ray Exp $ */
 /* Configuration scalars */
+
 #include "std.h"
 #include "gscdefs.h"		/* interface */
-#include "gconf.h"		/* for #defines */
+#include "gconfigd.h"		/* for #defines */
 
 /* ---------------- Miscellaneous system parameters ---------------- */
 
@@ -35,7 +34,7 @@ CONFIG_CONST long gs_buildtime = GS_BUILDTIME;
 
 #ifndef GS_COPYRIGHT
 #  define GS_COPYRIGHT\
-	"Copyright (C) 2001 artofcode LLC, Benicia, CA.  All rights reserved."
+	"Copyright (C) 2005 artofcode LLC, Benicia, CA.  All rights reserved."
 #endif
 const char *CONFIG_CONST gs_copyright = GS_COPYRIGHT;
 
@@ -47,7 +46,7 @@ const char *CONFIG_CONST gs_productfamily = GS_PRODUCTFAMILY;
 
 #ifndef GS_PRODUCT
 #  define GS_PRODUCT\
-	"AFPL Ghostscript"
+	GS_PRODUCTFAMILY
 #endif
 const char *CONFIG_CONST gs_product = GS_PRODUCT;
 

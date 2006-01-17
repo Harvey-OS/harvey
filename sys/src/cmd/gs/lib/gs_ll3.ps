@@ -1,21 +1,19 @@
 %    Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: gs_ll3.ps,v 1.10 2001/07/12 05:47:07 lpd Exp $
+% $Id: gs_ll3.ps,v 1.20 2003/10/22 11:22:29 alexcher Exp $
 % Initialization file for PostScript LanguageLevel 3 functions.
 % This file must be loaded after gs_lev2.ps and gs_res.ps.
 % These definitions go into ll3dict or various ProcSets.
@@ -25,7 +23,7 @@ ll3dict begin
 
 % We need LanguageLevel 2 or higher in order to have setuserparams and
 % defineresource.
-languagelevel dup 2 max .setlanguagelevel
+languagelevel dup 2 .max .setlanguagelevel
 
 % ------ Idiom recognition ------ %
 
@@ -33,12 +31,10 @@ languagelevel dup 2 max .setlanguagelevel
 
 % Modify `bind' to apply idiom recognition afterwards.
 /.bindscratch 128 string def
-% Do the right thing if NOBIND or DELAYBIND is in effect.
-% Note also that since this definition of `bind' may get bound in,
+% Note that since this definition of `bind' may get bound in,
 % it has to function properly even at lower language levels,
 % where IdiomRecognition may not be defined.
-/bind load /.bind load ne
-/bind {		% <proc> bind <proc'>
+/.bind {		% <proc> .bind <proc'>
   //.bind currentuserparams /IdiomRecognition
   .knownget not { false } if {
     (*) {
@@ -60,10 +56,11 @@ languagelevel dup 2 max .setlanguagelevel
     } //.bindscratch /IdiomSet resourceforall
   } if
 } odef
-{ /.bind /bind load def
-  /bind { } def
-} if
 currentdict /.bindscratch .undef
+
+DELAYBIND NOBIND or not { 
+  /bind /.bind load def
+} if
 
 % ------ HalftoneTypes 6, 10, 16 and HalftoneMode ------ %
 
@@ -282,169 +279,42 @@ systemdict /.reuseparamdict undef
 /shfill {		% <shadingdict> shfill -
 	% Currently, .shfill requires that the color space
 	% in the pattern be the current color space.
-  dup gsave { .buildshading .shfill } stopped grestore { stop } if
+	% Disable overprintmode for shfill
+  dup gsave
+  0 .setoverprintmode { .buildshading .shfill } stopped
+  grestore { stop } if
   pop
 } odef
 
 % Establish an initial smoothness value that matches Adobe RIPs.
 0.02 setsmoothness
 
-% ------ UseCIEColor ------ %
-
-% The library maintains and detects the UseCIEColor device parameter,
-% but it doesn't have access to the resource dictionaries.  We also
-% want color space substitution to work in systems without a PostScript
-% interpreter.  Therefore, we eagerly inform the library of changes in
-% the (effective) ColorSpace category that might affect the operation of
-% UseCIEColor.  We must notice the following events:
-%	1) defineresource and undefineresource of the Default ColorSpaces.
-%	2) restore.
-%	3) Changes in current VM, which cause a different set of resources
-%	to become visible.
-% #1 is rare.  #2 is handled in C code.  If checking the ColorSpace
-% category on #3 turns out to be expensive, we can cache more information
-% about whether these operations actually affect UseCIEColor.
-
-% This operator implements color space substitution in the library:
-%	<index> <bool> .setsubstitutecolorspace -
-% <bool> = true means substitute the current color space for the one given
-% by <index>; <bool> = false means stop substituting.  Substitution is not
-% affected by grestore/setgstate, but it is affected by restore.
-
-% ColorSpace defineresource and undefineresource for the Default keys
-% call .definedefaultcs and .undefinedefaultcs.  See gs_res.ps.
-
-/.useciecolorkeydict mark
-  /UseCIEColor null
-.dicttomark readonly def
-/.definedefaultcs {	% <index> <value> .definedefaultcs -
-  currentcolorspace
-	% Temporarily disable color substitution, in case the substitute
-	% color space is or mentions a color space that is currently
-	%  being substituted.
-  currentdevice //.useciecolorkeydict .getdeviceparams exch pop exch pop
-  mark 5 -2 roll
-	% Stack: cspace UseCIEColor mark index value
-   { setcolorspace true .setsubstitutecolorspace }
-  stopped counttomark 1 add 1 roll cleartomark
-	% Stack: cspace UseCIEColor stopped?
-  3 1 roll
-  currentdevice null true mark /UseCIEColor 6 -1 roll .putdeviceparams pop pop
-  setcolorspace { stop } if
-} bind def
-currentdict /.useciecolorkeydict undef
-
-/.undefinedefaultcs {	% <index> .undefinedefaultcs -
-  false .setsubstitutecolorspace
-} bind def
-
-/.setdefaultcs {	% <index> <value|null> .setdefaultcs -
-  dup null eq { pop .undefinedefaultcs } { .definedefaultcs } ifelse
-} bind def
-
-/.getdefaultcs {	% <key> .getdefaultcs <value|null>
-  .GetInstance { 0 get } { null } ifelse
-} bind def
-
-/.setglobal {		% <bool> .setglobal -
-  dup .currentglobal ne {
-	% If there are no local definitions of the Default keys,
-	% changing VM can't affect the definition of any resource.
-    /.localcsdefaults .uservar {
-	% We only want to change substitutions for color spaces
-	% whose definitions are actually changing.
-      /ColorSpace /Category findresource begin
-      /DefaultGray .getdefaultcs
-      /DefaultRGB .getdefaultcs
-      /DefaultCMYK .getdefaultcs
-      end
-      3 index .setglobal
-      /ColorSpace /Category findresource begin
-      /DefaultGray .getdefaultcs
-      /DefaultRGB .getdefaultcs
-      /DefaultCMYK .getdefaultcs
-      end
-			% Stack: bool oldgray oldrgb oldcmyk
-			%   newgray newrgb newcmyk
-      dup 4 index ne { 2 exch .setdefaultcs } { pop } ifelse
-      dup 4 index ne { 1 exch .setdefaultcs } { pop } ifelse
-      dup 4 index ne { 0 exch .setdefaultcs } { pop } ifelse
-      pop pop pop pop
-    } {
-      .setglobal
-    } ifelse
-  } {
-    .setglobal
-  } ifelse
-} .bind odef		% bind in .setglobal
-
-
-% Define default device color spaces to allow substitution
-% on UseCIEColor == true :
-
-/DefaultGray
-[ /CIEBasedA
-  3 dict begin
-     /WhitePoint [ 0.9505 1.0 1.089 ] def
-     /DecodeLMN  [ { 1.8 exp } { 1.8 exp } { 1.8 exp } ] def
-     /MatrixLMN  [ 0.4439 0.2522 0.0436 0.3341 0.6371 0.1387 0.1725 0.1107 0.9067 ] def
-  currentdict end
-]
-/ColorSpace defineresource pop
-
-/DefaultRGB
-[ /CIEBasedABC
-  3 dict begin
-     /WhitePoint [ 0.9505 1.0 1.089 ] def
-     /DecodeLMN  [ { 1.8 exp } { 1.8 exp } { 1.8 exp } ]  def
-     /MatrixLMN  [ 0.4439 0.2522 0.0436 0.3341 0.6371 0.1387 0.1725 0.1107 0.9067 ] def
-  currentdict end
-]
-/ColorSpace defineresource pop
-
-/DefaultCMYK
-[ /CIEBasedDEFG
-  4 dict begin
-     /WhitePoint [ 0.9505 1.0 1.089 ] def
-     /Table [ 2 2 2 2
-            % Trivial table :
-            % [
-            %   [ < FFFFFF 000000 FFFF00 000000>
-            %     < FF00FF 000000 FF0000 000000> ]
-            %   [ < 00FFFF 000000 00FF00 000000>
-            %     < 0000FF 000000 000000 000000> ]
-            % ]
-
-            % AcrobatReader-compatible table :
-              [
-                [ < FFFFFF 000000 FFFF00 000000>
-                  < EA007F 000000 FC000F 000000> ]
-
-                [ < 00A0C8 000000 008436 000000>
-                  < 00007C 000000 000000 000000> ]
-              ]
-            ] def
-     /DecodeLMN [ { 1.8 exp } { 1.8 exp } { 1.8 exp } ] def
-     /MatrixLMN [ 0.4439 0.2522 0.0436 0.3341 0.6371 0.1387 0.1725 0.1107 0.9067 ] def
-  currentdict end
-]
-/ColorSpace defineresource pop
-
-
 % ------ DeviceN color space ------ %
 
-% This isn't quite right, because the ColorSpaceFamily resource will exist
-% even with languagelevel < 3, but it's close enough.
+%% Replace 1 (gs_ciecs3.ps)
+(gs_ciecs3.ps) runlibfile
 
-/.setdevicenspace where {
-  pop colorspacedict /DeviceN {
-    dup 2 get setcolorspace dup
-    dup 1 get length		% # of components
-    .converttinttransform .setdevicenspace
-  } bind put
-} if
+%% Replace 1 (gs_devn.ps)
+(gs_devn.ps) runlibfile
 
 % ------ Miscellaneous ------ %
+
+% Make the setoverprintmode and currentoverprintmode operators visible (3015)
+% Because of the requirements of PDF, the .currentoverprintmode and
+% .setoverprintmode operators have integer parameters.  Thus wee need to
+% convert the Postscript bool parameters to integers.
+%
+/setoverprintmode 		% bool setoverprint -
+{
+  { 1 } { 0 } ifelse		% convert bool to integer
+  //.setoverprintmode
+} odef
+
+/currentoverprintmode 		% - currentoverprintmode bool
+{
+  //.currentoverprintmode
+  0 ne				% convert integers to bool
+} odef
 
 % Define additional user and system parameters.
 /HalftoneMode 0 .definepsuserparam

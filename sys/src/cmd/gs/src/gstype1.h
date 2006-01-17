@@ -1,22 +1,20 @@
-/* Copyright (C) 1990, 1995, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1990, 1995, 1996, 1997, 1999, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gstype1.h,v 1.2 2000/09/19 19:00:33 lpd Exp $ */
+/* $Id: gstype1.h,v 1.9 2003/10/21 01:43:28 igor Exp $ */
 /* Client interface to Adobe Type 1 font routines */
 
 #ifndef gstype1_INCLUDED
@@ -38,13 +36,13 @@ typedef struct gs_font_type1_s gs_font_type1;
 #ifndef gs_type1_data_s_DEFINED
 struct gs_type1_data_s;
 #endif
-int gs_type1_interp_init(P7(gs_type1_state * pcis, gs_imager_state * pis,
-			gx_path * ppath, const gs_log2_scale_point * pscale,
-			    bool charpath_flag, int paint_type,
-			    gs_font_type1 * pfont));
-void gs_type1_set_callback_data(P2(gs_type1_state *pcis, void *callback_data));
-void gs_type1_set_lsb(P2(gs_type1_state * pcis, const gs_point * psbpt));
-void gs_type1_set_width(P2(gs_type1_state * pcis, const gs_point * pwpt));
+int gs_type1_interp_init(gs_type1_state * pcis, gs_imager_state * pis,
+			 gx_path * ppath, const gs_log2_scale_point * pscale,
+			 const gs_log2_scale_point * psubpixels, bool no_grid_fitting, 
+			 int paint_type, gs_font_type1 * pfont);
+void gs_type1_set_callback_data(gs_type1_state *pcis, void *callback_data);
+void gs_type1_set_lsb(gs_type1_state * pcis, const gs_point * psbpt);
+void gs_type1_set_width(gs_type1_state * pcis, const gs_point * pwpt);
 
 /* Backward compatibility */
 #define gs_type1_init(pcis, penum, psbpt, charpath_flag, paint_type, pfont)\
@@ -63,11 +61,13 @@ void gs_type1_set_width(P2(gs_type1_state * pcis, const gs_point * pwpt));
 
 /* Define the generic procedure type for a CharString interpreter. */
 #define charstring_interpret_proc(proc)\
-  int proc(P3(gs_type1_state *, const gs_const_string *, int *))
+  int proc(gs_type1_state *, const gs_glyph_data_t *, int *)
 typedef charstring_interpret_proc((*charstring_interpret_proc_t));
 
 /* Define the Type 1 interpreter. */
 charstring_interpret_proc(gs_type1_interpret);
+/* Define the Type 2 interpreter. */
+charstring_interpret_proc(gs_type2_interpret);
 
 /* ------ CharString number representation ------ */
 

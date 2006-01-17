@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevm32.c,v 1.2 2000/09/19 19:00:13 lpd Exp $ */
+/* $Id: gdevm32.c,v 1.5 2003/05/24 17:19:58 dan Exp $ */
 /* 32-bit-per-pixel "memory" (stored bitmap) device */
 #include "memory_.h"
 #include "gx.h"
@@ -46,7 +44,7 @@ mem_full_device("image32", 24, 8, mem_open,
 
 /* Swap the bytes of a color if needed. */
 #define color_swap_bytes(color)\
-  (((color) >> 24) + (((color) >> 8) & 0xff00) +\
+  ((((color) >> 24) & 0xff) + (((color) >> 8) & 0xff00) +\
    (((color) & 0xff00) << 8) + ((color) << 24))
 #if arch_is_big_endian
 #  define arrange_bytes(color) (color)

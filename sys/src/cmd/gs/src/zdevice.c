@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zdevice.c,v 1.3.6.1 2002/01/25 06:33:09 rayjj Exp $ */
+/* $Id: zdevice.c,v 1.10 2004/09/15 19:41:01 ray Exp $ */
 /* Device-related operators */
 #include "string_.h"
 #include "ghost.h"
@@ -163,10 +161,12 @@ zgetbitsrect(i_ctx_t *i_ctx_p)
 	depth_option = depths[std_depth];
 	if (depth_option == 0)
 	    return_error(e_rangecheck);
-	options |= depth_option | gb_colors_for_device(dev);
+	options |= depth_option | GB_COLORS_NATIVE;
 	depth = (dev->color_info.num_components +
 		 (options & GB_ALPHA_NONE ? 0 : 1)) * std_depth;
     }
+    if (w == 0)
+	return_error(e_rangecheck);
     raster = (w * depth + 7) >> 3;
     check_write_type(*op, t_string);
     num_rows = r_size(op) / raster;
@@ -287,7 +287,7 @@ zmakewordimagedevice(i_ctx_t *i_ctx_p)
 	colors = op1->value.bytes;
 	colors_size = r_size(op1);
     }
-    if ((code = read_matrix(op - 4, &imat)) < 0)
+    if ((code = read_matrix(imemory, op - 4, &imat)) < 0)
 	return code;
     /* Everything OK, create device */
     code = gs_makewordimagedevice(&new_dev, &imat,

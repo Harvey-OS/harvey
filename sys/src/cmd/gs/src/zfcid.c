@@ -1,22 +1,20 @@
 /* Copyright (C) 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zfcid.c,v 1.11 2000/11/02 07:58:05 lpd Exp $ */
+/* $Id: zfcid.c,v 1.14 2003/06/09 13:58:21 alexcher Exp $ */
 /* CID-keyed font utilities */
 #include "ghost.h"
 #include "oper.h"
@@ -67,12 +65,8 @@ cid_font_data_param(os_ptr op, gs_font_cid_data *pdata, ref *pGlyphDirectory)
     if (r_has_type(pgdir, t_dictionary) || r_is_array(pgdir)) {
 	/* GlyphDirectory, GDBytes is optional. */
 	*pGlyphDirectory = *pgdir;
-	code = dict_int_param(op, "GDBytes", 1, MAX_GDBytes, 1,
+	code = dict_int_param(op, "GDBytes", 0, MAX_GDBytes, 0,
 			      &pdata->GDBytes);
-	if (code == 1) {
-	    pdata->GDBytes = 0;
-	    code = 0;
-	}
 	return code;
     } else {
 	return_error(e_typecheck);

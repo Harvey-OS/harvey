@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevxini.c,v 1.10 2000/12/15 10:18:47 ghostgum Exp $ */
+/* $Id: gdevxini.c,v 1.14 2004/05/26 04:10:58 dan Exp $ */
 /* X Windows driver initialization/finalization */
 #include "memory_.h"
 #include "x_.h"
@@ -28,7 +26,7 @@
 #include "gdevbbox.h"
 #include "gdevx.h"
 
-extern char *getenv(P1(const char *));
+extern char *getenv(const char *);
 
 extern const gx_device_bbox gs_bbox_device;
 extern const gx_device_X gs_x11_device;
@@ -50,7 +48,7 @@ private_st_x11fontmap();
 /* ---------------- Opening/initialization ---------------- */
 
 /* Forward references */
-private void gdev_x_setup_fontmap(P1(gx_device_X *));
+private void gdev_x_setup_fontmap(gx_device_X *);
 
 /* Catch the alloc error when there is not enough resources for the
  * backing pixmap.  Automatically shut off backing pixmap and let the
@@ -306,6 +304,9 @@ gdev_x_open(gx_device_X * xdev)
 	XCloseDisplay(xdev->dpy);
 	return code;
     }
+    /* Now that the color map is setup check if the device is separable. */
+    check_device_separable((gx_device *)xdev);
+
     gdev_x_setup_fontmap(xdev);
 
     if (!xdev->ghostview) {
@@ -608,11 +609,14 @@ x_set_buffer(gx_device_X * xdev)
 	COPY_PROC(text_begin);
 #undef COPY_PROC
 	if (xdev->is_buffered) {
+    	    check_device_separable((gx_device *)xdev);
 	    gx_device_forward_fill_in_procs((gx_device_forward *)xdev);
 	    xdev->box_procs = gdev_x_box_procs;
 	    xdev->box_proc_data = xdev;
-	} else
+	} else {
+    	    check_device_separable((gx_device *)xdev);
 	    gx_device_fill_in_procs((gx_device *)xdev);
+	}
     }
     return 0;
 }

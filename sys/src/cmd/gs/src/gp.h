@@ -1,22 +1,20 @@
-/* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1991-2004 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gp.h,v 1.8.2.1 2002/01/25 06:33:09 rayjj Exp $ */
+/* $Id: gp.h,v 1.27 2004/01/15 09:27:10 giles Exp $ */
 /* Interface to platform-specific routines */
 /* Requires gsmemory.h */
 
@@ -49,19 +47,19 @@
  * do things like open display connections: that is the responsibility
  * of the display device driver.
  */
-void gp_init(P0());
+void gp_init(void);
 
 /*
  * This routine is called just before the program exits (normally or
  * abnormally).  It too should do as little as possible.
  */
-void gp_exit(P2(int exit_status, int code));
+void gp_exit(int exit_status, int code);
 
 /*
  * Exit the program.  Normally this just calls the `exit' library procedure,
  * but it does something different on a few platforms.
  */
-void gp_do_exit(P1(int exit_status));
+void gp_do_exit(int exit_status);
 
 /* ------ Miscellaneous ------ */
 
@@ -70,7 +68,7 @@ void gp_do_exit(P1(int exit_status));
  * If no string is available, return NULL.  The caller may assume
  * the string is allocated statically and permanently.
  */
-const char *gp_strerror(P1(int));
+const char *gp_strerror(int);
 
 /* ------ Date and time ------ */
 
@@ -78,13 +76,13 @@ const char *gp_strerror(P1(int));
  * Read the current time (in seconds since an implementation-defined epoch)
  * into ptm[0], and fraction (in nanoseconds) into ptm[1].
  */
-void gp_get_realtime(P1(long ptm[2]));
+void gp_get_realtime(long ptm[2]);
 
 /*
  * Read the current user CPU time (in seconds) into ptm[0],
  * and fraction (in nanoseconds) into ptm[1].
  */
-void gp_get_usertime(P1(long ptm[2]));
+void gp_get_usertime(long ptm[2]);
 
 /* ------ Reading lines from stdin ------ */
 
@@ -99,20 +97,20 @@ void gp_get_usertime(P1(long ptm[2]));
  * initialization.  *preadline_data is an opaque pointer that is passed
  * back to gp_readline and gp_readline_finit.
  */
-int gp_readline_init(P2(void **preadline_data, gs_memory_t *mem));
+int gp_readline_init(void **preadline_data, gs_memory_t *mem);
 
 /*
  * See srdline.h for the definition of sreadline_proc.
  */
-int gp_readline(P9(stream *s_in, stream *s_out, void *readline_data,
-		   gs_const_string *prompt, gs_string *buf,
-		   gs_memory_t *bufmem, uint *pcount, bool *pin_eol,
-		   bool (*is_stdin)(P1(const stream *))));
+int gp_readline(stream *s_in, stream *s_out, void *readline_data,
+		gs_const_string *prompt, gs_string *buf,
+		gs_memory_t *bufmem, uint *pcount, bool *pin_eol,
+		bool (*is_stdin)(const stream *));
 
 /*
  * Free a readline state.
  */
-void gp_readline_finit(P1(void *readline_data));
+void gp_readline_finit(void *readline_data);
 
 /* ------ Reading from stdin, unbuffered if possible ------ */
 
@@ -124,7 +122,7 @@ void gp_readline_finit(P1(void *readline_data));
  * If unbuffered is possible, fetch at least 1 byte (unless error or EOF) 
  * and any additional bytes that are available without blocking.
  */
-int gp_stdin_read(P4(char *buf, int len, int interactive, FILE *f));
+int gp_stdin_read(char *buf, int len, int interactive, FILE *f);
 
 /* ------ Screen management ------ */
 
@@ -133,7 +131,7 @@ int gp_stdin_read(P4(char *buf, int len, int interactive, FILE *f));
  */
 
 /* Get the environment variable that specifies the display to use. */
-const char *gp_getenv_display(P0());
+const char *gp_getenv_display(void);
 
 /* ------ File naming and accessing ------ */
 
@@ -168,32 +166,156 @@ extern const char gp_fmode_binary_suffix[];
 extern const char gp_fmode_rb[];
 extern const char gp_fmode_wb[];
 
-/* Create and open a scratch file with a given name prefix. */
-/* Write the actual file name at fname. */
-FILE *gp_open_scratch_file(P3(const char *prefix,
-			      char fname[gp_file_name_sizeof],
-			      const char *mode));
+/**
+ * gp_open_scratch_file: Create a scratch file.
+ * @prefix: Name prefix.
+ * @fname: Where to store filename of newly created file.
+ * @mode: File access mode (in fopen syntax).
+ *
+ * Creates a scratch (temporary) file in the filesystem. The exact
+ * location and name of the file is platform dependent, but in general
+ * uses @prefix as a prefix. If @prefix is not absolute, then choose
+ * an appropriate system directory, usually as determined from
+ * gp_gettmpdir(), followed by a path as returned from a system call.
+ *
+ * Implementations should make sure that 
+ *
+ * Return value: Opened file object, or NULL on error.
+ **/
+FILE *gp_open_scratch_file(const char *prefix,
+			   char fname[gp_file_name_sizeof],
+			   const char *mode);
 
 /* Open a file with the given name, as a stream of uninterpreted bytes. */
-FILE *gp_fopen(P2(const char *fname, const char *mode));
+FILE *gp_fopen(const char *fname, const char *mode);
 
 /* Force given file into binary mode (no eol translations, etc) */
 /* if 2nd param true, text mode if 2nd param false */
-int gp_setmode_binary(P2(FILE * pfile, bool mode));
+int gp_setmode_binary(FILE * pfile, bool mode);
 
-/* Answer whether a file name contains a directory/device specification, */
-/* i.e. is absolute (not directory- or device-relative). */
-bool gp_file_name_is_absolute(P2(const char *fname, uint len));
+typedef enum {
+    gp_combine_small_buffer = -1,
+    gp_combine_cant_handle = 0,
+    gp_combine_success = 1
+} gp_file_name_combine_result;
 
-/* Answer whether a file name contains a parent directory reference, */
-/* e.g., "../somefile". Currently used for security purposes. */
-bool gp_file_name_references_parent(P2(const char *fname, uint len));
+/*
+ * Combine a file name with a prefix.
+ * Concatenates two paths and reduce parten references and current 
+ * directory references from the concatenation when possible.
+ * The trailing zero byte is being added.
+ * Various platforms may share this code.
+ */
+gp_file_name_combine_result gp_file_name_combine(const char *prefix, uint plen, 
+	    const char *fname, uint flen, bool no_sibling, char *buffer, uint *blen);
 
-/* Answer the string to be used for combining a directory/device prefix */
-/* with a base file name. The prefix directory/device is examined to	*/
-/* determine if a separator is needed and may return an empty string	*/
-/* in some cases (platform dependent).					*/
-const char *gp_file_name_concat_string(P2(const char *prefix, uint plen));
+/* -------------- Helpers for gp_file_name_combine_generic ------------- */
+/* Platforms, which do not call gp_file_name_combine_generic, */
+/* must stub the helpers against linkage problems. */
+
+/* Return length of root prefix of the file name, or zero. */
+/*	unix:   length("/")	    */
+/*	Win:    length("c:/") or length("//computername/cd:/")  */
+/*	mac:	length("volume:")    */
+/*	VMS:	length("device:[root.]["	    */
+uint gp_file_name_root(const char *fname, uint len);
+
+/* Check whether a part of file name starts (ends) with a separator. */
+/* Must return the length of the separator.*/
+/* If the 'len' is negative, must search in backward direction. */
+/*	unix:   '/'	    */
+/*	Win:    '/' or '\'  */
+/*	mac:	':' except "::"	    */
+/*	VMS:	smart - see the implementation   */
+uint gs_file_name_check_separator(const char *fname, int len, const char *item);
+
+/* Check whether a part of file name is a parent reference. */
+/*	unix, Win:  equal to ".."	*/
+/*	mac:	equal to ":"		*/
+/*	VMS:	equal to "."		*/
+bool gp_file_name_is_parent(const char *fname, uint len);
+
+/* Check if a part of file name is a current directory reference. */
+/*	unix, Win:  equal to "."	*/
+/*	mac:	equal to ""		*/
+/*	VMS:	equal to ""		*/
+bool gp_file_name_is_current(const char *fname, uint len);
+
+/* Returns a string for referencing the current directory. */
+/*	unix, Win:  "."	    */
+/*	mac:	":"	    */
+/*	VMS:	""          */
+const char *gp_file_name_current(void);
+
+/* Returns a string for separating a file name item. */
+/*	unix, Win:  "/"	    */
+/*	mac:	":"	    */
+/*	VMS:	"]"	    */
+const char *gp_file_name_separator(void);
+
+/* Returns a string for separating a directory item. */
+/*	unix, Win:  "/"	    */
+/*	mac:	":"	    */
+/*	VMS:	"."	    */
+const char *gp_file_name_directory_separator(void);
+
+/* Returns a string for representing a parent directory reference. */
+/*	unix, Win:  ".."    */
+/*	mac:	":"	    */
+/*	VMS:	"."	    */
+const char *gp_file_name_parent(void);
+
+/* Answer whether the platform allows parent refenences. */
+/*	unix, Win, Mac: yes */
+/*	VMS:	no.         */
+bool gp_file_name_is_partent_allowed(void);
+
+/* Answer whether an empty item is meanful in file names on the platform. */
+/*	unix, Win:  no	    */
+/*	mac:	yes	    */
+/*	VMS:	yes         */
+bool gp_file_name_is_empty_item_meanful(void);
+
+/* Read a 'resource' stored in a special database indexed by a 32 bit  */
+/* 'type' and 16 bit 'id' in an extended attribute of a file. The is   */
+/* primarily for accessing fonts on MacOS, which classically used this */
+/* format. Presumedly a 'nop' on systems that don't support Apple HFS. */
+int gp_read_macresource(byte *buf, const char *fname, 
+                                     const uint type, const ushort id);
+
+
+/* ------ persistent cache interface ------ */
+
+/*
+ * This is used for access to data cached between invocations of 
+ * Ghostscript. It is generally used for saving reusable data that
+ * is expensive to compute. Concurrent access by multiple instances
+ * is safe. Because of this care should be taken to use a new data
+ * type when the format of the cached data changes.
+ *
+ * Generic data buffers are stored under a combination of type and
+ * key. It is up the to client to interpret the data buffer appropriately.
+ * An insert overwrites any previous entry under that type and key.
+ * A query if successful uses the passed callback to allocate a buffer
+ * and fills it with the retrieved data. The caller is thus responsible
+ * for the buffer's memory management.
+ * 
+ * See zmisc.c for postscript test operators and an example implementation.
+ */
+
+/* return 0 on successful insert, non-zero otherwise */
+int gp_cache_insert(int type, byte *key, int keylen, void *buffer, int buflen);
+
+/* return the length of the buffer on success, a negative value otherwise */
+typedef void *(*gp_cache_alloc)(void *userdata, int bytes);
+int gp_cache_query(int type, byte* key, int keylen, void **buffer,
+    gp_cache_alloc alloc, void *userdata);
+
+/* cache data types */
+#define GP_CACHE_TYPE_TEST 0
+#define GP_CACHE_TYPE_FONTMAP 1
+#define GP_CACHE_TYPE_WTS 2
+
 
 /* ------ Printer accessing ------ */
 
@@ -211,7 +333,7 @@ const char *gp_file_name_concat_string(P2(const char *prefix, uint plen));
  * for spooling.  If the file name is null and no default printer is
  * available, this procedure returns 0.
  */
-FILE *gp_open_printer(P2(char fname[gp_file_name_sizeof], int binary_mode));
+FILE *gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode);
 
 /*
  * Close the connection to the printer.  Note that this is only called
@@ -220,7 +342,7 @@ FILE *gp_open_printer(P2(char fname[gp_file_name_sizeof], int binary_mode));
  * values of filedevice are handled by calling the fclose procedure
  * associated with that kind of "file".
  */
-void gp_close_printer(P2(FILE * pfile, const char *fname));
+void gp_close_printer(FILE * pfile, const char *fname);
 
 /* ------ File enumeration ------ */
 
@@ -240,8 +362,8 @@ typedef struct file_enum_s file_enum;
  * string of ?s should be interpreted as *.  Note that \ can appear in
  * the pattern also, as a quoting character.
  */
-file_enum *gp_enumerate_files_init(P3(const char *pat, uint patlen,
-				      gs_memory_t * memory));
+file_enum *gp_enumerate_files_init(const char *pat, uint patlen,
+				   gs_memory_t * memory);
 
 /*
  * Return the next file name in the enumeration.  The client passes in
@@ -250,7 +372,7 @@ file_enum *gp_enumerate_files_init(P3(const char *pat, uint patlen,
  * returns max length +1.  If there are no more files, the procedure
  * returns -1.
  */
-uint gp_enumerate_files_next(P3(file_enum * pfen, char *ptr, uint maxlen));
+uint gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen);
 
 /*
  * Clean up a file enumeration.  This is only called to abandon
@@ -258,6 +380,30 @@ uint gp_enumerate_files_next(P3(file_enum * pfen, char *ptr, uint maxlen));
  * no more files to enumerate.  This should deallocate the file_enum
  * structure and any subsidiary structures, strings, buffers, etc.
  */
-void gp_enumerate_files_close(P1(file_enum * pfen));
+void gp_enumerate_files_close(file_enum * pfen);
+
+
+/* ------ Font enumeration ------ */
+
+/* This is used to query the native os for a list of font names and 
+ * corresponding paths. The general idea is to save the hassle of 
+ * building a custom fontmap file
+ */
+
+/* allocate and initialize the iterator
+   returns a pointer to its local state or NULL on failure */
+void *gp_enumerate_fonts_init(gs_memory_t *mem);
+
+/* get the next element in the font enumeration
+   Takes a pointer to its local state and pointers in which to
+   return C strings. The string 'name' is the font name, 'path'
+   is the access path for the font resource. The returned strings
+   are only safe to reference until until the next call.
+   Returns 0 when no more fonts are available, a positive value 
+   on success, or negative value on error. */
+int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path);
+
+/* clean up and deallocate the iterator */
+void gp_enumerate_fonts_free(void *enum_state);
 
 #endif /* gp_INCLUDED */

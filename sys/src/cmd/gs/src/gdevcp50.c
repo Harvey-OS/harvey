@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 1994, 1996, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevcp50.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
+/* $Id: gdevcp50.c,v 1.7 2005/01/19 00:24:07 dan Exp $*/
 /* Mitsubishi CP50 color printer driver */
 #include "gdevprn.h"
 #define ppdev ((gx_device_printer *)pdev)
@@ -72,11 +70,11 @@ private int
 cp50_print_page(gx_device_printer *pdev, FILE *prn_stream)
 {	
 	int line_size = gdev_mem_bytes_per_scan_line((gx_device *)pdev);
-	byte *out = (byte *)gs_malloc(line_size, 1, "cp50_print_page(out)");
-    byte *r_plane = (byte *)gs_malloc(X_PIXEL*Y_PIXEL, 1, "cp50_print_page(r_plane)");
-    byte *g_plane = (byte *)gs_malloc(X_PIXEL*Y_PIXEL, 1, "cp50_print_page(g_plane)");
-    byte *b_plane = (byte *)gs_malloc(X_PIXEL*Y_PIXEL, 1, "cp50_print_page(b_plane)");
-    byte *t_plane = (byte *)gs_malloc(X_PIXEL*Y_PIXEL, 1, "cp50_print_page(t_plane)");
+	byte *out = (byte *)gs_malloc(pdev->memory, line_size, 1, "cp50_print_page(out)");
+    byte *r_plane = (byte *)gs_malloc(pdev->memory, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(r_plane)");
+    byte *g_plane = (byte *)gs_malloc(pdev->memory, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(g_plane)");
+    byte *b_plane = (byte *)gs_malloc(pdev->memory, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(b_plane)");
+    byte *t_plane = (byte *)gs_malloc(pdev->memory, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(t_plane)");
 	int lnum = FIRST_LINE;
 	int last = LAST_LINE;
     int lines = X_PIXEL;
@@ -91,19 +89,19 @@ cp50_print_page(gx_device_printer *pdev, FILE *prn_stream)
 	if ( out == 0 || r_plane == 0 || g_plane == 0 || b_plane == 0 || 
          t_plane == 0)
 	{	if ( out )
-			gs_free((char *)out, line_size, 1,
+			gs_free(pdev->memory, (char *)out, line_size, 1,
 				"cp50_print_page(out)");
         if (r_plane)
-            gs_free((char *)r_plane, X_PIXEL*Y_PIXEL, 1,
+            gs_free(pdev->memory, (char *)r_plane, X_PIXEL*Y_PIXEL, 1,
                 "cp50_print_page(r_plane)");
         if (g_plane)  
-            gs_free((char *)g_plane, X_PIXEL*Y_PIXEL, 1, 
+            gs_free(pdev->memory, (char *)g_plane, X_PIXEL*Y_PIXEL, 1, 
                 "cp50_print_page(g_plane)");
         if (b_plane)  
-            gs_free((char *)b_plane, X_PIXEL*Y_PIXEL, 1, 
+            gs_free(pdev->memory, (char *)b_plane, X_PIXEL*Y_PIXEL, 1, 
                 "cp50_print_page(b_plane)");
         if (t_plane)
-            gs_free((char *)t_plane, X_PIXEL*Y_PIXEL, 1, 
+            gs_free(pdev->memory, (char *)t_plane, X_PIXEL*Y_PIXEL, 1, 
                 "cp50_print_page(t_plane)");
 		return -1;
 	}
@@ -166,11 +164,11 @@ cp50_print_page(gx_device_printer *pdev, FILE *prn_stream)
     fwrite(t_plane, sizeof(char), X_PIXEL*Y_PIXEL, prn_stream);
 
 
-	gs_free((char *)out, line_size, 1, "cp50_print_page(out)");
-    gs_free((char *)r_plane, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(r_plane)");
-    gs_free((char *)g_plane, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(g_plane)");
-    gs_free((char *)b_plane, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(b_plane)");
-    gs_free((char *)t_plane, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(t_plane)");
+	gs_free(pdev->memory, (char *)out, line_size, 1, "cp50_print_page(out)");
+    gs_free(pdev->memory, (char *)r_plane, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(r_plane)");
+    gs_free(pdev->memory, (char *)g_plane, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(g_plane)");
+    gs_free(pdev->memory, (char *)b_plane, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(b_plane)");
+    gs_free(pdev->memory, (char *)t_plane, X_PIXEL*Y_PIXEL, 1, "cp50_print_page(t_plane)");
 
 	return 0;
 }
@@ -206,11 +204,14 @@ cp50_output_page(gx_device *pdev, int num_copies, int flush)
  
 /* Map a r-g-b color to a color index. */
 private gx_color_index
-cp50_rgb_color(gx_device *dev, gx_color_value r, gx_color_value g,
-  gx_color_value b)
-{   return ((ulong)gx_color_value_to_byte(r) << 16)+
-           ((uint)gx_color_value_to_byte(g) << 8) +
-           gx_color_value_to_byte(b);
+cp50_rgb_color(gx_device *dev, const gx_color_value cv[])
+{   
+    gx_color_value red, green, blue;
+
+    red = cv[0]; green = cv[1]; blue = cv[2];
+    return ((ulong)gx_color_value_to_byte(red) << 16)+
+           ((uint)gx_color_value_to_byte(green) << 8) +
+           gx_color_value_to_byte(blue);
 }
  
 /* Map a color index to a r-g-b color. */

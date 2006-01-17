@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: ztoken.c,v 1.6 2000/09/19 19:00:55 lpd Exp $ */
+/* $Id: ztoken.c,v 1.14 2004/08/04 19:36:13 stefan Exp $ */
 /* Token reading operators */
 #include "string_.h"
 #include "ghost.h"
@@ -37,8 +35,8 @@
 /* <file> token <obj> -true- */
 /* <string> token <post> <obj> -true- */
 /* <string|file> token -false- */
-private int ztoken_continue(P1(i_ctx_t *));
-private int token_continue(P4(i_ctx_t *, stream *, scanner_state *, bool));
+private int ztoken_continue(i_ctx_t *);
+private int token_continue(i_ctx_t *, stream *, scanner_state *, bool);
 int
 ztoken(i_ctx_t *i_ctx_p)
 {
@@ -58,6 +56,7 @@ ztoken(i_ctx_t *i_ctx_p)
 	}
 	case t_string: {
 	    ref token;
+	    int orig_ostack_depth = ref_stack_count(&o_stack);
 	    int code = scan_string_token(i_ctx_p, op, &token);
 
 	    switch (code) {
@@ -65,8 +64,12 @@ ztoken(i_ctx_t *i_ctx_p)
 		make_false(op);
 		return 0;
 	    default:
-		if (code < 0)
+		if (code < 0) {
+		    /* Clear anything that may have been left on the ostack */
+	    	    if (orig_ostack_depth < ref_stack_count(&o_stack))
+	    		pop(ref_stack_count(&o_stack)- orig_ostack_depth);
 		    return code;
+		}
 	    }
 	    push(2);
 	    op[-1] = token;
@@ -151,8 +154,8 @@ again:
 /* Read a token and do what the interpreter would do with it. */
 /* This is different from token + exec because literal procedures */
 /* are not executed (although binary object sequences ARE executed). */
-int ztokenexec_continue(P1(i_ctx_t *));	/* export for interpreter */
-private int tokenexec_continue(P4(i_ctx_t *, stream *, scanner_state *, bool));
+int ztokenexec_continue(i_ctx_t *);	/* export for interpreter */
+private int tokenexec_continue(i_ctx_t *, stream *, scanner_state *, bool);
 int
 ztokenexec(i_ctx_t *i_ctx_p)
 {
@@ -279,7 +282,7 @@ ztoken_handle_comment(i_ctx_t *i_ctx_p, const ref *fop, scanner_state *sstate,
 	    return code;
     }
     check_estack(4);
-    code = name_enter_string(proc_name, esp + 4);
+    code = name_enter_string(imemory, proc_name, esp + 4);
     if (code < 0)
 	return code;
     if (save) {
@@ -340,9 +343,11 @@ ztoken_scanner_options(const ref *upref, int old_options)
 	const char *pname;
 	int option;
     } named_scanner_option_t;
-    static const named_scanner_option_t named_options[2] = {
+    static const named_scanner_option_t named_options[4] = {
 	{"ProcessComment", SCAN_PROCESS_COMMENTS},
-	{"ProcessDSCComment", SCAN_PROCESS_DSC_COMMENTS}
+	{"ProcessDSCComment", SCAN_PROCESS_DSC_COMMENTS},
+	{"PDFScanRules", SCAN_PDF_RULES},
+	{"PDFScanInvNum", SCAN_PDF_INV_NUM}
     };
     int options = old_options;
     int i;

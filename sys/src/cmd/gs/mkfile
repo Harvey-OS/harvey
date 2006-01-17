@@ -1,6 +1,6 @@
 #
 # This Plan 9 mkfile is for ``easy'' building.
-# It worked for Ghostscript 5.70 - 5.91
+# It worked for Ghostscript 8.53.
 #
 # This mkfile consists of two parts: the first part builds the gs executable,
 # the second unpacks the gs distribution and sets configuration parameters.
@@ -12,9 +12,9 @@
 # Then you can run mk normally.
 #
 # Be sure to have the jpeg, libpng, and zlib subdirectories before starting.
-# Note that the jpeg source directory has been renamed to jpeg rather
-# than jpeg-6a, in deference to the extraordinarily stubborn makefiles.
-#
+# These have been included in recent gs tar files so we do not maintain
+# our own anymore.
+# 
 # Each time you change the drivers list you must rerun mk fake-make
 # before building.
 #
@@ -24,6 +24,43 @@
 # scripts to remove some local dependencies (e.g. calling outside and the
 # cpu call to thresher, alpha to make mips.h, alpha.h).
 #
+# If you get weird floating point errors, the culprit is usually the
+# halftone code, which converts double to uint, something 8c handles
+# incorrectly (treats as double to int).  Look in src/gshtscr.c for a line like
+# 
+# 	sample = (ht_sample_t)((value+1) * max_ht_sample);
+# 
+# and change it to one of:
+#
+# 	sample = (int)(vlong)((value+1) * max_ht_sample);
+#	sample = (ht_sample_t)(value * max_ht_sample) + max_ht_sample;
+#
+# depending on your preference.
+#
+# Also, recent versions of src/gxshade1.c cause the compiler to run out
+# of registers.  Brucee is looking into this.  In the meantime, use this
+# replacement:
+#
+#	private inline void
+#	make_other_poles(patch_curve_t curve[4])
+#	{
+#	    int i, j;
+#	
+#	    for (i = 0; i < 4; i++) {
+#		j = (i + 1) % 4;
+#		curve[i].control[0].x = (curve[i].vertex.p.x * 2 + curve[j].vertex.p.x);
+#		curve[i].control[0].x /= 3;
+#		curve[i].control[0].y = (curve[i].vertex.p.y * 2 + curve[j].vertex.p.y);
+#		curve[i].control[0].y /= 3;
+#		curve[i].control[1].x = (curve[i].vertex.p.x + curve[j].vertex.p.x * 2);
+#		curve[i].control[1].y /= 3;
+#		curve[i].control[1].y = (curve[i].vertex.p.y + curve[j].vertex.p.y * 2);
+#		curve[i].control[1].y /= 3;
+#		curve[i].straight = true;
+#	    }
+#	}
+#	
+# (the original includes the /3 in the big expressions).
 
 </$objtype/mkfile
 CPUS=386 mips alpha arm power
@@ -132,7 +169,7 @@ $O.genarch:U:	src/genarch.c
 	if(~ $objtype $cputype) {
 		rfork e
 		objtype=$cputype
-		pcc -B -o $O.genarch src/genarch.c
+		pcc -DHAVE_LONG_LONG -B -o $O.genarch src/genarch.c
 	}
 	if not
 		status=''
@@ -152,6 +189,7 @@ fake-make:V: src/plan9.mak src/plan9-aux.mak fakecc
 	cp obj/*.c obj/*.h obj/ld.tr src
 	rm -f src/arch.h
 	rm -f obj/*.o
+	rm -f obj/*.c
 	rm -f fakecc
 
 real-make:V: src/plan9.mak src/plan9-aux.mak
@@ -185,34 +223,38 @@ try-%:V:	gs%/$O.out
 
 gs([0-9]+\.[0-9]+)/$O.out:R:	gs\1/src
 	@{ cd gs$stem1
-	for(i in jpeg zlib libpng)
-		bind -c ../$i $i
+	# for(i in jpeg zlib libpng)
+	# 	bind -c ../$i $i
 	if(! test -f src/ld.tr)
 		mk fake-make
 	cp ../arch.h .
+	rm -f obj/*.c
 	mk $O.out
-	for(i in jpeg zlib libpng)
-		unmount $i || status=''
+	# for(i in jpeg zlib libpng)
+	# 	unmount $i || status=''
 	}
 
 gs%/src:	ghostscript-%.tar.gz
 	rm -rf gs$stem
 	gunzip < ghostscript-$stem.tar.gz | tar x
+	mv ghostscript-$stem gs$stem
 	chmod g+w gs$stem/* gs$stem/*/*
 	# local drivers
 	cp src/gdevifno.c src/gdevplan9.c src/gdevcd8.c gs$stem/src
 	# local conventions
 	ed gs$stem/lib/gs_init.ps <fixSAFER.ed
-	mkdir gs$stem/^(jpeg obj zlib libpng)
+	mkdir -p gs$stem/^(jpeg obj zlib libpng)
+	# rm -rf gs$stem/^(jpeg obj zlib libpng)^/*
 	echo '<../mkfile' >gs$stem/mkfile
 	cp default.*.h gs$stem
 	@{cd gs$stem; mk startover}
 
 ghostscript-%.tar.gz:
-	outside
-	hget -o $target http://download.sourceforge.net/ghostscript/$target
-#	ftpfs -a $user^'@' ftp.cs.wisc.edu
-#	cp /n/ftp/ghost/aladdin/*/ghostscript-$stem.tar.gz .
+	#outside
+	#hget -o $target http://download.sourceforge.net/ghostscript/$target
+	hget -o $target ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/gs^`{echo $stem | sed 's/\.//'}^/$target
+	#ftpfs -a $user^'@' ftp.cs.wisc.edu
+	#cp /n/ftp/ghost/aladdin/*/ghostscript-$stem.tar.gz .
 
 startover:V:
 	rm -rf obj/*
@@ -237,9 +279,10 @@ installsrc-%:V:	gs%/$O.out
 	# don't accidentally do this from gsX.XX
 	if(! ~ $pwd */gs)
 		echo 'i don''t think you meant to do that' && exit oops
+	tocopy=(doc examples icclib lib man obj src zlib jpeg libpng)
 	if(! cmp src/version.mak gs$stem/src/version.mak) {
-		rm -rf doc examples icclib lib man obj src
-		@{cd gs$stem; tar c doc examples icclib lib man src} | tar xT
+		rm -rf $tocopy
+		@{cd gs$stem; tar c $tocopy} | tar xT
 		mk clean
 	}
 	status=''

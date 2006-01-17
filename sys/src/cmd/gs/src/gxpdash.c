@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxpdash.c,v 1.2 2000/09/19 19:00:40 lpd Exp $ */
+/* $Id: gxpdash.c,v 1.6 2004/10/18 15:23:20 igor Exp $ */
 /* Dash expansion for paths */
 #include "math_.h"
 #include "gx.h"
@@ -29,9 +27,9 @@
 
 /* Expand a dashed path into explicit segments. */
 /* The path contains no curves. */
-private int subpath_expand_dashes(P4(const subpath *, gx_path *,
-				     const gs_imager_state *,
-				     const gx_dash_params *));
+private int subpath_expand_dashes(const subpath *, gx_path *,
+				  const gs_imager_state *,
+				  const gx_dash_params *);
 int
 gx_path_add_dash_expansion(const gx_path * ppath_old, gx_path * ppath,
 			   const gs_imager_state * pis)
@@ -86,10 +84,17 @@ subpath_expand_dashes(const subpath * psub, gx_path * ppath,
 	double scale = 1;
 	double left;
 
-	if (!(udx | udy))	/* degenerate */
+	if (!(udx | udy)) {	/* degenerate */
+	    if (gs_currentlinecap((const gs_state *)pis) != gs_cap_round) {
+		/* From PLRM, stroke operator :
+		   If a subpath is degenerate (consists of a single-point closed path 
+		   or of two or more points at the same coordinates), 
+		   stroke paints it only if round line caps have been specified */
+		continue;
+	    }
 	    dx = 0, dy = 0, length = 0;
-	else {
-	    gs_point d;
+	} else {
+  	    gs_point d;
 
 	    dx = udx, dy = udy;	/* scaled as fixed */
 	    gs_imager_idtransform(pis, dx, dy, &d);

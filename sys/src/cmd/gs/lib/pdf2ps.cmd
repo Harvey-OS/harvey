@@ -1,4 +1,4 @@
-/* $Id: pdf2ps.cmd,v 1.2 2001/02/03 18:31:12 alexcher Exp $ */
+/* $Id: pdf2ps.cmd,v 1.4 2002/02/21 21:49:28 giles Exp $ */
 /*
  * This file is maintained by a user: if you have any questions about it,
  * please contact Mark Hale (mark.hale@physics.org).

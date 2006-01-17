@@ -1,21 +1,19 @@
-#    Copyright (C) 1997, 2000 Aladdin Enterprises. All rights reserved.
+#    Copyright (C) 1997-2002 artofcode LLC. All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: openvms.mak,v 1.16.2.2 2002/02/01 03:30:13 raph Exp $
+# $Id: openvms.mak,v 1.41 2005/08/31 05:52:32 ray Exp $
 # makefile for OpenVMS VAX and Alpha
 #
 # Please contact Jim Dunham (dunham@omtool.com) if you have questions.
@@ -69,8 +67,7 @@ GS_DOCDIR=GS_DOC
 # Define the default directory/ies for the runtime
 # initialization and font files.  Separate multiple directories with ,.
 
-GS_LIB_DEFAULT=GS_LIB
-#GS_LIB_DEFAULT=SYS$COMMON:[GS],SYS$COMMON:[GS.FONT]
+GS_LIB_DEFAULT=GS_ROOT:[LIB],GS_ROOT:[RESOURCE],GS_ROOT:[FONT]
 
 # Define whether or not searching for initialization files should always
 # look in the current directory first.  This leads to well-known security
@@ -129,28 +126,23 @@ JVERSION=6
 # You may need to change this if the libpng version changes.
 # See libpng.mak for more information.
 
-PSRCDIR=[.libpng-1_2_01]
-PVERSION=10201
+PSRCDIR=[.libpng-1_2_8]
+PVERSION=10208
 
 # Define the directory where the zlib sources are stored.
 # See zlib.mak for more information.
 
-ZSRCDIR=[.zlib-1_1_3]
+ZSRCDIR=[.zlib-1_2_1]
+
+# Define the jbig2dec library source location.
+# See jbig2.mak for more information.
+
+JBIG2SRCDIR=[.jbig2dec-0_7]
 
 # Define the directory where the icclib source are stored.
 # See icclib.mak for more information
 
 ICCSRCDIR=[.icclib]
-
-# IJS has not been ported to OpenVMS. If you do the port,
-# you'll need to set these values.
-#
-# Define the directory where the ijs source is stored,
-# and the process forking method to use for the server.
-# See ijs.mak for more information.
- 
-#IJSSRCDIR=[.ijs]
-#IJSEXECTYPE=unix
 
 # IJS has not been ported to OpenVMS. If you do the port,
 # you'll need to set these values. You'll also need to
@@ -159,7 +151,7 @@ ICCSRCDIR=[.icclib]
 # Define the directory where the ijs source is stored,
 # and the process forking method to use for the server.
 # See ijs.mak for more information.
- 
+
 #IJSSRCDIR=[.ijs]
 #IJSEXECTYPE=unix
 
@@ -168,6 +160,7 @@ ICCSRCDIR=[.icclib]
 SHARE_JPEG=0
 SHARE_LIBPNG=0
 SHARE_ZLIB=0
+SHARE_JBIG2=0
 
 # Define the path to X11 include files
 
@@ -183,7 +176,12 @@ COMP=CC
 ifdef DEBUG
 COMP:=$(COMP)/DEBUG/NOOPTIMIZE
 else
-COMP:=$(COMP)/NODEBUG/OPTIMIZE
+# This should include /OPTIMIZE, but some OpenVMS compilers have an
+# optimizer bug that causes them to generate incorrect code for gdevpsfx.c,
+# so we must disable optimization.  (Eventually we will check for the bug
+# in genarch and enable optimization if it is safe.)
+#COMP:=$(COMP)/NODEBUG/OPTIMIZE
+COMP:=$(COMP)/NODEBUG/NOOPTIMIZE
 endif
 
 COMP:=$(COMP)/DECC/PREFIX=ALL/NESTED_INCLUDE=PRIMARY/NAMES=SHORTENED
@@ -231,21 +229,22 @@ DEVICE_DEVS7=$(DD)faxg3.dev $(DD)faxg32d.dev $(DD)faxg4.dev
 DEVICE_DEVS8=$(DD)pcxmono.dev $(DD)pcxgray.dev $(DD)pcx16.dev $(DD)pcx256.dev $(DD)pcx24b.dev $(DD)pcxcmyk.dev
 DEVICE_DEVS9=$(DD)pbm.dev $(DD)pbmraw.dev $(DD)pgm.dev $(DD)pgmraw.dev $(DD)pgnm.dev $(DD)pgnmraw.dev
 DEVICE_DEVS10=$(DD)tiffcrle.dev $(DD)tiffg3.dev $(DD)tiffg32d.dev $(DD)tiffg4.dev $(DD)tifflzw.dev $(DD)tiffpack.dev
-DEVICE_DEVS11=$(DD)tiff12nc.dev $(DD)tiff24nc.dev
+DEVICE_DEVS11=$(DD)tiff12nc.dev $(DD)tiff24nc.dev $(DD)tiffgray.dev $(DD)tiff32nc.dev $(DD)tiffsep.dev
 DEVICE_DEVS12=$(DD)psmono.dev $(DD)psgray.dev $(DD)psrgb.dev $(DD)bit.dev $(DD)bitrgb.dev $(DD)bitcmyk.dev
-DEVICE_DEVS13=$(DD)pngmono.dev $(DD)pnggray.dev $(DD)png16.dev $(DD)png256.dev $(DD)png16m.dev
-DEVICE_DEVS14=$(DD)jpeg.dev $(DD)jpeggray.dev
-DEVICE_DEVS15=$(DD)pdfwrite.dev $(DD)pswrite.dev $(DD)epswrite.dev $(DD)pxlmono.dev $(DD)pxlcolor.dev
+DEVICE_DEVS13=$(DD)pngmono.dev $(DD)pnggray.dev $(DD)png16.dev $(DD)png256.dev $(DD)png16m.dev $(DD)pngalpha.dev
+DEVICE_DEVS14=$(DD)jpeg.dev $(DD)jpeggray.dev $(DD)jpegcmyk.dev
+DEVICE_DEVS15=$(DD)pdfwrite.dev $(DD)pswrite.dev $(DD)ps2write.dev $(DD)epswrite.dev $(DD)pxlmono.dev $(DD)pxlcolor.dev
+DEVICE_DEVS16=$(DD)bbox.dev
 # Overflow from DEVS9
-DEVICE_DEVS16=$(DD)pnm.dev $(DD)pnmraw.dev $(DD)ppm.dev $(DD)ppmraw.dev $(DD)pkm.dev $(DD)pkmraw.dev $(DD)pksm.dev $(DD)pksmraw.dev
-DEVICE_DEVS17=
+DEVICE_DEVS17=$(DD)pnm.dev $(DD)pnmraw.dev $(DD)ppm.dev $(DD)ppmraw.dev $(DD)pkm.dev $(DD)pkmraw.dev $(DD)pksm.dev $(DD)pksmraw.dev
 DEVICE_DEVS18=
 DEVICE_DEVS19=
 DEVICE_DEVS20=
+DEVICE_DEVS21=
 
 # Choose the language feature(s) to include.  See gs.mak for details.
 
-FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev
+FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(PSD)epsf.dev $(PSD)fapi.dev
 
 # Choose whether to compile the .ps initialization files into the executable.
 # See gs.mak for details.
@@ -258,8 +257,7 @@ COMPILE_INITS=0
 BAND_LIST_STORAGE=file
 
 # Choose which compression method to use when storing band lists in memory.
-# The choices are 'lzw' or 'zlib'.  lzw is not recommended, because the
-# LZW-compatible code in Ghostscript doesn't actually compress its input.
+# The choices are 'lzw' or 'zlib'.
 
 BAND_LIST_COMPRESSOR=zlib
 
@@ -349,12 +347,8 @@ XEAUX=.exe
 
 BEGINFILES=$(GLGENDIR)OPENVMS.OPT $(GLGENDIR)OPENVMS.COM
 
-# Define the C invocation for the ansi2knr program.  We don't use this.
-
-CCA2K=
-
 # Define the C invocation for auxiliary programs (echogs, genarch).
-  
+
 CCAUX=CC/DECC
 
 # Define the C invocation for normal compilation.
@@ -365,7 +359,7 @@ CC=$(COMP)
 
 LINK=$(LINKER)/EXE=$@ $^,$(GLGENDIR)OPENVMS.OPT/OPTION
 
-# Define the ANSI-to-K&R dependency.  We don't need this.
+# Define the auxiliary program dependency. We don't need this.
 
 AK=
 
@@ -431,6 +425,7 @@ include $(GLSRCDIR)jpeg.mak
 # zlib.mak must precede libpng.mak
 include $(GLSRCDIR)zlib.mak
 include $(GLSRCDIR)libpng.mak
+include $(GLSRCDIR)jbig2.mak
 include $(GLSRCDIR)icclib.mak
 include $(GLSRCDIR)devs.mak
 include $(GLSRCDIR)contrib.mak
@@ -439,7 +434,6 @@ include $(GLSRCDIR)contrib.mak
 
 CC_=$(COMP)
 CC_INT=$(CC_)
-CC_LEAF=$(CC_)
 CC_NO_WARN=$(CC_)
 
 # ----------------------------- Main program ------------------------------ #
@@ -453,7 +447,7 @@ openvms__=$(GLOBJ)gp_getnv.$(OBJ) $(GLOBJ)gp_vms.$(OBJ) $(GLOBJ)gp_stdia.$(OBJ)
 $(GLGEN)openvms_.dev : $(openvms__) $(GLGEN)nosync.dev
 	$(SETMOD) $(GLGEN)openvms_ $(openvms__) -include $(GLGEN)nosync
 
-$(GLOBJ)gp_vms.$(OBJ) : $(GLSRC)gp_vms.c
+$(GLOBJ)gp_vms.$(OBJ) : $(GLSRC)gp_vms.c $(string__h) $(memory__h) $(gx_h) $(gp_h) $(gpmisc_h) $(gsstruct_h)
 	$(CC_)/include=($(GLGENDIR),$(GLSRCDIR))/obj=$(GLOBJ)gp_vms.$(OBJ) $(GLSRC)gp_vms.c
 
 $(GLOBJ)gp_stdia.$(OBJ): $(GLSRC)gp_stdia.c $(AK) $(stdio__h) $(time__h) $(unistd__h) $(gx_h) $(gp_h)

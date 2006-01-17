@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gscrd.c,v 1.2 2000/09/19 19:00:26 lpd Exp $ */
+/* $Id: gscrd.c,v 1.6 2004/08/04 19:36:12 stefan Exp $ */
 /* CIE color rendering dictionary creation */
 #include "math_.h"
 #include "memory_.h"
@@ -109,17 +107,17 @@ EncodeABC_cached_C(floatp in, const gs_cie_render * pcrd)
 private float
 EncodeLMN_cached_L(floatp in, const gs_cie_render * pcrd)
 {
-    return gs_cie_cached_value(in, &pcrd->caches.EncodeLMN[0].floats);
+    return gs_cie_cached_value(in, &pcrd->caches.EncodeLMN.caches[0].floats);
 }
 private float
 EncodeLMN_cached_M(floatp in, const gs_cie_render * pcrd)
 {
-    return gs_cie_cached_value(in, &pcrd->caches.EncodeLMN[1].floats);
+    return gs_cie_cached_value(in, &pcrd->caches.EncodeLMN.caches[1].floats);
 }
 private float
 EncodeLMN_cached_N(floatp in, const gs_cie_render * pcrd)
 {
-    return gs_cie_cached_value(in, &pcrd->caches.EncodeLMN[2].floats);
+    return gs_cie_cached_value(in, &pcrd->caches.EncodeLMN.caches[2].floats);
 }
 
 private frac
@@ -257,7 +255,7 @@ gs_cie_render1_build(gs_cie_render ** ppcrd, gs_memory_t * mem,
 
     rc_alloc_struct_1(pcrd, gs_cie_render, &st_cie_render1, mem,
 		      return_error(gs_error_VMerror), cname);
-    pcrd->id = gs_next_ids(1);
+    pcrd->id = gs_next_ids(mem, 1);
     /* Initialize pointers for the GC. */
     pcrd->client_data = 0;
     pcrd->RenderTable.lookup.table = 0;
@@ -281,7 +279,9 @@ gs_cie_render1_build(gs_cie_render ** ppcrd, gs_memory_t * mem,
  * default values.
  */
 int
-gs_cie_render1_init_from(gs_cie_render * pcrd, void *client_data,
+gs_cie_render1_init_from(const gs_memory_t *mem,
+			 gs_cie_render * pcrd, 
+			 void *client_data,
 			 const gs_cie_render * pfrom_crd,
 			 const gs_vector3 * WhitePoint,
 			 const gs_vector3 * BlackPoint,
@@ -296,7 +296,7 @@ gs_cie_render1_init_from(gs_cie_render * pcrd, void *client_data,
 			 const gs_range3 * RangeABC,
 			 const gs_cie_render_table_t * RenderTable)
 {
-    pcrd->id = gs_next_ids(1);
+    pcrd->id = gs_next_ids(mem, 1);
     pcrd->client_data = client_data;
     pcrd->points.WhitePoint = *WhitePoint;
     pcrd->points.BlackPoint =
@@ -311,7 +311,7 @@ gs_cie_render1_init_from(gs_cie_render * pcrd, void *client_data,
 	!memcmp(&pcrd->EncodeLMN, &EncodeLMN_from_cache,
 		sizeof(EncodeLMN_from_cache))
 	)
-	memcpy(pcrd->caches.EncodeLMN, pfrom_crd->caches.EncodeLMN,
+	memcpy(&pcrd->caches.EncodeLMN, &pfrom_crd->caches.EncodeLMN,
 	       sizeof(pcrd->caches.EncodeLMN));
     pcrd->RangeLMN = *(RangeLMN ? RangeLMN : &Range3_default);
     pcrd->MatrixABC = *(MatrixABC ? MatrixABC : &Matrix3_default);
@@ -345,7 +345,8 @@ gs_cie_render1_init_from(gs_cie_render * pcrd, void *client_data,
  * Initialize a CRD without the option of copying cached values.
  */
 int
-gs_cie_render1_initialize(gs_cie_render * pcrd, void *client_data,
+gs_cie_render1_initialize(const gs_memory_t *mem,
+			  gs_cie_render * pcrd, void *client_data,
 			  const gs_vector3 * WhitePoint,
 			  const gs_vector3 * BlackPoint,
 			  const gs_matrix3 * MatrixPQR,
@@ -359,7 +360,7 @@ gs_cie_render1_initialize(gs_cie_render * pcrd, void *client_data,
 			  const gs_range3 * RangeABC,
 			  const gs_cie_render_table_t * RenderTable)
 {
-    return gs_cie_render1_init_from(pcrd, client_data, NULL,
+    return gs_cie_render1_init_from(mem, pcrd, client_data, NULL,
 				    WhitePoint, BlackPoint,
 				    MatrixPQR, RangePQR, TransformPQR,
 				    MatrixLMN, EncodeLMN, RangeLMN,

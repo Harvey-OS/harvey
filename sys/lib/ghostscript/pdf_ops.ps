@@ -1,21 +1,19 @@
 %    Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: pdf_ops.ps,v 1.17.2.1 2001/12/22 07:34:23 masata-y Exp $
+% $Id: pdf_ops.ps,v 1.41 2005/09/28 04:33:27 dan Exp $
 % Definitions for most of the PDF operators.
 
 .currentglobal true .setglobal
@@ -78,7 +76,7 @@ nodict readonly pop
 
 /graphicsbeginpage {
   initgraphics
-  currentdict /ClipRect .knownget { aload pop rectclip } if
+  currentdict /ClipRect knownoget { aload pop rectclip } if
   0 g  0 G  false op  false OP  0 OPM
   1 ca  1 CA  null SMask  false AIS  /Compatible BM  true TK
 } bdef
@@ -93,12 +91,48 @@ nodict readonly pop
    if def
  } bdef
 
+% Restore graphics state, but do not modify path. Paths are not part
+% of the PDF graphics state; see 4.4.1 of PDF reference 3rd ed.
+/grestore_nopath {
+  % Collect the upath with an identity CTM
+  { matrix setmatrix //false upath } stopped {
+    pop grestore newpath
+  } {
+    % Save the CTM, set identity during the uappend, then set the CTM
+    grestore matrix currentmatrix matrix setmatrix
+    exch newpath uappend setmatrix
+  } ifelse
+} bdef
+
 /q {
   gsave //nodict begin
 } bdef
 % Some PDF files have excess Q operators!
 /Q {
-  currentdict /self .knownget { exec //nodict eq { end grestore } if } if
+  currentdict /self .knownget {
+    exec //nodict eq { end grestore_nopath false } { true } ifelse
+  } {
+    true	% formaterror -- not a gsave dict
+  } ifelse
+  { (\n   **** File has imbalanced q/Q operators \(too many Q's\) ****\n)
+    pdfformaterror
+  } if
+} bdef
+
+% Save PDF gstate
+/qstate {       % - qstate <qstate>
+  gstate
+} bdef
+
+% Set PDF gstate
+/setqstate {    % <qstate> setqstate -
+  { matrix setmatrix //false upath } stopped {
+    pop setgstate newpath
+  } {
+    % Save the CTM, set identity during the uappend, then set the CTM
+    exch setgstate matrix currentmatrix matrix setmatrix
+    exch newpath uappend setmatrix
+  } ifelse
 } bdef
 
 % ---------------- Color setting ---------------- %
@@ -108,6 +142,9 @@ nodict readonly pop
  } bdef
 /scput		% <color> <colorspace> scput -
  { /StrokeColorSpace gput /StrokeColor gput
+ } bdef
+/csput		% <colorspace> csput -
+ { csset 2 copy fcput scput
  } bdef
 
 /csdevgray [/DeviceGray] readonly def
@@ -167,14 +204,20 @@ nodict readonly pop
   currentdict /FillColor .knownget {
     astore pop
   } {
-    /FillColor load length array astore cvx /FillColor gput
+    /FillColor load
+    % FillColor may contain either a single value or an array.
+    dup type /arraytype eq { length }{ pop 1 } ifelse
+    array astore cvx /FillColor gput
   } ifelse
 } bdef
 /SC* {
   currentdict /StrokeColor .knownget {
     astore pop
   } {
-    /StrokeColor load length array astore cvx /StrokeColor gput
+    /StrokeColor load
+    % StrokeColor may contain either a single value or an array.
+    dup type /arraytype eq { length }{ pop 1 } ifelse
+    array astore cvx /StrokeColor gput
   } ifelse
 } bdef
 
@@ -206,7 +249,7 @@ nodict readonly pop
 
 % Establish a given color (and color space) as current.
 /.settransparencyparams {	% <alpha> <smask> .settransparencyparams -
-  /.begintransparencymask where {
+  /.inittransparencymask where {
     pop AlphaIsShape {
       1 .setopacityalpha 0 .inittransparencymask exch .setshapealpha 1
     } {
@@ -242,8 +285,7 @@ nodict readonly pop
   /DeviceGray { pop setgray } bdef
   /DeviceRGB { pop setrgbcolor } bdef
   /DeviceCMYK { pop setcmykcolor } bdef
-  /CIEBasedA
-   { dup currentcolorspace eq { pop } { setcolorspace } ifelse setcolor } bdef
+  /CIEBasedA { setgcolorspace setcolor } bdef
   /CIEBasedABC /CIEBasedA load def
   /CIEBasedDEF /CIEBasedA load def
   /CIEBasedDEFG /CIEBasedA load def
@@ -252,9 +294,32 @@ nodict readonly pop
   /DeviceN /CIEBasedA load def
   /Indexed /CIEBasedA load def
   /Pattern
-   { dup currentcolorspace eq { pop } { setcolorspace } ifelse
-     dup /Matrix .knownget not { matrix } if
-     gsave DefaultMatrix setmatrix makepattern grestore setcolor
+   { setgcolorspace
+
+     % Since multiple patterns may share
+     % same data stream, we need to ensure
+     % that the stream is at 0 position.
+     % Making this consistently with resolveshading,
+     % which applies ReusableStreamDecode filter
+     % to the PS stream, which represents the
+     % PDF stream in dynamics.
+
+     dup /Shading knownoget {
+       dup /ShadingType oget 4 ge {
+         /DataSource knownoget {
+           dup type /filetype eq {
+             0 setfileposition
+           } {
+             pop
+           } ifelse
+         } if
+       } {
+        pop
+       } ifelse
+     } if
+
+     dup /Matrix knownoget not { matrix } if
+     gsave DefaultQstate setqstate makepattern grestore setcolor
    } bdef
 end def
 /setgcolor	% (null | <color...>) <colorspace> setgcolor -
@@ -263,6 +328,29 @@ end def
     { dup 0 get //Cdict exch get exec }
    ifelse
  } bdef
+% Compare the old and new color spaces in an attempt to avoid expensive
+% reloads of CIEBased color spaces.
+/PCSdict 15 dict dup begin	% <colorspace> -proc- <colorspace|pdfcspace>
+  /CIEBasedA { dup 1 get /PDFColorSpace .knownget { exch pop } if } bdef
+  /CIEBasedABC /CIEBasedA load def
+  /CIEBasedDEF /CIEBasedA load def
+  /CIEBasedDEFG /CIEBasedA load def
+  /Indexed {
+    dup 1 get dup pdfcolorspace 2 copy ne { 3 1 roll } if pop pop
+  } bdef
+end def
+/pdfcolorspace {	% <colorspace> pdfcolorspace <colorspace|pdfcspace>
+  dup type /arraytype eq {
+    //PCSdict 1 index 0 get .knownget { exec } if
+  } if
+} bdef
+/setgcolorspace {	% <colorspace> setgcolorspace -
+  dup pdfcolorspace currentcolorspace pdfcolorspace eq {
+    pop
+  } {
+    setcolorspace
+  } ifelse
+} bdef
 /fsexec		% <fillop|strokeop> fsexec -
  {		% Preserve the current point, if any.
     { currentpoint } stopped
@@ -332,7 +420,7 @@ end readonly def
 /settextposition {
 		% Update the TextMatrix translation.
   gsave TextSaveMatrix setmatrix
-  currentpoint TextMatrix 4 2 getinterval astore pop
+  currentpoint TextRise sub TextMatrix 4 2 getinterval astore pop
 		% We would like to do "grestore currentpoint translate"
 		% here, but some PDF files set a singular text matrix
 		% (0 0 0 0 <x> <y> Tm), so we can't do this.
@@ -360,7 +448,7 @@ end readonly def
 } bdef
 /Tc { /TextSpacing gput { showfirst } /Show gput } bdef
 /TL { /TextLeading gput } bdef
-/Tr { /TextRenderingMode gput { showfirst } /Show gput } bdef
+/Tr { dup .settextrenderingmode /TextRenderingMode gput { showfirst } /Show gput } bdef
 /Ts { /TextRise gput settextstate } bdef
 /Tw { /WordSpacing gput { showfirst } /Show gput } bdef
 /Tz { 100 div /TextHScaling gput settextstate} bdef
@@ -368,13 +456,18 @@ end readonly def
 % ---------------- Font control ---------------- %
 
 /Tf {		% <font> <scale> Tf -
+  dup 0 eq {
+    (\n   **** Warning: Invalid 0.0 font scale given for Tf ****\n)
+    pdfformaterror
+    pop 0.00000001	% handle invalid scale by using a really small value
+  } if
   dup 1 eq { pop } { scalefont } ifelse
   /TextFont gput settextstate
 } bdef
 
 % Read a CFF font.
 /FRD		% <resname> <file> FRD -
- { /FontSetInit /ProcSet findresource begin true ReadData
+ { /FontSetInit /ProcSet findresource begin //true ReadData
  } bdef
 
 % Copy a font, removing its FID.  If changed is true, also remove
@@ -401,25 +494,62 @@ end readonly def
 % the font was actually copied.
 /.updatefontmetrics {	% <font> <Metrics|null> .updatefontmetrics
 			%   <font'> <copied>
-  dup null ne {
-    exch true .copyfontdict dup /Metrics 4 -1 roll put true
+  dup //null ne {
+    exch //true .copyfontdict dup /Metrics 4 -1 roll put //true
   } {
-    pop false
+    pop //false
   } ifelse
 } bdef
+
 /.updatefontencoding {	% <font> <Encoding|null> .updatefontencoding
 			%   <font'> <copied>
-  dup null ne { dup 2 index /Encoding get ne } { false } ifelse {
-    exch false .copyfontdict dup /Encoding 4 -1 roll put true
+  dup //null ne { dup 2 index /Encoding get ne } { //false } ifelse {
+    exch //false .copyfontdict dup /Encoding 4 -1 roll put //true
   } {
-    pop false
+    pop //false
   } ifelse
 } bdef
-/.updatefont {		% <font> <Encoding|null> <Metrics|null> .updatefont
-			%   <font'> <copied>
-  3 -1 roll exch .updatefontmetrics
-			% Stack: enc|null font' copied
-  3 1 roll exch .updatefontencoding 3 -1 roll or
+
+% Duplicate keys in CharString dictionary according to GlyphMap: <</new_glyph /old_glyph>>
+% We have to do this because PDF fonts can associate multiple widths with the same glyph
+% but Metrics dictionary works by the glyph name.
+/.update_charstring {	% <font> <GlyphMap> .update_charstring  <font'> <copied>
+  dup //null ne {
+    exch //true .copyfontdict       % map font
+    dup dup /CharStrings get        % map font font cstr
+    dup length                      % map font font cstr len
+    4 index length add              % map font font cstr len+map_len
+    dict copy dup begin             % map font font cstr'
+    /CharStrings exch put           % map font
+    exch {                          % font /new /old
+      currentdict exch .knownget {
+        def
+      } {
+        currentdict /.notdef .knownget {
+          def
+        } {
+          pop
+          % The font has no .notdef.
+          % Could not resolve the conflict,
+          % but either the font is invalid or the glyph name is never used.
+        } ifelse
+      } ifelse
+    } forall
+    end //true
+  } {
+    pop //false
+  } ifelse
+} bdef
+
+/.updatefont {	      % <font> <Encoding|null> <Metrics|null> <GlyphMap|null>
+                      %        .updatefont <font'> <copied>
+  4 2 roll            % <Metrics|null> <GlyphMap> <font> <Encoding|null>
+  .updatefontencoding % <Metrics|null> <GlyphMap> <font> bool
+  4 1 roll exch       % bool <Metrics|null> <font> <GlyphMap>
+  .update_charstring  % bool <Metrics|null> <font> bool
+  3 1 roll exch       % bool bool <font> <Metrics|null>
+  .updatefontmetrics  % bool bool <font> bool
+  4 2 roll or or      % <font> is_copied
 } bdef
 
 % ---------------- Text positioning ---------------- %
@@ -437,7 +567,7 @@ end readonly def
 % ---------------- Text painting ---------------- %
 
 /Vexch {
-  rootfont /WMode .knownget { 1 eq { exch } if } if
+  rootfont /WMode knownoget { 1 eq { exch } if } if
 } bind def
 
 /textrenderingprocs [		% (0 is handled specially)
@@ -451,12 +581,36 @@ end readonly def
 ] readonly def
 /setshowstate
  { WordSpacing 0 eq TextSpacing 0 eq and
-    { TextRenderingMode 0 eq
-       { { setfillstate show } }
-       { { false charpath textrenderingprocs TextRenderingMode get exec } }
-      ifelse
+    { TextRenderingMode 0 eq {
+        { setfillstate show }
+      } {
+        TextRenderingMode 3 eq {
+            	% Some PDF files execute 'tm' with a singular matrix,
+		% and then use the text rendering mode 3.
+		% The graphics library currently cannot handle text
+		% operations when the CTM is singular.
+		% Work around this here.
+	  {	
+            matrix currentmatrix dup
+            dup 0 get 0 eq 1 index 1 get 0 eq and {
+              dup dup 2 get 0 eq { 0 }{ 1 } ifelse 1 put
+            } if
+            dup 2 get 0 eq 1 index 3 get 0 eq and {
+              dup dup 1 get 0 eq { 3 }{ 2 } ifelse 1 put
+            } if
+            setmatrix
+            1 index setfillstate show % Tr was set to graphic state.
+            setmatrix 
+	    % now set the currentpoint using the original matrix
+            false charpath currentpoint newpath moveto
+          }
+        } {
+          { false charpath textrenderingprocs TextRenderingMode get exec }
+        } ifelse
+      } ifelse
     }
-    { TextRenderingMode 0 eq
+    { TextRenderingMode 0 eq TextRenderingMode 3 eq or
+       % Tr was set to graphic state.
        { WordSpacing 0 eq
           { { setfillstate TextSpacing 0 Vexch 3 -1 roll ashow } }
 	  { TextSpacing 0 eq
@@ -503,7 +657,7 @@ end readonly def
 } bdef
 
 /tf { setfillstate currentpoint fill moveto } bdef
-/tn { currentpoint newpath moveto } bdef
+/tn { currentpoint newpath moveto } bdef % Obsolete, never used.
 % For stroking characters, temporarily restore the graphics CTM so that
 % the line width will be transformed properly.
 /Tmatrix matrix def

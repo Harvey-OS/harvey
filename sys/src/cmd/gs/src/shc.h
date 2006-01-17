@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1995, 1997, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: shc.h,v 1.2 2000/09/19 19:00:50 lpd Exp $ */
+/* $Id: shc.h,v 1.5 2002/06/16 05:00:54 lpd Exp $ */
 /* Common definitions for filters using Huffman coding */
 
 #ifndef shc_INCLUDED
@@ -135,7 +133,7 @@ typedef struct hce_table_s {
 	ss->bits = bits, ss->bits_left = bits_left
 
 /* Put a code on the stream. */
-void hc_put_code_proc(P3(bool, byte *, uint));
+void hc_put_code_proc(bool, byte *, uint);
 
 #define hc_put_value(ss, q, code, clen)\
   (hc_print_value_then(code, clen)\
@@ -152,7 +150,7 @@ void hc_put_code_proc(P3(bool, byte *, uint));
  * Force out the final bits to the output.
  * Note that this does a store_state, but not a load_state.
  */
-byte *hc_put_last_bits_proc(P4(stream_hc_state *, byte *, uint, int));
+byte *hc_put_last_bits_proc(stream_hc_state *, byte *, uint, int);
 
 #define hc_put_last_bits(ss, q)\
   hc_put_last_bits_proc(ss, q, bits, bits_left)

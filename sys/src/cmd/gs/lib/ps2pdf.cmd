@@ -1,10 +1,10 @@
-/* $Id: ps2pdf.cmd,v 1.1 2000/07/05 16:21:13 lpd Exp $ */
+/* $Id: ps2pdf.cmd,v 1.4 2005/08/31 18:31:01 igor Exp $ */
 /*
  * This file is maintained by a user: if you have any questions about it,
  * please contact Mark Hale (mark.hale@physics.org).
  */
 
-/* Convert PostScript to PDF 1.3 (Acrobat 4-and-later compatible). */
+/* Convert PostScript to PDF 1.4 (Acrobat 4-and-later compatible). */
 /* The PDF compatibility level may change in the future: */
 /* use ps2pdf12 or ps2pdf13 if you want a specific level. */
 

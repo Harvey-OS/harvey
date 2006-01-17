@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevmem.c,v 1.2 2000/09/19 19:00:14 lpd Exp $ */
+/* $Id: gdevmem.c,v 1.9 2005/03/14 18:08:36 dan Exp $ */
 /* Generic "memory" (stored bitmap) device */
 #include "memory_.h"
 #include "gx.h"
@@ -28,6 +26,7 @@
 #include "gxgetbit.h"
 #include "gxdevmem.h"		/* semi-public definitions */
 #include "gdevmem.h"		/* private definitions */
+#include "gstrans.h"
 
 /* Structure descriptor */
 public_st_device_memory();
@@ -82,31 +81,39 @@ const gs_const_string mem_mono_w_b_palette = {
 
 /* Return the appropriate memory device for a given */
 /* number of bits per pixel (0 if none suitable). */
-private const gx_device_memory *const mem_devices[33] = {
+private const gx_device_memory *const mem_devices[65] = {
     0, &mem_mono_device, &mem_mapped2_device, 0, &mem_mapped4_device,
     0, 0, 0, &mem_mapped8_device,
     0, 0, 0, 0, 0, 0, 0, &mem_true16_device,
     0, 0, 0, 0, 0, 0, 0, &mem_true24_device,
-    0, 0, 0, 0, 0, 0, 0, &mem_true32_device
+    0, 0, 0, 0, 0, 0, 0, &mem_true32_device,
+    0, 0, 0, 0, 0, 0, 0, &mem_true40_device,
+    0, 0, 0, 0, 0, 0, 0, &mem_true48_device,
+    0, 0, 0, 0, 0, 0, 0, &mem_true56_device,
+    0, 0, 0, 0, 0, 0, 0, &mem_true64_device
 };
 const gx_device_memory *
 gdev_mem_device_for_bits(int bits_per_pixel)
 {
-    return ((uint)bits_per_pixel > 32 ? (const gx_device_memory *)0 :
+    return ((uint)bits_per_pixel > 64 ? (const gx_device_memory *)0 :
 	    mem_devices[bits_per_pixel]);
 }
 /* Do the same for a word-oriented device. */
-private const gx_device_memory *const mem_word_devices[33] = {
+private const gx_device_memory *const mem_word_devices[65] = {
     0, &mem_mono_device, &mem_mapped2_word_device, 0, &mem_mapped4_word_device,
     0, 0, 0, &mem_mapped8_word_device,
     0, 0, 0, 0, 0, 0, 0, 0 /*no 16-bit word device*/,
     0, 0, 0, 0, 0, 0, 0, &mem_true24_word_device,
-    0, 0, 0, 0, 0, 0, 0, &mem_true32_word_device
+    0, 0, 0, 0, 0, 0, 0, &mem_true32_word_device,
+    0, 0, 0, 0, 0, 0, 0, &mem_true40_word_device,
+    0, 0, 0, 0, 0, 0, 0, &mem_true48_word_device,
+    0, 0, 0, 0, 0, 0, 0, &mem_true56_word_device,
+    0, 0, 0, 0, 0, 0, 0, &mem_true64_word_device
 };
 const gx_device_memory *
 gdev_mem_word_device_for_bits(int bits_per_pixel)
 {
-    return ((uint)bits_per_pixel > 32 ? (const gx_device_memory *)0 :
+    return ((uint)bits_per_pixel > 64 ? (const gx_device_memory *)0 :
 	    mem_word_devices[bits_per_pixel]);
 }
 
@@ -121,7 +128,7 @@ gs_device_is_memory(const gx_device * dev)
     int bits_per_pixel = dev->color_info.depth;
     const gx_device_memory *mdproto;
 
-    if ((uint)bits_per_pixel > 32)
+    if ((uint)bits_per_pixel > 64)
 	return false;
     mdproto = mem_devices[bits_per_pixel];
     if (mdproto != 0 && dev_proc(dev, draw_thin_line) == dev_proc(mdproto, draw_thin_line))
@@ -164,12 +171,13 @@ gs_make_mem_device(gx_device_memory * dev, const gx_device_memory * mdproto,
 	gx_device_copy_color_procs((gx_device *)dev, target);
 	dev->cached_colors = target->cached_colors;
     }
-    if (dev->color_info.depth == 1)
+    if (dev->color_info.depth == 1) {
 	gdev_mem_mono_set_inverted(dev,
-				   (target == 0 ||
-				    (*dev_proc(target, map_rgb_color))
-			    (target, (gx_color_value) 0, (gx_color_value) 0,
-			     (gx_color_value) 0) != 0));
+				   (target == 0 || 
+                                    dev->color_info.polarity == GX_CINFO_POLARITY_SUBTRACTIVE));
+    }
+    check_device_separable((gx_device *)dev);
+    gx_device_fill_in_procs((gx_device *)dev);
 }
 /* Make a monobit memory device.  This is never a page device. */
 /* Note that white=0, black=1. */
@@ -182,6 +190,8 @@ gs_make_mem_mono_device(gx_device_memory * dev, gs_memory_t * mem,
     set_dev_proc(dev, get_page_device, gx_default_get_page_device);
     gx_device_set_target((gx_device_forward *)dev, target);
     gdev_mem_mono_set_inverted(dev, true);
+    check_device_separable((gx_device *)dev);
+    gx_device_fill_in_procs((gx_device *)dev);
 }
 
 /* Define whether a monobit memory device is inverted (black=1). */
@@ -237,19 +247,37 @@ gdev_mem_data_size(const gx_device_memory * dev, int width, int height)
  * compute the maximum height.
  */
 int
-gdev_mem_max_height(const gx_device_memory * dev, int width, ulong size)
+gdev_mem_max_height(const gx_device_memory * dev, int width, ulong size,
+		bool page_uses_transparency)
 {
-    ulong max_height = size /
-	(bitmap_raster(width * dev->color_info.depth) +
-	 sizeof(byte *) * max(dev->num_planes, 1));
-    int height = (int)min(max_height, max_int);
+    int height;
+    ulong max_height;
 
-    /*
-     * Because of alignment rounding, the just-computed height might
-     * be too large by a small amount.  Adjust it the easy way.
-     */
-    while (gdev_mem_data_size(dev, width, height) > size)
-	--height;
+    if (page_uses_transparency) {
+        /*
+         * If the device is using PDF 1.4 transparency then we will need to
+         * also allocate image buffers for doing the blending operations.
+         * We can only estimate the space requirements.  However since it
+	 * is only an estimate, we may exceed our desired buffer space while
+	 * processing the file.
+	 */
+        max_height = size / (bitmap_raster(width
+		* dev->color_info.depth + ESTIMATED_PDF14_ROW_SPACE(width))
+		+ sizeof(byte *) * max(dev->num_planes, 1));
+        height = (int)min(max_height, max_int);
+    } else {
+	/* For non PDF 1.4 transparency, we can do an exact calculation */
+        max_height = size /
+	    (bitmap_raster(width * dev->color_info.depth) +
+	     sizeof(byte *) * max(dev->num_planes, 1));
+        height = (int)min(max_height, max_int);
+        /*
+         * Because of alignment rounding, the just-computed height might
+         * be too large by a small amount.  Adjust it the easy way.
+         */
+        while (gdev_mem_data_size(dev, width, height) > size)
+	    --height;
+    }
     return height;
 }
 
@@ -518,38 +546,63 @@ mem_word_get_bits_rectangle(gx_device * dev, const gs_int_rect * prect,
 /* (2, 4, or 8 bits per pixel.) */
 /* This requires searching the palette. */
 gx_color_index
-mem_mapped_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
-			 gx_color_value b)
+mem_mapped_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
     gx_device_memory * const mdev = (gx_device_memory *)dev;
-    byte br = gx_color_value_to_byte(r);
-    byte bg = gx_color_value_to_byte(g);
-    byte bb = gx_color_value_to_byte(b);
+    byte br = gx_color_value_to_byte(cv[0]);
+    
     register const byte *pptr = mdev->palette.data;
     int cnt = mdev->palette.size;
     const byte *which = 0;	/* initialized only to pacify gcc */
     int best = 256 * 3;
 
-    while ((cnt -= 3) >= 0) {
-	register int diff = *pptr - br;
+    if (mdev->color_info.num_components != 1) {
+	/* not 1 component, assume three */
+	/* The comparison is rather simplistic, treating differences in	*/
+	/* all components as equal. Better choices would be 'distance'	*/
+	/* in HLS space or other, but these would be much slower.	*/
+	/* At least exact matches will be found.			*/
+	byte bg = gx_color_value_to_byte(cv[1]);
+	byte bb = gx_color_value_to_byte(cv[2]);
 
-	if (diff < 0)
-	    diff = -diff;
-	if (diff < best) {	/* quick rejection */
-	    int dg = pptr[1] - bg;
+	while ((cnt -= 3) >= 0) {
+	    register int diff = *pptr - br;
 
-	    if (dg < 0)
-		dg = -dg;
-	    if ((diff += dg) < best) {	/* quick rejection */
-		int db = pptr[2] - bb;
+	    if (diff < 0)
+		diff = -diff;
+	    if (diff < best) {	/* quick rejection */
+		    int dg = pptr[1] - bg;
 
-		if (db < 0)
-		    db = -db;
-		if ((diff += db) < best)
-		    which = pptr, best = diff;
+		if (dg < 0)
+		    dg = -dg;
+		if ((diff += dg) < best) {	/* quick rejection */
+		    int db = pptr[2] - bb;
+
+		    if (db < 0)
+			db = -db;
+		    if ((diff += db) < best)
+			which = pptr, best = diff;
+		}
 	    }
+	    if (diff == 0)	/* can't get any better than 0 diff */
+		break;
+	    pptr += 3;
 	}
-	pptr += 3;
+    } else {
+	/* Gray scale conversion. The palette is made of three equal	*/
+	/* components, so this case is simpler.				*/
+	while ((cnt -= 3) >= 0) {
+	    register int diff = *pptr - br;
+
+	    if (diff < 0)
+		diff = -diff;
+	    if (diff < best) {	/* quick rejection */
+		which = pptr, best = diff;
+	    }
+	    if (diff == 0)
+		break;
+	    pptr += 3;
+	}
     }
     return (gx_color_index) ((which - mdev->palette.data) / 3);
 }

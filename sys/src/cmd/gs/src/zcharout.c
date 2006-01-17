@@ -1,22 +1,20 @@
 /* Copyright (C) 1996, 1997, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zcharout.c,v 1.4 2000/10/19 23:46:46 lpd Exp $ */
+/* $Id: zcharout.c,v 1.13 2004/09/22 13:52:33 igor Exp $ */
 /* Common code for outline (Type 1 / 4 / 42) fonts */
 #include "memory_.h"
 #include "ghost.h"
@@ -80,7 +78,7 @@ int				/*metrics_present*/
 zchar_get_metrics(const gs_font_base * pbfont, const ref * pcnref,
 		  double psbw[4])
 {
-    const ref *pfdict = &pfont_data(pbfont)->dict;
+    const ref *pfdict = &pfont_data(gs_font_parent(pbfont))->dict;
     ref *pmdict;
 
     if (dict_find_string(pfdict, "Metrics", &pmdict) > 0) {
@@ -124,7 +122,7 @@ int
 zchar_get_metrics2(const gs_font_base * pbfont, const ref * pcnref,
 		   double pwv[4])
 {
-    const ref *pfdict = &pfont_data(pbfont)->dict;
+    const ref *pfdict = &pfont_data(gs_font_parent(pbfont))->dict;
     ref *pmdict;
 
     if (dict_find_string(pfdict, "Metrics2", &pmdict) > 0) {
@@ -145,24 +143,35 @@ zchar_get_metrics2(const gs_font_base * pbfont, const ref * pcnref,
 }
 
 /*
+ * Get CDevProc.
+ */
+bool
+zchar_get_CDevProc(const gs_font_base * pbfont, ref **ppcdevproc)
+{
+    const ref *pfdict = &pfont_data(gs_font_parent(pbfont))->dict;
+
+    return dict_find_string(pfdict, "CDevProc", ppcdevproc) > 0;
+}
+
+/*
  * Consult Metrics2 and CDevProc, and call setcachedevice[2].  Return
  * o_push_estack if we had to call a CDevProc, or if we are skipping the
  * rendering process (only getting the metrics).
+ * Returns exec_cont - a function, which must be called by caller after this function.
  */
 int
 zchar_set_cache(i_ctx_t *i_ctx_p, const gs_font_base * pbfont,
 		const ref * pcnref, const double psb[2],
 		const double pwidth[2], const gs_rect * pbbox,
-		op_proc_t cont_fill, op_proc_t cont_stroke,
+		op_proc_t cont, op_proc_t *exec_cont,
 		const double Metrics2_sbw_default[4])
 {
     os_ptr op = osp;
-    const ref *pfdict = &pfont_data(pbfont)->dict;
     ref *pcdevproc;
     int have_cdevproc;
     ref rpop;
     bool metrics2;
-    op_proc_t cont;
+    bool metrics2_use_default = false;
     double w2[10];
     gs_text_enum_t *penum = op_show_find(i_ctx_p);
 
@@ -172,15 +181,12 @@ zchar_set_cache(i_ctx_t *i_ctx_p, const gs_font_base * pbfont,
 
     w2[2] = pbbox->p.x, w2[3] = pbbox->p.y;
     w2[4] = pbbox->q.x, w2[5] = pbbox->q.y;
-    if (pbfont->PaintType == 0)
-	cont = cont_fill;
-    else {
+    if (pbfont->PaintType != 0) {
 	double expand = max(1.415, gs_currentmiterlimit(igs)) *
 	gs_currentlinewidth(igs) / 2;
 
 	w2[2] -= expand, w2[3] -= expand;
 	w2[4] += expand, w2[5] += expand;
-	cont = cont_stroke;
     }
 
     /* Check for Metrics2. */
@@ -203,11 +209,12 @@ zchar_set_cache(i_ctx_t *i_ctx_p, const gs_font_base * pbfont,
         w2[8] = Metrics2_sbw_default[0];
         w2[9] = Metrics2_sbw_default[1];
 	metrics2 = true;
+	metrics2_use_default = true;
     }
 
     /* Check for CDevProc or "short-circuiting". */
 
-    have_cdevproc = dict_find_string(pfdict, "CDevProc", &pcdevproc) > 0;
+    have_cdevproc = zchar_get_CDevProc(pbfont, &pcdevproc);
     if (have_cdevproc || zchar_show_width_only(penum)) {
 	int i;
 	op_proc_t zsetc;
@@ -216,7 +223,13 @@ zchar_set_cache(i_ctx_t *i_ctx_p, const gs_font_base * pbfont,
 	if (have_cdevproc) {
 	    check_proc_only(*pcdevproc);
 	    zsetc = zsetcachedevice2;
-	    if (!metrics2) {
+	    
+	    /* If we have cdevproc and the font type is CID type 0,
+	       we'll throw away Metrics2_sbw_default that is calculated 
+	       from FontBBox. */
+	    if (!metrics2 
+		|| (penum->current_font->FontType == ft_CID_encrypted
+		    && metrics2_use_default)) {
 		w2[6] = w2[0], w2[7] = w2[1];
 		w2[8] = w2[9] = 0;
 	    }
@@ -263,17 +276,18 @@ zchar_set_cache(i_ctx_t *i_ctx_p, const gs_font_base * pbfont,
 	make_real(op - 1, psb[0]);
 	make_real(op, psb[1]);
     }
-    return cont(i_ctx_p);
+    *exec_cont = cont;
+    return 0;
 }
 
 /*
  * Get the CharString data corresponding to a glyph.  Return typecheck
  * if it isn't a string.
  */
-private bool charstring_is_notdef_proc(P1(const ref *));
-private int charstring_make_notdef(P2(gs_const_string *, const gs_font *));
+private bool charstring_is_notdef_proc(const gs_memory_t *mem, const ref *);
+private int charstring_make_notdef(gs_glyph_data_t *, gs_font *);
 int
-zchar_charstring_data(gs_font *font, const ref *pgref, gs_const_string *pstr)
+zchar_charstring_data(gs_font *font, const ref *pgref, gs_glyph_data_t *pgd)
 {
     ref *pcstr;
 
@@ -288,28 +302,27 @@ zchar_charstring_data(gs_font *font, const ref *pgref, gs_const_string *pstr)
 	 * (with our present font-writing code), we recognize this as a
 	 * special case and return a Type 1 CharString consisting of
 	 *	0 0 hsbw endchar
-	 * Note that we rely on garbage collection to free this string.
 	 */
 	if (font->FontType == ft_encrypted &&
-	    charstring_is_notdef_proc(pcstr)
+	    charstring_is_notdef_proc(font->memory, pcstr)
 	    )
-	    return charstring_make_notdef(pstr, font);
+	    return charstring_make_notdef(pgd, font);
 	else
 	    return_error(e_typecheck);
     }
-    pstr->data = pcstr->value.const_bytes;
-    pstr->size = r_size(pcstr);
+    gs_glyph_data_from_string(pgd, pcstr->value.const_bytes, r_size(pcstr),
+			      NULL);
     return 0;
 }
 private bool
-charstring_is_notdef_proc(const ref *pcstr)
+charstring_is_notdef_proc(const gs_memory_t *mem, const ref *pcstr)
 {
     if (r_is_array(pcstr) && r_size(pcstr) == 4) {
 	ref elts[4];
 	long i;
 
 	for (i = 0; i < 4; ++i)
-	    array_get(pcstr, i, &elts[i]);
+	    array_get(mem, pcstr, i, &elts[i]);
 	if (r_has_type(&elts[0], t_name) &&
 	    r_has_type(&elts[1], t_integer) && elts[1].value.intval == 0 &&
 	    r_has_type(&elts[2], t_integer) && elts[2].value.intval == 0 &&
@@ -317,9 +330,9 @@ charstring_is_notdef_proc(const ref *pcstr)
 	    ) {
 	    ref nref;
 
-	    name_enter_string("pop", &nref);
+	    name_enter_string(mem, "pop", &nref);
 	    if (name_eq(&elts[0], &nref)) {
-		name_enter_string("setcharwidth", &nref);
+	        name_enter_string(mem, "setcharwidth", &nref);
 		if (name_eq(&elts[3], &nref))
 		    return true;
 	    }
@@ -328,9 +341,9 @@ charstring_is_notdef_proc(const ref *pcstr)
     return false;
 }
 private int
-charstring_make_notdef(gs_const_string *pstr, const gs_font *font)
+charstring_make_notdef(gs_glyph_data_t *pgd, gs_font *font)
 {
-    const gs_font_type1 *const pfont = (const gs_font_type1 *)font;
+    gs_font_type1 *const pfont = (gs_font_type1 *)font;
     static const byte char_data[4] = {
 	139,			/* 0 */
 	139,			/* 0 */
@@ -342,8 +355,7 @@ charstring_make_notdef(gs_const_string *pstr, const gs_font *font)
 
     if (chars == 0)
 	return_error(e_VMerror);
-    pstr->data = chars;
-    pstr->size = len;
+    gs_glyph_data_from_string(pgd, chars, len, font);
     if (pfont->data.lenIV < 0)
 	memcpy(chars, char_data, sizeof(char_data));
     else {
@@ -359,13 +371,18 @@ charstring_make_notdef(gs_const_string *pstr, const gs_font *font)
  * Enumerate the next glyph from a directory.  This is essentially a
  * wrapper around dict_first/dict_next to implement the enumerate_glyph
  * font procedure.
+ *
+ * Note that *prdict will be null if the font is a subfont of a
+ * CIDFontType 0 CIDFont.
  */
 int
-zchar_enumerate_glyph(const ref *prdict, int *pindex, gs_glyph *pglyph)
+zchar_enumerate_glyph(const gs_memory_t *mem, const ref *prdict, int *pindex, gs_glyph *pglyph)
 {
     int index = *pindex - 1;
     ref elt[2];
 
+    if (!r_has_type(prdict, t_dictionary))
+	return 0;		/* *pindex was 0, is still 0 */
     if (index < 0)
 	index = dict_first(prdict);
 next:
@@ -377,7 +394,7 @@ next:
 		*pglyph = gs_min_cid_glyph + elt[0].value.intval;
 		break;
 	    case t_name:
-		*pglyph = name_index(elt);
+	        *pglyph = name_index(mem, elt);
 		break;
 	    default:		/* can't handle it */
 		goto next;

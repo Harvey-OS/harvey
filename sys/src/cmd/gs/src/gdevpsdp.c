@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpsdp.c,v 1.8 2000/09/19 19:00:21 lpd Exp $ */
+/* $Id: gdevpsdp.c,v 1.14 2004/06/30 14:35:37 igor Exp $ */
 /* (Distiller) parameter handling for PostScript and PDF writers */
 #include "string_.h"
 #include "jpeglib_.h"		/* for sdct.h */
@@ -398,7 +396,7 @@ psdf_read_string_param(gs_param_list *plist, const char *key,
     switch (code = param_read_string(plist, key, &ps)) {
     case 0: {
 	uint size = ps.size;
-	byte *data = gs_alloc_bytes(mem, size, "psdf_read_string_param");
+	byte *data = gs_alloc_string(mem, size, "psdf_read_string_param");
 
 	if (data == 0)
 	    return_error(gs_error_VMerror);
@@ -771,76 +769,76 @@ gdev_psdf_put_params(gx_device * dev, gs_param_list * plist)
 
     /*
      * If LockDistillerParams was true and isn't being set to false,
-     * ignore all other parameters.
+     * ignore all other psdf parameters.  However, do not ignore the
+     * standard device parameters.
      */
     ecode = code = param_read_bool(plist, "LockDistillerParams",
-				   &params.LockDistillerParams);
-    if (pdev->params.LockDistillerParams && params.LockDistillerParams)
-	return ecode;
+  				   &params.LockDistillerParams);
+    if (!(pdev->params.LockDistillerParams && params.LockDistillerParams)) {
+  
+	/* General parameters. */
 
-    /* General parameters. */
+	code = gs_param_read_items(plist, &params, psdf_param_items);
+	if (code < 0)
+	    ecode = code;
+	params.AutoRotatePages = (enum psdf_auto_rotate_pages)
+	    psdf_put_enum(plist, "AutoRotatePages", (int)params.AutoRotatePages,
+			  AutoRotatePages_names, &ecode);
+	params.Binding = (enum psdf_binding)
+	    psdf_put_enum(plist, "Binding", (int)params.Binding,
+			  Binding_names, &ecode);
+	params.DefaultRenderingIntent = (enum psdf_default_rendering_intent)
+	    psdf_put_enum(plist, "DefaultRenderingIntent",
+			  (int)params.DefaultRenderingIntent,
+			  DefaultRenderingIntent_names, &ecode);
+	params.TransferFunctionInfo = (enum psdf_transfer_function_info)
+	    psdf_put_enum(plist, "TransferFunctionInfo",
+			  (int)params.TransferFunctionInfo,
+			  TransferFunctionInfo_names, &ecode);
+	params.UCRandBGInfo = (enum psdf_ucr_and_bg_info)
+	    psdf_put_enum(plist, "UCRandBGInfo", (int)params.UCRandBGInfo,
+			  UCRandBGInfo_names, &ecode);
+	ecode = param_put_bool(plist, "UseFlateCompression",
+			       &params.UseFlateCompression, ecode);
 
-    code = gs_param_read_items(plist, &params, psdf_param_items);
-    if (code < 0)
-	ecode = code;
-    params.AutoRotatePages = (enum psdf_auto_rotate_pages)
-	psdf_put_enum(plist, "AutoRotatePages", (int)params.AutoRotatePages,
-		      AutoRotatePages_names, &ecode);
-    params.Binding = (enum psdf_binding)
-	psdf_put_enum(plist, "Binding", (int)params.Binding,
-		      Binding_names, &ecode);
-    params.DefaultRenderingIntent = (enum psdf_default_rendering_intent)
-	psdf_put_enum(plist, "DefaultRenderingIntent",
-		      (int)params.DefaultRenderingIntent,
-		      DefaultRenderingIntent_names, &ecode);
-    params.TransferFunctionInfo = (enum psdf_transfer_function_info)
-	psdf_put_enum(plist, "TransferFunctionInfo",
-		      (int)params.TransferFunctionInfo,
-		      TransferFunctionInfo_names, &ecode);
-    params.UCRandBGInfo = (enum psdf_ucr_and_bg_info)
-	psdf_put_enum(plist, "UCRandBGInfo", (int)params.UCRandBGInfo,
-		      UCRandBGInfo_names, &ecode);
-    ecode = param_put_bool(plist, "UseFlateCompression",
-			   &params.UseFlateCompression, ecode);
+	/* Color sampled image parameters */
 
-    /* Color sampled image parameters */
+	ecode = psdf_put_image_params(pdev, plist, &Color_names,
+				      &params.ColorImage, ecode);
+	params.ColorConversionStrategy = (enum psdf_color_conversion_strategy)
+	    psdf_put_enum(plist, "ColorConversionStrategy",
+			  (int)params.ColorConversionStrategy,
+			  ColorConversionStrategy_names, &ecode);
+	ecode = psdf_read_string_param(plist, "CalCMYKProfile",
+				       &params.CalCMYKProfile, mem, ecode);
+	ecode = psdf_read_string_param(plist, "CalGrayProfile",
+				       &params.CalGrayProfile, mem, ecode);
+	ecode = psdf_read_string_param(plist, "CalRGBProfile",
+				       &params.CalRGBProfile, mem, ecode);
+	ecode = psdf_read_string_param(plist, "sRGBProfile",
+				       &params.sRGBProfile, mem, ecode);
 
-    ecode = psdf_put_image_params(pdev, plist, &Color_names,
-				  &params.ColorImage, ecode);
-    params.ColorConversionStrategy = (enum psdf_color_conversion_strategy)
-	psdf_put_enum(plist, "ColorConversionStrategy",
-		      (int)params.ColorConversionStrategy,
-		      ColorConversionStrategy_names, &ecode);
-    ecode = psdf_read_string_param(plist, "CalCMYKProfile",
-				   &params.CalCMYKProfile, mem, ecode);
-    ecode = psdf_read_string_param(plist, "CalGrayProfile",
-				   &params.CalGrayProfile, mem, ecode);
-    ecode = psdf_read_string_param(plist, "CalRGBProfile",
-				   &params.CalRGBProfile, mem, ecode);
-    ecode = psdf_read_string_param(plist, "sRGBProfile",
-				   &params.sRGBProfile, mem, ecode);
+	/* Gray sampled image parameters */
 
-    /* Gray sampled image parameters */
+	ecode = psdf_put_image_params(pdev, plist, &Gray_names,
+				      &params.GrayImage, ecode);
 
-    ecode = psdf_put_image_params(pdev, plist, &Gray_names,
-				  &params.GrayImage, ecode);
+	/* Mono sampled image parameters */
 
-    /* Mono sampled image parameters */
+	ecode = psdf_put_image_params(pdev, plist, &Mono_names,
+				      &params.MonoImage, ecode);
 
-    ecode = psdf_put_image_params(pdev, plist, &Mono_names,
-				  &params.MonoImage, ecode);
+	/* Font embedding parameters */
 
-    /* Font embedding parameters */
-
-    ecode = psdf_put_embed_param(plist, "~AlwaysEmbed", ".AlwaysEmbed",
-				 &params.AlwaysEmbed, mem, ecode);
-    ecode = psdf_put_embed_param(plist, "~NeverEmbed", ".NeverEmbed",
-				 &params.NeverEmbed, mem, ecode);
-    params.CannotEmbedFontPolicy = (enum psdf_cannot_embed_font_policy)
-	psdf_put_enum(plist, "CannotEmbedFontPolicy",
-		      (int)params.CannotEmbedFontPolicy,
-		      CannotEmbedFontPolicy_names, &ecode);
-
+	ecode = psdf_put_embed_param(plist, "~AlwaysEmbed", ".AlwaysEmbed",
+				     &params.AlwaysEmbed, mem, ecode);
+	ecode = psdf_put_embed_param(plist, "~NeverEmbed", ".NeverEmbed",
+				     &params.NeverEmbed, mem, ecode);
+	params.CannotEmbedFontPolicy = (enum psdf_cannot_embed_font_policy)
+	    psdf_put_enum(plist, "CannotEmbedFontPolicy",
+			  (int)params.CannotEmbedFontPolicy,
+			  CannotEmbedFontPolicy_names, &ecode);
+    }
     if (ecode < 0)
 	return ecode;
     code = gdev_vector_put_params(dev, plist);

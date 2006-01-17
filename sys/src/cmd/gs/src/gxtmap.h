@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxtmap.h,v 1.2 2000/09/19 19:00:40 lpd Exp $ */
+/* $Id: gxtmap.h,v 1.5 2002/06/16 08:45:43 lpd Exp $ */
 /* Definition of transfer mapping function */
 /* (also used for black generation and undercolor removal) */
 
@@ -35,15 +33,15 @@ typedef struct gx_transfer_map_s gx_transfer_map;
  * Define the type of a mapping procedure.  There are two forms of this.
  * The original form passed only the transfer map itself as an argument:
  */
-typedef float (*gs_mapping_proc) (P2(floatp, const gx_transfer_map *));
+typedef float (*gs_mapping_proc) (floatp, const gx_transfer_map *);
 
 /*
  * Later, we recognized that this procedure should really be a general
  * closure:
  */
-typedef float (*gs_mapping_closure_proc_t) (P3(floatp value,
-					       const gx_transfer_map * pmap,
-					       const void *proc_data));
+typedef float (*gs_mapping_closure_proc_t) (floatp value,
+					    const gx_transfer_map * pmap,
+					    const void *proc_data);
 typedef struct gs_mapping_closure_s {
     gs_mapping_closure_proc_t proc;
     const void *data;

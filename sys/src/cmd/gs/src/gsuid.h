@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1993, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsuid.h,v 1.2 2000/09/19 19:00:33 lpd Exp $ */
+/* $Id: gsuid.h,v 1.6 2002/06/19 01:06:12 lpd Exp $ */
 /* Unique id definitions for Ghostscript */
 
 #ifndef gsuid_INCLUDED
@@ -27,7 +25,6 @@
 #ifndef gs_uid_DEFINED
 #  define gs_uid_DEFINED
 typedef struct gs_uid_s gs_uid;
-
 #endif
 struct gs_uid_s {
     /* id >= 0 is a UniqueID, xvalues is 0. */
@@ -63,7 +60,10 @@ struct gs_uid_s {
 
 /* Compare two uids for equality. */
 /* This could be a macro, but the Zortech compiler compiles it wrong. */
-bool uid_equal(P2(const gs_uid *, const gs_uid *));	/* in gsutil.c */
+bool uid_equal(const gs_uid *, const gs_uid *);	/* in gsutil.c */
+
+/* Copy the XUID data for a uid, if needed, updating the uid in place. */
+int uid_copy(gs_uid *puid, gs_memory_t *mem, client_name_t cname);
 
 /* Free the XUID array of a uid if necessary. */
 #define uid_free(puid, mem, cname)\

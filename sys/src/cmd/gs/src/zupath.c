@@ -1,22 +1,20 @@
 /* Copyright (C) 1990, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zupath.c,v 1.2 2000/09/19 19:00:55 lpd Exp $ */
+/* $Id: zupath.c,v 1.10 2004/08/04 19:36:13 stefan Exp $ */
 /* Operators related to user paths */
 #include "ghost.h"
 #include "oper.h"
@@ -44,18 +42,18 @@ extern const gx_device gs_hit_device;
 extern const int gs_hit_detected;
 
 /* Forward references */
-private int upath_append(P2(os_ptr, i_ctx_t *));
-private int upath_stroke(P2(i_ctx_t *, gs_matrix *));
+private int upath_append(os_ptr, i_ctx_t *);
+private int upath_stroke(i_ctx_t *, gs_matrix *);
 
 /* ---------------- Insideness testing ---------------- */
 
 /* Forward references */
-private int in_test(P2(i_ctx_t *, int (*)(P1(gs_state *))));
-private int in_path(P3(os_ptr, i_ctx_t *, gx_device *));
-private int in_path_result(P3(i_ctx_t *, int, int));
-private int in_utest(P2(i_ctx_t *, int (*)(P1(gs_state *))));
-private int in_upath(P2(i_ctx_t *, gx_device *));
-private int in_upath_result(P3(i_ctx_t *, int, int));
+private int in_test(i_ctx_t *, int (*)(gs_state *));
+private int in_path(os_ptr, i_ctx_t *, gx_device *);
+private int in_path_result(i_ctx_t *, int, int);
+private int in_utest(i_ctx_t *, int (*)(gs_state *));
+private int in_upath(i_ctx_t *, gx_device *);
+private int in_upath_result(i_ctx_t *, int, int);
 
 /* <x> <y> ineofill <bool> */
 /* <userpath> ineofill <bool> */
@@ -131,7 +129,7 @@ zinustroke(i_ctx_t *i_ctx_p)
 
 /* Do the work of the non-user-path insideness operators. */
 private int
-in_test(i_ctx_t *i_ctx_p, int (*paintproc)(P1(gs_state *)))
+in_test(i_ctx_t *i_ctx_p, int (*paintproc)(gs_state *))
 {
     os_ptr op = osp;
     gx_device hdev;
@@ -219,7 +217,7 @@ in_path_result(i_ctx_t *i_ctx_p, int npop, int code)
 
 /* Do the work of the user-path insideness operators. */
 private int
-in_utest(i_ctx_t *i_ctx_p, int (*paintproc)(P1(gs_state *)))
+in_utest(i_ctx_t *i_ctx_p, int (*paintproc)(gs_state *))
 {
     gx_device hdev;
     int npop = in_upath(i_ctx_p, &hdev);
@@ -284,8 +282,8 @@ static const byte up_nargs[UPATH_MAX_OP + 1] = {
 };
 
 /* Declare operator procedures not declared in opextern.h. */
-int zsetbbox(P1(i_ctx_t *));
-private int zucache(P1(i_ctx_t *));
+int zsetbbox(i_ctx_t *);
+private int zucache(i_ctx_t *);
 
 #undef zp
 static const op_proc_t up_ops[UPATH_MAX_OP + 1] = {
@@ -400,8 +398,8 @@ zustrokepath(i_ctx_t *i_ctx_p)
 /* <with_ucache> upath <userpath> */
 /* We do all the work in a procedure that is also used to construct */
 /* the UnpaintedPath user path for ImageType 2 images. */
-int make_upath(P5(i_ctx_t *i_ctx_p, ref *rupath, gs_state *pgs, gx_path *ppath,
-		  bool with_ucache));
+int make_upath(i_ctx_t *i_ctx_p, ref *rupath, gs_state *pgs, gx_path *ppath,
+	       bool with_ucache);
 private int
 zupath(i_ctx_t *i_ctx_p)
 {
@@ -449,20 +447,29 @@ make_upath(i_ctx_t *i_ctx_p, ref *rupath, gs_state *pgs, gx_path *ppath,
     /* Construct the path. */
     next = rupath->value.refs;
     if (with_ucache) {
-	if ((code = name_enter_string("ucache", next)) < 0)
+        if ((code = name_enter_string(pgs->memory, "ucache", next)) < 0)
 	    return code;
 	r_set_attrs(next, a_executable | l_new);
 	++next;
     } {
 	gs_rect bbox;
 
-	gs_upathbbox(pgs, &bbox, true);
+	if ((code = gs_upathbbox(pgs, &bbox, true)) < 0) {
+	    /*
+	     * Note: Adobe throws 'nocurrentpoint' error, but the PLRM
+	     * not list this as a possible error from 'upath', so we
+	     * set a reasonable default bbox instead.
+	     */
+	    if (code != e_nocurrentpoint)
+		return code;
+	    bbox.p.x = bbox.p.y = bbox.q.x = bbox.q.y = 0;
+	}
 	make_real_new(next, bbox.p.x);
 	make_real_new(next + 1, bbox.p.y);
 	make_real_new(next + 2, bbox.q.x);
 	make_real_new(next + 3, bbox.q.y);
 	next += 4;
-	if ((code = name_enter_string("setbbox", next)) < 0)
+	if ((code = name_enter_string(pgs->memory, "setbbox", next)) < 0)
 	    return code;
 	r_set_attrs(next, a_executable | l_new);
 	++next;
@@ -505,7 +512,7 @@ make_upath(i_ctx_t *i_ctx_p, ref *rupath, gs_state *pgs, gx_path *ppath,
 		default:
 		    return_error(e_unregistered);
 	    }
-	    if ((code = name_enter_string(opstr, next)) < 0)
+	    if ((code = name_enter_string(pgs->memory, opstr, next)) < 0)
 		return code;
 	    r_set_attrs(next, a_executable);
 	    ++next;
@@ -517,27 +524,33 @@ make_upath(i_ctx_t *i_ctx_p, ref *rupath, gs_state *pgs, gx_path *ppath,
 /* ------ Internal routines ------ */
 
 /* Append a user path to the current path. */
-private int
-upath_append(os_ptr oppath, i_ctx_t *i_ctx_p)
+private inline int
+upath_append_aux(os_ptr oppath, i_ctx_t *i_ctx_p)
 {
+    ref opcodes;
     check_read(*oppath);
     gs_newpath(igs);
 /****** ROUND tx AND ty ******/
-    if (r_has_type(oppath, t_array) && r_size(oppath) == 2 &&
-	r_has_type(oppath->value.refs + 1, t_string)
-	) {			/* 1st element is operators, 2nd is operands */
-	const ref *operands = oppath->value.refs;
+    if (!r_is_array(oppath))
+	return_error(e_typecheck);
+    
+    if ( r_size(oppath) == 2 &&
+	 array_get(imemory, oppath, 1, &opcodes) >= 0 &&
+         r_has_type(&opcodes, t_string)
+	) {			/* 1st element is operands, 2nd is operators */
+	ref operands;
 	int code, format;
 	int repcount = 1;
 	const byte *opp;
 	uint ocount, i = 0;
 
-	code = num_array_format(operands);
+        array_get(imemory, oppath, 0, &operands);
+        code = num_array_format(&operands);
 	if (code < 0)
 	    return code;
 	format = code;
-	opp = oppath->value.refs[1].value.bytes;
-	ocount = r_size(&oppath->value.refs[1]);
+	opp = opcodes.value.bytes;
+	ocount = r_size(&opcodes);
 	while (ocount--) {
 	    byte opx = *opp++;
 
@@ -552,7 +565,7 @@ upath_append(os_ptr oppath, i_ctx_t *i_ctx_p)
 
 		    while (opargs--) {
 			push(1);
-			code = num_array_get(operands, format, i++, op);
+			code = num_array_get(imemory, &operands, format, i++, op);
 			switch (code) {
 			    case t_integer:
 				r_set_type_attrs(op, t_integer, 0);
@@ -572,7 +585,7 @@ upath_append(os_ptr oppath, i_ctx_t *i_ctx_p)
 		repcount = 1;
 	    }
 	}
-    } else if (r_is_array(oppath)) {	/* Ordinary executable array. */
+    } else {	/* Ordinary executable array. */
 	const ref *arp = oppath;
 	uint ocount = r_size(oppath);
 	long index = 0;
@@ -585,7 +598,7 @@ upath_append(os_ptr oppath, i_ctx_t *i_ctx_p)
 	    ref *defp;
 	    os_ptr op = osp;
 
-	    array_get(arp, index, &rup);
+	    array_get(imemory, arp, index, &rup);
 	    switch (r_type(&rup)) {
 		case t_integer:
 		case t_real:
@@ -622,8 +635,18 @@ upath_append(os_ptr oppath, i_ctx_t *i_ctx_p)
 	}
 	if (argcount)
 	    return_error(e_typecheck);	/* leftover args */
-    } else
-	return_error(e_typecheck);
+    }
+    return 0;
+}
+private int
+upath_append(os_ptr oppath, i_ctx_t *i_ctx_p)
+{
+    int code = upath_append_aux(oppath, i_ctx_p);
+
+    if (code < 0)
+	return code;
+    igs->current_point.x = fixed2float(igs->path->position.x);
+    igs->current_point.y = fixed2float(igs->path->position.y);
     return 0;
 }
 
@@ -636,7 +659,7 @@ upath_stroke(i_ctx_t *i_ctx_p, gs_matrix *pmat)
     int code, npop;
     gs_matrix mat;
 
-    if ((code = read_matrix(op, &mat)) >= 0) {
+    if ((code = read_matrix(imemory, op, &mat)) >= 0) {
 	if ((code = upath_append(op - 1, i_ctx_p)) >= 0) {
 	    if (pmat)
 		*pmat = mat;

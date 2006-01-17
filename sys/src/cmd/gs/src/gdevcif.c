@@ -1,22 +1,20 @@
 /* Copyright (C) 1993 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevcif.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
+/* $Id: gdevcif.c,v 1.6 2004/08/10 13:02:36 stefan Exp $*/
 /*
   CIF output driver
 
@@ -49,7 +47,7 @@ private int
 cif_print_page(gx_device_printer *pdev, FILE *prn_stream)
 {	int line_size = gdev_mem_bytes_per_scan_line((gx_device *)pdev);
 	int lnum;
-	byte *in = (byte *)gs_malloc(line_size, 1, "cif_print_page(in)");
+	byte *in = (byte *)gs_malloc(pdev->memory, line_size, 1, "cif_print_page(in)");
 	char *s;
 	int scanline, scanbyte;
 	int length, start; /* length is the number of successive 1 bits, */
@@ -62,12 +60,12 @@ cif_print_page(gx_device_printer *pdev, FILE *prn_stream)
 		length = strlen(pdev->fname) + 1;
 	else
 		length = s - pdev->fname;
-	s = (char *)gs_malloc(length, sizeof(char), "cif_print_page(s)");
+	s = (char *)gs_malloc(pdev->memory, length, sizeof(char), "cif_print_page(s)");
 
 	strncpy(s, pdev->fname, length);
 	*(s + length) = '\0';
 	fprintf(prn_stream, "DS1 25 1;\n9 %s;\nLCP;\n", s);
-	gs_free(s, length, 1, "cif_print_page(s)");
+	gs_free(pdev->memory, s, length, 1, "cif_print_page(s)");
 
    for (lnum = 0; lnum < pdev->height; lnum++) {   
       gdev_prn_copy_scan_lines(pdev, lnum, in, line_size);
@@ -96,6 +94,6 @@ cif_print_page(gx_device_printer *pdev, FILE *prn_stream)
 #endif
    }
 	fprintf(prn_stream, "DF;\nC1;\nE\n");
-	gs_free(in, line_size, 1, "cif_print_page(in)");
+	gs_free(pdev->memory, in, line_size, 1, "cif_print_page(in)");
 	return 0;
 }

@@ -1,39 +1,38 @@
 /* Copyright (C) 1996-2001 Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/* $Id: dwmain.c,v 1.6.2.1 2002/01/16 21:07:16 igorm Exp $ */
+/* $Id: dwmain.c,v 1.21 2004/09/15 19:41:01 ray Exp $ */
 /* Ghostscript DLL loader for Windows */
 
-#define STRICT
-#include <windows.h>
+#include "windows_.h"
 #include <shellapi.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "gscdefs.h"
 #define GSREVISION gs_revision
-#include "errors.h"
+#include "ierrors.h"
 #include "iapi.h"
+#include "vdtrace.h"
 
 #include "dwmain.h"
 #include "dwdll.h"
 #include "dwtext.h"
 #include "dwimg.h"
+#include "dwtrace.h"
 #include "dwreg.h"
 #include "gdevdsp.h"
 
@@ -124,7 +123,6 @@ static int display_open(void *handle, void *device)
 /* Device will not be closed until this function returns. */
 static int display_preclose(void *handle, void *device)
 {
-    IMAGE *img;
 #ifdef DISPLAY_DEBUG
     char buf[256];
     sprintf(buf, "display_preclose(0x%x, 0x$x)\n", handle, device);
@@ -227,6 +225,22 @@ static int display_update(void *handle, void *device,
     return poll();
 }
 
+int display_separation(void *handle, void *device, 
+   int comp_num, const char *name,
+   unsigned short c, unsigned short m,
+   unsigned short y, unsigned short k)
+{
+    IMAGE *img;
+#ifdef DISPLAY_DEBUG
+    fprintf(stdout, "display_separation(0x%x, 0x%x, %d '%s' %d,%d,%d,%d)\n", 
+	handle, device, comp_num, name, (int)c, (int)m, (int)y, (int)k);
+#endif
+    img = image_find(handle, device);
+    if (img)
+        image_separation(img, comp_num, name, c, m, y, k);
+    return 0;
+}
+
 display_callback display = { 
     sizeof(display_callback),
     DISPLAY_VERSION_MAJOR,
@@ -240,7 +254,8 @@ display_callback display = {
     display_page,
     display_update,
     NULL,	/* memalloc */
-    NULL	/* memfree */
+    NULL,	/* memfree */
+    display_separation
 };
 
 
@@ -249,12 +264,13 @@ display_callback display = {
 /* program really starts at WinMain */
 int new_main(int argc, char *argv[])
 {
-    int code;
+    int code, code1;
     int exit_status;
     int exit_code;
     int nargc;
     char **nargv;
     char dformat[64];
+    char ddpi[64];
     char buf[256];
 
     memset(buf, 0, sizeof(buf));
@@ -270,6 +286,11 @@ int new_main(int argc, char *argv[])
 	return 1;
     }
 
+#ifdef DEBUG
+    visual_tracer_init();
+    gsdll.set_visual_tracer(&visual_tracer);
+#endif
+
     gsdll.set_stdio(instance, gsdll_stdin, gsdll_stdout, gsdll_stderr);
     gsdll.set_poll(instance, gsdll_poll);
     gsdll.set_display_callback(instance, &display);
@@ -279,6 +300,7 @@ int new_main(int argc, char *argv[])
 		DISPLAY_DEPTH_1 | DISPLAY_LITTLEENDIAN | DISPLAY_BOTTOMFIRST;
 	HDC hdc = GetDC(NULL);	/* get hdc for desktop */
 	int depth = GetDeviceCaps(hdc, PLANES) * GetDeviceCaps(hdc, BITSPIXEL);
+	sprintf(ddpi, "-dDisplayResolution=%d", GetDeviceCaps(hdc, LOGPIXELSY));
         ReleaseDC(NULL, hdc);
 	if (depth == 32)
  	    format = DISPLAY_COLORS_RGB | DISPLAY_UNUSED_LAST | 
@@ -298,18 +320,34 @@ int new_main(int argc, char *argv[])
 		DISPLAY_DEPTH_4 | DISPLAY_LITTLEENDIAN | DISPLAY_BOTTOMFIRST;
         sprintf(dformat, "-dDisplayFormat=%d", format);
     }
-    nargc = argc + 1;
+    nargc = argc + 2;
     nargv = (char **)malloc((nargc + 1) * sizeof(char *));
     nargv[0] = argv[0];
     nargv[1] = dformat;
-    memcpy(&nargv[2], &argv[1], argc * sizeof(char *));
+    nargv[2] = ddpi;
+    memcpy(&nargv[3], &argv[1], argc * sizeof(char *));
 
+#if defined(_MSC_VER) || defined(__BORLANDC__)
+    __try {
+#endif
     code = gsdll.init_with_args(instance, nargc, nargv);
     if (code == 0)
 	code = gsdll.run_string(instance, start_string, 0, &exit_code);
-    gsdll.exit(instance);
+    code1 = gsdll.exit(instance);
+    if (code == 0 || (code == e_Quit && code1 != 0))
+	code = code1;
+#if defined(_MSC_VER) || defined(__BORLANDC__)
+    } __except(exception_code() == EXCEPTION_STACK_OVERFLOW) {
+        code = e_Fatal;
+        text_puts(tw, "*** C stack overflow. Quiting...\n");
+    }
+#endif
 
     gsdll.delete_instance(instance);
+
+#ifdef DEBUG
+    visual_tracer_close();
+#endif
 
     unload_dll(&gsdll);
 
@@ -466,7 +504,6 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmd
     
     if (dll_exit_status && !tw->quitnow) {
 	/* display error message in text window */
-	char buf[80];
 	MSG msg;
 	text_puts(tw, "\nClose this window with the close button on the title bar or the system menu.\n");
 	if (IsIconic(text_get_handle(tw)))

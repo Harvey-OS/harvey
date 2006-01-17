@@ -1,22 +1,20 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevcslw.c,v 1.2 2000/09/19 19:00:12 lpd Exp $ */
+/* $Id: gdevcslw.c,v 1.5 2004/08/10 13:02:36 stefan Exp $ */
 /* CoStar LabelWriter II, II Plus driver for Ghostscript */
 /* Contributed by Mike McCauley mikem@open.com.au        */
 
@@ -56,7 +54,7 @@ coslw_print_page(gx_device_printer * pdev, FILE * prn_stream)
     int line_size = gdev_mem_bytes_per_scan_line((gx_device *) pdev);
     int line_size_words = (line_size + W - 1) / W;
     uint storage_size_words = line_size_words * 8;	/* data, out_row, out_row_alt, prev_row */
-    word *storage = (ulong *) gs_malloc(storage_size_words, W,
+    word *storage = (ulong *) gs_malloc(pdev->memory, storage_size_words, W,
 					"coslw_print_page");
 
     word *data_words;
@@ -143,7 +141,7 @@ coslw_print_page(gx_device_printer * pdev, FILE * prn_stream)
     fputs("\033E", prn_stream);
 
     /* free temporary storage */
-    gs_free((char *)storage, storage_size_words, W, "coslw_print_page");
+    gs_free(pdev->memory, (char *)storage, storage_size_words, W, "coslw_print_page");
 
     return code;
 }

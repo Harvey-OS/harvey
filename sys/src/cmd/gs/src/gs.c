@@ -1,29 +1,28 @@
 /* Copyright (C) 1989, 1995, 1996, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gs.c,v 1.6 2001/04/08 08:43:24 ghostgum Exp $ */
+/* $Id: gs.c,v 1.14 2004/09/15 19:41:01 ray Exp $ */
 /* 'main' program for Ghostscript */
 #include "ghost.h"
 #include "imain.h"
 #include "imainarg.h"
 #include "iapi.h"
 #include "iminst.h"
-#include "errors.h"
+#include "ierrors.h"
+#include "gsmalloc.h"
 
 /* Define an optional array of strings for testing. */
 /*#define RUN_STRINGS */
@@ -43,7 +42,8 @@ int
 main(int argc, char *argv[])
 {
     int exit_status = 0;
-    gs_main_instance *minst = gs_main_instance_default();
+    gs_main_instance *minst = gs_main_alloc_instance(gs_malloc_init(NULL));
+
     int code = gs_main_init_with_args(minst, argc, argv);
 
 #ifdef RUN_STRINGS
@@ -63,7 +63,7 @@ main(int argc, char *argv[])
 	    fprintf(stdout, " => code = %d\n", code);
 	    fflush(stdout);
 	    if (code < 0) {
-		gs_exit(1);
+		gs_to_exit(1);
 		return 1;
 	    }
 	}
@@ -86,7 +86,15 @@ main(int argc, char *argv[])
 	    exit_status = 255;
     }
 
-    gs_exit_with_code(exit_status, code);
+    gs_to_exit_with_code(minst->heap, exit_status, code);
 
+    switch (exit_status) {
+	case 0:
+	    exit_status =  exit_OK;
+	    break;
+	case 1:
+	    exit_status =  exit_FAILED;
+	    break;
+    }
     return exit_status;
 }

@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gximage2.c,v 1.2 2000/09/19 19:00:38 lpd Exp $ */
+/* $Id: gximage2.c,v 1.5 2002/08/22 07:12:29 henrys Exp $ */
 /* ImageType 2 image implementation */
 #include "math_.h"
 #include "memory_.h"
@@ -31,6 +29,7 @@
 #include "gxgetbit.h"
 #include "gxiparam.h"
 #include "gxpath.h"
+#include "gscolor2.h"
 
 /* Forward references */
 private dev_proc_begin_typed_image(gx_begin_image2);
@@ -113,23 +112,29 @@ gx_begin_image2(gx_device * dev,
     gs_state *pgs = pim->DataSource;
     gx_device *sdev = gs_currentdevice(pgs);
     int depth = sdev->color_info.depth;
-
-/****** ONLY HANDLE depth <= 8 FOR PixelCopy ******/
-    bool pixel_copy = pim->PixelCopy && depth <= 8 &&
-    !memcmp(&dev->color_info, &sdev->color_info,
-	    sizeof(dev->color_info));
+    bool pixel_copy = pim->PixelCopy;
     bool has_alpha;
-    bool direct_copy;
+    bool direct_copy = false;
     image2_data_t idata;
     byte *row;
     uint row_size, source_size;
     gx_image_enum_common_t *info;
     gs_matrix smat, dmat;
-    gs_color_space cs;
-    const gs_color_space *pcs;
     int code;
 
-    gs_image_t_init_rgb(&idata.image, pis);
+    /* verify that color models are the same for PixelCopy */
+    if ( pixel_copy                            &&
+         memcmp( &dev->color_info,
+                 &sdev->color_info,
+                 sizeof(dev->color_info) ) != 0  )
+        return_error(gs_error_typecheck);
+
+/****** ONLY HANDLE depth <= 8 FOR PixelCopy ******/
+    if (pixel_copy && depth <= 8)
+        return_error(gs_error_unregistered);
+
+    gs_image_t_init(&idata.image, gs_currentcolorspace((const gs_state *)pis));
+
     /* Add Decode entries for K and alpha */
     idata.image.Decode[6] = idata.image.Decode[8] = 0.0;
     idata.image.Decode[7] = idata.image.Decode[9] = 1.0;
@@ -154,38 +159,36 @@ gx_begin_image2(gx_device * dev,
     row = gs_alloc_bytes(mem, row_size, "gx_begin_image2");
     if (row == 0)
 	return_error(gs_error_VMerror);
-    if (pixel_copy &&
-	(pcpath == NULL ||
-	 gx_cpath_includes_rectangle(pcpath,
+    if (pixel_copy) {
+	idata.image.BitsPerComponent = depth;
+	has_alpha = false;	/* no separate alpha channel */
+
+	if ( pcpath == NULL ||
+	     gx_cpath_includes_rectangle(pcpath,
 				     int2fixed(idata.bbox.p.x),
 				     int2fixed(idata.bbox.p.y),
 				     int2fixed(idata.bbox.q.x),
-				     int2fixed(idata.bbox.q.y)))
-	) {
-	gs_matrix mat;
+				     int2fixed(idata.bbox.q.y)) ) {
+	    gs_matrix mat;
 
-	idata.image.BitsPerComponent = depth;
-	gs_cspace_init_DevicePixel(&cs, depth);
-	pcs = &cs;
-	/*
-	 * Figure 7.2 of the Adobe 3010 Supplement says that we should
-	 * compute CTM x ImageMatrix here, but I'm almost certain it
-	 * should be the other way around.  Also see gdevx.c.
-	 */
-	gs_matrix_multiply(&idata.image.ImageMatrix, &smat, &mat);
-	direct_copy =
-	    (is_xxyy(&dmat) || is_xyyx(&dmat)) &&
+
+	    /*
+	     * Figure 7.2 of the Adobe 3010 Supplement says that we should
+	     * compute CTM x ImageMatrix here, but I'm almost certain it
+	     * should be the other way around.  Also see gdevx.c.
+	     */
+	    gs_matrix_multiply(&idata.image.ImageMatrix, &smat, &mat);
+	    direct_copy =
+	        (is_xxyy(&dmat) || is_xyyx(&dmat)) &&
 #define eqe(e) mat.e == dmat.e
-	    eqe(xx) && eqe(xy) && eqe(yx) && eqe(yy);
+	        eqe(xx) && eqe(xy) && eqe(yx) && eqe(yy);
 #undef eqe
-	has_alpha = false;	/* no separate alpha channel */
+        }
     } else {
-	pixel_copy = false;
 	idata.image.BitsPerComponent = 8;
-	/* Always use RGB source color for now. */
-	pcs = gs_cspace_DeviceRGB(pis);
-	direct_copy = false;
-	/*
+
+	/* Always use RGB source color for now.
+         *
 	 * The source device has alpha if the same RGB values with
 	 * different alphas map to different pixel values.
 	 ****** THIS IS NOT GOOD ENOUGH: WE WANT TO SKIP TRANSFERRING
@@ -213,7 +216,6 @@ gx_begin_image2(gx_device * dev,
 		 gx_max_color_value, gx_max_color_value);
 	}
     }
-    idata.image.ColorSpace = pcs;
     idata.image.Alpha =
 	(has_alpha ? gs_image_alpha_last : gs_image_alpha_none);
     if (smat.yy < 0) {

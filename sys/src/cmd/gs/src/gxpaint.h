@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 1995, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxpaint.h,v 1.2 2000/09/19 19:00:39 lpd Exp $ */
+/* $Id: gxpaint.h,v 1.5 2002/06/16 08:45:43 lpd Exp $ */
 /* Internal interface to fill/stroke */
 /* Requires gsropt.h, gxfixed.h, gxpath.h */
 
@@ -50,16 +48,16 @@ typedef struct gx_device_color_s gx_device_color;
  * They are implemented in gxpaint.c.
  */
 
-int gx_fill_path(P6(gx_path * ppath, gx_device_color * pdevc, gs_state * pgs,
-		    int rule, fixed adjust_x, fixed adjust_y));
-int gx_stroke_fill(P2(gx_path * ppath, gs_state * pgs));
-int gx_stroke_add(P3(gx_path *ppath, gx_path *to_path, const gs_state * pgs));
+int gx_fill_path(gx_path * ppath, gx_device_color * pdevc, gs_state * pgs,
+		 int rule, fixed adjust_x, fixed adjust_y);
+int gx_stroke_fill(gx_path * ppath, gs_state * pgs);
+int gx_stroke_add(gx_path *ppath, gx_path *to_path, const gs_state * pgs);
 /*
  * gx_imager_stroke_add needs a device for the sake of absolute-length
  * dots (and for no other reason).
  */
-int gx_imager_stroke_add(P4(gx_path *ppath, gx_path *to_path,
-			    gx_device *dev, const gs_imager_state *pis));
+int gx_imager_stroke_add(gx_path *ppath, gx_path *to_path,
+			 gx_device *dev, const gs_imager_state *pis);
 
 /* ------ Imager procedures ------ */
 
@@ -67,7 +65,7 @@ int gx_imager_stroke_add(P4(gx_path *ppath, gx_path *to_path,
  * Tweak the fill adjustment if necessary so that (nearly) empty
  * rectangles are guaranteed to produce some output.
  */
-void gx_adjust_if_empty(P2(const gs_fixed_rect *, gs_fixed_point *));
+void gx_adjust_if_empty(const gs_fixed_rect *, gs_fixed_point *);
 
 /*
  * Compute the amount by which to expand a stroked bounding box to account
@@ -79,8 +77,8 @@ void gx_adjust_if_empty(P2(const gs_fixed_rect *, gs_fixed_point *));
  * amount if the miter limit is large.  If this matters, use strokepath +
  * pathbbox.
  */
-int gx_stroke_path_expansion(P3(const gs_imager_state *pis,
-				const gx_path *ppath, gs_fixed_point *ppt));
+int gx_stroke_path_expansion(const gs_imager_state *pis,
+			     const gx_path *ppath, gs_fixed_point *ppt);
 
 /* Backward compatibility */
 #define gx_stroke_expansion(pis, ppt)\
@@ -116,10 +114,10 @@ struct gx_stroke_params_s {
     float flatness;
 };
 
-int gx_stroke_path_only(P7(gx_path * ppath, gx_path * to_path, gx_device * dev,
-			   const gs_imager_state * pis,
-			   const gx_stroke_params * params,
-			   const gx_device_color * pdevc,
-			   const gx_clip_path * pcpath));
+int gx_stroke_path_only(gx_path * ppath, gx_path * to_path, gx_device * dev,
+			const gs_imager_state * pis,
+			const gx_stroke_params * params,
+			const gx_device_color * pdevc,
+			const gx_clip_path * pcpath);
 
 #endif /* gxpaint_INCLUDED */

@@ -1,28 +1,27 @@
 /* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gscspace.h,v 1.8 2001/08/21 23:52:36 dancoby Exp $ */
+/* $Id: gscspace.h,v 1.14 2004/08/04 19:36:12 stefan Exp $ */
 /* Client interface to color spaces */
 
 #ifndef gscspace_INCLUDED
 #  define gscspace_INCLUDED
 
 #include "gsmemory.h"
+#include "gsiparam.h"
 
 /*
  * The handling of color spaces in the graphic library is somewhat
@@ -269,27 +268,16 @@ typedef struct gs_base_color_space_s {
 
 #define gs_base_color_space_size sizeof(gs_base_color_space)
 
+#ifndef gs_device_n_map_DEFINED
+#  define gs_device_n_map_DEFINED
+typedef struct gs_device_n_map_s gs_device_n_map;
+#endif
 
 /*
  * Non-base direct color spaces: Separation and DeviceN.
  * These include a base alternative color space.
  */
 typedef ulong gs_separation_name;	/* BOGUS */
-typedef struct gs_indexed_map_s gs_indexed_map;
-
-typedef enum { SEP_NONE, SEP_ALL, SEP_OTHER } separation_type;
-
-typedef struct gs_separation_params_s {
-    gs_separation_name sname;
-    gs_base_color_space alt_space;
-    gs_indexed_map *map;
-    separation_type sep_type;
-} gs_separation_params;
-
-#ifndef gs_device_n_map_DEFINED
-#  define gs_device_n_map_DEFINED
-typedef struct gs_device_n_map_s gs_device_n_map;
-#endif
 
 /*
  * Define callback function for graphics library to ask
@@ -299,13 +287,25 @@ typedef struct gs_device_n_map_s gs_device_n_map;
  * names.
  */
 typedef int (gs_callback_func_get_colorname_string)
-    (P3(gs_separation_name colorname, unsigned char **ppstr, unsigned int *plen));
+     (const gs_memory_t *mem, gs_separation_name colorname, unsigned char **ppstr, unsigned int *plen);
+
+typedef enum { SEP_NONE, SEP_ALL, SEP_OTHER } separation_type;
+
+typedef struct gs_separation_params_s {
+    gs_separation_name sep_name;
+    gs_base_color_space alt_space;
+    gs_device_n_map *map;
+    separation_type sep_type;
+    bool use_alt_cspace;
+    gs_callback_func_get_colorname_string *get_colorname_string;
+} gs_separation_params;
 
 typedef struct gs_device_n_params_s {
     gs_separation_name *names;
     uint num_components;
     gs_base_color_space alt_space;
     gs_device_n_map *map;
+    bool use_alt_cspace;
     gs_callback_func_get_colorname_string *get_colorname_string;
 } gs_device_n_params;
 
@@ -327,6 +327,8 @@ typedef struct gs_direct_color_space_s {
  * which is one less than the number of entries in the palette (as defined
  * in PostScript).
  */
+
+typedef struct gs_indexed_map_s gs_indexed_map;
 
 typedef struct gs_indexed_params_s {
     gs_direct_color_space base_space;
@@ -424,70 +426,55 @@ typedef struct gs_color_space_s gs_color_space;
  */
 
 extern int
-    gs_cspace_init_DeviceGray(P1(gs_color_space *pcs)),
-    gs_cspace_build_DeviceGray(P2(gs_color_space ** ppcspace,
-				  gs_memory_t * pmem)),
-    gs_cspace_init_DeviceRGB(P1(gs_color_space *pcs)),
-    gs_cspace_build_DeviceRGB(P2(gs_color_space ** ppcspace,
-				 gs_memory_t * pmem)),
-    gs_cspace_init_DeviceCMYK(P1(gs_color_space *pcs)),
-    gs_cspace_build_DeviceCMYK(P2(gs_color_space ** ppcspace,
-				  gs_memory_t * pmem));
-
-/*
- * We preallocate instances of the 3 device color spaces, and provide
- * procedures that return them.  Note that gs_cspace_DeviceCMYK() is
- * defined even if CMYK color support is not included in this configuration.
- */
-#ifndef gs_imager_state_DEFINED
-#  define gs_imager_state_DEFINED
-typedef struct gs_imager_state_s gs_imager_state;
-#endif
-
-const gs_color_space * gs_cspace_DeviceGray(P1(const gs_imager_state * pis));
-const gs_color_space * gs_cspace_DeviceRGB(P1(const gs_imager_state * pis));
-const gs_color_space * gs_cspace_DeviceCMYK(P1(const gs_imager_state * pis));
+    gs_cspace_init_DeviceGray(const gs_memory_t *mem, gs_color_space *pcs),
+    gs_cspace_build_DeviceGray(gs_color_space ** ppcspace,
+				  gs_memory_t * pmem),
+    gs_cspace_init_DeviceRGB(const gs_memory_t *mem, gs_color_space *pcs),
+    gs_cspace_build_DeviceRGB(gs_color_space ** ppcspace,
+                              gs_memory_t * pmem),
+    gs_cspace_init_DeviceCMYK(const gs_memory_t *mem, gs_color_space *pcs),
+    gs_cspace_build_DeviceCMYK(gs_color_space ** ppcspace,
+                               gs_memory_t * pmem);
 
 /* Copy a color space into one newly allocated by the caller. */
-void gs_cspace_init_from(P2(gs_color_space * pcsto,
-			    const gs_color_space * pcsfrom));
+void gs_cspace_init_from(gs_color_space * pcsto,
+			 const gs_color_space * pcsfrom);
 
 /* Assign a color space into a previously initialized one. */
-void gs_cspace_assign(P2(gs_color_space * pdest, const gs_color_space * psrc));
+void gs_cspace_assign(gs_color_space * pdest, const gs_color_space * psrc);
 
 /* Prepare to free a color space. */
-void gs_cspace_release(P1(gs_color_space * pcs));
+void gs_cspace_release(gs_color_space * pcs);
 
 /* ------ Accessors ------ */
 
 /* Get the index of a color space. */
-gs_color_space_index gs_color_space_get_index(P1(const gs_color_space *));
+gs_color_space_index gs_color_space_get_index(const gs_color_space *);
 
 /* Get the number of components in a color space. */
-int gs_color_space_num_components(P1(const gs_color_space *));
+int gs_color_space_num_components(const gs_color_space *);
 
 /*
  * Test whether two color spaces are equal.  Note that this test is
  * conservative: if it returns true, the color spaces are definitely
  * equal, while if it returns false, they might still be equivalent.
  */
-bool gs_color_space_equal(P2(const gs_color_space *pcs1,
-			     const gs_color_space *pcs2));
+bool gs_color_space_equal(const gs_color_space *pcs1,
+			  const gs_color_space *pcs2);
 
 /* Restrict a color to its legal range. */
 #ifndef gs_client_color_DEFINED
 #  define gs_client_color_DEFINED
 typedef struct gs_client_color_s gs_client_color;
 #endif
-void gs_color_space_restrict_color(P2(gs_client_color *,
-				      const gs_color_space *));
+void gs_color_space_restrict_color(gs_client_color *, const gs_color_space *);
 
 /*
  * Get the base space of an Indexed or uncolored Pattern color space, or the
  * alternate space of a Separation or DeviceN space.  Return NULL if the
  * color space does not have a base/alternative color space.
  */
-const gs_color_space *gs_cspace_base_space(P1(const gs_color_space * pcspace));
+const gs_color_space *gs_cspace_base_space(const gs_color_space * pcspace);
 
 /* backwards compatibility */
 #define gs_color_space_indexed_base_space(pcspace)\

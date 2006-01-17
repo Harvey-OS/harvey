@@ -1,25 +1,24 @@
 #    Copyright (C) 2001 Artifex Software, Inc.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: macos-fw.mak,v 1.1.2.1 2002/02/01 06:18:37 giles Exp $
+# $Id: macos-fw.mak,v 1.7 2003/09/03 03:22:59 giles Exp $
 # Partial makefile for MacOS X/Darwin shared object target
 
 # Useful make commands:
 #  make framework	make ghostscript as a MacOS X framework
+#  make framework_install install the framework
 #  make so		make ghostscript as a shared object
 #  make sodebug		make debug ghostscript as a shared object
 #  make soinstall	install shared object ghostscript
@@ -41,11 +40,6 @@ SOBINRELDIR=../sobin
 GSSOC_XENAME=$(GS)c$(XE)
 GSSOC_XE=$(BINDIR)/$(GSSOC_XENAME)
 GSSOC=$(BINDIR)/$(SOBINRELDIR)/$(GSSOC_XENAME)
-
-# loader suporting display device using Gtk+
-GSSOX_XENAME=$(GS)x$(XE)
-GSSOX_XE=$(BINDIR)/$(GSSOX_XENAME)
-GSSOX=$(BINDIR)/$(SOBINRELDIR)/$(GSSOX_XENAME)
 
 # shared library
 #SOPREF=.so
@@ -73,10 +67,8 @@ $(GS_SO_MAJOR): $(GS_SO_MAJOR_MINOR)
 	$(RM_) $(GS_SO_MAJOR)
 	ln -s $(GS_SONAME_MAJOR_MINOR) $(GS_SO_MAJOR)
 
-# Build the small Ghostscript loaders, with Gtk+ and without
-
-$(GSSOX_XE): $(GS_SO) $(GLSRC)dxmain.c
-	$(GLCC) -g `gtk-config --cflags` -o $(GSSOX_XE) $(GLSRC)dxmain.c -L$(BINDIR) -l$(GS) `gtk-config --libs`
+# Build the small Ghostscript loaders
+# it would be nice if we could link to the framework instead
 
 $(GSSOC_XE): $(GS_SO) $(GLSRC)dxmainc.c
 	$(GLCC) -g -o $(GSSOC_XE) $(GLSRC)dxmainc.c -L$(BINDIR) -l$(GS)
@@ -144,13 +136,17 @@ framework: so lib/Info-macos.plist
 	ln -s Versions/Current/doc . ;\
 	ln -s Versions/Current/$(FRAMEWORK_NAME) . )
 	pwd
-	cp src/iapi.h src/errors.h src/gdevdsp.h $(GS_FRAMEWORK)/Headers/
+	cp src/iapi.h src/ierrors.h src/gdevdsp.h $(GS_FRAMEWORK)/Headers/
 	cp lib/Info-macos.plist $(GS_FRAMEWORK)/Resources/
 	cp -r lib $(GS_FRAMEWORK)/Resources/
 	cp $(BINDIR)/$(SOBINRELDIR)/$(GS_SONAME_MAJOR_MINOR) $(GS_FRAMEWORK)/Versions/Current/$(FRAMEWORK_NAME)
 	cp -r man $(GS_FRAMEWORK)/Versions/Current
 	cp -r doc $(GS_FRAMEWORK)/Versions/Current
-        
+
+framework_install : framework
+	rm -rf $(prefix)
+	cp -r $(GS_FRAMEWORK) $(prefix)
+
 # Make the build directories
 SODIRS: STDDIRS
 	@if test ! -d $(BINDIR)/$(SOBINRELDIR); then mkdir $(BINDIR)/$(SOBINRELDIR); fi

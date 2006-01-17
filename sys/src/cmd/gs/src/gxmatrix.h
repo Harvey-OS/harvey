@@ -1,28 +1,30 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxmatrix.h,v 1.4 2000/09/19 19:00:39 lpd Exp $ */
+/* $Id: gxmatrix.h,v 1.10 2004/08/31 13:49:33 igor Exp $ */
 /* Internal matrix routines for Ghostscript library */
 
 #ifndef gxmatrix_INCLUDED
 #  define gxmatrix_INCLUDED
 
 #include "gsmatrix.h"
+
+/* The following switch is for developmenty purpose only. 
+   PRECISE_CURRENTPOINT 0 must not go to production due to no clamping. */
+#define PRECISE_CURRENTPOINT 1 /* Old code compatible with dropped clamping = 0, new code = 1 */
 
 /*
  * Define a matrix with a cached fixed-point copy of the translation.
@@ -31,20 +33,29 @@
  * tx/ty values may be too large to fit in a fixed values; txy_fixed_valid
  * is false if this is the case, and true otherwise.
  */
-typedef struct gs_matrix_fixed_s {
+struct gs_matrix_fixed_s {
     _matrix_body;
     fixed tx_fixed, ty_fixed;
     bool txy_fixed_valid;
-} gs_matrix_fixed;
+};
+
+#ifndef gs_matrix_fixed_DEFINED
+#define gs_matrix_fixed_DEFINED
+typedef struct gs_matrix_fixed_s gs_matrix_fixed;
+#endif
 
 /* Make a gs_matrix_fixed from a gs_matrix. */
-int gs_matrix_fixed_from_matrix(P2(gs_matrix_fixed *, const gs_matrix *));
+int gs_matrix_fixed_from_matrix(gs_matrix_fixed *, const gs_matrix *);
 
 /* Coordinate transformations to fixed point. */
-int gs_point_transform2fixed(P4(const gs_matrix_fixed *, floatp, floatp,
-				gs_fixed_point *));
-int gs_distance_transform2fixed(P4(const gs_matrix_fixed *, floatp, floatp,
-				   gs_fixed_point *));
+int gs_point_transform2fixed(const gs_matrix_fixed *, floatp, floatp,
+			     gs_fixed_point *);
+int gs_distance_transform2fixed(const gs_matrix_fixed *, floatp, floatp,
+				gs_fixed_point *);
+#if PRECISE_CURRENTPOINT
+int gs_point_transform2fixed_rounding(const gs_matrix_fixed * pmat,
+			 floatp x, floatp y, gs_fixed_point * ppt);
+#endif
 
 /*
  * Define the fixed-point coefficient structure for avoiding
@@ -70,7 +81,7 @@ typedef struct {
  * prevent overflow for integer arithmetic.  (This is a very custom
  * routine.)  The intermediate value may exceed the size of a long integer.
  */
-fixed fixed_coeff_mult(P4(fixed, long, const fixed_coeff *, int));
+fixed fixed_coeff_mult(fixed, long, const fixed_coeff *, int);
 
 /*
  * Multiply a fixed whose integer part usually does not exceed max_bits

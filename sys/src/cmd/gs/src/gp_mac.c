@@ -1,21 +1,23 @@
-/* Copyright (C) 1989 - 1995, 1997 Artifex Software, Inc.  All rights reserved.
+/* Copyright (C) 1989 - 1995, 2001-2003 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing. Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC. The License grants you
-  the right to copy, modify and redistribute AFPL Ghostscript, but only
-  under certain conditions described in the License. Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
+/* $Id: gp_mac.c,v 1.17 2004/12/08 05:04:29 giles Exp $ */
+/* platform-specific routines for MacOS */
+
+#ifndef __CARBON__
 #include <Palettes.h>
 #include <Aliases.h>
 #include <Quickdraw.h>
@@ -25,6 +27,7 @@
 #include <Controls.h>
 #include <Script.h>
 #include <Timer.h>
+#include <Time.h>
 #include <Folders.h>
 #include <Resources.h>
 #include <Sound.h>
@@ -37,59 +40,41 @@
 #include <Fonts.h>
 #include <FixMath.h>
 #include <Resources.h>
-#include "math_.h"
-#include <string.h>
+#else
+#include <Carbon.h>
+#endif
+
 #include <stdlib.h>
-
-
-#include <Time.h>
-#include <sys/time.h>
-#include <sys/types.h>
+#include "math_.h"
+#include "string_.h"
+#include "time_.h"
 #include "memory_.h"
 #include "string_.h"
+
 #include "gx.h"
 #include "gp.h"
 #include "gsdll.h"
 #include "gpcheck.h"
 #include "gp_mac.h"
 #include "gdebug.h"
-#include "sys/stat.h"
-#include <stdarg.h>
 /*#include "gpgetenv.h"*/
 #include "gsexit.h"
 
 HWND hwndtext;	/* used as identifier for the dll instance */
 
 
-void
-noMemoryExit(void)
-{
-	Alert(307, NULL);
-	ExitToShell();
-}
-
 char *
-mygetenv(const char * env) {
-
-	char 			*p;
-	FSSpec			pFile;
-	OSErr			err = 0;
-	char			fpath[256]="";
-	
-	return 0;
-	
+mygetenv(const char * env)
+{
+	return (NULL);	
 }
-
-
 
 void
 gp_init (void)
-
 {
 	extern char    *gs_lib_default_path;
 	extern char    *gs_init_file;
 	
-
 #if 0
 	/*...Initialize Ghostscript's default library paths and initialization file...*/
 
@@ -104,7 +89,7 @@ gp_init (void)
 		{
 			GetIndString (string, MACSTRS_RES_ID, i);
 			(void) PtoCstr (string);
-			*p = gs_malloc (1, (size_t) (strlen ((char *) string) + 1), "gp_init");
+			*p = malloc ((size_t) (strlen ((char *) string) + 1));
 			strcpy (*p, (char *) string);
 		}
 	}
@@ -120,7 +105,7 @@ gp_exit(int exit_status, int code)
 void
 gp_do_exit(int exit_status)
 {
-/*    exit(exit_status);*/
+    exit(exit_status);
 }
 
 /* gettimeofday */
@@ -131,14 +116,14 @@ int
 gettimeofday(struct timeval *tvp)
 {
     struct tm tms;
-    static unsigned long offset = 0;
+    static long offset = 0;
     long ticks;
 
     if (!offset) {
 	time(&offset);
-	offset -= (time((unsigned long *)&tms) / HZ);
+	offset -= (time((long *)&tms) / HZ);
     }
-    ticks = time((unsigned long *)&tms);
+    ticks = time((long *)&tms);
     tvp->tv_sec = ticks / HZ + offset;
     tvp->tv_usec = (ticks % HZ) * (1000 * 1000 / HZ);
     return 0;
@@ -157,7 +142,7 @@ gp_get_realtime(long *pdt)
 
 	if (gettimeofday(&tp) == -1) {
 	    lprintf("Ghostscript: gettimeofday failed!\n");
-	    gs_exit(1);
+	    gs_abort(NULL);
 	}
 
     /* tp.tv_sec is #secs since Jan 1, 1970 */
@@ -188,7 +173,7 @@ gp_get_usertime(long *pdt)
  * If no string is available, return NULL.  The caller may assume
  * the string is allocated statically and permanently.
  */
-const char *	gp_strerror(P1(int))
+const char *	gp_strerror(int)
 {
 	return NULL;
 }
@@ -238,9 +223,8 @@ UnsignedWide beginMicroTickCount={0,0};
 /* Read the current date (in days since Jan. 1, 1980) */
 /* and time (in nanoseconds since midnight). */
 
-	void
+void
 gpp_get_realtime (long *pdt)
-
 {
 
     UnsignedWide microTickCount,
@@ -266,7 +250,7 @@ gpp_get_realtime (long *pdt)
     nMicroTickCount.hi = microTickCount.hi - beginMicroTickCount.hi;
     
 	GetDateTime ((unsigned long *) &secs);
-	//SecondsToDate (secs, &dateRec);
+	SecondsToDate (secs, &dateRec);
 
 
 	/* If the date is reasonable, subtract the days since Jan. 1, 1980 */
@@ -322,12 +306,30 @@ gpp_get_usertime(long *pdt)
 }
 
 
+/* ------ Persistent data cache ------*/
+
+/* insert a buffer under a (type, key) pair */
+int gp_cache_insert(int type, byte *key, int keylen, void *buffer, int buflen)
+{
+    /* not yet implemented */
+    return 0;
+}
+
+/* look up a (type, key) in the cache */
+int gp_cache_query(int type, byte* key, int keylen, void **buffer,
+    gp_cache_alloc alloc, void *userdata)
+{
+    /* not yet implemented */
+    return -1;
+}
+
+
 /* ------ Screen management ------ */
 
 /* Initialize the console. */
 /* do nothing, we did it in gp_init()! */
 void
-gp_init_console(P0())
+gp_init_console(void)
 {
 }
 
@@ -341,44 +343,9 @@ gp_console_puts (const char *str, uint size)
 	return;
 }
 
-/* Make the console current on the screen. */
-/*
-int
-gp_make_console_current (gx_device *dev)
-{
-	return 0;
-}
-*/
-
-/* Make the graphics current on the screen. */
-/*
-int
-gp_make_graphics_current (gx_device *dev)
-{
-	return 0;
-}
-*/
-
 const char *
-gp_getenv_display(P0())
+gp_getenv_display(void)
 {
 	return NULL;
-}
-
-
-int
-gp_check_interrupts(void)
-{
-	static unsigned long	lastYieldTicks = 0;
-	
-	if ((TickCount() - lastYieldTicks) > 2) {
-		lastYieldTicks = TickCount();
-		/* the hwnd parameter which is submitted in gsdll_init to the DLL */
-		/* is returned in every gsdll_poll message in the count parameter */
-		return (*pgsdll_callback) (GSDLL_POLL, 0, (long) hwndtext);
-		return 0;
-	} else {
-		return 0;
-	}
 }
 

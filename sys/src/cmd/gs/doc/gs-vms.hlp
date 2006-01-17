@@ -1,7 +1,7 @@
 1 gs
  gs - AFPL Ghostscript interpreter/previewer
-! $Id: gs-vms.hlp,v 1.12.2.2 2002/02/01 05:31:25 raph Exp $
-! Ghostscript version 7.04, 31 January 2002
+! $Id: gs-vms.hlp,v 1.37 2005/10/20 19:46:23 ray Exp $
+! Ghostscript version 8.53, 20 October 2005
   Usage:
    $ gs [options] [file ...]
 

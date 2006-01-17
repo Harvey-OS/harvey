@@ -1,22 +1,20 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevxcmp.c,v 1.2 2000/09/19 19:00:23 lpd Exp $ */
+/* $Id: gdevxcmp.c,v 1.9 2004/08/04 19:36:12 stefan Exp $ */
 /* X Windows color mapping */
 #include "math_.h"
 #include "x_.h"
@@ -28,9 +26,9 @@
 /* ---------------- Utilities ---------------- */
 
 private void
-gs_x_free(void *obj, client_name_t cname)
+gs_x_free(gs_memory_t *mem, void *obj, client_name_t cname)
 {
-    gs_free(obj, 0 /*ignored*/, 0 /*ignored*/, cname);
+    gs_free(mem, obj, 0 /*ignored*/, 0 /*ignored*/, cname);
 }
 
 /* ---------------- Color mapping setup / cleanup ---------------- */
@@ -120,6 +118,9 @@ alloc_std_cmap(gx_device_X *xdev, bool colored)
 	    cmap->blue_max >>= 1;
 	    cmap->blue_mult <<= 1;
 	}
+    } else {
+        cmap->green_max = cmap->blue_max = cmap->red_max;
+        cmap->green_mult = cmap->blue_mult = cmap->red_mult;
     }
     set_std_cmap(xdev, cmap);
     xdev->cman.std_cmap.free_map = true;
@@ -135,7 +136,7 @@ alloc_dynamic_colors(gx_device_X * xdev, int num_colors)
 {
     if (num_colors > 0) {
 	xdev->cman.dynamic.colors = (x11_color_t **)
-	    gs_malloc(sizeof(x11_color_t *), xdev->cman.num_rgb,
+	    gs_malloc(xdev->memory, sizeof(x11_color_t *), xdev->cman.num_rgb,
 		      "x11 cman.dynamic.colors");
 	if (xdev->cman.dynamic.colors) {
 	    int i;
@@ -191,7 +192,7 @@ free_ramp(gx_device_X * xdev, int num_used, int size)
 {
     if (num_used - 1 > 0)
 	x_free_colors(xdev, xdev->cman.dither_ramp + 1, num_used - 1);
-    gs_x_free(xdev->cman.dither_ramp, "x11_setup_colors");
+    gs_x_free(xdev->memory, xdev->cman.dither_ramp, "x11_setup_colors");
     xdev->cman.dither_ramp = NULL;
 }
 
@@ -215,7 +216,7 @@ setup_cube(gx_device_X * xdev, int ramp_size, bool colors)
     }
 
     xdev->cman.dither_ramp =
-	(x_pixel *) gs_malloc(sizeof(x_pixel), num_entries,
+	(x_pixel *) gs_malloc(xdev->memory, sizeof(x_pixel), num_entries,
 			      "gdevx setup_cube");
     if (xdev->cman.dither_ramp == NULL)
 	return false;
@@ -314,7 +315,7 @@ gdev_x_setup_colors(gx_device_X * xdev)
 	int count = 1 << min(xdev->color_info.depth, 8);
 
 	xdev->cman.color_to_rgb.values =
-	    (x11_rgb_t *)gs_malloc(sizeof(x11_rgb_t), count,
+	    (x11_rgb_t *)gs_malloc(xdev->memory, sizeof(x11_rgb_t), count,
 				   "gdevx color_to_rgb");
 	if (xdev->cman.color_to_rgb.values) {
 	    int i;
@@ -436,7 +437,7 @@ monochrome:
     default:
 	eprintf1("Unknown palette: %s\n", xdev->palette);
 	if (xdev->cman.color_to_rgb.values) {
-	    gs_x_free(xdev->cman.color_to_rgb.values, "gdevx color_to_rgb");
+	    gs_x_free(xdev->memory, xdev->cman.color_to_rgb.values, "gdevx color_to_rgb");
 	    xdev->cman.color_to_rgb.values = 0;
 	}
 	return_error(gs_error_rangecheck);
@@ -477,7 +478,7 @@ gdev_x_free_dynamic_colors(gx_device_X *xdev)
 		next = xcp->next;
 		if (xcp->color.pad)
 		    x_free_colors(xdev, &xcp->color.pixel, 1);
-		gs_x_free(xcp, "x11_dynamic_color");
+		gs_x_free(xdev->memory, xcp, "x11_dynamic_color");
 	    }
 	    xdev->cman.dynamic.colors[i] = NULL;
 	}
@@ -500,14 +501,14 @@ gdev_x_free_colors(gx_device_X *xdev)
     }
     xdev->cman.std_cmap.map = 0;
     if (xdev->cman.dither_ramp)
-	gs_x_free(xdev->cman.dither_ramp, "x11 dither_colors");
+	gs_x_free(xdev->memory, xdev->cman.dither_ramp, "x11 dither_colors");
     if (xdev->cman.dynamic.colors) {
 	gdev_x_free_dynamic_colors(xdev);
-	gs_x_free(xdev->cman.dynamic.colors, "x11 cman.dynamic.colors");
+	gs_x_free(xdev->memory, xdev->cman.dynamic.colors, "x11 cman.dynamic.colors");
 	xdev->cman.dynamic.colors = NULL;
     }
     if (xdev->cman.color_to_rgb.values) {
-	gs_x_free(xdev->cman.color_to_rgb.values, "x11 color_to_rgb");
+	gs_x_free(xdev->memory, xdev->cman.color_to_rgb.values, "x11 color_to_rgb");
 	xdev->cman.color_to_rgb.values = NULL;
 	xdev->cman.color_to_rgb.size = 0;
     }
@@ -558,10 +559,12 @@ iabs(int x)
 
 /* Map RGB values to a pixel value. */
 gx_color_index
-gdev_x_map_rgb_color(gx_device * dev,
-		     gx_color_value r, gx_color_value g, gx_color_value b)
+gdev_x_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
     gx_device_X *const xdev = (gx_device_X *) dev;
+    gx_color_value r = cv[0];
+    gx_color_value g = cv[1];
+    gx_color_value b = cv[2];
 
     /* X and ghostscript both use shorts for color values. */
     /* Set drgb to the nearest color that the device can represent. */
@@ -737,7 +740,7 @@ gdev_x_map_rgb_color(gx_device * dev,
 	    return gx_no_color_index;
 	}
 	xcp = (x11_color_t *)
-	    gs_malloc(sizeof(x11_color_t), 1, "x11_dynamic_color");
+	    gs_malloc(xdev->memory, sizeof(x11_color_t), 1, "x11_dynamic_color");
 	if (!xcp)
 	    return gx_no_color_index;
 	xc.red = xcp->color.red = dr;

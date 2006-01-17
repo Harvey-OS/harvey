@@ -1,23 +1,22 @@
 /* Copyright (C) 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/* $Id: */
+/* $Id: zicc.c,v 1.7 2004/08/04 19:36:13 stefan Exp $ */
 /* ICCBased color operators */
+
 #include "math_.h"
 #include "memory_.h"
 #include "ghost.h"
@@ -33,7 +32,7 @@
 #include "idparam.h"
 #include "igstate.h"
 #include "icie.h"
-
+#include "ialloc.h"
 
 /*
  *   <dict>  .seticcspace  -
@@ -112,7 +111,8 @@ zseticcspace(i_ctx_t * i_ctx_p)
      * space, we use the range values only to restrict the set of input
      * values; they are not used for normalization.
      */
-    code = dict_floats_param( op,
+    code = dict_floats_param( imemory, 
+			      op,
                               "Range",
                               2 * ncomps,
                               range_buff,
@@ -140,6 +140,11 @@ zseticcspace(i_ctx_t * i_ctx_p)
     memmove( &pcs->params.icc.alt_space,
              palt_cs,
              sizeof(pcs->params.icc.alt_space) );
+    /*
+     * Increment reference counts for current cspace since it is the
+     * alternate color space for the ICC space.
+     */
+    gx_increment_cspace_count(palt_cs);
 
     code = gx_load_icc_profile(picc_info);
     if (code < 0)

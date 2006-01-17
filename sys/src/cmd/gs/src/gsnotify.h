@@ -1,22 +1,20 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsnotify.h,v 1.2 2000/09/19 19:00:30 lpd Exp $ */
+/* $Id: gsnotify.h,v 1.5 2002/06/16 08:45:42 lpd Exp $ */
 /* Notification machinery */
 
 #ifndef gsnotify_INCLUDED
@@ -35,7 +33,7 @@
 
 /* Define the structure used to keep track of registrations. */
 #define GS_NOTIFY_PROC(proc)\
-    int proc(P2(void *proc_data, void *event_data))
+    int proc(void *proc_data, void *event_data)
 typedef GS_NOTIFY_PROC((*gs_notify_proc_t));
 typedef struct gs_notify_registration_s gs_notify_registration_t;
 struct gs_notify_registration_s {
@@ -62,32 +60,32 @@ extern_st(st_gs_notify_list);
 #define st_gs_notify_list_max_ptrs 1
 
 /* Initialize a notification list. */
-void gs_notify_init(P2(gs_notify_list_t *nlist, gs_memory_t *mem));
+void gs_notify_init(gs_notify_list_t *nlist, gs_memory_t *mem);
 
 /* Register a client. */
-int gs_notify_register(P3(gs_notify_list_t *nlist, gs_notify_proc_t proc,
-			  void *proc_data));
+int gs_notify_register(gs_notify_list_t *nlist, gs_notify_proc_t proc,
+		       void *proc_data);
 
 /*
  * Unregister a client.  Return 1 if the client was registered, 0 if not.
  * If proc_data is 0, unregister all registrations of that proc; otherwise,
  * unregister only the registration of that procedure with that proc_data.
  */
-int gs_notify_unregister(P3(gs_notify_list_t *nlist, gs_notify_proc_t proc,
-			    void *proc_data));
+int gs_notify_unregister(gs_notify_list_t *nlist, gs_notify_proc_t proc,
+			 void *proc_data);
 
 /* Unregister a client, calling a procedure for each unregistration. */
-int gs_notify_unregister_calling(P4(gs_notify_list_t *nlist,
-				    gs_notify_proc_t proc, void *proc_data,
-				    void (*unreg_proc)(P1(void *pdata))));
+int gs_notify_unregister_calling(gs_notify_list_t *nlist,
+				 gs_notify_proc_t proc, void *proc_data,
+				 void (*unreg_proc)(void *pdata));
 
 /*
  * Notify the clients on a list.  If an error occurs, return the first
  * error code, but notify all clients regardless.
  */
-int gs_notify_all(P2(gs_notify_list_t *nlist, void *event_data));
+int gs_notify_all(gs_notify_list_t *nlist, void *event_data);
 
 /* Release a notification list. */
-void gs_notify_release(P1(gs_notify_list_t *nlist));
+void gs_notify_release(gs_notify_list_t *nlist);
 
 #endif /* gsnotify_INCLUDED */

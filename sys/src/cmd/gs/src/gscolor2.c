@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gscolor2.c,v 1.6 2000/09/19 19:00:26 lpd Exp $ */
+/* $Id: gscolor2.c,v 1.20 2004/04/08 07:59:19 igor Exp $ */
 /* Level 2 color operators for Ghostscript library */
 #include "memory_.h"
 #include "gx.h"
@@ -27,6 +25,8 @@
 #include "gxcspace.h"		/* for gscolor2.h */
 #include "gxcolor2.h"
 #include "gzstate.h"
+#include "gxpcolor.h"
+#include "stream.h"
 
 /* ---------------- General colors and color spaces ---------------- */
 
@@ -34,39 +34,30 @@
 int
 gs_setcolorspace(gs_state * pgs, const gs_color_space * pcs)
 {
-    int code;
-    gs_color_space cs_old;
-    gs_client_color cc_old;
+    int             code = 0;
+    gs_color_space  cs_old = *pgs->color_space;
+    gs_client_color cc_old = *pgs->ccolor;
 
     if (pgs->in_cachedevice)
 	return_error(gs_error_undefined);
-    if (pcs->id == pgs->color_space->id) {	/* same color space */
-	cs_full_init_color(pgs->ccolor, pcs);
-	return 0;
-    }
-    cs_old = *pgs->color_space;
-    cc_old = *pgs->ccolor;
-    (*pcs->type->adjust_cspace_count)(pcs, 1);
-    *pgs->color_space = *pcs;
-    if ((code = (*pcs->type->install_cspace)(pcs, pgs)) < 0)
-	goto rcs;
-    cs_full_init_color(pgs->ccolor, pcs);
-    (*cs_old.type->adjust_color_count)(&cc_old, &cs_old, -1);
-    (*cs_old.type->adjust_cspace_count)(&cs_old, -1);
-    pgs->orig_cspace_index = pcs->type->index;
-    {
-	const gs_color_space *pccs = pcs;
-	const gs_color_space *pbcs;
 
-	while ((pbcs = gs_cspace_base_space(pccs)) != 0)
-	    pccs = pbcs;
-	pgs->orig_base_cspace_index = pccs->type->index;
+    if (pcs->id != pgs->color_space->id) {
+        pcs->type->adjust_cspace_count(pcs, 1);
+        *pgs->color_space = *pcs;
+        if ( (code = pcs->type->install_cspace(pcs, pgs)) < 0          ||
+              (pgs->overprint && (code = gs_do_set_overprint(pgs)) < 0)  ) {
+            *pgs->color_space = cs_old;
+            pcs->type->adjust_cspace_count(pcs, -1);
+        } else
+            cs_old.type->adjust_cspace_count(&cs_old, -1);
     }
-    gx_unset_dev_color(pgs);
-    return code;
-    /* Restore the color space if installation failed. */
-rcs:*pgs->color_space = cs_old;
-    (*pcs->type->adjust_cspace_count)(pcs, -1);
+
+    if (code >= 0) {
+        cs_full_init_color(pgs->ccolor, pcs);
+        cs_old.type->adjust_color_count(&cc_old, &cs_old, -1);
+        gx_unset_dev_color(pgs);
+    }
+
     return code;
 }
 
@@ -76,25 +67,22 @@ gs_currentcolorspace(const gs_state * pgs)
 {
     return pgs->color_space;
 }
-gs_color_space_index
-gs_currentcolorspace_index(const gs_state *pgs)
-{
-    return pgs->orig_cspace_index;
-}
 
 /* setcolor */
 int
 gs_setcolor(gs_state * pgs, const gs_client_color * pcc)
 {
-    gs_color_space *pcs = pgs->color_space;
+    gs_color_space *    pcs = pgs->color_space;
+    gs_client_color     cc_old = *pgs->ccolor;
 
-    if (pgs->in_cachedevice)
-	return_error(gs_error_undefined);
+   if (pgs->in_cachedevice)
+	return_error(gs_error_undefined); /* PLRM3 page 215. */
+    gx_unset_dev_color(pgs);
     (*pcs->type->adjust_color_count)(pcc, pcs, 1);
-    (*pcs->type->adjust_color_count)(pgs->ccolor, pcs, -1);
     *pgs->ccolor = *pcc;
     (*pcs->type->restrict_color)(pgs->ccolor, pcs);
-    gx_unset_dev_color(pgs);
+    (*pcs->type->adjust_color_count)(&cc_old, pcs, -1);
+
     return 0;
 }
 
@@ -166,21 +154,25 @@ gs_private_st_composite(st_color_space_Indexed, gs_paint_color_space,
 
 /* Define the Indexed color space type. */
 private cs_proc_base_space(gx_base_space_Indexed);
-private cs_proc_equal(gx_equal_Indexed);
 private cs_proc_restrict_color(gx_restrict_Indexed);
 private cs_proc_concrete_space(gx_concrete_space_Indexed);
 private cs_proc_concretize_color(gx_concretize_Indexed);
 private cs_proc_install_cspace(gx_install_Indexed);
+private cs_proc_set_overprint(gx_set_overprint_Indexed);
 private cs_proc_adjust_cspace_count(gx_adjust_cspace_Indexed);
+private cs_proc_serialize(gx_serialize_Indexed);
 const gs_color_space_type gs_color_space_type_Indexed = {
     gs_color_space_index_Indexed, false, false,
     &st_color_space_Indexed, gx_num_components_1,
-    gx_base_space_Indexed, gx_equal_Indexed,
+    gx_base_space_Indexed,
     gx_init_paint_1, gx_restrict_Indexed,
     gx_concrete_space_Indexed,
     gx_concretize_Indexed, NULL,
     gx_default_remap_color, gx_install_Indexed,
-    gx_adjust_cspace_Indexed, gx_no_adjust_color_count
+    gx_set_overprint_Indexed,
+    gx_adjust_cspace_Indexed, gx_no_adjust_color_count,
+    gx_serialize_Indexed,
+    gx_cspace_is_linear_default
 };
 
 /* GC procedures. */
@@ -232,35 +224,6 @@ gx_base_space_Indexed(const gs_color_space * pcs)
     return (const gs_color_space *)&(pcs->params.indexed.base_space);
 }
 
-/* Test whether one Indexed color space equals another. */
-private bool
-gx_equal_Indexed(const gs_color_space *pcs1, const gs_color_space *pcs2)
-{
-    const gs_color_space *base = gx_base_space_Indexed(pcs1);
-    uint hival = pcs1->params.indexed.hival;
-
-    if (!gs_color_space_equal(base, gx_base_space_Indexed(pcs2)))
-	return false;
-    if (hival == pcs2->params.indexed.hival ||
-	/*
-	 * In principle, a table-specified Indexed space could be equal
-	 * to a procedure-specified Indexed space, but we don't bother
-	 * to detect this.
-	 */
-	pcs1->params.indexed.use_proc != pcs2->params.indexed.use_proc
-	)
-	return false;
-    if (pcs1->params.indexed.use_proc) {
-	return !memcmp(pcs1->params.indexed.lookup.map->values,
-		       pcs2->params.indexed.lookup.map->values,
-		       pcs1->params.indexed.lookup.map->num_values *
-		         sizeof(pcs1->params.indexed.lookup.map->values[0]));
-    } else {
-	return !memcmp(&pcs1->params.indexed.lookup.table.data,
-		       &pcs2->params.indexed.lookup.table.data,
-		       gs_color_space_num_components(base) * (hival + 1));
-    }
-}
 
 /* Color space installation ditto. */
 
@@ -269,6 +232,15 @@ gx_install_Indexed(const gs_color_space * pcs, gs_state * pgs)
 {
     return (*pcs->params.indexed.base_space.type->install_cspace)
 	((const gs_color_space *) & pcs->params.indexed.base_space, pgs);
+}
+
+/* Color space overprint setting ditto. */
+
+private int
+gx_set_overprint_Indexed(const gs_color_space * pcs, gs_state * pgs)
+{
+    return (*pcs->params.indexed.base_space.type->set_overprint)
+	((const gs_color_space *)&pcs->params.indexed.base_space, pgs);
 }
 
 /* Color space reference count adjustment ditto. */
@@ -438,7 +410,7 @@ gs_cspace_indexed_value_array(const gs_color_space * pcspace)
 int
 gs_cspace_indexed_set_proc(
 			   gs_color_space * pcspace,
-			   int (*proc)(P3(const gs_indexed_params *, int, float *))
+			   int (*proc)(const gs_indexed_params *, int, float *)
 )
 {
     if ((gs_color_space_get_index(pcspace) != gs_color_space_index_Indexed) ||
@@ -525,4 +497,61 @@ gs_cspace_indexed_lookup(const gs_indexed_params *pip, int index,
 	}
 	return 0;
     }
+}
+
+/* ---------------- Serialization. -------------------------------- */
+
+private int 
+gx_serialize_Indexed(const gs_color_space * pcs, stream * s)
+{
+    const gs_indexed_params * p = &pcs->params.indexed;
+    uint n;
+    int code = gx_serialize_cspace_type(pcs, s);
+
+    if (code < 0)
+	return code;
+    code = cs_serialize((const gs_color_space *)&p->base_space, s);
+    if (code < 0)
+	return code;
+    code = sputs(s, (const byte *)&p->hival, sizeof(p->hival), &n);
+    if (code < 0)
+	return code;
+    code = sputs(s, (const byte *)&p->use_proc, sizeof(p->use_proc), &n);
+    if (code < 0)
+	return code;
+    if (p->use_proc) {
+	code = sputs(s, (const byte *)&p->lookup.map->num_values, 
+		sizeof(p->lookup.map->num_values), &n);
+	if (code < 0)
+	    return code;
+	code = sputs(s, (const byte *)&p->lookup.map->values[0], 
+		sizeof(p->lookup.map->values[0]) * p->lookup.map->num_values, &n);
+    } else {
+	code = sputs(s, (const byte *)&p->lookup.table.size, 
+			sizeof(p->lookup.table.size), &n);
+	if (code < 0)
+	    return code;
+	code = sputs(s, p->lookup.table.data, p->lookup.table.size, &n);
+    }
+    return code;
+}
+
+/* ---------------- High level device support -------------------------------- */
+
+/*
+ * This special function forces a device to include the current
+ * color space into the output. Returns 'rangecheck' if the device can't handle it.
+ * The primary reason is to include DefaultGray, DefaultRGB, DefaultCMYK into PDF.
+ * Should be called for each page that requires the resource.
+ * Redundant calls per page with same cspace id are allowed.
+ * Redundant calls per page with different cspace id are are allowed but 
+ * highly undesirable.
+ * No need to call it with color spaces explicitly referred by the document,
+ * because they are included automatically.
+ * res_name and name_length passes the resource name.
+ */
+int
+gs_includecolorspace(gs_state * pgs, const byte *res_name, int name_length)
+{
+    return (*dev_proc(pgs->device, include_color_space))(pgs->device, pgs->color_space, res_name, name_length);
 }

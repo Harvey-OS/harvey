@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>.ps files distributed with Ghostscript</title>
-<!-- $Id: Psfiles.htm,v 1.22.2.2 2002/02/01 05:31:25 raph Exp $ -->
+<!-- $Id: Psfiles.htm,v 1.68 2005/10/20 19:46:23 ray Exp $ -->
 <!-- Originally: psfiles.txt -->
 <link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
@@ -12,7 +12,7 @@
 
 <!-- [1.1 begin headline] ================================================== -->
 
-<h1>Postscript files distributed with Ghostscript</h1>
+<h1>PostScript files distributed with Ghostscript</h1>
 
 <!-- [1.1 end headline] ==================================================== -->
 
@@ -23,6 +23,7 @@
 <blockquote><ul>
 <li><a href="#General">Generally used system files</a>
 <li><a href="#Obscure">More obscure system files</a>
+<li><a href="#Config">Configuration files</a>
 <li><a href="#PDF_specific">PDF-specific system files</a>
 <li><a href="#DPS_specific">Display PostScript-specific system files</a>
 <li><a href="#Art">Art and examples</a>
@@ -118,9 +119,30 @@ fonts.
 </dl>
 
 <dl>
+<dt><a href="../lib/gs_fntem.ps"><tt>gs_fntem.ps</tt></a>
+<dd>Code for emulating PostScript fonts with non-PostScript font technologies.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_cidtt.ps"><tt>gs_cidtt.ps</tt></a>
+<dd>Code for emulating CID fonts with TrueType fonts.
+</dl>
+
+<dl>
 <dt><a href="../lib/gs_cidcm.ps"><tt>gs_cidcm.ps</tt></a>
 <dd>Code for recognizing font names of the form CIDFont-CMap (or
 CIDFont--CMap) and creating the font automatically.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_ciddc.ps"><tt>gs_ciddc.ps</tt></a>
+<dd>Defines Decoding and CIDDecoding resource categories and related procsets.
+Used for for emulating PostScript fonts with non-PostScript font technologies.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_cidfm.ps"><tt>gs_cidfm.ps</tt></a>
+<dd>Provides resource mapping for CIDFont category.
 </dl>
 
 <dl>
@@ -130,8 +152,44 @@ CIDFont--CMap) and creating the font automatically.
 </dl>
 
 <dl>
+<dt><a href="../lib/gs_ciecs2.ps"><tt>gs_ciecs2.ps</tt></a>
+<dd>Implementation of the LangaugeLevel 2 CIEBased color spaces: CIEBasedA and CIEBasedABC.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_ciecs3.ps"><tt>gs_ciecs3.ps</tt></a>
+<dd>Implementation of the LangaugeLevel 3 CIEBased color spaces: CIEBasedA and CIEBasedABC.
+</dl>
+
+<dl>
 <dt><a href="../lib/gs_cmap.ps"><tt>gs_cmap.ps</tt></a>
 <dd><b><tt>ProcSet</tt></b> for implementing <b><tt>CMap</tt></b> resources.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_cspace.ps"><tt>gs_cspace.ps</tt></a>
+<dd> PostScript portion of the basic color space handling;
+see the extensive comment at the head of the file
+for information. Note that color space substitution
+and the hue-saturation-brightness (HSB) color space
+are now fully implemented in the PostScript code;
+the interpreter and the graphic library are no longer
+involved in or even aware of these features.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_devcs.ps"><tt>gs_devcs.ps</tt></a>
+<dd>Implementation of the DeviceGray, DeviceRGB, and DeviceCMYK color spaces.
+</dl>
+
+<dl> 
+  <dt><a href="../lib/gs_devn.ps"><tt>gs_devn.ps</tt></a> 
+  <dd>Implementation of the DeviceN color space.
+</dl>
+
+<dl> 
+  <dt><a href="../lib/gs_devpxl.ps"><tt>gs_devpxl.ps</tt></a> 
+  <dd>Implementation of the DevicePixel color space.
 </dl>
 
 <dl>
@@ -147,6 +205,11 @@ PostScript section of the file.
 </dl>
 
 <dl>
+<dt><a href="../lib/gs_fapi.ps"><tt>gs_fapi.ps</tt></a>
+<dd>Font API support.
+</dl>
+
+<dl>
 <dt><a href="../lib/gs_fonts.ps"><tt>gs_fonts.ps</tt></a>
 <dd><b><tt>gs_init.ps</tt></b> reads this in.  It initializes Ghostscript's
 font machinery and provides some utility procedures that work with fonts.
@@ -156,6 +219,19 @@ font machinery and provides some utility procedures that work with fonts.
 <dt><a href="../lib/gs_frsd.ps"><tt>gs_frsd.ps</tt></a>
 <dd>Support for the PostScript LanguageLevel 3
 <b><tt>ReusableStreamDecode</tt></b> filter.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_img.ps"><tt>gs_img.ps</tt></a>
+<dd>Implementation of the traditional (non-dictionary)
+form of the image and imagemask operators, and the
+colorimage operator (including the Next alphaimage
+facility).
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_indxd.ps"><tt>gs_indxd.ps</tt></a>
+<dd>Implementation of the Indexed color space.
 </dl>
 
 <dl>
@@ -178,10 +254,37 @@ procedures and miscellaneous initialization for the Level 2 functions.
 </dl>
 
 <dl>
+<dt><a href="../lib/gs_patrn.ps"><tt>gs_patrn.ps</tt></a>
+<dd>Implementation of the Pattern color space.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_resmp.ps"><tt>gs_resmp.ps</tt></a>
+<dd>A procset for redefining resource categories with a resource map.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_resst.ps"><tt>gs_resst.ps</tt></a>
+<dd>A procset which allow to put resource files into static data segment
+of Ghostscript executable.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_stres.ps"><tt>gs_stres.ps</tt></a>
+<dd>A map for generating the static data segment with including
+resource files, and for retrieving resources from there.          
+</dl>
+
+<dl>
 <dt><a href="../lib/gs_res.ps"><tt>gs_res.ps</tt></a>
 <dd><b><tt>gs_init.ps</tt></b> reads this in if the Level 2 resource
 machinery is included.  Currently, this is the case for all Level 2
 configurations.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_sepr.ps"><tt>gs_sepr.ps</tt></a>
+<dd>Implementaton of the Separation color space.
 </dl>
 
 <dl>
@@ -226,6 +329,41 @@ includes Type 1 font capability (which it normally does).
 
 <hr>
 
+<h2><a name="Config"></a>Configuration files</h2>
+
+<p>
+These files are found in the <b><tt>lib</tt></b> subdirectory of
+the Ghostscript source distribution. Users are allowed to modify them
+to configure Ghostscript.
+
+<dl>
+<dt><a href="../lib/Fontmap"><tt>Fontmap</tt></a>
+<dd>Font mapping table.
+</dl>
+
+<dl>
+<dt><a href="../lib/cidfmap"><tt>cidfmap</tt></a>
+<dd>CID font mapping table. Allows substitution of a CID font for another CID font or
+a TrueType font for a CID font.
+</dl>
+
+<dl>
+<dt><a href="../lib/FAPIconfig"><tt>FAPIconfig</tt></a>
+<dd>A configuration file for Font API client.
+</dl>
+
+<dl>
+<dt><a href="../lib/FAPIfontmap"><tt>FAPIfontmap</tt></a>
+<dd>Font mapping table for Font-API-handled fonts.
+</dl>
+
+<dl>
+<dt><a href="../lib/FAPIcidfmap"><tt>FAPIcidfmap</tt></a>
+<dd>Font mapping table for Font-API-handled CID fonts.
+</dl>
+
+<hr>
+
 <h2><a name="Obscure"></a>More obscure system files</h2>
 
 <p>
@@ -256,6 +394,19 @@ parses the Ghostscript command line.
 <dd>This file implements the <b><tt>-dDISKFONTS</tt></b> feature
 (<b><tt>diskfont.dev</tt></b>).  See the the usage documentation for <a
 href="Use.htm#DISKFONTS">a description of this feature</a>.
+</dl>
+
+<dl>
+<dt><a href="../lib/gs_diskn.ps"><tt>gs_diskn.ps</tt></a>
+<dd>This file implements the <b><tt>%disk</tt></b> IODevice
+(<b><tt>diskn.dev</tt></b> feature).  See the the language documentation
+for information on the use of the %disk# devices. These PostScript
+modifications primarily perform the searching of all Searchable file
+systems in a defined SearchOrder when a file reference does not contain
+an explicit %device% specifier (such as <b><tt>%os%</tt></b> or
+<b><tt>%disk0</tt></b>%). This is required to emulate undocumented
+behaviour of Adobe PostScript printers that have a disk and was
+experimentally determined.
 </dl>
 
 <dl>
@@ -337,6 +488,11 @@ the Ghostscript source distribution.
 </dl>
 
 <dl>
+<dt><a href="../lib/pdf_rbld.ps"><tt>pdf_rbld.ps</tt></a>
+<dd>Contains procedures for bebuilding damaged PDF files.
+</dl>
+
+<dl>
 <dt><a href="../lib/pdf_sec.ps"><tt>pdf_sec.ps</tt></a>
 <dd>PDF security (encryption) code.
 </dl>
@@ -357,6 +513,23 @@ but potentially useful for other kinds of PDF-processing utilities.
 ICC color profiles. These are not a standard PostScript feature, but
 are used in the PDF interpreter, as ICC profiles may be embedded in
 PDF files.
+</dl>
+
+<dl>
+<dt><a href="../lib/opdfread.ps"><tt>opdfread.ps</tt></a>
+<dd>Postscript procset for reading an ordered PDF file. This
+is used by the <tt><b>ps2ps</tt></b>, <tt><b>ps2ps2</tt></b> scripts.
+</dl>
+
+<dl>
+<dt><a href="../lib/EndOfTask.ps"><tt>EndOfTask.ps</tt></a>
+<dd>An auxiliary file used by the <tt><b>ps2write</tt></b> script.
+</dl>
+
+<dl>
+<dt><a href="../lib/PDFX_def.ps"><tt>PDFX_def.ps</tt></a>
+<dd>This is a sample prefix file for creating a PDF/X-3 document 
+with the <tt><b>pdfwrite</tt></b> device.
 </dl>
 
 <hr>
@@ -428,7 +601,7 @@ somewhat less dramatic results.
 </dl>
 
 <dl>
-<dt><a href="../examples/golfer.ps"><tt>golfer.ps</tt></a>
+<dt><a href="../examples/golfer.eps"><tt>golfer.eps</tt></a>
 <dd>A gray-scale picture of a stylishly dressed woman swinging a golf club.
 </dl>
 
@@ -451,7 +624,7 @@ slowly.)
 </dl>
 
 <dl>
-<dt><a href="../examples/tiger.ps"><tt>tiger.ps</tt></a>
+<dt><a href="../examples/tiger.eps"><tt>tiger.eps</tt></a>
 <dd>A dramatic colored picture of a tiger's head.
 </dl>
 
@@ -568,6 +741,12 @@ in landscape mode.
 <dl>
 <dt><a href="../lib/level1.ps"><tt>level1.ps</tt></a>
 <dd>A file that turns off any Level 2 features.
+</dl>
+
+<dl>
+<dt><a href="../lib/mkcidfm.ps"><tt>mkcidfm.ps</tt></a>
+<dd>A utility for creating a CID font mapping table <b><tt>cidfmap</tt></b>
+from fonts found in a specified directory.
 </dl>
 
 <dl>
@@ -704,6 +883,15 @@ restrictions.
 </dl>
 
 <dl>
+<dt><a href="../lib/dumphint.ps"><tt>dumphint.ps</tt></a>
+<dd>A utility for printing (to stdout) linearized PDF hint tables in 
+an easy to read form. Scripts 
+<a href="../lib/dumphint"><tt>dumphint</tt></a> and 
+<a href="../lib/dumphint.bat"><tt>dumphint.bat</tt></a> 
+are provided for the user's convenience.
+</dl>
+
+<dl>
 <dt><a href="../lib/image-qa.ps"><tt>image-qa.ps</tt></a>
 <dd>A comprehensive test of the image display operators.
 </dl>
@@ -826,15 +1014,23 @@ the Ghostscript source distribution.
 reserved.</small>
 
 <p>
-<small>This file is part of AFPL Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.</small>
+This software is provided AS-IS with no warranty, either express or
+implied.
+
+This software is distributed under license and may not be copied,
+modified or distributed except as expressly authorized under the terms
+of the license contained in the file LICENSE in this distribution.
+
+For more information about licensing, please refer to
+http://www.ghostscript.com/licensing/. For information on
+commercial licensing, go to http://www.artifex.com/licensing/ or
+contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
 <p>
-<small>Ghostscript version 7.04, 31 January 2002
+<small>Ghostscript version 8.53, 20 October 2005
 
 <!-- [3.0 end visible trailer] ============================================= -->
 
-</body>
+</small></body>
 </html>

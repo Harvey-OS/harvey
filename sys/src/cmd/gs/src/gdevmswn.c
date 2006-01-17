@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1998, 1999, 2000, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevmswn.c,v 1.4 2001/03/13 07:09:28 ghostgum Exp $ */
+/* $Id: gdevmswn.c,v 1.12 2004/09/20 22:14:59 dan Exp $ */
 /*
  * Microsoft Windows 3.n driver for Ghostscript.
  *
@@ -30,11 +28,10 @@
 #include "gpcheck.h"
 #include "gsparam.h"
 #include "gdevpccm.h"
-#include "iapi.h"
 #include "gsdll.h"
 
 /* Forward references */
-private int win_set_bits_per_pixel(P2(gx_device_win *, int));
+private int win_set_bits_per_pixel(gx_device_win *, int);
 
 #define TIMER_ID 1
 
@@ -109,9 +106,11 @@ win_close(gx_device * dev)
 {
     /* Free resources */
     if (wdev->nColors > 0) {
-	gs_free(wdev->mapped_color_flags, 4096, 1, "win_set_bits_per_pixel");
+	gs_free(dev->memory, 
+		wdev->mapped_color_flags, 4096, 1, "win_set_bits_per_pixel");
 	DeleteObject(wdev->himgpalette);
-	gs_free((char *)(wdev->limgpalette), 1, sizeof(LOGPALETTE) +
+	gs_free(dev->memory, 
+		(char *)(wdev->limgpalette), 1, sizeof(LOGPALETTE) +
 		(1 << (wdev->color_info.depth)) * sizeof(PALETTEENTRY),
 		"win_close");
     }
@@ -120,9 +119,11 @@ win_close(gx_device * dev)
 
 /* Map a r-g-b color to the colors available under Windows */
 gx_color_index
-win_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
-		  gx_color_value b)
+win_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
+    gx_color_value r = cv[0];
+    gx_color_value g = cv[1];
+    gx_color_value b = cv[2];
     switch (wdev->BitsPerPixel) {
 	case 24:
 	    return (((unsigned long)b >> (gx_color_value_bits - 8)) << 16) +
@@ -218,12 +219,9 @@ win_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
 		return (gx_no_color_index);	/* not found - dither instead */
 	    }
 	case 4:
-	    if ((r == g) && (g == b) && (r >= gx_max_color_value / 3 * 2 - 1)
-		&& (r < gx_max_color_value / 4 * 3))
-		return ((gx_color_index) 8);	/* light gray */
-	    return pc_4bit_map_rgb_color(dev, r, g, b);
+	    return pc_4bit_map_rgb_color(dev, cv);
     }
-    return (gx_default_map_rgb_color(dev, r, g, b));
+    return (gx_default_map_rgb_color(dev, cv));
 }
 
 /* Map a color code to r-g-b. */
@@ -266,10 +264,7 @@ win_map_color_rgb(gx_device * dev, gx_color_index color,
 	    prgb[2] = wdev->limgpalette->palPalEntry[(int)color].peBlue * one;
 	    break;
 	case 4:
-	    if (color == 8)	/* VGA light gray */
-		prgb[0] = prgb[1] = prgb[2] = (gx_max_color_value / 4 * 3);
-	    else
-		pc_4bit_map_color_rgb(dev, color, prgb);
+	    pc_4bit_map_color_rgb(dev, color, prgb);
 	    break;
 	default:
 	    prgb[0] = prgb[1] = prgb[2] =
@@ -332,7 +327,8 @@ win_put_params(gx_device * dev, gs_param_list * plist)
     }
     if (ecode < 0) {		/* If we allocated mapped_color_flags, release it. */
 	if (wdev->mapped_color_flags != 0 && old_flags == 0)
-	    gs_free(wdev->mapped_color_flags, 4096, 1,
+	    gs_free(wdev->memory,
+		    wdev->mapped_color_flags, 4096, 1,
 		    "win_put_params");
 	wdev->mapped_color_flags = old_flags;
 	if (bpp != old_bpp)
@@ -340,7 +336,8 @@ win_put_params(gx_device * dev, gs_param_list * plist)
 	return ecode;
     }
     if (wdev->mapped_color_flags == 0 && old_flags != 0) {	/* Release old mapped_color_flags. */
-	gs_free(old_flags, 4096, 1, "win_put_params");
+	gs_free(dev->memory,
+		old_flags, 4096, 1, "win_put_params");
     }
     /* Hand off the change to the implementation. */
     if (is_open && (bpp != old_bpp ||
@@ -384,7 +381,7 @@ win_makepalette(gx_device_win * wdev)
     int i, val;
     LPLOGPALETTE logpalette;
 
-    logpalette = (LPLOGPALETTE) gs_malloc(1, sizeof(LOGPALETTE) +
+    logpalette = (LPLOGPALETTE) gs_malloc(wdev->memory, 1, sizeof(LOGPALETTE) +
 		     (1 << (wdev->color_info.depth)) * sizeof(PALETTEENTRY),
 					  "win_makepalette");
     if (logpalette == (LPLOGPALETTE) NULL)
@@ -472,15 +469,34 @@ win_set_bits_per_pixel(gx_device_win * wdev, int bpp)
     /* If necessary, allocate and clear the mapped color flags. */
     if (bpp == 8) {
 	if (wdev->mapped_color_flags == 0) {
-	    wdev->mapped_color_flags = gs_malloc(4096, 1, "win_set_bits_per_pixel");
+	    wdev->mapped_color_flags = gs_malloc(wdev->memory,
+						 4096, 1, "win_set_bits_per_pixel");
 	    if (wdev->mapped_color_flags == 0)
 		return_error(gs_error_VMerror);
 	}
 	memset(wdev->mapped_color_flags, 0, 4096);
     } else {
-	gs_free(wdev->mapped_color_flags, 4096, 1, "win_set_bits_per_pixel");
+	gs_free(wdev->memory, 
+		wdev->mapped_color_flags, 4096, 1, "win_set_bits_per_pixel");
 	wdev->mapped_color_flags = 0;
     }
+
+    /* copy encode/decode procedures */
+    wdev->procs.encode_color = wdev->procs.map_rgb_color;
+    wdev->procs.decode_color = wdev->procs.map_color_rgb;
+    if (bpp == 1) {
+	wdev->procs.get_color_mapping_procs = 
+	    gx_default_DevGray_get_color_mapping_procs;
+	wdev->procs.get_color_comp_index = 
+	    gx_default_DevGray_get_color_comp_index;
+    }
+    else {
+	wdev->procs.get_color_mapping_procs = 
+	    gx_default_DevRGB_get_color_mapping_procs;
+	wdev->procs.get_color_comp_index = 
+	    gx_default_DevRGB_get_color_comp_index;
+    }
+
     /* restore old anti_alias info */
     wdev->color_info.anti_alias = anti_alias;
     return 0;

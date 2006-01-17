@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gximage.c,v 1.2 2000/09/19 19:00:38 lpd Exp $ */
+/* $Id: gximage.c,v 1.7 2004/08/04 19:36:12 stefan Exp $ */
 /* Generic image support */
 #include "memory_.h"
 #include "gx.h"
@@ -89,7 +87,7 @@ gx_image_enum_common_init(gx_image_enum_common_t * piec,
     piec->image_type = pic->type;
     piec->procs = piep;
     piec->dev = dev;
-    piec->id = gs_next_ids(1);
+    piec->id = gs_next_ids(dev->memory, 1);
     switch (format) {
 	case gs_image_format_chunky:
 	    piec->num_planes = 1;
@@ -188,7 +186,7 @@ gx_image_plane_data_rows(gx_image_enum_common_t * info,
 int
 gx_image_flush(gx_image_enum_common_t * info)
 {
-    int (*flush)(P1(gx_image_enum_common_t *)) = info->procs->flush;
+    int (*flush)(gx_image_enum_common_t *) = info->procs->flush;
 
     return (flush ? flush(info) : 0);
 }
@@ -196,7 +194,7 @@ gx_image_flush(gx_image_enum_common_t * info)
 bool
 gx_image_planes_wanted(const gx_image_enum_common_t *info, byte *wanted)
 {
-    bool (*planes_wanted)(P2(const gx_image_enum_common_t *, byte *)) =
+    bool (*planes_wanted)(const gx_image_enum_common_t *, byte *) =
 	info->procs->planes_wanted;
 
     if (planes_wanted)
@@ -283,7 +281,7 @@ sput_variable_uint(stream *s, uint w)
 {
     for (; w > 0x7f; w >>= 7)
 	sputc(s, (byte)(w | 0x80));
-    sputc(s, w);
+    sputc(s, (byte)w);
 }
 
 /*
@@ -350,7 +348,7 @@ gx_pixel_image_sput(const gs_pixel_image_t *pim, stream *s,
     control |= pim->format << PI_FORMAT_SHIFT;
     num_decode = num_components * 2;
     if (gs_color_space_get_index(pcs) == gs_color_space_index_Indexed)
-	decode_default_1 = pcs->params.indexed.hival;
+	decode_default_1 = (float)pcs->params.indexed.hival;
     for (i = 0; i < num_decode; ++i)
 	if (pim->Decode[i] != DECODE_DEFAULT(i, decode_default_1)) {
 	    control |= PI_Decode;
@@ -384,7 +382,7 @@ gx_pixel_image_sput(const gs_pixel_image_t *pim, stream *s,
 	    float dv = DECODE_DEFAULT(i + 1, decode_default_1);
 
 	    if (dflags >= 0x100) {
-		sputc(s, dflags & 0xff);
+		sputc(s, (byte)(dflags & 0xff));
 		sputs(s, (const byte *)decode, di * sizeof(float), &ignore);
 		dflags = 1;
 		di = 0;
@@ -403,7 +401,7 @@ gx_pixel_image_sput(const gs_pixel_image_t *pim, stream *s,
 		decode[di++] = v;
 	    }
 	}
-	sputc(s, (dflags << (8 - num_decode)) & 0xff);
+	sputc(s, (byte)((dflags << (8 - num_decode)) & 0xff));
 	sputs(s, (const byte *)decode, di * sizeof(float), &ignore);
     }
     *ppcs = pcs;
@@ -414,12 +412,12 @@ gx_pixel_image_sput(const gs_pixel_image_t *pim, stream *s,
 void
 gx_image_matrix_set_default(gs_data_image_t *pid)
 {
-    pid->ImageMatrix.xx = pid->Width;
+    pid->ImageMatrix.xx = (float)pid->Width;
     pid->ImageMatrix.xy = 0;
     pid->ImageMatrix.yx = 0;
-    pid->ImageMatrix.yy = -pid->Height;
+    pid->ImageMatrix.yy = (float)-pid->Height;
     pid->ImageMatrix.tx = 0;
-    pid->ImageMatrix.ty = pid->Height;
+    pid->ImageMatrix.ty = (float)pid->Height;
 }
 
 /* Get a variable-length uint from a stream. */
@@ -471,7 +469,7 @@ gx_pixel_image_sget(gs_pixel_image_t *pim, stream *s,
     num_components = gs_color_space_num_components(pcs);
     num_decode = num_components * 2;
     if (gs_color_space_get_index(pcs) == gs_color_space_index_Indexed)
-	decode_default_1 = pcs->params.indexed.hival;
+	decode_default_1 = (float)pcs->params.indexed.hival;
     if (control & PI_Decode) {
 	uint dflags = 0x10000;
 	float *dp = pim->Decode;

@@ -1,0 +1,299 @@
+%    Copyright (C) 2001, 2002 Aladdin Enterprises.  All rights reserved.
+% 
+% This software is provided AS-IS with no warranty, either express or
+% implied.
+% 
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
+% 
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+
+% $Id: gs_patrn.ps,v 1.2 2002/11/13 20:23:10 alexcher Exp $
+% Pattern color space method dictionary.
+
+
+% verify that Pattern color spaces are supported
+/.setpatternspace where
+  { pop }
+  { currentfile closefile }
+ifelse
+
+.currentglobal true .setglobal
+.cspace_util begin
+
+%
+%   <name1 | array1>   get_pattern_base_cspace   <null | name2 | array2>
+%
+% If the Pattern color space has a base color space, push that base
+% color space onto the stack. Otherwise, push a null object.
+%
+/get_pattern_base_cspace
+  {
+    dup type /nametype eq
+      { pop //null }
+      {
+        dup length 1 gt
+          { 1 get }
+          { pop //null }
+        ifelse
+      }
+    ifelse
+  }
+bind def
+
+
+%
+%   <dict>   has_base_color   <bool>
+%
+% Determine if a Pattern "color" includes a base color. This is the case
+% if the pattern dictionary has PatternType 1 and PaintType 2.
+%
+/has_base_color
+  {
+    dup //null eq
+      { pop //false }
+      {
+        dup /PatternType get 1 eq
+          { /PaintType get 2 eq }
+          { pop //false }
+        ifelse
+      }
+    ifelse
+  }
+bind def
+
+%
+%   <c1> ... <cn>  <pattern_dict>  <pattern_cspace>
+%   get_pattern_base_color
+%   <c1> ... <cn>  <base_cspace>  true
+% or
+%   <?c1?> ... <?cn?>  <dict>  <pattern>
+%   get_pattern_base_color
+%   false
+%
+% If a pattern dictionary has a base color, set up that base color and
+% color space, and push true. Otherwise, just push false. It is assumed
+% that if the pattern includes a base color, the Pattern color space
+% has a base color space.
+%
+/get_pattern_base_color
+  {
+    exch //has_base_color exec
+      { 1 get //true }
+      { pop //false }
+    ifelse
+  }
+bind def
+
+
+colorspacedict
+/Pattern
+  mark
+    /cs_potential_indexed_base false
+    /cs_potential_pattern_base false
+    /cs_potential_alternate false
+    /cs_potential_icc_alternate false
+
+    %
+    % We employ the same convention for describing the number of
+    % components in a Pattern color space as is used by the graphic
+    % library. For pattern spaces with no underlying color space,
+    % the result is -1. If a Pattern space has an underlying color
+    % space with n components, the result is -(n + 1).
+    %
+    /cs_get_ncomps
+      {
+        //get_pattern_base_cspace exec dup //null eq
+          { pop 0 }
+          //.cs_get_ncomps
+        ifelse
+        1 add neg
+      }
+    bind
+
+    % there is no "range" for a Pattern color space
+    /cs_get_range { {} cvlit } bind
+
+    /cs_get_default_color { pop //null } bind
+
+    /cs_get_currentgray
+      {
+        //get_pattern_base_color exec
+          //.cs_get_currentgray
+          { 0 }
+        ifelse
+      }
+    bind
+
+    /cs_get_currentrgb
+      {
+        //get_pattern_base_color exec
+          //.cs_get_currentrgb
+          { 0 0 0 }
+        ifelse
+      }
+    bind
+
+    /cs_get_currentcmyk
+      {
+        //get_pattern_base_color exec
+          //.cs_get_currentcmyk
+          { 0 0 0 1.0 }
+        ifelse
+      }
+    bind
+
+    /cs_validate
+      {
+        dup //get_pattern_base_cspace exec dup //null eq
+          { pop }
+          {
+            //.cs_validate exec //.cs_potential_pattern_base exec not
+              //setcspace_rangecheck
+            if
+          }
+        ifelse
+      }
+    bind
+
+    % substitute the base space if appropriate
+    /cs_substitute
+      {
+        dup //get_pattern_base_cspace exec dup //null eq
+          { pop dup }
+          {
+            //.cs_substitute exec 2 copy eq
+              { pop pop dup }
+              {
+                % retain only the new alternate space
+                exch pop
+
+                % build all new structures in local VM
+               .currentglobal 3 1 roll //false .setglobal
+
+                % construct a new array and insert the new base color space 
+                1 index dup length array copy dup 1 4 -1 roll put
+
+                % restore VM mode
+                3 -1 roll .setglobal
+              }
+            ifelse
+          }
+        ifelse
+      }
+    bind
+
+    /cs_prepare {}
+
+    %
+    % Install the current color space.
+    %
+    % The current Ghostscript color space implementation requires that
+    % color spaces that provide a base or alternative color space set
+    % that base/alternative color space to be the current color space
+    % before attempting to set the original color space.
+    %
+    % In principle, the only errors that are possible for .setpatternspace
+    % (given that setcolorspace itself is legal) are limitcheck and/or
+    % VMerror. The Ghostscript implementation allows a few others, so 
+    % we go through the full code to restore the current color space in
+    % the event of an error.
+    %
+    /cs_install
+      {
+        dup //get_pattern_base_cspace exec dup //null eq
+          {
+            pop
+            dup type /nametype eq
+              { pop { /Pattern } cvlit }
+            if
+            .setpatternspace
+          }
+          {
+            % save the current color space
+            currentcolorspace
+
+            % set the base color space as the current color space
+            exch //forcesetcolorspace
+
+            % set the pattern color space; restore the earlier space on error
+            mark 2 index
+              { .setpatternspace }
+            stopped
+              { cleartomark setcolorspace stop }
+              { pop pop pop }
+            ifelse
+          }
+        ifelse
+      }
+    bind
+
+
+    %
+    % Pattern dictionaries generated by makepattern will include an
+    % Implementation entry whose value is an internal data structure.
+    % Such structures are given executable type names that match their
+    % internal structure names. The names used for pattern
+    % implementations are gs_pattern1_instance_t and
+    % gs_pattern2_instance_t. It is unfortunate to have to expose such
+    % internal names at this level, but not easily avoided.
+    %
+    /cs_prepare_color
+      {
+        % verify that the topmost operand is a pattern dictionary
+        1 index dup type /dicttype ne
+          {
+            //null ne
+              //setcspace_typecheck
+            if
+            pop
+          }
+          {
+            dup /Implementation .knownget
+              {
+                type dup dup
+                /gs_pattern1_instance_t ne exch /gs_pattern2_instance_t ne and
+                exch xcheck not
+                or
+                  //setcspace_typecheck
+                if
+              }
+              //setcspace_typecheck
+            ifelse
+
+            % check if base color space operands are present
+            dup /PatternType get 1 eq
+              {
+                /PaintType get 2 eq
+                  {
+                    % verify that a base color space exists
+                    //get_pattern_base_cspace exec dup //null eq
+                      //setcspace_rangecheck
+                    if
+                    exch 1 index //.cs_get_ncomps exec
+                    exch 1 index 3 add 1 roll
+                    //check_num_stack exec
+                    //.cs_get_ncomps exec 1 add -1 roll
+                  }
+                  { pop }
+                ifelse
+              }
+              { pop pop }
+            ifelse
+          }
+        ifelse
+      }
+    bind
+
+    /cs_complete_setcolor //pop_1
+
+  .dicttomark
+put
+
+end     % .cspace_util
+.setglobal

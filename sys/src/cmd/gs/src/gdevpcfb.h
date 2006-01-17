@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpcfb.h,v 1.2 2000/09/19 19:00:15 lpd Exp $ */
+/* $Id: gdevpcfb.h,v 1.5 2002/06/16 07:25:26 lpd Exp $ */
 /* IBM PC frame buffer definitions */
 
 #ifndef gdevpcfb_INCLUDED
@@ -61,10 +59,10 @@ typedef struct pcfb_bios_state_s {
 } pcfb_bios_state;
 
 /* Procedures used by gdevpcfb.c */
-void pcfb_set_signals(P1(gx_device *));
-void pcfb_get_state(P1(pcfb_bios_state *));
-void pcfb_set_mode(P1(int));
-void pcfb_set_state(P1(const pcfb_bios_state *));
+void pcfb_set_signals(gx_device *);
+void pcfb_get_state(pcfb_bios_state *);
+void pcfb_set_mode(int);
+void pcfb_set_state(const pcfb_bios_state *);
 
 /* Types for frame buffer pointers. */
 typedef byte *fb_ptr;
@@ -172,8 +170,8 @@ outport2(int port, int index, int data)
 		      "eax");
 }
 #else
-void outportb(P2(uint, byte));
-void outport2(P3(uint, byte, byte));
+void outportb(uint, byte);
+void outport2(uint, byte, byte);
 
 #endif
 

@@ -1,22 +1,20 @@
-/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993, 2000, 2002 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsccode.h,v 1.4 2000/09/19 19:00:26 lpd Exp $ */
+/* $Id: gsccode.h,v 1.14 2004/08/19 19:33:09 stefan Exp $ */
 /* Types for character codes */
 
 #ifndef gsccode_INCLUDED
@@ -29,43 +27,70 @@
  */
 typedef ulong gs_char;
 
-#define gs_no_char ((gs_char)~0L)
+#define GS_NO_CHAR ((gs_char)~0L)
+/* Backward compatibility */
+#define gs_no_char GS_NO_CHAR
 
 /*
- * Define a character glyph code, a.k.a. character name.
- * gs_glyphs from 0 to 2^31-1 are (PostScript) names; gs_glyphs 2^31 and
- * above are CIDs, biased by 2^31.
+ * Define a character glyph code, a.k.a. character name.  The space of
+ * glyph codes is divided into five sections:
+ *
+ *	- Codes >= GS_MIN_GLYPH_INDEX represent (non-negative) 
+ *	  integers biased by GS_MIN_CID_GLYPH.  They represent glyph indices
+ *	  of a specific font.
+ *
+ *	- Codes within [GS_MIN_CID_GLYPH, GS_MIN_GLYPH_INDEX) represent (non-negative) 
+ *	  integers biased by GS_MIN_CID_GLYPH.  They represent PostScript CIDs
+ *        of a specific Ordering.
+ *
+ *	- Codes < GS_MIN_CID_GLYPH represent named glyphs.  There are
+ *	  three sub-sections:
+ *
+ *	  - GS_NO_GLYPH, which means "no known glyph value".  Note that
+ *	    it is not the same as /.notdef or CID 0 or GID 0: it means
+ *	    that the identity of the glyph is unknown, as opposed to a
+ *	    known glyph that is used for rendering an unknown character
+ *	    code.
+ *
+ *	  - Codes < gs_c_min_std_encoding_glyph represent names in some
+ *	    global space that the graphics library doesn't attempt to
+ *	    interpret.  (When the client is the PostScript interpreter,
+ *	    these codes are PostScript name indices, but the graphics
+ *	    library doesn't know or rely on this.)  The graphics library
+ *	    *does* assume that such codes denote the same names across
+ *	    all fonts, and that they can be converted to a string name
+ *	    by the font's glyph_name virtual procedure.
+ *
+ *	  - Codes >= gs_c_min_std_encoding_glyph (and < GS_MIN_CID_GLYPH)
+ *	    represent names in a special space used for the 11 built-in
+ *	    Encodings.  The API is defined in gscencs.h.  The only
+ *	    procedures that generate or recognize such codes are the ones
+ *	    declared in that file: clients must be careful not to mix
+ *	    such codes with codes in the global space.
+ *
+ * Client code may assume that GS_NO_GLYPH < GS_MIN_CID_GLYPH (i.e., it is a
+ * "name", not an integer), but should not make assumptions about whether
+ * GS_NO_GLYPH is less than or greater than gs_c_min_std_encoding_glyph.
  */
 typedef ulong gs_glyph;
 
-#define gs_no_glyph ((gs_glyph)0x7fffffff)
+#define GS_NO_GLYPH ((gs_glyph)0x7fffffff)
 #if arch_sizeof_long > 4
-#  define gs_min_cid_glyph ((gs_glyph)0x80000000L)
+#  define GS_MIN_CID_GLYPH ((gs_glyph)0x80000000L)
 #else
 /* Avoid compiler warnings about signed/unsigned constants. */
-#  define gs_min_cid_glyph ((gs_glyph)~0x7fffffff)
+#  define GS_MIN_CID_GLYPH ((gs_glyph)~0x7fffffff)
 #endif
-#define gs_max_glyph max_ulong
+#define GS_MIN_GLYPH_INDEX (GS_MIN_CID_GLYPH | (GS_MIN_CID_GLYPH >> 1))
+#define GS_GLYPH_TAG (gs_glyph)(GS_MIN_CID_GLYPH | GS_MIN_GLYPH_INDEX)
+#define GS_MAX_GLYPH max_ulong
+/* Backward compatibility */
+#define gs_no_glyph GS_NO_GLYPH
+#define gs_min_cid_glyph GS_MIN_CID_GLYPH
+#define gs_max_glyph GS_MAX_GLYPH
 
 /* Define a procedure for marking a gs_glyph during garbage collection. */
-typedef bool(*gs_glyph_mark_proc_t) (P2(gs_glyph glyph, void *proc_data));
-
-/* Define a procedure for mapping a gs_glyph to its (string) name. */
-/*
- * NOTE: As of release 6.21, his procedure is obsolete and deprecated,
- * but it must be supported for backward compatibility for the xfont
- * interface.
- */
-#define gs_proc_glyph_name(proc)\
-  const char *proc(P2(gs_glyph, uint *))
-typedef gs_proc_glyph_name((*gs_proc_glyph_name_t));
-/*
- * This is the updated procedure, which accepts closure data and also can
- * return an error code.
- */
-#define gs_glyph_name_proc(proc)\
-  int proc(P3(gs_glyph glyph, gs_const_string *pstr, void *proc_data))
-typedef gs_glyph_name_proc((*gs_glyph_name_proc_t));
+typedef bool (*gs_glyph_mark_proc_t)(const gs_memory_t *mem, gs_glyph glyph, void *proc_data);
 
 /* Define the indices for known encodings. */
 typedef enum {
@@ -100,22 +125,17 @@ typedef enum {
  */
 typedef enum gs_glyph_space_s {
     GLYPH_SPACE_NAME,		/* names (if available) */
-    GLYPH_SPACE_INDEX		/* indexes (if available) */
+    GLYPH_SPACE_INDEX,		/* indexes (if available) */
+    GLYPH_SPACE_NOGEN		/* don't generate new names (Type 3 only) */
 } gs_glyph_space_t;
 
 /*
- * Define a procedure for accessing the known encodings.  Note that if
- * there is a choice, this procedure always returns a glyph name, not a
- * glyph index.
+ * Define a procedure for mapping a glyph to its (string) name.  This is
+ * currently used only for CMaps: it is *not* the same as the glyph_name
+ * procedure in fonts.
  */
-#define gs_proc_known_encode(proc)\
-  gs_glyph proc(P2(gs_char, int))
-typedef gs_proc_known_encode((*gs_proc_known_encode_t));
-
-/* Define the callback procedure vector for character to xglyph mapping. */
-typedef struct gx_xfont_callbacks_s {
-    gs_proc_glyph_name((*glyph_name));
-    gs_proc_known_encode((*known_encode));
-} gx_xfont_callbacks;
+typedef int (*gs_glyph_name_proc_t)(const gs_memory_t *mem, 
+				    gs_glyph glyph, gs_const_string *pstr,
+				    void *proc_data);
 
 #endif /* gsccode_INCLUDED */

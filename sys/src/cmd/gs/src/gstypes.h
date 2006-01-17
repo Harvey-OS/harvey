@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1998, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gstypes.h,v 1.3 2001/08/25 06:46:21 lpd Exp $ */
+/* $Id: gstypes.h,v 1.7 2005/09/05 13:58:55 leonardo Exp $ */
 /* Miscellaneous common types for Ghostscript library */
 
 #ifndef gstypes_INCLUDED
@@ -54,6 +52,10 @@ typedef struct gs_string_s {
 typedef struct gs_const_string_s {
     GS_CONST_STRING_COMMON;
 } gs_const_string;
+typedef struct gs_param_string_s {
+    GS_CONST_STRING_COMMON;
+    bool persistent;
+} gs_param_string;
 
 /*
  * Since strings are allocated differently from ordinary objects, define a
@@ -111,5 +113,14 @@ typedef struct gs_rect_s {
 typedef struct gs_int_rect_s {
     gs_int_point p, q;
 } gs_int_rect;
+
+/*
+ * Define a type for a floating-point parameter range.  Note that unlike
+ * the intervals for gs_rect and gs_int_rect, these intervals are closed
+ * (i.e., they represent rmin <= x <= rmax, not rmin <= x < rmax).
+ */
+typedef struct gs_range_s {
+    float rmin, rmax;
+} gs_range_t;
 
 #endif /* gstypes_INCLUDED */

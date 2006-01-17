@@ -1,22 +1,20 @@
-/* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 2000-2003 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gp_mswin.c,v 1.7 2001/09/22 07:07:02 ghostgum Exp $ */
+/* $Id: gp_mswin.c,v 1.25 2005/03/04 21:58:55 ghostgum Exp $ */
 /*
  * Microsoft Windows platform support for Ghostscript.
  *
@@ -35,10 +33,10 @@
 #include "stdio_.h"
 #include "string_.h"
 #include "memory_.h"
+#include "pipe_.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include "ctype_.h"
-#include "dos_.h"
 #include <io.h>
 #include "malloc_.h"
 #include <fcntl.h>
@@ -56,7 +54,7 @@
 #include "gp_mswin.h"
 
 /* Library routines not declared in a standard header */
-extern char *getenv(P1(const char *));
+extern char *getenv(const char *);
 
 /* limits */
 #define MAXSTR 255
@@ -92,12 +90,30 @@ gp_exit(int exit_status, int code)
 void
 gp_do_exit(int exit_status)
 {
+    exit(exit_status);
+}
+
+/* ------ Persistent data cache ------*/
+
+/* insert a buffer under a (type, key) pair */
+int gp_cache_insert(int type, byte *key, int keylen, void *buffer, int buflen)
+{
+    /* not yet implemented */
+    return 0;
+}
+
+/* look up a (type, key) in the cache */
+int gp_cache_query(int type, byte* key, int keylen, void **buffer,
+    gp_cache_alloc alloc, void *userdata)
+{
+    /* not yet implemented */
+    return -1;
 }
 
 /* ------ Printer accessing ------ */
 
 /* Forward references */
-private int gp_printfile(P2(const char *, const char *));
+private int gp_printfile(const char *, const char *);
 
 /* Open a connection to a printer.  A null file name means use the */
 /* standard printer connected to the machine, if any. */
@@ -113,7 +129,9 @@ gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
 	pfile = gp_open_scratch_file(gp_scratch_file_name_prefix,
 				     win_prntmp, "wb");
 	return pfile;
-    } else
+    } else if (fname[0] == '|') 	/* pipe */
+	return popen(fname + 1, (binary_mode ? "wb" : "w"));
+    else
 	return fopen(fname, (binary_mode ? "wb" : "w"));
 }
 
@@ -131,7 +149,7 @@ gp_close_printer(FILE * pfile, const char *fname)
 
 
 /* Dialog box to select printer port */
-BOOL CALLBACK
+DLGRETURN CALLBACK
 SpoolDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     LPSTR entry;
@@ -546,13 +564,123 @@ gp_printfile_gs16spl(const char *filename, const char *port)
     hwndspl = FindWindow(NULL, "GS Win32s/Win16 spooler");
 
     while (IsWindow(hwndspl)) {
-	gp_check_interrupts();
+	gp_check_interrupts(NULL);
     }
 
     return 0;
 }
 
 
+/******************************************************************/
+/* MS Windows has popen and pclose in stdio.h, but under different names.
+ * Unfortunately MSVC5 and 6 have a broken implementation of _popen, 
+ * so we use own.  Our implementation only supports mode "wb".
+ */
+FILE *mswin_popen(const char *cmd, const char *mode)
+{
+    SECURITY_ATTRIBUTES saAttr;
+    STARTUPINFO siStartInfo;
+    PROCESS_INFORMATION piProcInfo;
+    HANDLE hPipeTemp = INVALID_HANDLE_VALUE;
+    HANDLE hChildStdinRd = INVALID_HANDLE_VALUE;
+    HANDLE hChildStdinWr = INVALID_HANDLE_VALUE;
+    HANDLE hChildStdoutWr = INVALID_HANDLE_VALUE;
+    HANDLE hChildStderrWr = INVALID_HANDLE_VALUE;
+    HANDLE hProcess = GetCurrentProcess();
+    int handle = 0;
+    char *command = NULL;
+    FILE *pipe = NULL;
+
+    if (strcmp(mode, "wb") != 0)
+	return NULL;
+
+    /* Set the bInheritHandle flag so pipe handles are inherited. */
+    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+    saAttr.bInheritHandle = TRUE;
+    saAttr.lpSecurityDescriptor = NULL;
+
+    /* Create anonymous inheritable pipes for STDIN for child. 
+     * First create a noninheritable duplicate handle of our end of 
+     * the pipe, then close the inheritable handle.
+     */
+    if (handle == 0)
+        if (!CreatePipe(&hChildStdinRd, &hPipeTemp, &saAttr, 0))
+	    handle = -1;
+    if (handle == 0) {
+	if (!DuplicateHandle(hProcess, hPipeTemp, 
+	    hProcess, &hChildStdinWr, 0, FALSE /* not inherited */,
+	    DUPLICATE_SAME_ACCESS))
+	    handle = -1;
+        CloseHandle(hPipeTemp);
+    }
+    /* Create inheritable duplicate handles for our stdout/err */
+    if (handle == 0)
+	if (!DuplicateHandle(hProcess, GetStdHandle(STD_OUTPUT_HANDLE),
+	    hProcess, &hChildStdoutWr, 0, TRUE /* inherited */,
+	    DUPLICATE_SAME_ACCESS))
+	    handle = -1;
+    if (handle == 0)
+        if (!DuplicateHandle(hProcess, GetStdHandle(STD_ERROR_HANDLE),
+            hProcess, &hChildStderrWr, 0, TRUE /* inherited */, 
+	    DUPLICATE_SAME_ACCESS))
+	    handle = -1;
+
+    /* Set up members of STARTUPINFO structure. */
+    memset(&siStartInfo, 0, sizeof(STARTUPINFO));
+    siStartInfo.cb = sizeof(STARTUPINFO);
+    siStartInfo.dwFlags = STARTF_USESTDHANDLES;
+    siStartInfo.hStdInput = hChildStdinRd;
+    siStartInfo.hStdOutput = hChildStdoutWr;
+    siStartInfo.hStdError = hChildStderrWr;
+
+    if (handle == 0) {
+	command = (char *)malloc(strlen(cmd)+1);
+	if (command)
+	    strcpy(command, cmd);
+	else
+	    handle = -1;
+    }
+
+    if (handle == 0)
+	if (!CreateProcess(NULL,
+	    command,  	   /* command line                       */
+	    NULL,          /* process security attributes        */
+	    NULL,          /* primary thread security attributes */
+	    TRUE,          /* handles are inherited              */
+	    0,             /* creation flags                     */
+	    NULL,          /* environment                        */
+	    NULL,          /* use parent's current directory     */
+	    &siStartInfo,  /* STARTUPINFO pointer                */
+	    &piProcInfo))  /* receives PROCESS_INFORMATION  */ 
+	{
+	    handle = -1;
+	}
+	else {
+	    CloseHandle(piProcInfo.hProcess);
+	    CloseHandle(piProcInfo.hThread);
+	    handle = _open_osfhandle((long)hChildStdinWr, 0);
+	}
+
+    if (hChildStdinRd != INVALID_HANDLE_VALUE)
+	CloseHandle(hChildStdinRd);	/* close our copy */
+    if (hChildStdoutWr != INVALID_HANDLE_VALUE)
+	CloseHandle(hChildStdoutWr);	/* close our copy */
+    if (hChildStderrWr != INVALID_HANDLE_VALUE)
+	CloseHandle(hChildStderrWr);	/* close our copy */
+    if (command)
+	free(command);
+
+    if (handle < 0) {
+	if (hChildStdinWr != INVALID_HANDLE_VALUE)
+	    CloseHandle(hChildStdinWr);
+    }
+    else {
+	pipe = _fdopen(handle, "wb");
+	if (pipe == NULL)
+	    _close(handle);
+    }
+    return pipe;
+}
 
 
 /* ------ File naming and accessing ------ */
@@ -561,29 +689,89 @@ gp_printfile_gs16spl(const char *filename, const char *port)
 /* Write the actual file name at fname. */
 FILE *
 gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
-{	/* The -7 is for XXXXXX plus a possible final \. */
-    int prefix_length = strlen(prefix);
-    int len = gp_file_name_sizeof - prefix_length - 7;
+{
+    UINT n;
+    DWORD l;
+    HANDLE hfile = INVALID_HANDLE_VALUE;
+    int fd = -1;
+    FILE *f = NULL;
+    char sTempDir[_MAX_PATH];
+    char sTempFileName[_MAX_PATH];
 
-    if (gp_file_name_is_absolute(prefix, prefix_length) ||
-	gp_gettmpdir(fname, &len) != 0
-	)
-	*fname = 0;
-    else {
-	char *temp;
+    memset(fname, 0, gp_file_name_sizeof);
+    if (!gp_file_name_is_absolute(prefix, strlen(prefix))) {
+	int plen = sizeof(sTempDir);
 
-	/* Prevent X's in path from being converted by mktemp. */
-	for (temp = fname; *temp; temp++)
-	    *temp = tolower(*temp);
-	if (strlen(fname) && (fname[strlen(fname) - 1] != '\\'))
-	    strcat(fname, "\\");
+	if (gp_gettmpdir(sTempDir, &plen) != 0)
+	    l = GetTempPath(sizeof(sTempDir), sTempDir);
+	else
+	    l = strlen(sTempDir);
+    } else {
+	strncpy(sTempDir, prefix, sizeof(sTempDir));
+	prefix = "";
+	l = strlen(sTempDir);
     }
-    if (strlen(fname) + prefix_length + 7 >= gp_file_name_sizeof)
-	return 0;		/* file name too long */
-    strcat(fname, prefix);
-    strcat(fname, "XXXXXX");
-    mktemp(fname);
-    return gp_fopentemp(fname, mode);
+    /* Fix the trailing terminator so GetTempFileName doesn't get confused */
+    if (sTempDir[l-1] == '/')
+	sTempDir[l-1] = '\\';		/* What Windoze prefers */
+
+    if (l <= sizeof(sTempDir)) {
+	n = GetTempFileName(sTempDir, prefix, 0, sTempFileName);
+	if (n == 0) {
+	    /* If 'prefix' is not a directory, it is a path prefix. */
+	    int l = strlen(sTempDir), i;
+
+	    for (i = l - 1; i > 0; i--) {
+		uint slen = gs_file_name_check_separator(sTempDir + i, l, sTempDir + l);
+
+		if (slen > 0) {
+		    sTempDir[i] = 0;   
+		    i += slen;
+		    break;
+		}
+	    }
+	    if (i > 0)
+		n = GetTempFileName(sTempDir, sTempDir + i, 0, sTempFileName);
+	}
+	if (n != 0) {
+	    hfile = CreateFile(sTempFileName, 
+		GENERIC_READ | GENERIC_WRITE | DELETE,
+		FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL /* | FILE_FLAG_DELETE_ON_CLOSE */, 
+		NULL);
+	    /*
+	     * Can't apply FILE_FLAG_DELETE_ON_CLOSE due to 
+	     * the logics of clist_fclose. Also note that
+	     * gdev_prn_render_pages requires multiple temporary files
+	     * to exist simultaneousely, so that keeping all them opened
+	     * may exceed available CRTL file handles.
+	     */
+	}
+    }
+    if (hfile != INVALID_HANDLE_VALUE) {
+	/* Associate a C file handle with an OS file handle. */
+	fd = _open_osfhandle((long)hfile, 0);
+	if (fd == -1)
+	    CloseHandle(hfile);
+	else {
+	    /* Associate a C file stream with C file handle. */
+	    f = fdopen(fd, mode);
+	    if (f == NULL)
+		_close(fd);
+	}
+    }
+    if (f != NULL) {
+	if ((strlen(sTempFileName) < gp_file_name_sizeof))
+	    strncpy(fname, sTempFileName, gp_file_name_sizeof - 1);
+	else {
+	    /* The file name is too long. */
+	    fclose(f);
+	    f = NULL;
+	}
+    }
+    if (f == NULL)
+	eprintf1("**** Could not open temporary file '%s'\n", fname);
+    return f;
 }
 
 /* Open a file with the given name, as a stream of uninterpreted bytes. */
@@ -593,3 +781,23 @@ gp_fopen(const char *fname, const char *mode)
     return fopen(fname, mode);
 }
 
+/* ------ Font enumeration ------ */
+ 
+ /* This is used to query the native os for a list of font names and
+  * corresponding paths. The general idea is to save the hassle of
+  * building a custom fontmap file.
+  */
+ 
+void *gp_enumerate_fonts_init(gs_memory_t *mem)
+{
+    return NULL;
+}
+         
+int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+{
+    return 0;
+}
+                         
+void gp_enumerate_fonts_free(void *enum_state)
+{
+}           

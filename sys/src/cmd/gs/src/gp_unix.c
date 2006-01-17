@@ -1,23 +1,22 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989-2003 artofcode LLC. All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gp_unix.c,v 1.5 2001/04/08 08:43:24 ghostgum Exp $ */
+/* $Id: gp_unix.c,v 1.13 2004/01/15 09:27:10 giles Exp $ */
 /* Unix-specific routines for Ghostscript */
+
 #include "pipe_.h"
 #include "string_.h"
 #include "time_.h"
@@ -36,9 +35,8 @@
 #ifdef __PROTOTYPES__
 #  include <stdlib.h>		/* for exit and getenv */
 #else
-extern void exit(P1(int));
-extern char *getenv(P1(const char *));
-
+extern void exit(int);
+extern char *getenv(const char *);
 #endif
 
 /* Do platform-dependent initialization. */
@@ -57,6 +55,7 @@ gp_exit(int exit_status, int code)
 void
 gp_do_exit(int exit_status)
 {
+    exit(exit_status);
 }
 
 /* ------ Miscellaneous ------ */
@@ -68,6 +67,16 @@ const char *
 gp_strerror(int errnum)
 {
     return NULL;
+}
+
+/* read in a MacOS 'resource' from an extended attribute. */
+/* we don't try to implemented this since it requires support */
+/* for Apple's HFS(+) filesystem */
+int
+gp_read_macresource(byte *buf, const char *filename, 
+                    const uint type, const ushort id)
+{
+    return 0;
 }
 
 /* ------ Date and time ------ */
@@ -158,3 +167,24 @@ gp_close_printer(FILE * pfile, const char *fname)
     else
 	fclose(pfile);
 }
+
+/* ------ Font enumeration ------ */
+ 
+ /* This is used to query the native os for a list of font names and
+  * corresponding paths. The general idea is to save the hassle of
+  * building a custom fontmap file.
+  */
+ 
+void *gp_enumerate_fonts_init(gs_memory_t *mem)
+{
+    return NULL;
+}
+         
+int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+{
+    return 0;
+}
+                         
+void gp_enumerate_fonts_free(void *enum_state)
+{
+}           

@@ -348,7 +348,7 @@ Keepreading:
 	d->fwdonly = ps->clueless = dumb;
 	d->docname = argv[0];
 
-	if(spawngs(ps) < 0)
+	if(spawngs(ps, "-dSAFER") < 0)
 		return nil;
 
 	if(!cantranslate)

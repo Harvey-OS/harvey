@@ -1,21 +1,19 @@
 %    Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: gs_res.ps,v 1.16 2001/10/01 05:56:58 lpd Exp $
+% $Id: gs_res.ps,v 1.38 2004/10/26 17:07:18 igor Exp $
 % Initialization file for Level 2 resource machinery.
 % When this is run, systemdict is still writable,
 % but (almost) everything defined here goes into level2dict.
@@ -196,37 +194,18 @@ odef
 	4 1 roll pop pop pop
 } bind odef
 % We must prevent resourceforall from automatically restoring the stacks,
-% because we don't want the stacks restored if proc causes an error.
-% On the other hand, resourceforall is defined in the PLRM as an operator,
-% so it must have type /operatortype.  We hack this by taking advantage of
-% the fact that the interpreter optimizes tail calls, so stack protection
-% doesn't apply to the very last token of an operator procedure.
+% because we don't want the stacks restored if proc causes an error or
+% executes a 'stop'. On the other hand, resourceforall is defined in the
+% PLRM as an operator, so it must have type /operatortype.  We hack this
+% by taking advantage of the fact that the interpreter optimizes tail
+% calls, so stack protection doesn't apply to the very last token of an
+% operator procedure.
 /resourceforall1 {	% <template> <proc> <scratch> <category> resourceforall1 -
 	dup /Category findresource begin
 	/ResourceForAll load
-		% Make sure we can recover the original operands.
-		% We must create the array in local VM, in case any of the
-		% operands are local.
-		% Stack: ...operands... proc
-	5 copy pop .currentglobal false .setglobal 5 1 roll
-	4 packedarray exch .setglobal count
-		% Stack: ...operands... proc saved count
-	4 -1 roll pop		% pop the category
-	/stopped load 3 1 roll
-	3 .execn
-		% Stack: ... stopped saved count
-	3 -1 roll {
-	  .currentstackprotect {
-		% The count is the original stack depth + 2.
-	    count exch 4 sub sub { exch pop } repeat
-	    aload pop end
-	  } {
-		% Don't restore the stacks.
-	    pop pop
-	  } ifelse stop
-	} {
-	  pop pop end
-	} ifelse
+	% Stack: <template> <proc> <scratch> <category> proc
+	exch pop		% pop the category
+	exec end
 } bind def
 /resourceforall {	% <template> <proc> <scratch> <category> resourceforall1 -
 	//resourceforall1 exec		% see above
@@ -243,18 +222,80 @@ odef
 % Define the system parameters used for the Generic implementation of
 % ResourceFileName.
 systemdict begin
+
+%     - .default_resource_dir <string>
+/.default_resource_dir {
+  .file_name_parent .file_name_directory_separator concatstrings
+  (Resource) concatstrings
+  /LIBPATH .systemvar {
+    dup .file_name_current eq {
+      pop
+    } {
+      1 index false .file_name_combine {
+        exch pop exit
+      } {
+        pop pop
+      } ifelse
+    } ifelse
+  } forall
+} bind def
+
+%  <path> <name> <string> .resource_dir_name <path> <name> <string>
+/.resource_dir_name
+{  systemdict 2 index .knownget {
+     exch pop
+     systemdict 1 index undef
+   } {
+     dup () ne {
+     .file_name_directory_separator concatstrings
+    } if
+    2 index exch false .file_name_combine not {
+      (Error: .default_resource_dir returned ) print exch print ( that can't combine with ) print =
+      /.default_resource_dir /configurationerror .signalerror
+    } if
+  } ifelse
+} bind def
+
 currentdict /pssystemparams known not {
   /pssystemparams 10 dict readonly def
 } if
 pssystemparams begin
-  /FontResourceDir (/Resource/Font/) readonly .forcedef	% pssys'params is r-o
-  /GenericResourceDir (/Resource/) readonly .forcedef	% pssys'params is r-o
-  /GenericResourcePathSep (/) readonly .forcedef	% pssys'params is r-o
+  .default_resource_dir
+  /FontResourceDir (Font) .resource_dir_name
+     readonly .forcedef	% pssys'params is r-o
+  /GenericResourceDir () .resource_dir_name
+     readonly .forcedef	% pssys'params is r-o
+  pop % .default_resource_dir
+  /GenericResourcePathSep
+  	.file_name_separator readonly .forcedef		% pssys'params is r-o
+  (%diskFontResourceDir) cvn (/Resource/Font/) readonly .forcedef	% pssys'params is r-o
+  (%diskGenericResourceDir) cvn (/Resource/) readonly .forcedef	% pssys'params is r-o
 end
 end
 
+% Check if GenericResourceDir presents in LIBPATH.
+
+% The value of GenericResourceDir must end with directory separator.
+% We use .file_name_combine to check it. 
+% Comments use OpenVMS syntax, because it is the most complicated case.
+(x) pssystemparams /GenericResourcePathSep get
+(y) concatstrings concatstrings dup length              % (x]y) l1
+pssystemparams /GenericResourceDir get dup length exch  % (x]y) l1 l2 (dir)
+3 index true .file_name_combine not {
+  exch
+  (File name ) print print ( cant combine with ) print =
+  /GenericResourceDir cvx /configurationerror signalerror
+} if
+dup length                                              % (x]y) l1 l2 (dir.x]y) l
+4 2 roll add                                            % (x]y) (dir.x]y) l ll
+ne {
+  (GenericResourceDir value does not end with directory separator.\n) =
+  /GenericResourceDir cvx /configurationerror signalerror
+} if
+pop pop
+
 % Define the generic algorithm for computing resource file names.
-/.rfnstring 100 string def
+/.rfnstring 8192 string def
 /.genericrfn		% <key> <scratch> <prefix> .genericrfn <filename>
  { 3 -1 roll //.rfnstring cvs concatstrings exch copy
  } bind def
@@ -294,7 +335,9 @@ end
   2 copy 0 get .stringmatch {
     dup 3 get begin .LocalInstances end 2 index known not {
       .enumerateresource
-    } if
+    } {
+      pop pop
+    } ifelse
   } {
     pop pop
   } ifelse
@@ -339,7 +382,7 @@ end
 	   { /defineresource load /typecheck signalerror
 	   }
 	ifelse
-} bind executeonly		% executeonly to prevent access to .forcedef
+} .bind executeonly		% executeonly to prevent access to .forcedef
 /UndefineResource
 	{  { dup 2 index .knownget
 	      { dup 1 get 1 ge
@@ -391,8 +434,6 @@ end
 	.ResourceFile { closefile 2 -1 true } { pop false } ifelse
 } bind
 /ResourceForAll {
-		% **************** Doesn't present instance groups in
-		% **************** the correct order yet.
 		% Construct a new procedure to hold the arguments.
 		% All objects constructed here must be in local VM to avoid
 		% a possible invalidaccess.
@@ -411,21 +452,76 @@ end
 	//.globalresourceforall {exec} 0 get 3 .localpackedarray cvx
 	.Instances exch cvx {forall} 0 get 1 index 0 get
 	currentdict end 3 .execn begin
-	currentdict /ResourceFileName known {
-		% Finally, do instances stored on files.
-	  dup 0 get 100 string ResourceFileName
-	  dup length 2 index 0 get length sub 3 -1 roll
-	  //.externalresourceforall {exec} 0 get 4 .localpackedarray cvx
-	  100 string {filenameforall} 0 get
-	  currentdict end 2 .execn begin null	% for pop
-	} if pop
+        mark                                             % args [
+        Category .namestring .file_name_separator concatstrings
+        2 index 0 get                                    % args [ (c/) (t)
+        dup length 3 1 roll                              % args [ l (c/) (t)
+        concatstrings                                    % args [ l (c/t)
+	[ 
+	  /LIBPATH .systemvar 2 index
+	  .generate_dir_list_templates                   % args (t) [ l [(pt)]
+	    % also add on the Resources as specified by the GenericResourceDir
+          [ currentsystemparams /GenericResourceDir get]
+	  counttomark 1 add index .generate_dir_list_templates
+            % Resource files on OpenVMS requires a separate template (gs:[dir.*]*)
+          [ currentsystemparams /GenericResourceDir get]
+	  counttomark 1 add index .file_name_separator (*)
+          concatstrings concatstrings .generate_dir_list_templates
+	  ] exch pop
+	{                                                % args [ l (pt)
+	  dup length 2 index sub exch                    % args [ l Lp (pt)
+
+	  {                                              % args [ l Lp (pf)
+	    dup length                                   % args [ l Lp (pf) Lpf
+	    2 index sub                                  % args [ l Lp (pf) Lf
+	    2 index exch                                 % args [ l Lp (pf) Lp Lf
+	    getinterval cvn dup                          % args [ l Lp /n /n
+	    4 2 roll                                     % args [ /n /n l Lp
+	  } //.rfnstring filenameforall
+	  pop                                            % args [ l /n1 /n1 ... /nN /nN l
+	} forall                                         % args [ l /n1 /n1 ... /nN /nN
+	pop
+	.dicttomark % An easy way to exclude duplicates. % args <</n/n>>
+	  % {
+	  { pop } 0 get
+          2 index 2 get { cvs 0 } aload pop 5 index
+          //.externalresourceforall {exec} 0 get
+          % }
+        7 .localpackedarray cvx
+        3 2 roll pop % args
+	{ forall } 0 get
+  	currentdict end 2 .execn begin
 } bind
 /ResourceFileName
-	{ /GenericResourceDir getsystemparam 
-	  Category .namestring concatstrings
-	  /GenericResourcePathSep getsystemparam concatstrings
-	  .genericrfn
-	} bind
+	  {                                             % /in (scr)
+	    exch //.rfnstring cvs                       % (scr) (n)
+            /GenericResourcePathSep getsystemparam exch % (scr) (/) (n)
+            Category .namestring                        % (scr) (/) (n) (c)
+            3 1 roll                                    % (scr) (c) (/) (n)
+	    concatstrings concatstrings                 % (scr) (c/n)
+            /GenericResourceDir getsystemparam .file_name_is_absolute not {
+              /GenericResourceDir getsystemparam exch concatstrings
+	      findlibfile
+	      {                                         % (scr) (p/c/n) file
+	        pop exch copy true                      % (p/c/n) true
+	      } {                                       % (scr) (c/n)
+	        false                                   % (scr) (c/n) false
+	      } ifelse
+	    } {                                         % (scr) (c/n)
+	      false                                     % (scr) (c/n) false
+	    } ifelse
+	    not {                                       % (scr) (c/n)
+              /GenericResourceDir getsystemparam        % (scr) (c/n) (d/)
+              dup length exch                           % (scr) (c/n) Ld (d/)
+              3 index copy pop                          % (scr') (c/n) Ld
+              1 index length                            % (scr') (c/n) Ld Lcn
+              3 index 3 copy pop                        % (scr') (c/n) Ld Lcn (scr') Ld Lcn
+              getinterval                               % (scr') (c/n) Ld Lcn (scr[Ld:Lcn])
+              4 3 roll exch                             % (scr') Ld Lcn (c/n) (scr[Ld:Lcn])
+              copy pop                                  % (scr'') Ld Lcn
+              add 0 exch getinterval                    % (scr''[0:Ld+Lcn])
+	    } if
+	  } bind
 
 		% Additional entries
 
@@ -492,20 +588,38 @@ end
 	 ifelse
 	} bind
 /.ResourceFile
-	{ currentdict /ResourceFileName known
-	   { mark 1 index 100 string { ResourceFileName }
-	     .internalstopped
-	      { cleartomark false }
-	      { exch pop findlibfile
-		 { exch pop exch pop true }
-		 { pop false }
-		ifelse
-	      }
-	     ifelse
-	   }
-	   { false }
-	  ifelse
+        {
+          Category //.rfnstring cvs length                      % key l
+          dup //.rfnstring dup length 2 index sub               % key l l (buf) L-l
+          3 2 roll exch getinterval                             % key l ()
+          .file_name_directory_separator exch copy length add   % key l1
+          dup //.rfnstring dup length 2 index sub               % key l1 l1 (buf) L-l
+          3 2 roll exch getinterval                             % key l1 ()
+          2 index exch cvs length add                           % key l2
+          //.rfnstring exch 0 exch getinterval                  % key (relative_path)
+          .libfile {
+            exch pop true
+          } {
+            pop
+            currentdict /ResourceFileName known {
+	      mark 1 index //.rfnstring { ResourceFileName } .internalstopped {
+	        cleartomark false
+	      } {
+	        dup status {
+	          pop pop pop pop
+	          (r) file
+	          exch pop exch pop true
+	        } {
+	          cleartomark false
+	        } ifelse
+	      } ifelse
+	     } {
+	       pop false
+	     } ifelse
+          } ifelse
 	} bind
+
+
 
 .dicttomark
 /Category defineresource pop
@@ -884,7 +998,7 @@ end				% level2dict
   systemdict /ColorRendering .knownget {
     /ColorRendering exch /ProcSet defineresource pop
     systemdict /ColorRendering undef
-    /Default currentcolorrendering /ColorRendering defineresource pop
+    /DefaultColorRendering currentcolorrendering /ColorRendering defineresource pop
   } if
 	% ColorSpace resources
   systemdict /CIEsRGB .knownget {
@@ -927,3 +1041,8 @@ end				% level2dict
 	% clean up
   systemdict /.fixresources undef
 } bind def
+
+%% Replace 1 (gs_resmp.ps)
+(gs_resmp.ps)  dup runlibfile VMDEBUG
+%% Replace 1 (gs_resst.ps)
+(gs_resst.ps)  dup runlibfile VMDEBUG

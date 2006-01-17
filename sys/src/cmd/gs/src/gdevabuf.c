@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevabuf.c,v 1.3 2000/09/19 19:00:11 lpd Exp $ */
+/* $Id: gdevabuf.c,v 1.7 2002/09/28 18:29:40 giles Exp $ */
 /* Alpha-buffering memory devices */
 #include "memory_.h"
 #include "gx.h"
@@ -60,11 +58,10 @@ gs_make_mem_alpha_device(gx_device_memory * adev, gs_memory_t * mem,
 
 /* Reimplement color mapping. */
 private gx_color_index
-mem_alpha_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
-			gx_color_value b)
+mem_alpha_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
     gx_device_memory * const mdev = (gx_device_memory *)dev;
-    gx_color_index color = gx_forward_map_rgb_color(dev, r, g, b);
+    gx_color_index color = gx_forward_map_rgb_color(dev, cv);
 
     return (color == 0 || color == gx_no_color_index ? color :
 	    (gx_color_index) ((1 << mdev->log2_alpha_bits) - 1));
@@ -83,7 +80,11 @@ mem_alpha_map_rgb_alpha_color(gx_device * dev, gx_color_value r,
 		   gx_color_value g, gx_color_value b, gx_color_value alpha)
 {
     gx_device_memory * const mdev = (gx_device_memory *)dev;
-    gx_color_index color = gx_forward_map_rgb_color(dev, r, g, b);
+    gx_color_index color;
+    gx_color_value cv[3];
+
+    cv[0] = r; cv[1] = g; cv[2] = b;
+    color = gx_forward_map_rgb_color(dev, cv);
 
     return (color == 0 || color == gx_no_color_index ? color :
 	    (gx_color_index) (alpha >> (gx_color_value_bits -

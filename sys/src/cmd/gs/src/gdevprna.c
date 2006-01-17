@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevprna.c,v 1.2 2000/09/19 19:00:21 lpd Exp $ */
+/* $Id: gdevprna.c,v 1.6 2004/08/04 19:36:12 stefan Exp $ */
 /* Generic asynchronous printer driver support */
 
 /* Initial version 2/1/98 by John Desrosiers (soho@crl.com) */
@@ -55,17 +53,17 @@ private dev_proc_get_hardware_params(gdev_prn_async_write_get_hardware_params);
 private dev_proc_put_params(gdev_prn_async_render_put_params);
 
 /* ---------------- Forward Declarations ---------------------- */
-private void gdev_prn_dealloc(P1(gx_device_printer *));
+private void gdev_prn_dealloc(gx_device_printer *);
 private proc_free_up_bandlist_memory(gdev_prn_async_write_free_up_bandlist_memory);
-private int flush_page(P2(gx_device_printer *, bool));
-private int reopen_clist_after_flush(P1(gx_device_printer *));
-private void reinit_printer_into_printera(P1(gx_device_printer * const));
-private int alloc_bandlist_memory(P2(gs_memory_t **, gs_memory_t *));
-private void free_bandlist_memory(P1(gs_memory_t *));
-private int alloc_render_memory(P3(gs_memory_t **, gs_memory_t *, long));
-private void free_render_memory(P1(gs_memory_t *));
+private int flush_page(gx_device_printer *, bool);
+private int reopen_clist_after_flush(gx_device_printer *);
+private void reinit_printer_into_printera(gx_device_printer * const);
+private int alloc_bandlist_memory(gs_memory_t **, gs_memory_t *);
+private void free_bandlist_memory(gs_memory_t *);
+private int alloc_render_memory(gs_memory_t **, gs_memory_t *, long);
+private void free_render_memory(gs_memory_t *);
 private gs_memory_recover_status_t
-    prna_mem_recover(P2(gs_memory_retrying_t *rmem, void *proc_data));
+    prna_mem_recover(gs_memory_retrying_t *rmem, void *proc_data);
 
 /* ------ Open/close ------ */
 
@@ -101,7 +99,7 @@ gdev_prn_async_write_open(gx_device_printer * pwdev, int max_raster,
     /* The * 2's in the next statement are a ****** HACK ****** to deal with */
     /* sandbars in the memory manager. */
     if ((code = alloc_render_memory(&render_memory,
-	    &gs_memory_default, RendererAllocationOverheadBytes + max_raster
+	    pwdev->memory->non_gc_memory, RendererAllocationOverheadBytes + max_raster
 				    /* the first * 2 is not a hack */
 		   + (max_raster + sizeof(void *) * 2) * min_band_height
 		   + max_src_image_row + gx_ht_cache_default_bits() * 2)) < 0)
@@ -111,7 +109,7 @@ gdev_prn_async_write_open(gx_device_printer * pwdev, int max_raster,
     /* Bandlist mem is threadsafe & common to rdr/wtr, so it's used */
     /* for page queue & cmd list buffers. */
     if ((code = alloc_bandlist_memory
-	 (&pwdev->bandlist_memory, &gs_memory_default)) < 0)
+	 (&pwdev->bandlist_memory, pwdev->memory->non_gc_memory)) < 0)
 	goto open_err;
 
     /* Dictate banding parameters for both renderer & writer */
@@ -175,7 +173,7 @@ gdev_prn_async_write_open(gx_device_printer * pwdev, int max_raster,
 	prdev->page_queue = pwdev->page_queue;
 
 	/* Start renderer thread & wait for its successful open of device */
-	if (!(open_semaphore = gx_semaphore_alloc(&gs_memory_default)))
+	if (!(open_semaphore = gx_semaphore_alloc(prdev->memory)))
 	    code = gs_note_error(gs_error_VMerror);
 	else {
 	    gdev_prn_start_render_params thread_params;
@@ -194,7 +192,7 @@ gdev_prn_async_write_open(gx_device_printer * pwdev, int max_raster,
     /* ----- Set the recovery procedure for the mem allocator ----- */
     if (code >= 0) {
 	gs_memory_retrying_set_recover(
-		(gs_memory_retrying_t *)&gs_memory_default,
+		(gs_memory_retrying_t *)pwdev->memory->non_gc_memory,
 		prna_mem_recover,
 		(void *)pcwdev
 	    );
@@ -761,7 +759,7 @@ alloc_render_memory(gs_memory_t **final_allocator,
 		    gs_memory_t *base_allocator, long space)
 {
     gs_ref_memory_t *rmem =
-	ialloc_alloc_state((gs_raw_memory_t *)base_allocator, space);
+	ialloc_alloc_state((gs_memory_t *)base_allocator, space);
     vm_spaces spaces;
     int i, code;
 

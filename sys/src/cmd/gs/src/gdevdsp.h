@@ -1,36 +1,37 @@
-/* Copyright (C) 2001, Ghostgum Software Pty Ltd.  All rights reserved.
+/* Copyright (C) 2001-2005, Ghostgum Software Pty Ltd.  All rights reserved.
 
-   This file is part of AFPL Ghostscript.
-
-   AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-   or distributor accepts any responsibility for the consequences of using it,
-   or for whether it serves any particular purpose or works at all, unless he
-   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-   License (the "License") for full details.
-
-   Every copy of AFPL Ghostscript must include a copy of the License,
-   normally in a plain ASCII text file named PUBLIC.  The License grants you
-   the right to copy, modify and redistribute AFPL Ghostscript, but only
-   under certain conditions described in the License.  Among other things, the
-   License requires that the copyright notice and this notice be preserved on
-   all copies.
+   This software is provided AS-IS with no warranty, either express or
+   implied.
+   
+   This software is distributed under license and may not be copied,
+   modified or distributed except as expressly authorized under the terms
+   of the license contained in the file LICENSE in this distribution.
+   
+   For more information about licensing, please refer to
+   http://www.ghostscript.com/licensing/. For information on
+   commercial licensing, go to http://www.artifex.com/licensing/ or
+   contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+   San Rafael, CA  94903, U.S.A., +1(415)492-9861.
  */
 
-/* gdevdisp.h - callback structure for DLL based display device */
+/* $Id: gdevdsp.h,v 1.12 2005/03/04 22:00:22 ghostgum Exp $ */
+/* gdevdsp.h - callback structure for DLL based display device */
 
-#ifndef gdevdisp_INCLUDED
-#  define gdevdisp_INCLUDED
+#ifndef gdevdsp_INCLUDED
+#  define gdevdsp_INCLUDED
 
 /*
  * The callback structure must be provided by calling the
  * Ghostscript APIs in the following order:
  *  gsapi_new_instance(&minst);
  *  gsapi_set_display_callback(minst, callback);
- *  gsapi_init_with_arg(minst, argc, argv);
+ *  gsapi_init_with_args(minst, argc, argv);
  *
  * Supported parameters and default values are:
- * -dDisplayHandle=0                      long
- *    Caller supplied handle.
+ * -sDisplayHandle=16#04d2 or 1234        string
+ *    Caller supplied handle as a decimal or hexadecimal number
+ *    in a string.  On 32-bit platforms, it may be set
+ *    using -dDisplayHandle=1234 for backward compatibility.
  *    Included as first parameter of all callback functions.
  *
  * -dDisplayFormat=0                      long
@@ -56,19 +57,23 @@
  * 
  */
 
-#define DISPLAY_VERSION_MAJOR 1
+#define DISPLAY_VERSION_MAJOR 2
 #define DISPLAY_VERSION_MINOR 0
+
+#define DISPLAY_VERSION_MAJOR_V1 1 /* before separation format was added */
+#define DISPLAY_VERSION_MINOR_V1 0
 
 /* The display format is set by a combination of the following bitfields */
 
 /* Define the color space alternatives */
 typedef enum {
-    DISPLAY_COLORS_NATIVE = (1<<0),
-    DISPLAY_COLORS_GRAY   = (1<<1),
-    DISPLAY_COLORS_RGB    = (1<<2),
-    DISPLAY_COLORS_CMYK   = (1<<3)
+    DISPLAY_COLORS_NATIVE	 = (1<<0),
+    DISPLAY_COLORS_GRAY  	 = (1<<1),
+    DISPLAY_COLORS_RGB   	 = (1<<2),
+    DISPLAY_COLORS_CMYK  	 = (1<<3),
+    DISPLAY_COLORS_SEPARATION    = (1<<19)
 } DISPLAY_FORMAT_COLOR;
-#define DISPLAY_COLORS_MASK 0x000fL
+#define DISPLAY_COLORS_MASK 0x8000fL
 
 /* Define whether alpha information, or an extra unused bytes is included */
 /* DISPLAY_ALPHA_FIRST and DISPLAY_ALPHA_LAST are not implemented */
@@ -79,7 +84,7 @@ typedef enum {
     DISPLAY_UNUSED_FIRST = (1<<6),	/* e.g. Mac xRGB */
     DISPLAY_UNUSED_LAST  = (1<<7)	/* e.g. Windows BGRx */
 } DISPLAY_FORMAT_ALPHA;
-#define DISPLAY_ALPHA_MASK 0x0070L
+#define DISPLAY_ALPHA_MASK 0x00f0L
 
 /* Define the depth per component for DISPLAY_COLORS_GRAY, 
  * DISPLAY_COLORS_RGB and DISPLAY_COLORS_CMYK, 
@@ -125,10 +130,34 @@ typedef enum {
 } DISPLAY_FORMAT_555;
 #define DISPLAY_555_MASK 0x00040000L
 
+/* Define the row alignment, which must be equal to or greater than
+ * the size of a pointer.
+ * The default (DISPLAY_ROW_ALIGN_DEFAULT) is the size of a pointer, 
+ * 4 bytes (DISPLAY_ROW_ALIGN_4) on 32-bit systems or 8 bytes 
+ * (DISPLAY_ROW_ALIGN_8) on 64-bit systems.
+ */
+typedef enum {
+    DISPLAY_ROW_ALIGN_DEFAULT = (0<<20),
+    /* DISPLAY_ROW_ALIGN_1 = (1<<20), */ /* not currently possible */
+    /* DISPLAY_ROW_ALIGN_2 = (2<<20), */ /* not currently possible */
+    DISPLAY_ROW_ALIGN_4 = (3<<20),
+    DISPLAY_ROW_ALIGN_8 = (4<<20),
+    DISPLAY_ROW_ALIGN_16 = (5<<20),
+    DISPLAY_ROW_ALIGN_32 = (6<<20),
+    DISPLAY_ROW_ALIGN_64 = (7<<20)
+} DISPLAY_FORMAT_ROW_ALIGN;
+#define DISPLAY_ROW_ALIGN_MASK 0x00700000L
+
+
 #ifndef display_callback_DEFINED
 #define display_callback_DEFINED
 typedef struct display_callback_s display_callback;
 #endif
+
+/*
+ * Note that for Windows, the display callback functions are 
+ * cdecl, not stdcall.  This differs from those in iapi.h.
+ */
 
 struct display_callback_s {
     /* Size of this structure */
@@ -197,7 +226,45 @@ struct display_callback_s {
     /* If this is NULL, the Ghostscript memory device will free the bitmap */
     int (*display_memfree)(void *handle, void *device, void *mem);
    
+    /* Added in V2 */
+    /* When using separation color space (DISPLAY_COLORS_SEPARATION),
+     * give a mapping for one separation component.
+     * This is called for each new component found.
+     * It may be called multiple times for each component.
+     * It may be called at any time between display_size
+     * and display_close.
+     * The client uses this to map from the separations to CMYK
+     * and hence to RGB for display.
+     * GS must only use this callback if version_major >= 2.
+     * The unsigned short c,m,y,k values are 65535 = 1.0.
+     * This function pointer may be set to NULL if not required.
+     */
+    int (*display_separation)(void *handle, void *device,
+	int component, const char *component_name,
+	unsigned short c, unsigned short m, 
+	unsigned short y, unsigned short k);
 };
 
+/* This is the V1 structure, before separation format was added */
+struct display_callback_v1_s {
+    int size;
+    int version_major;
+    int version_minor;
+    int (*display_open)(void *handle, void *device);
+    int (*display_preclose)(void *handle, void *device);
+    int (*display_close)(void *handle, void *device);
+    int (*display_presize)(void *handle, void *device,
+	int width, int height, int raster, unsigned int format);
+    int (*display_size)(void *handle, void *device, int width, int height, 
+	int raster, unsigned int format, unsigned char *pimage);
+    int (*display_sync)(void *handle, void *device);
+    int (*display_page)(void *handle, void *device, int copies, int flush);
+    int (*display_update)(void *handle, void *device, int x, int y, 
+	int w, int h);
+    void *(*display_memalloc)(void *handle, void *device, unsigned long size);
+    int (*display_memfree)(void *handle, void *device, void *mem);
+};
 
-#endif /* gdevdisp_INCLUDED */
+#define DISPLAY_CALLBACK_V1_SIZEOF sizeof(struct display_callback_v1_s)
+
+#endif /* gdevdsp_INCLUDED */

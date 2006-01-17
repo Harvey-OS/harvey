@@ -1,29 +1,27 @@
 /* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxclrast.c,v 1.9 2001/03/13 08:38:03 igorm Exp $ */
+/*$Id: gxclrast.c,v 1.33 2005/03/14 18:08:36 dan Exp $ */
 /* Command list interpreter/rasterizer */
 #include "memory_.h"
 #include "gx.h"
 #include "gp.h"			/* for gp_fmode_rb */
 #include "gpcheck.h"
-#include "gscdefs.h"		/* for image type table */
 #include "gserrors.h"
+#include "gscdefs.h"		/* for image type table */
 #include "gsbitops.h"
 #include "gsparams.h"
 #include "gsstate.h"		/* (should only be imager state) */
@@ -43,12 +41,15 @@
 #include "gxpaint.h"		/* for gx_fill/stroke_params */
 #include "gxhttile.h"
 #include "gxiparam.h"
-#include "gdevht.h"
 #include "gzpath.h"
 #include "gzcpath.h"
 #include "gzacpath.h"
 #include "stream.h"
 #include "strimpl.h"
+#include "gxcomp.h"
+#include "gsserial.h"
+#include "gxdhtserial.h"
+#include "gzht.h"
 
 extern_gx_device_halftone_list();
 extern_gx_image_type_table();
@@ -84,6 +85,7 @@ cmd_print_bits(const byte * data, int width, int height, int raster)
     if ( *p < 0x80 ) var = *p++;\
     else { const byte *_cbp; var = cmd_get_w(p, &_cbp); p = _cbp; }\
   END
+
 private long
 cmd_get_w(const byte * p, const byte ** rp)
 {
@@ -138,7 +140,7 @@ top_up_cbuf(command_buf_t *pcb, const byte *cbp)
 	nread = 1;
     }
     set_cb_end(pcb, cb_top + nread);
-    process_interrupts();
+    process_interrupts(pcb->s->memory);
     return pcb->data;
 }
 
@@ -171,53 +173,62 @@ cmd_copy_value(void *pvar, int var_size, const byte *cbp)
 #define cmd_get_value(var, cbp)\
   cbp = cmd_copy_value(&var, sizeof(var), cbp)
 
+
+/*
+ * Define a buffer structure to hold a serialized halftone. This is
+ * used only if the serialized halftone is too large to fit into
+ * the command buffer.
+ */
+typedef struct ht_buff_s {
+    uint    ht_size, read_size;
+    byte *  pcurr;
+    byte *  pbuff;
+} ht_buff_t;
+
 /*
  * Render one band to a specified target device.  Note that if
  * action == setup, target may be 0.
  */
-private int read_set_tile_size(P2(command_buf_t *pcb, tile_slot *bits));
-private int read_set_bits(P8(command_buf_t *pcb, tile_slot *bits,
-			     int compress, gx_clist_state *pcls,
-			     gx_strip_bitmap *tile, tile_slot **pslot,
-			     gx_device_clist_reader *cdev, gs_memory_t *mem));
-private int read_set_ht_order(P4(command_buf_t *pcb,
-				 gx_device_halftone **ppdht,
-				 gx_ht_order **pporder, gs_memory_t *mem));
-private int read_set_ht_data(P7(command_buf_t *pcb, uint *pdata_index,
-				gx_ht_order *porder,
-				gs_halftone_type halftone_type,
-				gs_imager_state *pis,
-				gx_device_clist_reader *cdev,
-				gs_memory_t *mem));
-private int read_set_misc2(P3(command_buf_t *pcb, gs_imager_state *pis,
-			      segment_notes *pnotes));
-private int read_set_color_space(P5(command_buf_t *pcb, gs_imager_state *pis,
-				    const gs_color_space **ppcs,
-				    gs_color_space *pcolor_space,
-				    gs_memory_t *mem));
-private int read_begin_image(P3(command_buf_t *pcb, gs_image_common_t *pic,
-				const gs_color_space *pcs));
-private int read_put_params(P4(command_buf_t *pcb, gs_imager_state *pis,
-			       gx_device_clist_reader *cdev,
-			       gs_memory_t *mem));
+private int read_set_tile_size(command_buf_t *pcb, tile_slot *bits);
+private int read_set_bits(command_buf_t *pcb, tile_slot *bits,
+                          int compress, gx_clist_state *pcls,
+                          gx_strip_bitmap *tile, tile_slot **pslot,
+                          gx_device_clist_reader *cdev, gs_memory_t *mem);
+private int read_set_misc2(command_buf_t *pcb, gs_imager_state *pis,
+                           segment_notes *pnotes);
+private int read_set_color_space(command_buf_t *pcb, gs_imager_state *pis,
+                                 const gs_color_space **ppcs,
+                                 gs_color_space *pcolor_space,
+                                 gs_memory_t *mem);
+private int read_begin_image(command_buf_t *pcb, gs_image_common_t *pic,
+                             const gs_color_space *pcs);
+private int read_put_params(command_buf_t *pcb, gs_imager_state *pis,
+                            gx_device_clist_reader *cdev,
+                            gs_memory_t *mem);
+private int read_create_compositor(command_buf_t *pcb, gs_imager_state *pis,
+                                   gx_device_clist_reader *cdev,
+                                   gs_memory_t *mem, gx_device ** ptarget);
+private int read_alloc_ht_buff(ht_buff_t *, uint, gs_memory_t *);
+private int read_ht_segment(ht_buff_t *, command_buf_t *, gs_imager_state *,
+			    gx_device *, gs_memory_t *);
 
-private const byte *cmd_read_rect(P3(int, gx_cmd_rect *, const byte *));
-private const byte *cmd_read_matrix(P2(gs_matrix *, const byte *));
-private const byte *cmd_read_short_bits(P6(command_buf_t *pcb, byte *data,
-					   int width_bytes, int height,
-					   uint raster, const byte *cbp));
-private int cmd_select_map(P7(cmd_map_index, cmd_map_contents,
-			      gs_imager_state *, gx_ht_order *, frac **,
-			      uint *, gs_memory_t *));
-private int cmd_create_dev_ht(P2(gx_device_halftone **, gs_memory_t *));
-private int cmd_resize_halftone(P3(gx_device_halftone **, uint,
-				   gs_memory_t *));
-private int clist_decode_segment(P7(gx_path *, int, fixed[6],
-				    gs_fixed_point *, int, int,
-				    segment_notes));
-private int clist_do_polyfill(P4(gx_device *, gx_path *,
-				 const gx_drawing_color *,
-				 gs_logical_operation_t));
+private const byte *cmd_read_rect(int, gx_cmd_rect *, const byte *);
+private const byte *cmd_read_matrix(gs_matrix *, const byte *);
+private const byte *cmd_read_short_bits(command_buf_t *pcb, byte *data,
+                                        int width_bytes, int height,
+                                        uint raster, const byte *cbp);
+private int cmd_select_map(cmd_map_index, cmd_map_contents,
+                           gs_imager_state *, int **,
+                           frac **, uint *, gs_memory_t *);
+private int cmd_create_dev_ht(gx_device_halftone **, gs_memory_t *);
+private int cmd_resize_halftone(gx_device_halftone **, uint,
+                                gs_memory_t *);
+private int clist_decode_segment(gx_path *, int, fixed[6],
+                                 gs_fixed_point *, int, int,
+                                 segment_notes);
+private int clist_do_polyfill(gx_device *, gx_path *,
+                              const gx_drawing_color *,
+                              gs_logical_operation_t);
 
 int
 clist_playback_band(clist_playback_action playback_action,
@@ -233,8 +244,10 @@ clist_playback_band(clist_playback_action playback_action,
 #define data_bits_size cbuf_size
     byte *data_bits = 0;
     register const byte *cbp;
-    int dev_depth = cdev->color_info.depth;
-    int dev_depth_bytes = (dev_depth + 7) >> 3;
+    int dev_depth;		/* May vary due to compositing devices */
+    int dev_depth_bytes;
+    int odd_delta_shift;
+    int num_zero_bytes;
     gx_device *tdev;
     gx_clist_state state;
     gx_color_index *set_colors;
@@ -253,15 +266,15 @@ clist_playback_band(clist_playback_action playback_action,
     struct _cas {
 	bool lop_enabled;
 	gs_fixed_point fill_adjust;
+	gx_device_color dcolor;
     } clip_save;
+    bool in_clip = false;
     gs_imager_state imager_state;
     gx_device_color dev_color;
     float dash_pattern[cmd_max_dash];
     gx_fill_params fill_params;
     gx_stroke_params stroke_params;
     gs_halftone_type halftone_type;
-    gx_ht_order *porder;
-    uint ht_data_index;
     union im_ {
 	gs_image_common_t c;
 	gs_data_image_t d;
@@ -271,6 +284,7 @@ clist_playback_band(clist_playback_action playback_action,
     gs_int_rect image_rect;
     gs_color_space color_space;	/* only used for indexed spaces */
     const gs_color_space *pcs;
+    gs_color_space cs;
     gx_image_enum_common_t *image_info;
     gx_image_plane_t planes[32];
     uint data_height;
@@ -280,6 +294,8 @@ clist_playback_band(clist_playback_action playback_action,
     segment_notes notes;
     int data_x;
     int code = 0;
+    ht_buff_t  ht_buff;
+    gx_device *const orig_target = target;
 
     cbuf.data = (byte *)cbuf_storage;
     cbuf.size = cbuf_size;
@@ -287,6 +303,9 @@ clist_playback_band(clist_playback_action playback_action,
     cbuf.end_status = 0;
     set_cb_end(&cbuf, cbuf.data + cbuf.size);
     cbp = cbuf.end;
+
+    memset(&ht_buff, 0, sizeof(ht_buff));
+
 in:				/* Initialize for a new page. */
     tdev = target;
     set_colors = state.colors;
@@ -331,7 +350,9 @@ in:				/* Initialize for a new page. */
     gx_imager_setscreenphase(&imager_state, -x0, -y0, gs_color_select_all);
     halftone_type = ht_type_none;
     fill_params.fill_zero_width = false;
-    pcs = gs_cspace_DeviceGray(&imager_state);
+    gs_cspace_init_DeviceGray(mem, &cs);
+    pcs = &cs;
+    color_unset(&dev_color);
     color_space.params.indexed.use_proc = 0;
     color_space.params.indexed.lookup.table.size = 0;
     data_bits = gs_alloc_bytes(mem, data_bits_size,
@@ -342,8 +363,10 @@ in:				/* Initialize for a new page. */
     }
     while (code >= 0) {
 	int op;
-	int compress, depth, raster;
-	byte *source;
+	int compress;
+	int depth = 0x7badf00d; /* Initialize against indeterminizm. */
+	int raster = 0x7badf00d; /* Initialize against indeterminizm. */
+	byte *source = NULL;  /* Initialize against indeterminizm. */
 	gx_color_index colors[2];
 	gx_color_index *pcolor;
 	gs_logical_operation_t log_op;
@@ -444,17 +467,26 @@ in:				/* Initialize for a new page. */
 				case cmd_set_misc_map >> 6:
 				    {
 					frac *mdata;
+					int *pcomp_num;
 					uint count;
 					cmd_map_contents cont =
 					    (cmd_map_contents)(cb & 0x30) >> 4;
 
 					code = cmd_select_map(cb & 0xf, cont,
 							      &imager_state,
-							      porder, &mdata,
-							      &count, mem);
+							      &pcomp_num,
+							      &mdata, &count, mem);
 
 					if (code < 0)
 					    goto out;
+					/* Get component number if relevant */
+					if (pcomp_num == NULL)
+					    cbp++;
+					else {
+					    *pcomp_num = (int) *cbp++;
+				    	    if_debug1('L', " comp_num=%d",
+							    *pcomp_num);
+					}
 					if (cont == cmd_map_other) {
 					    cmd_read((byte *)mdata, count, cbp);
 #ifdef DEBUG
@@ -472,8 +504,7 @@ in:				/* Initialize for a new page. */
 				    }
 				    /* Recompute the effective transfer, */
 				    /* in case this was a transfer map. */
-				    gx_imager_set_effective_xfer(
-							     &imager_state);
+				    gx_imager_set_effective_xfer(&imager_state);
 				    break;
 				case cmd_set_misc_halftone >> 6: {
 				    uint num_comp;
@@ -504,37 +535,6 @@ in:				/* Initialize for a new page. */
 			imager_state.log_op = lop_default;
 			if_debug0('L', "\n");
 			continue;
-		    case cmd_opv_set_ht_order:
-			cbuf.ptr = cbp;
-			code = read_set_ht_order(&cbuf, &imager_state.dev_ht,
-						 &porder, mem);
-			cbp = cbuf.ptr;
-			if (code < 0)
-			    goto out;
-			ht_data_index = 0;
-			/*
-			 * Free the relevant cache, because its sizes
-			 * are probably not correct any more.
-			 */
-			{
-			    gx_ht_cache *pcache = porder->cache;
-
-			    if (pcache) {
-				if (pcache != imager_state.ht_cache)
-				    gx_ht_free_cache(mem, pcache);
-				porder->cache = 0;
-			    }
-			}
-			continue;
-		    case cmd_opv_set_ht_data:
-			cbuf.ptr = cbp;
-			code = read_set_ht_data(&cbuf, &ht_data_index, porder,
-						halftone_type,
-						&imager_state, cdev, mem);
-			cbp = cbuf.ptr;
-			if (code < 0)
-			    goto out;
-			continue;
 		    case cmd_opv_end_page:
 			if_debug0('L', "\n");
 			/*
@@ -542,25 +542,57 @@ in:				/* Initialize for a new page. */
 			 * there are more pages to come.
 			 */
 			goto out;
-		    case cmd_opv_delta2_color0:
+		    case cmd_opv_delta_color0:
 			pcolor = &set_colors[0];
 			goto delta2_c;
-		    case cmd_opv_delta2_color1:
+		    case cmd_opv_delta_color1:
 			pcolor = &set_colors[1];
 		      delta2_c:set_colors = state.colors;
+		    	/* See comments for cmd_put_color() in gxclutil.c. */
 			{
-			    gx_color_index b = ((uint) * cbp << 8) + cbp[1];
+			    gx_color_index delta = 0;
+			    uint data;
 
-			    cbp += 2;
-			    if (dev_depth > 24)
-				*pcolor +=
-				    ((b & 0xf000) << 12) + ((b & 0x0f00) << 8) +
-				    ((b & 0x00f0) << 4) + (b & 0x000f) -
-				    cmd_delta2_32_bias;
-			    else
-				*pcolor +=
-				    ((b & 0xf800) << 5) + ((b & 0x07e0) << 3) +
-				    (b & 0x001f) - cmd_delta2_24_bias;
+			    dev_depth = cdev->color_info.depth;
+			    dev_depth_bytes = (dev_depth + 7) >> 3;
+		            switch (dev_depth_bytes) {
+				/* For cases with an even number of bytes */
+			        case 8:
+			            data = *cbp++;
+			            delta = ((gx_color_index)
+				        ((data & 0xf0) << 4) + (data & 0x0f)) << 48;
+			        case 6:
+			            data = *cbp++;
+			            delta |= ((gx_color_index)
+				        ((data & 0xf0) << 4) + (data & 0x0f)) << 32;
+			        case 4:
+			            data = *cbp++;
+			            delta |= ((gx_color_index)
+				        ((data & 0xf0) << 4) + (data & 0x0f)) << 16;
+			        case 2:
+			            data = *cbp++;
+			            delta |= ((gx_color_index)
+				        ((data & 0xf0) << 4) + (data & 0x0f));
+				    break;
+				/* For cases with an odd number of bytes */
+			        case 7:
+			            data = *cbp++;
+			            delta = ((gx_color_index)
+				        ((data & 0xf0) << 4) + (data & 0x0f)) << 16;
+			        case 5:
+			            data = *cbp++;
+			            delta |= ((gx_color_index)
+				        ((data & 0xf0) << 4) + (data & 0x0f));
+			        case 3:
+			            data = *cbp++;
+				    odd_delta_shift = (dev_depth_bytes - 3) * 8;
+			            delta |= ((gx_color_index)
+				        ((data & 0xe0) << 3) + (data & 0x1f)) << odd_delta_shift;
+				    data = *cbp++;
+			            delta |= ((gx_color_index) ((data & 0xf8) << 2) + (data & 0x07))
+				    			<< (odd_delta_shift + 11);
+		            }
+		            *pcolor += delta - cmd_delta_offsets[dev_depth_bytes];
 			}
 			if_debug1('L', " 0x%lx\n", *pcolor);
 			continue;
@@ -582,59 +614,46 @@ in:				/* Initialize for a new page. */
 	    case cmd_op_set_color1 >> 4:
 		pcolor = &set_colors[1];
 	      set_color:set_colors = state.colors;
-		switch (op & 0xf) {
-		    case 0:
-			break;
-		    case 15:	/* special handling because this may */
-			/* require more bits than depth */
-			*pcolor = gx_no_color_index;
-			goto setc;
-		    default:
-			switch (dev_depth_bytes) {
-			    case 4:
-				{
-				    gx_color_index b =
-				    ((gx_color_index) (op & 0xf) << 8) + *cbp++;
+		/*
+		 * We have a special case for gx_no_color_index. If the low
+		 * order 4 bits are "cmd_no_color_index" then we really
+		 * have a value of gx_no_color_index.  Otherwise the these
+		 * bits indicate the number of low order zero bytes in the
+		 * value.  See comments for cmd_put_color() in gxclutil.c.
+		 */
+		num_zero_bytes = op & 0x0f;
 
-				    *pcolor +=
-					((b & 07000) << 15) + ((b & 0700) << 10) +
-					((b & 070) << 5) + (b & 7) -
-					cmd_delta1_32_bias;
-				    goto setc;
-				}
-			    case 3:
-				{
-				    gx_color_index b = *cbp++;
-
-				    *pcolor +=
-					((gx_color_index) (op & 0xf) << 16) +
-					((b & 0xf0) << 4) + (b & 0x0f) -
-					cmd_delta1_24_bias;
-				    goto setc;
-				}
-			    case 2:
-				break;
-			    case 1:
-				*pcolor += (gx_color_index) (op & 0xf) - 8;
-				goto setc;
-			}
-		}
-		{
+		if (num_zero_bytes == cmd_no_color_index)
+		    *pcolor = gx_no_color_index;
+		else {
 		    gx_color_index color = 0;
 
-		    switch (dev_depth_bytes) {
+		    dev_depth = cdev->color_info.depth;
+		    dev_depth_bytes = (dev_depth + 7) >> 3;
+		    switch (dev_depth_bytes - num_zero_bytes) {
+			case 8:
+			    color = (gx_color_index) * cbp++;
+			case 7:
+			    color = (color << 8) | (gx_color_index) * cbp++;
+			case 6:
+			    color = (color << 8) | (gx_color_index) * cbp++;
+			case 5:
+			    color = (color << 8) | (gx_color_index) * cbp++;
 			case 4:
-			    color |= (gx_color_index) * cbp++ << 24;
+			    color = (color << 8) | (gx_color_index) * cbp++;
 			case 3:
-			    color |= (gx_color_index) * cbp++ << 16;
+			    color = (color << 8) | (gx_color_index) * cbp++;
 			case 2:
-			    color |= (gx_color_index) * cbp++ << 8;
+			    color = (color << 8) | (gx_color_index) * cbp++;
 			case 1:
-			    color |= (gx_color_index) * cbp++;
+			    color = (color << 8) | (gx_color_index) * cbp++;
+			default:
+			    break;
 		    }
+		    color <<= num_zero_bytes * 8;
 		    *pcolor = color;
 		}
-	      setc:if_debug1('L', " 0x%lx\n", *pcolor);
+	        if_debug1('L', " 0x%lx\n", *pcolor);
 		continue;
 	    case cmd_op_fill_rect >> 4:
 	    case cmd_op_tile_rect >> 4:
@@ -672,8 +691,8 @@ in:				/* Initialize for a new page. */
 		if (state.color_is_alpha) {
 		    if (!(op & 8))
 			depth = *cbp++;
-		} else
-		    depth = dev_depth;
+		} else 
+		    depth = cdev->color_info.depth;
 	      copy:cmd_getw(state.rect.x, cbp);
 		cmd_getw(state.rect.y, cbp);
 		if (op & 8) {	/* Use the current "tile". */
@@ -933,6 +952,7 @@ set_phase:	/*
 			break;
 		    case cmd_opv_begin_clip:
 			pcpath = NULL;
+			in_clip = true;
 			if_debug0('L', "\n");
 			code = gx_cpath_reset(&clip_path);
 			if (code < 0)
@@ -944,6 +964,9 @@ set_phase:	/*
 			clip_save.lop_enabled = state.lop_enabled;
 			clip_save.fill_adjust =
 			    imager_state.fill_adjust;
+			clip_save.dcolor = dev_color;
+			/* temporarily set a solid color */
+			color_set_pure(&dev_color, (gx_color_index)1);
 			state.lop_enabled = false;
 			imager_state.log_op = lop_default;
 			imager_state.fill_adjust.x =
@@ -974,6 +997,8 @@ set_phase:	/*
 			     lop_default);
 			imager_state.fill_adjust =
 			    clip_save.fill_adjust;
+			dev_color = clip_save.dcolor;
+			in_clip = false;
 			break;
 		    case cmd_opv_set_color_space:
 			cbuf.ptr = cbp;
@@ -1020,13 +1045,10 @@ set_phase:	/*
 				  image.d.Width, image.d.Height);
 ibegin:			if_debug0('L', "\n");
 			{
-			    gx_drawing_color devc;
-
-			    color_set_pure(&devc, state.colors[1]);
 			    code = (*dev_proc(tdev, begin_typed_image))
 				(tdev, &imager_state, NULL,
 				 (const gs_image_common_t *)&image,
-				 &image_rect, &devc, pcpath, mem,
+				 &image_rect, &dev_color, pcpath, mem,
 				 &image_info);
 			}
 			if (code < 0)
@@ -1044,7 +1066,7 @@ ibegin:			if_debug0('L', "\n");
 			{
 			    uint flags;
 			    int plane;
-			    uint raster;
+			    uint raster1 = 0xbaadf00d; /* Initialize against indeterminizm. */
 
 			    cmd_getw(flags, cbp);
 			    for (plane = 0;
@@ -1056,10 +1078,10 @@ ibegin:			if_debug0('L', "\n");
 					2 * cmd_max_intsize(sizeof(uint)))
 					cbp = top_up_cbuf(&cbuf, cbp);
 				    cmd_getw(planes[plane].raster, cbp);
-				    if ((raster = planes[plane].raster) != 0)
+				    if ((raster1 = planes[plane].raster) != 0)
 					cmd_getw(data_x, cbp);
 				} else {
-				    planes[plane].raster = raster;
+				    planes[plane].raster = raster1;
 				}
 				planes[plane].data_x = data_x;
 			    }
@@ -1166,51 +1188,82 @@ idata:			data_size = 0;
 			if (code < 0)
 			    goto out;
 			continue;
-		    case cmd_opv_set_color:
-			op = *cbp++;
-#define dcb dev_color.colors.colored.c_base
-#define dcl dev_color.colors.colored.c_level
-			dcb[0] = ((op & 0xf) << 1) + (*cbp >> 7);
-			dcb[1] = (*cbp >> 2) & 0x1f;
-			dcb[2] = ((*cbp & 3) << 3) + (cbp[1] >> 5);
-			dcb[3] = cbp[1] & 0x1f;
-			cbp += 2;
-			goto setcc;
-		    case cmd_opv_set_color_short:
-			op = *cbp++;
-			dcb[0] = (op >> 3) & 1;
-			dcb[1] = (op >> 2) & 1;
-			dcb[2] = (op >> 1) & 1;
-			dcb[3] = op & 1;
-setcc:			{
-			    int i;
+		    case cmd_opv_extend:
+			switch (*cbp++) {
+			    case cmd_opv_ext_put_params:
+				cbuf.ptr = cbp;
+				code = read_put_params(&cbuf, &imager_state,
+							cdev, mem);
+				cbp = cbuf.ptr;
+				if (code > 0)
+				    break; /* empty list */
+				if (code < 0)
+				    goto out;
+				if (playback_action == playback_action_setup)
+				    goto out;
+				break;
+			    case cmd_opv_ext_create_compositor:
+				cbuf.ptr = cbp;
+				/*
+				 * The screen phase may have been changed during
+				 * the processing of masked images.
+				 */
+				gx_imager_setscreenphase(&imager_state,
+					    -x0, -y0, gs_color_select_all);
+				code = read_create_compositor(&cbuf, &imager_state,
+							      cdev, mem, &target);
+				cbp = cbuf.ptr;
+				tdev = target;
+				if (code < 0)
+				    goto out;
+				break;
+			    case cmd_opv_ext_put_halftone:
+                                {
+                                    uint    ht_size;
 
-			    for (i = 0; i < cdev->color_info.num_components; ++i)
-				if (op & (0x80 >> i))
-				    cmd_getw(dcl[i], cbp);
-				else
-				    dcl[i] = 0;
-			    if_debug9('L', " num_comp=%d base=(%u,%u,%u,%u) level=(%u,%u,%u,%u)\n",
-				       imager_state.dev_ht->num_comp,
-				       dcb[0], dcb[1], dcb[2], dcb[3],
-				       dcl[0], dcl[1], dcl[2], dcl[3]);
-			    color_finish_set_cmyk_halftone(&dev_color,
-						       imager_state.dev_ht);
-#undef dcb
-#undef dcl
+                                    enc_u_getw(ht_size, cbp);
+                                    code = read_alloc_ht_buff(&ht_buff, ht_size, mem);
+                                    if (code < 0)
+                                        goto out;
+                                }
+				break;
+			    case cmd_opv_ext_put_ht_seg:
+                                cbuf.ptr = cbp;
+                                code = read_ht_segment(&ht_buff, &cbuf,
+						       &imager_state, tdev,
+						       mem);
+				cbp = cbuf.ptr;
+				if (code < 0)
+				    goto out;
+				break;
+			    case cmd_opv_ext_put_drawing_color:
+				{
+				    uint    color_size;
+				    const gx_device_color_type_t *  pdct;
+
+				    pdct = gx_get_dc_type_from_index(*cbp++);
+				    if (pdct == 0) {
+					code = gs_note_error(gs_error_rangecheck);
+					goto out;
+				    }
+				    enc_u_getw(color_size, cbp);
+				    if (cbp + color_size > cbuf.limit)
+					cbp = top_up_cbuf(&cbuf, cbp);
+				    code = pdct->read(&dev_color, &imager_state,
+						      &dev_color, tdev, cbp,
+						      color_size, mem);
+				    if (code < 0)
+					goto out;
+				    cbp += color_size;
+				    code = gx_color_load(&dev_color,
+							 &imager_state, tdev);
+				    if (code < 0)
+					goto out;
+				}
+				break;
+			    default:
+				goto bad_op;
 			}
-			goto set_phase;
-		    case cmd_opv_put_params:
-			cbuf.ptr = cbp;
-			code = read_put_params(&cbuf, &imager_state, cdev,
-					       mem);
-			cbp = cbuf.ptr;
-			if (code > 0)
-			    break; /* empty list */
-			if (code < 0)
-			    goto out;
-			if (playback_action == playback_action_setup)
-			    goto out;
 			break;
 		    default:
 			goto bad_op;
@@ -1289,102 +1342,53 @@ setcc:			{
 		continue;
 	    case cmd_op_path >> 4:
 		{
-		    gx_device_color devc;
-		    gx_device_color *pdevc;
-		    gx_ht_tile ht_tile;
+		    gx_path fpath;
+		    gx_path * ppath = &path;
 
 		    if_debug0('L', "\n");
+		    /* if in clip, flatten path first */
+		    if (in_clip) {
+			gx_path_init_local(&fpath, mem);
+			code = gx_path_add_flattened_accurate(&path, &fpath,
+					     gs_currentflat_inline(&imager_state),
+					     imager_state.accurate_curves);
+			if (code < 0)
+			    goto out;
+			ppath = &fpath;
+		    }
 		    switch (op) {
 			case cmd_opv_fill:
 			    fill_params.rule = gx_rule_winding_number;
-			    goto fill_pure;
+			    goto fill;
 			case cmd_opv_eofill:
 			    fill_params.rule = gx_rule_even_odd;
-			  fill_pure:color_set_pure(&devc, state.colors[1]);
-			    pdevc = &devc;
-			    goto fill;
-			case cmd_opv_htfill:
-			    fill_params.rule = gx_rule_winding_number;
-			    goto fill_ht;
-			case cmd_opv_hteofill:
-			    fill_params.rule = gx_rule_even_odd;
-			  fill_ht:ht_tile.tiles = state_tile;
-			    color_set_binary_tile(&devc,
-						  state.tile_colors[0],
-						  state.tile_colors[1],
-						  &ht_tile);
-			    pdevc = &devc;
-			    pdevc->phase = tile_phase;
-			    goto fill;
-			case cmd_opv_colorfill:
-			    fill_params.rule = gx_rule_winding_number;
-			    goto fill_color;
-			case cmd_opv_coloreofill:
-			    fill_params.rule = gx_rule_even_odd;
-			  fill_color:pdevc = &dev_color;
-			    pdevc->phase = color_phase;
-			    code =
-				gx_color_load(pdevc, &imager_state, tdev);
-			    if (code < 0)
-				break;
-			  fill:fill_params.adjust = imager_state.fill_adjust;
+			fill:
+			    fill_params.adjust = imager_state.fill_adjust;
 			    fill_params.flatness = imager_state.flatness;
-			    code = gx_fill_path_only(&path, tdev,
+			    fill_params.fill_zero_width =
+				fill_params.adjust.x != 0 ||
+				fill_params.adjust.y != 0;
+			    code = gx_fill_path_only(ppath, tdev,
 						     &imager_state,
 						     &fill_params,
-						     pdevc, pcpath);
+						     &dev_color, pcpath);
 			    break;
 			case cmd_opv_stroke:
-			    color_set_pure(&devc, state.colors[1]);
-			    pdevc = &devc;
-			    goto stroke;
-			case cmd_opv_htstroke:
-			    ht_tile.tiles = state_tile;
-			    color_set_binary_tile(&devc,
-						  state.tile_colors[0],
-						  state.tile_colors[1],
-						  &ht_tile);
-			    pdevc = &devc;
-			    pdevc->phase = tile_phase;
-			    goto stroke;
-			case cmd_opv_colorstroke:
-			    pdevc = &dev_color;
-			    pdevc->phase = color_phase;
-			    code =
-				gx_color_load(pdevc, &imager_state, tdev);
-			    if (code < 0)
-				break;
-			  stroke:stroke_params.flatness = imager_state.flatness;
-			    code = gx_stroke_path_only(&path,
+			    stroke_params.flatness = imager_state.flatness;
+			    code = gx_stroke_path_only(ppath,
 						       (gx_path *) 0, tdev,
 					      &imager_state, &stroke_params,
-						       pdevc, pcpath);
+						       &dev_color, pcpath);
 			    break;
 			case cmd_opv_polyfill:
-			    color_set_pure(&devc, state.colors[1]);
-			    pdevc = &devc;
-			    goto poly;
-			case cmd_opv_htpolyfill:
-			    ht_tile.tiles = state_tile;
-			    color_set_binary_tile(&devc,
-						  state.tile_colors[0],
-						  state.tile_colors[1],
-						  &ht_tile);
-			    pdevc = &devc;
-			    pdevc->phase = tile_phase;
-			    goto poly;
-			case cmd_opv_colorpolyfill:
-			    pdevc = &dev_color;
-			    pdevc->phase = color_phase;
-			    code = gx_color_load(pdevc, &imager_state, tdev);
-			    if (code < 0)
-				break;
-poly:			    code = clist_do_polyfill(tdev, &path, pdevc,
+			    code = clist_do_polyfill(tdev, ppath, &dev_color,
 						     imager_state.log_op);
 			    break;
 			default:
 			    goto bad_op;
 		    }
+		    if (ppath != &path)
+			gx_path_free(ppath, "clist_render_band");
 		}
 		if (in_path) {	/* path might be empty! */
 		    state.rect.x = fixed2int_var(ppos.x);
@@ -1464,24 +1468,11 @@ poly:			    code = clist_do_polyfill(tdev, &path, pdevc,
 									 * This call of copy_mono originated as a call
 									 * of fill_mask.
 									 */
-		    gx_drawing_color dcolor;
-		    gx_ht_tile ht_tile;
-
-		    if (op & cmd_copy_ht_color) {	/* Screwy C assignment rules don't allow: */
-			/* dcolor.colors = state.tile_colors; */
-			ht_tile.tiles = state_tile;
-			color_set_binary_tile(&dcolor,
-					      state.tile_colors[0],
-					    state.tile_colors[1], &ht_tile);
-			dcolor.phase = tile_phase;
-		    } else {
-			color_set_pure(&dcolor, state.colors[1]);
-		    }
 		    code = (*dev_proc(tdev, fill_mask))
 			(tdev, source, data_x, raster, gx_no_bitmap_id,
 			 state.rect.x - x0, state.rect.y - y0,
 			 state.rect.width - data_x, state.rect.height,
-			 &dcolor, 1, imager_state.log_op, pcpath);
+			 &dev_color, 1, imager_state.log_op, pcpath);
 		} else
 		    code = (*dev_proc(tdev, copy_mono))
 			(tdev, source, data_x, raster, gx_no_bitmap_id,
@@ -1516,12 +1507,29 @@ poly:			    code = clist_do_polyfill(tdev, &path, pdevc,
 	}
     }
     /* Clean up before we exit. */
-  out:gx_cpath_free(&clip_path, "clist_render_band exit");
+  out:
+    if (ht_buff.pbuff != 0) {
+        gs_free_object(mem, ht_buff.pbuff, "clist_playback_band(ht_buff)");
+        ht_buff.pbuff = 0;
+        ht_buff.pcurr = 0;
+    }
+    ht_buff.ht_size = 0;
+    ht_buff.read_size = 0;
+
+    if (color_space.params.indexed.lookup.table.size)
+        gs_free_const_string(mem,
+			     color_space.params.indexed.lookup.table.data,
+			     color_space.params.indexed.lookup.table.size,
+			     "color_space indexed table");
+    gx_cpath_free(&clip_path, "clist_render_band exit");
     gx_path_free(&path, "clist_render_band exit");
     gs_imager_state_release(&imager_state);
-    if (imager_state.ht_cache)
-	gx_ht_free_cache(mem, imager_state.ht_cache);
     gs_free_object(mem, data_bits, "clist_playback_band(data_bits)");
+    if (target != orig_target) {
+        dev_proc(target, close_device)(target);
+	gs_free_object(target->memory, target, "gxclrast discard compositor");
+	target = orig_target;
+    }
     if (code < 0)
 	return_error(code);
     /* Check whether we have more pages to process. */
@@ -1549,7 +1557,7 @@ read_set_tile_size(command_buf_t *pcb, tile_slot *bits)
     uint rep_width, rep_height;
     byte bd = *cbp++;
 
-    bits->cb_depth = (bd & 31) + 1;
+    bits->cb_depth = cmd_code_to_depth(bd);
     cmd_getw(rep_width, cbp);
     cmd_getw(rep_height, cbp);
     if (bd & 0x20) {
@@ -1695,246 +1703,84 @@ read_set_bits(command_buf_t *pcb, tile_slot *bits, int compress,
     return 0;
 }
 
+/* if necessary, allocate a buffer to hold a serialized halftone */
 private int
-read_set_ht_order(command_buf_t *pcb, gx_device_halftone **ppdht,
-		  gx_ht_order **pporder, gs_memory_t *mem)
+read_alloc_ht_buff(ht_buff_t * pht_buff, uint ht_size, gs_memory_t * mem)
 {
-    const byte *cbp = pcb->ptr;
-    gx_ht_order *porder;
-    uint old_num_levels;
-    uint *levels;
-    uint old_num_bits;
-    void *bit_data;
-    int index;
-    gx_ht_order new_order;
-    int code = cmd_create_dev_ht(ppdht, mem);
-    gx_device_halftone *pdht = *ppdht;
-
-    if (code < 0)
-	return code;
-    cmd_getw(index, cbp);
-    if (index == 0)
-	porder = &pdht->order;
-    else {
-	gx_ht_order_component *pcomp = &pdht->components[index - 1];
-
-	cmd_getw(pcomp->cname, cbp);
-	if_debug1('L', " cname=%lu", (ulong) pcomp->cname);
-	porder = &pcomp->corder;
+    /* free the existing buffer, if any (usually none) */
+    if (pht_buff->pbuff != 0) {
+        gs_free_object(mem, pht_buff->pbuff, "read_alloc_ht_buff");
+        pht_buff->pbuff = 0;
     }
-    *pporder = porder;
-    new_order = *porder;
-    cmd_getw(new_order.width, cbp);
-    cmd_getw(new_order.height, cbp);
-    cmd_getw(new_order.raster, cbp);
-    cmd_getw(new_order.shift, cbp);
-    cmd_getw(new_order.num_levels, cbp);
-    cmd_getw(new_order.num_bits, cbp);
-    new_order.procs = &ht_order_procs_table[*cbp++];
-    pcb->ptr = cbp;
-    if_debug8('L', " index=%d size=(%d,%d) raster=%d shift=%d num_levels=%d num_bits=%d procs=%d\n",
-	      index, new_order.width, new_order.height,
-	      new_order.raster, new_order.shift,
-	      new_order.num_levels, new_order.num_bits, cbp[-1]);
-    if (new_order.data_memory == 0) {
-	/* levels and bit_data point into ROM. */
-	old_num_levels = 0;
-	levels = 0;
-	old_num_bits = 0;
-	bit_data = 0;
+
+    /*
+     * If the serialized halftone fits in the command buffer, no
+     * additional buffer is required.
+     */
+    if (ht_size > cbuf_ht_seg_max_size) {
+        pht_buff->pbuff = gs_alloc_bytes(mem, ht_size, "read_alloc_ht_buff");
+        if (pht_buff->pbuff == 0)
+            return_error(gs_error_VMerror);
+    }
+    pht_buff->ht_size = ht_size;
+    pht_buff->read_size = 0;
+    pht_buff->pcurr = pht_buff->pbuff;
+    return 0;
+}
+
+/* read a halftone segment; if it is the final segment, build the halftone */
+private int
+read_ht_segment(
+    ht_buff_t *                 pht_buff,
+    command_buf_t *             pcb,
+    gs_imager_state *           pis,
+    gx_device *                 dev,
+    gs_memory_t *               mem )
+{
+    const byte *                cbp = pcb->ptr;
+    const byte *                pbuff = 0;
+    uint                        ht_size = pht_buff->ht_size, seg_size;
+    int                         code = 0;
+
+    /* get the segment size; refill command buffer if necessary */
+    enc_u_getw(seg_size, cbp);
+    if (cbp + seg_size > pcb->limit)
+        cbp = top_up_cbuf(pcb, cbp);
+
+    if (pht_buff->pbuff == 0) {
+        /* if not separate buffer, must be only one segment */
+        if (seg_size != ht_size)
+            return_error(gs_error_unknownerror);
+        pbuff = cbp;
     } else {
-	old_num_levels = porder->num_levels;
-	levels = porder->levels;
-	old_num_bits = porder->num_bits;
-	bit_data = porder->bit_data;
+        if (seg_size + pht_buff->read_size > pht_buff->ht_size)
+            return_error(gs_error_unknownerror);
+        memcpy(pht_buff->pcurr, cbp, seg_size);
+        pht_buff->pcurr += seg_size;
+        if ((pht_buff->read_size += seg_size) == ht_size)
+            pbuff = pht_buff->pbuff;
     }
-    new_order.data_memory = mem;
-    /*
-     * Note that for resizing a byte array, the element size is 1 byte,
-     * not the element size given to alloc_byte_array!
-     */
-    if (new_order.num_levels > old_num_levels) {
-	if (levels == 0)
-	    levels = (uint *) gs_alloc_byte_array(mem, new_order.num_levels,
-						  sizeof(*levels),
-						  "ht order(levels)");
-	else
-	    levels = gs_resize_object(mem, levels,
-				      new_order.num_levels * sizeof(*levels),
-				      "ht order(levels)");
-	if (levels == 0)
-	    return_error(gs_error_VMerror);
-	/* Update porder in case we bail out. */
-	porder->levels = levels;
-	porder->num_levels = new_order.num_levels;
+
+    /* if everything has be read, covert back to a halftone */
+    if (pbuff != 0) {
+        code = gx_ht_read_and_install(pis, dev, pbuff, ht_size, mem);
+
+        /* release any buffered information */
+        if (pht_buff->pbuff != 0) {
+            gs_free_object(mem, pht_buff->pbuff, "read_alloc_ht_buff");
+            pht_buff->pbuff = 0;
+            pht_buff->pcurr = 0;
+        }
+        pht_buff->ht_size = 0;
+        pht_buff->read_size = 0;
     }
-    if (new_order.num_bits != old_num_bits ||
-	new_order.procs != porder->procs
-	) {
-	if (bit_data == 0)
-	    bit_data = gs_alloc_byte_array(mem, new_order.num_bits,
-					   new_order.procs->bit_data_elt_size,
-					   "ht order(bit_data)");
-	else
-	    bit_data = gs_resize_object(mem, bit_data,
-					new_order.num_bits *
-					  new_order.procs->bit_data_elt_size,
-					"ht order(bit_data)");
-	if (bit_data == 0)
-	    return_error(gs_error_VMerror);
-    }
-    *porder = new_order;
-    porder->levels = levels;
-    porder->bit_data = bit_data;
-    porder->full_height = ht_order_full_height(porder);
-    return 0;
+
+    /* update the command buffer ponter */
+    pcb->ptr = cbp + seg_size;
+
+    return code;
 }
 
-private int
-read_set_ht_data(command_buf_t *pcb, uint *pdata_index, gx_ht_order *porder,
-		 gs_halftone_type halftone_type, gs_imager_state *pis,
-		 gx_device_clist_reader *cdev, gs_memory_t *mem)
-{
-    gx_device_halftone *pdht = pis->dev_ht;
-    uint elt_size = porder->procs->bit_data_elt_size;
-    const byte *cbp = pcb->ptr;
-    int n = *cbp++;
-
-    if (*pdata_index < porder->num_levels) {	/* Setting levels */
-	byte *lptr = (byte *)(porder->levels + *pdata_index);
-
-	cbp = cmd_read_data(pcb, lptr, n * sizeof(*porder->levels), cbp);
-#ifdef DEBUG
-	if (gs_debug_c('L')) {
-	    int i;
-
-	    dprintf1(" levels[%u]", *pdata_index);
-	    for (i = 0; i < n; ++i)
-		dprintf1(" %u",
-			 porder->levels[*pdata_index + i]);
-	    dputc('\n');
-	}
-#endif
-    } else {	/* Setting bits */
-	byte *bptr =
-	    (byte *)porder->bit_data +
-	      (*pdata_index - porder->num_levels) * elt_size;
-
-	cbp = cmd_read_data(pcb, bptr, n * elt_size, cbp);
-#ifdef DEBUG
-	if (gs_debug_c('L')) {
-	    int i;
-
-	    dprintf1(" bits[%u]", *pdata_index - porder->num_levels);
-	    for (i = 0; i < n; ++i) {
-		const byte *pb = (byte *)porder->bit_data +
-		    (*pdata_index - porder->num_levels + i) * elt_size;
-
-		if (porder->procs == &ht_order_procs_default) {
-		    const gx_ht_bit *pbit = (const gx_ht_bit *)pb;
-
-		    dprintf2(" (%u,0x%lx)", pbit->offset, (ulong)pbit->mask);
-		} else {
-		    debug_dump_bytes(pb, pb + elt_size, NULL);
-		}
-	    }
-	    dputc('\n');
-	}
-#endif
-    }
-    *pdata_index += n;
-    /*
-     * If this is the end of a component, check whether a copy of its data
-     * exists in ROM.
-     */
-    if (*pdata_index == porder->num_levels + porder->num_bits) {
-	const gx_dht_proc *phtrp = gx_device_halftone_list;
-
-	for (; *phtrp; ++phtrp) {
-	    const gx_device_halftone_resource_t *const *pphtr = (*phtrp)();
-	    const gx_device_halftone_resource_t *phtr;
-
-	    while ((phtr = *pphtr++) != 0) {
-		if (phtr->Width == porder->width &&
-		    phtr->Height == porder->height &&
-		    phtr->num_levels == porder->num_levels &&
-		    !memcmp(phtr->levels, porder->levels,
-			    phtr->num_levels * sizeof(*phtr->levels)) &&
-		    !memcmp(phtr->bit_data, porder->bit_data,
-			    phtr->Width * phtr->Height * elt_size)
-		    ) {
-		    /*
-		     * This is a predefined halftone.  Free the levels and
-		     * bit_data arrays, replacing them with the built-in ones.
-		     */
-		    if (porder->data_memory) {
-			gs_free_object(porder->data_memory, porder->bit_data,
-				       "construct_ht_order_short(bit_data)");
-			gs_free_object(porder->data_memory, porder->levels,
-				       "construct_ht_order_short(levels)");
-		    }
-		    porder->data_memory = 0;
-		    porder->levels = (uint *)phtr->levels; /* actually const */
-		    porder->bit_data = (void *)phtr->bit_data; /* actually const */
-		    goto out;
-		}
-	    }
-	}
-    out:
-	/*
-	 * If this is the end of the data, install the (device) halftone.
-	 */
-	if (porder ==
-	    (pdht->components != 0 ?
-	     &pdht->components[0].corder :
-	     &pdht->order)) {
-	    /* Make sure we have a halftone cache. */
-	    uint i;
-
-	    if (pis->ht_cache == 0) {
-		gx_ht_cache *pcache =
-		    gx_ht_alloc_cache(mem,
-				      porder->num_levels + 2,
-				      gx_ht_cache_default_bits());
-
-		if (pcache == 0)
-		    return_error(gs_error_VMerror);
-		pis->ht_cache = pcache;
-	    }
-	    for (i = 1; i < pdht->num_comp; ++i) {
-		gx_ht_order *pco = &pdht->components[i].corder;
-
-		if (!pco->cache) {
-		    gx_ht_cache *pcache =
-			gx_ht_alloc_cache(mem, 4,
-					  pco->raster *
-					  (pco->num_bits / pco->width) * 4);
-
-		    if (pcache == 0)
-			return_error(gs_error_VMerror);
-		    pco->cache = pcache;
-		    gx_ht_init_cache(pco->cache, pco);
-		}
-	    }
-	    if (pdht->num_comp) {
-		pdht->components[0].corder.cache = pis->ht_cache;
-		pdht->order = pdht->components[0].corder;
-	    }
-	    /*
-	     * Normally, the following procedure releases the existing
-	     * device halftone and assumes ownership of everything in the
-	     * new one except the top-level structure.  However, there is a
-	     * special check for the case where pdht == pis->dev_ht, solely
-	     * so that we can avoid the sleazy things we would otherwise
-	     * have to do here.
-	     */
-	    gx_imager_dev_ht_install(pis, pdht, halftone_type,
-				     (const gx_device *)cdev);
-	}
-    }
-    pcb->ptr = cbp;
-    return 0;
-}
 
 private int
 read_set_misc2(command_buf_t *pcb, gs_imager_state *pis, segment_notes *pnotes)
@@ -1981,7 +1827,9 @@ read_set_misc2(command_buf_t *pcb, gs_imager_state *pis, segment_notes *pnotes)
 	cb = *cbp++;
 	pis->blend_mode = cb >> 3;
 	pis->text_knockout = (cb & 4) != 0;
+	/* the following usually have no effect; see gxclpath.c */
 	pis->overprint_mode = (cb >> 1) & 1;
+	pis->effective_overprint_mode = pis->overprint_mode;
 	pis->overprint = cb & 1;
 	if_debug4('L', " BM=%d TK=%d OPM=%d OP=%d\n",
 		  pis->blend_mode, pis->text_knockout, pis->overprint_mode,
@@ -2019,23 +1867,33 @@ read_set_color_space(command_buf_t *pcb, gs_imager_state *pis,
     const gs_color_space *pcs;
     int code = 0;
 
+    /*
+     * The following are used only for a single, parameterless color space,
+     * so they do not introduce any re-entrancy problems.
+     */
+    static gs_color_space gray_cs, rgb_cs, cmyk_cs;
+
     if_debug3('L', " %d%s%s\n", index,
 	      (b & 8 ? " (indexed)" : ""),
 	      (b & 4 ? "(proc)" : ""));
     switch (index) {
     case gs_color_space_index_DeviceGray:
-	pcs = gs_cspace_DeviceGray(pis);
+        gs_cspace_init_DeviceGray(mem, &gray_cs);
+        pcs = &gray_cs;
 	break;
     case gs_color_space_index_DeviceRGB:
-	pcs = gs_cspace_DeviceRGB(pis);
+        gs_cspace_init_DeviceRGB(mem, &rgb_cs);
+        pcs = &rgb_cs;
 	break;
     case gs_color_space_index_DeviceCMYK:
-	pcs = gs_cspace_DeviceCMYK(pis);
+        gs_cspace_init_DeviceCMYK(mem, &cmyk_cs);
+        pcs = &cmyk_cs;
 	break;
     default:
 	code = gs_note_error(gs_error_rangecheck);	/* others are NYI */
 	goto out;
     }
+
     /* Free any old indexed color space data. */
     if (pcolor_space->params.indexed.use_proc) {
 	if (pcolor_space->params.indexed.lookup.map)
@@ -2048,9 +1906,9 @@ read_set_color_space(command_buf_t *pcb, gs_imager_state *pis,
     } else {
 	if (pcolor_space->params.indexed.lookup.table.size)
 	    gs_free_const_string(mem,
-			pcolor_space->params.indexed.lookup.table.data,
-			pcolor_space->params.indexed.lookup.table.size,
-				 "old indexed table");
+				 pcolor_space->params.indexed.lookup.table.data,
+				 pcolor_space->params.indexed.lookup.table.size,
+				 "color_spapce indexed table");
 	pcolor_space->params.indexed.lookup.table.size = 0;
     }
     if (b & 8) {
@@ -2073,7 +1931,7 @@ read_set_color_space(command_buf_t *pcb, gs_imager_state *pis,
 	    data = (byte *)map->values;
 	    data_size = num_values * sizeof(map->values[0]);
 	} else {
-	    byte *table = gs_alloc_string(mem, num_values, "indexed table");
+	    byte *table = gs_alloc_string(mem, num_values, "color_space indexed table");
 
 	    if (table == 0) {
 		code = gs_note_error(gs_error_VMerror);
@@ -2110,6 +1968,7 @@ read_begin_image(command_buf_t *pcb, gs_image_common_t *pic,
 
     /* This is sloppy, but we don't have enough information to do better. */
     pcb->ptr = top_up_cbuf(pcb, pcb->ptr);
+    s_init(&s, NULL);
     sread_string(&s, pcb->ptr, pcb->end - pcb->ptr);
     code = image_type->sget(pic, &s, pcs);
     pcb->ptr = sbufptr(&s);
@@ -2186,6 +2045,74 @@ out:
     return code;
 }
 
+/*
+ * Read a "create_compositor" command, and execute the command.
+ *
+ * This code assumes that a the largest create compositor command,
+ * including the compositor name size, is smaller than the data buffer
+ * size. This assumption is inherent in the basic design of the coding
+ * and the de-serializer interface, as no length field is provided.
+ * At the time of this writing, no compositor comes remotely close to
+ * violating this assumption (largest create_compositor is about 16
+ * bytes, while the command data buffer is 800 bytes), nor is any likely
+ * to do so in the future. In the unlikely event that this assumption
+ * is violated, a change in the encoding would be called for).
+ */
+extern_gs_find_compositor();
+
+private int
+read_create_compositor(
+    command_buf_t *             pcb,
+    gs_imager_state *           pis,
+    gx_device_clist_reader *    cdev,
+    gs_memory_t *               mem,
+    gx_device **                ptarget )
+{
+    const byte *                cbp = pcb->ptr;
+    int                         comp_id = 0, code = 0;
+    const gs_composite_type_t * pcomp_type = 0;
+    gs_composite_t *            pcomp;
+    gx_device *                 tdev = *ptarget;
+
+    /* fill the command buffer (see comment above) */
+    cbp = top_up_cbuf(pcb, cbp);
+
+    /* find the appropriate compositor method vector */
+    comp_id = *cbp++;
+    if ((pcomp_type = gs_find_compositor(comp_id)) == 0)
+        return_error(gs_error_unknownerror);
+
+    /* de-serialize the compositor */
+    code = pcomp_type->procs.read(&pcomp, cbp, pcb->end - cbp, mem);
+    if (code > 0)
+        cbp += code;
+    pcb->ptr = cbp;
+    if (code < 0 || pcomp == 0)
+        return code;
+
+    /*
+     * Apply the compositor to the target device; note that this may
+     * change the target device.
+     */
+    code = dev_proc(tdev, create_compositor)(tdev, &tdev, pcomp, pis, mem);
+    if (code >= 0 && tdev != *ptarget) {
+        rc_increment(tdev);
+        *ptarget = tdev;
+    }
+
+    /* Perform any updates for the clist device required */
+    code = pcomp->type->procs.clist_compositor_read_update(pcomp,
+		    			(gx_device *)cdev, tdev, pis, mem);
+    if (code < 0)
+        return code;
+
+    /* free the compositor object */
+    if (pcomp != 0)
+        gs_free_object(mem, pcomp, "read_create_compositor");
+
+    return code;
+}
+
 /* ---------------- Utilities ---------------- */
 
 /* Read and unpack a short bitmap */
@@ -2247,61 +2174,82 @@ cmd_read_matrix(gs_matrix * pmat, const byte * cbp)
 {
     stream s;
 
+    s_init(&s, NULL);
     sread_string(&s, cbp, 1 + sizeof(*pmat));
     sget_matrix(&s, pmat);
     return cbp + stell(&s);
 }
 
-/* Select a map for loading with data. */
+/*
+ * Select a map for loading with data.
+ *
+ * This routine has three outputs:
+ *   *pmdata - points to the map data.
+ *   *pcomp_num - points to a component number if the map is a transfer
+ *               map which has been set via the setcolortransfer operator.
+ *		 A. value of NULL indicates that no component number is to
+ *		 be sent for this map.
+ *   *pcount - the size of the map (in bytes).
+ */
 private int
 cmd_select_map(cmd_map_index map_index, cmd_map_contents cont,
-	       gs_imager_state * pis, gx_ht_order * porder, frac ** pmdata,
+	       gs_imager_state * pis, int ** pcomp_num, frac ** pmdata,
 	       uint * pcount, gs_memory_t * mem)
 {
     gx_transfer_map *map;
     gx_transfer_map **pmap;
     const char *cname;
 
+    *pcomp_num = NULL;		/* Only used for color transfer maps */
     switch (map_index) {
 	case cmd_map_transfer:
 	    if_debug0('L', " transfer");
-	    map = pis->set_transfer.colored.gray;
-	    pis->effective_transfer.indexed[0] =
-		pis->effective_transfer.indexed[1] =
-		pis->effective_transfer.indexed[2] =
-		pis->effective_transfer.indexed[3] =
-		map;
-	    goto transfer;
+	    rc_unshare_struct(pis->set_transfer.gray, gx_transfer_map,
+		&st_transfer_map, mem, return_error(gs_error_VMerror),
+		"cmd_select_map(default_transfer)");
+	    map = pis->set_transfer.gray;
+	    /* Release all current maps */
+	    rc_decrement(pis->set_transfer.red, "cmd_select_map(red)");
+	    pis->set_transfer.red = NULL;
+	    pis->set_transfer.red_component_num = -1;
+	    rc_decrement(pis->set_transfer.green, "cmd_select_map(green)");
+	    pis->set_transfer.green = NULL;
+	    pis->set_transfer.green_component_num = -1;
+	    rc_decrement(pis->set_transfer.blue, "cmd_select_map(blue)");
+	    pis->set_transfer.blue = NULL;
+	    pis->set_transfer.blue_component_num = -1;
+	    goto transfer2;
 	case cmd_map_transfer_0:
+	    pmap = &pis->set_transfer.red;
+	    *pcomp_num = &pis->set_transfer.red_component_num;
+	    goto transfer1;
 	case cmd_map_transfer_1:
+	    pmap = &pis->set_transfer.green;
+	    *pcomp_num = &pis->set_transfer.green_component_num;
+	    goto transfer1;
 	case cmd_map_transfer_2:
+	    pmap = &pis->set_transfer.blue;
+	    *pcomp_num = &pis->set_transfer.blue_component_num;
+	    goto transfer1;
 	case cmd_map_transfer_3:
-	    {
+	    pmap = &pis->set_transfer.gray;
+	    *pcomp_num = &pis->set_transfer.gray_component_num;
+transfer1:  {
 		int i = map_index - cmd_map_transfer_0;
 
-		if_debug1('L', " transfer[%d]", i);
-		rc_unshare_struct(pis->set_transfer.indexed[i], gx_transfer_map,
-				  &st_transfer_map, mem,
-				  return_error(gs_error_VMerror),
-				  "cmd_select_map(transfer)");
-		map = pis->set_transfer.indexed[i];
-		pis->effective_transfer.indexed[i] = map;
+	        if_debug1('L', " transfer[%d]", i);
 	    }
-transfer:   if (cont != cmd_map_other) {
+	    rc_unshare_struct(*pmap, gx_transfer_map, &st_transfer_map, mem,
+		return_error(gs_error_VMerror), "cmd_select_map(transfer)");
+	    map = *pmap;
+
+transfer2:  if (cont != cmd_map_other) {
 		gx_set_identity_transfer(map);
 		*pmdata = 0;
 		*pcount = 0;
 		return 0;
 	    }
 	    break;
-	case cmd_map_ht_transfer:
-	    if_debug0('L', " ht transfer");
-	    /* Halftone transfer maps are never shared, but */
-	    /* rc_unshare_struct is a good way to get one allocated */
-	    /* if it hasn't been yet. */
-	    pmap = &porder->transfer;
-	    cname = "cmd_select_map(ht transfer)";
-	    goto alloc;
 	case cmd_map_black_generation:
 	    if_debug0('L', " black generation");
 	    pmap = &pis->black_generation;

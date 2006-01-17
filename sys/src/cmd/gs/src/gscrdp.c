@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gscrdp.c,v 1.2 2000/09/19 19:00:27 lpd Exp $ */
+/* $Id: gscrdp.c,v 1.6 2002/10/08 00:49:49 dan Exp $ */
 /* CIE color rendering dictionary creation */
 #include "math_.h"
 #include "memory_.h"
@@ -250,7 +248,7 @@ param_put_cie_render1(gs_param_list * plist, gs_cie_render * pcrd,
 		    for (j = 0; j < size; ++j)
 			values[i * size + j] =
 			    frac2float((*pcrd->RenderTable.T.procs[i])
-				       (j * scale, pcrd));
+				       ((byte)(j * scale), pcrd));
 		}
 		fa.data = values;
 		fa.size = size * m;
@@ -541,7 +539,7 @@ param_get_cie_render1(gs_cie_render * pcrd, gs_param_list * plist,
 	    if (pname.size < 1 || pname.data[pname.size - 1] != 0)
 		return_error(gs_error_rangecheck);
 	    pcrd->TransformPQR.proc = TransformPQR_lookup_proc_name;
-	    pcrd->TransformPQR.proc_name = (char *)pname.data;
+	    pcrd->TransformPQR.proc_name = (const char *)pname.data;
 	    switch (code = param_read_string(plist, "TransformPQRData", &pdata)) {
 		default:	/* error */
 		    return code;

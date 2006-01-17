@@ -1,22 +1,20 @@
-/* Copyright (C) 1992, 1994, 1996 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 1994, 1996 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gserver.c,v 1.2 2000/09/19 19:00:28 lpd Exp $ */
+/* $Id: gserver.c,v 1.7 2002/06/16 05:48:55 lpd Exp $ */
 /* Server front end for Ghostscript, replacing gs.c. */
 #include "memory_.h"
 #include "string_.h"
@@ -56,8 +54,8 @@
  * This routine 'opens' the default driver.
  */
 
-int gs_server_initialize(P4(int fno_stdin, int fno_stdout, int fno_stderr,
-			    const char *init_str));
+int gs_server_initialize(int fno_stdin, int fno_stdout, int fno_stderr,
+			 const char *init_str);
 
 /*
  * Execute a string containing PostScript code.  The effects of this code
@@ -78,9 +76,9 @@ int gs_server_initialize(P4(int fno_stdin, int fno_stdout, int fno_stderr,
  * exceed errstr_max_len.
  */
 
-int gs_server_run_string(P5(const char *str, int *exit_code_ptr,
-			    char *errstr, int errstr_max_len,
-			    int *errstr_len_ptr));
+int gs_server_run_string(const char *str, int *exit_code_ptr,
+			 char *errstr, int errstr_max_len,
+			 int *errstr_len_ptr);
 
 /*
  * Run a sequence of files containing PostScript code.  If permanent is 0,
@@ -92,9 +90,9 @@ int gs_server_run_string(P5(const char *str, int *exit_code_ptr,
  * first file (equivalent to `erasepage').
  */
 
-int gs_server_run_files(P6(const char **file_names, int permanent,
-			   int *exit_code_ptr, char *errstr,
-			   int errstr_max_len, int *errstr_len_ptr));
+int gs_server_run_files(const char **file_names, int permanent,
+			int *exit_code_ptr, char *errstr,
+			int errstr_max_len, int *errstr_len_ptr);
 
 /*
  * Terminate Ghostscript.  Ghostscript will release all memory and close
@@ -104,7 +102,7 @@ int gs_server_run_files(P6(const char **file_names, int permanent,
  * This routine 'closes' the default driver.
  */
 
-int gs_server_terminate(P0());
+int gs_server_terminate();
 
 /* ------ Example of use ------ */
 
@@ -127,7 +125,7 @@ main(int argc, char *argv[])
     char errstr[emax + 1];
     int errlen;
     static const char *fnames[] =
-    {"golfer.ps", 0};
+    {"golfer.eps", 0};
     FILE *cin = fopen("stdin.tmp", "w+");
     int sout = open("stdout.tmp", O_WRONLY | O_CREAT | O_TRUNC,
 		    S_IREAD | S_IWRITE);
@@ -173,9 +171,9 @@ main(int argc, char *argv[])
 /* ------ Private definitions ------ */
 
 /* Forward references */
-private int job_begin(P0());
-private int job_end(P0());
-private void errstr_report(P4(ref *, char *, int, int *));
+private int job_begin(void);
+private int job_end(void);
+private void errstr_report(ref *, char *, int, int *);
 
 /* ------ Public routines ------ */
 
@@ -200,9 +198,11 @@ gs_server_initialize(int fno_stdin, int fno_stdout, int fno_stderr,
     if (c_stderr == NULL)
 	return -1;
     /* Initialize the Ghostscript interpreter. */
-    gs_init0(c_stdin, c_stdout, c_stderr, 0);
-    gs_init1();
-    gs_init2();
+    if ((code = gs_init0(c_stdin, c_stdout, c_stderr, 0)) < 0 ||
+	(code = gs_init1()) < 0 ||
+	(code = gs_init2()) < 0
+	)
+	return code;
     code = gs_server_run_string("/QUIET true def /NOPAUSE true def",
 				&exit_code,
 				(char *)0, 0, &errstr_len);
@@ -266,7 +266,7 @@ gs_server_terminate()
 
 private ref job_save;		/* 'save' object for baseline state */
 
-extern int zsave(P1(os_ptr)), zrestore(P1(os_ptr));
+extern int zsave(os_ptr), zrestore(os_ptr);
 
 /* Start a 'job' by restoring the baseline state. */
 

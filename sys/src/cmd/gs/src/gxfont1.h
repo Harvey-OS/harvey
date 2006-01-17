@@ -1,22 +1,20 @@
-/* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1994, 2000, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxfont1.h,v 1.5 2000/11/23 23:34:22 lpd Exp $ */
+/* $Id: gxfont1.h,v 1.13 2004/09/22 13:52:33 igor Exp $ */
 /* Type 1 / Type 2 font data definition */
 
 #ifndef gxfont1_INCLUDED
@@ -53,23 +51,22 @@ typedef struct gs_font_type1_s gs_font_type1;
 #define stem_table(size)\
 	float_array(size)
 
+#ifndef gs_type1_data_DEFINED
+#define gs_type1_data_DEFINED
 typedef struct gs_type1_data_s gs_type1_data;
+#endif
 
 typedef struct gs_type1_data_procs_s {
 
-    /*
-     * Get the data for any glyph.  Return 1 if the string is newly
-     * allocated (using the font's allocator) and should be freed by the
-     * caller, 0 if the string should not be freed, < 0 on error.
-     */
+    /* Get the data for any glyph.  Return >= 0 or < 0 as usual. */
 
-    int (*glyph_data)(P3(gs_font_type1 * pfont, gs_glyph glyph,
-			 gs_const_string * pgdata));
+    int (*glyph_data)(gs_font_type1 * pfont, gs_glyph glyph,
+		      gs_glyph_data_t *pgd);
 
     /* Get the data for a Subr.  Return like glyph_data. */
 
-    int (*subr_data)(P4(gs_font_type1 * pfont, int subr_num, bool global,
-			gs_const_string * psdata));
+    int (*subr_data)(gs_font_type1 * pfont, int subr_num, bool global,
+		     gs_glyph_data_t *pgd);
 
     /*
      * Get the data for a seac character, including the glyph and/or the
@@ -78,8 +75,8 @@ typedef struct gs_type1_data_procs_s {
      * Return like glyph_data.
      */
 
-    int (*seac_data)(P4(gs_font_type1 * pfont, int ccode,
-			gs_glyph * pglyph, gs_const_string * pcdata));
+    int (*seac_data)(gs_font_type1 * pfont, int ccode,
+		     gs_glyph * pglyph, gs_const_string *gstr, gs_glyph_data_t *pgd);
 
     /*
      * Push (a) value(s) onto the client ('PostScript') stack during
@@ -87,12 +84,12 @@ typedef struct gs_type1_data_procs_s {
      * closure pointer, not the font pointer, as the first argument.
      */
 
-    int (*push_values)(P3(void *callback_data, const fixed *values,
-			  int count));
+    int (*push_values)(void *callback_data, const fixed *values,
+		       int count);
 
     /* Pop a value from the client stack. */
 
-    int (*pop_value)(P2(void *callback_data, fixed *value));
+    int (*pop_value)(void *callback_data, fixed *value);
 
 } gs_type1_data_procs_t;
 
@@ -107,6 +104,7 @@ struct gs_type1_data_s {
     gs_type1_data_procs_t procs;
     charstring_interpret_proc((*interpret));
     void *proc_data;		/* data for procs */
+    gs_font_base *parent;	/* the type 9 font, if this font is is a type 9 descendent. */
     int lenIV;			/* -1 means no encryption */
 				/* (undocumented feature!) */
     uint subroutineNumberBias;	/* added to operand of callsubr */
@@ -153,11 +151,19 @@ struct gs_font_type1_s {
 
 extern_st(st_gs_font_type1);
 #define public_st_gs_font_type1()	/* in gstype1.c */\
-  gs_public_st_suffix_add1_final(st_gs_font_type1, gs_font_type1,\
+  gs_public_st_suffix_add2_final(st_gs_font_type1, gs_font_type1,\
     "gs_font_type1", font_type1_enum_ptrs, font_type1_reloc_ptrs,\
-    gs_font_finalize, st_gs_font_base, data.proc_data)
+    gs_font_finalize, st_gs_font_base, data.parent, data.proc_data)
 
 /* Export font procedures so they can be called from the interpreter. */
 font_proc_glyph_info(gs_type1_glyph_info);
+
+/*
+ * If a Type 1 character is defined with 'seac', store the character codes
+ * in chars[0] and chars[1] and return 1; otherwise, return 0 or <0.
+ * This is exported only for the benefit of font copying.
+ */
+int gs_type1_piece_codes(/*const*/ gs_font_type1 *pfont,
+			 const gs_glyph_data_t *pgd, gs_char *chars);
 
 #endif /* gxfont1_INCLUDED */

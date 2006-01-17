@@ -1,22 +1,20 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevdcrd.c,v 1.2 2000/09/19 19:00:12 lpd Exp $ */
+/* $Id: gdevdcrd.c,v 1.6 2004/08/04 19:36:12 stefan Exp $ */
 /* Create a sample device CRD */
 #include "math_.h"
 #include "memory_.h"
@@ -36,9 +34,9 @@
  */
 #define DENT(v, f)\
   (v <= 0.5 ? v * f : (v - 0.5) * (1 - (0.5 * f)) / 0.5 + 0.5 * f)
-private const gs_vector3 bit_WhitePoint = {0.9505, 1, 1.0890};
+private const gs_vector3 bit_WhitePoint = {(float)0.9505, 1, (float)1.0890};
 private const gs_range3 bit_RangePQR = {
-    {{0, 0.9505}, {0, 1}, {0, 1.0890}}
+    {{0, (float)0.9505}, {0, 1}, {0, (float)1.0890}}
 };
 private const float dent_PQR = 1.0;
 private int
@@ -61,12 +59,12 @@ private const gs_cie_render_proc3 bit_EncodeLMN = { /* dummy */
     {bit_EncodeLMN_proc, bit_EncodeLMN_proc, bit_EncodeLMN_proc}
 };
 private const gs_range3 bit_RangeLMN = {
-    {{0, 0.9505}, {0, 1}, {0, 1.0890}}
+    {{0, (float)0.9505}, {0, 1}, {0, (float)1.0890}}
 };
 private const gs_matrix3 bit_MatrixABC = {
-    { 3.24063, -0.96893,  0.05571},
-    {-1.53721,  1.87576, -0.20402},
-    {-0.49863,  0.04152,  1.05700}
+    {(float) 3.24063, (float)-0.96893, (float) 0.05571},
+    {(float)-1.53721, (float) 1.87576, (float)-0.20402},
+    {(float)-0.49863, (float) 0.04152, (float) 1.05700}
 };
 private float
 bit_EncodeABC_proc(floatp in, const gs_cie_render * pcrd)
@@ -135,7 +133,7 @@ sample_device_crd_get_params(gx_device *pdev, gs_param_list *plist,
 
 	    tpqr = bit_TransformPQR;
 	    tpqr.driver_name = pdev->dname;
-	    code = gs_cie_render1_initialize(pcrd, NULL,
+	    code = gs_cie_render1_initialize(pdev->memory, pcrd, NULL,
 			&bit_WhitePoint, NULL /*BlackPoint*/,
 			NULL /*MatrixPQR*/, &bit_RangePQR, &tpqr,
 			NULL /*MatrixLMN*/, &bit_EncodeLMN, &bit_RangeLMN,

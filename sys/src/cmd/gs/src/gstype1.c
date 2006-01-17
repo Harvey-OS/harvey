@@ -1,22 +1,20 @@
 /* Copyright (C) 1990, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gstype1.c,v 1.6 2000/11/23 23:34:22 lpd Exp $ */
+/* $Id: gstype1.c,v 1.32 2004/10/28 08:39:21 igor Exp $ */
 /* Adobe Type 1 charstring interpreter */
 #include "math_.h"
 #include "memory_.h"
@@ -28,10 +26,11 @@
 #include "gxmatrix.h"
 #include "gxcoord.h"
 #include "gxistate.h"
-#include "gzpath.h"
+#include "gxpath.h"
 #include "gxfont.h"
 #include "gxfont1.h"
 #include "gxtype1.h"
+#include "gxhintn.h"
 
 /*
  * Define whether to always do Flex segments as curves.
@@ -51,13 +50,13 @@
  * argument is where the othersubr # is stored for callothersubr.
  */
 int
-gs_type1_interpret(gs_type1_state * pcis, const gs_const_string * str,
+gs_type1_interpret(gs_type1_state * pcis, const gs_glyph_data_t *pgd,
 		   int *pindex)
 {
     gs_font_type1 *pfont = pcis->pfont;
     gs_type1_data *pdata = &pfont->data;
+    t1_hinter *h = &pcis->h;
     bool encrypted = pdata->lenIV >= 0;
-    gs_op1_state s;
     fixed cstack[ostack_size];
 
 #define cs0 cstack[0]
@@ -83,25 +82,33 @@ gs_type1_interpret(gs_type1_state * pcis, const gs_const_string * str,
 
     switch (pcis->init_done) {
 	case -1:
+	    t1_hinter__init(h, pcis->path);
 	    break;
 	case 0:
-	    gs_type1_finish_init(pcis, &s);	/* sets sfc, ptx, pty, origin */
+	    gs_type1_finish_init(pcis);	/* sets origin */
 	    ftx = pcis->origin.x, fty = pcis->origin.y;
+            code = t1_hinter__set_mapping(h, &pcis->pis->ctm,
+			    &pfont->FontMatrix, &pfont->base->FontMatrix,
+			    pcis->scale.x.log2_unit, pcis->scale.x.log2_unit,
+			    pcis->scale.x.log2_unit - pcis->log2_subpixels.x,
+			    pcis->scale.y.log2_unit - pcis->log2_subpixels.y,
+			    pcis->origin.x, pcis->origin.y, 
+			    gs_currentaligntopixels(pfont->dir));
+	    if (code < 0)
+	    	return code;
+	    code = t1_hinter__set_font_data(h, 1, pdata, pcis->no_grid_fitting);
+	    if (code < 0)
+	    	return code;
 	    break;
 	default /*case 1 */ :
-	    ptx = pcis->position.x;
-	    pty = pcis->position.y;
-	    sfc = pcis->fc;
+	    break;
     }
-    sppath = pcis->path;
-    s.pcis = pcis;
     INIT_CSTACK(cstack, csp, pcis);
 
-    if (str == 0)
+    if (pgd == 0)
 	goto cont;
-    ipsp->char_string = *str;
-    ipsp->free_char_string = 0;	/* don't free caller-supplied strings */
-    cip = str->data;
+    ipsp->cs_data = *pgd;
+    cip = pgd->bits.data;
   call:state = crypt_charstring_seed;
     if (encrypted) {
 	int skip = pdata->lenIV;
@@ -121,13 +128,14 @@ gs_type1_interpret(gs_type1_state * pcis, const gs_const_string * str,
 	    /* This is a number, decode it and push it on the stack. */
 
 	    if (c < c_pos2_0) {	/* 1-byte number */
-		decode_push_num1(csp, c);
+		decode_push_num1(csp, cstack, c);
 	    } else if (c < cx_num4) {	/* 2-byte number */
-		decode_push_num2(csp, c, cip, state, encrypted);
+		decode_push_num2(csp, cstack, c, cip, state, encrypted);
 	    } else if (c == cx_num4) {	/* 4-byte number */
 		long lw;
 
 		decode_num4(lw, cip, state, encrypted);
+		CS_CHECK_PUSH(csp, cstack);
 		*++csp = int2fixed(lw);
 		if (lw != fixed2long(*csp)) {
 		    /*
@@ -190,21 +198,16 @@ gs_type1_interpret(gs_type1_state * pcis, const gs_const_string * str,
 	    case c_callsubr:
 		c = fixed2int_var(*csp) + pdata->subroutineNumberBias;
 		code = pdata->procs.subr_data
-		    (pfont, c, false, &ipsp[1].char_string);
+		    (pfont, c, false, &ipsp[1].cs_data);
 		if (code < 0)
 		    return_error(code);
 		--csp;
 		ipsp->ip = cip, ipsp->dstate = state;
 		++ipsp;
-		ipsp->free_char_string = code;
-		cip = ipsp->char_string.data;
+		cip = ipsp->cs_data.bits.data;
 		goto call;
 	    case c_return:
-		if (ipsp->free_char_string > 0)
-		    gs_free_const_string(pfont->memory,
-					 ipsp->char_string.data,
-					 ipsp->char_string.size,
-					 "gs_type1_interpret");
+		gs_glyph_data_free(&ipsp->cs_data, "gs_type1_interpret");
 		--ipsp;
 		goto cont;
 	    case c_undoc15:
@@ -215,99 +218,92 @@ gs_type1_interpret(gs_type1_state * pcis, const gs_const_string * str,
 		/* in Type 1 and Type 2 charstrings. */
 
 	    case cx_hstem:
-		apply_path_hints(pcis, false);
-		type1_hstem(pcis, cs0, cs1);
+                code = t1_hinter__hstem(h, cs0, cs1);
+		if (code < 0)
+		    return code;
 		cnext;
 	    case cx_vstem:
-		apply_path_hints(pcis, false);
-		type1_vstem(pcis, cs0, cs1);
+                code = t1_hinter__vstem(h, cs0, cs1);
+		if (code < 0)
+		    return code;
 		cnext;
 	    case cx_vmoveto:
 		cs1 = cs0;
 		cs0 = 0;
-		accum_y(cs1);
 	      move:		/* cs0 = dx, cs1 = dy for hint checking. */
-		if ((pcis->hint_next != 0 || path_is_drawing(sppath)) &&
-		    pcis->flex_count == flex_max
-		    )
-		    apply_path_hints(pcis, true);
-		code = gx_path_add_point(sppath, ptx, pty);
+                code = t1_hinter__rmoveto(h, cs0, cs1);
 		goto cc;
 	    case cx_rlineto:
-		accum_xy(cs0, cs1);
 	      line:		/* cs0 = dx, cs1 = dy for hint checking. */
-		code = gx_path_add_line(sppath, ptx, pty);
+                code = t1_hinter__rlineto(h, cs0, cs1);
 	      cc:if (code < 0)
 		    return code;
-	      pp:if_debug2('1', "[1]pt=(%g,%g)\n",
-			  fixed2float(ptx), fixed2float(pty));
 		cnext;
 	    case cx_hlineto:
-		accum_x(cs0);
 		cs1 = 0;
 		goto line;
 	    case cx_vlineto:
 		cs1 = cs0;
 		cs0 = 0;
-		accum_y(cs1);
 		goto line;
 	    case cx_rrcurveto:
-		code = gs_op1_rrcurveto(&s, cs0, cs1, cs2, cs3, cs4, cs5);
+                code = t1_hinter__rcurveto(h, cs0, cs1, cs2, cs3, cs4, cs5);
 		goto cc;
 	    case cx_endchar:
+                code = t1_hinter__endchar(h, (pcis->seac_accent >= 0));
+		if (code < 0)
+		    return code;
+                if (pcis->seac_accent < 0) {
+                    code = t1_hinter__endglyph(h);
+		    if (code < 0)
+			return code;
+		    code = gx_setcurrentpoint_from_path(pcis->pis, pcis->path);
+		    if (code < 0)
+			return code;
+		}
 		code = gs_type1_endchar(pcis);
 		if (code == 1) {
 		    /* do accent of seac */
-		    spt = pcis->position;
 		    ipsp = &pcis->ipstack[pcis->ips_count - 1];
-		    cip = ipsp->char_string.data;
+		    cip = ipsp->cs_data.bits.data;
 		    goto call;
 		}
 		return code;
 	    case cx_rmoveto:
-		accum_xy(cs0, cs1);
 		goto move;
 	    case cx_hmoveto:
-		accum_x(cs0);
 		cs1 = 0;
 		goto move;
 	    case cx_vhcurveto:
-		{
-		    gs_fixed_point pt1, pt2;
-		    fixed ax0 = sppath->position.x - ptx;
-		    fixed ay0 = sppath->position.y - pty;
-
-		    accum_y(cs0);
-		    pt1.x = ptx + ax0, pt1.y = pty + ay0;
-		    accum_xy(cs1, cs2);
-		    pt2.x = ptx, pt2.y = pty;
-		    accum_x(cs3);
-		    code = gx_path_add_curve(sppath, pt1.x, pt1.y, pt2.x, pt2.y, ptx, pty);
-		}
+                code = t1_hinter__rcurveto(h, 0, cs0, cs1, cs2, cs3, 0);
 		goto cc;
 	    case cx_hvcurveto:
-		{
-		    gs_fixed_point pt1, pt2;
-		    fixed ax0 = sppath->position.x - ptx;
-		    fixed ay0 = sppath->position.y - pty;
-
-		    accum_x(cs0);
-		    pt1.x = ptx + ax0, pt1.y = pty + ay0;
-		    accum_xy(cs1, cs2);
-		    pt2.x = ptx, pt2.y = pty;
-		    accum_y(cs3);
-		    code = gx_path_add_curve(sppath, pt1.x, pt1.y, pt2.x, pt2.y, ptx, pty);
-		}
+                code = t1_hinter__rcurveto(h, cs0, 0, cs1, cs2, 0, cs3);
 		goto cc;
 
 		/* Commands only recognized in Type 1 charstrings, */
 		/* plus 'escape'. */
 
 	    case c1_closepath:
-		code = gs_op1_closepath(&s);
-		apply_path_hints(pcis, true);
+                code = t1_hinter__closepath(h);
 		goto cc;
 	    case c1_hsbw:
+                if (!h->seac_flag) {
+		    fixed sbx = cs0, sby = fixed_0, wx = cs1, wy = fixed_0;
+
+		    if (pcis->sb_set) {
+			sbx = pcis->lsb.x;
+			sby = pcis->lsb.y;
+		    }
+		    if (pcis->width_set) {
+			wx = pcis->width.x;
+			wy = pcis->width.y;
+		    }
+		    code = t1_hinter__sbw(h, sbx, sby, wx, wy);
+                } else
+                    code = t1_hinter__sbw_seac(h, pcis->adxy.x, pcis->adxy.y);
+		if (code < 0)
+		    return code;
 		gs_type1_sbw(pcis, cs0, fixed_0, cs1, fixed_0);
 		cs1 = fixed_0;
 rsbw:		/* Give the caller the opportunity to intervene. */
@@ -336,16 +332,12 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 			fixed dsby = cs1 - pcis->save_lsb.y;
 
 			if (dsbx | dsby) {
-			    accum_xy(dsbx, dsby);
 			    pcis->lsb.x += dsbx;
 			    pcis->lsb.y += dsby;
 			    pcis->save_adxy.x -= dsbx;
 			    pcis->save_adxy.y -= dsby;
 			}
-		    } else
-			accum_xy(pcis->lsb.x, pcis->lsb.y);
-		    pcis->position.x = ptx;
-		    pcis->position.y = pty;
+		    }
 		}
 		return type1_result_sbw;
 	    case cx_escape:
@@ -365,28 +357,19 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 #endif
 		switch ((char1_extended_command) c) {
 		    case ce1_dotsection:
-			pcis->dotsection_flag ^=
-			    (dotsection_in ^ dotsection_out);
+                        code = t1_hinter__dotsection(h);
+			if (code < 0)
+			    return code;
 			cnext;
 		    case ce1_vstem3:
-			apply_path_hints(pcis, false);
-			if (!pcis->vstem3_set && pcis->fh.use_x_hints) {
-			    center_vstem(pcis, pcis->lsb.x + cs2, cs3);
-			    /* Adjust the current point */
-			    /* (center_vstem handles everything else). */
-			    ptx += pcis->vs_offset.x;
-			    pty += pcis->vs_offset.y;
-			    pcis->vstem3_set = true;
-			}
-			type1_vstem(pcis, cs0, cs1);
-			type1_vstem(pcis, cs2, cs3);
-			type1_vstem(pcis, cs4, cs5);
+                        code = t1_hinter__vstem3(h, cs0, cs1, cs2, cs3, cs4, cs5);
+			if (code < 0)
+			    return code;
 			cnext;
 		    case ce1_hstem3:
-			apply_path_hints(pcis, false);
-			type1_hstem(pcis, cs0, cs1);
-			type1_hstem(pcis, cs2, cs3);
-			type1_hstem(pcis, cs4, cs5);
+                        code = t1_hinter__hstem3(h, cs0, cs1, cs2, cs3, cs4, cs5);
+			if (code < 0)
+			    return code;
 			cnext;
 		    case ce1_seac:
 			code = gs_type1_seac(pcis, cstack + 1, cstack[0],
@@ -396,9 +379,15 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 			    return code;
 			}
 			clear;
-			cip = ipsp->char_string.data;
+			cip = ipsp->cs_data.bits.data;
 			goto call;
 		    case ce1_sbw:
+                        if (!h->seac_flag)
+                            code = t1_hinter__sbw(h, cs0, cs1, cs2, cs3);
+                        else
+                            code = t1_hinter__sbw_seac(h, cs0 + pcis->adxy.x , cs1 + pcis->adxy.y);
+			if (code < 0)
+			    return code;
 			gs_type1_sbw(pcis, cs0, cs1, cs2, cs3);
 			goto rsbw;
 		    case ce1_div:
@@ -411,27 +400,12 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 		    case ce1_callothersubr:
 			{
 			    int num_results;
-
-#define fpts pcis->flex_points
 			    /* We must remember to pop both the othersubr # */
 			    /* and the argument count off the stack. */
 			    switch (*pindex = fixed2int_var(*csp)) {
 				case 0:
-				    {	/* We have to do something really sleazy */
-					/* here, namely, make it look as though */
-					/* the rmovetos never really happened, */
-					/* because we don't want to interrupt */
-					/* the current subpath. */
-					gs_fixed_point ept;
-
-#if defined(DEBUG) || !ALWAYS_DO_FLEX_AS_CURVE
+				    {	
 					fixed fheight = csp[-4];
-					gs_fixed_point hpt;
-
-#endif
-
-					if (pcis->flex_count != 8)
-					    return_error(gs_error_invalidfont);
 					/* Assume the next two opcodes */
 					/* are `pop' `pop'.  Unfortunately, some */
 					/* Monotype fonts put these in a Subr, */
@@ -441,56 +415,25 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 					csp[-4] = csp[-3] - pcis->asb_diff;
 					csp[-3] = csp[-2];
 					csp -= 3;
-					gx_path_current_point(sppath, &ept);
-					gx_path_add_point(sppath, fpts[0].x, fpts[0].y);
-					sppath->state_flags =	/* <--- sleaze */
-					    pcis->flex_path_state_flags;
-#if defined(DEBUG) || !ALWAYS_DO_FLEX_AS_CURVE
-					/* Decide whether to do the flex as a curve. */
-					hpt.x = fpts[1].x - fpts[4].x;
-					hpt.y = fpts[1].y - fpts[4].y;
-					if_debug3('1',
-					  "[1]flex: d=(%g,%g), height=%g\n",
-						  fixed2float(hpt.x), fixed2float(hpt.y),
-						fixed2float(fheight) / 100);
-#endif
-#if !ALWAYS_DO_FLEX_AS_CURVE	/* See beginning of file. */
-					if (any_abs(hpt.x) + any_abs(hpt.y) <
-					    fheight / 100
-					    ) {		/* Do the flex as a line. */
-					    code = gx_path_add_line(sppath,
-							      ept.x, ept.y);
-					} else
-#endif
-					{	/* Do the flex as a curve. */
-					    code = gx_path_add_curve(sppath,
-						       fpts[2].x, fpts[2].y,
-						       fpts[3].x, fpts[3].y,
-						      fpts[4].x, fpts[4].y);
-					    if (code < 0)
-						return code;
-					    code = gx_path_add_curve(sppath,
-						       fpts[5].x, fpts[5].y,
-						       fpts[6].x, fpts[6].y,
-						      fpts[7].x, fpts[7].y);
-					}
+					code = t1_hinter__flex_end(h, fheight);
 				    }
 				    if (code < 0)
 					return code;
 				    pcis->flex_count = flex_max;	/* not inside flex */
 				    inext;
 				case 1:
-				    gx_path_current_point(sppath, &fpts[0]);
-				    pcis->flex_path_state_flags =	/* <--- more sleaze */
-					sppath->state_flags;
+				    code = t1_hinter__flex_beg(h);
+				    if (code < 0)
+					return code;
 				    pcis->flex_count = 1;
 				    csp -= 2;
 				    inext;
 				case 2:
 				    if (pcis->flex_count >= flex_max)
 					return_error(gs_error_invalidfont);
-				    gx_path_current_point(sppath,
-						 &fpts[pcis->flex_count++]);
+				    code = t1_hinter__flex_point(h);
+				    if (code < 0)
+					return code;
 				    csp -= 2;
 				    inext;
 				case 3:
@@ -498,7 +441,9 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 				    /* See above as to why we don't just */
 				    /* look ahead in the opcode stream. */
 				    pcis->ignore_pops = 1;
-				    replace_stem_hints(pcis);
+                                    code = t1_hinter__drop_hints(h);
+				    if (code < 0)
+					return code;
 				    csp -= 2;
 				    inext;
 				case 12:
@@ -528,7 +473,6 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 				    goto blend;
 			    }
 			}
-#undef fpts
 			/* Not a recognized othersubr, */
 			/* let the client handle it. */
 			{
@@ -546,9 +490,6 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 			    if (code < 0)
 				return_error(code);
 			    scount -= n + 1;
-			    pcis->position.x = ptx;
-			    pcis->position.y = pty;
-			    apply_path_hints(pcis, false);
 			    /* Exit to caller */
 			    ipsp->ip = cip, ipsp->dstate = state;
 			    pcis->os_count = scount;
@@ -564,6 +505,7 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 			    pcis->ignore_pops--;
 			    inext;
 			}
+			CS_CHECK_PUSH(csp, cstack);
 			++csp;
 			code = (*pdata->procs.pop_value)
 			    (pcis->callback_data, csp);
@@ -571,11 +513,10 @@ rsbw:		/* Give the caller the opportunity to intervene. */
 			    return_error(code);
 			goto pushed;
 		    case ce1_setcurrentpoint:
-			ptx = ftx, pty = fty;
+			t1_hinter__setcurrentpoint(h, cs0, cs1);
 			cs0 += pcis->adxy.x;
 			cs1 += pcis->adxy.y;
-			accum_xy(cs0, cs1);
-			goto pp;
+			cnext;
 		    default:
 			return_error(gs_error_invalidfont);
 		}

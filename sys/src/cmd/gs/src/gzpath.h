@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gzpath.h,v 1.3 2000/09/19 19:00:40 lpd Exp $ */
+/*$Id: gzpath.h,v 1.37 2004/03/13 18:28:52 igor Exp $ */
 /* Structure and internal procedure definitions for paths */
 /* Requires gxfixed.h */
 
@@ -145,8 +143,8 @@ struct subpath_s {
 /* Test whether a subpath is a rectangle; if so, also return */
 /* the start of the next subpath. */
 gx_path_rectangular_type
-gx_subpath_is_rectangular(P3(const subpath * pstart, gs_fixed_rect * pbox,
-			     const subpath ** ppnext));
+gx_subpath_is_rectangular(const subpath * pstart, gs_fixed_rect * pbox,
+			  const subpath ** ppnext);
 
 #define gx_subpath_is_rectangle(pstart, pbox, ppnext)\
   (gx_subpath_is_rectangular(pstart, pbox, ppnext) != prt_none)
@@ -155,43 +153,26 @@ gx_subpath_is_rectangular(P3(const subpath * pstart, gs_fixed_rect * pbox,
 
 /* Return the smallest value k such that 2^k segments will approximate */
 /* the curve to within the desired flatness. */
-int gx_curve_log2_samples(P4(fixed, fixed, const curve_segment *, fixed));
+int gx_curve_log2_samples(fixed, fixed, const curve_segment *, fixed);
 
 /*
  * If necessary, find the values of t (never more than 2) which split the
  * curve into monotonic parts.  Return the number of split points.
  */
-int gx_curve_monotonic_points(P5(fixed, fixed, fixed, fixed, double[2]));
+int gx_curve_monotonic_points(fixed, fixed, fixed, fixed, double[2]);
 
-/* Split a curve at an arbitrary value of t. */
-void gx_curve_split(P6(fixed, fixed, const curve_segment *, double,
-		       curve_segment *, curve_segment *));
+/* Monotonize a curve, by splitting it if necessary. */
+int gx_curve_monotonize(gx_path * ppath, const curve_segment * pc);
 
 /* Flatten a partial curve by sampling (internal procedure). */
-int gx_flatten_sample(P4(gx_path *, int, curve_segment *, segment_notes));
+int gx_subdivide_curve(gx_path *, int, curve_segment *, segment_notes);
+/*
+ * Define the maximum number of points for sampling if we want accurate
+ * rasterizing.  2^(k_sample_max*3)-1 must fit into a uint with a bit
+ * to spare; also, we must be able to compute 1/2^(3*k) by table lookup.
+ */
+#define k_sample_max min((size_of(int) * 8 - 1) / 3, 10)
 
-/* Initialize a cursor for rasterizing a monotonic curve. */
-typedef struct curve_cursor_s {
-    /* Following are set at initialization */
-    int k;			/* 2^k segments */
-    gs_fixed_point p0;		/* starting point */
-    const curve_segment *pc;	/* other points */
-    fixed a, b, c;		/* curve coefficients */
-    double da, db, dc;		/* scaled double versions of a, b, c */
-    bool double_set;		/* true if da/b/c set */
-    int fixed_limit;		/* can do in fixed point if t <= limit */
-    /* Following are updated dynamically. */
-    struct ccc_ {		/* one-element cache */
-	fixed ky0, ky3;		/* key (range) */
-	fixed xl, xd;		/* value */
-    } cache;
-} curve_cursor;
-void gx_curve_cursor_init(P5(curve_cursor * prc, fixed x0, fixed y0,
-			     const curve_segment * pc, int k));
-
-/* Return the value of X at a given Y value on a monotonic curve. */
-/* y must lie between prc->p0.y and prc->pt.y. */
-fixed gx_curve_x_at_y(P2(curve_cursor * prc, fixed y));
 
 /*
  * The path state flags reflect the most recent operation on the path
@@ -254,10 +235,6 @@ typedef enum {
   ((ppath)->state_flags = psf_last_draw)
 #define path_update_closepath(ppath)\
   ((ppath)->state_flags = psf_last_closepath)
-#define path_set_outside_position(ppath, px, py)\
-  ((ppath)->outside_position.x = (px),\
-   (ppath)->outside_position.y = (py),\
-   (ppath)->state_flags |= psf_outside_range)
 
 /*
  * In order to be able to reclaim path segments at the right time, we need
@@ -290,6 +267,19 @@ typedef enum {
     path_allocated_on_heap	/* on the heap */
 } gx_path_allocation_t;
 
+/*
+ * Define virtual path interface functions.
+ * This is a minimal set of functions required by
+ * Type 1,2, TrueType interpreters.
+ */
+typedef struct gx_path_procs_s {
+    int (*add_point)(gx_path *, fixed, fixed);
+    int (*add_line)(gx_path *, fixed, fixed, segment_notes);
+    int (*add_curve)(gx_path *, fixed, fixed, fixed, fixed, fixed, fixed, segment_notes);
+    int (*close_subpath)(gx_path *, segment_notes);
+    byte (*state_flags)(gx_path *, byte);
+} gx_path_procs;
+
 /* Here is the actual structure of a path. */
 struct gx_path_s {
     /*
@@ -321,12 +311,12 @@ struct gx_path_s {
     byte /*gx_path_state_flags*/ start_flags;		/* flags of moveto */
     byte /*gx_path_state_flags*/ state_flags;		/* (see above) */
     byte /*bool*/ bbox_set;	/* true if setbbox is in effect */
+    byte /*bool*/ bbox_accurate;/* true if bbox is accurate */
     byte _pad;			/* just in case the compiler doesn't do it */
     int subpath_count;
     int curve_count;
     gs_fixed_point position;	/* current position */
-    gs_point outside_position;	/* position if outside_range is set */
-    gs_point outside_start;	/* outside_position of last moveto */
+    gx_path_procs *procs;
 };
 
 /* st_path should be private, but it's needed for the clip_path subclass. */
@@ -361,25 +351,48 @@ extern_st(st_path_enum);
 #define gx_path_has_curves(ppath)\
   gx_path_has_curves_inline(ppath)
 #define gx_path_is_void_inline(ppath)\
-  ((ppath)->first_subpath == 0)
+  ((ppath)->segments != 0 && (ppath)->first_subpath == 0)
 #define gx_path_is_void(ppath)\
   gx_path_is_void_inline(ppath)
 #define gx_path_subpath_count(ppath)\
   ((ppath)->subpath_count)
 #define gx_path_is_shared(ppath)\
-  ((ppath)->segments->rc.ref_count > 1)
+  ((ppath)->segments != 0 && (ppath)->segments->rc.ref_count > 1)
 
 /* Macros equivalent to a few heavily used procedures. */
 /* Be aware that these macros may evaluate arguments more than once. */
 #define gx_path_current_point_inline(ppath,ppt)\
  ( !path_position_valid(ppath) ? gs_note_error(gs_error_nocurrentpoint) :\
    ((ppt)->x = ppath->position.x, (ppt)->y = ppath->position.y, 0) )
-/* ...rel_point rather than ...relative_point is because */
-/* some compilers dislike identifiers of >31 characters. */
-#define gx_path_add_rel_point_inline(ppath,dx,dy)\
- ( !path_position_in_range(ppath) || ppath->bbox_set ?\
-   gx_path_add_relative_point(ppath, dx, dy) :\
-   (ppath->position.x += dx, ppath->position.y += dy,\
-    path_update_moveto(ppath), 0) )
+
+/* An iterator of flattened segments for a minotonic curve. */
+typedef struct gx_flattened_iterator_s gx_flattened_iterator;
+struct gx_flattened_iterator_s {
+    /* private : */
+    fixed x0, y0, x3, y3;
+    fixed cx, bx, ax, cy, by, ay;
+    fixed x, y;
+    uint i, k;
+    uint rmask;			/* M-1 */
+    fixed idx, idy, id2x, id2y, id3x, id3y;	/* I */
+    uint rx, ry, rdx, rdy, rd2x, rd2y, rd3x, rd3y;	/* R */
+    /* public : */
+    bool curve;
+    fixed lx0, ly0, lx1, ly1;
+};
+
+bool gx_flattened_iterator__init(gx_flattened_iterator *this, 
+	    fixed x0, fixed y0, const curve_segment *pc, int k);
+bool gx_flattened_iterator__init_line(gx_flattened_iterator *this, 
+	    fixed x0, fixed y0, fixed x1, fixed y1);
+void gx_flattened_iterator__switch_to_backscan(gx_flattened_iterator *this, bool not_first);
+bool gx_flattened_iterator__next(gx_flattened_iterator *this);
+bool gx_flattened_iterator__prev(gx_flattened_iterator *this);
+
+bool curve_coeffs_ranged(fixed x0, fixed x1, fixed x2, fixed x3, 
+		    fixed y0, fixed y1, fixed y2, fixed y3, 
+		    fixed *ax, fixed *bx, fixed *cx, 
+		    fixed *ay, fixed *by, fixed *cy, 
+		    int k);
 
 #endif /* gzpath_INCLUDED */

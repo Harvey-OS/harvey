@@ -1,21 +1,19 @@
-#    Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1997-2002 artofcode LLC. All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
-
-# $Id: unixansi.mak,v 1.16.2.3 2002/02/01 06:27:58 raph Exp $
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+#
+# $Id: unixansi.mak,v 1.41 2005/08/31 05:52:32 ray Exp $
 # makefile for Unix/ANSI C/X11 configuration.
 
 # ------------------------------- Options ------------------------------- #
@@ -70,10 +68,10 @@ docdir=$(gsdatadir)/doc
 exdir=$(gsdatadir)/examples
 GS_DOCDIR=$(docdir)
 
-# Define the default directory/ies for the runtime initialization and
+# Define the default directory/ies for the runtime initialization, resource and
 # font files.  Separate multiple directories with a :.
 
-GS_LIB_DEFAULT=$(gsdatadir)/lib:$(gsdir)/fonts
+GS_LIB_DEFAULT=$(gsdatadir)/lib:$(gsdatadir)/Resource:$(gsdir)/fonts
 
 # Define whether or not searching for initialization files should always
 # look in the current directory first.  This leads to well-known security
@@ -130,15 +128,11 @@ PGRELDIR=../pgobj
 JSRCDIR=jpeg
 JVERSION=6
 
-# Choose whether to use a shared version of the IJG JPEG library (-ljpeg).
-# DON'T DO THIS. If you do, the resulting executable will not be able to
-# read some PostScript files containing JPEG data, because Adobe chose to
-# define PostScript's JPEG capabilities in a way that is slightly
-# incompatible with the JPEG standard.  Note also that if you set SHARE_JPEG
-# to 1, you must still have the library header files available to compile
-# Ghostscript.  See doc/Make.htm for more information.
+# Note: if a shared library is used, it may not contain the
+# D_MAX_BLOCKS_IN_MCU patch, and thus may not be able to read
+# some older JPEG streams that violate the standard. If the JPEG
+# library built from local sources, the patch will be applied.
 
-# DON'T SET THIS TO 1!  See the comment just above.
 SHARE_JPEG=0
 JPEG_NAME=jpeg
 
@@ -148,7 +142,7 @@ JPEG_NAME=jpeg
 # See libpng.mak for more information.
 
 PSRCDIR=libpng
-PVERSION=10201
+PVERSION=10208
 
 # Choose whether to use a shared version of the PNG library, and if so,
 # what its name is.
@@ -170,6 +164,10 @@ SHARE_ZLIB=0
 #ZLIB_NAME=gz
 ZLIB_NAME=z
 
+# Choose shared or compiled in libjbig2dec and source location
+SHARE_JBIG2=0
+JBIG2SRCDIR=jbig2dec
+
 # Define the directory where the icclib source are stored.
 # See icclib.mak for more information
 
@@ -178,7 +176,7 @@ ICCSRCDIR=icclib
 # Define the directory where the ijs source is stored,
 # and the process forking method to use for the server.
 # See ijs.mak for more information.
- 
+
 IJSSRCDIR=ijs
 IJSEXECTYPE=unix
 
@@ -305,7 +303,7 @@ SYNC=nosync
 
 # Choose the language feature(s) to include.  See gs.mak for details.
 
-FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(GLD)pipe.dev
+FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(PSD)epsf.dev $(GLD)pipe.dev $(PSD)fapi.dev
 
 # Choose whether to compile the .ps initialization files into the executable.
 # See gs.mak for details.
@@ -318,8 +316,7 @@ COMPILE_INITS=0
 BAND_LIST_STORAGE=file
 
 # Choose which compression method to use when storing band lists in memory.
-# The choices are 'lzw' or 'zlib'.  lzw is not recommended, because the
-# LZW-compatible code in Ghostscript doesn't actually compress its input.
+# The choices are 'lzw' or 'zlib'.
 
 BAND_LIST_COMPRESSOR=zlib
 
@@ -341,20 +338,20 @@ DEVICE_DEVS1=
 DEVICE_DEVS2=
 DEVICE_DEVS3=$(DD)deskjet.dev $(DD)djet500.dev $(DD)laserjet.dev $(DD)ljetplus.dev $(DD)ljet2p.dev $(DD)ljet3.dev $(DD)ljet3d.dev $(DD)ljet4.dev $(DD)ljet4d.dev
 DEVICE_DEVS4=$(DD)cdeskjet.dev $(DD)cdjcolor.dev $(DD)cdjmono.dev $(DD)cdj550.dev $(DD)pj.dev $(DD)pjxl.dev $(DD)pjxl300.dev
-DEVICE_DEVS5=$(DD)uniprint.dev $(DD)ijs.dev
+DEVICE_DEVS5=$(DD)uniprint.dev
 DEVICE_DEVS6=$(DD)bj10e.dev $(DD)bj200.dev $(DD)bjc600.dev $(DD)bjc800.dev
 DEVICE_DEVS7=$(DD)faxg3.dev $(DD)faxg32d.dev $(DD)faxg4.dev
 DEVICE_DEVS8=$(DD)pcxmono.dev $(DD)pcxgray.dev $(DD)pcx16.dev $(DD)pcx256.dev $(DD)pcx24b.dev $(DD)pcxcmyk.dev
 DEVICE_DEVS9=$(DD)pbm.dev $(DD)pbmraw.dev $(DD)pgm.dev $(DD)pgmraw.dev $(DD)pgnm.dev $(DD)pgnmraw.dev
 DEVICE_DEVS10=$(DD)tiffcrle.dev $(DD)tiffg3.dev $(DD)tiffg32d.dev $(DD)tiffg4.dev $(DD)tifflzw.dev $(DD)tiffpack.dev
-DEVICE_DEVS11=$(DD)tiff12nc.dev $(DD)tiff24nc.dev
+DEVICE_DEVS11=$(DD)tiff12nc.dev $(DD)tiff24nc.dev $(DD)tiffgray.dev $(DD)tiff32nc.dev $(DD)tiffsep.dev
 DEVICE_DEVS12=$(DD)psmono.dev $(DD)psgray.dev $(DD)psrgb.dev $(DD)bit.dev $(DD)bitrgb.dev $(DD)bitcmyk.dev
-DEVICE_DEVS13=$(DD)pngmono.dev $(DD)pnggray.dev $(DD)png16.dev $(DD)png256.dev $(DD)png16m.dev
-DEVICE_DEVS14=$(DD)jpeg.dev $(DD)jpeggray.dev
-DEVICE_DEVS15=$(DD)pdfwrite.dev $(DD)pswrite.dev $(DD)epswrite.dev $(DD)pxlmono.dev $(DD)pxlcolor.dev
+DEVICE_DEVS13=$(DD)pngmono.dev $(DD)pnggray.dev $(DD)png16.dev $(DD)png256.dev $(DD)png16m.dev $(DD)pngalpha.dev
+DEVICE_DEVS14=$(DD)jpeg.dev $(DD)jpeggray.dev $(DD)jpegcmyk.dev
+DEVICE_DEVS15=$(DD)pdfwrite.dev $(DD)pswrite.dev $(DD)ps2write.dev $(DD)epswrite.dev $(DD)pxlmono.dev $(DD)pxlcolor.dev
+DEVICE_DEVS16=$(DD)bbox.dev
 # Overflow from DEVS9
-DEVICE_DEVS16=$(DD)pnm.dev $(DD)pnmraw.dev $(DD)ppm.dev $(DD)ppmraw.dev $(DD)pkm.dev $(DD)pkmraw.dev $(DD)pksm.dev $(DD)pksmraw.dev
-DEVICE_DEVS17=
+DEVICE_DEVS17=$(DD)pnm.dev $(DD)pnmraw.dev $(DD)ppm.dev $(DD)ppmraw.dev $(DD)pkm.dev $(DD)pkmraw.dev $(DD)pksm.dev $(DD)pksmraw.dev
 DEVICE_DEVS18=
 DEVICE_DEVS19=
 DEVICE_DEVS20=
@@ -367,17 +364,22 @@ DEVICE_DEVS20=
 MAKEFILE=$(GLSRCDIR)/unixansi.mak
 TOP_MAKEFILES=$(MAKEFILE) $(GLSRCDIR)/unixhead.mak
 
-# Define the ANSI-to-K&R dependency (none for ANSI compilers).
+# Define the auxilary program dependency.
 
 AK=
 
 # Define the compilation rules and flags.
 
+# If you system has a 64 bit type you should pass it through
+# CCFLAGS to improve support for multiple colorants. e.g.:
+#     -DGX_COLOR_INDEX_TYPE='unsigned long long'
+# or use the autoconf build, which sets this automatically.
+# If you do not define a 64 bit type, there may be some warnings
+# about oversize shifts. It's a bug if these are not harmless.
+
 CCFLAGS=$(GENOPT) $(CFLAGS)
 CC_=$(CC) $(CCFLAGS)
 CCAUX=$(CC)
-CC_LEAF=$(CC_)
-CC_LEAF_PG=$(CC_)
 CC_NO_WARN=$(CC_)
 
 # ---------------- End of platform-specific section ---------------- #
@@ -391,6 +393,7 @@ include $(GLSRCDIR)/jpeg.mak
 # zlib.mak must precede libpng.mak
 include $(GLSRCDIR)/zlib.mak
 include $(GLSRCDIR)/libpng.mak
+include $(GLSRCDIR)/jbig2.mak
 include $(GLSRCDIR)/icclib.mak
 include $(GLSRCDIR)/ijs.mak
 include $(GLSRCDIR)/devs.mak
@@ -399,3 +402,13 @@ include $(GLSRCDIR)/unix-aux.mak
 include $(GLSRCDIR)/unixlink.mak
 include $(GLSRCDIR)/unix-end.mak
 include $(GLSRCDIR)/unixinst.mak
+
+# platform-specific clean-up  
+# this makefile is intended to be hand edited so we don't distribute
+# the (presumedly modified) version in the top level directory
+distclean : clean config-clean
+	-$(RM) Makefile
+
+maintainer-clean : distclean
+	# nothing special to do
+

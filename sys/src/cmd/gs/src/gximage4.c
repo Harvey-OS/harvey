@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gximage4.c,v 1.3 2000/09/19 19:00:38 lpd Exp $ */
+/* $Id: gximage4.c,v 1.6 2005/04/13 20:04:46 ray Exp $ */
 /* ImageType 4 image implementation */
 #include "memory_.h"
 #include "gx.h"
@@ -92,8 +90,10 @@ gx_begin_image4(gx_device * dev,
 	    else
 		c0 = c1 = pim->MaskColor[i >> 1];
 
-	    if ((c0 | c1) > max_value)
+	    if ((c0 | c1) > max_value) {
+		gs_free_object(mem, penum, "gx_begin_image4");
 		return_error(gs_error_rangecheck);
+	    }
 	    if (c0 > c1) {
 		opaque = true;	/* pixel can never match mask color */
 		break;

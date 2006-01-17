@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxclread.c,v 1.3 2000/11/05 00:34:24 lpd Exp $ */
+/* $Id: gxclread.c,v 1.13 2004/10/07 05:18:34 ray Exp $ */
 /* Command list reading for Ghostscript. */
 #include "memory_.h"
 #include "gx.h"
@@ -30,7 +28,6 @@
 #include "gxcldev.h"
 #include "gxgetbit.h"
 #include "gxhttile.h"
-#include "gdevht.h"
 #include "gdevplnx.h"
 /*
  * We really don't like the fact that gdevprn.h is included here, since
@@ -96,7 +93,7 @@ s_band_read_process(stream_state * st, stream_cursor_read * ignore_pr,
 	    }
 	    q += count;
 	    left -= count;
-	    process_interrupts();
+	    process_interrupts(st->memory);
 	    continue;
 	}
 rb:
@@ -140,17 +137,17 @@ private const stream_template s_band_read_template = {
 
 /* Forward references */
 
-private int clist_render_init(P1(gx_device_clist *));
-private int clist_playback_file_bands(P8(clist_playback_action action,
-					 gx_device_clist_reader *cdev,
-					 gx_band_page_info_t *page_info,
-					 gx_device *target,
-					 int band_first, int band_last,
-					 int x0, int y0));
-private int clist_rasterize_lines(P6(gx_device *dev, int y, int lineCount,
-				     gx_device *bdev,
-				     const gx_render_plane_t *render_plane,
-				     int *pmy));
+private int clist_render_init(gx_device_clist *);
+private int clist_playback_file_bands(clist_playback_action action,
+				      gx_device_clist_reader *cdev,
+				      gx_band_page_info_t *page_info,
+				      gx_device *target,
+				      int band_first, int band_last,
+				      int x0, int y0);
+private int clist_rasterize_lines(gx_device *dev, int y, int lineCount,
+				  gx_device *bdev,
+				  const gx_render_plane_t *render_plane,
+				  int *pmy);
 
 /* Calculate the raster for a chunky or planar device. */
 private int
@@ -477,8 +474,7 @@ clist_playback_file_bands(clist_playback_action action,
     bool opened_cfile = false;
 
     /* We have to pick some allocator for rendering.... */
-    gs_memory_t *mem =
-	(cdev->memory != 0 ? cdev->memory : &gs_memory_default);
+    gs_memory_t *mem =cdev->memory;
  
     stream_band_read_state rs;
 
@@ -511,6 +507,8 @@ clist_playback_file_bands(clist_playback_action action,
 	};
 
 	s_band_read_init((stream_state *)&rs);
+	  /* The stream doesn't need a memory, but we'll need to access s.memory->gs_lib_ctx. */
+	s_init(&s, mem);
 	s_std_init(&s, sbuf, cbuf_size, &no_procs, s_mode_read);
 	s.foreign = 1;
 	s.state = (stream_state *)&rs;

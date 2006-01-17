@@ -1,22 +1,20 @@
 /* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsparam2.c,v 1.2 2000/09/19 19:00:30 lpd Exp $ */
+/* $Id: gsparam2.c,v 1.6 2002/07/01 14:27:43 jeong Exp $ */
 /* Serialize and unserialize parameter lists */
 
 /* Initial version 2/1/98 by John Desrosiers (soho@crl.com) */
@@ -32,8 +30,8 @@
 /* ---------------- Serializer ---------------- */
 
 /* Forward references */
-private int sput_word(P2(stream *dest, uint value));
-private int sput_bytes(P3(stream *dest, const byte *data, uint size));
+private int sput_word(stream *dest, uint value);
+private int sput_bytes(stream *dest, const byte *data, uint size);
 
 /*
  * Serialize the contents of a gs_param_list, including sub-dictionaries,
@@ -192,8 +190,8 @@ sput_bytes(stream *dest, const byte *data, uint size)
 /* ---------------- Unserializer ---------------- */
 
 /* Forward references */
-private int sget_word(P2(stream *src, uint *pvalue));
-private int sget_bytes(P3(stream *src, byte *data, uint size));
+private int sget_word(stream *src, uint *pvalue);
+private int sget_bytes(stream *src, byte *data, uint size);
 
 /*
  * Unserialize a parameter list from a stream.  The list must be in WRITE
@@ -376,5 +374,11 @@ sget_bytes(stream *src, byte *data, uint size)
 {
     uint ignore_count;
 
-    return sgets(src, data, size, &ignore_count);
+    int status = sgets(src, data, size, &ignore_count);
+
+    if (status < 0 && status != EOFC)
+	return_error(gs_error_ioerror);
+    };
+
+    return 0;
 }

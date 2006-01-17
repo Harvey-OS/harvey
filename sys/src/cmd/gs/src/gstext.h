@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gstext.h,v 1.3 2000/09/19 19:00:32 lpd Exp $ */
+/*$Id: gstext.h,v 1.9 2003/09/11 21:12:18 igor Exp $ */
 /* Driver interface for text */
 
 #ifndef gstext_INCLUDED
@@ -130,8 +128,8 @@ typedef struct gs_text_params_s {
     "gs_text_params", text_params_enum_ptrs, text_params_reloc_ptrs)
 
 /* Assuming REPLACE_WIDTHS is set, return the width of the i'th character. */
-int gs_text_replaced_width(P3(const gs_text_params_t *text, uint index,
-			      gs_point *pwidth));
+int gs_text_replaced_width(const gs_text_params_t *text, uint index,
+			   gs_point *pwidth);
 
 /*
  * Define the abstract type for the structure that tracks the state of text
@@ -173,7 +171,7 @@ typedef struct gx_clip_path_s gx_clip_path;
  * the enumerator (see gxtext.h) and initialize the procs and rc members.
  */
 #define dev_t_proc_text_begin(proc, dev_t)\
-  int proc(P9(dev_t *dev,\
+  int proc(dev_t *dev,\
     gs_imager_state *pis,\
     const gs_text_params_t *text,\
     gs_font *font,\
@@ -181,7 +179,7 @@ typedef struct gx_clip_path_s gx_clip_path;
     const gx_device_color *pdcolor,	/* if DO_DRAW */\
     const gx_clip_path *pcpath,		/* if DO_DRAW */\
     gs_memory_t *memory,\
-    gs_text_enum_t **ppte))
+    gs_text_enum_t **ppte)
 #define dev_proc_text_begin(proc)\
   dev_t_proc_text_begin(proc, gx_device)
 
@@ -196,50 +194,57 @@ dev_proc_text_begin(gx_device_text_begin);
 #  define gs_state_DEFINED
 typedef struct gs_state_s gs_state;
 #endif
-int gs_text_begin(P4(gs_state * pgs, const gs_text_params_t * text,
-		     gs_memory_t * mem, gs_text_enum_t ** ppenum));
+int gs_text_begin(gs_state * pgs, const gs_text_params_t * text,
+		  gs_memory_t * mem, gs_text_enum_t ** ppenum);
+
+/*
+ * Update the device color to be used with text (because a kshow or
+ * cshow procedure may have changed the current color).
+ */
+int gs_text_update_dev_color(gs_state * pgs, gs_text_enum_t * pte);
+
 
 /* Begin the PostScript-equivalent text operators. */
 int
-    gs_show_begin(P5(gs_state *, const byte *, uint,
-		     gs_memory_t *, gs_text_enum_t **)),
-    gs_ashow_begin(P7(gs_state *, floatp, floatp, const byte *, uint,
-		      gs_memory_t *, gs_text_enum_t **)),
-    gs_widthshow_begin(P8(gs_state *, floatp, floatp, gs_char,
-			  const byte *, uint,
-			  gs_memory_t *, gs_text_enum_t **)),
-    gs_awidthshow_begin(P10(gs_state *, floatp, floatp, gs_char,
-			    floatp, floatp, const byte *, uint,
-			    gs_memory_t *, gs_text_enum_t **)),
-    gs_kshow_begin(P5(gs_state *, const byte *, uint,
-		      gs_memory_t *, gs_text_enum_t **)),
-    gs_xyshow_begin(P8(gs_state *, const byte *, uint,
-		       const float *, const float *, uint,
-		       gs_memory_t *, gs_text_enum_t **)),
-    gs_glyphshow_begin(P4(gs_state *, gs_glyph,
-			  gs_memory_t *, gs_text_enum_t **)),
-    gs_cshow_begin(P5(gs_state *, const byte *, uint,
-		      gs_memory_t *, gs_text_enum_t **)),
-    gs_stringwidth_begin(P5(gs_state *, const byte *, uint,
-			    gs_memory_t *, gs_text_enum_t **)),
-    gs_charpath_begin(P6(gs_state *, const byte *, uint, bool,
-			 gs_memory_t *, gs_text_enum_t **)),
-    gs_glyphpath_begin(P5(gs_state *, gs_glyph, bool,
-			  gs_memory_t *, gs_text_enum_t **)),
-    gs_glyphwidth_begin(P4(gs_state *, gs_glyph,
-			   gs_memory_t *, gs_text_enum_t **)),
-    gs_charboxpath_begin(P6(gs_state *, const byte *, uint, bool,
-			    gs_memory_t *, gs_text_enum_t **));
+gs_show_begin(gs_state *, const byte *, uint,
+	      gs_memory_t *, gs_text_enum_t **),
+    gs_ashow_begin(gs_state *, floatp, floatp, const byte *, uint,
+		   gs_memory_t *, gs_text_enum_t **),
+    gs_widthshow_begin(gs_state *, floatp, floatp, gs_char,
+		       const byte *, uint,
+		       gs_memory_t *, gs_text_enum_t **),
+    gs_awidthshow_begin(gs_state *, floatp, floatp, gs_char,
+			floatp, floatp, const byte *, uint,
+			gs_memory_t *, gs_text_enum_t **),
+    gs_kshow_begin(gs_state *, const byte *, uint,
+		   gs_memory_t *, gs_text_enum_t **),
+    gs_xyshow_begin(gs_state *, const byte *, uint,
+		    const float *, const float *, uint,
+		    gs_memory_t *, gs_text_enum_t **),
+    gs_glyphshow_begin(gs_state *, gs_glyph,
+		       gs_memory_t *, gs_text_enum_t **),
+    gs_cshow_begin(gs_state *, const byte *, uint,
+		   gs_memory_t *, gs_text_enum_t **),
+    gs_stringwidth_begin(gs_state *, const byte *, uint,
+			 gs_memory_t *, gs_text_enum_t **),
+    gs_charpath_begin(gs_state *, const byte *, uint, bool,
+		      gs_memory_t *, gs_text_enum_t **),
+    gs_glyphpath_begin(gs_state *, gs_glyph, bool,
+		       gs_memory_t *, gs_text_enum_t **),
+    gs_glyphwidth_begin(gs_state *, gs_glyph,
+			gs_memory_t *, gs_text_enum_t **),
+    gs_charboxpath_begin(gs_state *, const byte *, uint, bool,
+			 gs_memory_t *, gs_text_enum_t **);
 
 /*
  * Restart text processing with new parameters.
  */
-int gs_text_restart(P2(gs_text_enum_t *pte, const gs_text_params_t *text));
+int gs_text_restart(gs_text_enum_t *pte, const gs_text_params_t *text);
 
 /*
  * Resync text processing with new parameters and string position.
  */
-int gs_text_resync(P2(gs_text_enum_t *pte, const gs_text_enum_t *pfrom));
+int gs_text_resync(gs_text_enum_t *pte, const gs_text_enum_t *pfrom);
 
 /*
  * Define the possible return values from gs_text_process.  The client
@@ -262,27 +267,35 @@ int gs_text_resync(P2(gs_text_enum_t *pte, const gs_text_enum_t *pfrom));
 	 */
 #define TEXT_PROCESS_INTERVENE 2
 
+	/*
+	 * The device has asked to execute CDevProc.
+	 * Obtain the current codes from gs_text_current_char/glyph,
+	 * do whatever is necessary and put CDevProc results to pte->cdevproc_result, 
+	 * and then call gs_text_process again with pte->cdevproc_result_valid=true.
+	 */
+#define TEXT_PROCESS_CDEVPROC 3
+
 /* Process text after 'begin'. */
-int gs_text_process(P1(gs_text_enum_t *pte));
+int gs_text_process(gs_text_enum_t *pte);
 
 /* Access elements of the enumerator. */
-gs_font *gs_text_current_font(P1(const gs_text_enum_t *pte));
-gs_char gs_text_current_char(P1(const gs_text_enum_t *pte));
-gs_char gs_text_next_char(P1(const gs_text_enum_t *pte));
-gs_glyph gs_text_current_glyph(P1(const gs_text_enum_t *pte));
-int gs_text_total_width(P2(const gs_text_enum_t *pte, gs_point *pwidth));
+gs_font *gs_text_current_font(const gs_text_enum_t *pte);
+gs_char gs_text_current_char(const gs_text_enum_t *pte);
+gs_char gs_text_next_char(const gs_text_enum_t *pte);
+gs_glyph gs_text_current_glyph(const gs_text_enum_t *pte);
+int gs_text_total_width(const gs_text_enum_t *pte, gs_point *pwidth);
 
 /*
  * After the implementation returned TEXT_PROCESS_RENDER, determine
  * whether it needs the entire character description, or only the width
  * (escapement).
  */
-bool gs_text_is_width_only(P1(const gs_text_enum_t *pte));
+bool gs_text_is_width_only(const gs_text_enum_t *pte);
 
 /*
  * Return the width of the current character (in user space coordinates).
  */
-int gs_text_current_width(P2(const gs_text_enum_t *pte, gs_point *pwidth));
+int gs_text_current_width(const gs_text_enum_t *pte, gs_point *pwidth);
 
 /*
  * Set text metrics and optionally enable caching.  Return 1 iff the
@@ -294,16 +307,16 @@ typedef enum {
     TEXT_SET_CACHE_DEVICE2	/* w0x w0y llx lly urx ury w1x w1y vx vy */
 } gs_text_cache_control_t;
 int
-    gs_text_set_cache(P3(gs_text_enum_t *pte, const double *values,
-			 gs_text_cache_control_t control)),
-    gs_text_setcharwidth(P2(gs_text_enum_t *pte, const double wxy[2])),
-    gs_text_setcachedevice(P2(gs_text_enum_t *pte, const double wbox[6])),
-    gs_text_setcachedevice2(P2(gs_text_enum_t *pte, const double wbox2[10]));
+    gs_text_set_cache(gs_text_enum_t *pte, const double *values,
+		      gs_text_cache_control_t control),
+    gs_text_setcharwidth(gs_text_enum_t *pte, const double wxy[2]),
+    gs_text_setcachedevice(gs_text_enum_t *pte, const double wbox[6]),
+    gs_text_setcachedevice2(gs_text_enum_t *pte, const double wbox2[10]);
 
 /* Retry processing of the last character. */
-int gs_text_retry(P1(gs_text_enum_t *pte));
+int gs_text_retry(gs_text_enum_t *pte);
 
 /* Release the text processing structures. */
-void gs_text_release(P2(gs_text_enum_t *pte, client_name_t cname));
+void gs_text_release(gs_text_enum_t *pte, client_name_t cname);
 
 #endif /* gstext_INCLUDED */

@@ -5,7 +5,7 @@
  *
  * Author:  Graeme W. Gill
  * Date:    99/11/29
- * Version: 2.00
+ * Version: 2.01
  *
  * Copyright 1997, 1998, 1999, 2000, 2001 Graeme W. Gill
  * Please refer to Licence.txt file for details.
@@ -55,14 +55,14 @@
 /* ---------------------------------------------- */
 /* Platform specific defines */
 /* It is assumed that the native machine size is 32 bits */
-#ifndef INT8
-#define INT8   signed char		/* 8 bit signed */
+#ifndef INR8
+#define INR8   signed char		/* 8 bit signed */
 #endif
-#ifndef INT16
-#define INT16  signed short		/* 16 bit signed */
+#ifndef INR16
+#define INR16  signed short		/* 16 bit signed */
 #endif
-#ifndef INT32
-#define INT32  signed long		/* 32 bit signed */
+#ifndef INR32
+#define INR32  signed long		/* 32 bit signed */
 #endif
 #ifndef ORD8
 #define ORD8   unsigned char	/* 8 bit unsigned */
@@ -111,7 +111,7 @@ struct _icmFile {
 
 /* - - - - - - - - - - - - - - - - - - - - -  */
 
-/* Implimentation of file access class based on standard file I/O */
+/* Implementation of file access class based on standard file I/O */
 struct _icmFileStd {
 	ICM_FILE_BASE
 
@@ -129,7 +129,7 @@ icmFile *new_icmFileStd_fp(FILE *fp);
 
 
 /* - - - - - - - - - - - - - - - - - - - - -  */
-/* Implimentation of file access class based on a memory image */
+/* Implementation of file access class based on a memory image */
 struct _icmFileMem {
 	ICM_FILE_BASE
 
@@ -162,7 +162,7 @@ struct _icmAlloc {
 
 /* - - - - - - - - - - - - - - - - - - - - -  */
 
-/* Implimentation of heap class based on standard system malloc */
+/* Implementation of heap class based on standard system malloc */
 struct _icmAllocStd {
 	ICM_ALLOC_BASE
 }; typedef struct _icmAllocStd icmAllocStd;
@@ -183,12 +183,12 @@ typedef int icmSig;	/* Otherwise un-enumerated 4 byte signature */
 
 typedef struct {
 	ORD32 l;			/* High and low components of signed 64 bit */
-	INT32 h;
-} int64;
+	INR32 h;
+} icmInt64;
 
 typedef struct {
 	ORD32 l,h;			/* High and low components of unsigned 64 bit */
-} uint64;
+} icmUint64;
 
 /* XYZ Number */
 typedef struct {
@@ -275,7 +275,7 @@ struct _icmUInt64Array {
 
 	/* Public: */
 	unsigned long	size;		/* Allocated and used size of the array */
-    uint64			*data;		/* Pointer to array of hight data */ 
+    icmUint64		*data;		/* Pointer to array of hight data */ 
 }; typedef struct _icmUInt64Array icmUInt64Array;
 
 /* u16Fixed16 Array */
@@ -612,7 +612,7 @@ struct _icmDescStruct {
 	int             (*allocate)(struct _icmDescStruct *p);	/* Allocate method */
     icmSig            deviceMfg;		/* Dev Manufacturer */
     unsigned int      deviceModel;		/* Dev Model */
-    uint64            attributes;		/* Dev attributes */
+    icmUint64         attributes;		/* Dev attributes */
     icTechnologySignature technology;	/* Technology sig */
 	icmTextDescription device;			/* Manufacturer text (sub structure) */
 	icmTextDescription model;			/* Model text (sub structure) */
@@ -760,11 +760,11 @@ struct _icmHeader {
 	/* Values that should be set before writing */
     icmSig                  manufacturer;	/* Dev manufacturer */
     icmSig		            model;			/* Dev model */
-    uint64                  attributes;		/* Device attributes.l */
+    icmUint64               attributes;		/* Device attributes.l */
     unsigned int            flags;			/* Various bits */
 
 	/* Values that may optionally be set before writing */
-    /* uint64               attributes;		   Device attributes.h (see above) */
+    /* icmUint64            attributes;		   Device attributes.h (see above) */
     icmSig                  creator;		/* Profile creator */
 
 	/* Values that are not normally set, since they have defaults */
@@ -790,7 +790,7 @@ typedef enum {
 /* Public: Parameter to get_luobj function */
 typedef enum {
     icmLuOrdNorm     = 0,  /* Normal profile preference: Lut, matrix, monochrome */
-    icmLuOrdRev      = 1,  /* Reverse profile preference: monochrome, matrix, monochrome */
+    icmLuOrdRev      = 1   /* Reverse profile preference: monochrome, matrix, monochrome */
 } icmLookupOrder;
 
 /* Public: Lookup algorithm object type */
@@ -829,7 +829,12 @@ typedef enum {
 	                                 icColorSpaceSignature *outs, int *outn,				\
 	                                 icmLuAlgType *alg, icRenderingIntent *intt, 			\
 	                                 icmLookupFunc *fnc, icColorSpaceSignature *pcs); 		\
-																								\
+																							\
+	/* Get the effective input space and output space ranges */								\
+	void (*get_ranges) (struct _icmLuBase *p,												\
+		double *inmin, double *inmax,		/* Maximum range of inspace values */			\
+		double *outmin, double *outmax);	/* Maximum range of outspace values */			\
+																							\
 	void           (*wh_bk_points)(struct _icmLuBase *p, icmXYZNumber *wht, icmXYZNumber *blk);	\
 	int            (*lookup) (struct _icmLuBase *p, double *out, double *in);
 
@@ -928,11 +933,6 @@ struct _icmLuLut {
 
 	/* Get the native input space and output space ranges */
 	void (*get_lutranges) (struct _icmLuLut *p,
-		double *inmin, double *inmax,		/* Maximum range of inspace values */
-		double *outmin, double *outmax);	/* Maximum range of outspace values */
-
-	/* Get the effective input space and output space ranges */
-	void (*get_ranges) (struct _icmLuLut *p,
 		double *inmin, double *inmax,		/* Maximum range of inspace values */
 		double *outmin, double *outmax);	/* Maximum range of outspace values */
 
@@ -1054,10 +1054,10 @@ extern ICCLIB_API icc *new_icc_a(icmAlloc *al);		/* With allocator class */
 extern ICCLIB_API char *tag2str(int tag);
 
 /* Return a tag created from a string */
-extern ICCLIB_API int str2tag(char *str);
+extern ICCLIB_API int str2tag(const char *str);
 
 /* Return a string description of the given enumeration value */
-extern ICCLIB_API char *icm2str(icmEnumType etype, int enumval);
+extern ICCLIB_API const char *icm2str(icmEnumType etype, int enumval);
 
 /* CIE XYZ to perceptual Lab */
 extern ICCLIB_API void icmXYZ2Lab(icmXYZNumber *w, double *out, double *in);
@@ -1067,6 +1067,9 @@ extern ICCLIB_API void icmLab2XYZ(icmXYZNumber *w, double *out, double *in);
 
 /* The standard D50 illuminant value */
 extern ICCLIB_API icmXYZNumber icmD50;
+
+/* The standard D65 illuminant value */
+extern ICCLIB_API icmXYZNumber icmD65;
 
 /* The default black value */
 extern ICCLIB_API icmXYZNumber icmBlack;
@@ -1081,7 +1084,7 @@ extern ICCLIB_API void psh_reset(psh *p);
 /* Return non-zero if count rolls over to 0 */
 extern ICCLIB_API int psh_inc(psh *p, int co[]);
 
-/* Chrmatic Adaption transform utility */
+/* Chromatic Adaption transform utility */
 /* Return a 3x3 chromatic adaption matrix */
 void icmChromAdaptMatrix(
 	int flags,				/* Flags as defined below */
@@ -1092,6 +1095,18 @@ void icmChromAdaptMatrix(
 
 #define ICM_CAM_BRADFORD	0x0001	/* Use Bradford sharpened response space */
 #define ICM_CAM_MULMATRIX	0x0002	/* Transform the given matrix */
+
+/* Return the normal Delta E given two Lab values */
+extern ICCLIB_API double icmLabDE(double *in1, double *in2);
+
+/* Return the normal Delta E squared, given two Lab values */
+extern ICCLIB_API double icmLabDEsq(double *in1, double *in2);
+
+/* Return the CIE94 Delta E color difference measure for two Lab values */
+extern ICCLIB_API double icmCIE94(double *in1, double *in2);
+
+/* Return the CIE94 Delta E color difference measure squared, for two Lab values */
+extern ICCLIB_API double icmCIE94sq(double *in1, double *in2);
 
 /* Simple macro to transfer an array to an XYZ number */
 #define icmAry2XYZ(xyz, ary) ((xyz).X = (ary)[0], (xyz).Y = (ary)[1], (xyz).Z = (ary)[2])

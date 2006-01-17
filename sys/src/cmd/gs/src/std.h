@@ -1,23 +1,21 @@
-/* Copyright (C) 1989, 1992, 1993, 1994, 1995, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989-2003 artofcode LLC. All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: std.h,v 1.4 2001/03/13 06:51:39 ghostgum Exp $ */
-/* Standard definitions for Aladdin Enterprises code */
+/* $Id: std.h,v 1.12 2004/08/04 19:36:13 stefan Exp $ */
+/* Standard definitions for Ghostscript code */
 
 #ifndef std_INCLUDED
 #  define std_INCLUDED
@@ -37,6 +35,7 @@
 #define arch_align_ptr_mod ARCH_ALIGN_PTR_MOD
 #define arch_align_float_mod ARCH_ALIGN_FLOAT_MOD
 #define arch_align_double_mod ARCH_ALIGN_DOUBLE_MOD
+#define arch_align_struct_mod ARCH_ALIGN_STRUCT_MOD
 #define arch_log2_sizeof_short ARCH_LOG2_SIZEOF_SHORT
 #define arch_log2_sizeof_int ARCH_LOG2_SIZEOF_INT
 #define arch_log2_sizeof_long ARCH_LOG2_SIZEOF_LONG
@@ -56,11 +55,22 @@
 #define arch_floats_are_IEEE ARCH_FLOATS_ARE_IEEE
 #define arch_arith_rshift ARCH_ARITH_RSHIFT
 #define arch_can_shift_full_long ARCH_CAN_SHIFT_FULL_LONG
+/*
+ * Define the alignment that the memory manager must preserve.
+ * We assume all alignment moduli are powers of 2.
+ * NOTE: we require that malloc align blocks at least this strictly.
+ */
+#define ARCH_ALIGN_MEMORY_MOD\
+  (((ARCH_ALIGN_LONG_MOD - 1) | (ARCH_ALIGN_PTR_MOD - 1) |\
+    (ARCH_ALIGN_DOUBLE_MOD - 1) | (ARCH_ALIGN_STRUCT_MOD - 1)) + 1)
+#define arch_align_memory_mod ARCH_ALIGN_MEMORY_MOD
 
 /* Define integer data type sizes in terms of log2s. */
+#define ARCH_SIZEOF_CHAR (1 << ARCH_LOG2_SIZEOF_CHAR)
 #define ARCH_SIZEOF_SHORT (1 << ARCH_LOG2_SIZEOF_SHORT)
 #define ARCH_SIZEOF_INT (1 << ARCH_LOG2_SIZEOF_INT)
 #define ARCH_SIZEOF_LONG (1 << ARCH_LOG2_SIZEOF_LONG)
+#define ARCH_SIZEOF_LONG_LONG (1 << ARCH_LOG2_SIZEOF_LONG_LONG)
 #define ARCH_INTS_ARE_SHORT (ARCH_SIZEOF_INT == ARCH_SIZEOF_SHORT)
 /* Backward compatibility */
 #define arch_sizeof_short ARCH_SIZEOF_SHORT
@@ -153,6 +163,18 @@ typedef ulong bits32;
  */
 #include <stdio.h>
 
+/*
+ * Not a very good place to define this, but we can't find a better one.
+ */
+#ifndef gs_memory_DEFINED
+#  define gs_memory_DEFINED
+typedef struct gs_memory_s gs_memory_t;
+#endif
+
+#define init_proc(proc)\
+  int proc(gs_memory_t *)
+
+
 /* dpf and epf may be redefined */
 #define dpf errprintf
 #define epf errprintf
@@ -160,15 +182,15 @@ typedef ulong bits32;
 /* To allow stdout and stderr to be redirected, all stdout goes 
  * though outwrite and all stderr goes through errwrite.
  */
-int outwrite(P2(const char *str, int len));
-int errwrite(P2(const char *str, int len));
-void outflush(P0());
-void errflush(P0());
+int outwrite(const gs_memory_t *mem, const char *str, int len);
+int errwrite(const char *str, int len);
+void outflush(const gs_memory_t *mem);
+void errflush(void);
 /* Formatted output to outwrite and errwrite.
  * The maximum string length is 1023 characters.
  */
 #ifdef __PROTOTYPES__
-int outprintf(const char *fmt, ...);
+int outprintf(const gs_memory_t *mem, const char *fmt, ...);
 int errprintf(const char *fmt, ...);
 #else
 int outprintf();
@@ -177,14 +199,14 @@ int errprintf();
 
 /* Print the program line # for debugging. */
 #if __LINE__			/* compiler provides it */
-void dprintf_file_and_line(P2(const char *, int));
+void dprintf_file_and_line(const char *, int);
 #  define _dpl dprintf_file_and_line(__FILE__, __LINE__),
 #else
-void dprintf_file_only(P1(const char *));
+void dprintf_file_only(const char *);
 #  define _dpl dprintf_file_only(__FILE__),
 #endif
 
-void dflush(P0());		/* flush stderr */
+void dflush(void);		/* flush stderr */
 #define dputc(chr) dprintf1("%c", chr)
 #define dlputc(chr) dlprintf1("%c", chr)
 #define dputs(str) dprintf1("%s", str)
@@ -242,12 +264,10 @@ void dflush(P0());		/* flush stderr */
 #define dlprintf12(str,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12)\
   (_dpl dprintf12(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12))
 
-void printf_program_ident(P2(const char *program_name,
-			     long revision_number));
-void eprintf_program_ident(P2(const char *program_name,
-			      long revision_number));
-const char *gs_program_name(P0());
-long gs_revision_number(P0());
+void printf_program_ident(const gs_memory_t *mem, const char *program_name, long revision_number);
+void eprintf_program_ident(const char *program_name, long revision_number);
+const char *gs_program_name(void);
+long gs_revision_number(void);
 
 #define _epi eprintf_program_ident(gs_program_name(), gs_revision_number()),
 
@@ -275,10 +295,10 @@ long gs_revision_number(P0());
   (_epi epf(str, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10))
 
 #if __LINE__			/* compiler provides it */
-void lprintf_file_and_line(P2(const char *, int));
+void lprintf_file_and_line(const char *, int);
 #  define _epl _epi lprintf_file_and_line(__FILE__, __LINE__),
 #else
-void lprintf_file_only(P1(const char *));
+void lprintf_file_only(const char *);
 #  define _epl _epi lprintf_file_only(__FILE__)
 #endif
 
@@ -314,6 +334,6 @@ void lprintf_file_only(P1(const char *));
 typedef struct gs_memory_s gs_memory_t;
 #endif
 #define init_proc(proc)\
-  int proc(P1(gs_memory_t *))
+  int proc(gs_memory_t *)
 
 #endif /* std_INCLUDED */

@@ -1,25 +1,23 @@
 /* Copyright (C) 1992, 1996, 1997 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
 #include "gdevprn.h"
 
 
-/*$Id: gdevdm24.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
+/* $Id: gdevdm24.c,v 1.8 2004/08/04 23:33:29 stefan Exp $*/
 /* High-res 24Dot-matrix printer driver */
 
 /* Supported printers 
@@ -50,23 +48,23 @@ const gx_device_printer gs_lq850_device =
 /* ------ Internal routines ------ */
 
 /* Forward references */
-private void dot24_output_run (P4 (byte *, int, int, FILE *));
-private void dot24_improve_bitmap (P2 (byte *, int));
+private void dot24_output_run (byte *, int, int, FILE *);
+private void dot24_improve_bitmap (byte *, int);
 
 /* Send the page to the printer. */
 private int
 dot24_print_page (gx_device_printer *pdev, FILE *prn_stream, char *init_string, int init_len)
 {
-  int xres = pdev->x_pixels_per_inch;
-  int yres = pdev->y_pixels_per_inch;
+  int xres = (int)pdev->x_pixels_per_inch;
+  int yres = (int)pdev->y_pixels_per_inch;
   int x_high = (xres == 360);
   int y_high = (yres == 360);
   int bits_per_column = (y_high ? 48 : 24);
   uint line_size = gdev_prn_raster (pdev);
   uint in_size = line_size * bits_per_column;
-  byte *in = (byte *) gs_malloc (in_size, 1, "dot24_print_page (in)");
+  byte *in = (byte *) gs_malloc (pdev->memory, in_size, 1, "dot24_print_page (in)");
   uint out_size = ((pdev->width + 7) & -8) * 3;
-  byte *out = (byte *) gs_malloc (out_size, 1, "dot24_print_page (out)");
+  byte *out = (byte *) gs_malloc (pdev->memory, out_size, 1, "dot24_print_page (out)");
   int y_passes = (y_high ? 2 : 1);
   int dots_per_space = xres / 10;	/* pica space = 1/10" */
   int bytes_per_space = dots_per_space * 3;
@@ -76,9 +74,9 @@ dot24_print_page (gx_device_printer *pdev, FILE *prn_stream, char *init_string, 
   if (in == 0 || out == 0)
     {
       if (out)
-	gs_free ((char *) out, out_size, 1, "dot24_print_page (out)");
+	gs_free (pdev->memory, (char *) out, out_size, 1, "dot24_print_page (out)");
       if (in)
-	gs_free ((char *) in, in_size, 1, "dot24_print_page (in)");
+	gs_free (pdev->memory, (char *) in, in_size, 1, "dot24_print_page (in)");
       return_error (gs_error_VMerror);
     }
 
@@ -229,8 +227,8 @@ dot24_print_page (gx_device_printer *pdev, FILE *prn_stream, char *init_string, 
   fputs ("\f\033@", prn_stream);
   fflush (prn_stream);
 
-  gs_free ((char *) out, out_size, 1, "dot24_print_page (out)");
-  gs_free ((char *) in, in_size, 1, "dot24_print_page (in)");
+  gs_free (pdev->memory, (char *) out, out_size, 1, "dot24_print_page (out)");
+  gs_free (pdev->memory, (char *) in, in_size, 1, "dot24_print_page (in)");
 
   return 0;
 }

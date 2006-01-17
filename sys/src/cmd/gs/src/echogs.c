@@ -1,25 +1,25 @@
-/* Copyright (C) 1992, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 1995-2004 artofcode LLC. All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: echogs.c,v 1.3 2001/02/22 03:59:39 raph Exp $ */
+/* $Id: echogs.c,v 1.7 2004/01/07 19:50:35 giles Exp $ */
 /* 'echo'-like utility */
+
 #include "stdpre.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #if defined(__sun__) && !defined(const)
 /* Apparently, there are archaic Sun platforms which don't include
@@ -27,7 +27,7 @@
  * cause type mismatches if const has been defined (usually with
  * -Dconst=), so it's only included if const is undefined.
  */
-extern int fputc(P2(int, FILE *)), fputs(P2(const char *, FILE *));
+extern int fputc(int, FILE *), fputs(const char *, FILE *);
 #endif
 
 /* Some systems have time_t in sys/types.h rather than time.h. */
@@ -35,9 +35,6 @@ extern int fputc(P2(int, FILE *)), fputs(P2(const char *, FILE *));
 #include <ctype.h>
 #include <string.h>
 #include <time.h>		/* for ctime */
-#ifdef VMS
-#include <stdlib.h>
-#endif
 
 /*
  * This program exists solely to get around omissions, problems, and
@@ -84,7 +81,7 @@ extern int fputc(P2(int, FILE *)), fputs(P2(const char *, FILE *));
  * which writes 'a b'.
  */
 
-static int hputc(P2(int, FILE *)), hputs(P2(const char *, FILE *));
+static int hputc(int, FILE *), hputs(const char *, FILE *);
 
 int
 main(int argc, char *argv[])
@@ -103,8 +100,8 @@ main(int argc, char *argv[])
     char fname[FNSIZE];
     int newline = 1;
     int interact = 0;
-    int (*eputc)(P2(int, FILE *)) = fputc;
-    int (*eputs)(P2(const char *, FILE *)) = fputs;
+    int (*eputc)(int, FILE *) = fputc;
+    int (*eputs)(const char *, FILE *) = fputs;
 #define LINESIZE 1000
     char line[LINESIZE];
     char sw = 0, sp = 0, hexx = 0;

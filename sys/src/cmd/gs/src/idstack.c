@@ -1,22 +1,20 @@
 /* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: idstack.c,v 1.2 2000/09/19 19:00:43 lpd Exp $ */
+/* $Id: idstack.c,v 1.7 2004/08/24 15:36:19 igor Exp $ */
 /* Implementation of dictionary stacks */
 #include "ghost.h"
 #include "idict.h"
@@ -44,7 +42,7 @@ struct stats_dstack_s {
 
 #ifdef DEBUG
 /* Wrapper for dstack_find_name_by_index */
-ref *real_dstack_find_name_by_index(P2(dict_stack_t * pds, uint nidx));
+ref *real_dstack_find_name_by_index(dict_stack_t * pds, uint nidx);
 ref *
 dstack_find_name_by_index(dict_stack_t * pds, uint nidx)
 {
@@ -112,14 +110,14 @@ dstack_find_name_by_index(dict_stack_t * pds, uint nidx)
     do {
 	dict *pdict = pdref->value.pdict;
 	uint size = npairs(pdict);
-
+	const gs_memory_t *mem = dict_mem(pdict);
 #ifdef DEBUG
 	if (gs_debug_c('D')) {
 	    ref dnref;
 
-	    name_index_ref(nidx, &dnref);
+	    name_index_ref(mem, nidx, &dnref);
 	    dlputs("[D]lookup ");
-	    debug_print_name(&dnref);
+	    debug_print_name(mem, &dnref);
 	    dprintf3(" in 0x%lx(%u/%u)\n",
 		     (ulong) pdict, dict_length(pdref),
 		     dict_maxlength(pdref));
@@ -144,7 +142,7 @@ dstack_find_name_by_index(dict_stack_t * pds, uint nidx)
 	    for (kp = kbot + dict_hash_mod(hash, size) + 2;;) {
 		--kp;
 		if (r_has_type(kp, t_name)) {
-		    if (name_index(kp) == nidx) {
+		    if (name_index(mem, kp) == nidx) {
 			INCR_DEPTH(pdref);
 			return pdict->values.value.refs + (kp - kbot);
 		    }
@@ -172,9 +170,12 @@ dstack_find_name_by_index(dict_stack_t * pds, uint nidx)
 	ref key;
 	uint i = pds->stack.p + 1 - pds->stack.bot;
 	uint size = ref_stack_count(&pds->stack);
-	ref *pvalue;
+	ref *pvalue;	
+	
+	dict *pdict = pds->stack.p->value.pdict;
+	const gs_memory_t *mem = dict_mem(pdict);
 
-	name_index_ref(nidx, &key);
+	name_index_ref(mem, nidx, &key);
 	for (; i < size; i++) {
 	    if (dict_find(ref_stack_index(&pds->stack, i),
 			  &key, &pvalue) > 0
@@ -235,7 +236,7 @@ dstack_gc_cleanup(dict_stack_t * pds)
 	    ref key;
 	    ref *old_pvalue;
 
-	    array_get(&pdict->keys, (long)i, &key);
+	    array_get(dict_mem(pdict), &pdict->keys, (long)i, &key);
 	    if (r_has_type(&key, t_name) &&
 		pv_valid(old_pvalue = key.value.pname->pvalue)
 		) {		/*
