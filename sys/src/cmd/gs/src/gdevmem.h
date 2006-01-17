@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevmem.h,v 1.3 2000/09/19 19:00:14 lpd Exp $ */
+/* $Id: gdevmem.h,v 1.7 2002/08/22 07:12:28 henrys Exp $ */
 /* Private definitions for memory devices. */
 
 #ifndef gdevmem_INCLUDED
@@ -193,7 +191,7 @@ dev_proc_strip_copy_rop(mem_default_strip_copy_rop);
 
 /* Swap a rectangle of bytes, for converting between word- and */
 /* byte-oriented representation. */
-void mem_swap_byte_rect(P6(byte *, uint, int, int, int, bool));
+void mem_swap_byte_rect(byte *, uint, int, int, int, bool);
 
 /* Copy a rectangle of bytes from a source to a destination. */
 #define mem_copy_byte_rect(mdev, base, sourcex, sraster, x, y, w, h)\
@@ -211,6 +209,10 @@ extern const gx_device_memory mem_mapped8_device;
 extern const gx_device_memory mem_true16_device;
 extern const gx_device_memory mem_true24_device;
 extern const gx_device_memory mem_true32_device;
+extern const gx_device_memory mem_true40_device;
+extern const gx_device_memory mem_true48_device;
+extern const gx_device_memory mem_true56_device;
+extern const gx_device_memory mem_true64_device;
 extern const gx_device_memory mem_planar_device;
 /*
  * We declare the RasterOp implementation procedures here because they are
@@ -227,6 +229,10 @@ dev_proc_strip_copy_rop(mem_gray8_rgb24_strip_copy_rop);
 #  define mem_mapped8_word_device mem_mapped8_device
 #  define mem_true24_word_device mem_true24_device
 #  define mem_true32_word_device mem_true32_device
+#  define mem_true40_word_device mem_true40_device
+#  define mem_true48_word_device mem_true48_device
+#  define mem_true56_word_device mem_true56_device
+#  define mem_true64_word_device mem_true64_device
 #else
 extern const gx_device_memory mem_mono_word_device;
 extern const gx_device_memory mem_mapped2_word_device;
@@ -234,6 +240,10 @@ extern const gx_device_memory mem_mapped4_word_device;
 extern const gx_device_memory mem_mapped8_word_device;
 extern const gx_device_memory mem_true24_word_device;
 extern const gx_device_memory mem_true32_word_device;
+extern const gx_device_memory mem_true40_word_device;
+extern const gx_device_memory mem_true48_word_device;
+extern const gx_device_memory mem_true56_word_device;
+extern const gx_device_memory mem_true64_word_device;
 
 #endif
 /* Provide standard palettes for 1-bit devices. */

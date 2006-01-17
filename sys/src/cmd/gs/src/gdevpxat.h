@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpxat.h,v 1.3 2000/09/19 19:00:22 lpd Exp $ */
+/* $Id: gdevpxat.h,v 1.6 2004/08/04 19:36:12 stefan Exp $ */
 /* Attribute ID definitions for PCL XL */
 
 #ifndef gdevpxat_INCLUDED
@@ -45,7 +43,11 @@ typedef enum {
     pxaCRGBMinMax,		/* 2.0 */
     pxaGammaGain,		/* 2.0 */
 
-    pxaDeviceMatrix = 33,
+    pxaAllObjectTypes = 29,     /* 3.0 */
+    pxaTextObjects,             /* 3.0 */
+    pxaVectorObjects,           /* 3.0 */
+    pxaRasterObjects,           /* 3.0 */
+    pxaDeviceMatrix,
     pxaDitherMatrixDataType,
     pxaDitherOrigin,
     pxaMediaDestination,
@@ -106,6 +108,8 @@ typedef enum {
 
     pxaNumberOfScanLines = 115,
 
+    pxaColorTreatment = 120,
+
     pxaCommentData = 129,
     pxaDataOrg,
 
@@ -118,6 +122,8 @@ typedef enum {
     pxaStreamDataLength,
 
     pxaErrorReport = 143,
+    pxaVUExtension = 145,
+    pxaVUAttr1 = 147,
 
     pxaCharAngle = 161,
     pxaCharCode,
@@ -131,8 +137,7 @@ typedef enum {
     pxaSymbolSet,
     pxaTextData,
     pxaCharSubModeArray,
-    pxaWritingMode,		/* 2.0 */
-
+    pxaWritingMode,
     pxaXSpacingData = 175,
     pxaYSpacingData,
     pxaCharBoldValue,

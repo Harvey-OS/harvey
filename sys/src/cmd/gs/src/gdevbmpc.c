@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevbmpc.c,v 1.2 2000/09/19 19:00:11 lpd Exp $ */
+/* $Id: gdevbmpc.c,v 1.8 2005/08/04 17:38:45 alexcher Exp $ */
 /* .BMP file format driver utilities */
 #include "gdevprn.h"
 #include "gdevbmp.h"
@@ -144,9 +142,9 @@ write_bmp_depth_header(gx_device_printer *pdev, FILE *file, int depth,
 	 */
 #define INCHES_PER_METER (100 /*cm/meter*/ / 2.54 /*cm/inch*/)
 	BMP_ASSIGN_DWORD(ihdr.xPelsPerMeter,
-			 (dword)(pdev->x_pixels_per_inch * INCHES_PER_METER));
+		 (dword)(pdev->x_pixels_per_inch * INCHES_PER_METER + 0.5));
 	BMP_ASSIGN_DWORD(ihdr.yPelsPerMeter,
-			 (dword)(pdev->y_pixels_per_inch * INCHES_PER_METER));
+		 (dword)(pdev->y_pixels_per_inch * INCHES_PER_METER + 0.5));
 #undef INCHES_PER_METER
 	BMP_ASSIGN_DWORD(ihdr.clrUsed, 0);
 	BMP_ASSIGN_DWORD(ihdr.clrImportant, 0);
@@ -176,6 +174,9 @@ write_bmp_header(gx_device_printer *pdev, FILE *file)
 
 	q.reserved = 0;
 	for (i = 0; i != 1 << depth; i++) {
+	    /* Note that the use of map_color_rgb is deprecated in
+	       favor of decode_color. This should work, though, because
+	       backwards compatibility is preserved. */
 	    (*dev_proc(pdev, map_color_rgb))((gx_device *)pdev,
 					     (gx_color_index)i, rgb);
 	    q.red = gx_color_value_to_byte(rgb[0]);
@@ -206,7 +207,7 @@ write_bmp_separated_header(gx_device_printer *pdev, FILE *file)
     }
     return write_bmp_depth_header(pdev, file, plane_depth,
 				  (const byte *)palette,
-				  bitmap_raster(pdev->width * plane_depth));
+				  (pdev->width*plane_depth + 7) >> 3);
 }
 
 /* 24-bit color mappers (taken from gdevmem2.c). */
@@ -214,9 +215,11 @@ write_bmp_separated_header(gx_device_printer *pdev, FILE *file)
 
 /* Map a r-g-b color to a color index. */
 gx_color_index
-bmp_map_16m_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
-		  gx_color_value b)
+bmp_map_16m_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
+
+    gx_color_value r, g, b;
+    r = cv[0]; g = cv[1]; b = cv[2];
     return gx_color_value_to_byte(r) +
 	((uint) gx_color_value_to_byte(g) << 8) +
 	((ulong) gx_color_value_to_byte(b) << 16);

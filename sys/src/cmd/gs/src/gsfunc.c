@@ -1,30 +1,53 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsfunc.c,v 1.4 2000/09/19 19:00:28 lpd Exp $ */
+/* $Id: gsfunc.c,v 1.12 2005/04/19 14:35:12 igor Exp $ */
 /* Generic Function support */
+#include "memory_.h"
 #include "gx.h"
 #include "gserrors.h"
 #include "gsparam.h"
 #include "gxfunc.h"
+#include "stream.h"
 
 /* GC descriptors */
 public_st_function();
+gs_private_st_ptr(st_function_ptr, gs_function_t *, "gs_function_t *",
+		  function_ptr_enum_ptrs, function_ptr_reloc_ptrs);
+gs_private_st_element(st_function_ptr_element, gs_function_t *,
+		      "gs_function_t *[]", function_ptr_element_enum_ptrs,
+		      function_ptr_element_reloc_ptrs, st_function_ptr);
+
+/* Allocate an array of function pointers. */
+int
+alloc_function_array(uint count, gs_function_t *** pFunctions,
+		     gs_memory_t *mem)
+{
+    gs_function_t **ptr;
+
+    if (count == 0)
+	return_error(gs_error_rangecheck);
+    ptr = gs_alloc_struct_array(mem, count, gs_function_t *,
+				&st_function_ptr_element, "Functions");
+    if (ptr == 0)
+	return_error(gs_error_VMerror);
+    memset(ptr, 0, sizeof(*ptr) * count);
+    *pFunctions = ptr;
+    return 0;
+}
 
 /* Generic free_params implementation. */
 void
@@ -61,23 +84,6 @@ fn_check_mnDR(const gs_function_params_t * params, int m, int n)
     return 0;
 }
 
-/* Get the monotonicity of a function over its Domain. */
-int
-fn_domain_is_monotonic(const gs_function_t *pfn, gs_function_effort_t effort)
-{
-#define MAX_M 16		/* arbitrary */
-    float lower[MAX_M], upper[MAX_M];
-    int i;
-
-    if (pfn->params.m > MAX_M)
-	return gs_error_undefined;
-    for (i = 0; i < pfn->params.m; ++i) {
-	lower[i] = pfn->params.Domain[2 * i];
-	upper[i] = pfn->params.Domain[2 * i + 1];
-    }
-    return gs_function_is_monotonic(pfn, lower, upper, effort);
-}
-
 /* Return default function information. */
 void
 gs_function_get_info_default(const gs_function_t *pfn, gs_function_info_t *pfi)
@@ -86,7 +92,9 @@ gs_function_get_info_default(const gs_function_t *pfn, gs_function_info_t *pfi)
     pfi->Functions = 0;
 }
 
-/* Write generic parameters (FunctionType, Domain, Range) on a parameter list. */
+/*
+ * Write generic parameters (FunctionType, Domain, Range) on a parameter list.
+ */
 int
 fn_common_get_params(const gs_function_t *pfn, gs_param_list *plist)
 {
@@ -107,3 +115,100 @@ fn_common_get_params(const gs_function_t *pfn, gs_param_list *plist)
     }
     return ecode;
 }
+
+/*
+ * Copy an array of numeric values when scaling a function.
+ */
+void *
+fn_copy_values(const void *pvalues, int count, int size, gs_memory_t *mem)
+{
+    if (pvalues) {
+	void *values = gs_alloc_byte_array(mem, count, size, "fn_copy_values");
+
+	if (values)
+	    memcpy(values, pvalues, count * size);
+	return values;
+    } else
+	return 0;		/* caller must check */
+}
+
+/*
+ * If necessary, scale the Range or Decode array for fn_make_scaled.
+ * Note that we must always allocate a new array.
+ */
+int
+fn_scale_pairs(const float **ppvalues, const float *pvalues, int npairs,
+	       const gs_range_t *pranges, gs_memory_t *mem)
+{
+    if (pvalues == 0)
+	*ppvalues = 0;
+    else {
+	float *out = (float *)
+	    gs_alloc_byte_array(mem, 2 * npairs, sizeof(*pvalues),
+				"fn_scale_pairs");
+
+	*ppvalues = out;
+	if (out == 0)
+	    return_error(gs_error_VMerror);
+	if (pranges) {
+	    /* Allocate and compute scaled ranges. */
+	    int i;
+	    for (i = 0; i < npairs; ++i) {
+		double base = pranges[i].rmin, factor = pranges[i].rmax - base;
+
+		out[2 * i] = pvalues[2 * i] * factor + base;
+		out[2 * i + 1] = pvalues[2 * i + 1] * factor + base;
+	    }
+	} else
+	    memcpy(out, pvalues, 2 * sizeof(*pvalues) * npairs);
+    }
+    return 0;
+}
+
+/*
+ * Scale the generic part of a function (Domain and Range).
+ * The client must have copied the parameters already.
+ */
+int
+fn_common_scale(gs_function_t *psfn, const gs_function_t *pfn,
+		const gs_range_t *pranges, gs_memory_t *mem)
+{
+    int code;
+
+    psfn->head = pfn->head;
+    psfn->params.Domain = 0;		/* in case of failure */
+    psfn->params.Range = 0;
+    if ((code = fn_scale_pairs(&psfn->params.Domain, pfn->params.Domain,
+			       pfn->params.m, NULL, mem)) < 0 ||
+	(code = fn_scale_pairs(&psfn->params.Range, pfn->params.Range,
+			       pfn->params.n, pranges, mem)) < 0)
+	return code;
+    return 0;
+}
+
+/* Serialize. */
+int
+fn_common_serialize(const gs_function_t * pfn, stream *s)
+{
+    uint n;
+    const gs_function_params_t * p = &pfn->params;
+    int code = sputs(s, (const byte *)&pfn->head.type, sizeof(pfn->head.type), &n);
+    const float dummy[8] = {0, 0, 0, 0,  0, 0, 0, 0};
+
+    if (code < 0)
+	return code;
+    code = sputs(s, (const byte *)&p->m, sizeof(p->m), &n);
+    if (code < 0)
+	return code;
+    code = sputs(s, (const byte *)&p->Domain[0], sizeof(p->Domain[0]) * p->m * 2, &n);
+    if (code < 0)
+	return code;
+    code = sputs(s, (const byte *)&p->n, sizeof(p->n), &n);
+    if (code < 0)
+	return code;
+    if (p->Range == NULL && p->n * 2 > count_of(dummy))
+	return_error(gs_error_unregistered); /* Unimplemented. */
+    return sputs(s, (const byte *)(p->Range != NULL ? &p->Range[0] : dummy), 
+	    sizeof(p->Range[0]) * p->n * 2, &n);
+}
+

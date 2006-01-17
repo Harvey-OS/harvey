@@ -1,21 +1,19 @@
 #    Copyright (C) 1990, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: unixlink.mak,v 1.3 2000/11/28 00:14:48 raph Exp $
+# $Id: unixlink.mak,v 1.7 2004/11/22 19:36:06 giles Exp $
 # Partial makefile common to all Unix configurations.
 # This part of the makefile contains the linking steps.
 
@@ -30,31 +28,23 @@ UNIXLINK_MAK=$(GLSRC)unixlink.mak
 
 # ----------------------------- Main program ------------------------------ #
 
-### Library files and archive
-
-LIB_ARCHIVE_ALL=$(LIB_ALL) $(DEVS_ALL)\
- $(GLOBJ)gsnogc.$(OBJ) $(GLOBJ)gconfig.$(OBJ) $(GLOBJ)gscdefs.$(OBJ)
-
-# Build an archive for the library only.
-# This is not used in a standard build.
-GSLIB_A=$(GS)lib.a
-$(GSLIB_A): $(LIB_ARCHIVE_ALL)
-	rm -f $(GSLIB_A)
-	$(AR) $(ARFLAGS) $(GSLIB_A) $(LIB_ARCHIVE_ALL)
-	$(RANLIB) $(GSLIB_A)
-
 ### Interpreter main program
 
-INT_ARCHIVE_ALL=$(PSOBJ)imainarg.$(OBJ) $(PSOBJ)imain.$(OBJ) $(INT_ALL) $(DEVS_ALL)\
+INT_ARCHIVE_ALL=$(PSOBJ)imainarg.$(OBJ) $(PSOBJ)imain.$(OBJ) \
  $(GLOBJ)gconfig.$(OBJ) $(GLOBJ)gscdefs.$(OBJ)
-XE_ALL=$(PSOBJ)gs.$(OBJ) $(INT_ARCHIVE_ALL)
+XE_ALL=$(PSOBJ)gs.$(OBJ) $(INT_ARCHIVE_ALL) $(INT_ALL) $(DEVS_ALL)
 
 # Build a library archive for the entire interpreter.
 # This is not used in a standard build.
+liar_tr=$(GLOBJ)liar.tr
 GS_A=$(GS).a
-$(GS_A): $(INT_ARCHIVE_ALL)
+$(GS_A): $(obj_tr) $(ECHOGS_XE) $(INT_ARCHIVE_ALL) $(INT_ALL) $(DEVS_ALL)
 	rm -f $(GS_A)
-	$(AR) $(ARFLAGS) $(GS_A) $(INT_ARCHIVE_ALL)
+	$(ECHOGS_XE) -w $(liar_tr) -n - $(AR) $(ARFLAGS) $(GS_A)
+	$(ECHOGS_XE) -a $(liar_tr) -n -s $(INT_ARCHIVE_ALL) -s
+	cat $(obj_tr) >>$(liar_tr)
+	$(ECHOGS_XE) -a $(liar_tr) -s -
+	$(SH) <$(liar_tr)
 	$(RANLIB) $(GS_A)
 
 # Here is the final link step.  The stuff with LD_RUN_PATH is for SVR4
@@ -74,4 +64,5 @@ $(GS_XE): $(ld_tr) $(ECHOGS_XE) $(XE_ALL)
 	DEVICE_DEVS9= DEVICE_DEVS10= DEVICE_DEVS11= DEVICE_DEVS12= \
 	DEVICE_DEVS13= DEVICE_DEVS14= DEVICE_DEVS15= DEVICE_DEVS16= \
 	DEVICE_DEVS17= DEVICE_DEVS18= DEVICE_DEVS19= DEVICE_DEVS20= \
+	DEVICE_DEVS_EXTRA= \
 	$(SH) <$(ldt_tr)

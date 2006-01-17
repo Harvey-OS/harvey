@@ -1,22 +1,20 @@
 /* Copyright (C) 1996-2001 Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/* $Id: iapi.h,v 1.2 2001/04/06 22:57:46 bdheller Exp $ */
+/* $Id: iapi.h,v 1.13 2004/08/19 19:33:09 stefan Exp $ */
 
 /*
  * Public API for Ghostscript interpreter
@@ -25,7 +23,7 @@
  * Should work for Windows, OS/2, Linux, Mac.
  *
  * DLL exported functions should be as similar as possible to imain.c
- * You will need to include "errors.h".
+ * You will need to include "ierrors.h".
  *
  * Current problems:
  * 1. Ghostscript does not support multiple instances.
@@ -49,8 +47,14 @@
 #ifndef iapi_INCLUDED
 #  define iapi_INCLUDED
 
-#ifdef __WINDOWS__
-# define _Windows
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if defined(_WINDOWS_) || defined(__WINDOWS__)
+# ifndef _Windows
+#  define _Windows
+# endif
 #endif
 
 #ifdef _Windows
@@ -74,7 +78,7 @@
 # endif
 #endif	/* OS2 && __IBMC */
 
-#ifdef __MACINTOSH__
+#ifdef __MACOS__
 # pragma export on
 #endif
 
@@ -96,30 +100,6 @@
 # define GSDLLCALLPTR GSDLLCALL * 
 #endif
 
-/* Define these if this file is being included into the caller */
-/* Ghostscript defines these in stdpre.h */
-#ifndef P0
-# ifdef __PROTOTYPES__
-#  define P0() void
-#  define P1(t1) t1
-#  define P2(t1,t2) t1,t2
-#  define P3(t1,t2,t3) t1,t2,t3
-#  define P4(t1,t2,t3,t4) t1,t2,t3,t4
-#  define P5(t1,t2,t3,t4,t5) t1,t2,t3,t4,t5
-# else
-#  define P0()			/* */
-#  define P1(t1)			/* */
-#  define P2(t1,t2)		/* */
-#  define P3(t1,t2,t3)		/* */
-#  define P4(t1,t2,t3,t4)	/* */
-#  define P5(t1,t2,t3,t4,t5)	/* */
-# endif
-#endif
-
-#ifndef gs_main_instance_DEFINED
-# define gs_main_instance_DEFINED
-typedef struct gs_main_instance_s gs_main_instance;
-#endif
 #ifndef display_callback_DEFINED
 # define display_callback_DEFINED
 typedef struct display_callback_s display_callback;
@@ -144,7 +124,7 @@ typedef struct gsapi_revision_s {
  * size of the structure.
  */
 GSDLLEXPORT int GSDLLAPI 
-gsapi_revision(P2(gsapi_revision_t *pr, int len));
+gsapi_revision(gsapi_revision_t *pr, int len);
 
 /*
  * WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
@@ -161,7 +141,7 @@ gsapi_revision(P2(gsapi_revision_t *pr, int len));
  */
  
 GSDLLEXPORT int GSDLLAPI 
-gsapi_new_instance(P2(gs_main_instance **pinstance, void *caller_handle));
+gsapi_new_instance(void **pinstance, void *caller_handle);
 
 /*
  * WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
@@ -176,7 +156,7 @@ gsapi_new_instance(P2(gs_main_instance **pinstance, void *caller_handle));
  * before gsapi_delete_instance.
  */
 GSDLLEXPORT void GSDLLAPI 
-gsapi_delete_instance(P1(gs_main_instance *instance));
+gsapi_delete_instance(void *instance);
 
 /* Set the callback functions for stdio
  * The stdin callback function should return the number of
@@ -186,19 +166,22 @@ gsapi_delete_instance(P1(gs_main_instance *instance));
  * If a callback address is NULL, the real stdio will be used.
  */
 GSDLLEXPORT int GSDLLAPI 
-gsapi_set_stdio(P4(gs_main_instance *instance,
+gsapi_set_stdio(void *instance,
     int (GSDLLCALLPTR stdin_fn)(void *caller_handle, char *buf, int len),
     int (GSDLLCALLPTR stdout_fn)(void *caller_handle, const char *str, int len),
-    int (GSDLLCALLPTR stderr_fn)(void *caller_handle, const char *str, int len)));
+    int (GSDLLCALLPTR stderr_fn)(void *caller_handle, const char *str, int len));
 
 /* Set the callback function for polling.
  * This is used for handling window events or cooperative
  * multitasking.  This function will only be called if
  * Ghostscript was compiled with CHECK_INTERRUPTS
  * as described in gpcheck.h.
+ * The polling function should return 0 if all is well,
+ * and negative if it wants ghostscript to abort.
+ * The polling function must be fast.
  */
-GSDLLEXPORT int GSDLLAPI gsapi_set_poll(P2(gs_main_instance *instance,
-    int (GSDLLCALLPTR poll_fn)(void *caller_handle)));
+GSDLLEXPORT int GSDLLAPI gsapi_set_poll(void *instance,
+    int (GSDLLCALLPTR poll_fn)(void *caller_handle));
 
 /* Set the display device callback structure.
  * If the display device is used, this must be called
@@ -206,7 +189,7 @@ GSDLLEXPORT int GSDLLAPI gsapi_set_poll(P2(gs_main_instance *instance,
  * See gdevdisp.h for more details.
  */
 GSDLLEXPORT int GSDLLAPI gsapi_set_display_callback(
-   P2(gs_main_instance *instance, display_callback *callback));
+   void *instance, display_callback *callback);
 
 
 /* Initialise the interpreter.
@@ -221,8 +204,8 @@ GSDLLEXPORT int GSDLLAPI gsapi_set_display_callback(
  *    call one or more gsapi_run_*() functions and then finish
  *    with gsapi_exit().
  */
-GSDLLEXPORT int GSDLLAPI gsapi_init_with_args(P3(gs_main_instance *instance, 
-    int argc, char **argv));
+GSDLLEXPORT int GSDLLAPI gsapi_init_with_args(void *instance, 
+    int argc, char **argv);
 
 /* 
  * The gsapi_run_* functions are like gs_main_run_* except
@@ -234,28 +217,28 @@ GSDLLEXPORT int GSDLLAPI gsapi_init_with_args(P3(gs_main_instance *instance,
  */
 
 GSDLLEXPORT int GSDLLAPI 
-gsapi_run_string_begin(P3(gs_main_instance *instance, 
-    int user_errors, int *pexit_code));
+gsapi_run_string_begin(void *instance, 
+    int user_errors, int *pexit_code);
 
 GSDLLEXPORT int GSDLLAPI 
-gsapi_run_string_continue(P5(gs_main_instance *instance, 
-    const char *str, unsigned int length, int user_errors, int *pexit_code));
+gsapi_run_string_continue(void *instance, 
+    const char *str, unsigned int length, int user_errors, int *pexit_code);
 
 GSDLLEXPORT int GSDLLAPI 
-gsapi_run_string_end(P3(gs_main_instance *instance, 
-    int user_errors, int *pexit_code));
+gsapi_run_string_end(void *instance, 
+    int user_errors, int *pexit_code);
 
 GSDLLEXPORT int GSDLLAPI 
-gsapi_run_string_with_length(P5(gs_main_instance *instance, 
-    const char *str, unsigned int length, int user_errors, int *pexit_code));
+gsapi_run_string_with_length(void *instance, 
+    const char *str, unsigned int length, int user_errors, int *pexit_code);
 
 GSDLLEXPORT int GSDLLAPI 
-gsapi_run_string(P4(gs_main_instance *instance, 
-    const char *str, int user_errors, int *pexit_code));
+gsapi_run_string(void *instance, 
+    const char *str, int user_errors, int *pexit_code);
 
 GSDLLEXPORT int GSDLLAPI 
-gsapi_run_file(P4(gs_main_instance *instance, 
-    const char *file_name, int user_errors, int *pexit_code));
+gsapi_run_file(void *instance, 
+    const char *file_name, int user_errors, int *pexit_code);
 
 
 /* Exit the interpreter.
@@ -263,46 +246,58 @@ gsapi_run_file(P4(gs_main_instance *instance,
  * has been called, and just before gsapi_delete_instance().
  */
 GSDLLEXPORT int GSDLLAPI 
-gsapi_exit(P1(gs_main_instance *instance));
+gsapi_exit(void *instance);
+
+/* Visual Tracer */
+/* This function is only for debug purpose clients */
+struct vd_trace_interface_s;
+GSDLLEXPORT void GSDLLAPI 
+gsapi_set_visual_tracer(struct vd_trace_interface_s *I);
 
 
 /* function prototypes */
 typedef int (GSDLLAPIPTR PFN_gsapi_revision)(
-    P2(gsapi_revision_t *pr, int len));
+    gsapi_revision_t *pr, int len);
 typedef int (GSDLLAPIPTR PFN_gsapi_new_instance)(
-    P2(gs_main_instance **pinstance, void *caller_handle));
+    void **pinstance, void *caller_handle);
 typedef void (GSDLLAPIPTR PFN_gsapi_delete_instance)(
-    P1(gs_main_instance *instance));
-typedef int (GSDLLAPIPTR PFN_gsapi_set_stdio)(P4(gs_main_instance *instance,
+    void *instance);
+typedef int (GSDLLAPIPTR PFN_gsapi_set_stdio)(void *instance,
     int (GSDLLCALLPTR stdin_fn)(void *caller_handle, char *buf, int len),
     int (GSDLLCALLPTR stdout_fn)(void *caller_handle, const char *str, int len),
-    int (GSDLLCALLPTR stderr_fn)(void *caller_handle, const char *str, int len)));
-typedef int (GSDLLAPIPTR PFN_gsapi_set_poll)(P2(gs_main_instance *instance,
-    int(GSDLLCALLPTR poll_fn)(void *caller_handle)));
+    int (GSDLLCALLPTR stderr_fn)(void *caller_handle, const char *str, int len));
+typedef int (GSDLLAPIPTR PFN_gsapi_set_poll)(void *instance,
+    int(GSDLLCALLPTR poll_fn)(void *caller_handle));
 typedef int (GSDLLAPIPTR PFN_gsapi_set_display_callback)(
-   P2(gs_main_instance *instance, display_callback *callback));
+    void *instance, display_callback *callback);
 typedef int (GSDLLAPIPTR PFN_gsapi_init_with_args)(
-    P3(gs_main_instance *instance, int argc, char **argv));
+    void *instance, int argc, char **argv);
 typedef int (GSDLLAPIPTR PFN_gsapi_run_string_begin)(
-    P3(gs_main_instance *instance, int user_errors, int *pexit_code));
+    void *instance, int user_errors, int *pexit_code);
 typedef int (GSDLLAPIPTR PFN_gsapi_run_string_continue)(
-    P5(gs_main_instance *instance, const char *str, unsigned int length, 
-    int user_errors, int *pexit_code));
+    void *instance, const char *str, unsigned int length,
+    int user_errors, int *pexit_code);
 typedef int (GSDLLAPIPTR PFN_gsapi_run_string_end)(
-    P3(gs_main_instance *instance, int user_errors, int *pexit_code));
+    void *instance, int user_errors, int *pexit_code);
 typedef int (GSDLLAPIPTR PFN_gsapi_run_string_with_length)(
-    P5(gs_main_instance *instance, const char *str, unsigned int length, 
-    int user_errors, int *pexit_code));
+    void *instance, const char *str, unsigned int length,
+    int user_errors, int *pexit_code);
 typedef int (GSDLLAPIPTR PFN_gsapi_run_string)(
-    P4(gs_main_instance *instance, const char *str, 
-    int user_errors, int *pexit_code));
-typedef int (GSDLLAPIPTR PFN_gsapi_run_file)(P4(gs_main_instance *instance, 
-    const char *file_name, int user_errors, int *pexit_code));
-typedef int (GSDLLAPIPTR PFN_gsapi_exit)(P1(gs_main_instance *instance));
+    void *instance, const char *str, 
+    int user_errors, int *pexit_code);
+typedef int (GSDLLAPIPTR PFN_gsapi_run_file)(void *instance, 
+    const char *file_name, int user_errors, int *pexit_code);
+typedef int (GSDLLAPIPTR PFN_gsapi_exit)(void *instance);
+typedef void (GSDLLAPIPTR PFN_gsapi_set_visual_tracer) 
+    (struct vd_trace_interface_s *I);
 
 
-#ifdef __MACINTOSH__
+#ifdef __MACOS__
 #pragma export off
+#endif
+
+#ifdef __cplusplus
+} /* extern 'C' protection */
 #endif
 
 #endif /* iapi_INCLUDED */

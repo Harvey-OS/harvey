@@ -1,22 +1,20 @@
 /* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxcspace.h,v 1.4 2000/09/19 19:00:35 lpd Exp $ */
+/* $Id: gxcspace.h,v 1.13 2004/08/04 19:36:12 stefan Exp $ */
 /* Implementation of color spaces */
 /* Requires gsstruct.h */
 
@@ -38,6 +36,11 @@ typedef struct gx_device_color_s gx_device_color;
 #ifndef gx_device_DEFINED
 #  define gx_device_DEFINED
 typedef struct gx_device_s gx_device;
+#endif
+
+#ifndef stream_DEFINED
+#  define stream_DEFINED
+typedef struct stream_s stream;
 #endif
 
 /* Color space types (classes): */
@@ -73,7 +76,7 @@ struct gs_color_space_type_s {
      */
 
 #define cs_proc_num_components(proc)\
-  int proc(P1(const gs_color_space *))
+  int proc(const gs_color_space *)
 #define cs_num_components(pcs)\
   (*(pcs)->type->num_components)(pcs)
 	cs_proc_num_components((*num_components));
@@ -85,25 +88,15 @@ struct gs_color_space_type_s {
      */
 
 #define cs_proc_base_space(proc)\
-  const gs_color_space *proc(P1(const gs_color_space *))
+  const gs_color_space *proc(const gs_color_space *)
 #define cs_base_space(pcs)\
   (*(pcs)->type->base_space)(pcs)
 	cs_proc_base_space((*base_space));
 
-    /*
-     * Test whether this color space is equal to another one of the same
-     * type.  Spurious 'false' answers are OK if the real test is too much
-     * work, but spurious 'true' answers are not.
-     */
-
-#define cs_proc_equal(proc)\
-  bool proc(P2(const gs_color_space *, const gs_color_space *))
-	cs_proc_equal((*equal));
-
     /* Construct the initial color value for this space. */
 
 #define cs_proc_init_color(proc)\
-  void proc(P2(gs_client_color *, const gs_color_space *))
+  void proc(gs_client_color *, const gs_color_space *)
 #define cs_init_color(pcc, pcs)\
   (*(pcs)->type->init_color)(pcc, pcs)
 #define cs_full_init_color(pcc, pcs)\
@@ -113,7 +106,7 @@ struct gs_color_space_type_s {
     /* Force a client color into its legal range. */
 
 #define cs_proc_restrict_color(proc)\
-  void proc(P2(gs_client_color *, const gs_color_space *))
+  void proc(gs_client_color *, const gs_color_space *)
 #define cs_restrict_color(pcc, pcs)\
   ((pcs)->type->restrict_color(pcc, pcs))
 	cs_proc_restrict_color((*restrict_color));
@@ -122,8 +115,8 @@ struct gs_color_space_type_s {
     /* (Not defined for Pattern spaces.) */
 
 #define cs_proc_concrete_space(proc)\
-  const gs_color_space *proc(P2(const gs_color_space *,\
-				const gs_imager_state *))
+  const gs_color_space *proc(const gs_color_space *,\
+				const gs_imager_state *)
 #define cs_concrete_space(pcs, pis)\
   (*(pcs)->type->concrete_space)(pcs, pis)
 	cs_proc_concrete_space((*concrete_space));
@@ -137,8 +130,8 @@ struct gs_color_space_type_s {
      */
 
 #define cs_proc_concretize_color(proc)\
-  int proc(P4(const gs_client_color *, const gs_color_space *,\
-    frac *, const gs_imager_state *))
+  int proc(const gs_client_color *, const gs_color_space *,\
+    frac *, const gs_imager_state *)
 #define cs_concretize_color(pcc, pcs, values, pis)\
   (*(pcs)->type->concretize_color)(pcc, pcs, values, pis)
 	cs_proc_concretize_color((*concretize_color));
@@ -147,28 +140,44 @@ struct gs_color_space_type_s {
     /* (Only defined for concrete color spaces.) */
 
 #define cs_proc_remap_concrete_color(proc)\
-  int proc(P5(const frac *, gx_device_color *, const gs_imager_state *,\
-    gx_device *, gs_color_select_t))
+  int proc(const frac *, const gs_color_space * pcs, gx_device_color *,\
+	const gs_imager_state *, gx_device *, gs_color_select_t)
 	cs_proc_remap_concrete_color((*remap_concrete_color));
 
     /* Map a color directly to a device color. */
 
 #define cs_proc_remap_color(proc)\
-  int proc(P6(const gs_client_color *, const gs_color_space *,\
+  int proc(const gs_client_color *, const gs_color_space *,\
     gx_device_color *, const gs_imager_state *, gx_device *,\
-    gs_color_select_t))
+    gs_color_select_t)
 	cs_proc_remap_color((*remap_color));
 
     /* Install the color space in a graphics state. */
 
 #define cs_proc_install_cspace(proc)\
-  int proc(P2(const gs_color_space *, gs_state *))
+  int proc(const gs_color_space *, gs_state *)
 	cs_proc_install_cspace((*install_cspace));
+
+    /*
+     * Push the appropriate overprint compositor onto the current device.
+     * This is distinct from install_cspace as it may need to be called
+     * when the overprint parameter is changed.
+     *
+     * This routine need only be called if:
+     *   1. The color space or color model has changed, and overprint
+     *      is true.
+     *   2. The overprint mode setting has changed, and overprint is true.
+     *   3. The overprint mode setting has changed.
+     */
+
+#define cs_proc_set_overprint(proc)\
+  int proc(const gs_color_space *, gs_state *)
+	cs_proc_set_overprint((*set_overprint));
 
     /* Adjust reference counts of indirect color space components. */
 
 #define cs_proc_adjust_cspace_count(proc)\
-  void proc(P2(const gs_color_space *, int))
+  void proc(const gs_color_space *, int)
 #define cs_adjust_cspace_count(pgs, delta)\
   (*(pgs)->color_space->type->adjust_cspace_count)((pgs)->color_space, delta)
 	cs_proc_adjust_cspace_count((*adjust_cspace_count));
@@ -182,7 +191,7 @@ struct gs_color_space_type_s {
      */
 
 #define cs_proc_adjust_color_count(proc)\
-  void proc(P3(const gs_client_color *, const gs_color_space *, int))
+  void proc(const gs_client_color *, const gs_color_space *, int)
 #define cs_adjust_color_count(pgs, delta)\
   (*(pgs)->color_space->type->adjust_color_count)\
     ((pgs)->ccolor, (pgs)->color_space, delta)
@@ -192,6 +201,29 @@ struct gs_color_space_type_s {
 #define cs_adjust_counts(pgs, delta)\
   (cs_adjust_color_count(pgs, delta), cs_adjust_cspace_count(pgs, delta))
 
+    /* Serialization. */
+    /*
+     * Note : We don't include *(pcs)->type into serialization,
+     * because we assume it is a static constant to be processed separately.
+     */
+
+#define cs_proc_serialize(proc)\
+  int proc(const gs_color_space *, stream *)
+#define cs_serialize(pcs, s)\
+  (*(pcs)->type->serialize)(pcs, s)
+	cs_proc_serialize((*serialize));
+
+    /* A color mapping linearity check. */
+
+#define cs_proc_is_linear(proc)\
+  int proc(gs_direct_color_space *cs, const gs_imager_state * pis,\
+		gx_device *dev,\
+		const gs_client_color *c0, const gs_client_color *c1,\
+		const gs_client_color *c2, const gs_client_color *c3,\
+		float smoothness)
+#define cs_is_linear(pcs, pis, dev, c0, c1, c2, c3, smoothness)\
+  (*(pcs)->type->is_linear)(pcs, pis, dev, c0, c1, c2, c3, smoothness)
+	cs_proc_is_linear((*is_linear));
 };
 
 /* Standard color space structure types */
@@ -206,8 +238,6 @@ cs_proc_num_components(gx_num_components_1);
 cs_proc_num_components(gx_num_components_3);
 cs_proc_num_components(gx_num_components_4);
 cs_proc_base_space(gx_no_base_space);
-cs_proc_equal(gx_cspace_is_equal);
-cs_proc_equal(gx_cspace_not_equal);
 cs_proc_init_color(gx_init_paint_1);
 cs_proc_init_color(gx_init_paint_3);
 cs_proc_init_color(gx_init_paint_4);
@@ -219,8 +249,12 @@ cs_proc_concrete_space(gx_same_concrete_space);
 cs_proc_concretize_color(gx_no_concretize_color);
 cs_proc_remap_color(gx_default_remap_color);
 cs_proc_install_cspace(gx_no_install_cspace);
+cs_proc_set_overprint(gx_spot_colors_set_overprint);
 cs_proc_adjust_cspace_count(gx_no_adjust_cspace_count);
 cs_proc_adjust_color_count(gx_no_adjust_color_count);
+cs_proc_serialize(gx_serialize_cspace_type);
+cs_proc_is_linear(gx_cspace_no_linear);
+cs_proc_is_linear(gx_cspace_is_linear_default);
 
 /*
  * Define the implementation procedures for the standard device color
@@ -243,11 +277,11 @@ extern_st(st_color_space);
  * Initialize the type and memory fields of a color space, possibly
  * allocating it first.  This is only used by color space implementations.
  */
-void gs_cspace_init(P3(gs_color_space *pcs,
-		       const gs_color_space_type *pcstype,
-		       gs_memory_t *mem));
-int gs_cspace_alloc(P3(gs_color_space **ppcspace,
-		       const gs_color_space_type *pcstype,
-		       gs_memory_t *mem));
+void gs_cspace_init(gs_color_space *pcs,
+		    const gs_color_space_type *pcstype,
+		    gs_memory_t *mem, bool isheap);
+int gs_cspace_alloc(gs_color_space **ppcspace,
+		    const gs_color_space_type *pcstype,
+		    gs_memory_t *mem);
 
 #endif /* gxcspace_INCLUDED */

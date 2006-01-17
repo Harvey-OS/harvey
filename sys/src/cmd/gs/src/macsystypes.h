@@ -1,20 +1,20 @@
-/* Copyright (C) 1994, 1995, 1997 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1994-7 artofcode LLC.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
+
+/* $Id: macsystypes.h,v 1.8 2003/01/25 22:50:31 giles Exp $ */
 
 #ifndef __sys_types_h__
 #define __sys_types_h__
@@ -22,8 +22,11 @@
 #include <MacTypes.h>
 #include <unix.h>
 #define CHECK_INTERRUPTS
-#define SYSTIME_H
-#define HAVE_SYS_TIME_H
+
+/* use a 64 bit type for color vectors. (from MacTypes.h)
+   this is important for devicen support, but can be safely
+   undef'd to fallback to a 32 bit representation  */
+#define GX_COLOR_INDEX_TYPE UInt64
 
 #define main gs_main
 
@@ -35,8 +38,9 @@ int myfprintf(FILE *file, const char *fmt, ...);
 int myfputs(const char *string, FILE *file);
 #endif
 
-#ifndef __MACINTOSH__
-#define __MACINTOSH__
+/* Metrowerks CodeWarrior should define this */
+#ifndef __MACOS__
+#define __MACOS__
 #endif
 
 #endif /* __sys_types_h__ */

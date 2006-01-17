@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1995, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: ccfont.h,v 1.2 2000/09/19 19:00:09 lpd Exp $ */
+/* $Id: ccfont.h,v 1.5 2002/06/16 04:47:10 lpd Exp $ */
 /* Header for fonts compiled into C. */
 
 #ifndef ccfont_INCLUDED
@@ -67,21 +65,19 @@ typedef struct {
  * to avoid having externs, which compromise sharability.
  */
 typedef struct cfont_procs_s {
-    int (*ref_dict_create) (P5(i_ctx_t *, ref *, const cfont_dict_keys *,
-			       cfont_string_array, const ref *));
-    int (*string_dict_create) (P5(i_ctx_t *, ref *, const cfont_dict_keys *,
-				  cfont_string_array,
-				  cfont_string_array));
-    int (*num_dict_create) (P6(i_ctx_t *, ref *, const cfont_dict_keys *,
-			       cfont_string_array, const ref *,
-			       const char *));
-    int (*name_array_create) (P4(i_ctx_t *, ref *, cfont_string_array, int));
-    int (*string_array_create) (P5(i_ctx_t *, ref *, cfont_string_array,
-				   int /*size */ , uint /*protection */ ));
-    int (*scalar_array_create) (P5(i_ctx_t *, ref *, const ref *,
-				   int /*size */ , uint /*protection */ ));
-    int (*name_create) (P3(i_ctx_t *, ref *, const char *));
-    int (*ref_from_string) (P4(i_ctx_t *, ref *, const char *, uint));
+    int (*ref_dict_create) (i_ctx_t *, ref *, const cfont_dict_keys *,
+			    cfont_string_array, const ref *);
+    int (*string_dict_create) (i_ctx_t *, ref *, const cfont_dict_keys *,
+			       cfont_string_array, cfont_string_array);
+    int (*num_dict_create) (i_ctx_t *, ref *, const cfont_dict_keys *,
+			    cfont_string_array, const ref *, const char *);
+    int (*name_array_create) (i_ctx_t *, ref *, cfont_string_array, int);
+    int (*string_array_create) (i_ctx_t *, ref *, cfont_string_array,
+				int /*size */ , uint /*protection */ );
+    int (*scalar_array_create) (i_ctx_t *, ref *, const ref *,
+				int /*size */ , uint /*protection */ );
+    int (*name_create) (i_ctx_t *, ref *, const char *);
+    int (*ref_from_string) (i_ctx_t *, ref *, const char *, uint);
 } cfont_procs;
 
 /*
@@ -90,14 +86,14 @@ typedef struct cfont_procs_s {
  * a tiny procedural interface for getting access to the compiled font table.
  */
 #define ccfont_proc(proc)\
-  int proc(P3(i_ctx_t *, const cfont_procs *, ref *))
+  int proc(i_ctx_t *, const cfont_procs *, ref *)
 typedef ccfont_proc((*ccfont_fproc));
 
 /*
  * There should be some consts in the *** below, but a number of
  * C compilers don't handle const properly in such situations.
  */
-extern int ccfont_fprocs(P2(int *, const ccfont_fproc **));
+extern int ccfont_fprocs(int *, const ccfont_fproc **);
 
 #define ccfont_version 19	/* for checking against libraries */
 

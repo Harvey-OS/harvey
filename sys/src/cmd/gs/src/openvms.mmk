@@ -1,21 +1,19 @@
 #    Copyright (C) 1997, 2000 Aladdin Enterprises. All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: openvms.mmk,v 1.12 2001/10/15 10:24:21 joukj Exp $
+# $Id: openvms.mmk,v 1.31 2004/12/10 23:48:48 giles Exp $
 # makefile for OpenVMS VAX and Alpha using MMK
 #
 # Please contact Jim Dunham (dunham@omtool.com) if you have questions.
@@ -94,7 +92,7 @@ GS_INIT=GS_INIT.PS
 
 # Setting DEBUG=1 includes debugging features in the code
 
-DEBUG=
+DEBUG=0
 
 # Setting TDEBUG=1 includes symbol table information for the debugger,
 # and also enables stack tracing on failure.
@@ -140,9 +138,9 @@ JVERSION=6
 .ifdef SYSLIB
 PSRCDIR=sys$library:
 .else
-PSRCDIR=[--.libpng-1_0_10]
+PSRCDIR=[--.libpng-1_2_8]
 .endif
-PVERSION=10010
+PVERSION=10208
 
 # Define the directory where the zlib sources are stored.
 # See zlib.mak for more information.
@@ -150,7 +148,15 @@ PVERSION=10010
 .ifdef SYSLIB
 ZSRCDIR=sys$library:
 .else
-ZSRCDIR=[--.zlib-1_1_3]
+ZSRCDIR=[--.zlib-1_2_1]
+.endif
+
+# Define the directory where the jbig2dec library sources are stored.
+# See jbig2.mak for more information
+.ifdef SYSLIB
+JBIG2SRCDIR=sys$library:
+.else
+JBIG2SRCDIR=[--.jbig2dec-0_7]
 .endif
 
 # Define the directory where the icclib source are stored.
@@ -158,11 +164,23 @@ ZSRCDIR=[--.zlib-1_1_3]
 
 ICCSRCDIR=[.icclib]
 
+# IJS has not been ported to OpenVMS. If you do the port,
+# you'll need to set these values. You'll also need to
+# include the ijs.mak makefile (right after icclib.mak).
+#
+# Define the directory where the ijs source is stored,
+# and the process forking method to use for the server.
+# See ijs.mak for more information.
+
+#IJSSRCDIR=[.ijs]
+#IJSEXECTYPE=unix
+
 # Note that built-in third-party libraries aren't available.
 
 SHARE_JPEG=0
 SHARE_LIBPNG=0
 SHARE_ZLIB=0
+SHARE_JBIG2=0
 
 # Define the path to X11 include files
 
@@ -176,10 +194,15 @@ X_INCLUDE=DECW$INCLUDE
 .ifdef DEBUG
 SW_DEBUG=/DEBUG/NOOPTIMIZE
 .else
-SW_DEBUG=/NODEBUG/OPTIMIZE
+# This should include /OPTIMIZE, but some OpenVMS compilers have an
+# optimizer bug that causes them to generate incorrect code for gdevpsfx.c,
+# so we must disable optimization.  (Eventually we will check for the bug
+# in genarch and enable optimization if it is safe.)
+#SW_DEBUG=/NODEBUG/OPTIMIZE
+SW_DEBUG=/NODEBUG/NOOPTIMIZE
 .endif
 
-SW_PLATFORM=/DECC/PREFIX=ALL/NESTED_INCLUDE=PRIMARY/name=(as_is,short)
+SW_PLATFORM=/DECC/PREFIX=ALL/NESTED_INCLUDE=PRIMARY/name=(as_is,short)/nowarn
 
 # Define any other compilation flags. 
 # Including defines for A4 paper size
@@ -190,7 +213,13 @@ SW_PAPER=/DEFINE=("A4","HAVE_MKSTEMP")
 SW_PAPER=/DEFINE=("HAVE_MKSTEMP")
 .endif
 
-COMP=CC$(SW_DEBUG)$(SW_PLATFORM)$(SW_PAPER)
+.ifdef IEEE
+SW_IEEE=/float=ieee
+.else
+SW_IEEE=
+.endif
+
+COMP=CC$(SW_DEBUG)$(SW_PLATFORM)$(SW_PAPER)$(SW_IEEE)
 
 # LINK is the full linker path name
 
@@ -230,19 +259,21 @@ DEVICE_DEVS9=$(DD)pbm.dev $(DD)pbmraw.dev $(DD)pgm.dev $(DD)pgmraw.dev $(DD)pgnm
 DEVICE_DEVS10=$(DD)tiffcrle.dev $(DD)tiffg3.dev $(DD)tiffg32d.dev $(DD)tiffg4.dev $(DD)tifflzw.dev $(DD)tiffpack.dev
 DEVICE_DEVS11=$(DD)tiff12nc.dev $(DD)tiff24nc.dev
 DEVICE_DEVS12=$(DD)psmono.dev $(DD)psgray.dev $(DD)psrgb.dev $(DD)bit.dev $(DD)bitrgb.dev $(DD)bitcmyk.dev
-DEVICE_DEVS13=$(DD)pngmono.dev $(DD)pnggray.dev $(DD)png16.dev $(DD)png256.dev $(DD)png16m.dev
+DEVICE_DEVS13=$(DD)pngmono.dev $(DD)pnggray.dev $(DD)png16.dev $(DD)png256.dev $(DD)png16m.dev $(DD)pngalpha.dev
 DEVICE_DEVS14=$(DD)jpeg.dev $(DD)jpeggray.dev
 DEVICE_DEVS15=$(DD)pdfwrite.dev $(DD)pswrite.dev $(DD)epswrite.dev $(DD)pxlmono.dev $(DD)pxlcolor.dev
+DEVICE_DEVS16=$(DD)bbox.dev
 # Overflow from DEVS9
-DEVICE_DEVS16=$(DD)pnm.dev $(DD)pnmraw.dev $(DD)ppm.dev $(DD)ppmraw.dev $(DD)pkm.dev $(DD)pkmraw.dev $(DD)pksm.dev $(DD)pksmraw.dev
-DEVICE_DEVS17=
+DEVICE_DEVS17=$(DD)pnm.dev $(DD)pnmraw.dev $(DD)ppm.dev $(DD)ppmraw.dev $(DD)pkm.dev $(DD)pkmraw.dev $(DD)pksm.dev $(DD)pksmraw.dev
 DEVICE_DEVS18=
 DEVICE_DEVS19=
 DEVICE_DEVS20=
+DEVICE_DEVS21=
+DEVICE_DEVS21=
 
 # Choose the language feature(s) to include.  See gs.mak for details.
 
-FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev
+FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(PSD)epsf.dev $(PSD)fapi.dev $(PSD)jbig2.dev
 
 # Choose whether to compile the .ps initialization files into the executable.
 # See gs.mak for details.
@@ -255,8 +286,7 @@ COMPILE_INITS=0
 BAND_LIST_STORAGE=file
 
 # Choose which compression method to use when storing band lists in memory.
-# The choices are 'lzw' or 'zlib'.  lzw is not recommended, because the
-# LZW-compatible code in Ghostscript doesn't actually compress its input.
+# The choices are 'lzw' or 'zlib'.
 
 BAND_LIST_COMPRESSOR=zlib
 
@@ -309,6 +339,7 @@ CMD=
 D=
 
 # Define the brackets for passing preprocessor definitions to the C compiler.
+NULL=
 
 D_=/DEFINE="
 _D_=$(NULL)=
@@ -344,10 +375,6 @@ XEAUX=.exe
 
 BEGINFILES=$(GLSRCDIR)OPENVMS.OPT $(GLSRCDIR)OPENVMS.COM
 
-# Define the C invocation for the ansi2knr program.  We don't use this.
-
-CCA2K=
-
 # Define the C invocation for auxiliary programs (echogs, genarch).
 # We don't need to define this separately.
 
@@ -361,7 +388,7 @@ CC=$(COMP)
 
 LINK=$(LINKER)/EXE=$@ $+,$(GLSRCDIR)OPENVMS.OPT/OPTION
 
-# Define the ANSI-to-K&R dependency.  We don't need this.
+# Define the auxiliary program dependency. We don't need this.
 
 AK=
 
@@ -371,7 +398,6 @@ OBJ=obj
 
 # Define the prefix for image invocations.
 
-NULL=
 EXP=MCR $(NULL)
 
 # Define the prefix for shell invocations.
@@ -408,7 +434,6 @@ CONFLDTR=-o
 
 CC_=$(COMP)
 CC_INT=$(CC_)
-CC_LEAF=$(CC_)
 CC_NO_WARN=$(CC_)
 
 # ------------------- Include the generic makefiles ---------------------- #
@@ -426,6 +451,8 @@ all : macro [.lib]Fontmap. $(GS_XE)
 # zlib.mak must precede libpng.mak
 .include $(GLSRCDIR)zlib.mak
 .include $(GLSRCDIR)libpng.mak
+JBIG2_EXTRA_OBJS=$(JBIG2OBJDIR)$(D)snprintf.$(OBJ)
+.include $(GLSRCDIR)jbig2.mak
 .include $(GLSRCDIR)icclib.mak
 .include $(GLSRCDIR)devs.mak
 .include $(GLSRCDIR)contrib.mak
@@ -439,6 +466,11 @@ macro :
 .else
 	@ a4p = 0
 .endif
+.ifdef IEEE
+	@ i3e = 1
+.else
+	@ i3e = 0
+.endif
 .ifdef SYSLIB
 	@ dsl = 1
 .else
@@ -451,6 +483,7 @@ macro :
 	@ if decw12 then macro = macro + "DECWINDOWS1_2=1,"
 	@ if a4p then macro = macro + "A4_PAPER=1,"
 	@ if dsl then macro = macro + "SYSLIB=1,"
+	@ if i3e then macro = macro + "IEEE=1,"
 	@ if macro.nes."" then macro = f$extract(0,f$length(macro)-1,macro)+ ")"
 	$(MMS)$(MMSQUALIFIERS)'macro' $(GS_XE)
 
@@ -479,7 +512,7 @@ $(GLOBJDIR)gendev.$(OBJ) : $(GLSRCDIR)gendev.c $(GENDEV_DEPS)
 $(GLOBJDIR)genht.$(OBJ) : $(GLSRCDIR)genht.c $(GENHT_DEPS)
 $(GLOBJDIR)geninit.$(OBJ) : $(GLSRCDIR)geninit.c $(GENINIT_DEPS)
 
-$(GLOBJ)gp_vms.$(OBJ) : $(GLSRC)gp_vms.c
+$(GLOBJ)gp_vms.$(OBJ) : $(GLSRC)gp_vms.c $(string__h) $(memory__h) $(gx_h) $(gp_h) $(gpmisc_h) $(gsstruct_h)
 	$(CC_)/include=($(GLGENDIR),$(GLSRCDIR))/obj=$(GLOBJ)gp_vms.$(OBJ) $(GLSRC)gp_vms.c
 
 $(GLOBJ)gp_stdia.$(OBJ) : $(GLSRC)gp_stdia.c $(AK) $(stdio__h) $(time__h) $(unistd__h) $(gx_h) $(gp_h)

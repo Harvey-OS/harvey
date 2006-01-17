@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevwpr2.c,v 1.9 2001/03/26 11:28:20 ghostgum Exp $ */
+/* $Id: gdevwpr2.c,v 1.18 2004/08/05 17:02:36 stefan Exp $ */
 /*
  * Microsoft Windows 3.n printer driver for Ghostscript.
  * Original version by Russell Lang and
@@ -231,6 +229,7 @@ gx_device_win_pr2 far_data gs_mswinpr2_device =
     NULL,			/* win32_hdevnames */
     NULL,			/* lpfnAbortProc */
     NULL,			/* lpfnCancelProc */
+    NULL,			/* hDlgModeless */
     false,			/* use_old_spool_name */
     NULL			/* original_device */
 };
@@ -596,7 +595,6 @@ win_pr2_print_page(gx_device_printer * pdev, FILE * file)
 	    ShowWindow(wdev->hDlgModeless, SW_HIDE);
     }
 
-  bmp_done:
     GlobalUnlock(hrow);
     GlobalFree(hrow);
 
@@ -610,19 +608,21 @@ win_pr2_print_page(gx_device_printer * pdev, FILE * file)
 
 /* Map a r-g-b color to a color index. */
 private gx_color_index
-win_pr2_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
-		      gx_color_value b)
+win_pr2_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
+    gx_color_value r = cv[0];
+    gx_color_value g = cv[1];
+    gx_color_value b = cv[2];
     switch (dev->color_info.depth) {
 	case 1:
-	    return gdev_prn_map_rgb_color(dev, r, g, b);
+	    return gdev_prn_map_rgb_color(dev, cv);
 	case 4:
 	    /* use only 8 colors */
 	    return (r > (gx_max_color_value / 2 + 1) ? 4 : 0) +
 		(g > (gx_max_color_value / 2 + 1) ? 2 : 0) +
 		(b > (gx_max_color_value / 2 + 1) ? 1 : 0);
 	case 8:
-	    return pc_8bit_map_rgb_color(dev, r, g, b);
+	    return pc_8bit_map_rgb_color(dev, cv);
 	case 24:
 	    return gx_color_value_to_byte(r) +
 		((uint) gx_color_value_to_byte(g) << 8) +
@@ -689,6 +689,22 @@ win_pr2_set_bpp(gx_device * dev, int depth)
     }
     
     ((gx_device_win_pr2 *)dev)->selected_bpp = depth;
+
+    /* copy encode/decode procedures */
+    dev->procs.encode_color = dev->procs.map_rgb_color;
+    dev->procs.decode_color = dev->procs.map_color_rgb;
+    if (depth == 1) {
+	dev->procs.get_color_mapping_procs = 
+	    gx_default_DevGray_get_color_mapping_procs;
+	dev->procs.get_color_comp_index = 
+	    gx_default_DevGray_get_color_comp_index;
+    }
+    else {
+	dev->procs.get_color_mapping_procs = 
+	    gx_default_DevRGB_get_color_mapping_procs;
+	dev->procs.get_color_comp_index = 
+	    gx_default_DevRGB_get_color_comp_index;
+    }
 }
 
 /********************************************************************************/
@@ -705,7 +721,7 @@ win_pr2_get_params(gx_device * pdev, gs_param_list * plist)
 	code = param_write_bool(plist, "NoCancel",
 				&(wdev->nocancel));
     if (code >= 0)
-	code = param_write_bool(plist, "QueryUser",
+	code = param_write_int(plist, "QueryUser",
 				&(wdev->query_user));
     if (code >= 0)
 	code = win_pr2_write_user_settings(wdev, plist);
@@ -880,7 +896,7 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
     }
 
     /* now try to match the printer name against the [Devices] section */
-    if ((devices = gs_malloc(4096, 1, "win_pr2_getdc")) == (char *)NULL)
+    if ((devices = gs_malloc(wdev->memory, 4096, 1, "win_pr2_getdc")) == (char *)NULL)
 	return FALSE;
     GetProfileString("Devices", NULL, "", devices, 4096);
     p = devices;
@@ -891,7 +907,7 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
     }
     if (*p == '\0')
 	p = NULL;
-    gs_free(devices, 4096, 1, "win_pr2_getdc");
+    gs_free(wdev->memory, devices, 4096, 1, "win_pr2_getdc");
     if (p == NULL)
 	return FALSE;		/* doesn't match an available printer */
 
@@ -910,12 +926,12 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
 	if (!OpenPrinter(device, &hprinter, NULL))
 	    return FALSE;
 	size = DocumentProperties(NULL, hprinter, device, NULL, NULL, 0);
-	if ((podevmode = gs_malloc(size, 1, "win_pr2_getdc")) == (LPDEVMODE) NULL) {
+	if ((podevmode = gs_malloc(wdev->memory, size, 1, "win_pr2_getdc")) == (LPDEVMODE) NULL) {
 	    ClosePrinter(hprinter);
 	    return FALSE;
 	}
-	if ((pidevmode = gs_malloc(size, 1, "win_pr2_getdc")) == (LPDEVMODE) NULL) {
-	    gs_free(podevmode, size, 1, "win_pr2_getdc");
+	if ((pidevmode = gs_malloc(wdev->memory, size, 1, "win_pr2_getdc")) == (LPDEVMODE) NULL) {
+	    gs_free(wdev->memory, podevmode, size, 1, "win_pr2_getdc");
 	    ClosePrinter(hprinter);
 	    return FALSE;
 	}
@@ -940,12 +956,12 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
 	    return FALSE;
 	}
 	size = pfnExtDeviceMode(NULL, hlib, NULL, device, output, NULL, NULL, 0);
-	if ((podevmode = gs_malloc(size, 1, "win_pr2_getdc")) == (LPDEVMODE) NULL) {
+	if ((podevmode = gs_malloc(wdev->memory, size, 1, "win_pr2_getdc")) == (LPDEVMODE) NULL) {
 	    FreeLibrary(hlib);
 	    return FALSE;
 	}
-	if ((pidevmode = gs_malloc(size, 1, "win_pr2_getdc")) == (LPDEVMODE) NULL) {
-	    gs_free(podevmode, size, 1, "win_pr2_getdc");
+	if ((pidevmode = gs_malloc(wdev->memory, size, 1, "win_pr2_getdc")) == (LPDEVMODE) NULL) {
+	    gs_free(wdev->memory, podevmode, size, 1, "win_pr2_getdc");
 	    FreeLibrary(hlib);
 	    return FALSE;
 	}
@@ -956,7 +972,7 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
     /* now find out what paper sizes are available */
     devcapsize = pfnDeviceCapabilities(device, output, DC_PAPERSIZE, NULL, NULL);
     devcapsize *= sizeof(POINT);
-    if ((devcap = gs_malloc(devcapsize, 1, "win_pr2_getdc")) == (LPBYTE) NULL)
+    if ((devcap = gs_malloc(wdev->memory, devcapsize, 1, "win_pr2_getdc")) == (LPBYTE) NULL)
 	return FALSE;
     n = pfnDeviceCapabilities(device, output, DC_PAPERSIZE, devcap, NULL);
     paperwidth = (int)(wdev->MediaSize[0] * 254 / 72);
@@ -990,27 +1006,27 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
 	    }
 	}
     }
-    gs_free(devcap, devcapsize, 1, "win_pr2_getdc");
+    gs_free(wdev->memory, devcap, devcapsize, 1, "win_pr2_getdc");
     
     /* get the dmPaperSize */
     devcapsize = pfnDeviceCapabilities(device, output, DC_PAPERS, NULL, NULL);
     devcapsize *= sizeof(WORD);
-    if ((devcap = gs_malloc(devcapsize, 1, "win_pr2_getdc")) == (LPBYTE) NULL)
+    if ((devcap = gs_malloc(wdev->memory, devcapsize, 1, "win_pr2_getdc")) == (LPBYTE) NULL)
 	return FALSE;
     n = pfnDeviceCapabilities(device, output, DC_PAPERS, devcap, NULL);
     if ((paperindex >= 0) && (paperindex < n))
 	papersize = ((WORD *) devcap)[paperindex];
-    gs_free(devcap, devcapsize, 1, "win_pr2_getdc");
+    gs_free(wdev->memory, devcap, devcapsize, 1, "win_pr2_getdc");
 
     /* get the paper name */
     devcapsize = pfnDeviceCapabilities(device, output, DC_PAPERNAMES, NULL, NULL);
     devcapsize *= 64;
-    if ((devcap = gs_malloc(devcapsize, 1, "win_pr2_getdc")) == (LPBYTE) NULL)
+    if ((devcap = gs_malloc(wdev->memory, devcapsize, 1, "win_pr2_getdc")) == (LPBYTE) NULL)
 	return FALSE;
     n = pfnDeviceCapabilities(device, output, DC_PAPERNAMES, devcap, NULL);
     if ((paperindex >= 0) && (paperindex < n))
 	strcpy(papername, devcap + paperindex * 64);
-    gs_free(devcap, devcapsize, 1, "win_pr2_getdc");
+    gs_free(wdev->memory, devcap, devcapsize, 1, "win_pr2_getdc");
 
     memcpy(pidevmode, podevmode, size);
 
@@ -1080,15 +1096,15 @@ win_pr2_getdc(gx_device_win_pr2 * wdev)
     }
     
     if (wdev->win32_hdevmode) {
-	LPDEVMODE pdevmode = (LPDEVMODE) GlobalLock(GlobalLock(wdev->win32_hdevmode));
+	LPDEVMODE pdevmode = (LPDEVMODE) GlobalLock(wdev->win32_hdevmode);
 	if (pdevmode) {
 	    memcpy(pdevmode, podevmode, sizeof(DEVMODE));
 	    GlobalUnlock(wdev->win32_hdevmode);
 	}
     }
 
-    gs_free(pidevmode, size, 1, "win_pr2_getdc");
-    gs_free(podevmode, size, 1, "win_pr2_getdc");
+    gs_free(wdev->memory, pidevmode, size, 1, "win_pr2_getdc");
+    gs_free(wdev->memory, podevmode, size, 1, "win_pr2_getdc");
 
     if (wdev->hdcprn != (HDC) NULL)
 	return TRUE;		/* success */
@@ -1524,7 +1540,7 @@ CancelDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 BOOL CALLBACK 
 AbortProc2(HDC hdcPrn, int code)
 {
-    process_interrupts();
+    process_interrupts(NULL);
     if (code == SP_OUTOFDISK)
 	return (FALSE);		/* cancel job */
     return (TRUE);

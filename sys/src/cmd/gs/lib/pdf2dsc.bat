@@ -1,5 +1,5 @@
 @echo off 
-@rem $Id: pdf2dsc.bat,v 1.2 2001/06/22 16:09:22 lpd Exp $
+@rem $Id: pdf2dsc.bat,v 1.4 2002/02/21 21:49:28 giles Exp $
 @rem Convert PDF to DSC
 
 if %1/==/ goto usage

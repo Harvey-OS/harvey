@@ -1,0 +1,214 @@
+%    Copyright (C) 1990, 2000 Aladdin Enterprises.  All rights reserved.
+% 
+% This software is provided AS-IS with no warranty, either express or
+% implied.
+% 
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
+% 
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+
+% $Id: gs_diskn.ps,v 1.5 2003/08/08 18:45:04 ray Exp $
+% Initialization file for %disk device modifications
+% When this is run, systemdict is still writable,
+
+systemdict begin
+
+% Collect the list of searchable IODevices in SearchOrder
+% Efficiency here doesn't matter since we run this at the end
+% of gs_init and convert it to a static array.
+/.getsearchabledevs { % - .getsearchabledevs [ list_of_strings ]
+  //systemdict /.searchabledevs .knownget not {
+    .currentglobal true .setglobal
+    mark (*) { 
+      dup length string copy dup currentdevparams /Searchable
+      .knownget { not { pop } if } { pop } ifelse
+    } 8192 string /IODevice resourceforall
+    ]
+    % now process the array into correct SearchOrder
+    0 1 2 {
+      mark exch 2 index {
+	dup currentdevparams /SearchOrder get 2 index eq
+	{ exch } { pop } ifelse
+      } forall % devices on the old list
+      pop
+      % make the array and sort it by name
+      ] { lt } bind .sort 
+      exch
+    } for
+    % collect all devices with SearchOrder > 2
+    mark 2 index {
+      dup currentdevparams /SearchOrder get 2 gt 
+      { exch } { pop } ifelse
+    } forall 
+    ] exch pop
+    % We now have 4 arrays on the stack, SO=0 SO=1 SO=2 SO>2
+    % make them into a single array
+    mark 5 1 roll ] mark exch { { } forall } forall ]
+    //systemdict /.searchabledevs 2 index .forceput
+    exch .setglobal
+  }
+  if
+} .bind executeonly def % must be bound and hidden for .forceput
+
+% Modify .putdevparams to force regeneration of .searchabledevs list
+/.putdevparams {
+  % We could be smarter and check for %disk* device, but this
+  % doesn't get run enough to justify the complication
+  //.putdevparams
+  //systemdict /.searchabledevs .forceundef  
+} .bind odef % must be bound and hidden for .forceundef
+
+% ------ extend filenameforall to handle wildcards in %dev% part of pattern -------%
+/filenameforall {
+  count 3 ge {
+    2 index (%) search {
+      pop pop 
+    } {
+      % no device specified, so search them all
+      pop (*%) 3 index concatstrings
+      % we need to suppress the device when we return the string
+      % in order to match Adobe's behaviour with %disk devices.
+      4 -2 roll		% the callers procedure
+      [ { (%) search { pop pop (%) search { pop pop } if } if } /exec load
+        4 -1 roll		% the callers procedure
+        /exec load
+      ] cvx
+      4 2 roll		% put the modified procedure where it belongs
+    } ifelse
+    % extract device portion (up to end of string or next %)
+    (%) search { exch pop } if	% stack: opat proc scratch npat device
+    dup (*) search { pop pop pop true } { pop false } ifelse
+    1 index (?) search { pop pop pop true } { pop false } ifelse
+    or not {
+      pop pop //filenameforall	% device with no wildcard
+    } {
+      (%) concatstrings (%) exch concatstrings
+      .getsearchabledevs
+      % find all matching devices and add the rest of the search string
+      mark exch {
+          dup counttomark 1 add index .stringmatch {
+          counttomark 2 add index concatstrings
+        } {
+          pop
+        } ifelse
+      } forall
+      ]
+      3 1 roll pop pop
+      4 -1 roll pop 
+      % now we need to invoke filenameforall for each of the strings
+      % in the array. We do this by building a procedure that is like
+      % an unrolled 'forall' loop. We do this to get the parameters
+      % for each filenameforall, since each execution will pop its
+      % parameters, but we can't use the operand stack for storage
+      % since each invocation must have the same operand stack.
+      mark exch {
+          counttomark dup 3 add index exch
+          2 add index
+          /filenameforall load
+        } forall
+      ] cvx
+      3 1 roll pop pop
+      exec		% run our unrolled loop
+    }
+    ifelse
+  } {
+    //filenameforall	% not enough parameters -- just let it fail
+  }
+  ifelse
+} odef
+
+% redefine file to search all devices in order
+/file {
+  dup 0 get (r) 0 get eq dup {
+    pop false				% success code
+    2 index 0 get 37 eq { [ () ] } { .getsearchabledevs } ifelse
+    { 3 index concatstrings	% prepend the device
+      {
+        2 index //file } .internalstopped not {
+	4 1 roll pop pop pop true
+	exit		% exit with success
+      } {
+        pop pop
+      }
+      ifelse
+    }
+    forall
+  }
+  if
+  not {		% just let standard file operator handle things
+    //file
+  }
+  if
+} bind odef
+
+% redefine deletefile to search all devices in order
+/deletefile {
+  false				% success code
+  1 index 0 get 37 eq { [ () ] } { .getsearchabledevs } ifelse
+  { 2 index concatstrings	% prepend the device
+    { //deletefile } .internalstopped exch pop not {
+      pop true exit		% exit with success
+    }
+    if
+  }
+  forall
+  not { $error /errorname get /deletefile exch signalerror } if
+} bind odef
+
+% redefine status to search all devices in order
+/status {
+  dup type /stringtype eq {
+    false				% success code
+    1 index 0 get 37 eq { [ () ] } { .getsearchabledevs } ifelse
+    { 2 index concatstrings	% prepend the device
+      { //status } .internalstopped not {
+        { true 7 -2 roll pop pop true exit } % exit with success
+	if
+      }
+      if
+    }
+    forall
+    % If we made it this far, no devices were found to status the file
+    	% clean up to return 'false'
+    exch pop
+  } {
+    //status
+  }
+  ifelse
+} bind odef
+
+% Also redefine renamefile to search all devices in order
+/renamefile {
+  false				% success code
+  2 index 0 get 37 eq { [ () ] } { .getsearchabledevs } ifelse
+  { dup 4 index concatstrings	% prepend the device
+    { (r) //file } .internalstopped
+    not {
+      closefile exch pop true exit	% exit with success
+    } {
+      pop pop
+    } ifelse
+  }
+  forall
+  not { $error /errorname get /renamefile exch signalerror } if
+  3 -1 roll concatstrings exch
+  //renamefile
+} bind odef
+
+% redefine devforall to process devices in numeric order
+% Spec's for 'devforall' are unclear, but font downloaders may expect this
+/devforall {		% <proc> <scratch> devforall -
+  [ { dup length string copy } 2 index //devforall ]	
+  % stack: proc scratch array_of_device_names
+  { lt } .sort
+  % We don't really invoke the procedure with the scratch string
+  % but rather with the strings from our array
+  exch pop exch forall
+} odef
+end				% systemdict

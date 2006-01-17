@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1994, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdev3b1.c,v 1.2 2000/09/19 19:00:11 lpd Exp $*/
+/* $Id: gdev3b1.c,v 1.5 2004/08/10 13:02:36 stefan Exp $*/
 /*
  * This is a driver for the AT&T 3b1/7300/UnixPC console display.
  *
@@ -157,7 +155,7 @@ att3b1_open(gx_device *dev)
     }
 
     if (att3b1dev->screen != NULL) {
-	gs_free((char *)att3b1dev->screen,
+	gs_free(dev->memory, (char *)att3b1dev->screen,
 		att3b1dev->screen_size, 1, "att3b1_open");
 	att3b1dev->screen = 0;
 	att3b1dev->screen_size = 0;
@@ -182,7 +180,7 @@ att3b1_open(gx_device *dev)
     att3b1dev->screen_size = att3b1dev->line_size * att3b1dev->height;
 
     att3b1dev->screen =
-	(uchar *)gs_malloc(att3b1dev->screen_size, 1, "att3b1_open");
+	(uchar *)gs_malloc(dev->memory, att3b1dev->screen_size, 1, "att3b1_open");
     if (att3b1dev->screen == NULL) {
 	att3b1_close(dev);
 	return_error(gs_error_VMerror);
@@ -208,7 +206,7 @@ att3b1_close(gx_device *dev)
     }
 
     if (att3b1dev->screen != NULL) {
-	gs_free((char *)att3b1dev->screen,
+	gs_free(dev->memory, (char *)att3b1dev->screen,
 		att3b1dev->screen_size, 1, "att3b1_close");
 	att3b1dev->screen = 0;
 	att3b1dev->screen_size = 0;

@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1991, 1993, 1994, 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zht.c,v 1.2 2000/09/19 19:00:54 lpd Exp $ */
+/* $Id: zht.c,v 1.8 2005/10/11 10:04:28 leonardo Exp $ */
 /* Halftone definition operators */
 #include "ghost.h"
 #include "memory_.h"
@@ -34,9 +32,9 @@
 #include "store.h"
 
 /* Forward references */
-private int screen_sample(P1(i_ctx_t *));
-private int set_screen_continue(P1(i_ctx_t *));
-private int screen_cleanup(P1(i_ctx_t *));
+private int screen_sample(i_ctx_t *);
+private int set_screen_continue(i_ctx_t *);
+private int screen_cleanup(i_ctx_t *);
 
 /* - .currenthalftone <dict> 0 */
 /* - .currenthalftone <frequency> <angle> <proc> 1 */
@@ -53,23 +51,37 @@ zcurrenthalftone(i_ctx_t *i_ctx_p)
 	    push(4);
 	    make_real(op - 3, ht.params.screen.frequency);
 	    make_real(op - 2, ht.params.screen.angle);
-	    op[-1] = istate->screen_procs.colored.gray;
+	    op[-1] = istate->screen_procs.gray;
 	    make_int(op, 1);
 	    break;
 	case ht_type_colorscreen:
 	    push(13);
 	    {
-		int i;
+		os_ptr opc = op - 12;
+		gs_screen_halftone *pht = 
+		    &ht.params.colorscreen.screens.colored.red;
 
-		for (i = 0; i < 4; i++) {
-		    os_ptr opc = op - 12 + i * 3;
-		    gs_screen_halftone *pht =
-		    &ht.params.colorscreen.screens.indexed[i];
+		make_real(opc, pht->frequency);
+		make_real(opc + 1, pht->angle);
+		opc[2] = istate->screen_procs.red;
 
-		    make_real(opc, pht->frequency);
-		    make_real(opc + 1, pht->angle);
-		    opc[2] = istate->screen_procs.indexed[i];
-		}
+		opc = op - 9;
+		pht = &ht.params.colorscreen.screens.colored.green;
+		make_real(opc, pht->frequency);
+		make_real(opc + 1, pht->angle);
+		opc[2] = istate->screen_procs.green;
+
+		opc = op - 6;
+		pht = &ht.params.colorscreen.screens.colored.blue;
+		make_real(opc, pht->frequency);
+		make_real(opc + 1, pht->angle);
+		opc[2] = istate->screen_procs.blue;
+
+		opc = op - 3;
+		pht = &ht.params.colorscreen.screens.colored.gray;
+		make_real(opc, pht->frequency);
+		make_real(opc + 1, pht->angle);
+		opc[2] = istate->screen_procs.gray;
 	    }
 	    make_int(op, 2);
 	    break;
@@ -108,7 +120,7 @@ zcurrentscreenlevels(i_ctx_t *i_ctx_p)
 #define senum r_ptr(esp, gs_screen_enum)
 
 /* Forward references */
-private int setscreen_finish(P1(i_ctx_t *));
+private int setscreen_finish(i_ctx_t *);
 
 /* <frequency> <angle> <proc> setscreen - */
 private int
@@ -119,10 +131,11 @@ zsetscreen(i_ctx_t *i_ctx_p)
     gx_ht_order order;
     int code = zscreen_params(op, &screen);
     gs_memory_t *mem;
+    int space_index = r_space_index(op);
 
     if (code < 0)
 	return code;
-    mem = (gs_memory_t *)idmemory->spaces_indexed[r_space_index(op)];
+    mem = (gs_memory_t *)idmemory->spaces_indexed[space_index];
     /*
      * Allocate the halftone in the same VM space as the procedure.
      * This keeps the space relationships consistent.
@@ -132,23 +145,24 @@ zsetscreen(i_ctx_t *i_ctx_p)
     if (code < 0)
 	return code;
     return zscreen_enum_init(i_ctx_p, &order, &screen, op, 3,
-			     setscreen_finish, mem);
+			     setscreen_finish, space_index);
 }
 /* We break out the body of this operator so it can be shared with */
 /* the code for Type 1 halftones in sethalftone. */
 int
 zscreen_enum_init(i_ctx_t *i_ctx_p, const gx_ht_order * porder,
 		  gs_screen_halftone * psp, ref * pproc, int npop,
-		  int (*finish_proc)(P1(i_ctx_t *)), gs_memory_t * mem)
+		  int (*finish_proc)(i_ctx_t *), int space_index)
 {
     gs_screen_enum *penum;
+    gs_memory_t * mem = (gs_memory_t *)idmemory->spaces_indexed[space_index]; 
     int code;
 
     check_estack(snumpush + 1);
-    penum = gs_screen_enum_alloc(imemory, "setscreen");
+    penum = gs_screen_enum_alloc(mem, "setscreen");
     if (penum == 0)
 	return_error(e_VMerror);
-    make_istruct(esp + snumpush, 0, penum);	/* do early for screen_cleanup in case of error */
+    make_struct(esp + snumpush, space_index << r_space_shift, penum);	/* do early for screen_cleanup in case of error */
     code = gs_screen_enum_init_memory(penum, porder, igs, psp, mem);
     if (code < 0) {
 	screen_cleanup(i_ctx_p);
@@ -215,10 +229,10 @@ private int
 setscreen_finish(i_ctx_t *i_ctx_p)
 {
     gs_screen_install(senum);
-    istate->screen_procs.colored.red = sproc;
-    istate->screen_procs.colored.green = sproc;
-    istate->screen_procs.colored.blue = sproc;
-    istate->screen_procs.colored.gray = sproc;
+    istate->screen_procs.red = sproc;
+    istate->screen_procs.green = sproc;
+    istate->screen_procs.blue = sproc;
+    istate->screen_procs.gray = sproc;
     make_null(&istate->halftone);
     return 0;
 }
@@ -226,7 +240,9 @@ setscreen_finish(i_ctx_t *i_ctx_p)
 private int
 screen_cleanup(i_ctx_t *i_ctx_p)
 {
-    ifree_object(esp[snumpush].value.pstruct, "screen_cleanup");
+    gs_screen_enum *penum = r_ptr(esp + snumpush, gs_screen_enum);
+
+    gs_free_object(penum->halftone.rc.memory, penum, "screen_cleanup");
     return 0;
 }
 

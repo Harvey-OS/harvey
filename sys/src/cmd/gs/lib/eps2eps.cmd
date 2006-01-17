@@ -1,4 +1,4 @@
-/* $Id: eps2eps.cmd,v 1.2 2000/12/30 18:45:37 alexcher Exp $ */
+/* $Id: eps2eps.cmd,v 1.4 2002/02/21 21:49:28 giles Exp $ */
 /*
  * This file is maintained by a user: if you have any questions about it,
  * please contact Mark Hale (mark.hale@physics.org).

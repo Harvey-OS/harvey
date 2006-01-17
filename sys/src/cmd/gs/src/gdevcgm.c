@@ -1,27 +1,26 @@
-/* Copyright (C) 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995-2003 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevcgm.c,v 1.2.6.1 2002/01/25 06:33:09 rayjj Exp $ */
+/* $Id: gdevcgm.c,v 1.10 2004/04/01 04:51:42 dan Exp $ */
 /* CGM (Computer Graphics Metafile) driver */
 #include "memory_.h"
 #include "gx.h"
 #include "gserrors.h"
 #include "gxdevice.h"
+#include "gp.h"
 #include "gsparam.h"
 #include "gdevcgml.h"
 #include "gdevpccm.h"
@@ -32,11 +31,9 @@
 	  do masked copy_mono with cell array if possible
  ****************/
 
-#define fname_size 80
-
 typedef struct gx_device_cgm_s {
     gx_device_common;
-    char fname[fname_size + 1];
+    char fname[gp_file_name_sizeof];
     FILE *file;
     cgm_state *st;
     bool in_picture;
@@ -97,7 +94,7 @@ cgm_device("cgmmono", 1, 1, 2,
 	   gx_default_map_rgb_color, gx_default_w_b_map_color_rgb);
 
 gx_device_cgm gs_cgm8_device =
-cgm_device("cgm8", 8, 6, 7,
+cgm_device("cgm8", 8, 5, 6,
 	   pc_8bit_map_rgb_color, pc_8bit_map_color_rgb);
 
 gx_device_cgm gs_cgm24_device =
@@ -251,11 +248,13 @@ cgm_put_params(gx_device * dev, gs_param_list * plist)
 
     switch (code = param_read_string(plist, (param_name = "OutputFile"), &ofs)) {
 	case 0:
-	    if (dev->LockSafetyParams) {
+	    if (dev->LockSafetyParams &&
+		    bytes_compare(ofs.data, ofs.size,
+			(const byte *)cdev->fname, strlen(cdev->fname))) {
 	        ecode = gs_note_error(gs_error_invalidaccess);
 		goto ofe;
 	    }
-	    if (ofs.size > fname_size)
+	    if (ofs.size >= gp_file_name_sizeof)
 		ecode = gs_error_limitcheck;
 	    else
 		break;
@@ -390,13 +389,12 @@ cgm_fill_rectangle(gx_device * dev, int x, int y, int w, int h,
     cgm_color fill_color;
     cgm_point points[2];
     cgm_result result;
-
+    
     fit_fill(dev, x, y, w, h);
     if (!cdev->in_picture) {	/* Check for erasepage. */
-	if (color == (*dev_proc(dev, map_rgb_color)) (dev,
-				     gx_max_color_value, gx_max_color_value,
-						      gx_max_color_value)
-	    )
+	gx_color_value blank[3] = {gx_max_color_value, gx_max_color_value, 
+				   gx_max_color_value};
+	if (color == (*dev_proc(dev, encode_color)) (dev, blank))
 	    return 0;
 	cgm_begin_picture(cdev);
     }

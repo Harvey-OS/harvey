@@ -1,34 +1,33 @@
 /* Copyright (C) 1989, 2000, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: interp.c,v 1.8 2001/04/06 06:42:45 rayjj Exp $ */
+/* $Id: interp.c,v 1.20 2004/09/03 20:23:10 ray Exp $ */
 /* Ghostscript language interpreter */
 #include "memory_.h"
 #include "string_.h"
 #include "ghost.h"
 #include "gsstruct.h"		/* for iastruct.h */
 #include "stream.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "estack.h"
 #include "ialloc.h"
 #include "iastruct.h"
 #include "icontext.h"
 #include "icremap.h"
+#include "idebug.h"
 #include "igstate.h"		/* for handling e_RemapColor */
 #include "inamedef.h"
 #include "iname.h"		/* for the_name_table */
@@ -48,6 +47,7 @@
 #include "files.h"		/* for file_check_read */
 #include "oper.h"
 #include "store.h"
+#include "gpcheck.h"
 
 /*
  * We may or may not optimize the handling of the special fast operators
@@ -81,13 +81,13 @@ no_reschedule(i_ctx_t **pi_ctx_p)
 {
     return_error(e_invalidcontext);
 }
-int (*gs_interp_reschedule_proc)(P1(i_ctx_t **)) = no_reschedule;
+int (*gs_interp_reschedule_proc)(i_ctx_t **) = no_reschedule;
 
 /*
  * The procedure to call for time-slicing.
  * This is a no-op unless the context machinery has been installed.
  */
-int (*gs_interp_time_slice_proc)(P1(i_ctx_t **)) = 0;
+int (*gs_interp_time_slice_proc)(i_ctx_t **) = 0;
 
 /*
  * The number of interpreter "ticks" between calls on the time_slice_proc.
@@ -130,15 +130,15 @@ struct stats_interp_s {
 #endif
 
 /* Forward references */
-private int estack_underflow(P1(i_ctx_t *));
-private int interp(P3(i_ctx_t **, const ref *, ref *));
-private int interp_exit(P1(i_ctx_t *));
-private void set_gc_signal(P3(i_ctx_t *, int *, int));
-private int copy_stack(P3(i_ctx_t *, const ref_stack_t *, ref *));
-private int oparray_pop(P1(i_ctx_t *));
-private int oparray_cleanup(P1(i_ctx_t *));
-private int zsetstackprotect(P1(i_ctx_t *));
-private int zcurrentstackprotect(P1(i_ctx_t *));
+private int estack_underflow(i_ctx_t *);
+private int interp(i_ctx_t **, const ref *, ref *);
+private int interp_exit(i_ctx_t *);
+private void set_gc_signal(i_ctx_t *, int *, int);
+private int copy_stack(i_ctx_t *, const ref_stack_t *, ref *);
+private int oparray_pop(i_ctx_t *);
+private int oparray_cleanup(i_ctx_t *);
+private int zsetstackprotect(i_ctx_t *);
+private int zcurrentstackprotect(i_ctx_t *);
 
 /* Stack sizes */
 
@@ -407,7 +407,7 @@ gs_interp_make_oper(ref * opref, op_proc_t proc, int idx)
 /*
  * Call the garbage collector, updating the context pointer properly.
  */
-private int
+int
 interp_reclaim(i_ctx_t **pi_ctx_p, int space)
 {
     i_ctx_t *i_ctx_p = *pi_ctx_p;
@@ -432,7 +432,7 @@ interp_reclaim(i_ctx_t **pi_ctx_p, int space)
  * In case of a quit or a fatal error, also store the exit code.
  * Set *perror_object to null or the error object.
  */
-private int gs_call_interp(P5(i_ctx_t **, ref *, int, int *, ref *));
+private int gs_call_interp(i_ctx_t **, ref *, int, int *, ref *);
 int
 gs_interpret(i_ctx_t **pi_ctx_p, ref * pref, int user_errors, int *pexit_code,
 	     ref * perror_object)
@@ -697,7 +697,7 @@ gs_errorname(i_ctx_t *i_ctx_p, int code, ref * perror_name)
 	dict_find_string(systemdict, "ErrorNames", &pErrorNames) <= 0
 	)
 	return_error(e_undefined);	/* errordict or ErrorNames not found?! */
-    return array_get(pErrorNames, (long)(-code - 1), perror_name);
+    return array_get(imemory, pErrorNames, (long)(-code - 1), perror_name);
 }
 
 /* Store an error string in $error.errorinfo. */
@@ -782,7 +782,7 @@ interp(i_ctx_t **pi_ctx_p /* context for execution, updated if resched */,
      * Get a pointer to the name table so that we can use the
      * inline version of name_index_ref.
      */
-    const name_table *const int_nt = the_name_table();
+    const name_table *const int_nt = imemory->gs_lib_ctx->gs_name_table;
 
 #define set_error(ecode)\
   { ierror.code = ecode; ierror.line = __LINE__; }
@@ -801,7 +801,7 @@ interp(i_ctx_t **pi_ctx_p /* context for execution, updated if resched */,
     int ticks_left = gs_interp_time_slice_ticks;
 
     /*
-     * If we exceed the VMThreshold, set ticks_left to -1
+     * If we exceed the VMThreshold, set ticks_left to -100
      * to alert the interpreter that we need to garbage collect.
      */
     set_gc_signal(i_ctx_p, &ticks_left, -100);
@@ -870,7 +870,6 @@ interp(i_ctx_t **pi_ctx_p /* context for execution, updated if resched */,
 	  r_packed_is_name(iref_packed) :
 	  r_has_type(IREF, t_name)))
 	) {
-	void debug_print_ref(P1(const ref *));
 	os_ptr save_osp = osp;	/* avoid side-effects */
 	es_ptr save_esp = esp;
 
@@ -879,10 +878,10 @@ interp(i_ctx_t **pi_ctx_p /* context for execution, updated if resched */,
 	dlprintf5("d%u,e%u<%u>0x%lx(%d): ",
 		  ref_stack_count(&d_stack), ref_stack_count(&e_stack),
 		  ref_stack_count(&o_stack), (ulong)IREF, icount);
-	debug_print_ref(IREF);
+	debug_print_ref(imemory, IREF);
 	if (iosp >= osbot) {
 	    dputs(" // ");
-	    debug_print_ref(iosp);
+	    debug_print_ref(imemory, iosp);
 	}
 	dputc('\n');
 	osp = save_osp;
@@ -1150,7 +1149,7 @@ remap:		    if (iesp + 2 >= estop) {
 			    return_with_error_iref(code);
 			iesp = esp;
 		    }
-		    packed_get(iref_packed, iesp + 1);
+		    packed_get(imemory, iref_packed, iesp + 1);
 		    make_oper(iesp + 2, 0,
 			      r_ptr(&istate->remap_color_info,
 				    int_remap_color_info_t)->proc);
@@ -1304,6 +1303,8 @@ remap:		    if (iesp + 2 >= estop) {
 			SET_IREF(&token);
 			icount = 0;
 			goto top;
+		    case e_undefined:	/* //name undefined */
+			return_with_error(code, &token);
 		    case scan_EOF:	/* end of file */
 			esfile_clear_cache();
 			goto bot;
@@ -1378,6 +1379,7 @@ remap:		    if (iesp + 2 >= estop) {
 		scanner_state sstate;
 
 		scanner_state_init_options(&sstate, SCAN_FROM_STRING);
+		s_init(&ss, NULL);
 		sread_string(&ss, IREF->value.bytes, r_size(IREF));
 		osp = iosp;	/* scan_token uses ostack */
 		code = scan_token(i_ctx_p, &ss, &token, &sstate);
@@ -1648,6 +1650,7 @@ res:
     } else
 	code = 0;
     ticks_left = gs_interp_time_slice_ticks;
+    set_code_on_interrupt(imemory, &code);
     goto sched;
 
     /* Error exits. */
@@ -1664,7 +1667,7 @@ res:
 	 * We need a real object to return as the error object.
 	 * (It only has to last long enough to store in *perror_object.)
 	 */
-	packed_get((const ref_packed *)ierror.obj, &ierror.full);
+	packed_get(imemory, (const ref_packed *)ierror.obj, &ierror.full);
 	store_state_short(iesp);
 	if (IREF == ierror.obj)
 	    SET_IREF(&ierror.full);

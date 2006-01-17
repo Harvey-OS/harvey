@@ -1,21 +1,19 @@
 #    Copyright (C) 1997, 2001 artofcode LLC.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: macosx.mak,v 1.3.2.1 2002/02/01 06:16:22 giles Exp $
+# $Id: macosx.mak,v 1.28 2005/08/31 05:52:32 ray Exp $
 # makefile for MacOS X/darwin/gcc/framework configuration.
 
 # ------------------------------- Options ------------------------------- #
@@ -73,9 +71,9 @@ exdir=$(gsdatadir)/examples
 GS_DOCDIR=$(docdir)
 
 # Define the default directory/ies for the runtime
-# initialization and font files.  Separate multiple directories with a :.
+# initialization, resource and font files.  Separate multiple directories with a :.
 
-GS_LIB_DEFAULT=$(gsdatadir)/lib:$(datadir)/fonts:/Library/Fonts:/System/Library/Fonts
+GS_LIB_DEFAULT=$(gsdatadir)/lib:$(gsdatadir)/Resource:$(datadir)/fonts:/Library/Fonts:/System/Library/Fonts
 
 # Define whether or not searching for initialization files should always
 # look in the current directory first.  This leads to well-known security
@@ -142,15 +140,11 @@ SORELDIR=../soobj
 JSRCDIR=jpeg
 JVERSION=6
 
-# Choose whether to use a shared version of the IJG JPEG library (-ljpeg).
-# DON'T DO THIS. If you do, the resulting executable will not be able to
-# read some PostScript files containing JPEG data, because Adobe chose to
-# define PostScript's JPEG capabilities in a way that is slightly
-# incompatible with the JPEG standard.  Note also that if you set SHARE_JPEG
-# to 1, you must still have the library header files available to compile
-# Ghostscript.  See doc/Make.htm for more information.
+# Note: if a shared library is used, it may not contain the
+# D_MAX_BLOCKS_IN_MCU patch, and thus may not be able to read
+# some older JPEG streams that violate the standard. If the JPEG
+# library built from local sources, the patch will be applied.
 
-# DON'T SET THIS TO 1!  See the comment just above.
 SHARE_JPEG=0
 JPEG_NAME=jpeg
 
@@ -160,7 +154,7 @@ JPEG_NAME=jpeg
 # See libpng.mak for more information.
 
 PSRCDIR=libpng
-PVERSION=10012
+PVERSION=10208
 
 # Choose whether to use a shared version of the PNG library, and if so,
 # what its name is.
@@ -182,6 +176,11 @@ SHARE_ZLIB=1
 #ZLIB_NAME=gz
 ZLIB_NAME=z
 
+# Choose shared or compiled in libjbig2dec and source location
+
+SHARE_JBIG2=0
+JBIG2SRCDIR=jbig2dec
+
 # Define the directory where the icclib source are stored.
 # See icclib.mak for more information
 
@@ -190,7 +189,7 @@ ICCSRCDIR=icclib
 # Define the directory where the ijs source is stored,
 # and the process forking method to use for the server.
 # See ijs.mak for more information.
- 
+
 IJSSRCDIR=ijs
 IJSEXECTYPE=unix
 
@@ -217,12 +216,13 @@ CCLD=$(CC)
 # the 2.7.0-2.7.2 optimizer bug, either "-Dconst=" or
 # "-Wcast-qual -Wwrite-strings" is automatically included.
 
-GCFLAGS=-Wall -Wstrict-prototypes -Wmissing-declarations -Wmissing-prototypes -Wtraditional -fno-builtin -fno-common
+GCFLAGS=-Wall -Wstrict-prototypes -Wmissing-declarations -Wmissing-prototypes \
+	-fno-builtin -fno-common -DHAVE_STDINT_H
 
 # Define the added flags for standard, debugging, profiling 
 # and shared object builds.
 
-CFLAGS_STANDARD=-O2 -traditional-cpp
+CFLAGS_STANDARD=
 CFLAGS_DEBUG=-g -O
 CFLAGS_PROFILE=-pg -O2
 CFLAGS_SO=-dynamic
@@ -251,7 +251,7 @@ CFLAGS=$(CFLAGS_STANDARD) $(GCFLAGS) $(XCFLAGS)
 # XLDFLAGS can be set from the command line.
 XLDFLAGS=
 
-LDFLAGS=$(XLDFLAGS) -fno-common
+LDFLAGS=$(XLDFLAGS)
 
 # Define any extra libraries to link into the executable.
 # ISC Unix 2.2 wants -linet.
@@ -276,11 +276,11 @@ EXTRALIBS=
 # This can be null if handled in some other way (e.g., the files are
 # in /usr/include, or the directory is supplied by an environment variable);
 # in particular, SCO Xenix, Unix, and ODT just want
-#XINCLUDE=
+XINCLUDE=
 # Note that x_.h expects to find the header files in $(XINCLUDE)/X11,
 # not in $(XINCLUDE).
 
-XINCLUDE=-I/usr/X11R6/include
+#XINCLUDE=-I/usr/X11R6/include
 
 # Define the directory/ies and library names for the X11 library files.
 # XLIBDIRS is for ld and should include -L; XLIBDIR is for LD_RUN_PATH
@@ -288,16 +288,17 @@ XINCLUDE=-I/usr/X11R6/include
 # Newer SVR4 systems can use -R in XLIBDIRS rather than setting XLIBDIR.
 # Both can be null if these files are in the default linker search path;
 # in particular, SCO Xenix, Unix, and ODT just want
-#XLIBDIRS=
+XLIBDIRS=
 # Solaris and other SVR4 systems with dynamic linking probably want
 #XLIBDIRS=-L/usr/openwin/lib -R/usr/openwin/lib
 # X11R6 (on any platform) may need
 #XLIBS=Xt SM ICE Xext X11
 
 #XLIBDIRS=-L/usr/local/X/lib
-XLIBDIRS=-L/usr/X11R6/lib
+#XLIBDIRS=-L/usr/X11R6/lib
 XLIBDIR=
-XLIBS=Xt Xext X11
+#XLIBS=Xt Xext X11
+XLIBS=
 
 # Define whether this platform has floating point hardware:
 #	FPU_TYPE=2 means floating point is faster than fixed point.
@@ -343,8 +344,7 @@ COMPILE_INITS=0
 BAND_LIST_STORAGE=file
 
 # Choose which compression method to use when storing band lists in memory.
-# The choices are 'lzw' or 'zlib'.  lzw is not recommended, because the
-# LZW-compatible code in Ghostscript doesn't actually compress its input.
+# The choices are 'lzw' or 'zlib'.
 
 BAND_LIST_COMPRESSOR=zlib
 
@@ -388,12 +388,11 @@ DEVICE_DEVS9=$(DD)pbm.dev $(DD)pbmraw.dev $(DD)pgm.dev $(DD)pgmraw.dev $(DD)pgnm
 DEVICE_DEVS10=
 DEVICE_DEVS11=
 DEVICE_DEVS12=
-#DEVICE_DEVS13=$(DD)pngmono.dev $(DD)pnggray.dev $(DD)png16.dev $(DD)png256.dev $(DD)png16m.dev
-DEVICE_DEVS13=$(DD)png16.dev $(DD)png256.dev
-DEVICE_DEVS14=$(DD)jpeg.dev $(DD)jpeggray.dev
-DEVICE_DEVS15=$(DD)pdfwrite.dev $(DD)pswrite.dev $(DD)epswrite.dev $(DD)pxlmono.dev $(DD)pxlcolor.dev
-
-DEVICE_DEVS16=
+#DEVICE_DEVS13=$(DD)pngmono.dev $(DD)pnggray.dev $(DD)png16.dev $(DD)png256.dev $(DD)png16m.dev $(DD)pngalpha.dev
+DEVICE_DEVS13=$(DD)png16.dev $(DD)png256.dev $(DD)pngalpha.dev
+DEVICE_DEVS14=$(DD)jpeg.dev $(DD)jpeggray.dev $(DD)jpegcmyk.dev
+DEVICE_DEVS15=$(DD)pdfwrite.dev $(DD)pswrite.dev $(DD)ps2write.dev $(DD)epswrite.dev $(DD)pxlmono.dev $(DD)pxlcolor.dev
+DEVICE_DEVS16=$(DD)bbox.dev
 DEVICE_DEVS17=
 DEVICE_DEVS18=
 DEVICE_DEVS19=
@@ -407,20 +406,15 @@ DEVICE_DEVS20=
 MAKEFILE=$(GLSRCDIR)/macosx.mak
 TOP_MAKEFILES=$(MAKEFILE) $(GLSRCDIR)/unixhead.mak
 
-# Define the ANSI-to-K&R dependency.  There isn't one, but we do have to
-# detect whether we're running a version of gcc with the const optimization
-# bug.
+# Define the auxiliary programs dependency. We don't use this.
 
-AK=$(GLGENDIR)/cc.tr
+AK=
 
 # Define the compilation rules and flags.
 
 CCFLAGS=$(GENOPT) $(CAPOPT) $(CFLAGS)
-CC_=$(CC) `cat $(AK)` $(CCFLAGS)
-CCAUX=$(CC) `cat $(AK)`
-CC_LEAF=$(CC_) -fomit-frame-pointer
-# gcc can't use -fomit-frame-pointer with -pg.
-CC_LEAF_PG=$(CC_)
+CC_=$(CC) $(CCFLAGS)
+CCAUX=$(CC)
 # These are the specific warnings we have to turn off to compile those
 # specific few files that need this.  We may turn off others in the future.
 CC_NO_WARN=$(CC_) -Wno-cast-qual -Wno-traditional
@@ -436,6 +430,7 @@ include $(GLSRCDIR)/jpeg.mak
 # zlib.mak must precede libpng.mak
 include $(GLSRCDIR)/zlib.mak
 include $(GLSRCDIR)/libpng.mak
+include $(GLSRCDIR)/jbig2.mak
 include $(GLSRCDIR)/icclib.mak
 include $(GLSRCDIR)/ijs.mak
 include $(GLSRCDIR)/devs.mak
@@ -447,6 +442,3 @@ include $(GLSRCDIR)/macos-fw.mak
 include $(GLSRCDIR)/unix-end.mak
 include $(GLSRCDIR)/unixinst.mak
 
-# This has to come last so it won't be taken as the default target.
-$(AK):
-	if ( $(CC) --version | egrep "^2\.7\.([01]|2(\.[^1-9]|$$))" >/dev/null ); then echo -Dconst= >$(AK); else echo -Wcast-qual -Wwrite-strings >$(AK); fi

@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsdevmem.c,v 1.2 2000/09/19 19:00:27 lpd Exp $ */
+/* $Id: gsdevmem.c,v 1.6 2004/04/01 06:46:17 ray Exp $ */
 /* Memory device creation for Ghostscript library */
 #include "math_.h"		/* for fabs */
 #include "memory_.h"
@@ -179,8 +177,14 @@ gs_initialize_wordimagedevice(gx_device_memory * new_dev, const gs_matrix * pmat
 	    new_dev->color_info.num_components = 1;
 	    new_dev->color_info.max_color = 0;
 	    new_dev->color_info.dither_colors = 0;
+	    new_dev->color_info.gray_index = 0;
 	}
     }
+    /* Memory defice is always initialised as an internal device but */
+    /* this is an external device */
+    new_dev->retained = true;
+    rc_init(new_dev, new_dev->memory, 1);
+
     new_dev->initial_matrix = *pmat;
     new_dev->MarginsHWResolution[0] = new_dev->HWResolution[0] =
 	fabs(x_pixels_per_unit) * 72;

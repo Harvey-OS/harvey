@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsdevice.c,v 1.11 2001/07/12 14:10:55 rayjj Exp $ */
+/* $Id: gsdevice.c,v 1.25 2005/10/12 17:59:55 leonardo Exp $ */
 /* Device operators for Ghostscript library */
 #include "ctype_.h"
 #include "memory_.h"		/* for memchr, memcpy */
@@ -36,6 +34,7 @@
 #include "gxdevice.h"
 #include "gxdevmem.h"
 #include "gxiodev.h"
+#include "gxcspace.h"
 
 /* Include the extern for the device list. */
 extern_gs_lib_device_list();
@@ -54,7 +53,7 @@ gx_device_finalize(void *vptr)
 	dev->finalize(dev);
     discard(gs_closedevice(dev));
     if (dev->stype_is_dynamic)
-	gs_free_const_object(&gs_memory_default, dev->stype,
+	gs_free_const_object(dev->memory->non_gc_memory, dev->stype,
 			     "gx_device_finalize");
 }
 
@@ -252,7 +251,7 @@ gs_copydevice2(gx_device ** pnew_dev, const gx_device * dev, bool keep_open,
 	 * Just allocate a new stype and copy the old one into it.
 	 */
 	a_std = (gs_memory_struct_type_t *)
-	    gs_alloc_bytes_immovable(&gs_memory_default, sizeof(*std),
+	    gs_alloc_bytes_immovable(mem->non_gc_memory, sizeof(*std),
 				     "gs_copydevice(stype)");
 	if (!a_std)
 	    return_error(gs_error_VMerror);
@@ -264,7 +263,7 @@ gs_copydevice2(gx_device ** pnew_dev, const gx_device * dev, bool keep_open,
     } else {
 	/* We need to figure out or adjust the stype. */
 	a_std = (gs_memory_struct_type_t *)
-	    gs_alloc_bytes_immovable(&gs_memory_default, sizeof(*std),
+	    gs_alloc_bytes_immovable(mem->non_gc_memory, sizeof(*std),
 				     "gs_copydevice(stype)");
 	if (!a_std)
 	    return_error(gs_error_VMerror);
@@ -296,7 +295,7 @@ gs_copydevice2(gx_device ** pnew_dev, const gx_device * dev, bool keep_open,
     if (code < 0) {
 	gs_free_object(mem, new_dev, "gs_copydevice(device)");
 	if (a_std)
-	    gs_free_object(&gs_memory_default, a_std, "gs_copydevice(stype)");
+	    gs_free_object(dev->memory->non_gc_memory, a_std, "gs_copydevice(stype)");
 	return code;
     }
     *pnew_dev = new_dev;
@@ -315,6 +314,7 @@ gs_opendevice(gx_device *dev)
 {
     if (dev->is_open)
 	return 0;
+    check_device_separable(dev);
     gx_device_fill_in_procs(dev);
     {
 	int code = (*dev_proc(dev, open_device))(dev);
@@ -401,10 +401,25 @@ gs_setdevice_no_init(gs_state * pgs, gx_device * dev)
     /*
      * Just set the device, possibly changing color space but no other
      * device parameters.
+     * 
+     * Make sure we don't close the device if dev == pgs->device
+     * This could be done by allowing the rc_assign to close the
+     * old 'dev' if the rc goes to 0 (via the device structure's
+     * finalization procedure), but then the 'code' from the dev
+     * closedevice would not be propagated up. We want to allow
+     * the code to be handled, particularly for the pdfwrite
+     * device.
      */
+    if (pgs->device != NULL && pgs->device->rc.ref_count == 1 &&
+	pgs->device != dev) {
+	int code = gs_closedevice(pgs->device);
+
+	if (code < 0)
+	    return code;
+    }
     rc_assign(pgs->device, dev, "gs_setdevice_no_init");
     gs_state_update_device(pgs);
-    return 0;
+    return pgs->overprint ? gs_do_set_overprint(pgs) : 0;
 }
 
 /* Initialize a just-allocated device. */
@@ -426,8 +441,27 @@ gs_make_null_device(gx_device_null *dev_null, gx_device *dev,
     gx_device_init((gx_device *)dev_null, (const gx_device *)&gs_null_device,
 		   mem, true);
     gx_device_set_target((gx_device_forward *)dev_null, dev);
-    if (dev)
-	gx_device_copy_color_params((gx_device *)dev_null, dev);
+    if (dev) {
+	/* The gx_device_copy_color_params() call below should
+	   probably copy over these new-style color mapping procs, as
+	   well as the old-style (map_rgb_color and friends). However,
+	   the change was made here instead, to minimize the potential
+	   impact of the patch.
+	*/
+	gx_device *dn = (gx_device *)dev_null;
+	set_dev_proc(dn, get_color_mapping_procs, gx_forward_get_color_mapping_procs);
+	set_dev_proc(dn, get_color_comp_index, gx_forward_get_color_comp_index);
+	set_dev_proc(dn, encode_color, gx_forward_encode_color);
+	set_dev_proc(dn, decode_color, gx_forward_decode_color);
+	gx_device_copy_color_params(dn, dev);
+    }
+}
+
+/* Is a null device ? */
+bool gs_is_null_device(gx_device *dev)
+{
+    /* Assuming null_fill_path isn't used elswhere. */
+    return dev->procs.fill_path == gs_null_device.procs.fill_path;
 }
 
 /* Mark a device as retained or not retained. */
@@ -472,9 +506,9 @@ gs_closedevice(gx_device * dev)
 
     if (dev->is_open) {
 	code = (*dev_proc(dev, close_device))(dev);
+	dev->is_open = false;
 	if (code < 0)
 	    return_error(code);
-	dev->is_open = false;
     }
     return code;
 }
@@ -536,6 +570,24 @@ gx_device_set_margins(gx_device * dev, const float *margins /*[4] */ ,
     }
 }
 
+
+/* Handle 90 and 270 degree rotation of the Tray
+ * Device must support TrayOrientation in its InitialMatrix and get/put params
+ */
+private void
+gx_device_TrayOrientationRotate(gx_device *dev)
+{
+  if ( dev->TrayOrientation == 90 || dev->TrayOrientation == 270) {
+    /* page sizes don't rotate, height and width do rotate 
+     * HWResolution, HWSize, and MediaSize parameters interact, 
+     * and must be set before TrayOrientation
+     */
+    int tmp = dev->height;
+    dev->height = dev->width;
+    dev->width = tmp;
+  }
+}
+
 /* Set the width and height, updating MediaSize to remain consistent. */
 void
 gx_device_set_width_height(gx_device * dev, int width, int height)
@@ -544,6 +596,7 @@ gx_device_set_width_height(gx_device * dev, int width, int height)
     dev->height = height;
     dev->MediaSize[0] = width * 72.0 / dev->HWResolution[0];
     dev->MediaSize[1] = height * 72.0 / dev->HWResolution[1];
+    gx_device_TrayOrientationRotate(dev);
 }
 
 /* Set the resolution, updating width and height to remain consistent. */
@@ -552,8 +605,9 @@ gx_device_set_resolution(gx_device * dev, floatp x_dpi, floatp y_dpi)
 {
     dev->HWResolution[0] = x_dpi;
     dev->HWResolution[1] = y_dpi;
-    dev->width = dev->MediaSize[0] * x_dpi / 72.0 + 0.5;
-    dev->height = dev->MediaSize[1] * y_dpi / 72.0 + 0.5;
+    dev->width = (int)(dev->MediaSize[0] * x_dpi / 72.0 + 0.5);
+    dev->height = (int)(dev->MediaSize[1] * y_dpi / 72.0 + 0.5);
+    gx_device_TrayOrientationRotate(dev);
 }
 
 /* Set the MediaSize, updating width and height to remain consistent. */
@@ -562,8 +616,9 @@ gx_device_set_media_size(gx_device * dev, floatp media_width, floatp media_heigh
 {
     dev->MediaSize[0] = media_width;
     dev->MediaSize[1] = media_height;
-    dev->width = media_width * dev->HWResolution[0] / 72.0 + 0.499;
-    dev->height = media_height * dev->HWResolution[1] / 72.0 + 0.499;
+    dev->width = (int)(media_width * dev->HWResolution[0] / 72.0 + 0.499);
+    dev->height = (int)(media_height * dev->HWResolution[1] / 72.0 + 0.499);
+    gx_device_TrayOrientationRotate(dev);
 }
 
 /*
@@ -580,6 +635,11 @@ gx_device_copy_color_procs(gx_device *dev, const gx_device *target)
     dev_proc_map_color_rgb((*to_rgb)) =
 	dev_proc(dev, map_color_rgb);
 
+    /* The logic in this function seems a bit stale; it sets the
+       old-style color procs, but not the new ones
+       (get_color_mapping_procs, get_color_comp_index, encode_color,
+       and decode_color). It should probably copy those as well.
+    */
     if (from_cmyk == gx_forward_map_cmyk_color ||
 	from_cmyk == cmyk_1bit_map_cmyk_color ||
 	from_cmyk == cmyk_8bit_map_cmyk_color) {
@@ -658,7 +718,6 @@ gx_device_copy_params(gx_device *dev, const gx_device *target)
 private int
 gx_parse_output_format(gs_parsed_file_name_t *pfn, const char **pfmt)
 {
-    int code;
     bool have_format = false, field = 0;
     int width[2], int_width = sizeof(int) * 3, w = 0;
     uint i;
@@ -716,7 +775,6 @@ gx_parse_output_file_name(gs_parsed_file_name_t *pfn, const char **pfmt,
 			  const char *fname, uint fnlen)
 {
     int code;
-    int i;
 
     *pfmt = 0;
     pfn->memory = 0;
@@ -777,7 +835,7 @@ gx_device_open_output_file(const gx_device * dev, char *fname,
     if (parsed.iodev && !strcmp(parsed.iodev->dname, "%stdout%")) {
 	if (parsed.fname)
 	    return_error(gs_error_undefinedfilename);
-	*pfile = gs_stdout;
+	*pfile = dev->memory->gs_lib_ctx->fstdout;
 	/* Force stdout to binary. */
 	return gp_setmode_binary(*pfile, true);
     }
@@ -799,14 +857,18 @@ gx_device_open_output_file(const gx_device * dev, char *fname,
 	if (!parsed.fname)
 	    return_error(gs_error_undefinedfilename);
 	strcpy(fmode, gp_fmode_wb);
-	if (positionable)
-	    strcat(fmode, "+");
-	return parsed.iodev->procs.fopen(parsed.iodev, parsed.fname, fmode,
-					 pfile, NULL, 0);
+  	if (positionable)
+  	    strcat(fmode, "+");
+ 	code = parsed.iodev->procs.fopen(parsed.iodev, parsed.fname, fmode,
+  					 pfile, NULL, 0);
+ 	if (code)
+     	    eprintf1("**** Could not open the file %s .\n", parsed.fname);
+ 	return code;
     }
     *pfile = gp_open_printer((fmt ? pfname : fname), binary);
     if (*pfile)
-	return 0;
+  	return 0;
+    eprintf1("**** Could not open the file %s .\n", (fmt ? pfname : fname));
     return_error(gs_error_invalidfileaccess);
 }
 

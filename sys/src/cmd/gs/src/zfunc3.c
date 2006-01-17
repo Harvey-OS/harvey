@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zfunc3.c,v 1.2.6.1 2002/01/17 02:59:35 dancoby Exp $ */
+/* $Id: zfunc3.c,v 1.7 2004/08/04 19:36:13 stefan Exp $ */
 /* PostScript language interface to LL3 Functions */
 #include "memory_.h"
 #include "ghost.h"
@@ -47,8 +45,8 @@ gs_build_function_2(i_ctx_t *i_ctx_p, const ref *op, const gs_function_params_t 
     params.C0 = 0;
     params.C1 = 0;
     if ((code = dict_float_param(op, "N", 0.0, &params.N)) != 0 ||
-	(code = n0 = fn_build_float_array(op, "C0", false, false, &params.C0, mem)) < 0 ||
-	(code = n1 = fn_build_float_array(op, "C1", false, false, &params.C1, mem)) < 0
+	(code = n0 = fn_build_float_array_forced(op, "C0", false, &params.C0, mem)) < 0 ||
+	(code = n1 = fn_build_float_array_forced(op, "C1", false, &params.C1, mem)) < 0
 	)
 	goto fail;
     if (params.C0 == 0)
@@ -95,7 +93,7 @@ gs_build_function_3(i_ctx_t *i_ctx_p, const ref *op, const gs_function_params_t 
 	for (i = 0; i < params.k; ++i) {
 	    ref subfn;
 
-	    array_get(pFunctions, (long)i, &subfn);
+	    array_get(mem, pFunctions, (long)i, &subfn);
 	    code = fn_build_sub_function(i_ctx_p, &subfn, &ptr[i], depth, mem);
 	    if (code < 0)
 		goto fail;

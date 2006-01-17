@@ -1,27 +1,25 @@
 /* Copyright (C) 1990, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: ibnum.c,v 1.2 2000/09/19 19:00:41 lpd Exp $ */
+/* $Id: ibnum.c,v 1.8 2004/08/04 19:36:12 stefan Exp $ */
 /* Level 2 encoded number reading utilities for Ghostscript */
 #include "math_.h"
 #include "memory_.h"
 #include "ghost.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "stream.h"
 #include "ibnum.h"
 #include "imemory.h"		/* for iutil.h */
@@ -78,10 +76,10 @@ num_array_size(const ref * op, int format)
 /* Return t_int if integer, t_real if real, t_null if end of stream, */
 /* or an error if the format is invalid. */
 int
-num_array_get(const ref * op, int format, uint index, ref * np)
+num_array_get(const gs_memory_t *mem, const ref * op, int format, uint index, ref * np)
 {
     if (format == num_array) {
-	int code = array_get(op, (long)index, np);
+	int code = array_get(mem, op, (long)index, np);
 
 	if (code < 0)
 	    return t_null;
@@ -190,27 +188,38 @@ sdecodelong(const byte * p, int format)
 float
 sdecodefloat(const byte * p, int format)
 {
-    bits32 lnum = (bits32) sdecodelong(p, format);
+    bits32 lnum;
     float fnum;
 
-#if !arch_floats_are_IEEE
-    if (format != num_float_native) {
-	/* We know IEEE floats take 32 bits. */
-	/* Convert IEEE float to native float. */
-	int sign_expt = lnum >> 23;
-	int expt = sign_expt & 0xff;
-	long mant = lnum & 0x7fffff;
-
-	if (expt == 0 && mant == 0)
-	    fnum = 0;
-	else {
-	    mant += 0x800000;
-	    fnum = (float)ldexp((float)mant, expt - 127 - 23);
-	}
-	if (sign_expt & 0x100)
-	    fnum = -fnum;
-    } else
-#endif
+    if ((format & ~(num_msb | num_lsb)) == num_float_native) {
+	/*
+	 * Just read 4 bytes and interpret them as a float, ignoring
+	 * any indication of byte ordering.
+	 */
+	memcpy(&lnum, p, 4);
 	fnum = *(float *)&lnum;
+    } else {
+	lnum = (bits32) sdecodelong(p, format);
+#if !arch_floats_are_IEEE
+	{
+	    /* We know IEEE floats take 32 bits. */
+	    /* Convert IEEE float to native float. */
+	    int sign_expt = lnum >> 23;
+	    int expt = sign_expt & 0xff;
+	    long mant = lnum & 0x7fffff;
+
+	    if (expt == 0 && mant == 0)
+		fnum = 0;
+	    else {
+		mant += 0x800000;
+		fnum = (float)ldexp((float)mant, expt - 127 - 23);
+	    }
+	    if (sign_expt & 0x100)
+		fnum = -fnum;
+	}
+#else
+	    fnum = *(float *)&lnum;
+#endif
+    }
     return fnum;
 }

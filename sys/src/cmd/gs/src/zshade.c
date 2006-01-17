@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zshade.c,v 1.4.6.1 2002/01/17 02:59:35 dancoby Exp $ */
+/* $Id: zshade.c,v 1.15 2004/08/04 19:36:13 stefan Exp $ */
 /* PostScript language interface to shading */
 #include "memory_.h"
 #include "ghost.h"
@@ -40,7 +38,7 @@
 #include "store.h"
 
 /* Forward references */
-private int shading_param(P2(const_os_ptr op, const gs_shading_t ** ppsh));
+private int shading_param(const_os_ptr op, const gs_shading_t ** ppsh);
 
 /* ---------------- Standard operators ---------------- */
 
@@ -102,7 +100,7 @@ zbuildshadingpattern(i_ctx_t *i_ctx_p)
     check_type(*op2, t_dictionary);
     check_dict_read(*op2);
     gs_pattern2_init(&template);
-    if ((code = read_matrix(op - 1, &mat)) < 0 ||
+    if ((code = read_matrix(imemory, op - 1, &mat)) < 0 ||
 	(code = dict_uid_param(op2, &template.uid, 1, imemory, i_ctx_p)) != 1 ||
 	(code = shading_param(op, &template.Shading)) < 0 ||
 	(code = int_pattern_alloc(&pdata, op2, imemory)) < 0
@@ -145,8 +143,8 @@ shading_param(const_os_ptr op, const gs_shading_t ** ppsh)
 extern_st(st_color_space);
 
 typedef int (*build_shading_proc_t)
-     (P5(i_ctx_t *i_ctx_p, const ref *op, const gs_shading_params_t *params,
-	 gs_shading_t **ppsh, gs_memory_t *mem));
+     (i_ctx_t *i_ctx_p, const ref *op, const gs_shading_params_t *params,
+      gs_shading_t **ppsh, gs_memory_t *mem);
 
 /* Operators */
 
@@ -189,7 +187,7 @@ build_shading(i_ctx_t *i_ctx_p, build_shading_proc_t proc)
 	    }
 	    pcc->pattern = 0;
 	    params.Background = pcc;
-	    code = dict_floats_param(op, "Background",
+	    code = dict_floats_param(imemory, op, "Background",
 				     gs_color_space_num_components(pcs),
 				     pcc->paint.values, NULL);
 	    if (code < 0)
@@ -198,7 +196,8 @@ build_shading(i_ctx_t *i_ctx_p, build_shading_proc_t proc)
     }
     if (dict_find_string(op, "BBox", &pvalue) <= 0)
 	params.have_BBox = false;
-    else if ((code = dict_floats_param(op, "BBox", 4, box, NULL)) == 4) {
+    else if ((code = dict_floats_param(imemory, op, "BBox", 
+				       4, box, NULL)) == 4) {
 	params.BBox.p.x = box[0];
 	params.BBox.p.y = box[1];
 	params.BBox.q.x = box[2];
@@ -226,10 +225,11 @@ fail:
 
 /* Collect a Function value. */
 private int
-build_shading_function(i_ctx_t *i_ctx_p, const ref * op, gs_function_t ** ppfn, int num_inputs,
-		       gs_memory_t *mem)
+build_shading_function(i_ctx_t *i_ctx_p, const ref * op, gs_function_t ** ppfn,
+		       int num_inputs, gs_memory_t *mem)
 {
     ref *pFunction;
+    int code;
 
     *ppfn = 0;
     if (dict_find_string(op, "Function", &pFunction) <= 0)
@@ -239,7 +239,6 @@ build_shading_function(i_ctx_t *i_ctx_p, const ref * op, gs_function_t ** ppfn, 
 	gs_function_t **Functions;
 	uint i;
 	gs_function_AdOt_params_t params;
-	int code;
 
 	check_read(*pFunction);
 	if (size == 0)
@@ -250,12 +249,12 @@ build_shading_function(i_ctx_t *i_ctx_p, const ref * op, gs_function_t ** ppfn, 
 	for (i = 0; i < size; ++i) {
 	    ref rsubfn;
 
-	    array_get(pFunction, (long)i, &rsubfn);
+	    array_get(imemory, pFunction, (long)i, &rsubfn);
 	    code = fn_build_function(i_ctx_p, &rsubfn, &Functions[i], mem);
 	    if (code < 0)
 		break;
 	}
-	params.m = 1;
+	params.m = num_inputs;
 	params.Domain = 0;
 	params.n = size;
 	params.Range = 0;
@@ -264,9 +263,28 @@ build_shading_function(i_ctx_t *i_ctx_p, const ref * op, gs_function_t ** ppfn, 
 	    code = gs_function_AdOt_init(ppfn, &params, mem);
 	if (code < 0)
 	    gs_function_AdOt_free_params(&params, mem);
-	return code;
-    } else
-	return fn_build_function(i_ctx_p, pFunction, ppfn, mem);
+    } else {
+	code = fn_build_function(i_ctx_p, pFunction, ppfn, mem);
+	if (code < 0)
+	    return code;
+	if ((*ppfn)->params.m != num_inputs) {
+	    gs_function_free(*ppfn, true, mem);
+	    return_error(e_rangecheck);
+	}
+    }
+    return code;
+}
+
+/* According to PLRM 3rd ed, p. 264  "indexed color space is not
+ * allowed in any shading whose color values are generated by a function;
+ * this applies to any shading dictionary that contains a Function entry."
+ * Adobe interpreters follow PLRM in this respect and we follow them.
+ */
+private int
+check_indexed_vs_function(const gs_color_space *pcs, const gs_function_t *foo)
+{ if (foo && gs_color_space_get_index(pcs) == gs_color_space_index_Indexed)
+    return_error(e_rangecheck);
+  return 0;
 }
 
 /* ------ Build shadings ------ */
@@ -279,14 +297,18 @@ build_shading_1(i_ctx_t *i_ctx_p, const ref * op, const gs_shading_params_t * pc
     gs_shading_Fb_params_t params;
     int code;
     static const float default_Domain[4] = {0, 1, 0, 1};
+    ref *pmatrix;
 
     *(gs_shading_params_t *)&params = *pcommon;
     gs_make_identity(&params.Matrix);
     params.Function = 0;
-    if ((code = dict_floats_param(op, "Domain", 4, params.Domain,
+    if ((code = dict_floats_param(imemory, op, "Domain", 
+				  4, params.Domain,
 				  default_Domain)) < 0 ||
-	(code = dict_matrix_param(op, "Matrix", &params.Matrix)) < 0 ||
+	(dict_find_string(op, "Matrix", &pmatrix) > 0 &&
+	 (code = read_matrix(imemory, pmatrix, &params.Matrix)) < 0) ||
 	(code = build_shading_function(i_ctx_p, op, &params.Function, 2, mem)) < 0 ||
+	(code = check_indexed_vs_function(params.ColorSpace, params.Function)) < 0 ||
 	(code = gs_shading_Fb_init(ppsh, &params, mem)) < 0
 	) {
 	gs_free_object(mem, params.Function, "Function");
@@ -307,17 +329,20 @@ build_directional_shading(i_ctx_t *i_ctx_p, const ref * op, float *Coords, int n
 			  float Domain[2], gs_function_t ** pFunction,
 			  bool Extend[2], gs_memory_t *mem)
 {
-    int code = dict_floats_param(op, "Coords", num_Coords, Coords, NULL);
+    int code = dict_floats_param(imemory, op, "Coords", 
+				 num_Coords, Coords, NULL);
     static const float default_Domain[2] = {0, 1};
     ref *pExtend;
 
     *pFunction = 0;
     if (code < 0 ||
-	(code = dict_floats_param(op, "Domain", 2, Domain,
+	(code = dict_floats_param(imemory, op, "Domain", 2, Domain,
 				  default_Domain)) < 0 ||
 	(code = build_shading_function(i_ctx_p, op, pFunction, 1, mem)) < 0
 	)
 	return code;
+    if (!*pFunction)
+	    return_error(e_undefined);
     if (dict_find_string(op, "Extend", &pExtend) <= 0)
 	Extend[0] = Extend[1] = false;
     else {
@@ -327,8 +352,10 @@ build_directional_shading(i_ctx_t *i_ctx_p, const ref * op, float *Coords, int n
 	    return_error(e_typecheck);
 	else if (r_size(pExtend) != 2)
 	    return_error(e_rangecheck);
-	else if ((array_get(pExtend, 0L, &E0), !r_has_type(&E0, t_boolean)) ||
-		 (array_get(pExtend, 1L, &E1), !r_has_type(&E1, t_boolean))
+	else if ((array_get(imemory, pExtend, 0L, &E0), 
+		  !r_has_type(&E0, t_boolean)) ||
+		 (array_get(imemory, pExtend, 1L, &E1), 
+		  !r_has_type(&E1, t_boolean))
 	    )
 	    return_error(e_typecheck);
 	Extend[0] = E0.value.boolval, Extend[1] = E1.value.boolval;
@@ -348,6 +375,7 @@ build_shading_2(i_ctx_t *i_ctx_p, const ref * op, const gs_shading_params_t * pc
     if ((code = build_directional_shading(i_ctx_p, op, params.Coords, 4,
 					  params.Domain, &params.Function,
 					  params.Extend, mem)) < 0 ||
+	(code = check_indexed_vs_function(params.ColorSpace, params.Function)) < 0 ||
 	(code = gs_shading_A_init(ppsh, &params, mem)) < 0
 	) {
 	gs_free_object(mem, params.Function, "Function");
@@ -373,6 +401,7 @@ build_shading_3(i_ctx_t *i_ctx_p, const ref * op, const gs_shading_params_t * pc
     if ((code = build_directional_shading(i_ctx_p, op, params.Coords, 6,
 					  params.Domain, &params.Function,
 					  params.Extend, mem)) < 0 ||
+	(code = check_indexed_vs_function(params.ColorSpace, params.Function)) < 0 ||
 	(code = gs_shading_R_init(ppsh, &params, mem)) < 0
 	) {
 	gs_free_object(mem, params.Function, "Function");
@@ -394,6 +423,7 @@ build_mesh_shading(i_ctx_t *i_ctx_p, const ref * op,
 		   gs_memory_t *mem)
 {
     int code;
+    float *data = 0;
     ref *pDataSource;
 
     *pDecode = 0;
@@ -402,14 +432,12 @@ build_mesh_shading(i_ctx_t *i_ctx_p, const ref * op,
 	return_error(e_rangecheck);
     if (r_is_array(pDataSource)) {
 	uint size = r_size(pDataSource);
-	float *data =
-	    (float *)gs_alloc_byte_array(mem, size, sizeof(float),
-					 "build_mesh_shading");
-	int code;
 
+	data = (float *)gs_alloc_byte_array(mem, size, sizeof(float),
+					    "build_mesh_shading");
 	if (data == 0)
 	    return_error(e_VMerror);
-	code = float_params(pDataSource->value.refs + size - 1, size, data);
+	code = process_float_array(mem, pDataSource, size, data);
 	if (code < 0) {
 	    gs_free_object(mem, data, "build_mesh_shading");
 	    return code;
@@ -433,36 +461,44 @@ build_mesh_shading(i_ctx_t *i_ctx_p, const ref * op,
 	    default:
 		return_error(e_typecheck);
 	}
+    code = build_shading_function(i_ctx_p, op, pFunction, 1, mem);
+    if (code < 0) {
+	gs_free_object(mem, data, "build_mesh_shading");
+	return code;
+    }
     if (data_source_is_array(params->DataSource)) {
 	params->BitsPerCoordinate = 0;
 	params->BitsPerComponent = 0;
     } else {
-	int num_decode =
-	    4 + gs_color_space_num_components(params->ColorSpace) * 2;
+	int num_decode = 4 +
+	    (*pFunction != 0 ? 1 :
+	     gs_color_space_num_components(params->ColorSpace)) * 2;
 
-/****** FREE FLOAT ARRAY DATA ON ERROR ******/
 	if ((code = dict_int_param(op, "BitsPerCoordinate", 1, 32, 0,
-				   &params->BitsPerCoordinate)) < 0 ||
+				   &params->BitsPerCoordinate)) >= 0 &&
 	    (code = dict_int_param(op, "BitsPerComponent", 1, 16, 0,
-				   &params->BitsPerComponent)) < 0
-	    )
-	    return code;
-	*pDecode = (float *)
-	    gs_alloc_byte_array(mem, num_decode, sizeof(float),
-				"build_mesh_shading");
-	if (*pDecode == 0)
-	    return_error(e_VMerror);
-	code = dict_floats_param(op, "Decode", num_decode, *pDecode, NULL);
-	if (code < 0) {
-	    gs_free_object(mem, *pDecode, "build_mesh_shading");
-	    *pDecode = 0;
-	    return code;
+				   &params->BitsPerComponent)) >= 0
+	    ) {
+	    *pDecode = (float *)
+		gs_alloc_byte_array(mem, num_decode, sizeof(float),
+				    "build_mesh_shading");
+	    if (*pDecode == 0)
+		code = gs_note_error(e_VMerror);
+	    else {
+	        code = dict_floats_param(mem, op, "Decode", num_decode, *pDecode, NULL);
+		if (code < 0) {
+		    gs_free_object(mem, *pDecode, "build_mesh_shading");
+		    *pDecode = 0;
+		}
+	    }
 	}
     }
-    code = build_shading_function(i_ctx_p, op, pFunction, 1, mem);
     if (code < 0) {
-	gs_free_object(mem, *pDecode, "build_mesh_shading");
-	*pDecode = 0;
+	if (*pFunction != 0) {
+	    gs_function_free(*pFunction, true, mem);
+	    *pFunction = 0;
+	}
+	gs_free_object(mem, data, "build_mesh_shading");
     }
     return code;
 }
@@ -492,6 +528,7 @@ build_shading_4(i_ctx_t *i_ctx_p, const ref * op, const gs_shading_params_t * pc
     if ((code =
 	 build_mesh_shading(i_ctx_p, op, (gs_shading_mesh_params_t *)&params,
 			    &params.Decode, &params.Function, mem)) < 0 ||
+	(code = check_indexed_vs_function(params.ColorSpace, params.Function)) < 0 ||
 	(code = flag_bits_param(op, (gs_shading_mesh_params_t *)&params,
 				&params.BitsPerFlag)) < 0 ||
 	(code = gs_shading_FfGt_init(ppsh, &params, mem)) < 0
@@ -520,6 +557,7 @@ build_shading_5(i_ctx_t *i_ctx_p, const ref * op, const gs_shading_params_t * pc
     if ((code =
 	 build_mesh_shading(i_ctx_p, op, (gs_shading_mesh_params_t *)&params,
 			    &params.Decode, &params.Function, mem)) < 0 ||
+	(code = check_indexed_vs_function(params.ColorSpace, params.Function)) < 0 ||
 	(code = dict_int_param(op, "VerticesPerRow", 2, max_int, 0,
 			       &params.VerticesPerRow)) < 0 ||
 	(code = gs_shading_LfGt_init(ppsh, &params, mem)) < 0
@@ -548,6 +586,7 @@ build_shading_6(i_ctx_t *i_ctx_p, const ref * op, const gs_shading_params_t * pc
     if ((code =
 	 build_mesh_shading(i_ctx_p, op, (gs_shading_mesh_params_t *)&params,
 			    &params.Decode, &params.Function, mem)) < 0 ||
+	(code = check_indexed_vs_function(params.ColorSpace, params.Function)) < 0 ||
 	(code = flag_bits_param(op, (gs_shading_mesh_params_t *)&params,
 				&params.BitsPerFlag)) < 0 ||
 	(code = gs_shading_Cp_init(ppsh, &params, mem)) < 0
@@ -576,6 +615,7 @@ build_shading_7(i_ctx_t *i_ctx_p, const ref * op, const gs_shading_params_t * pc
     if ((code =
 	 build_mesh_shading(i_ctx_p, op, (gs_shading_mesh_params_t *)&params,
 			    &params.Decode, &params.Function, mem)) < 0 ||
+	(code = check_indexed_vs_function(params.ColorSpace, params.Function)) < 0 ||
 	(code = flag_bits_param(op, (gs_shading_mesh_params_t *)&params,
 				&params.BitsPerFlag)) < 0 ||
 	(code = gs_shading_Tpp_init(ppsh, &params, mem)) < 0

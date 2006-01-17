@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 1992 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpjet.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
+/* $Id: gdevpjet.c,v 1.7 2004/08/04 23:33:29 stefan Exp $*/
 /* H-P PaintJet, PaintJet XL, and DEC LJ250 drivers. */
 /* Thanks to Rob Reiss (rob@moray.berkeley.edu) for the PaintJet XL */
 /* modifications. */
@@ -35,7 +33,7 @@
 private dev_proc_print_page(lj250_print_page);
 private dev_proc_print_page(paintjet_print_page);
 private dev_proc_print_page(pjetxl_print_page);
-private int pj_common_print_page(P4(gx_device_printer *, FILE *, int, const char *));
+private int pj_common_print_page(gx_device_printer *, FILE *, int, const char *);
 private gx_device_procs paintjet_procs =
   prn_color_procs(gdev_prn_open, gdev_prn_output_page, gdev_prn_close,
     gdev_pcl_3bit_map_rgb_color, gdev_pcl_3bit_map_color_rgb);
@@ -65,7 +63,7 @@ const gx_device_printer far_data gs_pjetxl_device =
 	3, pjetxl_print_page);
 
 /* Forward references */
-private int compress1_row(P3(const byte *, const byte *, byte *));
+private int compress1_row(const byte *, const byte *, byte *);
 
 /* ------ Internal routines ------ */
 
@@ -104,17 +102,17 @@ pj_common_print_page(gx_device_printer *pdev, FILE *prn_stream, int y_origin,
 {
 #define DATA_SIZE (LINE_SIZE * 8)
 	byte *data =
-		(byte *)gs_malloc(DATA_SIZE, 1,
+	        (byte *)gs_malloc(pdev->memory, DATA_SIZE, 1,
 				  "paintjet_print_page(data)");
 	byte *plane_data =
-		(byte *)gs_malloc(LINE_SIZE * 3, 1,
+		(byte *)gs_malloc(pdev->memory, LINE_SIZE * 3, 1,
 				  "paintjet_print_page(plane_data)");
 	if ( data == 0 || plane_data == 0 )
 	{	if ( data )
-			gs_free((char *)data, DATA_SIZE, 1,
+			gs_free(pdev->memory, (char *)data, DATA_SIZE, 1,
 				"paintjet_print_page(data)");
 		if ( plane_data )
-			gs_free((char *)plane_data, LINE_SIZE * 3, 1,
+			gs_free(pdev->memory, (char *)plane_data, LINE_SIZE * 3, 1,
 				"paintjet_print_page(plane_data)");
 		return_error(gs_error_VMerror);
 	}
@@ -212,8 +210,8 @@ pj_common_print_page(gx_device_printer *pdev, FILE *prn_stream, int y_origin,
 	/* end the page */
 	fputs(end_page, prn_stream);
 
-	gs_free((char *)data, DATA_SIZE, 1, "paintjet_print_page(data)");
-	gs_free((char *)plane_data, LINE_SIZE * 3, 1, "paintjet_print_page(plane_data)");
+	gs_free(pdev->memory, (char *)data, DATA_SIZE, 1, "paintjet_print_page(data)");
+	gs_free(pdev->memory, (char *)plane_data, LINE_SIZE * 3, 1, "paintjet_print_page(plane_data)");
 
 	return 0;
 }

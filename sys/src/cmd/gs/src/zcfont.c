@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zcfont.c,v 1.2 2000/09/19 19:00:52 lpd Exp $ */
+/* $Id: zcfont.c,v 1.6 2002/06/16 03:43:50 lpd Exp $ */
 /* Composite font-related character operators */
 #include "ghost.h"
 #include "oper.h"
@@ -31,8 +29,8 @@
 #include "store.h"
 
 /* Forward references */
-private int cshow_continue(P1(i_ctx_t *));
-private int cshow_restore_font(P1(i_ctx_t *));
+private int cshow_continue(i_ctx_t *);
+private int cshow_restore_font(i_ctx_t *);
 
 /* <proc> <string> cshow - */
 private int
@@ -94,10 +92,30 @@ cshow_continue(i_ctx_t *i_ctx_p)
 	gs_font *scaled_font;
 	uint font_space = r_space(pfont_dict(font));
 	uint root_font_space = r_space(pfont_dict(root_font));
+	int fdepth = penum->fstack.depth;
 
 	gs_text_current_width(penum, &wpt);
 	if (font == root_font)
 	    scaled_font = font;
+	else if (fdepth > 0) {
+	  /* Construct a scaled version of the leaf font. 
+	     If font stack is deep enough, get the matrix for scaling
+	     from the immediate parent of current font. 
+	     (The font matrix of root font is not good for the purpose
+	     in some case.) 
+	     assert (penum->fstack.items[fdepth].font == font
+	             && penum->fstack.items[0].font == root_font); */
+	  uint save_space = idmemory->current_space;
+	  gs_font * immediate_parent = penum->fstack.items[fdepth - 1].font;
+
+	  ialloc_set_space(idmemory, font_space);
+	  code = gs_makefont(font->dir, font, 
+			     &immediate_parent->FontMatrix,
+			     &scaled_font);
+	  ialloc_set_space(idmemory, save_space);
+	  if (code < 0)
+	    return code;
+	}
 	else {
 	    /* Construct a scaled version of the leaf font. */
 	    uint save_space = idmemory->current_space;

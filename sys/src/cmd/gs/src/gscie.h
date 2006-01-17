@@ -1,22 +1,20 @@
-/* Copyright (C) 1992, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1992, 1995, 1997, 1998, 1999, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gscie.h,v 1.3 2001/03/17 01:15:42 raph Exp $ */
+/* $Id: gscie.h,v 1.14 2005/05/05 05:35:22 dan Exp $ */
 /* Structures for CIE color algorithms */
 /* (requires gscspace.h, gscolor2.h) */
 
@@ -26,6 +24,7 @@
 #include "gconfigv.h"		/* for USE_FPU */
 #include "gsrefct.h"
 #include "gsstype.h"		/* for extern_st */
+#include "gstypes.h"		/* for gs_range_t */
 #include "gxctable.h"
 
 /* ---------------- Configuration parameters ---------------- */
@@ -45,16 +44,31 @@
 /* If we are using fixed-point values, define the number of fraction bits. */
 #define CIE_FIXED_FRACTION_BITS 12
 
-/* Define whether to interpolate between cached values. */
+/*
+ * Interpolation between adjacent cached values is computationally very
+ * expensive, but it is necessary in numerically sensitive areas.  We
+ * characterize this by a threshold value V >= 0: we interpolate
+ * between adjacent cache values A = C[i] and B = C[i+1] if |B-A| >= V *
+ * min(|A|,|B|).  V = 0 means always interpolate; if V is undefined,
+ * we never interpolate.
+ */
+
+/*
+ * Define whether to interpolate between cached values.
+ */
 #define CIE_CACHE_INTERPOLATE
 
-/* Define whether to interpolate at all intermediate lookup steps. */
-/* This is computationally expensive and doesn't seem to improve */
-/* the accuracy of the result. */
-/*#define CIE_INTERPOLATE_INTERMEDIATE */
+/*
+ * Define the threshold for interpolating.
+ * This is computationally expensive.
+ */
+#define CIE_INTERPOLATE_THRESHOLD 0.001
 
-/* Define whether to interpolate in the RenderTable. */
-/* This is computationally very expensive, so it is normally disabled. */
+/*
+ * Define whether to interpolate in the RenderTable.  Currently this is a
+ * Boolean rather than a threshold.  This is computationally very expensive,
+ * but unfortunately it seems to be necessary.
+ */
 #define CIE_RENDER_TABLE_INTERPOLATE
 
 /* ------ Derived values ------ */
@@ -171,9 +185,8 @@ typedef struct gs_matrix3_s {
 } gs_matrix3;
 
 /* 3- and 4-element vectors of ranges. */
-typedef struct gs_range_s {
-    float rmin, rmax;
-} gs_range;
+/* NOTE: gs_range is deprecated for new code in favor of gs_range_t. */
+typedef gs_range_t gs_range;
 typedef struct gs_range3_s {
     gs_range ranges[3];
 } gs_range3;
@@ -185,29 +198,29 @@ typedef struct gs_range4_s {
 typedef struct gs_cie_common_s gs_cie_common;
 typedef struct gs_cie_wbsd_s gs_cie_wbsd;
 
-typedef float (*gs_cie_a_proc) (P2(floatp, const gs_cie_a *));
+typedef float (*gs_cie_a_proc) (floatp, const gs_cie_a *);
 
-typedef float (*gs_cie_abc_proc) (P2(floatp, const gs_cie_abc *));
+typedef float (*gs_cie_abc_proc) (floatp, const gs_cie_abc *);
 typedef struct gs_cie_abc_proc3_s {
     gs_cie_abc_proc procs[3];
 } gs_cie_abc_proc3;
 
-typedef float (*gs_cie_def_proc) (P2(floatp, const gs_cie_def *));
+typedef float (*gs_cie_def_proc) (floatp, const gs_cie_def *);
 typedef struct gs_cie_def_proc3_s {
     gs_cie_def_proc procs[3];
 } gs_cie_def_proc3;
 
-typedef float (*gs_cie_defg_proc) (P2(floatp, const gs_cie_defg *));
+typedef float (*gs_cie_defg_proc) (floatp, const gs_cie_defg *);
 typedef struct gs_cie_defg_proc4_s {
     gs_cie_defg_proc procs[4];
 } gs_cie_defg_proc4;
 
-typedef float (*gs_cie_common_proc) (P2(floatp, const gs_cie_common *));
+typedef float (*gs_cie_common_proc) (floatp, const gs_cie_common *);
 typedef struct gs_cie_common_proc3_s {
     gs_cie_common_proc procs[3];
 } gs_cie_common_proc3;
 
-typedef float (*gs_cie_render_proc) (P2(floatp, const gs_cie_render *));
+typedef float (*gs_cie_render_proc) (floatp, const gs_cie_render *);
 typedef struct gs_cie_render_proc3_s {
     gs_cie_render_proc procs[3];
 } gs_cie_render_proc3;
@@ -236,8 +249,8 @@ typedef struct gs_cie_render_proc3_s {
  * Note also that since TransformPQR can fail (if the driver doesn't
  * recognize the proc_name), it must return a failure code.
  */
-typedef int (*gs_cie_transform_proc)(P5(int, floatp, const gs_cie_wbsd *,
-					gs_cie_render *, float *));
+typedef int (*gs_cie_transform_proc)(int, floatp, const gs_cie_wbsd *,
+				     gs_cie_render *, float *);
 typedef struct gs_cie_transform_proc3_s {
     gs_cie_transform_proc proc;
     const char *proc_name;
@@ -245,7 +258,7 @@ typedef struct gs_cie_transform_proc3_s {
     const char *driver_name;	/* for mapping proc_name back to procs */
 } gs_cie_transform_proc3;
 
-typedef frac(*gs_cie_render_table_proc) (P2(byte, const gs_cie_render *));
+typedef frac(*gs_cie_render_table_proc) (byte, const gs_cie_render *);
 typedef struct gs_cie_render_table_procs_s {
     gs_cie_render_table_proc procs[4];
 } gs_cie_render_table_procs;
@@ -302,11 +315,11 @@ typedef struct gs_cie_wb_s {
  */
 typedef struct cie_linear_params_s {
     bool is_linear;
-    float scale, origin;
+    float scale, origin;	/* if is_linear = true */
 } cie_linear_params_t;
 typedef struct cie_cache_params_s {
     bool is_identity;		/* must come first */
-    float base, factor;
+    double base, factor;
     cie_linear_params_t linear;	/* only used in vector_cache.floats? */
 } cie_cache_params;
 typedef struct cie_cache_floats_s {
@@ -330,8 +343,12 @@ typedef union gx_cie_scalar_cache_s {
 typedef struct cie_cached_vector3_s {
     cie_cached_value u, v, w;
 } cie_cached_vector3;
+typedef struct cie_interpolation_range_s {
+    cie_cached_value rmin, rmax;
+} cie_interpolation_range_t;
 typedef struct cie_vector_cache_params_s {
     cie_cached_value base, factor, limit;
+    cie_interpolation_range_t interpolation_ranges[3];  /* if this cache has an interpolation threshold */
 } cie_vector_cache_params;
 typedef struct cie_cache_vectors_s {
     cie_vector_cache_params params;
@@ -341,12 +358,16 @@ typedef struct gx_cie_vector_cache_s {
     cie_cache_floats floats;
     cie_cache_vectors vecs;
 } gx_cie_vector_cache;
+typedef struct gx_cie_vector_cache3_s {
+    gx_cie_vector_cache caches[3];
+    cie_interpolation_range_t interpolation_ranges[3];  /* indexed by output component */
+} gx_cie_vector_cache3_t;
 
 /* ------ Color space dictionaries ------ */
 
 /* Elements common to all CIE color space dictionaries. */
 struct gs_cie_common_s {
-    int (*install_cspace)(P2(const gs_color_space *, gs_state *));
+    int (*install_cspace)(const gs_color_space *, gs_state *);
     void *client_data;
     gs_range3 RangeLMN;
     gs_cie_common_proc3 DecodeLMN;
@@ -409,7 +430,7 @@ struct gs_cie_a_s {
 		/* Following are computed when structure is initialized. */\
 	struct {\
 		bool skipABC;\
-		gx_cie_vector_cache DecodeABC[3];  /* mult. by MatrixABC */\
+		gx_cie_vector_cache3_t DecodeABC;  /* mult. by MatrixABC */\
 	} caches
 
 /* A CIEBasedABC dictionary. */
@@ -542,7 +563,7 @@ struct gs_cie_render_s {
     gs_matrix3 MatrixPQR_inverse_LMN;
     gs_vector3 wdpqr, bdpqr;
     struct {
-	gx_cie_vector_cache EncodeLMN[3];	/* mult. by M'ABCEncode */
+	gx_cie_vector_cache3_t EncodeLMN;	/* mult. by M'ABCEncode */
 	gx_cie_float_fixed_cache EncodeABC[3];
 	gx_cie_scalar_cache RenderTableT[4];
 	bool RenderTableT_is_identity;
@@ -564,6 +585,16 @@ typedef enum {
     CIE_JC_STATUS_INITED,
     CIE_JC_STATUS_COMPLETED
 } cie_joint_caches_status_t;
+
+/*
+ * Define the procedure type for finishing CIE color mapping.  This is
+ * replaced by a special procedure to support CIE->XYZ mapping.
+ * It returns the number of components of the concrete color space
+ * (3 if RGB, 4 if CMYK).
+ */
+#define GX_CIE_REMAP_FINISH_PROC(proc)\
+  int proc(cie_cached_vector3 vec3, frac *pconc,\
+	   const gs_imager_state *pis, const gs_color_space *pcs)
 
 typedef struct gx_cie_joint_caches_s {
     /*
@@ -589,17 +620,19 @@ typedef struct gx_cie_joint_caches_s {
      * caches.  If it weren't for that, setcolorspace and setcolorrendering
      * could simply invalidate the caches.
      */
+
     gs_id cspace_id;
     gs_id render_id;
     cie_joint_caches_status_t id_status;
     cie_joint_caches_status_t status;
     rc_header rc;
+    GX_CIE_REMAP_FINISH_PROC((*remap_finish));
     bool skipDecodeABC;
     bool skipDecodeLMN;
-    gx_cie_vector_cache DecodeLMN[3];	/* mult. by dLMN_PQR */
+    gx_cie_vector_cache3_t DecodeLMN;	/* mult. by dLMN_PQR */
     gs_cie_wbsd points_sd;
     bool skipPQR;
-    gx_cie_vector_cache TransformPQR[3];	/* mult. by PQR_inverse_LMN */
+    gx_cie_vector_cache3_t TransformPQR;	/* mult. by PQR_inverse_LMN */
     bool skipEncodeLMN;
 } gx_cie_joint_caches;
 
@@ -609,21 +642,42 @@ typedef struct gx_cie_joint_caches_s {
 
 /* ------ Internal procedures ------ */
 
-typedef struct gs_for_loop_params_s {
-    double init, step, limit;
-} gs_for_loop_params;
-void gs_cie_cache_init(P4(cie_cache_params *, gs_for_loop_params *,
-			  const gs_range *, client_name_t));
-void gs_cie_cache_to_fracs(P2(const cie_cache_floats *, cie_cache_fracs *));
-void gs_cie_defg_complete(P1(gs_cie_defg *));
-void gs_cie_def_complete(P1(gs_cie_def *));
-void gs_cie_abc_complete(P1(gs_cie_abc *));
-void gs_cie_a_complete(P1(gs_cie_a *));
-gx_cie_joint_caches *gx_currentciecaches(P1(gs_state *));
-const gs_cie_common *gs_cie_cs_common(P1(const gs_state *));
-int gs_cie_cs_complete(P2(gs_state *, bool));
-int gs_cie_jc_complete(P2(const gs_imager_state *, const gs_color_space *pcs));
-float gs_cie_cached_value(P2(floatp, const cie_cache_floats *));
+/*
+ * Rather than using the usual PostScript for-loop paradigm, we enumerate
+ * cache key values using the exact computation
+ *	v(i) = ((N - i) * A + i * B) / N
+ * where A and B are the range of the cache and N is the number of entries
+ * (currently always gx_cie_cache_size - 1).
+ * The boilerplate is:
+ *	gs_sample_loop_params_t lp;
+ *	int i;
+ *	gs_cie_cache_init(... &lp ...);
+ *	for (i = 0; i <= lp.N; ++i) {
+ *	    float v = SAMPLE_LOOP_VALUE(i, lp);
+ *	    ...
+ *	}
+ * NOTE: This computation must match zfor_samples and for_samples_continue
+ * in zcontrol.c.
+ */
+typedef struct gs_sample_loop_params_s {
+    float A, B;
+    int N;
+} gs_sample_loop_params_t;
+#define SAMPLE_LOOP_VALUE(i, lp)\
+  ( (((lp).N - (i)) * (lp).A + (i) * (lp).B) / (lp).N )
+void gs_cie_cache_init(cie_cache_params *, gs_sample_loop_params_t *,
+		       const gs_range *, client_name_t);
+
+void gs_cie_cache_to_fracs(const cie_cache_floats *, cie_cache_fracs *);
+void gs_cie_defg_complete(gs_cie_defg *);
+void gs_cie_def_complete(gs_cie_def *);
+void gs_cie_abc_complete(gs_cie_abc *);
+void gs_cie_a_complete(gs_cie_a *);
+gx_cie_joint_caches *gx_currentciecaches(gs_state *);
+const gs_cie_common *gs_cie_cs_common(const gs_state *);
+int gs_cie_cs_complete(gs_state *, bool);
+int gs_cie_jc_complete(const gs_imager_state *, const gs_color_space *pcs);
+float gs_cie_cached_value(floatp, const cie_cache_floats *);
 
 #define CIE_CLAMP_INDEX(index)\
   index = (index < 0 ? 0 :\
@@ -633,16 +687,16 @@ float gs_cie_cached_value(P2(floatp, const cie_cache_floats *));
  * Compute the source and destination WhitePoint and BlackPoint for
  * the TransformPQR procedure.
  */
-int gs_cie_compute_points_sd(P3(gx_cie_joint_caches *pjc,
-				const gs_cie_common * pcie,
-				const gs_cie_render * pcrd));
+int gs_cie_compute_points_sd(gx_cie_joint_caches *pjc,
+			     const gs_cie_common * pcie,
+			     const gs_cie_render * pcrd);
 
 /*
  * Compute the derived values in a CRD that don't involve the cached
  * procedure values, moving the CRD from "built" to "inited" status.
  * If the CRD is already in "inited" or a later status, do nothing.
  */
-int gs_cie_render_init(P1(gs_cie_render *));
+int gs_cie_render_init(gs_cie_render *);
 
 /*
  * Sample the EncodeLMN, EncodeABC, and RenderTableT CRD procedures, and
@@ -650,7 +704,7 @@ int gs_cie_render_init(P1(gs_cie_render *));
  * If the CRD is already in "sampled" or a later status, do nothing;
  * otherwise, if the CRD is not in "inited" status, return an error.
  */
-int gs_cie_render_sample(P1(gs_cie_render *));
+int gs_cie_render_sample(gs_cie_render *);
 
 /*
  * Finish preparing a CRD for installation, by restricting and/or
@@ -659,7 +713,7 @@ int gs_cie_render_sample(P1(gs_cie_render *));
  * nothing; otherwise, if the CRD is not in "sampled" status, return an
  * error.
  */
-int gs_cie_render_complete(P1(gs_cie_render *));
+int gs_cie_render_complete(gs_cie_render *);
 
 /* ---------------- Procedures ---------------- */
 
@@ -677,14 +731,14 @@ int gs_cie_render_complete(P1(gs_cie_render *));
  * you should call cs_adjust_count(pcspace, -1).  THIS IS A BUG IN THE API.
  */
 extern int
-    gs_cspace_build_CIEA(P3(gs_color_space ** ppcspace, void *client_data,
-			    gs_memory_t * pmem)),
-    gs_cspace_build_CIEABC(P3(gs_color_space ** ppcspace, void *client_data,
-			      gs_memory_t * pmem)),
-    gs_cspace_build_CIEDEF(P3(gs_color_space ** ppcspace, void *client_data,
-			      gs_memory_t * pmem)),
-    gs_cspace_build_CIEDEFG(P3(gs_color_space ** ppcspace, void *client_data,
-			       gs_memory_t * pmem));
+    gs_cspace_build_CIEA(gs_color_space ** ppcspace, void *client_data,
+			 gs_memory_t * pmem),
+    gs_cspace_build_CIEABC(gs_color_space ** ppcspace, void *client_data,
+			   gs_memory_t * pmem),
+    gs_cspace_build_CIEDEF(gs_color_space ** ppcspace, void *client_data,
+			   gs_memory_t * pmem),
+    gs_cspace_build_CIEDEFG(gs_color_space ** ppcspace, void *client_data,
+			    gs_memory_t * pmem);
 
 /* ------ Accessors ------ */
 
@@ -744,7 +798,10 @@ extern int
  * NB: the caller is responsible for deallocating the color table data
  *     when no longer needed.  */
 extern int
-    gs_cie_defx_set_lookup_table(P3(gs_color_space * pcspace, int *pdims,
-				    const gs_const_string * ptable));
+    gs_cie_defx_set_lookup_table(gs_color_space * pcspace, int *pdims,
+				 const gs_const_string * ptable);
+
+/* Serialize common CIE elements. */
+int gx_serialize_cie_common_elements(const gs_color_space * pcs, stream * s);
 
 #endif /* gscie_INCLUDED */

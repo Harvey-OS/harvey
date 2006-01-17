@@ -1,22 +1,20 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: sa85d.c,v 1.3 2000/10/22 01:19:36 lpd Exp $ */
+/* $Id: sa85d.c,v 1.9 2003/04/24 19:42:13 ray Exp $ */
 /* ASCII85Decode filter */
 #include "std.h"
 #include "strimpl.h"
@@ -37,7 +35,7 @@ s_A85D_init(stream_state * st)
 }
 
 /* Process a buffer */
-private int a85d_finish(P3(int, ulong, stream_cursor_write *));
+private int a85d_finish(int, ulong, stream_cursor_write *);
 private int
 s_A85D_process(stream_state * st, stream_cursor_read * pr,
 	       stream_cursor_write * pw, bool last)
@@ -66,6 +64,11 @@ s_A85D_process(stream_state * st, stream_cursor_read * pr,
 		    status = 1;
 		    break;
 		}
+		/* Check for overflow condition, throw ioerror if so */
+		if (word >= 0x03030303 && ccode > 0) {
+		    status = ERRC;
+	            break;
+	        }
 		word = word * 85 + ccode;
 		q[1] = (byte) (word >> 24);
 		q[2] = (byte) (word >> 16);
@@ -89,6 +92,8 @@ s_A85D_process(stream_state * st, stream_cursor_read * pr,
 	} else if (scan_char_decoder[ch] == ctype_space)
 	    DO_NOTHING;
 	else if (ch == '~') {
+	    int i = 1;
+
 	    /* Handle odd bytes. */
 	    if (p == rlimit) {
 		if (last)
@@ -102,10 +107,24 @@ s_A85D_process(stream_state * st, stream_cursor_read * pr,
 		p--;
 		break;
 	    }
-	    if (*++p != '>') {
-		status = ERRC;
+
+	    /* According to PLRM 3rd, if the A85 filter encounters '~',
+	     * the next character must be '>'.
+	     * And any other characters should raise an ioerror.
+	     * But Adobe Acrobat allows CR/LF between ~ and >.
+	     * So we allow CR/LF between them. */
+	    while ((p[i] == 13 || p[i] == 10) && (p+i <= rlimit)) 
+		i++;
+	    if (p[i] != '>') {
+		if (p+i == rlimit) {
+		    if (last)
+			status = ERRC;
+		    else
+			p--;	/* we'll see the '~' after filling the buffer */
+		}
 		break;
 	    }
+	    p += i;		/* advance to the '>' */
 	    pw->ptr = q;
 	    status = a85d_finish(ccount, word, pw);
 	    q = pw->ptr;
@@ -142,13 +161,13 @@ a85d_finish(int ccount, ulong word, stream_cursor_write * pw)
 	    status = ERRC;
 	    break;
 	case 2:		/* 1 odd byte */
-	    word = word * (85L * 85 * 85) + 0xffffffL;
+	    word = word * (85L * 85 * 85) + 85L * 85 * 85 - 1L;
 	    goto o1;
 	case 3:		/* 2 odd bytes */
-	    word = word * (85L * 85) + 0xffffL;
+	    word = word * (85L * 85) + 85L * 85L - 1L;
 	    goto o2;
 	case 4:		/* 3 odd bytes */
-	    word = word * 85 + 0xffL;
+	    word = word * 85L + 84L;
 	    q[3] = (byte) (word >> 8);
 o2:	    q[2] = (byte) (word >> 16);
 o1:	    q[1] = (byte) (word >> 24);

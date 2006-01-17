@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ghostscript projects</title>
-<!-- $Id: Projects.htm,v 1.33.2.2 2002/02/01 05:31:25 raph Exp $ -->
+<!-- $Id: Projects.htm,v 1.67 2005/10/20 19:46:23 ray Exp $ -->
 <link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
 
@@ -91,6 +91,13 @@ In order to integrate Ghostscript into XMetaL and other applications it
 would be convenient for Ghostscript to be distributed as a COM object
 along with the current gswin32.exe, gswin32c.exe and gsdll32.dll files.
 
+<h3>Visual Trace window for X.</h3>
+
+<p>
+Currently Ghostscript implements Visual Trace window for Windows only
+(see <I>wdtrace.c</I>). An implementation for X would be useful. 
+
+<p>
 <hr>
 
 <h2><a name="Driver_architecture"></a>Driver Architecture</h2>
@@ -203,8 +210,7 @@ entirely redone later): compressing images.  Currently the driver only
 compresses character bitmaps, and doesn't compress other images at all.
 <I>It should use the <b><tt>CCITTFaxEncode</tt></b> filter for 1-bit-deep
 images, and plane-separated <b><tt>LZWEncode</tt></b> compression for color
-images, using the <b><tt>miGIF</tt></b> algorithms that are believed to be
-free of the Welch patent for the latter.  When generating LL3 PS, the
+images.  When generating LL3 PS, the
 <b><tt>Flate</tt></b> compression will work better than miGIF. It may be
 worth trying several methods on each image and use the one that works best.</I>
 
@@ -276,6 +282,20 @@ is difficult.  <I>This would probably involve extending the library APIs for
 images so that they could pass a stream, possibly including filters, instead
 of the (fully decoded) data rows.</I>
 
+<h3>Emit warnings when producing PDF output.</h3>
+
+<p>
+Currently, the PDF writer has no way to emit warnings.  Users would like to
+see warnings when fonts cannot be embedded (this is actually required when
+the value of CannotEmbedFontPolicy is set to /Warning), and for some other
+questionable situations like non-existent Dests (Feature request
+<a href="http://bugs.ghostscript.com/show_bug.cgi?id=480853"
+class="offsite">#480853</a>).
+Probably the right way to handle this is with a pseudo device parameter
+called "Warnings" that is a list of strings: the pdfwrite driver would add
+strings to this list, and the ps2pdf script (lib/gs_pdfwr.ps) would read
+them out, print them, and reset them at the end of each page.
+
 <hr>
 
 <h2><a name="Graphics_functionality"></a>Graphics functionality</h2>
@@ -302,18 +322,18 @@ anomalies caused by slight misregistration of different ink layers): we
 would like to implement this.  <I>This is a complex and
 difficult area; even many Adobe RIPs don't do it.</I>
 
-<h3>Hook FreeType TrueType library into graphics library.</h3>
+<h3>Improve the font grid fitting and antialiasing.</h3>
 
 <p>
-We would like to provide an option for good integration of the FreeType font
-rasterizer into Ghostscript, since the FreeType code is better than
-Ghostscript's current rasterizers.  We understand that some users in Japan
-have done this already, but we don't know if this is a good starting point
-(the only documentation is in Japanese).  <I>Their work uses
-Ghostscript's 'xfont' interface, which is how Ghostscript interfaces to
-platform facilities such as the X and MS Windows font capabilities.  This is
-a device-level interface and not the best place to do this: we would rather
-have the graphics library interface to FreeType directly.</I>
+Ghostscript includes a reduced True Type bytecode interpreter branched from FreeType 1.
+It performs a grid fitting for True Type glyphs except ones involving
+instructions patented by Apple. A wanted improvement is to implement
+a stem recognition algorithm similar to Free Type autohinting.
+It also would help to poorly designed Type 1 fonts, which have misplaced or missed hints. 
+
+<p>
+Another useful improvement is to implement a font antialiasing with 
+<b><tt>TextAlphaBits</tt></b> other than 1,2,4.
 
 <h3>ICC profile support for output.</h3>
 
@@ -385,6 +405,43 @@ the functions are very non-linear (which we have actually seen in practice).
 <I>This should only be done if the function is, in fact,
 severely non-linear, since interpreting the function definition will almost
 always be much slower than interpolating in the table.</I>
+
+<h3>Replace PostScript procedures with Function objects.</h3>
+
+<p>
+Currently, there is a lot of tiresome code for doing callbacks with
+continuations for loading the caches that hold sampled values for the
+procedures listed under "Change sampled functions ..." above.  For the
+Separation and DeviceN tint transform functions, and only for these,
+PostScript code associated with the setcolorspace operator actually converts
+the PostScript procedure to a Function object -- to a FunctionType 4
+(PostScript subset) Function if possible, or to a FunctionType 0 (sampled)
+Function if not.  This approach should be used for all the other sampled
+functions.  Doing this would reduce the amount of C code significantly,
+while only increasing PostScript code slightly.
+
+<p>
+This change would require touching (and slightly changing) all PostScript
+operators that currently do such callbacks: for example, rather than a
+setblackgeneration operator that takes a PostScript procedure as its
+operand, we would have a .setblackgeneration operator that takes as operands
+both the PostScript procedure (so that currentblackgeneration can return it)
+*and* a Function derived from it (which will actually be used when loading
+the cache, or for sampling directly if desired).
+
+<p>
+In some cases, this approach has a non-negligible space cost.  If the
+PostScript procedure cannot be represented as a FunctionType 4 Function, it
+must be sampled and represented as a FunctionType 0 Function.  Then the BG /
+UCR / transfer / ... cache will essentially just hold a copy of the Function
+data.  While it is likely that this situation will be rare in practice, it
+might be worth looking into changing the internal representation of these
+caches so that they were the same as the representation of a FunctionType 0
+Function with a particular choice of parameters.  Then the PostScript code
+that called .buildsampledfunction when necessary could arrange the
+parameters to have the same values as the internal representation of the
+cache, and the cache could use the Function data directly.  This is probably
+not worth the trouble.
 
 <h3>Add optional cubic interpolation to RenderTable and other table
 lookup.</h3>
@@ -594,6 +651,7 @@ should really be up to the driver author.</I>
 
 <h3>Ghostscript has no %ram% device.</h3>
 
+<p>
 The %ram% device is documented in PS Supplement 3010 and 3011 dated August 30, 1999.
 This is probably not a major impediment to portability, but it would be handy.
 <p><I>
@@ -613,13 +671,21 @@ problems. Ghostscript should delete the subdirectory when it exits.
 reserved.</small>
 
 <p>
-<small>This file is part of AFPL Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.</small>
+This software is provided AS-IS with no warranty, either express or
+implied.
+
+This software is distributed under license and may not be copied,
+modified or distributed except as expressly authorized under the terms
+of the license contained in the file LICENSE in this distribution.
+
+For more information about licensing, please refer to
+http://www.ghostscript.com/licensing/. For information on
+commercial licensing, go to http://www.artifex.com/licensing/ or
+contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
 <p>
-<small>Ghostscript version 7.04, 31 January 2002
+<small>Ghostscript version 8.53, 20 October 2005
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

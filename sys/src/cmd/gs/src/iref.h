@@ -1,26 +1,32 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: iref.h,v 1.5 2000/11/01 21:24:42 lpd Exp $ */
+/* $Id: iref.h,v 1.9 2002/06/16 04:47:10 lpd Exp $ */
 /* Object structure and type definitions for Ghostscript */
 
 #ifndef iref_INCLUDED
 #  define iref_INCLUDED
+
+/*
+ * Note: this file defines a large number of macros.  Many of these are
+ * only used for internal purposes within this file, to help in the
+ * definition of other macros or data structures, and should never be
+ * referenced outside this file.  It is intended that all such internal
+ * macros have names beginning with an underscore (_).
+ */
 
 /* The typedef for object references */
 #ifndef ref_DEFINED
@@ -78,7 +84,7 @@ typedef enum {
  * a multiple of 4, for the sake of r_is_array and r_is_proc (see below).
  */
 
-#define _t_array_span 4
+#define _REF_T_ARRAY_SPAN 4
     t_array,			/* @!+# value.refs */
     /*
      * The following are the two implementations of packed arrays.
@@ -107,7 +113,7 @@ typedef enum {
  * a multiple of 2, for the sake of r_has_stype (see below).
  */
 
-#define _t_struct_span 2
+#define _REF_T_STRUCT_SPAN 2
     t_struct,			/* @    value.pstruct */
     t_astruct,			/* @ +  value.pstruct */
 
@@ -161,57 +167,57 @@ typedef enum {
  * Define a table giving properties of types, similar to the table used
  * by the isxxx functions (macros) in <ctype.h>.
  */
-#define _rtype_uses_access 1	/* type uses w/r/x attributes */
-#define _rtype_uses_size 2
-#define _rtype_is_null 4
-#define _rtype_is_dictionary 8
+#define _REF_TYPE_USES_ACCESS 1	/* type uses w/r/x attributes ("+" above) */
+#define _REF_TYPE_USES_SIZE 2	/* type uses size attribute ("#" above) */
+#define _REF_TYPE_IS_NULL 4	/* type is t_null */
+#define _REF_TYPE_IS_DICTIONARY 8 /* type is t_dictionary */
 extern const byte ref_type_properties[1 << 6];	/* r_type_bits */
 
 #define REF_TYPE_PROPERTIES_DATA\
   0,				/* t__invalid */\
   0,				/* t_boolean */\
-  _rtype_uses_access | _rtype_is_dictionary, /* t_dictionary */\
-  _rtype_uses_access | _rtype_uses_size, /* t_file */\
-  _rtype_uses_access | _rtype_uses_size, /* t_array */\
-  _rtype_uses_access | _rtype_uses_size, /* t_mixedarray */\
-  _rtype_uses_access | _rtype_uses_size, /* t_shortarray */\
-  _rtype_uses_access | _rtype_uses_size, /* (unused array type) */\
+  _REF_TYPE_USES_ACCESS | _REF_TYPE_IS_DICTIONARY, /* t_dictionary */\
+  _REF_TYPE_USES_ACCESS | _REF_TYPE_USES_SIZE, /* t_file */\
+  _REF_TYPE_USES_ACCESS | _REF_TYPE_USES_SIZE, /* t_array */\
+  _REF_TYPE_USES_ACCESS | _REF_TYPE_USES_SIZE, /* t_mixedarray */\
+  _REF_TYPE_USES_ACCESS | _REF_TYPE_USES_SIZE, /* t_shortarray */\
+  _REF_TYPE_USES_ACCESS | _REF_TYPE_USES_SIZE, /* (unused array type) */\
   0,				/* t_struct */\
-  _rtype_uses_access,		/* t_astruct */\
+  _REF_TYPE_USES_ACCESS,		/* t_astruct */\
   0,				/* t_fontID */\
   0,				/* t_integer */\
   0,				/* t_mark */\
-  _rtype_uses_size,		/* t_name */\
-  _rtype_is_null,		/* t_null, uses size only on e-stack */\
-  _rtype_uses_size,		/* t_operator */\
+  _REF_TYPE_USES_SIZE,		/* t_name */\
+  _REF_TYPE_IS_NULL,		/* t_null, uses size only on e-stack */\
+  _REF_TYPE_USES_SIZE,		/* t_operator */\
   0,				/* t_real */\
   0,				/* t_save */\
-  _rtype_uses_access | _rtype_uses_size, /* t_string */\
-  _rtype_uses_access,		/* t_device */\
-  _rtype_uses_size,		/* t_oparray */\
+  _REF_TYPE_USES_ACCESS | _REF_TYPE_USES_SIZE, /* t_string */\
+  _REF_TYPE_USES_ACCESS,		/* t_device */\
+  _REF_TYPE_USES_SIZE,		/* t_oparray */\
     /*\
      * The remaining types are the extended pseudo-types used by the\
      * interpreter for operators.  We need to fill up the table.\
      */\
-  _rtype_uses_size,_rtype_uses_size,_rtype_uses_size, /*24*/\
-  _rtype_uses_size,_rtype_uses_size,_rtype_uses_size,_rtype_uses_size, /*28*/\
-  _rtype_uses_size,_rtype_uses_size,_rtype_uses_size,_rtype_uses_size, /*32*/\
-  _rtype_uses_size,_rtype_uses_size,_rtype_uses_size,_rtype_uses_size, /*36*/\
-  _rtype_uses_size,_rtype_uses_size,_rtype_uses_size,_rtype_uses_size, /*40*/\
-  _rtype_uses_size,_rtype_uses_size,_rtype_uses_size,_rtype_uses_size, /*44*/\
-  _rtype_uses_size,_rtype_uses_size,_rtype_uses_size,_rtype_uses_size, /*48*/\
-  _rtype_uses_size,_rtype_uses_size,_rtype_uses_size,_rtype_uses_size, /*52*/\
-  _rtype_uses_size,_rtype_uses_size,_rtype_uses_size,_rtype_uses_size, /*56*/\
-  _rtype_uses_size,_rtype_uses_size,_rtype_uses_size,_rtype_uses_size, /*60*/\
-  _rtype_uses_size,_rtype_uses_size,_rtype_uses_size,_rtype_uses_size	/*64 */
-#define _rtype_has(rtype,props)\
+  _REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE, /*24*/\
+  _REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE, /*28*/\
+  _REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE, /*32*/\
+  _REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE, /*36*/\
+  _REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE, /*40*/\
+  _REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE, /*44*/\
+  _REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE, /*48*/\
+  _REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE, /*52*/\
+  _REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE, /*56*/\
+  _REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE, /*60*/\
+  _REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE,_REF_TYPE_USES_SIZE	/*64 */
+#define _REF_TYPE_HAS(rtype,props)\
   ((ref_type_properties[rtype] & (props)) != 0)
 #define ref_type_uses_access(rtype)\
- _rtype_has(rtype, _rtype_uses_access)
+ _REF_TYPE_HAS(rtype, _REF_TYPE_USES_ACCESS)
 #define ref_type_uses_size(rtype)\
- _rtype_has(rtype, _rtype_uses_size)
+ _REF_TYPE_HAS(rtype, _REF_TYPE_USES_SIZE)
 #define ref_type_uses_size_or_null(rtype)\
- _rtype_has(rtype, _rtype_uses_size | _rtype_is_null)
+ _REF_TYPE_HAS(rtype, _REF_TYPE_USES_SIZE | _REF_TYPE_IS_NULL)
 /*
  * Define the type names for debugging printout.
  * All names must be the same length, so that columns will line up.
@@ -304,31 +310,33 @@ extern const byte ref_type_properties[1 << 6];	/* r_type_bits */
 #define r_type_shift 8
 #define r_type_bits 6
 
-/* Define the attribute names for debugging printout. */
-/* Each entry has the form <mask, value, character>. */
-typedef struct attr_print_mask_s {
+/*
+ * Define the attribute names for debugging printout.
+ * Each entry has the form <mask, value, character>.
+ */
+typedef struct ref_attr_print_mask_s {
     ushort mask;
     ushort value;
     char print;
-} attr_print_mask;
+} ref_attr_print_mask_t;
 
-#define attr_print_flag(m,c)\
+#define _REF_ATTR_PRINT_FLAG(m,c)\
   {m,m,c},{m,0,'-'}
-#define attr_print_space(v,c)\
+#define _REF_ATTR_PRINT_SPACE(v,c)\
   {((1<<r_space_bits)-1)<<r_space_shift,v,c}
-#define attr_print_masks\
-  attr_print_flag(l_mark,'m'),\
-  attr_print_flag(l_new,'n'),\
-  attr_print_space(avm_foreign,'F'),\
-  attr_print_space(avm_system,'S'),\
-  attr_print_space(avm_global,'G'),\
-  attr_print_space(avm_local,'L'),\
-  attr_print_flag(a_write,'w'),\
-  attr_print_flag(a_read,'r'),\
-  attr_print_flag(a_execute,'x'),\
-  attr_print_flag(a_executable,'e'),\
-  attr_print_flag(0x4000,'?'),\
-  attr_print_flag(0x8000,'?')
+#define REF_ATTR_PRINT_MASKS\
+  _REF_ATTR_PRINT_FLAG(l_mark,'m'),\
+  _REF_ATTR_PRINT_FLAG(l_new,'n'),\
+  _REF_ATTR_PRINT_SPACE(avm_foreign,'F'),\
+  _REF_ATTR_PRINT_SPACE(avm_system,'S'),\
+  _REF_ATTR_PRINT_SPACE(avm_global,'G'),\
+  _REF_ATTR_PRINT_SPACE(avm_local,'L'),\
+  _REF_ATTR_PRINT_FLAG(a_write,'w'),\
+  _REF_ATTR_PRINT_FLAG(a_read,'r'),\
+  _REF_ATTR_PRINT_FLAG(a_execute,'x'),\
+  _REF_ATTR_PRINT_FLAG(a_executable,'e'),\
+  _REF_ATTR_PRINT_FLAG(0x4000,'?'),\
+  _REF_ATTR_PRINT_FLAG(0x8000,'?')
 
 /* Abstract types */
 typedef struct dict_s dict;
@@ -356,7 +364,7 @@ typedef struct obj_header_s obj_header_t;
 #  define i_ctx_t_DEFINED
 typedef struct gs_context_state_s i_ctx_t;
 #endif
-typedef int (*op_proc_t)(P1(i_ctx_t *i_ctx_p));
+typedef int (*op_proc_t)(i_ctx_t *i_ctx_p);
 /* real_opproc is a holdover.... */
 #define real_opproc(pref) ((pref)->value.opproc)
 
@@ -366,79 +374,13 @@ typedef int (*op_proc_t)(P1(i_ctx_t *i_ctx_p));
  * the type_attrs member must be the first one in the ref structure.
  */
 struct tas_s {
+/* type_attrs is a single element for fast dispatching in the interpreter */
     ushort type_attrs;
     ushort rsize;
 };
 struct ref_s {
 
     struct tas_s tas;
-
-#define r_size(rp) ((rp)->tas.rsize)
-#define r_inc_size(rp,inc) ((rp)->tas.rsize += (inc))
-#define r_dec_size(rp,dec) ((rp)->tas.rsize -= (dec))
-#define r_set_size(rp,siz) ((rp)->tas.rsize = (siz))
-/* type_attrs is a single element for fast dispatching in the interpreter */
-#if r_type_shift == 8
-#  if arch_is_big_endian
-#    define r_type(rp) (((const byte *)&((rp)->tas.type_attrs))[sizeof(ushort)-2])
-#  else
-#    define r_type(rp) (((const byte *)&((rp)->tas.type_attrs))[1])
-#  endif
-#  define r_has_type(rp,typ) (r_type(rp) == (typ))
-#else
-#  define r_type(rp) ((rp)->tas.type_attrs >> r_type_shift)
-#  define r_has_type(rp,typ) r_has_type_attrs(rp,typ,0)		/* see below */
-#endif
-/* A special macro for testing arrayhood. */
-#define r_is_array(rp) _r_has_masked_type_attrs(rp,t_array,_t_array_span,0)
-#define r_set_type(rp,typ) ((rp)->tas.type_attrs = (typ) << r_type_shift)
-#define r_btype(rp)\
- ((rp)->tas.type_attrs >= (t_next_index << r_type_shift) ?\
-  t_operator : r_type(rp))
-#define r_type_xe_shift (r_type_shift - 2)
-#define type_xe_(tas) ((tas) >> r_type_xe_shift)	/* internal use only */
-/*
- * The r_type_xe macro is used in (and only in) the main interpreter loop,
- * where its rp operand may be a ref_packed, not necessarily aligned as
- * strictly as a full-size ref.  The DEC C compiler, and possibly others,
- * may compile code assuming that rp is ref-aligned.  Therefore, we
- * explicitly cast the pointer to a less-strictly-aligned type.
- * In order to convince the compiler, we have to do the cast before
- * indexing into the structure.
- */
-#define r_type_xe(rp)\
-  type_xe_(((const ushort *)(rp))[offset_of(ref, tas.type_attrs) / sizeof(ushort)])
-#define type_xe_value(t,xe) type_xe_(((t) << r_type_shift) + (xe))
-#define r_type_attrs(rp) ((rp)->tas.type_attrs)		/* reading only */
-#define r_has_attrs(rp,mask) !(~r_type_attrs(rp) & (mask))
-#define r_has_masked_attrs(rp,attrs,mask)\
-  ((r_type_attrs(rp) & (mask)) == (attrs))
-#define r_has_attr(rp,mask1)		/* optimize 1-bit case */\
-   (r_type_attrs(rp) & (mask1))
-/* The following macro is not for external use. */
-#define _r_has_masked_type_attrs(rp,typ,tspan,mask)\
- (((rp)->tas.type_attrs &\
-   ((((1 << r_type_bits) - (tspan)) << r_type_shift) + (mask))) ==\
-  (((typ) << r_type_shift) + (mask)))
-#define r_has_type_attrs(rp,typ,mask)\
-  _r_has_masked_type_attrs(rp,typ,1,mask)
-/* A special macro for testing procedurehood. */
-#define r_is_proc(rp)\
-  _r_has_masked_type_attrs(rp,t_array,_t_array_span,a_execute+a_executable)
-#define r_set_attrs(rp,mask) ((rp)->tas.type_attrs |= (mask))
-#define r_clear_attrs(rp,mask) ((rp)->tas.type_attrs &= ~(mask))
-#define r_store_attrs(rp,mask,attrs)\
-  ((rp)->tas.type_attrs = ((rp)->tas.type_attrs & ~(mask)) | (attrs))
-#define r_copy_attrs(rp,mask,sp)\
-  r_store_attrs(rp,mask,(sp)->tas.type_attrs & (mask))
-#define r_set_type_attrs(rp,typ,mask)\
-  ((rp)->tas.type_attrs = ((typ) << r_type_shift) + (mask))
-/* Macros for t_[a]struct objects. */
-#define r_is_struct(rp) _r_has_masked_type_attrs(rp,t_struct,_t_struct_span,0)
-#define r_has_stype(rp,mem,styp)\
-  (r_is_struct(rp) && gs_object_type(mem, (rp)->value.pstruct) == &styp)
-#define r_ptr(rp,typ) ((typ *)((rp)->value.pstruct))
-#define r_set_ptr(rp,ptr) ((rp)->value.pstruct = (obj_header_t *)(ptr))
 
     union v {			/* name the union to keep gdb happy */
 	long intval;
@@ -466,6 +408,143 @@ struct ref_s {
 	obj_header_t *pstruct;
     } value;
 };
+
+/* ---------------- Private ref macros ---------------- */
+
+/*
+ * Test whether a ref has a type within a given span, and also has all of a
+ * given set of attributes.
+ */
+#define _REF_HAS_MASKED_TYPE_ATTRS(rp,typ,tspan,mask)\
+ (((rp)->tas.type_attrs &\
+   ((((1 << r_type_bits) - (tspan)) << r_type_shift) + (mask))) ==\
+  (((typ) << r_type_shift) + (mask)))
+
+/* ---------------- Public ref macros ---------------- */
+
+/*
+ * All of these macros take an argument "rp" which is a pointer to a ref.
+ * Unless otherwise specified, they only apply to full-size (not packed)
+ * refs.
+ */
+
+/*
+ * Read, set, increment, and decrement the size field of a ref.
+ */
+#define r_size(rp) ((rp)->tas.rsize)
+#define r_inc_size(rp,inc) ((rp)->tas.rsize += (inc))
+#define r_dec_size(rp,dec) ((rp)->tas.rsize -= (dec))
+#define r_set_size(rp,siz) ((rp)->tas.rsize = (siz))
+
+/*
+ * Get the type of a ref; test whether a ref has a given type.  The
+ * difference between r_type and r_btype is that for refs with types greater
+ * than or equal to t_next_index, r_type returns that type, but r_btype
+ * returns t_operator (since those types just encode specific operators for
+ * faster dispatch in the interpreter -- see interp.h for more information).
+ */
+#if r_type_shift == 8
+#  if arch_is_big_endian
+#    define r_type(rp) (((const byte *)&((rp)->tas.type_attrs))[sizeof(ushort)-2])
+#  else
+#    define r_type(rp) (((const byte *)&((rp)->tas.type_attrs))[1])
+#  endif
+#  define r_has_type(rp,typ) (r_type(rp) == (typ))
+#else
+#  define r_type(rp) ((rp)->tas.type_attrs >> r_type_shift)
+#  define r_has_type(rp,typ) r_has_type_attrs(rp,typ,0)		/* see below */
+#endif
+#define r_btype(rp)\
+ ((rp)->tas.type_attrs >= (t_next_index << r_type_shift) ?\
+  t_operator : r_type(rp))
+
+/*
+ * Test whether a ref is an array, or a procedure, or a(n) [a]struct.
+ */
+#define r_is_array(rp)\
+  _REF_HAS_MASKED_TYPE_ATTRS(rp,t_array,_REF_T_ARRAY_SPAN,0)
+#define r_is_proc(rp)\
+  _REF_HAS_MASKED_TYPE_ATTRS(rp,t_array,_REF_T_ARRAY_SPAN,a_execute+a_executable)
+#define r_is_struct(rp)\
+  _REF_HAS_MASKED_TYPE_ATTRS(rp,t_struct,_REF_T_STRUCT_SPAN,0)
+
+/*
+ * Test whether a ref is a struct or astruct with a specific structure type
+ * (GC descriptor).
+ */
+#define r_has_stype(rp,mem,styp)\
+  (r_is_struct(rp) && gs_object_type(mem, (rp)->value.pstruct) == &styp)
+
+/*
+ * Set the type of a ref.  This is only used in a few very special places.
+ * Normally the type of a ref is set when the ref is created (by one of
+ * the make_xxx macros in store.h) and never changed.
+ */
+#define r_set_type(rp,typ) ((rp)->tas.type_attrs = (typ) << r_type_shift)
+
+/*
+ * Get, test, or set the type and attributes of a ref together as a single
+ * value.  This too is only used in a few special places.
+ */
+#define r_type_attrs(rp) ((rp)->tas.type_attrs)		/* reading only */
+#define r_has_type_attrs(rp,typ,mask)\
+  _REF_HAS_MASKED_TYPE_ATTRS(rp,typ,1,mask)
+#define r_set_type_attrs(rp,typ,mask)\
+  ((rp)->tas.type_attrs = ((typ) << r_type_shift) + (mask))
+
+/*
+ * Get the combined type, a_executable, and a_execute bits of a ref,
+ * for fast dispatching in the interpreter.
+ */
+/*
+ * The r_type_xe macro is used in (and only in) the main interpreter loop,
+ * where its rp operand may be a ref_packed, not necessarily aligned as
+ * strictly as a full-size ref.  The DEC C compiler, and possibly others,
+ * may compile code assuming that rp is ref-aligned.  Therefore, we
+ * explicitly cast the pointer to a less-strictly-aligned type.
+ * In order to convince the compiler, we have to do the cast before
+ * indexing into the structure.
+ */
+#define _REF_TYPE_XE_SHIFT (r_type_shift - 2)
+#define _REF_TAS_TYPE_XE(tas) ((tas) >> _REF_TYPE_XE_SHIFT)
+#define r_type_xe(rp)\
+  _REF_TAS_TYPE_XE(((const ushort *)(rp))[offset_of(ref, tas.type_attrs) / sizeof(ushort)])
+#define type_xe_value(typ,xe) _REF_TAS_TYPE_XE(((typ) << r_type_shift) + (xe))
+
+/*
+ * Test whether a ref has a given attribute, or all the given attributes.
+ */
+#define r_has_attr(rp,mask1)		/* optimize 1-bit case */\
+   (r_type_attrs(rp) & (mask1))
+#define r_has_attrs(rp,mask) !(~r_type_attrs(rp) & (mask))
+
+/*
+ * Test whether those attributes of a ref selected by a mask have a
+ * given value.
+ */
+#define r_has_masked_attrs(rp,attrs,mask)\
+  ((r_type_attrs(rp) & (mask)) == (attrs))
+
+/*
+ * Set, clear, store, or copy the attributes of a ref.  These are rarely
+ * needed.  Note that, unfortunately, the attrs and mask parameters of
+ * r_store_attrs are reversed from r_has_masked_attrs.
+ */
+#define r_set_attrs(rp,mask) ((rp)->tas.type_attrs |= (mask))
+#define r_clear_attrs(rp,mask) ((rp)->tas.type_attrs &= ~(mask))
+#define r_store_attrs(rp,mask,attrs)\
+  ((rp)->tas.type_attrs = ((rp)->tas.type_attrs & ~(mask)) | (attrs))
+#define r_copy_attrs(rp,mask,sp)\
+  r_store_attrs(rp,mask,(sp)->tas.type_attrs & (mask))
+
+/*
+ * Get or set the pointer field of a struct or astruct ref.  The typ
+ * argument of r_ptr is the (C) type of the structure.
+ */
+#define r_ptr(rp,typ) ((typ *)((rp)->value.pstruct))
+#define r_set_ptr(rp,ptr) ((rp)->value.pstruct = (obj_header_t *)(ptr))
+
+/* ---------------- End of ref macros ---------------- */
 
 /* Define data for initializing an empty array or string. */
 #define empty_ref_data(type, attrs)\

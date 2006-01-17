@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxbitmap.h,v 1.2 2000/09/19 19:00:33 lpd Exp $ */
+/* $Id: gxbitmap.h,v 1.6 2002/03/05 16:56:33 lpd Exp $ */
 /* Definitions for stored bitmaps for Ghostscript */
 
 #ifndef gxbitmap_INCLUDED
@@ -32,10 +30,28 @@ typedef gs_bitmap_id gx_bitmap_id;
 #define gx_no_bitmap_id gs_no_bitmap_id
 
 /*
- * For gx_bitmap data, each scan line must start on a `word' (long)
- * boundary, and hence is padded to a word boundary, although this should
- * rarely be of concern, since the raster and width are specified
- * individually.
+ * Most graphics library procedures that process bitmap data (such as, for
+ * example, the "device" procedures in gdevm*.c) impose two requirements
+ * on such data: an alignment requirement, and a padding requirement.
+ * Both requirements arise from the fact that these library procedures
+ * attempt to process the bits in units of align_bitmap_mod bytes.
+ *
+ * The alignment requirement is that each scan line must start at an
+ * address that is 0 mod align_bitmap_mod.  This requirement is only for
+ * the benefit of the hardware (which may, for example, require that
+ * instructions fetching or storing a 'long' quantity only do so at an
+ * address that is long-aligned), but it must be respected in all
+ * platform-independent code.  More precisely, platform-independent code
+ * can *assume* that Ghostscript allocators return blocks that are adequately
+ * aligned, and then must *ensure* that that alignment is not lost.  (The
+ * assumption is not true in some MSVC implementations, but even in those
+ * implementations, the alignment is sufficient to satisfy the hardware.
+ * See gsmemraw.h for more information about this.)
+ * 
+ * The padding requirement is that if the last data byte being operated on
+ * is at offset B relative to the start of the scan line, bytes up to and
+ * including offset ROUND_UP(B + 1, align_bitmap_mod) - 1 may be accessed,
+ * and therefore must be allocated (not cause hardware-level access faults).
  */
 /* We assume arch_align_long_mod is 1-4 or 8. */
 #if arch_align_long_mod <= 4

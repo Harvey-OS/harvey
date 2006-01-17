@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsdparam.c,v 1.4.6.1 2002/01/25 06:33:09 rayjj Exp $ */
+/* $Id: gsdparam.c,v 1.18 2005/06/20 08:59:23 igor Exp $ */
 /* Default device parameters for Ghostscript library */
 #include "memory_.h"		/* for memcpy */
 #include "string_.h"		/* for strlen */
@@ -34,7 +32,7 @@
 /* ================ Getting parameters ================ */
 
 /* Forward references */
-private bool param_HWColorMap(P2(gx_device *, byte *));
+private bool param_HWColorMap(gx_device *, byte *);
 
 /* Get the device parameters. */
 int
@@ -67,12 +65,6 @@ gs_get_device_or_hw_params(gx_device * orig_dev, gs_param_list * plist,
     return code;
 }
 
-/* Standard ProcessColorModel values. */
-static const char *const pcmsa[] =
-{
-    "", "DeviceGray", "", "DeviceRGB", "DeviceCMYK"
-};
-
 /* Get standard parameters. */
 int
 gx_default_get_params(gx_device * dev, gs_param_list * plist)
@@ -81,7 +73,6 @@ gx_default_get_params(gx_device * dev, gs_param_list * plist)
 
     /* Standard page device parameters: */
 
-    int mns = 1;
     bool seprs = false;
     gs_param_string dns, pcms;
     gs_param_float_array msa, ibba, hwra, ma;
@@ -93,6 +84,7 @@ gx_default_get_params(gx_device * dev, gs_param_list * plist)
     /* Non-standard parameters: */
 
     int colors = dev->color_info.num_components;
+    int mns = colors;
     int depth = dev->color_info.depth;
     int GrayValues = dev->color_info.max_gray + 1;
     int HWSize[2];
@@ -103,11 +95,11 @@ gx_default_get_params(gx_device * dev, gs_param_list * plist)
 
     param_string_from_string(dns, dev->dname);
     {
-	const char *cms = pcmsa[colors];
+	const char *cms = get_process_color_model_name(dev);
 
 	/* We might have an uninitialized device with */
 	/* color_info.num_components = 0.... */
-	if (*cms != 0)
+	if ((cms != NULL) && (*cms != '\0'))
 	    param_string_from_string(pcms, cms);
 	else
 	    pcms.data = 0;
@@ -177,7 +169,8 @@ gx_default_get_params(gx_device * dev, gs_param_list * plist)
 
     if (colors > 1) {
 	int RGBValues = dev->color_info.max_color + 1;
-	long ColorValues = 1L << depth;
+	long ColorValues = (depth >= (8 * arch_sizeof_color_index) ? -1
+							: 1L << depth);
 
 	if ((code = param_write_int(plist, "RedValues", &RGBValues)) < 0 ||
 	    (code = param_write_int(plist, "GreenValues", &RGBValues)) < 0 ||
@@ -327,8 +320,8 @@ gdev_write_input_page_size(int index, gs_param_dict * pdict,
 {
     gdev_input_media_t media;
 
-    media.PageSize[0] = media.PageSize[2] = width_points;
-    media.PageSize[1] = media.PageSize[3] = height_points;
+    media.PageSize[0] = media.PageSize[2] = (float) width_points;
+    media.PageSize[1] = media.PageSize[3] = (float) height_points;
     media.MediaColor = 0;
     media.MediaWeight = 0;
     media.MediaType = 0;
@@ -384,19 +377,19 @@ gdev_end_output_media(gs_param_list * mlist, gs_param_dict * pdict)
 /* ================ Putting parameters ================ */
 
 /* Forward references */
-private int param_anti_alias_bits(P3(gs_param_list *, gs_param_name, int *));
-private int param_MediaSize(P4(gs_param_list *, gs_param_name,
-			       const float *, gs_param_float_array *));
+private int param_anti_alias_bits(gs_param_list *, gs_param_name, int *);
+private int param_MediaSize(gs_param_list *, gs_param_name,
+			    const float *, gs_param_float_array *);
 
-private int param_check_bool(P4(gs_param_list *, gs_param_name, bool, bool));
-private int param_check_long(P4(gs_param_list *, gs_param_name, long, bool));
-
-#define param_check_int(plist, pname, ival, defined)\
-  param_check_long(plist, pname, (long)(ival), defined)
-private int param_check_bytes(P5(gs_param_list *, gs_param_name, const byte *, uint, bool));
-
-#define param_check_string(plist, pname, str, defined)\
-  param_check_bytes(plist, pname, (const byte *)str, strlen(str), defined)
+private int param_check_bool(gs_param_list *, gs_param_name, bool, bool);
+private int param_check_long(gs_param_list *, gs_param_name, long, bool);
+#define param_check_int(plist, pname, ival, is_defined)\
+  param_check_long(plist, pname, (long)(ival), is_defined)
+private int param_check_bytes(gs_param_list *, gs_param_name, const byte *,
+			      uint, bool);
+#define param_check_string(plist, pname, str, is_defined)\
+  param_check_bytes(plist, pname, (const byte *)(str), \
+                    (is_defined) ? strlen(str) : 0, is_defined)
 
 /* Set the device parameters. */
 /* If the device was open and the put_params procedure closed it, */
@@ -443,7 +436,7 @@ gx_default_put_params(gx_device * dev, gs_param_list * plist)
     int depth = dev->color_info.depth;
     int GrayValues = dev->color_info.max_gray + 1;
     int RGBValues = dev->color_info.max_color + 1;
-    long ColorValues = 1L << depth;
+    long ColorValues = (depth >= 32 ? -1 : 1L << depth);
     int tab = dev->color_info.anti_alias.text_bits;
     int gab = dev->color_info.anti_alias.graphics_bits;
     gs_param_string cms;
@@ -640,18 +633,25 @@ nce:
 	    break;
     }
 
+    /* Separation, DeviceN Color, and ProcessColorModel related parameters. */
+    {
+	const char * pcms = get_process_color_model_name(dev);
+        /* the device should have set a process model name at this point */
+	if ((code = param_check_string(plist, "ProcessColorModel", pcms, (pcms != NULL))) < 0)
+	    ecode = code;
+    }
+    IGNORE_INT_PARAM("MaxSeparations")
+    if ((code = param_check_bool(plist, "Separations", false, true)) < 0)
+	ecode = code;
+
+    BEGIN_ARRAY_PARAM(param_read_name_array, "SeparationColorNames", scna, scna.size, scne) {
+	break;
+    } END_ARRAY_PARAM(scna, scne);
+
+
     /* Now check nominally read-only parameters. */
     if ((code = param_check_string(plist, "OutputDevice", dev->dname, true)) < 0)
 	ecode = code;
-    if ((code = param_check_string(plist, "ProcessColorModel", pcmsa[colors], colors != 0)) < 0)
-	ecode = code;
-    if ((code = param_check_int(plist, "MaxSeparations", 1, true)) < 0)
-	ecode = code;
-    if ((code = param_check_bool(plist, "Separations", false, true)) < 0)
-	ecode = code;
-    BEGIN_ARRAY_PARAM(param_read_name_array, "SeparationColorNames", scna, 0, scne) {
-	break;
-    } END_ARRAY_PARAM(scna, scne);
     if ((code = param_check_string(plist, "Name", dev->dname, true)) < 0)
 	ecode = code;
     if ((code = param_check_int(plist, "Colors", colors, true)) < 0)
@@ -662,13 +662,13 @@ nce:
 	ecode = code;
     if ((code = param_check_long(plist, "PageCount", dev->PageCount, true)) < 0)
 	ecode = code;
-    if ((code = param_check_int(plist, "RedValues", RGBValues, colors > 1)) < 0)
+    if ((code = param_check_int(plist, "RedValues", RGBValues, true)) < 0)
 	ecode = code;
-    if ((code = param_check_int(plist, "GreenValues", RGBValues, colors > 1)) < 0)
+    if ((code = param_check_int(plist, "GreenValues", RGBValues, true)) < 0)
 	ecode = code;
-    if ((code = param_check_int(plist, "BlueValues", RGBValues, colors > 1)) < 0)
+    if ((code = param_check_int(plist, "BlueValues", RGBValues, true)) < 0)
 	ecode = code;
-    if ((code = param_check_long(plist, "ColorValues", ColorValues, colors > 1)) < 0)
+    if ((code = param_check_long(plist, "ColorValues", ColorValues, true)) < 0)
 	ecode = code;
     if (param_read_string(plist, "HWColorMap", &cms) != 1) {
 	byte palette[3 << 8];
@@ -804,14 +804,14 @@ param_MediaSize(gs_param_list * plist, gs_param_name pname,
 /* its existing value. */
 private int
 param_check_bool(gs_param_list * plist, gs_param_name pname, bool value,
-		 bool defined)
+		 bool is_defined)
 {
     int code;
     bool new_value;
 
     switch (code = param_read_bool(plist, pname, &new_value)) {
 	case 0:
-	    if (defined && new_value == value)
+	    if (is_defined && new_value == value)
 		break;
 	    code = gs_note_error(gs_error_rangecheck);
 	    goto e;
@@ -826,14 +826,14 @@ param_check_bool(gs_param_list * plist, gs_param_name pname, bool value,
 }
 private int
 param_check_long(gs_param_list * plist, gs_param_name pname, long value,
-		 bool defined)
+		 bool is_defined)
 {
     int code;
     long new_value;
 
     switch (code = param_read_long(plist, pname, &new_value)) {
 	case 0:
-	    if (defined && new_value == value)
+	    if (is_defined && new_value == value)
 		break;
 	    code = gs_note_error(gs_error_rangecheck);
 	    goto e;
@@ -848,14 +848,14 @@ param_check_long(gs_param_list * plist, gs_param_name pname, long value,
 }
 private int
 param_check_bytes(gs_param_list * plist, gs_param_name pname, const byte * str,
-		  uint size, bool defined)
+		  uint size, bool is_defined)
 {
     int code;
     gs_param_string new_value;
 
     switch (code = param_read_string(plist, pname, &new_value)) {
 	case 0:
-	    if (defined && new_value.size == size &&
+	    if (is_defined && new_value.size == size &&
 		!memcmp((const char *)str, (const char *)new_value.data,
 			size)
 		)

@@ -21,8 +21,8 @@
 #include "gdevprn.h"
 #include "gsparam.h"
 #include "gxlum.h"
+#include "gxstdio.h"
 #include <stdlib.h>
-#undef printf
 
 #define nil ((void*)0)
 enum {
@@ -105,11 +105,16 @@ plan9_device far_data gs_plan9_device =
  * rgb and color map entries
  */
 private gx_color_index 
-plan9_rgb2cmap(P4(gx_device *dev, gx_color_value r,
-  gx_color_value g, gx_color_value b)) {
+plan9_rgb2cmap(gx_device *dev, gx_color_value *rgb)
+{
+	gx_color_value r, g, b;
 	int shift;
 	plan9_device *idev;
 	ulong red, green, blue;
+
+	r = rgb[0];
+	g = rgb[1];
+	b = rgb[2];
 
 	idev = (plan9_device*) dev;
 
@@ -145,8 +150,8 @@ plan9_rgb2cmap(P4(gx_device *dev, gx_color_value r,
 }
 
 private int 
-plan9_cmap2rgb(P3(gx_device *dev, gx_color_index color,
-  gx_color_value rgb[3])) {
+plan9_cmap2rgb(gx_device *dev, gx_color_index color,
+  gx_color_value rgb[3]) {
 	int shift, i;
 	plan9_device *idev;
 
@@ -195,7 +200,7 @@ plan9_get_params(gx_device *pdev, gs_param_list *plist)
 	if((code = gdev_prn_get_params(pdev, plist)) < 0
 	 || (code = param_write_int(plist, "Dither", &idev->dither)) < 0)
 		return code;
-	printf("getparams: dither=%d\n", idev->dither);
+//	printf("getparams: dither=%d\n", idev->dither);
 	return code;
 }
 
@@ -206,7 +211,7 @@ plan9_put_params(gx_device * pdev, gs_param_list * plist)
 	int dither;
 	plan9_device *idev;
 
-	printf("plan9_put_params\n");
+//	printf("plan9_put_params\n");
 
 	idev = (plan9_device*)pdev;
 	dither = idev->dither;
@@ -222,9 +227,9 @@ plan9_put_params(gx_device * pdev, gs_param_list * plist)
  * plan9_open() is supposed to initialize the device.
  * there's not much to do.
  */
-extern void init_p9color();	/* in gdevifno.c */
+extern void init_p9color(void);	/* in gdevifno.c */
 private int
-plan9_open(P1(gx_device *dev))
+plan9_open(gx_device *dev)
 {
 	int code;
 	plan9_device *idev;
@@ -235,7 +240,6 @@ plan9_open(P1(gx_device *dev))
 
 //	printf("plan9_open gs_plan9_device.dither = %d idev->dither = %d\n",
 //		gs_plan9_device.dither, idev->dither);
-	setbuf(stderr, 0);
 	init_p9color();
 
 	return gdev_prn_open(dev);
@@ -247,7 +251,7 @@ plan9_open(P1(gx_device *dev))
  * worry about that).
  */
 private int
-plan9_print_page(P2(gx_device_printer *pdev, FILE *f))
+plan9_print_page(gx_device_printer *pdev, FILE *f)
 {
 	char *chanstr;
 	uchar *buf;	/* [8192*3*8/Nbits] BUG: malloc this */
@@ -267,12 +271,11 @@ plan9_print_page(P2(gx_device_printer *pdev, FILE *f))
 	plan9_device *idev;
 	uchar *r;
 
-	setbuf(stderr, 0);
 	gsbpl = gdev_prn_raster(pdev);
-	buf = gs_malloc(gsbpl, 1, "plan9_print_page");
+	buf = gs_malloc(pdev->memory, gsbpl, 1, "plan9_print_page");
 
 	if(buf == nil) {
-		fprintf(stderr, "out of memory\n");
+		errprintf("out of memory\n");
 		return_error(gs_error_Fatal);
 	}
 
@@ -315,7 +318,7 @@ plan9_print_page(P2(gx_device_printer *pdev, FILE *f))
 	bpl = bytesperline(rect, depth);
 	w = initwriteimage(f, rect, chanstr, depth);
 	if(w == nil) {
-		fprintf(stderr, "initwriteimage failed\n");
+		errprintf("initwriteimage failed\n");
 		return_error(gs_error_Fatal);
 	}
 
@@ -357,16 +360,16 @@ plan9_print_page(P2(gx_device_printer *pdev, FILE *f))
 			p[(x-1)/ppb[ldepth]] <<= ((ppb[ldepth]-xmod)*bpp[ldepth]);
 
 		if(writeimageblock(w, p, bpl) == ERROR) {
-			gs_free(buf, gsbpl, 1, "plan9_print_page");
+			gs_free(pdev->memory, buf, gsbpl, 1, "plan9_print_page");
 			return_error(gs_error_Fatal);
 		}
 	}
 	if(writeimageblock(w, nil, 0) == ERROR) {
-		gs_free(buf, gsbpl, 1, "plan9_print_page");
+		gs_free(pdev->memory, buf, gsbpl, 1, "plan9_print_page");
 		return_error(gs_error_Fatal);
 	}
 
-	gs_free(buf, gsbpl, 1, "plan9_print_page");
+	gs_free(pdev->memory, buf, gsbpl, 1, "plan9_print_page");
 	return 0;
 }
 
@@ -455,7 +458,7 @@ addbuf(WImage *w, uchar *buf, int nbuf)
 	int n;
 	if(buf == nil || w->outp+nbuf > w->eout) {
 		if(w->loutp==w->outbuf){	/* can't really happen -- we checked line length above */
-			fprintf(stderr, "buffer too small for line\n");
+			errprintf("buffer too small for line\n");
 			return ERROR;
 		}
 		n=w->loutp-w->outbuf;
@@ -659,7 +662,7 @@ initwriteimage(FILE *f, Rectangle r, char *chanstr, int depth)
 
 	bpl = bytesperline(r, depth);
 	if(r.max.y <= r.min.y || r.max.x <= r.min.x || bpl <= 0) {
-		fprintf(stderr, "bad rectangle, ldepth");
+		errprintf("bad rectangle, ldepth");
 		return nil;
 	}
 
@@ -699,7 +702,7 @@ writeimageblock(WImage *w, uchar *data, int ndata)
 				return ERROR;
 		addbuf(w, nil, 0);
 		if(w->r.min.y != w->origr.max.y) {
-			fprintf(stderr, "not enough data supplied to writeimage\n");
+			errprintf("not enough data supplied to writeimage\n");
 		}
 		free(w);
 		return 0;

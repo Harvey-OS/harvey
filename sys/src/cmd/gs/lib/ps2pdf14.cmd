@@ -1,4 +1,4 @@
-/* $Id: ps2pdf14.cmd,v 1.1 2000/09/10 19:33:47 lpd Exp $ */
+/* $Id: ps2pdf14.cmd,v 1.3 2002/02/21 21:49:28 giles Exp $ */
 /*
  * This file is maintained by a user: if you have any questions about it,
  * please contact Mark Hale (mark.hale@physics.org).

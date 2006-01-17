@@ -1,0 +1,319 @@
+%    Copyright (C) 2002 artofcode LLC.  All rights reserved.
+% 
+% This software is provided AS-IS with no warranty, either express or
+% implied.
+% 
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
+% 
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+
+% $Id: pdf_rbld.ps,v 1.8 2005/02/07 06:38:02 dan Exp $
+% pdf_rbld.ps - Rebuilding of broken PDF files (xref errors)
+
+% This module contains routines that are used if we detect an error
+% while reading the xref tables.  These routines will scan the file and
+% build an xref table by finding the objects.  We also need to find the
+% appropriate trailer dictionary.  Note:  One procedure is also used
+% even if we do not need to rebuild a PDF file.
+%
+% This module cannot rebuild a PDF file which has had errors created inside
+% of objects or binary data streams.  It often succeeds with files that
+% have had its end of lines converted between unix and dos versions.
+
+% if true --> we have an object with duplicate object and generation numbers.
+/dup_obj_gen_num false def
+
+% Note:  This routine is also used by non-rebuild code.
+% Store a line in the xref array (Actually Objects and Generations arrays)
+% <obj num> (strm num> <obj loc> <gen num>  setxrefentry <obj num> strm num>
+% 						 	 <obj loc> <gen num>
+/setxrefentry
+{	% We store generation numbers as value + 1
+	% We reserve 0 to indicate an free xref entry
+  1 add			% increment generation number
+	% To save space, generations numbers are stored in a lstring unless we
+	% find a generation number greater than 255.  If so then transfer to 
+	% an larray.
+  dup 255 gt {
+    Generations ltype /stringtype eq {	% Convert Generations to an larray.
+      larray Generations llength lgrowto dup	% Create new larray
+      0 1 2 index llength 1 sub {	% Copy from old lstring to new larray
+	Generations 1 index lget lput dup
+      } for
+      pop
+      /Generations exch store		% Save new Generations larray
+    } if
+  } if
+	% Verify that the new values are for a new object.  If the current
+	% entry is null then we have a new entry.
+  Objects 4 index lget null eq {
+    ObjectStream 4 index 4 index cvx lput % Save ObjectStream object number
+    Objects 4 index 3 index cvx lput	% Save object location
+    Generations 4 index 2 index lput	% Save geenration number
+  } {
+	% Verify that the new entry has at least as high a generaton number
+	% We accept equal entry number because we have found PDF files in
+	% which there are multiple objects with the same object and entry
+	% numbers.  The normal xref logic only accepts the first such
+	% entry that it finds.  However the 'rebuild PDF' logic can find
+	% both such entries.  The correct one is usually the last one.
+    Generations 4 index lget 1 index le {
+      ObjectStream 4 index 4 index cvx lput % Save ObjectStream object number
+      Objects 4 index 3 index cvx lput	% Save object location
+      Generations 4 index 2 index lput	% Save geenration number
+    } if
+	% Set error flag if we have equal object and generation numbers
+    Generations 4 index lget 1 index eq { /dup_obj_gen_num true def } if
+  } ifelse
+} bind def
+
+% Print the contents of the xref array.  This actually consists of two
+% arrays (Objects and Generations).  Both are larrays.  larrays are a
+% special Ghostscript object which can be arrays with more than 64k
+% elements.
+/print_xref				% - print_xref -
+{ 0 1 Objects llength 1 sub		% stack: 0 1 <number of objects - 1>
+  { dup =only				% print object number
+    (  ) print
+    dup Generations exch lget 1 sub =only % print Generation number
+    (  ) print
+    dup ObjectStream exch lget ==only	% print ObjectStream object number
+    (  ) print
+    Objects exch lget ===		% print object location
+  } for
+  flush
+} bind def
+
+% This is the same as the postscript token operator except that
+% errors are ignored.
+/token_nofail
+{
+  { token } .internalstopped
+  { pop false } if
+} bind odef
+
+% Get token from string and check its type
+%   <string> <type> typed_token <false>		% no token or not match
+%   <string> <type> typed_token <obj> <last> <true>	% matching token type
+% Where last is the string remainder
+/typed_token
+{ exch
+  token_nofail			% get token
+  {
+    dup type			% stack:  type last token type
+    4 -1 roll eq {		% stack:  last token bool
+      exch true			% desired object found - set exit status
+    } {
+      pop pop false		% not type - clear stack, set exit status
+    } ifelse
+  } {
+    pop false			% no token - pop type, set exit status
+  } ifelse			% check if we got token
+} bind def
+
+% Allocate space for post_eof_count to be bound into procedures below.
+/post_eof_count 0 def
+ 
+% We want the location of the trailer dictionary at the start of file.
+% First we will find the xref.  Then we will skip over the xref entries
+% to the trailer.
+/search_start_trailer		% - search_start_trailer <trailer loc>
+{ % Read the first 300 bytes and check for xref
+  PDFfile 0 setfileposition
+  300 string 0 1 299 { 2 copy PDFfile read pop put pop } for
+  (xref) search {
+    % found 'xref'
+    exch pop exch pop length 4 add PDFfile exch setfileposition
+    PDFfile token pop		% get starting entry - or 'trailer'
+    (trailer) ne {		% if we do not already have 'trailer'
+      PDFfile token pop		% get number of entries
+      PDFfile token pop pop	% this moves us into the middle of the first entry
+      25 string exch		% define working string for readline
+      { PDFfile 1 index readline pop pop
+      } repeat			% skip entries
+      pop			% pop working string
+      PDFfile token pop pop	% get 'trailer'
+      PDFfile fileposition	% get file position
+    } if
+  } {
+    pop 0			% no xref - should not happen
+  } ifelse
+} bind def
+
+% We want the location of the trailer dictionary at the end of file.
+% We will read the last block of data and search for the final occurance
+% of the word 'trailer'
+/search_end_trailer		% - search_end_trailer <trailer loc>
+{ % Position to read block of data from the end of the file.  Note:  We ignore
+  % anything past the last %%EOF since this is not PDF data.
+  PDFfile 0 setfileposition
+  PDFfile bytesavailable post_eof_count sub	% location of end of data
+  dup 4096 .min			% block size to read
+				% stack: <file end pos> <block size>
+  % move file position to the start of the block
+  2 copy sub PDFfile exch setfileposition
+  % read block of data
+  dup string 0 1 4 -1 roll 1 sub { 2 copy PDFfile read pop put pop } for
+  % search for last occurance of 'trailer'
+  (trailer) { search not { exit } if pop } loop
+  % determine where the trailer is in the file
+  %   trailer loc = end loc - remaing string length
+  length sub 
+} bind def
+
+% We want to find the trailer dictionary.  There is a trailer dictionary
+% for each xref object list.  We only want the trailer dictionary associated
+% with the first xref object list.  In theory this can be anywhere in the
+% file.  However since we are trying to repair a broken file, we cannot simply
+% follow the xref links.  So we are falling back to a simple strategy.  We
+% find the specified location of the first xref list.  If its location is in
+% the first half of the file then we search for the first trailer dictionary
+% at the start of the file.  Otherwise we search for the last trailer at the
+% end of the file.
+/search_trailer			% - search_trailer -
+{ % Find the 'startxref' and associated position at the end of the file.
+  % Position to read block of data from the end of the file.  Note:  We
+  % actually end at the end of the last %%EOF since this is the end of the
+  % useful PDF data.  (Some files contain trailing garbage.)
+  PDFfile 0 setfileposition
+  PDFfile bytesavailable	% size of file
+  post_eof_count sub dup	% location of end of last %%EOF
+  dup 4096 .min			% block size to read
+  % stack: <useful file size> <useful file size file> <block size>
+  % move file position to the start of the block
+  2 copy sub PDFfile exch setfileposition
+  % read block of data
+  dup string 0 1 4 -1 roll 1 sub { 2 copy PDFfile read pop put pop } for
+  % search for last occurance of 'startxref'
+  (startxref) { search not { exit } if pop } loop
+  % determine where the trailer is in the file
+  %   trailer loc = end loc - remaing string length
+  length sub 9 sub
+  % move the file to this position and read startxref and position
+  PDFfile exch setfileposition
+  PDFfile token pop pop PDFfile token pop
+  % compare xref position to 1/2 the length of the file and search for trailer
+  exch 2 div lt { search_start_trailer } { search_end_trailer } ifelse
+  % get the trailer
+  PDFfile exch setfileposition		% set to the specified trailer location
+  PDFfile traileropdict .pdfrun		% read trailer info
+  /Trailer exch def
+} bind def
+
+% This routine will determine if there is stuff after the %%EOF.  There is
+% supposed to be only a line termination.  However many real life files
+% contain some garbage.  This routine checks how much.  We then ignore this
+% stuff when we are scanning for objects.
+/determine_post_eof_count		% - determine_post_eof_count <count>
+{ % Position to read block of data from the end of the file. 
+  PDFfile 0 setfileposition
+  PDFfile bytesavailable	% size of file
+  dup 4096 .min			% block size to read
+  % stack: <file size> <file size> <block size>
+  % move file position to the start of the block
+  2 copy sub PDFfile exch setfileposition
+  % read block of data
+  dup string 0 1 4 -1 roll 1 sub { 2 copy PDFfile read pop put pop } for
+  % search for last occurance of '%%EOF'
+  (%%EOF) { search not { exit } if pop } loop
+  % how much is left = remaining string length
+  length exch pop		% pop /%%EOF
+} bind def
+
+% This routine will scan a file searaching for object locations to build
+% an alternate version of the data in the xref tables.
+% Its purpose is to provide a basis for an xref fixing facility.
+/search_objects				% - search_objects -
+{ % Initialize the Objects, Generations, etc. larrays
+  initPDFobjects
+  % reset duplicate object and generation numbers error flag
+  /dup_obj_gen_num false def
+  % Determine how many bytes are in the file after the final %%EOF
+  /post_eof_count determine_post_eof_count def
+  % Start at the beginning of the file
+  PDFfile 0 setfileposition
+  % Create a working string (and also store its length on stack).  We are
+  % using a maximum size string size the logic below wants a recovered object
+  % to fit into our working string.
+  65535 dup string
+  { % Now loop through the entire file lloking for objects
+    PDFfile fileposition		% save current file position
+    % When we get near the end of the file, we use a smaller interval of
+    % our working string to prevent reading past the end.  (See comments on
+    % EOF testing below.)
+    PDFfile bytesavailable post_eof_count sub 10 sub dup 4 index lt {
+      2 index 0 3 -1 roll getinterval	% near EOF, use interval of string
+    } { pop 1 index			% not near end, use full working string
+    }ifelse
+    % Read a line from file.  If the line does not fit into our working string,
+    % or any other error, then we will discard it.
+    PDFfile exch { readline } .internalstopped
+    { pop pop false } if		% indicate no string if we stopped
+    { % stack: <length> <working_str> <loc> <string>
+      % Now that we have line, get obj num, ref num, and 'obj'.  Verify that each
+      % of these is correct type.
+      /integertype typed_token {	% get obj number
+        /integertype typed_token {	% get ref number
+          /nametype typed_token {	% get 'obj' text
+	    pop				% pop remaining string
+	    /obj eq {			% verify name is 'obj'
+	      % make sure we have room in the arrays.  We work in increments
+	      % of 20 each time we increase the size.
+	      1 index 20 add 20 idiv 20 mul
+	      growPDFobjects
+	      % save xref parameters into ObjectStream, Objects and Generations
+	      1 index 0 4 index 3 index	% rearrange parms for setxrefentry
+	      setxrefentry		% save parameters
+	      pop pop pop pop		% clear parameters
+	    } if			% check if name is 'obj'
+          } if				% check if we got 'obj" string
+          pop				% remove ref number
+        } if				% check if we got ref number
+        pop				% remove obj number
+      } if				% check if we got object number
+    } if				% check if got a string from readline
+    pop					% remove location
+    % Check if we are approaching the end of the file.  We do not want to
+    % read past the end of the file since that closes it.  We actually stop
+    % 10-20 bytes early since there cannot be an object that close to the end.
+    % (There is a Trailer dictionary, etc. at the end of the file.)
+    PDFfile bytesavailable post_eof_count sub 20 lt { exit } if
+  } loop				% loop through the entire file
+  pop pop				% remove working string and its length
+  % Output warning if we have two objects with the same object and generation
+  % numbers.
+  dup_obj_gen_num {
+    (   **** Warning:  There are objects with matching object and generation\n)
+    pdfformaterror
+    (   **** numbers.  The accuracy of the resulting image is unknown.\n)
+    pdfformaterror
+  } if
+} bind def
+
+% Print warning message because we found a problem while reading the xref
+% tables
+/print_xref_warning
+{ (   **** Warning:  An error occurred while reading an XREF table.\n)
+  pdfformaterror
+  (   **** The file has been damaged.  This may have been caused\n)
+  pdfformaterror
+  (   **** by a problem while converting or transfering the file.\n)
+  pdfformaterror
+  (   **** Ghostscript will attempt to recover the data.\n)
+  pdfformaterror
+} bind def
+
+% Attempt to recover the XRef data.  This is called if we have a failure
+% while reading the normal XRef tables.  This routine usually works
+% only for pre PDF1.5 versions of PDF files.
+/recover_xref_data		% - recover_xref_data -
+{ print_xref_warning		% Print warning message
+  count pdfemptycount sub { pop } repeat % remove anything left by readxref
+  search_objects		% Search for objects
+} bind def

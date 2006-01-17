@@ -1,30 +1,18 @@
 
                             Overview of Ghostscript
 
-   If this is your first contact with Ghostscript, before continuing here
-   you should read the documentation for new users, where you'll find
-     * what Ghostscript does (PostScript and PDF previewing, conversion,
-       and printing);
-     * its licensing terms (free for ordinary use);
-     * what platforms it runs on (every platform you're likely to be
-       interested in);
-     * where to find some useful programs that enhance Ghostscript (like
-       user-friendly previewers for Unix, VMS, MS Windows, DOS, and
-       Macintosh); and
-     * what to do if you need help.
-
-   The rest of this document is a roadmap to the Ghostscript
-   documentation. After looking through it, if you want to install
-   Ghostscript and not only use it, we recommend you read how to install
-   Ghostscript, and how to compile Ghostscript from source code (which is
-   necessary before installing it on Unix and VMS systems).
+   This document is a roadmap to the Ghostscript documentation. After
+   looking through it, if you want to install Ghostscript and not only
+   use it, we recommend you read how to install Ghostscript, and how to
+   compile Ghostscript from source code (which is necessary before
+   installing it on Unix and VMS systems).
      _________________________________________________________________
 
 Table of contents
 
      * Document roadmap by theme
           + What should I read if I'm a new user?
-          + AFPL Ghostscript and GNU Ghostscript
+          + AFPL Ghostscript and GPL Ghostscript
           + Before building Ghostscript
           + What should I read if I'm not a new user?
           + What if I'm a developer?
@@ -39,13 +27,14 @@ Table of contents
 
    Bug-form.htm
    Bug-info.htm
+   Deprecated.htm
    Devices.htm
-   Helpers.htm
-       Humor.htm
-   New-user.htm
+       Helpers.htm
+   Humor.htm
    Ps2epsi.htm
-   Ps2pdf.htm
-       Readme.htm
+       Ps2pdf.htm
+   Ps2ps2.htm
+   Readme.htm
    Unix-lpr.htm
    Use.htm
 
@@ -54,17 +43,15 @@ Table of contents
    Changes.htm
    Commprod.htm
    Copying.htm
-   Current.htm
    Fonts.htm
-       Hershey.htm
-   History*.htm
+   Hershey.htm
+       History*.htm
    Install.htm
    Language.htm
    Make.htm
        News.htm
    Psfiles.htm
    Public.htm
-   Tester.htm
 
           + Primarily for developers:
 
@@ -81,6 +68,7 @@ Table of contents
        Ps-style.htm
    Release.htm
    Source.htm
+   Testing.htm
    Xfonts.htm
      _________________________________________________________________
 
@@ -88,31 +76,23 @@ Document roadmap by theme
 
   What should I read if I'm a new user?
 
-   A new user of Ghostscript should begin by reading the material
-   specifically for new users, then as many of these documents as seem
-   useful:
-     * how to install Ghostscript
-     * how to use Ghostscript; some of this information information also
-       found in gs.1, the Unix "man" page for Ghostscript.
-     * the catalogs at the beginning of devs.mak and contrib.mak, which
-       list all the devices for which Ghostscript is able to produce
-       output (although if you got Ghostscript in binary form, it will
-       only include some of these devices)
-     * detailed information about some specific devices that Ghostscript
-       knows about
-     * more detailed information about how to use Ghostscript under Unix
-       with lpr as a filter for non-PostScript printers
+     * how to use Ghostscript. This includes both a quickstart
+       introduction to the commandline version and more extensive
+       reference material.
+     * detailed information about specific devices that Ghostscript can
+       use for output
      * information about reporting problems--but remember that
        Ghostscript comes with NO WARRANTY and NO SUPPORT
+     * more detailed information about how to use Ghostscript under Unix
+       with lpr as a filter for printing
 
-  AFPL Ghostscript and GNU Ghostscript
+  AFPL Ghostscript and GPL Ghostscript
 
-   AFPL Ghostscript and GNU Ghostscript are different releases. If you
-   have AFPL Ghostscript, not the GNU Ghostscript releases distributed by
-   the Free Software Foundation, you should read (or at least skim
-   through):
+   AFPL Ghostscript and GPL Ghostscript are different releases. If you
+   have AFPL Ghostscript, not the GPL Ghostscript releases, you should
+   read (or at least skim through):
      * additional information about AFPL Ghostscript releases that is not
-       relevant to GNU Ghostscript releases.
+       relevant to GPL Ghostscript releases.
 
    If you run into any questions, or if you are going to be using
    Ghostscript extensively, you should at least skim, and probably
@@ -126,8 +106,8 @@ Document roadmap by theme
 
   Before building Ghostscript
 
-   If you are going to compile Ghostscript, rather than just use an
-   executable you got from somewhere, you should read:
+   If you are going to compile Ghostscript from source, rather than just
+   use an executable you got from somewhere, you may want to read:
      * how to build Ghostscript and install it
      _________________________________________________________________
 
@@ -137,10 +117,9 @@ What should I read if I'm not a new user?
    you should begin by reading this file, then
      * News.htm, for incompatible changes and new features in the current
        release;
-     * Current.htm, for known problems in the current release;
      * if you wish, Changes.htm, for a detailed list of changes in the
        current release;
-     * if you wish, History#.htm (currently History7.htm), for changes in
+     * if you wish, History#.htm (currently History8.htm), for changes in
        other releases.
      _________________________________________________________________
 
@@ -156,9 +135,9 @@ What if I'm a developer?
      * the guide to the Ghostscript source code
      * the interface between Ghostscript and device drivers
      * about the external font interface between Ghostscript and
-       platform-supplied fonts (but read about drivers in general first)
+       platform-supplied fonts
 
-   If you are considering distributing Ghostscript (either AFPL or GNU
+   If you are considering distributing Ghostscript (either AFPL or GPL
    versions) in conjunction with a commercial product, you should read
    the license carefully, and you should also read
      * additional clarification of the circumstances under which
@@ -208,21 +187,16 @@ Presence on the World Wide Web
    Web, including the PostScript Language Reference Manual (Third
    Edition); the Encapsulated PostScript (EPS) Format Specification
    version 3, including Encapsulated PostScript Interchange (EPSI)
-   format; the PDF 1.3 specification; and the pdfmark, transparency and
-   Acrobat Distiller parameters documentation. Some of these documents
-   are also available at Adobe's ftp site, but not necessarily under the
-   same filenames.
+   format; the PDF Reference manuals. The Acrobat SDK contains pdfmark
+   and Acrobat Distiller parameters documentation. Some of these
+   documents are also available at Adobe's ftp site, but not necessarily
+   under the same filenames.
 
   Other material on the WWW
 
    Much other material about Ghostscript is available on the World Wide
    Web, both as web pages and as archived Usenet and mailing list
    discussions. Use the well-known search engines to find such material.
-
-   There is a good manual for Ghostscript available in PDF form, in
-   English and German (and soon in Japanese), at:
-
-     http://www.pdflib.com/gsmanual
 
    There is a translation of the Ghostscript 'man' pages into Czech at:
 
@@ -270,10 +244,6 @@ Which document contains what?
           Software Foundation's GNU General Public License but by the
           Aladdin Free Public License.
 
-   Current.htm
-          Information specifically about the current release of
-          Ghostscript. See also the latest news of changes.
-
    DLL.htm
           On OS/2, MS Windows-16 and MS Windows-32 platforms, Ghostscript
           is compiled as a dynamic link library (DLL). This describes how
@@ -284,6 +254,11 @@ Which document contains what?
           Code orientation for developers. Contains a detailed breakdown
           of the source files by functional group, and overviews of the
           major architectural features and services.
+
+   Deprecated.htm
+          Documention for deprecated devices and features. Features
+          described here will be removed in future versions of
+          Ghostscript.
 
    Devices.htm
           Detailed information about some specific devices for which
@@ -313,6 +288,7 @@ Which document contains what?
    History*.htm
           The history of changes in all Ghostscript releases:
 
+     History8.htm for Ghostscript versions 8.n
      History7.htm for Ghostscript versions 7.n
      History6.htm for Ghostscript versions 6.n
      History5.htm for Ghostscript versions 5.n
@@ -357,9 +333,6 @@ Which document contains what?
           experienced developer to build or install Ghostscript, but some
           experience is needed.
 
-   New-user.htm
-          Essential information for new users of Ghostscript.
-
    News.htm
           A brief description of the latest release or pre-release of
           Ghostscript, and a list of any incompatible changes in it.
@@ -387,6 +360,11 @@ Which document contains what?
           Detailed information on how to use Ghostscript through ps2pdf
           to convert PostScript to Adobe Portable Document Format (PDF).
 
+   Ps2ps2.htm
+          Detailed information on how to use Ghostscript through ps2ps2
+          to convert Adobe Portable Document Format (PDF) or Adobe
+          Postscript Level 3 into Adobe Postscript Level 2.
+
    Psfiles.htm
           A description of the PostScript files (other than font files)
           distributed with Ghostscript, including initialization
@@ -408,9 +386,10 @@ Which document contains what?
           A guide to the Ghostscript source code, for development and
           debugging.
 
-   Tester.htm
-          A short questionnaire to fill out if you would like to be
-          notified of new tester / beta releases.
+   Testing.htm
+          Documentation for using the test scripts located in the
+          toolbin/tests directory, and conventions for writing new
+          testing scripts.
 
    Unix-lpr.htm
           How to set up Ghostscript as a Unix lpr filter.
@@ -427,10 +406,16 @@ Which document contains what?
           font-rendering mechanism, for developers.
      _________________________________________________________________
 
-   Copyright © 1996, 2000 Aladdin Enterprises. All rights reserved.
+   Copyright © 1996-2002 artofcode LLC. All rights reserved.
 
-   This file is part of AFPL Ghostscript. See the Aladdin Free Public
-   License (the "License") for full details of the terms of using,
-   copying, modifying, and redistributing AFPL Ghostscript.
+   This software is provided AS-IS with no warranty, either express or
+   implied. This software is distributed under license and may not be
+   copied, modified or distributed except as expressly authorized under
+   the terms of the license contained in the file LICENSE in this
+   distribution. For more information about licensing, please refer to
+   http://www.ghostscript.com/licensing/. For information on commercial
+   licensing, go to http://www.artifex.com/licensing/ or contact Artifex
+   Software, Inc., 101 Lucas Valley Road #110, San Rafael, CA 94903,
+   U.S.A., +1(415)492-9861.
 
-   Ghostscript version 7.04, 30 January 2002
+   Ghostscript version 8.53, 20 October 2005

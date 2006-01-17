@@ -1,22 +1,20 @@
 /* Copyright (C) 1989-1994, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevepsn.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
+/* $Id: gdevepsn.c,v 1.9 2004/08/04 19:36:12 stefan Exp $*/
 /*
  * Epson (and similar) dot-matrix printer driver for Ghostscript.
  *
@@ -138,7 +136,7 @@ const gx_device_printer far_data gs_ibmpro_device =
 /* ------ Driver procedures ------ */
 
 /* Forward references */
-private void eps_output_run(P6(byte *, int, int, char, FILE *, int));
+private void eps_output_run(byte *, int, int, char, FILE *, int);
 
 /* Send the page to the printer. */
 #define DD 0x40				/* double density flag */
@@ -163,12 +161,12 @@ eps_print_page(gx_device_printer *pdev, FILE *prn_stream, int y_9pin_high,
 	int line_size = gdev_mem_bytes_per_scan_line((gx_device *)pdev);
 	/* Note that in_size is a multiple of 8. */
 	int in_size = line_size * (8 * in_y_mult);
-	byte *buf1 = (byte *)gs_malloc(in_size, 1, "eps_print_page(buf1)");
-	byte *buf2 = (byte *)gs_malloc(in_size, 1, "eps_print_page(buf2)");
+	byte *buf1 = (byte *)gs_malloc(pdev->memory, in_size, 1, "eps_print_page(buf1)");
+	byte *buf2 = (byte *)gs_malloc(pdev->memory, in_size, 1, "eps_print_page(buf2)");
 	byte *in = buf1;
 	byte *out = buf2;
 	int out_y_mult = (y_24pin ? 3 : 1);
-	int x_dpi = pdev->x_pixels_per_inch;
+	int x_dpi = (int)pdev->x_pixels_per_inch;
 	char start_graphics =
 		(y_24pin ? graphics_modes_24 : graphics_modes_9)[x_dpi / 60];
 	int first_pass = (start_graphics & DD ? 1 : 0);
@@ -182,9 +180,9 @@ eps_print_page(gx_device_printer *pdev, FILE *prn_stream, int y_9pin_high,
 	/* Check allocations */
 	if ( buf1 == 0 || buf2 == 0 )
 	{	if ( buf1 ) 
-		  gs_free((char *)buf1, in_size, 1, "eps_print_page(buf1)");
+		  gs_free(pdev->memory, (char *)buf1, in_size, 1, "eps_print_page(buf1)");
 		if ( buf2 ) 
-		  gs_free((char *)buf2, in_size, 1, "eps_print_page(buf2)");
+		  gs_free(pdev->memory, (char *)buf2, in_size, 1, "eps_print_page(buf2)");
 		return_error(gs_error_VMerror);
 	}
 
@@ -395,8 +393,8 @@ eps_print_page(gx_device_printer *pdev, FILE *prn_stream, int y_9pin_high,
 	fputs(end_string, prn_stream);
 	fflush(prn_stream);
 
-	gs_free((char *)buf2, in_size, 1, "eps_print_page(buf2)");
-	gs_free((char *)buf1, in_size, 1, "eps_print_page(buf1)");
+	gs_free(pdev->memory, (char *)buf2, in_size, 1, "eps_print_page(buf2)");
+	gs_free(pdev->memory, (char *)buf1, in_size, 1, "eps_print_page(buf1)");
 	return 0;
 }
 
@@ -411,7 +409,7 @@ eps_output_run(byte *data, int count, int y_mult,
 	fputc(033, prn_stream);
 	if ( !(start_graphics & ~3) )
 	{	
-		fputc("KLYZ"[start_graphics], prn_stream);
+		fputc("KLYZ"[(int)start_graphics], prn_stream);
 	}
 	else
 	{	

@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zfont0.c,v 1.3 2000/09/19 19:00:53 lpd Exp $ */
+/* $Id: zfont0.c,v 1.7 2004/08/04 19:36:13 stefan Exp $ */
 /* Composite font creation operator */
 #include "ghost.h"
 #include "oper.h"
@@ -44,13 +42,13 @@
 #include "store.h"
 
 /* Imported from zfcmap.c */
-int ztype0_get_cmap(P4(const gs_cmap_t ** ppcmap, const ref * pfdepvector,
-		       const ref * op, gs_memory_t *imem));
+int ztype0_get_cmap(const gs_cmap_t ** ppcmap, const ref * pfdepvector,
+		    const ref * op, gs_memory_t *imem);
 
 /* Forward references */
 private font_proc_define_font(ztype0_define_font);
 private font_proc_make_font(ztype0_make_font);
-private int ensure_char_entry(P5(i_ctx_t *, os_ptr, const char *, byte *, int));
+private int ensure_char_entry(i_ctx_t *, os_ptr, const char *, byte *, int);
 
 /* <string|name> <font_dict> .buildfont0 <string|name> <font> */
 /* Build a type 0 (composite) font. */
@@ -93,7 +91,7 @@ zbuildfont0(i_ctx_t *i_ctx_p)
 	ref fdep;
 	gs_font *psub;
 
-	array_get(&fdepvector, i, &fdep);
+	array_get(imemory, &fdepvector, i, &fdep);
 	if ((code = font_param(&fdep, &psub)) < 0)
 	    return code;
 	/*
@@ -167,7 +165,7 @@ zbuildfont0(i_ctx_t *i_ctx_p)
     {
 	build_proc_refs build;
 
-	code = build_proc_name_refs(&build,
+	code = build_proc_name_refs(imemory, &build,
 				    "%Type0BuildChar", "%Type0BuildGlyph");
 	if (code < 0)
 	    return code;
@@ -204,7 +202,7 @@ zbuildfont0(i_ctx_t *i_ctx_p)
     for (i = 0; i < data.encoding_size; i++) {
 	ref enc;
 
-	array_get(&pdata->Encoding, i, &enc);
+	array_get(imemory, &pdata->Encoding, i, &enc);
 	if (!r_has_type(&enc, t_integer)) {
 	    code = gs_note_error(e_typecheck);
 	    goto fail;
@@ -227,7 +225,7 @@ zbuildfont0(i_ctx_t *i_ctx_p)
 	ref fdep;
 	ref *pfid;
 
-	array_get(&fdepvector, i, &fdep);
+	array_get(pfont->memory, &fdepvector, i, &fdep);
 	/* The lookup can't fail, because of the pre-check above. */
 	dict_find_string(&fdep, "FID", &pfid);
 	data.FDepVector[i] = r_ptr(pfid, gs_font);
@@ -241,7 +239,7 @@ fail:
     if (r_has_type(&save_FID, t_null)) {
 	ref rnfid;
 
-	name_enter_string("FID", &rnfid);
+	name_enter_string(pfont->memory, "FID", &rnfid);
 	idict_undef(op, &rnfid);
     } else
 	idict_put_string(op, "FID", &save_FID);

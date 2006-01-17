@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>The Ghostscript library</title>
-<!-- $Id: Lib.htm,v 1.14.2.2 2002/02/01 05:31:25 raph Exp $ -->
+<!-- $Id: Lib.htm,v 1.43 2005/10/20 19:46:23 ray Exp $ -->
 <!-- Originally: lib.txt -->
 <link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
@@ -27,6 +27,7 @@
 <li><a href="#Patterns">Patterns</a>
 <li><a href="#Lower_level_API">Lower-level API</a>
 </ul>
+<li><a href="#Visual_trace">Visual Trace instructions</a>
 <li><a href="#Full_example">A full example</a>
 </ul></blockquote>
 
@@ -374,6 +375,381 @@ clients.
 
 <hr>
 
+<h2><a name="Visual_trace"></a>Visual Trace instructions</h2>
+
+<p>
+Visual Trace instructions may be inserted in code to provide debug output in
+a graphical form. Graphics Library doesn't provide a rasterisation of the
+output, because it is platform dependent. Instead this, client application
+shpuld set <b><tt>vd_trace0</tt></b> external variable to Graphics Library,
+passing a set of callbacks which provide the rasterization.
+
+<p>
+Visual Trace instructions are defined in <b><tt>vdtrace.h</tt></b>.
+Debug output must be opened with <b><tt>vd_get_dc</tt></b> instruction,
+which obtains a drawing context for the debug output, and must be closed
+with <b><tt>vd_release_dc</tt></b> instruction. After opening the output,
+scale, origin and shift to be set for mapping the debugee coordinate space
+to window coordinate space. Than painting instructions to be used.
+Painting may be either immediate or indirect.
+
+<p>
+Indirect painting uses <b><tt>vd_beg_path</b></tt> before
+line output and <b><tt>vd_end_path</b></tt> after line output,
+to store a path into a temporary storage. After this 
+<b><tt>vd_stroke</b></tt> may be used for stroking the path,
+or <b><tt>vd_fill</b></tt> may be used for filling the region inside the path.
+
+<p>
+Immediate painting happens when path construction instructions are
+involved without <b><tt>vd_beg_path</b></tt> and <b><tt>vd_end_path</b></tt>.
+In this case lines and curves are being drawed immediately, when a path construction
+instruction is executed.
+
+<p>
+The following table explains the semantics of Visual Trace instructions.
+<p>
+
+<table cellpadding=0 cellspacing=0>
+<tr><th colspan=5 bgcolor="#CCCC00"><hr><font size="+1">Visual Trace instructions</font><hr>
+<tr>	<th align=left>Instruction
+        <td>&nbsp;&nbsp;
+	<th align=left>Function
+        <td>&nbsp;&nbsp;
+	<th align=left>Parameters
+<tr>	<td colspan=5><hr>
+<tr>	<td><b><tt>vd_get_dc</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Obtain drawing context
+        <td>&nbsp;&nbsp;
+	<td><b><tt>-T</tt></b> option flag value, for which the subsequent output is enabled.
+<tr>	<td><b><tt>vd_release_dc</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Release drawing context
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_enabled</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Is trace currently enabled ?
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_get_size_unscaled_x</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Get the horizontal size of the output window in pixels.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_get_size_unscaled_y</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Get the vertical size of the output window in pixels.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_get_size_caled_x</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Get the horizontal size of the output window in debuggee coordinate units.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_get_size_caled_y</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Get the vertical size of the output window in debuggee coordinate units.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_get_scale_x</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Get the horizontal scale.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_get_scale_y</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Get the vertical scale.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_get_origin_x</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Get the horizontal position of the draft origin in debuggee coordinate space.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_get_origin_y</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Get the vertical position of the draft origin in debuggee coordinate space.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_set_scale(s)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Set isotripic scale.
+        <td>&nbsp;&nbsp;
+	<td>Debugee space to window space mapping scale, same for both dimentions.
+<tr>	<td><b><tt>vd_set_scaleXY(sx,sy)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Set anisotripic scale.
+        <td>&nbsp;&nbsp;
+	<td>Debugee space to window space mapping scale, one for each dimention.
+<tr>	<td><b><tt>vd_set_origin(x,y)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Set the draft origin.
+        <td>&nbsp;&nbsp;
+	<td>Origin of the draft in debugee space.
+<tr>	<td><b><tt>vd_set_shift(x,y)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Set the draft position.
+        <td>&nbsp;&nbsp;
+	<td>Position of the draft origin in window space (in pixels).
+<tr>	<td><b><tt>vd_set_central_shift</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Set the draft position to window center.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_erase(c)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Fill entire window.
+        <td>&nbsp;&nbsp;
+	<td>Color to fill.
+<tr>	<td><b><tt>vd_beg_path</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Begin path construction.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_end_path</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>End path construction.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_moveto(x,y)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Path construction : Set the draft current point.
+        <td>&nbsp;&nbsp;
+	<td>Debugee coordinates.
+<tr>	<td><b><tt>vd_lineto(x,y)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Path construction : Line from current point to specified point.
+        <td>&nbsp;&nbsp;
+	<td>Debugee coordinates.
+<tr>	<td><b><tt>vd_lineto_mupti(p,n)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Path construction : Poliline from current point to specified points.
+        <td>&nbsp;&nbsp;
+	<td>Array of points and its size, debugee coordinates.
+<tr>	<td><b><tt>vd_curveto(x0,y0,x1,y1,x2,y2)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Path construction : Curve (3d order Bezier) from current point to specified point, with specified poles.
+        <td>&nbsp;&nbsp;
+	<td>2 poles and the curve ending point, debuggee coordinates.
+<tr>	<td><b><tt>vd_closepath</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Path construction : Close the path (is necessary for filling an area).
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_bar(x0,y0,x1,y1,w,c)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Bar from point to point.
+        <td>&nbsp;&nbsp;
+	<td>2 points (debugee coordinates), width (in pixels) and color.
+<tr>	<td><b><tt>vd_square(x0,y0,w,c)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Square with specified center and size.
+        <td>&nbsp;&nbsp;
+	<td>The center (debugee coordinates), size (in pixels) and color.
+<tr>	<td><b><tt>vd_rect(x0,y0,x1,y1,w,c)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Canonic rectangle with specified coordinites.
+        <td>&nbsp;&nbsp;
+	<td>Coordinates of boundaries (debugee coordinates), line width (in pixels) and color.
+<tr>	<td><b><tt>vd_quad(x0,y0,x1,y1,x2,y2,x3,y3,w,c)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Quadrangle with specified coordinites.
+        <td>&nbsp;&nbsp;
+	<td>Coordinates of vertices (debugee coordinates), line width (in pixels) and color.
+<tr>	<td><b><tt>vd_curve(x0,y0,x1,y1,x2,y2,x3,y3,c,w)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Curve with width.
+        <td>&nbsp;&nbsp;
+	<td>4 curve poles (debugee coordinates), color, and width (in pixels).
+<tr>	<td><b><tt>vd_circle(x,y,r,c)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Circle.
+        <td>&nbsp;&nbsp;
+	<td>Center (debugee coordinates), radius (in pixels) and color.
+<tr>	<td><b><tt>vd_round(x,y,r,c)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Filled circle.
+        <td>&nbsp;&nbsp;
+	<td>Center (debugee coordinates), radius (in pixels) and color.
+<tr>	<td><b><tt>vd_stroke</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Stroke a path constructed with vd_beg_path, vd_moveto, vd_lineto,
+	    vd_curveto, vd_closepath, vd_end_path.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_fill</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Fill a path constructed with vd_beg_path, vd_moveto, vd_lineto,
+	    vd_curveto, vd_closepath, vd_end_path.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>vd_setcolor(c)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Set a color.
+        <td>&nbsp;&nbsp;
+	<td>Color (an integer consisting of red, green, blue bytes).
+<tr>	<td><b><tt>vd_setlinewidth(w)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Set line width.
+        <td>&nbsp;&nbsp;
+	<td>Width (in pixels).
+<tr>	<td><b><tt>vd_text(x,y,s,c)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Paint a text.
+        <td>&nbsp;&nbsp;
+	<td>Origin point (debugee coordinates), a string, and a color.
+<tr>	<td><b><tt>vd_wait</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Delay execution until a resuming command is entered through user interface.
+        <td>&nbsp;&nbsp;
+	<td>
+</table>
+
+
+<p>
+Graphics Library doesn't provide a rasterization of the debug output.
+Instead it calls callbacks, which are specified by a client, and which may
+have a platform dependent implementation. The implementation must not
+use Graphics Library to exclude recursive calls to it from Visual Trace
+instructions. The callbacks and auxiliary data are collected in
+the structure <b><tt>vd_trace_interface</b></tt>, explained in the table below.
+<p>
+
+<table cellpadding=0 cellspacing=0>
+<tr><th colspan=5 bgcolor="#CCCC00"><hr><font size="+1">vd_trace_interface structure</font><hr>
+<tr>	<th align=left>Field
+        <td>&nbsp;&nbsp;
+	<th align=left>Purpose
+        <td>&nbsp;&nbsp;
+	<th align=left>Parameters
+<tr>	<td colspan=5><hr>
+<tr>	<td><b><tt>host</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>A pointer to the rasterizer control block - to be provided by client application.
+	    The type of the fild is client dependent.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>scale_x, scale_y</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Scale of debugee coordinate to window coordinate mapping - internal work data, don't change.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>orig_x, orig_y</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Draft origin in debugee coordinates - internal work data, don't change.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>shift_x, shift_y</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Draft shift in window coordinates - internal work data, don't change.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>get_size_x(I)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Get window width in pixels.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>get_size_y(I)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Get window height in pixels.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>get_dc(I,I1)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Obtain drawing context.
+        <td>&nbsp;&nbsp;
+	<td>Pointer to interface block, and pointer to copy of the pointer.
+	    Implementation must set *I1 if it succeeds to get a drawing context.
+<tr>	<td><b><tt>release_dc(I,I1)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Release drawing context.
+        <td>&nbsp;&nbsp;
+	<td>Pointer to interface block, and pointer to copy of the pointer.
+	    Implementation must reset *I1 if it succeeds to release the drawing context.
+<tr>	<td><b><tt>erase(I,c)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Erase entire window.
+        <td>&nbsp;&nbsp;
+	<td>Background color.
+<tr>	<td><b><tt>beg_path(I)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Begin path construction.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>end_path(I)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>End path construction.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>moveto(I,x,y)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Set current point.
+        <td>&nbsp;&nbsp;
+	<td>A point in window coordinates.
+<tr>	<td><b><tt>lineto(I,x,y)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Line from current point to specified point.
+        <td>&nbsp;&nbsp;
+	<td>A point in window coordinates.
+<tr>	<td><b><tt>curveto(I,x0,y0,x1,y1,x2,y2)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Curve from current point with specified poles to specified point.
+        <td>&nbsp;&nbsp;
+	<td>3 points in window coordinates.
+<tr>	<td><b><tt>closepath(I)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Close the path.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>circle(I,x,y,r)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Circle.
+        <td>&nbsp;&nbsp;
+	<td>Center and radius, window coordinates.
+<tr>	<td><b><tt>round(I,x,y,r)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Filled circle.
+        <td>&nbsp;&nbsp;
+	<td>Center and radius, window coordinates.
+<tr>	<td><b><tt>fill(I)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Fill the path.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>stroke(I)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Stroke the path.
+        <td>&nbsp;&nbsp;
+	<td>
+<tr>	<td><b><tt>setcolor(I,c)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Set color.
+        <td>&nbsp;&nbsp;
+	<td>An integer, consisting of red, green, blue bytes.
+<tr>	<td><b><tt>setlinewidth(I,w)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Set line width.
+        <td>&nbsp;&nbsp;
+	<td>Line width in pixels.
+<tr>	<td><b><tt>text(I,x,y,s)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Draw a text.
+        <td>&nbsp;&nbsp;
+	<td>Coodrinates in pixels, and a string.
+<tr>	<td><b><tt>wait(I)</tt></b>
+        <td>&nbsp;&nbsp;
+	<td>Delay execution untill resume command is inputted from user.
+        <td>&nbsp;&nbsp;
+	<td>
+</table>
+
+
+
+<p>
+<hr>
+
 <h2><a name="Full_example"></a>A full example</h2>
 
 <p>
@@ -475,13 +851,21 @@ is finished, it should execute:
 All rights reserved.</small>
 
 <p>
-<small>This file is part of AFPL Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.</small>
+This software is provided AS-IS with no warranty, either express or
+implied.
+
+This software is distributed under license and may not be copied,
+modified or distributed except as expressly authorized under the terms
+of the license contained in the file LICENSE in this distribution.
+
+For more information about licensing, please refer to
+http://www.ghostscript.com/licensing/. For information on
+commercial licensing, go to http://www.artifex.com/licensing/ or
+contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
 <p>
-<small>Ghostscript version 7.04, 31 January 2002
+<small>Ghostscript version 8.53, 20 October 2005
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

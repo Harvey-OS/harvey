@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: sfxfd.c,v 1.6 2000/12/19 03:35:40 alexcher Exp $ */
+/* $Id: sfxfd.c,v 1.10 2004/08/05 17:02:36 stefan Exp $ */
 /* File stream implementation using direct OS calls */
 /******
  ****** NOTE: THIS FILE MAY NOT COMPILE ON NON-UNIX PLATFORMS, AND MAY
@@ -48,9 +46,9 @@
 #ifdef KEEP_FILENO_API
 /* Provide prototypes to avoid compiler warnings. */
 void
-    sread_fileno(P4(stream *, FILE *, byte *, uint)),
-    swrite_fileno(P4(stream *, FILE *, byte *, uint)),
-    sappend_fileno(P4(stream *, FILE *, byte *, uint));
+    sread_fileno(stream *, FILE *, byte *, uint),
+    swrite_fileno(stream *, FILE *, byte *, uint),
+    sappend_fileno(stream *, FILE *, byte *, uint);
 #else
 #  define sread_fileno sread_file
 #  define swrite_fileno swrite_file
@@ -59,19 +57,19 @@ void
 
 /* Forward references for file stream procedures */
 private int
-    s_fileno_available(P2(stream *, long *)),
-    s_fileno_read_seek(P2(stream *, long)),
-    s_fileno_read_close(P1(stream *)),
-    s_fileno_read_process(P4(stream_state *, stream_cursor_read *,
-			     stream_cursor_write *, bool));
+    s_fileno_available(stream *, long *),
+    s_fileno_read_seek(stream *, long),
+    s_fileno_read_close(stream *),
+    s_fileno_read_process(stream_state *, stream_cursor_read *,
+			  stream_cursor_write *, bool);
 private int
-    s_fileno_write_seek(P2(stream *, long)),
-    s_fileno_write_flush(P1(stream *)),
-    s_fileno_write_close(P1(stream *)),
-    s_fileno_write_process(P4(stream_state *, stream_cursor_read *,
-			      stream_cursor_write *, bool));
+    s_fileno_write_seek(stream *, long),
+    s_fileno_write_flush(stream *),
+    s_fileno_write_close(stream *),
+    s_fileno_write_process(stream_state *, stream_cursor_read *,
+			   stream_cursor_write *, bool);
 private int
-    s_fileno_switch(P2(stream *, bool));
+    s_fileno_switch(stream *, bool);
 
 /* Get the file descriptor number of a stream. */
 inline private int
@@ -249,7 +247,7 @@ again:
 	goto again;
     else
 	status = ERRC;
-    process_interrupts();
+    process_interrupts(s->memory);
     return status;
 }
 
@@ -326,7 +324,7 @@ again:
     /* Some versions of the DEC C library on AXP architectures */
     /* give an error on write if the count is zero! */
     if (count == 0) {
-	process_interrupts();
+	process_interrupts((stream*)st->memory);
 	return 0;
     }
     /* See above regarding the Mac MetroWorks compiler. */
@@ -338,7 +336,7 @@ again:
 	goto again;
     else
 	status = ERRC;
-    process_interrupts();
+    process_interrupts((stream *)st->memory);
     return status;
 }
 

@@ -1,33 +1,75 @@
 /* Copyright (C) 1994, 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: sjpegc.c,v 1.4 2001/04/07 00:33:22 rayjj Exp $ */
+/* $Id: sjpegc.c,v 1.7 2002/03/30 23:55:15 giles Exp $ */
 /* Interface routines for IJG code, common to encode/decode. */
 #include "stdio_.h"
 #include "string_.h"
 #include "jpeglib_.h"
 #include "jerror_.h"
-#include "jmemsys.h"		/* for prototypes */
 #include "gx.h"
 #include "gserrors.h"
 #include "strimpl.h"
 #include "sdct.h"
 #include "sjpeg.h"
+
+/*
+  Ghostscript uses a non-public interface to libjpeg in order to
+  override the library's default memory manager implementation.
+  Since many users will want to compile Ghostscript using the
+  shared jpeg library, we provide these prototypes so that a copy
+  of the libjpeg source distribution is not needed.
+
+  The presence of the jmemsys.h header file is detected in
+  unix-aux.mak, and written to gconfig_.h
+ */
+
+#include "gconfig_.h"
+#ifdef DONT_HAVE_JMEMSYS_H
+
+void *
+jpeg_get_small(j_common_ptr cinfo, size_t size);
+
+void
+jpeg_free_small(j_common_ptr cinfo, void *object, size_t size);
+
+void FAR *
+jpeg_get_large(j_common_ptr cinfo, size_t size);
+
+void
+jpeg_free_large(j_common_ptr cinfo, void FAR * object, size_t size);
+typedef void *backing_store_ptr;
+
+long
+jpeg_mem_available(j_common_ptr cinfo, long min_bytes_needed,
+		   long max_bytes_needed, long already_allocated);
+
+void
+jpeg_open_backing_store(j_common_ptr cinfo, backing_store_ptr info,
+			long total_bytes_needed);
+
+long
+jpeg_mem_init(j_common_ptr cinfo);
+
+void
+jpeg_mem_term(j_common_ptr cinfo);
+
+#else
+#include "jmemsys.h"		/* for prototypes */
+#endif
 
 private_st_jpeg_block();
 

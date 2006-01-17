@@ -1,21 +1,19 @@
-#    Copyright (C) 1989, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1989, 1996-2004 artofcode LLC.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: gs.mak,v 1.5.2.2 2002/02/01 03:30:13 raph Exp $
+# $Id: gs.mak,v 1.30 2004/12/20 22:35:07 igor Exp $
 # Generic makefile, common to all platforms, products, and configurations.
 # The platform-specific makefiles `include' this file.
 
@@ -31,6 +29,8 @@
 #	GS - the name of the executable (without the extension, if any).
 #	GS_LIB_DEFAULT - the default directory/ies for searching for the
 #	    initialization and font files at run time.
+#	GS_CACHE_DIR - the default directory for caching data between
+#	    ghostscript invocations.
 #	SEARCH_HERE_FIRST - the default setting of -P (whether or not to
 #	    look for files in the current directory first).
 #	GS_DOCDIR - the directory where documentation will be available
@@ -56,9 +56,23 @@
 #	    and linking libgz/libz explicitly.
 #	ZLIB_NAME - the name of the shared zlib, either gz (for libgz, -lgz)
 #	    or z (for libz, -lz).
+#	SHARE_JBIG2 - normally 0; if set to 1, asks the linker to use
+#	    an existing complied libjbig2dec instead of compiling and linking
+#	    in from a local copy of the source
+#	JBIG2SRCDIR - the name of the jbig2dec library source directory
+#	    typically 'jbig2dec' or 'jbig2dec-/version/'
+#	SHARE_JASPER - if set to 1, asks the linker to use an existing
+#	    complied libjasper. if set to 0, asks to compile and linking
+#	    in using our custom makefile from a local copy of the source
+#	JASPERSRCDIR - the name of the jasper library source directory
+#	    typically 'jasper' or 'jasper-/version/'
+#	JASPERCFLAGS - any platform-specific flags that are required
+#	    to properly compile in the jasper library source
+#	ICCSRCDIR - the name of the ICC lib source dir, currently
+#	    always icclib (compiled in statically)
 #	DEVICE_DEVS - the devices to include in the executable.
 #	    See devs.mak for details.
-#	DEVICE_DEVS1...DEVICE_DEVS20 - additional devices, if the definition
+#	DEVICE_DEVS1...DEVICE_DEVS21 - additional devices, if the definition
 #	    of DEVICE_DEVS doesn't fit on one line.  See devs.mak for details.
 #	FEATURE_DEVS - what features to include in the executable.
 #	    Normally this is one of:
@@ -87,6 +101,9 @@
 #			Included automatically in the psl2 feature.
 #		    dct - support for DCTEncode/Decode filters.
 #			Included automatically in the psl2 feature.
+#                   diskn - support for %disk IODevice emulation. Adds support
+#                       for %disk0 thru %disk9. Use requires setting the /Root
+#                       paramter for each %disk (see Language.htm).
 #		    dps - (partial) support for Display PostScript extensions:
 #			see Language.htm for details.
 #		    dpsnext - (partial) support for Display PostScript
@@ -107,6 +124,7 @@
 #			Included automatically in the psl2 feature.
 #		    type42 - support for Type 42 (embedded TrueType) fonts.
 #			Included automatically in the psl2 feature.
+#                   fapi - Font API (3d party font renderer interface).
 #		There are quite a number of other sub-features that can be
 #		selectively included in or excluded from a configuration,
 #		but the above are the ones that are most likely to be of
@@ -152,13 +170,9 @@
 #	OBJ - the extension for relocatable object files (e.g., o or obj).
 #	XE - the extension for executable files (e.g., null or .exe).
 #	XEAUX - the extension for the executable files (e.g., null or .exe)
-#		for the utility programs (ansi2knr and those compiled with
-#		CCAUX).
+#		for the utility programs (those compiled with CCAUX).
 #	BEGINFILES - the list of additional files that `make clean' should
 #		delete.
-#	CCA2K - the C invocation for the ansi2knr program, which is the only
-#		one that doesn't use ANSI C syntax.  (It is only needed if
-#		the main C compiler also isn't an ANSI compiler.)
 #	CCAUX - the C invocation for auxiliary programs (echogs, genarch,
 #		genconf, gendev, genht, geninit).
 #	CC_ - the C invocation for normal compilation.
@@ -169,14 +183,9 @@
 #		normally the same as CC_: this is needed because the
 #		Borland compiler generates *worse* code for this module
 #		(but only this module) when optimization (-O) is turned on.
-#	CCLEAF - the C invocation for compiling modules that contain only
-#		leaf procedures, which don't need to build stack frames.
-#		This is needed only because many compilers aren't able to
-#		recognize leaf procedures on their own.
-#	AK - if source files must be converted from ANSI to K&R syntax,
-#		this is $(ANSI2KNR_XE); if not, it is null.
-#		If a particular platform requires other utility programs
-#		to be built, AK must include them too.
+#	AK - if a particular platform requires any programs or data files
+#		to be built before compiling the source code, AK must list
+#		them.
 #	EXP - the prefix for invoking an executable program in a specified
 #		directory (MCR on OpenVMS, null on all other platforms).
 #	SH - the shell for scripts (null on MS-DOS, sh on Unix).
@@ -202,6 +211,8 @@
 #	gconfigv.h - this indicates the status of certain machine-
 #	    and configuration-specific features derived from definitions
 #	    in the platform-specific makefile.
+#	gconfigd.h - this is used for configuration-specific definitions
+#	    such as paths that must be defined by all top-level makefiles.
 
 #**************** PATCHES
 JGENDIR=$(GLGENDIR)
@@ -210,6 +221,10 @@ PNGGENDIR=$(GLGENDIR)
 PNGOBJDIR=$(GLOBJDIR)
 ZGENDIR=$(GLGENDIR)
 ZOBJDIR=$(GLOBJDIR)
+JBIG2GENDIR=$(GLGENDIR)
+JBIG2OBJDIR=$(GLOBJDIR)
+JASPERGENDIR=$(GLGENDIR)
+JASPEROBJDIR=$(GLOBJDIR)
 ICCGENDIR=$(GLGENDIR)
 ICCOBJDIR=$(GLOBJDIR)
 IJSGENDIR=$(GLGENDIR)
@@ -228,7 +243,6 @@ GS_MAK=$(GLSRCDIR)$(D)gs.mak
 GS_XE=$(BINDIR)$(D)$(GS)$(XE)
 AUXGENDIR=$(GLGENDIR)
 AUXGEN=$(AUXGENDIR)$(D)
-ANSI2KNR_XE=$(AUXGEN)ansi2knr$(XEAUX)
 ECHOGS_XE=$(AUXGEN)echogs$(XEAUX)
 GENARCH_XE=$(AUXGEN)genarch$(XEAUX)
 GENCONF_XE=$(AUXGEN)genconf$(XEAUX)
@@ -240,12 +254,16 @@ GENINIT_XE=$(AUXGEN)geninit$(XEAUX)
 # gconfig*.h and gconfx*.h are generated dynamically.
 gconfig_h=$(GLGENDIR)$(D)gconfxx.h
 gconfigf_h=$(GLGENDIR)$(D)gconfxc.h
+gconfigd_h=$(GLGENDIR)$(D)gconfigd.h
 
 all default : $(GS_XE)
 	$(NO_OP)
 
-#****** ON UNIX PLATFORMS, SHOULD REMOVE `makefile' ******
-distclean maintainer-clean realclean : clean
+# the distclean and maintainer-clean targets (if any)
+# are the responsibility of the platform-specific
+# makefiles. We only handle the internal build system
+# apparatus here.
+realclean : clean
 	$(NO_OP)
 
 clean : mostlyclean
@@ -258,8 +276,8 @@ mostlyclean : config-clean
 	$(RMN_) $(GSGEN)deflate.h $(GSGEN)zutil.h
 	$(RMN_) $(GSGEN)gconfig*.c $(GSGEN)gscdefs*.c $(GSGEN)iconfig*.c
 	$(RMN_) $(GSGEN)_temp_* $(GSGEN)_temp_*.* $(GSOBJ)*.map $(GSOBJ)*.sym
-	$(RMN_) $(ANSI2KNR_XE) $(ECHOGS_XE)
 	$(RMN_) $(GENARCH_XE) $(GENCONF_XE) $(GENDEV_XE) $(GENHT_XE) $(GENINIT_XE)
+	$(RMN_) $(ECHOGS_XE)
 	$(RMN_) $(GSGEN)gs_init.c $(BEGINFILES)
 
 # Remove only configuration-dependent information.
@@ -269,23 +287,6 @@ config-clean :
 	$(RMN_) $(GSGEN)gconfx*.h $(GSGEN)j*.h
 	$(RMN_) $(GSGEN)c*.tr $(GSGEN)o*.tr $(GSGEN)l*.tr
 
-# A rule to do a quick and dirty compilation attempt when first installing
-# the interpreter.  Many of the compilations will fail:
-# follow this with 'make'.
-
-#****** FOLLOWING IS WRONG, TIED TO INTERPRETER ******
-begin :
-	$(RMN_) $(GSGEN)arch.h $(GSGEN)gconfig*.h $(GSGEN)gconfx*.h
-	$(RMN_) $(GENARCH_XE) $(GS_XE)
-	$(RMN_) $(GSGEN)gconfig*.c $(GSGEN)gscdefs*.c $(GSGEN)iconfig*.c
-	$(RMN_) $(GSGEN)gs_init.c $(BEGINFILES)
-	make $(GSGEN)arch.h $(GSGEN)gconfigv.h
-	- $(CCBEGIN)
-	$(RMN_) $(GSOBJ)gconfig.$(OBJ) $(GSOBJ)gdev*.$(OBJ)
-	$(RMN_) $(GSOBJ)gp_*.$(OBJ) $(GSOBJ)gscdefs.$(OBJ) $(GSOBJ)gsmisc.$(OBJ)
-	$(RMN_) $(PSOBJ)icfontab.$(OBJ) $(PSOBJ)iconfig.$(OBJ)
-	$(RMN_) $(PSOBJ)iinit.$(OBJ) $(PSOBJ)interp.$(OBJ)
-
 # Macros for constructing the *.dev files that describe features and
 # devices.
 SETDEV=$(EXP)$(ECHOGS_XE) -e .dev -w- -l-dev -b -s -l-obj
@@ -294,6 +295,8 @@ SETDEV2=$(EXP)$(ECHOGS_XE) -e .dev -w- -l-dev2 -b -s -l-obj
 SETPDEV2=$(EXP)$(ECHOGS_XE) -e .dev -w- -l-dev2 -b -s -l-include -l$(GLGENDIR)$(D)page -l-obj
 SETMOD=$(EXP)$(ECHOGS_XE) -e .dev -w- -l-obj
 ADDMOD=$(EXP)$(ECHOGS_XE) -e .dev -a- $(NULL)
+SETCOMP=$(EXP)$(ECHOGS_XE) -e .dev -w- -l-comp
+ADDCOMP=$(EXP)$(ECHOGS_XE) -e .dev -a- -l-comp
 
 # Define the search lists and compilation switches for the third-party
 # libraries, and the compilation switches for their clients.
@@ -319,6 +322,10 @@ PCF_=$(D_)SHARE_LIBPNG=$(SHARE_LIBPNG)$(_D)
 ZI_=$(ZSRCDIR)
 ZF_=
 ZCF_=$(D_)SHARE_ZLIB=$(SHARE_ZLIB)$(_D)
+JB2I_=$(JBIG2SRCDIR)
+JB2CF_=
+JASI_=$(JASPERSRCDIR)$(D)src$(D)libjasper$(D)include
+JASCF_=$(JASPERCFLAGS)
 
 ######################## How to define new 'features' #######################
 #
@@ -365,7 +372,8 @@ DEVS_ALL=$(GLGENDIR)$(D)$(PLATFORM).dev\
  $(DEVICE_DEVS6) $(DEVICE_DEVS7) $(DEVICE_DEVS8) $(DEVICE_DEVS9) \
  $(DEVICE_DEVS10) $(DEVICE_DEVS11) $(DEVICE_DEVS12) $(DEVICE_DEVS13) \
  $(DEVICE_DEVS14) $(DEVICE_DEVS15) $(DEVICE_DEVS16) $(DEVICE_DEVS17) \
- $(DEVICE_DEVS18) $(DEVICE_DEVS19) $(DEVICE_DEVS20) $(DEVICE_DEVS_EXTRA)
+ $(DEVICE_DEVS18) $(DEVICE_DEVS19) $(DEVICE_DEVS20) $(DEVICE_DEVS21) \
+ $(DEVICE_DEVS_EXTRA)
 
 devs_tr=$(GLGENDIR)$(D)devs.tr
 $(devs_tr) : $(GS_MAK) $(TOP_MAKEFILES) $(ECHOGS_XE)
@@ -393,6 +401,7 @@ $(devs_tr) : $(GS_MAK) $(TOP_MAKEFILES) $(ECHOGS_XE)
 	$(EXP)$(ECHOGS_XE) -a $(devs_tr) -+ $(DEVICE_DEVS18)
 	$(EXP)$(ECHOGS_XE) -a $(devs_tr) -+ $(DEVICE_DEVS19)
 	$(EXP)$(ECHOGS_XE) -a $(devs_tr) -+ $(DEVICE_DEVS20)
+	$(EXP)$(ECHOGS_XE) -a $(devs_tr) -+ $(DEVICE_DEVS21)
 	$(EXP)$(ECHOGS_XE) -a $(devs_tr) -+ $(DEVICE_DEVS_EXTRA)
 	$(EXP)$(ECHOGS_XE) -a $(devs_tr) - $(GLGENDIR)$(D)libcore
 
@@ -402,13 +411,26 @@ $(devs_tr) : $(GS_MAK) $(TOP_MAKEFILES) $(ECHOGS_XE)
 GCONFIG_EXTRAS=
 
 ld_tr=$(GLGENDIR)$(D)ld.tr
-$(gconfig_h) $(ld_tr) $(GLGENDIR)$(D)lib.tr : \
+$(ld_tr) : \
   $(GS_MAK) $(TOP_MAKEFILES) $(GLSRCDIR)$(D)version.mak $(GENCONF_XE) $(ECHOGS_XE) $(devs_tr) $(DEVS_ALL) $(GLGENDIR)$(D)libcore.dev
 	$(EXP)$(GENCONF_XE) $(devs_tr) -h $(gconfig_h) $(CONFILES) $(CONFLDTR) $(ld_tr)
-	$(EXP)$(ECHOGS_XE) -a $(gconfig_h) -x 23 define -s -u GS_LIB_DEFAULT -x 2022 $(GS_LIB_DEFAULT) -x 22
-	$(EXP)$(ECHOGS_XE) -a $(gconfig_h) -x 23 define -s -u SEARCH_HERE_FIRST -s $(SEARCH_HERE_FIRST)
-	$(EXP)$(ECHOGS_XE) -a $(gconfig_h) -x 23 define -s -u GS_DOCDIR -x 2022 $(GS_DOCDIR) -x 22
-	$(EXP)$(ECHOGS_XE) -a $(gconfig_h) -x 23 define -s -u GS_INIT -x 2022 $(GS_INIT) -x 22
-	$(EXP)$(ECHOGS_XE) -a $(gconfig_h) -x 23 define -s -u GS_REVISION -s $(GS_REVISION)
-	$(EXP)$(ECHOGS_XE) -a $(gconfig_h) -x 23 define -s -u GS_REVISIONDATE -s $(GS_REVISIONDATE)
 	$(EXP)$(ECHOGS_XE) -a $(gconfig_h) $(GCONFIG_EXTRAS)
+
+$(gconfig_h) : $(ld_tr)
+	$(NO_OP)
+	
+# The line above is an empty command; don't delete.
+
+# save our set of makefile variables that are defined in every build (paths, etc.)
+$(gconfigd_h) : $(ECHOGS_XE) $(GS_MAK) $(TOP_MAKEFILES) $(GLSRCDIR)/version.mak
+	$(EXP)$(ECHOGS_XE) -w $(gconfigd_h) -x 23 define -s -u GS_LIB_DEFAULT -x 2022 $(GS_LIB_DEFAULT) -x 22
+	$(EXP)$(ECHOGS_XE) -a $(gconfigd_h) -x 23 define -s -u GS_CACHE_DIR -x 2022 $(GS_CACHE_DIR) -x 22
+	$(EXP)$(ECHOGS_XE) -a $(gconfigd_h) -x 23 define -s -u SEARCH_HERE_FIRST -s $(SEARCH_HERE_FIRST)
+	$(EXP)$(ECHOGS_XE) -a $(gconfigd_h) -x 23 define -s -u GS_DOCDIR -x 2022 $(GS_DOCDIR) -x 22
+	$(EXP)$(ECHOGS_XE) -a $(gconfigd_h) -x 23 define -s -u GS_INIT -x 2022 $(GS_INIT) -x 22
+	$(EXP)$(ECHOGS_XE) -a $(gconfigd_h) -x 23 define -s -u GS_REVISION -s $(GS_REVISION)
+	$(EXP)$(ECHOGS_XE) -a $(gconfigd_h) -x 23 define -s -u GS_REVISIONDATE -s $(GS_REVISIONDATE)
+
+obj_tr=$(GLGENDIR)$(D)obj.tr
+$(obj_tr) : $(ld_tr)
+	$(EXP)$(GENCONF_XE) $(devs_tr) $(CONFILES) -o $(obj_tr)

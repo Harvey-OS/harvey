@@ -1,28 +1,26 @@
 /* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevbjcl.h,v 1.2 2000/09/19 19:00:11 lpd Exp $*/
+/* $Id: gdevbjcl.h,v 1.6 2002/06/16 07:25:26 lpd Exp $*/
 /* Canon BJC command generation library interface */
 
 /****** PRELIMINARY, SUBJECT TO CHANGE WITHOUT NOTICE. ******/
 
-#ifndef gdevcbjc_INCLUDED
-#  define gdevcbjc_INCLUDED
+#ifndef gdevbjcl_INCLUDED
+#  define gdevbjcl_INCLUDED
 
 #include <stdio.h>			/* ****** PATCH FOR stream.h ****** */
 #include "stream.h"
@@ -197,23 +195,23 @@
  */
 
 /* Carriage return (^M) */
-void bjc_put_CR(P1(stream *s));
+void bjc_put_CR(stream *s);
 
 /* Form feed (^L) */
-void bjc_put_FF(P1(stream *s));
+void bjc_put_FF(stream *s);
 
 /* Line feed (^J) */
-void bjc_put_LF(P1(stream *s));
+void bjc_put_LF(stream *s);
 
 /*
  * Session commands.
  */
 
 /* Set initial condition */
-void bjc_put_initial_condition(P1(stream *s));
+void bjc_put_initial_condition(stream *s);
 
 /* Return to initial condition */
-void bjc_put_initialize(P1(stream *s));
+void bjc_put_initialize(stream *s);
 
 /* Select print method */
 /****** DIFFERENT FOR 7000 ******/
@@ -243,10 +241,10 @@ typedef enum {
     BJC_BLACK_DENSITY_NORMAL = 0x0,
     BJC_BLACK_DENSITY_HIGH = 0x1
 } bjc_black_density_t;
-void bjc_put_print_method(P5(stream *s, bjc_print_color_t color,
-			     bjc_print_media_t media,
-			     bjc_print_quality_t quality,
-			     bjc_black_density_t density));
+void bjc_put_print_method(stream *s, bjc_print_color_t color,
+			  bjc_print_media_t media,
+			  bjc_print_quality_t quality,
+			  bjc_black_density_t density);
 typedef enum {
     /* 70, 4000, 4550, 4650 */
     BJC_70_PRINT_COLOR_SHORT_FINE = 0x0,		/* also 0x1, 0x2 */
@@ -269,7 +267,7 @@ typedef enum {
     BJC_5500_PRINT_COLOR_SHORT_HQ_NON_BLEED = 0x3,
     BJC_5500_PRINT_COLOR_SHORT_HIGH_SPEED = 0x4
 } bjc_print_color_short_t;
-void bjc_put_print_method_short(P2(stream *s, bjc_print_color_short_t color));
+void bjc_put_print_method_short(stream *s, bjc_print_color_short_t color);
 
 /* Set media supply method */
 /****** DIFFERENT FOR 7000 ******/
@@ -305,16 +303,16 @@ typedef enum {
     BJC_MEDIA_TYPE_FULL_BLEED = 0xc,
     BJC_MEDIA_TYPE_BANNER = 0xd
 } bjc_media_type_t;
-void bjc_put_media_supply(P3(stream *s, bjc_media_supply_t supply,
-			     bjc_media_type_t type));
+void bjc_put_media_supply(stream *s, bjc_media_supply_t supply,
+			  bjc_media_type_t type);
 
 /* Identify ink cartridge */
 typedef enum {
     BJC_IDENTIFY_CARTRIDGE_PREPARE = 0x0,
     BJC_IDENTIFY_CARTRIDGE_REQUEST = 0x1
 } bjc_identify_cartridge_command_t;
-void bjc_put_identify_cartridge(P2(stream *s,
-				   bjc_identify_cartridge_command_t command));
+void bjc_put_identify_cartridge(stream *s,
+				bjc_identify_cartridge_command_t command);
 
 /*
  * Page commands.
@@ -322,17 +320,17 @@ void bjc_put_identify_cartridge(P2(stream *s,
 
 /* Set page margins */
 /* Left margin is 1-origin; margins are both from left edge; indent <= 8 */
-void bjc_put_page_margins(P5(stream *s, int length10ths, int lm10ths,
-			     int rm10ths, int indent60ths));
+void bjc_put_page_margins(stream *s, int length10ths, int lm10ths,
+			  int rm10ths, int indent60ths);
 
 /* Set extended margins */
 /* All values are 0-origin; margins are both from left edge; indent <= 8 */
-void bjc_put_extended_margins(P5(stream *s, int length60ths, int lm60ths,
-				 int rm60ths, int indent60ths));
+void bjc_put_extended_margins(stream *s, int length60ths, int lm60ths,
+			      int rm60ths, int indent60ths);
 
 /* Page ID */
 /* 0 <= id <= 127 */
-void bjc_put_page_id(P2(stream *s, int id));
+void bjc_put_page_id(stream *s, int id);
 
 /*
  * Image commands.
@@ -343,15 +341,14 @@ typedef enum {
     BJC_RASTER_COMPRESSION_NONE = 0x0,
     BJC_RASTER_COMPRESSION_PACKBITS = 0x1
 } bjc_raster_compression_t;
-void bjc_put_compression(P2(stream *s, bjc_raster_compression_t compression));
+void bjc_put_compression(stream *s, bjc_raster_compression_t compression);
 
 /* Set raster resolution */
-void bjc_put_raster_resolution(P3(stream *s, int x_resolution,
-				  int y_resolution));
+void bjc_put_raster_resolution(stream *s, int x_resolution, int y_resolution);
 
 /* Raster skip */
 /* Maximum skip on 6x0 and 4000 is 0x17ff */
-void bjc_put_raster_skip(P2(stream *s, int skip));
+void bjc_put_raster_skip(stream *s, int skip);
 
 /* CMYK raster image */
 typedef enum {
@@ -360,17 +357,17 @@ typedef enum {
     BJC_CMYK_IMAGE_YELLOW = 'Y',
     BJC_CMYK_IMAGE_BLACK = 'K',
 } bjc_cmyk_image_component_t;
-void bjc_put_cmyk_image(P4(stream *s, bjc_cmyk_image_component_t component,
-			   const byte *data, int count));
+void bjc_put_cmyk_image(stream *s, bjc_cmyk_image_component_t component,
+			const byte *data, int count);
 
 /* Move by raster lines */
 /* Distance must be a multiple of the raster resolution */
-void bjc_put_move_lines(P2(stream *s, int lines));
+void bjc_put_move_lines(stream *s, int lines);
 
 /* Set unit for movement by raster lines */
 /* unit = 360 for printers other than 7000 */
 /* unit = 300 or 600 for 7000 */
-void bjc_put_move_lines_unit(P2(stream *s, int unit));
+void bjc_put_move_lines_unit(stream *s, int unit);
 
 /* Set image format */
 /* depth is 1 or 2 */
@@ -385,17 +382,16 @@ typedef enum {
     BJC_INK_SYSTEM_REGULAR_DVM = 0x09,	/* drop volume modulation */
     BJC_INK_SYSTEM_PHOTO_DVM = 0x0a	/* drop volume modulation */
 } bjc_ink_system_t;
-void bjc_put_image_format(P4(stream *s, int depth,
-			     bjc_image_format_t format,
-			     bjc_ink_system_t ink));
+void bjc_put_image_format(stream *s, int depth,
+			  bjc_image_format_t format,
+			  bjc_ink_system_t ink);
 /* 4550 only */
-void bjc_put_photo_image(P2(stream *s, bool photo));
+void bjc_put_photo_image(stream *s, bool photo);
 
 /* Continue raster image */
-void bjc_put_continue_image(P3(stream *s, const byte *data, int count));
+void bjc_put_continue_image(stream *s, const byte *data, int count);
 
 /* BJ indexed image */
-void bjc_put_indexed_image(P4(stream *s, int dot_rows, int dot_cols,
-			      int layers));
+void bjc_put_indexed_image(stream *s, int dot_rows, int dot_cols, int layers);
 
-#endif				/* gdevcbjc_INCLUDED */
+#endif				/* gdevbjcl_INCLUDED */

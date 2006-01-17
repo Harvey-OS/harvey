@@ -1,75 +1,73 @@
 /* Copyright (C) 1995, 1996, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevcgml.c,v 1.2 2000/09/19 19:00:11 lpd Exp $ */
+/* $Id: gdevcgml.c,v 1.5 2002/06/16 05:48:54 lpd Exp $ */
 /* CGM-writing library */
 #include "memory_.h"
 #include "stdio_.h"
 #include "gdevcgmx.h"
 
 /* Forward references to command-writing procedures */
-private void begin_command(P2(cgm_state *, cgm_op_index));
+private void begin_command(cgm_state *, cgm_op_index);
 
 #define OP(op) begin_command(st, op)
-private cgm_result end_command(P1(cgm_state *));
+private cgm_result end_command(cgm_state *);
 
 #define END_OP (void)end_command(st)
 #define DONE return end_command(st)
 /* Parameters */
-private void put_int(P3(cgm_state *, cgm_int, int));
+private void put_int(cgm_state *, cgm_int, int);
 
 #define CI(ci) put_int(st, ci, st->metafile.color_index_precision)
 #define I(i) put_int(st, i, st->metafile.integer_precision)
 #define IX(ix) put_int(st, ix, st->metafile.index_precision)
 #define E(e) put_int(st, (int)(e), 16)
-private void put_real(P3(cgm_state *, cgm_real, const cgm_precision *));
+private void put_real(cgm_state *, cgm_real, const cgm_precision *);
 
 #define R(r) put_real(st, r, &st->metafile.real_precision)
-private void put_vdc(P2(cgm_state *, const cgm_vdc *));
+private void put_vdc(cgm_state *, const cgm_vdc *);
 
 #define VDC(vdc) put_vdc(st, vdc)
 #define VDC2(vdc1, vdc2) VDC(vdc1); VDC(vdc2)
 #define VDC4(vdc1, vdc2, vdc3, vdc4) VDC2(vdc1, vdc2); VDC2(vdc3, vdc4)
-private void put_vdc_r(P3(cgm_state *, const cgm_line_marker_extent *, cgm_line_marker_specification_mode));
+private void put_vdc_r(cgm_state *, const cgm_line_marker_extent *, cgm_line_marker_specification_mode);
 
 #define VDC_R(vdcr, mode) put_vdc_r(st, vdcr, mode)
-private void put_point(P2(cgm_state *, const cgm_point *));
+private void put_point(cgm_state *, const cgm_point *);
 
 #define P(p) put_point(st, p)
-private void put_points(P3(cgm_state *, const cgm_point *, int));
+private void put_points(cgm_state *, const cgm_point *, int);
 
 #define nP(p, n) put_points(st, p, n)
-private void put_string(P3(cgm_state *, const char *, uint));
+private void put_string(cgm_state *, const char *, uint);
 
 #define S(s, l) put_string(st, s, l)
-private void put_color(P2(cgm_state *, const cgm_color *));
+private void put_color(cgm_state *, const cgm_color *);
 
 #define CO(co) put_color(st, co)
-private void put_rgb(P2(cgm_state *, const cgm_rgb *));
+private void put_rgb(cgm_state *, const cgm_rgb *);
 
 #define CD(cd) put_rgb(st, cd)
 /* Other data types */
 #define put_byte(st, b)\
   if ( st->command_count == command_max_count ) write_command(st, false);\
   st->command[st->command_count++] = (byte)(b)
-private void put_bytes(P3(cgm_state *, const byte *, uint));
-private void write_command(P2(cgm_state *, bool));
-private void put_real_precision(P2(cgm_state *, const cgm_precision *));
+private void put_bytes(cgm_state *, const byte *, uint);
+private void write_command(cgm_state *, bool);
+private void put_real_precision(cgm_state *, const cgm_precision *);
 
 /* ================ Public routines ================ */
 

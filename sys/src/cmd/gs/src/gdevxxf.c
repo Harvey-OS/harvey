@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevxxf.c,v 1.5 2000/09/19 19:00:23 lpd Exp $ */
+/* $Id: gdevxxf.c,v 1.9 2004/08/04 19:36:12 stefan Exp $ */
 /* External font (xfont) implementation for X11. */
 #include "math_.h"
 #include "memory_.h"
@@ -263,7 +261,7 @@ sym:	fmp = find_fontmap(fmp, fname, len);
 /* Convert a character name or index to an xglyph code. */
 private gx_xglyph
 x_char_xglyph(gx_xfont * xf, gs_char chr, int encoding_index,
-	      gs_glyph glyph, gs_proc_glyph_name_t glyph_name_proc)
+	      gs_glyph glyph, const gs_const_string *glyph_name)
 {
     const x_xfont *xxf = (x_xfont *) xf;
 
@@ -423,7 +421,7 @@ x_render_char(gx_xfont * xf, gx_xglyph xg, gx_device * dev,
 	h = bbox.q.y - bbox.p.y;
 	wbm = ROUND_UP(w, align_bitmap_mod * 8);
 	raster = wbm >> 3;
-	bits = (byte *) gs_malloc(h, raster, "x_render_char");
+	bits = (byte *) gs_malloc(xdev->memory, h, raster, "x_render_char");
 	if (bits == 0)
 	    return gs_error_limitcheck;
 	xpm = XCreatePixmap(xdev->dpy, xdev->win, w, h, 1);
@@ -449,7 +447,7 @@ x_render_char(gx_xfont * xf, gx_xglyph xg, gx_device * dev,
 	code = (*copy_mono) (dev, bits, 0, raster, gx_no_bitmap_id,
 			     xo + bbox.p.x, yo + bbox.p.y, w, h,
 			     gx_no_color_index, color);
-	gs_free((char *)bits, h, raster, "x_render_char");
+	gs_free(xdev->memory, (char *)bits, h, raster, "x_render_char");
 	XFreePixmap(xdev->dpy, xpm);
 	XFreeGC(xdev->dpy, fgc);
 	XDestroyImage(xim);

@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: seexec.c,v 1.4 2001/02/23 03:00:13 alexcher Exp $ */
+/* $Id: seexec.c,v 1.8 2002/09/02 22:09:15 ray Exp $ */
 /* eexec filters */
 #include "stdio_.h"		/* includes std.h */
 #include "strimpl.h"
@@ -107,20 +105,34 @@ s_exD_process(stream_state * st, stream_cursor_read * pr,
     if (ss->binary < 0) {
 	/*
 	 * This is the very first time we're filling the buffer.
-	 * Determine whether this is ASCII or hex encoding.
 	 */
 	const byte *const decoder = scan_char_decoder;
 	int i;
 
-        if (rcount < 8 && !last)
-            return 0; 
+        if (ss->pfb_state == 0) {
+	    /*
+	     * Skip '\t', '\r', '\n', ' ' at the beginning of the input stream,
+	     * because Adobe interpreters do this. Don't skip '\0' or '\f'.
+	     */
+	    for (; rcount; rcount--, p++) {
+		byte c = p[1];
+		if(c != '\t' && c != char_CR && c != char_EOL && c != ' ')
+		    break;
+	    }
+	    pr->ptr = p;
+	    count = min(wcount, rcount);
+	}
 
 	/*
+	 * Determine whether this is ASCII or hex encoding.
 	 * Adobe's documentation doesn't actually specify the test
 	 * that eexec should use, but we believe the following
 	 * gives correct answers even on certain non-conforming
 	 * PostScript files encountered in practice:
 	 */
+        if (rcount < 8 && !last)
+            return 0; 
+
 	ss->binary = 0;
 	for (i = min(8, rcount); i > 0; i--)
 	    if (!(decoder[p[i]] <= 0xf ||

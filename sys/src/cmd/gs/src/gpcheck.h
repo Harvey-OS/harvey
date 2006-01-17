@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1994 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gpcheck.h,v 1.2 2000/09/19 19:00:25 lpd Exp $ */
+/* $Id: gpcheck.h,v 1.9 2004/08/13 12:59:03 stefan Exp $ */
 /* Interrupt check interface */
 
 #ifndef gpcheck_INCLUDED
@@ -35,24 +33,28 @@
  * a symbol CHECK_INTERRUPTS.  Currently this is only the Microsoft
  * Windows platform.
  */
-int gs_return_check_interrupt(P1(int code));
+int gs_return_check_interrupt(const gs_memory_t *mem, int code);
 
 #ifdef CHECK_INTERRUPTS
-int gp_check_interrupts(P0());
-#  define process_interrupts() discard(gp_check_interrupts())
-#  define return_if_interrupt()\
-    { int icode_ = gp_check_interrupts();\
+int gp_check_interrupts(const gs_memory_t *mem);
+#  define process_interrupts(mem) discard(gp_check_interrupts(mem))
+#  define return_if_interrupt(mem)\
+    { int icode_ = gp_check_interrupts(mem);	\
       if ( icode_ )\
 	return gs_note_error((icode_ > 0 ? gs_error_interrupt : icode_));\
     }
-#  define return_check_interrupt(code)\
-    return gs_return_check_interrupt(code)
+#  define return_check_interrupt(mem, code)	\
+    return gs_return_check_interrupt(mem, code)
+#  define set_code_on_interrupt(mem, pcode)	\
+    if (*(pcode) == 0)\
+     *(pcode) = (gp_check_interrupts(mem) != 0) ? gs_error_interrupt : 0;
 #else
-#  define gp_check_interrupts() 0
-#  define process_interrupts() DO_NOTHING
-#  define return_if_interrupt()	DO_NOTHING
-#  define return_check_interrupt(code)\
+#  define gp_check_interrupts(mem) 0
+#  define process_interrupts(mem) DO_NOTHING
+#  define return_if_interrupt(mem)	DO_NOTHING
+#  define return_check_interrupt(mem, code)	\
     return (code)
+#  define set_code_on_interrupt(mem, code) DO_NOTHING
 #endif
 
 #endif /* gpcheck_INCLUDED */

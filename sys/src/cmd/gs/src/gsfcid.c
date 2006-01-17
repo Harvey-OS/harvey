@@ -1,28 +1,27 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsfcid.c,v 1.5 2000/11/23 23:34:22 lpd Exp $ */
+/* $Id: gsfcid.c,v 1.14 2005/01/13 16:58:07 igor Exp $ */
 /* Support for CID-keyed fonts */
 #include "memory_.h"
 #include "gx.h"
 #include "gsmatrix.h"		/* for gsfont.h */
 #include "gsstruct.h"
 #include "gxfcid.h"
+#include "gserrors.h"
 
 /* CIDSystemInfo structure descriptors */
 public_st_cid_system_info();
@@ -84,6 +83,13 @@ RELOC_PTRS_WITH(font_cid2_reloc_ptrs, gs_font_cid2 *pfcid2);
 		sizeof(st_gs_font_cid_data));
 RELOC_PTRS_END
 
+/* GC descriptor for allocating FDArray for CIDFontType 0 fonts. */
+gs_private_st_ptr(st_gs_font_type1_ptr, gs_font_type1 *, "gs_font_type1 *",
+  font1_ptr_enum_ptrs, font1_ptr_reloc_ptrs);
+gs_public_st_element(st_gs_font_type1_ptr_element, gs_font_type1 *,
+  "gs_font_type1 *[]", font1_ptr_element_enum_ptrs,
+  font1_ptr_element_reloc_ptrs, st_gs_font_type1_ptr);
+
 /*
  * The CIDSystemInfo of a CMap may be null.  We represent this by setting
  * Registry and Ordering to empty strings, and Supplement to 0.
@@ -120,6 +126,28 @@ gs_font_cid_system_info(const gs_font *pfont)
 }
 
 /*
+ * Check CIDSystemInfo compatibility.
+ */
+bool 
+gs_is_CIDSystemInfo_compatible(const gs_cid_system_info_t *info0, 
+			       const gs_cid_system_info_t *info1)
+{
+    if (info0 == NULL || info1 == NULL)
+	return false;
+    if (info0->Registry.size != info1->Registry.size)
+	return false;
+    if (info0->Ordering.size !=	info1->Ordering.size)
+	return false;
+    if (memcmp(info0->Registry.data, info1->Registry.data, 
+	       info0->Registry.size))
+	return false;
+    if (memcmp(info0->Ordering.data, info1->Ordering.data,
+	       info0->Ordering.size))
+	return false;
+    return true;
+}
+
+/*
  * Provide a default enumerate_glyph procedure for CIDFontType 0 fonts.
  * Built for simplicity, not for speed.
  */
@@ -132,20 +160,50 @@ gs_font_cid0_enumerate_glyph(gs_font *font, int *pindex,
     gs_font_cid0 *const pfont = (gs_font_cid0 *)font;
 
     while (*pindex < pfont->cidata.common.CIDCount) {
-	gs_const_string gstr;
+	gs_glyph_data_t gdata;
 	int fidx;
 	gs_glyph glyph = (gs_glyph)(gs_min_cid_glyph + (*pindex)++);
-	int code = pfont->cidata.glyph_data((gs_font_base *)pfont, glyph,
-					    &gstr, &fidx);
+	int code;
 
-	if (code < 0 || gstr.size == 0)
+	gdata.memory = pfont->memory;
+	code = pfont->cidata.glyph_data((gs_font_base *)pfont, glyph,
+					    &gdata, &fidx);
+	if (code < 0 || gdata.bits.size == 0)
 	    continue;
 	*pglyph = glyph;
-	if (code > 0)
-	    gs_free_const_string(font->memory, gstr.data, gstr.size,
-				 "gs_font_cid0_enumerate_glyphs");
+	gs_glyph_data_free(&gdata, "gs_font_cid0_enumerate_glyphs");
 	return 0;
     }
     *pindex = 0;
     return 0;
+}
+
+/* Return the font from the FDArray at the given index */
+const gs_font *
+gs_cid0_indexed_font(const gs_font *font, int fidx)
+{
+    gs_font_cid0 *const pfont = (gs_font_cid0 *)font;
+
+    if (font->FontType != ft_CID_encrypted) {
+	eprintf1("Unexpected font type: %d\n", font->FontType);
+        return 0;
+    }
+    return (const gs_font*) (pfont->cidata.FDArray[fidx]);
+}
+
+/* Check whether a CID font has a Type 2 subfont. */
+bool
+gs_cid0_has_type2(const gs_font *font)
+{
+    gs_font_cid0 *const pfont = (gs_font_cid0 *)font;
+    int i;
+
+    if (font->FontType != ft_CID_encrypted) {
+	eprintf1("Unexpected font type: %d\n", font->FontType);
+        return false;
+    }
+    for (i = 0; i < pfont->cidata.FDArray_size; i++)
+	if (((const gs_font *)pfont->cidata.FDArray[i])->FontType == ft_encrypted2)
+	    return true;
+    return false;
 }

@@ -1,27 +1,25 @@
 /* Copyright (C) 1992, 1995, 1997, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: idparam.c,v 1.3 2000/09/19 19:00:43 lpd Exp $ */
+/* $Id: idparam.c,v 1.9 2004/08/04 19:36:12 stefan Exp $ */
 /* Utilities for getting parameters out of dictionaries. */
 #include "memory_.h"
 #include "string_.h"		/* for strlen */
 #include "ghost.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "gsmatrix.h"		/* for dict_matrix_param */
 #include "gsuid.h"
 #include "idict.h"
@@ -149,7 +147,7 @@ dict_float_param(const ref * pdict, const char *kstr,
     }
     switch (r_type(pdval)) {
 	case t_integer:
-	    *pvalue = pdval->value.intval;
+	    *pvalue = (float)pdval->value.intval;
 	    return 0;
 	case t_real:
 	    *pvalue = pdval->value.realval;
@@ -222,7 +220,8 @@ dict_ints_param(const ref * pdict, const char *kstr,
 /* if defaultvec is not NULL, copy it into fvec (maxlen elements) */
 /* and return maxlen. */
 int
-dict_float_array_check_param(const ref * pdict, const char *kstr,
+dict_float_array_check_param(const gs_memory_t *mem, 
+			     const ref * pdict, const char *kstr,
 			     uint len, float *fvec, const float *defaultvec,
 			     int under_error, int over_error)
 {
@@ -237,28 +236,31 @@ dict_float_array_check_param(const ref * pdict, const char *kstr,
 
 	return len;
     }
-    if (!r_has_type(pdval, t_array))
+    if (!r_is_array(pdval))
 	return_error(e_typecheck);
     size = r_size(pdval);
     if (size > len)
 	return_error(over_error);
-    code = float_params(pdval->value.refs + size - 1, size, fvec);
+    code = process_float_array(mem, pdval, size, fvec);
     return (code < 0 ? code :
 	    size == len || under_error >= 0 ? size :
 	    gs_note_error(under_error));
 }
 int
-dict_float_array_param(const ref * pdict, const char *kstr,
+dict_float_array_param(const gs_memory_t *mem,
+		       const ref * pdict, const char *kstr,
 		       uint maxlen, float *fvec, const float *defaultvec)
 {
-    return dict_float_array_check_param(pdict, kstr, maxlen, fvec,
+    return dict_float_array_check_param(mem ,pdict, kstr, maxlen, fvec,
 					defaultvec, 0, e_limitcheck);
 }
 int
-dict_floats_param(const ref * pdict, const char *kstr,
+dict_floats_param(const gs_memory_t *mem,
+		  const ref * pdict, const char *kstr,
 		  uint maxlen, float *fvec, const float *defaultvec)
 {
-    return dict_float_array_check_param(pdict, kstr, maxlen, fvec, defaultvec,
+    return dict_float_array_check_param(mem, pdict, kstr, maxlen, 
+					fvec, defaultvec, 
 					e_rangecheck, e_rangecheck);
 }
 
@@ -288,13 +290,13 @@ dict_proc_param(const ref * pdict, const char *kstr, ref * pproc,
 
 /* Get a matrix from a dictionary. */
 int
-dict_matrix_param(const ref * pdict, const char *kstr, gs_matrix * pmat)
+dict_matrix_param(const gs_memory_t *mem, const ref * pdict, const char *kstr, gs_matrix * pmat)
 {
     ref *pdval;
 
     if (pdict == 0 || dict_find_string(pdict, kstr, &pdval) <= 0)
 	return_error(e_typecheck);
-    return read_matrix(pdval, pmat);
+    return read_matrix(mem, pdval, pmat);
 }
 
 /* Get a UniqueID or XUID from a dictionary. */

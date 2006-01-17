@@ -1,22 +1,20 @@
 /* Copyright (C) 1996-2000 Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/* $Id: dwdll.c,v 1.2 2001/03/27 09:35:22 ghostgum Exp $ */
+/* $Id: dwdll.c,v 1.7 2004/04/08 16:18:25 giles Exp $ */
 
 /* dwdll.c */
 
@@ -168,6 +166,14 @@ gsapi_revision_t rv;
 	return 1;
     }
 
+    gsdll->set_visual_tracer = (PFN_gsapi_set_visual_tracer) 
+        GetProcAddress(gsdll->hmodule, "gsapi_set_visual_tracer");
+    if (gsdll->set_visual_tracer == NULL) {
+	strncpy(last_error, "Can't find gsapi_set_visual_tracer\n", len-1);
+	unload_dll(gsdll);
+	return 1;
+    }
+
     return 0;
 }
 
@@ -183,6 +189,7 @@ void unload_dll(GSDLL *gsdll)
     gsdll->set_stdio = NULL;
     gsdll->set_poll = NULL;
     gsdll->set_display_callback = NULL;
+    gsdll->set_visual_tracer = NULL;
 
     if (gsdll->hmodule != (HINSTANCE)NULL)
 	    FreeLibrary(gsdll->hmodule);

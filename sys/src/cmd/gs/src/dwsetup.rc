@@ -1,23 +1,21 @@
 /* Copyright (C) 1999, 2000, Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
 
-// $Id: dwsetup.rc,v 1.5 2001/04/09 09:01:10 raph Exp $
+// $Id: dwsetup.rc,v 1.14 2005/04/12 22:05:40 giles Exp $
 
 #include <windows.h>
 #include "dwsetup.h"
@@ -40,20 +38,24 @@ BEGIN
     ICON            IDR_MAIN,IDC_STATIC,11,17,20,20
     LTEXT           "This installs",IDC_STATIC,56,6,232,8
     LTEXT           "Product Name",IDC_PRODUCT_NAME,72,16,216,8
-    LTEXT           "Copyright (C) 1994-2001 artofcode LLC, Benicia, California, U.S.A.  All rights reserved. See the file PUBLIC for more details.\n\nRequires 10 - 20 Mbytes disk space.",
-                    IDC_COPYRIGHT,56,30,232,48
+    LTEXT           "Copyright (C) 1994-2005 artofcode LLC, Benicia, California, U.S.A.  All rights reserved.\n\nRequires 25 Mbytes disk space.",
+                    IDC_COPYRIGHT,56,30,232,40
 
-    LTEXT           "Install to directory",IDC_STATIC,8,92,56,8
-    CONTROL         "Install Fonts",IDC_INSTALL_FONTS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,160,90,85,12
-    EDITTEXT        IDC_TARGET_DIR,8,104,220,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "Browse...",IDC_BROWSE_DIR,240,103,50,14
+    LTEXT           "Install to directory",IDC_STATIC,8,72,56,8
+    EDITTEXT        IDC_TARGET_DIR,8,84,220,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE_DIR,240,83,50,14
 
-    LTEXT           "Add shortcuts to",IDC_STATIC,8,132,52,8
+    LTEXT           "Add shortcuts to",IDC_STATIC,8,112,52,8
     CONTROL         "All Users",IDC_ALLUSERS,"Button",
-		    BS_AUTOCHECKBOX | WS_TABSTOP,160,130,44,10
-    EDITTEXT        IDC_TARGET_GROUP,8,144,220,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "Browse...",IDC_BROWSE_GROUP,240,143,50,14
+		    BS_AUTOCHECKBOX | WS_TABSTOP,160,110,44,10
+    EDITTEXT        IDC_TARGET_GROUP,8,124,220,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE_GROUP,240,123,50,14
+
+    CONTROL         "Install Ghostscript Fonts",IDC_INSTALL_FONTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,142,220,12
+    CONTROL         "Use Windows TrueType fonts for Chinese, Japanese and Korean",IDC_CJK_FONTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,156,220,12
+
     PUSHBUTTON      "Cancel",IDCANCEL,8,178,50,14
     PUSHBUTTON      "Help",IDC_README,124,178,50,14
 END
@@ -94,7 +96,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAIN                ICON    DISCARDABLE     "gstext.ico"
+IDR_MAIN                ICON    DISCARDABLE     "gswin.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -138,7 +140,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_APPNAME             "AFPL Ghostscript Setup"
-    IDS_TARGET_DIR          "C:\\gs"
+    IDS_TARGET_DIR          "gs"
     IDS_TARGET_GROUP        "Ghostscript"
 END
 

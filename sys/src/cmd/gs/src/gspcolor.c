@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gspcolor.c,v 1.4 2000/09/19 19:00:31 lpd Exp $ */
+/* $Id: gspcolor.c,v 1.14 2004/08/04 19:36:12 stefan Exp $ */
 /* Pattern color operators and procedures for Ghostscript library */
 #include "math_.h"
 #include "gx.h"
@@ -40,6 +38,7 @@
 #include "gzstate.h"
 #include "gsimage.h"
 #include "gsiparm4.h"
+#include "stream.h"
 
 /* GC descriptors */
 public_st_pattern_template();
@@ -54,17 +53,22 @@ private cs_proc_remap_color(gx_remap_Pattern);
 private cs_proc_init_color(gx_init_Pattern);
 private cs_proc_restrict_color(gx_restrict_Pattern);
 private cs_proc_install_cspace(gx_install_Pattern);
+private cs_proc_set_overprint(gx_set_overprint_Pattern);
 private cs_proc_adjust_cspace_count(gx_adjust_cspace_Pattern);
 private cs_proc_adjust_color_count(gx_adjust_color_Pattern);
+private cs_proc_serialize(gx_serialize_Pattern);
 const gs_color_space_type gs_color_space_type_Pattern = {
     gs_color_space_index_Pattern, false, false,
     &st_color_space_Pattern, gx_num_components_Pattern,
-    gx_base_space_Pattern, gx_cspace_not_equal,
+    gx_base_space_Pattern,
     gx_init_Pattern, gx_restrict_Pattern,
     gx_no_concrete_space,
     gx_no_concretize_color, NULL,
     gx_remap_Pattern, gx_install_Pattern,
-    gx_adjust_cspace_Pattern, gx_adjust_color_Pattern
+    gx_set_overprint_Pattern,
+    gx_adjust_cspace_Pattern, gx_adjust_color_Pattern,
+    gx_serialize_Pattern,
+    gx_cspace_no_linear
 };
 
 /* Initialize a generic pattern template. */
@@ -115,6 +119,7 @@ gs_make_pattern_common(gs_client_color *pcc,
     gs_newpath(saved);
     pinst->saved = saved;
     pcc->pattern = pinst;
+    pcc->pattern->pattern_id = gs_next_ids(mem, 1);
     return 0;
 }
 
@@ -152,14 +157,12 @@ gs_setpatternspace(gs_state * pgs)
     if (pgs->color_space->type->index != gs_color_space_index_Pattern) {
 	gs_color_space cs;
 
-	gs_cspace_init(&cs, &gs_color_space_type_Pattern, NULL);
+	gs_cspace_init(&cs, &gs_color_space_type_Pattern, pgs->memory, false);
 	/**************** base_space SETTING IS WRONG ****************/
 	cs.params.pattern.base_space =
 	    *(gs_paint_color_space *) pgs->color_space;
 	cs.params.pattern.has_base_space = true;
 	*pgs->color_space = cs;
-	/* Don't change orig_base_cspace_index. */
-	pgs->orig_cspace_index = gs_color_space_index_Pattern;
 	cs_full_init_color(pgs->ccolor, &cs);
 	gx_unset_dev_color(pgs);
     }
@@ -222,6 +225,7 @@ gx_remap_Pattern(const gs_client_color * pc, const gs_color_space * pcs,
 		 gx_device * dev, gs_color_select_t select)
 {
     if (pc->pattern == 0) {
+        pdc->ccolor_valid = false;
 	color_set_null_pattern(pdc);
 	return 0;
     }
@@ -272,6 +276,16 @@ gx_install_Pattern(const gs_color_space * pcs, gs_state * pgs)
 	((const gs_color_space *) & pcs->params.pattern.base_space, pgs);
 }
 
+/*
+ * Set the overprint compositor for a Pattern color space. This does nothing;
+ * for patterns the overprint compositor is set at set_device_color time.
+*/
+private int
+gx_set_overprint_Pattern(const gs_color_space * pcs, gs_state * pgs)
+{
+    return 0;
+}
+
 /* Adjust the reference counts for Pattern color spaces or colors. */
 private void
 gx_adjust_cspace_Pattern(const gs_color_space * pcs, int delta)
@@ -317,3 +331,22 @@ private RELOC_PTRS_WITH(cs_Pattern_reloc_ptrs, gs_color_space *pcs)
 		sizeof(gs_paint_color_space));
 }
 RELOC_PTRS_END
+
+/* ---------------- Serialization. -------------------------------- */
+
+private int 
+gx_serialize_Pattern(const gs_color_space * pcs, stream * s)
+{
+    const gs_pattern_params * p = &pcs->params.pattern;
+    uint n;
+    int code = gx_serialize_cspace_type(pcs, s);
+
+    if (code < 0)
+	return code;
+    code = sputs(s, (byte *)&p->has_base_space, sizeof(p->has_base_space), &n);
+    if (code < 0)
+	return code;
+    if (!p->has_base_space)
+	return 0;
+    return cs_serialize((const gs_color_space *)&p->base_space, s);
+}

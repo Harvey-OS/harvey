@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gzstate.h,v 1.5 2001/03/13 00:41:10 raph Exp $ */
+/* $Id: gzstate.h,v 1.10 2004/03/13 18:28:52 igor Exp $ */
 /* Private graphics state definition for Ghostscript library */
 
 #ifndef gzstate_INCLUDED
@@ -64,6 +62,24 @@ typedef struct gs_transparency_group_s gs_transparency_group_t;
 typedef struct gs_device_filter_stack_s gs_device_filter_stack_t;
 #endif
 
+/* Device filter stack structure is defined here so that gstate
+   lifecycle operations can access reference count; implementation is
+   in gsdfilt.c.
+ */
+
+#ifndef gs_device_filter_DEFINED
+#  define gs_device_filter_DEFINED
+typedef struct gs_device_filter_s gs_device_filter_t;
+#endif
+
+/* This is the base structure from which device filters are derived. */
+struct gs_device_filter_stack_s {
+    gs_device_filter_stack_t *next;
+    gs_device_filter_t *df;
+    gx_device *next_device;
+    rc_header rc;
+};
+
 /* Graphics state structure. */
 
 struct gs_state_s {
@@ -77,16 +93,13 @@ struct gs_state_s {
     gs_matrix ctm_default;
     bool ctm_default_set;	/* if true, use ctm_default; */
 				/* if false, ask device */
-
     /* Paths: */
 
     gx_path *path;
     gx_clip_path *clip_path;
     gx_clip_stack_t *clip_stack;  /* (LanguageLevel 3 only) */
     gx_clip_path *view_clip;	/* (may be 0, or have rule = 0) */
-    bool clamp_coordinates;	/* if true, clamp out-of-range */
-				/* coordinates; if false, */
-				/* report a limitcheck */
+
     /* Effective clip path cache */
     gs_id effective_clip_id;	/* (key) clip path id */
     gs_id effective_view_clip_id;	/* (key) view clip path id */
@@ -96,10 +109,7 @@ struct gs_state_s {
 
     /* Color (device-independent): */
 
-    gs_color_space_index	/* before substitution */
-        orig_cspace_index, orig_base_cspace_index;
     gs_color_space *color_space; /* after substitution */
-    gx_device_color_spaces_t device_color_spaces; /* substituted spaces */
     gs_client_color *ccolor;
 
     /* Color caches: */
@@ -148,10 +158,13 @@ struct gs_state_s {
   m(4,view_clip) m(5,effective_clip_path)\
   m(6,color_space) m(7,ccolor) m(8,dev_color)\
   m(9,font) m(10,root_font) m(11,show_gstate) /*m(---,device)*/\
-  m(12,transparency_group_stack)\
-  m(13,device_color_spaces.named.Gray)\
-  m(14,device_color_spaces.named.RGB)\
-  m(15,device_color_spaces.named.CMYK)
-#define gs_state_num_ptrs 16
+  m(12,transparency_group_stack)
+#define gs_state_num_ptrs 13
+
+/* The following macro is used for development purpose for designating places 
+   where current point is changed. Clients must not use it. */
+#define gx_setcurrentpoint(pgs, xx, yy)\
+    (pgs)->current_point.x = xx;\
+    (pgs)->current_point.y = yy;
 
 #endif /* gzstate_INCLUDED */

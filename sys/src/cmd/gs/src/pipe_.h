@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: pipe_.h,v 1.2 2000/09/19 19:00:47 lpd Exp $ */
+/* $Id: pipe_.h,v 1.6 2002/09/05 08:34:00 ghostgum Exp $ */
 /* Declaration of popen and pclose */
 
 #ifndef pipe__INCLUDED
@@ -27,8 +25,12 @@
 #ifdef __WIN32__
 /*
  * MS Windows has popen and pclose in stdio.h, but under different names.
+ * Unfortunately MSVC5 and 6 have a broken implementation of _popen, 
+ * so we use own.  Our implementation only supports mode "wb".
  */
-#  define popen(cmd, mode) _popen(cmd, mode)
+extern FILE *mswin_popen(const char *cmd, const char *mode);
+#  define popen(cmd, mode) mswin_popen(cmd, mode)
+/* #  define popen(cmd, mode) _popen(cmd, mode) */
 #  define pclose(file) _pclose(file)
 #else  /* !__WIN32__ */
 /*
@@ -37,8 +39,8 @@
  * we must omit the argument list.  Unfortunately, this sometimes causes
  * more trouble than it cures.
  */
-extern FILE *popen( /* P2(const char *, const char *) */ );
-extern int pclose(P1(FILE *));
+extern FILE *popen( /* const char *, const char * */ );
+extern int pclose(FILE *);
 #endif /* !__WIN32__ */
 
 #endif /* pipe__INCLUDED */

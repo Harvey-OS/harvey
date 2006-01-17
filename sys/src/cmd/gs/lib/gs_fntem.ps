@@ -1,0 +1,399 @@
+%    Copyright (C) 2000 artofcode LLC.  All rights reserved.
+% 
+% This software is provided AS-IS with no warranty, either express or
+% implied.
+% 
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
+% 
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+
+% $Id: gs_fntem.ps,v 1.8 2004/10/25 15:11:37 igor Exp $
+% A procset for Postscript font emulation
+
+% The procedures must not depend on the presence of the
+% procset dictionary on the dictionary stack.
+
+languagelevel 2 .setlanguagelevel
+
+%========================= Process xlatmap ====================
+mark
+%% Replace 1 (xlatmap)
+(xlatmap) .runlibfile
+.dicttomark dup systemdict exch /.xlatmap_dict exch put
+
+% Convert it into a plain text to simplify the processing in C :
+% *(fontkind\0\0\ *(charmap\0decoding\0) ) \0
+
+() exch {
+  3 1 roll =string cvs concatstrings (\0\0) concatstrings
+  exch
+  { =string cvs concatstrings (\0) concatstrings
+  } forall
+} forall
+(\0) concatstrings
+systemdict exch /.xlatmap exch put
+
+/FontEmulationProcs 10 dict begin
+
+%-------------------------------Font--------------------------------
+
+
+/FontCommon  % - font_common -
+{ currentdict /PaintType known not {
+    /PaintType 0 def
+  } if
+  currentdict /Encoding .knownget not {
+    //StandardEncoding
+  } if
+  dup type /nametype eq {
+    /Encoding findresource
+  } if
+  /Encoding exch def
+} bind def
+
+/FontOptions 5 dict begin
+  /make_procs currentdict def
+  /NameKey /FontName def
+  /TypeKey /FontType def
+
+  1
+  { /FontMatrix [0.001 0 0 0.001 0 0] def
+    /FontBBox [-128 -128 1024 1024] def % zfapi.ps refines it.
+    /Private 0 dict def
+    /CharStrings << /.notdef () >> def
+    //FontCommon exec
+  } bind def
+
+  42
+  { /FontMatrix [1 0 0 1 0 0] def
+    /FontBBox [0 0 1 1] def % zfapi.ps refines it.
+    /CharStrings <<>> def
+    /sfnts [<00010000 0000 0000 0000 0000 0000>] def
+    /GlyphDirectory [] def
+    //FontCommon exec
+  } bind def
+
+  %fixme : more font types.
+
+currentdict end def
+
+%---------------------------CIDFont---------------------------
+
+/TranslateCSI   % <record> TranslateCSI <CSI>
+{ RESMPDEBUG { (fntem TranslateCSI beg ) = } if
+  begin
+  << /Registry (Adobe) 
+     /Ordering CSI aload pop 
+     /Supplement exch 
+  >>
+  end
+  RESMPDEBUG { (fntem TranslateCSI end ) = } if
+} bind def
+
+/CIDFontCommon
+{ /CIDSystemInfo currentdict //TranslateCSI exec def
+  currentdict /CSI undef
+  /FontBBox [-128 -128 1024 1024] def % zfapi.ps refines it.
+  /CIDCount 1 def % ChooseDecoding will set a reasonable value.
+} bind def
+
+% GFlyph substitution table for narrow, wide, proportional glyphs - 
+% used with TrueTypes.
+
+currentpacking false setpacking
+/SubstNWP << 
+
+  % Array format : orig_type, beg_CID, end_CID, subst_beg_CID, subst_type
+  % type = (n==narrow, w==wide, p==proportional).
+
+  /Japan1
+  { p 1 94 231 n    
+
+    p 17 26 780 w
+    p 34 59 790 w
+    p 66 91 816 w
+    w 842 842 7918 w  % fixme: These substitutions require to shift the glyph origin.
+    w 844 844 7919 w
+    w 846 846 7920 w
+    w 848 848 7921 w
+    w 850 850 7922 w
+    w 876 876 7923 w
+    w 908 908 7924 w
+    w 910 910 7925 w
+    w 912 912 7926 w
+    w 914 914 7927 w
+    w 925 925 7928 w
+    w 927 927 7929 w
+    w 929 929 7930 w
+    w 931 931 7931 w
+    w 933 933 7932 w
+    w 959 959 7933 w
+    w 991 991 7934 w
+    w 993 993 7935 w
+    w 995 995 7936 w
+    w 1002 1002 7937 w
+    w 1009 1009 7938 w
+    w 1010 1010 7939 w
+  } cvlit
+
+  /Japan2 1 index
+
+  /CNS1
+  { p 1 94 13648 n
+
+    p 17 26 333 w
+    p 34 59 365 w
+    p 66 91 391 w
+  } cvlit
+
+  /GB1
+  { p 2 94 814 n
+  
+    p 2 94 262 w
+
+    p 1 1 7716 n
+  } cvlit
+
+  /Korea1
+  { p  1 60 8094 n
+    p 62 94 8155 n
+
+    p  2 59 264 w
+    p 63 94 325 w
+  } cvlit
+
+  /Identity []
+
+>> def
+setpacking
+
+/CIDFontOptions 5 dict begin
+  /make_procs currentdict def
+  /NameKey /CIDFontName def
+  /TypeKey /CIDFontType def
+
+  0
+  { //CIDFontCommon exec
+    /FDArray [
+      14 dict begin
+        /FontName CIDFontName =string cvs (%) concatstrings cvn def
+        /FontType 1 def
+        /FontMatrix [0.001 0 0 0.001 0 0 ] def
+        /PaintType 0 def
+        /Private 0 dict def
+        currentdict
+      end
+    ] def
+    /GlyphDirectory [] def
+    /GDBytes 1 def
+    /FDBytes 0 def
+  } bind def
+
+  1
+  { //CIDFontCommon exec
+    /FontMatrix [1 0 0 1 0 0] def
+    /BuildGlyph {} def
+  } bind def
+
+  2
+  { //CIDFontCommon exec
+    /FontMatrix [1 0 0 1 0 0] def
+    /GDBytes 2 def
+    /CIDMap <0000> def
+    /sfnts [<00010000 0000 0000 0000 0000 0000>] def
+    /Encoding [] def
+    /CharStrings << /.notdef 0 >> def
+  } bind def
+
+currentdict end def
+
+/complete_instance  % <font_name> <FontDict> <Options> complete_FAPI_Font <font_name> <FontDict>
+{ begin
+  dup length dict copy
+  begin
+  1 index NameKey exch def
+  currentglobal true setglobal
+  make_procs TypeKey load .knownget {
+    exec
+  } { setglobal
+      /complete_instance cvx /invalidfont signalerror
+  } ifelse
+  setglobal
+  currentdict end
+  end
+} bind def
+
+/GetFilePath    % <scratch> <Name> <record> GetFilePath <filepath>
+{ exch pop                       % (scratch) <record>
+  /Path get                      % (scratch) (path)
+  exch copy
+  % What we make here it is not a complete PS resource.
+  % Unable to provide full conformity :
+  % the attempt to run this file may fail.
+} bind def
+
+/GetSize        % <Name> <record> GetSize <size>
+{ pop pop -1 % Unknown size.
+  % fixme: probably we could provide an estimation size for some fonts.
+} bind def
+
+/RecordVirtualMethodsStub 3 dict begin
+  /GetFilePath //GetFilePath def
+  /GetSize //GetSize def
+currentdict end def
+
+% ---------------------- Decoding helpers ----------------------------
+
+/encodingnames mark
+ StandardEncoding /StandardEncoding
+ ISOLatin1Encoding /ISOLatin1Encoding
+ SymbolEncoding /SymbolEncoding
+ DingbatsEncoding /DingbatsEncoding
+ /resourceforall where
+  { pop (*) { cvn dup findencoding exch } 1024 string /Encoding resourceforall }
+ if
+.dicttomark def
+
+/ChooseDecoding  % <font> ChooseDecoding <font>
+{ { % A loop for 'exit' context.
+    dup /Decoding .knownget {
+      dup type /nametype eq {
+        1 index /CIDFontType known { /CIDDecoding } { /Decoding } ifelse
+        findresource 1 index exch /Decoding exch put
+      } {
+        pop
+      } ifelse
+      dup /CIDFontType known {
+        dup dup /Decoding get /CIDCount get /CIDCount exch put
+      } if
+      exit
+    } if
+    dup /CIDFontType known {
+      % This is a hooked CID font, no need for Decoding.
+      exit
+    } if
+    % This works when the renderer can't choose character by name,
+    % and we cannot determine the charset.
+    % Probably this branch is to be removed after UFST problem is fixed.
+    dup /Encoding get                                    % <<font>> encoding
+    dup type /nametype eq {
+      /Decoding findresource 1 index exch /Decoding exch put
+    } {
+      dup //encodingnames
+      exch .knownget {
+        exch pop
+        /Decoding findresource 1 index exch /Decoding exch put
+      } {
+        % unknown encoding, convert it to decoding :
+        dup length dict begin
+        /.notdef 0 def
+        0 1 currentdict length 1 sub
+        { dup 2 index exch get 
+          dup /.notdef ne {
+            exch def
+          } {
+            pop pop
+          } ifelse
+        } for
+        pop
+        currentdict end
+        1 index exch /Decoding exch put
+      } ifelse
+    } ifelse
+    exit
+  } loop
+  dup /CIDFontType known {
+    dup /SubstNWP .knownget not {
+      dup /CIDSystemInfo get /Ordering get cvn
+    } if
+    dup type /nametype eq {
+      //SubstNWP exch get                              % <<font>> [SubstNWP]
+    } if
+    1 index exch /SubstNWP exch put
+  } if
+} bind def
+
+/PrintFontRef      % <string|name> <font> PrintFontRef <string|name> <font>
+{ dup /FontName known { (Font ) } { (CIDFont ) } ifelse print
+  1 index =string cvs print
+  dup /FontName .knownget not {
+    dup /CIDFontName get
+  } if                               % <string|name> <font> <fontname>
+  dup 3 index ne {
+    ( \( aliased from ) print
+    =string cvs print ( \)) print
+  } {
+    pop
+  } ifelse
+} bind def
+
+/GetFontType       % <font> GetFontType int
+{ dup /CIDFontType .knownget {
+    exch pop 9 add
+  } {
+    /FontType get
+  } ifelse
+} bind def
+
+/FindInArray    % <array> <elem> .array_find <bool>
+{ false 3 1 roll
+  exch {                      % false elem elem_i
+    1 index eq {              % false elem
+       pop true exch
+    } if
+  } forall
+  pop
+} bind def
+
+/ProvideUnicodeDecoding % <font> ProvideUnicodeDecoding <font>
+{
+  % If the font is maintained by FAPI, or if it is TT-emulated CID font,
+  % it already has /Decoding. But its value isn't guaranteeed to
+  % be an Unicode decoding. Since we can't determine whether 
+  % it is an Unicode decoding, we unconditionally load an appropriate Unicode decoding
+  % and attach it with /GlyphNames2Unicode entry.
+  %
+  % Another interesting case is when the font already has /GlyphNames2Unicode.
+  % The latter to be used instead. Note that /GlyphNames2Unicode
+  % appears only when type 32 fonts are disable (see .pdf_hook_DSC_Creator),
+  % but an automatic disabling is not implemented yet.
+
+  currentglobal true setglobal exch
+  dup /FontInfo known not {
+    dup /FontInfo 1 dict put
+  } if
+  { % A loop just for 'exit' context.
+    dup /FontInfo get /GlyphNames2Unicode known {
+      exit
+    } if
+    dup /CIDFontType known {
+      dup mark exch                                              % bool <font> [ <font>
+      dup /CIDSystemInfo get /Ordering get (.Unicode)            % bool <font> [ <font> () ()
+      concatstrings cvn                                          % bool <font> [ <font> /Name
+      /CIDDecoding { findresource } stopped {
+        % Can't provide a decoding, giving up without creating /GlyphNames2Unicode.
+        cleartomark exit
+      } if                                                       % bool <font> [ <font> <D>
+      exch /FontInfo get exch                                    % bool <font> [ <FI> <D>
+      /GlyphNames2Unicode exch
+      .forceput % FontInfo can be read-only.
+      pop                                                        % bool <font>
+      exit
+    } if
+    dup /FontInfo get                                            % bool <font> <FI>
+    /GlyphNames2Unicode /Unicode /Decoding findresource
+    .forceput % FontInfo can be read-only.
+    exit
+  } loop
+  exch setglobal
+} bind def
+
+currentdict end /ProcSet defineresource pop
+
+.setlanguagelevel

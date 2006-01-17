@@ -1,22 +1,20 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpsfu.c,v 1.7 2001/08/16 13:36:37 lpd Exp $ */
+/* $Id: gdevpsfu.c,v 1.12 2004/11/19 04:39:11 ray Exp $ */
 /* PostScript/PDF font writing utilities */
 #include "memory_.h"
 #include <stdlib.h>		/* for qsort */
@@ -108,26 +106,6 @@ int
 psf_enumerate_glyphs_next(psf_glyph_enum_t *ppge, gs_glyph *pglyph)
 {
     return ppge->enumerate_next(ppge, pglyph);
-}
-
-/*
- * Get the set of referenced glyphs (indices) for writing a subset font.
- * Does not sort or remove duplicates.
- */
-int
-psf_subset_glyphs(gs_glyph glyphs[256], gs_font *font, const byte used[32])
-{
-    int i, n;
-
-    for (i = n = 0; i < 256; ++i)
-	if (used[i >> 3] & (0x80 >> (i & 7))) {
-	    gs_glyph glyph = font->procs.encode_char(font, (gs_char)i,
-						     GLYPH_SPACE_INDEX);
-
-	    if (glyph != gs_no_glyph)
-		glyphs[n++] = glyph;
-	}
-    return n;
 }
 
 /*
@@ -234,12 +212,13 @@ psf_check_outline_glyphs(gs_font_base *pfont, psf_glyph_enum_t *ppge,
     int code;
 
     while ((code = psf_enumerate_glyphs_next(ppge, &glyph)) != 1) {
-	gs_const_string gdata;
+	gs_glyph_data_t gdata;
 	gs_font_type1 *ignore_font;
 	gs_glyph_info_t info;
 
 	if (code < 0)
 	    return code;
+	gdata.memory = pfont->memory;
 	code = glyph_data(pfont, glyph, &gdata, &ignore_font);
 	/*
 	 * If the glyph isn't defined by a CharString, glyph_data will
@@ -252,9 +231,7 @@ psf_check_outline_glyphs(gs_font_base *pfont, psf_glyph_enum_t *ppge,
 		continue;
 	    return code;
 	}
-	if (code > 0)
-	    gs_free_const_string(pfont->memory, gdata.data, gdata.size,
-				 "psf_check_outline_glyphs");
+	gs_glyph_data_free(&gdata, "psf_check_outline_glyphs");
 	/*
 	 * If the font has a CDevProc or calls a non-standard OtherSubr,
 	 * glyph_info will return a rangecheck error.

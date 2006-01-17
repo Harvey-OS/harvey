@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 1994, 1997 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsht.h,v 1.2 2000/09/19 19:00:29 lpd Exp $ */
+/* $Id: gsht.h,v 1.5 2002/06/16 08:45:42 lpd Exp $ */
 /* Public interface to halftone functionality */
 
 #ifndef gsht_INCLUDED
@@ -26,7 +24,7 @@
 typedef struct gs_screen_halftone_s {
     float frequency;
     float angle;
-    float (*spot_function) (P2(floatp, floatp));
+    float (*spot_function) (floatp, floatp);
     /* setscreen or sethalftone sets these: */
     /* (a Level 2 feature, but we include them in Level 1) */
     float actual_frequency;
@@ -48,9 +46,9 @@ typedef struct gs_colorscreen_halftone_s {
 #define st_colorscreen_halftone_max_ptrs 0
 
 /* Procedural interface */
-int gs_setscreen(P2(gs_state *, gs_screen_halftone *));
-int gs_currentscreen(P2(const gs_state *, gs_screen_halftone *));
-int gs_currentscreenlevels(P1(const gs_state *));
+int gs_setscreen(gs_state *, gs_screen_halftone *);
+int gs_currentscreen(const gs_state *, gs_screen_halftone *);
+int gs_currentscreenlevels(const gs_state *);
 
 /*
  * Enumeration-style definition of a single screen.  The client must:
@@ -62,11 +60,10 @@ int gs_currentscreenlevels(P1(const gs_state *));
  *      - if desired, call gs_screen_install to install the screen.
  */
 typedef struct gs_screen_enum_s gs_screen_enum;
-gs_screen_enum *gs_screen_enum_alloc(P2(gs_memory_t *, client_name_t));
-int gs_screen_init(P3(gs_screen_enum *, gs_state *,
-		      gs_screen_halftone *));
-int gs_screen_currentpoint(P2(gs_screen_enum *, gs_point *));
-int gs_screen_next(P2(gs_screen_enum *, floatp));
-int gs_screen_install(P1(gs_screen_enum *));
+gs_screen_enum *gs_screen_enum_alloc(gs_memory_t *, client_name_t);
+int gs_screen_init(gs_screen_enum *, gs_state *, gs_screen_halftone *);
+int gs_screen_currentpoint(gs_screen_enum *, gs_point *);
+int gs_screen_next(gs_screen_enum *, floatp);
+int gs_screen_install(gs_screen_enum *);
 
 #endif /* gsht_INCLUDED */

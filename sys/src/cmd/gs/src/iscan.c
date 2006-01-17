@@ -1,27 +1,25 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: iscan.c,v 1.5 2000/09/19 19:00:46 lpd Exp $ */
+/* $Id: iscan.c,v 1.20 2005/04/25 12:28:49 igor Exp $ */
 /* Token scanner for Ghostscript interpreter */
 #include "ghost.h"
 #include "memory_.h"
 #include "stream.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "btoken.h"		/* for ref_binary_object_format */
 #include "files.h"		/* for fptr */
 #include "ialloc.h"
@@ -49,24 +47,15 @@
 #define recognize_btokens()\
   (ref_binary_object_format.value.intval != 0 && level2_enabled)
 
-#ifdef DEBUG
-/* Dummy comment processing procedure for testing. */
-private int
-no_comment_proc(const byte * str, uint len)
-{
-    return 0;
-}
-#endif
-
 /* Procedure for handling DSC comments if desired. */
 /* Set at initialization if a DSC handling module is included. */
-int (*scan_dsc_proc) (P2(const byte *, uint)) = NULL;
+int (*scan_dsc_proc) (const byte *, uint) = NULL;
 
 /* Procedure for handling all comments if desired. */
 /* Set at initialization if a comment handling module is included. */
 /* If both scan_comment_proc and scan_dsc_proc are set, */
 /* scan_comment_proc is called only for non-DSC comments. */
-int (*scan_comment_proc) (P2(const byte *, uint)) = NULL;
+int (*scan_comment_proc) (const byte *, uint) = NULL;
 
 /*
  * Level 2 includes some changes in the scanner:
@@ -310,7 +299,7 @@ scan_comment(i_ctx_t *i_ctx_p, ref *pref, scanner_state *pstate,
 #ifdef DEBUG
 	if (gs_debug_c('%')) {
 	    dlprintf2("[%%%%%s%c]", sstr, (len >= 3 ? '+' : '-'));
-	    fwrite(base, 1, len, dstderr);
+	    debug_print_string(base, len);
 	    dputs("\n");
 	}
 #endif
@@ -328,7 +317,7 @@ scan_comment(i_ctx_t *i_ctx_p, ref *pref, scanner_state *pstate,
     else {
 	if (gs_debug_c('%')) {
 	    dlprintf2("[%% %s%c]", sstr, (len >= 2 ? '+' : '-'));
-	    fwrite(base, 1, len, dstderr);
+	    debug_print_string(base, len);
 	    dputs("\n");
 	}
     }
@@ -367,6 +356,7 @@ scan_string_token_options(i_ctx_t *i_ctx_p, ref * pstr, ref * pref,
 
     if (!r_has_attr(pstr, a_read))
 	return_error(e_invalidaccess);
+    s_init(s, NULL);
     sread_string(s, pstr->value.bytes, r_size(pstr));
     scanner_state_init_options(&state, options | SCAN_FROM_STRING);
     switch (code = scan_token(i_ctx_p, s, pref, &state)) {
@@ -443,6 +433,8 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
     int status;
     int sign;
     const bool check_only = (pstate->s_options & SCAN_CHECK_ONLY) != 0;
+    const bool PDFScanRules = (i_ctx_p->scanner_options & SCAN_PDF_RULES) != 0;
+    const bool PDFScanInvNum = (i_ctx_p->scanner_options & SCAN_PDF_INV_NUM) != 0;
     scanner_state sstate;
 
 #define pstack sstate.s_pstack
@@ -452,6 +444,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 #define name_type sstate.s_ss.s_name.s_name_type
 #define try_number sstate.s_ss.s_name.s_try_number
 
+    sptr = endptr = NULL; /* Quiet compiler */
     if (pstate->s_pstack != 0) {
 	if_not_spush1()
 	    return retcode;
@@ -510,10 +503,11 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 	case char_EOL:
 	case char_NULL:
 	    goto top;
+        case 0x4:	/* ^D is a self-delimiting token */
 	case '[':
 	case ']':
 	    s1[0] = (byte) c;
-	    retcode = name_ref(s1, 1, myref, 1);	/* can't fail */
+	    retcode = name_ref(imemory, s1, 1, myref, 1);	/* can't fail */
 	    r_set_attrs(myref, a_executable);
 	    break;
 	case '<':
@@ -599,7 +593,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 	    sstate.s_ss.pssd.from_string =
 		((pstate->s_options & SCAN_FROM_STRING) != 0) &&
 		!scan_enable_level2;
-	    s_PSSD_init_inline(&sstate.s_ss.pssd);
+	    s_PSSD_partially_init_inline(&sstate.s_ss.pssd);
 	    sstate.s_ss.st.template = &s_PSSD_template;
 	    goto str;
 	case '{':
@@ -686,7 +680,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 	case '/':
 	    ensure2(scanning_none);
 	    c = scan_getc();
-	    if (c == '/') {
+	    if (!PDFScanRules && (c == '/')) {
 		name_type = 2;
 		c = scan_getc();
 	    } else
@@ -744,16 +738,14 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 #define comment_line da.buf
 		--sptr;
 		comment_line[1] = 0;
-		if (scan_comment_proc != NULL ||
-		    ((sptr == base || base[1] == '%') &&
-		     scan_dsc_proc != NULL)
-		    ) {		/* Could be an externally processable comment. */
+		{
+		    /* Could be an externally processable comment. */
 		    uint len = sptr + 1 - base;
+		    if (len > sizeof(comment_line))
+			len = sizeof(comment_line);
 
 		    memcpy(comment_line, base, len);
 		    daptr = comment_line + len;
-		} else {	/* Not a DSC comment. */
-		    daptr = comment_line + (max_comment_line + 1);
 		}
 		da.base = comment_line;
 		da.is_dynamic = false;
@@ -787,7 +779,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 		    case char_EOL:
 		    case '\f':
 		      end_comment:
-			retcode = scan_comment(i_ctx_p, pref, &sstate,
+			retcode = scan_comment(i_ctx_p, myref, &sstate,
 					       comment_line, daptr, true);
 			if (retcode != 0)
 			    goto comment;
@@ -815,7 +807,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 
 		if (c1 == c) {
 		    s1[0] = s1[1] = c;
-		    name_ref(s1, 2, myref, 1);	/* can't fail */
+		    name_ref(imemory, s1, 2, myref, 1);	/* can't fail */
 		    goto have_name;
 		}
 		scan_putback();
@@ -844,7 +836,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 	     */
 	    retcode = scan_number(sptr + (sign & 1),
 		    endptr /*(*endptr == char_CR ? endptr : endptr + 1) */ ,
-				  sign, myref, &newptr);
+				  sign, myref, &newptr, PDFScanInvNum);
 	    if (retcode == 1 && decoder[newptr[-1]] == ctype_space) {
 		sptr = newptr - 1;
 		if (*sptr == char_CR && sptr[1] == char_EOL)
@@ -881,7 +873,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 	    /* The default is a name. */
 	default:
 	    if (c < 0) {
-		dynamic_init(&da, name_memory());	/* da state must be clean */
+		dynamic_init(&da, name_memory(imemory));	/* da state must be clean */
 		scan_type = scanning_none;
 		goto pause;
 	    }
@@ -989,7 +981,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 	    /* We have to do this before the next */
 	    /* sgetc, which will overwrite the buffer. */
 	    da.limit = (byte *)++ sptr;
-	    da.memory = name_memory();
+	    da.memory = name_memory(imemory);
 	    retcode = dynamic_grow(&da, da.limit, name_max_string);
 	    if (retcode < 0) {
 		dynamic_save(&da);
@@ -1053,7 +1045,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 		const byte *base = da.base;
 
 		scan_sign(sign, base);
-		retcode = scan_number(base, daptr, sign, myref, &newptr);
+		retcode = scan_number(base, daptr, sign, myref, &newptr, PDFScanInvNum);
 		if (retcode == 1) {
 		    ref_mark_new(myref);
 		    retcode = 0;
@@ -1067,7 +1059,7 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 	    if (da.is_dynamic) {	/* We've already allocated the string on the heap. */
 		uint size = daptr - da.base;
 
-		retcode = name_ref(da.base, size, myref, -1);
+		retcode = name_ref(imemory, da.base, size, myref, -1);
 		if (retcode >= 0) {
 		    dynamic_free(&da);
 		} else {
@@ -1078,10 +1070,10 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
 			scan_type = scanning_name;
 			goto pause_ret;
 		    }
-		    retcode = name_ref(da.base, size, myref, 2);
+		    retcode = name_ref(imemory, da.base, size, myref, 2);
 		}
 	    } else {
-		retcode = name_ref(da.base, (uint) (daptr - da.base),
+		retcode = name_ref(imemory, da.base, (uint) (daptr - da.base),
 				   myref, !s->foreign);
 	    }
 	    /* Done scanning.  Check for preceding /'s. */
@@ -1121,9 +1113,12 @@ scan_token(i_ctx_t *i_ctx_p, stream * s, ref * pref, scanner_state * pstate)
     }
   sret:if (retcode < 0) {
 	scan_end_inline();
-	if (pstack != 0)
+	if (pstack != 0) {
+	    if (retcode == e_undefined)
+		*pref = *osp;	/* return undefined name as error token */
 	    ref_stack_pop(&o_stack,
 			  ref_stack_count(&o_stack) - (pdepth - 1));
+	}
 	return retcode;
     }
     /* If we are at the top level, return the object, */

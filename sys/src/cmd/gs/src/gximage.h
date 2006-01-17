@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gximage.h,v 1.2 2000/09/19 19:00:38 lpd Exp $ */
+/* $Id: gximage.h,v 1.8 2005/06/08 14:00:32 igor Exp $ */
 /* Default image rendering state structure */
 /* Requires gxcpath.h, gxdevmem.h, gxdcolor.h, gzpath.h */
 
@@ -55,7 +53,7 @@ typedef enum {
     sd_lookup,			/* use lookup_decode table */
     sd_compute			/* compute using base and factor */
 } sample_decoding;
-typedef struct sample_map_s {
+struct sample_map_s {
 
     sample_lookup_t table;
 
@@ -91,7 +89,12 @@ typedef struct sample_map_s {
 
     bool inverted;
 
-} sample_map;
+};
+
+#ifndef sample_map_DEFINED
+#define sample_map_DEFINED
+typedef struct sample_map_s sample_map;
+#endif
 
 /* Decode an 8-bit sample into a floating point color component. */
 /* penum points to the gx_image_enum structure. */
@@ -120,6 +123,12 @@ typedef struct sample_map_s {
  * if 12-bit samples are supported, 0 otherwise.
  */
 extern const sample_unpack_proc_t sample_unpack_12_proc;
+
+/*
+ * Declare the pointer that holds the 16-bit unpacking procedure
+ * if 16-bit samples are supported, 0 otherwise.
+ */
+extern const sample_unpack_proc_t sample_unpack_16_proc;
 
 /* Define the distinct postures of an image. */
 /* Each posture includes its reflected variant. */
@@ -273,8 +282,8 @@ struct gx_image_enum_s {
  * a full byte, and complement and swap them if the map incorporates
  * a Decode = [1 0] inversion.
  */
-void gx_image_scale_mask_colors(P2(gx_image_enum *penum,
-				   int component_index));
+void gx_image_scale_mask_colors(gx_image_enum *penum,
+				int component_index);
 
 /*
  * Do common initialization for processing an ImageType 1 or 4 image.
@@ -282,9 +291,9 @@ void gx_image_scale_mask_colors(P2(gx_image_enum *penum,
  *	rect
  */
 int
-gx_image_enum_alloc(P4(const gs_image_common_t * pic,
-		       const gs_int_rect * prect,
-		       gs_memory_t * mem, gx_image_enum **ppenum));
+gx_image_enum_alloc(const gs_image_common_t * pic,
+		    const gs_int_rect * prect,
+		    gs_memory_t * mem, gx_image_enum **ppenum);
 
 /*
  * Finish initialization for processing an ImageType 1 or 4 image.
@@ -294,10 +303,17 @@ gx_image_enum_alloc(P4(const gs_image_common_t * pic,
  *	masked, adjust
  */
 int
-gx_image_enum_begin(P8(gx_device * dev, const gs_imager_state * pis,
-		       const gs_matrix *pmat, const gs_image_common_t * pic,
-		       const gx_drawing_color * pdcolor,
-		       const gx_clip_path * pcpath,
-		       gs_memory_t * mem, gx_image_enum *penum));
+gx_image_enum_begin(gx_device * dev, const gs_imager_state * pis,
+		    const gs_matrix *pmat, const gs_image_common_t * pic,
+		    const gx_drawing_color * pdcolor,
+		    const gx_clip_path * pcpath,
+		    gs_memory_t * mem, gx_image_enum *penum);
+
+/*
+ * Clear the relevant clues. Exported for use by image_render_*
+ * when ht_tile cache is invalidated.
+ */
+void
+image_init_clues(gx_image_enum * penum, int bps, int spp);
 
 #endif /* gximage_INCLUDED */

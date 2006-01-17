@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zchar.c,v 1.4 2001/05/10 19:15:29 igorm Exp $ */
+/*$Id: zchar.c,v 1.17 2005/06/19 21:10:58 igor Exp $ */
 /* Character operators */
 #include "ghost.h"
 #include "oper.h"
@@ -27,11 +25,14 @@
 #include "gxmatrix.h"		/* for ifont.h */
 #include "gxdevice.h"		/* for gxfont.h */
 #include "gxfont.h"
+#include "gxfont42.h"
+#include "gxfont0.h"
 #include "gzstate.h"
 #include "dstack.h"		/* for stack depth */
 #include "estack.h"
 #include "ialloc.h"
 #include "ichar.h"
+#include "ichar1.h"
 #include "idict.h"
 #include "ifont.h"
 #include "igstate.h"
@@ -39,12 +40,14 @@
 #include "iname.h"
 #include "ipacked.h"
 #include "store.h"
+#include "zchar42.h"
 
 /* Forward references */
-private bool map_glyph_to_char(P3(const ref *, const ref *, ref *));
-private int finish_show(P1(i_ctx_t *));
-private int op_show_cleanup(P1(i_ctx_t *));
-private int op_show_return_width(P3(i_ctx_t *, uint, double *));
+private bool map_glyph_to_char(const gs_memory_t *mem, 
+			       const ref *, const ref *, ref *);
+private int finish_show(i_ctx_t *);
+private int op_show_cleanup(i_ctx_t *);
+private int op_show_return_width(i_ctx_t *, uint, double *);
 
 /* <string> show - */
 private int
@@ -204,8 +207,8 @@ finish_stringwidth(i_ctx_t *i_ctx_p)
 /* Common code for charpath and .charboxpath. */
 private int
 zchar_path(i_ctx_t *i_ctx_p,
-	   int (*begin)(P6(gs_state *, const byte *, uint,
-			   bool, gs_memory_t *, gs_text_enum_t **)))
+	   int (*begin)(gs_state *, const byte *, uint,
+			bool, gs_memory_t *, gs_text_enum_t **))
 {
     os_ptr op = osp;
     gs_text_enum_t *penum;
@@ -319,7 +322,7 @@ zfontbbox(i_ctx_t *i_ctx_p)
 
     check_type(*op, t_dictionary);
     check_dict_read(*op);
-    code = font_bbox_param(op, bbox);
+    code = font_bbox_param(imemory, op, bbox);
     if (code < 0)
 	return code;
     if (bbox[0] < bbox[2] && bbox[1] < bbox[3]) {
@@ -362,10 +365,10 @@ const op_def zchar_op_defs[] =
 
 /* Convert a glyph to a ref. */
 void
-glyph_ref(gs_glyph glyph, ref * gref)
+glyph_ref(const gs_memory_t *mem, gs_glyph glyph, ref * gref)
 {
     if (glyph < gs_min_cid_glyph)
-	name_index_ref(glyph, gref);
+        name_index_ref(mem, glyph, gref);
     else
 	make_int(gref, glyph - gs_min_cid_glyph);
 }
@@ -403,7 +406,12 @@ op_show_finish_setup(i_ctx_t *i_ctx_p, gs_text_enum_t * penum, int npop,
 		       TEXT_FROM_STRING | TEXT_DO_NONE | TEXT_INTERVENE) &&
 	SHOW_IS_ALL_OF(penum, TEXT_FROM_STRING | TEXT_RETURN_WIDTH) &&
 	(glyph = gs_text_current_glyph(osenum)) != gs_no_glyph &&
-	glyph >= gs_min_cid_glyph
+	glyph >= gs_min_cid_glyph &&
+
+        /* According to PLRM, we don't need to raise a rangecheck error,
+           if currentfont is changed in the proc of the operator 'cshow'. */
+	gs_default_same_font (gs_text_current_font(osenum), 
+			      gs_text_current_font(penum), true)
 	) {
 	gs_text_params_t text;
 
@@ -421,6 +429,13 @@ op_show_finish_setup(i_ctx_t *i_ctx_p, gs_text_enum_t * penum, int npop,
 	text.data.d_glyph = glyph;
 	text.size = 1;
 	gs_text_restart(penum, &text);
+    }
+    if (osenum && osenum->current_font->FontType == ft_user_defined &&
+	osenum->fstack.depth >= 1 &&
+	osenum->fstack.items[0].font->FontType == ft_composite &&
+	((const gs_font_type0 *)osenum->fstack.items[0].font)->data.FMapType == fmap_CMap) {
+	/* A special behavior defined in PLRM3 section 5.11 page 389. */
+	penum->outer_CID = osenum->returned.current_glyph;
     }
     make_mark_estack(ep - (snumpush - 1), es_show, op_show_cleanup);
     if (endproc == NULL)
@@ -441,7 +456,11 @@ op_show_finish_setup(i_ctx_t *i_ctx_p, gs_text_enum_t * penum, int npop,
 int
 op_show_continue(i_ctx_t *i_ctx_p)
 {
-    return op_show_continue_dispatch(i_ctx_p, 0, gs_text_process(senum));
+    int code = gs_text_update_dev_color(igs, senum);
+
+    if (code >= 0)
+	code = op_show_continue_dispatch(i_ctx_p, 0, gs_text_process(senum));
+    return code;
 }
 int
 op_show_continue_pop(i_ctx_t *i_ctx_p, int npop)
@@ -507,7 +526,7 @@ op_show_continue_dispatch(i_ctx_t *i_ctx_p, int npop, int code)
 		    !r_has_type(&pfdata->BuildGlyph, t_null) &&
 		    glyph != gs_no_glyph
 		    ) {
-		    glyph_ref(glyph, op);
+		    glyph_ref(imemory, glyph, op);
 		    esp[2] = pfdata->BuildGlyph;
 		} else if (r_has_type(&pfdata->BuildChar, t_null))
 		    goto err;
@@ -517,12 +536,12 @@ op_show_continue_dispatch(i_ctx_t *i_ctx_p, int npop, int code)
 		    ref gref;
 		    const ref *pencoding = &pfdata->Encoding;
 
-		    glyph_ref(glyph, &gref);
-		    if (!map_glyph_to_char(&gref, pencoding,
+		    glyph_ref(imemory, glyph, &gref);
+		    if (!map_glyph_to_char(imemory, &gref, pencoding,
 					   (ref *) op)
 			) {	/* Not found, try .notdef */
-			name_enter_string(".notdef", &gref);
-			if (!map_glyph_to_char(&gref,
+		        name_enter_string(imemory, ".notdef", &gref);
+			if (!map_glyph_to_char(imemory, &gref,
 					       pencoding,
 					       (ref *) op)
 			    )
@@ -545,8 +564,8 @@ op_show_continue_dispatch(i_ctx_t *i_ctx_p, int npop, int code)
 		if (chr != gs_no_char &&
 		    !r_has_type(&pfdata->BuildChar, t_null) &&
 		    (glyph == gs_no_glyph ||
-		     (array_get(&pfdata->Encoding, (long)(chr & 0xff), &eref) >= 0 &&
-		      (glyph_ref(glyph, &gref), obj_eq(&gref, &eref))))
+		     (array_get(imemory, &pfdata->Encoding, (long)(chr & 0xff), &eref) >= 0 &&
+		      (glyph_ref(imemory, glyph, &gref), obj_eq(imemory, &gref, &eref))))
 		    ) {
 		    make_int(op, chr & 0xff);
 		    esp[2] = pfdata->BuildChar;
@@ -555,7 +574,7 @@ op_show_continue_dispatch(i_ctx_t *i_ctx_p, int npop, int code)
 		    if (glyph == gs_no_glyph)
 			make_int(op, 0);
 		    else
-			glyph_ref(glyph, op);
+		        glyph_ref(imemory, glyph, op);
 		    esp[2] = pfdata->BuildGlyph;
 		}
 	    }
@@ -566,6 +585,31 @@ op_show_continue_dispatch(i_ctx_t *i_ctx_p, int npop, int code)
 	    ++esp;		/* skip BuildChar or BuildGlyph proc */
 	    return o_push_estack;
 	}
+	case TEXT_PROCESS_CDEVPROC:
+	    {   gs_font *pfont = penum->current_font;
+		ref cnref;
+		op_proc_t cont = op_show_continue, exec_cont = 0;
+		gs_glyph glyph = penum->returned.current_glyph;
+		int code;
+    
+		pop(npop);
+		op = osp;
+		glyph_ref(imemory, glyph, &cnref);
+		if (pfont->FontType == ft_CID_TrueType) {
+		    gs_font_type42 *pfont42 = (gs_font_type42 *)pfont;
+		    uint glyph_index = pfont42->data.get_glyph_index(pfont42, glyph);
+
+		    code = zchar42_set_cache(i_ctx_p, (gs_font_base *)pfont42, 
+				    &cnref, glyph_index, cont, &exec_cont, false);
+		} else if (pfont->FontType == ft_CID_encrypted)
+		    code = z1_set_cache(i_ctx_p, (gs_font_base *)pfont, 
+				    &cnref, glyph, cont, &exec_cont);
+		else
+		    return_error(e_unregistered); /* Unimplemented. */
+		if (exec_cont != 0)
+		    return_error(e_unregistered); /* Must not happen. */
+		return code;
+	    }
 	default:		/* error */
 err:
 	    if (code >= 0)
@@ -575,15 +619,15 @@ err:
 }
 /* Reverse-map a glyph name to a character code for glyphshow. */
 private bool
-map_glyph_to_char(const ref * pgref, const ref * pencoding, ref * pch)
+map_glyph_to_char(const gs_memory_t *mem, const ref * pgref, const ref * pencoding, ref * pch)
 {
     uint esize = r_size(pencoding);
     uint ch;
     ref eref;
 
     for (ch = 0; ch < esize; ch++) {
-	array_get(pencoding, (long)ch, &eref);
-	if (obj_eq(pgref, &eref)) {
+        array_get(mem, pencoding, (long)ch, &eref);
+	if (obj_eq(mem, pgref, &eref)) {
 	    make_int(pch, ch);
 	    return true;
 	}
@@ -702,7 +746,8 @@ op_show_restore(i_ctx_t *i_ctx_p, bool for_error)
 	if (count > saved_count)	/* if <, we're in trouble */
 	    ref_stack_pop(&o_stack, count - saved_count);
     }
-    if (SHOW_IS_STRINGWIDTH(penum)) {	/* stringwidth does an extra gsave */
+    if (SHOW_IS_STRINGWIDTH(penum) && igs->text_rendering_mode != 3) {	
+	/* stringwidth does an extra gsave */
 	--saved_level;
     }
     if (penum->text.operation & TEXT_REPLACE_WIDTHS) {
@@ -750,7 +795,7 @@ op_show_free(i_ctx_t *i_ctx_p, int code)
 
 /* Get a FontBBox parameter from a font dictionary. */
 int
-font_bbox_param(const ref * pfdict, double bbox[4])
+font_bbox_param(const gs_memory_t *mem, const ref * pfdict, double bbox[4])
 {
     ref *pbbox;
 
@@ -772,19 +817,19 @@ font_bbox_param(const ref * pfdict, double bbox[4])
 	    int i;
 	    int code;
 	    float dx, dy, ratio;
+	    const float max_ratio = 12; /* From the bug 687594. */
 
 	    for (i = 0; i < 4; i++) {
-		packed_get(pbe, rbe + i);
+		packed_get(mem, pbe, rbe + i);
 		pbe = packed_next(pbe);
 	    }
 	    if ((code = num_params(rbe + 3, 4, bbox)) < 0)
 		return code;
-	    /* Require "reasonable" values.  Thanks to Ray */
-	    /* Johnston for suggesting the following test. */
+ 	    /* Require "reasonable" values. */
 	    dx = bbox[2] - bbox[0];
 	    dy = bbox[3] - bbox[1];
 	    if (dx <= 0 || dy <= 0 ||
-		(ratio = dy / dx) < 0.125 || ratio > 8.0
+		(ratio = dy / dx) < 1 / max_ratio || ratio > max_ratio
 		)
 		bbox[0] = bbox[1] = bbox[2] = bbox[3] = 0.0;
 	}

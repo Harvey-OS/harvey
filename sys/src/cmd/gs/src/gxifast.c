@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxifast.c,v 1.4 2001/10/06 03:27:57 rayjj Exp $ */
+/* $Id: gxifast.c,v 1.9 2003/08/18 21:21:57 dan Exp $ */
 /* Fast monochrome image rendering */
 #include "gx.h"
 #include "memory_.h"
@@ -152,11 +150,11 @@ gs_image_class_1_simple(gx_image_enum * penum)
 	penum->masked = true;
 	if (penum->mask_color.values[0] == 1) {
 	    /* if v0 == 1, 1 is transparent since v1 must be == 1 to be a valid range */
-	    color_set_pure(penum->map[0].inverted ? &penum->icolor0 : &penum->icolor1,
+	    set_nonclient_dev_color(penum->map[0].inverted ? &penum->icolor0 : &penum->icolor1,
 			gx_no_color_index);
 	} else if (penum->mask_color.values[1] == 0) {
 	    /* if v1 == 0, 0 is transparent since v0 must be == 0 to be a valid range */
-	    color_set_pure(penum->map[0].inverted ? &penum->icolor1 : &penum->icolor0,
+	    set_nonclient_dev_color(penum->map[0].inverted ? &penum->icolor1 : &penum->icolor0,
 			gx_no_color_index);
 	} else {
 	    /*
@@ -594,7 +592,7 @@ image_render_simple(gx_image_enum * penum, const byte * buffer, int data_x,
 	image_simple_expand(scan_line + (line_ix >> 3), line_x,
 			    line_size, buffer, data_x, w, xcur,
 			    penum->x_extent.x,
-			    ((pdc0->colors.pure == 0) !=
+			    (byte)((pdc0->colors.pure == 0) !=
 			     (penum->map[0].table.lookup4x1to32[0] == 0) ?
 			     0xff : 0));
 	if (ix & 7)
@@ -647,7 +645,7 @@ image_render_simple(gx_image_enum * penum, const byte * buffer, int data_x,
 
 /* Rendering procedure for a 90 degree rotated monobit image */
 /* with pure colors.  We buffer and then flip 8 scan lines at a time. */
-private int copy_landscape(P5(gx_image_enum *, int, int, bool, gx_device *));
+private int copy_landscape(gx_image_enum *, int, int, bool, gx_device *);
 private int
 image_render_landscape(gx_image_enum * penum, const byte * buffer, int data_x,
 		       uint w, int h, gx_device * dev)

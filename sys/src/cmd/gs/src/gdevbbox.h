@@ -1,22 +1,20 @@
 /* Copyright (C) 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevbbox.h,v 1.2 2000/09/19 19:00:11 lpd Exp $ */
+/* $Id: gdevbbox.h,v 1.6 2004/09/16 08:03:56 igor Exp $ */
 /* Definitions and interface for bbox (bounding box accumulator) device */
 /* Requires gxdevice.h */
 
@@ -78,19 +76,19 @@
 typedef struct gx_device_bbox_procs_s {
 
 #define dev_bbox_proc_init_box(proc)\
-  bool proc(P1(void *proc_data))
+  bool proc(void *proc_data)
     dev_bbox_proc_init_box((*init_box));
 
 #define dev_bbox_proc_get_box(proc)\
-  void proc(P2(const void *proc_data, gs_fixed_rect *pbox))
+  void proc(const void *proc_data, gs_fixed_rect *pbox)
     dev_bbox_proc_get_box((*get_box));
 
 #define dev_bbox_proc_add_rect(proc)\
-  void proc(P5(void *proc_data, fixed x0, fixed y0, fixed x1, fixed y1))
+  void proc(void *proc_data, fixed x0, fixed y0, fixed x1, fixed y1)
     dev_bbox_proc_add_rect((*add_rect));
 
 #define dev_bbox_proc_in_rect(proc)\
-  bool proc(P2(const void *proc_data, const gs_fixed_rect *pbox))
+  bool proc(const void *proc_data, const gs_fixed_rect *pbox)
     dev_bbox_proc_in_rect((*in_rect));
 
 } gx_device_bbox_procs_t;
@@ -127,20 +125,20 @@ extern_st(st_device_bbox);
     gx_device_finalize, st_device_forward, box_proc_data)
 
 /* Initialize a bounding box device. */
-void gx_device_bbox_init(P2(gx_device_bbox * dev, gx_device * target));
+void gx_device_bbox_init(gx_device_bbox * dev, gx_device * target, gs_memory_t *mem);
 
 /* Set whether a bounding box device propagates open/close to its target. */
-void gx_device_bbox_fwd_open_close(P2(gx_device_bbox * dev,
-				      bool forward_open_close));
+void gx_device_bbox_fwd_open_close(gx_device_bbox * dev,
+				   bool forward_open_close);
 
 /* Set whether a bounding box device considers white to be opaque. */
-void gx_device_bbox_set_white_opaque(P2(gx_device_bbox *dev,
-					bool white_is_opaque));
+void gx_device_bbox_set_white_opaque(gx_device_bbox *dev,
+				     bool white_is_opaque);
 
 /* Read back the bounding box in 1/72" units. */
-void gx_device_bbox_bbox(P2(gx_device_bbox * dev, gs_rect * pbbox));
+void gx_device_bbox_bbox(gx_device_bbox * dev, gs_rect * pbbox);
 
 /* Release a bounding box device. */
-void gx_device_bbox_release(P1(gx_device_bbox *dev));
+void gx_device_bbox_release(gx_device_bbox *dev);
 
 #endif /* gdevbbox_INCLUDED */

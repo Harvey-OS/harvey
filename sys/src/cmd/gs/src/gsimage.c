@@ -1,22 +1,20 @@
 /* Copyright (C) 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsimage.c,v 1.4 2001/07/10 22:04:20 lpd Exp $ */
+/* $Id: gsimage.c,v 1.15 2005/06/21 16:50:50 igor Exp $ */
 /* Image setup procedures for Ghostscript library */
 #include "memory_.h"
 #include "gx.h"
@@ -211,9 +209,19 @@ gs_image_init(gs_image_enum * penum, const gs_image_t * pim, bool multi,
     } else {
 	if (pgs->in_cachedevice)
 	    return_error(gs_error_undefined);
-	if (image.ColorSpace == NULL)
-	    image.ColorSpace =
-		gs_cspace_DeviceGray((const gs_imager_state *)pgs);
+	if (image.ColorSpace == NULL) {
+            /* parameterless color space - no re-entrancy problems */
+            static gs_color_space cs;
+
+            /*
+             * Mutiple initialization of a DeviceGray color space is
+             * not harmful, as the space has no parameters. Use of a
+             * non-current color space is potentially incorrect, but
+             * it appears this case doesn't arise.
+             */
+            gs_cspace_init_DeviceGray(pgs->memory, &cs);
+	    image.ColorSpace = &cs;
+        }
     }
     code = gs_image_begin_typed((const gs_image_common_t *)&image, pgs,
 				image.ImageMask | image.CombineWithColor,
@@ -276,19 +284,15 @@ begin_planes(gs_image_enum *penum)
     next_plane(penum);
 }
 
-/* Start processing a general image. */
-int
-gs_image_enum_init(gs_image_enum * penum, gx_image_enum_common_t * pie,
-		   const gs_data_image_t * pim, gs_state *pgs)
-{
-    return gs_image_common_init(penum, pie, pim, pgs->memory,
-				(pgs->in_charpath ? NULL :
-				 gs_currentdevice_inline(pgs)));
-}
-int
+static int
 gs_image_common_init(gs_image_enum * penum, gx_image_enum_common_t * pie,
-	    const gs_data_image_t * pim, gs_memory_t * mem, gx_device * dev)
+	    const gs_data_image_t * pim, gx_device * dev)
 {
+    /*
+     * HACK : For a compatibility with gs_image_cleanup_and_free_enum,
+     * penum->memory must be initialized in advance 
+     * with the memory heap that owns *penum.
+     */
     int i;
 
     if (pim->Width == 0 || pim->Height == 0) {
@@ -296,7 +300,6 @@ gs_image_common_init(gs_image_enum * penum, gx_image_enum_common_t * pie,
 	return 1;
     }
     image_enum_init(penum);
-    penum->memory = mem;
     penum->dev = dev;
     penum->info = pie;
     penum->num_planes = pie->num_planes;
@@ -322,6 +325,18 @@ gs_image_common_init(gs_image_enum * penum, gx_image_enum_common_t * pie,
     penum->wanted_varies = true;
     begin_planes(penum);
     return 0;
+}
+
+/* Initialize an enumerator for a general image. 
+   penum->memory must be initialized in advance.
+*/
+int
+gs_image_enum_init(gs_image_enum * penum, gx_image_enum_common_t * pie,
+		   const gs_data_image_t * pim, gs_state *pgs)
+{
+    return gs_image_common_init(penum, pie, pim,
+				(pgs->in_charpath ? NULL :
+				 gs_currentdevice_inline(pgs)));
 }
 
 /* Return the set of planes wanted. */
@@ -508,6 +523,7 @@ gs_image_next_planes(gs_image_enum * penum,
 	    if_debug2('b', "[b]used %d, code=%d\n", h, code);
 	    penum->error = code < 0;
 	}
+	penum->y += h;
 	/* Update positions and sizes. */
 	if (h == 0)
 	    break;
@@ -538,11 +554,24 @@ gs_image_next_planes(gs_image_enum * penum,
 }
 
 /* Clean up after processing an image. */
-void
+int
 gs_image_cleanup(gs_image_enum * penum)
 {
+    int code = 0;
+
     free_row_buffers(penum, penum->num_planes, "gs_image_cleanup(row)");
-    if (penum->dev != 0)
-	gx_image_end(penum->info, !penum->error);
+    if (penum->info != 0)
+        code = gx_image_end(penum->info, !penum->error);
     /* Don't free the local enumerator -- the client does that. */
+    return code;
+}
+
+/* Clean up after processing an image and free the enumerator. */
+int
+gs_image_cleanup_and_free_enum(gs_image_enum * penum)
+{
+    int code = gs_image_cleanup(penum);
+
+    gs_free_object(penum->memory, penum, "gs_image_cleanup_and_free_enum");
+    return code;
 }

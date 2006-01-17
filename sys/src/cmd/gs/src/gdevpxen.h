@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpxen.h,v 1.3 2000/09/19 19:00:22 lpd Exp $ */
+/* $Id: gdevpxen.h,v 1.7 2005/05/31 19:25:09 stefan Exp $ */
 /* Enumerated attribute value definitions for PCL XL */
 
 #ifndef gdevpxen_INCLUDED
@@ -77,6 +75,7 @@ typedef enum {
     eNoCompression = 0,
     eRLECompression,
     eJPEGCompression,		/* 2.0 */
+    eDeltaRowCompression,       /* 2.1 */
     pxeCompressMode_next
 } pxeCompressMode_t;
 
@@ -184,11 +183,16 @@ typedef enum {
     eJB4Paper,
     eJB5Paper,
     eB5Envelope,
+    eB5Paper,                   /* 2.1 */
     eJPostcard,
     eJDoublePostcard,
     eA5Paper,
     eA6Paper,			/* 2.0 */
     eJB6Paper,			/* 2.0 */
+    eJIS8K,                      /* 2.1 */
+    eJIS16K,                     /* 2.1 */
+    eJISExec,                    /* 2.1 */
+    eDefaultPaperSize = 96,     /* 2.1 */
     pxeMediaSize_next
 } pxeMediaSize_t;
 
@@ -198,8 +202,9 @@ typedef enum {
  *      media size code, resolution for width/height, width, height.
  */
 #define px_enumerate_media(m)\
+  m(eDefaultPaperSize, -1, -1, -1)\
   m(eLetterPaper, 300, 2550, 3300)\
-  m(eLegalPaper, 300, 2550, 5300)\
+  m(eLegalPaper, 300, 2550, 4200)\
   m(eA4Paper, 300, 2480, 3507)\
   m(eExecPaper, 300, 2175, 3150)\
   m(eLedgerPaper, 300, 3300, 5100)\
@@ -208,7 +213,18 @@ typedef enum {
   m(eMonarchEnvelope, 300, 1162, 2250)\
   m(eC5Envelope, 300, 1913, 2704)\
   m(eDLEnvelope, 300, 1299, 2598)\
-  m(eB5Envelope, 300, 2078, 2952)
+  m(eJB4Paper, -1, -1, -1)\
+  m(eJB5Paper, 300, 2150, 3035)\
+  m(eB5Envelope, 300, 2078, 2952)\
+  m(eB5Paper, 300, 2150, 3035)\
+  m(eJPostcard,  300, 1181, 1748)\
+  m(eJDoublePostcard, -1, -1, -1)\
+  m(eA5Paper,300,1748, 2480)\
+  m(eA6Paper,-1, -1, -1)\
+  m(eJB6Paper,-1, -1, -1)\
+  m(eJIS8K, -1, -1, -1)\
+  m(eJIS16K, -1, -1, -1)\
+  m(eJISExec, -1, -1, -1)
 
 typedef enum {
     eDefaultSource = 0,
@@ -218,7 +234,7 @@ typedef enum {
     eUpperCassette,
     eLowerCassette,
     eEnvelopeTray,
-    eThirdCassette,		/* 2.0 */
+    eThirdCassette,
     pxeMediaSource_next
 } pxeMediaSource_t;
 
@@ -233,6 +249,7 @@ typedef enum {
     eLandscapeOrientation,
     eReversePortrait,
     eReverseLandscape,
+    eDefaultOrientation, /* 2.1 */
     pxeOrientation_next
 } pxeOrientation_t;
 
@@ -260,4 +277,42 @@ typedef enum {
     pxeWritingMode_next
 } pxeWritingMode_t;		/* 2.0 */
 
+/* the following 4 enumerations are new with XL 3.0 */
+
+typedef enum {
+    eDisableAH = 0,   /* the documentation uses a eDisable here and in
+                         Trapping - add AH to avoid duplicate
+                         identifier. */
+    eEnableAH,
+    pxeAdaptive_Halftoning_next
+} pxeAdaptiveHalftone_t;
+
+typedef enum {
+    eHighLPI = 0,
+    eMediumLPI,
+    eLowLPI,
+    pxeeHalftoneMethod_next
+} pxeHalftoneMethod_t;
+
+typedef enum {
+    eDisableCT = 0,
+    eMax,
+    eNormal,
+    eLight,
+    pxeColorTrapping_next
+} pxeColorTrapping_t;
+
+typedef enum {
+    eTonerBlack = 0,
+    eProcessBlack,
+    pxeNeutralAxis_next
+} pxeNeutralAxis_t;
+
+typedef enum {
+    eNoTreatment = 0,
+    eScreenMatch,
+    eVivid,
+    pxeColorTreatment_next
+} pxeColorTreatment;
+    
 #endif /* gdevpxen_INCLUDED */

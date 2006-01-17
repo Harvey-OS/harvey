@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevlj56.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $ */
+/* $Id: gdevlj56.c,v 1.7 2005/07/07 16:44:17 stefan Exp $ */
 /* H-P LaserJet 5 & 6 drivers for Ghostscript */
 #include "gdevprn.h"
 #include "stream.h"
@@ -85,6 +83,7 @@ ljet5_open(gx_device * pdev)
 	stream *const s = &fs;
 	byte buf[50];		/* arbitrary */
 
+	s_init(s, pdev->memory);
 	swrite_file(s, ppdev->file, buf, sizeof(buf));
 	px_write_file_header(s, pdev);
 	sflush(s);		/* don't close */
@@ -125,6 +124,7 @@ ljet5_print_page(gx_device_printer * pdev, FILE * prn_stream)
 	code = gs_note_error(gs_error_VMerror);
 	goto done;
     }
+    s_init(s, mem);
     swrite_file(s, prn_stream, buf, sizeof(buf));
 
     /* Write the page header. */
@@ -146,7 +146,7 @@ ljet5_print_page(gx_device_printer * pdev, FILE * prn_stream)
 	};
 
 	px_write_page_header(s, (gx_device *)pdev);
-	px_write_select_media(s, (gx_device *)pdev, NULL);
+	px_write_select_media(s, (gx_device *)pdev, NULL, NULL);
 	PX_PUT_LIT(s, page_header);
 	if (pdev->color_info.depth == 1)
 	    PX_PUT_LIT(s, mono_header);

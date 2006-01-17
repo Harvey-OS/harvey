@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Recent changes in Ghostscript</title>
-<!-- $Id: News.htm,v 1.90.2.4 2002/02/01 05:31:25 raph Exp $ -->
+<!-- $Id: News.htm,v 1.168 2005/10/20 19:46:23 ray Exp $ -->
 <!-- Originally: NEWS -->
 <!--
 	WARNING: do not use Pete Kaiser's emacs function "gs-toc" alone to
@@ -34,6 +34,7 @@ This document is news about the most recent Ghostscript release.  For
 earlier versions, see the history documents:
 
 <blockquote>
+<a href="History8.htm">History of Ghostscript versions 8.n</a><br>
 <a href="History7.htm">History of Ghostscript versions 7.n</a><br>
 <a href="History6.htm">History of Ghostscript versions 6.n</a><br>
 <a href="History5.htm">History of Ghostscript versions 5.n</a><br>
@@ -54,58 +55,45 @@ overview</a>.
 
 <!-- [2.0 begin contents] ================================================== -->
 
-<h3><a name="Version7.04"></a>Version 7.04 (2002-01-31)</h3>
+<h3><a name="Version8.53"></a>Version 8.53 (2005-10-20)</h3>
+
+<p>This is the fourth stable release in the 8.5x series of Ghostscript.
+It contains a few bug fixes and improvements since 8.52, particularly in
+the fix for a build problem on AMD64/Windows64 and vastly improved
+transparency rendering speed for some PDF's.
+
+<p> The following <a href="http://bugs.ghostscript.com/">bugs</a> were
+open at the time of this release: <blockquote>
+465936, 578865, 592160, 610478, 626295, 686747, 686842, 686853, 
+687011, 687039, 687063, 687108, 687125, 687146, 687196, 687219, 
+687231, 687243, 687257, 687271, 687280, 687292, 687295, 687298, 
+687314, 687316, 687327, 687342, 687345, 687346, 687373, 687397, 
+687399, 687435, 687480, 687484, 687514, 687520, 687525, 687529, 
+687531, 687545, 687559, 687560, 687583, 687608, 687621, 687622, 
+687628, 687633, 687642, 687643, 687644, 687650, 687654, 687657, 
+687663, 687669, 687674, 687676, 687677, 687679, 687682, 687694, 
+687695, 687697, 687702, 687721, 687728, 687729, 687796, 687805, 
+687806, 687808, 687814, 687822, 687825, 687844, 687848, 687850, 
+687863, 687866, 687868, 687870, 687875, 687895, 687903, 687904, 
+687907, 687914, 687919, 687931, 687938, 687957, 687960, 687970, 
+687974, 687975, 687986, 687988, 687992, 687994, 687996, 688005, 
+688006, 688007, 688009, 688013, 688017, 688020, 688022, 688026, 
+688032, 688035, 688036, 688039, 688042, 688047, 688054, 688058, 
+688060, 688061, 688064, 688066, 688068, 688075, 688079, 688081, 
+688091, 688095, 688101, 688106, 688108, 688124, 688129, 688130, 
+688132, 688134, 688149, 688151, 688152, 688159, 688166, 688176, 
+688179, 688181, 688184, 688187, 688200, 688203, 688207, 688215, 
+688225, 688227, 688231, 688239, 688243, 688249, 688260, 688265, 
+688269, 688274, 688278, 688280, 688282, 688285, 688288, 688290, 
+688291, 688295, 688300, 688302, 688309, 688311, 688317, 688318, 
+688319, 688320, 688321, 688323, 688326, 688329, 688332, 688333, 
+688334, 688335, 688336, 688337, 688338, 688339, 688342, 688344
+</blockquote>
+
+<h3><a name="8.53_Incompatible_changes"></a>Incompatible changes</h3>
 
 <p>
-This is a security update of Ghostscript. A number of maintenance
-fixes and new features have been added.
-
-<p> Major changes include:
-
-<ul>
-<li>A rather serious security hole, where PostScript code could cause
-arbitrary commands to be executed, has been patched.
-
-<li>There is also a new -DPARANOIDSAFER option, which locks down
-reading of arbitrary files.
-
-<li>This release integrates the IJS driver, which makes it much easier
-to add and upgrade printer drivers without needing to recompile
-Ghostscript.
-
-<li>There is a configure script for automatically configuring the
-makefile on Unix platforms. Those who enjoy the fun of hand-editing
-the makefile are still welcome to do so.
-
-<li>The usual bug fixes.
-
-</ul>
-
-<p>
-The following SourceForge bug numbers are currently open: 215256,
-219798, 405342, 406979, 407342, 414947, 414985, 415142, 416131,
-416830, 418241, 421057, 423838, 427193, 427314, 427347, 428891,
-428973, 432040, 434277, 436099, 437285, 438957, 443745, 446344,
-446672, 448199, 450663, 451456, 452155, 453969, 458261, 458500,
-458769, 458775, 458780, 459647, 462221, 465720, 465936, 468762,
-472681, 474544, 474582, 474745, 475147, 477644, 479071, 481893,
-482033, 482038, 483066, 483629, 484752, 484753, 485498, 485510,
-487953, 493344, 493348, 493413, 495088, 495319, 498595, 502102,
-503170, 503731, 503794, 505047, 505151, 505429, 505438, 506375,
-508081, 508607, 508675, 508722, 509646, 510713, 510776, 510808,
-511232.
-
-
-<h3><a name="7.04_Incompatible_changes"></a>Incompatible changes</h3>
-
-<p>
-No incompatible changes have been recorded for this version. Authors
-of drivers with potential security implications are encouraged to review
-the security changes, however.
-
-<pre>
-
-</pre>
+There are no known incompatible changes at this point.
 
 <!-- [2.0 end contents] ==================================================== -->
 
@@ -113,17 +101,25 @@ the security changes, however.
 <hr>
 
 <p>
-<small>Copyright &copy; 2002 artofcode LLC.  All rights
-reserved.</small>
+Copyright &copy; 2005 artofcode LLC.  All rights
+reserved.
 
 <p>
-<small>This file is part of AFPL Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.</small>
+This software is provided AS-IS with no warranty, either express or
+implied.
+
+This software is distributed under license and may not be copied,
+modified or distributed except as expressly authorized under the terms
+of the license contained in the file LICENSE in this distribution.
+
+For more information about licensing, please refer to
+http://www.ghostscript.com/licensing/. For information on
+commercial licensing, go to http://www.artifex.com/licensing/ or
+contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
 <p>
-<small>Ghostscript version 7.04, 31 January 2002
+<small>Ghostscript version 8.53, 20 October 2005
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

@@ -1,22 +1,20 @@
 /* Copyright (C) 1994, 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: igc.h,v 1.2 2000/09/19 19:00:44 lpd Exp $ */
+/* $Id: igc.h,v 1.9 2004/09/28 05:34:29 giles Exp $ */
 /* Internal interfaces in Ghostscript GC */
 
 #ifndef igc_INCLUDED
@@ -34,7 +32,7 @@ struct struct_shared_procs_s {
     /* Clear the relocation information in an object. */
 
 #define gc_proc_clear_reloc(proc)\
-  void proc(P2(obj_header_t *pre, uint size))
+  void proc(obj_header_t *pre, uint size)
     gc_proc_clear_reloc((*clear_reloc));
 
     /* Compute any internal relocation for a marked object. */
@@ -43,13 +41,13 @@ struct struct_shared_procs_s {
     /* but we need it for ref objects. */
 
 #define gc_proc_set_reloc(proc)\
-  bool proc(P3(obj_header_t *pre, uint reloc, uint size))
+  bool proc(obj_header_t *pre, uint reloc, uint size)
     gc_proc_set_reloc((*set_reloc));
 
     /* Compact an object. */
 
 #define gc_proc_compact(proc)\
-  void proc(P3(obj_header_t *pre, obj_header_t *dpre, uint size))
+  void proc(const gs_memory_t *cmem, obj_header_t *pre, obj_header_t *dpre, uint size)
     gc_proc_compact((*compact));
 
 };
@@ -67,24 +65,30 @@ struct gc_state_s {
     int min_collect;		/* avm_space */
     bool relocating_untraced;	/* if true, we're relocating */
     /* pointers from untraced spaces */
-    gs_raw_memory_t *heap;	/* for extending mark stack */
+    gs_memory_t *heap;	/* for extending mark stack */
     name_table *ntable;		/* (implicitly referenced by names) */
+#ifdef DEBUG
+    chunk_t *container;
+#endif
 };
 
 /* Exported by igcref.c for igc.c */
 ptr_proc_unmark(ptr_ref_unmark);
 ptr_proc_mark(ptr_ref_mark);
-/*ref_packed *gs_reloc_ref_ptr(P2(const ref_packed *, gc_state_t *)); */
+/*ref_packed *gs_reloc_ref_ptr(const ref_packed *, gc_state_t *); */
 
 /* Exported by ilocate.c for igc.c */
-void ialloc_validate_memory(P2(const gs_ref_memory_t *, gc_state_t *));
-void ialloc_validate_chunk(P2(const chunk_t *, gc_state_t *));
-void ialloc_validate_object(P3(const obj_header_t *, const chunk_t *,
-			       gc_state_t *));
+void ialloc_validate_memory(const gs_ref_memory_t *, gc_state_t *);
+void ialloc_validate_chunk(const chunk_t *, gc_state_t *);
+void ialloc_validate_object(const obj_header_t *, const chunk_t *,
+			    gc_state_t *);
+
+/* Exported by igc.c for ilocate.c */
+const gs_memory_t * gcst_get_memory_ptr(gc_state_t *gcst);
 
 /* Macro for returning a relocated pointer */
-const void *print_reloc_proc(P3(const void *obj, const char *cname,
-				const void *robj));
+const void *print_reloc_proc(const void *obj, const char *cname,
+			     const void *robj);
 #ifdef DEBUG
 #  define print_reloc(obj, cname, nobj)\
 	(gs_debug_c('9') ? print_reloc_proc(obj, cname, nobj) : nobj)

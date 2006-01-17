@@ -1,25 +1,23 @@
 /* Copyright (C) 1990, 1993, 1994, 1996, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
 #ifndef gxarith_INCLUDED
 #  define gxarith_INCLUDED
 
-/*$Id: gxarith.h,v 1.2 2000/09/19 19:00:33 lpd Exp $ */
+/* $Id: gxarith.h,v 1.5 2002/06/16 08:45:43 lpd Exp $ */
 /* Arithmetic macros for Ghostscript library */
 
 /* Define an in-line abs function, good for any signed numeric type. */
@@ -27,21 +25,21 @@
 
 /* Compute M modulo N.  Requires N > 0; guarantees 0 <= imod(M,N) < N, */
 /* regardless of the whims of the % operator for negative operands. */
-int imod(P2(int m, int n));
+int imod(int m, int n);
 
 /* Compute the GCD of two integers. */
-int igcd(P2(int x, int y));
+int igcd(int x, int y);
 
 /*
  * Given A, B, and M, compute X such that A*X = B mod M, 0 < X < M.
  * Requires: M > 0, 0 < A < M, 0 < B < M, gcd(A, M) | gcd(A, B).
  */
-int idivmod(P3(int a, int b, int m));
+int idivmod(int a, int b, int m);
 
 /*
  * Compute floor(log2(N)).  Requires N > 0.
  */
-int ilog2(P1(int n));
+int ilog2(int n);
 
 /* Test whether an integral value fits in a given number of bits. */
 /* This works for all integral types. */

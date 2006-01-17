@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpcl.c,v 1.5 2001/07/15 06:38:38 raph Exp $ */
+/* $Id: gdevpcl.c,v 1.8 2002/08/22 07:12:28 henrys Exp $ */
 /* Utilities for PCL printers */
 #include "gdevprn.h"
 #include "gdevpcl.h"
@@ -100,9 +98,10 @@ gdev_pcl_paper_size(gx_device * dev)
 
 /* Map an RGB color to a printer color. */
 gx_color_index
-gdev_pcl_3bit_map_rgb_color(gx_device * dev,
-		       gx_color_value r, gx_color_value g, gx_color_value b)
+gdev_pcl_3bit_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
+    gx_color_value r, g, b;
+    r = cv[0]; g = cv[1]; b = cv[2];
     return (((b >> cv_shift) << 2) + ((g >> cv_shift) << 1) + (r >> cv_shift)) ^ 7;
 }
 

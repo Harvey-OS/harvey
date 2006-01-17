@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxgetbit.h,v 1.2 2000/09/19 19:00:37 lpd Exp $ */
+/* $Id: gxgetbit.h,v 1.5 2002/06/16 08:45:43 lpd Exp $ */
 /* Interface for get_bits_rectangle driver procedure */
 
 #ifndef gxgetbit_INCLUDED
@@ -81,15 +79,15 @@ struct gs_get_bits_params_s {
 /* ---------------- Procedures ---------------- */
 
 /* Try to implement get_bits_rectangle by returning a pointer. */
-int gx_get_bits_return_pointer(P6(gx_device * dev, int x, int h,
-				  gs_get_bits_params_t * params,
-				  const gs_get_bits_params_t *stored,
-				  byte * stored_base));
+int gx_get_bits_return_pointer(gx_device * dev, int x, int h,
+			       gs_get_bits_params_t * params,
+			       const gs_get_bits_params_t *stored,
+			       byte * stored_base);
 
 /* Implement get_bits_rectangle by copying. */
-int gx_get_bits_copy(P8(gx_device * dev, int x, int w, int h,
-			gs_get_bits_params_t * params,
-			const gs_get_bits_params_t *stored,
-			const byte * src_base, uint dev_raster));
+int gx_get_bits_copy(gx_device * dev, int x, int w, int h,
+		     gs_get_bits_params_t * params,
+		     const gs_get_bits_params_t *stored,
+		     const byte * src_base, uint dev_raster);
 
 #endif /* gxgetbit_INCLUDED */

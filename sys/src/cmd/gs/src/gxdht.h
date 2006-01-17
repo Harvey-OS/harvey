@@ -1,32 +1,32 @@
 /* Copyright (C) 1995, 1996, 1997, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxdht.h,v 1.4 2000/09/19 19:00:36 lpd Exp $ */
+/* $Id: gxdht.h,v 1.9 2005/03/14 18:08:37 dan Exp $ */
 /* Definition of device halftones */
 
 #ifndef gxdht_INCLUDED
 #  define gxdht_INCLUDED
 
 #include "gsrefct.h"
-#include "gscsepnm.h"
 #include "gsmatrix.h"
 #include "gxarith.h"		/* for igcd */
 #include "gxhttype.h"
+#include "gscspace.h"
+#include "gxcindex.h"
+#include "gxfrac.h"
 
 /*
  * We represent a halftone tile as a rectangular super-cell consisting of
@@ -88,7 +88,7 @@ typedef struct gx_ht_cell_params_s {
 } gx_ht_cell_params_t;
 
 /* Compute the derived values from the defining values. */
-void gx_compute_cell_values(P1(gx_ht_cell_params_t *));
+void gx_compute_cell_values(gx_ht_cell_params_t *);
 
 /*
  * The whitening order is represented by a pair of arrays.
@@ -122,6 +122,16 @@ typedef ht_mask_t ht_sample_t;
 
 /* The following awkward expression avoids integer overflow. */
 #define max_ht_sample (ht_sample_t)(((1 << (ht_mask_bits - 2)) - 1) * 2 + 1)
+
+#ifndef wts_screen_t_DEFINED
+#  define wts_screen_t_DEFINED
+typedef struct wts_screen_s wts_screen_t;
+#endif
+
+#ifndef gs_wts_screen_enum_t_DEFINED
+#  define gs_wts_screen_enum_t_DEFINED
+typedef struct gs_wts_screen_enum_s gs_wts_screen_enum_t;
+#endif
 
 /*
  * Define the internal representation of a halftone order.
@@ -172,17 +182,24 @@ typedef struct gx_ht_order_procs_s {
     /* Note that for 16-bit threshold values, */
     /* each value is 2 bytes in big-endian order (Adobe spec). */
 
-    int (*construct_order)(P2(gx_ht_order *order, const byte *thresholds));
+    int (*construct_order)(gx_ht_order *order, const byte *thresholds);
 
     /* Return the (x,y) coordinate of an element of bit_data. */
 
-    int (*bit_index)(P3(const gx_ht_order *order, uint index,
-			gs_int_point *ppt));
+    int (*bit_index)(const gx_ht_order *order, uint index,
+		     gs_int_point *ppt);
 
     /* Update a halftone cache tile to match this order. */
 
-    int (*render)(P3(gx_ht_tile *tile, int new_bit_level,
-		     const gx_ht_order *order));
+    int (*render)(gx_ht_tile *tile, int new_bit_level,
+		  const gx_ht_order *order);
+
+    /* Draw a halftone shade into a 1 bit deep buffer. */
+    /* Note: this is a tentative design for a new method. I may not
+       keep it. */
+    int (*draw)(gx_ht_order *order, frac shade,
+		byte *data, int data_raster,
+		int x, int y, int w, int h);
 
 } gx_ht_order_procs_t;
 /*
@@ -199,6 +216,8 @@ typedef struct gx_ht_order_screen_params_s {
 } gx_ht_order_screen_params_t;
 struct gx_ht_order_s {
     gx_ht_cell_params_t params;	/* parameters defining the cells */
+    gs_wts_screen_enum_t *wse;
+    wts_screen_t *wts;            /* if non-NULL, then rest of the structure is irrelevant */
     ushort width;
     ushort height;
     ushort raster;
@@ -252,7 +271,8 @@ extern_st(st_ht_order);
  */
 typedef struct gx_ht_order_component_s {
     gx_ht_order corder;
-    gs_ht_separation_name cname;
+    int comp_number;
+    int cname;
 } gx_ht_order_component;
 
 #define private_st_ht_order_component()	/* in gsht.c */\
@@ -273,12 +293,9 @@ typedef struct gx_device_halftone_s gx_device_halftone;
 #endif
 
 /*
- * color_indices is a cache that gives the indices in components of
- * the screens for the 1, 3, or 4 primary color(s).  These indices are
- * always in the same order, namely:
- *      -,-,-,W(gray)
- *      R,G,B,-
- *      C,M,Y,K
+ * Device Halftone Structure definition.  See comments before
+ * gx_imager_dev_ht_install() for more information on this structure and its
+ * fields.
  */
 struct gx_device_halftone_s {
     gx_ht_order order;		/* must be first, for subclassing */
@@ -290,9 +307,10 @@ struct gx_device_halftone_s {
      */
     gs_halftone_type type;
     gx_ht_order_component *components;
-    uint num_comp;
+
+    uint num_comp;		/* Number of components in the halftone */
+    uint num_dev_comp;		/* Number of process color model components */
     /* The following are computed from the above. */
-    uint color_indices[4];
     int lcm_width, lcm_height;	/* LCM of primary color tile sizes, */
     /* max_int if overflowed */
 };
@@ -305,11 +323,10 @@ extern_st(st_device_halftone);
 #define st_device_halftone_max_ptrs (st_ht_order_max_ptrs + 1)
 
 /* Complete a halftone order defined by a threshold array. */
-void gx_ht_complete_threshold_order(P1(gx_ht_order *porder));
+void gx_ht_complete_threshold_order(gx_ht_order *porder);
 
 /* Release a gx_device_halftone by freeing its components. */
 /* (Don't free the gx_device_halftone itself.) */
-void gx_device_halftone_release(P2(gx_device_halftone * pdht,
-				   gs_memory_t * mem));
+void gx_device_halftone_release(gx_device_halftone * pdht, gs_memory_t * mem);
 
 #endif /* gxdht_INCLUDED */

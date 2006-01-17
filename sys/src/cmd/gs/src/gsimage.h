@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1995, 1996, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsimage.h,v 1.2 2000/09/19 19:00:29 lpd Exp $ */
+/* $Id: gsimage.h,v 1.9 2005/06/21 16:50:51 igor Exp $ */
 /* Generic image rendering interface */
 /* Requires gsstate.h */
 
@@ -121,11 +119,11 @@
 typedef struct gx_image_enum_common_s gx_image_enum_common_t;
 #endif
 
-int gs_image_begin_typed(P4(const gs_image_common_t * pic, gs_state * pgs,
-			    bool uses_color, gx_image_enum_common_t ** ppie));
+int gs_image_begin_typed(const gs_image_common_t * pic, gs_state * pgs,
+			 bool uses_color, gx_image_enum_common_t ** ppie);
 
 typedef struct gs_image_enum_s gs_image_enum;
-gs_image_enum *gs_image_enum_alloc(P2(gs_memory_t *, client_name_t));
+gs_image_enum *gs_image_enum_alloc(gs_memory_t *, client_name_t);
 
 /*
  * gs_image_init returns 1 for an empty image, 0 normally, <0 on error.
@@ -138,22 +136,21 @@ typedef struct gx_device_s gx_device;
 #endif
 
 /* Initialize an enumerator for an ImageType 1 image. */
-int gs_image_init(P4(gs_image_enum * penum, const gs_image_t * pim,
-		     bool MultipleDataSources, gs_state * pgs));
-/* Initialize an enumerator for a general image. */
-int gs_image_common_init(P5(gs_image_enum * penum,
-			    gx_image_enum_common_t * pie,
-			    const gs_data_image_t * pim,
-			    gs_memory_t * mem, gx_device * dev));
-int gs_image_enum_init(P4(gs_image_enum * penum,
-			  gx_image_enum_common_t * pie,
-			  const gs_data_image_t * pim, gs_state *pgs));
+int gs_image_init(gs_image_enum * penum, const gs_image_t * pim,
+		  bool MultipleDataSources, gs_state * pgs);
+
+/* Initialize an enumerator for a general image. 
+   penum->memory must be initialized in advance.
+*/
+int gs_image_enum_init(gs_image_enum * penum,
+		       gx_image_enum_common_t * pie,
+		       const gs_data_image_t * pim, gs_state *pgs);
 
 /*
  * Return the number of bytes of data per row
  * (per plane, if there are multiple planes).
  */
-uint gs_image_bytes_per_plane_row(P2(const gs_image_enum * penum, int plane));
+uint gs_image_bytes_per_plane_row(const gs_image_enum * penum, int plane);
 
 #define gs_image_bytes_per_row(penum)\
   gs_image_bytes_per_plane_row(penum, 0)
@@ -162,7 +159,7 @@ uint gs_image_bytes_per_plane_row(P2(const gs_image_enum * penum, int plane));
  * Return a byte vector indicating which planes (still) need data for the
  * current row.  See above for details.
  */
-const byte *gs_image_planes_wanted(P1(gs_image_enum *penum));
+const byte *gs_image_planes_wanted(gs_image_enum *penum);
 
 /*
  * Pass multiple or selected planes of data for an image.  See above for
@@ -183,15 +180,17 @@ const byte *gs_image_planes_wanted(P1(gs_image_enum *penum));
  * stores pointers to the retained strings into plane_data[].  Note that
  * used[] and plane_data[] are set even in the error or end-of-image case.
  */
-int gs_image_next_planes(P3(gs_image_enum *penum,
-			    gs_const_string *plane_data,
-			    uint *used));
+int gs_image_next_planes(gs_image_enum *penum, gs_const_string *plane_data,
+			 uint *used);
 
 /* Pass the next plane of data for an image.  See above for details. */
-int gs_image_next(P4(gs_image_enum * penum, const byte * dbytes,
-		     uint dsize, uint * pused));
+int gs_image_next(gs_image_enum * penum, const byte * dbytes,
+		  uint dsize, uint * pused);
 
 /* Clean up after processing an image. */
-void gs_image_cleanup(P1(gs_image_enum * penum));
+int gs_image_cleanup(gs_image_enum * penum);
+
+/* Clean up after processing an image and free the enumerator. */
+int gs_image_cleanup_and_free_enum(gs_image_enum * penum);
 
 #endif /* gsimage_INCLUDED */

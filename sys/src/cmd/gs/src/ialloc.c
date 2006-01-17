@@ -1,26 +1,24 @@
 /* Copyright (C) 1993, 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: ialloc.c,v 1.2 2000/09/19 19:00:41 lpd Exp $ */
+/* $Id: ialloc.c,v 1.8 2005/10/12 10:45:21 leonardo Exp $ */
 /* Memory allocator for Ghostscript interpreter */
 #include "gx.h"
 #include "memory_.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "gsstruct.h"
 #include "iref.h"		/* must precede iastate.h */
 #include "iastate.h"
@@ -37,7 +35,7 @@ public_st_gs_dual_memory();
 
 /* Initialize the allocator */
 int
-ialloc_init(gs_dual_memory_t *dmem, gs_raw_memory_t * rmem, uint chunk_size,
+ialloc_init(gs_dual_memory_t *dmem, gs_memory_t * rmem, uint chunk_size,
 	    bool level2)
 {
     gs_ref_memory_t *ilmem = ialloc_alloc_state(rmem, chunk_size);
@@ -71,6 +69,13 @@ ialloc_init(gs_dual_memory_t *dmem, gs_raw_memory_t * rmem, uint chunk_size,
     ilmem->space = avm_local;	/* overrides if ilmem == igmem */
     ilmem_stable->space = avm_local; /* ditto */
     ismem->space = avm_system;
+#   if IGC_PTR_STABILITY_CHECK
+    igmem->space_id = (i_vm_global << 1) + 1;
+    igmem_stable->space_id = i_vm_global << 1;
+    ilmem->space_id = (i_vm_local << 1) + 1;	/* overrides if ilmem == igmem */
+    ilmem_stable->space_id = i_vm_local << 1; /* ditto */
+    ismem->space_id = (i_vm_system << 1);
+#   endif
     ialloc_set_space(dmem, avm_global);
     return 0;
  fail:
@@ -131,7 +136,7 @@ ialloc_reset_requested(gs_dual_memory_t * dmem)
 private int
 ialloc_trace_space(const gs_ref_memory_t *imem)
 {
-    return imem->space + (imem->stable_memory == (gs_memory_t *)imem);
+    return imem->space + (imem->stable_memory == (const gs_memory_t *)imem);
 }
 #endif
 

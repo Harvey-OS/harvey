@@ -1,22 +1,20 @@
-/* Copyright (C) 1999, 2000, Ghostgum Software Pty Ltd.  All rights reserved.
+/* Copyright (C) 1999-2003, Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-// $Id: dwsetup.cpp,v 1.5 2000/09/22 05:35:02 lpd Exp $
+// $Id: dwsetup.cpp,v 1.11 2005/03/04 21:58:55 ghostgum Exp $
 //
 //
 // This is the setup program for Win32 AFPL Ghostscript
@@ -82,6 +80,21 @@
 #include "dwsetup.h"
 #include "dwinst.h"
 
+extern "C" {
+typedef HRESULT (WINAPI *PFN_SHGetFolderPath)(
+  HWND hwndOwner,
+  int nFolder,
+  HANDLE hToken,
+  DWORD dwFlags,
+  LPSTR pszPath);
+
+typedef BOOL (WINAPI *PFN_SHGetSpecialFolderPath)(
+  HWND hwndOwner,
+  LPTSTR lpszPath,
+  int nFolder,
+  BOOL fCreate);
+}
+
 //#define DEBUG
 
 #define UNINSTALLPROG "uninstgs.exe"
@@ -115,6 +128,7 @@ CHAR g_szTargetGroup[MAXSTR];
 CHAR g_szAppName[MAXSTR];
 
 BOOL g_bInstallFonts = TRUE;
+BOOL g_bCJKFonts = FALSE;
 BOOL g_bAllUsers = FALSE;
 
 
@@ -130,9 +144,14 @@ BOOL g_bQuit = FALSE;	// TRUE = Get out of message loop.
 BOOL g_bError = FALSE;	// TRUE = Install was not successful
 BOOL is_winnt = FALSE;	// Disable "All Users" if not NT.
 
+#ifdef _WIN64
+#define DLGRETURN INT_PTR
+#else
+#define DLGRETURN BOOL
+#endif
 
 // Prototypes
-BOOL CALLBACK MainDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+DLGRETURN CALLBACK MainDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 void gs_addmess_count(const char *str, int count);
 void gs_addmess(const char *str);
 void gs_addmess_update(void);
@@ -141,6 +160,9 @@ BOOL install_all();
 BOOL install_prog();
 BOOL install_fonts();
 BOOL make_filelist(int argc, char *argv[]);
+int get_font_path(char *path, unsigned int pathlen);
+BOOL write_cidfmap(const char *gspath, const char *cidpath);
+BOOL GetProgramFiles(LPTSTR path);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -189,7 +211,7 @@ char twbuf[TWLENGTH];
 int twend;
 
 // Modeless Dialog Box
-BOOL CALLBACK 
+DLGRETURN CALLBACK 
 TextWinDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch(message) {
@@ -337,7 +359,7 @@ gs_addmess_update(void)
 char szFolderName[MAXSTR];
 char szDirName[MAXSTR];
 
-BOOL CALLBACK 
+DLGRETURN CALLBACK 
 DirDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	WORD notify_message;
@@ -488,8 +510,12 @@ init()
 	}
 	
 	// Interactive setup
+	if (!GetProgramFiles(g_szTargetDir))
+	    strcpy(g_szTargetDir, "C:\\Program Files");
+	strcat(g_szTargetDir, "\\");
 	LoadString(g_hInstance, IDS_TARGET_DIR, 
-		g_szTargetDir, sizeof(g_szTargetDir));
+	    g_szTargetDir+strlen(g_szTargetDir), 
+	    sizeof(g_szTargetDir)-strlen(g_szTargetDir));
 	
 	// main dialog box
 	g_hMain = CreateDialogParam(g_hInstance, MAKEINTRESOURCE(IDD_MAIN), (HWND)NULL, MainDlgProc, (LPARAM)NULL);
@@ -519,7 +545,7 @@ init()
 
 
 // Main Modeless Dialog Box
-BOOL CALLBACK 
+DLGRETURN CALLBACK 
 MainDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch(message) {
@@ -602,6 +628,9 @@ MainDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 				g_szTargetGroup, sizeof(g_szTargetGroup));
 			g_bInstallFonts = (SendDlgItemMessage(g_hMain, 
 				IDC_INSTALL_FONTS, BM_GETCHECK, 0, 0) 
+				== BST_CHECKED);
+			g_bCJKFonts = (SendDlgItemMessage(g_hMain, 
+				IDC_CJK_FONTS, BM_GETCHECK, 0, 0) 
 				== BST_CHECKED);
 			g_bAllUsers = (SendDlgItemMessage(hwnd, 
 				IDC_ALLUSERS, BM_GETCHECK, 0, 0
@@ -691,11 +720,13 @@ install_prog()
 	char *regkey1 = "AFPL Ghostscript";
 	char regkey2[16];
 	char szDLL[MAXSTR];
-	char szLIB[MAXSTR];
+	char szLIB[MAXSTR+MAXSTR];
 	char szProgram[MAXSTR];
 	char szArguments[MAXSTR];
 	char szDescription[MAXSTR];
 	char szDotVersion[MAXSTR];
+	char szPlatformSuffix[MAXSTR];
+	const char *pSuffix = "";
 	
 	if (g_bQuit)
 		return FALSE;
@@ -752,7 +783,15 @@ install_prog()
 	strcat(szLIB, cinst.GetMainDir());
 	strcat(szLIB, "\\lib;");
 	strcat(szLIB, g_szTargetDir);
-	strcat(szLIB, "\\fonts");
+	strcat(szLIB, "\\fonts;");
+	strcat(szLIB, g_szTargetDir);
+	strcat(szLIB, "\\");
+	strcat(szLIB, cinst.GetMainDir());
+	strcat(szLIB, "\\Resource");
+	if (g_bCJKFonts) {
+	    strcat(szLIB, ";");
+	    get_font_path(szLIB+strlen(szLIB), sizeof(szLIB)-strlen(szLIB)-1);
+	}
 	if (!cinst.UpdateRegistryValue(regkey1, regkey2, "GS_LIB", szLIB)) {
 		gs_addmess("Failed to add registry value\n");
 		return FALSE;
@@ -766,6 +805,22 @@ install_prog()
 	
 	// Add Start Menu items
 	gs_addmess("Adding Start Menu items\n");
+
+        memset(szPlatformSuffix, 0, sizeof(szPlatformSuffix));
+	if (GetProgramFiles(szPlatformSuffix)) {
+	    /* If ProgramFiles has a suffix like " (x86)" then use
+	     * it for Start menu entries to distinguish between
+	     * 32-bit and 64-bit programs.
+	     */
+	    for (pSuffix = szPlatformSuffix; *pSuffix; pSuffix++)
+		if ((pSuffix[0] == ' ') && (pSuffix[1] == '('))
+		    break;
+	}
+	else {
+	    pSuffix = "";
+	}
+
+
 	if (!cinst.StartMenuBegin()) {
 		gs_addmess("Failed to begin Start Menu update\n");
 		return FALSE;
@@ -777,7 +832,7 @@ install_prog()
 	strcpy(szArguments, "\042-I");
 	strcat(szArguments, szLIB);
 	strcat(szArguments, "\042");
-	sprintf(szDescription, "Ghostscript %s", szDotVersion);
+	sprintf(szDescription, "Ghostscript %s%s", szDotVersion, pSuffix);
 	if (!cinst.StartMenuAdd(szDescription, szProgram, szArguments)) {
 		gs_addmess("Failed to add Start Menu item\n");
 		return FALSE;
@@ -786,7 +841,8 @@ install_prog()
 	strcat(szProgram, "\\");
 	strcat(szProgram, cinst.GetMainDir());
 	strcat(szProgram, "\\doc\\Readme.htm");
-	sprintf(szDescription, "Ghostscript Readme %s", szDotVersion);
+	sprintf(szDescription, "Ghostscript Readme %s%s", 
+		szDotVersion, pSuffix);
 	if (!cinst.StartMenuAdd(szDescription, szProgram, NULL)) {
 		gs_addmess("Failed to add Start Menu item\n");
 		return FALSE;
@@ -794,6 +850,43 @@ install_prog()
 	if (!cinst.StartMenuEnd()) {
 		gs_addmess("Failed to end Start Menu update\n");
 		return FALSE;
+	}
+
+        /* Create lib/cidfmap */
+	if (g_bCJKFonts) {
+		FILE *f;
+		char szCIDFmap[MAXSTR];
+		char szCIDFmap_bak[MAXSTR];
+		char szGSPATH[MAXSTR];
+
+		/* backup old cidfmap */
+		strcpy(szCIDFmap, g_szTargetDir);
+		strcat(szCIDFmap, "\\");
+		strcat(szCIDFmap, cinst.GetMainDir());
+		strcat(szCIDFmap, "\\lib\\cidfmap");
+		strcpy(szCIDFmap_bak, szCIDFmap);
+		strcat(szCIDFmap_bak, ".bak");
+		gs_addmess("Backing up\n  ");
+		gs_addmess(szCIDFmap);
+		gs_addmess("\nto\n  ");
+		gs_addmess(szCIDFmap_bak);
+		gs_addmess("\n");
+		rename(szCIDFmap, szCIDFmap_bak);
+
+		/* mark backup for uninstall */
+		cinst.AppendFileNew(szCIDFmap_bak);
+
+		/* write new cidfmap */
+		gs_addmess("Writing cidfmap\n   ");
+		gs_addmess(szCIDFmap);
+		gs_addmess("\n");
+		strcpy(szGSPATH, g_szTargetDir);
+		strcat(szGSPATH, "\\");
+		strcat(szGSPATH, cinst.GetMainDir());
+		if (!write_cidfmap(szGSPATH, szCIDFmap)) {
+			gs_addmess("Failed to write cidfmap\n");
+			return FALSE;
+		}
 	}
 	
 	// consolidate logs into one uninstall file
@@ -869,6 +962,84 @@ install_fonts()
 	return TRUE;
 }
 
+//////////////////////////////////////////////////////////////////////
+// Create lib/cidfmap based on installed fonts
+//////////////////////////////////////////////////////////////////////
+
+/* Get the path to enumerate for fonts */
+int
+get_font_path(char *path, unsigned int pathlen)
+{
+    int i;
+    int len = GetWindowsDirectory(path, pathlen);
+    if (len == 0)
+       return -1;
+    if (pathlen - strlen(path) < 8)
+       return -1;
+    strncat(path, "/fonts", pathlen - strlen(path) - 7);
+    for (i = strlen(path)-1; i >= 0; i--)
+       if (path[i] == '\\')
+           path[i] = '/';
+    return len;
+}
+
+BOOL write_cidfmap(const char *gspath, const char *cidpath)
+{
+    char fontpath[MAXSTR];
+    char buf[4*MAXSTR];
+    STARTUPINFO siStartInfo;
+    PROCESS_INFORMATION piProcInfo;
+
+    get_font_path(fontpath, sizeof(fontpath)-1);
+
+    strcpy(buf, "\042");
+    strcat(buf, gspath);
+    strcat(buf, "\\bin\\gswin32c.exe\042 -q -dBATCH \042-sFONTDIR=");
+    strcat(buf, fontpath);
+    strcat(buf, "\042 \042");
+    strcat(buf, "-sCIDFMAP=");
+    strcat(buf, cidpath);
+    strcat(buf, "\042 \042");
+    strcat(buf, gspath);
+    strcat(buf, "\\lib\\mkcidfm.ps\042");
+
+    siStartInfo.cb = sizeof(STARTUPINFO);
+    siStartInfo.lpReserved = NULL;
+    siStartInfo.lpDesktop = NULL;
+    siStartInfo.lpTitle = NULL;  /* use executable name as title */
+    siStartInfo.dwX = siStartInfo.dwY = CW_USEDEFAULT;		/* ignored */
+    siStartInfo.dwXSize = siStartInfo.dwYSize = CW_USEDEFAULT;	/* ignored */
+    siStartInfo.dwXCountChars = 80;
+    siStartInfo.dwYCountChars = 25;
+    siStartInfo.dwFillAttribute = 0;			/* ignored */
+    siStartInfo.dwFlags = STARTF_USESHOWWINDOW;
+    siStartInfo.wShowWindow = SW_HIDE;
+    siStartInfo.cbReserved2 = 0;
+    siStartInfo.lpReserved2 = NULL;
+    siStartInfo.hStdInput = NULL;
+    siStartInfo.hStdOutput = NULL;
+    siStartInfo.hStdError = NULL;
+
+    /* Create the child process. */
+    if (!CreateProcess(NULL,
+        (char *)buf,  /* command line                       */
+        NULL,          /* process security attributes        */
+        NULL,          /* primary thread security attributes */
+        FALSE,         /* handles are not inherited          */
+        0,             /* creation flags                     */
+        NULL,          /* environment                        */
+        NULL,          /* use parent's current directory     */
+        &siStartInfo,  /* STARTUPINFO pointer                */
+        &piProcInfo))  /* receives PROCESS_INFORMATION  */
+	    return FALSE;
+
+    /* We don't care if ghostscript fails, so just return */
+
+    CloseHandle(piProcInfo.hProcess);
+    CloseHandle(piProcInfo.hThread);
+
+    return TRUE;
+}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -1060,5 +1231,79 @@ BOOL make_filelist(int argc, char *argv[])
     }
     return TRUE;
 }
+
+//////////////////////////////////////////////////////////////////////
+
+#ifndef CSIDL_PROGRAM_FILES
+#define CSIDL_PROGRAM_FILES 0x0026
+#endif
+#ifndef CSIDL_FLAG_CREATE
+#define CSIDL_FLAG_CREATE 0x8000
+#endif
+#ifndef SHGFP_TYPE_CURRENT
+#define SHGFP_TYPE_CURRENT 0
+#endif
+
+BOOL 
+GetProgramFiles(LPTSTR path) 
+{
+    PFN_SHGetSpecialFolderPath PSHGetSpecialFolderPath = NULL;
+    PFN_SHGetFolderPath PSHGetFolderPath = NULL;
+    HMODULE hModuleShell32 = NULL;
+    HMODULE hModuleShfolder = NULL;
+    BOOL fOk = FALSE;
+    hModuleShfolder = LoadLibrary("shfolder.dll");
+    hModuleShell32 = LoadLibrary("shell32.dll");
+
+    if (hModuleShfolder) {
+	PSHGetFolderPath = (PFN_SHGetFolderPath)
+	    GetProcAddress(hModuleShfolder, "SHGetFolderPathA");
+	if (PSHGetFolderPath) {
+	    fOk = (PSHGetFolderPath(HWND_DESKTOP, 
+		CSIDL_PROGRAM_FILES | CSIDL_FLAG_CREATE, 
+		NULL, SHGFP_TYPE_CURRENT, path) == S_OK);
+	}
+    }
+
+    if (!fOk && hModuleShell32) {
+	PSHGetFolderPath = (PFN_SHGetFolderPath)
+	    GetProcAddress(hModuleShell32, "SHGetFolderPathA");
+	if (PSHGetFolderPath) {
+	    fOk = (PSHGetFolderPath(HWND_DESKTOP, 
+		CSIDL_PROGRAM_FILES | CSIDL_FLAG_CREATE, 
+		NULL, SHGFP_TYPE_CURRENT, path) == S_OK);
+	}
+    }
+
+    if (!fOk && hModuleShell32) {
+	PSHGetSpecialFolderPath = (PFN_SHGetSpecialFolderPath)
+	    GetProcAddress(hModuleShell32, "SHGetSpecialFolderPathA");
+	if (PSHGetSpecialFolderPath) {
+	    fOk = PSHGetSpecialFolderPath(HWND_DESKTOP, path,
+		CSIDL_PROGRAM_FILES, TRUE);
+	}
+    }
+
+    if (!fOk) {
+	/* If all else fails (probably Win95), try the registry */
+	LONG rc;
+	HKEY hkey;
+	DWORD cbData;
+	DWORD keytype;
+	rc = RegOpenKeyEx(HKEY_LOCAL_MACHINE, 
+	    "SOFTWARE\\Microsoft\\Windows\\CurrentVersion", 0, KEY_READ, &hkey);
+	if (rc == ERROR_SUCCESS) {
+	    cbData = MAX_PATH;
+	    keytype =  REG_SZ;
+	    if (rc == ERROR_SUCCESS)
+		rc = RegQueryValueEx(hkey, "ProgramFilesDir", 0, &keytype, 
+		    (LPBYTE)path, &cbData);
+	    RegCloseKey(hkey);
+	}
+	fOk = (rc == ERROR_SUCCESS);
+    }
+    return fOk;
+}
+
 
 //////////////////////////////////////////////////////////////////////

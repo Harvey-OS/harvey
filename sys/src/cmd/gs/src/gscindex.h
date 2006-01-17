@@ -1,22 +1,20 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gscindex.h,v 1.2 2000/09/19 19:00:26 lpd Exp $ */
+/* $Id: gscindex.h,v 1.5 2002/06/16 08:45:42 lpd Exp $ */
 /* Client interface to Indexed color facilities */
 
 #ifndef gscindex_INCLUDED
@@ -47,33 +45,33 @@
  * procedures provided by the client are fairly efficient, and there are
  * few instances in which the client would need to replace them.
  */
-extern int gs_cspace_build_Indexed(P5(
-				      gs_color_space ** ppcspace,
-				      const gs_color_space * pbase_cspace,
-				      uint num_entries,
-				      const gs_const_string * ptbl,
-				      gs_memory_t * pmem
-				      ));
+extern int gs_cspace_build_Indexed(
+				   gs_color_space ** ppcspace,
+				   const gs_color_space * pbase_cspace,
+				   uint num_entries,
+				   const gs_const_string * ptbl,
+				   gs_memory_t * pmem
+				   );
 
 /* Return the number of entries in the palette of an indexed color space. */
-extern int gs_cspace_indexed_num_entries(P1(
-					       const gs_color_space * pcspace
-					 ));
+extern int gs_cspace_indexed_num_entries(
+					 const gs_color_space * pcspace
+					 );
 
 /* In the case of a procedure-based indexed color space, get a pointer to */
 /* the array of cached values. */
-extern float *gs_cspace_indexed_value_array(P1(
-					      const gs_color_space * pcspace
-					    ));
+extern float *gs_cspace_indexed_value_array(
+					    const gs_color_space * pcspace
+					    );
 
 /* Set the lookup procedure to be used for an Indexed color space. */
-extern int gs_cspace_indexed_set_proc(P2(
-					    gs_color_space * pcspace,
-		   int (*proc) (P3(const gs_indexed_params *, int, float *))
-				      ));
+extern int gs_cspace_indexed_set_proc(
+				      gs_color_space * pcspace,
+				      int (*proc) (const gs_indexed_params *, int, float *)
+				      );
 
 /* Look up an index in an Indexed color space. */
-int gs_cspace_indexed_lookup(P3(const gs_indexed_params *, int,
-				gs_client_color *));
+int gs_cspace_indexed_lookup(const gs_indexed_params *, int,
+			     gs_client_color *);
 
 #endif /* gscindex_INCLUDED */

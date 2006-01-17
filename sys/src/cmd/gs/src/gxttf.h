@@ -1,26 +1,36 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxttf.h,v 1.2 2000/09/19 19:00:40 lpd Exp $ */
+/* $Id: gxttf.h,v 1.6 2002/06/28 05:27:22 lpd Exp $ */
 /* Table definitions for TrueType fonts */
 
 #ifndef gxttf_INCLUDED
 #  define gxttf_INCLUDED
+
+/* ------ Composite glyf component flags ------ */
+
+#define TT_CG_ARGS_ARE_WORDS     (1<<0)
+#define TT_CG_ARGS_ARE_XY_VALUES (1<<1)
+#define TT_CG_ROUND_XY_TO_GRID   (1<<2)
+#define TT_CG_HAVE_SCALE         (1<<3)
+#define TT_CG_MORE_COMPONENTS    (1<<5)
+#define TT_CG_HAVE_XY_SCALE      (1<<6)
+#define TT_CG_HAVE_2X2           (1<<7)
+#define TT_CG_HAVE_INSTRUCTIONS  (1<<8)
+#define TT_CG_USE_MY_METRICS     (1<<9)
 
 /* ------ head ------ */
 
@@ -77,7 +87,7 @@ typedef struct longHorMetric_s {
 
 typedef struct ttf_maxp_s {
     byte
-	version[2],		/* 1.0 */
+	version[4],		/* 1.0 */
 	numGlyphs[2],
 	maxPoints[2],
 	maxContours[2],

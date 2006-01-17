@@ -1,32 +1,30 @@
 /* Copyright (C) 1993, 1995, 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxht.h,v 1.2 2000/09/19 19:00:37 lpd Exp $ */
+/* $Id: gxht.h,v 1.9 2004/08/04 19:36:12 stefan Exp $ */
 /* Rest of (client) halftone definitions */
 
 #ifndef gxht_INCLUDED
 #  define gxht_INCLUDED
 
-#include "gscsepnm.h"
 #include "gsht1.h"
 #include "gsrefct.h"
 #include "gxhttype.h"
 #include "gxtmap.h"
+#include "gscspace.h"
 
 /*
  * Halftone types. Note that for this implementation there are only
@@ -120,10 +118,10 @@ typedef struct gs_client_order_ht_procs_s {
      * (see gzht.h) does everything but fill in the actual data.
      */
 
-    int (*create_order) (P4(gx_ht_order * porder,
-			    gs_state * pgs,
-			    const gs_client_order_halftone * phcop,
-			    gs_memory_t * mem));
+    int (*create_order) (gx_ht_order * porder,
+			 gs_state * pgs,
+			 const gs_client_order_halftone * phcop,
+			 gs_memory_t * mem);
 
 } gs_client_order_ht_procs_t;
 struct gs_client_order_halftone_s {
@@ -139,7 +137,8 @@ struct gs_client_order_halftone_s {
 
 /* Define the elements of a Type 5 halftone. */
 typedef struct gs_halftone_component_s {
-    gs_ht_separation_name cname;
+    int comp_number;
+    int cname;
     gs_halftone_type type;
     union {
 	gs_spot_halftone spot;	/* Type 1 */
@@ -167,6 +166,8 @@ extern_st(st_ht_component_element);
 typedef struct gs_multiple_halftone_s {
     gs_halftone_component *components;
     uint num_comp;
+    int (*get_colorname_string)(const gs_memory_t *mem, gs_separation_name colorname_index,
+		unsigned char **ppstr, unsigned int *pname_size);
 } gs_multiple_halftone;
 
 #define st_multiple_halftone_max_ptrs 1
@@ -210,12 +211,18 @@ extern_st(st_halftone);
  * Set/get the default AccurateScreens value (for set[color]screen).
  * Note that this value is stored in a static variable.
  */
-void gs_setaccuratescreens(P1(bool));
-bool gs_currentaccuratescreens(P0());
+void gs_setaccuratescreens(bool);
+bool gs_currentaccuratescreens(void);
+
+/*
+ * Set/get the value for UseWTS. Also a static, but it's going away.
+ */
+void gs_setusewts(bool);
+bool gs_currentusewts(void);
 
 /* Initiate screen sampling with optional AccurateScreens. */
-int gs_screen_init_memory(P5(gs_screen_enum *, gs_state *,
-			     gs_screen_halftone *, bool, gs_memory_t *));
+int gs_screen_init_memory(gs_screen_enum *, gs_state *,
+			  gs_screen_halftone *, bool, gs_memory_t *);
 
 #define gs_screen_init_accurate(penum, pgs, phsp, accurate)\
   gs_screen_init_memory(penum, pgs, phsp, accurate, pgs->memory)
@@ -227,7 +234,7 @@ int gs_screen_init_memory(P5(gs_screen_enum *, gs_state *,
  *
  * Note that this value is stored in a static variable.
  */
-void gs_setminscreenlevels(P1(uint));
-uint gs_currentminscreenlevels(P0());
+void gs_setminscreenlevels(uint);
+uint gs_currentminscreenlevels(void);
 
 #endif /* gxht_INCLUDED */

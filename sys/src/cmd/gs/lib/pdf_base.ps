@@ -1,21 +1,19 @@
-%    Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+%    Copyright (C) 1994-2003 artofcode LLC.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: pdf_base.ps,v 1.14 2001/03/20 05:04:59 alexcher Exp $
+% $Id: pdf_base.ps,v 1.48 2005/09/16 19:01:30 ray Exp $
 % pdf_base.ps
 % Basic parser for PDF reader.
 
@@ -32,7 +30,11 @@ pdfdict begin
 % Define the name interpretation dictionary for reading values.
 /valueopdict mark
   (<<) cvn { mark } bind	% don't push an actual mark!
-  (>>) cvn /.dicttomark load
+  (>>) cvn { { .dicttomark } stopped {
+      (   **** File has an unbalanced >> \(close dictionary\).\n)
+      pdfformaterror
+    } if
+  } bind
   ([) cvn { mark } bind		% ditto
   (]) cvn dup load
 %  /true true		% see .pdfexectoken below
@@ -84,9 +86,14 @@ pdfdict begin
 { exch pop
   1 index 2 () /SubFileDecode filter dup (x) readhexstring
 		% Stack: post pre stream char t/f
-  not { /.pdftoken cvx /syntaxerror signalerror } if
-  exch closefile concatstrings
-  exch 2 1 index length 2 sub getinterval
+  not {	% tolerate, but complain about bad syntax
+    pop closefile (#) concatstrings exch
+    (   **** Warning: Invalid hex following '#' name escape, using literal '#' in name.\n)
+    pdfformaterror
+  } {
+    exch closefile concatstrings
+    exch 2 1 index length 2 sub getinterval
+  } ifelse
   (#) search { name#escape } if concatstrings
 } bind def
 
@@ -95,14 +102,55 @@ pdfdict begin
 % to the operand stack.
 /.pdftokenerror {		% <count> <opdict> <errtoken> .pdftokenerror -
   BXlevel 0 le {
-    (%stderr) (w) file
-    dup (****************Unknown operator: ) writestring
-    dup 2 index .writecvs dup (\n) writestring flushfile
-  } if pop pop
-  count exch sub { pop } repeat	% pop all the operands
+    (   **** Unknown operator: ') pdfformaterror
+    dup =string cvs pdfformaterror 
+    % Attempt a retry scan of the element after changing to PDFScanInvNum
+    << /PDFScanInvNum true >> setuserparams
+    =string cvs
+    token pop exch pop dup type
+    dup /integertype eq exch /realtype eq or {
+      exch pop exch pop
+      (', processed as number, value: ) pdfformaterror
+      dup =string cvs pdfformaterror (\n) pdfformaterror
+     << /PDFScanInvNum null >> setuserparams    % reset to default scanning rules
+      false 	% suppress any stack cleanup
+    } {
+      % error was non-recoverable with modified scanning rules
+    ('\n) pdfformaterror
+      true
+    } ifelse
+  } {
+    true
+  } ifelse
+  { % clean up the operand stack if this was non-recoverable
+  pop pop count exch sub { pop } repeat	% pop all the operands
+  } if
 } bind def
 /.pdfexectoken {		% <count> <opdict> <exectoken> .pdfexectoken ?
-  DEBUG { dup == flush } if
+  PDFDEBUG {
+    pdfdict /PDFSTEPcount known not { pdfdict /PDFSTEPcount 1 .forceput } if
+    PDFSTEP {
+      pdfdict /PDFtokencount 2 copy .knownget { 1 add } { 1 } ifelse .forceput
+      PDFSTEPcount 1 gt {
+	pdfdict /PDFSTEPcount PDFSTEPcount 1 sub .forceput
+      } {
+        dup ==only
+        (    step # ) print PDFtokencount =only 
+	( ? ) print flush 1 false .outputpage
+	(%stdin) (r) file 255 string readline {
+	  token {
+            exch pop pdfdict /PDFSTEPcount 3 -1 roll .forceput
+	  } {
+	    pdfdict /PDFSTEPcount 1 .forceput
+	  } ifelse % token
+	} {
+	  pop /PDFSTEP false def	 % EOF on stdin
+	} ifelse % readline
+      } ifelse % PDFSTEPcount > 1
+    } {
+      dup ==only () = flush
+    } ifelse % PDFSTEP
+  } if % PDFDEBUG
   2 copy .knownget {
     exch pop exch pop exch pop exec
   } {
@@ -132,10 +180,18 @@ pdfdict begin
 	  .pdfexectoken
 	} {
 	  .pdffixname
-	  exch pop exch pop DEBUG { dup ==only ( ) print flush } if
+	  exch pop exch pop PDFDEBUG {
+            PDFSTEPcount 1 le {
+              dup ==only ( ) print flush
+            } if
+          } if
 	} ifelse
       } {
-	exch pop exch pop DEBUG { dup ==only ( ) print flush } if
+	exch pop exch pop PDFDEBUG {
+          PDFSTEPcount 1 le {
+            dup ==only ( ) print flush
+          } if
+        } if
       } ifelse
     } {
       (%%EOF) cvn cvx .pdfexectoken
@@ -150,56 +206,24 @@ pdfdict begin
 } bind def
 
 % Execute a file, like .pdfrun, for a marking context.
-% This temporarily rebinds LocalResources and DefaultMatrix.
+% This temporarily rebinds LocalResources and DefaultQstate.
 /.pdfruncontext {		% <resdict> <file> <opdict> .pdfruncontext -
-  /.pdfrun load LocalResources DefaultMatrix
+  /.pdfrun load LocalResources DefaultQstate
   /LocalResources 7 -1 roll store
-  /DefaultMatrix matrix currentmatrix store
+  /DefaultQstate qstate store
   3 .execn
-  /DefaultMatrix exch store
+  /DefaultQstate exch store
   /LocalResources exch store
 } bind def
 
-% Get the depth of the PDF operand stack.  The main program (pdf_main.ps)
-% sets pdfemptycount before calling .pdfrun.
+% Get the depth of the PDF operand stack.  The caller sets pdfemptycount
+% before calling .pdfrun or .pdfruncontext.  It is initially set by
+% pdf_main, and is also set by any routine which changes the operand
+% stack depth (currently .pdfpaintproc, although there are other callers
+% of .pdfrun{context} which have not been checked for opstack depth.
 /.pdfcount {		% - .pdfcount <count>
   count pdfemptycount sub
 } bind def
-
-% ------ File reading ------ %
-
-% Read the cross-reference entry for an (unresolved) object.
-% The caller must save and restore the PDFfile position if desired.
-% For invalid (free) objects, we return 0.
-/readxrefentry		% <object#> readxrefentry <objpos>
- { dup Objects exch lget
-   PDFfile exch setfileposition
-   PDFfile token pop		% object position
-   PDFfile token pop		% generation #
-   PDFfile token pop		% n or f
-   dup /n eq
-    { pop 1 add dup 255 gt
-       { Generations ltype /stringtype eq
-	  {		% Convert Generations from a string to an array.
-	    larray Generations llength lgrowto dup
-	    0 1 2 index llength 1 sub
-	     { Generations 1 index lget lput dup
-	     }
-	    for pop /Generations exch store
-	  }
-	 if
-       }
-      if
-    }
-    { /f eq
-       { pop 0 }
-       { /readxrefentry cvx /syntaxerror signalerror }
-      ifelse
-    }
-   ifelse
-		% Stack: obj# objpos 1+gen#
-   Generations 4 -1 roll 3 -1 roll lput
- } bind def
 
 % ================================ Objects ================================ %
 
@@ -267,8 +291,15 @@ pdfdict begin
 %
 %	Objects (larray): If object N is loaded, Objects[N] is the actual
 %	    object; otherwise, Objects[N] is an executable integer giving
-%	    the file offset of the object's entry in the cross-reference
-%	    table.
+%	    the file offset of the object's location in the file.  If
+%	    ObjectStream[N] is non-zero then Objects[N] contains the index
+%	    into the object stream instead of the file offset of the object.
+%
+%	ObjectStream (larray): If object N is in an object stream then
+%	    ObjectStream[N] holds the object number of the object stream.
+%	    Otherwise ObjectStream[N] contains 0.  If ObjectStream[N]
+%	    is non-zero then Objects[N] contains  the index into the object
+%	    stream.
 %
 %	GlobalObjects (dictionary): If object N has been resolved in
 %	    global VM, GlobalObjects[N] is the same as Objects[N]
@@ -281,6 +312,7 @@ pdfdict begin
 
 % Initialize the PDF object tables.
 /initPDFobjects {		% - initPDFobjects -
+  /ObjectStream larray def
   /Objects larray def
   /Generations lstring def
   .currentglobal true .setglobal
@@ -291,6 +323,9 @@ pdfdict begin
 
 % Grow the tables to a specified size.
 /growPDFobjects {		% <minsize> growPDFobjects -
+  dup ObjectStream llength gt {
+    dup ObjectStream exch lgrowto /ObjectStream exch def
+  } if
   dup Objects llength gt {
     dup Objects exch lgrowto /Objects exch def
   } if
@@ -313,21 +348,21 @@ pdfdict begin
 % whether an object has been resolved.
 /resolved? {		% <object#> resolved? <value> true
 			% <object#> resolved? false
-  Objects 1 index lget dup xcheck {
-    dup type /integertype eq {
+  Objects 1 index lget dup xcheck {	% Check if executable
+    dup type /integertype eq {		% Check if an integer
 		% Check whether the object is in GlobalObjects.
-      pop IsGlobal 1 index lget 0 eq {
-	pop false
-      } {
+      pop IsGlobal 1 index lget 0 eq {	% 0 --> Not in GlabalObjects
+	pop false			% The object is not resolved
+      } {				% The object is in GlobalObjects
 		% Update Objects from GlobalObjects
-	DEBUG { (%Global=>local: ) print dup == } if
+	PDFDEBUG { (%Global=>local: ) print dup == } if
 	GlobalObjects 1 index get dup Objects 4 1 roll lput true
       } ifelse
-    } {
-      exch pop true
+    } {				% Else object is executable but not integer
+      exch pop true		% Therefore must be executable dict. (stream)
     } ifelse
-  } {
-    exch pop true
+  } {				% Else object is not executable.
+    exch pop true		% Therefore it must have been resolved.
   } ifelse
 } bind def
 /oforce /exec load def
@@ -337,6 +372,12 @@ pdfdict begin
 		% object back into the referring slot.  In order to support
 		% PDF linearization, we no longer do this.
   get oforce
+} bind def
+/oforce_array { % <array> oforce_array <array>
+  [ exch { oforce } forall ]
+} bind def
+/oforce_elems { % <array> oforce_elems <first> ... <last>
+  { oforce } forall
 } bind def
 % A null value in a dictionary is equivalent to an omitted key;
 % we must check for this specially.
@@ -357,19 +398,25 @@ pdfdict begin
    .pdfcount 3 lt { f } { pop pop pop null } ifelse
 } bind def
 
+% Verify the generation number for a specified object
+% Note:  The values in Generations is the generation number plus 1.
+% If the value in Generations is zero then the object is free.
 /checkgeneration {  % <object#> <generation#> checkgeneration <object#> <OK>
-  Generations 2 index lget 1 sub 1 index eq {
-    pop true
-  } {
-    QUIET not {
-      Generations 2 index lget 0 eq {
-	(Warning: reference to free object: )
+  Generations 2 index lget 1 sub 1 index eq {	% If generation # match ...
+    pop true					% Then return true
+  } {					% Else not a match ...
+    QUIET not {				% Create warning message if not QUIET
+      Generations 2 index lget 0 eq {	% Check if object is free ...
+	(   **** Warning: reference to free object: )
       } {
-	(Warning: wrong generation: )
-      } ifelse print 1 index =only ( ) print =only ( R) =
-    } {
-      pop
-    } ifelse false
+	(   **** Warning: wrong generation: )
+      } ifelse
+      2 index =string cvs concatstrings ( ) concatstrings	% put obj #
+      exch =string cvs concatstrings ( R\n) concatstrings	% put gen #
+      pdfformaterror			% Output warning message
+    } {					% Else QUIET ...
+      pop				% Pop generation umber
+    } ifelse false			% Return false if gen # not match
   } ifelse
 } bind def
 /R {		% <object#> <generation#> R <object>
@@ -382,25 +429,23 @@ pdfdict begin
   valueopdict { } forall
   /endobj dup cvx
 .dicttomark readonly def
+
 /obj {			% <object#> <generation#> obj <object>
   PDFfile objopdict .pdfrun
 } bind def
+
 /endobj {		% <object#> <generation#> <object> endobj <object>
   3 1 roll
 		% Read the xref entry if we haven't yet done so.
 		% This is only needed for generation # checking.
   1 index resolved? {
     pop
-  } {
-    PDFfile fileposition
-    2 index readxrefentry pop
-    PDFoffset add PDFfile exch setfileposition
-  } ifelse
+  } if
   checkgeneration {
 		% The only global objects we bother to save are
 		% (resource) dictionaries.
     1 index dup gcheck exch type /dicttype eq and {
-      DEBUG { (%Local=>global: ) print dup == } if
+      PDFDEBUG { (%Local=>global: ) print dup == } if
       GlobalObjects 1 index 3 index put
       IsGlobal 1 index 1 put
     } if
@@ -410,38 +455,205 @@ pdfdict begin
   } ifelse
 } bind def
 
-% When resolving an object reference, we stop at the endobj.
+% When resolving an object reference in an object stream, we stop at
+% the end of file.  Note:  Objects in an object stream do not have either
+% a starting 'obj' or and ending 'endobj'.
+/resolveobjstreamopdict mark
+  valueopdict { } forall
+  (%%EOF) cvn { exit } bind
+.dicttomark readonly def
+
+% Note: This version of this function is not currently being used.
+% Resolve all objects in an object stream
+/resolveobjectstream {		% <object stream #> resolveobjectstream -
+  PDFDEBUG { (%Resolving object stream: ) print } if
+  0 resolveR	% Get the objectstream dict, all objstrms use 0 as the gen #
+  dup /First get		% Save location of first object onto the stack
+  1 index /N get		% Save number of objects onto the stack
+  2 index false resolvestream	% Convert stream dict into a stream
+  /ReusableStreamDecode filter	% We need to be able to position stream
+		% Objectstreams begin with list of object numbers and locations
+		% Create two arrays to hold object numbers and stream location
+  1 index array			% Array for holding object number
+  2 index array			% Array for holding stream object location
+		% Get the object numbers and locations.
+  0 1 5 index 1 sub {		% Loop and collect obj # and locations
+		% Stack: objstreamdict First N objectstream [obj#] [loc] index
+    2 index 1 index 		% Setup to put obj# into object number array
+    5 index token pop put	% Get stream, then get obj# and put into array
+    1 index 1 index 		% Setup to put object loc into location array
+    5 index token pop put	% Get stream, get obj loc and put into array
+    pop				% Remove loop index
+  } for
+  		% Create a bytestring big enough for reading any object data
+  		% Scan for the size of the largest object
+  0 0				% Init max object size and previous location
+  2 index {			% Loop through all object locations
+				% Stack:  ... maxsize prevloc currentloc
+    dup 4 1 roll		% Save copy of object location into stack
+    exch sub				% Object size = currentloc - prevloc
+    .max			% Determine maximum object size
+    exch			% Put max size under previous location
+  } forall
+  pop				% Remove previous location
+  .bigstring			% Create bytestring based upon max obj size
+		% Move to the start of the object data
+  3 index 6 index		% Get objectstream and start of first object
+  setfileposition		% Move to the start of the data
+  		% Read the data for all objects except the last.  We do
+		% not know the size of the last object so we need to treat
+		% it as a special case.
+  0 1 6 index 2 sub {
+    dup 4 index exch get 	% Get our current object number
+		% Stack: objstreamdict First N objectstream [obj#] [loc]
+		%        bytestring loopindex object#
+    dup resolved? {		% If we already have this object
+    	(yyy) = pstack (yyy) = flush xxx
+      pop pop			% Remove object and object number
+      1 add 2 index exch get	% Get location of next object
+      6 index add 6 index exch	% Form location of next object and get stream
+      setfileposition		% Move to the start of the next object data
+    } {				% Else this is a new object ...
+		% We are going to create a string for reading the object
+      2 index 0			% use our working string
+	  	% Determine the size of the object
+      5 index 4 index 1 add get	% Get location of the next object
+      6 index 5 index get	% Get location of this object
+      sub			% Size of object = next loc - this loc
+      getinterval		% Create string for reading object
+      6 index exch readstring pop	% Read object
+      /ReusableStreamDecode filter 	% Convert string into a stream
+      resolveobjstreamopdict .pdfrun	% Get PDF object
+      Objects exch 2 index exch lput	 % Put object into Objects array
+      pop pop			% Remove object # and loop index
+    } ifelse
+  } for
+  pop pop			% Remove our working string and loc array
+  		% Now read the last object in the object stream.  Since it
+		% is the last object, we can use the original stream and
+		% terminate when we hit the end of the stream
+		% Stack: objstreamdict First N objectstream [obj#]
+  2 index 1 sub get	 	% Get our current object number
+  dup resolved? not {		% If we do not already have this object
+    exch	 		% Get our object stream
+    resolveobjstreamopdict .pdfrun	% Get PDF object
+    Objects exch 2 index exch lput	% Put object into Objects array
+  } if
+  pop pop pop pop		% Clear stack
+} bind def
+
+% Resolve all objects in an object stream
+/resolveobjectstream {		% <object stream #> resolveobjectstream -
+  PDFDEBUG { (%Resolving object stream: ) print } if
+  0 resolveR	% Get the objectstream dict, all objstrms use 0 as the gen #
+  dup /Type get /ObjStm ne {	% Verify type is object stream
+    (   **** Incorrect Type in object stream dictionary.\n) pdfformaterror
+    /resolveobjectstream cvx /typecheck signalerror
+  } if
+  dup /N get			% Save number of objects onto the stack
+  1 index false resolvestream	% Convert stream dict into a stream
+  /ReusableStreamDecode filter	% We need to be able to position stream
+		% Objectstreams begin with list of object numbers and locations
+  1 index array			% Create array for holding object number
+		% Get the object numbers
+  0 1 4 index 1 sub {		% Loop and collect obj numbers
+		% Stack: objstreamdict N PDFDEBUG objectstream [obj#] loopindex
+    1 index 1 index 		% Setup to put obj# into object number array
+    4 index token pop put	% Get stream, then get obj# and put into array
+    2 index token pop pop pop	% Get stream, get obj loc and clear stack
+  } for
+		% Move to the start of the object data
+  1 index 4 index /First get	% Get objectstream and start of first object
+  setfileposition		% Move to the start of the data
+  		% We disable PDFDEBUG while reading the data stream.  We will
+		% print the data later
+  PDFDEBUG /PDFDEBUG false def	% Save PDFDEBUG and disable it while reading
+  		% Read the data for all objects.  We check to see if we get
+		% the number of objects that we expect.
+		% Stack: objstreamdict N objectstream [obj#] PDFDEBUG
+  mark 4 -1 roll 		% Get objectstream
+  count 5 index add		% Determine stack depth with objects
+  /PDFObjectStkCount exch def
+  resolveobjstreamopdict .pdfrun % Get PDF objects
+  PDFObjectStkCount count ne {	% Check stack depth
+    (   **** Incorrect object count in object stream.\n) pdfformaterror
+    /resolveobjectstream cvx /rangecheck signalerror
+  } if
+  		% We have the object data
+  counttomark array astore	% Put objects into an array
+  exch pop			% Remove mark
+  exch /PDFDEBUG exch def	% Restore PDFDEBUG flag
+		% Save the objects into Objects
+  0 1 2 index length 1 sub {	% Loop through all objects
+		% Stack: objstreamdict N [obj#] [objects] loopindex
+    dup 3 index exch get 	% Get our current object number
+    dup resolved? {		% If we already have this object
+      pop pop			% Remove object and object number
+    } {				% Else if we do not have this object
+      PDFDEBUG { (%Resolving compressed object: [) print dup =only ( 0]) = } if
+      Objects exch 3 index	% Put the object into Objects
+      3 index get
+      PDFDEBUG { dup === flush } if
+      lput
+    } ifelse
+    pop 			% Remove loop index
+  } for
+  pop pop pop pop		% Remove objstream, N, (obj#], and [objects]
+} bind def
+
+% When resolving an object reference, we stop at the endobj or endstream.
 /resolveopdict mark
   valueopdict { } forall
+  /endstream { endobj exit } bind
   /endobj { endobj exit } bind
                 % OmniForm generates PDF file with endobj missing in some
                 % objects. AR ignores this. So we have to do it too.
   /obj { pop pop endobj exit } bind
 .dicttomark readonly def
+
 /resolveR {		% <object#> <generation#> resolveR <object>
-  DEBUG { (%Resolving: ) print 2 copy 2 array astore == } if
-  1 index resolved? {
-    exch pop exch pop
-  } {
-    PDFfile fileposition 3 1 roll
-    1 index readxrefentry
-    3 1 roll checkgeneration {
+  PDFDEBUG {
+    PDFSTEPcount 1 le {
+      (%Resolving: ) print 2 copy 2 array astore ==
+    } if
+  } if
+  1 index resolved? {		% If object has already been resolved ...
+    exch pop exch pop		% then clear stack and return object
+  } {				% Else if not resolved ...
+    PDFfile fileposition 3 1 roll	% Save current file position
+    1 index Objects exch lget		% Get location of object from xref
+    3 1 roll checkgeneration {		% Verify the generation number
 			% Stack: savepos objpos obj#
-	 exch PDFoffset add PDFfile exch setfileposition
+       ObjectStream 1 index lget dup 0 eq { % Check if obj in not an objstream
+	 pop exch PDFoffset add PDFfile exch setfileposition
 	 PDFfile token pop 2 copy ne
-	  { (xref error!) = /resolveR cvx /rangecheck signalerror
+	  { (   **** Unrecoverable error in xref!\n) pdfformaterror
+	    /resolveR cvx /rangecheck signalerror
 	  }
 	 if pop PDFfile token pop
 	 PDFfile token pop /obj ne
-	  { (xref error!) = /resolveR cvx /rangecheck signalerror
+	  { (   **** Unrecoverable error in xref!\n) pdfformaterror
+	    /resolveR cvx /rangecheck signalerror
 	  }
 	 if
 	 pdf_run_resolve	% PDFfile resolveopdict .pdfrun
-    }
-    {		% Don't cache if the generation # is wrong.
-	 pop pop null
-    } ifelse
-    exch PDFfile exch setfileposition
+      } {			% Else the object is in an ObjectStream
+	      	% Process an objectstream object.  We are going to resolve all
+	      	% of the objects in sthe stream and place them into the Objects
+	      	% array.
+		% Stack: savepos objpos obj# objectstream#
+	resolveobjectstream
+        resolved? {		% If object has already been resolved ...
+	  exch pop		% Remove object pos from stack.
+	} {
+	  pop pop null		% Pop objpos and obj#, put null for object
+	} ifelse
+      } ifelse
+    } {				% Else the generation number is wrong
+	    % Don't cache if the generation # is wrong.
+	pop pop null		% Pop objpos and obj#, put null for object
+    } ifelse			% ifelse generation number is correct
+    exch PDFfile exch setfileposition	% Return to original file position
   } ifelse
 } bind def      
 
@@ -467,28 +679,70 @@ pdfdict begin
 % especially since the PDF 1.2 specification states flatly that the only
 % legal terminators following the 'stream' keyword are \n or \r\n, both of
 % which are properly skipped and discarded by the token operator.
+% Unfortunately, this doesn't account for other whitespace characters that
+% may have preceded the EOL, such as spaces or tabs. Thus we back up one
+% character and scan until we find the \n terminator.
 /stream {	% <dict> stream <modified_dict>
+  dup /Length oget 0 eq {
+    dup /Filter undef	% don't confuse any filters that require data
+  } if
   dup /F known dup PDFsource PDFfile eq or {
     not {
       dup /File PDFfile put
+      % make sure that we are just past the EOL \n character
+      PDFfile dup fileposition 1 sub setfileposition	% back up one
+      { PDFfile read pop dup 13 eq {
+	  % If there had been a \n, token would have advanced over it
+	  % thus, if the terminator was \r, we have a format error!
+	  (   **** Warning: stream operator not terminated by valid EOL.\n) pdfformaterror
+	  pop exit	% fileposition is OK (just past the \r).
+	} if 
+	10 eq { exit } if
+      } loop	% scan past \n
       dup /FilePosition PDFfile fileposition put
-      DEBUG { (%FilePosition: ) print dup /FilePosition get == } if
+      PDFDEBUG {
+        PDFSTEPcount 1 le {
+          (%FilePosition: ) print dup /FilePosition get ==
+        } if
+      } if
     } if
-    PDFfile fileposition 1 index /Length oget add
-      PDFfile exch setfileposition
+    % Some (bad) PDf files have invalid stream lengths.  This causes problems
+    % if we reposition beyond the end of the file.  So we compare the given
+    % length to number of bytes left in the file.
+    dup /Length oget 
+    dup PDFfile bytesavailable lt {	% compare to to bytes left in file
+      PDFfile fileposition 		% reposition to the end of stream
+      add PDFfile exch setfileposition
+    } {
+      pop				% bad stream length - do not reposition.
+      					% This will force a length warning below
+    } ifelse
   } {
     pop
 	% We're already reading from a stream, which we can't reposition.
 	% Capture the sub-stream contents in a string.
     dup /Length oget string PDFsource exch readstring
     not {
-      (Unexpected EOF in stream!) =
+      (   **** Warning: Unexpected EOF in stream!\n) pdfformaterror
       /stream cvx /rangecheck signalerror
     } if
     1 index exch /File exch put
   } ifelse
-  PDFsource token pop
-    /endstream ne { /stream cvx /syntaxerror signalerror } if
+  PDFsource {token} stopped {
+    pop null
+  } {
+    not { null } if
+  } ifelse
+  dup /endobj eq {
+    % Another case that Acrobat Reader handles -- 'endobj' without 'endstream'.
+    (   **** Warning: stream missing 'endstream'.\n) pdfformaterror
+    pop /endstream		% fake a valid endstream
+  } if
+  /endstream ne { 
+    (   **** Warning: stream Length incorrect.\n) pdfformaterror
+    dup /Length undef % prevent the use of the incorrect length.
+    cvx endobj exit   % exit from .pdfrun now.
+  } if
   cvx
 } bind def
 /endstream {
@@ -506,11 +760,12 @@ pdfdict begin
 % Extract and apply filters.
 /filterparms {		% <dict> <DPkey> <Fkey> filterparms
 			%   <dict> <parms> <filternames>
-  2 index exch .knownget {
-    exch 2 index exch .knownget {
+  2 index exch knownoget {
+    exch 2 index exch knownoget {
 		% Both filters and parameters.
       exch dup type /nametype eq {
-	1 array astore exch 1 array astore exch
+	1 array astore exch
+	dup type /arraytype ne { 1 array astore } if exch
       } if
     } {
 		% Filters, but no parameters.
@@ -524,28 +779,56 @@ pdfdict begin
 } bind def
 /filtername {		% <filtername> filtername <filtername'>
   //unabbrevfilterdict 1 index .knownget { exch pop } if
+  dup /Filter resourcestatus { pop pop } {
+    Repaired exch	% this error is not the creator's fault	
+    (   **** ERROR: Unable to process ) pdfformaterror
+    64 string cvs pdfformaterror
+    ( data. Page will be missing data.\n) pdfformaterror
+    /Repaired exch store % restore the previous "Repaired" state
+    % provide a filter that returns EOF (no data)
+    /.EOFDecode
+  } ifelse
 } bind def
 /applyfilters {		% <parms> <source> <filternames> applyfilters <stream>
   2 index null eq {
     { filtername filter }
   } {
-    {		% Stack: parms stream filtername
-      2 index 0 oget dup null eq { pop } { exch } ifelse filtername filter
+    {		% Stack: parms source filtername
+      2 index 0 oget dup null eq { pop } {
+        exch filtername dup /JBIG2Decode eq { exch jbig2cachectx exch } if
+      } ifelse filter
       exch dup length 1 sub 1 exch getinterval exch
     }
   } ifelse forall exch pop
 } bind def
 
+% JBIG2 streams have an optional 'globals' stream obj for
+% sharing redundant data between page images. Here we resolve
+% that stream reference (if any) and run it through the decoder,
+% creating a special -jbig2globalctx- postscript object our
+% JBIG2Decode filter implementation looks for in the parm dict.
+/jbig2cachectx { % <parmdict> jbig2cachectx <parmdict>
+  dup /JBIG2Globals knownoget {
+    dup /Length oget
+    % make global ctx
+    PDFfile fileposition 3 1 roll % resolvestream is not reentrant
+    exch true resolvestream exch .bytestring
+    .readbytestring pop .jbig2makeglobalctx
+    PDFfile 3 -1 roll setfileposition
+    1 index exch
+    /.jbig2globalctx exch put
+  } if
+} bind def
+
 % Resolve a stream dictionary to a PostScript stream.
 % Streams with no filters require special handling:
-%	- If we are going to interpret their contents, we let endstream
-%	  terminate the interpretation loop;
-%	- If we are just going to read data from them, we impose
-%	  a SubFileDecode filter that reads just the requisite amount of data.
+%     - Whether we are going to interpret the stream, or If we are just
+%       going to read data from them, we impose a SubFileDecode filter
+%         that reads just the requisite amount of data.
 % Note that, in general, resolving a stream repositions PDFfile.
 % Clients must save and restore the position of PDFfile themselves.
 /resolvestream {	% <streamdict> <readdata?> resolvestream <stream>
-  1 index /F .knownget {
+  1 index /F knownoget {
 		% This stream is stored on an external file.
     (r) file 3 -1 roll
     /FDecodeParms /FFilter filterparms
@@ -568,15 +851,13 @@ pdfdict begin
 		% there is no specified filter.
       pop exch pop
 		% Stack: readdata? dict file/string
-      2 index {
-		% We're going to read data; use a SubFileDecode filter.
-	1 index /Length oget () /SubFileDecode filter
+      2 index 1 index type /filetype eq or {
+              % Use length for any files or reading data from any source.
+        1 index /Length knownoget not { 0 } if
       } {
-	dup type /filetype ne {
-		% Use a SubFileDecode filter to read from a string.
-	  0 () /SubFileDecode filter
-	} if
+      0       % Otherwise length of 0 for whole string
       } ifelse
+      2 index /IDFlag known { pop } { () /SubFileDecode filter } ifelse
     } {
       applyfilters
     } ifelse

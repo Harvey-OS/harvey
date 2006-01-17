@@ -56,7 +56,7 @@ struct GSInfo {
 };
 void	waitgs(GSInfo*);
 int	gscmd(GSInfo*, char*, ...);
-int	spawngs(GSInfo*);
+int	spawngs(GSInfo*, char*);
 void	setdim(GSInfo*, Rectangle, int, int);
 int	spawnwriter(GSInfo*, Biobuf*);
 Rectangle	screenrect(void);

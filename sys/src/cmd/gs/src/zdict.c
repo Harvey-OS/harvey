@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zdict.c,v 1.3 2000/09/19 19:00:53 lpd Exp $ */
+/* $Id: zdict.c,v 1.6 2004/08/04 19:36:13 stefan Exp $ */
 /* Dictionary operators */
 #include "ghost.h"
 #include "oper.h"
@@ -106,7 +104,7 @@ zop_def(i_ctx_t *i_ctx_p)
     switch (r_type(op1)) {
 	case t_name: {
 	    /* We can use the fast single-probe lookup here. */
-	    uint nidx = name_index(op1);
+	    uint nidx = name_index(imemory, op1);
 	    uint htemp;
 
 	    if_dict_find_name_by_index_top(nidx, htemp, pvslot) {
@@ -266,7 +264,7 @@ zcopy_dict(i_ctx_t *i_ctx_p)
     check_type(*op1, t_dictionary);
     check_dict_read(*op1);
     check_dict_write(*op);
-    if (!dict_auto_expand &&
+    if (!imemory->gs_lib_ctx->dict_auto_expand &&
 	(dict_length(op) != 0 || dict_maxlength(op) < dict_length(op1))
 	)
 	return_error(e_rangecheck);
@@ -348,7 +346,7 @@ zdictcopynew(i_ctx_t *i_ctx_p)
     check_type(*op, t_dictionary);
     check_dict_write(*op);
     /* This is only recognized in Level 2 mode. */
-    if (!dict_auto_expand)
+    if (!imemory->gs_lib_ctx->dict_auto_expand)
 	return_error(e_undefined);
     code = idict_copy_new(op1, op);
     if (code < 0)

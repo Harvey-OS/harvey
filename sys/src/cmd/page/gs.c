@@ -134,7 +134,7 @@ spawnmonitor(int fd)
 }
 
 int 
-spawngs(GSInfo *g)
+spawngs(GSInfo *g, char *safer)
 {
 	char *args[16];
 	char tb[32], gb[32];
@@ -158,7 +158,7 @@ spawngs(GSInfo *g)
 	nargs = 0;
 	args[nargs++] = "gs";
 	args[nargs++] = "-dNOPAUSE";
-	args[nargs++] = "-dSAFER";
+	args[nargs++] = safer;
 	args[nargs++] = "-sDEVICE=plan9";
 	args[nargs++] = "-sOutputFile=/fd/3";
 	args[nargs++] = "-dQUIET";

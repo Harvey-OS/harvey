@@ -1,22 +1,20 @@
 /* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevl31s.c,v 1.2 2000/09/19 19:00:13 lpd Exp $ */
+/* $Id: gdevl31s.c,v 1.5 2004/09/02 21:30:53 giles Exp $ */
 /*
  * H-P LaserJet 3100 driver
  *
@@ -180,7 +178,8 @@ lj3100sw_print_page_copies(gx_device_printer *pdev, FILE *prn_stream, int num_co
 	int paper_height = pdev->height;
 	int paper_width  = pdev->width;
 	int line_size = gdev_prn_raster(pdev);
-	byte *in = (byte *)gs_malloc(line_size, 1, "lj3100sw_print_page");
+	gs_memory_t *mem = pdev->memory;
+	byte *in = (byte *)gs_malloc(mem, line_size, 1, "lj3100sw_print_page");
 	byte *data;
 	if (in == 0)
 		return_error(gs_error_VMerror);
@@ -263,7 +262,7 @@ lj3100sw_print_page_copies(gx_device_printer *pdev, FILE *prn_stream, int num_co
 	for (i = 0; i < 4 * ppdev->NumCopies; i++)
 		lj3100sw_output_section_header(prn_stream, 54, 0, 0);
 
-	gs_free((char *)in, line_size, 1, "lj3100sw_print_page");
+	gs_free(mem, (char *)in, line_size, 1, "lj3100sw_print_page");
 	return 0;
 }
 

@@ -2,25 +2,27 @@
 %%Creator: Eric Gisin <egisin@waterloo.csnet>
 %%Title: Print font catalog
 % Copyright (c) 1986 Eric Gisin
-% Copyright (C) 1992 Aladdin Enterprises, Menlo Park, CA (ghost@aladdin.com)
+% Copyright (C) 1992 Aladdin Enterprises, Menlo Park, CA
 %   Modified to print all 256 encoded characters.
-% Copyright (C) 1993 Aladdin Enterprises, Menlo Park, CA (ghost@aladdin.com)
+% Copyright (C) 1993 Aladdin Enterprises, Menlo Park, CA
 %   Modified to print unencoded characters.
-% Copyright (C) 1994 Aladdin Enterprises, Menlo Park, CA (ghost@aladdin.com)
+% Copyright (C) 1994 Aladdin Enterprises, Menlo Park, CA
 %   Modified to always create 256-element Encoding vectors.
-% Copyright (C) 1995 Aladdin Enterprises, Menlo Park, CA (ghost@aladdin.com)
+% Copyright (C) 1995 Aladdin Enterprises, Menlo Park, CA
 %   Modified to print more than 128 unencoded characters.
-% Copyright (C) 1996 Aladdin Enterprises, Menlo Park, CA (ghost@aladdin.com)
+% Copyright (C) 1996 Aladdin Enterprises, Menlo Park, CA
 %   Modified to leave a slightly wider left margin, because many H-P
 %     printers can't print in the leftmost 1/4" of the page.
 %   Modified to print unencoded characters in any font that has CharStrings.
-% Copyright (C) 1999 Aladdin Enterprises, Menlo Park, CA (ghost@aladdin.com)
+% Copyright (C) 1999 Aladdin Enterprises, Menlo Park, CA
 %   Modified to sort unencoded characters.
-% Copyright (C) 2000 Aladdin Enterprises, Menlo Park, CA (ghost@aladdin.com)
+% Copyright (C) 2000 Aladdin Enterprises, Menlo Park, CA
 %   Modified to print CIDFonts as well as fonts.
 %   O(N^2) sorting replaced with O(N log N).
+% Copyright transferred 2000/09/15 to artofcode LLC.  Send any questions to
+%   bug-gs@ghostscript.com.
 
-% $Id: prfont.ps,v 1.2 2000/03/21 06:39:49 lpd Exp $
+% $Id: prfont.ps,v 1.7 2005/09/01 22:04:37 stefan Exp $
 
 % Example usages at bottom of file
 
@@ -153,7 +155,7 @@
 
   0 128 Unencoded length 1 sub
    { /BlockStart 1 index def
-     dup 128 add Unencoded length min 1 index sub
+     dup 128 add Unencoded length .min 1 index sub
      Unencoded 3 1 roll getinterval TempEncoding copy
      /BlockEncoding exch def
      /BlockCount BlockEncoding length def
@@ -172,9 +174,9 @@
      BlockStart dup BlockCount 1 sub add DoBlock
      F 10 scalefont setfont
      36 2.4 Inch moveto
-    0 32 BlockCount 32 sub 224 min {
+    0 32 BlockCount 1 sub {
       0 -0.4 Inch rmoveto gsave
-      dup 31 add BlockCount 1 sub min
+      dup 31 add BlockCount 1 sub .min
       exch BlockStart add exch BlockStart add DoLine
       grestore
     } for
@@ -195,8 +197,10 @@
   DoTitle (, characters 0-127) show
   0 127 DoBlock
   F 10 scalefont setfont
-  36 2.0 Inch moveto 0 63 DoLine
-  36 1.5 Inch moveto 64 127 DoLine
+  36 2.0 Inch moveto   0  31 DoLine
+  36 1.6 Inch moveto  32  63 DoLine
+  36 1.2 Inch moveto  64  95 DoLine
+  36 0.8 Inch moveto  96 127 DoLine
   showpage
 
 	% Display the second 128 encoded characters.
@@ -204,8 +208,10 @@
   DoTitle (, characters 128-255) show
   128 255 DoBlock
   F 10 scalefont setfont
-  36 2.0 Inch moveto 128 191 DoLine
-  36 1.5 Inch moveto 192 255 DoLine
+  36 2.0 Inch moveto 128 159 DoLine
+  36 1.6 Inch moveto 160 191 DoLine
+  36 1.2 Inch moveto 192 223 DoLine
+  36 0.8 Inch moveto 224 255 DoLine
   showpage
 
   F /CharStrings known

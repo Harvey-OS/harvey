@@ -1,21 +1,19 @@
 #    Copyright (C) 1991-2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: watcw32.mak,v 1.13.2.2 2002/02/01 03:30:13 raph Exp $
+# $Id: watcw32.mak,v 1.35 2005/08/31 05:52:32 ray Exp $
 # watcw32.mak
 # makefile for Watcom C++ v??, Windows NT or Windows 95 platform.
 #   Does NOT build gs16spl.exe, which is 16-bit and is used under Win32s.
@@ -53,10 +51,10 @@ GSROOTDIR=$(AROOTDIR)/gs$(GS_DOT_VERSION)
 GS_DOCDIR=$(GSROOTDIR)/doc
 
 # Define the default directory/ies for the runtime
-# initialization and font files.  Separate multiple directories with \;.
+# initialization, resource and font files.  Separate multiple directories with \;.
 # Use / to indicate directories, not a single \.
 
-GS_LIB_DEFAULT=$(GSROOTDIR)/lib\;$(AROOTDIR)/fonts
+GS_LIB_DEFAULT=$(GSROOTDIR)/lib\;$(GSROOTDIR)/Resource\;$(AROOTDIR)/fonts
 
 # Define whether or not searching for initialization files should always
 # look in the current directory first.  This leads to well-known security
@@ -126,12 +124,19 @@ JVERSION=6
 # See libpng.mak for more information.
 
 PSRCDIR=libpng
-PVERSION=10201
+PVERSION=10208
 
 # Define the directory where the zlib sources are stored.
 # See zlib.mak for more information.
 
 ZSRCDIR=zlib
+
+# Define the jbig2dec library source location.
+# See jbig2.mak for more information.
+
+!ifndef JBIG2SRCDIR
+JBIG2SRCDIR=jbig2dec
+!endif
 
 # Define the directory where the icclib source are stored.
 # See icclib.mak for more information
@@ -202,13 +207,13 @@ SYNC=winsync
 NUL=
 DD=$(GLGENDIR)\$(NUL)
 GLD=$(GLGENDIR)\$(NUL)
-PSD=$(GLGENDIR)\$(NUL)
+PSD=$(PSGENDIR)\$(NUL)
 
 # ------ Devices and features ------ #
 
 # Choose the language feature(s) to include.  See gs.mak for details.
 
-FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev
+FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(PSD)epsf.dev
 
 # Choose whether to compile the .ps initialization files into the executable.
 # See gs.mak for details.
@@ -221,8 +226,7 @@ COMPILE_INITS=0
 BAND_LIST_STORAGE=file
 
 # Choose which compression method to use when storing band lists in memory.
-# The choices are 'lzw' or 'zlib'.  lzw is not recommended, because the
-# LZW-compatible code in Ghostscript doesn't actually compress its input.
+# The choices are 'lzw' or 'zlib'.
 
 BAND_LIST_COMPRESSOR=zlib
 
@@ -239,7 +243,7 @@ STDIO_IMPLEMENTATION=c
 # Choose the device(s) to include.  See devs.mak for details,
 # devs.mak and contrib.mak for the list of available devices.
 
-DEVICE_DEVS=$(DD)mswindll.dev $(DD)mswinprn.dev $(DD)mswinpr2.dev
+DEVICE_DEVS=$(DD)display.dev $(DD)mswindll.dev $(DD)mswinpr2.dev
 DEVICE_DEVS2=$(DD)epson.dev $(DD)eps9high.dev $(DD)eps9mid.dev $(DD)epsonc.dev $(DD)ibmpro.dev
 DEVICE_DEVS3=$(DD)deskjet.dev $(DD)djet500.dev $(DD)laserjet.dev $(DD)ljetplus.dev $(DD)ljet2p.dev
 DEVICE_DEVS4=$(DD)cdeskjet.dev $(DD)cdjcolor.dev $(DD)cdjmono.dev $(DD)cdj550.dev
@@ -249,11 +253,11 @@ DEVICE_DEVS7=$(DD)t4693d2.dev $(DD)t4693d4.dev $(DD)t4693d8.dev $(DD)tek4696.dev
 DEVICE_DEVS8=$(DD)pcxmono.dev $(DD)pcxgray.dev $(DD)pcx16.dev $(DD)pcx256.dev $(DD)pcx24b.dev $(DD)pcxcmyk.dev
 DEVICE_DEVS9=$(DD)pbm.dev $(DD)pbmraw.dev $(DD)pgm.dev $(DD)pgmraw.dev $(DD)pgnm.dev $(DD)pgnmraw.dev $(DD)pnm.dev $(DD)pnmraw.dev $(DD)ppm.dev $(DD)ppmraw.dev
 DEVICE_DEVS10=$(DD)tiffcrle.dev $(DD)tiffg3.dev $(DD)tiffg32d.dev $(DD)tiffg4.dev $(DD)tifflzw.dev $(DD)tiffpack.dev
-DEVICE_DEVS11=$(DD)bmpmono.dev $(DD)bmp16.dev $(DD)bmp256.dev $(DD)bmp16m.dev $(DD)tiff12nc.dev $(DD)tiff24nc.dev
+DEVICE_DEVS11=$(DD)bmpmono.dev $(DD)bmp16.dev $(DD)bmp256.dev $(DD)bmp16m.dev $(DD)tiff12nc.dev $(DD)tiff24nc.dev $(DD)tiffgray.dev $(DD)tiff32nc.dev $(DD)tiffsep.dev
 DEVICE_DEVS12=$(DD)psmono.dev $(DD)bit.dev $(DD)bitrgb.dev $(DD)bitcmyk.dev
-DEVICE_DEVS13=$(DD)pngmono.dev $(DD)pnggray.dev $(DD)png16.dev $(DD)png256.dev $(DD)png16m.dev
-DEVICE_DEVS14=$(DD)jpeg.dev $(DD)jpeggray.dev
-DEVICE_DEVS15=$(DD)pdfwrite.dev $(DD)pswrite.dev $(DD)epswrite.dev $(DD)pxlmono.dev $(DD)pxlcolor.dev
+DEVICE_DEVS13=$(DD)pngmono.dev $(DD)pnggray.dev $(DD)png16.dev $(DD)png256.dev $(DD)png16m.dev $(DD)pngalpha.dev
+DEVICE_DEVS14=$(DD)jpeg.dev $(DD)jpeggray.dev $(DD)jpegcmyk.dev
+DEVICE_DEVS15=$(DD)pdfwrite.dev $(DD)pswrite.dev $(DD)ps2write.dev $(DD)epswrite.dev $(DD)pxlmono.dev $(DD)pxlcolor.dev
 # Overflow for DEVS3,4,5,6,9
 DEVICE_DEVS16=$(DD)ljet3.dev $(DD)ljet3d.dev $(DD)ljet4.dev $(DD)ljet4d.dev
 DEVICE_DEVS17=$(DD)pj.dev $(DD)pjxl.dev $(DD)pjxl300.dev
@@ -265,8 +269,8 @@ DEVICE_DEVS20=
 
 # Define the name of the makefile -- used in dependencies.
 
-MAKEFILE=$(GLSRCDIR)\watcw32.mak
-TOP_MAKEFILES=$(MAKEFILE) $(GLSRCDIR)\winlib.mak $(GLSRCDIR)\winint.mak
+MAKEFILE=$(PSSRCDIR)\watcw32.mak
+TOP_MAKEFILES=$(MAKEFILE) $(GLSRCDIR)\winlib.mak $(PSSRCDIR)\winint.mak
 
 # Define the executable and shell invocations.
 
@@ -374,7 +378,6 @@ CC_WX=$(CC) $(WX)
 CC_=$(CC_WX) $(COMPILE_FULL_OPTIMIZED)
 CC_D=$(CC_WX) $(COMPILE_WITH_FRAMES)
 CC_INT=$(CC)
-CC_LEAF=$(CC_) $(COMPILE_WITHOUT_FRAMES)
 CC_NO_WARN=$(CC_)
 
 # No additional flags are needed for Windows compilation.
@@ -400,7 +403,7 @@ RO_=$(O_)
 
 !include $(GLSRCDIR)\version.mak
 !include $(GLSRCDIR)\winlib.mak
-!include $(GLSRCDIR)\winint.mak
+!include $(PSSRCDIR)\winint.mak
 
 # -------------------------- Auxiliary programs --------------------------- #
 
@@ -446,7 +449,6 @@ $(GENINIT_XE): $(PSSRCDIR)$(D)geninit.c $(GENINIT_DEPS)
 	@if not exist $(PSGENDIR) mkdir $(PSGENDIR)
 	@if not exist $(PSOBJDIR) mkdir $(PSOBJDIR)
 	@if not exist $(BINDIR) mkdir $(BINDIR)
-	@if not exist $(GLGENDIR)\lib.tr copy nul: $(GLGENDIR)\lib.tr
 
 # See winlib.mak
 
@@ -463,10 +465,10 @@ LIBCTR=
 GSCONSOLE_XE=$(BINDIR)\$(GSCONSOLE).exe
 GSDLL_DLL=$(BINDIR)\$(GSDLL).dll
 
-DWOBJLINK=$(GLOBJ)dwdll.obj, $(GLOBJ)dwimg.obj, $(GLOBJ)dwmain.obj, $(GLOBJ)dwtext.obj, $(GLOBJ)gscdefw.obj, $(GLOBJ)gp_wgetw.obj
-DWOBJNOLINK= $(GLOBJ)dwnodll.obj, $(GLOBJ)dwimg.obj, $(GLOBJ)dwmain.obj, $(GLOBJ)dwtext.obj
-OBJCLINK=$(GLOBJ)dwmainc.obj, $(GLOBJ)dwdllc.obj, $(GLOBJ)gscdefw.obj, $(GLOBJ)gp_wgetw.obj
-OBJCNOLINK=$(GLOBJ)dwmainc.obj, $(GLOBJ)dwnodllc.obj
+DWOBJLINK=$(PSOBJ)dwdll.obj, $(GLOBJ)dwimg.obj, $(PSOBJ)dwmain.obj, $(GLOBJ)dwtext.obj, $(PSOBJ)gscdefw.obj, $(PSOBJ)gp_wgetw.obj
+DWOBJNOLINK= $(PSOBJ)dwnodll.obj, $(GLOBJ)dwimg.obj, $(PSOBJ)dwmain.obj, $(GLOBJ)dwtext.obj
+OBJCLINK=$(PSOBJ)dwmainc.obj, $(PSOBJ)dwdllc.obj, $(PSOBJ)gscdefw.obj, $(PSOBJ)gp_wgetw.obj
+OBJCNOLINK=$(PSOBJ)dwmainc.obj, $(PSOBJ)dwnodllc.obj
 
 !ifneq MAKEDLL 0
 
@@ -478,31 +480,31 @@ $(GLOBJ)gscdefw.$(OBJ): $(GLGEN)gscdefs.c $(AK) $(gscdefs_h)
 	$(CC) $(COMPILE_FOR_CONSOLE_EXE) $(GLCCFLAGS) $(CCWINFLAGS) $(I_)$(GLI_)$(_I) $(GLF_) $(GLO_)gscdefw.$(OBJ) $(C_) $(GLGEN)gscdefs.c
 
 # The graphical small EXE loader
-$(GS_XE): $(GSDLL_DLL) $(GLOBJ)$(GSDLL).lib $(DWOBJ) $(GSCONSOLE_XE) $(GLOBJ)$(GS).res \
+$(GS_XE): $(GSDLL_DLL) $(PSOBJ)$(GSDLL).lib $(DWOBJ) $(GSCONSOLE_XE) $(PSOBJ)$(GS).res \
 		$(GLOBJ)gp_wgetw.obj $(GLOBJ)gscdefw.obj
-	$(LINK) system nt_win $(LCT) Name $(GS_XE) File $(DWOBJLINK) Library $(GLOBJ)$(GSDLL).lib
+	$(LINK) system nt_win $(LCT) Name $(GS_XE) File $(DWOBJLINK) Library $(PSOBJ)$(GSDLL).lib
 
 # The console mode small EXE loader
-$(GSCONSOLE_XE): $(OBJC) $(GLOBJ)$(GS).res $(GLSRCDIR)\dw32c.def \
+$(GSCONSOLE_XE): $(OBJC) $(PSOBJ)$(GS).res $(PSSRCDIR)\dw32c.def \
 		$(GLOBJ)gp_wgetw.obj $(GLOBJ)gscdefw.obj
-	$(LINK) system nt option map $(LCT) Name $(GSCONSOLE_XE) File $(OBJCLINK) Library $(GLOBJ)$(GSDLL).lib
+	$(LINK) system nt option map $(LCT) Name $(GSCONSOLE_XE) File $(OBJCLINK) Library $(PSOBJ)$(GSDLL).lib
 
 # The big DLL
-$(GSDLL_DLL): $(GS_ALL) $(DEVS_ALL) $(GLOBJ)gsdll.$(OBJ) $(GLOBJ)gp_mktmp.obj $(GLOBJ)$(GSDLL).res 
-	$(LINK) system nt_dll initinstance terminstance $(LCT) Name $(GSDLL_DLL) File $(GLOBJ)gsdll.obj, $(GLOBJ)gp_mktmp.obj @$(ld_tr) @$(GLSRC)gsdll32w.lnk
+$(GSDLL_DLL): $(GS_ALL) $(DEVS_ALL) $(PSOBJ)gsdll.$(OBJ) $(GLOBJ)gp_mktmp.obj $(PSOBJ)$(GSDLL).res 
+	$(LINK) system nt_dll initinstance terminstance $(LCT) Name $(GSDLL_DLL) File $(GLOBJ)gsdll.obj, $(GLOBJ)gp_mktmp.obj @$(ld_tr) @$(PSSRC)gsdll32w.lnk
 
-$(GLOBJ)$(GSDLL).lib: $(GSDLL_DLL)
-	erase $(GLOBJ)$(GSDLL).lib
-	wlib $(GLOBJ)$(GSDLL) +$(GSDLL_DLL)
+$(PSOBJ)$(GSDLL).lib: $(GSDLL_DLL)
+	erase $(PSOBJ)$(GSDLL).lib
+	wlib $(PSOBJ)$(GSDLL) +$(GSDLL_DLL)
 
 !else
 # The big graphical EXE
-$(GS_XE): $(GSCONSOLE_XE) $(GS_ALL) $(DEVS_ALL) $(GLOBJ)gsdll.$(OBJ) $(GLOBJ)gp_mktmp.obj $(DWOBJNO) $(GLOBJ)$(GS).res $(GLOBJ)dwmain32.def
+$(GS_XE): $(GSCONSOLE_XE) $(GS_ALL) $(DEVS_ALL) $(PSOBJ)gsdll.$(OBJ) $(GLOBJ)gp_mktmp.obj $(DWOBJNO) $(PSOBJ)$(GS).res $(PSOBJ)dwmain32.def
 	$(LINK) option map $(LCT) Name $(GS) File $(GLOBJ)gsdll,$(GLOBJ)gp_mktmp.obj, $(DWOBJNOLINK) @$(ld_tr) 
 
 # The big console mode EXE
-$(GSCONSOLE_XE):  $(GS_ALL) $(DEVS_ALL) $(GLOBJ)gsdll.$(OBJ) $(GLOBJ)gp_mktmp.obj $(OBJCNO) $(GLOBJ)$(GS).res $(GLSRCDIR)\dw32c.def
-	$(LINK) option map $(LCT) Name $(GSCONSOLE_XE) File $(GLOBJ)gsdll, $(GLOBJ)gp_mktmp.obj, $(OBJCNOLINK), @$(ld_tr) 
+$(GSCONSOLE_XE):  $(GS_ALL) $(DEVS_ALL) $(PSOBJ)gsdll.$(OBJ) $(GLOBJ)gp_mktmp.obj $(OBJCNO) $(PSOBJ)$(GS).res $(PSSRCDIR)\dw32c.def
+	$(LINK) option map $(LCT) Name $(GSCONSOLE_XE) File $(GLOBJ)gsdll, $(GLOBJ)gp_mktmp.obj, $(OBJCNOLINK) @$(ld_tr) 
 !endif
 
 # end of makefile

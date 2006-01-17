@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zmatrix.c,v 1.4 2000/09/19 19:00:54 lpd Exp $ */
+/* $Id: zmatrix.c,v 1.8 2004/08/04 19:36:13 stefan Exp $ */
 /* Matrix operators */
 #include "ghost.h"
 #include "oper.h"
@@ -26,9 +24,9 @@
 #include "store.h"
 
 /* Forward references */
-private int common_transform(P3(i_ctx_t *,
-		int (*)(P4(gs_state *, floatp, floatp, gs_point *)),
-		int (*)(P4(floatp, floatp, const gs_matrix *, gs_point *))));
+private int common_transform(i_ctx_t *,
+		int (*)(gs_state *, floatp, floatp, gs_point *),
+		int (*)(floatp, floatp, const gs_matrix *, gs_point *));
 
 /* - initmatrix - */
 private int
@@ -93,7 +91,7 @@ zsetdefaultmatrix(i_ctx_t *i_ctx_p)
     else {
 	gs_matrix mat;
 
-	code = read_matrix(op, &mat);
+	code = read_matrix(imemory, op, &mat);
 	if (code < 0)
 	    return code;
 	code = gs_setdefaultmatrix(igs, &mat);
@@ -203,7 +201,7 @@ zconcat(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
     gs_matrix mat;
-    int code = read_matrix(op, &mat);
+    int code = read_matrix(imemory, op, &mat);
 
     if (code < 0)
 	return code;
@@ -222,8 +220,8 @@ zconcatmatrix(i_ctx_t *i_ctx_p)
     gs_matrix m1, m2, mp;
     int code;
 
-    if ((code = read_matrix(op - 2, &m1)) < 0 ||
-	(code = read_matrix(op - 1, &m2)) < 0 ||
+    if ((code = read_matrix(imemory, op - 2, &m1)) < 0 ||
+	(code = read_matrix(imemory, op - 1, &m2)) < 0 ||
 	(code = gs_matrix_multiply(&m1, &m2, &mp)) < 0 ||
 	(code = write_matrix(op, &mp)) < 0
 	)
@@ -268,8 +266,8 @@ zidtransform(i_ctx_t *i_ctx_p)
 /* Common logic for [i][d]transform */
 private int
 common_transform(i_ctx_t *i_ctx_p,
-	int (*ptproc)(P4(gs_state *, floatp, floatp, gs_point *)),
-	int (*matproc)(P4(floatp, floatp, const gs_matrix *, gs_point *)))
+	int (*ptproc)(gs_state *, floatp, floatp, gs_point *),
+	int (*matproc)(floatp, floatp, const gs_matrix *, gs_point *))
 {
     os_ptr op = osp;
     double opxy[2];
@@ -290,7 +288,7 @@ common_transform(i_ctx_t *i_ctx_p,
 	    gs_matrix mat;
 	    gs_matrix *pmat = &mat;
 
-	    if ((code = read_matrix(op, pmat)) < 0 ||
+	    if ((code = read_matrix(imemory, op, pmat)) < 0 ||
 		(code = num_params(op - 1, 2, opxy)) < 0 ||
 		(code = (*matproc) (opxy[0], opxy[1], pmat, &pt)) < 0
 		) {		/* Might be a stack underflow. */
@@ -330,7 +328,7 @@ zinvertmatrix(i_ctx_t *i_ctx_p)
     gs_matrix m;
     int code;
 
-    if ((code = read_matrix(op - 1, &m)) < 0 ||
+    if ((code = read_matrix(imemory, op - 1, &m)) < 0 ||
 	(code = gs_matrix_invert(&m, &m)) < 0 ||
 	(code = write_matrix(op, &m)) < 0
 	)

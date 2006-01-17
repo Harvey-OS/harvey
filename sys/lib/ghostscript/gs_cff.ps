@@ -1,21 +1,19 @@
 %    Copyright (C) 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: gs_cff.ps,v 1.10 2001/10/12 08:52:14 igorm Exp $
+% $Id: gs_cff.ps,v 1.19 2005/07/18 05:51:57 ray Exp $
 % Loader for CFF (compressed) fonts, including OpenType CFFs.
 % The following are not implemented yet:
 %	Deleted entries in the Name Index
@@ -59,7 +57,7 @@
       pop pop /.loadottofontfile cvx /invalidfont signalerror
     } if
     f 4 string readstring pop (CFF ) eq { sub exit } if
-    1 sub
+    f 12 string readstring pop pop 1 sub	% skip to next table
   } loop
 		% Stack: tablesread
   card32 pop card32 card32
@@ -186,17 +184,17 @@ mark
 /next {		% - next <byte>
   f read {
     1 advance
-    DEBUG { (  ) print dup = } if
+    CFFDEBUG { (  ) print dup = } if
   } if
 } bind def
 /next2 {	% - next2 <byte1> <byte2>
   f read {
     f read {
       2 advance
-      DEBUG { (  ) print 1 index =only (,) print dup = } if
+      CFFDEBUG { (  ) print 1 index =only (,) print dup = } if
     } {
       1 advance
-      DEBUG { (  ) print dup = } if
+      CFFDEBUG { (  ) print dup = } if
     } ifelse
   } if
 } bind def
@@ -205,7 +203,7 @@ mark
     pop ()
   } {
     string f exch readstring pop dup length advance
-    DEBUG { (  ) print dup == } if
+    CFFDEBUG { (  ) print dup == } if
   } ifelse
 } bind def
 /card8		% - card8 <card8>
@@ -232,18 +230,20 @@ def
 /sid		% - <sid> sid
   /card16 load
 def
-/Index {	% - Index <array>
+/Index {	% <name> Index <name> <array>
+  CFFDEBUG { (% reading Index: ) print dup = } if
   mark card16 dup 0 ne {
     1 exch next offsetproc dup exec pop exch {
       dup exec dup 4 -1 roll sub 3 1 roll exch
     } repeat pop
   } if pop .packtomark
+  CFFDEBUG { (% Index lengths = ) print dup === } if
   [ exch { nextstring } forall ] readonly
 } bind def
 /tokens {	% - tokens <num1> ... <op#> (op# = 12 means EOF)
   {
     f read not { 12 exit } if
-    DEBUG { (..) print dup = } if
+    CFFDEBUG { (..) print dup = } if
     1 advance
     dup 12 eq { pop next 32 add exit } if
     dup 28 lt { exit } if
@@ -296,7 +296,7 @@ def
 /Dict {		% <opsdict> Dict -
   /opdict exch store {
     mark tokens
-    DEBUG { (tokens: ) print ] dup === mark exch aload pop } if
+    CFFDEBUG { (tokens: ) print ] dup === mark exch aload pop } if
     opdict exch .knownget { exec } if cleartomark
   } loop cleartomark
 } bind def
@@ -314,9 +314,14 @@ def
 % ------ Top dictionary ------ %
 
 /offput {	% <offset> <proc> offput -
-  DEBUG { (queued: ) print 1 index =only ( ) print dup === } if
-  currentdict exch aload length 1 add packedarray cvx
-  offsets 3 1 roll put
+  1 index 0 le
+  CFFDEBUG { dup { (not ) print } if (queued: ) print 2 index =only ( ) print 1 index === } if
+  { pop pop
+  }
+  { currentdict exch aload length 1 add packedarray cvx
+      offsets 3 1 roll put
+  }
+  ifelse
 } bind def
 /queueput {	% <font> <proc> queueput -
   16#7fffffff offsets { pop .min } forall
@@ -325,17 +330,23 @@ def
   [ queued aload pop counttomark 2 add -1 roll ]
   /queued exch store
 } bind def
+/printvk {	% <value> <key> printvk <value> <key>
+  CFFDEBUG { (\t% ) print dup =only ( = ) print 1 index === } if
+} bind def
 /xxput {	% <value> <key> <dict> xxput -
   3 1 roll exch put
 } bind def
 /putfi {	% <value> <key> putfi -
-  FontInfo xxput
+  printvk FontInfo xxput
 } bind def
 /xdef {		% <value> <key> xdef -
   exch def
 } bind def
+/pxdef {	% <value> <key> pxdef -
+  printvk xdef
+} bind def
 /topdictops mark
-  12 { exit }
+  12 { CFFDEBUG { (\t% EOD) = } if exit }
   0 { idstring /version putfi }
   1 { idstring /Notice putfi }
   32 { idstring /Copyright putfi }
@@ -346,14 +357,15 @@ def
   34 { /ItalicAngle putfi }
   35 { /UnderlinePosition putfi }
   36 { /UnderlineThickness putfi }
-  37 { /PaintType xdef }
-  38 { /FontType xdef }		% actually CharstringType
-  39 { counttomark array astore /FontMatrix xdef }
-  13 { /UniqueID xdef }
-  5 { counttomark array astore /FontBBox xdef }
-  40 { /StrokeWidth xdef }
-  14 { counttomark array astore /XUID xdef }
+  37 { /PaintType pxdef }
+  38 { /FontType pxdef }		% actually CharstringType
+  39 { counttomark array astore /FontMatrix pxdef }
+  13 { /UniqueID pxdef }
+  5 { counttomark array astore /FontBBox pxdef }
+  40 { /StrokeWidth pxdef }
+  14 { counttomark array astore /XUID pxdef }
   15 {
+    /charset printvk pop
     dup StandardCharsets length lt {
       StandardCharsets exch get /charset xdef
     } {
@@ -361,6 +373,7 @@ def
     } ifelse
   }
   16 {
+    /Encoding printvk pop
     dup StandardEncodings length lt {
       /Encoding xdef
     } {
@@ -379,20 +392,21 @@ def
     /CIDFontType 0 def
     /CIDCount 8720 def % Default value defined in CFF spec.
     3 dict begin
-    /Supplement xdef
-    idstring /Ordering xdef
-    idstring /Registry xdef
+    /Supplement pxdef
+    idstring /Ordering pxdef
+    idstring /Registry pxdef
     /CIDSystemInfo currentdict end def
   }
-  63 { /CIDFontVersion xdef }
-  64 { /CIDFontRevision xdef }
-  65 { /CIDFontType xdef }
-  66 { /CIDCount xdef }
-  67 { /UIDBase xdef }
+  63 { /CIDFontVersion pxdef }
+  64 { /CIDFontRevision pxdef }
+  65 { /CIDFontType pxdef }
+  66 { /CIDCount pxdef }
+  67 { /UIDBase pxdef }
   68 { { readFDArray } offput }
   69 { { readFDSelect } offput }
 	% This operator only appears in a FDArray element.
-  70 { idstring /FontName exch def }
+	% We don't really need it, so ignore an error.
+  70 { { idstring } .internalstopped { pop pop } { /FontName pxdef } ifelse }
 .dicttomark readonly def
 
 % readcharset and readFDSelect may require the length of CharStringArray,
@@ -474,7 +488,7 @@ def
 % ------ FDArray and FDSelect ------ %
 
 /readFDArray {		% <font> readFDArray -
-  Index exch
+  /FDarray Index exch pop exch
   2 dict begin /f null def begin
   [ exch {
     dup length subfilefilter /f exch store
@@ -487,18 +501,22 @@ def
   } forall ] /FDArray xdef end end
 } bind def
 
-% Note: this implementation can overflow the operand stack.
-% We'll fix this if it ever becomes necessary.
 /fdselectformats [
-{ [ exch charstringcount pop { card8 } repeat ] } bind
-{ /FDSelect cvx /invalidfont signalerror } bind
-dup
-{ pop [ card16 card16 exch {
-		% Stack: previndex
-    card8 card16 dup 4 1 roll 3 -1 roll sub 1 sub {
-      exch 1 index
-    } repeat exch
-  } repeat pop ]
+% Note: this procedure can overflow the operand stack.
+% We'll fix this if it ever becomes necessary.
+{ [ exch charstringcount pop { card8 } repeat ] } bind	% Format 0
+{ /FDSelect cvx /invalidfont signalerror } bind		% Format 1
+dup							% Format 2
+% The following procedure does not use excessive op-stack space.
+{ pop 65535 array card16 card16 exch			% Format 3
+  { % Stack: array previndex
+    card8 card16 
+    exch 1 index 4 -1 roll
+    exch 1 exch 1 sub
+    { 3 index exch 2 index put } for pop
+  } repeat
+  % now resize the array to the final index.
+  0 exch getinterval
 } bind
 ] readonly def
 
@@ -515,31 +533,31 @@ dup
 } bind def
 
 /privatedictops mark
-  12 { exit }
-  6 { deltarray /BlueValues xdef }
-  7 { deltarray /OtherBlues xdef }
-  8 { deltarray /FamilyBlues xdef }
-  9 { deltarray /FamilyOtherBlues xdef }
-  41 { /BlueScale xdef }
-  42 { /BlueShift xdef }
-  43 { /BlueFuzz xdef }
-  10 { 1 array astore /StdHW xdef }
-  11 { 1 array astore /StdVW xdef }
-  44 { deltarray /StemSnapH xdef }
-  45 { deltarray /StemSnapV xdef }
-  46 { 0 ne /ForceBold xdef }
-  47 { /ForceBoldThreshold xdef }
-  48 { /lenIV xdef }
-  49 { /LanguageGroup xdef }
-  50 { /ExpansionFactor xdef }
-  51 { /initialRandomSeed xdef }
+  12 { CFFDEBUG { (\t% EOD) = } if exit }
+  6 { deltarray /BlueValues pxdef }
+  7 { deltarray /OtherBlues pxdef }
+  8 { deltarray /FamilyBlues pxdef }
+  9 { deltarray /FamilyOtherBlues pxdef }
+  41 { /BlueScale pxdef }
+  42 { /BlueShift pxdef }
+  43 { /BlueFuzz pxdef }
+  10 { 1 array astore /StdHW pxdef }
+  11 { 1 array astore /StdVW pxdef }
+  44 { deltarray /StemSnapH pxdef }
+  45 { deltarray /StemSnapV pxdef }
+  46 { 0 ne /ForceBold pxdef }
+  47 { /ForceBoldThreshold pxdef }
+  48 { /lenIV pxdef }
+  49 { /LanguageGroup pxdef }
+  50 { /ExpansionFactor pxdef }
+  51 { /initialRandomSeed pxdef }
   19 { PrivateStart add { readSubrs } offput }
-  20 { /defaultWidthX xdef }
-  21 { /nominalWidthX xdef }
+  20 { /defaultWidthX pxdef }
+  21 { /nominalWidthX pxdef }
 	% Multiple Master fonts only
-  59 { /NDV xdef }
-  60 { /CDV xdef }
-  61 { /lenBuildCharArray xdef }
+  59 { /NDV pxdef }
+  60 { /CDV pxdef }
+  61 { /lenBuildCharArray pxdef }
 .dicttomark readonly def
 
 /readPrivate {		% <font> <size> readPrivate -
@@ -574,7 +592,7 @@ dup
 		% The value of Encoding is either a number, for predefined
 		% encodings, or an array of mixed GIDs and names.
   /Encoding mark Encoding
-  DEBUG { (Encoding: ) print dup === flush } if
+  CFFDEBUG { (Encoding: ) print dup === flush } if
   dup type /integertype eq {
     StandardEncodings exch get { idname } forall
   } {
@@ -586,7 +604,7 @@ dup
 		% Note that they may only correspond to an initial
 		% subset of the charset.
   /CharStrings charset length CharStringArray length .min dict def
-  DEBUG {
+  CFFDEBUG {
     charset length =only ( charset ) print
     CharStringArray length =only ( CharStringArray) =
     charset == flush
@@ -604,7 +622,7 @@ dup
 		% Construct the GlyphDirectory, similar to CharStrings.
   /FDBytes FDArray length 1 gt { 1 } { 0 } ifelse def
   /GlyphDirectory charset length CharStringArray length .min dict def
-  DEBUG {
+  CFFDEBUG {
     charset length =only ( charset ) print
     CharStringArray length =only ( CharStringArray) =
     charset == flush
@@ -649,7 +667,7 @@ dup
   /cff exch def
   /pos 0 def
   /resname exch cvlit def
-  /DEBUG DEBUG def	% bring the binding closer
+  /DEBUG CFFDEBUG def	% bring the binding closer
 
 	% Read the header.
 
@@ -693,24 +711,25 @@ dup
   } forall ] def
 
 	% Read other tables with queued offsets.
-
-  DEBUG { (offsets: ) print [ offsets { pop } forall ] == } if
-  { /f cff def
-    DEBUG { (pos=) print pos = } if
-    offsets pos 2 copy .knownget not { pop pop exit } if
-    3 1 roll undef
-    DEBUG { (exec queued: ) print dup == } if
-    exec
+        % We process these in order so we can advance if needed.
+	% The CFF file may not be positionable.
+  {		% outer loop since offsets may be updated when processing
+    CFFDEBUG { (offsets: ) print [ offsets { pop } forall ] == } if
+    [ offsets { pop } forall ] { lt } .sort	% process in order of appearance
+    { 
+      /f cff def
+      CFFDEBUG { (queued offset: ) print dup =print flush (, current pos=) print pos = } if
+      dup pos ne { dup pos sub nextstring pop } if	% negative advance will cause error
+      offsets exch 2 copy get 3 1 roll undef
+      CFFDEBUG { (exec queued: ) print dup == } if
+      exec
+    } forall
+    offsets length 0 eq { exit } if
   } loop
-  offsets length 0 ne {
-    (Error: missing tables at ) print [ offsets { pop } forall ] ==
-    (Current position is ) print pos ==
-    flush stop
-  } if
 
 	% Process out-of-order tables.
 
-  DEBUG { queued length =only ( queued) = flush } if
+  CFFDEBUG { queued length =only ( queued) = flush } if
   queued { exec } forall
 
 	% Update Encoding and CharStrings.
@@ -724,10 +743,10 @@ dup
 	% Wrap up.
 
   resname mark 0 1 fonts length 1 sub {
-    DEBUG { dup =only ( ) print flush } if
+    CFFDEBUG { dup =only ( ) print flush } if
     dup names exch get
     forceresname { pop resname } if
-    DEBUG { dup == flush } if
+    CFFDEBUG { dup == flush } if
     exch fonts exch get
     dup /CIDFontType known {
 		% This is a CIDFont.

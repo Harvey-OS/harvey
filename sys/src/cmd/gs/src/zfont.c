@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zfont.c,v 1.3 2000/12/03 23:35:30 lpd Exp $ */
+/* $Id: zfont.c,v 1.12 2004/08/19 19:33:09 stefan Exp $ */
 /* Generic font operators */
 #include "ghost.h"
 #include "oper.h"
@@ -35,26 +33,41 @@
 #include "ivmspace.h"
 
 /* Forward references */
-private int make_font(P2(i_ctx_t *, const gs_matrix *));
-private void make_uint_array(P3(os_ptr, const uint *, int));
+private int make_font(i_ctx_t *, const gs_matrix *);
+private void make_uint_array(os_ptr, const uint *, int);
+private int setup_unicode_decoder(i_ctx_t *i_ctx_p, ref *Decoding);
 
 /* The (global) font directory */
 gs_font_dir *ifont_dir = 0;	/* needed for buildfont */
 
 /* Mark a glyph as a PostScript name (if it isn't a CID). */
 bool
-zfont_mark_glyph_name(gs_glyph glyph, void *ignore_data)
+zfont_mark_glyph_name(const gs_memory_t *mem, gs_glyph glyph, void *ignore_data)
 {
     return (glyph >= gs_min_cid_glyph || glyph == gs_no_glyph ? false :
-	    name_mark_index((uint) glyph));
+	    name_mark_index(mem, (uint) glyph));
+}
+
+/* Get a global glyph code.  */
+private int 
+zfont_global_glyph_code(const gs_memory_t *mem, gs_const_string *gstr, gs_glyph *pglyph)
+{
+    ref v;
+    int code = name_ref(mem, gstr->data, gstr->size, &v, 0);
+
+    if (code < 0)
+	return code;
+    *pglyph = (gs_glyph)name_index(mem, &v);
+    return 0;
 }
 
 /* Initialize the font operators */
 private int
 zfont_init(i_ctx_t *i_ctx_p)
 {
-    ifont_dir = gs_font_dir_alloc2(imemory, &gs_memory_default);
+    ifont_dir = gs_font_dir_alloc2(imemory, imemory->non_gc_memory);
     ifont_dir->ccache.mark_glyph = zfont_mark_glyph_name;
+    ifont_dir->global_glyph_code = zfont_global_glyph_code;
     return gs_register_struct_root(imemory, NULL, (void **)&ifont_dir,
 				   "ifont_dir");
 }
@@ -83,7 +96,7 @@ zmakefont(i_ctx_t *i_ctx_p)
     int code;
     gs_matrix mat;
 
-    if ((code = read_matrix(op, &mat)) < 0)
+    if ((code = read_matrix(imemory, op, &mat)) < 0)
 	return code;
     return make_font(i_ctx_p, &mat);
 }
@@ -197,6 +210,22 @@ zregisterfont(i_ctx_t *i_ctx_p)
     return 0;
 }
 
+
+/* <Decoding> .setupUnicodeDecoder - */
+private int
+zsetupUnicodeDecoder(i_ctx_t *i_ctx_p)
+{   /* The allocation mode must be global. */
+    os_ptr op = osp;
+    int code;
+
+    check_type(*op, t_dictionary);
+    code = setup_unicode_decoder(i_ctx_p, op);
+    if (code < 0)
+	return code;
+    pop(1);
+    return 0;
+}
+
 /* ------ Initialization procedure ------ */
 
 const op_def zfont_op_defs[] =
@@ -210,6 +239,7 @@ const op_def zfont_op_defs[] =
     {"1setcacheparams", zsetcacheparams},
     {"0currentcacheparams", zcurrentcacheparams},
     {"1.registerfont", zregisterfont},
+    {"1.setupUnicodeDecoder", zsetupUnicodeDecoder},
     op_def_end(zfont_init)
 };
 
@@ -235,7 +265,7 @@ font_param(const ref * pfdict, gs_font ** ppfont)
 	return_error(e_invalidfont);
     pfont = r_ptr(pid, gs_font);
     pdata = pfont->client_data;
-    if (!obj_eq(&pdata->dict, pfdict))
+    if (!obj_eq(pfont->memory, &pdata->dict, pfdict))
 	return_error(e_invalidfont);
     *ppfont = pfont;
     if (pfont == 0)
@@ -301,7 +331,7 @@ make_font(i_ctx_t *i_ctx_p, const gs_matrix * pmat)
      * font_data of the new font was simply copied from the old one.
      */
     if (pencoding != 0 &&
-	!obj_eq(pencoding, &pfont_data(newfont)->Encoding)
+	!obj_eq(imemory, pencoding, &pfont_data(newfont)->Encoding)
 	) {
 	if (newfont->FontType == ft_composite)
 	    return_error(e_rangecheck);
@@ -378,7 +408,7 @@ zdefault_make_font(gs_font_dir * pdir, const gs_font * oldfont,
 	ref *ppsm;
 
 	if (!(dict_find_string(fp, "ScaleMatrix", &ppsm) > 0 &&
-	      read_matrix(ppsm, &prev_scale) >= 0 &&
+	      read_matrix(mem, ppsm, &prev_scale) >= 0 &&
 	      gs_matrix_multiply(pmat, &prev_scale, &scale) >= 0)
 	    )
 	    scale = *pmat;
@@ -414,14 +444,17 @@ make_uint_array(register os_ptr op, const uint * intp, int count)
 /* Remove scaled font and character cache entries that would be */
 /* invalidated by a restore. */
 private bool
-purge_if_name_removed(cached_char * cc, void *vsave)
+purge_if_name_removed(const gs_memory_t *mem, cached_char * cc, void *vsave)
 {
-    return alloc_name_index_is_since_save(cc->code, vsave);
+    return alloc_name_index_is_since_save(mem, cc->code, vsave);
 }
+
+/* Remove entries from font and character caches. */
 void
 font_restore(const alloc_save_t * save)
 {
     gs_font_dir *pdir = ifont_dir;
+    const gs_memory_t *mem = 0;
 
     if (pdir == 0)		/* not initialized yet */
 	return;
@@ -435,6 +468,7 @@ otop:
 	for (pfont = pdir->orig_fonts; pfont != 0;
 	     pfont = pfont->next
 	    ) {
+	    mem = pfont->memory;
 	    if (alloc_is_since_save((char *)pfont, save)) {
 		gs_purge_font(pfont);
 		goto otop;
@@ -549,4 +583,52 @@ zfont_info(gs_font *font, const gs_point *pscale, int members,
 	zfont_info_has(pfontinfo, "FullName", &info->FullName))
 	info->members |= FONT_INFO_FULL_NAME;
     return code;
+}
+
+/* -------------------- Utilities --------------*/
+
+typedef struct gs_unicode_decoder_s {
+    ref data;
+} gs_unicode_decoder;
+
+/* GC procedures */
+private 
+CLEAR_MARKS_PROC(unicode_decoder_clear_marks)
+{   gs_unicode_decoder *const pptr = vptr;
+
+    r_clear_attrs(&pptr->data, l_mark);
+}
+private 
+ENUM_PTRS_WITH(unicode_decoder_enum_ptrs, gs_unicode_decoder *pptr) return 0;
+case 0:
+ENUM_RETURN_REF(&pptr->data);
+ENUM_PTRS_END
+private RELOC_PTRS_WITH(unicode_decoder_reloc_ptrs, gs_unicode_decoder *pptr);
+RELOC_REF_VAR(pptr->data);
+r_clear_attrs(&pptr->data, l_mark);
+RELOC_PTRS_END
+
+gs_private_st_complex_only(st_unicode_decoder, gs_unicode_decoder,\
+    "unicode_decoder", unicode_decoder_clear_marks, unicode_decoder_enum_ptrs, 
+    unicode_decoder_reloc_ptrs, 0);
+
+/* Get the Unicode value for a glyph. */
+const ref *
+zfont_get_to_unicode_map(gs_font_dir *dir)
+{
+    const gs_unicode_decoder *pud = (gs_unicode_decoder *)dir->glyph_to_unicode_table;
+    
+    return (pud == NULL ? NULL : &pud->data);
+}
+
+private int
+setup_unicode_decoder(i_ctx_t *i_ctx_p, ref *Decoding)
+{
+    gs_unicode_decoder *pud = gs_alloc_struct(imemory, gs_unicode_decoder, 
+                             &st_unicode_decoder, "setup_unicode_decoder");
+    if (pud == NULL)
+	return_error(e_VMerror);
+    ref_assign_new(&pud->data, Decoding);
+    ifont_dir->glyph_to_unicode_table = pud;
+    return 0;
 }

@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsmemlok.h,v 1.2 2000/09/19 19:00:29 lpd Exp $ */
+/* $Id: gsmemlok.h,v 1.5 2002/06/16 08:45:42 lpd Exp $ */
 /* Interface to monitor-locked heap memory allocator */
 
 /* Initial version 2/1/98 by John Desrosiers (soho@crl.com) */
@@ -42,16 +40,16 @@ typedef struct gs_memory_locked_s {
 /* ---------- Public constructors/destructors ---------- */
 
 /* Initialize a locked memory manager. */
-int gs_memory_locked_init(P2(
-			     gs_memory_locked_t * lmem,	/* allocator to init */
-			     gs_memory_t * target	/* allocator to monitor lock */
-			     ));
+int gs_memory_locked_init(
+			  gs_memory_locked_t * lmem,	/* allocator to init */
+			  gs_memory_t * target	/* allocator to monitor lock */
+			  );
 
 /* Release a locked memory manager. */
 /* Note that this has no effect on the target. */
-void gs_memory_locked_release(P1(gs_memory_locked_t *lmem));
+void gs_memory_locked_release(gs_memory_locked_t *lmem);
 
 /* Get the target of a locked memory manager. */
-gs_memory_t * gs_memory_locked_target(P1(const gs_memory_locked_t *lmem));
+gs_memory_t * gs_memory_locked_target(const gs_memory_locked_t *lmem);
 
 #endif /*!defined(gsmemlok_INCLUDED) */

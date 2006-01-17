@@ -1,28 +1,29 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevwprn.c,v 1.3 2001/03/12 03:56:13 ghostgum Exp $ */
+/* $Id: gdevwprn.c,v 1.10 2004/08/10 13:02:36 stefan Exp $ */
 /*
  * Microsoft Windows 3.n printer driver for Ghostscript.
  *
  * Original version by Russell Lang and
  * L. Peter Deutsch, Aladdin Enterprises.
  */
+
+/* This driver is very slow and as of 2002-09-14 it does not work. */
+
 #include "gdevmswn.h"
 #include "gp.h"
 #include "gpcheck.h"
@@ -47,9 +48,9 @@ typedef struct gx_device_win_prn_s gx_device_win_prn;
 #define wdev ((gx_device_win_prn *)dev)
 
 /* Forward references */
-private void near win_prn_addtool(P2(gx_device_win_prn *, int));
-private void near win_prn_maketools(P2(gx_device_win_prn *, HDC));
-private void near win_prn_destroytools(P1(gx_device_win_prn *));
+private void near win_prn_addtool(gx_device_win_prn *, int);
+private void near win_prn_maketools(gx_device_win_prn *, HDC);
+private void near win_prn_destroytools(gx_device_win_prn *);
 BOOL CALLBACK _export AbortProc(HDC, int);
 
 /* Device procedures */
@@ -207,6 +208,22 @@ win_prn_open(gx_device * dev)
 	wdev->nColors = 2;
     }
 
+    /* copy encode/decode procedures */
+    wdev->procs.encode_color = wdev->procs.map_rgb_color;
+    wdev->procs.decode_color = wdev->procs.map_color_rgb;
+    if (dev->color_info.depth == 1) {
+	wdev->procs.get_color_mapping_procs = 
+	    gx_default_DevGray_get_color_mapping_procs;
+	wdev->procs.get_color_comp_index = 
+	    gx_default_DevGray_get_color_comp_index;
+    }
+    else {
+	wdev->procs.get_color_mapping_procs = 
+	    gx_default_DevRGB_get_color_mapping_procs;
+	wdev->procs.get_color_comp_index = 
+	    gx_default_DevRGB_get_color_comp_index;
+    }
+
     /* create palette for display */
     if ((wdev->limgpalette = win_makepalette((gx_device_win *) dev))
 	== (LPLOGPALETTE) NULL) {
@@ -305,11 +322,10 @@ win_prn_output_page(gx_device * dev, int num_copies, int flush)
 
 /* Map a r-g-b color to the colors available under Windows */
 private gx_color_index
-win_prn_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
-		      gx_color_value b)
+win_prn_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
     int i = wdev->nColors;
-    gx_color_index color = win_map_rgb_color(dev, r, g, b);
+    gx_color_index color = win_map_rgb_color(dev, cv);
 
     if (color != i)
 	return color;
@@ -632,10 +648,10 @@ win_prn_maketools(gx_device_win_prn * wdev, HDC hdc)
     int i;
 
     wdev->hpensize = (1 << (wdev->color_info.depth)) * sizeof(HPEN);
-    wdev->hpens = (HPEN *) gs_malloc(1, wdev->hpensize,
+    wdev->hpens = (HPEN *) gs_malloc(wdev->memory, 1, wdev->hpensize,
 				     "win_prn_maketools(pens)");
     wdev->hbrushsize = (1 << (wdev->color_info.depth)) * sizeof(HBRUSH);
-    wdev->hbrushs = (HBRUSH *) gs_malloc(1, wdev->hbrushsize,
+    wdev->hbrushs = (HBRUSH *) gs_malloc(wdev->memory, 1, wdev->hbrushsize,
 					 "win_prn_maketools(brushes)");
     if (wdev->hpens && wdev->hbrushs) {
 	for (i = 0; i < wdev->nColors; i++)
@@ -659,16 +675,16 @@ win_prn_destroytools(gx_device_win_prn * wdev)
 	DeleteObject(wdev->hpens[i]);
 	DeleteObject(wdev->hbrushs[i]);
     }
-    gs_free((char *)wdev->hbrushs, 1, wdev->hbrushsize,
+    gs_free(wdev->memory, (char *)wdev->hbrushs, 1, wdev->hbrushsize,
 	    "win_prn_destroytools(brushes)");
-    gs_free((char *)wdev->hpens, 1, wdev->hpensize,
+    gs_free(wdev->memory, (char *)wdev->hpens, 1, wdev->hpensize,
 	    "win_prn_destroytools(pens)");
 }
 
 BOOL CALLBACK _export
 AbortProc(HDC hdcPrn, int code)
 {
-    process_interrupts();
+    process_interrupts(NULL);
     if (code == SP_OUTOFDISK)
 	return (FALSE);		/* cancel job */
     return (TRUE);

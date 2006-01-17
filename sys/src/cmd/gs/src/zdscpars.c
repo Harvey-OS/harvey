@@ -1,22 +1,20 @@
 /* Copyright (C) 2000 Artifex Software Inc.   All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
  */
 
-/*$Id: zdscpars.c,v 1.12 2001/06/27 00:25:08 dancoby Exp $ */
+/* $Id: zdscpars.c,v 1.17 2004/11/17 19:48:01 ray Exp $ */
 /* C language interface routines to DSC parser */
 
 /*
@@ -105,7 +103,7 @@ typedef struct dsc_data_s {
 } dsc_data_t;
 
 /* Structure descriptors */
-private void dsc_finalize(P1(void *vptr));
+private void dsc_finalize(void *vptr);
 gs_private_st_simple_final(st_dsc_data_t, dsc_data_t, "dsc_data_struct", dsc_finalize);
 
 /* Define the key name for storing the instance pointer in a dictionary. */
@@ -351,7 +349,7 @@ dsc_viewing_orientation(gs_param_list *plist, const CDSC *pData)
 typedef struct cmd_list_s {
     int code;			/* Russell's DSC parser code (see dsc.h) */
     const char *comment_name;	/* A name to be returned to postscript caller */
-    int (*dsc_proc) (P2(gs_param_list *, const CDSC *));
+    int (*dsc_proc) (gs_param_list *, const CDSC *);
 				/* A routine for transferring parameter values
 				   from C data structure to postscript dictionary
 				   key/value pairs. */
@@ -407,7 +405,7 @@ zparse_dsc_comments(i_ctx_t *i_ctx_p)
     const cmdlist_t *pCmdList = DSCcmdlist;
     const char * const *pBadList = BadCmdlist;
     ref * pvalue;
-    CDSC * dsc_data;
+    CDSC * dsc_data = NULL;
     dict_param_list list;
 
     /*
@@ -474,7 +472,7 @@ zparse_dsc_comments(i_ctx_t *i_ctx_p)
 
     /* Put DSC comment name onto operand stack (replace string). */
 
-    return name_enter_string(pCmdList->comment_name, opString);
+    return name_enter_string(imemory, pCmdList->comment_name, opString);
 }
 
 /* ------ Initialization procedure ------ */

@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: igstate.h,v 1.3 2000/09/19 19:00:44 lpd Exp $ */
+/* $Id: igstate.h,v 1.8 2003/09/03 03:22:59 giles Exp $ */
 /* Interpreter graphics state definition */
 
 #ifndef igstate_INCLUDED
@@ -26,6 +24,7 @@
 #include "gxstate.h"		/* for 'client data' access */
 #include "imemory.h"
 #include "istruct.h"		/* for gstate obj definition */
+#include "gxcindex.h"
 
 /*
  * From the interpreter's point of view, the graphics state is largely opaque,
@@ -120,12 +119,8 @@ typedef struct int_gstate_s {
     /* Screen_procs are only relevant if setscreen was */
     /* executed more recently than sethalftone */
     /* (for this graphics context). */
-    union {
-	ref indexed[4];
-	struct {
-	    /* The components must be in this order: */
-	    ref red, green, blue, gray;
-	} colored;
+    struct {
+	ref red, green, blue, gray;
     } screen_procs,		/* halftone screen procedures */
           transfer_procs;	/* transfer procedures */
     ref black_generation;	/* (procedure) */
@@ -140,6 +135,17 @@ typedef struct int_gstate_s {
 	ref dict;		/* CIE color rendering dictionary */
 	ref_cie_render_procs procs;	/* (see above) */
     } colorrendering;
+    /*
+     * Use_cie_color tracks the UseCIEColor parameter of the page
+     * device. This parameter may, during initialization, be read
+     * through the .getuseciecolor operator, and set (in Level 3)
+     * via the .setuseciecolor operator.
+     *
+     * Previously, the UseCIEColor color space substitution feature
+     * was implemented in the graphic library. It is now implemented
+     * strictly in the interpreter.
+     */
+    ref use_cie_color;
     /*
      * Halftone is relevant only if sethalftone was executed
      * more recently than setscreen for this graphics context.
@@ -156,7 +162,7 @@ typedef struct int_gstate_s {
     /*
      * Remap_color_info is used temporarily to communicate the need for
      * Pattern or DeviceNcolor remapping to the interpreter.  See
-     * e_RemapColor in errors.h.  The extra level of indirection through a
+     * e_RemapColor in ierrors.h.  The extra level of indirection through a
      * structure is needed because the gstate passed to the PaintProc is
      * different from the current gstate in the graphics state, and because
      * the DeviceN color being remapped is not necessarily the current color
@@ -192,7 +198,7 @@ typedef struct int_gstate_s {
 
 /* Create the gstate for a new context. */
 /* We export this so that fork can use it. */
-gs_state *int_gstate_alloc(P1(const gs_dual_memory_t * dmem));
+gs_state *int_gstate_alloc(const gs_dual_memory_t * dmem);
 
 /* Get the int_gstate from a gs_state. */
 #define gs_int_gstate(pgs) ((int_gstate *)gs_state_client_data(pgs))

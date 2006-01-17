@@ -1,22 +1,20 @@
 /* Copyright (C) 2000, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsfunc4.c,v 1.7 2001/09/17 06:01:12 lpd Exp $ */
+/* $Id: gsfunc4.c,v 1.18 2005/04/19 14:35:12 igor Exp $ */
 /* Implementation of FunctionType 4 (PostScript Calculator) Functions */
 #include "math_.h"
 #include "memory_.h"
@@ -30,6 +28,7 @@
 #include "strimpl.h"
 #include "sfilter.h"		/* for SubFileDecode */
 #include "spprint.h"
+#include "stream.h"
 
 typedef struct gs_function_PtCr_s {
     gs_function_head_t head;
@@ -60,7 +59,7 @@ typedef struct calc_value_s {
 } calc_value_t;
 
 /* Store a float. */
-private void
+private inline void
 store_float(calc_value_t *vsp, floatp f)
 {
     vsp->value.f = f;
@@ -531,7 +530,7 @@ fn_PtCr_evaluate(const gs_function_t *pfn_common, const float *in, float *out)
     for (i = 0; i < pfn->params.n; ++i) {
 	switch (vstack[i + 1].type) {
 	case CVT_INT:
-	    out[i] = vstack[i + 1].value.i;
+	    out[i] = (float)vstack[i + 1].value.i;
 	    break;
 	case CVT_FLOAT:
 	    out[i] = vstack[i + 1].value.f;
@@ -546,8 +545,7 @@ fn_PtCr_evaluate(const gs_function_t *pfn_common, const float *in, float *out)
 /* Test whether a PostScript Calculator function is monotonic. */
 private int
 fn_PtCr_is_monotonic(const gs_function_t * pfn_common,
-		     const float *lower, const float *upper,
-		     gs_function_effort_t effort)
+		     const float *lower, const float *upper, uint *mask)
 {
     /*
      * No reasonable way to tell.  Eventually we should check for
@@ -555,6 +553,7 @@ fn_PtCr_is_monotonic(const gs_function_t * pfn_common,
      * since these may be common for DeviceN color spaces and *are*
      * monotonic.
      */
+    *mask = 0x49249249;
     return 0;
 }
 
@@ -691,11 +690,75 @@ fn_PtCr_get_info(const gs_function_t *pfn_common, gs_function_info_t *pfi)
     {
 	stream s;
 
+	s_init(&s, NULL);
 	swrite_position_only(&s);
 	calc_put(&s, pfn);
 	pfi->data_size = stell(&s);
     }
 }
+
+/* Make a scaled copy of a PostScript Calculator function. */
+private int
+fn_PtCr_make_scaled(const gs_function_PtCr_t *pfn, gs_function_PtCr_t **ppsfn,
+		    const gs_range_t *pranges, gs_memory_t *mem)
+{
+    gs_function_PtCr_t *psfn =
+	gs_alloc_struct(mem, gs_function_PtCr_t, &st_function_PtCr,
+			"fn_PtCr_make_scaled");
+    /* We are adding {<int> 1 roll <float> mul <float> add} for each output. */
+    int n = pfn->params.n;
+    uint opsize = pfn->params.ops.size + (9 + 2 * sizeof(float)) * n;
+    byte *ops = gs_alloc_string(mem, opsize, "fn_PtCr_make_scaled(ops)");
+    byte *p;
+    int code, i;
+
+    if (psfn == 0 || ops == 0) {
+	gs_free_string(mem, ops, opsize, "fn_PtCr_make_scaled(ops)");
+	gs_free_object(mem, psfn, "fn_PtCr_make_scaled");
+	return_error(gs_error_VMerror);
+    }
+    psfn->params = pfn->params;
+    psfn->params.ops.data = ops;
+    psfn->params.ops.size = opsize;
+    psfn->data_source = pfn->data_source;
+    code = fn_common_scale((gs_function_t *)psfn, (const gs_function_t *)pfn,
+			   pranges, mem);
+    if (code < 0) {
+	gs_function_free((gs_function_t *)psfn, true, mem);
+	return code;
+    }
+    memcpy(ops, pfn->params.ops.data, pfn->params.ops.size - 1); /* minus return */
+    p = ops + pfn->params.ops.size - 1;
+    for (i = n; --i >= 0; ) {
+	float base = pranges[i].rmin;
+	float factor = pranges[i].rmax - base;
+
+	if (factor != 1) {
+	    p[0] = PtCr_float; memcpy(p + 1, &factor, sizeof(float));
+	    p += 1 + sizeof(float);
+	    *p++ = PtCr_mul;
+	}
+	if (base != 0) {
+	    p[0] = PtCr_float; memcpy(p + 1, &base, sizeof(float));
+	    p += 1 + sizeof(float);
+	    *p++ = PtCr_add;
+	}
+	if (n != 1) {
+	    p[0] = PtCr_byte; p[1] = (byte)n;
+	    p[2] = PtCr_byte; p[3] = 1;
+	    p[4] = PtCr_roll;
+	    p += 5;
+	}
+    }
+    *p++ = PtCr_return;
+    psfn->params.ops.size = p - ops;
+    psfn->params.ops.data =
+	gs_resize_string(mem, ops, opsize, psfn->params.ops.size,
+			 "fn_PtCr_make_scaled");
+    *ppsfn = psfn;
+    return 0;
+}
+
 
 /* Free the parameters of a PostScript Calculator function. */
 void
@@ -703,6 +766,22 @@ gs_function_PtCr_free_params(gs_function_PtCr_params_t * params, gs_memory_t * m
 {
     gs_free_const_string(mem, params->ops.data, params->ops.size, "ops");
     fn_common_free_params((gs_function_params_t *) params, mem);
+}
+
+/* Serialize. */
+private int
+gs_function_PtCr_serialize(const gs_function_t * pfn, stream *s)
+{
+    uint n;
+    const gs_function_PtCr_params_t * p = (const gs_function_PtCr_params_t *)&pfn->params;
+    int code = fn_common_serialize(pfn, s);
+
+    if (code < 0)
+	return code;
+    code = sputs(s, (const byte *)&p->ops.size, sizeof(p->ops.size), &n);
+    if (code < 0)
+	return code;
+    return sputs(s, p->ops.data, p->ops.size, &n);
 }
 
 /* Allocate and initialize a PostScript Calculator function. */
@@ -716,9 +795,11 @@ gs_function_PtCr_init(gs_function_t ** ppfn,
 	    (fn_evaluate_proc_t) fn_PtCr_evaluate,
 	    (fn_is_monotonic_proc_t) fn_PtCr_is_monotonic,
 	    (fn_get_info_proc_t) fn_PtCr_get_info,
-	    (fn_get_params_proc_t) fn_common_get_params,
+	    fn_common_get_params,
+	    (fn_make_scaled_proc_t) fn_PtCr_make_scaled,
 	    (fn_free_params_proc_t) gs_function_PtCr_free_params,
-	    fn_common_free
+	    fn_common_free,
+	    (fn_serialize_proc_t) gs_function_PtCr_serialize,
 	}
     };
     int code;
@@ -773,8 +854,6 @@ gs_function_PtCr_init(gs_function_t ** ppfn,
 	data_source_init_string2(&pfn->data_source, NULL, 0);
 	pfn->data_source.access = calc_access;
 	pfn->head = function_PtCr_head;
-	pfn->head.is_monotonic =
-	    fn_domain_is_monotonic((gs_function_t *)pfn, EFFORT_MODERATE);
 	*ppfn = (gs_function_t *) pfn;
     }
     return 0;

@@ -1,23 +1,21 @@
 /* Copyright (C) 1996, 2001 Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
 
-/*$Id: dpmain.c,v 1.5 2001/10/12 21:37:08 ghostgum Exp $ */
+/* $Id: dpmain.c,v 1.12 2004/08/19 21:52:20 ghostgum Exp $ */
 /* Ghostscript DLL loader for OS/2 */
 /* For WINDOWCOMPAT (console mode) application */
 
@@ -42,7 +40,7 @@
 #include <sys/select.h>
 #include "gscdefs.h"
 #define GS_REVISION gs_revision
-#include "errors.h"
+#include "ierrors.h"
 #include "iapi.h"
 #include "gdevdsp.h"
 
@@ -466,11 +464,15 @@ image_color(unsigned int format, int index,
 		    *r = *g = *b = (index ? 0 : 255);
 		    break;
 		case DISPLAY_DEPTH_4:
-		    {
-		    int one = index & 8 ? 255 : 128;
-		    *r = (index & 4 ? one : 0);
-		    *g = (index & 2 ? one : 0);
-		    *b = (index & 1 ? one : 0);
+		    if (index == 7)
+			*r = *g = *b = 170;
+		    else if (index == 8)
+			*r = *g = *b = 85;
+		    else {
+			int one = index & 8 ? 255 : 128;
+			*r = (index & 4 ? one : 0);
+			*g = (index & 2 ? one : 0);
+			*b = (index & 1 ? one : 0);
 		    }
 		    break;
 		case DISPLAY_DEPTH_8:
@@ -983,14 +985,14 @@ display_callback display = {
 int
 main(int argc, char *argv[])
 {
-    int code;
+    int code, code1;
     int exit_code;
     int exit_status;
     int nargc;
     char **nargv;
     char dformat[64];
     ULONG version[3];
-    gs_main_instance *instance;
+    void *instance;
 
     if (DosQuerySysInfo(QSV_VERSION_MAJOR, QSV_VERSION_REVISION, 
 	    &version, sizeof(version)))
@@ -1049,7 +1051,9 @@ main(int argc, char *argv[])
 	code = gsdll.init_with_args(instance, nargc, nargv);
 	if (code == 0) 
 	    code = gsdll.run_string(instance, start_string, 0, &exit_code);
-	gsdll.exit(instance);
+	code1 = gsdll.exit(instance);
+	if (code == 0 || (code == e_Quit && code1 != 0))
+	    code = code1;
 
 	gsdll.delete_instance(instance);
     }

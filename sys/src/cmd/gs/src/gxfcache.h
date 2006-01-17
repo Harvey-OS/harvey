@@ -1,40 +1,69 @@
 /* Copyright (C) 1992, 1995, 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxfcache.h,v 1.2 2000/09/19 19:00:36 lpd Exp $ */
+/* $Id: gxfcache.h,v 1.27 2004/08/19 19:33:09 stefan Exp $ */
 /* Font and character cache definitions and procedures */
 /* Requires gsfont.h */
 
 #ifndef gxfcache_INCLUDED
 #  define gxfcache_INCLUDED
 
+#include "gsccode.h"
 #include "gsuid.h"
 #include "gsxfont.h"
 #include "gxbcache.h"
+#include "gxfixed.h"
 #include "gxftype.h"
 
 /* ------ Font/matrix pair cache entry ------ */
 
+#ifndef gs_font_DEFINED
+#  define gs_font_DEFINED
+typedef struct gs_font_s gs_font;
+#endif
 #ifndef cached_fm_pair_DEFINED
 #  define cached_fm_pair_DEFINED
 typedef struct cached_fm_pair_s cached_fm_pair;
-
 #endif
+#ifndef gs_matrix_DEFINED
+#  define gs_matrix_DEFINED
+typedef struct gs_matrix_s gs_matrix;
+#endif
+
+#ifndef ttfFont_DEFINED
+#  define ttfFont_DEFINED
+typedef struct ttfFont_s ttfFont;
+#endif
+#ifndef gx_ttfReader_DEFINED
+#  define gx_ttfReader_DEFINED
+typedef struct gx_ttfReader_s gx_ttfReader;
+#endif
+#ifndef ttfInterpreter_DEFINED
+#  define ttfInterpreter_DEFINED
+typedef struct ttfInterpreter_s ttfInterpreter;
+#endif
+#ifndef gx_device_spot_analyzer_DEFINED
+#   define gx_device_spot_analyzer_DEFINED
+typedef struct gx_device_spot_analyzer_s gx_device_spot_analyzer;
+#endif
+#ifndef gs_state_DEFINED
+#  define gs_state_DEFINED
+typedef struct gs_state_s gs_state;
+#endif
+
 
 /*
  * Define the entry for a cached (font,matrix) pair.  If the UID
@@ -59,12 +88,15 @@ struct cached_fm_pair_s {
     gx_xfont *xfont;		/* the xfont (if any) */
     gs_memory_t *memory;	/* the allocator for the xfont */
     uint index;			/* index of this pair in mdata */
+    ttfFont *ttf;		/* True Type interpreter data. */
+    gx_ttfReader *ttr;		/* True Type interpreter data. */
+    bool design_grid;           /* A charpath font face.  */
 };
 
 #define private_st_cached_fm_pair() /* in gxccman.c */\
-  gs_private_st_ptrs3(st_cached_fm_pair, cached_fm_pair,\
+  gs_private_st_ptrs5(st_cached_fm_pair, cached_fm_pair,\
     "cached_fm_pair", fm_pair_enum_ptrs, fm_pair_reloc_ptrs,\
-    font, UID.xvalues, xfont)
+    font, UID.xvalues, xfont, ttf, ttr)
 #define private_st_cached_fm_pair_elt()	/* in gxccman.c */\
   gs_private_st_element(st_cached_fm_pair_element, cached_fm_pair,\
     "cached_fm_pair[]", fm_pair_element_enum_ptrs, fm_pair_element_reloc_ptrs,\
@@ -123,6 +155,7 @@ struct cached_char_s {
 #define cc_depth(cc) ((cc)->cb_depth)
 #define cc_set_depth(cc, d) ((cc)->cb_depth = (d))
     cached_fm_pair *pair;
+    bool linked;
 #define cc_pair(cc) ((cc)->pair)
 #define cc_set_pair_only(cc, p) ((cc)->pair = (p))
     gs_glyph code;		/* glyph code */
@@ -134,6 +167,7 @@ struct cached_char_s {
     /* is allocated */
     uint loc;			/* relative location in chunk */
     uint pair_index;		/* index of pair in mdata */
+    gs_fixed_point subpix_origin; /* glyph origin offset modulo pixel */
 
     /* The rest of the structure is the 'value'. */
     /* gx_cached_bits_common has width, height, raster, */
@@ -241,6 +275,20 @@ struct gs_font_dir_s {
     /* Scanning cache for GC */
     uint enum_index;		/* index (N) */
     uint enum_offset;		/* ccache.table[offset] is N'th non-zero entry */
+
+    /* User parameter AlignToPixels. */
+    bool align_to_pixels;
+
+    /* A table for converting glyphs to Unicode */
+    void *glyph_to_unicode_table; /* closure data */
+
+    /* An allocator for extension structures */
+    gs_memory_t *memory;
+    ttfInterpreter *tti;
+    /* User parameter GridFitTT. */
+    uint grid_fit_tt;
+    gx_device_spot_analyzer *san;
+    int (*global_glyph_code)(const gs_memory_t *mem, gs_const_string *gstr, gs_glyph *pglyph);
 };
 
 #define private_st_font_dir()	/* in gsfont.c */\
@@ -250,20 +298,29 @@ struct gs_font_dir_s {
 /* Enumerate the pointers in a font directory, except for orig_fonts. */
 #define font_dir_do_ptrs(m)\
   /*m(-,orig_fonts)*/ m(0,scaled_fonts) m(1,fmcache.mdata)\
-  m(2,ccache.table) m(3,ccache.mark_glyph_data)
-#define st_font_dir_max_ptrs 4
+  m(2,ccache.table) m(3,ccache.mark_glyph_data)\
+  m(4,glyph_to_unicode_table) m(5,tti) m(6,san)
+#define st_font_dir_max_ptrs 7
 
 /* Character cache procedures (in gxccache.c and gxccman.c) */
-int gx_char_cache_alloc(P7(gs_memory_t * struct_mem, gs_memory_t * bits_mem,
-			   gs_font_dir * pdir, uint bmax, uint mmax,
-			   uint cmax, uint upper));
-void gx_char_cache_init(P1(gs_font_dir *));
-void gx_purge_selected_cached_chars(P3(gs_font_dir *, bool(*)(P2(cached_char *, void *)), void *));
-cached_fm_pair *
-               gx_lookup_fm_pair(P2(gs_font *, const gs_state *));
-cached_fm_pair *
-               gx_add_fm_pair(P4(gs_font_dir *, gs_font *, const gs_uid *, const gs_state *));
-void gx_lookup_xfont(P3(const gs_state *, cached_fm_pair *, int));
-void gs_purge_fm_pair(P3(gs_font_dir *, cached_fm_pair *, int));
+int gx_char_cache_alloc(gs_memory_t * struct_mem, gs_memory_t * bits_mem,
+			gs_font_dir * pdir, uint bmax, uint mmax,
+			uint cmax, uint upper);
+void gx_char_cache_init(gs_font_dir *);
+void gx_purge_selected_cached_chars(gs_font_dir *, 
+				    bool(*)(const gs_memory_t *, cached_char *, void *), void *);
+void gx_compute_char_matrix(const gs_matrix *char_tm, const gs_log2_scale_point *log2_scale, 
+    float *mxx, float *mxy, float *myx, float *myy);
+void gx_compute_ccache_key(gs_font * pfont, const gs_matrix *char_tm, 
+    const gs_log2_scale_point *log2_scale, bool design_grid,
+    float *mxx, float *mxy, float *myx, float *myy);
+int gx_lookup_fm_pair(gs_font * pfont, const gs_matrix *char_tm, 
+    const gs_log2_scale_point *log2_scale, bool design_grid, cached_fm_pair **ppair);
+int gx_add_fm_pair(register gs_font_dir * dir, gs_font * font, const gs_uid * puid,
+	       const gs_matrix * char_tm, const gs_log2_scale_point *log2_scale,
+	       bool design_grid, cached_fm_pair **ppair);
+void gx_lookup_xfont(const gs_state *, cached_fm_pair *, int);
+void gs_purge_fm_pair(gs_font_dir *, cached_fm_pair *, int);
+void gs_purge_font_from_char_caches(gs_font_dir *, const gs_font *);
 
 #endif /* gxfcache_INCLUDED */

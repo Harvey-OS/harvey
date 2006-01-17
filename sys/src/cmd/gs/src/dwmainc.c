@@ -1,34 +1,43 @@
-/* Copyright (C) 1996-2001 Ghostgum Software Pty Ltd.  All rights reserved.
+/* Copyright (C) 1996-2004 Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/* $Id: dwmainc.c,v 1.8.2.1 2002/01/16 21:07:16 igorm Exp $ */
+/* $Id: dwmainc.c,v 1.24 2004/09/15 19:41:01 ray Exp $ */
 /* dwmainc.c */
 
-#include <windows.h>
+#include "windows_.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <io.h>
 #include <fcntl.h>
-#include "errors.h"
+#include <process.h>
+#include "ierrors.h"
 #include "iapi.h"
+#include "vdtrace.h"
 #include "gdevdsp.h"
 #include "dwdll.h"
 #include "dwimg.h"
+#include "dwtrace.h"
+
+/* Patch by Rod Webster (rodw) */
+/* Added conditional below to allow Borland Compilation (Tested on 5.5) */
+/* It would be better to place this code in an include file but no dwmainc.h exists */
+#ifdef __BORLANDC__
+#define _isatty isatty
+#define _setmode setmode
+#endif
 
 GSDLL gsdll;
 void *instance;
@@ -81,6 +90,7 @@ gsdll_stderr(void *instance, const char *str, int len)
 #define DISPLAY_SIZE WM_USER+103
 #define DISPLAY_SYNC WM_USER+104
 #define DISPLAY_PAGE WM_USER+105
+#define DISPLAY_UPDATE WM_USER+106
 
 /*
 #define DISPLAY_DEBUG
@@ -114,6 +124,9 @@ static void winthread(void *arg)
 		break;
 	    case DISPLAY_PAGE:
 		image_page((IMAGE *)msg.lParam);
+		break;
+	    case DISPLAY_UPDATE:
+		image_poll((IMAGE *)msg.lParam);
 		break;
 	    default:
 		TranslateMessage(&msg);
@@ -211,8 +224,10 @@ int display_sync(void *handle, void *device)
     fprintf(stdout, "display_sync(0x%x, 0x%x)\n", handle, device);
 #endif
     img = image_find(handle, device);
-    if (img)
+    if (img && !img->pending_sync) {
+	img->pending_sync = 1;
 	PostThreadMessage(thread_id, DISPLAY_SYNC, 0, (LPARAM)img);
+    }
     return 0;
 }
 
@@ -232,10 +247,12 @@ int display_page(void *handle, void *device, int copies, int flush)
 int display_update(void *handle, void *device, 
     int x, int y, int w, int h)
 {
-    /* Unneeded for polling - we are running Windows on another thread. */
-    /* Eventually we will add code here which provides progressive 
-     * update of the display during rendering.
-     */
+    IMAGE *img;
+    img = image_find(handle, device);
+    if (img && !img->pending_update && !img->pending_sync) {
+	img->pending_update = 1;
+	PostThreadMessage(thread_id, DISPLAY_UPDATE, 0, (LPARAM)img);
+    }
     return 0;
 }
 
@@ -269,6 +286,21 @@ int display_memfree(void *handle, void *device, void *mem)
 }
 #endif
 
+int display_separation(void *handle, void *device, 
+   int comp_num, const char *name,
+   unsigned short c, unsigned short m,
+   unsigned short y, unsigned short k)
+{
+    IMAGE *img;
+#ifdef DISPLAY_DEBUG
+    fprintf(stdout, "display_separation(0x%x, 0x%x, %d '%s' %d,%d,%d,%d)\n", 
+	handle, device, comp_num, name, (int)c, (int)m, (int)y, (int)k);
+#endif
+    img = image_find(handle, device);
+    if (img)
+        image_separation(img, comp_num, name, c, m, y, k);
+    return 0;
+}
 
 
 display_callback display = { 
@@ -285,11 +317,12 @@ display_callback display = {
     display_update,
 #ifdef DISPLAY_DEBUG_USE_ALLOC
     display_memalloc,	/* memalloc */
-    display_memfree	/* memfree */
+    display_memfree,	/* memfree */
 #else
     NULL,	/* memalloc */
-    NULL	/* memfree */
+    NULL,	/* memfree */
 #endif
+    display_separation
 };
 
 
@@ -297,13 +330,14 @@ display_callback display = {
 
 int main(int argc, char *argv[])
 {
-    int code;
+    int code, code1;
     int exit_code;
     int exit_status;
     int nargc;
     char **nargv;
     char buf[256];
     char dformat[64];
+    char ddpi[64];
 
     if (!_isatty(fileno(stdin)))
         _setmode(fileno(stdin), _O_BINARY);
@@ -322,6 +356,11 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "Can't create Ghostscript instance\n");
 	return 1;
     }
+
+#ifdef DEBUG
+    visual_tracer_init();
+    gsdll.set_visual_tracer(&visual_tracer);
+#endif
 
     if (_beginthread(winthread, 65535, NULL) == -1) {
 	fprintf(stderr, "GUI thread creation failed\n");
@@ -349,6 +388,7 @@ int main(int argc, char *argv[])
 		DISPLAY_DEPTH_1 | DISPLAY_LITTLEENDIAN | DISPLAY_BOTTOMFIRST;
 	HDC hdc = GetDC(NULL);	/* get hdc for desktop */
 	int depth = GetDeviceCaps(hdc, PLANES) * GetDeviceCaps(hdc, BITSPIXEL);
+	sprintf(ddpi, "-dDisplayResolution=%d", GetDeviceCaps(hdc, LOGPIXELSY));
         ReleaseDC(NULL, hdc);
 	if (depth == 32)
  	    format = DISPLAY_COLORS_RGB | DISPLAY_UNUSED_LAST | 
@@ -368,18 +408,34 @@ int main(int argc, char *argv[])
 		DISPLAY_DEPTH_4 | DISPLAY_LITTLEENDIAN | DISPLAY_BOTTOMFIRST;
         sprintf(dformat, "-dDisplayFormat=%d", format);
     }
-    nargc = argc + 1;
+    nargc = argc + 2;
     nargv = (char **)malloc((nargc + 1) * sizeof(char *));
     nargv[0] = argv[0];
     nargv[1] = dformat;
-    memcpy(&nargv[2], &argv[1], argc * sizeof(char *));
+    nargv[2] = ddpi;
+    memcpy(&nargv[3], &argv[1], argc * sizeof(char *));
 
+#if defined(_MSC_VER) || defined(__BORLANDC__)
+    __try {
+#endif
     code = gsdll.init_with_args(instance, nargc, nargv);
     if (code == 0)
 	code = gsdll.run_string(instance, start_string, 0, &exit_code);
-    gsdll.exit(instance);
+    code1 = gsdll.exit(instance);
+    if (code == 0 || (code == e_Quit && code1 != 0))
+	code = code1;
+#if defined(_MSC_VER) || defined(__BORLANDC__)
+    } __except(exception_code() == EXCEPTION_STACK_OVERFLOW) {
+        code = e_Fatal;
+        fprintf(stderr, "*** C stack overflow. Quiting...\n");
+    }
+#endif
 
     gsdll.delete_instance(instance);
+
+#ifdef DEBUG
+    visual_tracer_close();
+#endif
 
     unload_dll(&gsdll);
 

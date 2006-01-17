@@ -1,27 +1,26 @@
 /* Copyright (C) 1992, 1993, 1996, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gp_dosfs.c,v 1.2.6.1 2002/01/25 06:33:09 rayjj Exp $ */
+/* $Id: gp_dosfs.c,v 1.17 2004/04/08 16:18:25 giles Exp $ */
 /* Common routines for MS-DOS (any compiler) and DesqView/X, */
 /* which has a MS-DOS-like file system. */
 #include "dos_.h"
 #include "gx.h"
 #include "gp.h"
+#include "gpmisc.h"
 
 /* ------ Printer accessing ------ */
 
@@ -72,60 +71,80 @@ const char gp_fmode_binary_suffix[] = "b";
 const char gp_fmode_rb[] = "rb";
 const char gp_fmode_wb[] = "wb";
 
-/* Answer whether a file name contains a directory/device specification, */
-/* i.e. is absolute (not directory- or device-relative). */
-bool
-gp_file_name_is_absolute(const char *fname, unsigned len)
-{
-    /* A file name is absolute if it contains a drive specification */
-    /* (second character is a :) or if it start with 0 or more .s */
-    /* followed by a / or \. */
-    if (len >= 2 && fname[1] == ':')
-	return true;
-    while (len && *fname == '.')
-	++fname, --len;
-    return (len && (*fname == '/' || *fname == '\\'));
-}
+/* -------------- Helpers for gp_file_name_combine_generic ------------- */
 
-/* Answer whether the file_name references the directory	*/
-/* containing the specified path (parent). 			*/
-bool
-gp_file_name_references_parent(const char *fname, unsigned len)
-{
-    int i = 0, last_sep_pos = -1;
+uint gp_file_name_root(const char *fname, uint len)
+{   int i = 0;
+    
+    if (len == 0)
+	return 0;
+    if (len > 1 && fname[0] == '\\' && fname[1] == '\\') {
+	/* A network path: "\\server\share\" */
+	int k = 0;
 
-    /* A file name references its parent directory if it starts */
-    /* with ../ or ..\  or if one of these strings follows / or \ */
-    while (i < len) {
-	if (fname[i] == '/' || fname[i] == '\\') {
-	    last_sep_pos = i++;
-	    continue;
-	}
-	if (fname[i++] != '.')
-	    continue;
-        if (i > last_sep_pos + 2 || (i < len && fname[i] != '.'))
-	    continue;
-	i++;
-	/* have separator followed by .. */
-	if (i < len && (fname[i] == '/' || fname[i++] == '\\'))
-	    return true;
+	for (i = 2; i < len; i++)
+	    if (fname[i] == '\\' || fname[i] == '/')
+		if (k++) {
+		    i++;
+		    break;
+		}
+    } else if (fname[0] == '/' || fname[0] == '\\') {
+	/* Absolute with no drive. */
+	i = 1;
+    } else if (len > 1 && fname[1] == ':') {
+	/* Absolute with a drive. */
+	i = (len > 2 && (fname[2] == '/' || fname[2] == '\\') ? 3 : 2);
     }
-    return false;
+    return i;
 }
 
+uint gs_file_name_check_separator(const char *fname, int len, const char *item)
+{   if (len > 0) {
+	if (fname[0] == '/' || fname[0] == '\\')
+	    return 1;
+    } else if (len < 0) {
+	if (fname[-1] == '/' || fname[-1] == '\\')
+	    return 1;
+    }
+    return 0;
+}
 
-/* Answer the string to be used for combining a directory/device prefix */
-/* with a base file name. The prefix directory/device is examined to	*/
-/* determine if a separator is needed and may return an empty string	*/
-const char *
-gp_file_name_concat_string(const char *prefix, unsigned plen)
+bool gp_file_name_is_parent(const char *fname, uint len)
+{   return len == 2 && fname[0] == '.' && fname[1] == '.';
+}
+
+bool gp_file_name_is_current(const char *fname, uint len)
+{   return len == 1 && fname[0] == '.';
+}
+
+const char *gp_file_name_separator(void)
+{   return "/";
+}
+
+const char *gp_file_name_directory_separator(void)
+{   return "/";
+}
+
+const char *gp_file_name_parent(void)
+{   return "..";
+}
+
+const char *gp_file_name_current(void)
+{   return ".";
+}
+
+bool gp_file_name_is_partent_allowed(void)
+{   return true;
+}
+
+bool gp_file_name_is_empty_item_meanful(void)
+{   return false;
+}
+
+gp_file_name_combine_result
+gp_file_name_combine(const char *prefix, uint plen, const char *fname, uint flen, 
+		    bool no_sibling, char *buffer, uint *blen)
 {
-    if (plen > 0)
-	switch (prefix[plen - 1]) {
-	    case ':':
-	    case '/':
-	    case '\\':
-		return "";
-	};
-    return "/";
+    return gp_file_name_combine_generic(prefix, plen, 
+	    fname, flen, no_sibling, buffer, blen);
 }

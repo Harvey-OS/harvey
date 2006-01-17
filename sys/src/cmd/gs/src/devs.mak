@@ -1,21 +1,19 @@
-#    Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1989, 2000-2004 artofcode LLC. All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: devs.mak,v 1.47.2.2 2002/02/01 05:31:26 raph Exp $
+# $Id: devs.mak,v 1.140 2005/10/18 09:05:58 leonardo Exp $
 # makefile for Aladdin's device drivers.
 
 # Define the name of this makefile.
@@ -144,7 +142,9 @@ GDEV=$(AK) $(ECHOGS_XE) $(GDEVH)
 #	cgm24	24-bit color CGM -- DITTO
 #	jpeg	JPEG format, RGB output
 #	jpeggray  JPEG format, gray output
+#	jpegcmyk  JPEG format, cmyk output
 #	miff24	ImageMagick MIFF format, 24-bit direct color, RLE compressed
+#	pam	Portable Arbitrary Map file format
 #	pcxmono	PCX file format, monochrome (1-bit black and white)
 #	pcxgray	PCX file format, 8-bit gray scale
 #	pcx16	PCX file format, 4-bit planar (EGA/VGA) color
@@ -173,11 +173,15 @@ GDEV=$(AK) $(ECHOGS_XE) $(GDEVH)
 #	png16	4-bit color Portable Network Graphics (PNG)
 #	png256	8-bit color Portable Network Graphics (PNG)
 #	png16m	24-bit color Portable Network Graphics (PNG)
+#	pngalpha 32-bit RGBA color Portable Network Graphics (PNG)
 #	psmono	PostScript (Level 1) monochrome image
 #	psgray	PostScript (Level 1) 8-bit gray image
 #	psrgb	PostScript (Level 2) 24-bit color image
+#	tiffgray  TIFF 8-bit gray, no compression
 #	tiff12nc  TIFF 12-bit RGB, no compression
 #	tiff24nc  TIFF 24-bit RGB, no compression (NeXT standard format)
+#	tiff32nc  TIFF 32-bit CMYK
+#	tiffsep   Creates tiffgray for each colorant plus a CMYK composite
 #	tifflzw  TIFF LZW (tag = 5) (monochrome)
 #	tiffpack  TIFF PackBits (tag = 32773) (monochrome)
 
@@ -209,7 +213,7 @@ GDEV=$(AK) $(ECHOGS_XE) $(GDEVH)
 #	DEVICE_DEVS2 - dot matrix printers.
 #	DEVICE_DEVS3 - H-P monochrome printers.
 #	DEVICE_DEVS4 - H-P color printers.
-#	DEVICE_DEVS5 - additional H-P printers if needed.
+#	DEVICE_DEVS5 - additional inkjet printers if needed.
 #	DEVICE_DEVS6 - other ink-jet and laser printers.
 #	DEVICE_DEVS7 - fax file formats.
 #	DEVICE_DEVS8 - PCX file formats.
@@ -220,8 +224,8 @@ GDEV=$(AK) $(ECHOGS_XE) $(GDEVH)
 #	DEVICE_DEVS13 - PNG file formats.
 #	DEVICE_DEVS14 - CGM, JPEG, and MIFF file formats.
 #	DEVICE_DEVS15 - high-level (PostScript and PDF) file formats.
-#	DEVICE_DEVS16 - (overflow for PC platforms)
-#	DEVICE_DEVS17 - (ditto)
+#	DEVICE_DEVS16 - additional high-level and utility drivers
+#	DEVICE_DEVS17 - (overflow for PC platforms)
 #	DEVICE_DEVS18 - (ditto)
 #	DEVICE_DEVS19 - (ditto)
 #	DEVICE_DEVS20 - (ditto)
@@ -240,6 +244,8 @@ PDEVH=$(AK) $(gdevprn_h)
 gdev8bcm_h=$(GLSRC)gdev8bcm.h
 gdevcbjc_h=$(GLSRC)gdevcbjc.h $(stream_h)
 gdevdcrd_h=$(GLSRC)gdevdcrd.h
+gsequivc_h=$(GLSRC)gsequivc.h
+gdevdevn_h=$(GLSRC)gdevdevn.h $(gsequivc_h)
 gdevpccm_h=$(GLSRC)gdevpccm.h
 gdevpcfb_h=$(GLSRC)gdevpcfb.h $(dos__h)
 gdevpcl_h=$(GLSRC)gdevpcl.h
@@ -273,7 +279,8 @@ $(GLOBJ)gdevdcrd.$(OBJ) : $(GLSRC)gdevdcrd.c $(AK)\
 	$(GLCC) $(GLO_)gdevdcrd.$(OBJ) $(C_) $(GLSRC)gdevdcrd.c
 
 # Support for writing PostScript (high- or low-level).
-$(GLOBJ)gdevpsu.$(OBJ) : $(GLSRC)gdevpsu.c $(GX) $(math__h) $(time__h)\
+$(GLOBJ)gdevpsu.$(OBJ) : $(GLSRC)gdevpsu.c $(GX) $(GDEV) $(math__h) $(time__h)\
+ $(stat__h) $(unistd__h)\
  $(gdevpsu_h) $(gscdefs_h) $(gxdevice_h)\
  $(spprint_h) $(stream_h)
 	$(GLCC) $(GLO_)gdevpsu.$(OBJ) $(C_) $(GLSRC)gdevpsu.c
@@ -379,13 +386,14 @@ $(GLOBJ)gdevs3ga.$(OBJ) : $(GLSRC)gdevs3ga.c $(GDEV) $(gdevpcfb_h) $(gdevsvga_h)
 
 ### ------------------ Display device for DLL platforms ----------------- ###
 
-display_=$(GLOBJ)gdevdsp.$(OBJ)
+display_=$(GLOBJ)gdevdsp.$(OBJ) $(GLOBJ)gdevpccm.$(OBJ) $(GLOBJ)gdevdevn.$(OBJ) \
+	 $(GLOBJ)gsequivc.$(OBJ) $(GLOBJ)gdevdcrd.$(OBJ)
 $(DD)display.dev : $(display_)
 	$(SETDEV) $(DD)display $(display_)
 
 $(GLOBJ)gdevdsp.$(OBJ) : $(GLSRC)gdevdsp.c $(string__h)\
- $(gp_h) $(gpcheck_h) $(gdevpccm_h) $(gsexit_h) $(gsparam_h)\
- $(GDEVH) $(gxdevmem_h) $(gdevdsp_h) $(gdevdsp2_h)
+ $(gp_h) $(gpcheck_h) $(gdevpccm_h) $(gsparam_h) $(gsdevice_h)\
+ $(GDEVH) $(gxdevmem_h) $(gdevdevn_h) $(gsequivc_h) $(gdevdsp_h) $(gdevdsp2_h)
 	$(GLCC) $(GLO_)gdevdsp.$(OBJ) $(C_) $(GLSRC)gdevdsp.c
 
 
@@ -427,11 +435,11 @@ gdevx_h=$(GLSRC)gdevx.h $(gdevbbox_h) $(gdevxcmp_h)
 x11_=$(GLOBJ)gdevx.$(OBJ) $(GLOBJ)gdevxcmp.$(OBJ) $(GLOBJ)gdevxini.$(OBJ)\
  $(GLOBJ)gdevxres.$(OBJ) $(GLOBJ)gdevxxf.$(OBJ)\
  $(GLOBJ)gdevemap.$(OBJ) $(GLOBJ)gsparamx.$(OBJ)
-$(DD)x11_.dev : $(DEVS_MAK) $(x11_) $(GLD)bbox.dev
+$(DD)x11_.dev : $(DEVS_MAK) $(x11_) $(GLD)bboxutil.dev
 	$(SETMOD) $(DD)x11_ $(x11_)
 	$(ADDMOD) $(DD)x11_ -link $(XLIBDIRS)
 	$(ADDMOD) $(DD)x11_ -lib $(XLIBS)
-	$(ADDMOD) $(DD)x11_ -include $(GLD)bbox
+	$(ADDMOD) $(DD)x11_ -include $(GLD)bboxutil
 
 $(DD)x11.dev : $(DEVS_MAK) $(DD)x11_.dev
 	$(SETDEV2) $(DD)x11 -include $(DD)x11_
@@ -542,7 +550,7 @@ HPPCL=$(GLOBJ)gdevpcl.$(OBJ)
 HPDLJM=$(GLOBJ)gdevdljm.$(OBJ) $(HPPCL)
 HPMONO=$(GLOBJ)gdevdjet.$(OBJ) $(HPDLJM)
 
-$(GLOBJ)gdevpcl.$(OBJ) : $(GLSRC)gdevpcl.c $(PDEVH) $(gdevpcl_h)
+$(GLOBJ)gdevpcl.$(OBJ) : $(GLSRC)gdevpcl.c $(PDEVH) $(math__h) $(gdevpcl_h)
 	$(GLCC) $(GLO_)gdevpcl.$(OBJ) $(C_) $(GLSRC)gdevpcl.c
 
 $(GLOBJ)gdevdljm.$(OBJ) : $(GLSRC)gdevdljm.c $(PDEVH) $(gdevdljm_h)
@@ -635,15 +643,62 @@ $(GLOBJ)gdevlj56.$(OBJ) : $(GLSRC)gdevlj56.c $(PDEVH) $(gdevpcl_h)\
 ijs_=$(GLOBJ)gdevijs.$(OBJ) $(IJSOBJ)ijs.$(OBJ) $(IJSOBJ)ijs_client.$(OBJ) \
  $(IJSOBJ)ijs_exec_$(IJSEXECTYPE).$(OBJ)
 
-$(DD)ijs.dev: $(ijs_) $(GLD)page.dev $(DD)ijslib.dev
+$(DD)ijs.dev : $(ijs_) $(GLD)page.dev $(DD)ijslib.dev
 	$(SETPDEV) $(DD)ijs $(ijs_)
 
-$(GLOBJ)gdevijs.$(OBJ) : $(GLSRC)gdevijs.c $(PDEVH) \
- $(ijs_h) $(ijs_client_h) $(gp_h) $(unistd__h)
+$(GLOBJ)gdevijs.$(OBJ) : $(GLSRC)gdevijs.c $(PDEVH) $(unistd__h) $(gp_h)\
+ $(ijs_h) $(ijs_client_h)
 	$(CC_) $(I_)$(GLI_) $(II)$(IJSI_)$(_I) $(GLF_) $(GLO_)gdevijs.$(OBJ) $(C_) $(GLSRC)gdevijs.c
 
 # Please see ijs.mak for the Makefile fragment which builds the IJS
 # library.
+
+
+### -------------------------- The rinkj device ------------------------ ###
+
+RINKJ_SRCDIR=$(GLSRC)rinkj
+RINKJ_SRC=$(RINKJ_SRCDIR)$(D)
+RINKJ_OBJ=$(GLOBJ)
+RINKJ_O_=$(O_)$(RINKJ_OBJ)
+
+RINKJ_INCL=$(I_)$(RINKJ_SRCDIR)$(_I)
+RINKJ_CC=$(CC_) $(RINKJ_INCL)
+
+rinkj_core=$(RINKJ_OBJ)evenbetter-rll.$(OBJ) \
+ $(RINKJ_OBJ)rinkj-byte-stream.$(OBJ) $(RINKJ_OBJ)rinkj-device.$(OBJ) \
+ $(RINKJ_OBJ)rinkj-config.$(OBJ) $(RINKJ_OBJ)rinkj-dither.$(OBJ) \
+ $(RINKJ_OBJ)rinkj-epson870.$(OBJ) $(RINKJ_OBJ)rinkj-screen-eb.$(OBJ)
+
+$(RINKJ_OBJ)evenbetter-rll.$(OBJ): $(RINKJ_SRC)evenbetter-rll.c
+	$(RINKJ_CC) $(RINKJ_O_)evenbetter-rll.$(OBJ) $(C_) $(RINKJ_SRC)evenbetter-rll.c
+
+$(RINKJ_OBJ)rinkj-byte-stream.$(OBJ): $(RINKJ_SRC)rinkj-byte-stream.c
+	$(RINKJ_CC) $(RINKJ_O_)rinkj-byte-stream.$(OBJ) $(C_) $(RINKJ_SRC)rinkj-byte-stream.c
+
+$(RINKJ_OBJ)rinkj-device.$(OBJ): $(RINKJ_SRC)rinkj-device.c
+	$(RINKJ_CC) $(RINKJ_O_)rinkj-device.$(OBJ) $(C_) $(RINKJ_SRC)rinkj-device.c
+
+$(RINKJ_OBJ)rinkj-config.$(OBJ): $(RINKJ_SRC)rinkj-config.c
+	$(RINKJ_CC) $(RINKJ_O_)rinkj-config.$(OBJ) $(C_) $(RINKJ_SRC)rinkj-config.c
+
+$(RINKJ_OBJ)rinkj-dither.$(OBJ): $(RINKJ_SRC)rinkj-dither.c
+	$(RINKJ_CC) $(RINKJ_O_)rinkj-dither.$(OBJ) $(C_) $(RINKJ_SRC)rinkj-dither.c
+
+$(RINKJ_OBJ)rinkj-epson870.$(OBJ): $(RINKJ_SRC)rinkj-epson870.c
+	$(RINKJ_CC) $(RINKJ_O_)rinkj-epson870.$(OBJ) $(C_) $(RINKJ_SRC)rinkj-epson870.c
+
+$(RINKJ_OBJ)rinkj-screen-eb.$(OBJ): $(RINKJ_SRC)rinkj-screen-eb.c
+	$(RINKJ_CC) $(RINKJ_O_)rinkj-screen-eb.$(OBJ) $(C_) $(RINKJ_SRC)rinkj-screen-eb.c
+
+rinkj_=$(GLOBJ)gdevrinkj.$(OBJ) $(rinkj_core)
+
+$(DD)rinkj.dev : $(DEVS_MAK) $(rinkj_) $(GLD)page.dev
+	$(SETDEV) $(DD)rinkj $(rinkj_)
+
+$(GLOBJ)gdevrinkj.$(OBJ) : $(GLSRC)gdevrinkj.c $(PDEVH) $(math__h)\
+ $(gdevdcrd_h) $(gscrd_h) $(gscrdp_h) $(gsparam_h) $(gxlum_h) $(icc_h)\
+ $(gxdcconv_h)
+	$(GLICCCC) $(GLO_)gdevrinkj.$(OBJ) $(C_) $(GLSRC)gdevrinkj.c
 
 
 ###### ------------------- High-level file formats ------------------- ######
@@ -652,7 +707,7 @@ $(GLOBJ)gdevijs.$(OBJ) : $(GLSRC)gdevijs.c $(PDEVH) \
 
 gdevpsdf_h=$(GLSRC)gdevpsdf.h $(gdevvec_h) $(gsparam_h)\
  $(sa85x_h) $(scfx_h) $(spsdf_h) $(strimpl_h)
-gdevpsds_h=$(GLSRC)gdevpsds.h $(strimpl_h)
+gdevpsds_h=$(GLSRC)gdevpsds.h $(strimpl_h) $(gsiparam_h)
 
 psdf_1=$(GLOBJ)gdevpsdi.$(OBJ) $(GLOBJ)gdevpsdp.$(OBJ)
 psdf_2=$(GLOBJ)gdevpsds.$(OBJ) $(GLOBJ)gdevpsdu.$(OBJ)
@@ -677,7 +732,7 @@ $(GLOBJ)gdevpsdi.$(OBJ) : $(GLSRC)gdevpsdi.c $(GXERR)\
  $(gscspace_h)\
  $(scfx_h) $(sdct_h) $(sjpeg_h) $(slzwx_h) $(srlx_h) $(spngpx_h)\
  $(strimpl_h) $(szlibx_h)\
- $(gdevpsdf_h) $(gdevpsds_h)
+ $(gdevpsdf_h) $(gdevpsds_h) $(gxdevmem_h) $(gxcspace_h) $(gxparamx_h)
 	$(GLJCC) $(GLO_)gdevpsdi.$(OBJ) $(C_) $(GLSRC)gdevpsdi.c
 
 $(GLOBJ)gdevpsdp.$(OBJ) : $(GLSRC)gdevpsdp.c $(GDEVH)\
@@ -687,14 +742,14 @@ $(GLOBJ)gdevpsdp.$(OBJ) : $(GLSRC)gdevpsdp.c $(GDEVH)\
 	$(GLJCC) $(GLO_)gdevpsdp.$(OBJ) $(C_) $(GLSRC)gdevpsdp.c
 
 $(GLOBJ)gdevpsds.$(OBJ) : $(GLSRC)gdevpsds.c $(GX) $(memory__h)\
- $(gdevpsds_h) $(gserrors_h) $(gxdcconv_h)
+ $(gserrors_h) $(gxdcconv_h) $(gdevpsds_h) $(gxbitmap_h)\
+ $(gxcspace_h) $(gsdcolor_h) $(gscspace_h) $(gxdevcli_h)
 	$(GLCC) $(GLO_)gdevpsds.$(OBJ) $(C_) $(GLSRC)gdevpsds.c
 
 $(GLOBJ)gdevpsdu.$(OBJ) : $(GLSRC)gdevpsdu.c $(GXERR)\
  $(jpeglib__h) $(memory__h) $(stdio__h)\
- $(gxfont_h)\
- $(sa85x_h) $(scanchar_h) $(scfx_h) $(sdct_h) $(sjpeg_h) $(sstring_h) $(strimpl_h)\
- $(gdevpsdf_h) $(spprint_h)
+ $(sa85x_h) $(scfx_h) $(sdct_h) $(sjpeg_h) $(sstring_h) $(strimpl_h)\
+ $(gdevpsdf_h) $(spprint_h) $(gsovrc_h)
 	$(GLJCC) $(GLO_)gdevpsdu.$(OBJ) $(C_) $(GLSRC)gdevpsdu.c
 
 # PostScript and EPS writers
@@ -709,12 +764,14 @@ $(DD)pswrite.dev : $(DEVS_MAK) $(ECHOGS_XE) $(pswrite_) $(GLD)psdf.dev
 	$(ADDMOD) $(DD)pswrite -include $(GLD)psdf
 
 $(GLOBJ)gdevps.$(OBJ) : $(GLSRC)gdevps.c $(GDEV)\
- $(math__h) $(memory__h) $(time__h)\
+ $(math__h) $(memory__h) $(string__h) $(time__h)\
  $(gscdefs_h) $(gscspace_h) $(gsline_h) $(gsparam_h) $(gsiparam_h) $(gsmatrix_h)\
  $(gxdcolor_h) $(gxpath_h)\
  $(sa85x_h) $(sstring_h) $(strimpl_h)\
  $(gdevpsdf_h) $(gdevpsu_h) $(spprint_h)
 	$(GLCC) $(GLO_)gdevps.$(OBJ) $(C_) $(GLSRC)gdevps.c
+
+################ BEGIN PDF WRITER ################
 
 # PDF writer
 # Note that gs_pdfwr.ps will only actually be loaded if the configuration
@@ -722,28 +779,34 @@ $(GLOBJ)gdevps.$(OBJ) : $(GLSRC)gdevps.c $(GDEV)\
 
 # We reserve slots here for gdevpdfa...z, just in case we need them.
 pdfwrite1_=$(GLOBJ)gdevpdf.$(OBJ) $(GLOBJ)gdevpdfb.$(OBJ)
-pdfwrite2_=$(GLOBJ)gdevpdfc.$(OBJ) $(GLOBJ)gdevpdfd.$(OBJ) $(GLOBJ)gdevpdfe.$(OBJ)
-pdfwrite3_=$(GLOBJ)gdevpdff.$(OBJ) $(GLOBJ)gdevpdfg.$(OBJ)
-pdfwrite4_=$(GLOBJ)gdevpdfi.$(OBJ) $(GLOBJ)gdevpdfj.$(OBJ)
+pdfwrite2_=$(GLOBJ)gdevpdfc.$(OBJ) $(GLOBJ)gdevpdfd.$(OBJ)
+pdfwrite3_=$(GLOBJ)gdevpdfg.$(OBJ)
+pdfwrite4_=$(GLOBJ)gdevpdfi.$(OBJ) $(GLOBJ)gdevpdfj.$(OBJ) $(GLOBJ)gdevpdfk.$(OBJ)
 pdfwrite5_=$(GLOBJ)gdevpdfm.$(OBJ)
-pdfwrite6_=$(GLOBJ)gdevpdfo.$(OBJ) $(GLOBJ)gdevpdfp.$(OBJ)
-pdfwrite7_=$(GLOBJ)gdevpdfr.$(OBJ) $(GLOBJ)gdevpdfs.$(OBJ) $(GLOBJ)gdevpdft.$(OBJ)
-pdfwrite8_=$(GLOBJ)gdevpdfu.$(OBJ) $(GLOBJ)gdevpdfv.$(OBJ) $(GLOBJ)gdevpdfw.$(OBJ)
+pdfwrite6_=$(GLOBJ)gdevpdfo.$(OBJ) $(GLOBJ)gdevpdfp.$(OBJ) $(GLOBJ)gdevpdft.$(OBJ)
+pdfwrite7_=$(GLOBJ)gdevpdfr.$(OBJ)
+pdfwrite8_=$(GLOBJ)gdevpdfu.$(OBJ) $(GLOBJ)gdevpdfv.$(OBJ)
 pdfwrite9_=
 pdfwrite10_=$(GLOBJ)gsflip.$(OBJ)
 pdfwrite11_=$(GLOBJ)scantab.$(OBJ) $(GLOBJ)sfilter2.$(OBJ)
 pdfwrite_=$(pdfwrite1_) $(pdfwrite2_) $(pdfwrite3_) $(pdfwrite4_)\
  $(pdfwrite5_) $(pdfwrite6_) $(pdfwrite7_) $(pdfwrite8_) $(pdfwrite9_)\
  $(pdfwrite10_) $(pdfwrite11_)
-# Including the DSC parser here is clearly wrong: it requires a PostScript
-# interpreter.  We aren't sure what to do about this yet.
-# Including macglyph is also wrong: loading the Mac glyph table also
-# requires a PostScript interpreter.
+
+# Since ps2write actually is a clone of pdfwrite,
+# we don't define a full module for it, 
+# but generate both devices within pdfwrite.dev .
+
+# Note that for ps2pdf operation, we need to parse DSC comments to set
+# the Orientation (Page dict /Rotate value). This is not part of the
+# pdfwrite device, but part of the PS interpreter so that the pdfwrite
+# device can be used with other top level interpreters (such as PCL).
 $(DD)pdfwrite.dev : $(DEVS_MAK) $(ECHOGS_XE) $(pdfwrite_)\
  $(GLD)cmyklib.dev $(GLD)cfe.dev $(GLD)lzwe.dev\
  $(GLD)rle.dev $(GLD)sdcte.dev $(GLD)sdeparam.dev $(GLD)smd5.dev\
- $(GLD)szlibe.dev $(GLD)psdf.dev $(GLD)psf.dev\
- $(PSD)dscparse.dev $(PSD)macglyph.dev
+ $(GLD)szlibe.dev $(GLD)psdf.dev \
+ $(DD)pdtext.dev
+	$(SETDEV2) $(DD)ps2write $(pdfwrite1_)
 	$(SETDEV2) $(DD)pdfwrite $(pdfwrite1_)
 	$(ADDMOD) $(DD)pdfwrite $(pdfwrite2_)
 	$(ADDMOD) $(DD)pdfwrite $(pdfwrite3_)
@@ -756,15 +819,14 @@ $(DD)pdfwrite.dev : $(DEVS_MAK) $(ECHOGS_XE) $(pdfwrite_)\
 	$(ADDMOD) $(DD)pdfwrite $(pdfwrite10_)
 	$(ADDMOD) $(DD)pdfwrite $(pdfwrite11_)
 	$(ADDMOD) $(DD)pdfwrite -ps gs_pdfwr
-	$(ADDMOD) $(DD)pdfwrite -ps gs_css_e gs_lgo_e gs_lgx_e gs_mex_e
-	$(ADDMOD) $(DD)pdfwrite -ps gs_wan_e
 	$(ADDMOD) $(DD)pdfwrite -include $(GLD)cmyklib $(GLD)cfe $(GLD)lzwe
 	$(ADDMOD) $(DD)pdfwrite -include $(GLD)rle $(GLD)sdcte $(GLD)sdeparam
 	$(ADDMOD) $(DD)pdfwrite -include $(GLD)smd5 $(GLD)szlibe
-	$(ADDMOD) $(DD)pdfwrite -include $(GLD)psdf $(GLD)psf
-	$(ADDMOD) $(DD)pdfwrite -include $(PSD)dscparse $(PSD)macglyph
+	$(ADDMOD) $(DD)pdfwrite -include $(GLD)psdf
+	$(ADDMOD) $(DD)pdfwrite -include $(DD)pdtext
 
-gdevpdff_h=$(GLSRC)gdevpdff.h
+gdevpdfb_h=$(GLSRC)gdevpdfb.h
+gdevpdfc_h=$(GLSRC)gdevpdfc.h
 gdevpdfg_h=$(GLSRC)gdevpdfg.h $(gscspace_h)
 gdevpdfo_h=$(GLSRC)gdevpdfo.h $(gsparam_h)
 gdevpdfx_h=$(GLSRC)gdevpdfx.h\
@@ -772,79 +834,72 @@ gdevpdfx_h=$(GLSRC)gdevpdfx.h\
  $(spprint_h) $(stream_h) $(gdevpsdf_h)
 
 $(GLOBJ)gdevpdf.$(OBJ) : $(GLSRC)gdevpdf.c $(GDEVH)\
- $(memory__h) $(string__h) $(gp_h)\
- $(gdevpdff_h) $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)
+ $(fcntl__h) $(memory__h) $(string__h) $(time__h) $(unistd__h) $(gp_h)\
+ $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h) $(gdevpdt_h) $(smd5_h) $(sarc4_h)\
+ $(gdevpdfb_h)
 	$(GLCC) $(GLO_)gdevpdf.$(OBJ) $(C_) $(GLSRC)gdevpdf.c
 
 $(GLOBJ)gdevpdfb.$(OBJ) : $(GLSRC)gdevpdfb.c\
  $(string__h) $(gx_h)\
- $(gdevpdff_h) $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
- $(gserrors_h) $(gxcspace_h)
+ $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
+ $(gserrors_h) $(gxcspace_h) $(gxdcolor_h) $(gxpcolor_h) $(gxhldevc_h)
 	$(GLCC) $(GLO_)gdevpdfb.$(OBJ) $(C_) $(GLSRC)gdevpdfb.c
 
 $(GLOBJ)gdevpdfc.$(OBJ) : $(GLSRC)gdevpdfc.c $(GXERR) $(math__h) $(memory__h)\
- $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
+ $(gdevpdfc_h) $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
  $(gscie_h) $(gscindex_h) $(gscspace_h) $(gscdevn_h) $(gscsepr_h) $(gsicc_h)\
- $(sstring_h) $(stream_h) $(strimpl_h)
+ $(sstring_h) $(stream_h) $(strimpl_h) $(gxcspace_h)
 	$(GLCC) $(GLO_)gdevpdfc.$(OBJ) $(C_) $(GLSRC)gdevpdfc.c
 
-$(GLOBJ)gdevpdfd.$(OBJ) : $(GLSRC)gdevpdfd.c $(math__h)\
- $(gdevpdfg_h) $(gdevpdfx_h)\
+$(GLOBJ)gdevpdfd.$(OBJ) : $(GLSRC)gdevpdfd.c $(math__h) $(memory__h)\
  $(gx_h) $(gxdevice_h) $(gxfixed_h) $(gxistate_h) $(gxpaint_h)\
- $(gzcpath_h) $(gzpath_h)
+ $(gxcoord_h) $(gxdevmem_h) $(gxcolor2_h) $(gxhldevc_h)\
+ $(gsstate_h) $(gserrors_h) $(gsptype2_h)\
+ $(gzpath_h) $(gzcpath_h) $(gdevpdfx_h) $(gdevpdfg_h) $(gdevpdfo_h) $(gsutil_h)
 	$(GLCC) $(GLO_)gdevpdfd.$(OBJ) $(C_) $(GLSRC)gdevpdfd.c
 
-$(GLOBJ)gdevpdfe.$(OBJ) : $(GLSRC)gdevpdfe.c\
- $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdff_h) $(gdevpdfx_h) $(gdevpsf_h)\
- $(gserrors_h) $(gsmatrix_h)\
- $(gxfcid_h) $(gxfont_h) $(gxfont0_h)\
- $(scommon_h)
-	$(GLCC) $(GLO_)gdevpdfe.$(OBJ) $(C_) $(GLSRC)gdevpdfe.c
-
-$(GLOBJ)gdevpdff.$(OBJ) : $(GLSRC)gdevpdff.c\
- $(ctype__h) $(math__h) $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdff_h) $(gdevpdfo_h) $(gdevpdfx_h) $(gdevpsf_h)\
- $(gserrors_h) $(gsmalloc_h) $(gsmatrix_h) $(gspath_h) $(gsutil_h)\
- $(gxfcache_h) $(gxfcid_h) $(gxfixed_h) $(gxfont_h) $(gxfont1_h) $(gxfont42_h)\
- $(gxpath_h)\
- $(scommon_h)
-	$(GLCC) $(GLO_)gdevpdff.$(OBJ) $(C_) $(GLSRC)gdevpdff.c
-
 $(GLOBJ)gdevpdfg.$(OBJ) : $(GLSRC)gdevpdfg.c $(GXERR) $(math__h) $(string__h)\
- $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
- $(gsfunc0_h) $(gsstate_h)\
+ $(memory__h) $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
+ $(gsfunc0_h) $(gsstate_h) $(gxdcolor_h) $(gxpcolor_h) $(gxcolor2_h) $(gsptype2_h)\
  $(gxbitmap_h) $(gxdht_h) $(gxfarith_h) $(gxfmap_h) $(gxht_h) $(gxistate_h)\
  $(gzht_h)\
  $(szlibx_h)
 	$(GLCC) $(GLO_)gdevpdfg.$(OBJ) $(C_) $(GLSRC)gdevpdfg.c
 
-$(GLOBJ)gdevpdfi.$(OBJ) : $(GLSRC)gdevpdfi.c\
+$(GLOBJ)gdevpdfi.$(OBJ) : $(GLSRC)gdevpdfi.c $(memory__h) $(math__h)\
  $(gx_h)\
- $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
- $(gsdevice_h) $(gserrors_h) $(gsflip_h) $(gsiparm4_h)\
- $(gxcspace_h) $(gximage3_h) $(gximag3x_h)
+ $(gserrors_h) $(gsdevice_h) $(gsflip_h) $(gsiparm4_h) $(gsstate_h) $(gscolor2_h)\
+ $(gdevpdfx_h) $(gdevpdfg_h) $(gdevpdfo_h)\
+ $(gxcspace_h) $(gximage3_h) $(gximag3x_h) $(gxdcolor_h) $(gxpcolor_h)\
+ $(gxhldevc_h)
 	$(GLCC) $(GLO_)gdevpdfi.$(OBJ) $(C_) $(GLSRC)gdevpdfi.c
 
 $(GLOBJ)gdevpdfj.$(OBJ) : $(GLSRC)gdevpdfj.c\
- $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
- $(gserrors_h) $(gsiparm4_h) $(gxcspace_h)
+ $(memory__h) $(string__h) $(gx_h) $(gserrors_h)\
+ $(gdevpdfx_h) $(gdevpdfg_h) $(gdevpdfo_h) $(gxcspace_h)\
+ $(gsiparm4_h) $(gdevpsds_h) $(spngpx_h)
 	$(GLJCC) $(GLO_)gdevpdfj.$(OBJ) $(C_) $(GLSRC)gdevpdfj.c
+
+$(GLOBJ)gdevpdfk.$(OBJ) : $(GLSRC)gdevpdfk.c $(GXERR) $(math__h) $(memory__h)\
+ $(gdevpdfc_h) $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
+ $(gsicc_h) $(gxcie_h) $(gxcspace_h)\
+ $(stream_h) $(strimpl_h)
+	$(GLCC) $(GLO_)gdevpdfk.$(OBJ) $(C_) $(GLSRC)gdevpdfk.c
 
 $(GLOBJ)gdevpdfm.$(OBJ) : $(GLSRC)gdevpdfm.c\
  $(math__h) $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdfo_h) $(gdevpdfx_h) $(gserrors_h) $(gsutil_h) $(scanchar_h)
+ $(gdevpdfo_h) $(gdevpdfx_h) $(gserrors_h) $(gsutil_h) $(scanchar_h)\
+ $(szlibx_h) $(slzwx_h)
 	$(GLCC) $(GLO_)gdevpdfm.$(OBJ) $(C_) $(GLSRC)gdevpdfm.c
 
 $(GLOBJ)gdevpdfo.$(OBJ) : $(GLSRC)gdevpdfo.c $(memory__h) $(string__h)\
  $(gx_h)\
  $(gdevpdfo_h) $(gdevpdfx_h) $(gserrors_h) $(gsparam_h) $(gsutil_h)\
- $(sa85x_h) $(slzwx_h) $(sstring_h) $(strimpl_h) $(szlibx_h)
+ $(sa85x_h) $(slzwx_h) $(sarc4_h) $(sstring_h) $(strimpl_h) $(szlibx_h)
 	$(GLCC) $(GLO_)gdevpdfo.$(OBJ) $(C_) $(GLSRC)gdevpdfo.c
 
 $(GLOBJ)gdevpdfp.$(OBJ) : $(GLSRC)gdevpdfp.c $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdfo_h) $(gdevpdfx_h) $(gserrors_h) $(gsparamx_h)
+ $(gdevpdfo_h) $(gdevpdfg_h) $(gdevpdfx_h) $(gserrors_h) $(gsparamx_h)
 	$(GLCC) $(GLO_)gdevpdfp.$(OBJ) $(C_) $(GLSRC)gdevpdfp.c
 
 $(GLOBJ)gdevpdfr.$(OBJ) : $(GLSRC)gdevpdfr.c $(memory__h) $(string__h)\
@@ -853,28 +908,17 @@ $(GLOBJ)gdevpdfr.$(OBJ) : $(GLSRC)gdevpdfr.c $(memory__h) $(string__h)\
  $(scanchar_h) $(sstring_h) $(strimpl_h)
 	$(GLCC) $(GLO_)gdevpdfr.$(OBJ) $(C_) $(GLSRC)gdevpdfr.c
 
-$(GLOBJ)gdevpdfs.$(OBJ) : $(GLSRC)gdevpdfs.c\
- $(math__h) $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdff_h) $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h) $(gdevpsf_h)\
- $(gserrors_h) $(gsmatrix_h) $(gsutil_h)\
- $(gxfcache_h) $(gxfcid_h) $(gxfcmap_h) $(gxfixed_h) $(gxfont_h)\
- $(gxfont0_h) $(gxfont1_h) $(gxfont42_h) $(gxpath_h)\
- $(scommon_h)
-	$(GLCC) $(GLO_)gdevpdfs.$(OBJ) $(C_) $(GLSRC)gdevpdfs.c
-
-$(GLOBJ)gdevpdft.$(OBJ) : $(GLSRC)gdevpdft.c\
- $(math__h) $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdff_h) $(gdevpdfg_h) $(gdevpdfx_h)\
- $(gserrors_h) $(gxpath_h)\
- $(scommon_h)
+$(GLOBJ)gdevpdft.$(OBJ) : $(GLSRC)gdevpdft.c $(string__h)\
+ $(gx_h) $(gserrors_h) $(gstrans_h) $(gscolor2_h) $(gzstate_h)\
+ $(gdevpdfx_h) $(gdevpdfg_h) $(gdevpdfo_h)
 	$(GLCC) $(GLO_)gdevpdft.$(OBJ) $(C_) $(GLSRC)gdevpdft.c
 
 $(GLOBJ)gdevpdfu.$(OBJ) : $(GLSRC)gdevpdfu.c $(GXERR)\
  $(jpeglib__h) $(memory__h) $(string__h)\
- $(gdevpdfo_h) $(gdevpdfx_h) $(gscdefs_h)\
- $(gsdsrc_h) $(gsfunc_h)\
+ $(gdevpdfo_h) $(gdevpdfx_h) $(gdevpdfg_h) $(gdevpdtd_h) $(gscdefs_h)\
+ $(gsdsrc_h) $(gsfunc_h) $(gsfunc3_h)\
  $(sa85x_h) $(scanchar_h) $(scfx_h) $(sdct_h) $(slzwx_h) $(spngpx_h)\
- $(srlx_h) $(sstring_h) $(strimpl_h) $(szlibx_h)
+ $(srlx_h) $(sarc4_h) $(smd5_h) $(sstring_h) $(strimpl_h) $(szlibx_h)
 	$(GLCC) $(GLO_)gdevpdfu.$(OBJ) $(C_) $(GLSRC)gdevpdfu.c
 
 $(GLOBJ)gdevpdfv.$(OBJ) : $(GLSRC)gdevpdfv.c $(GXERR) $(math__h) $(string__h)\
@@ -884,13 +928,118 @@ $(GLOBJ)gdevpdfv.$(OBJ) : $(GLSRC)gdevpdfv.c $(GXERR) $(math__h) $(string__h)\
  $(szlibx_h)
 	$(GLCC) $(GLO_)gdevpdfv.$(OBJ) $(C_) $(GLSRC)gdevpdfv.c
 
-$(GLOBJ)gdevpdfw.$(OBJ) : $(GLSRC)gdevpdfw.c\
- $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdff_h) $(gdevpdfx_h) $(gdevpsf_h)\
- $(gsalloc_h) $(gsbittab_h) $(gserrors_h) $(gsmatrix_h) $(gsutil_h)\
- $(gxfcid_h) $(gxfcmap_h) $(gxfont_h) $(gxfont0_h)\
- $(scommon_h)
-	$(GLCC) $(GLO_)gdevpdfw.$(OBJ) $(C_) $(GLSRC)gdevpdfw.c
+######## pdfwrite text
+
+# The text facilities for the PDF writer are so large and complex that
+# we give them their own module name and (for the new code) file name prefix.
+# However, logically they are part of pdfwrite and cannot be used separately.
+
+$(DD)pdtext.dev : $(DEVS_MAK) $(ECHOGS_XE) $(DD)pdxtext.dev
+	$(SETMOD) $(DD)pdtext -include $(DD)pdxtext
+
+# For a code roadmap, see gdevpdtx.h.
+
+gdevpdt_h=$(GLSRC)gdevpdt.h
+gdevpdtx_h=$(GLSRC)gdevpdtx.h $(gdevpdt_h)
+gdevpdtb_h=$(GLSRC)gdevpdtb.h $(gdevpdtx_h)
+gdevpdtd_h=$(GLSRC)gdevpdtd.h $(gdevpdtb_h) $(gdevpdtx_h)
+gdevpdtf_h=$(GLSRC)gdevpdtf.h $(gdevpdtx_h)
+gdevpdti_h=$(GLSRC)gdevpdti.h $(gdevpdt_h)
+gdevpdts_h=$(GLSRC)gdevpdts.h $(gsmatrix_h)
+gdevpdtt_h=$(GLSRC)gdevpdtt.h
+gdevpdtv_h=$(GLSRC)gdevpdtv.h
+gdevpdtw_h=$(GLSRC)gdevpdtw.h
+
+# We reserve space for all of a..z, just in case.
+pdxtext_ab=$(GLOBJ)gdevpdt.$(OBJ) $(GLOBJ)gdevpdtb.$(OBJ)
+pdxtext_cde=$(GLOBJ)gdevpdtc.$(OBJ) $(GLOBJ)gdevpdtd.$(OBJ) $(GLOBJ)gdevpdte.$(OBJ)
+pdxtext_fgh=$(GLOBJ)gdevpdtf.$(OBJ)
+pdxtext_ijk=$(GLOBJ)gdevpdti.$(OBJ)
+pdxtext_lmn=
+pdxtext_opq=
+pdxtext_rst=$(GLOBJ)gdevpdts.$(OBJ) $(GLOBJ)gdevpdtt.$(OBJ)
+pdxtext_uvw=$(GLOBJ)gdevpdtv.$(OBJ) $(GLOBJ)gdevpdtw.$(OBJ)
+pdxtext_xyz=
+pdxtext_=$(pdxtext_ab) $(pdxtext_cde) $(pdxtext_fgh) $(pdxtext_ijk)\
+ $(pdxtext_lmn) $(pdxtext_opq) $(pdxtext_rst) $(pdxtext_uvw) $(pdxtext_xyz)\
+ $(GLOBJ)gsfont0c.$(OBJ)
+$(DD)pdxtext.dev : $(DEVS_MAK) $(ECHOGS_XE) $(pdxtext_)\
+ $(GLD)fcopy.dev $(GLD)psf.dev
+	$(SETMOD) $(DD)pdxtext $(pdxtext_ab)
+	$(ADDMOD) $(DD)pdxtext $(pdxtext_cde)
+	$(ADDMOD) $(DD)pdxtext $(pdxtext_fgh)
+	$(ADDMOD) $(DD)pdxtext $(pdxtext_ijk)
+	$(ADDMOD) $(DD)pdxtext $(pdxtext_lmn)
+	$(ADDMOD) $(DD)pdxtext $(pdxtext_opq)
+	$(ADDMOD) $(DD)pdxtext $(pdxtext_rst)
+	$(ADDMOD) $(DD)pdxtext $(pdxtext_uvw)
+	$(ADDMOD) $(DD)pdxtext $(pdxtext_xyz)
+	$(ADDMOD) $(DD)pdxtext $(GLOBJ)gsfont0c.$(OBJ)
+	$(ADDMOD) $(DD)pdxtext -include $(GLD)fcopy $(GLD)psf
+
+$(GLOBJ)gdevpdt.$(OBJ) : $(GLSRC)gdevpdt.c $(gx_h) $(gxpath_h) $(memory__h)\
+ $(gdevpdfx_h) $(gdevpdfg_h) $(gdevpdtf_h) $(gdevpdti_h) $(gdevpdts_h) $(gdevpdtx_h) $(gdevpdt_h)
+	$(GLCC) $(GLO_)gdevpdt.$(OBJ) $(C_) $(GLSRC)gdevpdt.c
+
+$(GLOBJ)gdevpdtb.$(OBJ) : $(GLSRC)gdevpdtb.c $(memory__h) $(ctype__h) $(string__h)\
+ $(gx_h) $(gserrors_h) $(gsutil_h)\
+ $(gxfcid_h) $(gxfcopy_h) $(gxfont_h) $(gxfont42_h)\
+ $(gdevpsf_h) $(gdevpdfx_h) $(gdevpdtb_h)
+	$(GLCC) $(GLO_)gdevpdtb.$(OBJ) $(C_) $(GLSRC)gdevpdtb.c
+
+$(GLOBJ)gdevpdtc.$(OBJ) : $(GLSRC)gdevpdtc.c $(gx_h) $(memory__h) $(string__h)\
+ $(gserrors_h) $(gxfcmap_h) $(gxfont_h) $(gxfont0_h) $(gxfont0c_h)\
+ $(gzpath_h) $(gxchar_h) $(gdevpsf_h) $(gdevpdfx_h) $(gdevpdtx_h)\
+ $(gdevpdtd_h) $(gdevpdtf_h) $(gdevpdts_h) $(gdevpdtt_h)
+	$(GLCC) $(GLO_)gdevpdtc.$(OBJ) $(C_) $(GLSRC)gdevpdtc.c
+
+$(GLOBJ)gdevpdte.$(OBJ) : $(GLSRC)gdevpdte.c $(gx_h) $(math__h) $(memory__h)\
+ $(gserrors_h) $(gsutil_h) $(gxfcmap_h) $(gxfcopy_h) $(gxfont_h) \
+ $(gxfont0_h) $(gxfont0c_h) $(gxpath_h) $(gdevpsf_h) $(gdevpdfx_h) \
+ $(gdevpdfg_h) $(gdevpdtx_h) $(gdevpdtd_h) $(gdevpdtf_h) $(gdevpdts_h) \
+ $(gdevpdtt_h)
+	$(GLCC) $(GLO_)gdevpdte.$(OBJ) $(C_) $(GLSRC)gdevpdte.c
+
+$(GLOBJ)gdevpdtd.$(OBJ) : $(GLSRC)gdevpdtd.c $(math__h) $(memory__h) $(gx_h)\
+ $(gserrors_h) $(gsrect_h)\
+ $(gdevpdfo_h) $(gdevpdfx_h)\
+ $(gdevpdtb_h) $(gdevpdtd_h)
+	$(GLCC) $(GLO_)gdevpdtd.$(OBJ) $(C_) $(GLSRC)gdevpdtd.c
+
+$(GLOBJ)gdevpdtf.$(OBJ) : $(GLSRC)gdevpdtf.c $(gx_h) $(memory__h)\
+ $(string__h) $(gserrors_h) $(gsutil_h)\
+ $(gxfcache_h) $(gxfcid_h) $(gxfcmap_h) $(gxfcopy_h) $(gxfont_h) $(gxfont1_h)\
+ $(gdevpsf_h) $(gdevpdfx_h) $(gdevpdtb_h) $(gdevpdtd_h) $(gdevpdtf_h) $(gdevpdtw_h)
+	$(GLCC) $(GLO_)gdevpdtf.$(OBJ) $(C_) $(GLSRC)gdevpdtf.c
+
+$(GLOBJ)gdevpdti.$(OBJ) : $(GLSRC)gdevpdti.c $(memory__h) $(string__h) $(gx_h)\
+ $(gserrors_h) $(gsutil_h)\
+ $(gdevpdfx_h) $(gdevpdfg_h)\
+ $(gdevpdtf_h) $(gdevpdti_h) $(gdevpdts_h) $(gdevpdtw_h) $(gdevpdtt_h) $(gdevpdfo_h)
+	$(GLCC) $(GLO_)gdevpdti.$(OBJ) $(C_) $(GLSRC)gdevpdti.c
+
+$(GLOBJ)gdevpdts.$(OBJ) : $(GLSRC)gdevpdts.c $(gx_h) $(math__h) $(memory__h)\
+ $(gdevpdfx_h) $(gdevpdtf_h) $(gdevpdts_h) $(gdevpdtx_h)
+	$(GLCC) $(GLO_)gdevpdts.$(OBJ) $(C_) $(GLSRC)gdevpdts.c
+
+$(GLOBJ)gdevpdtt.$(OBJ) : $(GLSRC)gdevpdtt.c $(gx_h) $(math__h) $(string__h)\
+ $(gserrors_h) $(gsencs_h) $(gscedata_h) $(gsmatrix_h) $(gzstate_h)\
+ $(gxfcache_h) $(gxfont_h) $(gxfont0_h) $(gxfcid_h) $(gxfcopy_h)\
+ $(gxfcmap_h) $(gxpath_h) $(gxchar_h) $(gxstate_h) $(gdevpdfx_h) $(gdevpdfg_h)\
+ $(gdevpdtx_h) $(gdevpdtd_h) $(gdevpdtf_h) $(gdevpdts_h) $(gdevpdtt_h)\
+ $(gdevpdti_h) $(gxhldevc_h)
+	$(GLCC) $(GLO_)gdevpdtt.$(OBJ) $(C_) $(GLSRC)gdevpdtt.c
+
+$(GLOBJ)gdevpdtv.$(OBJ) : $(GLSRC)gdevpdtv.c $(gx_h) $(gdevpdtv_h)
+	$(GLCC) $(GLO_)gdevpdtv.$(OBJ) $(C_) $(GLSRC)gdevpdtv.c
+
+$(GLOBJ)gdevpdtw.$(OBJ) : $(GLSRC)gdevpdtw.c $(gx_h) $(gserrors_h) $(memory__h)\
+ $(gxfcmap_h) $(gxfont_h) $(gscencs_h)\
+ $(gdevpsf_h) $(gdevpdfx_h) $(gdevpdfo_h)\
+ $(gdevpdtd_h) $(gdevpdtf_h) $(gdevpdti_h) $(gdevpdtw_h) $(gdevpdtv_h) $(sarc4_h)
+	$(GLCC) $(GLO_)gdevpdtw.$(OBJ) $(C_) $(GLSRC)gdevpdtw.c
+
+################ END PDF WRITER ################
 
 # High-level PCL XL writer
 
@@ -931,6 +1080,10 @@ $(DD)bitrgb.dev : $(DEVS_MAK) $(bit_) $(GLD)page.dev $(GLD)cielib.dev
 $(DD)bitcmyk.dev : $(DEVS_MAK) $(bit_) $(GLD)page.dev $(GLD)cielib.dev
 	$(SETPDEV2) $(DD)bitcmyk $(bit_)
 	$(ADDMOD) $(DD)bitcmyk -include $(GLD)cielib
+
+$(DD)bitrgbtags.dev : $(DEVS_MAK) $(bit_) $(GLD)page.dev $(GLD)cielib.dev
+	$(SETPDEV2) $(DD)bitrgbtags $(bit_)
+	$(ADDMOD) $(DD)bitrgbtags -include $(GLD)cielib
 
 $(GLOBJ)gdevbit.$(OBJ) : $(GLSRC)gdevbit.c $(PDEVH) $(math__h)\
  $(gdevdcrd_h) $(gscrd_h) $(gscrdp_h) $(gsparam_h) $(gxlum_h)
@@ -1020,7 +1173,7 @@ gdevcgml_h=$(GLSRC)gdevcgml.h
 gdevcgmx_h=$(GLSRC)gdevcgmx.h $(gdevcgml_h)
 
 $(GLOBJ)gdevcgm.$(OBJ) : $(GLSRC)gdevcgm.c $(GDEV) $(memory__h)\
- $(gsparam_h) $(gdevpccm_h) $(gdevcgml_h)
+ $(gp_h) $(gsparam_h) $(gdevpccm_h) $(gdevcgml_h)
 	$(GLCC) $(GLO_)gdevcgm.$(OBJ) $(C_) $(GLSRC)gdevcgm.c
 
 $(GLOBJ)gdevcgml.$(OBJ) : $(GLSRC)gdevcgml.c $(memory__h) $(stdio__h)\
@@ -1036,6 +1189,67 @@ $(DD)cgm8.dev : $(DEVS_MAK) $(cgm_)
 $(DD)cgm24.dev : $(DEVS_MAK) $(cgm_)
 	$(SETDEV) $(DD)cgm24 $(cgm_)
 
+### ------------------------ The DeviceN device ------------------------ ###
+
+devn_=$(GLOBJ)gdevdevn.$(OBJ)
+
+$(DD)spotcmyk.dev : $(DEVS_MAK) $(devn_) $(GLD)page.dev
+	$(SETDEV) $(DD)spotcmyk $(devn_)
+
+$(DD)devicen.dev : $(DEVS_MAK) $(devn_) $(GLD)page.dev
+	$(SETDEV) $(DD)devicen $(devn_)
+
+$(GLOBJ)gdevdevn.$(OBJ) : $(GLSRC)gdevdevn.c $(PDEVH) $(math__h) $(string__h)\
+ $(gdevprn_h) $(gsparam_h) $(gscrd_h) $(gscrdp_h) $(gxlum_h) $(gdevdcrd_h)\
+ $(gstypes_h) $(gxdcconv_h) $(gdevdevn_h) $(gsequivc_h)
+	$(GLCC) $(GLO_)gdevdevn.$(OBJ) $(C_) $(GLSRC)gdevdevn.c
+
+### --------------------------- The XCF device ------------------------- ###
+
+xcf_=$(GLOBJ)gdevxcf.$(OBJ)
+
+$(DD)xcf.dev : $(DEVS_MAK) $(xcf_) $(GLD)page.dev
+	$(SETDEV) $(DD)xcf $(xcf_)
+
+$(DD)xcfcmyk.dev : $(DEVS_MAK) $(xcf_) $(GLD)page.dev
+	$(SETDEV) $(DD)xcfcmyk $(xcf_)
+
+$(GLOBJ)gdevxcf.$(OBJ) : $(GLSRC)gdevxcf.c $(PDEVH) $(math__h)\
+ $(gdevdcrd_h) $(gscrd_h) $(gscrdp_h) $(gsparam_h) $(gxlum_h) $(icc_h)\
+ $(gxdcconv_h)
+	$(GLICCCC) $(GLO_)gdevxcf.$(OBJ) $(C_) $(GLSRC)gdevxcf.c
+
+### --------------------------- The PSD device ------------------------- ###
+
+psd_=$(GLOBJ)gdevpsd.$(OBJ) $(GLOBJ)gdevdevn.$(OBJ) $(GLOBJ)gsequivc.$(OBJ)
+
+$(DD)psdrgb.dev : $(DEVS_MAK) $(psd_) $(GLD)page.dev
+	$(SETDEV) $(DD)psdrgb $(psd_)
+
+$(DD)psdcmyk.dev : $(DEVS_MAK) $(psd_) $(GLD)page.dev
+	$(SETDEV) $(DD)psdcmyk $(psd_)
+
+$(GLOBJ)gdevpsd.$(OBJ) : $(GLSRC)gdevpsd.c $(PDEVH) $(math__h)\
+ $(gdevdcrd_h) $(gscrd_h) $(gscrdp_h) $(gsparam_h) $(gxlum_h) $(icc_h)\
+ $(gstypes_h) $(gxdcconv_h) $(gdevdevn_h) $(gsequivc_h)
+	$(GLICCCC) $(GLO_)gdevpsd.$(OBJ) $(C_) $(GLSRC)gdevpsd.c
+
+$(GLOBJ)gsequivc.$(OBJ) : $(GLSRC)gsequivc.c $(math__h)\
+ $(PDEVH) $(gsparam_h) $(gstypes_h) $(gxdconv_h) $(gdevdevn_h)\
+ $(gsequivc_h) $(gzstate_h) $(gsstate_h) $(gscspace_h) $(gxcspace_h)
+	$(GLICCCC) $(GLO_)gsequivc.$(OBJ) $(C_) $(GLSRC)gsequivc.c
+
+### ----------------------- The permutation device --------------------- ###
+
+perm_=$(GLOBJ)gdevperm.$(OBJ)
+
+$(DD)perm.dev : $(DEVS_MAK) $(perm_) $(GLD)page.dev
+	$(SETDEV) $(DD)perm $(perm_)
+
+$(GLOBJ)gdevperm.$(OBJ) : $(GLSRC)gdevperm.c $(PDEVH) $(math__h)\
+ $(gdevdcrd_h) $(gscrd_h) $(gscrdp_h) $(gsparam_h) $(gxlum_h) $(icc_h)
+	$(GLICCCC) $(GLO_)gdevperm.$(OBJ) $(C_) $(GLSRC)gdevperm.c
+
 ### ------------------------- JPEG file format ------------------------- ###
 
 jpeg_=$(GLOBJ)gdevjpeg.$(OBJ)
@@ -1049,6 +1263,11 @@ $(DD)jpeg.dev : $(DEVS_MAK) $(jpeg_) $(GLD)sdcte.dev $(GLD)page.dev
 $(DD)jpeggray.dev : $(DEVS_MAK) $(jpeg_) $(GLD)sdcte.dev $(GLD)page.dev
 	$(SETPDEV2) $(DD)jpeggray $(jpeg_)
 	$(ADDMOD) $(DD)jpeggray -include $(GLD)sdcte
+
+# CMYK output
+$(DD)jpegcmyk.dev : $(DEVS_MAK) $(jpeg_) $(GLD)sdcte.dev $(GLD)page.dev
+	$(SETPDEV2) $(DD)jpegcmyk $(jpeg_)
+	$(ADDMOD) $(DD)jpegcmyk -include $(GLD)sdcte
 
 $(GLOBJ)gdevjpeg.$(OBJ) : $(GLSRC)gdevjpeg.c $(PDEVH)\
  $(stdio__h) $(jpeglib__h)\
@@ -1103,7 +1322,8 @@ $(GLOBJ)gdevp2up.$(OBJ) : $(GLSRC)gdevp2up.c $(AK)\
 	$(GLCC) $(GLO_)gdevp2up.$(OBJ) $(C_) $(GLSRC)gdevp2up.c
 
 ### ------------------- Portable Bitmap file formats ------------------- ###
-### For more information, see the pbm(5), pgm(5), and ppm(5) man pages.  ###
+### For more information, see the pam(5), pbm(5), pgm(5), and ppm(5)     ###
+### man pages.                                                           ###
 
 pxm_=$(GLOBJ)gdevpbm.$(OBJ) $(GLOBJ)gdevppla.$(OBJ) $(GLOBJ)gdevmpla.$(OBJ)
 
@@ -1173,6 +1393,11 @@ $(DD)pksmraw.dev : $(DEVS_MAK) $(pxm_) $(GLD)page.dev
 $(DD)plan9bm.dev : $(DEVS_MAK) $(pxm_) $(GLD)page.dev
 	$(SETPDEV2) $(DD)plan9bm $(pxm_)
 
+### Portable Arbitrary Map (PAM, magic number "P7", CMYK)
+
+$(DD)pam.dev : $(DEVS_MAK) $(pxm_) $(GLD)page.dev
+	$(SETPDEV2) $(DD)pam $(pxm_)
+
 ### --------------- Portable Network Graphics file format --------------- ###
 ### Requires libpng 0.81 and zlib 0.95 (or more recent versions).         ###
 ### See libpng.mak and zlib.mak for more details.                         ###
@@ -1207,14 +1432,23 @@ $(DD)png16m.dev : $(DEVS_MAK) $(libpng_dev) $(png_) $(GLD)page.dev
 	$(SETPDEV2) $(DD)png16m $(png_)
 	$(ADDMOD) $(DD)png16m $(png_i_)
 
+$(DD)png48.dev : $(DEVS_MAK) $(libpng_dev) $(png_) $(GLD)page.dev
+	$(SETPDEV2) $(DD)png48 $(png_)
+	$(ADDMOD) $(DD)png48 $(png_i_)
+
+$(DD)pngalpha.dev : $(DEVS_MAK) $(libpng_dev) $(png_) $(GLD)page.dev
+	$(SETPDEV2) $(DD)pngalpha $(png_)
+	$(ADDMOD) $(DD)pngalpha $(png_i_)
+
 ### -------------------- PNG with transparency -------------------- ###
 
 pnga_=$(GLOBJ)gdevpnga.$(OBJ)
 $(DD)pnga.dev :	$(pnga_)
 	$(SETDEV) $(DD)pnga $(pnga_)
 
-$(GLOBJ)gdevpnga.$(OBJ) : $(GLSRC)gdevpnga.c\
- $(gdevprn_h) $(gdevpccm_h) $(gscdefs_h) $(png__h)
+$(GLOBJ)gdevpnga.$(OBJ) : $(GLSRC)gdevpnga.c $(png__h)\
+ $(gscdefs_h) $(gsdevice_h) $(gxblend_h) $(gxtext_h)\
+ $(gdevmem_h) $(gdevpccm_h) $(gdevprn_h)
 	$(CC_) $(I_)$(GLI_) $(II)$(PI_)$(_I) $(PCF_) $(GLF_) $(GLO_)gdevpnga.$(OBJ) $(C_) $(GLSRC)gdevpnga.c
 
 ### ---------------------- PostScript image format ---------------------- ###
@@ -1223,7 +1457,7 @@ $(GLOBJ)gdevpnga.$(OBJ) : $(GLSRC)gdevpnga.c\
 ###   format.  They also can convert big, complex color PostScript files  ###
 ###   to (often) smaller and more easily printed bitmaps.                 ###
 
-psim_=$(GLOBJ)gdevpsim.$(OBJ)
+psim_=$(GLOBJ)gdevpsim.$(OBJ) $(GLOBJ)gdevpsu.$(OBJ)
 
 $(GLOBJ)gdevpsim.$(OBJ) : $(GLSRC)gdevpsim.c $(PDEVH)\
  $(gdevpsu_h)\
@@ -1325,7 +1559,19 @@ $(DD)tifflzw.dev : $(DEVS_MAK) $(DD)tfax.dev
 $(DD)tiffpack.dev : $(DEVS_MAK) $(DD)tfax.dev
 	$(SETDEV2) $(DD)tiffpack -include $(DD)tfax
 
-# RGB, no compression
+# TIFF Gray, no compression
+
+tiffgray_=$(GLOBJ)gdevtsep.$(OBJ)
+
+$(DD)tiffgray.dev : $(DEVS_MAK) $(tiffgray_) $(DD)tiffs.dev
+	$(SETPDEV2) $(DD)tiffgray $(tiffgray_)
+	$(ADDMOD) $(DD)tiffgray -include $(DD)tiffs
+
+$(GLOBJ)gdevtsep.$(OBJ) : $(GLSRC)gdevtsep.c $(PDEVH) $(gdevtifs_h)\
+	$(gdevdevn_h) $(gsequivc_h)
+	$(GLCC) $(GLO_)gdevtsep.$(OBJ) $(C_) $(GLSRC)gdevtsep.c
+
+# TIFF RGB, no compression
 
 tiffrgb_=$(GLOBJ)gdevtfnx.$(OBJ)
 
@@ -1339,3 +1585,18 @@ $(DD)tiff24nc.dev : $(DEVS_MAK) $(tiffrgb_) $(DD)tiffs.dev
 
 $(GLOBJ)gdevtfnx.$(OBJ) : $(GLSRC)gdevtfnx.c $(PDEVH) $(gdevtifs_h)
 	$(GLCC) $(GLO_)gdevtfnx.$(OBJ) $(C_) $(GLSRC)gdevtfnx.c
+
+# TIFF CMYK, no compression
+
+$(DD)tiff32nc.dev : $(DEVS_MAK) $(tiffgray_) $(DD)tiffs.dev
+	$(SETPDEV2) $(DD)tiff32nc $(tiffgray_)
+	$(ADDMOD) $(DD)tiff32nc -include $(DD)tiffs
+#
+# Create separation files (tiffgray) plus CMYK composite (tiff32nc)
+
+tiffsep_=$(tiffgray_) $(GLOBJ)gdevdevn.$(OBJ) $(GLOBJ)gsequivc.$(OBJ)
+
+$(DD)tiffsep.dev : $(DEVS_MAK) $(tiffgray_) $(DD)tiffs.dev
+	$(SETPDEV2) $(DD)tiffsep $(tiffsep_)
+	$(ADDMOD) $(DD)tiffsep -include $(DD)tiffs
+

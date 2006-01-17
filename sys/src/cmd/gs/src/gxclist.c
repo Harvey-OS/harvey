@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxclist.c,v 1.3 2000/09/19 19:00:34 lpd Exp $ */
+/*$Id: gxclist.c,v 1.15 2005/03/14 18:08:36 dan Exp $ */
 /* Command list document- and page-level code. */
 #include "memory_.h"
 #include "string_.h"
@@ -29,6 +27,7 @@
 #include "gxcldev.h"
 #include "gxclpath.h"
 #include "gsparams.h"
+#include "gxdcolor.h"
 
 /* GC information */
 #define CLIST_IS_WRITER(cdev) ((cdev)->common.ymin < 0)
@@ -76,7 +75,7 @@ private dev_proc_get_band(clist_get_band);
 /* Driver procedures defined in other files are declared in gxcldev.h. */
 
 /* Other forward declarations */
-private int clist_put_current_params(P1(gx_device_clist_writer *cldev));
+private int clist_put_current_params(gx_device_clist_writer *cldev);
 
 /* The device procedures */
 const gx_device_procs gs_clist_device_procs = {
@@ -123,7 +122,23 @@ const gx_device_procs gs_clist_device_procs = {
     clist_create_compositor,
     gx_forward_get_hardware_params,
     gx_default_text_begin,
-    gx_default_finish_copydevice
+    gx_default_finish_copydevice,
+    NULL,			/* begin_transparency_group */
+    NULL,			/* end_transparency_group */
+    NULL,			/* begin_transparency_mask */
+    NULL,			/* end_transparency_mask */
+    NULL,			/* discard_transparency_layer */
+    gx_forward_get_color_mapping_procs,
+    gx_forward_get_color_comp_index,
+    gx_forward_encode_color,
+    gx_forward_decode_color,
+    gx_default_pattern_manage,
+    gx_default_fill_rectangle_hl_color,
+    gx_default_include_color_space,
+    gx_default_fill_linear_color_scanline,
+    gx_default_fill_linear_color_trapezoid, /* fixme : write to clist. */
+    gx_default_fill_linear_color_triangle,
+    gx_forward_update_spot_equivalent_colors
 };
 
 /* ------ Define the command set and syntax ------ */
@@ -276,6 +291,7 @@ clist_init_data(gx_device * dev, byte * init_data, uint data_size)
 	(cdev->band_params.BandWidth ? cdev->band_params.BandWidth :
 	 target->width);
     int band_height = cdev->band_params.BandHeight;
+    bool page_uses_transparency = cdev->page_uses_transparency;
     const uint band_space =
     cdev->page_info.band_params.BandBufferSpace =
 	(cdev->band_params.BandBufferSpace ?
@@ -289,6 +305,10 @@ clist_init_data(gx_device * dev, byte * init_data, uint data_size)
 
     /* Call create_buf_device to get the memory planarity set up. */
     cdev->buf_procs.create_buf_device(&pbdev, target, NULL, NULL, true);
+    /* HACK - if the buffer device can't do copy_alpha, disallow */
+    /* copy_alpha in the commmand list device as well. */
+    if (dev_proc(pbdev, copy_alpha) == gx_no_copy_alpha)
+	cdev->disable_mask |= clist_disable_copy_alpha;
     if (band_height) {
 	/*
 	 * The band height is fixed, so the band buffer requirement
@@ -308,7 +328,7 @@ clist_init_data(gx_device * dev, byte * init_data, uint data_size)
 	bits_size = clist_tile_cache_size(target, band_space);
 	bits_size = min(bits_size, data_size >> 1);
 	band_height = gdev_mem_max_height(&bdev, band_width,
-					  band_space - bits_size);
+			  band_space - bits_size, page_uses_transparency);
 	if (band_height == 0)
 	    return_error(gs_error_rangecheck);
     }

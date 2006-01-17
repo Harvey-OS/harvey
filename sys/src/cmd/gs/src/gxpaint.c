@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxpaint.c,v 1.2 2000/09/19 19:00:39 lpd Exp $ */
+/* $Id: gxpaint.c,v 1.5 2004/09/09 21:01:31 igor Exp $ */
 /* Graphics-state-aware fill and stroke procedures */
 #include "gx.h"
 #include "gzstate.h"
@@ -24,6 +22,15 @@
 #include "gxhttile.h"
 #include "gxpaint.h"
 #include "gxpath.h"
+#include "gxfont.h"
+
+private bool caching_an_outline_font(const gs_state * pgs)
+{
+    return pgs->in_cachedevice > 1 &&
+	    pgs->font != NULL &&
+	    pgs->font->FontType != ft_user_defined && 
+	    pgs->font->FontType != ft_CID_user_defined;
+}
 
 /* Fill a path. */
 int
@@ -40,7 +47,7 @@ gx_fill_path(gx_path * ppath, gx_device_color * pdevc, gs_state * pgs,
     params.rule = rule;
     params.adjust.x = adjust_x;
     params.adjust.y = adjust_y;
-    params.flatness = (pgs->in_cachedevice > 1 ? 0.0 : pgs->flatness);
+    params.flatness = (caching_an_outline_font(pgs) ? 0.0 : pgs->flatness);
     params.fill_zero_width = (adjust_x | adjust_y) != 0;
     return (*dev_proc(dev, fill_path))
 	(dev, (const gs_imager_state *)pgs, ppath, &params, pdevc, pcpath);
@@ -57,7 +64,7 @@ gx_stroke_fill(gx_path * ppath, gs_state * pgs)
 
     if (code < 0)
 	return code;
-    params.flatness = (pgs->in_cachedevice > 1 ? 0.0 : pgs->flatness);
+    params.flatness = (caching_an_outline_font(pgs) ? 0.0 : pgs->flatness);
     return (*dev_proc(dev, stroke_path))
 	(dev, (const gs_imager_state *)pgs, ppath, &params,
 	 pgs->dev_color, pcpath);
@@ -69,7 +76,7 @@ gx_stroke_add(gx_path * ppath, gx_path * to_path,
 {
     gx_stroke_params params;
 
-    params.flatness = (pgs->in_cachedevice > 1 ? 0.0 : pgs->flatness);
+    params.flatness = (caching_an_outline_font(pgs) ? 0.0 : pgs->flatness);
     return gx_stroke_path_only(ppath, to_path, pgs->device,
 			       (const gs_imager_state *)pgs,
 			       &params, NULL, NULL);

@@ -4,7 +4,7 @@
 % so long as modified versions are marked as such and copyright notices are
 % not removed.
 
-% $Id: pdf_sec.ps,v 1.5 2001/10/09 20:17:23 lpd Exp $
+% $Id: pdf_sec.ps,v 1.15 2004/03/12 01:55:58 dan Exp $
 % Implementation of security hooks for PDF reader.
 
 % This file contains the procedures that have to take encryption into
@@ -53,6 +53,11 @@ pdfdict begin
   16 string dup /MD5Encode filter dup 4 3 roll writestring closefile
 } bind def
 
+/md5_trunk {
+  md5 0 pdf_key_length getinterval
+} bind def
+
+
 /pdf_padding_string
    <28bf4e5e4e758a41 64004e56fffa0108
     2e2e00b6d0683e80 2f0ca9fe6453697a>
@@ -100,16 +105,41 @@ def
   % <padded-key> <O> <P>
 
   % Step 5.
-  Trailer /ID oget 0 oget
-  3 { concatstrings } repeat md5
+  Trailer /ID knownoget { 0 oget } {
+    ()
+    (   **** ID key in the trailer is required for encrypted files.\n) pdfformaterror
+  } ifelse
+  3 { concatstrings } repeat 
+  % We will finish step 5 after possibly including step 6.
 
-  % Step 6.
-  Trailer /Encrypt oget /R oget 3 eq {
-     50 { md5 } repeat
-  } if
+  % The following only executed for /R equal to 3 or more
+  Trailer /Encrypt oget dup /R oget dup 3 ge {
 
-  % Step 7.
-  0 pdf_key_length getinterval
+     % Step 6.  If EncryptMetadata is false, pass 0xFFFFFFFF to md5 function
+     % The PDF 1.5 Spec says that EncryptMetadata is an undocumented
+     % feature of PDF 1.4.  That implies that this piece of logic should
+     % be executed if R >= 3.  However testing with Acrobat 5.0 and 6.0 shows
+     % that this step is not executed if R equal to 3.  Thus we have a test for
+     % R being >= 4.
+     4 ge {
+       /EncryptMetadata knownoget	% Get EncryptMetadata (if present)
+       not { true } if			% Default is true
+       not {				% If EncryptMetadata is false
+         <ff ff ff ff> concatstrings	% Add 0xFFFFFFFF to working string
+       } if
+     } {
+       pop				% Remove Encrypt dict
+     } ifelse
+     md5_trunk				% Finish step 5 and 6.
+
+     % Step 7.  Executed as part of step 6
+     % Step 8.  (This step is defintely a part of PDF 1.4.)
+     50 { md5_trunk } repeat
+  } {
+     pop pop md5_trunk			% Remove R, Encrypt dict, finish step 5
+  } ifelse
+
+  % Step 9 - Done in md5_trunk.
 } bind def
 
 % Algorithm 3.4
@@ -126,7 +156,10 @@ def
   pdf_padding_string
 
   % Step 3.
-  Trailer /ID oget 0 oget
+  Trailer /ID knownoget { 0 oget } {
+    ()
+    (   **** ID key in the trailer is required for encrypted files.\n) pdfformaterror
+  } ifelse
   concatstrings md5
 
   % Step 4.
@@ -152,9 +185,13 @@ def
     dup 3 eq {
       pop pdf_gen_user_password_R3
     } {
-      (****This file uses an unknown standard security handler revision: )
-      print == flush
-      /pdf_check_user_password cvx /undefined signalerror
+      dup 4 eq {	% 4 uses the algorithm as 3
+        pop pdf_gen_user_password_R3
+      } {
+        (   **** This file uses an unknown standard security handler revision: )
+        exch =string cvs concatstrings pdfformaterror printProducer
+        /pdf_check_user_password cvx /undefined signalerror
+      } ifelse
     } ifelse
   } ifelse
 } bind def
@@ -180,15 +217,14 @@ def
   pdf_pad_key
 
   % Step 2.
-  md5
+  md5_trunk
 
-  % 3.3 Step 3.
-  Trailer /Encrypt oget /R oget 3 eq {
-    50 { md5 } repeat
+  % 3.3 Step 3.  Only executed for /R equal to 3 or more
+  Trailer /Encrypt oget /R oget 3 ge {
+    50 { md5_trunk } repeat
   } if
 
-  % Step 4.
-  0 pdf_key_length getinterval
+  % Step 4 - Done in md5_trunk.
 } bind def
 
 % Algorithm 3.7
@@ -201,8 +237,8 @@ def
   Trailer /Encrypt oget dup /O oget 2 index arc4decode
   % <encryption-key> <encrypt-dict> <decrypted-O>
 
-  % Step 3.
-  exch /R oget 3 eq {
+  % Step 3.  Only executed for /R equal to 3 or more
+  exch /R oget 3 ge {
     1 1 19 {
       2 index pdf_xorbytes arc4decode
     } for
@@ -217,7 +253,8 @@ def
 /pdf_process_Encrypt {
   Trailer /Encrypt oget
   /Filter oget /Standard eq not {
-    (****This file uses an unknown security handler.\n) print flush
+    (   **** This file uses an unknown security handler.\n) pdfformaterror
+    printProducer
     /pdf_process_Encrypt cvx /undefined signalerror
   } if
   () pdf_check_user_password
@@ -233,19 +270,21 @@ def
          {
            /FileKey exch def
          } {
-           (****Password did not work.\n) print flush
+           (   **** Password did not work.\n) pdfformaterror
+	   printProducer
 	   /pdf_process_Encrypt cvx /invalidfileaccess signalerror
          } ifelse
        } ifelse
     } {
-      (****This file requires a password for access.\n) print flush
+      (   **** This file requires a password for access.\n) pdfformaterror
+      printProducer
       /pdf_process_Encrypt cvx /invalidfileaccess signalerror
     } ifelse
   } ifelse
 
 %   Trailer /Encrypt oget /P oget 4 and 0 eq #? and
-%    { (****This owner of this file has requested you do not print it.\n)
-%	  print flush
+%    { (   ****This owner of this file has requested you do not print it.\n)
+%      pdfformaterror printProducer
 %      /pdf_process_Encrypt cvx /invalidfileaccess signalerror
 %    }
 %   if
@@ -266,7 +305,7 @@ def
   pop exch
     2 copy 255 and FileKey length 3 add exch put
     2 copy -8 bitshift 255 and FileKey length 4 add exch put
-  pop md5 0 FileKey length 5 add 2 index length min getinterval
+  pop md5 0 FileKey length 5 add 2 index length .min getinterval
 } bind def
 
 % As .pdfrun, but decrypt strings with key <key>.
@@ -275,7 +314,7 @@ def
    2 index cvlit mark mark 5 2 roll
     { .pdftoken not { (%%EOF) cvn cvx } if
       dup xcheck
-       { DEBUG { dup == flush } if
+       { PDFDEBUG { dup == flush } if
 	 3 -1 roll pop
 	 2 copy .knownget
 	  { exch pop exch pop exec
@@ -290,9 +329,9 @@ def
                   { dup /null eq
                       { pop //null
                       }
-                      { (%stderr) (w) file
-	                dup (****************Unknown operator: ) writestring
-	                dup 3 -1 roll .writecvs dup (\n) writestring flushfile
+                      { (   **** Unknown operator: ) 
+	                exch =string cvs concatstrings (\n) concatstrings
+			pdfformaterror
                       }
                     ifelse
                   }
@@ -302,12 +341,30 @@ def
 	  }
 	 ifelse
        }
-       { exch pop DEBUG { dup ==only ( ) print flush } if
+       { exch pop PDFDEBUG { dup ==only ( ) print flush } if
 	 dup type /stringtype eq
-	  { 1 index arc4decode
-	    DEBUG { (%Decrypted: ) print dup == flush } if
+          {
+	% Check if we have encrypted strings  R=4 allows for
+	% selection of encryption on streams and strings
+            Trailer /Encrypt oget	% Get encryption dictionary
+            dup /R oget 4 lt		% only 4 has selectable
+             {				% R < 4 --> encrypted strings
+	       pop 1 index arc4decode	% Decrypt string
+	       PDFDEBUG { (%Decrypted: ) print dup == flush } if
+             } {			% Else R = 4
+	       /StrF knownoget		% Get StrF (if present)
+	        {			% If StrF is present ...
+		  /Identity eq not	% Check if StrF != Identity
+	  	   { 1 index arc4decode	% Decrypt string
+		     PDFDEBUG { (%Decrypted: ) print dup == flush } if
+		   }
+		  if			% If StrF != identity
+		}
+	       if			% If StrF is known
+      	     }
+	    ifelse			% Ifelse R < 4
 	  }
-	 if
+	 if				% If  = stringtype
 	 exch pop
        }
       ifelse
@@ -322,26 +379,67 @@ def
 
 % Run the code to resolve an object reference.
 /pdf_run_resolve
- { /FileKey where
-    { pop
-      2 copy computeobjkey dup 4 1 roll
-      PDFfile exch resolveopdict .decpdfrun
-      dup dup dup 5 2 roll
+{ /FileKey where			% Check if the file is encrypted
+  { pop					% File is encrypted
+    2 copy computeobjkey dup 4 1 roll
+    PDFfile exch resolveopdict .decpdfrun
+    dup dup dup 5 2 roll
 	% stack: object object key object object
-      xcheck exch type /dicttype eq and
-       { /StreamKey exch put }
-       { pop pop }
-      ifelse
-    }
-    { PDFfile resolveopdict .pdfrun }
-   ifelse
- } bind def
+    {	% Use loop to provide an exitable context.
+      xcheck exch type /dicttype eq and % Check if executable dictionary
+      not {				% If object is not ...
+        pop pop				% ignore object
+        exit				% Exit 'loop' context
+      } if				% If not possible stream
+	% Starting with PDF 1.4 (R = 3), there are some extra features
+	% which control encryption of streams.  The EncryptMetadata entry
+	% in the Encrypt dict controls the encryption of metadata streams.
+      Trailer /Encrypt oget		% Get encryption dictionary
+      dup /R oget dup 3 lt		% Only PDF 1.4 and higher has options
+      {					% R < 3 --> all streams encrypted
+        pop pop /StreamKey exch put	% Insert StreamKey in dictionary
+	exit				% Exit 'loop' context
+      } if
+	% Check EncryptMeta.  stack:  object object key Encrypt R
+      exch dup /EncryptMetadata knownoget % Get EncryptMetadata (if present)
+      not { true } if			% If not present default = true
+      not				% Check if EncryptMetadata = false
+      { 				% if false we need to check the stream type
+	3 index /Type knownoget		% Get stream type (if present)
+	not { //null } if		% If type not present use fake name
+	/Metadata eq			% Check if the type is Metadata
+        { pop pop pop pop		% Type == Metadata --> no encryption
+	  exit				% Exit 'loop' context
+        } if
+      } if
+    	% PDF 1.5 encryption (R == 4) has selectable encryption handlers.  If
+	% this is not PDF 1.5 encryption (R < 4) then we are done checking and
+	% we need to decrypt the stream.  stack:  object object key R Encrypt
+      exch 4 lt				% Check for less than PDF 1.5
+      { pop /StreamKey exch put		% Insert StreamKey in dictionary
+	exit				% Exit 'loop' context
+      } if
+	% Check if the stream encryption handler (StmF) == Identity.
+      /StmF knownoget			% Get StmF (if present)
+      not { /Identity } if		% If StmF not present default = Identity
+      /Identity eq 			% Check if StmF == Identity
+      { pop pop				% Identity --> no encryption
+	exit				% Exit 'loop' context
+      } if
+      	% If we get here then we need to decrypt the stream.
+      /StreamKey exch put		% Insert StreamKey into dictionary
+      exit				% Exit 'loop' context, never loop
+    } loop				% End of loop exitable context
+  } {					% Else file is not encrypted
+    PDFfile resolveopdict .pdfrun
+  } ifelse				% Ifelse encrypted
+} bind def
 
 % Prefix a decryption filter to a stream if needed.
 % Stack: readdata? dict parms file/string filternames
 % (both before and after).
 /pdf_decrypt_stream
- { 3 index /StreamKey known
+ { 3 index /StreamKey known	% Check if the file is encrypted
    {
       exch 
 	% Stack: readdata? dict parms filternames file/string

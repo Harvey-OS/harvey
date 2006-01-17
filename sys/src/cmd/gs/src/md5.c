@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
+  Copyright (C) 1999, 2000, 2002 Aladdin Enterprises.  All rights reserved.
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,98 +21,46 @@
   ghost@aladdin.com
 
  */
-/*$Id: md5.c,v 1.2 2000/07/03 21:55:18 lpd Exp $ */
+/* $Id: md5.c,v 1.6 2002/04/13 19:20:28 lpd Exp $ */
 /*
   Independent implementation of MD5 (RFC 1321).
 
-  This code implements the MD5 Algorithm defined in RFC 1321.
-  It is derived directly from the text of the RFC and not from the
-  reference implementation.
+  This code implements the MD5 Algorithm defined in RFC 1321, whose
+  text is available at
+	http://www.ietf.org/rfc/rfc1321.txt
+  The code is derived from the text of the RFC, including the test suite
+  (section A.5) but excluding the rest of Appendix A.  It does not include
+  any code or documentation that is identified in the RFC as being
+  copyrighted.
 
   The original and principal author of md5.c is L. Peter Deutsch
   <ghost@aladdin.com>.  Other authors are noted in the change history
   that follows (in reverse chronological order):
 
+  2002-04-13 lpd Clarified derivation from RFC 1321; now handles byte order
+	either statically or dynamically; added missing #include <string.h>
+	in library.
+  2002-03-11 lpd Corrected argument list for main(), and added int return
+	type, in test program and T value program.
+  2002-02-21 lpd Added missing #include <stdio.h> in test program.
   2000-07-03 lpd Patched to eliminate warnings about "constant is
-		unsigned in ANSI C, signed in traditional";
-		made test program self-checking.
+	unsigned in ANSI C, signed in traditional"; made test program
+	self-checking.
   1999-11-04 lpd Edited comments slightly for automatic TOC extraction.
   1999-10-18 lpd Fixed typo in header comment (ansi2knr rather than md5).
   1999-05-03 lpd Original version.
  */
 
 #include "md5.h"
-#include <string.h>	/* RSC added include, for memcpy */
+#include <string.h>
 
-#ifdef TEST
-/*
- * Compile with -DTEST to create a self-contained executable test program.
- * The test program should print out the same values as given in section
- * A.5 of RFC 1321, reproduced below.
- */
-main()
-{
-    static const char *const test[7*2] = {
-	"", "d41d8cd98f00b204e9800998ecf8427e",
-	"a", "0cc175b9c0f1b6a831c399e269772661",
-	"abc", "900150983cd24fb0d6963f7d28e17f72",
-	"message digest", "f96b697d7cb7938d525a2f31aaf161d0",
-	"abcdefghijklmnopqrstuvwxyz", "c3fcd3d76192e4007dfb496cca67e13b",
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-				"d174ab98d277d9f5a5611c2c9f419d9f",
-	"12345678901234567890123456789012345678901234567890123456789012345678901234567890", "57edf4a22be3c955ac49da2e2107b67a"
-    };
-    int i;
+#undef BYTE_ORDER	/* 1 = big-endian, -1 = little-endian, 0 = unknown */
+#ifdef ARCH_IS_BIG_ENDIAN
+#  define BYTE_ORDER (ARCH_IS_BIG_ENDIAN ? 1 : -1)
+#else
+#  define BYTE_ORDER 0
+#endif
 
-    for (i = 0; i < 7*2; i += 2) {
-	md5_state_t state;
-	md5_byte_t digest[16];
-	char hex_output[16*2 + 1];
-	int di;
-
-	md5_init(&state);
-	md5_append(&state, (const md5_byte_t *)test[i], strlen(test[i]));
-	md5_finish(&state, digest);
-	printf("MD5 (\"%s\") = ", test[i]);
-	for (di = 0; di < 16; ++di)
-	    sprintf(hex_output + di * 2, "%02x", digest[di]);
-	puts(hex_output);
-	if (strcmp(hex_output, test[i + 1]))
-	    printf("**** ERROR, should be: %s\n", test[i + 1]);
-    }
-    return 0;
-}
-#endif /* TEST */
-
-
-/*
- * For reference, here is the program that computed the T values.
- */
-#ifdef COMPUTE_T_VALUES
-#include <math.h>
-main()
-{
-    int i;
-    for (i = 1; i <= 64; ++i) {
-	unsigned long v = (unsigned long)(4294967296.0 * fabs(sin((double)i)));
-
-	/*
-	 * The following nonsense is only to avoid compiler warnings about
-	 * "integer constant is unsigned in ANSI C, signed with -traditional".
-	 */
-	if (v >> 31) {
-	    printf("#define T%d /* 0x%08lx */ (T_MASK ^ 0x%08lx)\n", i,
-		   v, (unsigned long)(unsigned int)(~v));
-	} else {
-	    printf("#define T%d    0x%08lx\n", i, v);
-	}
-    }
-    return 0;
-}
-#endif /* COMPUTE_T_VALUES */
-/*
- * End of T computation program.
- */
 #define T_MASK ((md5_word_t)~0)
 #define T1 /* 0xd76aa478 */ (T_MASK ^ 0x28955b87)
 #define T2 /* 0xe8c7b756 */ (T_MASK ^ 0x173848a9)
@@ -187,41 +135,64 @@ md5_process(md5_state_t *pms, const md5_byte_t *data /*[64]*/)
 	a = pms->abcd[0], b = pms->abcd[1],
 	c = pms->abcd[2], d = pms->abcd[3];
     md5_word_t t;
-
-#ifndef ARCH_IS_BIG_ENDIAN
-# define ARCH_IS_BIG_ENDIAN 1	/* slower, default implementation */
-#endif
-#if ARCH_IS_BIG_ENDIAN
-
-    /*
-     * On big-endian machines, we must arrange the bytes in the right
-     * order.  (This also works on machines of unknown byte order.)
-     */
+#if BYTE_ORDER > 0
+    /* Define storage only for big-endian CPUs. */
     md5_word_t X[16];
-    const md5_byte_t *xp = data;
-    int i;
-
-    for (i = 0; i < 16; ++i, xp += 4)
-	X[i] = xp[0] + (xp[1] << 8) + (xp[2] << 16) + (xp[3] << 24);
-
-#else  /* !ARCH_IS_BIG_ENDIAN */
-
-    /*
-     * On little-endian machines, we can process properly aligned data
-     * without copying it.
-     */
+#else
+    /* Define storage for little-endian or both types of CPUs. */
     md5_word_t xbuf[16];
     const md5_word_t *X;
-
-    if (!((data - (const md5_byte_t *)0) & 3)) {
-	/* data are properly aligned */
-	X = (const md5_word_t *)data;
-    } else {
-	/* not aligned */
-	memcpy(xbuf, data, 64);
-	X = xbuf;
-    }
 #endif
+
+    {
+#if BYTE_ORDER == 0
+	/*
+	 * Determine dynamically whether this is a big-endian or
+	 * little-endian machine, since we can use a more efficient
+	 * algorithm on the latter.
+	 */
+	static const int w = 1;
+
+	if (*((const md5_byte_t *)&w)) /* dynamic little-endian */
+#endif
+#if BYTE_ORDER <= 0		/* little-endian */
+	{
+	    /*
+	     * On little-endian machines, we can process properly aligned
+	     * data without copying it.
+	     */
+	    if (!((data - (const md5_byte_t *)0) & 3)) {
+		/* data are properly aligned */
+		X = (const md5_word_t *)data;
+	    } else {
+		/* not aligned */
+		memcpy(xbuf, data, 64);
+		X = xbuf;
+	    }
+	}
+#endif
+#if BYTE_ORDER == 0
+	else			/* dynamic big-endian */
+#endif
+#if BYTE_ORDER >= 0		/* big-endian */
+	{
+	    /*
+	     * On big-endian machines, we must arrange the bytes in the
+	     * right order.
+	     */
+	    const md5_byte_t *xp = data;
+	    int i;
+
+#  if BYTE_ORDER == 0
+	    X = xbuf;		/* (dynamic only) */
+#  else
+#    define xbuf X		/* (static only) */
+#  endif
+	    for (i = 0; i < 16; ++i, xp += 4)
+		xbuf[i] = xp[0] + (xp[1] << 8) + (xp[2] << 16) + (xp[3] << 24);
+	}
+#endif
+    }
 
 #define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 

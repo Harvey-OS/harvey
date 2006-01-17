@@ -1,40 +1,46 @@
 /* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxdcolor.c,v 1.3 2000/09/19 19:00:35 lpd Exp $ */
+/*$Id: gxdcolor.c,v 1.13 2005/06/20 08:59:23 igor Exp $ */
 /* Pure and null device color implementation */
 #include "gx.h"
+#include "memory_.h"
 #include "gserrors.h"
 #include "gsbittab.h"
 #include "gxdcolor.h"
 #include "gxdevice.h"
+#include "gxdevcli.h"
 
 /* Define the standard device color types. */
 
 /* 'none' means the color is not defined. */
+private dev_color_proc_save_dc(gx_dc_no_save_dc);
+private dev_color_proc_get_dev_halftone(gx_dc_no_get_dev_halftone);
 private dev_color_proc_load(gx_dc_no_load);
 private dev_color_proc_fill_rectangle(gx_dc_no_fill_rectangle);
 private dev_color_proc_fill_masked(gx_dc_no_fill_masked);
 private dev_color_proc_equal(gx_dc_no_equal);
+private dev_color_proc_write(gx_dc_no_write);
+private dev_color_proc_read(gx_dc_no_read);
+private dev_color_proc_get_nonzero_comps(gx_dc_no_get_nonzero_comps);
 const gx_device_color_type_t gx_dc_type_data_none = {
     &st_bytes,
+    gx_dc_no_save_dc, gx_dc_no_get_dev_halftone, gx_dc_no_get_phase,
     gx_dc_no_load, gx_dc_no_fill_rectangle, gx_dc_no_fill_masked,
-    gx_dc_no_equal
+    gx_dc_no_equal, gx_dc_no_write, gx_dc_no_read, gx_dc_no_get_nonzero_comps
 };
 #undef gx_dc_type_none
 const gx_device_color_type_t *const gx_dc_type_none = &gx_dc_type_data_none;
@@ -45,58 +51,74 @@ private dev_color_proc_load(gx_dc_null_load);
 private dev_color_proc_fill_rectangle(gx_dc_null_fill_rectangle);
 private dev_color_proc_fill_masked(gx_dc_null_fill_masked);
 private dev_color_proc_equal(gx_dc_null_equal);
+private dev_color_proc_read(gx_dc_null_read);
 const gx_device_color_type_t gx_dc_type_data_null = {
     &st_bytes,
+    gx_dc_no_save_dc, gx_dc_no_get_dev_halftone, gx_dc_no_get_phase,
     gx_dc_null_load, gx_dc_null_fill_rectangle, gx_dc_null_fill_masked,
-    gx_dc_null_equal
+    gx_dc_null_equal, gx_dc_no_write, gx_dc_null_read, gx_dc_no_get_nonzero_comps
 };
 #undef gx_dc_type_null
 const gx_device_color_type_t *const gx_dc_type_null = &gx_dc_type_data_null;
 #define gx_dc_type_null (&gx_dc_type_data_null)
 
+private dev_color_proc_save_dc(gx_dc_pure_save_dc);
 private dev_color_proc_load(gx_dc_pure_load);
 private dev_color_proc_fill_rectangle(gx_dc_pure_fill_rectangle);
 private dev_color_proc_fill_masked(gx_dc_pure_fill_masked);
 private dev_color_proc_equal(gx_dc_pure_equal);
+private dev_color_proc_write(gx_dc_pure_write);
+private dev_color_proc_read(gx_dc_pure_read);
 const gx_device_color_type_t gx_dc_type_data_pure = {
     &st_bytes,
+    gx_dc_pure_save_dc, gx_dc_no_get_dev_halftone, gx_dc_no_get_phase,
     gx_dc_pure_load, gx_dc_pure_fill_rectangle, gx_dc_pure_fill_masked,
-    gx_dc_pure_equal
+    gx_dc_pure_equal, gx_dc_pure_write, gx_dc_pure_read,
+    gx_dc_pure_get_nonzero_comps
 };
 #undef gx_dc_type_pure
 const gx_device_color_type_t *const gx_dc_type_pure = &gx_dc_type_data_pure;
 #define gx_dc_type_pure (&gx_dc_type_data_pure)
 
 /*
- * Get the black and white pixel values of a device.  The documentation for
- * the driver API says that map_rgb_color will do the right thing on CMYK
- * devices.  Unfortunately, that isn't true at present, and fixing it is too
- * much work.
+ * Get the black and white pixel values of a device.
  */
 gx_color_index
 gx_device_black(gx_device *dev)
 {
-    if (dev->cached_colors.black == gx_no_color_index)
-	dev->cached_colors.black =
-	    (dev->color_info.num_components == 4 ?
-	     (*dev_proc(dev, map_cmyk_color))
-	     (dev, (gx_color_index)0, (gx_color_index)0, (gx_color_index)0,
-	      gx_max_color_value) :
-	     (*dev_proc(dev, map_rgb_color))
-	     (dev, (gx_color_index)0, (gx_color_index)0, (gx_color_index)0));
+    if (dev->cached_colors.black == gx_no_color_index) {
+	const gx_cm_color_map_procs * cm_procs = dev_proc(dev, get_color_mapping_procs)(dev);
+        int i, ncomps = dev->color_info.num_components;
+        frac cm_comps[GX_DEVICE_COLOR_MAX_COMPONENTS];
+        gx_color_value cv[GX_DEVICE_COLOR_MAX_COMPONENTS];
+
+    	/* Get color components for black (gray = 0) */
+    	cm_procs->map_gray(dev, frac_0, cm_comps);
+
+        for (i = 0; i < ncomps; i++)
+            cv[i] = frac2cv(cm_comps[i]);
+
+	dev->cached_colors.black = dev_proc(dev, encode_color)(dev, cv);
+    }
     return dev->cached_colors.black;
 }
 gx_color_index
 gx_device_white(gx_device *dev)
 {
-    if (dev->cached_colors.white == gx_no_color_index)
-	dev->cached_colors.white =
-	    (dev->color_info.num_components == 4 ?
-	     (*dev_proc(dev, map_cmyk_color))
-	     (dev, (gx_color_index)0, (gx_color_index)0, (gx_color_index)0,
-	      (gx_color_index)0) :
-	     (*dev_proc(dev, map_rgb_color))
-	     (dev, gx_max_color_value, gx_max_color_value, gx_max_color_value));
+    if (dev->cached_colors.white == gx_no_color_index) {
+	const gx_cm_color_map_procs * cm_procs = dev_proc(dev, get_color_mapping_procs)(dev);
+        int i, ncomps = dev->color_info.num_components;
+        frac cm_comps[GX_DEVICE_COLOR_MAX_COMPONENTS];
+        gx_color_value cv[GX_DEVICE_COLOR_MAX_COMPONENTS];
+
+    	/* Get color components for white (gray = 1) */
+    	cm_procs->map_gray(dev, frac_1, cm_comps);
+
+        for (i = 0; i < ncomps; i++)
+            cv[i] = frac2cv(cm_comps[i]);
+
+	dev->cached_colors.white = dev_proc(dev, encode_color)(dev, cv);
+    }
     return dev->cached_colors.white;
 }
 
@@ -132,7 +154,12 @@ top:
     }
 }
 
-/* Test device colors for equality. */
+/*
+ * Test device colors for equality.  Testing for equality is done
+ * for determining when cache values, etc. can be used.  Thus these
+ * routines should err toward false responses if there is any question
+ * about the equality of the two device colors.
+ */
 bool
 gx_device_color_equal(const gx_device_color *pdevc1,
 		      const gx_device_color *pdevc2)
@@ -140,7 +167,76 @@ gx_device_color_equal(const gx_device_color *pdevc1,
     return pdevc1->type->equal(pdevc1, pdevc2);
 }
 
+/*
+ * Return a device color type index. This index is used by the command
+ * list processor to identify a device color type, as the type pointer
+ * itself is meaningful only within a single address space.
+ *
+ * Currently, we ignore the pattern device colors as they cannot be
+ * passed through the command list.
+ *
+ * Returns gs_error_unknownerror for an unrecognized type.
+ */
+private  const gx_device_color_type_t * dc_color_type_table[] = {
+    gx_dc_type_none,            /* unset device color */
+    gx_dc_type_null,            /* blank (transparent) device color */
+    gx_dc_type_pure,            /* pure device color */
+    /* gx_dc_type_pattern, */   /* patterns - not used in command list */
+    gx_dc_type_ht_binary,       /* binary halftone device colors */
+    gx_dc_type_ht_colored,      /* general halftone device colors */
+    gx_dc_type_wts              /* well-tempered screen device colors */
+};
+
+int
+gx_get_dc_type_index(const gx_device_color * pdevc)
+{
+    const gx_device_color_type_t *  type = pdevc->type;
+    int                             num_types, i;
+
+    num_types = sizeof(dc_color_type_table) / sizeof(dc_color_type_table[0]);
+    for (i = 0; i < num_types && type != dc_color_type_table[i]; i++)
+        ;
+
+    return i < num_types ? i : gs_error_unknownerror;
+}
+
+/* map a device color type index into the associated method vector */
+const gx_device_color_type_t *
+gx_get_dc_type_from_index(int i)
+{
+    if ( i >= 0                                                          &&
+         i < sizeof(dc_color_type_table) / sizeof(dc_color_type_table[0])  )
+        return dc_color_type_table[i];
+    else
+        return 0;
+}
+
+/* ------ Canonical get_phase methods ------ */
+bool
+gx_dc_no_get_phase(const gx_device_color * pdevc, gs_int_point * pphase)
+{
+    return false;
+}
+
+bool
+gx_dc_ht_get_phase(const gx_device_color * pdevc, gs_int_point * pphase)
+{
+    *pphase = pdevc->phase;
+    return true;
+}
+
 /* ------ Undefined color ------ */
+private void
+gx_dc_no_save_dc(const gx_device_color * pdevc, gx_device_color_saved * psdc)
+{
+    psdc->type = pdevc->type;
+}
+
+private const gx_device_halftone *
+gx_dc_no_get_dev_halftone(const gx_device_color * pdevc)
+{
+    return 0;
+}
 
 private int
 gx_dc_no_load(gx_device_color *pdevc, const gs_imager_state *ignore_pis,
@@ -161,7 +257,7 @@ gx_dc_no_fill_rectangle(const gx_device_color *pdevc, int x, int y,
 	return 0;
     if (lop_uses_T(lop))
 	return_error(gs_error_Fatal);
-    color_set_pure(&filler, 0);	 /* any valid value for dev will do */
+    set_nonclient_dev_color(&filler, 0);   /* any valid value for dev will do */
     return gx_dc_pure_fill_rectangle(&filler, x, y, w, h, dev, lop, source);
 }
 
@@ -180,6 +276,41 @@ private bool
 gx_dc_no_equal(const gx_device_color *pdevc1, const gx_device_color *pdevc2)
 {
     return false;
+}
+
+private int
+gx_dc_no_write(
+    const gx_device_color *         pdevc,      /* ignored */
+    const gx_device_color_saved *   psdc,       /* ignored */
+    const gx_device *               dev,        /* ignored */
+    byte *                          data,       /* ignored */
+    uint *                          psize )
+{
+    *psize = 0;
+    return psdc != 0 && psdc->type == pdevc->type ? 1 : 0;
+}
+
+private int
+gx_dc_no_read(
+    gx_device_color *       pdevc,
+    const gs_imager_state * pis,                /* ignored */
+    const gx_device_color * prior_devc,         /* ignored */
+    const gx_device *       dev,                /* ignored */
+    const byte *            pdata,              /* ignored */
+    uint                    size,               /* ignored */
+    gs_memory_t *           mem )               /* ignored */
+{
+    pdevc->type = gx_dc_type_none;
+    return 0;
+}
+
+private int
+gx_dc_no_get_nonzero_comps(
+    const gx_device_color * pdevc_ignored,
+    const gx_device *       dev_ignored,
+    gx_color_index *        pcomp_bits_ignored )
+{
+    return 0;
 }
 
 /* ------ Null color ------ */
@@ -215,7 +346,28 @@ gx_dc_null_equal(const gx_device_color * pdevc1, const gx_device_color * pdevc2)
     return pdevc2->type == pdevc1->type;
 }
 
+private int
+gx_dc_null_read(
+    gx_device_color *       pdevc,
+    const gs_imager_state * pis,                /* ignored */
+    const gx_device_color * prior_devc,         /* ignored */
+    const gx_device *       dev,                /* ignored */
+    const byte *            pdata,              /* ignored */
+    uint                    size,               /* ignored */
+    gs_memory_t *           mem )               /* ignored */
+{
+    pdevc->type = gx_dc_type_null;
+    return 0;
+}
+
 /* ------ Pure color ------ */
+
+private void
+gx_dc_pure_save_dc(const gx_device_color * pdevc, gx_device_color_saved * psdc)
+{
+    psdc->type = pdevc->type;
+    psdc->colors.pure = pdevc->colors.pure;
+}
 
 private int
 gx_dc_pure_load(gx_device_color * pdevc, const gs_imager_state * ignore_pis,
@@ -285,36 +437,138 @@ gx_dc_pure_equal(const gx_device_color * pdevc1, const gx_device_color * pdevc2)
 	gx_dc_pure_color(pdevc1) == gx_dc_pure_color(pdevc2);
 }
 
+/*
+ * Serialize a pure color.
+ *
+ * Operands:
+ *
+ *  pdevc       pointer to device color to be serialized
+ *
+ *  psdc        pointer ot saved version of last serialized color (for
+ *              this band); this is ignored
+ *  
+ *  dev         pointer to the current device, used to retrieve process
+ *              color model information
+ *
+ *  pdata       pointer to buffer in which to write the data
+ *
+ *  psize       pointer to a location that, on entry, contains the size of
+ *              the buffer pointed to by pdata; on return, the size of
+ *              the data required or actually used will be written here.
+ *
+ * Returns:
+ *
+ *  1, with *psize set to 0, if *pdevc and *psdc represent the same color
+ *
+ *  0, with *psize set to the amount of data written, if everything OK
+ *
+ *  gs_error_rangecheck, with *psize set to the size of buffer required,
+ *  if *psize was not large enough
+ *
+ *  < 0, != gs_error_rangecheck, in the event of some other error; in this
+ *  case *psize is not changed.
+ */
+private int
+gx_dc_pure_write(
+    const gx_device_color *         pdevc,
+    const gx_device_color_saved *   psdc,       /* ignored */
+    const gx_device *               dev,
+    byte *                          pdata,
+    uint *                          psize )
+{
+    if ( psdc != 0                              &&
+         psdc->type == pdevc->type              &&
+         psdc->colors.pure == pdevc->colors.pure  ) {
+        *psize = 0;
+        return 1;
+    } else
+        return gx_dc_write_color(pdevc->colors.pure, dev, pdata, psize);
+}
+
+/*
+ * Reconstruct a pure device color from its serial representation.
+ *
+ * Operands:
+ *
+ *  pdevc       pointer to the location in which to write the
+ *              reconstructed device color
+ *
+ *  pis         pointer to the current imager state (ignored here)
+ *
+ *  prior_devc  pointer to the current device color (this is provided
+ *              separately because the device color is not part of the
+ *              imager state; it is ignored here)
+ *
+ *  dev         pointer to the current device, used to retrieve process
+ *              color model information
+ *
+ *  pdata       pointer to the buffer to be read
+ *
+ *  size        size of the buffer to be read; this should be large
+ *              enough to hold the entire color description
+ *
+ *  mem         pointer to the memory to be used for allocations
+ *              (ignored here)
+ *
+ * Returns:
+ *
+ *  # of bytes read if everthing OK, < 0 in the event of an error
+ */
+private int
+gx_dc_pure_read(
+    gx_device_color *       pdevc,
+    const gs_imager_state * pis,                /* ignored */
+    const gx_device_color * prior_devc,         /* ignored */
+    const gx_device *       dev,
+    const byte *            pdata,
+    uint                    size,
+    gs_memory_t *           mem )               /* ignored */
+{
+    pdevc->type = gx_dc_type_pure;
+    return gx_dc_read_color(&pdevc->colors.pure, dev, pdata, size);
+}
+
+int
+gx_dc_pure_get_nonzero_comps(
+    const gx_device_color * pdevc,
+    const gx_device *       dev,
+    gx_color_index *        pcomp_bits )
+{
+    int                     code;
+    gx_color_value          cvals[GX_DEVICE_COLOR_MAX_COMPONENTS];
+
+    code = dev_proc(dev, decode_color)( (gx_device *)dev,
+                                         pdevc->colors.pure,
+                                         cvals );
+    if (code >= 0) {
+        int             i, ncomps = dev->color_info.num_components;
+        gx_color_index  mask = 0x1, comp_bits = 0;
+
+        for (i = 0; i < ncomps; i++, mask <<= 1) {
+            if (cvals[i] != 0)
+                comp_bits |= mask;
+        }
+        *pcomp_bits = comp_bits;
+        code = 0;
+    }
+
+    return code;
+}
+
 /* ------ Halftone color initialization ------ */
 
 void
-gx_complete_rgb_halftone(gx_device_color *pdevc, gx_device_halftone *pdht)
+gx_complete_halftone(gx_device_color *pdevc, int num_comps, gx_device_halftone *pdht)
 {
-    pdevc->type = gx_dc_type_ht_colored;
-    pdevc->colors.colored.c_ht = pdht;
-    pdevc->colors.colored.plane_mask =
-	(pdevc->colors.colored.c_level[0] != 0) |
-	((pdevc->colors.colored.c_level[1] != 0) << 1) |
-	((pdevc->colors.colored.c_level[2] != 0) << 2);
-    /*
-     * Color rendering won't use the fourth component, but the code that
-     * writes and reads colored halftones in the band list doesn't know that.
-     */
-    pdevc->colors.colored.c_base[3] = 0;
-    pdevc->colors.colored.c_level[3] = 0;
-}
+    int i, mask = 0;
 
-void
-gx_complete_cmyk_halftone(gx_device_color *pdevc, gx_device_halftone *pdht)
-{
     pdevc->type = gx_dc_type_ht_colored;
     pdevc->colors.colored.c_ht = pdht;
+    pdevc->colors.colored.num_components = num_comps;
     pdevc->colors.colored.alpha = max_ushort;
-    pdevc->colors.colored.plane_mask =
-	(pdevc->colors.colored.c_level[0] != 0) |
-	((pdevc->colors.colored.c_level[1] != 0) << 1) |
-	((pdevc->colors.colored.c_level[2] != 0) << 2) |
-	((pdevc->colors.colored.c_level[3] != 0) << 3);
+    for (i = 0; i < num_comps; i++)
+        mask |= ((pdevc->colors.colored.c_level[i] != 0 ? 1 : 0) << i);
+    pdevc->colors.colored.plane_mask = mask;
 }
 
 /* ------ Default implementations ------ */
@@ -389,4 +643,116 @@ gx_dc_default_fill_masked(const gx_device_color * pdevc, const byte * data,
 	}
     }
     return 0;
+}
+
+/* ------ Serialization identification support ------ */
+
+/*
+ * Utility to write a color index.  Currently, a very simple mechanism
+ * is used, much simpler than that used by other command-list writers. This
+ * should be sufficient for most situations.
+ *
+ * Operands:
+ *
+ *  color       color to be serialized.
+ *
+ *  dev         pointer to the current device, used to retrieve process
+ *              color model information
+ *
+ *  pdata       pointer to buffer in which to write the data
+ *
+ *  psize       pointer to a location that, on entry, contains the size of
+ *              the buffer pointed to by pdata; on return, the size of
+ *              the data required or actually used will be written here.
+ *
+ * Returns:
+ *
+ *  0, with *psize set to the amount of data written, if everything OK
+ *
+ *  gs_error_rangecheck, with *psize set to the size of buffer required,
+ *  if *psize was not large enough
+ *
+ *  < 0, != gs_error_rangecheck, in the event of some other error; in this
+ *  case *psize is not changed.
+ */
+int
+gx_dc_write_color(
+    gx_color_index      color,
+    const gx_device *   dev,
+    byte *              pdata,
+    uint *              psize )
+{
+    int                 depth = dev->color_info.depth;
+    int                 num_bytes = (depth + 8) >> 3;   /* NB: +8, not +7 */
+
+    /* gx_no_color_index is encoded as a single byte */
+    if (color == gx_no_color_index)
+        num_bytes = 1;
+
+    /* check for adequate space */
+    if (*psize < num_bytes) {
+        *psize = num_bytes;
+        return gs_error_rangecheck;
+    }
+    *psize = num_bytes;
+
+    /* gx_no_color_index is a single byte of 0xff */
+    if (color == gx_no_color_index) {
+        *psize = 1;
+        *pdata = 0xff;
+    } else {
+        if (depth < 8 * arch_sizeof_color_index)
+            color &= ((gx_color_index)1 << depth) - 1;
+        while (--num_bytes >= 0) {
+            pdata[num_bytes] = color & 0xff;
+            color >>= 8;
+        }
+    }
+    return 0;
+}
+
+/*
+ * Utility to reconstruct device color from its serial representation.
+ *
+ * Operands:
+ *
+ *  pcolor      pointer to the location in which to write the
+ *              reconstucted color
+ *
+ *  dev         pointer to the current device, used to retrieve process
+ *              color model information
+ *
+ *  pdata       pointer to the buffer to be read
+ *
+ *  size        size of the buffer to be read; this is expected to be
+ *              large enough for the full color
+ *
+ * Returns: # of bytes read, or < 0 in the event of an error
+ */
+int
+gx_dc_read_color(
+    gx_color_index *    pcolor,
+    const gx_device *   dev,
+    const byte *        pdata,
+    int                 size )
+{
+    gx_color_index      color = 0;
+    int                 depth = dev->color_info.depth;
+    int                 i, num_bytes = (depth + 8) >> 3;   /* NB: +8, not +7 */
+
+    /* check that enough data has been provided */
+    if (size < 1 || (pdata[0] != 0xff && size < num_bytes))
+        return gs_error_rangecheck;
+
+    /* check of gx_no_color_index */
+    if (pdata[0] == 0xff) {
+        *pcolor = gx_no_color_index;
+        return 1;
+    }
+
+    /* num_bytes > arch_sizeof_color_index, discard first byte */
+    for (i = (num_bytes >= arch_sizeof_color_index ? 1 : 0); i < num_bytes; i++)
+        color = (color << 8) | pdata[i];
+    *pcolor = color;
+    return num_bytes;
 }

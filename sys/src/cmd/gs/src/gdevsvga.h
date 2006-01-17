@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevsvga.h,v 1.2 2000/09/19 19:00:23 lpd Exp $ */
+/* $Id: gdevsvga.h,v 1.5 2002/06/16 07:25:26 lpd Exp $ */
 /* Common definitions and procedures for SuperVGA drivers */
 /* Requires gdevpcfb.h */
 
@@ -48,9 +46,9 @@ typedef struct {
 typedef struct gx_device_svga_s gx_device_svga;
 struct gx_device_svga_s {
     gx_device_common;
-    int (*get_mode) (P0());
-    void (*set_mode) (P1(int));
-    void (*set_page) (P3(gx_device_svga * fbdev, int pnum, int wnum));
+    int (*get_mode) (void);
+    void (*set_mode) (int);
+    void (*set_page) (gx_device_svga * fbdev, int pnum, int wnum);
     bool fixed_colors;		/* if true, used a fixed palette */
     const mode_info *mode;	/* BIOS display mode info */
     uint raster;		/* frame buffer bytes per line */
@@ -59,7 +57,7 @@ struct gx_device_svga_s {
     /* Following are device-specific. */
     union {
 	struct {
-	    void (*bios_set_page) (P2(int, int));	/* set-page function */
+	    void (*bios_set_page) (int, int);	/* set-page function */
 	    int pn_shift;	/* log2(64K/granularity) */
 	} vesa;
 	struct {
@@ -88,8 +86,8 @@ struct gx_device_svga_s {
   svga_color_device(procs, name, 8, 31, 4, get_mode, set_mode, set_page)
 
 /* Utility procedures */
-void svga_init_colors(P1(gx_device *));
-int svga_find_mode(P2(gx_device *, const mode_info *));
-int svga_open(P1(gx_device *));
+void svga_init_colors(gx_device *);
+int svga_find_mode(gx_device *, const mode_info *);
+int svga_open(gx_device *);
 
 #endif /* gdevsvga_INCLUDED */

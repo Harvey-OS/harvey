@@ -1,147 +1,130 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zimage.c,v 1.5 2000/09/19 19:00:54 lpd Exp $ */
+/* $Id: zimage.c,v 1.15 2005/06/15 18:40:08 igor Exp $ */
 /* Image operators */
+#include "math_.h"
 #include "memory_.h"
 #include "ghost.h"
 #include "oper.h"
-#include "estack.h"		/* for image[mask] */
+#include "gscolor.h"
+#include "gscspace.h"
+#include "gscolor2.h"
+#include "gsmatrix.h"
+#include "gsimage.h"
+#include "gxfixed.h"
 #include "gsstruct.h"
+#include "gxiparam.h"
+#include "idict.h"
+#include "idparam.h"
+#include "estack.h"		/* for image[mask] */
 #include "ialloc.h"
 #include "igstate.h"
 #include "ilevel.h"
 #include "store.h"
-#include "gscspace.h"
-#include "gscssub.h"
-#include "gsmatrix.h"
-#include "gsimage.h"
-#include "gxiparam.h"
 #include "stream.h"
 #include "ifilter.h"		/* for stream exception handling */
 #include "iimage.h"
 
 /* Forward references */
-private int image_setup(P5(i_ctx_t *i_ctx_p, os_ptr op, gs_image_t * pim,
-			   const gs_color_space * pcs, int npop));
-private int image_proc_process(P1(i_ctx_t *));
-private int image_file_continue(P1(i_ctx_t *));
-private int image_string_continue(P1(i_ctx_t *));
-private int image_cleanup(P1(i_ctx_t *));
+private int zimage_data_setup(i_ctx_t *i_ctx_p, const gs_pixel_image_t * pim,
+				 gx_image_enum_common_t * pie,
+				 const ref * sources, int npop);
+private int image_proc_process(i_ctx_t *);
+private int image_file_continue(i_ctx_t *);
+private int image_string_continue(i_ctx_t *);
+private int image_cleanup(i_ctx_t *);
 
-/* <width> <height> <bits/sample> <matrix> <datasrc> image - */
+
+
+/* Extract and check the parameters for a gs_data_image_t. */
 int
-zimage(i_ctx_t *i_ctx_p)
-{
-    return zimage_opaque_setup(i_ctx_p, osp, false, gs_image_alpha_none,
-			       gs_current_DeviceGray_space(igs), 5);
-}
-
-/* <width> <height> <paint_1s> <matrix> <datasrc> imagemask - */
-int
-zimagemask(i_ctx_t *i_ctx_p)
-{
-    os_ptr op = osp;
-    gs_image_t image;
-
-    check_type(op[-2], t_boolean);
-    gs_image_t_init_mask_adjust(&image, op[-2].value.boolval,
-				gs_incachedevice(igs) != CACHE_DEVICE_NONE);
-    return image_setup(i_ctx_p, op, &image, NULL, 5);
-}
-
-/* Setup for [color|alpha]image.  This code isn't used for Level 1, */
-/* but it's simpler to include it here. */
-int
-zimage_multiple(i_ctx_t *i_ctx_p, bool has_alpha)
-{
-    os_ptr op = osp;
-    int spp;			/* samples per pixel */
-    int npop = 7;
-    os_ptr procp = op - 2;
-    const gs_color_space *pcs;
-    bool multi = false;
-
-    check_int_leu(*op, 4);	/* ncolors */
-    check_type(op[-1], t_boolean);	/* multiproc */
-    switch ((spp = (int)(op->value.intval))) {
-	case 1:
-	    pcs = gs_current_DeviceGray_space(igs);
-	    break;
-	case 3:
-	    pcs = gs_current_DeviceRGB_space(igs);
-	    goto color;
-	case 4:
-	    pcs = gs_current_DeviceCMYK_space(igs);
-color:
-	    if (op[-1].value.boolval) {	/* planar format */
-		if (has_alpha)
-		    ++spp;
-		npop += spp - 1;
-		procp -= spp - 1;
-		multi = true;
-	    }
-	    break;
-	default:
-	    return_error(e_rangecheck);
-    }
-    return zimage_opaque_setup(i_ctx_p, procp, multi,
-		    (has_alpha ? gs_image_alpha_last : gs_image_alpha_none),
-			       pcs, npop);
-}
-
-/* Common setup for [color|alpha]image. */
-/* Fills in format, BitsPerComponent, Alpha. */
-int
-zimage_opaque_setup(i_ctx_t *i_ctx_p, os_ptr op, bool multi,
-		    gs_image_alpha_t alpha, const gs_color_space * pcs,
-		    int npop)
-{
-    gs_image_t image;
-
-    check_int_leu(op[-2], (level2_enabled ? 12 : 8));	/* bits/sample */
-    gs_image_t_init(&image, pcs);
-    image.BitsPerComponent = (int)op[-2].value.intval;
-    image.Alpha = alpha;
-    image.format =
-	(multi ? gs_image_format_component_planar : gs_image_format_chunky);
-    return image_setup(i_ctx_p, op, &image, pcs, npop);
-}
-
-/* Common setup for [color|alpha]image and imagemask. */
-/* Fills in Width, Height, ImageMatrix, ColorSpace. */
-private int
-image_setup(i_ctx_t *i_ctx_p, os_ptr op, gs_image_t * pim,
-	    const gs_color_space * pcs, int npop)
+data_image_params(const gs_memory_t *mem, 
+		  const ref *op, gs_data_image_t *pim,
+		  image_params *pip, bool require_DataSource,
+		  int num_components, int max_bits_per_component,
+		  bool has_alpha)
 {
     int code;
+    int decode_size;
+    ref *pds;
 
-    check_type(op[-4], t_integer);	/* width */
-    check_type(op[-3], t_integer);	/* height */
-    if (op[-4].value.intval < 0 || op[-3].value.intval < 0)
-	return_error(e_rangecheck);
-    if ((code = read_matrix(op - 1, &pim->ImageMatrix)) < 0)
+    check_type(*op, t_dictionary);
+    check_dict_read(*op);
+    if ((code = dict_int_param(op, "Width", 0, max_int_in_fixed / 2,
+			       -1, &pim->Width)) < 0 ||
+	(code = dict_int_param(op, "Height", 0, max_int_in_fixed / 2,
+			       -1, &pim->Height)) < 0 ||
+	(code = dict_matrix_param(mem, op, "ImageMatrix",
+				  &pim->ImageMatrix)) < 0 ||
+	(code = dict_bool_param(op, "MultipleDataSources", false,
+				&pip->MultipleDataSources)) < 0 ||
+	(code = dict_int_param(op, "BitsPerComponent", 1,
+			       max_bits_per_component, -1,
+			       &pim->BitsPerComponent)) < 0 ||
+	(code = decode_size = dict_floats_param(mem, op, "Decode",
+						num_components * 2,
+						&pim->Decode[0], NULL)) < 0 ||
+	(code = dict_bool_param(op, "Interpolate", false,
+				&pim->Interpolate)) < 0
+	)
 	return code;
-    pim->ColorSpace = pcs;
-    pim->Width = (int)op[-4].value.intval;
-    pim->Height = (int)op[-3].value.intval;
-    return zimage_setup(i_ctx_p, (gs_pixel_image_t *) pim, op,
-			pim->ImageMask | pim->CombineWithColor, npop);
+    pip->pDecode = &pim->Decode[0];
+    /* Extract and check the data sources. */
+    if ((code = dict_find_string(op, "DataSource", &pds)) <= 0) {
+	if (require_DataSource)
+	    return (code < 0 ? code : gs_note_error(e_rangecheck));
+	return 1;		/* no data source */
+    }
+    if (pip->MultipleDataSources) {
+	long i, n = num_components + (has_alpha ? 1 : 0);
+        if (!r_is_array(pds))
+            return_error(e_typecheck);
+	if (r_size(pds) != n)
+	    return_error(e_rangecheck);
+	for (i = 0; i < n; ++i)
+	    array_get(mem, pds, i, &pip->DataSource[i]);
+    } else
+	pip->DataSource[0] = *pds;
+    return 0;
+}
+
+/* Extract and check the parameters for a gs_pixel_image_t. */
+int
+pixel_image_params(i_ctx_t *i_ctx_p, const ref *op, gs_pixel_image_t *pim,
+		   image_params *pip, int max_bits_per_component,
+		   bool has_alpha)
+{
+    int num_components =
+	gs_color_space_num_components(gs_currentcolorspace(igs));
+    int code;
+
+    if (num_components < 1)
+	return_error(e_rangecheck);	/* Pattern space not allowed */
+    pim->ColorSpace = gs_currentcolorspace(igs);
+    code = data_image_params(imemory, op, (gs_data_image_t *) pim, pip, true,
+			     num_components, max_bits_per_component,
+			     has_alpha);
+    if (code < 0)
+	return code;
+    pim->format =
+	(pip->MultipleDataSources ? gs_image_format_component_planar :
+	 gs_image_format_chunky);
+    return dict_bool_param(op, "CombineWithColor", false,
+			   &pim->CombineWithColor);
 }
 
 /* Common setup for all Level 1 and 2 images, and ImageType 4 images. */
@@ -159,6 +142,62 @@ zimage_setup(i_ctx_t *i_ctx_p, const gs_pixel_image_t * pim,
     return zimage_data_setup(i_ctx_p, (const gs_pixel_image_t *)pim, pie,
 			     sources, npop);
 }
+
+/* Common code for .image1 and .alphaimage operators */
+int
+image1_setup(i_ctx_t * i_ctx_p, bool has_alpha)
+{
+    os_ptr          op = osp;
+    gs_image_t      image;
+    image_params    ip;
+    int             code;
+
+    gs_image_t_init(&image, gs_currentcolorspace(igs));
+    code = pixel_image_params( i_ctx_p,
+                               op,
+                               (gs_pixel_image_t *)&image,
+                               &ip,
+			       (level2_enabled ? 16 : 8),
+                               has_alpha );
+    if (code < 0)
+	return code;
+
+    image.Alpha = (has_alpha ? gs_image_alpha_last : gs_image_alpha_none);
+    return zimage_setup( i_ctx_p,
+                         (gs_pixel_image_t *)&image,
+                         &ip.DataSource[0],
+			 image.CombineWithColor,
+                         1 );
+}
+
+/* <dict> .image1 - */
+private int
+zimage1(i_ctx_t *i_ctx_p)
+{
+    return image1_setup(i_ctx_p, false);
+}
+
+/* <dict> .imagemask1 - */
+private int
+zimagemask1(i_ctx_t *i_ctx_p)
+{
+    os_ptr op = osp;
+    gs_image_t image;
+    image_params ip;
+    int code;
+
+    gs_image_t_init_mask_adjust(&image, false,
+				gs_incachedevice(igs) != CACHE_DEVICE_NONE);
+    code = data_image_params(imemory, op, (gs_data_image_t *) & image,
+			     &ip, true, 1, 1, false);
+    if (code < 0)
+	return code;
+    if (ip.MultipleDataSources)
+	return_error(e_rangecheck);
+    return zimage_setup(i_ctx_p, (gs_pixel_image_t *)&image, &ip.DataSource[0],
+			true, 1);
+}
+
 
 /* Common setup for all Level 1 and 2 images, and ImageType 3 and 4 images. */
 /*
@@ -191,7 +230,7 @@ zimage_setup(i_ctx_t *i_ctx_p, const gs_pixel_image_t * pim,
   ((ep) - 4 - (i) * 2)
 #define ETOP_PLANE_INDEX(ep) ((ep) - 2)
 #define ETOP_NUM_SOURCES(ep) ((ep) - 1)
-int
+private int
 zimage_data_setup(i_ctx_t *i_ctx_p, const gs_pixel_image_t * pim,
 		  gx_image_enum_common_t * pie, const ref * sources, int npop)
 {
@@ -239,32 +278,44 @@ zimage_data_setup(i_ctx_t *i_ctx_p, const gs_pixel_image_t * pim,
 		}
 		/* falls through */
 	    case t_string:
-		if (r_type(pp) != r_type(sources))
+		if (r_type(pp) != r_type(sources)) {
+    		    if (pie != NULL)
+		        gx_image_end(pie, false);    /* Clean up pie */
 		    return_error(e_typecheck);
+		}
 		check_read(*pp);
 		break;
 	    default:
-		if (!r_is_proc(sources))
+		if (!r_is_proc(sources)) {
+    		    if (pie != NULL)
+		        gx_image_end(pie, false);    /* Clean up pie */
 		    return_error(e_typecheck);
+		}
 		check_proc(*pp);
 	}
 	*ep = *pp;
     }
-    if ((penum = gs_image_enum_alloc(imemory, "image_setup")) == 0)
+    /* Always place the image enumerator into local memory,
+       because pie may have local objects inherited from igs,
+       which may be local when the current allocation mode is global. 
+       Bug 688140. */
+    if ((penum = gs_image_enum_alloc(imemory_local, "image_setup")) == 0)
 	return_error(e_VMerror);
     code = gs_image_enum_init(penum, pie, (const gs_data_image_t *)pim, igs);
     if (code != 0) {		/* error, or empty image */
-	gs_image_cleanup(penum);
-	ifree_object(penum, "image_setup");
+	int code1 = gs_image_cleanup_and_free_enum(penum);
+
 	if (code >= 0)		/* empty image */
 	    pop(npop);
+	if (code >= 0 && code1 < 0)
+	    code = code1;
 	return code;
     }
     push_mark_estack(es_other, image_cleanup);
     esp += inumpush - 1;
     make_int(ETOP_PLANE_INDEX(esp), 0);
     make_int(ETOP_NUM_SOURCES(esp), num_sources);
-    make_istruct(esp, 0, penum);
+    make_struct(esp, avm_local, penum);
     switch (r_type(sources)) {
 	case t_file:
 	    push_op_estack(image_file_continue);
@@ -449,9 +500,11 @@ image_file_continue(i_ctx_t *i_ctx_p)
 	if (at_eof)
 	    code = 1;
 	if (code) {
+	    int code1;
+
 	    esp = zimage_pop_estack(esp);
-	    image_cleanup(i_ctx_p);
-	    return (code < 0 ? code : o_pop_estack);
+	    code1 = image_cleanup(i_ctx_p);
+	    return (code < 0 ? code : code1 < 0 ? code1 : o_pop_estack);
 	}
     }
 }
@@ -501,18 +554,16 @@ image_cleanup(i_ctx_t *i_ctx_p)
 {
     es_ptr ep_top = esp + NUM_PUSH(EBOT_NUM_SOURCES(esp)->value.intval);
     gs_image_enum *penum = r_ptr(ep_top, gs_image_enum);
-
-    gs_image_cleanup(penum);
-    ifree_object(penum, "image_cleanup");
-    return 0;
+    
+    return gs_image_cleanup_and_free_enum(penum);
 }
 
 /* ------ Initialization procedure ------ */
 
 const op_def zimage_op_defs[] =
 {
-    {"5image", zimage},
-    {"5imagemask", zimagemask},
+    {"1.image1", zimage1},
+    {"1.imagemask1", zimagemask1},
 		/* Internal operators */
     {"1%image_proc_continue", image_proc_continue},
     {"0%image_file_continue", image_file_continue},

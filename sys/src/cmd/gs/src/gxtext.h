@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxtext.h,v 1.7 2001/04/01 00:33:36 raph Exp $ */
+/* $Id: gxtext.h,v 1.16 2004/12/22 18:52:23 igor Exp $ */
 /* Driver text interface implementation support */
 
 #ifndef gxtext_INCLUDED
@@ -27,6 +25,11 @@
 
 /* Define the abstract type for the object procedures. */
 typedef struct gs_text_enum_procs_s gs_text_enum_procs_t;
+
+#ifndef cached_fm_pair_DEFINED
+#  define cached_fm_pair_DEFINED
+typedef struct cached_fm_pair_s cached_fm_pair;
+#endif
 
 /*
  * Define values returned by text_process to the client.
@@ -92,19 +95,24 @@ rc_free_proc(rc_free_text_enum);
     /* knows the entire list of dynamically changing elements. */\
     rc_header rc;\
     gs_font *current_font; /* changes for composite fonts */\
+    gs_glyph outer_CID; /* When a Type 3 is a FMapType 9 descendent. */\
+    bool is_pure_color; /* The text is painted with a pure color. */\
     gs_log2_scale_point log2_scale;	/* for oversampling */\
+    cached_fm_pair *pair; /* corresponds to the current_font and CTM*(1<<log2_scale) */\
     uint index;			/* index within string */\
     uint xy_index;		/* index within X/Y widths */\
     gx_font_stack_t fstack;\
     int cmap_code;		/* hack for FMapType 9 composite fonts, */\
 				/* the value returned by decode_next */\
     gs_point FontBBox_as_Metrics2;  /* used with FontType 9,11 && WMode 1 */\
+    /* The following is controlled by a device. */\
+    bool device_disabled_grid_fitting;\
     /* The following are used to return information to the client. */\
     gs_text_returned_t returned
 /* The typedef is in gstext.h. */
-/*typedef*/ struct gs_text_enum_s {
+struct gs_text_enum_s {
     gs_text_enum_common;
-} /*gs_text_enum_t*/;
+};
 
 /*
  * Notes on the imaging_dev field of device enumeration structures:
@@ -142,7 +150,7 @@ rc_free_proc(rc_free_text_enum);
  * approach will fail.
  */
 
-#define st_gs_text_enum_max_ptrs (st_gs_text_params_max_ptrs + 7)
+#define st_gs_text_enum_max_ptrs (st_gs_text_params_max_ptrs + 8)
 /*extern_st(st_gs_text_enum); */
 #define public_st_gs_text_enum()	/* in gstext.c */\
   gs_public_st_composite(st_gs_text_enum, gs_text_enum_t, "gs_text_enum_t",\
@@ -154,14 +162,14 @@ rc_free_proc(rc_free_text_enum);
  * Note that this procedure can return an error, e.g., if attempting
  * a glyph-based operation with a composite font.
  */
-int gs_text_enum_init(P10(gs_text_enum_t *pte,
-			  const gs_text_enum_procs_t *procs,
-			  gx_device *dev, gs_imager_state *pis,
-			  const gs_text_params_t *text,
-			  gs_font *font, gx_path *path,
-			  const gx_device_color *pdcolor,
-			  const gx_clip_path *pcpath,
-			  gs_memory_t *mem));
+int gs_text_enum_init(gs_text_enum_t *pte,
+		      const gs_text_enum_procs_t *procs,
+		      gx_device *dev, gs_imager_state *pis,
+		      const gs_text_params_t *text,
+		      gs_font *font, gx_path *path,
+		      const gx_device_color *pdcolor,
+		      const gx_clip_path *pcpath,
+		      gs_memory_t *mem);
 
 /*
  * Copy the dynamically changing elements from one enumerator to another.
@@ -169,9 +177,9 @@ int gs_text_enum_init(P10(gs_text_enum_t *pte,
  * operation to a subsidiary enumerator.  Note that `returned' is copied
  * iff for_return is true.
  */
-void gs_text_enum_copy_dynamic(P3(gs_text_enum_t *pto,
-				  const gs_text_enum_t *pfrom,
-				  bool for_return));
+void gs_text_enum_copy_dynamic(gs_text_enum_t *pto,
+			       const gs_text_enum_t *pfrom,
+			       bool for_return);
 
 /*
  * Define some convenience macros for testing aspects of a text
@@ -213,7 +221,7 @@ struct gs_text_enum_procs_s {
      */
 
 #define text_enum_proc_resync(proc)\
-  int proc(P2(gs_text_enum_t *pte, const gs_text_enum_t *pfrom))
+  int proc(gs_text_enum_t *pte, const gs_text_enum_t *pfrom)
 
     text_enum_proc_resync((*resync));
 
@@ -243,7 +251,7 @@ struct gs_text_enum_procs_s {
      */
 
 #define text_enum_proc_process(proc)\
-  int proc(P1(gs_text_enum_t *pte))
+  int proc(gs_text_enum_t *pte)
 
     text_enum_proc_process((*process));
 
@@ -254,7 +262,7 @@ struct gs_text_enum_procs_s {
      */
 
 #define text_enum_proc_is_width_only(proc)\
-  bool proc(P1(const gs_text_enum_t *pte))
+  bool proc(const gs_text_enum_t *pte)
 
     text_enum_proc_is_width_only((*is_width_only));
 
@@ -263,7 +271,7 @@ struct gs_text_enum_procs_s {
      */
 
 #define text_enum_proc_current_width(proc)\
-  int proc(P2(const gs_text_enum_t *pte, gs_point *pwidth))
+  int proc(const gs_text_enum_t *pte, gs_point *pwidth)
 
     text_enum_proc_current_width((*current_width));
 
@@ -273,8 +281,8 @@ struct gs_text_enum_procs_s {
      */
 
 #define text_enum_proc_set_cache(proc)\
-  int proc(P3(gs_text_enum_t *pte, const double *values,\
-    gs_text_cache_control_t control))
+  int proc(gs_text_enum_t *pte, const double *values,\
+    gs_text_cache_control_t control)
 
     text_enum_proc_set_cache((*set_cache));
 
@@ -284,7 +292,7 @@ struct gs_text_enum_procs_s {
      */
 
 #define text_enum_proc_retry(proc)\
-  int proc(P1(gs_text_enum_t *pte))
+  int proc(gs_text_enum_t *pte)
 
     text_enum_proc_retry((*retry));
 
@@ -295,7 +303,7 @@ struct gs_text_enum_procs_s {
      */
 
 #define text_enum_proc_release(proc)\
-  void proc(P2(gs_text_enum_t *pte, client_name_t cname))
+  void proc(gs_text_enum_t *pte, client_name_t cname)
 
     text_enum_proc_release((*release));
 

@@ -1,22 +1,20 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: ziodevs.c,v 1.5 2001/10/17 21:12:44 ghostgum Exp $ */
+/* $Id: ziodevs.c,v 1.9 2004/08/04 19:36:13 stefan Exp $ */
 /* %stdxxx IODevice implementation for PostScript interpreter */
 #include "stdio_.h"
 #include "ghost.h"
@@ -49,21 +47,18 @@ const char iodev_dtype_stdio[] = "Special";
  */
 
 #define STDIN_BUF_SIZE 128
-/*#define ref_stdin ref_stdio[0] *//* in files.h */
-bool gs_stdin_is_interactive;	/* exported for command line only */
+
 private iodev_proc_init(stdin_init);
 private iodev_proc_open_device(stdin_open);
 const gx_io_device gs_iodev_stdin =
     iodev_special("%stdin%", stdin_init, stdin_open);
 
 #define STDOUT_BUF_SIZE 128
-/*#define ref_stdout ref_stdio[1] *//* in files.h */
 private iodev_proc_open_device(stdout_open);
 const gx_io_device gs_iodev_stdout =
     iodev_special("%stdout%", iodev_no_init, stdout_open);
 
 #define STDERR_BUF_SIZE 128
-/*#define ref_stderr ref_stdio[2] *//* in files.h */
 private iodev_proc_open_device(stderr_open);
 const gx_io_device gs_iodev_stderr =
     iodev_special("%stderr%", iodev_no_init, stderr_open);
@@ -78,13 +73,13 @@ const gx_io_device gs_iodev_stderr =
  */
 
 private int
-    s_stdin_read_process(P4(stream_state *, stream_cursor_read *,
-			    stream_cursor_write *, bool));
+    s_stdin_read_process(stream_state *, stream_cursor_read *,
+			 stream_cursor_write *, bool);
 
 private int
 stdin_init(gx_io_device * iodev, gs_memory_t * mem)
 {
-    gs_stdin_is_interactive = true;
+    mem->gs_lib_ctx->stdin_is_interactive = true;
     return 0;
 }
 
@@ -101,7 +96,7 @@ s_stdin_read_process(stream_state * st, stream_cursor_read * ignore_pr,
     if (wcount <= 0)
 	return 0;
     count = gp_stdin_read( (char*) pw->ptr + 1, wcount,
-			   gs_stdin_is_interactive, file);
+			   st->memory->gs_lib_ctx->stdin_is_interactive, file);
     pw->ptr += (count < 0) ? 0 : count;
     return ((count < 0) ? ERRC : (count == 0) ? EOFC : count);
 }

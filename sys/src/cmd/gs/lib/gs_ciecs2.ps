@@ -1,0 +1,147 @@
+%    Copyright (C) 2002 Aladdin Enterprises.  All rights reserved.
+% 
+% This software is provided AS-IS with no warranty, either express or
+% implied.
+% 
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
+% 
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+
+% $Id: gs_ciecs2.ps,v 1.1 2002/08/22 07:12:28 henrys Exp $
+% Level 2 CIEBased color space method dictionaries.
+
+%
+% The validation routines in these method dictionaries perform only
+% partial validations; the .setcie* operators will perform the rest.
+%
+
+% verify that at least one of the CIEBased color spaces is supported
+true
+  { /.setcieaspace /.setcieabcspace /.setciedefspace /.setciedefgspace }
+  {
+    where
+      { pop not exit }
+    if
+  }
+forall
+  { currentfile closefile }
+if
+
+
+.currentglobal true .setglobal
+.cspace_util begin
+
+%
+%   <obj>   check_cie_cspace   <obj>
+%
+% Perform a very basic check that an object is a CIEBased color space
+% array.
+%
+/check_cie_cspace
+  {
+    //check_array exec
+    dup 1 get type /dicttype ne
+      //setcspace_typecheck
+    if
+  }
+bind def
+
+
+
+/.setcieaspace where
+  {
+    pop
+    colorspacedict
+    /CIEBasedA
+      mark
+        /cs_potential_indexed_base true
+        /cs_potential_pattern_base true
+        /cs_potential_alternate true
+        /cs_potential_icc_alternate true
+        /cs_get_ncomps //ncomps_1
+
+        /cs_get_range
+          {
+            1 get /RangeA .knownget not
+              { //dflt_range_1 }
+            if
+          }
+        bind
+
+        /cs_get_default_color { pop 0 } bind
+        /cs_get_currentgray //no_currentgray
+        /cs_get_currentrgb //no_currentrgb
+        /cs_get_currentcmyk //no_currentcmyk
+        /cs_validate //check_cie_cspace
+        /cs_substitute //dup_1
+        /cs_prepare {}
+
+        /cs_install
+          {
+            NOCIE
+              { pop /DeviceGray //.cs_install exec }
+              { 1 get .setcieaspace }
+            ifelse
+          }
+        bind
+
+        /cs_prepare_color //validate_1
+        /cs_complete_setcolor //pop_1
+      .dicttomark
+    put
+  }
+if
+
+/.setcieabcspace where
+  {
+    pop
+    colorspacedict
+    /CIEBasedABC
+      mark
+        /cs_potential_indexed_base true
+        /cs_potential_pattern_base true
+        /cs_potential_alternate true
+        /cs_potential_icc_alternate true
+        /cs_get_ncomps //ncomps_3
+
+        /cs_get_range
+          {
+            1 get /RangeABC .knownget not
+              { //dflt_range_3 }
+            if
+          }
+        bind
+
+        /cs_get_default_color { pop 0 0 0 } bind
+        /cs_get_currentgray //no_currentgray
+        /cs_get_currentrgb //no_currentrgb
+        /cs_get_currentcmyk //no_currentcmyk
+        /cs_validate //check_cie_cspace
+        /cs_substitute //dup_1
+        /cs_prepare {}
+
+        /cs_install
+          {
+            NOCIE
+              { pop /DeviceRGB //.cs_install exec }
+              { 1 get .setcieabcspace }
+            ifelse
+          }
+        bind
+
+        /cs_prepare_color //validate_3
+        /cs_complete_setcolor //pop_1
+      .dicttomark
+    put
+  }
+if
+
+
+end     % .cspace_util
+.setglobal

@@ -1,21 +1,19 @@
-#    Copyright (C) 1997, 2001 artofcode LLC.  All rights reserved.
+#    Copyright (C) 1997-2003 artofcode LLC.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: macos-mcp.mak,v 1.3.2.2 2002/02/01 03:30:13 raph Exp $
+# $Id: macos-mcp.mak,v 1.35 2005/08/31 05:52:32 ray Exp $
 # Makefile for CodeWarrior XML project file creation from Darwin/MacOSX.
 
 # Run this file through make on MacOS X (or any other system with shell
@@ -49,9 +47,9 @@ PSD=$(PSGENDIR)/
 # ------ Generic options ------ #
 
 # Define the default directory/ies for the runtime
-# initialization and font files.  Separate multiple directories with a :.
+# initialization, resource and font files.  Separate multiple directories with a :.
 
-GS_LIB_DEFAULT=:,:lib,:files,:fonts,:examples
+GS_LIB_DEFAULT=:,:lib,:Resource,:files,:fonts,:examples
 
 GS_DOCDIR=:doc
 
@@ -92,11 +90,13 @@ BUILD_TIME_GS=gs
 PLATFORM=macos_
 
 
-# don't share any libraries, they are compiled into the Ghostscript Lib
+# don't use any shared libraries, they are compiled into the Ghostscript Lib
 
 SHARE_LIBPNG=0
 SHARE_JPEG=0
 SHARE_ZLIB=0
+SHARE_JBIG2=0
+SHARE_JASPER=0
 
 # Define the directory where the IJG JPEG library sources are stored,
 # and the major version of the library that is stored there.
@@ -112,12 +112,22 @@ JVERSION=6
 # See libpng.mak for more information.
 
 PSRCDIR=libpng
-PVERSION=10201
+PVERSION=10208
 
 # Define the directory where the zlib sources are stored.
 # See zlib.mak for more information.
 
 ZSRCDIR=zlib
+
+# Define the jbig2dec library source location.
+# See jbig2.mak for more information.
+
+JBIG2SRCDIR=jbig2dec
+
+# Define the japser library source location.
+# See jasper.mak for more information.
+
+JASPERSRCDIR=jasper
 
 # Define the directory where the icclib source are stored.
 # See icclib.mak for more information
@@ -131,7 +141,7 @@ ICCSRCDIR=icclib
 # Define the directory where the ijs source is stored,
 # and the process forking method to use for the server.
 # See ijs.mak for more information.
- 
+
 #IJSSRCDIR=ijs
 #IJSEXECTYPE=unix
 
@@ -168,11 +178,11 @@ SYNC=nosync
 
 # Choose the language feature(s) to include.  See gs.mak for details.
 
-FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(PSD)epsf.dev $(GLD)pipe.dev
+FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(PSD)epsf.dev $(GLD)pipe.dev $(PSD)macres.dev $(PSD)macpoll.dev $(PSD)jbig2.dev
 #FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev
 #FEATURE_DEVS=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(PSD)rasterop.dev $(GLD)pipe.dev
 # The following is strictly for testing.
-FEATURE_DEVS_ALL=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(PSD)rasterop.dev $(PSD)double.dev $(PSD)trapping.dev $(PSD)stocht.dev $(GLD)pipe.dev
+FEATURE_DEVS_ALL=$(PSD)psl3.dev $(PSD)pdf.dev $(PSD)dpsnext.dev $(PSD)ttfont.dev $(PSD)rasterop.dev $(PSD)double.dev $(PSD)trapping.dev $(PSD)stocht.dev $(GLD)pipe.dev $(GLD)macres.dev $(PSD)jbig2.dev $(PSD)jpx.dev $(PSD)macpoll.dev
 #FEATURE_DEVS=$(FEATURE_DEVS_ALL)
 
 # Choose whether to compile the .ps initialization files into the executable.
@@ -186,8 +196,7 @@ COMPILE_INITS=0
 BAND_LIST_STORAGE=file
 
 # Choose which compression method to use when storing band lists in memory.
-# The choices are 'lzw' or 'zlib'.  lzw is not recommended, because the
-# LZW-compatible code in Ghostscript doesn't actually compress its input.
+# The choices are 'lzw' or 'zlib'.  
 
 BAND_LIST_COMPRESSOR=zlib
 
@@ -209,7 +218,7 @@ EXTEND_NAMES=0
 # Choose the device(s) to include.  See devs.mak for details,
 # devs.mak and contrib.mak for the list of available devices.
 
-DEVICE_DEVS=$(DD)macos.dev $(DD)macos_.dev
+DEVICE_DEVS=$(DD)macos.dev $(DD)macos_.dev $(DD)display.dev
 
 #DEVICE_DEVS1=
 #DEVICE_DEVS2=
@@ -242,13 +251,13 @@ DEVICE_DEVS7=$(DD)faxg3.dev $(DD)faxg32d.dev $(DD)faxg4.dev
 DEVICE_DEVS8=$(DD)pcxmono.dev $(DD)pcxgray.dev $(DD)pcx16.dev $(DD)pcx256.dev $(DD)pcx24b.dev $(DD)pcxcmyk.dev
 DEVICE_DEVS9=$(DD)pbm.dev $(DD)pbmraw.dev $(DD)pgm.dev $(DD)pgmraw.dev $(DD)pgnm.dev $(DD)pgnmraw.dev $(DD)pnm.dev $(DD)pnmraw.dev $(DD)ppm.dev $(DD)ppmraw.dev $(DD)pkm.dev $(DD)pkmraw.dev $(DD)pksm.dev $(DD)pksmraw.dev
 DEVICE_DEVS10=$(DD)tiffcrle.dev $(DD)tiffg3.dev $(DD)tiffg32d.dev $(DD)tiffg4.dev $(DD)tifflzw.dev $(DD)tiffpack.dev
-DEVICE_DEVS11=$(DD)tiff12nc.dev $(DD)tiff24nc.dev
+DEVICE_DEVS11=$(DD)tiff12nc.dev $(DD)tiff24nc.dev $(DD)tiffgray.dev $(DD)tiff32nc.dev $(DD)tiffsep.dev
 DEVICE_DEVS12=$(DD)psmono.dev $(DD)psgray.dev $(DD)psrgb.dev $(DD)bit.dev $(DD)bitrgb.dev $(DD)bitcmyk.dev
 DEVICE_DEVS13=$(DD)pngmono.dev $(DD)pnggray.dev $(DD)png16.dev $(DD)png256.dev $(DD)png16m.dev
-DEVICE_DEVS14=$(DD)jpeg.dev $(DD)jpeggray.dev
-DEVICE_DEVS15=$(DD)pdfwrite.dev $(DD)pswrite.dev $(DD)epswrite.dev $(DD)pxlmono.dev $(DD)pxlcolor.dev
+DEVICE_DEVS14=$(DD)jpeg.dev $(DD)jpeggray.dev $(DD)jpegcmyk.dev
+DEVICE_DEVS15=$(DD)pdfwrite.dev $(DD)pswrite.dev $(DD)ps2write.dev $(DD)epswrite.dev $(DD)pxlmono.dev $(DD)pxlcolor.dev
 
-DEVICE_DEVS16=
+DEVICE_DEVS16=$(DD)bbox.dev
 DEVICE_DEVS17=
 DEVICE_DEVS18=
 DEVICE_DEVS19=
@@ -263,21 +272,16 @@ MAKEFILE=$(GLSRCDIR)/macos-mcp.mak
 TOP_MAKEFILES=
 
 
-# Define the ANSI-to-K&R dependency.  There isn't one, but we do have to
-# detect whether we're running a version of gcc with the const optimization
-# bug.
+# Define the auxilary program dependency. (we don't have any)
 
-AK=$(GLGENDIR)/cc.tr
+AK=
 
 # Define the compilation rules and flags.
 
 CCFLAGS=$(GENOPT) $(CFLAGS)
 CC_=$(CC) $(CCFLAGS)
-# define CCAUX as the real cc compiler, we need to build the aux tools
-CCAUX=cc `cat $(AK)`
-CC_LEAF=$(CC_) -fomit-frame-pointer
-# gcc can't use -fomit-frame-pointer with -pg.
-CC_LEAF_PG=$(CC_)
+# define CCAUX as the real cc compiler, we use this to build the code generation tools
+CCAUX=cc
 # These are the specific warnings we have to turn off to compile those
 # specific few files that need this.  We may turn off others in the future.
 CC_NO_WARN=$(CC_) -Wno-cast-qual -Wno-traditional
@@ -297,6 +301,8 @@ include $(GLSRCDIR)/jpeg.mak
 # zlib.mak must precede libpng.mak
 include $(GLSRCDIR)/zlib.mak
 include $(GLSRCDIR)/libpng.mak
+include $(GLSRCDIR)/jbig2.mak
+include $(GLSRCDIR)/jasper.mak
 include $(GLSRCDIR)/icclib.mak
 include $(GLSRCDIR)/devs.mak
 include $(GLSRCDIR)/contrib.mak
@@ -334,22 +340,11 @@ gconfig_h=$(GLOBJ)gconfig.h
 gconfigv_h=$(GLOBJ)gconfigv.h
 
 macsystypes_h=$(GLSRC)macsystypes.h
-macsysstat_h=$(GLSRC)macsysstat.h
-systypes_h=$(GLOBJ)sys\:types.h
-systime_h=$(GLOBJ)sys\:time.h
-sysstat_h=$(GLOBJ)sys\:stat.h
+systypes_h=$(GLOBJ)sys/types.h
 
 $(GLOBJ)gp_mac.$(OBJ): $(GLSRC)gp_mac.c
-$(GLOBJ)gp_macio.$(OBJ): $(GLSRC)gp_macio.c
+$(GLOBJ)gp_macio.$(OBJ): $(GLSRC)gp_macio.c $(gx_h) $(gp_h) $(gpmisc_h)
 $(GLOBJ)gp_stdin.$(OBJ): $(GLSRC)gp_stdin.c $(AK) $(stdio__h) $(gx_h) $(gp_h)
-
-# does not work for systime_h?!?!
-#$(systypes_h):
-#	$(CP_) $(macsystypes_h) $(systypes_h)
-#$(systime_h):
-#	echo "/* This file deliberately left blank. */" > $(systime_h)
-#$(sysstat_h):
-#	$(CP_) $(macsysstat_h) $(sysstat_h)
 
 # ------------------------------------------------------------------- #
 
@@ -359,7 +354,17 @@ MAC2=$(GLOBJ)gp_getnv.$(OBJ) $(GLOBJ)gp_nsync.$(OBJ) $(GLOBJ)gdevemap.$(OBJ) $(G
 $(GLD)macos_.dev: $(MAC1)
 	$(SETMOD) $(DD)macos_ $(MAC1) $(MAC)
 	$(ADDMOD) $(DD)macos_ -obj $(MAC2)
-	$(ADDMOD) $(DD)macos_ -iodev macstdio  # stdout does not work with MSL!!!
+	# uncomment the line below if you need the legacy macstdio device
+	#$(ADDMOD) $(DD)macos_ -iodev macstdio  # macstdio does not work with MSL!!!
+
+# Define polling as a separable feature because it is not needed by the gslib.
+macpoll_=$(GLOBJ)gp_macpoll.$(OBJ)
+$(GLD)macpoll.dev: $(ECHOGS_XE) $(macpoll_)
+	$(SETMOD) $(GLD)macpoll $(macpoll_)
+
+$(GLOBJ)gp_macpoll.$(OBJ): $(GLSRC)gp_macpoll.c $(AK)\
+ $(gx_h) $(gp_h) $(gpcheck_h) $(iapi_h) $(iref_h) $(iminst_h) $(imain_h)
+
 
 # ------------------------------------------------------------------- #
 
@@ -393,21 +398,14 @@ $(GENINIT_XE): $(GLSRC)geninit.c $(AK) $(GENINIT_DEPS)
 ldt_tr=$(PSOBJ)ldt.tr
 CWPROJ_XML=./ghostscript.mcp.xml
 
-$(CWPROJ_XML):
+$(CWPROJ_XML): $(gconfigd_h)
+	-mkdir -p obj/sys
 	$(CP_) $(macsystypes_h) $(systypes_h)
-	echo "/* This file deliberately left blank. */" > $(systime_h)
-	$(CP_) $(macsysstat_h) $(sysstat_h)
 	$(SH) $(GLSRC)macgenmcpxml.sh `$(CAT) $(ld_tr)` >  $(CWPROJ_XML)
 	$(CP_) $(GLSRC)gconf.c $(GLOBJ)gconfig.c
 	$(CP_) $(GLSRC)iconf.c $(GLOBJ)iconfig.c
 	$(CP_) $(GLSRC)gscdef.c $(GLOBJ)gscdefs.c
 	/Developer/Tools/SetFile -c CWIE -t TEXT $(CWPROJ_XML)
-	/Developer/Tools/SetFile -c CWIE -t TEXT $(ZSRCDIR)/*
-	/Developer/Tools/SetFile -c CWIE -t TEXT $(PSRCDIR)/*
-	/Developer/Tools/SetFile -c CWIE -t TEXT $(JSRCDIR)/*
-	/Developer/Tools/SetFile -c CWIE -t TEXT $(ICCSRCDIR)/*
-	/Developer/Tools/SetFile -c CWIE -t TEXT $(GLOBJDIR)/*
-	/Developer/Tools/SetFile -c CWIE -t TEXT $(GLSRCDIR)/*
 
 $(GS_XE): $(ld_tr) $(ECHOGS_XE) $(XE_ALL) $(CWPROJ_XML)
 

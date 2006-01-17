@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxclrect.c,v 1.2 2000/09/19 19:00:35 lpd Exp $ */
+/* $Id: gxclrect.c,v 1.7 2004/08/04 19:36:12 stefan Exp $ */
 /* Rectangle-oriented command writing for command list */
 #include "gx.h"
 #include "gserrors.h"
@@ -431,6 +429,10 @@ clist_copy_alpha(gx_device * dev, const byte * data, int data_x,
     int y0;
     int data_x_bit;
 
+    /* If the target can't perform copy_alpha, exit now */
+    if (depth > 1 && (cdev->disable_mask & clist_disable_copy_alpha) != 0)
+	return_error(gs_error_unknownerror);
+
     fit_copy(dev, data, data_x, raster, id, x, y, width, height);
     y0 = y;
     data_x_bit = data_x << log2_depth;
@@ -581,8 +583,10 @@ clist_strip_copy_rop(gx_device * dev,
 	gx_color_index D = pcls->colors_used.or;
 	int code;
 
+	/* Reducing D, S, T to rop_operand (which apparently is 32 bit) appears safe
+	   due to 'all' a has smaller snumber of significant bits. */
 	pcls->colors_used.or =
-	    ((rop_proc_table[color_rop])(D, S, T) & all) | D;
+	    ((rop_proc_table[color_rop])((rop_operand)D, (rop_operand)S, (rop_operand)T) & all) | D;
 	pcls->colors_used.slow_rop |= slow_rop;
 	if (rop3_uses_T(rop)) {
 	    if (tcolors == 0 || tcolors[0] != tcolors[1]) {
@@ -592,7 +596,7 @@ clist_strip_copy_rop(gx_device * dev,
 		    /* Change tile.  If there is no id, generate one. */
 		    if (tiles->id == gx_no_bitmap_id) {
 			tile_with_id = *tiles;
-			tile_with_id.id = gs_next_ids(1);
+			tile_with_id.id = gs_next_ids(dev->memory, 1);
 			tiles = &tile_with_id;
 		    }
 		    TRY_RECT {
@@ -623,7 +627,7 @@ clist_strip_copy_rop(gx_device * dev,
 			 * Allocate enough fake IDs, since the inner call on
 			 * clist_strip_copy_rop will need them anyway.
 			 */
-			ids = gs_next_ids(min(height, rep_height));
+			ids = gs_next_ids(dev->memory, min(height, rep_height));
 			line_tile = *tiles;
 			line_tile.size.y = 1;
 			line_tile.rep_height = 1;

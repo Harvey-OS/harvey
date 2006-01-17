@@ -1,42 +1,50 @@
 %    Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: gs_cmap.ps,v 1.11 2001/06/16 19:02:31 igorm Exp $
+% $Id: gs_cmap.ps,v 1.19 2005/08/17 21:54:55 igor Exp $
 % ProcSet for implementing CMap resources.
 % When this is run, systemdict is still writable.
 
 % NOTE: Rearranged fonts are not implemented yet.
 
+[
+   /CMERGE_DEBUG
+   /USE_CIDCHAR_AS_RANGE
+] {dup where {pop pop} { currentdict exch //false def pop } ifelse} forall
+
 % ---------------- Public operators ---------------- %
 
 /.rewriteTempMapsNotDef {
-  DEBUG { (rewriting TempMapsNotDef\n) print flush } if
+  %
+  % Before building .CodeMapData from .TempMaps,
+  % we need to replace dst type codes in the notdef map with the value 3,
+  % which corresponds to CODE_VALUE_NOTDEF, see gxfcmap.h .
+  %
+  CMAPDEBUG { (rewriting TempMapsNotDef\n) print flush } if
   .TempMaps 2 get
   dup length 0 gt {
     0 get
-    DEBUG { (...original...\n) print flush } if
+    CMAPDEBUG { (...original...\n) print flush } if
     1 5 2 index length 1 sub {
       { 1 index exch get 2 3 put } stopped
-      { DEBUG { (cannot rewrite\n) print flush } if }
-      { DEBUG { (rewrite\n) print flush } if } ifelse
+      { CMAPDEBUG { (cannot rewrite\n) print flush } if }
+      { CMAPDEBUG { (rewrite\n) print flush } if } ifelse
     } for
   } if
   pop
-  DEBUG { (...FINISHED...\n) print } if
+  CMAPDEBUG { (...FINISHED...\n) print } if
 } bind def
 
 % composefont doesn't appear in CMap files -- it's documented in
@@ -46,6 +54,7 @@
     /CMap 2 index dup type /dicttype ne { /CMap findresource } if def
     /FDepVector 1 index cvlit def	% temporarily
     /Encoding [ 0 1 FDepVector length 1 sub { } for ] def
+    /FontInfo 1 dict def % for .processToUnicode in pdf_font.ps .
     /FDepVector [ 0 1 FDepVector length 1 sub {
 		% Stack: name cmap[name] fonts /FDepVector [ fonts... i
       FDepVector 1 index get
@@ -57,7 +66,7 @@
 	} ifelse findresource
       } if
       exch CMap /FontMatrices get dup length 2 index gt {
-	exch get dup null eq { pop } { makefont } ifelse
+	exch get dup //null eq { pop } { makefont } ifelse
       } {
 	pop pop
       } ifelse
@@ -77,9 +86,9 @@
 % Our internal .CodeMapData structure closely mirrors the structures
 % defined in gxfcmap.h (q.v.).  () indicate a string, [] indicate an array,
 % ? indicates a Boolean, # indicates an integer, {} for grouping.
-%	[[(first) (last) ...]		% code space ranges
-%	 [(prefix) (key_size,?is_range,value_type,value_size) (keys...)
-%	   {(values...) | [value ...]} #font_index	% code mappings
+%	[[[(first) (last) ...]+]		% code space ranges
+%	 [[(prefix) (key_size,?is_range,value_type,value_size) (keys...)
+%	   {(values...) | [value ...]} #font_index ]+]	% code mappings
 %	  ...]
 %	 <<same>>		% notdef mappings
 %	]
@@ -98,40 +107,50 @@
 % ------ Font-level operators ------ %
 
 /begincmap {		% - begincmap -
-  /.CodeMapData [[] [] []] def
+  /.CodeMapData [[[]] [[]] [[]]] def
   /FontMatrices [] def
   /.FontIndex 0 def
   /.TempMaps [20 dict 50 dict 50 dict] def
-  /CodeMap null def		% for .buildcmap
-} bind def
-/endcmap {		% - endcmap -
-  .rewriteTempMapsNotDef
-  DEBUG {
-    (*** defined charmap ***\n) print
-    .TempMaps 1 get {exch == (\t) print ==} forall
-    (*** undefined charmap ***\n) print
-    .TempMaps 2 get {exch == (\t) print ==} forall
-  } if
-  10 dict begin 0 1 2 {
-    /i exch def
-		% Append data from .TempMaps to .CodeMapData.
-    /t .TempMaps i get def
-    .CodeMapData i get length t { exch pop length add } forall
-    DEBUG { (requested array size ) print dup == } if
-    array /a exch def
-    a 0 .CodeMapData i get .putmore
-    0 1 t length 1 sub {
-      t exch get .putmore
-    } for pop pop
-    .CodeMapData i a put
-  } for end
-  currentdict /.TempMaps undef
-  /.CodeMapData .CodeMapData .endmap def
-  /FontMatrices FontMatrices .endmap def
+  /CodeMap //null def		% for .buildcmap
 } bind def
 
-/.putmore {		% <array> <i> <array2> .putmore <array> <i+len(array2)>
-  3 copy putinterval length add
+/endcmap {		% - endcmap -
+  .rewriteTempMapsNotDef
+
+  CMAPDEBUG {
+    2 (*** undefined charmap ***)
+    1 (*** defined charmap ***)
+    0 (*** code space ranges ***)
+    3 { =
+      .TempMaps exch get
+      0 1 2 index length 1 sub {
+        dup == (\t) print
+        1 index exch get ==
+      } for
+      pop
+    } repeat
+  } if
+  
+  /.CodeMapData dup load [ exch
+    .TempMaps aload pop begin begin begin 
+    {
+      [ exch aload pop
+        0 1 currentdict length 1 sub { 
+           currentdict exch get 
+        } for 
+      ]
+      end
+    } forall
+  ] .endmap def
+
+  CMAPDEBUG {
+    (*** Content of .CodeMapData ***) =
+    0 .CodeMapData { exch dup == 1 add exch (\t) print == } forall
+    pop
+  } if
+
+  currentdict /.TempMaps undef
+  /FontMatrices FontMatrices .endmap def
 } bind def
 
 /.endmap {		% <map> .endmap <map>
@@ -156,6 +175,7 @@
 /begincodespacerange {	% <count> begincodespacerange -
   pop mark
 } bind def
+
 /endcodespacerange {	% <code_lo> <code_hi> ... endcodespacerange -
   0 .appendmap
 } bind def
@@ -178,6 +198,7 @@
     /FontMatrices exch def
   } if
 } bind def
+
 /endusematrix {		% <matrix> endusematrix -
   FontMatrices 3 1 roll put
 } bind def
@@ -242,10 +263,10 @@
 			%   .addbfrange <<same as .addbfchar>>
   4 string dup 3
   3 index type /nametype eq {
-    2 index 2 1 put
+    2 index 2 1 put % dst = CODE_VALUE_GLYPH, see gxfcmap.h .
     4 -1 roll 1 array astore 4 1 roll 4
   } {
-    2 index 2 2 put
+    2 index 2 2 put % dst = CODE_VALUE_CHARS, see gxfcmap.h .
     3 index length
   } ifelse put
 			% Stack: code_lo code_hi value params
@@ -280,13 +301,72 @@
   1 .endmapranges
 } bind def
 
-/.endmapchars {		% -mark- <code> <cid> ... <map#> .endmapchars -
+/.endmapchars {         % -mark- <code> <cid> ... <map#> .endmapchars -
   counttomark 1 add 1 roll
   counttomark 2 idiv {
-    counttomark -2 roll		% process in correct order
-		% Construct prefix, params, key, value, font_index
-    <00 00 00 02> ()	% params, key
-    3 -1 roll .endmapvalue
+    counttomark -2 roll         % process in correct order
+    exch        % <cid> <code>
+                % Construct prefix, params, key, value, font_index
+    dup length 1 eq {   % 1-byte
+      <00 00 00 02> ()  % <prefix> <param> <null_key>
+    } {                 % N-byte
+      dup 0 1 getinterval exch  % make 1-byte prefix
+      4 string dup 0
+      USE_CIDCHAR_AS_RANGE {
+        <00 01 00 02>   % skelton for param
+      } {
+        <00 00 00 02>   % skelton for param
+      } ifelse
+      putinterval
+      exch              % <prefix> <param> <code>
+      dup length        % <prefix> <param> <code> N
+      1 sub             % <prefix> <param> <code> N-1
+      dup               % <prefix> <param> <code> N-1 N-1
+      3 index           % <prefix> <param> <code> N-1 N-1 <param>
+      exch              % <prefix> <param> <code> N-1 <param> N-1
+      0 exch            % <prefix> <param> <code> N-1 <param> 0 N-1
+      put               % <prefix> <param'> <code> N-1
+      1 exch            % <prefix> <param'> <code> 1 N-1
+      getinterval       % <prefix> <param'> <key>
+
+      USE_CIDCHAR_AS_RANGE {
+        dup length 2 mul string % <key> <dkey>
+        dup                     % <key> <dkey> <dkey>
+        2 index                 % <key> <dkey> <dkey> <key>
+        0 exch putinterval      % <key> <dkey'>
+        dup                     % <key> <dkey'> <dkey'>
+        3 -1 roll               % <dkey'> <dkey'> <key>
+        dup length              % <dkey'> <dkey'> <key> N-1
+        exch putinterval        % <dkey''>
+      } if
+
+    } ifelse
+
+    4 -1 roll           % <prefix> <param'> <key> <cid>
+    .endmapvalue        % <prefix> <param'> <key> <hex_cid> <font_idx>
+    % prefix params keys value fontindex
+    counttomark 5 gt { % 2 (or more) ranges (1 range = 5 item)
+       4 index 10 index eq      % compare prefix
+       4 index 10 index eq and  % compare params
+       1 index 7 index eq and   % compare fontindex
+        {
+          CMAPDEBUG { (merge! char\n) print } if
+          pop 4 2 roll pop pop
+           % prefix params keys value fontindex keys2 value2
+          5 -1 roll 3 -1 roll concatstrings
+           % prefix params value fontindex value2 keys'
+          4 -1 roll 3 -1 roll concatstrings
+           % prefix params fontindex keys' values'
+          3 -1 roll
+        } if
+     } if % end of 2 (or more) ranges
+    CMERGE_DEBUG {
+    ( prefix:) print 4 index =only
+    ( param:) print 3 index =only
+    ( key:) print 2 index =only
+    ( hex_cid:) print 1 index =only
+    ( font_idx:) print 0 index == flush
+    } if
   } repeat
   counttomark 2 add -1 roll .appendmap
 } bind def
@@ -356,7 +436,8 @@
     dup length 3 index length exch sub
 				% cid_base code_lo code_hi prefix range_len
     dup 255 gt {
-       (too long coderange specification for current GS\n) print stop
+       (too long coderange specification for current GS\n) print
+       signalerror
     } if
     <00 01 00 02> 4 string copy	% create initialized param
     dup 0 4 -1 roll put		% put range_len into param
@@ -382,7 +463,7 @@
        4 index 10 index eq and	% compare params
        1 index 7 index eq and	% compare fontindex
 	{
-          DEBUG { (merge!\n) print } if
+          CMAPDEBUG { (merge!\n) print } if
 	  pop 4 2 roll pop pop
            % prefix params keys value fontindex keys2 value2
 	  5 -1 roll 3 -1 roll concatstrings
@@ -436,18 +517,18 @@ dup /DefineResource {
       dup length dict .copydict exch .setglobal
     } if
     dup gcheck 2 index gcheck not and {
-      exch .currentglobal exch true .setglobal
+      exch .currentglobal exch //true .setglobal
       dup length string copy exch .setglobal exch
     } if dup /CMapName 3 index put
   } if
-  dup /CodeMap get null eq { .buildcmap } if
+  dup /CodeMap get //null eq { .buildcmap } if
   /Generic /Category findresource /DefineResource get exec
 } put
 /Category defineresource pop
 	% We might have loaded CID font support already.
 /CIDInit /ProcSet 2 copy { findresource } .internalstopped
 	% An interior `stopped' might have reset VM allocation to local.
-true .setglobal
+//true .setglobal
  { pop pop 3 -1 roll }
  { dup length 4 index length add dict .copydict 4 -1 roll exch .copydict }
 ifelse exch defineresource pop

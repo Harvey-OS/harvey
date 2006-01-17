@@ -1,22 +1,20 @@
 /* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsiparam.h,v 1.4 2000/09/19 19:00:29 lpd Exp $ */
+/* $Id: gsiparam.h,v 1.8 2002/08/22 07:12:29 henrys Exp $ */
 /* Image parameter definition */
 
 #ifndef gsiparam_INCLUDED
@@ -242,22 +240,23 @@ void
   /*
    * Sets ImageMatrix to the identity matrix.
    */
-     gs_image_common_t_init(P1(gs_image_common_t * pic)),	/*
-								 * Also sets Width = Height = 0, BitsPerComponent = 1,
-								 * format = chunky, Interpolate = false.
-								 * If num_components = N > 0, sets the first N elements of Decode to (0, 1);
-								 * if num_components = N < 0, sets the first -N elements of Decode to (1, 0);
-								 * if num_components = 0, doesn't set Decode.
-								 */
-     gs_data_image_t_init(P2(gs_data_image_t * pim, int num_components)),
+     gs_image_common_t_init(gs_image_common_t * pic),
+  /*
+   * Also sets Width = Height = 0, BitsPerComponent = 1,
+   * format = chunky, Interpolate = false.
+   * If num_components = N > 0, sets the first N elements of Decode to (0, 1);
+   * if num_components = N < 0, sets the first -N elements of Decode to (1, 0);
+   * if num_components = 0, doesn't set Decode.
+   */
+     gs_data_image_t_init(gs_data_image_t * pim, int num_components),
   /*
    * Also sets CombineWithColor = false, ColorSpace = color_space, Alpha =
    * none.  num_components is obtained from ColorSpace; if ColorSpace =
    * NULL or ColorSpace is a Pattern space, num_components is taken as 0
    * (Decode is not initialized).
    */
-    gs_pixel_image_t_init(P2(gs_pixel_image_t * pim,
-			     const gs_color_space * color_space));
+    gs_pixel_image_t_init(gs_pixel_image_t * pim,
+			  const gs_color_space * color_space);
 
 /*
  * Initialize an ImageType 1 image (or imagemask).  Also sets ImageMask,
@@ -271,22 +270,15 @@ void
  * Note that for init and init_adjust, adjust is only relevant if
  * pim->ImageMask is true.
  */
-void gs_image_t_init_adjust(P3(gs_image_t * pim, const gs_color_space * pcs,
-			       bool adjust));
+void gs_image_t_init_adjust(gs_image_t * pim, const gs_color_space * pcs,
+			    bool adjust);
 #define gs_image_t_init(pim, pcs)\
   gs_image_t_init_adjust(pim, pcs, true)
-void gs_image_t_init_mask_adjust(P3(gs_image_t * pim, bool write_1s,
-				    bool adjust));
+void gs_image_t_init_mask_adjust(gs_image_t * pim, bool write_1s,
+				 bool adjust);
 #define gs_image_t_init_mask(pim, write_1s)\
   gs_image_t_init_mask_adjust(pim, write_1s, true)
 
-/* init_gray and init_color require a (const) imager state. */
-#define gs_image_t_init_gray(pim, pis)\
-  gs_image_t_init(pim, gs_cspace_DeviceGray(pis))
-#define gs_image_t_init_rgb(pim, pis)\
-  gs_image_t_init(pim, gs_cspace_DeviceRGB(pis))
-#define gs_image_t_init_cmyk(pim, pis)\
-  gs_image_t_init(pim, gs_cspace_DeviceCMYK(pis))
 
 /****** REMAINDER OF FILE UNDER CONSTRUCTION. PROCEED AT YOUR OWN RISK. ******/
 
@@ -299,11 +291,11 @@ void gs_image_t_init_mask_adjust(P3(gs_image_t * pim, bool write_1s,
    procedure:
  */
 
-int gx_map_image_color(P5(gx_device * dev,
-			  const gs_image_t * pim,
-			  const gx_color_rendering_info * pcri,
-			  const uint components[GS_IMAGE_MAX_COMPONENTS],
-			  gx_drawing_color * pdcolor));
+int gx_map_image_color(gx_device * dev,
+		       const gs_image_t * pim,
+		       const gx_color_rendering_info * pcri,
+		       const uint components[GS_IMAGE_MAX_COMPONENTS],
+		       gx_drawing_color * pdcolor);
 
 /*
   Map a source color to a drawing color.  The components are simply the

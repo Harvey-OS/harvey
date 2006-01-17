@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zcie.c,v 1.5 2001/03/17 01:15:42 raph Exp $ */
+/* $Id: zcie.c,v 1.13 2005/07/28 15:24:29 alexcher Exp $ */
 /* CIE color operators */
 #include "math_.h"
 #include "memory_.h"
@@ -50,10 +48,11 @@ static const ref empty_procs[4] =
 /* Get a range array parameter from a dictionary. */
 /* We know that count <= 4. */
 int
-dict_ranges_param(const ref * pdref, const char *kstr, int count,
+dict_ranges_param(const gs_memory_t *mem,
+		  const ref * pdref, const char *kstr, int count,
 		  gs_range * prange)
 {
-    int code = dict_floats_param(pdref, kstr, count * 2,
+    int code = dict_floats_param(mem, pdref, kstr, count * 2,
 				 (float *)prange, NULL);
 
     if (code < 0)
@@ -66,8 +65,9 @@ dict_ranges_param(const ref * pdref, const char *kstr, int count,
 /* Get an array of procedures from a dictionary. */
 /* We know count <= countof(empty_procs). */
 int
-dict_proc_array_param(const ref * pdict, const char *kstr,
-		      uint count, ref * pparray)
+dict_proc_array_param(const gs_memory_t *mem,
+		      const ref *pdict, const char *kstr,
+		      uint count, ref *pparray)
 {
     ref *pvalue;
 
@@ -80,7 +80,7 @@ dict_proc_array_param(const ref * pdict, const char *kstr,
 	for (i = 0; i < count; i++) {
 	    ref proc;
 
-	    array_get(pvalue, (long)i, &proc);
+	    array_get(mem, pvalue, (long)i, &proc);
 	    check_proc_only(proc);
 	}
 	*pparray = *pvalue;
@@ -92,14 +92,17 @@ dict_proc_array_param(const ref * pdict, const char *kstr,
 
 /* Get 3 ranges from a dictionary. */
 int
-dict_range3_param(const ref *pdref, const char *kstr, gs_range3 *prange3)
+dict_range3_param(const gs_memory_t *mem,
+		  const ref *pdref, const char *kstr, 
+		  gs_range3 *prange3)
 {
-    return dict_ranges_param(pdref, kstr, 3, prange3->ranges);
+    return dict_ranges_param(mem, pdref, kstr, 3, prange3->ranges);
 }
 
 /* Get a 3x3 matrix from a dictionary. */
 int
-dict_matrix3_param(const ref *pdref, const char *kstr, gs_matrix3 *pmat3)
+dict_matrix3_param(const gs_memory_t *mem,
+		   const ref *pdref, const char *kstr, gs_matrix3 *pmat3)
 {
     /*
      * We can't simply call dict_float_array_param with the matrix
@@ -107,13 +110,13 @@ dict_matrix3_param(const ref *pdref, const char *kstr, gs_matrix3 *pmat3)
      * padding elements after each of the vectors.  However, we can be
      * confident that there is no padding within a single vector.
      */
-    float values[9];
+    float values[9], defaults[9];
     int code;
 
-    memcpy(&values[0], &Matrix3_default.cu, 3 * sizeof(float));
-    memcpy(&values[3], &Matrix3_default.cv, 3 * sizeof(float));
-    memcpy(&values[6], &Matrix3_default.cw, 3 * sizeof(float));
-    code = dict_floats_param(pdref, kstr, 9, values, values);
+    memcpy(&defaults[0], &Matrix3_default.cu, 3 * sizeof(float));
+    memcpy(&defaults[3], &Matrix3_default.cv, 3 * sizeof(float));
+    memcpy(&defaults[6], &Matrix3_default.cw, 3 * sizeof(float));
+    code = dict_floats_param(mem, pdref, kstr, 9, values, defaults);
     if (code < 0)
 	return code;
     memcpy(&pmat3->cu, &values[0], 3 * sizeof(float));
@@ -124,19 +127,20 @@ dict_matrix3_param(const ref *pdref, const char *kstr, gs_matrix3 *pmat3)
 
 /* Get 3 procedures from a dictionary. */
 int
-dict_proc3_param(const ref *pdref, const char *kstr, ref proc3[3])
+dict_proc3_param(const gs_memory_t *mem, const ref *pdref, const char *kstr, ref proc3[3])
 {
-    return dict_proc_array_param(pdref, kstr, 3, proc3);
+    return dict_proc_array_param(mem, pdref, kstr, 3, proc3);
 }
 
 /* Get WhitePoint and BlackPoint values. */
 int
-cie_points_param(const ref * pdref, gs_cie_wb * pwb)
+cie_points_param(const gs_memory_t *mem, 
+		 const ref * pdref, gs_cie_wb * pwb)
 {
     int code;
 
-    if ((code = dict_floats_param(pdref, "WhitePoint", 3, (float *)&pwb->WhitePoint, NULL)) < 0 ||
-	(code = dict_floats_param(pdref, "BlackPoint", 3, (float *)&pwb->BlackPoint, (const float *)&BlackPoint_default)) < 0
+    if ((code = dict_floats_param(mem, pdref, "WhitePoint", 3, (float *)&pwb->WhitePoint, NULL)) < 0 ||
+	(code = dict_floats_param(mem, pdref, "BlackPoint", 3, (float *)&pwb->BlackPoint, (const float *)&BlackPoint_default)) < 0
 	)
 	return code;
     if (pwb->WhitePoint.u <= 0 ||
@@ -153,8 +157,8 @@ cie_points_param(const ref * pdref, gs_cie_wb * pwb)
 /* Process a 3- or 4-dimensional lookup table from a dictionary. */
 /* The caller has set pclt->n and pclt->m. */
 /* ptref is known to be a readable array of size at least n+1. */
-private int cie_3d_table_param(P4(const ref * ptable, uint count, uint nbytes,
-				  gs_const_string * strings));
+private int cie_3d_table_param(const ref * ptable, uint count, uint nbytes,
+			       gs_const_string * strings);
 int
 cie_table_param(const ref * ptref, gx_color_lookup_table * pclt,
 		gs_memory_t * mem)
@@ -238,14 +242,14 @@ cie_3d_table_param(const ref * ptable, uint count, uint nbytes,
 
 /* Common code for the CIEBased* cases of setcolorspace. */
 private int
-cie_lmnp_param(const ref * pdref, gs_cie_common * pcie, ref_cie_procs * pcprocs)
+cie_lmnp_param(const gs_memory_t *mem, const ref * pdref, gs_cie_common * pcie, ref_cie_procs * pcprocs)
 {
     int code;
 
-    if ((code = dict_range3_param(pdref, "RangeLMN", &pcie->RangeLMN)) < 0 ||
-    (code = dict_proc3_param(pdref, "DecodeLMN", &pcprocs->DecodeLMN)) < 0 ||
-	(code = dict_matrix3_param(pdref, "MatrixLMN", &pcie->MatrixLMN)) < 0 ||
-	(code = cie_points_param(pdref, &pcie->points)) < 0
+    if ((code = dict_range3_param(mem, pdref, "RangeLMN", &pcie->RangeLMN)) < 0 ||
+	(code = dict_proc3_param(mem, pdref, "DecodeLMN", &pcprocs->DecodeLMN)) < 0 ||
+	(code = dict_matrix3_param(mem, pdref, "MatrixLMN", &pcie->MatrixLMN)) < 0 ||
+	(code = cie_points_param(mem, pdref, &pcie->points)) < 0
 	)
 	return code;
     pcie->DecodeLMN = DecodeLMN_default;
@@ -254,14 +258,14 @@ cie_lmnp_param(const ref * pdref, gs_cie_common * pcie, ref_cie_procs * pcprocs)
 
 /* Common code for the CIEBasedABC/DEF[G] cases of setcolorspace. */
 private int
-cie_abc_param(const ref * pdref, gs_cie_abc * pcie, ref_cie_procs * pcprocs)
+cie_abc_param(const gs_memory_t *mem, const ref * pdref, gs_cie_abc * pcie, ref_cie_procs * pcprocs)
 {
     int code;
 
-    if ((code = dict_range3_param(pdref, "RangeABC", &pcie->RangeABC)) < 0 ||
-	(code = dict_proc3_param(pdref, "DecodeABC", &pcprocs->Decode.ABC)) < 0 ||
-	(code = dict_matrix3_param(pdref, "MatrixABC", &pcie->MatrixABC)) < 0 ||
-	(code = cie_lmnp_param(pdref, &pcie->common, pcprocs)) < 0
+    if ((code = dict_range3_param(mem, pdref, "RangeABC", &pcie->RangeABC)) < 0 ||
+	(code = dict_proc3_param(mem, pdref, "DecodeABC", &pcprocs->Decode.ABC)) < 0 ||
+	(code = dict_matrix3_param(mem, pdref, "MatrixABC", &pcie->MatrixABC)) < 0 ||
+	(code = cie_lmnp_param(mem, pdref, &pcie->common, pcprocs)) < 0
 	)
 	return code;
     pcie->DecodeABC = DecodeABC_default;
@@ -289,13 +293,13 @@ cie_set_finish(i_ctx_t *i_ctx_p, gs_color_space * pcs,
 }
 
 /* Forward references */
-private int cache_common(P5(i_ctx_t *, gs_cie_common *, const ref_cie_procs *,
-			    void *, gs_ref_memory_t *));
-private int cache_abc_common(P5(i_ctx_t *, gs_cie_abc *, const ref_cie_procs *,
-				void *, gs_ref_memory_t *));
+private int cache_common(i_ctx_t *, gs_cie_common *, const ref_cie_procs *,
+			 void *, gs_ref_memory_t *);
+private int cache_abc_common(i_ctx_t *, gs_cie_abc *, const ref_cie_procs *,
+			     void *, gs_ref_memory_t *);
 
 /* <dict> .setciedefgspace - */
-private int cie_defg_finish(P1(i_ctx_t *));
+private int cie_defg_finish(i_ctx_t *);
 private int
 zsetciedefgspace(i_ctx_t *i_ctx_p)
 {
@@ -323,11 +327,11 @@ zsetciedefgspace(i_ctx_t *i_ctx_p)
     pcie = pcs->params.defg;
     pcie->Table.n = 4;
     pcie->Table.m = 3;
-    if ((code = dict_ranges_param(op, "RangeDEFG", 4, pcie->RangeDEFG.ranges)) < 0 ||
-	(code = dict_proc_array_param(op, "DecodeDEFG", 4, &procs.PreDecode.DEFG)) < 0 ||
-	(code = dict_ranges_param(op, "RangeHIJK", 4, pcie->RangeHIJK.ranges)) < 0 ||
+    if ((code = dict_ranges_param(mem, op, "RangeDEFG", 4, pcie->RangeDEFG.ranges)) < 0 ||
+	(code = dict_proc_array_param(mem, op, "DecodeDEFG", 4, &procs.PreDecode.DEFG)) < 0 ||
+	(code = dict_ranges_param(mem, op, "RangeHIJK", 4, pcie->RangeHIJK.ranges)) < 0 ||
 	(code = cie_table_param(ptref, &pcie->Table, mem)) < 0 ||
-	(code = cie_abc_param(op, (gs_cie_abc *) pcie, &procs)) < 0 ||
+	(code = cie_abc_param(imemory, op, (gs_cie_abc *) pcie, &procs)) < 0 ||
 	(code = cie_cache_joint(i_ctx_p, &istate->colorrendering.procs, (gs_cie_common *)pcie, igs)) < 0 ||	/* do this last */
 	(code = cie_cache_push_finish(i_ctx_p, cie_defg_finish, imem, pcie)) < 0 ||
 	(code = cie_prepare_cache4(i_ctx_p, &pcie->RangeDEFG,
@@ -346,6 +350,7 @@ cie_defg_finish(i_ctx_t *i_ctx_p)
     gs_cie_defg *pcie = r_ptr(op, gs_cie_defg);
 
     pcie->DecodeDEFG = DecodeDEFG_from_cache;
+    pcie->DecodeABC = DecodeABC_from_cache;
     pcie->common.DecodeLMN = DecodeLMN_from_cache;
     gs_cie_defg_complete(pcie);
     pop(1);
@@ -353,7 +358,7 @@ cie_defg_finish(i_ctx_t *i_ctx_p)
 }
 
 /* <dict> .setciedefspace - */
-private int cie_def_finish(P1(i_ctx_t *));
+private int cie_def_finish(i_ctx_t *);
 private int
 zsetciedefspace(i_ctx_t *i_ctx_p)
 {
@@ -381,11 +386,11 @@ zsetciedefspace(i_ctx_t *i_ctx_p)
     pcie = pcs->params.def;
     pcie->Table.n = 3;
     pcie->Table.m = 3;
-    if ((code = dict_range3_param(op, "RangeDEF", &pcie->RangeDEF)) < 0 ||
-	(code = dict_proc3_param(op, "DecodeDEF", &procs.PreDecode.DEF)) < 0 ||
-	(code = dict_range3_param(op, "RangeHIJ", &pcie->RangeHIJ)) < 0 ||
+    if ((code = dict_range3_param(mem, op, "RangeDEF", &pcie->RangeDEF)) < 0 ||
+	(code = dict_proc3_param(mem, op, "DecodeDEF", &procs.PreDecode.DEF)) < 0 ||
+	(code = dict_range3_param(mem, op, "RangeHIJ", &pcie->RangeHIJ)) < 0 ||
 	(code = cie_table_param(ptref, &pcie->Table, mem)) < 0 ||
-	(code = cie_abc_param(op, (gs_cie_abc *) pcie, &procs)) < 0 ||
+	(code = cie_abc_param(imemory, op, (gs_cie_abc *) pcie, &procs)) < 0 ||
 	(code = cie_cache_joint(i_ctx_p, &istate->colorrendering.procs, (gs_cie_common *)pcie, igs)) < 0 ||	/* do this last */
 	(code = cie_cache_push_finish(i_ctx_p, cie_def_finish, imem, pcie)) < 0 ||
 	(code = cie_prepare_cache3(i_ctx_p, &pcie->RangeDEF,
@@ -404,6 +409,7 @@ cie_def_finish(i_ctx_t *i_ctx_p)
     gs_cie_def *pcie = r_ptr(op, gs_cie_def);
 
     pcie->DecodeDEF = DecodeDEF_from_cache;
+    pcie->DecodeABC = DecodeABC_from_cache;
     pcie->common.DecodeLMN = DecodeLMN_from_cache;
     gs_cie_def_complete(pcie);
     pop(1);
@@ -411,7 +417,7 @@ cie_def_finish(i_ctx_t *i_ctx_p)
 }
 
 /* <dict> .setcieabcspace - */
-private int cie_abc_finish(P1(i_ctx_t *));
+private int cie_abc_finish(i_ctx_t *);
 private int
 zsetcieabcspace(i_ctx_t *i_ctx_p)
 {
@@ -431,7 +437,7 @@ zsetcieabcspace(i_ctx_t *i_ctx_p)
     if (code < 0)
 	return code;
     pcie = pcs->params.abc;
-    code = cie_abc_param(op, pcie, &procs);
+    code = cie_abc_param(imemory, op, pcie, &procs);
     if (code < 0 ||
 	(code = cie_cache_joint(i_ctx_p, &istate->colorrendering.procs, (gs_cie_common *)pcie, igs)) < 0 ||	/* do this last */
 	(code = cie_cache_push_finish(i_ctx_p, cie_abc_finish, imem, pcie)) < 0 ||
@@ -454,7 +460,7 @@ cie_abc_finish(i_ctx_t *i_ctx_p)
 }
 
 /* <dict> .setcieaspace - */
-private int cie_a_finish(P1(i_ctx_t *));
+private int cie_a_finish(i_ctx_t *);
 private int
 zsetcieaspace(i_ctx_t *i_ctx_p)
 {
@@ -476,9 +482,9 @@ zsetcieaspace(i_ctx_t *i_ctx_p)
     if (code < 0)
 	return code;
     pcie = pcs->params.a;
-    if ((code = dict_floats_param(op, "RangeA", 2, (float *)&pcie->RangeA, (const float *)&RangeA_default)) < 0 ||
-	(code = dict_floats_param(op, "MatrixA", 3, (float *)&pcie->MatrixA, (const float *)&MatrixA_default)) < 0 ||
-	(code = cie_lmnp_param(op, &pcie->common, &procs)) < 0 ||
+    if ((code = dict_floats_param(imemory, op, "RangeA", 2, (float *)&pcie->RangeA, (const float *)&RangeA_default)) < 0 ||
+	(code = dict_floats_param(imemory, op, "MatrixA", 3, (float *)&pcie->MatrixA, (const float *)&MatrixA_default)) < 0 ||
+	(code = cie_lmnp_param(imemory, op, &pcie->common, &procs)) < 0 ||
 	(code = cie_cache_joint(i_ctx_p, &istate->colorrendering.procs, (gs_cie_common *)pcie, igs)) < 0 ||	/* do this last */
 	(code = cie_cache_push_finish(i_ctx_p, cie_a_finish, imem, pcie)) < 0 ||
 	(code = cie_prepare_cache(i_ctx_p, &pcie->RangeA, &procs.Decode.A, &pcie->caches.DecodeA.floats, pcie, imem, "Decode.A")) < 0 ||
@@ -511,7 +517,7 @@ cache_abc_common(i_ctx_t *i_ctx_p, gs_cie_abc * pcie,
     int code =
 	cie_prepare_cache3(i_ctx_p, &pcie->RangeABC,
 			   pcprocs->Decode.ABC.value.const_refs,
-			   &pcie->caches.DecodeABC[0], pcie, imem,
+			   pcie->caches.DecodeABC.caches, pcie, imem,
 			   "Decode.ABC");
 
     return (code < 0 ? code :
@@ -532,44 +538,30 @@ cache_common(i_ctx_t *i_ctx_p, gs_cie_common * pcie,
 /* ------ Internal routines ------ */
 
 /* Prepare to cache the values for one or more procedures. */
-private int cie_cache_finish1(P1(i_ctx_t *));
-private int cie_cache_finish(P1(i_ctx_t *));
+private int cie_cache_finish1(i_ctx_t *);
+private int cie_cache_finish(i_ctx_t *);
 int
 cie_prepare_cache(i_ctx_t *i_ctx_p, const gs_range * domain, const ref * proc,
 		  cie_cache_floats * pcache, void *container,
 		  gs_ref_memory_t * imem, client_name_t cname)
 {
     int space = imemory_space(imem);
-    gs_for_loop_params flp;
+    gs_sample_loop_params_t lp;
     es_ptr ep;
 
-    gs_cie_cache_init(&pcache->params, &flp, domain, cname);
+    gs_cie_cache_init(&pcache->params, &lp, domain, cname);
     pcache->params.is_identity = r_size(proc) == 0;
-    /*
-     * If a matrix was singular, it is possible that flp.step = 0.
-     * In this case, flp.limit = flp.init as well.
-     * Execute the procedure once, and replicate the result.
-     */
-    if (flp.step == 0) {
-	check_estack(5);
-	ep = esp;
-	make_real(ep + 5, flp.init);
-	ep[4] = *proc;
-	make_op_estack(ep + 3, cie_cache_finish1);
-	esp += 5;
-    } else {
-	check_estack(9);
-	ep = esp;
-	make_real(ep + 9, flp.init);
-	make_real(ep + 8, flp.step);
-	make_real(ep + 7, flp.limit);
-	ep[6] = *proc;
-	r_clear_attrs(ep + 6, a_executable);
-	make_op_estack(ep + 5, zcvx);
-	make_op_estack(ep + 4, zfor);
-	make_op_estack(ep + 3, cie_cache_finish);
-	esp += 9;
-    }
+    check_estack(9);
+    ep = esp;
+    make_real(ep + 9, lp.A);
+    make_int(ep + 8, lp.N);
+    make_real(ep + 7, lp.B);
+    ep[6] = *proc;
+    r_clear_attrs(ep + 6, a_executable);
+    make_op_estack(ep + 5, zcvx);
+    make_op_estack(ep + 4, zfor_samples);
+    make_op_estack(ep + 3, cie_cache_finish);
+    esp += 9;
     /*
      * The caches are embedded in the middle of other
      * structures, so we represent the pointer to the cache

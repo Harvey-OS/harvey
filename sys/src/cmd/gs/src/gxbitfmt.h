@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxbitfmt.h,v 1.2 2000/09/19 19:00:33 lpd Exp $ */
+/* $Id: gxbitfmt.h,v 1.5 2002/08/22 07:12:29 henrys Exp $ */
 /* Definitions for bitmap storage formats */
 
 #ifndef gxbitfmt_INCLUDED
@@ -45,9 +43,6 @@ typedef ulong gx_bitmap_format_t;
   (GB_COLORS_GRAY | GB_COLORS_RGB | GB_COLORS_CMYK)
 #define GB_COLORS_ALL\
   (GB_COLORS_NATIVE | GB_COLORS_STANDARD_ALL)
-#define gb_colors_for_device(dev)\
-  ((dev)->color_info.num_components == 4 ? GB_COLORS_CMYK :\
-   (dev)->color_info.num_components == 3 ? GB_COLORS_RGB : GB_COLORS_GRAY)
 #define GB_COLORS_NAMES\
   "colors_native", "colors_Gray", "colors_RGB", "colors_CMYK"
 

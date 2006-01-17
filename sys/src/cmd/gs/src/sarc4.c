@@ -1,27 +1,25 @@
 /* Copyright (C) 2001 Artifex Software, Inc.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: sarc4.c,v 1.5 2001/09/14 20:26:02 raph Exp $ */
+/* $Id: sarc4.c,v 1.10 2004/01/14 13:45:56 igor Exp $ */
 
 /* Arcfour cipher and filter implementation */
 
 #include "memory_.h"
-#include "errors.h"
+#include "gserrors.h"
 #include "gserror.h"
 #include "strimpl.h"
 #include "sarc4.h"
@@ -47,7 +45,7 @@ s_arcfour_set_key(stream_arcfour_state * state, const unsigned char *key,
     unsigned char s, *S = state->S;
 
     if (keylength < 1)
-	return_error(e_rangecheck);
+	return_error(gs_error_rangecheck);
 
     /* initialize to eponymous values */
     for (x = 0; x < 256; x++)
@@ -115,3 +113,19 @@ s_arcfour_process(stream_state * ss, stream_cursor_read * pr,
 const stream_template s_arcfour_template = {
     &st_arcfour_state, NULL, s_arcfour_process, 1, 1
 };
+
+/* (de)crypt a section of text in a buffer -- the procedure is the same
+ * in each direction. see strimpl.h for return codes.
+ */
+int
+s_arcfour_process_buffer(stream_arcfour_state *ss, byte *buf, int buf_size)
+{
+    stream_cursor_read r;
+    stream_cursor_write w;
+    const bool unused = false;
+
+    r.ptr = w.ptr = buf - 1;
+    r.limit = w.limit = buf - 1 + buf_size;
+    return s_arcfour_process((stream_state *)ss, &r, &w, unused);
+}
+

@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1993, 1994, 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevmgr.c,v 1.2 2000/09/19 19:00:14 lpd Exp $*/
+/* $Id: gdevmgr.c,v 1.8 2005/01/19 00:24:07 dan Exp $*/
 /* MGR device driver */
 #include "gdevprn.h"
 #include "gdevpccm.h"
@@ -33,8 +31,8 @@ typedef struct gx_device_mgr_s gx_device_mgr;
 
 static struct nclut clut[256];
 
-private unsigned int clut2mgr(P2(int, int));
-private void swap_bwords(P2(unsigned char *, int));
+private unsigned int clut2mgr(int, int);
+private void swap_bwords(unsigned char *, int);
 
 /* ------ The device descriptors ------ */
 
@@ -87,7 +85,7 @@ gx_device_mgr far_data gs_mgrgray4_device =
 gx_device_mgr far_data gs_mgrgray8_device =
   mgr_prn_device(mgrN_procs,  "mgrgray8",1,  8, 8, 255,   0, 0, 0, mgrN_print_page);
 gx_device_mgr far_data gs_mgr4_device =
-  mgr_prn_device(cmgr4_procs, "mgr4",    3,  8, 4,   1,   1, 4, 3, cmgrN_print_page);
+  mgr_prn_device(cmgr4_procs, "mgr4",    3,  8, 4,   1,   1, 2, 2, cmgrN_print_page);
 gx_device_mgr far_data gs_mgr8_device =
   mgr_prn_device(cmgr8_procs, "mgr8",    3,  8, 8, 255, 255, 6, 5, cmgrN_print_page);
 
@@ -109,7 +107,7 @@ mgr_begin_page(gx_device_mgr *bdev, FILE *pstream, mgr_cursor *pcur)
 {	struct b_header head;
 	uint line_size =
 		gdev_prn_raster((gx_device_printer *)bdev) + 3;
-	byte *data = (byte *)gs_malloc(line_size, 1, "mgr_begin_page");
+	byte *data = (byte *)gs_malloc(bdev->memory, line_size, 1, "mgr_begin_page");
 	if ( data == 0 )
 		return_error(gs_error_VMerror);
 
@@ -133,7 +131,8 @@ mgr_begin_page(gx_device_mgr *bdev, FILE *pstream, mgr_cursor *pcur)
 private int
 mgr_next_row(mgr_cursor *pcur)
 {	if ( pcur->lnum >= pcur->dev->height )
-	   {	gs_free((char *)pcur->data, pcur->line_size, 1,
+	{	gs_free(((gx_device_printer *)pcur->dev)->memory,
+			(char *)pcur->data, pcur->line_size, 1,
 			"mgr_next_row(done)");
 		return 1;
 	   }
@@ -210,7 +209,7 @@ mgrN_print_page(gx_device_printer *pdev, FILE *pstream)
 	}
 
 	if ( bdev->mgr_depth != 8 )
-        	data = (byte *)gs_malloc(mgr_line_size, 1, "mgrN_print_page");
+	    data = (byte *)gs_malloc(pdev->memory, mgr_line_size, 1, "mgrN_print_page");
         
 	while ( !(code = mgr_next_row(&cur)) )
 	   {
@@ -245,7 +244,7 @@ mgrN_print_page(gx_device_printer *pdev, FILE *pstream)
 		}  
 	   }
 	if (bdev->mgr_depth != 8)
-        	gs_free((char *)data, mgr_line_size, 1, "mgrN_print_page(done)");
+	    gs_free(bdev->memory, (char *)data, mgr_line_size, 1, "mgrN_print_page(done)");
 
 	if (bdev->mgr_depth == 2) {
             for (i = 0; i < 4; i++) {
@@ -290,7 +289,7 @@ cmgrN_print_page(gx_device_printer *pdev, FILE *pstream)
 	if (bdev->mgr_depth == 4 && mgr_wide & 1)
             mgr_wide++;
 	mgr_line_size = mgr_wide / (8 / bdev->mgr_depth);
-       	data = (byte *)gs_malloc(mgr_line_size, 1, "cmgrN_print_page");
+       	data = (byte *)gs_malloc(pdev->memory, mgr_line_size, 1, "cmgrN_print_page");
 
        	if ( bdev->mgr_depth == 8 ) {
             memset( table, 0, sizeof(table) );
@@ -328,7 +327,7 @@ cmgrN_print_page(gx_device_printer *pdev, FILE *pstream)
 				break;
 		}  
 	   }
-       	gs_free((char *)data, mgr_line_size, 1, "cmgrN_print_page(done)");
+       	gs_free(bdev->memory, (char *)data, mgr_line_size, 1, "cmgrN_print_page(done)");
        	
 	if (bdev->mgr_depth == 4) {
             for (i = 0; i < 16; i++) {
@@ -366,11 +365,11 @@ cmgrN_print_page(gx_device_printer *pdev, FILE *pstream)
 /* (1/6, 1/2, and 5/6), instead of the obvious 8x8x4. */
 
 gx_color_index
-mgr_8bit_map_rgb_color(gx_device *dev, gx_color_value r, gx_color_value g,
-  gx_color_value b)
-{	uint rv = r / (gx_max_color_value / 7 + 1);
-	uint gv = g / (gx_max_color_value / 7 + 1);
-	uint bv = b / (gx_max_color_value / 7 + 1);
+mgr_8bit_map_rgb_color(gx_device *dev, const gx_color_value cv[])
+{
+	uint rv = cv[0] / (gx_max_color_value / 7 + 1);
+	uint gv = cv[1] / (gx_max_color_value / 7 + 1);
+	uint bv = cv[2] / (gx_max_color_value / 7 + 1);
 	return (gx_color_index)
 		(rv == gv && gv == bv ? rv + (256-7) :
 		 (rv << 5) + (gv << 2) + (bv >> 1));

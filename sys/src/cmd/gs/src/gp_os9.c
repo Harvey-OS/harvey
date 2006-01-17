@@ -1,23 +1,22 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 2000-2003 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gp_os9.c,v 1.4 2001/04/08 08:43:24 ghostgum Exp $ */
+/* $Id: gp_os9.c,v 1.12 2004/01/15 09:27:10 giles Exp $ */
 /* OSK-specific routines for Ghostscript */
+
 #include "pipe_.h"
 #include "string_.h"
 #include "time_.h"
@@ -25,13 +24,12 @@
 #include "gp.h"
 #include <signal.h>
 #include <stdlib.h>		/* for exit */
-#include <sys/param.h>		/* for MAXPATHLEN */
 
 int interrupted;
 
 /* Forward declarations */
-private void signalhandler(P1(int));
-private FILE *rbfopen(P2(char *, char *));
+private void signalhandler(int);
+private FILE *rbfopen(char *, char *);
 
 /* Do platform-dependent initialization */
 void
@@ -50,6 +48,7 @@ gp_exit(int exit_status, int code)
 void
 gp_do_exit(int exit_status)
 {
+    exit(exit_status);
 }
 
 private void
@@ -105,6 +104,24 @@ gp_get_usertime(long *pdt)
     return gp_get_realtime(pdt);	/* not yet implemented */
 }
 
+
+/* ------ Persistent data cache ------*/
+
+/* insert a buffer under a (type, key) pair */
+int gp_cache_insert(int type, byte *key, int keylen, void *buffer, int buflen)
+{
+    /* not yet implemented */
+    return 0;
+}
+
+/* look up a (type, key) in the cache */
+int gp_cache_query(int type, byte* key, int keylen, void **buffer,
+    gp_cache_alloc alloc, void *userdata)
+{
+    /* not yet implemented */
+    return -1;
+}
+
 /* ------ Printer accessing ------ */
 
 /* Open a connection to a printer.  A null file name means use the */
@@ -151,3 +168,24 @@ gp_setmode_binary(FILE * pfile, bool binary)
 	file->_flag &= ~_RBF;
     return 0;
 }
+
+/* ------ Font enumeration ------ */
+ 
+ /* This is used to query the native os for a list of font names and
+  * corresponding paths. The general idea is to save the hassle of
+  * building a custom fontmap file.
+  */
+ 
+void *gp_enumerate_fonts_init(gs_memory_t *mem)
+{
+    return NULL;
+}
+         
+int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+{
+    return 0;
+}
+                         
+void gp_enumerate_fonts_free(void *enum_state)
+{
+}           

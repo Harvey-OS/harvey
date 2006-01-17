@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxfmap.h,v 1.3 2000/09/19 19:00:37 lpd Exp $ */
+/* $Id: gxfmap.h,v 1.6 2002/06/16 08:45:43 lpd Exp $ */
 /* Fraction map representation for Ghostscript */
 
 #ifndef gxfmap_INCLUDED
@@ -56,7 +54,7 @@ extern_st(st_transfer_map);
     transfer_map_enum_ptrs, transfer_map_reloc_ptrs)
 
 /* Set a transfer map to the identity map. */
-void gx_set_identity_transfer(P1(gx_transfer_map *));
+void gx_set_identity_transfer(gx_transfer_map *);
 
 /*
  * Map a color fraction through a transfer map.  If the map is small,
@@ -65,7 +63,7 @@ void gx_set_identity_transfer(P1(gx_transfer_map *));
 #define FRAC_MAP_INTERPOLATE (log2_transfer_map_size <= 8)
 #if FRAC_MAP_INTERPOLATE
 
-frac gx_color_frac_map(P2(frac, const frac *));		/* in gxcmap.c */
+frac gx_color_frac_map(frac, const frac *);		/* in gxcmap.c */
 
 #  define gx_map_color_frac(pgs,cf,m)\
      (pgs->m->proc == gs_identity_transfer ? cf :\
@@ -99,11 +97,11 @@ frac gx_color_frac_map(P2(frac, const frac *));		/* in gxcmap.c */
 
 /* Define a mapping procedure that just looks up the value in the cache. */
 /* (It is equivalent to gx_map_color_float with the arguments swapped.) */
-float gs_mapped_transfer(P2(floatp, const gx_transfer_map *));
+float gs_mapped_transfer(floatp, const gx_transfer_map *);
 
 /* Define an identity mapping procedure. */
 /* Don't store this directly in proc/closure.proc: */
 /* use gx_set_identity_transfer. */
-float gs_identity_transfer(P2(floatp, const gx_transfer_map *));
+float gs_identity_transfer(floatp, const gx_transfer_map *);
 
 #endif /* gxfmap_INCLUDED */

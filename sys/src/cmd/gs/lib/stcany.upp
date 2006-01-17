@@ -9,6 +9,9 @@
 -dupMargins="{ 9.0 39.96 9.0 9.0}"
 -dupComponentBits="{1 1 1 1}"
 -dupBeginPageCommand="<
+   00 00 00 
+   1b01 40 45 4a 4c 20 31 32 38 34 2e 34 0a 
+   40 45 4a 4c 20 20 20 20 20 0a 
    1b40   1b40
    1b2847 0100 01
    1b2869 0100 01

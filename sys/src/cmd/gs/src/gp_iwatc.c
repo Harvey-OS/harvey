@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 1995, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gp_iwatc.c,v 1.6 2001/07/15 13:57:50 lpd Exp $ */
+/* $Id: gp_iwatc.c,v 1.17 2004/01/15 09:27:10 giles Exp $ */
 /* Intel processor, Watcom C-specific routines for Ghostscript */
 #include "dos_.h"
 #include <fcntl.h>
@@ -29,13 +27,13 @@
 #include "gpmisc.h"
 
 /* Library routines not declared in a standard header */
-extern char *mktemp(P1(char *));	/* in gp_mktmp.c */
+extern char *mktemp(char *);	/* in gp_mktmp.c */
 
 /* Define a substitute for stdprn (see below). */
 private FILE *gs_stdprn;
 
 /* Forward declarations */
-private void handle_FPE(P1(int));
+private void handle_FPE(int);
 
 /* Do platform-dependent initialization. */
 void
@@ -65,6 +63,24 @@ gp_exit(int exit_status, int code)
 void
 gp_do_exit(int exit_status)
 {
+    exit(exit_status);
+}
+
+/* ------ Persistent data cache ------*/
+  
+/* insert a buffer under a (type, key) pair */
+int gp_cache_insert(int type, byte *key, int keylen, void *buffer, int buflen)
+{ 
+    /* not yet implemented */
+    return 0;
+} 
+ 
+/* look up a (type, key) in the cache */
+int gp_cache_query(int type, byte* key, int keylen, void **buffer,
+    gp_cache_alloc alloc, void *userdata)
+{
+    /* not yet implemented */
+    return -1;
 }
 
 /* ------ Printer accessing ------ */
@@ -72,7 +88,7 @@ gp_do_exit(int exit_status)
 /* Open a connection to a printer.  A null file name means use the */
 /* standard printer connected to the machine, if any. */
 /* Return NULL if the connection could not be opened. */
-extern void gp_set_file_binary(P2(int, int));
+extern void gp_set_file_binary(int, int);
 FILE *
 gp_open_printer(char fname[gp_file_name_sizeof], int binary_mode)
 {
@@ -127,6 +143,7 @@ gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
 {	      /* The -7 is for XXXXXXX */
     int prefix_length = strlen(prefix);
     int len = gp_file_name_sizeof - prefix_length - 7;
+    FILE *f;
 
     if (gp_file_name_is_absolute(prefix, prefix_length) ||
 	gp_gettmpdir(fname, &len) != 0
@@ -146,7 +163,10 @@ gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
     strcat(fname, prefix);
     strcat(fname, "XXXXXX");
     mktemp(fname);
-    return gp_fopentemp(fname, mode);
+    f = gp_fopentemp(fname, mode);
+    if (f == NULL)
+	eprintf1("**** Could not open temporary file %s\n", fname);
+    return f;
 }
 
 
@@ -156,3 +176,24 @@ gp_fopen(const char *fname, const char *mode)
 {
     return fopen(fname, mode);
 }
+
+/* ------ Font enumeration ------ */
+ 
+ /* This is used to query the native os for a list of font names and
+  * corresponding paths. The general idea is to save the hassle of
+  * building a custom fontmap file.
+  */
+ 
+void *gp_enumerate_fonts_init(gs_memory_t *mem)
+{
+    return NULL;
+}
+         
+int gp_enumerate_fonts_next(void *enum_state, char **fontname, char **path)
+{
+    return 0;
+}
+                         
+void gp_enumerate_fonts_free(void *enum_state)
+{
+}           

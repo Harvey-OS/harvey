@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1997, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: idict.h,v 1.2 2000/09/19 19:00:43 lpd Exp $ */
+/* $Id: idict.h,v 1.6 2004/08/04 19:36:12 stefan Exp $ */
 /* Interfaces for Ghostscript dictionary package */
 
 #ifndef idict_INCLUDED
@@ -40,6 +38,7 @@ struct dict_s {
     ref memory;			/* foreign t_struct, the allocator that */
     /* created this dictionary */
 #define dict_memory(pdict) r_ptr(&(pdict)->memory, gs_ref_memory_t)
+#define dict_mem(pdict) r_ptr(&(pdict)->memory, gs_memory_t)
 };
 
 /*
@@ -62,7 +61,7 @@ extern bool dict_auto_expand;
 #  define gs_ref_memory_DEFINED
 typedef struct gs_ref_memory_s gs_ref_memory_t;
 #endif
-int dict_alloc(P3(gs_ref_memory_t *, uint maxlength, ref * pdref));
+int dict_alloc(gs_ref_memory_t *, uint maxlength, ref * pdref);
 
 #define dict_create(maxlen, pdref)\
   dict_alloc(iimemory, maxlen, pdref)
@@ -91,13 +90,13 @@ int dict_alloc(P3(gs_ref_memory_t *, uint maxlength, ref * pdref));
  *        error occurs from attempting to convert it to a name;
  *      e_dictfull if the dictionary is full and the key is missing.
  */
-int dict_find(P3(const ref * pdref, const ref * key, ref ** ppvalue));
+int dict_find(const ref * pdref, const ref * key, ref ** ppvalue);
 
 /*
  * Look up a (constant) C string in a dictionary.
  * Return 1 if found, <= 0 if not.
  */
-int dict_find_string(P3(const ref * pdref, const char *kstr, ref ** ppvalue));
+int dict_find_string(const ref * pdref, const char *kstr, ref ** ppvalue);
 
 /*
  * Enter a key-value pair in a dictionary.
@@ -117,36 +116,36 @@ int dict_find_string(P3(const ref * pdref, const char *kstr, ref ** ppvalue));
  * stack, an e_invalidaccess error will occur if cached values need updating.
  * THIS ERROR CHECK IS NOT IMPLEMENTED YET.
  */
-int dict_put(P4(ref * pdref, const ref * key, const ref * pvalue,
-		dict_stack_t *pds));
+int dict_put(ref * pdref, const ref * key, const ref * pvalue,
+	     dict_stack_t *pds);
 
 /*
  * Enter a key-value pair where the key is a (constant) C string.
  */
-int dict_put_string(P4(ref * pdref, const char *kstr, const ref * pvalue,
-		       dict_stack_t *pds));
+int dict_put_string(ref * pdref, const char *kstr, const ref * pvalue,
+		    dict_stack_t *pds);
 
 /*
  * Remove a key-value pair from a dictionary.
  * Return 0 or e_undefined.
  */
-int dict_undef(P3(ref * pdref, const ref * key, dict_stack_t *pds));
+int dict_undef(ref * pdref, const ref * key, dict_stack_t *pds);
 
 /*
  * Return the number of elements in a dictionary.
  */
-uint dict_length(P1(const ref * pdref));
+uint dict_length(const ref * pdref);
 
 /*
  * Return the capacity of a dictionary.
  */
-uint dict_maxlength(P1(const ref * pdref));
+uint dict_maxlength(const ref * pdref);
 
 /*
  * Return the maximum index of a slot within a dictionary.
  * Note that this may be greater than maxlength.
  */
-uint dict_max_index(P1(const ref * pdref));
+uint dict_max_index(const ref * pdref);
 
 /*
  * Copy one dictionary into another.
@@ -154,8 +153,8 @@ uint dict_max_index(P1(const ref * pdref));
  * If new_only is true, only copy entries whose keys
  * aren't already present in the destination.
  */
-int dict_copy_entries(P4(const ref * dfrom, ref * dto, bool new_only,
-			 dict_stack_t *pds));
+int dict_copy_entries(const ref * dfrom, ref * dto, bool new_only,
+		      dict_stack_t *pds);
 
 #define dict_copy(dfrom, dto, pds) dict_copy_entries(dfrom, dto, false, pds)
 #define dict_copy_new(dfrom, dto, pds) dict_copy_entries(dfrom, dto, true, pds)
@@ -164,25 +163,25 @@ int dict_copy_entries(P4(const ref * dfrom, ref * dto, bool new_only,
  * Grow or shrink a dictionary.
  * Return 0, e_dictfull, or e_VMerror.
  */
-int dict_resize(P3(ref * pdref, uint newmaxlength, dict_stack_t *pds));
+int dict_resize(ref * pdref, uint newmaxlength, dict_stack_t *pds);
 
 /*
  * Grow a dictionary in the same way as dict_put does.
  * We export this for some special-case code in zop_def.
  */
-int dict_grow(P2(ref * pdref, dict_stack_t *pds));
+int dict_grow(ref * pdref, dict_stack_t *pds);
 
 /*
  * Ensure that a dictionary uses the unpacked representation for keys.
  * (This is of no interest to ordinary clients.)
  */
-int dict_unpack(P2(ref * pdref, dict_stack_t *pds));
+int dict_unpack(ref * pdref, dict_stack_t *pds);
 
 /*
  * Prepare to enumerate a dictionary.
  * Return an integer suitable for the first call to dict_next.
  */
-int dict_first(P1(const ref * pdref));
+int dict_first(const ref * pdref);
 
 /*
  * Enumerate the next element of a dictionary.
@@ -191,7 +190,7 @@ int dict_first(P1(const ref * pdref));
  * and return an updated index, or return -1
  * to signal that there are no more elements in the dictionary.
  */
-int dict_next(P3(const ref * pdref, int index, ref * eltp));
+int dict_next(const ref * pdref, int index, ref * eltp);
 
 /*
  * Given a value pointer return by dict_find, return an index that
@@ -199,14 +198,14 @@ int dict_next(P3(const ref * pdref, int index, ref * eltp));
  * be the same as the index returned by dict_next.)
  * The index is in the range [0..max_index-1].
  */
-int dict_value_index(P2(const ref * pdref, const ref * pvalue));
+int dict_value_index(const ref * pdref, const ref * pvalue);
 
 /*
  * Given an index in [0..max_index-1], as returned by dict_value_index,
  * return the key and value, as returned by dict_next.
  * If the index designates an unoccupied entry, return e_undefined.
  */
-int dict_index_entry(P3(const ref * pdref, int index, ref * eltp));
+int dict_index_entry(const ref * pdref, int index, ref * eltp);
 
 /*
  * The following are some internal details that are used in both the
@@ -244,8 +243,8 @@ int dict_index_entry(P3(const ref * pdref, int index, ref * eltp));
    dict_hash_mod_mask(hash, size))
 #define dict_hash_mod_inline_large(hash, size) dict_hash_mod_mask(hash, size)
 /* Round up the requested size of a dictionary.  Return 0 if too big. */
-uint dict_round_size_small(P1(uint rsize));
-uint dict_round_size_large(P1(uint rsize));
+uint dict_round_size_small(uint rsize);
+uint dict_round_size_large(uint rsize);
 
 /* Choose the algorithms depending on the size of memory. */
 #if arch_small_memory

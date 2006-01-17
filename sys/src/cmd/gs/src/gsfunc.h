@@ -1,26 +1,31 @@
-/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2000, 2002 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsfunc.h,v 1.4 2000/09/19 19:00:28 lpd Exp $ */
+/* $Id: gsfunc.h,v 1.13 2005/04/19 14:35:12 igor Exp $ */
 /* Generic definitions for Functions */
 
 #ifndef gsfunc_INCLUDED
 #  define gsfunc_INCLUDED
+
+#include "gstypes.h"		/* for gs_range_t */
+
+#ifndef stream_DEFINED
+#  define stream_DEFINED
+typedef struct stream_s stream;
+#endif
 
 /* ---------------- Types and structures ---------------- */
 
@@ -41,13 +46,6 @@ typedef int gs_function_type_t;
     const float *Domain;	/* 2 x m */\
     int n;			/* # of outputs */\
     const float *Range		/* 2 x n, optional except for type 0 */
-
-/* Define calculation effort values (currently only used for monotonicity). */
-typedef enum {
-    EFFORT_EASY = 0,
-    EFFORT_MODERATE = 1,
-    EFFORT_ESSENTIAL = 2
-} gs_function_effort_t;
 
 /* Define abstract types. */
 #ifndef gs_data_source_DEFINED
@@ -76,34 +74,54 @@ typedef struct gs_function_info_s {
 
 /* Evaluate a function. */
 #define FN_EVALUATE_PROC(proc)\
-  int proc(P3(const gs_function_t * pfn, const float *in, float *out))
+  int proc(const gs_function_t * pfn, const float *in, float *out)
 typedef FN_EVALUATE_PROC((*fn_evaluate_proc_t));
 
 /* Test whether a function is monotonic. */
 #define FN_IS_MONOTONIC_PROC(proc)\
-  int proc(P4(const gs_function_t * pfn, const float *lower,\
-	      const float *upper, gs_function_effort_t effort))
+  int proc(const gs_function_t * pfn, const float *lower,\
+	   const float *upper, uint *mask)
 typedef FN_IS_MONOTONIC_PROC((*fn_is_monotonic_proc_t));
 
 /* Get function information. */
 #define FN_GET_INFO_PROC(proc)\
-  void proc(P2(const gs_function_t *pfn, gs_function_info_t *pfi))
+  void proc(const gs_function_t *pfn, gs_function_info_t *pfi)
 typedef FN_GET_INFO_PROC((*fn_get_info_proc_t));
 
 /* Put function parameters on a parameter list. */
 #define FN_GET_PARAMS_PROC(proc)\
-  int proc(P2(const gs_function_t *pfn, gs_param_list *plist))
+  int proc(const gs_function_t *pfn, gs_param_list *plist)
 typedef FN_GET_PARAMS_PROC((*fn_get_params_proc_t));
+
+/*
+ * Create a new function with scaled output.  The i'th output value is
+ * transformed linearly so that [0 .. 1] are mapped to [pranges[i].rmin ..
+ * pranges[i].rmax].  Any necessary parameters or subfunctions of the
+ * original function are copied, not shared, even if their values aren't
+ * changed, so that the new function can be freed without having to worry
+ * about freeing data that should be kept.  Note that if there is a "data
+ * source", it is shared, not copied: this should not be a problem, since
+ * gs_function_free does not free the data source.
+ */
+#define FN_MAKE_SCALED_PROC(proc)\
+  int proc(const gs_function_t *pfn, gs_function_t **ppsfn,\
+	   const gs_range_t *pranges, gs_memory_t *mem)
+typedef FN_MAKE_SCALED_PROC((*fn_make_scaled_proc_t));
 
 /* Free function parameters. */
 #define FN_FREE_PARAMS_PROC(proc)\
-  void proc(P2(gs_function_params_t * params, gs_memory_t * mem))
+  void proc(gs_function_params_t * params, gs_memory_t * mem)
 typedef FN_FREE_PARAMS_PROC((*fn_free_params_proc_t));
 
 /* Free a function. */
 #define FN_FREE_PROC(proc)\
-  void proc(P3(gs_function_t * pfn, bool free_params, gs_memory_t * mem))
+  void proc(gs_function_t * pfn, bool free_params, gs_memory_t * mem)
 typedef FN_FREE_PROC((*fn_free_proc_t));
+
+/* Serialize a function. */
+#define FN_SERIALIZE_PROC(proc)\
+  int proc(const gs_function_t * pfn, stream *s)
+typedef FN_SERIALIZE_PROC((*fn_serialize_proc_t));
 
 /* Define the generic function structures. */
 typedef struct gs_function_procs_s {
@@ -111,13 +129,14 @@ typedef struct gs_function_procs_s {
     fn_is_monotonic_proc_t is_monotonic;
     fn_get_info_proc_t get_info;
     fn_get_params_proc_t get_params;
+    fn_make_scaled_proc_t make_scaled;
     fn_free_params_proc_t free_params;
     fn_free_proc_t free;
+    fn_serialize_proc_t serialize;
 } gs_function_procs_t;
 typedef struct gs_function_head_s {
     gs_function_type_t type;
     gs_function_procs_t procs;
-    int is_monotonic;		/* cached when function is created */
 } gs_function_head_t;
 struct gs_function_s {
     gs_function_head_t head;
@@ -151,35 +170,33 @@ typedef struct gs_function_XxYy_params_s {
  * header file, one to allocate and initialize an instance of that type,
  * and one to free the parameters of that type.
 
-int gs_function_XxYy_init(P3(gs_function_t **ppfn,
-			     const gs_function_XxYy_params_t *params,
-			     gs_memory_t *mem));
+int gs_function_XxYy_init(gs_function_t **ppfn,
+			  const gs_function_XxYy_params_t *params,
+			  gs_memory_t *mem));
 
-void gs_function_XxYy_free_params(P2(gs_function_XxYy_params_t *params,
-				     gs_memory_t *mem));
+void gs_function_XxYy_free_params(gs_function_XxYy_params_t *params,
+				  gs_memory_t *mem);
 
  */
+
+/* Allocate an array of function pointers. */
+int alloc_function_array(uint count, gs_function_t *** pFunctions,
+			 gs_memory_t *mem);
 
 /* Evaluate a function. */
 #define gs_function_evaluate(pfn, in, out)\
   ((pfn)->head.procs.evaluate)(pfn, in, out)
 
 /*
- * Test whether a function is monotonic on a given (closed) interval.  If
- * the test requires too much effort, the procedure may return
- * gs_error_undefined; normally, it returns 0 for false, >0 for true,
- * gs_error_rangecheck if any part of the interval is outside the function's
- * domain.  If lower[i] > upper[i], the result is not defined.
+ * Test whether a function is monotonic on a given (closed) interval.
+ * return 1 = monotonic, 0 = not or don't know, <0 = error..
+ * Sets mask : 1 bit per dimension : 
+ *    1 - non-monotonic or don't know, 
+ *    0 - monotonic.
+ * If lower[i] > upper[i], the result may be not defined.
  */
-#define gs_function_is_monotonic(pfn, lower, upper, effort)\
-  ((pfn)->head.procs.is_monotonic)(pfn, lower, upper, effort)
-/*
- * If the function is monotonic, is_monotonic returns the direction of
- * monotonicity for output value N in bits 2N and 2N+1.  (Functions with
- * more than sizeof(int) * 4 - 1 outputs are never identified as monotonic.)
- */
-#define FN_MONOTONIC_INCREASING 1
-#define FN_MONOTONIC_DECREASING 2
+#define gs_function_is_monotonic(pfn, lower, upper, mask)\
+  ((pfn)->head.procs.is_monotonic)(pfn, lower, upper, mask)
 
 /* Get function information. */
 #define gs_function_get_info(pfn, pfi)\
@@ -189,6 +206,10 @@ void gs_function_XxYy_free_params(P2(gs_function_XxYy_params_t *params,
 #define gs_function_get_params(pfn, plist)\
   ((pfn)->head.procs.get_params(pfn, plist))
 
+/* Create a scaled function. */
+#define gs_function_make_scaled(pfn, ppsfn, pranges, mem)\
+  ((pfn)->head.procs.make_scaled(pfn, ppsfn, pranges, mem))
+
 /* Free function parameters. */
 #define gs_function_free_params(pfn, mem)\
   ((pfn)->head.procs.free_params(&(pfn)->params, mem))
@@ -196,5 +217,9 @@ void gs_function_XxYy_free_params(P2(gs_function_XxYy_params_t *params,
 /* Free a function's implementation, optionally including its parameters. */
 #define gs_function_free(pfn, free_params, mem)\
   ((pfn)->head.procs.free(pfn, free_params, mem))
+
+/* Serialize a function. */
+#define gs_function_serialize(pfn, s)\
+  ((pfn)->head.procs.serialize(pfn, s))
 
 #endif /* gsfunc_INCLUDED */

@@ -1,5 +1,5 @@
 @echo off
-@rem $Id: ps2pdfxx.bat,v 1.10 2001/06/22 16:09:22 lpd Exp $
+@rem $Id: ps2pdfxx.bat,v 1.13 2002/11/20 03:01:23 alexcher Exp $
 rem Internal batch file for calling pdfwrite driver.
 
 rem The files that call this one (ps2pdf*.bat) write the command-line
@@ -47,8 +47,17 @@ goto end
 :nooutfile
 rem We don't know why the circumlocution with _1 is needed....
 set _1=%1
-call ps2pdfxx %1 %_1:.PS=.pdf%
+set _outf=%_1:.PS=.pdf%
+if %_1%==%_outf% goto addsuff
+call ps2pdfxx %1 %_outf%
+goto postsuff
+
+:addsuff
+call ps2pdfxx %1 %1%.pdf
+
+:postsuff
 set _1=
+set _outf=
 
 :end
 rem	Clean up.

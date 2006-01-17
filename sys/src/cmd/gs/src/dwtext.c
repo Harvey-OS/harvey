@@ -1,23 +1,21 @@
 /* Copyright (C) 1996-2001 Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
 
-/* $Id: dwtext.c,v 1.5 2001/09/15 08:36:53 ghostgum Exp $ */
+/* $Id: dwtext.c,v 1.9 2005/03/04 10:27:39 ghostgum Exp $ */
 
 /* Microsoft Windows text window for Ghostscript.
 
@@ -448,7 +446,8 @@ int n;
     while (cnt>0) {
 	p = tw->ScreenBuffer + tw->CursorPos.y*tw->ScreenSize.x + tw->CursorPos.x;
 	limit = tw->ScreenSize.x - tw->CursorPos.x;
-	for (count=0; (count < limit) && (cnt>0) && (isprint(*str) || *str=='\t'); count++) {
+	for (count=0; (count < limit) && (cnt>0) && 
+	    (isprint((unsigned char)(*str)) || *str=='\t'); count++) {
 	    if (*str=='\t') {
 		for (n = 8 - ((tw->CursorPos.x+count) % 8); (count < limit) & (n>0); n--, count++ )
 		    *p++ = ' ';
@@ -469,7 +468,7 @@ int n;
 		str++;
 		cnt--;
 	    }
-	    else if (!isprint(*str) && *str!='\t') {
+	    else if (!isprint((unsigned char)(*str)) && *str!='\t') {
 		text_putch(tw, *str++);
 		cnt--;
 	    }
@@ -908,58 +907,31 @@ WndTextProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	    }
 	    return(0);
 	case WM_KEYDOWN:
-	    if (GetKeyState(VK_SHIFT) < 0) {
-	      switch(wParam) {
-		case VK_HOME:
-			SendMessage(hwnd, WM_VSCROLL, SB_TOP, (LPARAM)0);
-			break;
-		case VK_END:
-			SendMessage(hwnd, WM_VSCROLL, SB_BOTTOM, (LPARAM)0);
-			break;
-		case VK_PRIOR:
-			SendMessage(hwnd, WM_VSCROLL, SB_PAGEUP, (LPARAM)0);
-			break;
-		case VK_NEXT:
-			SendMessage(hwnd, WM_VSCROLL, SB_PAGEDOWN, (LPARAM)0);
-			break;
-		case VK_UP:
-			SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, (LPARAM)0);
-			break;
-		case VK_DOWN:
-			SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, (LPARAM)0);
-			break;
-		case VK_LEFT:
-			SendMessage(hwnd, WM_HSCROLL, SB_LINEUP, (LPARAM)0);
-			break;
-		case VK_RIGHT:
-			SendMessage(hwnd, WM_HSCROLL, SB_LINEDOWN, (LPARAM)0);
-			break;
-	      }
-	    }
-	    else {
-	        switch(wParam) {
-		    case VK_HOME:
-		    case VK_END:
-		    case VK_PRIOR:
-		    case VK_NEXT:
-		    case VK_UP:
-		    case VK_DOWN:
-		    case VK_LEFT:
-		    case VK_RIGHT:
-		    case VK_DELETE:
-		    { /* store key in circular buffer */
-			long count = tw->KeyBufIn - tw->KeyBufOut;
-			if (count < 0) count += tw->KeyBufSize;
-			if (count < tw->KeyBufSize-2) {
-			    *tw->KeyBufIn++ = 0;
-			    if (tw->KeyBufIn - tw->KeyBuf >= tw->KeyBufSize)
-				tw->KeyBufIn = tw->KeyBuf; /* wrap around */
-			    *tw->KeyBufIn++ = HIWORD(lParam) & 0xff;
-			    if (tw->KeyBufIn - tw->KeyBuf >= tw->KeyBufSize)
-				tw->KeyBufIn = tw->KeyBuf; /* wrap around */
-			}
-		    }
-	        }
+	    switch(wParam) {
+	      case VK_HOME:
+		      SendMessage(hwnd, WM_VSCROLL, SB_TOP, (LPARAM)0);
+		      break;
+	      case VK_END:
+		      SendMessage(hwnd, WM_VSCROLL, SB_BOTTOM, (LPARAM)0);
+		      break;
+	      case VK_PRIOR:
+		      SendMessage(hwnd, WM_VSCROLL, SB_PAGEUP, (LPARAM)0);
+		      break;
+	      case VK_NEXT:
+		      SendMessage(hwnd, WM_VSCROLL, SB_PAGEDOWN, (LPARAM)0);
+		      break;
+	      case VK_UP:
+		      SendMessage(hwnd, WM_VSCROLL, SB_LINEUP, (LPARAM)0);
+		      break;
+	      case VK_DOWN:
+		      SendMessage(hwnd, WM_VSCROLL, SB_LINEDOWN, (LPARAM)0);
+		      break;
+	      case VK_LEFT:
+		      SendMessage(hwnd, WM_HSCROLL, SB_LINEUP, (LPARAM)0);
+		      break;
+	      case VK_RIGHT:
+		      SendMessage(hwnd, WM_HSCROLL, SB_LINEDOWN, (LPARAM)0);
+		      break;
 	    }
 	    break;
 	case WM_CHAR:

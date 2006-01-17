@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zfilter.c,v 1.5 2001/02/28 00:39:26 rayjj Exp $ */
+/* $Id: zfilter.c,v 1.10 2004/01/17 20:46:32 dan Exp $ */
 /* Filter creation */
 #include "memory_.h"
 #include "ghost.h"
@@ -148,7 +146,12 @@ zSFD(i_ctx_t *i_ctx_p)
 	int code;
 
 	check_dict_read(*op);
-	if ((code = dict_int_param(op, "EODCount", 0, max_int, -1, &count)) < 0)
+	/*
+	 * The PLRM-3rd says that EODCount is a required parameter.  However
+	 * Adobe accepts files without this value and apparently defaults to
+	 * zero.  Thus we are doing the same.
+	 */
+	if ((code = dict_int_param(op, "EODCount", 0, max_int, 0, &count)) < 0)
 	    return code;
 	if (dict_find_string(op, "EODString", &sop) <= 0)
 	    return_error(e_rangecheck);
@@ -171,7 +174,7 @@ zSFD(i_ctx_t *i_ctx_p)
 /* ------ Utilities ------ */
 
 /* Forward references */
-private int filter_ensure_buf(P4(stream **, uint, gs_ref_memory_t *, bool));
+private int filter_ensure_buf(stream **, uint, gs_ref_memory_t *, bool);
 
 /* Set up an input filter. */
 int
@@ -348,6 +351,28 @@ private const stream_template s_Null1D_template = {
     &st_stream_state, NULL, s_Null1D_process, 1, 1
 };
 
+/* A utility filter that returns an immediate EOF without consuming */
+/* any data from its source. Used by PDF interpreter for unknown    */
+/* filter types.                                                    */
+private int
+s_EOFD_process(stream_state * st, stream_cursor_read * pr,
+		 stream_cursor_write * pw, bool last)
+{
+    return EOFC;
+}
+private const stream_template s_EOFD_template = {
+    &st_stream_state, NULL, s_EOFD_process, 1, 1
+};
+
+/* <target> /.EOFDecode filter <file> */
+/* <target> <dict> /.EOFDecode filter <file> */
+private int
+zEOFD(i_ctx_t *i_ctx_p)
+{
+    return filter_read_simple(i_ctx_p, &s_EOFD_template);
+}
+
+
 /* Ensure a minimum buffer size for a filter. */
 /* This may require creating an intermediate stream. */
 private int
@@ -431,5 +456,6 @@ const op_def zfilter_op_defs[] = {
     {"2RunLengthEncode", zRLE},
     {"1RunLengthDecode", zRLD},
     {"3SubFileDecode", zSFD},
+    {"1.EOFDecode", zEOFD},
     op_def_end(0)
 };

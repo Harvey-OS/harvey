@@ -1,22 +1,20 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gximag3x.c,v 1.7 2000/09/19 19:00:37 lpd Exp $ */
+/* $Id: gximag3x.c,v 1.20 2004/09/16 08:03:56 igor Exp $ */
 /* ImageType 3x image implementation */
 /****** THE REAL WORK IS NYI ******/
 #include "math_.h"		/* for ceil, floor */
@@ -121,13 +119,12 @@ typedef struct image3x_channel_values_s {
     gs_int_rect rect;
     gs_image_t image;
 } image3x_channel_values_t;
-private bool is_multiple(P2(int x, int y));
-private int check_image3x_mask(P6(const gs_image3x_t *pim,
-				  const gs_image3x_mask_t *pimm,
-				  const image3x_channel_values_t *ppcv,
-				  image3x_channel_values_t *pmcv,
-				  image3x_channel_state_t *pmcs,
-				  gs_memory_t *mem));
+private int check_image3x_mask(const gs_image3x_t *pim,
+			       const gs_image3x_mask_t *pimm,
+			       const image3x_channel_values_t *ppcv,
+			       image3x_channel_values_t *pmcv,
+			       image3x_channel_state_t *pmcs,
+			       gs_memory_t *mem);
 int
 gx_begin_image3x_generic(gx_device * dev,
 			const gs_imager_state *pis, const gs_matrix *pmat,
@@ -215,15 +212,15 @@ gx_begin_image3x_generic(gx_device * dev,
 	gs_color_space *pmcs;
 
 	if (penum->mask[i].depth == 0) {	/* mask not supplied */
-	    midev[0] = 0;
-	    minfo[0] = 0;
+	    midev[i] = 0;
+	    minfo[i] = 0;
 	    continue;
 	}
 	pmcs =  gs_alloc_struct(mem, gs_color_space, &st_color_space,
 				"gx_begin_image3x_generic");
 	if (pmcs == 0)
 	    return_error(gs_error_VMerror);
-	gs_cspace_init_DevicePixel(pmcs, penum->mask[i].depth);
+	gs_cspace_init_DevicePixel(mem, pmcs, penum->mask[i].depth);
 	mrect.p.x = mrect.p.y = 0;
 	mrect.q.x = penum->mask[i].width;
 	mrect.q.y = penum->mask[i].height;
@@ -231,8 +228,8 @@ gx_begin_image3x_generic(gx_device * dev,
 	    (code = gs_bbox_transform(&mrect, &mat, &mrect)) < 0
 	    )
 	    return code;
-	origin[i].x = floor(mrect.p.x);
-	origin[i].y = floor(mrect.p.y);
+	origin[i].x = (int)floor(mrect.p.x);
+	origin[i].y = (int)floor(mrect.p.y);
 	code = make_mid(&mdev, dev,
 			(int)ceil(mrect.q.x) - origin[i].x,
 			(int)ceil(mrect.q.y) - origin[i].y,
@@ -240,7 +237,7 @@ gx_begin_image3x_generic(gx_device * dev,
 	if (code < 0)
 	    goto out1;
 	penum->mask[i].mdev = mdev;
-	gs_image_t_init_gray(&mask[i].image, pis); /* gray is bogus */
+        gs_image_t_init(&mask[i].image, pmcs);
 	mask[i].image.ColorSpace = pmcs;
 	mask[i].image.adjust = false;
 	{
@@ -357,11 +354,6 @@ gx_begin_image3x_generic(gx_device * dev,
     return code;
 }
 private bool
-is_multiple(int x, int y)
-{
-    return (x % y == 0 || y % x == 0);
-}
-private bool
 check_image3x_extent(floatp mask_coeff, floatp data_coeff)
 {
     if (mask_coeff == 0)
@@ -370,9 +362,12 @@ check_image3x_extent(floatp mask_coeff, floatp data_coeff)
 	return false;
     return true;
 }
-/* Check mask parameters. */
-/* Reads ppcv->{matrix,corner,rect}, sets pmcv->{matrix,corner,rect} and */
-/* pmcs->{InterleaveType,width,height,full_height,data,y,skip}. */
+/*
+ * Check mask parameters.
+ * Reads ppcv->{matrix,corner,rect}, sets pmcv->{matrix,corner,rect} and
+ * pmcs->{InterleaveType,width,height,full_height,depth,data,y,skip}.
+ * If the mask is omitted, sets pmcs->depth = 0 and returns normally.
+ */
 private bool
 check_image3x_mask(const gs_image3x_t *pim, const gs_image3x_mask_t *pimm,
 		   const image3x_channel_values_t *ppcv,
@@ -382,8 +377,11 @@ check_image3x_mask(const gs_image3x_t *pim, const gs_image3x_mask_t *pimm,
     int mask_width = pimm->MaskDict.Width, mask_height = pimm->MaskDict.Height;
     int code;
 
-    if (pimm->MaskDict.BitsPerComponent == 0) /* mask missing */
+    if (pimm->MaskDict.BitsPerComponent == 0) { /* mask missing */
+	pmcs->depth = 0;
+        pmcs->InterleaveType = 0;	/* not a valid type */
 	return 0;
+    }
     if (mask_height <= 0)
 	return_error(gs_error_rangecheck);
     switch (pimm->InterleaveType) {
@@ -398,9 +396,6 @@ check_image3x_mask(const gs_image3x_t *pim, const gs_image3x_mask_t *pimm,
 		)
 		return_error(gs_error_rangecheck);
 	    break;
-	    if (!is_multiple(mask_height, pim->Height))
-		return_error(gs_error_rangecheck);
-	    /* falls through */
 	case interleave_separate_source:
 	    switch (pimm->MaskDict.BitsPerComponent) {
 	    case 1: case 2: case 4: case 8:
@@ -506,6 +501,7 @@ make_midx_default(gx_device **pmidev, gx_device *dev, int width, int height,
     midev->bitmap_memory = mem;
     midev->width = width;
     midev->height = height;
+    check_device_separable((gx_device *)midev);
     gx_device_fill_in_procs((gx_device *)midev);
     code = dev_proc(midev, open_device)((gx_device *)midev);
     if (code < 0) {
@@ -546,7 +542,7 @@ make_mcdex_default(gx_device *dev, const gs_imager_state *pis,
 
     if (bbdev == 0)
 	return_error(gs_error_VMerror);
-    gx_device_bbox_init(bbdev, dev);
+    gx_device_bbox_init(bbdev, dev, mem);
     gx_device_bbox_fwd_open_close(bbdev, false);
     code = dev_proc(bbdev, begin_typed_image)
 	((gx_device *)bbdev, pis, pmat, pic, prect, pdcolor, pcpath, mem,

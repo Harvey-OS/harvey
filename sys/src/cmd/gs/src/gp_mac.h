@@ -1,29 +1,25 @@
-/* Copyright (C) 1994 - 1997 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1994 - 2003 artofcode LLC.  All rights reserved.
   
-  This file is part of Aladdin Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
-  License (the "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of Aladdin Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC.  The License grants you
-  the right to copy, modify and redistribute Aladdin Ghostscript, but only
-  under certain conditions described in the License.  Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
+/* $Id: gp_mac.h,v 1.5 2003/08/15 20:19:21 giles Exp $ */
 
 #ifndef gp_mac_INCLUDED
 #  define gp_mac_INCLUDED
 
-
-FILE *  gp_fopen (const char * fname, const char * mode );
-FILE *  gp_open_scratch_file (const char *prefix, char *fname, const char *mode);
-
+/* no special definitions for macos */
 
 #endif 				/* gp_mac_INCLUDED */
 

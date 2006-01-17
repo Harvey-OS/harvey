@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxclip.c,v 1.4 2001/08/01 16:21:35 stefan911 Exp $ */
+/* $Id: gxclip.c,v 1.15 2004/06/24 05:03:36 dan Exp $ */
 /* Implementation of (path-based) clipping */
 #include "gx.h"
 #include "gxdevice.h"
@@ -90,7 +88,23 @@ private const gx_device_clip gs_clip_device =
   gx_no_create_compositor,
   gx_forward_get_hardware_params,
   gx_default_text_begin,
-  gx_default_finish_copydevice
+  gx_default_finish_copydevice,
+  NULL,			/* begin_transparency_group */
+  NULL,			/* end_transparency_group */
+  NULL,			/* begin_transparency_mask */
+  NULL,			/* end_transparency_mask */
+  NULL,			/* discard_transparency_layer */
+  gx_forward_get_color_mapping_procs,
+  gx_forward_get_color_comp_index,
+  gx_forward_encode_color,
+  gx_forward_decode_color,
+  gx_forward_pattern_manage,
+  gx_forward_fill_rectangle_hl_color,
+  gx_forward_include_color_space,
+  gx_default_fill_linear_color_scanline,
+  gx_default_fill_linear_color_trapezoid,
+  gx_default_fill_linear_color_triangle,
+  gx_forward_update_spot_equivalent_colors
  }
 };
 
@@ -134,8 +148,8 @@ private const uint clip_interval = 10000;
 private int
 clip_enumerate_rest(gx_device_clip * rdev,
 		    int x, int y, int xe, int ye,
-		    int (*process)(P5(clip_callback_data_t * pccd,
-				      int xc, int yc, int xec, int yec)),
+		    int (*process)(clip_callback_data_t * pccd,
+				   int xc, int yc, int xec, int yec),
 		    clip_callback_data_t * pccd)
 {
     gx_clip_rect *rptr = rdev->current;		/* const within algorithm */
@@ -241,8 +255,8 @@ clip_enumerate_rest(gx_device_clip * rdev,
 
 private int
 clip_enumerate(gx_device_clip * rdev, int x, int y, int w, int h,
-	       int (*process)(P5(clip_callback_data_t * pccd,
-				 int xc, int yc, int xec, int yec)),
+	       int (*process)(clip_callback_data_t * pccd,
+			      int xc, int yc, int xec, int yec),
 	       clip_callback_data_t * pccd)
 {
     int xe, ye;
@@ -281,6 +295,7 @@ clip_open(gx_device * dev)
     rdev->height = tdev->height;
     gx_device_copy_color_procs(dev, tdev);
     rdev->clipping_box_set = false;
+    rdev->memory = tdev->memory;
     return 0;
 }
 

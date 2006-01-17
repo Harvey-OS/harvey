@@ -1,27 +1,26 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsshade.c,v 1.4 2001/04/05 08:32:28 igorm Exp $ */
+/* $Id: gsshade.c,v 1.17 2005/04/19 12:22:08 igor Exp $ */
 /* Constructors for shadings */
 #include "gx.h"
 #include "gscspace.h"
 #include "gserrors.h"
 #include "gsstruct.h"
+#include "gsptype2.h"
 #include "gxdevcli.h"
 #include "gxcpath.h"
 #include "gxcspace.h"
@@ -30,6 +29,7 @@
 #include "gxpaint.h"
 #include "gxpath.h"
 #include "gxshade.h"
+#include "gxshade4.h"
 #include "gzpath.h"
 #include "gzcpath.h"
 
@@ -40,6 +40,28 @@
 /* GC descriptors */
 private_st_shading();
 private_st_shading_mesh();
+
+private
+ENUM_PTRS_WITH(shading_mesh_enum_ptrs, gs_shading_mesh_t *psm)
+{
+    index -= 2;
+    if (index < st_data_source_max_ptrs)
+	return ENUM_USING(st_data_source, &psm->params.DataSource,
+			  sizeof(psm->params.DataSource), index);
+    return ENUM_USING_PREFIX(st_shading, st_data_source_max_ptrs);
+}
+ENUM_PTR2(0, gs_shading_mesh_t, params.Function, params.Decode);
+ENUM_PTRS_END
+
+private
+RELOC_PTRS_WITH(shading_mesh_reloc_ptrs, gs_shading_mesh_t *psm)
+{
+    RELOC_PREFIX(st_shading);
+    RELOC_USING(st_data_source, &psm->params.DataSource,
+		sizeof(psm->params.DataSource));
+    RELOC_PTR2(gs_shading_mesh_t, params.Function, params.Decode);
+}
+RELOC_PTRS_END
 
 /* Check ColorSpace, BBox, and Function (if present). */
 /* Free variables: params. */
@@ -64,17 +86,6 @@ check_CBFD(const gs_shading_params_t * params,
 	 * However, Adobe implementations apparently don't necessarily
 	 * check this ahead of time; therefore, we do the same.
 	 */
-#if 0				/*************** */
-	{
-	    int i;
-
-	    for (i = 0; i < m; ++i)
-		if (function->params.Domain[2 * i] > domain[2 * i] ||
-		    function->params.Domain[2 * i + 1] < domain[2 * i + 1]
-		    )
-		    return_error(gs_error_rangecheck);
-	}
-#endif /*************** */
     }
     return 0;
 }
@@ -83,12 +94,12 @@ check_CBFD(const gs_shading_params_t * params,
 private int
 check_mesh(const gs_shading_mesh_params_t * params)
 {
-    if (!data_source_is_array(params->DataSource)) {
-	int code = check_CBFD((const gs_shading_params_t *)params,
-			      params->Function, params->Decode, 1);
+    const float *domain;
 
-	if (code < 0)
-	    return code;
+    if (data_source_is_array(params->DataSource))
+	domain = 0;
+    else {
+	domain = params->Decode;
 	switch (params->BitsPerCoordinate) {
 	    case  1: case  2: case  4: case  8:
 	    case 12: case 16: case 24: case 32:
@@ -104,7 +115,8 @@ check_mesh(const gs_shading_mesh_params_t * params)
 		return_error(gs_error_rangecheck);
 	}
     }
-    return 0;
+    return check_CBFD((const gs_shading_params_t *)params,
+		      params->Function, domain, 1);
 }
 
 /* Check the BitsPerFlag value.  Return the value or an error code. */
@@ -431,7 +443,7 @@ shading_path_add_box(gx_path *ppath, const gs_rect *pbox,
 }
 
 /* Fill a path with a shading. */
-int
+private int
 gs_shading_fill_path(const gs_shading_t *psh, /*const*/ gx_path *ppath,
 		     const gs_fixed_rect *prect, gx_device *orig_dev,
 		     gs_imager_state *pis, bool fill_background)
@@ -446,70 +458,79 @@ gs_shading_fill_path(const gs_shading_t *psh, /*const*/ gx_path *ppath,
     gx_device_clip path_dev;
     int code = 0;
 
-    path_clip = gx_cpath_alloc(mem, "shading_fill_path(path_clip)");
-    if (path_clip == 0) {
-	code = gs_note_error(gs_error_VMerror);
-	goto out;
-    }
-    dev_proc(dev, get_clipping_box)(dev, &path_box);
-    if (prect)
-	rect_intersect(path_box, *prect);
-    if (psh->params.have_BBox) {
-	gs_fixed_rect bbox_fixed;
+    if ((*dev_proc(dev, pattern_manage))(dev, 
+			gs_no_id, NULL, pattern_manage__shading_area) == 0) {
+	path_clip = gx_cpath_alloc(mem, "shading_fill_path(path_clip)");
+	if (path_clip == 0) {
+	    code = gs_note_error(gs_error_VMerror);
+	    goto out;
+	}
+	dev_proc(dev, get_clipping_box)(dev, &path_box);
+	if (prect)
+	    rect_intersect(path_box, *prect);
+	if (psh->params.have_BBox) {
+	    gs_fixed_rect bbox_fixed;
 
-	if ((is_xxyy(pmat) || is_xyyx(pmat)) &&
-	    (code = shade_bbox_transform2fixed(&psh->params.BBox, pis,
-					       &bbox_fixed)) >= 0
-	    ) {
-	    /* We can fold BBox into the clipping rectangle. */
-	    rect_intersect(path_box, bbox_fixed);
-	} else
-	    {
-	    gx_path *box_path;
+	    if ((is_xxyy(pmat) || is_xyyx(pmat)) &&
+		(code = gx_dc_pattern2_shade_bbox_transform2fixed(&psh->params.BBox, pis,
+						&bbox_fixed)) >= 0
+		) {
+		/* We can fold BBox into the clipping rectangle. */
+		rect_intersect(path_box, bbox_fixed);
+	    } else
+		{
+		gx_path *box_path;
 
+		if (path_box.p.x >= path_box.q.x || path_box.p.y >= path_box.q.y)
+		    goto out;		/* empty rectangle */
+		box_path = gx_path_alloc(mem, "shading_fill_path(box_path)");
+		if (box_path == 0) {
+		    code = gs_note_error(gs_error_VMerror);
+		    goto out;
+		}
+		if ((code = gx_cpath_from_rectangle(path_clip, &path_box)) < 0 ||
+		    (code = shading_path_add_box(box_path, &psh->params.BBox,
+						pmat)) < 0 ||
+		    (code = gx_cpath_intersect(path_clip, box_path,
+					    gx_rule_winding_number, pis)) < 0
+		    )
+		    DO_NOTHING;
+		gx_path_free(box_path, "shading_fill_path(box_path)");
+		if (code < 0)
+		    goto out;
+		path_clip_set = true;
+	    }
+	}
+	if (!path_clip_set) {
 	    if (path_box.p.x >= path_box.q.x || path_box.p.y >= path_box.q.y)
 		goto out;		/* empty rectangle */
-	    box_path = gx_path_alloc(mem, "shading_fill_path(box_path)");
-	    if (box_path == 0) {
-		code = gs_note_error(gs_error_VMerror);
+	    if ((code = gx_cpath_from_rectangle(path_clip, &path_box)) < 0)
 		goto out;
-	    }
-	    if ((code = gx_cpath_from_rectangle(path_clip, &path_box)) < 0 ||
-		(code = shading_path_add_box(box_path, &psh->params.BBox,
-					     pmat)) < 0 ||
-		(code = gx_cpath_intersect(path_clip, box_path,
-					   gx_rule_winding_number, pis)) < 0
-		)
-		DO_NOTHING;
-	    gx_path_free(box_path, "shading_fill_path(box_path)");
-	    if (code < 0)
-		goto out;
-	    path_clip_set = true;
 	}
-    }
-    if (!path_clip_set) {
-	if (path_box.p.x >= path_box.q.x || path_box.p.y >= path_box.q.y)
-	    goto out;		/* empty rectangle */
-	if ((code = gx_cpath_from_rectangle(path_clip, &path_box)) < 0)
+	if (ppath &&
+	    (code =
+	    gx_cpath_intersect(path_clip, ppath, gx_rule_winding_number, pis)) < 0
+	    )
 	    goto out;
+	gx_make_clip_device(&path_dev, &path_clip->rect_list->list);
+	path_dev.target = dev;
+	path_dev.HWResolution[0] = dev->HWResolution[0];
+	path_dev.HWResolution[1] = dev->HWResolution[1];
+	dev = (gx_device *)&path_dev;
+	dev_proc(dev, open_device)(dev);
     }
-    if (ppath &&
-	(code =
-	 gx_cpath_intersect(path_clip, ppath, gx_rule_winding_number, pis)) < 0
-	)
-	goto out;
-    gx_make_clip_device(&path_dev, &path_clip->rect_list->list);
-    path_dev.target = dev;
-    path_dev.HWResolution[0] = dev->HWResolution[0];
-    path_dev.HWResolution[1] = dev->HWResolution[1];
-    dev = (gx_device *)&path_dev;
-    dev_proc(dev, open_device)(dev);
+#if 0 /* doesn't work for 478-01.ps, which sets a big smoothness :
+         makes an assymmetrix domain, and the patch decomposition
+	 becomes highly irregular. */
+    {	gs_fixed_rect r;
+
+	dev_proc(dev, get_clipping_box)(dev, &r);
+	rect_intersect(path_box, r);
+    }
+#else
     dev_proc(dev, get_clipping_box)(dev, &path_box);
+#endif
     if (psh->params.Background && fill_background) {
-	int x0 = fixed2int(path_box.p.x);
-	int y0 = fixed2int(path_box.p.y);
-	int x1 = fixed2int(path_box.q.x);
-	int y1 = fixed2int(path_box.q.y);
 	const gs_color_space *pcs = psh->params.ColorSpace;
 	gs_client_color cc;
 	gx_device_color dev_color;
@@ -518,9 +539,9 @@ gs_shading_fill_path(const gs_shading_t *psh, /*const*/ gx_path *ppath,
 	(*pcs->type->restrict_color)(&cc, pcs);
 	(*pcs->type->remap_color)(&cc, pcs, &dev_color, pis,
 				  dev, gs_color_select_texture);
+
 	/****** WRONG IF NON-IDEMPOTENT RasterOp ******/
-	code = gx_fill_rectangle_device_rop(x0, y0, x1 - x0, y1 - y0,
-					    &dev_color, dev, pis->log_op);
+	code = gx_shade_background(dev, &path_box, &dev_color, pis->log_op);
 	if (code < 0)
 	    goto out;
     }
@@ -533,9 +554,18 @@ gs_shading_fill_path(const gs_shading_t *psh, /*const*/ gx_path *ppath,
 	path_rect.q.y = fixed2float(path_box.q.y);
 	gs_bbox_transform_inverse(&path_rect, (const gs_matrix *)pmat, &rect);
     }
-    code = gs_shading_fill_rectangle(psh, &rect, dev, pis);
+    code = gs_shading_fill_rectangle(psh, &rect, &path_box, dev, pis);
 out:
     if (path_clip)
 	gx_cpath_free(path_clip, "shading_fill_path(path_clip)");
     return code;
 }
+
+int
+gs_shading_fill_path_adjusted(const gs_shading_t *psh, /*const*/ gx_path *ppath,
+		     const gs_fixed_rect *prect, gx_device *orig_dev,
+		     gs_imager_state *pis, bool fill_background)
+{   
+    return  gs_shading_fill_path(psh, ppath, prect, orig_dev, pis, fill_background);
+}
+

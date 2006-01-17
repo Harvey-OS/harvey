@@ -1,28 +1,32 @@
-/* Copyright (C) 1995, 1996, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995, 1996, 1999, 2002 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxobj.h,v 1.2 2000/09/19 19:00:39 lpd Exp $ */
+/* $Id: gxobj.h,v 1.7 2005/10/12 10:45:21 leonardo Exp $ */
 /* Memory manager implementation structures for Ghostscript */
 
 #ifndef gxobj_INCLUDED
 #  define gxobj_INCLUDED
 
 #include "gxbitmap.h"
+
+#ifdef DEBUG
+#define IGC_PTR_STABILITY_CHECK 0
+#else
+#define IGC_PTR_STABILITY_CHECK 0
+#endif
 
 /* ================ Objects ================ */
 
@@ -93,6 +97,9 @@ typedef struct obj_header_data_s {
 	gs_memory_type_ptr_t type;
 	uint reloc;
     } t;
+#   if IGC_PTR_STABILITY_CHECK
+    unsigned space_id:3; /* r_space_bits + 1 bit for "instability". */
+#   endif
 } obj_header_data_t;
 
 /*
@@ -100,10 +107,14 @@ typedef struct obj_header_data_s {
  * alignment values are powers of 2; we can avoid nested 'max'es that way.
  * The final | is because back pointer values are divided by obj_back_scale,
  * so objects must be aligned at least 0 mod obj_back_scale.
+ *
+ * Note: OBJECTS ARE NOT GUARANTEED to be aligned any more strictly than
+ * required by the hardware, regardless of the value of obj_align_mod.
+ * See gsmemraw.h for more information about this.
  */
 #define obj_align_mod\
-  (((arch_align_long_mod - 1) | (arch_align_ptr_mod - 1) |\
-    (arch_align_double_mod - 1) | (align_bitmap_mod - 1) |\
+  (((arch_align_memory_mod - 1) |\
+    (align_bitmap_mod - 1) |\
     (obj_back_scale - 1)) + 1)
 /* The only possible values for obj_align_mod are 4, 8, or 16.... */
 #if obj_align_mod == 4

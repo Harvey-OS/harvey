@@ -1,21 +1,20 @@
-/* Copyright (C) 1994, 1995, 1997, 2001 Artifex Software, Inc.  All rights reserved.
+/* Copyright (C) 1994-2001 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND. No author
-  or distributor accepts any responsibility for the consequences of using it,
-  or for whether it serves any particular purpose or works at all, unless he
-  or she says so in writing.  Refer to the Aladdin Free Public License (the 
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License,
-  normally in a plain ASCII text file named PUBLIC. The License grants you
-  the right to copy, modify and redistribute AFPL Ghostscript, but only
-  under certain conditions described in the License. Among other things, the
-  License requires that the copyright notice and this notice be preserved on
-  all copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
+/* $Id: gdevmacxf.c,v 1.6 2002/06/09 23:08:22 lpd Exp $ */
 /* External font (xfont) implementation for Classic/Carbon MacOS. */
 
 #include "gdevmac.h"
@@ -26,8 +25,8 @@
 /* if set to 0, old FM calls that are "not recommended" for carbon are used */
 /* for now, we'll set it to 0, as classic and carbon targets don't generate link errors, */
 /* but the carbon target would be better built with this macro set to 1 */
-/* In the case that it is set, the classic target should link in FontManagerLib */
-#define USE_RECOMMENDED_CARBON_FONTMANAGER_CALLS 0
+/* In the case that it is set, the classic target should link in FontManager(Lib) */
+#define USE_RECOMMENDED_CARBON_FONTMANAGER_CALLS 1
 
 
 
@@ -212,9 +211,9 @@ mac_lookup_font(gx_device *dev, const byte *fname, uint len,
 
 private gx_xglyph
 mac_char_xglyph(gx_xfont *xf, gs_char chr, int encoding_index,
-				gs_glyph glyph, gs_proc_glyph_name_t glyph_name_proc)
+		gs_glyph glyph, const gs_const_string *glyph_name)
 {
-#pragma unused(glyph_name_proc,glyph)
+#pragma unused(glyph_name,glyph)
 	mac_xfont			* macxf = (mac_xfont*) xf;
 	
 	/* can't look up names yet */

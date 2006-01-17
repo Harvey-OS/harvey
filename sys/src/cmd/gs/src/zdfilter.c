@@ -1,24 +1,22 @@
 /*
   Copyright (C) 2001 artofcode LLC.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
   Author: Raph Levien <raph@artofcode.com>
 */
-/*$Id: zdfilter.c,v 1.2 2001/04/01 00:30:41 raph Exp $ */
+/* $Id: zdfilter.c,v 1.6 2002/08/22 07:12:29 henrys Exp $ */
 /* PostScript operators for managing the device filter stack */
 
 /* We probably don't need all of these, they were copied from zdevice.c. */
@@ -35,47 +33,10 @@
 #include "gsmatrix.h"
 #include "gsstate.h"
 #include "gxdevice.h"
-#include "gxgetbit.h"
 #include "store.h"
 #include "gsdfilt.h"
-#include "gdevp14.h"
 
-#ifdef DFILTER_TEST
-private int
-/* - .pushtestdevicefilter - */
-zpushtestdevicefilter(i_ctx_t *i_ctx_p)
-{
-    gs_device_filter_t *df;
-    int code;
-    gs_memory_t *mem = gs_memory_stable(imemory);
-
-    code = gs_test_device_filter(&df, mem);
-    if (code < 0)
-	return code;
-    code = gs_push_device_filter(mem, igs, df);
-    return code;
-}
-#endif
-
-private int
-/* depth .pushpdf14devicefilter - */
-zpushpdf14devicefilter(i_ctx_t *i_ctx_p)
-{
-    gs_device_filter_t *df;
-    int code;
-    gs_memory_t *mem = gs_memory_stable(imemory);
-    os_ptr op = osp;
-
-    check_type(*op, t_integer);
-    code = gs_pdf14_device_filter(&df, op->value.intval, mem);
-    if (code < 0)
-	return code;
-    code = gs_push_device_filter(mem, igs, df); 
-    if (code < 0)
-	return code;
-    pop(1);
-    return 0;
-}
+/* pushpdf14devicefilter is defined in ztrans.c */
 
 /* - .popdevicefilter - */
 private int
@@ -88,10 +49,6 @@ zpopdevicefilter(i_ctx_t *i_ctx_p)
 
 const op_def zdfilter_op_defs[] =
 {
-#ifdef DFILTER_TEST
-    {"0.pushtestdevicefilter", zpushtestdevicefilter},
-#endif
-    {"1.pushpdf14devicefilter", zpushpdf14devicefilter},
     {"0.popdevicefilter", zpopdevicefilter},
     op_def_end(0)
 };

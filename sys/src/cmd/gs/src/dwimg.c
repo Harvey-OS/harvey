@@ -1,22 +1,20 @@
-/* Copyright (C) 1996-2001 Ghostgum Software Pty Ltd.  All rights reserved.
+/* Copyright (C) 1996-2004 Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/* $Id: dwimg.c,v 1.3 2001/08/01 09:50:36 ghostgum Exp $ */
+/* $Id: dwimg.c,v 1.17 2004/10/28 09:26:11 igor Exp $ */
 
 /* display device image window for Windows */
 
@@ -39,6 +37,7 @@
 
 #define STRICT
 #include <windows.h>
+#include "stdio_.h"
 #include "iapi.h"
 
 #include "dwmain.h"
@@ -48,6 +47,7 @@
 
 
 static const char szImgName2[] = "Ghostscript Image";
+static const char szTrcName2[] = "Ghostscript Graphical Trace";
 
 /* Forward references */
 LRESULT CALLBACK WndImg2Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -60,14 +60,8 @@ static HPALETTE create_palette(IMAGE *img);
 static void create_window(IMAGE *img);
 
 #define M_COPY_CLIP 1
-#define M_SEP_CYAN 2
-#define M_SEP_MAGENTA 3
-#define M_SEP_YELLOW 4
-#define M_SEP_BLACK 5
-#define SEP_CYAN 8
-#define SEP_MAGENTA 4
-#define SEP_YELLOW 2
-#define SEP_BLACK 1
+#define M_DEVICEN_GRAY 2	/* show single separation as gray */
+#define M_SEPARATION 3 		/* 3 to 3+IMG_DEVICEN_MAX-1 */
 
 #define DISPLAY_ERROR (-1)	/* return this to Ghostscript on error */
 
@@ -93,8 +87,12 @@ void image_16RGB555_to_24BGR(int width, unsigned char *dest,
     unsigned char *source);
 void image_16RGB565_to_24BGR(int width, unsigned char *dest, 
     unsigned char *source);
+void image_4CMYK_to_24BGR(int width, unsigned char *dest, 
+    unsigned char *source, IMAGE_DEVICEN *devicen, int devicen_gray);
 void image_32CMYK_to_24BGR(int width, unsigned char *dest, 
-    unsigned char *source, int sep);
+    unsigned char *source, IMAGE_DEVICEN *devicen, int devicen_gray);
+void image_devicen_to_24BGR(int width, unsigned char *dest, 
+    unsigned char *source, IMAGE_DEVICEN *devicen, int devicen_gray);
 
 
 /****************************************************************/
@@ -122,12 +120,14 @@ image_new(void *handle, void *device)
 {
     IMAGE *img = (IMAGE *)malloc(sizeof(IMAGE));
     if (img) {
+        memset(img, 0, sizeof(IMAGE));
 	/* remember device and handle */
 	img->handle = handle;
 	img->device = device;
 
-	img->update_interval = 1;
-	memset(&img->update_time, 0, sizeof(img->update_time));
+	img->update_tick = 100;		/* milliseconds */
+	img->update_interval = 1;	/* 1 tick */
+	img->update_count = 0;
 
         img->hmutex = INVALID_HANDLE_VALUE;
 
@@ -165,7 +165,6 @@ image_size(IMAGE *img, int new_width, int new_height, int new_raster,
     unsigned int new_format, void *pimage)
 {
     int i;
-    int nColors;
     img->raster = new_raster;
     img->format = new_format;
     img->image = (unsigned char *)pimage;
@@ -175,6 +174,18 @@ image_size(IMAGE *img, int new_width, int new_height, int new_raster,
     img->bmih.biWidth = new_width;
     img->bmih.biHeight = new_height;
     img->bmih.biPlanes = 1;
+
+    /* Reset separations */
+    for (i=0; i<IMAGE_DEVICEN_MAX; i++) {
+	img->devicen[i].used = 0;
+	img->devicen[i].visible = 1;
+	memset(img->devicen[i].name, 0, sizeof(img->devicen[i].name));
+	img->devicen[i].cyan = 0;
+	img->devicen[i].magenta = 0;
+	img->devicen[i].yellow = 0;
+	img->devicen[i].black = 0;
+    }
+
     switch (img->format & DISPLAY_COLORS_MASK) {
 	case DISPLAY_COLORS_NATIVE:
 	    switch (img->format & DISPLAY_DEPTH_MASK) {
@@ -256,6 +267,38 @@ image_size(IMAGE *img, int new_width, int new_height, int new_raster,
 	    }
 	    break;
 	case DISPLAY_COLORS_CMYK:
+	    switch (img->format & DISPLAY_DEPTH_MASK) {
+		case DISPLAY_DEPTH_1:
+		case DISPLAY_DEPTH_8:
+		    /* we can convert these formats */
+		    break;
+		default:
+		    return DISPLAY_ERROR;
+	    }
+	    /* we can't display this natively */
+	    /* we will convert it just before displaying */
+	    img->bmih.biBitCount = 24;
+	    img->bmih.biClrUsed = 0;
+	    img->bmih.biClrImportant = 0;
+	    img->devicen[0].used = 1;
+	    img->devicen[0].cyan = 65535;
+	    /* We already know about the CMYK components */
+	    strncpy(img->devicen[0].name, "Cyan", 
+		sizeof(img->devicen[0].name));
+	    img->devicen[1].used = 1;
+	    img->devicen[1].magenta = 65535;
+	    strncpy(img->devicen[1].name, "Magenta", 
+		sizeof(img->devicen[1].name));
+	    img->devicen[2].used = 1;
+	    img->devicen[2].yellow = 65535;
+	    strncpy(img->devicen[2].name, "Yellow", 
+		sizeof(img->devicen[2].name));
+	    img->devicen[3].used = 1;
+	    img->devicen[3].black = 65535;
+	    strncpy(img->devicen[3].name, "Black", 
+		sizeof(img->devicen[3].name));
+	    break;
+	case DISPLAY_COLORS_SEPARATION:
 	    /* we can't display this natively */
 	    /* we will convert it just before displaying */
 	    img->bmih.biBitCount = 24;
@@ -274,6 +317,24 @@ image_size(IMAGE *img, int new_width, int new_height, int new_raster,
 	DeleteObject(img->palette);
     img->palette = create_palette(img);
 
+    return 0;
+}
+
+int 
+image_separation(IMAGE *img,
+    int comp_num, const char *name,
+    unsigned short c, unsigned short m,
+    unsigned short y, unsigned short k)
+{
+    if ((comp_num < 0) || (comp_num > IMAGE_DEVICEN_MAX))
+	return DISPLAY_ERROR;
+    img->devicen[comp_num].used = 1;
+    strncpy(img->devicen[comp_num].name, name,
+	sizeof(img->devicen[comp_num].name)-1);
+    img->devicen[comp_num].cyan    = c;
+    img->devicen[comp_num].magenta = m;
+    img->devicen[comp_num].yellow  = y;
+    img->devicen[comp_num].black   = k;
     return 0;
 }
 
@@ -334,41 +395,58 @@ register_class(void)
 void image_separations(IMAGE *img)
 {
     char buf[64];
+    int i;
+    int exist;
+    int num_visible = 0;
     HMENU sysmenu = GetSystemMenu(img->hwnd, FALSE);
-    int exist = GetMenuString(sysmenu, M_SEP_CYAN, buf, sizeof(buf)-1, 
-		MF_BYCOMMAND) != 0;
-    if ((img->format & DISPLAY_COLORS_MASK) == DISPLAY_COLORS_CMYK) {
-        if (!exist) {
-	    /* menus don't exist - add them */
-            img->sep = 0xf;
-	    AppendMenu(sysmenu, MF_SEPARATOR, 0, NULL);
-	    AppendMenu(sysmenu, MF_STRING | MF_CHECKED, 
-		M_SEP_CYAN, "Cyan");
-	    AppendMenu(sysmenu, MF_STRING | MF_CHECKED, 
-		M_SEP_MAGENTA, "Magenta");
-	    AppendMenu(sysmenu, MF_STRING | MF_CHECKED, 
-		M_SEP_YELLOW, "Yellow");
-	    AppendMenu(sysmenu, MF_STRING | MF_CHECKED, 
-		M_SEP_BLACK, "Black");
+    if (((img->format & DISPLAY_COLORS_MASK) == DISPLAY_COLORS_CMYK) ||
+        ((img->format & DISPLAY_COLORS_MASK) == DISPLAY_COLORS_SEPARATION)) {
+	/* Add menus if needed */
+	for (i=0; i<IMAGE_DEVICEN_MAX; i++) {
+	    exist = 0;
+	    if (img->devicen[i].menu)
+		exist = GetMenuString(sysmenu, M_SEPARATION+i, 
+			buf, sizeof(buf)-1, MF_BYCOMMAND) != 0;
+	    if (exist && (strcmp(img->devicen[i].name, buf) != 0)) {
+		/* remove it because name changed */
+	       RemoveMenu(sysmenu, M_SEPARATION+i, MF_BYCOMMAND);
+	       img->devicen[i].menu = 0;
+	    }
+	    if (img->devicen[i].name[0] && !img->devicen[i].menu) {
+		AppendMenu(sysmenu, MF_STRING | MF_CHECKED, 
+		    M_SEPARATION+i, img->devicen[i].name);
+		img->devicen[i].menu = 1;
+	    }
+	    if (img->devicen[i].used && img->devicen[i].visible)
+		num_visible++;
 	}
+	EnableMenuItem(sysmenu, M_DEVICEN_GRAY, 
+	    MF_BYCOMMAND | ((num_visible <= 1) ? MF_ENABLED : MF_GRAYED));
     }
     else {
-        if (exist)  {
-	    RemoveMenu(sysmenu, M_SEP_CYAN, MF_BYCOMMAND);
-	    RemoveMenu(sysmenu, M_SEP_MAGENTA, MF_BYCOMMAND);
-	    RemoveMenu(sysmenu, M_SEP_YELLOW, MF_BYCOMMAND);
-	    RemoveMenu(sysmenu, M_SEP_BLACK, MF_BYCOMMAND);
-	    /* remove separator */
-	    RemoveMenu(sysmenu, GetMenuItemCount(sysmenu)-1, MF_BYPOSITION);
+	for (i=0; i<IMAGE_DEVICEN_MAX; i++) {
+	   if (img->devicen[i].menu) {
+	       RemoveMenu(sysmenu, M_SEPARATION+i, MF_BYCOMMAND);
+	       img->devicen[i].menu = 0;
+	   }
 	}
+	EnableMenuItem(sysmenu, M_DEVICEN_GRAY, MF_BYCOMMAND | MF_GRAYED);
     }
 }
 
-void sep_menu(IMAGE *img, int menu, int mask)
+void sep_menu(IMAGE *img, int component)
 {
-    img->sep ^= mask ;
-    CheckMenuItem(GetSystemMenu(img->hwnd, FALSE), menu, MF_BYCOMMAND | 
-	((img->sep & mask) ? MF_CHECKED : MF_UNCHECKED) );
+    int i;
+    int num_visible = 0;
+    img->devicen[component].visible = !img->devicen[component].visible;
+    CheckMenuItem(GetSystemMenu(img->hwnd, FALSE), 
+	M_SEPARATION+component, 
+	(img->devicen[component].visible ? MF_CHECKED : MF_UNCHECKED));
+    for (i=0; i<IMAGE_DEVICEN_MAX; i++)
+        if (img->devicen[i].used && img->devicen[i].visible)
+	    num_visible++;
+    EnableMenuItem(GetSystemMenu(img->hwnd, FALSE), M_DEVICEN_GRAY, 
+	MF_BYCOMMAND | ((num_visible <= 1) ? MF_ENABLED : MF_GRAYED));
     InvalidateRect(img->hwnd, NULL, 0);
     UpdateWindow(img->hwnd);
 }
@@ -378,11 +456,10 @@ static void
 create_window(IMAGE *img)
 {
     HMENU sysmenu;
-    HBRUSH hbrush;
     LOGBRUSH lb;
     char winposbuf[256];
+    char window_title[256];
     int len = sizeof(winposbuf);
-    int x, y, cx, cy;
 
     /* create background brush */
     lb.lbStyle = BS_SOLID;
@@ -400,7 +477,9 @@ create_window(IMAGE *img)
     img->nVscrollPos = img->nVscrollMax = 0;
     img->nHscrollPos = img->nHscrollMax = 0;
     img->x = img->y = img->cx = img->cy = CW_USEDEFAULT;
-    if (win_get_reg_value("Image", winposbuf, &len) == 0) {
+    if (win_get_reg_value((img->device != NULL ? "Image" : "Tracer"), winposbuf, &len) == 0) {
+	int x, y, cx, cy;
+	
 	if (sscanf(winposbuf, "%d %d %d %d", &x, &y, &cx, &cy) == 4) {
 	    img->x = x;
 	    img->y = y;
@@ -408,18 +487,54 @@ create_window(IMAGE *img)
 	    img->cy = cy;
 	}
     }
+    strcpy(window_title, (img->device != NULL ? (LPSTR)szImgName2 : (LPSTR)szTrcName2));
+    {  /*
+        *   This section is for debug purpose only.
+	*   It allows to replace window title so that user can identify window
+	*   when multiple instances of the application run in same time.
+	*   Create gs\bin\gswin32.ini or gs\bin\gswin32c.ini and
+	*   put an identifier to there like this :
+	*
+	*	[Window]
+	*	Title=Current Revision
+	*
+	*   It is useful to compare images generated with different revisions.
+	*/
+        char ini_path[MAX_PATH];
+	DWORD ini_path_length;
 
+	ini_path_length = GetModuleFileName(NULL, ini_path, sizeof(ini_path));
+	if (ini_path_length > 0) {
+	    int i = ini_path_length - 1;
+	    for (; i>=0; i--)
+		if(ini_path[i] == '.')
+		    break;
+	    if (i < sizeof(ini_path) - 4) {
+		strcpy(ini_path + i, ".ini");
+		GetPrivateProfileString("Window", "Title", 
+			(img->device != NULL ? (LPSTR)szImgName2 : (LPSTR)szTrcName2), 
+ 			window_title, sizeof(window_title), ini_path);
+	    }
+	}
+    }
     /* create window */
-    img->hwnd = CreateWindow(szImgName2, (LPSTR)szImgName2,
+    img->hwnd = CreateWindow(szImgName2, window_title,
 	      WS_OVERLAPPEDWINDOW,
 	      img->x, img->y, img->cx, img->cy, 
 	      NULL, NULL, GetModuleHandle(NULL), (void *)img);
-    ShowWindow(img->hwnd, SW_SHOWMINNOACTIVE);
+    if (img->device == NULL && img->x != CW_USEDEFAULT &&
+			       img->y != CW_USEDEFAULT &&
+			       img->cx != CW_USEDEFAULT &&
+			       img->cy != CW_USEDEFAULT)
+        MoveWindow(img->hwnd, img->x, img->y, img->cx, img->cy, FALSE);
+    ShowWindow(img->hwnd, (img->device != NULL ? SW_SHOWMINNOACTIVE : SW_SHOW));
 
     /* modify the menu to have the new items we want */
     sysmenu = GetSystemMenu(img->hwnd, 0);	/* get the sysmenu */
     AppendMenu(sysmenu, MF_SEPARATOR, 0, NULL);
     AppendMenu(sysmenu, MF_STRING, M_COPY_CLIP, "Copy to Clip&board");
+    AppendMenu(sysmenu, MF_STRING, M_DEVICEN_GRAY, "Show as Gray");
+    AppendMenu(sysmenu, MF_SEPARATOR, 0, NULL);
 
     image_separations(img);
 }
@@ -428,49 +543,61 @@ create_window(IMAGE *img)
 void
 image_poll(IMAGE *img)
 {
-    /* Update the display periodically while Ghostscript is drawing */
-    SYSTEMTIME t1;
-    SYSTEMTIME t2;
-    int delta;
     if ((img->bmih.biWidth == 0) || (img->bmih.biHeight == 0))
 	return;
-
-    GetSystemTime(&t1);
-    delta = (t1.wSecond - img->update_time.wSecond) +
-		(t1.wMinute - img->update_time.wMinute) * 60 +
-		(t1.wHour - img->update_time.wHour) * 3600;
-    if (img->update_interval < 1)
-	img->update_interval = 1;	/* seconds */
-    if (delta < 0)
-        img->update_time = t1;
-    else if (delta > img->update_interval) {
-	/* redraw window */
-	image_sync(img);
-
-	/* Make sure the update interval is at least 10 times
-	 * what it takes to paint the window
-	 */
-	GetSystemTime(&t2);
-	delta = (t2.wSecond - t1.wSecond)*1000 + 
-		(t2.wMilliseconds - t1.wMilliseconds);
-	if (delta < 0)
-	    delta += 60000;	/* delta = time to redraw */
-	if (delta > img->update_interval * 100)
-	    img->update_interval = delta/100;
-        img->update_time = t2;
+    img->pending_update = 1;
+    if (img->update_timer == 0) {
+	img->update_timer = 1;
+	img->update_count = 0;
+	SetTimer(img->hwnd, img->update_timer, img->update_tick, NULL);
     }
 }
 
+/* Redraw the window, making sure that periodic updates don't take too long. */
 void
-image_sync(IMAGE *img)
+image_update_now(IMAGE *img)
 {
+    SYSTEMTIME t1;
+    SYSTEMTIME t2;
+    int delta;
     if ( !IsWindow(img->hwnd) )	/* some clod closed the window */
 	create_window(img);
 
     if ( !IsIconic(img->hwnd) ) {  /* redraw window */
+	GetSystemTime(&t1);
 	InvalidateRect(img->hwnd, NULL, 1);
 	UpdateWindow(img->hwnd);
+	GetSystemTime(&t2);
+	/* Make sure the update interval is at least 10 times
+	 * what it takes to paint the window
+	 */
+	delta = (t2.wSecond - t1.wSecond)*1000 + 
+		(t2.wMilliseconds - t1.wMilliseconds);
+	if (delta < 0)
+	    delta += 60000;
+	delta = 10 * delta / img->update_tick + 1;
+	if (delta > img->update_interval)
+	    img->update_interval = delta;
+	else if ((delta >= 2) &&
+		 (delta < img->update_interval / 4))
+	    img->update_interval = delta/2;
     }
+    img->update_count = 0;
+}
+
+
+void
+image_sync(IMAGE *img)
+{
+    if (img->update_timer) {
+	/* stop timer when nothing is happening */
+	KillTimer(img->hwnd, img->update_timer);
+        img->update_timer = 0;
+    }
+    img->pending_sync = 0;
+    image_update_now(img);
+    image_separations(img);
+    img->pending_update = 0;
 }
 
 
@@ -515,11 +642,15 @@ image_color(unsigned int format, int index,
 		    *r = *g = *b = (index ? 0 : 255);
 		    break;
 		case DISPLAY_DEPTH_4:
-		    {
-		    int one = index & 8 ? 255 : 128;
-		    *r = (index & 4 ? one : 0);
-		    *g = (index & 2 ? one : 0);
-		    *b = (index & 1 ? one : 0);
+		    if (index == 7)
+			*r = *g = *b = 170;
+		    else if (index == 8)
+			*r = *g = *b = 85;
+		    else {
+			int one = index & 8 ? 255 : 128;
+			*r = (index & 4 ? one : 0);
+			*g = (index & 2 ? one : 0);
+			*b = (index & 1 ? one : 0);
 		    }
 		    break;
 		case DISPLAY_DEPTH_8:
@@ -635,31 +766,133 @@ image_16RGB565_to_24BGR(int width, unsigned char *dest, unsigned char *source)
     }
 }
 
+void
+image_4CMYK_to_24BGR(int width, unsigned char *dest, unsigned char *source,
+    IMAGE_DEVICEN *devicen, int devicen_gray)
+{
+    int i;
+    int cyan, magenta, yellow, black;
+    int vc = devicen[0].visible;
+    int vm = devicen[1].visible;
+    int vy = devicen[2].visible;
+    int vk = devicen[3].visible;
+    int vall = vc && vm && vy && vk;
+    int show_gray = (vc + vm + vy + vk == 1) && devicen_gray;
+    int value;
+    for (i=0; i<width; i++) {
+        value = source[i/2];
+	if (i & 0)
+	    value >>= 4;
+	cyan = ((value >> 3) & 1) * 255;
+	magenta = ((value >> 2) & 1) * 255;
+	yellow = ((value >> 1) & 1) * 255;
+	black = (value & 1) * 255;
+	if (!vall) {
+	    if (!vc)
+		cyan = 0;
+	    if (!vm)
+		magenta = 0;
+	    if (!vy)
+		yellow = 0;
+	    if (!vk)
+		black = 0;
+	    if (show_gray) {
+		black += cyan + magenta + yellow;
+		cyan = magenta = yellow = 0;
+	    }
+	}
+	*dest++ = (255 - yellow)  * (255 - black)/255; /* blue */
+	*dest++ = (255 - magenta) * (255 - black)/255; /* green */
+	*dest++ = (255 - cyan)    * (255 - black)/255; /* red */
+    }
+}
 
 /* convert one line of 32CMYK to 24BGR */
 void
 image_32CMYK_to_24BGR(int width, unsigned char *dest, unsigned char *source,
-    int sep)
+    IMAGE_DEVICEN *devicen, int devicen_gray)
 {
     int i;
     int cyan, magenta, yellow, black;
+    int vc = devicen[0].visible;
+    int vm = devicen[1].visible;
+    int vy = devicen[2].visible;
+    int vk = devicen[3].visible;
+    int vall = vc && vm && vy && vk;
+    int show_gray = (vc + vm + vy + vk == 1) && devicen_gray;
     for (i=0; i<width; i++) {
 	cyan = source[0];
 	magenta = source[1];
 	yellow = source[2];
 	black = source[3];
-	if (!(sep & SEP_CYAN))
-	    cyan = 0;
-	if (!(sep & SEP_MAGENTA))
-	    magenta = 0;
-	if (!(sep & SEP_YELLOW))
-	    yellow = 0;
-	if (!(sep & SEP_BLACK))
-	    black = 0;
+	if (!vall) {
+	    if (!vc)
+		cyan = 0;
+	    if (!vm)
+		magenta = 0;
+	    if (!vy)
+		yellow = 0;
+	    if (!vk)
+		black = 0;
+	    if (show_gray) {
+		black += cyan + magenta + yellow;
+		cyan = magenta = yellow = 0;
+	    }
+	}
 	*dest++ = (255 - yellow)  * (255 - black)/255; /* blue */
 	*dest++ = (255 - magenta) * (255 - black)/255; /* green */
 	*dest++ = (255 - cyan)    * (255 - black)/255; /* red */
 	source += 4;
+    }
+}
+
+void
+image_devicen_to_24BGR(int width, unsigned char *dest, unsigned char *source, 
+    IMAGE_DEVICEN *devicen, int devicen_gray)
+{
+    int i, j;
+    int cyan, magenta, yellow, black;
+    int num_comp = 0;
+    int value;
+    int num_visible = 0;
+    int show_gray = 0;
+    for (j=0; j<IMAGE_DEVICEN_MAX; j++) {
+	if (devicen[j].used) {
+	   num_comp = j+1;
+	   if (devicen[j].visible)
+		num_visible++;
+	}
+    }
+    if ((num_visible == 1) && devicen_gray)
+	show_gray = 1;
+
+    for (i=0; i<width; i++) {
+	cyan = magenta = yellow = black = 0;
+	for (j=0; j<num_comp; j++) {
+	    if (devicen[j].visible && devicen[j].used) {
+		value = source[j];
+		if (show_gray)
+		    black += value;
+		else {
+		    cyan    += value * devicen[j].cyan    / 65535;
+		    magenta += value * devicen[j].magenta / 65535;
+		    yellow  += value * devicen[j].yellow  / 65535;
+		    black   += value * devicen[j].black / 65535;
+		}
+	    }
+	}
+	if (cyan > 255)
+	   cyan = 255;
+	if (magenta > 255)
+	   magenta = 255;
+	if (yellow > 255)
+	   yellow = 255;
+	if (black > 255)
+	   black = 255;
+	*dest++ = (255 - yellow)  * (255 - black)/255; /* blue */
+	*dest++ = (255 - magenta) * (255 - black)/255; /* green */
+	*dest++ = (255 - cyan)    * (255 - black)/255; /* red */
+	source += 8;
     }
 }
 
@@ -725,9 +958,21 @@ printf("   d=0x%x s=0x%x\n", (int)d, (int)s);
 */
 	    break;
 	case DISPLAY_COLORS_CMYK:
+	    if ((img->format & DISPLAY_DEPTH_MASK) == DISPLAY_DEPTH_8)
+		image_32CMYK_to_24BGR(width, dest, source, 
+		    img->devicen, img->devicen_gray);
+	    else if ((img->format & DISPLAY_DEPTH_MASK) == DISPLAY_DEPTH_1) {
+		image_4CMYK_to_24BGR(width, dest, source, 
+		    img->devicen, img->devicen_gray);
+	    }
+	    else
+		return;
+	    break;
+	case DISPLAY_COLORS_SEPARATION:
 	    if ((img->format & DISPLAY_DEPTH_MASK) != DISPLAY_DEPTH_8)
 		return;
-	    image_32CMYK_to_24BGR(width, dest, source, img->sep);
+	    image_devicen_to_24BGR(width, dest, source, 
+		img->devicen, img->devicen_gray);
 	    break;
     }
 }
@@ -921,17 +1166,16 @@ WndImg2Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		    ReleaseMutex(img->hmutex);
 		return 0;
 	    }
-	    else if (LOWORD(wParam) == M_SEP_CYAN) {
-		sep_menu(img, M_SEP_CYAN, SEP_CYAN);
+	    else if ((LOWORD(wParam) >= M_SEPARATION) &&
+	             (LOWORD(wParam) < M_SEPARATION+IMAGE_DEVICEN_MAX)) {
+		sep_menu(img, LOWORD(wParam) - M_SEPARATION);
 	    }
-	    else if (LOWORD(wParam) == M_SEP_MAGENTA) {
-		sep_menu(img, M_SEP_MAGENTA, SEP_MAGENTA);
-	    }
-	    else if (LOWORD(wParam) == M_SEP_YELLOW) {
-		sep_menu(img, M_SEP_YELLOW, SEP_YELLOW);
-	    }
-	    else if (LOWORD(wParam) == M_SEP_BLACK) {
-		sep_menu(img, M_SEP_BLACK, SEP_BLACK);
+	    else if (LOWORD(wParam) == M_DEVICEN_GRAY) {
+		img->devicen_gray = !img->devicen_gray;
+		CheckMenuItem(GetSystemMenu(img->hwnd, FALSE), M_DEVICEN_GRAY, 
+		    (img->devicen_gray ? MF_CHECKED : MF_UNCHECKED));
+		InvalidateRect(img->hwnd, NULL, 0);
+		UpdateWindow(img->hwnd);
 	    }
 	    break;
 	case WM_CREATE:
@@ -1123,9 +1367,16 @@ WndImg2Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (GetKeyState(VK_SHIFT))
 		   cks |= SHIFT_PRESSED;
 		ir.Event.KeyEvent.dwControlKeyState = cks;
-		if (hStdin != INVALID_HANDLE_VALUE)
+		if (ir.Event.KeyEvent.uChar.AsciiChar == 3)
+		    GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0L);
+		else if (hStdin != INVALID_HANDLE_VALUE)
 		    WriteConsoleInput(hStdin, &ir, 1, &dwWritten); 
 	    }
+	    return 0;
+	case WM_TIMER:
+	    img->update_count++;
+	    if (img->update_count >= img->update_interval)
+		image_update_now(img);
 	    return 0;
 	case WM_PAINT:
 	    {
@@ -1182,7 +1433,7 @@ WndImg2Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		const char *p;
 		const char *szDragPre = "\r(";
 		const char *szDragPost = ") run\r";
-		HANDLE hdrop = (HANDLE)wParam;
+		HDROP hdrop = (HDROP)wParam;
 		cFiles = DragQueryFile(hdrop, (UINT)(-1), (LPSTR)NULL, 0);
 		for (i=0; i<cFiles; i++) {
 		    DragQueryFile(hdrop, i, szFile, 80);
@@ -1205,14 +1456,13 @@ WndImg2Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		char winposbuf[64];
 		sprintf(winposbuf, "%d %d %d %d", img->x, img->y, 
 		    img->cx, img->cy);
-		win_set_reg_value("Image", winposbuf);
+		win_set_reg_value((img->device != NULL ? "Image" : "Tracer"), winposbuf);
 	    }
 	    DragAcceptFiles(hwnd, FALSE);
 	    break;
 
     }
 
-not_ours:
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
@@ -1233,6 +1483,9 @@ draw(IMAGE *img, HDC hdc, int dx, int dy, int wx, int wy,
     long ny;
     unsigned char *bits;
     BOOL directcopy = FALSE;
+
+    if (img->device == NULL)
+        return;
 
     memset(&bmi.h, 0, sizeof(bmi.h));
     

@@ -1,23 +1,24 @@
-/* Copyright (C) 2000, Ghostgum Software Pty Ltd.  All rights reserved.
+/* Copyright (C) 2000-2003, Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: dscparse.h,v 1.6 2001/08/01 09:03:40 ghostgum Exp $*/
+/* $Id: dscparse.h,v 1.12 2003/08/14 22:28:13 ghostgum Exp $*/
 /* Interface for the DSC parser. */
+
+#ifndef dscparse_INCLUDED
+#  define dscparse_INCLUDED
 
 /* Some local types that may need modification */
 typedef int GSBOOL;
@@ -27,6 +28,19 @@ typedef unsigned int GSWORD;	/* must be at least 16 bits */
 #ifndef FALSE
 # define FALSE ((GSBOOL)0)
 # define TRUE ((GSBOOL)(!FALSE))
+#endif
+
+/* DSC_OFFSET is an unsigned integer which holds the offset
+ * from the start of a file to a particular DSC comment,
+ * or the length of a file.
+ * Normally it is "unsigned long" which is commonly 32 bits. 
+ * Change it if you need to handle larger files.
+ */
+#ifndef DSC_OFFSET
+# define DSC_OFFSET unsigned long
+#endif
+#ifndef DSC_OFFSET_FORMAT
+# define DSC_OFFSET_FORMAT "lu"	/* for printf */
 #endif
 
 #ifndef dsc_private
@@ -40,18 +54,9 @@ typedef unsigned int GSWORD;	/* must be at least 16 bits */
 #ifndef min
 # define min(a,b)  ((a) < (b) ? (a) : (b))
 #endif
-
-/* macros to allow conversion of function declarations to K&R */
-#ifndef P0
-#define P0() void
-#define P1(t1) t1
-#define P2(t1,t2) t1,t2
-#define P3(t1,t2,t3) t1,t2,t3
-#define P4(t1,t2,t3,t4) t1,t2,t3,t4
-#define P5(t1,t2,t3,t4,t5) t1,t2,t3,t4,t5
-#define P6(t1,t2,t3,t4,t5,t6) t1,t2,t3,t4,t5,t6
+#ifndef max
+# define max(a,b)  ((a) > (b) ? (a) : (b))
 #endif
-
 
 /* maximum legal length of lines in a DSC compliant file */
 #define DSC_LINE_LENGTH 255
@@ -77,7 +82,7 @@ typedef unsigned int GSWORD;	/* must be at least 16 bits */
  *  100-999 = identifier of last DSC comment processed.
  */
 
-typedef enum {
+typedef enum CDSC_RETURN_CODE_e {
   CDSC_ERROR		= -1,	/* Fatal error, usually insufficient memory */
 
   CDSC_OK		= 0,	/* OK, no DSC comment found */
@@ -108,6 +113,13 @@ typedef enum {
   CDSC_REQUIREMENTS	     = 218,	/* IGNORED %%Requirements: */
   CDSC_DOCUMENTNEEDEDFONTS   = 219,	/* IGNORED %%DocumentNeededFonts: */
   CDSC_DOCUMENTSUPPLIEDFONTS = 220,	/* IGNORED %%DocumentSuppliedFonts: */
+  CDSC_HIRESBOUNDINGBOX	     = 221,	/* %%HiResBoundingBox: */
+  CDSC_CROPBOX	     	     = 222,	/* %%CropBox: */
+  CDSC_PLATEFILE     	     = 223,	/* %%PlateFile: (DCS 2.0) */
+  CDSC_DOCUMENTPROCESSCOLORS = 224,	/* %%DocumentProcessColors: */
+  CDSC_DOCUMENTCUSTOMCOLORS  = 225,	/* %%DocumentCustomColors: */
+  CDSC_CMYKCUSTOMCOLOR       = 226,	/* %%CMYKCustomColor: */
+  CDSC_RGBCUSTOMCOLOR        = 227,	/* %%RGBCustomColor: */
 
 /* Preview section */
   CDSC_BEGINPREVIEW	= 301,	/* %%BeginPreview */
@@ -153,6 +165,7 @@ typedef enum {
 /* also %%Begin/EndResource, %%Begin/EndProcSet */
   CDSC_INCLUDEFONT	= 707,	/* IGNORED %%IncludeFont: */
   CDSC_VIEWINGORIENTATION = 708, /* %%ViewingOrientation: */
+  CDSC_PAGECROPBOX	= 709,	/* %%PageCropBox: */
 
 /* Trailer section */
   CDSC_TRAILER		= 800,	/* %%Trailer */
@@ -166,7 +179,7 @@ typedef enum {
 
 
 /* stored in dsc->preview */ 
-typedef enum {
+typedef enum CDSC_PREVIEW_TYPE_e {
     CDSC_NOPREVIEW = 0,
     CDSC_EPSI = 1,
     CDSC_TIFF = 2,
@@ -175,7 +188,7 @@ typedef enum {
 } CDSC_PREVIEW_TYPE;
 
 /* stored in dsc->page_order */ 
-typedef enum {
+typedef enum CDSC_PAGE_ORDER_e {
     CDSC_ORDER_UNKNOWN = 0,
     CDSC_ASCEND = 1,
     CDSC_DESCEND = 2,
@@ -183,7 +196,7 @@ typedef enum {
 } CDSC_PAGE_ORDER;
 
 /* stored in dsc->page_orientation and dsc->page[pagenum-1].orientation */ 
-typedef enum {
+typedef enum CDSC_ORIENTATION_ENUM_e {
     CDSC_ORIENT_UNKNOWN = 0,
     CDSC_PORTRAIT = 1,
     CDSC_LANDSCAPE = 2,
@@ -192,7 +205,7 @@ typedef enum {
 } CDSC_ORIENTATION_ENUM;
 
 /* stored in dsc->document_data */
-typedef enum {
+typedef enum CDSC_DOCUMENT_DATA_e {
     CDSC_DATA_UNKNOWN = 0,
     CDSC_CLEAN7BIT = 1,
     CDSC_CLEAN8BIT = 2,
@@ -205,6 +218,13 @@ typedef struct CDSCBBOX_S {
     int urx;
     int ury;
 } CDSCBBOX;
+
+typedef struct CDSCFBBOX_S {
+    float fllx;
+    float flly;
+    float furx;
+    float fury;
+} CDSCFBBOX;
 
 typedef struct CDSCMEDIA_S {
     const char *name;
@@ -231,12 +251,14 @@ typedef struct CDSCCTM_S { /* used for %%ViewingOrientation */
 typedef struct CDSCPAGE_S {
     int ordinal;
     const char *label;
-    unsigned long begin;
-    unsigned long end;
+    DSC_OFFSET begin;
+    DSC_OFFSET end;
     unsigned int orientation;
     const CDSCMEDIA *media;
     CDSCBBOX *bbox;  /* PageBoundingBox, also used by GSview for PDF CropBox */
     CDSCCTM *viewing_orientation;
+    /* Added 2001-10-19 */
+    CDSCFBBOX *crop_box;  /* CropBox */
 } CDSCPAGE;
 
 /* binary DOS EPS header */
@@ -250,6 +272,14 @@ typedef struct CDSCDOSEPS_S {
     GSWORD checksum;
 } CDSCDOSEPS;
 
+/* macbinary header */
+typedef struct CDSCMACBIN_S {
+    GSDWORD data_begin;		/* EPS */
+    GSDWORD data_length;
+    GSDWORD resource_begin;	/* PICT */
+    GSDWORD resource_length;
+} CDSCMACBIN;
+
 /* rather than allocated every string with malloc, we allocate
  * chunks of 4k and place the (usually) short strings in these
  * chunks.
@@ -262,10 +292,54 @@ struct CDSCSTRING_S {
     CDSCSTRING *next;
 };
 
+/* Desktop Color Separations - DCS 2.0 */
+typedef struct CDCS2_S CDCS2;
+struct CDCS2_S {
+    char *colourname;
+    char *filetype;	/* Usually EPS */
+    /* For multiple file DCS, location and filename will be set */
+    char *location;	/* Local or NULL */
+    char *filename;
+    /* For single file DCS, begin will be not equals to end */
+    DSC_OFFSET begin;
+    DSC_OFFSET end;
+    /* We maintain the separations as a linked list */
+    CDCS2 *next;
+};
+
+typedef enum CDSC_COLOUR_TYPE_e {
+    CDSC_COLOUR_UNKNOWN=0,
+    CDSC_COLOUR_PROCESS=1,		/* %%DocumentProcessColors: */
+    CDSC_COLOUR_CUSTOM=2		/* %%DocumentCustomColors: */
+} CDSC_COLOUR_TYPE;
+
+typedef enum CDSC_CUSTOM_COLOUR_e {
+    CDSC_CUSTOM_COLOUR_UNKNOWN=0,
+    CDSC_CUSTOM_COLOUR_RGB=1,		/* %%RGBCustomColor: */
+    CDSC_CUSTOM_COLOUR_CMYK=2		/* %%CMYKCustomColor: */
+} CDSC_CUSTOM_COLOUR;
+
+typedef struct CDSCCOLOUR_S CDSCCOLOUR;
+struct CDSCCOLOUR_S {
+    char *name;
+    CDSC_COLOUR_TYPE type;
+    CDSC_CUSTOM_COLOUR custom;
+    /* If custom is CDSC_CUSTOM_COLOUR_RGB, the next three are correct */
+    float red;
+    float green;
+    float blue;
+    /* If colourtype is CDSC_CUSTOM_COLOUR_CMYK, the next four are correct */
+    float cyan;
+    float magenta;
+    float yellow;
+    float black;
+    /* Next colour */
+    CDSCCOLOUR *next;
+};
 
 /* DSC error reporting */
 
-typedef enum {
+typedef enum CDSC_MESSAGE_ERROR_e {
   CDSC_MESSAGE_BBOX = 0,
   CDSC_MESSAGE_EARLY_TRAILER = 1,
   CDSC_MESSAGE_EARLY_EOF = 2,
@@ -285,14 +359,14 @@ typedef enum {
 } CDSC_MESSAGE_ERROR;
 
 /* severity */
-typedef enum {
+typedef enum CDSC_MESSAGE_SEVERITY_e {
   CDSC_ERROR_INFORM	= 0,	/* Not an error */
   CDSC_ERROR_WARN	= 1,	/* Not a DSC error itself,  */
   CDSC_ERROR_ERROR	= 2	/* DSC error */
 } CDSC_MESSAGE_SEVERITY;
 
 /* response */
-typedef enum {
+typedef enum CDSC_RESPONSE_e {
   CDSC_RESPONSE_OK	= 0,
   CDSC_RESPONSE_CANCEL	= 1,
   CDSC_RESPONSE_IGNORE_ALL = 2
@@ -300,8 +374,13 @@ typedef enum {
 
 extern const char * const dsc_message[];
 
-typedef struct CDSC_S CDSC;
-struct CDSC_S {
+#ifndef CDSC_TYPEDEF
+#define CDSC_TYPEDEF
+typedef struct CDSC_s CDSC;
+#endif
+
+struct CDSC_s {
+char dummy[1024];
     /* public data */
     GSBOOL dsc;			/* TRUE if DSC comments found */
     GSBOOL ctrld;		/* TRUE if has CTRLD at start of stream */
@@ -314,18 +393,18 @@ struct CDSC_S {
     unsigned int document_data;	/* Clean7Bit, Clean8Bit, Binary */
 				/* enum CDSC_DOCUMENT_DATA */
     /* DSC sections */
-    unsigned long begincomments;
-    unsigned long endcomments;
-    unsigned long beginpreview;
-    unsigned long endpreview;
-    unsigned long begindefaults;
-    unsigned long enddefaults;
-    unsigned long beginprolog;
-    unsigned long endprolog;
-    unsigned long beginsetup;
-    unsigned long endsetup;
-    unsigned long begintrailer;
-    unsigned long endtrailer;
+    DSC_OFFSET begincomments;
+    DSC_OFFSET endcomments;
+    DSC_OFFSET beginpreview;
+    DSC_OFFSET endpreview;
+    DSC_OFFSET begindefaults;
+    DSC_OFFSET enddefaults;
+    DSC_OFFSET beginprolog;
+    DSC_OFFSET endprolog;
+    DSC_OFFSET beginsetup;
+    DSC_OFFSET endsetup;
+    DSC_OFFSET begintrailer;
+    DSC_OFFSET endtrailer;
     CDSCPAGE *page;
     unsigned int page_count;	/* number of %%Page: pages in document */
     unsigned int page_pages;	/* number of pages in document from %%Pages: */
@@ -355,11 +434,12 @@ struct CDSC_S {
     int scan_section;		/* section currently being scanned */
 				/* enum CDSC_SECTION */
 
-    unsigned long doseps_end;	/* ps_begin+ps_length, otherwise 0 */
+    DSC_OFFSET doseps_end;	/* ps_begin+ps_length, otherwise 0 */
     unsigned int page_chunk_length; /* number of pages allocated */
-    unsigned long file_length;	/* length of document */
+    DSC_OFFSET file_length;	/* length of document */
 		/* If provided we try to recognise %%Trailer and %%EOF */
 		/* incorrectly embedded inside document. */
+		/* We will not parse DSC comments beyond this point. */
 		/* Can be left set to default value of 0 */
     int skip_document;		/* recursion level of %%BeginDocument: */
     int skip_bytes;		/* #bytes to ignore from BeginData: */
@@ -375,7 +455,7 @@ struct CDSC_S {
     char data[CDSC_DATA_LENGTH];/* start of buffer */
     unsigned int data_length; 	/* length of data in buffer */
     unsigned int data_index;	/* offset to next char in buffer */
-    unsigned long data_offset;	/* offset from start of document */
+    DSC_OFFSET data_offset;	/* offset from start of document */
 			       	/* to byte in data[0] */
     GSBOOL eof;			/* TRUE if there is no more data */
 
@@ -395,61 +475,93 @@ struct CDSC_S {
     CDSCSTRING *string;		/* current list item */
 
     /* memory allocation routines */
-    void *(*memalloc)(P2(size_t size, void *closure_data));
-    void (*memfree)(P2(void *ptr, void *closure_data));
+    void *(*memalloc)(size_t size, void *closure_data);
+    void (*memfree)(void *ptr, void *closure_data);
     void *mem_closure_data;
 
     /* function for printing debug messages */
-    void (*debug_print_fn)(P2(void *caller_data, const char *str));
+    void (*debug_print_fn)(void *caller_data, const char *str);
 
     /* function for reporting errors in DSC comments */
-    int (*dsc_error_fn)(P5(void *caller_data, CDSC *dsc, 
-	unsigned int explanation, const char *line, unsigned int line_len));
+    int (*dsc_error_fn)(void *caller_data, CDSC *dsc, 
+	unsigned int explanation, const char *line, unsigned int line_len);
 
+    /* public data */
+    /* Added 2001-10-01 */
+    CDSCFBBOX *hires_bbox;	/* the hires document bounding box */
+    CDSCFBBOX *crop_box;	/* the size of the trimmed page */
+    CDCS2 *dcs2;		/* Desktop Color Separations 2.0 */
+    CDSCCOLOUR *colours;		/* Process and custom colours */
+
+    /* private data */
+    /* Added 2002-03-30 */
+    int ref_count;
+
+    /* public data */
+    /* Added 2003-07-15 */
+    CDSCMACBIN *macbin;		/* Mac Binary header */
 };
 
 
 /* Public functions */
 
 /* Create and initialise DSC parser */
-CDSC *dsc_init(P1(void *caller_data));
+CDSC *dsc_init(void *caller_data);
 
-CDSC *dsc_init_with_alloc(P4(
+CDSC *dsc_init_with_alloc(
     void *caller_data,
     void *(*memalloc)(size_t size, void *closure_data),
     void (*memfree)(void *ptr, void *closure_data),
-    void *closure_data));
+    void *closure_data);
 
 /* Free the DSC parser */
-void dsc_free(P1(CDSC *dsc));
+void dsc_free(CDSC *dsc);
+
+/* Reference counting for dsc structure */
+/* dsc_new is the same as dsc_init */
+/* dsc_ref is called by dsc_new */
+/* If dsc_unref decrements to 0, dsc_free will be called */
+CDSC *dsc_new(void *caller_data);
+int dsc_ref(CDSC *dsc);
+int dsc_unref(CDSC *dsc);
 
 /* Tell DSC parser how long document will be, to allow ignoring
  * of early %%Trailer and %%EOF.  This is optional.
  */
-void dsc_set_length(P2(CDSC *dsc, unsigned long len));
+void dsc_set_length(CDSC *dsc, DSC_OFFSET len);
 
 /* Process a buffer containing DSC comments and PostScript */
-int dsc_scan_data(P3(CDSC *dsc, const char *data, int len));
+int dsc_scan_data(CDSC *dsc, const char *data, int len);
 
 /* All data has been processed, fixup any DSC errors */
-int dsc_fixup(P1(CDSC *dsc));
+int dsc_fixup(CDSC *dsc);
 
 /* Install error query function */
-void dsc_set_error_function(P2(CDSC *dsc, 
-    int (*dsc_error_fn)(P5(void *caller_data, CDSC *dsc, 
-	unsigned int explanation, const char *line, unsigned int line_len))));
+void dsc_set_error_function(CDSC *dsc, 
+    int (*dsc_error_fn)(void *caller_data, CDSC *dsc, 
+	unsigned int explanation, const char *line, unsigned int line_len));
 
 /* Install print function for debug messages */
-void dsc_set_debug_function(P2(CDSC *dsc, 
-	void (*debug_fn)(P2(void *caller_data, const char *str))));
+void dsc_set_debug_function(CDSC *dsc, 
+	void (*debug_fn)(void *caller_data, const char *str));
 
 /* Print a message to debug output, if provided */
-void dsc_debug_print(P2(CDSC *dsc, const char *str));
+void dsc_debug_print(CDSC *dsc, const char *str);
+
+/* Given a page number, find the filename for multi-file DCS 2.0 */
+const char * dsc_find_platefile(CDSC *dsc, int page);
+
+/* Compare two strings, case insensitive */
+int dsc_stricmp(const char *s, const char *t);
 
 /* should be internal only functions, but made available to 
  * GSview for handling PDF
  */
-int dsc_add_page(P3(CDSC *dsc, int ordinal, char *label));
-int dsc_add_media(P2(CDSC *dsc, CDSCMEDIA *media));
-int dsc_set_page_bbox(P6(CDSC *dsc, unsigned int page_number, 
-    int llx, int lly, int urx, int ury));
+int dsc_add_page(CDSC *dsc, int ordinal, char *label);
+int dsc_add_media(CDSC *dsc, CDSCMEDIA *media);
+int dsc_set_page_bbox(CDSC *dsc, unsigned int page_number, 
+    int llx, int lly, int urx, int ury);
+
+/* in dscutil.c */
+void dsc_display(CDSC *dsc, void (*dfn)(void *ptr, const char *str));
+#endif /* dscparse_INCLUDED */

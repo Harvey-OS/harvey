@@ -1,0 +1,3621 @@
+%!PS-Adobe-2.0
+%
+%        Copyright (C) 2002 artofcode LLC.      All rights reserved.
+% 
+% This software is provided AS-IS with no warranty, either express or
+% implied.
+% 
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
+% 
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+
+% $Id: opdfread.ps,v 1.84 2005/09/07 20:43:36 leonardo Exp $
+% pdfread.ps - A procset for interpreting an ordered PDF 1.3 file.
+
+% This module defines routines for interpreting a PDF file with
+% a Postscript interpreter. To convert a PDF file into Postscript 
+% just pre-contcatenate this file. The PDF file must satisfy 
+% few constraints :
+%
+% 1. It must contain only Postscript level 2 objects encoded with
+% the PDF 1.3 language. Higher PDF levels must be re-distilled
+% with CompatibilityLevel=1.3 .
+%
+% 2. Objects must be ordered so that any resource be defined before
+% its usage.
+%
+% 3. The PDF file must not include other PDF files.
+% Consequently we have a single instance of the PDF reader.
+% We use this fact to simplify binding of the routines.
+% 
+% 4. The PDF root object must always have the object id 1.
+% 
+% 5. Generations besides 0 are not allowed.
+%
+% 6. xref must appear after all objects.
+%
+% Assuming the currentfile isn't positionable.
+% As a consequence, the reader fully ignores xref.
+
+
+true setglobal
+
+% ====================== Error handler =======================
+% A general error handler prints an error to page.
+
+10 dict begin % A dictionary for local binding
+
+/this currentdict def
+/y 720 def
+/ebuf 200 string def
+
+/prnt {
+  36 //this /y get moveto //ebuf cvs show
+  //this /y 2 copy get 12 sub put
+} bind def
+
+/newline {
+  36 //this /y get moveto
+  //this /y 2 copy get 12 sub put
+} bind def
+
+errordict /handleerror
+{ systemdict begin
+  $error begin
+  newerror
+  { (%%[ Error handled by opdfread.ps : ) print errorname //ebuf cvs print (; OffendingCommand: )
+    print /command load //ebuf cvs print ( ]%%) = flush
+    /newerror false store vmstatus pop pop 0 ne
+    { grestoreall
+    } if
+    errorname (VMerror) ne
+    { showpage
+    } if
+    initgraphics
+    0 720 moveto
+    errorname (VMerror) eq
+    { //this /ehsave known
+      { clear //this /ehsave get restore 2 vmreclaim
+      } if
+      vmstatus exch pop exch pop 
+    }
+    /Courier 12 selectfont
+    {
+      (ERROR: ) //prnt exec errorname //prnt exec
+      (OFFENDING COMMAND: ) //prnt exec
+      /command load //prnt exec
+      $error /ostack known {
+        (%%[STACK:) =
+        (STACK:) //prnt exec
+        $error /ostack get aload length {
+          //newline exec
+          dup mark eq {
+            (-mark-) dup = show
+          } {
+            dup type /nametype eq { 
+              dup xcheck not {
+                (/) show
+                (/) print
+             } if
+          } if
+          dup = //ebuf cvs show
+          } ifelse
+        } repeat
+      } if
+    } ifelse
+    (%%]%) =
+    //systemdict /showpage get exec
+    quit
+  } if
+  end
+  end
+} bind readonly put
+
+end % A dictionary for local binding
+
+
+50 dict begin
+
+% ===================== Debugging =========================================
+
+/DefaultSwitch  % <name> DefaultSwitch -
+{
+  dup where {
+    pop pop
+  } {
+    false def
+  } ifelse
+} bind def
+
+/=string 256 string def
+
+/=only {
+  //=string cvs print
+} bind def
+
+/HexDigits (0123456789ABCDEF) readonly def
+
+/PrintHex  % <int> PrintHex -
+{ 8 {
+    dup -28 bitshift //HexDigits exch 1 getinterval //=only exec
+    4 bitshift
+  } repeat
+  pop
+} bind def
+
+/PDFR_DEBUG DefaultSwitch
+/PDFR_DUMP DefaultSwitch
+/PDFR_STREAM DefaultSwitch
+/TTFDEBUG DefaultSwitch
+/RotatePages DefaultSwitch
+/FitPages DefaultSwitch
+/SetPageSize DefaultSwitch
+
+/error  %  mark <object> .... error -
+{ % A stub for a while.
+  counttomark 1 sub -1 0 {
+    index dup type /arraytype eq { == } { =only } ifelse
+  } for
+  () =
+  cleartomark
+  % Assuming ....Undefined is never defined. 
+  % Use it to emit an error.
+  ....Undefined
+} bind def
+
+//SetPageSize {
+  //RotatePages //FitPages or {
+    mark (/RotatePages, /FitPages are not allowed with /SetPageSize) //error exec
+  } if
+} if
+
+% ===================== Utilities =========================================
+
+/knownget % <dict> <key> knownget <value> true
+          % <dict> <key> knownget false
+{
+  2 copy known {
+    get true
+  } {
+    pop pop false
+  } ifelse
+} bind def
+
+/IsUpper  % <int> IsUpper <bool>
+{ dup (A) 0 get ge exch (Z) 0 get le and
+} bind def
+
+% ===================== Work Data =========================================
+
+/BlockBuffer 65535 string def % Make it big to load entire TrueType font
+/PDFReader currentdict def
+/ObjectRegistry 50 array def % may grow later
+/CurrentObject null def
+/DoneDocumentStructure false def
+/GraphicState 20 dict begin
+  /InitialTextMatrix matrix def
+  /InitialMatrix matrix currentmatrix def
+currentdict end def
+/TempMatrix matrix def
+/GraphicStateStack 20 array def
+/GraphicStateStackPointer 0 def
+/PDFColorSpaces 50 dict def
+/InstalledFonts 50 dict def
+/MacRomanEncodingInverse null def
+
+% We need some structures in local VM, put then into the userdict :
+currentglobal false setglobal
+userdict /PDFR_InitialGS gstate put
+userdict /PDFR_Patterns 50 dict put
+userdict /FuncDataReader 10 dict put
+setglobal
+
+% ===================== Constants =========================================
+
+/InitialExtGState 20 dict begin
+  /BG2 currentblackgeneration def
+  /UCR2 currentundercolorremoval def
+  /TR2 [ currentcolortransfer ] def
+  /HT currenthalftone def
+currentdict end readonly def
+
+/InitialGraphicState 20 dict begin
+  /FontSize 0 def
+  /CharacterSpacing 0 def
+  /TextLeading 0 def
+  /TextRenderingMode 0 def
+  /WordSpacing 0 def
+currentdict end readonly def
+
+/SimpleColorSpaceNames 15 dict begin
+  /DeviceGray true def
+  /DeviceRGB true def
+  /DeviceCMYK true def 
+currentdict end readonly def
+
+/1_24_bitshift_1_sub 1 24 bitshift 1 sub def
+
+/ReadFontProcs 10 dict def % Will be filled below.
+
+% ===================== Reading PDF objects ===============================
+
+/Register % <DefaultDaemon> <id> <obj> Register -
+{
+  exch dup                                              % d obj id id
+  //PDFReader /ObjectRegistry get length ge {
+    dup dup 2 idiv add array dup                        % d obj id [n] [n]
+    //PDFReader /ObjectRegistry get dup length          % d obj id [n] [n] [o] l
+    3 2 roll exch                                       % d obj id [n] [o] [n] l
+    0 exch getinterval copy pop                         % d obj id [n]
+    //PDFReader exch /ObjectRegistry exch put           % d obj id
+  } if
+  exch //PDFReader /ObjectRegistry get                  % d id obj r
+  3 1 roll                                              % d r id obj
+  3 copy pop get                                        % d r id obj e
+  dup xcheck {                                          % d r id obj e
+    5 4 roll pop                                        % r id obj e
+    //PDFR_DEBUG {
+      (Have a daemon for ) print 2 index =
+    } if
+    % We've got a definition daemon, execute it :
+    exec
+  } {                                                   % d r id obj e
+    dup null ne {                                       % d r id obj e
+      mark (The object ) 4 index ( already defined : ) 4 index //error exec
+    } {
+      pop
+    } ifelse
+    4 3 roll                                            % r id obj d
+    % Execute the default daemon :
+    exec
+  } ifelse                                              % r id obj
+  put                                                   %
+} bind def
+
+/IsRegistered % <id> GetRegistered <bool>
+{
+  //PDFReader /ObjectRegistry get                       % id r
+  dup length                                            % id r l
+  2 index le {                                          % id r
+    pop pop false
+  } {
+    exch get                                            % id e
+    null ne
+  } ifelse
+} bind def
+
+/GetRegistered % <id> GetRegistered <obj>
+{
+  //PDFReader /ObjectRegistry get                       % id r
+  dup length                                            % id r l
+  2 index le {                                          % id r
+    exch mark exch (Object ) exch ( isn't defined before needed (1).) //error exec 
+  } if
+  1 index get                                           % id e
+  dup xcheck {
+    exch mark exch (Object ) exch ( isn't defined before needed (2).) //error exec 
+  } { 
+    dup null eq {
+      exch mark exch (Object ) exch ( isn't defined before needed (3).) //error exec 
+    } if
+    exch pop                                            % e
+  } ifelse
+} bind def
+
+/StandardFontNames <<
+  /Times-Roman true 
+  /Helvetica true
+  /Courier true
+  /Symbol true
+  /Times-Bold true
+  /Helvetica-Bold true
+  /Courier-Bold true
+  /ZapfDingbats true
+  /Times-Italic true
+  /Helvetica-Oblique true
+  /Courier-Oblique true
+  /Times-BoldItalic true
+  /Helvetica-BoldOblique true
+  /Courier-BoldOblique true
+>> def
+
+/CleanAllResources % - CleanAllResources  -
+{ //PDFR_DEBUG {
+    (CleanAllResources beg) =
+  } if
+  //PDFReader /ObjectRegistry get
+  dup length 0 exch 1 exch 1 sub {                     % R i
+    2 copy get dup xcheck {
+      % Don't clean a daemon.
+      pop pop
+    } {
+      dup null eq {
+        pop pop
+      } {
+        dup type /dicttype eq { /.Global known } { pop false } ifelse {
+          pop
+        } {
+          //PDFR_DEBUG {
+            (Dropping ) print dup =
+          } if
+          1 index exch /DroppedObject put
+        } ifelse
+      } ifelse
+    } ifelse
+  } for
+  pop
+  FontDirectory length dict begin
+  FontDirectory { 
+    pop    
+    dup //StandardFontNames exch known not {
+      dup null def
+    } if
+    pop
+  } forall
+  currentdict
+  end {
+    pop
+    //PDFR_DEBUG {
+       (Undefining font ) print dup =
+    } if
+    undefinefont
+  } forall
+  //PDFR_DEBUG {
+    (CleanAllResources end) =
+  } if
+} bind def
+
+/PrintReference % <array> PrintReference <array>
+{
+  //PDFR_DEBUG {
+    ({ ) print
+    dup {
+      =only ( ) print
+    } forall
+    ( }) =
+  } if
+} bind def
+
+/R % <id> <gen> R <daemon>
+{ % Make a reference daemon.
+  0 ne {
+    exch mark exch (A referred object generation ) exch ( isn't 0.) //error exec
+  } if                                                  % id
+  [ % <id> proc <obj>
+    exch //GetRegistered /exec load 
+  ] cvx
+  //PrintReference exec
+} bind def
+
+/IsObjRef %  <any> IsObjRef <bool>
+{ 
+  dup type /arraytype eq {
+    dup length 3 eq {
+      dup xcheck exch
+      dup 0 get type /integertype eq 3 2 roll and exch
+      dup 1 get //GetRegistered eq 3 2 roll and exch
+      2 get /exec load eq and
+    } {
+      pop false
+    } ifelse
+  } {
+    pop false
+  } ifelse
+} bind def
+
+/DoNothing 
+{
+} def
+
+/RunTypeDaemon  % <id> <obj> RunTypeDaemon <id> <obj>
+{
+  dup type /dicttype eq {
+    dup /Type //knownget exec {
+      //PDFReader /TypeDaemons get exch
+      //knownget exec {
+        exec
+      } if
+    } if
+  } if
+} bind def
+
+/obj % <id> <generation> obj <id>
+{
+  //PDFR_DEBUG {
+    (Defining ) print 1 index =only ( ) print dup =only ( obj) =
+  } if
+  0 ne {
+    exch mark exch (An object generation ) exch ( isn't 0.) //error exec
+  } if
+} bind def
+
+/endobj  % <id> <obj> endobj -
+{
+  //PDFR_DEBUG {
+    (endobj ) =
+  } if
+  dup type /dicttype eq {
+    dup /.endobj_daemon //knownget exec {
+      //PDFR_DEBUG { (.endobj_daemon for ) print 2 index = } if
+      exec
+    } if
+  } if
+  dup type /dicttype eq { dup /ImmediateExec known } { false } ifelse {
+    pop pop
+  } {
+    //PDFR_DEBUG {
+      (Storing ) print 1 index =
+    } if
+    //RunTypeDaemon exec
+    //DoNothing 3 1 roll //Register exec
+  } ifelse
+} bind def
+
+/StoreBlock % <buf> StoreBlock -
+{ % Stores a (encoded) stream data block to the current object.
+  //PDFR_DEBUG {
+    (StoreBlock ) print //PDFReader /BlockCount get =only (, Length = ) print dup length =
+  } if
+  dup length string copy
+  //PDFReader /BlockCount get exch                      % i s
+  //PDFReader /CurrentObject get 3 1 roll               % o i s
+  put                                                   %
+  //PDFReader /BlockCount get 1 add
+  //PDFReader exch /BlockCount exch put
+} bind def
+
+/CheckLength % <val> CheckNumber <val>
+{ dup type /integertype ne {
+    mark (Object length isn't an integer.) //error exec
+  } if
+} bind def
+
+/ResolveD % <dict> <key> <check> ResolveD <value>
+{
+  3 copy pop get                                        % <> key {} e
+  dup //IsObjRef exec {
+    % We've got a reference daemon, execute it :
+    //PDFR_DEBUG {
+      (Resolving ) print //PrintReference exec
+    } if
+    exec                                                % <> key {} val
+    exch exec                                           % <> key val
+  } {
+    exch pop
+  } ifelse
+  dup 4 1 roll                                          % val <> key val
+  put                                                   % val
+} bind def
+
+/ResolveA   % <array> <index> <check> ResolveA <value>
+{ 2 index 2 index get
+  dup //IsObjRef exec {
+    exec
+    exch exec
+    3 copy put
+  } {
+    exch pop
+  } ifelse
+  exch pop exch pop
+} bind def
+
+/StoreStream  % <id> <obj> StoreStream <id> <obj>
+{ % Stores a (encoded) data stream copy to the current object.
+  dup //PDFReader exch /CurrentObject exch put          % id obj
+  //PDFReader /BlockCount 0 put
+  dup /Length //CheckLength //ResolveD exec             % id obj l
+  //PDFR_DEBUG {
+    (StoreStream Length = ) print dup =
+  } if
+  currentfile exch () /SubFileDecode filter             % id obj file
+  { dup //BlockBuffer readstring {                      % id obj file buf
+      //StoreBlock exec
+    } {
+      //StoreBlock exec
+      exit
+    } ifelse                                            % id obj file
+  } loop
+  pop                                                   % id obj
+  //PDFReader /CurrentObject null put
+  //PDFR_DEBUG {
+    (StoreStream end.) =
+  } if
+} bind def
+
+/MakeStreamDumper % <file> MakeStreamDumper <file>
+{ % Debug purpose only.
+  //PDFR_DEBUG {
+    (MakeStreamDumper beg.) =
+  } if
+  currentglobal exch dup gcheck setglobal
+  [ exch                      % f
+    1 dict dup /c 0 put exch  % d f
+    1024 string               % d f s
+    { readstring pop          % d s
+      (StreamDumper ) print 1 index /c get =string cvs print ( ) print 
+      dup length =string cvs print ( <) print dup print (>\n) print
+      dup length              % d s l
+      3 2 roll                % s l d
+      dup /c get              % s l d c
+      3 2 roll                % s d c l
+      add /c exch put         % s
+    } /exec load    
+  ] 
+  cvx 0 () /SubFileDecode filter
+  exch setglobal
+  //PDFR_DEBUG {
+    (MakeStreamDumper end.) =
+  } if
+} bind def
+
+/ShortFilterNames 15 dict begin
+  /AHx /ASCIIHexDecode def
+  /A85 /ASCII85Decode def
+  /LZW /LZWDecode def
+  /Fl  /FlateDecode def
+  /RL  /RunLengthDecode def
+  /CCF /CCITTFaxDecode def
+  /DCT /DCTDecode def
+currentdict end readonly def
+
+/AppendFilters  % <file> <dict> AppendFilters <file>
+{
+  //PDFR_DEBUG {
+    (AppendFilters beg.) =
+  } if
+  dup 3 1 roll                                      % d f d
+  /Filter //knownget exec {                         % d f F
+    dup type /nametype eq {                         % d f /F
+      dup //ShortFilterNames exch //knownget exec {
+        exch pop
+      } if
+      2 index /DecodeParms //knownget exec {        % d f p /F
+        exch
+      } if
+      filter                                        % d f'
+    } {                                             % d f []
+      dup 0 exch 1 exch length 1 sub {              % d f [] i
+        2 copy get                                  % d f [] i /F
+        dup //ShortFilterNames exch //knownget exec {
+          exch pop
+        } if
+        3 1 roll                                    % d f /F [] i
+        4 index /DecodeParms //knownget exec {      % d f /F [] i DP
+          exch get                                  % d f /F [] dp
+        } {                                         % d f /F [] i
+          pop null                                  % d f /F [] dp
+        } ifelse
+        dup null eq {                               % d f /F [] dp
+          pop 3 1 roll filter exch                  % d f' []
+        } {                                         % d f /F [] dp
+          3 1 roll                                  % d f dp /F []
+          4 1 roll filter exch                      % d f' []
+        } ifelse
+      } for
+      pop                                           % d f'
+    } ifelse
+    //PDFR_DEBUG //PDFR_DUMP and  {
+      //MakeStreamDumper exec
+    } if
+  } if
+  exch pop
+  //PDFR_DEBUG {
+    (AppendFilters end.) =
+  } if
+} bind def
+
+/ExecuteStream  % <id> <obj> ExecuteStream <id> <obj>
+{ % Executes a (encoded) data stream.
+  dup //PDFReader exch /CurrentObject exch put          % id obj
+  dup /Length //CheckLength //ResolveD exec             % id obj l
+  //PDFR_DEBUG {
+    (ExecuteStream id = ) print 2 index =only ( Length = ) print dup =
+  } if
+  //PDFReader /InitialGraphicState get 
+  //PDFReader /GraphicState get copy pop
+  //PDFReader /Operators get begin
+  % currentfile exch () /SubFileDecode filter           % id obj file
+  % We would like to use the code above, 
+  % but HP LaserJet 1320 continues parsing after the byte count exceeds.
+  pop currentfile 0 (endstream) /SubFileDecode filter   % id obj file
+  1 index //AppendFilters exec
+  cvx mark exch                                         % id obj mark file
+  exec
+  counttomark 0 ne {
+    mark (Data left on ostack after an immediate stream execution.) //error exec
+  } if
+  cleartomark                                           % id obj
+  end % Operators
+  //PDFR_DEBUG {
+    (ExecuteStream end.) =
+  } if
+  //PDFReader /CurrentObject null put
+  dup /IsPage known {
+    dup /Context get /NumCopies //knownget exec {
+      1 sub {
+        copypage
+      } repeat
+    } if
+    showpage
+  } if
+} bind def
+
+/stream  % <id> <obj> stream <id> <obj>
+{ 
+  //PDFR_DEBUG {
+    1 index =only ( stream) =
+  } if                                                  % id obj
+  % Run the object definition daemon, if exists :
+  //PDFReader /ObjectRegistry get dup length 3 index    % id obj r l id
+  gt {                                                  % id obj r
+    2 index get 
+    dup xcheck {
+      exec
+      % Disable the daemon :
+      //PDFReader /ObjectRegistry get 2 index null put
+    } {
+      pop
+    } ifelse
+  } {
+    pop
+  } ifelse                                              % id obj
+  dup /ImmediateExec known {
+    dup /GlobalExec //knownget exec {
+      currentglobal 4 1 roll
+      setglobal
+      //ExecuteStream exec
+      3 2 roll setglobal
+    } {
+      //ExecuteStream exec
+    } ifelse
+  } {
+    //StoreStream exec
+  } ifelse
+  dup /.CleanResources //knownget exec {
+    /All eq {
+      //CleanAllResources exec
+    } if
+  } if
+} bind def
+
+/HookFont % <id> <obj> <font_descriptor> HookFont <id> <obj>
+{ 
+    //PDFR_DEBUG {
+      (Loaded the font ) print dup /FontName get =
+    } if
+    {
+      dup /FontFileType get dup /Type1 eq exch /MMType1 eq or {  % id obj fd
+        % We assume that the Type 1 font has same name with no prefix
+        % due to pdfwrite specifics.
+        % We use it to find the font after it is defined.
+        % We could redefine 'definefont' for hooking the font, 
+        % but we don't think that it could be guaranteedly portable : 
+        % a 3d party PS interpreter may set a special context 
+        % when running the font file.
+        % Note that this mechanizm does not depend on the
+        % font name uniquity, because the last 'definefont'
+        % is only important.
+        dup /FontName get                               % id obj fd fn
+        //PDFReader /RemoveFontNamePrefix get exec 
+        currentglobal true setglobal exch               % id obj fd g fn
+        findfont                                        % id obj fd g f
+        exch setglobal                                  % id obj fd f
+        exit
+      } if
+      dup /FontFileType get /TrueType eq {              % id obj fd
+        //PDFReader /MakeType42 get exec
+        //PDFR_DEBUG {
+          (Font dict <<) =
+          dup {
+            1 index /sfnts eq {
+              exch pop
+              (/sfnts [) print
+              {
+                (-string\() print length //=only exec (\)- ) =
+              } forall
+              (]) =
+            } {
+              exch //=only exec ( ) print ==
+            } ifelse
+          } forall
+          (>>) =
+        } if
+        dup /FontName get exch definefont
+        exit
+      } if
+      mark (FontHook has no proc for ) 2 index /FontFileType get //error exec
+    } loop
+    /Font exch put                                      % id obj
+} bind def
+
+/endstream % <id> <obj> endstream <id> <obj>
+{ 
+} bind def
+
+/xref % - xref -
+{ 
+  //PDFR_DEBUG {
+    (xref) =
+    //PDFR_DUMP {
+      //PDFReader /ObjectRegistry get ==
+    } if
+  } if
+  end % The procset
+  count 0 ne {
+    mark (Excessive data on estack at the end of the interpretation.) //error exec
+  } if
+  currentfile flushfile
+} bind def
+
+% ===================== Restoring the PDF Document Structure ===============
+
+/ResolveDict  % <dict> /ResolveDict -
+{ dup {                                                 % d key val
+    pop 1 index exch                                    % d cp key
+    //DoNothing //ResolveD exec                         % d obj
+    pop                                                 % d
+  } forall
+  pop                                                   %
+} bind def
+
+/SetupPageView  % <obj> SetupPageView -
+{
+  //PDFR_DEBUG {
+    (SetupPageView beg) =
+  } if
+  //GraphicState /InitialMatrix get setmatrix
+  /MediaBox get aload pop                               % bx0 by0 bx1 by1
+  3 index neg 3 index neg translate % Temporary move to origin
+  3 -1 roll sub 3 1 roll exch sub exch                  % bw bh
+  userdict  /.HWMargins //knownget exec {
+    aload pop
+  } {
+    currentpagedevice /.HWMargins //knownget exec {
+      aload pop
+    } {
+      0 0 0 0
+    } ifelse
+  } ifelse
+  currentpagedevice /PageSize get aload pop
+  3 -1 roll sub 3 1 roll exch sub exch                  % bw bh px0 py0 px1 py1
+  exch 3 index sub exch 3 index sub                     % bw bh px0 py0 pw ph
+  //SetPageSize {
+    //PDFR_DEBUG {
+      (Setting page size to ) print 1 index //=only exec ( ) print dup =
+    } if
+    pop pop 3 index 3 index 2 copy                      % bw bh px0 py0 bw bh bw bh
+    currentglobal false setglobal 3 1 roll              % bw bh px0 py0 bw bh bool bw bh
+    2 array astore                                      % bw bh px0 py0 bw bh bool []
+    << exch /PageSize exch >> setpagedevice             % bw bh px0 py0 bw bh bool
+    userdict /PDFR_InitialGS gstate put
+    setglobal                                           % bw bh px0 py0 bw bh
+  } if
+  //RotatePages {
+    2 copy gt 6 index 6 index gt ne {
+      % a rotation is useful except it fits with no rotation.
+      1 index 5 index le 1 index 5 index le and not
+    } {
+      false
+    } ifelse
+  } {
+    false
+  } ifelse
+  { //FitPages {
+      1 index 5 index div 1 index 7 index div           % bw bh px0 py0 pw ph sx sy
+      2 copy gt {
+        exch
+      } if
+      pop dup scale                                     % bw bh px0 py0 pw ph
+    } if
+    90 rotate
+    0 5 index neg translate
+  } {
+    //FitPages {
+      1 index 6 index div 1 index 6 index div           % bw bh px0 py0 pw ph sx sy
+      2 copy gt {
+        exch
+      } if
+      pop dup scale                                     % bw bh px0 py0 pw ph
+    } if
+  } ifelse                                               
+  pop pop                                               % bw bh px0 py0
+  translate                                             % bw bh
+  pop pop                                               %
+  //PDFR_DEBUG {
+    (SetupPageView end) =
+  } if
+} bind def
+
+/PageContentsDaemon % <id> <obj> <node> PageContentsDaemon <id> <obj>
+{ % Note: an excessive operand from a prebond procedure.
+  //PDFR_DEBUG {
+    (Executing PageContentsDaemon for ) print 2 index =
+  } if                                                  % id obj node
+  1 index exch /Context exch put                        % id obj
+  dup /ImmediateExec true put
+  dup /IsPage true put
+  dup /Context get //SetupPageView exec
+} bind def
+
+/FontFileDaemon % <id> <obj> <font_descriptor> FontFileDaemon <id> <obj>
+{ % Note: an excessive operand from a prebond procedure.
+  //PDFR_DEBUG {
+    (Executing FontFileDaemon for ) print 2 index =
+  } if
+  % We need any font resource that refers this descriptor
+  % to know the font type. Assuming that FontDescriptorDaemon
+  % provided FontFileType.
+  dup /FontFileType get                                 % id obj fd ft
+  2 index exch                                          % id obj fd obj ft
+  dup //ReadFontProcs exch //knownget exec {            % id obj fd obj ft proc
+     exch pop exec                                      % id obj fd
+  } {
+    mark (FontFile reader for ) 2 index ( isn't implemented yet.) //error exec
+  } ifelse
+  //PDFR_DEBUG {
+    (FontFileDaemon end) =
+  } if                                                  % id obj fd
+  pop
+} bind def
+
+/FontDescriptorDaemon % <id> <obj> <font_resource> FontDescriptorDaemon <id> <obj>
+{ % Note: an excessive operand from a prebond procedure.
+  //PDFR_DEBUG {
+    (Executing FontDescriptorDaemon for ) print 2 index =
+  } if                                                  % id obj fr
+  %HACK BEG assuming an own font for each font descriptor
+          % to provide an access to PDFEncoding
+          % from MakeType42, ComposeCharStrings.
+    2 copy /FontResource exch put
+  %HACK END
+  /Subtype get 1 index exch /FontFileType exch put
+} bind def
+
+/TypeDaemons <<  % <id> <obj> proc <id> <obj>
+  /Page 
+  { //PDFR_DEBUG {
+      (Recognized a page.) =
+    } if
+    dup /Contents //knownget exec {                     % id obj c
+      0 get //DoNothing exch                            % id obj dn id1
+      [ % <id> <obj> proc <id> <obj>
+        3 index //PageContentsDaemon /exec load
+      ] cvx                                             % id obj {}
+      //Register exec                                   % id obj
+    } {
+      (fixme: page with no Contents won't be printed.) =
+    } ifelse
+  } bind
+  /FontDescriptor
+  { //PDFR_DEBUG {
+      (Recognized a font descriptor.) =
+    } if
+    {
+      dup dup /FontFile known {/FontFile} {/FontFile2} ifelse 
+      //knownget exec {                                 % id obj ff
+        0 get //DoNothing exch                          % id obj dn id1
+        [ % <id> <obj> proc <id> <obj>
+          3 index //FontFileDaemon /exec load
+        ] cvx                                           % id obj {}
+        //Register exec                                 % id obj
+        exit
+      } if
+      % FontFile3 are not implemented yet.
+      (Font descriptor ) print 1 index =only ( has no FontFile.) =
+    } loop
+  } bind
+  /Font
+  { //PDFR_DEBUG {
+      (Recognized a font resource.) =
+    } if
+    dup /BaseFont //knownget exec {
+      % cache the installed font (if any) before replacing it.
+      //PDFReader /RemoveFontNamePrefix get exec
+      currentglobal exch % A hack against HP LaserJet 1320 bug :
+                         % It sets the local allocation mode
+                         % when 'resourcestatus' fails.
+      dup /Font resourcestatus {
+        pop pop
+        //PDFReader /GetInstalledFont get exec pop
+      } {
+        pop
+      } ifelse
+      setglobal
+    } if
+    dup /FontDescriptor //knownget exec {               % id obj fd
+      0 get                                             % id obj id1
+      dup //IsRegistered exec {                         % id obj id1
+        //PDFR_DEBUG {
+          (already registered ) print dup =
+        } if
+        pop
+      } {
+        //DoNothing exch                                % id obj dn id1
+        [ % <id> <obj> proc <id> <obj>
+          3 index //FontDescriptorDaemon /exec load
+        ] cvx                                           % id obj {}
+       //Register exec                                  % id obj
+      } ifelse
+    } if
+  } bind
+>> def
+
+/MakeStreamReader % <obj> MakeStreamReader <file>
+{ dup
+  [ 
+    exch
+    //PDFR_DEBUG {
+      (Stream proc )
+      /print load
+      //PDFR_STREAM {
+        (<)
+        /print load
+      } if
+    } if
+    1 dict dup /i -1 put
+    /dup load
+    /i 
+    /get load
+    1
+    /add load
+    /dup load
+    3 
+    1 
+    /roll load
+    /i
+    /exch load
+    /put load
+    //knownget
+    /exec load 
+    /not load
+    { () }
+    /if load
+    //PDFR_DEBUG {
+      //PDFR_STREAM {
+        /dup load
+        /print load
+        (>)
+        /print load
+      } if
+      ( end of stream proc.\n)
+      /print load
+    } if
+  ] cvx
+  //PDFR_DEBUG {
+    (Stream reader ) print dup ==
+  } if
+  0 () /SubFileDecode filter
+  exch //AppendFilters exec
+} bind def
+
+/RunDelayedStream % <stream_obj> RunDelayedStream -
+{
+  //MakeStreamReader exec                                       % file
+  mark exch
+  cvx exec                                                      %
+  counttomark 0 ne {
+    mark (Data left on ostack after a delayed stream execution.) //error exec
+  } if
+  cleartomark
+} bind def
+
+% ===================== Font Management ======================
+
+//ReadFontProcs begin
+  /Type1   % <font_descriptor> <FontFile_object> Type1 <font_descriptor>
+  { //PDFR_DEBUG {
+      (ReadFontProcs.Type1) =
+    } if
+    dup /.endobj_daemon [ 4 index //HookFont /exec load ] cvx put
+    dup /ImmediateExec true put
+    /GlobalExec true put
+  } bind def
+  /MMType1 //Type1 def
+  /TrueType   % <font_descriptor> <FontFile_object> TrueType <font_descriptor>
+  { //PDFR_DEBUG {
+      (ReadFontProcs.TrueType) =
+    } if
+    dup /.endobj_daemon [ 4 index //HookFont /exec load ] cvx put
+    pop
+  } bind def
+end
+
+/MakeType42 % <FontFile_object> <font_descriptor> MakeType42 <FontFile_object> <font_descriptor> <font>
+{
+  //PDFR_DEBUG {
+    (MakeType42 beg) =
+  } if
+  10 dict begin
+    /FontName 1 index /FontName get def
+    /FontType 42 def
+    /FontMatrix [1 0 0 1 0 0] def
+    /FontBBox 1 index /FontBBox get def          % fo fd
+    dup /FontResource get                        % fo fd fr
+    dup /Encoding known {                        % fo fd fr
+       //PDFReader /ObtainEncoding get exec      % fo fd fr
+       /Encoding get                             % fo fd e
+    } {
+      pop null
+    } ifelse 
+    /PDFEncoding exch def                        % fo fd
+    /CharStrings 2 index //PDFReader /MakeTTCharStrings get exec def
+    /sfnts [ 3 index //MakeStreamReader exec 65535 string readstring pop ] def
+    /Encoding StandardEncoding def % A stub - will be replaced by font resource.
+    /PaintType 0 def
+  currentdict end
+  //PDFR_DEBUG {
+    (MakeType42 end) =
+  } if
+} bind def
+
+/GetInstalledFont % <name> GetInstalledFont <font>
+{ currentglobal exch true setglobal                             % g n
+  dup //InstalledFonts exch knownget {                          % g n f
+    exch pop                                                    % g f
+  } {                                                           % g n
+    dup findfont dup 3 1 roll                                   % g f n f
+    //InstalledFonts 3 1 roll put                               % g f
+  } ifelse
+  exch setglobal
+} bind def
+
+/RemoveFontNamePrefix % <name> RemoveFontNamePrefix <name>
+{ //=string cvs true
+  0 1 5 {
+    2 index exch get //IsUpper exec not {
+      pop false exit
+    } if
+  } for
+  { (+) search {
+      pop pop
+    } if
+  } if
+  cvn
+} bind def
+
+/CheckFont % <key> <val> CheckFont <key> <val>
+{ dup /Type get /Font ne {
+    mark (Resource ) 3 index ( must have /Type/Font .) //error exec
+  } if
+} bind def
+
+/CheckEncoding %  <key> <val> CheckEncoding <key> <val>
+{ dup type /nametype ne {
+    dup /Type get /Encoding ne {
+      mark (Resource ) 3 index ( must have /Type/Encoding .) //error exec
+    } if
+  } if
+} bind def
+
+/ObtainEncoding % <font_resource> ObtainEncoding <font_resource>
+{ dup /Encoding known {
+    dup dup /Encoding //CheckEncoding //ResolveD exec   % fr fr er|e|n
+    dup type dup /arraytype eq exch /packedarraytype eq or {
+      % Already resolved.
+      pop pop
+    } {
+      dup type /nametype eq {
+        /Encoding findresource                          % fr fr e
+      } {
+        dup /BaseEncoding //knownget exec not {
+          /StandardEncoding
+        } if
+        /Encoding findresource                          % fr fr er e
+        exch                                            % fr fr e er
+        /Differences //knownget exec {                  % fr fr e d
+          exch dup length array copy exch
+          0 exch                                        % fr fr e 0 d
+          {                                             % fr fr e i v
+            dup type /integertype eq {
+              exch pop
+            } {
+              3 copy put pop                            % fr fr e i
+              1 add
+            } ifelse
+          } forall
+          pop                                           % fr fr e
+         } if                                           % fr fr e
+      } ifelse                                          % fr fr e
+      /Encoding exch put                                % fr
+    } ifelse
+  } {
+    dup /Encoding /StandardEncoding /Encoding findresource put
+  } ifelse
+} bind def
+
+/ObtainMetrics % <font_resource> ObtainMetrics <font_resource>
+{ dup /Widths //knownget exec {                         % fr W
+    1 index /Encoding get                               % fr W E
+    256 dict                                            % fr W E M
+    3 index /Subtype get /TrueType eq {
+      1000
+    } {
+      1
+    } ifelse                                            % fr W E M s
+    4 index /MissingWidth //knownget exec not {
+      0
+    } if                                                % fr W E M s mw
+    5 index /FirstChar //knownget exec not {
+      0
+    } if                                                % fr W E M s mw c0
+    6 5 roll                                            % fr E M s mw c0 W
+    dup 0 exch 1 exch length 1 sub {                    % fr E M s mw c0 W i
+      2 copy get                                        % fr E M s mw c0 W i w
+      exch 3 index add                                  % fr E M s mw c0 W w c
+      7 index exch get                                  % fr E M s mw c0 W w n
+      dup null ne {
+        6 index 3 1 roll exch                           % fr E M s mw c0 W M n w
+        6 index div                                     
+        3 copy pop //knownget exec {
+          0 eq
+        } {
+          true
+        } ifelse
+        { put                                           % fr E M s mw c0 W
+        } {
+          pop pop pop
+        } ifelse
+      } {
+        pop pop
+      } ifelse
+    } for
+    pop pop pop pop exch pop                            % fr M
+    1 index exch /Metrics exch put                      % fr
+  } {
+    dup /MissingWidth //knownget exec {                 % fr mw
+      256 dict                                          % fr mw M
+      2 index /Encoding get {                           % fr mw M e
+        dup null ne {
+          3 copy 3 2 roll put                           % fr mw M e
+        } if
+        pop                                             % fr mw M
+      } forall
+      exch pop                                          % fr M
+      1 index exch /Metrics exch put                    % fr
+    } if
+  } ifelse
+} bind def
+
+/NotDef % - NotDef -
+{ % A Type 3 font is on dstack.
+  FontMatrix aload pop pop pop exch pop exch pop        % sx sy
+  1 exch div exch
+  1 exch div exch                                       % wx wy
+  1 index 0 setcharwidth
+  o setlinewidth
+  0 0 moveto
+  2 copy rlineto
+  1 index 0 rlineto
+  neg exch neg exch rlineto                             %
+  closepath stroke
+} bind def
+
+/BuildChar  % <font> <char_code> BuildChar -
+{ //PDFR_DEBUG {
+    (BuildChar ) print dup //=only exec ( ) print
+  } if
+  exch begin
+  Encoding exch get                                     % n
+  //PDFR_DEBUG {
+    dup =
+  } if
+  dup null eq {
+    pop //NotDef exec                                   %
+  } {                                                   % n
+    CharProcs exch //knownget exec {                    % cp_stream
+      //RunDelayedStream exec
+    } {
+      //NotDef exec
+    } ifelse
+  } ifelse                                              %
+  end % font
+} bind def
+
+/printdict % <dict> printdict -
+{ (<<) =
+  { exch = == } forall
+  (>>) =
+} bind def
+
+/printfont % <dict> printfont -
+{
+  dup {
+    exch dup =
+    dup /Encoding eq {
+      pop =
+    } {
+      dup /FontInfo eq exch /Private eq or {
+        //printdict exec
+      } {
+        ==
+      } ifelse
+    } ifelse
+  } forall
+} bind def
+
+/ScaleMetrics % <Metrics> <scale> ScaleMetrics <Metrics>
+{ 1 index {           % M s n v
+    2 index div       % M s n v'
+    3 index           % M s n v' M
+    3 1 roll put      % M s
+  } forall
+  pop
+} bind def
+
+/ResolveAndSetFontAux  % <resource_name> <size> ResolveAndSetFont -
+{ exch dup                                              % s rn rn
+  //PDFReader /CurrentObject get /Context get /Resources get
+  /Font //DoNothing //ResolveD exec
+  exch //CheckFont //ResolveD exec                      % s rn fr
+  dup /Font //knownget exec {                           % s rn fr f
+    exch pop exch pop
+  } {
+    {
+      dup /Subtype get dup dup /Type1 eq exch /TrueType eq or exch /MMType1 eq or {
+                                                        % s rn fr
+        exch pop                                        % s fr
+        dup /BaseFont get                               % s fr n
+        //RemoveFontNamePrefix exec                     % s fr n
+        //PDFR_DEBUG {
+          (Font ) print dup =
+        } if                                            % s fr n
+        1 index /FontDescriptor known {                 % s fr n
+          //PDFR_DEBUG {
+            (Font from a font descriptor.) =
+          } if
+          1 index                                       % s fr n fr
+          /FontDescriptor //DoNothing //ResolveD exec   % s fr n fd
+          /Font //knownget exec {
+            exch pop                                    % s fr fd
+          } {
+            //PDFR_DEBUG {
+              (Font descriptor has no Font resolved.) =
+            } if
+            //GetInstalledFont exec                     % s fr f
+          } ifelse
+        } {
+          //GetInstalledFont exec                       % s fr f
+        } ifelse
+        exch                                            % s f fr
+        dup /Encoding known not {
+          1 index /Encoding get 1 index exch /Encoding exch put
+        } if
+        //ObtainEncoding exec
+        //ObtainMetrics exec
+        exch
+        dup length dict copy                            % s fr f
+        dup 2 index /Encoding get                       % s fr f f e
+        /Encoding exch put                              % s fr f
+        1 index /Metrics //knownget exec {              % s fr f M
+          2 index /Subtype get /TrueType ne {
+            % Adjust Metrics for fonts converted from TrueTypes by 3d party.
+            1 index /FontMatrix get 0 get 0.001 div
+            //ScaleMetrics exec
+          } if
+          1 index exch /Metrics exch put                % s fr f
+        } if
+        1 index /BaseFont get                           % s fr f n
+        exch
+        dup /FID undef
+        dup /UniqueID undef
+        definefont                                      % s fr f
+        dup 3 1 roll                                    % s f fr f
+        /Font exch put                                  % s f
+        exit
+      } if
+      dup /Subtype get /Type3 eq {                      % s rn fr
+        //ObtainEncoding exec
+        2 copy exch /FontName exch put
+        dup /CharProcs get //ResolveDict exec
+        dup /FontType 3 put
+        dup /BuildChar //BuildChar put
+        dup dup /Font exch put
+        % Ignore Metrics because pdfwrite duplicates it 
+        % from setcharwidth/setcachedevice.
+        dup 3 1 roll                                    % s fr rn fr
+        definefont                                      % s fr f
+        2 copy ne { 
+          % The interpreter copied the font dictionary while 'definefont'
+          % Need to update the font pointer in the resource.
+          2 copy /Font exch put                         % s fr f
+        } if
+        exch pop                                        % s f
+        exit
+      } if
+      dup /Subtype get /Type0 eq {                      % s rn fr
+      } if
+      dup /Subtype get /CIDFontType0 eq {               % s rn fr
+      } if
+      dup /Subtype get /CIDFontType2 eq {               % s rn fr
+      } if
+      mark (Unknown font type ) 2 index /Subtype get //error exec
+    } loop
+  } ifelse                                              % s f
+  exch scalefont setfont                                %
+} bind def
+
+/ResolveAndSetFont  % <resource_name> <size> ResolveAndSetFont -
+{ currentglobal true setglobal 3 1 roll
+  //ResolveAndSetFontAux exec
+  setglobal
+} bind def
+
+%%beg TrueType
+% ================= Auxiliary procedures for True Type cmap Decoder =============
+
+/.knownget 
+{ 2 copy known {
+    get true
+  } {
+    pop pop false
+  } ifelse
+} bind def
+
+/.min 
+{ 2 copy lt {
+    exch
+  } if
+  pop
+} bind def
+
+/.dicttomark
+{ >>
+} bind def
+
+% ===================== True Type cmap Decoder =============
+% The following procedures are copied from gs/lib/gs_ttf.ps with no change.
+
+% <string> <index> getu16 <integer>
+/getu16 {
+  2 copy get 8 bitshift 3 1 roll 1 add get add
+} bind def
+
+% <string> <index> gets16 <integer>
+/gets16 {
+  getu16 16#8000 xor 16#8000 sub
+} bind def
+
+% <string> <index> getu32 <integer>
+/getu32 {
+  2 copy getu16 16 bitshift 3 1 roll 2 add getu16 add
+} bind def
+
+% <string> <index> gets32 <integer>
+/gets32 {
+  2 copy gets16 16 bitshift 3 1 roll 2 add getu16 add
+} bind def
+
+% Each procedure in this dictionary is called as follows:
+%       <encodingtable> proc <glypharray>
+/cmapformats mark
+  0 {           % Apple standard 1-to-1 mapping.
+    6 256 getinterval { } forall 256 packedarray
+  } bind
+  2 {           % Apple 16bit CJK (ShiftJIS etc)
+
+    % /sHK_sz           subHeaderKey_size       % 1 * uint16
+    % /sH_sz            subHeader_size          % 4 * uint16
+    % /sH_len           subHeader_length
+    % /cmapf2_tblen     total table length
+    % /cmapf2_lang      language code (not used)
+    % /sHKs             subHeaderKeys
+
+    /sHK_sz 2 def
+    /sH_sz 8 def
+    dup 2 getu16 /cmapf2_tblen exch def
+
+    dup 4 getu16 /cmapf2_lang exch def
+
+    dup 6 256 sHK_sz mul getinterval /sHKs exch def
+
+    0           % initialization value for /sH_len
+    0 1 255 {
+       sHKs exch
+       2 mul getu16
+       1 index  % get current max
+       1 index  % get current subHeaderKey
+       lt {exch} if pop
+    } for
+    /sH_len exch def
+
+    dup 6 256 sHK_sz mul add
+    cmapf2_tblen 1 index sub getinterval
+    /sH_gIA exch def
+
+    /cmapf2_glyph_array 65535 array def
+
+    /.cmapf2_putGID {
+        /cmapf2_ch cmapf2_ch_hi 8 bitshift cmapf2_ch_lo add def
+        firstCode cmapf2_ch_lo le
+        cmapf2_ch_lo firstCode entryCount add lt
+        and { % true: j is inside
+            sH_offset idRangeOffset add         % offset to gI
+            cmapf2_ch_lo firstCode sub 2 mul    % rel. pos. in range
+            add 6 add                           % offset in sH_gIA
+            sH_gIA exch getu16
+            dup 0 gt { %
+                idDelta add
+                cmapf2_glyph_array exch cmapf2_ch exch put
+            } {
+                pop
+                % cmapf2_glyph_array cmapf2_ch 0 put
+            } ifelse
+        } {   % false: j is outside
+            % cmapf2_glyph_array cmapf2_ch 0 put
+        } ifelse
+    } def
+
+    16#00 1 16#ff { % hi_byte scan
+        /cmapf2_ch_hi exch def
+        sHKs cmapf2_ch_hi sHK_sz mul getu16
+        /sH_offset exch def
+        sH_gIA sH_offset sH_sz getinterval
+            dup 0 getu16 /firstCode exch def
+            dup 2 getu16 /entryCount exch def
+            dup 4 gets16 /idDelta exch def
+            dup 6 getu16 /idRangeOffset exch def
+        pop
+        sH_offset 0 eq {
+           /cmapf2_ch_lo cmapf2_ch_hi def
+           /cmapf2_ch_hi 0 def
+           .cmapf2_putGID
+        } {
+           16#00 1 16#ff { % lo_byte scan
+               /cmapf2_ch_lo exch def
+               .cmapf2_putGID
+           } for
+        } ifelse
+     } for
+     pop
+     0 1 cmapf2_glyph_array length 1 sub { % rewrite null -> 0.
+        dup cmapf2_glyph_array exch get
+        null eq { cmapf2_glyph_array exch 0 put } {pop} ifelse
+     } for
+     cmapf2_glyph_array
+  } bind
+  4 {           % Microsoft/Adobe segmented mapping.
+    /etab exch def
+    /nseg2 etab 6 getu16 def
+    14 /endc etab 2 index nseg2 getinterval def
+                % The Apple TrueType documentation omits the 2-byte
+                % 'reserved pad' that follows the endCount vector!
+    2 add
+    nseg2 add /startc etab 2 index nseg2 getinterval def
+    nseg2 add /iddelta etab 2 index nseg2 getinterval def
+    nseg2 add /idroff etab 2 index nseg2 getinterval def
+                % The following hack allows us to properly handle
+                % idiosyncratic fonts that start at 0xf000:
+    pop
+    /firstcode startc 0 getu16 16#ff00 and dup 16#f000 ne { pop 0 } if def
+    /putglyph {
+      glyphs code 3 -1 roll put /code code 1 add def
+    } bind def
+                % Do a first pass to compute the size of the glyphs array.
+    /numcodes 0 def /glyphs 0 0 2 nseg2 3 sub {
+                % Stack: /glyphs numglyphs i2
+      /i2 exch def
+      /scode startc i2 getu16 def
+      /ecode endc i2 getu16 def
+      numcodes scode firstcode sub
+                % Hack for fonts that have only 0x0000 and 0xf000 ranges
+      %dup 16#e000 ge { 255 and } if
+      % the previous line is obstructive to CJK fonts, so it was removed
+      exch sub 0 .max ecode scode sub 1 add add
+      exch 1 index add exch
+      numcodes add /numcodes exch def
+    } for array def
+    % prefill the array with 0's faster than a { 0 putglyph } repeat
+    glyphs length 1024 ge {
+      .array1024z 0 1024 glyphs length 1023 sub { glyphs exch 2 index putinterval } for
+      glyphs dup length 1024 sub 3 -1 roll
+      putinterval
+    } {
+      0 1 glyphs length 1 sub { glyphs exch 0 put } for
+    } ifelse
+                % Now fill in the array.
+    /numcodes 0 def /code 0 def
+    0 2 nseg2 3 sub {
+      /i2 exch def
+      /scode startc i2 getu16 def
+      /ecode endc i2 getu16 def
+      numcodes scode firstcode sub
+                % Hack for fonts that have only 0x0000 and 0xf000 ranges
+      %dup 16#e000 ge { 255 and } if
+      % the previous line is obstructive to CJK fonts, so it was removed
+      exch sub 0 .max dup /code exch code exch add def
+      ecode scode sub 1 add add numcodes add /numcodes exch def
+      /delta iddelta i2 gets16 def
+      TTFDEBUG {
+        (scode=) print scode =only
+        ( ecode=) print ecode =only
+        ( delta=) print delta =only
+        ( droff=) print idroff i2 getu16 =
+      } if
+      idroff i2 getu16 dup 0 eq {
+        pop scode delta add 65535 and 1 ecode delta add 65535 and
+        { putglyph } for
+      } {       % The +2 is for the 'reserved pad'.
+        /gloff exch 14 nseg2 3 mul add 2 add i2 add add def
+        0 1 ecode scode sub {
+          2 mul gloff add etab exch getu16
+          dup 0 ne { delta add 65535 and } if putglyph
+        } for
+      } ifelse
+    } for glyphs /glyphs null def       % for GC
+  } bind
+  6 {           % Single interval lookup.
+    dup 6 getu16 /firstcode exch def dup 8 getu16 /ng exch def
+    firstcode ng add array
+                % Stack: tab array
+                % Fill elements 0 .. firstcode-1 with 0
+    0 1 firstcode 1 sub { 2 copy 0 put pop } for
+    dup firstcode ng getinterval
+                % Stack: tab array subarray
+                % Fill elements firstcode .. firstcode+nvalue-1 with glyph values
+    0 1 ng 1 sub {
+      dup 2 mul 10 add 4 index exch getu16 3 copy put pop pop
+    } for pop exch pop
+  } bind
+.dicttomark readonly def                % cmapformats
+
+% <cmaptab> cmaparray <glypharray>
+/cmaparray {
+  dup 0 getu16 cmapformats exch .knownget {
+    TTFDEBUG {
+      (cmap: format ) print 1 index 0 getu16 = flush
+    } if exec
+  } {
+    (Can't handle format ) print 0 getu16 = flush
+    0 1 255 { } for 256 packedarray
+  } ifelse
+  TTFDEBUG {
+    (cmap: length=) print dup length = dup ==
+  } if
+} bind def
+
+% Define remapping for misnamed glyphs in TrueType 'post' tables.
+% There are probably a lot more than this!
+/postremap mark
+  /Cdot /Cdotaccent
+  /Edot /Edotaccent
+  /Eoverdot /Edotaccent
+  /Gdot /Gdotaccent
+  /Ldot /Ldotaccent
+  /Zdot /Zdotaccent
+  /cdot /cdotaccent 
+  /edot /edotaccent 
+  /eoverdot /edotaccent
+  /gdot /gdotaccent 
+  /ldot /ldotaccent
+  /zdot /zdotaccent 
+.dicttomark readonly def
+
+% Each procedure in this dictionary is called as follows:
+%       posttable <<proc>> glyphencoding
+/postformats mark
+  16#00010000  {        % 258 standard Macintosh glyphs.
+    pop MacGlyphEncoding
+  }
+  16#00020000  {        % Detailed map, required by Microsoft fonts.
+    dup length 36 lt {
+      TTFDEBUG { (post format 2.0 invalid.) = flush } if
+      pop [ ]
+    } {
+    /postglyphs exch def
+      postglyphs 32 getu16 /numglyphs exch def
+      /glyphnames numglyphs 2 mul 34 add def
+      % Build names array in the order they occur in the 'post' table
+      /postpos glyphnames def
+      [ numglyphs 1 sub {
+        postpos postglyphs length ge { exit } if
+        % No name available, /postnames will be defined as an empty
+        % array and the glyph won't get a name attached.
+        postglyphs postpos get 
+        postglyphs postpos 1 add 2 index getinterval cvn
+        exch postpos add 1 add /postpos exch def
+      } repeat
+      ] /postnames exch def
+      [ 0 1 numglyphs 1 sub {
+        2 mul 34 add postglyphs exch getu16
+        dup 258 lt {
+          MacGlyphEncoding exch get
+        } {
+          dup 32768 ge {
+                % According to the published TrueType spec, such values are
+                % "reserved for future use", but at least some PDF files
+                % produced by the Adobe PDF library contain entries with a
+                % value of 16#ffff.
+            pop /.notdef
+          } {
+            % Get the name for this glyph
+            258 sub dup postnames length ge {
+              TTFDEBUG { (   *** warning: glyph index past end of 'post' table) = flush } if
+              exit
+            } if
+            postnames exch get
+            % At least some of Microsoft's TrueType fonts use incorrect
+            % (Adobe-incompatible) names for some glyphs.
+            % Correct for this here.
+            postremap 1 index .knownget { exch pop } if
+          } ifelse
+        } ifelse
+      } for ]
+    }
+    ifelse
+  } bind
+  16#00030000  {        % No map.
+    pop [ ]
+  } bind
+.dicttomark readonly def                % postformats
+
+% - .getpost -
+% Uses post, defines glyphencoding
+/.getpost {
+  /glyphencoding post null eq {
+    TTFDEBUG { (post missing) = flush } if [ ]
+  } {
+    postformats post 0 getu32 .knownget {
+      TTFDEBUG {
+        (post: format ) print
+        post 0 getu16 =only (,) print post 2 getu16 = flush
+      } if
+      post exch exec
+    } {
+      TTFDEBUG { (post: unknown format ) print post 0 getu32 = flush } if [ ]
+    } ifelse
+  } ifelse def
+} bind def
+
+% ===================== True Type Interpretation =============
+
+/TTParser <<
+  /Pos 0
+  /post null
+>> def
+
+/readu8   % <file> readu8 <int>
+{ read not {
+    mark (Insufficient data in the stream.) //error exec
+  } if
+} bind def
+
+/readu16   % <file> readu16 <int>
+{ dup //readu8 exec 8 bitshift exch //readu8 exec or
+} bind def
+
+/reads16   % <file> reads16 <int>
+{ //readu16 exec 16#8000 xor 16#8000 sub
+} bind def
+
+/readu32   % <file> readu32 <int>
+{ dup //readu16 exec 16 bitshift exch //readu16 exec or
+} bind def
+
+/reads32   % <file> reads32 <int>
+{ dup //reads16 exec 16 bitshift exch //readu16 exec or
+} bind def
+
+/SkipToPosition % <file> <int> SkipToPosition -
+{ dup //TTParser /Pos get                               % f P P p
+  exch //TTParser exch /Pos exch put                    % f P p
+  sub                                                   % f P-p
+  //PDFR_DEBUG {
+    (Skipping ) print dup //=only exec ( bytes.) =
+  } if
+  dup 0 eq {
+    pop pop
+  } {
+    //BlockBuffer exch 0 exch getinterval readstring not {
+      mark (Insufficient data in the stream for SkipToPosition.) //error exec
+    } if                                                % s
+    pop                                                 %
+  } ifelse
+} bind def
+
+/TagBuffer 4 string def
+
+/ParseTTTableDirectory  % <file> ParseTTTableDirectory <dict>
+{ //PDFR_DEBUG {
+    (ParseTTTableDirectory beg) =
+  } if
+  15 dict begin
+    dup //readu32 exec 16#00010000 ne {
+      mark (Unknown True Type version.) //error exec
+    } if
+    dup //readu16 exec /NumTables exch def
+    dup //readu16 exec /SearchRange exch def
+    dup //readu16 exec /EntrySelector exch def
+    dup //readu16 exec /RangeShift exch def
+    //PDFR_DEBUG {
+      (NumTables = ) print NumTables =
+    } if
+    NumTables {
+      dup //TagBuffer readstring not {
+        mark (Could not read TT tag.) //error exec
+      } if
+      cvn
+      [ 2 index //readu32 exec pop % CheckSum
+        2 index //readu32 exec  % Offset
+        3 index //readu32 exec  % Length
+      ]
+      //PDFR_DEBUG {
+        2 copy exch //=only exec ( ) print ==
+      } if
+      def
+    } repeat
+    pop  % file
+    //TTParser /Pos 12 NumTables 16 mul add put
+  currentdict end
+  //PDFR_DEBUG {
+    (ParseTTTableDirectory end) =
+  } if
+} bind def
+
+/ParseTTcmap  % <file> <TableDirectory> ParseTTcmap <dict>
+{ //PDFR_DEBUG {
+    (ParseTTcmap beg) =
+  } if
+  /cmap get aload pop                                   % f o L
+  3 1 roll                                              % L f o
+  7 dict begin
+    //PDFR_DEBUG {
+      (Current position = ) print //TTParser /Pos get =
+      (cmap position = ) print dup =
+    } if
+    1 index exch //SkipToPosition exec                  % L f
+    //TTParser /Pos get /TablePos exch def
+    dup //readu16 exec pop % version
+    dup //readu16 exec /NumEncodings exch def
+    //PDFR_DEBUG {
+      (NumEncodings = ) print NumEncodings =
+    } if
+    null                                                % L f null
+    NumEncodings {
+      1 index //readu32 exec % platformID, specificID   % L f null id
+      2 index //readu32 exec % offset                   % L f null id o
+      3 array dup 3 2 roll 0 exch put                   % L f []|null id []
+      2 index null ne {
+        dup 0 get 3 index 0 get sub                     % L f []|null id [] l
+        3 index exch 1 exch put                         % L f []|null id []
+      } if
+      dup 4 3 roll pop 3 1 roll                         % L f [] id []
+      def
+    } repeat                                            % L f []
+    dup 0 get                                           % L f [] o
+    4 3 roll exch sub                                   % f [] L-o
+    1 exch put                                          % f
+    //PDFR_DEBUG {
+      currentdict {
+        exch dup type /integertype eq {
+          //PrintHex exec ( ) print ==
+        } {
+          pop pop
+        } ifelse
+      } forall
+    } if
+    4 NumEncodings 8 mul add /HeaderLength exch def
+    //TTParser /Pos //TTParser /Pos get HeaderLength add put
+    0                                                  % f o
+    NumEncodings {
+      16#7FFFFFF null                                  % f o om null|[]
+      % Choosing a table with minimal offset greater than 'o' :
+      currentdict {                                    
+        1 index type /integertype eq {                 % f o om null|[] id []
+          exch pop dup 0 get                           % f o om null|[] [] oi
+          dup 5 index gt {
+            dup 4 index lt {
+              4 1 roll                                 % f o oi om null|[] []
+              exch pop exch pop                        % f o oi []
+            } {
+              pop pop            
+            } ifelse
+          } {
+            pop pop
+          } ifelse                                     % f o oi []
+        } {
+          pop pop
+        } ifelse
+      } forall                                         % f o om' []
+      //PDFR_DEBUG {
+        (Obtaining subtable for ) print dup ==
+      } if
+      3 2 roll pop                                     % f o' []
+      3 copy pop                                       % f o' [] f o'
+      TablePos add //SkipToPosition exec               % f o' []
+      3 copy exch pop 1 get                            % f o' [] l
+      //TTParser /Pos //TTParser /Pos get 3 index add put
+      string                                           % f o' [] f ()
+      readstring not {
+        mark (Can't read a cmap subtable.) //error exec
+      } if                                             % f o' [] ()
+      2 exch put                                       % f o'
+    } repeat
+    pop pop                                            %
+  currentdict end                                      
+  //PDFR_DEBUG {
+    (ParseTTcmap end) =
+  } if
+} bind def
+
+/GetTTEncoding   % <file> <TTcmapHeader> <platformIDspecificID> GetTTEncoding <array>
+{ //PDFR_DEBUG {
+    (GetTTEncoding beg) =
+  } if
+  get                                      % f []
+  exch pop                                 % []
+  2 get
+  10 dict begin % For local variables.
+    /TTFDEBUG //PDFR_DEBUG def
+    //cmaparray exec
+  end
+  //PDFR_DEBUG {
+    (GetTTEncoding end) =
+    dup ==
+  } if
+} bind def
+
+/InverseEncoding % <encoding> InverseEncoding <dict>
+{
+  256 dict begin
+    dup length 1 sub -1 0 {                       % E i
+      2 copy get                                  % E i n
+      exch                                        % E n i
+      1 index currentdict exch //knownget exec {  % E n i e
+        dup type /arraytype eq {
+          aload length 1 add array astore         % E n e'
+        } {
+          2 array astore                          % E n e'
+        } ifelse
+      } if
+      def
+    } for
+    pop
+   currentdict end
+} bind def
+
+/GetMacRomanEncodingInverse
+{ //PDFReader /MacRomanEncodingInverse get 
+  dup null eq {
+    pop
+    MacRomanEncoding //InverseEncoding exec
+    dup //PDFReader exch /MacRomanEncodingInverse exch put
+  } if
+} bind def
+
+/PutCharStringSingle    % <cmap_array> <glyph_name> <char_code> PutCharStringSingle  <cmap_array>
+{
+  dup 3 index length lt {                               % cmap name code
+    2 index exch get                                    % cmap name glyphindex
+    dup 0 ne {
+      def                                               % cmap
+    } {
+      pop pop
+    } ifelse
+  } {
+    pop pop                                             % cmap
+  } ifelse
+} bind def
+
+/PutCharString  % <cmap_array> <glyph_name> <char_code> PutCharString  <cmap_array>
+{ 1 index type /nametype ne {
+    mark (Bad charstring name) //error exec
+  } if
+  dup type /arraytype eq {
+    {                                                   % cmap name code
+      3 copy //PutCharStringSingle exec                 % cmap name code cmap
+      pop pop                                           % cmap name
+    } forall
+    pop                                                 % cmap
+  } {
+    //PutCharStringSingle exec
+  } ifelse
+} bind def
+
+/ComposeCharStrings % <cmaparray> <dict> ComposeCharStrings <dict>
+{ 
+  //PDFR_DEBUG {
+    (ComposeCharStrings beg) =
+  } if
+  1 index length 1 add dict begin                       % cmap d
+  % fixme : the dict length estimation doesn't account 'post'.
+  /.notdef 0 def
+  exch                                                  % d cmap
+  //TTParser /post get                                  % d cmap [post]|null
+  dup null ne {
+    exch                                                % d [] cmap
+    1 index length 1 sub -1 0 {                         % d [] cmap code
+      dup 3 index exch get exch                         % d [] cmap name code
+      dup 0 eq {
+        pop pop
+      } {
+        def
+      } ifelse
+    } for
+  } if
+  exch pop exch                                         % cmap d
+  {                                                     % cmap name code
+    //PutCharString exec
+  } forall                                              % cmap
+  pop                                                   %
+  currentdict end
+  //PDFR_DEBUG {
+    (ComposeCharStrings end) =
+  } if
+} bind def
+
+/ParseTTpost   % <file> <TableDirectory> ParseTTpost -
+{ % Defines TTparser.post - an array, 
+  % which maps glyph indices to glyph names.
+  //PDFR_DEBUG {
+    (ParseTTpost beg) =
+  } if
+  /post get aload pop                                   % f o L
+  3 1 roll                                              % L f o
+  //PDFR_DEBUG {
+    (Current position = ) print //TTParser /Pos get =
+    (post position = ) print dup =
+  } if
+  1 index exch //SkipToPosition exec                    % L f
+  //TTParser /Pos //TTParser /Pos get 4 index add put
+  exch string                                           % f s
+  readstring not {
+    mark (Insufficient data in the stream for ParseTTpost.) //error exec
+  } if                                                  % s
+  1 dict begin % A bridge to the code from /gs/lib/gs_ttf.ps .
+    /post exch def
+    //.getpost exec
+    //TTParser /post glyphencoding put
+    //PDFR_DEBUG {
+      (ParseTTpost end) =
+      glyphencoding ==
+    } if
+  end
+} bind def
+
+/MakeTTCharStrings % <FontFile_object> MakeTTCharStrings <CharStrings>
+{ //MakeStreamReader exec                               % f
+  dup dup //ParseTTTableDirectory exec                  % f f d
+  % Since the file isn't positionable,
+  % we must pick up either 'post' or 'cmap' first.
+  % Deside which one we do first :
+  //TTParser /post null put
+  dup /post //knownget exec {
+    0 get
+    1 index /cmap get 0 get
+    lt {
+      2 copy //ParseTTpost exec                         % f f d
+      //ParseTTcmap exec                                % f ch
+    } {
+      2 copy //ParseTTcmap exec                         % f f d ch
+      3 1 roll                                          % f ch f d
+      //ParseTTpost exec                                % f ch
+    } ifelse
+  } {
+    //ParseTTcmap exec                                  % f ch
+  } ifelse
+  {
+    dup 16#00030001 known {
+      //PDFR_DEBUG {
+        (Using the TT cmap encoding for Windows Unicode.) =
+      } if
+      16#00030001 //GetTTEncoding exec
+      AdobeGlyphList //ComposeCharStrings exec
+      exit
+    } if
+    dup 16#00010000 known {
+      //PDFR_DEBUG {
+        (Using the TT cmap encoding for Macintosh Roman.) =
+      } if
+      16#00010000 //GetTTEncoding exec 
+      PDFEncoding dup null eq {
+        pop //GetMacRomanEncodingInverse exec
+      } {
+        //InverseEncoding exec
+      } ifelse
+      //ComposeCharStrings exec
+      exit
+    } if
+    dup 16#00030000 known {
+      //PDFR_DEBUG {
+        (Using the TT cmap encoding 3.0 - not sure why Ghostscript writes it since old versions.) =
+      } if
+      % Same algorithm as for 16#00010000.
+      16#00030000 //GetTTEncoding exec
+      PDFEncoding dup null eq {
+        pop //GetMacRomanEncodingInverse exec
+      } {
+        //InverseEncoding exec
+      } ifelse
+      //ComposeCharStrings exec
+      exit
+    } if
+    mark (True Type cmap has no useful encodings.) //error exec
+  } loop
+  //PDFR_DEBUG {
+    (CharStrings <<) =
+    dup {
+      exch
+      dup type /nametype eq { 
+        //=only exec 
+      } {
+        ==
+      } ifelse
+      ( ) print ==
+    } forall
+    (>>) =
+  } if
+} bind def
+
+%%end TrueType
+
+% ===================== Functions ============================
+
+/ScaleVal % <value> <Range> ScaleVal <scaled_value>
+{
+  aload pop                                             % v r0 r1
+  1 index sub                                           % v r0 r1-r0
+  3 2 roll mul add
+} bind def
+
+/ScaleArg % <arg> <Domain> ScaleArg <scaled_arg>
+{
+  aload pop                                             % a d0 d1
+  1 index sub                                           % a d0 d1-d0
+  3 1 roll                                              % d1-d0 a d0
+  sub exch div                                          % (a-d0)/(d1-d0)
+} bind def
+
+/ScaleArgN % <arg1> ... <argN> <Domain> ScaleArg <scaled_arg1> ... <scaled_argN>
+{
+  dup length 2 sub -2 0 {                               % a1 ... an [] 2i
+    2                                                   % a1 ... an [] 2i 2
+    2 index 3 1 roll getinterval                        % a1 ... an [] []
+    3 2 roll                                            % a1 ... [] [] an
+    exch //ScaleArg exec                                % a1 ... [] an'
+    1 index length 2 idiv 1 add 1 roll                  % an' a1 ... []
+  } for                                                 % a1' ... an' []
+  pop                                                   % a1' ... an'
+} bind def
+
+
+/ComputeFunction_10 % <scaled_arg> <sample_array> ComputeFunction_10 <result>
+{ % Assuming a 1-argument 1-result function type 0.
+  //PDFR_DEBUG {
+    (ComputeFunction_10 beg ) print 1 index //=only exec ( stack=) print count =
+  } if
+  exch                                                  % [] x
+  dup 1 eq {
+    pop dup length 1 sub get                            % y
+  } {
+    1 index length 1 sub mul                            % [] x*(l-1)
+    dup dup floor sub                                   % [] x*(l-1) f
+    dup 0 eq {
+      pop cvi get                                       % y
+    } {
+      3 1 roll floor cvi                                % f [] i
+      2 getinterval                                     % f []
+      aload pop                                         % f y0 y1
+      2 index mul 3 2 roll 1 exch sub 3 2 roll mul add  % y1*f+(1-f)*y0
+    } ifelse
+  } ifelse
+  //PDFR_DEBUG {
+    (ComputeFunction_10 end ) print dup //=only exec ( stack=) print count =
+  } if
+} bind def
+
+/ComputeFunction_n0 % <arg1> .... <argn> <sample_array> <n> ComputeFunction_n0 <result>
+{ % Assuming a n-argument 1-result function type 0.
+  //PDFR_DEBUG {
+    (ComputeFunction_n0 beg N=) print dup //=only exec ( stack=) print count =
+  } if
+  dup 0 eq {                                   % v 0
+    pop                                        % v
+  } {                                          
+    dup 2 add -1 roll                          % a2 .... an [] n a1
+    dup 3 index length 1 sub ge {
+      pop 1 sub                                % a2 .... an [] n-1
+      exch dup length 1 sub get exch
+      //PDFReader /ComputeFunction_n0 get exec
+    } {
+      dup floor cvi dup                        % a2 .... an [] n a1 i i
+      4 index exch get                         % a2 .... an [] n a1 i [i]
+      3 index dup                              % a2 .... an [] n a1 i [i] n n
+      5 add copy                               % a2 .... an [] n a1 i [i] n a2 .... an [] n a1 i [i] n
+      6 2 roll                                 % a2 .... an [] n a1 i [i] n a2 .... an [i] n [] n a1 i
+      pop pop pop pop                          % a2 .... an [] n a1 i [i] n a2 .... an [i] n 
+      1 sub                                    % a2 .... an [] n a1 i [i] n a2 .... an [i] n-1
+      //PDFReader /ComputeFunction_n0 get exec % a2 .... an [] n a1 i [i] n v0
+      3 2 roll pop                             % a2 .... an [] n a1 i n v0
+      exch                                     % a2 .... an [] n a1 i v0 n
+      4 3 roll exch                            % a2 .... an [] n i v0 a1 n
+      4 add 2 roll 1 add                       % v0 a1 a2 .... an [] n i+1
+      3 2 roll exch get                        % v0 a1 a2 .... an n [i+1]
+      exch 1 sub                               % v0 a1 a2 .... an [i+1] n-1
+      //PDFReader /ComputeFunction_n0 get exec % v0 a1 v1
+      1 index mul                              % v0 a1 v1*a1
+      3 1 roll                                 % v1*a1 v0 a1
+      1 exch sub mul add                       % v1*a1+v0*(1-a1)
+    } ifelse
+  } ifelse
+  //PDFR_DEBUG {
+    (ComputeFunction_n0 end ) print dup //=only exec ( stack=) print count =
+  } if
+} bind def
+
+/FunctionToProc_x01 % <function_dict> FunctionToProc_x01 <proc>
+{ % Assuming a n-argument 1-result function type 0.
+  % The stream is already converted to the array /Data.
+  dup /Domain get exch
+  dup /Data get 0 get exch
+  /Size get length 
+  [ 4 1 roll
+    //PDFR_DEBUG {
+      { (function beg, stack =) print count //=only exec (\n) print } /exec load
+      5 2 roll
+    } if
+    dup 1 gt {                                 % a1 ... an Domain Data n
+      { mark exch                              % a1 ... an Domain Data [ n
+        3 add 2 roll                           % Data [ a1 ... an Domain
+        //ScaleArgN exec                       % Data [ a1 ... an
+        counttomark dup                        % Data [ a1 ... an n n
+        3 add -2 roll                          % a1 ... an n Data [
+        pop exch                               % a1 ... an Data n
+        //ComputeFunction_n0 exec
+      } /exec load
+    } {
+      pop                                      % a1 Domain Data
+      3 1 /roll load //ScaleArg /exec load     % Data a1s
+      /exch load
+      //ComputeFunction_10 /exec load
+    } ifelse
+    //PDFR_DEBUG {
+      (function end, stack =) /print load /count load //=only /exec load (\n) /print load
+    } if
+  ] cvx
+  //PDFR_DEBUG {
+    (Made a procedure for the 1-result function :) =
+    dup ==
+  } if
+} bind def
+
+/FunctionProcDebugBeg  %  - FunctionProcDebugBeg -
+{ (FunctionProcDebugBeg ) print count =
+} bind def
+
+/FunctionProcDebugEnd  %  - FunctionProcDebugEnd -
+{ (FunctionProcDebugEnd ) print count =
+} bind def
+
+/FunctionToProc_x0n % <function_dict> <m> FunctionToProc_x0n <proc>
+{ % Assuming a n-argument m-result function type 0.
+  % The stream is already converted to the array /Data.
+  %
+  % Making the procedure : { Domain //ScaleArg exec ... n copy {} exec n+1 1 roll ... }
+  % except "n copy" for the last chunk.
+  %
+  PDFR_DEBUG {
+    (FunctionToProc_x0n beg m=) print dup =
+  } if
+  1 index /Size get length exch                         % f n m
+  dup 7 mul 2 add array                                 % f n m []
+  PDFR_DEBUG {
+    dup 0 //FunctionProcDebugBeg put
+  } {
+    dup 0 //DoNothing put
+  } ifelse
+  dup 1 /exec load put
+  dup 2 5 index /Domain get put
+  2 index 1 eq {
+    dup 3 //ScaleArg put
+  } {
+    dup 3 //ScaleArgN put
+  } ifelse
+  dup 4 /exec load put
+  1 index 1 sub 0 exch 1 exch {                         % f n m [] i
+    dup 7 mul 5 add                                     % f n m [] i i1
+    1 index 4 index 1 sub ne {
+      dup 3 index exch 6 index put 1 add
+      dup 3 index exch /copy load put 1 add
+    } if
+    [                                                   % f n m [] i i1 [
+      6 index /Data get 3 index get                     % f n m [] i i1 [ di
+      6 index 1 eq {
+        //ComputeFunction_10 /exec load
+      } {
+        6 index
+        //ComputeFunction_n0 /exec load
+      } ifelse
+    ] cvx                                               % f n m [] i i1 {}
+    3 index exch 2 index exch put 1 add                 % f n m [] i i1
+    2 index 1 index /exec load put 1 add
+    1 index 4 index 1 sub ne {
+      2 index 1 index 6 index 1 add put 1 add
+      2 index 1 index 1 put 1 add
+      2 index 1 index /roll load put                    % f n m [] i i1
+    } if
+    pop pop                                             % f n m []
+  } for
+  PDFR_DEBUG {
+    dup dup length 2 sub //FunctionProcDebugEnd put
+  } {
+    dup dup length 2 sub //DoNothing put
+  } ifelse
+  dup dup length 1 sub /exec load put
+  cvx exch pop exch pop exch pop
+  //PDFR_DEBUG {
+    (Made a procedure for the n-argument function :) =
+    dup ==
+  } if
+  PDFR_DEBUG {
+    (FunctionToProc_x0n end) =
+  } if
+} bind def
+
+/MakeTableRec % <func_obj> <n> MakeTableRec <array>
+{
+  0 % to be bound below
+  exec
+} bind def
+
+/MakeTable % <func_obj> <n> MakeTable <array>
+{ //PDFR_DEBUG {
+    (MakeTable beg ) print count =
+  } if
+  1 index /Size get exch                                % f S N
+  1 sub dup                                             % f S n n
+  3 1 roll                                              % f n S n
+  get                                                   % f n s
+  array                                                 % f n []
+  1 index 0 eq {
+    exch pop exch pop                                   % []
+  } {
+    dup length 1 sub -1 0 {                             % f n [] i
+      3 index 3 index //MakeTableRec exec               % f n [] i []
+      2 index 3 1 roll put                              % f n []
+    } for
+    exch pop exch pop
+  } ifelse
+  //PDFR_DEBUG {
+    (MakeTable end ) print count =
+  } if
+} bind def
+
+//MakeTableRec 0 //MakeTable put
+
+/StoreSample  % <value> <table> <dimensions> StoreSample -
+{ % The reader is on the dictionary stack.
+  1 sub 
+  dup 0 eq {
+    pop                                                 % v []
+  } {
+    -1 1 {                                              % v T i
+      I exch get get                                    % v T[I[i]]
+    } for                                               % v []
+  } ifelse
+  I 0 get 3 2 roll put
+} bind def
+
+/ReadSample32   % - ReadSample32 <value>
+{
+  4 {
+    File read not {
+      mark (Insufficient data for function.) //error exec
+    } if
+  } repeat
+  pop % Ignore the last byte because it can't fit into 'real'.
+  3 1 roll exch
+  256 mul add 256 mul add
+  //1_24_bitshift_1_sub div
+} bind def
+
+/ReadSample   % - ReadSample <value>
+{ % The reader in on the dictionary stack.
+  Buffer BitsLeft BitsPerSample
+  { 2 copy ge {
+      exit
+    } if
+    3 1 roll 
+    8 add 3 1 roll
+    256 mul File read not {
+      mark (Insufficient data for function.) //error exec
+    } if
+    add
+    3 1 roll
+  } loop                                                % b bl pbs
+  sub dup                                               % b bl-bps bl-bps
+  2 index exch                                          % b bl-bps b bl-bps
+  neg bitshift                                          % b bl-bps v
+  2 copy exch bitshift                                  % b bl-bps v v<<(bl-bps)
+  4 3 roll exch sub                                     % bl-bps v b-(v<<(bl-bps))
+  /Buffer exch def                                      % bl-bps v
+  exch /BitsLeft exch def                               % v
+  Div div                                               % v/(1<<pbs-1)
+} bind def
+
+/ReadSamplesRec % <dimensions> ReadSamplesRec -
+{ 0 % Will be bound below
+  exec
+} bind def
+
+/ReadSamples % <dimensions> ReadSamples -
+{ % The reader in on the dictionary stack.
+  //PDFR_DEBUG {
+    (ReadSamples beg ) print count =
+  } if
+  dup 1 eq {
+    pop
+    0 1 Size 0 get 1 sub {
+      I exch 0 exch put
+      0 1 M 1 sub {
+        dup Range exch 2 mul 2 getinterval              % m r 
+        //PDFR_DEBUG {
+          (Will read a sample ... ) print
+        } if
+        BitsPerSample 32 eq { //ReadSample32 } { //ReadSample } ifelse
+        exec exch //ScaleVal exec                       % m v
+        //PDFR_DEBUG {
+          (value=) print dup =
+        } if
+        exch Table exch get                             % v []
+        Size length //StoreSample exec                  %
+      } for
+    } for
+  } {
+    1 sub 
+    dup Size exch get 0 exch 1 exch 1 sub {             % d-1 i
+      I exch 2 index exch put                           % d-1
+      dup //ReadSamplesRec exec                         % d-1
+    } for
+    pop
+  } ifelse
+  //PDFR_DEBUG {
+    (ReadSamples end ) print count =
+  } if
+} bind def
+
+//ReadSamplesRec 0 //ReadSamples put
+
+/StreamToArray % <obj> StreamToArray -
+{ //PDFR_DEBUG {
+    (StreamToArray beg ) print count =
+  } if
+  currentglobal true setglobal exch
+  userdict /FuncDataReader get begin                    % g f
+    dup /BitsPerSample get /BitsPerSample exch def
+    dup /Size get length /N exch def
+    dup /Range get length 2 idiv /M exch def
+    1 BitsPerSample bitshift 1 sub /Div exch def
+    /BitsLeft 0 def
+    /Buffer 0 def
+    dup /Size get /Size exch def                        % g f
+    dup /Range get /Range exch def                      % g f
+    /File 1 index //MakeStreamReader exec def           % g f
+    /I [ N { 0 } repeat ] def                           % g f
+    M array                                             % g f []
+    dup length 1 sub -1 0 {                             % g f [] m
+      2 index N //MakeTable exec                        % g f [] m T
+      2 index 3 1 roll put                              % g f []
+    } for
+    /Table exch def                                     % g f
+    N //ReadSamples exec                                % g f
+    PDFR_DEBUG {
+      (Table = ) print Table ==
+    } if
+    /Data Table put                                     % g
+  end
+  setglobal                                             %
+  //PDFR_DEBUG {
+    (StreamToArray end ) print count =
+  } if
+} bind def
+
+/FunctionToProc10 % <function_dict> FunctionToProc10 <proc>
+{ % Assuming a 1-argument function type 0.
+  PDFR_DEBUG {
+    (FunctionToProc10 beg, Range = ) print dup /Range get ==
+  } if
+  dup /Order //knownget exec {
+    1 ne {
+      (Underimplemented function Type 0 Order 3.) =
+    } if
+  } if
+  dup //StreamToArray exec                              % f
+  dup /Range get length dup 2 eq {
+    pop //FunctionToProc_x01 exec                       % proc
+  } {
+    2 idiv //FunctionToProc_x0n exec                    % proc
+  } ifelse
+  PDFR_DEBUG {
+    (FunctionToProc10 end) =
+  } if
+} bind def
+
+/FunctionToProc12 % <function_dict> FunctionToProc12 <proc>
+{ begin
+    currentdict /C0 //knownget exec { length 1 eq } { true } ifelse {
+      N
+      currentdict /C0 //knownget exec {
+        0 get
+      } {
+        0
+      } ifelse
+      currentdict /C1 //knownget exec {
+        0 get
+      } {
+        1
+      } ifelse
+      1 index sub
+      [ 4 1 roll
+        {               % x n c0 c1-c0
+          4 2 roll      % c0 c1-c0 x n
+          excp mul add  % y
+        } aload pop
+      ] cvx
+    } { 
+        [ 
+          0 1 C0 length 1 sub {
+            N                                           % [ ... i n
+            C0 2 index get                              % [ ... i n c0
+            C1 3 index get                              % [ ... i n c0 c1
+            4 3 roll pop                                % [ ... n c0 c1
+            1 index sub                                 % [ ... n c0 c1-c0
+            [ /dup load                                 % [ ... n c0 c1-c0 [ dup
+              5 2 roll                                  % [ ... [ dup n c0 c1-c0
+              {                 % x x n c0 c1-c0        
+                4 2 roll        % x c0 c1-c0 x n
+                exp mul add     % x y
+                exch            % y x
+              } aload pop
+            ] cvx 
+            /exec load
+          } for
+          /pop load
+        ] cvx
+    } ifelse
+  end
+  //PDFR_DEBUG {
+    (FunctionType2Proc : ) print dup == 
+  } if
+} bind def
+
+
+/FunctionToProc14 % <function_dict> FunctionToProc14 <proc>
+{ //MakeStreamReader exec cvx exec
+  //PDFR_DEBUG {
+    (FunctionType4Proc : ) print dup == 
+  } if
+} bind def
+
+/FunctionToProc1 % <function_dict> FunctionToProc <proc>
+{ % Assuming a 1-argument function.
+  dup /FunctionType get
+  { dup 0 eq {
+      pop //FunctionToProc10 exec exit
+    } if
+    dup 2 eq {
+      pop //FunctionToProc12 exec exit
+    } if
+    dup 4 eq {
+      pop //FunctionToProc14 exec exit
+    } if
+    mark exch (Function type ) exch ( isn't implemented yet.) //error exec
+  } loop
+} bind def
+
+/FunctionToProc20 % <function_dict> FunctionToProc20 <proc>
+{ % Assuming a 2-argument function type 0.
+  PDFR_DEBUG {
+    (FunctionToProc20, Range = ) print dup /Range get ==
+  } if
+  dup /Order //knownget exec {
+    1 ne {
+      (Underimplemented function Type 0 Order 3.) =
+    } if
+  } if
+  dup //StreamToArray exec                              % f
+  dup /Range get length dup 2 eq {
+    pop //FunctionToProc_x01 exec                       % proc
+  } {
+    2 idiv //FunctionToProc_x0n exec                    % proc
+  } ifelse
+} bind def
+
+/FunctionToProc % <function_dict> FunctionToProc <proc>
+{ //PDFR_DEBUG {
+    (FunctionToProc beg ) print count =
+  } if
+  dup /Domain get length 2 idiv
+  {
+    dup 1 eq {
+      pop //FunctionToProc1 exec exit
+    } if
+    dup 2 eq {
+      pop //FunctionToProc20 exec exit
+    } if
+    mark (Functions with many arguments aren't implemented yet.) //error exec
+  } loop
+  //PDFR_DEBUG {
+    (FunctionToProc end ) print count =
+  } if
+} bind def
+
+/spotfunctions mark  % Copied from pdf_draw.ps 
+  /Round {
+    abs exch abs 2 copy add 1 le {
+      dup mul exch dup mul add 1 exch sub 
+    } {
+      1 sub dup mul exch 1 sub dup mul add 1 sub
+    } ifelse
+  }
+  /Diamond {
+    abs exch abs 2 copy add .75 le {
+      dup mul exch dup mul add 1 exch sub
+    } {
+      2 copy add 1.23 le {
+        .85 mul add 1 exch sub
+      } {
+        1 sub dup mul exch 1 sub dup mul add 1 sub
+      } ifelse
+    } ifelse
+  }
+  /Ellipse {
+    abs exch abs 2 copy 3 mul exch 4 mul add 3 sub dup 0 lt {
+      pop dup mul exch .75 div dup mul add 4 div 1 exch sub
+    } {
+      dup 1 gt {
+        pop 1 exch sub dup mul exch 1 exch sub
+        .75 div dup mul add 4 div 1 sub
+      } {
+        .5 exch sub exch pop exch pop
+      } ifelse
+    } ifelse
+  }
+  /EllipseA { dup mul .9 mul exch dup mul add 1 exch sub }
+  /InvertedEllipseA { dup mul .9 mul exch dup mul add 1 sub }
+  /EllipseB { dup 5 mul 8 div mul exch dup mul exch add sqrt 1 exch sub }
+  /EllipseC { dup mul .9 mul exch dup mul add 1 exch sub }
+  /InvertedEllipseC { dup mul .9 mul exch dup mul add 1 sub }
+  /Line { exch pop abs neg }
+  /LineX { pop }
+  /LineY { exch pop }
+  /Square { abs exch abs 2 copy lt { exch } if pop neg }
+  /Cross { abs exch abs 2 copy gt { exch } if pop neg }
+  /Rhomboid { abs exch abs 0.9 mul add 2 div }
+  /DoubleDot { 2 {360 mul sin 2 div exch } repeat add }
+  /InvertedDoubleDot { 2 {360 mul sin 2 div exch } repeat add neg }
+  /SimpleDot { dup mul exch dup mul add 1 exch sub }
+  /InvertedSimpleDot { dup mul exch dup mul add 1 sub }
+  /CosineDot { 180 mul cos exch 180 mul cos add 2 div }
+  /Double { exch 2 div exch 2 { 360 mul sin 2 div exch } repeat add }
+  /InvertedDouble {
+    exch 2 div exch 2 { 360 mul sin 2 div exch } repeat add neg
+  }
+.dicttomark readonly def
+
+% ===================== Color Spaces and Colors ==============
+
+/CheckColorSpace %  <key> <val> CheckColorSpace  <key> <val>
+{
+  dup type /arraytype ne {
+    mark (Resource ) 3 index ( must be an array.) //error exec
+  } if
+} bind def
+
+/SubstitutePDFColorSpaceRec  % <array> SubstitutePDFColorSpace <array>
+{ 0 % Will be bound below
+  exec
+} bind def
+
+/SubstitutePDFColorSpace % <array> SubstitutePDFColorSpace <array>
+{ currentglobal true setglobal exch
+  { 
+    dup 0 get /Pattern eq {
+      dup length 1 gt {
+        dup dup 1 //CheckColorSpace //ResolveA exec
+        dup type /nametype ne {
+          //SubstitutePDFColorSpaceRec exec
+        } if
+        1 exch put
+      } if
+      exit
+    } if
+    dup 0 get /Indexed eq {
+      exit
+    } if
+    dup 0 get /Separation eq {
+      dup dup 2 //CheckColorSpace //ResolveA exec
+      dup type /nametype ne {
+        //SubstitutePDFColorSpaceRec exec
+      } if
+      2 exch put
+      exit
+    } if
+    dup 0 get /CalGray eq {
+      1 get                                             % dict
+      dup /Gamma //knownget exec {
+        [ exch /exp load ] cvx
+        1 index exch /DecodeLMN exch put
+      } if                              
+      [ exch /CIEBasedA exch ]                          % []
+      exit
+    } if
+    dup 0 get /CalRGB eq {
+      1 get                                             % dict
+      dup /Matrix //knownget exec { 
+        1 index exch /MatrixLMN exch put
+      } if
+      dup /Gamma //knownget exec {
+        aload pop
+        [ exch /exp load ] cvx
+        3 1 roll
+        [ exch /exp load ] cvx
+        3 1 roll
+        [ exch /exp load ] cvx
+        3 1 roll
+        3 array astore
+        1 index exch /DecodeLMN exch put
+      } if                              
+      [ exch /CIEBasedABC exch ]                        % []
+      exit
+    } if
+    dup 0 get /Lab eq {
+      1 get                                             % dict
+      begin
+        currentdict /Range //knownget exec { aload pop } { -100 100 -100 100 } ifelse
+          0 100 6 2 roll 6 array astore 
+          /RangeABC exch def
+        /DecodeABC [{16 add 116 div} bind {500 div} bind {200 div} bind] def
+        /MatrixABC [1 1 1 1 0 0 0 0 -1] def
+        { dup 6 29 div ge {dup dup mul mul} {4 29 div sub 108 841 div mul} ifelse }
+        /DecodeLMN [
+          % Store white point implicitly inside procedures.
+          [ 3 index aload pop WhitePoint 0 get /mul load ] cvx
+          [ 4 index aload pop WhitePoint 1 get /mul load ] cvx
+          [ 5 index aload pop WhitePoint 2 get /mul load ] cvx
+        ] def pop
+        //PDFR_DEBUG {
+          (Constructed from Lab <<) =
+          currentdict { exch = == } forall
+          (>>) =
+        } if
+        [ /CIEBasedABC currentdict ]                    % []
+      end
+      exit
+      pop
+    } if
+    mark exch (Unimplemented color space ) exch //error exec
+  } loop
+  exch setglobal
+} bind def
+
+//SubstitutePDFColorSpaceRec 0 //SubstitutePDFColorSpace put
+
+/ResolveArrayElement  % <array> <index> ResolveArrayElement <array>
+{ 2 copy get xcheck {
+    2 copy get exec
+    2 index 4 1 roll put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/ResolveColorSpaceArrayRec  % <color_space> ResolveColorSpaceArrayRec <color_space>
+{ 0 % Will be bond below.
+  exec
+} bind def
+
+/SetColorSpaceSafe % <color_space> SetColorSpaceSafe -
+{
+  % This works against applying a pattern over a pattern space,
+  % which may happen due to duplication of stroking and non-stroking colors.
+  % gs3.70 fails when setting a pattern space and 
+  % the (old) current color space is a pattern space.
+  %
+  % If the new color space is an array and it appears equal to the old one, 
+  % do nothing. Otherwise set the new color space.
+  PDFR_DEBUG {
+    (SetColorSpaceSafe beg) =
+  } if
+  currentcolorspace dup type /arraytype eq {     % cs cs'
+    1 index type /arraytype eq {
+      dup length 2 index length eq {
+        false exch                               % cs b cs'
+        dup length 0 exch 1 exch 1 sub {         % cs b cs' i
+          dup                                    % cs b cs' i i
+          4 index exch get exch                  % cs b cs' csi i
+          2 index exch get                       % cs b cs' csi cs'i
+          ne {                                   % cs b cs'
+            exch pop true exch exit
+          } if
+        } for                                    % cs b cs'
+        pop                                      % cs b
+        { 
+          setcolorspace
+        } {
+          pop
+        } ifelse                                 %
+      } {
+        pop setcolorspace
+      } ifelse
+    } {
+      pop setcolorspace
+    } ifelse
+  } {                                            % cs cs'
+    pop setcolorspace
+  } ifelse
+  PDFR_DEBUG {
+    (SetColorSpaceSafe end) =
+  } if
+} bind def
+
+/ResolveColorSpaceArray  % <color_space> ResolveColorSpaceArray <color_space>
+{
+  //PDFR_DEBUG {
+    (ResolveColorSpaceArray beg ) print dup ==
+  } if
+  currentglobal true setglobal exch
+  dup 0 get /Indexed eq {
+    1 //ResolveArrayElement exec
+    dup dup 1 get 
+    dup type /arraytype eq {
+      //SubstitutePDFColorSpace exec 
+      //ResolveColorSpaceArrayRec exec
+      1 exch put
+    } {
+      pop pop
+    } ifelse
+  } if
+  dup 0 get /Separation eq {
+    3 //ResolveArrayElement exec
+    dup 3 get //FunctionToProc exec
+    2 copy 3 exch put
+    pop
+  } if
+  PDFR_DEBUG {
+    (Construcrted color space :) =
+    dup ==
+  } if
+  exch setglobal
+  //PDFR_DEBUG {
+    (ResolveColorSpaceArray end ) print dup ==
+  } if
+} bind def
+
+//ResolveColorSpaceArrayRec 0 //ResolveColorSpaceArray put
+
+/ResolveColorSpace  % <name> ResolveColorSpace <color_space>
+{ 
+  //PDFR_DEBUG {
+    (ResolveColorSpace beg ) print dup =
+  } if
+  dup //SimpleColorSpaceNames exch known not {
+    dup //PDFColorSpaces exch //knownget exec {
+      exch pop
+      //PDFR_DEBUG {
+        (ResolveColorSpace known ) =
+      } if
+    } {
+      dup                                               % n n
+      //PDFReader /CurrentObject get /Context get /Resources get 
+      /ColorSpace //DoNothing //ResolveD exec
+      exch //CheckColorSpace //ResolveD exec            % n cs
+      dup type /arraytype eq {
+        //SubstitutePDFColorSpace exec
+        //ResolveColorSpaceArray exec
+        dup //PDFColorSpaces 4 2 roll put               % []
+      } if
+    } ifelse
+  } if
+  //PDFR_DEBUG {
+    (ResolveColorSpace end ) print dup ==
+  } if
+} bind def
+
+/CheckPattern %  <key> <val> CheckPattern  <key> <val>
+{
+  dup /PatternType //knownget exec {
+    dup 1 ne {
+      mark (Resource ) 4 index ( is a shading, which can't be handled at level 2. ) //error exec
+    } if
+    pop
+  } if
+  dup /Type get /Pattern ne {
+    mark (Resource ) 4 index ( must have /Type/Pattern .) //error exec
+  } if
+} bind def
+
+/PaintProc % 
+{ /Context get                                          % pattern_object
+  //RunDelayedStream exec
+} bind def
+
+/ResolvePattern % <name> ResolvePattern <pattern>
+{
+  dup                                                   % n n
+  % Since makepattern makes a local dictionary,
+  % we cahche them in userdict, which is in local VM.
+  % Assuming unique resource name through the document
+  userdict /PDFR_Patterns get                           % n n d
+  exch //knownget exec {                                % n p
+    exch pop                                            % p
+  } {                                                   % n
+    dup                                                 % n n
+    //PDFReader /CurrentObject get /Context get /Resources get 
+    /Pattern //DoNothing //ResolveD exec
+    exch //CheckPattern //ResolveD exec                 % n o
+    dup dup /Context exch put
+    dup /Resources //DoNothing //ResolveD exec pop
+    dup /PaintProc //PaintProc put
+    gsave userdict /PDFR_InitialGS get setgstate
+    currentglobal exch false setglobal % gs3_70 compatibility
+    dup /Matrix get
+    makepattern                                         % n p
+    exch setglobal % gs3_70 compatibility
+    grestore
+    dup userdict /PDFR_Patterns get                     % n p p d
+    4 2 roll                                            % p d n p
+    put                                                 % p
+  } ifelse
+} bind def
+
+/SetColor % Same arguments and result as for scn
+{ //PDFR_DEBUG {
+    (SetColor beg) =
+  } if
+  currentcolorspace dup type /nametype eq {
+    pop setcolor    
+  } {
+    0 get /Pattern eq {
+      //ResolvePattern exec setpattern
+    } {
+      setcolor
+    } ifelse
+  } ifelse
+  //PDFR_DEBUG {
+    (SetColor end) =
+  } if
+} bind def
+
+% ===================== Images ===============================
+
+/ImageKeys 15 dict begin
+  /BPC /BitsPerComponent def
+  /CS /ColorSpace def
+  /D /Decode def
+  /DP /DecodeParms def
+  /F /Filter def
+  /H /Height def
+  /IM /ImageMask def
+  % /Intent is undefined - pdfwrite must take care of.
+  /I /Interpolate def
+  /W /Width def
+currentdict end readonly def
+
+/ImageValues 15 dict begin
+  /G   /DeviceGray def
+  /RGB /DeviceRGB def
+  /CMYK /DeviceCMYK def 
+  /I   /Indexed def
+  /AHx /ASCIIHexDecode def
+  /A85 /ASCII85Decode def
+  /LZW /LZWDecode def
+  /Fl  /FlateDecode def
+  /RL  /RunLengthDecode def
+  /CCF /CCITTFaxDecode def
+  /DCT /DCTDecode def
+currentdict end readonly def
+
+/GetColorSpaceRange
+{ 2 index /ColorSpace get
+  dup type /arraytype eq {
+    1 get
+  } if
+  exch //knownget exec {
+    exch pop
+  } if
+} bind def
+
+/DecodeArrays 15 dict begin
+  /DeviceGray { [0 1] } def
+  /DeviceRGB { [0 1 0 1 0 1] } def
+  /DeviceCMYK { [0 1 0 1 0 1 0 1] } def 
+  /Indexed { dup /ColorSpace get 2 get [ exch 0 exch ] } def
+  /Separation { [0 1] } def
+  /CIEBasedA { [0 1]  /RangeA //GetColorSpaceRange exec } def
+  /CIEBasedABC { [0 1 0 1 0 1] /RangeABC //GetColorSpaceRange exec } def
+currentdict end readonly def
+
+/Substitute % <key> <dict> Substitute <key>
+{ 1 index //knownget exec {
+    exch pop
+  } if
+} bind def
+
+/DebugImagePrinting  % <image_dict> DebugImagePrinting <image_dict>
+{
+  //PDFR_DEBUG {
+    (Image :) =
+    dup { exch //=only exec ( ) print == 
+    } forall
+  } if
+} bind def
+
+/CompleteImage  % <dict> CompleteImage <image_dict>
+{
+  dup /ColorSpace known {
+    dup /ColorSpace //CheckColorSpace //ResolveD exec pop
+  } if
+  dup /Decode known not {
+    dup /ColorSpace //knownget exec { 
+      dup type /arraytype eq {
+        0 get
+      } if
+      //DecodeArrays exch get exec 
+    } {
+      [0 1]
+    } ifelse
+    1 index exch /Decode exch put
+  } if
+  dup /ImageMatrix [2 index /Width get 0 0 5 index /Height get neg 
+                                        0 7 index /Height get] put % Not sure why upside down ?
+  //DebugImagePrinting exec
+} bind def
+
+/CompleteInlineImage  % <dict> CompleteInlineImage <image_dict>
+{
+  //PDFR_DEBUG {
+    (CompleteInlineImage beg) =
+  } if
+  dup /ImageType known not {
+    dup /ImageType 1 put
+  } if
+  dup length dict exch {                            % d key val
+    exch //ImageKeys //Substitute exec
+    dup /Filter eq {
+      exch //ImageValues //Substitute exec exch
+    } if
+    dup /ColorSpace eq {
+      exch 
+      dup //ImageValues exch //knownget exec {
+        exch pop
+      } {
+        //ResolveColorSpace exec
+      } ifelse
+      exch
+    } if
+    exch
+    2 index 3 1 roll put
+  } forall
+  //CompleteImage exec
+  dup /DataSource 2 copy get                        % d d /n f
+  2 index //AppendFilters exec put
+  //PDFR_DEBUG {
+    (CompleteInlineImage end) =
+  } if
+} bind def
+
+/CompleteOutlineImage  % <dict> CompleteOutlineImage <image_dict>
+{ 
+  currentglobal exch dup gcheck setglobal
+  //PDFR_DEBUG {
+    (CompleteOutlineImage beg) =
+  } if
+  % todo: ResetStreamReader if DataSource already exists.
+  dup dup //MakeStreamReader exec /DataSource exch put
+  dup /ImageType known not {
+    //CompleteImage exec
+    dup /ImageType 1 put
+    dup /ColorSpace known {
+      dup /ColorSpace //CheckColorSpace //ResolveD exec
+      dup type /arraytype eq {
+        //ResolveColorSpaceArray exec
+        //SubstitutePDFColorSpace exec
+        1 index exch /ColorSpace exch put
+      } {
+        pop
+      } ifelse
+    } if
+  } if
+  //PDFR_DEBUG {
+    (CompleteOutlineImage end) =
+  } if
+  exch setglobal
+} bind def
+
+/DoImage % <image_dict> DoImage -
+{
+  //PDFR_DEBUG {
+    (DoImage beg) =
+  } if
+  gsave
+  dup /ColorSpace //knownget exec { setcolorspace } if
+  dup /ImageMask //knownget exec not { false } if
+  { imagemask } { image } ifelse 
+  grestore
+  //PDFR_DEBUG {
+    (DoImage end) =
+  } if
+} bind def
+
+% ===================== Viewer State ===============
+
+/GSave % - GSave -
+{
+  gsave
+  //PDFReader /GraphicStateStackPointer get
+  dup //GraphicStateStack exch get null eq {
+    currentglobal true setglobal exch
+    dup //GraphicStateStack exch //InitialGraphicState length dict put 
+    exch setglobal
+  } if
+  dup //GraphicStateStack exch get
+  //GraphicState exch copy pop
+  1 add //PDFReader exch /GraphicStateStackPointer exch put
+} bind def
+
+/GRestore % - GRestore -
+{
+  grestore
+  //PDFReader /GraphicStateStackPointer get
+  1 sub dup
+  //PDFReader exch /GraphicStateStackPointer exch put
+  //GraphicStateStack exch get
+  //GraphicState copy pop
+} bind def
+
+
+% ===================== Interpret Data Streams ===============
+
+/SetFont  % <resource_name> <size> SetFont -
+{ dup //GraphicState exch /FontSize exch put
+  //ResolveAndSetFont exec
+} bind def
+
+/ShowText  % <string> ShowText -
+{ //GraphicState /TextRenderingMode get 0 eq {
+    //GraphicState /WordSpacing get 0
+    32
+    //GraphicState /CharacterSpacing get 0
+    6 5 roll awidthshow
+  } {
+    //GraphicState /CharacterSpacing get 0 eq
+    //GraphicState /WordSpacing get 0 eq and {
+      true charpath
+    } {
+      % Emulate with "{ charpath } cshow".
+      % Not sure how it works with CID fonts.
+      {                                                 % c wx wy
+        currentpoint 5 4 roll                           % wx wy x y c
+        ( ) dup 0 3 index put true charpath             % wx wy x y c
+        5 1 roll                                        % c wx wy x y
+        moveto rmoveto                                  % c
+        //GraphicState /CharacterSpacing get 0 rmoveto  % c
+        32 eq {                                         %
+          //GraphicState /WordSpacing get 0 rmoveto
+        } if
+      }
+      exch cshow
+    } ifelse
+  } ifelse
+} bind def
+
+/ShowTextBeg  % - ShowTextBeg -
+{ //GraphicState /TextRenderingMode get 0 ne {
+        currentpoint newpath moveto
+  } if
+} bind def
+
+/ShowTextEnd  % - ShowTextEnd -
+{ //GraphicState /TextRenderingMode get
+  { dup 1 eq {
+      stroke exit
+    } if
+    dup 2 eq {
+      gsave fill grestore stroke exit
+    } if
+    dup 3 eq {
+      currentpoint newpath moveto
+    } if
+    dup 4 eq {
+      gsave fill grestore clip exit
+    } if
+    dup 5 eq {
+      gsave stroke grestore clip exit
+    } if
+    dup 6 eq {
+      gsave fill grestore gsave stroke grestore fill exit
+    } if
+    dup 7 eq {
+      clip exit
+    } if
+    exit
+  } loop
+  pop
+} bind def
+
+/ShowTextWithGlyphPositioning % <array> ShowTextWithGlyphPositioning -
+{ //ShowTextBeg exec
+  { dup type /stringtype eq {
+      //ShowText exec
+    } {
+      neg 1000 div //GraphicState /FontSize get mul 0 rmoveto
+    } ifelse
+  } forall
+  //ShowTextEnd exec
+} bind def
+
+/CheckFont % key val CheckFont key val
+{ dup /Type get /ExtGState ne {
+    mark (Resource ) 3 index ( must have /Type/ExtGState.) //error exec
+  } if
+} bind def
+
+/SetTransfer % <operand> SetTransfer -
+{
+  //PDFR_DEBUG { (SetTransfer beg ) print count = } if
+  dup type /arraytype eq 1 index xcheck not and {
+    0 4 getinterval aload pop 
+    setcolortransfer
+  } {
+    settransfer
+  } ifelse
+  //PDFR_DEBUG { (SetTransfer end ) print count = } if
+} bind def
+
+/CheckExtGState % <id> <obj> CheckExtGState <id> <obj>
+{ dup /Type get /ExtGState ne {
+    mark (Resource ) 3 index ( must have /Type/ExtGState.) //error exec
+  } if
+} bind def
+
+/CheckHalftone % <id> <obj> CheckHalftone <id> <obj>
+{ dup /HalftoneType known not {
+    mark (Resource ) 3 index ( must have /HalftoneType.) //error exec
+  } if
+} bind def
+
+/ResolveFunction % <dict> <name> ResolveFunction <dict> <proc>
+{
+  //PDFR_DEBUG { (ResolveFunction beg ) print dup = count = } if
+  2 copy get //IsObjRef exec {
+    2 copy //DoNothing //ResolveD exec
+    3 copy put pop
+  } if
+  2 copy get dup type /arraytype eq exch xcheck and not {
+    2 copy get
+    dup type /arraytype eq 1 index xcheck not and {
+      dup length 1 sub -1 0 {
+        2 copy //DoNothing ResolveA
+        dup /Identity eq {
+          pop 2 copy {} put
+        } {
+          //FunctionToProc exec
+          3 copy put pop
+        } ifelse
+        pop
+      } for
+    } {
+      dup /Default eq {
+        % Leave it. ExtGState methods will resolve.
+      } {
+        dup /Identity eq {
+          pop {}
+        } { dup type /nametype eq {
+            //spotfunctions exch get
+          } {
+            //FunctionToProc exec
+          } ifelse
+        } ifelse
+      } ifelse
+    } ifelse
+    3 copy put
+    exch pop
+  } {
+    1 index exch get
+  } ifelse
+  //PDFR_DEBUG { (ResolveFunction end ) print dup == count = } if
+} bind def
+
+/ResolveFunctionSafe % <dict> <name> ResolveFunctionSafe <dict>
+{ 2 copy known {
+  //ResolveFunction exec
+  } if
+  pop
+} bind def
+
+/CreateHalftoneThresholds  % <halftone_dict> CreateHalftoneThresholds <halftone_dict>
+{
+  dup /Thresholds known not {
+    dup /HalftoneType get 10 eq {
+      dup dup //MakeStreamReader exec
+      /Thresholds exch put
+    } if
+    dup /HalftoneType get dup 3 eq exch 6 eq or {
+      dup dup //MakeStreamReader exec
+      //BlockBuffer readstring pop
+      dup length 
+      dup 0 eq {
+        mark (Could not read Thresholds) //error exec
+      } if
+      string copy /Thresholds exch put
+      dup /HalftoneType 3 put % replace Type 6 with Type 3.
+    } if
+  } if
+} bind def
+
+
+/SetExtGState % <name> SetExtGState -
+{
+  //PDFReader /CurrentObject get /Context get /Resources get 
+  /ExtGState //DoNothing //ResolveD exec
+  exch //CheckExtGState //ResolveD exec         % s gs
+  dup /LW //knownget exec {
+    setlinewidth
+  } if
+  dup /LC //knownget exec {
+    setlinecap
+  } if
+  dup /LJ //knownget exec {
+    setlinejoin
+  } if
+  dup /ML //knownget exec {
+    setmeterlimit
+  } if
+  dup /D //knownget exec {
+    setdash
+  } if
+  dup /RI //knownget exec {
+    % Ghostscript never writes it.
+    mark (Unimplemented ExtGState.RI) //error exec
+  } if
+  dup /OP //knownget exec {
+    % pdfwrite must take care of stroking/filling
+    setoverprint
+  } if
+  dup /op //knownget exec {
+    setoverprint
+  } if
+  dup /OPM //knownget exec {
+    % pdfwrite must take care of.
+    mark (Unimplemented ExtGState.OPM) //error exec
+  } if
+  dup /Font //knownget exec {
+    % Ghostscript never writes it.
+    mark (Unimplemented ExtGState.Font) //error exec
+  } if
+  dup /BG known {
+    /BG //ResolveFunction exec
+    setblackgeneration
+  } if
+  dup /BG2 known {
+    /BG2 //ResolveFunction exec
+    dup /Default eq {
+      //InitialExtGState /BG2 get
+    } if
+    setblackgeneration
+  } if
+  dup /UCR known {
+    /UCR //ResolveFunction exec
+    setundercolorremoval
+  } if
+  dup /UCR2 known {
+    /UCR2 //ResolveFunction exec
+    dup /Default eq {
+      //InitialExtGState /UCR2 get
+    } if
+    setundercolorremoval
+  } if
+  dup /TR known {
+    /TR //ResolveFunction exec
+    //SetTransfer exec
+  } if
+  dup /TR2 known {
+    /TR2 //ResolveFunction exec
+    dup /Default eq {
+      pop //InitialExtGState /TR2 get
+      aload pop setcolortransfer
+    } {
+      //SetTransfer exec
+    } ifelse
+  } if
+  dup /HT //knownget exec {
+    dup /Default eq {
+      pop //InitialExtGState /HT get
+      sethalftone
+    } {
+      //PDFR_DEBUG { (Ht beg) = } if
+      pop dup /HT //CheckHalftone //ResolveD exec
+      /SpotFunction //ResolveFunctionSafe exec
+      /TransferFunction //ResolveFunctionSafe exec
+      null exch
+      dup /HalftoneType get dup 5 eq exch dup 4 eq exch 2 eq or or {
+        dup {                             % null h n v
+          dup //IsObjRef exec {
+            pop
+            1 index exch //CheckHalftone ResolveD
+          } if
+          dup type /dicttype eq {
+            dup /SpotFunction //ResolveFunctionSafe exec
+            /TransferFunction //ResolveFunctionSafe exec
+            //CreateHalftoneThresholds exec
+            dup /HalftoneType get 5 gt {    % null h n v
+              4 3 roll pop 
+              dup 4 1 roll
+            } if
+          } if
+          pop pop
+        } forall
+      } if
+      //CreateHalftoneThresholds exec
+      //PDFR_DEBUG {
+        (HT:)= 
+        dup { 
+          1 index /Default eq {
+            (Default <<)=
+              exch pop
+              { exch = == } forall
+            (>>)=
+          } {
+            exch = ==
+          } ifelse
+        } forall 
+        (HT end)= flush
+      } if
+      exch dup null ne {
+        (Warning: Ignoring a halftone with a Level 3 component halftone Type ) print dup /HalftoneType get =
+        pop pop
+      } {
+        pop
+        dup /HalftoneType get 5 gt {
+          (Warning: Ignoring a Level 3 halftone Type ) print dup /HalftoneType get =
+          pop
+        } {
+          sethalftone
+        } ifelse
+      } ifelse
+      //PDFR_DEBUG { (HT set)= flush } if
+    } ifelse
+  } if
+  dup /FL //knownget exec {
+    setflattness
+  } if
+  dup /SM //knownget exec {
+    setsmoothness
+  } if
+  dup /SA //knownget exec {
+    setstrokeadjust
+  } if
+  dup /BM //knownget exec {
+    % pdfwrite must take care of.
+    mark (Unimplemented ExtGState.BM) //error exec
+  } if
+  dup /SMask //knownget exec {
+    % pdfwrite must take care of.
+    mark (Unimplemented ExtGState.SMask) //error exec
+  } if
+  dup /CA //knownget exec {
+    % pdfwrite must take care of.
+    mark (Unimplemented ExtGState.CA) //error exec
+  } if
+  dup /ca //knownget exec {
+    % pdfwrite must take care of.
+    mark (Unimplemented ExtGState.ca) //error exec
+  } if
+  dup /AIS //knownget exec {
+    % pdfwrite must take care of.
+    mark (Unimplemented ExtGState.AIS) //error exec
+  } if
+  dup /TK //knownget exec {
+    % pdfwrite must take care of.
+    mark (Unimplemented ExtGState.TK) //error exec
+  } if
+  pop
+} bind def
+
+/CheckXObject  % <id> <obj> CheckHalftone <id> <obj>
+{ dup /Subtype get dup /Image ne exch dup /Form ne exch /PS ne and and {
+    mark (Resource ) 3 index ( must have /Subtype /Image or /Form or /PS.) //error exec
+  } if
+} bind def
+
+/DoXObject % <name> DoXObject -
+{
+  //PDFReader /CurrentObject get /Context get /Resources get 
+  /XObject //DoNothing //ResolveD exec
+  exch //CheckXObject //ResolveD exec
+  dup /Subtype get
+  dup /Image eq {
+    pop
+    //CompleteOutlineImage exec
+    //DoImage exec
+  } {
+    dup /PS eq {
+      PDFR_DEBUG {
+        (Executing a PS Xobject) =
+      } if
+      pop
+      //RunDelayedStream exec
+    } {
+      dup /Form eq {
+        pop
+        PDFR_DEBUG {
+          (Executing a Form XObject) =
+        } if
+        //PDFReader /CurrentObject get exch
+        dup //PDFReader exch << exch /Context exch >> /CurrentObject exch put
+        dup /Matrix get concat
+        dup /BBox get aload pop exch 3 index sub exch 2 index sub rectclip
+        //RunDelayedStream exec
+        //PDFReader exch /CurrentObject exch put
+      } {
+        mark exch (unimplemented XObject type ) exch //error exec
+      } ifelse
+    } ifelse
+  } ifelse
+} bind def
+
+/Operators 50 dict begin
+  /q { //GSave exec } bind def
+  /Q { //GRestore exec } bind def
+  /cm { //TempMatrix astore concat } bind def
+  /i { 1 .min setflat } bind def
+  /J /setlinecap load def
+  /d /setdash load def
+  /j /setlinejoin load def
+  /w /setlinewidth load def
+  /M /setmiterlimit load def
+  /gs { SetExtGState } bind def
+
+  /g /setgray load def
+  /rg /setrgbcolor load def
+  /k /setcmykcolor load def
+  /cs { //ResolveColorSpace exec //SetColorSpaceSafe exec
+      } bind def
+  /sc /setcolor load def
+  /scn { //SetColor exec } bind def
+  /G /setgray load def
+  /RG /setrgbcolor load def
+  /K /setcmykcolor load def
+  /CS //cs def
+  /ri { SetColorRenderingIntent } bind def
+  /SC /setcolor load def
+  /SCN { //SetColor exec } bind def
+
+  /m /moveto load def
+  /l /lineto load def
+  /c /curveto load def
+  /v { currentpoint 6 2 roll curveto } bind def
+  /y { 2 copy curveto } bind def
+  /re {
+    4 2 roll moveto  exch dup 0 rlineto  0 3 -1 roll rlineto  neg 0 rlineto
+    closepath
+  } def
+  /h /closepath load def
+  /n /newpath load def
+  /S /stroke load def
+  /s { closepath stroke } bind def
+  /f /fill load def
+  /f* /eofill load def
+  /B { gsave fill grestore stroke } bind def
+  /b { closepath gsave fill grestore stroke } bind def
+  /B* { gsave eofill grestore stroke } bind def
+  /b* { closepath gsave eofill grestore stroke } bind def
+  /W /clip load def
+  /W* /eoclip load def
+  /sh { % Reserved for ps3write.
+        ResolveShading 
+        dup /Background known {
+          gsave
+          dup /ColorSpace get setcolorspace
+          dup /Background get aload pop setcolor
+          pathbbox               % x0 y0 x1 y1
+          2 index sub exch 3 index sub exch
+          rectfill
+          grestore
+        } if
+        shfill 
+      } bind def
+
+  /Do { //DoXObject exec } bind def
+
+  /BI { currentglobal false setglobal << } bind def
+  /ID { >>
+        dup /DataSource currentfile 
+        % HACK BEG
+        % This hack provides a compatibility to HP LaserJet 1320,
+        % which sometimes closes the underlying stream when EOD 
+        % is reached in the ASCII85Decode filter.
+        % This portion is not required by the Postscript language definition.
+        2 index /F //knownget exec {
+          /A85 eq {
+            0 (~>) /SubFileDecode filter 
+          } if
+        } if
+        % HACK END
+        put
+        //CompleteInlineImage exec
+        exch setglobal
+        //DoImage exec
+      } bind def
+  /EI {} bind def
+
+  /BT { gsave //GraphicState /InitialTextMatrix get currentmatrix pop } bind def
+  /ET { grestore } bind def
+  /Tc { //GraphicState exch /CharacterSpacing exch put } bind def
+  /TL { //GraphicState exch /TextLeading exch put } bind def
+  /Tr { //GraphicState exch /TextRenderingMode exch put } bind def
+  /Ts {  % Ghostscript never generates it.
+        mark (Unimplemented SetTextRise) //error exec
+      } bind def
+  /Tw { //GraphicState exch /WordSpacing exch put } bind def
+  /Tz { % Ghostscript never generates it.
+            mark (Unimplemented SetHorizontalTextScaling) //error exec
+      } bind def
+  /Td { translate 0 0 moveto } bind def
+  /TD { dup neg //TL exec //Td exec } bind def
+  /Tm { //GraphicState /InitialTextMatrix get setmatrix
+        //TempMatrix astore concat
+        0 0 moveto } bind def
+  /T* { 0 //GraphicState /TextLeading get neg //Td exec } bind def
+  /Tj { //ShowTextBeg exec  //ShowText exec  //ShowTextEnd exec } bind def
+  /'  { //T* exec  //ShowText exec  //ShowTextEnd exec } bind def
+  /"  { 3 2 roll //Tw exec exch //Tc exec //' exec} bind def
+  /TJ //ShowTextWithGlyphPositioning def
+  /Tf //SetFont def
+
+  /d0 /setcharwidth load def
+  /d1 /setcachedevice load def
+
+  /BDC { BeginMarkedContentSequenceWithPropertyList } bind def
+  /BMC { BeginMarkedContentSequence } bind def
+  /EMC { EndMarkedContentSequence } bind def
+  /BX { BeginCompatibilitySection } bind def
+  /EX { EndCompatibilitySection } bind def
+  /DP { DefineMarkedContentPointWithPropertyList } bind def
+  /MP { DefineMarkedContentPoint } bind def
+  /PS { cvx exec } bind def
+currentdict end def
+
+//PDFR_STREAM {
+  % Rebind operators with a debug tracing.
+  //Operators length dict begin
+  //Operators {                                 % n p
+    exch dup                                    % p n n
+    [ exch //=only /exec load                   % p n [ n =only exec
+      ( ) /print load                           % p n [ n =only exec () print
+      8 7 roll                                  % n [ n =only exec () print p
+      dup type /arraytype eq {
+        /exec load                              % n [ n =only exec () print p exec
+      } if
+      ( ) /print load
+    ] cvx                                       % n {}
+    def
+  } forall
+  currentdict end /Operators exch def
+} if
+
+% Functions for handling Ghostscript library files that define encodings.
+
+/.registerencoding
+{ pop pop
+} bind def
+
+/.defineencoding
+{ def
+} bind def
+
+/.findencoding
+{ load
+} bind def
+
+
+% Leaving the procset on the dictionary stack to provide 
+% definitions of obj, endobj, stream, endstream, R, xref.
+%%EndPrologue
+

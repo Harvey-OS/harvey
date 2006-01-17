@@ -1,22 +1,20 @@
 /* Copyright (C) 1990, 1992, 1993 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdev8510.c,v 1.3 2001/08/01 00:48:23 stefan911 Exp $*/
+/* $Id: gdev8510.c,v 1.7 2004/08/04 23:33:29 stefan Exp $*/
 /*
  * C.Itoh M8510 printer driver for ghostscript.
  *
@@ -38,8 +36,8 @@ const gx_device_printer far_data gs_m8510_device =
 
 /* ------ forward declarations ------ */
 
-private void m8510_output_run(P4(gx_device_printer *pdev,
-	byte *out, int pass, FILE *prn_stream));
+private void m8510_output_run(gx_device_printer *pdev,
+	byte *out, int pass, FILE *prn_stream);
 
 /* ------ internal routines ------ */
 
@@ -48,9 +46,9 @@ private int
 m8510_print_page(gx_device_printer *pdev, FILE *prn_stream)
 {
 	int line_size = gdev_mem_bytes_per_scan_line((gx_device *)pdev);
-	byte *in1 = (byte *) gs_malloc(8, line_size, "m8510_print_page(in1)");
-	byte *in2 = (byte *) gs_malloc(8, line_size, "m8510_print_page(in2)");
-	byte *out = (byte *) gs_malloc(8, line_size, "m8510_print_page(out)");
+	byte *in1 = (byte *) gs_malloc(pdev->memory, 8, line_size, "m8510_print_page(in1)");
+	byte *in2 = (byte *) gs_malloc(pdev->memory, 8, line_size, "m8510_print_page(in2)");
+	byte *out = (byte *) gs_malloc(pdev->memory, 8, line_size, "m8510_print_page(out)");
 	int lnum = 0;
 	int code = 0;
 	byte *inp, *in_end, *outp;
@@ -101,9 +99,9 @@ m8510_print_page(gx_device_printer *pdev, FILE *prn_stream)
 	fflush(prn_stream);
 
 out:;
-	if (out) gs_free((char *) out, 8, line_size, "m8510_print_page(out)");
-	if (in2) gs_free((char *) in2, 8, line_size, "m8510_print_page(in2)");
-	if (in1) gs_free((char *) in1, 8, line_size, "m8510_print_page(in1)");
+	if (out) gs_free(pdev->memory, (char *) out, 8, line_size, "m8510_print_page(out)");
+	if (in2) gs_free(pdev->memory, (char *) in2, 8, line_size, "m8510_print_page(in2)");
+	if (in1) gs_free(pdev->memory, (char *) in1, 8, line_size, "m8510_print_page(in1)");
 
 	return code;
 }

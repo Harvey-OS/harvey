@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zdps.c,v 1.4 2000/09/19 19:00:53 lpd Exp $ */
+/* $Id: zdps.c,v 1.8 2004/08/04 19:36:13 stefan Exp $ */
 /* Display PostScript extensions */
 #include "ghost.h"
 #include "oper.h"
@@ -36,7 +34,7 @@
 #include "store.h"
 
 /* Import the procedure for constructing user paths. */
-extern int make_upath(P5(i_ctx_t *, ref *, const gs_state *, gx_path *, bool));
+extern int make_upath(i_ctx_t *, ref *, const gs_state *, gx_path *, bool);
 
 /* ------ Graphics state ------ */
 
@@ -104,7 +102,7 @@ zimage2(i_ctx_t *i_ctx_p)
 	ref *pDataSource;
 
 	gs_image2_t_init(&image);
-	if ((code = dict_matrix_param(op, "ImageMatrix",
+	if ((code = dict_matrix_param(imemory, op, "ImageMatrix",
 				      &image.ImageMatrix)) < 0 ||
 	    (code = dict_find_string(op, "DataSource", &pDataSource)) < 0 ||
 	    (code = dict_float_param(op, "XOrigin", 0.0,
@@ -207,7 +205,8 @@ zdefineusername(i_ctx_t *i_ctx_p)
 	if (code < 0)
 	    return code;
     }
-    if (array_get(user_names_p, op[-1].value.intval, &uname) >= 0) {
+    if (array_get(imemory, user_names_p, 
+		  op[-1].value.intval, &uname) >= 0) {
 	switch (r_type(&uname)) {
 	    case t_null:
 		break;

@@ -1,22 +1,20 @@
 /* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxclutil.c,v 1.5 2001/10/12 21:37:08 ghostgum Exp $ */
+/* $Id: gxclutil.c,v 1.12 2005/03/14 18:08:36 dan Exp $ */
 /* Command list writing utilities. */
 
 #include "memory_.h"
@@ -169,7 +167,7 @@ cmd_write_band(gx_device_clist_writer * cldev, int band_min, int band_max,
 	    pcl->head = pcl->tail = 0;
 	}
 	clist_fwrite_chars(&end, 1, cfile);
-	process_interrupts();
+	process_interrupts(cldev->memory);
 	code_b = clist_ferror_code(bfile);
 	code_c = clist_ferror_code(cfile);
 	if (code_b < 0)
@@ -207,7 +205,7 @@ cmd_write_buffer(gx_device_clist_writer * cldev, byte cmd_end)
     if (gs_debug_c('l'))
 	cmd_print_stats();
 #endif
-    return_check_interrupt(code != 0 ? code : warning);
+    return_check_interrupt(cldev->memory, code != 0 ? code : warning);
 }
 
 /*
@@ -279,7 +277,7 @@ cmd_put_op(gx_device_clist_writer * cldev, gx_clist_state * pcls, uint size)
 {
     if_debug3('L', "[L]band %d: size=%u, left=%u",
 	      (int)(pcls - cldev->states),
-	      size, (uint) (cldev->cend - cldev->cnext));
+	      size, 0);
     return cmd_put_list_op(cldev, &pcls->list, size);
 }
 #endif
@@ -290,8 +288,7 @@ cmd_put_range_op(gx_device_clist_writer * cldev, int band_min, int band_max,
 		 uint size)
 {
     if_debug4('L', "[L]band range(%d,%d): size=%u, left=%u",
-	      band_min, band_max, size,
-	      (uint)(cldev->cend - cldev->cnext));
+	      band_min, band_max, size, 0);
     if (cldev->ccl != 0 && 
 	(cldev->ccl != &cldev->band_range_list ||
 	 band_min != cldev->band_range_min ||
@@ -332,126 +329,189 @@ cmd_put_w(register uint w, register byte * dp)
     return dp + 1;
 }
 
-/* Define the encodings of the different settable colors. */
+
+/*
+ * This next two arrays are used for the 'delta' mode of placing a color
+ * in the clist.  These arrays are indexed by the number of bytes in the
+ * color value (the depth).
+ *
+ * Delta values are calculated by subtracting the old value for the color
+ * from the desired new value.  Then each byte of the differenece is
+ * examined.  For most bytes, if the difference fits into 4 bits (signed)
+ * then those bits are packed into the clist along with an opcode.  If
+ * the size of the color (the depth) is an odd number of bytes then instead
+ * of four bits per byte, extra bits are used for the upper three bytes
+ * of the color.  In this case, five bits are used for the first byte,
+ * six bits for the second byte, and five bits for third byte.  This
+ * maximizes the chance that the 'delta' mode can be used for placing
+ * colors in the clist.
+ */
+/*
+ * Depending upon the compiler and user choices, the size of a gx_color_index
+ * may be 4 to 8 bytes.  We will define table entries for up to 8 bytes.
+ * This macro is being used to prevent compiler warnings if gx_color_index is
+ * only 4 bytes.
+ */
+#define tab_entry(x) ((x) & (~((gx_color_index) 0)))
+
+const gx_color_index cmd_delta_offsets[] = {
+	tab_entry(0),
+	tab_entry(0),
+	tab_entry(0x0808),
+	tab_entry(0x102010),
+	tab_entry(0x08080808),
+	tab_entry(0x1020100808),
+	tab_entry(0x080808080808),
+	tab_entry(0x10201008080808),
+	tab_entry(0x0808080808080808),
+	};
+
+private const gx_color_index cmd_delta_masks[] = {
+	tab_entry(0),
+	tab_entry(0),
+	tab_entry(0x0f0f),
+	tab_entry(0x1f3f1f),
+	tab_entry(0x0f0f0f0f),
+	tab_entry(0x1f3f1f0f0f),
+	tab_entry(0x0f0f0f0f0f0f),
+	tab_entry(0x1f3f1f0f0f0f0f),
+	tab_entry(0x0f0f0f0f0f0f0f0f),
+	};
+
+#undef tab_entry
+
+/*
+ * There are currently only four different color "types" that can be placed
+ * into the clist.  These are called "color0", "color1", and "tile_color0",
+ * and "tile_color1".  There are separate command codes for color0 versus
+ * color1, both for the full value and delta commands - see cmd_put_color.
+ * Tile colors are preceded by a cmd_opv_set_tile_color command.
+ */
 const clist_select_color_t
-    clist_select_color0 = {cmd_op_set_color0, cmd_opv_delta2_color0, 0},
-    clist_select_color1 = {cmd_op_set_color1, cmd_opv_delta2_color1, 0},
-    clist_select_tile_color0 = {cmd_op_set_color0, cmd_opv_delta2_color0, 1},
-    clist_select_tile_color1 = {cmd_op_set_color1, cmd_opv_delta2_color1, 1};
+    clist_select_color0 = {cmd_op_set_color0, cmd_opv_delta_color0, 0},
+    clist_select_color1 = {cmd_op_set_color1, cmd_opv_delta_color1, 0},
+    clist_select_tile_color0 = {cmd_op_set_color0, cmd_opv_delta_color0, 1},
+    clist_select_tile_color1 = {cmd_op_set_color1, cmd_opv_delta_color1, 1};
+
+/*
+ * This routine is used to place a color into the clist.  Colors, in the
+ * clist, can be specified either as by a full value or by a "delta" value.
+ *
+ * See the comments before cmd_delta_offsets[] for a description of the
+ * 'delta' mode.  The delta mode may allow for a smaller command in the clist.
+ *
+ * For the full value mode, values are sent as a cmd code plus n bytes of
+ * data.  To minimize the number of bytes, a count is made of any low order
+ * bytes which are zero.  This count is packed into the low order 4 bits
+ * of the cmd code.  The data for these bytes are not sent.
+ *
+ * The gx_no_color_index value is treated as a special case.  This is done
+ * because it is both a commonly sent value and because it may require
+ * more bytes then the other color values.
+ *
+ * Parameters:
+ *   cldev - Pointer to clist device
+ *   pcls - Pointer to clist state
+ *   select - Descriptor record for type of color being sent.  See comments
+ *       by clist_select_color_t.
+ *   color - The new color value.
+ *   pcolor - Pointer to previous color value.  (If the color value is the
+ *       same as the previous value then nothing is placed into the clist.)
+ *
+ * Returns:
+ *   Error code
+ *   clist and pcls and cldev may be updated.
+ */
 int
 cmd_put_color(gx_device_clist_writer * cldev, gx_clist_state * pcls,
 	      const clist_select_color_t * select,
 	      gx_color_index color, gx_color_index * pcolor)
 {
-    byte *dp;
-    long diff = (long)color - (long)(*pcolor);
-    byte op, op_delta2;
+    byte * dp;		/* This is manipulated by the set_cmd_put_op macro */
+    gx_color_index diff = color - *pcolor;
+    byte op, op_delta;
     int code;
 
     if (diff == 0)
 	return 0;
+
+    /* If this is a tile color then send tile color type */
     if (select->tile_color) {
 	code = set_cmd_put_op(dp, cldev, pcls, cmd_opv_set_tile_color, 1);
 	if (code < 0)
 	    return code;
     }
     op = select->set_op;
-    op_delta2 = select->delta2_op;
+    op_delta = select->delta_op;
     if (color == gx_no_color_index) {
 	/*
 	 * We must handle this specially, because it may take more
 	 * bytes than the color depth.
 	 */
-	code = set_cmd_put_op(dp, cldev, pcls, op + 15, 1);
+	code = set_cmd_put_op(dp, cldev, pcls, op + cmd_no_color_index, 1);
 	if (code < 0)
 	    return code;
     } else {
-	long delta;
-	byte operand;
-
-	switch ((cldev->color_info.depth + 15) >> 3) {
-	    case 5:
-		if (!((delta = diff + cmd_delta1_32_bias) &
-		      ~cmd_delta1_32_mask) &&
-		    (operand =
-		     (byte) ((delta >> 23) + ((delta >> 18) & 1))) != 0 &&
-		    operand != 15
-		    ) {
-		    code = set_cmd_put_op(dp, cldev, pcls,
-					  (byte) (op + operand), 2);
-		    if (code < 0)
-			return code;
-		    dp[1] = (byte) (((delta >> 10) & 0300) +
-				    (delta >> 5) + delta);
-		    break;
-		}
-		if (!((delta = diff + cmd_delta2_32_bias) &
-		      ~cmd_delta2_32_mask)
-		    ) {
-		    code = set_cmd_put_op(dp, cldev, pcls, op_delta2, 3);
-		    if (code < 0)
-			return code;
-		    dp[1] = (byte) ((delta >> 20) + (delta >> 16));
-		    dp[2] = (byte) ((delta >> 4) + delta);
-		    break;
-		}
-		code = set_cmd_put_op(dp, cldev, pcls, op, 5);
-		if (code < 0)
-		    return code;
-		*++dp = (byte) (color >> 24);
-		goto b3;
-	    case 4:
-		if (!((delta = diff + cmd_delta1_24_bias) &
-		      ~cmd_delta1_24_mask) &&
-		    (operand = (byte) (delta >> 16)) != 0 &&
-		    operand != 15
-		    ) {
-		    code = set_cmd_put_op(dp, cldev, pcls,
-					  (byte) (op + operand), 2);
-		    if (code < 0)
-			return code;
-		    dp[1] = (byte) ((delta >> 4) + delta);
-		    break;
-		}
-		if (!((delta = diff + cmd_delta2_24_bias) &
-		      ~cmd_delta2_24_mask)
-		    ) {
-		    code = set_cmd_put_op(dp, cldev, pcls, op_delta2, 3);
-		    if (code < 0)
-			return code;
-		    dp[1] = ((byte) (delta >> 13) & 0xf8) +
-			((byte) (delta >> 11) & 7);
-		    dp[2] = (byte) (((delta >> 3) & 0xe0) + delta);
-		    break;
-		}
-		code = set_cmd_put_op(dp, cldev, pcls, op, 4);
-		if (code < 0)
-		    return code;
-b3:		*++dp = (byte) (color >> 16);
-		goto b2;
-	    case 3:
-		code = set_cmd_put_op(dp, cldev, pcls, op, 3);
-		if (code < 0)
-		    return code;
-b2:		*++dp = (byte) (color >> 8);
-		goto b1;
-	    case 2:
-		if (diff >= -7 && diff < 7) {
-		    code = set_cmd_put_op(dp, cldev, pcls,
-					  op + (int)diff + 8, 1);
-		    if (code < 0)
-			return code;
-		    break;
-		}
-		code = set_cmd_put_op(dp, cldev, pcls, op, 2);
-		if (code < 0)
-		    return code;
-b1:		dp[1] = (byte) color;
+	/* Check if the "delta" mode command can be used. */
+	int num_bytes = (cldev->color_info.depth + 7) >> 3;
+	int delta_bytes = (num_bytes + 1) / 2;
+	gx_color_index delta_offset = cmd_delta_offsets[num_bytes];
+	gx_color_index delta_mask = cmd_delta_masks[num_bytes];
+	gx_color_index delta = (diff + delta_offset) & delta_mask;
+	bool use_delta = (color == (*pcolor + delta - delta_offset));
+	int bytes_dropped = 0;
+	gx_color_index data = color;
+	
+	/*
+	 * If we use the full value mode, we do not send low order bytes
+	 * which are zero. Determine how many low order bytes are zero.
+	 */
+	if (color == 0) {
+	    bytes_dropped = num_bytes;
+	}
+	else  {
+	    while ((data & 0xff) == 0) {
+	        bytes_dropped++;
+		data >>= 8; 
+	    }
+	}
+	
+	/* Now send one of the two command forms */
+	if (use_delta && delta_bytes < num_bytes - bytes_dropped) {
+	    code = set_cmd_put_op(dp, cldev, pcls,
+	    				op_delta, delta_bytes + 1);
+	    if (code < 0)
+	        return code;
+	    /*
+	     * If we have an odd number of bytes then use extra bits for
+	     * the high order three bytes of the color.
+	     */
+	    if ((num_bytes >= 3) && (num_bytes & 1)) {
+		data = delta >> ((num_bytes - 3) * 8);
+	        dp[delta_bytes--] = (byte)(((data >> 13) & 0xf8) + ((data >> 11) & 0x07));
+	        dp[delta_bytes--] = (byte)(((data >> 3) & 0xe0) + (data & 0x1f));
+	    }
+	    for(; delta_bytes>0; delta_bytes--) {
+	        dp[delta_bytes] = (byte)((delta >> 4) + delta);
+		delta >>= 16;
+	    }
+	}
+	else {
+	    num_bytes -= bytes_dropped;
+	    code = set_cmd_put_op(dp, cldev, pcls,
+	    			(byte)(op + bytes_dropped), num_bytes + 1);
+	    if (code < 0)
+	        return code;
+	    for(; num_bytes>0; num_bytes--) {
+	        dp[num_bytes] = (byte)data;
+		data >>= 8;
+	    }
 	}
     }
     *pcolor = color;
     return 0;
 }
+
 
 /* Put out a command to set the tile colors. */
 int
@@ -579,14 +639,15 @@ cmd_put_params(gx_device_clist_writer *cldev,
 	gs_param_list_serialize(param_list, local_buf, sizeof(local_buf));
     if (param_length > 0) {
 	/* Get cmd buffer space for serialized */
-	code = set_cmd_put_all_op(dp, cldev, cmd_opv_put_params,
-				  1 + sizeof(unsigned) + param_length);
+	code = set_cmd_put_all_op(dp, cldev, cmd_opv_extend,
+				  2 + sizeof(unsigned) + param_length);
 	if (code < 0)
 	    return code;
 
 	/* write param list to cmd list: needs to all fit in cmd buffer */
 	if_debug1('l', "[l]put_params, length=%d\n", param_length);
-	++dp;
+	dp[1] = cmd_opv_ext_put_params;
+	dp += 2;
 	memcpy(dp, &param_length, sizeof(unsigned));
 	dp += sizeof(unsigned);
 	if (param_length > sizeof(local_buf)) {

@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1993, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevsppr.c,v 1.5 2001/10/12 21:37:08 ghostgum Exp $*/
+/* $Id: gdevsppr.c,v 1.9 2004/11/03 07:34:03 giles Exp $*/
 /* SPARCprinter driver for Ghostscript */
 #include "gdevprn.h"
 #include <stdio.h>
@@ -129,17 +127,17 @@ sparc_print_page(gx_device_printer *pdev, FILE *prn)
   lpvipage.resolution = (pdev->x_pixels_per_inch == 300 ? DPI300 : DPI400);
   if (ioctl(fileno(prn),LPVIIOC_SETPAGE,&lpvipage)!=0)
     {
-    errprintf(sparc_print_page: LPVIIOC_SETPAGE failed\n");
+    errprintf("sparc_print_page: LPVIIOC_SETPAGE failed\n");
     return -1;
     }
   out_size=lpvipage.bitmap_width*lpvipage.page_length;
-  out_buf=gs_malloc(out_size,1,"sparc_print_page: out_buf");
+  out_buf=gs_malloc(pdev->memory, out_size,1,"sparc_print_page: out_buf");
   gdev_prn_copy_scan_lines(pdev,0,out_buf,out_size);
   while (write(fileno(prn),out_buf,out_size)!=out_size)
     {
     if (ioctl(fileno(prn),LPVIIOC_GETERR,&lpvierr)!=0)
       {
-      errprintf(sparc_print_page: LPVIIOC_GETERR failed\n");
+      errprintf("sparc_print_page: LPVIIOC_GETERR failed\n");
       return -1;
       }
     switch (lpvierr.err_type)
@@ -184,6 +182,6 @@ sparc_print_page(gx_device_printer *pdev, FILE *prn)
     errprintf("OK.\n");
     warning=0;
     }
-  gs_free(out_buf,out_size,1,"sparc_print_page: out_buf");
+  gs_free(pdev->memory, out_buf,out_size,1,"sparc_print_page: out_buf");
   return 0;
   }

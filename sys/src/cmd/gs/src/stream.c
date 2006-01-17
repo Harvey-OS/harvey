@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: stream.c,v 1.15 2001/10/19 21:52:50 raph Exp $ */
+/* $Id: stream.c,v 1.26 2004/10/07 05:18:34 ray Exp $ */
 /* Stream package for Ghostscript interpreter */
 #include "stdio_.h"		/* includes std.h */
 #include "memory_.h"
@@ -26,9 +24,9 @@
 #include "strimpl.h"
 
 /* Forward declarations */
-private int sreadbuf(P2(stream *, stream_cursor_write *));
-private int swritebuf(P3(stream *, stream_cursor_read *, bool));
-private void stream_compact(P2(stream *, bool));
+private int sreadbuf(stream *, stream_cursor_write *);
+private int swritebuf(stream *, stream_cursor_read *, bool);
+private void stream_compact(stream *, bool);
 
 /* Structure types for allocating streams. */
 public_st_stream();
@@ -327,16 +325,29 @@ s_filter_write_flush(register stream * s)
 }
 
 /* Close a filter.  If this is an encoding filter, flush it first. */
+/* If CloseTarget was specified (close_strm), then propagate the sclose */
 int
 s_filter_close(register stream * s)
 {
+    int status;
+    bool close = s->close_strm;
+    stream *stemp = s->strm;
+
     if (s_is_writing(s)) {
 	int status = s_process_write_buf(s, true);
 
 	if (status != 0 && status != EOFC)
 	    return status;
+        status = sflush(stemp);
+	if (status != 0 && status != EOFC)
+	    return status;
     }
-    return s_std_close(s);
+    status = s_std_close(s);
+    if (status != 0 && status != EOFC)
+	return status;
+    if (close && stemp != 0)
+	return sclose(stemp);
+    return status;
 }
 
 /* Disregard a stream error message. */
@@ -405,10 +416,10 @@ int
 sclose(register stream * s)
 {
     stream_state *st;
-    int code = (*s->procs.close) (s);
+    int status = (*s->procs.close) (s);
 
-    if (code < 0)
-	return code;
+    if (status < 0)
+	return status;
     st = s->state;
     if (st != 0) {
 	stream_proc_release((*release)) = st->template->release;
@@ -419,7 +430,7 @@ sclose(register stream * s)
 	s->state = (stream_state *) s;
     }
     s_disable(s);
-    return code;
+    return status;
 }
 
 /*
@@ -517,6 +528,8 @@ sgets(stream * s, byte * buf, uint nmax, uint * pn)
 		cw.limit -= min_left;
 		status = sreadbuf(s, &cw);
 		cw.limit += min_left;
+		/* Compact the stream so stell will return the right result. */
+		stream_compact(s, true);
 		/*
 		 * We know the stream buffer is empty, so it's safe to
 		 * update position.  However, we need to reset the read
@@ -572,7 +585,7 @@ sputs(register stream * s, const byte * str, uint wlen, uint * pn)
 }
 
 /* Skip ahead a specified distance in a read stream. */
-/* Return 0 or an exception code. */
+/* Return 0 or an exception status. */
 /* Store the number of bytes skipped in *pskipped. */
 int
 spskip(register stream * s, long nskip, long *pskipped)
@@ -586,14 +599,14 @@ spskip(register stream * s, long nskip, long *pskipped)
     }
     if (s_can_seek(s)) {
 	long pos = stell(s);
-	int code = sseek(s, pos + n);
+	int status = sseek(s, pos + n);
 
 	*pskipped = stell(s) - pos;
-	return code;
+	return status;
     }
     min_left = sbuf_min_left(s);
     while (sbufavailable(s) < n + min_left) {
-	int code;
+	int status;
 
 	n -= sbufavailable(s);
 	s->srptr = s->srlimit;
@@ -601,10 +614,10 @@ spskip(register stream * s, long nskip, long *pskipped)
 	    *pskipped = nskip - n;
 	    return s->end_status;
 	}
-	code = sgetc(s);
-	if (code < 0) {
+	status = sgetc(s);
+	if (status < 0) {
 	    *pskipped = nskip - n;
-	    return code;
+	    return status;
 	}
 	--n;
     }
@@ -619,7 +632,7 @@ int
 sreadline(stream *s_in, stream *s_out, void *readline_data,
 	  gs_const_string *prompt, gs_string * buf,
 	  gs_memory_t * bufmem, uint * pcount, bool *pin_eol,
-	  bool (*is_stdin)(P1(const stream *)))
+	  bool (*is_stdin)(const stream *))
 {
     uint count = *pcount;
 
@@ -794,9 +807,9 @@ sreadbuf(stream * s, stream_cursor_write * pbuf)
 	    oldpos = pw->ptr;
 	    status = (*curr->procs.process) (curr->state, pr, pw, eof);
 	    pr->limit += left;
-	    if_debug4('s', "[s]after read 0x%lx, nr=%u, nw=%u, status=%d\n",
+	    if_debug5('s', "[s]after read 0x%lx, nr=%u, nw=%u, status=%d, position=%d\n",
 		      (ulong) curr, (uint) (pr->limit - pr->ptr),
-		      (uint) (pw->limit - pw->ptr), status);
+		      (uint) (pw->limit - pw->ptr), status, s->position);
 	    if (strm == 0 || status != 0)
 		break;
 	    if (strm->end_status < 0) {
@@ -807,8 +820,9 @@ sreadbuf(stream * s, stream_cursor_write * pbuf)
 	    MOVE_AHEAD(curr, prev);
 	    stream_compact(curr, false);
 	}
-	/* If curr reached EOD and is a filter stream, close it. */
-	if (strm != 0 && status == EOFC &&
+	/* If curr reached EOD and is a filter or file stream, close it. */
+	/* (see PLRM 3rd, sec 3.8.2, p80) */
+	if ((strm != 0 || curr->file) && status == EOFC &&
 	    curr->cursor.r.ptr >= curr->cursor.r.limit &&
 	    curr->close_at_eod
 	    ) {
@@ -970,13 +984,13 @@ stream_compact(stream * s, bool always)
 
 /* String stream procedures */
 private int
-    s_string_available(P2(stream *, long *)),
-    s_string_read_seek(P2(stream *, long)),
-    s_string_write_seek(P2(stream *, long)),
-    s_string_read_process(P4(stream_state *, stream_cursor_read *,
-			     stream_cursor_write *, bool)),
-    s_string_write_process(P4(stream_state *, stream_cursor_read *,
-			      stream_cursor_write *, bool));
+    s_string_available(stream *, long *),
+    s_string_read_seek(stream *, long),
+    s_string_write_seek(stream *, long),
+    s_string_read_process(stream_state *, stream_cursor_read *,
+			  stream_cursor_write *, bool),
+    s_string_write_process(stream_state *, stream_cursor_read *,
+			   stream_cursor_write *, bool);
 
 /* Initialize a stream for reading a string. */
 void
@@ -1038,6 +1052,15 @@ s_string_read_seek(register stream * s, long pos)
     s->srptr = s->cbuf + pos - 1;
     /* We might be seeking after a reusable string reached EOF. */
     s->srlimit = s->cbuf + s->bsize - 1;
+    /* 
+     * When the file reaches EOF,
+     * stream_compact sets s->position to its end. 
+     * Reset it now to allow stell to work properly
+     * after calls to this function.
+     * Note that if the riched EOF and this fuction
+     * was not called, stell still returns a wrong value.
+     */
+    s->position = 0;
     return 0;
 }
 
@@ -1086,8 +1109,8 @@ s_string_write_process(stream_state * st, stream_cursor_read * pr,
 /* ------ Position-tracking stream ------ */
 
 private int
-    s_write_position_process(P4(stream_state *, stream_cursor_read *,
-				stream_cursor_write *, bool));
+    s_write_position_process(stream_state *, stream_cursor_read *,
+			     stream_cursor_write *, bool);
 
 /* Set up a write stream that just keeps track of the position. */
 void
@@ -1125,8 +1148,11 @@ s_init_filter(stream *fs, stream_state *fss, byte *buf, uint bsize,
     s_std_init(fs, buf, bsize, &s_filter_write_procs, s_mode_write);
     fs->procs.process = template->process;
     fs->state = fss;
-    if (template->init)
-	(template->init)(fss);
+    if (template->init) {
+	fs->end_status = (template->init)(fss);
+	if (fs->end_status < 0)
+	    return fs->end_status;
+    }
     fs->strm = target;
     return 0;
 }
@@ -1162,7 +1188,8 @@ s_add_filter(stream **ps, const stream_template *template,
     ess->template = template;
     ess->memory = mem;
     es->memory = mem;
-    s_init_filter(es, ess, buf, bsize, *ps);
+    if (s_init_filter(es, ess, buf, bsize, *ps) < 0)
+	return 0;
     *ps = es;
     return es;
 }

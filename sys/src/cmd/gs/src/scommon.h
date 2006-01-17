@@ -1,26 +1,24 @@
 /* Copyright (C) 1994, 1996, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: scommon.h,v 1.3 2000/11/01 22:36:13 lpd Exp $ */
+/* $Id: scommon.h,v 1.8 2002/06/16 05:00:54 lpd Exp $ */
 /* Definitions common to stream clients and implementors */
 
-#ifndef scommon_DEFINED
-#  define scommon_DEFINED
+#ifndef scommon_INCLUDED
+#  define scommon_INCLUDED
 
 #include "gsmemory.h"
 #include "gstypes.h"		/* for gs_string */
@@ -37,8 +35,8 @@
 #ifndef stream_DEFINED
 #  define stream_DEFINED
 typedef struct stream_s stream;
-
 #endif
+
 /*
  * A stream_state records the state specific to a given variety of stream.
  * The buffer processing function of a stream maintains this state.
@@ -62,6 +60,14 @@ typedef struct stream_template_s stream_template;
  * we use negative values to indicate exceptional conditions.
  * (We cast these values to int explicitly, because some compilers
  * don't do this if the other arm of a conditional is a byte.)
+ *
+ * Note that when a stream reaches an exceptional condition, that condition
+ * remains set until the client does something explicit to reset it.
+ * (There should be a 'sclearerr' procedure to do that, but there isn't.)
+ * In particular, if a read stream encounters an exceptional condition,
+ * it delivers the data it has in its buffer, and then all subsequent
+ * calls to read data (sgetc, sgets, etc.) will return the exceptional
+ * condition without reading any more actual data.
  */
 /* End of data */
 #define EOFC ((int)(-1))
@@ -103,31 +109,31 @@ typedef union stream_cursor_s {
 
 /* Initialize the stream state (after the client parameters are set). */
 #define stream_proc_init(proc)\
-  int proc(P1(stream_state *))
+  int proc(stream_state *)
 
 /* Process a buffer.  See strimpl.h for details. */
 #define stream_proc_process(proc)\
-  int proc(P4(stream_state *, stream_cursor_read *,\
-    stream_cursor_write *, bool))
+  int proc(stream_state *, stream_cursor_read *,\
+    stream_cursor_write *, bool)
 
 /* Release the stream state when closing. */
 #define stream_proc_release(proc)\
-  void proc(P1(stream_state *))
+  void proc(stream_state *)
 
 /* Initialize the client parameters to default values. */
 #define stream_proc_set_defaults(proc)\
-  void proc(P1(stream_state *))
+  void proc(stream_state *)
 
 /* Reinitialize any internal stream state.  Note that this does not */
 /* affect buffered data.  We declare this as returning an int so that */
 /* it can be the same as the init procedure; however, reinit cannot fail. */
 #define stream_proc_reinit(proc)\
-  int proc(P1(stream_state *))
+  int proc(stream_state *)
 
 /* Report an error.  Note that this procedure is stored in the state, */
 /* not in the main stream structure. */
 #define stream_proc_report_error(proc)\
-  int proc(P2(stream_state *, const char *))
+  int proc(stream_state *, const char *)
 stream_proc_report_error(s_no_report_error);
 
 /*
@@ -138,9 +144,9 @@ stream_proc_report_error(s_no_report_error);
  * even if no actual stream has been created), we name them differently.
  */
 #define stream_state_proc_get_params(proc, state_type)\
-  int proc(P3(gs_param_list *plist, const state_type *ss, bool all))
+  int proc(gs_param_list *plist, const state_type *ss, bool all)
 #define stream_state_proc_put_params(proc, state_type)\
-  int proc(P2(gs_param_list *plist, state_type *ss))
+  int proc(gs_param_list *plist, state_type *ss)
 
 /*
  * Define a generic stream state.  If a processing procedure has no

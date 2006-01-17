@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
+  Copyright (C) 1999, 2002 Aladdin Enterprises.  All rights reserved.
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,18 +21,25 @@
   ghost@aladdin.com
 
  */
-/*$Id: md5.h,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
+/* $Id: md5.h,v 1.4 2002/04/13 19:20:28 lpd Exp $ */
 /*
   Independent implementation of MD5 (RFC 1321).
 
-  This code implements the MD5 Algorithm defined in RFC 1321.
-  It is derived directly from the text of the RFC and not from the
-  reference implementation.
+  This code implements the MD5 Algorithm defined in RFC 1321, whose
+  text is available at
+	http://www.ietf.org/rfc/rfc1321.txt
+  The code is derived from the text of the RFC, including the test suite
+  (section A.5) but excluding the rest of Appendix A.  It does not include
+  any code or documentation that is identified in the RFC as being
+  copyrighted.
 
   The original and principal author of md5.h is L. Peter Deutsch
   <ghost@aladdin.com>.  Other authors are noted in the change history
   that follows (in reverse chronological order):
 
+  2002-04-13 lpd Removed support for non-ANSI compilers; removed
+	references to Ghostscript; clarified derivation from RFC 1321;
+	now handles byte order either statically or dynamically.
   1999-11-04 lpd Edited comments slightly for automatic TOC extraction.
   1999-10-18 lpd Fixed typo in header comment (ansi2knr rather than md5);
 	added conditionalization for C++ compilation from Martin
@@ -44,11 +51,13 @@
 #  define md5_INCLUDED
 
 /*
- * This code has some adaptations for the Ghostscript environment, but it
- * will compile and run correctly in any environment with 8-bit chars and
- * 32-bit ints.  Specifically, it assumes that if the following are
- * defined, they have the same meaning as in Ghostscript: P1, P2, P3,
- * ARCH_IS_BIG_ENDIAN.
+ * This package supports both compile-time and run-time determination of CPU
+ * byte order.  If ARCH_IS_BIG_ENDIAN is defined as 0, the code will be
+ * compiled to run only on little-endian CPUs; if ARCH_IS_BIG_ENDIAN is
+ * defined as non-zero, the code will be compiled to run only on big-endian
+ * CPUs; if ARCH_IS_BIG_ENDIAN is not defined, the code will be compiled to
+ * run on either big- or little-endian CPUs, but will run slightly less
+ * efficiently on either one than if ARCH_IS_BIG_ENDIAN is defined.
  */
 
 typedef unsigned char md5_byte_t; /* 8-bit byte */
@@ -67,25 +76,13 @@ extern "C"
 #endif
 
 /* Initialize the algorithm. */
-#ifdef P1
-void md5_init(P1(md5_state_t *pms));
-#else
 void md5_init(md5_state_t *pms);
-#endif
 
 /* Append a string to the message. */
-#ifdef P3
-void md5_append(P3(md5_state_t *pms, const md5_byte_t *data, int nbytes));
-#else
 void md5_append(md5_state_t *pms, const md5_byte_t *data, int nbytes);
-#endif
 
 /* Finish the message and return the digest. */
-#ifdef P2
-void md5_finish(P2(md5_state_t *pms, md5_byte_t digest[16]));
-#else
 void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
-#endif
 
 #ifdef __cplusplus
 }  /* end extern "C" */

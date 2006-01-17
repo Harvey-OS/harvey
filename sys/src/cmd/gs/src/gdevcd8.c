@@ -180,6 +180,19 @@
 /* Conversion stuff. */
 #include "gxlum.h"
 
+#define P1(x) x
+#define P2(x,y) x,y
+#define P3(x,y,z) x,y,z
+#define P4(x,y,z,a) x,y,z,a
+#define P5(x,y,z,a,b) x,y,z,a,b
+#define P6(x,y,z,a,b,c) x,y,z,a,b,c
+#define P7(x,y,z,a,b,c,d) x,y,z,a,b,c,d
+#define P8(x,y,z,a,b,c,d,e) x,y,z,a,b,c,d,e
+#define P9(x,y,z,a,b,c,d,e,f) x,y,z,a,b,c,d,e,f
+#define P10(x,y,z,a,b,c,d,e,f,g) x,y,z,a,b,c,d,e,f,g
+#define P11(x,y,z,a,b,c,d,e,f,g,h) x,y,z,a,b,c,d,e,f,g,h
+#define P12(x,y,z,a,b,c,d,e,f,g,h,i) x,y,z,a,b,c,d,e,f,g,h,i
+
 /* this holds the initialisation data of the hp850 */
 typedef struct hp850_cmyk_init_s {
     byte a[26];
@@ -1068,7 +1081,7 @@ cdj850_print_page(gx_device_printer * pdev, FILE * prn_stream)
        2bpp feature of the hp850 someday, it is sized like storage.
        storagee contains the errors from b/w fs-ditherng */
 
-    data_ptrs.storage = (ulong *) gs_malloc(misc_vars.storage_size_words, W,
+    data_ptrs.storage = (ulong *) gs_malloc(pdev->memory, misc_vars.storage_size_words, W,
 					    "cdj850_print_page");
 
     /* if we can't allocate working area */
@@ -1089,7 +1102,7 @@ cdj850_print_page(gx_device_printer * pdev, FILE * prn_stream)
     (*cdj850->terminate_page) (pdev, prn_stream);
 
     /* Free Memory */
-    gs_free((char *)data_ptrs.storage, misc_vars.storage_size_words, W,
+    gs_free(pdev->memory, (char *)data_ptrs.storage, misc_vars.storage_size_words, W,
 	    "hp850_print_page");
 
     return 0;
@@ -2344,11 +2357,11 @@ cdj_set_bpp(gx_device * pdev, int bpp, int ccomps)
 
 private gx_color_index
 gdev_cmyk_map_cmyk_color(gx_device * pdev,
-			 gx_color_value cyan, gx_color_value magenta,
-			 gx_color_value yellow,
-			 gx_color_value black)
+		gx_color_value *cmyk)
 {
 
+	gx_color_value cyan=cmyk[0], magenta=cmyk[1], yellow=cmyk[3], black=cmyk[4];
+	
     gx_color_index color;
 
     switch (pdev->color_info.depth) {
@@ -2382,9 +2395,10 @@ gdev_cmyk_map_cmyk_color(gx_device * pdev,
 /* Mapping of RGB colors to gray values. */
 
 private gx_color_index
-gdev_cmyk_map_rgb_color(gx_device * pdev, gx_color_value r, gx_color_value
-			g, gx_color_value b)
+gdev_cmyk_map_rgb_color(gx_device * pdev, gx_color_value rgb[3])
 {
+ gx_color_value r=rgb[0], g=rgb[1], b=rgb[2];
+ 
     if (gx_color_value_to_byte(r & g & b) == 0xff) {
 	return (gx_color_index) 0;	/* White */
     } else {
@@ -2472,9 +2486,10 @@ gdev_cmyk_map_color_rgb(gx_device * pdev, gx_color_index color,
 }
 
 private gx_color_index
-gdev_pcl_map_rgb_color(gx_device * pdev, gx_color_value r,
-		       gx_color_value g, gx_color_value b)
+gdev_pcl_map_rgb_color(gx_device * pdev, gx_color_value *rgb)
 {
+gx_color_value r=rgb[0], g=rgb[1], b=rgb[2];
+
     if (gx_color_value_to_byte(r & g & b) == 0xff)
 	return (gx_color_index) 0;	/* white */
     else {

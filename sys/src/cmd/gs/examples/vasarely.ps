@@ -514,8 +514,8 @@ usertime srand
 /page {
  clippath pathbbox /ury exch def /urx exch def /lly exch def /llx exch
 def
-/pagewidth urx llx sub def
-/pageheight ury lly sub def
+/pagewidth urx llx sub 36 72 mul min def
+/pageheight ury lly sub 36 72 mul min def
 0 0 moveto 
  llx lly translate
    /outerwidth

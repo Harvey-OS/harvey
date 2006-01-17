@@ -1,23 +1,21 @@
-/* Copyright (C) 1991, 1995, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1991, 1995-2001 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevcdj.c,v 1.5 2001/03/13 06:51:39 ghostgum Exp $*/
-/* H-P and Canon colour printer drivers */
+/* $Id: gdevcdj.c,v 1.15 2004/08/04 19:36:12 stefan Exp $*/
+/* HP and Canon colour printer drivers */
 
 /****************************************************************
  * The code in this file was contributed by the authors whose names and/or
@@ -120,7 +118,7 @@
  * It is also possible to set various printer-specific parameters
  *     from the gs command line, eg.
  *
- *  gs -sDEVICE=cdj550 -dBitsPerPixel=16 -dDepletion=1 -dShingling=2 tiger.ps
+ *  gs -sDEVICE=cdj550 -dBitsPerPixel=16 -dDepletion=1 -dShingling=2 tiger.eps
  *
  * Please consult the appropriate section in the devices.doc file for
  * further details on all these drivers.
@@ -161,10 +159,11 @@ e:	param_signal_error(plist, oname, code);\
 	pa.data = 0;		/* mark as not filled */\
   }
 
-private int cdj_param_check_bytes(P5(gs_param_list *, gs_param_name, const byte *, uint, bool));
-private int cdj_param_check_float(P4(gs_param_list *, gs_param_name, floatp, bool));
-#define cdj_param_check_string(plist, pname, str, defined)\
-  cdj_param_check_bytes(plist, pname, (const byte *)str, strlen(str), defined)
+private int cdj_param_check_bytes(gs_param_list *, gs_param_name, const byte *, uint, bool);
+private int cdj_param_check_float(gs_param_list *, gs_param_name, floatp, bool);
+#define cdj_param_check_string(plist, pname, str, is_defined)\
+  cdj_param_check_bytes(plist, pname, (const byte *)(str), strlen(str),\
+			is_defined)
 
 /*
  * Drivers stuff.
@@ -176,13 +175,13 @@ private int cdj_param_check_float(P4(gs_param_list *, gs_param_name, floatp, boo
 #define ESC_P_PRINT_LIMIT    0.335
 
 /* Margins are left, bottom, right, top. */
-#define DESKJET_MARGINS_LETTER   0.25, 0.50, 0.25, 0.167
-#define DESKJET_MARGINS_A4       0.125, 0.50, 0.143, 0.167
-#define LJET4_MARGINS  		 0.26, 0.0, 0.0, 0.0
+#define DESKJET_MARGINS_LETTER   (float)0.25, (float)0.50, (float)0.25, (float)0.167
+#define DESKJET_MARGINS_A4       (float)0.125, (float)0.50, (float)0.143, (float)0.167
+#define LJET4_MARGINS  		 (float)0.26, (float)0.0, (float)0.0, (float)0.0
 /* The PaintJet and DesignJet seem to have the same margins */
 /* regardless of paper size. */
-#define PAINTJET_MARGINS         0.167, 0.167, 0.167, 0.167
-#define DESIGNJET_MARGINS        0.167, 0.167, 0.167, 0.167
+#define PAINTJET_MARGINS         (float)0.167, (float)0.167, (float)0.167, (float)0.167
+#define DESIGNJET_MARGINS        (float)0.167, (float)0.167, (float)0.167, (float)0.167
 
 /*
  * With ESC/P commands, BJC-600 can print no more than 8 inches width.
@@ -194,8 +193,10 @@ private int cdj_param_check_float(P4(gs_param_list *, gs_param_name, floatp, boo
  * the gdevbjc.h file.
  *
  */
-#define ESC_P_MARGINS_LETTER    0.134, 0.276+0.2, 0.366+0.01, 0.335
-#define ESC_P_MARGINS_A4        0.134, 0.276+0.2, 0.166+0.01, 0.335
+#define ESC_P_MARGINS_LETTER    (float)0.134, (float)(0.276+0.2), \
+ 				(float)(0.366+0.01), (float)0.335
+#define ESC_P_MARGINS_A4        (float)0.134, (float)(0.276+0.2), \
+				(float)(0.166+0.01), (float)0.335
 
 /* Define bits-per-pixel for generic drivers - default is 24-bit mode */
 #ifndef BITSPERPIXEL
@@ -237,10 +238,10 @@ private int cdj_param_check_float(P4(gs_param_list *, gs_param_name, floatp, boo
 /* Colour mapping procedures */
 private dev_proc_map_cmyk_color (gdev_cmyk_map_cmyk_color);
 private dev_proc_map_rgb_color (gdev_cmyk_map_rgb_color);
-private dev_proc_map_color_rgb (gdev_cmyk_map_color_rgb);
 
 private dev_proc_map_rgb_color (gdev_pcl_map_rgb_color);
 private dev_proc_map_color_rgb (gdev_pcl_map_color_rgb);
+private dev_proc_decode_color  (gdev_cmyk_map_color_cmyk);
 
 /* Print-page, parameters and miscellaneous procedures */
 private dev_proc_open_device(dj500c_open);
@@ -399,7 +400,7 @@ typedef struct {
     DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS, x_dpi, y_dpi, 0, 0, 0, 0,\
     (bpp == 32 ? 4 : (bpp == 1 || bpp == 8) ? 1 : 3), bpp,\
     (bpp >= 8 ? 255 : 1), (bpp >= 8 ? 255 : bpp > 1 ? 1 : 0),\
-    (bpp >= 8 ? 5 : 2), (bpp >= 8 ? 5 : bpp > 1 ? 2 : 0),\
+    (bpp >= 8 ? 256 : 2), (bpp >= 8 ? 256 : bpp > 1 ? 2 : 0),\
     print_page, 0 /* cmyk */, correct)
 
 #define prn_cmyk_colour_device(dtype, procs, dev_name, x_dpi, y_dpi, bpp, print_page, correct)\
@@ -407,7 +408,7 @@ typedef struct {
     DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS, x_dpi, y_dpi, 0, 0, 0, 0,\
     ((bpp == 1 || bpp == 4) ? 1 : 4), bpp,\
     (bpp > 8 ? 255 : 1), (1 << (bpp >> 2)) - 1, /* max_gray, max_color */\
-    (bpp > 8 ? 5 : 2), (bpp > 8 ? 5 : bpp > 1 ? 2 : 0),\
+    (bpp > 8 ? 256 : 2), (bpp > 8 ? 256 : bpp > 1 ? 2 : 0),\
     print_page, 1 /* cmyk */, correct)
 
 #define bjc_device(dtype, p, d, x, y, b, pp, c) \
@@ -462,7 +463,7 @@ typedef struct {
 	gdev_prn_output_page,\
 	gdev_prn_close,\
 	NULL /* map_rgb_color */,\
-	gdev_cmyk_map_color_rgb,\
+	NULL /* map_color_rgb */,\
 	NULL /* fill_rectangle */,\
 	NULL /* tile_rectangle */,\
 	NULL /* copy_mono */,\
@@ -471,7 +472,44 @@ typedef struct {
 	gx_default_get_bits,\
 	proc_get_params,\
 	proc_put_params,\
-        gdev_cmyk_map_cmyk_color\
+        gdev_cmyk_map_cmyk_color,\
+	NULL,	/* get_xfont_procs */\
+	NULL,	/* get_xfont_device */\
+	NULL,	/* map_rgb_alpha_color */\
+	NULL,	/* get_page_device */\
+	NULL,	/* get_alpha_bits */\
+	NULL,	/* copy_alpha */\
+	NULL,	/* get_band */\
+	NULL,	/* copy_rop */\
+	NULL,	/* fill_path */\
+	NULL,	/* stroke_path */\
+	NULL,	/* fill_mask */\
+	NULL,	/* fill_trapezoid */\
+	NULL,	/* fill_parallelogram */\
+	NULL,	/* fill_triangle */\
+	NULL,	/* draw_thin_line */\
+	NULL,	/* begin_image */\
+	NULL,	/* image_data */\
+	NULL,	/* end_image */\
+	NULL,	/* strip_tile_rectangle */\
+	NULL,	/* strip_copy_rop */\
+	NULL,	/* get_clipping_box */\
+	NULL,	/* begin_typed_image */\
+	NULL,	/* get_bits_rectangle */\
+	NULL,	/* map_color_rgb_alpha */\
+	NULL,	/* create_compositor */\
+	NULL,	/* get_hardware_params */\
+	NULL,	/* text_begin */\
+	NULL,	/* finish_copydevice */\
+	NULL,	/* begin_transparency_group */\
+	NULL,	/* end_transparency_group */\
+	NULL,	/* begin_transparency_mask */\
+	NULL,	/* end_transparency_mask */\
+	NULL,	/* discard_transparency_layer */\
+	NULL,	/* get_color_mapping_procs */\
+	NULL,	/* get_color_comp_index */\
+	gdev_cmyk_map_cmyk_color,	/* encode_color */\
+	gdev_cmyk_map_color_cmyk	/* decode_color */\
 }
 
 private gx_device_procs cdj500_procs =
@@ -606,15 +644,15 @@ gx_device_bjc800 far_data gs_bjc800_device =
 	BJC800_DEFAULT_PRINTCOLORS);
 
 /* Forward references */
-private int gdev_pcl_mode1compress(P3(const byte *, const byte *, byte *));
-private int hp_colour_open(P2(gx_device *, int));
-private int hp_colour_print_page(P3(gx_device_printer *, FILE *, int));
-private int cdj_put_param_int(P6(gs_param_list *, gs_param_name, int *, int, int, int));
-private uint gdev_prn_rasterwidth(P2(const gx_device_printer *, int));
-private int cdj_put_param_bpp(P5(gx_device *, gs_param_list *, int, int, int));
-private int cdj_set_bpp(P3(gx_device *, int, int));
-private void cdj_expand_line(P5(word *, int, short, int, int));
-private int bjc_fscmyk(P5(byte**, byte*[4][4], int**, int, int));
+private int gdev_pcl_mode1compress(const byte *, const byte *, byte *);
+private int hp_colour_open(gx_device *, int);
+private int hp_colour_print_page(gx_device_printer *, FILE *, int);
+private int cdj_put_param_int(gs_param_list *, gs_param_name, int *, int, int, int);
+private uint gdev_prn_rasterwidth(const gx_device_printer *, int);
+private int cdj_put_param_bpp(gx_device *, gs_param_list *, int, int, int);
+private int cdj_set_bpp(gx_device *, int, int);
+private void cdj_expand_line(word *, int, short, int, int);
+private int bjc_fscmyk(byte**, byte*[4][4], int**, int, int);
 
 /* String parameters manipulation */
 
@@ -623,14 +661,14 @@ typedef struct {
     int p_value;
 } stringParamDescription;
 
-private const byte* paramValueToString(P2(const stringParamDescription*, int));
-private int paramStringValue(P4(const stringParamDescription*,
-    const byte*, int, int*));
+private const byte* paramValueToString(const stringParamDescription*, int);
+private int paramStringValue(const stringParamDescription*,
+    const byte*, int, int*);
 
-private int put_param_string(P6(gs_param_list*, const byte*,
-    gs_param_string*, const stringParamDescription*, int *, int));
-private int get_param_string(P7(gs_param_list*, const byte*,
-    gs_param_string*, const stringParamDescription*, int, bool, int));
+private int put_param_string(gs_param_list*, const byte*,
+    gs_param_string*, const stringParamDescription*, int *, int);
+private int get_param_string(gs_param_list*, const byte*,
+    gs_param_string*, const stringParamDescription*, int, bool, int);
 
 /* Open the printer and set up the margins. */
 private int
@@ -744,7 +782,7 @@ hp_colour_open(gx_device *pdev, int ptype)
 
 #ifndef USE_FIXED_MARGINS
     if (ptype == BJC800) {
-	((float *) m)[1] = BJC_HARD_LOWER_LIMIT;
+	((float *) m)[1] = (float)BJC_HARD_LOWER_LIMIT;
     }
 #endif
 
@@ -1134,7 +1172,7 @@ mwe:   	    param_signal_error(plist, oname, code = ncode);
 		int n;
 
 		for (n = 0; n < 8 * sizeof(n) / BJC_RESOLUTION_BASE; ++n) {
-		    float res = BJC_RESOLUTION_BASE * (1 << n);
+		    float res = (float)(BJC_RESOLUTION_BASE * (1 << n));
 	    
 		    if (res == hwra.data[0]) break;
 	    
@@ -1493,45 +1531,45 @@ bjc_print_page(gx_device_printer * pdev, FILE * prn_stream)
 
 private int
 bjc_cmd(byte cmd, int argsize, byte* arg, gx_device_printer* pdev,
-    FILE* stream)
+    FILE* f)
 {
-  fputs("\033(", stream);
-  putc(cmd, stream);
-  fputshort(argsize, stream);
-  fwrite(arg, sizeof(byte), argsize, stream);
+  fputs("\033(", f);
+  putc(cmd, f);
+  fputshort(argsize, f);
+  fwrite(arg, sizeof(byte), argsize, f);
 
   return 0;
 }
 
 
 private int
-bjc_raster_cmd_sub(char c, int rastsize, byte* data, FILE* stream)
+bjc_raster_cmd_sub(char c, int rastsize, byte* data, FILE* f)
 {
-  fputs("\033(A", stream);
-  fputshort(rastsize + 1, stream);
-  putc(c, stream);
-  fwrite(data, sizeof(byte), rastsize, stream);
-  putc('\015', stream);
+  fputs("\033(A", f);
+  fputshort(rastsize + 1, f);
+  putc(c, f);
+  fwrite(data, sizeof(byte), rastsize, f);
+  putc('\015', f);
 
   return 0;
 }
 
 private int
 bjc_raster_cmd(int c_id, int rastsize, byte* data, gx_device_printer* pdev,
-    FILE* stream)
+    FILE* f)
 {
     if (bjcparams.printColors == BJC_COLOR_ALLBLACK) {
-	bjc_raster_cmd_sub('K', rastsize, data, stream);
+	bjc_raster_cmd_sub('K', rastsize, data, f);
     } else if (pdev->color_info.num_components == 1) {
 	if (bjcparams.printColors & BJC_COLOR_BLACK) {
-	    bjc_raster_cmd_sub('K', rastsize, data, stream);
+	    bjc_raster_cmd_sub('K', rastsize, data, f);
 	} else {
 	    if (bjcparams.printColors & BJC_COLOR_YELLOW)
-		bjc_raster_cmd_sub('Y', rastsize, data, stream);
+		bjc_raster_cmd_sub('Y', rastsize, data, f);
 	    if (bjcparams.printColors & BJC_COLOR_MAGENTA)
-		bjc_raster_cmd_sub('M', rastsize, data, stream);
+		bjc_raster_cmd_sub('M', rastsize, data, f);
 	    if (bjcparams.printColors & BJC_COLOR_CYAN)
-		bjc_raster_cmd_sub('C', rastsize, data, stream);
+		bjc_raster_cmd_sub('C', rastsize, data, f);
 	}
     }else {			/* Color decomposition */
 	private byte ymckCodes[] = {
@@ -1542,7 +1580,7 @@ bjc_raster_cmd(int c_id, int rastsize, byte* data, gx_device_printer* pdev,
 	};
 
 	if (bjcparams.printColors & (int) ymckCodes[c_id]) {
-	    bjc_raster_cmd_sub("YMCK"[c_id], rastsize, data, stream);
+	    bjc_raster_cmd_sub("YMCK"[c_id], rastsize, data, f);
 	}
     }
 
@@ -1550,7 +1588,7 @@ bjc_raster_cmd(int c_id, int rastsize, byte* data, gx_device_printer* pdev,
 }
 
 private int
-bjc_init_page(gx_device_printer* pdev, FILE* stream)
+bjc_init_page(gx_device_printer* pdev, FILE* f)
 {
     byte pagemargins[3], resolution[4], paperloading[2];
 
@@ -1589,26 +1627,26 @@ bjc_init_page(gx_device_printer* pdev, FILE* stream)
 
     /* Reinitialize printer in raster mode. */
 
-    fputs("\033[K", stream);
-    fputshort(2, stream);
-    fputc(0x00, stream);
-    fputc(0x0f, stream);
+    fputs("\033[K", f);
+    fputshort(2, f);
+    fputc(0x00, f);
+    fputc(0x0f, f);
 
     /* Set page mode on (ignore data at end of page) */
 
-    bjc_cmd('a', 1, (byte*) "\001", pdev, stream);
+    bjc_cmd('a', 1, (byte*) "\001", pdev, f);
 
     /* Set page margins */
 
-    bjc_cmd('g', 3, pagemargins, pdev, stream);
+    bjc_cmd('g', 3, pagemargins, pdev, f);
 
     /* Set compression on (this is PackBits compression a la TIFF/Mac) */
 
-    bjc_cmd('b', 1, (byte*) "\001", pdev, stream);
+    bjc_cmd('b', 1, (byte*) "\001", pdev, f);
 
     /* Set paper loading. */
 
-    bjc_cmd('l', 2, paperloading, pdev, stream);
+    bjc_cmd('l', 2, paperloading, pdev, f);
 
     /* Set printing method. */
 
@@ -1632,7 +1670,7 @@ bjc_init_page(gx_device_printer* pdev, FILE* stream)
 	printmode[1] = (bjcparams.mediaType >= BJC_MEDIA_ENVELOPE ? 1 :
 	    bjc800thickpaper());
 
-	bjc_cmd('c', 2, printmode, pdev, stream);
+	bjc_cmd('c', 2, printmode, pdev, f);
     } else /* BJC600 */ {
 	byte printmeth[3];
 
@@ -1642,37 +1680,37 @@ bjc_init_page(gx_device_printer* pdev, FILE* stream)
 	    0x10 : 0) + (bjcparams.mediaType >= BJC_MEDIA_ENVELOPE ? 1 :
 	         bjc600thickpaper());
 
-    	bjc_cmd('c', 3, printmeth, pdev, stream);
+    	bjc_cmd('c', 3, printmeth, pdev, f);
     }
 
     /* Set raster resolution */
 
-    bjc_cmd('d', 4, resolution, pdev, stream);
+    bjc_cmd('d', 4, resolution, pdev, f);
 
     return 0;
 }
 
 private int
-bjc_v_skip(int n, gx_device_printer* pdev, FILE* stream)
+bjc_v_skip(int n, gx_device_printer* pdev, FILE* f)
 {
     if (n) {
-	fputs("\033(e", stream);
-	putc(2, stream);
-	putc(0, stream);
-	putc(n / 256, stream);
-	putc(n % 256, stream);
+	fputs("\033(e", f);
+	putc(2, f);
+	putc(0, f);
+	putc(n / 256, f);
+	putc(n % 256, f);
     }
 
     return 0;
 }
 
 private int
-bjc_finish_page(gx_device_printer* pdev, FILE* stream)
+bjc_finish_page(gx_device_printer* pdev, FILE* f)
 {
-    bjc_cmd('a', 1, (byte*) "\000", pdev, stream);
-    bjc_cmd('b', 1, (byte*) "\000", pdev, stream);
-    fputc('\014', stream);
-    fputs("\033@", stream);
+    bjc_cmd('a', 1, (byte*) "\000", pdev, f);
+    bjc_cmd('b', 1, (byte*) "\000", pdev, f);
+    fputc('\014', f);
+    fputs("\033@", f);
 
     return 0;
 }
@@ -2009,10 +2047,10 @@ hp_colour_print_page(gx_device_printer * pdev, FILE * prn_stream, int ptype)
   storage_size_words = ((plane_size + plane_size) * num_comps +
 			databuff_size + errbuff_size + outbuff_size) / W;
 
-  storage = (ulong *) gs_malloc(storage_size_words, W, "hp_colour_print_page");
+  storage = (ulong *) gs_malloc(pdev->memory, storage_size_words, W, "hp_colour_print_page");
   ep_storage_size_words = (plane_size * (num_comps + 1)) / W * img_rows
       + 16;			/* Redundant space for sentinel and aligning. */
-  ep_storage = (word *) gs_malloc(ep_storage_size_words, W, "ep_print_buffer");
+  ep_storage = (word *) gs_malloc(pdev->memory, ep_storage_size_words, W, "ep_print_buffer");
 
   /*
    * The principal data pointers are stored as pairs of values, with
@@ -2264,7 +2302,8 @@ hp_colour_print_page(gx_device_printer * pdev, FILE * prn_stream, int ptype)
 
     word rmask = ~(word) 0 << ((-pdev->width * storage_bpp) & (W * 8 - 1));
 
-    lend = pdev->height - (dev_t_margin(pdev) + dev_b_margin(pdev)) * y_dpi;
+    lend = pdev->height - 
+	(int)((dev_t_margin(pdev) + dev_b_margin(pdev)) * y_dpi);
 
     switch (ptype) {
 	case BJC600:
@@ -2582,7 +2621,7 @@ hp_colour_print_page(gx_device_printer * pdev, FILE * prn_stream, int ptype)
 				out_count, out_data, pdev, prn_stream);
 	      if (i == 0) bjc_v_skip(1, pdev, prn_stream);
 	    } else if (ptype == ESC_P)
-		ep_print_image(prn_stream, i, plane_data[scan][i], plane_size);
+		ep_print_image(prn_stream, (char)i, plane_data[scan][i], plane_size);
 	    else
 	      fprintf(prn_stream, "\033*b%d%c", out_count, "WVVV"[i]);
 	    if (ptype < ESC_P)
@@ -2621,8 +2660,8 @@ hp_colour_print_page(gx_device_printer * pdev, FILE * prn_stream, int ptype)
     fputs("\033&l0H", prn_stream);
 
   /* free temporary storage */
-  gs_free((char *) ep_storage, ep_storage_size_words, W, "ep_print_buffer");
-  gs_free((char *) storage, storage_size_words, W, "hp_colour_print_page");
+  gs_free(pdev->memory, (char *) ep_storage, ep_storage_size_words, W, "ep_print_buffer");
+  gs_free(pdev->memory, (char *) storage, storage_size_words, W, "hp_colour_print_page");
 
   return 0;
 }
@@ -2685,12 +2724,11 @@ gdev_pcl_mode1compress(const byte *row, const byte *end_row, byte *compressed)
     (y) = gx_bits_to_color_value((v) & ((1 << (b)) - 1), (b))
 
 private gx_color_index
-gdev_cmyk_map_cmyk_color(gx_device* pdev,
-    gx_color_value cyan, gx_color_value magenta, gx_color_value yellow,
-    gx_color_value black) {
-
+gdev_cmyk_map_cmyk_color(gx_device* pdev, const gx_color_value cv[])
+{
+    gx_color_value cyan, magenta, yellow, black;
     gx_color_index color;
-
+    cyan = cv[0]; magenta = cv[1]; yellow = cv[2]; black = cv[3];
     switch (pdev->color_info.depth) {
 	case 1:
 	   color = (cyan | magenta | yellow | black) > gx_max_color_value / 2 ?
@@ -2699,20 +2737,6 @@ gdev_cmyk_map_cmyk_color(gx_device* pdev,
 
 	default: {
 	    int nbits = pdev->color_info.depth;
-
-            if (cyan == magenta && magenta == yellow) {
-
-	        /* Convert CMYK to gray -- Red Book 6.2.2 */
-
-	        float bpart = ((float) cyan) * (lum_red_weight / 100.) +
-		    ((float) magenta) * (lum_green_weight / 100.) +
-		    ((float) yellow) * (lum_blue_weight / 100.) +
-		    (float) black;
-
-		cyan = magenta = yellow = (gx_color_index) 0;
-		black = (gx_color_index) (bpart > gx_max_color_value ?
-		    gx_max_color_value : bpart);
-	    }
 
 	    color = gx_cmyk_value_bits(cyan, magenta, yellow, black,
 	        nbits >> 2);
@@ -2725,51 +2749,52 @@ gdev_cmyk_map_cmyk_color(gx_device* pdev,
 /* Mapping of RGB colors to gray values. */
 
 private gx_color_index
-gdev_cmyk_map_rgb_color(gx_device *pdev, gx_color_value r, gx_color_value g, gx_color_value b)
+gdev_cmyk_map_rgb_color(gx_device *pdev, const gx_color_value cv[])
 {
+    gx_color_value r, g, b;
+    r = cv[0]; g = cv[1]; b = cv[2];
+    if (gx_color_value_to_byte(r & g & b) == 0xff) {
+        return (gx_color_index) 0;	/* White */
+    } else {
+        gx_color_value c = gx_max_color_value - r;
+        gx_color_value m = gx_max_color_value - g;
+        gx_color_value y = gx_max_color_value - b;
 
-  if (gx_color_value_to_byte(r & g & b) == 0xff) {
-      return (gx_color_index) 0;	/* White */
-  } else {
-      gx_color_value c = gx_max_color_value - r;
-      gx_color_value m = gx_max_color_value - g;
-      gx_color_value y = gx_max_color_value - b;
+        switch (pdev->color_info.depth) {
+        case 1:
+            return (c | m | y) > gx_max_color_value / 2 ?
+                (gx_color_index) 1 : (gx_color_index) 0;
+            /*NOTREACHED*/
+            break;
 
-      switch (pdev->color_info.depth) {
-	  case 1:
-	      return (c | m | y) > gx_max_color_value / 2 ?
-	          (gx_color_index) 1 : (gx_color_index) 0;
-	      /*NOTREACHED*/
-	      break;
+        case 8:
+            return ((ulong) c * lum_red_weight * 10
+                    + (ulong) m * lum_green_weight * 10
+                    + (ulong) y * lum_blue_weight * 10)
+                        >> (gx_color_value_bits + 2);
+            /*NOTREACHED*/
+            break;
+        }
+    }
 
-	  case 8:
-	      return ((ulong) c * lum_red_weight * 10
-	          + (ulong) m * lum_green_weight * 10
-	          + (ulong) y * lum_blue_weight * 10)
-		  >> (gx_color_value_bits + 2);
-	      /*NOTREACHED*/
-	      break;
-      }
-  }
-
-   return (gx_color_index) 0;	/* This should never happen. */
+    return (gx_color_index) 0;	/* This should never happen. */
 }
 
 /* Mapping of CMYK colors. */
 
 private int
-gdev_cmyk_map_color_rgb(gx_device *pdev, gx_color_index color, gx_color_value prgb[3])
+gdev_cmyk_map_color_cmyk(gx_device *pdev, gx_color_index color, gx_color_value prgb[3])
 {
     switch (pdev->color_info.depth) {
 	case 1:
-	   prgb[0] = prgb[1] = prgb[2] = gx_max_color_value * (1 - color);
+	   prgb[0] = gx_max_color_value * (1 - color);
 	   break;
 
 	case 8:
 	   if (pdev->color_info.num_components == 1) {
 	       gx_color_value value = (gx_color_value) color ^ 0xff;
 
-	       prgb[0] = prgb[1] = prgb[2] = (value << 8) + value;
+	       prgb[0] = (value << 8) + value;
 
 	       break;
 	   }
@@ -2781,34 +2806,10 @@ gdev_cmyk_map_color_rgb(gx_device *pdev, gx_color_index color, gx_color_value pr
 	    gx_value_cmyk_bits(color, bcyan, bmagenta, byellow, black,
 	        nbits >> 2);
 
-#ifdef USE_ADOBE_CMYK_RGB
-
-	    /* R = 1.0 - min(1.0, C + K), etc. */
-
-	    bcyan += black, bmagenta += black, byellow += black;
-	    prgb[0] = (bcyan > gx_max_color_value ? (gx_color_value) 0 :
-		       gx_max_color_value - bcyan);
-	    prgb[1] = (bmagenta > gx_max_color_value ? (gx_color_value) 0 :
-		       gx_max_color_value - bmagenta);
-	    prgb[2] = (byellow > gx_max_color_value ? (gx_color_value) 0 :
-		       gx_max_color_value - byellow);
-
-#else
-
-	    /* R = (1.0 - C) * (1.0 - K), etc. */
-
-	    prgb[0] = (gx_color_value)
-	      ((ulong)(gx_max_color_value - bcyan) *
-	       (gx_max_color_value - black) / gx_max_color_value);
-	    prgb[1] = (gx_color_value)
-	      ((ulong)(gx_max_color_value - bmagenta) *
-	       (gx_max_color_value - black) / gx_max_color_value);
-	    prgb[2] = (gx_color_value)
-	      ((ulong)(gx_max_color_value - byellow) *
-	       (gx_max_color_value - black) / gx_max_color_value);
-
-#endif
-
+	    prgb[0] = bcyan;
+	    prgb[1] = bmagenta;
+	    prgb[2] = byellow;
+	    prgb[3] = black;
 	}
     }
 
@@ -2836,9 +2837,10 @@ gdev_cmyk_map_color_rgb(gx_device *pdev, gx_color_index color, gx_color_value pr
    } while (0)
 
 private gx_color_index
-gdev_pcl_map_rgb_color(gx_device *pdev, gx_color_value r,
-				 gx_color_value g, gx_color_value b)
+gdev_pcl_map_rgb_color(gx_device *pdev, const gx_color_value cv[])
 {
+  gx_color_value r, g, b;
+  r = cv[0]; g = cv[1]; b = cv[2];
   if (gx_color_value_to_byte(r & g & b) == 0xff)
     return (gx_color_index)0;         /* white */
   else {
@@ -2940,10 +2942,10 @@ gdev_pcl_map_color_rgb(gx_device *pdev, gx_color_index color,
     }
     break;
   case 24:
-    { gx_color_value c = (gx_color_value)color ^ 0xffffff;
-      prgb[0] = gx_color_value_from_byte(c >> 16);
-      prgb[1] = gx_color_value_from_byte((c >> 8) & 0xff);
-      prgb[2] = gx_color_value_from_byte(c & 0xff);
+    { gx_color_index c = color ^ 0xffffff;
+      prgb[0] = gx_color_value_from_byte((gx_color_value)(c >> 16));
+      prgb[1] = gx_color_value_from_byte((gx_color_value)((c >> 8) & 0xff));
+      prgb[2] = gx_color_value_from_byte((gx_color_value)(c & 0xff));
     }
     break;
   case 32:
@@ -3143,9 +3145,9 @@ cdj_set_bpp(gx_device *pdev, int bpp, int ccomps)
 
       /* Reset procedures because we may have been in another mode. */
 
-      dev_proc(pdev, map_cmyk_color) = gdev_cmyk_map_cmyk_color;
+      dev_proc(pdev, encode_color) = gdev_cmyk_map_cmyk_color;
       dev_proc(pdev, map_rgb_color) = NULL;
-      dev_proc(pdev, map_color_rgb) = gdev_cmyk_map_color_rgb;
+      dev_proc(pdev, decode_color) = gdev_cmyk_map_color_cmyk;
 
       if (pdev->is_open) gs_closedevice(pdev);
   }
@@ -3256,18 +3258,18 @@ cce:  default: return gs_error_rangecheck;
       ci->max_gray = (bpp >= 8 ? 255 : 1);
 
       if (ci->num_components == 1) {
-	  ci->dither_grays = (bpp >= 8 ? 5 : 2);
-	  ci->dither_colors = (bpp >= 8 ? 5 : bpp > 1 ? 2 : 0);
+	  ci->dither_grays = (bpp >= 8 ? 256 : 2);
+	  ci->dither_colors = (bpp >= 8 ? 256 : bpp > 1 ? 2 : 0);
       } else {
-	  ci->dither_grays = (bpp > 8 ? 5 : 2);
-	  ci->dither_colors = (bpp > 8 ? 5 : bpp > 1 ? 2 : 0);
+	  ci->dither_grays = (bpp > 8 ? 256 : 2);
+	  ci->dither_colors = (bpp > 8 ? 256 : bpp > 1 ? 2 : 0);
       }
   } else {
       ci->num_components = (bpp == 1 || bpp == 8 ? 1 : 3);
       ci->max_color = (bpp >= 8 ? 255 : bpp > 1 ? 1 : 0);
       ci->max_gray = (bpp >= 8 ? 255 : 1);
-      ci->dither_grays = (bpp >= 8 ? 5 : 2);
-      ci->dither_colors = (bpp >= 8 ? 5 : bpp > 1 ? 2 : 0);
+      ci->dither_grays = (bpp >= 8 ? 256 : 2);
+      ci->dither_colors = (bpp >= 8 ? 256 : bpp > 1 ? 2 : 0);
   }
 
   ci->depth = ((bpp > 1) && (bpp < 8) ? 8 : bpp);
@@ -3324,8 +3326,8 @@ cdj_put_param_bpp(gx_device *pdev, gs_param_list *plist, int new_bpp,
 private uint
 gdev_prn_rasterwidth(const gx_device_printer *pdev, int pixelcount)
 {
-  ulong raster_width =
-    pdev->width - pdev->x_pixels_per_inch * (dev_l_margin(pdev) + dev_r_margin(pdev));
+  ulong raster_width = (ulong)(pdev->width - 
+    pdev->x_pixels_per_inch * (dev_l_margin(pdev) + dev_r_margin(pdev)));
   return (pixelcount ?
           (uint)raster_width :
           (uint)((raster_width * pdev->color_info.depth + 7) >> 3));
@@ -3418,14 +3420,14 @@ get_param_string(gs_param_list* plist,
  */
 
 private int
-cdj_param_check_bytes(gs_param_list *plist, gs_param_name pname, const byte *str,
-  uint size, bool defined)
+cdj_param_check_bytes(gs_param_list *plist, gs_param_name pname,
+		      const byte *str, uint size, bool is_defined)
 {       int code;
         gs_param_string new_value;
         switch ( code = param_read_string(plist, pname, &new_value) )
           {
           case 0:
-                if ( defined && new_value.size == size &&
+                if ( is_defined && new_value.size == size &&
                      !memcmp((const char *)str, (const char *)new_value.data,
                              size)
                    )
@@ -3446,13 +3448,13 @@ e:              param_signal_error(plist, pname, code);
 
 private int
 cdj_param_check_float(gs_param_list *plist, gs_param_name pname, floatp fval,
-  bool defined)
+		      bool is_defined)
 {       int code;
         float new_value;
         switch ( code = param_read_float(plist, pname, &new_value) )
           {
           case 0:
-                if ( defined && new_value == fval)
+                if ( is_defined && new_value == fval)
                   break;
                 code = gs_note_error(gs_error_rangecheck);
                 goto e;
@@ -3592,7 +3594,7 @@ bjc_fscmyk(byte** inplanes, byte* outplanes[4][4], int** errplanes,
 	         maxv = sd->stc.xfer[i].data[j];
          }
 	 */
-         CMYK_THRESHOLD(i) = 127.0 / maxv + 0.5;
+         CMYK_THRESHOLD(i) = (int)(127.0 / maxv + 0.5);
          SPOTSIZE(i)  = ((int) CMYK_THRESHOLD(i)<<1)+1;
          j = CMYK_THRESHOLD(i); /* Maximum Error-Value */
          errc[3] = 0;

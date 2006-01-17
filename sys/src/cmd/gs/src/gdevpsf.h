@@ -1,28 +1,27 @@
-/* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 2000, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpsf.h,v 1.10 2001/08/16 13:36:37 lpd Exp $ */
+/* $Id: gdevpsf.h,v 1.27 2004/08/19 19:33:09 stefan Exp $ */
 /* PostScript/PDF font writing interface */
 
 #ifndef gdevpsf_INCLUDED
 #  define gdevpsf_INCLUDED
 
 #include "gsccode.h"
+#include "gsgdata.h"
 
 /* ---------------- Embedded font writing ---------------- */
 
@@ -33,6 +32,10 @@ typedef struct gs_font_s gs_font;
 #ifndef gs_font_base_DEFINED
 #  define gs_font_base_DEFINED
 typedef struct gs_font_base_s gs_font_base;
+#endif
+#ifndef stream_DEFINED
+#  define stream_DEFINED
+typedef struct stream_s stream;
 #endif
 
 /*
@@ -52,7 +55,7 @@ struct psf_glyph_enum_s {
     } subset;
     gs_glyph_space_t glyph_space;
     ulong index;
-    int (*enumerate_next)(P2(psf_glyph_enum_t *, gs_glyph *));
+    int (*enumerate_next)(psf_glyph_enum_t *, gs_glyph *);
 };
 
 /*
@@ -60,18 +63,18 @@ struct psf_glyph_enum_s {
  * > 0 but subset_glyphs == 0, enumerate all glyphs in [0 .. subset_size-1]
  * (as integer glyphs, i.e., offset by gs_min_cid_glyph).
  */
-void psf_enumerate_list_begin(P5(psf_glyph_enum_t *ppge, gs_font *font,
-				 const gs_glyph *subset_list,
-				 uint subset_size,
-				 gs_glyph_space_t glyph_space));
+void psf_enumerate_list_begin(psf_glyph_enum_t *ppge, gs_font *font,
+			      const gs_glyph *subset_list,
+			      uint subset_size,
+			      gs_glyph_space_t glyph_space);
 /* Backward compatibility */
 #define psf_enumerate_glyphs_begin psf_enumerate_list_begin
 
 /* Begin enumerating CID or TT glyphs in a subset given by a bit vector. */
 /* Note that subset_size is given in bits, not in bytes. */
-void psf_enumerate_bits_begin(P5(psf_glyph_enum_t *ppge, gs_font *font,
-				 const byte *subset_bits, uint subset_size,
-				 gs_glyph_space_t glyph_space));
+void psf_enumerate_bits_begin(psf_glyph_enum_t *ppge, gs_font *font,
+			      const byte *subset_bits, uint subset_size,
+			      gs_glyph_space_t glyph_space);
 /* Backward compatibility */
 #define psf_enumerate_cids_begin(ppge, font, bits, size)\
    psf_enumerate_bits_begin(ppge, font, bits, size, GLYPH_SPACE_NAME)
@@ -79,20 +82,13 @@ void psf_enumerate_bits_begin(P5(psf_glyph_enum_t *ppge, gs_font *font,
 /*
  * Reset a glyph enumeration.
  */
-void psf_enumerate_glyphs_reset(P1(psf_glyph_enum_t *ppge));
+void psf_enumerate_glyphs_reset(psf_glyph_enum_t *ppge);
 
 /*
  * Enumerate the next glyph in a font or a font subset.
  * Return 0 if more glyphs, 1 if done, <0 if error.
  */
-int psf_enumerate_glyphs_next(P2(psf_glyph_enum_t *ppge, gs_glyph *pglyph));
-
-/*
- * Get the set of referenced glyphs (indices) for writing a subset font.
- * Does not sort or remove duplicates.
- */
-int psf_subset_glyphs(P3(gs_glyph glyphs[256], gs_font *font,
-			 const byte used[32]));
+int psf_enumerate_glyphs_next(psf_glyph_enum_t *ppge, gs_glyph *pglyph);
 
 /*
  * Add composite glyph pieces to a list of glyphs.  Does not sort or
@@ -100,26 +96,26 @@ int psf_subset_glyphs(P3(gs_glyph glyphs[256], gs_font *font,
  * single glyph can have: if this value is not known, the caller should
  * use max_count.
  */
-int psf_add_subset_pieces(P5(gs_glyph *glyphs, uint *pcount, uint max_count,
-			     uint max_pieces, gs_font *font));
+int psf_add_subset_pieces(gs_glyph *glyphs, uint *pcount, uint max_count,
+			  uint max_pieces, gs_font *font);
 
 /*
  * Sort a list of glyphs and remove duplicates.  Return the number of glyphs
  * in the result.
  */
-int psf_sort_glyphs(P2(gs_glyph *glyphs, int count));
+int psf_sort_glyphs(gs_glyph *glyphs, int count);
 
 /*
  * Return the index of a given glyph in a sorted list of glyphs, or -1
  * if the glyph is not present.
  */
-int psf_sorted_glyphs_index_of(P3(const gs_glyph *glyphs, int count,
-				  gs_glyph glyph));
+int psf_sorted_glyphs_index_of(const gs_glyph *glyphs, int count,
+			       gs_glyph glyph);
 /*
  * Determine whether a sorted list of glyphs includes a given glyph.
  */
-bool psf_sorted_glyphs_include(P3(const gs_glyph *glyphs, int count,
-				  gs_glyph glyph));
+bool psf_sorted_glyphs_include(const gs_glyph *glyphs, int count,
+			       gs_glyph glyph);
 
 /*
  * Define the internal structure that holds glyph information for an
@@ -127,9 +123,12 @@ bool psf_sorted_glyphs_include(P3(const gs_glyph *glyphs, int count,
  * Type 1, Type 2, and CIDFontType 0 fonts, but someday it might also
  * be usable with TrueType (Type 42) and CIDFontType 2 fonts.
  */
+#define MAX_CFF_MISC_STRINGS 40
+#define MAX_CFF_STD_STRINGS 500 /* 391 entries used */
 typedef struct psf_outline_glyphs_s {
     gs_glyph notdef;
-    gs_glyph subset_data[256 * 3 + 1]; /* *3 for seac, +1 for .notdef */
+    /* gs_glyph subset_data[256 * 3 + 1]; *3 for seac, +1 for .notdef */
+    gs_glyph *subset_data;
     gs_glyph *subset_glyphs;	/* 0 or subset_data */
     uint subset_size;
 } psf_outline_glyphs_t;
@@ -140,13 +139,13 @@ typedef struct gs_font_type1_s gs_font_type1;
 #endif
 
 /* Define the type for the glyph data callback procedure. */
-typedef int (*glyph_data_proc_t)(P4(gs_font_base *, gs_glyph,
-				    gs_const_string *, gs_font_type1 **));
+typedef int (*glyph_data_proc_t)(gs_font_base *, gs_glyph,
+				 gs_glyph_data_t *, gs_font_type1 **);
 
 /* Check that all selected glyphs can be written. */
-int psf_check_outline_glyphs(P3(gs_font_base *pfont,
-				psf_glyph_enum_t *ppge,
-				glyph_data_proc_t glyph_data));
+int psf_check_outline_glyphs(gs_font_base *pfont,
+			     psf_glyph_enum_t *ppge,
+			     glyph_data_proc_t glyph_data);
 
 /*
  * Gather glyph information for a Type 1, Type 2, or CIDFontType 0 font.
@@ -156,21 +155,21 @@ int psf_check_outline_glyphs(P3(gs_font_base *pfont,
  * FDArray element.  If subset_glyphs != 0, this procedure removes
  * undefined glyphs from the list it builds.
  */
-int psf_get_outline_glyphs(P5(psf_outline_glyphs_t *pglyphs,
-			      gs_font_base *pfont, gs_glyph *subset_glyphs,
-			      uint subset_size, glyph_data_proc_t glyph_data));
+int psf_get_outline_glyphs(psf_outline_glyphs_t *pglyphs,
+			   gs_font_base *pfont, gs_glyph *subset_glyphs,
+			   uint subset_size, glyph_data_proc_t glyph_data);
 
 /* ------ Exported by gdevpsf1.c ------ */
 
 /* Gather glyph information for a Type 1 or Type 2 font. */
-int psf_type1_glyph_data(P4(gs_font_base *, gs_glyph, gs_const_string *,
-			    gs_font_type1 **));
-int psf_get_type1_glyphs(P4(psf_outline_glyphs_t *pglyphs,
-			    gs_font_type1 *pfont,
-			    gs_glyph *subset_glyphs, uint subset_size));
+int psf_type1_glyph_data(gs_font_base *, gs_glyph, gs_glyph_data_t *,
+			 gs_font_type1 **);
+int psf_get_type1_glyphs(psf_outline_glyphs_t *pglyphs,
+			 gs_font_type1 *pfont,
+			 gs_glyph *subset_glyphs, uint subset_size);
 
 /*
- * Write out a Type 1 font definition.  This procedure does not allocate
+ * Write a Type 1 font definition.  This procedure does not allocate
  * or free any data.
  */
 #define WRITE_TYPE1_EEXEC 1
@@ -179,24 +178,25 @@ int psf_get_type1_glyphs(P4(psf_outline_glyphs_t *pglyphs,
 #define WRITE_TYPE1_EEXEC_MARK 8  /* assume 512 0s will be added */
 #define WRITE_TYPE1_POSTSCRIPT 16  /* don't observe ATM restrictions */
 #define WRITE_TYPE1_WITH_LENIV 32  /* don't allow lenIV = -1 */
-int psf_write_type1_font(P7(stream *s, gs_font_type1 *pfont, int options,
-			    gs_glyph *subset_glyphs, uint subset_size,
-			    const gs_const_string *alt_font_name,
-			    int lengths[3]));
-
+int psf_write_type1_font(stream *s, gs_font_type1 *pfont, int options,
+			 gs_glyph *subset_glyphs, uint subset_size,
+			 const gs_const_string *alt_font_name,
+			 int lengths[3]);
 
 /* ------ Exported by gdevpsf2.c ------ */
 
 /*
- * Write out a Type 1 or Type 2 font definition as CFF.
+ * Write a Type 1 or Type 2 font definition as CFF.
  * This procedure does not allocate or free any data.
  */
 #define WRITE_TYPE2_NO_LENIV 1	/* always use lenIV = -1 */
 #define WRITE_TYPE2_CHARSTRINGS 2 /* convert T1 charstrings to T2 */
 #define WRITE_TYPE2_AR3 4	/* work around bugs in Acrobat Reader 3 */
-int psf_write_type2_font(P6(stream *s, gs_font_type1 *pfont, int options,
-			    gs_glyph *subset_glyphs, uint subset_size,
-			    const gs_const_string *alt_font_name));
+#define WRITE_TYPE2_NO_GSUBRS 8	/* omit GlobalSubrs */
+int psf_write_type2_font(stream *s, gs_font_type1 *pfont, int options,
+			 gs_glyph *subset_glyphs, uint subset_size,
+			 const gs_const_string *alt_font_name,
+			 gs_int_rect *FontBBox);
 
 #ifndef gs_font_cid0_DEFINED
 #  define gs_font_cid0_DEFINED
@@ -204,34 +204,33 @@ typedef struct gs_font_cid0_s gs_font_cid0;
 #endif
 
 /*
- * Write out a CIDFontType 0 font definition as CFF.  The options are
+ * Write a CIDFontType 0 font definition as CFF.  The options are
  * the same as for psf_write_type2_font.  subset_cids is a bit vector of
  * subset_size bits (not bytes).
  * This procedure does not allocate or free any data.
  */
-int psf_write_cid0_font(P6(stream *s, gs_font_cid0 *pfont, int options,
-			   const byte *subset_cids, uint subset_size,
-			   const gs_const_string *alt_font_name));
+int psf_write_cid0_font(stream *s, gs_font_cid0 *pfont, int options,
+			const byte *subset_cids, uint subset_size,
+			const gs_const_string *alt_font_name);
 
 /* ------ Exported by gdevpsfm.c ------ */
 
 /*
- * Write out a CMap in its customary (source) form.
+ * Write a CMap in its customary (source) form.
  * This procedure does not allocate or free any data.
  */
 #ifndef gs_cmap_DEFINED
 #  define gs_cmap_DEFINED
 typedef struct gs_cmap_s gs_cmap_t;
 #endif
-typedef int (*psf_put_name_chars_proc_t)(P3(stream *, const byte *, uint));
-int psf_write_cmap(P4(stream *s, const gs_cmap_t *pcmap,
-		      psf_put_name_chars_proc_t put_name_chars,
-		      const gs_const_string *alt_cmap_name));
-
+typedef int (*psf_put_name_chars_proc_t)(stream *, const byte *, uint);
+int psf_write_cmap(const gs_memory_t *mem, stream *s, const gs_cmap_t *pcmap,
+		   psf_put_name_chars_proc_t put_name_chars,
+		   const gs_const_string *alt_cmap_name, int font_index_only);
 /* ------ Exported by gdevpsft.c ------ */
 
 /*
- * Write out a TrueType (Type 42) font definition.
+ * Write a TrueType (Type 42) font definition.
  * This procedure does not allocate or free any data.
  */
 #ifndef gs_font_type42_DEFINED
@@ -242,9 +241,25 @@ typedef struct gs_font_type42_s gs_font_type42;
 #define WRITE_TRUETYPE_NAME 2	/* generate name if missing */
 #define WRITE_TRUETYPE_POST 4	/* generate post if missing */
 #define WRITE_TRUETYPE_NO_TRIMMED_TABLE 8  /* not OK to use cmap format 6 */
-int psf_write_truetype_font(P6(stream *s, gs_font_type42 *pfont, int options,
-			       gs_glyph *subset_glyphs, uint subset_size,
-			       const gs_const_string *alt_font_name));
+#define WRITE_TRUETYPE_HVMTX 16	/* generate [hv]mtx from glyph_info */
+int psf_write_truetype_font(stream *s, gs_font_type42 *pfont, int options,
+			    gs_glyph *subset_glyphs, uint subset_size,
+			    const gs_const_string *alt_font_name);
+
+/*
+ * Write a "stripped" TrueType font definition.  All tables are written
+ * verbatim, except for deleting the bogus Adobe marker "tables" gdir, glyx,
+ * and locx, and also deleting glyf and loca.
+ * This procedure does not allocate or free any data.
+ *
+ * The purpose of "stripped" fonts is simply to store all of the non-glyph
+ * information from a TrueType-family font in a structure that can be easily
+ * stored, accessed, and eventually combined with the glyph information.
+ * The only intended client for this function is the font copying code in
+ * gxfcopy.c, q.v.  In particular, "stripped" fonts are not fully valid
+ * fonts because they lack glyph 0 (the .notdef glyph).
+ */
+int psf_write_truetype_stripped(stream *s, gs_font_type42 *pfont);
 
 #ifndef gs_font_cid2_DEFINED
 #  define gs_font_cid2_DEFINED
@@ -252,7 +267,7 @@ typedef struct gs_font_cid2_s gs_font_cid2;
 #endif
 
 /*
- * Write out a CIDFontType 2 font definition.  This differs from
+ * Write a CIDFontType 2 font definition.  This differs from
  * psf_write_truetype_font in that the subset, if any, is specified
  * as a bit vector (as for psf_write_cid0_font) rather than a list of glyphs.
  * Also, none of the options currently have any effect.  The only tables
@@ -266,10 +281,15 @@ typedef struct gs_font_cid2_s gs_font_cid2;
  * included explicitly in the subset.
  * This procedure does not allocate or free any data.
  */
-#define WRITE_TRUETYPE_CID 0x1000 /* internal */
-int psf_write_cid2_font(P6(stream *s, gs_font_cid2 *pfont, int options,
-			   const byte *subset_glyphs, uint subset_size,
-			   const gs_const_string *alt_font_name));
+int psf_write_cid2_font(stream *s, gs_font_cid2 *pfont, int options,
+			const byte *subset_glyphs, uint subset_size,
+			const gs_const_string *alt_font_name);
+
+/*
+ * Write a "stripped" CIDFontType 2 font definition.  This is the same
+ * as an ordinary CIDFontType 2 definition, minus glyf and loca.
+ */
+int psf_write_cid2_stripped(stream *s, gs_font_cid2 *pfont);
 
 /* ------ Exported by gdevpsfx.c ------ */
 
@@ -278,7 +298,7 @@ int psf_write_cid2_font(P6(stream *s, gs_font_cid2 *pfont, int options,
  * This procedure does not allocate or free any data.
  * NOTE: this procedure expands all Subrs in-line.
  */
-int psf_convert_type1_to_type2(P3(stream *s, const gs_const_string *pstr,
-				  gs_font_type1 *pfont));
+int psf_convert_type1_to_type2(stream *s, const gs_glyph_data_t *pgd,
+			       gs_font_type1 *pfont);
 
 #endif /* gdevpsf_INCLUDED */

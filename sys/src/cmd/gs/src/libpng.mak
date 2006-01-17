@@ -1,21 +1,19 @@
-#    Copyright (C) 1995, 2001 artofcode LLC.  All rights reserved.
+#    Copyright (C) 1995-2002 artofcode LLC. All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: libpng.mak,v 1.10.2.1 2002/02/01 03:25:45 raph Exp $
+# $Id: libpng.mak,v 1.14 2003/05/15 10:01:38 ghostgum Exp $
 # makefile for PNG (Portable Network Graphics) code.
 # Users of this makefile must define the following:
 #	ZSRCDIR - the zlib source directory
@@ -25,7 +23,7 @@
 #	PNGGENDIR - the generated intermediate file directory
 #	PNGOBJDIR - the object directory
 #	PNGVERSION - the library version number ("90", "95", "96",
-#	  and "10001" through "10201").
+#	  and "10001" through "10012" and "10201").
 #	  For historical reasons, "101" and "102" are also acceptable,
 #	  even though they don't match libpng's numbering scheme
 #	  (see png.h for more details).
@@ -87,7 +85,7 @@ png.config-clean :
 
 PDEP=$(AK)
 
-png_1=$(PNGOBJ)png.$(OBJ) $(PNGOBJ)pngmem.$(OBJ) $(PNGOBJ)pngerror.$(OBJ)
+png_1=$(PNGOBJ)png.$(OBJ) $(PNGOBJ)pngmem.$(OBJ) $(PNGOBJ)pngerror.$(OBJ) $(PNGOBJ)pngset.$(OBJ)
 png_2=$(PNGOBJ)pngtrans.$(OBJ) $(PNGOBJ)pngwrite.$(OBJ) $(PNGOBJ)pngwtran.$(OBJ) $(PNGOBJ)pngwutil.$(OBJ)
 
 # libpng modules
@@ -103,6 +101,9 @@ $(PNGOBJ)pngmem.$(OBJ) : $(PNGSRC)pngmem.c $(PDEP)
 
 $(PNGOBJ)pngerror.$(OBJ) : $(PNGSRC)pngerror.c $(PDEP)
 	$(PNGCC) $(PNGO_)pngerror.$(OBJ) $(C_) $(PNGSRC)pngerror.c
+
+$(PNGOBJ)pngset.$(OBJ) : $(PNGSRC)pngset.c $(PDEP)
+	$(PNGCC) $(PNGO_)pngset.$(OBJ) $(C_) $(PNGSRC)pngset.c
 
 $(PNGOBJ)pngtrans.$(OBJ) : $(PNGSRC)pngtrans.c $(PDEP)
 	$(PNGCC) $(PNGO_)pngtrans.$(OBJ) $(C_) $(PNGSRC)pngtrans.c

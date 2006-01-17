@@ -1,0 +1,271 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>ps2ps2: Converts Postscript Level 3 or PDF into Postscript Level 2</title>
+<!-- $Id: Ps2ps2.htm,v 1.7 2005/10/20 19:46:23 ray Exp $ -->
+<link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
+</head>
+
+<body>
+<!-- [1.0 begin visible header] ============================================ -->
+
+<!-- [1.1 begin headline] ================================================== -->
+
+<h1><tt>ps2ps2</tt>: Converts Postscript Level 3 or PDF into Postscript Level 2</h1>
+
+<!-- [1.1 end headline] ==================================================== -->
+
+<!-- [1.2 begin table of contents] ========================================= -->
+
+<h2>Table of contents</h2>
+
+<blockquote><ul>
+<li><a href="#Overview">Overview</a>
+<li><a href="#Usage">Usage</a>
+<li><a href="#Options">Options</a>
+<li><a href="#PPD">Ghostscript PS2 Printer Description</a>
+<li><a href="#printer_control">Controlling the printer behavior</a>
+<li><a href="#Limitations">Limitations</a>
+</ul></blockquote>
+
+<!-- [1.2 end table of contents] =========================================== -->
+
+<!-- [1.3 begin hint] ====================================================== -->
+
+<p>For other information, see the <a href="Readme.htm">Ghostscript
+overview</a>.
+
+<!-- [1.3 end hint] ======================================================== -->
+
+<hr>
+
+<!-- [1.0 end visible header] ============================================== -->
+
+<!-- [2.0 begin contents] ================================================== -->
+
+<h2><a name="Overview"></a>Overview</h2>
+
+<b><tt>ps2ps2</tt></b> is a script for converting a PDF or a Postscript Level 3 into
+Postscript Level 2.
+
+<p>
+<b><tt>ps2ps2</tt></b> is implemented as a very small command script (batch
+file) that invokes Ghostscript, selecting a special "output device" called
+<b><tt>ps2write</tt></b>.  In order to use <b><tt>ps2ps2</tt></b>, the
+<b><tt>ps2write</tt></b> device must be included in the makefile when
+Ghostscript was compiled; see the <a
+href="Make.htm#Features_and_devices">documentation on building
+Ghostscript</a> for details: this is currently the case on all platforms, in
+Ghostscript as we distribute it.
+
+<hr>
+
+<h2><a name="Usage"></a>Usage</h2>
+
+<p>
+The usage for <b><tt>ps2ps2</tt></b> is
+
+<blockquote><b><tt>
+ps2ps2</tt></b> <em>[options] input.{ps|eps|pdf} output.ps</em>
+</blockquote>
+
+
+
+<h2><a name="Options"></a>Options</h2>
+
+<p>
+The <em>options</em> given on the command line may include any switches 
+that may be used with Ghostscript's PostScript and PDF interpreter (see 
+<a href="Use.htm#Switches">here</a> for a complete list).
+
+<p>
+Since <b><tt>ps2write</tt></b> makes use of some printer 
+parameters while converting high level objects into Level 2 objects,
+we strongly recommend to set those values in accordance with the
+target printer or other output device.
+In particular, it is important for
+<a  href="Use.htm#Output_resolution">Output resolution</a>,
+<a href="Use.htm#FIXEDMEDIA"><b><tt>-dFIXEDMEDIA</tt></b></a>, and
+<b><tt>ProcessColorModel</tt></b></a> to be set correctly.
+
+<p>
+<em>
+<b>Important :</b>
+If the target printer can't handle some font type,
+ps2write converts such fonts into bitmap fonts,
+using the resolution specified when ps2write is invoked.
+Particularly this always happen with CID fonts, which are not Postscript Level 2 objects.
+Therefore the page device parameter <b><tt>PageSize</tt></b>
+must match the target printer, and we recommend to set
+the <b><tt>PageSize</tt></b> entry of the <b><tt>Policies</tt></b>
+dictionary to 3, in order to provide a proper page scaling
+in the Postscript interpreter while ps2write is invoked.
+</em>
+
+<p>
+More importantly, <em>options</em> passed to ps2ps2 may include
+<b><tt>-d</tt></b><em>parameter</em>=<em>value</em> or
+<b><tt>-s</tt></b><em>parameter</em>=<em>string</em> switches for setting
+"distiller parameters", Adobe's documented parameters for controlling the
+conversion process.  The PostScript <b><tt>setdistillerparams</tt></b> and
+<b><tt>currentdistillerparams</tt></b> operators are also recognized when
+running <b><tt>ps2ps2</tt></b>, and provide an equivalent way to set these
+parameters from within the PostScript input file.
+
+<p>
+The <b><tt>ps2write</tt></b> device handles the same set of distiller 
+parameters as
+are handled by the <b><tt>pdfwrite</tt></b> device. See the 
+<a href="Ps2pdf.htm#Options">PostScript-to-PDF converter</a> 
+documentation for a complete description of how to use them to
+control the document conversion.
+
+<p>
+The following options may be important for <b><tt>ps2ps2</tt></b> due to the target printer features:
+<dl>
+<dt><b><tt>-dPatternImagemask=</tt></b><em>boolean</em>,
+<dt><b><tt>-dMaxClipPathSize=</tt></b><em>integer</em>,
+<dt><b><tt>-dMaxShadingBitmapSize=</tt></b><em>integer</em>,
+<dt><b><tt>-dHaveTrueTypes=</tt></b><em>boolean</em>.
+</dl>
+See <a href="Ps2pdf.htm#Options">PostScript-to-PDF converter</a> for details.
+
+The option <b><tt>-dMaxInlineImageSize=</tt></b><em>integer</em>
+Must not be used with <tt><b>ps2ps2</tt></b>.
+
+
+<p>
+This set includes of the Acrobat Distiller 5 parameters
+defined in the DistillerParameters document included in the 
+<a href="http://partners.adobe.com/public/developer/acrobat/sdk/index.html">Acrobat SDK</a>.
+
+Default values are same as the <tt><b>printer</tt></b> settings defined 
+in <a href="Ps2pdf.htm#Options">PostScript-to-PDF converter</a>,
+with these exceptions:
+
+<dl>
+<dt><b><tt>/PreserveHalftoneInfo</tt></b> <em>true</em>,
+<dt><b><tt>/TransferFunctionInfo</tt></b> <em>/Preserve</em>,
+<dt><b><tt>/MaxViewerMemorySize</tt></b> <em>8000000</em>,
+<dt><b><tt>/CompressPages</tt></b> <em>false</em>,
+<dt><b><tt>/CompressFonts</tt></b> <em>false</em>,
+<dt><b><tt>/ASCII85EncodePages</tt></b> <em>true</em>,
+</dl>
+
+<p>
+The following ps2write specific option control the output file compression :
+<p>
+
+<dl>
+<b><tt>-dCompressEntireFile=</tt></b><em>boolean</em>
+<dd>When this parameter is true, the <b><tt>LZWEncode</b></tt>
+and <b><tt>ASCII85Encode</b></tt> filters are being applied to entire output file.
+In this case <b><tt>CompressPages</b></tt> should be false to exclude a dual compression.
+When this parameter is false, those filters applies to the initial procset only,
+if <b><tt>CompressPages</b></tt> is true.
+Default value is <b><tt>false</b></tt>.
+</dl>
+
+
+<h2><a name="PPD"></a>Ghostscript PS2 Printer Description</h2>
+<p>
+Not implemented yet.
+<hr>
+
+<h2><a name="printer_control"></a>Controlling the printer behavior</h2>
+
+<p>
+A few options can be used to control the behavior of the printer or 
+program that reads the result of ps2ps2.
+
+<dl>
+<dt><b><tt>-dRotatePages=</tt></b><em>boolean</em>. 
+<dd>The printer will rotate pages 
+for a better fitting into the real page size. Default value : <em>false</em>.
+Must be <em>false</em> if <b><tt>-dSetPageSize=true</tt></b>.
+
+<dt><b><tt>-dFitPages=</tt></b><em>boolean</em>. 
+<dd>The printer will scale pages down
+to fit into the real page size. The rendering quality may be poor due to the scaling,
+especially for fonts which Ghostscript had converted into bitmaps 
+(see the <em>ps2write</em> device parameter <b><tt>HaveTrueTypes</tt></b>;
+See <a href="#Options">Options</a> about the <b><tt>PageSize</tt></b> entry of the <b><tt>Policies</tt></b>
+dictionary while the conversion step). 
+Default value : <em>false</em>.
+Must be <em>false</em> if <b><tt>-dSetPageSize=true</tt></b>.
+
+<dt><b><tt>-dSetPageSize=</tt></b><em>boolean</em>. 
+<dd>The printer will try to set page size from the job. 
+Only use with printers which can handle random <em>PageSize</em>.
+Must be <em>false</em> if <b><tt>-dRotatePages=true</tt></b> or <b><tt>-dFitPages=true</tt></b>.
+
+</dl>
+
+<p>
+These correspond to keys in the Postscript <em>userdict</em> 
+of the target printer's virtual memory to control its behavior while 
+executing a job generated with <tt><b>ps2ps2</tt></b>.
+
+<p>
+Currently Ghostscript does not provide a method for 
+incorporating these in a print job.
+Users should refer to the printer's documentation.
+
+<hr>
+
+
+<h2><a name="Limitations"></a>Limitations</h2>
+
+<p>
+Attempting to generate a device independent Postscript Level 2 is a bad idea.
+Postscript Level 2 data are device dependent by definition. Let Ghostscript know
+the features of the specific printer as described in 
+<a href="#Options">Options</a> while generating a printer job.
+
+<p>
+<b><tt>ps2ps2</tt></b> does not generate DSC comments.
+
+
+<p>
+<b><tt>ps2ps2</tt></b> provides simplified interface to Ghostscript
+command line. It is not possible to use <tt><b>-c</tt></b> option or pass
+multiple source files. For the unrestricted access to the command line
+parameters, use Ghostscript directly.
+
+<blockquote><b><tt>
+gs -q -dSAFER -dNOPAUSE -dBATCH -sOutputFile=file.ps </tt></b><em>[more options]</em><b><tt> \<br>
+&nbsp;&nbsp;-sDEVICE=ps2write </b></tt><em>source1.pdf [more files]</em>
+</blockquote>
+
+<hr>
+
+
+<!-- [2.0 end contents] ==================================================== -->
+
+<!-- [3.0 begin visible trailer] =========================================== -->
+
+<p>
+<small>Copyright &copy; 1996, 2000, 2004 artofcode LLC.  All rights
+reserved.</small>
+
+<p>
+This software is provided AS-IS with no warranty, either express or
+implied.
+
+This software is distributed under license and may not be copied,
+modified or distributed except as expressly authorized under the terms
+of the license contained in the file LICENSE in this distribution.
+
+For more information about licensing, please refer to
+http://www.ghostscript.com/licensing/. For information on
+commercial licensing, go to http://www.artifex.com/licensing/ or
+contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+
+<p>
+<small>Ghostscript version 8.53, 20 October 2005
+
+<!-- [3.0 end visible trailer] ============================================= -->
+
+</body>
+</html>

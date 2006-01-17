@@ -1,5 +1,5 @@
 @echo off
-@rem $Id: gssetgs.bat,v 1.3 2001/06/22 16:09:22 lpd Exp $
+@rem $Id: gssetgs.bat,v 1.5 2002/02/21 21:49:28 giles Exp $
 
 rem Set default values for GS (gs with graphics window) and GSC
 rem (console mode gs) if the user hasn't set them.

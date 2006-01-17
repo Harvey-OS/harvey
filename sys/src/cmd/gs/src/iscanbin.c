@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: iscanbin.c,v 1.5 2000/09/19 19:00:46 lpd Exp $ */
+/* $Id: iscanbin.c,v 1.14 2004/08/04 19:36:13 stefan Exp $ */
 /* Ghostscript binary token scanner and writer */
 #include "math_.h"
 #include "memory_.h"
@@ -26,7 +24,7 @@
 #include "stream.h"
 #include "strimpl.h"		/* for sfilter.h */
 #include "sfilter.h"		/* for iscan.h */
-#include "errors.h"
+#include "ierrors.h"
 #include "ialloc.h"
 #include "iddict.h"
 #include "dstack.h"		/* for immediately evaluated names */
@@ -84,8 +82,14 @@ private const byte bin_token_num_formats[NUM_BIN_TOKEN_TYPES] =
 {
     num_msb + num_float_IEEE,	/* BT_SEQ_IEEE_MSB */
     num_lsb + num_float_IEEE,	/* BT_SEQ_IEEE_LSB */
+#if ARCH_FLOATS_ARE_IEEE && BYTE_SWAP_IEEE_NATIVE_REALS
+    /* Treat native floats like IEEE floats for byte swapping. */
+    num_msb + num_float_IEEE,	/* BT_SEQ_NATIVE_MSB */
+    num_lsb + num_float_IEEE,	/* BT_SEQ_NATIVE_LSB */
+#else
     num_msb + num_float_native,	/* BT_SEQ_NATIVE_MSB */
     num_lsb + num_float_native,	/* BT_SEQ_NATIVE_LSB */
+#endif
     num_msb + num_int32,	/* BT_INT32_MSB */
     num_lsb + num_int32,	/* BT_INT32_LSB */
     num_msb + num_int16,	/* BT_INT16_MSB */
@@ -131,12 +135,12 @@ typedef enum {
 #define SIZEOF_BIN_SEQ_OBJ ((uint)8)
 
 /* Forward references */
-private int scan_bin_get_name(P3(const ref *, int, ref *));
-private int scan_bin_num_array_continue(P4(i_ctx_t *, stream *, ref *, scanner_state *));
-private int scan_bin_string_continue(P4(i_ctx_t *, stream *, ref *, scanner_state *));
-private int scan_bos_continue(P4(i_ctx_t *, stream *, ref *, scanner_state *));
-private byte *scan_bos_resize(P4(i_ctx_t *, scanner_state *, uint, uint));
-private int scan_bos_string_continue(P4(i_ctx_t *, stream *, ref *, scanner_state *));
+private int scan_bin_get_name(const gs_memory_t *mem, const ref *, int, ref *);
+private int scan_bin_num_array_continue(i_ctx_t *, stream *, ref *, scanner_state *);
+private int scan_bin_string_continue(i_ctx_t *, stream *, ref *, scanner_state *);
+private int scan_bos_continue(i_ctx_t *, stream *, ref *, scanner_state *);
+private byte *scan_bos_resize(i_ctx_t *, scanner_state *, uint, uint);
+private int scan_bos_string_continue(i_ctx_t *, stream *, ref *, scanner_state *);
 
 /* Scan a binary token.  Called from the main scanner */
 /* when it encounters an ASCII code 128-159, */
@@ -281,8 +285,7 @@ scan_binary_token(i_ctx_t *i_ctx_p, stream *s, ref *pref,
 		 * the executable, it is probably actually read-only.
 		 */
 		s_end_inline(s, p, rlimit);
-		make_string(pref, a_all | avm_foreign, arg,
-			    (byte *)sbufptr(s));
+		make_const_string(pref, a_all | avm_foreign, arg, sbufptr(s));
 		sbufskip(s, arg);
 		return 0;
 	    } else {
@@ -302,13 +305,13 @@ scan_binary_token(i_ctx_t *i_ctx_p, stream *s, ref *pref,
 		return code;
 	    }
 	case BT_LITNAME_SYSTEM:
-	    code = scan_bin_get_name(system_names_p, p[1], pref);
+	    code = scan_bin_get_name(imemory, system_names_p, p[1], pref);
 	    goto lname;
 	case BT_EXECNAME_SYSTEM:
-	    code = scan_bin_get_name(system_names_p, p[1], pref);
+	    code = scan_bin_get_name(imemory, system_names_p, p[1], pref);
 	    goto xname;
 	case BT_LITNAME_USER:
-	    code = scan_bin_get_name(user_names_p, p[1], pref);
+	    code = scan_bin_get_name(imemory, user_names_p, p[1], pref);
 	  lname:
 	    if (code < 0)
 		return code;
@@ -317,7 +320,7 @@ scan_binary_token(i_ctx_t *i_ctx_p, stream *s, ref *pref,
 	    s_end_inline(s, p + 1, rlimit);
 	    return 0;
 	case BT_EXECNAME_USER:
-	    code = scan_bin_get_name(user_names_p, p[1], pref);
+	    code = scan_bin_get_name(imemory, user_names_p, p[1], pref);
 	  xname:
 	    if (code < 0)
 		return code;
@@ -353,11 +356,11 @@ scan_binary_token(i_ctx_t *i_ctx_p, stream *s, ref *pref,
 
 /* Get a system or user name. */
 private int
-scan_bin_get_name(const ref *pnames /*t_array*/, int index, ref *pref)
+scan_bin_get_name(const gs_memory_t *mem, const ref *pnames /*t_array*/, int index, ref *pref)
 {
     if (pnames == 0)
 	return_error(e_rangecheck);
-    return array_get(pnames, (long)index, pref);
+    return array_get(mem, pnames, (long)index, pref);
 }
 
 /* Continue collecting a binary string. */
@@ -369,6 +372,10 @@ scan_bin_string_continue(i_ctx_t *i_ctx_p, stream * s, ref * pref,
     uint wanted = pstate->s_da.limit - q;
     uint rcnt;
 
+    /* We don't check the return status from 'sgets' here.
+       If there is an error in sgets, the condition rcnt==wanted
+       would be false and this function will return scan_Refill.
+    */
     sgets(s, q, wanted, &rcnt);
     if (rcnt == wanted) {
 	/* Finished collecting the string. */
@@ -472,7 +479,8 @@ scan_bos_continue(i_ctx_t *i_ctx_p, register stream * s, ref * pref,
 		    osize = sdecodeushort(p + 3, num_format);
 		    if (osize != 0) {	/* fixed-point number */
 			value = sdecodelong(p + 5, num_format);
-			vreal = (float)ldexp((double)value, -osize);
+			/* ldexp requires a signed 2nd argument.... */
+			vreal = (float)ldexp((double)value, -(int)osize);
 		    } else {
 			vreal = sdecodefloat(p + 5, num_format);
 		    }
@@ -527,10 +535,10 @@ scan_bos_continue(i_ctx_t *i_ctx_p, register stream * s, ref * pref,
 		value = sdecodelong(p + 5, num_format);
 		switch (osize) {
 		    case 0:
-			code = array_get(user_names_p, value, op);
+			code = array_get(imemory, user_names_p, value, op);
 			goto usn;
 		    case 0xffff:
-			code = array_get(system_names_p, value, op);
+			code = array_get(imemory, system_names_p, value, op);
 		      usn:
 			if (code < 0)
 			    return code;
@@ -620,7 +628,7 @@ scan_bos_string_continue(i_ctx_t *i_ctx_p, register stream * s, ref * pref,
 {
     scan_binary_state *const pbs = &pstate->s_ss.binary;
     ref rstr;
-    ref *op = pbs->bin_array.value.refs;
+    ref *op;
     int code = scan_bin_string_continue(i_ctx_p, s, &rstr, pstate);
     uint space = ialloc_space(idmemory);
     bool rescan = false;
@@ -628,8 +636,12 @@ scan_bos_string_continue(i_ctx_t *i_ctx_p, register stream * s, ref * pref,
 
     if (code != 0)
 	return code;
-    /* Finally, fix up names and dictionaries. */
-    for (i = r_size(&pbs->bin_array); i != 0; i--, op++)
+
+    /* Fix up names.  We must do this before creating dictionaries. */
+
+    for (op = pbs->bin_array.value.refs, i = r_size(&pbs->bin_array);
+	 i != 0; i--, op++
+	 )
 	switch (r_type(op)) {
 	    case t_string:
 		if (r_has_attr(op, a_write))	/* a real string */
@@ -639,7 +651,7 @@ scan_bos_string_continue(i_ctx_t *i_ctx_p, register stream * s, ref * pref,
 		    uint attrs =
 		    (r_has_attr(op, a_executable) ? a_executable : 0);
 
-		    code = name_ref(op->value.bytes, r_size(op), op, 1);
+		    code = name_ref(imemory, op->value.bytes, r_size(op), op, 1);
 		    if (code < 0)
 			return code;
 		    r_set_attrs(op, attrs);
@@ -655,6 +667,18 @@ scan_bos_string_continue(i_ctx_t *i_ctx_p, register stream * s, ref * pref,
 		    ref_assign(op, defp);
 		}
 		break;
+	    case t_mixedarray:	/* actually a dictionary */
+		rescan = true;
+	}
+
+    /* Create dictionaries, if any. */
+
+    if (rescan) {
+	rescan = false;
+	for (op = pbs->bin_array.value.refs, i = r_size(&pbs->bin_array);
+	     i != 0; i--, op++
+	     )
+	    switch (r_type(op)) {
 	    case t_mixedarray:	/* actually a dictionary */
 		{
 		    uint count = r_size(op);
@@ -675,8 +699,8 @@ scan_bos_string_continue(i_ctx_t *i_ctx_p, register stream * s, ref * pref,
 			while (count) {
 			    count -= 2;
 			    code = idict_put(&rdict,
-					    &op->value.refs[count],
-					    &op->value.refs[count + 1]);
+					     &op->value.refs[count],
+					     &op->value.refs[count + 1]);
 			    if (code < 0)
 				return code;
 			}
@@ -686,9 +710,11 @@ scan_bos_string_continue(i_ctx_t *i_ctx_p, register stream * s, ref * pref,
 		    ref_assign(op, &rdict);
 		}
 		break;
-	}
-    /* If there were any forward indirect references, */
-    /* fix them up now. */
+	    }
+    }
+
+    /* If there were any forward indirect references, fix them up now. */
+
     if (rescan)
 	for (op = pbs->bin_array.value.refs, i = r_size(&pbs->bin_array);
 	     i != 0; i--, op++
@@ -703,6 +729,7 @@ scan_bos_string_continue(i_ctx_t *i_ctx_p, register stream * s, ref * pref,
 		r_copy_attrs(&rdict, a_executable, op);
 		ref_assign(op, &rdict);
 	    }
+
     ref_assign(pref, &pbs->bin_array);
     r_set_size(pref, pbs->top_size);
     return scan_BOS;
@@ -716,6 +743,7 @@ encode_binary_token(i_ctx_t *i_ctx_p, const ref *obj, long *ref_offset,
 {
     bin_seq_type_t type;
     uint size = 0;
+    int format = (int)ref_binary_object_format.value.intval;
     long value;
     ref nstr;
 
@@ -732,13 +760,17 @@ encode_binary_token(i_ctx_t *i_ctx_p, const ref *obj, long *ref_offset,
 	    break;
 	case t_real:
 	    type = BS_TYPE_REAL;
-	    /***** DOESN'T HANDLE NON-IEEE NATIVE *****/
-	    if (sizeof(obj->value.realval) == sizeof(int)) {
-		value = *(const int *)&obj->value.realval;
-	    } else {
-		/****** CAN'T HANDLE IT ******/
+	    if (sizeof(obj->value.realval) != sizeof(int)) {
+		/* The PLRM allocates exactly 4 bytes for reals. */
 		return_error(e_rangecheck);
 	    }
+	    value = *(const int *)&obj->value.realval;
+#if !(ARCH_FLOATS_ARE_IEEE && BYTE_SWAP_IEEE_NATIVE_REALS)
+	    if (format >= 3) {
+		/* Never byte-swap native reals -- use native byte order. */
+		format = 4 - ARCH_IS_BIG_ENDIAN;
+	    }
+#endif
 	    break;
 	case t_boolean:
 	    type = BS_TYPE_BOOLEAN;
@@ -763,7 +795,7 @@ nos:
 	    break;
 	case t_name:
 	    type = BS_TYPE_NAME;
-	    name_string_ref(obj, &nstr);
+	    name_string_ref(imemory, obj, &nstr);
 	    r_copy_attrs(&nstr, a_executable, obj);
 	    obj = &nstr;
 	    goto nos;
@@ -772,18 +804,17 @@ nos:
     }
     {
 	byte s0 = (byte) size, s1 = (byte) (size >> 8);
-	byte v0 = (byte) value, v1 = (byte) (value >> 8), v2 = (byte) (value >> 16),
-	     v3 = (byte) (value >> 24);
-	int order = (int)ref_binary_object_format.value.intval - 1;
+	byte v0 = (byte) value, v1 = (byte) (value >> 8),
+	    v2 = (byte) (value >> 16), v3 = (byte) (value >> 24);
 
-	if (order & 1) {
-	    /* Store little-endian */
-	    str[2] = s0, str[3] = s1;
-	    str[4] = v0, str[5] = v1, str[6] = v2, str[7] = v3;
-	} else {
+	if (format & 1) {
 	    /* Store big-endian */
 	    str[2] = s1, str[3] = s0;
 	    str[4] = v3, str[5] = v2, str[6] = v1, str[7] = v0;
+	} else {
+	    /* Store little-endian */
+	    str[2] = s0, str[3] = s1;
+	    str[4] = v0, str[5] = v1, str[6] = v2, str[7] = v3;
 	}
     }
 tx:

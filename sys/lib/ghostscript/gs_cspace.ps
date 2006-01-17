@@ -1,0 +1,984 @@
+%    Copyright (C) 2002 Aladdin Enterprises.  All rights reserved.
+% 
+% This software is provided AS-IS with no warranty, either express or
+% implied.
+% 
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
+% 
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+
+% $Id: gs_cspace.ps,v 1.6 2003/06/26 22:42:33 dan Exp $
+% basic colorspace mechanism
+
+%
+% This new implementation of color spaces extends the color space 
+% formalism to all PostScript levels. Level specific features and 
+% operators continue to be accessible only in the appropriate level, 
+% but the colorspace concept and associated mechanisms are used 
+% throughout.
+%
+% The color space mechanism is built around two dictionaries:
+%
+%   .cspace_util
+%       A dictionary in global VM that is accessible in userdict only
+%       during initialization. This dictionary is intended for various
+%       utility procedures that are used in implementing the individual
+%       color spaces.
+%
+%   colorspacedict
+%       A dictionary of methods for each color space type. The keys
+%       in this dictionary are color space type names (e.g.: /DeviceGray,
+%       /Separation, etc.), and the values are dictionaries of methods.
+%       The set of methods is the same for each color space type, and
+%       provides a complete implementation for the corresponding color
+%       space type. This dictionary is in global VM.
+%
+% The information specific to a color space type is created in a file
+% for that type or group of types (e.g.: gs_csdev.ps, gs_csindx.ps,
+% etc.). These files will generally adhere to the template:
+%
+%      .currentglobal true .setglobal
+%      <level-specific dictionary> begin
+%      ...
+%      .cspace_util begin
+%      colorspacedict
+%      /<color space type name>
+%       mark
+%          /cs_validate
+%            {
+%               ...
+%            }
+%          bind
+%          ...
+%       .dicttomark
+%      put
+%      end      % .cspace_util
+%      end ...  % level-specific dictionary
+%      .setglobal
+%
+% The methods associated with a color space are listed below (along with
+% their stack handling), followed by descriptions.
+%
+%   -   cs_potential_indexed_base   <bool>
+%
+%   -   cs_potential_pattern_base   <bool>
+%
+%   -   cs_potential_alternate   <bool>
+%
+%   -   cs_potential_icc_alternate   <bool>
+%
+%
+%   <name | array>   cs_get_ncomps   <int>
+%
+%   <name | array>   cs_get_range   <range_array>
+%
+%   <name | array>   cs_get_default_color   <c1> ... <cn>
+%
+%
+%   <c1> ... <cn>  <name | array>   cs_get_currentgray   <gray>
+%
+%   <c1> ... <cn>  <name | array>   cs_get_currentrgb   <red>  <green>  <blue>
+%
+%   <c1> ... <cn>  <name | array>   cs_get_currentcmyk 
+%                                       <cyan>  <magenta>  <yellow>  <black>
+%
+%
+%   <name | array>   cs_validate   <name | array>
+%
+%   <name1 | array1>    cs_substitute   <name1 | array1>  <array2>
+%
+%   <name1 | array1>  <array2>   cs_prepare   <name1 | array1>  <array2>
+%
+%   <name | array>   cs_install   -
+%
+%
+%   <c1> ... <cn>  <array>   cs_verify_color   <c1> ... <cn>
+%
+%   <array>   cs_complete_color   -
+%
+%
+% cs_potential_indexed_base, cs_potential_pattern_base,
+% cs_potential_alternate, cs_potential_icc_alternate
+%   These are booleans rather than procedures. They indicate if the color
+%   space can be a base space of an Indexed color space (anything except
+%   Indexed and Pattern), a Pattern color space (anything except Pattern),
+%   the alternative color space of a Separation or DeviceN color space, or
+%   the alternative color space of an ICCBased color space. The two
+%   parameters are distinct only because of a Ghostscript-specific
+%   implementation problem; in principle, there is nothing special about
+%   ICCBased color spaces in this regard.
+%
+% cs_get_ncomps
+%   Return the number of color components for the color spaces. For Pattern
+%   color spaces, the value is -1 if there is no base space, or -(n + 1) if
+%   the base space has n components.
+%
+% cs_get_range
+%   Return the input Range array appropriate for this color space. This is
+%   defined for all color spaces, though it is of interest primarily for
+%   CIEBased and ICCBased color spaces. For Indexed color spaces this is
+%   [ 0 hival ], where hival is the maximum support index value. For all
+%   other non-CIEBased, non-ICCBased color spaces, the range is an array
+%   of ncomps elements, all of which are [ 0 1 ], where ncomps is the 
+%   number of color space components.
+%
+% cs_get_default_color
+%   Generates the default color for the current color space. Under normal
+%   circumstances this is done internally. It is provided in PostScript
+%   only to support an optimization that doesn't change the current color
+%   space more often than necessary.
+%
+% cs_get_currentgray, cs_get_currentrgb, cs_get_currentcmyk
+%   These procedures are used to implement the currentgray, currentrgb,
+%   and currentcmyk operators (which are pseudo-operators in the current
+%   implementation).
+%
+% cs_validate
+%   Validate the operand color space. Because color spaces are extensively
+%   manipulated in PostScript in this implementation, error handling can
+%   become burdensome. To make the code somewhat simpler, it is useful to
+%   be able to validate a color space prior to manipulation, so as to
+%   ensure that errors are not discovered in awkward places.
+%
+% cs_substitute
+%   Substitute a device-independent color space for device specific color
+%   space. This applies directly to the device-specific color spaces
+%   (DeviceGray, DeviceRGB, DeviceCMYK), and indirectly when these color
+%   spaces are used as base/alternative color spaces. The mechanism for
+%   color substitution is included in all language levels, though it may
+%   only be accessed for Language Level 3.
+%
+%   The substituted color space is the topmost of the operands pushed.
+%   this may or may not be the same as the original color space, which
+%   is immediately below it on the operand stack. If the two differ,
+%   the substituted space will always be in local VM (and will be
+%   writable).
+%
+%   Substitution is applied recursively to the base/alternate color
+%   space of ICCBased, Indexed, Separation, DeviceN, or Pattern
+%   color spaces. Because Ghostscript currently requires that any
+%   base or alternative color space be the current color space when
+%   the enclosing color space is set, this substitution effectively
+%   occurs twice: once in the original color space, and once when the
+%   base/alternative color space is made the current color space.
+%   We retain the first substitution as we would eventually like to
+%   remove the restriction on making the base/alternative color space
+%   the current color space.
+%
+% cs_prepare
+%   Perform any operations required on the color space for installation.
+%   This method exists primarily to allow conversion of PostScript
+%   procedures to functions for CIEBased color spaces. Two operands are
+%   provided: the original and the substituted color space. If the two
+%   differ and the latter is writable, required modifications can
+%   be made "in place". Otherwise, a new instance of the second color
+%   space must be built.
+%
+%   Currently, cs_prepare is not explicitly recursive. Because
+%   Ghostscript requires a base/alternate color space to be installed
+%   as the current color space prior to installing the enclosing color
+%   space, the cs_prepare method will implicitly be called recursively.
+%   The reason for not making this explicit is that color space
+%   preparation may involve a considerable amount of work, which could
+%   be avoided if, for example, an alternative color space will not
+%   be used because the enclosing Separation/DeviceN color space is
+%   supported in native mode by the process color model. We would
+%   eventually like to remove the need to prepare color spaces that
+%   will not be used.
+%
+% cs_install
+%   This method actually installs the color space in the graphic state.
+%   Only the substituted/prepared space (which may be the same as the
+%   original space) is passed as an operand; the original space is handled
+%   directly by the .setcolorspace operator.
+%
+%   The provision of a separate method for this tasks reflects the
+%   historical implementation of color spaces in the Ghostscript
+%   interpreter. This implementation provides a unique operator for each
+%   color space type.
+%
+% cs_prepare_color
+%   Modify a set of color operands as required by a color space. This
+%   is used primarily to verify the color operands, as this is most
+%   conveniently done in PostScript.
+%
+% cs_complete_setcolor
+%   This method is invoked immediately after a (successful) invocation
+%   of setcolor. Ii is provided as a separate method for compatibility
+%   with Adobe implementations. These implementations invoke the lookup
+%   (Indexed) or tint procedure each time setcolor is invoked (only if
+%   the alternative color space is used in the case of the tint
+%   transform). Because Ghostscript may convert these procedures to
+%   functions (or pre-sample them), the procedures may not always be
+%   called when expected. There are applications that depend on this
+%   behavior (e.g.: Adobe PhotoShop 5+), so this method provides a way
+%   to emulate it.
+%
+%   In principle, a cs_complete_setcolor procedure for an Indexed color
+%   space whose base space should invoke cs_complete_setcolor on its
+%   base space. Currently we don't do this, because it has not been
+%   shown to be necessary. It would be simple to add if it is every
+%   needed.
+%
+% All of these methods are procedures.
+%
+% For each of these methods, there is a procedure in .cspace_util with
+% a dot ('.') prefix that will invoke the appropriate procedure for the
+% operand array.
+%
+
+.currentglobal true .setglobal
+userdict /.cspace_util 80 dict put
+.cspace_util begin
+
+%
+% Colorspacedict is initially in .cspace_util; it is copied to level2dict
+% in the Level 2 initialization code to retain compatibility with 
+% earlier implementations.
+%
+/colorspacedict 20 dict def
+
+
+%
+%   <obj>   make_array1   <array>
+%
+% procedure for conditionally converting a named color space to a
+% 1-element array. Since names are always global, the array will be
+% as well.
+%
+/make_array1
+  {
+    dup type /nametype eq
+      { currentglobal true setglobal exch 1 array astore exch setglobal }
+    if
+  }
+bind def
+
+%
+%  <name|array>   .get_cspace_type   name
+%
+% Provide generic routine for retrieving the color space type.
+%
+/.get_cspace_type
+  {
+    dup type dup /arraytype eq exch /packedarraytype eq or
+      { 0 get }
+    if
+  }
+bind def
+
+%
+%   <name|array>   .get_method_dict   <dict>
+%
+% Get the method dictionary for a specific color space. Note that the
+% color space is left on the stack.
+%
+/.get_method_dict
+  { //colorspacedict exch //.get_cspace_type exec get }
+bind def
+
+%
+%   <name|array>  <proc_name>   .get_method   <name|array>  <proc | bool>
+%
+% Get the named method for the operand color space.
+%
+/.get_method
+  { exch //.get_method_dict exec exch get }
+bind def
+
+
+%
+%   <name_array>   .cs_potential_indexed_base   <bool>
+%   <name_array>   .cs_potential_pattern_base   <bool>
+%   <name_array>   .cs_potential_alternate    <bool>
+%   <name_array>   .cs_potential_icc_alternate   <bool>
+%   <name | array>   .cs_get_ncomps   <int>
+%   <name | array>   .cs_get_range   <range_array>
+%   <name | array>   .cs_get_default_color   <c1>  ...  <cn>
+%   <c1> ... <cn>  <name | array>   .cs_get_currentgray   <gray>
+%   <c1> ... <cn>  <name | array>   .cs_get_currentrgb   <r>  <g>  <b>
+%   <c1> ... <cn>  <name | array>   .cs_get_currentcmyk   <c>  <m>  <y>  <k>
+%   <name | array>   .cs_validate   <name | array>
+%   <name1 | array1>   .cs_substitute   <name1 | array1>  <array2>
+%   <name1 | array1>  <array2>   .cs_prepare   <name1 | array1>  <array2>
+%   <name | array>   .cs_install   -
+%   <c1> ... <cn> <array>   .cs_prepare_color   <c1> ... <cn>
+%   <array>   .cs_complete_setcolor   -
+%
+% These procedures provide access to the corresponding methods of the
+% operand color space.
+%
+/.cs_potential_indexed_base
+  { /cs_potential_indexed_base //.get_method exec }
+bind def
+
+/.cs_potential_pattern_base
+  { /cs_potential_pattern_base //.get_method exec }
+bind def
+
+/.cs_potential_alternate
+  { /cs_potential_alternate //.get_method exec }
+bind def
+
+/.cs_potential_icc_alternate
+  { /cs_potential_icc_alternate //.get_method exec }
+bind def
+
+/.cs_get_ncomps
+  { dup /cs_get_ncomps //.get_method exec exec }
+bind def
+
+/.cs_get_range
+  { dup /cs_get_range //.get_method exec exec }
+bind def
+
+/.cs_get_default_color
+  { dup /cs_get_default_color //.get_method exec exec }
+bind def
+
+/.cs_get_currentgray
+  { dup /cs_get_currentgray //.get_method exec exec }
+bind def
+
+/.cs_get_currentrgb
+  { dup /cs_get_currentrgb //.get_method exec exec }
+bind def
+
+/.cs_get_currentcmyk
+  { dup /cs_get_currentcmyk //.get_method exec exec }
+bind def
+
+/.cs_validate
+  { dup /cs_validate //.get_method exec exec }
+bind def
+
+/.cs_substitute
+  { dup /cs_substitute //.get_method exec exec }
+bind def
+
+/.cs_prepare
+  { dup /cs_prepare //.get_method exec exec }
+bind def
+
+/.cs_install
+  { dup /cs_install //.get_method exec exec }
+bind def
+
+/.cs_prepare_color
+  { dup /cs_prepare_color //.get_method exec exec }
+bind def
+
+/.cs_complete_setcolor
+  { dup /cs_complete_setcolor //.get_method exec exec }
+bind def
+
+
+%
+% Make sure we have an interpreter color space before redefining
+% setcolorspace. The interpreter internal code only sets the effective
+% color space; the interpreters color spaces begins as a null object.
+%
+% NB: This should come prior to the redefinition of setcolorspace, and
+%     must use an array operand.
+%
+[ /DeviceGray ] setcolorspace
+
+
+%
+%   <c1> ... <cn>   setcolor   -
+%
+% As with setcolorspace, setcolor is initially placed in .cspace_util,
+% and is copied to level2dict by the Level 2 initialization code. The
+% internal definition of setcolor is removed from systemdict as soon
+% as this procedure is defined.
+%
+/setcolor
+  {
+      {
+        currentcolorspace //.cs_prepare_color exec //setcolor
+        currentcolorspace //.cs_complete_setcolor exec
+      }
+    stopped
+      { //.cspace_util /setcolor get $error /errorname get signalerror }
+    if
+  }
+bind odef
+
+systemdict /setcolor .undef
+
+
+%
+%   <name|array>  <bool>   _setcolorspace   -
+%   <name|array>   _setcolorspace_nosub   -
+%
+%   <name|array>   setcolorspace   -
+%   <name|array>   forcesetcolorspace   -
+%
+% setcolorspace is initially placed in .cspace_util. It is copied to
+% level2dict by the Level 2 initialization code. The internal
+% setcolorspace operator is removed from systemdict as soon as this
+% procedure is defined.
+%
+% Because some jobs, in particular PDF jobs, repeatedly set the same
+% color space, this procedure will check if the operand and current
+% color spaces are the same. The check is absolute for parameterless
+% color spaces, conservative for others. For PostScript, this
+% optimization can only be employed if color space substitution is
+% disabled, as otherwise there is no way to account for  possible changes
+% in the /Default* instances of the ColorSpace resource category. For PDF
+% jobs, resource category instances can only be changed at very specific
+% times (typically page boundaries), so the "operand color space is the
+% same as current color space" optimization may be used even if color
+% space substitution is in effect. The optimization is also highly
+% desirable in such cases, as it greatly improves performance.
+%
+% In certain situations, it is critical that a color space be set,
+% even if it is the same as the current color space. This is the case
+% when a CIEBased color space is used as a base or alternative color
+% space, due to some long-standing problems with the graphics libraries
+% handling of sampled information from the procedures in CIE color
+% spaces and the color rendering dictionary. The forcesetcolorspace
+% operator is provided for those situations.
+%
+% Note also that, if the current color space is not reset, at least
+% the current color must be reset to its default value.
+%
+% Another problem arises in the case of ICCBased color spaces. These
+% color spaces may be used to substitute for a DeviceGray/DeviceRGB/
+% DeviceCMYK color space, and may themselves require such a color
+% space as an alternate. Obviously, when this is the case the normal
+% setcolorspace mechanism would encounter and infinite loop if the
+% alternate colro space needed to be used. For this particular case,
+% the special _setcolorspace_nosub is provided, which suppresses
+% color space substitution. This routine does not bother to check if
+% the operand and current color space are the same.
+%
+/_setcolorspace
+  {
+      {
+        % see if the operand space is the same as the current space
+        currentcolorspace dup length 1 eq
+          {
+            0 get
+            2 index dup type dup /arraytype eq exch /packedarraytype eq or
+              {
+                dup length 1 eq
+                  { 0 get }
+                if
+              }
+            if
+          }
+          { 2 index }
+        ifelse
+        eq and dup
+          {
+            %
+            % If PDFfile is defined on the dictionary stack, this is a
+            % PDF job. No additional check is required in this case (see
+            % comment above).
+            %
+            /PDFfile where
+              { pop }
+              { .getuseciecolor not and }   % check that UseCIEColor is off
+            ifelse
+          }
+        if
+          { //.cs_get_default_color exec setcolor }
+          {
+            //.cs_validate exec
+            //.cs_substitute exec
+            //.cs_prepare exec
+            //.cs_install exec
+            //make_array1 exec //setcolorspace
+          }
+        ifelse
+      }
+    stopped
+      { //.cspace_util /setcolorspace get $error /errorname get signalerror }
+    if
+  }
+bind def
+
+/_setcolorspace_nosub
+  {
+      {
+        //.cs_validate exec
+        dup
+        //.cs_prepare exec
+        //.cs_install exec
+        //make_array1 exec //setcolorspace
+      }
+    stopped
+      { //.cspace_util /setcolorspace get $error /errorname get signalerror }
+    if
+  }
+bind def
+
+/setcolorspace { //true //_setcolorspace exec } bind odef
+/forcesetcolorspace { //false //_setcolorspace exec } bind odef
+
+%
+%   -   initgraphics   -
+%
+% The initgraphics operator must be redefined create a real color space.
+% Previously this was unnecessary, as .currentcolorspace could return
+% an integer.
+%
+%
+/initgraphics
+  { initgraphics { /DeviceGray } cvlit forcesetcolorspace }
+.bind systemdict begin odef end
+
+systemdict /setcolorspace .undef
+
+
+%
+%   <gray>   setgray   -
+%
+%   <r> <g> <b>   setrgbcolor  -
+%
+%   <c> <m> <y> <b>   setcmykcolor   -
+%
+% The Level 1 color setting operators. setcmykcolor is created only if
+% setcolorscreen is present. These operators are always defined in
+% systemdict. 
+%
+/setgray
+  {
+      { { /DeviceGray } cvlit  //setcolorspace //setcolor }
+    stopped
+      { /setgray load $error /errorname get signalerror }
+    if
+  }
+bind systemdict begin odef end
+
+/setrgbcolor
+  {
+      { { /DeviceRGB } cvlit //setcolorspace //setcolor }
+    stopped
+      { /setrgbcolor load $error /errorname get signalerror }
+    if
+  }
+bind systemdict begin odef end
+
+/setcolorscreen where
+  {
+    pop
+    /setcmykcolor
+      {
+          { { /DeviceCMYK } cvlit //setcolorspace //setcolor }
+        stopped
+          { /setcmykcolor load $error /errorname get signalerror }
+        if
+      }
+    bind systemdict begin odef end
+  }
+if
+
+
+%
+%   -   currentgray  <gray>
+%
+%   -   currentrgbcolor   <r> <g> <b>
+%
+%   -   currentcmykcolor   <c> <m> <y> <k>
+%
+% Return the current color, mapped to a DeviceGray, DeviceRGB, or
+% DeviceCMYK color space. The latter is only created if setcolorscreen
+% is present.
+/currentgray
+  { currentcolor currentcolorspace //.cs_get_currentgray exec }
+bind systemdict begin odef end
+
+/currentrgbcolor
+  { currentcolor currentcolorspace //.cs_get_currentrgb exec }
+bind systemdict begin odef end
+
+/setcolorscreen where
+  {
+    pop
+    /currentcmykcolor
+      { currentcolor currentcolorspace //.cs_get_currentcmyk exec }
+    bind systemdict begin odef end
+  }
+if
+
+
+
+%
+% Add some generically useful structures and procedures to .cspace_util.
+%
+
+%
+% Some common errors. The command for these errors will normally be
+% overwritten by the invoking operator. We cannot "load" the secolorspace
+% or setcolor operators, as they are not present in Level 1 systems.
+%
+/setcspace_typecheck
+  { /setcolorspace cvx /typecheck signalerror }
+bind def
+
+/setcspace_rangecheck
+  { /setcolorspace cvx /rangecheck signalerror }
+bind def
+
+/setcspace_invalidaccess
+  { /setcolorspace cvx /invalidaccess signalerror }
+bind def
+
+/setcspace_undefined
+  { /setcolorspace cvx /undefined signalerror }
+bind def
+
+/setcolor_typecheck
+  { /setcolor cvx /typecheck signalerror }
+bind def
+
+/setcolor_invalidaccess
+  { /setcolor cvx /invalidaccess signalerror }
+bind def
+
+
+%
+%   <obj>   check_array   <obj>
+%
+% Check that an object is an array. Currently we don't check for
+% readability, as a failing get or length operator should generate
+% the appropriate invalidaccess error.
+/check_array
+  {
+    dup type dup /arraytype ne exch /packedarraytype ne and
+      { /setcolorspace cvx /typecheck signalerror }
+    if
+  }
+bind def
+
+
+% pre-defined procedures for cs_ncomps and cs_get_range
+/ncomps_1 { pop 1 } bind def
+/ncomps_3 { pop 3 } bind def
+/ncomps_4 { pop 4 } bind def
+
+/dflt_range_4 [ 0 1  0 1  0 1  0 1 ] readonly def
+/dflt_range_3 dflt_range_4 0 6 getinterval def
+/dflt_range_1 dflt_range_4 0 2 getinterval def
+
+%   <obj>   get_range_[1|3|4]   <range>
+/get_range_1 { pop //dflt_range_1 } bind def
+/get_range_3 { pop //dflt_range_3 } bind def
+/get_range_4 { pop //dflt_range_4 } bind def
+
+
+%
+%   <c1> ... <cn>  <name | array>  <n>
+%   check_num_stack
+%   <c1> ... <cn>  <array | array>
+%
+%   <c1>  <array>   validate_color_1   <c1>
+%   <c1>  <c2>  <c3>  <arraY>   validate_color_3   <c1>  <c2>  <c3>
+%   <c1>  <c2>  <c3> <c4>  <arraY>   validate_color_4   <c1>  <c2>  <c3>  <c4>
+%
+% check_num_stack verifies that the stack consists of a color space array and
+% n numbers. This is used by most of the cs_prepare_color procedures. The
+% validate_color_[1|3|4] procedures can be used as the cs_prepare_color
+% procedure for Device specific, CIEBased, and Indexed color spaces.
+%
+% Note that the pseudo-operator that (indirectly) invokes this routine will
+% handle resetting the stacks.
+%
+/check_num_stack
+  {
+    dup 2 add copy exch pop
+      {
+        type dup /integertype ne exch /realtype ne and
+          //setcolor_typecheck
+        if
+      }
+    repeat
+    pop         % remove the extra op_count
+  }
+bind def
+
+%   <c1>  <array>   validate_1   <c1>
+/validate_1 { 1 //check_num_stack exec pop } bind def
+
+%   <c1>  <c2>  <c3>   <array>   validate_3   <c1>  <c2>  <c3>
+/validate_3 { 3 //check_num_stack exec pop } bind def
+
+%   <c1>  <c2>  <c3>  <c4>  <array>   validate_4   <c1>  <c2>  <c3>  <c4>
+/validate_4 { 4 //check_num_stack exec pop } bind def
+
+
+%
+%   <obj>   pop_1   -
+%
+% This is a procedure form of pop. It may be used where a procedure is
+% expected, but the function of the procedure is the same as the pop
+% operator.
+/pop_1 { pop } bind def
+
+%
+%   <obj>   dup_1   <obj>  <obj>
+%
+% An analog to pop_1, this one for dup.
+%
+/dup_1 { dup } bind def
+
+%
+%   <obj1> ... <objn>  <n>   clear_n_objs   -
+%
+% Clear n objects from the operand stack.
+%
+/clear_n_objs { //pop_1 repeat }  bind def
+
+%
+%   <obj1> ... <objn>  <array>   clear_setcolor_operands   -
+%
+% Clear the setcolor operands for a color space.
+%
+/clear_setcolor_operands
+  { //.cs_get_ncomps exec //clear_n_objs exec }
+bind def
+
+%
+% Return 1, 3, or 4 zeros. These routines are used primarily for the
+% CIEBased color spaces, for which currentgray and currentrgb
+% should return 0 for all components, and currentcmyk should return
+% 0 0 0 1.0 (this varies from Adobe's documentation but is consistent
+% with their impelementations).
+%
+/no_currentgray { //.cs_get_ncomps exec //clear_n_objs exec 0 } bind def
+/no_currentrgb { //.cs_get_ncomps exec //clear_n_objs exec 0 0 0 } bind def
+/no_currentcmyk { //.cs_get_ncomps exec //clear_n_objs exec 0 0 0 1.0 } bind def
+
+
+%
+%   <num>   bound_0_1   <num>
+%
+% Bound a number to the range [0, 1]
+%
+/bound_0_1
+  {
+    dup 0 lt
+      { pop 0 }
+      {
+        dup 1 gt
+          { pop 1 }
+        if
+      }
+    ifelse
+  }
+bind def
+
+
+%
+% Provide pseudo-operators  for sethsbcolor and currenthsbcolor. These are
+% alternate versions of the setrgbcolor and currentrgbcolor operators, which
+% make use of a hue/staturation/brightness color description.
+%
+
+%
+%   <num_1> ...  <num_n>  n   max_n   <num>
+%   <num_1> ...  <num_n>  n   min_n   <num>
+%
+% Find the maximum and minum of 3 color component intensities.
+%
+/max_n
+  {
+    1 sub
+      { 2 copy lt { exch } if pop }
+    repeat
+  }
+bind def
+
+/min_n
+  {
+    1 sub
+      { 2 copy gt { exch } if pop }
+    repeat
+  }
+bind def
+
+
+%
+%   <r>  <g>  <b>   .rgb_2_hsb   <h>  <s>  <br>
+%   <h>  <s>  <br>   .hsb_2_rgb   <r>  <g>  <b>
+%
+% Convert between RGB and HSB colors, using the hexcone approach (see
+% Rogers, David, "Procedureal Elements For Computer Graphics",
+% (McGraw-Hill, 1985), pp. 402 - 3).
+%
+% The rgb ==> hsb calculation is:
+%
+%   br = max(r, g, b)
+%
+%   if (br == 0)
+%       h = 0, s = 0;
+%   else {
+%       v = min(r, g, b)
+%       diff = br - v;
+%       sat = diff / br;
+%       if (r == br)
+%           h = (g - b) / (6 * diff) + (b > g ? 1 : 0);
+%       else if (g == br)
+%           h = 1/3 + (b - r) / (6 * diff);
+%       else    /* b == br */
+%           h = 2/3 + (r - g) / (6 * diff);
+%   }
+%
+% The hsb ==> rgb conversion is:
+%
+%    mn = (1 - s) * br, md = 6 * s * br;
+%
+%    switch ((int)floor(6 * h)) {
+%      case 0:  /* r >= g >= b */
+%        r = br;
+%        g = mn + h * md;
+%        b = mn;
+%        break;
+%
+%      case 1:  /* g >= r >= b */
+%        r = mn + md * (1/3 - h);
+%        g = br;
+%        b = mn;
+%        break;
+%
+%      case 2:  /* g >= b >= r */
+%        r = mn;
+%        g = br;
+%        b = mn + (h - 1/3) * md;
+%        break;
+%
+%      case 3:  /* b >= g >= r */
+%        r = mn;
+%        g = mn + (2/3 - h) * md;
+%        b = br;
+%        break;
+%
+%      case 4:  /* b >= r >= g */
+%        r = mn + (h - 2/3) * md;
+%        g = mn;
+%        b = br;
+%        break;
+%
+%      case 5:  /* r >= b >= g */
+%        r = br;
+%        g = mn;
+%        b = mn + (1 - h) * md;
+%        break;
+%
+%      case 6:  /* We have wrapped around the hexcone.  Thus this case is
+%      		   the same as case 0 with h = 0 */
+%        h = 0;
+%        r = br;
+%        g = mn + h * md = mn;
+%        b = mn;
+%        break;
+%    }
+%
+/.rgb_2_hsb
+  {
+    % find the largest and smallest components
+    3 copy 3 //max_n exec dup 5 1 roll
+    dup 0 eq
+      { pop pop pop pop 0 0 }
+      {
+        4 copy pop 3 //min_n exec 1 index exch sub
+        dup 2 index div 7 1 roll
+        dup 0 eq
+          { 5 { pop } repeat 0 3 1 roll }
+          {
+            6 mul 5 1 roll
+            2 copy eq       % blue == brightness
+              { pop pop sub exch div .666667 add }
+              {
+                2 index eq  % green == brightness
+                  { exch pop exch sub exch div .3333333 add }
+                  {
+                    % red == brightness
+                    sub exch pop exch div
+                    dup 0 lt
+                      { 1 add }
+                    if
+                  }
+                ifelse
+              }
+            ifelse
+            3 1 roll
+          }
+        ifelse
+      }
+    ifelse
+  }
+bind def
+
+
+/.hsb_2_rgb
+  {
+    3 { 0 max 1 min 3 1 roll } repeat
+    1 2 index sub 1 index mul      % (1 - s) * br
+    3 -1 roll 2 index mul 6 mul    % 6 * s * br
+    4 -1 roll                      % stack: <br>  <(1 - s) * br>  <6 * s * br>  <h>
+
+    % array of procedures for the 7 hue cases
+      {
+        % 0 ==> r >= g >= b
+        { mul 1 index add exch }
+
+        % 1 ==> g >= r >= b
+        { 0.333333 exch sub mul 1 index add 3 1 roll }
+
+        % 2 ==> g >= b >= r
+        { 0.333333 sub mul 1 index add 3 1 roll exch 3 -1 roll }
+
+        % 3 ==> b >= g >= r
+        { 0.666667 exch sub mul 1 index add 3 -1 roll }
+
+        % 4 ==> b >= r >= g
+        { 0.666667 sub mul 1 index add 3 1 roll exch }
+
+        % 5 ==> r >= b >= g
+        { 1 exch sub mul 1 index add }
+
+        % 6 ==> r = br, g = b = mn
+	% Case 6 is the same as case 0 with h = 0.  This also simplifies
+	% the calculations.
+        { pop pop dup }
+      }
+    1 index 6 mul cvi              % (int)(6 * h)
+    get exec    
+  }
+bind def
+
+
+%
+%   <hue>  <saturation>  <brightness   sethsbcolor   -
+%
+%   - currenthsbcolor   <hue>  <saturation>  <brightness>
+%
+/sethsbcolor
+  {
+      { //.hsb_2_rgb exec setrgbcolor }
+    stopped
+      { /sethsbcolor load $error /errorname get signalerror }
+    if
+  }
+bind systemdict begin odef end
+
+/currenthsbcolor
+  {
+      { currentrgbcolor //.rgb_2_hsb exec }
+    stopped
+      { /currenthsbcolor load $error /errorname get signalerror }
+    if
+  }
+bind systemdict begin odef end
+
+end     % .cspace_util
+.setglobal

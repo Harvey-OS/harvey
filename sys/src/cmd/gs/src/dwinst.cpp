@@ -1,22 +1,20 @@
-/* Copyright (C) 1999, Ghostgum Software Pty Ltd.  All rights reserved.
+/* Copyright (C) 1999-2002, Ghostgum Software Pty Ltd.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-// $Id: dwinst.cpp,v 1.2 2000/09/19 19:00:09 lpd Exp $
+// $Id: dwinst.cpp,v 1.6 2004/11/18 06:48:41 ghostgum Exp $
 
 #define STRICT
 #include <windows.h>
@@ -246,6 +244,16 @@ BOOL CInstall::InstallFiles(BOOL bNoCopy, BOOL *pbQuit)
 }
 
 
+void CInstall::AppendFileNew(const char *filename)
+{
+    FILE *f;
+    /* mark backup file for uninstall */
+    if ((f = fopen(m_szFileNew, "a")) != (FILE *)NULL) {
+	fputs(filename, f);
+	fputs("\n", f);
+	fclose(f);
+    }
+}
 
 // recursive mkdir
 // requires a full path to be specified, so ignores root \ 
@@ -307,6 +315,13 @@ BOOL CInstall::MakeDir(const char *dirname)
     return SetCurrentDirectory(dirname);
 }
 
+void CInstall::ResetReadonly(const char *filename)
+{
+    DWORD dwAttr = GetFileAttributes(filename);
+    if (dwAttr & FILE_ATTRIBUTE_READONLY)
+        SetFileAttributes(filename, dwAttr & (~FILE_ATTRIBUTE_READONLY));
+}
+
 BOOL CInstall::InstallFile(char *filename, BOOL bNoCopy)
 {
 	char existing_name[MAXSTR];
@@ -354,6 +369,7 @@ BOOL CInstall::InstallFile(char *filename, BOOL bNoCopy)
 			AddMessage(message);
 			return FALSE;
 		}
+		ResetReadonly(new_name);
 		fputs(new_name, m_fLogNew);
 		fputs("\n", m_fLogNew);
 	}
@@ -728,6 +744,7 @@ BOOL CInstall::WriteUninstall(const char *szProg, BOOL bNoCopy)
 		AddMessage(message);
 		return FALSE;
 	}
+	ResetReadonly(ungsprog);
 	
 	/* write registry entries for uninstall */
 	if ((rc = RegOpenKeyEx(HKEY_LOCAL_MACHINE, UNINSTALLKEY, 0, 

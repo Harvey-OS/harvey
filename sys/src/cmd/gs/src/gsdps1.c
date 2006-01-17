@@ -1,22 +1,20 @@
 /* Copyright (C) 1991, 1992, 1994, 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsdps1.c,v 1.2 2000/09/19 19:00:28 lpd Exp $ */
+/* $Id: gsdps1.c,v 1.10 2003/09/15 10:04:01 igor Exp $ */
 /* Display PostScript graphics additions for Ghostscript library */
 #include "math_.h"
 #include "gx.h"
@@ -27,6 +25,7 @@
 #include "gxdevice.h"
 #include "gxfixed.h"
 #include "gxmatrix.h"
+#include "gxhldevc.h"
 #include "gspath.h"
 #include "gspath2.h"		/* defines interface */
 #include "gzpath.h"
@@ -148,15 +147,29 @@ gs_rectfill(gs_state * pgs, const gs_rect * pr, uint count)
     gx_clip_path *pcpath;
     uint rcount = count;
     int code;
+    gx_device * pdev = pgs->device;
+    gx_device_color *pdc = pgs->dev_color;
+    const gs_imager_state *pis = (const gs_imager_state *)pgs;
+    bool hl_color_available = gx_hld_is_hl_color_available(pis, pdc);
+    gs_fixed_rect empty = {{0, 0}, {0, 0}};
+    bool hl_color = (hl_color_available && 
+		dev_proc(pdev, fill_rectangle_hl_color)(pdev, 
+		    	    &empty, pis, pdc, NULL) == 0);
 
     gx_set_dev_color(pgs);
     if ((is_fzero2(pgs->ctm.xy, pgs->ctm.yx) ||
 	 is_fzero2(pgs->ctm.xx, pgs->ctm.yy)) &&
 	gx_effective_clip_path(pgs, &pcpath) >= 0 &&
 	clip_list_is_rectangle(gx_cpath_list(pcpath)) &&
+	(hl_color ||
+	 pdc->type == gx_dc_type_pure ||
+	 pdc->type == gx_dc_type_ht_binary ||
+	 pdc->type == gx_dc_type_ht_colored
+	 /* DeviceN todo: add wts case */) &&
 	gs_state_color_load(pgs) >= 0 &&
-	(*dev_proc(pgs->device, get_alpha_bits)) (pgs->device, go_graphics)
-	<= 1
+	(*dev_proc(pdev, get_alpha_bits)) (pdev, go_graphics)
+	<= 1 &&
+        (!pgs->overprint || !pgs->effective_overprint_mode)
 	) {
 	uint i;
 	gs_fixed_rect clip_rect;
@@ -165,25 +178,40 @@ gs_rectfill(gs_state * pgs, const gs_rect * pr, uint count)
 	for (i = 0; i < count; ++i) {
 	    gs_fixed_point p, q;
 	    gs_fixed_rect draw_rect;
-	    int x, y, w, h;
-
+	    
 	    if (gs_point_transform2fixed(&pgs->ctm, pr[i].p.x, pr[i].p.y, &p) < 0 ||
-	    gs_point_transform2fixed(&pgs->ctm, pr[i].q.x, pr[i].q.y, &q) < 0
+		gs_point_transform2fixed(&pgs->ctm, pr[i].q.x, pr[i].q.y, &q) < 0
 		) {		/* Switch to the slow algorithm. */
 		goto slow;
 	    }
-	    draw_rect.p.x = min(p.x, q.x) - pgs->fill_adjust.x;
-	    draw_rect.p.y = min(p.y, q.y) - pgs->fill_adjust.y;
-	    draw_rect.q.x = max(p.x, q.x) + pgs->fill_adjust.x;
-	    draw_rect.q.y = max(p.y, q.y) + pgs->fill_adjust.y;
-	    rect_intersect(draw_rect, clip_rect);
-	    x = fixed2int_pixround(draw_rect.p.x);
-	    y = fixed2int_pixround(draw_rect.p.y);
-	    w = fixed2int_pixround(draw_rect.q.x) - x;
-	    h = fixed2int_pixround(draw_rect.q.y) - y;
-	    if (w > 0 && h > 0) {
-		if (gx_fill_rectangle(x, y, w, h, pgs->dev_color, pgs) < 0)
-		    goto slow;
+	    draw_rect.p.x = min(p.x, q.x);
+	    draw_rect.p.y = min(p.y, q.y);
+	    draw_rect.q.x = max(p.x, q.x);
+	    draw_rect.q.y = max(p.y, q.y);
+	    if (hl_color) {
+		rect_intersect(draw_rect, clip_rect);
+		if (draw_rect.p.x < draw_rect.q.x &&
+		    draw_rect.p.y < draw_rect.q.y) {
+		    code = dev_proc(pdev, fill_rectangle_hl_color)(pdev,
+			     &draw_rect, pis, pdc, pcpath);
+		    if (code < 0)
+			return code;
+		}
+	    } else {
+		int x, y, w, h;
+
+		draw_rect.p.x -= pgs->fill_adjust.x;
+		draw_rect.p.y -= pgs->fill_adjust.x;
+		draw_rect.q.x += pgs->fill_adjust.x;
+		draw_rect.q.y += pgs->fill_adjust.x;
+		rect_intersect(draw_rect, clip_rect);
+		x = fixed2int_pixround(draw_rect.p.x);
+		y = fixed2int_pixround(draw_rect.p.y);
+		w = fixed2int_pixround(draw_rect.q.x) - x;
+		h = fixed2int_pixround(draw_rect.q.y) - y;
+		if (w > 0 && h > 0)
+    		    if (gx_fill_rectangle(x, y, w, h, pdc, pgs) < 0)
+			goto slow;
 	    }
 	}
 	return 0;

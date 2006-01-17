@@ -1,41 +1,33 @@
 /* Copyright (C) 1992, 1994, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: scfdgen.c,v 1.2 2000/09/19 19:00:48 lpd Exp $ */
+/* $Id: scfdgen.c,v 1.5 2002/06/16 03:58:14 lpd Exp $ */
 /* Generate the CCITTFaxDecode tables */
 #include "stdio_.h"		/* includes std.h */
 #include "scf.h"
 #include "malloc_.h"
 #include "memory_.h"
 
-typedef void (*cfd_node_proc) (P6(cfd_node *, cfd_node *,
-				  uint, int, int, int));
-typedef void (*cfd_enum_proc) (P4(cfd_node_proc,
-				  cfd_node *, cfd_node *, int));
-private void cfd_build_tree(P4(cfd_node *, cfd_enum_proc, int, FILE *));
-private void cfd_enumerate_white(P4(cfd_node_proc,
-				    cfd_node *, cfd_node *, int));
-private void cfd_enumerate_black(P4(cfd_node_proc,
-				    cfd_node *, cfd_node *, int));
-private void cfd_enumerate_2d(P4(cfd_node_proc,
-				 cfd_node *, cfd_node *, int));
-private void cfd_enumerate_uncompressed(P4(cfd_node_proc,
-					   cfd_node *, cfd_node *, int));
+typedef void (*cfd_node_proc) (cfd_node *, cfd_node *, uint, int, int, int);
+typedef void (*cfd_enum_proc) (cfd_node_proc, cfd_node *, cfd_node *, int);
+private void cfd_build_tree(cfd_node *, cfd_enum_proc, int, FILE *);
+private void cfd_enumerate_white(cfd_node_proc, cfd_node *, cfd_node *, int);
+private void cfd_enumerate_black(cfd_node_proc, cfd_node *, cfd_node *, int);
+private void cfd_enumerate_2d(cfd_node_proc, cfd_node *, cfd_node *, int);
+private void cfd_enumerate_uncompressed(cfd_node_proc, cfd_node *, cfd_node *, int);
 
 main()
 {
@@ -43,7 +35,7 @@ main()
     cfd_node area[1 << max(cfd_white_initial_bits, cfd_black_initial_bits)];
 
     fputs("/* Copyright (C) 1992, 1993, 1998, 1999 Aladdin Enterprises.  All rights reserved. */\n\n", out);
-    fputs("/* $Id: scfdgen.c,v 1.2 2000/09/19 19:00:48 lpd Exp $ */\n", out);
+    fputs("/* $Id: scfdgen.c,v 1.5 2002/06/16 03:58:14 lpd Exp $ */\n", out);
     fputs("/* Tables for CCITTFaxDecode filter. */\n\n", out);
     fputs("/* This file was generated automatically.  It is governed by the same terms */\n", out);
     fputs("/* as the files scfetab.c and scfdgen.c from which it was derived. */\n", out);
@@ -68,8 +60,8 @@ main()
     cfd_build_tree(area, cfd_enumerate_uncompressed, cfd_uncompressed_initial_bits, out);
     fputs("\n};\n\n", out);
     fputs("/* Dummy executable code to pacify compilers. */\n", out);
-    fputs("void scfdtab_dummy(P0());\n", out);
-    fputs("void\nscfdtab_dummy()\n{\n}\n", out);
+    fputs("void scfdtab_dummy(void);\n", out);
+    fputs("void\nscfdtab_dummy(void)\n{\n}\n", out);
     fclose(out);
     return 0;
 }

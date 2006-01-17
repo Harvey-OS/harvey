@@ -1,29 +1,27 @@
 /* Copyright (C) 1989, 1995, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: iinit.c,v 1.3 2000/12/26 04:25:54 lpd Exp $ */
+/* $Id: iinit.c,v 1.10 2004/08/04 19:36:13 stefan Exp $ */
 /* Initialize internally known objects for Ghostscript interpreter */
 #include "string_.h"
 #include "ghost.h"
 #include "gscdefs.h"
 #include "gsexit.h"
 #include "gsstruct.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "ialloc.h"
 #include "iddict.h"
 #include "dstack.h"
@@ -59,7 +57,7 @@
 #endif
 /* The size of level2dict, if applicable, can be set in the makefile. */
 #ifndef LEVEL2DICT_SIZE
-#  define LEVEL2DICT_SIZE 233
+#  define LEVEL2DICT_SIZE 251
 #endif
 /* Ditto the size of ll3dict. */
 #ifndef LL3DICT_SIZE
@@ -71,7 +69,7 @@
 #endif
 /* Define an arbitrary size for the operator procedure tables. */
 #ifndef OP_ARRAY_TABLE_SIZE
-#  define OP_ARRAY_TABLE_SIZE 180
+#  define OP_ARRAY_TABLE_SIZE 300
 #endif
 #ifndef OP_ARRAY_TABLE_GLOBAL_SIZE
 #  define OP_ARRAY_TABLE_GLOBAL_SIZE OP_ARRAY_TABLE_SIZE
@@ -115,7 +113,7 @@ i_initial_remove_name(i_ctx_t *i_ctx_p, const char *nstr)
 {
     ref nref;
 
-    if (name_ref((const byte *)nstr, strlen(nstr), &nref, -1) >= 0)
+    if (name_ref(imemory, (const byte *)nstr, strlen(nstr), &nref, -1) >= 0)
 	idict_undef(systemdict, &nref);
 }
 
@@ -350,7 +348,7 @@ obj_init(i_ctx_t **pi_ctx_p, gs_dual_memory_t *idmem)
 	if (code < 0)
 	    return code;
 	for (i = 0; i < n; i++)
-	    if ((code = name_enter_string((const char *)gs_error_names[i],
+	  if ((code = name_enter_string(imemory, (const char *)gs_error_names[i],
 					  era.value.refs + i)) < 0)
 		return code;
 	return initial_enter_name("ErrorNames", &era);
@@ -450,7 +448,7 @@ op_init(i_ctx_t *i_ctx_p)
 	    if (op_def_is_begin_dict(def)) {
 		ref nref;
 
-		code = name_ref((const byte *)nstr, strlen(nstr), &nref, -1);
+		code = name_ref(imemory, (const byte *)nstr, strlen(nstr), &nref, -1);
 		if (code < 0)
 		    return code;
 		if (!dict_find(systemdict, &nref, &pdict))
@@ -463,8 +461,10 @@ op_init(i_ctx_t *i_ctx_p)
 		uint opidx = (tptr - op_defs_all) * OP_DEFS_MAX_SIZE +
 		    index_in_table;
 
-		if (index_in_table >= OP_DEFS_MAX_SIZE)
-		    dprintf1("opdef overrun: %s\n", def->oname);
+		if (index_in_table >= OP_DEFS_MAX_SIZE) {
+		    lprintf1("opdef overrun! %s\n", def->oname);
+		    return_error(e_Fatal);
+		}
 		gs_interp_make_oper(&oper, def->proc, opidx);
 		/* The first character of the name is a digit */
 		/* giving the minimum acceptable number of operands. */

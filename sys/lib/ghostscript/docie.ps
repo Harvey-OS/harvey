@@ -1,21 +1,19 @@
 %    Copyright (C) 1995 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: docie.ps,v 1.2 2000/09/19 18:29:11 lpd Exp $
+% $Id: docie.ps,v 1.5 2003/04/12 18:08:18 ray Exp $
 % docie.ps
 % Emulate CIE algorithms in PostScript.
 
@@ -95,33 +93,33 @@
 
 /csmap		% <csdict> <l> <m> <n> csmap <csdict> <x> <y> <z>
  { 3 index /RangeLMN .knownget not { r3default } if restrict3
-DEBUG { (After RangeLMN Decode: ) print3 } if
+DOCIEDEBUG { (After RangeLMN Decode: ) print3 } if
    3 index /DecodeLMN .knownget { apply3 } if
-DEBUG { (After DecodeLMN Decode: ) print3 } if
+DOCIEDEBUG { (After DecodeLMN Decode: ) print3 } if
    3 index /MatrixLMN .knownget { mmult3 } if
-DEBUG { (After MatrixLMN Decode: ) print3 } if
+DOCIEDEBUG { (After MatrixLMN Decode: ) print3 } if
  } bind def
 
 /csciea		% <csdict> <a> csciea <csdict> <x> <y> <z>
  { 1 index /RangeA .knownget not { r1default } if restrict
-DEBUG { (After RangeA Decode: ) print1 } if
+DOCIEDEBUG { (After RangeA Decode: ) print1 } if
    1 index /DecodeA .knownget { exec } if
-DEBUG { (After DecodeA Decode: ) print1 } if
+DOCIEDEBUG { (After DecodeA Decode: ) print1 } if
    1 index /MatrixA .knownget
     { { 1 index mul exch } forall pop }
     { dup dup }
    ifelse
-DEBUG { (After MatrixA Decode: ) print3 } if
+DOCIEDEBUG { (After MatrixA Decode: ) print3 } if
    csmap
  } bind def
 
 /cscieabc	% <csdict> <a> <b> <c> cscieabc <csdict> <x> <y> <z>
  { 3 index /RangeABC .knownget not { r3default } if restrict3
-DEBUG { (After RangeABC Decode: ) print3 } if
+DOCIEDEBUG { (After RangeABC Decode: ) print3 } if
    3 index /DecodeABC .knownget { apply3 } if
-DEBUG { (After DecodeABC Decode: ) print3 } if
+DOCIEDEBUG { (After DecodeABC Decode: ) print3 } if
    3 index /MatrixABC .knownget { mmult3 } if
-DEBUG { (After MatrixABC Decode: ) print3 } if
+DOCIEDEBUG { (After MatrixABC Decode: ) print3 } if
    csmap
  } bind def
 
@@ -133,7 +131,7 @@ DEBUG { (After MatrixABC Decode: ) print3 } if
    3 -1 roll 3 index 1 get 1 sub mul
    3 -1 roll 3 index 2 get 1 sub mul
 		% Stack: rtable ia ib ic
-DEBUG { (RenderTable indices: ) print3 mark 5 1 roll } if
+DOCIEDEBUG { (RenderTable indices: ) print3 mark 5 1 roll } if
    3 -1 roll round cvi 3 index 3 get exch get
 		% Stack: rtable ib ic string
    3 -1 roll round cvi 3 index 2 get mul
@@ -142,16 +140,16 @@ DEBUG { (RenderTable indices: ) print3 mark 5 1 roll } if
 		% Stack: rtable string index
    2 index 4 get getinterval
 		% Stack: rtable bytes
-DEBUG { (RenderTable values: ) print (<) print (%stdout) (w) file 1 index writehexstring (>) = } if
+DOCIEDEBUG { (RenderTable values: ) print (<) print (%stdout) (w) file 1 index writehexstring (>) = } if
  } bind def
 
 /bpdefault [0 0 0] def
 
 /crmap		% <csdict> <crdict> <x> <y> <z> crmap <v1> ...
  {
-DEBUG { (CIE XYZ = ) print3 } if
+DOCIEDEBUG { (CIE XYZ = ) print3 } if
    3 index /MatrixPQR .knownget { mmult3 } if
-DEBUG { (After MatrixPQR: ) print3 } if
+DOCIEDEBUG { (After MatrixPQR: ) print3 } if
    4 index /WhitePoint get
    5 index /BlackPoint .knownget not { bpdefault } if
    5 index /WhitePoint get
@@ -172,24 +170,24 @@ DEBUG { (After MatrixPQR: ) print3 } if
     }
    forall
    7 3 roll pop pop pop pop	% get rid of White/BlackPoints
-DEBUG { (After TransformPQR: ) print3 } if
+DOCIEDEBUG { (After TransformPQR: ) print3 } if
    3 index /MatrixPQR .knownget { minvert3 mmult3 } if
-DEBUG { (After MatrixPQR': ) print3 } if
+DOCIEDEBUG { (After MatrixPQR': ) print3 } if
    3 index /MatrixLMN .knownget { mmult3 } if
-DEBUG { (After MatrixLMN Encode: ) print3 } if
+DOCIEDEBUG { (After MatrixLMN Encode: ) print3 } if
    3 index /EncodeLMN .knownget { apply3 } if
-DEBUG { (After EncodeLMN Encode: ) print3 } if
+DOCIEDEBUG { (After EncodeLMN Encode: ) print3 } if
    3 index /RangeLMN .knownget not { r3default } if restrict3
-DEBUG { (After RangeLMN Encode: ) print3 } if
+DOCIEDEBUG { (After RangeLMN Encode: ) print3 } if
    3 index /MatrixABC .knownget { mmult3 } if
-DEBUG { (After MatrixABC Encode: ) print3 } if
+DOCIEDEBUG { (After MatrixABC Encode: ) print3 } if
    3 index /EncodeABC .knownget { apply3 } if
-DEBUG { (After EncodeABC Encode: ) print3 } if
+DOCIEDEBUG { (After EncodeABC Encode: ) print3 } if
    3 index /RangeABC .knownget not { r3default } if
    5 -1 roll /RenderTable .knownget
     {		% Stack: u v w ranges rtable
       5 1 roll rescale3
-DEBUG { (Rescaled ABC: ) print3 } if
+DOCIEDEBUG { (Rescaled ABC: ) print3 } if
 		% Stack: rtable a b c
       lookup3
 		% Stack: rtable bytes
@@ -200,10 +198,10 @@ DEBUG { (Rescaled ABC: ) print3 } if
 	 3 index 3 -1 roll 5 add get exec 3 1 roll
        }
       for pop pop
-DEBUG { (After RenderTableT: ) print ] dup == aload pop } if
+DOCIEDEBUG { (After RenderTableT: ) print ] dup == aload pop } if
     }
     { restrict3
-DEBUG { (After RangeABC Encode: ) print3 } if
+DOCIEDEBUG { (After RangeABC Encode: ) print3 } if
     }
    ifelse
  } bind def

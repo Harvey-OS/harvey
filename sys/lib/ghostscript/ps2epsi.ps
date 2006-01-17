@@ -1,27 +1,31 @@
 %    Copyright (C) 1990, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: ps2epsi.ps,v 1.5 2001/04/04 04:45:42 alexcher Exp $
+% $Id: ps2epsi.ps,v 1.10 2003/05/07 16:37:17 ray Exp $
 % Convert an arbitrary PostScript file to an EPSI file.
 %
 % Please do not contact these users if you have questions.  They no longer
 % have the time, interest, or current expertise to keep this code working.
-% If you find bugs, please send proposed fixes to bug-gs@aladdin.com.
+% If you find bugs, please send proposed fixes to bug-gs@ghostscript.com.
 %
+% Bug fix 2002-04-20 by rayjj: Bounding box was incorrect since it depended
+%   on the dither pattern and gray shade at the boundary. Changed to use
+%   8-bit grayscale preview image to allow correct bounding box (at the
+%   expense of a 8x larger preview image). Also moved .setsafe until after
+%   the device and file operations are complete (but still before the input
+%   file is processed.
 % Bug fix 2000-04-11 by lpd: if a font didn't have a FontName (which is the
 %   case for bitmap fonts produced by recent versions of dvips), setfont
 %   caused an error.
@@ -51,7 +55,6 @@ ps2edict begin
   /ps2epsi
    {				% Open the file
      outfile (w) file /epsifile exch def
-     //systemdict /.setsafe known { .setsafe } if
 					% Get the device parameters
      currentdevice getdeviceprops .dicttomark 
      /HWSize get aload pop
@@ -59,17 +62,23 @@ ps2edict begin
        /devwidth exch def
      matrix defaultmatrix
        /devmatrix exch def
-				% Make a corresponding memory device
-     devmatrix devwidth devheight <ff 00>
+				% Make a corresponding 8-bit deep memory device
+     devmatrix devwidth devheight
+     256 string 0 1 255 { 1 index exch dup 255 exch sub put } for
      makeimagedevice
      /arraydevice exch def
-     arraydevice setdevice	% (does an erasepage)
-     /rowwidth devwidth 7 add 8 idiv def
+     arraydevice
+     % Turn on anti-aliasing
+     mark /TextAlphaBits 4 /GraphicsAlphaBits 4 6 -1 roll
+     putdeviceprops
+     setdevice	% (does an erasepage)
+     /rowwidth devwidth def
      /row rowwidth string def
      /zerorow rowwidth string def	% all zero
 				% Replace the definition of showpage
      userdict /showpage { ps2edict begin epsipage end } bind put
      userdict /setfont { ps2edict begin epsisetfont end } bind put
+     //systemdict /.setsafe known { .setsafe } if
    } bind def
 
  /epsifontdict 100 dict def
@@ -125,8 +134,8 @@ ps2edict begin
      
      % Initialise limit variables
      /loopcount rowwidth 1 sub def
-     /lm loopcount def /lmb 0 def
-     /rm 0 def /rmb 0 def
+     /lm loopcount def 
+     /rm 0 def 
 
      % Find left and right boundaries of image
      tm 1 bm
@@ -135,47 +144,29 @@ ps2edict begin
 	% Scan from left to find first non-zero element
 	% We save first the element, then the index
 	-1 0 1 loopcount
-	{ dup row exch get dup 0 ne { exch exit }{ pop pop } ifelse
+	{ dup row exch get 0 ne { exch pop exit }{ pop } ifelse
 	} for
 	% If we found -1, row is blank ..
 	dup -1 ne 
 	{ % Find the leftmost index
           dup lm lt
           % If the new index is less, we save index and element
-          { /lm exch def /lmb exch def }
-          % If the index is equal, we or the bits together
-          { lm eq { lmb or /lmb exch def }{ pop } ifelse
-          } ifelse
+          { /lm exch def } { pop } ifelse
 	  % Now find the rightmost index
 	  loopcount -1 0
-          { dup row exch get dup 0 ne { exch exit }{ pop pop } ifelse
+          { dup row exch get 0 ne { exit }{ pop } ifelse
           } for
 	  dup rm gt
           % If the new index is greater, we save index and element
-          { /rm exch def /rmb exch def }
-          % If the index is equal, or the bits
-          { rm eq { rmb or /rmb exch def } { pop } ifelse
-          } ifelse
+          { /rm exch def } { pop } ifelse
 	} if
-	pop
       } for
-
-     % Now we find the real left & right bit positions
-     256 0 1 7
-     { exch 2 div dup lmb le { pop exit }{ exch pop } ifelse
-     } for
-     /lmb exch def
-
-     1 7 -1 0
-     { exch dup dup rmb and eq { pop exit }{ 2 mul exch pop } ifelse
-     } for
-     /rmb exch def
 
      % Calculate the bounding box values.
      % Note that these must be corrected to produce closed-open intervals.
-     /llx lm 8 mul lmb add def
+     /llx lm def
      /lly devheight bm sub 1 sub def
-     /urx rm 8 mul rmb add 1 add def
+     /urx rm 1 add def
      /ury devheight tm sub def
 
     % Write out the magic string and bounding box information
@@ -206,38 +197,33 @@ ps2edict begin
      epsifile lly write==only epsifile ( ) writestring
      epsifile urx write==only epsifile ( ) writestring
      epsifile ury write==
-     epsifile (%%BeginPreview: ) writestring
-     epsifile urx llx sub write==only epsifile ( ) writestring
-     epsifile bm tm sub 1 add write==only epsifile ( 1 ) writestring
-     epsifile bm tm sub 1 add write==
-     epsifile flushfile
 
     % Define character and bit widths for the output line buffer:
      /cwidth rm lm sub 1 add def
-     /bwidth cwidth 8 mul def
-     /owidth urx llx sub 7 add 8 idiv def
      /out cwidth string def
 
-     % Create a 1-bit-high device for bitblt to align with the bbox
-     gsave
-     matrix cwidth 8 mul 1 <00 ff> makeimagedevice setdevice
+     epsifile (%%EndComments\n\n) writestring
+     epsifile (%%BeginProlog\n) writestring
+     epsifile (%%BeginPreview: ) writestring
+     epsifile cwidth write==only epsifile ( ) writestring
+     epsifile bm tm sub 1 add write==only epsifile ( 8 ) writestring
+     epsifile bm tm sub 1 add
+     cwidth 39 add 40 idiv mul write==
+     epsifile flushfile
 
-     % 'image' a zero string to clear the line device
-     bwidth 1 1 matrix cwidth string image
+     gsave
 
      tm 1 bm
       { % Get a scan line interval from the array device
 	arraydevice exch row copyscanlines lm cwidth getinterval
-	lmb 0 gt
-	{ % 'image' it into the line device with the lmb offset
-	  bwidth 1 1 [1 0 0 1 lmb 0] 5 -1 roll image
-	  % Now we get the modified scan line
-	  currentdevice 0 out copyscanlines 0 owidth getinterval
-	} if
-	% Write out the hex data
-	epsifile (% ) writestring 
-	epsifile exch writehexstring
-	epsifile (\n) writestring
+	% Write out the hex data as 40 bytes per line (82 chars)
+	0 40 cwidth
+	 { epsifile (% ) writestring 
+	   epsifile exch 2 index exch
+	   dup cwidth exch sub 40 .min getinterval writehexstring
+	   epsifile (\n) writestring
+	 } for
+        pop
       } for
 
      epsifile (%%EndImage\n) writestring

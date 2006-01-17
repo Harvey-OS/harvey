@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 1995, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxpcolor.h,v 1.2 2000/09/19 19:00:39 lpd Exp $ */
+/* $Id: gxpcolor.h,v 1.9 2003/08/20 19:53:11 igor Exp $ */
 /* Pattern color and tile structures and procedures */
 /* Requires gsmatrix.h, gxcolor2.h, gxdcolor.h */
 
@@ -48,7 +46,7 @@ struct gs_pattern_type_s {
 	 */
 
 #define pattern_proc_uses_base_space(proc)\
-  bool proc(P1(const gs_pattern_template_t *))
+  bool proc(const gs_pattern_template_t *)
 
 	pattern_proc_uses_base_space((*uses_base_space));
 
@@ -57,8 +55,8 @@ struct gs_pattern_type_s {
 	 */
 
 #define pattern_proc_make_pattern(proc)\
-  int proc(P5(gs_client_color *, const gs_pattern_template_t *,\
-	      const gs_matrix *, gs_state *, gs_memory_t *))
+  int proc(gs_client_color *, const gs_pattern_template_t *,\
+	   const gs_matrix *, gs_state *, gs_memory_t *)
 
 	pattern_proc_make_pattern((*make_pattern));
 
@@ -67,7 +65,7 @@ struct gs_pattern_type_s {
 	 */
 
 #define pattern_proc_get_pattern(proc)\
-  const gs_pattern_template_t *proc(P1(const gs_pattern_instance_t *))
+  const gs_pattern_template_t *proc(const gs_pattern_instance_t *)
 
 	pattern_proc_get_pattern((*get_pattern));
 
@@ -81,6 +79,17 @@ struct gs_pattern_type_s {
 
 	pattern_proc_remap_color((*remap_color));
 
+	/*
+	 * Perform any special actions required when a pattern instance
+	 * is made the current color "color" (i.e.: at setcolor time).
+	 * This is primarily useful for PatternType2 patterns, where the
+	 * pattern instance specifies a color space.
+	 */
+#define pattern_proc_set_color(proc)\
+  int proc(const gs_client_color *, gs_state *)
+
+	pattern_proc_set_color((*set_color));
+
     } procs;
 };
 
@@ -88,16 +97,16 @@ struct gs_pattern_type_s {
  * Initialize the common part of a pattern template.  This procedure is for
  * the use of gs_pattern*_init implementations, not clients.
  */
-void gs_pattern_common_init(P2(gs_pattern_template_t *,
-			       const gs_pattern_type_t *));
+void gs_pattern_common_init(gs_pattern_template_t *,
+			    const gs_pattern_type_t *);
 
 /*
  * Do the generic work for makepattern: allocate the instance and the
  * saved graphics state, and fill in the common members.
  */
-int gs_make_pattern_common(P6(gs_client_color *, const gs_pattern_template_t *,
-			      const gs_matrix *, gs_state *, gs_memory_t *,
-			      gs_memory_type_ptr_t));
+int gs_make_pattern_common(gs_client_color *, const gs_pattern_template_t *,
+			   const gs_matrix *, gs_state *, gs_memory_t *,
+			   gs_memory_type_ptr_t);
 
 /* Declare the freeing procedure for Pattern instances. */
 extern rc_free_proc(rc_free_pattern_instance);
@@ -115,6 +124,19 @@ extern const gx_device_color_type_t
     gx_dc_pure_masked, gx_dc_binary_masked, gx_dc_colored_masked;
 
 #define gx_dc_type_pattern (&gx_dc_pattern)
+
+/*
+ * These device color methods are shared amongst pattern types.
+ */
+extern dev_color_proc_save_dc(gx_dc_pattern_save_dc);
+extern dev_color_proc_write(gx_dc_pattern_write);
+extern dev_color_proc_read(gx_dc_pattern_read);
+
+/*
+ * For shading and colored tiling patterns, it is not possible to say
+ * which color components have non-zero values.
+ */
+extern dev_color_proc_get_nonzero_comps(gx_dc_pattern_get_nonzero_comps);
 
 /*
  * Define a color tile, an entry in the rendered Pattern cache (and
@@ -144,6 +166,8 @@ struct gx_color_tile_s {
     gx_strip_bitmap tmask;	/* data = 0 if no mask */
     /* (i.e., the mask is all 1's) */
     bool is_simple;		/* true if xstep/ystep = tile size */
+    bool is_dummy;		/* if true, the device manages the pattern, 
+                                   and the content of the tile is empty. */
     /* The following is neither key nor value. */
     uint index;			/* the index of the tile within */
     /* the cache (for GC) */
@@ -163,13 +187,13 @@ struct gx_color_tile_s {
 /* Allocate a Pattern cache. */
 /* We shorten the procedure names because some VMS compilers */
 /* truncate names to 23 characters. */
-uint gx_pat_cache_default_tiles(P0());
-ulong gx_pat_cache_default_bits(P0());
-gx_pattern_cache *gx_pattern_alloc_cache(P3(gs_memory_t *, uint, ulong));
+uint gx_pat_cache_default_tiles(void);
+ulong gx_pat_cache_default_bits(void);
+gx_pattern_cache *gx_pattern_alloc_cache(gs_memory_t *, uint, ulong);
 
 /* Get or set the Pattern cache in a gstate. */
-gx_pattern_cache *gstate_pattern_cache(P1(gs_state *));
-void gstate_set_pattern_cache(P2(gs_state *, gx_pattern_cache *));
+gx_pattern_cache *gstate_pattern_cache(gs_state *);
+void gstate_set_pattern_cache(gs_state *, gx_pattern_cache *);
 
 /*
  * Define a device for accumulating the rendering of a Pattern.
@@ -194,22 +218,26 @@ typedef struct gx_device_pattern_accum_s {
     instance, bits, mask)
 
 /* Allocate a pattern accumulator. */
-gx_device_pattern_accum *gx_pattern_accum_alloc(P2(gs_memory_t * memory, client_name_t));
+gx_device_pattern_accum *gx_pattern_accum_alloc(gs_memory_t * memory, client_name_t);
 
 /* Add an accumulated pattern to the cache. */
 /* Note that this does not free any of the data in the accumulator */
 /* device, but it may zero out the bitmap_memory pointers to prevent */
 /* the accumulated bitmaps from being freed when the device is closed. */
-int gx_pattern_cache_add_entry(P3(gs_imager_state *, gx_device_pattern_accum *,
-				  gx_color_tile **));
+int gx_pattern_cache_add_entry(gs_imager_state *, gx_device_pattern_accum *,
+			       gx_color_tile **);
+/* Add a dummy Pattern cache entry.  Stubs a pattern tile for interpreter when
+   device handles high level patterns. */
+int gx_pattern_cache_add_dummy_entry(gs_imager_state *pis, gs_pattern1_instance_t *pinst,
+				int depth);
 
 /* Look up a pattern color in the cache. */
-bool gx_pattern_cache_lookup(P4(gx_device_color *, const gs_imager_state *,
-				gx_device *, gs_color_select_t));
+bool gx_pattern_cache_lookup(gx_device_color *, const gs_imager_state *,
+			     gx_device *, gs_color_select_t);
 
 /* Purge selected entries from the pattern cache. */
-void gx_pattern_cache_winnow(P3(gx_pattern_cache *,
-				bool (*)(P2(gx_color_tile *, void *)),
-				void *));
+void gx_pattern_cache_winnow(gx_pattern_cache *,
+			     bool (*)(gx_color_tile *, void *),
+			     void *);
 
 #endif /* gxpcolor_INCLUDED */

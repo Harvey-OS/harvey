@@ -590,8 +590,13 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
+		/*
+		 * Let user (gs) shoot himself in the foot. 
+		 * qc has already complained.
+		 *
 		if(v < 0 || v > 31)
 			diag("illegal shift %ld\n%P", v, p);
+		 */
 		if(v < 0)
 			v = 0;
 		else if(v > 32)

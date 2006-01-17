@@ -1,21 +1,19 @@
 %    Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: pdf_draw.ps,v 1.36 2001/10/16 22:20:31 dancoby Exp $
+% $Id: pdf_draw.ps,v 1.98 2005/10/05 14:37:59 ray Exp $
 % pdf_draw.ps
 % PDF drawing operations (graphics, text, and images).
 
@@ -35,28 +33,44 @@ pdfdict begin
 
 % Note that resolvefunction converts a PDF Function to a PostScript Function;
 % resolve*fnproc converts a PDF function to a PostScript procedure.
+% We need to process all required and optional parameters to resolve any
+% use of indirect references.
 
 /fnrdict mark
   0 { .resolvefn0 }
-  2 { }
+  2 { .resolvefn2 }
   3 { .resolvefn3 }
   4 { .resolvefn4 }
 .dicttomark readonly def
 
 /.resolvefn0 {
+  dup length 1 add dict .copydict	% make room for DataSource
+  % now resolve any indirect references
+  dup /Size 2 copy knownoget { put } { pop pop } ifelse
+  dup /BitsPerSample 2 copy knownoget { put } { pop pop } ifelse
+  dup /Order 2 copy knownoget { put } { pop pop } ifelse
+  dup /Encode 2 copy knownoget { put } { pop pop } ifelse
+  dup /Decode 2 copy knownoget { put } { pop pop } ifelse
+  
 		% Don't lose our place in PDFfile.
   PDFfile fileposition exch
   dup true resolvestream
 		% The stream isn't positionable, so read all the data now.
 		% Stack: filepos fndict stream
-  1 index /Range oget length 2 idiv 2 index /BitsPerSample oget mul
-  2 index /Size oget { mul } forall
+  1 index /Range get length 2 idiv 2 index /BitsPerSample get mul
+  2 index /Size get { mul } forall
   7 add 8 idiv string
   1 index exch readstring pop exch closefile
 		% Stack: filepos fndict data
-  exch dup length 1 add dict .copydict
-  dup /DataSource 4 -1 roll put
+  exch dup /DataSource 4 -1 roll put
   exch PDFfile exch setfileposition
+} bdef
+
+/.resolvefn2 {
+  dup length dict .copydict
+  dup /C0 2 copy knownoget { put } { pop pop } ifelse
+  dup /C1 2 copy knownoget { put } { pop pop } ifelse
+  dup /N 2 copy knownoget { put } { pop pop } ifelse
 } bdef
 
 /.resolvefn3 {
@@ -85,15 +99,17 @@ pdfdict begin
   1 index /Function 3 -1 roll put
   exch PDFfile exch setfileposition
 } bdef
-currentdict /tfopdict undef
 
 /.resolvefn {		% <fndict> .resolvefn <fndict'>
+  dup length dict .copydict
+  dup /Domain 2 copy knownoget { put } { pop pop } ifelse
+  dup /Range 2 copy knownoget { put } { pop pop } ifelse
   dup /FunctionType oget //fnrdict exch get exec
 } bdef
 
 /resolvefunction {	% <fndict> resolvefunction <function>
   .resolvefn
-  DEBUG { (%Function: ) print dup === flush } if
+  PDFDEBUG { pdfdict /PDFSTEPcount .knownget { 1 le } { true } ifelse { (%Function: ) print dup === flush } if } if
 } bdef
 
 /resolvefnproc {	% <fndict> resolvefnproc <proc>
@@ -226,7 +242,14 @@ currentdict /tfopdict undef
 } bdef
 
 /resolvehalftone {	% <dict> resolvehalftone <halftone>
-  dup /HalftoneType get //htrdict exch get exec
+  dup /HalftoneType get
+  dup //htrdict exch .knownget {
+    exch pop exec
+  } {
+    (\n\n   **** Unsupported HalftoneType ) pdfformaterror
+    =string cvs pdfformaterror (. ***\n\n) pdfformaterror
+    /resolvehalftone cvx /unregistered signalerror
+  } ifelse
 } bdef
 
 % ---------------- Graphics state management ---------------- %
@@ -237,13 +260,22 @@ drawopdict begin
   /q { q } def
   /Q { Q } def
 			% Graphics state setting
-  /cm { //cmmatrix astore concat } def
-  /i /setflat load def
+  /cm { { //false upath } stopped {
+	  pop	% discard 'false' (upath failed, probably no currentpoint).
+	  //cmmatrix astore concat
+	} {
+	  % update the CTM, then uappend.
+	  7 1 roll //cmmatrix astore concat
+	  newpath { mark exch uappend } stopped 
+	  cleartomark
+	} ifelse
+      } def
+  /i { 1 .min setflat } def
   /J /setlinecap load def
   /d /setdash load def
   /j /setlinejoin load def
   /w /setlinewidth load def
-  /M /setmiterlimit load def
+  /M { 1 .max setmiterlimit } bdef
   /gs { gs } def
 end
 
@@ -275,10 +307,20 @@ end
   /TR { 1 index /TR2 known { pop } { gstr } ifelse }
   /HT {
     dup /Default eq {
-      pop .setdefaultscreen
+      pop .setdefaulthalftone
     } {
 	%****** DOESN'T IMPLEMENT THE STREAM CASE YET ******
       resolvehalftone sethalftone
+    } ifelse
+    % the transfer function may dependent on the halftone, so make sure
+    % it is set if included in the graphic state (otherwise this is
+    % subject to order of a dictionary forall, which is unpredictable)
+    dup /TR2 .knownget {
+      dup /Default eq { oforce gsparamdict /TR2 get exec } { pop } ifelse
+    } {
+      dup /TR .knownget {
+        /dup /Default eq { oforce gsparamdict /TR get exec } { pop } ifelse
+      } if
     } ifelse
   }
   /HTP {
@@ -290,7 +332,7 @@ end
   /LW { setlinewidth }
   /LC { setlinecap }
   /LJ { setlinejoin }
-  /ML { setmiterlimit }
+  /ML { 1 .max setmiterlimit }
   /D { aload pop setdash }
   /RI { ri }
   /op { op }
@@ -298,7 +340,7 @@ end
   /BG2 { gsbg }
   /UCR2 { gsucr }
   /TR2 { gstr }
-  /FL { setflat }
+  /FL { 1 .min setflat }
   /SM {
 	% SM may be present even if this is only a Level 2 interpreter.
     /setsmoothness where { pop setsmoothness } { pop } ifelse
@@ -325,15 +367,24 @@ end
 % ------ Transparency support ------ %
 
 /gssmask {
-  dup /None eq {
+  dup /None eq PDFusingtransparency not or {
     pop null
   } {
 	% Preprocess the SMask value into a parameter dictionary for
-	% .begintransparencymask, with added /BBox and /Draw keys.
+	% .begintransparencymaskgroup, with added /BBox and /Draw keys.
     mark exch		% Stack: mark smaskdict
     dup /S oget /Subtype exch 3 2 roll
 			% Stack: mark ... smaskdict
-    dup /BC knownoget { /Background exch 3 2 roll } if
+    dup /BC knownoget {
+      dup /Background exch 4 2 roll
+      gsave
+        1 index /G oget /Group oget /CS knownoget {
+	  csresolve dup setgcolorspace csput
+	} if
+        aload pop setcolor [ currentgray ]
+      grestore
+      /GrayBackground exch 3 2 roll
+    } if
     dup /TR knownoget {
       resolveidfnproc /TransferFunction exch 3 2 roll
     } if    
@@ -347,33 +398,36 @@ end
 /.execmaskgroup {	% <masknum> <paramdict> <formdict> .execmaskgroup -
 	% Save our place in PDFfile, and do a gsave to avoid resetting
 	% the color space.
-  gsave PDFfile fileposition 4 1 roll
+  currentcolorspace 4 1 roll
+  PDFfile fileposition 4 1 roll
 	% We have to select the group's color space so that the
 	% background color will be interpreted correctly.
-  dup /Group oget /CS knownoget { csresolve setcolorspace } if
-  exch dup /BBox get aload pop .begintransparencymask {
+  dup /Group oget /CS knownoget { csresolve dup setgcolorspace csput } if
+  exch dup /BBox get aload pop .begintransparencymaskgroup {
     dup /Resources knownoget { oforce } { 0 dict } ifelse
     exch false resolvestream
     .execgroup .endtransparencymask
-  } .internalstopped {
+  } stopped {
     .discardtransparencymask stop
   } if
-  PDFfile exch setfileposition grestore
+  PDFfile exch setfileposition 
+  setcolorspace
 } bdef
 % Paint a Form+Group XObject, either for a transparency mask or for a Do.
 /.execgroup {		% <resdict> <stream> .execgroup -
-  gsave
+  gsave //nodict begin
+  null SMask
   1 .setopacityalpha 1 .setshapealpha
   0 .inittransparencymask 1 .inittransparencymask
   /Compatible .setblendmode
 	% Execute the body of the Form, similar to DoForm.
   pdfopdict .pdfruncontext
-  grestore
+  end grestore
 } bdef
 
 /.beginformgroup {	% groupdict bbox .beginformgroup -
   exch mark exch			% bbox mark groupdict
-  dup /CS knownoget { csresolve setcolorspace } if
+  dup /CS knownoget { csresolve setgcolorspace } if
   dup /I knownoget { /Isolated exch 3 2 roll } if
   dup /K knownoget { /Knockout exch 3 2 roll } if
   pop .dicttomark
@@ -389,7 +443,7 @@ end
 		% Stack: resdict stream groupdict bbox
   .beginformgroup {
     .execgroup
-  } .internalstopped {
+  } stopped {
     .discardtransparencygroup stop
   } if .endtransparencygroup
 } bdef
@@ -420,7 +474,7 @@ end
   /ImageType 103 def
   /DataDict exch def
   dup /InterleaveType 3 put
-  DataDict /Matte .knownget {
+  DataDict /Matte knownoget {
     /Matte exch def
   } if
   AlphaIsShape { /ShapeMaskDict } { /OpacityMaskDict } ifelse exch def
@@ -445,28 +499,9 @@ end
   /DeviceN { 1 oget length }
 .dicttomark readonly def
 
-% Perhaps some of the values in the following need to be modified
-% depending on the WhitePoint value....
-/cslabinit mark
-  /DecodeABC [{16 add 116 div} bind {500 div} bind {200 div} bind]
-  /MatrixABC [1 1 1 1 0 0 0 0 -1]
-  /DecodeLMN [
-    {dup 6 29 div ge {dup dup mul mul} {4 29 div sub 108 841 div mul} ifelse
-     0.9505 mul} bind
-    {dup 6 29 div ge {dup dup mul mul} {4 29 div sub 108 841 div mul} ifelse
-     } bind
-    {dup 6 29 div ge {dup dup mul mul} {4 29 div sub 108 841 div mul} ifelse
-     1.0890 mul} bind
-  ]
-.dicttomark readonly def
-
 /csrdict mark
-  /DeviceGray {
-    /DefaultGray Page /ColorSpace rget { exch pop resolvecolorspace } if
-  }
-  /DeviceRGB {
-    /DefaultRGB Page /ColorSpace rget { exch pop resolvecolorspace } if
-  }
+  /DeviceGray { }
+  /DeviceRGB { }
   /DeviceCMYK { }
   /CalGray {
     1 oget 6 dict begin
@@ -474,8 +509,12 @@ end
       /exp load 2 packedarray cvx /DecodeA exch def
     } if
     dup /BlackPoint knownoget { /BlackPoint exch def } if
-    dup /WhitePoint knownoget { /WhitePoint exch def } if
-    pop [ /CIEBasedA currentdict end ]
+    dup /WhitePoint knownoget {
+      dup /WhitePoint exch def
+      dup /MatrixA exch def
+      /RangeLMN [ 3 2 roll { 0 exch } forall ] def
+    } if
+    /PDFColorSpace exch def [ /CIEBasedA currentdict end ]
   }
   /CalRGB {
     1 oget 6 dict begin
@@ -486,7 +525,7 @@ end
     dup /Matrix knownoget { /MatrixABC exch def } if
     dup /BlackPoint knownoget { /BlackPoint exch def } if
     dup /WhitePoint knownoget { /WhitePoint exch def } if
-    pop [ /CIEBasedABC currentdict end ]
+    /PDFColorSpace exch def [ /CIEBasedABC currentdict end ]
   }
   /CalCMYK {
     pop /DeviceCMYK		% not defined by Adobe
@@ -496,12 +535,26 @@ end
     dup /Range knownoget not { [-100 100 -100 100] } if
     [0 100 null null null null] dup 2 4 -1 roll putinterval
     /RangeABC exch def
-    //cslabinit { def } forall
+    /DecodeABC [{16 add 116 div} bind {500 div} bind {200 div} bind] def
+    /MatrixABC [1 1 1 1 0 0 0 0 -1] def
     dup /BlackPoint knownoget { /BlackPoint exch def } if
-    dup /WhitePoint knownoget { /WhitePoint exch def } if
-    pop [ /CIEBasedABC currentdict end ]
+    dup /WhitePoint knownoget { /WhitePoint exch def } {
+      (   **** Warning: Lab colorspace is missing WhitePoint.\n)
+      pdfformaterror
+      /WhitePoint [0.9505 1 1.089] def
+    } ifelse
+    % scaling function g() for DecodeLMN construction
+    { dup 6 29 div ge {dup dup mul mul} {4 29 div sub 108 841 div mul} ifelse }
+    /DecodeLMN [
+      % Store white point implicitly inside procedures.
+      [ 3 index aload pop WhitePoint 0 get /mul .systemvar ] cvx bind
+      [ 4 index aload pop WhitePoint 1 get /mul .systemvar ] cvx bind
+      [ 5 index aload pop WhitePoint 2 get /mul .systemvar ] cvx bind
+    ] def pop
+    /PDFColorSpace exch def [ /CIEBasedABC currentdict end ]
   }
   /ICCBased {
+    dup 1 get type /dicttype ne {	% don't resolve more than once
     PDFfile fileposition exch
     dup dup 1 oget
     mark exch { oforce } forall .dicttomark
@@ -509,20 +562,32 @@ end
     /ReusableStreamDecode filter /DataSource exch put
     1 exch put
     exch PDFfile exch setfileposition
+    % Resolve alternate color space
+    dup 1 get			% Get colorspace dictionary
+    dup /Alternate .knownget	% Check for alternate color space
+    { oforce resolvecolorspace /Alternate exch put }	% resolve and replace
+    { pop }			% remove colorspace dictionary
+    ifelse
+    } if
   } bind
   /Separation {
-    aload pop exch oforce resolvecolorspace exch oforce resolvefnproc
+    aload pop exch oforce resolvecolorspace
+                % Contrary to PDF manuals up to v.1.5, Acrobat Distiller 3.01
+                % can use /Identity name here instead of a function.
+    exch oforce resolveidfnproc
     4 array astore
   }
   /DeviceN {
     0 4 getinterval                    % ignore attributes
-    aload pop 3 -1 roll oforce
+    aload pop 3 -1 roll oforce	       % resolve names array
+    [ exch { oforce } forall ]	       % resolve each of the names
     3 -1 roll oforce resolvecolorspace
     3 -1 roll oforce resolvefnproc
     4 array astore
   }
   /Indexed {
     aload pop 3 -1 roll oforce resolvecolorspace
+		% Stack: /Indexed hival lookup basespace
 		% If the underlying space is a Lab space, we must scale
 		% the output of the lookup table as part of DecodeABC.
     dup dup type /arraytype eq { 0 get } if /CIEBasedABC eq {
@@ -554,6 +619,17 @@ end
 	5 -1 roll PDFfile exch setfileposition
     }
     if 4 array astore
+		% Replace the PDFColorSpace with the Indexed space if needed.
+    dup 1 get
+    dup type /arraytype eq {
+      dup length 2 ge {
+	dup 1 get type /dicttype eq {
+	  dup 1 get /PDFColorSpace known {
+	    dup 1 get /PDFColorSpace 3 index put
+	  } if
+	} if
+      } if
+    } if pop
   }
   /Pattern {
     dup type /nametype ne {
@@ -575,18 +651,28 @@ end
   /DeviceGray dup  /DeviceRGB dup  /DeviceCMYK dup  /Pattern dup
 .dicttomark readonly def
 /csresolve {		% <csresourcename> csresolve <cspace>
-  dup Page /ColorSpace rget {
-    exch pop resolvecolorspace
+  dup type /nametype ne {
+    (\n   **** Warning: CS/cs (setcolorspace) operand not a name: ) pdfformaterror
+    dup stderrfile dup 3 -1 roll write==only flushfile
+    ( ****\n) pdfformaterror
+    dup type /arraytype eq {	% Adobe InDesign + PDF Library has array
+      resolvecolorspace
+    } if
   } {
-    //csnames 1 index known not { /undefined cvx signalerror } if
+    dup Page /ColorSpace rget {
+      exch pop resolvecolorspace
+    } {
+      //csnames 1 index known not { /undefined cvx signalerror } if
+    } ifelse
   } ifelse
 } bdef
 /resolvecolorspace {	% <cspace> resolvecolorspace <cspace'>
   dup dup type /arraytype eq { 0 get } if
-  //csrdict exch .knownget {
+  //csrdict exch .knownget
+  {
     exec dup type /nametype ne { dup length 1 eq { 0 get } if } if
   } {
-    csresolve
+    dup type /nametype eq { csresolve } { csset exch pop } ifelse
   } ifelse
 } bdef
 
@@ -602,14 +688,14 @@ end
   dup type /dicttype eq {
 		% Check the PaintType, if any (shading patterns don't
 		% have one).
-    dup /PaintType .knownget { 2 eq } { false } ifelse
+    dup /PaintType knownoget { 2 eq } { false } ifelse
   } {
     .pdfcount 1 gt
   } ifelse
 } bdef
 
 /.pdfpaintproc {         % <patdict> <resdict> .pdfpaintproc -
-  DEBUG { (%Begin PaintProc) = flush } if
+  PDFDEBUG { pdfdict /PDFSTEPcount .knownget { 1 le } { true } ifelse { (%Begin PaintProc) print dup === flush } if } if
 	% For uncolored patterns, we have to unbind the current
 	% color and color space before running the PaintProc.
 	% There's no harm in doing this for colored patterns,
@@ -617,9 +703,15 @@ end
   PDFfile fileposition 3 1 roll
   q
   null sc1 null SC1
+
+  % save old value of pdfemptycount on opstack, set to new value
+  pdfemptycount /pdfemptycount count 3 sub def 3 1 roll
   exch false resolvestream pdfopdict .pdfruncontext
+  % restore pdfemptycount
+  /pdfemptycount exch def
+
   Q
-  DEBUG { (%End PaintProc) = flush } if
+  PDFDEBUG { pdfdict /PDFSTEPcount .knownget { 1 le } { true } ifelse { (%End PaintProc) print dup === flush } if } if
   PDFfile exch setfileposition
 } bdef
 
@@ -631,7 +723,13 @@ end
     1 index /File get dup fileposition 3 1 roll
 		% Stack: dict savepos pos file
     dup 3 -1 roll setfileposition
-    dup 3 index /Length oget string readstring pop
+    dup 3 index /Length oget
+
+    dup 65535 le {
+      string readstring pop
+    } {
+      () /SubFileDecode filter /ReusableStreamDecode filter
+    } ifelse
 		% Stack: dict savepos file string
     3 1 roll exch setfileposition
     1 index /File 3 -1 roll put
@@ -645,9 +743,7 @@ end
     2 index /Resources knownoget { oforce } { 0 dict } ifelse
     /.pdfpaintproc cvx
   ] cvx put
-  DEBUG {
-    (%Pattern: ) print dup === flush
-  } if
+  PDFDEBUG { pdfdict /PDFSTEPcount .knownget { 1 le } { true } ifelse { (%Pattern: ) print dup === flush } if } if
 } bdef
 
 drawopdict begin
@@ -692,7 +788,7 @@ drawopdict begin
   /b* { b* } def
   /W { W } def
   /W* { W* } def
-  /sh { resolvesh shfill } def
+  /sh { setfillstate resolvesh shfill } def
 end
 
 % ---------------- XObjects ---------------- %
@@ -709,10 +805,10 @@ end
   /DeviceGray { pop //01_1 } bind
   /DeviceRGB { pop //01_3 } bind
   /DeviceCMYK { pop //01_4 } bind
-  /CIEBasedA { 1 get /RangeA .knownget not { //01_1 } if } bind
-  /CIEBasedABC { 1 get /RangeABC .knownget not { //01_3 } if } bind
+  /CIEBasedA { 1 get /RangeA knownoget not { //01_1 } if } bind
+  /CIEBasedABC { 1 get /RangeABC knownoget not { //01_3 } if } bind
   /ICCBased {
-     1 oget dup /Range .knownget {
+     1 oget dup /Range knownoget {
        exch pop
      }{
        /N get [ exch {0 1} repeat ] readonly
@@ -750,7 +846,8 @@ end
   begin
   /Width 2 copy oget def
   /Height 2 copy oget def
-  /BitsPerComponent 2 copy oget def
+		% Handle missing BitsPerComponent later.
+  /BitsPerComponent 2 copy knownoget { def } { pop } ifelse
   /Interpolate 2 copy knownoget { def } { pop } ifelse
   makeimagekeys
 } bdef
@@ -767,9 +864,7 @@ end
 		% Decode is required for the PostScript image operators.
                 % AI8 writes bogus decode array [0 1 0 0 0 0 0 0]
     /Decode 2 copy knownoget { 0 2 getinterval } { //01_1 } ifelse def
-		% BitsPerComponent may be missing for masks.
-		% The spec requires it, but some producers omit it, and
-		% Acrobat Reader doesn't care.
+		% BitsPerComponent is optional for masks.
     /BitsPerComponent 2 copy known { pop } { 1 def } ifelse
     true
   } {
@@ -792,14 +887,33 @@ end
   checkaltimage dup length 6 add dict
   1 index /SMask knownoget { 1 index exch /SMask exch put } if
   1 index /Mask knownoget { 1 index exch /Mask exch put } if
-  makeimagedict doimage
+  makeimagedict doimagesmask
 } bdef
 /makemaskimage {	% <datasource> <imagemask> <Mask> makemaskimage
 			%   <datasource> <imagemask>, updates currentdict =
 			%   imagedict
   dup type /arraytype eq {
     /ImageType 4 def
-    /MaskColor exch def
+                % Check that every element of the Mask is an integer.
+    //false 1 index {
+      type /integertype ne or
+    } forall {
+      (\n   **** Warning: Some elements of Mask array are not integers.\n)
+      pdfformaterror
+      [ exch { 0.5 add cvi } forall ]  % following AR4, 5, 6 implementation
+    } if
+	% Check elements of array are within 0::(2**BitsPerComponent)-1
+	% This is a PostScript error, but AR ignores Mask in that case
+    2 BitsPerComponent exp cvi 1 sub //false 2 index {
+      % stack: max_value result_bool value
+      dup 0 lt exch 3 index gt or or
+    } forall exch pop {
+      (\n   **** Warning: Some elements of Mask array are out of range.\n)
+      pdfformaterror
+      pop /ImageType 1 def		% revert to non-masked image
+    } {
+      /MaskColor exch def
+    } ifelse
   } {
 		% Mask is a stream, another Image XObject.
 		% Stack: datasource imagemask(false) maskstreamdict
@@ -825,10 +939,34 @@ end
     /ColorSpace DataDict /ColorSpace get def
   } ifelse
 } bdef
+/doimagesmask { % <imagemask> doimagesmask -
+  PDFusingtransparency { currentdict /SMask knownoget } { false } ifelse {
+    .begintransparencymaskimage
+    PDFfile fileposition exch
+    gsave //nodict begin
+    null /SoftMask gput
+    1 .setopacityalpha 1 .setshapealpha
+    0 .inittransparencymask 1 .inittransparencymask
+    /Compatible .setblendmode
+    DoImage
+    end grestore
+    PDFfile exch setfileposition
+    0 .endtransparencymask
+    << /Subtype /Group /Isolated true >> 0 0 1 1 .begintransparencygroup
+    doimage
+    .endtransparencygroup
+  } {
+    doimage
+  } ifelse
+} bdef
 /doimage {	% <imagemask> doimage -
 		% imagedict is currentdict, gets popped from dstack
   DataSource exch
-  PDFversion 1.4 ge { currentdict /SMask knownoget } { false } ifelse {
+  PDFusingtransparency {
+    currentdict /SMask knownoget
+  } {
+    false
+  } ifelse {
     makesoftmaskimage
   } {
     currentdict /Mask knownoget {
@@ -839,17 +977,27 @@ end
    % image and imagemask can be redefined in gs_init.ps to tweak interpolation
    % after device-specific files are run. Don't bind them here.
    { currentdict end setfillstate /imagemask }
-   { ColorSpace setcolorspace currentdict end setfillblend /image }
+   { ColorSpace setgcolorspace currentdict end setfillblend /image }
   ifelse
-  .systemvar exec
-   
+  .systemvar stopped {
+    pop
+    $error /errorname get dup /ioerror eq {
+      pop (\n   **** Warning: File has insufficient data for an image.\n)
+      pdfformaterror
+    } {
+      (\n   **** Warning: File encountered ')
+      exch 40 string cvs concatstrings
+      (' error while processing an image.\n) concatstrings
+      pdfformaterror
+    } ifelse
+  } if
 		% Close the input stream, unless it is PDFfile or
 		% PDFsource.
   dup dup PDFfile eq exch PDFsource eq or { pop } { closefile } ifelse
 } bdef
 
 /.paintform {	% <formdict> <resdict> <stream> .paintform -
-  3 -1 roll dup /Group known {
+  3 -1 roll dup /Group known PDFusingtransparency and {
     .paintgroupform
   } {
     pop pdfopdict .pdfruncontext
@@ -859,29 +1007,37 @@ end
 /DoForm {
     % Adobe 2nd edition of the PDF 1.3 spec makes /FormType
     % and /Matrix keys optional. Cope with the missing keys.
-  dup length
-  1 index /Matrix known
-    { dict
-    }
-    { 1 add dict
-      dup /Matrix { 1 0 0 1 0 0 } cvlit put
-    }
-  ifelse
-  copy
-  dup /FormType known not {
-    dup length 1 add dict copy dup /FormType 1 put
-  } if
-
+  begin <<
+  currentdict /FormType known not { /FormType 1 } if
+  currentdict /Matrix   known not { /Matrix { 1 0 0 1 0 0 } cvlit } if
+  currentdict end { oforce } forall
+  >>
   dup [ 2 index /Resources knownoget { oforce } { 0 dict } ifelse
   3 index false /resolvestream cvx
   /.paintform cvx
   ] cvx /PaintProc exch put
-  execform
+    % Adjust pdfemptycount since we have an extra dictionary on the stack
+  pdfemptycount exch
+  /pdfemptycount where pop count 2 sub /pdfemptycount exch put
+  q execform Q			% gsave / grestore around the Form
+    % Restore pdfemptycount
+  /pdfemptycount where pop exch /pdfemptycount exch put
 } bdef
 
+/_dops_save 1 array def
+
 /DoPS {
-  true resolvestream cvx exec
+  DOPS
+   {
+     //_dops_save 0 save put
+     true resolvestream cvx exec
+     //_dops_save 0 get restore
+   }
+   { pop }
+  ifelse
 } bdef
+
+currentdict /_dops_save undef
 
 drawopdict begin
   /Do {
@@ -895,10 +1051,9 @@ drawopdict begin
     } {
 		% This should cause an error, but Acrobat Reader can
 		% continue, so we do too.
-      (%stderr) (w) file
-      dup (****************Undefined XObject resource: ) writestring 
-      dup 3 -1 roll write===
-      flushfile
+      (   **** Undefined XObject resource: ) 
+      exch =string cvs concatstrings (\n) concatstrings
+      pdfformaterror
     } ifelse
     PDFfile exch setfileposition
   } bdef
@@ -937,10 +1092,11 @@ end
 drawopdict begin
   /BI { mark } bdef
   /ID {
-    counttomark 2 idiv dup 6 add dict begin {
+    counttomark 2 idiv dup 7 add dict begin {
       exch //unabbrevkeydict 1 index .knownget { exch pop } if
       exch unabbrevvalue def
     } repeat pop
+    /IDFlag true def  % flag for stream processing.
     /File PDFsource def
     currentdict makeimagekeys doimage	
 	% The Adobe documentation says that the data following ID
@@ -1037,7 +1193,7 @@ end
       exch dup length 3 gt { 3 get } { pop [] } ifelse
       strokeborder
     } {
-      pop
+      1 [] strokeborder
     } ifelse
   } ifelse
   grestore
@@ -1060,79 +1216,107 @@ end
   /F knownoget not { 0 } if 		% Get flag value
   dup 2 and 0 eq  			% Check hidden flag
   exch dup 4 and 0 ne Printed and	% Check print flag
-  exch 64 and 0 eq Printed not and	% Check noview flag
+  exch 32 and 0 eq Printed not and	% Check noview flag
   or					% Combine print and view
   and 					% Combine with 'hidden' flag test
 } bdef
 
 /drawwidget {			% <scalefactor> <annot> drawwidget -
   dup /AP knownoget {
-	% Always use the Normal appearance.
-    /N oget
+    false
+    [/N /R /D] {
+	% stack: scale annot appearance false key
+      dup 3 index exch known {
+	exch pop true exit 
+      } if
+      pop
+    } forall
+	% stack: scale annot appearance key true
+	% stack: scale annot appearance false
+    dup {
+      pop
+      oget
 		% Acrobat Distiller produces files in which this Form
 		% XObject lacks Type and Subtype keys.  This is illegal,
 		% but Acrobat Reader accepts it.  The only way we can
 		% tell whether this is a Form or a set of sub-appearances
 		% is by testing for the stream Length key.
-    dup /Length known {
+      dup /Length known {
       		% If this is a form then simply use it
-      true
-    } {
-      1 index /AS knownoget not {
+        true
+      } {
+        1 index /AS knownoget not {
       		% If we do not have AS then use any appearance
-	{ exch pop oforce exit } forall true
-      } { 
+  	  { exch pop oforce exit } forall true
+        } { 
 		% Stack: annot Ndict AS
 		% Get the specified appearance.  If no appearance, then
 		% display nothing - set stack = false.
-	knownoget
+	  knownoget
+        } ifelse
       } ifelse
+    } {
+      exch pop	% discard useless AP dictionary
     } ifelse
 
 		% Stack: scale annot appearance true
 		% Stack: scale annot false
     {
       		% Draw appearance
+                % Initialize graphic following "7.4.4 Appearance Streams"
+      q graphicsbeginpage textbeginpage
       1 index annotrect pop pop translate
       2 index dup scale		% Apply scale factor
-      DoForm
+      DoForm Q
     } if
   } if pop pop
 } bdef
 
-%
 %  For stamp object we have to determine the size of the output rectangle
 %  and the size of the BBox for the stamp image.  From these we calculate
 %  a scale factor for drawing the stamp.
-%
 /calcstampscale {		% <annot> calcstampscale scale
-  dup annotrect 4 -2 roll pop pop pop	% get x width
-  dup 0 lt { neg } if		% get magnitude
-  exch /AP knownoget {
-    /N knownoget {
-      /BBox knownoget {
-         aload pop 4 -2 roll pop pop pop
-         div
+  dup /Rect known {
+    dup annotrect 4 -2 roll pop pop	 % get width height size in user space
+    3 -1 roll /AP knownoget {
+      /N knownoget {
+	dup /Matrix knownoget {
+	  % transform /Annot /Rect xwidth to Form space
+	  4 -2 roll 3 -1 roll dtransform 3 -1 roll
+	} if
+	/BBox knownoget {
+	  exch pop	% discard y height
+	  aload pop pop exch pop sub	% BBox width
+	  dup 0 eq {
+            (   **** Warning: /BBox has zero width which is not allowed.\n)
+            pdfformaterror
+            pop pop 1 1		% 0 width -- revert to unity scaling
+          } if
+	  div		% scale x widths
+	  dup 0 lt { neg } if		% get magnitude
+	} {
+	  pop pop 1		% default to unity scaling
+	} ifelse			% if we have /BBox
       } {
-        pop 1			% default to unity scaling
-      } ifelse			% if we have /BBox
+	pop pop 1
+      } ifelse			% if we have /N
     } {
-      pop 1
-    } ifelse			% if we have /N
+      pop pop 1
+    } ifelse			% if we have /AP
   } {
+    (   **** Warning: /Annot dict is missing required /Rect entry.\n)
+    pdfformaterror
     pop 1
-  } ifelse			% if we have /AP
+  } ifelse
 } bdef
 
 /drawlink {			% <annot> drawlink -
-  dup drawborder
-  1 exch drawwidget
+  dup drawborder dup calcstampscale exch drawwidget
 } bdef
 
 % Draw an annotation.
 /drawannottypes mark
   /Link { drawlink } bind
-  /Stamp { dup calcstampscale exch drawwidget } bind
 .dicttomark readonly def
 /drawannot {		% <annot> drawannot -
   dup annotvisible {
@@ -1140,7 +1324,7 @@ end
     dup dup /Subtype get //drawannottypes exch .knownget {
       exec
     } {
-      1 exch drawwidget		% Use drawwidget for everything else
+      dup calcstampscale exch drawwidget	% Use drawwidget for everything else
     } ifelse			% type known
     grestore
   } if pop			% annotvisible

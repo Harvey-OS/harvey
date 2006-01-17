@@ -1,29 +1,27 @@
-/* Copyright (C) 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: icharout.h,v 1.3 2000/10/19 23:46:46 lpd Exp $ */
+/* $Id: icharout.h,v 1.10 2004/09/22 13:52:33 igor Exp $ */
 /* Interface to zcharout.c */
 
 #ifndef icharout_INCLUDED
 #  define icharout_INCLUDED
 
 /* Execute an outline defined by a PostScript procedure. */
-int zchar_exec_char_proc(P1(i_ctx_t *));
+int zchar_exec_char_proc(i_ctx_t *);
 
 /*
  * Get the metrics for a character from the Metrics dictionary of a base
@@ -36,38 +34,39 @@ typedef enum {
     metricsSideBearingAndWidth = 2
 } metrics_present;
 int /*metrics_present*/
-  zchar_get_metrics(P3(const gs_font_base * pbfont, const ref * pcnref,
-		       double psbw[4]));
+  zchar_get_metrics(const gs_font_base * pbfont, const ref * pcnref,
+		    double psbw[4]);
 
 /* Get the vertical metrics for a character from Metrics2, if present. */
 int /*metrics_present*/
-  zchar_get_metrics2(P3(const gs_font_base * pbfont, const ref * pcnref,
-			double pwv[4]));
+  zchar_get_metrics2(const gs_font_base * pbfont, const ref * pcnref,
+		     double pwv[4]);
+/*  Get CDevProc. */
+bool zchar_get_CDevProc(const gs_font_base * pbfont, ref **ppcdevproc);
 
 /*
  * Consult Metrics2 and CDevProc, and call setcachedevice[2].  Return
  * o_push_estack if we had to call a CDevProc, or if we are skipping the
  * rendering process (only getting the metrics).
  */
-int zchar_set_cache(P9(i_ctx_t *i_ctx_p, const gs_font_base * pbfont,
-		       const ref * pcnref, const double psb[2],
-		       const double pwidth[2], const gs_rect * pbbox,
-		       int (*cont_fill) (P1(i_ctx_t *)),
-		       int (*cont_stroke) (P1(i_ctx_t *)),
-		       const double Metrics2_sbw_default[4]));
+int zchar_set_cache(i_ctx_t *i_ctx_p, const gs_font_base * pbfont,
+		    const ref * pcnref, const double psb[2],
+		    const double pwidth[2], const gs_rect * pbbox,
+    		    op_proc_t cont, op_proc_t *exec_cont,
+		    const double Metrics2_sbw_default[4]);
 
 /*
  * Get the CharString data corresponding to a glyph.  Return typecheck
  * if it isn't a string.
  */
-int zchar_charstring_data(P3(gs_font *font, const ref *pgref,
-			     gs_const_string *pstr));
+int zchar_charstring_data(gs_font *font, const ref *pgref,
+			  gs_glyph_data_t *pgd);
 
 /*
  * Enumerate the next glyph from a directory.  This is essentially a
  * wrapper around dict_first/dict_next to implement the enumerate_glyph
  * font procedure.
  */
-int zchar_enumerate_glyph(P3(const ref *prdict, int *pindex, gs_glyph *pglyph));
+int zchar_enumerate_glyph(const gs_memory_t *mem, const ref *prdict, int *pindex, gs_glyph *pglyph);
 
 #endif /* icharout_INCLUDED */

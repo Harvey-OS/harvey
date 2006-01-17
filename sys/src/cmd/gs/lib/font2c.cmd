@@ -1,4 +1,4 @@
-/* $Id: font2c.cmd,v 1.1 2000/07/05 16:21:13 lpd Exp $ */
+/* $Id: font2c.cmd,v 1.3 2002/02/21 21:49:28 giles Exp $ */
 /*
  * This file is maintained by a user: if you have any questions about it,
  * please contact Mark Hale (mark.hale@physics.org).

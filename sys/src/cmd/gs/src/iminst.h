@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: iminst.h,v 1.5 2001/09/22 07:33:35 ghostgum Exp $ */
+/* $Id: iminst.h,v 1.8 2004/08/04 19:36:13 stefan Exp $ */
 /* Definition of interpreter instance */
 /* Requires stdio_.h, gsmemory.h, iref.h, iapi.h */
 
@@ -65,13 +63,6 @@ typedef struct gs_file_path_s {
  */
 struct gs_main_instance_s {
     /* The following are set during initialization. */
-    FILE *fstdin;
-    FILE *fstdout;
-    FILE *fstderr;
-    FILE *fstdout2;		/* for redirecting %stdout and diagnostics */
-    bool stdout_is_redirected;	/* to stderr or fstdout2 */
-    bool stdout_to_stderr;
-    bool stdin_is_interactive;
     gs_memory_t *heap;		/* (C) heap allocator */
     uint memory_chunk_size;	/* 'wholesale' allocation unit */
     ulong name_table_size;
@@ -88,12 +79,11 @@ struct gs_main_instance_s {
     char stdout_buf[STDOUT_BUF_SIZE];	/* for e_NeedStdout callout */
     char stderr_buf[STDERR_BUF_SIZE];	/* for e_NeedStderr callout */
     ref error_object;		/* Use by gsapi_*() */
-    void *caller_handle;	/* identifies caller of GS DLL/shared object */
-    int (GSDLLCALL *stdin_fn)(void *caller_handle, char *buf, int len);
-    int (GSDLLCALL *stdout_fn)(void *caller_handle, const char *str, int len);
-    int (GSDLLCALL *stderr_fn)(void *caller_handle, const char *str, int len);
-    int (GSDLLCALL *poll_fn)(void *caller_handle);
+#if 1
+    /* needs to be removed */
     display_callback *display;	/* callback structure for display device */
+#endif
+
     /* The following are updated dynamically. */
     i_ctx_t *i_ctx_p;		/* current interpreter context state */
 };
@@ -103,7 +93,7 @@ struct gs_main_instance_s {
  * must include gconfig.h, because of SEARCH_HERE_FIRST.
  */
 #define gs_main_instance_default_init_values\
-  0, 0, 0, 0, 0, 0 ,1 /*true*/, 0, 20000, 0, 0, -1, 0, SEARCH_HERE_FIRST, 1
+  0, 20000, 0, 0, -1, 0, SEARCH_HERE_FIRST, 1
 extern const gs_main_instance gs_main_instance_init_values;
 
 #endif /* iminst_INCLUDED */

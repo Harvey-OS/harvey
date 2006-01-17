@@ -1,21 +1,19 @@
 %    Copyright (C) 1991, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This software is provided AS-IS with no warranty, either express or
+% implied.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-% $Id: gslp.ps,v 1.2 2000/09/19 18:29:11 lpd Exp $
+% $Id: gslp.ps,v 1.7 2005/05/07 22:56:56 ray Exp $
 % gslp.ps - format and print text
 
 % This utility provides functionality approximately equivalent to the Unix
@@ -311,7 +309,7 @@ lpdict begin
 /showline3 {	% xlimit string -> xlimit leftover_string
 		% (finds line break / tab / formfeed)
   1 index tx sub
-    cwx div 0.1 add cvi 0 max 1 index length min
+    cwx div 0.1 add cvi 0 .max 1 index length .min
   1 index 0 3 -1 roll getinterval
 	% look for \f or \t
   StringFF search { exch pop exch pop } if
@@ -459,7 +457,7 @@ lpdict begin
      exch MarginLeft add
      exch MarginBottom add plength add topskip sub
      /pagey exch def /pagex exch def
-   plength pskip sub lheight div cvi MaxLines min
+   plength pskip sub lheight div cvi MaxLines .min
      dup /colines exch def
      Columns mul /llength exch def
    grestore
@@ -481,7 +479,7 @@ lpdict begin
    $error /recordstacks false put
 
 % Initialize for the first page.
-   /lbuf 1000 string def
+   /lbuf 64000 string def
    /pindex 1 def
    beginpage
 
@@ -503,6 +501,7 @@ lpdict begin
 	 exch not { exit } if
        }
       ifelse
+      pindex PageLast gt { exit } if
     } loop
    pop
 
@@ -525,10 +524,10 @@ end
 
 lpdict begin
 
-/splitfn		% (FontNNN) -> <font>
+/splitfn		% (FontNN.NN) -> <font>
  { dup /arg exch def length
     { dup 0 le { exit } if
-      dup 1 sub arg exch get dup 48 ge exch 59 le and not { exit } if
+      dup 1 sub arg exch get dup 48 ge 1 index 59 le and exch 46 eq or not { exit } if
       1 sub
     } loop
    arg exch 0 exch getinterval dup cvn find-latin-font
@@ -563,7 +562,7 @@ lpdict begin
     } def
 /--add-to-space { cvr /AddToSpace exch def } def
 /--add-to-width { cvr /AddToWidth exch def } def
-/--columns { cvi 1 max /Columns exch def } def
+/--columns { cvi 1 .max /Columns exch def } def
 /--detect { /DetectFileType true def } def
 /--first-page { cvi /PageFirst exch def } def
 /--footing-center { /FootingCenter exch def   /Footers true def } def
@@ -645,7 +644,7 @@ lpdict begin
    ifelse
  } bind def
 
-/lpcstring 100 string def
+/lpcstring 8192 string def
 
 end
 

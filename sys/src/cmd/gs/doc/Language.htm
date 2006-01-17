@@ -3,7 +3,7 @@
 <html>
 <head>
 <title>Ghostscript and the PostScript language</title>
-<!-- $Id: Language.htm,v 1.34.2.4 2002/02/01 05:31:25 raph Exp $ -->
+<!-- $Id: Language.htm,v 1.98 2005/10/20 19:46:23 ray Exp $ -->
 <!-- Originally: language.txt -->
 <link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
@@ -65,6 +65,13 @@
 <li><a href="#Device_parameters">Device parameters</a>
 <li><a href="#User_parameters">User parameters</a>
 <li><a href="#Miscellaneous_additions">Miscellaneous additions</a>
+<ul>
+<li><a href="#Extended_semantics_of_run">Extended semantics of 'run'</a>
+<li><a href="#DecodingResources">Decoding resources</a>
+<li><a href="#CIDDecodingResources">CIDDecoding resources</a>
+<li><a href="#GlyphNames2Unicode">GlyphNames2Unicode</a>
+<li><a href="#MultipleResourceDirectories">Multiple Resource directories</a>
+</ul>
 </ul></blockquote>
 
 <!-- [1.2 end table of contents] =========================================== -->
@@ -164,7 +171,7 @@ a very few special devices.
 <li><b><tt>IODevice</tt></b>s other than <b><tt>%stdin</tt></b>,
 <b><tt>%stdout</tt></b>, <b><tt>%stderr</tt></b>, <b><tt>%lineedit</tt></b>,
 <b><tt>%statementedit</tt></b>, <b><tt>%os%</tt></b>, and (if configured)
-<b><tt>%pipe%</tt></b>.
+<b><tt>%pipe%</tt></b> and <b><tt>%disk0%</tt></b> through <b><tt>%disk0%</tt></b>.
 </ul>
 
 <p>
@@ -367,7 +374,7 @@ starts with a %...% IODevice designation, or 124 characters if it does not.
 	<td>&nbsp;
 	<td>65535
 	<td>&nbsp;
-	<td>values (samples × components)<br>for1-, 2-, 4-, or 8-bit samples
+	<td>values (samples Ã— components)<br>for1-, 2-, 4-, or 8-bit samples
 	<td>&nbsp;
 	<td>3300
 <tr valign=top>	<td>&nbsp;
@@ -385,7 +392,9 @@ starts with a %...% IODevice designation, or 124 characters if it does not.
 Packed array elements occupy either 2 bytes or 8 bytes.  The average
 element size is probably about 5 bytes.  Names occupy 12 bytes plus the
 space for the string.
-
+<p>
+The garbage collector doesn't reclaim portions of arrays obtained with 
+<tt>getinterval</tt>, rather it collects entire arrays.
 <hr>
 
 <h2><a name="Additional_operators"></a>Additional operators in Ghostscript</h2>
@@ -505,8 +514,9 @@ onto the group that now becomes current.
 
 <dl>
 <dt><b><tt>&lt;paramdict&gt; &lt;llx&gt; &lt;lly&gt; &lt;urx&gt; &lt;ury&gt;
-.begintransparencymask -</tt></b>
-<dd>Begins a new transparency mask.  The <b><tt>ll/ur</tt></b> coordinates
+.begintransparencymaskgroup -</tt></b>
+<dd>Begins a new transparency mask, which is represented as a group.  
+The <b><tt>ll/ur</tt></b> coordinates
 are the bounding box of the mask in the current user coordinate system.
 <b><tt>paramdict</tt></b> has the following keys:
 <dl>
@@ -518,6 +528,12 @@ are the bounding box of the mask in the current user coordinate system.
 <dt><b><tt>/TransferFunction</tt></b>
 <dd>(optional) Function object (produced by applying
 <b><tt>.buildfunction</tt></b> to a Function dictionary).
+</dl>
+</dl>
+
+<dl>
+<dt><b><tt>- .begintransparencymaskimage -</tt></b>
+<dd>Begins a new transparency mask, which is represented as a single image.
 </dl>
 </dl>
 
@@ -587,23 +603,25 @@ match other PostScript implementations.
 
 <dl>
 <dt><b><tt>&lt;int&gt; .setcurvejoin -</tt></b>
+<dd>Obsolete, left for backward compatibility.
 <dd>Sets a graphics state parameter that determines how to treat the joins
 between the line segments produced when a curve is flattened.  The parameter
 value may be either -1 or a value acceptable to <b><tt>setlinejoin</tt></b>.
 If the parameter value is -1, the join used for flattened curve line
 segments is given by the current line join parameter in the graphics state
 (except that if the line join value is "none", a bevel join is used), which
-matches the Adobe Red Book, but not the Adobe implementations; if the curve
+matches the Adobe Red Book, but not some old Adobe implementations; if the curve
 join parameter value is a line join value, that type of join is used for
 flattened curve line segments, regardless of the value of the graphics state
 line join parameter.  The initial (and default) value of the curve join
-parameter is 2, causing bevel joins to be used: this matches the Adobe
+parameter is -1, causing the compatibility to Red Book and to modern Adobe
 implementations.  <b><tt>initgraphics</tt></b> sets the parameter to its
 default value.
 </dl>
 
 <dl>
 <dt><b><tt>- .currentcurvejoin &lt;int&gt;</tt></b>
+<dd>Obsolete, left for backward compatibility.
 <dd>Returns the current value of the curve join parameter.
 </dl>
 
@@ -937,6 +955,14 @@ place of a string with a very few operators.
 </dl>
 
 <dl>
+<dt><b><tt>&lt;string&gt; &lt;charstring&gt; .stringbreak &lt;index|null&gt;</tt></b>
+<dd>Searches for a character in <b><tt>string</tt></b> that appears
+somewhere in <b><tt>charstring</tt></b>.  If such a character is found,
+returns the index of the first such character; if no such character is
+found, returns <b><tt>null</tt></b>.
+</dl>
+
+<dl>
 <dt><b><tt>&lt;obj&gt; &lt;pattern&gt; .stringmatch &lt;bool&gt;</tt></b>
 <dd>Matches <b><tt>obj</tt></b> against a pattern in which '*' matches 0 or
 more characters and '?' matches any single character.  If
@@ -1028,9 +1054,9 @@ same name conventions as other temporary files created by the Ghostscript
 implementation on this platform.  E.g., the temporary file might be named
 <b><tt>/tmp/gs_a1234</tt></b>.
 <p>
-<li>A string that is not the beginning of an absolute file name (e.g., does
-not begin with <b><tt>.</tt></b> or <b><tt>/</tt></b> on Unix-like
-platforms): create the file in the standard temporary directory, but use the
+<li>A string that contains only alphanumeric characters, underline,
+and dash: create the file in the standard temporary directory, but use
+the
 <b><tt>&lt;prefix_string&gt;</tt></b> as the first part of the file name.
 E.g., if <b><tt>&lt;prefix_string&gt;</tt></b> is <b><tt>xx</tt></b>, the
 temporary file might be named <b><tt>/tmp/xxa1234</tt></b>.
@@ -1049,11 +1075,6 @@ that is on <b>both</b> the PermitFileControl and PermitFileWriting
 paths.
 </ul>
 
-<p>
-It is intended that in some future version of Ghostscript, files opened with
-<b><tt>.tempfile</tt></b> will be closed and deleted automatically when
-Ghostscript exits; however, this is not currently the case.
-
 </dl>
 
 <dl>
@@ -1069,9 +1090,36 @@ use <b><tt>.peekstring</tt></b> in new code.
 <p>
 Ghostscript also supports the following <b><tt>IODevice</tt></b> in
 addition to a subset of those defined in the Adobe documentation:
+<ul>
+<li>
 <b><tt>%pipe%command</tt></b>, which opens a pipe on the given command.
 This is supported only on operating systems that provide
 <b><tt>popen</tt></b> (primarily Unix systems, and not all of those).
+<p>
+<li>
+<b><tt>%disk#%</tt></b>, which emulates the %disk0
+through %disk9 devices on some Adobe PostScript printers. This pseudo
+device provides a flat filenaming system with a user definable location
+for the files (/Root). These devices will only be present if the
+diskn.dev feature is specified during the build.
+<p>
+This feature is intended to allow compatibility with font downloaders
+that expect to store fonts on the %disk device of the printer.
+<p>
+Use of the %disk#% devices requires that the location of files be given
+by the user setting the /Root device parameter. The syntax for setting
+the /Root parameter is:<pre>
+    mark /Root (directory_specification) (%disk#) .putdevparams
+</pre>
+For example, to store the files of the %disk0 device on the directory
+/tmp/disk0, use:<pre>
+    mark /Root (/tmp/disk0/) (%disk0) .putdevparams
+</pre>
+The files will be stored in the specified directory with arbitrary names.
+A mapping file is used to store the association between the file
+names given for the file operations on the %diskn# device and the file
+that resides in the /Root directory.
+</ul>
 
 <h4><a name="Virtual_memory"></a>Virtual memory operators</h4>
 
@@ -1082,6 +1130,52 @@ happened.
 </dl>
 
 <h4><a name="Miscellaneous"></a>Miscellaneous operators</h4>
+
+<dl>
+<dt><b><tt>&lt;array&gt; bind &lt;array&gt;</tt></b>
+<dd>Depending on the command line parameters <b><tt>bind</tt></b> is redefined as:
+</dl>
+
+<blockquote><table cellpadding=0 cellspacing=0>
+<tr valign=bottom>
+	<th valign=bottom align=left>Flag
+	<td>&nbsp;&nbsp;&nbsp;
+	<th valign=bottom align=left>Definition
+<tr>	<td colspan=3><hr>
+<tr valign=top>	<td>NOBIND
+	<td>&nbsp;
+	<td>/bind {} def ;
+        no operation, returns the argument
+<tr valign=top>	<td>DELAYBIND
+	<td>&nbsp;
+	<td>returns the argument, stores the argument for later use by <b><tt>.bindnow</b></tt>
+</table></blockquote>
+
+
+<dl>
+<dt><b><tt>&lt;array&gt; .bind &lt;array&gt;</tt></b>
+<dd>Performs standard <b><tt>bind</tt></b> operation as defined in PLRM regardless of
+NOBIND or DELAYBIND flags.
+</dl>
+
+<a name="bindnow"></a>
+<dl>
+<dt><b><tt>- .bindnow -</tt></b>
+<dd>Applies <b><tt>bind</tt></b> operator to all savad procedures after binding has been
+deferred through -dDELAYBIND. Note that idiom recognition has no effect for the deferred
+binding because the value returned from <b><tt>bind</tt></b> is discarded.
+<p>
+Since v. 8.12 <b><tt>.bindnow</tt></b> undefines itself and restores standard definition of
+<b><tt>bind</tt></b> operator. In earlier versions after calling <b><tt>.bindnow</tt></b>,
+the postscript <b><tt>bind</tt></b> operator needs to be rebound to the internal implementation
+<b><tt>.bind</tt></b>, as in this fragment from the ps2ascii script:
+<blockquote><pre><tt>DELAYBIND {
+  .bindnow
+  /bind /.bind load def
+} if
+</tt></pre></blockquote>
+This is necessary for correct behavior with later code that uses the <b><tt>bind</tt></b> operator.
+</dl>
 
 <dl>
 <dt><b><tt>&lt;obj1&gt; &lt;obj2&gt; ... &lt;objn&gt; &lt;n&gt; .execn ...</tt></b>
@@ -1186,23 +1280,22 @@ using <b><tt>stopped</tt></b> in order to report errors but continue processing.
 <b><tt>-dDELAYSAFER</tt></b>, this operator can be used to enter <b>SAFER</b>
 mode (see <a href="Use.htm#Safer"><b>-dSAFER</b></a>)
 <p>
-<b>Note: </b>If <b><tt>-dPARANOIDSAFER</tt></b> was specified on the command
-line, <b><tt>.setsafe</tt></b> also sets the <b><tt>PermitFileReading</tt></b> 
-parameter to an empty array.
-<p>
 Since <b>SAFER</b> mode is implemented with userparameters and device parameters,
 it is possible to use <b><tt>save</tt></b> and <b><tt>restore</tt></b> before
 and after <b><tt>.setsafe</tt></b> to return to <b>NOSAFER</b> mode, but care
 should be taken to ensure that the <i><tt>save</tt></i> object is not
 accessible to any procedures or file run in <b>SAFER</b> mode (see 
 <a href="#Runandhide"><b>.runandhide</b></a> above).
+<p>
+<b>Note: This uses setpagedevice to change .LockSafetyParams, so the page
+will be erased as a side effect of this operator</b>
 </dl>
 
 <dl>
 <dt><b><tt>- .locksafe -</tt></b>
 <dd>
 This operator sets the current device's <b><tt>.LockSafetyParams</tt></b>
-and the <b><tt>LockFilePermissions</tt></b> user parameter true as well as
+and the <b><tt>LockFilePermissions</tt></b> userparameter true as well as
 adding the paths on LIBPATH and FONTPATH and the paths given by the
 system params /GenericResourceDir and /FontResourceDir to the current
 PermitFileReading list of paths.
@@ -1210,14 +1303,59 @@ PermitFileReading list of paths.
 If Ghostscript is started with <b><tt>-dNOSAFER</tt></b> or 
 <b><tt>-dDELAYSAFER</tt></b>, this operator can be used to enter <b>SAFER</b>
 mode with the current set of <b><tt>PermitFile...</tt></b> user parameters
-in effect. Since <b><tt>.setsafe</tt></b> sets the <b><tt>PermitFileWriting</tt></b>
-and <b><tt>PermitFileControl</tt></b> user parameters to empty arrays, a script
-or job server that needs to enable certain paths for file Writing and/or Control
-can use this operator to perform the locking needed to enter <b>SAFER</b> mode.
+in effect. Since <b><tt>.setsafe</tt></b> sets the <b><tt>PermitFile...</tt></b>
+user parameters to empty arrays, a script or job server that needs to
+enable certain paths for file Reading, Writing and/or Control can use this
+operator to perform the locking needed to enter <b>SAFER</b> mode.
+<p>
+For example, to enable reading everywhere, but disallow writing and file
+control (deleting and renaming files), the following can be used:
+<pre>
+	{ << /PermitFileReading [ (*) ]
+	     /PermitFileWriting [ ]
+	     /PermitFileControl [ ]
+	  >> setuserparams
+	  .locksafe
+	} stopped pop
+</pre>
+In the above example, use of stopped will allow the use of this sequence on
+older versions of Ghostscript where <b><tt>.locksafe</tt></b> was not an operator.
+<p>
+<b>Note: This uses setpagedevice to change .LockSafetyParams, so the page
+will be erased as a side effect of this operator</b>
 <p>
 See also <a href="#LockSafetyParams">.LockSafetyParams</a> and
 <a href="#User_parameters">User Parameters</a>.
 <p>
+</dl>
+
+<dl><a name=".setpdfwrite"></a>
+<dt><b><tt>.setpdfwrite</tt></b></dt>
+<dd>This operator conditions the environment for the <tt>pdfwrite</tt> output device.
+It is a shorthand for setting parameters that have been deemed benificial. While not strictly necessary, it is usually helpful to set call this when using the pdfwrite device.
+For example, this is how the ps2pdf script calls Ghostscript:
+<blockquote><b><tt>
+gs -q -dSAFER -dNOPAUSE -dBATCH -sOutputFile=file.pdf </tt></b><em>[more options]</em><b><tt> \<br>
+&nbsp;&nbsp;-sDEVICE=pdfwrite -c .setpdfwrite -f </b></tt><em>source1.ps [more files]</em>
+</blockquote>
+<p>Currently, the operator just sets a minimum 3&nbsp;MB vmthreshold to allow for
+accumulating shared object data and to reduce the incidence of garbage
+collection as a performance improvement. Additional settings may be added in the future.
+</dl>
+
+<dl>
+<dt><b><tt>.color_test</tt></b> and <b><tt>.color_test_all</tt></b></dt>
+<dd>These operators are used for the verification of device encode_color and
+decode_color routines. They are for internal use only. Their function
+can, and probably will, change as Artifex's requirements change.
+<p>
+<dd>Currently these operators loop through a set of possible values for the inputs
+to the encode_color routine and then veify that the decode_color routines produce
+values that match the input set to within a tolerance which is based upon the number
+of bits used to encode a pixel. The operators also verify that if the device
+is 'separable' then that the values produced by gx_default_encode_color and
+gx_default_decode_color (the default encode/decode color handlers for a separable
+device) are consistent to within the same tolerance.
 </dl>
 
 <h4><a name="Device"></a>Device operators</h4>
@@ -1332,11 +1470,22 @@ complete scan line.  Always copies an integral number of scan lines.
 
 <dl>
 <dt><b><tt>&lt;device&gt; setdevice -</tt></b>
-<dd>Sets the current device to the specified device.  Also resets the
+<dd>
+<p>
+Sets the current device to the specified device.  Also resets the
 transformation and clipping path to the initial values for the device.
 Signals an <b><tt>invalidaccess</tt></b> error if the device is a
 prototype or if <a href="Language.htm#LockSafetyParams">.LockSafetyParams</a>
 is true for the current device.
+<p>
+Some device properties may need to be set with <tt>putdeviceprops</tt> before 
+<b><tt>setdevice</tt></b> is called. For example, the pdfwrite device will try
+to open its output file, causing an <tt>undefinedfilename</tt> error if 
+<tt>OutputFile</tt> hasn't been set to a valid filename. Another method in such
+cases is to use the level 2 operator instead: 
+
+  <tt>&lt;&lt;&nbsp;/OutputDevice /pdfwrite /OutputFile (MyPDF.pdf)&nbsp;&gt;&gt;    <b>setpagedevice</b></tt>.
+
 </dl>
 
 <dl>
@@ -1452,7 +1601,8 @@ Type 1 Font Format documentation.  The <b><tt>seed_integer</tt></b> must be
 
 <blockquote>
 <b><tt>seed &lt;16-bit integer&gt;</tt></b> (required)<br>
-<b><tt>lenIV &lt;non-negative integer&gt;</tt></b> (default=4)
+<b><tt>lenIV &lt;non-negative integer&gt;</tt></b> (default=4)<br>
+<b><tt>eexec &lt;bool&gt;</tt></b> (default=<b><tt>false</b></tt>)
 </blockquote>
 </dl>
 
@@ -1679,6 +1829,18 @@ devices), 2, or 4.
 </dl>
 
 <p>
+Ghostscript also supports the following read-only parameter that is not a
+true device parameter:
+
+<dl>
+<dt><b><tt>.EmbedFontObjects &lt;integer&gt</tt></b>
+<dd>If non-zero, indicates that the device may embed font objects (as
+opposed to bitmaps for individual characters) in the output.  The purpose of
+this parameter is to disable third-party font renderers for such devices.
+(This is zero for almost all devices.)
+</dl>
+
+<p>
 In addition, the following are defined per Adobe's documentation for the
 <b><tt>setpagedevice</tt></b> operator:
 
@@ -1701,6 +1863,9 @@ and <b><tt>PageSize</tt></b>.  The null device ignores attempts to set
 <b><tt>PageSize</tt></b>; its size is always <b><tt>[0&nbsp;0]</tt></b>.
 
 <p>
+It should be noted that calling <tt>setpagedevice</tt> with one of the above keys may reset the effects of any <b><tt>pdfmark</tt></b> commands up to that point. In particular this is true of HWResolution, a behavior that differs from Adobe Distiller.
+
+<p>
 For printers these are also defined:
 
 <dl>
@@ -1717,7 +1882,8 @@ For printers these are also defined:
 <dt><b><tt>OutputFile &lt;string&gt;</tt></b>
 
 <dd>An empty string means "send to printer directly", otherwise specifies
-the file name for output; <b><tt>%d</tt></b> is replaced by the page number;
+the file name for output; <b><tt>%d</tt></b> is replaced by the page number
+for page-oriented output devices;
 on Unix systems <b><tt>%pipe%</tt></b><em>command</em> writes to a pipe.
 (<b><tt>|</tt></b><em>command</em> also writes to a pipe, but is now
 deprecated.)
@@ -1847,15 +2013,233 @@ on LIBPATH or FONTPATH or the Resource paths specified by the /FontResourceDir
 or /GenericResourceDir system params. Files cannot be opened for writing
 anywhere and cannot be deleted or renamed except for files created with the
 <a href=#Tempfile><b>.tempfile</b></a> operator).
+<p>
+<b>Note: </b>Limiting file reading as above is <b>NOT</b> compatible with
+SAFER mode in release versions before 7.11 and corresponds to the use of
+<b><tt>-dPARANOIDSAFER</tt></b> in version 7.04 (up to and not including
+version 7.10) and GPL versions 6.53 (up to and not including 6.60).
+</dl>
+
+<dl>
+<dt><b><tt>AlignToPixels &lt;integer&gt;</tt></b>
+<dd>Control sub-pixel positioning of character glyphs (where
+applicable). A value of 1 specifies alignment of text characters to
+pixels boundaries. A value of 0 to subpixels where the division factor
+is set by the device parameter <b><tt>TextAlphaBits</tt></b>. If the
+latter is 1, the same rendering results regardless of the value of
+<b><tt>AlignToPixels</tt></b>. The initial value defaults to 1, but this
+may be overridden by the command line argument
+<b><tt>-dAlignToPixels</tt></b>.
+</dl>
+
+
+<dl>
+<a name="GridFitTT"></a>
+<dt><b><tt>GridFitTT &lt;integer&gt;</tt></b>
+<dd>Control the use of True Type grid fitting.
+Ghostscript implements a reduced True Type bytecode interpreter,
+which can interpret the subset of True Type glyph instructions  
+not covered by Apple's patents. This allows proper rasterization
+of the Dynalab fonts.
+<p>
+The reduced interpreter can't properly grid fit 
+fonts with patented instructions. Therefore Ghostscript implements
+another grid fitting method for True Type fonts, based on a spot topology analysis.
+<p>
+This parameter controls the action of the reduced interpreter and the grid fitter:
+<ul>
+<li>
+A value of 0 disables grid fitting for all True Type fonts. This is a backward compatibility mode.
+</li>
+
+<li>
+A value of 1 enables the grid fitting for glyphs that don't involve 
+patented instructions, using the reduced True Type bytecode interpreter.
+When a patented instruction is encountered, a warning is printed to stderr,
+and the glyph is rendered ignoring the entire grid fitting program.
+</li>
+
+<li>
+A value of 2 invokes the topological grid fitter. This value is recommended
+for common use.
+</li>
+
+<li>
+A value of 3 specifies that the bytecode interpreter to be used
+to grid fit glyphs that have no patented instructions,
+and other glyphs are grid fitted topologically. This mode may
+improve the rendering of some fonts, but in general the best result
+is not guaranteed.
+</li>
+</ul>
+<p>
+This parameter defaults to 2, but this
+may be overridden on the command line with
+<b><tt>-dGridFitTT=n</tt></b>.
+<p>
+The reduced bytecode interpreter is based in part of the work of the 
+<a href="http://freetype.org/">FreeType</a> Team.
+The topological grid fitting is a new original Ghostscript method.
+</dl>
+
+<dl>
+<dt><b><tt>UseWTS &lt;boolean&gt;</tt></b>
+<dd>If <tt>true</tt>, and if AccurateScreens are specified (either as
+a user parameter, or as a type 1 halftone dictionary parameter), then
+the Well Tempered Screening algorithm is used for
+halftoning. Otherwise, a rational tangent algorithm is chosen, which
+will typically result in significant differences between the screen
+angle and ruling requested, and actually rendered. Currently, the
+performance of WTS is reasonably good when rendering to a full page
+buffer, but not optimized for banded mode. Thus, when using WTS,
+disable banding (setting
+<b><tt>-dMaxBitmap=500000000</tt></b> should work). In a future
+version, WTS will be optimized for banded mode, and
+<b><tt>UseWTS</tt></b> will be <tt>true</tt> by default.
+
+<p>
+<b>Note:</b> Currently, <b><tt>UseWTS</tt></b> can only be set using
+the PostScript user parameters mechanism, not on the command line with
+a <b><tt>-d</tt></b> switch. Use this code to enable it:
+
+<blockquote><pre>
+&lt;&lt; /UseWTS true &gt;&gt; setuserparams
+</pre></blockquote>
 </dl>
 
 <hr>
 
 <h2><a name="Miscellaneous_additions"></a>Miscellaneous additions</h2>
 
-<b><tt>run</tt></b> can take either a string or a file as its argument.  In
+<h3><a name="Extended_semantics_of_run"></a>Extended semantics of 'run'</h3>
+
+<p>
+The operator <b><tt>run</tt></b> can take either a string or a file as its argument.  In
 the latter case, it just runs the file, closing it at the end, and trapping
 errors just as for the string case.
+
+<h3><a name="DecodingResources"></a>Decoding resources</h3>
+
+<p>
+<b><tt>Decoding</tt></b> is a Ghostscript-specific resource category. It contains
+various resources for emulating PostScript fonts with other font technologies.
+Instances of the <tt>Decoding</tt> category are tables which map PostScript glyph 
+names to character codes used with TrueType, Intellifont, Microtype and other font formats.
+
+<p>
+Currently Ghostscript is capable of PostScript font emulation in 2 ways :
+<li>
+1. Through <a href="./Use.htm#FAPI_run">FAPI</a> plugins, and
+</li>
+<li>
+2. With TrueType font files, using the native font renderer, by
+specifying TrueType font names or files in <a href="../lib/Fontmap">lib/Fontmap</a>.
+</li>
+<p>
+<b><tt>Decoding</tt></b> resources are not current used by the native font renderer.
+
+<p>
+An instance of the <b><tt>Decoding</tt></b> resource category is
+a dictionary. The dictionary keys are PostScript glyph names and the
+values are character codes. The name of the resource instance should
+reflect the character set for which it maps. For example,
+<b><tt>/Unicode</tt></b> <b><tt>/Decoding</tt></b> resource maps to
+Unicode UTF-16.
+
+<p>
+The rules for using <b><tt>Decoding</tt></b> resources in particular
+cases are specified in the configuration file
+<a href="../lib/xlatmap">lib/xlatmap</a>. See the file itself for more
+information.
+
+<p>
+The file format for <b><tt>Decoding</tt></b> resource files is
+generic PostScript.
+Users may want to define custom <b><tt>Decoding</tt></b> resources.
+The <b><tt>ParseDecoding</tt></b> procset defined in 
+<a href="../lib/gs_ciddc.ps">lib/gs_ciddc.ps</a> allows representation
+of the table in a comfortable form.
+
+
+<h3><a name="CIDDecodingResources"></a>CIDDecoding resources</h3>
+
+<p>
+<b><tt>CIDDecoding</tt></b> resources are similar to <b><tt>Decoding</tt></b>
+resources, except they map Charaacter Identifiers (CIDs) rather than glyph names.
+Another difference is that the native Ghostscript font renderer already uses 
+<b><tt>CIDDecoding</tt></b> resources while emulate CID fonts with TrueType.
+
+<p>
+An instance of the <b><tt>CIDDecoding</tt></b> resource category is
+a dictionary of strings. Keys in the dictionary are integers,
+which correspond to high order byte of a CID. Values are
+512-bytes strings. Each string represents 256 character codes,
+corresponding various values of the lower byte of CID.
+Each character code ocupies 2 bytes, high order byte first.
+Two zero bytes represent mapping to the default character.
+
+<p>
+The Ghostscript library is capable of generating some <b><tt>CIDDecoding</tt></b>
+instances automatically, using the appropriate <b><tt>CMap</tt></b> (character map)
+resources. This covers most of practical cases if the neccessary <b><tt>CMap</tt></b>
+resources  are provided. See the table <b><tt>.CMapChooser</tt></b> in
+<a href="../lib/gs_ciddc.ps">lib/gs_ciddc.ps</a>
+for the names of automatically gerenated resources and associated <b><tt>CMap</tt></b>s.
+They allow to mapping CNS1, GB1, Japan1, Japan2 and Korea1 CID sets to TrueType
+character sets known as Unicode (exactly UTF-16), Big5, 
+GB1213, ShiftJIS, Johab and Wansung.
+
+<p>
+The file format for <b><tt>CIDDecoding</tt></b> resource file is
+generic PostScript.
+Users may want to define custom resources to <b><tt>CIDDecoding</tt></b>
+resource category. 
+
+<h3><a name="GlyphNames2Unicode"></a>GlyphNames2Unicode</h3>
+<p>
+<b><tt>GlyphNames2Unicode</tt></b> is an undocumented dictionary which Adobe 
+PostScript printer driver uses to communicate with Adobe Distiller.
+In this dictionary the keys are glyph names, the values are Unicode UTF-16 codes for them.
+The dictionaly is stored in the <b><tt>FontInfo</tt></b> dictionary under
+the key <b><tt>GlyphNames2Unicode</tt></b>. Ghostscript recognises it and uses
+to generate <b><tt>ToUnicode</tt></b> CMaps with pdfwrite.
+<p>
+
+<h3><a name="MultipleResourceDirectories"></a>Multiple Resource directories</h3>
+
+<p>
+Since 8.10 release Ghostscript maintains multiple resource directories.
+
+<p>
+Ghostscript does not distinguish <b><tt>lib</b></tt> and <b><tt>Resource</b></tt> directories.
+There is no file name conflicts because
+<b><tt>lib</b></tt> does not contain subdirectories, but <b><tt>Resource</b></tt>
+always store files in subdirectories.
+
+<p>
+The search method with multiple resource directories
+appears not fully conforming to PLRM. We cannot unconditionally call
+<b><tt>ResourceFileName</b></tt> while executing <b><tt>findresource</b></tt>
+or <b><tt>resourcestatus</b></tt>, <b><tt>resourceforall</b></tt>, because per PLRM it always
+returns a single path. Therefore Ghostscript implements
+an extended search method in <b><tt>findresource</b></tt>,
+<b><tt>resourcestatus</b></tt> and <b><tt>resourceforall</b></tt>, which first calls
+<b><tt>ResourceFileName</b></tt> and checks whether the returned path
+points to an existing file. If yes, the file is used,
+othervise Ghostscript searches all directories specified in
+<b><tt>LIB_PATH</tt></b>. With a single resource directory
+it appears conforming to PLRM and equivalent to Adobe implementations.
+
+<p>
+<b><tt>ResourceFileName</b></tt> may be used for obtaining a path
+where a resource file to be installed. In this case
+Ghostscript to be invoked with <b><tt>-sGenericResourceDir=path</b></tt>,
+specifying an absolute path. The default value for
+<b><tt>GenericResourceDir</b></tt> is a relative path. Therefore
+a default invocation with a PostScript installer
+will install resource files into <b><tt>/gs/Resource</tt></b>.
+
+<p>
 
 <!-- [2.0 end contents] ==================================================== -->
 
@@ -1863,17 +2247,25 @@ errors just as for the string case.
 <hr>
 
 <p>
-<small>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights
+<small>Copyright &copy; 1996-2005 artofcode LLC.  All rights
 reserved.</small>
 
 <p>
-<small>This file is part of AFPL Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.</small>
+This software is provided AS-IS with no warranty, either express or
+implied.
+
+This software is distributed under license and may not be copied,
+modified or distributed except as expressly authorized under the terms
+of the license contained in the file LICENSE in this distribution.
+
+For more information about licensing, please refer to
+http://www.ghostscript.com/licensing/. For information on
+commercial licensing, go to http://www.artifex.com/licensing/ or
+contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
 <p>
-<small>Ghostscript version 7.04, 31 January 2002
+<small>Ghostscript version 8.53, 20 October 2005
 
 <!-- [3.0 end visible trailer] ============================================= -->
 

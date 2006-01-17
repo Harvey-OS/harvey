@@ -1,24 +1,22 @@
 /*
   Copyright (C) 2001 artofcode LLC.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
   Author: Raph Levien <raph@artofcode.com>
 */
-/*$Id: gxblend.c,v 1.2 2001/02/02 07:52:25 raph Exp $ */
+/* $Id: gxblend.c,v 1.6 2004/08/18 04:48:56 dan Exp $ */
 /* PDF 1.4 blending functions */
 
 #include "memory_.h"
@@ -37,6 +35,10 @@ art_blend_luminosity_rgb_8(byte *dst, const byte *backdrop,
     int delta_y;
     int r, g, b;
 
+    /*
+     * From section 7.4 of the PDF 1.5 specification, for RGB, the luminosity
+     * is:  Y = 0.30 R + 0.59 G + 0.11 B)
+     */
     delta_y = ((rs - rb) * 77 + (gs - gb) * 151 + (bs - bb) * 28 + 0x80) >> 8;
     r = rb + delta_y;
     g = gb + delta_y;
@@ -66,6 +68,34 @@ art_blend_luminosity_rgb_8(byte *dst, const byte *backdrop,
     dst[0] = r;
     dst[1] = g;
     dst[2] = b;
+}
+
+/*
+ * The PDF 1.4 spec. does not give the details of the math involved in the
+ * luminosity blending.  All we are given is:
+ *   "Creates a color with the luminance of the source color and the hue
+ *    and saturation of the backdrop color. This produces an inverse
+ *    effect to that of the Color mode."
+ * From section 7.4 of the PDF 1.5 specification, which is duscussing soft
+ * masks, we are given that, for CMYK, the luminosity is:
+ *    Y = 0.30 (1 - C)(1 - K) + 0.59 (1 - M)(1 - K) + 0.11 (1 - Y)(1 - K)
+ * However the results of this equation do not match the results seen from
+ * Illustrator CS.  Very different results are obtained if process gray
+ * (.5, .5, .5, 0) is blended over pure cyan, versus gray (0, 0, 0, .5) over
+ * the same pure cyan.  The first gives a medium cyan while the later gives a
+ * medium gray.  This routine seems to match Illustrator's actions.  C, M and Y
+ * are treated similar to RGB in the previous routine and black is treated
+ * separately.
+ *
+ * Our component values have already been complemented, i.e. (1 - X).
+ */
+static void
+art_blend_luminosity_cmyk_8(byte *dst, const byte *backdrop,
+			   const byte *src)
+{
+    /* Treat CMY the same as RGB. */
+    art_blend_luminosity_rgb_8(dst, backdrop, src);
+    dst[3] = src[3];
 }
 
 static void
@@ -131,6 +161,16 @@ art_blend_saturation_rgb_8(byte *dst, const byte *backdrop,
     dst[0] = r;
     dst[1] = g;
     dst[2] = b;
+}
+
+/* Our component values have already been complemented, i.e. (1 - X). */
+static void
+art_blend_saturation_cmyk_8(byte *dst, const byte *backdrop,
+			   const byte *src)
+{
+    /* Treat CMY the same as RGB */
+    art_blend_saturation_rgb_8(dst, backdrop, src);
+    dst[3] = backdrop[3];
 }
 
 /* This array consists of floor ((x - x * x / 255.0) * 65536 / 255 +
@@ -330,20 +370,73 @@ art_blend_pixel_8(byte *dst, const byte *backdrop,
 	    }
 	    break;
 	case BLEND_MODE_Luminosity:
-	    art_blend_luminosity_rgb_8(dst, backdrop, src);
+	    switch (n_chan) {
+		case 1:			/* DeviceGray */
+	    	    dlprintf(
+			"art_blend_pixel_8: DeviceGray luminosity blend mode not implemented\n");
+		    break;
+		case 3:			/* DeviceRGB */
+	    	    art_blend_luminosity_rgb_8(dst, backdrop, src);
+		    break;
+		case 4:			/* DeviceCMYK */
+	    	    art_blend_luminosity_cmyk_8(dst, backdrop, src);
+		    break;
+		default:		/* Should not happen */
+		    break;
+	    }
 	    break;
 	case BLEND_MODE_Color:
-	    art_blend_luminosity_rgb_8(dst, src, backdrop);
+	    switch (n_chan) {
+		case 1:			/* DeviceGray */
+	    	    dlprintf(
+			"art_blend_pixel_8: DeviceGray color blend mode not implemented\n");
+		    break;
+		case 3:			/* DeviceRGB */
+		    art_blend_luminosity_rgb_8(dst, src, backdrop);
+		    break;
+		case 4:			/* DeviceCMYK */
+		    art_blend_luminosity_cmyk_8(dst, src, backdrop);
+		    break;
+		default:		/* Should not happen */
+		    break;
+	    }
 	    break;
 	case BLEND_MODE_Saturation:
-	    art_blend_saturation_rgb_8(dst, backdrop, src);
+	    switch (n_chan) {
+		case 1:			/* DeviceGray */
+	    	    dlprintf(
+			"art_blend_pixel_8: DeviceGray saturation blend mode not implemented\n");
+		    break;
+		case 3:			/* DeviceRGB */
+	    	    art_blend_saturation_rgb_8(dst, backdrop, src);
+		    break;
+		case 4:			/* DeviceCMYK */
+	    	    art_blend_saturation_cmyk_8(dst, backdrop, src);
+		    break;
+		default:		/* Should not happen */
+		    break;
+	    }
 	    break;
 	case BLEND_MODE_Hue:
 	    {
-		byte tmp[3];
+		byte tmp[4];
 
-		art_blend_luminosity_rgb_8(tmp, src, backdrop);
-		art_blend_saturation_rgb_8(dst, tmp, backdrop);
+	        switch (n_chan) {
+		    case 1:		/* DeviceGray */
+	    		dlprintf(
+			    "art_blend_pixel_8: DeviceGray hue blend mode not implemented\n");
+		        break;
+		    case 3:		/* DeviceRGB */
+			art_blend_luminosity_rgb_8(tmp, src, backdrop);
+			art_blend_saturation_rgb_8(dst, tmp, backdrop);
+		        break;
+		    case 4:		/* DeviceCMYK */
+		        art_blend_luminosity_cmyk_8(tmp, src, backdrop);
+			art_blend_saturation_cmyk_8(dst, tmp, backdrop);
+		        break;
+		    default:		/* Should not happen */
+		        break;
+	        }
 	    }
 	    break;
 	default:
@@ -739,7 +832,6 @@ art_pdf_recomposite_group_8(byte *dst, byte *dst_alpha_g,
 	    tmp = (255 - *dst_alpha_g) * (255 - src_alpha_g) + 0x80;
 	    *dst_alpha_g = 255 - ((tmp + (tmp >> 8)) >> 8);
 	}
-	*dst_alpha_g = src[n_chan];
 	return;
     } else {
 	/* "interesting" blend mode */

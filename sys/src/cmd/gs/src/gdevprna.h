@@ -1,22 +1,20 @@
 /* Copyright (C) 1998 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevprna.h,v 1.2 2000/09/19 19:00:21 lpd Exp $ */
+/* $Id: gdevprna.h,v 1.5 2002/06/16 07:25:26 lpd Exp $ */
 /* Generic asynchronous printer driver support */
 
 /* Initial version 2/1/1998 by John Desrosiers (soho@crl.com) */
@@ -160,15 +158,15 @@ struct gdev_prn_start_render_params_s {
  * This routine is always called by the concrete device's xx_open routine 
  * in lieu of gdev_prn_open.
  */
-int gdev_prn_async_write_open(P4(gx_device_printer *pdev, int max_raster,
-				 int min_band_height, int max_src_image_row));
+int gdev_prn_async_write_open(gx_device_printer *pdev, int max_raster,
+			      int min_band_height, int max_src_image_row);
 
 /* Open the render portion of a printer device in ASYNC (overlapped) mode.
  *
  * This routine is always called by concrete device's xx_open_render_device
  * in lieu of gdev_prn_open.
  */
-int gdev_prn_async_render_open(P1(gx_device_printer *prdev));
+int gdev_prn_async_render_open(gx_device_printer *prdev);
 
 /*
  * Must be called by async device driver implementation (see
@@ -177,6 +175,6 @@ int gdev_prn_async_render_open(P1(gx_device_printer *prdev));
  * the device is open. This proc only returns after the device is closed.
  */
 int	/* rets 0 ok, -ve error code */
-gdev_prn_async_render_thread(P1(gdev_prn_start_render_params *));
+gdev_prn_async_render_thread(gdev_prn_start_render_params *);
 
 #endif				/* gdevprna_INCLUDED */

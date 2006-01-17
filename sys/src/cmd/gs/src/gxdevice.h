@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxdevice.h,v 1.4.6.1 2002/01/25 06:33:09 rayjj Exp $ */
+/* $Id: gxdevice.h,v 1.21 2005/03/14 18:08:36 dan Exp $ */
 /* Definitions for device implementors */
 
 #ifndef gxdevice_INCLUDED
@@ -54,9 +52,9 @@
 /* U.S. letter paper (8.5" x 11"). */
 #define DEFAULT_WIDTH_10THS_US_LETTER 85
 #define DEFAULT_HEIGHT_10THS_US_LETTER 110
-/* A4 paper (210mm x 297mm).  The dimensions are off by a few mm.... */
-#define DEFAULT_WIDTH_10THS_A4 83
-#define DEFAULT_HEIGHT_10THS_A4 117
+/* A4 paper (210mm x 297mm), we use 595pt x 842pt. */
+#define DEFAULT_WIDTH_10THS_A4 82.6389
+#define DEFAULT_HEIGHT_10THS_A4 116.9444
 /* Choose a default.  A4 may be set in the makefile. */
 #ifdef A4
 #  define DEFAULT_WIDTH_10THS DEFAULT_WIDTH_10THS_A4
@@ -78,6 +76,7 @@
  * but some compilers (the Ultrix 3.X pcc compiler and the HPUX compiler)
  * can't cast a computed float to an int.  That's why we specify
  * the page width and height in inches/10 instead of inches.
+ * This has been now been changed to use floats.
  *
  * Note that the macro is broken up so as to be usable for devices that
  * add further initialized state to the generic device.
@@ -95,9 +94,10 @@
  * unless we use the +/- workaround in the next macro.
  */
 #define std_device_part2_(width, height, x_dpi, y_dpi)\
-	{ gx_no_color_index, gx_no_color_index }, width, height,\
-	{ (((width) * 72.0 + 0.5) - 0.5) / (x_dpi)/*MediaSize[0]*/,\
-	  (((height) * 72.0 + 0.5) - 0.5) / (y_dpi)/*MediaSize[1]*/},\
+	{ gx_no_color_index, gx_no_color_index },\
+          width, height, 0/*TrayOrientation*/,\
+	{ (float)((((width) * 72.0 + 0.5) - 0.5) / (x_dpi))/*MediaSize[0]*/,\
+	  (float)((((height) * 72.0 + 0.5) - 0.5) / (y_dpi))/*MediaSize[1]*/},\
 	{ 0, 0, 0, 0 }/*ImagingBBox*/, 0/*ImagingBBox_set*/,\
 	{ x_dpi, y_dpi }/*HWResolution*/, { x_dpi, y_dpi }/*MarginsHWResolution*/
 
@@ -147,6 +147,13 @@
 #define std_device_full_body_type(dtype, pprocs, dname, stype, w, h, xdpi, ydpi, ncomp, depth, mg, mc, dg, dc, xoff, yoff, lm, bm, rm, tm)\
 	std_device_part1_(dtype, pprocs, dname, stype, open_init_closed),\
 	dci_values(ncomp, depth, mg, mc, dg, dc),\
+	std_device_part2_(w, h, xdpi, ydpi),\
+	offset_margin_values(xoff, yoff, lm, bm, rm, tm),\
+	std_device_part3_()
+
+#define std_device_full_body_type_extended(dtype, pprocs, dname, stype, w, h, xdpi, ydpi, mcomp, ncomp, pol, depth, gi, mg, mc, dg, dc, ef, cn, xoff, yoff, lm, bm, rm, tm)\
+	std_device_part1_(dtype, pprocs, dname, stype, open_init_closed),\
+        dci_extended_alpha_values(mcomp, ncomp, pol, depth, gi, mg, mc, dg, dc, 1, 1, ef, cn), \
 	std_device_part2_(w, h, xdpi, ydpi),\
 	offset_margin_values(xoff, yoff, lm, bm, rm, tm),\
 	std_device_part3_()
@@ -262,6 +269,13 @@ dev_proc_create_compositor(gx_null_create_compositor);
 dev_proc_get_hardware_params(gx_default_get_hardware_params);
 dev_proc_text_begin(gx_default_text_begin);
 dev_proc_finish_copydevice(gx_default_finish_copydevice);
+dev_proc_pattern_manage(gx_default_pattern_manage);
+dev_proc_fill_rectangle_hl_color(gx_default_fill_rectangle_hl_color);
+dev_proc_include_color_space(gx_default_include_color_space);
+dev_proc_fill_linear_color_scanline(gx_default_fill_linear_color_scanline);
+dev_proc_fill_linear_color_trapezoid(gx_default_fill_linear_color_trapezoid);
+dev_proc_fill_linear_color_triangle(gx_default_fill_linear_color_triangle);
+dev_proc_update_spot_equivalent_colors(gx_default_update_spot_equivalent_colors);
 /* BACKWARD COMPATIBILITY */
 #define gx_non_imaging_create_compositor gx_null_create_compositor
 
@@ -281,10 +295,15 @@ dev_proc_map_color_rgb(gx_default_rgb_map_color_rgb);
 dev_proc_map_rgb_color(gx_default_rgb_map_rgb_color);
 dev_proc_map_cmyk_color(cmyk_1bit_map_cmyk_color);
 dev_proc_map_color_rgb(cmyk_1bit_map_color_rgb);
+dev_proc_decode_color(cmyk_1bit_map_color_cmyk);
 dev_proc_map_cmyk_color(cmyk_8bit_map_cmyk_color);
 dev_proc_map_color_rgb(cmyk_8bit_map_color_rgb);
+dev_proc_decode_color(cmyk_8bit_map_color_cmyk);
+dev_proc_encode_color(gx_default_8bit_map_gray_color);
+dev_proc_decode_color(gx_default_8bit_map_color_gray);
 
 /* Default implementations for forwarding devices */
+dev_proc_close_device(gx_forward_close_device);
 dev_proc_get_initial_matrix(gx_forward_get_initial_matrix);
 dev_proc_sync_output(gx_forward_sync_output);
 dev_proc_output_page(gx_forward_output_page);
@@ -325,50 +344,71 @@ dev_proc_map_color_rgb_alpha(gx_forward_map_color_rgb_alpha);
 /* There is no forward_create_compositor (see Drivers.htm). */
 dev_proc_get_hardware_params(gx_forward_get_hardware_params);
 dev_proc_text_begin(gx_forward_text_begin);
+dev_proc_get_color_mapping_procs(gx_forward_get_color_mapping_procs);
+dev_proc_get_color_comp_index(gx_forward_get_color_comp_index);
+dev_proc_encode_color(gx_forward_encode_color);
+dev_proc_decode_color(gx_forward_decode_color);
+dev_proc_pattern_manage(gx_forward_pattern_manage);
+dev_proc_fill_rectangle_hl_color(gx_forward_fill_rectangle_hl_color);
+dev_proc_include_color_space(gx_forward_include_color_space);
+dev_proc_fill_linear_color_scanline(gx_forward_fill_linear_color_scanline);
+dev_proc_fill_linear_color_trapezoid(gx_forward_fill_linear_color_trapezoid);
+dev_proc_fill_linear_color_triangle(gx_forward_fill_linear_color_triangle);
+dev_proc_update_spot_equivalent_colors(gx_forward_update_spot_equivalent_colors);
 
 /* ---------------- Implementation utilities ---------------- */
 
 /* Convert the device procedures to the proper form (see above). */
-void gx_device_set_procs(P1(gx_device *));
+void gx_device_set_procs(gx_device *);
 
 /* Fill in defaulted procedures in a device procedure record. */
-void gx_device_fill_in_procs(P1(gx_device *));
-void gx_device_forward_fill_in_procs(P1(gx_device_forward *));
+void gx_device_fill_in_procs(gx_device *);
+void gx_device_forward_fill_in_procs(gx_device_forward *);
 
 /* Forward the color mapping procedures from a device to its target. */
-void gx_device_forward_color_procs(P1(gx_device_forward *));
+void gx_device_forward_color_procs(gx_device_forward *);
 
+/*
+ * Check if the device's encode_color routine uses 'separable' bit encodings
+ * for each colorant.  For more info see the routine's header.
+ */
+void check_device_separable(gx_device * dev);
+/*
+ * If a device has a linear and separable encode color function then
+ * set up the comp_bits, comp_mask, and comp_shift fields.
+ */
+void set_linear_color_bits_mask_shift(gx_device * dev);
 /*
  * Copy the color mapping procedures from the target if they are
  * standard ones (saving a level of procedure call at mapping time).
  */
-void gx_device_copy_color_procs(P2(gx_device *dev, const gx_device *target));
+void gx_device_copy_color_procs(gx_device *dev, const gx_device *target);
 
 /* Get the black and white pixel values of a device. */
-gx_color_index gx_device_black(P1(gx_device *dev));
+gx_color_index gx_device_black(gx_device *dev);
 #define gx_device_black_inline(dev)\
-  ((dev)->cached_colors.black != gx_no_color_index ?\
+  ((dev)->cached_colors.black == gx_no_color_index ?\
    gx_device_black(dev) : (dev)->cached_colors.black)
-gx_color_index gx_device_white(P1(gx_device *dev));
+gx_color_index gx_device_white(gx_device *dev);
 #define gx_device_white_inline(dev)\
-  ((dev)->cached_colors.white != gx_no_color_index ?\
+  ((dev)->cached_colors.white == gx_no_color_index ?\
    gx_device_white(dev) : (dev)->cached_colors.white)
 
 /* Clear the black/white pixel cache. */
-void gx_device_decache_colors(P1(gx_device *dev));
+void gx_device_decache_colors(gx_device *dev);
 
 /*
  * Copy the color-related device parameters back from the target:
  * color_info and color mapping procedures.
  */
-void gx_device_copy_color_params(P2(gx_device *dev, const gx_device *target));
+void gx_device_copy_color_params(gx_device *dev, const gx_device *target);
 
 /*
  * Copy device parameters back from a target.  This copies all standard
  * parameters related to page size and resolution, plus color_info
  * and (if appropriate) color mapping procedures.
  */
-void gx_device_copy_params(P2(gx_device *dev, const gx_device *target));
+void gx_device_copy_params(gx_device *dev, const gx_device *target);
 
 /*
  * Parse the output file name for a device, recognizing "-" and "|command",
@@ -377,21 +417,26 @@ void gx_device_copy_params(P2(gx_device *dev, const gx_device *target));
  * character in *pfmt, otherwise store 0 there.  Note that an empty name
  * is currently allowed.
  */
-int gx_parse_output_file_name(P4(gs_parsed_file_name_t *pfn,
-				 const char **pfmt, const char *fname,
-				 uint len));
+int gx_parse_output_file_name(gs_parsed_file_name_t *pfn,
+			      const char **pfmt, const char *fname,
+			      uint len);
 
 /*
  * Open the output file for a device.  Note that if the file name is empty,
  * it may be replaced with the name of a scratch file.
  */
-int gx_device_open_output_file(P5(const gx_device * dev, char *fname,
-				  bool binary, bool positionable,
-				  FILE ** pfile));
+int gx_device_open_output_file(const gx_device * dev, char *fname,
+			       bool binary, bool positionable,
+			       FILE ** pfile);
 
 /* Close the output file for a device. */
-int gx_device_close_output_file(P3(const gx_device * dev, const char *fname,
-				   FILE *file));
+int gx_device_close_output_file(const gx_device * dev, const char *fname,
+				FILE *file);
+
+/*
+ * Define the number of levels for a colorant above which we do not halftone.
+ */
+#define MIN_CONTONE_LEVELS 31
 
 /*
  * Determine whether a given device needs to halftone.  Eventually this
@@ -399,9 +444,7 @@ int gx_device_close_output_file(P3(const gx_device * dev, const char *fname,
  */
 #define gx_device_must_halftone(dev)\
   ((gx_device_has_color(dev) ? (dev)->color_info.max_color :\
-    (dev)->color_info.max_gray) < 31)
-#define gx_color_device_must_halftone(dev)\
-  ((dev)->color_info.max_gray < 31)
+    (dev)->color_info.max_gray) < MIN_CONTONE_LEVELS)
 
 /*
  * Do generic work for output_page.  All output_page procedures must call
@@ -508,18 +551,18 @@ typedef struct gdev_input_media_s {
 #define gdev_input_media_default_values { 0, 0, 0, 0 }, 0, 0, 0
 extern const gdev_input_media_t gdev_input_media_default;
 
-void gdev_input_media_init(P1(gdev_input_media_t * pim));
+void gdev_input_media_init(gdev_input_media_t * pim);
 
-int gdev_begin_input_media(P3(gs_param_list * mlist, gs_param_dict * pdict,
-			      int count));
+int gdev_begin_input_media(gs_param_list * mlist, gs_param_dict * pdict,
+			   int count);
 
-int gdev_write_input_page_size(P4(int index, gs_param_dict * pdict,
-				floatp width_points, floatp height_points));
+int gdev_write_input_page_size(int index, gs_param_dict * pdict,
+			       floatp width_points, floatp height_points);
 
-int gdev_write_input_media(P3(int index, gs_param_dict * pdict,
-			      const gdev_input_media_t * pim));
+int gdev_write_input_media(int index, gs_param_dict * pdict,
+			   const gdev_input_media_t * pim);
 
-int gdev_end_input_media(P2(gs_param_list * mlist, gs_param_dict * pdict));
+int gdev_end_input_media(gs_param_list * mlist, gs_param_dict * pdict);
 
 typedef struct gdev_output_media_s {
     const char *OutputType;
@@ -528,12 +571,12 @@ typedef struct gdev_output_media_s {
 #define gdev_output_media_default_values 0
 extern const gdev_output_media_t gdev_output_media_default;
 
-int gdev_begin_output_media(P3(gs_param_list * mlist, gs_param_dict * pdict,
-			       int count));
+int gdev_begin_output_media(gs_param_list * mlist, gs_param_dict * pdict,
+			    int count);
 
-int gdev_write_output_media(P3(int index, gs_param_dict * pdict,
-			       const gdev_output_media_t * pom));
+int gdev_write_output_media(int index, gs_param_dict * pdict,
+			    const gdev_output_media_t * pom);
 
-int gdev_end_output_media(P2(gs_param_list * mlist, gs_param_dict * pdict));
+int gdev_end_output_media(gs_param_list * mlist, gs_param_dict * pdict);
 
 #endif /* gxdevice_INCLUDED */

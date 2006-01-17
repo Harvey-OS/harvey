@@ -1,22 +1,20 @@
 /* Copyright (C) 1994 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: sjpeg.h,v 1.2 2000/09/19 19:00:50 lpd Exp $ */
+/* $Id: sjpeg.h,v 1.5 2002/06/16 05:00:54 lpd Exp $ */
 /* IJG entry point wrappers */
 /* Requires sdct.h, jpeg/jpeglib.h */
 
@@ -36,40 +34,36 @@
 
 /* Common to encode/decode */
 
-void gs_jpeg_error_setup(P1(stream_DCT_state * st));
-int gs_jpeg_log_error(P1(stream_DCT_state * st));
-JQUANT_TBL *gs_jpeg_alloc_quant_table(P1(stream_DCT_state * st));
-JHUFF_TBL *gs_jpeg_alloc_huff_table(P1(stream_DCT_state * st));
-int gs_jpeg_destroy(P1(stream_DCT_state * st));
+void gs_jpeg_error_setup(stream_DCT_state * st);
+int gs_jpeg_log_error(stream_DCT_state * st);
+JQUANT_TBL *gs_jpeg_alloc_quant_table(stream_DCT_state * st);
+JHUFF_TBL *gs_jpeg_alloc_huff_table(stream_DCT_state * st);
+int gs_jpeg_destroy(stream_DCT_state * st);
 
 /* Encode */
 
-int gs_jpeg_create_compress(P1(stream_DCT_state * st));
-int gs_jpeg_set_defaults(P1(stream_DCT_state * st));
-int gs_jpeg_set_colorspace(P2(stream_DCT_state * st,
-			      J_COLOR_SPACE colorspace));
-int gs_jpeg_set_linear_quality(P3(stream_DCT_state * st,
-				  int scale_factor,
-				  boolean force_baseline));
-int gs_jpeg_set_quality(P3(stream_DCT_state * st,
-			   int quality,
-			   boolean force_baseline));
-int gs_jpeg_start_compress(P2(stream_DCT_state * st,
-			      boolean write_all_tables));
-int gs_jpeg_write_scanlines(P3(stream_DCT_state * st,
-			       JSAMPARRAY scanlines,
-			       int num_lines));
-int gs_jpeg_finish_compress(P1(stream_DCT_state * st));
+int gs_jpeg_create_compress(stream_DCT_state * st);
+int gs_jpeg_set_defaults(stream_DCT_state * st);
+int gs_jpeg_set_colorspace(stream_DCT_state * st,
+			   J_COLOR_SPACE colorspace);
+int gs_jpeg_set_linear_quality(stream_DCT_state * st,
+			       int scale_factor, boolean force_baseline);
+int gs_jpeg_set_quality(stream_DCT_state * st,
+			int quality, boolean force_baseline);
+int gs_jpeg_start_compress(stream_DCT_state * st,
+			   boolean write_all_tables);
+int gs_jpeg_write_scanlines(stream_DCT_state * st,
+			    JSAMPARRAY scanlines, int num_lines);
+int gs_jpeg_finish_compress(stream_DCT_state * st);
 
 /* Decode */
 
-int gs_jpeg_create_decompress(P1(stream_DCT_state * st));
-int gs_jpeg_read_header(P2(stream_DCT_state * st,
-			   boolean require_image));
-int gs_jpeg_start_decompress(P1(stream_DCT_state * st));
-int gs_jpeg_read_scanlines(P3(stream_DCT_state * st,
-			      JSAMPARRAY scanlines,
-			      int max_lines));
-int gs_jpeg_finish_decompress(P1(stream_DCT_state * st));
+int gs_jpeg_create_decompress(stream_DCT_state * st);
+int gs_jpeg_read_header(stream_DCT_state * st,
+			boolean require_image);
+int gs_jpeg_start_decompress(stream_DCT_state * st);
+int gs_jpeg_read_scanlines(stream_DCT_state * st,
+			   JSAMPARRAY scanlines, int max_lines);
+int gs_jpeg_finish_decompress(stream_DCT_state * st);
 
 #endif /* sjpeg_INCLUDED */

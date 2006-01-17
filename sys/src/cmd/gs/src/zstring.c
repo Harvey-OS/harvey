@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zstring.c,v 1.2 2000/09/19 19:00:55 lpd Exp $ */
+/* $Id: zstring.c,v 1.6 2004/08/04 19:36:13 stefan Exp $ */
 /* String operators */
 #include "memory_.h"
 #include "ghost.h"
@@ -73,7 +71,7 @@ znamestring(i_ctx_t *i_ctx_p)
     os_ptr op = osp;
 
     check_type(*op, t_name);
-    name_string_ref(op, op);
+    name_string_ref(imemory, op, op);
     return 0;
 }
 
@@ -149,6 +147,28 @@ found:
     return 0;
 }
 
+/* <string> <charstring> .stringbreak <int|null> */
+private int
+zstringbreak(i_ctx_t *i_ctx_p)
+{
+    os_ptr op = osp;
+    uint i, j;
+
+    check_read_type(op[-1], t_string);
+    check_read_type(*op, t_string);
+    /* We can't use strpbrk here, because C doesn't allow nulls in strings. */
+    for (i = 0; i < r_size(op - 1); ++i)
+	for (j = 0; j < r_size(op); ++j)
+	    if (op[-1].value.const_bytes[i] == op->value.const_bytes[j]) {
+		make_int(op - 1, i);
+		goto done;
+	    }
+    make_null(op - 1);
+ done:
+    pop(1);
+    return 0;
+}
+
 /* <obj> <pattern> .stringmatch <bool> */
 private int
 zstringmatch(i_ctx_t *i_ctx_p)
@@ -163,7 +183,7 @@ zstringmatch(i_ctx_t *i_ctx_p)
 	    check_read(*op1);
 	    goto cmp;
 	case t_name:
-	    name_string_ref(op1, op1);	/* can't fail */
+	    name_string_ref(imemory, op1, op1);	/* can't fail */
 cmp:
 	    result = string_match(op1->value.const_bytes, r_size(op1),
 				  op->value.const_bytes, r_size(op),
@@ -186,6 +206,7 @@ const op_def zstring_op_defs[] =
     {"1.namestring", znamestring},
     {"2search", zsearch},
     {"1string", zstring},
+    {"2.stringbreak", zstringbreak},
     {"2.stringmatch", zstringmatch},
     op_def_end(0)
 };

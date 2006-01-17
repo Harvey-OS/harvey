@@ -1,22 +1,20 @@
-/* Copyright (C) 1995, 1997, 1998 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1995, 1997, 1998, 2001 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gsroptab.c,v 1.2 2000/09/19 19:00:32 lpd Exp $ */
+/* $Id: gsroptab.c,v 1.5 2002/02/21 22:24:52 giles Exp $ */
 /* Table of RasterOp procedures */
 #include "stdpre.h"
 #include "gsropt.h"
@@ -27,279 +25,273 @@
  *   a = AND, o = OR, n = NOT, x = XOR
  */
 
-#ifdef __PROTOTYPES__
-#  define rop_proc(pname, expr)\
+#define ROP_PROC(pname, expr)\
 private rop_operand pname(rop_operand D, rop_operand S, rop_operand T)\
 { return expr; }
-#else
-#  define rop_proc(pname, expr)\
-private rop_operand pname(D,S,T) rop_operand D; rop_operand S; rop_operand T;\
-{ return expr; }
-#endif
 
 #define a(u,v) (u&v)
 #define o(u,v) (u|v)
 #define x(u,v) (u^v)
 
-rop_proc(rop0, 0)		/* 0 */
-rop_proc(rop1, ~(D | S | T))		/* DTSoon */
-rop_proc(rop2, D & ~(S | T))		/* DTSona */
-rop_proc(rop3, ~(S | T))	/* TSon */
-rop_proc(rop4, S & ~(D | T))		/* SDTona */
-rop_proc(rop5, ~(D | T))	/* DTon */
-rop_proc(rop6, ~(T | ~(D ^ S)))		/* TDSxnon */
-rop_proc(rop7, ~(T | (D & S)))		/* TDSaon */
-rop_proc(rop8, S & (D & ~T))		/* SDTnaa */
-rop_proc(rop9, ~(T | (D ^ S)))		/* TDSxon */
-rop_proc(rop10, D & ~T)		/* DTna */
-rop_proc(rop11, ~(T | (S & ~D)))	/* TSDnaon */
-rop_proc(rop12, S & ~T)		/* STna */
-rop_proc(rop13, ~(T | (D & ~S)))	/* TDSnaon */
-rop_proc(rop14, ~(T | ~(D | S)))	/* TDSonon */
-rop_proc(rop15, ~T)		/* Tn */
-rop_proc(rop16, T & ~(D | S))		/* TDSona */
-rop_proc(rop17, ~(D | S))	/* DSon */
-rop_proc(rop18, ~(S | ~(D ^ T)))	/* SDTxnon */
-rop_proc(rop19, ~(S | (D & T)))		/* SDTaon */
-rop_proc(rop20, ~(D | ~(T ^ S)))	/* DTSxnon */
-rop_proc(rop21, ~(D | (T & S)))		/* DTSaon */
-rop_proc(rop22, (T ^ (S ^ (D & ~(T & S)))))		/* TSDTSanaxx */
-rop_proc(rop23, ~(S ^ ((S ^ T) & (D ^ S))))		/* SSTxDSxaxn */
-rop_proc(rop24, (S ^ T) & (T ^ D))	/* STxTDxa */
-rop_proc(rop25, ~(S ^ (D & ~(T & S))))		/* SDTSanaxn */
-rop_proc(rop26, T ^ (D | (S & T)))	/* TDSTaox */
-rop_proc(rop27, ~(S ^ (D & (T ^ S))))		/* SDTSxaxn */
-rop_proc(rop28, T ^ (S | (D & T)))	/* TSDTaox */
-rop_proc(rop29, ~(D ^ (S & (T ^ D))))		/* DSTDxaxn */
-rop_proc(rop30, T ^ (D | S))		/* TDSox */
-rop_proc(rop31, ~(T & (D | S)))		/* TDSoan */
-rop_proc(rop32, D & (T & ~S))		/* DTSnaa */
-rop_proc(rop33, ~(S | (D ^ T)))		/* SDTxon */
-rop_proc(rop34, D & ~S)		/* DSna */
-rop_proc(rop35, ~(S | (T & ~D)))	/* STDnaon */
-rop_proc(rop36, (S ^ T) & (D ^ S))	/* STxDSxa */
-rop_proc(rop37, ~(T ^ (D & ~(S & T))))		/* TDSTanaxn */
-rop_proc(rop38, S ^ (D | (T & S)))	/* SDTSaox */
-rop_proc(rop39, S ^ (D | ~(T ^ S)))		/* SDTSxnox */
-rop_proc(rop40, D & (T ^ S))		/* DTSxa */
-rop_proc(rop41, ~(T ^ (S ^ (D | (T & S)))))		/* TSDTSaoxxn */
-rop_proc(rop42, D & ~(T & S))		/* DTSana */
-rop_proc(rop43, ~x(a(x(D, T), x(T, S)), S))		/* SSTxTDxaxn */
-rop_proc(rop44, (S ^ (T & (D | S))))		/* STDSoax */
-rop_proc(rop45, T ^ (S | ~D))		/* TSDnox */
-rop_proc(rop46, (T ^ (S | (D ^ T))))		/* TSDTxox */
-rop_proc(rop47, ~(T & (S | ~D)))	/* TSDnoan */
-rop_proc(rop48, T & ~S)		/* TSna */
-rop_proc(rop49, ~(S | (D & ~T)))	/* SDTnaon */
-rop_proc(rop50, S ^ (D | (T | S)))	/* SDTSoox */
-rop_proc(rop51, ~S)		/* Sn */
-rop_proc(rop52, S ^ (T | (D & S)))	/* STDSaox */
-rop_proc(rop53, S ^ (T | ~(D ^ S)))		/* STDSxnox */
-rop_proc(rop54, S ^ (D | T))		/* SDTox */
-rop_proc(rop55, ~(S & (D | T)))		/* SDToan */
-rop_proc(rop56, T ^ (S & (D | T)))	/* TSDToax */
-rop_proc(rop57, S ^ (T | ~D))		/* STDnox */
-rop_proc(rop58, S ^ (T | (D ^ S)))	/* STDSxox */
-rop_proc(rop59, ~(S & (T | ~D)))	/* STDnoan */
-rop_proc(rop60, T ^ S)		/* TSx */
-rop_proc(rop61, S ^ (T | ~(D | S)))		/* STDSonox */
-rop_proc(rop62, S ^ (T | (D & ~S)))		/* STDSnaox */
-rop_proc(rop63, ~(T & S))	/* TSan */
-rop_proc(rop64, T & (S & ~D))		/* TSDnaa */
-rop_proc(rop65, ~(D | (T ^ S)))		/* DTSxon */
-rop_proc(rop66, (S ^ D) & (T ^ D))	/* SDxTDxa */
-rop_proc(rop67, ~(S ^ (T & ~(D & S))))		/* STDSanaxn */
-rop_proc(rop68, S & ~D)		/* SDna */
-rop_proc(rop69, ~(D | (T & ~S)))	/* DTSnaon */
-rop_proc(rop70, D ^ (S | (T & D)))	/* DSTDaox */
-rop_proc(rop71, ~(T ^ (S & (D ^ T))))		/* TSDTxaxn */
-rop_proc(rop72, S & (D ^ T))		/* SDTxa */
-rop_proc(rop73, ~(T ^ (D ^ (S | (T & D)))))		/* TDSTDaoxxn */
-rop_proc(rop74, D ^ (T & (S | D)))	/* DTSDoax */
-rop_proc(rop75, T ^ (D | ~S))		/* TDSnox */
-rop_proc(rop76, S & ~(D & T))		/* SDTana */
-rop_proc(rop77, ~(S ^ ((S ^ T) | (D ^ S))))		/* SSTxDSxoxn */
-rop_proc(rop78, T ^ (D | (S ^ T)))	/* TDSTxox */
-rop_proc(rop79, ~(T & (D | ~S)))	/* TDSnoan */
-rop_proc(rop80, T & ~D)		/* TDna */
-rop_proc(rop81, ~(D | (S & ~T)))	/* DSTnaon */
-rop_proc(rop82, D ^ (T | (S & D)))	/* DTSDaox */
-rop_proc(rop83, ~(S ^ (T & (D ^ S))))		/* STDSxaxn */
-rop_proc(rop84, ~(D | ~(T | S)))	/* DTSonon */
-rop_proc(rop85, ~D)		/* Dn */
-rop_proc(rop86, D ^ (T | S))		/* DTSox */
-rop_proc(rop87, ~(D & (T | S)))		/* DTSoan */
-rop_proc(rop88, T ^ (D & (S | T)))	/* TDSToax */
-rop_proc(rop89, D ^ (T | ~S))		/* DTSnox */
-rop_proc(rop90, D ^ T)		/* DTx */
-rop_proc(rop91, D ^ (T | ~(S | D)))		/* DTSDonox */
-rop_proc(rop92, D ^ (T | (S ^ D)))	/* DTSDxox */
-rop_proc(rop93, ~(D & (T | ~S)))	/* DTSnoan */
-rop_proc(rop94, D ^ (T | (S & ~D)))		/* DTSDnaox */
-rop_proc(rop95, ~(D & T))	/* DTan */
-rop_proc(rop96, T & (D ^ S))		/* TDSxa */
-rop_proc(rop97, ~(D ^ (S ^ (T | (D & S)))))		/* DSTDSaoxxn */
-rop_proc(rop98, D ^ (S & (T | D)))	/* DSTDoax */
-rop_proc(rop99, S ^ (D | ~T))		/* SDTnox */
-rop_proc(rop100, S ^ (D & (T | S)))		/* SDTSoax */
-rop_proc(rop101, D ^ (S | ~T))		/* DSTnox */
-rop_proc(rop102, D ^ S)		/* DSx */
-rop_proc(rop103, S ^ (D | ~(T | S)))		/* SDTSonox */
-rop_proc(rop104, ~(D ^ (S ^ (T | ~(D | S)))))		/* DSTDSonoxxn */
-rop_proc(rop105, ~(T ^ (D ^ S)))	/* TDSxxn */
-rop_proc(rop106, D ^ (T & S))		/* DTSax */
-rop_proc(rop107, ~(T ^ (S ^ (D & (T | S)))))		/* TSDTSoaxxn */
-rop_proc(rop108, (D & T) ^ S)		/* SDTax */
-rop_proc(rop109, ~((((T | D) & S) ^ D) ^ T))		/* TDSTDoaxxn */
-rop_proc(rop110, ((~S | T) & D) ^ S)		/* SDTSnoax */
-rop_proc(rop111, ~(~(D ^ S) & T))	/* TDSxnan */
-rop_proc(rop112, ~(D & S) & T)		/* TDSana */
-rop_proc(rop113, ~(((S ^ D) & (T ^ D)) ^ S))		/* SSDxTDxaxn */
-rop_proc(rop114, ((T ^ S) | D) ^ S)		/* SDTSxox */
-rop_proc(rop115, ~((~T | D) & S))	/* SDTnoan */
-rop_proc(rop116, ((T ^ D) | S) ^ D)		/* DSTDxox */
-rop_proc(rop117, ~((~T | S) & D))	/* DSTnoan */
-rop_proc(rop118, ((~S & T) | D) ^ S)		/* SDTSnaox */
-rop_proc(rop119, ~(D & S))	/* DSan */
-rop_proc(rop120, (D & S) ^ T)		/* TDSax */
-rop_proc(rop121, ~((((D | S) & T) ^ S) ^ D))		/* DSTDSoaxxn */
-rop_proc(rop122, ((~D | S) & T) ^ D)		/* DTSDnoax */
-rop_proc(rop123, ~(~(D ^ T) & S))	/* SDTxnan */
-rop_proc(rop124, ((~S | D) & T) ^ S)		/* STDSnoax */
-rop_proc(rop125, ~(~(T ^ S) & D))	/* DTSxnan */
-rop_proc(rop126, (S ^ T) | (D ^ S))		/* STxDSxo */
-rop_proc(rop127, ~((T & S) & D))	/* DTSaan */
-rop_proc(rop128, (T & S) & D)		/* DTSaa */
-rop_proc(rop129, ~((S ^ T) | (D ^ S)))		/* STxDSxon */
-rop_proc(rop130, ~(T ^ S) & D)		/* DTSxna */
-rop_proc(rop131, ~(((~S | D) & T) ^ S))		/* STDSnoaxn */
-rop_proc(rop132, ~(D ^ T) & S)		/* SDTxna */
-rop_proc(rop133, ~(((~T | S) & D) ^ T))		/* TDSTnoaxn */
-rop_proc(rop134, (((D | S) & T) ^ S) ^ D)	/* DSTDSoaxx */
-rop_proc(rop135, ~((D & S) ^ T))	/* TDSaxn */
-rop_proc(rop136, D & S)		/* DSa */
-rop_proc(rop137, ~(((~S & T) | D) ^ S))		/* SDTSnaoxn */
-rop_proc(rop138, (~T | S) & D)		/* DSTnoa */
-rop_proc(rop139, ~(((T ^ D) | S) ^ D))		/* DSTDxoxn */
-rop_proc(rop140, (~T | D) & S)		/* SDTnoa */
-rop_proc(rop141, ~(((T ^ S) | D) ^ S))		/* SDTSxoxn */
-rop_proc(rop142, ((S ^ D) & (T ^ D)) ^ S)	/* SSDxTDxax */
-rop_proc(rop143, ~(~(D & S) & T))	/* TDSanan */
-rop_proc(rop144, ~(D ^ S) & T)		/* TDSxna */
-rop_proc(rop145, ~(((~S | T) & D) ^ S))		/* SDTSnoaxn */
-rop_proc(rop146, (((D | T) & S) ^ T) ^ D)	/* DTSDToaxx */
-rop_proc(rop147, ~((T & D) ^ S))	/* STDaxn */
-rop_proc(rop148, (((T | S) & D) ^ S) ^ T)	/* TSDTSoaxx */
-rop_proc(rop149, ~((T & S) ^ D))	/* DTSaxn */
-rop_proc(rop150, (T ^ S) ^ D)		/* DTSxx */
-rop_proc(rop151, ((~(T | S) | D) ^ S) ^ T)	/* TSDTSonoxx */
-rop_proc(rop152, ~((~(T | S) | D) ^ S))		/* SDTSonoxn */
-rop_proc(rop153, ~(D ^ S))	/* DSxn */
-rop_proc(rop154, (~S & T) ^ D)		/* DTSnax */
-rop_proc(rop155, ~(((T | S) & D) ^ S))		/* SDTSoaxn */
-rop_proc(rop156, (~D & T) ^ S)		/* STDnax */
-rop_proc(rop157, ~(((T | D) & S) ^ D))		/* DSTDoaxn */
-rop_proc(rop158, (((D & S) | T) ^ S) ^ D)	/* DSTDSaoxx */
-rop_proc(rop159, ~((D ^ S) & T))	/* TDSxan */
-rop_proc(rop160, D & T)		/* DTa */
-rop_proc(rop161, ~(((~T & S) | D) ^ T))		/* TDSTnaoxn */
-rop_proc(rop162, (~S | T) & D)		/* DTSnoa */
-rop_proc(rop163, ~(((D ^ S) | T) ^ D))		/* DTSDxoxn */
-rop_proc(rop164, ~((~(T | S) | D) ^ T))		/* TDSTonoxn */
-rop_proc(rop165, ~(D ^ T))	/* TDxn */
-rop_proc(rop166, (~T & S) ^ D)		/* DSTnax */
-rop_proc(rop167, ~(((T | S) & D) ^ T))		/* TDSToaxn */
-rop_proc(rop168, ((S | T) & D))		/* DTSoa */
-rop_proc(rop169, ~((S | T) ^ D))	/* DTSoxn */
-rop_proc(rop170, D)		/* D */
-rop_proc(rop171, ~(S | T) | D)		/* DTSono */
-rop_proc(rop172, (((S ^ D) & T) ^ S))		/* STDSxax */
-rop_proc(rop173, ~(((D & S) | T) ^ D))		/* DTSDaoxn */
-rop_proc(rop174, (~T & S) | D)		/* DSTnao */
-rop_proc(rop175, ~T | D)	/* DTno */
-rop_proc(rop176, (~S | D) & T)		/* TDSnoa */
-rop_proc(rop177, ~(((T ^ S) | D) ^ T))		/* TDSTxoxn */
-rop_proc(rop178, ((S ^ D) | (S ^ T)) ^ S)	/* SSTxDSxox */
-rop_proc(rop179, ~(~(T & D) & S))	/* SDTanan */
-rop_proc(rop180, (~D & S) ^ T)		/* TSDnax */
-rop_proc(rop181, ~(((D | S) & T) ^ D))		/* DTSDoaxn */
-rop_proc(rop182, (((T & D) | S) ^ T) ^ D)	/* DTSDTaoxx */
-rop_proc(rop183, ~((T ^ D) & S))	/* SDTxan */
-rop_proc(rop184, ((T ^ D) & S) ^ T)		/* TSDTxax */
-rop_proc(rop185, (~((D & T) | S) ^ D))		/* DSTDaoxn */
-rop_proc(rop186, (~S & T) | D)		/* DTSnao */
-rop_proc(rop187, ~S | D)	/* DSno */
-rop_proc(rop188, (~(S & D) & T) ^ S)		/* STDSanax */
-rop_proc(rop189, ~((D ^ T) & (D ^ S)))		/* SDxTDxan */
-rop_proc(rop190, (S ^ T) | D)		/* DTSxo */
-rop_proc(rop191, ~(S & T) | D)		/* DTSano */
-rop_proc(rop192, T & S)		/* TSa */
-rop_proc(rop193, ~(((~S & D) | T) ^ S))		/* STDSnaoxn */
-rop_proc(rop194, ~x(o(~o(S, D), T), S))		/* STDSonoxn */
-rop_proc(rop195, ~(S ^ T))	/* TSxn */
-rop_proc(rop196, ((~D | T) & S))	/* STDnoa */
-rop_proc(rop197, ~(((S ^ D) | T) ^ S))		/* STDSxoxn */
-rop_proc(rop198, ((~T & D) ^ S))	/* SDTnax */
-rop_proc(rop199, ~(((T | D) & S) ^ T))		/* TSDToaxn */
-rop_proc(rop200, ((T | D) & S))		/* SDToa */
-rop_proc(rop201, ~((D | T) ^ S))	/* STDoxn */
-rop_proc(rop202, ((D ^ S) & T) ^ D)		/* DTSDxax */
-rop_proc(rop203, ~(((S & D) | T) ^ S))		/* STDSaoxn */
-rop_proc(rop204, S)		/* S */
-rop_proc(rop205, ~(T | D) | S)		/* SDTono */
-rop_proc(rop206, (~T & D) | S)		/* SDTnao */
-rop_proc(rop207, ~T | S)	/* STno */
-rop_proc(rop208, (~D | S) & T)		/* TSDnoa */
-rop_proc(rop209, ~(((T ^ D) | S) ^ T))		/* TSDTxoxn */
-rop_proc(rop210, (~S & D) ^ T)		/* TDSnax */
-rop_proc(rop211, ~(((S | D) & T) ^ S))		/* STDSoaxn */
-rop_proc(rop212, x(a(x(D, T), x(T, S)), S))		/* SSTxTDxax */
-rop_proc(rop213, ~(~(S & T) & D))	/* DTSanan */
-rop_proc(rop214, ((((S & T) | D) ^ S) ^ T))		/* TSDTS aoxx */
-rop_proc(rop215, ~((S ^ T) & D))	/* DTS xan */
-rop_proc(rop216, ((T ^ S) & D) ^ T)		/* TDST xax */
-rop_proc(rop217, ~(((S & T) | D) ^ S))		/* SDTS aoxn */
-rop_proc(rop218, x(a(~a(D, S), T), D))		/* DTSD anax */
-rop_proc(rop219, ~a(x(S, D), x(T, S)))		/* STxDSxan */
-rop_proc(rop220, (~D & T) | S)		/* STD nao */
-rop_proc(rop221, ~D | S)	/* SDno */
-rop_proc(rop222, (T ^ D) | S)		/* SDT xo */
-rop_proc(rop223, (~(T & D)) | S)	/* SDT ano */
-rop_proc(rop224, ((S | D) & T))		/* TDS oa */
-rop_proc(rop225, ~((S | D) ^ T))	/*  TDS oxn */
-rop_proc(rop226, (((D ^ T) & S) ^ D))		/* DSTD xax */
-rop_proc(rop227, ~(((T & D) | S) ^ T))		/* TSDT aoxn */
-rop_proc(rop228, ((S ^ T) & D) ^ S)		/* SDTSxax */
-rop_proc(rop229, ~(((T & S) | D) ^ T))		/* TDST aoxn */
-rop_proc(rop230, (~(S & T) & D) ^ S)		/* SDTSanax */
-rop_proc(rop231, ~a(x(D, T), x(T, S)))		/* STxTDxan */
-rop_proc(rop232, x(a(x(S, D), x(T, S)), S))		/* SS TxD Sxax */
-rop_proc(rop233, ~x(x(a(~a(S, D), T), S), D))		/* DST DSan axxn   */
-rop_proc(rop234, (S & T) | D)		/* DTSao */
-rop_proc(rop235, ~(S ^ T) | D)		/* DTSxno */
-rop_proc(rop236, (T & D) | S)		/* SDTao */
-rop_proc(rop237, ~(T ^ D) | S)		/* SDTxno */
-rop_proc(rop238, S | D)		/* DSo */
-rop_proc(rop239, (~T | D) | S)		/* SDTnoo */
-rop_proc(rop240, T)		/* T */
-rop_proc(rop241, ~(S | D) | T)		/* TDSono */
-rop_proc(rop242, (~S & D) | T)		/* TDSnao */
-rop_proc(rop243, ~S | T)	/* TSno */
-rop_proc(rop244, (~D & S) | T)		/* TSDnao */
-rop_proc(rop245, ~D | T)	/* TDno */
-rop_proc(rop246, (S ^ D) | T)		/* TDSxo */
-rop_proc(rop247, ~(S & D) | T)		/* TDSano */
-rop_proc(rop248, (S & D) | T)		/* TDSao */
-rop_proc(rop249, ~(S ^ D) | T)		/* TDSxno */
-rop_proc(rop250, D | T)		/* DTo */
-rop_proc(rop251, (~S | T) | D)		/* DTSnoo */
-rop_proc(rop252, S | T)		/* TSo */
-rop_proc(rop253, (~D | S) | T)		/* TSDnoo */
-rop_proc(rop254, S | T | D)	/* DTSoo */
-rop_proc(rop255, ~(rop_operand) 0)	/* 1 */
-#undef rop_proc
-     const rop_proc rop_proc_table[256] =
-     {
+ROP_PROC(rop0, 0)		/* 0 */
+ROP_PROC(rop1, ~(D | S | T))		/* DTSoon */
+ROP_PROC(rop2, D & ~(S | T))		/* DTSona */
+ROP_PROC(rop3, ~(S | T))	/* TSon */
+ROP_PROC(rop4, S & ~(D | T))		/* SDTona */
+ROP_PROC(rop5, ~(D | T))	/* DTon */
+ROP_PROC(rop6, ~(T | ~(D ^ S)))		/* TDSxnon */
+ROP_PROC(rop7, ~(T | (D & S)))		/* TDSaon */
+ROP_PROC(rop8, S & (D & ~T))		/* SDTnaa */
+ROP_PROC(rop9, ~(T | (D ^ S)))		/* TDSxon */
+ROP_PROC(rop10, D & ~T)		/* DTna */
+ROP_PROC(rop11, ~(T | (S & ~D)))	/* TSDnaon */
+ROP_PROC(rop12, S & ~T)		/* STna */
+ROP_PROC(rop13, ~(T | (D & ~S)))	/* TDSnaon */
+ROP_PROC(rop14, ~(T | ~(D | S)))	/* TDSonon */
+ROP_PROC(rop15, ~T)		/* Tn */
+ROP_PROC(rop16, T & ~(D | S))		/* TDSona */
+ROP_PROC(rop17, ~(D | S))	/* DSon */
+ROP_PROC(rop18, ~(S | ~(D ^ T)))	/* SDTxnon */
+ROP_PROC(rop19, ~(S | (D & T)))		/* SDTaon */
+ROP_PROC(rop20, ~(D | ~(T ^ S)))	/* DTSxnon */
+ROP_PROC(rop21, ~(D | (T & S)))		/* DTSaon */
+ROP_PROC(rop22, (T ^ (S ^ (D & ~(T & S)))))		/* TSDTSanaxx */
+ROP_PROC(rop23, ~(S ^ ((S ^ T) & (D ^ S))))		/* SSTxDSxaxn */
+ROP_PROC(rop24, (S ^ T) & (T ^ D))	/* STxTDxa */
+ROP_PROC(rop25, ~(S ^ (D & ~(T & S))))		/* SDTSanaxn */
+ROP_PROC(rop26, T ^ (D | (S & T)))	/* TDSTaox */
+ROP_PROC(rop27, ~(S ^ (D & (T ^ S))))		/* SDTSxaxn */
+ROP_PROC(rop28, T ^ (S | (D & T)))	/* TSDTaox */
+ROP_PROC(rop29, ~(D ^ (S & (T ^ D))))		/* DSTDxaxn */
+ROP_PROC(rop30, T ^ (D | S))		/* TDSox */
+ROP_PROC(rop31, ~(T & (D | S)))		/* TDSoan */
+ROP_PROC(rop32, D & (T & ~S))		/* DTSnaa */
+ROP_PROC(rop33, ~(S | (D ^ T)))		/* SDTxon */
+ROP_PROC(rop34, D & ~S)		/* DSna */
+ROP_PROC(rop35, ~(S | (T & ~D)))	/* STDnaon */
+ROP_PROC(rop36, (S ^ T) & (D ^ S))	/* STxDSxa */
+ROP_PROC(rop37, ~(T ^ (D & ~(S & T))))		/* TDSTanaxn */
+ROP_PROC(rop38, S ^ (D | (T & S)))	/* SDTSaox */
+ROP_PROC(rop39, S ^ (D | ~(T ^ S)))		/* SDTSxnox */
+ROP_PROC(rop40, D & (T ^ S))		/* DTSxa */
+ROP_PROC(rop41, ~(T ^ (S ^ (D | (T & S)))))		/* TSDTSaoxxn */
+ROP_PROC(rop42, D & ~(T & S))		/* DTSana */
+ROP_PROC(rop43, ~x(a(x(D, T), x(T, S)), S))		/* SSTxTDxaxn */
+ROP_PROC(rop44, (S ^ (T & (D | S))))		/* STDSoax */
+ROP_PROC(rop45, T ^ (S | ~D))		/* TSDnox */
+ROP_PROC(rop46, (T ^ (S | (D ^ T))))		/* TSDTxox */
+ROP_PROC(rop47, ~(T & (S | ~D)))	/* TSDnoan */
+ROP_PROC(rop48, T & ~S)		/* TSna */
+ROP_PROC(rop49, ~(S | (D & ~T)))	/* SDTnaon */
+ROP_PROC(rop50, S ^ (D | (T | S)))	/* SDTSoox */
+ROP_PROC(rop51, ~S)		/* Sn */
+ROP_PROC(rop52, S ^ (T | (D & S)))	/* STDSaox */
+ROP_PROC(rop53, S ^ (T | ~(D ^ S)))		/* STDSxnox */
+ROP_PROC(rop54, S ^ (D | T))		/* SDTox */
+ROP_PROC(rop55, ~(S & (D | T)))		/* SDToan */
+ROP_PROC(rop56, T ^ (S & (D | T)))	/* TSDToax */
+ROP_PROC(rop57, S ^ (T | ~D))		/* STDnox */
+ROP_PROC(rop58, S ^ (T | (D ^ S)))	/* STDSxox */
+ROP_PROC(rop59, ~(S & (T | ~D)))	/* STDnoan */
+ROP_PROC(rop60, T ^ S)		/* TSx */
+ROP_PROC(rop61, S ^ (T | ~(D | S)))		/* STDSonox */
+ROP_PROC(rop62, S ^ (T | (D & ~S)))		/* STDSnaox */
+ROP_PROC(rop63, ~(T & S))	/* TSan */
+ROP_PROC(rop64, T & (S & ~D))		/* TSDnaa */
+ROP_PROC(rop65, ~(D | (T ^ S)))		/* DTSxon */
+ROP_PROC(rop66, (S ^ D) & (T ^ D))	/* SDxTDxa */
+ROP_PROC(rop67, ~(S ^ (T & ~(D & S))))		/* STDSanaxn */
+ROP_PROC(rop68, S & ~D)		/* SDna */
+ROP_PROC(rop69, ~(D | (T & ~S)))	/* DTSnaon */
+ROP_PROC(rop70, D ^ (S | (T & D)))	/* DSTDaox */
+ROP_PROC(rop71, ~(T ^ (S & (D ^ T))))		/* TSDTxaxn */
+ROP_PROC(rop72, S & (D ^ T))		/* SDTxa */
+ROP_PROC(rop73, ~(T ^ (D ^ (S | (T & D)))))		/* TDSTDaoxxn */
+ROP_PROC(rop74, D ^ (T & (S | D)))	/* DTSDoax */
+ROP_PROC(rop75, T ^ (D | ~S))		/* TDSnox */
+ROP_PROC(rop76, S & ~(D & T))		/* SDTana */
+ROP_PROC(rop77, ~(S ^ ((S ^ T) | (D ^ S))))		/* SSTxDSxoxn */
+ROP_PROC(rop78, T ^ (D | (S ^ T)))	/* TDSTxox */
+ROP_PROC(rop79, ~(T & (D | ~S)))	/* TDSnoan */
+ROP_PROC(rop80, T & ~D)		/* TDna */
+ROP_PROC(rop81, ~(D | (S & ~T)))	/* DSTnaon */
+ROP_PROC(rop82, D ^ (T | (S & D)))	/* DTSDaox */
+ROP_PROC(rop83, ~(S ^ (T & (D ^ S))))		/* STDSxaxn */
+ROP_PROC(rop84, ~(D | ~(T | S)))	/* DTSonon */
+ROP_PROC(rop85, ~D)		/* Dn */
+ROP_PROC(rop86, D ^ (T | S))		/* DTSox */
+ROP_PROC(rop87, ~(D & (T | S)))		/* DTSoan */
+ROP_PROC(rop88, T ^ (D & (S | T)))	/* TDSToax */
+ROP_PROC(rop89, D ^ (T | ~S))		/* DTSnox */
+ROP_PROC(rop90, D ^ T)		/* DTx */
+ROP_PROC(rop91, D ^ (T | ~(S | D)))		/* DTSDonox */
+ROP_PROC(rop92, D ^ (T | (S ^ D)))	/* DTSDxox */
+ROP_PROC(rop93, ~(D & (T | ~S)))	/* DTSnoan */
+ROP_PROC(rop94, D ^ (T | (S & ~D)))		/* DTSDnaox */
+ROP_PROC(rop95, ~(D & T))	/* DTan */
+ROP_PROC(rop96, T & (D ^ S))		/* TDSxa */
+ROP_PROC(rop97, ~(D ^ (S ^ (T | (D & S)))))		/* DSTDSaoxxn */
+ROP_PROC(rop98, D ^ (S & (T | D)))	/* DSTDoax */
+ROP_PROC(rop99, S ^ (D | ~T))		/* SDTnox */
+ROP_PROC(rop100, S ^ (D & (T | S)))		/* SDTSoax */
+ROP_PROC(rop101, D ^ (S | ~T))		/* DSTnox */
+ROP_PROC(rop102, D ^ S)		/* DSx */
+ROP_PROC(rop103, S ^ (D | ~(T | S)))		/* SDTSonox */
+ROP_PROC(rop104, ~(D ^ (S ^ (T | ~(D | S)))))		/* DSTDSonoxxn */
+ROP_PROC(rop105, ~(T ^ (D ^ S)))	/* TDSxxn */
+ROP_PROC(rop106, D ^ (T & S))		/* DTSax */
+ROP_PROC(rop107, ~(T ^ (S ^ (D & (T | S)))))		/* TSDTSoaxxn */
+ROP_PROC(rop108, (D & T) ^ S)		/* SDTax */
+ROP_PROC(rop109, ~((((T | D) & S) ^ D) ^ T))		/* TDSTDoaxxn */
+ROP_PROC(rop110, ((~S | T) & D) ^ S)		/* SDTSnoax */
+ROP_PROC(rop111, ~(~(D ^ S) & T))	/* TDSxnan */
+ROP_PROC(rop112, ~(D & S) & T)		/* TDSana */
+ROP_PROC(rop113, ~(((S ^ D) & (T ^ D)) ^ S))		/* SSDxTDxaxn */
+ROP_PROC(rop114, ((T ^ S) | D) ^ S)		/* SDTSxox */
+ROP_PROC(rop115, ~((~T | D) & S))	/* SDTnoan */
+ROP_PROC(rop116, ((T ^ D) | S) ^ D)		/* DSTDxox */
+ROP_PROC(rop117, ~((~T | S) & D))	/* DSTnoan */
+ROP_PROC(rop118, ((~S & T) | D) ^ S)		/* SDTSnaox */
+ROP_PROC(rop119, ~(D & S))	/* DSan */
+ROP_PROC(rop120, (D & S) ^ T)		/* TDSax */
+ROP_PROC(rop121, ~((((D | S) & T) ^ S) ^ D))		/* DSTDSoaxxn */
+ROP_PROC(rop122, ((~D | S) & T) ^ D)		/* DTSDnoax */
+ROP_PROC(rop123, ~(~(D ^ T) & S))	/* SDTxnan */
+ROP_PROC(rop124, ((~S | D) & T) ^ S)		/* STDSnoax */
+ROP_PROC(rop125, ~(~(T ^ S) & D))	/* DTSxnan */
+ROP_PROC(rop126, (S ^ T) | (D ^ S))		/* STxDSxo */
+ROP_PROC(rop127, ~((T & S) & D))	/* DTSaan */
+ROP_PROC(rop128, (T & S) & D)		/* DTSaa */
+ROP_PROC(rop129, ~((S ^ T) | (D ^ S)))		/* STxDSxon */
+ROP_PROC(rop130, ~(T ^ S) & D)		/* DTSxna */
+ROP_PROC(rop131, ~(((~S | D) & T) ^ S))		/* STDSnoaxn */
+ROP_PROC(rop132, ~(D ^ T) & S)		/* SDTxna */
+ROP_PROC(rop133, ~(((~T | S) & D) ^ T))		/* TDSTnoaxn */
+ROP_PROC(rop134, (((D | S) & T) ^ S) ^ D)	/* DSTDSoaxx */
+ROP_PROC(rop135, ~((D & S) ^ T))	/* TDSaxn */
+ROP_PROC(rop136, D & S)		/* DSa */
+ROP_PROC(rop137, ~(((~S & T) | D) ^ S))		/* SDTSnaoxn */
+ROP_PROC(rop138, (~T | S) & D)		/* DSTnoa */
+ROP_PROC(rop139, ~(((T ^ D) | S) ^ D))		/* DSTDxoxn */
+ROP_PROC(rop140, (~T | D) & S)		/* SDTnoa */
+ROP_PROC(rop141, ~(((T ^ S) | D) ^ S))		/* SDTSxoxn */
+ROP_PROC(rop142, ((S ^ D) & (T ^ D)) ^ S)	/* SSDxTDxax */
+ROP_PROC(rop143, ~(~(D & S) & T))	/* TDSanan */
+ROP_PROC(rop144, ~(D ^ S) & T)		/* TDSxna */
+ROP_PROC(rop145, ~(((~S | T) & D) ^ S))		/* SDTSnoaxn */
+ROP_PROC(rop146, (((D | T) & S) ^ T) ^ D)	/* DTSDToaxx */
+ROP_PROC(rop147, ~((T & D) ^ S))	/* STDaxn */
+ROP_PROC(rop148, (((T | S) & D) ^ S) ^ T)	/* TSDTSoaxx */
+ROP_PROC(rop149, ~((T & S) ^ D))	/* DTSaxn */
+ROP_PROC(rop150, (T ^ S) ^ D)		/* DTSxx */
+ROP_PROC(rop151, ((~(T | S) | D) ^ S) ^ T)	/* TSDTSonoxx */
+ROP_PROC(rop152, ~((~(T | S) | D) ^ S))		/* SDTSonoxn */
+ROP_PROC(rop153, ~(D ^ S))	/* DSxn */
+ROP_PROC(rop154, (~S & T) ^ D)		/* DTSnax */
+ROP_PROC(rop155, ~(((T | S) & D) ^ S))		/* SDTSoaxn */
+ROP_PROC(rop156, (~D & T) ^ S)		/* STDnax */
+ROP_PROC(rop157, ~(((T | D) & S) ^ D))		/* DSTDoaxn */
+ROP_PROC(rop158, (((D & S) | T) ^ S) ^ D)	/* DSTDSaoxx */
+ROP_PROC(rop159, ~((D ^ S) & T))	/* TDSxan */
+ROP_PROC(rop160, D & T)		/* DTa */
+ROP_PROC(rop161, ~(((~T & S) | D) ^ T))		/* TDSTnaoxn */
+ROP_PROC(rop162, (~S | T) & D)		/* DTSnoa */
+ROP_PROC(rop163, ~(((D ^ S) | T) ^ D))		/* DTSDxoxn */
+ROP_PROC(rop164, ~((~(T | S) | D) ^ T))		/* TDSTonoxn */
+ROP_PROC(rop165, ~(D ^ T))	/* TDxn */
+ROP_PROC(rop166, (~T & S) ^ D)		/* DSTnax */
+ROP_PROC(rop167, ~(((T | S) & D) ^ T))		/* TDSToaxn */
+ROP_PROC(rop168, ((S | T) & D))		/* DTSoa */
+ROP_PROC(rop169, ~((S | T) ^ D))	/* DTSoxn */
+ROP_PROC(rop170, D)		/* D */
+ROP_PROC(rop171, ~(S | T) | D)		/* DTSono */
+ROP_PROC(rop172, (((S ^ D) & T) ^ S))		/* STDSxax */
+ROP_PROC(rop173, ~(((D & S) | T) ^ D))		/* DTSDaoxn */
+ROP_PROC(rop174, (~T & S) | D)		/* DSTnao */
+ROP_PROC(rop175, ~T | D)	/* DTno */
+ROP_PROC(rop176, (~S | D) & T)		/* TDSnoa */
+ROP_PROC(rop177, ~(((T ^ S) | D) ^ T))		/* TDSTxoxn */
+ROP_PROC(rop178, ((S ^ D) | (S ^ T)) ^ S)	/* SSTxDSxox */
+ROP_PROC(rop179, ~(~(T & D) & S))	/* SDTanan */
+ROP_PROC(rop180, (~D & S) ^ T)		/* TSDnax */
+ROP_PROC(rop181, ~(((D | S) & T) ^ D))		/* DTSDoaxn */
+ROP_PROC(rop182, (((T & D) | S) ^ T) ^ D)	/* DTSDTaoxx */
+ROP_PROC(rop183, ~((T ^ D) & S))	/* SDTxan */
+ROP_PROC(rop184, ((T ^ D) & S) ^ T)		/* TSDTxax */
+ROP_PROC(rop185, (~((D & T) | S) ^ D))		/* DSTDaoxn */
+ROP_PROC(rop186, (~S & T) | D)		/* DTSnao */
+ROP_PROC(rop187, ~S | D)	/* DSno */
+ROP_PROC(rop188, (~(S & D) & T) ^ S)		/* STDSanax */
+ROP_PROC(rop189, ~((D ^ T) & (D ^ S)))		/* SDxTDxan */
+ROP_PROC(rop190, (S ^ T) | D)		/* DTSxo */
+ROP_PROC(rop191, ~(S & T) | D)		/* DTSano */
+ROP_PROC(rop192, T & S)		/* TSa */
+ROP_PROC(rop193, ~(((~S & D) | T) ^ S))		/* STDSnaoxn */
+ROP_PROC(rop194, ~x(o(~o(S, D), T), S))		/* STDSonoxn */
+ROP_PROC(rop195, ~(S ^ T))	/* TSxn */
+ROP_PROC(rop196, ((~D | T) & S))	/* STDnoa */
+ROP_PROC(rop197, ~(((S ^ D) | T) ^ S))		/* STDSxoxn */
+ROP_PROC(rop198, ((~T & D) ^ S))	/* SDTnax */
+ROP_PROC(rop199, ~(((T | D) & S) ^ T))		/* TSDToaxn */
+ROP_PROC(rop200, ((T | D) & S))		/* SDToa */
+ROP_PROC(rop201, ~((D | T) ^ S))	/* STDoxn */
+ROP_PROC(rop202, ((D ^ S) & T) ^ D)		/* DTSDxax */
+ROP_PROC(rop203, ~(((S & D) | T) ^ S))		/* STDSaoxn */
+ROP_PROC(rop204, S)		/* S */
+ROP_PROC(rop205, ~(T | D) | S)		/* SDTono */
+ROP_PROC(rop206, (~T & D) | S)		/* SDTnao */
+ROP_PROC(rop207, ~T | S)	/* STno */
+ROP_PROC(rop208, (~D | S) & T)		/* TSDnoa */
+ROP_PROC(rop209, ~(((T ^ D) | S) ^ T))		/* TSDTxoxn */
+ROP_PROC(rop210, (~S & D) ^ T)		/* TDSnax */
+ROP_PROC(rop211, ~(((S | D) & T) ^ S))		/* STDSoaxn */
+ROP_PROC(rop212, x(a(x(D, T), x(T, S)), S))		/* SSTxTDxax */
+ROP_PROC(rop213, ~(~(S & T) & D))	/* DTSanan */
+ROP_PROC(rop214, ((((S & T) | D) ^ S) ^ T))		/* TSDTS aoxx */
+ROP_PROC(rop215, ~((S ^ T) & D))	/* DTS xan */
+ROP_PROC(rop216, ((T ^ S) & D) ^ T)		/* TDST xax */
+ROP_PROC(rop217, ~(((S & T) | D) ^ S))		/* SDTS aoxn */
+ROP_PROC(rop218, x(a(~a(D, S), T), D))		/* DTSD anax */
+ROP_PROC(rop219, ~a(x(S, D), x(T, S)))		/* STxDSxan */
+ROP_PROC(rop220, (~D & T) | S)		/* STD nao */
+ROP_PROC(rop221, ~D | S)	/* SDno */
+ROP_PROC(rop222, (T ^ D) | S)		/* SDT xo */
+ROP_PROC(rop223, (~(T & D)) | S)	/* SDT ano */
+ROP_PROC(rop224, ((S | D) & T))		/* TDS oa */
+ROP_PROC(rop225, ~((S | D) ^ T))	/*  TDS oxn */
+ROP_PROC(rop226, (((D ^ T) & S) ^ D))		/* DSTD xax */
+ROP_PROC(rop227, ~(((T & D) | S) ^ T))		/* TSDT aoxn */
+ROP_PROC(rop228, ((S ^ T) & D) ^ S)		/* SDTSxax */
+ROP_PROC(rop229, ~(((T & S) | D) ^ T))		/* TDST aoxn */
+ROP_PROC(rop230, (~(S & T) & D) ^ S)		/* SDTSanax */
+ROP_PROC(rop231, ~a(x(D, T), x(T, S)))		/* STxTDxan */
+ROP_PROC(rop232, x(a(x(S, D), x(T, S)), S))		/* SS TxD Sxax */
+ROP_PROC(rop233, ~x(x(a(~a(S, D), T), S), D))		/* DST DSan axxn   */
+ROP_PROC(rop234, (S & T) | D)		/* DTSao */
+ROP_PROC(rop235, ~(S ^ T) | D)		/* DTSxno */
+ROP_PROC(rop236, (T & D) | S)		/* SDTao */
+ROP_PROC(rop237, ~(T ^ D) | S)		/* SDTxno */
+ROP_PROC(rop238, S | D)		/* DSo */
+ROP_PROC(rop239, (~T | D) | S)		/* SDTnoo */
+ROP_PROC(rop240, T)		/* T */
+ROP_PROC(rop241, ~(S | D) | T)		/* TDSono */
+ROP_PROC(rop242, (~S & D) | T)		/* TDSnao */
+ROP_PROC(rop243, ~S | T)	/* TSno */
+ROP_PROC(rop244, (~D & S) | T)		/* TSDnao */
+ROP_PROC(rop245, ~D | T)	/* TDno */
+ROP_PROC(rop246, (S ^ D) | T)		/* TDSxo */
+ROP_PROC(rop247, ~(S & D) | T)		/* TDSano */
+ROP_PROC(rop248, (S & D) | T)		/* TDSao */
+ROP_PROC(rop249, ~(S ^ D) | T)		/* TDSxno */
+ROP_PROC(rop250, D | T)		/* DTo */
+ROP_PROC(rop251, (~S | T) | D)		/* DTSnoo */
+ROP_PROC(rop252, S | T)		/* TSo */
+ROP_PROC(rop253, (~D | S) | T)		/* TSDnoo */
+ROP_PROC(rop254, S | T | D)	/* DTSoo */
+ROP_PROC(rop255, ~(rop_operand) 0)	/* 1 */
+#undef ROP_PROC
+
+     const rop_proc rop_proc_table[256] = {
 	 rop0, rop1, rop2, rop3, rop4, rop5, rop6, rop7,
 	 rop8, rop9, rop10, rop11, rop12, rop13, rop14, rop15,
 	 rop16, rop17, rop18, rop19, rop20, rop21, rop22, rop23,

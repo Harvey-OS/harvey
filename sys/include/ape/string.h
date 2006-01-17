@@ -31,6 +31,10 @@ extern void *memset(void *, int, size_t);
 extern char *strerror(int);
 extern size_t strlen(const char *);
 
+#ifdef _BSD_EXTENSION
+#include <bsd.h>
+#endif
+
 #ifdef __cplusplus
 }
 #endif

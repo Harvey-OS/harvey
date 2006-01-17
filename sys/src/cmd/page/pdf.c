@@ -97,14 +97,14 @@ initpdf(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 	d->pagename = pdfpagename;
 	d->fwdonly = 0;
 
-	if(spawngs(pdf) < 0)
+	if(spawngs(pdf, "-dDELAYSAFER") < 0)
 		return nil;
 
 	gscmd(pdf, "%s", pdfprolog);
 	waitgs(pdf);
 
 	setdim(pdf, Rect(0,0,0,0), ppi, 0);
-	gscmd(pdf, "(%s) (r) file pdfopen begin\n", fn);
+	gscmd(pdf, "(%s) (r) file { DELAYSAFER { .setsafe } if } stopped pop pdfopen begin\n", fn);
 	gscmd(pdf, "pdfpagecount PAGE==\n");
 	p = Brdline(&pdf->gsrd, '\n');
 	npage = atoi(p);
@@ -125,7 +125,6 @@ initpdf(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 		if(Dx(pdf->pagebbox[i]) <= 0)
 			pdf->pagebbox[i] = bbox;
 	}
-
 	return d;
 }
 

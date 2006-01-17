@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gscparam.c,v 1.7 2001/07/06 17:02:25 rayjj Exp $ */
+/* $Id: gscparam.c,v 1.10 2004/08/04 19:36:12 stefan Exp $ */
 /* Default implementation of parameter lists */
 #include "memory_.h"
 #include "string_.h"
@@ -75,7 +73,7 @@ ENUM_PTRS_WITH(c_param_enum_ptrs, gs_c_param *param) {
 
 	value.value = *(const gs_param_value *)&param->value;
 	value.type = param->type;
-	return gs_param_typed_value_enum_ptrs(&value, sizeof(value), index,
+	return gs_param_typed_value_enum_ptrs(mem, &value, sizeof(value), index,
 					      pep, NULL, gcst);
     }
     }

@@ -1,22 +1,20 @@
 /* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevplnx.c,v 1.2 2000/09/19 19:00:20 lpd Exp $*/
+/* $Id: gdevplnx.c,v 1.10 2004/08/04 19:36:12 stefan Exp $*/
 /* Plane extraction device */
 #include "gx.h"
 #include "gserrors.h"
@@ -160,7 +158,7 @@ reduce_drawing_color(gx_device_color *ppdc, gx_device_plane_extract *edev,
     if (gx_dc_is_pure(pdevc)) {
 	gx_color_index pixel = COLOR_PIXEL(edev, gx_dc_pure_color(pdevc));
 
-	color_set_pure(ppdc, pixel);
+	set_nonclient_dev_color(ppdc, pixel);
 	reduced = REDUCE_PURE(edev, pixel);
     } else if (gx_dc_is_binary_halftone(pdevc)) {
 	gx_color_index pixel0 =
@@ -169,7 +167,7 @@ reduce_drawing_color(gx_device_color *ppdc, gx_device_plane_extract *edev,
 	    TRANS_COLOR_PIXEL(edev, gx_dc_binary_color1(pdevc));
 
 	if (pixel0 == pixel1) {
-	    color_set_pure(ppdc, pixel0);
+	    set_nonclient_dev_color(ppdc, pixel0);
 	    reduced = REDUCE_PURE(edev, pixel0);
 	} else {
 	    *ppdc = *pdevc;
@@ -190,13 +188,13 @@ reduce_drawing_color(gx_device_color *ppdc, gx_device_plane_extract *edev,
 	    }
 	ppdc->colors.colored.plane_mask &= 1 << plane;
 	if (ppdc->colors.colored.c_level[plane] == 0) {
-	    gx_reduce_colored_halftone(ppdc, (gx_device *)edev, true);
+	    gx_devn_reduce_colored_halftone(ppdc, (gx_device *)edev);
 	    ppdc->colors.pure = COLOR_PIXEL(edev, ppdc->colors.pure);
 	    reduced = REDUCE_PURE(edev, gx_dc_pure_color(ppdc));
 	} else if (ppdc->colors.colored.alpha != gx_max_color_value)
 	    return REDUCE_FAILED; /* can't reduce */
 	else {
-	    gx_reduce_colored_halftone(ppdc, (gx_device *)edev, true);
+	    gx_devn_reduce_colored_halftone(ppdc, (gx_device *)edev);
 	    ppdc->colors.binary.color[0] =
 		COLOR_PIXEL(edev, ppdc->colors.binary.color[0]);
 	    ppdc->colors.binary.color[1] =
@@ -397,6 +395,7 @@ plane_device_init(gx_device_plane_extract *edev, gx_device *target,
     gx_device_init((gx_device *)edev,
 		   (const gx_device *)&gs_plane_extract_device,
 		   edev->memory, true);
+    check_device_separable((gx_device *)edev);
     gx_device_forward_fill_in_procs((gx_device_forward *)edev);
     gx_device_set_target((gx_device_forward *)edev, target);
     gx_device_copy_params((gx_device *)edev, target);
@@ -733,9 +732,9 @@ plane_strip_copy_rop(gx_device *dev,
     long sbuf[COPY_ROP_SOURCE_BUF_SIZE / sizeof(long)];
     long tbuf[COPY_ROP_TEXTURE_BUF_SIZE / sizeof(long)];
     const byte *plane_source;
-    uint plane_raster;
+    uint plane_raster = 0xbaadf00d; /* Initialize against indeterminizm. */
     gx_strip_bitmap plane_texture;
-    const gx_strip_bitmap *plane_textures;
+    const gx_strip_bitmap *plane_textures = NULL;
     int code;
 
     /* We should do better than this on transparency.... */
@@ -893,8 +892,15 @@ plane_cmap_rgb_alpha(frac r, frac g, frac b, frac alpha, gx_device_color * pdc,
 				(gx_device *)edev, select);
     reduce_drawing_color(pdc, edev, &dcolor, &lop);
 }
+private bool
+plane_cmap_is_halftoned(const gs_imager_state *pis_image, gx_device *dev)
+{
+    return false;
+}
+
 private const gx_color_map_procs plane_color_map_procs = {
-    plane_cmap_gray, plane_cmap_rgb, plane_cmap_cmyk, plane_cmap_rgb_alpha
+    plane_cmap_gray, plane_cmap_rgb, plane_cmap_cmyk, plane_cmap_rgb_alpha,
+    NULL, NULL, plane_cmap_is_halftoned
 };
 private const gx_color_map_procs *
 plane_get_cmap_procs(const gs_imager_state *pis, const gx_device *dev)
@@ -961,7 +967,7 @@ plane_begin_typed_image(gx_device * dev,
 	 * The drawing color won't be used, but if RasterOp is involved,
 	 * it may still be accessed in some anomalous cases.
 	 */
-	color_set_pure(&dcolor, (gx_color_index)0);
+	set_nonclient_dev_color(&dcolor, (gx_color_index)0);
     }
     info = gs_alloc_struct(memory, plane_image_enum_t, &st_plane_image_enum,
 			   "plane_image_begin_typed(info)");
@@ -979,7 +985,7 @@ plane_begin_typed_image(gx_device * dev,
     *((gx_image_enum_common_t *)info) = *info->info;
     info->procs = &plane_image_enum_procs;
     info->dev = (gx_device *)edev;
-    info->id = gs_next_ids(1);
+    info->id = gs_next_ids(memory, 1);
     info->memory = memory;
     info->pis = pis;
     info->pis_image = pis_image;

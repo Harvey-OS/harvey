@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxpcmap.c,v 1.3 2000/09/19 19:00:39 lpd Exp $ */
+/* $Id: gxpcmap.c,v 1.13 2004/08/04 19:36:12 stefan Exp $ */
 /* Pattern color mapping for Ghostscript library */
 #include "math_.h"
 #include "memory_.h"
@@ -32,6 +30,7 @@
 #include "gxdevice.h"
 #include "gxdevmem.h"
 #include "gxpcolor.h"
+#include "gxp1impl.h"
 #include "gzstate.h"
 
 /* Define the default size of the Pattern cache. */
@@ -123,10 +122,19 @@ private const gx_device_pattern_accum gs_pattern_accum_device =
      gx_default_begin_typed_image,
      pattern_accum_get_bits_rectangle,
      NULL,
-     NULL,
+     gx_default_create_compositor,
      NULL,
      gx_default_text_begin,
-     gx_default_finish_copydevice
+     gx_default_finish_copydevice,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL
  },
  0,				/* target */
  0, 0, 0, 0			/* bitmap_memory, bits, mask, instance */
@@ -145,6 +153,7 @@ gx_pattern_accum_alloc(gs_memory_t * mem, client_name_t cname)
     gx_device_init((gx_device *)adev,
 		   (const gx_device *)&gs_pattern_accum_device,
 		   mem, true);
+    check_device_separable((gx_device *)adev);
     gx_device_forward_fill_in_procs((gx_device_forward *)adev);
     return adev;
 }
@@ -298,6 +307,9 @@ pattern_accum_copy_mono(gx_device * dev, const byte * data, int data_x,
 {
     gx_device_pattern_accum *const padev = (gx_device_pattern_accum *) dev;
 
+    /* opt out early if nothing to render (some may think this a bug) */
+    if (color0 == gx_no_color_index && color1 == gx_no_color_index)
+        return 0;
     if (padev->bits)
 	(*dev_proc(padev->target, copy_mono))
 	    (padev->target, data, data_x, raster, id, x, y, w, h,
@@ -369,16 +381,16 @@ gx_pattern_alloc_cache(gs_memory_t * mem, uint num_tiles, ulong max_bits)
 {
     gx_pattern_cache *pcache =
     gs_alloc_struct(mem, gx_pattern_cache, &st_pattern_cache,
-		    "pattern_cache_alloc(struct)");
+		    "gx_pattern_alloc_cache(struct)");
     gx_color_tile *tiles =
     gs_alloc_struct_array(mem, num_tiles, gx_color_tile,
 			  &st_color_tile_element,
-			  "pattern_cache_alloc(tiles)");
+			  "gx_pattern_alloc_cache(tiles)");
     uint i;
 
     if (pcache == 0 || tiles == 0) {
-	gs_free_object(mem, tiles, "pattern_cache_alloc(tiles)");
-	gs_free_object(mem, pcache, "pattern_cache_alloc(struct)");
+	gs_free_object(mem, tiles, "gx_pattern_alloc_cache(tiles)");
+	gs_free_object(mem, pcache, "gx_pattern_alloc_cache(struct)");
 	return 0;
     }
     pcache->memory = mem;
@@ -432,7 +444,7 @@ gstate_set_pattern_cache(gs_state * pgs, gx_pattern_cache * pcache)
 private void
 gx_pattern_cache_free_entry(gx_pattern_cache * pcache, gx_color_tile * ctile)
 {
-    if (ctile->id != gx_no_bitmap_id) {
+    if ((ctile->id != gx_no_bitmap_id) && !ctile->is_dummy) {
 	gs_memory_t *mem = pcache->memory;
 	gx_device_memory mdev;
 
@@ -470,7 +482,7 @@ gx_pattern_cache_free_entry(gx_pattern_cache * pcache, gx_color_tile * ctile)
  * device, but it may zero out the bitmap_memory pointers to prevent
  * the accumulated bitmaps from being freed when the device is closed.
  */
-private void make_bitmap(P3(gx_strip_bitmap *, const gx_device_memory *, gx_bitmap_id));
+private void make_bitmap(gx_strip_bitmap *, const gx_device_memory *, gx_bitmap_id);
 int
 gx_pattern_cache_add_entry(gs_imager_state * pis,
 		   gx_device_pattern_accum * padev, gx_color_tile ** pctile)
@@ -528,8 +540,9 @@ gx_pattern_cache_add_entry(gs_imager_state * pis,
     ctile->step_matrix = pinst->step_matrix;
     ctile->bbox = pinst->bbox;
     ctile->is_simple = pinst->is_simple;
+    ctile->is_dummy = false;
     if (mbits != 0) {
-	make_bitmap(&ctile->tbits, mbits, gs_next_ids(1));
+	make_bitmap(&ctile->tbits, mbits, gs_next_ids(pis->memory, 1));
 	mbits->bitmap_memory = 0;	/* don't free the bits */
     } else
 	ctile->tbits.data = 0;
@@ -541,6 +554,38 @@ gx_pattern_cache_add_entry(gs_imager_state * pis,
     pcache->bits_used += used;
     pcache->tiles_used++;
     *pctile = ctile;
+    return 0;
+}
+
+/* Add a dummy Pattern cache entry.  Stubs a pattern tile for interpreter when
+   device handles high level patterns. */
+int
+gx_pattern_cache_add_dummy_entry(gs_imager_state *pis, 
+	    gs_pattern1_instance_t *pinst, int depth)
+{
+    gx_color_tile *ctile;
+    gx_pattern_cache *pcache;
+    gx_bitmap_id id = pinst->id;
+    int code = ensure_pattern_cache(pis);
+
+    if (code < 0)
+	return code;
+    pcache = pis->pattern_cache;
+    ctile = &pcache->tiles[id % pcache->num_tiles];
+    gx_pattern_cache_free_entry(pcache, ctile);
+    ctile->id = id;
+    ctile->depth = depth;
+    ctile->uid = pinst->template.uid;
+    ctile->tiling_type = pinst->template.TilingType;
+    ctile->step_matrix = pinst->step_matrix;
+    ctile->bbox = pinst->bbox;
+    ctile->is_simple = pinst->is_simple;
+    ctile->is_dummy = true;
+    memset(&ctile->tbits, 0 , sizeof(ctile->tbits));
+    ctile->tbits.size = pinst->size;
+    ctile->tbits.id = gs_no_bitmap_id;
+    memset(&ctile->tmask, 0 , sizeof(ctile->tmask));
+    pcache->tiles_used++;
     return 0;
 }
 private void
@@ -558,7 +603,7 @@ make_bitmap(register gx_strip_bitmap * pbm, const gx_device_memory * mdev,
 /* Purge selected entries from the pattern cache. */
 void
 gx_pattern_cache_winnow(gx_pattern_cache * pcache,
-  bool(*proc) (P2(gx_color_tile * ctile, void *proc_data)), void *proc_data)
+  bool(*proc) (gx_color_tile * ctile, void *proc_data), void *proc_data)
 {
     uint i;
 
@@ -660,7 +705,9 @@ gs_pattern1_remap_color(const gs_client_color * pc, const gs_color_space * pcs,
     gs_pattern1_instance_t *pinst = (gs_pattern1_instance_t *)pc->pattern;
     int code;
 
+    /* Save original color space and color info into dev color */
     pdc->ccolor = *pc;
+    pdc->ccolor_valid = true;
     if (pinst == 0) {
 	/* Null pattern */
 	color_set_null_pattern(pdc);

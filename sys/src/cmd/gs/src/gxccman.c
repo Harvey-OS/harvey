@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 1995, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxccman.c,v 1.2 2000/09/19 19:00:33 lpd Exp $ */
+/* $Id: gxccman.c,v 1.30 2004/12/08 21:35:13 stefan Exp $ */
 /* Character cache management routines for Ghostscript library */
 #include "gx.h"
 #include "memory_.h"
@@ -35,6 +33,9 @@
 #include "gxfont.h"
 #include "gxfcache.h"
 #include "gxxfont.h"
+#include "gxttfb.h"
+#include "gxfont42.h"
+#include <assert.h>
 
 /* Define the descriptors for the cache structures. */
 private_st_cached_fm_pair();
@@ -60,11 +61,11 @@ private RELOC_PTRS_BEGIN(cc_ptr_reloc_ptrs)
 RELOC_PTRS_END
 
 /* Forward references */
-private gx_xfont * lookup_xfont_by_name(P6(gx_device *, const gx_xfont_procs *, gs_font_name *, int, const cached_fm_pair *, const gs_matrix *));
-private cached_char *alloc_char(P2(gs_font_dir *, ulong));
-private cached_char *alloc_char_in_chunk(P2(gs_font_dir *, ulong));
-private void hash_remove_cached_char(P2(gs_font_dir *, uint));
-private void shorten_cached_char(P3(gs_font_dir *, cached_char *, uint));
+private gx_xfont * lookup_xfont_by_name(gx_device *, const gx_xfont_procs *, gs_font_name *, int, const cached_fm_pair *, const gs_matrix *);
+private cached_char *alloc_char(gs_font_dir *, ulong);
+private cached_char *alloc_char_in_chunk(gs_font_dir *, ulong);
+private void hash_remove_cached_char(gs_font_dir *, uint);
+private void shorten_cached_char(gs_font_dir *, cached_char *, uint);
 
 /* ====== Initialization ====== */
 
@@ -125,10 +126,11 @@ gx_char_cache_init(register gs_font_dir * dir)
     memset((char *)dir->ccache.table, 0,
 	   (dir->ccache.table_mask + 1) * sizeof(cached_char *));
     for (i = 0, pair = dir->fmcache.mdata;
-	 i < dir->fmcache.mmax; i++, pair++
-	) {
+	 i < dir->fmcache.mmax; i++, pair++) {
 	pair->index = i;
 	fm_pair_init(pair);
+	pair->ttf = 0;
+	pair->ttr = 0;
     }
 }
 
@@ -138,7 +140,9 @@ gx_char_cache_init(register gs_font_dir * dir)
 /* a client-supplied procedure. */
 void
 gx_purge_selected_cached_chars(gs_font_dir * dir,
-		   bool(*proc) (P2(cached_char *, void *)), void *proc_data)
+			       bool(*proc) (const gs_memory_t *mem, 
+					    cached_char *, void *), 
+			       void *proc_data)
 {
     int chi;
     int cmax = dir->ccache.table_mask;
@@ -146,7 +150,7 @@ gx_purge_selected_cached_chars(gs_font_dir * dir,
     for (chi = 0; chi <= cmax;) {
 	cached_char *cc = dir->ccache.table[chi];
 
-	if (cc != 0 && (*proc) (cc, proc_data)) {
+	if (cc != 0 && (*proc) (dir->memory, cc, proc_data)) {
 	    hash_remove_cached_char(dir, chi);
 	    gx_free_cached_char(dir, cc);
 	} else
@@ -158,15 +162,17 @@ gx_purge_selected_cached_chars(gs_font_dir * dir,
 
 /* Add a font/matrix pair to the cache. */
 /* (This is only exported for gxccache.c.) */
-cached_fm_pair *
+int
 gx_add_fm_pair(register gs_font_dir * dir, gs_font * font, const gs_uid * puid,
-	       const gs_state * pgs)
+	       const gs_matrix * char_tm, const gs_log2_scale_point *log2_scale,
+	       bool design_grid, cached_fm_pair **ppair)
 {
-    register cached_fm_pair *pair =
-    dir->fmcache.mdata + dir->fmcache.mnext;
-    cached_fm_pair *mend =
-    dir->fmcache.mdata + dir->fmcache.mmax;
+    float mxx, mxy, myx, myy;
+    register cached_fm_pair *pair = dir->fmcache.mdata + dir->fmcache.mnext;
+    cached_fm_pair *mend = dir->fmcache.mdata + dir->fmcache.mmax;
 
+    gx_compute_ccache_key(font, char_tm, log2_scale, design_grid,
+			    &mxx, &mxy, &myx, &myy);
     if (dir->fmcache.msize == dir->fmcache.mmax) {	/* cache is full *//* Prefer an entry with num_chars == 0, if any. */
 	int count;
 
@@ -191,16 +197,48 @@ gx_add_fm_pair(register gs_font_dir * dir, gs_font * font, const gs_uid * puid,
     /* The OSF/1 compiler doesn't like casting a pointer to */
     /* a shorter int.... */
     pair->hash = (uint) (ulong) pair % 549;	/* scramble bits */
-    pair->mxx = pgs->char_tm.xx, pair->mxy = pgs->char_tm.xy;
-    pair->myx = pgs->char_tm.yx, pair->myy = pgs->char_tm.yy;
+    pair->mxx = mxx, pair->mxy = mxy;
+    pair->myx = myx, pair->myy = myy;
     pair->num_chars = 0;
     pair->xfont_tried = false;
     pair->xfont = 0;
+    pair->ttf = 0;
+    pair->ttr = 0;
+    pair->design_grid = false;
+    if (font->FontType == ft_TrueType || font->FontType == ft_CID_TrueType) 
+	if (((gs_font_type42 *)font)->FAPI==NULL) {
+	    int code; 
+	    float cxx, cxy, cyx, cyy;
+	    gs_matrix m;
+	    gx_compute_char_matrix(char_tm, log2_scale, &cxx, &cxy, &cyx, &cyy);
+
+	    pair->design_grid = design_grid;
+	    m.xx = cxx;
+	    m.xy = cxy;
+	    m.yx = cyx;
+	    m.yy = cyy;
+	    m.tx = m.ty = 0;
+	    pair->ttr = gx_ttfReader__create(dir->memory);
+	    if (!pair->ttr)
+		return_error(gs_error_VMerror);
+	    /*  We could use a single the reader instance for all fonts ... */
+	    pair->ttf = ttfFont__create(dir);
+	    if (!pair->ttf)
+		return_error(gs_error_VMerror);
+	    gx_ttfReader__set_font(pair->ttr, (gs_font_type42 *)font);
+	    code = ttfFont__Open_aux(pair->ttf, dir->tti, pair->ttr, 
+			(gs_font_type42 *)font, &m, log2_scale, design_grid);
+	    gx_ttfReader__set_font(pair->ttr, NULL);
+	    if (code < 0)
+		return code;
+	}
+    pair->memory = 0;
     if_debug8('k', "[k]adding pair 0x%lx: font=0x%lx [%g %g %g %g] UID %ld, 0x%lx\n",
 	      (ulong) pair, (ulong) font,
 	      pair->mxx, pair->mxy, pair->myx, pair->myy,
 	      (long)pair->UID.id, (ulong) pair->UID.xvalues);
-    return pair;
+    *ppair = pair;
+    return 0;
 }
 
 /* Look up the xfont for a font/matrix pair. */
@@ -273,12 +311,12 @@ gx_lookup_xfont(const gs_state * pgs, cached_fm_pair * pair, int encoding_index)
 /* or just characters that depend on its xfont. */
 #define cpair ((cached_fm_pair *)vpair)
 private bool
-purge_fm_pair_char(cached_char * cc, void *vpair)
+purge_fm_pair_char(const gs_memory_t *mem, cached_char * cc, void *vpair)
 {
     return cc_pair(cc) == cpair;
 }
 private bool
-purge_fm_pair_char_xfont(cached_char * cc, void *vpair)
+purge_fm_pair_char_xfont(const gs_memory_t *mem, cached_char * cc, void *vpair)
 {
     return cc_pair(cc) == cpair && cpair->xfont == 0 && !cc_has_bits(cc);
 }
@@ -298,6 +336,12 @@ gs_purge_fm_pair(gs_font_dir * dir, cached_fm_pair * pair, int xfont_only)
 				   (xfont_only ? purge_fm_pair_char_xfont :
 				    purge_fm_pair_char),
 				   pair);
+    if (pair->ttr)
+	gx_ttfReader__destroy(pair->ttr);
+    pair->ttr = 0;
+    if (pair->ttf)
+	ttfFont__destroy(pair->ttf, dir);
+    pair->ttf = 0;
     if (!xfont_only) {
 #ifdef DEBUG
 	if (pair->num_chars != 0) {
@@ -440,6 +484,8 @@ gx_alloc_char_bits(gs_font_dir * dir, gx_device_memory * dev,
     cc_set_raster(cc, gdev_mem_raster(pdev2));
     cc_set_pair_only(cc, 0);	/* not linked in yet */
     cc->id = gx_no_bitmap_id;
+    cc->subpix_origin.x = cc->subpix_origin.y = 0;
+    cc->linked = false;
 
     /* Open the cache device(s). */
 
@@ -480,9 +526,8 @@ gx_free_cached_char(gs_font_dir * dir, cached_char * cc)
 
     dir->ccache.chunks = cck;
     dir->ccache.cnext = (byte *) cc - cck->data;
-    if (cc_pair(cc) != 0) {	/* might be allocated but not added to table yet */
+    if (cc->linked)
 	cc_pair(cc)->num_chars--;
-    }
     if_debug2('k', "[k]freeing char 0x%lx, pair=0x%lx\n",
 	      (ulong) cc, (ulong) cc_pair(cc));
     gx_bits_cache_free((gx_bits_cache *) & dir->ccache, &cc->head, cck);
@@ -513,6 +558,14 @@ cached_char * cc, cached_fm_pair * pair, const gs_log2_scale_point * pscale)
 	while (dir->ccache.table[chi &= dir->ccache.table_mask] != 0)
 	    chi++;
 	dir->ccache.table[chi] = cc;
+	if (cc->pair == NULL) {
+	    /* gx_show_text_retry could reset it when bbox_draw
+	       discovered an insufficient FontBBox and enlarged it. 
+	       Glyph raster params could change then. */
+	    cc->pair = pair;
+	} else
+	    assert(cc->pair == pair);
+	cc->linked = true;
 	cc_set_pair(cc, pair);
 	pair->num_chars++;
     }
@@ -645,7 +698,7 @@ gx_add_char_bits(gs_font_dir * dir, cached_char * cc,
 
     /* Assign a bitmap id. */
 
-    cc->id = gs_next_ids(1);
+    cc->id = gs_next_ids(dir->orig_fonts->memory, 1);
 }
 
 /* Purge from the caches all references to a given font. */

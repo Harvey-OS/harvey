@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gspcolor.h,v 1.2 2000/09/19 19:00:31 lpd Exp $ */
+/* $Id: gspcolor.h,v 1.6 2003/03/25 21:18:06 igor Exp $ */
 /* Client interface to Pattern color */
 
 #ifndef gspcolor_INCLUDED
@@ -82,7 +80,8 @@ typedef struct gs_pattern_instance_s gs_pattern_instance_t;
     rc_header rc;\
     /* Following are set by makepattern */\
     const gs_pattern_type_t *type;  /* from template */\
-    gs_state *saved
+    gs_state *saved;\
+    gs_id pattern_id
 struct gs_pattern_instance_s {
     gs_pattern_instance_common;
 };
@@ -98,8 +97,8 @@ extern_st(st_pattern_instance);
 /* ---------------- Procedures ---------------- */
 
 /* Set a Pattern color or a Pattern color space. */
-int gs_setpattern(P2(gs_state *, const gs_client_color *));
-int gs_setpatternspace(P1(gs_state *));
+int gs_setpattern(gs_state *, const gs_client_color *);
+int gs_setpatternspace(gs_state *);
 
 /*
  * Construct a Pattern color of any PatternType.
@@ -107,9 +106,9 @@ int gs_setpatternspace(P1(gs_state *));
  * same allocator as for the gs_state argument.  Note that gs_make_pattern
  * uses rc_alloc_struct_1 to allocate pattern instances.
  */
-int gs_make_pattern(P5(gs_client_color *, const gs_pattern_template_t *,
-		       const gs_matrix *, gs_state *, gs_memory_t *));
-const gs_pattern_template_t *gs_get_pattern(P1(const gs_client_color *));
+int gs_make_pattern(gs_client_color *, const gs_pattern_template_t *,
+		    const gs_matrix *, gs_state *, gs_memory_t *);
+const gs_pattern_template_t *gs_get_pattern(const gs_client_color *);
 
 /*
  * Adjust the reference count of a pattern. This is intended to support
@@ -118,6 +117,6 @@ const gs_pattern_template_t *gs_get_pattern(P1(const gs_client_color *));
  * applications, they need some way to release or retain the instances as
  * needed.
  */
-void gs_pattern_reference(P2(gs_client_color * pcc, int delta));
+void gs_pattern_reference(gs_client_color * pcc, int delta);
 
 #endif /* gspcolor_INCLUDED */

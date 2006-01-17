@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gshtscr.c,v 1.6 2001/08/01 16:21:34 stefan911 Exp $ */
+/* $Id: gshtscr.c,v 1.14 2003/11/04 01:25:31 dan Exp $ */
 /* Screen (Type 1) halftone processing for Ghostscript library */
 #include "math_.h"
 #include "gx.h"
@@ -26,6 +24,7 @@
 #include "gzstate.h"
 #include "gxdevice.h"           /* for gzht.h */
 #include "gzht.h"
+#include "gswts.h"
 
 /* Define whether to force all halftones to be strip halftones, */
 /* for debugging. */
@@ -60,8 +59,9 @@ private RELOC_PTRS_WITH(screen_enum_reloc_ptrs, gs_screen_enum *eptr)
 }
 RELOC_PTRS_END
 
-/* Define the default value of AccurateScreens that affects */
-/* setscreen and setcolorscreen. */
+/* Define the default value of AccurateScreens that affects setscreen
+   and setcolorscreen. Note that this is effectively a global, and
+   thus gets in the way of reentrancy. We'll want to fix that. */
 private bool screen_accurate_screens;
 
 /* Default AccurateScreens control */
@@ -74,6 +74,21 @@ bool
 gs_currentaccuratescreens(void)
 {
     return screen_accurate_screens;
+}
+
+/* As with AccurateScreens, this is also effectively a global. However,
+   it is going away soon. */
+private bool screen_use_wts;
+
+void
+gs_setusewts(bool use_wts)
+{
+    screen_use_wts = use_wts;
+}
+bool
+gs_currentusewts(void)
+{
+    return screen_use_wts;
 }
 
 /* Define the MinScreenLevels user parameter similarly. */
@@ -167,9 +182,9 @@ gx_compute_cell_values(gx_ht_cell_params_t * phcp)
 }
 
 /* Forward references */
-private int pick_cell_size(P6(gs_screen_halftone * ph,
+private int pick_cell_size(gs_screen_halftone * ph,
      const gs_matrix * pmat, ulong max_size, uint min_levels, bool accurate,
-                              gx_ht_cell_params_t * phcp));
+			   gx_ht_cell_params_t * phcp);
 
 /* Allocate a screen enumerator. */
 gs_screen_enum *
@@ -237,7 +252,7 @@ gs_screen_order_init_memory(gx_ht_order * porder, const gs_state * pgs,
                             gs_memory_t * mem)
 {
     gs_matrix imat;
-    ulong max_size = pgs->ht_cache->bits_size;
+    ulong max_size = max_tile_cache_bytes;
     int code;
 
     if (phsp->frequency < 0.1)
@@ -348,6 +363,8 @@ pick_cell_size(gs_screen_halftone * ph, const gs_matrix * pmat, ulong max_size,
   try_size:
     better = false;
     {
+        double fm0 = u0 * rt;
+        double fn0 = v0 * rt;
         int m0 = (int)floor(u0 * rt + 0.0001);
         int n0 = (int)floor(v0 * rt + 0.0001);
         gx_ht_cell_params_t p;
@@ -400,17 +417,23 @@ pick_cell_size(gs_screen_halftone * ph, const gs_matrix * pmat, ulong max_size,
                 if_debug5('h', " ==> d=%d, wt=%ld, wt_size=%ld, f=%g, a=%g\n",
                           p.D, wt, bitmap_raster(wt) * wt, ft, at);
 
-                /*
-                 * Minimize angle and frequency error within the
-                 * permitted maximum super-cell size.
-                 */
-
                 {
-                    double err = f_err * a_err;
+                    /*
+		     * Compute the error in position between ideal location.
+		     * and the current integer location.
+		     */
 
-                    if (err > e_best)
+		    double error =
+			(fn0 - p.N) * (fn0 - p.N) + (fm0 - p.M) * (fm0 - p.M);
+		    /*
+		     * Adjust the error by the length of the vector.  This gives
+		     * a slight bias toward larger cell sizzes.
+		     */
+		    error /= p.N * p.N + p.M * p.M;
+		    error = sqrt(error); /* The previous calcs. gave value squared */
+                    if (error > e_best)
                         continue;
-                    e_best = err;
+                    e_best = error;
                 }
                 *phcp = p;
                 f = ft, a = at;
@@ -466,44 +489,47 @@ gs_screen_enum_init_memory(gs_screen_enum * penum, const gx_ht_order * porder,
     penum->halftone.type = ht_type_screen;
     penum->halftone.params.screen = *phsp;
     penum->x = penum->y = 0;
-    penum->strip = porder->num_levels / porder->width;
-    penum->shift = porder->shift;
-    /*
-     * We want a transformation matrix that maps the parallelogram
-     * (0,0), (U,V), (U-V',V+U'), (-V',U') to the square (+/-1, +/-1).
-     * If the coefficients are [a b c d e f] and we let
-     *      u = U = M/R, v = V = N/R,
-     *      r = -V' = -N'/R', s = U' = M'/R',
-     * then we just need to solve the equations:
-     *      a*0 + c*0 + e = -1      b*0 + d*0 + f = -1
-     *      a*u + c*v + e = 1       b*u + d*v + f = 1
-     *      a*r + c*s + e = -1      b*r + d*s + f = 1
-     * This has the following solution:
-     *      Q = 2 / (M*M' + N*N')
-     *      a = Q * R * M'
-     *      b = -Q * R' * N
-     *      c = Q * R * N'
-     *      d = Q * R' * M
-     *      e = -1
-     *      f = -1
-     */
-    {
-        const int M = porder->params.M, N = porder->params.N, R = porder->params.R;
-        const int M1 = porder->params.M1, N1 = porder->params.N1, R1 = porder->params.R1;
-        double Q = 2.0 / ((long)M * M1 + (long)N * N1);
 
-        penum->mat.xx = Q * (R * M1);
-        penum->mat.xy = Q * (-R1 * N);
-        penum->mat.yx = Q * (R * N1);
-        penum->mat.yy = Q * (R1 * M);
-        penum->mat.tx = -1.0;
-        penum->mat.ty = -1.0;
-        gs_matrix_invert(&penum->mat, &penum->mat_inv);
+    if (porder->wse == NULL) {
+	penum->strip = porder->num_levels / porder->width;
+	penum->shift = porder->shift;
+	/*
+	 * We want a transformation matrix that maps the parallelogram
+	 * (0,0), (U,V), (U-V',V+U'), (-V',U') to the square (+/-1, +/-1).
+	 * If the coefficients are [a b c d e f] and we let
+	 *      u = U = M/R, v = V = N/R,
+	 *      r = -V' = -N'/R', s = U' = M'/R',
+	 * then we just need to solve the equations:
+	 *      a*0 + c*0 + e = -1      b*0 + d*0 + f = -1
+	 *      a*u + c*v + e = 1       b*u + d*v + f = 1
+	 *      a*r + c*s + e = -1      b*r + d*s + f = 1
+	 * This has the following solution:
+	 *      Q = 2 / (M*M' + N*N')
+	 *      a = Q * R * M'
+	 *      b = -Q * R' * N
+	 *      c = Q * R * N'
+	 *      d = Q * R' * M
+	 *      e = -1
+	 *      f = -1
+	 */
+	{
+	    const int M = porder->params.M, N = porder->params.N, R = porder->params.R;
+	    const int M1 = porder->params.M1, N1 = porder->params.N1, R1 = porder->params.R1;
+	    double Q = 2.0 / ((long)M * M1 + (long)N * N1);
+
+	    penum->mat.xx = Q * (R * M1);
+	    penum->mat.xy = Q * (-R1 * N);
+	    penum->mat.yx = Q * (R * N1);
+	    penum->mat.yy = Q * (R1 * M);
+	    penum->mat.tx = -1.0;
+	    penum->mat.ty = -1.0;
+	    gs_matrix_invert(&penum->mat, &penum->mat_inv);
+	}
+	if_debug7('h', "[h]Screen: (%dx%d)/%d [%f %f %f %f]\n",
+		  porder->width, porder->height, porder->params.R,
+		  penum->mat.xx, penum->mat.xy,
+		  penum->mat.yx, penum->mat.yy);
     }
-    if_debug7('h', "[h]Screen: (%dx%d)/%d [%f %f %f %f]\n",
-              porder->width, porder->height, porder->params.R,
-              penum->mat.xx, penum->mat.xy,
-              penum->mat.yx, penum->mat.yy);
     return 0;
 }
 
@@ -515,6 +541,15 @@ gs_screen_currentpoint(gs_screen_enum * penum, gs_point * ppt)
     int code;
     double sx, sy; /* spot center in spot coords (integers) */
     gs_point spot_center; /* device coords */
+
+    if (penum->order.wse) {
+	int code;
+	code = gs_wts_screen_enum_currentpoint(penum->order.wse, ppt);
+	if (code > 0) {
+	    wts_sort_blue(penum->order.wse);
+	}
+	return code;
+    }
 
     if (penum->y >= penum->strip) {     /* all done */
         gx_ht_construct_spot_order(&penum->order);
@@ -560,31 +595,30 @@ gs_screen_currentpoint(gs_screen_enum * penum, gs_point * ppt)
 int
 gs_screen_next(gs_screen_enum * penum, floatp value)
 {
-    ht_sample_t sample;
-    int width = penum->order.width;
-    gx_ht_bit *bits = (gx_ht_bit *)penum->order.bit_data;
+    if (penum->order.wse) {
+	return gs_wts_screen_enum_next (penum->order.wse, value);
+    } else {
+	ht_sample_t sample;
+	int width = penum->order.width;
+	gx_ht_bit *bits = (gx_ht_bit *)penum->order.bit_data;
 
-    if (value < -1.0 || value > 1.0)
-        return_error(gs_error_rangecheck);
-
-   /* The following statement was split into two */
-    /* to work around a bug in the Siemens C compiler. */
-    sample = (ht_sample_t) (value * max_ht_sample);
-    sample += max_ht_sample;	/* convert from signed to biased */
-
+	if (value < -1.0 || value > 1.0)
+	    return_error(gs_error_rangecheck);
+	sample = (int) (value * max_ht_sample) + max_ht_sample;
 #ifdef DEBUG
-    if (gs_debug_c('H')) {
-        gs_point pt;
+	if (gs_debug_c('H')) {
+	    gs_point pt;
 
-        gs_screen_currentpoint(penum, &pt);
-        dlprintf6("[H]sample x=%d y=%d (%f,%f): %f -> %u\n",
-                  penum->x, penum->y, pt.x, pt.y, value, sample);
-    }
+	    gs_screen_currentpoint(penum, &pt);
+	    dlprintf6("[H]sample x=%d y=%d (%f,%f): %f -> %u\n",
+		      penum->x, penum->y, pt.x, pt.y, value, sample);
+	}
 #endif
-    bits[penum->y * width + penum->x].mask = sample;
-    if (++(penum->x) >= width)
-        penum->x = 0, ++(penum->y);
-    return 0;
+	bits[penum->y * width + penum->x].mask = sample;
+	if (++(penum->x) >= width)
+	    penum->x = 0, ++(penum->y);
+	return 0;
+    }
 }
 
 /* Install a fully constructed screen in the gstate. */
@@ -592,9 +626,12 @@ int
 gs_screen_install(gs_screen_enum * penum)
 {
     gx_device_halftone dev_ht;
+    int code;
 
     dev_ht.rc.memory = penum->halftone.rc.memory;
     dev_ht.order = penum->order;
     dev_ht.components = 0;
-    return gx_ht_install(penum->pgs, &penum->halftone, &dev_ht);
+    if ((code = gx_ht_install(penum->pgs, &penum->halftone, &dev_ht)) < 0)
+        gx_device_halftone_release(&dev_ht, dev_ht.rc.memory);
+    return code;
 }

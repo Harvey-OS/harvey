@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zdouble.c,v 1.2 2000/09/19 19:00:53 lpd Exp $ */
+/* $Id: zdouble.c,v 1.5 2002/06/16 03:43:50 lpd Exp $ */
 /* Double-precision floating point arithmetic operators */
 #include "math_.h"
 #include "memory_.h"
@@ -38,10 +36,10 @@
  */
 
 /* Forward references */
-private int double_params_result(P3(os_ptr, int, double *));
-private int double_params(P3(os_ptr, int, double *));
-private int double_result(P3(i_ctx_t *, int, double));
-private int double_unary(P2(i_ctx_t *, double (*)(P1(double))));
+private int double_params_result(os_ptr, int, double *);
+private int double_params(os_ptr, int, double *);
+private int double_result(i_ctx_t *, int, double);
+private int double_unary(i_ctx_t *, double (*)(double));
 
 #define dbegin_unary()\
 	os_ptr op = osp;\
@@ -155,7 +153,7 @@ zdtruncate(i_ctx_t *i_ctx_p)
 /* ------ Transcendental functions ------ */
 
 private int
-darc(i_ctx_t *i_ctx_p, double (*afunc)(P1(double)))
+darc(i_ctx_t *i_ctx_p, double (*afunc)(double))
 {
     dbegin_unary();
     return double_result(i_ctx_p, 1, (*afunc)(num) * radians_to_degrees);
@@ -214,7 +212,7 @@ zdexp(i_ctx_t *i_ctx_p)
 }
 
 private int
-dlog(i_ctx_t *i_ctx_p, double (*lfunc)(P1(double)))
+dlog(i_ctx_t *i_ctx_p, double (*lfunc)(double))
 {
     dbegin_unary();
     if (num <= 0.0)
@@ -532,7 +530,7 @@ double_result(i_ctx_t *i_ctx_p, int count, double result)
 
 /* Apply a unary function to a double operand. */
 private int
-double_unary(i_ctx_t *i_ctx_p, double (*func)(P1(double)))
+double_unary(i_ctx_t *i_ctx_p, double (*func)(double))
 {
     dbegin_unary();
     return double_result(i_ctx_p, 1, (*func)(num));

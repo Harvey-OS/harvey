@@ -1,22 +1,20 @@
 /* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gxclpath.h,v 1.6 2000/09/19 19:00:35 lpd Exp $ */
+/*$Id: gxclpath.h,v 1.13 2005/10/10 18:58:18 leonardo Exp $ */
 /* Definitions and support procedures for higher-level band list commands */
 /* Extends (requires) gxcldev.h */
 
@@ -61,11 +59,19 @@ typedef enum {
 /* Extend the command set.  See gxcldev.h for more information. */
 typedef enum {
     cmd_op_misc2 = 0xd0,	/* (see below) */
-    cmd_opv_set_color = 0xd0,	/* pqrsaaaa abbbbbcc cccddddd */
-				/* (level[0] if p) (level[1] if q) */
-				/* (level[2] if r) (level[3] if s) */
+    /* obsolete */
+    /* cmd_opv_set_color = 0xd0, */	/* Used if base values do not fit into 1 bit */
+    				/* #flags,#base[0],...#base[num_comp-1] if flags */
 				/* colored halftone with base colors a,b,c,d */
-    cmd_opv_set_color_short = 0xd1,	/* pqrsabcd, level[i] as above */
+    /* obsolete */
+    /* cmd_opv_set_color_short = 0xd1, */ /* Used if base values fit into 1 bit */
+    					/* If num_comp <= 4 then use: */
+    					/* pqrsabcd, where a = base[0] */
+					/* b = base[1], c= base[2], d = base[3] */
+					/* p = level[0], q = level[1] */
+					/* r = level[2], s = level[3] */
+    					/* If num_comp > 4 then use: */
+					/* #flags, #bases */
     cmd_opv_set_fill_adjust = 0xd2,	/* adjust_x/y(fixed) */
     cmd_opv_set_ctm = 0xd3,	/* [per sput/sget_matrix] */
     cmd_opv_set_color_space = 0xd4,	/* base(4)Indexed?(2)0(2) */
@@ -102,7 +108,7 @@ typedef enum {
 				/* flags# (0 = same raster & data_x, */
 				/* 1 = new raster & data_x, lsb first), */
 				/* [raster#, [data_x#,]]* <data> */
-    cmd_opv_put_params = 0xdf,	/* (nothing) */
+    cmd_opv_extend = 0xdf,	/* command, varies */
     cmd_op_segment = 0xe0,	/* (see below) */
     cmd_opv_rmoveto = 0xe0,	/* dx%, dy% */
     cmd_opv_rlineto = 0xe1,	/* dx%, dy% */
@@ -130,22 +136,34 @@ typedef enum {
       cmd_opv_max_curveto = cmd_opv_scurveto,
     cmd_opv_closepath = 0xef,	/* (nothing) */
     cmd_op_path = 0xf0,		/* (see below) */
-    /* The path drawing commands come in groups: */
-    /* each group consists of a base command plus an offset */
-    /* which is a cmd_dc_type. */
     cmd_opv_fill = 0xf0,
-    cmd_opv_htfill = 0xf1,
-    cmd_opv_colorfill = 0xf2,
+    /* cmd_opv_htfill = 0xf1, */ /* obsolete */
+    /* cmd_opv_colorfill = 0xf2, */ /* obsolete */
     cmd_opv_eofill = 0xf3,
-    cmd_opv_hteofill = 0xf4,
-    cmd_opv_coloreofill = 0xf5,
+    /* cmd_opv_hteofill = 0xf4, */ /* obsolete */
+    /* cmd_opv_coloreofill = 0xf5, */ /* obsolete */
     cmd_opv_stroke = 0xf6,
-    cmd_opv_htstroke = 0xf7,
-    cmd_opv_colorstroke = 0xf8,
-    cmd_opv_polyfill = 0xf9,
-    cmd_opv_htpolyfill = 0xfa,
-    cmd_opv_colorpolyfill = 0xfb
+    /* cmd_opv_htstroke = 0xf7, */ /* obsolete */
+    /* cmd_opv_colorstroke = 0xf8, */ /* obsolete */
+    cmd_opv_polyfill = 0xf9
+    /* cmd_opv_htpolyfill = 0xfa, */ /* obsolete */
+    /* cmd_opv_colorpolyfill = 0xfb */ /* obsolete */
 } gx_cmd_xop;
+
+/*
+ * Further extended command set. This code always occupies a byte, which
+ * is the second byte of a command whose first byte is cmd_opv_extend.
+ */
+typedef enum {
+    cmd_opv_ext_put_params = 0x00,          /* serialized parameter list */
+    cmd_opv_ext_create_compositor = 0x01,   /* compositor id,
+                                             * serialized compositor */
+    cmd_opv_ext_put_halftone = 0x02,        /* length of entire halftone */
+    cmd_opv_ext_put_ht_seg = 0x03,          /* segment length,
+                                             * halftone segment data */
+    cmd_opv_ext_put_drawing_color = 0x04    /* length, color type id,
+                                             * serialized color */
+} gx_cmd_ext_op;
 
 #define cmd_segment_op_num_operands_values\
   2, 2, 1, 1, 4, 6, 6, 6, 4, 4, 4, 4, 2, 2, 0, 0
@@ -179,6 +197,12 @@ typedef enum {
  */
 #define is_bits(d, n) !(((d) + ((fixed)1 << ((n) - 1))) & (-(fixed)1 << (n)))
 
+/*
+ * Maximum size of a halftone segment. This leaves enough headroom to
+ * accommodate any reasonable requirements of the command buffer.
+ */
+#define cbuf_ht_seg_max_size    (cbuf_size - 32)    /* leave some headroom */
+
 /* ---------------- Driver procedures ---------------- */
 
 /* In gxclpath.c */
@@ -201,36 +225,41 @@ dev_proc_fill_triangle(clist_fill_triangle);
 /* ------ Exported by gxclpath.c ------ */
 
 /* Compute the colors used by a drawing color. */
-gx_color_index cmd_drawing_colors_used(P2(gx_device_clist_writer *cldev,
-					  const gx_drawing_color *pdcolor));
+gx_color_index cmd_drawing_colors_used(gx_device_clist_writer *cldev,
+				       const gx_drawing_color *pdcolor);
 
 /*
  * Compute whether a drawing operation will require the slow (full-pixel)
  * RasterOp implementation.  If pdcolor is not NULL, it is the texture for
  * the RasterOp.
  */
-bool cmd_slow_rop(P3(gx_device *dev, gs_logical_operation_t lop,
-		     const gx_drawing_color *pdcolor));
+bool cmd_slow_rop(gx_device *dev, gs_logical_operation_t lop,
+		  const gx_drawing_color *pdcolor);
 
 /* Write out the color for filling, stroking, or masking. */
 /* Return a cmd_dc_type. */
-int cmd_put_drawing_color(P3(gx_device_clist_writer * cldev,
-			     gx_clist_state * pcls,
-			     const gx_drawing_color * pdcolor));
+int cmd_put_drawing_color(gx_device_clist_writer * cldev,
+			  gx_clist_state * pcls,
+			  const gx_drawing_color * pdcolor);
 
 /* Clear (a) specific 'known' flag(s) for all bands. */
 /* We must do this whenever the value of a 'known' parameter changes. */
-void cmd_clear_known(P2(gx_device_clist_writer * cldev, uint known));
+void cmd_clear_known(gx_device_clist_writer * cldev, uint known);
+
+/* Compute the written CTM length. */
+int cmd_write_ctm_return_length(gx_device_clist_writer * cldev, const gs_matrix *m);
+/* Write out CTM. */
+int cmd_write_ctm(const gs_matrix *m, byte *dp, int len);
 
 /* Write out values of any unknown parameters. */
 #define cmd_do_write_unknown(cldev, pcls, must_know)\
   ( ~(pcls)->known & (must_know) ?\
     cmd_write_unknown(cldev, pcls, must_know) : 0 )
-int cmd_write_unknown(P3(gx_device_clist_writer * cldev, gx_clist_state * pcls,
-			 uint must_know));
+int cmd_write_unknown(gx_device_clist_writer * cldev, gx_clist_state * pcls,
+		      uint must_know);
 
 /* Check whether we need to change the clipping path in the device. */
-bool cmd_check_clip_path(P2(gx_device_clist_writer * cldev,
-			    const gx_clip_path * pcpath));
+bool cmd_check_clip_path(gx_device_clist_writer * cldev,
+			 const gx_clip_path * pcpath);
 
 #endif /* gxclpath_INCLUDED */

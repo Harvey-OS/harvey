@@ -1,24 +1,23 @@
 /*
-  Copyright (C) 2001 artofcode LLC.
+  Copyright (C) 2001-2004 artofcode LLC. All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
   Author: Raph Levien <raph@artofcode.com>
 */
-/*$Id: gdevpnga.c,v 1.4 2001/07/05 23:21:01 raph Exp $ */
+
+/* $Id: gdevpnga.c,v 1.9 2004/05/26 04:10:58 dan Exp $ */
 /* Test driver for PDF 1.4 transparency stuff */
 
 #include "gdevprn.h"
@@ -644,13 +643,20 @@ pnga_output_page(gx_device *dev, int num_copies, int flush)
     const char *software_key = "Software";
     char software_text[256];
     png_text text_png;
+    char prefix[] = "pnga_png";
+    char fname[gp_file_name_sizeof];
     FILE *file;
 
     pdf14_buf *buf = pdev->ctx->stack;
     int planestride = buf->planestride;
     byte *buf_ptr = buf->data;
 
-    file = fopen ("/tmp/tmp.png", "wb"); /* todo: suck from OutputFile */
+    file = gp_open_scratch_file(prefix, fname, "wb");
+    if (file == NULL) {
+	code = gs_note_error(gs_error_invalidfileaccess);
+	goto done;
+    }
+    /* todo: suck from OutputFile instead */
 
     if_debug0('v', "[v]pnga_output_page\n");
 
@@ -684,29 +690,6 @@ pnga_output_page(gx_device *dev, int num_copies, int flush)
     info_ptr->bit_depth = 8;
     info_ptr->color_type = PNG_COLOR_TYPE_RGB_ALPHA;
 
-    /* set the palette if there is one */
-    if (info_ptr->color_type == PNG_COLOR_TYPE_PALETTE) {
-	int i;
-	int num_colors = 1 << depth;
-	gx_color_value rgb[3];
-
-	info_ptr->palette =
-	    (void *)gs_alloc_bytes(mem, 256 * sizeof(png_color),
-				   "png palette");
-	if (info_ptr->palette == 0) {
-	    code = gs_note_error(gs_error_VMerror);
-	    goto done;
-	}
-	info_ptr->num_palette = num_colors;
-	info_ptr->valid |= PNG_INFO_PLTE;
-	for (i = 0; i < num_colors; i++) {
-	    (*dev_proc(dev, map_color_rgb)) ((gx_device *) dev,
-					      (gx_color_index) i, rgb);
-	    info_ptr->palette[i].red = gx_color_value_to_byte(rgb[0]);
-	    info_ptr->palette[i].green = gx_color_value_to_byte(rgb[1]);
-	    info_ptr->palette[i].blue = gx_color_value_to_byte(rgb[2]);
-	}
-    }
     /* add comment */
     sprintf(software_text, "%s %d.%02d", gs_product,
 	    (int)(gs_revision / 100), (int)(gs_revision % 100));
@@ -740,9 +723,6 @@ pnga_output_page(gx_device *dev, int num_copies, int flush)
 
     /* write the rest of the file */
     png_write_end(png_ptr, info_ptr);
-
-    /* if you alloced the palette, free it here */
-    gs_free_object(mem, info_ptr->palette, "png palette");
 
   done:
     /* free the structures */
@@ -784,6 +764,7 @@ pnga_get_marking_device(gx_device *dev, const gs_imager_state *pis)
     if (code < 0)
 	return NULL;
 
+    check_device_separable((gx_device *)mdev);
     gx_device_fill_in_procs((gx_device *)mdev);
     mdev->pnga_dev = pdev;
     mdev->opacity = pis->opacity.alpha;

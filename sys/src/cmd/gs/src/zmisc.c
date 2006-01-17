@@ -1,23 +1,22 @@
-/* Copyright (C) 1989, 1995, 1997, 1999 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1989, 1995-2004 artofcode LLC. All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zmisc.c,v 1.2 2000/09/19 19:00:54 lpd Exp $ */
+/* $Id: zmisc.c,v 1.7 2004/08/04 19:36:13 stefan Exp $ */
 /* Miscellaneous operators */
+
 #include "errno_.h"
 #include "memory_.h"
 #include "string_.h"
@@ -85,7 +84,7 @@ zbind(i_ctx_t *i_ctx_p)
 		    ref nref;
 		    ref *pvalue;
 
-		    name_index_ref(packed_name_index(&elt),
+		    name_index_ref(imemory, packed_name_index(&elt),
 				   &nref);
 		    if ((pvalue = dict_find_name(&nref)) != 0 &&
 			r_is_ex_oper(pvalue)
@@ -169,6 +168,16 @@ zserialnumber(i_ctx_t *i_ctx_p)
     return 0;
 }
 
+/* some FTS tests work better if realtime starts from 0 at boot time */
+private long    real_time_0[2];
+
+private int
+zmisc_init_realtime(i_ctx_t * i_ctx_p)
+{
+    gp_get_realtime(real_time_0);
+    return 0;
+}
+
 /* - realtime <int> */
 private int
 zrealtime(i_ctx_t *i_ctx_p)
@@ -177,6 +186,8 @@ zrealtime(i_ctx_t *i_ctx_p)
     long secs_ns[2];
 
     gp_get_realtime(secs_ns);
+    secs_ns[1] -= real_time_0[1];
+    secs_ns[0] -= real_time_0[0];
     push(1);
     make_int(op, secs_ns[0] * 1000 + secs_ns[1] / 1000000);
     return 0;
@@ -268,7 +279,7 @@ zmakeoperator(i_ctx_t *i_ctx_p)
     if (count == r_size(&opt->table))
 	return_error(e_limitcheck);
     ref_assign_old(&opt->table, &tab[count], op, "makeoperator");
-    opt->nx_table[count] = name_index(op - 1);
+    opt->nx_table[count] = name_index(imemory, op - 1);
     op_index_ref(opt->base_index + count, op - 1);
     opt->count = count + 1;
     pop(1);
@@ -347,6 +358,81 @@ zsetdebug(i_ctx_t *i_ctx_p)
     return 0;
 }
 
+/* ------ gs persistent cache operators ------ */
+/* these are for testing only. they're disabled in the normal build
+ * to prevent access to the cache by malicious postscript files
+ *
+ * use something like this:
+ *   (value) (key) .pcacheinsert
+ *   (key) .pcachequery { (\n) concatstrings print } if
+ */
+ 
+#ifdef DEBUG_CACHE
+
+/* <string> <string> .pcacheinsert */
+private int
+zpcacheinsert(i_ctx_t *i_ctx_p)
+{
+    os_ptr op = osp;
+    char *key, *buffer;
+    int keylen, buflen;
+    int code = 0;
+	
+    check_read_type(*op, t_string);
+    keylen = r_size(op);
+    key = op->value.bytes;
+    check_read_type(*(op - 1), t_string);
+    buflen = r_size(op - 1);
+    buffer = (op - 1)->value.bytes;
+    
+    code = gp_cache_insert(0, key, keylen, buffer, buflen);
+    if (code < 0)
+		return code;
+	
+	pop(2);
+	
+    return code;
+}
+
+/* allocation callback for query result */
+private void *
+pcache_alloc_callback(void *userdata, int bytes)
+{
+    i_ctx_t *i_ctx_p = (i_ctx_t*)userdata;    
+    return ialloc_string(bytes, "pcache buffer");
+}
+
+/* <string> .pcachequery <string> true */
+/* <string> .pcachequery false */
+private int
+zpcachequery(i_ctx_t *i_ctx_p)
+{
+	os_ptr op = osp;
+	int len;
+	char *key;
+	byte *string;
+	int code = 0;
+	
+	check_read_type(*op, t_string);
+	len = r_size(op);
+	key = op->value.bytes;
+	len = gp_cache_query(GP_CACHE_TYPE_TEST, key, len, (void**)&string, &pcache_alloc_callback, i_ctx_p);
+	if (len < 0) {
+		make_false(op);
+		return 0;
+	}
+	if (string == NULL)
+		return_error(e_VMerror);
+	make_string(op, a_all | icurrent_space, len, string);
+	
+	push(1);
+	make_true(op);
+	
+	return code;
+}
+
+#endif /* DEBUG_CACHE */
+
 /* ------ Initialization procedure ------ */
 
 const op_def zmisc_op_defs[] =
@@ -361,5 +447,10 @@ const op_def zmisc_op_defs[] =
     {"2.setdebug", zsetdebug},
     {"1.setoserrno", zsetoserrno},
     {"0usertime", zusertime},
-    op_def_end(0)
+#ifdef DEBUG_CACHE
+	/* pcache test */
+    {"2.pcacheinsert", zpcacheinsert},
+    {"1.pcachequery", zpcachequery},
+#endif
+    op_def_end(zmisc_init_realtime)
 };

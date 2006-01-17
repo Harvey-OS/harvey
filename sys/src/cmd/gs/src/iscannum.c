@@ -1,26 +1,24 @@
 /* Copyright (C) 1994, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: iscannum.c,v 1.3 2001/03/29 13:27:59 igorm Exp $ */
+/* $Id: iscannum.c,v 1.10 2004/09/15 19:41:01 ray Exp $ */
 /* Number scanner for Ghostscript interpreter */
 #include "math_.h"
 #include "ghost.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "scommon.h"
 #include "iscannum.h"		/* defines interface */
 #include "scanchar.h"
@@ -38,7 +36,7 @@
  */
 int
 scan_number(const byte * str, const byte * end, int sign,
-	    ref * pref, const byte ** psp)
+	    ref * pref, const byte ** psp, const bool PDFScanInvNum)
 {
     const byte *sp = str;
 #define GET_NEXT(cvar, sp, end_action)\
@@ -201,10 +199,14 @@ i2l:
 		) {
 		GET_NEXT(c, sp, c = EOFC);
 		dval = -(double)min_long;
-		if (c == 'e' || c == 'E' || c == '.') {
+		if (c == 'e' || c == 'E') {
 		    exp10 = 0;
 		    goto fs;
-		} else if (!IS_DIGIT(d, c)) {
+		} else if (c == '.') {
+                    GET_NEXT(c, sp, c = EOFC);
+		    exp10 = 0;
+		    goto fd;
+                } else if (!IS_DIGIT(d, c)) {
 		    lval = min_long;
 		    break;
 		}
@@ -272,7 +274,22 @@ l2d:
     /* We saw a '.' while accumulating an integer in ival. */
 i2r:
     exp10 = 0;
-    while (IS_DIGIT(d, c)) {
+    while (IS_DIGIT(d, c) || c == '-') {
+	/*
+	 * PostScript gives an error on numbers with a '-' following a '.'
+	 * Adobe Acrobat Reader (PDF) apparently doesn't treat this as an
+	 * error. Experiments show that the numbers following the '-' are
+	 * ignored, so we swallow the fractional part. PDFScanInvNum enables
+	 * this compatibility kloodge.
+	 */
+	if (c == '-') {
+	    if (!PDFScanInvNum)
+		break;
+	    do {
+		GET_NEXT(c, sp, c = EOFC);
+	    } while (IS_DIGIT(d, c));
+	    break;
+	}
 	if (WOULD_OVERFLOW(ival, d, max_int)) {
 	    lval = ival;
 	    goto l2r;
@@ -295,7 +312,16 @@ i2r:
 
     /* We saw a '.' while accumulating a long in lval. */
 l2r:
-    while (IS_DIGIT(d, c)) {
+    while (IS_DIGIT(d, c) || c == '-') {
+	/* Handle bogus '-' following '.' as in i2r above.	*/
+	if (c == '-') {
+	    if (!PDFScanInvNum)
+		break;
+	    do {
+		GET_NEXT(c, sp, c = EOFC);
+	    } while (IS_DIGIT(d, c));
+	    break;
+	}
 	if (WOULD_OVERFLOW(lval, d, max_long)) {
 	    dval = lval;
 	    goto fd;

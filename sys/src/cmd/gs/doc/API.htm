@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>The Ghostscript Interpreter Application Programming Interface (API)</title>
-<!-- $Id: API.htm,v 1.11.2.3 2002/02/01 06:16:22 giles Exp $ -->
+<!-- $Id: API.htm,v 1.53 2005/10/20 19:46:22 ray Exp $ -->
 <!-- Supercedes the API in DLL.htm -->
 <link rel="stylesheet" type="text/css" href="gs.css" title="Ghostscript Style">
 </head>
@@ -30,12 +30,18 @@
 <li><a href="#set_stdio"><b><tt>gsapi_set_stdio</tt></b></a>
 <li><a href="#set_poll"><b><tt>gsapi_set_poll</tt></b></a>
 <li><a href="#set_display_callback"><b><tt>gsapi_set_display_callback</tt></b></a>
+<li><a href="#run"><b><tt>gsapi_run_string_begin</tt></b></a>
+<li><a href="#run"><b><tt>gsapi_run_string_continue</tt></b></a>
+<li><a href="#run"><b><tt>gsapi_run_string_end</tt></b></a>
+<li><a href="#run"><b><tt>gsapi_run_string_with_length</tt></b></a>
+<li><a href="#run"><b><tt>gsapi_run_string</tt></b></a>
 <li><a href="#init"><b><tt>gsapi_init_with_args</tt></b></a>
 <li><a href="#run"><b><tt>gsapi_run_*</tt></b></a>
 <li><a href="#exit"><b><tt>gsapi_exit</tt></b></a>
+<li><a href="#set_visual_tracer"><b><tt>gsapi_set_visual_tracer</tt></b></a>
 <li><a href="#return_codes">Return codes</a>
 </ul>
-<li><a href="#Typical_usage">Typical usage</a>
+<li><a href="#Example_usage">Example usage</a>
 <li><a href="#stdio">Standard input and output</a>
 <li><a href="#display">Display device</a>
 </ul>
@@ -79,7 +85,7 @@ This supercedes the old <a href="DLL.htm">DLL</a> interface.
 To provide the interface described in the 
 <a href="Use.htm">usage documentation</a>, a smaller independent 
 executable loads the DLL/shared object.
-This executable provides all the interaction with the windowing system, 
+This executable must provide all the interaction with the windowing system, 
 including image windows and, if necessary, a text window.
 
 <p>
@@ -106,12 +112,15 @@ by multiple applications at once.
 <p>
 The source for the executable is in <b><tt>dw</tt></b>*.* (Windows),
 <b><tt>dp</tt></b>*.* (OS/2) and  <b><tt>dx</tt></b>*.* (Linux).  
-See these source files for examples of how to use the DLL.
+See these source files for examples of how to use the DLL. A similar
+example for MacOS using the Carbon API is provided in <b><tt>dm</tt></b>*.*.
 
-The source file <p><tt>dxmainc.c</tt> can serve as an example of how to use the 
-framework shared component on MacOS X. Just change the header includes to use 
-the Ghostscript namespace:
-<blockquote><pre><tt>#include &lt;Ghostscript/errors.h&gt;
+<p>
+The source file <tt>dxmainc.c</tt> can also serve as an example of how to use the 
+framework shared component on MacOS X, providing the same command-line tool it does
+on any linux, bsd or similar operating system. Just change the header includes to 
+use the Ghostscript namespace:
+<blockquote><pre><tt>#include &lt;Ghostscript/ierrors.h&gt;
 #include &lt;Ghostscript/iapi.h&gt;</tt></pre></blockquote>
 and link with:
 <blockquote><pre><tt>cc -o gsc dxmainc.c -framework Ghostscript</tt></pre></blockquote>
@@ -138,25 +147,25 @@ values and error handling.
 <li><b><tt>
 int 
 <a href="#revision">gsapi_revision</a>
-  (gsapi_revision_t *pr, int len));
+  (gsapi_revision_t *pr, int len);
 </tt></b>
 
 <li><b><tt>
 int 
 <a href="#new_instance">gsapi_new_instance</a>
-(gs_main_instance **pinstance, void *caller_handle);
+(void **pinstance, void *caller_handle);
 </tt></b>
 
 <li><b><tt>
 void 
 <a href="#delete_instance">gsapi_delete_instance</a>
-(gs_main_instance *instance);
+(void *instance);
 </tt></b>
 
 <li><b><tt>
 int 
 <a href="#set_stdio">gsapi_set_stdio</a>
-(gs_main_instance *instance,
+(void *instance,
     int(*stdin_fn)(void *caller_handle, char *buf, int len),
     int(*stdout_fn)(void *caller_handle, const char *str, int len),
     int(*stderr_fn)(void *caller_handle, const char *str, int len));
@@ -165,65 +174,71 @@ int
 <li><b><tt>
 int 
 <a href="#set_poll">gsapi_set_poll</a>
-(gs_main_instance *instance, int(*poll_fn)(void *caller_handle));
+(void *instance, int(*poll_fn)(void *caller_handle));
 </tt></b>
 
 <li><b><tt>
 int 
 <a href="#set_display_callback">gsapi_set_display_callback</a>
-(gs_main_instance *instance, display_callback *callback);
+(void *instance, display_callback *callback);
 </tt></b>
 
 <li><b><tt>
 int 
 <a href="#init">gsapi_init_with_args</a>
-(gs_main_instance *instance, int argc, char **argv);
+(void *instance, int argc, char **argv);
 </tt></b>
 
 <li><b><tt>
 int 
 <a href="#run">gsapi_run_string_begin</a>
-(gs_main_instance *instance, int user_errors, int *pexit_code);
+(void *instance, int user_errors, int *pexit_code);
 </tt></b>
 
 <li><b><tt>
 int 
 <a href="#run">gsapi_run_string_continue</a>
-(gs_main_instance *instance, 
+(void *instance, 
     const char *str, unsigned int length, int user_errors, int *pexit_code);
 </tt></b>
 
 <li><b><tt>
 int 
 <a href="#run">gsapi_run_string_end</a>
-(gs_main_instance *instance, int user_errors, int *pexit_code);
+(void *instance, int user_errors, int *pexit_code);
 </tt></b>
 
 <li><b><tt>
 int 
 <a href="#run">gsapi_run_string_with_length</a>
-(gs_main_instance *instance, 
+(void *instance, 
     const char *str, unsigned int length, int user_errors, int *pexit_code);
 </tt></b>
 
 <li><b><tt>
 int 
 <a href="#run">gsapi_run_string</a>
-(gs_main_instance *instance, 
+(void *instance, 
     const char *str, int user_errors, int *pexit_code);
 </tt></b>
 
 <li><b><tt>
 int 
 <a href="#run">gsapi_run_file</a>
-(gs_main_instance *instance, 
+(void *instance, 
     const char *file_name, int user_errors, int *pexit_code);
 </tt></b>
 
 <li><b><tt>
 int 
 <a href="#exit">gsapi_exit</a>
-(gs_main_instance *instance);
+(void *instance);
+</tt></b>
+
+<li><b><tt>
+int
+<a href="#set_visual_tracer">gsapi_set_visual_tracer</a>
+(gstruct vd_trace_interface_s *I);
 </tt></b>
 
 </ul>
@@ -292,6 +307,9 @@ This is used for handling window events or cooperative
 multitasking.  This function will only be called if
 the Ghostscript interpreter was compiled with <b><tt>CHECK_INTERRUPTS</tt></b>
 as described in <b><tt><a href="../src/gpcheck.h">gpcheck.h</a></tt></b>.
+The polling function should return zero if all is well,
+and return negative if it wants ghostscript to abort.
+The polling function must be fast.
 </blockquote>
 
 <h3><a name="set_display_callback"></a><b><tt>gsapi_set_display_callback()</tt></b></h3>
@@ -311,6 +329,9 @@ Initialise the interpreter.
 This calls <b><tt>gs_main_init_with_args()</tt></b> in 
 <b><tt><a href="../src/imainarg.c">imainarg.c</a></tt></b>.
 See below for <a href="#return_codes">return codes</a>.
+The arguments are the same as the "C" main function:
+argv[0] is ignored and the user supplied arguments 
+are argv[1] to argv[argc-1].
 </blockquote>
 
 <h3><a name="run"></a><b><tt>gsapi_run_*()</tt></b></h3>
@@ -322,6 +343,12 @@ error has occured.  You must call <b><tt>gsapi_exit()</tt></b> next.
 The only exception is <b><tt>gsapi_run_string_continue()</tt></b>
 which will return <b><tt>e_NeedInput</tt></b> if all is well.
 See below for <a href="#return_codes">return codes</a>.
+<p>
+There is a 64 KB length limit on any buffer submitted to a 
+<tt>gsapi_run_*</tt> function for processing. If you have more
+than 65535 bytes of input then you must split it into smaller 
+pieces and submit each in a separate 
+<tt>gsapi_run_string_continue()</tt> call.
 </blockquote>
 
 <h3><a name="exit"></a><b><tt>gsapi_exit()</tt></b></h3>
@@ -330,6 +357,15 @@ Exit the interpreter.
 This must be called on shutdown if <b><tt>gsapi_init_with_args()</tt></b>
 has been called, and just before <b><tt>gsapi_delete_instance()</tt></b>.
 </blockquote>
+
+<h3><a name="set_visual_tracer"></a><b><tt>gsapi_set_visual_tracer()</tt></b></h3>
+<blockquote>
+Pass visual tracer interface block to Ghostscript.
+See <a href="Lib.htm#Visual_trace"><b><tt>Lib.htm</tt></b></a> for reference about 
+the interface block structure.
+This function is useful for debug clients only. Release clients must not call it.
+</blockquote>
+
 
 <h3><a name="return_codes"></a>Return codes</h3>
 
@@ -386,16 +422,94 @@ Reading from <b><tt>%stdin</tt></b> uses the stdin callback.
 
 
 
-<h2><a name="Typical_usage"></a>Typical Usage</h2>
-A really short example of using the Ghostscript interpreter library is:
+<h2><a name="Example_usage"></a>Example Usage</h2>
+Some overly simple examples of using the Ghostscript interpreter library 
+are below.  Some more examples including other programming languages
+may be found at
+<a href="http://www.cs.wisc.edu/~ghost/doc/gsapi.htm">
+http://www.cs.wisc.edu/~ghost/doc/gsapi.htm</a>.
+
+<p>To use try out these examples in a development environment like Microsoft's
+developer tools or Metrowerks Codewarrior, create a new project, save the example
+source code as a <tt>.c</tt> file and add it, along with the Ghostscript dll or shared
+library. You will also need to make sure the Ghostscript headers are available, either
+by adding their location (the <tt>src</tt> directory in the Ghostscript source
+distribution) to the project's search path, or by copying ierrors.h and iapi.h into the
+same directory as the example source.</p>
   
+<h3>Example 1</h3>
 <pre>
+/* Example of using GS DLL as a ps2pdf converter.  */
+
+#if defined(_WIN32) && !defined(_Windows)
+# define _Windows
+#endif
+#ifdef _Windows
+/* add this source to a project with gsdll32.dll, or compile it directly with:
+ *   cl -D_Windows -Isrc -Febin\ps2pdf.exe ps2pdf.c bin\gsdll32.lib
+ */
+# include &lt;windows.h&gt;
+# define GSDLLEXPORT __declspec(dllimport)
+#endif
+
+#include "ierrors.h"
+#include "iapi.h"
+
+void *minst;
+
+int main(int argc, char *argv[])
+{
+    int code, code1;
+    const char * gsargv[10];
+    int gsargc;
+    gsargv[0] = "ps2pdf";	/* actual value doesn't matter */
+    gsargv[1] = "-dNOPAUSE";
+    gsargv[2] = "-dBATCH";
+    gsargv[3] = "-dSAFER";
+    gsargv[4] = "-sDEVICE=pdfwrite";
+    gsargv[5] = "-sOutputFile=out.pdf";
+    gsargv[6] = "-c";
+    gsargv[7] = ".setpdfwrite";
+    gsargv[8] = "-f";
+    gsargv[9] = "input.ps";
+    gsargc=10;
+
+    code = gsapi_new_instance(&minst, NULL);
+    if (code &lt; 0)
+	return 1;
+    code = gsapi_init_with_args(minst, gsargc, gsargv);
+    code1 = gsapi_exit(minst);
+    if ((code == 0) || (code == e_Quit))
+	code = code1;
+
+    gsapi_delete_instance(minst);
+
+    if ((code == 0) || (code == e_Quit))
+	return 0;
+    return 1;
+}
+</pre>
+
+<h3>Example 2</h3>
+<pre>
+/* Similar to command line gs */
+
+#if defined(_WIN32) && !defined(_Windows)
+# define _Windows
+#endif
+#ifdef _Windows
+/* Compile directly with:
+ *   cl -D_Windows -Isrc -Febin\gstest.exe gstest.c bin\gsdll32.lib
+ */
+# include &lt;windows.h&gt;
+# define GSDLLEXPORT __declspec(dllimport)
+#endif
 #include &lt;stdio.h&gt;
-#include "errors.h"
+#include "ierrors.h"
 #include "iapi.h"
 
 /* stdio functions */
-static int 
+static int GSDLLCALL
 gsdll_stdin(void *instance, char *buf, int len)
 {
     int ch;
@@ -412,7 +526,7 @@ gsdll_stdin(void *instance, char *buf, int len)
     return count;
 }
 
-static int 
+static int GSDLLCALL
 gsdll_stdout(void *instance, const char *str, int len)
 {
     fwrite(str, 1, len, stdout);
@@ -420,7 +534,7 @@ gsdll_stdout(void *instance, const char *str, int len)
     return len;
 }
 
-static int 
+static int GSDLLCALL
 gsdll_stderr(void *instance, const char *str, int len)
 {
     fwrite(str, 1, len, stderr);
@@ -428,12 +542,12 @@ gsdll_stderr(void *instance, const char *str, int len)
     return len;
 }
 
-gs_main_instance *minst;
+void *minst;
 const char start_string[] = "systemdict /start get exec\n";
 
 int main(int argc, char *argv[])
 {
-    int code;
+    int code, code1;
     int exit_code;
 
     code = gsapi_new_instance(&minst, NULL);
@@ -443,7 +557,46 @@ int main(int argc, char *argv[])
     code = gsapi_init_with_args(minst, argc, argv);
     if (code == 0)
 	code = gsapi_run_string(minst, start_string, 0, &exit_code);
-    gsapi_exit(minst);
+    code1 = gsapi_exit(minst);
+    if ((code == 0) || (code == e_Quit))
+	code = code1;
+
+    gsapi_delete_instance(minst);
+
+    if ((code == 0) || (code == e_Quit))
+	return 0;
+    return 1;
+}
+</pre>
+
+<h3>Example 3</h3>
+
+Replace main() in either of the above with the following code,
+showing how you can feed Ghostscript piecemeal:
+<pre>
+const char *command = "1 2 add == flush\n";
+
+int main(int argc, char *argv[])
+{
+    int code, code1;
+    int exit_code;
+
+    code = gsapi_new_instance(&minst, NULL);
+    if (code < 0)
+	return 1;
+    code = gsapi_init_with_args(minst, argc, argv);
+
+    if (code == 0) {
+	gsapi_run_string_begin(minst, 0, &exit_code);
+	gsapi_run_string_continue(minst, command, strlen(command), 0, &exit_code);
+	gsapi_run_string_continue(minst, "qu", 2, 0, &exit_code);
+	gsapi_run_string_continue(minst, "it", 2, 0, &exit_code);
+	gsapi_run_string_end(minst, 0, &exit_code);
+    }
+
+    code1 = gsapi_exit(minst);
+    if ((code == 0) || (code == e_Quit))
+	code = code1;
 
     gsapi_delete_instance(minst);
 
@@ -454,23 +607,12 @@ int main(int argc, char *argv[])
 </pre>
 
 
-<p>
-Another partial code example showing how you can feed Ghostscript piecemeal:
-<pre>
-    char *command = "1 2 add == flush\n";
-    int exit_code;
-    gsapi_run_string_begin(minst, 0, &exit_code);
-    gsapi_run_string_continue(minst, command, strlen(command), 0, &exit_code);
-    gsapi_run_string_continue(minst, "qu", 2, 0, &exit_code);
-    gsapi_run_string_continue(minst, "it", 2, 0, &exit_code);
-    gsapi_run_string_end(minst, 0, &exit_code);
-</pre>
-
-
 <h2><a name="Multiple_threads"></a>Multiple threads</h2>
 The Ghostscript library should have been compiled with a 
 thread safe run time library.
 Synchronisation of threads is entirely up to the caller.
+The exported <a href="#Exported_functions "><b><tt>gsapi_*()</tt></b></a>
+functions must be called from one thread only.
 
 <h2><a name="stdio"></a>Standard input and output</h2>
 <p>
@@ -520,7 +662,7 @@ The device raster format can be configured using
 </blockquote>
 Options include
 <ul>
-<li> native, gray, RGB or CMYK color spaces.
+<li> native, gray, RGB, CMYK or separation color spaces.
 <li> alpha byte (ignored).
 <li> 1 to 16 bits/component.
 <li> bigendian (RGB) or littleendian (BGR) order.
@@ -562,7 +704,14 @@ You are then responsible for displaying this raster.
 Some examples are in 
 <b><tt><a href="../src/dwmain.c">dwmain.c</a></tt></b> (Windows),
 <b><tt><a href="../src/dpmain.c">dpmain.c</a></tt></b> (OS/2) and  
-<b><tt><a href="../src/dxmain.c">dxmain.c</a></tt></b> (X11/Linux).  
+<b><tt><a href="../src/dxmain.c">dxmain.c</a></tt></b> (X11/Linux), and  
+<b><tt><a href="../src/dmmain.c">dmmain.c</a></tt></b> (MacOS Classic or Carbon).  
+<p>
+On some platforms, the calling convention for the display device callbacks in 
+<b><tt><a href="../src/gdevdsp.h">gdevdsp.h</a></tt></b>
+is not the same as the exported 
+<a href="#Exported_functions "><b><tt>gsapi_*()</tt></b></a>
+functions in <a href="../src/iapi.h"><b><tt>iapi.h</tt></b></a>.
 
 <p>
 
@@ -573,16 +722,24 @@ Some examples are in
 
 
 <p>
-<small>Copyright &copy; 2001 artofcode LLC.  All rights reserved.</small>
+<small>Copyright &copy; 2000-2004 artofcode LLC.  All rights reserved.</small>
 
 <p>
-<small>This file is part of AFPL Ghostscript.  See the
-<a href="Public.htm">Aladdin Free Public License</a> (the "License") for
-full details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.</small>
+This software is provided AS-IS with no warranty, either express or
+implied.
+
+This software is distributed under license and may not be copied,
+modified or distributed except as expressly authorized under the terms
+of the license contained in the file LICENSE in this distribution.
+
+For more information about licensing, please refer to
+http://www.ghostscript.com/licensing/. For information on
+commercial licensing, go to http://www.artifex.com/licensing/ or
+contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
 <p>
-<small>Ghostscript version 7.04, 31 January 2002
+<small>Ghostscript version 8.53, 20 October 2005
 
 
 <!-- [3.0 end visible trailer] ============================================= -->

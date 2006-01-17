@@ -462,7 +462,7 @@ be most useful in preparing new sections for the news document."
 (goto-char (point-min))
 (insert "<pre>\n") (setq g~pre-point (point))
 (setq g~ID " [No pre-existing ID] ")
-(if (re-search-forward "^\\$Id: gsdoc.el,v 1.1 2000/03/09 08:40:39 lpd Exp $" nil t) (progn
+(if (re-search-forward "^\\$Id:\\( [^ ]+ \\)\\$" nil t) (progn
     (setq g~ID (buffer-substring (match-beginning 1) (match-end 1)))
     (next-line 1) (beginning-of-line) (delete-region g~pre-point (point))
     ))
@@ -522,14 +522,14 @@ properly placed markers, but that's history."
 ;; Replace the RCS $Id if one can be found in exactly the right format, and
 ;; otherwise insert one just after the title, along with a warning message.
 
-(if (re-search-forward "<!-- $Id: gsdoc.el,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->" nil t)
+(if (re-search-forward "<!-- $Id: *\\([^ ]*\\) $ -->" nil t)
     (progn
       (setq Original (buffer-substring (match-beginning 1) (match-end 1)))
       (replace-match g~thisfile t t nil 1)
       )
     (progn
       (search-forward "</title>" nil t) (end-of-line)
-      (insert (concat "\n<!-- $Id: gsdoc.el,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->"))
+      (insert (concat "\n<!-- $Id: " g~thisfile " $ -->"))
       (setq Original "(UNSET by gs-structure)")
       )
     )

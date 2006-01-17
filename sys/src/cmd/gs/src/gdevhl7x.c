@@ -1,22 +1,20 @@
-/* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1997, 2001 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/* $Id: gdevhl7x.c,v 1.5 2001/08/01 00:48:23 stefan911 Exp $ */
+/* $Id: gdevhl7x.c,v 1.10 2004/08/10 13:02:36 stefan Exp $ */
 /*
  * Brother HL 720 and 730 driver for Ghostscript
  *
@@ -31,7 +29,7 @@
  *
  * Removal of compression code on 1/17/00 by Ross Martin
  * (ross@ross.interwrx.com, martin@walnut.eas.asu.edu)
- * enables this driver to correctly print tiger.ps on a
+ * enables this driver to correctly print tiger.eps on a
  * Brother MFC6550MC Fax Machine.  Change to the Horizontal
  * Offset fixes incorrect page alignment at 300dpi in
  * Landscape mode with a2ps.
@@ -176,7 +174,7 @@ private void dumpToPrinter(ByteList * list,FILE * printStream);
 
 /* Real Print function */
 
-private int hl7x0_print_page(P5(gx_device_printer *, FILE *, int, int, ByteList *));
+private int hl7x0_print_page(gx_device_printer *, FILE *, int, int, ByteList *);
 
 
 
@@ -364,7 +362,8 @@ hl7x0_print_page(gx_device_printer *pdev, FILE *printStream, int ptype,
   int num_rows = dev_print_scan_lines(pdev);
   int result;
   int sizeOfBuffer   = MaxLineLength(x_dpi) + 30; 
-  Byte * storage      = (Byte *) gs_malloc(sizeOfBuffer + line_size,
+  Byte * storage      = (Byte *) gs_malloc(pdev->memory, 
+					   sizeOfBuffer + line_size,
 					   1,
 					   "hl7x0_print_page");
 	/*	bool dup = pdev->Duplex; */
@@ -404,7 +403,7 @@ hl7x0_print_page(gx_device_printer *pdev, FILE *printStream, int ptype,
 	dumpToPrinter(&formFeedCommand, printStream);
 		
 	/* free temporary storage */
-	gs_free((char *)storage, storage_size_words, 1, "hl7X0_print_page");
+	gs_free(pdev->memory, (char *)storage, storage_size_words, 1, "hl7X0_print_page");
 
 	return 0; /* If we reach this line, it means there was no error */
 }
@@ -651,7 +650,7 @@ private void makeFullLine( Byte      * pCurrentLine,
      * Disabled line-to-line compression, 1/17/00 Ross Martin
      * ross@ross.interwrx.com and/or martin@walnut.eas.asu.edu
      *
-     * The compression here causes problems printing tiger.ps.
+     * The compression here causes problems printing tiger.eps.
      * The problem is vertical streaks.  The printer I'm printing
      * to is a Brother MFC6550MC Fax Machine, which may be
      * slightly different from the hl720 and hl730.  Note that
@@ -660,11 +659,11 @@ private void makeFullLine( Byte      * pCurrentLine,
      * setup from a DOS program included with the printer.  Thus,
      * the hl7x0 driver seems a better choice.  In any case,
      * on the MFC6550MC, some files print fine with compression
-     * turned on, but others such as tiger.ps print with streaks.
+     * turned on, but others such as tiger.eps print with streaks.
      * disabling the compression fixes the problem, so I haven't
      * looked any further at the cause.  It may be that the
      * compression is correct for the hl720 and hl730, and only
-     * different for the MFC6550MC, or it may be that tiger.ps
+     * different for the MFC6550MC, or it may be that tiger.eps
      * won't print correctly with compression enabled on any
      * of these.  It may be that the problem is only with color
      * and/or grayscale prints.  YMMV.  I don't think it likely

@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevp2up.c,v 1.2 2000/09/19 19:00:14 lpd Exp $ */
+/* $Id: gdevp2up.c,v 1.6 2004/05/26 04:10:58 dan Exp $ */
 /* A "2-up" PCX device for testing page objects. */
 #include "gdevprn.h"
 #include "gdevpccm.h"
@@ -57,7 +55,7 @@ gx_device_2up gs_pcx2up_device =
 		 DEFAULT_WIDTH_10THS, DEFAULT_HEIGHT_10THS,
 		 X_DPI, Y_DPI,
 		 0, 0, 0, 0,	/* margins */
-		 3, 8, 6, 6, 7, 7, pcx2up_print_page)
+		 3, 8, 5, 5, 6, 6, pcx2up_print_page)
 };
 
 /* Open the device.  We reimplement this to force banding with */
@@ -118,6 +116,7 @@ pcx2up_print_page(gx_device_printer * pdev, FILE * file)
 	if (prdev == 0)
 	    return_error(gs_error_VMerror);
 	memcpy(prdev, prdev_template, prdev_size);
+        check_device_separable((gx_device *)rdev);
 	gx_device_fill_in_procs(rdev);
 	set_dev_proc(prdev, open_device,
 		     dev_proc(&gs_pcx256_device, open_device));

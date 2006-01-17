@@ -1,22 +1,20 @@
 /* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpxut.c,v 1.2 2000/09/19 19:00:22 lpd Exp $ */
+/* $Id: gdevpxut.c,v 1.8 2005/07/11 22:08:30 stefan Exp $ */
 /* Utilities for PCL XL generation */
 #include "math_.h"
 #include "string_.h"
@@ -27,6 +25,7 @@
 #include "gdevpxen.h"
 #include "gdevpxop.h"
 #include "gdevpxut.h"
+#include <assert.h>
 
 /* ---------------- High-level constructs ---------------- */
 
@@ -34,9 +33,13 @@
 int
 px_write_file_header(stream *s, const gx_device *dev)
 {
+    static const char *const enter_pjl_header =
+        "\033%-12345X@PJL SET RENDERMODE=";
+    static const char *const rendermode_gray = "GRAYSCALE";
+    static const char *const rendermode_color = "COLOR";
     static const char *const file_header =
-	"\033%-12345X@PJL ENTER LANGUAGE = PCLXL\n\
-) HP-PCL XL;1;1;Comment Copyright Aladdin Enterprises 1996\000\n";
+	"\n@PJL ENTER LANGUAGE = PCLXL\n\
+) HP-PCL XL;1;1;Comment Copyright artofcode LLC 2005\000\n";
     static const byte stream_header[] = {
 	DA(pxaUnitsPerMeasure),
 	DUB(0), DA(pxaMeasure),
@@ -46,6 +49,16 @@ px_write_file_header(stream *s, const gx_device *dev)
 	DUB(eBinaryLowByteFirst), DA(pxaDataOrg),
 	pxtOpenDataSource
     };
+
+    px_put_bytes(s, (const byte *)enter_pjl_header,
+		 strlen(enter_pjl_header));
+
+    if (dev->color_info.num_components == 1)
+	px_put_bytes(s, (const byte *)rendermode_gray,
+		     strlen(rendermode_gray));
+    else
+	px_put_bytes(s, (const byte *)rendermode_color,
+		     strlen(rendermode_color));
 
     /* We have to add 2 to the strlen because the next-to-last */
     /* character is a null. */
@@ -71,10 +84,11 @@ px_write_page_header(stream *s, const gx_device *dev)
 
 /* Write the media selection command if needed, updating the media size. */
 int
-px_write_select_media(stream *s, const gx_device *dev, pxeMediaSize_t *pms)
+px_write_select_media(stream *s, const gx_device *dev, 
+		      pxeMediaSize_t *pms, byte *media_source)
 {
 #define MSD(ms, res, w, h)\
-  { ms, (w) * 1.0 / (res), (h) * 1.0 / res },
+  { ms, (float)((w) * 1.0 / (res)), (float)((h) * 1.0 / res) },
     static const struct {
 	pxeMediaSize_t ms;
 	float width, height;
@@ -87,6 +101,7 @@ px_write_select_media(stream *s, const gx_device *dev, pxeMediaSize_t *pms)
 	h = dev->height / dev->HWResolution[1];
     int i;
     pxeMediaSize_t size;
+    byte tray = eAutoSelect;
 
     /* The default is eLetterPaper, media size 0. */
     for (i = countof(media_sizes) - 2; i > 0; --i)
@@ -99,16 +114,14 @@ px_write_select_media(stream *s, const gx_device *dev, pxeMediaSize_t *pms)
      * According to the PCL XL documentation, MediaSize must always
      * be specified, but MediaSource is optional.
      */
-    px_put_uba(s, size, pxaMediaSize);
-    if (!pms || size != *pms) {
-	static const byte page_header_2[] = {
-	    DUB(eAutoSelect), DA(pxaMediaSource)
-	};
+    px_put_uba(s, (byte)size, pxaMediaSize);
 
-	PX_PUT_LIT(s, page_header_2);
-	if (pms)
-	    *pms = size;
-    }
+    if (media_source != NULL)
+	tray = *media_source;
+    px_put_uba(s, tray, pxaMediaSource);
+    if (pms)
+	*pms = size;
+
     return 0;
 }
 
@@ -146,13 +159,13 @@ void
 px_put_a(stream * s, px_attribute_t a)
 {
     sputc(s, pxt_attr_ubyte);
-    sputc(s, a);
+    sputc(s, (byte)a);
 }
 void
 px_put_ac(stream *s, px_attribute_t a, px_tag_t op)
 {
     px_put_a(s, a);
-    sputc(s, op);
+    sputc(s, (byte)op);
 }
 
 void
@@ -190,7 +203,7 @@ void
 px_put_u(stream * s, uint i)
 {
     if (i <= 255)
-	px_put_ub(s, i);
+	px_put_ub(s, (byte)i);
     else
 	px_put_us(s, i);
 }
@@ -247,7 +260,7 @@ px_put_r(stream * s, floatp r)
     spputc(s, (byte) mantissa);
     spputc(s, (byte) (mantissa >> 8));
     spputc(s, (byte) (((exp + 127) << 7) + ((mantissa >> 16) & 0x7f)));
-    spputc(s, (exp + 127) >> 1);
+    spputc(s, (byte) ((exp + 127) >> 1));
 }
 void
 px_put_rl(stream * s, floatp r)

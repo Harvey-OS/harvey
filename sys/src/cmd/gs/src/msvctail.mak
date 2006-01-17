@@ -1,21 +1,19 @@
 #    Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: msvctail.mak,v 1.6 2001/06/12 23:06:19 dancoby Exp $
+# $Id: msvctail.mak,v 1.11 2005/03/04 21:58:55 ghostgum Exp $
 # Common tail section for Microsoft Visual C++ 4.x/5.x,
 # Windows NT or Windows 95 platform.
 # Created 1997-05-22 by L. Peter Deutsch from msvc4/5 makefiles.
@@ -28,6 +26,9 @@
 # This also creates the subdirectories since this (hopefully) will be the
 # first need. Too bad nmake doesn't have .BEFORE symbolic target.
 $(GLGENDIR)\ccf32.tr: $(TOP_MAKEFILES)
+	-mkdir $(PSOBJDIR)
+	-mkdir $(PSGENDIR)
+	-mkdir $(GLOBJDIR)
 	-mkdir $(GLGENDIR)
 	-mkdir $(BINDIR)
 	echo $(GENOPT) -DCHECK_INTERRUPTS -D_Windows -D__WIN32__ > $(GLGENDIR)\ccf32.tr
@@ -37,8 +38,14 @@ $(ECHOGS_XE): $(GLSRC)echogs.c
 
 # Don't create genarch if it's not needed
 !ifdef GENARCH_XE
+!ifdef WIN64
+$(GENARCH_XE): $(GLSRC)genarch.c $(GENARCH_DEPS) $(GLGENDIR)\ccf32.tr
+	$(CC) @$(GLGENDIR)\ccf32.tr /Fo$(GLOBJ)genarch.obj $(GLSRC)genarch.c
+	$(LINK) $(LCT) $(LINKLIBPATH) $(GLOBJ)genarch.obj /OUT:$(GENARCH_XE)
+!else
 $(GENARCH_XE): $(GLSRC)genarch.c $(GENARCH_DEPS) $(GLGENDIR)\ccf32.tr
 	$(CCAUX) @$(GLGENDIR)\ccf32.tr /Fo$(GLOBJ)genarch.obj /Fe$(GENARCH_XE) $(GLSRC)genarch.c $(CCAUX_TAIL)
+!endif
 !endif
 
 $(GENCONF_XE): $(GLSRC)genconf.c $(GENCONF_DEPS)
@@ -63,11 +70,11 @@ $(GENINIT_XE): $(PSSRCDIR)$(D)geninit.c $(GENINIT_DEPS)
 LIBCTR=$(GLGEN)libc32.tr
 
 $(LIBCTR): $(TOP_MAKEFILES)
-        echo shell32.lib >$(LIBCTR)
-        echo comdlg32.lib >>$(LIBCTR)
-        echo gdi32.lib >>$(LIBCTR)
-        echo user32.lib >>$(LIBCTR)
-        echo winspool.lib >>$(LIBCTR)
+	echo shell32.lib >$(LIBCTR)
+	echo comdlg32.lib >>$(LIBCTR)
+	echo gdi32.lib >>$(LIBCTR)
+	echo user32.lib >>$(LIBCTR)
+	echo winspool.lib >>$(LIBCTR)
 	echo advapi32.lib >>$(LIBCTR)
 
 # end of msvctail.mak

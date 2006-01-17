@@ -1,23 +1,21 @@
-/* Copyright (C) 1993, 1994, 1996, 1997, 1998, 1999, 2001 Aladdin Enterprises.  All rights reserved.
+/* Copyright (C) 1993-2003 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: stdpre.h,v 1.4 2001/06/17 05:09:07 lpd Exp $ */
-/* Standard definitions for Aladdin Enterprises code not needing arch.h */
+/* $Id: stdpre.h,v 1.22 2003/12/09 21:17:59 giles Exp $ */
+/* Standard definitions for Ghostscript code not needing arch.h */
 
 #ifndef stdpre_INCLUDED
 #  define stdpre_INCLUDED
@@ -252,10 +250,15 @@ typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned long ulong;
 
-/* Since sys/types.h often defines one or more of these (depending on */
-/* the platform), we have to take steps to prevent name clashes. */
-/*** NOTE: This requires that you include std.h *before* any other ***/
-/*** header file that includes sys/types.h. ***/
+/* Since sys/types.h may define one or more of these (depending on
+ * the platform), we have to take steps to prevent name clashes.
+ * Unfortunately this can clobber valid definitions for the size-
+ * specific types, but there's no simple solution.
+ *
+ * NOTE: This requires that you include std.h *before* any other
+ * header file that includes sys/types.h.
+ *
+ */
 #define bool bool_		/* (maybe not needed) */
 #define uchar uchar_
 #define uint uint_
@@ -286,13 +289,16 @@ typedef int bool;
 #endif
 #endif
 /*
- * MetroWerks CodeWarrior predefines true and false, probably as 1 and 0.
- * We need to cancel those definitions for our own code.
+ * Older versions of MetroWerks CodeWarrior defined true and false, but they're now
+ * an enum in the (MacOS) Universal Interfaces. The only way around this is to escape
+ * our own definitions wherever MacTypes.h is included.
  */
+#ifndef __MACOS__
 #undef false
 #define false ((bool)0)
 #undef true
 #define true ((bool)1)
+#endif /* __MACOS__ */
 
 /*
  * Compilers disagree as to whether macros used in macro arguments
@@ -407,48 +413,14 @@ typedef const char *client_name_t;
 #define private private_
 
 /*
- * Macros for argument templates.  ANSI C has these, as does Turbo C,
- * but older pcc-derived (K&R) Unix compilers don't.  The syntax is
- *      resulttype func(Pn(arg1, ..., argn));
+ * Define the now-deprecated Pn macros for pre-ANSI compiler compatibility.
+ * The double-inclusion check is replicated here because of the way that
+ * jconfig.h is constructed.
  */
-
-#ifdef __PROTOTYPES__
-# define P0() void
-# define P1(t1) t1
-# define P2(t1,t2) t1,t2
-# define P3(t1,t2,t3) t1,t2,t3
-# define P4(t1,t2,t3,t4) t1,t2,t3,t4
-# define P5(t1,t2,t3,t4,t5) t1,t2,t3,t4,t5
-# define P6(t1,t2,t3,t4,t5,t6) t1,t2,t3,t4,t5,t6
-# define P7(t1,t2,t3,t4,t5,t6,t7) t1,t2,t3,t4,t5,t6,t7
-# define P8(t1,t2,t3,t4,t5,t6,t7,t8) t1,t2,t3,t4,t5,t6,t7,t8
-# define P9(t1,t2,t3,t4,t5,t6,t7,t8,t9) t1,t2,t3,t4,t5,t6,t7,t8,t9
-# define P10(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10
-# define P11(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11
-# define P12(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12
-# define P13(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13
-# define P14(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14
-# define P15(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15
-# define P16(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16) t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16
-#else
-# define P0()			/* */
-# define P1(t1)			/* */
-# define P2(t1,t2)		/* */
-# define P3(t1,t2,t3)		/* */
-# define P4(t1,t2,t3,t4)	/* */
-# define P5(t1,t2,t3,t4,t5)	/* */
-# define P6(t1,t2,t3,t4,t5,t6)	/* */
-# define P7(t1,t2,t3,t4,t5,t6,t7)	/* */
-# define P8(t1,t2,t3,t4,t5,t6,t7,t8)	/* */
-# define P9(t1,t2,t3,t4,t5,t6,t7,t8,t9)		/* */
-# define P10(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10)	/* */
-# define P11(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11)	/* */
-# define P12(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12)	/* */
-# define P13(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13)	/* */
-# define P14(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14)	/* */
-# define P15(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15)	/* */
-# define P16(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16)	/* */
-#endif
+#ifndef stdpn_INCLUDED
+#  define stdpn_INCLUDED
+#include "stdpn.h"
+#endif /* stdpn_INCLUDED */
 
 /*
  * Define success and failure codes for 'exit'.  The only system on which
@@ -459,9 +431,13 @@ typedef const char *client_name_t;
  * command line.
  */
 /*#define OLD_VMS_C*/
-#if defined(VMS) && (defined(OLD_VMS_C) || !defined(__DECC))
-#  define exit_OK 1
+#if defined(VMS)
 #  define exit_FAILED 18
+#  if (defined(OLD_VMS_C) || !defined(__DECC))
+#    define exit_OK 1
+#  else
+#    define exit_OK 0
+#  endif
 #else
 #  define exit_OK 0
 #  define exit_FAILED 1

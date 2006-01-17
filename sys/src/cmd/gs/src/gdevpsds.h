@@ -1,28 +1,27 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpsds.h,v 1.4 2000/09/19 19:00:21 lpd Exp $ */
+/* $Id: gdevpsds.h,v 1.12 2005/02/26 18:07:43 igor Exp $ */
 /* Image processing stream interface for PostScript and PDF writers */
 
 #ifndef gdevpsds_INCLUDED
 #  define gdevpsds_INCLUDED
 
 #include "strimpl.h"
+#include "gsiparam.h"
 
 /* ---------------- Depth conversion ---------------- */
 
@@ -49,7 +48,7 @@ extern const stream_template s_8_2_template;
 extern const stream_template s_8_4_template;
 
 /* Initialize an expansion or reduction stream. */
-int s_1248_init(P3(stream_1248_state *ss, int Columns, int samples_per_pixel));
+int s_1248_init(stream_1248_state *ss, int Columns, int samples_per_pixel);
 
 /* ---------------- Color space conversion ---------------- */
 
@@ -66,7 +65,7 @@ typedef struct stream_C2R_state_s {
 extern const stream_template s_C2R_template;
 
 /* Initialize a CMYK => RGB conversion stream. */
-int s_C2R_init(P2(stream_C2R_state *ss, const gs_imager_state *pis));
+int s_C2R_init(stream_C2R_state *ss, const gs_imager_state *pis);
 
 /* Convert an image to indexed form (IndexedEncode filter). */
 typedef struct stream_IE_state_s {
@@ -128,7 +127,7 @@ typedef struct stream_Downsample_state_s {
 } stream_Downsample_state;
 
 /* Return the number of samples after downsampling. */
-int s_Downsample_size_out(P3(int size_in, int factor, bool pad));
+int s_Downsample_size_out(int size_in, int factor, bool pad);
 
 /* Subsample */
 typedef struct stream_Subsample_state_s {
@@ -148,5 +147,86 @@ typedef struct stream_Average_state_s {
   gs_private_st_ptrs1(st_Average_state, stream_Average_state,\
     "stream_Average_state", avg_enum_ptrs, avg_reloc_ptrs, sums)
 extern const stream_template s_Average_template;
+
+/* ---------------- Image compression chooser ---------------- */
+
+typedef struct stream_compr_chooser_state_s {
+    stream_state_common;
+    uint choice;
+    uint width, height, depth, bits_per_sample;
+    uint samples_count, bits_left;
+    ulong packed_data;
+    byte *sample;
+    ulong upper_plateaus, lower_plateaus;
+    ulong gradients;
+} stream_compr_chooser_state;
+
+#define private_st_compr_chooser_state()	/* in gdevpsds.c */\
+  gs_private_st_ptrs1(st_compr_chooser_state, stream_compr_chooser_state, \
+    "stream_compr_chooser_state",\
+    compr_chooser_enum_ptrs, compr_chooser_reloc_ptrs, sample)
+
+extern const stream_template s_compr_chooser_template;
+
+/* Set image dimensions. */
+int
+s_compr_chooser_set_dimensions(stream_compr_chooser_state * st, int width, 
+			       int height, int depth, int bits_per_sample);
+
+/* Get choice */
+uint s_compr_chooser__get_choice(stream_compr_chooser_state *st, bool force);
+
+/* ---------------- Am image color conversion filter ---------------- */
+
+#ifndef gx_device_DEFINED
+#  define gx_device_DEFINED
+typedef struct gx_device_s gx_device;
+#endif
+
+typedef struct stream_image_colors_state_s stream_image_colors_state;
+
+struct stream_image_colors_state_s {
+    stream_state_common;
+    uint width, height, depth, bits_per_sample;
+    byte output_bits_buffer;
+    uint output_bits_buffered;
+    uint output_component_bits_written;
+    uint output_component_index;
+    uint output_depth, output_bits_per_sample;
+    uint raster;
+    uint row_bits;
+    uint row_bits_passed;
+    uint row_alignment_bytes;
+    uint row_alignment_bytes_left;
+    uint input_component_index;
+    uint input_bits_buffer;
+    uint input_bits_buffered;
+    uint input_color[GS_IMAGE_MAX_COLOR_COMPONENTS];
+    uint output_color[GS_IMAGE_MAX_COLOR_COMPONENTS];
+    uint MaskColor[GS_IMAGE_MAX_COLOR_COMPONENTS * 2];
+    float Decode[GS_IMAGE_MAX_COLOR_COMPONENTS * 2];
+    const gs_color_space *pcs;
+    gx_device *pdev;
+    const gs_imager_state *pis;
+    int (*convert_color)(stream_image_colors_state *);
+};
+
+#define private_st_image_colors_state()	/* in gdevpsds.c */\
+  gs_private_st_ptrs3(st_stream_image_colors_state, stream_image_colors_state,\
+    "stream_image_colors_state", stream_image_colors_enum_ptrs,\
+    stream_image_colors_reloc_ptrs, pcs, pdev, pis)
+
+extern const stream_template s_image_colors_template;
+
+void s_image_colors_set_dimensions(stream_image_colors_state * st, 
+			       int width, int height, int depth, int bits_per_sample);
+
+void s_image_colors_set_mask_colors(stream_image_colors_state * ss, uint *MaskColor);
+
+void s_image_colors_set_color_space(stream_image_colors_state * ss, gx_device *pdev,
+			       const gs_color_space *pcs, const gs_imager_state *pis,
+			       float *Decode);
+
+extern const stream_template s__image_colors_template;
 
 #endif /* gdevpsds_INCLUDED */

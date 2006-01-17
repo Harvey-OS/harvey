@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zcsindex.c,v 1.3 2000/09/19 19:00:53 lpd Exp $ */
+/* $Id: zcsindex.c,v 1.8 2005/07/13 21:21:47 dan Exp $ */
 /* Indexed color space support */
 #include "memory_.h"
 #include "ghost.h"
@@ -38,7 +36,7 @@
 extern const gs_color_space_type gs_color_space_type_Indexed;
 
 /* Forward references. */
-private int indexed_map1(P1(i_ctx_t *));
+private int indexed_map1(i_ctx_t *);
 
 /* <array> .setindexedspace - */
 /* The current color space is the base space for the indexed space. */
@@ -81,11 +79,17 @@ zsetindexedspace(i_ctx_t *i_ctx_p)
 	int num_values = num_entries * cs_num_components(&cs);
 
 	check_read(pcsa[2]);
-	if (r_size(&pcsa[2]) != num_values)
+	/*
+	 * The PDF and PS specifications state that the lookup table must have
+	 * the exact number of of data bytes needed.  However we have found
+	 * PDF files from Amyuni with extra data bytes.  Acrobat 6.0 accepts
+	 * these files without complaint, so we ignore the extra data.
+	 */
+	if (r_size(&pcsa[2]) < num_values)
 	    return_error(e_rangecheck);
 	memmove(&cs.params.indexed.base_space, &cs,
 		sizeof(cs.params.indexed.base_space));
-	gs_cspace_init(&cs, &gs_color_space_type_Indexed, NULL);
+	gs_cspace_init(&cs, &gs_color_space_type_Indexed, imemory, false);
 	cs.params.indexed.lookup.table.data = pcsa[2].value.const_bytes;
 	cs.params.indexed.lookup.table.size = num_values;
 	cs.params.indexed.use_proc = 0;
@@ -107,7 +111,7 @@ zsetindexedspace(i_ctx_t *i_ctx_p)
 	    return code;
 	memmove(&cs.params.indexed.base_space, &cs,
 		sizeof(cs.params.indexed.base_space));
-	gs_cspace_init(&cs, &gs_color_space_type_Indexed, NULL);
+	gs_cspace_init(&cs, &gs_color_space_type_Indexed, imemory, false);
 	cs.params.indexed.use_proc = 1;
 	*pproc = pcsa[2];
 	map->proc.lookup_index = lookup_indexed_map;

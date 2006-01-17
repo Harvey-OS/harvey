@@ -1,22 +1,20 @@
 /* Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpdfr.c,v 1.4 2000/09/19 19:00:17 lpd Exp $ */
+/* $Id: gdevpdfr.c,v 1.9 2005/04/25 12:28:49 igor Exp $ */
 /* Named object pdfmark processing */
 #include "memory_.h"
 #include "string_.h"
@@ -53,7 +51,11 @@ pdf_find_named(gx_device_pdf * pdev, const gs_param_string * pname,
 
     if (!pdf_objname_is_valid(pname->data, pname->size))
 	return_error(gs_error_rangecheck);
-    if ((pvalue = cos_dict_find(pdev->named_objects, pname->data, pname->size)) != 0) {
+    if ((pvalue = cos_dict_find(pdev->local_named_objects, pname->data,
+				pname->size)) != 0 ||
+	(pvalue = cos_dict_find(pdev->global_named_objects, pname->data,
+				pname->size)) != 0
+	) {
 	*ppco = pvalue->contents.object;
 	return 0;
     }
@@ -61,8 +63,9 @@ pdf_find_named(gx_device_pdf * pdev, const gs_param_string * pname,
 }
 
 /*
- * Create a named object.  id = -1L means do not assign an id.  pname = 0
- * means just create the object, do not name it.
+ * Create a (local) named object.  id = -1L means do not assign an id.
+ * pname = 0 means just create the object, do not name it.  Note that
+ * during initialization, local_named_objects == global_named_objects.
  */
 int
 pdf_create_named(gx_device_pdf *pdev, const gs_param_string *pname,
@@ -77,7 +80,7 @@ pdf_create_named(gx_device_pdf *pdev, const gs_param_string *pname,
     pco->id =
 	(id == -1 ? 0L : id == 0 ? pdf_obj_ref(pdev) : id);
     if (pname) {
-	int code = cos_dict_put(pdev->named_objects, pname->data,
+	int code = cos_dict_put(pdev->local_named_objects, pname->data,
 				pname->size, cos_object_value(&value, pco));
 
 	if (code < 0)
@@ -209,23 +212,86 @@ pdf_get_named(gx_device_pdf * pdev, const gs_param_string * pname,
 }
 
 /*
+ * Push the current local namespace onto the namespace stack, and reset it
+ * to an empty namespace.
+ */
+int
+pdf_push_namespace(gx_device_pdf *pdev)
+{
+    int code = cos_array_add_object(pdev->Namespace_stack,
+				    COS_OBJECT(pdev->local_named_objects));
+    cos_dict_t *pcd =
+	cos_dict_alloc(pdev, "pdf_push_namespace(local_named_objects)");
+    cos_array_t *pca =
+	cos_array_alloc(pdev, "pdf_push_namespace(NI_stack)");
+
+    if (code < 0 ||
+	(code = cos_array_add_object(pdev->Namespace_stack,
+				     COS_OBJECT(pdev->NI_stack))) < 0
+	)
+	return code;
+    if (pcd == 0 || pca == 0)
+	return_error(gs_error_VMerror);
+    pdev->local_named_objects = pcd;
+    pdev->NI_stack = pca;
+    return 0;
+}
+
+/*
+ * Pop the top local namespace from the namespace stack.  Return an error if
+ * the stack is empty.
+ */
+int
+pdf_pop_namespace(gx_device_pdf *pdev)
+{
+    cos_value_t nis_value, lno_value;
+    int code = cos_array_unadd(pdev->Namespace_stack, &nis_value);
+    
+    if (code < 0 ||
+	(code = cos_array_unadd(pdev->Namespace_stack, &lno_value)) < 0
+	)
+	return code;
+    COS_FREE(pdev->local_named_objects,
+	     "pdf_pop_namespace(local_named_objects)");
+    pdev->local_named_objects = (cos_dict_t *)lno_value.contents.object;
+    COS_FREE(pdev->NI_stack, "pdf_pop_namespace(NI_stack)");
+    pdev->NI_stack = (cos_array_t *)nis_value.contents.object;
+    return 0;
+}
+
+/*
  * Scan a token from a string.  <<, >>, [, and ] are treated as tokens.
  * Return 1 if a token was scanned, 0 if we reached the end of the string,
  * or an error.  On a successful return, the token extends from *ptoken up
  * to but not including *pscan.
  *
  * Note that this scanner expects a subset of PostScript syntax, not PDF
- * syntax.  In particular, it doesn't understand ASCII85 strings, and it
- * doesn't process the PDF #-escape syntax within names.  Note also that
- * it does only minimal syntax checking.
+ * syntax.  In particular, it doesn't understand ASCII85 strings,
+ * doesn't process the PDF #-escape syntax within names, and does only
+ * minimal syntax checking.  It also recognizes one extension to PostScript
+ * syntax, to allow gs_pdfwr.ps to pass names that include non-regular
+ * characters: If a name is immediately preceded by two null characters,
+ * the name includes everything up to a following null character.  The only
+ * place that currently generates this convention is the PostScript code
+ * that pre-processes the arguments for pdfmarks, in lib/gs_pdfwr.ps.
  */
 int
 pdf_scan_token(const byte **pscan, const byte * end, const byte **ptoken)
 {
     const byte *p = *pscan;
 
-    while (p < end && scan_char_decoder[*p] == ctype_space)
+    while (p < end && scan_char_decoder[*p] == ctype_space) {
 	++p;
+	if (p[-1] == 0 && p + 1 < end && *p == 0 && p[1] == '/') {
+	/* Special handling for names delimited by a null character. */
+	    *ptoken = ++p;
+	    while (*p != 0)
+		if (++p >= end)
+		    return_error(gs_error_syntaxerror);	/* no terminator */
+	    *pscan = p;
+	    return 1;
+	}
+    }
     *ptoken = p;
     if (p >= end) {
 	*pscan = p;
@@ -243,7 +309,7 @@ pdf_scan_token(const byte **pscan, const byte * end, const byte **ptoken)
 	stream_PSSD_state ss;
 	int status;
 
-	s_PSSD_init_inline(&ss);
+	s_PSSD_init((stream_state *)&ss);
 	r.ptr = p;		/* skip the '(' */
 	r.limit = end - 1;
 	w.limit = buf + sizeof(buf) - 1;

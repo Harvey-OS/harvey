@@ -1,21 +1,19 @@
 #    Copyright (C) 1991, 1995, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This software is provided AS-IS with no warranty, either express or
+# implied.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# This software is distributed under license and may not be copied,
+# modified or distributed except as expressly authorized under the terms
+# of the license contained in the file LICENSE in this distribution.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# For more information about licensing, please refer to
+# http://www.ghostscript.com/licensing/. For information on
+# commercial licensing, go to http://www.artifex.com/licensing/ or
+# contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+# San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 
-# $Id: watclib.mak,v 1.13.2.2 2002/02/01 03:30:13 raph Exp $
+# $Id: watclib.mak,v 1.24 2004/12/10 23:48:48 giles Exp $
 # makefile for MS-DOS / Watcom C/C++ library testing.
 
 libdefault: $(GLOBJ)gslib.exe
@@ -24,7 +22,7 @@ libdefault: $(GLOBJ)gslib.exe
 AROOTDIR=c:/gs
 GSROOTDIR=$(AROOTDIR)/gs$(GS_DOT_VERSION)
 GS_DOCDIR=$(GSROOTDIR)/doc
-GS_LIB_DEFAULT=$(GSROOTDIR)/lib\;$(AROOTDIR)/fonts
+GS_LIB_DEFAULT=$(GSROOTDIR)/lib\;$(GSROOTDIR)/resource\;$(AROOTDIR)/fonts
 SEARCH_HERE_FIRST=1
 GS_INIT=gs_init.ps
 
@@ -69,11 +67,18 @@ JVERSION=6
 PSRCDIR=libpng
 !endif
 !ifndef PVERSION
-PVERSION=10201
+PVERSION=10208
 !endif
 
 !ifndef ZSRCDIR
 ZSRCDIR=zlib
+!endif
+
+# Define the jbig2dec library source location.
+# See jbig2.mak for more information.
+
+!ifndef JBIG2SRCDIR
+JBIG2SRCDIR=jbig2dec
 !endif
 
 # Define the directory where the icclib source are stored.
@@ -119,7 +124,7 @@ PLATOPT=
 !include $(GLSRCDIR)\wccommon.mak
 
 !ifndef FEATURE_DEVS
-FEATURE_DEVS=$(GLD)patlib.dev $(GLD)path1lib.dev $(GLD)hsblib.dev
+FEATURE_DEVS=$(GLD)patlib.dev $(GLD)path1lib.dev
 !endif
 !ifndef DEVICE_DEVS
 DEVICE_DEVS=$(DD)vga.dev

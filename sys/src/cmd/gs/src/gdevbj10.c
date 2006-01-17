@@ -1,22 +1,20 @@
 /* Copyright (C) 1990, 1995, 1997, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevbj10.c,v 1.4 2001/08/01 00:48:23 stefan911 Exp $*/
+/* $Id: gdevbj10.c,v 1.9 2004/08/04 19:36:12 stefan Exp $*/
 /* Canon Bubble Jet BJ-10e, BJ200, and BJ300 printer driver */
 #include "gdevprn.h"
 
@@ -124,12 +122,32 @@ const gx_device_printer far_data gs_bj200_device =
 
 /*
  * (<simon@pogner.demon.co.uk>, aka <sjwright@cix.compulink.co.uk>):
- * My bj10ex, which as far as I can tell is just like a bj10e, works
- * fine with the bj200 setup here.
+ * My bj10ex, which as far as I can tell is just like a bj10e, needs a
+ * bottom margin of 0.4" (actually, you must not print within 0.5" of
+ * the bottom; somewhere, an extra 0.1" is creeping in).
+ *
+ * (<jim.hague@acm.org>):
+ * I have a BJ10sx and the BJ10sx manual. This states that the top and
+ * bottom margins for the BJ10sx are 0.33" and 0.5". The latter may
+ * explain Simon's finding. The manual also instructs Win31 users to
+ * select 'BJ10e' as their driver, so presumably the margins will be
+ * identical and thus also correct for BJ10e. The values for the side
+ * margins given are identical to those above.
+ *
+ * As of 2nd Nov 2001 the BJ10 sx manual is at
+ * http://www.precision.com/Printer%20Manuals/Canon%20BJ-10sx%20Manual.pdf.
  */
 
+#define BJ10E_TOP_MARGIN		0.33
+#define BJ10E_BOTTOM_MARGIN		(0.50 + 0.04)
+
+private dev_proc_open_device(bj10e_open);
+
+private gx_device_procs prn_bj10e_procs =
+  prn_procs(bj10e_open, gdev_prn_output_page, gdev_prn_close);
+
 const gx_device_printer far_data gs_bj10e_device =
-  prn_device(prn_bj200_procs, "bj10e",
+  prn_device(prn_bj10e_procs, "bj10e",
 	DEFAULT_WIDTH_10THS,
 	DEFAULT_HEIGHT_10THS,
 	360,				/* x_dpi */
@@ -195,12 +213,32 @@ bj200_open(gx_device *pdev)
 	   printer centres the 8" print line on the page. */
 
 	static const float a4_margins[4] =
-	 {	BJ200_A4_SIDE_MARGIN, BJ200_BOTTOM_MARGIN,
-		BJ200_A4_SIDE_MARGIN, BJ200_TOP_MARGIN
+	 {	(float)BJ200_A4_SIDE_MARGIN, (float)BJ200_BOTTOM_MARGIN,
+		(float)BJ200_A4_SIDE_MARGIN, (float)BJ200_TOP_MARGIN
 	 };
 	static const float letter_margins[4] =
-	 {	BJ200_LETTER_SIDE_MARGIN, BJ200_BOTTOM_MARGIN,
-		BJ200_LETTER_SIDE_MARGIN, BJ200_TOP_MARGIN
+	 {	(float)BJ200_LETTER_SIDE_MARGIN, (float)BJ200_BOTTOM_MARGIN,
+		(float)BJ200_LETTER_SIDE_MARGIN, (float)BJ200_TOP_MARGIN
+	 };
+
+	gx_device_set_margins(pdev,
+		(pdev->width / pdev->x_pixels_per_inch <= 8.4 ?
+		 a4_margins : letter_margins),
+		true);
+	return gdev_prn_open(pdev);
+}
+
+private int
+bj10e_open(gx_device *pdev)
+{
+        /* See bj200_open() */
+	static const float a4_margins[4] =
+	 {	(float)BJ200_A4_SIDE_MARGIN, (float)BJ10E_BOTTOM_MARGIN,
+		(float)BJ200_A4_SIDE_MARGIN, (float)BJ10E_TOP_MARGIN
+	 };
+	static const float letter_margins[4] =
+	 {	(float)BJ200_LETTER_SIDE_MARGIN, (float)BJ10E_BOTTOM_MARGIN,
+		(float)BJ200_LETTER_SIDE_MARGIN, (float)BJ10E_TOP_MARGIN
 	 };
 
 	gx_device_set_margins(pdev,
@@ -214,16 +252,16 @@ bj200_open(gx_device *pdev)
 private int
 bj10e_print_page(gx_device_printer *pdev, FILE *prn_stream)
 {	int line_size = gx_device_raster((gx_device *)pdev, 0);
-	int xres = pdev->x_pixels_per_inch;
-	int yres = pdev->y_pixels_per_inch;
+	int xres = (int)pdev->x_pixels_per_inch;
+	int yres = (int)pdev->y_pixels_per_inch;
 	int mode = (yres == 180 ?
 			(xres == 180 ? 11 : 12) :
 			(xres == 180 ? 14 : 16));
 	int bytes_per_column = (yres == 180) ? 3 : 6;
 	int bits_per_column = bytes_per_column * 8;
 	int skip_unit = bytes_per_column * 3;
-	byte *in = (byte *)gs_malloc(8, line_size, "bj10e_print_page(in)");
-	byte *out = (byte *)gs_malloc(bits_per_column, line_size, "bj10e_print_page(out)");
+	byte *in = (byte *)gs_malloc(pdev->memory, 8, line_size, "bj10e_print_page(in)");
+	byte *out = (byte *)gs_malloc(pdev->memory, bits_per_column, line_size, "bj10e_print_page(out)");
 	int lnum = 0;
 	int skip = 0;
 	int code = 0;
@@ -404,9 +442,9 @@ notz:			;
 xit:	fputc(014, prn_stream);	/* form feed */
 	fflush(prn_stream);
 fin:	if ( out != 0 )
-		gs_free((char *)out, bits_per_column, line_size,
+		gs_free(pdev->memory, (char *)out, bits_per_column, line_size,
 			"bj10e_print_page(out)");
 	if ( in != 0 )
-		gs_free((char *)in, 8, line_size, "bj10e_print_page(in)");
+		gs_free(pdev->memory, (char *)in, 8, line_size, "bj10e_print_page(in)");
 	return code;
 }

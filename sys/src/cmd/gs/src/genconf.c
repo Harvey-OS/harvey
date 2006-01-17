@@ -1,22 +1,20 @@
 /* Copyright (C) 1993, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: genconf.c,v 1.4 2000/12/20 04:20:34 lpd Exp $ */
+/* $Id: genconf.c,v 1.10 2004/12/20 22:17:39 igor Exp $ */
 /* Generate configuration files */
 #include "stdpre.h"
 #include <assert.h>
@@ -42,6 +40,12 @@
  * genconf recognizes the following resource type switches in .dev files.
  * See the next section on command line switches for the meaning of
  * <name_prefix>.
+ *
+ *    -comp <name>
+ *
+ *	Adds compositor_(<name_prefix>_composite_<name>_type) to <gconfig.h>.
+ *	Used for gs_composite_type_t structures, whose identity may need to
+ *	passed through the command list.
  *
  *    -dev <device>
  *
@@ -133,6 +137,13 @@
  *	<opername> is (usually) the name of the source file in which the
  *	table appears.
  *
+ *    -plugin <plugin_name>
+ *
+ *	Adds plugin_(<name_prefix><plugin_name>_instantiate) to <gconfig.h>.
+ *	Used for plugins to be instantiated when Ghostscript
+ *	is started.  By convention, <plugin_name> is (almost always) the name
+ *	of the source file in which the plugin is defined.
+ *
  *    -ps <psname>
  *
  *	Adds psfile_("<psname>.ps",<len+3>), where <len> is the number of
@@ -198,7 +209,8 @@
  *
  *	Writes the list of library paths, links, and library file names
  *	on <lib.tr>.  -lo also writes the list of object file names,
- *	as for -o.
+ *	as for -o. This feature is obsolete and is not longer in use.
+ *      Use -ol instead.
  *
  *    -o[l] <obj.tr>
  *
@@ -271,13 +283,14 @@ typedef struct config_s {
 	    string_list_t sorted_resources;
 	    string_list_t resources;
 	    string_list_t devs;	/* also includes devs2 */
+	    string_list_t compositors;
 	    string_list_t fonts;
 	    string_list_t libs;
 	    string_list_t libpaths;
 	    string_list_t links;
 	    string_list_t objs;
 	} named;
-#define NUM_RESOURCE_LISTS 8
+#define NUM_RESOURCE_LISTS 9
 	string_list_t indexed[NUM_RESOURCE_LISTS];
     } lists;
     string_pattern_t lib_p;
@@ -300,6 +313,7 @@ static const config_t init_config = {
 static const string_list_t init_config_lists[] = {
     {"resource", 100, uniq_first},
     {"sorted_resource", 20, uniq_first},
+    {"-comp", 10, uniq_first},
     {"-dev", 100, uniq_first},
     {"-font", 50, uniq_first},
     {"-lib", 20, uniq_last},
@@ -309,20 +323,20 @@ static const string_list_t init_config_lists[] = {
 };
 
 /* Forward definitions */
-private void *mrealloc(P3(void *, size_t, size_t));
-int alloc_list(P1(string_list_t *));
-void dev_file_name(P1(char *));
-int process_replaces(P1(config_t *));
-int read_dev(P2(config_t *, const char *));
-int read_token(P3(char *, int, const char **));
-int add_entry(P4(config_t *, char *, const char *, int));
-string_item_t *add_item(P3(string_list_t *, const char *, int));
-void sort_uniq(P2(string_list_t *, bool));
-void write_list(P3(FILE *, const string_list_t *, const char *));
-void write_list_pattern(P3(FILE *, const string_list_t *, const string_pattern_t *));
-bool var_expand(P3(char *, char [MAX_STR], const config_t *));
-void add_definition(P4(const char *, const char *, string_list_t *, bool));
-string_item_t *lookup(P2(const char *, const string_list_t *));
+private void *mrealloc(void *, size_t, size_t);
+int alloc_list(string_list_t *);
+void dev_file_name(char *);
+int process_replaces(config_t *);
+int read_dev(config_t *, const char *);
+int read_token(char *, int, const char **);
+int add_entry(config_t *, char *, const char *, int);
+string_item_t *add_item(string_list_t *, const char *, int);
+void sort_uniq(string_list_t *, bool);
+void write_list(FILE *, const string_list_t *, const char *);
+void write_list_pattern(FILE *, const string_list_t *, const string_pattern_t *);
+bool var_expand(char *, char [MAX_STR], const config_t *);
+void add_definition(const char *, const char *, string_list_t *, bool);
+string_item_t *lookup(const char *, const string_list_t *);
 
 int
 main(int argc, char *argv[])
@@ -472,6 +486,7 @@ main(int argc, char *argv[])
 	    case 'h':
 		process_replaces(&conf);
 		fputs("/* This file was generated automatically by genconf.c. */\n", out);
+		write_list(out, &conf.lists.named.compositors, "%s\n");
 		write_list(out, &conf.lists.named.devs, "%s\n");
 		sort_uniq(&conf.lists.named.resources, true);
 		write_list(out, &conf.lists.named.resources, "%s\n");
@@ -744,6 +759,12 @@ add_entry(config_t * pconf, char *category, const char *item, int file_index)
 	/* Handle a few resources specially; just queue the rest. */
 	switch (category[0]) {
 #define IS_CAT(str) !strcmp(category, str)
+	    case 'c':
+		if (!IS_CAT("comp"))
+		    goto err;
+		pat = "compositor_(%scomposite_%%s_type)";
+		list = &pconf->lists.named.compositors;
+		goto pre;
 	    case 'd':
 		if (IS_CAT("dev"))
 		    pat = "device_(%s%%s_device)";
@@ -826,7 +847,10 @@ pre:		sprintf(template, pat, pconf->name_prefix);
 			    item, (uint)(strlen(item) + 3));
 		    item = str;
 		    break;
-		}
+		} else if (IS_CAT("plugin")) {
+		    pat = "plugin_(%s%%s_instantiate)";
+                    goto pre;
+                }
 		goto err;
 	    case 'r':
 		if (IS_CAT("replace")) {

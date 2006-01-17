@@ -1,22 +1,20 @@
 /* Copyright (C) 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpsu.h,v 1.4 2001/05/10 17:41:23 igorm Exp $ */
+/* $Id: gdevpsu.h,v 1.9 2003/03/20 20:27:46 alexcher Exp $ */
 /* Interface to PostScript-writing utilities */
 
 #ifndef gdevpsu_INCLUDED
@@ -36,7 +34,7 @@ typedef struct gx_device_pswrite_common_s {
 /* ---------------- Low level ---------------- */
 
 /* Write a 0-terminated array of strings as lines. */
-void psw_print_lines(P2(FILE *f, const char *const lines[]));
+int psw_print_lines(FILE *f, const char *const lines[]);
 
 /* ---------------- File level ---------------- */
 
@@ -44,31 +42,31 @@ void psw_print_lines(P2(FILE *f, const char *const lines[]));
  * Write the file header, up through the BeginProlog.  This must write to a
  * file, not a stream, because it may be called during finalization.
  */
-void psw_begin_file_header(P5(FILE *f, const gx_device *dev,
-			      const gs_rect *pbbox,
-			      gx_device_pswrite_common_t *pdpc, bool ascii));
+int psw_begin_file_header(FILE *f, const gx_device *dev,
+			   const gs_rect *pbbox,
+			   gx_device_pswrite_common_t *pdpc, bool ascii);
 
 /* End the file header.*/
-void psw_end_file_header(P1(FILE *f));
+int psw_end_file_header(FILE *f);
 
 /* End the file. */
-void psw_end_file(P5(FILE *f, const gx_device *dev,
-		     const gx_device_pswrite_common_t *pdpc,
-		     const gs_rect *pbbox, int page_count));
+int psw_end_file(FILE *f, const gx_device *dev,
+		  const gx_device_pswrite_common_t *pdpc,
+		  const gs_rect *pbbox, int page_count);
 
 /* ---------------- Page level ---------------- */
 
 /*
  * Write the page header.
  */
-void psw_write_page_header(P5(stream *s, const gx_device *dev,
-			      const gx_device_pswrite_common_t *pdpc,
-			      bool do_scale, long page_ord));
+int psw_write_page_header(stream *s, const gx_device *dev,
+			   const gx_device_pswrite_common_t *pdpc,
+			   bool do_scale, long page_ord,  int dictsize);
 /*
  * Write the page trailer.  We do this directly to the file, rather than to
  * the stream, because we may have to do it during finalization.
  */
-void psw_write_page_trailer(P3(FILE *f, int num_copies, int flush));
+int psw_write_page_trailer(FILE *f, int num_copies, int flush);
 
 #endif /* gdevpsu_INCLUDED */
 

@@ -1,26 +1,24 @@
 /* Copyright (C) 1993, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: igc.c,v 1.5 2001/10/12 21:37:08 ghostgum Exp $ */
+/* $Id: igc.c,v 1.15 2005/09/05 13:58:55 leonardo Exp $ */
 /* Garbage collector for Ghostscript */
 #include "memory_.h"
 #include "ghost.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "gsexit.h"
 #include "gsmdebug.h"
 #include "gsstruct.h"
@@ -41,9 +39,6 @@ private const bool I_FORCE_GLOBAL_GC = false;
 
 /* Define whether to bypass the collector entirely. */
 private const bool I_BYPASS_GC = false;
-
-/* Avoid including all of iname.h. */
-extern name_table *the_gs_name_table;
 
 /* Define an entry on the mark stack. */
 typedef struct {
@@ -72,18 +67,19 @@ struct gc_mark_stack_s {
 #define ms_size_min 50		/* min size for segment in free block */
 
 /* Forward references */
-private void gc_init_mark_stack(P2(gc_mark_stack *, uint));
-private void gc_objects_clear_marks(P1(chunk_t *));
-private void gc_unmark_names(P1(name_table *));
-private int gc_trace(P3(gs_gc_root_t *, gc_state_t *, gc_mark_stack *));
-private int gc_rescan_chunk(P3(chunk_t *, gc_state_t *, gc_mark_stack *));
-private int gc_trace_chunk(P3(chunk_t *, gc_state_t *, gc_mark_stack *));
-private bool gc_trace_finish(P1(gc_state_t *));
-private void gc_clear_reloc(P1(chunk_t *));
-private void gc_objects_set_reloc(P1(chunk_t *));
-private void gc_do_reloc(P3(chunk_t *, gs_ref_memory_t *, gc_state_t *));
-private void gc_objects_compact(P2(chunk_t *, gc_state_t *));
-private void gc_free_empty_chunks(P1(gs_ref_memory_t *));
+
+private void gc_init_mark_stack(gc_mark_stack *, uint);
+private void gc_objects_clear_marks(const gs_memory_t *mem, chunk_t *);
+private void gc_unmark_names(name_table *);
+private int gc_trace(gs_gc_root_t *, gc_state_t *, gc_mark_stack *);
+private int gc_rescan_chunk(chunk_t *, gc_state_t *, gc_mark_stack *);
+private int gc_trace_chunk(const gs_memory_t *mem, chunk_t *, gc_state_t *, gc_mark_stack *);
+private bool gc_trace_finish(gc_state_t *);
+private void gc_clear_reloc(chunk_t *);
+private void gc_objects_set_reloc(chunk_t *);
+private void gc_do_reloc(chunk_t *, gs_ref_memory_t *, gc_state_t *);
+private void gc_objects_compact(chunk_t *, gc_state_t *);
+private void gc_free_empty_chunks(gs_ref_memory_t *);
 
 /* Forward references for pointer types */
 private ptr_proc_unmark(ptr_struct_unmark);
@@ -100,7 +96,7 @@ refs_proc_reloc(igc_reloc_refs);	/* in igcref.c */
 /* Define this GC's procedure vector. */
 private const gc_procs_with_refs_t igc_procs = {
     igc_reloc_struct_ptr, igc_reloc_string, igc_reloc_const_string,
-    igc_reloc_ref_ptr, igc_reloc_refs
+    igc_reloc_param_string, igc_reloc_ref_ptr, igc_reloc_refs
 };
 
 /* Pointer type descriptors. */
@@ -176,6 +172,7 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
 	ms_entry body[ms_size_default];
     } ms_default;
     gc_mark_stack *mark_stack = &ms_default.stack;
+    const gs_memory_t *cmem;
 
     /* Optionally force global GC for debugging. */
 
@@ -185,6 +182,7 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
     /* Determine which spaces we are tracing and collecting. */
 
     spaces = *pspaces;
+    cmem = space_system->stable_memory;
     space_memories[1] = space_system;
     space_memories[2] = space_global;
     min_collect = max_trace = 2;
@@ -230,8 +228,8 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
     state.spaces = spaces;
     state.min_collect = min_collect_vm_space << r_space_shift;
     state.relocating_untraced = false;
-    state.heap = state.loc.memory->parent;
-    state.ntable = the_gs_name_table;
+    state.heap = state.loc.memory->non_gc_memory;
+    state.ntable = state.heap->gs_lib_ctx->gs_name_table;
 
     /* Register the allocators themselves as roots, */
     /* so we mark and relocate the change and save lists properly. */
@@ -262,7 +260,7 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
 
     for_collected_spaces(ispace)
 	for_space_chunks(ispace, mem, cp) {
-	gc_objects_clear_marks(cp);
+        gc_objects_clear_marks((const gs_memory_t *)mem, cp);
 	gc_strings_set_marks(cp, false);
     }
 
@@ -336,7 +334,7 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
 
 	if (!global)
 	    for_chunks(min_collect - 1, mem, cp)
-		more |= gc_trace_chunk(cp, &state, mark_stack);
+		more |= gc_trace_chunk((const gs_memory_t *)mem, cp, &state, mark_stack);
 
 	/* Handle mark stack overflow. */
 
@@ -381,7 +379,7 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
     /* relocation to wind up as o_untraced, not o_unmarked. */
 
     for_chunks(min_collect - 1, mem, cp)
-	gc_objects_clear_marks(cp);
+        gc_objects_clear_marks((const gs_memory_t *)mem, cp);
 
     end_phase("post-clear marks");
 
@@ -513,7 +511,7 @@ gs_gc_reclaim(vm_spaces * pspaces, bool global)
 		      (ulong) mem, total.allocated, total.used);
 	    gs_memory_status((gs_memory_t *) mem, &total);
 	    mem->gc_allocated = mem->allocated + total.allocated;
-	    mem->inherited = -mem->allocated;
+	    mem->inherited = -(int)mem->allocated;
 	}
 	mem = space_memories[ispace];
 	mem->previous_status = total;
@@ -576,7 +574,7 @@ ptr_string_unmark(enum_ptr_t *pep, gc_state_t * gcst)
 
 /* Unmark the objects in a chunk. */
 private void
-gc_objects_clear_marks(chunk_t * cp)
+gc_objects_clear_marks(const gs_memory_t *mem, chunk_t * cp)
 {
     if_debug_chunk('6', "[6]unmarking chunk", cp);
     SCAN_CHUNK_OBJECTS(cp)
@@ -592,7 +590,7 @@ gc_objects_clear_marks(chunk_t * cp)
 	      (ulong) size, (ulong) pre);
     o_set_unmarked(pre);
     if (proc != 0)
-	(*proc) (pre + 1, size, pre->o_type);
+        (*proc) (mem, pre + 1, size, pre->o_type);
     END_OBJECTS_SCAN
 }
 
@@ -639,6 +637,7 @@ gc_rescan_chunk(chunk_t * cp, gc_state_t * pstate, gc_mark_stack * pmstack)
     gs_gc_root_t root;
     void *comp;
     int more = 0;
+    const gs_memory_t *mem = gcst_get_memory_ptr( pstate );
 
     if (sbot > stop)
 	return 0;
@@ -686,7 +685,7 @@ gc_rescan_chunk(chunk_t * cp, gc_state_t * pstate, gc_mark_stack * pmstack)
 	    if (!o_is_untraced(pre))
 		o_set_unmarked(pre);
 	    if (proc != 0)
-		(*proc) (comp, size, pre->o_type);
+	        (*proc) (mem, comp, size, pre->o_type);
 	    more |= gc_trace(&root, pstate, pmstack);
 	}
     }
@@ -698,7 +697,7 @@ gc_rescan_chunk(chunk_t * cp, gc_state_t * pstate, gc_mark_stack * pmstack)
 /* We assume that pstate->min_collect > avm_system, */
 /* so we don't have to trace names. */
 private int
-gc_trace_chunk(chunk_t * cp, gc_state_t * pstate, gc_mark_stack * pmstack)
+gc_trace_chunk(const gs_memory_t *mem, chunk_t * cp, gc_state_t * pstate, gc_mark_stack * pmstack)
 {
     gs_gc_root_t root;
     void *comp;
@@ -741,7 +740,7 @@ gc_trace_chunk(chunk_t * cp, gc_state_t * pstate, gc_mark_stack * pmstack)
 		root.ptype = ptr_struct_type;
 		comp = pre + 1;
 		if (proc != 0)
-		    (*proc) (comp, size, pre->o_type);
+		    (*proc) (mem, comp, size, pre->o_type);
 		more |= gc_trace(&root, pstate, pmstack);
 	    }
 	}
@@ -754,7 +753,7 @@ gc_trace_chunk(chunk_t * cp, gc_state_t * pstate, gc_mark_stack * pmstack)
 /* Return -1 if we overflowed the mark stack, */
 /* 0 if we completed successfully without marking any new objects, */
 /* 1 if we completed and marked some new objects. */
-private int gc_extend_stack(P2(gc_mark_stack *, gc_state_t *));
+private int gc_extend_stack(gc_mark_stack *, gc_state_t *);
 private int
 gc_trace(gs_gc_root_t * rp, gc_state_t * pstate, gc_mark_stack * pmstack)
 {
@@ -827,7 +826,7 @@ gc_trace(gs_gc_root_t * rp, gc_state_t * pstate, gc_mark_stack * pmstack)
 	    mproc = ptr[-1].o_type->enum_ptrs;
 	    if (mproc == gs_no_struct_enum_ptrs ||
 		(ptp = (*mproc)
-		 (ptr, pre_obj_contents_size(ptr - 1),
+		 (gcst_get_memory_ptr(pstate), ptr, pre_obj_contents_size(ptr - 1),
 		  sp->index, &nep, ptr[-1].o_type, pstate)) == 0
 		) {
 		if_debug0('7', " - done\n");
@@ -1032,7 +1031,7 @@ gc_extend_stack(gc_mark_stack * pms, gc_state_t * pstate)
 		/* storage.  This can't happen. */
 		lprintf1("mark stack overflowed while outside collectible space at 0x%lx!\n",
 			 (ulong) cptr);
-		gs_abort();
+		gs_abort(pstate->heap);
 	    }
 	    if (cptr < cp->rescan_bot)
 		cp->rescan_bot = cptr, new = -1;
@@ -1190,6 +1189,9 @@ gc_do_reloc(chunk_t * cp, gs_ref_memory_t * mem, gc_state_t * pstate)
     if_debug_chunk('6', "[6]relocating in chunk", cp);
     SCAN_CHUNK_OBJECTS(cp)
 	DO_ALL
+#ifdef DEBUG
+	pstate->container = cp;
+#endif
     /* We need to relocate the pointers in an object iff */
     /* it is o_untraced, or it is a useful object. */
     /* An object is free iff its back pointer points to */
@@ -1207,6 +1209,9 @@ gc_do_reloc(chunk_t * cp, gs_ref_memory_t * mem, gc_state_t * pstate)
 	    if (proc != 0)
 		(*proc) (pre + 1, size, pre->o_type, pstate);
 	}
+#ifdef DEBUG
+	pstate->container = 0;
+#endif
     END_OBJECTS_SCAN
 }
 
@@ -1242,10 +1247,16 @@ igc_reloc_struct_ptr(const void /*obj_header_t */ *obj, gc_state_t * gcst)
 	else {
 #ifdef DEBUG
 	    /* Do some sanity checking. */
-	    if (back > gcst->space_local->chunk_size >> obj_back_shift) {
-		lprintf2("Invalid back pointer %u at 0x%lx!\n",
-			 back, (ulong) obj);
-		gs_abort();
+	    chunk_t *cp = gcst->container;
+
+	    if (cp != 0 && cp->cbase <= (byte *)obj && (byte *)obj <cp->ctop) {
+		if (back > (cp->ctop - cp->cbase) >> obj_back_shift) {
+		    lprintf2("Invalid back pointer %u at 0x%lx!\n",
+			     back, (ulong) obj);
+		    gs_abort(NULL);
+		}
+	    } else {
+		/* Pointed to unknown chunk. Can't check it, sorry. */
 	    }
 #endif
 	    {
@@ -1280,6 +1291,7 @@ gc_objects_compact(chunk_t * cp, gc_state_t * gcst)
 {
     chunk_head_t *chead = cp->chead;
     obj_header_t *dpre = (obj_header_t *) chead->dest;
+    const gs_memory_t *cmem = gcst->spaces.memories.named.system->stable_memory;
 
     SCAN_CHUNK_OBJECTS(cp)
 	DO_ALL
@@ -1298,7 +1310,7 @@ gc_objects_compact(chunk_t * cp, gc_state_t * gcst)
 		memmove(dpre, pre,
 			sizeof(obj_header_t) + size);
 	} else
-	    (*procs->compact) (pre, dpre, size);
+	    (*procs->compact) (cmem, pre, dpre, size);
 	dpre = (obj_header_t *)
 	    ((byte *) dpre + obj_size_round(size));
     }
@@ -1333,4 +1345,12 @@ gc_free_empty_chunks(gs_ref_memory_t * mem)
 		mem->pcc = 0;
 	}
     }
+}
+
+
+const gs_memory_t * gcst_get_memory_ptr(gc_state_t *gcst)
+{
+    vm_spaces spaces = gcst->spaces;
+    const gs_memory_t *cmem = space_system->stable_memory;	
+    return cmem;
 }

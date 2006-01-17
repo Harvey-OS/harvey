@@ -1,0 +1,656 @@
+% (C) 2002 Artifex, Inc.  All rights reserved.
+% 
+% This software is provided AS-IS with no warranty, either express or
+% implied.
+% 
+% This software is distributed under license and may not be copied,
+% modified or distributed except as expressly authorized under the terms
+% of the license contained in the file LICENSE in this distribution.
+% 
+% For more information about licensing, please refer to
+% http://www.ghostscript.com/licensing/. For information on
+% commercial licensing, go to http://www.artifex.com/licensing/ or
+% contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+% San Rafael, CA  94903, U.S.A., +1(415)492-9861.
+
+% $Id: gs_img.ps,v 1.3 2002/10/08 00:49:48 dan Exp $
+% image, colorimage, and imagemask implementation
+
+%
+% The design of the overprint facility in Ghostscript requires that color
+% specifications include the color space from which they were expressed,
+% even after conversion to the device color model. Directly including this
+% information in color specifications is usually not efficient, and is
+% difficult to integrate into the existing code structure. The alternative
+% approach taken is to extend a state mechanism through the device
+% interface, and make the current color space, or more specifically,
+% certain information about the current color space, a property of this
+% state.
+%
+% For such a mechanism to work, it is necessary to identify all changes
+% to the current color space. This is accomplished in the graphic library
+% by funneling all changes to the current color space through the
+% gs_setcolorspace procedure. At the PostScript interpreter level, this
+% result is achieved by forcing color space changes through the
+% setcolorspace operator.
+%
+% Aside from explicit use of setcolorspace, PostScript provides a few
+% implicit methods of changing the current color space. The setgray,
+% setrgbcolor, and setcmykcolor operators implicitly set the color space
+% while explicitly setting the current color. Similarly, the colorimage
+% operator and the traditional form of the image operator (5 operands)
+% both temporarily modify the current color space while an image is
+% being processed. The current file is concerned with the implementation
+% of these two operators. In addition, the traditional form of the
+% imagemask operator (5 operands), while it does not affect the current
+% color space, is closely related to the image operator and thus is
+% implemented in this file as well.
+%
+% In this implementation, all sampled objects are passed through one of
+% the internal operators .image1, .imagemask1, .image1alpha, .image2,
+% .image3, or .image4, each of which handles a specific ImageType value.
+%
+% The procedures in this file are responsible for constructing
+% image dictionaries from a set of stack entries. This is, in principle,
+% a trivial exercise. In practice it appears to be far more complex,
+% primarily due to the need to reconstruct the original state in the
+% event of an error. This is a particular problem for operators such as
+% image, which include data source objects that may, directly or
+% indirectly, be procedures. When these procedures are executed, the
+% image operator's operands must have been cleared from the operand
+% stack. Hence, the operand stack cannot be used to store state
+% information. Similarly, the dictionary stack also cannot be used to
+% store state information, as the data source procedures may depend on
+% a particular dictionary being on the top of this stack.
+%
+% Adobe's PostScript implementations determine the extent to which the
+% interpreter state is restored in the event of an error by the point at
+% which the error is detected. Errors in the image/colorimage/imagemask
+% operators that are detected before the data source procedures are
+% executed restore the state in effect before the image was processed.
+% Those that are detected as part of running the data source procedures
+% only attempt to restore the state to that in effect at the start of
+% the operator that failed (or at the conclusion of the data source
+% procedure, if this procedure failed to push a string).
+%
+% The implementation given here follows the Adobe convention. The
+% mechanism used is as follows:
+%
+%   1. Check that the stack has a sufficient number of operands, and
+%      that enough of them have the proper type to allow construction
+%      of the image dictionary. Any errors at this point are handled
+%      in the conventional manner.
+%
+%   2. Build the image dictionary, in the process clearing the image/
+%      colorimage/imagemask operands from the stack. No errors can
+%      occur during this process.
+%
+%      (Special precautions could be taken during this step to handle
+%      a limitcheck or VMError during the building of the image
+%      dictionary, but this essentially never occurs in practice and, if
+%      it did, is very unlikely to leave a useable state. Hence, we don't
+%      bother with this possibility.)
+%
+%   3. The .image operator is executed in a stopped context. If it
+%      returns abnormally, a check is made to see if the uppermost
+%      operand on the stack is a color image dictionary. If so, the
+%      original stack is created anew using this dictionary. (Because
+%      the image operand works via colorimage, some additional special
+%      handling is required in this case.)
+%
+
+
+%
+% Create a dictionary of operators for specific image and image mask types.
+% Each of these will always handle ImageType 1. Additional types are added
+% as they are supported in specific interpreter levels or versions.
+%
+% These dictionaries are in systemdict for historical reasons.
+%
+.currentglobal true .setglobal
+systemdict begin
+/.imagetypes
+  5 dict
+  dup 1 /.image1 load put
+def
+/.imagemasktypes
+  5 dict
+  dup 1 /.imagemask1 load put
+def
+end
+.setglobal
+
+% 
+% Build a dictionary of utility procedures and constants for use in
+% impelementing the image operators. This dictionary is in global VM but
+% is maintained (during initialization) in userdict. It should be pushed
+% onto the dictionary stack when constructing image-related procedures
+% and pseudo-operators.
+%
+% This dictionary is removed from userdict when initialization is
+% completed.
+%
+.currentglobal true .setglobal
+userdict /img_utils_dict 30 dict put
+img_utils_dict begin
+
+
+%
+% Some useful local data structures:
+%
+%   img_csary maps the number of components in an image to the implied
+%       color space.
+%
+%   img_decary is a prototype Decode array; subintervals of this array
+%       may be used for fewer than 4 color components.
+%
+%   img_params_ary is a list of the parameters to be built in the image
+%       dictionary for a colorimage invocation. ImageType is given a
+%       fixed value; the other parameters are in stack order (IMG_NComps
+%       is the number of components).
+%
+%   img_mask_params_ary is the equivalent of img_params_ary for imagemask
+%       invocations. Polarity is a proxy for Decode, and is replaced
+%       by the Decode key in the image dictionary.
+%
+%   img_mask_check_ary is the set of parameters that must be present in
+%       an image dictionary generated by an imagemask invocation. This
+%       differs from img_mask_params_ary in that Decode replaces Polarity.
+%
+/img_csary [ null /DeviceGray null /DeviceRGB /DeviceCMYK ] def
+/img_decary [ 0 1  0 1  0 1  0 1 ] def
+
+/img_params_ary
+  [
+    /ImageType  /IMG_NComps  /MultipleDataSources  /DataSource
+    /ImageMatrix  /BitsPerComponent  /Height  /Width   /Decode
+  ]
+def
+/img_check_ary //img_params_ary def
+/img_unbuild_ary
+ //img_params_ary 1 1 index length 2 sub getinterval
+def
+
+/img_mask_params_ary
+  [ /ImageType  /DataSource  /ImageMatrix  /Polarity  /Height  /Width ]
+def
+/img_mask_check_ary
+  [
+    /ImageType  /BitsPerComponent
+    /DataSource  /ImageMatrix  /Decode  /Height  /Width
+  ]
+def
+/img_mask_unbuild_ary
+ //img_mask_check_ary 2 1 index length 2 sub getinterval
+def
+
+
+%
+%   <?any?>  <array>   img_check_keys   <?any?>  <bool>
+%
+% Verify that:
+%   that there are at least two entries on the stack, and
+%   the second (lower) entry is a dictionary, and
+%   that dictionary contains all of the keys in the array
+%
+% If any one of these conditions does not hold, pop the array and push
+% false; otherwise pop the array and push true. This utility is used by
+% the colorimage and imagematrix procedures to determine if .image left
+% the image dictionary on the stack after an abnormal return.
+%
+/img_check_keys
+  {
+    count 2 ge
+      {
+        1 index type /dicttype eq
+          {
+            true exch
+              {
+                2 index exch known and
+                dup not
+                  { exit }
+                if
+              }
+            forall
+          }
+          { pop //false }
+        ifelse
+      }
+      { pop //false }
+    ifelse
+  }
+.bind def
+
+%
+% Procedures to convert a set of stack entries to a dictionary. There is
+% a procedure associated with each key, though most keys use the same
+% procedure. The dictionary to be built is at the top of the dictionary
+% stack. Stack handling for the procedures is:
+%
+%   <?val0?> ... <?val(n - 1)?>  <key>   proc   -
+%
+% Parameters are handle in inverse-stack order, so inter-parameter
+% dependencies that on the stack can generally be used here.
+%
+/img_params_dict
+  mark
+    /ImageType { 1 def } .bind
+
+    /IMG_NComps { exch def } .bind      % number of components
+    /MultipleDataSources 1 index
+    /Width 1 index
+    /Height 1 index
+    /ImageMatrix 1 index
+    /BitsPerComponent 1 index
+    /DataSource 1 index
+
+    % Polarity is a proxy for Decode; it never appears in a dictionary
+    /Polarity
+      {
+        pop
+          { { 1 0 } }
+          { { 0 1 } }
+        ifelse
+        /Decode exch cvlit def
+      }
+    .bind
+
+    % the definition of Decode is based on the number of components
+    /Decode { //img_decary 0 IMG_NComps 2 mul getinterval def } .bind
+  .dicttomark
+def
+
+%
+%    <oper_0>  ...  <oper_n>  <array>   img_build_dict   <dict>
+%
+% Build a dictionary. This will always be done in local VM. The array is
+% a list of the keys to be associated with operands on the stack, in
+% inverse stack order (topmost element first). The caller should verify
+% that the dictionary can be built successfully (except for a possible
+% VMerror) before calling this routine.
+%
+/img_build_dict
+  {
+    % build the dictionary in local VM; all for 2 extra entries
+    .currentglobal false .setglobal
+    1 index length 2 add dict
+    exch .setglobal
+    begin
+
+    % process all keys in the array
+      { //img_params_dict 1 index get exec }
+    forall
+
+    % if BitsPerComponent is not yet defined, define it to be 1
+    currentdict /BitsPerComponent known not
+      { /BitsPerComponent 1 def }
+    if
+
+    currentdict end
+  }
+.bind def
+
+%
+%   <dict>  <array>   img_unbuild_dict   <oper_0>  ...  <oper_n>
+%
+% "Unbuild" a dictionary: spread the contents the dictionary back onto the
+% stack, in the inverse of the order indicated in the array (inverse is
+% used as this order is more convenient for img_build_dict, which is
+% expected to be invoked far more frequently).
+%
+/img_unbuild_dict
+  {
+    exch begin
+    dup length 1 sub -1 0
+      { 1 index exch get load exch }
+    for
+    pop
+    end
+  }
+.bind def
+
+
+%
+%   <width>  <height>  <bits/component>  <matrix>  <dsrc0> ...
+%   <multi>  <ncomp>  <has_alpha>
+%   img_build_image_dict
+%   <dict>  <has_alpha>
+%
+% Build the dictionary corresponding to a colorimage operand stack. This
+% routine will check just enough of the stack to verify that the
+% dictionary can be built, and will generate the appropriate error if this
+% is not the case.
+%
+% The <has_alpha> boolean is used to support the Next alphaimage extension.
+%
+% At the first level, errors in this procedure are reported as colorimage
+% errors. The error actually reported will usually be determined by the
+% pseudo-operator which invokes this routine.
+%
+/img_build_image_dict
+  {
+    % Veify that at least 8 operands are available, and that the top three
+    % operands have the expected types
+    count 8 lt
+      { /.colorimage cvx /stackunderflow signalerror }
+    if
+    3 copy
+    type /booleantype ne exch
+    type /integertype ne or exch
+    type /booleantype ne or
+      { /.colorimage cvx /typecheck signalerror }
+    if
+
+    % verify that the number of components is 1, 3, or 4
+    1 index 1 lt 2 index 2 eq or 2 index 4 gt or
+      { /.colorimage cvx /rangecheck signalerror }
+    if
+
+    % Verify that the required number of operands are present if multiple
+    % data sources are being used. If this test is successful, convert
+    % the data sources to an array (in local VM).
+    2 index
+      {
+        % if an alpha component is present, this adds one more component
+        2 copy
+          { 1 add }
+        if
+        dup count 9 sub gt
+          { /.colorimage cvx /stackunderflow signalerror }
+        if
+
+        % build the DataSource array in local VM
+        dup .currentglobal false .setglobal exch array exch .setglobal
+
+        % stack: <w> <h> <bps> <mtx> <d0> ... <multi> <n> <alpha> <n'> <array>
+        5 1 roll 4 add 3 roll astore 4 1 roll
+      }
+    if
+
+    % the image dictionary can be built; do so
+    % stack: <w> <h> <bps> <mtx> <dsrc|dsrc_array> <multi> <n> <alpha>
+    8 1 roll //img_params_ary //img_build_dict exec exch
+  }
+.bind def
+
+%
+%   <?dict?>
+%   img_unbuild_image_dict
+%   <width>  <height>  <bits/component>  <matrix>  <dsrc0> ...
+%   <multi>  <ncomp>
+%
+% If the top entry of the stack is a dictionary that has the keys required
+% by a colorimage dictionary, unpack that dictionary onto the stack.
+% Otherwise just leave things as they are. Note that the <has_alpha>
+% parameter is not pushd onto the stack.
+%
+/img_unbuild_image_dict
+  {
+    //img_check_ary //img_check_keys exec
+      {
+        //img_unbuild_ary //img_unbuild_dict exec
+        1 index type /booleantype eq
+          {
+            1 index
+              { 3 1 roll aload length 2 add -2 roll }
+            if
+          }
+        if
+      }
+    if
+  }
+.bind def
+
+
+%
+%   <width>  <height>  <polarity>  <matrix>  <dsrc>
+%   img_unbuild_imagemask_dict
+%   <dict>
+%
+% Build the dictionary corresponding to an imagemask stack. This routine
+% will verify that the appropriate number of operands are on the stack,
+% and that polarity is a boolean. This is all that is necessary to build
+% the dictionary.
+%
+/img_build_imagemask_dict
+  {
+    % check for proper number of operands
+    count 5 lt
+      { /imagemask load /stackunderflow signalerror }
+    if
+
+    % verify that polarity is a boolean
+    2 index type /booleantype ne
+      { /imagemask load /typecheck signalerror }
+    if
+
+    % the imagemask dictionary can be built; do so
+    //img_mask_params_ary //img_build_dict exec
+  }
+.bind def
+
+%
+%   <?dict?>
+%   img_unbuild_imagemask_dict
+%   <width>  <height>  <polarity>  <matrix>  <dsrc>
+%
+% If the top entry of the stack is a dictionary that has the keys rquired
+% by an imagemask dictionary, unpack that dictionary onto the stack.
+% Otherwise just leave things as they are.
+%
+/img_unbuild_imagemask_dict
+  {
+    //img_mask_check_ary //img_check_keys exec
+      {
+        //img_mask_unbuild_ary //img_unbuild_dict exec
+        3 -1 roll
+        dup type dup /arraytype eq exch /packedarraytype eq or
+        1 index rcheck and
+          { 0 get 1 eq }
+        if
+        3 1 roll
+      }
+    if
+  }
+.bind def
+
+
+%
+%   <width>  <height>  <bits/component>  <matrix>  <dsrc_0> ...
+%   <multi>  <ncomp>  <has_alpha>
+%   .colorimage 
+%   -
+%
+% Convert the image/colorimage operator from their traditional form to
+% the dictionary form. The <has_alpha> operand is used ot support the
+% Next alphaimage extension.
+%
+% Error handling for these operators is a bit complex, due to the stack
+% handling required of operators that potentially invoke procedures.
+% This problem is discussed in the comment above. The facts relevant to
+% this particular implementation are:
+%
+%   1. The .image1 (or .alphaimage) operator is executed in a stopped
+%      context, so that we can undo the gsave context in the event of
+%      an error.
+%
+%   2. In the event of an error, the stack is examined to see if the
+%      dictionary passed to .image1 (.alphaimage) is still present.
+%      If so, this dictionary is "unpacked" onto the stack to re-
+%      create the original stack. The <has_alpha> parameter is not
+%      pushed onto the stack, as it is not required for any of the
+%      pseudo-operators than invoke this procedure.
+%
+%   3. The use of pseudo-operators in this case may yield incorrect
+%      results for late-detected errors, as the stack depth will be
+%      restored (even though the stack is not). This is, however, no
+%      worse than the prior (level >= 2) code, so it should cause no
+%      new problems.
+%
+/.colorimage
+  {
+    % build the image dictionary
+    //img_build_image_dict exec
+
+    % execute .image1 in a stopped context
+      {
+        gsave
+        0 .setoverprintmode             % disable overprint mode for images
+        //img_csary 2 index /IMG_NComps get get setcolorspace
+          { .alphaimage }
+          { .image1 }
+        ifelse
+      }
+    stopped
+    grestore
+      {
+        //img_unbuild_image_dict exec
+        /.colorimage cvx $error /errorname get
+        signalerror
+      }
+    if
+  }
+.bind def
+
+
+% 
+%   <width>  <height>  <bits/component>  <matrix>  <dsrc_0> ...
+%   <multi>  <ncomp>
+%   colorimage 
+%   -
+%
+% Build the colorimage pseudo-operator only if setcolorscreen is visible.
+%
+systemdict /setcolorscreen .knownget
+  {
+    type /operatortype eq
+      {
+        /colorimage 
+          {
+             //false
+               //.colorimage
+             stopped
+               { /colorimage load  $error /errorname get signalerror }
+             if
+          }
+        .bind systemdict begin odef end
+      }
+    if
+  }
+if
+
+
+%
+%   width  height  bits_per_component  matrix  data_src   image   -
+%   
+%   <dict>   image   -
+%
+% Some special handling is required for ImageType 2 (Display PostScript
+% pixmap images) so as to set the appropriate color space as the current
+% color space.
+%
+/image
+  {
+    dup type /dicttype eq languagelevel 2 ge and
+      { 
+        dup /ImageType get dup 2 eq
+          {
+            % verify the ImageType 2 is supported
+            //.imagetypes exch known
+              {
+                %
+                % Set either DevicePixel or DeviceRGB as the current
+                % color space. DevicePixel is used if the image data is
+                % to be copied directly, with only a geometric
+                % transformation (PixelCopy true). The use of DeviceRGB
+                % in the alternate case is not, in general, correct, and
+                % reflects a current implementation limitation. Ideally,
+                % an intermediate color space should be used only if
+                % the source and destination color models vary; otherwise
+                % the native color space corresponding to the color model
+                % should be used.
+                %
+                % The mechanism to determine depth for the DevicePixel
+                % color space when BitsPerPixel is not available is 
+                % somewhat of a hack.
+                %
+                gsave
+                0 .setoverprintmode     % disable overprintmode for images
+                dup /PixelCopy .knownget dup
+                  { pop }
+                if
+                  {
+                      [
+                        /DevicePixel
+                        currentpagedevice dup /BitsPerPixel .knownget
+                          { exch pop }
+                          {
+                            /GrayValues .knownget not
+                              { 2 }     % try a guess
+                            if
+                            ln 2 ln div round cvi
+                          }
+                        ifelse
+                      ]
+                  }
+                  { /DeviceRGB }
+                ifelse
+                setcolorspace
+                //.imagetypes 2 get
+                stopped
+                grestore
+                  { /image load $error /errorname get signalerror }
+                if
+              }
+              { /image load /undefined signalerror }
+            ifelse
+          }
+          {
+            gsave
+            0 .setoverprintmode         % disable overprintmode for images
+            //.imagetypes exch get
+            stopped
+            grestore
+              { /image load $error /errorname get signalerror }
+            if
+          }
+        ifelse
+      }
+      { 
+        //false 1 //false
+          //.colorimage
+        stopped
+          { /image load $error /errorname get signalerror }
+        if
+      }
+    ifelse
+  }
+.bind systemdict begin odef end
+
+
+%
+%   width  height  polarity  matrix  datasrc   imagemask   -
+%
+% See the comment preceding the definition of .colorimage for information
+% as to the handling of error conditions.
+%
+/imagemask
+  {
+    dup type /dicttype eq languagelevel 2 ge and
+      { dup /ImageType get //.imagemasktypes exch get exec }
+      {
+        //img_build_imagemask_dict exec
+          { .imagemask1 }
+        stopped
+          {
+            //img_unbuild_imagemask_dict exec
+            /imagemask load $error /errorname get signalerror
+          }
+        if
+      }
+    ifelse
+  }
+.bind systemdict begin odef end
+
+end        % img_utils_dict
+.setglobal  % restore VM mode

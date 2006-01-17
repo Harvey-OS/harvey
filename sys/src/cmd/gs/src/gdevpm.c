@@ -1,22 +1,20 @@
 /* Copyright (C) 1992, 1993, 1994, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: gdevpm.c,v 1.4 2001/03/13 07:09:28 ghostgum Exp $ */
+/* $Id: gdevpm.c,v 1.10 2004/09/20 22:14:59 dan Exp $ */
 /*
  * OS/2 Presentation manager driver
  *
@@ -52,7 +50,6 @@
 #include <stdlib.h>
 #include "gx.h"
 #include "gserrors.h"
-#include "gsexit.h"		/* for gs_exit_status */
 #include "gxdevice.h"
 
 #include "gp.h"
@@ -72,8 +69,8 @@
 
 /* Initial values for width and height */
 #define INITIAL_RESOLUTION 96
-#define INITIAL_WIDTH (INITIAL_RESOLUTION * 85 / 10 + 1)
-#define INITIAL_HEIGHT (INITIAL_RESOLUTION * 11 + 1)
+#define INITIAL_WIDTH ((INITIAL_RESOLUTION * 85 + 5) / 10)
+#define INITIAL_HEIGHT ((INITIAL_RESOLUTION * 110 + 5) / 10)
 
 /* A macro for casting the device argument */
 #define pmdev ((gx_device_pm *)dev)
@@ -157,7 +154,7 @@ gx_device_pm far_data gs_os2dll_device =
 			INITIAL_WIDTH, INITIAL_HEIGHT,
 			INITIAL_RESOLUTION, INITIAL_RESOLUTION),
     {0},			/* std_procs */
-    8,				/* BitsPerPixel */
+    24,				/* BitsPerPixel */
     5000,			/* UpdateInterval */
     "\0",			/* GSVIEW */
     1				/* is DLL device */
@@ -170,7 +167,7 @@ gx_device_pm far_data gs_os2pm_device =
 			INITIAL_WIDTH, INITIAL_HEIGHT,
 			INITIAL_RESOLUTION, INITIAL_RESOLUTION),
     {0},			/* std_procs */
-    8,				/* BitsPerPixel */
+    24,				/* BitsPerPixel */
     5000,			/* UpdateInterval */
     "\0",			/* GSVIEW */
     0				/* is not DLL device */
@@ -570,9 +567,11 @@ pm_close(gx_device * dev)
 
 /* Map a r-g-b color to the colors available under PM */
 gx_color_index
-pm_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
-		 gx_color_value b)
+pm_map_rgb_color(gx_device * dev, const gx_color_value cv[])
 {
+    gx_color_value r = cv[0];
+    gx_color_value g = cv[1];
+    gx_color_value b = cv[2];
     switch (dev->color_info.depth) {
 	case 24:
 	    return ((b >> (gx_color_value_bits - 8)) << 16) +
@@ -618,12 +617,9 @@ pm_map_rgb_color(gx_device * dev, gx_color_value r, gx_color_value g,
 		return (gx_no_color_index);	/* not found - dither instead */
 	    }
 	case 4:
-	    if ((r == g) && (g == b) && (r >= gx_max_color_value / 3 * 2 - 1)
-		&& (r < gx_max_color_value / 4 * 3))
-		return ((gx_color_index) 8);	/* light gray */
-	    return pc_4bit_map_rgb_color(dev, r, g, b);
+	    return pc_4bit_map_rgb_color(dev, cv);
     }
-    return (gx_default_map_rgb_color(dev, r, g, b));
+    return (gx_default_map_rgb_color(dev, cv));
 }
 
 /* Map a color code to r-g-b. */
@@ -653,10 +649,7 @@ pm_map_color_rgb(gx_device * dev, gx_color_index color,
 	    }
 	    break;
 	case 4:
-	    if (color == 8)	/* VGA light gray */
-		prgb[0] = prgb[1] = prgb[2] = (gx_max_color_value / 4 * 3);
-	    else
-		pc_4bit_map_color_rgb(dev, color, prgb);
+	    pc_4bit_map_color_rgb(dev, color, prgb);
 	    break;
 	default:
 	    prgb[0] = prgb[1] = prgb[2] =
@@ -849,10 +842,18 @@ pm_put_params(gx_device * dev, gs_param_list * plist)
 	pmdev->bmi->cclrImportant = pmdev->nColors;
 	pm_makepalette(pmdev);
 	/* erase bitmap - before window gets redrawn */
-	(*dev_proc(dev, fill_rectangle)) (dev,
-					  0, 0, dev->width, dev->height,
-				   pm_map_rgb_color(dev, gx_max_color_value,
-				   gx_max_color_value, gx_max_color_value));
+	{
+	    int i;
+	    gx_color_value cv[GX_DEVICE_COLOR_MAX_COMPONENTS];
+	    for (i=0; i<GX_DEVICE_COLOR_MAX_COMPONENTS; i++)
+		cv[i] = (pmdev->color_info.polarity == GX_CINFO_POLARITY_ADDITIVE)
+		    ? gx_max_color_value : 0;
+	    dev_proc(pmdev, fill_rectangle)((gx_device *)pmdev,
+		     0, 0, pmdev->width, pmdev->height,
+		     pmdev->procs.encode_color((gx_device *)pmdev, cv));
+	}
+
+
 	/* cause scroll bars to be redrawn */
 	/* need to signal gspmdrv that bitmap size has changed */
 	/* or perhaps gspmdrv can check if the bitmap size has */
@@ -1123,32 +1124,115 @@ pm_update(gx_device_pm * pmdev)
     pmdev->updating = TRUE;
 }
 
+/*
+ * This is a utility routine to build the display device's color_info
+ * structure (except for the anti alias info).
+ */
+private void
+set_color_info(gx_device_color_info * pdci, int nc, int depth, int maxgray, int maxcolor)
+{
+    pdci->num_components = pdci->max_components = nc;
+    pdci->depth = depth;
+    pdci->gray_index = 0;
+    pdci->max_gray = maxgray;
+    pdci->max_color = maxcolor;
+    pdci->dither_grays = maxgray + 1;
+    pdci->dither_colors = maxcolor + 1;
+    pdci->separable_and_linear = GX_CINFO_UNKNOWN_SEP_LIN;
+    switch (nc) {
+	case 1:
+	    pdci->polarity = GX_CINFO_POLARITY_ADDITIVE;
+	    pdci->cm_name = "DeviceGray";
+	    break;
+	case 3:
+	    pdci->polarity = GX_CINFO_POLARITY_ADDITIVE;
+	    pdci->cm_name = "DeviceRGB";
+	    break;
+	case 4:
+	    pdci->polarity = GX_CINFO_POLARITY_SUBTRACTIVE;
+	    pdci->cm_name = "DeviceCMYK";
+	    break;
+	default:
+	    break;
+    }
+}
+
+/*
+ * This is an utility routine to set up the color procs for the display
+ * device.  The display device can change its setup.
+ */
+private void
+set_color_procs(gx_device * pdev, 
+	dev_t_proc_encode_color((*encode_color), gx_device),
+	dev_t_proc_decode_color((*decode_color), gx_device),
+	dev_t_proc_get_color_mapping_procs((*get_color_mapping_procs), gx_device),
+	dev_t_proc_get_color_comp_index((*get_color_comp_index), gx_device))
+{
+#if 0				/* These procs are no longer used */
+    pdev->procs.map_rgb_color = encode_color;
+    pdev->procs.map_color_rgb = decode_color;
+#endif
+    pdev->procs.get_color_mapping_procs = get_color_mapping_procs;
+    pdev->procs.get_color_comp_index = get_color_comp_index;
+    pdev->procs.encode_color = encode_color;
+    pdev->procs.decode_color = decode_color;
+}
+
+/*
+ * This is an utility routine to set up the color procs for the display
+ * device.  This routine is used when the display device is Gray.
+ */
+private void
+set_gray_color_procs(gx_device * pdev, 
+	dev_t_proc_encode_color((*encode_color), gx_device),
+	dev_t_proc_decode_color((*decode_color), gx_device))
+{
+    set_color_procs(pdev, encode_color, decode_color,
+	gx_default_DevGray_get_color_mapping_procs,
+	gx_default_DevGray_get_color_comp_index);
+}
+
+/*
+ * This is an utility routine to set up the color procs for the display
+ * device.  This routine is used when the display device is RGB.
+ */
+private void
+set_rgb_color_procs(gx_device * pdev, 
+	dev_t_proc_encode_color((*encode_color), gx_device),
+	dev_t_proc_decode_color((*decode_color), gx_device))
+{
+    set_color_procs(pdev, encode_color, decode_color,
+	gx_default_DevRGB_get_color_mapping_procs,
+	gx_default_DevRGB_get_color_comp_index);
+}
+
 private uint
 pm_set_bits_per_pixel(gx_device_pm * pmdev, int bpp)
 {
-    static const gx_device_color_info pm_24bit_color = dci_color(24, 255, 255);
-    static const gx_device_color_info pm_8bit_color = dci_color(8, 31, 4);
-    static const gx_device_color_info pm_4bit_color = dci_pc_4bit;
-    static const gx_device_color_info pm_2color = dci_black_and_white;
-    /* remember old anti_alias info */
-    gx_device_anti_alias_info anti_alias = pmdev->color_info.anti_alias;
+    gx_device * pdev = (gx_device *) pmdev;
+    gx_device_color_info dci = pmdev->color_info;
 
     switch (bpp) {
 	case 24:
-	    pmdev->color_info = pm_24bit_color;
+	    set_color_info(&dci, 3, bpp, 255, 255);
+	    set_rgb_color_procs(pdev, pm_map_rgb_color, pm_map_color_rgb);
 	    pmdev->nColors = (1 << 24);
 	    break;
 	case 8:
 	    /* use 64 static colors and 166 dynamic colors from 8 planes */
-	    pmdev->color_info = pm_8bit_color;
+	    set_color_info(&dci, 3, 8, 7, 31);
+	    set_rgb_color_procs(pdev, pm_map_rgb_color, pm_map_color_rgb);
 	    pmdev->nColors = 64;
 	    break;
 	case 4:
-	    pmdev->color_info = pm_4bit_color;
+	    set_color_info(&dci, 3, 4, 1, 1);
+	    set_rgb_color_procs(pdev, pm_map_rgb_color, pm_map_color_rgb);
 	    pmdev->nColors = 16;
 	    break;
 	case 1:
-	    pmdev->color_info = pm_2color;
+	    set_color_info(&dci, 1, 1, 1, 0);
+	    set_gray_color_procs(pdev, gx_default_gray_encode,
+					gx_default_w_b_map_color_rgb);
 	    pmdev->nColors = 2;
 	    break;
 	default:
@@ -1156,7 +1240,11 @@ pm_set_bits_per_pixel(gx_device_pm * pmdev, int bpp)
     }
     pmdev->BitsPerPixel = bpp;
     /* restore old anti_alias info */
-    pmdev->color_info.anti_alias = anti_alias;
+    dci.anti_alias = pmdev->color_info.anti_alias;
+    pmdev->color_info = dci;
+    /* Set the mask bits, etc. even though we are setting linear: unknown */
+    set_linear_color_bits_mask_shift(pdev);
+
     return 0;
 }
 

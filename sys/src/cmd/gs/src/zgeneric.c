@@ -1,22 +1,20 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: zgeneric.c,v 1.3 2000/09/19 19:00:54 lpd Exp $ */
+/* $Id: zgeneric.c,v 1.8 2004/08/04 19:36:13 stefan Exp $ */
 /* Array/string/dictionary generic operators for PostScript */
 #include "memory_.h"
 #include "ghost.h"
@@ -39,9 +37,9 @@
 /* more efficient implementation of forall. */
 
 /* Forward references */
-private int zcopy_integer(P1(i_ctx_t *));
-private int zcopy_interval(P1(i_ctx_t *));
-private int copy_interval(P5(i_ctx_t *, os_ptr, uint, os_ptr, client_name_t));
+private int zcopy_integer(i_ctx_t *);
+private int zcopy_interval(i_ctx_t *);
+private int copy_interval(i_ctx_t *, os_ptr, uint, os_ptr, client_name_t);
 
 /* <various1> <various2> copy <various> */
 /* <obj1> ... <objn> <int> copy <obj1> ... <objn> <obj1> ... <objn> */
@@ -133,7 +131,7 @@ zlength(i_ctx_t *i_ctx_p)
 	case t_name: {
 	    ref str;
 
-	    name_string_ref(op, &str);
+	    name_string_ref(imemory, op, &str);
 	    make_int(op, r_size(&str));
 	    return 0;
 	}
@@ -174,7 +172,7 @@ zget(i_ctx_t *i_ctx_p)
 
 	    check_type(*op, t_integer);
 	    check_read(*op1);
-	    code = array_get(op1, op->value.intval, op1);
+	    code = array_get(imemory, op1, op->value.intval, op1);
 	    if (code < 0) {	/* Might be a stackunderflow reported as typecheck. */
 		if (code == e_typecheck)
 		    return_op_typecheck(op1);
@@ -201,6 +199,7 @@ zput(i_ctx_t *i_ctx_p)
 
     switch (r_type(op2)) {
 	case t_dictionary:
+	    if (i_ctx_p->in_superexec == 0)
 	    check_dict_write(*op2);
 	    {
 		int code = idict_put(op2, op1, op);
@@ -392,11 +391,11 @@ zputinterval(i_ctx_t *i_ctx_p)
 /* <array|packedarray|string> <<element> proc> forall - */
 /* <dict> <<key> <value> proc> forall - */
 private int
-    array_continue(P1(i_ctx_t *)),
-    dict_continue(P1(i_ctx_t *)),
-    string_continue(P1(i_ctx_t *)),
-    packedarray_continue(P1(i_ctx_t *));
-private int forall_cleanup(P1(i_ctx_t *));
+    array_continue(i_ctx_t *),
+    dict_continue(i_ctx_t *),
+    string_continue(i_ctx_t *),
+    packedarray_continue(i_ctx_t *);
+private int forall_cleanup(i_ctx_t *);
 private int
 zforall(i_ctx_t *i_ctx_p)
 {
@@ -517,7 +516,7 @@ packedarray_continue(i_ctx_t *i_ctx_p)
 
 	r_dec_size(obj, 1);
 	push(1);
-	packed_get(packed, op);
+	packed_get(imemory, packed, op);
 	obj->value.packed = packed_next(packed);
 	esp += 2;
 	*esp = obj[1];
@@ -601,7 +600,7 @@ copy_interval(i_ctx_t *i_ctx_p /* for ref_assign_old */, os_ptr prto,
 		ref elt;
 
 		for (i = 0; i < fromsize; i++, pdest++) {
-		    packed_get(packed, &elt);
+		    packed_get(imemory, packed, &elt);
 		    ref_assign_old(prto, pdest, &elt, cname);
 		    packed = packed_next(packed);
 		}

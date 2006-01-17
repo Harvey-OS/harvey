@@ -1,31 +1,30 @@
-/* Copyright (C) 1992, 1995, 1998, 1999 artofcode LLC.  All rights reserved.
+/* Copyright (C) 1992-2004 artofcode LLC.  All rights reserved.
   
-  This file is part of AFPL Ghostscript.
+  This software is provided AS-IS with no warranty, either express or
+  implied.
   
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
+  This software is distributed under license and may not be copied,
+  modified or distributed except as expressly authorized under the terms
+  of the license contained in the file LICENSE in this distribution.
   
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
+  For more information about licensing, please refer to
+  http://www.ghostscript.com/licensing/. For information on
+  commercial licensing, go to http://www.artifex.com/licensing/ or
+  contact Artifex Software, Inc., 101 Lucas Valley Road #110,
+  San Rafael, CA  94903, U.S.A., +1(415)492-9861.
 */
 
-/*$Id: iccfont.c,v 1.2.6.1 2002/01/09 21:52:04 giles Exp $ */
+/* $Id: iccfont.c,v 1.11 2004/10/26 02:50:56 giles Exp $ */
 /* Initialization support for compiled fonts */
 
 #include "string_.h"
 #include "ghost.h"
 #include "gsstruct.h"		/* for iscan.h */
+#include "gscencs.h"
 #include "gsmatrix.h"
 #include "gxfont.h"		/* for ifont.h */
 #include "ccfont.h"
-#include "errors.h"
+#include "ierrors.h"
 #include "ialloc.h"
 #include "idict.h"
 #include "ifont.h"
@@ -43,7 +42,7 @@
 /* ------ Private code ------ */
 
 /* Forward references */
-private int cfont_ref_from_string(P4(i_ctx_t *, ref *, const char *, uint));
+private int cfont_ref_from_string(i_ctx_t *, ref *, const char *, uint);
 
 typedef struct {
     i_ctx_t *i_ctx_p;
@@ -126,15 +125,19 @@ cfont_put_next(ref * pdict, key_enum * kep, const ref * pvalue)
     }
     if (kp->num_enc_keys) {
 	const charindex *skp = kp->enc_keys++;
+	gs_glyph glyph = gs_c_known_encode((gs_char)skp->charx, skp->encx);
+	gs_const_string gstr;
 
-	code = array_get(&registered_Encoding(skp->encx), (long)(skp->charx),
-			 &kname);
+	if (glyph == GS_NO_GLYPH)
+	    code = gs_note_error(e_undefined);
+	else if ((code = gs_c_glyph_name(glyph, &gstr)) >= 0)
+	    code = name_ref(imemory, gstr.data, gstr.size, &kname, 0);
 	kp->num_enc_keys--;
     } else {			/* must have kp->num_str_keys != 0 */
 	code = cfont_next_string(&kep->strings);
 	if (code != 1)
 	    return (code < 0 ? code : gs_note_error(e_Fatal));
-	code = name_ref(kep->strings.next.value.const_bytes,
+	code = name_ref(imemory, kep->strings.next.value.const_bytes,
 			r_size(&kep->strings.next), &kname, 0);
 	kp->num_str_keys--;
     }
@@ -163,6 +166,7 @@ cfont_ref_dict_create(i_ctx_t *i_ctx_p, ref *pdict,
 	if (code < 0)
 	    return code;
     }
+    r_store_attrs(dict_access_ref(pdict), a_all, kp->dict_attrs);
     return 0;
 }
 
@@ -194,6 +198,7 @@ cfont_string_dict_create(i_ctx_t *i_ctx_p, ref *pdict,
 	if (code < 0)
 	    return code;
     }
+    r_store_attrs(dict_access_ref(pdict), a_all, kp->dict_attrs);
     return 0;
 }
 
@@ -225,6 +230,7 @@ cfont_num_dict_create(i_ctx_t *i_ctx_p, ref * pdict,
 	if (code < 0)
 	    return code;
     }
+    r_store_attrs(dict_access_ref(pdict), a_all, kp->dict_attrs);
     return 0;
 }
 
@@ -248,7 +254,7 @@ cfont_name_array_create(i_ctx_t *i_ctx_p, ref * parray, cfont_string_array ksa,
 
 	if (code != 1)
 	    return (code < 0 ? code : gs_note_error(e_Fatal));
-	code = name_ref(senum.next.value.const_bytes,
+	code = name_ref(imemory, senum.next.value.const_bytes,
 			r_size(&senum.next), &nref, 0);
 	if (code < 0)
 	    return code;
@@ -311,7 +317,7 @@ cfont_scalar_array_create(i_ctx_t *i_ctx_p, ref * parray,
 private int
 cfont_name_create(i_ctx_t *i_ctx_p, ref * pnref, const char *str)
 {
-    return name_ref((const byte *)str, strlen(str), pnref, 0);
+    return name_ref(imemory, (const byte *)str, strlen(str), pnref, 0);
 }
 
 /* Create an object by parsing a string. */
@@ -323,6 +329,7 @@ cfont_ref_from_string(i_ctx_t *i_ctx_p, ref * pref, const char *str, uint len)
     int code;
 
     scanner_state_init(&sstate, false);
+    s_init(&s, imemory);
     sread_string(&s, (const byte *)str, len);
     code = scan_token(i_ctx_p, &s, pref, &sstate);
     return (code <= 0 ? code : gs_note_error(e_Fatal));
