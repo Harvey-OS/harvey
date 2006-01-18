@@ -22,6 +22,7 @@ OFILES=\
 	fltfmt.$O\
 	fmt.$O\
 	fmtfd.$O\
+	fmtfdflush.$O\
 	fmtlock.$O\
 	fmtprint.$O\
 	fmtquote.$O\

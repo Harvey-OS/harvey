@@ -11,18 +11,23 @@
  * ANY REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
  * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
  */
+#include <inttypes.h>
 #include <u.h>
 #include <libc.h>
 #include "fmtdef.h"
 
-char*
-smprint(char *fmt, ...)
+/*
+ * generic routine for flushing a formatting buffer
+ * to a file descriptor
+ */
+int
+__fmtFdFlush(Fmt *f)
 {
-	va_list args;
-	char *p;
+	int n;
 
-	va_start(args, fmt);
-	p = vsmprint(fmt, args);
-	va_end(args);
-	return p;
+	n = (char*)f->to - (char*)f->start;
+	if(n && write((uintptr_t)f->farg, f->start, n) != n)
+		return 0;
+	f->to = f->start;
+	return 1;
 }

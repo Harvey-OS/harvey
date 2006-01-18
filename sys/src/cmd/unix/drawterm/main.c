@@ -36,7 +36,6 @@ main(int argc, char **argv)
 		eve = "drawterm";
 
 	sizebug();
-	fmtinstall('r', errfmt);
 
 	osinit();
 	procinit0();

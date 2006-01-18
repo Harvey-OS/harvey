@@ -55,7 +55,6 @@ _memimageinit(void)
 
 	fmtinstall('R', Rfmt); 
 	fmtinstall('P', Pfmt);
-	fmtinstall('b', _ifmt);
 
 	memones = allocmemimage(Rect(0,0,1,1), GREY1);
 	memones->flags |= Frepl;

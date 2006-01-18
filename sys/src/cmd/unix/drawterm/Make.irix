@@ -1,0 +1,24 @@
+# Unix
+PTHREAD=	# for Mac
+#PTHREAD=-pthread
+AR=ar
+AS=as
+ASFLAGS=-c -mips3
+RANLIB=true
+X11=/usr/X11R6
+#CC=gcc
+#CFLAGS=-Wall -Wno-missing-braces -ggdb -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/kern -c -I$(X11)/include -D_THREAD_SAFE $(PTHREAD) -O2
+CC=cc
+CFLAGS=-g -O2 -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/kern -c -I$(X11)/include  -DIRIX
+O=o
+OS=posix
+GUI=x11
+LDADD=-L$(X11)/lib -lX11 -g -lpthread
+LDFLAGS=$(PTHREAD)
+TARG=drawterm
+MAKE=gmake
+
+all: default
+
+libmachdep.a:
+	(cd posix-mips && $(MAKE))

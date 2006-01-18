@@ -1158,7 +1158,7 @@ werrstr(char *f, ...)
 }
 
 int
-errfmt(Fmt *fmt)
+__errfmt(Fmt *fmt)
 {
 	if(up->nerrlab)
 		return fmtstrcpy(fmt, up->errstr);

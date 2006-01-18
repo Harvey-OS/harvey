@@ -4,13 +4,13 @@
 static Lock fmtl;
 
 void
-_fmtlock(void)
+__fmtlock(void)
 {
 	lock(&fmtl);
 }
 
 void
-_fmtunlock(void)
+__fmtunlock(void)
 {
 	unlock(&fmtl);
 }
