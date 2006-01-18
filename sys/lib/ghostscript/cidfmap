@@ -1,0 +1,28 @@
+%!
+% $Id: cidfmap,v 1.7 2003/02/07 00:31:11 igor Exp $
+% This is a sample map file for CIDFont category.
+
+%
+% The map is a set of records, which must use one of the two formats :
+%
+% 1. A substutution of a CIF font with another CID font :
+%
+%    /substituted /original ;
+%
+%    Where 'substituted' is a name being used in a document,
+%    'original' is a name of an available resource.
+%
+% 2. A substutution of a CIF font with a True Type font :
+%
+%    /substituted << /FileType /TrueType /Path (path) /SunfontID 1 /CSI [(ordering) supplement] >> ;
+%
+%    Where 'substituted' is a name being used in a document,
+%    'path' is a path to a True Type font file,
+%    'ordering' is a value of Ordering required for CIDSystemInfo dictionary,
+%    'supplement' is a value of Supplement required for CIDSystemInfo dictionary.
+%
+% Examples :
+%    
+%   /ShinGo-Bold   /HeiseiKakuGo-W5 ;
+%   /Ryumin-Medium << /FileType /TrueType /Path (H:/AuxFiles/Fonts/BATANG.TTC) /SubfontID 3 /CSI [(Japan1) 2] >> ;
+%

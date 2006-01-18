@@ -1,6 +1,30 @@
+/*
+ * The authors of this software are Rob Pike and Ken Thompson.
+ *              Copyright (c) 2002 by Lucent Technologies.
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose without fee is hereby granted, provided that this entire notice
+ * is included in all copies of any software which is or includes a copy
+ * or modification of this software and in all copies of the supporting
+ * documentation for such software.
+ * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
+ * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
+ */
 #include <u.h>
 #include <libc.h>
-#include <ctype.h>
+#include "fmtdef.h"
+
+static ulong
+umuldiv(ulong a, ulong b, ulong c)
+{
+	double d;
+
+	d = ((double)a * (double)b) / (double)c;
+	if(d >= 4294967295.)
+		d = 4294967295.;
+	return (ulong)d;
+}
 
 /*
  * This routine will convert to arbitrary precision
@@ -17,46 +41,34 @@
  */
 enum
 {
-	Nbits	= 28,				// bits safely represented in a ulong
-	Nmant	= 53,				// bits of precision required
-	Bias		= 1022,
-	Prec	= (Nmant+Nbits+1)/Nbits,	// words of Nbits each to represent mantissa
-	Sigbit	= 1<<(Prec*Nbits-Nmant),	// first significant bit of Prec-th word
+	Nbits	= 28,				/* bits safely represented in a ulong */
+	Nmant	= 53,				/* bits of precision required */
+	Prec	= (Nmant+Nbits+1)/Nbits,	/* words of Nbits each to represent mantissa */
+	Sigbit	= 1<<(Prec*Nbits-Nmant),	/* first significant bit of Prec-th word */
 	Ndig	= 1500,
 	One	= (ulong)(1<<Nbits),
 	Half	= (ulong)(One>>1),
 	Maxe	= 310,
-	Fsign	= 1<<0,		// found -
-	Fesign	= 1<<1,		// found e-
-	Fdpoint	= 1<<2,		// found .
 
-	S0	= 0,		// _		_S0	+S1	#S2	.S3
-	S1,			// _+		#S2	.S3
-	S2,			// _+#		#S2	.S4	eS5
-	S3,			// _+.		#S4
-	S4,			// _+#.#	#S4	eS5
-	S5,			// _+#.#e	+S6	#S7
-	S6,			// _+#.#e+	#S7
-	S7,			// _+#.#e+#	#S7
+	Fsign	= 1<<0,		/* found - */
+	Fesign	= 1<<1,		/* found e- */
+	Fdpoint	= 1<<2,		/* found . */
+
+	S0	= 0,		/* _		_S0	+S1	#S2	.S3 */
+	S1,			/* _+		#S2	.S3 */
+	S2,			/* _+#		#S2	.S4	eS5 */
+	S3,			/* _+.		#S4 */
+	S4,			/* _+#.#	#S4	eS5 */
+	S5,			/* _+#.#e	+S6	#S7 */
+	S6,			/* _+#.#e+	#S7 */
+	S7,			/* _+#.#e+#	#S7 */
 };
-
-static ulong
-umuldiv(ulong a, ulong b, ulong c)
-{
-	double d;
-
-	d = ((double)a * (double)b) / (double)c;
-	if(d >= 4294967295.)
-		d = 4294967295.;
-	return d;
-}
 
 static	int	xcmp(char*, char*);
 static	int	fpcmp(char*, ulong*);
 static	void	frnorm(ulong*);
 static	void	divascii(char*, int*, int*, int*);
 static	void	mulascii(char*, int*, int*, int*);
-static	void	divby(char*, int*, int);
 
 typedef	struct	Tab	Tab;
 struct	Tab
@@ -67,20 +79,20 @@ struct	Tab
 };
 
 double
-strtod(char *as, char **aas)
+fmtstrtod(const char *as, char **aas)
 {
-	int na, ona, ex, dp, bp, c, i, flag, state;
-	ulong low[Prec], hig[Prec], mid[Prec], num, den;
+	int na, ex, dp, bp, c, i, flag, state;
+	ulong low[Prec], hig[Prec], mid[Prec];
 	double d;
 	char *s, a[Ndig];
 
-	flag = 0;	// Fsign, Fesign, Fdpoint
-	na = 0;		// number of digits of a[]
-	dp = 0;		// na of decimal point
-	ex = 0;		// exonent
+	flag = 0;	/* Fsign, Fesign, Fdpoint */
+	na = 0;		/* number of digits of a[] */
+	dp = 0;		/* na of decimal point */
+	ex = 0;		/* exonent */
 
 	state = S0;
-	for(s=as;; s++) {
+	for(s=(char*)as;; s++) {
 		c = *s;
 		if(c >= '0' && c <= '9') {
 			switch(state) {
@@ -131,7 +143,7 @@ strtod(char *as, char **aas)
 			if(state == S5)
 				state = S6;
 			else
-				break;	// syntax
+				break;	/* syntax */
 			continue;
 		case '.':
 			flag |= Fdpoint;
@@ -179,12 +191,12 @@ strtod(char *as, char **aas)
 		}
 	case S3:
 		if(aas != nil)
-			*aas = as;
-		goto ret0;	// no digits found
+			*aas = (char*)as;
+		goto ret0;	/* no digits found */
 	case S6:
-		s--;		// back over +-
+		s--;		/* back over +- */
 	case S5:
-		s--;		// back over e
+		s--;		/* back over e */
 		break;
 	}
 	if(aas != nil)
@@ -194,55 +206,41 @@ strtod(char *as, char **aas)
 	while(na > 0 && a[na-1] == '0')
 		na--;
 	if(na == 0)
-		goto ret0;	// zero
+		goto ret0;	/* zero */
 	a[na] = 0;
 	if(!(flag & Fdpoint))
 		dp = na;
 	if(flag & Fesign)
 		ex = -ex;
 	dp += ex;
-	if(dp < -Maxe-Nmant/3)	/* actually -Nmant*log(2)/log(10), but Nmant/3 close enough */
-		goto ret0;	// underflow by exp
-	else
+	if(dp < -Maxe){
+		errno = ERANGE;
+		goto ret0;	/* underflow by exp */
+	} else
 	if(dp > +Maxe)
-		goto retinf;	// overflow by exp
+		goto retinf;	/* overflow by exp */
 
 	/*
 	 * normalize the decimal ascii number
 	 * to range .[5-9][0-9]* e0
 	 */
-	bp = 0;		// binary exponent
+	bp = 0;		/* binary exponent */
 	while(dp > 0)
 		divascii(a, &na, &dp, &bp);
 	while(dp < 0 || a[0] < '5')
 		mulascii(a, &na, &dp, &bp);
-	a[na] = 0;
-
-	/*
-	 * very small numbers are represented using
-	 * bp = -Bias+1.  adjust accordingly.
-	 */
-	if(bp < -Bias+1){
-		ona = na;
-		divby(a, &na, -bp-Bias+1);
-		if(na < ona){
-			memmove(a+ona-na, a, na);
-			memset(a, '0', ona-na);
-			na = ona;
-		}
-		a[na] = 0;
-		bp = -Bias+1;
-	}
 
 	/* close approx by naive conversion */
-	num = 0;
-	den = 1;
-	for(i=0; i<9 && (c=a[i]); i++) {
-		num = num*10 + (c-'0');
-		den *= 10;
+	mid[0] = 0;
+	mid[1] = 1;
+	for(i=0; c=a[i]; i++) {
+		mid[0] = mid[0]*10 + (c-'0');
+		mid[1] = mid[1]*10;
+		if(i >= 8)
+			break;
 	}
-	low[0] = umuldiv(num, One, den);
-	hig[0] = umuldiv(num+1, One, den);
+	low[0] = umuldiv(mid[0], One, mid[1]);
+	hig[0] = umuldiv(mid[0]+1, One, mid[1]);
 	for(i=1; i<Prec; i++) {
 		low[i] = 0;
 		hig[i] = One-1;
@@ -271,7 +269,7 @@ strtod(char *as, char **aas)
 					low[i] = mid[i];
 				}
 			if(c)
-				break;	// between mid and hig
+				break;	/* between mid and hig */
 			continue;
 		}
 		if(c < 0) {
@@ -284,7 +282,7 @@ strtod(char *as, char **aas)
 		c = mid[Prec-1] & (Sigbit-1);
 		if(c == Sigbit/2 && (mid[Prec-1]&Sigbit) == 0)
 			mid[Prec-1] -= c;
-		break;	// exactly mid
+		break;	/* exactly mid */
 	}
 
 	/* normal rounding applies */
@@ -294,13 +292,7 @@ strtod(char *as, char **aas)
 		mid[Prec-1] += Sigbit;
 		frnorm(mid);
 	}
-	d = 0;
-	for(i=0; i<Prec; i++)
-		d = d*One + mid[i];
-	if(flag & Fsign)
-		d = -d;
-	d = ldexp(d, bp - Prec*Nbits);
-	return d;
+	goto out;
 
 ret0:
 	return 0;
@@ -309,9 +301,24 @@ retnan:
 	return __NaN();
 
 retinf:
+	/*
+	 * Unix strtod requires these.  Plan 9 would return Inf(0) or Inf(-1). */
+	errno = ERANGE;
 	if(flag & Fsign)
-		return __Inf(-1);
-	return __Inf(+1);
+		return -HUGE_VAL;
+	return HUGE_VAL;
+
+out:
+	d = 0;
+	for(i=0; i<Prec; i++)
+		d = d*One + mid[i];
+	if(flag & Fsign)
+		d = -d;
+	d = ldexp(d, bp - Prec*Nbits);
+	if(d == 0){	/* underflow */
+		errno = ERANGE;
+	}
+	return d;
 }
 
 static void
@@ -364,11 +371,10 @@ fpcmp(char *a, ulong* f)
 		a++;
 	cont:;
 	}
-	return 0;
 }
 
 static void
-_divby(char *a, int *na, int b)
+divby(char *a, int *na, int b)
 {
 	int n, c;
 	char *p;
@@ -410,18 +416,6 @@ xx:
 	*p = 0;
 }
 
-static void
-divby(char *a, int *na, int b)
-{
-	while(b > 9){
-		_divby(a, na, 9);
-		a[*na] = 0;
-		b -= 9;
-	}
-	if(b > 0)
-		_divby(a, na, b);
-}
-
 static	Tab	tab1[] =
 {
 	 1,  0, "",
@@ -443,8 +437,8 @@ divascii(char *a, int *na, int *dp, int *bp)
 	Tab *t;
 
 	d = *dp;
-	if(d >= nelem(tab1))
-		d = nelem(tab1)-1;
+	if(d >= (int)(nelem(tab1)))
+		d = (int)(nelem(tab1))-1;
 	t = tab1 + d;
 	b = t->bp;
 	if(memcmp(a, t->cmp, t->siz) > 0)
@@ -483,7 +477,7 @@ mulby(char *a, char *p, char *q, int b)
 
 static	Tab	tab2[] =
 {
-	 1,  1, "",				// dp = 0-0
+	 1,  1, "",				/* dp = 0-0 */
 	 3,  3, "125",
 	 6,  5, "15625",
 	 9,  7, "1953125",
@@ -492,7 +486,7 @@ static	Tab	tab2[] =
 	19, 14, "19073486328125",
 	23, 17, "11920928955078125",
 	26, 19, "1490116119384765625",
-	27, 19, "7450580596923828125",		// dp 8-9
+	27, 19, "7450580596923828125",		/* dp 8-9 */
 };
 
 static void
@@ -503,8 +497,8 @@ mulascii(char *a, int *na, int *dp, int *bp)
 	Tab *t;
 
 	d = -*dp;
-	if(d >= nelem(tab2))
-		d = nelem(tab2)-1;
+	if(d >= (int)(nelem(tab2)))
+		d = (int)(nelem(tab2))-1;
 	t = tab2 + d;
 	b = t->bp;
 	if(memcmp(a, t->cmp, t->siz) < 0)

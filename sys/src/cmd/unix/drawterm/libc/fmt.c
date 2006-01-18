@@ -1,3 +1,16 @@
+/*
+ * The authors of this software are Rob Pike and Ken Thompson.
+ *              Copyright (c) 2002 by Lucent Technologies.
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose without fee is hereby granted, provided that this entire notice
+ * is included in all copies of any software which is or includes a copy
+ * or modification of this software and in all copies of the supporting
+ * documentation for such software.
+ * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
+ * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
+ */
 #include <u.h>
 #include <libc.h>
 #include "fmtdef.h"
@@ -16,55 +29,69 @@ struct Convfmt
 
 struct
 {
-	/* lock by calling _fmtlock, _fmtunlock */
+	/* lock by calling __fmtlock, __fmtunlock */
 	int	nfmt;
 	Convfmt	fmt[Maxfmt];
 } fmtalloc;
 
 static Convfmt knownfmt[] = {
-	' ',	_flagfmt,
-	'#',	_flagfmt,
-	'%',	_percentfmt,
-	'+',	_flagfmt,
-	',',	_flagfmt,
-	'-',	_flagfmt,
-	'C',	_runefmt,
-	'E',	_efgfmt,
-	'G',	_efgfmt,
-	'S',	_runesfmt,
-	'X',	_ifmt,
-	'b',	_ifmt,
-	'c',	_charfmt,
-	'd',	_ifmt,
-	'e',	_efgfmt,
-	'f',	_efgfmt,
-	'g',	_efgfmt,
-	'h',	_flagfmt,
-	'l',	_flagfmt,
-	'n',	_countfmt,
-	'o',	_ifmt,
-	'p',	_ifmt,
-/*	'r',	errfmt, */
-	's',	_strfmt,
-	'u',	_flagfmt,
-	'x',	_ifmt,
+	' ',	__flagfmt,
+	'#',	__flagfmt,
+	'%',	__percentfmt,
+	'+',	__flagfmt,
+	',',	__flagfmt,
+	'-',	__flagfmt,
+	'C',	__runefmt,	/* Plan 9 addition */
+	'E',	__efgfmt,
+#ifndef PLAN9PORT
+	'F',	__efgfmt,	/* ANSI only */
+#endif
+	'G',	__efgfmt,
+#ifndef PLAN9PORT
+	'L',	__flagfmt,	/* ANSI only */
+#endif
+	'S',	__runesfmt,	/* Plan 9 addition */
+	'X',	__ifmt,
+	'b',	__ifmt,		/* Plan 9 addition */
+	'c',	__charfmt,
+	'd',	__ifmt,
+	'e',	__efgfmt,
+	'f',	__efgfmt,
+	'g',	__efgfmt,
+	'h',	__flagfmt,
+#ifndef PLAN9PORT
+	'i',	__ifmt,		/* ANSI only */
+#endif
+	'l',	__flagfmt,
+	'n',	__countfmt,
+	'o',	__ifmt,
+	'p',	__ifmt,
+	'r',	__errfmt,
+	's',	__strfmt,
+#ifdef PLAN9PORT
+	'u',	__flagfmt,
+#else
+	'u',	__ifmt,
+#endif
+	'x',	__ifmt,
 	0,	nil,
 };
 
-int	(*doquote)(int);
+
+int	(*fmtdoquote)(int);
 
 /*
- * _fmtlock() must be set
+ * __fmtlock() must be set
  */
 static int
-_fmtinstall(int c, Fmts f)
+__fmtinstall(int c, Fmts f)
 {
 	Convfmt *p, *ep;
 
 	if(c<=0 || c>=65536)
 		return -1;
 	if(!f)
-		f = _badfmt;
+		f = __badfmt;
 
 	ep = &fmtalloc.fmt[fmtalloc.nfmt];
 	for(p=fmtalloc.fmt; p<ep; p++)
@@ -84,13 +111,13 @@ _fmtinstall(int c, Fmts f)
 }
 
 int
-fmtinstall(int c, Fmts f)
+fmtinstall(int c, int (*f)(Fmt*))
 {
 	int ret;
 
-	_fmtlock();
-	ret = _fmtinstall(c, f);
-	_fmtunlock();
+	__fmtlock();
+	ret = __fmtinstall(c, f);
+	__fmtunlock();
 	return ret;
 }
 
@@ -108,20 +135,20 @@ fmtfmt(int c)
 		}
 
 	/* is this a predefined format char? */
-	_fmtlock();
+	__fmtlock();
 	for(p=knownfmt; p->c; p++)
 		if(p->c == c){
-			_fmtinstall(p->c, p->fmt);
-			_fmtunlock();
+			__fmtinstall(p->c, p->fmt);
+			__fmtunlock();
 			return p->fmt;
 		}
-	_fmtunlock();
+	__fmtunlock();
 
-	return _badfmt;
+	return __badfmt;
 }
 
 void*
-_fmtdispatch(Fmt *f, void *fmt, int isrunes)
+__fmtdispatch(Fmt *f, void *fmt, int isrunes)
 {
 	Rune rune, r;
 	int i, n;
@@ -134,7 +161,7 @@ _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 			r = *(Rune*)fmt;
 			fmt = (Rune*)fmt + 1;
 		}else{
-			fmt = (char*)fmt + chartorune(&rune, fmt);
+			fmt = (char*)fmt + chartorune(&rune, (char*)fmt);
 			r = rune;
 		}
 		f->r = r;
@@ -179,6 +206,15 @@ _fmtdispatch(Fmt *f, void *fmt, int isrunes)
 		case '*':
 			i = va_arg(f->args, int);
 			if(i < 0){
+				/*
+				 * negative precision =>
+				 * ignore the precision.
+				 */
+				if(f->flags & FmtPrec){
+					f->flags &= ~FmtPrec;
+					f->prec = 0;
+					continue;
+				}
 				i = -i;
 				f->flags |= FmtLeft;
 			}

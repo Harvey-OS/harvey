@@ -54,6 +54,7 @@ static Dirlist bootlist =
 	Nbootfiles
 };
 
+static uchar *mntdata[Nmntfiles];
 static Dirtab mntdir[Nmntfiles] = {
 	"mnt",	{Qmnt, 0, QTDIR},	0,		DMDIR|0555,
 	"factotum",	{Qfactotum, 0, QTDIR},	0,	DMDIR|0555,
@@ -62,7 +63,7 @@ static Dirlist mntlist =
 {
 	Qmnt,
 	mntdir,
-	nil,
+	mntdata,
 	2,
 	Nmntfiles
 };

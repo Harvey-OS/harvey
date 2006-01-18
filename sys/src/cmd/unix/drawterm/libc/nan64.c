@@ -7,43 +7,57 @@
 
 #include <u.h>
 #include <libc.h>
-#include "nan.h"
+#include "fmtdef.h"
 
-// typedef unsigned long long uvlong;
-// typedef unsigned long ulong;
+#if defined (__APPLE__) || (__powerpc__)
+#define _NEEDLL
+#endif
 
-static uvlong uvnan    = 0x7FF0000000000001ULL;
-static uvlong uvinf    = 0x7FF0000000000000ULL;
-static uvlong uvneginf = 0xFFF0000000000000ULL;
+static uvlong uvnan    = ((uvlong)0x7FF00000<<32)|0x00000001;
+static uvlong uvinf    = ((uvlong)0x7FF00000<<32)|0x00000000;
+static uvlong uvneginf = ((uvlong)0xFFF00000<<32)|0x00000000;
 
 double
 __NaN(void)
 {
-	return *(double*)(void*)&uvnan;
+	uvlong *p;
+
+	/* gcc complains about "return *(double*)&uvnan;" */
+	p = &uvnan;
+	return *(double*)p;
 }
 
 int
 __isNaN(double d)
 {
-	uvlong x = *(uvlong*)(void*)&d;
+	uvlong x;
+	double *p;
+
+	p = &d;
+	x = *(uvlong*)p;
 	return (ulong)(x>>32)==0x7FF00000 && !__isInf(d, 0);
 }
 
 double
 __Inf(int sign)
 {
+	uvlong *p;
+
 	if(sign < 0)
-		return *(double*)(void*)&uvinf;
+		p = &uvinf;
 	else
-		return *(double*)(void*)&uvneginf;
+		p = &uvneginf;
+	return *(double*)p;
 }
 
 int
 __isInf(double d, int sign)
 {
 	uvlong x;
+	double *p;
 
-	x = *(uvlong*)(void*)&d;
+	p = &d;
+	x = *(uvlong*)p;
 	if(sign == 0)
 		return x==uvinf || x==uvneginf;
 	else if(sign > 0)
@@ -51,5 +65,3 @@ __isInf(double d, int sign)
 	else
 		return x==uvneginf;
 }
-
-

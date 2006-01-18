@@ -1,5 +1,19 @@
+/*
+ * The authors of this software are Rob Pike and Ken Thompson.
+ *              Copyright (c) 2002 by Lucent Technologies.
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose without fee is hereby granted, provided that this entire notice
+ * is included in all copies of any software which is or includes a copy
+ * or modification of this software and in all copies of the supporting
+ * documentation for such software.
+ * THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR LUCENT TECHNOLOGIES MAKE
+ * ANY REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
+ * OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
+ */
 #include <u.h>
 #include <libc.h>
+#include "fmtdef.h"
 
 /*
  * Reads a floating-point number by interpreting successive characters
@@ -8,74 +22,62 @@
  * necessary to back up the input stream up one byte after calling charstod.
  */
 
-#define ADVANCE *s++ = c; if(s>=e) return __NaN(); c = (*f)(vp)
-
 double
-charstod(int(*f)(void*), void *vp)
+fmtcharstod(int(*f)(void*), void *vp)
 {
-	char str[400], *s, *e, *start;
-	int c;
+	double num, dem;
+	int neg, eneg, dig, exp, c;
 
-	s = str;
-	e = str + sizeof str - 1;
+	num = 0;
+	neg = 0;
+	dig = 0;
+	exp = 0;
+	eneg = 0;
+
 	c = (*f)(vp);
 	while(c == ' ' || c == '\t')
 		c = (*f)(vp);
 	if(c == '-' || c == '+'){
-		ADVANCE;
+		if(c == '-')
+			neg = 1;
+		c = (*f)(vp);
 	}
-	start = s;
 	while(c >= '0' && c <= '9'){
-		ADVANCE;
+		num = num*10 + c-'0';
+		c = (*f)(vp);
 	}
-	if(c == '.'){
-		ADVANCE;
-		while(c >= '0' && c <= '9'){
-			ADVANCE;
-		}
+	if(c == '.')
+		c = (*f)(vp);
+	while(c >= '0' && c <= '9'){
+		num = num*10 + c-'0';
+		dig++;
+		c = (*f)(vp);
 	}
-	if(s > start && (c == 'e' || c == 'E')){
-		ADVANCE;
+	if(c == 'e' || c == 'E'){
+		c = (*f)(vp);
 		if(c == '-' || c == '+'){
-			ADVANCE;
+			if(c == '-'){
+				dig = -dig;
+				eneg = 1;
+			}
+			c = (*f)(vp);
 		}
 		while(c >= '0' && c <= '9'){
-			ADVANCE;
+			exp = exp*10 + c-'0';
+			c = (*f)(vp);
 		}
-	}else if(s == start && (c == 'i' || c == 'I')){
-		ADVANCE;
-		if(c != 'n' && c != 'N')
-			return __NaN();
-		ADVANCE;
-		if(c != 'f' && c != 'F')
-			return __NaN();
-		ADVANCE;
-		if(c != 'i' && c != 'I')
-			return __NaN();
-		ADVANCE;
-		if(c != 'n' && c != 'N')
-			return __NaN();
-		ADVANCE;
-		if(c != 'i' && c != 'I')
-			return __NaN();
-		ADVANCE;
-		if(c != 't' && c != 'T')
-			return __NaN();
-		ADVANCE;
-		if(c != 'y' && c != 'Y')
-			return __NaN();
-		ADVANCE;  /* so caller can back up uniformly */
-		USED(c);
-	}else if(s == str && (c == 'n' || c == 'N')){
-		ADVANCE;
-		if(c != 'a' && c != 'A')
-			return __NaN();
-		ADVANCE;
-		if(c != 'n' && c != 'N')
-			return __NaN();
-		ADVANCE;  /* so caller can back up uniformly */
-		USED(c);
 	}
-	*s = 0;
-	return strtod(str, &s);
+	exp -= dig;
+	if(exp < 0){
+		exp = -exp;
+		eneg = !eneg;
+	}
+	dem = __fmtpow10(exp);
+	if(eneg)
+		num /= dem;
+	else
+		num *= dem;
+	if(neg)
+		return -num;
+	return num;
 }
