@@ -56,7 +56,7 @@
 #define	RMCODE		(KZERO+0x8000)		/* copy of first page of KTEXT */
 #define	RMBUF		(KZERO+0x9000)		/* buffer for user space - known to vga */
 #define	IDTADDR		(KZERO+0x10800)		/* idt */
-#define	REBOOTADDR	(KZERO+0x11000)		/* reboot code - physical address */
+#define	REBOOTADDR	(0x11000)		/* reboot code - physical address */
 #define	CPU0PDB		(KZERO+0x12000)		/* bootstrap processor PDB */
 #define	CPU0PTE		(KZERO+0x13000)		/* bootstrap processor PTE's for 0-4MB */
 #define	CPU0GDT		(KZERO+0x14000)		/* bootstrap processor GDT */

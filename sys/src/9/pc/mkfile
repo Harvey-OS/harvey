@@ -118,7 +118,7 @@ init.h:		../port/initcode.c init9.c
 
 reboot.h:	rebootcode.s
 	$AS rebootcode.s
-	$LD -l -s -T0x1000 -R4 -o reboot.out rebootcode.$O
+	$LD -l -s -T0x11000 -R4 -o reboot.out rebootcode.$O
 	{echo 'uchar rebootcode[]={'
 	 xd -1x reboot.out |
 		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
