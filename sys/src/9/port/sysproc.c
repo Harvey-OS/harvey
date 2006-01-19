@@ -320,7 +320,7 @@ sysexec(ulong *arg)
 		if(((ulong)argp&(BY2PG-1)) < BY2WD)
 			validaddr((ulong)argp, BY2WD, 0);
 		validaddr((ulong)a, 1, 0);
-		nbytes += (vmemchr(a, 0, 0x7FFFFFFF) - a) + 1;
+		nbytes += ((char*)vmemchr(a, 0, 0x7FFFFFFF) - a) + 1;
 		nargs++;
 	}
 	ssize = BY2WD*(nargs+1) + ((nbytes+(BY2WD-1)) & ~(BY2WD-1));
