@@ -96,10 +96,10 @@ setdevclass(Device *d, int n)
 	Endpt *e;
 
 	if (e = d->ep[n]) {
-		if (verbose) fprint(2, "class %d %d %#6.6lux\n",
-			d->nif, n, e->csp);
-		fprint(d->ctl, "class %d %d %#6.6lux",
-			d->nif, n, e->csp);
+		if (verbose) fprint(2, "class %d %d %#6.6lux %#4.4ux %#4.4ux\n",
+			d->nif, n, e->csp, d->vid, d->did);
+		fprint(d->ctl, "class %d %d %#6.6lux %#4.4ux %#4.4ux",
+			d->nif, n, e->csp, d->vid, d->did);
 	}
 }
 

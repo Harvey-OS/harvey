@@ -189,7 +189,7 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 		 * have allocated less storage than aux/vga
 		 * expected.
 		 */
-		tmp = scr->storage - 96*1024;
+		tmp = scr->apsize - 96*1024;
 		p = (void*)((uchar*)scr->vaddr + tmp);
 		vgaxo(Crtx, 0x30, 0x80|(tmp>>17));
 		vgaxo(Crtx, 0x31, (tmp>>11)<<2);
@@ -363,7 +363,23 @@ nvresetgraphics(VGAscr *scr)
 
 	pitch = scr->gscreen->width*BY2WD;
 
-	nv.dmabase = (void*)((uchar*)scr->vaddr + scr->storage - 128*1024);
+	/*
+	 * DMA is at the end of the virtual window,
+	 * but we might have cut it short when mapping it.
+	 */
+	if(nv.dmabase == nil){
+		if(scr->storage <= scr->apsize)
+			nv.dmabase = (ulong*)((uchar*)scr->vaddr + scr->storage - 128*1024);
+		else{
+			nv.dmabase = (void*)vmap(scr->paddr + scr->storage - 128*1024, 128*1024);
+			if(nv.dmabase == 0){
+				hwaccel = 0;
+				hwblank = 0;
+				print("vmap nvidia dma failed\n");
+				return;
+			}
+		}
+	}
 
 	for(i=0; i<SKIPS; i++)
 		nv.dmabase[i] = 0x00000000;
