@@ -8059,7 +8059,7 @@ sys/src/9/pc/vgamach64xx.c - 664 sys sys 1131290601 28257
 sys/src/9/pc/vgamga2164w.c - 664 sys sys 1132331257 4769
 sys/src/9/pc/vgamga4xx.c - 664 sys sys 1131290602 10201
 sys/src/9/pc/vganeomagic.c - 664 sys sys 1131422294 10255
-sys/src/9/pc/vganvidia.c - 664 sys sys 1136403794 12023
+sys/src/9/pc/vganvidia.c - 664 sys sys 1137689150 12395
 sys/src/9/pc/vgargb524.c - 664 sys sys 1131290602 4251
 sys/src/9/pc/vgas3.c - 664 sys sys 1131290603 10994
 sys/src/9/pc/vgasavage.c - 664 sys sys 1064679984 16251
@@ -14027,7 +14027,7 @@ sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1100568597 1861
 sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1101906325 17266
 sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1100568597 600
 sys/src/cmd/usb/lib - 20000000775 sys sys 1018369393 0
-sys/src/cmd/usb/lib/device.c - 664 sys sys 1099760882 2968
+sys/src/cmd/usb/lib/device.c - 664 sys sys 1137688747 3032
 sys/src/cmd/usb/lib/dump.c - 664 sys sys 1135896862 12915
 sys/src/cmd/usb/lib/fmt.c - 664 sys sys 1091204978 291
 sys/src/cmd/usb/lib/mkfile - 664 sys sys 1091204979 204

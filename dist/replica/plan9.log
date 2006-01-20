@@ -27168,3 +27168,5 @@
 1137623433 0 c sys/src/9/pc/mem.h - 664 sys sys 1137622431 5203
 1137623433 1 c sys/src/9/pc/mkfile - 664 sys sys 1137622906 3572
 1137623433 2 c sys/src/9/port/sysproc.c - 664 sys sys 1137622456 15153
+1137690054 0 c sys/src/9/pc/vganvidia.c - 664 sys sys 1137689150 12395
+1137690054 1 c sys/src/cmd/usb/lib/device.c - 664 sys sys 1137688747 3032
