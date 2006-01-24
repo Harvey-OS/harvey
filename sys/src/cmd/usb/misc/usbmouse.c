@@ -1,11 +1,10 @@
 #include <u.h>
 #include <libc.h>
 #include <thread.h>
-#include <stdio.h>
 
 int mousefd, ctlfd, mousein;
 
-char hbm[]		= "Enabled 0x020103\n";
+char hbm[]		= "Enabled 0x020103";
 char *mouseinfile	= "/dev/mousein";
 char *statfmt		= "/dev/usb%d/%d/status";
 char *ctlfmt		= "/dev/usb%d/%d/ctl";
@@ -87,8 +86,7 @@ usage(void)
 void
 threadmain(int argc, char *argv[])
 {
-	FILE *f;
-	int ctlrno, i;
+	int ctlrno, i, sfd;
 	char line[256];
 
 	ARGBEGIN{
@@ -112,17 +110,17 @@ threadmain(int argc, char *argv[])
 	case 0:
 		for (ctlrno = 0; ctlrno < 16; ctlrno++) {
 			for (i = 0; i < 128; i++) {
-				sprint(line, statfmt, ctlrno, i);
-				f = fopen(line, "r");
-				if (f == nil)
+				snprint(line, sizeof line, statfmt, ctlrno, i);
+				sfd = open(line, OREAD);
+				if (sfd < 0)
 					break;
-				if (fgets(line, sizeof line, f) && strcmp(hbm, line) == 0) {
+				if (read(sfd, line, strlen(hbm)) && strncmp(hbm, line, strlen(hbm)) == 0) {
 					snprint(ctlfile, sizeof ctlfile, ctlfmt, ctlrno, i);
 					snprint(msefile, sizeof msefile, msefmt, ctlrno, i);
-					fclose(f);
+					close(sfd);
 					goto found;
 				}
-				fclose(f);
+				close(sfd);
 			}
 		}
 		threadexitsall("no mouse");

@@ -160,13 +160,13 @@ loop:
 			qunlock(&p->seglock);
 		}
 		else {
+			print("out of physical memory; no swap configured\n");
 			if(!cpuserver)
 				freebroken();	/* can use the memory */
 			else
-				killbig();
+				killbig("out of memory");
 
 			/* Emulate the old system if no swap channel */
-			print("no physical memory\n");
 			tsleep(&up->sleep, return0, 0, 5000);
 			wakeup(&palloc.r);
 		}

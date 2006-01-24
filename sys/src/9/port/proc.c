@@ -801,33 +801,6 @@ twakeup(Ureg*, Timer *t)
 		wakeup(trend);
 }
 
-/* Sleep until todget() >= ns.  NOTE: ns is not an interval */
-void
-tnsleep(Rendez *r, int (*fn)(void*), void *arg, vlong ns)
-{
-	if (up->tt){
-		print("tnsleep: timer active: mode %d, tf 0x%lux\n", up->tmode, up->tf);
-		timerdel(up);
-	}
-	up->tns = ns;
-	up->tf = twakeup;
-	up->tmode = Tabsolute;
-	up->ta = up;
-	up->trend = r;
-	up->tfn = fn;
-	timeradd(up);
-
-	if(waserror()){
-		timerdel(up);
-		nexterror();
-	}
-	sleep(r, tfn, arg);
-	if (up->tt)
-		timerdel(up);
-	up->twhen = 0;
-	poperror();
-}
-
 void
 tsleep(Rendez *r, int (*fn)(void*), void *arg, ulong ms)
 {
@@ -1455,7 +1428,7 @@ exhausted(char *resource)
 }
 
 void
-killbig(void)
+killbig(char *why)
 {
 	int i;
 	Segment *s;
@@ -1474,10 +1447,18 @@ killbig(void)
 			if(s != 0)
 				l += s->top - s->base;
 		}
-		if(l > max && strcmp(p->text, "kfs") != 0){
+		if(l > max && ((p->procmode&0222) || strcmp(eve, p->user)!=0)) {
 			kp = p;
 			max = l;
 		}
+	}
+
+	print("%lud: %s killed: %s\n", kp->pid, kp->text, why);
+	for(p = procalloc.arena; p < ep; p++) {
+		if(p->state == Dead || p->kp)
+			continue;
+		if(p != kp && p->seg[BSEG] && p->seg[BSEG] == kp->seg[BSEG])
+			p->procctl = Proc_exitbig;
 	}
 	kp->procctl = Proc_exitbig;
 	for(i = 0; i < NSEG; i++) {
@@ -1487,7 +1468,6 @@ killbig(void)
 			qunlock(&s->lk);
 		}
 	}
-	print("%lud: %s killed because no swap configured\n", kp->pid, kp->text);
 }
 
 /*

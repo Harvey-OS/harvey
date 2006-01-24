@@ -39,10 +39,10 @@ struct Out
 
 enum
 {
+	Other,
 	Http,
 	Https,
 	Ftp,
-	Other
 };
 
 enum
@@ -226,22 +226,25 @@ crackurl(URL *u, char *s)
 	char *p;
 	int i;
 
-	if(u->host != nil){
-		free(u->host);
-		u->host = nil;
-	}
 	if(u->page != nil){
 		free(u->page);
 		u->page = nil;
 	}
 
-	/* get type */
-	u->method = Other;
+	/* get type */ 
 	for(p = s; *p; p++){
 		if(*p == '/'){
-			u->method = Http;
 			p = s;
-			break;
+			if(u->method == Other){
+				werrstr("missing method");
+				return -1;
+			}
+			if(u->host == nil){
+				werrstr("missing host");
+				return -1;
+			}
+			u->page = strdup(p);
+			return 0;
 		}
 		if(*p == ':' && *(p+1)=='/' && *(p+2)=='/'){
 			*p = 0;
@@ -262,6 +265,7 @@ crackurl(URL *u, char *s)
 	}
 
 	/* get system */
+	free(u->host);
 	s = p;
 	p = strchr(s, '/');
 	if(p == nil){

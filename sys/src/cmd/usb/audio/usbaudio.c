@@ -16,7 +16,7 @@ char * mntpt;
 
 Channel *controlchan;
 
-char audstr[]		= "Enabled 0x000101\n";	/* audio.control.0 */
+char audstr[]		= "Enabled 0x000101";	/* audio.control.0 */
 
 int defaultspeed[2] = {44100, 44100};
 

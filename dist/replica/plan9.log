@@ -27170,3 +27170,17 @@
 1137623433 2 c sys/src/9/port/sysproc.c - 664 sys sys 1137622456 15153
 1137690054 0 c sys/src/9/pc/vganvidia.c - 664 sys sys 1137689150 12395
 1137690054 1 c sys/src/cmd/usb/lib/device.c - 664 sys sys 1137688747 3032
+1138028430 0 c sys/src/9/port/proc.c - 664 sys sys 1138028309 27967
+1138028430 1 c sys/src/9/port/swap.c - 664 sys sys 1138028310 7019
+1138028430 2 c sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1138027032 9843
+1138028430 3 c sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1138027028 3475
+1138048236 0 c sys/src/9/port/devcons.c - 664 sys sys 1138047754 23013
+1138048236 1 c sys/src/9/port/portfns.h - 664 sys sys 1138047830 11023
+1138050036 0 c sys/src/cmd/hget.c - 664 sys sys 1138048432 25946
+1138062639 0 c sys/man/1/bind - 664 sys sys 1138061948 4009
+1138062639 1 c sys/src/cmd/mount.c - 664 sys sys 1138061862 1633
+1138066240 0 c sys/src/cmd/aux/msexceltables.c - 664 sys sys 1138065340 14094
+1138066240 1 c sys/src/cmd/vnc/wsys.c - 664 sys sys 1138065372 4197
+1138075243 0 c 386/bin/hget - 775 sys sys 1138075017 233467
+1138075243 1 c 386/bin/mount - 775 sys sys 1138075017 73105
+1138075243 2 c 386/bin/aux/msexceltables - 775 sys sys 1138075017 81356
