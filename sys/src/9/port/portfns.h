@@ -144,7 +144,7 @@ int		kbdgetmap(int, int*, int*, Rune*);
 int		kbdputc(Queue*, int);
 void		kbdputmap(ushort, ushort, Rune);
 void		kickpager(void);
-void		killbig(void);
+void		killbig(char*);
 void		kproc(char*, void(*)(void*), void*);
 void		kprocchild(Proc*, void (*)(void*), void*);
 void		(*kproftimer)(ulong);

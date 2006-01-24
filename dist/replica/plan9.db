@@ -118,7 +118,7 @@
 386/bin/aux/mnihongo - 775 sys sys 1135570786 139629
 386/bin/aux/mouse - 775 sys sys 1130384253 44044
 386/bin/aux/ms2 - 775 sys sys 1135570786 87426
-386/bin/aux/msexceltables - 775 sys sys 1135570786 81218
+386/bin/aux/msexceltables - 775 sys sys 1138075017 81356
 386/bin/aux/mswordstrings - 775 sys sys 1135570787 65298
 386/bin/aux/na - 775 sys sys 1135570787 154182
 386/bin/aux/nfsmount - 775 sys sys 1135570787 234147
@@ -268,7 +268,7 @@
 386/bin/gview - 775 sys sys 1136397208 238587
 386/bin/gzip - 775 sys sys 1135570815 84749
 386/bin/hayes - 775 sys sys 1135570815 64550
-386/bin/hget - 775 sys sys 1135570816 233374
+386/bin/hget - 775 sys sys 1138075017 233467
 386/bin/history - 775 sys sys 1136397209 75433
 386/bin/hoc - 775 sys sys 1135570817 99860
 386/bin/html2ms - 775 sys sys 1135570817 66078
@@ -327,7 +327,7 @@
 386/bin/mkdir - 775 sys sys 1135570832 60958
 386/bin/mkpaqfs - 775 sys sys 1135570832 94494
 386/bin/mntgen - 775 sys sys 1135570833 145268
-386/bin/mount - 775 sys sys 1135570833 73001
+386/bin/mount - 775 sys sys 1138075017 73105
 386/bin/ms2html - 775 sys sys 1135570833 103959
 386/bin/mtime - 775 sys sys 1135570833 59133
 386/bin/mv - 775 sys sys 1135570833 65483
@@ -7276,7 +7276,7 @@ sys/man/1/ascii - 664 sys sys 1134233061 2737
 sys/man/1/awk - 664 sys sys 1134233061 10881
 sys/man/1/basename - 664 sys sys 944959673 535
 sys/man/1/bc - 664 sys sys 1134233060 3784
-sys/man/1/bind - 664 sys sys 1034195345 3928
+sys/man/1/bind - 664 sys sys 1138061948 4009
 sys/man/1/bitsyload - 664 sys sys 988225301 2883
 sys/man/1/bundle - 664 sys sys 1113743325 986
 sys/man/1/cal - 664 sys sys 1113743325 849
@@ -8084,7 +8084,7 @@ sys/src/9/port/dev.c - 664 sys sys 1131289870 8219
 sys/src/9/port/devaudio.c - 664 sys sys 1067722761 21130
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
 sys/src/9/port/devcap.c - 664 sys sys 1048644215 4113
-sys/src/9/port/devcons.c - 664 sys sys 1131537286 23004
+sys/src/9/port/devcons.c - 664 sys sys 1138047754 23013
 sys/src/9/port/devdraw.c - 664 sys sys 1131289870 43537
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1048644225 6992
@@ -8138,17 +8138,17 @@ sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
 sys/src/9/port/portclock.c - 664 sys sys 1102093397 4556
 sys/src/9/port/portdat.h - 664 sys sys 1135487943 22547
-sys/src/9/port/portfns.h - 664 sys sys 1131537254 11022
+sys/src/9/port/portfns.h - 664 sys sys 1138047830 11023
 sys/src/9/port/portmkfile - 664 sys sys 1131907975 2062
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
-sys/src/9/port/proc.c - 664 sys sys 1131289980 28264
+sys/src/9/port/proc.c - 664 sys sys 1138028309 27967
 sys/src/9/port/qio.c - 664 sys sys 1070287837 23562
 sys/src/9/port/qlock.c - 664 sys sys 1067722765 3196
 sys/src/9/port/rdb.c - 664 sys sys 1018721202 1698
 sys/src/9/port/rebootcmd.c - 664 sys sys 1015278340 1561
 sys/src/9/port/sd.h - 664 sys sys 1134411408 2494
 sys/src/9/port/segment.c - 664 sys sys 1134276516 13762
-sys/src/9/port/swap.c - 664 sys sys 1055688551 6980
+sys/src/9/port/swap.c - 664 sys sys 1138028310 7019
 sys/src/9/port/sysfile.c - 664 sys sys 1134042952 22178
 sys/src/9/port/sysproc.c - 664 sys sys 1137622456 15153
 sys/src/9/port/systab.h - 664 sys sys 1062721698 3044
@@ -9668,7 +9668,7 @@ sys/src/cmd/aux/mnihongo/mnihongo.c - 664 sys sys 946759402 6406
 sys/src/cmd/aux/mnihongo/tmac.nihongo - 664 sys sys 944960789 22
 sys/src/cmd/aux/mouse.c - 664 sys sys 1063855425 7049
 sys/src/cmd/aux/ms2.c - 664 sys sys 1124305056 3153
-sys/src/cmd/aux/msexceltables.c - 664 sys sys 1134659789 13922
+sys/src/cmd/aux/msexceltables.c - 664 sys sys 1138065340 14094
 sys/src/cmd/aux/mswordstrings.c - 664 sys sys 952201344 5767
 sys/src/cmd/aux/na - 20000000775 sys sys 955036627 0
 sys/src/cmd/aux/na/mkfile - 664 sys sys 955036627 121
@@ -12241,7 +12241,7 @@ sys/src/cmd/gzip/mkfile - 664 sys sys 1124884920 124
 sys/src/cmd/gzip/unzip.c - 664 sys sys 1135487934 13825
 sys/src/cmd/gzip/zip.c - 664 sys sys 1135487935 7063
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
-sys/src/cmd/hget.c - 664 sys sys 1135487943 25850
+sys/src/cmd/hget.c - 664 sys sys 1138048432 25946
 sys/src/cmd/history.c - 664 sys sys 1136378274 6098
 sys/src/cmd/hoc - 20000000775 sys sys 954036932 0
 sys/src/cmd/hoc/code.c - 664 sys sys 1132451870 10050
@@ -12604,7 +12604,7 @@ sys/src/cmd/mkmany - 664 sys sys 1123818681 1304
 sys/src/cmd/mkone - 664 sys sys 1123943673 910
 sys/src/cmd/mksyslib - 664 sys sys 1134390137 665
 sys/src/cmd/mntgen.c - 664 sys sys 1106410349 3630
-sys/src/cmd/mount.c - 664 sys sys 1034195354 1508
+sys/src/cmd/mount.c - 664 sys sys 1138061862 1633
 sys/src/cmd/ms2html.c - 664 sys sys 1132452054 41032
 sys/src/cmd/mtime.c - 664 sys sys 1036172302 450
 sys/src/cmd/mv.c - 664 sys sys 1126278115 4241
@@ -14022,7 +14022,7 @@ sys/src/cmd/usb/audio - 20000000775 sys sys 1017802021 0
 sys/src/cmd/usb/audio/audiofs.c - 664 sys sys 1100568596 18166
 sys/src/cmd/usb/audio/audiosub.c - 664 sys sys 1100568596 6967
 sys/src/cmd/usb/audio/mkfile - 664 sys sys 1091204980 349
-sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1112038987 9845
+sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1138027032 9843
 sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1100568597 1861
 sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1101906325 17266
 sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1100568597 600
@@ -14036,7 +14036,7 @@ sys/src/cmd/usb/lib/usb.h - 664 sys sys 1103381265 7036
 sys/src/cmd/usb/lib/util.c - 664 sys sys 1091204978 523
 sys/src/cmd/usb/misc - 20000000775 sys sys 1091205037 0
 sys/src/cmd/usb/misc/mkfile - 664 sys sys 1091205037 274
-sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1112038987 3468
+sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1138027028 3475
 sys/src/cmd/usb/misc/usbprint - 775 sys sys 1101830683 256
 sys/src/cmd/usb/mkfile - 664 sys sys 1091327562 354
 sys/src/cmd/usb/mouse - 20000000775 sys sys 1017802022 0
@@ -14212,7 +14212,7 @@ sys/src/cmd/vnc/vncs.c - 664 sys sys 1108222270 21006
 sys/src/cmd/vnc/vncs.h - 664 sys sys 1046200146 908
 sys/src/cmd/vnc/vncv.c - 664 sys sys 1082221235 3197
 sys/src/cmd/vnc/vncv.h - 664 sys sys 1044880750 643
-sys/src/cmd/vnc/wsys.c - 664 sys sys 1102429521 4052
+sys/src/cmd/vnc/wsys.c - 664 sys sys 1138065372 4197
 sys/src/cmd/vt - 20000000775 sys sys 954038635 0
 sys/src/cmd/vt/cons.h - 664 sys sys 1133808292 1792
 sys/src/cmd/vt/consctl.c - 664 sys sys 1135487947 1845

@@ -144,12 +144,18 @@ operation fails.
 .PD
 .PP
 .I Mount
-takes an additional option,
+takes two additional options.
+The first,
 .B -k
 .IR keypattern ,
-to constrain the set of 
+constrains the set of 
 .IR factotum (4)
 keys used for an authenticated mount.
+The second,
+.BR -n ,
+causes
+.I mount
+to skip authentication entirely.
 .PP
 The
 .I spec

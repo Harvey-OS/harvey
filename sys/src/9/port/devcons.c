@@ -460,7 +460,7 @@ echo(char *buf, int n)
 			scheddump();
 			return;
 		case 'k':
-			killbig();
+			killbig("^t ^t k");
 			return;
 		case 'r':
 			exit(0);

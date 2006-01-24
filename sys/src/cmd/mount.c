@@ -30,7 +30,8 @@ main(int argc, char *argv[])
 	char *spec;
 	ulong flag = 0;
 	int qflag = 0;
-	int fd;
+	int noauth = 0;
+	int fd, rv;
 
 	ARGBEGIN{
 	case 'a':
@@ -47,6 +48,9 @@ main(int argc, char *argv[])
 		break;
 	case 'k':
 		keyspec = EARGF(usage());
+		break;
+	case 'n':
+		noauth = 1;
 		break;
 	case 'q':
 		qflag = 1;
@@ -75,7 +79,11 @@ main(int argc, char *argv[])
 	}
 
 	notify(catch);
-	if(amount0(fd, argv[1], flag, spec, keyspec) < 0){
+	if(noauth)
+		rv = mount(fd, -1, argv[1], flag, spec);
+	else
+		rv = amount0(fd, argv[1], flag, spec, keyspec);
+	if(rv < 0){
 		if(qflag)
 			exits(0);
 		fprint(2, "%s: mount %s: %r\n", argv0, argv[1]);
@@ -95,6 +103,6 @@ catch(void *x, char *m)
 void
 usage(void)
 {
-	fprint(2, "usage: mount [-a|-b] [-c] [-k keypattern] [-r] /srv/service dir [spec]\n");
+	fprint(2, "usage: mount [-a|-b] [-cnrq] [-k keypattern] /srv/service dir [spec]\n");
 	exits("usage");
 }

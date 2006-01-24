@@ -302,6 +302,7 @@ release(void)
 void
 skip(Biff *b, int len)
 {
+	assert(len <= b->len);
 	if (Bseek(b->bp, len, 1) == -1)
 		sysfatal("seek failed - %r\n");
 	b->len -= len;
@@ -426,13 +427,18 @@ gstr(Biff *b, int len_width)
 {
 	Rune r;
 	char *buf, *p;
-	int nch, w, sz, ln, rt, opt;
+	int nch, w, ap, ln, rt, opt;
+	enum {
+		Unicode = 1,
+		Asian_phonetic = 4,
+		Rich_text = 8,
+	};
 
 	if (b->len < len_width){
 		if (getrec(b) == -1)
-			sysfatal("expected CONTINUE, got EOF\n");
-		if (b->op != 0x03c)	
-			sysfatal("expected CONTINUE, got op=0x%x\n", b->op);
+			sysfatal("starting STRING expected CONTINUE, got EOF\n");
+		if (b->op != 0x03c)
+			sysfatal("starting STRING expected CONTINUE, got op=0x%x\n", b->op);
 	}
 
 	ln = gint(b, len_width);
@@ -452,32 +458,34 @@ gstr(Biff *b, int len_width)
 		return buf;
 	nch = 0;
 	*buf = 0;
+	opt = gint(b, 1);
+	if(opt & Rich_text)
+		rt = gint(b, 2);
+	else
+		rt = 0;
+	if(opt & Asian_phonetic)
+		ap = gint(b, 4);
+	else
+		ap = 0;
 	while (1){
-		opt = gint(b, 1);
-		w = (opt & 1)? sizeof(Rune): sizeof(char);
-		if(opt & 4)
-			sz = gint(b,4);
-		else
-			sz = 0;
-		if(opt & 8)
-			rt = gint(b, 2);
-		else
-			rt = 0;
+		w = (opt & Unicode)? sizeof(Rune): sizeof(char);
+
 		while(b->len > 0){
 			r = gint(b, w);
 			p += runetochar(p, &r);
 			if (++nch >= ln){
-				if (opt & 4)
-					skip(b, sz);
-				if (opt & 8)
+				if (rt)
 					skip(b, rt*4);
+				if (ap)
+					skip(b, ap);
 				return buf;
 			}
 		}
 		if (getrec(b) == -1)
-			sysfatal("expected CONTINUE, got EOF\n");
+			sysfatal("in STRING expected CONTINUE, got EOF\n");
 		if (b->op != 0x03c)	
-			sysfatal("expected CONTINUE, got op=0x%x\n", b->op);
+			sysfatal("in STRING expected CONTINUE, got op=0x%x\n", b->op);
+		opt = gint(b, 1);
 	}
 	sysfatal("cannot ever happen error\n");
 	return nil;  // shut up 8c
@@ -494,6 +502,7 @@ sst(Biff *b)
 		sysfatal("no memory\n");
 	for (n = 0; n < Nstrtab; n++)
 		Strtab[n] = gstr(b, 2);
+
 }
 
 void
