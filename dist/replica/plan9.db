@@ -5770,7 +5770,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1134659796 256797
+sys/games/lib/fortunes - 664 sys sys 1138129633 257147
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7532,7 +7532,7 @@ sys/man/2/quaternion - 664 sys sys 950892867 3421
 sys/man/2/quote - 664 sys sys 1067719062 3072
 sys/man/2/rand - 664 sys sys 1035836606 2881
 sys/man/2/rc4 - 664 sys sys 1032058674 1138
-sys/man/2/read - 664 sys sys 1088107191 1883
+sys/man/2/read - 664 sys sys 1138113665 1899
 sys/man/2/readcolmap - 664 sys sys 950892803 1529
 sys/man/2/readv - 664 sys sys 1017423721 1454
 sys/man/2/regexp - 664 sys sys 988225293 3548
@@ -7990,6 +7990,7 @@ sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1071245461 15103
+sys/src/9/pc/ethervgbe.c - 664 sys sys 1138114457 26558
 sys/src/9/pc/ethervt6102.c - 664 sys sys 1131907459 22286
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1131290380 3747
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
@@ -8011,15 +8012,15 @@ sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1131538523 17317
 sys/src/9/pc/mp.h - 664 sys sys 1131538511 6652
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
-sys/src/9/pc/pc - 664 sys sys 1132333161 1428
+sys/src/9/pc/pc - 664 sys sys 1138115243 1452
 sys/src/9/pc/pcauth - 664 sys sys 1131907692 715
-sys/src/9/pc/pccd - 664 sys sys 1131636104 1427
-sys/src/9/pc/pccpu - 664 sys sys 1131907692 867
-sys/src/9/pc/pccpuf - 664 sys sys 1131907692 1487
-sys/src/9/pc/pcdisk - 664 sys sys 1132333161 1447
-sys/src/9/pc/pcf - 664 sys sys 1131907692 1505
+sys/src/9/pc/pccd - 664 sys sys 1138115243 1451
+sys/src/9/pc/pccpu - 664 sys sys 1138115243 891
+sys/src/9/pc/pccpuf - 664 sys sys 1138115243 1511
+sys/src/9/pc/pcdisk - 664 sys sys 1138115243 1471
+sys/src/9/pc/pcf - 664 sys sys 1138115243 1529
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
-sys/src/9/pc/pcflop - 664 sys sys 1131907692 1474
+sys/src/9/pc/pcflop - 664 sys sys 1138115244 1498
 sys/src/9/pc/pci.c - 664 sys sys 1131290505 26817
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
@@ -8106,7 +8107,7 @@ sys/src/9/port/devsrv.c - 664 sys sys 1107232208 5418
 sys/src/9/port/devssl.c - 664 sys sys 1131107944 26133
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1134498858 45226
-sys/src/9/port/devuart.c - 664 sys sys 1102093393 12192
+sys/src/9/port/devuart.c - 664 sys sys 1138118881 12141
 sys/src/9/port/devwd.c - 664 sys sys 1126582325 2342
 sys/src/9/port/edf.c - 664 sys sys 1099760881 12742
 sys/src/9/port/edf.h - 664 sys sys 1084475128 1156
@@ -8137,7 +8138,7 @@ sys/src/9/port/page.c - 664 sys sys 1131636090 11128
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
 sys/src/9/port/portclock.c - 664 sys sys 1102093397 4556
-sys/src/9/port/portdat.h - 664 sys sys 1135487943 22547
+sys/src/9/port/portdat.h - 664 sys sys 1138127259 22540
 sys/src/9/port/portfns.h - 664 sys sys 1138047830 11023
 sys/src/9/port/portmkfile - 664 sys sys 1131907975 2062
 sys/src/9/port/print.c - 664 sys sys 1014931178 227

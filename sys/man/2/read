@@ -86,8 +86,9 @@ without interference.
 .B /sys/src/libc/port/readn.c
 .SH SEE ALSO
 .IR intro (2),
-.IR open (2), 
+.IR dirread (2),
 .IR dup (2),
+.IR open (2),
 .IR pipe (2),
 .IR readv (2)
 .SH DIAGNOSTICS

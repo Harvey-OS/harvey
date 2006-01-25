@@ -49,6 +49,7 @@ link
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
+	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
 	ethersink
 	ethersmc	devi82365 cis

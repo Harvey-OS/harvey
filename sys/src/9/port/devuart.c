@@ -458,10 +458,6 @@ uartctl(Uart *p, char *cmd)
 			if((*p->phys->stop)(p, n) < 0)
 				return -1;
 			break;
-		case 'T':
-		case 't':
-			p->dcdts = n;
-			break;
 		case 'W':
 		case 'w':
 			if(uarttimer == nil || n < 1)
