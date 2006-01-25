@@ -888,7 +888,7 @@ struct Uart
 	int	modem;			/* hardware flow control on */
 	int	xonoff;			/* software flow control on */
 	int	blocked;
-	int	cts, dsr, dcd, dcdts;	/* keep track of modem status */ 
+	int	cts, dsr, dcd;	/* keep track of modem status */ 
 	int	ctsbackoff;
 	int	hup_dsr, hup_dcd;	/* send hangup upstream? */
 	int	dohup;
