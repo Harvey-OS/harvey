@@ -20,7 +20,9 @@ case other
 case juke
 	srv -q il!jukefs && mount /srv/il!jukefs /n/njuke && bind -c /n/njuke/juke /n/juke
 case sources
-	srv -m tcp!sources.cs.bell-labs.com sources /n/sources
+	srv -q tcp!sources.cs.bell-labs.com sources /n/sources &&
+		{ mount /srv/sources /n/sources ||
+		  mount -n /srv/sources /n/sources }
 case sourcesdump
 	9fs sources
 	mount /srv/sources /n/sourcesdump main/archive
