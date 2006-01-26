@@ -204,18 +204,20 @@ relaying is allowed only if the source IP address is in
 or the destination domain is specified in
 .BR ourdomains .
 .SS Blocked Addresses
-When
-.B /mail/lib/blocked
-exists and is readable,
-.I smtpd
-reads a list of banned addresses from it.
+.I Smtpd
+consults
+.B /mail/ratify
+(see
+.IR ratfs (4))
+for a list of banned addresses.
 Messages received from these addresses are
 rejected with a 5\fIxx\fP-series SMTP error code.
 There is no option
-to turn blocking on or off; if the file is accessible,
-blocking is enabled on all
+to turn blocking on or off; if 
+.B /mail/ratify
+is mounted,
 .I smtpd
-sessions, including those from trusted networks.
+will use it, even for connections from trusted networks.
 .PP
 The command line format and address specifications
 conform to the notation described above.  If the parameters
@@ -303,4 +305,5 @@ command line arguments applicable
 to exposed systems.
 .SH "SEE ALSO"
 .IR mail (1),
+.IR ratfs (4),
 .IR scanmail (8)

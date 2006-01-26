@@ -36,28 +36,27 @@ It accepts the following commands:
 Set the baud rate to
 .IR n .
 .TP
+.BI c n
+Set hangup on DCD if
+.I n
+is non-zero; else clear it.
+.TP
 .BI d n
 Set DTR if
 .I n
 is non-zero;
 else clear it.
 .TP
-.BI k n
-Send a break lasting
+.BI e n
+Set hangup on DSR if
 .I n
-milliseconds.
+is non-zero; else clear it.
 .TP
-.BI r n
-Set RTS if
-.I n
-is non-zero;
-else clear it.
+.B f
+Flush output queue.
 .TP
-.BI m n
-Obey modem CTS signal if
-.I n
-is non-zero;
-else clear it.
+.B h
+Close input and output queues.
 .TP
 .BI i n
 Enable/disable the FIFOs.
@@ -75,6 +74,25 @@ value of
 .I n
 causes the maximum-supported trigger level to be set.
 .TP
+.BI k n
+Send a break lasting
+.I n
+milliseconds.
+.TP
+.BI l n
+Set number of bits per byte to
+.IR n .
+Legal values are 5, 6, 7, or 8.
+.TP
+.BI m n
+Obey modem CTS signal if
+.I n
+is non-zero;
+else clear it.
+.TP
+.B n
+Make writes non-blocking.
+.TP
 .BI p c
 Set parity to odd if
 .I c
@@ -86,15 +104,20 @@ is
 .BR e ;
 else set no parity.
 .TP
+.BI q n
+Set input and output queue limits to
+.IR n .
+.TP
+.BI r n
+Set RTS if
+.I n
+is non-zero;
+else clear it.
+.TP
 .BI s n
 Set number of stop bits to
 .IR n .
 Legal values are 1 or 2.
-.TP
-.BI l n
-Set number of bits per byte to
-.IR n .
-Legal values are 5, 6, 7, or 8.
 .TP
 .BI w n
 Set the uart clock timer to
