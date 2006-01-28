@@ -1,125 +1,65 @@
+# Changes made in this directory are invisible to the
+# external web server.  To publish changed documents
+# to the external web server, mk install or name.install
+# To publish changed ps/pdf files, see the install rule.
+
 < /sys/doc/fonts
 NPROC = 1
-FILES = \
-	title.ps \
-	trademarks.ps \
-	contents.ps \
-	9.ps \
-	acid.ps \
-	acidpaper.ps \
-	ape.ps \
-	asm.ps \
-	auth.ps \
-	comp.ps \
-	compiler.ps \
-	lexnames.ps \
-	libmach.ps \
-	lp.ps \
-	mk.ps \
-	mkfiles.ps \
-	names.ps \
-	plumb.ps \
-	port.ps \
-	rc.ps \
-	sleep.ps \
-	spin.ps \
-	troff.ps \
-	utf.ps \
-	colophon.ps \
-	release4.ps \
-	prog4.ps\
 
-DIRS = \
-	8½ \
-	acme \
-	fs \
-	venti \
-	il \
-	net \
-	sam \
+ALL=\
+	title\
+	trademarks\
+	contents\
+	9\
+	names\
+	net/net\
+	auth\
+	comp\
+	prog4\
+	ape\
+	acidpaper\
+	acid\
+	mk\
+	mkfiles\
+	asm\
+	8½/8½\
+	rc\
+	sam/sam\
+	acme/acme\
+	plumb\
+	utf\
+	compiler\
+	libmach\
+	fs/fs\
+	venti/venti\
+	il/il\
+	lexnames\
+	sleep\
+	lp\
+	troff\
+	spin\
+	port\
+	colophon\
 
-all:V: dirs
+ALLPS=${ALL:%=%.ps}
+HTML=${ALL:%=%.html} release3.html release4.html
+FILES=`{mkfilelist $ALL}
+DIRS=`{mkdirlist $ALL}
+NAMES=$FILES $DIRS
 
-print:V: \
-	title.ps \
-	trademarks.ps \
-	contents.ps\
-	9.ps \
-	names.ps \
-	net/net.ps \
-	auth.ps \
-	comp.ps \
-	prog4.ps \
-	ape.ps \
-	acidpaper.ps \
-	acid.ps \
-	mk.ps \
-	mkfiles.ps \
-	asm.ps \
-	8½/8½.ps \
-	rc.ps \
-	sam/sam.ps \
-	acme/acme.ps \
-	plumb.ps \
-	utf.ps \
-	compiler.ps \
-	libmach.ps \
-	fs/fs.ps \
-	venti/venti.ps \
-	il/il.ps \
-	sleep.ps \
-	lexnames.ps \
-	lp.ps \
-	troff.ps \
-	spin.ps \
-	port.ps \
-	colophon.ps
-	lp -dfn -H -i0 $prereq
+all:V: ${FILES:%=%.ps} dirs
 
-html:V: \
-	9.html \
-	names.html \
-	net/net.html \
-	auth.html \
-	comp.html \
-	prog4.html \
-	ape.html \
-	acidpaper.html \
-	acid.html \
-	mk.html \
-	mkfiles.html \
-	asm.html \
-	8½/8½.html \
-	rc.html \
-	sam/sam.html \
-	acme/acme.html \
-	plumb.html \
-	utf.html \
-	compiler.html \
-	libmach.html \
-	fs/fs.html \
-	il/il.html \
-	sleep.html \
-	lexnames.html \
-	lp.html \
-	troff.html \
-	spin.html \
-	port.html \
-	release4.html
-	cp index.htm index.html
-
-dirs:V:	$FILES $DIRS
+dirs:V:
 	for(i in $DIRS) @{
 		cd $i
 		mk
 	}
 
+print:V: $ALLPS
+	lp -dfn -H -i0 $prereq
+
 title.ps:D:	title
 	troff $prereq | lp -dstdout > $target
-	cleanps $target
-
-contents.ps:D:	contents.ms
-	{ echo $FONTS; cat $prereq } | troff -ms -mnihongo | lp -dstdout > $target
 	cleanps $target
 
 trademarks.ps:D:	/sys/lib/man/trademarks
@@ -130,109 +70,38 @@ colophon.ps:D:	/sys/lib/man/colophon
 	troff $prereq | lp -dstdout > $target
 	cleanps $target
 
-%.page:D:	%.ps
-	page -w $stem.ps
-
+# troff gets some scary-looking errors but they're okay
 %.ps:D:	%.ms
-	{ echo $FONTS; cat $stem.ms } | tbl | troff -ms | lp -dstdout > $target
+	mac=(-ms)
+	if(~ $stem comp utf 9 contents) mac=(-ms -mnihongo)
+	{ echo $FONTS; cat $stem.ms } | pic | tbl | eqn | 
+		troff $mac | lp -dstdout > $target
 	cleanps $target
 
 %.trout:D:	%.ms
-	{ echo $FONTS; cat $stem.ms } | tbl | troff -ms > $stem.trout
+	mac=(-ms)
+	if(~ $stem comp utf 9 contents) mac=($mac -mnihongo)
+	{ echo $FONTS; cat $stem.ms } | pic | tbl | eqn | 
+		troff $mac > $target
 
-troff.trout:D:	troff.ms
-	{ echo $FONTS; cat $prereq } | tbl | eqn | troff -ms > $target
+html:V: $HTML
 
-troff.ps:D:	troff.ms
-	echo this gets some scary-looking errors, but they''''re fine
-	{ echo $FONTS; cat $prereq } | tbl | eqn | troff -ms | lp -dstdout > $target
-	cleanps $target
+9.trout 9.ps 9.html: network.pic
 
-fossil.ps:D: fossil.ms
-	{ echo $FONTS; cat $prereq } | pic | troff -ms | lp -dstdout >$target
-	cleanps $target
+%.html: /$objtype/bin/htmlroff /sys/lib/tmac/tmac.s
 
-auth.ps:D:	auth.ms
-	{ echo $FONTS; cat $prereq } | pic | tbl | eqn  | troff -ms | lp -dstdout > $target
-	cleanps $target
+index.html: contents.html
+	cp contents.html index.html
 
-plumb.ps:D:	plumb.ms
-	{ echo $FONTS; cat $prereq } | pic | troff -ms | lp -dstdout > $target
-	cleanps $target
+&.html:D:	&.ms
+	pic $stem.ms | tbl | eqn | htmlroff -ms -mhtml >$target
 
-comp.ps:D:	comp.ms
-	{ echo $FONTS; cat $prereq } | tbl | troff -ms -mnihongo | lp -dstdout > $target
-	cleanps $target
+^(8½|acme|fs|il|net|sam|venti)/([^/]*\.(pdf|ps|html))'$':R:
+	cd $stem1
+	mk $stem2
 
-utf.ps:D:	utf.ms
-	{ echo $FONTS; cat $prereq } | tbl | troff -ms -mnihongo | lp -dstdout > $target
-	cleanps $target
-
-9.ps:D:	9.ms network.pic
-	{ echo $FONTS; cat 9.ms } | tbl | pic | troff -ms -mnihongo | lp -dstdout > $target
-	cleanps $target
-
-9.trout:D:	9.ms network.pic
-	{ echo $FONTS; cat 9.ms } | tbl | pic | troff -ms -mnihongo > $target
-
-spin.ps:D:	spin.ms
-	{ echo $FONTS; cat $prereq } | eqn | tbl | troff -ms | lp -dstdout > $target
-	cleanps $target
-
-%.html:D:	%.ms
-	{ echo $FONTS; cat $stem.ms } | tbl | ms2html > $target
-
-troff.html:D:	troff.ms
-	{ echo $FONTS; cat $prereq } | tbl | eqn | ms2html > $target
-
-plumb.html:D:	plumb.ms
-	{ echo $FONTS; cat $prereq } | pic | ms2html > $target
-
-auth.html:D:	auth.ms
-	{ echo $FONTS; cat $prereq } | pic |eqn | tbl | ms2html > $target
-
-comp.html:D:	comp.ms
-	{ echo $FONTS; cat $prereq } | tbl | ms2html > $target
-
-utf.html:D:	utf.ms
-	{ echo $FONTS; cat $prereq } | tbl | ms2html > $target
-
-9.html:D:	9.ms network.pic
-	{ echo $FONTS; cat 9.ms } | tbl | pic | ms2html > $target
-
-spin.html:D:	spin.ms
-	{ echo $FONTS; cat $prereq } | eqn | tbl | ms2html > $target
-
-gfx.html:D:	gfx.ms
-	{ echo $FONTS; cat $prereq } | tbl | pic | ms2html > $target
-
-fs/fs.html:
-	cd fs
-	mk fs.html
-
-net/net.html:
-	cd net
-	mk net.html
-
-sam/sam.html:
-	cd sam
-	mk sam.html
-
-acme/acme.html:
-	cd acme
-	mk acme.html
-
-venti/venti.html:
-	cd venti
-	mk venti.html
-
-il/il.html:
-	cd il
-	mk il.html
-
-release4.html:	release4.ms
-	# remove all those extra blank lines
-	{ echo $FONTS; cat release4.ms } | tbl | ms2html | uniq > $target
+^(8½|acme|fs|il|net|sam|venti)\.html'$':R: \1/\1.html
+	cp $stem1/$stem1.html .
 
 %.pdf: %.ps
 	{ cat docfonts $stem.ps } >_$stem.ps
@@ -241,4 +110,23 @@ release4.html:	release4.ms
 
 %.all:V:
 	mk $stem.ps $stem.pdf $stem.html
+
+%.install:V: %.html
+	9fs other
+	files=`{ls $stem.html $stem^*.png $stem/*.png $stem/*.html >[2]/dev/null}
+	whatis stem
+	whatis files
+	cp $files /n/other/crp/sources.copy/sys/doc
+
+%.page:V:	%.ps
+	page -w $stem.ps
+
+install:V: ${NAMES:%=%.install} release4.install release3.install
+
+# ignore these
+IGNHTML=title trademarks colophon troff
+IGN=${IGNHTML:%=%.html} ${IGNHTML:%=%.install}
+
+$IGN:QV:
+	# nothing
 

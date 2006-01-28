@@ -308,9 +308,11 @@
 .di WT
 .na
 .fi
+.ie h .ll \\n(LLu
+.el \{\
 .ll 5.0i
 .if n .if \\n(TN .ll 29
-.if t .if \\n(TN .ll 3.5i
+.if t .if \\n(TN .ll 3.5i \}
 .ft 3
 .ps \\n(PS
 .if !\\n(TN \{\
@@ -318,6 +320,7 @@
 .	vs \\n(.s+2
 .	rm CS\}
 .hy 0
+.if h .ce 999
 ..
 .de TX
 .rs
@@ -358,6 +361,7 @@
 .		ft 3
 .		ll 16\}\}
 .ps \\n(PS
+.if h .ce 999
 ..
 .de AX
 .ft 1
@@ -1259,7 +1263,8 @@ ABSTRACT
 .ta \\n(JQu \\n(TYuR
 .if \\n(.$ \{\
 .ti \\n(I\\n(IRu
-\&\\$1\t\c\}
+\&\\$1\t\c
+.\}
 ..
 .	\"LP - left aligned (block) paragraph
 .de LP

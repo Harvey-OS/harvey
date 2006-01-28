@@ -108,6 +108,9 @@ Part 8 (Hebrew)
 .B 8859-9
 Latin-5 (Finnish .. Portuguese)
 .TP
+.B html
+Unicode as encoded by HTML
+.TP
 .B koi8
 KOI-8 (GOST 19769-74)
 .TP
@@ -156,6 +159,9 @@ format.
 Unknown Kanji will be converted into
 .B 0xFFFD
 characters.
+.TP
+.B tcs -t html
+Convert UTF into character set-independent HTML.
 .TP
 .B tcs -lv
 Print an up to date list of the supported character sets.
